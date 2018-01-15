@@ -17,6 +17,7 @@ For install just dowload archive and untar somewhere:
 ```
 $ cd /opt/haproxy-webintarface
 $ tar xf haproxy-webintarface-master.zip
+$ pip3 -r requirements.txt
 ```
 
 # Settings
