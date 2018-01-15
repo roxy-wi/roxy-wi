@@ -3,6 +3,15 @@ A simple web interface for managing Haproxy servers
 
 ![alt text](image/5.jpeg "Edit config page")
 
+# Capabilities:
+1. View statistics of all servers in one place
+2. View logs of all servers in one place
+3. Disabling / enabling the backend servers without reboot (after reboot, will work as specified in the config), viewing server state data
+4. Browsing Configs
+5. Editing configs
+6. Rollback to previous versions of the config
+7. Comparing versions of configs
+
 # Install
 For install just dowload archive and untar somewhere:
 
@@ -18,7 +27,9 @@ copy ssh key on all HAproxy servers
 For online edit HAproxy settings enable socket on HAproxt servers:
 
 global
+
     log         172.28.0.5 local2 debug err
+    
     stats socket *:1999 level admin
     
 ![alt text](image/4.jpeg "View logs page")
