@@ -19,6 +19,10 @@ $ cd /opt/haproxy-webintarface
 $ tar xf haproxy-webintarface-master.zip
 $ pip3 -r requirements.txt
 ```
+If foler not /opt/haproxy/, edit server.py:
+```
+path_config = "/opt/haproxy/haproxy-webintarface.config"
+```
 
 # Settings
 edit haproxy-webintarface.config with your env
