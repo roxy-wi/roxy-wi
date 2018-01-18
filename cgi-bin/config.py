@@ -26,13 +26,14 @@ config.read(path_config)
 
 fullpath = config.get('main', 'fullpath')
 hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
+time_zone = config.get('main', 'time_zone')
 
 if login is None:
 	print('<meta http-equiv="refresh" content="0; url=login.py?ref=config.py">')
 
 if serv is not None:
 	fmt = "%Y-%m-%d.%H:%M:%S"
-	now_utc = datetime.now(timezone('Asia/Almaty'))
+	now_utc = datetime.now(timezone(time_zone))
 	cfg = hap_configs_dir + serv + "-" + now_utc.strftime(fmt) + ".cfg"
 
 funct.chooseServer("config.py#conf", "Edit HAproxy config", "y")
@@ -49,7 +50,6 @@ if form.getvalue('serv') is not None and form.getvalue('open') is not None :
 	print('<input type="hidden" value="%s.old" name="oldconfig">' % cfg)
 	print('<textarea name="config" rows="35" cols="100">%s</textarea>' % conf.read())
 	print('<p><button type="submit" value="save and restart" onclick="return confirm(\'are u shure?\')">save and restart</button></p></form>')
-	print('<center><h3><a href="#top" title="UP">UP</a></center>')
 	conf.close
 
 	os.system("/bin/sudo /bin/mv %s %s.old" % (cfg, cfg))	

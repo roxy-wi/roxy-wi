@@ -30,10 +30,11 @@ haproxy_configs_server = config.get('configs', 'haproxy_configs_server')
 hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
 haproxy_config_path  = config.get('haproxy', 'haproxy_config_path')
 restart_command = config.get('haproxy', 'restart_command')
+time_zone = config.get('main', 'time_zone')
 
 def logging(serv, action):
 	dateFormat = "%b  %d %H:%M:%S"
-	now_utc = datetime.now(timezone('Asia/Almaty'))
+	now_utc = datetime.now(timezone(time_zone))
 	IP = cgi.escape(os.environ["REMOTE_ADDR"])
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	firstName = cookie.get('FirstName')
@@ -43,6 +44,18 @@ def logging(serv, action):
 	log.write(mess)
 	log.close
 
+def links():
+	print('<a href=/ title="Home Page" style="size:5">Home Page</a> ')
+	print('<a href=/cgi-bin/viewsttats.py title="View Stats" style="size:5">Stats</a> ')	
+	print('<a href="http://172.23.16.154:3000/dashboard/db/haproxy" title="Mon" target="_blanck">Monitoring</a> ')
+	print('<a href=/cgi-bin/logs.py title="Logs" style="size:6">Logs</a>')
+	print('<a href=/cgi-bin/edit.py title="Edit settings" style="size:5">Edit settings</a> ')
+	print('<span style="color: #fff">  | Configs: </span>')
+	print('<a href=/cgi-bin/configshow.py title="Show Config">Show</a> ')
+	print('<a href=/cgi-bin/diff.py title="Compare Configs">Compare</a> ')
+	print('<a href=/cgi-bin/config.py title="Edit Config" style="size:5">Edit</a> ')
+	print('<a href=/cgi-bin/configver.py title="Upload old config" style="size:5">Upload old</a>')	
+	
 def head(title):
 	print("Content-type: text/html\n")
 	print('<html><head><title>%s</title>' % title)
@@ -50,28 +63,13 @@ def head(title):
 	print('<link href="/style.css" rel="stylesheet"><meta charset="UTF-8"></head><body>')
 	print('<a name="top"></a>')
 	print('<div class="top-menu"><div class="top-link">')
-	print('<a href=/ title="Home Page" style="size:5">Home Page</a> ')
-	print('<a href=/cgi-bin/viewsttats.py title="View Stats" style="size:5">Stats</a> ')	
-	print('<a href=/cgi-bin/edit.py title="Edit settings" style="size:5">Edit settings</a> ')
-	print('<a href=/cgi-bin/logs.py title="Logs" style="size:6">Logs</a>')
-	print('<span style="color: #fff">  | Configs: </span>')
-	print('<a href=/cgi-bin/configshow.py title="Show Config">Show</a> ')
-	print('<a href=/cgi-bin/diff.py title="Compare Configs">Compare</a> ')
-	print('<a href=/cgi-bin/config.py title="Edit Config" style="size:5">Edit</a> ')
-	print('<a href=/cgi-bin/configver.py title="Upload old config" style="size:5">Upload old</a>')	
+	links()
 	print('</div></div><div class="conteiner">')
 
 def footer():
+	print('<center><h3><a href="#top" title="UP">UP</a></center>')
 	print('</center></div><div class="footer"><div class="footer-link">')
-	print('<a href=/ title="Home Page" style="size:5">Home Page</a> ')
-	print('<a href=/cgi-bin/viewsttats.py title="View Stats" style="size:5">Stats</a> ')	
-	print('<a href=/cgi-bin/edit.py title="Edit settings" style="size:5">Edit settings</a> ')
-	print('<a href=/cgi-bin/logs.py title="Logs" style="size:6">Logs</a>')
-	print('<span style="color: #fff">  | Configs: </span>')
-	print('<a href=/cgi-bin/configshow.py title="Show Config">Show</a> ')
-	print('<a href=/cgi-bin/diff.py title="Compare Configs">Compare</a> ')
-	print('<a href=/cgi-bin/config.py title="Edit Config" style="size:5">Edit</a> ')
-	print('<a href=/cgi-bin/configver.py title="Upload old config" style="size:5">Upload old</a>')	
+	links()	
 	print('</div></div></body></html>')
 	
 def get_config(serv, cfg):
@@ -86,6 +84,43 @@ def get_config(serv, cfg):
 	sftp.get(haproxy_config_path, cfg)
 	sftp.close()
 	ssh.close()
+	
+def show_config(cfg):
+	print('</center><div class="configShow">')
+	conf = open(cfg, "r")
+	i = 0
+	for line in conf:
+		i = i + 1
+		if not line.find("global"):
+			print('<div class="param">' + line + '</div>')
+			continue
+		if not line.find("defaults"):
+			print('<div class="param">' + line + '</div>')
+			continue
+		if not line.find("listen"):
+			print('<div class="param">' + line + '</div>')
+			continue
+		if not line.find("frontend"):
+			print('<div class="param">' + line + '</div>')
+			continue
+		if not line.find("backend"):
+			print('<div class="param">' + line + '</div>')
+			continue
+		if "acl" in line or "option" in line or "server" in line:
+			print('<div class="paramInSec"><span class="numRow">')
+			print(i)
+			print('</span>' + line + '</div>')
+			continue
+		if "#" in line:
+			print('<div class="comment">')
+			print(i)
+			print(line + '</div>')
+			continue			
+		print('<div class="configLine"><span class="numRow">')
+		print(i)
+		print('</span>' + line + '</div>')					
+	print('</div>')
+	conf.close
 	
 def upload_and_restart(serv, cfg):
 	ssh = SSHClient()
@@ -119,9 +154,15 @@ def ssh_command(serv, commands):
 	ssh.connect( hostname = serv, username = ssh_user_name, pkey = k )
 	for command in commands:
 		stdin , stdout, stderr = ssh.exec_command(command)
-		print('<pre>')
-		print(stdout.read().decode(encoding='UTF-8'))
-		print('</pre>')
+		print('</center><div class="out">')
+		i = 1
+		for line in stdout:
+			i = i + 1
+			if i % 2 == 0:
+				print('<div class="line">' + line + '</div>')
+			else:
+				print('<div class="line2">' + line + '</div>')
+		print('</div>')
 	ssh.close()
 	
 def chooseServer(formName, title, note):
@@ -156,7 +197,7 @@ def choose_server_with_vip(serv):
 			selected = 'selected'
 		else:
 			selected = ''
-			print('<option value="%s" %s>%s</option>' % (listhap.listhap.get(i), selected, i))
+		print('<option value="%s" %s>%s</option>' % (listhap.listhap.get(i), selected, i))
 
 def merge_two_dicts(x, y):
     z = x.copy()

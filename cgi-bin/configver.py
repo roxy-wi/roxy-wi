@@ -63,16 +63,14 @@ if serv is not None and form.getvalue('open') is not None:
 		configver = form.getvalue('configver')
 		funct.logging(serv, "open old config %s" % configver)
 
-		conf = open(configver, "r")
 		print("<h3>Config from %s, and version is: %s</h3>" % (serv, configver))
 		print('<form action="configver.py#conf" method="get">')
 		print('<input type="hidden" value="%s" name="serv">' % serv)
 		print('<input type="hidden" value="%s" name="configver">' % configver)
-		print('<a name="conf"></a>')
-		print('<textarea class="ro" name="config" rows="35" cols="100" readonly> %s </textarea>' % conf.read())
-		print('<p><button type="submit" value="Upload and restart" onclick="return confirm(\'are u shure?\')">Upload and restart</button></p></form>')
-		print('<center><h3><a href="#top" title="UP">UP</a></center>')
-		conf.close
+		print('<a name="conf"></a></center>')
+		funct.show_config(configver)
+		print('<center><p><button type="submit" value="Upload and restart" onclick="return confirm(\'are u shure?\')">Upload and restart</button></p></form></center>')
+
 
 if form.getvalue('serv') is not None and form.getvalue('config') is not None:
 	configver = form.getvalue('configver')
@@ -84,4 +82,6 @@ if form.getvalue('serv') is not None and form.getvalue('config') is not None:
 
 	funct.upload_and_restart(serv, configver)
 
-	print('</br><a href="viewsttats.py" title="View stats">Go to view stats</a> <br />')
+	print('<center><br /><a href="viewsttats.py" title="View stats">Go to view stats</a> <br /></center>')
+	
+funct.footer()

@@ -72,6 +72,4 @@ if form.getvalue('serv') is not None:
 	
 	funct.ssh_command(syslog_server, commands)
 	
-	print('<center><h3><a href="#top" title="UP">UP</a></center>')
-
 funct.footer()

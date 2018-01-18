@@ -22,7 +22,7 @@ form = cgi.FieldStorage()
 serv = form.getvalue('serv')
 
 if serv is None:
-	serv = '172.28.9.161'
+	serv = '172.28.5.17'
 
 try:
 	response = requests.get('http://%s:%s/stats' % (serv, stats_port), auth=(haproxy_user, haproxy_pass)) 

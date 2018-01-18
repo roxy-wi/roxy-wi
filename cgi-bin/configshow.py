@@ -24,10 +24,11 @@ ssh_keys = config.get('ssh', 'ssh_keys')
 ssh_user_name = config.get('ssh', 'ssh_user_name')
 hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
 haproxy_config_path  = config.get('haproxy', 'haproxy_config_path')
+time_zone = config.get('main', 'time_zone')
 
 if serv is not None:
 	fmt = "%Y-%m-%d.%H:%M:%S"
-	now_utc = datetime.now(timezone('Asia/Almaty'))
+	now_utc = datetime.now(timezone(time_zone))
 	cfg = hap_configs_dir + serv + "-" + now_utc.strftime(fmt) + ".cfg"
 
 funct.chooseServer("configshow.py#conf", "Show HAproxy config", "n")
@@ -35,12 +36,10 @@ funct.chooseServer("configshow.py#conf", "Show HAproxy config", "n")
 if form.getvalue('serv') is not None and form.getvalue('open') is not None :
 	funct.get_config(serv, cfg)
 	
-	conf = open(cfg, "r")
 	print('<a name="conf"></a>')
 	print("<h3>Config from %s</h3>" % serv)
-	print('<textarea class="ro" readonly name="config" rows="35" cols="100"> %s </textarea>' % conf.read())
-	print('<center><h3><a href="#top" title="UP">UP</a></center>')
-	conf.close
+	
+	funct.show_config(cfg)
 
 	os.system("/bin/sudo /bin/rm -f " + cfg)	
 	
