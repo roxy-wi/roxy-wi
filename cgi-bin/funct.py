@@ -47,7 +47,6 @@ def logging(serv, action):
 def links():
 	print('<a href=/ title="Home Page" style="size:5">Home Page</a> ')
 	print('<a href=/cgi-bin/viewsttats.py title="View Stats" style="size:5">Stats</a> ')	
-	print('<a href="http://172.23.16.154:3000/dashboard/db/haproxy" title="Mon" target="_blanck">Monitoring</a> ')
 	print('<a href=/cgi-bin/logs.py title="Logs" style="size:6">Logs</a>')
 	print('<a href=/cgi-bin/edit.py title="Edit settings" style="size:5">Edit settings</a> ')
 	print('<span style="color: #fff">  | Configs: </span>')
