@@ -22,8 +22,9 @@ form = cgi.FieldStorage()
 serv = form.getvalue('serv')
 
 if serv is None:
-	serv = '172.28.5.17'
-
+	first_serv = list(listhap.list_hap_vip.values())
+	serv = first_serv[0]
+	
 try:
 	response = requests.get('http://%s:%s/stats' % (serv, stats_port), auth=(haproxy_user, haproxy_pass)) 
 except requests.exceptions.ConnectTimeout:
