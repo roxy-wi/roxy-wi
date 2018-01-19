@@ -1,4 +1,4 @@
-# haproxy web intarface
+# Haproxy web interface
 A simple web interface(user-frendly web GUI) for managing Haproxy servers
 
 ![alt text](image/5.jpeg "Edit config page")
