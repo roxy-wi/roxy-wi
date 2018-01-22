@@ -24,7 +24,7 @@ serv = form.getvalue('serv')
 if serv is None:
 	first_serv = list(listhap.list_hap_vip.values())
 	serv = first_serv[0]
-	
+
 try:
 	response = requests.get('http://%s:%s/stats' % (serv, stats_port), auth=(haproxy_user, haproxy_pass)) 
 except requests.exceptions.ConnectTimeout:
@@ -33,6 +33,7 @@ except requests.exceptions.ReadTimeout:
 	print('Oops. Read timeout occured')
 
 print("Content-type: text/html\n")
+print('<meta http-equiv="refresh" content="%s; url=viewsttats.py?serv=%s">' % (config.get('haproxy', 'refresh_time') ,serv))
 
 for i in listhap.listhap:
         if listhap.listhap.get(i) == serv:

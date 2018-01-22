@@ -20,7 +20,7 @@ config.read(path_config)
 print('<center><h2>HAproxy Logs</h2></center>')
 print('<center><h3>Choose server & number rows</h3>')
 print('<form action="logs.py" method="get">')
-print('<p><select autofocus required name="serv">')
+print('<p><select autofocus required name="serv" id="serv">')
 print('<option disabled>Choose server</option>')
 
 for i in sorted(listhap.listhap):

@@ -27,13 +27,13 @@ def login_page(error):
 		
 	funct.head("Login page")
 	
-	print('<center><div class="conteiner"><form name="auth" action="login.py" class="form-horizontal" method="post">')
+	print('<center><form name="auth" action="login.py" class="form-horizontal" method="post">')
 	print(printError)
 	print('<label for="login"> Login: </label>  <input type="text" name="login" class="form-control">')
 	print('<label for="pass"> Pass: </label>   <input type="password" name="pass" class="form-control">')
 	print('<input type="hidden" value="%s" name="ref">' % ref)
-	print('<button type="submit" name="Login" value="Enter">Sign</button>')
-	print('</form></div></center>')
+	print('<button type="submit" name="Login" value="Enter">Sign Up</button>')
+	print('</form></center>')
 
 if login is None:		
 	login_page("n")

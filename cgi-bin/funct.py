@@ -12,8 +12,7 @@ def check_config():
 	path_config = "haproxy-webintarface.config"
 	config = configparser.ConfigParser()
 	config.read(path_config)
-	
-	
+		
 	for section in [ 'main', 'configs', 'ssh', 'logs', 'haproxy' ]:
 		if not config.has_section(section):
 			print('<b style="color: red">Check config file, no %s section</b>' % section)
@@ -56,18 +55,43 @@ def links():
 	print('<a href=/cgi-bin/configver.py title="Upload old config" style="size:5">Upload old</a>')	
 	
 def head(title):
-	print("Content-type: text/html\n")
+	print('Content-type: text/html\n')
 	print('<html><head><title>%s</title>' % title)
-	print('<link href="/favicon.ico" rel="icon" type="image/png" />')
-	print('<link href="/style.css" rel="stylesheet"><meta charset="UTF-8"></head><body>')
-	print('<a name="top"></a>')
-	print('<div class="top-menu"><div class="top-link">')
+	print('<link href="/favicon.ico" rel="icon" type="image/png" />'
+		'<link href="/style.css" rel="stylesheet"><meta charset="UTF-8">'
+		'<link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">'
+		'<script src="https://code.jquery.com/jquery-1.12.4.js"></script>'
+		'<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>'
+		'</head>'
+			'<body>'
+				'<script>'
+				'$( function() {'
+					'$( "select" ).selectmenu();'
+					'} );'
+				'$( function() {'
+					'$( "input[type=submit], button" ).button();'
+				'} );'
+				 '$( function() {'
+					'$( document ).tooltip();'
+					'} );'
+				'</script>'
+		'<a name="top"></a>')
+	print('<div class="top-menu">')
+	if config.get('main', 'logo_enable') == "1":
+		print('<img src="%s" title="Logo" class="logo">' % config.get('main', 'logo_path'))
+	print('<div class="top-link">')
 	links()
 	print('</div></div><div class="conteiner">')
 
 def footer():
-	print('<center><h3><a href="#top" title="UP">UP</a></center>')
-	print('</center></div><div class="footer"><div class="footer-link">')
+	print('<center>'
+				'<h3>'
+					'<a href="#top" title="UP">UP</a>'
+				'</h3>'
+			'</center>'
+			'</center></div>'
+			'<div class="footer">'
+				'<div class="footer-link">')
 	links()	
 	print('</div></div></body></html>')
 	
@@ -111,9 +135,9 @@ def show_config(cfg):
 			print('</span>' + line + '</div>')
 			continue
 		if "#" in line:
-			print('<div class="comment">')
+			print('<div class="comment"><span class="numRow">')
 			print(i)
-			print(line + '</div>')
+			print(line + '</span></div>')
 			continue			
 		print('<div class="configLine"><span class="numRow">')
 		print(i)
@@ -143,7 +167,7 @@ def upload_and_restart(serv, cfg):
 		print(stderr.read().decode(encoding='UTF-8'))
 		print("</br>")
 	ssh.close()
-
+	
 def ssh_command(serv, commands):
 	ssh = SSHClient()
 	ssh.load_system_host_keys()
@@ -154,21 +178,44 @@ def ssh_command(serv, commands):
 	for command in commands:
 		stdin , stdout, stderr = ssh.exec_command(command)
 		print('</center><div class="out">')
-		i = 1
+		if serv == haproxy_configs_server:
+			print('<div class="diff">')
+		i = 0
+		minus = 0
+		plus = 0
 		for line in stdout:
 			i = i + 1
-			if i % 2 == 0:
-				print('<div class="line">' + line + '</div>')
+			if serv == haproxy_configs_server:
+				if i is 1:
+					print('<div class="diffHead">' + line + '<br />')
+				elif i is 2:
+					print(line + '</div>')
+				elif line.find("-") == 0 and i is not 1:
+					print('<div class="lineDiffMinus">' + line + '</div>')
+					minus = minus + 1
+				elif line.find("+") == 0 and i is not 2:
+					print('<div class="lineDiffPlus">' + line + '</div>')	
+					plus = plus + 1					
+				elif line.find("@") == 0:
+					print('<div class="lineDog">' + line + '</div>')
+				else:
+					print('<div class="lineDiff">' + line + '</div>')				
+			elif i % 2 == 0: 
+					print('<div class="line3">' + line + '</div>')
 			else:
-				print('<div class="line2">' + line + '</div>')
-		print('</div>')
+					print('<div class="line">' + line + '</div>')
+			total_change = minus + plus
+		if serv == haproxy_configs_server:
+			print('<div class="diffHead">Total change: %s, additions: %s & deletions: %s </div>' % (total_change, minus, plus))
+		print('</div></div>')
+		print(stderr.read().decode(encoding='UTF-8'))
 	ssh.close()
 	
 def chooseServer(formName, title, note):
 	print('<center><h2>' + title + '</h2>')
 	print('<h3>Choose server</h3>')
 	print('<form action=' + formName + ' method="get">')
-	print('<p><select autofocus required name="serv">')
+	print('<p><select autofocus required name="serv" id="chooseServer">')
 	print('<option disabled>Choose server</option>')
 
 	form = cgi.FieldStorage()
@@ -186,7 +233,7 @@ def chooseServer(formName, title, note):
 	print('</select>')
 	print('<p><button type="submit" value="open" name="open">Open</button></p></form>')
 	if note == "y":
-		print('<p><b>Note:</b> If you reconfigure First server, second will reconfigured automatically</p><br />')
+		print('<p><b>Note:</b> If you reconfigure First server, second will reconfigured automatically</p>')
 		
 def choose_server_with_vip(serv):
 	import listserv as listhap
