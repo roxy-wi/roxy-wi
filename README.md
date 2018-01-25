@@ -8,9 +8,11 @@ A simple web interface(user-frendly web GUI) for managing Haproxy servers
 2. View logs of all servers in one place
 3. Disabling / enabling the backend servers without reboot (after reboot, will work as specified in the config), viewing server state data
 4. Browsing Configs
-5. Editing configs
-6. Rollback to previous versions of the config
-7. Comparing versions of configs
+5. Add sections: listen, frontend, backend from web interface
+6. Editing configs
+7. Rollback to previous versions of the config
+8. Comparing versions of configs
+9. Users roles: admin, viewer
 
 # Install
 For install just dowload archive and untar somewhere:
