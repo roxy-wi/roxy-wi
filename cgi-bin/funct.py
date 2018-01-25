@@ -28,7 +28,6 @@ ssh_user_name = config.get('ssh', 'ssh_user_name')
 haproxy_configs_server = config.get('configs', 'haproxy_configs_server')
 hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
 haproxy_config_path  = config.get('haproxy', 'haproxy_config_path')
-tmp_config_path = config.get('haproxy', 'tmp_config_path')
 restart_command = config.get('haproxy', 'restart_command')
 time_zone = config.get('main', 'time_zone')
 
@@ -43,43 +42,17 @@ def logging(serv, action):
 	log = open(fullpath + "log/config_edit.log", "a")
 	log.write(mess)
 	log.close
-	
-def check_login(ref):
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	login = cookie.get('login')
 
-	if login is None:
-		print('<meta http-equiv="refresh" content="0; url=login.py?ref=%s">' % ref)
-		
-def show_login_links():
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	login = cookie.get('login')
-	
-	if login is None:
-		print('<a href=/cgi-bin/login.py? title="Login" style="size:5">Login</a>')	
-	else:
-		print('<a href=/cgi-bin/login.py?logout=logout title="Logout" style="size:5">Logout</a>')
-		
-def mode_admin(button):
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	role = cookie.get('role')
-	
-	if role.value == "admin":
-		print('<button type="submit">%s</button>' % button)
-		
 def links():
 	print('<a href=/ title="Home Page" style="size:5">Home Page</a> ')
 	print('<a href=/cgi-bin/viewsttats.py title="View Stats" style="size:5">Stats</a> ')	
-	print('<a href="http://172.28.5.106:3000/dashboard/db/haproxy" title="Mon" target="_blanck">Monitoring</a> ')
-	print('<a href=/cgi-bin/logs.py title="View logs" style="size:6">Logs</a>')
+	print('<a href=/cgi-bin/logs.py title="Logs" style="size:6">Logs</a>')
 	print('<a href=/cgi-bin/edit.py title="Edit settings" style="size:5">Edit settings</a> ')
 	print('<span style="color: #fff">  | Configs: </span>')
 	print('<a href=/cgi-bin/configshow.py title="Show Config">Show</a> ')
 	print('<a href=/cgi-bin/diff.py title="Compare Configs">Compare</a> ')
-	print('<a href=/cgi-bin/add.py title="Add single listen/frontend/backend" style="size:5">Add</a> ')
 	print('<a href=/cgi-bin/config.py title="Edit Config" style="size:5">Edit</a> ')
 	print('<a href=/cgi-bin/configver.py title="Upload old config" style="size:5">Upload old</a>')	
-	show_login_links()
 	
 def head(title):
 	print('Content-type: text/html\n')
@@ -89,11 +62,21 @@ def head(title):
 		'<link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">'
 		'<script src="https://code.jquery.com/jquery-1.12.4.js"></script>'
 		'<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>'
-		'<script src="/script.js"></script>'
 		'</head>'
 			'<body>'
-				'<a name="top"></a>'
-				'<div class="top-menu">')
+				'<script>'
+				'$( function() {'
+					'$( "select" ).selectmenu();'
+					'} );'
+				'$( function() {'
+					'$( "input[type=submit], button" ).button();'
+				'} );'
+				 '$( function() {'
+					'$( document ).tooltip();'
+					'} );'
+				'</script>'
+		'<a name="top"></a>')
+	print('<div class="top-menu">')
 	if config.get('main', 'logo_enable') == "1":
 		print('<img src="%s" title="Logo" class="logo">' % config.get('main', 'logo_path'))
 	print('<div class="top-link">')
@@ -163,10 +146,6 @@ def show_config(cfg):
 	conf.close
 	
 def upload_and_restart(serv, cfg):
-	fmt = "%Y-%m-%d.%H:%M:%S"
-	now_utc = datetime.now(timezone(config.get('main', 'time_zone')))
-	tmp_file = tmp_config_path + "/" + now_utc.strftime(fmt) + ".cfg"
-
 	ssh = SSHClient()
 	ssh.load_system_host_keys()
 	k = paramiko.RSAKey.from_private_key_file(ssh_keys)
@@ -176,109 +155,59 @@ def upload_and_restart(serv, cfg):
 	ssh.connect( hostname = serv, username = ssh_user_name, pkey = k )
 	print("connected<br />")
 	sftp = ssh.open_sftp()
-	sftp.put(cfg, tmp_file)
+	sftp.put(cfg, haproxy_config_path)
 	sftp.close()
-	commands = [ "/sbin/haproxy  -q -c -f " + tmp_file, "mv -f " + tmp_file + " " + haproxy_config_path, restart_command]
-	i = 0
+	commands = [ "service haproxy restart" ]
 	for command in commands:
-		i = i + 1
 		print("</br>Executing: {}".format( command ))
 		print("</br>")
 		stdin , stdout, stderr = ssh.exec_command(command)
 		print(stdout.read().decode(encoding='UTF-8'))
-		if i == 1:
-			if not stderr.read():
-				print('<h3 style="color: #23527c">Config ok</h3>')
-			else:
-				print('<h3 style="color: red">In your config have errors, please check, and try again</h3>')
-				print(stderr.read().decode(encoding='UTF-8'))
-				return False
-				break
-		if i is not 1:
-			print("</br>Errors:")	
-			print(stderr.read().decode(encoding='UTF-8'))
-			print("</br>")
-	
-	return True	
-			
+		print("</br>Errors:")
+		print(stderr.read().decode(encoding='UTF-8'))
+		print("</br>")
 	ssh.close()
 	
-def compare(stdout):
-	i = 0
-	minus = 0
-	plus = 0
-	total_change = 0
-	
-	print('</center><div class="out">')
-	print('<div class="diff">')
-		
-	for line in stdout:
-		i = i + 1
-
-		if i is 1:
-			print('<div class="diffHead">' + line + '<br />')
-		elif i is 2:
-			print(line + '</div>')
-		elif line.find("-") == 0 and i is not 1:
-			print('<div class="lineDiffMinus">' + line + '</div>')
-			minus = minus + 1
-		elif line.find("+") == 0 and i is not 2:
-			print('<div class="lineDiffPlus">' + line + '</div>')	
-			plus = plus + 1					
-		elif line.find("@") == 0:
-			print('<div class="lineDog">' + line + '</div>')
-		else:
-			print('<div class="lineDiff">' + line + '</div>')				
-			
-		total_change = minus + plus
-	print('<div class="diffHead">Total change: %s, additions: %s & deletions: %s </div>' % (total_change, minus, plus))	
-	print('</div></div>')
-		
-def show_log(stdout):
-	i = 0
-	for line in stdout:
-		i = i + 1
-		if i % 2 == 0: 
-			print('<div class="line3">' + line + '</div>')
-		else:
-			print('<div class="line">' + line + '</div>')
-			
-	print('</div></div>')
-
-def show_ip(stdout):
-	for line in stdout:
-		print(line)
-		
-def ssh_command(serv, commands, **kwargs):
+def ssh_command(serv, commands):
 	ssh = SSHClient()
 	ssh.load_system_host_keys()
 	k = paramiko.RSAKey.from_private_key_file(ssh_keys)
 	ssh = paramiko.SSHClient()
 	ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 	ssh.connect( hostname = serv, username = ssh_user_name, pkey = k )
-	
-	ip = 0
-	compare_funct = 0
-	show_log_funct = 0
-	
-	for k in kwargs:
-		if "ip" in kwargs[k]:
-			ip = 1
-		if "compare" in kwargs[k]:
-			compare_funct = 1
-		if "show_log" in kwargs[k]:
-			show_log_funct = 1
-		
 	for command in commands:
 		stdin , stdout, stderr = ssh.exec_command(command)
-				
-		if ip is 1:	
-			show_ip(stdout)
-		if compare_funct is 1:
-			compare(stdout)
-		if show_log_funct is 1:
-			show_log(stdout)
-			
+		print('</center><div class="out">')
+		if serv == haproxy_configs_server:
+			print('<div class="diff">')
+		i = 0
+		minus = 0
+		plus = 0
+		for line in stdout:
+			i = i + 1
+			if serv == haproxy_configs_server:
+				if i is 1:
+					print('<div class="diffHead">' + line + '<br />')
+				elif i is 2:
+					print(line + '</div>')
+				elif line.find("-") == 0 and i is not 1:
+					print('<div class="lineDiffMinus">' + line + '</div>')
+					minus = minus + 1
+				elif line.find("+") == 0 and i is not 2:
+					print('<div class="lineDiffPlus">' + line + '</div>')	
+					plus = plus + 1					
+				elif line.find("@") == 0:
+					print('<div class="lineDog">' + line + '</div>')
+				else:
+					print('<div class="lineDiff">' + line + '</div>')				
+			elif i % 2 == 0: 
+					print('<div class="line3">' + line + '</div>')
+			else:
+					print('<div class="line">' + line + '</div>')
+			total_change = minus + plus
+		if serv == haproxy_configs_server:
+			print('<div class="diffHead">Total change: %s, additions: %s & deletions: %s </div>' % (total_change, minus, plus))
+		print('</div></div>')
 		print(stderr.read().decode(encoding='UTF-8'))
 	ssh.close()
 	
@@ -320,6 +249,3 @@ def merge_two_dicts(x, y):
     z = x.copy()
     z.update(y)
     return z		
-	
-	
-	

@@ -14,16 +14,20 @@ from pytz import timezone
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
 configver = form.getvalue('configver')
+cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+login = cookie.get('login')
 
 funct.head("Old Versions HAproxy config")
 funct.check_config()
-funct.check_login("configver.py")
 
 path_config = "haproxy-webintarface.config"
 config = configparser.ConfigParser()
 config.read(path_config)
 
 hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
+
+if login is None:
+	print('<meta http-equiv="refresh" content="0; url=login.py?ref=configver.py">')
 
 funct.chooseServer("configver.py#conf", "Old Versions HAproxy config", "y")
 
@@ -63,12 +67,9 @@ if serv is not None and form.getvalue('open') is not None:
 		print('<form action="configver.py#conf" method="get">')
 		print('<input type="hidden" value="%s" name="serv">' % serv)
 		print('<input type="hidden" value="%s" name="configver">' % configver)
-		print('<input type="hidden" value="1" name="config">')
 		print('<a name="conf"></a></center>')
 		funct.show_config(configver)
-		print('<center><p>')
-		funct.mode_admin("Upload and restart")
-		print('</p></form></center>')
+		print('<center><p><button type="submit" value="Upload and restart" onclick="return confirm(\'are u shure?\')">Upload and restart</button></p></form></center>')
 
 
 if form.getvalue('serv') is not None and form.getvalue('config') is not None:

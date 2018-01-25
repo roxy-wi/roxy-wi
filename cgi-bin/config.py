@@ -14,10 +14,11 @@ from pytz import timezone
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
 servNew = form.getvalue('serNew')
+cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+login = cookie.get('login')
 
 funct.head("Edit HAproxy config")
 funct.check_config()
-funct.check_login("config.py")
 
 path_config = "haproxy-webintarface.config"
 config = configparser.ConfigParser()
@@ -26,6 +27,9 @@ config.read(path_config)
 fullpath = config.get('main', 'fullpath')
 hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
 time_zone = config.get('main', 'time_zone')
+
+if login is None:
+	print('<meta http-equiv="refresh" content="0; url=login.py?ref=config.py">')
 
 if serv is not None:
 	fmt = "%Y-%m-%d.%H:%M:%S"
@@ -45,9 +49,7 @@ if form.getvalue('serv') is not None and form.getvalue('open') is not None :
 	print('<input type="hidden" value="%s" name="serv">' % serv)
 	print('<input type="hidden" value="%s.old" name="oldconfig">' % cfg)
 	print('<textarea name="config" rows="35" cols="100">%s</textarea>' % conf.read())
-	print('<p>')
-	funct.mode_admin("Save and restart")
-	print('</p></form>')
+	print('<p><button type="submit" value="save and restart" onclick="return confirm(\'are u shure?\')">save and restart</button></p></form>')
 	conf.close
 
 	os.system("/bin/sudo /bin/mv %s %s.old" % (cfg, cfg))	

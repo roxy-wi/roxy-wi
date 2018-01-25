@@ -15,7 +15,6 @@ servNew = form.getvalue('serNew')
 
 funct.head("Show HAproxy config")
 funct.check_config()
-funct.check_login("configshow.py")
 
 path_config = "haproxy-webintarface.config"
 config = configparser.ConfigParser()

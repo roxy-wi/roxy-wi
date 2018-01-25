@@ -8,7 +8,6 @@ import configparser
 from requests_toolbelt.utils import dump
 
 funct.check_config()
-funct.check_login("config.py")
 
 path_config = "haproxy-webintarface.config"
 config = configparser.ConfigParser()
