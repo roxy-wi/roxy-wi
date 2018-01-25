@@ -12,6 +12,7 @@ serv = form.getvalue('serv')
 
 funct.head("HAproxy Logs")
 funct.check_config()
+funct.check_login("config.py")
 
 path_config = "haproxy-webintarface.config"
 config = configparser.ConfigParser()
@@ -70,6 +71,6 @@ if form.getvalue('serv') is not None:
 		commands = [ 'sudo tail -%s /var/log/%s/syslog.log %s %s' % (rows, serv, grep_act, grep) ]
 		syslog_server = config.get('logs', 'syslog_server')
 	
-	funct.ssh_command(syslog_server, commands)
+	funct.ssh_command(syslog_server, commands, show_log="show_log")
 	
 funct.footer()

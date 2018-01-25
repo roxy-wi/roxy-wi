@@ -1,1 +1,2 @@
-{ "firstName": "admin", "lastName": "admin", "login": "admin", "password": "admin" }
+{ "firstName": "admin", "lastName": "admin", "login": "admin", "password": "admin", "role": "admin" }
+{ "firstName": "Guest", "lastName": "Guest", "login": "Guest", "password": "Guest@123", "role": "guest" }

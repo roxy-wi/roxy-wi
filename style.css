@@ -119,6 +119,30 @@ body {
 .comment {
 	color: #aaa;
 }
+.addName {
+	background-color: #eee;
+	width: 120px;
+}
+.addOption, .addName {
+	border: 1px solid #ddd;
+	padding: 15px;
+}
+.addButton {
+	padding-top: 15px;
+}
+.addSuc {
+	padding-left: 20px;
+	padding-top: 20px;
+	color: #23527c;
+}
+.tooltip {
+	font-size: 12px; 
+	padding-bottom: 10px;
+}
+.tooltipTop {
+	margin-bottom: -20px; 
+	padding-top: 10px;
+}
 .footer {
   background-color: #222;
   min-height: 50px;
