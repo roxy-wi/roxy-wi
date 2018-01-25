@@ -10,14 +10,10 @@ from funct import head as head
 
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
-cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-login = cookie.get('login')
 
 head("Edit & show HAproxy settings")
 
-if login is None:
-	print('<meta http-equiv="refresh" content="0; url=login.py?ref=configver.py">')
-
+funct.check_login("edit.py")
 
 print('<center><h2>Edit & show HAproxy settings</h2></center>')
 print('<center><h3>Choose server & action: Disable/Enable server or output any information about the server:</h3>')
@@ -55,7 +51,9 @@ print('<option value=2 %s>Enable server</option>' % selected2)
 print('<option value=3 %s>Show</option>' % selected3)
 print('</select>')
 print('<input type="text" name="servbackend"  size=40 placeholder="Backend/Server, show info, pools or help" required>')
-print('<p><button type="submit">Enter</button></p></form>')
+print('<p>')
+funct.mode_admin("Enter")
+print('</p></form>')
 
 if form.getvalue('servaction') is not None:
 	action = form.getvalue('servaction')
