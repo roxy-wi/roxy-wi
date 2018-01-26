@@ -20,6 +20,7 @@ For install just dowload archive and untar somewhere:
 $ cd /opt
 $ unzip master.zip
 $ mv haproxy-web-interface-master/ haproxy
+$ cd /opt/haproxy
 $ pip3 install -r requirements.txt
 $ chmod +x server.py
 $ chmod +x -R cgi-bin/

@@ -44,6 +44,19 @@ def logging(serv, action):
 	log.write(mess)
 	log.close
 	
+	if config.get('telegram', 'enable') == "1": telegram_send_mess(mess)
+
+def telegram_send_mess(mess):
+	import telegram
+	token_bot = config.get('telegram', 'token')
+	channel_name = config.get('telegram', 'channel_name')
+	proxy = config.get('telegram', 'proxy')
+	
+	if proxy is not None:
+		pp = telegram.utils.request.Request(proxy_url=proxy)
+	bot = telegram.Bot(token=token_bot, request=pp)
+	bot.send_message(chat_id=channel_name, text=mess)
+	
 def check_login(ref):
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	login = cookie.get('login')
@@ -111,15 +124,22 @@ def footer():
 				'<div class="footer-link">')
 	links()	
 	print('</div></div></body></html>')
-	
-def get_config(serv, cfg):
-	os.chdir(hap_configs_dir)
-	
+
+def ssh_connect(serv):
 	ssh = SSHClient()
 	ssh.load_system_host_keys()
-	k = paramiko.RSAKey.from_private_key_file(ssh_keys)
 	ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-	ssh.connect(hostname = serv, username = ssh_user_name, pkey = k )
+	
+	if config.get('ssh', 'ssh_keys_enable') == "1":
+		k = paramiko.RSAKey.from_private_key_file(ssh_keys)
+		ssh.connect(hostname = serv, username = ssh_user_name, pkey = k )
+	else:
+		ssh.connect(hostname = serv, username = ssh_user_name, password = config.get('ssh', 'ssh_pass'))
+	return ssh
+
+def get_config(serv, cfg):
+	os.chdir(hap_configs_dir)
+	ssh = ssh_connect(serv)
 	sftp = ssh.open_sftp()
 	sftp.get(haproxy_config_path, cfg)
 	sftp.close()
@@ -167,13 +187,7 @@ def upload_and_restart(serv, cfg):
 	now_utc = datetime.now(timezone(config.get('main', 'time_zone')))
 	tmp_file = tmp_config_path + "/" + now_utc.strftime(fmt) + ".cfg"
 
-	ssh = SSHClient()
-	ssh.load_system_host_keys()
-	k = paramiko.RSAKey.from_private_key_file(ssh_keys)
-	ssh = paramiko.SSHClient()
-	ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-	print("connecting<br />")
-	ssh.connect( hostname = serv, username = ssh_user_name, pkey = k )
+	ssh = ssh_connect(serv)
 	print("connected<br />")
 	sftp = ssh.open_sftp()
 	sftp.put(cfg, tmp_file)
@@ -250,12 +264,7 @@ def show_ip(stdout):
 		print(line)
 		
 def ssh_command(serv, commands, **kwargs):
-	ssh = SSHClient()
-	ssh.load_system_host_keys()
-	k = paramiko.RSAKey.from_private_key_file(ssh_keys)
-	ssh = paramiko.SSHClient()
-	ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-	ssh.connect( hostname = serv, username = ssh_user_name, pkey = k )
+	ssh = ssh_connect(serv)
 	
 	ip = 0
 	compare_funct = 0
