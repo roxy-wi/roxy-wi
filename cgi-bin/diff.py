@@ -35,12 +35,12 @@ if form.getvalue('serv') is not None and form.getvalue('open') is not None :
 	print('<form action="diff.py#diff" method="get">')
 	print('<center><h3><span style="padding: 75px;">Choose left</span><span style="padding: 100px;">Choose right</span></h3>')
 	
-	print('<p><select autofocus required name="left" id="left">')
+	print('<p><select autofocus required name="left">')
 	print('<option disabled selected>Choose version</option>')
 	
 	os.chdir(hap_configs_dir)
 	
-	for files in sorted(glob.glob('*.cfg')):
+	for files in glob.glob('*.cfg'):
 		ip = files.split("-")
 		if serv == ip[0]:
 			if left == files:
@@ -51,10 +51,10 @@ if form.getvalue('serv') is not None and form.getvalue('open') is not None :
 
 	print('</select>')
 
-	print('<select autofocus required name="right" id="right">')
+	print('<select autofocus required name="right">')
 	print('<option disabled selected>Choose version</option>')
 	
-	for files in sorted(glob.glob('*.cfg')):
+	for files in glob.glob('*.cfg'):
 		ip = files.split("-")
 		if serv == ip[0]:
 			if right == files:
@@ -66,11 +66,13 @@ if form.getvalue('serv') is not None and form.getvalue('open') is not None :
 	print('</select>')
 	print('<input type="hidden" value="%s" name="serv">' % serv)
 	print('<input type="hidden" value="open" name="open">')
-	print('<p><button type="submit" value="Compare" name="Compare">Compare</button></p></form></center>')
+	print('<p><button type="submit" value="Compare" name="Compare">Compare</button></p></form>')
 	
 if form.getvalue('serv') is not None and form.getvalue('right') is not None:
 	commands = [ 'diff -ub %s%s %s%s' % (hap_configs_dir, left, hap_configs_dir, right) ]
 
 	funct.ssh_command(haproxy_configs_server, commands, compare="compare")
+	
+	print('<h3><a href="#top" title="UP">UP</a></center>')
 	
 funct.footer()

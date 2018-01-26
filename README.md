@@ -17,10 +17,16 @@ A simple web interface(user-frendly web GUI) for managing Haproxy servers
 # Install
 For install just dowload archive and untar somewhere:
 ```
-$ cd /opt/haproxy-webintarface
-$ tar xf haproxy-webintarface-master.zip
-$ pip3 -r requirements.txt
+$ cd /opt
+$ unzip master.zip
+$ mv haproxy-web-interface-master/ haproxy
+$ pip3 install -r requirements.txt
+$ chmod +x server.py
+$ chmod +x -R cgi-bin/
+$ chown user:user -R haproxy
 ```
+Edit listserv.py, add your HAproxy servers. 
+
 If foler not /opt/haproxy/, edit server.py:
 ```
 path_config = "/opt/haproxy/haproxy-webintarface.config"
@@ -48,7 +54,7 @@ After=syslog.target network.target
 
 [Service]
 Type=simple
-User=user
+User=user_name
 
 ExecStart=/opt/haproxy/server.py >> /opt/haproxy/log/haproxy-webface.log 
 

@@ -12,7 +12,7 @@ server_port = config.getint('main', 'server_port')
 
 from http.server import HTTPServer, CGIHTTPRequestHandler
 
-sys.stderr = open(log_path + '/opt/haproxy/log/haproxy-monitor.log', 'w')
+sys.stderr = open(log_path + '/haproxy-monitor.log', 'w')
 webdir = fullpath
 os.chdir(webdir)
 server_address = (server_bind_ip, server_port)

@@ -99,4 +99,3 @@ ENV/
 
 # mypy
 .mypy_cache/
-cgi-bin/hap_config/172.28.5.5-2018-01-10.13\:56\:02.cfg

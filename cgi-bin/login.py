@@ -32,14 +32,19 @@ def login_page(error):
 		ref = "/index.html"		
 		
 	funct.head("Login page")
+<<<<<<< HEAD
 		
 	print('<center><form name="auth" action="login.py" class="form-horizontal" method="post">')
+=======
+	
+	print('<center><div class="conteiner"><form name="auth" action="login.py" class="form-horizontal" method="post">')
+>>>>>>> parent of fe00260... v1.3
 	print(printError)
 	print('<label for="login"> Login: </label>  <input type="text" name="login" class="form-control">')
 	print('<label for="pass"> Pass: </label>   <input type="password" name="pass" class="form-control">')
 	print('<input type="hidden" value="%s" name="ref">' % ref)
-	print('<button type="submit" name="Login" value="Enter">Sign Up</button>')
-	print('</form></center>')
+	print('<button type="submit" name="Login" value="Enter">Sign</button>')
+	print('</form></div></center>')
 
 if form.getvalue('logout') is not None:
 	print("Set-cookie: login=; expires=Wed May 18 03:33:20 2003; path=/cgi-bin/; httponly")

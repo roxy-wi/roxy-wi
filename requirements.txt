@@ -1,9 +1,7 @@
-html
-cgi
-os
-http.cookies
-configparser
-paramiko
-pytz
-requests
-json
+configparser==3.5.0
+paramiko==2.4.0
+pytz==2017.3
+requests==2.18.4
+requests_toolbelt==0.8.0
+telegram==0.0.1
+dump==0.0.3

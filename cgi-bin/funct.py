@@ -12,7 +12,8 @@ def check_config():
 	path_config = "haproxy-webintarface.config"
 	config = configparser.ConfigParser()
 	config.read(path_config)
-		
+	
+	
 	for section in [ 'main', 'configs', 'ssh', 'logs', 'haproxy' ]:
 		if not config.has_section(section):
 			print('<b style="color: red">Check config file, no %s section</b>' % section)
@@ -70,7 +71,6 @@ def mode_admin(button):
 def links():
 	print('<a href=/ title="Home Page" style="size:5">Home Page</a> ')
 	print('<a href=/cgi-bin/viewsttats.py title="View Stats" style="size:5">Stats</a> ')	
-	print('<a href="http://172.28.5.106:3000/dashboard/db/haproxy" title="Mon" target="_blanck">Monitoring</a> ')
 	print('<a href=/cgi-bin/logs.py title="View logs" style="size:6">Logs</a>')
 	print('<a href=/cgi-bin/edit.py title="Edit settings" style="size:5">Edit settings</a> ')
 	print('<span style="color: #fff">  | Configs: </span>')
@@ -82,8 +82,9 @@ def links():
 	show_login_links()
 	
 def head(title):
-	print('Content-type: text/html\n')
+	print("Content-type: text/html\n")
 	print('<html><head><title>%s</title>' % title)
+<<<<<<< HEAD
 	print('<link href="/favicon.ico" rel="icon" type="image/png" />'
 		'<link href="/style.css" rel="stylesheet"><meta charset="UTF-8">'
 		'<link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">'
@@ -97,18 +98,18 @@ def head(title):
 	if config.get('main', 'logo_enable') == "1":
 		print('<img src="%s" title="Logo" class="logo">' % config.get('main', 'logo_path'))
 	print('<div class="top-link">')
+=======
+	print('<link href="/favicon.ico" rel="icon" type="image/png" />')
+	print('<link href="/style.css" rel="stylesheet"><meta charset="UTF-8"></head><body>')
+	print('<a name="top"></a>')
+	print('<div class="top-menu"><div class="top-link">')
+>>>>>>> parent of fe00260... v1.3
 	links()
 	print('</div></div><div class="conteiner">')
 
 def footer():
-	print('<center>'
-				'<h3>'
-					'<a href="#top" title="UP">UP</a>'
-				'</h3>'
-			'</center>'
-			'</center></div>'
-			'<div class="footer">'
-				'<div class="footer-link">')
+	print('<center><h3><a href="#top" title="UP">UP</a></center>')
+	print('</center></div><div class="footer"><div class="footer-link">')
 	links()	
 	print('</div></div></body></html>')
 	
@@ -152,9 +153,9 @@ def show_config(cfg):
 			print('</span>' + line + '</div>')
 			continue
 		if "#" in line:
-			print('<div class="comment"><span class="numRow">')
+			print('<div class="comment">')
 			print(i)
-			print(line + '</span></div>')
+			print(line + '</div>')
 			continue			
 		print('<div class="configLine"><span class="numRow">')
 		print(i)
@@ -202,6 +203,7 @@ def upload_and_restart(serv, cfg):
 	return True	
 			
 	ssh.close()
+<<<<<<< HEAD
 	
 def compare(stdout):
 	i = 0
@@ -250,6 +252,10 @@ def show_ip(stdout):
 		print(line)
 		
 def ssh_command(serv, commands, **kwargs):
+=======
+
+def ssh_command(serv, commands):
+>>>>>>> parent of fe00260... v1.3
 	ssh = SSHClient()
 	ssh.load_system_host_keys()
 	k = paramiko.RSAKey.from_private_key_file(ssh_keys)
@@ -271,6 +277,7 @@ def ssh_command(serv, commands, **kwargs):
 		
 	for command in commands:
 		stdin , stdout, stderr = ssh.exec_command(command)
+<<<<<<< HEAD
 				
 		if ip is 1:	
 			show_ip(stdout)
@@ -280,13 +287,24 @@ def ssh_command(serv, commands, **kwargs):
 			show_log(stdout)
 			
 		print(stderr.read().decode(encoding='UTF-8'))
+=======
+		print('</center><div class="out">')
+		i = 1
+		for line in stdout:
+			i = i + 1
+			if i % 2 == 0:
+				print('<div class="line">' + line + '</div>')
+			else:
+				print('<div class="line2">' + line + '</div>')
+		print('</div>')
+>>>>>>> parent of fe00260... v1.3
 	ssh.close()
 	
 def chooseServer(formName, title, note):
 	print('<center><h2>' + title + '</h2>')
 	print('<h3>Choose server</h3>')
 	print('<form action=' + formName + ' method="get">')
-	print('<p><select autofocus required name="serv" id="chooseServer">')
+	print('<p><select autofocus required name="serv">')
 	print('<option disabled>Choose server</option>')
 
 	form = cgi.FieldStorage()
@@ -304,7 +322,7 @@ def chooseServer(formName, title, note):
 	print('</select>')
 	print('<p><button type="submit" value="open" name="open">Open</button></p></form>')
 	if note == "y":
-		print('<p><b>Note:</b> If you reconfigure First server, second will reconfigured automatically</p>')
+		print('<p><b>Note:</b> If you reconfigure First server, second will reconfigured automatically</p><br />')
 		
 def choose_server_with_vip(serv):
 	import listserv as listhap
