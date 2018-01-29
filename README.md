@@ -23,6 +23,7 @@ $ unzip master.zip
 $ mv haproxy-wi-master/ haproxy-wi
 $ cd /opt/haproxy-wi
 $ chmod +x install.sh
+$ sudo ./install.sh
 ```
 Edit listserv.py, add your HAproxy servers. 
 
