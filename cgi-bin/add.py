@@ -13,7 +13,7 @@ from pytz import timezone
 
 funct.head("Add")
 funct.check_config()
-funct.check_login("add.py")
+funct.check_login()
 
 path_config = "haproxy-webintarface.config"
 config = configparser.ConfigParser()
@@ -122,6 +122,7 @@ for i in sorted(listhap.listhap):
 	print('<option value="%s">%s</option>' % (listhap.listhap.get(i), i))
 	
 print('</select>'
+		'<div class="tooltip tooltipTop"><b>Note:</b> If you reconfigure First server, second will reconfigured automatically</div>'
 				'</td>'
 			'</tr>'
 		'<tr>'
@@ -135,7 +136,7 @@ print('</select>'
 			'<td class="addOption">'
 				'<input type="text" name="ip" id="ip" title="" size="15" placeholder="172.28.0.1"><b>:</b>'
 				'<input type="text" name="port" required title="Port for bind listner" size="5" placeholder="8080">'
-				'<div class="tooltip tooltipTop">IP for bind listner, if empty will be assignet on all IPs. Start typing ip, or press down.</div>'
+				'<div class="tooltip tooltipTop">IP for bind listner, <b>if empty will be assignet on all IPs</b>. Start typing ip, or press down.</div>'
 			'</td>'
 		'</tr>'
 		'<tr>'
@@ -202,6 +203,7 @@ for i in sorted(listhap.listhap):
 	print('<option value="%s">%s</option>' % (listhap.listhap.get(i), i))
 	
 print('</select>'
+		'<div class="tooltip tooltipTop"><b>Note:</b> If you reconfigure First server, second will reconfigured automatically</div>'
 				'</td>'
 			'</tr>'
 		'<tr>'
@@ -215,7 +217,7 @@ print('</select>'
 			'<td class="addOption">'
 				'<input type="text" name="ip" id="ip1" size="15" placeholder="172.28.0.1"><b>:</b>'
 				'<input type="text" name="port" required title="Port for bind listner" size="5" placeholder="8080">'
-				'<div class="tooltip tooltipTop">IP for bind listner, if empty will be assignet on all IPs. Start typing ip, or press down.</div>'
+				'<div class="tooltip tooltipTop">IP for bind listner, <b>if empty will be assignet on all IPs</b>. Start typing ip, or press down.</div>'
 			'</td>'
 		'</tr>'
 		'<tr>'
@@ -274,6 +276,7 @@ for i in sorted(listhap.listhap):
 	print('<option value="%s">%s</option>' % (listhap.listhap.get(i), i))
 	
 print('</select>'
+		'<div class="tooltip tooltipTop"><b>Note:</b> If you reconfigure First server, second will reconfigured automatically</div>'
 				'</td>'
 			'</tr>'
 		'<tr>'

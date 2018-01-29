@@ -13,25 +13,18 @@ A simple web interface(user-frendly web GUI) for managing Haproxy servers
 7. Rollback to previous versions of the config
 8. Comparing versions of configs
 9. Users roles: admin, viewer
+10. Telegram notification
 
 # Install
 For install just dowload archive and untar somewhere:
 ```
 $ cd /opt
 $ unzip master.zip
-$ mv haproxy-web-interface-master/ haproxy
-$ cd /opt/haproxy
-$ pip3 install -r requirements.txt
-$ chmod +x server.py
-$ chmod +x -R cgi-bin/
-$ chown user:user -R haproxy
+$ mv haproxy-wi-master/ haproxy-wi
+$ cd /opt/haproxy-wi
+$ chmod +x install.sh
 ```
 Edit listserv.py, add your HAproxy servers. 
-
-If foler not /opt/haproxy/, edit server.py:
-```
-path_config = "/opt/haproxy/haproxy-webintarface.config"
-```
 
 # Settings
 edit haproxy-webintarface.config with your env
@@ -46,24 +39,12 @@ global
    ```
 ![alt text](image/4.jpeg "View logs page")
 
-# Start
-Create systemd service to auto start:
+# Start and auto start
 ```
-[Unit]
-Description=Haproxy web interface
-After=syslog.target network.target 
-
-[Service]
-Type=simple
-User=user_name
-
-ExecStart=/opt/haproxy/server.py >> /opt/haproxy/log/haproxy-webface.log 
-
-RestartSec=2s
-Restart=on-failure
-TimeoutStopSec=1s
-
-[Install]
-WantedBy=multi-user.target
+systemctl enable haproxy-wi.service
+systemctl start haproxy-wi.service
 ```
-![alt text](image/1.jpeg "Start page")
+
+# Deb support
+
+Sorry, but not use, because  adapt yourself

@@ -17,7 +17,7 @@ right = form.getvalue('right')
 
 funct.head("Compare HAproxy configs")
 funct.check_config()
-funct.check_login("diff.py")	
+funct.check_login()	
 
 path_config = "haproxy-webintarface.config"
 config = configparser.ConfigParser()

@@ -17,7 +17,7 @@ configver = form.getvalue('configver')
 
 funct.head("Old Versions HAproxy config")
 funct.check_config()
-funct.check_login("configver.py")
+funct.check_login()
 
 path_config = "haproxy-webintarface.config"
 config = configparser.ConfigParser()

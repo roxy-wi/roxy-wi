@@ -2,7 +2,7 @@
 import os, sys 
 import configparser
 
-path_config = "/opt/haproxy/haproxy-webintarface.config"
+path_config = "/opt/haproxy-wi/haproxy-webintarface.config"
 config = configparser.ConfigParser()
 config.read(path_config)
 log_path = config.get('main', 'log_path')

@@ -57,9 +57,10 @@ def telegram_send_mess(mess):
 	bot = telegram.Bot(token=token_bot, request=pp)
 	bot.send_message(chat_id=channel_name, text=mess)
 	
-def check_login(ref):
+def check_login():
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	login = cookie.get('login')
+	ref = os.environ.get("SCRIPT_NAME")
 
 	if login is None:
 		print('<meta http-equiv="refresh" content="0; url=login.py?ref=%s">' % ref)

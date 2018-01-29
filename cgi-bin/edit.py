@@ -13,12 +13,12 @@ serv = form.getvalue('serv')
 
 head("Edit & show HAproxy settings")
 
-funct.check_login("edit.py")
+funct.check_login()
 
 print('<center><h2>Edit & show HAproxy settings</h2></center>')
 print('<center><h3>Choose server & action: Disable/Enable server or output any information about the server:</h3>')
 print('<form action="edit.py" method="get">')
-print('<p><select autofocus required name="serv">')
+print('<p><select autofocus required name="serv" id="serv">')
 print('<option disabled selected>Choose server</option>')
 	
 funct.choose_server_with_vip(serv)
@@ -44,7 +44,7 @@ else:
 	selected3 = ''
 
 print('</select>')
-print('<select autofocus required name="servaction">')
+print('<select autofocus required name="servaction" id="chooseServer">')
 print('<option disabled selected>Choose action</option>')
 print('<option value=1 %s>Disable server</option>' % selected1)
 print('<option value=2 %s>Enable server</option>' % selected2)

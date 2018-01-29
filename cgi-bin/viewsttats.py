@@ -8,7 +8,7 @@ import configparser
 from requests_toolbelt.utils import dump
 
 funct.check_config()
-funct.check_login("config.py")
+funct.check_login()
 
 path_config = "haproxy-webintarface.config"
 config = configparser.ConfigParser()
@@ -55,3 +55,4 @@ print('</select><input type="submit"></p></form>')
 data = dump.dump_all(response)
 print('<a name="conf"></a>')
 print(data.decode('utf-8'))
+
