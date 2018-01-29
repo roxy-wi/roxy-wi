@@ -6,7 +6,7 @@ After=syslog.target network.target
 Type=simple
 User=haproxy-wi
 
-ExecStart=/opt/haproxy/server.py >> /opt/haproxy/log/haproxy-webface.log 
+ExecStart=/opt/haproxy-wi/server.py >> /opt/haproxy-wi/log/haproxy-webface.log 
 
 RestartSec=2s
 Restart=on-failure
