@@ -115,7 +115,8 @@ def head(title):
 		'</head>'
 			'<body>'
 				'<a name="top"></a>'
-				'<div class="top-menu">')
+				'<div class="top-menu">'
+					'<span class="LogoText">HAproxy-WI</span>')
 	if config.get('main', 'logo_enable') == "1":
 		print('<img src="%s" title="Logo" class="logo">' % config.get('main', 'logo_path'))
 	print('<div class="top-link">')

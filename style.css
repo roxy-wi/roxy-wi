@@ -20,10 +20,19 @@ body {
   left: 0;
   z-index: 1000;
 }
+.logoText {
+	color: #fff;
+	font-size: 30px;
+	float: left;
+	margin-left: 50px;
+	margin-top: 3px;
+	font-style: italic;
+	font-weight: bold;
+}
 .top-menu img {
 	max-width: 125px;
 	float: left;
-	padding-left: 100px;
+	padding-left: 20px;
 }
 .top-menu a, .footer a {
   padding: 10px;
@@ -54,7 +63,7 @@ body {
 }
 .configShow, .diff {
 	margin-left: 16%;
-	max-height:: 70%;
+	height: 70%;
 	overflow: auto;
 	width: 70%;
 	border: 1px solid #DCDCDC;
