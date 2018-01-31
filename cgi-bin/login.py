@@ -11,9 +11,7 @@ form = cgi.FieldStorage()
 ref = form.getvalue('ref')
 login = form.getvalue('login')
 password = form.getvalue('pass')
-USERS = 'cgi-bin/users'
-
-funct.check_login()
+USERS = '/var/www/haproxy-wi/cgi-bin/users'
 
 try:
 	with open(USERS, "r") as user:
@@ -40,12 +38,13 @@ def login_page(error):
 	print('<input type="hidden" value="%s" name="ref">' % ref)
 	print('<button type="submit" name="Login" value="Enter">Sign Up</button>')
 	print('</form></center>')
-
+	
 if form.getvalue('logout') is not None:
 	print("Set-cookie: login=; expires=Wed May 18 03:33:20 2003; path=/cgi-bin/; httponly")
 	print("Set-cookie: FirstName=; expires=Wed May 18 03:33:20 2003; path=/cgi-bin/; httponly")
 	print("Set-cookie: LastName=; expires=Wed May 18 03:33:20 2003; path=/cgi-bin/; httponly")
 	print("Set-cookie: role=; expires=Wed May 18 03:33:20 2003; path=/cgi-bin/; httponly")
+	print("Content-type: text/html\n")
 	print('<meta http-equiv="refresh" content="0; url=/">')
 	
 if login is None:		
@@ -54,12 +53,21 @@ if login is None:
 if login is not None and password is not None:
 	for f in open(USERS, 'r'):
 		users = json.loads(f)	
-		print(users['login'])
 		if login in users['login'] and password == users['password']:
-			print("Set-cookie: login=%s; expires=Wed May 18 03:33:20 2033; path=/cgi-bin/; httponly" % login)
-			print("Set-cookie: FirstName=%s; expires=Wed May 18 03:33:20 2033; path=/cgi-bin/; httponly" % users['firstName'])
-			print("Set-cookie: LastName=%s; expires=Wed May 18 03:33:20 2033; path=/cgi-bin/; httponly" % users['lastName'])
-			print("Set-cookie: role=%s; expires=Wed May 18 03:33:20 2033; path=/cgi-bin/; httponly" % users['role'])
+			c = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+			c["login"] = login
+			c["login"]["path"] = "/cgi-bin/"
+			c["login"]["expires"] = "Wed May 18 03:33:20 2033"
+			c["FirstName"] = users['firstName']
+			c["FirstName"]["path"] = "/cgi-bin/"
+			c["FirstName"]["expires"] = "Wed May 18 03:33:20 2033"
+			c["LastName"] = users['lastName']
+			c["LastName"]["path"] = "/cgi-bin/"
+			c["LastName"]["expires"] = "Wed May 18 03:33:20 2033"
+			c["role"] = users['role']
+			c["role"]["path"] = "/cgi-bin/"
+			c["role"]["expires"] = "Wed May 18 03:33:20 2033"
+			print(c)
 			if form.getvalue('ref') is None:
 				ref = "/index.html"		
 			print("Content-type: text/html\n")
@@ -70,6 +78,3 @@ if login is not None and password is not None:
 	login_page("error")
 	
 funct.footer()
-
-
-
