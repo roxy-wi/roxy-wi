@@ -63,7 +63,7 @@ if form.getvalue('serv') is not None:
 		grep = ''
 
 	syslog_server_enable = config.get('logs', 'syslog_server_enable')
-	if syslog_server_enable is None or syslog_server_enable == "disable":
+	if syslog_server_enable is None or syslog_server_enable == "0":
 		local_path_logs = config.get('logs', 'local_path_logs')
 		syslog_server = serv	
 		commands = [ 'sudo tail -%s %s %s %s' % (rows, local_path_logs, grep_act, grep) ]	

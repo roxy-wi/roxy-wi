@@ -50,8 +50,7 @@ if form.getvalue('name') is not None:
 	conf = open("/home/ploginov/haproxy/cgi-bin/hap_config/test.cfg", "r")
 	s = form.getvalue('s')
 	for line in conf:
-		#print(line)
+
 		if s in line and name in line:
-#			print(line)
 			print("yes")
 			break

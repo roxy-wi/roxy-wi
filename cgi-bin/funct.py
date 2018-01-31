@@ -70,15 +70,21 @@ def show_login_links():
 	login = cookie.get('login')
 	
 	if login is None:
-		print('<a href=/cgi-bin/login.py? title="Login" style="size:5">Login</a>')	
+		print('<a style="margin-left: 40px;" href=/cgi-bin/login.py? title="Login" style="size:5">Login</a>')	
 	else:
-		print('<a href=/cgi-bin/login.py?logout=logout title="Logout" style="size:5">Logout</a>')
+		print('<a style="margin-left: 40px;" href=/cgi-bin/login.py?logout=logout title="Logout" style="size:5">Logout</a>')
 		
-def mode_admin(button):
+def mode_admin(button, **kwargs):
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	role = cookie.get('role')
-	
-	if role.value == "admin":
+	role = cookie.get('role')	
+	level = kwargs.get("level")
+
+	if level is None:
+		level = "editor"
+		
+	if role.value == "admin" and level == "admin":
+		print('<button type="submit">%s</button>' % button)
+	elif role.value == "admin" or role.value == "editor" and level == "editor":
 		print('<button type="submit">%s</button>' % button)
 		
 def links():
@@ -92,7 +98,9 @@ def links():
 	print('<a href=/cgi-bin/diff.py title="Compare Configs">Compare</a> ')
 	print('<a href=/cgi-bin/add.py title="Add single listen/frontend/backend" style="size:5">Add</a> ')
 	print('<a href=/cgi-bin/config.py title="Edit Config" style="size:5">Edit</a> ')
-	print('<a href=/cgi-bin/configver.py title="Upload old config" style="size:5">Upload old</a>')	
+	print('<span style="color: #fff">  | Versions: </span>')
+	print('<a href=/cgi-bin/configver.py title="Upload old versions configs" style="size:5">Upload</a>')	
+	print('<a href=/cgi-bin/delver.py title="Delete old versions configs" style="size:5">Delete</a>')	
 	show_login_links()
 	
 def head(title):
@@ -257,8 +265,6 @@ def show_log(stdout):
 			print('<div class="line3">' + line + '</div>')
 		else:
 			print('<div class="line">' + line + '</div>')
-			
-	print('</div></div>')
 
 def show_ip(stdout):
 	for line in stdout:

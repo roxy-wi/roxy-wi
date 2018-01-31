@@ -66,7 +66,6 @@ if login is not None and password is not None:
 			print('<html><head><title>Redirecting</title><meta charset="UTF-8">')
 			print('<link href="/style.css" rel="stylesheet">')
 			print('<meta http-equiv="refresh" content="0; url=%s">' % ref)
-			funct.logging("localhost", "login now")
 			break
 	login_page("error")
 	
