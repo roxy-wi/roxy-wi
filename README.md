@@ -16,6 +16,8 @@ A simple web interface(user-frendly web GUI) for managing Haproxy servers
 10. Telegram notification
 
 # Install
+Can be used as a service, or via fastaci apache + fastCGI(recommend, because it works faster), how to use the service:
+
 For install just dowload archive and untar somewhere:
 ```
 $ cd /opt
