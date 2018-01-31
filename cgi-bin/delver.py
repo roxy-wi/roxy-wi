@@ -52,7 +52,8 @@ if serv is not None and form.getvalue('open') is not None:
 					os.remove(form.getvalue(get))
 					print(form.getvalue(get) + "<br />")
 					funct.logging(serv, "delver.py deleted config: %s" % form.getvalue(get))
+					
 				except OSError: 
 					print ("Error: %s - %s." % (e.filename,e.strerror))
-							
+		print('<meta http-equiv="refresh" content="10; url=delver.py?serv=%s&open=open">' % form.getvalue('serv'))					
 funct.footer()

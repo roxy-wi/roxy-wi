@@ -6,6 +6,7 @@ $( function() {
 	$( "select" ).selectmenu();
 	$( document ).tooltip();
 	$( "input[type=submit], button" ).button();
+	$( "input" ).checkboxradio();
 } );
 
 $( function() {
