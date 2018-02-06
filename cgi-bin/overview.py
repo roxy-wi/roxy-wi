@@ -13,12 +13,12 @@ path_config = "haproxy-webintarface.config"
 config = configparser.ConfigParser()
 config.read(path_config)
 
-commands = [ "top -u haproxy -b -n 1" ]
+commands = [ "cat /etc/haproxy/haproxy.cfg |grep -E '^listen|^backend|^frontend' |wc -l", "haproxy -v |head -1", "top -u haproxy -b -n 1" ]
 print('<h2>Quick Status </h2><table class="overview">')
 
 for i in sorted(listhap.listhap):
 	print('<tr><td class="overviewTr"><h3 title="IP ' + listhap.listhap.get(i) + '">Server ' + i + ':</h3></td>')
-	print('<td class="overviewTd"><pre>')
+	print('<td class="overviewTd">Total listen/frontend/backend:<pre>')
 	funct.ssh_command(listhap.listhap.get(i), commands)
 	print('</pre></td></tr>')
 

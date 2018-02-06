@@ -150,8 +150,9 @@ def footer():
 			'</center></div>'
 			'<div class="footer">'
 				'<div class="footer-link">'
-				'<span class="LogoText">HAproxy-WI</span>')	
-	print('</div></div></body></html>')
+					'<span class="LogoText">HAproxy-WI</span>'
+				'</div>'
+			'</div></body></html>')
 
 def ssh_connect(serv):
 	ssh = SSHClient()
@@ -171,8 +172,7 @@ def ssh_connect(serv):
 	except paramiko.BadHostKeyException as badHostKeyException:
 		print("Unable to verify server's host key: %s" % badHostKeyException)
 	except Exception as e:
-		print(e.args)
-	
+		print(e.args)	
 
 def get_config(serv, cfg):
 	os.chdir(hap_configs_dir)
@@ -182,12 +182,8 @@ def get_config(serv, cfg):
 		sftp.get(haproxy_config_path, cfg)
 		sftp.close()
 		ssh.close()
-	except IOError as e:
-		flash(str(e)+" IOERROR")
-		return ["IOERROR: " + str(e),0,0]
 	except Exception as e:
-		flash(str(e)+" OTHER EXCEPTION")
-		return ["Error: " + str(e),0,0]
+		print("!!! There was an issue, " + str(e))
 	
 def show_config(cfg):
 	print('</center><div class="configShow">')
@@ -321,7 +317,10 @@ def ssh_command(serv, commands, **kwargs):
 			show_log_funct = 1
 		
 	for command in commands:
-		stdin , stdout, stderr = ssh.exec_command(command)
+		try:
+			stdin, stdout, stderr = ssh.exec_command(command)
+		except:
+			continue
 				
 		if ip is 1:	
 			show_ip(stdout)
@@ -333,7 +332,7 @@ def ssh_command(serv, commands, **kwargs):
 			print(stdout.read().decode(encoding='UTF-8'))
 			
 		print(stderr.read().decode(encoding='UTF-8'))
-	ssh.close()
+	#ssh.close()
 	
 def chooseServer(formName, title, note):
 	print('<center><h2>' + title + '</h2>')
