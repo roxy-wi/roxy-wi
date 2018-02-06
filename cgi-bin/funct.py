@@ -93,8 +93,8 @@ def links():
 				'<li><a href=/ title="Home Page" style="size:5">Home Page</a></li>'
 				'<li><a href="#" title="Statistics, monitoring and logs">Stats</a>'
 					'<ul>'
-						'<li><a href=/cgi-bin/overview.py title="Server and service status"">Overview</a> </li>'
-						'<li><a href=/cgi-bin/viewsttats.py title="View Stats"">Stats</a> </li>'
+						'<li><a href=/cgi-bin/overview.py title="Server and service status">Overview</a> </li>'
+						'<li><a href=/cgi-bin/viewsttats.py title="View Stats">Stats</a> </li>'
 						'<li><a href="http://172.28.5.106:3000/d/000000002/haproxy?refresh=1m&orgId=1" title="Mon" target="_blanck">Monitoring</a> </li>'
 						'<li><a href=/cgi-bin/logs.py title="View logs">Logs</a></li>'
 					'</ul>'
@@ -149,29 +149,45 @@ def footer():
 			'</center>'
 			'</center></div>'
 			'<div class="footer">'
-				'<div class="footer-link">')
-	#links()	
+				'<div class="footer-link">'
+				'<span class="LogoText">HAproxy-WI</span>')	
 	print('</div></div></body></html>')
 
 def ssh_connect(serv):
 	ssh = SSHClient()
 	ssh.load_system_host_keys()
 	ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+	try:
+		if config.get('ssh', 'ssh_keys_enable') == "1":
+			k = paramiko.RSAKey.from_private_key_file(ssh_keys)
+			ssh.connect(hostname = serv, username = ssh_user_name, pkey = k )
+		else:
+			ssh.connect(hostname = serv, username = ssh_user_name, password = config.get('ssh', 'ssh_pass'))
+		return ssh
+	except paramiko.AuthenticationException:
+		print("Authentication failed, please verify your credentials: %s")
+	except paramiko.SSHException as sshException:
+		print("Unable to establish SSH connection: %s" % sshException)
+	except paramiko.BadHostKeyException as badHostKeyException:
+		print("Unable to verify server's host key: %s" % badHostKeyException)
+	except Exception as e:
+		print(e.args)
 	
-	if config.get('ssh', 'ssh_keys_enable') == "1":
-		k = paramiko.RSAKey.from_private_key_file(ssh_keys)
-		ssh.connect(hostname = serv, username = ssh_user_name, pkey = k )
-	else:
-		ssh.connect(hostname = serv, username = ssh_user_name, password = config.get('ssh', 'ssh_pass'))
-	return ssh
 
 def get_config(serv, cfg):
 	os.chdir(hap_configs_dir)
 	ssh = ssh_connect(serv)
-	sftp = ssh.open_sftp()
-	sftp.get(haproxy_config_path, cfg)
-	sftp.close()
-	ssh.close()
+	try:
+		sftp = ssh.open_sftp()
+		sftp.get(haproxy_config_path, cfg)
+		sftp.close()
+		ssh.close()
+	except IOError as e:
+		flash(str(e)+" IOERROR")
+		return ["IOERROR: " + str(e),0,0]
+	except Exception as e:
+		flash(str(e)+" OTHER EXCEPTION")
+		return ["Error: " + str(e),0,0]
 	
 def show_config(cfg):
 	print('</center><div class="configShow">')
