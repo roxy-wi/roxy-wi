@@ -10,15 +10,22 @@ body {
   margin: 0;
   padding: 0;
 }
+h2 {
+	border: 1px solid #aaa;
+	padding: 10px;
+	border-radius: 5px;
+	background: #aaa;
+	padding-left: 3%;
+}
 .top-menu {
-  background-color: #222;
-  min-height: 50px;
-  margin-bottom: 20px;
-  top: 0;
-  position: fixed;
-  right: 0;
-  left: 0;
-  z-index: 1000;
+	background-color: #222;
+	min-height: 50px;
+	margin-bottom: 20px;
+	top: 0;
+	position: fixed;
+	right: 0;
+	left: 0;
+	z-index: 1000;
 }
 .logoText {
 	color: #fff;
@@ -40,26 +47,21 @@ body {
   padding-left: 7px;
   padding-right: 7px;
 }
-.top-menu a:focus, .footer a:focus {
-  color: #000;
-}
-.top-menu a:hover, .footer a:hover {
-  color: #fff;
-}
-.top-menu span, .footer span {
-  padding-left: 20px; 
-}
+
 .top-link {
-  margin-top: 15px;
-  margin-left: 35%;
+	margin-top: 15px;
+}
+.top-link, .footer-link  {
+	margin-left: 30%;
 }
 .conteiner {
 	clear: both;
 	margin-top: 65px;
 	min-height: calc(100vh - 115px);
-	width: 45%;
+	max-width: 50%;
+	min-width: 40%;
 	background-color: #fff;
-	margin-left: 27%;
+	margin-left: 25%;
 }
 .configShow, .diff {
 	margin-left: 16%;
@@ -159,12 +161,76 @@ body {
   right: 0;
   left: 0;
 }
+.overview {
+	width: 100%;
+}
+.overview  tr{
+	border: 1px solid #ddd;
+	border-radius: 5px;
+}
+
+.overviewTd {
+	padding-left: 5%;
+	padding-top: 20px;
+	border-color: #ddd;
+}
+.overviewTr {
+	margin: 0;
+	background-color: #eee;
+	padding-left: 15px;
+	font-size: 15px;
+}
 .footer-link {
   padding-top: 15px;
-  margin-left: 35%;
 }
 .ro {
   border: none;
+}
+.menu {
+	margin-left: 13%;
+	font-weight: bold;
+	font-style: italic;
+	margin-top: -10px;
+}
+.menu ul li{
+  padding: 10px;
+}
+.menu ul > li:hover{
+  background-color: #333;
+}
+.menu ul ul > li:hover{
+  background-color: #69e;
+}
+.menu ul li, .menu ul{
+  display: inline-block;
+}
+.menu ul{
+  position: relative;
+  margin: 0;
+  padding: 0;
+  background-color: #222222;
+}
+.menu ul ul{
+  display: none;
+  position: absolute;
+  background-color: #007FFF;
+  margin-top: 10px;
+  margin-left: -10px;
+}
+.menu ul a{
+  color: #fff;
+  text-decoration: none;
+}
+.menu ul ul a{
+  color: #fff;
+  text-decoration: none;
+}
+.menu li:hover ul{
+  display: block;
+}
+
+.menu li:hover li{
+  display: block;
 }
 a {
   background-color: transparent;

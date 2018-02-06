@@ -41,7 +41,7 @@ if form.getvalue('serv') is not None and form.getvalue('open') is not None :
 	conf = open(cfg, "r")
 	print('<a name="conf"></a>')
 	print("<h3>Config from %s</h3>" % serv)
-	print('<form action="config.py#top" method="get">')
+	print('<form action="config.py#top" method="post">')
 	print('<input type="hidden" value="%s" name="serv">' % serv)
 	print('<input type="hidden" value="%s.old" name="oldconfig">' % cfg)
 	print('<textarea name="config" rows="35" cols="100">%s</textarea>' % conf.read())
@@ -70,6 +70,6 @@ if form.getvalue('serv') is not None and form.getvalue('config') is not None :
 	os.system("/bin/diff -ub %s %s >> %slog/config_edit.log" % (oldcfg, cfg, fullpath))
 	os.system("/bin/sudo /bin/rm -f " + hap_configs_dir + "*.old")
 
-	print('</br><a href="viewsttats.py" title="View stats">Go to view stats</a> <br />')
+	print('</br><a href="viewsttats.py?serv=%s" target="_blank" title="View stats">Go to view stats</a> <br />' % serv)
 	
 funct.footer()

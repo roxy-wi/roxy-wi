@@ -70,9 +70,9 @@ def show_login_links():
 	login = cookie.get('login')
 	
 	if login is None:
-		print('<a style="margin-left: 40px;" href=/cgi-bin/login.py? title="Login" style="size:5">Login</a>')	
+		print('<li><a href=/cgi-bin/login.py? title="Login">Login</a></li>')	
 	else:
-		print('<a style="margin-left: 40px;" href=/cgi-bin/login.py?logout=logout title="Logout" style="size:5">Logout</a>')
+		print('<li><a href=/cgi-bin/login.py?logout=logout title="Logout">Logout</a></li>')
 		
 def mode_admin(button, **kwargs):
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
@@ -88,20 +88,38 @@ def mode_admin(button, **kwargs):
 		print('<button type="submit">%s</button>' % button)
 		
 def links():
-	print('<a href=/ title="Home Page" style="size:5">Home Page</a> ')
-	print('<a href=/cgi-bin/viewsttats.py title="View Stats" style="size:5">Stats</a> ')	
-	print('<a href="http://172.28.5.106:3000/dashboard/db/haproxy" title="Mon" target="_blanck">Monitoring</a> ')
-	print('<a href=/cgi-bin/logs.py title="View logs" style="size:6">Logs</a>')
-	print('<a href=/cgi-bin/edit.py title="Edit settings" style="size:5">Edit settings</a> ')
-	print('<span style="color: #fff">  | Configs: </span>')
-	print('<a href=/cgi-bin/configshow.py title="Show Config">Show</a> ')
-	print('<a href=/cgi-bin/diff.py title="Compare Configs">Compare</a> ')
-	print('<a href=/cgi-bin/add.py title="Add single listen/frontend/backend" style="size:5">Add</a> ')
-	print('<a href=/cgi-bin/config.py title="Edit Config" style="size:5">Edit</a> ')
-	print('<span style="color: #fff">  | Versions: </span>')
-	print('<a href=/cgi-bin/configver.py title="Upload old versions configs" style="size:5">Upload</a>')	
-	print('<a href=/cgi-bin/delver.py title="Delete old versions configs" style="size:5">Delete</a>')	
+	print('<nav class="menu">'
+			'<ul>'
+				'<li><a href=/ title="Home Page" style="size:5">Home Page</a></li>'
+				'<li><a href="#" title="Statistics, monitoring and logs">Stats</a>'
+					'<ul>'
+						'<li><a href=/cgi-bin/overview.py title="Server and service status"">Overview</a> </li>'
+						'<li><a href=/cgi-bin/viewsttats.py title="View Stats"">Stats</a> </li>'
+						'<li><a href="http://172.28.5.106:3000/d/000000002/haproxy?refresh=1m&orgId=1" title="Mon" target="_blanck">Monitoring</a> </li>'
+						'<li><a href=/cgi-bin/logs.py title="View logs">Logs</a></li>'
+					'</ul>'
+				'</li>'
+				'<li><a href=/cgi-bin/edit.py title="Edit settings" style="size:5">Edit settings</a> </li>'
+				'<li><a href="#">Configs</a>'
+					'<ul>'
+						'<li><a href=/cgi-bin/configshow.py title="Show Config">Show</a></li> '
+						'<li><a href=/cgi-bin/diff.py title="Compare Configs">Compare</a></li>'
+						'<li><a href=/cgi-bin/add.py#listner title="Add single listen">Add listen</a></li>'
+						'<li><a href=/cgi-bin/add.py#frontend title="Add single frontend">Add frontend</a></li>'
+						'<li><a href=/cgi-bin/add.py#backend title="Add single backend">Add backend</a></li>'
+						'<li><a href=/cgi-bin/config.py title="Edit Config" style="size:5">Edit</a> </li>'
+					'</ul>'
+				'</li>'
+				'<li><a href="#">Versions</a>'
+					'<ul>'
+						'<li><a href=/cgi-bin/configver.py title="Upload old versions configs" style="size:5">Upload</a></li>'	
+						'<li><a href=/cgi-bin/delver.py title="Delete old versions configs" style="size:5">Delete</a></li>'
+					'</ul>'
+				'</li>')
 	show_login_links()
+	print('</ul>'
+		  '</nav>')	
+	
 	
 def head(title):
 	print('Content-type: text/html\n')
@@ -132,7 +150,7 @@ def footer():
 			'</center></div>'
 			'<div class="footer">'
 				'<div class="footer-link">')
-	links()	
+	#links()	
 	print('</div></div></body></html>')
 
 def ssh_connect(serv):
@@ -295,6 +313,8 @@ def ssh_command(serv, commands, **kwargs):
 			compare(stdout)
 		if show_log_funct is 1:
 			show_log(stdout)
+		else:
+			print(stdout.read().decode(encoding='UTF-8'))
 			
 		print(stderr.read().decode(encoding='UTF-8'))
 	ssh.close()

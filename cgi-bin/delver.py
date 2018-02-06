@@ -23,7 +23,7 @@ funct.chooseServer("delver.py#conf", "Delete Versions HAproxy config", "n")
 if serv is not None and form.getvalue('open') is not None:
 	
 	print('<center><h3>Choose old version</h3>')
-	print('<form action="delver.py#conf" method="get">')
+	print('<form action="delver.py#conf" method="post">')
 	
 	import glob
 
@@ -51,9 +51,9 @@ if serv is not None and form.getvalue('open') is not None:
 				try:
 					os.remove(form.getvalue(get))
 					print(form.getvalue(get) + "<br />")
-					funct.logging(serv, "delver.py deleted config: %s" % form.getvalue(get))
-					
+					funct.logging(serv, "delver.py deleted config: %s" % form.getvalue(get))				
 				except OSError: 
 					print ("Error: %s - %s." % (e.filename,e.strerror))
-		print('<meta http-equiv="refresh" content="10; url=delver.py?serv=%s&open=open">' % form.getvalue('serv'))					
+		print('<meta http-equiv="refresh" content="10; url=delver.py?serv=%s&open=open">' % form.getvalue('serv'))		
+		
 funct.footer()

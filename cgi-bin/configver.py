@@ -60,7 +60,7 @@ if serv is not None and form.getvalue('open') is not None:
 		funct.logging(serv, "open old config %s" % configver)
 
 		print("<h3>Config from %s, and version is: %s</h3>" % (serv, configver))
-		print('<form action="configver.py#conf" method="get">')
+		print('<form action="configver.py#conf" method="post">')
 		print('<input type="hidden" value="%s" name="serv">' % serv)
 		print('<input type="hidden" value="%s" name="configver">' % configver)
 		print('<input type="hidden" value="1" name="config">')
@@ -81,6 +81,6 @@ if form.getvalue('serv') is not None and form.getvalue('config') is not None:
 
 	funct.upload_and_restart(serv, configver)
 
-	print('<center><br /><a href="viewsttats.py" title="View stats">Go to view stats</a> <br /></center>')
+	print('</br><a href="viewsttats.py?serv=%s" target="_blank" title="View stats">Go to view stats</a> <br />' % serv)
 	
 funct.footer()
