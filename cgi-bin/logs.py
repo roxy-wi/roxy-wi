@@ -18,11 +18,20 @@ path_config = "haproxy-webintarface.config"
 config = configparser.ConfigParser()
 config.read(path_config)
 	
-print('<center><h2>HAproxy Logs</h2></center>')
-print('<center><h3>Choose server & number rows</h3>')
-print('<form action="logs.py" method="get">')
-print('<p><select autofocus required name="serv" id="serv">')
-print('<option disabled>Choose server</option>')
+print('<center>'
+		'<h2>HAproxy Logs</h2>'
+	  '</center>'
+		'<table class="overview">'
+			'<tr class="overviewHead">'
+				'<td class="padding10">Server</td>'
+				'<td>Number rows</td>'
+				'<td class="padding10">Ex for grep</td>'
+			'</tr>'
+			'<tr>'
+				'<td class="padding10">'
+				'<form action="logs.py" method="get">'
+					'<select autofocus required name="serv" id="serv">'
+						'<option disabled>Choose server</option>')
 
 for i in sorted(listhap.listhap):
 	if listhap.listhap.get(i) == serv:
@@ -47,10 +56,16 @@ if form.getvalue('grep') is not None:
 else:
 	grep = 'value='
 
-print('<input type="text" name="rows" %s required>' % rows)
-print('|grep') 
-print('<input type="text" name="grep" %s>' % grep)
-print('<p><button type="submit">Show</button></p></form>')
+print('</td><td><input type="text" name="rows" %s required></td>' % rows)
+print('<td><input type="text" name="grep" %s>' % grep)
+print('</td></tr>'
+		'<tr style="border:none;">'
+			'<th style="border:none;">'
+				'<td class="padding10" >'
+					'<button type="submit">Show</button>'
+				'</td>'
+			'</th></form>'
+		'</tr></table>')
 
 if form.getvalue('serv') is not None:
 	rows = form.getvalue('rows')

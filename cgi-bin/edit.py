@@ -15,12 +15,21 @@ head("Edit & show HAproxy settings")
 
 funct.check_login()
 
-print('<center><h2>Edit & show HAproxy settings</h2></center>')
-print('<center><h3>Choose server & action: Disable/Enable server or output any information about the server:</h3>')
-print('<form action="edit.py" method="get">')
-print('<p><select autofocus required name="serv" id="serv">')
-print('<option disabled selected>Choose server</option>')
-	
+print('<center>'
+		'<h2>Edit & show HAproxy settings</h2>'
+	  '</center>'
+		'<table class="overview">'
+			'<tr class="overviewHead">'
+				'<td class="padding10">Server</td>'
+				'<td>Disable/Enable server or output any information</td>'
+				'<td class="padding10">Command</td>'
+			'</tr>'
+			'<tr>'
+				'<td class="padding10" style="width: 35%;">'
+				'<form action="edit.py" method="get">'
+					'<select autofocus required name="serv">'
+						'<option disabled selected>Choose server</option>')
+
 funct.choose_server_with_vip(serv)
 
 action = form.getvalue('servaction')
@@ -43,17 +52,21 @@ else:
 	selected2 = ''
 	selected3 = ''
 
-print('</select>')
-print('<select autofocus required name="servaction" id="chooseServer">')
+print('</select></td>')
+print('<td style="width: 35%;"><select autofocus required name="servaction">')
 print('<option disabled selected>Choose action</option>')
 print('<option value=1 %s>Disable server</option>' % selected1)
 print('<option value=2 %s>Enable server</option>' % selected2)
 print('<option value=3 %s>Show</option>' % selected3)
-print('</select>')
-print('<input type="text" name="servbackend"  size=40 placeholder="Backend/Server, show info, pools or help" required>')
-print('<p>')
+print('</select></td>')
+print('<td><input type="text" name="servbackend" size=40 placeholder="Backend/Server, show info, pools or help" required>')
+
+print('</td></tr>'
+		'<tr style="border:none;">'
+			'<td></td><td class="padding10" style="border:none; padding-left: 12%;">')
 funct.mode_admin("Enter")
-print('</p></form>')
+print('</td></form>'
+		'</tr></table>')
 
 if form.getvalue('servaction') is not None:
 	action = form.getvalue('servaction')
@@ -71,10 +84,8 @@ if form.getvalue('servaction') is not None:
 	stdout, stderr = p.communicate()
 	output = stdout.splitlines()
 
-	print('<center><h3>You %s %s on HAproxy %s. <a href="viewsttats.py?serv=%s" title="View stat" target="_blank">Look it		    </a> or <a href="edit.py" title="Edit">Edit something else</a>'  % (enable, backend, serv, serv))
-	print('</center>')
-
-	print('\n<center><p>'.join(map(str, output)))
+	print('<center><h3>You %s %s on HAproxy %s. <a href="viewsttats.py?serv=%s" title="View stat" target="_blank">Look it</a> or <a href="edit.py" title="Edit">Edit something else</a></h3><br />'  % (enable, backend, serv, serv))
+	print('<center>'.join(map(str, output)))
 	
 	action = 'edit.py ' + enable + ' ' + backend
 	funct.logging(serv, action)

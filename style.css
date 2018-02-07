@@ -13,7 +13,7 @@ body {
 h2 {
 	border: 1px solid #5D9CEB;
 	padding: 10px;
-	border-radius: 5px;
+	border-radius: 5px 5px 0px 0px;
 	background: #5D9CEB;
 	padding-left: 3%;
 	color: #fff;
@@ -22,6 +22,9 @@ h2 {
 h3 {
 	margin-top: 10px;
 	margin-bottom: 0px;
+}
+form {
+	margin: 0;
 }
 .top-menu {
 	background-color: #222;
