@@ -4,9 +4,9 @@ $( function() {
 		$( "#tabs" ).tabs( "option", "active", 2 );
 	} );
 	$( "select" ).selectmenu();
-	$( document ).tooltip();
+	//$( document ).tooltip();
 	$( "input[type=submit], button" ).button();
-	$( "input" ).checkboxradio();
+	$( "input[type=checkbox]" ).checkboxradio();
 } );
 
 $( function() {

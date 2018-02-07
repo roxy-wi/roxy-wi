@@ -301,38 +301,33 @@ def show_ip(stdout):
 	for line in stdout:
 		print(line)
 		
+def server_status(stdout):
+	if " " not in stdout.read().decode(encoding='UTF-8'):
+		print('<span class="serverUp"> UP</span> running 3 processes')
+	else:
+		print('<span lass="serverDown"> DOWN</span> running 0 processes')		
+		
 def ssh_command(serv, commands, **kwargs):
 	ssh = ssh_connect(serv)
-	
-	ip = 0
-	compare_funct = 0
-	show_log_funct = 0
-	
-	for k in kwargs:
-		if "ip" in kwargs[k]:
-			ip = 1
-		if "compare" in kwargs[k]:
-			compare_funct = 1
-		if "show_log" in kwargs[k]:
-			show_log_funct = 1
-		
+			
 	for command in commands:
 		try:
 			stdin, stdout, stderr = ssh.exec_command(command)
 		except:
 			continue
 				
-		if ip is 1:	
+		if kwargs.get("ip") == "1":
 			show_ip(stdout)
-		if compare_funct is 1:
+		if kwargs.get("compare") == "1":
 			compare(stdout)
-		if show_log_funct is 1:
+		if kwargs.get("show_log") == "1":
 			show_log(stdout)
+		if kwargs.get("server_status") == "1":
+			server_status(stdout)
 		else:
 			print(stdout.read().decode(encoding='UTF-8'))
 			
 		print(stderr.read().decode(encoding='UTF-8'))
-	#ssh.close()
 	
 def chooseServer(formName, title, note):
 	print('<center><h2>' + title + '</h2>')

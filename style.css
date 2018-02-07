@@ -11,11 +11,17 @@ body {
   padding: 0;
 }
 h2 {
-	border: 1px solid #aaa;
+	border: 1px solid #5D9CEB;
 	padding: 10px;
 	border-radius: 5px;
-	background: #aaa;
+	background: #5D9CEB;
 	padding-left: 3%;
+	color: #fff;
+	margin-bottom: 0px;
+}
+h3 {
+	margin-top: 10px;
+	margin-bottom: 0px;
 }
 .top-menu {
 	background-color: #222;
@@ -47,7 +53,6 @@ h2 {
   padding-left: 7px;
   padding-right: 7px;
 }
-
 .top-link {
 	margin-top: 15px;
 }
@@ -121,8 +126,8 @@ h2 {
 	margin-left: 15px;
 }
 .line {
-	background-color: #eee;
-	border: 1px solid #000;
+	background-color: #EBF1F1;
+	border: 1px solid #ddd;
 }
 .line, .line3 {
 	padding-top:5px;
@@ -134,7 +139,7 @@ h2 {
 	color: #aaa;
 }
 .addName {
-	background-color: #eee;
+	background-color: #f6f6f6;
 	width: 120px;
 }
 .addOption, .addName {
@@ -167,6 +172,11 @@ h2 {
 .overview {
 	width: 100%;
 }
+.overviewHead {
+	border-radius: 5px;
+	background-color: #EBF1F1;
+	font-weight: bold;
+}
 .overview  tr{
 	border: 1px solid #ddd;
 	border-radius: 5px;
@@ -179,9 +189,25 @@ h2 {
 }
 .overviewTr {
 	margin: 0;
-	background-color: #eee;
+	background-color: #f6f6f6;
 	padding-left: 15px;
 	font-size: 15px;
+}
+.serverUp, .serverDown {
+	padding: 3px; 
+	border-radius: 3px;
+	color: #fff; 
+	font-weight: bold;
+}
+.serverUp {
+	background-color: green; 
+}
+.serverDown {
+	background-color: red; 
+}
+.padding10 {
+	padding: 10px;
+	border: none;
 }
 .ro {
   border: none;
@@ -193,7 +219,7 @@ h2 {
 	margin-top: -10px;
 }
 .menu ul li{
-  padding: 10px;
+  padding: 10px; 
 }
 .menu ul > li:hover{
   background-color: #333;
@@ -203,6 +229,7 @@ h2 {
 }
 .menu ul li, .menu ul{
   display: inline-block;
+  border-radius: 3px;
 }
 .menu ul{
   position: relative;
@@ -223,12 +250,11 @@ h2 {
 }
 .menu ul ul a{
   color: #fff;
-  text-decoration: none;
+  text-decoration: none; 
 }
 .menu li:hover ul{
   display: block;
 }
-
 .menu li:hover li{
   display: block;
 }
@@ -322,20 +348,9 @@ a,
 a:visited {
     text-decoration: underline;
   }
-#a[href]:after {
-#    content: " (" attr(href) ")";
-#  }
-#abbr[title]:after {
-#    content: " (" attr(title) ")";
-#  }
-#a[href^="#"]:after,
-#a[href^="javascript:"]:after {
-#    content: "";
-#  }
 a {
-  #color: #337ab7;
-   color: #9d9d9d;
-  text-decoration: none;
+	color: #9d9d9d;
+	text-decoration: none;
 }
 a:hover,
 a:focus {

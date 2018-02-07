@@ -69,6 +69,6 @@ if form.getvalue('serv') is not None and form.getvalue('open') is not None :
 if form.getvalue('serv') is not None and form.getvalue('right') is not None:
 	commands = [ 'diff -ub %s%s %s%s' % (hap_configs_dir, left, hap_configs_dir, right) ]
 
-	funct.ssh_command(haproxy_configs_server, commands, compare="compare")
+	funct.ssh_command(haproxy_configs_server, commands, compare="1")
 	
 funct.footer()

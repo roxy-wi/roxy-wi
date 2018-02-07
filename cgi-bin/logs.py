@@ -71,6 +71,6 @@ if form.getvalue('serv') is not None:
 		commands = [ 'sudo tail -%s /var/log/%s/syslog.log %s %s' % (rows, serv, grep_act, grep) ]
 		syslog_server = config.get('logs', 'syslog_server')
 	
-	funct.ssh_command(syslog_server, commands, show_log="show_log")
+	funct.ssh_command(syslog_server, commands, show_log="1")
 	
 funct.footer()

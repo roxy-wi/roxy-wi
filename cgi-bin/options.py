@@ -10,7 +10,6 @@ form = cgi.FieldStorage()
 req = form.getvalue('req')
 serv = form.getvalue('serv')
 print('Content-type: text/html\n')
-#print('Content-type: application/json\n')
 
 if req is not None:
 	if req is 1:
@@ -43,7 +42,7 @@ if backend is not None:
 
 if form.getvalue('ip') is not None and serv is not None:
 	commands = [ "ip a |grep inet |egrep -v  '::1' |awk '{ print $2  }' |awk -F'/' '{ print $1  }'" ]
-	funct.ssh_command(serv, commands, ip="ip")
+	funct.ssh_command(serv, commands, ip="1")
 	
 if form.getvalue('name') is not None:
 	name = form.getvalue('name')
