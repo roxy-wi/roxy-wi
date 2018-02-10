@@ -26,6 +26,9 @@ h3 {
 form {
 	margin: 0;
 }
+iframe {
+	width: 33%;
+}
 .top-menu {
 	background-color: #222;
 	min-height: 50px;
@@ -104,7 +107,7 @@ form {
 }
 .param {
 	font-weight: bold;
-	background-color: #DCDCDC;
+	//background-color: #DCDCDC;
 	padding-left: 13px;
 }
 .numRow {
@@ -261,11 +264,41 @@ form {
 .menu li:hover li{
   display: block;
 }
+@keyframes shadow {
+	from {box-shadow: 0px 0px 0px red inset;}
+	50% {text-shadow: 0 0 30px black;}
+	to {box-shadow: 0 -5px 5px -5px rgb(38, 137, 60) inset}
+}
+@keyframes shadow-red {
+	from {box-shadow: 0px 0px 0px red inset;}
+	50% {text-shadow: 0 0 30px black;}
+	to {box-shadow: 0 -5px 5px -5px #5D9CEB inset}
+}
+
+//.form-control:valid {
+//	animation: shadow  0.3s forwards;
+//}
+.form-control:hover {
+	animation: shadow-red  0.3s forwards;
+}
+.form-control:invalid, .form-control:valid {
+    background-image: linear-gradient(0deg,#d50000 2px,rgba(213,0,0,0) 0),linear-gradient(0deg,rgba(0,0,0,.26) 1px,transparent 0);
+}
+.form-control {
+    background: no-repeat bottom,50% calc(100% - 1px);
+    background-size: 0 100%,100% 100%;
+    border: 0;
+    transition: background 1s ease-out;
+    padding-left: 0;
+    padding-right: 0;
+}
+.ui-state-default {
+	background-color: #EBF1F1;
+}
 a {
   background-color: transparent;
 }
-a:active,
-a:hover {
+a:active, a:hover {
   outline: 0;
 }
 abbr[title] {
@@ -283,9 +316,8 @@ textarea {
   margin: 0;
   font: inherit;
   color: inherit;
-  //background-color: #ccc;
   border-radius: 7px;
-  padding: 5px;
+  padding: 8px;
 }
 button {
   overflow: visible;
@@ -293,9 +325,6 @@ button {
 button,
 select {
   text-transform: none;
-  //background-color: #eee;
-  
-  
 }
 select {
   color: #000;
@@ -324,28 +353,17 @@ input::-moz-focus-inner {
 input {
 	line-height: normal;
 	border-radius: 4px;
-	padding: 4px;
 }
 
-fieldset {
-  padding: .35em .625em .75em;
-  margin: 0 2px;
-  border: 1px solid #c0c0c0;
-}
-legend {
-  padding: 0;
-  border: 0;
-}
-optgroup {
-  font-weight: bold;
-}
 table {
   border-spacing: 0;
   border-collapse: collapse;
+  background-color: transparent;
 }
 td,
 th {
   padding: 0;
+  text-align: left;
 }
 a,
 a:visited {
@@ -381,36 +399,6 @@ a:focus {
   margin-left: -15px;
 }
 
-table {
-  background-color: transparent;
-}
-caption {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  color: #777;
-  text-align: left;
-}
-th {
-  text-align: left;
-}
-
-fieldset {
-  min-width: 0;
-  padding: 0;
-  margin: 0;
-  border: 0;
-}
-legend {
-  display: block;
-  width: 100%;
-  padding: 0;
-  margin-bottom: 20px;
-  font-size: 21px;
-  line-height: inherit;
-  color: #333;
-  border: 0;
-  border-bottom: 1px solid #e5e5e5;
-}
 label {
   display: inline-block;
   max-width: 100%;

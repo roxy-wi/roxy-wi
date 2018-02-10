@@ -59,7 +59,7 @@ print('<option value=1 %s>Disable server</option>' % selected1)
 print('<option value=2 %s>Enable server</option>' % selected2)
 print('<option value=3 %s>Show</option>' % selected3)
 print('</select></td>')
-print('<td><input type="text" name="servbackend" size=40 placeholder="Backend/Server, show info, pools or help" required>')
+print('<td><input type="text" name="servbackend" size=40 placeholder="Backend/Server, show info, pools or help" required class="form-control">')
 
 print('</td></tr>'
 		'<tr style="border:none;">'

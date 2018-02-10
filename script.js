@@ -7,6 +7,11 @@ $( function() {
 	//$( document ).tooltip();
 	$( "input[type=submit], button" ).button();
 	$( "input[type=checkbox]" ).checkboxradio();
+	$( ".configShow" ).accordion({
+      collapsible: true,
+	  heightStyle: "content",
+	  icons: { "header": "ui-icon-plus", "activeHeader": "ui-icon-minus" }
+    });
 } );
 
 $( function() {

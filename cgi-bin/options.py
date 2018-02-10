@@ -53,3 +53,8 @@ if form.getvalue('name') is not None:
 		if s in line and name in line:
 			print("yes")
 			break
+
+if form.getvalue('tailf_stop') is not None:
+	serv = form.getvalue('serv')
+	commands = [ "ps ax |grep python3 |grep -v grep |awk '{ print $1 }' |xargs kill" ]
+	funct.ssh_command(serv, commands)

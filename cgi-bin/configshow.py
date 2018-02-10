@@ -42,6 +42,6 @@ if form.getvalue('serv') is not None and form.getvalue('open') is not None :
 	
 	funct.show_config(cfg)
 
-	os.system("/bin/sudo /bin/rm -f " + cfg)	
+	os.system("/bin/rm -f " + cfg)	
 	
 funct.footer()

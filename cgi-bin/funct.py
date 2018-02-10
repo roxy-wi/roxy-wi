@@ -125,7 +125,8 @@ def head(title):
 	print('Content-type: text/html\n')
 	print('<html><head><title>%s</title>' % title)
 	print('<link href="/favicon.ico" rel="icon" type="image/png" />'
-		'<link href="/style.css" rel="stylesheet"><meta charset="UTF-8">'
+		'<meta charset="UTF-8">'
+		'<link href="/style.css" rel="stylesheet">'
 		'<link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">'
 		'<script src="https://code.jquery.com/jquery-1.12.4.js"></script>'
 		'<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>'
@@ -142,12 +143,12 @@ def head(title):
 	print('</div></div><div class="conteiner">')
 
 def footer():
-	print('<center>'
+	print('</center></div>'
+			'<center>'
 				'<h3>'
 					'<a href="#top" title="UP">UP</a>'
 				'</h3>'
 			'</center>'
-			'</center></div>'
 			'<div class="footer">'
 				'<div class="footer-link">'
 					'<span class="LogoText">HAproxy-WI</span>'
@@ -186,40 +187,42 @@ def get_config(serv, cfg):
 		print("!!! There was an issue, " + str(e))
 	
 def show_config(cfg):
-	print('</center><div class="configShow">')
+	print('</center><div style="margin-left: 16%" class="configShow">')
 	conf = open(cfg, "r")
 	i = 0
 	for line in conf:
 		i = i + 1
 		if not line.find("global"):
-			print('<div class="param">' + line + '</div>')
+			print('<span class="param">' + line + '</span><div>')
 			continue
 		if not line.find("defaults"):
-			print('<div class="param">' + line + '</div>')
+			print('</div><span class="param">' + line + '</span><div>')
 			continue
 		if not line.find("listen"):
-			print('<div class="param">' + line + '</div>')
+			print('</div><span class="param">' + line + '</span><div>')
 			continue
 		if not line.find("frontend"):
-			print('<div class="param">' + line + '</div>')
+			print('</div><span class="param">' + line + '</span><div>')
 			continue
 		if not line.find("backend"):
-			print('<div class="param">' + line + '</div>')
+			print('</div><span class="param">' + line + '</span><div>')
 			continue
 		if "acl" in line or "option" in line or "server" in line:
-			print('<div class="paramInSec"><span class="numRow">')
+			print('<span class="paramInSec"><span class="numRow">')
 			print(i)
-			print('</span>' + line + '</div>')
+			print('</span>' + line + '</span><br />')
 			continue
 		if "#" in line:
-			print('<div class="comment"><span class="numRow">')
+			print('<span class="comment"><span class="numRow">')
 			print(i)
-			print(line + '</span></div>')
-			continue			
-		print('<div class="configLine"><span class="numRow">')
+			print(line + '</span></span><br />')
+			continue	
+		if line.__len__() < 1:
+			print('</div>')
+		print('<span class="configLine"><span class="numRow">')
 		print(i)
-		print('</span>' + line + '</div>')					
-	print('</div>')
+		print('</span>' + line + '</span><br />')					
+	print('</div></div>')
 	conf.close
 	
 def upload_and_restart(serv, cfg):
@@ -289,6 +292,7 @@ def compare(stdout):
 	print('</div></div>')
 		
 def show_log(stdout):
+	#print('<input id="serv" value="%s" hidden><button id="stop" value="tailf_stop">Stop</button>' % serv)
 	i = 0
 	for line in stdout:
 		i = i + 1
@@ -296,6 +300,21 @@ def show_log(stdout):
 			print('<div class="line3">' + line + '</div>')
 		else:
 			print('<div class="line">' + line + '</div>')
+			
+def show_log_tailf(channel, serv):
+	import select
+	print('<input id="serv" value="%s" hidden><button id="stop" value="tailf_stop">Stop</button>' % serv)
+	print('<pre>')
+	while 1:
+		rl, wl, xl = select.select([channel],[],[],0.0)
+		if len(rl) > 0:
+			print(channel.recv(200).decode(encoding='UTF-8'))
+	print('<input id="serv" value="%s" hidden><button id="stop" value="tailf_stop">Stop</button>' % serv)
+		#i = i + 1
+		#if i % 2 == 0: 
+		#	print('<div class="line3">' + line + '</div>')
+		#else:
+		#	print('<div class="line">' + line + '</div>')
 
 def show_ip(stdout):
 	for line in stdout:
@@ -309,7 +328,14 @@ def server_status(stdout):
 		
 def ssh_command(serv, commands, **kwargs):
 	ssh = ssh_connect(serv)
-			
+	
+	if kwargs.get("tailf") == "1":		
+		transport = ssh.get_transport()
+		channel = transport.open_session()
+		channel.exec_command('tail -f /var/log/haproxy.log')
+		show_log_tailf(channel, serv)
+	
+		  
 	for command in commands:
 		try:
 			stdin, stdout, stderr = ssh.exec_command(command)
@@ -325,7 +351,7 @@ def ssh_command(serv, commands, **kwargs):
 		if kwargs.get("server_status") == "1":
 			server_status(stdout)
 		else:
-			print(stdout.read().decode(encoding='UTF-8'))
+			print('<div style="margin: -10px;">'+stdout.read().decode(encoding='UTF-8')+'</div>')
 			
 		print(stderr.read().decode(encoding='UTF-8'))
 	
