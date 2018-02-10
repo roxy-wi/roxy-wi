@@ -11,12 +11,13 @@ body {
   padding: 0;
 }
 h2 {
-	border: 1px solid #5D9CEB;
-	padding: 10px;
-	border-radius: 5px 5px 0px 0px;
 	background: #5D9CEB;
+	border: 1px solid #5D9CEB;
+	border-radius: 5px 5px 0px 0px;
+	padding: 10px;
 	padding-left: 3%;
 	color: #fff;
+	margin-top: 0px;
 	margin-bottom: 0px;
 }
 h3 {
@@ -360,8 +361,11 @@ table {
   border-collapse: collapse;
   background-color: transparent;
 }
-td,
-th {
+caption {
+  color: #777;
+  text-align: left;
+}
+td,th {
   padding: 0;
   text-align: left;
 }

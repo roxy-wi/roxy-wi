@@ -219,9 +219,10 @@ def show_config(cfg):
 			continue	
 		if line.__len__() < 1:
 			print('</div>')
-		print('<span class="configLine"><span class="numRow">')
-		print(i)
-		print('</span>' + line + '</span><br />')					
+		if line.__len__() > 1:
+			print('<span class="configLine"><span class="numRow">')
+			print(i)
+			print('</span>' + line + '</span><br />')					
 	print('</div></div>')
 	conf.close
 	
