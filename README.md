@@ -1,7 +1,7 @@
 # Haproxy web interface
 A simple web interface(user-frendly web GUI) for managing Haproxy servers
 
-![alt text](image/5.jpeg "Edit config page")
+![alt text](image/8.jpeg "Show config page")
 
 # Capabilities:
 1. View statistics of all servers in one place
@@ -29,6 +29,8 @@ $ chmod +x install.sh
 $ sudo ./install.sh
 ```
 Edit listserv.py, add your HAproxy servers. 
+
+![alt text](image/7.jpeg "Overview page")
 
 # Settings
 edit haproxy-webintarface.config with your env
