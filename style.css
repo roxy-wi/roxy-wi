@@ -318,7 +318,7 @@ textarea {
   font: inherit;
   color: inherit;
   border-radius: 7px;
-  padding: 8px;
+  padding: 3px;
 }
 button {
   overflow: visible;
@@ -408,4 +408,5 @@ label {
   max-width: 100%;
   margin-bottom: 5px;
   font-weight: bold;
+  padding-right: 10px;
 }

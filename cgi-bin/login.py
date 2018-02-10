@@ -23,7 +23,7 @@ def login_page(error):
 	if error == "error":
 		printError = "<b style='color: red'>Somthing wrong :( I'm sad about this, but try again!</b><br /><br />"
 	else:
-		printError = "<b style='color: red'>First you need to login.</b><br /><br />"	
+		printError = "<h2>Login page. Enter please</h2><br /><br />"	
 	
 	ref = form.getvalue('ref')
 	if ref is None:
@@ -33,8 +33,8 @@ def login_page(error):
 		
 	print('<center><form name="auth" action="login.py" class="form-horizontal" method="post">')
 	print(printError)
-	print('<label for="login"> Login: </label>  <input type="text" name="login" required class="form-control">')
-	print('<label for="pass"> Pass: </label>   <input type="password" name="pass" required class="form-control">')
+	print('<label for="login">Login: </label>  <input type="text" name="login" required class="form-control"><br /><br />')
+	print('<label for="pass">Pass: </label>   <input type="password" name="pass" required class="form-control"><br /><br />')
 	print('<input type="hidden" value="%s" name="ref">' % ref)
 	print('<button type="submit" name="Login" value="Enter">Sign Up</button>')
 	print('</form></center>')
