@@ -32,6 +32,7 @@ iframe {
 }
 .top-menu {
 	background-color: #222;
+	box-shadow: 1px 1px 5px grey;
 	min-height: 50px;
 	margin-bottom: 20px;
 	top: 0;
@@ -70,6 +71,7 @@ iframe {
 	margin-left: 44%;
 }
 .conteiner {
+	box-shadow: 1px 1px 5px grey;
 	clear: both;
 	margin-top: 65px;
 	min-height: calc(100vh - 115px);
@@ -171,6 +173,7 @@ iframe {
 }
 .footer {
   background-color: #222;
+  box-shadow: 1px 1px 5px grey;
   min-height: 50px;
   top: 0;
   right: 0;
