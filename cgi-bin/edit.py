@@ -82,11 +82,13 @@ if form.getvalue('servaction') is not None:
 	cmd='echo "%s %s" |nc %s 1999' % (enable, backend, serv)
 	p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
 	stdout, stderr = p.communicate()
+	err = stderr.splitlines()
 	output = stdout.splitlines()
 
 	print('<center><h3>You %s %s on HAproxy %s. <a href="viewsttats.py?serv=%s" title="View stat" target="_blank">Look it</a> or <a href="edit.py" title="Edit">Edit something else</a></h3><br />'  % (enable, backend, serv, serv))
 	print('<center>'.join(map(str, output)))
-	
+	if err:
+		print('<center>'.join(map(str, err)))
 	action = 'edit.py ' + enable + ' ' + backend
 	funct.logging(serv, action)
 

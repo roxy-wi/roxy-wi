@@ -97,6 +97,7 @@ def links():
 						'<li><a href=/cgi-bin/viewsttats.py title="View Stats">Stats</a> </li>'
 						'<li><a href="http://172.28.5.106:3000/d/000000002/haproxy?refresh=1m&orgId=1" title="Mon" target="_blanck">Monitoring</a> </li>'
 						'<li><a href=/cgi-bin/logs.py title="View logs">Logs</a></li>'
+						'<li><a href=/cgi-bin/map.py title="View map">Map</a></li>'
 					'</ul>'
 				'</li>'
 				'<li><a href=/cgi-bin/edit.py title="Edit settings" style="size:5">Edit settings</a> </li>'
@@ -107,7 +108,7 @@ def links():
 						'<li><a href=/cgi-bin/add.py#listner title="Add single listen">Add listen</a></li>'
 						'<li><a href=/cgi-bin/add.py#frontend title="Add single frontend">Add frontend</a></li>'
 						'<li><a href=/cgi-bin/add.py#backend title="Add single backend">Add backend</a></li>'
-						'<li><a href=/cgi-bin/config.py title="Edit Config" style="size:5">Edit</a> </li>'
+						'<li><a href=/cgi-bin/config.py title="Edit Config">Edit</a> </li>'
 					'</ul>'
 				'</li>'
 				'<li><a href="#">Versions</a>'
@@ -293,7 +294,6 @@ def compare(stdout):
 	print('</div></div>')
 		
 def show_log(stdout):
-	#print('<input id="serv" value="%s" hidden><button id="stop" value="tailf_stop">Stop</button>' % serv)
 	i = 0
 	for line in stdout:
 		i = i + 1
@@ -302,21 +302,6 @@ def show_log(stdout):
 		else:
 			print('<div class="line">' + line + '</div>')
 			
-def show_log_tailf(channel, serv):
-	import select
-	print('<input id="serv" value="%s" hidden><button id="stop" value="tailf_stop">Stop</button>' % serv)
-	print('<pre>')
-	while 1:
-		rl, wl, xl = select.select([channel],[],[],0.0)
-		if len(rl) > 0:
-			print(channel.recv(200).decode(encoding='UTF-8'))
-	print('<input id="serv" value="%s" hidden><button id="stop" value="tailf_stop">Stop</button>' % serv)
-		#i = i + 1
-		#if i % 2 == 0: 
-		#	print('<div class="line3">' + line + '</div>')
-		#else:
-		#	print('<div class="line">' + line + '</div>')
-
 def show_ip(stdout):
 	for line in stdout:
 		print(line)
@@ -329,13 +314,6 @@ def server_status(stdout):
 		
 def ssh_command(serv, commands, **kwargs):
 	ssh = ssh_connect(serv)
-	
-	if kwargs.get("tailf") == "1":		
-		transport = ssh.get_transport()
-		channel = transport.open_session()
-		channel.exec_command('tail -f /var/log/haproxy.log')
-		show_log_tailf(channel, serv)
-	
 		  
 	for command in commands:
 		try:

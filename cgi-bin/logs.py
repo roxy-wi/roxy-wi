@@ -56,7 +56,7 @@ if form.getvalue('grep') is not None:
 else:
 	grep = ' '
 
-print('</td><td><input type="text" name="rows" %s class="form-control" required></td>' % rows)
+print('</td><td><input type="number" name="rows" %s class="form-control" required></td>' % rows)
 print('<td><input type="text" name="grep" class="form-control" %s >' % grep)
 print('</td></tr>'
 		'<tr style="border:none;">'
@@ -86,6 +86,6 @@ if form.getvalue('serv') is not None:
 		commands = [ 'sudo tail -%s /var/log/%s/syslog.log %s %s' % (rows, serv, grep_act, grep) ]
 		syslog_server = config.get('logs', 'syslog_server')
 	
-	funct.ssh_command(syslog_server, commands, show_log="1", tailf="0")
+	funct.ssh_command(syslog_server, commands, show_log="1")
 	
 funct.footer()

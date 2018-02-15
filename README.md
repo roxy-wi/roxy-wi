@@ -7,14 +7,15 @@ A simple web interface(user-frendly web GUI) for managing Haproxy servers
 1. View statistics of all servers in one place
 2. Server and service statsus in one place
 3. View logs of all servers in one place
-4. Disabling / enabling the backend servers without reboot (after reboot, will work as specified in the config), viewing server state data
-5. Browsing Configs
-6. Add sections: listen, frontend, backend from web interface
-7. Editing configs
-8. Rollback to previous versions of the config
-9. Comparing versions of configs
-10. Users roles: admin, editor, viewer
-11. Telegram notification
+4. Map frontend, backends and servers
+5. Disabling / enabling the backend servers without reboot (after reboot, will work as specified in the config), viewing server state data
+6. Browsing Configs
+7. Add sections: listen, frontend, backend from web interface
+8. Editing configs
+9. Rollback to previous versions of the config
+10. Comparing versions of configs
+11. Users roles: admin, editor, viewer
+12. Telegram notification
 
 # Install
 Can be used as a service, or via fastaci apache + fastCGI(recommend, because it works faster), how to use the service:
