@@ -25,6 +25,7 @@ config.read(path_config)
 time_zone = config.get('main', 'time_zone')
 hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
 haproxy_config_path  = config.get('haproxy', 'haproxy_config_path')
+stats_port= config.get('haproxy', 'stats_port')
 fullpath = config.get('main', 'fullpath')
 
 if serv is not None:
@@ -32,7 +33,7 @@ if serv is not None:
 	now_utc = datetime.now(timezone(time_zone))
 	cfg = hap_configs_dir + serv + "-" + now_utc.strftime(fmt) + ".cfg"
 
-funct.chooseServer("map.py#map", "Show HAproxy map", "n")
+funct.chooseServer("map.py", "Show HAproxy map", "n")
 
 def is_neighbors(G, neighbor):
 	for line in nx.generate_edgelist(G, data=False):
@@ -60,20 +61,22 @@ if form.getvalue('serv') is not None and form.getvalue('open') is not None :
 			if "stats" not in line:				
 				node = line
 				i = i - 500	
-		if line.find("backend") == 0:
+		if line.find("backend") == 0: 
 			node = line
 			i = i - 500	
 			G.add_node(node,pos=(k,i),label_pos=(k,i+150))
-		if "bind" in line  and "stats" not in node:
+		
+		if "bind" in line:
 			bind = line.split(":")
-			bind[1] = bind[1].strip(' ')
-			bind = bind[1].split("crt")
-			node = node.strip(' \t\n\r')
-			node = node + ":" + bind[0]
-			G.add_node(node,pos=(k,i),label_pos=(k,i+150))
+			if stats_port not in bind[1]:
+				bind[1] = bind[1].strip(' ')
+				bind = bind[1].split("crt")
+				node = node.strip(' \t\n\r')
+				node = node + ":" + bind[0]
+				G.add_node(node,pos=(k,i),label_pos=(k,i+150))
 
-		if "server " in line or "use_backend" in line or "default_backend" in line:
-			if "timeout" not in line and "default-server" not in line and "#use_backend" not in line:
+		if "server " in line or "use_backend" in line or "default_backend" in line and "stats" not in line:
+			if "timeout" not in line and "default-server" not in line and "#use_backend" not in line and "stats" not in line:
 				i = i - 300
 				j = j + 1				
 				if "check" in line:

@@ -209,10 +209,11 @@ def show_config(cfg):
 			print('</div><span class="param">' + line + '</span><div>')
 			continue
 		if "acl" in line or "option" in line or "server" in line:
-			print('<span class="paramInSec"><span class="numRow">')
-			print(i)
-			print('</span>' + line + '</span><br />')
-			continue
+			if "timeout" not in line and "default-server" not in line and "#use_backend" not in line:
+				print('<span class="paramInSec"><span class="numRow">')
+				print(i)
+				print('</span>' + line + '</span><br />')
+				continue
 		if "#" in line:
 			print('<span class="comment"><span class="numRow">')
 			print(i)
@@ -237,7 +238,7 @@ def upload_and_restart(serv, cfg):
 	sftp = ssh.open_sftp()
 	sftp.put(cfg, tmp_file)
 	sftp.close()
-	commands = [ "/sbin/haproxy  -q -c -f " + tmp_file, "mv -f " + tmp_file + " " + haproxy_config_path, restart_command]
+	commands = [ "/sbin/haproxy  -q -c -f " + tmp_file, "mv -f " + tmp_file + " " + haproxy_config_path, restart_command ]
 	i = 0
 	for command in commands:
 		i = i + 1
@@ -323,11 +324,11 @@ def ssh_command(serv, commands, **kwargs):
 				
 		if kwargs.get("ip") == "1":
 			show_ip(stdout)
-		if kwargs.get("compare") == "1":
+		elif kwargs.get("compare") == "1":
 			compare(stdout)
-		if kwargs.get("show_log") == "1":
+		elif kwargs.get("show_log") == "1":
 			show_log(stdout)
-		if kwargs.get("server_status") == "1":
+		elif kwargs.get("server_status") == "1":
 			server_status(stdout)
 		else:
 			print('<div style="margin: -10px;">'+stdout.read().decode(encoding='UTF-8')+'</div>')

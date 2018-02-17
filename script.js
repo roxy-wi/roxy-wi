@@ -7,14 +7,139 @@ $( function() {
 	//$( document ).tooltip();
 	$( "input[type=submit], button" ).button();
 	$( "input[type=checkbox]" ).checkboxradio();
+	$( ".controlgroup" ).controlgroup();
 	$( ".configShow" ).accordion({
       collapsible: true,
 	  heightStyle: "content",
 	  icons: { "header": "ui-icon-plus", "activeHeader": "ui-icon-minus" }
     });
-} );
-
-$( function() {
+	$( "dropdown_selector" ).change(function() {
+		var $option = $(this).find('option:selected');
+		if ($option == "tcp") {
+			$("#https-listen").hide();
+		}
+	});
+	$( "#listen-mode-select" ).on('selectmenuchange',function()  {
+		if ($( "#listen-mode-select option:selected" ).val() == "tcp") {
+			$( "#https-listen-span" ).hide("fast");
+			$( "#https-hide-listen" ).hide("fast");
+			$( "#https-listen" ).prop("checked", false);
+		} else {
+			$( "#https-listen-span" ).show("fast");
+		}
+	});
+	$( "#frontend-mode-select" ).on('selectmenuchange',function()  {
+		if ($( "#frontend-mode-select option:selected" ).val() == "tcp") {
+			$( "#https-frontend-span" ).hide("fast");
+			$( "#https-hide-frontend" ).hide("fast");
+		} else {
+			$( "#https-frontend-span" ).show("fast");
+		}
+	});
+	$( "#backend-mode-select" ).on('selectmenuchange',function()  {
+		if ($( "#backend-mode-select option:selected" ).val() == "tcp") {
+			$( "#https-backend-span" ).hide("fast");
+			$( "#https-hide-backend" ).hide("fast");
+		} else {
+			$( "#https-backend-span" ).show("fast");
+		}
+	});
+	$( "#https-listen" ).click( function(){
+		if ($('#https-listen').is(':checked')) {
+			$( "#https-hide-listen" ).show( "fast" );
+			$( "#path-cert-listen" ).attr('required',true);
+		} else {
+			$( "#https-hide-listen" ).hide( "fast" );
+			$( "#path-cert-listen" ).prop('required',false);
+		}
+	});	
+	$( "#https-frontend" ).click( function(){
+		if ($('#https-frontend').is(':checked')) {
+			$( "#https-hide-frontend" ).show( "fast" );
+			$( "#path-cert-frontend" ).attr('required',true);
+		} else {
+			$( "#https-hide-frontend" ).hide( "fast" );
+			$( "#path-cert-frontend" ).prop('required',false);
+		}
+	});	
+	$( "#https-backend" ).click( function(){
+		if ($('#https-backend').is(':checked')) {
+			$( "#https-hide-backend" ).show( "fast" );
+			$( "#path-cert-backend" ).attr('required',true);
+		} else {
+			$( "#https-hide-backend" ).hide( "fast" );
+			$( "#path-cert-backend" ).prop('required',false);
+		}
+	});	
+	$( "#options-listen-show" ).click( function(){
+		if ($('#options-listen-show').is(':checked')) {
+			$( "#options-listen-show-div" ).show( "fast" );
+		} else {
+			$( "#options-listen-show-div" ).hide( "fast" );
+		}
+	});	
+	$( "#options-frontend-show" ).click( function(){
+		if ($('#options-frontend-show').is(':checked')) {
+			$( "#options-frontend-show-div" ).show( "fast" );
+		} else {
+			$( "#options-frontend-show-div" ).hide( "fast" );
+		}
+	});	
+	$( "#options-backend-show" ).click( function(){
+		if ($('#options-backend-show').is(':checked')) {
+			$( "#options-backend-show-div" ).show( "fast" );
+		} else {
+			$( "#options-backend-show-div" ).hide( "fast" );
+		}
+	});	
+		$( "#controlgroup-listen-show" ).click( function(){
+		if ($('#controlgroup-listen-show').is(':checked')) {
+			$( "#controlgroup-listen" ).show( "fast" );
+			if ($('#check-servers-listen').is(':checked')) {
+				$( "#rise-listen" ).attr('required',true);
+				$( "#fall-listen" ).attr('required',true);
+				$( "#inter-listen" ).attr('required',true);
+			}
+		} else {
+			$( "#controlgroup-listen" ).hide( "fast" );
+		}
+		$( "#check-servers-listen" ).click( function(){
+		if ($('#check-servers-listen').is(':checked')) {
+			$( "#rise-listen" ).attr('required',true);
+			$( "#fall-listen" ).attr('required',true);
+			$( "#inter-listen" ).attr('required',true);
+		} else {
+			$( "#rise-listen" ).attr('required',false);
+			$( "#fall-listen" ).attr('required',false);
+			$( "#inter-listen" ).attr('required',false);
+		}
+	});
+	
+	});
+		$( "#controlgroup-backend-show" ).click( function(){
+		if ($('#controlgroup-backend-show').is(':checked')) {
+			$( "#controlgroup-backend" ).show( "fast" );
+			if ($('#check-servers-backend').is(':checked')) {
+				$( "#rise-backend" ).attr('required',true);
+				$( "#fall-backend" ).attr('required',true);
+				$( "#inter-backend" ).attr('required',true);
+			}
+		} else {
+			$( "#controlgroup-backend" ).hide( "fast" );			
+		}
+	});
+	$( "#check-servers-backend" ).click( function(){
+		if ($('#check-servers-backend').is(':checked')) {
+			$( "#rise-backend" ).attr('required',true);
+			$( "#fall-backend" ).attr('required',true);
+			$( "#inter-backend" ).attr('required',true);
+		} else {
+			$( "#rise-backend" ).attr('required',false);
+			$( "#fall-backend" ).attr('required',false);
+			$( "#inter-backend" ).attr('required',false);
+		}
+	});
+	
 	var availableTags = [
 		"acl", "http-request", "http-response", "set-uri", "set-url", "set-header", "add-header", "del-header", "replace-header", "path_beg", "url_beg()", "urlp_sub()", "tcpka", "tcplog", "forwardfor", "option"
 	];
