@@ -268,6 +268,7 @@ iframe {
 .menu li:hover li{
   display: block;
 }
+
 @keyframes shadow {
 	from {box-shadow: 0px 0px 0px red inset;}
 	50% {text-shadow: 0 0 30px black;}
@@ -363,6 +364,7 @@ table {
   border-spacing: 0;
   border-collapse: collapse;
   background-color: transparent;
+  width: 100%;
 }
 caption {
   color: #777;
