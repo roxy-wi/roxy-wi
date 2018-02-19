@@ -22,6 +22,9 @@ except IOError:
 	print("Can't load users DB")
 
 print('<h2>Quick Status </h2>'
+		'<iframe src="http://172.28.5.106:3000/d-solo/000000002/haproxy?refresh=1m&orgId=1&panelId=1&theme=light" height="200" frameborder="0"></iframe>'
+		'<iframe src="http://172.28.5.106:3000/d-solo/000000002/haproxy?refresh=1m&orgId=1&panelId=2&theme=light" height="200" frameborder="0"></iframe>'
+		'<iframe src="http://172.28.5.106:3000/d-solo/000000002/haproxy?refresh=1m&orgId=1&panelId=3&theme=light"  height="200" frameborder="0"></iframe>'
 		'<table class="overview">')
 
 commands = [ "ps -Af |grep [h]aproxy |wc -l" ]
@@ -31,10 +34,12 @@ print('<tr class="overviewHead">'
 		'<td>Login name</td>'
 		'<td class="padding10">'
 			'Role'
-			'<span style="float: right; margin-left: 80&;">'
-				'<a href="#"  title="Show all users" id="show-all-users">'
+			'<!--<span class="add-button" title="Just a button, do nothing )">+ Add  </span>-->'
+			'<span class="add-button">'
+				'<a href="#"  title="Show all users" id="show-all-users" style="color: #fff">'
 					'Show all'
 				'</a>'
+			'</span>'
 		'</td>'
 	'</tr>')
 
@@ -55,12 +60,12 @@ print('<tr class="overviewHead">'
 		'<td class="padding10">'
 			'HAproxy status'
 		'</td>'
-		'<td>'
+		'<td class="padding10">'
 			'Action'
-			'<span style="float: right; margin-left: 80&;">'
+			'<!--<span class="add-button" title="Just a button, do nothing )">+ Add</span>-->'
 				'<a href=""  title="Update status" id="update">'
-					'<img alt="Update" src="/image/pic/update.png" class="icon">'
-				'</a>'
+					'<img alt="Update" src="/image/pic/update.png" class="icon" style="margin-left: 20px; float: right">'
+				'</a></span>'
 		'</td>'
 	'</tr>')
 for i in sorted(listhap.listhap):

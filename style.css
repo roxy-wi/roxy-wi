@@ -32,6 +32,7 @@ iframe {
 }
 .icon {
 	max-width: 20px;
+	margin-left: 2px;
 }
 .top-menu {	
 	box-shadow: 1px 1px 5px grey;
@@ -213,7 +214,17 @@ iframe {
 	font-weight: bold;
 }
 .serverUp {
-	background-color: green; 
+	background-color: #5CB85C; 
+}
+.add-button {
+	background-color: #5CB85C; 
+	border-radius: 5px;
+	margin-left: 20px;
+	color: #fff; 
+	padding: 5px;
+	padding-right: 10px;
+	padding-left: 10px;
+	float: right;
 }
 .serverDown {
 	background-color: red; 
