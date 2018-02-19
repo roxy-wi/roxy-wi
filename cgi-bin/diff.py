@@ -31,7 +31,7 @@ funct.chooseServer("diff.py#diff", "Compare HAproxy configs", "n")
 if form.getvalue('serv') is not None and form.getvalue('open') is not None :
 	
 	print('<form action="diff.py#diff" method="get">')
-	print('<center><h3><span style="padding: 75px;">Choose left</span><span style="padding: 100px;">Choose right</span></h3>')
+	print('<center><h3><span style="padding: 20px;">Choose left</span><span style="padding: 110px;">Choose right</span></h3>')
 	
 	print('<p><select autofocus required name="left" id="left">')
 	print('<option disabled selected>Choose version</option>')
@@ -64,7 +64,7 @@ if form.getvalue('serv') is not None and form.getvalue('open') is not None :
 	print('</select>')
 	print('<input type="hidden" value="%s" name="serv">' % serv)
 	print('<input type="hidden" value="open" name="open">')
-	print('<p><button type="submit" value="Compare" name="Compare">Compare</button></p></form></center>')
+	print('<button type="submit" value="Compare" name="Compare">Compare</button></p></form></center>')
 	
 if form.getvalue('serv') is not None and form.getvalue('right') is not None:
 	commands = [ 'diff -ub %s%s %s%s' % (hap_configs_dir, left, hap_configs_dir, right) ]

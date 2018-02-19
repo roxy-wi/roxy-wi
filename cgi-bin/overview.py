@@ -22,9 +22,6 @@ except IOError:
 	print("Can't load users DB")
 
 print('<h2>Quick Status </h2>'
-		'<iframe src="http://172.28.5.106:3000/d-solo/000000002/haproxy?refresh=1m&orgId=1&panelId=1&theme=light" height="200" frameborder="0"></iframe>'
-		'<iframe src="http://172.28.5.106:3000/d-solo/000000002/haproxy?refresh=1m&orgId=1&panelId=2&theme=light" height="200" frameborder="0"></iframe>'
-		'<iframe src="http://172.28.5.106:3000/d-solo/000000002/haproxy?refresh=1m&orgId=1&panelId=3&theme=light"  height="200" frameborder="0"></iframe>'
 		'<table class="overview">')
 
 commands = [ "ps -Af |grep [h]aproxy |wc -l" ]

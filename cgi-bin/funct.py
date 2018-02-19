@@ -355,7 +355,7 @@ def chooseServer(formName, title, note):
 		print('<option value="%s" %s>%s</option>' % (listhap.listhap.get(i), selected, i))
 
 	print('</select>')
-	print('<p><button type="submit" value="open" name="open">Open</button></p></form>')
+	print('<button type="submit" value="open" name="open">Open</button></p></form>')
 	if note == "y":
 		print('<p><b>Note:</b> If you reconfigure First server, second will reconfigured automatically</p>')
 		
