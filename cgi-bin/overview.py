@@ -21,12 +21,14 @@ try:
 except IOError:
 	print("Can't load users DB")
 
-print('<h2>Quick Status </h2><table class="overview">')
+print('<h2>Quick Status </h2>'
+		'<table class="overview">')
 
 commands = [ "ps -Af |grep [h]aproxy |wc -l" ]
 
 print('<tr class="overviewHead">'
 		'<td class="padding10">User name</td>'
+		'<td>Login name</td>'
 		'<td class="padding10">'
 			'Role'
 			'<span style="float: right; margin-left: 80&;">'
@@ -44,6 +46,7 @@ for f in open(USERS, 'r'):
 	if i is 4:
 		style = 'style="display: none;" class="show-users"'
 	print('<tr ' + style + '><td class="padding10">' + users['firstName'] + ' ' + users['lastName'] +'</td><td>')
+	print(users['login']+'</td><td>')
 	print(users['role'])
 	print('</td></tr>')
 
@@ -51,17 +54,25 @@ print('<tr class="overviewHead">'
 		'<td class="padding10">Server</td>'
 		'<td class="padding10">'
 			'HAproxy status'
+		'</td>'
+		'<td>'
+			'Action'
 			'<span style="float: right; margin-left: 80&;">'
 				'<a href=""  title="Update status" id="update">'
-					'<img alt="Update" src="/image/pic/update.png" style="max-width: 20px;">'
+					'<img alt="Update" src="/image/pic/update.png" class="icon">'
 				'</a>'
 		'</td>'
 	'</tr>')
 for i in sorted(listhap.listhap):
 	print('<tr><td class="padding10">' + i + '</td><td>')
 	funct.ssh_command(listhap.listhap.get(i), commands, server_status="1")
+	print('</td><td>')
+	print('<a href="/cgi-bin/configshow.py?serv=%s&open=open#conf"  title="Show config"><img src=/image/pic/show.png alt="show" class="icon"></a>' % listhap.listhap.get(i))
+	print('<a href="/cgi-bin/config.py?serv=%s&open=open#conf"  title="Edit config"><img src=/image/pic/edit.png alt="edit" class="icon"></a>' % listhap.listhap.get(i))
+	print('<a href="/cgi-bin/diff.py?serv=%s&open=open#diff"  title="Compare config"><img src=/image/pic/compare.png alt="compare" class="icon"></a>' % listhap.listhap.get(i))
+	print('<a href="/cgi-bin/map.py?serv=%s&open=open#map"  title="Map listen/frontend/backend"><img src=/image/pic/map.png alt="map" class="icon"></a>' % listhap.listhap.get(i))
 	print('</td></tr>')
-print('<tr class="overviewHead">'
+print('</table><table><tr class="overviewHead">'
 		'<td class="padding10">Server</td>'
 		'<td class="padding10">'
 			'Server status'
@@ -79,9 +90,5 @@ for i in sorted(listhap.listhap):
 	funct.ssh_command(listhap.listhap.get(i), commands)
 	print('</pre></td></tr>')
 
-print('<tr>'
-		'<iframe src="http://172.28.5.106:3000/d-solo/000000002/haproxy?refresh=1m&orgId=1&panelId=1&theme=light" height="200" frameborder="0"></iframe>'
-		'<iframe src="http://172.28.5.106:3000/d-solo/000000002/haproxy?refresh=1m&orgId=1&panelId=2&theme=light" height="200" frameborder="0"></iframe>'
-		'<iframe src="http://172.28.5.106:3000/d-solo/000000002/haproxy?refresh=1m&orgId=1&panelId=3&theme=light"  height="200" frameborder="0"></iframe>'
-		'</tr></table>')
+print('<tr></table>')
 funct.footer()

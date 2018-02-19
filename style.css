@@ -30,8 +30,10 @@ form {
 iframe {
 	width: 33%;
 }
-.top-menu {
-	background-color: #222;
+.icon {
+	max-width: 20px;
+}
+.top-menu {	
 	box-shadow: 1px 1px 5px grey;
 	min-height: 50px;
 	margin-bottom: 20px;
@@ -41,8 +43,11 @@ iframe {
 	left: 0;
 	z-index: 1000;
 }
+.top-menu, .footer {
+	background-color: #33414E;
+}
 .logoText {
-	color: #fff;
+	color: #EBF1F1;
 	font-size: 30px;
 	float: left;
 	margin-left: 50px;
@@ -110,7 +115,6 @@ iframe {
 }
 .param {
 	font-weight: bold;
-	//background-color: #DCDCDC;
 	padding-left: 13px;
 }
 .numRow {
@@ -172,7 +176,6 @@ iframe {
 	padding-top: 10px;
 }
 .footer {
-  background-color: #222;
   box-shadow: 1px 1px 5px grey;
   min-height: 50px;
   top: 0;
@@ -232,7 +235,7 @@ iframe {
   padding: 10px; 
 }
 .menu ul > li:hover{
-  background-color: #333;
+  background-color: #3a4a4a;
 }
 .menu ul ul > li:hover{
   background-color: #69e;
@@ -245,7 +248,7 @@ iframe {
   position: relative;
   margin: 0;
   padding: 0;
-  background-color: #222222;
+  background-color: #33414E;
 }
 .menu ul ul{
   display: none;

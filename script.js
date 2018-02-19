@@ -20,12 +20,16 @@ $( function() {
 	  heightStyle: "content",
 	  icons: { "header": "ui-icon-plus", "activeHeader": "ui-icon-minus" }
     });
-	/*$( "dropdown_selector" ).change(function() {
-		var $option = $(this).find('option:selected');
-		if ($option == "tcp") {
-			$("#https-listen").hide();
-		}
-	}); */
+	$('#select_all').click(function(){
+        var checkboxes = $(this).closest('form').find(':checkbox');
+        if($(this).prop('checked')) {
+          $("form input[type='checkbox']").attr("checked",true).change();
+		  $("#label_select_all").text("Unselect all");
+        } else {
+          $("form input[type='checkbox']").attr("checked",false).change();
+		  $("#label_select_all").text("Select all");
+        }
+    });
 	$ ( "#show-all-users" ).click( function() {
 		if($( "#show-all-users" ).text() == "Show all") {
 			$( ".show-users" ).show("fast");

@@ -23,7 +23,9 @@ funct.chooseServer("delver.py#conf", "Delete Versions HAproxy config", "n")
 if serv is not None and form.getvalue('open') is not None:
 	
 	print('<center><h3>Choose old version</h3>')
-	print('<form action="delver.py#conf" method="post">')
+	print('<form action="delver.py#conf" method="post">'
+			'<label for="select_all" id="label_select_all"><b>Select all</b></label>'
+			'<input type="checkbox" id="select_all"><br />')
 	
 	import glob
 
