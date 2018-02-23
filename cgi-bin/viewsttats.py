@@ -18,7 +18,7 @@ haproxy_pass = config.get('haproxy', 'password')
 stats_port = config.get('haproxy', 'stats_port')
 stats_page = config.get('haproxy', 'stats_page')
 
-listhap.listhap = funct.merge_two_dicts(listhap.listhap, listhap.list_hap_vip)
+listhap.listhap = funct.merge_two_dicts(listhap.listhap, listhap.listhap_vip)
 
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')

@@ -26,6 +26,7 @@ print('<center>'
 				'<td class="padding10">Server</td>'
 				'<td>Number rows</td>'
 				'<td class="padding10">Ex for grep</td>'
+				'<td> </td>'
 			'</tr>'
 			'<tr>'
 				'<td class="padding10">'
@@ -33,16 +34,7 @@ print('<center>'
 					'<select autofocus required name="serv" id="serv">'
 						'<option disabled>Choose server</option>')
 
-for i in sorted(listhap.listhap):
-	if listhap.listhap.get(i) == serv:
-		selected = 'selected'
-	else:
-		selected = ''
-
-	if listhap.listhap.get(i) == '172.28.5.17' or listhap.listhap.get(i) == '172.28.9.161':
-		continue
-
-	print('<option value="%s" %s>%s</option>' % (listhap.listhap.get(i), selected, i))
+funct.choose_only_select(serv)
 
 print('</select>')
 
@@ -58,13 +50,11 @@ else:
 
 print('</td><td><input type="number" name="rows" %s class="form-control" required></td>' % rows)
 print('<td><input type="text" name="grep" class="form-control" %s >' % grep)
-print('</td></tr>'
-		'<tr style="border:none;">'
-			'<th style="border:none;">'
-				'<td class="padding10" >'
-					'<button type="submit">Show</button>'
-				'</td>'
-			'</th></form>'
+print('</td>'
+		'<td class="padding10" >'
+			'<button type="submit">Show</button>'
+		'</td>'
+		'</form>'
 		'</tr></table>')
 
 if form.getvalue('serv') is not None:

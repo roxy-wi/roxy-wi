@@ -78,6 +78,7 @@ iframe {
 }
 .conteiner {
 	box-shadow: 1px 1px 5px grey;
+	border-radius: 5px;
 	clear: both;
 	margin-top: 65px;
 	min-height: calc(100vh - 115px);
@@ -312,8 +313,18 @@ iframe {
     padding-right: 0;
 }
 .ui-state-default {
-	background-color: #EBF1F1;
+	background-color: #EBF1F1 !important;
 }
+.ui-state-active {
+	background-color: #5D9CEB !important;
+	border-color: #5D9CEB !important;
+}
+.ui-tooltip, .arrow:after {
+    background: #33414E !important;
+    border: 1px solid #33414E !important;
+	border-radius: 5px !important;
+	color: #fff !important;
+  }
 a {
   background-color: transparent;
 }

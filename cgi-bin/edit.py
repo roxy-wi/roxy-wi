@@ -55,11 +55,11 @@ else:
 print('</select></td>')
 print('<td style="width: 35%;"><select autofocus required name="servaction">')
 print('<option disabled selected>Choose action</option>')
-print('<option value=1 %s>Disable server</option>' % selected1)
-print('<option value=2 %s>Enable server</option>' % selected2)
+print('<option value=1 %s>Disable</option>' % selected1)
+print('<option value=2 %s>Enable</option>' % selected2)
 print('<option value=3 %s>Show</option>' % selected3)
 print('</select></td>')
-print('<td><input type="text" name="servbackend" size=40 placeholder="Backend/Server, show info, pools or help" required class="form-control">')
+print('<td><input type="text" name="servbackend" size=35 title="Frontend, backend/server, show: info, pools or help" required class="form-control">')
 
 print('</td></tr>'
 		'<tr style="border:none;">'
@@ -73,9 +73,9 @@ if form.getvalue('servaction') is not None:
 	backend = form.getvalue('servbackend')
 
 	if action == '1':
-		enable = 'disable server'
+		enable = 'disable'
 	elif action == '2':
-		enable = 'enable server'
+		enable = 'enable'
 	elif action == '3':
 		enable = 'show'
 

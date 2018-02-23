@@ -1,0 +1,3 @@
+{ "name": "admin", "lists": "all" }
+{ "name": "mysql", "lists": "mysql" }
+{ "name": "web", "lists": "web" }

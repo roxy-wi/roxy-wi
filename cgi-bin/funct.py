@@ -72,8 +72,21 @@ def show_login_links():
 	if login is None:
 		print('<li><a href=/cgi-bin/login.py? title="Login">Login</a></li>')	
 	else:
-		print('<li><a href=/cgi-bin/login.py?logout=logout title="Logout">Logout</a></li>')
+		print('<li><a href=/cgi-bin/login.py?logout=logout title="Logout, user name: %s">Logout</a></li>' % login.value)
 		
+def is_admin():
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	role = cookie.get('role')	
+	
+	try:
+		if role.value == "admin":
+			return True
+		else:
+			return False
+	except:
+		return False
+		pass
+	
 def mode_admin(button, **kwargs):
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	role = cookie.get('role')	
@@ -83,9 +96,9 @@ def mode_admin(button, **kwargs):
 		level = "editor"
 		
 	if role.value == "admin" and level == "admin":
-		print('<button type="submit">%s</button>' % button)
+		print('<button type="submit" class="btn btn-default">%s</button>' % button)
 	elif role.value == "admin" or role.value == "editor" and level == "editor":
-		print('<button type="submit">%s</button>' % button)
+		print('<button type="submit" class="btn btn-default">%s</button>' % button)
 		
 def links():
 	print('<nav class="menu">'
@@ -113,10 +126,11 @@ def links():
 				'</li>'
 				'<li><a href="#">Versions</a>'
 					'<ul>'
-						'<li><a href=/cgi-bin/configver.py title="Upload old versions configs" style="size:5">Upload</a></li>'	
-						'<li><a href=/cgi-bin/delver.py title="Delete old versions configs" style="size:5">Delete</a></li>'
-					'</ul>'
-				'</li>')
+						'<li><a href=/cgi-bin/configver.py title="Upload old versions configs">Upload</a></li>')
+	if is_admin():
+		print('<li><a href=/cgi-bin/delver.py title="Delete old versions configs">Delete</a></li>')
+	print('</ul>'
+			'</li>')
 	show_login_links()
 	print('</ul>'
 		  '</nav>')	
@@ -334,7 +348,71 @@ def ssh_command(serv, commands, **kwargs):
 			print('<div style="margin: -10px;">'+stdout.read().decode(encoding='UTF-8')+'</div>')
 			
 		print(stderr.read().decode(encoding='UTF-8'))
+
+def get_group_permit():
+	import json
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	login = cookie.get('login')
+	USERS = fullpath + '/cgi-bin/users'
+
+	try:
+		with open(USERS, "r") as user:
+			pass
+	except IOError:
+		print("Can't load users DB")
+		
+	for f in open(USERS, 'r'):
+		users = json.loads(f)
+		if login.value in users['login']:
+			group = users['group']
 	
+	GROUPS = fullpath + '/cgi-bin/groups'
+	try:
+		with open(GROUPS, "r") as user:
+			pass
+	except IOError:
+		print("Can't load groups DB")
+	
+	for f in open(GROUPS, 'r'):
+		groups = json.loads(f)
+		if group in groups['name']:
+			list = groups['lists']
+			break
+		else:
+			list = ""
+
+	return list
+	
+def get_dick_after_permit():
+	list_serv = get_group_permit()
+	
+	if list_serv == "all":
+		from listserv import listhap as listhap
+	elif list_serv == "web":
+		from listserv import web as listhap
+	elif list_serv == "mysql":
+		from listserv import mysql as listhap
+	else:
+		from listserv import no_group as listhap
+	
+	return listhap
+
+def choose_only_select(serv, **kwargs):
+	listhap = get_dick_after_permit()
+		
+	if kwargs.get("servNew"):
+		servNew = kwargs.get("servNew")
+	else:
+		servNew = ""
+		
+	for i in sorted(listhap):
+		if listhap.get(i) == serv or listhap.get(i) == servNew:
+			selected = 'selected'
+		else:
+			selected = ''
+
+		print('<option value="%s" %s>%s</option>' % (listhap.get(i), selected, i))	
+
 def chooseServer(formName, title, note):
 	print('<center><h2>' + title + '</h2>')
 	print('<h3>Choose server</h3>')
@@ -345,23 +423,16 @@ def chooseServer(formName, title, note):
 	form = cgi.FieldStorage()
 	serv = form.getvalue('serv')
 	servNew = form.getvalue('serNew')
-
-	for i in sorted(listhap.listhap):
-		if listhap.listhap.get(i) == serv or listhap.listhap.get(i) == servNew:
-			selected = 'selected'
-		else:
-			selected = ''
-
-		print('<option value="%s" %s>%s</option>' % (listhap.listhap.get(i), selected, i))
+	
+	choose_only_select(serv, servNew=servNew)
 
 	print('</select>')
-	print('<button type="submit" value="open" name="open">Open</button></p></form>')
+	print('<button type="submit" value="open" name="open" class="btn btn-default">Open</button></p></form>')
 	if note == "y":
 		print('<p><b>Note:</b> If you reconfigure First server, second will reconfigured automatically</p>')
 		
 def choose_server_with_vip(serv):
-	import listserv as listhap
-	listhap.listhap = merge_two_dicts(listhap.listhap, listhap.list_hap_vip)
+	listhap.listhap = merge_two_dicts(listhap.listhap, listhap.listhap_vip)
 	for i in sorted(listhap.listhap):
 		if listhap.listhap.get(i) == serv:
 			selected = 'selected'
