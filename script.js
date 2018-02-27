@@ -4,16 +4,17 @@ $( function() {
 		$( "#tabs" ).tabs( "option", "active", 2 );
 	} );
 	$( "select" ).selectmenu();
-
+		
     var tooltips = $( "[title]" ).tooltip({
       position: {
         my: "left top",
-        at: "right+5 top-5",
+        at: "right+5 top-25",
         collision: "none"
       }
     });
 	$( "input[type=submit], button" ).button();
 	$( "input[type=checkbox]" ).checkboxradio();
+	$( "#number" ).spinner();
 	$( ".controlgroup" ).controlgroup();
 	$( ".configShow" ).accordion({
       collapsible: true,
@@ -261,4 +262,13 @@ $( function() {
 			$("#optionsInput2").append(ui.item.value + " ")
 		}
 	});
+	input = $('<tr><td><input type="text" name="login-add" value="" class="form-control"></td>	<td><input type="passwrod" name="passwrod-add" value="" class="form-control"></td> <td><input type="text" name="role-add" value="" class="form-control"></td><td><input type="text" name="groups-add" value="" class="form-control"></td></tr>');
+	$( "#add-user" ).click( function(){
+		$( "#users-table" ).append(input);
+	});
 } );
+
+function removeUser(id) {
+	document.getElementById(id).parentNode.removeChild(document.getElementById(id));
+    return false;
+}

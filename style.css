@@ -150,6 +150,12 @@ iframe {
 	padding-left: 10px;
 	padding-right: 10px;
 }
+.line:hover, .line3:hover, tr:hover {
+	background-color: #EEEEEE;
+}
+.overviewHead:hover {
+	background-color: #EBF1F1
+}	
 .comment {
 	color: #aaa;
 }
@@ -163,6 +169,9 @@ iframe {
 }
 .addButton {
 	padding-top: 15px;
+}
+.addButton:hover {
+	background-color: #fff;
 }
 .addSuc {
 	padding-left: 20px;
@@ -220,12 +229,12 @@ iframe {
 .add-button {
 	background-color: #5CB85C; 
 	border-radius: 5px;
-	margin-left: 20px;
 	color: #fff; 
 	padding: 5px;
 	padding-right: 10px;
 	padding-left: 10px;
 	float: right;
+	margin-right: 10px;
 }
 .serverDown {
 	background-color: red; 
@@ -236,6 +245,16 @@ iframe {
 }
 .ro {
   border: none;
+}
+.remove {
+    color: #fff;
+    text-shadow: 0 1px 0 rgba(0,0,0,.1);
+    background-color: #ca4333;
+    background-image: linear-gradient(180deg,#d44a3a,#bc3829);
+    background-repeat: repeat-x;
+    border-color: #d44a3a;
+	padding: 5px;
+	border-radius: 3px;
 }
 .menu {
 	margin-left: 13%;
@@ -318,6 +337,10 @@ iframe {
 .ui-state-active {
 	background-color: #5D9CEB !important;
 	border-color: #5D9CEB !important;
+}
+.ui-button {
+	padding-left: 10px !important;
+	padding-right: 10px !important;
 }
 .ui-tooltip, .arrow:after {
     background: #33414E !important;

@@ -41,8 +41,6 @@ def login_page(error):
 	
 if form.getvalue('logout') is not None:
 	print("Set-cookie: login=; expires=Wed May 18 03:33:20 2003; path=/cgi-bin/; httponly")
-	print("Set-cookie: FirstName=; expires=Wed May 18 03:33:20 2003; path=/cgi-bin/; httponly")
-	print("Set-cookie: LastName=; expires=Wed May 18 03:33:20 2003; path=/cgi-bin/; httponly")
 	print("Set-cookie: role=; expires=Wed May 18 03:33:20 2003; path=/cgi-bin/; httponly")
 	print("Content-type: text/html\n")
 	print('<meta http-equiv="refresh" content="0; url=/">')
@@ -58,15 +56,12 @@ if login is not None and password is not None:
 			c["login"] = login
 			c["login"]["path"] = "/cgi-bin/"
 			c["login"]["expires"] = "Wed May 18 03:33:20 2033"
-			c["FirstName"] = users['firstName']
-			c["FirstName"]["path"] = "/cgi-bin/"
-			c["FirstName"]["expires"] = "Wed May 18 03:33:20 2033"
-			c["LastName"] = users['lastName']
-			c["LastName"]["path"] = "/cgi-bin/"
-			c["LastName"]["expires"] = "Wed May 18 03:33:20 2033"
 			c["role"] = users['role']
 			c["role"]["path"] = "/cgi-bin/"
 			c["role"]["expires"] = "Wed May 18 03:33:20 2033"
+			c["group"] = users['group']
+			c["group"]["path"] = "/cgi-bin/"
+			c["group"]["expires"] = "Wed May 18 03:33:20 2033"
 			print(c)
 			if form.getvalue('ref') is None:
 				ref = "/index.html"		

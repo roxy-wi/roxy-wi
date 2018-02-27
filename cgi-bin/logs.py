@@ -18,9 +18,7 @@ path_config = "haproxy-webintarface.config"
 config = configparser.ConfigParser()
 config.read(path_config)
 	
-print('<center>'
-		'<h2>HAproxy Logs</h2>'
-	  '</center>'
+print('<h2>HAproxy Logs</h2>'
 		'<table class="overview">'
 			'<tr class="overviewHead">'
 				'<td class="padding10">Server</td>'
@@ -52,8 +50,14 @@ print('</td><td><input type="number" name="rows" %s class="form-control" require
 print('<td><input type="text" name="grep" class="form-control" %s >' % grep)
 print('</td>'
 		'<td class="padding10" >'
-			'<button type="submit">Show</button>'
-		'</td>'
+			'<button type="submit">Show</button>')
+if form.getvalue('serv') is not None:
+	print('<span style="float: right; margin-top: 8px;">'
+				'<a href=""  title="Update logs" id="update">'
+					'<img alt="Update" src="/image/pic/update.png" style="max-width: 20px;">'
+				'</a>'
+			'</span>')
+print('</td>'
 		'</form>'
 		'</tr></table>')
 

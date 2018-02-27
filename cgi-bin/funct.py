@@ -37,9 +37,8 @@ def logging(serv, action):
 	now_utc = datetime.now(timezone(time_zone))
 	IP = cgi.escape(os.environ["REMOTE_ADDR"])
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	firstName = cookie.get('FirstName')
-	lastName = cookie.get('LastName')
-	mess = now_utc.strftime(dateFormat) + " from " + IP + " user: " + firstName.value + " " + lastName.value + " " + action + " for: " + serv + "\n"
+	login = cookie.get('login')
+	mess = now_utc.strftime(dateFormat) + " from " + IP + " user: " + login.value + " " + action + " for: " + serv + "\n"
 	log = open(fullpath + "log/config_edit.log", "a")
 	log.write(mess)
 	log.close
@@ -57,11 +56,15 @@ def telegram_send_mess(mess):
 	bot = telegram.Bot(token=token_bot, request=pp)
 	bot.send_message(chat_id=channel_name, text=mess)
 	
-def check_login():
+def check_login(**kwargs):
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	login = cookie.get('login')
+	role = cookie.get('role')
 	ref = os.environ.get("SCRIPT_NAME")
-
+	
+	if kwargs.get("admins_area") == "1" and role.value != "admin":
+		print('<meta http-equiv="refresh" content="0; url=/">')
+		
 	if login is None:
 		print('<meta http-equiv="refresh" content="0; url=login.py?ref=%s">' % ref)
 		
@@ -161,8 +164,8 @@ def footer():
 	print('</center></div>'
 			'<center>'
 				'<h3>'
-					'<a href="#top" title="UP">UP</a>'
-				'</h3>'
+					'<a class="ui-button ui-widget ui-corner-all" href="#top" title="Move up">UP</a>'
+				'</h3><br />'
 			'</center>'
 			'<div class="footer">'
 				'<div class="footer-link">'
@@ -414,7 +417,7 @@ def choose_only_select(serv, **kwargs):
 		print('<option value="%s" %s>%s</option>' % (listhap.get(i), selected, i))	
 
 def chooseServer(formName, title, note):
-	print('<center><h2>' + title + '</h2>')
+	print('<h2>' + title + '</h2><center>')
 	print('<h3>Choose server</h3>')
 	print('<form action=' + formName + ' method="get">')
 	print('<p><select autofocus required name="serv" id="chooseServer">')
