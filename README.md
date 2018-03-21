@@ -55,3 +55,9 @@ systemctl start haproxy-wi.service
 # Deb support
 
 Sorry, but not use, because  adapt yourself
+
+# Further development
+
+Offer your ideas and wishes, ask questions. All this is [welcomed](https://github.com/Aidaho12/haproxy-wi/issues)
+
+
