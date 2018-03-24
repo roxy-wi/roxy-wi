@@ -13,6 +13,8 @@ funct.check_login()
 path_config = "haproxy-webintarface.config"
 config = configparser.ConfigParser()
 config.read(path_config)
+haproxy_config_path  = config.get('haproxy', 'haproxy_config_path')
+status_command = config.get('haproxy', 'status_command')
 USERS = '/var/www/haproxy-wi/cgi-bin/users'
 
 try:
@@ -74,7 +76,7 @@ print('<table class="overview">'
 listhap = funct.get_dick_after_permit()
 
 commands = [ "ps -Af |grep [h]aproxy |wc -l" ]
-commands1 = [ "ls -l /etc/haproxy/haproxy.cfg |awk '{ print $6\" \"$7\" \"$8}'" ]
+commands1 = [ "ls -l %s |awk '{ print $6\" \"$7\" \"$8}'" % haproxy_config_path ]
 
 for i in sorted(listhap):
 	print('<tr><td class="padding10"><a href="#%s" title="Go to %s status" style="color: #000">%s</a></td><td>' % (i, i, i))
@@ -100,10 +102,10 @@ print('</table><table class="overview"><tr class="overviewHead">'
 		'</td>'
 	'</tr>')
 print('</td></tr>')
-commands = [ "cat /etc/haproxy/haproxy.cfg |grep -E '^listen|^backend|^frontend' |grep -v stats |wc -l", 
+commands = [ "cat " + haproxy_config_path + " |grep -E '^listen|^backend|^frontend' |grep -v stats |wc -l",  
 			"uname -smor", 
 			"haproxy -v |head -1", 
-			"systemctl status haproxy |grep Active | sed 's/^[ \t]*//'", 
+			status_command + "|grep Active | sed 's/^[ \t]*//'", 
 			"top -u haproxy -b -n 1" ]
 for i in sorted(listhap):
 	print('<tr><td class="overviewTr"><a name="'+i+'"></a><h3 title="IP ' + listhap.get(i) + '">' + i + ':</h3></td>')
