@@ -51,14 +51,18 @@ if funct.is_admin():
 		print(users['group']+'</td><td>')
 		print(users['role'])
 		print('</td><td></td></tr>')
-
-print('<tr class="overviewHead">'
+	print('</table>')
+print('<table class="overview">'
+	'<tr class="overviewHead">'
 		'<td class="padding10">Server</td>'
 		'<td class="padding10">'
 			'HAproxy status'
 		'</td>'
 		'<td class="padding10">'
 			'Action'
+		'</td>'
+		'<td>'
+			'Last edit'
 		'</td>'
 		'<td>'
 			'<a href=""  title="Update status" id="update">'
@@ -70,6 +74,8 @@ print('<tr class="overviewHead">'
 listhap = funct.get_dick_after_permit()
 
 commands = [ "ps -Af |grep [h]aproxy |wc -l" ]
+commands1 = [ "ls -l /etc/haproxy/haproxy.cfg |awk '{ print $6\" \"$7\" \"$8}'" ]
+
 for i in sorted(listhap):
 	print('<tr><td class="padding10"><a href="#%s" title="Go to %s status" style="color: #000">%s</a></td><td>' % (i, i, i))
 	funct.ssh_command(listhap.get(i), commands, server_status="1")
@@ -78,6 +84,8 @@ for i in sorted(listhap):
 	print('<a href="/cgi-bin/config.py?serv=%s&open=open#conf"  title="Edit config"><img src=/image/pic/edit.png alt="edit" class="icon"></a>' % listhap.get(i))
 	print('<a href="/cgi-bin/diff.py?serv=%s&open=open#diff"  title="Compare config"><img src=/image/pic/compare.png alt="compare" class="icon"></a>' % listhap.get(i))
 	print('<a href="/cgi-bin/map.py?serv=%s&open=open#map"  title="Map listen/frontend/backend"><img src=/image/pic/map.png alt="map" class="icon"></a>' % listhap.get(i))
+	print('</td><td>')
+	funct.ssh_command(listhap.get(i), commands1)
 	print('</td><td></td></tr>')
 	
 print('</table><table class="overview"><tr class="overviewHead">'
