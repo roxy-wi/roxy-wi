@@ -325,11 +325,18 @@ def show_ip(stdout):
 		print(line)
 		
 def server_status(stdout):
-	if " " not in stdout.read().decode(encoding='UTF-8'):
-		print('<span class="serverUp"> UP</span> running 3 processes')
+	proc_count = ""
+	for line in stdout.read().decode(encoding='UTF-8'):
+		proc_count += line
+		if "0" != line:
+			err = 0
+		else:
+			err = 1
+	if err == 0:
+		print('<span class="serverUp"> UP</span> running %s processes' % proc_count)
 	else:
-		print('<span lass="serverDown"> DOWN</span> running 0 processes')		
-		
+		print('<span class="serverDown"> DOWN</span> running %s processes' % proc_count)	
+	
 def ssh_command(serv, commands, **kwargs):
 	ssh = ssh_connect(serv)
 		  

@@ -100,7 +100,11 @@ print('</table><table class="overview"><tr class="overviewHead">'
 		'</td>'
 	'</tr>')
 print('</td></tr>')
-commands = [ "cat /etc/haproxy/haproxy.cfg |grep -E '^listen|^backend|^frontend' |grep -v stats |wc -l", "uname -smor", "haproxy -v |head -1", "top -u haproxy -b -n 1" ]
+commands = [ "cat /etc/haproxy/haproxy.cfg |grep -E '^listen|^backend|^frontend' |grep -v stats |wc -l", 
+			"uname -smor", 
+			"haproxy -v |head -1", 
+			"systemctl status haproxy |grep Active | sed 's/^[ \t]*//'", 
+			"top -u haproxy -b -n 1" ]
 for i in sorted(listhap):
 	print('<tr><td class="overviewTr"><a name="'+i+'"></a><h3 title="IP ' + listhap.get(i) + '">' + i + ':</h3></td>')
 	print('<td class="overviewTd"><span style="margin-left: -10px;">Total listen/frontend/backend:</span><pre>')
