@@ -58,7 +58,7 @@ funct.choose_server_with_vip(serv)
 print('</select><input type="submit" value="Show stats"></form>')
 
 data = response.content
-print('<a name="conf"></a>')
+print('<a name="conf"></a><div style="margin-left: 10px;">')
 print(data.decode('utf-8'))
 funct.head("Stats HAproxy configs")
 print('</div>')

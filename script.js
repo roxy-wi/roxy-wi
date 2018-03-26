@@ -186,7 +186,7 @@ $( function() {
 	$( "#show_menu" ).click(function() {
 			$(".top-menu").show( "drop", "slow" );
 			$(".container").css("max-width", "88%");
-			$(".container").css("margin-left", "12%");
+			$(".container").css("margin-left", "307px");
 			$(".show_menu").hide();
 	});
 	

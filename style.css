@@ -35,11 +35,9 @@ iframe {
 	margin-left: 2px;
 }
 .top-menu {	
-	//border-radius: 5px;
-	//box-shadow: 1px 1px 5px grey;
 	position: fixed;
 	height: 100%;
-	width: 12%;
+	width: 307px;
 	float: left;
 	margin-bottom: 20px;
 	top: 0;
@@ -80,15 +78,11 @@ iframe {
 	margin-left: 44%;
 }
 .container {
-	//box-shadow: 1px 1px 5px grey;
-	//border-radius: 5px;
-
-	//margin-top: 65px;
 	min-height: calc(100vh - 115px);
 	max-width: 88%;
 	min-width: 40%;
 	background-color: #fff;
-	margin-left: 12%;
+	margin-left: 307px;
 }
 .configShow, .diff {
 	margin-left: 16%;
@@ -244,7 +238,7 @@ iframe {
 }
 .padding10 {
 	padding: 10px;
-	padding-left: 25px;
+	padding-left: 15px;
 	border: none;
 }
 .ro {
