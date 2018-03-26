@@ -102,7 +102,43 @@ def mode_admin(button, **kwargs):
 		print('<button type="submit" class="btn btn-default">%s</button>' % button)
 	elif role.value == "admin" or role.value == "editor" and level == "editor":
 		print('<button type="submit" class="btn btn-default">%s</button>' % button)
-		
+
+def head(title):
+	print('Content-type: text/html\n')
+	print('<html><head><title>%s</title>' % title)
+	print('<link href="/favicon.ico" rel="icon" type="image/png" />'
+		'<meta charset="UTF-8">'
+		'<link href="/inc/style.css" rel="stylesheet">'
+		'<link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">'
+		'<script src="https://code.jquery.com/jquery-1.12.4.js"></script>'
+		'<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>'
+		'<script src="/inc/js-cookie.js"></script>'
+		'<script src="/inc/script.js"></script>'		
+		'</head>'
+			'<body>'
+				'<a name="top"></a>'
+				'<div class="show_menu" style="display: none;">'
+					'<a href="#" id="show_menu" title="Show menu" style="margin-top: 30px;position: absolute;">'
+						'<span class="ui-state-default ui-corner-all">'
+							'<span class="ui-icon ui-icon-arrowthick-1-e" id="arrow"></span>'
+						'</span>'
+					'</a>'
+				'</div>'
+				'<div class="top-menu">'
+					'<div class="LogoText">'
+						'<span style="padding: 10px;">HAproxy-WI</span>'
+						'<a href="#" id="hide_menu" title="Hide menu" style="margin-left: 7px;margin-top: -6px;position: absolute;">'
+							'<span class="ui-state-default ui-corner-all">'
+								'<span class="ui-icon ui-icon-arrowthick-1-w" id="arrow"></span>'
+							'</span>'
+						'</a>'
+					'</div>')
+	if config.get('main', 'logo_enable') == "1":
+		print('<div><img src="%s" title="Logo" class="logo"></div>' % config.get('main', 'logo_path'))
+	print('<div class="top-link">')
+	links()
+	print('</div></div><div class="container">')
+	
 def links():
 	print('<nav class="menu">'
 			'<ul>'
@@ -138,42 +174,6 @@ def links():
 	print('</ul>'
 		  '</nav>')	
 	
-	
-def head(title):
-	print('Content-type: text/html\n')
-	print('<html><head><title>%s</title>' % title)
-	print('<link href="/favicon.ico" rel="icon" type="image/png" />'
-		'<meta charset="UTF-8">'
-		'<link href="/style.css" rel="stylesheet">'
-		'<link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">'
-		'<script src="https://code.jquery.com/jquery-1.12.4.js"></script>'
-		'<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>'
-		'<script src="/script.js"></script>'
-		'</head>'
-			'<body>'
-				'<a name="top"></a>'
-				'<div class="show_menu" style="display: none;">'
-					'<a href="#" id="show_menu" title="Show menu" style="margin-top: 30px;position: absolute;">'
-						'<span class="ui-state-default ui-corner-all">'
-							'<span class="ui-icon ui-icon-arrowthick-1-e" id="arrow"></span>'
-						'</span>'
-					'</a>'
-				'</div>'
-				'<div class="top-menu">'
-					'<div class="LogoText">'
-						'<span style="padding-left: 20px;">HAproxy-WI</span>'
-						'<a href="#" id="hide_menu" title="Hide menu" style="margin-left: 107px;margin-top: -6px;position: absolute;">'
-							'<span class="ui-state-default ui-corner-all">'
-								'<span class="ui-icon ui-icon-arrowthick-1-w" id="arrow"></span>'
-							'</span>'
-						'</a>'
-					'</div>')
-	if config.get('main', 'logo_enable') == "1":
-		print('<div><img src="%s" title="Logo" class="logo"></div>' % config.get('main', 'logo_path'))
-	print('<div class="top-link">')
-	links()
-	print('</div></div><div class="container">')
-
 def footer():
 	print('</center></div>'
 			'<center style="margin-left: 12%;">'
@@ -185,7 +185,7 @@ def footer():
 				'<div class="footer-link">'
 					'<span class="LogoText">HAproxy-WI</span>'
 				'</div>'
-			'</div></body></html>-->')
+			'</div>--></body></html>')
 
 def ssh_connect(serv):
 	ssh = SSHClient()

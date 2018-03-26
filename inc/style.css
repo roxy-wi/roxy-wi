@@ -37,7 +37,7 @@ iframe {
 .top-menu {	
 	position: fixed;
 	height: 100%;
-	width: 307px;
+	width: 207px;
 	float: left;
 	margin-bottom: 20px;
 	top: 0;
@@ -79,14 +79,15 @@ iframe {
 }
 .container {
 	min-height: calc(100vh - 115px);
-	max-width: 88%;
+	max-width: 91%;
 	min-width: 40%;
 	background-color: #fff;
-	margin-left: 307px;
+	margin-left: 207px;
+	padding-bottom: 10px;
 }
 .configShow, .diff {
 	margin-left: 16%;
-	height: 70%;
+	height: 78%;
 	overflow: auto;
 	width: 70%;
 	border: 1px solid #DCDCDC;
@@ -255,7 +256,6 @@ iframe {
 	border-radius: 3px;
 }
 .menu {
-	margin-left: 13%;
 	font-weight: bold;
 	font-style: italic;
 }

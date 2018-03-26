@@ -176,19 +176,32 @@ $( function() {
 		}
 	});
 	$( "#hide_menu" ).click(function() {
-		if ($(".top_menu").css("display", "block")) {
-			$(".top-menu").hide( "drop", "slow" );
-			$(".container").css("max-width", "98%");
-			$(".container").css("margin-left", "1%");
-			$(".show_menu").show();
-		} 
+		$(".top-menu").hide( "drop", "fast" );
+		$(".container").css("max-width", "98%");
+		$(".container").css("margin-left", "1%");
+		$(".show_menu").show();
+		Cookies.set('hide_menu', 'hide', { expires: 365 });
 	});
 	$( "#show_menu" ).click(function() {
-			$(".top-menu").show( "drop", "slow" );
-			$(".container").css("max-width", "88%");
-			$(".container").css("margin-left", "307px");
-			$(".show_menu").hide();
+		$(".top-menu").show( "drop", "fast" );
+		$(".container").css("max-width", "91%");
+		$(".container").css("margin-left", "207px");
+		$(".show_menu").hide();
+		Cookies.set('hide_menu', 'show', { expires: 365 });
 	});
+	
+	var hideMenu = Cookies.get('hide_menu');
+	if (hideMenu == "show") {
+		$(".top-menu").show( "drop", "fast" );
+		$(".container").css("max-width", "91%");
+		$(".container").css("margin-left", "207px");
+	}
+	if (hideMenu == "hide") {
+		$(".top-menu").hide();
+		$(".container").css("max-width", "98%");
+		$(".container").css("margin-left", "1%");
+		$(".show_menu").show();
+	}
 	
 	var availableTags = [
 		"acl", "http-request", "http-response", "set-uri", "set-url", "set-header", "add-header", "del-header", "replace-header", "path_beg", "url_beg()", "urlp_sub()", "tcpka", "tcplog", "forwardfor", "option"
