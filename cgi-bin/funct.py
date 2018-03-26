@@ -152,26 +152,40 @@ def head(title):
 		'</head>'
 			'<body>'
 				'<a name="top"></a>'
+				'<div class="show_menu" style="display: none;">'
+					'<a href="#" id="show_menu" title="Show menu" style="margin-top: 40px;position: absolute;">'
+						'<span class="ui-state-default ui-corner-all">'
+							'<span class="ui-icon ui-icon-arrowthick-1-e" id="arrow"></span>'
+						'</span>'
+					'</a>'
+				'</div>'
 				'<div class="top-menu">'
-					'<span class="LogoText">HAproxy-WI</span>')
+					'<div class="LogoText">'
+						'<span style="padding-left: 20px;">HAproxy-WI</span>'
+						'<a href="#" id="hide_menu" title="Hide menu" style="margin-left: 35%;margin-top: 40px;position: absolute;">'
+							'<span class="ui-state-default ui-corner-all">'
+								'<span class="ui-icon ui-icon-arrowthick-1-w" id="arrow"></span>'
+							'</span>'
+						'</a>'
+					'</div>')
 	if config.get('main', 'logo_enable') == "1":
-		print('<img src="%s" title="Logo" class="logo">' % config.get('main', 'logo_path'))
+		print('<div><img src="%s" title="Logo" class="logo"></div>' % config.get('main', 'logo_path'))
 	print('<div class="top-link">')
 	links()
-	print('</div></div><div class="conteiner">')
+	print('</div></div><div class="container">')
 
 def footer():
 	print('</center></div>'
-			'<center>'
+			'<center style="margin-left: 12%;">'
 				'<h3>'
 					'<a class="ui-button ui-widget ui-corner-all" href="#top" title="Move up">UP</a>'
 				'</h3><br />'
 			'</center>'
-			'<div class="footer">'
+			'<!--<div class="footer">'
 				'<div class="footer-link">'
 					'<span class="LogoText">HAproxy-WI</span>'
 				'</div>'
-			'</div></body></html>')
+			'</div></body></html>-->')
 
 def ssh_connect(serv):
 	ssh = SSHClient()

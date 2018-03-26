@@ -175,6 +175,20 @@ $( function() {
 			$( "#rise-backend" ).selectmenu( "option", "disabled", true );
 		}
 	});
+	$( "#hide_menu" ).click(function() {
+		if ($(".top_menu").css("display", "block")) {
+			$(".top-menu").hide( "drop", "slow" );
+			$(".container").css("max-width", "98%");
+			$(".container").css("margin-left", "1%");
+			$(".show_menu").show();
+		} 
+	});
+	$( "#show_menu" ).click(function() {
+			$(".top-menu").show( "drop", "slow" );
+			$(".container").css("max-width", "88%");
+			$(".container").css("margin-left", "12%");
+			$(".show_menu").hide();
+	});
 	
 	var availableTags = [
 		"acl", "http-request", "http-response", "set-uri", "set-url", "set-header", "add-header", "del-header", "replace-header", "path_beg", "url_beg()", "urlp_sub()", "tcpka", "tcplog", "forwardfor", "option"

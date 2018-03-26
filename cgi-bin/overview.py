@@ -93,6 +93,9 @@ for i in sorted(listhap):
 print('</table><table class="overview"><tr class="overviewHead">'
 		'<td class="padding10">Server</td>'
 		'<td class="padding10">'
+			'HAproxy info'
+		'</td>'
+		'<td>'
 			'Server status'
 			'<span style="float: right; margin-left: 80&;">'
 				'<a href=""  title="Update status" id="update">'
@@ -105,13 +108,15 @@ print('</td></tr>')
 commands = [ "cat " + haproxy_config_path + " |grep -E '^listen|^backend|^frontend' |grep -v stats |wc -l",  
 			"uname -smor", 
 			"haproxy -v |head -1", 
-			status_command + "|grep Active | sed 's/^[ \t]*//'", 
-			"top -u haproxy -b -n 1" ]
+			status_command + "|grep Active | sed 's/^[ \t]*//'" ]
+commands1 =  [ "top -u haproxy -b -n 1" ]
 for i in sorted(listhap):
 	print('<tr><td class="overviewTr"><a name="'+i+'"></a><h3 title="IP ' + listhap.get(i) + '">' + i + ':</h3></td>')
 	print('<td class="overviewTd"><span style="margin-left: -10px;">Total listen/frontend/backend:</span><pre>')
 	funct.ssh_command(listhap.get(i), commands)
+	print('</pre></td><td class="overviewTd"><pre>')
+	funct.ssh_command(listhap.get(i), commands1)
 	print('</pre></td></tr>')
-
+	
 print('<tr></table>')
 funct.footer()

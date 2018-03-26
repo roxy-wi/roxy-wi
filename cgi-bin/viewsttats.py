@@ -48,7 +48,7 @@ for i in listhap.listhap:
         if listhap.listhap.get(i) == serv:
                 servname = i
 
-print('<br /><br /><h3 style="padding-left: 20px; margin-top: 20px;">Choose server!</h3><br />'
+print('<div class="container"><h3 style="padding-left: 20px; margin-top: 20px;">Choose server!</h3><br />'
 	'<form style="padding-left: 20px;" action="viewsttats.py" method="get">'
 		'<select autofocus required name="serv">'
 			'<option disabled>Choose server</option>')
@@ -61,4 +61,5 @@ data = response.content
 print('<a name="conf"></a>')
 print(data.decode('utf-8'))
 funct.head("Stats HAproxy configs")
-print('<style>.conteiner{display:none}</style>')
+print('</div>')
+#print('<style>.container{display:none}</style>')

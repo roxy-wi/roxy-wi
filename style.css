@@ -13,7 +13,7 @@ body {
 h2 {
 	background: #5D9CEB;
 	border: 1px solid #5D9CEB;
-	border-radius: 5px 5px 0px 0px;
+	//border-radius: 5px 5px 0px 0px;
 	padding: 10px;
 	padding-left: 3%;
 	color: #fff;
@@ -35,14 +35,18 @@ iframe {
 	margin-left: 2px;
 }
 .top-menu {	
-	box-shadow: 1px 1px 5px grey;
-	min-height: 50px;
+	//border-radius: 5px;
+	//box-shadow: 1px 1px 5px grey;
+	position: fixed;
+	height: 100%;
+	width: 12%;
+	float: left;
 	margin-bottom: 20px;
 	top: 0;
-	position: fixed;
 	right: 0;
 	left: 0;
 	z-index: 1000;
+	display: block;
 }
 .top-menu, .footer {
 	background-color: #33414E;
@@ -50,11 +54,10 @@ iframe {
 .logoText {
 	color: #EBF1F1;
 	font-size: 30px;
-	float: left;
-	margin-left: 50px;
-	margin-top: 3px;
 	font-style: italic;
 	font-weight: bold;
+	height: 52px;
+	background-color: #f2ae72;
 }
 .top-menu img {
 	max-width: 125px;
@@ -67,25 +70,25 @@ iframe {
   padding-left: 7px;
   padding-right: 7px;
 }
-.top-link {
-	margin-top: 15px;
+/*.top-link {
+	margin-top: 115px;
 }
 .top-link {
 	margin-left: 28%;
-}
+}*/
 .footer-link  {
 	margin-left: 44%;
 }
-.conteiner {
-	box-shadow: 1px 1px 5px grey;
-	border-radius: 5px;
-	clear: both;
-	margin-top: 65px;
+.container {
+	//box-shadow: 1px 1px 5px grey;
+	//border-radius: 5px;
+
+	//margin-top: 65px;
 	min-height: calc(100vh - 115px);
-	max-width: 50%;
+	max-width: 88%;
 	min-width: 40%;
 	background-color: #fff;
-	margin-left: 25%;
+	margin-left: 12%;
 }
 .configShow, .diff {
 	margin-left: 16%;
@@ -207,7 +210,7 @@ iframe {
 }
 
 .overviewTd {
-	padding-left: 5%;
+	padding-left: 35px;
 	padding-top: 20px;
 	border-color: #ddd;
 }
@@ -241,6 +244,7 @@ iframe {
 }
 .padding10 {
 	padding: 10px;
+	padding-left: 25px;
 	border: none;
 }
 .ro {
@@ -260,26 +264,40 @@ iframe {
 	margin-left: 13%;
 	font-weight: bold;
 	font-style: italic;
-	margin-top: -10px;
 }
 .menu ul li{
-  padding: 10px; 
+	padding: 10px; 
+	padding-left: 20px;
 }
-.menu ul > li:hover{
+/*.menu ul > li:hover{
   background-color: #3a4a4a;
-}
+}*/
 .menu ul ul > li:hover{
   background-color: #69e;
-}
-.menu ul li, .menu ul{
-  display: inline-block;
-  border-radius: 3px;
 }
 .menu ul{
   position: relative;
   margin: 0;
   padding: 0;
   background-color: #33414E;
+  list-style-type: none;
+}
+
+.menu ul a{
+  color: #fff;
+  text-decoration: none;
+}
+.menu ul a:hover {
+	background-color: #69e;
+}
+.menu ul ul a{
+  color: #fff;
+  text-decoration: none; 
+}
+/*
+.menu ul li, .menu ul{
+  display: inline-block;
+  border-radius: 3px;
 }
 .menu ul ul{
   display: none;
@@ -288,21 +306,13 @@ iframe {
   margin-top: 10px;
   margin-left: -10px;
 }
-.menu ul a{
-  color: #fff;
-  text-decoration: none;
-}
-.menu ul ul a{
-  color: #fff;
-  text-decoration: none; 
-}
 .menu li:hover ul{
   display: block;
 }
 .menu li:hover li{
   display: block;
 }
-
+*/
 @keyframes shadow {
 	from {box-shadow: 0px 0px 0px red inset;}
 	50% {text-shadow: 0 0 30px black;}
@@ -439,12 +449,7 @@ a:focus {
   outline: 5px auto -webkit-focus-ring-color;
   outline-offset: -2px;
 }
-.container {
-  padding-right: 15px;
-  padding-left: 15px;
-  margin-right: auto;
-  margin-left: auto;
-}
+
 .container-fluid {
   padding-right: 15px;
   padding-left: 15px;

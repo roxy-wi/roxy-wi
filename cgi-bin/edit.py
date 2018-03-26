@@ -23,6 +23,7 @@ print('<center>'
 				'<td class="padding10">Server</td>'
 				'<td>Disable/Enable server or output any information</td>'
 				'<td class="padding10">Command</td>'
+				'<td></td>'
 			'</tr>'
 			'<tr>'
 				'<td class="padding10" style="width: 35%;">'
@@ -61,9 +62,7 @@ print('<option value=3 %s>Show</option>' % selected3)
 print('</select></td>')
 print('<td><input type="text" name="servbackend" size=35 title="Frontend, backend/server, show: info, pools or help" required class="form-control">')
 
-print('</td></tr>'
-		'<tr style="border:none;">'
-			'<td></td><td class="padding10" style="border:none; padding-left: 12%;">')
+print('</td><td>')
 funct.mode_admin("Enter")
 print('</td></form>'
 		'</tr></table>')
