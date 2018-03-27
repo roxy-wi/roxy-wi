@@ -21,6 +21,34 @@ $( function() {
 	  heightStyle: "content",
 	  icons: { "header": "ui-icon-plus", "activeHeader": "ui-icon-minus" }
     });
+	var headers = $('.configShow .accordion-header');
+	var contentAreas = $('.configShow .ui-accordion-content ').hide()
+	.first().show().end();
+	var expandLink = $('.accordion-expand-all');
+
+	// add the accordion functionality
+	headers.click(function() {
+		// close all panels
+		contentAreas.slideUp();
+		// open the appropriate panel
+		$(this).next().slideDown();
+		// reset Expand all button
+		expandLink.text('Expand all')
+			.data('isAllOpen', false);
+		// stop page scroll
+		return false;
+	});
+
+	// hook up the expand/collapse all
+	expandLink.click(function(){
+		var isAllOpen = !$(this).data('isAllOpen');
+		console.log({isAllOpen: isAllOpen, contentAreas: contentAreas})
+		contentAreas[isAllOpen? 'slideDown': 'slideUp']();
+		
+		expandLink.text(isAllOpen? 'Collapse All': 'Expand all')
+					.data('isAllOpen', isAllOpen);    
+	});
+	
 	$('#select_all').click(function(){
         var checkboxes = $(this).closest('form').find(':checkbox');
         if($(this).prop('checked')) {

@@ -30,6 +30,10 @@ form {
 iframe {
 	width: 33%;
 }
+pre {
+	padding-left: 25px;
+	padding-top: 20px;
+}
 .icon {
 	max-width: 20px;
 	margin-left: 2px;
@@ -55,7 +59,7 @@ iframe {
 	font-style: italic;
 	font-weight: bold;
 	height: 52px;
-	background-color: #f2ae72;
+	background-color: #f4ab76;
 }
 .top-menu img {
 	max-width: 125px;
@@ -204,16 +208,17 @@ iframe {
 	border-radius: 5px;
 }
 
-.overviewTd {
-	padding-left: 35px;
+/*.overviewTd {	
 	padding-top: 20px;
-	border-color: #ddd;
-}
+}*/
 .overviewTr {
 	margin: 0;
 	background-color: #f6f6f6;
 	padding-left: 15px;
 	font-size: 15px;
+}
+.first-collumn {
+	width: 200px;
 }
 .serverUp, .serverDown {
 	padding: 3px; 

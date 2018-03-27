@@ -49,7 +49,7 @@ if funct.is_admin():
 		users = json.loads(f)
 		if i is 4:
 			style = 'style="display: none;" class="show-users"'
-		print('<tr ' + style + '><td class="padding10">' + users['login'] +'</td><td>')
+		print('<tr ' + style + '><td class="padding10 first-collumn">' + users['login'] +'</td><td class="second-collumn">')
 		print(users['group']+'</td><td>')
 		print(users['role'])
 		print('</td><td></td></tr>')
@@ -79,7 +79,7 @@ commands = [ "ps -Af |grep [h]aproxy |wc -l" ]
 commands1 = [ "ls -l %s |awk '{ print $6\" \"$7\" \"$8}'" % haproxy_config_path ]
 
 for i in sorted(listhap):
-	print('<tr><td class="padding10"><a href="#%s" title="Go to %s status" style="color: #000">%s</a></td><td>' % (i, i, i))
+	print('<tr><td class="padding10 first-collumn"><a href="#%s" title="Go to %s status" style="color: #000">%s</a></td><td  class="second-collumn">' % (i, i, i))
 	funct.ssh_command(listhap.get(i), commands, server_status="1")
 	print('</td><td>')
 	print('<a href="/cgi-bin/configshow.py?serv=%s&open=open#conf"  title="Show config"><img src=/image/pic/show.png alt="show" class="icon"></a>' % listhap.get(i))
@@ -89,7 +89,7 @@ for i in sorted(listhap):
 	print('</td><td>')
 	funct.ssh_command(listhap.get(i), commands1)
 	print('</td><td></td></tr>')
-	
+
 print('</table><table class="overview"><tr class="overviewHead">'
 		'<td class="padding10">Server</td>'
 		'<td class="padding10">'
@@ -111,8 +111,8 @@ commands = [ "cat " + haproxy_config_path + " |grep -E '^listen|^backend|^fronte
 			status_command + "|grep Active | sed 's/^[ \t]*//'" ]
 commands1 =  [ "top -u haproxy -b -n 1" ]
 for i in sorted(listhap):
-	print('<tr><td class="overviewTr"><a name="'+i+'"></a><h3 title="IP ' + listhap.get(i) + '">' + i + ':</h3></td>')
-	print('<td class="overviewTd"><span style="margin-left: -10px;">Total listen/frontend/backend:</span><pre>')
+	print('<tr><td class="overviewTr first-collumn"><a name="'+i+'"></a><h3 title="IP ' + listhap.get(i) + '">' + i + ':</h3></td>')
+	print('<td class="overviewTd"><span>Total listen/frontend/backend:</span><pre>')
 	funct.ssh_command(listhap.get(i), commands)
 	print('</pre></td><td class="overviewTd"><pre>')
 	funct.ssh_command(listhap.get(i), commands1)

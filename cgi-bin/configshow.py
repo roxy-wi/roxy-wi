@@ -39,7 +39,9 @@ if form.getvalue('serv') is not None and form.getvalue('open') is not None :
 	
 	print('<a name="conf"></a>')
 	print("<h3>Config from %s</h3>" % serv)
-	
+	print('<p class="accordion-expand-holder">'
+			'<a class="accordion-expand-all ui-button ui-widget ui-corner-all" href="#">Expand all</a>'
+		'</p>')
 	funct.show_config(cfg)
 
 	os.system("/bin/rm -f " + cfg)	
