@@ -49,6 +49,20 @@ $( function() {
 					.data('isAllOpen', isAllOpen);    
 	});
 	
+
+    var location = window.location.href;
+    var cur_url = '/cgi-bin/' + location.split('/').pop();
+		
+    $('.menu li').each(function () {
+        var link = $(this).find('a').attr('href');
+
+        if (cur_url == link)
+        {
+            $(this).addClass('current');
+        }
+    });
+
+	
 	$('#select_all').click(function(){
         var checkboxes = $(this).closest('form').find(':checkbox');
         if($(this).prop('checked')) {

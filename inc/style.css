@@ -34,6 +34,7 @@ pre {
 	padding-left: 25px;
 	padding-top: 20px;
 }
+
 .icon {
 	max-width: 20px;
 	margin-left: 2px;
@@ -268,9 +269,7 @@ pre {
 	padding: 10px; 
 	padding-left: 20px;
 }
-/*.menu ul > li:hover{
-  background-color: #3a4a4a;
-}*/
+
 .menu ul ul > li:hover{
   background-color: #69e;
 }
@@ -281,37 +280,18 @@ pre {
   background-color: #33414E;
   list-style-type: none;
 }
-
 .menu ul a{
   color: #fff;
   text-decoration: none;
 }
-.menu ul a:hover {
+.menu ul a:hover, .current  {
 	background-color: #69e;
 }
 .menu ul ul a{
   color: #fff;
   text-decoration: none; 
 }
-/*
-.menu ul li, .menu ul{
-  display: inline-block;
-  border-radius: 3px;
-}
-.menu ul ul{
-  display: none;
-  position: absolute;
-  background-color: #007FFF;
-  margin-top: 10px;
-  margin-left: -10px;
-}
-.menu li:hover ul{
-  display: block;
-}
-.menu li:hover li{
-  display: block;
-}
-*/
+
 @keyframes shadow {
 	from {box-shadow: 0px 0px 0px red inset;}
 	50% {text-shadow: 0 0 30px black;}
@@ -323,9 +303,6 @@ pre {
 	to {box-shadow: 0 -5px 5px -5px #5D9CEB inset}
 }
 
-//.form-control:valid {
-//	animation: shadow  0.3s forwards;
-//}
 .form-control:hover {
 	animation: shadow-red  0.3s forwards;
 }
