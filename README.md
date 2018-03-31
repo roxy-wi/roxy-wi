@@ -1,5 +1,5 @@
 # Haproxy web interface
-A simple web interface(user-frendly web GUI) for managing Haproxy servers
+A simple web interface(user-frendly web GUI) for managing Haproxy servers. Leave your [feedback](https://github.com/Aidaho12/haproxy-wi/issues)
 
 ![alt text](image/8.jpeg "Show config page")
 
