@@ -151,7 +151,7 @@ def links():
 						'<li><a href=/cgi-bin/map.py title="View map">Map</a></li>'
 					'</ul>'
 				'</li>'
-				'<li><a href=/cgi-bin/edit.py title="Edit settings" style="size:5">Edit settings</a> </li>'
+				'<li><a href=/cgi-bin/edit.py title="Runtime API" style="size:5">Runtime API</a> </li>'
 				'<li><a href="#">Configs</a>'
 					'<ul>'
 						'<li><a href=/cgi-bin/configshow.py title="Show Config">Show</a></li> '

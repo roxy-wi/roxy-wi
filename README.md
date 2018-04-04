@@ -8,7 +8,7 @@ A simple web interface(user-frendly web GUI) for managing Haproxy servers. Leave
 2. Server and service statsus in one place
 3. View logs of all servers in one place
 4. Map frontend, backends and servers
-5. Disabling / enabling the backend servers without reboot (after reboot, will work as specified in the config), viewing server state data
+5. Runtime API with the ability to save changes (need install socat on all haproxy servers)
 6. Browsing Configs
 7. Add sections: listen, frontend, backend from web interface
 8. Editing configs
@@ -34,15 +34,16 @@ Edit listserv.py, add your HAproxy servers.
 ![alt text](image/7.jpeg "Overview page")
 
 # Settings
-edit haproxy-webintarface.config with your env
+Edit haproxy-webintarface.config with your env
 
-copy ssh key on all HAproxy servers
+Copy ssh key on all HAproxy servers
 
-For online edit HAproxy settings enable socket on HAproxt servers:
+For Runtime API enable state file on HAproxt servers and need install socat on all haproxy servers:
 ```
-global
-    log         172.28.0.5 local2 debug err
-    stats socket *:1999 level admin
+    global
+       server-state-file /etc/haproxy/haproxy/haproxy.state
+    defaults
+       load-server-state-from-file global
    ```
 ![alt text](image/4.jpeg "View logs page")
 

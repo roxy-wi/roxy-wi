@@ -6,14 +6,57 @@ import subprocess
 import os
 import http.cookies
 import funct
+import configparser
 from funct import head as head
 
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
+action = form.getvalue('servaction')
+backend = form.getvalue('servbackend')
 
-head("Edit & show HAproxy settings")
+head("Runtime API")
 
 funct.check_login()
+funct.check_config()
+
+path_config = "haproxy-webintarface.config"
+config = configparser.ConfigParser()
+config.read(path_config)
+
+server_state_file = config.get('haproxy', 'server_state_file')
+haproxy_sock = config.get('haproxy', 'haproxy_sock')
+
+if backend is None:
+	backend = ""
+	autofocus = ""
+else: 
+	autofocus = "autofocus"
+	
+if action == 'disable':
+	selected1 = 'selected'
+	selected2 = ''
+	selected3 = ''
+	selected4 = ''
+elif action == 'enable':
+	selected1 = ''
+	selected2 = 'selected'
+	selected3 = ''
+	selected4 = ''
+elif action == 'set':
+	selected1 = ''
+	selected2 = ''
+	selected3 = 'selected'
+	selected4 = ''
+elif action == 'show':
+	selected1 = ''
+	selected2 = ''
+	selected3 = ''
+	selected4 = 'selected'
+else:
+	selected1 = ''
+	selected2 = ''
+	selected3 = ''
+	selected4 = ''
 
 print('<center>'
 		'<h2>Edit & show HAproxy settings</h2>'
@@ -23,71 +66,49 @@ print('<center>'
 				'<td class="padding10">Server</td>'
 				'<td>Disable/Enable server or output any information</td>'
 				'<td class="padding10">Command</td>'
+				'<td>Save change</td>'
 				'<td></td>'
 			'</tr>'
 			'<tr>'
-				'<td class="padding10" style="width: 35%;">'
+				'<td class="padding10" style="width: 25%;">'
 				'<form action="edit.py" method="get">'
-					'<select autofocus required name="serv">'
+					'<select required name="serv">'
 						'<option disabled selected>Choose server</option>')
 
 funct.choose_server_with_vip(serv)
 
-action = form.getvalue('servaction')
-backend = form.getvalue('servbackend')
-
-if action == '1':
-	selected1 = 'selected'
-	selected2 = ''
-	selected3 = ''
-elif action == '2':
-	selected1 = ''
-	selected2 = 'selected'
-	selected3 = ''
-elif action == '3':
-	selected1 = ''
-	selected2 = ''
-	selected3 = 'selected'
-else:
-	selected1 = ''
-	selected2 = ''
-	selected3 = ''
-
+print('</select></td>'
+	'<td style="width: 30%;">'
+		'<select required name="servaction">'
+			'<option disabled selected>Choose action</option>')
+print('<option value="disable" %s>Disable</option>' % selected1)
+print('<option value="enable" %s>Enable</option>' % selected2)
+print('<option value="set" %s>Set</option>' % selected3)
+print('<option value="show" %s>Show</option>' % selected4)
 print('</select></td>')
-print('<td style="width: 35%;"><select autofocus required name="servaction">')
-print('<option disabled selected>Choose action</option>')
-print('<option value=1 %s>Disable</option>' % selected1)
-print('<option value=2 %s>Enable</option>' % selected2)
-print('<option value=3 %s>Show</option>' % selected3)
-print('</select></td>')
-print('<td><input type="text" name="servbackend" size=35 title="Frontend, backend/server, show: info, pools or help" required class="form-control">')
+print('<td><input type="text" name="servbackend" size=35 title="Frontend, backend/server, show: info, pools or help" required class="form-control" value="%s" %s>' % (backend, autofocus))
 
-print('</td><td>')
+print('</td><td>'
+		'<input type="checkbox" name="save" title="Save changes after restart">'
+		'</td><td>')
 funct.mode_admin("Enter")
 print('</td></form>'
 		'</tr></table>')
 
 if form.getvalue('servaction') is not None:
-	action = form.getvalue('servaction')
-	backend = form.getvalue('servbackend')
-
-	if action == '1':
-		enable = 'disable'
-	elif action == '2':
-		enable = 'enable'
-	elif action == '3':
-		enable = 'show'
-
-	cmd='echo "%s %s" |nc %s 1999' % (enable, backend, serv)
-	p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
-	stdout, stderr = p.communicate()
-	err = stderr.splitlines()
-	output = stdout.splitlines()
-
-	print('<center><h3>You %s %s on HAproxy %s. <a href="viewsttats.py?serv=%s" title="View stat" target="_blank">Look it</a> or <a href="edit.py" title="Edit">Edit something else</a></h3><br />'  % (enable, backend, serv, serv))
-	print('<center>'.join(map(str, output)))
-	if err:
-		print('<center>'.join(map(str, err)))
+	enable = form.getvalue('servaction')
+	cmd='echo "%s %s" |socat stdio %s | cut -d "," -f 1-2,5-10,34-36 | column -s, -t' % (enable, backend, haproxy_sock)
+	
+	if form.getvalue('save') == "on":
+		save_command = 'echo "show servers state" | socat stdio %s > %s' % (haproxy_sock, server_state_file)
+		command = [ cmd, save_command ] 
+	else:
+		command = [ cmd ] 
+		
+	if enable != "show":
+			print('<center><h3>You %s %s on HAproxy %s. <a href="viewsttats.py?serv=%s" title="View stat" target="_blank">Look it</a> or <a href="edit.py" title="Edit">Edit something else</a></h3><br />' % (enable, backend, serv, serv))
+			
+	funct.ssh_command(serv, command, show_log="1")
 	action = 'edit.py ' + enable + ' ' + backend
 	funct.logging(serv, action)
 
