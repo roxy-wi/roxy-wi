@@ -18,6 +18,7 @@ funct.check_login()
 path_config = "haproxy-webintarface.config"
 config = configparser.ConfigParser()
 config.read(path_config)
+funct.page_for_admin(level = 1)
 
 haproxy_configs_server = config.get('configs', 'haproxy_configs_server')
 hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
@@ -242,7 +243,7 @@ print('</select>'
 		'</tr>'
 		'<tr>'
 			'<td class="addButton">')
-funct.mode_admin("Add Listen")
+funct.get_button("Add Listen")
 print('</td>'
 		'</tr>'
 		'</form>'
@@ -325,7 +326,7 @@ print('</select>'
 		'</tr>'
 		'<tr>'
 			'<td class="addButton">')
-funct.mode_admin("Add Frontend")
+funct.get_button("Add Frontend")
 print('</td>'
 		'</tr>'
 		'</form></table>'
@@ -438,7 +439,7 @@ print('</select>'
 		'</tr>'
 		'<tr>'
 			'<td class="addButton">')
-funct.mode_admin("Add Backend")
+funct.get_button("Add Backend")
 print('</td>'
 		'</tr>'
 		'</form></div></table>'

@@ -52,11 +52,17 @@ if login is not None and password is not None:
 	for f in open(USERS, 'r'):
 		users = json.loads(f)	
 		if login in users['login'] and password == users['password']:
+			if users['role'] == "admin":
+				role = 2
+			elif users['role'] == "editor":
+				role = 1
+			else:
+				role = 0
 			c = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 			c["login"] = login
 			c["login"]["path"] = "/cgi-bin/"
 			c["login"]["expires"] = "Wed May 18 03:33:20 2033"
-			c["role"] = users['role']
+			c["role"] = role
 			c["role"]["path"] = "/cgi-bin/"
 			c["role"]["expires"] = "Wed May 18 03:33:20 2033"
 			c["group"] = users['group']

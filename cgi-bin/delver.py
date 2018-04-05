@@ -18,6 +18,8 @@ config.read(path_config)
 
 hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
 
+funct.page_for_admin(level = 2)
+	
 funct.chooseServer("delver.py#conf", "Delete Versions HAproxy config", "n")
 
 if serv is not None and form.getvalue('open') is not None:
@@ -40,7 +42,7 @@ if serv is not None and form.getvalue('open') is not None:
 	print('<input type="hidden" value="open" name="open">')
 	print('<input type="hidden" value="del" name="del">')
 	print('<p>')
-	funct.mode_admin("Delete", level="admin")
+	funct.get_button("Delete")
 	print('</p></form>') 
 
 	Select = form.getvalue('del')

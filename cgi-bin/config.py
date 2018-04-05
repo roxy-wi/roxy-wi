@@ -18,6 +18,7 @@ servNew = form.getvalue('serNew')
 funct.head("Edit HAproxy config")
 funct.check_config()
 funct.check_login()
+funct.page_for_admin(level = 1)
 
 path_config = "haproxy-webintarface.config"
 config = configparser.ConfigParser()
@@ -46,7 +47,7 @@ if form.getvalue('serv') is not None and form.getvalue('open') is not None :
 	print('<input type="hidden" value="%s.old" name="oldconfig">' % cfg)
 	print('<textarea name="config" rows="35" cols="100">%s</textarea>' % conf.read())
 	print('<p>')
-	funct.mode_admin("Save and restart")
+	funct.get_button("Save and restart")
 	print('</p></form>')
 	conf.close
 

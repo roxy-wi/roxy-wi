@@ -81,17 +81,18 @@ print('</select></td>'
 	'<td style="width: 30%;">'
 		'<select required name="servaction">'
 			'<option disabled selected>Choose action</option>')
-print('<option value="disable" %s>Disable</option>' % selected1)
-print('<option value="enable" %s>Enable</option>' % selected2)
-print('<option value="set" %s>Set</option>' % selected3)
+if funct.is_admin():
+	print('<option value="disable" %s>Disable</option>' % selected1)
+	print('<option value="enable" %s>Enable</option>' % selected2)
+	print('<option value="set" %s>Set</option>' % selected3)
 print('<option value="show" %s>Show</option>' % selected4)
 print('</select></td>')
 print('<td><input type="text" name="servbackend" size=35 title="Frontend, backend/server, show: info, pools or help" required class="form-control" value="%s" %s>' % (backend, autofocus))
 
 print('</td><td>'
-		'<input type="checkbox" name="save" title="Save changes after restart">'
+			'<input type="checkbox" name="save" title="Save changes after restart">'
 		'</td><td>')
-funct.mode_admin("Enter")
+funct.get_button("Enter")
 print('</td></form>'
 		'</tr></table>')
 

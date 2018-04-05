@@ -18,6 +18,7 @@ configver = form.getvalue('configver')
 funct.head("Old Versions HAproxy config")
 funct.check_config()
 funct.check_login()
+funct.page_for_admin(level = 1)
 
 path_config = "haproxy-webintarface.config"
 config = configparser.ConfigParser()
@@ -67,7 +68,7 @@ if serv is not None and form.getvalue('open') is not None:
 		print('<a name="conf"></a></center>')
 		funct.show_config(configver)
 		print('<center><p>')
-		funct.mode_admin("Upload and restart")
+		funct.get_button("Upload and restart")
 		print('</p></form></center>')
 
 

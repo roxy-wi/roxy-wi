@@ -18,7 +18,9 @@ A simple web interface(user-frendly web GUI) for managing Haproxy servers. Leave
 12. Telegram notification
 
 # Install
-Can be used as a service, or via fastaci apache + fastCGI(recommend, because it works faster), how to use the service:
+Can be used as a service, or via fastaci apache + fastCGI(recommend, because it works faster).
+
+How to use the service:
 
 For install just dowload archive and untar somewhere:
 ```
@@ -29,12 +31,15 @@ $ cd /opt/haproxy-wi
 $ chmod +x install.sh
 $ sudo ./install.sh
 ```
-Edit listserv.py, add your HAproxy servers. 
+
+For Apache just do virtualhost with cgi-bin.
 
 ![alt text](image/7.jpeg "Overview page")
 
 # Settings
-Edit haproxy-webintarface.config with your env
+Edit $HOME_HAPROXY-WI/cgi-bin/listserv.py, add your HAproxy servers.
+
+Edit $HOME_HAPROXY-WI/cgi-bin/haproxy-webintarface.config with your env
 
 Copy ssh key on all HAproxy servers
 
@@ -47,7 +52,7 @@ For Runtime API enable state file on HAproxt servers and need install socat on a
    ```
 ![alt text](image/4.jpeg "View logs page")
 
-# Start and auto start
+# Start and autostart if service
 ```
 systemctl enable haproxy-wi.service
 systemctl start haproxy-wi.service

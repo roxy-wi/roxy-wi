@@ -62,7 +62,7 @@ def check_login(**kwargs):
 	role = cookie.get('role')
 	ref = os.environ.get("SCRIPT_NAME")
 	
-	if kwargs.get("admins_area") == "1" and role.value != "admin":
+	if kwargs.get("admins_area") == "1" and role.value != "2":
 		print('<meta http-equiv="refresh" content="0; url=/">')
 		
 	if login is None:
@@ -77,31 +77,45 @@ def show_login_links():
 	else:
 		print('<li><a href=/cgi-bin/login.py?logout=logout title="Logout, user name: %s">Logout</a></li>' % login.value)
 		
-def is_admin():
+def is_admin(**kwargs):
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	role = cookie.get('role')	
+	role = cookie.get('role')
+	level = kwargs.get("level")
 	
+	if role is None:
+		role = 0
+	else:
+		role = int(role.value)
+		
+	if level is None:
+		level = 2
+		
 	try:
-		if role.value == "admin":
+		if level <= role:
 			return True
 		else:
 			return False
 	except:
 		return False
 		pass
-	
-def mode_admin(button, **kwargs):
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	role = cookie.get('role')	
-	level = kwargs.get("level")
 
-	if level is None:
-		level = "editor"
+def page_for_admin(**kwargs):
+	give_level = kwargs.get("level")
+	
+	if give_level is None:
+		give_level = 1
+	
+	if not is_admin(level = give_level):
+		print('<center><h3 style="color: red">How did you get here?! O_o You do not have need permissions</h>')
+		print('<meta http-equiv="refresh" content="10; url=/">')
+		import sys
+		sys.exit()
 		
-	if role.value == "admin" and level == "admin":
-		print('<button type="submit" class="btn btn-default">%s</button>' % button)
-	elif role.value == "admin" or role.value == "editor" and level == "editor":
-		print('<button type="submit" class="btn btn-default">%s</button>' % button)
+def get_button(button, **kwargs):
+	value = kwargs.get("value")
+	if value is None:
+		value = ""
+	print('<button type="submit" value="%s" name="%s" class="btn btn-default">%s</button>' % (value, value, button))
 
 def head(title):
 	print('Content-type: text/html\n')
@@ -155,20 +169,22 @@ def links():
 				'<li><a href="#">Configs</a>'
 					'<ul>'
 						'<li><a href=/cgi-bin/configshow.py title="Show Config">Show</a></li> '
-						'<li><a href=/cgi-bin/diff.py title="Compare Configs">Compare</a></li>'
-						'<li><a href=/cgi-bin/add.py#listner title="Add single listen">Add listen</a></li>'
+						'<li><a href=/cgi-bin/diff.py title="Compare Configs">Compare</a></li>')
+	if is_admin(level = 1):
+		print('<li><a href=/cgi-bin/add.py#listner title="Add single listen">Add listen</a></li>'
 						'<li><a href=/cgi-bin/add.py#frontend title="Add single frontend">Add frontend</a></li>'
 						'<li><a href=/cgi-bin/add.py#backend title="Add single backend">Add backend</a></li>'
-						'<li><a href=/cgi-bin/config.py title="Edit Config">Edit</a> </li>'
-					'</ul>'
-				'</li>'
-				'<li><a href="#">Versions</a>'
+						'<li><a href=/cgi-bin/config.py title="Edit Config">Edit</a> </li>')
+	print('</ul></li>')
+	if is_admin(level = 1):
+		print('<li><a href="#">Versions</a>'
 					'<ul>'
 						'<li><a href=/cgi-bin/configver.py title="Upload old versions configs">Upload</a></li>')
 	if is_admin():
 		print('<li><a href=/cgi-bin/delver.py title="Delete old versions configs">Delete</a></li>')
-	print('</ul>'
-			'</li>')
+	if is_admin(level = 1):
+		print('</ul>'
+				'</li>')
 	show_login_links()
 	print('</ul>'
 		  '</nav>')	
@@ -450,7 +466,8 @@ def chooseServer(formName, title, note):
 	choose_only_select(serv, servNew=servNew)
 
 	print('</select>')
-	print('<button type="submit" value="open" name="open" class="btn btn-default">Open</button></p></form>')
+	get_button("Open", value="open")
+	print('</p></form>')
 	if note == "y":
 		print('<p><b>Note:</b> If you reconfigure First server, second will reconfigured automatically</p>')
 		
