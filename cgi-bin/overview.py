@@ -82,6 +82,10 @@ for i in sorted(listhap):
 	print('<tr><td class="padding10 first-collumn"><a href="#%s" title="Go to %s status" style="color: #000">%s</a></td><td  class="second-collumn">' % (i, i, i))
 	funct.ssh_command(listhap.get(i), commands, server_status="1")
 	print('</td><td>')
+	if funct.is_admin():
+		print('<a href="/cgi-bin/overview.py#" class="start" id="%s" title="Start HAproxy service" onclick = "if (! confirm(\'Start service?\')) return false;"><img src=/image/pic/start.png alt="start" class="icon" ></a>' % listhap.get(i))
+		print('<a href="/cgi-bin/overview.py#" class="stop" id="%s" title="Stop HAproxy service" onclick = "if (! confirm(\'Stop service?\')) return false;"><img src=/image/pic/stop.png alt="start" class="icon"></a>' % listhap.get(i))
+		print('<a href="/cgi-bin/overview.py#" class="restart" id="%s" title="Restart HAproxy service" onclick = "if (! confirm(\'Restart service?\')) return false;"><img src=/image/pic/update.png alt="restart" class="icon"></a>' % listhap.get(i))
 	print('<a href="/cgi-bin/configshow.py?serv=%s&open=open#conf"  title="Show config"><img src=/image/pic/show.png alt="show" class="icon"></a>' % listhap.get(i))
 	print('<a href="/cgi-bin/config.py?serv=%s&open=open#conf"  title="Edit config"><img src=/image/pic/edit.png alt="edit" class="icon"></a>' % listhap.get(i))
 	print('<a href="/cgi-bin/diff.py?serv=%s&open=open#diff"  title="Compare config"><img src=/image/pic/compare.png alt="compare" class="icon"></a>' % listhap.get(i))
@@ -99,7 +103,7 @@ print('</table><table class="overview"><tr class="overviewHead">'
 			'Server status'
 			'<span style="float: right; margin-left: 80&;">'
 				'<a href=""  title="Update status" id="update">'
-					'<img alt="Update" src="/image/pic/update.png" style="max-width: 20px;">'
+					'<img alt="Update" src="/image/pic/update.png" class="icon" style="padding-right: 8px; float: right">'
 				'</a>'
 			'</span>'
 		'</td>'

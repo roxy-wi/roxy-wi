@@ -49,6 +49,40 @@ $( function() {
 					.data('isAllOpen', isAllOpen);    
 	});
 	
+	function ajaxActionServers(action, id) {
+		var bad_ans = 'Bad config, check please';
+		$.ajax( {
+				url: "options.py",
+				data: {
+					action: action,
+					serv: id
+				},
+				success: function( data ) {
+					data = data.replace(/\s+/g,' ');
+					if( data ==  'Bad config, check please ' ) {
+						alert(data);
+					} else {
+						document.location.reload();
+					}
+				},
+				error: function(){
+					alert(w.data_error);
+				}					
+			} );
+	}
+	
+	$('.start').click(function() {
+		var id = $(this).attr('id');
+		ajaxActionServers("start", id);
+	});
+	$('.stop').click(function() {
+		var id = $(this).attr('id');
+		ajaxActionServers("stop", id);
+	});
+	$('.restart').click(function() {
+		var id = $(this).attr('id');
+		ajaxActionServers("restart", id);
+	});
 
     var location = window.location.href;
     var cur_url = '/cgi-bin/' + location.split('/').pop();

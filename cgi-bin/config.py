@@ -47,16 +47,18 @@ if form.getvalue('serv') is not None and form.getvalue('open') is not None :
 	print('<input type="hidden" value="%s.old" name="oldconfig">' % cfg)
 	print('<textarea name="config" rows="35" cols="100">%s</textarea>' % conf.read())
 	print('<p>')
+	funct.get_button("Just save", value="save")
 	funct.get_button("Save and restart")
 	print('</p></form>')
 	conf.close
 
-	os.system("/bin/sudo /bin/mv %s %s.old" % (cfg, cfg))	
+	os.system("/bin/mv %s %s.old" % (cfg, cfg))	
 
 if form.getvalue('serv') is not None and form.getvalue('config') is not None :
 	funct.logging(serv, "config.py edited config and restarted service")
 	config = form.getvalue('config')
 	oldcfg = form.getvalue('oldconfig')
+	save = form.getvalue('save')
 
 	try:
 		with open(cfg, "a") as conf:
@@ -66,10 +68,10 @@ if form.getvalue('serv') is not None and form.getvalue('config') is not None :
 
 	print("<b>New config was saved as: %s </b></br></br>" % cfg)
 	
-	funct.upload_and_restart(serv, cfg)
+	funct.upload_and_restart(serv, cfg, just_save=save)
 	
 	os.system("/bin/diff -ub %s %s >> %slog/config_edit.log" % (oldcfg, cfg, fullpath))
-	os.system("/bin/sudo /bin/rm -f " + hap_configs_dir + "*.old")
+	os.system("/bin/rm -f " + hap_configs_dir + "*.old")
 
 	print('</br><a href="viewsttats.py?serv=%s" target="_blank" title="View stats">Go to view stats</a> <br />' % serv)
 	

@@ -68,6 +68,7 @@ if serv is not None and form.getvalue('open') is not None:
 		print('<a name="conf"></a></center>')
 		funct.show_config(configver)
 		print('<center><p>')
+		funct.get_button("Just save", value="save")
 		funct.get_button("Upload and restart")
 		print('</p></form></center>')
 
@@ -75,12 +76,13 @@ if serv is not None and form.getvalue('open') is not None:
 if form.getvalue('serv') is not None and form.getvalue('config') is not None:
 	configver = form.getvalue('configver')
 	configver = hap_configs_dir + configver
+	save = form.getvalue('save')
 	
 	funct.logging(serv, "configver.py upload old config %s" % configver)
 	
 	print("<b>Uploaded old config ver: %s </b></br></br>" % configver)
 
-	funct.upload_and_restart(serv, configver)
+	funct.upload_and_restart(serv, configver, just_save=save)
 
 	print('</br><a href="viewsttats.py?serv=%s" target="_blank" title="View stats">Go to view stats</a> <br />' % serv)
 	

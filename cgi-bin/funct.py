@@ -67,16 +67,7 @@ def check_login(**kwargs):
 		
 	if login is None:
 		print('<meta http-equiv="refresh" content="0; url=login.py?ref=%s">' % ref)
-		
-def show_login_links():
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	login = cookie.get('login')
-	
-	if login is None:
-		print('<li><a href=/cgi-bin/login.py? title="Login">Login</a></li>')	
-	else:
-		print('<li><a href=/cgi-bin/login.py?logout=logout title="Logout, user name: %s">Logout</a></li>' % login.value)
-		
+				
 def is_admin(**kwargs):
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	role = cookie.get('role')
@@ -165,7 +156,7 @@ def links():
 						'<li><a href=/cgi-bin/map.py title="View map">Map</a></li>'
 					'</ul>'
 				'</li>'
-				'<li><a href=/cgi-bin/edit.py title="Runtime API" style="size:5">Runtime API</a> </li>'
+				'<li><a href=/cgi-bin/edit.py title="Runtime API">Runtime API</a> </li>'
 				'<li><a href="#">Configs</a>'
 					'<ul>'
 						'<li><a href=/cgi-bin/configshow.py title="Show Config">Show</a></li> '
@@ -187,11 +178,21 @@ def links():
 				'</li>')
 	show_login_links()
 	print('</ul>'
-		  '</nav>')	
+		  '</nav>'
+		  '<div class="copyright-menu">HAproxy-WI v1.10.1</div>')	
+
+def show_login_links():
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	login = cookie.get('login')
 	
+	if login is None:
+		print('<li><a href=/cgi-bin/login.py? title="Login">Login</a></li>')	
+	else:
+		print('<li><a href=/cgi-bin/login.py?logout=logout title="Logout, user name: %s">Logout</a></li>' % login.value)
+		  
 def footer():
 	print('</center></div>'
-			'<center style="margin-left: 12%;">'
+			'<center style="margin-left: 8%;">'
 				'<h3>'
 					'<a class="ui-button ui-widget ui-corner-all" href="#top" title="Move up">UP</a>'
 				'</h3><br />'
@@ -274,7 +275,7 @@ def show_config(cfg):
 	print('</div></div>')
 	conf.close
 	
-def upload_and_restart(serv, cfg):
+def upload_and_restart(serv, cfg, **kwargs):
 	fmt = "%Y-%m-%d.%H:%M:%S"
 	now_utc = datetime.now(timezone(config.get('main', 'time_zone')))
 	tmp_file = tmp_config_path + "/" + now_utc.strftime(fmt) + ".cfg"
@@ -284,7 +285,12 @@ def upload_and_restart(serv, cfg):
 	sftp = ssh.open_sftp()
 	sftp.put(cfg, tmp_file)
 	sftp.close()
-	commands = [ "/sbin/haproxy  -q -c -f " + tmp_file, "mv -f " + tmp_file + " " + haproxy_config_path, restart_command ]
+	
+	if kwargs.get("just_save") == "save":
+		commands = [ "/sbin/haproxy  -q -c -f " + tmp_file, "mv -f " + tmp_file + " " + haproxy_config_path ]
+	else:
+		commands = [ "/sbin/haproxy  -q -c -f " + tmp_file, "mv -f " + tmp_file + " " + haproxy_config_path, restart_command ]
+	
 	i = 0
 	for command in commands:
 		i = i + 1
@@ -308,7 +314,17 @@ def upload_and_restart(serv, cfg):
 	return True	
 			
 	ssh.close()
-	
+
+def check_haproxy_config(serv):
+	commands = [ "/sbin/haproxy  -q -c -f %s" % haproxy_config_path ]
+	ssh = ssh_connect(serv)
+	for command in commands:
+		stdin , stdout, stderr = ssh.exec_command(command)
+		if not stderr.read():
+			return True
+		else:
+			return False
+			
 def compare(stdout):
 	i = 0
 	minus = 0
@@ -355,13 +371,17 @@ def show_ip(stdout):
 		
 def server_status(stdout):
 	proc_count = ""
+	i = 0
 	for line in stdout.read().decode(encoding='UTF-8'):
-		proc_count += line
-		if "0" != line:
-			err = 0
-		else:
-			err = 1
-	if err == 0:
+		i = i + 1
+		if i == 1:
+			proc_count += line
+			if line.find("0"):
+				err = 1
+			else:
+				err = 0
+			
+	if err != 0:
 		print('<span class="serverUp"> UP</span> running %s processes' % proc_count)
 	else:
 		print('<span class="serverDown"> DOWN</span> running %s processes' % proc_count)	

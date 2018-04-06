@@ -54,6 +54,16 @@ if form.getvalue('name') is not None:
 			print("yes")
 			break
 
+if form.getvalue('action') is not None and serv is not None:
+	serv = form.getvalue('serv')
+	action = form.getvalue('action')
+	
+	if funct.check_haproxy_config(serv):
+		commands = [ "systemctl %s haproxy" % action ]
+		funct.ssh_command(serv, commands)		
+	else:
+		print("Bad config, check please")
+			
 if form.getvalue('tailf_stop') is not None:
 	serv = form.getvalue('serv')
 	commands = [ "ps ax |grep python3 |grep -v grep |awk '{ print $1 }' |xargs kill" ]

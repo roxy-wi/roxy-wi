@@ -84,7 +84,7 @@ pre {
 }
 .container {
 	min-height: calc(100vh - 115px);
-	max-width: 91%;
+	max-width: 89%;
 	min-width: 40%;
 	background-color: #fff;
 	margin-left: 207px;
@@ -142,6 +142,12 @@ pre {
 .copyright {
 	color: #23527c;
 	margin-left: 15px;
+}
+.copyright-menu {
+	font-weight: bold;
+	font-style: italic;
+	color: #fff;
+	margin-left: 30px;
 }
 .line {
 	background-color: #EBF1F1;
@@ -264,6 +270,7 @@ pre {
 .menu {
 	font-weight: bold;
 	font-style: italic;
+	min-height: calc(100vh - 90px);
 }
 .menu ul li{
 	padding: 10px; 
@@ -275,7 +282,7 @@ pre {
 }
 .menu ul{
   position: relative;
-  margin: 0;
+  margin: 0; 
   padding: 0;
   background-color: #33414E;
   list-style-type: none;
