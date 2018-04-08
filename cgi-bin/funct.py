@@ -112,8 +112,14 @@ def head(title):
 	print('Content-type: text/html\n')
 	print('<html><head><title>%s</title>' % title)
 	print('<link href="/favicon.ico" rel="icon" type="image/png" />'
+		'<script>'
+			'FontAwesomeConfig = { searchPseudoElements: true, observeMutations: false };'
+		'</script>'
+		'<script defer src="/inc/fa-solid.min.js"></script>'	
+		'<script defer src="/inc/fontawesome.min.js"></script>'	
 		'<meta charset="UTF-8">'
 		'<link href="/inc/style.css" rel="stylesheet">'
+		'<link href="/inc/awesome.css" rel="stylesheet">'
 		'<link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">'
 		'<script src="https://code.jquery.com/jquery-1.12.4.js"></script>'
 		'<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>'
@@ -147,48 +153,47 @@ def head(title):
 def links():
 	print('<nav class="menu">'
 			'<ul>'
-				'<li><a href=/ title="Home Page" style="size:5">Home Page</a></li>'
-				'<li><a href="#" title="Statistics, monitoring and logs">Stats</a>'
+				'<li><a title="Statistics, monitoring and logs" class="stats">Stats</a>'
 					'<ul>'
-						'<li><a href=/cgi-bin/overview.py title="Server and service status">Overview</a> </li>'
-						'<li><a href=/cgi-bin/viewsttats.py title="View Stats">Stats</a> </li>'
-						'<li><a href=/cgi-bin/logs.py title="View logs">Logs</a></li>'
-						'<li><a href=/cgi-bin/map.py title="View map">Map</a></li>'
+						'<li><a href=/cgi-bin/overview.py title="Server and service status" class="overview-link">Overview</a> </li>'
+						'<li><a href=/cgi-bin/viewsttats.py title="View Stats" class="stats">Stats</a> </li>'
+						'<li><a href=/cgi-bin/logs.py title="View logs" class="logs">Logs</a></li>'
+						'<li><a href=/cgi-bin/map.py title="View map" class="map">Map</a></li>'
 					'</ul>'
 				'</li>'
-				'<li><a href=/cgi-bin/edit.py title="Runtime API">Runtime API</a> </li>'
-				'<li><a href="#">Configs</a>'
+				'<li><a href=/cgi-bin/edit.py title="Runtime API" class="runtime">Runtime API</a> </li>'
+				'<li><a class="config-show">Configs</a>'
 					'<ul>'
-						'<li><a href=/cgi-bin/configshow.py title="Show Config">Show</a></li> '
-						'<li><a href=/cgi-bin/diff.py title="Compare Configs">Compare</a></li>')
+						'<li><a href=/cgi-bin/configshow.py title="Show Config" class="config-show">Show</a></li> '
+						'<li><a href=/cgi-bin/diff.py title="Compare Configs" class="compare">Compare</a></li>')
 	if is_admin(level = 1):
-		print('<li><a href=/cgi-bin/add.py#listner title="Add single listen">Add listen</a></li>'
-						'<li><a href=/cgi-bin/add.py#frontend title="Add single frontend">Add frontend</a></li>'
-						'<li><a href=/cgi-bin/add.py#backend title="Add single backend">Add backend</a></li>'
-						'<li><a href=/cgi-bin/config.py title="Edit Config">Edit</a> </li>')
+		print('<li><a href=/cgi-bin/add.py#listner title="Add single listen" class="add">Add listen</a></li>'
+						'<li><a href=/cgi-bin/add.py#frontend title="Add single frontend" class="add">Add frontend</a></li>'
+						'<li><a href=/cgi-bin/add.py#backend title="Add single backend" class="add">Add backend</a></li>'
+						'<li><a href=/cgi-bin/config.py title="Edit Config" class="edit">Edit</a> </li>')
 	print('</ul></li>')
 	if is_admin(level = 1):
-		print('<li><a href="#">Versions</a>'
+		print('<li><a class="version">Versions</a>'
 					'<ul>'
-						'<li><a href=/cgi-bin/configver.py title="Upload old versions configs">Upload</a></li>')
+						'<li><a href=/cgi-bin/configver.py title="Upload old versions configs" class="upload">Upload</a></li>')
 	if is_admin():
-		print('<li><a href=/cgi-bin/delver.py title="Delete old versions configs">Delete</a></li>')
+		print('<li><a href=/cgi-bin/delver.py title="Delete old versions configs" class="delete">Delete</a></li>')
 	if is_admin(level = 1):
 		print('</ul>'
 				'</li>')
 	show_login_links()
 	print('</ul>'
 		  '</nav>'
-		  '<div class="copyright-menu">HAproxy-WI v1.10.1</div>')	
+		  '<div class="copyright-menu">HAproxy-WI v1.10.2</div>')	
 
 def show_login_links():
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	login = cookie.get('login')
 	
 	if login is None:
-		print('<li><a href=/cgi-bin/login.py? title="Login">Login</a></li>')	
+		print('<li><a href=/cgi-bin/login.py? title="Login" class="login">Login</a></li>')	
 	else:
-		print('<li><a href=/cgi-bin/login.py?logout=logout title="Logout, user name: %s">Logout</a></li>' % login.value)
+		print('<li><a href=/cgi-bin/login.py?logout=logout title="Logout, user name: %s" class="login">Logout</a></li>' % login.value)
 		  
 def footer():
 	print('</center></div>'
@@ -202,7 +207,77 @@ def footer():
 					'<span class="LogoText">HAproxy-WI</span>'
 				'</div>'
 			'</div>--></body></html>')
-
+def get_auto_refresh(h2):
+	print('<h2>')
+	print('<span>%s</span>' % h2)
+	print('<span class="auto-refresh">'
+			'<a id="0"><img style="margin-top: 10px; margin-left: -23px; position: fixed;" src=/image/pic/update.png alt="restart" class="icon"> Auto-refresh</a>'
+			'<a id="1" style="display: none;"><img style="margin-top: 10px; margin-left: -23px; position: fixed;" src=/image/pic/update.png alt="restart" class="icon"> Auto-refresh</a>'
+			'<a onclick="pauseAutoRefresh()" title="Pause auto-refresh" class="auto-refresh-pause" style="display: none;"></a>'
+			'<a onclick="pauseAutoResume()" title="Resume auto-refresh" class="auto-refresh-resume" style="display: none;"></a>'
+		'</span></h2>'
+		'<div class="auto-refresh-div">'
+			'<div class="auto-refresh-head">'
+				'Refresh Interval'
+			'</div>'
+			'<div class="auto-refresh-interval">'
+				'<div class="auto-refresh-ul">'
+					'<ul>'
+						'<li>'
+							'<a class="ui-button ui-widget ui-corner-all" onclick="setRefreshInterval(0)" title="Turn off auto-refresh">Off</a> '
+						'</li>'
+					'</ul>'
+				'</div>'
+				'<div class="auto-refresh-ul">'
+					'<ul>'
+						'<li>'
+							'<a title="Auto-refresh every 5 seconds" onclick="setRefreshInterval(5000)">5 seconds</a>'
+						'</li>'
+						'<li>'
+							'<a title="Auto-refresh every 10 seconds" onclick="setRefreshInterval(10000)">10 seconds</a>'
+						'</li>'
+						'<li>'
+							'<a title="Auto-refresh every 30 seconds" onclick="setRefreshInterval(30000)">30 seconds</a>'
+						'</li>'
+						'<li>'
+							'<a title="Auto-refresh ever 45 seconds" onclick="setRefreshInterval(45000)">45 seconds</a>'		
+						'</li>'
+					'</ul>'
+				'</div>'
+				'<div class="auto-refresh-ul">'
+					'<ul>'
+						'<li>'
+							'<a title="Auto-refresh every 1 minute" onclick="setRefreshInterval(60000)">1 minute</a>'
+						'</li>'
+						'<li>'
+							'<a title="Auto-refresh every 5 minutes" onclick="setRefreshInterval(300000)">5 minutes</a>'
+						'</li>'
+						'<li>'
+							'<a title="Auto-refresh every 15 minutes" onclick="setRefreshInterval(900000)">15 minutes</a>'
+						'</li>'
+						'<li>'
+							'<a title="Auto-refresh ever 30 minutes" onclick="setRefreshInterval(1800000)">30 minutes</a>'		
+						'</li>'
+					'</ul>'
+				'</div>'
+				'<div class="auto-refresh-ul">'
+					'<ul>'
+						'<li>'
+							'<a title="Auto-refresh every 1 hour" onclick="setRefreshInterval(3600000)">1 hour</a>'
+						'</li>'
+						'<li>'
+							'<a title="Auto-refresh every 2 hour" onclick="setRefreshInterval(7200000)">2 hour</a>'
+						'</li>'
+						'<li>'
+							'<a title="Auto-refresh every 12 hour" onclick="setRefreshInterval(43200000)">12 hour</a>'
+						'</li>'
+						'<li>'
+							'<a title="Auto-refresh ever 1 day" onclick="setRefreshInterval(86400000)">1 day</a>'		
+						'</li>'
+					'</ul>'
+				'</div>'
+			'</div>'
+		'</div>')
 def ssh_connect(serv):
 	ssh = SSHClient()
 	ssh.load_system_host_keys()

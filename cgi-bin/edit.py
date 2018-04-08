@@ -58,9 +58,7 @@ else:
 	selected3 = ''
 	selected4 = ''
 
-print('<center>'
-		'<h2>Edit & show HAproxy settings</h2>'
-	  '</center>'
+print('<h2>Runtime API</h2>'
 		'<table class="overview">'
 			'<tr class="overviewHead">'
 				'<td class="padding10">Server</td>'

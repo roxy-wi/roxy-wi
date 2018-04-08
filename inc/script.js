@@ -1,3 +1,44 @@
+function setRefreshInterval(interval) {
+	if (interval == "0") {
+		Cookies.remove('auto-refresh');
+		pauseAutoRefresh();
+		$('.auto-refresh').append('<img style="margin-top: 10px; margin-left: -110px; position: fixed;" src=/image/pic/update.png alt="restart" class="icon">');
+		$('#1').text('Auto-refresh');
+		$('#0').text('Auto-refresh');
+		$('.auto-refresh-pause').css('display', 'none');
+		$('.auto-refresh-resume').css('display', 'none');
+		hideAutoRefreshDiv();
+	} else {
+		Cookies.set('auto-refresh', interval, { expires: 365 });
+		startSetInterval(interval);
+		hideAutoRefreshDiv();
+		document.location.reload();
+	}
+}
+var intervalId;
+function startSetInterval(interval) {
+	intervalId = setInterval('document.location.reload()', interval);
+}
+function pauseAutoRefresh() {
+	clearInterval(intervalId);
+	$(function() {
+		$('.auto-refresh-pause').attr('onclick', 'pauseAutoResume()');
+		$('.auto-refresh-pause').css('display', 'none');
+		$('.auto-refresh-resume').css('display', 'inline');
+	});
+}	
+function pauseAutoResume(){
+	var autoRefresh = Cookies.get('auto-refresh');
+	setRefreshInterval(autoRefresh);
+}
+
+function hideAutoRefreshDiv() {
+	$(function() {
+		$('.auto-refresh-div').hide("blind", "fast");
+		$('#1').css("display", "none");			
+		$('#0').css("display", "inline");
+	});
+}
 $( function() {
 	$( "#tabs" ).tabs();
 	$( "#redirectBackend" ).on( "click", function() {
@@ -86,16 +127,60 @@ $( function() {
 
     var location = window.location.href;
     var cur_url = '/cgi-bin/' + location.split('/').pop();
+	cur_url = cur_url.split('?');
 		
     $('.menu li').each(function () {
         var link = $(this).find('a').attr('href');
 
-        if (cur_url == link)
+        if (cur_url[0] == link)
         {
             $(this).addClass('current');
         }
     });
 
+	$('#0').click(function() {
+		$('.auto-refresh-div').show("blind", "fast");
+		$('#0').css("display", "none");		
+		$('#1').css("display", "inline");
+		});
+		
+	$('#1').click(function() {	
+		$('.auto-refresh-div').hide("blind", "fast");
+		$('#1').css("display", "none");			
+		$('#0').css("display", "inline");			
+	});
+		
+	var autoRefresh = Cookies.get('auto-refresh');
+	var pause = '<a onclick="pauseAutoRefresh()" title="Pause auto-refresh" class="auto-refresh-pause"></a>'
+
+	if ($('.auto-refresh')) {
+		var margin;
+		if(autoRefresh) { 
+			startSetInterval(autoRefresh)
+			autoRefresh = autoRefresh / 1000;
+			
+			if ( autoRefresh == 60) {
+				timeRange = " minute"
+				autoRefresh = autoRefresh / 60;
+				margin = '-80px';
+			} else if ( autoRefresh > 60 && autoRefresh < 3600 ) {
+				timeRange = " minutes"
+				autoRefresh = autoRefresh / 60;
+				margin = '-93px';
+			} else if ( autoRefresh >= 3600 && autoRefresh < 86401 ) {
+				timeRange = " hours"
+				autoRefresh = autoRefresh / 3600;
+				margin = '-80px';				
+			} else {
+				timeRange = " seconds";
+				margin = '-100px';
+			}
+			$('#1').text(autoRefresh + timeRange);
+			$('#0').text(autoRefresh + timeRange);
+			$('.auto-refresh-pause').css('display', 'inline');		
+			$('.auto-refresh-pause').css('margin-left', margin);			
+		}
+	}
 	
 	$('#select_all').click(function(){
         var checkboxes = $(this).closest('form').find(':checkbox');

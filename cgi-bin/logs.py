@@ -17,9 +17,9 @@ funct.check_login()
 path_config = "haproxy-webintarface.config"
 config = configparser.ConfigParser()
 config.read(path_config)
-	
-print('<h2>HAproxy Logs</h2>'
-		'<table class="overview">'
+
+funct.get_auto_refresh("HAproxy logs")	
+print('<table class="overview">'
 			'<tr class="overviewHead">'
 				'<td class="padding10">Server</td>'
 				'<td>Number rows</td>'

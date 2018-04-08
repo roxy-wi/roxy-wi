@@ -13,7 +13,6 @@ body {
 h2 {
 	background: #5D9CEB;
 	border: 1px solid #5D9CEB;
-	//border-radius: 5px 5px 0px 0px;
 	padding: 10px;
 	padding-left: 3%;
 	color: #fff;
@@ -73,22 +72,72 @@ pre {
   padding-left: 7px;
   padding-right: 7px;
 }
-/*.top-link {
-	margin-top: 115px;
-}
-.top-link {
-	margin-left: 28%;
-}*/
 .footer-link  {
 	margin-left: 44%;
 }
 .container {
 	min-height: calc(100vh - 115px);
-	max-width: 89%;
+	max-width: 91%;
 	min-width: 40%;
 	background-color: #fff;
 	margin-left: 207px;
 	padding-bottom: 10px;
+}
+.auto-refresh {
+	margin-left: 86%;
+}
+.auto-refresh a {
+	color: #fff !important;
+	cursor: pointer;
+	font-size: 15px;
+}
+.auto-refresh-div {
+	display: none;
+	position: relative;
+	padding: 10px 10px 14px;
+	background-color: #F5F5F5;
+	border-bottom: solid 1px #D9D9D9;
+	border-top: solid 1px #D9D9D9;
+	margin-bottom: 10px;
+	line-height: 20px;
+}
+.auto-refresh-div a {
+	color: #000;
+	cursor: pointer;
+}
+.auto-refresh-head {
+	margin-top: 0;
+	font-size: 16px;
+	color: #2d2d2d;
+	font-weight: bold;
+	margin-left: 77%;
+}
+.auto-refresh-interval {
+	float: left;
+	padding: 0px 15px;
+	margin-left: 75%;
+}
+.auto-refresh-ul{
+	float: left;
+	padding-left: 0;
+	list-style: none;
+	margin-top: 10px;
+}
+.auto-refresh-ul ul li {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-family: inherit;
+	vertical-align: baseline;
+	list-style: none;
+}
+.auto-refresh-pause, .auto-refresh-resume {
+	margin-top: 10px;
+	margin-left: -100px;
+	position: fixed;
+	color: #000;
+	font-size: 12px;
+	height: 15;
 }
 .configShow, .diff {
 	margin-left: 16%;
@@ -275,6 +324,7 @@ pre {
 .menu ul li{
 	padding: 10px; 
 	padding-left: 20px;
+	margin-right: 0px !important;
 }
 
 .menu ul ul > li:hover{
