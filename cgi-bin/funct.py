@@ -111,20 +111,22 @@ def get_button(button, **kwargs):
 def head(title):
 	print('Content-type: text/html\n')
 	print('<html><head><title>%s</title>' % title)
-	print('<link href="/favicon.ico" rel="icon" type="image/png" />'
+	print('<link href="/image/pic/favicon.ico" rel="icon" type="image/png" />'
 		'<script>'
 			'FontAwesomeConfig = { searchPseudoElements: true, observeMutations: false };'
 		'</script>'
 		'<script defer src="/inc/fa-solid.min.js"></script>'	
 		'<script defer src="/inc/fontawesome.min.js"></script>'	
-		'<meta charset="UTF-8">'
-		'<link href="/inc/style.css" rel="stylesheet">'
+		'<meta charset="UTF-8">'		
 		'<link href="/inc/awesome.css" rel="stylesheet">'
+		'<link href="/inc/vertical_scrol/custom_scrollbar.css" rel="stylesheet">'
+		'<link href="/inc/style.css" rel="stylesheet">'
 		'<link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">'
 		'<script src="https://code.jquery.com/jquery-1.12.4.js"></script>'
 		'<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>'
 		'<script src="/inc/js-cookie.js"></script>'
 		'<script src="/inc/script.js"></script>'		
+		'<script src="/inc/vertical_scrol/custom_scrollbar.min.js"></script>'		
 		'</head>'
 			'<body>'
 				'<a name="top"></a>'
@@ -184,7 +186,7 @@ def links():
 	show_login_links()
 	print('</ul>'
 		  '</nav>'
-		  '<div class="copyright-menu">HAproxy-WI v1.10.2</div>')	
+		  '<div class="copyright-menu">HAproxy-WI v1.10.2.1</div>')	
 
 def show_login_links():
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
@@ -202,11 +204,7 @@ def footer():
 					'<a class="ui-button ui-widget ui-corner-all" href="#top" title="Move up">UP</a>'
 				'</h3><br />'
 			'</center>'
-			'<!--<div class="footer">'
-				'<div class="footer-link">'
-					'<span class="LogoText">HAproxy-WI</span>'
-				'</div>'
-			'</div>--></body></html>')
+		'</body></html>')
 def get_auto_refresh(h2):
 	print('<h2>')
 	print('<span>%s</span>' % h2)

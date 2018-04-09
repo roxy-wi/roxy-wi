@@ -42,8 +42,6 @@ except requests.exceptions.Timeout as errt:
 except requests.exceptions.RequestException as err:
     print ("OOps: Something Else",err)
 
-#print('<meta http-equiv="refresh" content="%s; url=viewsttats.py?serv=%s">' % (config.get('haproxy', 'refresh_time') ,serv))
-
 for i in listhap.listhap:
         if listhap.listhap.get(i) == serv:
                 servname = i
@@ -54,16 +52,21 @@ funct.get_auto_refresh("HAproxy statistics")
 
 print('<br />'
 		'<form style="padding-left: 20px;" action="viewsttats.py" method="get">'
-			'<select autofocus required name="serv">'
+			'<select autofocus required name="serv" id="serv">'
 				'<option disabled>Choose server</option>')
 
 funct.choose_server_with_vip(serv)
 
-print('</select><input type="submit" value="Show stats"></form>')
+print('</select>'
+		'<span id="loading" class="fa fa-spinner fa-spin"></span>'
+		'<a class="ui-button ui-widget ui-corner-all" id="show" title="Show logs" onclick="showStats()">Show</a>'
+		'</form>')
 
 data = response.content
-print('<a name="conf"></a><div style="margin-left: 10px;">')
+print('<a name="conf"></a><div id="ajax" style="margin-left: 10px;">')
 print(data.decode('utf-8'))
+print('</div>')
+
 funct.head("Stats HAproxy configs")
 print('</div>')
 

@@ -1,3 +1,29 @@
+function autoRefreshStyle(autoRefresh) {
+	var margin;
+	autoRefresh = autoRefresh / 1000;
+	if ( autoRefresh == 60) {
+		timeRange = " minute"
+		autoRefresh = autoRefresh / 60;
+		margin = '-80px';
+	} else if ( autoRefresh > 60 && autoRefresh < 3600 ) {
+		timeRange = " minutes"
+		autoRefresh = autoRefresh / 60;
+		margin = '-93px';
+	} else if ( autoRefresh >= 3600 && autoRefresh < 86401 ) {
+		timeRange = " hours"
+		autoRefresh = autoRefresh / 3600;
+		margin = '-80px';				
+	} else {
+		timeRange = " seconds";
+		margin = '-100px';
+	}
+	$('#1').text(autoRefresh + timeRange);
+	$('#0').text(autoRefresh + timeRange);
+	$('.auto-refresh-pause').css('display', 'inline');		
+	$('.auto-refresh-pause').css('margin-left', margin);	
+	$('.auto-refresh img').remove();
+}
+
 function setRefreshInterval(interval) {
 	if (interval == "0") {
 		Cookies.remove('auto-refresh');
@@ -9,15 +35,27 @@ function setRefreshInterval(interval) {
 		$('.auto-refresh-resume').css('display', 'none');
 		hideAutoRefreshDiv();
 	} else {
+		clearInterval(intervalId);
 		Cookies.set('auto-refresh', interval, { expires: 365 });
 		startSetInterval(interval);
 		hideAutoRefreshDiv();
-		document.location.reload();
+		autoRefreshStyle(interval);
 	}
 }
+
+var cur_url = window.location.href.split('/').pop();
+cur_url = cur_url.split('?');
 var intervalId;
-function startSetInterval(interval) {
-	intervalId = setInterval('document.location.reload()', interval);
+function startSetInterval(interval) {	
+	if (cur_url[0] == "logs.py") {
+		intervalId = setInterval('showLog()', interval);
+	} else if (cur_url[0] == "viewsttats.py") {
+		intervalId = setInterval('showStats()', interval);
+	} else if (cur_url[0] == "overview.py") {
+		intervalId = setInterval('showOverview()', interval);
+	}  else {
+		intervalId = setInterval('document.location.reload()', interval);
+	}
 }
 function pauseAutoRefresh() {
 	clearInterval(intervalId);
@@ -39,7 +77,80 @@ function hideAutoRefreshDiv() {
 		$('#0').css("display", "inline");
 	});
 }
+function showOverview() {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			act: "overview",
+		},
+		type: "GET",
+		success: function( data ) {
+			var form = $("#ajax").html();
+			$("#ajax").html(data);
+		}					
+	} );
+}
+
+function showStats() {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			act: "stats",
+			serv: $("#serv").val()
+		},
+		type: "GET",
+		beforeSend: function () {
+			$('#loading').show();
+		},
+		complete: function () {
+			$("#loading").hide();
+		},
+		success: function( data ) {
+			var form = $("#ajax").html();
+			$("#ajax").html(data);
+		}					
+	} );
+}
+function showLog() {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			rows: $('#rows').val(),
+			serv: $("#serv").val(),
+			grep: $("#grep").val(),
+		},
+		type: "GET",
+		beforeSend: function () {
+			$('#loading').show();
+		},
+		complete: function () {
+			$("#loading").hide();
+		},
+		success: function( data ) {
+			var form = $("#ajax").html();
+			$("#ajax").html(data);
+		}					
+	} );
+}
+
 $( function() {
+	var pause = '<a onclick="pauseAutoRefresh()" title="Pause auto-refresh" class="auto-refresh-pause"></a>'
+	var autoRefresh = Cookies.get('auto-refresh');
+	
+	if ($('.auto-refresh')) {
+		if(autoRefresh) {
+			startSetInterval(autoRefresh);
+			autoRefreshStyle(autoRefresh);
+		}
+	}
+	$("body").mCustomScrollbar({
+		theme:"minimal-dark",
+		scrollInertia:30
+		});
+	$(".diff").mCustomScrollbar({
+		theme:"minimal-dark",
+		scrollInertia:30
+		});	
 	$( "#tabs" ).tabs();
 	$( "#redirectBackend" ).on( "click", function() {
 		$( "#tabs" ).tabs( "option", "active", 2 );
@@ -149,39 +260,7 @@ $( function() {
 		$('#1').css("display", "none");			
 		$('#0').css("display", "inline");			
 	});
-		
-	var autoRefresh = Cookies.get('auto-refresh');
-	var pause = '<a onclick="pauseAutoRefresh()" title="Pause auto-refresh" class="auto-refresh-pause"></a>'
-
-	if ($('.auto-refresh')) {
-		var margin;
-		if(autoRefresh) { 
-			startSetInterval(autoRefresh)
-			autoRefresh = autoRefresh / 1000;
 			
-			if ( autoRefresh == 60) {
-				timeRange = " minute"
-				autoRefresh = autoRefresh / 60;
-				margin = '-80px';
-			} else if ( autoRefresh > 60 && autoRefresh < 3600 ) {
-				timeRange = " minutes"
-				autoRefresh = autoRefresh / 60;
-				margin = '-93px';
-			} else if ( autoRefresh >= 3600 && autoRefresh < 86401 ) {
-				timeRange = " hours"
-				autoRefresh = autoRefresh / 3600;
-				margin = '-80px';				
-			} else {
-				timeRange = " seconds";
-				margin = '-100px';
-			}
-			$('#1').text(autoRefresh + timeRange);
-			$('#0').text(autoRefresh + timeRange);
-			$('.auto-refresh-pause').css('display', 'inline');		
-			$('.auto-refresh-pause').css('margin-left', margin);			
-		}
-	}
-	
 	$('#select_all').click(function(){
         var checkboxes = $(this).closest('form').find(':checkbox');
         if($(this).prop('checked')) {
@@ -362,7 +441,7 @@ $( function() {
 		$(".container").css("max-width", "98%");
 		$(".container").css("margin-left", "1%");
 		$(".show_menu").show();
-	}
+	}	
 	
 	var availableTags = [
 		"acl", "http-request", "http-response", "set-uri", "set-url", "set-header", "add-header", "del-header", "replace-header", "path_beg", "url_beg()", "urlp_sub()", "tcpka", "tcplog", "forwardfor", "option"

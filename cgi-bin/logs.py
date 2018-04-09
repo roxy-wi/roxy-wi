@@ -46,11 +46,12 @@ if form.getvalue('grep') is not None:
 else:
 	grep = ' '
 
-print('</td><td><input type="number" name="rows" %s class="form-control" required></td>' % rows)
-print('<td><input type="text" name="grep" class="form-control" %s >' % grep)
+print('</td><td><input type="number" name="rows" id="rows" %s class="form-control" required></td>' % rows)
+print('<td><input type="text" name="grep" id="grep" class="form-control" %s >' % grep)
 print('</td>'
 		'<td class="padding10" >'
-			'<button type="submit">Show</button>')
+			'<span id="loading" class="fa fa-spinner fa-spin"></span>'
+			'<a class="ui-button ui-widget ui-corner-all" id="show" title="Show logs" onclick="showLog()">Show</a>')
 if form.getvalue('serv') is not None:
 	print('<span style="float: right; margin-top: 8px;">'
 				'<a href=""  title="Update logs" id="update">'
@@ -59,27 +60,7 @@ if form.getvalue('serv') is not None:
 			'</span>')
 print('</td>'
 		'</form>'
-		'</tr></table>')
-
-if form.getvalue('serv') is not None:
-	rows = form.getvalue('rows')
-	grep = form.getvalue('grep')
-	
-	if grep is not None:
-        	grep_act  = '|grep'
-	else:
-		grep_act = ''
-		grep = ''
-
-	syslog_server_enable = config.get('logs', 'syslog_server_enable')
-	if syslog_server_enable is None or syslog_server_enable == "0":
-		local_path_logs = config.get('logs', 'local_path_logs')
-		syslog_server = serv	
-		commands = [ 'sudo tail -%s %s %s %s' % (rows, local_path_logs, grep_act, grep) ]	
-	else:
-		commands = [ 'sudo tail -%s /var/log/%s/syslog.log %s %s' % (rows, serv, grep_act, grep) ]
-		syslog_server = config.get('logs', 'syslog_server')
-	
-	funct.ssh_command(syslog_server, commands, show_log="1")
-	
+		'</tr></table>'
+	'<div id="ajax">'
+	'</div>')	
 funct.footer()

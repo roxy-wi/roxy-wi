@@ -4,7 +4,13 @@ import cgi
 import json
 import subprocess 
 import funct
+import configparser
+
 options = [ "acl", "http-request", "http-response", "set-uri", "set-url", "set-header", "add-header", "del-header", "replace-header", "path_beg", "url_beg()", "urlp_sub()", "tcpka", "tcplog", "forwardfor", "option" ]
+
+path_config = "haproxy-webintarface.config"
+config = configparser.ConfigParser()
+config.read(path_config)
 
 form = cgi.FieldStorage()
 req = form.getvalue('req')
@@ -63,7 +69,59 @@ if form.getvalue('action') is not None and serv is not None:
 		funct.ssh_command(serv, commands)		
 	else:
 		print("Bad config, check please")
-			
+
+if serv is not None and form.getvalue('rows') is not None:
+	rows = form.getvalue('rows')
+	grep = form.getvalue('grep')
+	
+	if grep is not None:
+        	grep_act  = '|grep'
+	else:
+		grep_act = ''
+		grep = ''
+
+	syslog_server_enable = config.get('logs', 'syslog_server_enable')
+	if syslog_server_enable is None or syslog_server_enable == "0":
+		local_path_logs = config.get('logs', 'local_path_logs')
+		syslog_server = serv	
+		commands = [ 'sudo tail -%s %s %s %s' % (rows, local_path_logs, grep_act, grep) ]	
+	else:
+		commands = [ 'sudo tail -%s /var/log/%s/syslog.log %s %s' % (rows, serv, grep_act, grep) ]
+		syslog_server = config.get('logs', 'syslog_server')
+	print('<div id"logs">')
+	funct.ssh_command(syslog_server, commands, show_log="1")
+	print('</div>')
+
+if serv is not None and form.getvalue('act') is not None:
+	import requests
+	from requests_toolbelt.utils import dump
+	
+	haproxy_user = config.get('haproxy', 'user')
+	haproxy_pass = config.get('haproxy', 'password')
+	stats_port = config.get('haproxy', 'stats_port')
+	stats_page = config.get('haproxy', 'stats_page')
+	try:
+		response = requests.get('http://%s:%s/%s' % (serv, stats_port, stats_page), auth=(haproxy_user, haproxy_pass)) 
+	except requests.exceptions.ConnectTimeout:
+		print('Oops. Connection timeout occured!')
+	except requests.exceptions.ReadTimeout:
+		print('Oops. Read timeout occured')
+	except requests.exceptions.HTTPError as errh:
+		print ("Http Error:",errh)
+	except requests.exceptions.ConnectionError as errc:
+		print ("Error Connecting:",errc)
+	except requests.exceptions.Timeout as errt:
+		print ("Timeout Error:",errt)
+	except requests.exceptions.RequestException as err:
+		print ("OOps: Something Else",err)
+		
+	data = response.content
+	print(data.decode('utf-8'))
+
+if form.getvalue('act') == "overview":
+	import ovw
+	ovw.get_overview()
+	
 if form.getvalue('tailf_stop') is not None:
 	serv = form.getvalue('serv')
 	commands = [ "ps ax |grep python3 |grep -v grep |awk '{ print $1 }' |xargs kill" ]
