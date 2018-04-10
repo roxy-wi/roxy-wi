@@ -129,6 +129,7 @@ def head(title):
 		'<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>'
 		'<script src="/inc/js-cookie.js"></script>'
 		'<script src="/inc/script.js"></script>'		
+		'<script src="/inc/configshow.js"></script>'
 		'<script src="/inc/nprogress.js"></script>'		
 		'<script src="/inc/vertical_scrol/custom_scrollbar.min.js"></script>'		
 		'</head>'
