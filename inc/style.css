@@ -19,6 +19,9 @@ h2 {
 	margin-top: 0px;
 	margin-bottom: 0px;
 }
+h2 span {
+	width: 300px;
+}
 h3 {
 	margin-top: 10px;
 	margin-bottom: 0px;
@@ -55,11 +58,14 @@ pre {
 }
 .logoText {
 	color: #EBF1F1;
-	font-size: 30px;
+	font-size: 25px;
 	font-style: italic;
 	font-weight: bold;
-	height: 52px;
+	height: 37px;
 	background-color: #f4ab76;
+	padding-left: 20px;
+	padding-top: 2px;
+	padding-bottom: 3px;
 }
 .top-menu img {
 	max-width: 125px;
@@ -302,6 +308,7 @@ pre {
 	padding: 10px;
 	padding-left: 15px;
 	border: none;
+	width: 25%;
 }
 .ro {
   border: none;

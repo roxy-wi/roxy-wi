@@ -59,11 +59,6 @@ def get_overview():
 			'<td>'
 				'Last edit'
 			'</td>'
-			'<td>'
-				'<a href=""  title="Update status" id="update">'
-					'<img alt="Update" src="/image/pic/update.png" class="icon" style="padding-right: 8px; float: right">'
-				'</a></span>'
-			'</td>'
 		'</tr>')
 		
 	listhap = funct.get_dick_after_permit()
@@ -94,11 +89,6 @@ def get_overview():
 			'</td>'
 			'<td>'
 				'Server status'
-				'<span style="float: right; margin-left: 80&;">'
-					'<a href=""  title="Update status" id="update">'
-						'<img alt="Update" src="/image/pic/update.png" class="icon" style="padding-right: 8px; float: right">'
-					'</a>'
-				'</span>'
 			'</td>'
 		'</tr>')
 	print('</td></tr>')

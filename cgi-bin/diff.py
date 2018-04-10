@@ -64,11 +64,8 @@ if form.getvalue('serv') is not None and form.getvalue('open') is not None :
 	print('</select>')
 	print('<input type="hidden" value="%s" name="serv">' % serv)
 	print('<input type="hidden" value="open" name="open">')
-	print('<button type="submit" value="Compare" name="Compare">Compare</button></p></form></center>')
+	print('<a class="ui-button ui-widget ui-corner-all" id="show" title="Compare" onclick="showCompare()">Show</a></p></form></center></center><div id=ajax></div>')
 	
-if form.getvalue('serv') is not None and form.getvalue('right') is not None:
-	commands = [ 'diff -ub %s%s %s%s' % (hap_configs_dir, left, hap_configs_dir, right) ]
 
-	funct.ssh_command(haproxy_configs_server, commands, compare="1")
 	
 funct.footer()

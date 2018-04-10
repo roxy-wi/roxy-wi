@@ -57,9 +57,8 @@ print('<br />'
 
 funct.choose_server_with_vip(serv)
 
-print('</select>'
-		'<span id="loading" class="fa fa-spinner fa-spin"></span>'
-		'<a class="ui-button ui-widget ui-corner-all" id="show" title="Show logs" onclick="showStats()">Show</a>'
+print('</select>'		
+		'<a class="ui-button ui-widget ui-corner-all" id="show" title="Show stats" onclick="showStats()">Show</a>'
 		'</form>')
 
 data = response.content

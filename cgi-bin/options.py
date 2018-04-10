@@ -11,6 +11,7 @@ options = [ "acl", "http-request", "http-response", "set-uri", "set-url", "set-h
 path_config = "haproxy-webintarface.config"
 config = configparser.ConfigParser()
 config.read(path_config)
+funct.check_config()
 
 form = cgi.FieldStorage()
 req = form.getvalue('req')
@@ -121,6 +122,34 @@ if serv is not None and form.getvalue('act') is not None:
 if form.getvalue('act') == "overview":
 	import ovw
 	ovw.get_overview()
+
+if form.getvalue('servaction') is not None:
+	server_state_file = config.get('haproxy', 'server_state_file')
+	haproxy_sock = config.get('haproxy', 'haproxy_sock')
+	enable = form.getvalue('servaction')
+	cmd='echo "%s %s" |socat stdio %s | cut -d "," -f 1-2,5-10,34-36 | column -s, -t' % (enable, backend, haproxy_sock)
+	
+	if form.getvalue('save') == "on":
+		save_command = 'echo "show servers state" | socat stdio %s > %s' % (haproxy_sock, server_state_file)
+		command = [ cmd, save_command ] 
+	else:
+		command = [ cmd ] 
+		
+	if enable != "show":
+			print('<center><h3>You %s %s on HAproxy %s. <a href="viewsttats.py?serv=%s" title="View stat" target="_blank">Look it</a> or <a href="edit.py" title="Edit">Edit something else</a></h3><br />' % (enable, backend, serv, serv))
+			
+	funct.ssh_command(serv, command, show_log="1")
+	action = 'edit.py ' + enable + ' ' + backend
+	funct.logging(serv, action)
+	
+if serv is not None and form.getvalue('right') is not None:
+	left = form.getvalue('left')
+	right = form.getvalue('right')
+	haproxy_configs_server = config.get('configs', 'haproxy_configs_server')
+	hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
+	commands = [ 'diff -ub %s%s %s%s' % (hap_configs_dir, left, hap_configs_dir, right) ]
+
+	funct.ssh_command(haproxy_configs_server, commands, compare="1")
 	
 if form.getvalue('tailf_stop') is not None:
 	serv = form.getvalue('serv')

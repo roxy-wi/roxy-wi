@@ -49,10 +49,13 @@ var intervalId;
 function startSetInterval(interval) {	
 	if (cur_url[0] == "logs.py") {
 		intervalId = setInterval('showLog()', interval);
+		showLog();
 	} else if (cur_url[0] == "viewsttats.py") {
 		intervalId = setInterval('showStats()', interval);
+		showStats()
 	} else if (cur_url[0] == "overview.py") {
 		intervalId = setInterval('showOverview()', interval);
+		showOverview();
 	}  else {
 		intervalId = setInterval('document.location.reload()', interval);
 	}
@@ -84,6 +87,12 @@ function showOverview() {
 			act: "overview",
 		},
 		type: "GET",
+		beforeSend: function () {
+			NProgress.start();
+		},
+		complete: function () {
+			NProgress.done();
+		},
 		success: function( data ) {
 			var form = $("#ajax").html();
 			$("#ajax").html(data);
@@ -100,10 +109,10 @@ function showStats() {
 		},
 		type: "GET",
 		beforeSend: function () {
-			$('#loading').show();
+			NProgress.start();
 		},
 		complete: function () {
-			$("#loading").hide();
+			NProgress.done();
 		},
 		success: function( data ) {
 			var form = $("#ajax").html();
@@ -121,10 +130,58 @@ function showLog() {
 		},
 		type: "GET",
 		beforeSend: function () {
-			$('#loading').show();
+			NProgress.start();
 		},
 		complete: function () {
-			$("#loading").hide();
+			NProgress.done();
+		},
+		success: function( data ) {
+			var form = $("#ajax").html();
+			$("#ajax").html(data);
+		}					
+	} );
+}
+function showRuntime() {
+	if($('#save').prop('checked')) {
+		saveCheck = "on";
+	} else {
+		saveCheck = "";
+	}
+	$.ajax( {
+		url: "options.py",
+		data: {
+			servaction: $('#servaction').val(),
+			serv: $("#serv").val(),
+			servbackend: $("#servbackend").val(),
+			save: saveCheck
+		},
+		type: "GET",
+		beforeSend: function () {
+			NProgress.start();
+		},
+		complete: function () {
+			NProgress.done();
+		},
+		success: function( data ) {
+			var form = $("#ajax").html();
+			$("#ajax").html(data);
+		}					
+	} );
+}
+function showCompare() {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			serv: $("#serv").val(),
+			left: $('#left').val(),
+			right: $("#right").val()
+		},
+		type: "GET",
+		beforeSend: function () {
+			NProgress.start();
+		},
+		complete: function () {
+			NProgress.done();
 		},
 		success: function( data ) {
 			var form = $("#ajax").html();

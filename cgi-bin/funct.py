@@ -22,6 +22,8 @@ path_config = "haproxy-webintarface.config"
 config = configparser.ConfigParser()
 config.read(path_config)
 
+form = cgi.FieldStorage()
+serv = form.getvalue('serv')
 fullpath = config.get('main', 'fullpath')
 ssh_keys = config.get('ssh', 'ssh_keys')
 ssh_user_name = config.get('ssh', 'ssh_user_name')
@@ -121,11 +123,13 @@ def head(title):
 		'<link href="/inc/awesome.css" rel="stylesheet">'
 		'<link href="/inc/vertical_scrol/custom_scrollbar.css" rel="stylesheet">'
 		'<link href="/inc/style.css" rel="stylesheet">'
+		'<link href="/inc/nprogress.css" rel="stylesheet">'
 		'<link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">'
 		'<script src="https://code.jquery.com/jquery-1.12.4.js"></script>'
 		'<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>'
 		'<script src="/inc/js-cookie.js"></script>'
 		'<script src="/inc/script.js"></script>'		
+		'<script src="/inc/nprogress.js"></script>'		
 		'<script src="/inc/vertical_scrol/custom_scrollbar.min.js"></script>'		
 		'</head>'
 			'<body>'
@@ -140,7 +144,7 @@ def head(title):
 				'<div class="top-menu">'
 					'<div class="LogoText">'
 						'<span style="padding: 10px;">HAproxy-WI</span>'
-						'<a href="#" id="hide_menu" title="Hide menu" style="margin-left: 7px;margin-top: -6px;position: absolute;">'
+						'<a href="#" id="hide_menu" title="Hide menu" style="margin-left: 16px;margin-top: -10px;position: absolute;">'
 							'<span class="ui-state-default ui-corner-all">'
 								'<span class="ui-icon ui-icon-arrowthick-1-w" id="arrow"></span>'
 							'</span>'
@@ -186,7 +190,7 @@ def links():
 	show_login_links()
 	print('</ul>'
 		  '</nav>'
-		  '<div class="copyright-menu">HAproxy-WI v1.10.2.1</div>')	
+		  '<div class="copyright-menu">HAproxy-WI v1.10.2.2</div>')	
 
 def show_login_links():
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
@@ -546,16 +550,14 @@ def choose_only_select(serv, **kwargs):
 		print('<option value="%s" %s>%s</option>' % (listhap.get(i), selected, i))	
 
 def chooseServer(formName, title, note):
+	servNew = form.getvalue('serNew')
+	
 	print('<h2>' + title + '</h2><center>')
 	print('<h3>Choose server</h3>')
 	print('<form action=' + formName + ' method="get">')
-	print('<p><select autofocus required name="serv" id="chooseServer">')
+	print('<p><select autofocus required name="serv" id="serv">')
 	print('<option disabled>Choose server</option>')
 
-	form = cgi.FieldStorage()
-	serv = form.getvalue('serv')
-	servNew = form.getvalue('serNew')
-	
 	choose_only_select(serv, servNew=servNew)
 
 	print('</select>')
