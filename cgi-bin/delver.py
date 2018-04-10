@@ -4,6 +4,7 @@ import cgi
 import os
 import funct
 import configparser
+import glob
 
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
@@ -19,18 +20,15 @@ config.read(path_config)
 hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
 
 funct.page_for_admin(level = 2)
-	
-funct.chooseServer("delver.py#conf", "Delete Versions HAproxy config", "n")
+funct.chooseServer("delver.py", "Delete Versions HAproxy config", "n")
 
 if serv is not None and form.getvalue('open') is not None:
 	
 	print('<center><h3>Choose old version</h3>')
-	print('<form action="delver.py#conf" method="post">'
+	print('<form action="delver.py#conf" method="get">'
 			'<label for="select_all" id="label_select_all"><b>Select all</b></label>'
 			'<input type="checkbox" id="select_all"><br />')
 	
-	import glob
-
 	os.chdir(hap_configs_dir)
 
 	for files in sorted(glob.glob('*.cfg')):

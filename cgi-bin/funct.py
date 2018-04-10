@@ -312,7 +312,7 @@ def get_config(serv, cfg):
 		print("!!! There was an issue, " + str(e))
 	
 def show_config(cfg):
-	print('</center><div style="margin-left: 16%" class="configShow">')
+	print('<div style="margin-left: 16%" class="configShow">')
 	conf = open(cfg, "r")
 	i = 0
 	for line in conf:
@@ -358,7 +358,7 @@ def upload_and_restart(serv, cfg, **kwargs):
 	tmp_file = tmp_config_path + "/" + now_utc.strftime(fmt) + ".cfg"
 
 	ssh = ssh_connect(serv)
-	print("connected<br />")
+	print("<center>connected<br />")
 	sftp = ssh.open_sftp()
 	sftp.put(cfg, tmp_file)
 	sftp.close()
@@ -389,7 +389,8 @@ def upload_and_restart(serv, cfg, **kwargs):
 			print("</br>")
 	
 	return True	
-			
+	
+	print('</center>')
 	ssh.close()
 
 def check_haproxy_config(serv):
@@ -549,7 +550,7 @@ def choose_only_select(serv, **kwargs):
 
 		print('<option value="%s" %s>%s</option>' % (listhap.get(i), selected, i))	
 
-def chooseServer(formName, title, note):
+def chooseServer(formName, title, note, **kwargs):
 	servNew = form.getvalue('serNew')
 	
 	print('<h2>' + title + '</h2><center>')
@@ -561,10 +562,17 @@ def chooseServer(formName, title, note):
 	choose_only_select(serv, servNew=servNew)
 
 	print('</select>')
-	get_button("Open", value="open")
+	
+	if kwargs.get("onclick") is not None:
+		print('<a class="ui-button ui-widget ui-corner-all" id="show" title="Show config" onclick="%s">Show</a>' % kwargs.get("onclick"))
+	else:
+		get_button("Open", value="open")
+		
 	print('</p></form>')
+	
 	if note == "y":
 		print('<p><b>Note:</b> If you reconfigure First server, second will reconfigured automatically</p>')
+	print('</center>')
 		
 def choose_server_with_vip(serv):
 	listhap.listhap = merge_two_dicts(listhap.listhap, listhap.listhap_vip)

@@ -117,6 +117,7 @@ function showStats() {
 		success: function( data ) {
 			var form = $("#ajax").html();
 			$("#ajax").html(data);
+			window.history.pushState("Stats", "Stats", cur_url[0]+"?serv="+$("#serv").val());
 		}					
 	} );
 }
@@ -186,6 +187,28 @@ function showCompare() {
 		success: function( data ) {
 			var form = $("#ajax").html();
 			$("#ajax").html(data);
+			window.history.pushState("Compare", "Compare", cur_url[0]+"?serv="+$("#serv").val()+"&open=open&left="+$("#left").val()+"&right="+$("#right").val());
+		}					
+	} );
+}
+function showConfig() {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			serv: $("#serv").val(),
+			act: "configShow"
+		},
+		type: "GET",
+		beforeSend: function () {
+			NProgress.start();
+		},
+		complete: function () {
+			NProgress.done();
+		},
+		success: function( data ) {
+			var form = $("#ajax").html();
+			$("#ajax").html(data);
+			window.history.pushState("Show config", "Show config", cur_url[0]+"?serv="+$("#serv").val()+"&open=open");
 		}					
 	} );
 }

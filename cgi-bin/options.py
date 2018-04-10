@@ -93,7 +93,7 @@ if serv is not None and form.getvalue('rows') is not None:
 	funct.ssh_command(syslog_server, commands, show_log="1")
 	print('</div>')
 
-if serv is not None and form.getvalue('act') is not None:
+if serv is not None and form.getvalue('act') == "stats":
 	import requests
 	from requests_toolbelt.utils import dump
 	
@@ -150,6 +150,35 @@ if serv is not None and form.getvalue('right') is not None:
 	commands = [ 'diff -ub %s%s %s%s' % (hap_configs_dir, left, hap_configs_dir, right) ]
 
 	funct.ssh_command(haproxy_configs_server, commands, compare="1")
+
+if serv is not None and form.getvalue('act') == "configShow":
+	import os
+	from paramiko import SSHClient
+	from datetime import datetime
+	from pytz import timezone
+	
+	hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
+	time_zone = config.get('main', 'time_zone')
+	fmt = "%Y-%m-%d.%H:%M:%S"
+	now_utc = datetime.now(timezone(time_zone))
+	cfg = hap_configs_dir + serv + "-" + now_utc.strftime(fmt) + ".cfg"
+	
+	funct.get_config(serv, cfg)
+	
+	print('<script>$( ".configShow" ).accordion({'
+			  'collapsible: true,'
+			  'heightStyle: "content",'
+			  'icons: { "header": "ui-icon-plus", "activeHeader": "ui-icon-minus" }'
+			'});</script>')
+	print("<center><h3>Config from %s</h3>" % serv)
+	print('<p class="accordion-expand-holder">'
+			'<a class="accordion-expand-all ui-button ui-widget ui-corner-all" href="#">Expand all</a>'
+		'</p>')
+	print('</center>')
+	
+	funct.show_config(cfg)
+
+	os.system("/bin/rm -f " + cfg)	
 	
 if form.getvalue('tailf_stop') is not None:
 	serv = form.getvalue('serv')

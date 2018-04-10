@@ -5,8 +5,6 @@ import os
 import funct
 import paramiko
 import configparser
-from paramiko import SSHClient
-from datetime import datetime
 from pytz import timezone
 
 form = cgi.FieldStorage()
@@ -27,23 +25,24 @@ hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
 haproxy_config_path  = config.get('haproxy', 'haproxy_config_path')
 time_zone = config.get('main', 'time_zone')
 
-if serv is not None:
+funct.chooseServer("configshow.py", "Show HAproxy config", "n", onclick="showConfig()")
+
+print('<div id="ajax">')
+if form.getvalue('serv') is not None and form.getvalue('open') is not None :
 	fmt = "%Y-%m-%d.%H:%M:%S"
 	now_utc = datetime.now(timezone(time_zone))
 	cfg = hap_configs_dir + serv + "-" + now_utc.strftime(fmt) + ".cfg"
-
-funct.chooseServer("configshow.py#conf", "Show HAproxy config", "n")
-
-if form.getvalue('serv') is not None and form.getvalue('open') is not None :
+	
 	funct.get_config(serv, cfg)
 	
-	print('<a name="conf"></a>')
-	print("<h3>Config from %s</h3>" % serv)
+	print("<center><h3>Config from %s</h3>" % serv)
 	print('<p class="accordion-expand-holder">'
 			'<a class="accordion-expand-all ui-button ui-widget ui-corner-all" href="#">Expand all</a>'
 		'</p>')
+	print('</center>')
 	funct.show_config(cfg)
-
+	
 	os.system("/bin/rm -f " + cfg)	
 	
+print('</div>')	
 funct.footer()

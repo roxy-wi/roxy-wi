@@ -25,7 +25,9 @@ config.read(path_config)
 
 haproxy_configs_server = config.get('configs', 'haproxy_configs_server')
 hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
-
+left = form.getvalue('left')
+right = form.getvalue('right')
+	
 funct.chooseServer("diff.py#diff", "Compare HAproxy configs", "n")
 
 if form.getvalue('serv') is not None and form.getvalue('open') is not None :
@@ -64,8 +66,12 @@ if form.getvalue('serv') is not None and form.getvalue('open') is not None :
 	print('</select>')
 	print('<input type="hidden" value="%s" name="serv">' % serv)
 	print('<input type="hidden" value="open" name="open">')
-	print('<a class="ui-button ui-widget ui-corner-all" id="show" title="Compare" onclick="showCompare()">Show</a></p></form></center></center><div id=ajax></div>')
-	
+	print('<a class="ui-button ui-widget ui-corner-all" id="show" title="Compare" onclick="showCompare()">Show</a></p></form></center></center><div id=ajax>')
 
-	
+if serv is not None and form.getvalue('right') is not None:
+	commands = [ 'diff -ub %s%s %s%s' % (hap_configs_dir, left, hap_configs_dir, right) ]
+
+	funct.ssh_command(haproxy_configs_server, commands, compare="1")	
+
+print('</div>')
 funct.footer()
