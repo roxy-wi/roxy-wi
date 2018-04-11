@@ -19,9 +19,6 @@ h2 {
 	margin-top: 0px;
 	margin-bottom: 0px;
 }
-h2 span {
-	width: 300px;
-}
 h3 {
 	margin-top: 10px;
 	margin-bottom: 0px;
@@ -90,7 +87,10 @@ pre {
 	padding-bottom: 10px;
 }
 .auto-refresh {
-	margin-left: 86%;
+	margin-left: auto;
+	float: right;
+	margin-top: 5px;
+	margin-right: 30px;
 }
 .auto-refresh a {
 	color: #fff !important;
@@ -112,14 +112,13 @@ pre {
 	cursor: pointer;
 }
 .auto-refresh-head {
-	margin-top: 0;
 	font-size: 16px;
 	color: #2d2d2d;
 	font-weight: bold;
-	margin-left: 77%;
+	margin-left: 83%;
 }
 .auto-refresh-interval {
-	float: left;
+	float: right;
 	padding: 0px 15px;
 	margin-left: 75%;
 }

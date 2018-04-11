@@ -160,7 +160,7 @@ def head(title):
 def links():
 	print('<nav class="menu">'
 			'<ul>'
-				'<li><a title="Statistics, monitoring and logs" class="stats">Stats</a>'
+				'<li><span style="color: #fff" title="Statistics, monitoring and logs" class="stats">Stats</span>'
 					'<ul>'
 						'<li><a href=/cgi-bin/overview.py title="Server and service status" class="overview-link">Overview</a> </li>'
 						'<li><a href=/cgi-bin/viewsttats.py title="View Stats" class="stats">Stats</a> </li>'
@@ -169,7 +169,7 @@ def links():
 					'</ul>'
 				'</li>'
 				'<li><a href=/cgi-bin/edit.py title="Runtime API" class="runtime">Runtime API</a> </li>'
-				'<li><a class="config-show">Configs</a>'
+				'<li><span style="color: #fff" title="Actions with configs" class="config-show">Configs</span>'
 					'<ul>'
 						'<li><a href=/cgi-bin/configshow.py title="Show Config" class="config-show">Show</a></li> '
 						'<li><a href=/cgi-bin/diff.py title="Compare Configs" class="compare">Compare</a></li>')
@@ -180,7 +180,7 @@ def links():
 						'<li><a href=/cgi-bin/config.py title="Edit Config" class="edit">Edit</a> </li>')
 	print('</ul></li>')
 	if is_admin(level = 1):
-		print('<li><a class="version">Versions</a>'
+		print('<li><span style="color: #fff" title="Actions with configs" class="version">Versions</span>'
 					'<ul>'
 						'<li><a href=/cgi-bin/configver.py title="Upload old versions configs" class="upload">Upload</a></li>')
 	if is_admin():
@@ -191,7 +191,7 @@ def links():
 	show_login_links()
 	print('</ul>'
 		  '</nav>'
-		  '<div class="copyright-menu">HAproxy-WI v1.10.2.2</div>')	
+		  '<div class="copyright-menu">HAproxy-WI v1.10.2.3</div>')	
 
 def show_login_links():
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
@@ -214,10 +214,10 @@ def get_auto_refresh(h2):
 	print('<h2>')
 	print('<span>%s</span>' % h2)
 	print('<span class="auto-refresh">'
-			'<a id="0"><img style="margin-top: 10px; margin-left: -23px; position: fixed;" src=/image/pic/update.png alt="restart" class="icon"> Auto-refresh</a>'
-			'<a id="1" style="display: none;"><img style="margin-top: 10px; margin-left: -23px; position: fixed;" src=/image/pic/update.png alt="restart" class="icon"> Auto-refresh</a>'
-			'<a onclick="pauseAutoRefresh()" title="Pause auto-refresh" class="auto-refresh-pause" style="display: none;"></a>'
-			'<a onclick="pauseAutoResume()" title="Resume auto-refresh" class="auto-refresh-resume" style="display: none;"></a>'
+			'<a id="0"><img style="margin-top: 3px; margin-left: -23px; position: fixed;" src=/image/pic/update.png alt="restart" class="icon"> Auto-refresh</a>'
+			'<a id="1" style="display: none;"><img style="margin-top: 3px; margin-left: -23px; position: fixed;" src=/image/pic/update.png alt="restart" class="icon"> Auto-refresh</a>'
+			'<a onclick="pauseAutoRefresh()" title="Pause auto-refresh" class="auto-refresh-pause" style="display: none; margin-top: 4px;"></a>'
+			'<a onclick="pauseAutoResume()" title="Resume auto-refresh" class="auto-refresh-resume" style="display: none; margin-top: 4px;"></a>'
 		'</span></h2>'
 		'<div class="auto-refresh-div">'
 			'<div class="auto-refresh-head">'

@@ -28,7 +28,7 @@ function setRefreshInterval(interval) {
 	if (interval == "0") {
 		Cookies.remove('auto-refresh');
 		pauseAutoRefresh();
-		$('.auto-refresh').append('<img style="margin-top: 10px; margin-left: -110px; position: fixed;" src=/image/pic/update.png alt="restart" class="icon">');
+		$('.auto-refresh').append('<img style="margin-top: 3px; margin-left: -110px; position: fixed;" src=/image/pic/update.png alt="restart" class="icon">');
 		$('#1').text('Auto-refresh');
 		$('#0').text('Auto-refresh');
 		$('.auto-refresh-pause').css('display', 'none');
@@ -80,6 +80,12 @@ function hideAutoRefreshDiv() {
 		$('#0').css("display", "inline");
 	});
 }
+$( document ).ajaxSend(function( event, request, settings ) {
+	NProgress.start();
+});
+$( document ).ajaxComplete(function( event, request, settings ) {
+	NProgress.done();
+});
 function showOverview() {
 	$.ajax( {
 		url: "options.py",
@@ -87,12 +93,6 @@ function showOverview() {
 			act: "overview",
 		},
 		type: "GET",
-		beforeSend: function () {
-			NProgress.start();
-		},
-		complete: function () {
-			NProgress.done();
-		},
 		success: function( data ) {
 			var form = $("#ajax").html();
 			$("#ajax").html(data);
@@ -108,12 +108,6 @@ function showStats() {
 			serv: $("#serv").val()
 		},
 		type: "GET",
-		beforeSend: function () {
-			NProgress.start();
-		},
-		complete: function () {
-			NProgress.done();
-		},
 		success: function( data ) {
 			var form = $("#ajax").html();
 			$("#ajax").html(data);
@@ -130,18 +124,29 @@ function showLog() {
 			grep: $("#grep").val(),
 		},
 		type: "GET",
-		beforeSend: function () {
-			NProgress.start();
-		},
-		complete: function () {
-			NProgress.done();
-		},
 		success: function( data ) {
 			var form = $("#ajax").html();
 			$("#ajax").html(data);
 		}					
 	} );
 }
+function showMap() {
+	var unique = $.now();
+	$.ajax( {
+		url: "options.py",
+		data: {
+			serv: $("#serv").val(),
+			act: "showMap"
+		},
+		type: "GET",
+		success: function( data ) {
+			var form = $("#ajax").html();
+			$("#ajax").html(data);
+			window.history.pushState("Map", "Map", cur_url[0]+"?serv="+$("#serv").val());
+		}					
+	} );
+}
+
 function showRuntime() {
 	if($('#save').prop('checked')) {
 		saveCheck = "on";
@@ -157,12 +162,6 @@ function showRuntime() {
 			save: saveCheck
 		},
 		type: "GET",
-		beforeSend: function () {
-			NProgress.start();
-		},
-		complete: function () {
-			NProgress.done();
-		},
 		success: function( data ) {
 			var form = $("#ajax").html();
 			$("#ajax").html(data);
@@ -178,12 +177,6 @@ function showCompare() {
 			right: $("#right").val()
 		},
 		type: "GET",
-		beforeSend: function () {
-			NProgress.start();
-		},
-		complete: function () {
-			NProgress.done();
-		},
 		success: function( data ) {
 			var form = $("#ajax").html();
 			$("#ajax").html(data);
@@ -199,12 +192,6 @@ function showConfig() {
 			act: "configShow"
 		},
 		type: "GET",
-		beforeSend: function () {
-			NProgress.start();
-		},
-		complete: function () {
-			NProgress.done();
-		},
 		success: function( data ) {
 			var form = $("#ajax").html();
 			$("#ajax").html(data);
@@ -214,6 +201,15 @@ function showConfig() {
 }
 
 $( function() {
+	$( "#serv" ).on('selectmenuchange',function()  {
+		$("#show").css("pointer-events", "inherit");
+		$("#show").css("cursor", "pointer");
+	});
+	if ($( "#serv option:selected" ).val() == "Choose server")  {
+		$("#show").css("pointer-events", "none");
+		$("#show").css("cursor", "not-allowed");
+	}
+	
 	var pause = '<a onclick="pauseAutoRefresh()" title="Pause auto-refresh" class="auto-refresh-pause"></a>'
 	var autoRefresh = Cookies.get('auto-refresh');
 	

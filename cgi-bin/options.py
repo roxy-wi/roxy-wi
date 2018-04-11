@@ -4,6 +4,7 @@ import cgi
 import json
 import subprocess 
 import funct
+import ovw
 import configparser
 
 options = [ "acl", "http-request", "http-response", "set-uri", "set-url", "set-header", "add-header", "del-header", "replace-header", "path_beg", "url_beg()", "urlp_sub()", "tcpka", "tcplog", "forwardfor", "option" ]
@@ -70,28 +71,9 @@ if form.getvalue('action') is not None and serv is not None:
 		funct.ssh_command(serv, commands)		
 	else:
 		print("Bad config, check please")
-
-if serv is not None and form.getvalue('rows') is not None:
-	rows = form.getvalue('rows')
-	grep = form.getvalue('grep')
-	
-	if grep is not None:
-        	grep_act  = '|grep'
-	else:
-		grep_act = ''
-		grep = ''
-
-	syslog_server_enable = config.get('logs', 'syslog_server_enable')
-	if syslog_server_enable is None or syslog_server_enable == "0":
-		local_path_logs = config.get('logs', 'local_path_logs')
-		syslog_server = serv	
-		commands = [ 'sudo tail -%s %s %s %s' % (rows, local_path_logs, grep_act, grep) ]	
-	else:
-		commands = [ 'sudo tail -%s /var/log/%s/syslog.log %s %s' % (rows, serv, grep_act, grep) ]
-		syslog_server = config.get('logs', 'syslog_server')
-	print('<div id"logs">')
-	funct.ssh_command(syslog_server, commands, show_log="1")
-	print('</div>')
+		
+if form.getvalue('act') == "overview":
+	ovw.get_overview()
 
 if serv is not None and form.getvalue('act') == "stats":
 	import requests
@@ -119,10 +101,31 @@ if serv is not None and form.getvalue('act') == "stats":
 	data = response.content
 	print(data.decode('utf-8'))
 
-if form.getvalue('act') == "overview":
-	import ovw
-	ovw.get_overview()
+if serv is not None and form.getvalue('rows') is not None:
+	rows = form.getvalue('rows')
+	grep = form.getvalue('grep')
+	
+	if grep is not None:
+        	grep_act  = '|grep'
+	else:
+		grep_act = ''
+		grep = ''
 
+	syslog_server_enable = config.get('logs', 'syslog_server_enable')
+	if syslog_server_enable is None or syslog_server_enable == "0":
+		local_path_logs = config.get('logs', 'local_path_logs')
+		syslog_server = serv	
+		commands = [ 'sudo tail -%s %s %s %s' % (rows, local_path_logs, grep_act, grep) ]	
+	else:
+		commands = [ 'sudo tail -%s /var/log/%s/syslog.log %s %s' % (rows, serv, grep_act, grep) ]
+		syslog_server = config.get('logs', 'syslog_server')
+	print('<div id"logs">')
+	funct.ssh_command(syslog_server, commands, show_log="1")
+	print('</div>')
+
+if serv is not None and form.getvalue('act') == "showMap":
+	ovw.get_map(serv)
+	
 if form.getvalue('servaction') is not None:
 	server_state_file = config.get('haproxy', 'server_state_file')
 	haproxy_sock = config.get('haproxy', 'haproxy_sock')

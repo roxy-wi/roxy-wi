@@ -28,7 +28,7 @@ print('<table class="overview">'
 				'<td class="padding10">'
 				'<form action="logs.py" method="get">'
 					'<select autofocus required name="serv" id="serv">'
-						'<option disabled>Choose server</option>')
+						'<option disabled selected>Choose server</option>')
 
 funct.choose_only_select(serv)
 

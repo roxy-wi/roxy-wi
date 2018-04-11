@@ -2,9 +2,6 @@
 import html
 import cgi
 import funct
-import configparser
-import json
-import listserv as listhap
 import ovw
 
 funct.head("Overview")
