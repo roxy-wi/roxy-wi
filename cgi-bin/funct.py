@@ -160,7 +160,7 @@ def head(title):
 def links():
 	print('<nav class="menu">'
 			'<ul>'
-				'<li><span style="color: #fff" title="Statistics, monitoring and logs" class="stats">Stats</span>'
+				'<li><a title="Statistics, monitoring and logs" class="stats">Stats</a>'
 					'<ul>'
 						'<li><a href=/cgi-bin/overview.py title="Server and service status" class="overview-link">Overview</a> </li>'
 						'<li><a href=/cgi-bin/viewsttats.py title="View Stats" class="stats">Stats</a> </li>'
@@ -169,7 +169,7 @@ def links():
 					'</ul>'
 				'</li>'
 				'<li><a href=/cgi-bin/edit.py title="Runtime API" class="runtime">Runtime API</a> </li>'
-				'<li><span style="color: #fff" title="Actions with configs" class="config-show">Configs</span>'
+				'<li><a title="Actions with configs" class="config-show">Configs</a>'
 					'<ul>'
 						'<li><a href=/cgi-bin/configshow.py title="Show Config" class="config-show">Show</a></li> '
 						'<li><a href=/cgi-bin/diff.py title="Compare Configs" class="compare">Compare</a></li>')
@@ -180,7 +180,7 @@ def links():
 						'<li><a href=/cgi-bin/config.py title="Edit Config" class="edit">Edit</a> </li>')
 	print('</ul></li>')
 	if is_admin(level = 1):
-		print('<li><span style="color: #fff" title="Actions with configs" class="version">Versions</span>'
+		print('<li><a title="Actions with configs" class="version">Versions</a>'
 					'<ul>'
 						'<li><a href=/cgi-bin/configver.py title="Upload old versions configs" class="upload">Upload</a></li>')
 	if is_admin():
