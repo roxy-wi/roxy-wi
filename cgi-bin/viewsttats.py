@@ -45,7 +45,7 @@ except requests.exceptions.RequestException as err:
 for i in listhap.listhap:
         if listhap.listhap.get(i) == serv:
                 servname = i
-
+				
 print('<div class="container">')
 
 funct.get_auto_refresh("HAproxy statistics")	

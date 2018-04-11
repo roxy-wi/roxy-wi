@@ -20,6 +20,7 @@ function autoRefreshStyle(autoRefresh) {
 	$('#1').text(autoRefresh + timeRange);
 	$('#0').text(autoRefresh + timeRange);
 	$('.auto-refresh-pause').css('display', 'inline');		
+	$('.auto-refresh-resume').css('display', 'none');		
 	$('.auto-refresh-pause').css('margin-left', margin);	
 	$('.auto-refresh img').remove();
 }
@@ -43,6 +44,7 @@ function setRefreshInterval(interval) {
 	}
 }
 
+var url = "/inc/script.js";
 var cur_url = window.location.href.split('/').pop();
 cur_url = cur_url.split('?');
 var intervalId;
@@ -56,14 +58,11 @@ function startSetInterval(interval) {
 	} else if (cur_url[0] == "overview.py") {
 		intervalId = setInterval('showOverview()', interval);
 		showOverview();
-	}  else {
-		intervalId = setInterval('document.location.reload()', interval);
-	}
+	}  
 }
 function pauseAutoRefresh() {
 	clearInterval(intervalId);
 	$(function() {
-		$('.auto-refresh-pause').attr('onclick', 'pauseAutoResume()');
 		$('.auto-refresh-pause').css('display', 'none');
 		$('.auto-refresh-resume').css('display', 'inline');
 	});
@@ -94,7 +93,6 @@ function showOverview() {
 		},
 		type: "GET",
 		success: function( data ) {
-			var form = $("#ajax").html();
 			$("#ajax").html(data);
 		}					
 	} );
@@ -109,8 +107,8 @@ function showStats() {
 		},
 		type: "GET",
 		success: function( data ) {
-			var form = $("#ajax").html();
-			$("#ajax").html(data);
+			$("#ajax").html(data);			
+			$.getScript(url);
 			window.history.pushState("Stats", "Stats", cur_url[0]+"?serv="+$("#serv").val());
 		}					
 	} );
@@ -125,7 +123,6 @@ function showLog() {
 		},
 		type: "GET",
 		success: function( data ) {
-			var form = $("#ajax").html();
 			$("#ajax").html(data);
 		}					
 	} );
@@ -140,7 +137,6 @@ function showMap() {
 		},
 		type: "GET",
 		success: function( data ) {
-			var form = $("#ajax").html();
 			$("#ajax").html(data);
 			window.history.pushState("Map", "Map", cur_url[0]+"?serv="+$("#serv").val());
 		}					
@@ -163,7 +159,6 @@ function showRuntime() {
 		},
 		type: "GET",
 		success: function( data ) {
-			var form = $("#ajax").html();
 			$("#ajax").html(data);
 		}					
 	} );
@@ -178,9 +173,25 @@ function showCompare() {
 		},
 		type: "GET",
 		success: function( data ) {
-			var form = $("#ajax").html();
 			$("#ajax").html(data);
 			window.history.pushState("Compare", "Compare", cur_url[0]+"?serv="+$("#serv").val()+"&open=open&left="+$("#left").val()+"&right="+$("#right").val());
+			$.getScript(url);
+		}					
+	} );
+}
+function showCompareConfigs() {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			serv: $("#serv").val(),
+			act: "showCompareConfigs",
+			open: "open"
+		},
+		type: "GET",
+		success: function( data ) {
+			$("#ajax-compare").html(data);
+			window.history.pushState("Compare", "Compare", cur_url[0]+"?serv="+$("#serv").val()+"&open=open");
+			$.getScript(url);
 		}					
 	} );
 }
@@ -193,7 +204,6 @@ function showConfig() {
 		},
 		type: "GET",
 		success: function( data ) {
-			var form = $("#ajax").html();
 			$("#ajax").html(data);
 			window.history.pushState("Show config", "Show config", cur_url[0]+"?serv="+$("#serv").val()+"&open=open");
 		}					

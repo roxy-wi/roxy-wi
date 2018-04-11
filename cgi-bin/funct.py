@@ -153,17 +153,17 @@ def head(title):
 					'</div>')
 	if config.get('main', 'logo_enable') == "1":
 		print('<div><img src="%s" title="Logo" class="logo"></div>' % config.get('main', 'logo_path'))
-	print('<div class="top-link">')
 	links()
-	print('</div></div><div class="container">')
+	print('</div><div class="container">')
 	
 def links():
-	print('<nav class="menu">'
+	print('<div class="top-link">'
+		'<nav class="menu">'
 			'<ul>'
 				'<li><a title="Statistics, monitoring and logs" class="stats">Stats</a>'
 					'<ul>'
 						'<li><a href=/cgi-bin/overview.py title="Server and service status" class="overview-link">Overview</a> </li>'
-						'<li><a href=/cgi-bin/viewsttats.py title="View Stats" class="stats">Stats</a> </li>'
+						'<li><a href=/cgi-bin/viewsttats.py title"Show stats" class="stats">Stats</a> </li>'
 						'<li><a href=/cgi-bin/logs.py title="View logs" class="logs">Logs</a></li>'
 						'<li><a href=/cgi-bin/map.py title="View map" class="map">Map</a></li>'
 					'</ul>'
@@ -191,7 +191,8 @@ def links():
 	show_login_links()
 	print('</ul>'
 		  '</nav>'
-		  '<div class="copyright-menu">HAproxy-WI v1.10.2.3</div>')	
+		  '<div class="copyright-menu">HAproxy-WI v1.10.2.3</div>'
+		  '</div>')	
 
 def show_login_links():
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
@@ -216,8 +217,8 @@ def get_auto_refresh(h2):
 	print('<span class="auto-refresh">'
 			'<a id="0"><img style="margin-top: 3px; margin-left: -23px; position: fixed;" src=/image/pic/update.png alt="restart" class="icon"> Auto-refresh</a>'
 			'<a id="1" style="display: none;"><img style="margin-top: 3px; margin-left: -23px; position: fixed;" src=/image/pic/update.png alt="restart" class="icon"> Auto-refresh</a>'
-			'<a onclick="pauseAutoRefresh()" title="Pause auto-refresh" class="auto-refresh-pause" style="display: none; margin-top: 4px;"></a>'
-			'<a onclick="pauseAutoResume()" title="Resume auto-refresh" class="auto-refresh-resume" style="display: none; margin-top: 4px;"></a>'
+			'<a onclick="pauseAutoRefresh()" class="auto-refresh-pause" style="display: none; margin-top: 4px;"></a>'
+			'<a onclick="pauseAutoResume()" class="auto-refresh-resume" style="display: none; margin-top: 4px;"></a>'
 		'</span></h2>'
 		'<div class="auto-refresh-div">'
 			'<div class="auto-refresh-head">'

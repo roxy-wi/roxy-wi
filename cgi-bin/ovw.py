@@ -1,6 +1,8 @@
 import funct
 import configparser
 import json
+import os
+import cgi
 
 path_config = "haproxy-webintarface.config"
 config = configparser.ConfigParser()
@@ -13,6 +15,7 @@ stats_port= config.get('haproxy', 'stats_port')
 haproxy_config_path  = config.get('haproxy', 'haproxy_config_path')
 status_command = config.get('haproxy', 'status_command')
 hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
+form = cgi.FieldStorage()
 
 def get_overview():
 	USERS =  cgi_path + '/users'
@@ -114,7 +117,6 @@ def get_overview():
 	print('<tr></table>')
 	
 def get_map(serv):
-	import os
 	from datetime import datetime
 	from pytz import timezone
 	import networkx as nx
@@ -209,5 +211,54 @@ def get_map(serv):
 	commands = [ "rm -f "+fullpath+"/map*.png", "mv %s/map.png %s/map%s.png" % (cgi_path, fullpath, now_utc.strftime(fmt)) ]
 	funct.ssh_command("localhost", commands)
 	print('<img src="/map%s.png" alt="map">' % now_utc.strftime(fmt))
-	#commands = [ "rm -f %s/map%s.png" % (fullpath, now_utc.strftime(fmt))]
-	#funct.ssh_command("localhost", commands)
+
+def show_compare_configs(serv):
+	import glob
+	left = form.getvalue('left')
+	right = form.getvalue('right')
+	haproxy_configs_server = config.get('configs', 'haproxy_configs_server')
+	
+	print('<form action="diff.py#diff" method="get">')
+	print('<center><h3><span style="padding: 20px;">Choose left</span><span style="padding: 110px;">Choose right</span></h3>')
+	
+	print('<p><select autofocus required name="left" id="left">')
+	print('<option disabled selected>Choose version</option>')
+	
+	os.chdir(hap_configs_dir)
+	
+	for files in sorted(glob.glob('*.cfg')):
+		ip = files.split("-")
+		if serv == ip[0]:
+			if left == files:
+				selected = 'selected'
+			else:
+				selected = ''
+			print('<option value="%s" %s>%s</option>' % (files, selected, files))
+
+	print('</select>')
+
+	print('<select autofocus required name="right" id="right">')
+	print('<option disabled selected>Choose version</option>')
+	
+	for files in sorted(glob.glob('*.cfg')):
+		ip = files.split("-")
+		if serv == ip[0]:
+			if right == files:
+				selected = 'selected'
+			else:
+				selected = ''
+			print('<option value="%s" %s>%s</option>' % (files, selected, files))
+
+	print('</select>')
+	print('<input type="hidden" value="%s" name="serv">' % serv)
+	print('<input type="hidden" value="open" name="open">')
+	print('<a class="ui-button ui-widget ui-corner-all" id="show" title="Compare" onclick="showCompare()">Show</a></p></form></center></center>')
+	
+def comapre_show():
+	left = form.getvalue('left')
+	right = form.getvalue('right')
+	haproxy_configs_server = config.get('configs', 'haproxy_configs_server')
+	hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
+	commands = [ 'diff -ub %s%s %s%s' % (hap_configs_dir, left, hap_configs_dir, right) ]
+
+	funct.ssh_command(haproxy_configs_server, commands, compare="1")

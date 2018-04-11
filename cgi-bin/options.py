@@ -17,6 +17,7 @@ funct.check_config()
 form = cgi.FieldStorage()
 req = form.getvalue('req')
 serv = form.getvalue('serv')
+act = form.getvalue('act')
 print('Content-type: text/html\n')
 
 if req is not None:
@@ -72,10 +73,10 @@ if form.getvalue('action') is not None and serv is not None:
 	else:
 		print("Bad config, check please")
 		
-if form.getvalue('act') == "overview":
+if act == "overview":
 	ovw.get_overview()
 
-if serv is not None and form.getvalue('act') == "stats":
+if serv is not None and act == "stats":
 	import requests
 	from requests_toolbelt.utils import dump
 	
@@ -123,7 +124,7 @@ if serv is not None and form.getvalue('rows') is not None:
 	funct.ssh_command(syslog_server, commands, show_log="1")
 	print('</div>')
 
-if serv is not None and form.getvalue('act') == "showMap":
+if serv is not None and act == "showMap":
 	ovw.get_map(serv)
 	
 if form.getvalue('servaction') is not None:
@@ -144,17 +145,14 @@ if form.getvalue('servaction') is not None:
 	funct.ssh_command(serv, command, show_log="1")
 	action = 'edit.py ' + enable + ' ' + backend
 	funct.logging(serv, action)
+
+if act == "showCompareConfigs":
+	ovw.show_compare_configs(serv)
 	
 if serv is not None and form.getvalue('right') is not None:
-	left = form.getvalue('left')
-	right = form.getvalue('right')
-	haproxy_configs_server = config.get('configs', 'haproxy_configs_server')
-	hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
-	commands = [ 'diff -ub %s%s %s%s' % (hap_configs_dir, left, hap_configs_dir, right) ]
-
-	funct.ssh_command(haproxy_configs_server, commands, compare="1")
-
-if serv is not None and form.getvalue('act') == "configShow":
+	ovw.comapre_show()
+	
+if serv is not None and act == "configShow":
 	import os
 	from datetime import datetime
 	from pytz import timezone
