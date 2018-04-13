@@ -31,7 +31,7 @@ def login_page(error):
 		
 	funct.head("Login page")
 		
-	print('<center><form name="auth" action="login.py" class="form-horizontal" method="post">')
+	print('<center><form name="auth" action="login.py" class="form-horizontal" method="get">')
 	print(printError)
 	print('<label for="login">Login: </label>  <input type="text" name="login" required class="form-control"><br /><br />')
 	print('<label for="pass">Pass: </label>   <input type="password" name="pass" required class="form-control"><br /><br />')
