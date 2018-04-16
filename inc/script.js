@@ -206,6 +206,8 @@ function showConfig() {
 		success: function( data ) {
 			$("#ajax").html(data);
 			window.history.pushState("Show config", "Show config", cur_url[0]+"?serv="+$("#serv").val()+"&open=open");
+			var urlConfigShowJs = '/inc/configshow.js';
+			$.getScript(urlConfigShowJs);
 		}					
 	} );
 }
@@ -268,7 +270,7 @@ $( function() {
 					if( data ==  'Bad config, check please ' ) {
 						alert(data);
 					} else {
-						document.location.reload();
+						showOverview();
 					}
 				},
 				error: function(){
@@ -294,7 +296,7 @@ $( function() {
     var cur_url = '/cgi-bin/' + location.split('/').pop();
 	cur_url = cur_url.split('?');
 		
-    $('.menu li').each(function () {
+    $('.menu ').each(function () {
         var link = $(this).find('a').attr('href');
 
         if (cur_url[0] == link)
@@ -583,13 +585,4 @@ $( function() {
 			$("#optionsInput2").append(ui.item.value + " ")
 		}
 	});
-	input = $('<tr><td><input type="text" name="login-add" value="" class="form-control"></td>	<td><input type="passwrod" name="passwrod-add" value="" class="form-control"></td> <td><input type="text" name="role-add" value="" class="form-control"></td><td><input type="text" name="groups-add" value="" class="form-control"></td></tr>');
-	$( "#add-user" ).click( function(){
-		$( "#users-table" ).append(input);
-	});
-} );
-
-function removeUser(id) {
-	document.getElementById(id).parentNode.removeChild(document.getElementById(id));
-    return false;
-}
+});

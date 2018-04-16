@@ -1,3 +1,0 @@
-{ "login": "admin", "password": "admin", "role": "admin", "group": "all" }
-{ "login": "Editor", "password": "Editor@123", "role": "editor", "group": "all" }
-{ "login": "Guest", "password": "Guest@123", "role": "guest", "group": "all" }

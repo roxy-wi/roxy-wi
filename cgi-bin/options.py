@@ -165,7 +165,7 @@ if serv is not None and act == "configShow":
 	
 	funct.get_config(serv, cfg)
 	
-	print('<script src="/inc/configshow.js"></script>')
+	print('<a name="top"></a>')
 	print("<center><h3>Config from %s</h3>" % serv)
 	print('<p class="accordion-expand-holder">'
 			'<a class="accordion-expand-all ui-button ui-widget ui-corner-all" href="#">Expand all</a>'

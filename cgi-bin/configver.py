@@ -51,7 +51,7 @@ if serv is not None and form.getvalue('open') is not None:
 	print('</select>')
 	print('<input type="hidden" value="%s" name="serv">' % serv)
 	print('<input type="hidden" value="open" name="open">')
-	print('<p><button type="submit" value="Select" name="Select">Select</button></p></form>') 
+	print('<button type="submit" value="Select" name="Select">Select</button></form>') 
 
 	Select = form.getvalue('Select')
 
@@ -65,7 +65,10 @@ if serv is not None and form.getvalue('open') is not None:
 		print('<input type="hidden" value="%s" name="serv">' % serv)
 		print('<input type="hidden" value="%s" name="configver">' % configver)
 		print('<input type="hidden" value="1" name="config">')
-		print('<a name="conf"></a></center>')
+		print('<a name="conf"></a>')
+		print('<p class="accordion-expand-holder">'
+				'<a class="accordion-expand-all ui-button ui-widget ui-corner-all" href="#">Expand all</a>'
+			'</p></center>')
 		funct.show_config(configver)
 		print('<center><p>')
 		funct.get_button("Just save", value="save")

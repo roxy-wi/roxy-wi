@@ -3,10 +3,10 @@ import os
 import paramiko
 import http.cookies
 from paramiko import SSHClient
-import listserv as listhap
 from datetime import datetime
 from pytz import timezone
 import configparser
+import sql
 
 def check_config():
 	path_config = "haproxy-webintarface.config"
@@ -63,10 +63,7 @@ def check_login(**kwargs):
 	login = cookie.get('login')
 	role = cookie.get('role')
 	ref = os.environ.get("SCRIPT_NAME")
-	
-	if kwargs.get("admins_area") == "1" and role.value != "2":
-		print('<meta http-equiv="refresh" content="0; url=/">')
-		
+
 	if login is None:
 		print('<meta http-equiv="refresh" content="0; url=login.py?ref=%s">' % ref)
 				
@@ -76,15 +73,15 @@ def is_admin(**kwargs):
 	level = kwargs.get("level")
 	
 	if role is None:
-		role = 0
+		role = 3
 	else:
 		role = int(role.value)
 		
 	if level is None:
-		level = 2
+		level = 1
 		
 	try:
-		if level <= role:
+		if role <= level:
 			return True
 		else:
 			return False
@@ -164,6 +161,7 @@ def links():
 					'<ul>'
 						'<li><a href=/cgi-bin/overview.py title="Server and service status" class="overview-link">Overview</a> </li>'
 						'<li><a href=/cgi-bin/viewsttats.py title"Show stats" class="stats">Stats</a> </li>'
+						'<li><a href="http://172.28.5.106:3000/d/000000002/haproxy?refresh=1m&orgId=1" title="Mon" target="_blanck" class="mon">Monitoring</a> </li>'
 						'<li><a href=/cgi-bin/logs.py title="View logs" class="logs">Logs</a></li>'
 						'<li><a href=/cgi-bin/map.py title="View map" class="map">Map</a></li>'
 					'</ul>'
@@ -173,25 +171,34 @@ def links():
 					'<ul>'
 						'<li><a href=/cgi-bin/configshow.py title="Show Config" class="config-show">Show</a></li> '
 						'<li><a href=/cgi-bin/diff.py title="Compare Configs" class="compare">Compare</a></li>')
-	if is_admin(level = 1):
+	if is_admin(level = 2):
 		print('<li><a href=/cgi-bin/add.py#listner title="Add single listen" class="add">Add listen</a></li>'
 						'<li><a href=/cgi-bin/add.py#frontend title="Add single frontend" class="add">Add frontend</a></li>'
 						'<li><a href=/cgi-bin/add.py#backend title="Add single backend" class="add">Add backend</a></li>'
 						'<li><a href=/cgi-bin/config.py title="Edit Config" class="edit">Edit</a> </li>')
 	print('</ul></li>')
-	if is_admin(level = 1):
+	if is_admin(level = 2):
 		print('<li><a title="Actions with configs" class="version">Versions</a>'
 					'<ul>'
 						'<li><a href=/cgi-bin/configver.py title="Upload old versions configs" class="upload">Upload</a></li>')
 	if is_admin():
 		print('<li><a href=/cgi-bin/delver.py title="Delete old versions configs" class="delete">Delete</a></li>')
-	if is_admin(level = 1):
+	if is_admin(level = 2):
 		print('</ul>'
 				'</li>')
 	show_login_links()
+	if is_admin():
+		print('<li><a title="Admin area" class="version">Admin area</a>'
+					'<ul>'
+						'<li><a href=/cgi-bin/users.py#users title="Actions with users" class="users">Users</a></li>'
+						'<li><a href=/cgi-bin/users.py#groups title="Actions with groups" class="group">Groups</a></li>'
+						'<li><a href=/cgi-bin/users.py#servers title="Actions with servers" class="runtime">Servers</a></li>'
+						'<li><a href=/cgi-bin/users.py#roles title="Users roles" class="role">Roles</a></li>'
+					'</ul>'
+				'</li>')
 	print('</ul>'
 		  '</nav>'
-		  '<div class="copyright-menu">HAproxy-WI v1.10.2.3</div>'
+		  '<div class="copyright-menu">HAproxy-WI v2.0</div>'
 		  '</div>')	
 
 def show_login_links():
@@ -488,69 +495,22 @@ def ssh_command(serv, commands, **kwargs):
 			
 		print(stderr.read().decode(encoding='UTF-8'))
 
-def get_group_permit():
-	import json
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	login = cookie.get('login')
-	USERS = fullpath + '/cgi-bin/users'
-
-	try:
-		with open(USERS, "r") as user:
-			pass
-	except IOError:
-		print("Can't load users DB")
-		
-	for f in open(USERS, 'r'):
-		users = json.loads(f)
-		if login.value in users['login']:
-			group = users['group']
-	
-	GROUPS = fullpath + '/cgi-bin/groups'
-	try:
-		with open(GROUPS, "r") as user:
-			pass
-	except IOError:
-		print("Can't load groups DB")
-	
-	for f in open(GROUPS, 'r'):
-		groups = json.loads(f)
-		if group in groups['name']:
-			list = groups['lists']
-			break
-		else:
-			list = ""
-
-	return list
-	
-def get_dick_after_permit():
-	list_serv = get_group_permit()
-	
-	if list_serv == "all":
-		from listserv import listhap as listhap
-	elif list_serv == "web":
-		from listserv import web as listhap
-	elif list_serv == "mysql":
-		from listserv import mysql as listhap
-	else:
-		from listserv import no_group as listhap
-	
-	return listhap
-
 def choose_only_select(serv, **kwargs):
-	listhap = get_dick_after_permit()
+	listhap = sql.get_dick_permit()
 		
 	if kwargs.get("servNew"):
 		servNew = kwargs.get("servNew")
 	else:
 		servNew = ""
-		
-	for i in sorted(listhap):
-		if listhap.get(i) == serv or listhap.get(i) == servNew:
+	
+	
+	for i in listhap:
+		if i[2] == serv or i[2] == servNew:
 			selected = 'selected'
 		else:
 			selected = ''
 
-		print('<option value="%s" %s>%s</option>' % (listhap.get(i), selected, i))	
+		print('<option value="%s" %s>%s</option>' % (i[2], selected, i[1]))	
 
 def chooseServer(formName, title, note, **kwargs):
 	servNew = form.getvalue('serNew')
@@ -575,20 +535,4 @@ def chooseServer(formName, title, note, **kwargs):
 	if note == "y":
 		print('<p><b>Note:</b> If you reconfigure First server, second will reconfigured automatically</p>')
 	print('</center>')
-		
-def choose_server_with_vip(serv):
-	listhap.listhap = merge_two_dicts(listhap.listhap, listhap.listhap_vip)
-	for i in sorted(listhap.listhap):
-		if listhap.listhap.get(i) == serv:
-			selected = 'selected'
-		else:
-			selected = ''
-		print('<option value="%s" %s>%s</option>' % (listhap.listhap.get(i), selected, i))
 
-def merge_two_dicts(x, y):
-    z = x.copy()
-    z.update(y)
-    return z		
-	
-	
-	

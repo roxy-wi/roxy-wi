@@ -2,6 +2,7 @@
 import html
 import cgi
 import funct
+import sql
 
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
@@ -13,19 +14,19 @@ funct.check_config()
 print('<h2>Runtime API</h2>'
 		'<table class="overview">'
 			'<tr class="overviewHead">'
-				'<td class="padding10">Server</td>'
+				'<td class="padding10 first-collumn">Server</td>'
 				'<td>Disable/Enable server or output any information</td>'
 				'<td class="padding10">Command</td>'
 				'<td>Save change</td>'
 				'<td></td>'
 			'</tr>'
 			'<tr>'
-				'<td class="padding10" style="width: 25%;">'
+				'<td class="padding10 first-collumn" style="width: 25%;">'
 				'<form action="edit.py" method="get">'
 					'<select required name="serv" id="serv">'
 						'<option disabled selected>Choose server</option>')
 
-funct.choose_server_with_vip(serv)
+funct.choose_only_select(serv)
 
 print('</select></td>'
 	'<td style="width: 30%;">'
@@ -40,7 +41,7 @@ print('<option value="show">Show</option>'
 	'<td>'
 		'<input type="text" name="servbackend" id="servbackend" size=35 title="Frontend, backend/server, show: info, pools or help" required class="form-control">'
 	'</td><td>'
-		'<input type="checkbox" name="save" id="save" value="123" title="Save changes after restart">'
+		'<input type="checkbox" name="save" id="save" value="123">'
 	'</td><td>'
 		'<a class="ui-button ui-widget ui-corner-all" id="show" title="Enter" onclick="showRuntime()">Enter</a>'
 	'</td></form>'

@@ -1,3 +1,5 @@
+#Meet Haproxy-wi 2.0! Now with DB and Admin web interface! Life has become easier, life has become more cheerful!
+
 # Haproxy web interface
 A simple web interface(user-frendly web GUI) for managing Haproxy servers. Leave your [feedback](https://github.com/Aidaho12/haproxy-wi/issues)
 
@@ -37,9 +39,18 @@ For Apache just do virtualhost with cgi-bin.
 ![alt text](image/7.jpeg "Overview page")
 
 # Settings
-Edit $HOME_HAPROXY-WI/cgi-bin/listserv.py, add your HAproxy servers.
+```
+cd $HOME_HAPROXY-WI/cgi-bin/
+chmod +x *.py
+```
+
+Run create_db.py for DB createing
 
 Edit $HOME_HAPROXY-WI/cgi-bin/haproxy-webintarface.config with your env
+
+Login http://haproxy-wi-server/users.py, and add: users, groups and servers. Default: admin/admin
+
+![alt text](image/11.jpeg "Admin area")
 
 Copy ssh key on all HAproxy servers
 

@@ -3,7 +3,7 @@ import html
 import cgi
 import requests
 import funct
-import listserv as listhap
+import sql
 import configparser
 from requests_toolbelt.utils import dump
 
@@ -18,14 +18,29 @@ haproxy_pass = config.get('haproxy', 'password')
 stats_port = config.get('haproxy', 'stats_port')
 stats_page = config.get('haproxy', 'stats_page')
 
-listhap.listhap = funct.merge_two_dicts(listhap.listhap, listhap.listhap_vip)
-
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
 
 if serv is None:
-	first_serv = sorted(list(listhap.listhap.values()))
-	serv = first_serv[0]
+	first_serv = sql.get_dick_permit()
+	for i in first_serv:
+		serv = i[2]
+		break
+		
+print('<a name="top"></a><div class="container">')
+
+funct.get_auto_refresh("HAproxy statistics")	
+
+print('<br />'
+		'<form style="padding-left: 20px;" action="viewsttats.py" method="get">'
+			'<select autofocus required name="serv" id="serv">'
+				'<option disabled>Choose server</option>')
+
+funct.choose_only_select(serv)
+
+print('</select>'		
+		'<a class="ui-button ui-widget ui-corner-all" id="show" title="Show stats" onclick="showStats()">Show</a>'
+		'</form>')
 
 try:
 	response = requests.get('http://%s:%s/%s' % (serv, stats_port, stats_page), auth=(haproxy_user, haproxy_pass)) 
@@ -42,25 +57,6 @@ except requests.exceptions.Timeout as errt:
 except requests.exceptions.RequestException as err:
     print ("OOps: Something Else",err)
 
-for i in listhap.listhap:
-        if listhap.listhap.get(i) == serv:
-                servname = i
-				
-print('<div class="container">')
-
-funct.get_auto_refresh("HAproxy statistics")	
-
-print('<br />'
-		'<form style="padding-left: 20px;" action="viewsttats.py" method="get">'
-			'<select autofocus required name="serv" id="serv">'
-				'<option disabled>Choose server</option>')
-
-funct.choose_server_with_vip(serv)
-
-print('</select>'		
-		'<a class="ui-button ui-widget ui-corner-all" id="show" title="Show stats" onclick="showStats()">Show</a>'
-		'</form>')
-
 data = response.content
 print('<a name="conf"></a><div id="ajax" style="margin-left: 10px;">')
 print(data.decode('utf-8'))
@@ -68,4 +64,4 @@ print('</div>')
 
 funct.head("Stats HAproxy configs")
 print('</div>')
-
+funct.footer()

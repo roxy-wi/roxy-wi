@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import html
 import cgi
-import listserv as listhap
 import os
 import http.cookies
 import configparser

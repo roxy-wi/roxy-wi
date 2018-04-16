@@ -146,7 +146,7 @@ pre {
 }
 .configShow, .diff {
 	margin-left: 16%;
-	height: 78%;
+	//height: 78%;
 	overflow: auto;
 	width: 70%;
 	border: 1px solid #DCDCDC;
@@ -278,9 +278,6 @@ pre {
 	padding-left: 15px;
 	font-size: 15px;
 }
-.first-collumn {
-	width: 200px;
-}
 .serverUp, .serverDown {
 	padding: 3px; 
 	border-radius: 3px;
@@ -305,9 +302,12 @@ pre {
 }
 .padding10 {
 	padding: 10px;
-	padding-left: 15px;
+	padding-left: 0px;
 	border: none;
-	width: 25%;
+	width: 23%;
+}
+.first-collumn {
+	padding-left: 15px;
 }
 .ro {
   border: none;
@@ -396,6 +396,9 @@ pre {
     border: 1px solid #33414E !important;
 	border-radius: 5px !important;
 	color: #fff !important;
+  }
+.ui-tabs-nav {
+	padding-left: 20px !important; 
   }
 a {
   background-color: transparent;
@@ -498,6 +501,9 @@ a:focus {
 .row {
   margin-right: -15px;
   margin-left: -15px;
+}
+.update {
+	background-color: rgb(0,168,107) !important;
 }
 
 label {

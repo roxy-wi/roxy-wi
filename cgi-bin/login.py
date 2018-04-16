@@ -4,20 +4,13 @@ import html
 import os
 import funct
 import http.cookies
-import json
+import sql
 
 cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 form = cgi.FieldStorage()
 ref = form.getvalue('ref')
 login = form.getvalue('login')
 password = form.getvalue('pass')
-USERS = '/var/www/haproxy-wi/cgi-bin/users'
-
-try:
-	with open(USERS, "r") as user:
-		pass
-except IOError:
-	print("Can't load users DB")
 
 def login_page(error):
 	if error == "error":
@@ -49,15 +42,15 @@ if login is None:
 	login_page("n")
 	
 if login is not None and password is not None:
-	for f in open(USERS, 'r'):
-		users = json.loads(f)	
-		if login in users['login'] and password == users['password']:
-			if users['role'] == "admin":
-				role = 2
-			elif users['role'] == "editor":
+	USERS = sql.select_users()
+	for users in USERS:	
+		if login in users[1] and password == users[3]:
+			if users[4] == "admin":
 				role = 1
+			elif users[4] == "editor":
+				role = 2
 			else:
-				role = 0
+				role = 3
 			c = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 			c["login"] = login
 			c["login"]["path"] = "/cgi-bin/"
@@ -65,7 +58,7 @@ if login is not None and password is not None:
 			c["role"] = role
 			c["role"]["path"] = "/cgi-bin/"
 			c["role"]["expires"] = "Wed May 18 03:33:20 2033"
-			c["group"] = users['group']
+			c["group"] = users[4]
 			c["group"]["path"] = "/cgi-bin/"
 			c["group"]["expires"] = "Wed May 18 03:33:20 2033"
 			print(c)

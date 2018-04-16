@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 import html
 import cgi
-import listserv as listhap
 import os
 import funct
+import sql
 import paramiko
 import configparser
 import http.cookies
@@ -23,6 +23,7 @@ funct.page_for_admin(level = 1)
 haproxy_configs_server = config.get('configs', 'haproxy_configs_server')
 hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
 form = cgi.FieldStorage()
+listhap = sql.get_dick_permit()
 
 if form.getvalue('mode') is not None: 
 	serv = form.getvalue('serv')
@@ -141,8 +142,8 @@ print('<div id="tabs">'
 										'<select required name="serv" id="serv">'
 											'<option disabled selected>Choose server</option>')
 
-for i in sorted(listhap.listhap):
-	print('<option value="%s">%s</option>' % (listhap.listhap.get(i), i))
+for i in listhap:
+	print('<option value="%s">%s</option>' % (i[2], i[1]))
 	
 print('</select>'
 		'<div class="tooltip tooltipTop"><b>Note:</b> If you reconfigure First server, second will reconfigured automatically</div>'
@@ -261,8 +262,8 @@ print('</td>'
 								'<select required name="serv" id="serv2">'
 									'<option disabled selected>Choose server</option>')
 
-for i in sorted(listhap.listhap):
-	print('<option value="%s">%s</option>' % (listhap.listhap.get(i), i))
+for i in listhap:
+	print('<option value="%s">%s</option>' % (i[2], i[1]))
 	
 print('</select>'
 		'<div class="tooltip tooltipTop"><b>Note:</b> If you reconfigure First server, second will reconfigured automatically</div>'
@@ -345,8 +346,8 @@ print('</td>'
 								'<select required name="serv">'
 									'<option disabled selected>Choose server</option>')
 
-for i in sorted(listhap.listhap):
-	print('<option value="%s">%s</option>' % (listhap.listhap.get(i), i))
+for i in listhap:
+	print('<option value="%s">%s</option>' % (i[2], i[1]))
 	
 print('</select>'
 		'<div class="tooltip tooltipTop"><b>Note:</b> If you reconfigure First server, second will reconfigured automatically</div>'

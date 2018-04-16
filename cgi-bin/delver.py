@@ -19,7 +19,7 @@ config.read(path_config)
 
 hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
 
-funct.page_for_admin(level = 2)
+funct.page_for_admin(level = 1)
 funct.chooseServer("delver.py", "Delete Versions HAproxy config", "n")
 
 if serv is not None and form.getvalue('open') is not None:

@@ -21,6 +21,11 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f06e";
 }
+.mon::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f080";
+}
 .logs::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";
@@ -75,4 +80,29 @@
 	display: none;
 	font-family: "Font Awesome 5 Solid";
 	content: "\f007";
+}
+.update-row::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f01e";
+}
+.users::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f234";
+}
+.group::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f039";
+}
+.role::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f2b9";
+}
+.add:before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f00c";
 }

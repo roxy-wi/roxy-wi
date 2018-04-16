@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import html
 import cgi
-import listserv as listhap
 import funct
 import configparser
 
@@ -19,13 +18,13 @@ config.read(path_config)
 funct.get_auto_refresh("HAproxy logs")	
 print('<table class="overview">'
 			'<tr class="overviewHead">'
-				'<td class="padding10">Server</td>'
+				'<td class="padding10 first-collumn">Server</td>'
 				'<td>Number rows</td>'
 				'<td class="padding10">Ex for grep</td>'
 				'<td> </td>'
 			'</tr>'
 			'<tr>'
-				'<td class="padding10">'
+				'<td class="padding10 first-collumn">'
 				'<form action="logs.py" method="get">'
 					'<select autofocus required name="serv" id="serv">'
 						'<option disabled selected>Choose server</option>')
@@ -45,9 +44,9 @@ else:
 	grep = ' '
 
 print('</td><td><input type="number" name="rows" id="rows" %s class="form-control" required></td>' % rows)
-print('<td class="padding10"><input type="text" name="grep" id="grep" class="form-control" %s >' % grep)
+print('<td class="padding10 first-collumn"><input type="text" name="grep" id="grep" class="form-control" %s >' % grep)
 print('</td>'
-		'<td class="padding10">'
+		'<td class="padding10 first-collumn">'
 			'<a class="ui-button ui-widget ui-corner-all" id="show" title="Show logs" onclick="showLog()">Show</a>'
 	  '</td>'
 	'</form>'
