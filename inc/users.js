@@ -1,9 +1,11 @@
 var users = '/inc/usersdop.js'
+var awesome = "/inc/fontawesome.min.js"
+
 $( function() {
-	$('#error').hide();	
+	$('.alert-danger').remove();	
 
 	$('#add-user').click(function() {
-		$('#error').hide();	
+		$('#error').remove();	
 		$.ajax( {
 			url: "sql.py",
 			data: {
@@ -16,13 +18,16 @@ $( function() {
 			type: "GET",
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
-				if (data == '<br /><span class="alert alert-danger" id="error">All fields must be completed <a title="Close" id="errorMess"><b>X</b></a></span> ') {
+				if (data.indexOf('error') != '-1') {
 					$("#ajax-users").append(data);
 					$.getScript(users);
 				} else {
+					$('.alert-danger').remove();
 					$("#ajax-users").append(data);
-					$( "#ajax-users tr td" ).addClass( "update", 1000, callbackUser );
+					$( "#ajax-users tr td" ).addClass( "update", 1000, callbackUser );					
 					$.getScript(url);					
+					$.getScript(awesome);	
+					$.getScript(users);					
 				}	
 			}
 		} );
@@ -43,24 +48,32 @@ $( function() {
 		} );
 	});
 	$('#add-server').click(function() {
-		$('#error').hide();	
+		$('#error').remove();	
+		var typeip;
+		if ($('#typeip').is(':checked')) {
+			typeip = '1';
+		}
 		$.ajax( {
 			url: "sql.py",
 			data: {
 				newserver: $('#new-server-add').val(),
 				newip: $('#new-ip').val(),
 				newservergroup: $('#new-server-group-add').val(),
+				typeip: typeip
 			},
 			type: "GET",
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
-				if (data == '<br /><span class="alert alert-danger" id="error">All fields must be completed <a title="Close" id="errorMess"><b>X</b></a></span> ') {
+				if (data.indexOf('error') != '-1') {
 					$("#ajax-servers").append(data);
 					$.getScript(users);
 				} else {
+					$('.alert-danger').hide();
 					$("#ajax-servers").append(data);
-					$( "#ajax-servers tr td" ).addClass( "update", 1000, callback );
+					$( "#ajax-servers tr td" ).addClass( "update", 1000, callback );					
 					$.getScript(url);
+					$.getScript(awesome);
+					$.getScript(users);
 				}
 			}					
 		} );
@@ -196,12 +209,17 @@ function updateGroup(id) {
 	} );
 }
 function updateServer(id) {
+	var typeip;
+	if ($('#typeip-'+id).is(':checked')) {
+		typeip = '1';
+	}
 	$.ajax( {
 		url: "sql.py",
 		data: {
 			updateserver: $('#hostname-'+id).val(),
 			ip: $('#ip-'+id).val(),
 			servergroup: $('#servergroup-'+id+' option:selected' ).val(),
+			typeip: typeip,
 			id: id
 		},
 		type: "GET",

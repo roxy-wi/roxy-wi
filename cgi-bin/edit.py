@@ -26,7 +26,7 @@ print('<h2>Runtime API</h2>'
 					'<select required name="serv" id="serv">'
 						'<option disabled selected>Choose server</option>')
 
-funct.choose_only_select(serv)
+funct.choose_only_select(serv, virt=1)
 
 print('</select></td>'
 	'<td style="width: 30%;">'

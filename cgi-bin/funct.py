@@ -157,13 +157,11 @@ def links():
 	print('<div class="top-link">'
 		'<nav class="menu">'
 			'<ul>'
-				'<li><a title="Statistics, monitoring and logs" class="stats">Stats</a>'
-					
+				'<li><a title="Statistics, monitoring and logs" class="stats">Stats</a>'				
 						'<li><a href=/cgi-bin/overview.py title="Server and service status" class="overview-link head-submenu">Overview</a> </li>'
 						'<li><a href=/cgi-bin/viewsttats.py title"Show stats" class="stats head-submenu">Stats</a> </li>'
 						'<li><a href=/cgi-bin/logs.py title="View logs" class="logs head-submenu">Logs</a></li>'
-						'<li><a href=/cgi-bin/map.py title="View map" class="map head-submenu">Map</a></li>'
-					
+						'<li><a href=/cgi-bin/map.py title="View map" class="map head-submenu">Map</a></li>'				
 				'</li>'
 				'<li><a href=/cgi-bin/edit.py title="Runtime API" class="runtime">Runtime API</a> </li>'
 				'<li><a title="Actions with configs" class="config-show">Configs</a>'					
@@ -192,7 +190,7 @@ def links():
 				'</li>')
 	print('</ul>'
 		  '</nav>'
-		  '<div class="copyright-menu">HAproxy-WI v2.0.0.1</div>'
+		  '<div class="copyright-menu">HAproxy-WI v2.0.1</div>'
 		  '</div>')	
 
 def show_login_links():
@@ -490,13 +488,15 @@ def ssh_command(serv, commands, **kwargs):
 		print(stderr.read().decode(encoding='UTF-8'))
 
 def choose_only_select(serv, **kwargs):
-	listhap = sql.get_dick_permit()
+	if kwargs.get("virt"):
+		listhap = sql.get_dick_permit(virt=1)
+	else:
+		listhap = sql.get_dick_permit()
 		
 	if kwargs.get("servNew"):
 		servNew = kwargs.get("servNew")
 	else:
 		servNew = ""
-	
 	
 	for i in listhap:
 		if i[2] == serv or i[2] == servNew:

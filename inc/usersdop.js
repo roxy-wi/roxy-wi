@@ -1,5 +1,5 @@
 $( function() {
-	$('#errorMess').click(function() {
-				$('#error').hide();	
-		});
+	$('.alert-danger').click(function() {
+		$('.alert-danger').remove();	
+	});
 });

@@ -15,7 +15,7 @@ def add_user(user, email, password, role, group):
 		with con:
 			cur.executescript(sql)
 	except sqlite.Error as e:
-		print('<br /><span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + '</span>')
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 		return False
 	else:
 		return True
@@ -34,7 +34,7 @@ def update_user(user, email, password, role, group, id):
 		with con:
 			cur.executescript(sql)
 	except sqlite.Error as e:
-		print('<br /><span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + '</span>')
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 		return False
 	else:
 		return True
@@ -60,7 +60,7 @@ def add_group(name, description):
 		with con:
 			cur.executescript(sql)
 	except sqlite.Error as e:
-		print('<br /><span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + '</span>')
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 		return False
 	else:
 		return True
@@ -74,7 +74,7 @@ def delete_group(id):
 		with con:
 			cur.executescript(sql)
 	except sqlite.Error as e:
-		print('<br /><span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + '</span>')
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 	else: 
 		return True
 	cur.close()
@@ -91,21 +91,21 @@ def update_group(name, descript, id):
 		with con:
 			cur.executescript(sql)
 	except sqlite.Error as e:
-		print('<br /><span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + '</span>')
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 		return False
 	else:
 		return True
 	cur.close()    
 	con.close()
 
-def add_server(hostname, ip, group):
+def add_server(hostname, ip, group, typeip):
 	con, cur = get_cur()
-	sql = """INSERT INTO servers (hostname, ip, groups) VALUES ('%s', '%s', '%s')""" % (hostname, ip, group)
+	sql = """INSERT INTO servers (hostname, ip, groups, type_ip) VALUES ('%s', '%s', '%s', '%s')""" % (hostname, ip, group, typeip)
 	try:    
 		with con:
 			cur.executescript(sql)
 	except sqlite.Error as e:
-		print('<br /><span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + '</span>')
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 		return False
 	else:
 		return True
@@ -119,24 +119,25 @@ def delete_server(id):
 		with con:
 			cur.executescript(sql)
 	except sqlite.Error as e:
-		print('<br /><span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + '</span>')
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 	else: 
 		return True
 	cur.close()    
 	con.close() 		
 
-def update_server(hostname, ip, group, id):
+def update_server(hostname, ip, group, typeip, id):
 	con, cur = get_cur()
 	sql = """update servers set 
 			hostname = '%s',
 			ip = '%s',
-			groups = '%s'
-			where id = '%s'""" % (hostname, ip, group, id)
+			groups = '%s',
+			type_ip = '%s'
+			where id = '%s'""" % (hostname, ip, group, typeip, id)
 	try:    
 		with con:
 			cur.executescript(sql)
 	except sqlite.Error as e:
-		print('<br /><span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + '</span>')
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 	cur.close()    
 	con.close()
 	
@@ -162,7 +163,7 @@ def select_groups(**kwargs):
 	try:    
 		cur.execute(sql)
 	except sqlite.Error as e:
-		print('<br /><span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + '</span>')
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -174,14 +175,14 @@ def select_user_name_group(id):
 	try:    
 		cur.execute(sql)
 	except sqlite.Error as e:
-		print('<br /><span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + '</span>')
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 	else:
 		return cur.fetchone()
 	cur.close()    
 	con.close()  
 
 def get_groups_select(id, **kwargs):
-	print('<select id="%s" name="%s">' % (id, id))
+	print('<select class="multiselect" id="%s" name="%s">' % (id, id))
 	print('<option disabled selected>Choose group</option>')
 	GROUPS = select_groups()
 	selected = ""
@@ -199,7 +200,7 @@ def get_groups_select(id, **kwargs):
 	
 def select_servers(**kwargs):
 	con, cur = get_cur()
-	sql = """select * from servers ORDER BY id"""
+	sql = """select * from servers ORDER BY groups """
 	if kwargs.get("server") is not None:
 		sql = """select * from servers where hostname='%s' """ % kwargs.get("server")
 	try:    
@@ -211,13 +212,34 @@ def select_servers(**kwargs):
 	cur.close()    
 	con.close()  
 	
-def get_dick_permit():
+def get_type_ip_checkbox(id, **kwargs):
+	con, cur = get_cur()
+	sql = """select id, type_ip from servers where id='%s' """ % id
+	try:    
+		cur.execute(sql)
+	except sqlite.Error as e:
+		print("An error occurred:", e.args[0])
+	else:
+		for server in cur.fetchall():
+			if server[1] == 1:
+				checked = 'checked'
+			else:
+				checked = ""
+			print('<label for="typeip-%s"> Virt </label><input type="checkbox" id="typeip-%s" %s>' % (server[0],server[0], checked))
+	cur.close()    
+	con.close() 
+	
+def get_dick_permit(**kwargs):
 	import http.cookies
 	import os
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	login = cookie.get('login')
 	con, cur = get_cur()
 	sql = """ select * from user where username = '%s' """ % login.value
+	if kwargs.get('virt'):
+		type_ip = "" 
+	else:
+		type_ip = "type_ip = 0" 
 	try:    
 		cur.execute(sql)
 	except sqlite.Error as e:
@@ -225,9 +247,13 @@ def get_dick_permit():
 	else:
 		for group in cur:
 			if group[5] == '1':
-				sql = """ select * from servers """
+				if kwargs.get('virt') is None:
+					type_ip = 'where ' + type_ip
+				sql = """ select * from servers %s """ % type_ip
 			else:
-				sql = """ select * from servers where groups = '%s' """ % group[5]			
+				if kwargs.get('virt') is None:
+					type_ip = 'and ' + type_ip
+				sql = """ select * from servers where groups like '%{group}%' {type_ip} """.format(group=group[5], type_ip=type_ip)		
 		try:   
 			cur.execute(sql)
 		except sqlite.Error as e:
@@ -251,6 +277,9 @@ def show_update_servers():
 		print('<td><input type="text" name="descript-%s" value="%s" class="form-control"></td>' % (server[0], server[2]))
 		print('<td>')
 		get_groups_select("123", selected=server[3])
+		print('</td>')
+		print('<td>')
+		get_type_ip_checkbox(server[0])
 		print('</td>')
 		print('<td><a class="delete" onclick="removeServer(%s)"  style="cursor: pointer;"></a></td>' % server[0])
 		print('</tr>')
@@ -282,6 +311,9 @@ def show_update_server(server):
 		print('<td><input type="text" name="ip-%s" value="%s" class="form-control"></td>' % (server[0], server[2]))
 		print('<td>')
 		get_groups_select("123", selected=server[3])
+		print('</td>')
+		print('<td>')
+		get_type_ip_checkbox(server[0])
 		print('</td>')
 		print('<td><a class="update-row" onclick="updateServer(%s)"  style="cursor: pointer;"></a></td>' % server[0])
 		print('<td><a class="delete" onclick="removeServer(%s)"  style="cursor: pointer;"></a></td>' % server[0])
@@ -340,7 +372,7 @@ def get_roles_select(id, **kwargs):
 	print('</select>')	
 	
 form = cgi.FieldStorage()
-error_mess = '<br /><span class="alert alert-danger" id="error">All fields must be completed <a title="Close" id="errorMess"><b>X</b></a></span>'
+error_mess = '<span class="alert alert-danger" id="error">All fields must be completed <a title="Close" id="errorMess"><b>X</b></a></span>'
 
 if form.getvalue('newusername') is not None:
 	email = form.getvalue('newemail')
@@ -379,12 +411,13 @@ if form.getvalue('newserver') is not None:
 	hostname = form.getvalue('newserver')	
 	ip = form.getvalue('newip')
 	group = form.getvalue('newservergroup')
+	typeip = form.getvalue('typeip')
 	if ip is None or group is None:
 		print('Content-type: text/html\n')
 		print(error_mess)
 	else:		
 		print('Content-type: text/html\n')
-		if add_server(hostname, ip, group):
+		if add_server(hostname, ip, group, typeip):
 			show_update_server(hostname)
 
 if form.getvalue('serverdel') is not None:
@@ -419,11 +452,12 @@ if form.getvalue('updateserver') is not None:
 	name = form.getvalue('updateserver')
 	ip = form.getvalue('ip')	
 	group = form.getvalue('servergroup')	
+	typeip = form.getvalue('typeip')		
 	id = form.getvalue('id')	
 	if name is None or ip is None:
 		print('Content-type: text/html\n')
 		print(error_mess)
 	else:		
 		print('Content-type: text/html\n')
-		update_server(name, ip, group, id)
+		update_server(name, ip, group, typeip, id)
 		
