@@ -1,5 +1,9 @@
+var users = '/inc/usersdop.js'
 $( function() {
+	$('#error').hide();	
+
 	$('#add-user').click(function() {
+		$('#error').hide();	
 		$.ajax( {
 			url: "sql.py",
 			data: {
@@ -11,12 +15,14 @@ $( function() {
 			},
 			type: "GET",
 			success: function( data ) {
-				if (data == "All fields must be completed ") {
-					alert(data);
+				data = data.replace(/\s+/g,' ');
+				if (data == '<br /><span class="alert alert-danger" id="error">All fields must be completed <a title="Close" id="errorMess"><b>X</b></a></span> ') {
+					$("#ajax-users").append(data);
+					$.getScript(users);
 				} else {
 					$("#ajax-users").append(data);
 					$( "#ajax-users tr td" ).addClass( "update", 1000, callbackUser );
-					$.getScript(url);
+					$.getScript(url);					
 				}	
 			}
 		} );
@@ -37,6 +43,7 @@ $( function() {
 		} );
 	});
 	$('#add-server').click(function() {
+		$('#error').hide();	
 		$.ajax( {
 			url: "sql.py",
 			data: {
@@ -47,8 +54,9 @@ $( function() {
 			type: "GET",
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
-				if (data == "All fields must be completed ") {
-					alert(data);
+				if (data == '<br /><span class="alert alert-danger" id="error">All fields must be completed <a title="Close" id="errorMess"><b>X</b></a></span> ') {
+					$("#ajax-servers").append(data);
+					$.getScript(users);
 				} else {
 					$("#ajax-servers").append(data);
 					$( "#ajax-servers tr td" ).addClass( "update", 1000, callback );
@@ -93,7 +101,7 @@ $( function() {
 	
 } );
 function removeUser(id) {
-	$("#user-"+id).css("background-color", "#f36223");
+	$("#user-"+id).css("background-color", "#f2dede");
 	$.ajax( {
 			url: "sql.py",
 			data: {
@@ -109,7 +117,7 @@ function removeUser(id) {
 		} );	
 	}
 function removeServer(id) {
-	$("#server-"+id).css("background-color", "#f36223");
+	$("#server-"+id).css("background-color", "#f2dede");
 	$.ajax( {
 			url: "sql.py",
 			data: {
@@ -125,7 +133,7 @@ function removeServer(id) {
 		} );	
 	}
 function removeGroup(id) {
-	$("#group-"+id).css("background-color", "#f36223");
+	$("#group-"+id).css("background-color", "#f2dede");
 	$.ajax( {
 			url: "sql.py",
 			data: {

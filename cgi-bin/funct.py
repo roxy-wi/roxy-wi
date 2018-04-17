@@ -161,7 +161,6 @@ def links():
 					'<ul>'
 						'<li><a href=/cgi-bin/overview.py title="Server and service status" class="overview-link">Overview</a> </li>'
 						'<li><a href=/cgi-bin/viewsttats.py title"Show stats" class="stats">Stats</a> </li>'
-						'<li><a href="http://172.28.5.106:3000/d/000000002/haproxy?refresh=1m&orgId=1" title="Mon" target="_blanck" class="mon">Monitoring</a> </li>'
 						'<li><a href=/cgi-bin/logs.py title="View logs" class="logs">Logs</a></li>'
 						'<li><a href=/cgi-bin/map.py title="View map" class="map">Map</a></li>'
 					'</ul>'
@@ -198,7 +197,7 @@ def links():
 				'</li>')
 	print('</ul>'
 		  '</nav>'
-		  '<div class="copyright-menu">HAproxy-WI v2.0</div>'
+		  '<div class="copyright-menu">HAproxy-WI v2.0.0.1</div>'
 		  '</div>')	
 
 def show_login_links():

@@ -74,7 +74,7 @@ sql.get_roles_select("new-role")
 print('</td><td>')
 sql.get_groups_select("new-group")
 print('</td>'
-			'<td><a class="add" id="add-user" style="cursor: pointer;"></a></td>'
+			'<td><a class="add-admin" id="add-user" style="cursor: pointer;"></a></td>'
 		'</tr>')
 print('</table>')
 	
@@ -105,7 +105,7 @@ print('<br /><br /><table class="overview" id="group-add-table" style="display: 
 		'<tr>'
 			'<td class="padding10 first-collumn"><input type="text" name="new-group-add" id="new-group-add" class="form-control"></td>'
 			'<td><input type="text" name="new-desc" id="new-desc" class="form-control" size="100"></td>'
-			'<td><a class="add" id="add-group" style="cursor: pointer;"></a></td>'
+			'<td><a class="add-admin" id="add-group" style="cursor: pointer;"></a></td>'
 		'</tr>'
 '</table>'
 '</div>'
@@ -144,7 +144,7 @@ print('</table>'
 		'<td><input type="text" name="new-ip" id="new-ip" class="form-control"></td><td>')
 sql.get_groups_select("new-server-group-add")
 print('</td>'
-			'<td><a class="add"  id="add-server" style="cursor: pointer;"></a></td>'
+			'<td><a class="add-admin"  id="add-server" style="cursor: pointer;"></a></td>'
 		'</tr>')
 print('</table>')
 	

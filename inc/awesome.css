@@ -101,7 +101,7 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f2b9";
 }
-.add:before {
+.add-admin:before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";
 	content: "\f00c";

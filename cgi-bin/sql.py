@@ -15,7 +15,10 @@ def add_user(user, email, password, role, group):
 		with con:
 			cur.executescript(sql)
 	except sqlite.Error as e:
-		print("An error occurred:", e.args[0])
+		print('<br /><span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + '</span>')
+		return False
+	else:
+		return True
 	cur.close()    
 	con.close()   
 	
@@ -31,7 +34,10 @@ def update_user(user, email, password, role, group, id):
 		with con:
 			cur.executescript(sql)
 	except sqlite.Error as e:
-		print("An error occurred:", e.args[0])
+		print('<br /><span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + '</span>')
+		return False
+	else:
+		return True
 	cur.close()    
 	con.close()
 
@@ -54,7 +60,10 @@ def add_group(name, description):
 		with con:
 			cur.executescript(sql)
 	except sqlite.Error as e:
-		print("An error occurred:", e.args[0])
+		print('<br /><span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + '</span>')
+		return False
+	else:
+		return True
 	cur.close()    
 	con.close() 
 
@@ -65,7 +74,7 @@ def delete_group(id):
 		with con:
 			cur.executescript(sql)
 	except sqlite.Error as e:
-		print("An error occurred:", e.args[0])
+		print('<br /><span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + '</span>')
 	else: 
 		return True
 	cur.close()
@@ -82,7 +91,10 @@ def update_group(name, descript, id):
 		with con:
 			cur.executescript(sql)
 	except sqlite.Error as e:
-		print("An error occurred:", e.args[0])
+		print('<br /><span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + '</span>')
+		return False
+	else:
+		return True
 	cur.close()    
 	con.close()
 
@@ -93,7 +105,10 @@ def add_server(hostname, ip, group):
 		with con:
 			cur.executescript(sql)
 	except sqlite.Error as e:
-		print("An error occurred:", e.args[0])
+		print('<br /><span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + '</span>')
+		return False
+	else:
+		return True
 	cur.close()    
 	con.close() 	
 
@@ -104,7 +119,7 @@ def delete_server(id):
 		with con:
 			cur.executescript(sql)
 	except sqlite.Error as e:
-		print("An error occurred:", e.args[0])
+		print('<br /><span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + '</span>')
 	else: 
 		return True
 	cur.close()    
@@ -121,7 +136,7 @@ def update_server(hostname, ip, group, id):
 		with con:
 			cur.executescript(sql)
 	except sqlite.Error as e:
-		print("An error occurred:", e.args[0])
+		print('<br /><span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + '</span>')
 	cur.close()    
 	con.close()
 	
@@ -147,7 +162,7 @@ def select_groups(**kwargs):
 	try:    
 		cur.execute(sql)
 	except sqlite.Error as e:
-		print("An error occurred:", e.args[0])
+		print('<br /><span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + '</span>')
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -159,7 +174,7 @@ def select_user_name_group(id):
 	try:    
 		cur.execute(sql)
 	except sqlite.Error as e:
-		print("An error occurred:", e.args[0])
+		print('<br /><span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + '</span>')
 	else:
 		return cur.fetchone()
 	cur.close()    
@@ -232,7 +247,7 @@ def show_update_servers():
 			'</tr>')
 	for server in SERVERS:
 		print('<tr id="server-%s">' % server[0])
-		print('<td class="padding10"><input type="text" name="server-%s" value="%s" class="form-control" onclick="deleteServer(%s)"></td>' % (server[0], server[1], server[0]))
+		print('<td class="padding10 first-collumn"><input type="text" name="server-%s" value="%s" class="form-control"></td>' % (server[0], server[1]))
 		print('<td><input type="text" name="descript-%s" value="%s" class="form-control"></td>' % (server[0], server[2]))
 		print('<td>')
 		get_groups_select("123", selected=server[3])
@@ -244,7 +259,7 @@ def show_update_user(user):
 	USERS = select_users(user=user)
 	for users in USERS:
 		print('<tr id="user-%s">' % users[0])
-		print('<td class="padding10"><input type="text" id="login-%s" value="%s" class="form-control"></td>' % (users[0], users[1]))
+		print('<td class="padding10 first-collumn"><input type="text" id="login-%s" value="%s" class="form-control"></td>' % (users[0], users[1]))
 		print('<td><input type="password" id="password-%s" value="%s" class="form-control"></td>' % (users[0], users[3]))
 		print('<td><input type="text" id="email-%s" value="%s" class="form-control"></td>' % (users[0], users[2]))
 		print('<td>')
@@ -263,12 +278,12 @@ def show_update_server(server):
 	SERVERS = select_servers(server=server)
 	for server in SERVERS:
 		print('<tr id="server-%s">' % server[0])
-		print('<td class="padding10"><input type="text" name="hostname-%s" value="%s" class="form-control" onclick="deleteServer(%s)"></td>' % (server[0], server[1], server[0]))
+		print('<td class="padding10 first-collumn"><input type="text" name="hostname-%s" value="%s" class="form-control"></td>' % (server[0], server[1]))
 		print('<td><input type="text" name="ip-%s" value="%s" class="form-control"></td>' % (server[0], server[2]))
 		print('<td>')
 		get_groups_select("123", selected=server[3])
 		print('</td>')
-		print('<td><a class="update-row" onclick="updateServer(%s)"  style="cursor: pointer;"></a></td>' % users[0])
+		print('<td><a class="update-row" onclick="updateServer(%s)"  style="cursor: pointer;"></a></td>' % server[0])
 		print('<td><a class="delete" onclick="removeServer(%s)"  style="cursor: pointer;"></a></td>' % server[0])
 		print('</tr>')
 
@@ -323,7 +338,9 @@ def get_roles_select(id, **kwargs):
 				selected = ""
 		print('<option value="%s" %s>%s</option>' % (role[1], selected, role[1]))
 	print('</select>')	
+	
 form = cgi.FieldStorage()
+error_mess = '<br /><span class="alert alert-danger" id="error">All fields must be completed <a title="Close" id="errorMess"><b>X</b></a></span>'
 
 if form.getvalue('newusername') is not None:
 	email = form.getvalue('newemail')
@@ -333,11 +350,11 @@ if form.getvalue('newusername') is not None:
 	new_user = form.getvalue('newusername')	
 	if password is None or role is None or group is None:
 		print('Content-type: text/html\n')
-		print("All fields must be completed")
+		print(error_mess)
 	else:		
 		print('Content-type: text/html\n')
-		add_user(new_user, email, password, role, group)
-		show_update_user(new_user)
+		if add_user(new_user, email, password, role, group):
+			show_update_user(new_user)
 		
 if form.getvalue('updateuser') is not None:
 	email = form.getvalue('email')
@@ -348,7 +365,7 @@ if form.getvalue('updateuser') is not None:
 	id = form.getvalue('id')	
 	if password is None or role is None or group is None:
 		print('Content-type: text/html\n')
-		print("All fields must be completed")
+		print(error_mess)
 	else:		
 		print('Content-type: text/html\n')
 		update_user(new_user, email, password, role, group, id)
@@ -364,11 +381,11 @@ if form.getvalue('newserver') is not None:
 	group = form.getvalue('newservergroup')
 	if ip is None or group is None:
 		print('Content-type: text/html\n')
-		print("All fields must be completed")
+		print(error_mess)
 	else:		
 		print('Content-type: text/html\n')
-		add_server(hostname, ip, group)
-		show_update_server(hostname)
+		if add_server(hostname, ip, group):
+			show_update_server(hostname)
 
 if form.getvalue('serverdel') is not None:
 	print('Content-type: text/html\n')
@@ -379,8 +396,8 @@ if form.getvalue('newgroup') is not None:
 	newgroup = form.getvalue('newgroup')	
 	desc = form.getvalue('newdesc')
 	print('Content-type: text/html\n')
-	add_group(newgroup, desc)
-	show_update_group(newgroup)
+	if add_group(newgroup, desc):
+		show_update_group(newgroup)
 
 if form.getvalue('groupdel') is not None:
 	print('Content-type: text/html\n')
@@ -393,7 +410,7 @@ if form.getvalue('updategroup') is not None:
 	id = form.getvalue('id')	
 	if name is None:
 		print('Content-type: text/html\n')
-		print("All fields must be completed")
+		print(error_mess)
 	else:		
 		print('Content-type: text/html\n')
 		update_group(name, descript, id)
@@ -405,7 +422,7 @@ if form.getvalue('updateserver') is not None:
 	id = form.getvalue('id')	
 	if name is None or ip is None:
 		print('Content-type: text/html\n')
-		print("All fields must be completed")
+		print(error_mess)
 	else:		
 		print('Content-type: text/html\n')
 		update_server(name, ip, group, id)

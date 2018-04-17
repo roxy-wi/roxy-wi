@@ -108,7 +108,6 @@ function showStats() {
 		type: "GET",
 		success: function( data ) {
 			$("#ajax").html(data);			
-			$.getScript(url);
 			window.history.pushState("Stats", "Stats", cur_url[0]+"?serv="+$("#serv").val());
 		}					
 	} );
@@ -296,7 +295,7 @@ $( function() {
     var cur_url = '/cgi-bin/' + location.split('/').pop();
 	cur_url = cur_url.split('?');
 		
-    $('.menu ').each(function () {
+    $('.menu li').each(function () {
         var link = $(this).find('a').attr('href');
 
         if (cur_url[0] == link)

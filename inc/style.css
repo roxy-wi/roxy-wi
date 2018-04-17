@@ -37,6 +37,7 @@ pre {
 .icon {
 	max-width: 20px;
 	margin-left: 2px;
+	cursor: pointer;
 }
 .top-menu {	
 	position: fixed;
@@ -385,7 +386,9 @@ pre {
 }
 .ui-state-active {
 	background-color: #5D9CEB !important;
+	border: none !important;
 	border-color: #5D9CEB !important;
+	font-weight: bold !important;
 }
 .ui-button {
 	padding-left: 10px !important;
@@ -400,6 +403,9 @@ pre {
 .ui-tabs-nav {
 	padding-left: 20px !important; 
   }
+ .ui-widget-header {
+	background: #5d9ceb !important;
+ }
 a {
   background-color: transparent;
 }
@@ -503,9 +509,24 @@ a:focus {
   margin-left: -15px;
 }
 .update {
-	background-color: rgb(0,168,107) !important;
+	background-color: #dff0d8 !important;
 }
-
+.alert {
+	padding:15px;
+	margin-bottom:20px;
+	border:1px solid transparent;
+	border-radius:4px
+}
+.alert a {
+	cursor: pointer;
+	font-weight: bold;
+	padding-left: 10px;
+}
+.alert-danger {
+	color:#a94442;
+	background-color:#f2dede;
+	border-color:#ebccd1
+}
 label {
   display: inline-block;
   max-width: 100%;

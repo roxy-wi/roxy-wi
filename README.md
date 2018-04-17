@@ -1,4 +1,4 @@
-#Meet Haproxy-wi 2.0! Now with DB and Admin web interface! Life has become easier, life has become more cheerful!
+# Meet Haproxy-wi 2.0! Now with DB and Admin web interface! Life has become easier, life has become more cheerful!
 
 # Haproxy web interface
 A simple web interface(user-frendly web GUI) for managing Haproxy servers. Leave your [feedback](https://github.com/Aidaho12/haproxy-wi/issues)
