@@ -348,14 +348,16 @@ pre {
   color: #fff;
   text-decoration: none;
 }
-.menu ul a:hover, .current  {
+.menu ul a:hover, .menu li:hover, .current  {
 	background-color: #69e;
 }
 .menu ul ul a{
   color: #fff;
   text-decoration: none; 
 }
-
+.head-submenu {
+	margin-left: 20px;
+}
 @keyframes shadow {
 	from {box-shadow: 0px 0px 0px red inset;}
 	50% {text-shadow: 0 0 30px black;}

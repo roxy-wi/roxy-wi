@@ -158,42 +158,37 @@ def links():
 		'<nav class="menu">'
 			'<ul>'
 				'<li><a title="Statistics, monitoring and logs" class="stats">Stats</a>'
-					'<ul>'
-						'<li><a href=/cgi-bin/overview.py title="Server and service status" class="overview-link">Overview</a> </li>'
-						'<li><a href=/cgi-bin/viewsttats.py title"Show stats" class="stats">Stats</a> </li>'
-						'<li><a href=/cgi-bin/logs.py title="View logs" class="logs">Logs</a></li>'
-						'<li><a href=/cgi-bin/map.py title="View map" class="map">Map</a></li>'
-					'</ul>'
+					
+						'<li><a href=/cgi-bin/overview.py title="Server and service status" class="overview-link head-submenu">Overview</a> </li>'
+						'<li><a href=/cgi-bin/viewsttats.py title"Show stats" class="stats head-submenu">Stats</a> </li>'
+						'<li><a href=/cgi-bin/logs.py title="View logs" class="logs head-submenu">Logs</a></li>'
+						'<li><a href=/cgi-bin/map.py title="View map" class="map head-submenu">Map</a></li>'
+					
 				'</li>'
 				'<li><a href=/cgi-bin/edit.py title="Runtime API" class="runtime">Runtime API</a> </li>'
-				'<li><a title="Actions with configs" class="config-show">Configs</a>'
-					'<ul>'
-						'<li><a href=/cgi-bin/configshow.py title="Show Config" class="config-show">Show</a></li> '
-						'<li><a href=/cgi-bin/diff.py title="Compare Configs" class="compare">Compare</a></li>')
+				'<li><a title="Actions with configs" class="config-show">Configs</a>'					
+						'<li><a href=/cgi-bin/configshow.py title="Show Config" class="config-show head-submenu">Show</a></li> '
+						'<li><a href=/cgi-bin/diff.py title="Compare Configs" class="compare head-submenu">Compare</a></li>')
 	if is_admin(level = 2):
-		print('<li><a href=/cgi-bin/add.py#listner title="Add single listen" class="add">Add listen</a></li>'
-						'<li><a href=/cgi-bin/add.py#frontend title="Add single frontend" class="add">Add frontend</a></li>'
-						'<li><a href=/cgi-bin/add.py#backend title="Add single backend" class="add">Add backend</a></li>'
-						'<li><a href=/cgi-bin/config.py title="Edit Config" class="edit">Edit</a> </li>')
-	print('</ul></li>')
+		print('<li><a href=/cgi-bin/add.py#listner title="Add single listen" class="add head-submenu">Add listen</a></li>'
+						'<li><a href=/cgi-bin/add.py#frontend title="Add single frontend" class="add head-submenu">Add frontend</a></li>'
+						'<li><a href=/cgi-bin/add.py#backend title="Add single backend" class="add head-submenu">Add backend</a></li>'
+						'<li><a href=/cgi-bin/config.py title="Edit Config" class="edit head-submenu">Edit</a> </li>')
+	print('</li>')
 	if is_admin(level = 2):
-		print('<li><a title="Actions with configs" class="version">Versions</a>'
-					'<ul>'
-						'<li><a href=/cgi-bin/configver.py title="Upload old versions configs" class="upload">Upload</a></li>')
+		print('<li><a title="Actions with configs" class="version">Versions</a>'			
+				'<li><a href=/cgi-bin/configver.py title="Upload old versions configs" class="upload head-submenu">Upload</a></li>')
 	if is_admin():
-		print('<li><a href=/cgi-bin/delver.py title="Delete old versions configs" class="delete">Delete</a></li>')
+		print('<li><a href=/cgi-bin/delver.py title="Delete old versions configs" class="delete head-submenu">Delete</a></li>')
 	if is_admin(level = 2):
-		print('</ul>'
-				'</li>')
+		print('</li>')
 	show_login_links()
 	if is_admin():
-		print('<li><a title="Admin area" class="version">Admin area</a>'
-					'<ul>'
-						'<li><a href=/cgi-bin/users.py#users title="Actions with users" class="users">Users</a></li>'
-						'<li><a href=/cgi-bin/users.py#groups title="Actions with groups" class="group">Groups</a></li>'
-						'<li><a href=/cgi-bin/users.py#servers title="Actions with servers" class="runtime">Servers</a></li>'
-						'<li><a href=/cgi-bin/users.py#roles title="Users roles" class="role">Roles</a></li>'
-					'</ul>'
+		print('<li><a title="Admin area" class="version">Admin area</a>'			
+					'<li><a href=/cgi-bin/users.py#users title="Actions with users" class="users head-submenu">Users</a></li>'
+					'<li><a href=/cgi-bin/users.py#groups title="Actions with groups" class="group head-submenu">Groups</a></li>'
+					'<li><a href=/cgi-bin/users.py#servers title="Actions with servers" class="runtime head-submenu">Servers</a></li>'
+					'<li><a href=/cgi-bin/users.py#roles title="Users roles" class="role head-submenu">Roles</a></li>'
 				'</li>')
 	print('</ul>'
 		  '</nav>'
@@ -205,9 +200,9 @@ def show_login_links():
 	login = cookie.get('login')
 	
 	if login is None:
-		print('<li><a href=/cgi-bin/login.py? title="Login" class="login">Login</a></li>')	
+		print('<li><a href=/cgi-bin/login.py? title="Login" class="login head-submenu">Login</a></li>')	
 	else:
-		print('<li><a href=/cgi-bin/login.py?logout=logout title="Logout, user name: %s" class="login">Logout</a></li>' % login.value)
+		print('<li><a href=/cgi-bin/login.py?logout=logout title="Logout, user name: %s" class="login head-submenu">Logout</a></li>' % login.value)
 		  
 def footer():
 	print('</center></div>'
