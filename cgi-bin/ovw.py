@@ -91,7 +91,7 @@ def get_overview():
 		print('</td><td></td></tr>')
 
 	print('</table><table class="overview"><tr class="overviewHead">'
-			'<td class="padding10">Server</td>'
+			'<td class="padding10 first-collumn" style="width: 15%;">Server</td>'
 			'<td>'
 				'HAproxy info'
 			'</td>'

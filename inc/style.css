@@ -205,7 +205,7 @@ pre {
 	margin-left: 30px;
 }
 .line {
-	background-color: #EBF1F1;
+	background-color: #f5faf4;
 	border: 1px solid #ddd;
 }
 .line, .line3 {
@@ -215,10 +215,10 @@ pre {
 	padding-right: 10px;
 }
 .line:hover, .line3:hover, tr:hover {
-	background-color: #EEEEEE;
+	background-color: #f6f8fa;
 }
 .overviewHead:hover {
-	background-color: #EBF1F1
+	background-color: #f4f9f3e6;
 }	
 .comment {
 	color: #aaa;
@@ -262,7 +262,7 @@ pre {
 }
 .overviewHead {
 	border-radius: 5px;
-	background-color: #EBF1F1;
+	background-color: #f4f9f3e6;
 	font-weight: bold;
 }
 .overview  tr{
@@ -275,7 +275,7 @@ pre {
 }*/
 .overviewTr {
 	margin: 0;
-	background-color: #f6f6f6;
+	background-color: #f6f8fa;
 	padding-left: 15px;
 	font-size: 15px;
 }
@@ -381,18 +381,20 @@ pre {
     padding-left: 0;
     padding-right: 0;
 }
-.ui-state-default {
-	background-color: #EBF1F1 !important;
-}
-.ui-state-active {
-	background-color: #5D9CEB !important;
-	border: none !important;
-	border-color: #5D9CEB !important;
-	font-weight: bold !important;
-}
 .ui-button {
 	padding-left: 10px !important;
 	padding-right: 10px !important;
+	background: #f4f9f380 !important;
+}
+.ui-state-default {
+	background-color: #EBF1F1 !important;
+}
+
+.ui-state-active {
+	background-color: #4A89D8 !important;
+	border: none !important;
+	border-color: #5D9CEB !important;
+	font-weight: bold !important;
 }
 .ui-tooltip, .arrow:after {
     background: #33414E !important;
@@ -406,6 +408,9 @@ pre {
  .ui-widget-header {
 	background: #5d9ceb !important;
  }
+.ui-menu, .ui-menu-item {
+	background: #EBF1F133 !important;
+}
 a {
   background-color: transparent;
 }
