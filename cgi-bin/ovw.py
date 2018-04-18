@@ -79,9 +79,9 @@ def get_overview():
 		funct.ssh_command(server[2], commands, server_status="1")
 		print('</td><td>')
 		if funct.is_admin():
-			print('<a id="%s" title="Start HAproxy service" onclick = "if (! confirm(\'Start service?\')) return false;"><img src=/image/pic/start.png alt="start" class="icon"></a>' % server[2])
-			print('<a id="%s" title="Stop HAproxy service" onclick = "if (! confirm(\'Stop service?\')) return false;"><img src=/image/pic/stop.png alt="start" class="icon"></a>' % server[2])
-			print('<a id="%s" title="Restart HAproxy service" onclick = "if (! confirm(\'Restart service?\')) return false;"><img src=/image/pic/update.png alt="restart" class="icon"></a>' % server[2])
+			print('<a id="%s" class="start" title="Start HAproxy service" onclick = "if (! confirm(\'Start service?\')) return false;"><img src=/image/pic/start.png alt="start" class="icon"></a>' % server[2])
+			print('<a id="%s" class="stop" title="Stop HAproxy service" onclick = "if (! confirm(\'Stop service?\')) return false;"><img src=/image/pic/stop.png alt="start" class="icon"></a>' % server[2])
+			print('<a id="%s" class="restart" title="Restart HAproxy service" onclick = "if (! confirm(\'Restart service?\')) return false;"><img src=/image/pic/update.png alt="restart" class="icon"></a>' % server[2])
 		print('<a href="/cgi-bin/configshow.py?serv=%s&open=open#conf"  title="Show config"><img src=/image/pic/show.png alt="show" class="icon"></a>' % server[2])
 		print('<a href="/cgi-bin/config.py?serv=%s&open=open#conf"  title="Edit config"><img src=/image/pic/edit.png alt="edit" class="icon"></a>' % server[2])
 		print('<a href="/cgi-bin/diff.py?serv=%s&open=open#diff"  title="Compare config"><img src=/image/pic/compare.png alt="compare" class="icon"></a>' % server[2])

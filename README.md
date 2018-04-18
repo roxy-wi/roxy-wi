@@ -3,7 +3,7 @@
 # Haproxy web interface
 A simple web interface(user-frendly web GUI) for managing Haproxy servers. Leave your [feedback](https://github.com/Aidaho12/haproxy-wi/issues)
 
-![alt text](image/8.jpeg "Show config page")
+![alt text](image/haproxy-wi-config-show.jpeg "Show config page")
 
 # Capabilities:
 1. View statistics of all servers in one place
@@ -36,7 +36,7 @@ $ sudo ./install.sh
 
 For Apache just do virtualhost with cgi-bin.
 
-![alt text](image/7.jpeg "Overview page")
+![alt text](image/haproxy-wi-overview.jpeg "Overview page")
 
 # Settings
 ```
@@ -50,7 +50,7 @@ Edit $HOME_HAPROXY-WI/cgi-bin/haproxy-webintarface.config with your env
 
 Login http://haproxy-wi-server/users.py, and add: users, groups and servers. Default: admin/admin
 
-![alt text](image/11.jpeg "Admin area")
+![alt text](image/haproxy-wi-admin-area.jpeg "Admin area")
 
 Copy ssh key on all HAproxy servers
 
@@ -61,7 +61,7 @@ For Runtime API enable state file on HAproxt servers and need install socat on a
     defaults
        load-server-state-from-file global
    ```
-![alt text](image/4.jpeg "View logs page")
+![alt text](image/haproxy-wi-logs.jpeg "View logs page")
 
 # Start and autostart if service
 ```

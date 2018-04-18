@@ -269,7 +269,7 @@ $( function() {
 					if( data ==  'Bad config, check please ' ) {
 						alert(data);
 					} else {
-						showOverview();
+						setTimeout(showOverview, 2000)
 					}
 				},
 				error: function(){
