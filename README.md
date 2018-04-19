@@ -37,9 +37,8 @@ For Apache do virtualhost with cgi-bin.
 
 # Settings
 ```
-
 Edit $HOME_HAPROXY-WI/cgi-bin/haproxy-webintarface.config with your env
-
+```
 Login http://haproxy-wi-server/users.py, and add: users, groups and servers. Default: admin/admin
 
 ![alt text](image/haproxy-wi-admin-area.jpeg "Admin area")
