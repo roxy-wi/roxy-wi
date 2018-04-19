@@ -20,31 +20,23 @@ A simple web interface(user-frendly web GUI) for managing Haproxy servers. Leave
 12. Telegram notification
 
 # Install
-Can be used as a service, or via fastaci apache + fastCGI(recommend, because it works faster).
 
-How to use the service:
-
-For install just dowload archive and untar somewhere:
+For install just [dowload](https://github.com/Aidaho12/haproxy-wi/archive/master.zip) archive and untar somewhere:
 ```
-$ cd /opt
+$ cd /var/www/
 $ unzip master.zip
 $ mv haproxy-wi-master/ haproxy-wi
-$ cd /opt/haproxy-wi
-$ chmod +x install.sh
-$ sudo ./install.sh
+$ cd haproxy-wi/cgi-bin
+$ chmod +x *.py
+$ ./create_db.py 
 ```
 
-For Apache just do virtualhost with cgi-bin.
+For Apache do virtualhost with cgi-bin.
 
 ![alt text](image/haproxy-wi-overview.jpeg "Overview page")
 
 # Settings
 ```
-cd $HOME_HAPROXY-WI/cgi-bin/
-chmod +x *.py
-```
-
-Run create_db.py for DB createing
 
 Edit $HOME_HAPROXY-WI/cgi-bin/haproxy-webintarface.config with your env
 
@@ -63,15 +55,13 @@ For Runtime API enable state file on HAproxt servers and need install socat on a
    ```
 ![alt text](image/haproxy-wi-logs.jpeg "View logs page")
 
-# Start and autostart if service
-```
-systemctl enable haproxy-wi.service
-systemctl start haproxy-wi.service
-```
+# Update DB
 
-# Deb support
-
-Sorry, but not use, because  adapt yourself
+For update db:
+```
+$ cd /var/www/haproxy-wi/cgi-bin
+$ ./create_db.py 
+```
 
 # Further development and support
 

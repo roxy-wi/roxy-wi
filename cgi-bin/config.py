@@ -44,7 +44,7 @@ if form.getvalue('serv') is not None and form.getvalue('open') is not None :
 	print('<form action="config.py" method="get">')
 	print('<input type="hidden" value="%s" name="serv">' % serv)
 	print('<input type="hidden" value="%s.old" name="oldconfig">' % cfg)
-	print('<textarea name="config" rows="35" cols="100">%s</textarea>' % conf.read())
+	print('<textarea name="config" class="config" rows="35" cols="100">%s</textarea>' % conf.read())
 	print('<p>')
 	funct.get_button("Just save", value="save")
 	funct.get_button("Save and restart")

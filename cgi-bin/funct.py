@@ -148,8 +148,6 @@ def head(title):
 							'</span>'
 						'</a>'
 					'</div>')
-	if config.get('main', 'logo_enable') == "1":
-		print('<div><img src="%s" title="Logo" class="logo"></div>' % config.get('main', 'logo_path'))
 	links()
 	print('</div><div class="container">')
 	
@@ -190,7 +188,7 @@ def links():
 				'</li>')
 	print('</ul>'
 		  '</nav>'
-		  '<div class="copyright-menu">HAproxy-WI v2.0.1</div>'
+		  '<div class="copyright-menu">HAproxy-WI v2.0.2</div>'
 		  '</div>')	
 
 def show_login_links():
@@ -198,9 +196,9 @@ def show_login_links():
 	login = cookie.get('login')
 	
 	if login is None:
-		print('<li><a href=/cgi-bin/login.py? title="Login" class="login head-submenu">Login</a></li>')	
+		print('<li><a href=/cgi-bin/login.py? title="Login" class="login">Login</a></li>')	
 	else:
-		print('<li><a href=/cgi-bin/login.py?logout=logout title="Logout, user name: %s" class="login head-submenu">Logout</a></li>' % login.value)
+		print('<li><a href=/cgi-bin/login.py?logout=logout title="Logout, user name: %s" class="login">Logout</a></li>' % login.value)
 		  
 def footer():
 	print('</center></div>'

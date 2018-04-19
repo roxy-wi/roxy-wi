@@ -15,7 +15,7 @@ form = cgi.FieldStorage()
 
 USERS = sql.select_users()
 GROUPS = sql.select_groups()
-SERVERS = sql.select_servers()
+SERVERS = sql.select_servers(full=1)
 ROLES = sql.select_roles()
 
 print('<script src="/inc/users.js"></script>'
@@ -85,7 +85,7 @@ print('</div><div id="groups">'
 						'<td>Desciption</td>'
 						'<td></td>'
 						'<td></td>'
-					'</tr><tr>')
+					'</tr>')
 for group in GROUPS:
 	print('<tr id="group-%s">' % group[0])
 	print('<td class="padding10 first-collumn"><input type="text" id="name-%s" value="%s" class="form-control"></td>' % (group[0], group[1]))
@@ -115,6 +115,8 @@ print('<br /><br /><table class="overview" id="group-add-table" style="display: 
 						'<td class="padding10 first-collumn">Hostname</td>'
 						'<td>IP</td>'
 						'<td>Group</td>'
+						'<td>Enable</td>'
+						'<td>Virt</td>'
 						'<td></td>'
 						'<td></td>'
 					'</tr>')
@@ -127,6 +129,12 @@ for server in SERVERS:
 	need_id_group = "servergroup-%s" % server[0]
 	sql.get_groups_select(need_id_group, selected=server[3])
 	print('</td>')
+	print('<td>')
+	sql.get_enable_checkbox(server[0])
+	print('</td>')
+	print('<td>')
+	sql.get_type_ip_checkbox(server[0])
+	print('</td>')
 	print('<td><a class="update-row" onclick="updateServer(%s)"  style="cursor: pointer;"></a></td>' % server[0])
 	print('<td><a class="delete" onclick="removeServer(%s)"  style="cursor: pointer;"></a></td>' % server[0])
 	print('</tr>')
@@ -137,6 +145,8 @@ print('</table>'
 		'<td class="padding10 first-collumn">New hostname</td>'
 		'<td>IP</td>'
 		'<td>Group</td>'
+		'<td>Enable</td>'
+		'<td>Virt</td>'
 		'<td></td>'
 	'</tr>'
 	'<tr>'
@@ -144,7 +154,9 @@ print('</table>'
 		'<td><input type="text" name="new-ip" id="new-ip" class="form-control"></td><td>')
 sql.get_groups_select("new-server-group-add")
 print('</td>'
-			'<td><a class="add-admin"  id="add-server" style="cursor: pointer;"></a></td>'
+		'<td><label for="enable"></label><input type="checkbox" id="enable" checked></td>'
+		'<td><label for="typeip"></label><input type="checkbox" id="typeip"></td>'
+		'<td><a class="add-admin"  id="add-server" style="cursor: pointer;"></a></td>'
 		'</tr>')
 print('</table>')
 	

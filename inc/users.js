@@ -49,9 +49,13 @@ $( function() {
 	});
 	$('#add-server').click(function() {
 		$('#error').remove();	
-		var typeip;
+		var typeip = 0;
+		var enable = 0;
 		if ($('#typeip').is(':checked')) {
 			typeip = '1';
+		}
+		if ($('#enable').is(':checked')) {
+			enable = '1';
 		}
 		$.ajax( {
 			url: "sql.py",
@@ -59,7 +63,8 @@ $( function() {
 				newserver: $('#new-server-add').val(),
 				newip: $('#new-ip').val(),
 				newservergroup: $('#new-server-group-add').val(),
-				typeip: typeip
+				typeip: typeip,
+				enable: enable
 			},
 			type: "GET",
 			success: function( data ) {
@@ -209,9 +214,13 @@ function updateGroup(id) {
 	} );
 }
 function updateServer(id) {
-	var typeip;
+	var typeip = 0;
+	var enable = 0;
 	if ($('#typeip-'+id).is(':checked')) {
 		typeip = '1';
+	}
+	if ($('#enable-'+id).is(':checked')) {
+		enable = '1';
 	}
 	$.ajax( {
 		url: "sql.py",
@@ -220,6 +229,7 @@ function updateServer(id) {
 			ip: $('#ip-'+id).val(),
 			servergroup: $('#servergroup-'+id+' option:selected' ).val(),
 			typeip: typeip,
+			enable: enable,
 			id: id
 		},
 		type: "GET",

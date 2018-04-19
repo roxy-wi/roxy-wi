@@ -1,8 +1,23 @@
 #!/usr/bin/env python3
 import sqlite3 as sqlite
+import os
+import sys
+
+db = "haproxy-wi.db"
+
+def check_db():
+	if os.path.isfile(db):
+		if os.path.getsize(db) > 100:
+			with open(db,'r', encoding = "ISO-8859-1") as f:
+				header = f.read(100)
+				if header.startswith('SQLite format 3'):
+					print("SQLite3 database has been detected.")
+					return False
+				else:
+					return True
  
 def get_cur():
-	con = sqlite.connect("haproxy-wi.db", isolation_level=None)
+	con = sqlite.connect(db, isolation_level=None)
 	cur = con.cursor()    
 	return con, cur
 
@@ -63,4 +78,50 @@ def create_table():
 	cur.close() 
 	con.close()
 	
-create_table()
+def update_db_v_2_0_1():
+	con, cur = get_cur()
+	sql = """
+	ALTER TABLE `servers` ADD COLUMN type_ip INTEGER NOT NULL DEFAULT(0);
+	"""
+	try:    
+		cur.executescript(sql)
+	except sqlite.Error as e:
+		if e.args[0] == 'duplicate column name: type_ip':
+			print('Updating... go to version 2.0.1.1')
+			return False
+		else:
+			print("An error occurred:", e.args[0])
+			return False
+	else:
+		print("DB was update to 2.0.1")
+		return True
+	cur.close() 
+	con.close()
+
+def update_db_v_2_0_1_1():
+	con, cur = get_cur()
+	sql = """
+	ALTER TABLE `servers` ADD COLUMN enable INTEGER NOT NULL DEFAULT(1);
+	"""
+	try:    
+		cur.executescript(sql)
+	except sqlite.Error as e:
+		if e.args[0] == 'duplicate column name: enable':
+			print('Already updated. No run more. Thx =^.^=')
+			return False
+		else:
+			print("An error occurred:", e.args[0])
+			return False
+	else:
+		print("DB was update to 2.0.1.1")
+		return True
+	cur.close() 
+	con.close()
+	
+if check_db():	
+	create_table()
+else:
+	print('DB already exists, try update')
+if update_db_v_2_0_1():
+	print('DB was property update to version 2.0.1.')
+update_db_v_2_0_1_1()

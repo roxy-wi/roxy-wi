@@ -98,9 +98,9 @@ def update_group(name, descript, id):
 	cur.close()    
 	con.close()
 
-def add_server(hostname, ip, group, typeip):
+def add_server(hostname, ip, group, typeip, enable):
 	con, cur = get_cur()
-	sql = """INSERT INTO servers (hostname, ip, groups, type_ip) VALUES ('%s', '%s', '%s', '%s')""" % (hostname, ip, group, typeip)
+	sql = """INSERT INTO servers (hostname, ip, groups, type_ip, enable) VALUES ('%s', '%s', '%s', '%s', '%s')""" % (hostname, ip, group, typeip, enable)
 	try:    
 		with con:
 			cur.executescript(sql)
@@ -125,14 +125,15 @@ def delete_server(id):
 	cur.close()    
 	con.close() 		
 
-def update_server(hostname, ip, group, typeip, id):
+def update_server(hostname, ip, group, typeip, enable, id):
 	con, cur = get_cur()
 	sql = """update servers set 
 			hostname = '%s',
 			ip = '%s',
 			groups = '%s',
-			type_ip = '%s'
-			where id = '%s'""" % (hostname, ip, group, typeip, id)
+			type_ip = '%s',
+			enable = '%s'
+			where id = '%s'""" % (hostname, ip, group, typeip, enable, id)
 	try:    
 		with con:
 			cur.executescript(sql)
@@ -200,9 +201,11 @@ def get_groups_select(id, **kwargs):
 	
 def select_servers(**kwargs):
 	con, cur = get_cur()
-	sql = """select * from servers ORDER BY groups """
+	sql = """select * from servers where enable = '1' ORDER BY groups """
 	if kwargs.get("server") is not None:
 		sql = """select * from servers where hostname='%s' """ % kwargs.get("server")
+	if kwargs.get("full") is not None:
+		sql = """select * from servers ORDER BY groups """ 
 	try:    
 		cur.execute(sql)
 	except sqlite.Error as e:
@@ -225,7 +228,24 @@ def get_type_ip_checkbox(id, **kwargs):
 				checked = 'checked'
 			else:
 				checked = ""
-			print('<label for="typeip-%s"> Virt </label><input type="checkbox" id="typeip-%s" %s>' % (server[0],server[0], checked))
+			print('<label for="typeip-%s"></label><input type="checkbox" id="typeip-%s" %s>' % (server[0],server[0], checked))
+	cur.close()    
+	con.close() 
+	
+def get_enable_checkbox(id, **kwargs):
+	con, cur = get_cur()
+	sql = """select id, enable from servers where id='%s' """ % id
+	try:    
+		cur.execute(sql)
+	except sqlite.Error as e:
+		print("An error occurred:", e.args[0])
+	else:
+		for server in cur.fetchall():
+			if server[1] == 1:
+				checked = 'checked'
+			else:
+				checked = ""
+			print('<label for="enable-%s"></label><input type="checkbox" id="enable-%s" %s>' % (server[0],server[0], checked))
 	cur.close()    
 	con.close() 
 	
@@ -239,7 +259,7 @@ def get_dick_permit(**kwargs):
 	if kwargs.get('virt'):
 		type_ip = "" 
 	else:
-		type_ip = "type_ip = 0" 
+		type_ip = "and type_ip = 0" 
 	try:    
 		cur.execute(sql)
 	except sqlite.Error as e:
@@ -247,13 +267,9 @@ def get_dick_permit(**kwargs):
 	else:
 		for group in cur:
 			if group[5] == '1':
-				if kwargs.get('virt') is None:
-					type_ip = 'where ' + type_ip
-				sql = """ select * from servers %s """ % type_ip
+				sql = """ select * from servers where enable = 1 %s """ % type_ip
 			else:
-				if kwargs.get('virt') is None:
-					type_ip = 'and ' + type_ip
-				sql = """ select * from servers where groups like '%{group}%' {type_ip} """.format(group=group[5], type_ip=type_ip)		
+				sql = """ select * from servers where groups like '%{group}%' and enable = 1 {type_ip} """.format(group=group[5], type_ip=type_ip)		
 		try:   
 			cur.execute(sql)
 		except sqlite.Error as e:
@@ -273,10 +289,13 @@ def show_update_servers():
 			'</tr>')
 	for server in SERVERS:
 		print('<tr id="server-%s">' % server[0])
-		print('<td class="padding10 first-collumn"><input type="text" name="server-%s" value="%s" class="form-control"></td>' % (server[0], server[1]))
-		print('<td><input type="text" name="descript-%s" value="%s" class="form-control"></td>' % (server[0], server[2]))
+		print('<td class="padding10 first-collumn"><input type="text" id="server-%s" value="%s" class="form-control"></td>' % (server[0], server[1]))
+		print('<td><input type="text" id="descript-%s" value="%s" class="form-control"></td>' % (server[0], server[2]))
 		print('<td>')
 		get_groups_select("123", selected=server[3])
+		print('</td>')
+		print('<td>')
+		get_enable_checkbox(server[0])
 		print('</td>')
 		print('<td>')
 		get_type_ip_checkbox(server[0])
@@ -307,10 +326,14 @@ def show_update_server(server):
 	SERVERS = select_servers(server=server)
 	for server in SERVERS:
 		print('<tr id="server-%s">' % server[0])
-		print('<td class="padding10 first-collumn"><input type="text" name="hostname-%s" value="%s" class="form-control"></td>' % (server[0], server[1]))
-		print('<td><input type="text" name="ip-%s" value="%s" class="form-control"></td>' % (server[0], server[2]))
+		print('<td class="padding10 first-collumn"><input type="text" id="hostname-%s" value="%s" class="form-control"></td>' % (server[0], server[1]))
+		print('<td><input type="text" id="ip-%s" value="%s" class="form-control"></td>' % (server[0], server[2]))
 		print('<td>')
-		get_groups_select("123", selected=server[3])
+		need_id_group = "servergroup-%s" % server[0]
+		get_groups_select(need_id_group, selected=server[3])
+		print('</td>')
+		print('<td>')
+		get_enable_checkbox(server[0])
 		print('</td>')
 		print('<td>')
 		get_type_ip_checkbox(server[0])
@@ -412,12 +435,13 @@ if form.getvalue('newserver') is not None:
 	ip = form.getvalue('newip')
 	group = form.getvalue('newservergroup')
 	typeip = form.getvalue('typeip')
+	enable = form.getvalue('enable')
 	if ip is None or group is None:
 		print('Content-type: text/html\n')
 		print(error_mess)
 	else:		
 		print('Content-type: text/html\n')
-		if add_server(hostname, ip, group, typeip):
+		if add_server(hostname, ip, group, typeip, enable):
 			show_update_server(hostname)
 
 if form.getvalue('serverdel') is not None:
@@ -453,11 +477,12 @@ if form.getvalue('updateserver') is not None:
 	ip = form.getvalue('ip')	
 	group = form.getvalue('servergroup')	
 	typeip = form.getvalue('typeip')		
+	enable = form.getvalue('enable')		
 	id = form.getvalue('id')	
 	if name is None or ip is None:
 		print('Content-type: text/html\n')
 		print(error_mess)
 	else:		
 		print('Content-type: text/html\n')
-		update_server(name, ip, group, typeip, id)
+		update_server(name, ip, group, typeip, enable, id)
 		
