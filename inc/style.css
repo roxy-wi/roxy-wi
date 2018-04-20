@@ -266,7 +266,7 @@ pre {
 	font-weight: bold;
 }
 .overview  tr{
-	border: 1px solid #ddd;
+	border-bottom: 1px solid #ddd;
 	border-radius: 5px;
 }
 

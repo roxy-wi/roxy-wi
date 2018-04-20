@@ -1,6 +1,19 @@
 var users = '/inc/usersdop.js'
 var awesome = "/inc/fontawesome.min.js"
 
+jQuery.expr[':'].regex = function(elem, index, match) {
+    var matchParams = match[3].split(','),
+        validLabels = /^(data|css):/,
+        attr = {
+            method: matchParams[0].match(validLabels) ? 
+                        matchParams[0].split(':')[0] : 'attr',
+            property: matchParams.shift().replace(validLabels,'')
+        },
+        regexFlags = 'ig',
+        regex = new RegExp(matchParams.join('').replace(/^\s+|\s+$/g,''), regexFlags);
+    return regex.test(jQuery(elem)[attr.method](attr.property));
+}
+
 $( function() {
 	$('.alert-danger').remove();	
 
@@ -41,9 +54,17 @@ $( function() {
 			},
 			type: "GET",
 			success: function( data ) {
-				$("#ajax-group").append(data);
-				$( "#ajax-group tr td" ).addClass( "update", 1000, callbackGroup );
-				window.location.reload(); 
+				if (data.indexOf('error') != '-1') {
+					$("#ajax-group").append(data);
+					$.getScript(users);
+				} else {
+					var getId = new RegExp('[0-9]+');
+					var id = data.match(getId);
+					$("#ajax-group").append(data);
+					$( "#ajax-group tr td" ).addClass( "update", 1000, callbackGroup );
+					$('select:regex(id, group)').append('<option value='+id+'>'+$('#new-group-add').val()+'</option>').selectmenu("refresh");
+					$.getScript(awesome);
+				}
 			}					
 		} );
 	});
@@ -73,7 +94,7 @@ $( function() {
 					$("#ajax-servers").append(data);
 					$.getScript(users);
 				} else {
-					$('.alert-danger').hide();
+					$('.alert-danger').remove();
 					$("#ajax-servers").append(data);
 					$( "#ajax-servers tr td" ).addClass( "update", 1000, callback );					
 					$.getScript(url);
@@ -117,6 +138,26 @@ $( function() {
 		} 
 	});
 	
+	$( "#ajax-users input" ).change(function() {
+		var id = $(this).attr('id').split('-');
+		updateUser(id[1])
+	});
+	$( "#ajax-users select" ).on('selectmenuchange',function() {
+		var id = $(this).attr('id').split('-');
+		updateUser(id[1])
+	});
+	$( "#ajax-group input" ).change(function() {
+		var id = $(this).attr('id').split('-');
+		updateGroup(id[1])
+	});
+	$( "#ajax-servers input" ).change(function() {
+		var id = $(this).attr('id').split('-');
+		updateServer(id[1])
+	});
+	$( "#ajax-servers select" ).on('selectmenuchange',function() {
+		var id = $(this).attr('id').split('-');
+		updateServer(id[1])
+	});
 } );
 function removeUser(id) {
 	$("#user-"+id).css("background-color", "#f2dede");
@@ -162,11 +203,14 @@ function removeGroup(id) {
 				data = data.replace(/\s+/g,' ');
 				if(data == "Ok ") {
 					$("#group-"+id).remove();
+					$('select:regex(id, group) option[value='+id+']').remove();
+					$('select:regex(id, group)').selectmenu("refresh");
 				}
 			}					
 		} );	
 	}
 function updateUser(id) {
+	$('.alert-danger').remove();
 	$.ajax( {
 		url: "sql.py",
 		data: {
@@ -180,18 +224,21 @@ function updateUser(id) {
 		type: "GET",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-				if (data == "All fields must be completed ") {
-					alert(data);
-				} else {
-					$("#user-"+id).addClass( "update", 1000 );
-					setTimeout(function() {
-						$( "#user-"+id ).removeClass( "update" );
-					}, 2500 );
+			if (data.indexOf('error') != '-1') {
+				$("#ajax-users").append(data);
+				$.getScript(users);
+			} else {
+				$('.alert-danger').remove();
+				$("#user-"+id).addClass( "update", 1000 );
+			setTimeout(function() {
+				$( "#user-"+id ).removeClass( "update" );
+			}, 2500 );
 			}
 		}
 	} );
 }
 function updateGroup(id) {
+	$('#error').remove();	
 	$.ajax( {
 		url: "sql.py",
 		data: {
@@ -202,18 +249,23 @@ function updateGroup(id) {
 		type: "GET",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-				if (data == "All fields must be completed ") {
-					alert(data);
-				} else {
-					$("#group-"+id).addClass( "update", 1000 );
-					setTimeout(function() {
-						$( "#group-"+id ).removeClass( "update" );
-					}, 2500 );
+			if (data.indexOf('error') != '-1') {
+				$("#ajax-group").append(data);
+				$.getScript(users);
+			} else {
+				$('.alert-danger').remove();
+				$("#group-"+id).addClass( "update", 1000 );
+				setTimeout(function() {
+					$( "#group-"+id ).removeClass( "update" );
+				}, 2500 );
+				$('select:regex(id, group) option[value='+id+']').remove();
+				$('select:regex(id, group)').append('<option value='+id+'>'+$('#name-'+id).val()+'</option>').selectmenu("refresh");
 			}
 		}
 	} );
 }
 function updateServer(id) {
+	$('.alert-danger').remove();
 	var typeip = 0;
 	var enable = 0;
 	if ($('#typeip-'+id).is(':checked')) {
@@ -235,13 +287,15 @@ function updateServer(id) {
 		type: "GET",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-				if (data == "All fields must be completed ") {
-					alert(data);
-				} else {
-					$("#server-"+id).addClass( "update", 1000 );
-					setTimeout(function() {
-						$( "#server-"+id ).removeClass( "update" );
-					}, 2500 );
+			if (data.indexOf('error') != '-1') {
+				$("#ajax-servers").append(data);
+				$.getScript(users);
+			} else {
+				$('.alert-danger').remove();
+				$("#server-"+id).addClass( "update", 1000 );
+				setTimeout(function() {
+					$( "#server-"+id ).removeClass( "update" );
+				}, 2500 );
 			}
 		}
 	} );

@@ -58,11 +58,12 @@ def add_group(name, description):
 	sql = """INSERT INTO groups (name, description) VALUES ('%s', '%s')""" % (name, description)
 	try:    
 		with con:
-			cur.executescript(sql)
+			cur.execute(sql)
 	except sqlite.Error as e:
 		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 		return False
 	else:
+		print(cur.lastrowid)
 		return True
 	cur.close()    
 	con.close() 
@@ -318,7 +319,7 @@ def show_update_user(user):
 		need_id_group = "usergroup-%s" % users[0]
 		get_groups_select(need_id_group, selected=users[5])
 		print('</td>')
-		print('<td><a class="update-row" onclick="updateUser(%s)"  style="cursor: pointer;"></a></td>' % users[0])
+		#print('<td><a class="update-row" onclick="updateUser(%s)"  style="cursor: pointer;"></a></td>' % users[0])
 		print('<td><a class="delete" onclick="removeUser(%s)"  style="cursor: pointer;"></a></td>' % users[0])
 		print('</tr>')
 		
@@ -338,7 +339,7 @@ def show_update_server(server):
 		print('<td>')
 		get_type_ip_checkbox(server[0])
 		print('</td>')
-		print('<td><a class="update-row" onclick="updateServer(%s)"  style="cursor: pointer;"></a></td>' % server[0])
+		#print('<td><a class="update-row" onclick="updateServer(%s)"  style="cursor: pointer;"></a></td>' % server[0])
 		print('<td><a class="delete" onclick="removeServer(%s)"  style="cursor: pointer;"></a></td>' % server[0])
 		print('</tr>')
 
@@ -348,7 +349,7 @@ def show_update_group(group):
 		print('<tr id="group-%s">' % group[0])
 		print('<td class="padding10 first-collumn"><input type="text" name="name-%s" value="%s" class="form-control"></td>' % (group[0], group[1]))
 		print('<td><input type="text" name="descript-%s" value="%s" class="form-control" size="100"></td>' % (group[0], group[2]))
-		print('<td></td>')
+		print('<td><a class="delete" onclick="removeGroup(%s)"  style="cursor: pointer;"></a></td>' % group[0])
 		print('<td></td>')
 		print('</tr>')
 

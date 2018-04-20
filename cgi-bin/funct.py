@@ -188,7 +188,7 @@ def links():
 				'</li>')
 	print('</ul>'
 		  '</nav>'
-		  '<div class="copyright-menu">HAproxy-WI v2.0.2</div>'
+		  '<div class="copyright-menu">HAproxy-WI v2.0.2.1</div>'
 		  '</div>')	
 
 def show_login_links():

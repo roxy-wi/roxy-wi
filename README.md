@@ -26,6 +26,7 @@ For install just [dowload](https://github.com/Aidaho12/haproxy-wi/archive/master
 $ cd /var/www/
 $ unzip master.zip
 $ mv haproxy-wi-master/ haproxy-wi
+$ pip install -r haproxy-wi/requirements.txt 
 $ cd haproxy-wi/cgi-bin
 $ chmod +x *.py
 $ ./create_db.py 

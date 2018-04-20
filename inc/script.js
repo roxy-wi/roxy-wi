@@ -253,7 +253,6 @@ $( function() {
     });
 	$( "input[type=submit], button" ).button();
 	$( "input[type=checkbox]" ).checkboxradio();
-	$( "#number" ).spinner();
 	$( ".controlgroup" ).controlgroup();
 	
 	function ajaxActionServers(action, id) {
