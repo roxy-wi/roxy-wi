@@ -9,10 +9,6 @@ funct.check_config()
 funct.check_login()
 funct.get_auto_refresh("Overview")	
 
-print('<div id="ajax">')
-
-ovw.get_overview()
-
-print('</div>')
+print('<script> window.onload = showOverview()</script><div id="ajax"></div>')
 
 funct.footer()

@@ -3,7 +3,7 @@ import html
 import cgi
 import os
 import funct
-import configparser
+from configparser import ConfigParser, ExtendedInterpolation
 import glob
 
 form = cgi.FieldStorage()
@@ -14,12 +14,12 @@ funct.check_config()
 funct.check_login()
 
 path_config = "haproxy-webintarface.config"
-config = configparser.ConfigParser()
+config = ConfigParser(interpolation=ExtendedInterpolation())
 config.read(path_config)
 
 hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
 
-funct.page_for_admin(level = 1)
+funct.page_for_admin()
 funct.chooseServer("delver.py", "Delete Versions HAproxy config", "n")
 
 if serv is not None and form.getvalue('open') is not None:

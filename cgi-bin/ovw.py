@@ -1,12 +1,11 @@
 import funct
-import configparser
-import json
+from configparser import ConfigParser, ExtendedInterpolation
 import os
 import cgi
 import sql
 
 path_config = "haproxy-webintarface.config"
-config = configparser.ConfigParser()
+config = ConfigParser(interpolation=ExtendedInterpolation())
 config.read(path_config)
 
 time_zone = config.get('main', 'time_zone')
@@ -123,9 +122,8 @@ def get_map(serv):
 	matplotlib.use('Agg')
 	import matplotlib.pyplot as plt
 	
-	fmt = "%Y-%m-%d.%H:%M:%S"
-	now_utc = datetime.now(timezone(time_zone))
-	cfg = hap_configs_dir + serv + "-" + now_utc.strftime(fmt) + ".cfg"
+	date = funct.get_data('config')
+	cfg = hap_configs_dir + serv + "-" + date + ".cfg"
 	
 	print('<center>')
 	print("<h3>Map from %s</h3><br />" % serv)
@@ -207,9 +205,9 @@ def get_map(serv):
 	except Exception as e:
 		print("!!! There was an issue, " + str(e))
 		
-	commands = [ "rm -f "+fullpath+"/map*.png", "mv %s/map.png %s/map%s.png" % (cgi_path, fullpath, now_utc.strftime(fmt)) ]
+	commands = [ "rm -f "+fullpath+"/map*.png", "mv %s/map.png %s/map%s.png" % (cgi_path, fullpath, date) ]
 	funct.ssh_command("localhost", commands)
-	print('<img src="/map%s.png" alt="map">' % now_utc.strftime(fmt))
+	print('<img src="/map%s.png" alt="map">' % date)
 
 def show_compare_configs(serv):
 	import glob

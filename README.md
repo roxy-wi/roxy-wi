@@ -1,5 +1,3 @@
-# Meet Haproxy-wi 2.0! Now with DB and Admin web interface! Life has become easier, life has become more cheerful!
-
 # Haproxy web interface
 A simple web interface(user-frendly web GUI) for managing Haproxy servers. Leave your [feedback](https://github.com/Aidaho12/haproxy-wi/issues)
 
@@ -17,7 +15,8 @@ A simple web interface(user-frendly web GUI) for managing Haproxy servers. Leave
 9. Rollback to previous versions of the config
 10. Comparing versions of configs
 11. Users roles: admin, editor, viewer
-12. Telegram notification
+12. Server groups
+13. Telegram notification
 
 # Install
 

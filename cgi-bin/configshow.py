@@ -4,35 +4,32 @@ import cgi
 import os
 import funct
 import paramiko
-import configparser
+from configparser import ConfigParser, ExtendedInterpolation
 from datetime import datetime
 from pytz import timezone
 
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
-servNew = form.getvalue('serNew')
 
 funct.head("Show HAproxy config")
 funct.check_config()
 funct.check_login()
 
 path_config = "haproxy-webintarface.config"
-config = configparser.ConfigParser()
+config = ConfigParser(interpolation=ExtendedInterpolation())
 config.read(path_config)
 
 ssh_keys = config.get('ssh', 'ssh_keys')
 ssh_user_name = config.get('ssh', 'ssh_user_name')
 hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
 haproxy_config_path  = config.get('haproxy', 'haproxy_config_path')
-time_zone = config.get('main', 'time_zone')
 
 funct.chooseServer("configshow.py", "Show HAproxy config", "n", onclick="showConfig()")
 
 print('<div id="ajax">')
-if form.getvalue('serv') is not None and form.getvalue('open') is not None :
-	fmt = "%Y-%m-%d.%H:%M:%S"
-	now_utc = datetime.now(timezone(time_zone))
-	cfg = hap_configs_dir + serv + "-" + now_utc.strftime(fmt) + ".cfg"
+if serv is not None and form.getvalue('open') is not None :
+	
+	cfg = hap_configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
 	
 	funct.get_config(serv, cfg)
 	

@@ -57,8 +57,11 @@ function startSetInterval(interval) {
 		showStats()
 	} else if (cur_url[0] == "overview.py") {
 		intervalId = setInterval('showOverview()', interval);
-		showOverview();
-	}  
+		showOverview(); 
+	} else if (cur_url[0] == "viewlogs.py") {
+		intervalId = setInterval('viewLogs()', interval);
+		viewLogs();
+	} 
 }
 function pauseAutoRefresh() {
 	clearInterval(intervalId);
@@ -123,6 +126,7 @@ function showLog() {
 		type: "GET",
 		success: function( data ) {
 			$("#ajax").html(data);
+			window.history.pushState("Logs", "Logs", cur_url[0]+"?serv="+$("#serv").val()+"&rows="+$('#rows').val()+"&grep="+$("#grep").val());
 		}					
 	} );
 }
@@ -210,7 +214,19 @@ function showConfig() {
 		}					
 	} );
 }
-
+function viewLogs() {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			viewlogs: $('#viewlogs').val(),
+		},
+		type: "GET",
+		success: function( data ) {
+			$("#ajax").html(data);
+			window.history.pushState("View logs", "View logs", cur_url[0]+"?viewlogs="+$("#viewlogs").val());
+		}					
+	} );
+}
 $( function() {
 	$( "#serv" ).on('selectmenuchange',function()  {
 		$("#show").css("pointer-events", "inherit");

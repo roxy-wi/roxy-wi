@@ -4,19 +4,10 @@ import cgi
 import requests
 import funct
 import sql
-import configparser
+from configparser import ConfigParser, ExtendedInterpolation
 from requests_toolbelt.utils import dump
 
 print("Content-type: text/html\n")
-funct.check_config()
-
-path_config = "haproxy-webintarface.config"
-config = configparser.ConfigParser()
-config.read(path_config)
-haproxy_user = config.get('haproxy', 'user')
-haproxy_pass = config.get('haproxy', 'password')
-stats_port = config.get('haproxy', 'stats_port')
-stats_page = config.get('haproxy', 'stats_page')
 
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
@@ -40,28 +31,9 @@ funct.choose_only_select(serv, virt=1)
 
 print('</select>'		
 		'<a class="ui-button ui-widget ui-corner-all" id="show" title="Show stats" onclick="showStats()">Show</a>'
-		'</form>')
-
-try:
-	response = requests.get('http://%s:%s/%s' % (serv, stats_port, stats_page), auth=(haproxy_user, haproxy_pass)) 
-except requests.exceptions.ConnectTimeout:
-	print('Oops. Connection timeout occured!')
-except requests.exceptions.ReadTimeout:
-	print('Oops. Read timeout occured')
-except requests.exceptions.HTTPError as errh:
-    print ("Http Error:",errh)
-except requests.exceptions.ConnectionError as errc:
-    print ("Error Connecting:",errc)
-except requests.exceptions.Timeout as errt:
-    print ("Timeout Error:",errt)
-except requests.exceptions.RequestException as err:
-    print ("OOps: Something Else",err)
-
-data = response.content
-print('<a name="conf"></a><div id="ajax" style="margin-left: 10px;">')
-print(data.decode('utf-8'))
-print('</div>')
+		'</form>'
+		'<div id="ajax" style="margin-left: 10px;"></div>')
 
 funct.head("Stats HAproxy configs")
-print('</div>')
+print('</div><script> window.onload = showStats()</script>')
 funct.footer()

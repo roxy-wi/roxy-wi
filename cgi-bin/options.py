@@ -5,12 +5,12 @@ import json
 import subprocess 
 import funct
 import ovw
-import configparser
+from configparser import ConfigParser, ExtendedInterpolation
 
 options = [ "acl", "http-request", "http-response", "set-uri", "set-url", "set-header", "add-header", "del-header", "replace-header", "path_beg", "url_beg()", "urlp_sub()", "tcpka", "tcplog", "forwardfor", "option" ]
 
 path_config = "haproxy-webintarface.config"
-config = configparser.ConfigParser()
+config = ConfigParser(interpolation=ExtendedInterpolation())
 config.read(path_config)
 funct.check_config()
 
@@ -80,8 +80,8 @@ if serv is not None and act == "stats":
 	import requests
 	from requests_toolbelt.utils import dump
 	
-	haproxy_user = config.get('haproxy', 'user')
-	haproxy_pass = config.get('haproxy', 'password')
+	haproxy_user = config.get('haproxy', 'stats_user')
+	haproxy_pass = config.get('haproxy', 'stats_password')
 	stats_port = config.get('haproxy', 'stats_port')
 	stats_page = config.get('haproxy', 'stats_page')
 	try:
@@ -158,10 +158,7 @@ if serv is not None and act == "configShow":
 	from pytz import timezone
 	
 	hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
-	time_zone = config.get('main', 'time_zone')
-	fmt = "%Y-%m-%d.%H:%M:%S"
-	now_utc = datetime.now(timezone(time_zone))
-	cfg = hap_configs_dir + serv + "-" + now_utc.strftime(fmt) + ".cfg"
+	cfg = hap_configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
 	
 	funct.get_config(serv, cfg)
 	
@@ -175,6 +172,19 @@ if serv is not None and act == "configShow":
 	funct.show_config(cfg)
 
 	os.system("/bin/rm -f " + cfg)	
+	
+if form.getvalue('viewlogs') is not None:
+	viewlog = form.getvalue('viewlogs')
+	log_path = config.get('main', 'log_path')
+	log = open(log_path + viewlog, "r")
+	print('<center><h3>Shows log: %s</h3></center><br />' % viewlog)
+	i = 0
+	for line in log:
+		i = i + 1
+		if i % 2 == 0: 
+			print('<div class="line3">' + line + '</div>')
+		else:
+			print('<div class="line">' + line + '</div>')
 	
 if form.getvalue('tailf_stop') is not None:
 	serv = form.getvalue('serv')

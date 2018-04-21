@@ -5,26 +5,18 @@ import http.cookies
 from paramiko import SSHClient
 from datetime import datetime
 from pytz import timezone
-import configparser
+from configparser import ConfigParser, ExtendedInterpolation
 import sql
 
-def check_config():
-	path_config = "haproxy-webintarface.config"
-	config = configparser.ConfigParser()
-	config.read(path_config)
-		
-	for section in [ 'main', 'configs', 'ssh', 'logs', 'haproxy' ]:
-		if not config.has_section(section):
-			print('<b style="color: red">Check config file, no %s section</b>' % section)
-
-
 path_config = "haproxy-webintarface.config"
-config = configparser.ConfigParser()
+config = ConfigParser(interpolation=ExtendedInterpolation())
 config.read(path_config)
 
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
 fullpath = config.get('main', 'fullpath')
+log_path = config.get('main', 'log_path')
+time_zone = config.get('main', 'time_zone')
 ssh_keys = config.get('ssh', 'ssh_keys')
 ssh_user_name = config.get('ssh', 'ssh_user_name')
 haproxy_configs_server = config.get('configs', 'haproxy_configs_server')
@@ -32,8 +24,20 @@ hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
 haproxy_config_path  = config.get('haproxy', 'haproxy_config_path')
 tmp_config_path = config.get('haproxy', 'tmp_config_path')
 restart_command = config.get('haproxy', 'restart_command')
-time_zone = config.get('main', 'time_zone')
 
+def check_config():
+	for section in [ 'main', 'configs', 'ssh', 'logs', 'haproxy' ]:
+		if not config.has_section(section):
+			print('<b style="color: red">Check config file, no %s section</b>' % section)
+			
+def get_data(type):
+	now_utc = datetime.now(timezone(time_zone))
+	if type == 'config':
+		fmt = "%Y-%m-%d.%H:%M:%S"
+	if type == 'logs':
+		fmt = '%Y%m%d'
+	return now_utc.strftime(fmt)
+			
 def logging(serv, action):
 	dateFormat = "%b  %d %H:%M:%S"
 	now_utc = datetime.now(timezone(time_zone))
@@ -41,7 +45,7 @@ def logging(serv, action):
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	login = cookie.get('login')
 	mess = now_utc.strftime(dateFormat) + " from " + IP + " user: " + login.value + " " + action + " for: " + serv + "\n"
-	log = open(fullpath + "log/config_edit.log", "a")
+	log = open(log_path + "/config_edit-"+get_data('logs')+".log", "a")
 	log.write(mess)
 	log.close
 	
@@ -185,10 +189,12 @@ def links():
 					'<li><a href=/cgi-bin/users.py#groups title="Actions with groups" class="group head-submenu">Groups</a></li>'
 					'<li><a href=/cgi-bin/users.py#servers title="Actions with servers" class="runtime head-submenu">Servers</a></li>'
 					'<li><a href=/cgi-bin/users.py#roles title="Users roles" class="role head-submenu">Roles</a></li>'
+					'<li><a href=/cgi-bin/settings.py title="View settings" class="settings head-submenu">View settings</a></li>'
+					'<li><a href=/cgi-bin/viewlogs.py title="View users actions logs" class="logs head-submenu">View logs</a></li>'
 				'</li>')
 	print('</ul>'
 		  '</nav>'
-		  '<div class="copyright-menu">HAproxy-WI v2.0.2.1</div>'
+		  '<div class="copyright-menu">HAproxy-WI v2.0.3</div>'
 		  '</div>')	
 
 def show_login_links():
@@ -352,9 +358,7 @@ def show_config(cfg):
 	conf.close
 	
 def upload_and_restart(serv, cfg, **kwargs):
-	fmt = "%Y-%m-%d.%H:%M:%S"
-	now_utc = datetime.now(timezone(config.get('main', 'time_zone')))
-	tmp_file = tmp_config_path + "/" + now_utc.strftime(fmt) + ".cfg"
+	tmp_file = tmp_config_path + "/" + get_data('config') + ".cfg"
 
 	ssh = ssh_connect(serv)
 	print("<center>connected<br />")

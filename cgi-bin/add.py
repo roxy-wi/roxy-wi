@@ -4,23 +4,17 @@ import cgi
 import os
 import funct
 import sql
-import paramiko
-import configparser
-import http.cookies
-from paramiko import SSHClient
-from datetime import datetime
-from pytz import timezone
+from configparser import ConfigParser, ExtendedInterpolation
 
 funct.head("Add")
 funct.check_config()
 funct.check_login()
 
 path_config = "haproxy-webintarface.config"
-config = configparser.ConfigParser()
+config = ConfigParser(interpolation=ExtendedInterpolation())
 config.read(path_config)
-funct.page_for_admin(level = 1)
+funct.page_for_admin(level = 2)
 
-haproxy_configs_server = config.get('configs', 'haproxy_configs_server')
 hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
 form = cgi.FieldStorage()
 listhap = sql.get_dick_permit()
@@ -29,6 +23,7 @@ if form.getvalue('mode') is not None:
 	serv = form.getvalue('serv')
 	port = form.getvalue('port')
 	mode = "    mode " + form.getvalue('mode')
+	ssl = ""
 	
 	if form.getvalue('balance')	 is not None:
 		balance = "    balance " + form.getvalue('balance')	+ "\n"
@@ -101,10 +96,8 @@ if form.getvalue('mode') is not None:
 	config_add = name + "\n" + bind +  mode  + "\n" + balance + options_split + backend + servers_split + "\n"
 
 	os.chdir(config.get('configs', 'haproxy_save_configs_dir'))
-	
-	fmt = "%Y-%m-%d.%H:%M:%S"
-	now_utc = datetime.now(timezone(config.get('main', 'time_zone')))
-	cfg = hap_configs_dir + serv + "-" + now_utc.strftime(fmt) + ".cfg"
+
+	cfg = hap_configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
 	
 	funct.get_config(serv, cfg)
 	try:
@@ -135,12 +128,12 @@ print('<div id="tabs">'
 			'<div id="listen">'
 				'<form name="add-listner" action="add.py">'
 					'<table>'
-							'<caption><h2>Add listen</h2></caption>'
-								'<tr>'
-									'<td class="addName">Select server: </td>'
-									'<td class="addOption">'
-										'<select required name="serv" id="serv">'
-											'<option disabled selected>Choose server</option>')
+						'<caption><h3 style="margin-left: 20px; margin-bottom: 10px;">Add listen</h3></caption>'
+						'<tr>'
+							'<td class="addName">Select server: </td>'
+							'<td class="addOption">'
+								'<select required name="serv" id="serv">'
+									'<option disabled selected>Choose server</option>')
 
 for i in listhap:
 	print('<option value="%s">%s</option>' % (i[2], i[1]))
@@ -255,12 +248,12 @@ print('</td>'
 		'<div id="frontend">'
 			'<form name="add-frontend" action="add.py">'
 				'<table>'
-					'<caption><h2>Add frontend</h2></caption>'
-						'<tr>'
-							'<td class="addName">Select server: </td>'
-							'<td class="addOption">'
-								'<select required name="serv" id="serv2">'
-									'<option disabled selected>Choose server</option>')
+					'<caption><h3 style="margin-left: 20px; margin-bottom: 10px;">Add frontend</h3></caption>'
+					'<tr>'
+						'<td class="addName">Select server: </td>'
+						'<td class="addOption">'
+							'<select required name="serv" id="serv2">'
+								'<option disabled selected>Choose server</option>')
 
 for i in listhap:
 	print('<option value="%s">%s</option>' % (i[2], i[1]))
@@ -339,12 +332,12 @@ print('</td>'
 		'<div id="backend">'
 			'<form name="add-backend" action="add.py">'
 				'<table>'
-					'<caption><h2>Add frontend</h2></caption>'
-						'<tr>'
-							'<td class="addName">Select server: </td>'
-							'<td class="addOption">'
-								'<select required name="serv">'
-									'<option disabled selected>Choose server</option>')
+					'<caption><h3 style="margin-left: 20px; margin-bottom: 10px;">Add backend</h3></caption>'
+					'<tr>'
+						'<td class="addName">Select server: </td>'
+						'<td class="addOption">'
+							'<select required name="serv">'
+								'<option disabled selected>Choose server</option>')
 
 for i in listhap:
 	print('<option value="%s">%s</option>' % (i[2], i[1]))

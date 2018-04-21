@@ -9,3 +9,4 @@ networkx==2.1
 numpy==1.14.0
 matplotlib==2.1.2
 urllib3==1.22
+future==0.13.1

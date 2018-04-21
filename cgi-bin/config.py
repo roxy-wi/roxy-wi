@@ -3,12 +3,8 @@ import html
 import cgi
 import os
 import http.cookies
-import configparser
+from configparser import ConfigParser, ExtendedInterpolation
 import funct
-import paramiko
-from paramiko import SSHClient
-from datetime import datetime
-from pytz import timezone
 
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
@@ -20,21 +16,19 @@ funct.check_login()
 funct.page_for_admin(level = 1)
 
 path_config = "haproxy-webintarface.config"
-config = configparser.ConfigParser()
+config = ConfigParser(interpolation=ExtendedInterpolation())
 config.read(path_config)
 
 log_path = config.get('main', 'log_path')
 hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
-time_zone = config.get('main', 'time_zone')
-
-if serv is not None:
-	fmt = "%Y-%m-%d.%H:%M:%S"
-	now_utc = datetime.now(timezone(time_zone))
-	cfg = hap_configs_dir + serv + "-" + now_utc.strftime(fmt) + ".cfg"
 
 funct.chooseServer("config.py", "Edit HAproxy config", "y")
 
+if serv is not None:
+	cfg = hap_configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
+
 if form.getvalue('serv') is not None and form.getvalue('open') is not None :
+	
 	funct.logging(serv, "config.py open config")
 	funct.get_config(serv, cfg)
 	
@@ -69,7 +63,7 @@ if form.getvalue('serv') is not None and form.getvalue('config') is not None:
 	
 	funct.upload_and_restart(serv, cfg, just_save=save)
 	
-	os.system("/bin/diff -ub %s %s >> %s/config_edit.log" % (oldcfg, cfg, log_path))
+	os.system("/bin/diff -ub %s %s >> %s/config_edit-%s.log" % (oldcfg, cfg, log_path, funct.get_data('logs')))
 	os.system("/bin/rm -f " + hap_configs_dir + "*.old")
 
 	print('</br><a href="viewsttats.py?serv=%s" target="_blank" title="View stats">Go to view stats</a> <br />' % serv)

@@ -70,15 +70,7 @@ pre {
 	float: left;
 	padding-left: 20px;
 }
-.top-menu a, .footer a {
-  padding: 10px;
-  margin-top: 10px;
-  padding-left: 7px;
-  padding-right: 7px;
-}
-.footer-link  {
-	margin-left: 44%;
-}
+
 .container {
 	min-height: calc(100vh - 115px);
 	max-width: 91%;
@@ -228,11 +220,13 @@ pre {
 	width: 120px;
 }
 .addOption, .addName {
-	border: 1px solid #ddd;
+	border-bottom: 1px solid #ddd;
 	padding: 15px;
 }
 .addButton {
 	padding-top: 15px;
+	padding-left: 15px;
+	padding-bottom: 5px;
 }
 .addButton:hover {
 	background-color: #fff;
@@ -329,8 +323,8 @@ pre {
 	min-height: calc(100vh - 70px);
 }
 .menu ul li{
-	padding: 10px; 
-	padding-left: 20px;
+	padding: 7px; 
+	padding-left: 40px;
 	margin-right: 0px !important;
 }
 
@@ -406,7 +400,14 @@ pre {
 .ui-tabs-nav {
 	padding-left: 20px !important; 
   }
- .ui-widget-header {
+.ui-tabs .ui-tabs-panel {
+	padding: 0 !important;
+	padding-bottom: 10px !important;
+ }
+.ui-tabs {
+	padding-left: 0 !important;
+}
+.ui-widget-header {
 	background: #5d9ceb !important;
  }
 .ui-menu, .ui-menu-item {

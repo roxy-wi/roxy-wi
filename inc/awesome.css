@@ -101,6 +101,11 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f2b9";
 }
+.settings::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f0ad";
+}
 .add-admin:before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";

@@ -2,7 +2,6 @@
 import html
 import cgi
 import funct
-import configparser
 
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
@@ -10,12 +9,8 @@ serv = form.getvalue('serv')
 funct.head("HAproxy Logs")
 funct.check_config()
 funct.check_login()
-
-path_config = "haproxy-webintarface.config"
-config = configparser.ConfigParser()
-config.read(path_config)
-
 funct.get_auto_refresh("HAproxy logs")	
+
 print('<table class="overview">'
 			'<tr class="overviewHead">'
 				'<td class="padding10 first-collumn">Server</td>'
@@ -33,7 +28,7 @@ funct.choose_only_select(serv)
 
 print('</select>')
 
-if form.getvalue('serv') is not None:
+if serv is not None:
         rows = 'value='+form.getvalue('rows')
 else:
 	rows = 'value=10'
@@ -52,5 +47,8 @@ print('</td>'
 	'</form>'
 	'</tr></table>'
 	'<div id="ajax">'
-	'</div>')	
+	'</div>'
+	'<script>'
+		'window.onload = showLog()'
+	'</script>')	
 funct.footer()

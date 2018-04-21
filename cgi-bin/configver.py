@@ -1,15 +1,9 @@
 #!/usr/bin/env python3
 import html
 import cgi
-import subprocess
 import os
-import http.cookies
 import funct
-import paramiko
-import configparser
-from paramiko import SSHClient
-from datetime import datetime
-from pytz import timezone
+from configparser import ConfigParser, ExtendedInterpolation
 
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
@@ -18,10 +12,10 @@ configver = form.getvalue('configver')
 funct.head("Old Versions HAproxy config")
 funct.check_config()
 funct.check_login()
-funct.page_for_admin(level = 1)
+funct.page_for_admin(level = 2)
 
 path_config = "haproxy-webintarface.config"
-config = configparser.ConfigParser()
+config = ConfigParser(interpolation=ExtendedInterpolation())
 config.read(path_config)
 
 hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
@@ -39,7 +33,7 @@ if serv is not None and form.getvalue('open') is not None:
 
 	os.chdir(hap_configs_dir)
 
-	for files in glob.glob('*.cfg'):
+	for files in sorted(glob.glob('*.cfg')):
 		ip = files.split("-")
 		if serv == ip[0]:
 			if configver == files:
@@ -61,7 +55,7 @@ if serv is not None and form.getvalue('open') is not None:
 		funct.logging(serv, "open old config %s" % configver)
 
 		print("<h3>Config from %s, and version is: %s</h3>" % (serv, configver))
-		print('<form action="configver.py#conf" method="post">')
+		print('<form action="configver.py#conf" method="get">')
 		print('<input type="hidden" value="%s" name="serv">' % serv)
 		print('<input type="hidden" value="%s" name="configver">' % configver)
 		print('<input type="hidden" value="1" name="config">')
@@ -83,7 +77,7 @@ if form.getvalue('serv') is not None and form.getvalue('config') is not None:
 	
 	funct.logging(serv, "configver.py upload old config %s" % configver)
 	
-	print("<b>Uploaded old config ver: %s </b></br></br>" % configver)
+	print("<center><b>Uploaded old config ver: %s </b></br></br></center>" % configver)
 
 	funct.upload_and_restart(serv, configver, just_save=save)
 
