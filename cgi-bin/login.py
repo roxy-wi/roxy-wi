@@ -2,9 +2,11 @@
 import cgi
 import html
 import os
+import sys
 import funct
 import http.cookies
 import sql
+import create_db
 
 cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 form = cgi.FieldStorage()
@@ -14,16 +16,20 @@ password = form.getvalue('pass')
 
 def login_page(error):
 	if error == "error":
-		printError = "<b style='color: red'>Somthing wrong :( I'm sad about this, but try again!</b><br /><br />"
+		printError = "<h2>Login page. Enter please</h2><br /><br /><b style='color: red'>Somthing wrong :( I'm sad about this, but try again!</b><br /><br />"
 	else:
 		printError = "<h2>Login page. Enter please</h2><br /><br />"	
+		
+	if create_db.check_db():
+		if create_db.create_table():
+			print('<div class="alert alert-success">DB was created')
+			create_db.update_all()
+			print('<br />Now you can login, default: admin/admin</div>')
 	
 	ref = form.getvalue('ref')
 	if ref is None:
 		ref = "/index.html"		
-		
-	funct.head("Login page")
-		
+				
 	print('<center><form name="auth" action="login.py" class="form-horizontal" method="get">')
 	print(printError)
 	print('<label for="login">Login: </label>  <input type="text" name="login" required class="form-control"><br /><br />')
@@ -39,6 +45,7 @@ if form.getvalue('logout') is not None:
 	print('<meta http-equiv="refresh" content="0; url=/">')
 	
 if login is None:		
+	funct.head("Login page")
 	login_page("n")
 	
 if login is not None and password is not None:
@@ -68,7 +75,7 @@ if login is not None and password is not None:
 			print('<html><head><title>Redirecting</title><meta charset="UTF-8">')
 			print('<link href="/style.css" rel="stylesheet">')
 			print('<meta http-equiv="refresh" content="0; url=%s">' % ref)
-			break
+			sys.exit()
 	login_page("error")
 	
 funct.footer()

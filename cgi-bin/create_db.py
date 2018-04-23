@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import cgi
+import html
 import sqlite3 as sqlite
 import os
 import sys
@@ -11,11 +13,12 @@ def check_db():
 			with open(db,'r', encoding = "ISO-8859-1") as f:
 				header = f.read(100)
 				if header.startswith('SQLite format 3'):
-					print("SQLite3 database has been detected.")
 					return False
 				else:
 					return True
- 
+	else:
+		return True
+		
 def get_cur():
 	con = sqlite.connect(db, isolation_level=None)
 	cur = con.cursor()    
@@ -65,7 +68,23 @@ def create_table():
 		`description`	VARCHAR ( 255 ),
 		PRIMARY KEY(`id`) 
 	);
-	INSERT INTO `groups` (name, description) VALUES ('All','All servers enter in this group');
+	
+	CREATE TABLE IF NOT EXISTS `groups` (
+	`id`	INTEGER NOT NULL,
+	`name`	VARCHAR ( 80 ) UNIQUE,
+	`description`	VARCHAR ( 255 ),
+	PRIMARY KEY(`id`)
+	);
+	INSERT INTO `groups` (name, description) VALUES ('All','All servers enter in this group');	
+	
+	CREATE TABLE IF NOT EXISTS `servers` (
+	`id`	INTEGER NOT NULL,
+	`hostname`	VARCHAR ( 64 ) UNIQUE,
+	`ip`	VARCHAR ( 64 ) UNIQUE,
+	`groups`	VARCHAR ( 64 ),
+	PRIMARY KEY(`id`)
+	);
+	
 	COMMIT;
 	"""
 	 
@@ -73,18 +92,19 @@ def create_table():
 		cur.executescript(sql)
 	except sqlite.Error as e:
 		print("An error occurred:", e.args[0])
+		return False
 	else:
-		print("DB was created")
+		return True
 	cur.close() 
 	con.close()
 	
 def update_db_v_2_0_1():
 	con, cur = get_cur()
 	sql = """
-	ALTER TABLE `servers` ADD COLUMN type_ip INTEGER NOT NULL DEFAULT(0);
+	ALTER TABLE servers ADD COLUMN type_ip INTEGER NOT NULL DEFAULT(0);
 	"""
 	try:    
-		cur.executescript(sql)
+		cur.execute(sql)
 	except sqlite.Error as e:
 		if e.args[0] == 'duplicate column name: type_ip':
 			print('Updating... go to version 2.0.1.1')
@@ -118,10 +138,15 @@ def update_db_v_2_0_1_1():
 	cur.close() 
 	con.close()
 	
-if check_db():	
-	create_table()
-else:
-	print('DB already exists, try update')
-if update_db_v_2_0_1():
-	print('DB was property update to version 2.0.1.')
-update_db_v_2_0_1_1()
+def update_all():
+	update_db_v_2_0_1()
+	update_db_v_2_0_1_1()
+		
+#if check_db():	
+#	create_table()
+#else:
+#	print('DB already exists, try update')
+#update_all()
+#if update_db_v_2_0_1():
+#	print('DB was property update to version 2.0.1.')
+#update_db_v_2_0_1_1()

@@ -26,11 +26,10 @@ os.chdir(log_path)
 print('<script src="/inc/users.js"></script>'
 		'<a name="top"></a>'
 		'<center><h3>Choose log file</h3><br />'
-		'<select id="viewlogs">')
+		'<select id="viewlogs">'
+			'<option disabled selected>Choose log</option>')
 	
-i = 0
 for files in sorted(glob.glob('*.log')):
-	i = i + 1
 	if files == viewlog:
 		selected = 'selected'
 	else:

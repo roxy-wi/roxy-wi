@@ -538,6 +538,11 @@ a:focus {
 	margin-top: 15px;
 	margin-bottom: -50px;
 }
+.alert-success {
+  color: #3c763d;
+  background-color: #dff0d8;
+  border-color: #d6e9c6;
+}
 label {
   display: inline-block;
   max-width: 100%;

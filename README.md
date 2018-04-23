@@ -28,7 +28,6 @@ $ mv haproxy-wi-master/ haproxy-wi
 $ pip install -r haproxy-wi/requirements.txt 
 $ cd haproxy-wi/cgi-bin
 $ chmod +x *.py
-$ ./create_db.py 
 ```
 
 For Apache do virtualhost with cgi-bin.
@@ -53,14 +52,6 @@ For Runtime API enable state file on HAproxt servers and need install socat on a
        load-server-state-from-file global
    ```
 ![alt text](image/haproxy-wi-logs.jpeg "View logs page")
-
-# Update DB
-
-For update db:
-```
-$ cd /var/www/haproxy-wi/cgi-bin
-$ ./create_db.py 
-```
 
 # Further development and support
 
