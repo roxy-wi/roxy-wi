@@ -146,7 +146,7 @@ def head(title):
 				'<div class="top-menu">'
 					'<div class="LogoText">'
 						'<span style="padding: 10px;">HAproxy-WI</span>'
-						'<a href="#" id="hide_menu" title="Hide menu" style="margin-left: 16px;margin-top: -10px;position: absolute;">'
+						'<a href="#" id="hide_menu" title="Hide menu" style="margin-left: 23px; position: absolute;">'
 							'<span class="ui-state-default ui-corner-all">'
 								'<span class="ui-icon ui-icon-arrowthick-1-w" id="arrow"></span>'
 							'</span>'
@@ -194,7 +194,7 @@ def links():
 				'</li>')
 	print('</ul>'
 		  '</nav>'
-		  '<div class="copyright-menu">HAproxy-WI v2.0.3</div>'
+		  '<div class="copyright-menu">HAproxy-WI v2.0.4</div>'
 		  '</div>')	
 
 def show_login_links():
@@ -528,7 +528,7 @@ def chooseServer(formName, title, note, **kwargs):
 		
 	print('</p></form>')
 	
-	if note == "y":
-		print('<p><b>Note:</b> If you reconfigure First server, second will reconfigured automatically</p>')
+	#if note == "y":
+	#	print('<p><b>Note:</b> If you reconfigure First server, second will reconfigured automatically</p>')
 	print('</center>')
 

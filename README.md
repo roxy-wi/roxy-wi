@@ -25,9 +25,9 @@ For install just [dowload](https://github.com/Aidaho12/haproxy-wi/archive/master
 $ cd /var/www/
 $ unzip master.zip
 $ mv haproxy-wi-master/ haproxy-wi
+$ chown -R apache:apache haproxy-wi/
 $ pip install -r haproxy-wi/requirements.txt 
-$ cd haproxy-wi/cgi-bin
-$ chmod +x *.py
+$ chmod +x haproxy-wi/cgi-bin/*.py 
 ```
 
 For Apache do virtualhost with cgi-bin. Like this:
@@ -48,7 +48,16 @@ For Apache do virtualhost with cgi-bin. Like this:
         </Directory>
 </VirtualHost>
 ```
+# Database support
 
+Default Haproxy-WI use Sqlite, if you want use MySQL enable in config, and create database:
+
+## For MySQL support:
+```
+MariaDB [(none)]> create user 'haproxy-wi'@'%';
+MariaDB [(none)]> create database haproxywi;
+MariaDB [(none)]> grant all on haproxywi.* to 'haproxy-wi'@'%' IDENTIFIED BY 'haproxy-wi';
+```
 ![alt text](image/haproxy-wi-overview.jpeg "Overview page")
 
 # Settings
@@ -64,9 +73,10 @@ Copy ssh key on all HAproxy servers
 For Runtime API enable state file on HAproxt servers and need install socat on all haproxy servers:
 ```
     global
-       server-state-file /etc/haproxy/haproxy/haproxy.state
+		stats socket *:1999 level admin 
+		server-state-file /etc/haproxy/haproxy/haproxy.state
     defaults
-       load-server-state-from-file global
+		load-server-state-from-file global
    ```
 ![alt text](image/haproxy-wi-logs.jpeg "View logs page")
 

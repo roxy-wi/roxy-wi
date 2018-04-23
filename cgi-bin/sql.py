@@ -1,21 +1,31 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-"
-import sqlite3 as sqlite
 import cgi
- 
-def get_cur():
-	con = sqlite.connect("haproxy-wi.db", isolation_level=None)
-	cur = con.cursor()    
-	return con, cur
+import create_db
+from configparser import ConfigParser, ExtendedInterpolation
+
+path_config = "haproxy-webintarface.config"
+config = ConfigParser(interpolation=ExtendedInterpolation())
+config.read(path_config)
+
+mysql_enable = config.get('mysql', 'enable')
+
+if mysql_enable == '1':
+	from mysql.connector import errorcode
+	import mysql.connector as sqltool
+else:
+	db = "haproxy-wi-test.db"
+	import sqlite3 as sqltool
 	
 def add_user(user, email, password, role, group):
-	con, cur = get_cur()
+	con, cur = create_db.get_cur()
 	sql = """INSERT INTO user (username, email, password, role, groups) VALUES ('%s', '%s', '%s', '%s', '%s')""" % (user, email, password, role, group)
 	try:    
-		with con:
-			cur.executescript(sql)
-	except sqlite.Error as e:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
 		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		con.rollback()
 		return False
 	else:
 		return True
@@ -23,7 +33,7 @@ def add_user(user, email, password, role, group):
 	con.close()   
 	
 def update_user(user, email, password, role, group, id):
-	con, cur = get_cur()
+	con, cur = create_db.get_cur()
 	sql = """update user set username = '%s', 
 			email = '%s',
 			password = '%s', 
@@ -31,10 +41,11 @@ def update_user(user, email, password, role, group, id):
 			groups = '%s' 
 			where id = '%s'""" % (user, email, password, role, group, id)
 	try:    
-		with con:
-			cur.executescript(sql)
-	except sqlite.Error as e:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
 		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		con.rollback()
 		return False
 	else:
 		return True
@@ -42,25 +53,27 @@ def update_user(user, email, password, role, group, id):
 	con.close()
 
 def delete_user(id):
-	con, cur = get_cur()
+	con, cur = create_db.get_cur()
 	sql = """delete from user where id = '%s'""" % (id)
 	try:    
-		with con:
-			cur.executescript(sql)
-	except sqlite.Error as e:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
 		print("An error occurred:", e.args[0])
+		con.rollback()
 	else: 
 		return True
 	cur.close()
 	
 def add_group(name, description):
-	con, cur = get_cur()
+	con, cur = create_db.get_cur()
 	sql = """INSERT INTO groups (name, description) VALUES ('%s', '%s')""" % (name, description)
 	try:    
-		with con:
-			cur.execute(sql)
-	except sqlite.Error as e:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
 		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		con.rollback()
 		return False
 	else:
 		print(cur.lastrowid)
@@ -69,19 +82,20 @@ def add_group(name, description):
 	con.close() 
 
 def delete_group(id):
-	con, cur = get_cur()
+	con, cur = create_db.get_cur()
 	sql = """delete from groups where id = '%s'""" % (id)
 	try:    
-		with con:
-			cur.executescript(sql)
-	except sqlite.Error as e:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
 		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		con.rollback()
 	else: 
 		return True
 	cur.close()
 	
 def update_group(name, descript, id):
-	con, cur = get_cur()
+	con, cur = create_db.get_cur()
 	sql = """
 		update groups set 
 		name = '%s',
@@ -89,10 +103,11 @@ def update_group(name, descript, id):
 		where id = '%s';
 		""" % (name, descript, id)
 	try:    
-		with con:
-			cur.executescript(sql)
-	except sqlite.Error as e:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
 		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		con.rollback()
 		return False
 	else:
 		return True
@@ -100,13 +115,14 @@ def update_group(name, descript, id):
 	con.close()
 
 def add_server(hostname, ip, group, typeip, enable):
-	con, cur = get_cur()
+	con, cur = create_db.get_cur()
 	sql = """INSERT INTO servers (hostname, ip, groups, type_ip, enable) VALUES ('%s', '%s', '%s', '%s', '%s')""" % (hostname, ip, group, typeip, enable)
 	try:    
-		with con:
-			cur.executescript(sql)
-	except sqlite.Error as e:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
 		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		con.rollback()
 		return False
 	else:
 		return True
@@ -114,20 +130,21 @@ def add_server(hostname, ip, group, typeip, enable):
 	con.close() 	
 
 def delete_server(id):
-	con, cur = get_cur()
+	con, cur = create_db.get_cur()
 	sql = """delete from servers where id = '%s'""" % (id)
 	try:    
-		with con:
-			cur.executescript(sql)
-	except sqlite.Error as e:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
 		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		con.rollback()
 	else: 
 		return True
 	cur.close()    
 	con.close() 		
 
 def update_server(hostname, ip, group, typeip, enable, id):
-	con, cur = get_cur()
+	con, cur = create_db.get_cur()
 	sql = """update servers set 
 			hostname = '%s',
 			ip = '%s',
@@ -136,21 +153,22 @@ def update_server(hostname, ip, group, typeip, enable, id):
 			enable = '%s'
 			where id = '%s'""" % (hostname, ip, group, typeip, enable, id)
 	try:    
-		with con:
-			cur.executescript(sql)
-	except sqlite.Error as e:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
 		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		con.rollback()
 	cur.close()    
 	con.close()
 	
 def select_users(**kwargs):
-	con, cur = get_cur()
+	con, cur = create_db.get_cur()
 	sql = """select * from user ORDER BY id"""
 	if kwargs.get("user") is not None:
 		sql = """select * from user where username='%s' """ % kwargs.get("user")
 	try:    
 		cur.execute(sql)
-	except sqlite.Error as e:
+	except sqltool.Error as e:
 		print("An error occurred:", e.args[0])
 	else:
 		return cur.fetchall()
@@ -158,13 +176,13 @@ def select_users(**kwargs):
 	con.close()    
 	
 def select_groups(**kwargs):
-	con, cur = get_cur()
+	con, cur = create_db.get_cur()
 	sql = """select * from groups ORDER BY id"""
 	if kwargs.get("group") is not None:
 		sql = """select * from groups where name='%s' """ % kwargs.get("group")
 	try:    
 		cur.execute(sql)
-	except sqlite.Error as e:
+	except sqltool.Error as e:
 		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 	else:
 		return cur.fetchall()
@@ -172,11 +190,11 @@ def select_groups(**kwargs):
 	con.close()  
 	
 def select_user_name_group(id):
-	con, cur = get_cur()
+	con, cur = create_db.get_cur()
 	sql = """select name from groups where id='%s' """ % id
 	try:    
 		cur.execute(sql)
-	except sqlite.Error as e:
+	except sqltool.Error as e:
 		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 	else:
 		return cur.fetchone()
@@ -201,7 +219,7 @@ def get_groups_select(id, **kwargs):
 	print('</select>')
 	
 def select_servers(**kwargs):
-	con, cur = get_cur()
+	con, cur = create_db.get_cur()
 	sql = """select * from servers where enable = '1' ORDER BY groups """
 	if kwargs.get("server") is not None:
 		sql = """select * from servers where hostname='%s' """ % kwargs.get("server")
@@ -209,7 +227,7 @@ def select_servers(**kwargs):
 		sql = """select * from servers ORDER BY groups """ 
 	try:    
 		cur.execute(sql)
-	except sqlite.Error as e:
+	except sqltool.Error as e:
 		print("An error occurred:", e.args[0])
 	else:
 		return cur.fetchall()
@@ -217,11 +235,11 @@ def select_servers(**kwargs):
 	con.close()  
 	
 def get_type_ip_checkbox(id, **kwargs):
-	con, cur = get_cur()
+	con, cur = create_db.get_cur()
 	sql = """select id, type_ip from servers where id='%s' """ % id
 	try:    
 		cur.execute(sql)
-	except sqlite.Error as e:
+	except sqltool.Error as e:
 		print("An error occurred:", e.args[0])
 	else:
 		for server in cur.fetchall():
@@ -234,11 +252,11 @@ def get_type_ip_checkbox(id, **kwargs):
 	con.close() 
 	
 def get_enable_checkbox(id, **kwargs):
-	con, cur = get_cur()
+	con, cur = create_db.get_cur()
 	sql = """select id, enable from servers where id='%s' """ % id
 	try:    
 		cur.execute(sql)
-	except sqlite.Error as e:
+	except sqltool.Error as e:
 		print("An error occurred:", e.args[0])
 	else:
 		for server in cur.fetchall():
@@ -255,7 +273,7 @@ def get_dick_permit(**kwargs):
 	import os
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	login = cookie.get('login')
-	con, cur = get_cur()
+	con, cur = create_db.get_cur()
 	sql = """ select * from user where username = '%s' """ % login.value
 	if kwargs.get('virt'):
 		type_ip = "" 
@@ -263,7 +281,7 @@ def get_dick_permit(**kwargs):
 		type_ip = "and type_ip = 0" 
 	try:    
 		cur.execute(sql)
-	except sqlite.Error as e:
+	except sqltool.Error as e:
 		print("An error occurred:", e.args[0])
 	else:
 		for group in cur:
@@ -273,7 +291,7 @@ def get_dick_permit(**kwargs):
 				sql = """ select * from servers where groups like '%{group}%' and enable = 1 {type_ip} """.format(group=group[5], type_ip=type_ip)		
 		try:   
 			cur.execute(sql)
-		except sqlite.Error as e:
+		except sqltool.Error as e:
 			print("An error occurred:", e.args[0])
 		else:
 			return cur.fetchall()
@@ -354,13 +372,13 @@ def show_update_group(group):
 		print('</tr>')
 
 def select_roles(**kwargs):
-	con, cur = get_cur()
+	con, cur = create_db.get_cur()
 	sql = """select * from role ORDER BY id"""
 	if kwargs.get("role") is not None:
 		sql = """select * from role where name='%s' """ % kwargs.get("group")
 	try:    
 		cur.execute(sql)
-	except sqlite.Error as e:
+	except sqltool.Error as e:
 		print("An error occurred:", e.args[0])
 	else:
 		return cur.fetchall()
@@ -368,13 +386,13 @@ def select_roles(**kwargs):
 	con.close()  
 	
 def select_roles(**kwargs):
-	con, cur = get_cur()
+	con, cur = create_db.get_cur()
 	sql = """select * from role ORDER BY id"""
 	if kwargs.get("roles") is not None:
 		sql = """select * from role where name='%s' """ % kwargs.get("roles")
 	try:    
 		cur.execute(sql)
-	except sqlite.Error as e:
+	except sqltool.Error as e:
 		print("An error occurred:", e.args[0])
 	else:
 		return cur.fetchall()
