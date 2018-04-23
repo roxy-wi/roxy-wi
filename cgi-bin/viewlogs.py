@@ -29,7 +29,7 @@ print('<script src="/inc/users.js"></script>'
 		'<select id="viewlogs">'
 			'<option disabled selected>Choose log</option>')
 	
-for files in sorted(glob.glob('*.log')):
+for files in sorted(glob.glob('*.log'), reverse=True):
 	if files == viewlog:
 		selected = 'selected'
 	else:

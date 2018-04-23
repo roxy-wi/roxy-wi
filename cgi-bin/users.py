@@ -51,7 +51,6 @@ for users in USERS:
 	need_id_group = "usergroup-%s" % users[0]
 	sql.get_groups_select(need_id_group, selected=users[5])
 	print('</td>')
-	#print('<td><a class="update-row" onclick="updateUser(%s)"  style="cursor: pointer;"></a></td>' % users[0])
 	print('<td><a class="delete" onclick="removeUser(%s)"  style="cursor: pointer;"></a></td>' % users[0])
 	print('</tr>')
 print('</table>'
@@ -86,12 +85,18 @@ print('</div><div id="groups">'
 						'<td></td>'
 						'<td></td>'
 					'</tr>')
+i = 0
 for group in GROUPS:
+	i = i + 1
 	print('<tr id="group-%s">' % group[0])
-	print('<td class="padding10 first-collumn"><input type="text" id="name-%s" value="%s" class="form-control"></td>' % (group[0], group[1]))
-	print('<td><input type="text" id="descript-%s" value="%s" class="form-control" size="100"></td>' % (group[0], group[2]))
-	#print('<td><a class="update-row" onclick="updateGroup(%s)"  style="cursor: pointer;"></a></td>' % group[0])
-	print('<td><a class="delete" onclick="removeGroup(%s)"  style="cursor: pointer;"></a></td>' % group[0])
+	if i == 1:
+		print('<td class="padding10 first-collumn">%s</td>' % (group[1]))
+		print('<td>%s</td>' % (group[2]))
+		print('<td></td>')
+	else:
+		print('<td class="padding10 first-collumn"><input type="text" id="name-%s" value="%s" class="form-control"></td>' % (group[0], group[1]))
+		print('<td><input type="text" id="descript-%s" value="%s" class="form-control" size="100"></td>' % (group[0], group[2]))
+		print('<td><a class="delete" onclick="removeGroup(%s)"  style="cursor: pointer;"></a></td>' % group[0])
 	print('</tr>')
 print('</table>'
 		'<br /><span class="add-button" title="Add group" id="add-group-button">+ Add</span>')

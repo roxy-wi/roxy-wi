@@ -30,7 +30,24 @@ $ cd haproxy-wi/cgi-bin
 $ chmod +x *.py
 ```
 
-For Apache do virtualhost with cgi-bin.
+For Apache do virtualhost with cgi-bin. Like this:
+```
+<VirtualHost *:80>
+        ServerName haproxy-wi
+        ErrorLog /var/log/httpd/haproxy-wi.error.log
+        CustomLog /var/log/httpd/haproxy-wi.access.log combined
+
+        DocumentRoot /var/www/haproxy-wi
+        ScriptAlias /cgi-bin/ "/var/www/haproxy-wi/cgi-bin/"
+
+        <Directory /var/www/haproxy-wi>
+                Options +ExecCGI
+                AddHandler cgi-script .py
+                Order deny,allow
+                Allow from all
+        </Directory>
+</VirtualHost>
+```
 
 ![alt text](image/haproxy-wi-overview.jpeg "Overview page")
 
