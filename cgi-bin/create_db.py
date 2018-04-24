@@ -167,8 +167,8 @@ def update_db_v_2_0_1_1():
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		if e.args[0] == 'duplicate column name: enable':
-			print('Already updated. No run more. Thx =^.^=')
+		if e.args[0] == 'duplicate column name: enable' or e == "1060 (42S21): Duplicate column name 'enable' ":
+			print('Updating... go to version 2.0.5')
 			return False
 		else:
 			print("An error occurred:", e)
@@ -179,9 +179,30 @@ def update_db_v_2_0_1_1():
 	cur.close() 
 	con.close()
 	
+def update_db_v_2_0_5():
+	con, cur = get_cur()
+	sql = """
+	ALTER TABLE `servers` ADD COLUMN master INTEGER NOT NULL DEFAULT 0;
+	"""
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		if e.args[0] == 'duplicate column name: master':
+			print('Already updated. No run more. Thx =^.^=')
+			return False
+		else:
+			print("An error occurred:", e)
+			return False
+	else:
+		print("DB was update to 2.0.5")
+		return True
+	cur.close() 
+	con.close()
+	
 def update_all():
 	update_db_v_2_0_1()
 	update_db_v_2_0_1_1()
+	update_db_v_2_0_5()
 		
 #if check_db():	
 #	create_table()

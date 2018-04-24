@@ -5,6 +5,7 @@ import os
 import http.cookies
 from configparser import ConfigParser, ExtendedInterpolation
 import funct
+import sql
 
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
@@ -61,6 +62,11 @@ if form.getvalue('serv') is not None and form.getvalue('config') is not None:
 
 	print("<center><b>New config was saved as: %s </b></br></br></center>" % cfg)
 	
+	MASTERS = sql.is_master(serv)
+	for master in MASTERS:
+		if master[0] != None:
+			funct.upload_and_restart(master[0], cfg, just_save=save)
+		
 	funct.upload_and_restart(serv, cfg, just_save=save)
 	
 	os.system("/bin/diff -ub %s %s >> %s/config_edit-%s.log" % (oldcfg, cfg, log_path, funct.get_data('logs')))

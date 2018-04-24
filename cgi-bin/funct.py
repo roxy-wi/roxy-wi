@@ -194,7 +194,7 @@ def links():
 				'</li>')
 	print('</ul>'
 		  '</nav>'
-		  '<div class="copyright-menu">HAproxy-WI v2.0.4</div>'
+		  '<div class="copyright-menu">HAproxy-WI v2.0.5</div>'
 		  '</div>')	
 
 def show_login_links():
@@ -528,7 +528,7 @@ def chooseServer(formName, title, note, **kwargs):
 		
 	print('</p></form>')
 	
-	#if note == "y":
-	#	print('<p><b>Note:</b> If you reconfigure First server, second will reconfigured automatically</p>')
+	if note == "y":
+		print('<p><b>Note:</b> If you reconfigure First server, second will reconfigured automatically</p>')
 	print('</center>')
 

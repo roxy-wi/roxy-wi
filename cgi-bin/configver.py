@@ -3,6 +3,7 @@ import html
 import cgi
 import os
 import funct
+import sql
 from configparser import ConfigParser, ExtendedInterpolation
 
 form = cgi.FieldStorage()
@@ -79,6 +80,11 @@ if form.getvalue('serv') is not None and form.getvalue('config') is not None:
 	
 	print("<center><b>Uploaded old config ver: %s </b></br></br></center>" % configver)
 
+	MASTERS = sql.is_master(serv)
+	for master in MASTERS:
+		if master[0] != None:
+			funct.upload_and_restart(master[0], configver, just_save=save)
+			
 	funct.upload_and_restart(serv, configver, just_save=save)
 
 	print('</br><a href="viewsttats.py?serv=%s" target="_blank" title="View stats">Go to view stats</a> <br />' % serv)

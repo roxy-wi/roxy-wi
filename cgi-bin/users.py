@@ -122,6 +122,7 @@ print('<br /><br /><table class="overview" id="group-add-table" style="display: 
 						'<td>Group</td>'
 						'<td>Enable</td>'
 						'<td>Virt</td>'
+						'<td><span title="Actions with master config will automatically apply on slave">Slave for (?)</span></td>'
 						'<td></td>'
 						'<td></td>'
 					'</tr>')
@@ -140,7 +141,15 @@ for server in SERVERS:
 	print('<td>')
 	sql.get_type_ip_checkbox(server[0])
 	print('</td>')
-	#print('<td><a class="update-row" onclick="updateServer(%s)"  style="cursor: pointer;"></a></td>' % server[0])
+	print('<td><select id="slavefor-%s"><option value="0" selected>Not slave</option>' % server[0])
+	MASTERS = sql.select_servers(get_master_servers=1)
+	for master in MASTERS:
+		if master[0] == server[6]:
+			selected = "selected"
+		else:
+			selected = ""
+		print('<option value="%s" %s>%s</option>' % (master[0], selected, master[1]))
+	print('</select></td>')
 	print('<td><a class="delete" onclick="removeServer(%s)"  style="cursor: pointer;"></a></td>' % server[0])
 	print('</tr>')
 print('</table>'
@@ -152,6 +161,7 @@ print('</table>'
 		'<td>Group</td>'
 		'<td>Enable</td>'
 		'<td>Virt</td>'
+		'<td title="Actions with master config will automatically apply on slave">Slave for</td>'
 		'<td></td>'
 	'</tr>'
 	'<tr>'
@@ -161,6 +171,11 @@ sql.get_groups_select("new-server-group-add")
 print('</td>'
 		'<td><label for="enable"></label><input type="checkbox" id="enable" checked></td>'
 		'<td><label for="typeip"></label><input type="checkbox" id="typeip"></td>'
+		'<td><select id="slavefor" value="0" selected><option>Not slave</option>')
+MASTERS = sql.select_servers(get_master_servers=1)
+for master in MASTERS:
+	print('<option value="%s">%s</option>' % (master[0], master[1]))
+print('</select></td>'
 		'<td><a class="add-admin"  id="add-server" style="cursor: pointer;"></a></td>'
 		'</tr>')
 print('</table>')

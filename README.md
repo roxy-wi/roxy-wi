@@ -13,10 +13,11 @@ A simple web interface(user-frendly web GUI) for managing Haproxy servers. Leave
 7. Add sections: listen, frontend, backend from web interface
 8. Editing configs
 9. Rollback to previous versions of the config
-10. Comparing versions of configs
-11. Users roles: admin, editor, viewer
-12. Server groups
-13. Telegram notification
+10. Master/slave servers
+11. Comparing versions of configs
+12. Users roles: admin, editor, viewer
+13. Server groups
+14. Telegram notification
 
 # Install
 
@@ -32,7 +33,7 @@ $ chmod +x haproxy-wi/cgi-bin/*.py
 
 For Apache do virtualhost with cgi-bin. Like this:
 ```
-<VirtualHost *:80>
+<VirtualHost *:8000>
         ServerName haproxy-wi
         ErrorLog /var/log/httpd/haproxy-wi.error.log
         CustomLog /var/log/httpd/haproxy-wi.access.log combined
@@ -79,6 +80,12 @@ For Runtime API enable state file on HAproxt servers and need install socat on a
 		load-server-state-from-file global
    ```
 ![alt text](image/haproxy-wi-logs.jpeg "View logs page")
+
+# Update DB
+```
+$ cd /var/www/haproxy-wi/cgi-bin
+$ ./update_db.py
+```
 
 # Further development and support
 

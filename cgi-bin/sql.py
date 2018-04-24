@@ -14,7 +14,7 @@ if mysql_enable == '1':
 	from mysql.connector import errorcode
 	import mysql.connector as sqltool
 else:
-	db = "haproxy-wi-test.db"
+	db = "haproxy-wi.db"
 	import sqlite3 as sqltool
 	
 def add_user(user, email, password, role, group):
@@ -114,9 +114,9 @@ def update_group(name, descript, id):
 	cur.close()    
 	con.close()
 
-def add_server(hostname, ip, group, typeip, enable):
+def add_server(hostname, ip, group, typeip, enable, master):
 	con, cur = create_db.get_cur()
-	sql = """INSERT INTO servers (hostname, ip, groups, type_ip, enable) VALUES ('%s', '%s', '%s', '%s', '%s')""" % (hostname, ip, group, typeip, enable)
+	sql = """INSERT INTO servers (hostname, ip, groups, type_ip, enable, master) VALUES ('%s', '%s', '%s', '%s', '%s', '%s')""" % (hostname, ip, group, typeip, enable, master)
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -143,15 +143,16 @@ def delete_server(id):
 	cur.close()    
 	con.close() 		
 
-def update_server(hostname, ip, group, typeip, enable, id):
+def update_server(hostname, ip, group, typeip, enable, master, id):
 	con, cur = create_db.get_cur()
 	sql = """update servers set 
 			hostname = '%s',
 			ip = '%s',
 			groups = '%s',
 			type_ip = '%s',
-			enable = '%s'
-			where id = '%s'""" % (hostname, ip, group, typeip, enable, id)
+			enable = '%s',
+			master = '%s'
+			where id = '%s'""" % (hostname, ip, group, typeip, enable, master, id)
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -225,6 +226,8 @@ def select_servers(**kwargs):
 		sql = """select * from servers where hostname='%s' """ % kwargs.get("server")
 	if kwargs.get("full") is not None:
 		sql = """select * from servers ORDER BY groups """ 
+	if kwargs.get("get_master_servers") is not None:
+		sql = """select id,hostname from servers where master = 0 and type_ip = 0 and enable = 1 ORDER BY groups """ 
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
@@ -298,6 +301,16 @@ def get_dick_permit(**kwargs):
 	cur.close()    
 	con.close() 
 	
+def is_master(ip):
+	con, cur = create_db.get_cur()
+	sql = """ select slave.ip from servers left join servers as slave on servers.id = slave.master where servers.ip = '%s' """ % ip
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		return False
+	else:
+		return cur
+	
 def show_update_servers():
 	SERVERS = select_servers()
 	print('<tr class="overviewHead">'
@@ -337,7 +350,6 @@ def show_update_user(user):
 		need_id_group = "usergroup-%s" % users[0]
 		get_groups_select(need_id_group, selected=users[5])
 		print('</td>')
-		#print('<td><a class="update-row" onclick="updateUser(%s)"  style="cursor: pointer;"></a></td>' % users[0])
 		print('<td><a class="delete" onclick="removeUser(%s)"  style="cursor: pointer;"></a></td>' % users[0])
 		print('</tr>')
 		
@@ -357,7 +369,15 @@ def show_update_server(server):
 		print('<td>')
 		get_type_ip_checkbox(server[0])
 		print('</td>')
-		#print('<td><a class="update-row" onclick="updateServer(%s)"  style="cursor: pointer;"></a></td>' % server[0])
+		print('<td><select id="slavefor-%s"><option value="0" selected>Not slave</option>' % server[0])
+		MASTERS = select_servers(get_master_servers=1)
+		for master in MASTERS:
+			if master[0] == server[6]:
+				selected = "selected"
+			else:
+				selected = ""
+			print('<option value="%s" %s>%s</option>' % (master[0], selected, master[1]))
+		print('</select></td>')
 		print('<td><a class="delete" onclick="removeServer(%s)"  style="cursor: pointer;"></a></td>' % server[0])
 		print('</tr>')
 
@@ -455,12 +475,13 @@ if form.getvalue('newserver') is not None:
 	group = form.getvalue('newservergroup')
 	typeip = form.getvalue('typeip')
 	enable = form.getvalue('enable')
+	master = form.getvalue('slave')
 	if ip is None or group is None:
 		print('Content-type: text/html\n')
 		print(error_mess)
 	else:		
 		print('Content-type: text/html\n')
-		if add_server(hostname, ip, group, typeip, enable):
+		if add_server(hostname, ip, group, typeip, enable, master):
 			show_update_server(hostname)
 
 if form.getvalue('serverdel') is not None:
@@ -497,11 +518,12 @@ if form.getvalue('updateserver') is not None:
 	group = form.getvalue('servergroup')	
 	typeip = form.getvalue('typeip')		
 	enable = form.getvalue('enable')		
+	master = form.getvalue('slave')		
 	id = form.getvalue('id')	
 	if name is None or ip is None:
 		print('Content-type: text/html\n')
 		print(error_mess)
 	else:		
 		print('Content-type: text/html\n')
-		update_server(name, ip, group, typeip, enable, id)
+		update_server(name, ip, group, typeip, enable, master, id)
 		

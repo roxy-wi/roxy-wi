@@ -85,7 +85,8 @@ $( function() {
 				newip: $('#new-ip').val(),
 				newservergroup: $('#new-server-group-add').val(),
 				typeip: typeip,
-				enable: enable
+				enable: enable,
+				slave: $('#slavefor option:selected' ).val()
 			},
 			type: "GET",
 			success: function( data ) {
@@ -282,6 +283,7 @@ function updateServer(id) {
 			servergroup: $('#servergroup-'+id+' option:selected' ).val(),
 			typeip: typeip,
 			enable: enable,
+			slave: $('#slavefor-'+id+' option:selected' ).val(),
 			id: id
 		},
 		type: "GET",
