@@ -126,6 +126,8 @@ if form.getvalue('servaction') is not None:
 	server_state_file = config.get('haproxy', 'server_state_file')
 	haproxy_sock = config.get('haproxy', 'haproxy_sock')
 	enable = form.getvalue('servaction')
+	backend = form.getvalue('servbackend')
+	
 	cmd='echo "%s %s" |socat stdio %s | cut -d "," -f 1-2,5-10,34-36 | column -s, -t' % (enable, backend, haproxy_sock)
 	
 	if form.getvalue('save') == "on":

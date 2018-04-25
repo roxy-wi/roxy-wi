@@ -28,11 +28,10 @@ $ cd /var/www/haproxy-wi
 $ ./install
 ```
 ## Manual install
-For install just [dowload](https://github.com/Aidaho12/haproxy-wi/archive/master.zip) archive and untar somewhere:
+For install just clone:
 ```
 $ cd /var/www/
-$ unzip master.zip
-$ mv haproxy-wi-master/ haproxy-wi
+$ git clone https://github.com/Aidaho12/haproxy-wi.git /var/www/haproxy-wi
 $ chown -R apache:apache haproxy-wi/
 $ pip install -r haproxy-wi/requirements.txt 
 $ chmod +x haproxy-wi/cgi-bin/*.py 
@@ -40,7 +39,7 @@ $ chmod +x haproxy-wi/cgi-bin/*.py
 
 For Apache do virtualhost with cgi-bin. Like this:
 ```
-<VirtualHost *:8000>
+<VirtualHost *:8080>
         ServerName haproxy-wi
         ErrorLog /var/log/httpd/haproxy-wi.error.log
         CustomLog /var/log/httpd/haproxy-wi.access.log combined
@@ -65,6 +64,7 @@ Default Haproxy-WI use Sqlite, if you want use MySQL enable in config, and creat
 MariaDB [(none)]> create user 'haproxy-wi'@'%';
 MariaDB [(none)]> create database haproxywi;
 MariaDB [(none)]> grant all on haproxywi.* to 'haproxy-wi'@'%' IDENTIFIED BY 'haproxy-wi';
+MariaDB [(none)]> grant all on haproxywi.* to 'haproxy-wi'@'localhost' IDENTIFIED BY 'haproxy-wi';
 ```
 ![alt text](image/haproxy-wi-overview.jpeg "Overview page")
 
