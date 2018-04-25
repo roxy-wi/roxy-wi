@@ -309,7 +309,7 @@ def is_master(ip):
 	except sqltool.Error as e:
 		return False
 	else:
-		return cur
+		return cur.fetchall()
 	
 def show_update_servers():
 	SERVERS = select_servers()
