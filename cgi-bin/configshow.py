@@ -11,7 +11,7 @@ from pytz import timezone
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
 
-funct.head("Show HAproxy config")
+funct.head("Get Running Config")
 funct.check_config()
 funct.check_login()
 

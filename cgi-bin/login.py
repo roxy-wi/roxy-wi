@@ -22,7 +22,7 @@ def login_page(error):
 		
 	if create_db.check_db():
 		if create_db.create_table():
-			print('<div class="alert alert-success">DB was created')
+			print('<div class="alert alert-success">DB was created<br />')
 			create_db.update_all()
 			print('<br />Now you can login, default: admin/admin</div>')
 	

@@ -7,8 +7,6 @@ import funct
 import ovw
 from configparser import ConfigParser, ExtendedInterpolation
 
-options = [ "acl", "http-request", "http-response", "set-uri", "set-url", "set-header", "add-header", "del-header", "replace-header", "path_beg", "url_beg()", "urlp_sub()", "tcpka", "tcplog", "forwardfor", "option" ]
-
 path_config = "haproxy-webintarface.config"
 config = ConfigParser(interpolation=ExtendedInterpolation())
 config.read(path_config)
@@ -18,18 +16,15 @@ form = cgi.FieldStorage()
 req = form.getvalue('req')
 serv = form.getvalue('serv')
 act = form.getvalue('act')
+backend = form.getvalue('backend')	
 print('Content-type: text/html\n')
-
-if req is not None:
-	if req is 1:
-		for i in options:
-			if req in i:
-				print(i)
-	else:
-		for i in options:
-				print(i)
-
-backend = form.getvalue('backend')			
+		
+if form.getvalue('getcert') is not None and serv is not None:
+	commands = [ "ls -1t /etc/ssl/certs/ |grep pem" ]
+	funct.ssh_command(serv, commands, ip="1")
+	
+	
+	
 if backend is not None:
 	
 	cmd='echo "show backend" |nc %s 1999' % serv 

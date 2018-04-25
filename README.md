@@ -20,7 +20,14 @@ A simple web interface(user-frendly web GUI) for managing Haproxy servers. Leave
 14. Telegram notification
 
 # Install
-
+The installer will ask you a few questions
+```
+$ git clone https://github.com/Aidaho12/haproxy-wi.git /var/www/haproxy-wi
+$ chmod +x install
+$ cd /var/www/haproxy-wi
+$ ./install
+```
+## Manual install
 For install just [dowload](https://github.com/Aidaho12/haproxy-wi/archive/master.zip) archive and untar somewhere:
 ```
 $ cd /var/www/

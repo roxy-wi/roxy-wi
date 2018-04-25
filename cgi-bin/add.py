@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import html
 import cgi
+import cgitb; cgitb.enable()
 import os
 import funct
 import sql
@@ -16,8 +17,11 @@ config.read(path_config)
 funct.page_for_admin(level = 2)
 
 hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
-form = cgi.FieldStorage()
+cert_path = config.get('haproxy', 'cert_path')
+
 listhap = sql.get_dick_permit()
+
+form = cgi.FieldStorage()
 
 if form.getvalue('mode') is not None: 
 	serv = form.getvalue('serv')
@@ -46,7 +50,7 @@ if form.getvalue('mode') is not None:
 		backend = ""
 				
 	if form.getvalue('ssl') == "https" and form.getvalue('mode') != "tcp":
-		ssl = "ssl crt " + form.getvalue('cert')
+		ssl = "ssl crt " + cert_path + form.getvalue('cert')
 		if form.getvalue('ssl-check') == "ssl-check":
 			ssl_check = " ssl verify none"
 		else:
@@ -152,7 +156,7 @@ print('</select>'
 			'<td class="addName">IP and Port:</td>'
 			'<td class="addOption">'
 				'<input type="text" name="ip" id="ip" title="" size="15" placeholder="172.28.0.1" class="form-control"><b>:</b>'
-				'<input type="number" name="port" required title="Port for bind listner" size="5" placeholder="8080" class="form-control">'
+				'<input type="number" name="port" id="listen-port" required title="Port for bind listner" size="5" placeholder="8080" class="form-control">'
 				'<div class="tooltip tooltipTop">IP for bind listner, <b>if empty will be assignet on all IPs</b>. Start typing ip, or press down.</div>'
 			'</td>'
 		'</tr>'
@@ -168,8 +172,8 @@ print('</select>'
 					'<input type="checkbox" id="https-listen" name="ssl" value="https" >'
 				'</span>'
 				'<div id="https-hide-listen" style="display: none;">'
-					'<br /><span class="tooltip tooltipTop">Enter path to pem file:</span><br />'
-					'<input type="text" name="cert" placeholder="/etc/ssl/certs/some_cert.pem" class="form-control" size="39" id="path-cert-listen"><br />'
+					'<br /><span class="tooltip tooltipTop">Enter name to pem file, or press down:</span><br />'
+					'<input type="text" name="cert" placeholder="some_cert.pem" class="form-control" size="39" id="path-cert-listen"><br />'
 					'<label for="ssl-check-listen" style="margin-top: 5px;">Disable ssl verify on servers?</label><input type="checkbox" id="ssl-check-listen" name="ssl-check" value="ssl-check" checked>'
 				'</div>'
 			'</td>'
@@ -288,8 +292,8 @@ print('</select>'
 					'<input type="checkbox" id="https-frontend" name="ssl" value="https">'
 				'</span>'
 				'<div id="https-hide-frontend" style="display: none;">'
-					'<br /><span class="tooltip tooltipTop">Enter path to pem file:</span><br />'
-					'<input type="text" name="cert" placeholder="/etc/ssl/certs/some_cert.pem" class="form-control" size="39" id="path-cert-frontend">'					
+					'<br /><span class="tooltip tooltipTop">Enter name to pem file, or press down:</span><br />'
+					'<input type="text" name="cert" placeholder="some_cert.pem" class="form-control" size="39" id="path-cert-frontend">'					
 				'</div>'				
 			'</td>'
 		'</tr>'
@@ -336,7 +340,7 @@ print('</td>'
 					'<tr>'
 						'<td class="addName">Select server: </td>'
 						'<td class="addOption">'
-							'<select required name="serv">'
+							'<select required name="serv" id="serv3">'
 								'<option disabled selected>Choose server</option>')
 
 for i in listhap:
@@ -364,8 +368,8 @@ print('</select>'
 					'<input type="checkbox" id="https-backend" name="ssl" value="https">'
 				'</span>'
 				'<div id="https-hide-backend" style="display: none;">'
-					'<br /><span class="tooltip tooltipTop">Enter path to pem file.</span><br />'
-					'<input type="text" name="cert" placeholder="/etc/ssl/certs/some_cert.pem" class="form-control" size="39" id="path-cert-backend"><br />'
+					'<br /><span class="tooltip tooltipTop">Enter name to pem file, or press down:</span><br />'
+					'<input type="text" name="cert" placeholder="some_cert.pem" class="form-control" size="39" id="path-cert-backend"><br />'
 					'<label for="ssl-check" style="margin-top: 5px;">Disable ssl verify on servers?</label><input type="checkbox" id="ssl-check" name="ssl-check" value="ssl-check" checked>'
 				'</div>'				
 			'</td>'

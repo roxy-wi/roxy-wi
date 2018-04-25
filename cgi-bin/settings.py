@@ -23,7 +23,6 @@ print('<h2>Admin area: View settings</h2>'
 
 for section_name in config.sections():
     print('Section:', section_name)
-    #print('  Options:', config.options(section_name))
     for name, value in config.items(section_name):
         print('  {} = {}'.format(name, value))
     print()

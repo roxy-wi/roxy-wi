@@ -148,13 +148,13 @@ def update_db_v_2_0_1():
 		cur.execute(sql)
 	except sqltool.Error as e:
 		if e.args[0] == 'duplicate column name: type_ip':
-			print('Updating... go to version 2.0.1.1')
+			print('Updating... go to version 2.0.1.1<br />')
 			return False
 		else:
 			print("An error occurred:", e)
 			return False
 	else:
-		print("DB was update to 2.0.1")
+		print("DB was update to 2.0.1<br />")
 		return True
 	cur.close() 
 	con.close()
@@ -168,13 +168,13 @@ def update_db_v_2_0_1_1():
 		cur.execute(sql)
 	except sqltool.Error as e:
 		if e.args[0] == 'duplicate column name: enable' or e == "1060 (42S21): Duplicate column name 'enable' ":
-			print('Updating... go to version 2.0.5')
+			print('Updating... go to version 2.0.5<br />')
 			return False
 		else:
 			print("An error occurred:", e)
 			return False
 	else:
-		print("DB was update to 2.0.1.1")
+		print("DB was update to 2.0.1.1<br />")
 		return True
 	cur.close() 
 	con.close()
@@ -194,7 +194,7 @@ def update_db_v_2_0_5():
 			print("An error occurred:", e)
 			return False
 	else:
-		print("DB was update to 2.0.5")
+		print("DB was update to 2.0.5<br />")
 		return True
 	cur.close() 
 	con.close()

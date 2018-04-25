@@ -121,7 +121,7 @@ print('<br /><br /><table class="overview" id="group-add-table" style="display: 
 						'<td>IP</td>'
 						'<td>Group</td>'
 						'<td>Enable</td>'
-						'<td>Virt</td>'
+						'<td><span title="Vitrual IP, something like VRRP">Virt(?)</span></td>'
 						'<td><span title="Actions with master config will automatically apply on slave">Slave for (?)</span></td>'
 						'<td></td>'
 						'<td></td>'

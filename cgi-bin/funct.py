@@ -45,9 +45,13 @@ def logging(serv, action):
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	login = cookie.get('login')
 	mess = now_utc.strftime(dateFormat) + " from " + IP + " user: " + login.value + " " + action + " for: " + serv + "\n"
-	log = open(log_path + "/config_edit-"+get_data('logs')+".log", "a")
-	log.write(mess)
-	log.close
+	try:
+		log = open(log_path + "/config_edit-"+get_data('logs')+".log", "a")
+		log.write(mess)
+		log.close
+	except IOError:
+		print('<center><div class="alert alert-danger">Can\'t read write log. Please chech log_path in config</div></center>')
+		pass
 	
 	if config.get('telegram', 'enable') == "1": telegram_send_mess(mess)
 
@@ -125,7 +129,7 @@ def head(title):
 		'<link href="/inc/vertical_scrol/custom_scrollbar.css" rel="stylesheet">'
 		'<link href="/inc/style.css" rel="stylesheet">'
 		'<link href="/inc/nprogress.css" rel="stylesheet">'
-		'<link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">'
+		'<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">'
 		'<script src="https://code.jquery.com/jquery-1.12.4.js"></script>'
 		'<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>'
 		'<script src="/inc/js-cookie.js"></script>'
@@ -194,7 +198,7 @@ def links():
 				'</li>')
 	print('</ul>'
 		  '</nav>'
-		  '<div class="copyright-menu">HAproxy-WI v2.0.5</div>'
+		  '<div class="copyright-menu">HAproxy-WI v2.0.6</div>'
 		  '</div>')	
 
 def show_login_links():

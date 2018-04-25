@@ -528,6 +528,7 @@ a:focus {
 	cursor: pointer;
 	font-weight: bold;
 	padding-left: 10px;
+	margin-bottom: 10px;	
 }
 .alert-danger {
 	color: #a94442;
