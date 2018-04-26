@@ -33,7 +33,10 @@ if form.getvalue('serv') is not None and form.getvalue('open') is not None :
 	funct.logging(serv, "config.py open config")
 	funct.get_config(serv, cfg)
 	
-	conf = open(cfg, "r")
+	try:
+		conf = open(cfg, "r")
+	except IOError:
+		print('<div class="alert alert-danger">Can\'t read import config file</div>')
 
 	print("<center><h3>Config from %s</h3>" % serv)
 	print('<form action="config.py" method="get">')
@@ -68,6 +71,7 @@ if form.getvalue('serv') is not None and form.getvalue('config') is not None:
 			funct.upload_and_restart(master[0], cfg, just_save=save)
 		
 	funct.upload_and_restart(serv, cfg, just_save=save)
+	
 	
 	os.system("/bin/diff -ub %s %s >> %s/config_edit-%s.log" % (oldcfg, cfg, log_path, funct.get_data('logs')))
 	os.system("/bin/rm -f " + hap_configs_dir + "*.old")

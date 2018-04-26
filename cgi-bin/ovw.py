@@ -131,7 +131,10 @@ def get_map(serv):
 	G = nx.DiGraph()
 	
 	funct.get_config(serv, cfg)	
-	conf = open(cfg, "r")
+	try:
+		conf = open(cfg, "r")
+	except IOError:
+		print('<div class="alert alert-danger">Can\'t read import config file</div>')
 	
 	node = ""
 	line_new2 = [1,""]
@@ -159,7 +162,7 @@ def get_map(serv):
 				G.add_node(node,pos=(k,i),label_pos=(k,i+150))
 
 		if "server " in line or "use_backend" in line or "default_backend" in line and "stats" not in line:
-			if "timeout" not in line and "default-server" not in line and "#use_backend" not in line and "stats" not in line:
+			if "timeout" not in line and "default-server" not in line and "#" not in line and "stats" not in line:
 				i = i - 300
 				j = j + 1				
 				if "check" in line:
@@ -203,7 +206,7 @@ def get_map(serv):
 		plt.savefig("map.png")
 		plt.show()
 	except Exception as e:
-		print("!!! There was an issue, " + str(e))
+		print('<div class="alert alert-danger">' + str(e) + '</div>')
 		
 	commands = [ "rm -f "+fullpath+"/map*.png", "mv %s/map.png %s/map%s.png" % (cgi_path, fullpath, date) ]
 	funct.ssh_command("localhost", commands)

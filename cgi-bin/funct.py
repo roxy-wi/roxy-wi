@@ -28,7 +28,7 @@ restart_command = config.get('haproxy', 'restart_command')
 def check_config():
 	for section in [ 'main', 'configs', 'ssh', 'logs', 'haproxy' ]:
 		if not config.has_section(section):
-			print('<b style="color: red">Check config file, no %s section</b>' % section)
+			print('<center><div class="alert alert-danger">Check config file, no %s section</div>' % section)
 			
 def get_data(type):
 	now_utc = datetime.now(timezone(time_zone))
@@ -301,13 +301,13 @@ def ssh_connect(serv):
 			ssh.connect(hostname = serv, username = ssh_user_name, password = config.get('ssh', 'ssh_pass'))
 		return ssh
 	except paramiko.AuthenticationException:
-		print("Authentication failed, please verify your credentials: %s")
+		print('<div class="alert alert-danger">Authentication failed, please verify your credentials</div>')
 	except paramiko.SSHException as sshException:
-		print("Unable to establish SSH connection: %s" % sshException)
+		print('<div class="alert alert-danger">Unable to establish SSH connection: %s </div>' % sshException)
 	except paramiko.BadHostKeyException as badHostKeyException:
-		print("Unable to verify server's host key: %s" % badHostKeyException)
+		print('<div class="alert alert-danger">Unable to verify server\'s host key: %s </div>' % badHostKeyException)
 	except Exception as e:
-		print(e.args)	
+		print('<div class="alert alert-danger">{}</div>'.format(e.args))	
 
 def get_config(serv, cfg):
 	os.chdir(hap_configs_dir)
@@ -318,11 +318,14 @@ def get_config(serv, cfg):
 		sftp.close()
 		ssh.close()
 	except Exception as e:
-		print("!!! There was an issue, " + str(e))
+		print('<div class="alert alert-danger">' + str(e) + ' Please check IP, and SSH settings</div>')
 	
 def show_config(cfg):
 	print('<div style="margin-left: 16%" class="configShow">')
-	conf = open(cfg, "r")
+	try:
+		conf = open(cfg, "r")
+	except IOError:
+		print('<div class="alert alert-danger">Can\'t read import config file</div>')
 	i = 0
 	for line in conf:
 		i = i + 1
@@ -363,9 +366,12 @@ def show_config(cfg):
 	
 def upload_and_restart(serv, cfg, **kwargs):
 	tmp_file = tmp_config_path + "/" + get_data('config') + ".cfg"
-
-	ssh = ssh_connect(serv)
-	print("<center>connected<br />")
+	
+	try:
+		ssh = ssh_connect(serv)
+		print("<center>connected to %s<br />" % serv)
+	except:
+		print("Connect fail")
 	sftp = ssh.open_sftp()
 	sftp.put(cfg, tmp_file)
 	sftp.close()

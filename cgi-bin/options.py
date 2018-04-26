@@ -173,7 +173,11 @@ if serv is not None and act == "configShow":
 if form.getvalue('viewlogs') is not None:
 	viewlog = form.getvalue('viewlogs')
 	log_path = config.get('main', 'log_path')
-	log = open(log_path + viewlog, "r")
+	try:
+		log = open(log_path + viewlog, "r")
+	except IOError:
+		print('<div class="alert alert-danger">Can\'t read import config file</div>')
+	
 	print('<center><h3>Shows log: %s</h3></center><br />' % viewlog)
 	i = 0
 	for line in log:

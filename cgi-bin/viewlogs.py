@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import html
 import cgi
-import os
+import os, sys
 import funct
 from configparser import ConfigParser, ExtendedInterpolation
 import glob
@@ -21,12 +21,17 @@ log_path = config.get('main', 'log_path')
 
 funct.page_for_admin()
 funct.get_auto_refresh("View logs")	
-
-os.chdir(log_path)
+try:
+	os.chdir(log_path)
+except IOError:
+	print('<center><div class="alert alert-danger">No such file or directory: "%s". Please check log_path in config and exist directory</div>' % log_path)
+	sys.exit()
+	
 print('<script src="/inc/users.js"></script>'
 		'<a name="top"></a>'
-		'<center><h3>Choose log file</h3><br />'
-		'<select id="viewlogs">'
+		'<center><h3>Choose log file</h3><br />')
+
+print('<select id="viewlogs">'
 			'<option disabled selected>Choose log</option>')
 	
 for files in sorted(glob.glob('*.log'), reverse=True):
