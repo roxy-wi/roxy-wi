@@ -199,7 +199,7 @@ def links():
 				'</li>')
 	print('</ul>'
 		  '</nav>'
-		  '<div class="copyright-menu">HAproxy-WI v2.0.6</div>'
+		  '<div class="copyright-menu">HAproxy-WI v2.0.7</div>'
 		  '</div>')	
 
 def show_login_links():
@@ -213,7 +213,7 @@ def show_login_links():
 		  
 def footer():
 	print('</center></div>'
-			'<center style="margin-left: 8%;">'
+			'<center>'
 				'<h3>'
 					'<a class="ui-button ui-widget ui-corner-all" href="#top" title="Move up">UP</a>'
 				'</h3><br />'

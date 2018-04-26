@@ -667,16 +667,17 @@ $( function() {
 			type: "GET",
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
-				if (data.indexOf('alert') != '-1') {
-					$("#ajax-ssl").append(data);
-				} else if (data == "Save ok ") {
+				if (data.indexOf('danger') != '-1') {
+					$("#ajax-ssl").html(data);
+				} else if (data.indexOf('success') != '-1') {
 					$('.alert-danger').remove();
 					$("#ssl").addClass( "update", 1000 );
 					setTimeout(function() {
 						$( "#ssl").removeClass( "update" );
 					}, 2500 );
+					$("#ajax-ssl").html(data);
 				} else {
-					$("#ajax-ssl").append('<div class="alert alert-danger">Something wrong, check and try again</div>');
+					$("#ajax-ssl").html('<div class="alert alert-danger">Something wrong, check and try again</div>');
 				}
 			}
 		} );

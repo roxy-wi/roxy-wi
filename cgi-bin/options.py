@@ -35,28 +35,35 @@ if form.getvalue('ssh_cert'):
 		print('<div class="alert alert-danger">Can\'t save ssh keys file. Check ssh keys path in config</div>')
 	else:
 		print('<div class="alert alert-success">Ssh key was save into: %s </div>' % ssh_keys)
+		
+	funct.logging("local", "users.py#ssh upload new ssl cert %s" % ssh_keys)
 			
 if serv and form.getvalue('ssl_cert'):
+	cert_local_dir = config.get('main', 'cert_local_dir')
+	cert_path = config.get('haproxy', 'cert_path')
+	
 	if form.getvalue('ssl_name') is None:
-		print('<div class="alert alert-danger">Please enter name pem file</div>')
+		print('<div class="alert alert-danger">Please enter desired name</div>')
 	else:
 		name = form.getvalue('ssl_name') + '.pem'
-	cert_path = config.get('haproxy', 'cert_path')
+	
 	try:
 		with open(name, "w") as ssl_cert:
 			ssl_cert.write(form.getvalue('ssl_cert'))
 	except IOError:
-		print('<div class="alert alert-danger">Can\'t save ssh keys file. Check ssh keys path in config</div>')
+		print('<div class="alert alert-danger">Can\'t save ssl keys file. Check ssh keys path in config</div>')
 	else:
-		print("Save ok")
+		print('<div class="alert alert-success">SSL file was upload to %s into: %s </div>' % (serv, cert_path))
 		
 	MASTERS = sql.is_master(serv)
 	for master in MASTERS:
 		if master[0] != None:
 			funct.upload(master[0], cert_path, name)
 	funct.upload(serv, cert_path, name)
-	os.system("rm -f %s" % name)
-
+	
+	os.system("mv %s %s" % (name, cert_local_dir))
+	funct.logging(serv, "add.py#ssl upload new ssl cert %s" % name)
+	
 if backend is not None:
 	
 	cmd='echo "show backend" |nc %s 1999' % serv 

@@ -312,16 +312,18 @@ function uploadSsh() {
 		type: "GET",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('alert-danger') != '-1') {
-				$("#ajax-ssh").append(data);
-			} else {
-				$('.alert-danger').remove();
-				$("#ssh").addClass( "update", 1000 );
-				setTimeout(function() {
-					$( "#ssh").removeClass( "update" );
-				}, 2500 );
-				$("#ajax-ssh").append(data);
-			}
+			if (data.indexOf('danger') != '-1') {
+					$("#ajax-ssh").html(data);
+				} else if (data.indexOf('success') != '-1') {
+					$('.alert-danger').remove();
+					$("#ssh").addClass( "update", 1000 );
+					setTimeout(function() {
+						$( "#ssh").removeClass( "update" );
+					}, 2500 );
+					$("#ajax-ssh").html(data);
+				} else {
+					$("#ajax-ssh").html('<div class="alert alert-danger">Something wrong, check and try again</div>');
+				}
 		}
 	} );
 }
