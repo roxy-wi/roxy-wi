@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 import html
 import cgi
+import os
 import json
 import subprocess 
 import funct
+import sql
 import ovw
 from configparser import ConfigParser, ExtendedInterpolation
 
 path_config = "haproxy-webintarface.config"
 config = ConfigParser(interpolation=ExtendedInterpolation())
+
 config.read(path_config)
 funct.check_config()
 
@@ -23,8 +26,37 @@ if form.getvalue('getcert') is not None and serv is not None:
 	commands = [ "ls -1t /etc/ssl/certs/ |grep pem" ]
 	funct.ssh_command(serv, commands, ip="1")
 	
-	
-	
+if form.getvalue('ssh_cert'):
+	ssh_keys = config.get('ssh', 'ssh_keys')
+	try:
+		with open(ssh_keys, "w") as conf:
+			conf.write(form.getvalue('ssh_cert'))
+	except IOError:
+		print('<div class="alert alert-danger">Can\'t save ssh keys file. Check ssh keys path in config</div>')
+	else:
+		print('<div class="alert alert-success">Ssh key was save into: %s </div>' % ssh_keys)
+			
+if serv and form.getvalue('ssl_cert'):
+	if form.getvalue('ssl_name') is None:
+		print('<div class="alert alert-danger">Please enter name pem file</div>')
+	else:
+		name = form.getvalue('ssl_name') + '.pem'
+	cert_path = config.get('haproxy', 'cert_path')
+	try:
+		with open(name, "w") as ssl_cert:
+			ssl_cert.write(form.getvalue('ssl_cert'))
+	except IOError:
+		print('<div class="alert alert-danger">Can\'t save ssh keys file. Check ssh keys path in config</div>')
+	else:
+		print("Save ok")
+		
+	MASTERS = sql.is_master(serv)
+	for master in MASTERS:
+		if master[0] != None:
+			funct.upload(master[0], cert_path, name)
+	funct.upload(serv, cert_path, name)
+	os.system("rm -f %s" % name)
+
 if backend is not None:
 	
 	cmd='echo "show backend" |nc %s 1999' % serv 

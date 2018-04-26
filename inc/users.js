@@ -302,3 +302,26 @@ function updateServer(id) {
 		}
 	} );
 }
+function uploadSsh() {
+	$('.alert-danger').remove();
+	$.ajax( {
+		url: "options.py",
+		data: {
+			ssh_cert: $('#ssh_cert').val()
+		},
+		type: "GET",
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if (data.indexOf('alert-danger') != '-1') {
+				$("#ajax-ssh").append(data);
+			} else {
+				$('.alert-danger').remove();
+				$("#ssh").addClass( "update", 1000 );
+				setTimeout(function() {
+					$( "#ssh").removeClass( "update" );
+				}, 2500 );
+				$("#ajax-ssh").append(data);
+			}
+		}
+	} );
+}

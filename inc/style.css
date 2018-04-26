@@ -534,10 +534,11 @@ a:focus {
 	color: #a94442;
 	background-color: #f2dede;
 	border-color: #ebccd1;
-	width: 230px;
+	width: 330px;
 	display: block;
 	margin-top: 15px;
 	margin-bottom: -50px;
+	margin-left: 20px;
 }
 .alert-success {
   color: #3c763d;

@@ -655,4 +655,30 @@ $( function() {
 		autoFocus: true,
 		minLength: -1
 	});
+	$( "#ssl_key_upload" ).click(function() {
+		$('.alert-danger').remove();
+		$.ajax( {
+			url: "options.py",
+			data: {
+				serv: $('#serv4').val(),
+				ssl_cert: $('#ssl_cert').val(),
+				ssl_name: $('#ssl_name').val()
+			},
+			type: "GET",
+			success: function( data ) {
+				data = data.replace(/\s+/g,' ');
+				if (data.indexOf('alert') != '-1') {
+					$("#ajax-ssl").append(data);
+				} else if (data == "Save ok ") {
+					$('.alert-danger').remove();
+					$("#ssl").addClass( "update", 1000 );
+					setTimeout(function() {
+						$( "#ssl").removeClass( "update" );
+					}, 2500 );
+				} else {
+					$("#ajax-ssl").append('<div class="alert alert-danger">Something wrong, check and try again</div>');
+				}
+			}
+		} );
+	});
 });

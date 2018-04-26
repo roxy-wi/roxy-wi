@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import html
 import cgi
-import cgitb; cgitb.enable()
 import os
 import funct
 import sql
@@ -18,10 +17,8 @@ funct.page_for_admin(level = 2)
 
 hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
 cert_path = config.get('haproxy', 'cert_path')
-
 listhap = sql.get_dick_permit()
-
-form = cgi.FieldStorage()
+form 	= cgi.FieldStorage()
 
 if form.getvalue('mode') is not None: 
 	serv = form.getvalue('serv')
@@ -112,6 +109,11 @@ if form.getvalue('mode') is not None:
 	
 	funct.logging(serv, "add.py add new %s" % name)
 	print('<div class="line3">')
+	
+	MASTERS = sql.is_master(serv)
+	for master in MASTERS:
+		if master[0] != None:
+			funct.upload_and_restart(master[0], cfg)
 	if funct.upload_and_restart(serv, cfg):
 		print('<meta http-equiv="refresh" content="30; url=add.py?add=%s&conf=%s">' % (name, config_add))
 		
@@ -128,6 +130,7 @@ print('<div id="tabs">'
 				'<li><a href="#listen">Listen</a></li>'
 				'<li><a href="#frontend">Frontend</a></li>'
 				'<li><a href="#backend">Backend</a></li>'
+				'<li><a href="#ssl">Upload certs</a></li>'
 			'</ul>'
 			'<div id="listen">'
 				'<form name="add-listner" action="add.py">'
@@ -173,7 +176,7 @@ print('</select>'
 				'</span>'
 				'<div id="https-hide-listen" style="display: none;">'
 					'<br /><span class="tooltip tooltipTop">Enter name to pem file, or press down:</span><br />'
-					'<input type="text" name="cert" placeholder="some_cert.pem" class="form-control" size="39" id="path-cert-listen"><br />'
+					'<input type="text" name="cert" placeholder="some_cert.pem" class="form-control" size="39" id="path-cert-listen"> or upload: <input type="file" name="file"><br />'
 					'<label for="ssl-check-listen" style="margin-top: 5px;">Disable ssl verify on servers?</label><input type="checkbox" id="ssl-check-listen" name="ssl-check" value="ssl-check" checked>'
 				'</div>'
 			'</td>'
@@ -440,8 +443,38 @@ print('</select>'
 funct.get_button("Add Backend")
 print('</td>'
 		'</tr>'
-		'</form></div></table>'
+		'</form></table></div>'
 		
-		'</div></div>')
+		'<div id="ssl">'
+			'<table>'
+				'<tr class="overviewHead">'
+					'<td class="padding10 first-collumn">Upload ssl pem certs</td>'
+					'<td>'
+						'Name pem file'
+					'</td>'
+					'<td>'
+						'<span title="This pem key will be used to create https connection with haproxy">Key(?)</span>'
+					'</td>'
+				'</tr>'
+				'<tr style="width: 50%;">'
+					'<td class="first-collumn" valign="top" style="padding-top: 15px;">'
+						'<select required id="serv4">'
+							'<option disabled selected>Choose server</option>')
+
+for i in listhap:
+	print('<option value="%s">%s</option>' % (i[2], i[1]))
+	
+print('</select></td>'
+		'<td  valign="top" style="padding-top: 27px;">'
+			'<input type="text" id="ssl_name" class="form-control">'
+		'</td>'
+		'<td style="padding-top: 15px; padding-bottom: 15px;">'
+			'<textarea id="ssl_cert" cols="50" rows="5"></textarea><br /><br />'
+			'<a class="ui-button ui-widget ui-corner-all" id="ssl_key_upload" title="Upload ssl cert">Upload</a>'	
+		'</td>'
+		'</table>'
+		'<div id="ajax-ssl"></div>'
+		'</div>')
+
 				
 funct.footer()

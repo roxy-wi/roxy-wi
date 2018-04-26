@@ -177,6 +177,7 @@ def links():
 		print('<li><a href=/cgi-bin/add.py#listner title="Add single listen" class="add head-submenu">Add listen</a></li>'
 						'<li><a href=/cgi-bin/add.py#frontend title="Add single frontend" class="add head-submenu">Add frontend</a></li>'
 						'<li><a href=/cgi-bin/add.py#backend title="Add single backend" class="add head-submenu">Add backend</a></li>'
+						'<li><a href=/cgi-bin/add.py#ssl title="Upload SSL cert" class="cert head-submenu">SSL</a></li>'
 						'<li><a href=/cgi-bin/config.py title="Edit Config" class="edit head-submenu">Edit</a> </li>')
 	print('</li>')
 	if is_admin(level = 2):
@@ -318,7 +319,8 @@ def get_config(serv, cfg):
 		sftp.close()
 		ssh.close()
 	except Exception as e:
-		print('<div class="alert alert-danger">' + str(e) + ' Please check IP, and SSH settings</div>')
+		print('<center><div class="alert alert-danger">' + str(e) + ' Please check IP, and SSH settings</div>')
+		sys.exit()
 	
 def show_config(cfg):
 	print('<div style="margin-left: 16%" class="configShow">')
@@ -363,6 +365,20 @@ def show_config(cfg):
 			print('</span>' + line + '</span><br />')					
 	print('</div></div>')
 	conf.close
+
+def upload(serv, path, file, **kwargs):
+	full_path = path + file
+	
+	try:
+		ssh = ssh_connect(serv)
+	except Exception as e:
+		print('<div class="alert alert-danger">Connect fail: %s</div>' % e)
+	try:
+		sftp = ssh.open_sftp()
+		file = sftp.put(file, full_path)
+		sftp.close()
+	except Exception as e:
+		print('<div class="alert alert-danger">Upload fail: %s</div>' % e)
 	
 def upload_and_restart(serv, cfg, **kwargs):
 	tmp_file = tmp_config_path + "/" + get_data('config') + ".cfg"
