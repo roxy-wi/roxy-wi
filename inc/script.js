@@ -97,6 +97,7 @@ function showOverview() {
 		type: "GET",
 		success: function( data ) {
 			$("#ajax").html(data);
+			$.getScript(url);
 		}					
 	} );
 }
@@ -227,6 +228,27 @@ function viewLogs() {
 		}					
 	} );
 }
+function ajaxActionServers(action, id) {
+		var bad_ans = 'Bad config, check please';
+		$.ajax( {
+				url: "options.py",
+				data: {
+					action: action,
+					serv: id
+				},
+				success: function( data ) {
+					data = data.replace(/\s+/g,' ');
+					if( data ==  'Bad config, check please ' ) {
+						alert(data);
+					} else {
+						setTimeout(showOverview, 2000)
+					}
+				},
+				error: function(){
+					alert(w.data_error);
+				}					
+			} );
+	}
 $( function() {
 	$( "#serv" ).on('selectmenuchange',function()  {
 		$("#show").css("pointer-events", "inherit");
@@ -271,27 +293,6 @@ $( function() {
 	$( "input[type=checkbox]" ).checkboxradio();
 	$( ".controlgroup" ).controlgroup();
 	
-	function ajaxActionServers(action, id) {
-		var bad_ans = 'Bad config, check please';
-		$.ajax( {
-				url: "options.py",
-				data: {
-					action: action,
-					serv: id
-				},
-				success: function( data ) {
-					data = data.replace(/\s+/g,' ');
-					if( data ==  'Bad config, check please ' ) {
-						alert(data);
-					} else {
-						setTimeout(showOverview, 2000)
-					}
-				},
-				error: function(){
-					alert(w.data_error);
-				}					
-			} );
-	}
 	
 	$('.start').click(function() {
 		var id = $(this).attr('id');
@@ -671,11 +672,10 @@ $( function() {
 					$("#ajax-ssl").html(data);
 				} else if (data.indexOf('success') != '-1') {
 					$('.alert-danger').remove();
-					$("#ssl").addClass( "update", 1000 );
+					$( "#ajax-ssl").html(data);
 					setTimeout(function() {
-						$( "#ssl").removeClass( "update" );
+						$( "#ajax-ssl").html("");
 					}, 2500 );
-					$("#ajax-ssl").html(data);
 				} else {
 					$("#ajax-ssl").html('<div class="alert alert-danger">Something wrong, check and try again</div>');
 				}
