@@ -530,7 +530,7 @@ a:focus {
 	padding-left: 10px;
 	margin-bottom: 10px;	
 }
-.alert-danger, .alert-info, .alert-success {
+.alert-danger, .alert-info, .alert-success, .alert-warning {
 	width: 400px;
 	margin-left: 15px;
 }
@@ -553,6 +553,11 @@ a:focus {
 	color: #0c5460;
 	background-color: #d1ecf1;
 	border-color: #bee5eb;
+}
+.alert-warning {
+    color: #856404;
+    background-color: #fff3cd;
+    border-color: #ffeeba;
 }
 label {
   display: inline-block;

@@ -397,10 +397,13 @@ def upload_and_restart(serv, cfg, **kwargs):
 		commands = [ "/sbin/haproxy  -q -c -f " + tmp_file, "mv -f " + tmp_file + " " + haproxy_config_path ]
 	else:
 		commands = [ "/sbin/haproxy  -q -c -f " + tmp_file, "mv -f " + tmp_file + " " + haproxy_config_path, restart_command ]
-		
-	if config.get('haproxy', 'firewall_enable') == "1":
-		commands.extend(open_port_firewalld(cfg))
-		
+	
+	try:
+		if config.get('haproxy', 'firewall_enable') == "1":
+			commands.extend(open_port_firewalld(cfg))
+	except:
+		print('<div class="alert alert-warning">Please check the config for the presence of the parameter - "firewall_enable". Mast be: "0" or "1". Firewalld configure not working now </div>')
+			
 	i = 0
 	for command in commands:
 		i = i + 1
@@ -409,8 +412,7 @@ def upload_and_restart(serv, cfg, **kwargs):
 			if not stderr.read():
 				print('<div class="alert alert-success">Config ok</div><pre>')
 			else:
-				print('<div class="alert alert-danger">In your config have errors, please check, and try again</div>')
-				print(stderr.read().decode(encoding='UTF-8'))
+				print('<div class="alert alert-danger">In your config have errors, please check, and try again</div><br><br>')
 				return False
 				break
 		if i is not 1:
