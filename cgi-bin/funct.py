@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-"
 import cgi
 import os
 import paramiko
@@ -15,7 +16,6 @@ config.read(path_config)
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
 fullpath = config.get('main', 'fullpath')
-log_path = config.get('main', 'log_path')
 time_zone = config.get('main', 'time_zone')
 ssh_keys = config.get('ssh', 'ssh_keys')
 ssh_user_name = config.get('ssh', 'ssh_user_name')
@@ -45,7 +45,9 @@ def logging(serv, action):
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	login = cookie.get('login')
 	mess = now_utc.strftime(dateFormat) + " from " + IP + " user: " + login.value + " " + action + " for: " + serv + "\n"
-	try:
+	log_path = config.get('main', 'log_path')
+	
+	try:		
 		log = open(log_path + "/config_edit-"+get_data('logs')+".log", "a")
 		log.write(mess)
 		log.close
@@ -180,6 +182,8 @@ def links():
 						'<li><a href=/cgi-bin/add.py#ssl title="Upload SSL cert" class="cert head-submenu">SSL</a></li>'
 						'<li><a href=/cgi-bin/config.py title="Edit Config" class="edit head-submenu">Edit</a> </li>')
 	print('</li>')
+	if is_admin():
+		print('<li><a title="Create HA cluster" class="ha">HA</a>')		
 	if is_admin(level = 2):
 		print('<li><a title="Actions with configs" class="version">Versions</a>'			
 				'<li><a href=/cgi-bin/configver.py title="Upload old versions configs" class="upload head-submenu">Upload</a></li>')
@@ -189,7 +193,7 @@ def links():
 		print('</li>')
 	show_login_links()
 	if is_admin():
-		print('<li><a title="Admin area" class="version">Admin area</a>'			
+		print('<li><a title="Admin area" class="admin">Admin area</a>'			
 					'<li><a href=/cgi-bin/users.py#users title="Actions with users" class="users head-submenu">Users</a></li>'
 					'<li><a href=/cgi-bin/users.py#groups title="Actions with groups" class="group head-submenu">Groups</a></li>'
 					'<li><a href=/cgi-bin/users.py#servers title="Actions with servers" class="runtime head-submenu">Servers</a></li>'
@@ -199,7 +203,7 @@ def links():
 				'</li>')
 	print('</ul>'
 		  '</nav>'
-		  '<div class="copyright-menu">HAproxy-WI v2.0.8</div>'
+		  '<div class="copyright-menu">HAproxy-WI v2.1</div>'
 		  '</div>')	
 
 def show_login_links():
@@ -534,7 +538,7 @@ def ssh_command(serv, commands, **kwargs):
 		else:
 			print('<div style="margin: -10px;">'+stdout.read().decode(encoding='UTF-8')+'</div>')
 			
-		print(stderr.read().decode(encoding='UTF-8'))
+		print(stderr.read().decode(encoding='UTF-8')+"<br/>")
 		
 	ssh.close()
 
@@ -578,6 +582,6 @@ def chooseServer(formName, title, note, **kwargs):
 	print('</p></form>')
 	
 	if note == "y":
-		print('<div class="alert alert-info"><b>Note:</b> If you reconfigure First server, second will reconfigured automatically</div>')
+		print('<div class="alert alert-info"><b>Note:</b> If you reconfigure Master server, Slave will reconfigured automatically</div>')
 	print('</center>')
 

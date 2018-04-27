@@ -10,17 +10,19 @@ form = cgi.FieldStorage()
 viewlog = form.getvalue('viewlogs')
 
 funct.head("View logs")
-funct.check_config()
 funct.check_login()
+funct.page_for_admin()
+funct.get_auto_refresh("View logs")
 
 path_config = "haproxy-webintarface.config"
 config = ConfigParser(interpolation=ExtendedInterpolation())
-config.read(path_config)
+config.read(path_config)	
 
-log_path = config.get('main', 'log_path')
-
-funct.page_for_admin()
-funct.get_auto_refresh("View logs")	
+try:
+	if config.get('main', 'log_path'):
+		log_path = config.get('main', 'log_path')
+except:
+	print('<center><div class="alert alert-danger">Can not find "log_path" parametr. Check into config</div>')	
 try:
 	os.chdir(log_path)
 except IOError:

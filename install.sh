@@ -284,6 +284,7 @@ firewall-cmd --reload
 
 chmod +x /var/www/$HOME_HAPROXY_WI/cgi-bin/*.py
 chown -R apache:apache /var/www/$HOME_HAPROXY_WI/
+rm -f /var/www/$HOME_HAPROXY_WI/log/config_edit.log
 
 setenforce 0
 sed -i 's/SELINUX=enforcing/SELINUX=permissive/' /etc/selinux/config 

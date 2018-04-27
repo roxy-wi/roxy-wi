@@ -19,6 +19,7 @@ A simple web interface(user-frendly web GUI) for managing Haproxy servers. Leave
 13. Users roles: admin, editor, viewer
 14. Server groups
 15. Telegram notification
+16. Creating HA HAProxy cluster
 
 # Install
 The installer will ask you a few questions
@@ -40,6 +41,7 @@ $ chmod +x haproxy-wi/cgi-bin/*.py
 
 For Apache do virtualhost with cgi-bin. Like this:
 ```
+# vi /etc/httpd/conf.d/haproxy-wi.conf 
 <VirtualHost *:8080>
         ServerName haproxy-wi
         ErrorLog /var/log/httpd/haproxy-wi.error.log

@@ -66,6 +66,11 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f044";
 }
+.ha::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f0c2";
+}
 .version::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";
@@ -90,6 +95,11 @@
 	display: none;
 	font-family: "Font Awesome 5 Solid";
 	content: "\f01e";
+}
+.admin::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f21b";
 }
 .users::before {
 	display: none;

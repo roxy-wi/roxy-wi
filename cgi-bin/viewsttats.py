@@ -27,7 +27,7 @@ print('<br />'
 			'<select autofocus required name="serv" id="serv">'
 				'<option disabled>Choose server</option>')
 
-funct.choose_only_select(serv, virt=1)
+funct.choose_only_select(serv, master_slave=1)
 
 print('</select>'		
 		'<a class="ui-button ui-widget ui-corner-all" id="show" title="Show stats" onclick="showStats()">Show</a>'

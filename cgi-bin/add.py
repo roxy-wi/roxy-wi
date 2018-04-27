@@ -146,7 +146,7 @@ for i in listhap:
 	print('<option value="%s">%s</option>' % (i[2], i[1]))
 	
 print('</select>'
-		'<div class="tooltip tooltipTop"><b>Note:</b> If you reconfigure First server, second will reconfigured automatically</div>'
+		'<div class="tooltip tooltipTop"><b>Note:</b> If you reconfigure Master server, Slave will reconfigured automatically</div>'
 				'</td>'
 			'</tr>'
 		'<tr>'
@@ -159,8 +159,8 @@ print('</select>'
 			'<td class="addName">IP and Port:</td>'
 			'<td class="addOption">'
 				'<input type="text" name="ip" id="ip" title="" size="15" placeholder="172.28.0.1" class="form-control"><b>:</b>'
-				'<input type="number" name="port" id="listen-port" required title="Port for bind listner" size="5" placeholder="8080" class="form-control">'
-				'<div class="tooltip tooltipTop">IP for bind listner, <b>if empty will be assignet on all IPs</b>. Start typing ip, or press down.</div>'
+				'<input type="number" name="port" id="listen-port" required title="Port for bind listen" size="5" placeholder="8080" class="form-control">'
+				'<div class="tooltip tooltipTop">IP for bind listner, <b>if empty will be assignet on all IPs</b>. Start typing ip, or press down.<br>If you use <b>VRRP keep in blank</b>. If you assign an IP, the slave will not start</div>'
 			'</td>'
 		'</tr>'
 		'<tr>'
@@ -266,7 +266,7 @@ for i in listhap:
 	print('<option value="%s">%s</option>' % (i[2], i[1]))
 	
 print('</select>'
-		'<div class="tooltip tooltipTop"><b>Note:</b> If you reconfigure First server, second will reconfigured automatically</div>'
+		'<div class="tooltip tooltipTop"><b>Note:</b> If you reconfigure Master  server, Slave will reconfigured automatically</div>'
 				'</td>'
 			'</tr>'
 		'<tr>'
@@ -279,8 +279,8 @@ print('</select>'
 			'<td class="addName">IP and Port:</td>'
 			'<td class="addOption">'
 				'<input type="text" name="ip" id="ip1" size="15" placeholder="172.28.0.1" class="form-control"><b>:</b>'
-				'<input type="number" name="port" required title="Port for bind listner" placeholder="8080" class="form-control">'
-				'<div class="tooltip tooltipTop">IP for bind listner, <b>if empty will be assignet on all IPs</b>. Start typing ip, or press down.</div>'
+				'<input type="number" name="port" required title="Port for bind frontend" placeholder="8080" class="form-control">'
+				'<div class="tooltip tooltipTop">IP for bind listner, <b>if empty will be assignet on all IPs</b>. Start typing ip, or press down.<br>If you use <b>VRRP keep in blank</b>. If you assign an IP, the slave will not start</div>'
 			'</td>'
 		'</tr>'
 		'<tr>'
@@ -350,7 +350,7 @@ for i in listhap:
 	print('<option value="%s">%s</option>' % (i[2], i[1]))
 	
 print('</select>'
-		'<div class="tooltip tooltipTop"><b>Note:</b> If you reconfigure First server, second will reconfigured automatically</div>'
+		'<div class="tooltip tooltipTop"><b>Note:</b> If you reconfigure Master server, Slave will reconfigured automatically</div>'
 				'</td>'
 			'</tr>'
 		'<tr>'

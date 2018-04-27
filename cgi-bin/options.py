@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-"
 import html
 import cgi
-import os
+import os, sys
 import json
 import subprocess 
 import funct
@@ -202,11 +203,16 @@ if serv is not None and act == "configShow":
 	
 if form.getvalue('viewlogs') is not None:
 	viewlog = form.getvalue('viewlogs')
-	log_path = config.get('main', 'log_path')
+	try:
+		log_path = config.get('main', 'log_path')
+	except:
+		print('<div class="alert alert-warning">Please check the config for the presence of the parameter - "log_path". </div>')
+	
 	try:
 		log = open(log_path + viewlog, "r")
 	except IOError:
-		print('<div class="alert alert-danger">Can\'t read import config file</div>')
+		print('<div class="alert alert-danger">Can\'t read import log file</div>')
+		sys.exit()
 	
 	print('<center><h3>Shows log: %s</h3></center><br />' % viewlog)
 	i = 0
@@ -216,4 +222,27 @@ if form.getvalue('viewlogs') is not None:
 			print('<div class="line3">' + line + '</div>')
 		else:
 			print('<div class="line">' + line + '</div>')
+
+if form.getvalue('master'):
+	master = form.getvalue('master')
+	slave = form.getvalue('slave')
+	interface = form.getvalue('interface')
+	vrrpip = form.getvalue('vrrpip')
+	hap = form.getvalue('hap')
+	tmp_config_path = config.get('haproxy', 'tmp_config_path')
+	script = "install_keepalived.sh"
 	
+	os.system("cp scripts/%s ." % script)
+	
+	
+	funct.upload(master, tmp_config_path, script)
+	funct.upload(slave, tmp_config_path, script)
+	
+	commands = [ "chmod +x "+tmp_config_path+script, tmp_config_path+script+" MASTER "+interface+" "+vrrpip+" "+hap ]
+	funct.ssh_command(master, commands)
+	
+	commands = [ "chmod +x "+tmp_config_path+script, tmp_config_path+script+" BACKUP "+interface+" "+vrrpip+" "+hap ]
+	funct.ssh_command(slave, commands)
+			
+	os.system("rm -f %s" % script)
+	sql.update_server_master(master, slave)

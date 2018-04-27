@@ -161,6 +161,26 @@ def update_server(hostname, ip, group, typeip, enable, master, id):
 		con.rollback()
 	cur.close()    
 	con.close()
+
+def update_server_master(master, slave):
+	con, cur = create_db.get_cur()
+	sql = """ select id from servers where ip = '%s' """ % master
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		con.rollback()
+	for id in cur.fetchall():
+		sql = """ update servers set master = '%s' where ip = '%s' """ % (id[0], slave)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		con.rollback()
+	cur.close()    
+	con.close()
 	
 def select_users(**kwargs):
 	con, cur = create_db.get_cur()
@@ -301,9 +321,11 @@ def get_dick_permit(**kwargs):
 	cur.close()    
 	con.close() 
 	
-def is_master(ip):
+def is_master(ip, **kwargs):
 	con, cur = create_db.get_cur()
 	sql = """ select slave.ip from servers left join servers as slave on servers.id = slave.master where servers.ip = '%s' """ % ip
+	if kwargs.get('master_slave'):
+		sql = """ select master.hostname, master.ip, slave.hostname, slave.ip from servers as master left join servers as slave on master.id = slave.master where slave.master > 0 """
 	try:
 		cur.execute(sql)
 	except sqltool.Error as e:

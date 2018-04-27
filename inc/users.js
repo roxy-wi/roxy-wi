@@ -15,6 +15,43 @@ jQuery.expr[':'].regex = function(elem, index, match) {
 }
 
 $( function() {
+	$('#create').click(function() {
+		var ipformat = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+		var hap = 0;
+		if ($('#hap').is(':checked')) {
+			hap = '1';
+		}
+		$("#ajax").html('')
+		if( $("#master").val() == "" || $("#slave").val() == "" || $("#interface").val() == "" ||
+			$("#vrrp-ip").val() == "") {
+				$("#ajax").html('<div class="alert alert-danger">Please fill in all fields</div>')
+			} else if(! $("#vrrp-ip").val().match(ipformat)) {
+				$("#ajax").html('<div class="alert alert-danger">Please enter IP in "VRRP IP" field</div>')
+			} else {
+				$("#ajax").html('<div class="alert alert-warning">Please don\'t close and don\'t represh page. Wait until the work is completed. This may take some time </div>');
+				$.ajax( {
+					url: "options.py",
+					data: {
+						master: $('#master').val(),
+						slave: $('#slave').val(),
+						interface: $("#interface").val(),
+						vrrpip: $('#vrrp-ip').val(),
+						hap: hap
+					},
+					type: "GET",
+					success: function( data ) { 
+						data = data.replace(/\s+/g,' ');
+						if (data.indexOf('error') != '-1' || data.indexOf('alert') != '-1' || data.indexOf('Failed') != '-1') {
+							$("#ajax").html('<div class="alert alert-danger">'+data+'</data>');
+						} else if (data.indexOf('success') != '-1' ){
+							$('.alert-danger').remove();
+							$("#ajax").html('<div class="alert alert-success">All is ready!</data>');				
+						}	
+					}
+				} );
+			}
+	});
+	
 	$('.alert-danger').remove();	
 
 	$('#add-user').click(function() {
@@ -316,11 +353,11 @@ function uploadSsh() {
 					$("#ajax-ssh").html(data);
 				} else if (data.indexOf('success') != '-1') {
 					$('.alert-danger').remove();
-					$("#ssh").addClass( "update", 1000 );
-					setTimeout(function() {
-						$( "#ssh").removeClass( "update" );
-					}, 2500 );
 					$("#ajax-ssh").html(data);
+					setTimeout(function() {
+						$( "#ajax-ssh").html( "" );
+					}, 2500 );
+					
 				} else {
 					$("#ajax-ssh").html('<div class="alert alert-danger">Something wrong, check and try again</div>');
 				}
