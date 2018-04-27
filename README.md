@@ -14,10 +14,11 @@ A simple web interface(user-frendly web GUI) for managing Haproxy servers. Leave
 8. Editing configs
 9. Rollback to previous versions of the config
 10. Master/slave servers
-11. Comparing versions of configs
-12. Users roles: admin, editor, viewer
-13. Server groups
-14. Telegram notification
+11. Configure firewalld on HAProxy servers based on config ports
+12. Comparing versions of configs
+13. Users roles: admin, editor, viewer
+14. Server groups
+15. Telegram notification
 
 # Install
 The installer will ask you a few questions

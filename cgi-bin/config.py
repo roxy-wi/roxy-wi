@@ -63,7 +63,8 @@ if form.getvalue('serv') is not None and form.getvalue('config') is not None:
 	except IOError:
 		print("Can't read import config file")
 
-	print("<center><b>New config was saved as: %s </b></br></br></center>" % cfg)
+	print('<center><div class="alert alert-info">New config was saved as: %s </div></center>' % cfg)
+	
 	
 	MASTERS = sql.is_master(serv)
 	for master in MASTERS:

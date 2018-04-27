@@ -28,6 +28,7 @@ if form.getvalue('getcert') is not None and serv is not None:
 	
 if form.getvalue('ssh_cert'):
 	ssh_keys = config.get('ssh', 'ssh_keys')
+	
 	try:
 		with open(ssh_keys, "w") as conf:
 			conf.write(form.getvalue('ssh_cert'))
@@ -87,16 +88,6 @@ if form.getvalue('ip') is not None and serv is not None:
 	commands = [ "ip a |grep inet |egrep -v  '::1' |awk '{ print $2  }' |awk -F'/' '{ print $1  }'" ]
 	funct.ssh_command(serv, commands, ip="1")
 	
-if form.getvalue('name') is not None:
-	name = form.getvalue('name')
-	conf = open("/home/ploginov/haproxy/cgi-bin/hap_config/test.cfg", "r")
-	s = form.getvalue('s')
-	for line in conf:
-
-		if s in line and name in line:
-			print("yes")
-			break
-
 if form.getvalue('action') is not None and serv is not None:
 	serv = form.getvalue('serv')
 	action = form.getvalue('action')
@@ -226,7 +217,3 @@ if form.getvalue('viewlogs') is not None:
 		else:
 			print('<div class="line">' + line + '</div>')
 	
-if form.getvalue('tailf_stop') is not None:
-	serv = form.getvalue('serv')
-	commands = [ "ps ax |grep python3 |grep -v grep |awk '{ print $1 }' |xargs kill" ]
-	funct.ssh_command(serv, commands)

@@ -199,7 +199,7 @@ def links():
 				'</li>')
 	print('</ul>'
 		  '</nav>'
-		  '<div class="copyright-menu">HAproxy-WI v2.0.7</div>'
+		  '<div class="copyright-menu">HAproxy-WI v2.0.8</div>'
 		  '</div>')	
 
 def show_login_links():
@@ -377,6 +377,7 @@ def upload(serv, path, file, **kwargs):
 		sftp = ssh.open_sftp()
 		file = sftp.put(file, full_path)
 		sftp.close()
+		ssh.close()
 	except Exception as e:
 		print('<div class="alert alert-danger">Upload fail: %s</div>' % e)
 	
@@ -385,9 +386,9 @@ def upload_and_restart(serv, cfg, **kwargs):
 	
 	try:
 		ssh = ssh_connect(serv)
-		print("<center>connected to %s<br />" % serv)
+		print('<center><div class="alert alert-info">connected to %s</div>' % serv)
 	except:
-		print("Connect fail")
+		print('<center><div class="alert alert-danger">Connect fail</div>')
 	sftp = ssh.open_sftp()
 	sftp.put(cfg, tmp_file)
 	sftp.close()
@@ -396,32 +397,49 @@ def upload_and_restart(serv, cfg, **kwargs):
 		commands = [ "/sbin/haproxy  -q -c -f " + tmp_file, "mv -f " + tmp_file + " " + haproxy_config_path ]
 	else:
 		commands = [ "/sbin/haproxy  -q -c -f " + tmp_file, "mv -f " + tmp_file + " " + haproxy_config_path, restart_command ]
-	
+		
+	if config.get('haproxy', 'firewall_enable') == "1":
+		commands.extend(open_port_firewalld(cfg))
+		
 	i = 0
 	for command in commands:
 		i = i + 1
-		print("</br>Executing: {}".format( command ))
-		print("</br>")
 		stdin , stdout, stderr = ssh.exec_command(command)
-		print(stdout.read().decode(encoding='UTF-8'))
 		if i == 1:
 			if not stderr.read():
-				print('<h3 style="color: #23527c">Config ok</h3>')
+				print('<div class="alert alert-success">Config ok</div><pre>')
 			else:
-				print('<h3 style="color: red">In your config have errors, please check, and try again</h3>')
+				print('<div class="alert alert-danger">In your config have errors, please check, and try again</div>')
 				print(stderr.read().decode(encoding='UTF-8'))
 				return False
 				break
 		if i is not 1:
-			print("</br>Errors:")	
 			print(stderr.read().decode(encoding='UTF-8'))
-			print("</br>")
 	
 	return True	
 	
 	print('</center>')
 	ssh.close()
 
+def open_port_firewalld(cfg):
+	try:
+		conf = open(cfg, "r")
+	except IOError:
+		print('<div class="alert alert-danger">Can\'t read export config file</div>')
+	
+	firewalld_commands = []
+	
+	for line in conf:
+		if "bind" in line:
+			bind = line.split(":")
+			bind[1] = bind[1].strip(' ')
+			bind = bind[1].split("ssl")
+			bind = bind[0].strip(' \t\n\r')
+			firewalld_commands.append('firewall-cmd --zone=public --add-port=%s/tcp --permanent' % bind)
+				
+	firewalld_commands.append('firewall-cmd --reload')
+	return firewalld_commands
+	
 def check_haproxy_config(serv):
 	commands = [ "/sbin/haproxy  -q -c -f %s" % haproxy_config_path ]
 	ssh = ssh_connect(serv)
@@ -431,7 +449,8 @@ def check_haproxy_config(serv):
 			return True
 		else:
 			return False
-			
+	ssh.close()
+	
 def compare(stdout):
 	i = 0
 	minus = 0
@@ -514,6 +533,8 @@ def ssh_command(serv, commands, **kwargs):
 			print('<div style="margin: -10px;">'+stdout.read().decode(encoding='UTF-8')+'</div>')
 			
 		print(stderr.read().decode(encoding='UTF-8'))
+		
+	ssh.close()
 
 def choose_only_select(serv, **kwargs):
 	if kwargs.get("virt"):
@@ -555,6 +576,6 @@ def chooseServer(formName, title, note, **kwargs):
 	print('</p></form>')
 	
 	if note == "y":
-		print('<p><b>Note:</b> If you reconfigure First server, second will reconfigured automatically</p>')
+		print('<div class="alert alert-info"><b>Note:</b> If you reconfigure First server, second will reconfigured automatically</div>')
 	print('</center>')
 
