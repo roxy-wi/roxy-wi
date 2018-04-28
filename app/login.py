@@ -42,7 +42,7 @@ if form.getvalue('logout') is not None:
 	print("Set-cookie: login=; expires=Wed May 18 03:33:20 2003; path=/app/; httponly")
 	print("Set-cookie: role=; expires=Wed May 18 03:33:20 2003; path=/app/; httponly")
 	print("Content-type: text/html\n")
-	print('<meta http-equiv="refresh" content="0; url=/">')
+	print('<meta http-equiv="refresh" content="0; url=/overview.py">')
 	
 if login is None:		
 	funct.head("Login page")
