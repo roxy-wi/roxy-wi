@@ -20,13 +20,14 @@ A simple web interface(user-frendly web GUI) for managing Haproxy servers. Leave
 14. Server groups
 15. Telegram notification
 16. Creating HA HAProxy cluster
+17. Editing keepalived configs
 
 # Install
 The installer will ask you a few questions
 ```
 $ git clone https://github.com/Aidaho12/haproxy-wi.git /var/www/haproxy-wi
-$ chmod +x install
 $ cd /var/www/haproxy-wi
+$ chmod +x install.sh
 $ ./install
 ```
 ## Manual install

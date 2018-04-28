@@ -42,7 +42,7 @@ if [[ $MINSTALL == 1 ]];then
    yum -y install mariadb mariadb-server mysql-devel
 fi
 
-if [[ $(cat /etc/*-rele* |grep NAME |head -1) == 'NAME="Red Hat Enterprise Linux Server"' ]];then
+if [[ $(cat /etc/*-rele* |grep NAME |head -1) != 'NAME="Red Hat Enterprise Linux Server"' ]];then
         yum -y install epel-release
 fi
 
@@ -107,7 +107,7 @@ cat << EOF > /etc/httpd/conf.d/haproxy-wi.conf
         CustomLog /var/log/httpd/haproxy-wi.access.log combined
 
         DocumentRoot /var/www/$HOME_HAPROXY_WI
-        ScriptAlias "/cgi-bin/ /var/www/"$HOME_HAPROXY_WI/cgi-bin/"
+        ScriptAlias "/cgi-bin/ "/var/www/$HOME_HAPROXY_WI/cgi-bin/"
 
 
         <Directory $HOME_HAPROXY_WI>
@@ -236,6 +236,9 @@ if [[ $DB == 2 ]];then
 	echo ""
 	echo "################################"
 	sed -i '0,/enable = 0/s//enable = 1/' /var/www/$HOME_HAPROXY_WI/cgi-bin/haproxy-webintarface.config
+else
+	cd /var/www/$HOME_HAPROXY_WI/cgi-bin
+	./update_db.py
 fi
 if [[ -n $IP ]];then
 	sed -i "0,/mysql_host = 127.0.0.1/s//mysql_host = $IP/" /var/www/$HOME_HAPROXY_WI/cgi-bin/haproxy-webintarface.config
