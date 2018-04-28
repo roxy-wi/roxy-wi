@@ -15,8 +15,8 @@ jQuery.expr[':'].regex = function(elem, index, match) {
 }
 
 $( function() {
+	var ipformat = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
 	$('#create').click(function() {
-		var ipformat = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
 		var hap = 0;
 		if ($('#hap').is(':checked')) {
 			hap = '1';
@@ -51,7 +51,43 @@ $( function() {
 				} );
 			}
 	});
-	
+	$('#add-vrrp').click(function() {
+		var kp = 0;
+		if ($('#kp').is(':checked')) {
+			kp = '1';
+		} else {
+			kp = '0';
+		}
+		$("#ajax").html('')
+		if( $("#master-add").val() == "" || $("#slave-add").val() == "" || $("#interface-add").val() == "" ||
+			$("#vrrp-ip-add").val() == "") {
+				$("#ajax").html('<div class="alert alert-danger">Please fill in all fields</div>')
+			} else if(! $("#vrrp-ip-add").val().match(ipformat)) {
+				$("#ajax").html('<div class="alert alert-danger">Please enter IP in "VRRP IP" field</div>')
+			} else {
+				$("#ajax").html('<div class="alert alert-warning">Please don\'t close and don\'t represh page. Wait until the work is completed. This may take some time </div>');
+				$.ajax( {
+					url: "options.py",
+					data: {
+						masteradd: $('#master-add').val(),
+						slaveadd: $('#slave-add').val(),
+						interfaceadd: $("#interface-add").val(),
+						vrrpipadd: $('#vrrp-ip-add').val(),
+						kp: kp
+					},
+					type: "GET",
+					success: function( data ) { 
+						data = data.replace(/\s+/g,' ');
+						if (data.indexOf('error') != '-1' || data.indexOf('alert') != '-1' || data.indexOf('Failed') != '-1') {
+							$("#ajax").html('<div class="alert alert-danger">'+data+'</data>');
+						} else if (data.indexOf('success') != '-1' ){
+							$('.alert-danger').remove();
+							$("#ajax").html('<div class="alert alert-success">All is ready!</data>');				
+						}	
+					}
+				} );
+			}
+	});
 	$('.alert-danger').remove();	
 
 	$('#add-user').click(function() {
