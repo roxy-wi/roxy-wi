@@ -1,6 +1,8 @@
 #!/bin/bash
 CONF=/etc/keepalived/keepalived.conf
 IP=`cat $CONF |grep $3 |sed s/' '//g|sed s/'\t'//g`
+VI=`cat /etc/keepalived/keepalived.conf |grep VI |awk '{print $2}' |awk -F"_" '{print $2}' |tail -1`
+VI=$(($VI+1))
 
 if [[ $IP == $3 ]];then
         echo -e "error: VRRP address alredy use"
@@ -8,7 +10,7 @@ if [[ $IP == $3 ]];then
 fi
 
 cat << EOF >> $CONF
-vrrp_instance VI_2 {
+vrrp_instance VI_$VI {
 	state MASTER
 	interface eth1
 	virtual_router_id 101
@@ -40,7 +42,7 @@ sed -i "s/eth1/$2/g" $CONF
 sed -i "s/0.0.0.1/$3/g" $CONF
 
 if [[ $1 == "BACKUP" ]];then
-	sed -i "s/102/103/g" $CONF
+	sed -i "s/103/104/g" $CONF
 fi
 
 if [[ $4 == "1" ]];then
