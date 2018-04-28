@@ -23,7 +23,7 @@ config = ConfigParser(interpolation=ExtendedInterpolation())
 config.read(path_config)
 
 log_path = config.get('main', 'log_path')
-hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
+kp_save_configs_dir = config.get('configs', 'kp_save_configs_dir')
 
 print('<h2>Edit Running Keepalived config</h2>'
 		'<center>'
@@ -49,7 +49,7 @@ funct.get_button("Open", value="open")
 print('</form>')
 
 if serv is not None:
-	cfg = '/var/www/haproxy-wi/cgi-bin/kp_config/'+ serv + '-' + funct.get_data('config') + '.conf'
+	cfg = kp_save_configs_dir+ serv + '-' + funct.get_data('config') + '.conf'
 
 if form.getvalue('serv') is not None and form.getvalue('open') is not None :
 	

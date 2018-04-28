@@ -1,6 +1,10 @@
 #!/bin/bash
-yum install haproxy -y > /dev/null
+yum install haproxy socat -y > /dev/null
 
+if [ -f /etc/haproxy/haproxy.cfg ];then
+	echo -e "error: Haproxy alredy installed"
+	exit 1
+fi
 echo "" > /etc/haproxy/haproxy.cfg
 cat << EOF > /etc/haproxy/haproxy.cfg
 global
@@ -13,6 +17,7 @@ global
     daemon
     stats socket /var/lib/haproxy/stats
     stats socket *:1999 level admin
+	stats socket /var/run/haproxy.sock mode 600 level admin
 
 defaults
     mode                    http

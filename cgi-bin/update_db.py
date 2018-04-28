@@ -16,4 +16,5 @@ else:
 	db = "haproxy-wi.db"
 	import sqlite3 as sqltool
 	
+create_db.create_table()
 create_db.update_all()

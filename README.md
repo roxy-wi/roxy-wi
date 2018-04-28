@@ -76,16 +76,17 @@ MariaDB [(none)]> grant all on haproxywi.* to 'haproxy-wi'@'localhost' IDENTIFIE
 ```
 Edit $HOME_HAPROXY-WI/cgi-bin/haproxy-webintarface.config with your env
 ```
+Copy ssh key on all HAproxy servers
+
 Login http://haproxy-wi-server/users.py, and add: users, groups and servers. Default: admin/admin
 
 ![alt text](image/haproxy-wi-admin-area.jpeg "Admin area")
 
-Copy ssh key on all HAproxy servers
-
-For Runtime API enable state file on HAproxt servers and need install socat on all haproxy servers:
+For Runtime API enable state file on HAproxt servers and need install socat on all haproxy servers, and configre HAProxy:
 ```
     global
 		stats socket *:1999 level admin 
+		stats socket /var/run/haproxy.sock mode 600 level admin
 		server-state-file /etc/haproxy/haproxy/haproxy.state
     defaults
 		load-server-state-from-file global
@@ -95,6 +96,25 @@ For Runtime API enable state file on HAproxt servers and need install socat on a
 # Update DB
 ```
 $ cd /var/www/haproxy-wi/cgi-bin
+$ ./update_db.py
+```
+# Troubleshooting
+If you have error:
+```
+Forbidden
+You don't have permission to access /cgi-bin/overview.py on this server. 
+```
+
+Check owner(must be apache, or another user for apache)
+
+If at first login you have:
+```
+Internal Server Error
+```
+
+Do this:
+```
+$ cd /var/www/haproxy-wi
 $ ./update_db.py
 ```
 

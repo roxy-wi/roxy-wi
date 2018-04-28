@@ -1,6 +1,11 @@
 #!/bin/bash
 CONF=/etc/keepalived/keepalived.conf
 
+if [ -f $CONF ];then
+	echo -e "error: Keepalived alredy installed"
+	exit 1
+fi
+
 yum install keepalived -y > /dev/null
 if [ $? -eq 1 ]
 then

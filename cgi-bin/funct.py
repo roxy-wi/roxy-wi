@@ -319,7 +319,7 @@ def ssh_connect(serv):
 def get_config(serv, cfg, **kwargs):
 	if kwargs.get("keepalived"):
 		os.chdir("/var/www/haproxy-wi/cgi-bin/kp_config/")
-		config_path = "/etc/keepalived/keepalived.conf"
+		config_path = config.get('configs', 'kp_save_configs_dir')
 	else:
 		os.chdir(hap_configs_dir)
 		config_path = haproxy_config_path
