@@ -167,10 +167,8 @@ def update_server_master(master, slave):
 	sql = """ select id from servers where ip = '%s' """ % master
 	try:    
 		cur.execute(sql)
-		con.commit()
 	except sqltool.Error as e:
 		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
-		con.rollback()
 	for id in cur.fetchall():
 		sql = """ update servers set master = '%s' where ip = '%s' """ % (id[0], slave)
 	try:    
