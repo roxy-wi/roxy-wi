@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-"
 import cgi
-import os
+import os, sys
 import paramiko
 import http.cookies
 from paramiko import SSHClient
@@ -172,18 +172,20 @@ def links():
 						'<li><a href=/cgi-bin/map.py title="View map" class="map head-submenu">Map</a></li>'				
 				'</li>'
 				'<li><a href=/cgi-bin/edit.py title="Runtime API" class="runtime">Runtime API</a> </li>'
-				'<li><a title="Actions with configs" class="config-show">Configs</a>'					
-						'<li><a href=/cgi-bin/configshow.py title="Show Config" class="config-show head-submenu">Show</a></li> '
-						'<li><a href=/cgi-bin/diff.py title="Compare Configs" class="compare head-submenu">Compare</a></li>')
+				'<li><a title="Actions with Haproxy configs" class="config-show">Haproxy</a>'					
+						'<li><a href=/cgi-bin/configshow.py title="Show Haproxy Config" class="config-show head-submenu">Show config</a></li> '
+						'<li><a href=/cgi-bin/diff.py title="Compare Haproxy Configs" class="compare head-submenu">Compare configs</a></li>')
 	if is_admin(level = 2):
 		print('<li><a href=/cgi-bin/add.py#listner title="Add single listen" class="add head-submenu">Add listen</a></li>'
 						'<li><a href=/cgi-bin/add.py#frontend title="Add single frontend" class="add head-submenu">Add frontend</a></li>'
 						'<li><a href=/cgi-bin/add.py#backend title="Add single backend" class="add head-submenu">Add backend</a></li>'
 						'<li><a href=/cgi-bin/add.py#ssl title="Upload SSL cert" class="cert head-submenu">SSL</a></li>'
-						'<li><a href=/cgi-bin/config.py title="Edit Config" class="edit head-submenu">Edit</a> </li>')
+						'<li><a href=/cgi-bin/config.py title="Edit Haproxy Config" class="edit head-submenu">Edit config</a> </li>')
 	print('</li>')
 	if is_admin():
-		print('<li><a title="Create HA cluster" class="ha">HA</a>')		
+		print('<li><a title="Keepalived" class="ha">Keepalived</a>'
+				'<li><a href=/cgi-bin/ha.py title="Create HA cluster" class="keepalived head-submenu">HA</a>'
+				'<li><a href=/cgi-bin/keepalivedconfig.py title="Edit keepalived config" class="edit head-submenu">Edit config</a></li>')		
 	if is_admin(level = 2):
 		print('<li><a title="Actions with configs" class="version">Versions</a>'			
 				'<li><a href=/cgi-bin/configver.py title="Upload old versions configs" class="upload head-submenu">Upload</a></li>')
@@ -203,7 +205,7 @@ def links():
 				'</li>')
 	print('</ul>'
 		  '</nav>'
-		  '<div class="copyright-menu">HAproxy-WI v2.1</div>'
+		  '<div class="copyright-menu">HAproxy-WI v2.2</div>'
 		  '</div>')	
 
 def show_login_links():
@@ -218,7 +220,7 @@ def show_login_links():
 def footer():
 	print('</center></div>'
 			'<center>'
-				'<h3>'
+				'<h3 style="margin-left: 8%">'
 					'<a class="ui-button ui-widget ui-corner-all" href="#top" title="Move up">UP</a>'
 				'</h3><br />'
 			'</center>'
@@ -314,12 +316,18 @@ def ssh_connect(serv):
 	except Exception as e:
 		print('<div class="alert alert-danger">{}</div>'.format(e.args))	
 
-def get_config(serv, cfg):
-	os.chdir(hap_configs_dir)
+def get_config(serv, cfg, **kwargs):
+	if kwargs.get("keepalived"):
+		os.chdir("/var/www/haproxy-wi/cgi-bin/kp_config/")
+		config_path = "/etc/keepalived/keepalived.conf"
+	else:
+		os.chdir(hap_configs_dir)
+		config_path = haproxy_config_path
+		
 	ssh = ssh_connect(serv)
 	try:
 		sftp = ssh.open_sftp()
-		sftp.get(haproxy_config_path, cfg)
+		sftp.get(config_path, cfg)
 		sftp.close()
 		ssh.close()
 	except Exception as e:
@@ -370,6 +378,16 @@ def show_config(cfg):
 	print('</div></div>')
 	conf.close
 
+def install_haproxy(serv):
+	script = "install_haproxy.sh"
+	os.system("cp scripts/%s ." % script)
+	commands = [ "chmod +x "+tmp_config_path+script, tmp_config_path+script ]
+	
+	upload(serv, tmp_config_path, script)	
+	ssh_command(serv, commands)
+	
+	os.system("rm -f %s" % script)
+	
 def upload(serv, path, file, **kwargs):
 	full_path = path + file
 	
@@ -396,17 +414,22 @@ def upload_and_restart(serv, cfg, **kwargs):
 	sftp = ssh.open_sftp()
 	sftp.put(cfg, tmp_file)
 	sftp.close()
-	
-	if kwargs.get("just_save") == "save":
-		commands = [ "/sbin/haproxy  -q -c -f " + tmp_file, "mv -f " + tmp_file + " " + haproxy_config_path ]
+	if kwargs.get("keepalived") == 1:
+		print("123")
+		if kwargs.get("just_save") == "save":
+			commands = [ "mv -f " + tmp_file + " /etc/keepalived/keepalived.conf" ]
+		else:
+			commands = [ "mv -f " + tmp_file + " /etc/keepalived/keepalived.conf", "systemctl restart keepalived" ]
 	else:
-		commands = [ "/sbin/haproxy  -q -c -f " + tmp_file, "mv -f " + tmp_file + " " + haproxy_config_path, restart_command ]
-	
-	try:
-		if config.get('haproxy', 'firewall_enable') == "1":
-			commands.extend(open_port_firewalld(cfg))
-	except:
-		print('<div class="alert alert-warning">Please check the config for the presence of the parameter - "firewall_enable". Mast be: "0" or "1". Firewalld configure not working now </div>')
+		if kwargs.get("just_save") == "save":
+			commands = [ "/sbin/haproxy  -q -c -f " + tmp_file, "mv -f " + tmp_file + " " + haproxy_config_path ]
+		else:
+			commands = [ "/sbin/haproxy  -q -c -f " + tmp_file, "mv -f " + tmp_file + " " + haproxy_config_path, restart_command ]	
+		try:
+			if config.get('haproxy', 'firewall_enable') == "1":
+				commands.extend(open_port_firewalld(cfg))
+		except:
+			print('<div class="alert alert-warning">Please check the config for the presence of the parameter - "firewall_enable". Mast be: "0" or "1". Firewalld configure not working now </div>')
 			
 	i = 0
 	for command in commands:

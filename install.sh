@@ -42,7 +42,11 @@ if [[ $MINSTALL == 1 ]];then
    yum -y install mariadb mariadb-server mysql-devel
 fi
 
-yum -y install epel-release && yum -y install git ncat net-tools lshw python34 python34-pip  httpd mod_ssl gcc python34-devel 
+if [[ $(cat /etc/*-rele* |grep NAME |head -1) == 'NAME="Red Hat Enterprise Linux Server"' ]];then
+        yum -y install epel-release
+fi
+
+yum -y install git ncat net-tools lshw python34 python34-pip  httpd mod_ssl gcc python34-devel 
 
 if [ $? -eq 1 ]
 then
@@ -245,8 +249,6 @@ echo ""
 echo "################################"
 
           systemctl enable httpd ; systemctl restart httpd
-          systemctl enable haproxy ; systemctl start haproxy
-
 
 if [ $? -eq 1 ]
 then

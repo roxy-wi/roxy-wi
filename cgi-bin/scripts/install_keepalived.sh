@@ -1,12 +1,6 @@
 #!/bin/bash
 CONF=/etc/keepalived/keepalived.conf
 
-if [[ $4 == 1 ]];then
-        yum install haproxy -y > /dev/null
-		systemctl enable haproxy
-		systemctl restart haproxy
-fi
-
 yum install keepalived -y > /dev/null
 if [ $? -eq 1 ]
 then

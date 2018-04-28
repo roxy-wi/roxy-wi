@@ -232,16 +232,19 @@ if form.getvalue('master'):
 	tmp_config_path = config.get('haproxy', 'tmp_config_path')
 	script = "install_keepalived.sh"
 	
+	if hap == "1":
+		funct.install_haproxy(master)
+		funct.install_haproxy(slave)
+	
 	os.system("cp scripts/%s ." % script)
-	
-	
+		
 	funct.upload(master, tmp_config_path, script)
 	funct.upload(slave, tmp_config_path, script)
 	
-	commands = [ "chmod +x "+tmp_config_path+script, tmp_config_path+script+" MASTER "+interface+" "+vrrpip+" "+hap ]
+	commands = [ "chmod +x "+tmp_config_path+script, tmp_config_path+script+" MASTER "+interface+" "+vrrpip ]
 	funct.ssh_command(master, commands)
 	
-	commands = [ "chmod +x "+tmp_config_path+script, tmp_config_path+script+" BACKUP "+interface+" "+vrrpip+" "+hap ]
+	commands = [ "chmod +x "+tmp_config_path+script, tmp_config_path+script+" BACKUP "+interface+" "+vrrpip ]
 	funct.ssh_command(slave, commands)
 			
 	os.system("rm -f %s" % script)
