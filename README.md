@@ -3,24 +3,25 @@ A simple web interface(user-frendly web GUI) for managing Haproxy servers. Leave
 
 ![alt text](image/haproxy-wi-config-show.jpeg "Show config page")
 
-# Capabilities:
-1. View statistics of all servers in one place
-2. Server and service statsus in one place
-3. View logs of all servers in one place
-4. Map frontend, backends and servers
-5. Runtime API with the ability to save changes (need install socat on all haproxy servers)
-6. Browsing Configs
-7. Add sections: listen, frontend, backend from web interface
-8. Editing configs
-9. Rollback to previous versions of the config
-10. Master/slave servers
-11. Configure firewalld on HAProxy servers based on config ports
-12. Comparing versions of configs
-13. Users roles: admin, editor, viewer
-14. Server groups
-15. Telegram notification
-16. Creating HA HAProxy cluster
-17. Editing keepalived configs
+# Features:
+1.	Configure HAproxy In a jiffy with haproxy-wi
+2.	View and analyse Status of all Frontend/backend server via haproxy-wi from a single control panel.
+3.	View/Analyse HAproxy logs straight from the haproxy-wi web interface
+4.	Create and visualise the HAproxy workflow from Web Ui.
+5.	Push Your changes to your HAproxy servers with a single click through web interface.
+6.	Get info on past changes, Evaluate your config files and restore a previous stable config anytime with a single click straight from Web interface.
+7.	Add/Edit Frontend or backend servers via web interface with a click of a button.
+8.	Edit config of HAproxy and push changes to All Master/Slave server with a single click.
+9.	Add Multiple server to ensure Config Sync between servers.
+10.	Auto management of ports assigned to Fronted. 
+11.	Evaluate the changes of recent configs pushed to HAproxy instances straight from web ui
+12.	Multiple User Roles support for privileged based Viewing and editing of Config.
+13.	Create Groups and add /remove servers to ensure proper identification for your HAproxy Clusters
+14.	Send notifications to telegram directly from haproxy-wi.
+15.	haproxy-wi supports high Availability to ensure uptime to all Master slave servers configured.
+16.	SSL certificate support.
+17.	SSH Key support for managing multiple HAproxy Servers straight from haproxy-wi
+
 
 # Install
 The installer will ask you a few questions
@@ -37,7 +38,7 @@ $ cd /var/www/
 $ git clone https://github.com/Aidaho12/haproxy-wi.git /var/www/haproxy-wi
 $ chown -R apache:apache haproxy-wi/
 $ pip install -r haproxy-wi/requirements.txt 
-$ chmod +x haproxy-wi/cgi-bin/*.py 
+$ chmod +x haproxy-wi/app/*.py 
 ```
 
 For Apache do virtualhost with cgi-bin. Like this:
@@ -49,7 +50,7 @@ For Apache do virtualhost with cgi-bin. Like this:
         CustomLog /var/log/httpd/haproxy-wi.access.log combined
 
         DocumentRoot /var/www/haproxy-wi
-        ScriptAlias /cgi-bin/ "/var/www/haproxy-wi/cgi-bin/"
+        ScriptAlias /cgi-bin/ "/var/www/haproxy-wi/app/"
 
         <Directory /var/www/haproxy-wi>
                 Options +ExecCGI
@@ -74,7 +75,7 @@ MariaDB [(none)]> grant all on haproxywi.* to 'haproxy-wi'@'localhost' IDENTIFIE
 
 # Settings
 ```
-Edit $HOME_HAPROXY-WI/cgi-bin/haproxy-webintarface.config with your env
+Edit $HOME_HAPROXY-WI/app/haproxy-webintarface.config with your env
 ```
 Copy ssh key on all HAproxy servers
 
@@ -95,14 +96,14 @@ For Runtime API enable state file on HAproxt servers and need install socat on a
 
 # Update DB
 ```
-$ cd /var/www/haproxy-wi/cgi-bin
+$ cd /var/www/haproxy-wi/app
 $ ./update_db.py
 ```
 # Troubleshooting
 If you have error:
 ```
 Forbidden
-You don't have permission to access /cgi-bin/overview.py on this server. 
+You don't have permission to access /app/overview.py on this server. 
 ```
 
 Check owner(must be apache, or another user for apache)
@@ -114,7 +115,7 @@ Internal Server Error
 
 Do this:
 ```
-$ cd /var/www/haproxy-wi
+$ cd /var/www/haproxy-wi/app
 $ ./update_db.py
 ```
 

@@ -107,7 +107,7 @@ cat << EOF > /etc/httpd/conf.d/haproxy-wi.conf
         CustomLog /var/log/httpd/haproxy-wi.access.log combined
 
         DocumentRoot /var/www/$HOME_HAPROXY_WI
-        ScriptAlias "/cgi-bin/ "/var/www/$HOME_HAPROXY_WI/cgi-bin/"
+        ScriptAlias "/cgi-bin/ "/var/www/$HOME_HAPROXY_WI/app/"
 
 
         <Directory $HOME_HAPROXY_WI>
@@ -235,13 +235,13 @@ if [[ $DB == 2 ]];then
 	echo ""
 	echo ""
 	echo "################################"
-	sed -i '0,/enable = 0/s//enable = 1/' /var/www/$HOME_HAPROXY_WI/cgi-bin/haproxy-webintarface.config
+	sed -i '0,/enable = 0/s//enable = 1/' /var/www/$HOME_HAPROXY_WI/app/haproxy-webintarface.config
 else
-	cd /var/www/$HOME_HAPROXY_WI/cgi-bin
+	cd /var/www/$HOME_HAPROXY_WI/app
 	./update_db.py
 fi
 if [[ -n $IP ]];then
-	sed -i "0,/mysql_host = 127.0.0.1/s//mysql_host = $IP/" /var/www/$HOME_HAPROXY_WI/cgi-bin/haproxy-webintarface.config
+	sed -i "0,/mysql_host = 127.0.0.1/s//mysql_host = $IP/" /var/www/$HOME_HAPROXY_WI/app/haproxy-webintarface.config
 fi
 echo "################################"
 echo ""
@@ -274,7 +274,7 @@ else
 
 fi 
 
- sed -i "s|^fullpath = .*|fullpath = /var/www/$HOME_HAPROXY_WI|g" /var/www/$HOME_HAPROXY_WI/cgi-bin/haproxy-webintarface.config
+ sed -i "s|^fullpath = .*|fullpath = /var/www/$HOME_HAPROXY_WI|g" /var/www/$HOME_HAPROXY_WI/app/haproxy-webintarface.config
 echo "################################"
 echo ""
 echo ""
@@ -287,7 +287,7 @@ echo "Edit firewalld"
 firewall-cmd --zone=public --add-port=$PORT/tcp --permanent
 firewall-cmd --reload
 
-chmod +x /var/www/$HOME_HAPROXY_WI/cgi-bin/*.py
+chmod +x /var/www/$HOME_HAPROXY_WI/app/*.py
 chown -R apache:apache /var/www/$HOME_HAPROXY_WI/
 rm -f /var/www/$HOME_HAPROXY_WI/log/config_edit.log
 

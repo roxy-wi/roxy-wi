@@ -249,3 +249,25 @@ if form.getvalue('master'):
 			
 	os.system("rm -f %s" % script)
 	sql.update_server_master(master, slave)
+	
+if form.getvalue('masteradd'):
+	master = form.getvalue('masteradd')
+	slave = form.getvalue('slaveadd')
+	interface = form.getvalue('interfaceadd')
+	vrrpip = form.getvalue('vrrpipadd')
+	kp = form.getvalue('kp')
+	tmp_config_path = config.get('haproxy', 'tmp_config_path')
+	script = "add_vrrp.sh"
+	
+	os.system("cp scripts/%s ." % script)
+		
+	funct.upload(master, tmp_config_path, script)
+	funct.upload(slave, tmp_config_path, script)
+	
+	commands = [ "chmod +x "+tmp_config_path+script, tmp_config_path+script+" MASTER "+interface+" "+vrrpip+" "+kp]
+	funct.ssh_command(master, commands)
+	
+	commands = [ "chmod +x "+tmp_config_path+script, tmp_config_path+script+" BACKUP "+interface+" "+vrrpip+" "+kp ]
+	funct.ssh_command(slave, commands)
+			
+	os.system("rm -f %s" % script)

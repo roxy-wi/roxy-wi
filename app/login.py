@@ -39,8 +39,8 @@ def login_page(error):
 	print('</form></center>')
 	
 if form.getvalue('logout') is not None:
-	print("Set-cookie: login=; expires=Wed May 18 03:33:20 2003; path=/cgi-bin/; httponly")
-	print("Set-cookie: role=; expires=Wed May 18 03:33:20 2003; path=/cgi-bin/; httponly")
+	print("Set-cookie: login=; expires=Wed May 18 03:33:20 2003; path=/app/; httponly")
+	print("Set-cookie: role=; expires=Wed May 18 03:33:20 2003; path=/app/; httponly")
 	print("Content-type: text/html\n")
 	print('<meta http-equiv="refresh" content="0; url=/">')
 	
@@ -60,13 +60,13 @@ if login is not None and password is not None:
 				role = 3
 			c = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 			c["login"] = login
-			c["login"]["path"] = "/cgi-bin/"
+			c["login"]["path"] = "/app/"
 			c["login"]["expires"] = "Wed May 18 03:33:20 2033"
 			c["role"] = role
-			c["role"]["path"] = "/cgi-bin/"
+			c["role"]["path"] = "/app/"
 			c["role"]["expires"] = "Wed May 18 03:33:20 2033"
 			c["group"] = users[4]
-			c["group"]["path"] = "/cgi-bin/"
+			c["group"]["path"] = "/app/"
 			c["group"]["expires"] = "Wed May 18 03:33:20 2033"
 			print(c)
 			if form.getvalue('ref') is None:

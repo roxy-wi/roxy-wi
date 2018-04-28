@@ -166,46 +166,46 @@ def links():
 		'<nav class="menu">'
 			'<ul>'
 				'<li><a title="Statistics, monitoring and logs" class="stats">Stats</a>'				
-						'<li><a href=/cgi-bin/overview.py title="Server and service status" class="overview-link head-submenu">Overview</a> </li>'
-						'<li><a href=/cgi-bin/viewsttats.py title"Show stats" class="stats head-submenu">Stats</a> </li>'
-						'<li><a href=/cgi-bin/logs.py title="View logs" class="logs head-submenu">Logs</a></li>'
-						'<li><a href=/cgi-bin/map.py title="View map" class="map head-submenu">Map</a></li>'				
+						'<li><a href=/app/overview.py title="Server and service status" class="overview-link head-submenu">Overview</a> </li>'
+						'<li><a href=/app/viewsttats.py title"Show stats" class="stats head-submenu">Stats</a> </li>'
+						'<li><a href=/app/logs.py title="View logs" class="logs head-submenu">Logs</a></li>'
+						'<li><a href=/app/map.py title="View map" class="map head-submenu">Map</a></li>'				
 				'</li>'
-				'<li><a href=/cgi-bin/edit.py title="Runtime API" class="runtime">Runtime API</a> </li>'
+				'<li><a href=/app/edit.py title="Runtime API" class="runtime">Runtime API</a> </li>'
 				'<li><a title="Actions with Haproxy configs" class="config-show">Haproxy</a>'					
-						'<li><a href=/cgi-bin/configshow.py title="Show Haproxy Config" class="config-show head-submenu">Show config</a></li> '
-						'<li><a href=/cgi-bin/diff.py title="Compare Haproxy Configs" class="compare head-submenu">Compare configs</a></li>')
+						'<li><a href=/app/configshow.py title="Show Haproxy Config" class="config-show head-submenu">Show config</a></li> '
+						'<li><a href=/app/diff.py title="Compare Haproxy Configs" class="compare head-submenu">Compare configs</a></li>')
 	if is_admin(level = 2):
-		print('<li><a href=/cgi-bin/add.py#listner title="Add single listen" class="add head-submenu">Add listen</a></li>'
-						'<li><a href=/cgi-bin/add.py#frontend title="Add single frontend" class="add head-submenu">Add frontend</a></li>'
-						'<li><a href=/cgi-bin/add.py#backend title="Add single backend" class="add head-submenu">Add backend</a></li>'
-						'<li><a href=/cgi-bin/add.py#ssl title="Upload SSL cert" class="cert head-submenu">SSL</a></li>'
-						'<li><a href=/cgi-bin/config.py title="Edit Haproxy Config" class="edit head-submenu">Edit config</a> </li>')
+		print('<li><a href=/app/add.py#listner title="Add single listen" class="add head-submenu">Add listen</a></li>'
+						'<li><a href=/app/add.py#frontend title="Add single frontend" class="add head-submenu">Add frontend</a></li>'
+						'<li><a href=/app/add.py#backend title="Add single backend" class="add head-submenu">Add backend</a></li>'
+						'<li><a href=/app/add.py#ssl title="Upload SSL cert" class="cert head-submenu">SSL</a></li>'
+						'<li><a href=/app/config.py title="Edit Haproxy Config" class="edit head-submenu">Edit config</a> </li>')
 	print('</li>')
 	if is_admin():
 		print('<li><a title="Keepalived" class="ha">Keepalived</a>'
-				'<li><a href=/cgi-bin/ha.py title="Create HA cluster" class="keepalived head-submenu">HA</a>'
-				'<li><a href=/cgi-bin/keepalivedconfig.py title="Edit keepalived config" class="edit head-submenu">Edit config</a></li>')		
+				'<li><a href=/app/ha.py title="Create HA cluster" class="keepalived head-submenu">HA</a>'
+				'<li><a href=/app/keepalivedconfig.py title="Edit keepalived config" class="edit head-submenu">Edit config</a></li>')		
 	if is_admin(level = 2):
 		print('<li><a title="Actions with configs" class="version">Versions</a>'			
-				'<li><a href=/cgi-bin/configver.py title="Upload old versions configs" class="upload head-submenu">Upload</a></li>')
+				'<li><a href=/app/configver.py title="Upload old versions configs" class="upload head-submenu">Upload</a></li>')
 	if is_admin():
-		print('<li><a href=/cgi-bin/delver.py title="Delete old versions configs" class="delete head-submenu">Delete</a></li>')
+		print('<li><a href=/app/delver.py title="Delete old versions configs" class="delete head-submenu">Delete</a></li>')
 	if is_admin(level = 2):
 		print('</li>')
 	show_login_links()
 	if is_admin():
 		print('<li><a title="Admin area" class="admin">Admin area</a>'			
-					'<li><a href=/cgi-bin/users.py#users title="Actions with users" class="users head-submenu">Users</a></li>'
-					'<li><a href=/cgi-bin/users.py#groups title="Actions with groups" class="group head-submenu">Groups</a></li>'
-					'<li><a href=/cgi-bin/users.py#servers title="Actions with servers" class="runtime head-submenu">Servers</a></li>'
-					'<li><a href=/cgi-bin/users.py#roles title="Users roles" class="role head-submenu">Roles</a></li>'
-					'<li><a href=/cgi-bin/settings.py title="View settings" class="settings head-submenu">View settings</a></li>'
-					'<li><a href=/cgi-bin/viewlogs.py title="View users actions logs" class="logs head-submenu">View logs</a></li>'
+					'<li><a href=/app/users.py#users title="Actions with users" class="users head-submenu">Users</a></li>'
+					'<li><a href=/app/users.py#groups title="Actions with groups" class="group head-submenu">Groups</a></li>'
+					'<li><a href=/app/users.py#servers title="Actions with servers" class="runtime head-submenu">Servers</a></li>'
+					'<li><a href=/app/users.py#roles title="Users roles" class="role head-submenu">Roles</a></li>'
+					'<li><a href=/app/settings.py title="View settings" class="settings head-submenu">View settings</a></li>'
+					'<li><a href=/app/viewlogs.py title="View users actions logs" class="logs head-submenu">View logs</a></li>'
 				'</li>')
 	print('</ul>'
 		  '</nav>'
-		  '<div class="copyright-menu">HAproxy-WI v2.2</div>'
+		  '<div class="copyright-menu">HAproxy-WI v2.3</div>'
 		  '</div>')	
 
 def show_login_links():
@@ -213,9 +213,9 @@ def show_login_links():
 	login = cookie.get('login')
 	
 	if login is None:
-		print('<li><a href=/cgi-bin/login.py? title="Login" class="login">Login</a></li>')	
+		print('<li><a href=/app/login.py? title="Login" class="login">Login</a></li>')	
 	else:
-		print('<li><a href=/cgi-bin/login.py?logout=logout title="Logout, user name: %s" class="login">Logout</a></li>' % login.value)
+		print('<li><a href=/app/login.py?logout=logout title="Logout, user name: %s" class="login">Logout</a></li>' % login.value)
 		  
 def footer():
 	print('</center></div>'
@@ -246,7 +246,7 @@ def get_auto_refresh(h2):
 						'</li>'
 					'</ul>'
 				'</div>'
-				'<div class="auto-refresh-ul">'
+				'<div class="auto-refresh-ul" id="secIntervals">'
 					'<ul>'
 						'<li>'
 							'<a title="Auto-refresh every 5 seconds" onclick="setRefreshInterval(5000)">5 seconds</a>'

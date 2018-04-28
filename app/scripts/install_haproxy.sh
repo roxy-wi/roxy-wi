@@ -2,7 +2,7 @@
 yum install haproxy socat -y > /dev/null
 
 if [ -f /etc/haproxy/haproxy.cfg ];then
-	echo -e "error: Haproxy alredy installed"
+	echo -e 'error: Haproxy alredy installed. You can edit config<a href="/app/config.py" title="Edit HAProxy config">here</a>'
 	exit 1
 fi
 echo "" > /etc/haproxy/haproxy.cfg
