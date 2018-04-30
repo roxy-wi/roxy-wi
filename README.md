@@ -69,7 +69,7 @@ For Apache do virtualhost with cgi-bin. Like this:
 
 Default Haproxy-WI use Sqlite, if you want use MySQL enable in config, and create database:
 
-## For MySQL support:
+### For MySQL support:
 ```
 MariaDB [(none)]> create user 'haproxy-wi'@'%';
 MariaDB [(none)]> create database haproxywi;
@@ -82,7 +82,7 @@ MariaDB [(none)]> grant all on haproxywi.* to 'haproxy-wi'@'localhost' IDENTIFIE
 ```
 Edit $HOME_HAPROXY-WI/app/haproxy-webintarface.config with your env
 ```
-## Copy ssh key on all HAproxy servers, upload private key via Haproxy-WI in Admin area(Tab "SSH key" in "Servers" page), or sets root password in app/haproxy-webintarface.config. 
+Copy ssh key on all HAproxy servers
 
 Login http://haproxy-wi-server/users.py, and add: users, groups and servers. Default: admin/admin
 

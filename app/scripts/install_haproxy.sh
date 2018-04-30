@@ -67,8 +67,8 @@ cat << EOF > /etc/rsyslog.d/haproxy.conf
 local2.*                       /var/log/haproxy.log
 EOF
 
-sed -i "s/#$ModLoad imudp/$ModLoad imudp/g" /etc/rsyslog.conf 
-sed -i "s/#$UDPServerRun/$UDPServerRun /g" /etc/rsyslog.conf 
+sed -i 's/#$UDPServerRun 514/$UDPServerRun 514/g' /etc/rsyslog.conf
+sed -i 's/#$ModLoad imudp/$ModLoad imudp/g' /etc/rsyslog.conf 
 
 firewall-cmd --zone=public --add-port=8085/tcp --permanent
 firewall-cmd --reload
