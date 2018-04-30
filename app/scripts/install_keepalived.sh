@@ -8,8 +8,9 @@ fi
 
 yum install keepalived -y > /dev/null
 if [ $? -eq 1 ]
-then
-        exit 1
+then	
+	echo "error: Can't install keepalived"
+    exit 1
 fi
 echo "" > $CONF
 
@@ -48,7 +49,7 @@ vrrp_instance VI_1 {
 EOF
 if [ $? -eq 1 ]
 then
-        echo "Can't read keepalived config"
+        echo "error: Can't read keepalived config"
         exit 1
 fi
 sed -i "s/MASTER/$1/g" $CONF
@@ -69,6 +70,6 @@ firewall-cmd --reload
 
 if [ $? -eq 1 ]
 then
-        echo "Can't start keepalived"
+        echo "error: Can't start keepalived"
         exit 1
 fi

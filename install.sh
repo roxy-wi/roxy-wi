@@ -107,15 +107,20 @@ cat << EOF > /etc/httpd/conf.d/haproxy-wi.conf
         CustomLog /var/log/httpd/haproxy-wi.access.log combined
 
         DocumentRoot /var/www/$HOME_HAPROXY_WI
-        ScriptAlias "/cgi-bin/ "/var/www/$HOME_HAPROXY_WI/app/"
+        ScriptAlias /cgi-bin/ "/var/www/$HOME_HAPROXY_WI/app/"
 
 
-        <Directory $HOME_HAPROXY_WI>
+        <Directory /var/www/$HOME_HAPROXY_WI/app>
                 Options +ExecCGI
                 AddHandler cgi-script .py
                 Order deny,allow
                 Allow from all
         </Directory>
+		
+		<FilesMatch "\.config$">
+                Order Deny,Allow
+                Deny from all
+        </FilesMatch>
 </VirtualHost>
 EOF
 

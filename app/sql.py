@@ -503,7 +503,7 @@ if form.getvalue('newserver') is not None:
 		print('Content-type: text/html\n')
 		if add_server(hostname, ip, group, typeip, enable, master):
 			show_update_server(hostname)
-
+		
 if form.getvalue('serverdel') is not None:
 	print('Content-type: text/html\n')
 	if delete_server(form.getvalue('serverdel')):

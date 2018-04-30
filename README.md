@@ -52,12 +52,17 @@ For Apache do virtualhost with cgi-bin. Like this:
         DocumentRoot /var/www/haproxy-wi
         ScriptAlias /cgi-bin/ "/var/www/haproxy-wi/app/"
 
-        <Directory /var/www/haproxy-wi>
+        <Directory /var/www/haproxy-wi/app>
                 Options +ExecCGI
                 AddHandler cgi-script .py
                 Order deny,allow
                 Allow from all
         </Directory>
+		
+		<FilesMatch "\.config$">
+                Order Deny,Allow
+                Deny from all
+        </FilesMatch>
 </VirtualHost>
 ```
 # Database support
@@ -77,7 +82,7 @@ MariaDB [(none)]> grant all on haproxywi.* to 'haproxy-wi'@'localhost' IDENTIFIE
 ```
 Edit $HOME_HAPROXY-WI/app/haproxy-webintarface.config with your env
 ```
-Copy ssh key on all HAproxy servers
+## Copy ssh key on all HAproxy servers, upload private key via Haproxy-WI in Admin area(Tab "SSH key" in "Servers" page), or sets root password in app/haproxy-webintarface.config. 
 
 Login http://haproxy-wi-server/users.py, and add: users, groups and servers. Default: admin/admin
 

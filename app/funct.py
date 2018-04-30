@@ -17,6 +17,7 @@ form = cgi.FieldStorage()
 serv = form.getvalue('serv')
 fullpath = config.get('main', 'fullpath')
 time_zone = config.get('main', 'time_zone')
+proxy = config.get('main', 'proxy')
 ssh_keys = config.get('ssh', 'ssh_keys')
 ssh_user_name = config.get('ssh', 'ssh_user_name')
 haproxy_configs_server = config.get('configs', 'haproxy_configs_server')
@@ -61,7 +62,6 @@ def telegram_send_mess(mess):
 	import telegram
 	token_bot = config.get('telegram', 'token')
 	channel_name = config.get('telegram', 'channel_name')
-	proxy = config.get('telegram', 'proxy')
 	
 	if proxy is not None:
 		pp = telegram.utils.request.Request(proxy_url=proxy)
@@ -181,6 +181,8 @@ def links():
 						'<li><a href=/app/add.py#backend title="Add single backend" class="add head-submenu">Add backend</a></li>'
 						'<li><a href=/app/add.py#ssl title="Upload SSL cert" class="cert head-submenu">SSL</a></li>'
 						'<li><a href=/app/config.py title="Edit Haproxy Config" class="edit head-submenu">Edit config</a> </li>')
+	if is_admin():
+		print('<li><a href=/app/ihap.py title="Installation HAProxy" class="hap head-submenu">Installation</a> </li>')
 	print('</li>')
 	if is_admin():
 		print('<li><a title="Keepalived" class="ha">Keepalived</a>'
@@ -205,7 +207,7 @@ def links():
 				'</li>')
 	print('</ul>'
 		  '</nav>'
-		  '<div class="copyright-menu">HAproxy-WI v2.3</div>'
+		  '<div class="copyright-menu">HAproxy-WI v2.3.1</div>'
 		  '</div>')	
 
 def show_login_links():
@@ -296,6 +298,7 @@ def get_auto_refresh(h2):
 				'</div>'
 			'</div>'
 		'</div>')
+		
 def ssh_connect(serv):
 	ssh = SSHClient()
 	ssh.load_system_host_keys()
@@ -309,12 +312,16 @@ def ssh_connect(serv):
 		return ssh
 	except paramiko.AuthenticationException:
 		print('<div class="alert alert-danger">Authentication failed, please verify your credentials</div>')
+		return False
 	except paramiko.SSHException as sshException:
 		print('<div class="alert alert-danger">Unable to establish SSH connection: %s </div>' % sshException)
+		return False
 	except paramiko.BadHostKeyException as badHostKeyException:
 		print('<div class="alert alert-danger">Unable to verify server\'s host key: %s </div>' % badHostKeyException)
+		return False
 	except Exception as e:
 		print('<div class="alert alert-danger">{}</div>'.format(e.args))	
+		return False
 
 def get_config(serv, cfg, **kwargs):
 	if kwargs.get("keepalived"):
@@ -381,7 +388,11 @@ def show_config(cfg):
 def install_haproxy(serv):
 	script = "install_haproxy.sh"
 	os.system("cp scripts/%s ." % script)
-	commands = [ "chmod +x "+tmp_config_path+script, tmp_config_path+script ]
+	if proxy is not None:
+		proxy_serv = proxy
+	else:
+		proxy_serv = ""
+	commands = [ "chmod +x "+tmp_config_path+script, tmp_config_path+script +" " + proxy_serv]
 	
 	upload(serv, tmp_config_path, script)	
 	ssh_command(serv, commands)

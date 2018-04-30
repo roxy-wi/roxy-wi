@@ -271,3 +271,6 @@ if form.getvalue('masteradd'):
 	funct.ssh_command(slave, commands)
 			
 	os.system("rm -f %s" % script)
+	
+if form.getvalue('haproxyaddserv'):
+	funct.install_haproxy(form.getvalue('haproxyaddserv'))
