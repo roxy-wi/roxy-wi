@@ -10,6 +10,7 @@ config = ConfigParser(interpolation=ExtendedInterpolation())
 config.read(path_config)
 
 mysql_enable = config.get('mysql', 'enable')
+fullpath = config.get('main', 'fullpath')
 
 if mysql_enable == '1':
 	mysql_user = config.get('mysql', 'mysql_user')
@@ -19,7 +20,7 @@ if mysql_enable == '1':
 	from mysql.connector import errorcode
 	import mysql.connector as sqltool
 else:
-	db = "haproxy-wi.db"
+	db = fullpath+"/app/haproxy-wi.db"
 	import sqlite3 as sqltool
 	
 def check_db():
@@ -54,15 +55,19 @@ def check_db():
 			con.close()
 			
 def get_cur():
-	if mysql_enable == '0':
-		con = sqltool.connect(db, isolation_level=None)  
+	try:
+		if mysql_enable == '0':
+			con = sqltool.connect(db, isolation_level=None)  
+		else:
+			con = sqltool.connect(user=mysql_user, password=mysql_password,
+									host=mysql_host,
+									database=mysql_db)	
+		cur = con.cursor()
+	except sqltool.Error as e:
+		print("An error occurred:", e)
 	else:
-		con = sqltool.connect(user=mysql_user, password=mysql_password,
-								host=mysql_host,
-								database=mysql_db)	
-	cur = con.cursor()
-	return con, cur
-		
+		return con, cur
+			
 def create_table():
 	con, cur = get_cur()
 	if mysql_enable == '0':

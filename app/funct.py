@@ -7,7 +7,6 @@ from paramiko import SSHClient
 from datetime import datetime
 from pytz import timezone
 from configparser import ConfigParser, ExtendedInterpolation
-import sql
 
 path_config = "haproxy-webintarface.config"
 config = ConfigParser(interpolation=ExtendedInterpolation())
@@ -299,7 +298,7 @@ def get_auto_refresh(h2):
 			'</div>'
 		'</div>')
 		
-def ssh_connect(serv):
+def ssh_connect(serv, **kwargs):
 	ssh = SSHClient()
 	ssh.load_system_host_keys()
 	ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -309,7 +308,10 @@ def ssh_connect(serv):
 			ssh.connect(hostname = serv, username = ssh_user_name, pkey = k )
 		else:
 			ssh.connect(hostname = serv, username = ssh_user_name, password = config.get('ssh', 'ssh_pass'))
-		return ssh
+		if kwargs.get('check'):
+			return True
+		else:
+			return ssh
 	except paramiko.AuthenticationException:
 		print('<div class="alert alert-danger">Authentication failed, please verify your credentials</div>')
 		return False
@@ -426,7 +428,6 @@ def upload_and_restart(serv, cfg, **kwargs):
 	sftp.put(cfg, tmp_file)
 	sftp.close()
 	if kwargs.get("keepalived") == 1:
-		print("123")
 		if kwargs.get("just_save") == "save":
 			commands = [ "mv -f " + tmp_file + " /etc/keepalived/keepalived.conf" ]
 		else:
@@ -460,7 +461,7 @@ def upload_and_restart(serv, cfg, **kwargs):
 	
 	print('</center>')
 	ssh.close()
-
+		
 def open_port_firewalld(cfg):
 	try:
 		conf = open(cfg, "r")
@@ -577,6 +578,7 @@ def ssh_command(serv, commands, **kwargs):
 	ssh.close()
 
 def choose_only_select(serv, **kwargs):
+	import sql
 	if kwargs.get("virt"):
 		listhap = sql.get_dick_permit(virt=1)
 	else:

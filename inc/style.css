@@ -530,7 +530,7 @@ a:focus {
 	padding-left: 10px;
 	margin-bottom: 10px;	
 }
-.alert-danger, .alert-info, .alert-success, .alert-warning {
+.alert-danger, .alert-info, .alert-success, .alert-warning, .added {
 	width: 400px;
 	margin-left: 15px;
 }
@@ -543,11 +543,10 @@ a:focus {
 	margin-top: 15px;
 	margin-bottom: -50px;
 }
-.alert-success {
+.alert-success, .added{
 	color: #3c763d;
 	background-color: #dff0d8;
 	border-color: #d6e9c6;
-
 }
 .alert-info {
 	color: #0c5460;
@@ -558,6 +557,14 @@ a:focus {
     color: #856404;
     background-color: #fff3cd;
     border-color: #ffeeba;
+}
+.added {
+	position: absolute;
+	margin-left: 30px;
+	margin-top: 790px;
+	padding-bottom: 20px;
+	padding-right: 20px;
+	padding-left: 10px;
 }
 label {
   display: inline-block;

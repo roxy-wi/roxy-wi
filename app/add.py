@@ -2,9 +2,9 @@
 import html
 import cgi
 import os
+from configparser import ConfigParser, ExtendedInterpolation
 import funct
 import sql
-from configparser import ConfigParser, ExtendedInterpolation
 
 funct.head("Add")
 funct.check_config()
@@ -18,7 +18,7 @@ funct.page_for_admin(level = 2)
 hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
 cert_path = config.get('haproxy', 'cert_path')
 listhap = sql.get_dick_permit()
-form 	= cgi.FieldStorage()
+form = cgi.FieldStorage()
 
 if form.getvalue('mode') is not None: 
 	serv = form.getvalue('serv')
@@ -95,9 +95,6 @@ if form.getvalue('mode') is not None:
 		servers_split = ""
 	
 	config_add = name + "\n" + bind +  mode  + "\n" + balance + options_split + backend + servers_split + "\n"
-
-	os.chdir(config.get('configs', 'haproxy_save_configs_dir'))
-
 	cfg = hap_configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
 	
 	funct.get_config(serv, cfg)
@@ -114,16 +111,17 @@ if form.getvalue('mode') is not None:
 	for master in MASTERS:
 		if master[0] != None:
 			funct.upload_and_restart(master[0], cfg)
+	
 	if funct.upload_and_restart(serv, cfg):
-		print('<meta http-equiv="refresh" content="30; url=add.py?add=%s&conf=%s">' % (name, config_add))
+		print('<meta http-equiv="refresh" content="5; url=add.py?add=%s&conf=%s">' % (name, config_add))
 		
 	print('</div>')
-	
+
 if form.getvalue('add') is not None:
-	print('<h3 class="addSuc">  ' + form.getvalue('add') + ' was successfully added</h3>')
+	print('<div class="added"><h3 class="addSuc">  ' + form.getvalue('add') + ' was successfully added</h3>')
 	print('<div class="line3">')
 	print(form.getvalue('conf'))
-	print('</div>')
+	print('</div></div>')
 	
 print('<div id="tabs">'
 			'<ul>'

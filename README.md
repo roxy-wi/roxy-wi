@@ -123,6 +123,9 @@ Do this:
 $ cd /var/www/haproxy-wi/app
 $ ./update_db.py
 ```
+and check executeble py files
+
+If you see plain text, check section "Directory" in httpd conf
 
 # Further development and support
 

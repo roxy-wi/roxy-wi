@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-"
 import cgi
-import create_db
 from configparser import ConfigParser, ExtendedInterpolation
+import create_db
 
 path_config = "haproxy-webintarface.config"
 config = ConfigParser(interpolation=ExtendedInterpolation())
@@ -13,10 +13,9 @@ mysql_enable = config.get('mysql', 'enable')
 if mysql_enable == '1':
 	from mysql.connector import errorcode
 	import mysql.connector as sqltool
-else:
-	db = "haproxy-wi.db"
+else:	
 	import sqlite3 as sqltool
-	
+		
 def add_user(user, email, password, role, group):
 	con, cur = create_db.get_cur()
 	sql = """INSERT INTO user (username, email, password, role, groups) VALUES ('%s', '%s', '%s', '%s', '%s')""" % (user, email, password, role, group)
@@ -92,7 +91,8 @@ def delete_group(id):
 		con.rollback()
 	else: 
 		return True
-	cur.close()
+	cur.close()    
+	con.close() 
 	
 def update_group(name, descript, id):
 	con, cur = create_db.get_cur()
@@ -321,15 +321,17 @@ def get_dick_permit(**kwargs):
 	
 def is_master(ip, **kwargs):
 	con, cur = create_db.get_cur()
-	sql = """ select slave.ip from servers left join servers as slave on servers.id = slave.master where servers.ip = '%s' """ % ip
+	sql = """ select slave.ip from servers as master left join servers as slave on master.id = slave.master where master.ip = '%s' """ % ip
 	if kwargs.get('master_slave'):
 		sql = """ select master.hostname, master.ip, slave.hostname, slave.ip from servers as master left join servers as slave on master.id = slave.master where slave.master > 0 """
 	try:
-		cur.execute(sql)
+		cur.execute(sql)		
 	except sqltool.Error as e:
-		return False
+		print("An error occurred:", e)
 	else:
 		return cur.fetchall()
+	cur.close()    
+	con.close() 
 	
 def show_update_servers():
 	SERVERS = select_servers()
@@ -490,6 +492,7 @@ if form.getvalue('userdel') is not None:
 		print("Ok")
 		
 if form.getvalue('newserver') is not None:
+	import funct
 	hostname = form.getvalue('newserver')	
 	ip = form.getvalue('newip')
 	group = form.getvalue('newservergroup')
@@ -501,8 +504,11 @@ if form.getvalue('newserver') is not None:
 		print(error_mess)
 	else:		
 		print('Content-type: text/html\n')
-		if add_server(hostname, ip, group, typeip, enable, master):
-			show_update_server(hostname)
+		if funct.ssh_connect(ip, check=1):
+			if add_server(hostname, ip, group, typeip, enable, master):
+				show_update_server(hostname)
+		else:
+			print('<span class="alert alert-danger" id="error"><a title="Close" id="errorMess"><b>X</b></a></span>')
 		
 if form.getvalue('serverdel') is not None:
 	print('Content-type: text/html\n')
