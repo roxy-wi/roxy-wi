@@ -99,6 +99,15 @@ For Runtime API enable state file on HAproxt servers and need install socat on a
    ```
 ![alt text](image/haproxy-wi-logs.jpeg "View logs page")
 
+# Update
+```
+# cd /var/www/haproxy-wi
+# chmod +x update.sh
+# ./update.sh
+```
+
+After update old config saved at /tmp/ folder. Compare new and old config, if in new no changes overwrite the new configuration with the old one, or edit new with your ENV.
+
 # Update DB
 ```
 $ cd /var/www/haproxy-wi/app

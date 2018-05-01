@@ -539,6 +539,7 @@ if form.getvalue('updategroup') is not None:
 		update_group(name, descript, id)
 		
 if form.getvalue('updateserver') is not None:
+	import funct
 	name = form.getvalue('updateserver')
 	ip = form.getvalue('ip')	
 	group = form.getvalue('servergroup')	
@@ -551,5 +552,7 @@ if form.getvalue('updateserver') is not None:
 		print(error_mess)
 	else:		
 		print('Content-type: text/html\n')
-		update_server(name, ip, group, typeip, enable, master, id)
-		
+		if funct.ssh_connect(ip, check=1):
+			update_server(name, ip, group, typeip, enable, master, id)
+		else:
+			print('<span class="alert alert-danger" id="error"><a title="Close" id="errorMess"><b>X</b></a></span>')
