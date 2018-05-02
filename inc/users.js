@@ -107,7 +107,7 @@ $( function() {
 			}
 		} );	
 	});
-	$('.alert-danger').remove();	
+	//$('.alert-danger').remove();	
 
 	$('#add-user').click(function() {
 		$('#error').remove();	

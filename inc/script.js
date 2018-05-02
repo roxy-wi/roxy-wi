@@ -1,5 +1,15 @@
+var url = "/inc/script.js";
+var cur_url = window.location.href.split('/').pop();
+cur_url = cur_url.split('?');
+var intervalId;
+
 function autoRefreshStyle(autoRefresh) {
 	var margin;
+	if (cur_url[0] == "overview.py") {
+		if(autoRefresh < 60000) {
+			autoRefresh = 60000;
+		}
+	}
 	autoRefresh = autoRefresh / 1000;
 	if ( autoRefresh == 60) {
 		timeRange = " minute"
@@ -44,10 +54,6 @@ function setRefreshInterval(interval) {
 	}
 }
 
-var url = "/inc/script.js";
-var cur_url = window.location.href.split('/').pop();
-cur_url = cur_url.split('?');
-var intervalId;
 function startSetInterval(interval) {	
 	if (cur_url[0] == "logs.py") {
 		intervalId = setInterval('showLog()', interval);
@@ -56,6 +62,9 @@ function startSetInterval(interval) {
 		intervalId = setInterval('showStats()', interval);
 		showStats()
 	} else if (cur_url[0] == "overview.py") {
+		if(interval < 60000) {
+			interval = 60000;
+		}
 		intervalId = setInterval('showOverview()', interval);
 		showOverview(); 
 	} else if (cur_url[0] == "viewlogs.py") {
@@ -97,7 +106,6 @@ function showOverview() {
 		type: "GET",
 		success: function( data ) {
 			$("#ajax").html(data);
-			$.getScript(url);
 		}					
 	} );
 }
@@ -308,7 +316,7 @@ $( function() {
 	});
 
     var location = window.location.href;
-    var cur_url = '/cgi-bin/' + location.split('/').pop();
+    var cur_url = '/app/' + location.split('/').pop();
 	cur_url = cur_url.split('?');
 		
     $('.menu li').each(function () {
@@ -646,6 +654,40 @@ $( function() {
 				data: {
 					getcert:1,
 					serv: $("#serv3").val()
+				},
+				success: function( data ) {
+					data = data.replace(/\s+/g,' ');
+					response(data.split(" "));
+				}						
+			} );
+		},
+		autoFocus: true,
+		minLength: -1
+	});
+	$( "#interface" ).autocomplete({
+		source: function( request, response ) {
+			$.ajax( {
+				url: "options.py",
+				data: {
+					showif:1,
+					serv: $("#master").val()
+				},
+				success: function( data ) {
+					data = data.replace(/\s+/g,' ');
+					response(data.split(" "));
+				}						
+			} );
+		},
+		autoFocus: true,
+		minLength: -1
+	});
+	$( "#interface-add" ).autocomplete({
+		source: function( request, response ) {
+			$.ajax( {
+				url: "options.py",
+				data: {
+					showif:1,
+					serv: $("#master").val()
 				},
 				success: function( data ) {
 					data = data.replace(/\s+/g,' ');

@@ -68,23 +68,27 @@ def telegram_send_mess(mess):
 	bot.send_message(chat_id=channel_name, text=mess)
 	
 def check_login(**kwargs):
+	import sql
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	login = cookie.get('login')
-	role = cookie.get('role')
+	user_uuid = cookie.get('uuid')
 	ref = os.environ.get("SCRIPT_NAME")
 
-	if login is None:
+	if user_uuid is not None:
+		if sql.get_user_name_by_uuid(user_uuid.value) is None:
+			print('<meta http-equiv="refresh" content="0; url=login.py?ref=%s">' % ref)
+	else:
 		print('<meta http-equiv="refresh" content="0; url=login.py?ref=%s">' % ref)
 				
 def is_admin(**kwargs):
+	import sql
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	role = cookie.get('role')
-	level = kwargs.get("level")
-	
-	if role is None:
+	user_id = cookie.get('uuid')
+	try:
+		role = sql.get_user_role_by_uuid(user_id.value)
+	except:
 		role = 3
-	else:
-		role = int(role.value)
+		pass
+	level = kwargs.get("level")
 		
 	if level is None:
 		level = 1
@@ -206,17 +210,18 @@ def links():
 				'</li>')
 	print('</ul>'
 		  '</nav>'
-		  '<div class="copyright-menu">HAproxy-WI v2.3.1</div>'
+		  '<div class="copyright-menu">HAproxy-WI v2.4</div>'
 		  '</div>')	
 
 def show_login_links():
+	import sql
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	login = cookie.get('login')
+	user_id = cookie.get('uuid')
 	
-	if login is None:
+	if user_id is None:
 		print('<li><a href=/app/login.py? title="Login" class="login">Login</a></li>')	
 	else:
-		print('<li><a href=/app/login.py?logout=logout title="Logout, user name: %s" class="login">Logout</a></li>' % login.value)
+		print('<li><a href=/app/login.py?logout=logout title="Logout, user name: %s" class="login">Logout</a></li>' % sql.get_user_name_by_uuid(user_id.value))
 		  
 def footer():
 	print('</center></div>'
@@ -573,7 +578,7 @@ def ssh_command(serv, commands, **kwargs):
 		else:
 			print('<div style="margin: -10px;">'+stdout.read().decode(encoding='UTF-8')+'</div>')
 			
-		print(stderr.read().decode(encoding='UTF-8')+"<br/>")
+		print(stderr.read().decode(encoding='UTF-8'))
 		
 	ssh.close()
 

@@ -168,14 +168,14 @@ def update_server_master(master, slave):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 	for id in cur.fetchall():
 		sql = """ update servers set master = '%s' where ip = '%s' """ % (id[0], slave)
 	try:    
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -289,13 +289,69 @@ def get_enable_checkbox(id, **kwargs):
 	cur.close()    
 	con.close() 
 	
+def write_user_uuid(login, user_uuid):
+	con, cur = create_db.get_cur()
+	sql = """ select id from user where username = '%s' """ % login
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+	for id in cur.fetchall():
+		sql = """ insert into uuid (user_id, uuid) values('%s', '%s') """ % (id[0], user_uuid)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		con.rollback()
+	cur.close()    
+	con.close()
+	
+def delete_uuid(uuid):
+	con, cur = create_db.get_cur()
+	sql = """ delete from uuid where uuid = '%s' """ % uuid
+	try:
+		cur.execute(sql)		
+		con.commit()
+	except sqltool.Error as e:
+		pass
+	cur.close()    
+	con.close() 
+	
+def get_user_name_by_uuid(uuid):
+	con, cur = create_db.get_cur()
+	sql = """ select user.username from user left join uuid as uuid on user.id = uuid.user_id where uuid.uuid = '%s' """ % uuid
+	try:
+		cur.execute(sql)		
+	except sqltool.Error as e:
+		print("An error occurred:", e)
+	else:
+		for user_id in cur.fetchall():
+			return user_id[0]
+	cur.close()    
+	con.close() 
+	
+def get_user_role_by_uuid(uuid):
+	con, cur = create_db.get_cur()
+	sql = """ select role.id from user left join uuid as uuid on user.id = uuid.user_id left join role on role.name = user.role where uuid.uuid = '%s' """ % uuid
+	try:
+		cur.execute(sql)		
+	except sqltool.Error as e:
+		print("An error occurred:", e)
+	else:
+		for user_id in cur.fetchall():
+			return user_id[0]
+	cur.close()    
+	con.close() 
+	
 def get_dick_permit(**kwargs):
 	import http.cookies
 	import os
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	login = cookie.get('login')
+	user_id = cookie.get('uuid')
+	
 	con, cur = create_db.get_cur()
-	sql = """ select * from user where username = '%s' """ % login.value
+	sql = """ select * from user where username = '%s' """ % get_user_name_by_uuid(user_id.value)
 	if kwargs.get('virt'):
 		type_ip = "" 
 	else:
@@ -303,7 +359,7 @@ def get_dick_permit(**kwargs):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		print("An error occurred:", e.args[0])
+		print("An error occurred:", e)
 	else:
 		for group in cur:
 			if group[5] == '1':

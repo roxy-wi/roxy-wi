@@ -29,7 +29,7 @@ print('<script src="/inc/users.js"></script>'
 		'</td>'
 		'<td class="padding10 first-collumn">'
 			'<select id="haproxyaddserv">'
-				'<option disable selected>Choose master</option>')
+				'<option disable selected>Choose server</option>')
 funct.choose_only_select(serv)
 print('</select>'
 		'</td>'

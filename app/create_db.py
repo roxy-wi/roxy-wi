@@ -108,20 +108,24 @@ def create_table():
 		 ('guest','Read only access');
 		
 		CREATE TABLE IF NOT EXISTS `groups` (
-		`id`	INTEGER NOT NULL,
-		`name`	VARCHAR ( 80 ) UNIQUE,
-		`description`	VARCHAR ( 255 ),
-		PRIMARY KEY(`id`)
+			`id`	INTEGER NOT NULL,
+			`name`	VARCHAR ( 80 ) UNIQUE,
+			`description`	VARCHAR ( 255 ),
+			PRIMARY KEY(`id`)
 		);
 		INSERT INTO `groups` (name, description) VALUES ('All','All servers enter in this group');	
 		
 		CREATE TABLE IF NOT EXISTS `servers` (
-		`id`	INTEGER NOT NULL,
-		`hostname`	VARCHAR ( 64 ) UNIQUE,
-		`ip`	VARCHAR ( 64 ) UNIQUE,
-		`groups`	VARCHAR ( 64 ),
-		PRIMARY KEY(`id`)
+			`id`	INTEGER NOT NULL,
+			`hostname`	VARCHAR ( 64 ) UNIQUE,
+			`ip`	VARCHAR ( 64 ) UNIQUE,
+			`groups`	VARCHAR ( 64 ),
+			PRIMARY KEY(`id`)
 		);		
+		CREATE TABLE IF NOT EXISTS `uuid` (
+			`user_id`	INTEGER NOT NULL,
+			`uuid`	varchar ( 64 )
+		);
 		"""
 		try:
 			cur.executescript(sql)
@@ -144,7 +148,7 @@ def create_table():
 	cur.close() 
 	con.close()
 	
-def update_db_v_2_0_1():
+def update_db_v_2_0_1(**kwargs):
 	con, cur = get_cur()
 	sql = """
 	ALTER TABLE `servers` ADD COLUMN type_ip INTEGER NOT NULL DEFAULT 0;
@@ -152,19 +156,19 @@ def update_db_v_2_0_1():
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		if e.args[0] == 'duplicate column name: type_ip':
-			print('Updating... go to version 2.0.1.1<br />')
-			return False
-		else:
-			print("An error occurred:", e)
-			return False
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: type_ip':
+				print('Updating... go to version 2.0.1.1<br />')
+			else:
+				print("An error occurred:", e)
+		return False
 	else:
 		print("DB was update to 2.0.1<br />")
 		return True
 	cur.close() 
 	con.close()
 
-def update_db_v_2_0_1_1():
+def update_db_v_2_0_1_1(**kwargs):
 	con, cur = get_cur()
 	sql = """
 	ALTER TABLE `servers` ADD COLUMN enable INTEGER NOT NULL DEFAULT 1;
@@ -172,19 +176,19 @@ def update_db_v_2_0_1_1():
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		if e.args[0] == 'duplicate column name: enable' or e == "1060 (42S21): Duplicate column name 'enable' ":
-			print('Updating... go to version 2.0.5<br />')
-			return False
-		else:
-			print("An error occurred:", e)
-			return False
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: enable' or e == "1060 (42S21): Duplicate column name 'enable' ":
+				print('Updating... go to version 2.0.5<br />')
+			else:
+				print("An error occurred:", e)
+		return False
 	else:
 		print("DB was update to 2.0.1.1<br />")
 		return True
 	cur.close() 
 	con.close()
 	
-def update_db_v_2_0_5():
+def update_db_v_2_0_5(**kwargs):
 	con, cur = get_cur()
 	sql = """
 	ALTER TABLE `servers` ADD COLUMN master INTEGER NOT NULL DEFAULT 0;
@@ -192,14 +196,36 @@ def update_db_v_2_0_5():
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		if e.args[0] == 'duplicate column name: master':
-			print('Already updated. No run more. Thx =^.^=')
-			return False
-		else:
-			print("An error occurred:", e)
-			return False
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: master':
+				print('Already updated. No run more. Thx =^.^=')
+			else:
+				print("An error occurred:", e)
+		return False
 	else:
 		print("DB was update to 2.0.5<br />")
+		return True
+	cur.close() 
+	con.close()
+	
+def update_db_v_2_4(**kwargs):
+	con, cur = get_cur()
+	sql = """
+	CREATE TABLE IF NOT EXISTS `uuid` (`user_id` INTEGER NOT NULL, `uuid` varchar ( 64 ) );
+	"""
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		print(kwargs.get('silent'))
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: user_id':
+				print('Already updated. No run more. Thx =^.^=')
+			else:
+				print("An error occurred:", e)
+		return False
+	else:
+		if kwargs.get('silent') != 1:
+			print("DB was update to 2.4 <br />")
 		return True
 	cur.close() 
 	con.close()
@@ -208,6 +234,13 @@ def update_all():
 	update_db_v_2_0_1()
 	update_db_v_2_0_1_1()
 	update_db_v_2_0_5()
+	update_db_v_2_4()
+	
+def update_all_silent():
+	update_db_v_2_0_1(silent=1)
+	update_db_v_2_0_1_1(silent=1)
+	update_db_v_2_0_5(silent=1)
+	update_db_v_2_4(silent=1)
 		
 #if check_db():	
 #	create_table()

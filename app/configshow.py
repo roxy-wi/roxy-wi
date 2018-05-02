@@ -24,7 +24,7 @@ ssh_user_name = config.get('ssh', 'ssh_user_name')
 hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
 haproxy_config_path  = config.get('haproxy', 'haproxy_config_path')
 
-funct.chooseServer("configshow.py", "Show HAproxy config", "n", onclick="showConfig()")
+funct.chooseServer("configshow.py", "Get Running Config", "n", onclick="showConfig()")
 
 print('<div id="ajax">')
 if serv is not None and form.getvalue('open') is not None :

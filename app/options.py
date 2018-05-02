@@ -89,6 +89,10 @@ if form.getvalue('ip') is not None and serv is not None:
 	commands = [ "ip a |grep inet |egrep -v  '::1' |awk '{ print $2  }' |awk -F'/' '{ print $1  }'" ]
 	funct.ssh_command(serv, commands, ip="1")
 	
+if form.getvalue('showif'):
+	commands = ["ip link|grep 'UP' | awk '{print $2}'  |awk -F':' '{print $1}'"]
+	funct.ssh_command(serv, commands, ip="1")
+	
 if form.getvalue('action') is not None and serv is not None:
 	serv = form.getvalue('serv')
 	action = form.getvalue('action')
