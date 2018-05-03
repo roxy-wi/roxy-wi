@@ -197,8 +197,8 @@ def update_db_v_2_0_5(**kwargs):
 		cur.execute(sql)
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
-			if e.args[0] == 'duplicate column name: master':
-				print('Already updated. No run more. Thx =^.^=')
+			if e.args[0] == 'duplicate column name: master' or e == "1060 (42S21): Duplicate column name 'master' ":
+				print('Updating... go to version 2.4<br />')
 			else:
 				print("An error occurred:", e)
 		return False

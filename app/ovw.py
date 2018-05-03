@@ -19,11 +19,11 @@ form = cgi.FieldStorage()
 
 def get_overview():
 	USERS = sql.select_users()
-	
-	print('<table class="overview">')
+	listhap = sql.get_dick_permit()
 
 	if funct.is_admin():
-		print('<tr class="overviewHead">'
+		print('<table class="overview">'
+			'<tr class="overviewHead">'
 				'<td class="padding10 first-collumn">Login</td>'
 				'<td class="padding10">Email</td>'
 				'<td class="padding10">Group</td>'
@@ -45,10 +45,8 @@ def get_overview():
 				style = 'style="display: none;" class="show-users"'
 			print('<tr ' + style + '><td class="padding10 first-collumn">' + users[1] +'</td><td class="second-collumn">')
 			print(users[2]+'</td><td>')
-			GROUPS = sql.select_user_name_group(users[5])
-			for group in GROUPS:
-				print(group)
-				print('</td><td>')
+			print(sql.select_user_name_group(users[5]))
+			print('</td><td>')
 			print(users[4])
 			print('</td><td></td></tr>')
 		print('</table>')
@@ -68,8 +66,6 @@ def get_overview():
 			'<td></td>'
 		'</tr>')
 		
-	listhap = sql.get_dick_permit()
-
 	commands = [ "ps -Af |grep [h]aproxy |wc -l" ]
 	commands1 = [ "ls -l %s |awk '{ print $6\" \"$7\" \"$8}'" % haproxy_config_path ]
 
@@ -90,7 +86,8 @@ def get_overview():
 		funct.ssh_command(server[2], commands1)
 		print('</td><td></td></tr>')
 
-	print('</table><table class="overview"><tr class="overviewHead">'
+	print('</table><table class="overview">'
+		'<tr class="overviewHead">'
 			'<td class="padding10 first-collumn" style="width: 15%;">Server</td>'
 			'<td>'
 				'HAproxy info'
@@ -99,7 +96,7 @@ def get_overview():
 				'Server status'
 			'</td>'
 		'</tr>')
-	print('</td></tr>')
+
 	commands = [ "cat " + haproxy_config_path + " |grep -E '^listen|^backend|^frontend' |grep -v stats |wc -l",  
 				"uname -smor", 
 				"haproxy -v |head -1", 

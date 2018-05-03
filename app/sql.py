@@ -216,7 +216,8 @@ def select_user_name_group(id):
 	except sqltool.Error as e:
 		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 	else:
-		return cur.fetchone()
+		for group in cur.fetchone():
+			return group
 	cur.close()    
 	con.close()  
 

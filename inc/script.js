@@ -106,6 +106,7 @@ function showOverview() {
 		type: "GET",
 		success: function( data ) {
 			$("#ajax").html(data);
+			$.getScript('/inc/overview.js');
 		}					
 	} );
 }
@@ -236,27 +237,7 @@ function viewLogs() {
 		}					
 	} );
 }
-function ajaxActionServers(action, id) {
-		var bad_ans = 'Bad config, check please';
-		$.ajax( {
-				url: "options.py",
-				data: {
-					action: action,
-					serv: id
-				},
-				success: function( data ) {
-					data = data.replace(/\s+/g,' ');
-					if( data ==  'Bad config, check please ' ) {
-						alert(data);
-					} else {
-						setTimeout(showOverview, 2000)
-					}
-				},
-				error: function(){
-					alert(w.data_error);
-				}					
-			} );
-	}
+
 $( function() {
 	$( "#serv" ).on('selectmenuchange',function()  {
 		$("#show").css("pointer-events", "inherit");
@@ -301,20 +282,6 @@ $( function() {
 	$( "input[type=checkbox]" ).checkboxradio();
 	$( ".controlgroup" ).controlgroup();
 	
-	
-	$('.start').click(function() {
-		var id = $(this).attr('id');
-		ajaxActionServers("start", id);
-	});
-	$('.stop').click(function() {
-		var id = $(this).attr('id');
-		ajaxActionServers("stop", id);
-	});
-	$('.restart').click(function() {
-		var id = $(this).attr('id');
-		ajaxActionServers("restart", id);
-	});
-
     var location = window.location.href;
     var cur_url = '/app/' + location.split('/').pop();
 	cur_url = cur_url.split('?');
@@ -350,17 +317,7 @@ $( function() {
 		  $("#label_select_all").text("Select all");
         }
     });
-	$ ( "#show-all-users" ).click( function() {
-		if($( "#show-all-users" ).text() == "Show all") {
-			$( ".show-users" ).show("fast");
-			$( "#show-all-users" ).text("Hide");
-			$( "show-all-users" ).attr("title") = "Hide all users";
-		} else {
-			$( ".show-users" ).hide("fast");
-			$( "#show-all-users" ).attr("title", "Show all users");
-			$( "#show-all-users" ).text("Show all");
-		}
-	});
+
 	$( "#listen-mode-select" ).on('selectmenuchange',function()  {
 		if ($( "#listen-mode-select option:selected" ).val() == "tcp") {
 			$( "#https-listen-span" ).hide("fast");
