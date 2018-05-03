@@ -162,6 +162,7 @@ $( function() {
 	});
 	$('#add-server').click(function() {
 		$('#error').remove();	
+		$('.alert-danger').remove();	
 		var typeip = 0;
 		var enable = 0;
 		if ($('#typeip').is(':checked')) {

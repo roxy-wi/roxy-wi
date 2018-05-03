@@ -39,12 +39,14 @@ def get_data(type):
 	return now_utc.strftime(fmt)
 			
 def logging(serv, action):
+	import sql
 	dateFormat = "%b  %d %H:%M:%S"
 	now_utc = datetime.now(timezone(time_zone))
 	IP = cgi.escape(os.environ["REMOTE_ADDR"])
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	login = cookie.get('login')
-	mess = now_utc.strftime(dateFormat) + " from " + IP + " user: " + login.value + " " + action + " for: " + serv + "\n"
+	user_uuid = cookie.get('uuid')
+	login = sql.get_user_name_by_uuid(user_uuid.value)
+	mess = now_utc.strftime(dateFormat) + " from " + IP + " user: " + login + " " + action + " for: " + serv + "\n"
 	log_path = config.get('main', 'log_path')
 	
 	try:		
@@ -327,7 +329,12 @@ def ssh_connect(serv, **kwargs):
 		print('<div class="alert alert-danger">Unable to verify server\'s host key: %s </div>' % badHostKeyException)
 		return False
 	except Exception as e:
-		print('<div class="alert alert-danger">{}</div>'.format(e.args))	
+		if e.args[1] == "No such file or directory":
+			print('<div class="alert alert-danger">{}. Check ssh key</div>'.format(e.args[1]))	
+		elif e.args[1] == "Invalid argument":
+			print('<div class="alert alert-danger">Check the IP of the new server</div>')
+		else:
+			print('<div class="alert alert-danger">{}</div>'.format(e.args[1]))	
 		return False
 
 def get_config(serv, cfg, **kwargs):

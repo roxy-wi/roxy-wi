@@ -53,7 +53,10 @@ if serv is not None:
 
 if form.getvalue('serv') is not None and form.getvalue('open') is not None :
 	
-	funct.logging(serv, "keepalivedconfig.py open config")
+	try:
+		funct.logging(serv, "keepalivedconfig.py open config")
+	except:
+		pass
 	funct.get_config(serv, cfg, keepalived=1)
 	
 	try:
@@ -75,7 +78,11 @@ if form.getvalue('serv') is not None and form.getvalue('open') is not None :
 	os.system("/bin/mv %s %s.old" % (cfg, cfg))	
 
 if form.getvalue('serv') is not None and form.getvalue('config') is not None:
-	funct.logging(serv, "keepalivedconfig.py edited config")
+	try:
+		funct.logging(serv, "keepalivedconfig.py edited config")
+	except:
+		pass
+		
 	config = form.getvalue('config')
 	oldcfg = form.getvalue('oldconfig')
 	save = form.getvalue('save')
