@@ -46,4 +46,5 @@ $( function() {
 			$( "#show-all-users" ).text("Show all");
 		}
 	});
+	$('#secIntervals').css('display', 'none');
 });

@@ -1,4 +1,5 @@
 $( function() {
+	$( "input[type=submit], button" ).button();
 	$( ".configShow" ).accordion({
 			  collapsible: true,
 			  heightStyle: "content",

@@ -14,24 +14,21 @@ function autoRefreshStyle(autoRefresh) {
 	if ( autoRefresh == 60) {
 		timeRange = " minute"
 		autoRefresh = autoRefresh / 60;
-		margin = '-80px';
 	} else if ( autoRefresh > 60 && autoRefresh < 3600 ) {
 		timeRange = " minutes"
 		autoRefresh = autoRefresh / 60;
-		margin = '-93px';
 	} else if ( autoRefresh >= 3600 && autoRefresh < 86401 ) {
 		timeRange = " hours"
-		autoRefresh = autoRefresh / 3600;
-		margin = '-80px';				
+		autoRefresh = autoRefresh / 3600;			
 	} else {
 		timeRange = " seconds";
-		margin = '-100px';
 	}
 	$('#1').text(autoRefresh + timeRange);
 	$('#0').text(autoRefresh + timeRange);
 	$('.auto-refresh-pause').css('display', 'inline');		
 	$('.auto-refresh-resume').css('display', 'none');		
-	$('.auto-refresh-pause').css('margin-left', margin);	
+	$('.auto-refresh-pause').css('margin-left', "-25px");	
+	$('.auto-refresh-resume').css('margin-left', "-25px");		
 	$('.auto-refresh img').remove();
 }
 
@@ -39,7 +36,7 @@ function setRefreshInterval(interval) {
 	if (interval == "0") {
 		Cookies.remove('auto-refresh');
 		pauseAutoRefresh();
-		$('.auto-refresh').append('<img style="margin-top: 3px; margin-left: -110px; position: fixed;" src=/image/pic/update.png alt="restart" class="icon">');
+		$('.auto-refresh').prepend('<img src=/image/pic/update.png alt="restart" class="icon">');
 		$('#1').text('Auto-refresh');
 		$('#0').text('Auto-refresh');
 		$('.auto-refresh-pause').css('display', 'none');
@@ -219,6 +216,23 @@ function showConfig() {
 		success: function( data ) {
 			$("#ajax").html(data);
 			window.history.pushState("Show config", "Show config", cur_url[0]+"?serv="+$("#serv").val()+"&open=open");
+			var urlConfigShowJs = '/inc/configshow.js';
+			$.getScript(urlConfigShowJs);
+		}					
+	} );
+}
+function showUploadConfig() {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			serv: $("#serv").val(),
+			act: "configShow",
+			configver: $('#configver').val()
+		},
+		type: "GET",
+		success: function( data ) {
+			$("#ajax").html(data);
+			window.history.pushState("Show config", "Show config", cur_url[0]+"?serv="+$("#serv").val()+"&open=open&configver="+$('#configver').val());
 			var urlConfigShowJs = '/inc/configshow.js';
 			$.getScript(urlConfigShowJs);
 		}					
@@ -644,7 +658,7 @@ $( function() {
 				url: "options.py",
 				data: {
 					showif:1,
-					serv: $("#master").val()
+					serv: $("#master-add").val()
 				},
 				success: function( data ) {
 					data = data.replace(/\s+/g,' ');
