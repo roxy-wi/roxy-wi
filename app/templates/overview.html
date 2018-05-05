@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}	
+	<table class="overview">
+		<tr class="overviewHead">
+			<td class="padding10">Login</td>
+			<td class="padding10">Email</td>
+			<td>Group</td>
+			<td class="padding10">Role</td>
+			<td style="width: 200px;">
+				<span class="add-button">
+					<a href="#"  title="Show all users" id="show-all-users" style="color: #fff">
+						Show all
+					</a>
+				</span>
+			</td>
+		</tr>		
+		{% for user in users %}
+		<tr>
+			<td class="padding10 first-collumn"> {{ user.1 }}</td>
+			<td class="padding10"> {{ user.2 }}</td>
+			<td class="second-collumn">{{ user.5 }}</td>
+			<td>{{ user.4 }}</td>
+			<td></td>
+		</tr>
+		{% endfor %}
+	</table>
+	<table class="overview">
+		<tr class="overviewHead">
+			<td class="padding10">Server</td>
+			<td class="padding10">
+				HAproxy status
+			</td>
+			<td class="padding10">
+				Action
+			</td>
+			<td>
+				Last edit
+			</td>
+		</tr>
+		{% for server in servers %}
+		<tr>
+			<td class="padding10 first-collumn"><a title={{ server.1 }} style="color: #000">{{ server.1 }}</a></td>
+			<td class="second-collumn">{{ server.7 }}</td>
+			<td class="padding10">
+				<a href="/app/configshow.py?serv={{ server.2 }}&open=open#conf" title="Show config"><img src="/image/pic/show.png" alt="show" class="icon"></a>
+				<a href="/app/configshow.py?serv={{ server.2 }}&open=open#conf" title="Edit config"><img src="/image/pic/edit.png" alt="edit" class="icon"></a>
+				<a href="/app/configshow.py?serv={{ server.2 }}&open=open#conf" title="Compare config"><img src="/image/pic/compare.png" alt="compare" class="icon"></a> 
+				<a href="/app/configshow.py?serv={{ server.2 }}&open=open#conf" title="Map listen/frontend/backend"><img src="/image/pic/map.png" alt="map" class="icon"></a> 
+			</td>
+		</tr>
+		{% endfor %}
+	</table>
+{% endblock %}

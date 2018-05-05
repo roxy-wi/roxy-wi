@@ -1,14 +1,24 @@
 #!/usr/bin/env python3
-import html
-import cgi
-import funct
-import ovw
-
-funct.head("Overview")
-funct.check_config()
+import funct, sql
+import os, http
+from jinja2 import Environment, FileSystemLoader
+env = Environment(loader=FileSystemLoader('templates/'))
+template = env.get_template('ovw.html')
+	
+print('Content-type: text/html\n')
 funct.check_login()
-funct.get_auto_refresh("Overview")	
-print("<script>if (cur_url[0] == 'overview.py') { $('#secIntervals').css('display', 'none');}</script>")
-print('<script> window.onload = showOverview()</script><div id="ajax"></div>')
 
-funct.footer()
+try:
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_id = cookie.get('uuid')
+	user = sql.get_user_name_by_uuid(user_id.value)
+
+except:
+	pass
+
+output_from_parsed_template = template.render(h2 = 1,
+												autorefresh = 1,
+												title = "Overview",
+												role = sql.get_user_role_by_uuid(user_id.value),
+												user = user)
+print(output_from_parsed_template)											

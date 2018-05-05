@@ -1,39 +1,32 @@
 #!/usr/bin/env python3
-import html
-import cgi
-import os, sys
+import os
+import sql
+import http, cgi
 import funct
-from configparser import ConfigParser, ExtendedInterpolation
+import sql
 import glob
 import datetime
+from configparser import ConfigParser, ExtendedInterpolation
+from jinja2 import Environment, FileSystemLoader
+env = Environment(loader=FileSystemLoader('templates/'))
+template = env.get_template('viewlogs.html')
 
 form = cgi.FieldStorage()
-viewlog = form.getvalue('viewlogs')
-
-funct.head("View logs")
-funct.check_login()
-funct.page_for_admin()
-funct.get_auto_refresh("View logs")
-
 path_config = "haproxy-webintarface.config"
 config = ConfigParser(interpolation=ExtendedInterpolation())
 config.read(path_config)	
 
+print('Content-type: text/html\n')
 try:
 	if config.get('main', 'log_path'):
 		log_path = config.get('main', 'log_path')
 		time_storage = config.getint('logs', 'log_time_storage')
 except:
 	print('<center><div class="alert alert-danger">Can not find "log_path" and "log_time_storage" parametrs. Check into config</div>')	
-try:
-	os.chdir(log_path)
-except IOError:
-	print('<center><div class="alert alert-danger">No such file or directory: "%s". Please check "log_path" in config and exist directory</div>' % log_path)
-	sys.exit()
-	
-print('<script src="/inc/users.js"></script>'
-		'<a name="top"></a>'
-		'<center><h3>Choose log file</h3><br />')
+
+
+funct.check_login()
+funct.page_for_admin()
 try:
 	time_storage_hours = time_storage * 24
 	for dirpath, dirnames, filenames in os.walk(log_path):
@@ -46,22 +39,27 @@ except:
 	print('<center><div class="alert alert-danger" style="margin: 0; margin-bottom: 10px;">Can\'t delete old logs file. <br> Please check "log_time_storage" in config and <br>exist directory </div>')
 	pass
 	
-print('<select id="viewlogs">'
-			'<option disabled selected>Choose log</option>')
+try:
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_id = cookie.get('uuid')
+	user = sql.get_user_name_by_uuid(user_id.value)
+	servers = sql.get_dick_permit()
+except:
+	pass
 	
-for files in sorted(glob.glob('*.log'), reverse=True):
-	if files == viewlog:
-		selected = 'selected'
-	else:
-		selected = ''
-	print('<option value="%s" %s>%s</option>' % (files, selected, files))
-		
-print('</select>'
-		'<a class="ui-button ui-widget ui-corner-all" id="show" title="Show stats" onclick="viewLogs()">Show</a>'
-		'</center><br />'
-		'<div id="ajax"></div>'
-		'<script>'
-			'window.onload = viewLogs()'
-		'</script>')
-		
-funct.footer()
+def get_files():
+	file = set()
+	for files in glob.glob(os.path.join(log_path,'*.log')):
+		file.add(files.split('/')[5])
+	return sorted(file, reverse=True)
+
+output_from_parsed_template = template.render(h2 = 1,
+												autorefresh = 1, 
+												title = "View logs",
+												role = sql.get_user_role_by_uuid(user_id.value),
+												user = user,
+												onclick = "viewLogs()",
+												serv = form.getvalue('viewlogs'),
+												select_id = "viewlogs",
+												selects = get_files())										
+print(output_from_parsed_template)

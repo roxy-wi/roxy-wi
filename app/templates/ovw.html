@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}	
+<script>
+	if (cur_url[0] == 'overview.py') { 
+		$('#secIntervals').css('display', 'none');
+	}
+	window.onload = showOverview()
+</script>
+<div id="ajax"></div>
+{% endblock %}

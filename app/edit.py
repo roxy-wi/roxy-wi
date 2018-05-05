@@ -1,52 +1,29 @@
 #!/usr/bin/env python3
-import html
-import cgi
+import os
+import sql
+import http
 import funct
 import sql
+from jinja2 import Environment, FileSystemLoader
+env = Environment(loader=FileSystemLoader('templates/'))
+template = env.get_template('runtimeapi.html')
 
-form = cgi.FieldStorage()
-serv = form.getvalue('serv')
-
-funct.head("Runtime API")
+print('Content-type: text/html\n')
 funct.check_login()
-funct.check_config()
 
-print('<h2>Runtime API</h2>'
-		'<table class="overview">'
-			'<tr class="overviewHead">'
-				'<td class="padding10 first-collumn">Server</td>'
-				'<td>Disable/Enable server or output any information</td>'
-				'<td class="padding10">Command</td>'
-				'<td>Save change</td>'
-				'<td></td>'
-			'</tr>'
-			'<tr>'
-				'<td class="padding10 first-collumn" style="width: 25%;">'
-				'<form action="edit.py" method="get">'
-					'<select required name="serv" id="serv">'
-						'<option disabled selected>Choose server</option>')
+try:
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_id = cookie.get('uuid')
+	user = sql.get_user_name_by_uuid(user_id.value)
+	servers = sql.get_dick_permit(virt=1)
+except:
+	pass
 
-funct.choose_only_select(serv, virt=1)
-
-print('</select></td>'
-	'<td style="width: 30%;">'
-		'<select required name="servaction" id="servaction">'
-			'<option disabled selected>Choose action</option>')
-if funct.is_admin():
-	print('<option value="disable">Disable</option>')
-	print('<option value="enable">Enable</option>')
-	print('<option value="set">Set</option>')
-print('<option value="show">Show</option>'
-	'</select></td>'
-	'<td>'
-		'<input type="text" name="servbackend" id="servbackend" size=35 title="Frontend, backend/server, show: info, pools or help" required class="form-control">'
-	'</td><td>'
-		'<label for="save"></label><input type="checkbox" name="save" id="save" value="123">'
-	'</td><td>'
-		'<a class="ui-button ui-widget ui-corner-all" id="show" title="Enter" onclick="showRuntime()">Enter</a>'
-	'</td></form>'
-	'</tr></table>'
-	'<div id="ajax">'
-	'</div>')
-
-funct.footer()
+output_from_parsed_template = template.render(h2 = 1,
+												title = "Runtime API",
+												role = sql.get_user_role_by_uuid(user_id.value),
+												user = user,
+												onclick = "showRuntime()",
+												select_id = "serv",
+												selects = servers)											
+print(output_from_parsed_template)

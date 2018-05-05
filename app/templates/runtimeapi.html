@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+	<table class="overview">
+		<tr class="overviewHead">
+			<td class="padding10 first-collumn">Server</td>
+			<td>Disable/Enable server or output any information</td>
+			<td class="padding10">Command</td>
+			<td>Save change</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td class="padding10 first-collumn" style="width: 25%;">
+				<form action= {{ action }} method="get">
+					<select autofocus required id="{{ select_id }}">
+						<option disabled>Choose server</option>
+						{% for select in selects %}
+							<option value="{{ select.2 }}">{{ select.1 }}</option>
+						{% endfor %}
+					</select>
+			</td>
+			<td style="width: 30%;">
+				<select required name="servaction" id="servaction">
+					<option disabled>Choose action</option>
+					{% if role <= 2 %}
+						<option value="disable">Disable</option>
+						<option value="enable">Enable</option>
+						<option value="set">Set</option>
+					{% endif %}
+					<option value="show" selected>Show</option>
+				</select>
+			</td>
+			<td>
+				<input type="text" name="servbackend" id="servbackend" size=35 title="Frontend, backend/server, show: info, pools or help" required class="form-control">
+			</td>
+			<td>
+				{% if role <= 2 %}
+					<label for="save"></label><input type="checkbox" name="save" id="save" value="123">
+				{% endif %}
+			</td>
+			<td>
+				<a class="ui-button ui-widget ui-corner-all" id="show" title="Enter" onclick="{{ onclick }}">Enter</a>
+			</td>
+				</form>
+		</tr>
+	</table>
+{% endblock %}

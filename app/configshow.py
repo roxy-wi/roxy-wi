@@ -1,46 +1,27 @@
 #!/usr/bin/env python3
-import html
-import cgi
 import os
+import sql
+import http
 import funct
-import paramiko
-from configparser import ConfigParser, ExtendedInterpolation
-from datetime import datetime
-from pytz import timezone
-
-form = cgi.FieldStorage()
-serv = form.getvalue('serv')
-
-funct.head("Get Running Config")
-funct.check_config()
+from jinja2 import Environment, FileSystemLoader
+env = Environment(loader=FileSystemLoader('templates/'))
+template = env.get_template('config.html')
+print('Content-type: text/html\n')
 funct.check_login()
 
-path_config = "haproxy-webintarface.config"
-config = ConfigParser(interpolation=ExtendedInterpolation())
-config.read(path_config)
+try:
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_id = cookie.get('uuid')
+	user = sql.get_user_name_by_uuid(user_id.value)
+	servers = sql.get_dick_permit()
+except:
+	pass
 
-ssh_keys = config.get('ssh', 'ssh_keys')
-ssh_user_name = config.get('ssh', 'ssh_user_name')
-hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
-haproxy_config_path  = config.get('haproxy', 'haproxy_config_path')
-
-funct.chooseServer("configshow.py", "Get Running Config", "n", onclick="showConfig()")
-
-print('<div id="ajax">')
-if serv is not None and form.getvalue('open') is not None :
-	
-	cfg = hap_configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
-	
-	funct.get_config(serv, cfg)
-	
-	print("<center><h3>Config from %s</h3>" % serv)
-	print('<p class="accordion-expand-holder">'
-			'<a class="accordion-expand-all ui-button ui-widget ui-corner-all" href="#">Expand all</a>'
-		'</p>')
-	print('</center>')
-	funct.show_config(cfg)
-	
-	os.system("/bin/rm -f " + cfg)	
-	
-print('</div>')	
-funct.footer()
+output_from_parsed_template = template.render(h2 = 1, title = "Show Runnig config",
+												role = sql.get_user_role_by_uuid(user_id.value),
+												user = user,
+												onclick = "showConfig()",
+												select_id = "serv",
+												selects = servers,
+												note = 0)											
+print(output_from_parsed_template)

@@ -188,11 +188,15 @@ if serv is not None and act == "configShow":
 	import os
 	from datetime import datetime
 	from pytz import timezone
-	
 	hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
-	cfg = hap_configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
 	
-	funct.get_config(serv, cfg)
+	if form.getvalue('configver') is None:	
+		cfg = hap_configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
+		funct.get_config(serv, cfg)
+	else: 
+		cfg = hap_configs_dir + form.getvalue('configver')
+	
+	
 	
 	print('<a name="top"></a>')
 	print("<center><h3>Config from %s</h3>" % serv)
@@ -202,8 +206,18 @@ if serv is not None and act == "configShow":
 	print('</center>')
 	
 	funct.show_config(cfg)
-
-	os.system("/bin/rm -f " + cfg)	
+	
+	if form.getvalue('configver') is None:
+		os.system("/bin/rm -f " + cfg)	
+	else:
+		print('<br><center>')
+		print('<form action="configver.py#conf" method="get">')
+		print('<input type="hidden" value="%s" name="serv">' % serv)
+		print('<input type="hidden" value="%s" name="configver">' % form.getvalue('configver'))
+		print('<input type="hidden" value="1" name="config">')
+		funct.get_button("Just save", value="save")
+		funct.get_button("Upload and restart")
+		print('</form></center>')
 	
 if form.getvalue('viewlogs') is not None:
 	viewlog = form.getvalue('viewlogs')
@@ -213,7 +227,7 @@ if form.getvalue('viewlogs') is not None:
 		print('<div class="alert alert-warning">Please check the config for the presence of the parameter - "log_path". </div>')
 	
 	try:
-		log = open(log_path + viewlog, "r")
+		log = open(log_path + viewlog, "r",encoding='utf-8', errors='ignore')
 	except IOError:
 		print('<div class="alert alert-danger">Can\'t read import log file</div>')
 		sys.exit()

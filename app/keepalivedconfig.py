@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-"
 import html
 import cgi
 import os
@@ -7,16 +6,26 @@ import http.cookies
 from configparser import ConfigParser, ExtendedInterpolation
 import funct
 import sql
-import codecs
-
+from jinja2 import Environment, FileSystemLoader
+env = Environment(loader=FileSystemLoader('templates/'))
+template = env.get_template('config.html')
+print('Content-type: text/html\n')
+funct.check_login()
+funct.page_for_admin()
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
-servNew = form.getvalue('serNew')
+config_read = ""
+cfg = ""
+stderr = ""
+aftersave = ""
 
-funct.head("Edit Running Keepalived config")
-funct.check_config()
-funct.check_login()
-funct.page_for_admin(level = 1)
+try:
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_id = cookie.get('uuid')
+	user = sql.get_user_name_by_uuid(user_id.value)
+	servers = sql.is_master("123", master_slave=1)
+except:
+	pass
 
 path_config = "haproxy-webintarface.config"
 config = ConfigParser(interpolation=ExtendedInterpolation())
@@ -24,29 +33,6 @@ config.read(path_config)
 
 log_path = config.get('main', 'log_path')
 kp_save_configs_dir = config.get('configs', 'kp_save_configs_dir')
-
-print('<h2>Edit Running Keepalived config</h2>'
-		'<center>'
-			'<h3>Choose server</h3>'
-			'<form action="keepalivedconfig.py" method="get">'
-				'<select name="serv">')
-				
-SERVERS = sql.is_master("123", master_slave=1)
-for server in SERVERS:
-	if serv == server[1]:
-		selected = "selected"
-	else:
-		selected = ""
-	print('<option value="%s" %s>%s</option>' % (server[1],selected, server[0]))
-	if serv == server[3]:
-		selected = "selected"
-	else:
-		selected = ""
-	print('<option value="%s" %s>%s</option>' % (server[3], selected, server[2]))
-	
-print('</select>')
-funct.get_button("Open", value="open")
-print('</form>')
 
 if serv is not None:
 	cfg = kp_save_configs_dir+ serv + '-' + funct.get_data('config') + '.conf'
@@ -61,18 +47,10 @@ if form.getvalue('serv') is not None and form.getvalue('open') is not None :
 	
 	try:
 		conf = open(cfg, "r",encoding='utf-8', errors='ignore')
+		config_read = conf.read()
 	except IOError:
 		print('<div class="alert alert-danger">Can\'t read import config file</div>')
 
-	print("<center><h3>Config from %s</h3>" % serv)
-	print('<form action="" method="get">')
-	print('<input type="hidden" value="%s" name="serv">' % serv)
-	print('<input type="hidden" value="%s.old" name="oldconfig">' % cfg)
-	print('<textarea name="config" class="config" rows="35" cols="100">%s</textarea>' % conf.read())
-	print('<p>')
-	funct.get_button("Just save", value="save")
-	funct.get_button("Save and restart")
-	print('</p></form>')
 	conf.close
 
 	os.system("/bin/mv %s %s.old" % (cfg, cfg))	
@@ -86,21 +64,28 @@ if form.getvalue('serv') is not None and form.getvalue('config') is not None:
 	config = form.getvalue('config')
 	oldcfg = form.getvalue('oldconfig')
 	save = form.getvalue('save')
-
+	aftersave = 1
 	try:
 		with open(cfg, "a") as conf:
 			conf.write(config)
 	except IOError:
 		print("Can't read import config file")
-
-	print('<center><br><div class="alert alert-info">New config was saved as: %s </div></center>' % cfg)
-			
-	funct.upload_and_restart(serv, cfg, just_save=save, keepalived=1)
-	
-	
+		
+	stderr = funct.upload_and_restart(serv, cfg, just_save=save, keepalived=1)
+		
 	os.system("/bin/diff -ub %s %s >> %s/config_edit-%s.log" % (oldcfg, cfg, log_path, funct.get_data('logs')))
-	os.system("/bin/rm -f kp_config/*.old")
+	os.system("/bin/rm -f " + kp_save_configs_dir + "*.old")
 
-	print('</br><a href="viewsttats.py?serv=%s" target="_blank" title="View stats">Go to view stats</a> <br />' % serv)
-	
-funct.footer()
+output_from_parsed_template = template.render(h2 = 1, title = "Edit Runnig Keepalived config",
+													role = sql.get_user_role_by_uuid(user_id.value),
+													action = "keepalivedconfig.py",
+													user = user,
+													select_id = "serv",
+													serv = serv,
+													aftersave = aftersave,
+													config = config_read,
+													cfg = cfg,
+													selects = servers,
+													stderr = stderr,
+													keepalived = 1)
+print(output_from_parsed_template)

@@ -10,6 +10,8 @@ chown -R apache:apache *
 cd app/
 ./update_db.py
 
+pip install -r requirements.txt 
+
 echo ""
 echo "#################"
 echo "Change in config:"

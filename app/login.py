@@ -10,52 +10,52 @@ import create_db
 import datetime
 import uuid
 from configparser import ConfigParser, ExtendedInterpolation
+from jinja2 import Environment, FileSystemLoader
+env = Environment(loader=FileSystemLoader('templates/'))
+template = env.get_template('login.html')
+form = cgi.FieldStorage()
 
 cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-form = cgi.FieldStorage()
+user_id = cookie.get('uuid')
 ref = form.getvalue('ref')
 login = form.getvalue('login')
 password = form.getvalue('pass')
+db_create = ""
+error_log = ""
+error = ""
 
 path_config = "haproxy-webintarface.config"
 config = ConfigParser(interpolation=ExtendedInterpolation())
 config.read(path_config)	
 
-def login_page(error):
-	if error == "error":
-		funct.head("Login page")
-		printError = "<h2>Login page. Enter please</h2><br /><br /><b style='color: red'>Somthing wrong :( I'm sad about this, but try again!</b><br /><br />"
-	else:
-		printError = "<h2>Login page. Enter please</h2><br /><br />"	
+if ref is None:
+	ref = "/index.html"	
 	
-	if create_db.check_db():
-		if create_db.create_table():
-			print('<div class="alert alert-success">DB was created<br />')
-			create_db.update_all()
-			print('<br />Now you can login, default: admin/admin</div>')
-	create_db.update_all_silent()
+if form.getvalue('error'):
+	error_log = '<div class="alert alert-danger">Somthing wrong :( I\'m sad about this, but try again!</div><br /><br />'
+
+try:
+	if config.get('main', 'session_ttl'):
+		session_ttl = config.getint('main', 'session_ttl')
+except:
+	error = '<center><div class="alert alert-danger">Can not find "session_ttl" parametr. Check into config, "main" section</div>'
+	pass
 	
-	ref = form.getvalue('ref')
-	if ref is None:
-		ref = "/index.html"		
-				
-	print('<center><form name="auth" action="login.py" class="form-horizontal" method="get">')
-	print(printError)
-	print('<label for="login">Login: </label>  <input type="text" name="login" required class="form-control"><br /><br />')
-	print('<label for="pass">Pass: </label>   <input type="password" name="pass" required class="form-control"><br /><br />')
-	print('<input type="hidden" value="%s" name="ref">' % ref)
-	print('<button type="submit" name="Login" value="Enter">Sign Up</button>')
-	print('</form></center>')
+try:
+	role = sql.get_user_role_by_uuid(user_id.value)
+	user = sql.get_user_name_by_uuid(user_id.value)
+except:
+	role = ""
+	user = ""
+	pass
 	
-	try:
-		if config.get('main', 'session_ttl'):
-			session_ttl = config.getint('main', 'session_ttl')
-	except:
-		print('<center><div class="alert alert-danger">Can not find "session_ttl" parametr. Check into config, "main" section</div>')	
-	
-if form.getvalue('logout') is not None:
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_id = cookie.get('uuid')
+if create_db.check_db():
+	if create_db.create_table():	
+		create_db.update_all()
+		db_create = '<div class="alert alert-success">DB was created<br /><br />Now you can login, default: admin/admin</div>'
+create_db.update_all_silent()
+
+if form.getvalue('logout'):
 	try:
 		sql.delete_uuid(user_id.value)
 	except:
@@ -63,15 +63,9 @@ if form.getvalue('logout') is not None:
 	print("Set-cookie: uuid=; expires=Wed May 18 03:33:20 2003; path=/app/; httponly")
 	print("Content-type: text/html\n")
 	print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
-	
-if login is None:		
-	funct.head("Login page")
-	login_page("n")
-	
+
 if login is not None and password is not None:
-	if form.getvalue('ref') is None:
-		ref = "/index.html"	
-		
+
 	USERS = sql.select_users()
 	session_ttl = config.getint('main', 'session_ttl')
 	expires = datetime.datetime.utcnow() + datetime.timedelta(days=session_ttl)
@@ -90,7 +84,18 @@ if login is not None and password is not None:
 			print('<html><head><title>Redirecting</title><meta charset="UTF-8">')
 			print('<link href="/style.css" rel="stylesheet">')
 			print('<meta http-equiv="refresh" content="0; url=%s">' % ref)
-			sys.exit()
-	login_page("error")
-	
-funct.footer()
+			sys.exit()	
+		
+	print("Content-type: text/html\n")	
+	print('<meta http-equiv="refresh" content="0; url=/app/login.py?error=1">')
+			
+if login is None:
+	print("Content-type: text/html\n")	
+output_from_parsed_template = template.render(h2 = 1, title = "Login page. Enter please",
+													role = role,
+													user = user,
+													error_log = error_log,
+													error = error,
+													ref = ref,
+													db_create = db_create)											
+print(output_from_parsed_template)

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}	
+<script src="/inc/users.js"></script>
+<table class="overview">
+	<tr class="overviewHead">
+		<td class="padding10 first-collumn">Note</td>
+		<td>Server</td>
+		<td></td>
+	</tr>
+	<tr>
+	<td class="padding10 first-collumn">
+		<b>Haproxy-WI will try install haproxy-1.18.5, if it does not work then haproxy-1.15</b>
+	</td>
+	<td class="padding10 first-collumn">
+		<select autofocus required name="{{select_id}}" id="{{select_id}}">
+			<option disabled selected>Choose server</option>
+			{% for select in selects %}
+					<option value="{{ select.2 }}">{{ select.1 }}</option>
+			{% endfor %}
+		</select>
+	</td>
+	<td>
+		<a class="ui-button ui-widget ui-corner-all" id="install" title="Install HAProxy">Install</a>
+	</td>
+</table>
+<div id="ajax"></div>
+{% endblock %}

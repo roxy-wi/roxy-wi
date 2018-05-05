@@ -1,40 +1,29 @@
 #!/usr/bin/env python3
-import html
+import html, http.cookies
 import cgi
-import funct
-import sql
+import os
+import funct, sql
 from configparser import ConfigParser, ExtendedInterpolation
-
-funct.head("Installation HAProxy")
+from jinja2 import Environment, FileSystemLoader
+env = Environment(loader=FileSystemLoader('templates/'))
+template = env.get_template('ihap.html')
+print('Content-type: text/html\n')
 funct.check_login()
 funct.page_for_admin()
+form = cgi.FieldStorage()
 
-path_config = "haproxy-webintarface.config"
-config = ConfigParser(interpolation=ExtendedInterpolation())
-config.read(path_config)	
-proxy = config.get('main', 'proxy')
-serv = ""
+try:
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_id = cookie.get('uuid')
+	user = sql.get_user_name_by_uuid(user_id.value)
+	servers = sql.get_dick_permit()
+except:
+	pass
 
-print('<script src="/inc/users.js"></script>'
-		'<h2>Installation HAProxy</h2>'
-		'<table class="overview">'
-		'<tr class="overviewHead">'
-			'<td class="padding10 first-collumn">Note</td>'
-			'<td>Server</td>'
-			'<td></td>'
-		'</tr>'
-		'<tr>'
-		'<td class="padding10 first-collumn">'
-			'<b>Haproxy-WI will try install haproxy-1.18.5, if it does not work then haproxy-1.15</b>'
-		'</td>'
-		'<td class="padding10 first-collumn">'
-			'<select id="haproxyaddserv">'
-				'<option disable selected>Choose server</option>')
-funct.choose_only_select(serv)
-print('</select>'
-		'</td>'
-		'<td>'
-			'<a class="ui-button ui-widget ui-corner-all" id="install" title="Install HAProxy">Install</a>'
-		'</td>'
-		'</table>'
-		'<div id="ajax"></div>')
+output_from_parsed_template = template.render(h2 = 1, title = "Installation HAProxy",
+													role = sql.get_user_role_by_uuid(user_id.value),
+													user = user,
+													select_id = "haproxyaddserv",
+													selects = servers)
+print(output_from_parsed_template)
+

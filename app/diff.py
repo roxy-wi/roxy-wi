@@ -1,28 +1,28 @@
 #!/usr/bin/env python3
-import html
-import cgi
+import os
+import sql
+import http
 import funct
-import ovw
-	
-form = cgi.FieldStorage()
-serv = form.getvalue('serv')
-left = form.getvalue('left')
-right = form.getvalue('right')
+import sql
+from jinja2 import Environment, FileSystemLoader
+env = Environment(loader=FileSystemLoader('templates/'))
+template = env.get_template('config.html')
 
-funct.head("Compare HAproxy configs")
-funct.check_config()
-funct.check_login()	
-funct.chooseServer("diff.py#diff", "Compare HAproxy configs", "n", onclick="showCompareConfigs()")
+print('Content-type: text/html\n')
+funct.check_login()
 
-print('<div id="ajax-compare">')
+try:
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_id = cookie.get('uuid')
+	user = sql.get_user_name_by_uuid(user_id.value)
+	servers = sql.get_dick_permit()
+except:
+	pass
 
-if serv is not None and form.getvalue('open') is not None :
-	ovw.show_compare_configs(serv)
-	
-print('</div><div id=ajax>')
-
-if serv is not None and right is not None:
-	ovw.comapre_show()
-
-print('</div>')
-funct.footer()
+output_from_parsed_template = template.render(h2 = 1, title = "Compare configs",
+												role = sql.get_user_role_by_uuid(user_id.value),
+												user = user,
+												onclick = "showCompareConfigs()",
+												select_id = "serv",
+												selects = servers)										
+print(output_from_parsed_template)

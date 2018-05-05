@@ -1,21 +1,28 @@
 #!/usr/bin/env python3
-import html
-import cgi
 import os
+import sql
+import http
 import funct
-import ovw
+import sql
+from jinja2 import Environment, FileSystemLoader
+env = Environment(loader=FileSystemLoader('templates/'))
+template = env.get_template('config.html')
 
-form = cgi.FieldStorage()
-serv = form.getvalue('serv')
-
-funct.head("Show HAproxy config")
-funct.check_config()
+print('Content-type: text/html\n')
 funct.check_login()
-funct.chooseServer("map.py", "Show HAproxy map", "n", onclick="showMap()")
 
-print('<div id="ajax">')
-if serv is not None:	
-	ovw.get_map(serv)
-print('</div>')
-		
-funct.footer()
+try:
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_id = cookie.get('uuid')
+	user = sql.get_user_name_by_uuid(user_id.value)
+	servers = sql.get_dick_permit()
+except:
+	pass
+
+output_from_parsed_template = template.render(h2 = 1, title = "Show Map",
+												role = sql.get_user_role_by_uuid(user_id.value),
+												user = user,
+												onclick = "showMap()",
+												select_id = "serv",
+												selects = servers)											
+print(output_from_parsed_template)

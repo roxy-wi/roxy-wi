@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+{% block content %}
+<script src="/inc/users.js"></script>
+<div id="tabs">
+	<ul>
+		<li><a href="#users">Users</a></li>
+		<li><a href="#groups">Groups</a></li>
+		<li><a href="#servers">Servers</a></li>
+		<li><a href="#roles">Roles</a></li>
+		<li><a href="#cert">SSH key</a></li>
+	</ul>
+	<div id="users">
+		<table class="overview" id="ajax-users">
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn">Login name</td>
+				<td>Password</td>
+				<td>Email</td>
+				<td>Role</td>
+				<td>Group</td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr>
+		{% for user in users %}
+			<tr id="user-{{user.0}}">
+				<td class="padding10 first-collumn"><input type="text" id="login-{{user.0}}" value="{{user.1}}" class="form-control"></td> 
+				<td><input type="password" id="password-{{user.0}}" value="{{user.3}}" class="form-control"></td> 
+				<td><input type="text" id="email-{{user.0}}" value="{{user.2}}" class="form-control"></td>
+				<td>
+					<select id="role-{{user.0}}" name="role-{{user.0}}">
+						<option disabled selected>Choose role</option>
+						{% for role in roles %}
+							{% if user.4 == role.1 %}
+								<option value="{{ role.1 }}" selected>{{ role.1 }}</option>
+							{% else %}
+								<option value="{{ role.1 }}">{{ role.1 }}</option>
+							{% endif %}
+						{% endfor %}
+					</select>
+				</td>
+				<td>
+					<select id="usergroup-{{user.0}}" name="usergroup-{{user.0}}">
+						<option disabled selected>Choose group</option>
+						{% for group in groups %}
+							{% if user.5 == group.0|string() %}
+								<option value="{{ group.0 }}" selected>{{ group.1 }}</option>
+							{% else %}
+								<option value="{{ group.0 }}">{{ group.1 }}</option>
+							{% endif %}
+						{% endfor %}
+					</select>
+				</td>
+				<td><a class="delete" onclick="removeUser({{user.0}})"  style="cursor: pointer;"></a></td> 
+			</tr>
+		{% endfor %}
+		</table>
+	<br /><span class="add-button" title="Add user" id="add-user-button">+ Add</span>
+	<br /><br />
+		<table class="overview" id="user-add-table" style="display: none;">
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn">New user</td>
+				<td>Password</td>
+				<td>Email</td>
+				<td>Role</td>
+				<td>Group</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td class="padding10 first-collumn">
+					<input type="text" name="new-username" id="new-username" class="form-control">
+				</td>
+				<td>
+					<input type="password" name="new-password" id="new-password" class="form-control">
+				</td>
+				<td>
+					<input type="text" name="new-email" id="new-email" class="form-control">
+				</td>
+				<td>
+					<select id="new-role" name="new-role">
+						<option disabled selected>Choose role</option>
+						{% for role in roles %}
+							<option value="{{ role.1 }}">{{ role.1 }}</option>
+						{% endfor %}
+						</select>
+					</td>
+					<td>
+						<select id="new-group" name="new-group">
+							<option disabled selected>Choose group</option>
+							{% for group in groups %}
+								<option value="{{ group.0 }}">{{ group.1 }}</option>
+							{% endfor %}
+						</select>
+					</td>
+				<td>
+					<a class="add-admin" id="add-user" style="cursor: pointer;"></a>
+				</td>
+			</tr>
+		</table>
+		
+	</div>
+	<div id="groups">
+		<table class="overview" id="ajax-group">
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn">Name</td>
+				<td>Desciption</td>
+				<td></td>
+				<td></td>
+			</tr>
+		{% for group in groups %}
+			<tr id="group-{{ group.0 }}"> 
+			{% if group.1 == All %}
+				<td class="padding10 first-collumn">{{ group.1 }}</td>
+				<td>{{ group.2 }}</td>
+				<td></td>
+			{% else %}
+				<td class="padding10 first-collumn">
+					<input type="text" id="name-{{ group.0 }}" value="{{ group.1 }}" class="form-control">
+				</td>
+				<td>
+					<input type="text" id="descript-{{ group.0 }}" value="{{ group.2 }}" class="form-control" size="100">
+				</td>
+				<td>
+					<a class="delete" onclick="removeGroup({{ group.0 }})"  style="cursor: pointer;"></a>
+				</td>
+			{% endif %}
+			</tr>
+		{% endfor %}
+		</table>
+		<br /><span class="add-button" title="Add group" id="add-group-button">+ Add</span>
+		<br /><br />
+		<table class="overview" id="group-add-table" style="display: none;">
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn">New group name</td>
+				<td>Desciption</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td class="padding10 first-collumn">
+					<input type="text" name="new-group-add" id="new-group-add" class="form-control">
+				</td>
+				<td>
+					<input type="text" name="new-desc" id="new-desc" class="form-control" size="100">
+				</td>
+				<td>
+					<a class="add-admin" id="add-group" style="cursor: pointer;"></a>
+				</td>
+			</tr>
+		</table>
+	</div>
+	<div id="servers">
+		<table class="overview" id="ajax-servers">
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn">Hostname</td>
+				<td>IP</td>
+				<td>Group</td>
+				<td>Enable</td>
+				<td><span title="Vitrual IP, something like VRRP">Virt(?)</span></td>
+				<td><span title="Actions with master config will automatically apply on slave">Slave for (?)</span></td>
+				<td></td>
+				<td></td>
+			</tr>
+						
+		{% for server in servers %}
+			<tr id="server-{{server.0}}">
+				<td class="padding10 first-collumn">
+					<input type="text" id="hostname-{{server.0}}" value="{{server.1}}" class="form-control">
+				</td>
+				<td>
+					<input type="text" id="ip-{{server.0}}" value="{{server.2}}" class="form-control">
+				</td>
+				<td>
+					<select id="servergroup-{{server.0}}" name="servergroup-{{server.0}}">
+						<option disabled selected>Choose group</option>
+						{% for group in groups %}
+							{% if server.3 == group.0|string() %}
+								<option value="{{ group.0 }}" selected>{{ group.1 }}</option>
+							{% else %}
+								<option value="{{ group.0 }}">{{ group.1 }}</option>
+							{% endif %}
+						{% endfor %}
+					</select>
+				</td>
+				<td>
+					{% if server.5 == 1 %}
+						<label for="enable-{{server.0}}"></label><input type="checkbox" id="enable-{{server.0}}" checked>
+					{% else %}
+						<label for="enable-{{server.0}}"></label><input type="checkbox" id="enable-{{server.0}}">
+					{% endif %}
+				</td>
+				<td>
+					{% if server.4 == 1 %}
+						<label for="typeip-{{server.0}}"></label><input type="checkbox" id="typeip-{{server.0}}" checked>
+					{% else %}
+						<label for="typeip-{{server.0}}"></label><input type="checkbox" id="typeip-{{server.0}}">
+					{% endif %}
+				</td>
+				<td>
+					<select id="slavefor-{{server.0}}">
+						<option value="0" selected>Not slave</option>
+						{% for master in masters %}
+							{% if master.0 == server.6 %}
+								<option value="{{master.0}}" selected>{{master.1}}</option>
+							{% else %}
+								<option value="{{master.0}}">{{master.1}}</option>
+							{% endif %}
+						{% endfor %}
+					</select>
+				</td>
+				<td>
+					<a class="delete" onclick="removeServer({{server.0}})"  style="cursor: pointer;"></a>
+				</td> 
+			</tr>
+		{% endfor %}
+		</table>
+		<br /><span class="add-button" title="Add server" id="add-server-button">+ Add</span>
+		<br /><br />
+		<table class="overview" id="server-add-table" style="display: none;">
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn">New hostname</td>
+				<td>IP</td>
+				<td>Group</td>
+				<td>Enable</td>
+				<td>Virt</td>
+				<td title="Actions with master config will automatically apply on slave">Slave for</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td class="padding10 first-collumn">
+					<input type="text" name="new-server-add" id="new-server-add" class="form-control">
+				</td>
+				<td>
+					<input type="text" name="new-ip" id="new-ip" class="form-control">
+				</td>
+				<td>
+					<select id="new-server-group-add" name="new-server-group-add">
+						<option disabled selected>Choose group</option>
+						{% for group in groups %}
+							<option value="{{ group.0 }}">{{ group.1 }}</option>
+						{% endfor %}
+					</select>
+				</td>
+				<td>
+					<label for="enable"></label><input type="checkbox" id="enable" checked>
+				</td>
+				<td>
+					<label for="typeip"></label><input type="checkbox" id="typeip">
+				</td>
+				<td>
+					<select id="slavefor" value="0" selected>
+						<option>Not slave</option>
+						{% for master in masters %}
+							<option value="{{master.0}}">{{master.1}}</option>
+						{% endfor %}
+					</select>
+				</td>
+				<td>
+					<a class="add-admin"  id="add-server" style="cursor: pointer;"></a>
+				</td>
+			</tr>
+		</table>
+		
+	</div>
+	<div id="roles">
+		<table class="overview" id="ajax-group">
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn">Name</td>
+				<td>Desciption</td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr>
+			{% for role in roles %}	
+			<tr id="group-{{role.0}}">
+				<td class="padding10 first-collumn">{{role.1}}</td>
+				<td>{{role.2}}</td>
+			</tr>
+			{% endfor %}
+		</table>
+	</div>
+	<div id="cert">
+		<table id="ssh">
+			<tr class="overviewHead" style="width: 50%;">
+				<td class="padding10 first-collumn">Upload SSH Key</td>
+				<td>
+					<span title="Private key. Note: The public key must be pre-installed on all servers to which you plan to connect">Key(?)</span>
+				</td>
+				<td></td>
+			</tr>
+			<tr style="width: 50%;">
+				<td class="first-collumn" valign="top" style="padding-top: 15px;">
+					<b>Note:</b> Paste pem file content here
+				</td>
+				<td style="padding-top: 15px;">
+					<textarea id="ssh_cert" cols="50" rows="5"></textarea><br /><br />
+					<a class="ui-button ui-widget ui-corner-all" id="ssh_key_upload" title="Upload ssh key" onclick="uploadSsh()">Upload</a>		
+				</td>
+				<td></td>
+			</tr>
+		</table>
+		<div id="ajax-ssh"></div>
+	</div>
+</div>
+{% endblock %}

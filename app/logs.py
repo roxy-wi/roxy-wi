@@ -2,53 +2,46 @@
 import html
 import cgi
 import funct
-
+import sql
+import os, http
+from jinja2 import Environment, FileSystemLoader
+env = Environment(loader=FileSystemLoader('templates/'))
+template = env.get_template('logs.html')
 form = cgi.FieldStorage()
-serv = form.getvalue('serv')
 
-funct.head("HAproxy Logs")
-funct.check_config()
+if form.getvalue('grep') is None:
+	grep = ""
+else:
+	grep = form.getvalue('grep')
+	
+if form.getvalue('rows') is None:
+	rows = 10
+else:
+	rows = form.getvalue('rows')
+	
+print('Content-type: text/html\n')
 funct.check_login()
-funct.get_auto_refresh("HAproxy logs")	
 
-print('<table class="overview">'
-			'<tr class="overviewHead">'
-				'<td class="padding10 first-collumn">Server</td>'
-				'<td>Number rows</td>'
-				'<td class="padding10">Ex for grep</td>'
-				'<td> </td>'
-			'</tr>'
-			'<tr>'
-				'<td class="padding10 first-collumn">'
-				'<form action="logs.py" method="get">'
-					'<select autofocus required name="serv" id="serv">'
-						'<option disabled selected>Choose server</option>')
+try:
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_id = cookie.get('uuid')
+	user = sql.get_user_name_by_uuid(user_id.value)
+	servers = sql.get_dick_permit()
+except:
+	pass
 
-funct.choose_only_select(serv)
+output_from_parsed_template = template.render(h2 = 1,
+												autorefresh = 1,
+												title = "Show logs",
+												role = sql.get_user_role_by_uuid(user_id.value),
+												user = user,
+												onclick = "showLog()",
+												select_id = "serv",
+												selects = servers,
+												serv = form.getvalue('serv'),
+												rows = rows,
+												grep = grep)											
+print(output_from_parsed_template)
 
-print('</select>')
 
-if serv is not None:
-        rows = 'value='+form.getvalue('rows')
-else:
-	rows = 'value=10'
 
-if form.getvalue('grep') is not None:
-	grep = 'value='+form.getvalue('grep')
-else:
-	grep = ' '
-
-print('</td><td><input type="number" name="rows" id="rows" %s class="form-control" required></td>' % rows)
-print('<td class="padding10 first-collumn"><input type="text" name="grep" id="grep" class="form-control" %s >' % grep)
-print('</td>'
-		'<td class="padding10 first-collumn">'
-			'<a class="ui-button ui-widget ui-corner-all" id="show" title="Show logs" onclick="showLog()">Show</a>'
-	  '</td>'
-	'</form>'
-	'</tr></table>'
-	'<div id="ajax">'
-	'</div>'
-	'<script>'
-		'window.onload = showLog()'
-	'</script>')	
-funct.footer()

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}	
+<br />
+<form style="padding-left: 20px;" action="viewsttats.py" method="get">
+	<select autofocus required name="serv" id="serv">
+		<option disabled>Choose server</option>
+			{% for select in selects %}
+				{% if select.2 == serv %}
+					<option value="{{ select.2 }}" selected>{{ select.1 }}</option>
+				{% else %}
+					<option value="{{ select.2 }}">{{ select.1 }}</option>
+				{% endif %}
+			{% endfor %}
+	</select>		
+	<a class="ui-button ui-widget ui-corner-all" id="show" title="Show stats" onclick="{{ onclick }}">Show</a>
+</form>
+<div id="ajax" style="margin-left: 10px;"></div>
+<script> window.onload = showStats()</script>
+<link href="/inc/style.css" rel="stylesheet">
+{% endblock %}

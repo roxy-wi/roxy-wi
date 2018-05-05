@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}	
+
+<table class="overview">
+	<tr class="overviewHead">
+		<td class="padding10 first-collumn">Server</td>
+		<td>Number rows</td>
+		<td class="padding10">Ex for grep</td>
+		<td> </td>
+	</tr>
+	<tr>
+		<td class="padding10 first-collumn">
+			<form action="logs.py" method="get">
+				<select autofocus required name="serv" id="serv">
+					<option disabled selected>Choose server</option>
+						{% for select in selects %}
+							{% if select.2 == serv %}
+								<option value="{{ select.2 }}" selected>{{ select.1 }}</option>
+							{% else %}
+								<option value="{{ select.2 }}">{{ select.1 }}</option>
+							{% endif %}
+						{% endfor %}
+				</select>
+		</td>
+		<td>
+			<input type="number" name="rows" id="rows" value="{{ rows }}" class="form-control" required>
+		</td> 
+		<td class="padding10 first-collumn">
+			<input type="text" name="grep" id="grep" class="form-control" value="{{ grep }}" >
+		</td>
+		<td class="padding10 first-collumn">
+			<a class="ui-button ui-widget ui-corner-all" id="show" title="Show logs" onclick="{{ onclick }}">Show</a>
+			</form>
+		</td>			
+	</tr>
+</table>
+<div id="ajax">
+</div>
+<script>
+	window.onload = showLog()
+</script>
+
+{% endblock %}
