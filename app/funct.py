@@ -279,7 +279,7 @@ def upload_and_restart(serv, cfg, **kwargs):
 	for command in commands:
 		stdin, stdout, stderr = ssh.exec_command(command)
 
-	return stderr.read().decode(encoding='UTF-8'), error
+	return stderr.read().decode(encoding='UTF-8')
 	ssh.close()
 		
 def open_port_firewalld(cfg):

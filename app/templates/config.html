@@ -62,8 +62,8 @@
 		{% else %}
 			<div class="alert alert-success">Config ok</div>
 			<a href="viewsttats.py?serv={{ serv }}" target="_blank" title="View stats">Go to view stats</a>
-			<script>window.history.pushState("Map", "Map", cur_url[0])</script>
 		{% endif %}
+		<script>window.history.pushState("Config", "Config", cur_url[0])</script>
 	{% endif %}
 	</center>
 {% endblock %}
