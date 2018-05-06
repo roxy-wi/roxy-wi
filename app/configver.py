@@ -17,6 +17,7 @@ config_read = ""
 configver = ""
 stderr = ""
 aftersave = ""
+error = ""
 
 try:
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
@@ -61,7 +62,7 @@ if form.getvalue('serv') is not None and form.getvalue('config') is not None:
 		if master[0] != None:
 			funct.upload_and_restart(master[0], configver, just_save=save)
 			
-	stderr = funct.upload_and_restart(serv, configver, just_save=save)
+	stderr, error = funct.upload_and_restart(serv, configver, just_save=save)
 	aftersave = 1
 
 	
@@ -79,5 +80,6 @@ output_from_parsed_template = template.render(h2 = 1, title = "Old Versions HAPr
 													stderr = stderr,
 													open = form.getvalue('open'),
 													onclick = "showUploadConfig()",
+													error = error,
 													note = 1)
 print(output_from_parsed_template)

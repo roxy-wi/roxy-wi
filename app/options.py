@@ -25,8 +25,11 @@ print('Content-type: text/html\n')
 		
 if form.getvalue('getcert') is not None and serv is not None:
 	commands = [ "ls -1t /etc/ssl/certs/ |grep pem" ]
-	funct.ssh_command(serv, commands, ip="1")
-	
+	try:
+		funct.ssh_command(serv, commands, ip="1")
+	except:
+		print('<div class="alert alert-danger" style="margin:0">Can not connect to the server</div>')
+		
 if form.getvalue('ssh_cert'):
 	ssh_keys = config.get('ssh', 'ssh_keys')
 	

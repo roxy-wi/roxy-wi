@@ -40,16 +40,19 @@
 	{% endif %}
 	{% if aftersave %}
 		<div class="alert alert-info">Uploaded old config ver: {{ configver }} </div>
-		<br><a href="viewsttats.py?serv={{ serv }}" target="_blank" title="View stats">Go to view stats</a>
-		{% if stderr %}
+		{% if stderr or error %}
 			<div class="alert alert-danger">
 				Some errors:
 				<br> 
 				<br> 
 					{{stderr}} 
+					{{error}} 
 			</div>
+			
 		{% else %}
 			<div class="alert alert-success">Config ok</div>
+			<a href="viewsttats.py?serv={{ serv }}" target="_blank" title="View stats">Go to view stats</a>
+			<script>window.history.pushState("Map", "Map", cur_url[0])</script>
 		{% endif %}
 	{% endif %}
 	</center>

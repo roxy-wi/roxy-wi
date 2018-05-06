@@ -46,7 +46,7 @@ if [[ $(cat /etc/*-rele* |grep NAME |head -1) != 'NAME="Red Hat Enterprise Linux
         yum -y install epel-release
 fi
 
-yum -y install git ncat net-tools lshw python34 python34-pip  httpd mod_ssl gcc python34-devel 
+yum -y install git ncat net-tools lshw python34 dos2unix python34-pip  httpd mod_ssl gcc python34-devel 
 
 if [ $? -eq 1 ]
 then

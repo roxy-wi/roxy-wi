@@ -18,6 +18,7 @@ config_read = ""
 cfg = ""
 stderr = ""
 aftersave = ""
+error = ""
 
 try:
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
@@ -71,7 +72,7 @@ if form.getvalue('serv') is not None and form.getvalue('config') is not None:
 	except IOError:
 		print("Can't read import config file")
 		
-	stderr = funct.upload_and_restart(serv, cfg, just_save=save, keepalived=1)
+	stderr, error = funct.upload_and_restart(serv, cfg, just_save=save, keepalived=1)
 		
 	os.system("/bin/diff -ub %s %s >> %s/config_edit-%s.log" % (oldcfg, cfg, log_path, funct.get_data('logs')))
 	os.system("/bin/rm -f " + kp_save_configs_dir + "*.old")
@@ -87,5 +88,6 @@ output_from_parsed_template = template.render(h2 = 1, title = "Edit Runnig Keepa
 													cfg = cfg,
 													selects = servers,
 													stderr = stderr,
+													error = error,
 													keepalived = 1)
 print(output_from_parsed_template)

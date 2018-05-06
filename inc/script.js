@@ -148,7 +148,7 @@ function showMap() {
 		type: "GET",
 		success: function( data ) {
 			$("#ajax").html(data);
-			window.history.pushState("Map", "Map", cur_url[0]+"?serv="+$("#serv").val());
+			//window.history.pushState("Map", "Map", cur_url[0]+"?serv="+$("#serv").val());
 		}					
 	} );
 }
@@ -184,7 +184,7 @@ function showCompare() {
 		type: "GET",
 		success: function( data ) {
 			$("#ajax").html(data);
-			window.history.pushState("Compare", "Compare", cur_url[0]+"?serv="+$("#serv").val()+"&open=open&left="+$("#left").val()+"&right="+$("#right").val());
+			//window.history.pushState("Compare", "Compare", cur_url[0]+"?serv="+$("#serv").val()+"&open=open&left="+$("#left").val()+"&right="+$("#right").val());
 			$.getScript(url);
 		}					
 	} );
@@ -200,7 +200,7 @@ function showCompareConfigs() {
 		type: "GET",
 		success: function( data ) {
 			$("#ajax-compare").html(data);
-			window.history.pushState("Compare", "Compare", cur_url[0]+"?serv="+$("#serv").val()+"&open=open");
+			//window.history.pushState("Compare", "Compare", cur_url[0]+"?serv="+$("#serv").val()+"&open=open");
 			$.getScript(url);
 		}					
 	} );
@@ -215,7 +215,7 @@ function showConfig() {
 		type: "GET",
 		success: function( data ) {
 			$("#ajax").html(data);
-			window.history.pushState("Show config", "Show config", cur_url[0]+"?serv="+$("#serv").val()+"&open=open");
+			//window.history.pushState("Show config", "Show config", cur_url[0]+"?serv="+$("#serv").val()+"&open=open");
 			var urlConfigShowJs = '/inc/configshow.js';
 			$.getScript(urlConfigShowJs);
 		}					
@@ -692,6 +692,26 @@ $( function() {
 				} else {
 					$("#ajax-ssl").html('<div class="alert alert-danger">Something wrong, check and try again</div>');
 				}
+			}
+		} );
+	});
+	$('#ssl_key_view').click(function() {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				serv: $('#serv5').val(),
+				getcert: "viewcert"
+			},
+			type: "GET",
+			success: function( data ) {
+				//data = data.replace(/\s+/g,' ');
+				//data = data.split(" ");
+				if (data.indexOf('danger') != '-1') {
+					$("#ajax-show-ssl").html(data);
+				} else {
+					$('.alert-danger').remove();
+					$( "#ajax-show-ssl").html("<b>"+data+"</b>");					
+				} 
 			}
 		} );
 	});

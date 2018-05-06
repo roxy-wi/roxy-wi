@@ -245,11 +245,18 @@ def upload(serv, path, file, **kwargs):
 	
 def upload_and_restart(serv, cfg, **kwargs):
 	tmp_file = tmp_config_path + "/" + get_data('config') + ".cfg"
+	error = ""
 	
+	try:
+		os.system("dos2unix "+cfg)
+	except OSError:
+		error = 'Please install dos2unix' 
+		pass
+		
 	try:
 		ssh = ssh_connect(serv)
 	except:
-		print('<center><div class="alert alert-danger">Connect fail</div>')
+		error = 'Connect fail'
 	sftp = ssh.open_sftp()
 	sftp.put(cfg, tmp_file)
 	sftp.close()
@@ -272,8 +279,7 @@ def upload_and_restart(serv, cfg, **kwargs):
 	for command in commands:
 		stdin, stdout, stderr = ssh.exec_command(command)
 
-	return stderr.read().decode(encoding='UTF-8')
-
+	return stderr.read().decode(encoding='UTF-8'), error
 	ssh.close()
 		
 def open_port_firewalld(cfg):
