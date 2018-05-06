@@ -72,7 +72,7 @@ if form.getvalue('serv') is not None and form.getvalue('config') is not None:
 	except IOError:
 		print("Can't read import config file")
 		
-	stderr, error = funct.upload_and_restart(serv, cfg, just_save=save, keepalived=1)
+	stderr = funct.upload_and_restart(serv, cfg, just_save=save, keepalived=1)
 		
 	os.system("/bin/diff -ub %s %s >> %s/config_edit-%s.log" % (oldcfg, cfg, log_path, funct.get_data('logs')))
 	os.system("/bin/rm -f " + kp_save_configs_dir + "*.old")

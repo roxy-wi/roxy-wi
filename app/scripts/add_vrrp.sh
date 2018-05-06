@@ -1,7 +1,7 @@
 #!/bin/bash
 CONF=/etc/keepalived/keepalived.conf
-IP=`cat $CONF |grep $3 |sed s/' '//g|sed s/'\t'//g`
-VI=`cat /etc/keepalived/keepalived.conf |grep VI |awk '{print $2}' |awk -F"_" '{print $2}' |tail -1`
+IP=`sudo cat $CONF |grep $3 |sed s/' '//g|sed s/'\t'//g| head -1`
+VI=`sudo cat /etc/keepalived/keepalived.conf |grep VI |awk '{print $2}' |awk -F"_" '{print $2}' |tail -1`
 VI=$(($VI+1))
 
 if [[ $IP == $3 ]];then
@@ -9,7 +9,7 @@ if [[ $IP == $3 ]];then
         exit 1
 fi
 
-cat << EOF >> $CONF
+sudo bash -c cat << EOF >> $CONF
 vrrp_instance VI_$VI {
 	state MASTER
 	interface eth1
@@ -37,15 +37,15 @@ then
         echo "Can't read keepalived config"
         exit 1
 fi
-sed -i "s/MASTER/$1/g" $CONF
-sed -i "s/eth1/$2/g" $CONF
-sed -i "s/0.0.0.1/$3/g" $CONF
+sudo sed -i "s/MASTER/$1/g" $CONF
+sudo sed -i "s/eth1/$2/g" $CONF
+sudo sed -i "s/0.0.0.1/$3/g" $CONF
 
 if [[ $1 == "BACKUP" ]];then
-	sed -i "s/103/104/g" $CONF
+	sudo sed -i "s/103/104/g" $CONF
 fi
 
 if [[ $4 == "1" ]];then
-	systemctl restart keepalived
+	sudo systemctl restart keepalived
 fi
 echo "success"

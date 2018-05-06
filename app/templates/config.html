@@ -34,6 +34,17 @@
 			{% endif %}
 		</form>
 	</p>
+	{% if not aftersave %}
+		{% if stderr or error %}
+			<div class="alert alert-danger" style="margin-bottom: 10px;">
+				Some errors:
+				<br> 
+				<br> 
+				{{stderr}} 
+				{{error}} 
+			</div>
+		{% endif %}
+	{% endif %}
 	{% if note %}
 		<div class="alert alert-info"><b>Note:</b> If you reconfigure Master server, Slave will reconfigured automatically</div>
 	{% endif %}

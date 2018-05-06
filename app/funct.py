@@ -138,20 +138,26 @@ def ssh_connect(serv, **kwargs):
 			return ssh
 	except paramiko.AuthenticationException:
 		print('<div class="alert alert-danger">Authentication failed, please verify your credentials</div>')
+		error = 'Authentication failed, please verify your credentials'
 		return False
 	except paramiko.SSHException as sshException:
 		print('<div class="alert alert-danger">Unable to establish SSH connection: %s </div>' % sshException)
+		error = 'Unable to establish SSH connection: %s ' % sshException
 		return False
 	except paramiko.BadHostKeyException as badHostKeyException:
 		print('<div class="alert alert-danger">Unable to verify server\'s host key: %s </div>' % badHostKeyException)
+		error = 'Unable to verify server\'s host key: %s ' % badHostKeyException
 		return False
 	except Exception as e:
 		if e.args[1] == "No such file or directory":
 			print('<div class="alert alert-danger">{}. Check ssh key</div>'.format(e.args[1]))	
+			error = '{}. Check ssh key'.format(e.args[1])
 		elif e.args[1] == "Invalid argument":
 			print('<div class="alert alert-danger">Check the IP of the new server</div>')
+			error = 'Check the IP of the new server'
 		else:
 			print('<div class="alert alert-danger">{}</div>'.format(e.args[1]))	
+			error = e.args[1]	
 		return False
 
 def get_config(serv, cfg, **kwargs):
@@ -167,8 +173,7 @@ def get_config(serv, cfg, **kwargs):
 		sftp.close()
 		ssh.close()
 	except Exception as e:
-		print('<center><div class="alert alert-danger">' + str(e) + ' Please check IP, and SSH settings</div>')
-		sys.exit()
+		return str(e)
 	
 def show_config(cfg):
 	print('<div style="margin-left: 16%" class="configShow">')
@@ -250,26 +255,26 @@ def upload_and_restart(serv, cfg, **kwargs):
 	try:
 		os.system("dos2unix "+cfg)
 	except OSError:
-		error = 'Please install dos2unix' 
+		return 'Please install dos2unix' 
 		pass
 		
 	try:
 		ssh = ssh_connect(serv)
 	except:
-		error = 'Connect fail'
+		return 'Connect fail'
 	sftp = ssh.open_sftp()
 	sftp.put(cfg, tmp_file)
 	sftp.close()
 	if kwargs.get("keepalived") == 1:
 		if kwargs.get("just_save") == "save":
-			commands = [ "mv -f " + tmp_file + " /etc/keepalived/keepalived.conf" ]
+			commands = [ "sudo mv -f " + tmp_file + " /etc/keepalived/keepalived.conf" ]
 		else:
-			commands = [ "mv -f " + tmp_file + " /etc/keepalived/keepalived.conf", "systemctl restart keepalived" ]
+			commands = [ "sudo mv -f " + tmp_file + " /etc/keepalived/keepalived.conf", "sudo systemctl restart keepalived" ]
 	else:
 		if kwargs.get("just_save") == "save":
-			commands = [ "/sbin/haproxy  -q -c -f " + tmp_file + "&& mv -f " + tmp_file + " " + haproxy_config_path ]
+			commands = [ "sudo /sbin/haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + haproxy_config_path ]
 		else:
-			commands = [ "/sbin/haproxy  -q -c -f " + tmp_file + "&& mv -f " + tmp_file + " " + haproxy_config_path + " && " + restart_command ]	
+			commands = [ "sudo /sbin/haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + haproxy_config_path + " && sudo " + restart_command ]	
 		try:
 			if config.get('haproxy', 'firewall_enable') == "1":
 				commands.extend(open_port_firewalld(cfg))
@@ -279,7 +284,7 @@ def upload_and_restart(serv, cfg, **kwargs):
 	for command in commands:
 		stdin, stdout, stderr = ssh.exec_command(command)
 
-	return stderr.read().decode(encoding='UTF-8')
+	return stderr.read()
 	ssh.close()
 		
 def open_port_firewalld(cfg):
@@ -296,9 +301,9 @@ def open_port_firewalld(cfg):
 			bind[1] = bind[1].strip(' ')
 			bind = bind[1].split("ssl")
 			bind = bind[0].strip(' \t\n\r')
-			firewalld_commands.append('firewall-cmd --zone=public --add-port=%s/tcp --permanent' % bind)
+			firewalld_commands.append('sudo firewall-cmd --zone=public --add-port=%s/tcp --permanent' % bind)
 				
-	firewalld_commands.append('firewall-cmd --reload')
+	firewalld_commands.append('sudo firewall-cmd --reload')
 	return firewalld_commands
 	
 def check_haproxy_config(serv):

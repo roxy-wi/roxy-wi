@@ -2,19 +2,19 @@
 CONF=/etc/keepalived/keepalived.conf
 
 if [ -f $CONF ];then
-	echo -e 'error: Keepalived alredy installed. You can edit config <a href="/app/keepalivedconfig.py" title="Edit Keepalived config">here</a>'
+	echo -e 'error: Keepalived already installed. You can edit config <a href="/app/keepalivedconfig.py" title="Edit Keepalived config">here</a><br /><br />'
 	exit 1
 fi
 
-yum install keepalived -y > /dev/null
+sudo yum install keepalived -y > /dev/null
 if [ $? -eq 1 ]
 then	
-	echo "error: Can't install keepalived"
+	echo "error: Can't install keepalived <br /><br />"
     exit 1
 fi
-echo "" > $CONF
+sudo echo "" > $CONF
 
-cat << EOF > $CONF
+sudo bash -c cat << EOF > $CONF
 global_defs {
    router_id LVS_DEVEL
 }
@@ -49,27 +49,28 @@ vrrp_instance VI_1 {
 EOF
 if [ $? -eq 1 ]
 then
-        echo "error: Can't read keepalived config"
+        echo "error: Can't read keepalived config <br /><br />"
         exit 1
 fi
-sed -i "s/MASTER/$1/g" $CONF
-sed -i "s/eth0/$2/g" $CONF
-sed -i "s/0.0.0.0/$3/g" $CONF
+sudo sed -i "s/MASTER/$1/g" $CONF
+sudo sed -i "s/eth0/$2/g" $CONF
+sudo sed -i "s/0.0.0.0/$3/g" $CONF
 
 if [[ $1 == "BACKUP" ]];then
-	sed -i "s/102/103/g" $CONF
+	sudo sed -i "s/102/103/g" $CONF
 fi
 
-systemctl enable keepalived
-systemctl restart keepalived
-echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
-sysctl -p
-firewall-cmd --direct --permanent --add-rule ipv4 filter INPUT 0 --in-interface enp0s8 --destination 224.0.0.18 --protocol vrrp -j ACCEPT
-firewall-cmd --direct --permanent --add-rule ipv4 filter OUTPUT 0 --out-interface enp0s8 --destination 224.0.0.18 --protocol vrrp -j ACCEPT
-firewall-cmd --reload
+sudo systemctl enable keepalived
+sudo systemctl restart keepalived
+sudo echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
+sudo sysctl -p
+sudo firewall-cmd --direct --permanent --add-rule ipv4 filter INPUT 0 --in-interface enp0s8 --destination 224.0.0.18 --protocol vrrp -j ACCEPT
+sudo firewall-cmd --direct --permanent --add-rule ipv4 filter OUTPUT 0 --out-interface enp0s8 --destination 224.0.0.18 --protocol vrrp -j ACCEPT
+sudo firewall-cmd --reload
 
 if [ $? -eq 1 ]
 then
-        echo "error: Can't start keepalived"
+        echo "error: Can't start keepalived <br /><br />"
         exit 1
 fi
+echo "success"

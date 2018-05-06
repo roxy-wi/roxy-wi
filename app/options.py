@@ -40,8 +40,10 @@ if form.getvalue('ssh_cert'):
 		print('<div class="alert alert-danger">Can\'t save ssh keys file. Check ssh keys path in config</div>')
 	else:
 		print('<div class="alert alert-success">Ssh key was save into: %s </div>' % ssh_keys)
-		
-	funct.logging("local", "users.py#ssh upload new ssl cert %s" % ssh_keys)
+	try:
+		funct.logging("local", "users.py#ssh upload new ssl cert %s" % ssh_keys)
+	except:
+		pass
 			
 if serv and form.getvalue('ssl_cert'):
 	cert_local_dir = config.get('main', 'cert_local_dir')
@@ -64,7 +66,10 @@ if serv and form.getvalue('ssl_cert'):
 	for master in MASTERS:
 		if master[0] != None:
 			funct.upload(master[0], cert_path, name)
-	funct.upload(serv, cert_path, name)
+	try:
+		funct.upload(serv, cert_path, name)
+	except:
+		pass
 	
 	os.system("mv %s %s" % (name, cert_local_dir))
 	funct.logging(serv, "add.py#ssl upload new ssl cert %s" % name)
@@ -89,11 +94,11 @@ if backend is not None:
 
 
 if form.getvalue('ip') is not None and serv is not None:
-	commands = [ "ip a |grep inet |egrep -v  '::1' |awk '{ print $2  }' |awk -F'/' '{ print $1  }'" ]
+	commands = [ "sudo ip a |grep inet |egrep -v  '::1' |awk '{ print $2  }' |awk -F'/' '{ print $1  }'" ]
 	funct.ssh_command(serv, commands, ip="1")
 	
 if form.getvalue('showif'):
-	commands = ["ip link|grep 'UP' | awk '{print $2}'  |awk -F':' '{print $1}'"]
+	commands = ["sudo ip link|grep 'UP' | awk '{print $2}'  |awk -F':' '{print $1}'"]
 	funct.ssh_command(serv, commands, ip="1")
 	
 if form.getvalue('action') is not None and serv is not None:
@@ -101,7 +106,7 @@ if form.getvalue('action') is not None and serv is not None:
 	action = form.getvalue('action')
 	
 	if funct.check_haproxy_config(serv):
-		commands = [ "systemctl %s haproxy" % action ]
+		commands = [ "sudo systemctl %s haproxy" % action ]
 		funct.ssh_command(serv, commands)		
 	else:
 		print("Bad config, check please")
@@ -166,10 +171,10 @@ if form.getvalue('servaction') is not None:
 	enable = form.getvalue('servaction')
 	backend = form.getvalue('servbackend')
 	
-	cmd='echo "%s %s" |socat stdio %s | cut -d "," -f 1-2,5-10,34-36 | column -s, -t' % (enable, backend, haproxy_sock)
+	cmd='echo "%s %s" |sudo socat stdio %s | cut -d "," -f 1-2,5-10,34-36 | column -s, -t' % (enable, backend, haproxy_sock)
 	
 	if form.getvalue('save') == "on":
-		save_command = 'echo "show servers state" | socat stdio %s > %s' % (haproxy_sock, server_state_file)
+		save_command = 'echo "show servers state" | sudo socat stdio %s > %s' % (haproxy_sock, server_state_file)
 		command = [ cmd, save_command ] 
 	else:
 		command = [ cmd ] 
@@ -198,9 +203,7 @@ if serv is not None and act == "configShow":
 		funct.get_config(serv, cfg)
 	else: 
 		cfg = hap_configs_dir + form.getvalue('configver')
-	
-	
-	
+		
 	print('<a name="top"></a>')
 	print("<center><h3>Config from %s</h3>" % serv)
 	print('<p class="accordion-expand-holder">'
@@ -285,10 +288,10 @@ if form.getvalue('masteradd'):
 	funct.upload(master, tmp_config_path, script)
 	funct.upload(slave, tmp_config_path, script)
 	
-	commands = [ "chmod +x "+tmp_config_path+script, tmp_config_path+script+" MASTER "+interface+" "+vrrpip+" "+kp]
+	commands = [ "sudo chmod +x "+tmp_config_path+script, tmp_config_path+script+" MASTER "+interface+" "+vrrpip+" "+kp]
 	funct.ssh_command(master, commands)
 	
-	commands = [ "chmod +x "+tmp_config_path+script, tmp_config_path+script+" BACKUP "+interface+" "+vrrpip+" "+kp ]
+	commands = [ "sudo chmod +x "+tmp_config_path+script, tmp_config_path+script+" BACKUP "+interface+" "+vrrpip+" "+kp ]
 	funct.ssh_command(slave, commands)
 			
 	os.system("rm -f %s" % script)

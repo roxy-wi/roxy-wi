@@ -17,6 +17,7 @@ serv = form.getvalue('serv')
 config_read = ""
 cfg = ""
 stderr = ""
+error = ""
 aftersave = ""
 
 try:
@@ -43,15 +44,15 @@ if form.getvalue('serv') is not None and form.getvalue('open') is not None :
 		funct.logging(serv, "config.py open config")
 	except:
 		pass
-	funct.get_config(serv, cfg)
+	
+	error = funct.get_config(serv, cfg)
 	
 	try:
 		conf = open(cfg, "r")
 		config_read = conf.read()
+		conf.close
 	except IOError:
-		print('<div class="alert alert-danger">Can\'t read import config file</div>')
-
-	conf.close
+		error += '<br />Can\'t read import config file'
 
 	os.system("/bin/mv %s %s.old" % (cfg, cfg))	
 
@@ -69,7 +70,7 @@ if form.getvalue('serv') is not None and form.getvalue('config') is not None:
 		with open(cfg, "a") as conf:
 			conf.write(config)
 	except IOError:
-		print("Can't read import config file")
+		error = "Can't read import config file"
 	
 	MASTERS = sql.is_master(serv)
 	for master in MASTERS:
@@ -92,5 +93,6 @@ output_from_parsed_template = template.render(h2 = 1, title = "Edit Runnig HAPro
 													cfg = cfg,
 													selects = servers,
 													stderr = stderr,
+													error = error,
 													note = 1)
 print(output_from_parsed_template)
