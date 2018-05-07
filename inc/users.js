@@ -252,6 +252,21 @@ $( function() {
 		var id = $(this).attr('id').split('-');
 		updateServer(id[1])
 	});
+	$( "#ssh_enable_table input" ).change(function() {
+		updateSSH()
+	});
+	$('#ssh_enable').click(function() {
+		if ($('#ssh_enable').is(':checked')) {
+			$('#ssh_pass').css('display', 'none');
+		} else {
+			$('#ssh_pass').css('display', 'block');
+		}
+	});
+	if ($('#ssh_enable').is(':checked')) {
+		$('#ssh_pass').css('display', 'none');
+	} else {
+		$('#ssh_pass').css('display', 'block');
+	}
 } );
 function removeUser(id) {
 	$("#user-"+id).css("background-color", "#f2dede");
@@ -417,6 +432,36 @@ function uploadSsh() {
 				} else {
 					$("#ajax-ssh").html('<div class="alert alert-danger">Something wrong, check and try again</div>');
 				}
+		}
+	} );
+}
+function updateSSH() {
+	$('#error').remove();	
+	var ssh_enable = 0;
+	if ($('#ssh_enable').is(':checked')) {
+		ssh_enable = '1';
+	}
+	$.ajax( {
+		url: "sql.py",
+		data: {
+			updatessh: 1,
+			ssh_enable: ssh_enable,
+			ssh_user: $('#ssh_user').val(),
+			ssh_pass: $('#ssh_pass').val(),
+		},
+		type: "GET",
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if (data.indexOf('error') != '-1') {
+				$("#ajax-ssh").append(data);
+				$.getScript(users);
+			} else {
+				$('.alert-danger').remove();
+				$("#ssh_enable_table").addClass( "update", 1000 );
+				setTimeout(function() {
+					$( "#ssh_enable_table" ).removeClass( "update" );
+				}, 2500 );
+			}
 		}
 	} );
 }

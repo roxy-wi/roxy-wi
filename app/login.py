@@ -49,12 +49,6 @@ except:
 	user = ""
 	pass
 	
-if create_db.check_db():
-	if create_db.create_table():	
-		create_db.update_all()
-		db_create = '<div class="alert alert-success">DB was created<br /><br />Now you can login, default: admin/admin</div>'
-create_db.update_all_silent()
-
 if form.getvalue('logout'):
 	try:
 		sql.delete_uuid(user_id.value)
@@ -91,6 +85,11 @@ if login is not None and password is not None:
 			
 if login is None:
 	print("Content-type: text/html\n")	
+	if create_db.check_db():
+		if create_db.create_table():	
+			create_db.update_all()
+			db_create = '<div class="alert alert-success">DB was created<br /><br />Now you can login, default: admin/admin</div>'
+	
 output_from_parsed_template = template.render(h2 = 1, title = "Login page. Enter please",
 													role = role,
 													user = user,

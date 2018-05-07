@@ -28,5 +28,8 @@ output_from_parsed_template = template.render(title = "Admin area: users manage"
 												groups = sql.select_groups(),
 												servers = sql.select_servers(full=1),
 												roles = sql.select_roles(),
-												masters = sql.select_servers(get_master_servers=1))											
+												masters = sql.select_servers(get_master_servers=1),
+												ssh_enable = sql.ssh_enable(),
+												ssh_user = sql.select_ssh_username(),
+												ssh_pass = sql.select_ssh_password())
 print(output_from_parsed_template)

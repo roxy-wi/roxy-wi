@@ -18,7 +18,6 @@ fullpath = config.get('main', 'fullpath')
 time_zone = config.get('main', 'time_zone')
 proxy = config.get('main', 'proxy')
 ssh_keys = config.get('ssh', 'ssh_keys')
-ssh_user_name = config.get('ssh', 'ssh_user_name')
 haproxy_configs_server = config.get('configs', 'haproxy_configs_server')
 hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
 haproxy_config_path  = config.get('haproxy', 'haproxy_config_path')
@@ -123,44 +122,63 @@ def get_button(button, **kwargs):
 	print('<button type="submit" value="%s" name="%s" class="btn btn-default">%s</button>' % (value, value, button))
 		
 def ssh_connect(serv, **kwargs):
+	import sql
+	ssh_enable = sql.ssh_enable()
+	ssh_user_name = sql.select_ssh_username()
 	ssh = SSHClient()
 	ssh.load_system_host_keys()
 	ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 	try:
-		if config.get('ssh', 'ssh_keys_enable') == "1":
+		if ssh_enable == 1:
 			k = paramiko.RSAKey.from_private_key_file(ssh_keys)
 			ssh.connect(hostname = serv, username = ssh_user_name, pkey = k )
 		else:
-			ssh.connect(hostname = serv, username = ssh_user_name, password = config.get('ssh', 'ssh_pass'))
+			ssh.connect(hostname = serv, username = ssh_user_name, password = sql.select_ssh_password())
 		if kwargs.get('check'):
 			return True
 		else:
 			return ssh
 	except paramiko.AuthenticationException:
-		print('<div class="alert alert-danger">Authentication failed, please verify your credentials</div>')
-		error = 'Authentication failed, please verify your credentials'
-		return False
+		if kwargs.get('check'):
+			print('<div class="alert alert-danger">Authentication failed, please verify your credentials</div>')
+			return False
+		else:
+			return 'Authentication failed, please verify your credentials'
 	except paramiko.SSHException as sshException:
-		print('<div class="alert alert-danger">Unable to establish SSH connection: %s </div>' % sshException)
-		error = 'Unable to establish SSH connection: %s ' % sshException
-		return False
+		if kwargs.get('check'):
+			print('<div class="alert alert-danger">Unable to establish SSH connection: %s </div>' % sshException)
+			return False
+		else:
+			return 'Unable to establish SSH connection: %s ' % sshException
 	except paramiko.BadHostKeyException as badHostKeyException:
-		print('<div class="alert alert-danger">Unable to verify server\'s host key: %s </div>' % badHostKeyException)
-		error = 'Unable to verify server\'s host key: %s ' % badHostKeyException
-		return False
+		if kwargs.get('check'):
+			print('<div class="alert alert-danger">Unable to verify server\'s host key: %s </div>' % badHostKeyException)	
+			return False
+		else:
+			return 'Unable to verify server\'s host key: %s ' % badHostKeyException
 	except Exception as e:
 		if e.args[1] == "No such file or directory":
-			print('<div class="alert alert-danger">{}. Check ssh key</div>'.format(e.args[1]))	
-			error = '{}. Check ssh key'.format(e.args[1])
+			if kwargs.get('check'):
+				print('<div class="alert alert-danger">{}. Check ssh key</div>'.format(e.args[1]))	
+			else:
+				return '{}. Check ssh key'.format(e.args[1])
 		elif e.args[1] == "Invalid argument":
-			print('<div class="alert alert-danger">Check the IP of the new server</div>')
-			error = 'Check the IP of the new server'
+			if kwargs.get('check'):
+				print('<div class="alert alert-danger">Check the IP of the new server</div>')
+			else:
+				error = 'Check the IP of the new server'
 		else:
-			print('<div class="alert alert-danger">{}</div>'.format(e.args[1]))	
-			error = e.args[1]	
-		return False
+			if kwargs.get('check'):
+				print('<div class="alert alert-danger">{}</div>'.format(e.args[1]))	
+			else:
+				error = e.args[1]	
+		if kwargs.get('check'):
+			return False
+		else:
+			return error
 
 def get_config(serv, cfg, **kwargs):
+	error = ""
 	if kwargs.get("keepalived"):
 		config_path = "/etc/keepalived/keepalived.conf"
 	else:
@@ -173,7 +191,8 @@ def get_config(serv, cfg, **kwargs):
 		sftp.close()
 		ssh.close()
 	except Exception as e:
-		return str(e)
+		ssh += str(e)
+		return ssh
 	
 def show_config(cfg):
 	print('<div style="margin-left: 16%" class="configShow">')

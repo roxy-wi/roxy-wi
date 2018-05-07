@@ -7,7 +7,7 @@
 		<li><a href="#groups">Groups</a></li>
 		<li><a href="#servers">Servers</a></li>
 		<li><a href="#roles">Roles</a></li>
-		<li><a href="#cert">SSH key</a></li>
+		<li><a href="#ssh">SSH credentials</a></li>
 	</ul>
 	<div id="users">
 		<table class="overview" id="ajax-users">
@@ -277,8 +277,34 @@
 			{% endfor %}
 		</table>
 	</div>
-	<div id="cert">
-		<table id="ssh">
+	<div id="ssh">
+		<table id="ssh_enable_table">
+			<tr class="overviewHead" style="width: 50%;">
+				<td class="padding10 first-collumn">SSH key</td>
+				<td>
+					<span title="Enter SSH user name. If SSH key disabled, enter password for ssh user">Credentials(?)</span>
+				</td>
+				<td></td>
+			</tr>
+			<tr style="width: 50%;">
+				<td class="first-collumn" valign="top" style="padding-top: 15px;">
+					{% if ssh_enable == 1 %}
+						<label for="ssh_enable">Enable SSH<input type="checkbox" id="ssh_enable" checked>
+					{% else %}
+						<label for="ssh_enable">Enable SSH<input type="checkbox" id="ssh_enable">
+					{% endif %}
+				</td>
+				<td style="padding-top: 15px;">
+					<p>
+						<input type="text" id="ssh_user" class="form-control" value="{{ssh_user}}">		
+					</p>
+						<input type="password" id="ssh_pass" class="form-control" value="{{ssh_pass}}" style="display: none;">
+					<br>
+				</td>
+				<td></td>
+			</tr>
+		</table>
+		<table id="ssh_key">
 			<tr class="overviewHead" style="width: 50%;">
 				<td class="padding10 first-collumn">Upload SSH Key</td>
 				<td>

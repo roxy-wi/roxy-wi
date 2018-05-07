@@ -44,15 +44,14 @@ if form.getvalue('serv') is not None and form.getvalue('open') is not None :
 		funct.logging(serv, "keepalivedconfig.py open config")
 	except:
 		pass
-	funct.get_config(serv, cfg, keepalived=1)
+	error = funct.get_config(serv, cfg, keepalived=1)
 	
 	try:
 		conf = open(cfg, "r",encoding='utf-8', errors='ignore')
 		config_read = conf.read()
+		conf.close
 	except IOError:
-		print('<div class="alert alert-danger">Can\'t read import config file</div>')
-
-	conf.close
+		error += "<br>Can't read import config file"
 
 	os.system("/bin/mv %s %s.old" % (cfg, cfg))	
 
@@ -70,7 +69,7 @@ if form.getvalue('serv') is not None and form.getvalue('config') is not None:
 		with open(cfg, "a") as conf:
 			conf.write(config)
 	except IOError:
-		print("Can't read import config file")
+		error += "Can't read import config file"
 		
 	stderr = funct.upload_and_restart(serv, cfg, just_save=save, keepalived=1)
 		

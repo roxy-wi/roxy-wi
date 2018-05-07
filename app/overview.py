@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import funct, sql
+import create_db
 import os, http
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'))
@@ -7,6 +8,7 @@ template = env.get_template('ovw.html')
 	
 print('Content-type: text/html\n')
 funct.check_login()
+create_db.update_all_silent()
 
 try:
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))

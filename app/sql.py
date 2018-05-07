@@ -214,7 +214,7 @@ def select_user_name_group(id):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 	else:
 		for group in cur.fetchone():
 			return group
@@ -389,7 +389,62 @@ def is_master(ip, **kwargs):
 		return cur.fetchall()
 	cur.close()    
 	con.close() 
+
+def ssh_enable():
+	con, cur = create_db.get_cur()
+	sql = """select enable from cred """
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+	else:
+		for enable in cur.fetchone():
+			return enable
+	cur.close()    
+	con.close() 
+
+def select_ssh_username():
+	con, cur = create_db.get_cur()
+	sql = """select username from cred """
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+	else:
+		for username in cur.fetchone():
+			return username
+	cur.close()    
+	con.close() 
 	
+def select_ssh_password():
+	con, cur = create_db.get_cur()
+	sql = """select password from cred """
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+	else:
+		for password in cur.fetchone():
+			return password
+	cur.close()    
+	con.close() 
+
+def update_ssh(enable, username, password):
+	con, cur = create_db.get_cur()
+	sql = """ 
+			update cred set 
+			enable = '%s',
+			username = '%s',
+			password = '%s' """ % (enable, username, password)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		con.rollback()
+	cur.close()    
+	con.close()
+
 def show_update_servers():
 	SERVERS = select_servers()
 	print('<tr class="overviewHead">'
@@ -613,3 +668,14 @@ if form.getvalue('updateserver') is not None:
 			update_server(name, ip, group, typeip, enable, master, id)
 		else:
 			print('<span class="alert alert-danger" id="error"><a title="Close" id="errorMess"><b>X</b></a></span>')
+			
+if form.getvalue('updatessh'):
+	enable = form.getvalue('ssh_enable')	
+	username = form.getvalue('ssh_user')		
+	password = form.getvalue('ssh_pass')
+	if username is None:
+		print('Content-type: text/html\n')
+		print(error_mess)
+	else:
+		print('Content-type: text/html\n')
+		update_ssh(enable, username, password)

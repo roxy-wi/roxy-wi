@@ -126,6 +126,12 @@ def create_table():
 			`user_id`	INTEGER NOT NULL,
 			`uuid`	varchar ( 64 )
 		);
+		CREATE TABLE IF NOT EXISTS `cred` (
+			`enable`	INTEGER NOT NULL DEFAULT 1,
+			`username`	VARCHAR ( 64 ) NOT NULL,
+			`password`	VARCHAR ( 64 ) NOT NULL
+		);
+		insert into cred('enable','username','password') values ('1', 'root','password');
 		"""
 		try:
 			cur.executescript(sql)
@@ -155,6 +161,7 @@ def update_db_v_2_0_1(**kwargs):
 	"""
 	try:    
 		cur.execute(sql)
+		con.commit()
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
 			if e.args[0] == 'duplicate column name: type_ip':
@@ -175,6 +182,7 @@ def update_db_v_2_0_1_1(**kwargs):
 	"""
 	try:    
 		cur.execute(sql)
+		con.commit()
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
 			if e.args[0] == 'duplicate column name: enable' or e == "1060 (42S21): Duplicate column name 'enable' ":
@@ -195,6 +203,7 @@ def update_db_v_2_0_5(**kwargs):
 	"""
 	try:    
 		cur.execute(sql)
+		con.commit()
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
 			if e.args[0] == 'duplicate column name: master' or e == "1060 (42S21): Duplicate column name 'master' ":
@@ -215,11 +224,12 @@ def update_db_v_2_4(**kwargs):
 	"""
 	try:    
 		cur.execute(sql)
+		con.commit()
 	except sqltool.Error as e:
 		print(kwargs.get('silent'))
 		if kwargs.get('silent') != 1:
 			if e.args[0] == 'duplicate column name: user_id':
-				print('Already updated. No run more. Thx =^.^=')
+				print('Updating... go to version 2.5.3')
 			else:
 				print("An error occurred:", e)
 		return False
@@ -230,17 +240,47 @@ def update_db_v_2_4(**kwargs):
 	cur.close() 
 	con.close()
 	
+def update_db_v_2_5_3(**kwargs):
+	con, cur = get_cur()
+	sql = """
+	CREATE TABLE IF NOT EXISTS `cred` (`enable`	INTEGER NOT NULL DEFAULT 1, `username`	VARCHAR ( 64 ) NOT NULL, `password` VARCHAR ( 64 ) NOT NULL );
+	"""
+	try:    
+		cur.execute(sql)		
+		con.commit()
+	except sqltool.Error as e:
+		print(kwargs.get('silent'))
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: enable':
+				print('Already updated. No run more. Thx =^.^=')
+			else:
+				print("An error occurred:", e)
+		return False
+	else:
+		if kwargs.get('silent') != 1:
+			print("DB was update to 2.5.3<br />")
+			sql2 = """
+			insert into `cred` (`enable`,`username`,`password`) values ('1', 'root','password');
+			"""
+			cur.execute(sql2)
+			con.commit()
+		return True
+	cur.close() 
+	con.close()
+	
 def update_all():
 	update_db_v_2_0_1()
 	update_db_v_2_0_1_1()
 	update_db_v_2_0_5()
 	update_db_v_2_4()
+	update_db_v_2_5_3()
 	
 def update_all_silent():
 	update_db_v_2_0_1(silent=1)
 	update_db_v_2_0_1_1(silent=1)
 	update_db_v_2_0_5(silent=1)
 	update_db_v_2_4(silent=1)
+	update_db_v_2_5_3(silent=1)
 		
 #if check_db():	
 #	create_table()
