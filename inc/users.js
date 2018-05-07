@@ -465,3 +465,18 @@ function updateSSH() {
 		}
 	} );
 }
+function showApacheLog() {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			rows1: $('#rows').val(),
+			serv: $("#serv").val(),
+			grep: $("#grep").val(),
+		},
+		type: "GET",
+		success: function( data ) {
+			$("#ajax").html(data);
+			window.history.pushState("Logs", "Logs", cur_url[0]+"?serv="+$("#serv").val()+"&rows1="+$('#rows').val()+"&grep="+$("#grep").val());
+		}					
+	} );
+}

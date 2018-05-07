@@ -1,9 +1,17 @@
 {% extends "base.html" %}
 {% block content %}	
-
+{% if onclick == 'showApacheLog()' %}
+<script src="/inc/users.js"></script>
+{% endif %}
 <table class="overview">
 	<tr class="overviewHead">
-		<td class="padding10 first-collumn">Server</td>
+		<td class="padding10 first-collumn">
+			{% if onclick == 'showApacheLog()' %}
+				Log
+			{% else %}
+				Server
+			{% endif %}
+		</td>
 		<td>Number rows</td>
 		<td class="padding10">Ex for grep</td>
 		<td> </td>
@@ -13,6 +21,15 @@
 			<form action="logs.py" method="get">
 				<select autofocus required name="serv" id="serv">
 					<option disabled selected>Choose server</option>
+					{% if onclick == 'showApacheLog()' %}
+						{% for select in selects %}
+							{% if select.2 == serv %}
+								<option value="{{ select.0 }}" selected>{{ select.1 }}</option>
+							{% else %}
+								<option value="{{ select.0 }}">{{ select.1 }}</option>
+							{% endif %}
+						{% endfor %}
+					{% else %}
 						{% for select in selects %}
 							{% if select.2 == serv %}
 								<option value="{{ select.2 }}" selected>{{ select.1 }}</option>
@@ -20,6 +37,7 @@
 								<option value="{{ select.2 }}">{{ select.1 }}</option>
 							{% endif %}
 						{% endfor %}
+					{% endif %}
 				</select>
 		</td>
 		<td>
@@ -37,7 +55,11 @@
 <div id="ajax">
 </div>
 <script>
-	window.onload = showLog()
+	{% if onclick == 'showApacheLog()' %}
+		window.onload = showApacheLog()
+	{% else %}
+		window.onload = showLog()
+	{% endif %}
 </script>
 
 {% endblock %}

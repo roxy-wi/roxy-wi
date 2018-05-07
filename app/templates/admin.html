@@ -289,10 +289,16 @@
 			<tr style="width: 50%;">
 				<td class="first-collumn" valign="top" style="padding-top: 15px;">
 					{% if ssh_enable == 1 %}
-						<label for="ssh_enable">Enable SSH<input type="checkbox" id="ssh_enable" checked>
+						<label for="ssh_enable">Enable SSH key</label><input type="checkbox" id="ssh_enable" checked>
 					{% else %}
-						<label for="ssh_enable">Enable SSH<input type="checkbox" id="ssh_enable">
+						<label for="ssh_enable">Enable SSH key</label><input type="checkbox" id="ssh_enable">
 					{% endif %}
+					<div class="tooltip tooltipTop">
+						<b>Note:</b> If enabled, the key will be used, if turned off - the password.
+						<br>Do not forget to download the keys to all servers or install the sudo without a password
+						<br>
+						<br>
+					</div>
 				</td>
 				<td style="padding-top: 15px;">
 					<p>

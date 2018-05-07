@@ -67,6 +67,9 @@ function startSetInterval(interval) {
 	} else if (cur_url[0] == "viewlogs.py") {
 		intervalId = setInterval('viewLogs()', interval);
 		viewLogs();
+	} else if (cur_url[0] == "apachelogs.py") {
+		intervalId = setInterval('showApacheLog()', interval);
+		showApacheLog();
 	} 
 }
 function pauseAutoRefresh() {
@@ -275,6 +278,10 @@ $( function() {
 		theme:"minimal-dark",
 		scrollInertia:30
 		});
+	$(".top-link").mCustomScrollbar({
+		theme:"minimal-dark",
+		scrollInertia:30
+		});	
 	$(".diff").mCustomScrollbar({
 		theme:"minimal-dark",
 		scrollInertia:30

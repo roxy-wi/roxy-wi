@@ -158,10 +158,28 @@ if serv is not None and form.getvalue('rows') is not None:
 	else:
 		commands = [ 'sudo tail -%s /var/log/%s/syslog.log %s %s' % (rows, serv, grep_act, grep) ]
 		syslog_server = config.get('logs', 'syslog_server')
-	print('<div id"logs">')
+	print('<div id="logs">')
 	funct.ssh_command(syslog_server, commands, show_log="1")
 	print('</div>')
 
+if serv is not None and form.getvalue('rows1') is not None:
+	rows = form.getvalue('rows1')
+	grep = form.getvalue('grep')
+	
+	if grep is not None:
+        	grep_act  = '|grep'
+	else:
+		grep_act = ''
+		grep = ''
+	
+	cmd='tail -%s %s %s %s' % (rows, '/var/log/httpd/'+serv, grep_act, grep)
+	p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
+	stdout, stderr = p.communicate()
+	output = stdout.splitlines()
+
+	funct.show_log(output)
+	print(stderr)
+		
 if serv is not None and act == "showMap":
 	ovw.get_map(serv)
 	

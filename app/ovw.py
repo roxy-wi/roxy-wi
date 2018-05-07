@@ -151,13 +151,16 @@ def get_map(serv):
 			G.add_node(node,pos=(k,i),label_pos=(k,i+150))
 		
 		if "bind" in line:
-			bind = line.split(":")
-			if stats_port not in bind[1]:
-				bind[1] = bind[1].strip(' ')
-				bind = bind[1].split("crt")
-				node = node.strip(' \t\n\r')
-				node = node + ":" + bind[0]
-				G.add_node(node,pos=(k,i),label_pos=(k,i+150))
+			try:
+				bind = line.split(":")
+				if stats_port not in bind[1]:
+					bind[1] = bind[1].strip(' ')
+					bind = bind[1].split("crt")
+					node = node.strip(' \t\n\r')
+					node = node + ":" + bind[0]
+					G.add_node(node,pos=(k,i),label_pos=(k,i+150))
+			except:
+				pass
 
 		if "server " in line or "use_backend" in line or "default_backend" in line and "stats" not in line:
 			if "timeout" not in line and "default-server" not in line and "#" not in line and "stats" not in line:

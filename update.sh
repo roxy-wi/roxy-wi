@@ -15,7 +15,7 @@ pip3 install -r ../requirements.txt
 echo ""
 echo "#################"
 echo "Change in config:"
-diff --expand-tabs -W 100 -y /tmp/haproxy-webintarface.config haproxy-webintarface.config |grep "|"
+diff --expand-tabs -W 100 -y /tmp/haproxy-webintarface.config haproxy-webintarface.config 
 echo ""
 echo "Please set your config"
 echo ""
