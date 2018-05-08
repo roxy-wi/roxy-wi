@@ -1,0 +1,13 @@
+{% for group in groups %}
+	<tr id="group-{{ group.0 }}" class="newgroup"> 
+		<td class="padding10 first-collumn">
+			<input type="text" id="name-{{ group.0 }}" value="{{ group.1 }}" class="form-control">
+		</td>
+		<td>
+			<input type="text" id="descript-{{ group.0 }}" value="{{ group.2 }}" class="form-control" size="100">
+		</td>
+		<td>
+			<a class="delete" onclick="removeGroup({{ group.0 }})"  style="cursor: pointer;"></a>
+		</td>
+	</tr>
+{% endfor %}

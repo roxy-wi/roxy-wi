@@ -292,6 +292,7 @@ echo "Edit firewalld"
 firewall-cmd --zone=public --add-port=$PORT/tcp --permanent
 firewall-cmd --reload
 
+mkdir /var/www/$HOME_HAPROXY_WI/app/certs
 chmod +x /var/www/$HOME_HAPROXY_WI/app/*.py
 chown -R apache:apache /var/www/$HOME_HAPROXY_WI/
 rm -f /var/www/$HOME_HAPROXY_WI/log/config_edit.log

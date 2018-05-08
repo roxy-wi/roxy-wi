@@ -62,7 +62,7 @@ if form.getvalue('serv') is not None and form.getvalue('config') is not None:
 		if master[0] != None:
 			funct.upload_and_restart(master[0], configver, just_save=save)
 			
-	stderr, error = funct.upload_and_restart(serv, configver, just_save=save)
+	stderr = funct.upload_and_restart(serv, configver, just_save=save)
 	aftersave = 1
 
 	

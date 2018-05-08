@@ -1,9 +1,11 @@
 #!/bin/bash
+
 cp app/haproxy-webintarface.config /tmp/
 
 git reset --hard
 git pull  https://github.com/Aidaho12/haproxy-wi.git
 
+mkdir app/certs
 chmod +x app/*py
 chown -R apache:apache *
 

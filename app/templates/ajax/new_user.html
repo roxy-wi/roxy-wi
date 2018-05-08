@@ -1,0 +1,32 @@
+{% for user in users %}
+			<tr id="user-{{user.0}}" class="newuser">
+				<td class="padding10 first-collumn"><input type="text" id="login-{{user.0}}" value="{{user.1}}" class="form-control"></td> 
+				<td><input type="password" id="password-{{user.0}}" value="{{user.3}}" class="form-control"></td> 
+				<td><input type="text" id="email-{{user.0}}" value="{{user.2}}" class="form-control"></td>
+				<td>
+					<select id="role-{{user.0}}" name="role-{{user.0}}">
+						<option disabled selected>Choose role</option>
+						{% for role in roles %}
+							{% if user.4 == role.1 %}
+								<option value="{{ role.1 }}" selected>{{ role.1 }}</option>
+							{% else %}
+								<option value="{{ role.1 }}">{{ role.1 }}</option>
+							{% endif %}
+						{% endfor %}
+					</select>
+				</td>
+				<td>
+					<select id="usergroup-{{user.0}}" name="usergroup-{{user.0}}">
+						<option disabled selected>Choose group</option>
+						{% for group in groups %}
+							{% if user.5 == group.0|string() %}
+								<option value="{{ group.0 }}" selected>{{ group.1 }}</option>
+							{% else %}
+								<option value="{{ group.0 }}">{{ group.1 }}</option>
+							{% endif %}
+						{% endfor %}
+					</select>
+				</td>
+				<td><a class="delete" onclick="removeUser({{user.0}})"  style="cursor: pointer;"></a></td> 
+			</tr>
+		{% endfor %}

@@ -129,7 +129,7 @@ $( function() {
 				} else {
 					$('.alert-danger').remove();
 					$("#ajax-users").append(data);
-					$( "#ajax-users tr td" ).addClass( "update", 1000, callbackUser );					
+					$( ".newuser" ).addClass( "update", 1000, callbackUser );					
 					$.getScript(url);					
 					$.getScript(awesome);	
 					$.getScript(users);					
@@ -138,6 +138,8 @@ $( function() {
 		} );
 	});
 	$('#add-group').click(function() {
+		$('#error').remove();	
+		$('.alert-danger').remove();	
 		$.ajax( {
 			url: "sql.py",
 			data: {
@@ -153,7 +155,7 @@ $( function() {
 					var getId = new RegExp('[0-9]+');
 					var id = data.match(getId);
 					$("#ajax-group").append(data);
-					$( "#ajax-group tr td" ).addClass( "update", 1000, callbackGroup );
+					$( ".newgroup" ).addClass( "update", 1000, callbackGroup );
 					$('select:regex(id, group)').append('<option value='+id+'>'+$('#new-group-add').val()+'</option>').selectmenu("refresh");
 					$.getScript(awesome);
 				}
@@ -190,10 +192,9 @@ $( function() {
 				} else {
 					$('.alert-danger').remove();
 					$("#ajax-servers").append(data);
-					$( "#ajax-servers tr td" ).addClass( "update", 1000, callback );					
-					$.getScript(url);
-					$.getScript(awesome);
-					$.getScript(users);
+					$(".newserver").addClass( "update", 1000, callbackServer );		
+					$.getScript(url);	
+					$.getScript(awesome);					
 				}
 			}					
 		} );
@@ -201,18 +202,17 @@ $( function() {
 	
 	function callbackUser() {
 		setTimeout(function() {
-			$( "#ajax-users tr td" ).removeClass( "update" );
+			$( ".newuser" ).removeClass( "update" );
 		}, 2500 );
     }
-	function callback() {
+	function callbackServer() {
 		setTimeout(function() {
-			$( "#ajax-servers tr td" ).removeClass( "update" );
+			$( ".newserver" ).removeClass( "update" );
 		}, 2500 );
-    }
-	
+    }	
 	function callbackGroup() {
 		setTimeout(function() {
-			$( "#ajax-group tr td" ).removeClass( "update" );
+			$( ".newgroup" ).removeClass( "update" );
 		}, 2500 );
     }
 	

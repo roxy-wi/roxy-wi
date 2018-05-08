@@ -120,12 +120,12 @@ def add_server(hostname, ip, group, typeip, enable, master):
 	try:    
 		cur.execute(sql)
 		con.commit()
+		return True
 	except sqltool.Error as e:
 		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 		con.rollback()
 		return False
-	else:
-		return True
+		
 	cur.close()    
 	con.close() 	
 
@@ -220,29 +220,12 @@ def select_user_name_group(id):
 			return group
 	cur.close()    
 	con.close()  
-
-def get_groups_select(id, **kwargs):
-	print('<select class="multiselect" id="%s" name="%s">' % (id, id))
-	print('<option disabled selected>Choose group</option>')
-	GROUPS = select_groups()
-	selected = ""
-	print(kwargs.get('selected'))
-	for group in GROUPS:
-		if kwargs.get('selected'):
-			selected1 = kwargs.get('selected')
-			selected1 = int(selected1)
-			if selected1 == group[0]:
-				selected = 'selected'
-			else:
-				selected = ""
-		print('<option value="%s" %s>%s</option>' % (group[0], selected, group[1]))
-	print('</select>')
 	
 def select_servers(**kwargs):
 	con, cur = create_db.get_cur()
 	sql = """select * from servers where enable = '1' ORDER BY groups """
 	if kwargs.get("server") is not None:
-		sql = """select * from servers where hostname='%s' """ % kwargs.get("server")
+		sql = """select * from servers where ip='%s' """ % kwargs.get("server")
 	if kwargs.get("full") is not None:
 		sql = """select * from servers ORDER BY groups """ 
 	if kwargs.get("get_master_servers") is not None:
@@ -445,85 +428,40 @@ def update_ssh(enable, username, password):
 	cur.close()    
 	con.close()
 
-def show_update_servers():
-	SERVERS = select_servers()
-	print('<tr class="overviewHead">'
-			'<td class="padding10">Hostname</td>'
-			'<td>IP</td>'
-			'<td>Group</td>'
-			'<td></td>'
-			'</tr>')
-	for server in SERVERS:
-		print('<tr id="server-%s">' % server[0])
-		print('<td class="padding10 first-collumn"><input type="text" id="server-%s" value="%s" class="form-control"></td>' % (server[0], server[1]))
-		print('<td><input type="text" id="descript-%s" value="%s" class="form-control"></td>' % (server[0], server[2]))
-		print('<td>')
-		get_groups_select("123", selected=server[3])
-		print('</td>')
-		print('<td>')
-		get_enable_checkbox(server[0])
-		print('</td>')
-		print('<td>')
-		get_type_ip_checkbox(server[0])
-		print('</td>')
-		print('<td><a class="delete" onclick="removeServer(%s)"  style="cursor: pointer;"></a></td>' % server[0])
-		print('</tr>')
-
 def show_update_user(user):
-	USERS = select_users(user=user)
-	for users in USERS:
-		print('<tr id="user-%s">' % users[0])
-		print('<td class="padding10 first-collumn"><input type="text" id="login-%s" value="%s" class="form-control"></td>' % (users[0], users[1]))
-		print('<td><input type="password" id="password-%s" value="%s" class="form-control"></td>' % (users[0], users[3]))
-		print('<td><input type="text" id="email-%s" value="%s" class="form-control"></td>' % (users[0], users[2]))
-		print('<td>')
-		need_id_role = "role-%s" % users[0]
-		get_roles_select(need_id_role, selected=users[4])
-		print('</td>')
-		print('<td>')
-		need_id_group = "usergroup-%s" % users[0]
-		get_groups_select(need_id_group, selected=users[5])
-		print('</td>')
-		print('<td><a class="delete" onclick="removeUser(%s)"  style="cursor: pointer;"></a></td>' % users[0])
-		print('</tr>')
+	from jinja2 import Environment, FileSystemLoader
+	env = Environment(loader=FileSystemLoader('templates/ajax'))
+	template = env.get_template('/new_user.html')
+
+	print('Content-type: text/html\n')
+
+	output_from_parsed_template = template.render(users = select_users(user=user),
+													groups = select_groups(),
+													roles = select_roles())
+	print(output_from_parsed_template)
 		
 def show_update_server(server):
-	SERVERS = select_servers(server=server)
-	for server in SERVERS:
-		print('<tr id="server-%s">' % server[0])
-		print('<td class="padding10 first-collumn"><input type="text" id="hostname-%s" value="%s" class="form-control"></td>' % (server[0], server[1]))
-		print('<td><input type="text" id="ip-%s" value="%s" class="form-control"></td>' % (server[0], server[2]))
-		print('<td>')
-		need_id_group = "servergroup-%s" % server[0]
-		get_groups_select(need_id_group, selected=server[3])
-		print('</td>')
-		print('<td>')
-		get_enable_checkbox(server[0])
-		print('</td>')
-		print('<td>')
-		get_type_ip_checkbox(server[0])
-		print('</td>')
-		print('<td><select id="slavefor-%s"><option value="0" selected>Not slave</option>' % server[0])
-		MASTERS = select_servers(get_master_servers=1)
-		for master in MASTERS:
-			if master[0] == server[6]:
-				selected = "selected"
-			else:
-				selected = ""
-			print('<option value="%s" %s>%s</option>' % (master[0], selected, master[1]))
-		print('</select></td>')
-		print('<td><a class="delete" onclick="removeServer(%s)"  style="cursor: pointer;"></a></td>' % server[0])
-		print('</tr>')
+	from jinja2 import Environment, FileSystemLoader
+	env = Environment(loader=FileSystemLoader('templates/ajax/'))
+	template = env.get_template('/new_server.html')
+
+	print('Content-type: text/html\n')
+
+	output_from_parsed_template = template.render(groups = select_groups(),
+													servers = select_servers(server=server),
+													roles = select_roles(),
+													masters = select_servers(get_master_servers=1))
+	print(output_from_parsed_template)
 
 def show_update_group(group):
-	GROUPS = select_groups(group=group)
-	for group in GROUPS:
-		print('<tr id="group-%s">' % group[0])
-		print('<td class="padding10 first-collumn"><input type="text" name="name-%s" value="%s" class="form-control"></td>' % (group[0], group[1]))
-		print('<td><input type="text" name="descript-%s" value="%s" class="form-control" size="100"></td>' % (group[0], group[2]))
-		print('<td><a class="delete" onclick="removeGroup(%s)"  style="cursor: pointer;"></a></td>' % group[0])
-		print('<td></td>')
-		print('</tr>')
+	from jinja2 import Environment, FileSystemLoader
+	env = Environment(loader=FileSystemLoader('templates/ajax/'))
+	template = env.get_template('/new_group.html')
+
+	print('Content-type: text/html\n')
+
+	output_from_parsed_template = template.render(groups = select_groups(group=group))
+	print(output_from_parsed_template)
 
 def select_roles(**kwargs):
 	con, cur = create_db.get_cur()
@@ -552,21 +490,7 @@ def select_roles(**kwargs):
 		return cur.fetchall()
 	cur.close()    
 	con.close()  
-		
-def get_roles_select(id, **kwargs):
-	print('<select id="%s" name="%s">' % (id, id))
-	print('<optin disabled selected>Choose role</option>')
-	ROLES = select_roles()
-	selected = ""
-	for role in ROLES:
-		if kwargs.get('selected'):
-			if kwargs.get('selected') == role[1]:
-				selected = "selected"
-			else:
-				selected = ""
-		print('<option value="%s" %s>%s</option>' % (role[1], selected, role[1]))
-	print('</select>')	
-	
+			
 form = cgi.FieldStorage()
 error_mess = '<span class="alert alert-danger" id="error">All fields must be completed <a title="Close" id="errorMess"><b>X</b></a></span>'
 
@@ -614,13 +538,10 @@ if form.getvalue('newserver') is not None:
 	if ip is None or group is None:
 		print('Content-type: text/html\n')
 		print(error_mess)
-	else:		
+	else:	
 		print('Content-type: text/html\n')
-		if funct.ssh_connect(ip, check=1):
-			if add_server(hostname, ip, group, typeip, enable, master):
-				show_update_server(hostname)
-		else:
-			print('<span class="alert alert-danger" id="error"><a title="Close" id="errorMess"><b>X</b></a></span>')
+		if add_server(hostname, ip, group, typeip, enable, master):
+			show_update_server(ip)
 		
 if form.getvalue('serverdel') is not None:
 	print('Content-type: text/html\n')

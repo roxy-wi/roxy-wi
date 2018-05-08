@@ -291,6 +291,7 @@ pre {
 	padding-left: 10px;
 	float: right;
 	margin-right: 10px;
+	cursor: pointer;
 }
 .serverDown {
 	background-color: red; 

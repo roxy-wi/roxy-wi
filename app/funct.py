@@ -144,34 +144,40 @@ def ssh_connect(serv, **kwargs):
 			return False
 		else:
 			return 'Authentication failed, please verify your credentials'
+			pass
 	except paramiko.SSHException as sshException:
 		if kwargs.get('check'):
 			print('<div class="alert alert-danger">Unable to establish SSH connection: %s </div>' % sshException)
 			return False
 		else:
 			return 'Unable to establish SSH connection: %s ' % sshException
+			pass
 	except paramiko.BadHostKeyException as badHostKeyException:
 		if kwargs.get('check'):
 			print('<div class="alert alert-danger">Unable to verify server\'s host key: %s </div>' % badHostKeyException)	
 			return False
 		else:
 			return 'Unable to verify server\'s host key: %s ' % badHostKeyException
+			pass
 	except Exception as e:
 		if e.args[1] == "No such file or directory":
 			if kwargs.get('check'):
 				print('<div class="alert alert-danger">{}. Check ssh key</div>'.format(e.args[1]))	
 			else:
 				return '{}. Check ssh key'.format(e.args[1])
+				pass
 		elif e.args[1] == "Invalid argument":
 			if kwargs.get('check'):
 				print('<div class="alert alert-danger">Check the IP of the new server</div>')
 			else:
 				error = 'Check the IP of the new server'
+				pass
 		else:
 			if kwargs.get('check'):
 				print('<div class="alert alert-danger">{}</div>'.format(e.args[1]))	
 			else:
 				error = e.args[1]	
+				pass
 		if kwargs.get('check'):
 			return False
 		else:
@@ -372,9 +378,9 @@ def show_log(stdout):
 	for line in stdout:
 		i = i + 1
 		if i % 2 == 0: 
-			print('<div class="line3">' + line + '</div>')
+			print('<div class="line3">' + escape_html(line) + '</div>')
 		else:
-			print('<div class="line">' + line + '</div>')
+			print('<div class="line">' + escape_html(line) + '</div>')
 			
 def show_ip(stdout):
 	for line in stdout:
@@ -418,6 +424,11 @@ def ssh_command(serv, commands, **kwargs):
 			print('<div style="margin: -10px;">'+stdout.read().decode(encoding='UTF-8')+'</div>')
 			
 		print(stderr.read().decode(encoding='UTF-8'))
-		
-	ssh.close()
+	try:	
+		ssh.close()
+	except:
+		print(ssh)
+		pass
 
+def escape_html(text):
+	return cgi.escape(text, quote=True)

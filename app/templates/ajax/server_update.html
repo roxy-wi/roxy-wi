@@ -1,0 +1,53 @@
+{% for server in servers %}
+			<tr id="server-{{server.0}}">
+				<td class="padding10 first-collumn">
+					<input type="text" id="hostname-{{server.0}}" value="{{server.1}}" class="form-control">
+				</td>
+				<td>
+					<input type="text" id="ip-{{server.0}}" value="{{server.2}}" class="form-control">
+				</td>
+				<td>
+					<select id="servergroup-{{server.0}}" name="servergroup-{{server.0}}">
+						<option disabled selected>Choose group</option>
+						{% for group in groups %}
+							{% if server.3 == group.0|string() %}
+								<option value="{{ group.0 }}" selected>{{ group.1 }}</option>
+							{% else %}
+								<option value="{{ group.0 }}">{{ group.1 }}</option>
+							{% endif %}
+						{% endfor %}
+					</select>
+				</td>
+				<td>
+					{% if server.5 == 1 %}
+						<label for="enable-{{server.0}}"></label><input type="checkbox" id="enable-{{server.0}}" checked>
+					{% else %}
+						<label for="enable-{{server.0}}"></label><input type="checkbox" id="enable-{{server.0}}">
+					{% endif %}
+				</td>
+				<td>
+					{% if server.4 == 1 %}
+						<label for="typeip-{{server.0}}"></label><input type="checkbox" id="typeip-{{server.0}}" checked>
+					{% else %}
+						<label for="typeip-{{server.0}}"></label><input type="checkbox" id="typeip-{{server.0}}">
+					{% endif %}
+				</td>
+				<td>
+					<select id="slavefor-{{server.0}}">
+						<option value="0" selected>Not slave</option>
+						{% for master in masters %}
+							{% if master.0 == server.6 %}
+								<option value="{{master.0}}" selected>{{master.1}}</option>
+							{% else %}
+								<option value="{{master.0}}">{{master.1}}</option>
+							{% endif %}
+						{% endfor %}
+					</select>
+				</td>
+				<td>
+					<a class="delete" onclick="removeServer({{server.0}})"  style="cursor: pointer;"></a>
+				</td> 
+			</tr>
+		{% endfor %}
+<script defer src="/inc/fontawesome.min.js"></script>
+<script src="/inc/script.js"></script>
