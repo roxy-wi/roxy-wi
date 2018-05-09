@@ -114,6 +114,9 @@ if form.getvalue('action') is not None and serv is not None:
 if act == "overview":
 	ovw.get_overview()
 
+if act == "overviewServers":
+	ovw.get_overviewServers()
+	
 if serv is not None and act == "stats":
 	import requests
 	from requests_toolbelt.utils import dump

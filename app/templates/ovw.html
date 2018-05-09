@@ -1,10 +1,91 @@
 {% extends "base.html" %}
 {% block content %}	
 <script>
-	if (cur_url[0] == 'overview.py') { 
-		$('#secIntervals').css('display', 'none');
+	if (cur_url[0] == overview.py) { 
+		$(#secIntervals).css(display, none);
 	}
+</script>
+{% if role <= 1 %}
+	<table class="overview">
+		<tr class="overviewHead">
+			<td class="padding10 first-collumn">Login</td>
+			<td class="padding10">Email</td>
+			<td>Group</td>
+			<td class="padding10">Role</td>
+			<td style="width: 200px;">
+				<span class="add-button">
+					<a title="Show all users" id="show-all-users" style="color: #fff">
+						Show all
+					</a>
+				</span>
+			</td>
+		</tr>		
+		{% set counter = 0 -%}
+		{% for USER in users %}
+			{% set counter = counter + loop.index0 %}
+			{% if counter <= 2 %}
+				<tr>
+					<td class="padding10 first-collumn"> {{ USER.1 }}</td>
+					<td class="padding10"> {{ USER.2 }}</td>
+					{% for group in groups %}
+						{% if USER.5 == group.0|string() %}
+							<td class="second-collumn">{{ group.1 }}</td>
+						{% endif %}
+					{% endfor %}
+					<td>{{ USER.4 }}</td>
+					<td></td>
+				</tr>
+			{% else %}
+				<tr style="display: none;" class="show-users">
+					<td class="padding10 first-collumn"> {{ USER.1 }}</td>
+					<td class="padding10"> {{ USER.2 }}</td>
+					{% for group in groups %}
+						{% if group.0|string() == USER.5 %}
+							<td class="second-collumn">{{ group.1 }}</td>
+						{% endif %}
+					{% endfor %}
+					<td>{{ USER.4 }}</td>
+					<td></td>
+				</tr>
+			{% endif %}
+		{% endfor %}
+	</table>
+{% endif %}
+<table class="overview">
+	<tr class="overviewHead">
+		<td class="padding10 first-collumn">
+			Server
+		</td>
+		<td class="padding10">
+			HAproxy status
+		</td>
+		<td class="padding10">
+			Action
+		</td>
+		<td class="padding10">
+			Last edit
+		</td>
+		<td></td>
+	</tr>
+<tbody id="ajaxstatus"></tbody>
+
+</table>
+<table class="overview" >
+	<tr class="overviewHead">
+		<td class="padding10 first-collumn" style="width: 15%;">
+			Server
+		</td>
+		<td>
+			HAproxy info
+		</td>
+		<td>
+			Server status
+		</td>
+	</tr>
+<tbody id="ajaxservers"></tbody>
+</table>
+<script>
 	window.onload = showOverview()
 </script>
-<div id="ajax"></div>
+
 {% endblock %}

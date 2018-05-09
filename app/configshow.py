@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 import os
 import sql
-import http
+import http.cookies, cgi
 import funct
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'))
 template = env.get_template('config.html')
 print('Content-type: text/html\n')
 funct.check_login()
+form = cgi.FieldStorage()
+serv = form.getvalue('serv')
 
 try:
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
@@ -22,6 +24,7 @@ output_from_parsed_template = template.render(h2 = 1, title = "Show Runnig confi
 												user = user,
 												onclick = "showConfig()",
 												select_id = "serv",
+												serv = serv,
 												selects = servers,
 												note = 0)											
 print(output_from_parsed_template)

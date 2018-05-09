@@ -37,7 +37,7 @@ For install just clone:
 $ cd /var/www/
 $ git clone https://github.com/Aidaho12/haproxy-wi.git /var/www/haproxy-wi
 $ chown -R apache:apache haproxy-wi/
-$ pip install -r haproxy-wi/requirements.txt 
+$ pip3 install -r haproxy-wi/requirements.txt 
 $ chmod +x haproxy-wi/app/*.py 
 ```
 

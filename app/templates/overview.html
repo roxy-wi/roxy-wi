@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}	
+	{% if role <= 1 %}
 	<table class="overview">
 		<tr class="overviewHead">
 			<td class="padding10">Login</td>
@@ -14,16 +15,29 @@
 				</span>
 			</td>
 		</tr>		
+		{% set counter = 0 -%}
 		{% for user in users %}
-		<tr>
-			<td class="padding10 first-collumn"> {{ user.1 }}</td>
-			<td class="padding10"> {{ user.2 }}</td>
-			<td class="second-collumn">{{ user.5 }}</td>
-			<td>{{ user.4 }}</td>
-			<td></td>
-		</tr>
+			{% set counter = counter + 1 %}
+			{% if counter < 4 %}
+				<tr>
+					<td class="padding10 first-collumn"> {{ user.1 }}</td>
+					<td class="padding10"> {{ user.2 }}</td>
+					<td class="second-collumn">{{ user.5 }}</td>
+					<td>{{ user.4 }}</td>
+					<td></td>
+				</tr>
+			{% else %}
+				<tr style="display: none;" class="show-users">
+					<td class="padding10 first-collumn"> {{ user.1 }}</td>
+					<td class="padding10"> {{ user.2 }}</td>
+					<td class="second-collumn">{{ user.5 }}</td>
+					<td>{{ user.4 }}</td>
+					<td></td>
+				</tr>
+			{% endif %}
 		{% endfor %}
 	</table>
+	{% endif %}
 	<table class="overview">
 		<tr class="overviewHead">
 			<td class="padding10">Server</td>

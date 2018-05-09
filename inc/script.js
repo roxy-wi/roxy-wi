@@ -97,7 +97,8 @@ $( document ).ajaxSend(function( event, request, settings ) {
 $( document ).ajaxComplete(function( event, request, settings ) {
 	NProgress.done();
 });
-function showOverview() {
+function showOverview() {	
+	showOverviewServers();
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -105,7 +106,21 @@ function showOverview() {
 		},
 		type: "GET",
 		success: function( data ) {
-			$("#ajax").html(data);
+			$("#ajaxstatus").empty();
+			$("#ajaxstatus").html(data);
+		}					
+	} );
+}
+
+function showOverviewServers() {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			act: "overviewServers",
+		},
+		type: "GET",
+		success: function( data ) {
+			$("#ajaxservers").html(data);
 			$.getScript('/inc/overview.js');
 		}					
 	} );
@@ -501,7 +516,7 @@ $( function() {
 	}	
 	
 	var availableTags = [
-		"acl", "http-request", "http-response", "set-uri", "set-url", "set-header", "add-header", "del-header", "replace-header", "path_beg", "url_beg()", "urlp_sub()", "tcpka", "tcplog", "forwardfor", "option"
+		"acl", "http-request", "http-response", "set-uri", "set-url", "set-header", "add-header", "del-header", "replace-header", "path_beg", "url_beg()", "urlp_sub()", "set cookie", "dynamic-cookie-key", "mysql-check", "tcpka", "tcplog", "forwardfor", "option"
 	];
 			
 	$( "#ip" ).autocomplete({

@@ -18,53 +18,7 @@ hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
 form = cgi.FieldStorage()
 
 def get_overview():
-	USERS = sql.select_users()
 	listhap = sql.get_dick_permit()
-
-	if funct.is_admin():
-		print('<table class="overview">'
-			'<tr class="overviewHead">'
-				'<td class="padding10 first-collumn">Login</td>'
-				'<td class="padding10">Email</td>'
-				'<td class="padding10">Group</td>'
-				'<td class="padding10">Role</td>'
-				'<td style="width: 200px;">'
-					'<span class="add-button">'
-						'<a href="#"  title="Show all users" id="show-all-users" style="color: #fff">'
-							'Show all'
-						'</a>'
-					'</span>'
-				'</td>'
-			'</tr>')
-
-		i = 0
-		style = ""
-		for users in USERS:
-			i = i + 1
-			if i is 4:
-				style = 'style="display: none;" class="show-users"'
-			print('<tr ' + style + '><td class="padding10 first-collumn">' + users[1] +'</td><td class="second-collumn">')
-			print(users[2]+'</td><td>')
-			print(sql.select_user_name_group(users[5]))
-			print('</td><td>')
-			print(users[4])
-			print('</td><td></td></tr>')
-		print('</table>')
-		
-	print('<table class="overview">'
-		'<tr class="overviewHead">'
-			'<td class="padding10 first-collumn"">Server</td>'
-			'<td class="padding10">'
-				'HAproxy status'
-			'</td>'
-			'<td class="padding10">'
-				'Action'
-			'</td>'
-			'<td class="padding10">'
-				'Last edit'
-			'</td>'
-			'<td></td>'
-		'</tr>')
 		
 	commands = [ "ps -Af |grep [h]aproxy |wc -l" ]
 	commands1 = [ "ls -l %s |awk '{ print $6\" \"$7\" \"$8}'" % haproxy_config_path ]
@@ -86,17 +40,8 @@ def get_overview():
 		funct.ssh_command(server[2], commands1)
 		print('</td><td></td></tr>')
 
-	print('</table><table class="overview">'
-		'<tr class="overviewHead">'
-			'<td class="padding10 first-collumn" style="width: 15%;">Server</td>'
-			'<td>'
-				'HAproxy info'
-			'</td>'
-			'<td>'
-				'Server status'
-			'</td>'
-		'</tr>')
-
+def get_overviewServers():
+	listhap = sql.get_dick_permit()
 	commands = [ "cat " + haproxy_config_path + " |grep -E '^listen|^backend|^frontend' |grep -v stats |wc -l",  
 				"uname -smor", 
 				"haproxy -v |head -1", 
@@ -109,8 +54,6 @@ def get_overview():
 		print('</pre></td><td class="overviewTd"><pre>')
 		funct.ssh_command(server[2], commands1)
 		print('</pre></td></tr>')
-		
-	print('<tr></table>')
 	
 def get_map(serv):
 	from datetime import datetime
