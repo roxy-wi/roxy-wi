@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block content %}	
 <script>
-	if (cur_url[0] == overview.py) { 
-		$(#secIntervals).css(display, none);
+	if (cur_url[0] == "overview.py") { 
+		$("#secIntervals").css("display", "none");
 	}
 </script>
 {% if role <= 1 %}
@@ -84,6 +84,9 @@
 	</tr>
 <tbody id="ajaxservers"></tbody>
 </table>
+<div id="dialog-confirm" style="display: none;">
+  <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>Are you sure?</p>
+</div>
 <script>
 	window.onload = showOverview()
 </script>

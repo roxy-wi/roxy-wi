@@ -166,7 +166,6 @@ function showMap() {
 		type: "GET",
 		success: function( data ) {
 			$("#ajax").html(data);
-			//window.history.pushState("Map", "Map", cur_url[0]+"?serv="+$("#serv").val());
 		}					
 	} );
 }
@@ -202,7 +201,6 @@ function showCompare() {
 		type: "GET",
 		success: function( data ) {
 			$("#ajax").html(data);
-			//window.history.pushState("Compare", "Compare", cur_url[0]+"?serv="+$("#serv").val()+"&open=open&left="+$("#left").val()+"&right="+$("#right").val());
 			$.getScript(url);
 		}					
 	} );
@@ -218,7 +216,6 @@ function showCompareConfigs() {
 		type: "GET",
 		success: function( data ) {
 			$("#ajax-compare").html(data);
-			//window.history.pushState("Compare", "Compare", cur_url[0]+"?serv="+$("#serv").val()+"&open=open");
 			$.getScript(url);
 		}					
 	} );
@@ -233,7 +230,6 @@ function showConfig() {
 		type: "GET",
 		success: function( data ) {
 			$("#ajax").html(data);
-			//window.history.pushState("Show config", "Show config", cur_url[0]+"?serv="+$("#serv").val()+"&open=open");
 			var urlConfigShowJs = '/inc/configshow.js';
 			$.getScript(urlConfigShowJs);
 		}					
@@ -726,8 +722,6 @@ $( function() {
 			},
 			type: "GET",
 			success: function( data ) {
-				//data = data.replace(/\s+/g,' ');
-				//data = data.split(" ");
 				if (data.indexOf('danger') != '-1') {
 					$("#ajax-show-ssl").html(data);
 				} else {

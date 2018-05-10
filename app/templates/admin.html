@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
 <script src="/inc/users.js"></script>
+<div id="dialog-confirm" title="Are you sure you want to delete?" style="display: none;">
+  <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>Deleting irreversibly all data will be lost?</p>
+</div>
 <div id="tabs">
 	<ul>
 		<li><a href="#users">Users</a></li>
@@ -50,7 +53,7 @@
 						{% endfor %}
 					</select>
 				</td>
-				<td><a class="delete" onclick="removeUser({{user.0}})"  style="cursor: pointer;"></a></td> 
+				<td><a class="delete" onclick="confirmDeleteUser({{user.0}})"  style="cursor: pointer;"></a></td> 
 			</tr>
 		{% endfor %}
 		</table>
@@ -120,7 +123,7 @@
 					<input type="text" id="descript-{{ group.0 }}" value="{{ group.2 }}" class="form-control" size="100">
 				</td>
 				<td>
-					<a class="delete" onclick="removeGroup({{ group.0 }})"  style="cursor: pointer;"></a>
+					<a class="delete" onclick="confirmDeleteGroup({{ group.0 }})"  style="cursor: pointer;"></a>
 				</td>
 			{% endif %}
 			</tr>
@@ -207,7 +210,7 @@
 					</select>
 				</td>
 				<td>
-					<a class="delete" onclick="removeServer({{server.0}})"  style="cursor: pointer;"></a>
+					<a class="delete" onclick="confirmDeleteServer({{server.0}})"  style="cursor: pointer;"></a>
 				</td> 
 			</tr>
 		{% endfor %}

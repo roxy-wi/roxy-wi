@@ -25,17 +25,17 @@ function ajaxActionServers(action, id) {
 $( function() {
 	$('.start').click(function() {
 		var id = $(this).attr('id');
-		ajaxActionServers("start", id);
+		confirmAjaxAction("start", id);
 	});
 	$('.stop').click(function() {
 		var id = $(this).attr('id');
-		ajaxActionServers("stop", id);
+		confirmAjaxAction("stop", id);
 	});
 	$('.restart').click(function() {
 		var id = $(this).attr('id');
-		ajaxActionServers("restart", id);
+		confirmAjaxAction("restart", id);
 	});
-	$ ( "#show-all-users" ).click( function() {
+	$( "#show-all-users" ).click( function() {
 		if($( "#show-all-users" ).text() == "Show all") {
 			$( ".show-users" ).show("fast");
 			$( "#show-all-users" ).text("Hide");
@@ -48,3 +48,21 @@ $( function() {
 	});
 	$('#secIntervals').css('display', 'none');
 });
+function confirmAjaxAction(action, id) {
+	$( "#dialog-confirm" ).dialog({
+		resizable: false,
+		height: "auto",
+		width: 400,
+		modal: true,
+		title: "Are you sure you want "+ action + " " + id + "?",
+		buttons: {
+			"Sure": function() {
+				$( this ).dialog( "close" );	
+				ajaxActionServers(action, id);
+			},
+			Cancel: function() {
+				$( this ).dialog( "close" );
+			}
+		}
+	});
+}

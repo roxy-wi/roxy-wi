@@ -267,57 +267,112 @@ $( function() {
 	} else {
 		$('#ssh_pass').css('display', 'block');
 	}
+   
 } );
+function confirmDeleteUser(id) {
+	 $( "#dialog-confirm" ).dialog({
+      resizable: false,
+      height: "auto",
+      width: 400,
+      modal: true,
+	  title: "Are you sure you want to delete " +$('#login-'+id).val() + "?",
+      buttons: {
+        "Delete": function() {
+			$( this ).dialog( "close" );	
+			removeUser(id);
+        },
+        Cancel: function() {
+			$( this ).dialog( "close" );
+        }
+      }
+    });
+}
+function confirmDeleteGroup(id) {
+	 $( "#dialog-confirm" ).dialog({
+      resizable: false,
+      height: "auto",
+      width: 400,
+      modal: true,
+	  title: "Are you sure you want to delete " +$('#name-'+id).val() + "?",
+      buttons: {
+        "Delete": function() {
+			$( this ).dialog( "close" );	
+			removeGroup(id);
+        },
+        Cancel: function() {
+			$( this ).dialog( "close" );
+        }
+      }
+    });
+}
+function confirmDeleteServer(id) {
+	 $( "#dialog-confirm" ).dialog({
+      resizable: false,
+      height: "auto",
+      width: 400,
+      modal: true,
+	  title: "Are you sure you want to delete " +$('#hostname-'+id).val() + "?",
+      buttons: {
+        "Delete": function() {
+			$( this ).dialog( "close" );	
+			removeServer(id);
+        },
+        Cancel: function() {
+			$( this ).dialog( "close" );
+        }
+      }
+    });
+}
 function removeUser(id) {
 	$("#user-"+id).css("background-color", "#f2dede");
 	$.ajax( {
-			url: "sql.py",
-			data: {
-				userdel: id,
-			},
-			type: "GET",
-			success: function( data ) {
-				data = data.replace(/\s+/g,' ');
-				if(data == "Ok ") {
-					$("#user-"+id).remove();
-				}
-			}					
-		} );	
-	}
+		url: "sql.py",
+		data: {
+			userdel: id,
+		},
+		type: "GET",
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if(data == "Ok ") {
+				$("#user-"+id).remove();
+			}
+		}					
+	} );
+}
 function removeServer(id) {
 	$("#server-"+id).css("background-color", "#f2dede");
 	$.ajax( {
-			url: "sql.py",
-			data: {
-				serverdel: id,
-			},
-			type: "GET",
-			success: function( data ) {
-				data = data.replace(/\s+/g,' ');
-				if(data == "Ok ") {
-					$("#server-"+id).remove();
-				}
-			}					
-		} );	
-	}
+		url: "sql.py",
+		data: {
+			serverdel: id,
+		},
+		type: "GET",
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if(data == "Ok ") {
+				$("#server-"+id).remove();
+			}
+		}					
+	} );	
+}
 function removeGroup(id) {
 	$("#group-"+id).css("background-color", "#f2dede");
 	$.ajax( {
-			url: "sql.py",
-			data: {
-				groupdel: id,
-			},
-			type: "GET",
-			success: function( data ) {
-				data = data.replace(/\s+/g,' ');
-				if(data == "Ok ") {
-					$("#group-"+id).remove();
-					$('select:regex(id, group) option[value='+id+']').remove();
-					$('select:regex(id, group)').selectmenu("refresh");
-				}
-			}					
-		} );	
-	}
+		url: "sql.py",
+		data: {
+			groupdel: id,
+		},
+		type: "GET",
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if(data == "Ok ") {
+				$("#group-"+id).remove();
+				$('select:regex(id, group) option[value='+id+']').remove();
+				$('select:regex(id, group)').selectmenu("refresh");
+			}
+		}					
+	} );	
+}
 function updateUser(id) {
 	$('.alert-danger').remove();
 	$.ajax( {

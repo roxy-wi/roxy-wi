@@ -28,9 +28,9 @@ def get_overview():
 		funct.ssh_command(server[2], commands, server_status="1")
 		print('</td><td>')
 		if funct.is_admin():
-			print('<a id="%s" class="start" title="Start HAproxy service" onclick = "if (! confirm(\'Start service?\')) return false;"><img src=/image/pic/start.png alt="start" class="icon"></a>' % server[2])
-			print('<a id="%s" class="stop" title="Stop HAproxy service" onclick = "return confirm(\'Stop service?\')"><img src=/image/pic/stop.png alt="start" class="icon"></a>' % server[2])
-			print('<a id="%s" class="restart" title="Restart HAproxy service" onclick = "if (! confirm(\'Restart service?\')) return false;"><img src=/image/pic/update.png alt="restart" class="icon"></a>' % server[2])
+			print('<a id="%s" class="start" title="Start HAproxy service"><img src=/image/pic/start.png alt="start" class="icon"></a>' % server[2])
+			print('<a id="%s" class="stop" title="Stop HAproxy service"><img src=/image/pic/stop.png alt="start" class="icon"></a>' % server[2])
+			print('<a id="%s" class="restart" title="Restart HAproxy service"><img src=/image/pic/update.png alt="restart" class="icon"></a>' % server[2])
 		if funct.is_admin(level = 2):
 			print('<a href="/app/configshow.py?serv=%s&open=open#conf"  title="Show config"><img src=/image/pic/show.png alt="show" class="icon"></a>' % server[2])
 			print('<a href="/app/config.py?serv=%s&open=open#conf"  title="Edit config"><img src=/image/pic/edit.png alt="edit" class="icon"></a>' % server[2])
@@ -51,7 +51,7 @@ def get_overviewServers():
 		print('<tr><td class="overviewTr first-collumn"><a name="'+server[1]+'"></a><h3 title="IP ' + server[2] + '">' + server[1] + ':</h3></td>')
 		print('<td class="overviewTd"><span>Total listen/frontend/backend:</span><pre>')
 		funct.ssh_command(server[2], commands)
-		print('</pre></td><td class="overviewTd"><pre>')
+		print('</pre></td><td><pre>')
 		funct.ssh_command(server[2], commands1)
 		print('</pre></td></tr>')
 	
