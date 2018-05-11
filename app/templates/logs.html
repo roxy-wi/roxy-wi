@@ -30,8 +30,8 @@
 							{% endif %}
 						{% endfor %}
 					{% else %}
-						{% for select in selects %}
-							<option disabled selected>Choose server</option>
+						<option disabled selected>Choose server</option>
+						{% for select in selects %}						
 							{% if select.2 == serv %}
 								<option value="{{ select.2 }}" selected>{{ select.1 }}</option>
 							{% else %}

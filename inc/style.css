@@ -324,11 +324,10 @@ pre {
 	min-height: calc(100vh - 70px);
 }
 .menu ul li{
-	padding: 5px; 
+	padding: 3px; 
 	padding-left: 40px;
 	margin-right: 0px !important;
 }
-
 .menu ul ul > li:hover{
   background-color: #69e;
 }
