@@ -466,6 +466,24 @@ $( function() {
 			$( "#controlgroup-backend" ).hide( "fast" );			
 		}
 	});
+	$( "#cookie" ).click( function(){
+		if ($('#cookie').is(':checked')) {
+			$("#cookie_name" ).attr('required',true);
+			$("#cookie_div").show( "fast" );
+		} else {
+			$("#cookie_name" ).attr('required',false);
+			$("#cookie_div").hide( "fast" );
+		}
+	});
+	$( "#cookie2" ).click( function(){
+		if ($('#cookie2').is(':checked')) {
+			$("#cookie_name2" ).attr('required',true);
+			$("#cookie_div2").show( "fast" );
+		} else {
+			$("#cookie_name2" ).attr('required',false);
+			$("#cookie_div2").hide( "fast" );
+		}
+	});
 	$( "#check-servers-backend" ).click( function(){
 		if ($('#check-servers-backend').is(':checked')) {
 			$( "#rise-backend" ).attr('required',true);
@@ -619,6 +637,68 @@ $( function() {
 		autoFocus: true,
 		minLength: -1
 	});
+	var ssl_offloading_var = "http-request set-header X-Forwarded-Port %[dst_port] \n"+
+						"http-request add-header X-Forwarded-Proto https if { ssl_fc } \n"+
+						"redirect scheme https if !{ ssl_fc } \n"
+	$('#ssl_offloading').click(function() {
+		if($('#optionsInput').val().indexOf('ssl_fc ') == '-1') {
+			$("#optionsInput").append(ssl_offloading_var)
+		} else {
+			replace_text("#optionsInput", ssl_offloading_var);
+		}
+	});
+	$('#ssl_offloading1').click(function() {
+		if($('#optionsInput1').val().indexOf('ssl_fc ') == '-1') {
+			$("#optionsInput1").append(ssl_offloading_var)
+		} else {
+			replace_text("#optionsInput1", ssl_offloading_var);
+		}
+
+	});
+	$('#ssl_offloading2').click(function() {
+		if($('#optionsInput2').val().indexOf('ssl_fc ') == '-1') {
+			$("#optionsInput2").append(ssl_offloading_var)
+		} else {
+			replace_text("#optionsInput2", ssl_offloading_var);
+		}
+	});
+	var forward_for_var = "option forwardfor if-none\n";
+	$('#forward_for').click(function() {
+		if($('#optionsInput').val().indexOf(forward_for_var) == '-1') {
+			$("#optionsInput").append(forward_for_var)
+		} else {
+			replace_text("#optionsInput", forward_for_var);
+		}	
+	});
+	$('#forward_for1').click(function() {
+		if($('#optionsInput1').val().indexOf(forward_for_var) == '-1') {
+			$("#optionsInput1").append(forward_for_var)
+		} else {
+			replace_text("#optionsInput1", forward_for_var);
+		}	
+	});
+	$('#forward_for2').click(function() {
+		if($('#optionsInput2').val().indexOf(forward_for_var) == '-1') {
+			$("#optionsInput2").append(forward_for_var)
+		} else {
+			replace_text("#optionsInput2", forward_for_var);
+		}	
+	});
+	var redispatch_var = "option redispatch\n";
+	$('#redispatch').click(function() {
+		if($('#optionsInput').val().indexOf(redispatch_var) == '-1') {
+			$("#optionsInput").append(redispatch_var)
+		} else {
+			replace_text("#optionsInput", redispatch_var);
+		}	
+	});
+	$('#redispatch2').click(function() {
+		if($('#optionsInput2').val().indexOf(redispatch_var) == '-1') {
+			$("#optionsInput2").append(redispatch_var)
+		} else {
+			replace_text("#optionsInput2", redispatch_var);
+		}	
+	});
 	$( "#path-cert-frontend" ).autocomplete({
 		source: function( request, response ) {
 			$.ajax( {
@@ -732,3 +812,12 @@ $( function() {
 		} );
 	});
 });
+function replace_text(id_textarea, text_var) {
+	var str = $(id_textarea).val();
+	var len = str.length;
+	var len_var = text_var.length;
+	var beg = str.indexOf(text_var);
+	var end = beg + len_var
+	var text_val = str.substring(0, beg) + str.substring(end, len);
+	$(id_textarea).text(text_val);
+}

@@ -32,7 +32,7 @@
 		<tr>
 			<td class="addName">IP and Port:</td>
 			<td class="addOption">
-				<input type="text" name="ip" id="ip" title="" size="15" placeholder="172.28.0.1" class="form-control"><b>:</b>
+				<input type="text" name="ip" id="ip" title="" size="15" placeholder="Any" class="form-control"><b>:</b>
 				<input type="number" name="port" id="listen-port" required title="Port for bind listen" size="5" placeholder="8080" class="form-control">
 				<div class="tooltip tooltipTop">IP for bind listner, <b>if empty will be assignet on all IPs</b>. Start typing ip, or press down.<br>If you use <b>VRRP keep in blank</b>. If you assign an IP, the slave will not start</div>
 			</td>
@@ -50,7 +50,7 @@
 				</span>
 				<div id="https-hide-listen" style="display: none;">
 					<br /><span class="tooltip tooltipTop">Enter name to pem file, or press down:</span><br />
-					<input type="text" name="cert" placeholder="some_cert.pem" class="form-control" size="39" id="path-cert-listen"> or upload: <input type="file" name="file"><br />
+					<input type="text" name="cert" placeholder="some_cert.pem" class="form-control" size="39" id="path-cert-listen"><br />
 					<label for="ssl-check-listen" style="margin-top: 5px;">Disable ssl verify on servers?</label><input type="checkbox" id="ssl-check-listen" name="ssl-check" value="ssl-check" checked>
 				</div>
 			</td>
@@ -70,7 +70,35 @@
 		<tr>
 			<td class="addName">Optinons:</td>
 			<td class="addOption">
-				<label for="options-listen-show" style="margin-top: 5px;" title="Set options">Set</label><input type="checkbox" id="options-listen-show">
+				<label for="ssl_offloading" style="margin-top: 5px;" title="Enable SSL Offloading">SSL Offloading</label><input type="checkbox" id="ssl_offloading">
+				<label for="forward_for" style="margin-top: 5px;" title="Option Forward for if none">Forward for</label><input type="checkbox" id="forward_for">
+				<label for="redispatch" style="margin-top: 5px;" title="Enable Redispatch">Redispatch</label><input type="checkbox" id="redispatch">
+				<select name="force_close" class="force_close">
+					<option disabled selected>Force HTTP close</option>
+					<option>Off</option>
+					<option value="1">Server only</option>
+					<option value="2">Force close</option>
+					<option value="3">Pretend keep alive</option>
+				</select>	
+				<label for="cookie" style="margin-top: 5px;" title="Enable Redispatch">Set cookie</label><input type="checkbox" id="cookie" name="cookie" value="1">
+				<label for="options-listen-show" style="margin-top: 5px;" title="Set options manualy">Set options</label><input type="checkbox" id="options-listen-show">
+				<br>
+				<span id="cookie_div" style="display: none;">
+					<input type="text" placeholder="name" name="cookie_name" id="cookie_name" class="form-control"><br><br>
+					<input type="text" placeholder="domain" name="cookie_domain" class="form-control"><br><br>
+					<select name="rewrite">
+						<option disabled selected>rewrite/insert/prefix/indirect</option>
+						<option>None</option>
+						<option value="rewrite">rewrite</option>
+						<option value="insert">insert</option>
+						<option value="prefix">prefix</option>
+						<option value="indirect">indirect</option>
+					</select>
+					<label for="nocache" style="margin-top: 5px;" title="This option is recommended in conjunction with the insert mode when there is a cache between the client and HAProxy.">nocache</label>
+					<input type="checkbox" name="nocache" value="nocache" id="nocache">
+					<label for="postonly" style="margin-top: 5px;" title="This option ensures that cookie insertion will only be performed on responses to POST requests..">postonly</label>
+					<input type="checkbox" name="postonly" value="postonly" id="postonly">
+				</span>
 				<div id="options-listen-show-div" style="display: none;">
 					<div class="tooltip">
 						<span style="padding-right: 10px;" class="form-control">Start typing options: </span>
@@ -79,14 +107,14 @@
 							or press down. <a href="http://cbonte.github.io/haproxy-dconv/1.7/configuration.html" target="_blanck" style="color: #23527c" title="HAproxy docs">Read more about options</a>
 						</span>
 					</div>
-					<textarea name="option" title="Options thru" id="optionsInput" cols=80 placeholder="acl test hdr_beg(host) -i some_host"></textarea>
+					<textarea name="option" title="Options thru" id="optionsInput" cols=80 rows=5 placeholder="acl test hdr_beg(host) -i some_host"></textarea>
 				</div>
 			</td>
 		</tr>
 		<tr>
 			<td class="addName">Servers:</td>
 			<td class="addOption">
-				<textarea name="servers" required title="Backend servers" cols=80 placeholder="hostname ip:port"></textarea>
+				<textarea name="servers" required title="Backend servers" cols=80 rows=3 placeholder="hostname ip:port"></textarea>
 				<div>
 					<label for="controlgroup-listen-show" style="margin-top: 5px;" title="Change default check">Cusmot check params</label>
 					<input type="checkbox" id="controlgroup-listen-show" name="default-check" value="1">
@@ -151,7 +179,7 @@
 		<tr>
 			<td class="addName">IP and Port:</td>
 			<td class="addOption">
-				<input type="text" name="ip" id="ip1" size="15" placeholder="172.28.0.1" class="form-control"><b>:</b>
+				<input type="text" name="ip" id="ip1" size="15" placeholder="Any" class="form-control"><b>:</b>
 				<input type="number" name="port" required title="Port for bind frontend" placeholder="8080" class="form-control">
 				<div class="tooltip tooltipTop">IP for bind listner, <b>if empty will be assignet on all IPs</b>. Start typing ip, or press down.<br>If you use <b>VRRP keep in blank</b>. If you assign an IP, the slave will not start</div>
 			</td>
@@ -176,7 +204,16 @@
 		<tr>
 			<td class="addName">Optinons:</td>
 			<td class="addOption">
-				<label for="options-frontend-show" style="margin-top: 5px;" title="Set options">Set</label><input type="checkbox" id="options-frontend-show">
+				<label for="ssl_offloading1" style="margin-top: 5px;" title="Enable SSL Offloading">SSL Offloading</label><input type="checkbox" id="ssl_offloading1">
+				<label for="forward_for1" style="margin-top: 5px;" title="Option Forward for if none">Forward for</label><input type="checkbox" id="forward_for1">
+				<select name="force_close" class="force_close">
+					<option disabled selected>Force HTTP close</option>
+					<option>Off</option>
+					<option value="1">Server only</option>
+					<option value="2">Force close</option>
+					<option value="3">Pretend keep alive</option>
+				</select>	
+				<label for="options-frontend-show" style="margin-top: 5px;" title="Set options manualy">Set options</label><input type="checkbox" id="options-frontend-show">
 				<div id="options-frontend-show-div" style="display: none;">
 					<div style="font-size: 12px; padding-bottom: 10px;">
 						<span style="padding-right: 10px;">Start typing options: </span>
@@ -185,7 +222,7 @@
 							or press down. <a href="http://cbonte.github.io/haproxy-dconv/1.7/configuration.html" target="_blanck"  style="color: #23527c" title="HAproxy docs">Read more about options</a>
 						</span>
 					</div>
-					<textarea name="option" title="Options thru" cols=80 id="optionsInput1" placeholder="acl test hdr_beg(host) -i some_host"></textarea>
+					<textarea name="option" title="Options thru" cols=80 rows=5 id="optionsInput1" placeholder="acl test hdr_beg(host) -i some_host"></textarea>
 				</div>
 			</td>
 		</tr>
@@ -264,8 +301,36 @@
 		<tr>
 			<td class="addName">Optinons:</td>
 			<td class="addOption">
-				<label for="options-backend-show" style="margin-top: 5px;" title="Set options">Set</label><input type="checkbox" id="options-backend-show">
-					<div id="options-backend-show-div" style="display: none;">
+				<label for="ssl_offloading2" style="margin-top: 5px;" title="Enable SSL Offloading">SSL Offloading</label><input type="checkbox" id="ssl_offloading2">
+				<label for="forward_for2" style="margin-top: 5px;" title="Option Forward for if none">Forward for</label><input type="checkbox" id="forward_for2">
+				<label for="redispatch2" style="margin-top: 5px;" title="Enable Redispatch">Redispatch</label><input type="checkbox" id="redispatch2">
+				<select name="force_close" class="force_close">
+					<option disabled selected>Force HTTP close</option>
+					<option>Off</option>
+					<option value="1">Server only</option>
+					<option value="2">Force close</option>
+					<option value="3">Pretend keep alive</option>
+				</select>	
+				<label for="cookie2" style="margin-top: 5px;" title="Enable Redispatch">Set cookie</label><input type="checkbox" id="cookie2" name="cookie" value="1">				
+				<label for="options-backend-show" style="margin-top: 5px;" title="Set options manualy">Set options</label><input type="checkbox" id="options-backend-show">
+				<br>
+				<span id="cookie_div2" style="display: none;">
+					<input type="text" placeholder="name" name="cookie_name" id="cookie_name2" class="form-control"><br><br>
+					<input type="text" placeholder="domain" name="cookie_domain" class="form-control"><br><br>
+					<select name="rewrite">
+						<option disabled selected>rewrite/insert/prefix/indirect</option>
+						<option>None</option>
+						<option value="rewrite">rewrite</option>
+						<option value="insert">insert</option>
+						<option value="prefix">prefix</option>
+						<option value="indirect">indirect</option>
+					</select>
+					<label for="nocache2" style="margin-top: 5px;" title="This option is recommended in conjunction with the insert mode when there is a cache between the client and HAProxy.">nocache</label>
+					<input type="checkbox" name="nocache" value="nocache" id="nocache2">
+					<label for="postonly2" style="margin-top: 5px;" title="This option ensures that cookie insertion will only be performed on responses to POST requests..">postonly</label>
+					<input type="checkbox" name="postonly" value="postonly" id="postonly2">
+				</span>
+				<div id="options-backend-show-div" style="display: none;">
 					<div style="font-size: 12px; padding-bottom: 10px;">
 						<span style="padding-right: 10px;">Start typing options: </span>
 						<input type="text" id="options2" class="form-control">
@@ -273,14 +338,14 @@
 							or press down. <a href="http://cbonte.github.io/haproxy-dconv/1.7/configuration.html" target="_blanck" style="color: #23527c" title="HAproxy docs">Read more about options</a>
 						</span>
 					</div>
-					<textarea name="option" title="Options thru" cols=80 id="optionsInput2" placeholder="acl test hdr_beg(host) -i some_host"></textarea>
+					<textarea name="option" title="Options thru" cols=80 rows=5 id="optionsInput2" placeholder="acl test hdr_beg(host) -i some_host"></textarea>
 				</div>
 			</td>
 		</tr>
 		<tr>
 			<td class="addName">Servers:</td>
 			<td class="addOption">
-				<textarea name="servers" title="Backend servers" required cols=80 placeholder="hostname ip:port"></textarea>
+				<textarea name="servers" title="Backend servers" required cols=80 rows=3 placeholder="hostname ip:port"></textarea>
 				<div>
 					<label for="controlgroup-backend-show" style="margin-top: 5px;" title="Change default check"	>Cusmot check params</label>
 					<input type="checkbox" id="controlgroup-backend-show" name="default-check">
@@ -377,4 +442,9 @@
 			{{ conf_add }}
 		</div>
 	{% endif %}
+<script>
+$( ".force_close" ).selectmenu({
+  width: 180
+});
+</script>
 {% endblock %}

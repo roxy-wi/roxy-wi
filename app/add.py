@@ -40,6 +40,7 @@ cert_path = config.get('haproxy', 'cert_path')
 if form.getvalue('mode') is not None: 
 	serv = form.getvalue('serv')
 	port = form.getvalue('port')
+	force_close = form.getvalue('force_close')
 	mode = "    mode " + form.getvalue('mode')
 	ssl = ""
 	
@@ -99,6 +100,20 @@ if form.getvalue('mode') is not None:
 	else:
 		options_split = ""
 		
+	if force_close == "1":
+		options_split += "    option http-server-close\n"
+	elif force_close == "2":
+		options_split += "    option forceclose\n"
+	elif force_close == "3":
+		options_split += "    option http-pretend-keepalive\n"
+		
+	if form.getvalue('cookie'):
+		cookie = "    cookie "+form.getvalue('cookie_name')
+		if form.getvalue('cookie_domain'):
+			cookie += " domain "+form.getvalue('cookie_domain')
+		cookie += " "+form.getvalue('rewrite')+" "+form.getvalue('nocache')+" "+form.getvalue('postonly')+"\n"
+		options_split += cookie
+	
 	if form.getvalue('servers') is not None:	
 		servers = form.getvalue('servers')
 		i = servers.split("\n")
@@ -128,7 +143,7 @@ if form.getvalue('mode') is not None:
 			funct.upload_and_restart(master[0], cfg)
 	
 	funct.upload_and_restart(serv, cfg)
-	print('<meta http-equiv="refresh" content="5; url=add.py?add=%s&conf=%s">' % (name, config_add))
+	print('<meta http-equiv="refresh" content="0; url=add.py?add=%s&conf=%s">' % (name, config_add))
 		
 	print('</div>')
 
