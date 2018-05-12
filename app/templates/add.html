@@ -86,14 +86,15 @@
 				<span id="cookie_div" style="display: none;">
 					<input type="text" placeholder="name" name="cookie_name" id="cookie_name" class="form-control"><br><br>
 					<input type="text" placeholder="domain" name="cookie_domain" class="form-control"><br><br>
-					<select name="rewrite">
-						<option disabled selected>rewrite/insert/prefix/indirect</option>
+					<select name="rewrite" id="rewrite" class="force_close">
+						<option disabled selected>rewrite/indirect/insert</option>
 						<option>None</option>
 						<option value="rewrite">rewrite</option>
-						<option value="insert">insert</option>
-						<option value="prefix">prefix</option>
 						<option value="indirect">indirect</option>
+						<option value="insert">insert</option>
 					</select>
+					<label for="prefix" style="margin-top: 5px;" title="This keyword indicates that instead of relying on a dedicated cookie for the persistence, an existing one will be completed.">prefix</label>
+					<input type="checkbox" name="prefix" value="prefix" id="prefix">
 					<label for="nocache" style="margin-top: 5px;" title="This option is recommended in conjunction with the insert mode when there is a cache between the client and HAProxy.">nocache</label>
 					<input type="checkbox" name="nocache" value="nocache" id="nocache">
 					<label for="postonly" style="margin-top: 5px;" title="This option ensures that cookie insertion will only be performed on responses to POST requests.">postonly</label>
@@ -322,14 +323,15 @@
 				<span id="cookie_div2" style="display: none;">
 					<input type="text" placeholder="name" name="cookie_name" id="cookie_name2" class="form-control"><br><br>
 					<input type="text" placeholder="domain" name="cookie_domain" class="form-control"><br><br>
-					<select name="rewrite">
-						<option disabled selected>rewrite/insert/prefix/indirect</option>
+					<select name="rewrite" id="rewrite2" class="force_close">
+						<option disabled selected>rewrite/indirect/insert</option>
 						<option>None</option>
 						<option value="rewrite">rewrite</option>
-						<option value="insert">insert</option>
-						<option value="prefix">prefix</option>
 						<option value="indirect">indirect</option>
+						<option value="insert">insert</option>
 					</select>
+					<label for="prefix2" style="margin-top: 5px;" title="This keyword indicates that instead of relying on a dedicated cookie for the persistence, an existing one will be completed.">prefix</label>
+					<input type="checkbox" name="prefix" value="prefix" id="prefix2">
 					<label for="nocache2" style="margin-top: 5px;" title="This option is recommended in conjunction with the insert mode when there is a cache between the client and HAProxy.">nocache</label>
 					<input type="checkbox" name="nocache" value="nocache" id="nocache2">
 					<label for="postonly2" style="margin-top: 5px;" title="This option ensures that cookie insertion will only be performed on responses to POST requests..">postonly</label>

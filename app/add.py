@@ -115,6 +115,10 @@ if form.getvalue('mode') is not None:
 			rewrite = form.getvalue('rewrite')
 		else:
 			rewrite = ""
+		if form.getvalue('prefix'):
+			prefix = form.getvalue('prefix')
+		else:
+			prefix = ""
 		if form.getvalue('nocache'):
 			nocache = form.getvalue('nocache')
 		else:
@@ -127,7 +131,7 @@ if form.getvalue('mode') is not None:
 			dynamic = form.getvalue('dynamic')
 		else:
 			dynamic = ""
-		cookie += " "+rewrite+" "+nocache+" "+postonly+" "+dynamic+"\n"
+		cookie += " "+rewrite+" "+prefix+" "+nocache+" "+postonly+" "+dynamic+"\n"
 		options_split += cookie
 		if form.getvalue('dynamic'):
 			options_split += "    dynamic-cookie-key " + form.getvalue('dynamic-cookie-key')+"\n"

@@ -480,6 +480,20 @@ $( function() {
 			$("#dynamic-cookie-key2" ).attr('required',false);
 		}
 	});
+	$( "#rewrite" ).on('selectmenuchange',function()  {
+		if ($( "#rewrite option:selected" ).val() == "insert" || $( "#rewrite option:selected" ).val() == "rewrite") {
+			$( "#prefix" ).checkboxradio( "disable" );
+		} else {
+			$( "#prefix" ).checkboxradio( "enable" );
+		}
+	});
+	$( "#rewrite2" ).on('selectmenuchange',function()  {
+		if ($( "#rewrite2 option:selected" ).val() == "insert" || $( "#rewrite2 option:selected" ).val() == "rewrite") {
+			$( "#prefix2" ).checkboxradio( "disable" );
+		} else {
+			$( "#prefix2" ).checkboxradio( "enable" );
+		}
+	});
 	$( "#dynamic" ).click( function(){
 		if ($('#dynamic').is(':checked')) {
 			$("#dynamic-cookie-key" ).attr('required',true);
