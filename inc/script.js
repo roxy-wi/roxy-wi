@@ -303,13 +303,7 @@ $( function() {
 	} );
 	$( "select" ).selectmenu();
 		
-    var tooltips = $( "[title]" ).tooltip({
-      position: {
-        my: "left top",
-        at: "right+5 top-25",
-        collision: "none"
-      }
-    });
+    var tooltips = $( "[title]" ).tooltip();
 	$( "input[type=submit], button" ).button();
 	$( "input[type=checkbox]" ).checkboxradio();
 	$( ".controlgroup" ).controlgroup();
@@ -473,6 +467,7 @@ $( function() {
 		} else {
 			$("#cookie_name" ).attr('required',false);
 			$("#cookie_div").hide( "fast" );
+			$("#dynamic-cookie-key" ).attr('required',false);
 		}
 	});
 	$( "#cookie2" ).click( function(){
@@ -482,6 +477,25 @@ $( function() {
 		} else {
 			$("#cookie_name2" ).attr('required',false);
 			$("#cookie_div2").hide( "fast" );
+			$("#dynamic-cookie-key2" ).attr('required',false);
+		}
+	});
+	$( "#dynamic" ).click( function(){
+		if ($('#dynamic').is(':checked')) {
+			$("#dynamic-cookie-key" ).attr('required',true);
+			$("#dynamic_div").show("slide", "fast" );
+		} else {
+			$("#dynamic-cookie-key" ).attr('required',false);
+			$("#dynamic_div").hide("slide", "fast" );
+		}
+	});
+	$( "#dynamic2" ).click( function(){
+		if ($('#dynamic2').is(':checked')) {
+			$("#dynamic-cookie-key2" ).attr('required',true);
+			$("#dynamic_div2").show("slide", "fast" );
+		} else {
+			$("#dynamic-cookie-key2" ).attr('required',false);
+			$("#dynamic_div2").hide("slide", "fast" );
 		}
 	});
 	$( "#check-servers-backend" ).click( function(){

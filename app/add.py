@@ -111,9 +111,27 @@ if form.getvalue('mode') is not None:
 		cookie = "    cookie "+form.getvalue('cookie_name')
 		if form.getvalue('cookie_domain'):
 			cookie += " domain "+form.getvalue('cookie_domain')
-		cookie += " "+form.getvalue('rewrite')+" "+form.getvalue('nocache')+" "+form.getvalue('postonly')+"\n"
+		if form.getvalue('rewrite'):
+			rewrite = form.getvalue('rewrite')
+		else:
+			rewrite = ""
+		if form.getvalue('nocache'):
+			nocache = form.getvalue('nocache')
+		else:
+			nocache = ""
+		if form.getvalue('postonly'):
+			postonly = form.getvalue('postonly')
+		else:
+			postonly = ""
+		if form.getvalue('dynamic'):
+			dynamic = form.getvalue('dynamic')
+		else:
+			dynamic = ""
+		cookie += " "+rewrite+" "+nocache+" "+postonly+" "+dynamic+"\n"
 		options_split += cookie
-	
+		if form.getvalue('dynamic'):
+			options_split += "    dynamic-cookie-key " + form.getvalue('dynamic-cookie-key')+"\n"
+		
 	if form.getvalue('servers') is not None:	
 		servers = form.getvalue('servers')
 		i = servers.split("\n")

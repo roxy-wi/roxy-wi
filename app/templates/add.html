@@ -96,8 +96,13 @@
 					</select>
 					<label for="nocache" style="margin-top: 5px;" title="This option is recommended in conjunction with the insert mode when there is a cache between the client and HAProxy.">nocache</label>
 					<input type="checkbox" name="nocache" value="nocache" id="nocache">
-					<label for="postonly" style="margin-top: 5px;" title="This option ensures that cookie insertion will only be performed on responses to POST requests..">postonly</label>
+					<label for="postonly" style="margin-top: 5px;" title="This option ensures that cookie insertion will only be performed on responses to POST requests.">postonly</label>
 					<input type="checkbox" name="postonly" value="postonly" id="postonly">
+					<label for="dynamic" style="margin-top: 5px;" title="Activate dynamic cookies. When used, a session cookie is dynamically created for each server.">dynamic</label>
+					<input type="checkbox" name="dynamic" value="dynamic" id="dynamic">
+					<span id="dynamic_div" style="display: none;">
+						dynamic-cookie-key: <input type="text" placeholder="your-custom-key" name="dynamic-cookie-key" id="dynamic-cookie-key" class="form-control">
+					</span>
 				</span>
 				<div id="options-listen-show-div" style="display: none;">
 					<div class="tooltip">
@@ -329,6 +334,11 @@
 					<input type="checkbox" name="nocache" value="nocache" id="nocache2">
 					<label for="postonly2" style="margin-top: 5px;" title="This option ensures that cookie insertion will only be performed on responses to POST requests..">postonly</label>
 					<input type="checkbox" name="postonly" value="postonly" id="postonly2">
+					<label for="dynamic2" style="margin-top: 5px;" title="Activate dynamic cookies. When used, a session cookie is dynamically created for each server.">dynamic</label>
+					<input type="checkbox" name="dynamic" value="dynamic" id="dynamic2">
+					<span id="dynamic_div2" style="display: none;">
+						dynamic-cookie-key: <input type="text" placeholder="your-custom-key" name="dynamic-cookie-key" id="dynamic-cookie-key2" class="form-control">
+					</span>
 				</span>
 				<div id="options-backend-show-div" style="display: none;">
 					<div style="font-size: 12px; padding-bottom: 10px;">
