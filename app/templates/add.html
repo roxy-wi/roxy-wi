@@ -70,39 +70,43 @@
 		<tr>
 			<td class="addName">Optinons:</td>
 			<td class="addOption">
-				<label for="ssl_offloading" style="margin-top: 5px;" title="Enable SSL Offloading">SSL Offloading</label><input type="checkbox" id="ssl_offloading">
-				<label for="forward_for" style="margin-top: 5px;" title="Option Forward for if none">Forward for</label><input type="checkbox" id="forward_for">
-				<label for="redispatch" style="margin-top: 5px;" title="Enable Redispatch">Redispatch</label><input type="checkbox" id="redispatch">
-				<select name="force_close" class="force_close">
-					<option disabled selected>Force HTTP close</option>
-					<option>Off</option>
-					<option value="1">Server only</option>
-					<option value="2">Force close</option>
-					<option value="3">Pretend keep alive</option>
-				</select>	
-				<label for="cookie" style="margin-top: 5px;" title="Enable Redispatch">Set cookie</label><input type="checkbox" id="cookie" name="cookie" value="1">
-				<label for="options-listen-show" style="margin-top: 5px;" title="Set options manualy">Set options</label><input type="checkbox" id="options-listen-show">
+				<span class="controlgroup">
+					<label for="ssl_offloading" title="Enable SSL Offloading">SSL Offloading</label><input type="checkbox" id="ssl_offloading">
+					<label for="forward_for" title="Option Forward for if none">Forward for</label><input type="checkbox" id="forward_for">
+					<label for="redispatch" title="Enable Redispatch">Redispatch</label><input type="checkbox" id="redispatch">
+					<select name="force_close" class="force_close">
+						<option disabled selected>Force HTTP close</option>
+						<option>Off</option>
+						<option value="1">Server only</option>
+						<option value="2">Force close</option>
+						<option value="3">Pretend keep alive</option>
+					</select>	
+					<label for="cookie" title="Enable Redispatch">Set cookie</label><input type="checkbox" id="cookie" name="cookie" value="1">
+					<label for="options-listen-show" title="Set options manualy">Set options</label><input type="checkbox" id="options-listen-show">
+				</span>
 				<br>
 				<span id="cookie_div" style="display: none;">
 					<input type="text" placeholder="name" name="cookie_name" id="cookie_name" class="form-control"><br><br>
 					<input type="text" placeholder="domain" name="cookie_domain" class="form-control"><br><br>
-					<select name="rewrite" id="rewrite" class="force_close">
-						<option disabled selected>rewrite/indirect/insert</option>
-						<option>None</option>
-						<option value="rewrite">rewrite</option>
-						<option value="indirect">indirect</option>
-						<option value="insert">insert</option>
-					</select>
-					<label for="prefix" style="margin-top: 5px;" title="This keyword indicates that instead of relying on a dedicated cookie for the persistence, an existing one will be completed.">prefix</label>
-					<input type="checkbox" name="prefix" value="prefix" id="prefix">
-					<label for="nocache" style="margin-top: 5px;" title="This option is recommended in conjunction with the insert mode when there is a cache between the client and HAProxy.">nocache</label>
-					<input type="checkbox" name="nocache" value="nocache" id="nocache">
-					<label for="postonly" style="margin-top: 5px;" title="This option ensures that cookie insertion will only be performed on responses to POST requests.">postonly</label>
-					<input type="checkbox" name="postonly" value="postonly" id="postonly">
-					<label for="dynamic" style="margin-top: 5px;" title="Activate dynamic cookies. When used, a session cookie is dynamically created for each server.">dynamic</label>
-					<input type="checkbox" name="dynamic" value="dynamic" id="dynamic">
-					<span id="dynamic_div" style="display: none;">
-						dynamic-cookie-key: <input type="text" placeholder="your-custom-key" name="dynamic-cookie-key" id="dynamic-cookie-key" class="form-control">
+					<span class="controlgroup">
+						<select name="rewrite" id="rewrite" class="force_close">
+							<option disabled selected>rewrite/indirect/insert</option>
+							<option>None</option>
+							<option value="rewrite">rewrite</option>
+							<option value="indirect">indirect</option>
+							<option value="insert">insert</option>
+						</select>
+						<label for="prefix" title="This keyword indicates that instead of relying on a dedicated cookie for the persistence, an existing one will be completed.">prefix</label>
+						<input type="checkbox" name="prefix" value="prefix" id="prefix">
+						<label for="nocache" title="This option is recommended in conjunction with the insert mode when there is a cache between the client and HAProxy.">nocache</label>
+						<input type="checkbox" name="nocache" value="nocache" id="nocache">
+						<label for="postonly" title="This option ensures that cookie insertion will only be performed on responses to POST requests.">postonly</label>
+						<input type="checkbox" name="postonly" value="postonly" id="postonly">
+						<label for="dynamic" title="Activate dynamic cookies. When used, a session cookie is dynamically created for each server.">dynamic</label>
+						<input type="checkbox" name="dynamic" value="dynamic" id="dynamic">
+						<span id="dynamic_div" style="display: none;">
+							dynamic-cookie-key: <input type="text" placeholder="your-custom-key" name="dynamic-cookie-key" id="dynamic-cookie-key" class="form-control">
+						</span>
 					</span>
 				</span>
 				<div id="options-listen-show-div" style="display: none;">
@@ -129,20 +133,20 @@
 				<div class="controlgroup" id="controlgroup-listen" style="display: none;">
 					<label for="check-servers-listen" title="Ebable servers check">Check</label>
 					<input type="checkbox" id="check-servers-listen" name="check-servers" checked value="1">
-					<select name="inter" id="inter-listen">
+					<select name="inter" id="inter-listen" class="force_close">
 						<option value="inter" disabled selected>inter</option>
 						<option value="1000">1000</option>
 						<option value="2000">2000</option>
 						<option value="3000">3000</option>
 					</select>
 					<select name="rise" id="rise-listen">
-						<option value="rise" disabled selected>rise</option>
+						<option value="rise" disabled selected class="force_close">rise</option>
 						<option value="1">1</option>
 						<option value="2">2</option>
 						<option value="3">3</option>
 					</select>
 					<select name="fall" id="fall-listen">
-						<option value="fall" disabled selected>fall</option>
+						<option value="fall" disabled selected class="force_close">fall</option>
 						<option value="4">4</option>
 						<option value="5">5</option>
 						<option value="6">6</option>
@@ -210,16 +214,18 @@
 		<tr>
 			<td class="addName">Optinons:</td>
 			<td class="addOption">
-				<label for="ssl_offloading1" style="margin-top: 5px;" title="Enable SSL Offloading">SSL Offloading</label><input type="checkbox" id="ssl_offloading1">
-				<label for="forward_for1" style="margin-top: 5px;" title="Option Forward for if none">Forward for</label><input type="checkbox" id="forward_for1">
-				<select name="force_close" class="force_close">
-					<option disabled selected>Force HTTP close</option>
-					<option>Off</option>
-					<option value="1">Server only</option>
-					<option value="2">Force close</option>
-					<option value="3">Pretend keep alive</option>
-				</select>	
-				<label for="options-frontend-show" style="margin-top: 5px;" title="Set options manualy">Set options</label><input type="checkbox" id="options-frontend-show">
+				<span class="controlgroup">
+					<label for="ssl_offloading1" title="Enable SSL Offloading">SSL Offloading</label><input type="checkbox" id="ssl_offloading1">
+					<label for="forward_for1" title="Option Forward for if none">Forward for</label><input type="checkbox" id="forward_for1">
+					<select name="force_close" class="force_close">
+						<option disabled selected>Force HTTP close</option>
+						<option>Off</option>
+						<option value="1">Server only</option>
+						<option value="2">Force close</option>
+						<option value="3">Pretend keep alive</option>
+					</select>	
+					<label for="options-frontend-show" title="Set options manualy">Set options</label><input type="checkbox" id="options-frontend-show">
+				</span>
 				<div id="options-frontend-show-div" style="display: none;">
 					<div style="font-size: 12px; padding-bottom: 10px;">
 						<span style="padding-right: 10px;">Start typing options: </span>
@@ -307,39 +313,43 @@
 		<tr>
 			<td class="addName">Optinons:</td>
 			<td class="addOption">
-				<label for="ssl_offloading2" style="margin-top: 5px;" title="Enable SSL Offloading">SSL Offloading</label><input type="checkbox" id="ssl_offloading2">
-				<label for="forward_for2" style="margin-top: 5px;" title="Option Forward for if none">Forward for</label><input type="checkbox" id="forward_for2">
-				<label for="redispatch2" style="margin-top: 5px;" title="Enable Redispatch">Redispatch</label><input type="checkbox" id="redispatch2">
-				<select name="force_close" class="force_close">
-					<option disabled selected>Force HTTP close</option>
-					<option>Off</option>
-					<option value="1">Server only</option>
-					<option value="2">Force close</option>
-					<option value="3">Pretend keep alive</option>
-				</select>	
-				<label for="cookie2" style="margin-top: 5px;" title="Enable Redispatch">Set cookie</label><input type="checkbox" id="cookie2" name="cookie" value="1">				
-				<label for="options-backend-show" style="margin-top: 5px;" title="Set options manualy">Set options</label><input type="checkbox" id="options-backend-show">
-				<br>
+				<span class="controlgroup">
+					<label for="ssl_offloading2" title="Enable SSL Offloading">SSL Offloading</label><input type="checkbox" id="ssl_offloading2">
+					<label for="forward_for2" title="Option Forward for if none">Forward for</label><input type="checkbox" id="forward_for2">
+					<label for="redispatch2" title="Enable Redispatch">Redispatch</label><input type="checkbox" id="redispatch2">
+					<select name="force_close" class="force_close">
+						<option disabled selected>Force HTTP close</option>
+						<option>Off</option>
+						<option value="1">Server only</option>
+						<option value="2">Force close</option>
+						<option value="3">Pretend keep alive</option>
+					</select>	
+					<label for="cookie2" title="Enable Redispatch">Set cookie</label><input type="checkbox" id="cookie2" name="cookie" value="1">				
+					<label for="options-backend-show" title="Set options manualy">Set options</label><input type="checkbox" id="options-backend-show">
+					<br>
+				</span>
 				<span id="cookie_div2" style="display: none;">
 					<input type="text" placeholder="name" name="cookie_name" id="cookie_name2" class="form-control"><br><br>
 					<input type="text" placeholder="domain" name="cookie_domain" class="form-control"><br><br>
-					<select name="rewrite" id="rewrite2" class="force_close">
-						<option disabled selected>rewrite/indirect/insert</option>
-						<option>None</option>
-						<option value="rewrite">rewrite</option>
-						<option value="indirect">indirect</option>
-						<option value="insert">insert</option>
-					</select>
-					<label for="prefix2" style="margin-top: 5px;" title="This keyword indicates that instead of relying on a dedicated cookie for the persistence, an existing one will be completed.">prefix</label>
-					<input type="checkbox" name="prefix" value="prefix" id="prefix2">
-					<label for="nocache2" style="margin-top: 5px;" title="This option is recommended in conjunction with the insert mode when there is a cache between the client and HAProxy.">nocache</label>
-					<input type="checkbox" name="nocache" value="nocache" id="nocache2">
-					<label for="postonly2" style="margin-top: 5px;" title="This option ensures that cookie insertion will only be performed on responses to POST requests..">postonly</label>
-					<input type="checkbox" name="postonly" value="postonly" id="postonly2">
-					<label for="dynamic2" style="margin-top: 5px;" title="Activate dynamic cookies. When used, a session cookie is dynamically created for each server.">dynamic</label>
-					<input type="checkbox" name="dynamic" value="dynamic" id="dynamic2">
-					<span id="dynamic_div2" style="display: none;">
-						dynamic-cookie-key: <input type="text" placeholder="your-custom-key" name="dynamic-cookie-key" id="dynamic-cookie-key2" class="form-control">
+					<span class="controlgroup">
+						<select name="rewrite" id="rewrite2">
+							<option disabled selected>rewrite/indirect/insert</option>
+							<option>None</option>
+							<option value="rewrite">rewrite</option>
+							<option value="indirect">indirect</option>
+							<option value="insert">insert</option>
+						</select>
+						<label for="prefix2" title="This keyword indicates that instead of relying on a dedicated cookie for the persistence, an existing one will be completed.">prefix</label>
+						<input type="checkbox" name="prefix" value="prefix" id="prefix2">
+						<label for="nocache2" title="This option is recommended in conjunction with the insert mode when there is a cache between the client and HAProxy.">nocache</label>
+						<input type="checkbox" name="nocache" value="nocache" id="nocache2">
+						<label for="postonly2" title="This option ensures that cookie insertion will only be performed on responses to POST requests..">postonly</label>
+						<input type="checkbox" name="postonly" value="postonly" id="postonly2">
+						<label for="dynamic2" title="Activate dynamic cookies. When used, a session cookie is dynamically created for each server.">dynamic</label>
+						<input type="checkbox" name="dynamic" value="dynamic" id="dynamic2">
+						<span id="dynamic_div2" style="display: none;">
+							dynamic-cookie-key: <input type="text" placeholder="your-custom-key" name="dynamic-cookie-key" id="dynamic-cookie-key2" class="form-control">
+						</span>
 					</span>
 				</span>
 				<div id="options-backend-show-div" style="display: none;">
