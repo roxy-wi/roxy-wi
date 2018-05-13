@@ -119,7 +119,6 @@ if act == "overviewServers":
 	
 if form.getvalue('action'):
 	import requests
-	import json
 	from requests_toolbelt.utils import dump
 	
 	haproxy_user = config.get('haproxy', 'stats_user')

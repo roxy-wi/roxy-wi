@@ -23,6 +23,8 @@
 	async function wait() {
 	  await sleep(2000);
 	  $('form').append('<input type="hidden" name="serv" value='+$("#serv").val()+'>');
+	  $( "input[type=submit], button" ).button();
+	  $( "select" ).selectmenu();
 	  
 	  $("form").submit(function() {
 			$.ajax({
