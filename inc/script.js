@@ -137,6 +137,7 @@ function showStats() {
 		success: function( data ) {
 			$("#ajax").html(data);			
 			window.history.pushState("Stats", "Stats", cur_url[0]+"?serv="+$("#serv").val());
+			wait();
 		}					
 	} );
 }

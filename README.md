@@ -6,21 +6,22 @@ A simple web interface(user-frendly web GUI) for managing Haproxy servers. Leave
 # Features:
 1.	Configure HAproxy In a jiffy with haproxy-wi
 2.	View and analyse Status of all Frontend/backend server via haproxy-wi from a single control panel.
-3.	View/Analyse HAproxy logs straight from the haproxy-wi web interface
-4.	Create and visualise the HAproxy workflow from Web Ui.
-5.	Push Your changes to your HAproxy servers with a single click through web interface.
-6.	Get info on past changes, Evaluate your config files and restore a previous stable config anytime with a single click straight from Web interface.
-7.	Add/Edit Frontend or backend servers via web interface with a click of a button.
-8.	Edit config of HAproxy and push changes to All Master/Slave server with a single click.
-9.	Add Multiple server to ensure Config Sync between servers.
-10.	Auto management of ports assigned to Fronted. 
-11.	Evaluate the changes of recent configs pushed to HAproxy instances straight from web ui
-12.	Multiple User Roles support for privileged based Viewing and editing of Config.
-13.	Create Groups and add /remove servers to ensure proper identification for your HAproxy Clusters
-14.	Send notifications to telegram directly from haproxy-wi.
-15.	haproxy-wi supports high Availability to ensure uptime to all Master slave servers configured.
-16.	SSL certificate support.
-17.	SSH Key support for managing multiple HAproxy Servers straight from haproxy-wi
+3.	Enable/disable servers through stats page without rebooting HAProxy
+4.	View/Analyse HAproxy logs straight from the haproxy-wi web interface
+5.	Create and visualise the HAproxy workflow from Web Ui.
+6.	Push Your changes to your HAproxy servers with a single click through web interface.
+7.	Get info on past changes, Evaluate your config files and restore a previous stable config anytime with a single click straight from Web interface.
+8.	Add/Edit Frontend or backend servers via web interface with a click of a button.
+9.	Edit config of HAproxy and push changes to All Master/Slave server with a single click.
+10.	Add Multiple server to ensure Config Sync between servers.
+11.	Auto management of ports assigned to Fronted. 
+12.	Evaluate the changes of recent configs pushed to HAproxy instances straight from web ui
+13.	Multiple User Roles support for privileged based Viewing and editing of Config.
+14.	Create Groups and add /remove servers to ensure proper identification for your HAproxy Clusters
+15.	Send notifications to telegram directly from haproxy-wi.
+16.	haproxy-wi supports high Availability to ensure uptime to all Master slave servers configured.
+17.	SSL certificate support.
+18.	SSH Key support for managing multiple HAproxy Servers straight from haproxy-wi
 
 
 # Install
@@ -96,6 +97,8 @@ For Runtime API enable state file on HAproxt servers and need install socat on a
 		server-state-file /etc/haproxy/haproxy/haproxy.state
     defaults
 		load-server-state-from-file global
+	listen stats 
+		stats admin if TRUE 
    ```
 ![alt text](image/haproxy-wi-logs.jpeg "View logs page")
 

@@ -5,7 +5,7 @@ function ajaxActionServers(action, id) {
 		$.ajax( {
 				url: "options.py",
 				data: {
-					action: action,
+					action_hap: action,
 					serv: id
 				},
 				success: function( data ) {

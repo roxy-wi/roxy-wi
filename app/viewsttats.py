@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-import html, http, os
+import html, http.cookies, os
 import cgi
-import requests
 import funct
 import sql
-from requests_toolbelt.utils import dump
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'))
 template = env.get_template('viewstats.html')
@@ -27,7 +25,7 @@ try:
 	servers = sql.get_dick_permit(virt=1)
 except:
 	pass
-
+	
 output_from_parsed_template = template.render(h2 = 1,
 												autorefresh = 1,
 												title = "HAProxy statistics",

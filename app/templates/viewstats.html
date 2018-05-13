@@ -15,6 +15,29 @@
 	<a class="ui-button ui-widget ui-corner-all" id="show" title="Show stats" onclick="{{ onclick }}">Show</a>
 </form>
 <div id="ajax" style="margin-left: 10px;"></div>
-<script> window.onload = showStats()</script>
+<script> 
+	window.onload = showStats();
+	function sleep(ms) {
+	  return new Promise(resolve => setTimeout(resolve, ms));
+	}
+	async function wait() {
+	  await sleep(2000);
+	  $('form').append('<input type="hidden" name="serv" value='+$("#serv").val()+'>');
+	  
+	  $("form").submit(function() {
+			$.ajax({
+				type: "get",
+				url: "options.py",
+				dataType: "text",
+				data: $(this).serialize(),
+				success: function( data ) {
+					//$("#ajax").html(data);	
+					showStats();
+					}
+			});
+			return false;
+		});		
+	}	
+</script>
 <link href="/inc/style.css" rel="stylesheet">
 {% endblock %}

@@ -101,9 +101,9 @@ if form.getvalue('showif'):
 	commands = ["sudo ip link|grep 'UP' | awk '{print $2}'  |awk -F':' '{print $1}'"]
 	funct.ssh_command(serv, commands, ip="1")
 	
-if form.getvalue('action') is not None and serv is not None:
+if form.getvalue('action_hap') is not None and serv is not None:
 	serv = form.getvalue('serv')
-	action = form.getvalue('action')
+	action = form.getvalue('action_hap')
 	
 	if funct.check_haproxy_config(serv):
 		commands = [ "sudo systemctl %s haproxy" % action ]
@@ -116,6 +116,31 @@ if act == "overview":
 
 if act == "overviewServers":
 	ovw.get_overviewServers()
+	
+if form.getvalue('action'):
+	import requests
+	import json
+	from requests_toolbelt.utils import dump
+	
+	haproxy_user = config.get('haproxy', 'stats_user')
+	haproxy_pass = config.get('haproxy', 'stats_password')
+	stats_port = config.get('haproxy', 'stats_port')
+	stats_page = config.get('haproxy', 'stats_page')
+	
+	postdata = {
+		'action' : form.getvalue('action'),
+		's' : form.getvalue('s'),
+		'b' : form.getvalue('b')
+	}
+
+	headers = {
+		'User-Agent' : 'Mozilla/5.0 (Windows NT 5.1; rv:20.0) Gecko/20100101 Firefox/20.0',
+		'Accept' : 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+		'Accept-Language' : 'en-US,en;q=0.5',
+		'Accept-Encoding' : 'gzip, deflate'
+	}
+
+	q = requests.post('http://'+serv+':'+stats_port+'/'+stats_page, headers=headers, data=postdata, auth=(haproxy_user, haproxy_pass))
 	
 if serv is not None and act == "stats":
 	import requests
@@ -134,7 +159,7 @@ if serv is not None and act == "stats":
 	except requests.exceptions.HTTPError as errh:
 		print ("Http Error:",errh)
 	except requests.exceptions.ConnectionError as errc:
-		print ("Error Connecting:",errc)
+		print ('<div class="alert alert-danger">Error Connecting: %s</div>' % errc)
 	except requests.exceptions.Timeout as errt:
 		print ("Timeout Error:",errt)
 	except requests.exceptions.RequestException as err:
@@ -192,7 +217,7 @@ if form.getvalue('servaction') is not None:
 	enable = form.getvalue('servaction')
 	backend = form.getvalue('servbackend')
 	
-	cmd='echo "%s %s" |sudo socat stdio %s | cut -d "," -f 1-2,5-10,34-36 | column -s, -t' % (enable, backend, haproxy_sock)
+	cmd='echo "%s %s" |sudo socat stdio %s | cut -d "," -f 1-2,5-10,18,34-36 | column -s, -t' % (enable, backend, haproxy_sock)
 	
 	if form.getvalue('save') == "on":
 		save_command = 'echo "show servers state" | sudo socat stdio %s > %s' % (haproxy_sock, server_state_file)
