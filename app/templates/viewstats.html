@@ -21,10 +21,14 @@
 	  return new Promise(resolve => setTimeout(resolve, ms));
 	}
 	async function wait() {
-	  await sleep(2000);
-	  $('form').append('<input type="hidden" name="serv" value='+$("#serv").val()+'>');
-	  $( "input[type=submit], button" ).button();
-	  $( "select" ).selectmenu();
+		$('form').append('<input type="hidden" name="serv" value='+$("#serv").val()+'>');
+		$( "input[type=submit], button" ).button();
+		$('li').css('margin-top', '0');
+		$('table.tbl th.pxname').css('background-color', '#5d9ceb');
+		$('a.px:link').css('color', '#fff');
+		$('h1').next().css('display', 'none');	  
+		$( "select" ).selectmenu();
+		await sleep(2000);
 	  
 	  $("form").submit(function() {
 			$.ajax({
