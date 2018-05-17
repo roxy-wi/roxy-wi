@@ -8,29 +8,25 @@ from datetime import datetime
 from pytz import timezone
 from configparser import ConfigParser, ExtendedInterpolation
 
-path_config = "haproxy-webintarface.config"
-config = ConfigParser(interpolation=ExtendedInterpolation())
-config.read(path_config)
-
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
-fullpath = config.get('main', 'fullpath')
-time_zone = config.get('main', 'time_zone')
-proxy = config.get('main', 'proxy')
-ssh_keys = config.get('ssh', 'ssh_keys')
-haproxy_configs_server = config.get('configs', 'haproxy_configs_server')
-hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
-haproxy_config_path  = config.get('haproxy', 'haproxy_config_path')
-tmp_config_path = config.get('haproxy', 'tmp_config_path')
-restart_command = config.get('haproxy', 'restart_command')
 
-def check_config():
-	for section in [ 'main', 'configs', 'ssh', 'logs', 'haproxy' ]:
-		if not config.has_section(section):
-			print('<center><div class="alert alert-danger">Check config file, no %s section</div>' % section)
-			
+def get_config_var(sec, var):
+	try:
+		path_config = "haproxy-webintarface.config"
+		config = ConfigParser(interpolation=ExtendedInterpolation())
+		config.read(path_config)
+	except:
+		print('<center><div class="alert alert-danger">Check the config file, whether it exists and the path. Must be in: app/haproxy-webintarface.config</div>')
+
+	try:
+		var = config.get(sec, var)
+		return var
+	except:
+		print('<center><div class="alert alert-danger">Check the config file. Presence section %s and parameter %s</div>' % (sec, var))
+					
 def get_data(type):
-	now_utc = datetime.now(timezone(time_zone))
+	now_utc = datetime.now(timezone(get_config_var('main', 'time_zone')))
 	if type == 'config':
 		fmt = "%Y-%m-%d.%H:%M:%S"
 	if type == 'logs':
@@ -40,13 +36,13 @@ def get_data(type):
 def logging(serv, action):
 	import sql
 	dateFormat = "%b  %d %H:%M:%S"
-	now_utc = datetime.now(timezone(time_zone))
+	now_utc = datetime.now(timezone(get_config_var('main', 'time_zone')))
 	IP = cgi.escape(os.environ["REMOTE_ADDR"])
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_uuid = cookie.get('uuid')
 	login = sql.get_user_name_by_uuid(user_uuid.value)
 	mess = now_utc.strftime(dateFormat) + " from " + IP + " user: " + login + " " + action + " for: " + serv + "\n"
-	log_path = config.get('main', 'log_path')
+	log_path = get_config_var('main', 'log_path')
 	
 	try:		
 		log = open(log_path + "/config_edit-"+get_data('logs')+".log", "a")
@@ -56,12 +52,13 @@ def logging(serv, action):
 		print('<center><div class="alert alert-danger">Can\'t read write log. Please chech log_path in config</div></center>')
 		pass
 	
-	if config.get('telegram', 'enable') == "1": telegram_send_mess(mess)
+	if get_config_var('telegram', 'enable') == "1": telegram_send_mess(mess)
 
 def telegram_send_mess(mess):
 	import telegram
-	token_bot = config.get('telegram', 'token')
-	channel_name = config.get('telegram', 'channel_name')
+	token_bot = get_config_var('telegram', 'token')
+	channel_name = get_config_var('telegram', 'channel_name')
+	proxy = get_config_var('main', 'proxy')
 	
 	if proxy is not None:
 		pp = telegram.utils.request.Request(proxy_url=proxy)
@@ -130,7 +127,7 @@ def ssh_connect(serv, **kwargs):
 	ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 	try:
 		if ssh_enable == 1:
-			k = paramiko.RSAKey.from_private_key_file(ssh_keys)
+			k = paramiko.RSAKey.from_private_key_file(get_config_var('ssh', 'ssh_keys'))
 			ssh.connect(hostname = serv, username = ssh_user_name, pkey = k )
 		else:
 			ssh.connect(hostname = serv, username = ssh_user_name, password = sql.select_ssh_password())
@@ -188,7 +185,7 @@ def get_config(serv, cfg, **kwargs):
 	if kwargs.get("keepalived"):
 		config_path = "/etc/keepalived/keepalived.conf"
 	else:
-		config_path = haproxy_config_path
+		config_path = get_config_var('haproxy', 'haproxy_config_path')
 		
 	ssh = ssh_connect(serv)
 	try:
@@ -246,6 +243,8 @@ def show_config(cfg):
 
 def install_haproxy(serv):
 	script = "install_haproxy.sh"
+	tmp_config_path = get_config_var('haproxy', 'tmp_config_path')
+	proxy = get_config_var('main', 'proxy')
 	os.system("cp scripts/%s ." % script)
 	if proxy is not None:
 		proxy_serv = proxy
@@ -274,7 +273,7 @@ def upload(serv, path, file, **kwargs):
 		print('<div class="alert alert-danger">Upload fail: %s</div>' % e)
 	
 def upload_and_restart(serv, cfg, **kwargs):
-	tmp_file = tmp_config_path + "/" + get_data('config') + ".cfg"
+	tmp_file = get_config_var('haproxy', 'tmp_config_path') + "/" + get_data('config') + ".cfg"
 	error = ""
 	
 	try:
@@ -297,11 +296,11 @@ def upload_and_restart(serv, cfg, **kwargs):
 			commands = [ "sudo mv -f " + tmp_file + " /etc/keepalived/keepalived.conf", "sudo systemctl restart keepalived" ]
 	else:
 		if kwargs.get("just_save") == "save":
-			commands = [ "sudo /sbin/haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + haproxy_config_path ]
+			commands = [ "sudo /sbin/haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + get_config_var('haproxy', 'haproxy_config_path') ]
 		else:
-			commands = [ "sudo /sbin/haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + haproxy_config_path + " && sudo " + restart_command ]	
+			commands = [ "sudo /sbin/haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + get_config_var('haproxy', 'haproxy_config_path') + " && sudo " + get_config_var('haproxy', 'restart_command') ]	
 		try:
-			if config.get('haproxy', 'firewall_enable') == "1":
+			if get_config_var('haproxy', 'firewall_enable') == "1":
 				commands.extend(open_port_firewalld(cfg))
 		except:
 			return 'Please check the config for the presence of the parameter - "firewall_enable". Mast be: "0" or "1". Firewalld configure not working now'
@@ -332,7 +331,7 @@ def open_port_firewalld(cfg):
 	return firewalld_commands
 	
 def check_haproxy_config(serv):
-	commands = [ "/sbin/haproxy  -q -c -f %s" % haproxy_config_path ]
+	commands = [ "/sbin/haproxy  -q -c -f %s" % get_config_var('haproxy', 'haproxy_config_path') ]
 	ssh = ssh_connect(serv)
 	for command in commands:
 		stdin , stdout, stderr = ssh.exec_command(command)

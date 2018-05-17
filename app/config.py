@@ -3,15 +3,16 @@ import html
 import cgi
 import os
 import http.cookies
-from configparser import ConfigParser, ExtendedInterpolation
 import funct
 import sql
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'))
 template = env.get_template('config.html')
+
 print('Content-type: text/html\n')
 funct.check_login()
 funct.page_for_admin(level = 2)
+
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
 config_read = ""
@@ -28,12 +29,8 @@ try:
 except:
 	pass
 
-path_config = "haproxy-webintarface.config"
-config = ConfigParser(interpolation=ExtendedInterpolation())
-config.read(path_config)
-
-log_path = config.get('main', 'log_path')
-hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
+log_path = funct.get_config_var('main', 'log_path')
+hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 
 if serv is not None:
 	cfg = hap_configs_dir + serv + "-" + funct.get_data('config') + ".cfg"

@@ -6,27 +6,19 @@ import funct
 import sql
 import glob
 import datetime
-from configparser import ConfigParser, ExtendedInterpolation
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'))
 template = env.get_template('viewlogs.html')
-
 form = cgi.FieldStorage()
-path_config = "haproxy-webintarface.config"
-config = ConfigParser(interpolation=ExtendedInterpolation())
-config.read(path_config)	
 
 print('Content-type: text/html\n')
-try:
-	if config.get('main', 'log_path'):
-		log_path = config.get('main', 'log_path')
-		time_storage = config.getint('logs', 'log_time_storage')
-except:
-	print('<center><div class="alert alert-danger">Can not find "log_path" and "log_time_storage" parametrs. Check into config</div>')	
-
-
 funct.check_login()
 funct.page_for_admin()
+
+log_path = funct.get_config_var('main', 'log_path')
+time_storage = funct.get_config_var('logs', 'log_time_storage')
+time_storage = int(time_storage)
+
 try:
 	time_storage_hours = time_storage * 24
 	for dirpath, dirnames, filenames in os.walk(log_path):
@@ -36,7 +28,7 @@ try:
 			if datetime.datetime.now() - file_modified > datetime.timedelta(hours=time_storage_hours):
 				os.remove(curpath)
 except:
-	print('<center><div class="alert alert-danger" style="margin: 0; margin-bottom: 10px;">Can\'t delete old logs file. <br> Please check "log_time_storage" in config and <br>exist directory </div>')
+	print('<center><div class="alert alert-danger" style="margin: 0; margin-bottom: 10px;">Can\'t delete old logs file. <br> Please check "log_time_storage" in config and <br>exist directory </div></center>')
 	pass
 	
 try:

@@ -3,14 +3,13 @@ import html, http.cookies
 import cgi
 import os
 import funct, sql
-from configparser import ConfigParser, ExtendedInterpolation
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'))
 template = env.get_template('ihap.html')
+
 print('Content-type: text/html\n')
 funct.check_login()
 funct.page_for_admin()
-form = cgi.FieldStorage()
 
 try:
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))

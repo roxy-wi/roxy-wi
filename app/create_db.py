@@ -3,23 +3,19 @@ import cgi
 import html
 import os
 import sys
-from configparser import ConfigParser, ExtendedInterpolation
+import funct
 
-path_config = "haproxy-webintarface.config"
-config = ConfigParser(interpolation=ExtendedInterpolation())
-config.read(path_config)
-
-mysql_enable = config.get('mysql', 'enable')
-fullpath = config.get('main', 'fullpath')
+mysql_enable = funct.get_config_var('mysql', 'enable')
 
 if mysql_enable == '1':
-	mysql_user = config.get('mysql', 'mysql_user')
-	mysql_password = config.get('mysql', 'mysql_password')
-	mysql_db = config.get('mysql', 'mysql_db')
-	mysql_host = config.get('mysql', 'mysql_host')
+	mysql_user = funct.get_config_var('mysql', 'mysql_user')
+	mysql_password = funct.get_config_var('mysql', 'mysql_password')
+	mysql_db = funct.get_config_var('mysql', 'mysql_db')
+	mysql_host = funct.get_config_var('mysql', 'mysql_host')
 	from mysql.connector import errorcode
 	import mysql.connector as sqltool
 else:
+	fullpath = funct.get_config_var('main', 'fullpath')
 	db = fullpath+"/app/haproxy-wi.db"
 	import sqlite3 as sqltool
 	

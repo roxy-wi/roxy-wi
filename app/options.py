@@ -8,13 +8,6 @@ import subprocess
 import funct
 import sql
 import ovw
-from configparser import ConfigParser, ExtendedInterpolation
-
-path_config = "haproxy-webintarface.config"
-config = ConfigParser(interpolation=ExtendedInterpolation())
-
-config.read(path_config)
-funct.check_config()
 
 form = cgi.FieldStorage()
 req = form.getvalue('req')
@@ -31,7 +24,7 @@ if form.getvalue('getcert') is not None and serv is not None:
 		print('<div class="alert alert-danger" style="margin:0">Can not connect to the server</div>')
 		
 if form.getvalue('ssh_cert'):
-	ssh_keys = config.get('ssh', 'ssh_keys')
+	ssh_keys = funct.get_config_var('ssh', 'ssh_keys')
 	
 	try:
 		with open(ssh_keys, "w") as conf:
@@ -46,8 +39,8 @@ if form.getvalue('ssh_cert'):
 		pass
 			
 if serv and form.getvalue('ssl_cert'):
-	cert_local_dir = config.get('main', 'cert_local_dir')
-	cert_path = config.get('haproxy', 'cert_path')
+	cert_local_dir = funct.get_config_var('main', 'cert_local_dir')
+	cert_path = funct.get_config_var('haproxy', 'cert_path')
 	
 	if form.getvalue('ssl_name') is None:
 		print('<div class="alert alert-danger">Please enter desired name</div>')
@@ -121,10 +114,10 @@ if form.getvalue('action'):
 	import requests
 	from requests_toolbelt.utils import dump
 	
-	haproxy_user = config.get('haproxy', 'stats_user')
-	haproxy_pass = config.get('haproxy', 'stats_password')
-	stats_port = config.get('haproxy', 'stats_port')
-	stats_page = config.get('haproxy', 'stats_page')
+	haproxy_user = funct.get_config_var('haproxy', 'stats_user')
+	haproxy_pass = funct.get_config_var('haproxy', 'stats_password')
+	stats_port = funct.get_config_var('haproxy', 'stats_port')
+	stats_page = funct.get_config_var('haproxy', 'stats_page')
 	
 	postdata = {
 		'action' : form.getvalue('action'),
@@ -145,10 +138,10 @@ if serv is not None and act == "stats":
 	import requests
 	from requests_toolbelt.utils import dump
 	
-	haproxy_user = config.get('haproxy', 'stats_user')
-	haproxy_pass = config.get('haproxy', 'stats_password')
-	stats_port = config.get('haproxy', 'stats_port')
-	stats_page = config.get('haproxy', 'stats_page')
+	haproxy_user = funct.get_config_var('haproxy', 'stats_user')
+	haproxy_pass = funct.get_config_var('haproxy', 'stats_password')
+	stats_port = funct.get_config_var('haproxy', 'stats_port')
+	stats_page = funct.get_config_var('haproxy', 'stats_page')
 	try:
 		response = requests.get('http://%s:%s/%s' % (serv, stats_port, stats_page), auth=(haproxy_user, haproxy_pass)) 
 	except requests.exceptions.ConnectTimeout:
@@ -177,14 +170,14 @@ if serv is not None and form.getvalue('rows') is not None:
 		grep_act = ''
 		grep = ''
 
-	syslog_server_enable = config.get('logs', 'syslog_server_enable')
+	syslog_server_enable = funct.get_config_var('logs', 'syslog_server_enable')
 	if syslog_server_enable is None or syslog_server_enable == "0":
-		local_path_logs = config.get('logs', 'local_path_logs')
+		local_path_logs = funct.get_config_var('logs', 'local_path_logs')
 		syslog_server = serv	
 		commands = [ 'sudo tail -%s %s %s %s' % (rows, local_path_logs, grep_act, grep) ]	
 	else:
 		commands = [ 'sudo tail -%s /var/log/%s/syslog.log %s %s' % (rows, serv, grep_act, grep) ]
-		syslog_server = config.get('logs', 'syslog_server')
+		syslog_server = funct.get_config_var('logs', 'syslog_server')
 	print('<div id="logs">')
 	funct.ssh_command(syslog_server, commands, show_log="1")
 	print('</div>')
@@ -211,8 +204,8 @@ if serv is not None and act == "showMap":
 	ovw.get_map(serv)
 	
 if form.getvalue('servaction') is not None:
-	server_state_file = config.get('haproxy', 'server_state_file')
-	haproxy_sock = config.get('haproxy', 'haproxy_sock')
+	server_state_file = funct.get_config_var('haproxy', 'server_state_file')
+	haproxy_sock = funct.get_config_var('haproxy', 'haproxy_sock')
 	enable = form.getvalue('servaction')
 	backend = form.getvalue('servbackend')
 	
@@ -241,7 +234,7 @@ if serv is not None and act == "configShow":
 	import os
 	from datetime import datetime
 	from pytz import timezone
-	hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
+	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 	
 	if form.getvalue('configver') is None:	
 		cfg = hap_configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
@@ -272,10 +265,7 @@ if serv is not None and act == "configShow":
 	
 if form.getvalue('viewlogs') is not None:
 	viewlog = form.getvalue('viewlogs')
-	try:
-		log_path = config.get('main', 'log_path')
-	except:
-		print('<div class="alert alert-warning">Please check the config for the presence of the parameter - "log_path". </div>')
+	log_path = funct.get_config_var('main', 'log_path')
 	
 	try:
 		log = open(log_path + viewlog, "r",encoding='utf-8', errors='ignore')
@@ -298,7 +288,7 @@ if form.getvalue('master'):
 	interface = form.getvalue('interface')
 	vrrpip = form.getvalue('vrrpip')
 	hap = form.getvalue('hap')
-	tmp_config_path = config.get('haproxy', 'tmp_config_path')
+	tmp_config_path = funct.get_config_var('haproxy', 'tmp_config_path')
 	script = "install_keepalived.sh"
 	
 	if hap == "1":
@@ -325,7 +315,7 @@ if form.getvalue('masteradd'):
 	interface = form.getvalue('interfaceadd')
 	vrrpip = form.getvalue('vrrpipadd')
 	kp = form.getvalue('kp')
-	tmp_config_path = config.get('haproxy', 'tmp_config_path')
+	tmp_config_path = funct.get_config_var('haproxy', 'tmp_config_path')
 	script = "add_vrrp.sh"
 	
 	os.system("cp scripts/%s ." % script)

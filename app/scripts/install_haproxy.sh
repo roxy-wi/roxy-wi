@@ -2,8 +2,8 @@
 
 if [[ $1 != "" ]]
 then
-	sudo export http_proxy="$1"
-	sudo export https_proxy="$1"
+	export http_proxy="$1"
+	export https_proxy="$1"
 	echo "Exporting proxy"
 fi
 

@@ -1,20 +1,14 @@
 import funct
-from configparser import ConfigParser, ExtendedInterpolation
 import os
 import cgi
 import sql
 
-path_config = "haproxy-webintarface.config"
-config = ConfigParser(interpolation=ExtendedInterpolation())
-config.read(path_config)
-
-time_zone = config.get('main', 'time_zone')
-cgi_path = config.get('main', 'cgi_path')
-fullpath = config.get('main', 'fullpath')
-stats_port= config.get('haproxy', 'stats_port')
-haproxy_config_path  = config.get('haproxy', 'haproxy_config_path')
-status_command = config.get('haproxy', 'status_command')
-hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
+cgi_path = funct.get_config_var('main', 'cgi_path')
+fullpath = funct.get_config_var('main', 'fullpath')
+stats_port= funct.get_config_var('haproxy', 'stats_port')
+haproxy_config_path  = funct.get_config_var('haproxy', 'haproxy_config_path')
+status_command = funct.get_config_var('haproxy', 'status_command')
+hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 form = cgi.FieldStorage()
 
 def get_overview():
@@ -160,7 +154,7 @@ def show_compare_configs(serv):
 	import glob
 	left = form.getvalue('left')
 	right = form.getvalue('right')
-	haproxy_configs_server = config.get('configs', 'haproxy_configs_server')
+	haproxy_configs_server = funct.get_config_var('configs', 'haproxy_configs_server')
 	
 	print('<form action="diff.py#diff" method="get">')
 	print('<center><h3><span style="padding: 20px;">Choose left</span><span style="padding: 110px;">Choose right</span></h3>')
@@ -201,8 +195,7 @@ def show_compare_configs(serv):
 def comapre_show():
 	left = form.getvalue('left')
 	right = form.getvalue('right')
-	haproxy_configs_server = config.get('configs', 'haproxy_configs_server')
-	hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
+	haproxy_configs_server = funct.get_config_var('configs', 'haproxy_configs_server')
 	commands = [ 'diff -ub %s%s %s%s' % (hap_configs_dir, left, hap_configs_dir, right) ]
 
 	funct.ssh_command(haproxy_configs_server, commands, compare="1")

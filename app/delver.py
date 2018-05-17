@@ -3,15 +3,15 @@ import html, http.cookies
 import cgi
 import os
 import funct, sql
-from configparser import ConfigParser, ExtendedInterpolation
 import glob
-from configparser import ConfigParser, ExtendedInterpolation
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'))
 template = env.get_template('delver.html')
+
 print('Content-type: text/html\n')
 funct.check_login()
 funct.page_for_admin()
+
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
 stderr = ""
@@ -26,13 +26,10 @@ try:
 except:
 	pass
 
-path_config = "haproxy-webintarface.config"
-config = ConfigParser(interpolation=ExtendedInterpolation())
-config.read(path_config)
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
 Select = form.getvalue('del')
-hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
+hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 
 def get_files():
 	import glob

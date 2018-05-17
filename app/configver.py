@@ -4,17 +4,19 @@ import cgi
 import os, http.cookies
 import funct
 import sql
-from configparser import ConfigParser, ExtendedInterpolation
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'))
 template = env.get_template('configver.html')
+
 print('Content-type: text/html\n')
 funct.check_login()
 funct.page_for_admin(level = 2)
+
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
+configver = form.getvalue('configver')
+hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 config_read = ""
-configver = ""
 stderr = ""
 aftersave = ""
 error = ""
@@ -26,14 +28,6 @@ try:
 	servers = sql.get_dick_permit()
 except:
 	pass
-
-path_config = "haproxy-webintarface.config"
-config = ConfigParser(interpolation=ExtendedInterpolation())
-config.read(path_config)
-form = cgi.FieldStorage()
-serv = form.getvalue('serv')
-configver = form.getvalue('configver')
-hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
 
 def get_files():
 	import glob

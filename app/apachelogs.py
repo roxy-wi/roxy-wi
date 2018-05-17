@@ -30,8 +30,6 @@ try:
 	servers = [('haproxy-wi.error.log','error.log'), ('haproxy-wi.access.log','access.log')]
 except:
 	pass
-	
-#print(sql.get_dick_permit())
 
 output_from_parsed_template = template.render(h2 = 1,
 												autorefresh = 1,

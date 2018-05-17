@@ -8,7 +8,9 @@ from configparser import ConfigParser, ExtendedInterpolation
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'))
 template = env.get_template('viewsettings.html')
+
 form = cgi.FieldStorage()
+
 path_config = "haproxy-webintarface.config"
 config = ConfigParser(interpolation=ExtendedInterpolation())
 config.read(path_config)
@@ -30,8 +32,6 @@ for section_name in config.sections():
 	config_items_section_name[section_name] = {}
 	for name, value in config.items(section_name):
 		config_items_section_name[section_name][name] =  value
-
-
 
 output_from_parsed_template = template.render(h2 = 1, title = "Admin area: View settings",
 												role = sql.get_user_role_by_uuid(user_id.value),

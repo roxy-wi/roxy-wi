@@ -321,7 +321,7 @@ pre {
 .menu {
 	font-weight: bold;
 	font-style: italic;
-	min-height: calc(100vh - 70px);
+	min-height: calc(100vh - 95px);
 }
 .menu ul li{
 	padding: 3px; 

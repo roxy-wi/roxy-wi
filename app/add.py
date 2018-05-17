@@ -2,7 +2,6 @@
 import html
 import cgi
 import os
-from configparser import ConfigParser, ExtendedInterpolation
 import funct
 import sql
 import http
@@ -31,11 +30,8 @@ output_from_parsed_template = template.render(title = "Add",
 												conf_add = form.getvalue('conf'))										
 print(output_from_parsed_template)
 
-path_config = "haproxy-webintarface.config"
-config = ConfigParser(interpolation=ExtendedInterpolation())
-config.read(path_config)
-hap_configs_dir = config.get('configs', 'haproxy_save_configs_dir')
-cert_path = config.get('haproxy', 'cert_path')
+hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+cert_path = funct.get_config_var('haproxy', 'cert_path')
 
 if form.getvalue('mode') is not None: 
 	serv = form.getvalue('serv')

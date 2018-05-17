@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-"
 import cgi
-from configparser import ConfigParser, ExtendedInterpolation
 import create_db
+import funct
 
-path_config = "haproxy-webintarface.config"
-config = ConfigParser(interpolation=ExtendedInterpolation())
-config.read(path_config)
-
-mysql_enable = config.get('mysql', 'enable')
+mysql_enable = funct.get_config_var('mysql', 'enable')
 
 if mysql_enable == '1':
 	from mysql.connector import errorcode
