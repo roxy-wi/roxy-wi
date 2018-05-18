@@ -527,6 +527,10 @@ function showApacheLog() {
 			rows1: $('#rows').val(),
 			serv: $("#serv").val(),
 			grep: $("#grep").val(),
+			hour: $('#time_range_out_hour').val(),
+			minut: $('#time_range_out_minut').val(),
+			hour1: $('#time_range_out_hour1').val(),
+			minut1: $('#time_range_out_minut1').val(),
 		},
 		type: "GET",
 		success: function( data ) {

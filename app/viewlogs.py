@@ -8,8 +8,18 @@ import glob
 import datetime
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'))
-template = env.get_template('viewlogs.html')
+template = env.get_template('logs.html')
 form = cgi.FieldStorage()
+
+if form.getvalue('grep') is None:
+	grep = ""
+else:
+	grep = form.getvalue('grep')
+	
+if form.getvalue('rows') is None:
+	rows = 10
+else:
+	rows = form.getvalue('rows')
 
 print('Content-type: text/html\n')
 funct.check_login()
@@ -35,14 +45,13 @@ try:
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_id = cookie.get('uuid')
 	user = sql.get_user_name_by_uuid(user_id.value)
-	servers = sql.get_dick_permit()
 except:
 	pass
 	
 def get_files():
-	file = set()
+	file = []
 	for files in glob.glob(os.path.join(log_path,'*.log')):
-		file.add(files.split('/')[5])
+		file += [(files.split('/')[5], files.split('/')[5])]
 	return sorted(file, reverse=True)
 
 output_from_parsed_template = template.render(h2 = 1,
@@ -53,5 +62,7 @@ output_from_parsed_template = template.render(h2 = 1,
 												onclick = "viewLogs()",
 												serv = form.getvalue('viewlogs'),
 												select_id = "viewlogs",
-												selects = get_files())										
+												selects = get_files(),
+												rows = rows,
+												grep = grep)										
 print(output_from_parsed_template)

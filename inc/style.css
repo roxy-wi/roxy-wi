@@ -209,6 +209,14 @@ pre {
 .line:hover, .line3:hover, tr:hover {
 	background-color: #f6f8fa;
 }
+.time-range {
+	border: 0;
+	background-color: #f5faf4;
+	font-weight: bold;
+	width: 18px;
+	padding-left: 0;
+	padding-right: 0;
+}
 .overviewHead:hover {
 	background-color: #f4f9f3e6;
 }	

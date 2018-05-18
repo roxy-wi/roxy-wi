@@ -148,6 +148,10 @@ function showLog() {
 			rows: $('#rows').val(),
 			serv: $("#serv").val(),
 			grep: $("#grep").val(),
+			hour: $('#time_range_out_hour').val(),
+			minut: $('#time_range_out_minut').val(),
+			hour1: $('#time_range_out_hour1').val(),
+			minut1: $('#time_range_out_minut1').val(),
 		},
 		type: "GET",
 		success: function( data ) {
@@ -258,6 +262,12 @@ function viewLogs() {
 		url: "options.py",
 		data: {
 			viewlogs: $('#viewlogs').val(),
+			rows2: $('#rows').val(),
+			grep: $("#grep").val(),
+			hour: $('#time_range_out_hour').val(),
+			minut: $('#time_range_out_minut').val(),
+			hour1: $('#time_range_out_hour1').val(),
+			minut1: $('#time_range_out_minut1').val(),
 		},
 		type: "GET",
 		success: function( data ) {
@@ -321,7 +331,38 @@ $( function() {
             $(this).addClass('current');
         }
     });
+	var now = new Date(Date.now());
+	var date1 = now.getHours() * 60 - 1 * 60;
+	var date2 = now.getHours() * 60;
+	$("#time-range").slider({	
+		range: true,
+		min: 0,
+		max: 1440,
+		step: 15,
+		values: [ date1, date2 ],
+		slide: function(e, ui) {
+			var hours = Math.floor(ui.values[0] / 60);
+			var minutes = ui.values[0] - (hours * 60);
 
+			if(hours.toString().length == 1) hours = '0' + hours;
+			if(minutes.toString().length == 1) minutes = '0' + minutes;
+			
+			var hours1 = Math.floor(ui.values[1] / 60);
+			var minutes1 = ui.values[1] - (hours1 * 60);
+
+			if(hours1.toString().length == 1) hours1 = '0' + hours1;
+			if(minutes1.toString().length == 1) minutes1 = '0' + minutes1;
+			$('#time_range_out_hour').val(hours);
+			$('#time_range_out_minut').val(minutes);
+			$('#time_range_out_hour1').val(hours1);
+			$('#time_range_out_minut1').val(minutes1);
+		}
+	});
+	$('#time_range_out_hour').val(date1/60);
+	$('#time_range_out_minut').val('00');
+	$('#time_range_out_hour1').val(date2/60);
+	$('#time_range_out_minut1').val('00');
+		
 	$('#0').click(function() {
 		$('.auto-refresh-div').show("blind", "fast");
 		$('#0').css("display", "none");		

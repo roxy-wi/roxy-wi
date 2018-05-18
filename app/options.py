@@ -163,6 +163,12 @@ if serv is not None and act == "stats":
 if serv is not None and form.getvalue('rows') is not None:
 	rows = form.getvalue('rows')
 	grep = form.getvalue('grep')
+	hour = form.getvalue('hour')
+	minut = form.getvalue('minut')
+	hour1 = form.getvalue('hour1')
+	minut1 = form.getvalue('minut1')
+	date = hour+':'+minut
+	date1 = hour1+':'+minut1
 	
 	if grep is not None:
         	grep_act  = '|grep'
@@ -174,25 +180,57 @@ if serv is not None and form.getvalue('rows') is not None:
 	if syslog_server_enable is None or syslog_server_enable == "0":
 		local_path_logs = funct.get_config_var('logs', 'local_path_logs')
 		syslog_server = serv	
-		commands = [ 'sudo tail -%s %s %s %s' % (rows, local_path_logs, grep_act, grep) ]	
+		commands = [ "sudo cat %s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s  %s %s" % (local_path_logs, date, date1, rows, grep_act, grep) ]	
 	else:
-		commands = [ 'sudo tail -%s /var/log/%s/syslog.log %s %s' % (rows, serv, grep_act, grep) ]
+		commands = [ "sudo cat /var/log/%s/syslog.log | sed '/ %s:00/,/ %s:00/! d' |tail -%s  %s %s" % (serv, date, date1, rows, grep_act, grep) ]
 		syslog_server = funct.get_config_var('logs', 'syslog_server')
-	print('<div id="logs">')
-	funct.ssh_command(syslog_server, commands, show_log="1")
-	print('</div>')
 
+	funct.ssh_command(syslog_server, commands, show_log="1")
+	
 if serv is not None and form.getvalue('rows1') is not None:
 	rows = form.getvalue('rows1')
 	grep = form.getvalue('grep')
+	grep = form.getvalue('grep')
+	hour = form.getvalue('hour')
+	minut = form.getvalue('minut')
+	hour1 = form.getvalue('hour1')
+	minut1 = form.getvalue('minut1')
+	date = hour+':'+minut
+	date1 = hour1+':'+minut1
 	
 	if grep is not None:
-        	grep_act  = '|grep'
+		grep_act  = '|grep'
 	else:
 		grep_act = ''
 		grep = ''
 	
-	cmd='tail -%s %s %s %s' % (rows, '/var/log/httpd/'+serv, grep_act, grep)
+	cmd="cat %s| awk -F\"/|:\" '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s  %s %s" % ('/var/log/httpd/'+serv, date, date1, rows, grep_act, grep)
+	p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
+	stdout, stderr = p.communicate()
+	output = stdout.splitlines()
+
+	funct.show_log(output)
+	print(stderr)
+		
+if form.getvalue('viewlogs') is not None:
+	viewlog = form.getvalue('viewlogs')
+	log_path = funct.get_config_var('main', 'log_path')
+	rows = form.getvalue('rows2')
+	grep = form.getvalue('grep')
+	hour = form.getvalue('hour')
+	minut = form.getvalue('minut')
+	hour1 = form.getvalue('hour1')
+	minut1 = form.getvalue('minut1')
+	date = hour+':'+minut
+	date1 = hour1+':'+minut1
+	
+	if grep is not None:
+		grep_act  = '|grep'
+	else:
+		grep_act = ''
+		grep = ''
+
+	cmd="cat %s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s  %s %s" % (log_path + viewlog, date, date1, rows, grep_act, grep)
 	p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
 	stdout, stderr = p.communicate()
 	output = stdout.splitlines()
@@ -262,26 +300,7 @@ if serv is not None and act == "configShow":
 		funct.get_button("Just save", value="save")
 		funct.get_button("Upload and restart")
 		print('</form></center>')
-	
-if form.getvalue('viewlogs') is not None:
-	viewlog = form.getvalue('viewlogs')
-	log_path = funct.get_config_var('main', 'log_path')
-	
-	try:
-		log = open(log_path + viewlog, "r",encoding='utf-8', errors='ignore')
-	except IOError:
-		print('<div class="alert alert-danger">Can\'t read import log file</div>')
-		sys.exit()
-	
-	print('<center><h3>Shows log: %s</h3></center><br />' % viewlog)
-	i = 0
-	for line in log:
-		i = i + 1
-		if i % 2 == 0: 
-			print('<div class="line3">' + line + '</div>')
-		else:
-			print('<div class="line">' + line + '</div>')
-
+		
 if form.getvalue('master'):
 	master = form.getvalue('master')
 	slave = form.getvalue('slave')
