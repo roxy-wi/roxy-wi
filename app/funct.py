@@ -17,7 +17,7 @@ def get_config_var(sec, var):
 		config = ConfigParser(interpolation=ExtendedInterpolation())
 		config.read(path_config)
 	except:
-		print('<center><div class="alert alert-danger">Check the config file, whether it exists and the path. Must be in: app/haproxy-webintarface.config</div>')
+		print('<center><div class="alert alert-danger">Check the config file, whether it exists and the path. Must be: app/haproxy-webintarface.config</div>')
 
 	try:
 		var = config.get(sec, var)
@@ -31,17 +31,18 @@ def get_data(type):
 		fmt = "%Y-%m-%d.%H:%M:%S"
 	if type == 'logs':
 		fmt = '%Y%m%d'
+	if type == "date_in_log":
+		fmt = "%b %d %H:%M:%S"
+		
 	return now_utc.strftime(fmt)
 			
 def logging(serv, action):
 	import sql
-	dateFormat = "%b  %d %H:%M:%S"
-	now_utc = datetime.now(timezone(get_config_var('main', 'time_zone')))
 	IP = cgi.escape(os.environ["REMOTE_ADDR"])
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_uuid = cookie.get('uuid')
 	login = sql.get_user_name_by_uuid(user_uuid.value)
-	mess = now_utc.strftime(dateFormat) + " from " + IP + " user: " + login + " " + action + " for: " + serv + "\n"
+	mess = get_data('date_in_log') + " from " + IP + " user: " + login + " " + action + " for: " + serv + "\n"
 	log_path = get_config_var('main', 'log_path')
 	
 	try:		
@@ -241,6 +242,26 @@ def show_config(cfg):
 	print('</div></div>')
 	conf.close
 
+def diff_config(oldcfg, cfg):
+	import subprocess 
+	cmd="/bin/diff -ub %s %s" % (oldcfg, cfg)
+	p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
+	stdout, stderr = p.communicate()
+	output = stdout.splitlines()
+	log_path = get_config_var('main', 'log_path')
+	diff = ""
+	date = get_data('date_in_log') 
+	
+	for line in output:
+		diff += date + " " + line + "\n"
+	try:		
+		log = open(log_path + "/config_edit-"+get_data('logs')+".log", "a")
+		log.write(diff)
+		log.close
+	except IOError:
+		print('<center><div class="alert alert-danger">Can\'t read write change to log. %s</div></center>' % stderr)
+		pass
+		
 def install_haproxy(serv):
 	script = "install_haproxy.sh"
 	tmp_config_path = get_config_var('haproxy', 'tmp_config_path')

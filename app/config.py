@@ -76,7 +76,8 @@ if form.getvalue('serv') is not None and form.getvalue('config') is not None:
 		
 	stderr = funct.upload_and_restart(serv, cfg, just_save=save)
 		
-	os.system("/bin/diff -ub %s %s >> %s/config_edit-%s.log" % (oldcfg, cfg, log_path, funct.get_data('logs')))
+	funct.diff_config(oldcfg, cfg)
+		
 	os.system("/bin/rm -f " + hap_configs_dir + "*.old")
 
 output_from_parsed_template = template.render(h2 = 1, title = "Edit Runnig HAProxy config",

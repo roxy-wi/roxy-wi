@@ -193,9 +193,15 @@ def show_compare_configs(serv):
 	print('<a class="ui-button ui-widget ui-corner-all" id="show" title="Compare" onclick="showCompare()">Show</a></p></form></center></center>')
 	
 def comapre_show():
+	import subprocess 
 	left = form.getvalue('left')
 	right = form.getvalue('right')
 	haproxy_configs_server = funct.get_config_var('configs', 'haproxy_configs_server')
-	commands = [ 'diff -ub %s%s %s%s' % (hap_configs_dir, left, hap_configs_dir, right) ]
-
-	funct.ssh_command(haproxy_configs_server, commands, compare="1")
+	cmd='diff -ub %s%s %s%s' % (hap_configs_dir, left, hap_configs_dir, right)
+	
+	p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
+	stdout, stderr = p.communicate()
+	output = stdout.splitlines()
+	
+	funct.compare(output)
+	print(stderr)
