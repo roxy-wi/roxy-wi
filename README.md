@@ -32,7 +32,7 @@ The installer will ask you a few questions
 $ git clone https://github.com/Aidaho12/haproxy-wi.git /var/www/haproxy-wi
 $ cd /var/www/haproxy-wi
 $ chmod +x install.sh
-$ ./install
+$ sudo ./install
 ```
 ## Manual install
 For install just clone:
@@ -97,8 +97,10 @@ For Runtime API enable state file on HAproxt servers and need install socat on a
 		stats socket *:1999 level admin 
 		stats socket /var/run/haproxy.sock mode 600 level admin
 		server-state-file /etc/haproxy/haproxy/haproxy.state
+		
     defaults
 		load-server-state-from-file global
+		
 	listen stats 
 		stats admin if TRUE 
    ```

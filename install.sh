@@ -38,15 +38,42 @@ echo -e "Installing Required Software"
 echo ""
 echo ""
 echo "################################"
-if [[ $MINSTALL == 1 ]];then
-   yum -y install mariadb mariadb-server mysql-devel
-fi
 
-if [[ $(cat /etc/*-rele* |grep NAME |head -1) != 'NAME="Red Hat Enterprise Linux Server"' ]];then
+if hash apt-get 2>/dev/null; then
+	apt-get install git  net-tools lshw dos2unix apache2 gcc netcat python3-pip -y
+	HTTPD_CONFIG="/etc/apache2/apache2.conf"
+	HAPROXY_WI_VHOST_CONF="/etc/apache2/sites-enabled/haproxy-wi.conf"
+	HTTPD_NAME="apache2"
+	HTTPD_PORTS="/etc/apache2/ports.conf"
+	
+	if [[ $MINSTALL == 1 ]];then
+		apt-get install software-properties-common -y
+		apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8
+		add-apt-repository 'deb [arch=amd64,i386,ppc64el] https://mirrors.evowise.com/mariadb/repo/10.1/ubuntu xenial main' -y
+		apt-get install mariadb-server -y
+	fi
+else
+	if [[ $(cat /etc/*-rele* |grep NAME |head -1) == 'NAME="CentOS Linux"' ]];then
         yum -y install epel-release
+	fi
+	
+	yum -y install git ncat net-tools lshw python34 dos2unix python34-pip  httpd mod_ssl gcc python34-devel
+	HTTPD_CONFIG="/etc/httpd/conf/httpd.conf"
+	HAPROXY_WI_VHOST_CONF="/etc/httpd/conf.d/haproxy-wi.conf"
+	HTTPD_NAME="httpd"
+	HTTPD_PORTS=$HTTPD_CONFIG
+		
+	echo "Edit firewalld"
+	firewall-cmd --zone=public --add-port=$PORT/tcp --permanent
+	firewall-cmd --reload
+	setenforce 0
+	sed -i 's/SELINUX=enforcing/SELINUX=permissive/' /etc/selinux/config 
+	if [[ $MINSTALL == 1 ]];then
+	   yum -y install mariadb mariadb-server mysql-devel
+	fi
+	
 fi
-
-yum -y install git ncat net-tools lshw python34 dos2unix python34-pip  httpd mod_ssl gcc python34-devel 
+ 
 
 if [ $? -eq 1 ]
 then
@@ -66,9 +93,8 @@ echo -e "Updating Apache config and Configuring Virtual Host"
 echo ""
 echo ""
 echo "################################"
-if [[ $(cat /etc/httpd/conf/httpd.conf |grep "Listen $PORT") != "Listen %PORT" ]];then
-   sed -i "0,/^Listen .*/s//Listen $PORT/" /etc/httpd/conf/httpd.conf
-fi
+
+sudo sed -i "0,/^Listen .*/s//Listen $PORT/" $HTTPD_PORTS
 
 echo "################################"
 echo ""
@@ -78,8 +104,8 @@ echo ""
 echo ""
 echo "################################"
 
-touch /etc/httpd/conf.d/haproxy-wi.conf
-/bin/cat /etc/httpd/conf.d/haproxy-wi.conf
+sudo touch $HAPROXY_WI_VHOST_CONF
+/bin/cat $HAPROXY_WI_VHOST_CONF
 
 if [ $? -eq 1 ]
 then
@@ -100,7 +126,7 @@ else
 	echo ""
 	echo ""
 	echo "################################"
-cat << EOF > /etc/httpd/conf.d/haproxy-wi.conf
+cat << EOF > $HAPROXY_WI_VHOST_CONF
 <VirtualHost *:$PORT>
         ServerName haprox-wi.example.com
         ErrorLog /var/log/httpd/haproxy-wi.error.log
@@ -123,8 +149,14 @@ cat << EOF > /etc/httpd/conf.d/haproxy-wi.conf
         </FilesMatch>
 </VirtualHost>
 EOF
+fi 
 
+if hash apt-get 2>/dev/null; then
+	sed -i 's|/var/log/httpd/|/var/log/apache2/|g' $HAPROXY_WI_VHOST_CONF
+	cd /etc/apache2/mods-enabled
+	sudo ln -s ../mods-available/cgi.load
 fi
+
 echo "################################"
 echo ""
 echo ""
@@ -149,7 +181,7 @@ echo -e "Getting Latest software from The repository"
 echo ""
 echo ""
 echo "################################"
-mkdir /var/www/$HOME_HAPROXY_WI
+
 /usr/bin/git clone https://github.com/Aidaho12/haproxy-wi.git /var/www/$HOME_HAPROXY_WI
 
 if [ $? -eq 1 ]
@@ -241,10 +273,8 @@ if [[ $DB == 2 ]];then
 	echo ""
 	echo "################################"
 	sed -i '0,/enable = 0/s//enable = 1/' /var/www/$HOME_HAPROXY_WI/app/haproxy-webintarface.config
-else
-	cd /var/www/$HOME_HAPROXY_WI/app
-	./update_db.py
 fi
+
 if [[ -n $IP ]];then
 	sed -i "0,/mysql_host = 127.0.0.1/s//mysql_host = $IP/" /var/www/$HOME_HAPROXY_WI/app/haproxy-webintarface.config
 fi
@@ -256,7 +286,7 @@ echo ""
 echo ""
 echo "################################"
 
-          systemctl enable httpd ; systemctl restart httpd
+systemctl enable $HTTPD_NAME; systemctl restart $HTTPD_NAME
 
 if [ $? -eq 1 ]
 then
@@ -279,7 +309,7 @@ else
 
 fi 
 
- sed -i "s|^fullpath = .*|fullpath = /var/www/$HOME_HAPROXY_WI|g" /var/www/$HOME_HAPROXY_WI/app/haproxy-webintarface.config
+sed -i "s|^fullpath = .*|fullpath = /var/www/$HOME_HAPROXY_WI|g" /var/www/$HOME_HAPROXY_WI/app/haproxy-webintarface.config
 echo "################################"
 echo ""
 echo ""
@@ -288,16 +318,11 @@ echo ""
 echo ""
 echo "################################"
 
-echo "Edit firewalld"
-firewall-cmd --zone=public --add-port=$PORT/tcp --permanent
-firewall-cmd --reload
-
 mkdir /var/www/$HOME_HAPROXY_WI/app/certs
 chmod +x /var/www/$HOME_HAPROXY_WI/app/*.py
-chown -R apache:apache /var/www/$HOME_HAPROXY_WI/
 rm -f /var/www/$HOME_HAPROXY_WI/log/config_edit.log
-
-setenforce 0
-sed -i 's/SELINUX=enforcing/SELINUX=permissive/' /etc/selinux/config 
+cd /var/www/$HOME_HAPROXY_WI/app
+./update_db.py
+chown -R apache:apache /var/www/$HOME_HAPROXY_WI/
 
 exit 0
