@@ -881,6 +881,32 @@ $( function() {
 			}
 		} );
 	});
+	$('#auth').submit(function() {
+		$('.alert-danger').remove();
+		let searchParams = new URLSearchParams(window.location.search)
+		if(searchParams.has('ref')) {
+			var ref = searchParams.get('ref');
+		} else {
+			var ref = "overview.py";
+		}
+		$.ajax( {
+			url: "login.py",
+			data: {
+				login: $('#login').val(),
+				pass: $('#pass').val()
+			},
+			type: "GET",
+			success: function( data ) {
+				if (data.indexOf('ok') != '-1') {
+					window.location.replace(ref);
+				} else {
+					$('.alert-danger').remove();
+					$("#ajax").html(data);					
+				} 
+			}
+		} );
+		return false;
+	});
 });
 function replace_text(id_textarea, text_var) {
 	var str = $(id_textarea).val();

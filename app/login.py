@@ -75,13 +75,12 @@ if login is not None and password is not None:
 			sql.write_user_uuid(login, user_uuid)
 				
 			print("Content-type: text/html\n")			
-			print('<html><head><title>Redirecting</title><meta charset="UTF-8">')
-			print('<link href="/style.css" rel="stylesheet">')
-			print('<meta http-equiv="refresh" content="0; url=%s">' % ref)
+			print('ok')
 			sys.exit()	
 		
 	print("Content-type: text/html\n")	
-	print('<meta http-equiv="refresh" content="0; url=/app/login.py?error=1">')
+	print('<center><div class="alert alert-danger">Somthing wrong :( I\'m sad about this, but try again!</div><br /><br />')
+	sys.exit()
 			
 if login is None:
 	print("Content-type: text/html\n")	

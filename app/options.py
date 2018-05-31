@@ -190,7 +190,6 @@ if serv is not None and form.getvalue('rows') is not None:
 if serv is not None and form.getvalue('rows1') is not None:
 	rows = form.getvalue('rows1')
 	grep = form.getvalue('grep')
-	grep = form.getvalue('grep')
 	hour = form.getvalue('hour')
 	minut = form.getvalue('minut')
 	hour1 = form.getvalue('hour1')
@@ -280,7 +279,6 @@ if serv is not None and act == "configShow":
 	else: 
 		cfg = hap_configs_dir + form.getvalue('configver')
 		
-	print('<a name="top"></a>')
 	print("<center><h3>Config from %s</h3>" % serv)
 	print('<p class="accordion-expand-holder">'
 			'<a class="accordion-expand-all ui-button ui-widget ui-corner-all" href="#">Expand all</a>'
