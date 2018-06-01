@@ -6,7 +6,8 @@ function ajaxActionServers(action, id) {
 				url: "options.py",
 				data: {
 					action_hap: action,
-					serv: id
+					serv: id,
+					token: $('#token').val()
 				},
 				success: function( data ) {
 					data = data.replace(/\s+/g,' ');
