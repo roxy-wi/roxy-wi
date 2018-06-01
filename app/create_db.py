@@ -127,6 +127,11 @@ def create_table():
 			`username`	VARCHAR ( 64 ) NOT NULL,
 			`password`	VARCHAR ( 64 ) NOT NULL
 		);
+		CREATE TABLE IF NOT EXISTS `token` (
+			`user_id`	INTEGER,
+			`token`	varchar(64),
+			`exp`  DATETIME default '0000-00-00 00:00:00'
+		);
 		insert into cred('enable','username','password') values ('1', 'root','password');
 		"""
 		try:
@@ -248,7 +253,7 @@ def update_db_v_2_5_3(**kwargs):
 		print(kwargs.get('silent'))
 		if kwargs.get('silent') != 1:
 			if e.args[0] == 'duplicate column name: enable':
-				print('Already updated. No run more. Thx =^.^=')
+				print('Updating... go to version 2.5.6')
 			else:
 				print("An error occurred:", e)
 		return False
@@ -263,6 +268,58 @@ def update_db_v_2_5_3(**kwargs):
 		return True
 	cur.close() 
 	con.close()
+
+def update_db_v_2_5_6(**kwargs):
+	con, cur = get_cur()
+	if mysql_enable == '1':
+		sql = """
+		ALTER TABLE `uuid` ADD COLUMN `exp` timestamp default '0000-00-00 00:00:00';
+		"""
+	else:
+		sql = """
+		ALTER TABLE `uuid` ADD COLUMN `exp` DATETIME default '0000-00-00 00:00:00';
+		"""
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: exp' or e == "1060 (42S21): Duplicate column name 'exp' ":
+				print('Updating... go to version 2.5.6.1')
+			else:
+				print("An error occurred:", e)
+		return False
+	else:
+		print("DB was update to 2.5.6.1<br />")
+		return True
+	cur.close() 
+	con.close()
+
+def update_db_v_2_5_6_1(**kwargs):
+	con, cur = get_cur()
+	if mysql_enable == '1':
+		sql = """
+		CREATE TABLE IF NOT EXISTS `token` (`user_id` INTEGER, `token` varchar(64), `exp` timestamp default '0000-00-00 00:00:00');
+		"""
+	else:
+		sql = """
+		CREATE TABLE IF NOT EXISTS `token` (`user_id` INTEGER, `token` varchar(64), `exp`  DATETIME default '0000-00-00 00:00:00');
+		"""
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: token' or e == "1060 (42S21): Duplicate column name 'token' ":
+				print('Already updated. No run more. Thx =^.^=')
+			else:
+				print("An error occurred:", e)
+			return False
+		else:
+			print("DB was update to 2.5.6.1<br />")
+			return True
+	cur.close() 
+	con.close()
 	
 def update_all():
 	update_db_v_2_0_1()
@@ -270,6 +327,8 @@ def update_all():
 	update_db_v_2_0_5()
 	update_db_v_2_4()
 	update_db_v_2_5_3()
+	update_db_v_2_5_6()
+	update_db_v_2_5_6_1()
 	
 def update_all_silent():
 	update_db_v_2_0_1(silent=1)
@@ -277,12 +336,6 @@ def update_all_silent():
 	update_db_v_2_0_5(silent=1)
 	update_db_v_2_4(silent=1)
 	update_db_v_2_5_3(silent=1)
+	update_db_v_2_5_6(silent=1)
+	update_db_v_2_5_6_1(silent=1)
 		
-#if check_db():	
-#	create_table()
-#else:
-#	print('DB already exists, try update')
-#update_all()
-#if update_db_v_2_0_1():
-#	print('DB was property update to version 2.0.1.')
-#update_db_v_2_0_1_1()

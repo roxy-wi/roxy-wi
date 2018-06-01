@@ -17,12 +17,14 @@ def get_config_var(sec, var):
 		config = ConfigParser(interpolation=ExtendedInterpolation())
 		config.read(path_config)
 	except:
+		print('Content-type: text/html\n')
 		print('<center><div class="alert alert-danger">Check the config file, whether it exists and the path. Must be: app/haproxy-webintarface.config</div>')
 
 	try:
 		var = config.get(sec, var)
 		return var
 	except:
+		print('Content-type: text/html\n')
 		print('<center><div class="alert alert-danger">Check the config file. Presence section %s and parameter %s</div>' % (sec, var))
 					
 def get_data(type):
@@ -72,7 +74,10 @@ def check_login(**kwargs):
 	user_uuid = cookie.get('uuid')
 	ref = os.environ.get("SCRIPT_NAME")
 
+	sql.delete_old_uuid()
+	
 	if user_uuid is not None:
+		sql.update_last_act_user(user_uuid.value)
 		if sql.get_user_name_by_uuid(user_uuid.value) is None:
 			print('<meta http-equiv="refresh" content="0; url=login.py?ref=%s">' % ref)
 	else:

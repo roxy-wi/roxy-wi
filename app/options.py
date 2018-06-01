@@ -14,8 +14,13 @@ req = form.getvalue('req')
 serv = form.getvalue('serv')
 act = form.getvalue('act')
 backend = form.getvalue('backend')	
+
 print('Content-type: text/html\n')
-		
+
+if form.getvalue('token') is None:
+	print("What the fuck?! U r hacker Oo?!")
+	sys.exit()
+	
 if form.getvalue('getcert') is not None and serv is not None:
 	commands = [ "ls -1t /etc/ssl/certs/ |grep pem" ]
 	try:
@@ -34,7 +39,7 @@ if form.getvalue('ssh_cert'):
 	else:
 		print('<div class="alert alert-success">Ssh key was save into: %s </div>' % ssh_keys)
 	try:
-		funct.logging("local", "users.py#ssh upload new ssl cert %s" % ssh_keys)
+		funct.logging("local", "users.py#ssh upload new ssh cert %s" % ssh_keys)
 	except:
 		pass
 			

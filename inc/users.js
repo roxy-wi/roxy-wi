@@ -36,7 +36,8 @@ $( function() {
 						slave: $('#slave').val(),
 						interface: $("#interface").val(),
 						vrrpip: $('#vrrp-ip').val(),
-						hap: hap
+						hap: hap,
+						token: $('#token').val()
 					},
 					type: "GET",
 					success: function( data ) { 
@@ -73,7 +74,8 @@ $( function() {
 						slaveadd: $('#slave-add').val(),
 						interfaceadd: $("#interface-add").val(),
 						vrrpipadd: $('#vrrp-ip-add').val(),
-						kp: kp
+						kp: kp,
+						token: $('#token').val()
 					},
 					type: "GET",
 					success: function( data ) { 
@@ -94,6 +96,7 @@ $( function() {
 			url: "options.py",
 			data: {
 				haproxyaddserv: $('#haproxyaddserv').val(),
+				token: $('#token').val()
 				},
 			type: "GET",
 			success: function( data ) { 
@@ -470,7 +473,8 @@ function uploadSsh() {
 	$.ajax( {
 		url: "options.py",
 		data: {
-			ssh_cert: $('#ssh_cert').val()
+			ssh_cert: $('#ssh_cert').val(),
+			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {
@@ -531,6 +535,7 @@ function showApacheLog() {
 			minut: $('#time_range_out_minut').val(),
 			hour1: $('#time_range_out_hour1').val(),
 			minut1: $('#time_range_out_minut1').val(),
+			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {

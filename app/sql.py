@@ -271,19 +271,61 @@ def get_enable_checkbox(id, **kwargs):
 	
 def write_user_uuid(login, user_uuid):
 	con, cur = create_db.get_cur()
+	session_ttl = funct.get_config_var('main', 'session_ttl')
+	session_ttl = int(session_ttl)
 	sql = """ select id from user where username = '%s' """ % login
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
 		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 	for id in cur.fetchall():
-		sql = """ insert into uuid (user_id, uuid) values('%s', '%s') """ % (id[0], user_uuid)
+		if mysql_enable == '1':
+			sql = """ insert into uuid (user_id, uuid, exp) values('%s', '%s',  now()+ INTERVAL %s day) """ % (id[0], user_uuid, session_ttl)
+		else:
+			sql = """ insert into uuid (user_id, uuid, exp) values('%s', '%s',  datetime('now', '+%s days')) """ % (id[0], user_uuid, session_ttl)
 	try:    
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 		con.rollback()
+	cur.close()    
+	con.close()
+	
+def write_user_token(login, user_token):
+	con, cur = create_db.get_cur()
+	token_ttl = funct.get_config_var('main', 'token_ttl')	
+	sql = """ select id from user where username = '%s' """ % login
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+	for id in cur.fetchall():
+		if mysql_enable == '1':
+			sql = """ insert into token (user_id, token, exp) values('%s', '%s',  now()+ INTERVAL %s day) """ % (id[0], user_token, token_ttl)
+		else:
+			sql = """ insert into token (user_id, token, exp) values('%s', '%s',  datetime('now', '+%s days')) """ % (id[0], user_token, token_ttl)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		con.rollback()
+	cur.close()    
+	con.close()
+	
+def get_token(uuid):
+	con, cur = create_db.get_cur()
+
+	sql = """ select token.token from token left join uuid as uuid on uuid.user_id = token.user_id where uuid.uuid = '%s' """ % uuid
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+	else:
+		for token in cur.fetchall():
+			return token[0]
+				
 	cur.close()    
 	con.close()
 	
@@ -297,6 +339,41 @@ def delete_uuid(uuid):
 		pass
 	cur.close()    
 	con.close() 
+	
+def delete_old_uuid():
+	con, cur = create_db.get_cur()
+	if mysql_enable == '1':
+		sql = """ delete from uuid where exp < now() or exp is NULL """
+		sql1 = """ delete from token where exp < now() or exp is NULL """
+	else:
+		sql = """ delete from uuid where exp < datetime('now') or exp is NULL""" 
+		sql1 = """ delete from token where exp < datetime('now') or exp is NULL""" 
+	try:    
+		cur.execute(sql)
+		cur.execute(sql1)
+		con.commit()
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		con.rollback()
+	cur.close()    
+	con.close()		
+
+def update_last_act_user(uuid):
+	con, cur = create_db.get_cur()
+	session_ttl = funct.get_config_var('main', 'session_ttl')
+	
+	if mysql_enable == '1':
+		sql = """ update uuid set exp = now()+ INTERVAL %s day where uuid = '%s' """ % (session_ttl, uuid)
+	else:
+		sql = """ update uuid set exp = datetime('now', '+%s days') where uuid = '%s' """ % (session_ttl, uuid)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		print('<div class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></div>')
+		con.rollback()
+	cur.close()    
+	con.close()
 	
 def get_user_name_by_uuid(uuid):
 	con, cur = create_db.get_cur()

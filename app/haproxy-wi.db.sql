@@ -10,3 +10,7 @@ INSERT INTO `role` (name, description) VALUES ('guest','Read only access');
 CREATE TABLE IF NOT EXISTS `groups` (`id`	INTEGER NOT NULL AUTO_INCREMENT,`name`	VARCHAR ( 80 ) UNIQUE,`description`	VARCHAR ( 255 ),PRIMARY KEY(`id`));
 INSERT INTO `groups` (name, description) VALUES ('All','All servers enter in this group');	
 CREATE TABLE IF NOT EXISTS `servers` (`id`	INTEGER NOT NULL AUTO_INCREMENT,`hostname`	VARCHAR ( 64 ) UNIQUE,`ip`	VARCHAR ( 64 ) UNIQUE,`groups`	VARCHAR ( 64 ),	PRIMARY KEY(`id`));
+CREATE TABLE IF NOT EXISTS `uuid` (`user_id` INTEGER NOT NULL, `uuid` varchar ( 64 ) );
+CREATE TABLE IF NOT EXISTS `cred` (`enable`	INTEGER NOT NULL DEFAULT 1, `username`	VARCHAR ( 64 ) NOT NULL, `password` VARCHAR ( 64 ) NOT NULL );
+insert into cred('enable','username','password') values ('1', 'root','password');
+CREATE TABLE IF NOT EXISTS `token` (`user_id` INTEGER, `token` varchar(64), `exp` timestamp default '0000-00-00 00:00:00');

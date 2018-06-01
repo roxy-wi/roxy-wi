@@ -45,6 +45,7 @@ try:
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_id = cookie.get('uuid')
 	user = sql.get_user_name_by_uuid(user_id.value)
+	token = sql.get_token(user_id.value)
 except:
 	pass
 	
@@ -64,5 +65,6 @@ output_from_parsed_template = template.render(h2 = 1,
 												select_id = "viewlogs",
 												selects = get_files(),
 												rows = rows,
-												grep = grep)										
+												grep = grep,
+												token = token)										
 print(output_from_parsed_template)

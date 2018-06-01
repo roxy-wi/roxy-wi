@@ -28,6 +28,7 @@ try:
 	user_id = cookie.get('uuid')
 	user = sql.get_user_name_by_uuid(user_id.value)
 	servers = sql.is_master("123", master_slave=1)
+	token = sql.get_token(user_id.value)
 except:
 	pass
 
@@ -85,5 +86,6 @@ output_from_parsed_template = template.render(h2 = 1, title = "Edit Runnig Keepa
 													selects = servers,
 													stderr = stderr,
 													error = error,
-													keepalived = 1)
+													keepalived = 1,
+													token = token)
 print(output_from_parsed_template)

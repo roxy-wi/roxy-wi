@@ -23,6 +23,7 @@ try:
 	user_id = cookie.get('uuid')
 	user = sql.get_user_name_by_uuid(user_id.value)
 	servers = sql.get_dick_permit()
+	token = sql.get_token(user_id.value)
 except:
 	pass
 
@@ -69,5 +70,6 @@ output_from_parsed_template = template.render(h2 = 1, title = "Delete old versio
 													stderr = stderr,
 													open = form.getvalue('open'),
 													Select = form.getvalue('del'),
-													file = file)
+													file = file,
+													token = token)
 print(output_from_parsed_template)

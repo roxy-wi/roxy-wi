@@ -18,6 +18,7 @@ try:
 	user = sql.get_user_name_by_uuid(user_id.value)
 	role = sql.get_user_role_by_uuid(user_id.value)
 	servers = sql.get_dick_permit(virt=1)
+	token = sql.get_token(user_id.value)
 	
 	if serv is None:
 		first_serv = sql.get_dick_permit()
@@ -35,6 +36,7 @@ output_from_parsed_template = template.render(h2 = 1,
 												onclick = "showStats()",
 												select_id = "serv",
 												selects = servers,
-												serv = serv)											
+												serv = serv,
+												token = token)											
 print(output_from_parsed_template)
 

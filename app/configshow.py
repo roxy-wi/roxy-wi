@@ -16,6 +16,7 @@ try:
 	user_id = cookie.get('uuid')
 	user = sql.get_user_name_by_uuid(user_id.value)
 	servers = sql.get_dick_permit()
+	token = sql.get_token(user_id.value)
 except:
 	pass
 
@@ -26,5 +27,6 @@ output_from_parsed_template = template.render(h2 = 1, title = "Show Runnig confi
 												select_id = "serv",
 												serv = serv,
 												selects = servers,
-												note = 0)											
+												note = 0,
+												token = token)											
 print(output_from_parsed_template)

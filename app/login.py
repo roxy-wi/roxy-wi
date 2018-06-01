@@ -64,6 +64,7 @@ if login is not None and password is not None:
 	session_ttl = config.getint('main', 'session_ttl')
 	expires = datetime.datetime.utcnow() + datetime.timedelta(days=session_ttl)
 	user_uuid = str(uuid.uuid4())
+	user_token = str(uuid.uuid4())
 	
 	for users in USERS:	
 		if login in users[1] and password == users[3]:
@@ -73,7 +74,7 @@ if login is not None and password is not None:
 			c["uuid"]["expires"] = expires.strftime("%a, %d %b %Y %H:%M:%S GMT")
 			print(c)
 			sql.write_user_uuid(login, user_uuid)
-				
+			sql.write_user_token(login, user_token)
 			print("Content-type: text/html\n")			
 			print('ok')
 			sys.exit()	
@@ -88,7 +89,9 @@ if login is None:
 		if create_db.create_table():	
 			create_db.update_all()
 			db_create = '<div class="alert alert-success">DB was created<br /><br />Now you can login, default: admin/admin</div>'
-	
+				
+create_db.update_all_silent()
+
 output_from_parsed_template = template.render(h2 = 1, title = "Login page. Enter please",
 													role = role,
 													user = user,

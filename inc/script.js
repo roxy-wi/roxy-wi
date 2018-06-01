@@ -97,12 +97,14 @@ $( document ).ajaxSend(function( event, request, settings ) {
 $( document ).ajaxComplete(function( event, request, settings ) {
 	NProgress.done();
 });
+
 function showOverview() {	
 	showOverviewServers();
 	$.ajax( {
 		url: "options.py",
 		data: {
 			act: "overview",
+			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {
@@ -117,6 +119,7 @@ function showOverviewServers() {
 		url: "options.py",
 		data: {
 			act: "overviewServers",
+			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {
@@ -131,7 +134,8 @@ function showStats() {
 		url: "options.py",
 		data: {
 			act: "stats",
-			serv: $("#serv").val()
+			serv: $("#serv").val(),
+			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {
@@ -152,6 +156,7 @@ function showLog() {
 			minut: $('#time_range_out_minut').val(),
 			hour1: $('#time_range_out_hour1').val(),
 			minut1: $('#time_range_out_minut1').val(),
+			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {
@@ -166,7 +171,8 @@ function showMap() {
 		url: "options.py",
 		data: {
 			serv: $("#serv").val(),
-			act: "showMap"
+			act: "showMap",
+			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {
@@ -187,7 +193,8 @@ function showRuntime() {
 			servaction: $('#servaction').val(),
 			serv: $("#serv").val(),
 			servbackend: $("#servbackend").val(),
-			save: saveCheck
+			save: saveCheck,
+			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {
@@ -201,7 +208,8 @@ function showCompare() {
 		data: {
 			serv: $("#serv").val(),
 			left: $('#left').val(),
-			right: $("#right").val()
+			right: $("#right").val(),
+			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {
@@ -216,7 +224,8 @@ function showCompareConfigs() {
 		data: {
 			serv: $("#serv").val(),
 			act: "showCompareConfigs",
-			open: "open"
+			open: "open",
+			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {
@@ -230,7 +239,8 @@ function showConfig() {
 		url: "options.py",
 		data: {
 			serv: $("#serv").val(),
-			act: "configShow"
+			act: "configShow",
+			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {
@@ -246,7 +256,8 @@ function showUploadConfig() {
 		data: {
 			serv: $("#serv").val(),
 			act: "configShow",
-			configver: $('#configver').val()
+			configver: $('#configver').val(),
+			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {
@@ -268,6 +279,7 @@ function viewLogs() {
 			minut: $('#time_range_out_minut').val(),
 			hour1: $('#time_range_out_hour1').val(),
 			minut1: $('#time_range_out_minut1').val(),
+			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {
@@ -333,7 +345,7 @@ $( function() {
     });
 	var now = new Date(Date.now());
 	var date1 = now.getHours() * 60 - 1 * 60;
-	var date2 = now.getHours() * 60;
+	var date2 = now.getHours() * 60 + now.getMinutes();
 	$("#time-range").slider({	
 		range: true,
 		min: 0,
@@ -361,7 +373,7 @@ $( function() {
 	$('#time_range_out_hour').val(date1/60);
 	$('#time_range_out_minut').val('00');
 	$('#time_range_out_hour1').val(date2/60);
-	$('#time_range_out_minut1').val('00');
+	$('#time_range_out_minut1').val(now.getMinutes());
 		
 	$('#0').click(function() {
 		$('.auto-refresh-div').show("blind", "fast");
@@ -612,7 +624,8 @@ $( function() {
 				url: "options.py",
 				data: {
 					ip: request.term,
-					serv: $("#serv").val()
+					serv: $("#serv").val(),
+					token: $('#token').val()
 				},
 				success: function( data ) {
 					data = data.replace(/\s+/g,' ');
@@ -635,7 +648,8 @@ $( function() {
 				url: "options.py",
 				data: {
 					ip: request.term,
-					serv: $("#serv2").val()
+					serv: $("#serv2").val(),
+					token: $('#token').val()
 				},
 				success: function( data ) {
 					data = data.replace(/\s+/g,' ');
@@ -655,7 +669,8 @@ $( function() {
 				url: "options.py",
 				data: {
 					backend: request.term,
-					serv: $("#serv2").val()
+					serv: $("#serv2").val(),
+					token: $('#token').val()
 				},
 				success: function( data ) {
 					response(data.split('"'));
@@ -696,7 +711,8 @@ $( function() {
 				url: "options.py",
 				data: {
 					getcert:1,
-					serv: $("#serv").val()
+					serv: $("#serv").val(),
+					token: $('#token').val()
 				},
 				success: function( data ) {
 					data = data.replace(/\s+/g,' ');
@@ -775,7 +791,8 @@ $( function() {
 				url: "options.py",
 				data: {
 					getcert:1,
-					serv: $("#serv2").val()
+					serv: $("#serv2").val(),
+					token: $('#token').val()
 				},
 				success: function( data ) {
 					data = data.replace(/\s+/g,' ');
@@ -792,7 +809,8 @@ $( function() {
 				url: "options.py",
 				data: {
 					getcert:1,
-					serv: $("#serv3").val()
+					serv: $("#serv3").val(),
+					token: $('#token').val()
 				},
 				success: function( data ) {
 					data = data.replace(/\s+/g,' ');
@@ -809,7 +827,8 @@ $( function() {
 				url: "options.py",
 				data: {
 					showif:1,
-					serv: $("#master").val()
+					serv: $("#master").val(),
+					token: $('#token').val()
 				},
 				success: function( data ) {
 					data = data.replace(/\s+/g,' ');
@@ -826,7 +845,8 @@ $( function() {
 				url: "options.py",
 				data: {
 					showif:1,
-					serv: $("#master-add").val()
+					serv: $("#master-add").val(),
+					token: $('#token').val()
 				},
 				success: function( data ) {
 					data = data.replace(/\s+/g,' ');
@@ -844,7 +864,8 @@ $( function() {
 			data: {
 				serv: $('#serv4').val(),
 				ssl_cert: $('#ssl_cert').val(),
-				ssl_name: $('#ssl_name').val()
+				ssl_name: $('#ssl_name').val(),
+				token: $('#token').val()
 			},
 			type: "GET",
 			success: function( data ) {
@@ -868,7 +889,8 @@ $( function() {
 			url: "options.py",
 			data: {
 				serv: $('#serv5').val(),
-				getcert: "viewcert"
+				getcert: "viewcert",
+				token: $('#token').val()
 			},
 			type: "GET",
 			success: function( data ) {
