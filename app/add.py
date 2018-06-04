@@ -19,6 +19,7 @@ try:
 	user_id = cookie.get('uuid')
 	user = sql.get_user_name_by_uuid(user_id.value)
 	servers = sql.get_dick_permit()
+	token = sql.get_token(user_id.value)
 except:
 	pass
 
@@ -27,7 +28,8 @@ output_from_parsed_template = template.render(title = "Add",
 												user = user,
 												selects = servers,
 												add = form.getvalue('add'),
-												conf_add = form.getvalue('conf'))										
+												conf_add = form.getvalue('conf'),
+												token = token)										
 print(output_from_parsed_template)
 
 hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
