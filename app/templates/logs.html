@@ -66,8 +66,14 @@
 <script>
 	{% if onclick == 'showApacheLog()' %}
 		window.onload = showApacheLog()
+		$('#serv').on('selectmenuchange',function() {
+			showApacheLog();
+		});
 	{% else %}
 		window.onload = showLog()
+		$('#serv').on('selectmenuchange',function() {
+			showLog();
+		});
 	{% endif %}	
 </script>
 

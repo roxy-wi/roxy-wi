@@ -42,7 +42,10 @@
 			});
 		return false;
 		});		
-	}	
+	}
+	$('#serv').on('selectmenuchange',function() {
+		showStats();
+	});	
 </script>
 <link href="/inc/style.css" rel="stylesheet">
 {% endblock %}
