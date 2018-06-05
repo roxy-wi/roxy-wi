@@ -68,6 +68,11 @@ For Apache do virtualhost with cgi-bin. Like this:
         </FilesMatch>
 </VirtualHost>
 ```
+# Doker
+```
+docker service create --detach=false --name haproxy-wi --mount type=volume,src=haproxy-wi,dst=/var/www/haproxy-wi/app -p 8080:80 aidaho/haproxy-wi
+```
+
 # Database support
 
 Default Haproxy-WI use Sqlite, if you want use MySQL enable in config, and create database:
