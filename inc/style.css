@@ -30,8 +30,8 @@ iframe {
 	width: 33%;
 }
 pre {
-	padding-left: 25px;
-	padding-top: 20px;
+	padding-left: 15px;
+	//padding-top: 20px;
 }
 
 .icon {
@@ -312,6 +312,10 @@ pre {
 }
 .first-collumn {
 	padding-left: 15px;
+	width: 10%;
+}
+.second-collumn {
+	width: 30%;
 }
 .ro {
   border: none;

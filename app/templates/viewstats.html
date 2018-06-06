@@ -22,6 +22,7 @@
 	}
 	async function wait() {
 		$('form').append('<input type="hidden" name="serv" value='+$("#serv").val()+'>');
+		$('form').append('<input type="hidden" name="token" value='+$('#token').val()+'>');
 		$( "input[type=submit], button" ).button();
 		$('li').css('margin-top', '0');
 		$('table.tbl th.pxname').css('background-color', '#5d9ceb');

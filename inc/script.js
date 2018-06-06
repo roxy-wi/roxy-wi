@@ -673,7 +673,7 @@ $( function() {
 					token: $('#token').val()
 				},
 				success: function( data ) {
-					response(data.split('"'));
+					response(data.split('<br>'));
 				}						
 			} );
 		},

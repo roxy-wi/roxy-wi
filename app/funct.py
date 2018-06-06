@@ -457,3 +457,24 @@ def ssh_command(serv, commands, **kwargs):
 
 def escape_html(text):
 	return cgi.escape(text, quote=True)
+	
+def subprocess_execute(cmd):
+	import subprocess 
+	p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
+	stdout, stderr = p.communicate()
+	output = stdout.splitlines()
+	
+	return output, stderr
+
+def show_backends(serv):
+	import json
+	cmd='echo "show backend" |nc %s 1999' % serv 
+	output, stderr = subprocess_execute(cmd)
+	
+	for line in output:
+		if "#" in  line or "stats" in line:
+			continue
+		if line != "":
+			back = json.dumps(line).split("\"")
+			print(back[1]+"<br>")
+		

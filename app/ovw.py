@@ -36,18 +36,19 @@ def get_overview():
 
 def get_overviewServers():
 	listhap = sql.get_dick_permit()
-	commands = [ "cat " + haproxy_config_path + " |grep -E '^listen|^backend|^frontend' |grep -v stats |wc -l",  
-				"uname -smor", 
+	commands = [ "uname -smor", 
 				"haproxy -v |head -1", 
 				status_command + "|grep Active | sed 's/^[ \t]*//'" ]
 	commands1 =  [ "top -u haproxy -b -n 1" ]
 	for server in sorted(listhap):
 		print('<tr><td class="overviewTr first-collumn"><a name="'+server[1]+'"></a><h3 title="IP ' + server[2] + '">' + server[1] + ':</h3></td>')
-		print('<td class="overviewTd"><span>Total listen/frontend/backend:</span><pre>')
+		print('<td class="overviewTd"><pre>')
 		funct.ssh_command(server[2], commands)
 		print('</pre></td><td><pre>')
 		funct.ssh_command(server[2], commands1)
-		print('</pre></td></tr>')
+		print('</td><td style="padding-top: 10px; padding-bottom: 10px;">')
+		funct.show_backends(server[2])
+		print('</pre></td><td></td></tr>')
 	
 def get_map(serv):
 	from datetime import datetime
@@ -164,7 +165,7 @@ def show_compare_configs(serv):
 	
 	os.chdir(hap_configs_dir)
 	
-	for files in sorted(glob.glob('*.cfg')):
+	for files in sorted(glob.glob('*.cfg'), reverse=True):
 		ip = files.split("-")
 		if serv == ip[0]:
 			if left == files:
@@ -178,7 +179,7 @@ def show_compare_configs(serv):
 	print('<select autofocus required name="right" id="right">')
 	print('<option disabled selected>Choose version</option>')
 	
-	for files in sorted(glob.glob('*.cfg')):
+	for files in sorted(glob.glob('*.cfg'), reverse=True):
 		ip = files.split("-")
 		if serv == ip[0]:
 			if right == files:

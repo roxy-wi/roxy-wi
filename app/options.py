@@ -3,8 +3,6 @@
 import html
 import cgi
 import os, sys
-import json
-import subprocess 
 import funct
 import sql
 import ovw
@@ -14,7 +12,7 @@ req = form.getvalue('req')
 serv = form.getvalue('serv')
 act = form.getvalue('act')
 backend = form.getvalue('backend')	
-
+	
 print('Content-type: text/html\n')
 
 if form.getvalue('token') is None:
@@ -73,24 +71,8 @@ if serv and form.getvalue('ssl_cert'):
 	funct.logging(serv, "add.py#ssl upload new ssl cert %s" % name)
 	
 if backend is not None:
+	funct.show_backends(serv)
 	
-	cmd='echo "show backend" |nc %s 1999' % serv 
-	p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
-	stdout, stderr = p.communicate()
-	output = stdout.splitlines()
-	
-	for line in output:
-		if "#" in  line or "stats" in line:
-			continue
-		if backend != "1":
-			if backend in line:
-				print(json.dumps(line))
-				continue
-		if backend == "1":
-			print(json.dumps(line))
-			continue
-
-
 if form.getvalue('ip') is not None and serv is not None:
 	commands = [ "sudo ip a |grep inet |egrep -v  '::1' |awk '{ print $2  }' |awk -F'/' '{ print $1  }'" ]
 	funct.ssh_command(serv, commands, ip="1")
@@ -106,6 +88,7 @@ if form.getvalue('action_hap') is not None and serv is not None:
 	if funct.check_haproxy_config(serv):
 		commands = [ "sudo systemctl %s haproxy" % action ]
 		funct.ssh_command(serv, commands)		
+		print("HAproxy was %s" % action)
 	else:
 		print("Bad config, check please")
 		
@@ -209,9 +192,7 @@ if serv is not None and form.getvalue('rows1') is not None:
 		grep = ''
 	
 	cmd="cat %s| awk -F\"/|:\" '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s  %s %s" % ('/var/log/httpd/'+serv, date, date1, rows, grep_act, grep)
-	p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
-	stdout, stderr = p.communicate()
-	output = stdout.splitlines()
+	output, stderr = funct.subprocess_execute(cmd)
 
 	funct.show_log(output)
 	print(stderr)
@@ -235,9 +216,7 @@ if form.getvalue('viewlogs') is not None:
 		grep = ''
 
 	cmd="cat %s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s  %s %s" % (log_path + viewlog, date, date1, rows, grep_act, grep)
-	p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
-	stdout, stderr = p.communicate()
-	output = stdout.splitlines()
+	output, stderr = funct.subprocess_execute(cmd)
 
 	funct.show_log(output)
 	print(stderr)
