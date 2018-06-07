@@ -1,7 +1,7 @@
 # Haproxy web interface
 Web interface(user-frendly web GUI) for managing Haproxy servers. Leave your [feedback](https://github.com/Aidaho12/haproxy-wi/issues)
 
-[![Donate](https://img.shields.io/badge/PayPal-Donate-brightgreen.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=5Y5Q87WA9Y6DU)
+[![Donate](https://img.shields.io/badge/PayPal-Donate-brightgreen.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5XVQTMKQS57NE&lc=US&Z3JncnB0=)
 Support me on [patreon](https://www.patreon.com/haproxy_wi/overview)
 
 ![alt text](image/haproxy-wi-config-show.jpeg "Show config page")
