@@ -251,18 +251,27 @@ function showConfig() {
 	} );
 }
 function showUploadConfig() {
+	var view = $('#view').val();
+	if(view != "1") {
+		view = ""
+	}
 	$.ajax( {
 		url: "options.py",
 		data: {
 			serv: $("#serv").val(),
 			act: "configShow",
 			configver: $('#configver').val(),
-			token: $('#token').val()
+			token: $('#token').val(),
+			view: view 
 		},
 		type: "GET",
 		success: function( data ) {
 			$("#ajax").html(data);
-			window.history.pushState("Show config", "Show config", cur_url[0]+"?serv="+$("#serv").val()+"&open=open&configver="+$('#configver').val());
+			if(view == "1") {
+				window.history.pushState("Show config", "Show config", cur_url[0]+"?serv="+$("#serv").val()+"&open=open&configver="+$('#configver').val()+"&view="+$('#view').val());
+			} else {
+				window.history.pushState("Show config", "Show config", cur_url[0]+"?serv="+$("#serv").val()+"&open=open&configver="+$('#configver').val());
+			}
 			var urlConfigShowJs = '/inc/configshow.js';
 			$.getScript(urlConfigShowJs);
 		}					

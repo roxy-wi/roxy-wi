@@ -279,8 +279,9 @@ if serv is not None and act == "configShow":
 		print('<input type="hidden" value="%s" name="serv">' % serv)
 		print('<input type="hidden" value="%s" name="configver">' % form.getvalue('configver'))
 		print('<input type="hidden" value="1" name="config">')
-		funct.get_button("Just save", value="save")
-		funct.get_button("Upload and restart")
+		if form.getvalue('view') is None:
+			funct.get_button("Just save", value="save")
+			funct.get_button("Upload and restart")
 		print('</form></center>')
 		
 if form.getvalue('master'):

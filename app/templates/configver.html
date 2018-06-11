@@ -39,11 +39,16 @@
 					<select autofocus required name="configver" id="configver">
 						<option disabled selected>Choose version</option>
 							{% for file in return_files %}
-								<option {{file}}>{{file}}</option>
+								{% if file == configver %}
+									<option {{file}} selected>{{file}}</option>
+								{% else %}
+									<option {{file}}>{{file}}</option>
+								{% endif %}
 							{% endfor %}
 					</select>
 					<input type="hidden" value="{{serv}}" name="serv">
 					<input type="hidden" value="open" name="open">
+					<input type="hidden" value="{{ view }}" id="view">
 					<a class="ui-button ui-widget ui-corner-all" id="show" title="Enter" onclick="{{ onclick }}">Select</a>
 				</p>
 			</form> 
@@ -66,5 +71,10 @@
 			<script>window.history.pushState("Map", "Map", cur_url[0])</script>
 		{% endif %}
 	{% endif %}
-	</center>
+</center>
+{% if view %}
+	<script> 
+		showUploadConfig()
+	</script> 
+{% endif %}
 {% endblock %}

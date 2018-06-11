@@ -14,6 +14,7 @@ funct.page_for_admin(level = 2)
 
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
+view = form.getvalue('view')
 configver = form.getvalue('configver')
 hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 config_read = ""
@@ -77,5 +78,6 @@ output_from_parsed_template = template.render(h2 = 1, title = "Old Versions HAPr
 													onclick = "showUploadConfig()",
 													error = error,
 													note = 1,
-													token = token)
+													token = token,
+													view = view)
 print(output_from_parsed_template)
