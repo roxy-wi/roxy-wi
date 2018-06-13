@@ -28,7 +28,7 @@
 				<input type="checkbox" id="select_all"><br />
 				{% for file in return_files %}
 					<label for="{{file}}"> {{file}} </label><input type="checkbox" value="{{file}}" name="{{file}}" id="{{file}}">
-					<a href="/app/configver.py?serv={{serv}}&open=open&configver={{file}}&view=1" class="ui-button ui-widget ui-corner-all" target="_blanck" title="View config" style="margin-top: -6px;">View</a><br />
+					<a href="/app/configver.py?serv={{serv}}&open=open&configver={{file}}&view=1" class="ui-button ui-widget ui-corner-all" target="_blanck" title="View this version of the config" style="margin-top: -6px;">View</a><br />
 				{% endfor %}
 				<input type="hidden" value="{{serv}}" name="serv">
 				<input type="hidden" value="open" name="open">

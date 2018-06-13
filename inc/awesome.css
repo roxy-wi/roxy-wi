@@ -101,6 +101,13 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f007";
 }
+.patreon::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f004";
+	color: red;
+	padding-left: 3px;
+}
 .update-row::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";
