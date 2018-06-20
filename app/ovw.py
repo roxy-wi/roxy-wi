@@ -38,15 +38,15 @@ def get_overviewServers():
 	listhap = sql.get_dick_permit()
 	commands = [ "uname -smor", 
 				"haproxy -v |head -1", 
-				status_command + "|grep Active | sed 's/^[ \t]*//'" ]
+				status_command + "|grep Active |awk -F':' '{print $2\":\"$3\":\"$4}' | sed 's/^[ \t]*//'" ]
 	commands1 =  [ "top -u haproxy -b -n 1" ]
 	for server in sorted(listhap):
 		print('<tr><td class="overviewTr first-collumn"><a name="'+server[1]+'"></a><h3 title="IP ' + server[2] + '">' + server[1] + ':</h3></td>')
-		print('<td class="overviewTd"><pre>')
+		print('<td class="overviewTd"><pre style="font-size: 12px;">')
 		funct.ssh_command(server[2], commands)
-		print('</pre></td><td><pre>')
+		print('</pre></td><td><pre style="font-size: 12px;">')
 		funct.ssh_command(server[2], commands1)
-		print('</td><td style="padding-top: 10px; padding-bottom: 10px;">')
+		print('</td><td style="padding: 10px;font-size: 13px;">')
 		funct.show_backends(server[2])
 		print('</pre></td><td></td></tr>')
 	
