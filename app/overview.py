@@ -7,6 +7,9 @@ env = Environment(loader=FileSystemLoader('templates/'))
 template = env.get_template('ovw.html')
 	
 print('Content-type: text/html\n')
+if create_db.check_db():
+	if create_db.create_table():	
+		create_db.update_all()
 create_db.update_all_silent()
 funct.check_login()
 

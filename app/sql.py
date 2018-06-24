@@ -110,9 +110,9 @@ def update_group(name, descript, id):
 	cur.close()    
 	con.close()
 
-def add_server(hostname, ip, group, typeip, enable, master):
+def add_server(hostname, ip, group, typeip, enable, master, cred):
 	con, cur = create_db.get_cur()
-	sql = """INSERT INTO servers (hostname, ip, groups, type_ip, enable, master) VALUES ('%s', '%s', '%s', '%s', '%s', '%s')""" % (hostname, ip, group, typeip, enable, master)
+	sql = """INSERT INTO servers (hostname, ip, groups, type_ip, enable, master, cred) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s')""" % (hostname, ip, group, typeip, enable, master, cred)
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -139,7 +139,7 @@ def delete_server(id):
 	cur.close()    
 	con.close() 		
 
-def update_server(hostname, ip, group, typeip, enable, master, id):
+def update_server(hostname, ip, group, typeip, enable, master, id, cred):
 	con, cur = create_db.get_cur()
 	sql = """update servers set 
 			hostname = '%s',
@@ -147,8 +147,9 @@ def update_server(hostname, ip, group, typeip, enable, master, id):
 			groups = '%s',
 			type_ip = '%s',
 			enable = '%s',
-			master = '%s'
-			where id = '%s'""" % (hostname, ip, group, typeip, enable, master, id)
+			master = '%s',
+			cred = '%s'
+			where id = '%s'""" % (hostname, ip, group, typeip, enable, master, cred, id)
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -445,53 +446,61 @@ def is_master(ip, **kwargs):
 		return cur.fetchall()
 	cur.close()    
 	con.close() 
-
-def ssh_enable():
+	
+def select_ssh(**kwargs):
 	con, cur = create_db.get_cur()
-	sql = """select enable from cred """
+	sql = """select * from cred """
+	if kwargs.get("name") is not None:
+		sql = """select * from cred where name = '%s' """ % kwargs.get("name")
+	if kwargs.get("id") is not None:
+		sql = """select * from cred where id = '%s' """ % kwargs.get("id")
+	if kwargs.get("serv") is not None:
+		sql = """select serv.cred, cred.* from servers as serv left join cred on cred.id = serv.cred where serv.ip = '%s' """ % kwargs.get("serv")
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
 		print('<span class="alert alert-danger" id="error">An error occurred: ' + e + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 	else:
-		for enable in cur.fetchone():
-			return enable
-	cur.close()    
-	con.close() 
-
-def select_ssh_username():
-	con, cur = create_db.get_cur()
-	sql = """select username from cred """
-	try:    
-		cur.execute(sql)
-	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
-	else:
-		for username in cur.fetchone():
-			return username
+		return cur.fetchall()
 	cur.close()    
 	con.close() 
 	
-def select_ssh_password():
+def insert_new_ssh(name, enable, username, password):
 	con, cur = create_db.get_cur()
-	sql = """select password from cred """
+	sql = """insert into cred(name, enable, username, password) values ('%s', '%s', '%s', '%s') """ % (name, enable, username, password)
 	try:    
 		cur.execute(sql)
+		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
-	else:
-		for password in cur.fetchone():
-			return password
+		print('<span class="alert alert-danger" id="error">An error occurred: %s <a title="Close" id="errorMess"><b>X</b></a></span>' % e)
+		con.rollback()
+	else: 
+		return True
+	cur.close()    
+	con.close() 
+	
+def delete_ssh(id):
+	con, cur = create_db.get_cur()
+	sql = """ delete from cred where id = %s """ % (id)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		con.rollback()
+	else: 
+		return True
 	cur.close()    
 	con.close() 
 
-def update_ssh(enable, username, password):
+def update_ssh(id, name, enable, username, password):
 	con, cur = create_db.get_cur()
 	sql = """ 
 			update cred set 
+			name = '%s',
 			enable = '%s',
 			username = '%s',
-			password = '%s' """ % (enable, username, password)
+			password = '%s' where id = '%s' """ % (name, enable, username, password, id)
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -500,6 +509,16 @@ def update_ssh(enable, username, password):
 		con.rollback()
 	cur.close()    
 	con.close()
+	
+def show_update_ssh(name):
+	from jinja2 import Environment, FileSystemLoader
+	env = Environment(loader=FileSystemLoader('templates/ajax'))
+	template = env.get_template('/new_ssh.html')
+
+	print('Content-type: text/html\n')
+
+	output_from_parsed_template = template.render(sshs = select_ssh(name=name))
+	print(output_from_parsed_template)
 
 def show_update_user(user):
 	from jinja2 import Environment, FileSystemLoader
@@ -523,7 +542,8 @@ def show_update_server(server):
 	output_from_parsed_template = template.render(groups = select_groups(),
 													servers = select_servers(server=server),
 													roles = select_roles(),
-													masters = select_servers(get_master_servers=1))
+													masters = select_servers(get_master_servers=1),
+													sshs = select_ssh())
 	print(output_from_parsed_template)
 
 def show_update_group(group):
@@ -608,12 +628,13 @@ if form.getvalue('newserver') is not None:
 	typeip = form.getvalue('typeip')
 	enable = form.getvalue('enable')
 	master = form.getvalue('slave')
-	if ip is None or group is None:
+	cred = form.getvalue('cred')
+	if ip is None or group is None or cred is None:
 		print('Content-type: text/html\n')
 		print(error_mess)
 	else:	
 		print('Content-type: text/html\n')
-		if add_server(hostname, ip, group, typeip, enable, master):
+		if add_server(hostname, ip, group, typeip, enable, master, cred):
 			show_update_server(ip)
 		
 if form.getvalue('serverdel') is not None:
@@ -653,17 +674,20 @@ if form.getvalue('updateserver') is not None:
 	enable = form.getvalue('enable')		
 	master = form.getvalue('slave')		
 	id = form.getvalue('id')	
+	cred = form.getvalue('cred')	
 	if name is None or ip is None:
 		print('Content-type: text/html\n')
 		print(error_mess)
 	else:		
 		print('Content-type: text/html\n')
-		if funct.ssh_connect(ip, check=1):
-			update_server(name, ip, group, typeip, enable, master, id)
-		else:
-			print('<span class="alert alert-danger" id="error"><a title="Close" id="errorMess"><b>X</b></a></span>')
+		#if funct.ssh_connect(ip, check=1):
+		update_server(name, ip, group, typeip, enable, master, id, cred)
+		#else:
+		#	print('<span class="alert alert-danger" id="error"><a title="Close" id="errorMess"><b>X</b></a></span>')
 			
 if form.getvalue('updatessh'):
+	id = form.getvalue('id')
+	name = form.getvalue('name')
 	enable = form.getvalue('ssh_enable')	
 	username = form.getvalue('ssh_user')		
 	password = form.getvalue('ssh_pass')
@@ -671,5 +695,49 @@ if form.getvalue('updatessh'):
 		print('Content-type: text/html\n')
 		print(error_mess)
 	else:
+		import funct
 		print('Content-type: text/html\n')
-		update_ssh(enable, username, password)
+		fullpath = funct.get_config_var('main', 'fullpath')
+		
+		for sshs in select_ssh(id=id):
+			ssh_enable = sshs[2]
+			ssh_key_name = fullpath+'/keys/%s.pem' % sshs[1]
+			new_ssh_key_name = fullpath+'/keys/%s.pem' % name
+					
+		if ssh_enable == 1:
+			cmd = 'mv %s %s' % (ssh_key_name, new_ssh_key_name)
+			try:
+				funct.subprocess_execute(cmd)
+			except:
+				pass
+		update_ssh(id, name, enable, username, password)
+		
+if form.getvalue('new_ssh'):
+	name = form.getvalue('new_ssh')
+	enable = form.getvalue('ssh_enable')	
+	username = form.getvalue('ssh_user')		
+	password = form.getvalue('ssh_pass')
+	if username is None:
+		print('Content-type: text/html\n')
+		print(error_mess)
+	else:
+		if insert_new_ssh(name, enable, username, password):
+			show_update_ssh(name)
+			
+if form.getvalue('sshdel') is not None:
+	import funct
+	print('Content-type: text/html\n')
+	fullpath = funct.get_config_var('main', 'fullpath')
+	
+	for sshs in select_ssh(id=form.getvalue('sshdel')):
+		ssh_enable = sshs[2]
+		ssh_key_name = fullpath+'/keys/%s.pem' % sshs[1]
+				
+	if ssh_enable == 1:
+		cmd = 'rm -f %s' % ssh_key_name
+		try:
+			funct.subprocess_execute(cmd)
+		except:
+			pass
+	if delete_ssh(form.getvalue('sshdel')):
+		print("Ok")

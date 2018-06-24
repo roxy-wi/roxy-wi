@@ -27,7 +27,9 @@ if form.getvalue('getcert') is not None and serv is not None:
 		print('<div class="alert alert-danger" style="margin:0">Can not connect to the server</div>')
 		
 if form.getvalue('ssh_cert'):
-	ssh_keys = funct.get_config_var('ssh', 'ssh_keys')
+	fullpath = funct.get_config_var('main', 'fullpath')
+	name = form.getvalue('name')
+	ssh_keys = fullpath+'/keys/'+name+'.pem'
 	
 	try:
 		with open(ssh_keys, "w") as conf:

@@ -159,7 +159,7 @@
 				<td>Enable</td>
 				<td><span title="Vitrual IP, something like VRRP">Virt(?)</span></td>
 				<td><span title="Actions with master config will automatically apply on slave">Slave for (?)</span></td>
-				<td></td>
+				<td>Credentials</td>
 				<td></td>
 			</tr>
 						
@@ -199,12 +199,24 @@
 				</td>
 				<td>
 					<select id="slavefor-{{server.0}}">
-						<option value="0" selected>Not slave</option>
+						<option disabled selected>Not slave</option>
 						{% for master in masters %}
 							{% if master.0 == server.6 %}
 								<option value="{{master.0}}" selected>{{master.1}}</option>
 							{% else %}
 								<option value="{{master.0}}">{{master.1}}</option>
+							{% endif %}
+						{% endfor %}
+					</select>
+				</td>
+				<td>
+					<select id="credentials-{{server.0}}">
+						<option disabled selected>Choose credentials</option>
+						{% for ssh in sshs %}
+							{% if ssh.0 == server.7	%}
+								<option value="{{ssh.0}}" selected>{{ssh.1}}</option>
+							{% else %}
+								<option value="{{ssh.0}}">{{ssh.1}}</option>
 							{% endif %}
 						{% endfor %}
 					</select>
@@ -225,6 +237,7 @@
 				<td>Enable</td>
 				<td>Virt</td>
 				<td title="Actions with master config will automatically apply on slave">Slave for</td>
+				<td>Credentials</td>
 				<td></td>
 			</tr>
 			<tr>
@@ -249,10 +262,18 @@
 					<label for="typeip"></label><input type="checkbox" id="typeip">
 				</td>
 				<td>
-					<select id="slavefor" value="0" selected>
-						<option>Not slave</option>
+					<select id="slavefor">
+						<option disabled selected>Not slave</option>
 						{% for master in masters %}
 							<option value="{{master.0}}">{{master.1}}</option>
+						{% endfor %}
+					</select>
+				</td>
+				<td>
+					<select id="credentials">
+						<option disabled selected>Choose credentials</option>
+						{% for ssh in sshs %}
+							<option value="{{ssh.0}}">{{ssh.1}}</option>
 						{% endfor %}
 					</select>
 				</td>
@@ -281,27 +302,63 @@
 		</table>
 	</div>
 	<div id="ssh">
-		<table id="ssh_enable_table">
+		<table id="ssh_enable_table" class="overview">
 			<tr class="overviewHead" style="width: 50%;">
-				<td class="padding10 first-collumn" style="width: 25%;">SSH key</td>
+				<td class="padding10 first-collumn" style="width: 15%;">
+					<span title="It's just name alias. This alias will be userd in 'Servers' page for choose credentials">Name(?)</span>
+				</td>
+				<td class="padding10 first-collumn" style="width: 25%;">
+					<span title="If enabled, the key will be used, if turned off - the password. Do not forget to download the keys to all servers or install the sudo without a password">SSH key(?)</span>
+				</td>
 				<td>
 					<span title="Enter SSH user name. If SSH key disabled, enter password for ssh user">Credentials(?)</span>
 				</td>
 				<td></td>
 			</tr>
-			<tr style="width: 50%;">
-				<td class="first-collumn" valign="top" style="padding-top: 15px;">
-					{% if ssh_enable == 1 %}
-						<label for="ssh_enable">Enable SSH key</label><input type="checkbox" id="ssh_enable" checked>
-					{% else %}
-						<label for="ssh_enable">Enable SSH key</label><input type="checkbox" id="ssh_enable">
-					{% endif %}
-					<div class="tooltip tooltipTop">
-						<b>Note:</b> If enabled, the key will be used, if turned off - the password.
-						<br>Do not forget to download the keys to all servers or install the sudo without a password
+			{% for ssh in sshs %}
+				<tr style="width: 50%;" id="ssh-table-{{ssh.0}}">
+					<td class="first-collumn">
+						<input type="text" id="ssh_name-{{ssh.0}}" class="form-control" value="{{ssh.1}}" style="margin-bottom: 23px;">	
+					</td>
+					<td class="first-collumn" valign="top" style="padding-top: 15px;">
+						{% if ssh.2 == 1 %}
+							<label for="ssh_enable-{{ssh.0}}">Enable SSH key</label><input type="checkbox" id="ssh_enable-{{ssh.0}}" checked>
+						{% else %}
+							<label for="ssh_enable-{{ssh.0}}">Enable SSH key</label><input type="checkbox" id="ssh_enable-{{ssh.0}}">
+						{% endif %}
+					</td>
+					<td style="padding-top: 15px;">
+						<p>
+							<input type="text" id="ssh_user-{{ssh.0}}" class="form-control" value="{{ssh.3}}">		
+						</p>
+						{% if ssh.2 == 1 %}
+							<input type="password" id="ssh_pass-{{ssh.0}}" class="form-control" value="{{ssh.4}}" style="display: none;">
+						{% else %}
+							<input type="password" id="ssh_pass-{{ssh.0}}" class="form-control" value="{{ssh.4}}">
+						{% endif %}
 						<br>
-						<br>
-					</div>
+					</td>
+					<td>
+						<a class="delete" onclick="confirmDeleteSsh({{ssh.0}})"  style="cursor: pointer;"></a>
+					</td>
+				</tr>
+			{% endfor %}
+		</table>
+		<br /><span class="add-button" title="Add ssh" id="add-ssh-button">+ Add</span>
+		<br /><br />
+		<table class="overview" id="ssh-add-table" style="display: none;">
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn" style="width: 15%;">Name</td>
+				<td class="padding10 first-collumn" style="width: 25%;">SSH key</td>
+				<td>Credentials</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td class="padding10 first-collumn">
+					<input type="text" name="new-ssh-add" id="new-ssh-add" class="form-control">
+				</td>
+				<td>
+					<label for="new-ssh_enable">Enable SSH key</label><input type="checkbox" id="new-ssh_enable" checked>
 				</td>
 				<td style="padding-top: 15px;">
 					<p>
@@ -310,7 +367,9 @@
 						<input type="password" id="ssh_pass" class="form-control" value="{{ssh_pass}}" style="display: none;">
 					<br>
 				</td>
-				<td></td>
+				<td>
+					<a class="add-admin"  id="add-ssh" style="cursor: pointer;"></a>
+				</td>
 			</tr>
 		</table>
 		<table id="ssh_key">
@@ -323,7 +382,12 @@
 			</tr>
 			<tr style="width: 50%;">
 				<td class="first-collumn" valign="top" style="padding-top: 15px;">
-					<b>Note:</b> Paste pem file content here
+					<select id="ssh-key-name">
+						<option disabled selected>Choose credentials</option>
+						{% for ssh in sshs %}
+							<option value={{ssh.1}}>{{ssh.1}}</option>	
+						{% endfor %}
+					</select>
 				</td>
 				<td style="padding-top: 15px;">
 					<textarea id="ssh_cert" cols="50" rows="5"></textarea><br /><br />

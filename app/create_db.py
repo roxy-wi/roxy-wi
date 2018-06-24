@@ -229,7 +229,7 @@ def update_db_v_2_4(**kwargs):
 	except sqltool.Error as e:
 		print(kwargs.get('silent'))
 		if kwargs.get('silent') != 1:
-			if e.args[0] == 'duplicate column name: user_id':
+			if e.args[0] == 'duplicate column name: user_id' or e == "1060 (42S21): Duplicate column name 'user_id' ":
 				print('Updating... go to version 2.5.3')
 			else:
 				print("An error occurred:", e)
@@ -284,7 +284,7 @@ def update_db_v_2_5_6(**kwargs):
 		con.commit()
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
-			if e.args[0] == 'duplicate column name: exp' or e == "1060 (42S21): Duplicate column name 'exp' ":
+			if e.args[0] == 'duplicate column name: exp' or e == " 1060 (42S21): Duplicate column name 'exp' ":
 				print('Updating... go to version 2.5.6.1')
 			else:
 				print("An error occurred:", e)
@@ -311,7 +311,7 @@ def update_db_v_2_5_6_1(**kwargs):
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
 			if e.args[0] == 'duplicate column name: token' or e == "1060 (42S21): Duplicate column name 'token' ":
-				print('Already updated. No run more. Thx =^.^=')
+				print('Updating... go to version 2.6')
 			else:
 				print("An error occurred:", e)
 			return False
@@ -321,7 +321,79 @@ def update_db_v_2_5_6_1(**kwargs):
 	cur.close() 
 	con.close()
 	
-def update_all():
+def update_db_v_2_6(**kwargs):
+	con, cur = get_cur()
+	sql = """ select id from cred limit 1 """
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		if mysql_enable == '0':
+			sql = """ CREATE TABLE IF NOT EXISTS `cred_id` (
+					`id` integer primary key autoincrement,
+					`name`	VARCHAR ( 64 ) UNIQUE,
+					`enable`	INTEGER NOT NULL DEFAULT 1,
+					`username`	VARCHAR ( 64 ) NOT NULL,
+					`password`	VARCHAR ( 64 ) NOT NULL
+				); 
+				INSERT INTO cred_id (enable, username, password) select enable, username, password from cred;
+				drop table cred;
+				ALTER TABLE cred_id RENAME to cred;
+				"""
+			try:    
+				cur.executescript(sql)
+			except sqltool.Error as e:
+				if kwargs.get('silent') != 1:
+					if e.args[0] == 'duplicate column name: name' or e == "1060 (42S21): Duplicate column name 'name' ":
+						pass
+					else:
+						print("An error occurred:", e)
+				return False
+			else:
+				print("DB was update to 2.6<br />")
+				return True
+		else:
+			sql = [ "CREATE TABLE IF NOT EXISTS cred_id(`id` integer primary key AUTO_INCREMENT, `name` VARCHAR ( 64 ) UNIQUE, `enable` INTEGER NOT NULL DEFAULT 1, `username` VARCHAR ( 64 ) NOT NULL, `password`	VARCHAR ( 64 ) NOT NULL ); ", 
+					"INSERT INTO cred_id (enable, username, password) select enable, username, password from cred;",
+					"drop table cred;",
+					"ALTER TABLE cred_id RENAME to cred;" ]
+			try:    
+				for i in sql:
+					cur.execute(i)
+			except sqltool.Error as e:
+				if kwargs.get('silent') != 1:
+					if e.args[0] == 'duplicate column name: id' or e == "1060 (42S21): Duplicate column name 'id' ":
+						print('DB was updated. No more run')
+					else:
+						print("An error occurred:", e)
+				return False
+			else:
+				pass
+				return True
+			cur.close() 
+			con.close()
+	
+def update_db_v_2_61(**kwargs):
+	con, cur = get_cur()
+	sql = """
+	ALTER TABLE `servers` ADD COLUMN cred INTEGER NOT NULL DEFAULT 1;
+	"""
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: cred' or e == "1060 (42S21): Duplicate column name 'cred' ":
+				print('DB was updated. No more run')
+			else:
+				print("An error occurred:", e)
+		return False
+	else:
+		print("DB was update to 2.6<br />")
+		return True
+	cur.close() 
+	con.close()
+	
+def update_all():	
 	update_db_v_2_0_1()
 	update_db_v_2_0_1_1()
 	update_db_v_2_0_5()
@@ -329,6 +401,8 @@ def update_all():
 	update_db_v_2_5_3()
 	update_db_v_2_5_6()
 	update_db_v_2_5_6_1()
+	update_db_v_2_6()
+	update_db_v_2_61()
 	
 def update_all_silent():
 	update_db_v_2_0_1(silent=1)
@@ -338,4 +412,6 @@ def update_all_silent():
 	update_db_v_2_5_3(silent=1)
 	update_db_v_2_5_6(silent=1)
 	update_db_v_2_5_6_1(silent=1)
+	update_db_v_2_6(silent=1)
+	update_db_v_2_61(silent=1)
 		

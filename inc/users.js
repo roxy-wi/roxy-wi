@@ -184,7 +184,8 @@ $( function() {
 				newservergroup: $('#new-server-group-add').val(),
 				typeip: typeip,
 				enable: enable,
-				slave: $('#slavefor option:selected' ).val()
+				slave: $('#slavefor' ).val(),
+				cred: $('#credentials').val(),
 			},
 			type: "GET",
 			success: function( data ) {
@@ -198,6 +199,40 @@ $( function() {
 					$(".newserver").addClass( "update", 1000, callbackServer );		
 					$.getScript(url);	
 					$.getScript(awesome);					
+				}
+			}					
+		} );
+	});
+	
+	$('#add-ssh').click(function() {
+		$('#error').remove();	
+		$('.alert-danger').remove();	
+		var ssh_enable = 0;
+		if ($('#new-ssh_enable').is(':checked')) {
+			ssh_enable = '1';
+		}
+		$.ajax( {
+			url: "sql.py",
+			data: {
+				new_ssh: $('#new-ssh-add').val(),
+				ssh_user: $('#ssh_user').val(),
+				ssh_pass: $('#ssh_pass').val(),
+				ssh_enable: ssh_enable,
+			},
+			type: "GET",
+			success: function( data ) {
+				if (data.indexOf('error') != '-1') {
+					$("#ajax-ssh").append(data);
+					$.getScript(users);
+				} else {
+					var getId = new RegExp('[0-9]+');
+					var id = data.match(getId);
+					$("#ssh_enable_table").append(data);
+					$( ".newgroup" ).addClass( "update", 1000, callbackGroup );
+					$('select:regex(id, credentials)').append('<option value='+id+'>'+$('#new-ssh-add').val()+'</option>').selectmenu("refresh");
+					$('select:regex(id, ssh-key-name)').append('<option value='+$('#new-ssh-add').val()+'>'+$('#new-ssh-add').val()+'</option>').selectmenu("refresh");
+					$.getScript(awesome);
+					$.getScript(url);	
 				}
 			}					
 		} );
@@ -234,6 +269,11 @@ $( function() {
 			$('#server-add-table').show("blind", "fast");
 		} 
 	});
+	$('#add-ssh-button').click(function() {
+		if ($('#ssh-add-table').css('display', 'none')) {
+			$('#ssh-add-table').show("blind", "fast");
+		} 
+	});
 	
 	$( "#ajax-users input" ).change(function() {
 		var id = $(this).attr('id').split('-');
@@ -256,22 +296,39 @@ $( function() {
 		updateServer(id[1])
 	});
 	$( "#ssh_enable_table input" ).change(function() {
-		updateSSH()
+		var id = $(this).attr('id').split('-');
+		updateSSH(id[1])
+		sshKeyEnableShow(id[1])
 	});
-	$('#ssh_enable').click(function() {
-		if ($('#ssh_enable').is(':checked')) {
+	$('#new-ssh_enable').click(function() {
+		if ($('#new-ssh_enable').is(':checked')) {
 			$('#ssh_pass').css('display', 'none');
 		} else {
 			$('#ssh_pass').css('display', 'block');
 		}
 	});
-	if ($('#ssh_enable').is(':checked')) {
+	if ($('#new-ssh_enable').is(':checked')) {
 		$('#ssh_pass').css('display', 'none');
 	} else {
 		$('#ssh_pass').css('display', 'block');
 	}
    
 } );
+function sshKeyEnableShow(id) {
+	$('#ssh_enable-'+id).click(function() {
+		if ($('#ssh_enable-'+id).is(':checked')) {
+			$('#ssh_pass-'+id).css('display', 'none');
+		} else {
+			$('#ssh_pass-'+id).css('display', 'block');
+		}
+	});
+	if ($('#ssh_enable-'+id).is(':checked')) {
+		$('#ssh_pass-'+id).css('display', 'none');
+	} else {
+		$('#ssh_pass-'+id).css('display', 'block');
+	}
+}
+
 function confirmDeleteUser(id) {
 	 $( "#dialog-confirm" ).dialog({
       resizable: false,
@@ -326,6 +383,24 @@ function confirmDeleteServer(id) {
       }
     });
 }
+function confirmDeleteSsh(id) {
+	 $( "#dialog-confirm" ).dialog({
+      resizable: false,
+      height: "auto",
+      width: 400,
+      modal: true,
+	  title: "Are you sure you want to delete " +$('#ssh_name-'+id).val() + "?",
+      buttons: {
+        "Delete": function() {
+			$( this ).dialog( "close" );	
+			removeSsh(id);
+        },
+        Cancel: function() {
+			$( this ).dialog( "close" );
+        }
+      }
+    });
+}
 function removeUser(id) {
 	$("#user-"+id).css("background-color", "#f2dede");
 	$.ajax( {
@@ -372,6 +447,24 @@ function removeGroup(id) {
 				$("#group-"+id).remove();
 				$('select:regex(id, group) option[value='+id+']').remove();
 				$('select:regex(id, group)').selectmenu("refresh");
+			}
+		}					
+	} );	
+}
+function removeSsh(id) {
+	$("#ssh-table-"+id).css("background-color", "#f2dede");
+	$.ajax( {
+		url: "sql.py",
+		data: {
+			sshdel: id,
+		},
+		type: "GET",
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if(data == "Ok ") {
+				$("#ssh-table-"+id).remove();
+				$('select:regex(id, credentials) option[value='+id+']').remove();
+				$('select:regex(id, credentials)').selectmenu("refresh");
 			}
 		}					
 	} );	
@@ -450,6 +543,7 @@ function updateServer(id) {
 			typeip: typeip,
 			enable: enable,
 			slave: $('#slavefor-'+id+' option:selected' ).val(),
+			cred: $('#credentials-'+id+' option:selected').val(),
 			id: id
 		},
 		type: "GET",
@@ -474,6 +568,7 @@ function uploadSsh() {
 		url: "options.py",
 		data: {
 			ssh_cert: $('#ssh_cert').val(),
+			name: $('#ssh-key-name').val(),
 			token: $('#token').val()
 		},
 		type: "GET",
@@ -494,19 +589,21 @@ function uploadSsh() {
 		}
 	} );
 }
-function updateSSH() {
+function updateSSH(id) {
 	$('#error').remove();	
 	var ssh_enable = 0;
-	if ($('#ssh_enable').is(':checked')) {
+	if ($('#ssh_enable-'+id).is(':checked')) {
 		ssh_enable = '1';
 	}
 	$.ajax( {
 		url: "sql.py",
 		data: {
 			updatessh: 1,
+			name: $('#ssh_name-'+id).val(),
 			ssh_enable: ssh_enable,
-			ssh_user: $('#ssh_user').val(),
-			ssh_pass: $('#ssh_pass').val(),
+			ssh_user: $('#ssh_user-'+id).val(),
+			ssh_pass: $('#ssh_pass-'+id).val(),
+			id: id
 		},
 		type: "GET",
 		success: function( data ) {
@@ -516,10 +613,14 @@ function updateSSH() {
 				$.getScript(users);
 			} else {
 				$('.alert-danger').remove();
-				$("#ssh_enable_table").addClass( "update", 1000 );
+				$("#ssh-table-"+id).addClass( "update", 1000 );
 				setTimeout(function() {
-					$( "#ssh_enable_table" ).removeClass( "update" );
+					$( "#ssh-table-"+id ).removeClass( "update" );
 				}, 2500 );
+				$('select:regex(id, credentials) option[value='+id+']').remove();
+				$('select:regex(id, ssh-key-name) option[value='+$('#ssh_name-'+id).val()+']').remove();
+				$('select:regex(id, credentials)').append('<option value='+id+'>'+$('#ssh_name-'+id).val()+'</option>').selectmenu("refresh");
+				$('select:regex(id, ssh-key-name)').append('<option value='+$('#ssh_name-'+id).val()+'>'+$('#ssh_name-'+id).val()+'</option>').selectmenu("refresh");
 			}
 		}
 	} );

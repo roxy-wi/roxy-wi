@@ -18,6 +18,7 @@ try:
 	user_id = cookie.get('uuid')
 	user = sql.get_user_name_by_uuid(user_id.value)
 	servers = sql.get_dick_permit()
+	token = sql.get_token(user_id.value)
 except:
 	pass
 
@@ -29,7 +30,6 @@ output_from_parsed_template = template.render(title = "Admin area: users manage"
 												servers = sql.select_servers(full=1),
 												roles = sql.select_roles(),
 												masters = sql.select_servers(get_master_servers=1),
-												ssh_enable = sql.ssh_enable(),
-												ssh_user = sql.select_ssh_username(),
-												ssh_pass = sql.select_ssh_password())
+												sshs = sql.select_ssh(),
+												token = token)
 print(output_from_parsed_template)

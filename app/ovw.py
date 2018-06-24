@@ -42,9 +42,9 @@ def get_overviewServers():
 	commands1 =  [ "top -u haproxy -b -n 1" ]
 	for server in sorted(listhap):
 		print('<tr><td class="overviewTr first-collumn"><a name="'+server[1]+'"></a><h3 title="IP ' + server[2] + '">' + server[1] + ':</h3></td>')
-		print('<td class="overviewTd"><pre style="font-size: 12px;">')
+		print('<td class="overviewTd" style="padding-top: 10px;"><pre style="font-size: 12px;">')
 		funct.ssh_command(server[2], commands)
-		print('</pre></td><td><pre style="font-size: 12px;">')
+		print('</pre></td><td style="padding-top: 10px;"><pre style="font-size: 12px;">')
 		funct.ssh_command(server[2], commands1)
 		print('</td><td style="padding: 10px;font-size: 13px;">')
 		funct.show_backends(server[2])

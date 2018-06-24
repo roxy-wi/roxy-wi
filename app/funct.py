@@ -126,17 +126,21 @@ def get_button(button, **kwargs):
 		
 def ssh_connect(serv, **kwargs):
 	import sql
-	ssh_enable = sql.ssh_enable()
-	ssh_user_name = sql.select_ssh_username()
+	fullpath = get_config_var('main', 'fullpath')
+	for sshs in sql.select_ssh(serv=serv):
+		ssh_enable = sshs[3]
+		ssh_user_name = sshs[4]
+		ssh_user_password = sshs[5]
+		ssh_key_name = fullpath+'/keys/%s.pem' % sshs[2]
 	ssh = SSHClient()
 	ssh.load_system_host_keys()
 	ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 	try:
 		if ssh_enable == 1:
-			k = paramiko.RSAKey.from_private_key_file(get_config_var('ssh', 'ssh_keys'))
+			k = paramiko.RSAKey.from_private_key_file(ssh_key_name)
 			ssh.connect(hostname = serv, username = ssh_user_name, pkey = k )
 		else:
-			ssh.connect(hostname = serv, username = ssh_user_name, password = sql.select_ssh_password())
+			ssh.connect(hostname = serv, username = ssh_user_name, password = ssh_user_password)
 		if kwargs.get('check'):
 			return True
 		else:
@@ -446,7 +450,7 @@ def ssh_command(serv, commands, **kwargs):
 		elif kwargs.get("server_status") == "1":
 			server_status(stdout)
 		else:
-			print('<div style="margin: -10px;">'+stdout.read().decode(encoding='UTF-8')+'</div>')
+			print(stdout.read().decode(encoding='UTF-8'))
 			
 		print(stderr.read().decode(encoding='UTF-8'))
 	try:	
