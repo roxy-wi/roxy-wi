@@ -10,7 +10,7 @@ template = env.get_template('delver.html')
 
 print('Content-type: text/html\n')
 funct.check_login()
-funct.page_for_admin()
+funct.page_for_admin(level = 2)
 
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')

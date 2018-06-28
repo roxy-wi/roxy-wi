@@ -60,8 +60,6 @@
 								<li><a href=/app/add.py#backend title="Add single backend" class="add head-submenu">Add backend</a></li>
 								<li><a href=/app/add.py#ssl title="Upload SSL cert" class="cert head-submenu">SSL</a></li>
 								<li><a href=/app/config.py title="Edit Haproxy Config" class="edit head-submenu">Edit config</a> </li>	
-							{% endif %}
-							{% if role <= 1 %}
 								<li><a href=/app/ihap.py title="Installation HAProxy" class="hap head-submenu">Installation</a> </li>
 							{% endif %}
 						</li>
@@ -69,14 +67,18 @@
 							<li><a title="Actions with configs" class="version">Versions</a>		
 								<li><a href=/app/configver.py title="Upload old versions configs" class="upload head-submenu">Upload</a></li>
 						{% endif %}
-							{% if role <= 1 %}
+							{% if role <= 2 %}
 								<li><a href=/app/delver.py title="Delete old versions configs" class="delete head-submenu">Delete</a></li>
 							{% endif %}	
 							</li>	
-						{% if role <= 1 %}
+						{% if role <= 2 %}
 							<li><a title="Keepalived" class="ha">Keepalived</a>
 								<li><a href=/app/ha.py title="Create HA cluster" class="keepalived head-submenu">HA</a></li>
 								<li><a href=/app/keepalivedconfig.py title="Edit keepalived config" class="edit head-submenu">Edit config</a></li>		
+							</li>
+							<li><a title="Servers manage" class="ha">Servers</a>
+								<li><a href=/app/servers.py title="Server manage" class="runtime head-submenu">Servers</a></li>
+								<li><a href=/app/servers.py#ssh title="Manage SSH credentials" class="admin head-submenu">SSH credentials</a></li>		
 							</li>
 						{% endif %}
 						{% if role <= 1 %}
@@ -85,7 +87,7 @@
 								<li><a href=/app/users.py#groups title="Actions with groups" class="group head-submenu">Groups</a></li>
 								<li><a href=/app/users.py#servers title="Actions with servers" class="runtime head-submenu">Servers</a></li>
 								<li><a href=/app/users.py#roles title="Users roles" class="role head-submenu">Roles</a></li>
-								<li><a href=/app/users.py#ssh title="Users roles" class="admin head-submenu">SSH credentials</a></li>
+								<li><a href=/app/users.py#ssh title="Manage SSH credentials" class="admin head-submenu">SSH credentials</a></li>
 								<li><a href=/app/settings.py title="View settings" class="settings head-submenu">View settings</a></li>
 								<li><a href=/app/viewlogs.py title="View users actions logs" class="logs head-submenu">Users logs</a></li>
 								<li><a href=/app/apachelogs.py title="View Apache logs" class="logs head-submenu">Apache logs</a></li>
@@ -100,7 +102,7 @@
 					</ul>
 				</nav>
 				<div class="copyright-menu">
-					HAproxy-WI v2.6
+					HAproxy-WI v2.6.1
 					<br>
 					<a href="https://www.patreon.com/haproxy_wi" title="Donate" target="_blank" style="color: #fff; margin-left: 30px; color: red;" class="patreon">  Patreon</a>
 				</div>

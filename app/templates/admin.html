@@ -310,6 +310,7 @@
 				<td class="padding10 first-collumn" style="width: 25%;">
 					<span title="If enabled, the key will be used, if turned off - the password. Do not forget to download the keys to all servers or install the sudo without a password">SSH key(?)</span>
 				</td>
+				<td>Group</td>
 				<td>
 					<span title="Enter SSH user name. If SSH key disabled, enter password for ssh user">Credentials(?)</span>
 				</td>
@@ -326,6 +327,17 @@
 						{% else %}
 							<label for="ssh_enable-{{ssh.0}}">Enable SSH key</label><input type="checkbox" id="ssh_enable-{{ssh.0}}">
 						{% endif %}
+					</td>
+					<td>
+						<select id="sshgroup-{{ssh.0}}" name="sshgroup-{{ssh.0}}">
+							{% for group in groups %}
+								{% if ssh.5 == group.0 %}
+									<option value="{{ group.0 }}" selected>{{ group.1 }}</option>
+								{% else %}
+									<option value="{{ group.0 }}">{{ group.1 }}</option>
+								{% endif %}
+							{% endfor %}
+						</select>
 					</td>
 					<td style="padding-top: 15px;">
 						<p>
@@ -350,6 +362,7 @@
 			<tr class="overviewHead">
 				<td class="padding10 first-collumn" style="width: 15%;">Name</td>
 				<td class="padding10 first-collumn" style="width: 25%;">SSH key</td>
+				<td>Group</td>
 				<td>Credentials</td>
 				<td></td>
 			</tr>
@@ -359,6 +372,13 @@
 				</td>
 				<td>
 					<label for="new-ssh_enable">Enable SSH key</label><input type="checkbox" id="new-ssh_enable" checked>
+				</td>
+				<td>
+					<select id="new-sshgroup" name="new-sshgroup">
+						{% for group in groups %}
+							<option value="{{ group.0 }}">{{ group.1 }}</option>
+						{% endfor %}
+					</select>
 				</td>
 				<td style="padding-top: 15px;">
 					<p>

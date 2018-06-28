@@ -465,9 +465,9 @@ def select_ssh(**kwargs):
 	cur.close()    
 	con.close() 
 	
-def insert_new_ssh(name, enable, username, password):
+def insert_new_ssh(name, enable, group, username, password):
 	con, cur = create_db.get_cur()
-	sql = """insert into cred(name, enable, username, password) values ('%s', '%s', '%s', '%s') """ % (name, enable, username, password)
+	sql = """insert into cred(name, enable, groups, username, password) values ('%s', '%s', '%s', '%s', '%s') """ % (name, enable, group, username, password)
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -493,14 +493,17 @@ def delete_ssh(id):
 	cur.close()    
 	con.close() 
 
-def update_ssh(id, name, enable, username, password):
+def update_ssh(id, name, enable, group, username, password):
+	group = str(group)
+	print(group)
 	con, cur = create_db.get_cur()
 	sql = """ 
 			update cred set 
 			name = '%s',
 			enable = '%s',
+			groups = %s,
 			username = '%s',
-			password = '%s' where id = '%s' """ % (name, enable, username, password, id)
+			password = '%s' where id = '%s' """ % (name, enable, group, username, password, id)
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -510,14 +513,14 @@ def update_ssh(id, name, enable, username, password):
 	cur.close()    
 	con.close()
 	
-def show_update_ssh(name):
+def show_update_ssh(name, page):
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates/ajax'))
 	template = env.get_template('/new_ssh.html')
 
 	print('Content-type: text/html\n')
 
-	output_from_parsed_template = template.render(sshs = select_ssh(name=name))
+	output_from_parsed_template = template.render(groups = select_groups(), sshs = select_ssh(name=name),page=page)
 	print(output_from_parsed_template)
 
 def show_update_user(user):
@@ -689,6 +692,7 @@ if form.getvalue('updatessh'):
 	id = form.getvalue('id')
 	name = form.getvalue('name')
 	enable = form.getvalue('ssh_enable')	
+	group = form.getvalue('group')	
 	username = form.getvalue('ssh_user')		
 	password = form.getvalue('ssh_pass')
 	if username is None:
@@ -710,19 +714,22 @@ if form.getvalue('updatessh'):
 				funct.subprocess_execute(cmd)
 			except:
 				pass
-		update_ssh(id, name, enable, username, password)
+		update_ssh(id, name, enable, group, username, password)
 		
 if form.getvalue('new_ssh'):
 	name = form.getvalue('new_ssh')
 	enable = form.getvalue('ssh_enable')	
+	group = form.getvalue('new_group')	
 	username = form.getvalue('ssh_user')		
 	password = form.getvalue('ssh_pass')
-	if username is None:
+	page = form.getvalue('page')
+	page = page.split("#")[0]
+	if username is None or name is None:
 		print('Content-type: text/html\n')
 		print(error_mess)
 	else:
-		if insert_new_ssh(name, enable, username, password):
-			show_update_ssh(name)
+		if insert_new_ssh(name, enable, group, username, password):
+			show_update_ssh(name, page)
 			
 if form.getvalue('sshdel') is not None:
 	import funct

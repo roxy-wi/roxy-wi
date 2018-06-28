@@ -383,12 +383,33 @@ def update_db_v_2_61(**kwargs):
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
 			if e.args[0] == 'duplicate column name: cred' or e == "1060 (42S21): Duplicate column name 'cred' ":
-				print('DB was updated. No more run')
+				print('Updating... go to version 2.6.1')
 			else:
 				print("An error occurred:", e)
 		return False
 	else:
 		print("DB was update to 2.6<br />")
+		return True
+	cur.close() 
+	con.close()
+	
+def update_db_v_2_6_1(**kwargs):
+	con, cur = get_cur()
+	sql = """
+	ALTER TABLE `cred` ADD COLUMN groups INTEGER NOT NULL DEFAULT 1;
+	"""
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: groups' or e == "1060 (42S21): Duplicate column name 'groups' ":
+				print('DB was updated. No more run')
+			else:
+				print("An error occurred:", e)
+		return False
+	else:
+		print("DB was update to 2.6.1<br />")
 		return True
 	cur.close() 
 	con.close()
@@ -403,6 +424,7 @@ def update_all():
 	update_db_v_2_5_6_1()
 	update_db_v_2_6()
 	update_db_v_2_61()
+	update_db_v_2_6_1()
 	
 def update_all_silent():
 	update_db_v_2_0_1(silent=1)
@@ -414,4 +436,5 @@ def update_all_silent():
 	update_db_v_2_5_6_1(silent=1)
 	update_db_v_2_6(silent=1)
 	update_db_v_2_61(silent=1)
+	update_db_v_2_6_1(silent=1)
 		

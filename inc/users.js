@@ -215,9 +215,11 @@ $( function() {
 			url: "sql.py",
 			data: {
 				new_ssh: $('#new-ssh-add').val(),
+				new_group: $('#new-sshgroup').val(),
 				ssh_user: $('#ssh_user').val(),
 				ssh_pass: $('#ssh_pass').val(),
 				ssh_enable: ssh_enable,
+				page: cur_url[0]
 			},
 			type: "GET",
 			success: function( data ) {
@@ -296,6 +298,11 @@ $( function() {
 		updateServer(id[1])
 	});
 	$( "#ssh_enable_table input" ).change(function() {
+		var id = $(this).attr('id').split('-');
+		updateSSH(id[1])
+		sshKeyEnableShow(id[1])
+	});
+	$( "#ssh_enable_table select" ).on('selectmenuchange',function() {
 		var id = $(this).attr('id').split('-');
 		updateSSH(id[1])
 		sshKeyEnableShow(id[1])
@@ -600,6 +607,7 @@ function updateSSH(id) {
 		data: {
 			updatessh: 1,
 			name: $('#ssh_name-'+id).val(),
+			group: $('#sshgroup-'+id).val(),
 			ssh_enable: ssh_enable,
 			ssh_user: $('#ssh_user-'+id).val(),
 			ssh_pass: $('#ssh_pass-'+id).val(),

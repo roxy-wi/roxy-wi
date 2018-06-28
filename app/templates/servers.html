@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% block content %}
+<script src="/inc/users.js"></script>
+<div id="dialog-confirm" title="Are you sure you want to delete?" style="display: none;">
+  <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>Deleting irreversibly all data will be lost?</p>
+</div>
+<div id="tabs">
+	<ul>
+		<li><a href="#servers">Servers</a></li>
+		<li><a href="#ssh">SSH credentials</a></li>
+	</ul>
+	
+	<div id="servers">
+		<table class="overview" id="ajax-servers">
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn">Hostname</td>
+				<td>IP</td>
+				<td>Enable</td>
+				<td><span title="Vitrual IP, something like VRRP">Virt(?)</span></td>
+				<td><span title="Actions with master config will automatically apply on slave">Slave for (?)</span></td>
+				<td>Credentials</td>
+				<td></td>
+			</tr>
+		{% set ssh_group = [] %}		
+		{% for server in servers %}
+		{% do ssh_group.append(server.3) %}
+			<tr id="server-{{server.0}}">
+				<td class="padding10 first-collumn">
+					<input type="text" id="hostname-{{server.0}}" value="{{server.1}}" class="form-control">
+				</td>
+				<td>
+					<input type="text" id="ip-{{server.0}}" value="{{server.2}}" class="form-control">
+					<input type="hidden" id="servergroup-{{server.0}}" name="servergroup-{{server.0}}" value="{{ ssh_group.0 }}" >
+					
+				</td>
+				<td>
+					{% if server.5 == 1 %}
+						<label for="enable-{{server.0}}"></label><input type="checkbox" id="enable-{{server.0}}" checked>
+					{% else %}
+						<label for="enable-{{server.0}}"></label><input type="checkbox" id="enable-{{server.0}}">
+					{% endif %}
+				</td>
+				<td>
+					{% if server.4 == 1 %}
+						<label for="typeip-{{server.0}}"></label><input type="checkbox" id="typeip-{{server.0}}" checked>
+					{% else %}
+						<label for="typeip-{{server.0}}"></label><input type="checkbox" id="typeip-{{server.0}}">
+					{% endif %}
+				</td>
+				<td>
+					<select id="slavefor-{{server.0}}">
+						<option disabled selected>Not slave</option>
+						{% for master in masters %}
+							{% if master.0 == server.6 %}
+								<option value="{{master.0}}" selected>{{master.1}}</option>
+							{% else %}
+								<option value="{{master.0}}">{{master.1}}</option>
+							{% endif %}
+						{% endfor %}
+					</select>
+				</td>
+				<td>
+					<select id="credentials-{{server.0}}">
+						<option disabled selected>Choose credentials</option>
+						{% for ssh in sshs %}
+							{% if ssh.5|string() == ssh_group.0 %}
+								{% if ssh.0 == server.7	%}
+									<option value="{{ssh.0}}" selected>{{ssh.1}}</option>
+								{% else %}
+									<option value="{{ssh.0}}">{{ssh.1}}</option>
+								{% endif %}
+							{% endif %}
+						{% endfor %}
+					</select>
+				</td>
+				<td>
+					<a class="delete" onclick="confirmDeleteServer({{server.0}})"  style="cursor: pointer;"></a>
+				</td> 
+			</tr>
+		{% endfor %}
+		</table>
+		<br /><span class="add-button" title="Add server" id="add-server-button">+ Add</span>
+		<br /><br />
+		<table class="overview" id="server-add-table" style="display: none;">
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn">New hostname</td>
+				<td>IP</td>
+				<td>Enable</td>
+				<td>Virt</td>
+				<td title="Actions with master config will automatically apply on slave">Slave for</td>
+				<td>Credentials</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td class="padding10 first-collumn">
+					<input type="text" name="new-server-add" id="new-server-add" class="form-control">
+				</td>
+				<td>
+					<input type="text" name="new-ip" id="new-ip" class="form-control">
+					<input type="hidden" id="new-sshgroup" name="new-sshgroup" value="{{ ssh_group.0 }}" >
+				</td>					
+				<td>
+					<label for="enable"></label><input type="checkbox" id="enable" checked>
+				</td>
+				<td>
+					<label for="typeip"></label><input type="checkbox" id="typeip">
+				</td>
+				<td>
+					<select id="slavefor">
+						<option disabled selected>Not slave</option>
+						{% for master in masters %}
+							<option value="{{master.0}}">{{master.1}}</option>
+						{% endfor %}
+					</select>
+				</td>
+				<td>
+					<select id="credentials">
+						<option disabled selected>Choose credentials</option>
+						{% for ssh in sshs %}
+							{% if ssh.5|string() == ssh_group.0 %}
+								<option value="{{ssh.0}}">{{ssh.1}}</option>
+							{% endif %}
+						{% endfor %}
+					</select>
+				</td>
+				<td>
+					<a class="add-admin"  id="add-server" style="cursor: pointer;"></a>
+				</td>
+			</tr>
+		</table>
+		
+	</div>
+
+	<div id="ssh">
+		<table id="ssh_enable_table" class="overview">
+			<tr class="overviewHead" style="width: 50%;">
+				<td class="padding10 first-collumn" style="width: 15%;">
+					<span title="It's just name alias. This alias will be userd in 'Servers' page for choose credentials">Name(?)</span>
+				</td>
+				<td class="padding10 first-collumn" style="width: 25%;">
+					<span title="If enabled, the key will be used, if turned off - the password. Do not forget to download the keys to all servers or install the sudo without a password">SSH key(?)</span>
+				</td>
+				<td>
+					<span title="Enter SSH user name. If SSH key disabled, enter password for ssh user">Credentials(?)</span>
+				</td>
+				<td></td>
+			</tr>
+			{% for ssh in sshs %}
+				{% if ssh.5|string() == ssh_group.0 %}
+					<tr style="width: 50%;" id="ssh-table-{{ssh.0}}">
+						<td class="first-collumn">
+							<input type="text" id="ssh_name-{{ssh.0}}" class="form-control" value="{{ssh.1}}" style="margin-bottom: 23px;">	
+							<input type="hidden" id="new-ssh-group-add" name="new-ssh-group-add" value="{{ ssh_group }}" >
+						</td>
+						<td class="first-collumn" valign="top" style="padding-top: 15px;">
+							{% if ssh.2 == 1 %}
+								<label for="ssh_enable-{{ssh.0}}">Enable SSH key</label><input type="checkbox" id="ssh_enable-{{ssh.0}}" checked>
+							{% else %}
+								<label for="ssh_enable-{{ssh.0}}">Enable SSH key</label><input type="checkbox" id="ssh_enable-{{ssh.0}}">
+							{% endif %}
+						</td>
+						<td style="padding-top: 15px;">
+							<p>
+								<input type="text" id="ssh_user-{{ssh.0}}" class="form-control" value="{{ssh.3}}">		
+							</p>
+							{% if ssh.2 == 1 %}
+								<input type="password" id="ssh_pass-{{ssh.0}}" class="form-control" value="{{ssh.4}}" style="display: none;">
+							{% else %}
+								<input type="password" id="ssh_pass-{{ssh.0}}" class="form-control" value="{{ssh.4}}">
+							{% endif %}
+							<br>
+						</td>
+						<td>
+							<a class="delete" onclick="confirmDeleteSsh({{ssh.0}})"  style="cursor: pointer;"></a>
+						</td>
+					</tr>
+				{% endif %}
+			{% endfor %}
+		</table>
+		<br /><span class="add-button" title="Add ssh" id="add-ssh-button">+ Add</span>
+		<br /><br />
+		<table class="overview" id="ssh-add-table" style="display: none;">
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn" style="width: 15%;">Name</td>
+				<td class="padding10 first-collumn" style="width: 25%;">SSH key</td>
+				<td>Credentials</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td class="padding10 first-collumn">
+					<input type="text" name="new-ssh-add" id="new-ssh-add" class="form-control">
+				</td>
+				<td>
+					<label for="new-ssh_enable">Enable SSH key</label><input type="checkbox" id="new-ssh_enable" checked>
+				</td>
+				<td style="padding-top: 15px;">
+					<p>
+						<input type="text" id="ssh_user" class="form-control" value="{{ssh_user}}">		
+					</p>
+						<input type="password" id="ssh_pass" class="form-control" value="{{ssh_pass}}" style="display: none;">
+					<br>
+				</td>
+				<td>
+					<a class="add-admin"  id="add-ssh" style="cursor: pointer;"></a>
+				</td>
+			</tr>
+		</table>
+		<table id="ssh_key">
+			<tr class="overviewHead" style="width: 50%;">
+				<td class="padding10 first-collumn" style="width: 25%;">Upload SSH Key</td>
+				<td>
+					<span title="Private key. Note: The public key must be pre-installed on all servers to which you plan to connect">Key(?)</span>
+				</td>
+				<td></td>
+			</tr>
+			<tr style="width: 50%;">
+				<td class="first-collumn" valign="top" style="padding-top: 15px;">
+					<select id="ssh-key-name">
+						<option disabled selected>Choose credentials</option>
+						{% for ssh in sshs %}
+							{% if ssh.5|string() == ssh_group.0 %}
+								<option value={{ssh.1}}>{{ssh.1}}</option>	
+							{% endif %}
+						{% endfor %}
+					</select>
+				</td>
+				<td style="padding-top: 15px;">
+					<textarea id="ssh_cert" cols="50" rows="5"></textarea><br /><br />
+					<a class="ui-button ui-widget ui-corner-all" id="ssh_key_upload" title="Upload ssh key" onclick="uploadSsh()">Upload</a>		
+				</td>
+				<td></td>
+			</tr>
+		</table>
+		<div id="ajax-ssh"></div>
+	</div>
+</div>
+{% endblock %}
