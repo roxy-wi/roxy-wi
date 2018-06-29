@@ -199,7 +199,7 @@
 				</td>
 				<td>
 					<select id="slavefor-{{server.0}}">
-						<option disabled selected>Not slave</option>
+						<option value="0" selected>Not slave</option>
 						{% for master in masters %}
 							{% if master.0 == server.6 %}
 								<option value="{{master.0}}" selected>{{master.1}}</option>
@@ -263,7 +263,7 @@
 				</td>
 				<td>
 					<select id="slavefor">
-						<option disabled selected>Not slave</option>
+						<option value="0" selected>Not slave</option>
 						{% for master in masters %}
 							<option value="{{master.0}}">{{master.1}}</option>
 						{% endfor %}

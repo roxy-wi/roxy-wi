@@ -53,13 +53,13 @@ if form.getvalue('mode') is not None:
 		ip = ""
 	
 	if form.getvalue('listner') is not None:
-		name = "listen " + form.getvalue('listner')
+		name = "\nlisten " + form.getvalue('listner')
 		backend = ""
 	elif form.getvalue('frontend') is not None:
 		name = "\nfrontend " + form.getvalue('frontend')
 		backend = "    default_backend " + form.getvalue('backend') + "\n"
-	elif form.getvalue('backend') is not None: 
-		name = "backend " + form.getvalue('backend')
+	elif form.getvalue('new_backend') is not None: 
+		name = "\nbackend " + form.getvalue('new_backend')
 		backend = ""
 				
 	if form.getvalue('ssl') == "https" and form.getvalue('mode') != "tcp":

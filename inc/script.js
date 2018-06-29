@@ -379,9 +379,14 @@ $( function() {
 			$('#time_range_out_minut1').val(minutes1);
 		}
 	});
-	$('#time_range_out_hour').val(date1/60);
+        var date1_hours = Math.floor(date1/60);
+        var date2_hours = date1_hours + 1;
+        if(date1_hours <= 9) date1_hours = '0' + date1_hours;
+        if(date2_hours <= 9) date2_hours = '0' + date2_hours;
+
+	$('#time_range_out_hour').val(date1_hours);
 	$('#time_range_out_minut').val('00');
-	$('#time_range_out_hour1').val(date2/60);
+	$('#time_range_out_hour1').val(date2_hours);
 	$('#time_range_out_minut1').val(now.getMinutes());
 		
 	$('#0').click(function() {

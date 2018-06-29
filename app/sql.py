@@ -414,6 +414,11 @@ def get_dick_permit(**kwargs):
 		type_ip = "" 
 	else:
 		type_ip = "and type_ip = 0" 
+	if kwargs.get('disable') == 0:
+		disable = kwargs.get('disable')
+	else:
+		disable = 1
+		
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
@@ -421,9 +426,9 @@ def get_dick_permit(**kwargs):
 	else:
 		for group in cur:
 			if group[5] == '1':
-				sql = """ select * from servers where enable = 1 %s """ % type_ip
+				sql = """ select * from servers where enable = %s %s """ % (disable, type_ip)
 			else:
-				sql = """ select * from servers where groups like '%{group}%' and enable = 1 {type_ip} """.format(group=group[5], type_ip=type_ip)		
+				sql = """ select * from servers where groups like '%{group}%' and enable = {disable} {type_ip} """.format(group=group[5], disable=disable, type_ip=type_ip)		
 		try:   
 			cur.execute(sql)
 		except sqltool.Error as e:
@@ -494,8 +499,6 @@ def delete_ssh(id):
 	con.close() 
 
 def update_ssh(id, name, enable, group, username, password):
-	group = str(group)
-	print(group)
 	con, cur = create_db.get_cur()
 	sql = """ 
 			update cred set 
