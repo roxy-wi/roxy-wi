@@ -54,7 +54,7 @@ if serv is not None and form.getvalue('open') is not None:
 					os.remove(os.path.join(hap_configs_dir, form.getvalue(get)))
 					file.add(form.getvalue(get) + "<br />")
 					funct.logging(serv, "delver.py deleted config: %s" % form.getvalue(get))				
-				except OSError: 
+				except OSError as e: 
 					stderr = "Error: %s - %s." % (e.filename,e.strerror)
 		print('<meta http-equiv="refresh" content="10; url=delver.py?serv=%s&open=open">' % form.getvalue('serv'))		
 		
