@@ -44,9 +44,9 @@
 				<nav class="menu">
 					<ul id="menu">
 						<li><a title="Statistics, monitoring and logs" class="stats">Stats</a>			
-							<li><a href=/app/overview.py title="Server and service status" class="overview-link head-submenu">Overview</a> </li>
-							<li><a href=/app/viewsttats.py title"Show stats" class="stats head-submenu">Stats</a> </li>
-							<li><a href=/app/logs.py title="View logs" class="logs head-submenu">Logs</a></li>
+							<li><a href=/app/overview.py title="Server and service status" class="overview-link head-submenu">Overview</a></li>
+							<li><a href=/app/viewsttats.py title"Show stats" class="stats head-submenu">Stats</a></li>
+							<li><a href=/app/logs.py title="View logs" class="logs head-submenu"> Logs</a></li>
 							<li><a href=/app/map.py title="View map" class="map head-submenu">Map</a></li>			
 							<li><a href=/app/edit.py title="Runtime API" class="runtime head-submenu">Runtime API</a></li>
 						</li>
@@ -94,11 +94,6 @@
 							</li>
 						{% endif %}	
 					{% endif %}
-					{% if user %}
-						<li><a href=/app/login.py?logout=logout title="Logout, user name: {{ user }}" class="login">Logout</a></li>						
-					{% else %}
-						<li><a href=/app/login.py title="Login" class="login">Login</a></li>
-					{% endif %}
 					</ul>
 				</nav>
 				<div class="copyright-menu">
@@ -112,6 +107,11 @@
 			{% if h2 %}
 				<h2>
 					{{title}}
+					{% if user %}
+						<a href=/app/login.py?logout=logout title="Logout, user name: {{ user }}" class="login"> Logout</a>						
+					{% else %}
+						<a href=/app/login.py title="Login" class="login"> Login</a>
+					{% endif %}
 					{% if autorefresh %}
 						<span class="auto-refresh">
 							<a onclick="pauseAutoRefresh()" class="auto-refresh-pause" style="display: none; margin-top: 4px;"></a>
