@@ -8,6 +8,11 @@
 	<ul>
 		<li><a href="#servers">Servers</a></li>
 		<li><a href="#ssh">SSH credentials</a></li>
+		{% if user %}
+			<a href=/app/login.py?logout=logout title="Logout, user name: {{ user }}" class="login"> Logout</a>						
+		{% else %}
+			<a href=/app/login.py title="Login" class="login"> Login</a>
+		{% endif %}
 	</ul>
 	
 	<div id="servers">

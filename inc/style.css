@@ -419,7 +419,8 @@ pre {
 	color: #fff !important;
   }
 .ui-tabs-nav {
-	padding-left: 20px !important; 
+	border-radius: 0 !important;
+	padding-left: 25px !important; 
   }
 .ui-tabs .ui-tabs-panel {
 	padding: 0 !important;
@@ -427,6 +428,8 @@ pre {
  }
 .ui-tabs {
 	padding-left: 0 !important;
+	margin-top: -5px !important;
+	margin-left: -2px;
 }
 .ui-widget-header {
 	background: #5d9ceb !important;

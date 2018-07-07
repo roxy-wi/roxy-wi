@@ -57,7 +57,7 @@ else
         yum -y install epel-release
 	fi
 	
-	yum -y install git nmap-ncat net-tools lshw python34 dos2unix python34-pip  httpd mod_ssl gcc python34-devel
+	yum -y install git nmap-ncat net-tools lshw python34 dos2unix python34-pip  httpd mod_ssl python34-devel
 	HTTPD_CONFIG="/etc/httpd/conf/httpd.conf"
 	HAPROXY_WI_VHOST_CONF="/etc/httpd/conf.d/haproxy-wi.conf"
 	HTTPD_NAME="httpd"

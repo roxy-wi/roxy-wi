@@ -10,8 +10,8 @@
 		</tr>
 		<tr>
 			<td class="padding10 first-collumn" style="width: 25%;">
-				<form action= {{ action }} method="get">
-					<select autofocus required id="{{ select_id }}">
+				<form action="{{ action }}" method="get">
+					<select autofocus required id="{{ select_id }}" name="{{ select_id }}">
 						<option disabled>Choose server</option>
 						{% for select in selects %}
 							<option value="{{ select.2 }}">{{ select.1 }}</option>
@@ -30,7 +30,7 @@
 				</select>
 			</td>
 			<td>
-				<input type="text" name="servbackend" id="servbackend" size=35 title="Frontend, backend/server, show: info, pools or help" required class="form-control">
+				<input type="text" name="servbackend" id="servbackend" size=35 title="Frontend, backend/server, show: info, pools or help" required class="form-control" value="{{ servbackend }}">
 			</td>
 			<td>
 				{% if role <= 2 %}
@@ -43,4 +43,9 @@
 				</form>
 		</tr>
 	</table>
+	<script>
+		if($('#servbackend').val()) {
+			window.onload = {{ onclick }}	
+		}
+	</script>
 {% endblock %}
