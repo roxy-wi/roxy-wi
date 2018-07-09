@@ -415,17 +415,17 @@ def show_ip(stdout):
 	for line in stdout:
 		print(line)
 		
-def server_status(stdout):
+def server_status(stdout):	
 	proc_count = ""
-	i = 0
-	for line in stdout.read().decode(encoding='UTF-8'):
-		i = i + 1
-		if i == 1:
-			proc_count += line
-			if line.find("0"):
-				err = 1
-			else:
-				err = 0
+	
+	for line in stdout:
+		if "Ncat: Connection refused." not in line:
+			for k in line:
+				proc_count = k.split(":")[1]
+			err = 1
+		else:
+			err = 0
+			proc_count = 0
 			
 	if err != 0:
 		print('<span class="serverUp"> UP</span> running %s processes' % proc_count)

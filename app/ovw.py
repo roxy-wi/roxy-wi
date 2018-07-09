@@ -14,12 +14,12 @@ form = cgi.FieldStorage()
 def get_overview():
 	listhap = sql.get_dick_permit()
 		
-	commands = [ "ps -Af |grep [h]aproxy |wc -l" ]
-	commands1 = [ "ls -l %s |awk '{ print $6\" \"$7\" \"$8}'" % haproxy_config_path ]
+	commands = [ "ls -l %s |awk '{ print $6\" \"$7\" \"$8}'" % haproxy_config_path ]
 
 	for server in listhap:
 		print('<tr><td class="padding10 first-collumn"><a href="#%s" title="Go to %s status" style="color: #000">%s</a></td><td  class="second-collumn">' % (server[1], server[1], server[1]))
-		funct.ssh_command(server[2], commands, server_status="1")
+		cmd = 'echo "show info" |nc %s 1999 |grep -e "Process_num"' % server[2]
+		funct.server_status(funct.subprocess_execute(cmd))
 		print('</td><td>')
 		if funct.is_admin():
 			print('<a id="%s" class="start" title="Start HAproxy service"><img src=/image/pic/start.png alt="start" class="icon"></a>' % server[2])
@@ -31,22 +31,28 @@ def get_overview():
 			print('<a href="/app/diff.py?serv=%s&open=open#diff"  title="Compare config"><img src=/image/pic/compare.png alt="compare" class="icon"></a>' % server[2])
 			print('<a href="/app/map.py?serv=%s&open=open#map"  title="Map listen/frontend/backend"><img src=/image/pic/map.png alt="map" class="icon"></a>' % server[2])
 		print('</td><td>')
-		funct.ssh_command(server[2], commands1)
+		funct.ssh_command(server[2], commands)
 		print('</td><td></td></tr>')
 
 def get_overviewServers():
 	listhap = sql.get_dick_permit()
-	commands = [ "uname -smor", 
-				"haproxy -v |head -1", 
-				status_command + "|grep Active |awk -F':' '{print $2\":\"$3\":\"$4}' | sed 's/^[ \t]*//'" ]
-	commands1 =  [ "top -u haproxy -b -n 1" ]
+	commands =  [ "top -u haproxy -b -n 1" ]
+	
 	for server in sorted(listhap):
 		print('<tr><td class="overviewTr first-collumn"><a name="'+server[1]+'"></a><h3 title="IP ' + server[2] + '">' + server[1] + ':</h3></td>')
 		print('<td class="overviewTd" style="padding-top: 10px;"><pre style="font-size: 12px;">')
+		cmd = 'echo "show info" |nc %s 1999 |grep -e "Ver\|CurrConns\|SessRate\|Maxco\|MB\|Uptime:"' % server[2]
+		out = funct.subprocess_execute(cmd)
+
+		for k in out:
+			if "Ncat: Connection refused." not in k:
+				for r in k:
+					print(r)
+			else:
+				print("Can\'t connect to HAproxy")
+		print('</pre></td><td style="padding-top: 10px;"><pre style="font-size: 12px; padding-left: 0px;">')
 		funct.ssh_command(server[2], commands)
-		print('</pre></td><td style="padding-top: 10px;"><pre style="font-size: 12px;">')
-		funct.ssh_command(server[2], commands1)
-		print('</td><td style="padding: 10px;font-size: 13px;">')
+		print('</td><td style="padding: 10px;font-size: 12px;">')
 		funct.show_backends(server[2])
 		print('</pre></td><td></td></tr>')
 	
