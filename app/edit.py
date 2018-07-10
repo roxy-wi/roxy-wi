@@ -19,6 +19,8 @@ try:
 	servers = sql.get_dick_permit(virt=1)
 	token = sql.get_token(user_id.value)
 	servbackend = form.getvalue('servbackend')
+	if servbackend is None:
+		servbackend = ""
 except:
 	pass
 

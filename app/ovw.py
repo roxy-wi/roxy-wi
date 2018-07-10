@@ -153,8 +153,10 @@ def get_map(serv):
 	except Exception as e:
 		print('<div class="alert alert-danger">' + str(e) + '</div>')
 		
-	commands = [ "rm -f "+fullpath+"/map*.png", "mv %s/map.png %s/map%s.png" % (cgi_path, fullpath, date) ]
-	funct.ssh_command("localhost", commands)
+	cmd = "rm -f "+fullpath+"/map*.png && mv "+cgi_path+"/map.png "+fullpath+"/map"+date+".png"
+	output, stderr = funct.subprocess_execute(cmd)
+	print(stderr)
+
 	print('<img src="/map%s.png" alt="map">' % date)
 
 def show_compare_configs(serv):
