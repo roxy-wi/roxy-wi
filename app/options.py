@@ -19,8 +19,18 @@ if form.getvalue('token') is None:
 	print("What the fuck?! U r hacker Oo?!")
 	sys.exit()
 	
-if form.getvalue('getcert') is not None and serv is not None:
+if form.getvalue('getcerts') is not None and serv is not None:
+	cert_path = funct.get_config_var('haproxy', 'cert_path')
 	commands = [ "ls -1t /etc/ssl/certs/ |grep pem" ]
+	try:
+		funct.ssh_command(serv, commands, ip="1")
+	except:
+		print('<div class="alert alert-danger" style="margin:0">Can not connect to the server</div>')
+		
+if form.getvalue('getcert') is not None and serv is not None:
+	id = form.getvalue('getcert')
+	cert_path = funct.get_config_var('haproxy', 'cert_path')
+	commands = [ "cat "+cert_path+"/"+id ]
 	try:
 		funct.ssh_command(serv, commands, ip="1")
 	except:

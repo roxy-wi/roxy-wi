@@ -905,7 +905,7 @@ $( function() {
 			url: "options.py",
 			data: {
 				serv: $('#serv5').val(),
-				getcert: "viewcert",
+				getcerts: "viewcert",
 				token: $('#token').val()
 			},
 			type: "GET",
@@ -914,11 +914,20 @@ $( function() {
 					$("#ajax-show-ssl").html(data);
 				} else {
 					$('.alert-danger').remove();
-					$( "#ajax-show-ssl").html("<b>"+data+"</b>");					
+					var i;
+					var new_data = "";
+					data = data.split("\n");
+					
+					for (i = 0; i < data.length; i++) {
+						
+						new_data += ' <a onclick="view_ssl(\''+data[i]+'\')" style="cursor: pointer;" title="View this cert">'+data[i]+'</a> '
+					}
+					$("#ajax-show-ssl").html("<b>"+new_data+"</b>");					
 				} 
 			}
 		} );
 	});
+
 	$('#auth').submit(function() {
 		$('.alert-danger').remove();
 		let searchParams = new URLSearchParams(window.location.search)
@@ -954,4 +963,37 @@ function replace_text(id_textarea, text_var) {
 	var end = beg + len_var
 	var text_val = str.substring(0, beg) + str.substring(end, len);
 	$(id_textarea).text(text_val);
+}
+
+function view_ssl(id) {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			serv: $('#serv5').val(),
+			getcert: id,
+			token: $('#token').val()
+		},
+		type: "GET",
+		success: function( data ) {
+			if (data.indexOf('danger') != '-1') {
+				$("#ajax-show-ssl").html(data);
+			} else {
+				$('.alert-danger').remove();
+				$('#dialog-confirm-body').text(data);
+				$( "#dialog-confirm" ).dialog({
+					resizable: false,
+					height: "auto",
+					width: 800,
+					modal: true,
+					title: "Certificate from "+$('#serv5').val()+", name: "+id,
+					buttons: {
+						Ok: function() {
+							$( this ).dialog( "close" );
+						}
+					  }
+				});					
+			} 
+		}
+	} );
+
 }
