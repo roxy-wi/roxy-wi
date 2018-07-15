@@ -122,7 +122,7 @@ else
 	echo "################################"
 	echo ""
 	echo ""
-	echo -e "Creating VirtulHost for Apache"
+	echo -e "Creating VirtualHost for Apache"
 	echo ""
 	echo ""
 	echo "################################"
