@@ -158,48 +158,24 @@ def get_map(serv):
 	print(stderr)
 
 	print('<img src="/map%s.png" alt="map">' % date)
-
+	
 def show_compare_configs(serv):
 	import glob
+	from jinja2 import Environment, FileSystemLoader
+	env = Environment(loader=FileSystemLoader('templates/ajax'))
+	template = env.get_template('/show_compare_configs.html')
 	left = form.getvalue('left')
 	right = form.getvalue('right')
 	haproxy_configs_server = funct.get_config_var('configs', 'haproxy_configs_server')
 	
-	print('<form action="diff.py#diff" method="get">')
-	print('<center><h3><span style="padding: 20px;">Choose left</span><span style="padding: 110px;">Choose right</span></h3>')
 	
-	print('<p><select autofocus required name="left" id="left">')
-	print('<option disabled selected>Choose version</option>')
 	
-	os.chdir(hap_configs_dir)
-	
-	for files in sorted(glob.glob('*.cfg'), reverse=True):
-		ip = files.split("-")
-		if serv == ip[0]:
-			if left == files:
-				selected = 'selected'
-			else:
-				selected = ''
-			print('<option value="%s" %s>%s</option>' % (files, selected, files))
-
-	print('</select>')
-
-	print('<select autofocus required name="right" id="right">')
-	print('<option disabled selected>Choose version</option>')
-	
-	for files in sorted(glob.glob('*.cfg'), reverse=True):
-		ip = files.split("-")
-		if serv == ip[0]:
-			if right == files:
-				selected = 'selected'
-			else:
-				selected = ''
-			print('<option value="%s" %s>%s</option>' % (files, selected, files))
-
-	print('</select>')
-	print('<input type="hidden" value="%s" name="serv">' % serv)
-	print('<input type="hidden" value="open" name="open">')
-	print('<a class="ui-button ui-widget ui-corner-all" id="show" title="Compare" onclick="showCompare()">Show</a></p></form></center></center>')
+	output_from_parsed_template = template.render(serv = serv,
+													right = right,
+													left = left,
+													return_files = funct.get_files())
+									
+	print(output_from_parsed_template)
 	
 def comapre_show():
 	import subprocess 
@@ -208,9 +184,7 @@ def comapre_show():
 	haproxy_configs_server = funct.get_config_var('configs', 'haproxy_configs_server')
 	cmd='diff -ub %s%s %s%s' % (hap_configs_dir, left, hap_configs_dir, right)
 	
-	p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
-	stdout, stderr = p.communicate()
-	output = stdout.splitlines()
+	output, stderr = funct.subprocess_execute(cmd)
 	
 	funct.compare(output)
 	print(stderr)

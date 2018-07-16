@@ -415,9 +415,9 @@ def get_dick_permit(**kwargs):
 	else:
 		type_ip = "and type_ip = 0" 
 	if kwargs.get('disable') == 0:
-		disable = kwargs.get('disable')
+		disable = 'or enable = 0'
 	else:
-		disable = 1
+		disable = ''
 		
 	try:    
 		cur.execute(sql)
@@ -426,9 +426,9 @@ def get_dick_permit(**kwargs):
 	else:
 		for group in cur:
 			if group[5] == '1':
-				sql = """ select * from servers where enable = %s %s """ % (disable, type_ip)
+				sql = """ select * from servers where enable = 1 %s %s """ % (disable, type_ip)
 			else:
-				sql = """ select * from servers where groups like '%{group}%' and enable = {disable} {type_ip} """.format(group=group[5], disable=disable, type_ip=type_ip)		
+				sql = """ select * from servers where groups like '%{group}%' and (enable = 1 {disable}) {type_ip} """.format(group=group[5], disable=disable, type_ip=type_ip)		
 		try:   
 			cur.execute(sql)
 		except sqltool.Error as e:

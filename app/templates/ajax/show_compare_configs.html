@@ -1,0 +1,32 @@
+<form action="diff.py#diff" method="get">
+	<center>
+		<h3>
+			<span style="padding: 20px;">Choose left</span>
+			<span style="padding: 110px;">Choose right</span>
+		</h3>
+		<p>
+			<select autofocus required name="left" id="left">
+				<option disabled selected>Choose version</option>
+				{% for file in return_files %}
+					{% if file == left %}
+						<option value="{{ file }}" selected>{{ file }}</option>
+					{% else %}
+						<option value="{{ file }}">{{ file }}</option>
+					{% endif %}
+				{% endfor %}
+			</select>
+
+			<select autofocus required name="right" id="right">
+				<option disabled selected>Choose version</option>
+				{% for file in return_files %}
+					
+					<option value="{{ file }}">{{ file }}</option>
+				{% endfor %}
+			</select>
+	
+			<input type="hidden" value="{{ serv }}" name="serv">
+			<input type="hidden" value="open" name="open">
+			<a class="ui-button ui-widget ui-corner-all" id="show" title="Compare" onclick="showCompare()">Show</a>
+		</p>
+	</center>
+</form>

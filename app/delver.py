@@ -17,6 +17,7 @@ serv = form.getvalue('serv')
 stderr = ""
 aftersave = ""
 file = set()
+hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 
 try:
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
@@ -30,20 +31,6 @@ except:
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
 Select = form.getvalue('del')
-hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
-
-def get_files():
-	import glob
-	file = set()
-	return_files = set()
-	for files in glob.glob(os.path.join(hap_configs_dir,'*.cfg')):		
-		file.add(files.split('/')[6])
-	files = sorted(file, reverse=True)
-	for file in files:
-		ip = file.split("-")
-		if serv == ip[0]:
-			return_files.add(file)
-	return sorted(return_files, reverse=True)
 
 if serv is not None and form.getvalue('open') is not None:
 	if Select is not None:
@@ -65,7 +52,7 @@ output_from_parsed_template = template.render(h2 = 1, title = "Delete old versio
 													select_id = "serv",
 													serv = serv,
 													aftersave = aftersave,
-													return_files = get_files(),
+													return_files = funct.get_files(),
 													selects = servers,
 													stderr = stderr,
 													open = form.getvalue('open'),

@@ -482,3 +482,17 @@ def show_backends(serv):
 			back = json.dumps(line).split("\"")
 			print(back[1]+"<br>")
 		
+def get_files():
+	import glob
+	file = set()
+	return_files = set()
+	hap_configs_dir = get_config_var('configs', 'haproxy_save_configs_dir')
+	
+	for files in glob.glob(os.path.join(hap_configs_dir,'*.cfg')):		
+		file.add(files.split('/')[6])
+	files = sorted(file, reverse=True)
+	for file in files:
+		ip = file.split("-")
+		if serv == ip[0]:
+			return_files.add(file)
+	return sorted(return_files, reverse=True)
