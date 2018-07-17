@@ -26,6 +26,7 @@ Support the project
 16.	haproxy-wi supports high Availability to ensure uptime to all Master slave servers configured.
 17.	SSL certificate support.
 18.	SSH Key support for managing multiple HAproxy Servers straight from haproxy-wi
+19. SYN flood protect
 
 
 # Install
@@ -64,7 +65,7 @@ For Apache do virtualhost with cgi-bin. Like this:
                 Allow from all
         </Directory>
 		
-		<FilesMatch "\.config$">
+        <FilesMatch "\.config$">
                 Order Deny,Allow
                 Deny from all
         </FilesMatch>
