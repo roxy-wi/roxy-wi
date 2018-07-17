@@ -3,8 +3,9 @@
 <script src="/inc/users.js"></script>
 <table class="overview">
 	<tr class="overviewHead">
-		<td class="padding10 first-collumn">Note</td>
-		<td>Server</td>
+		<td class="padding10 first-collumn" style="width: 350px;">Note</td>
+		<td class="padding10 first-collumn">Server</td>
+		<td style="width: 150px;">SYN flood protect</td>
 		<td></td>
 	</tr>
 	<tr>
@@ -18,6 +19,9 @@
 					<option value="{{ select.2 }}">{{ select.1 }}</option>
 			{% endfor %}
 		</select>
+	</td>
+	<td>
+		<label for="syn_flood" title="Enable SYN flood protect"><input type="checkbox" id="syn_flood" checked>
 	</td>
 	<td>
 		<a class="ui-button ui-widget ui-corner-all" id="install" title="Install HAProxy">Install</a>

@@ -271,7 +271,7 @@ def diff_config(oldcfg, cfg):
 		print('<center><div class="alert alert-danger">Can\'t read write change to log. %s</div></center>' % stderr)
 		pass
 		
-def install_haproxy(serv):
+def install_haproxy(serv, **kwargs):
 	script = "install_haproxy.sh"
 	tmp_config_path = get_config_var('haproxy', 'tmp_config_path')
 	proxy = get_config_var('main', 'proxy')
@@ -281,6 +281,27 @@ def install_haproxy(serv):
 	else:
 		proxy_serv = ""
 	commands = [ "chmod +x "+tmp_config_path+script, tmp_config_path+script +" " + proxy_serv]
+	
+	upload(serv, tmp_config_path, script)	
+	ssh_command(serv, commands)
+	
+	if kwargs.get('syn_flood') == "1":
+		syn_flood_protect(serv)
+	
+	os.system("rm -f %s" % script)
+	
+def syn_flood_protect(serv, **kwargs):
+	script = "syn_flood_protect.sh"
+	tmp_config_path = get_config_var('haproxy', 'tmp_config_path')
+	
+	if kwargs.get('enable') == "0":
+		enable = "disable"
+	else:
+		enable = "enable"
+
+	os.system("cp scripts/%s ." % script)
+	
+	commands = [ "chmod +x "+tmp_config_path+script, tmp_config_path+script+ " "+enable ]
 	
 	upload(serv, tmp_config_path, script)	
 	ssh_command(serv, commands)

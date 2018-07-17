@@ -302,12 +302,17 @@ if form.getvalue('master'):
 	interface = form.getvalue('interface')
 	vrrpip = form.getvalue('vrrpip')
 	hap = form.getvalue('hap')
+	syn_flood = form.getvalue('syn_flood')
 	tmp_config_path = funct.get_config_var('haproxy', 'tmp_config_path')
 	script = "install_keepalived.sh"
 	
 	if hap == "1":
 		funct.install_haproxy(master)
 		funct.install_haproxy(slave)
+		
+	if syn_flood == "1":
+		funct.syn_flood_protect(master)
+		funct.syn_flood_protect(slave)
 	
 	os.system("cp scripts/%s ." % script)
 		
@@ -346,4 +351,4 @@ if form.getvalue('masteradd'):
 	os.system("rm -f %s" % script)
 	
 if form.getvalue('haproxyaddserv'):
-	funct.install_haproxy(form.getvalue('haproxyaddserv'))
+	funct.install_haproxy(form.getvalue('haproxyaddserv'), syn_flood=form.getvalue('syn_flood'))

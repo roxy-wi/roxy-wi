@@ -9,6 +9,7 @@
 		<td>VRRP interface</td>
 		<td>VRRP IP</td>
 		<td><span title="Haproxy-WI will try install haproxy-1.18.5, if it does not work then haproxy-1.15">Install HAProxy(?)</span></td>
+		<td>SYN flood protect</td>
 		<td></td>
 	</tr>
 	<tr>
@@ -36,6 +37,9 @@
 		</td>
 		<td>
 			<label for="hap"></label><input type="checkbox" id="hap">
+		</td>
+		<td>
+			<label for="syn_flood" title="Enable SYN flood protect"><input type="checkbox" id="syn_flood" checked>
 		</td>
 		<td>
 			<a class="ui-button ui-widget ui-corner-all" id="create" title="Create HA configuration">Create</a>

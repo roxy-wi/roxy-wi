@@ -18,8 +18,12 @@ $( function() {
 	var ipformat = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
 	$('#create').click(function() {
 		var hap = 0;
+		var syn_flood = 0;
 		if ($('#hap').is(':checked')) {
 			hap = '1';
+		}		
+		if ($('#syn_flood').is(':checked')) {
+			syn_flood = '1';
 		}
 		$("#ajax").html('')
 		if( $("#master").val() == "" || $("#slave").val() == "" || $("#interface").val() == "" ||
@@ -37,6 +41,7 @@ $( function() {
 						interface: $("#interface").val(),
 						vrrpip: $('#vrrp-ip').val(),
 						hap: hap,
+						syn_flood: syn_flood,
 						token: $('#token').val()
 					},
 					type: "GET",
@@ -92,10 +97,15 @@ $( function() {
 	});
 	$('#install').click(function() {
 		$("#ajax").html('')
+		var syn_flood = 0;
+		if ($('#syn_flood').is(':checked')) {
+			syn_flood = '1';
+		}
 		$.ajax( {
 			url: "options.py",
 			data: {
 				haproxyaddserv: $('#haproxyaddserv').val(),
+				syn_flood: syn_flood,
 				token: $('#token').val()
 				},
 			type: "GET",
