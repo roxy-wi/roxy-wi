@@ -801,6 +801,53 @@ $( function() {
 			replace_text("#optionsInput2", redispatch_var);
 		}	
 	});
+	var slow_atack = "option http-buffer-request\ntimeout http-request 10s\n"
+	$('#slow_atack').click(function() {
+		if($('#optionsInput').val().indexOf(slow_atack) == '-1') {
+			$("#optionsInput").append(slow_atack)
+		} else {
+			replace_text("#optionsInput", slow_atack);
+		}	
+	});
+	$('#slow_atack1').click(function() {
+		if($('#optionsInput1').val().indexOf(slow_atack) == '-1') {
+			$("#optionsInput1").append(slow_atack)
+		} else {
+			replace_text("#optionsInput1", slow_atack);
+		}	
+	});
+	var table_name = Math.floor(Math.random() * 1000);
+	var ddos_var = "#Start config for DDOS atack protecte\n"+
+			  "stick-table type ip size 1m expire 1m store gpc0,http_req_rate(10s),http_err_rate(10s)\n"+
+			  "tcp-request connection track-sc1 src\n"+
+			  "tcp-request connection reject if { sc1_get_gpc0 gt 0 }\n"+
+			  "# Abuser means more than 100reqs/10s\n"+
+			  "acl abuse sc1_http_req_rate("+table_name+") ge 100\n"+
+			  "acl flag_abuser sc1_inc_gpc0("+table_name+")\n"+
+			  "tcp-request content reject if abuse flag_abuser\n"+
+			  "#End config for DDOS\n"
+	
+	$('#ddos').click(function() {
+		if($('#optionsInput').val().indexOf(ddos_var) == '-1') {
+			$("#optionsInput").append(ddos_var)
+		} else {
+			replace_text("#optionsInput", ddos_var);
+		}	
+	});
+	$('#ddos1').click(function() {
+		if($('#optionsInput1').val().indexOf(ddos_var) == '-1') {
+			$("#optionsInput1").append(ddos_var)
+		} else {
+			replace_text("#optionsInput1", ddos_var);
+		}	
+	});
+	$('#ddos2').click(function() {
+		if($('#optionsInput2').val().indexOf(ddos_var) == '-1') {
+			$("#optionsInput2").append(ddos_var)
+		} else {
+			replace_text("#optionsInput2", ddos_var);
+		}	
+	});
 	$( "#path-cert-frontend" ).autocomplete({
 		source: function( request, response ) {
 			$.ajax( {
