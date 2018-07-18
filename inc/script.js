@@ -821,10 +821,6 @@ $( function() {
 			  "stick-table type ip size 1m expire 1m store gpc0,http_req_rate(10s),http_err_rate(10s)\n"+
 			  "tcp-request connection track-sc1 src\n"+
 			  "tcp-request connection reject if { sc1_get_gpc0 gt 0 }\n"+
-			  "# Abuser means more than 100reqs/10s\n"+
-			  "acl abuse sc1_http_req_rate("+table_name+") ge 100\n"+
-			  "acl flag_abuser sc1_inc_gpc0("+table_name+")\n"+
-			  "tcp-request content reject if abuse flag_abuser\n"+
 			  "#End config for DDOS\n"
 	
 	$('#ddos').click(function() {
