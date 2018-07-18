@@ -816,30 +816,102 @@ $( function() {
 			replace_text("#optionsInput1", slow_atack);
 		}	
 	});
-	var table_name = Math.floor(Math.random() * 1000);
-	var ddos_var = "#Start config for DDOS atack protecte\n"+
-			  "stick-table type ip size 1m expire 1m store gpc0,http_req_rate(10s),http_err_rate(10s)\n"+
-			  "tcp-request connection track-sc1 src\n"+
-			  "tcp-request connection reject if { sc1_get_gpc0 gt 0 }\n"+
-			  "#End config for DDOS\n"
+	$("#ddos").checkboxradio( "disable" );
+	$("#ddos1").checkboxradio( "disable" );
+	$("#ddos2").checkboxradio( "disable" );
+	$( "#name" ).change(function() {
+		table_name = $('#name').val();
+		table_name = $.trim(table_name)
+		if($('#name').val() != "") {
+			$("#ddos").checkboxradio( "enable" );
+		} else {
+			$("#ddos").checkboxradio( "disable" );
+		}
+	});
+	$( "#new_frontend" ).change(function() {
+		table_name = $('#new_frontend').val();
+		table_name = $.trim(table_name)
+		if($('#new_frontend').val() != "") {
+			$("#ddos1").checkboxradio( "enable" );
+		} else {
+			$("#ddos1").checkboxradio( "disable" );
+		}
+	});
+	$( "#new_backend" ).change(function() {
+		table_name = $('#new_backend').val();
+		table_name = $.trim(table_name)
+		if($('#new_backend').val() != "") {
+			$("#ddos2").checkboxradio( "enable" );
+		} else {
+			$("#ddos2").checkboxradio( "disable" );
+		}
+	});
 	
 	$('#ddos').click(function() {
-		if($('#optionsInput').val().indexOf(ddos_var) == '-1') {
+		if($('#name').val() == "") {
 			$("#optionsInput").append(ddos_var)
+		}
+		var ddos_var = "#Start config for DDOS atack protecte\n"+
+								  "stick-table type ip size 1m expire 1m store gpc0,http_req_rate(10s),http_err_rate(10s)\n"+
+								  "tcp-request connection track-sc1 src\n"+
+								  "tcp-request connection reject if { sc1_get_gpc0 gt 0 }\n"+
+								  "# Abuser means more than 100reqs/10s\n"+
+								  "acl abuse sc1_http_req_rate("+table_name+") ge 100\n"+
+								  "acl flag_abuser sc1_inc_gpc0("+table_name+")\n"+
+								  "tcp-request content reject if abuse flag_abuser\n"+
+								  "End config for DDOS\n";
+		if($('#optionsInput').val().indexOf(ddos_var) == '-1') {			
+			if($('#name').val() == "") {
+				alert("First set Listen name")
+			} else {
+				$("#optionsInput").append(ddos_var);
+			}
 		} else {
 			replace_text("#optionsInput", ddos_var);
 		}	
 	});
 	$('#ddos1').click(function() {
-		if($('#optionsInput1').val().indexOf(ddos_var) == '-1') {
+		if($('#new_frontend').val() == "") {
 			$("#optionsInput1").append(ddos_var)
+		}
+		var ddos_var = "#Start config for DDOS atack protecte\n"+
+								  "stick-table type ip size 1m expire 1m store gpc0,http_req_rate(10s),http_err_rate(10s)\n"+
+								  "tcp-request connection track-sc1 src\n"+
+								  "tcp-request connection reject if { sc1_get_gpc0 gt 0 }\n"+
+								  "# Abuser means more than 100reqs/10s\n"+
+								  "acl abuse sc1_http_req_rate("+table_name+") ge 100\n"+
+								  "acl flag_abuser sc1_inc_gpc0("+table_name+")\n"+
+								  "tcp-request content reject if abuse flag_abuser\n"+
+								  "End config for DDOS\n";
+		if($('#optionsInput1').val().indexOf(ddos_var) == '-1') {
+			if($('#new_frontend').val() == "") {
+				alert("First set Frontend name")
+			} else {
+				$("#optionsInput1").append(ddos_var)
+			}
 		} else {
 			replace_text("#optionsInput1", ddos_var);
 		}	
 	});
 	$('#ddos2').click(function() {
+		if($('#new_backend').val() == "") {
+			table_name = $('#new_backend').val();
+		}
+		var ddos_var = "#Start config for DDOS atack protecte\n"+
+								  "stick-table type ip size 1m expire 1m store gpc0,http_req_rate(10s),http_err_rate(10s)\n"+
+								  "tcp-request connection track-sc1 src\n"+
+								  "tcp-request connection reject if { sc1_get_gpc0 gt 0 }\n"+
+								  "# Abuser means more than 100reqs/10s\n"+
+								  "acl abuse sc1_http_req_rate("+table_name+") ge 100\n"+
+								  "acl flag_abuser sc1_inc_gpc0("+table_name+")\n"+
+								  "tcp-request content reject if abuse flag_abuser\n"+
+								  "End config for DDOS\n";
 		if($('#optionsInput2').val().indexOf(ddos_var) == '-1') {
-			$("#optionsInput2").append(ddos_var)
+			if($('#new_backend').val() == "") {
+				alert("First set Backend name")
+			} else {
+				$("#optionsInput2").append(ddos_var)
+			}
 		} else {
 			replace_text("#optionsInput2", ddos_var);
 		}	
