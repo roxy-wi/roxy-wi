@@ -124,15 +124,15 @@
 				</td>
 				<td>
 					<select id="slavefor">
-						<option disabled selected>Not slave</option>
+						<option disabled selected value="0">Not slave</option>
 						{% for master in masters %}
 							<option value="{{master.0}}">{{master.1}}</option>
 						{% endfor %}
 					</select>
 				</td>
 				<td>
-					<select id="credentials">
-						<option disabled selected>Choose credentials</option>
+					<select id="credentials" required>
+						<option disabled selected value="0">Choose credentials</option>
 						{% for ssh in sshs %}
 							{% if ssh.5|string() == ssh_group.0 %}
 								<option value="{{ssh.0}}">{{ssh.1}}</option>
