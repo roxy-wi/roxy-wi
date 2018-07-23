@@ -14,7 +14,8 @@
 	</select>		
 	<a class="ui-button ui-widget ui-corner-all" id="show" title="Show stats" onclick="{{ onclick }}">Show</a>
 </form>
-<div id="ajax" style="margin-left: 10px;"></div>
+<br />
+<div id="ajax" style="margin-left: 20px; width: 98%"></div>
 <script> 
 	window.onload = showStats();
 	function sleep(ms) {
@@ -27,7 +28,11 @@
 		$('li').css('margin-top', '0');
 		$('table.tbl th.pxname').css('background-color', '#5d9ceb');
 		$('a.px:link').css('color', '#fff');
+		$('h1').css('display', 'none');
 		$('h1').next().css('display', 'none');	  
+		$('h1').next().next().css('display', 'none');	  
+		$('h1').next().next().next().css('display', 'none');	  
+		$('h1').next().next().next().next().css('display', 'none');	  
 		$( "select" ).selectmenu();
 		await sleep(2000);
 	  

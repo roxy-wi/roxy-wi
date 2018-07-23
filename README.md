@@ -27,7 +27,7 @@ Support the project
 17.	SSL certificate support.
 18.	SSH Key support for managing multiple HAproxy Servers straight from haproxy-wi
 19. SYN flood protect
-
+20. Alerting about changes backends state
 
 # Install
 The installer will ask you a few questions

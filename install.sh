@@ -151,6 +151,28 @@ cat << EOF > $HAPROXY_WI_VHOST_CONF
 EOF
 fi 
 
+cat << EOF > /etc/systemd/system/multi-user.target.wants/checker_haproxy.service
+[Unit]
+Description=Haproxy backends state checker
+After=syslog.target network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/var/www/$HOME_HAPROXY_WI
+ExecStart=/var/www/$HOME_HAPROXY_WI/tools/checker_master.py
+
+RestartSec=2s
+Restart=on-failure
+TimeoutStopSec=1s
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload      
+systemctl start checker_haproxy.service
+systemctl enable checker_haproxy.service
+
 if hash apt-get 2>/dev/null; then
 	sed -i 's|/var/log/httpd/|/var/log/apache2/|g' $HAPROXY_WI_VHOST_CONF
 	cd /etc/apache2/mods-enabled
@@ -321,6 +343,7 @@ echo "################################"
 mkdir /var/www/$HOME_HAPROXY_WI/app/certs
 mkdir /var/www/$HOME_HAPROXY_WI/keys
 chmod +x /var/www/$HOME_HAPROXY_WI/app/*.py
+chmod +x /var/www/$HOME_HAPROXY_WI/app/tools/*.py
 rm -f /var/www/$HOME_HAPROXY_WI/log/config_edit.log
 cd /var/www/$HOME_HAPROXY_WI/app
 ./update_db.py

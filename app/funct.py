@@ -38,17 +38,25 @@ def get_data(type):
 		
 	return now_utc.strftime(fmt)
 			
-def logging(serv, action):
+def logging(serv, action, **kwargs):
 	import sql
-	IP = cgi.escape(os.environ["REMOTE_ADDR"])
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_uuid = cookie.get('uuid')
-	login = sql.get_user_name_by_uuid(user_uuid.value)
-	mess = get_data('date_in_log') + " from " + IP + " user: " + login + " " + action + " for: " + serv + "\n"
 	log_path = get_config_var('main', 'log_path')
-	
-	try:		
+	try:
+		IP = cgi.escape(os.environ["REMOTE_ADDR"])
+		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+		user_uuid = cookie.get('uuid')
+		login = sql.get_user_name_by_uuid(user_uuid.value)
+	except:
+		pass
+		
+	if kwargs.get('alerting') != 1:
+		mess = get_data('date_in_log') + " from " + IP + " user: " + login + " " + action + " for: " + serv + "\n"
 		log = open(log_path + "/config_edit-"+get_data('logs')+".log", "a")
+	else:
+		mess = get_data('date_in_log') + action + "\n"
+		log = open(log_path + "/checker-"+get_data('logs')+".log", "a")
+			
+	try:				
 		log.write(mess)
 		log.close
 	except IOError:
@@ -58,14 +66,15 @@ def logging(serv, action):
 	if get_config_var('telegram', 'enable') == "1": telegram_send_mess(mess)
 
 def telegram_send_mess(mess):
-	import telegram
+	import telebot
+	from telebot import apihelper
 	token_bot = get_config_var('telegram', 'token')
 	channel_name = get_config_var('telegram', 'channel_name')
 	proxy = get_config_var('main', 'proxy')
 	
 	if proxy is not None:
-		pp = telegram.utils.request.Request(proxy_url=proxy)
-	bot = telegram.Bot(token=token_bot, request=pp)
+		apihelper.proxy = {'https': proxy}
+	bot = telebot.TeleBot(token=token_bot)
 	bot.send_message(chat_id=channel_name, text=mess)
 	
 def check_login(**kwargs):

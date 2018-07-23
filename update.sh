@@ -8,7 +8,31 @@ git pull  https://github.com/Aidaho12/haproxy-wi.git
 mkdir keys
 mkdir app/certs
 chmod +x app/*py
+chmod +x app/tools/*py
 chown -R apache:apache *
+
+
+cat << EOF > /etc/systemd/system/multi-user.target.wants/checker_haproxy.service
+[Unit]
+Description=Haproxy backends state checker
+After=syslog.target network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/var/www/haproxy-wi/app/
+ExecStart=/var/www/haproxy-wi/app/tools/checker_master.py
+
+RestartSec=2s
+Restart=on-failure
+TimeoutStopSec=1s
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload      
+systemctl start checker_haproxy.service
+systemctl enable checker_haproxy.service
 
 cd app/
 ./update_db.py

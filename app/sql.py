@@ -110,9 +110,13 @@ def update_group(name, descript, id):
 	cur.close()    
 	con.close()
 
-def add_server(hostname, ip, group, typeip, enable, master, cred):
+def add_server(hostname, ip, group, typeip, enable, master, cred, alert):
 	con, cur = create_db.get_cur()
-	sql = """INSERT INTO servers (hostname, ip, groups, type_ip, enable, master, cred) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s')""" % (hostname, ip, group, typeip, enable, master, cred)
+	sql = """
+			INSERT INTO servers 
+			(hostname, ip, groups, type_ip, enable, master, cred, alert) 
+			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
+		""" % (hostname, ip, group, typeip, enable, master, cred, alert)
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -139,7 +143,7 @@ def delete_server(id):
 	cur.close()    
 	con.close() 		
 
-def update_server(hostname, ip, group, typeip, enable, master, id, cred):
+def update_server(hostname, ip, group, typeip, enable, master, id, cred, alert):
 	con, cur = create_db.get_cur()
 	sql = """update servers set 
 			hostname = '%s',
@@ -148,8 +152,9 @@ def update_server(hostname, ip, group, typeip, enable, master, id, cred):
 			type_ip = '%s',
 			enable = '%s',
 			master = '%s',
-			cred = '%s'
-			where id = '%s'""" % (hostname, ip, group, typeip, enable, master, cred, id)
+			cred = '%s',
+			alert = '%s'
+			where id = '%s'""" % (hostname, ip, group, typeip, enable, master, cred, alert, id)
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -589,6 +594,18 @@ def select_roles(**kwargs):
 		return cur.fetchall()
 	cur.close()    
 	con.close()  
+	
+def select_alert(**kwargs):
+	con, cur = create_db.get_cur()
+	sql = """select ip from servers where alert = 1 """
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		print("An error occurred:", e.args[0])
+	else:
+		return cur.fetchall()
+	cur.close()    
+	con.close() 
 			
 form = cgi.FieldStorage()
 error_mess = '<span class="alert alert-danger" id="error">All fields must be completed <a title="Close" id="errorMess"><b>X</b></a></span>'
@@ -635,12 +652,13 @@ if form.getvalue('newserver') is not None:
 	enable = form.getvalue('enable')
 	master = form.getvalue('slave')
 	cred = form.getvalue('cred')
+	alert = form.getvalue('alert_en')
 	if ip is None or group is None or cred is None:
 		print('Content-type: text/html\n')
 		print(error_mess)
 	else:	
 		print('Content-type: text/html\n')
-		if add_server(hostname, ip, group, typeip, enable, master, cred):
+		if add_server(hostname, ip, group, typeip, enable, master, cred, alert):
 			show_update_server(ip)
 		
 if form.getvalue('serverdel') is not None:
@@ -681,13 +699,14 @@ if form.getvalue('updateserver') is not None:
 	master = form.getvalue('slave')		
 	id = form.getvalue('id')	
 	cred = form.getvalue('cred')	
+	alert = form.getvalue('alert_en')	
 	if name is None or ip is None:
 		print('Content-type: text/html\n')
 		print(error_mess)
 	else:		
 		print('Content-type: text/html\n')
 		#if funct.ssh_connect(ip, check=1):
-		update_server(name, ip, group, typeip, enable, master, id, cred)
+		update_server(name, ip, group, typeip, enable, master, id, cred, alert)
 		#else:
 		#	print('<span class="alert alert-danger" id="error"><a title="Close" id="errorMess"><b>X</b></a></span>')
 			

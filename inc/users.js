@@ -180,11 +180,15 @@ $( function() {
 		$('.alert-danger').remove();	
 		var typeip = 0;
 		var enable = 0;
+		var alert_en = 0;
 		if ($('#typeip').is(':checked')) {
 			typeip = '1';
 		}
 		if ($('#enable').is(':checked')) {
 			enable = '1';
+		}
+		if ($('#alert').is(':checked')) {
+			var alert_en = 0;
 		}
 		$.ajax( {
 			url: "sql.py",
@@ -196,6 +200,7 @@ $( function() {
 				enable: enable,
 				slave: $('#slavefor' ).val(),
 				cred: $('#credentials').val(),
+				alert_en: alert_en
 			},
 			type: "GET",
 			success: function( data ) {
@@ -545,11 +550,15 @@ function updateServer(id) {
 	$('.alert-danger').remove();
 	var typeip = 0;
 	var enable = 0;
+	var alert_en = 0;
 	if ($('#typeip-'+id).is(':checked')) {
 		typeip = '1';
 	}
 	if ($('#enable-'+id).is(':checked')) {
 		enable = '1';
+	}
+	if ($('#alert-'+id).is(':checked')) {
+		alert_en = '1';
 	}
 	$.ajax( {
 		url: "sql.py",
@@ -561,7 +570,8 @@ function updateServer(id) {
 			enable: enable,
 			slave: $('#slavefor-'+id+' option:selected' ).val(),
 			cred: $('#credentials-'+id+' option:selected').val(),
-			id: id
+			id: id,
+			alert_en: alert_en
 		},
 		type: "GET",
 		success: function( data ) {
