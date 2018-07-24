@@ -50,6 +50,7 @@ function setRefreshInterval(interval) {
 		Cookies.remove('auto-refresh');
 		pauseAutoRefresh();
 		$('.auto-refresh').prepend('<img src=/image/pic/update.png alt="restart" class="icon">');
+		$('.auto-refresh').css('margin-top', '-3px');
 		$('#1').text('Auto-refresh');
 		$('#0').text('Auto-refresh');
 		$('.auto-refresh-pause').css('display', 'none');
@@ -80,10 +81,7 @@ function startSetInterval(interval) {
 	} else if (cur_url[0] == "viewlogs.py") {
 		intervalId = setInterval('viewLogs()', interval);
 		viewLogs();
-	} else if (cur_url[0] == "apachelogs.py") {
-		intervalId = setInterval('showApacheLog()', interval);
-		showApacheLog();
-	} 
+	}  
 }
 function pauseAutoRefresh() {
 	clearInterval(intervalId);
@@ -291,24 +289,29 @@ function showUploadConfig() {
 	} );
 }
 function viewLogs() {
-	$.ajax( {
-		url: "options.py",
-		data: {
-			viewlogs: $('#viewlogs').val(),
-			rows2: $('#rows').val(),
-			grep: $("#grep").val(),
-			hour: $('#time_range_out_hour').val(),
-			minut: $('#time_range_out_minut').val(),
-			hour1: $('#time_range_out_hour1').val(),
-			minut1: $('#time_range_out_minut1').val(),
-			token: $('#token').val()
-		},
-		type: "GET",
-		success: function( data ) {
-			$("#ajax").html(data);
-			window.history.pushState("View logs", "View logs", cur_url[0]+"?viewlogs="+$("#viewlogs").val());
-		}					
-	} );
+	if($('#viewlogs').val() == 'haproxy-wi.error.log' || $('#viewlogs').val() == 'haproxy-wi.access.log') {
+		showApacheLog($('#viewlogs').val());
+	} else {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				viewlogs: $('#viewlogs').val(),
+				rows2: $('#rows').val(),
+				grep: $("#grep").val(),
+				hour: $('#time_range_out_hour').val(),
+				minut: $('#time_range_out_minut').val(),
+				hour1: $('#time_range_out_hour1').val(),
+				minut1: $('#time_range_out_minut1').val(),
+				token: $('#token').val(),
+				
+			},
+			type: "GET",
+			success: function( data ) {
+				$("#ajax").html(data);
+				window.history.pushState("View logs", "View logs", cur_url[0]+"?viewlogs="+$("#viewlogs").val());
+			}					
+		} );
+	}
 }
 
 $( function() {

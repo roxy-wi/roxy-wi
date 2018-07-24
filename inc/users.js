@@ -653,12 +653,12 @@ function updateSSH(id) {
 		}
 	} );
 }
-function showApacheLog() {
+function showApacheLog(serv) {
 	$.ajax( {
 		url: "options.py",
 		data: {
 			rows1: $('#rows').val(),
-			serv: $("#serv").val(),
+			serv: serv,
 			grep: $("#grep").val(),
 			hour: $('#time_range_out_hour').val(),
 			minut: $('#time_range_out_minut').val(),

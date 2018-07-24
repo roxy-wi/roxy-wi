@@ -46,6 +46,7 @@ try:
 	user_id = cookie.get('uuid')
 	user = sql.get_user_name_by_uuid(user_id.value)
 	token = sql.get_token(user_id.value)
+	servers = [('haproxy-wi.error.log','error.log'), ('haproxy-wi.access.log','access.log')]
 except:
 	pass
 	
@@ -55,6 +56,9 @@ def get_files():
 		file += [(files.split('/')[5], files.split('/')[5])]
 	return sorted(file, reverse=True)
 
+selects = get_files()
+selects.append(['haproxy-wi.error.log','error.log'])
+selects.append(['haproxy-wi.access.log','access.log'])
 output_from_parsed_template = template.render(h2 = 1,
 												autorefresh = 1, 
 												title = "View logs",
@@ -63,7 +67,7 @@ output_from_parsed_template = template.render(h2 = 1,
 												onclick = "viewLogs()",
 												serv = form.getvalue('viewlogs'),
 												select_id = "viewlogs",
-												selects = get_files(),
+												selects = selects,
 												rows = rows,
 												grep = grep,
 												token = token)										

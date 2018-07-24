@@ -202,8 +202,12 @@ if serv is not None and form.getvalue('rows1') is not None:
 	else:
 		grep_act = ''
 		grep = ''
-	
-	cmd="cat %s| awk -F\"/|:\" '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s  %s %s" % ('/var/log/httpd/'+serv, date, date1, rows, grep_act, grep)
+		
+	if serv == 'haproxy-wi.access.log':
+		cmd="cat %s| awk -F\"/|:\" '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s  %s %s" % ('/var/log/httpd/'+serv, date, date1, rows, grep_act, grep)
+	else:
+		cmd="cat %s| awk '$4>\"%s:00\" && $4<\"%s:00\"' |tail -%s  %s %s" % ('/var/log/httpd/'+serv, date, date1, rows, grep_act, grep)
+
 	output, stderr = funct.subprocess_execute(cmd)
 
 	funct.show_log(output)

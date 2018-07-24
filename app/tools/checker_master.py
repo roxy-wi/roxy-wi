@@ -37,21 +37,22 @@ def main():
 			start_worker(serv)
 	
 def start_worker(serv):
-	cmd = "tools/checker_worker.py %s &" % serv
+	port = funct.get_config_var('haproxy', 'haproxy_sock_port')
+	cmd = "tools/checker_worker.py %s --port %s &" % (serv, port)
 	os.system(cmd)
-	funct.logging("localhost", " Start new worker for: "+serv, alerting=1)
+	funct.logging("localhost", " Masrer started new worker for: "+serv, alerting=1)
 	
 def kill_worker(serv):
 	cmd = "ps ax |grep 'tools/checker_worker.py %s'|grep -v grep |awk '{print $1}' |xargs kill" % serv
 	output, stderr = funct.subprocess_execute(cmd)
-	funct.logging("localhost", " Kill worker for: "+serv, alerting=1)
+	funct.logging("localhost", "Masrer killed worker for: "+serv, alerting=1)
 	if stderr:
 		funct.logging("localhost", stderr, alerting=1)
 
 def kill_all_workers():
 	cmd = "ps ax |grep 'tools/checker_worker.py' |grep -v grep |awk '{print $1}' |xargs kill"
 	output, stderr = funct.subprocess_execute(cmd)
-	funct.logging("localhost", " Killed all workers", alerting=1)
+	funct.logging("localhost", " Masrer killing all workers", alerting=1)
 	if stderr:
 		funct.logging("localhost", stderr, alerting=1)
 		

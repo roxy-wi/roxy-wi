@@ -19,8 +19,8 @@ class GracefulKiller:
 def main(serv, port):
 	port = str(port)
 	firstrun = True
-	currentstat=[]
-	readstats=""
+	currentstat = []
+	readstats = ""
 	killer = GracefulKiller()
 	
 	while True:
@@ -44,18 +44,18 @@ def main(serv, port):
 
 			if firstrun == False:
 				if (currentstat[i] != oldstat[i] and currentstat[i]!="none") and ("FRONTEND" not in str(vips[i]) and "BACKEND" not in str(vips[i])):
-					servername= str(vips[i])
-					servername=servername.split(",")
+					servername = str(vips[i])
+					servername = servername.split(",")
 					realserver = servername[0]
-					alert=realserver[2:]+ " has changed status and is now "+ currentstat[i] + " at " + serv 
+					alert = realserver[2:]+ " has changed status and is now "+ currentstat[i] + " at " + serv 
 					funct.telegram_send_mess(str(alert))
-		firstrun=False
-		oldstat=[]
-		oldstat=currentstat
-		currentstat=[]
-		time.sleep(30)	
-		
-		
+					funct.logging("localhost", " "+alert, alerting=1)
+		firstrun = False
+		oldstat = []
+		oldstat = currentstat
+		currentstat = []
+		time.sleep(60)	
+				
 		if killer.kill_now:
 			break
 	
