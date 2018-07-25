@@ -11,6 +11,7 @@
 		<li><a href="#servers">Servers</a></li>
 		<li><a href="#roles">Roles</a></li>
 		<li><a href="#ssh">SSH credentials</a></li>
+		<li><a href="#checker">Checker</a></li>
 		{% if user %}
 			<a href=/app/login.py?logout=logout title="Logout, user name: {{ user }}" class="login"> Logout</a>						
 		{% else %}
@@ -163,7 +164,7 @@
 				<td>Group</td>
 				<td>Enable</td>
 				<td><span title="Vitrual IP, something like VRRP">Virt(?)</span></td>
-				<td><span title="Alert if backend change status">Alert(?)</span></td>
+				<td><span title="Alert if backend change status. Before enable add Telgram chanel at Checker tab">Alert(?)</span></td>
 				<td><span title="Actions with master config will automatically apply on slave">Slave for (?)</span></td>
 				<td>Credentials</td>
 				<td></td>
@@ -434,6 +435,76 @@
 			</tr>
 		</table>
 		<div id="ajax-ssh"></div>
+	</div>
+	
+	<div id="checker">
+		<table id="checker_table" class="overview">
+			<tr class="overviewHead" style="width: 50%;">
+				<td class="padding10 first-collumn" style="width: 25%;">
+					<span title="Token that gave you @father_bot">Token(?)</span>
+				</td>
+				<td>Chanel name</td>
+				<td>Group</td>
+				<td></td>
+			</tr>
+			{% for telegram in telegrams %}
+				<tr id="telegram-table-{{telegram.0}}">
+					<td class="first-collumn" style="padding-top: 20px;">
+						<input type="text" id="telegram-token-{{telegram.0}}" class="form-control" value="{{telegram.1}}" style="margin-bottom: 23px;">	
+					</td>
+					<td>
+						<input type="text" id="telegram-chanel-{{telegram.0}}" class="form-control" value="{{telegram.2}}">		
+					</td>
+					<td>
+						<select id="telegramgroup-{{telegram.0}}" name="telegramgroup-{{telegram.0}}">
+							<option disabled selected>Choose group</option>
+							{% for group in groups %}
+								{% if telegram.3|string() == group.0|string() %}
+									<option value="{{ group.0 }}" selected>{{ group.1 }}</option>
+								{% else %}
+									<option value="{{ group.0 }}">{{ group.1 }}</option>
+								{% endif %}
+							{% endfor %}
+						</select>
+					</td>
+					<td>
+						<a class="delete" onclick="confirmDeleteTelegram({{telegram.0}})"  style="cursor: pointer;"></a>
+					</td>
+				</tr>
+			{% endfor %}
+		</table>
+		<br /><span class="add-button" title="Add telegram channel" id="add-telegram-button">+ Add</span>
+		<br /><br />
+		<table class="overview" id="telegram-add-table" style="display: none;">
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn" style="width: 25%;">
+					<span title="Token that gave you @father_bot">Token(?)</span>
+				</td>
+				<td>Chanel name</td>
+				<td>Group</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td class="padding10 first-collumn">
+					<input type="text" name="telegram-token-add" id="telegram-token-add" class="form-control">
+				</td>
+				<td>
+					<input type="text" id="telegram-chanel-add" class="form-control">
+				</td>
+				<td>
+					<select id="new-telegram-group-add" name="new-telegram-group-add">
+						<option disabled selected value="0">Choose group</option>
+						{% for group in groups %}
+							<option value="{{ group.0 }}">{{ group.1 }}</option>
+						{% endfor %}
+					</select>
+				</td>
+				<td>
+					<a class="add-admin"  id="add-telegram" style="cursor: pointer;"></a>
+				</td>
+			</tr>
+		</table>
+		<div id="ajax-telegram"></div>
 	</div>
 </div>
 {% endblock %}

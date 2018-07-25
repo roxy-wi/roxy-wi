@@ -1,0 +1,27 @@
+{% for telegram in telegrams %}
+	<tr style="width: 50%;" id="telegram-table-{{telegram.0}}" class="newgroup">
+		<td class="first-collumn" style="padding-top: 15px;">
+			<input type="text" id="telegram-token-{{telegram.0}}" class="form-control" value="{{telegram.1}}" style="margin-bottom: 23px;">	
+			<input type="hidden" id="telegramgroup-{{telegram.0}}" name="telegramgroup-{{telegram.0}}">
+		</td>
+		<td>
+			<input type="text" id="telegram-chanel-{{telegram.0}}" class="form-control" value="{{telegram.2}}">		
+		</td>
+		{% if page != "servers.py" %}
+			<td>
+				<select id="sshgroup-{{telegram.0}}" name="sshgroup-{{telegram.0}}">
+					{% for group in groups %}
+						{% if telegram.3 == group.0 %}
+							<option value="{{ group.0 }}" selected>{{ group.1 }}</option>
+						{% else %}
+							<option value="{{ group.0 }}">{{ group.1 }}</option>
+						{% endif %}
+					{% endfor %}
+				</select>
+			</td>	
+		{% endif %}
+		<td>
+			<a class="delete" onclick="confirmDeleteTelegram({{telegram.0}})"  style="cursor: pointer;"></a>
+		</td>
+	</tr>
+{% endfor %}

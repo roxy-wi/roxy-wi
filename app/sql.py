@@ -232,6 +232,13 @@ def select_servers(**kwargs):
 		sql = """select * from servers ORDER BY groups """ 
 	if kwargs.get("get_master_servers") is not None:
 		sql = """select id,hostname from servers where master = 0 and type_ip = 0 and enable = 1 ORDER BY groups """ 
+	if kwargs.get("get_master_servers") is not None and kwargs.get('uuid') is not None:
+		sql = """
+			select servers.id, servers.hostname from servers 
+			left join user as user on servers.groups = user.groups 
+			left join uuid as uuid on user.id = uuid.user_id 
+			where uuid.uuid = '%s' and servers.master = 0 and servers.type_ip = 0 and servers.enable = 1 ORDER BY servers.groups 
+			""" % kwargs.get('uuid')
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
@@ -406,7 +413,19 @@ def get_user_role_by_uuid(uuid):
 			return user_id[0]
 	cur.close()    
 	con.close() 
-	
+
+def get_user_telegram_by_uuid(uuid):
+	con, cur = create_db.get_cur()
+	sql = """ select telegram.* from telegram left join user as user on telegram.groups = user.groups left join uuid as uuid on user.id = uuid.user_id where uuid.uuid = '%s' """ % uuid
+	try:
+		cur.execute(sql)		
+	except sqltool.Error as e:
+		print("An error occurred:", e)
+	else:
+		return cur.fetchall()
+	cur.close()    
+	con.close() 	
+
 def get_dick_permit(**kwargs):
 	import http.cookies
 	import os
@@ -482,7 +501,7 @@ def insert_new_ssh(name, enable, group, username, password):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: %s <a title="Close" id="errorMess"><b>X</b></a></span>' % e)
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 		con.rollback()
 	else: 
 		return True
@@ -531,6 +550,77 @@ def show_update_ssh(name, page):
 	output_from_parsed_template = template.render(groups = select_groups(), sshs = select_ssh(name=name),page=page)
 	print(output_from_parsed_template)
 
+def insert_new_telegram(token, chanel, group):
+	con, cur = create_db.get_cur()
+	sql = """insert into telegram(`token`, `chanel_name`, `groups`) values ('%s', '%s', '%s') """ % (token, chanel, group)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		con.rollback()
+	else: 
+		return True
+	cur.close()    
+	con.close() 
+
+def delete_telegram(id):
+	con, cur = create_db.get_cur()
+	sql = """ delete from telegram where id = %s """ % (id)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		con.rollback()
+	else: 
+		return True
+	cur.close()    
+	con.close() 	
+	
+def select_telegram(**kwargs):
+	con, cur = create_db.get_cur()
+	sql = """select * from telegram  """
+	if kwargs.get('group'):
+		sql = """select * from telegram where groups = '%s' """ % kwargs.get('group')
+	if kwargs.get('token'):
+		sql = """select * from telegram where token = '%s' """ % kwargs.get('token')
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		print("An error occurred:", e.args[0])
+	else:
+		return cur.fetchall()
+	cur.close()    
+	con.close() 
+	
+def update_telegram(token, chanel, group, id):
+	con, cur = create_db.get_cur()
+	sql = """ 
+			update telegram set 
+			`token` = '%s',
+			`chanel_name` = '%s',
+			`groups` = '%s'
+			where id = '%s' """ % (token, chanel, group, id)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		con.rollback()
+	cur.close()    
+	con.close()
+	
+def show_update_telegram(token, page):
+	from jinja2 import Environment, FileSystemLoader
+	env = Environment(loader=FileSystemLoader('templates/ajax'))
+	template = env.get_template('/new_telegram.html')
+
+	print('Content-type: text/html\n')
+
+	output_from_parsed_template = template.render(groups = select_groups(), telegrams = select_telegram(token=token),page=page)
+	print(output_from_parsed_template)	
+
 def show_update_user(user):
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates/ajax'))
@@ -543,7 +633,7 @@ def show_update_user(user):
 													roles = select_roles())
 	print(output_from_parsed_template)
 		
-def show_update_server(server):
+def show_update_server(server, page):
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates/ajax/'))
 	template = env.get_template('/new_server.html')
@@ -554,7 +644,8 @@ def show_update_server(server):
 													servers = select_servers(server=server),
 													roles = select_roles(),
 													masters = select_servers(get_master_servers=1),
-													sshs = select_ssh())
+													sshs = select_ssh(),
+													page = page)
 	print(output_from_parsed_template)
 
 def show_update_group(group):
@@ -606,7 +697,7 @@ def select_alert(**kwargs):
 		return cur.fetchall()
 	cur.close()    
 	con.close() 
-			
+				
 form = cgi.FieldStorage()
 error_mess = '<span class="alert alert-danger" id="error">All fields must be completed <a title="Close" id="errorMess"><b>X</b></a></span>'
 
@@ -653,13 +744,15 @@ if form.getvalue('newserver') is not None:
 	master = form.getvalue('slave')
 	cred = form.getvalue('cred')
 	alert = form.getvalue('alert_en')
+	page = form.getvalue('page')
+	page = page.split("#")[0]
 	if ip is None or group is None or cred is None:
 		print('Content-type: text/html\n')
 		print(error_mess)
 	else:	
 		print('Content-type: text/html\n')
 		if add_server(hostname, ip, group, typeip, enable, master, cred, alert):
-			show_update_server(ip)
+			show_update_server(ip, page)
 		
 if form.getvalue('serverdel') is not None:
 	print('Content-type: text/html\n')
@@ -770,3 +863,33 @@ if form.getvalue('sshdel') is not None:
 			pass
 	if delete_ssh(form.getvalue('sshdel')):
 		print("Ok")
+
+if form.getvalue('newtelegram'):
+	token = form.getvalue('newtelegram')
+	chanel = form.getvalue('chanel')	
+	group = form.getvalue('telegramgroup')	
+	page = form.getvalue('page')
+	page = page.split("#")[0]
+	if token is None or chanel is None or group is None:
+		print('Content-type: text/html\n')
+		print(error_mess)
+	else:
+		if insert_new_telegram(token, chanel, group):
+			show_update_telegram(token, page)
+			
+if form.getvalue('telegramdel') is not None:
+	print('Content-type: text/html\n')
+	if delete_telegram(form.getvalue('telegramdel')):
+		print("Ok")
+		
+if form.getvalue('updatetoken') is not None:
+	token = form.getvalue('updatetoken')
+	chanel = form.getvalue('updategchanel')	
+	group = form.getvalue('updategroup')	
+	id = form.getvalue('id')		
+	if token is None or chanel is None or group is None:
+		print('Content-type: text/html\n')
+		print(error_mess)
+	else:		
+		print('Content-type: text/html\n')
+		update_telegram(token, chanel, group, id)

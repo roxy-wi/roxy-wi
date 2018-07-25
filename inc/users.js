@@ -200,7 +200,8 @@ $( function() {
 				enable: enable,
 				slave: $('#slavefor' ).val(),
 				cred: $('#credentials').val(),
-				alert_en: alert_en
+				alert_en: alert_en,
+				page: cur_url[0]
 			},
 			type: "GET",
 			success: function( data ) {
@@ -254,7 +255,31 @@ $( function() {
 			}					
 		} );
 	});
-	
+	$('#add-telegram').click(function() {
+		$('#error').remove();	
+		$('.alert-danger').remove();	
+		$.ajax( {
+			url: "sql.py",
+			data: {
+				newtelegram: $('#telegram-token-add').val(),
+				chanel: $('#telegram-chanel-add').val(),
+				telegramgroup: $('#new-telegram-group-add').val(),
+				page: cur_url[0]
+			},
+			type: "GET",
+			success: function( data ) {
+				if (data.indexOf('error') != '-1') {
+					$("#ajax-telegram").append(data);
+					$.getScript(users);
+				} else {
+					$("#checker_table").append(data);
+					$( ".newgroup" ).addClass( "update", 1000, callbackGroup );
+					$.getScript(awesome);
+					$.getScript(url);
+				}
+			}					
+		} );
+	});
 	function callbackUser() {
 		setTimeout(function() {
 			$( ".newuser" ).removeClass( "update" );
@@ -291,7 +316,11 @@ $( function() {
 			$('#ssh-add-table').show("blind", "fast");
 		} 
 	});
-	
+	$('#add-telegram-button').click(function() {
+		if ($('#telegram-add-table').css('display', 'none')) {
+			$('#telegram-add-table').show("blind", "fast");
+		} 
+	});
 	$( "#ajax-users input" ).change(function() {
 		var id = $(this).attr('id').split('-');
 		updateUser(id[1])
@@ -334,7 +363,14 @@ $( function() {
 	} else {
 		$('#ssh_pass').css('display', 'block');
 	}
-   
+   $( "#checker_table input" ).change(function() {
+		var id = $(this).attr('id').split('-');
+		updateTelegram(id[2])
+	});
+	$( "#checker_table select" ).on('selectmenuchange',function() {
+		var id = $(this).attr('id').split('-');
+		updateTelegram(id[1])
+	});
 } );
 function sshKeyEnableShow(id) {
 	$('#ssh_enable-'+id).click(function() {
@@ -423,6 +459,24 @@ function confirmDeleteSsh(id) {
       }
     });
 }
+function confirmDeleteTelegram(id) {
+	 $( "#dialog-confirm" ).dialog({
+      resizable: false,
+      height: "auto",
+      width: 400,
+      modal: true,
+	  title: "Are you sure you want to delete " +$('#telegram-chanel-'+id).val() + "?",
+      buttons: {
+        "Delete": function() {
+			$( this ).dialog( "close" );	
+			removeTelegram(id);
+        },
+        Cancel: function() {
+			$( this ).dialog( "close" );
+        }
+      }
+    });
+}
 function removeUser(id) {
 	$("#user-"+id).css("background-color", "#f2dede");
 	$.ajax( {
@@ -487,6 +541,22 @@ function removeSsh(id) {
 				$("#ssh-table-"+id).remove();
 				$('select:regex(id, credentials) option[value='+id+']').remove();
 				$('select:regex(id, credentials)').selectmenu("refresh");
+			}
+		}					
+	} );	
+}
+function removeTelegram(id) {
+	$("#telegram-table-"+id).css("background-color", "#f2dede");
+	$.ajax( {
+		url: "sql.py",
+		data: {
+			telegramdel: id,
+		},
+		type: "GET",
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if(data == "Ok ") {
+				$("#telegram-table-"+id).remove();
 			}
 		}					
 	} );	
@@ -560,12 +630,16 @@ function updateServer(id) {
 	if ($('#alert-'+id).is(':checked')) {
 		alert_en = '1';
 	}
+	var servergroup = $('#servergroup-'+id+' option:selected' ).val();
+	if (cur_url[0] == "servers.py") {
+		 servergroup = $('#servergroup-'+id).val();
+	}
 	$.ajax( {
 		url: "sql.py",
 		data: {
 			updateserver: $('#hostname-'+id).val(),
 			ip: $('#ip-'+id).val(),
-			servergroup: $('#servergroup-'+id+' option:selected' ).val(),
+			servergroup: servergroup,
 			typeip: typeip,
 			enable: enable,
 			slave: $('#slavefor-'+id+' option:selected' ).val(),
@@ -649,6 +723,32 @@ function updateSSH(id) {
 				$('select:regex(id, ssh-key-name) option[value='+$('#ssh_name-'+id).val()+']').remove();
 				$('select:regex(id, credentials)').append('<option value='+id+'>'+$('#ssh_name-'+id).val()+'</option>').selectmenu("refresh");
 				$('select:regex(id, ssh-key-name)').append('<option value='+$('#ssh_name-'+id).val()+'>'+$('#ssh_name-'+id).val()+'</option>').selectmenu("refresh");
+			}
+		}
+	} );
+}
+function updateTelegram(id) {
+	$('#error').remove();	
+	$.ajax( {
+		url: "sql.py",
+		data: {
+			updatetoken: $('#telegram-token-'+id).val(),
+			updategchanel: $('#telegram-chanel-'+id).val(),
+			updategroup: $('#telegramgroup-'+id).val(),
+			id: id
+		},
+		type: "GET",
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if (data.indexOf('error') != '-1') {
+				$("#ajax-ssh").append(data);
+				$.getScript(users);
+			} else {
+				$('.alert-danger').remove();
+				$("#telegram-table-"+id).addClass( "update", 1000 );
+				setTimeout(function() {
+					$( "#telegram-table-"+id ).removeClass( "update" );
+				}, 2500 );
 			}
 		}
 	} );

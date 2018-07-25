@@ -424,13 +424,37 @@ def update_db_v_2_7(**kwargs):
 		con.commit()
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
-			if e.args[0] == 'duplicate column name: groups' or e == "1060 (42S21): Duplicate column name 'groups' ":
-				print('DB was updated. No more run')
+			if e.args[0] == 'duplicate column name: alert' or e == "1060 (42S21): Duplicate column name 'groups' ":
+				print('Updating... go to version 2.7.2')
 			else:
 				print("An error occurred:", e)
 		return False
 	else:
 		print("DB was update to 2.7<br />")
+		return True
+	cur.close() 
+	con.close()
+
+def update_db_v_2_7_2(**kwargs):
+	con, cur = get_cur()
+	sql = """ CREATE TABLE IF NOT EXISTS `telegram` (	
+				`id` integer primary key autoincrement,	
+				`token`	VARCHAR ( 64 ), 
+				`chanel_name` INTEGER NOT NULL DEFAULT 1, 
+				`groups` INTEGER NOT NULL DEFAULT 1
+				); 
+	"""
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: telegram' or e == "1060 (42S21): Duplicate column name 'telegram' ":
+				print("Update finished. No run more")
+			else:
+				print("An error occurred:", e)
+		return False
+	else:
 		return True
 	cur.close() 
 	con.close()
@@ -447,6 +471,7 @@ def update_all():
 	update_db_v_2_61()
 	update_db_v_2_6_1()
 	update_db_v_2_7()
+	update_db_v_2_7_2()
 	
 def update_all_silent():
 	update_db_v_2_0_1(silent=1)
@@ -460,4 +485,5 @@ def update_all_silent():
 	update_db_v_2_61(silent=1)
 	update_db_v_2_6_1(silent=1)
 	update_db_v_2_7(silent=1)
+	update_db_v_2_7_2(silent=1)
 		

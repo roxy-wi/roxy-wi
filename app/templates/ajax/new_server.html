@@ -1,12 +1,16 @@
 {% for server in servers %}
 			<tr id="server-{{server.0}}" class="newserver">
-				<td class="padding10 first-collumn">
+				<td class="padding10 first-collumn" style="padding-top: 20px;">
 					<input type="text" id="hostname-{{server.0}}" value="{{server.1}}" class="form-control">
 				</td>
 				<td>
 					<input type="text" id="ip-{{server.0}}" value="{{server.2}}" class="form-control">
+					{% if page == "servers.py" %}
+						<input type="hidden" id="servergroup-{{server.0}}" name="servergroup-{{server.0}}" value="{{ ssh_group.0 }}" >
+					{% endif %}
 				</td>
-				<td>
+				{% if page != "servers.py" %}
+				<td>				
 					<select id="servergroup-{{server.0}}" name="servergroup-{{server.0}}">
 						<option disabled selected>Choose group</option>
 						{% for group in groups %}
@@ -17,7 +21,7 @@
 							{% endif %}
 						{% endfor %}
 					</select>
-				</td>
+				{% endif %}
 				<td>
 					{% if server.5 == 1 %}
 						<label for="enable-{{server.0}}"></label><input type="checkbox" id="enable-{{server.0}}" checked>
@@ -34,9 +38,9 @@
 				</td>
 				<td>
 					{% if server.8 == 1 %}
-						<label for="typeip-{{server.0}}"></label><input type="checkbox" id="typeip-{{server.0}}" checked>
+						<label for="alert-{{server.0}}"></label><input type="checkbox" id="alert-{{server.0}}" checked>
 					{% else %}
-						<label for="typeip-{{server.0}}"></label><input type="checkbox" id="typeip-{{server.0}}">
+						<label for="alert-{{server.0}}"></label><input type="checkbox" id="alert-{{server.0}}">
 					{% endif %}
 				</td>
 				<td>

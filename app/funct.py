@@ -63,13 +63,19 @@ def logging(serv, action, **kwargs):
 		print('<center><div class="alert alert-danger">Can\'t read write log. Please chech log_path in config</div></center>')
 		pass
 	
-	if get_config_var('telegram', 'enable') == "1": telegram_send_mess(mess)
-
 def telegram_send_mess(mess):
 	import telebot
 	from telebot import apihelper
-	token_bot = get_config_var('telegram', 'token')
-	channel_name = get_config_var('telegram', 'channel_name')
+	import sql
+	
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_id = cookie.get('uuid')
+	telegrams = sql.get_user_telegram_by_uuid(user_id.value)
+
+	for telegram in telegrams:
+		token_bot = telegram[1]
+		channel_name = telegram[2]
+		
 	proxy = get_config_var('main', 'proxy')
 	
 	if proxy is not None:

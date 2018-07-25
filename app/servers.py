@@ -29,7 +29,8 @@ output_from_parsed_template = template.render(title = "Servers manage",
 												groups = sql.select_groups(),
 												servers = sql.get_dick_permit(virt=1, disable=0),
 												roles = sql.select_roles(),
-												masters = sql.select_servers(get_master_servers=1),
+												masters = sql.select_servers(get_master_servers=1, uuid=user_id.value),
 												sshs = sql.select_ssh(),
+												telegrams = sql.get_user_telegram_by_uuid(user_id.value),
 												token = token)
 print(output_from_parsed_template)

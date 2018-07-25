@@ -8,6 +8,7 @@
 	<ul>
 		<li><a href="#servers">Servers</a></li>
 		<li><a href="#ssh">SSH credentials</a></li>
+		<li><a href="#checker">Checker</a></li>
 		{% if user %}
 			<a href=/app/login.py?logout=logout title="Logout, user name: {{ user }}" class="login"> Logout</a>						
 		{% else %}
@@ -22,7 +23,7 @@
 				<td>IP</td>
 				<td>Enable</td>
 				<td><span title="Vitrual IP, something like VRRP">Virt(?)</span></td>
-				<td><span title="Alert if backend change status">Alert(?)</span></td>
+				<td><span title="Alert if backend change status. Before enable add Telgram chanel at Checker tab">Alert(?)</span></td>
 				<td><span title="Actions with master config will automatically apply on slave">Slave for (?)</span></td>
 				<td>Credentials</td>
 				<td></td>
@@ -36,8 +37,8 @@
 				</td>
 				<td>
 					<input type="text" id="ip-{{server.0}}" value="{{server.2}}" class="form-control">
-					<input type="hidden" id="servergroup-{{server.0}}" name="servergroup-{{server.0}}" value="{{ ssh_group.0 }}" >
-					
+					<input type="hidden" id="new-server-group-add" name="servergroup-{{server.0}}" value="{{ ssh_group.0 }}" >
+					<input type="hidden" id="servergroup-{{server.0}}" name="servergroup-{{server.0}}" value="{{ ssh_group.0 }}" >					
 				</td>
 				<td>
 					{% if server.5 == 1 %}
@@ -62,7 +63,7 @@
 				</td>
 				<td>
 					<select id="slavefor-{{server.0}}">
-						<option disabled selected>Not slave</option>
+						<option selected value="0">Not slave</option>
 						{% for master in masters %}
 							{% if master.0 == server.6 %}
 								<option value="{{master.0}}" selected>{{master.1}}</option>
@@ -124,7 +125,7 @@
 				</td>
 				<td>
 					<select id="slavefor">
-						<option disabled selected value="0">Not slave</option>
+						<option selected value="0">Not slave</option>
 						{% for master in masters %}
 							<option value="{{master.0}}">{{master.1}}</option>
 						{% endfor %}
@@ -249,6 +250,61 @@
 			</tr>
 		</table>
 		<div id="ajax-ssh"></div>
+	</div>
+	
+	<div id="checker">
+		<table id="checker_table" class="overview">
+			<tr class="overviewHead" style="width: 50%;">
+				<td class="padding10 first-collumn" style="width: 25%;">
+					<span title="Token that gave you @father_bot">Token(?)</span>
+				</td>
+				<td>Chanel name</td>
+				<td></td>
+			</tr>
+			{% for telegram in telegrams %}
+				{% if telegram.3|string() == ssh_group.0 %}
+					<tr style="width: 50%;" id="telegram-table-{{telegram.0}}">
+						<td class="first-collumn" style="padding-top: 20px;">
+							<input type="text" id="telegram-token-{{telegram.0}}" class="form-control" value="{{telegram.1}}" style="margin-bottom: 23px;">	
+						</td>
+						<td>
+							<input type="text" id="telegram-chanel-{{telegram.0}}" class="form-control" value="{{telegram.2}}">		
+						</td>
+						<td>
+							<a class="delete" onclick="confirmDeleteSsh({{telegram.0}})"  style="cursor: pointer;"></a>
+						</td>
+					</tr>
+				{% endif %}
+			{% endfor %}
+		</table>
+		<br /><span class="add-button" title="Telegram channel" id="add-telegram-button">+ Add</span>
+		<br /><br />
+		<table class="overview" id="telegram-add-table" style="display: none;">
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn" style="width: 25%;">
+					<span title="Token that gave you @father_bot">Token(?)</span>
+				</td>
+				<td>
+					Chanel name
+				</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td class="padding10 first-collumn">
+					<input type="text" name="telegram-token-add" id="telegram-token-add" class="form-control">
+					{% for group in ssh_group %}
+						<input type="hidden" id="new-telegram-group-add" name="new-telegram-group-add" value="{{ group.0 }}" >
+					{% endfor %}
+				</td>
+				<td>
+					<input type="text" id="telegram-chanel-add" class="form-control">
+				</td>
+				<td>
+					<a class="add-admin"  id="add-telegram" style="cursor: pointer;"></a>
+				</td>
+			</tr>
+		</table>
+		<div id="ajax-telegram"></div>
 	</div>
 </div>
 {% endblock %}
