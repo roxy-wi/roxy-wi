@@ -45,7 +45,7 @@ def start_worker(serv):
 def kill_worker(serv):
 	cmd = "ps ax |grep 'tools/checker_worker.py %s'|grep -v grep |awk '{print $1}' |xargs kill" % serv
 	output, stderr = funct.subprocess_execute(cmd)
-	funct.logging("localhost", "Masrer killed worker for: "+serv, alerting=1)
+	funct.logging("localhost", " Masrer killed worker for: "+serv, alerting=1)
 	if stderr:
 		funct.logging("localhost", stderr, alerting=1)
 

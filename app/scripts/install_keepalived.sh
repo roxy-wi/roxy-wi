@@ -6,7 +6,12 @@ if [ -f $CONF ];then
 	exit 1
 fi
 
-sudo yum install keepalived -y > /dev/null
+if hash apt-get 2>/dev/null; then
+	sudo apt-get install keepalived  -y
+else
+	sudo yum install keepalived -y > /dev/null
+fi
+
 if [ $? -eq 1 ]
 then	
 	echo "error: Can't install keepalived <br /><br />"

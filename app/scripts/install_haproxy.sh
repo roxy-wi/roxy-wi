@@ -11,8 +11,13 @@ if [ -f /etc/haproxy/haproxy.cfg ];then
 	echo -e 'error: Haproxy already installed. You can edit config<a href="/app/config.py" title="Edit HAProxy config">here</a> <br /><br />'
 	exit 1
 fi
-sudo wget http://cbs.centos.org/kojifiles/packages/haproxy/1.8.1/5.el7/x86_64/haproxy18-1.8.1-5.el7.x86_64.rpm 
-sudo yum install haproxy18-1.8.1-5.el7.x86_64.rpm -y
+
+if hash apt-get 2>/dev/null; then
+	sudo apt-get install haproxy socat -y
+else
+	sudo wget http://cbs.centos.org/kojifiles/packages/haproxy/1.8.1/5.el7/x86_64/haproxy18-1.8.1-5.el7.x86_64.rpm 
+	sudo yum install haproxy18-1.8.1-5.el7.x86_64.rpm -y
+fi
 
 if [ $? -eq 1 ]
 then
@@ -22,7 +27,11 @@ then
 fi
 if [ $? -eq 1 ]
 then
-	sudo yum install haproxy socat -y > /dev/null
+	if hash apt-get 2>/dev/null; then
+		sudo apt-get install socat  -y
+	else
+		sudo yum install haproxy socat -y > /dev/null
+	fi
 fi
 echo "" > /etc/haproxy/haproxy.cfg
 sudo bash -c cat << EOF > /etc/haproxy/haproxy.cfg
@@ -47,7 +56,7 @@ defaults
     option forwardfor       except 127.0.0.0/8
     option                  redispatch
     retries                 3
-    timeout http-request    5s
+    timeout http-request    10s
     timeout queue           1m
     timeout connect         10s
     timeout client          1m

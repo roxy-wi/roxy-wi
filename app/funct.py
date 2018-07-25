@@ -63,14 +63,12 @@ def logging(serv, action, **kwargs):
 		print('<center><div class="alert alert-danger">Can\'t read write log. Please chech log_path in config</div></center>')
 		pass
 	
-def telegram_send_mess(mess):
+def telegram_send_mess(mess, **kwargs):
 	import telebot
 	from telebot import apihelper
 	import sql
 	
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_id = cookie.get('uuid')
-	telegrams = sql.get_user_telegram_by_uuid(user_id.value)
+	telegrams = sql.get_telegram_by_ip(kwargs.get('ip'))
 
 	for telegram in telegrams:
 		token_bot = telegram[1]
