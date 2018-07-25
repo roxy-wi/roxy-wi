@@ -69,7 +69,7 @@ def telegram_send_mess(mess, **kwargs):
 	import sql
 	
 	telegrams = sql.get_telegram_by_ip(kwargs.get('ip'))
-
+	
 	for telegram in telegrams:
 		token_bot = telegram[1]
 		channel_name = telegram[2]
@@ -78,8 +78,12 @@ def telegram_send_mess(mess, **kwargs):
 	
 	if proxy is not None:
 		apihelper.proxy = {'https': proxy}
-	bot = telebot.TeleBot(token=token_bot)
-	bot.send_message(chat_id=channel_name, text=mess)
+	try:
+		bot = telebot.TeleBot(token=token_bot)
+		bot.send_message(chat_id=channel_name, text=mess)
+	except:
+		print("Fatal: Can't send message. Add Telegram chanel before use alerting at this servers group")
+		sys.exit()
 	
 def check_login(**kwargs):
 	import sql
@@ -130,13 +134,7 @@ def page_for_admin(**kwargs):
 		print('<meta http-equiv="refresh" content="10; url=/">')
 		import sys
 		sys.exit()
-		
-def get_button(button, **kwargs):
-	value = kwargs.get("value")
-	if value is None:
-		value = ""
-	print('<button type="submit" value="%s" name="%s" class="btn btn-default">%s</button>' % (value, value, button))
-		
+				
 def ssh_connect(serv, **kwargs):
 	import sql
 	fullpath = get_config_var('main', 'fullpath')
@@ -530,3 +528,4 @@ def get_files():
 		if serv == ip[0]:
 			return_files.add(file)
 	return sorted(return_files, reverse=True)
+	

@@ -268,9 +268,6 @@ if serv is not None and form.getvalue('right') is not None:
 	ovw.comapre_show()
 	
 if serv is not None and act == "configShow":
-	import os
-	from datetime import datetime
-	from pytz import timezone
 	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 	
 	if form.getvalue('configver') is None:	
@@ -296,8 +293,8 @@ if serv is not None and act == "configShow":
 		print('<input type="hidden" value="%s" name="configver">' % form.getvalue('configver'))
 		print('<input type="hidden" value="1" name="config">')
 		if form.getvalue('view') is None:
-			funct.get_button("Just save", value="save")
-			funct.get_button("Upload and restart")
+			print("<button type='submit' value='save' name='save' class='btn btn-default'>Just save</button>")
+			print("<button type='submit' value='' name='' class='btn btn-default'>Upload and restart</button>")
 		print('</form></center>')
 		
 if form.getvalue('master'):

@@ -33,7 +33,8 @@ then
 		sudo yum install haproxy socat -y > /dev/null
 	fi
 fi
-echo "" > /etc/haproxy/haproxy.cfg
+
+sudo echo "" > /etc/haproxy/haproxy.cfg
 sudo bash -c cat << EOF > /etc/haproxy/haproxy.cfg
 global
     log         127.0.0.1 local2

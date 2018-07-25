@@ -161,6 +161,10 @@ Type=simple
 WorkingDirectory=/var/www/$HOME_HAPROXY_WI
 ExecStart=/var/www/$HOME_HAPROXY_WI/tools/checker_master.py
 
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=checker
+
 RestartSec=2s
 Restart=on-failure
 TimeoutStopSec=1s
@@ -169,8 +173,29 @@ TimeoutStopSec=1s
 WantedBy=multi-user.target
 EOF
 
+cat << EOF > /etc/rsyslog.d/checker.conf 
+if $programname startswith 'checker' then /var/www/$HOME_HAPROXY_WI/log/checker-error.log
+& stop
+EOF
+
+cat << EOF > /etc/logrotate.d/checker
+/var/www/$HOME_HAPROXY_WI/log/checker-error.log {
+    daily
+    rotate 10
+    missingok
+    notifempty
+    sharedscripts
+    endscript
+}
+EOF
+
+sed -i 's/#$UDPServerRun 514/$UDPServerRun 514/g' /etc/rsyslog.conf
+sed -i 's/#$ModLoad imudp/$ModLoad imudp/g' /etc/rsyslog.conf
+
 systemctl daemon-reload      
-systemctl start checker_haproxy.service
+systemctl restart logrotate
+systemctl restart rsyslog
+systemctl restart checker_haproxy.service
 systemctl enable checker_haproxy.service
 
 if hash apt-get 2>/dev/null; then
