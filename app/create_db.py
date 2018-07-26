@@ -123,6 +123,7 @@ def create_table(**kwargs):
 			`uuid`	varchar ( 64 )
 		);
 		CREATE TABLE IF NOT EXISTS `cred` (
+			`id` integer primary key autoincrement,
 			`enable`	INTEGER NOT NULL DEFAULT 1,
 			`username`	VARCHAR ( 64 ) NOT NULL,
 			`password`	VARCHAR ( 64 ) NOT NULL
