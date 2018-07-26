@@ -46,7 +46,6 @@ $(pwd)/log/checker-error.log {
     missingok
     notifempty
     sharedscripts
-    endscript
 }
 EOF
 

@@ -185,7 +185,6 @@ cat << EOF > /etc/logrotate.d/checker
     missingok
     notifempty
     sharedscripts
-    endscript
 }
 EOF
 

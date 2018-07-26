@@ -64,7 +64,7 @@ def get_cur():
 	else:
 		return con, cur
 			
-def create_table():
+def create_table(**kwargs):
 	con, cur = get_cur()
 	if mysql_enable == '0':
 		sql = """
@@ -137,7 +137,11 @@ def create_table():
 		try:
 			cur.executescript(sql)
 		except sqltool.Error as e:
-			print("An error occurred:", e)
+			if kwargs.get('silent') != 1:
+				if e.args[0] == 'column email is not unique' or e == "1060 (42S21): column email is not unique' ":
+					print('Updating... go to version 2.0.1<br />')
+				else:
+					print("An error occurred:", e)
 			return False
 		else:
 			return True
@@ -261,7 +265,7 @@ def update_db_v_2_5_3(**kwargs):
 		if kwargs.get('silent') != 1:
 			print("DB was update to 2.5.3<br />")
 			sql2 = """
-			insert into `cred` (`enable`,`username`,`password`) values ('1', 'root','password');
+			insert or ignore into `cred` (id, `enable`,`username`,`password`) values ('1', '1', 'root','password');
 			"""
 			cur.execute(sql2)
 			con.commit()
@@ -335,7 +339,7 @@ def update_db_v_2_6(**kwargs):
 					`username`	VARCHAR ( 64 ) NOT NULL,
 					`password`	VARCHAR ( 64 ) NOT NULL
 				); 
-				INSERT INTO cred_id (enable, username, password) select enable, username, password from cred;
+				INSERT INTO cred_id (id, enable, username, password) select id, enable, username, password from cred;
 				drop table cred;
 				ALTER TABLE cred_id RENAME to cred;
 				"""
