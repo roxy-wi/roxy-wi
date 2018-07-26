@@ -248,7 +248,7 @@ def update_db_v_2_4(**kwargs):
 def update_db_v_2_5_3(**kwargs):
 	con, cur = get_cur()
 	sql = """
-	CREATE TABLE IF NOT EXISTS `cred` (`enable`	INTEGER NOT NULL DEFAULT 1, `username`	VARCHAR ( 64 ) NOT NULL, `password` VARCHAR ( 64 ) NOT NULL );
+	CREATE TABLE IF NOT EXISTS `cred` (`id` integer primary key autoincrement, `enable`	INTEGER NOT NULL DEFAULT 1, `username`	VARCHAR ( 64 ) NOT NULL, `password` VARCHAR ( 64 ) NOT NULL );
 	"""
 	try:    
 		cur.execute(sql)		
