@@ -37,8 +37,8 @@
 				</td>
 				<td>
 					<input type="text" id="ip-{{server.0}}" value="{{server.2}}" class="form-control">
-					<input type="hidden" id="new-server-group-add" name="servergroup-{{server.0}}" value="{{ ssh_group.0 }}" >
-					<input type="hidden" id="servergroup-{{server.0}}" name="servergroup-{{server.0}}" value="{{ ssh_group.0 }}" >					
+					<input type="hidden" id="new-server-group-add" name="servergroup-{{server.0}}" value="{{ group }}" >
+					<input type="hidden" id="servergroup-{{server.0}}" name="servergroup-{{server.0}}" value="{{ group }}" >					
 				</td>
 				<td>
 					{% if server.5 == 1 %}
@@ -77,7 +77,7 @@
 					<select id="credentials-{{server.0}}">
 						<option disabled selected>Choose credentials</option>
 						{% for ssh in sshs %}
-							{% if ssh.5|string() == ssh_group.0 %}
+							{% if ssh.5|string() == group %}
 								{% if ssh.0 == server.7	%}
 									<option value="{{ssh.0}}" selected>{{ssh.1}}</option>
 								{% else %}
@@ -112,7 +112,7 @@
 				</td>
 				<td>
 					<input type="text" name="new-ip" id="new-ip" class="form-control">
-					<input type="hidden" id="new-sshgroup" name="new-sshgroup" value="{{ ssh_group.0 }}" >
+					<input type="hidden" id="new-sshgroup" name="new-sshgroup" value="{{ group }}" >
 				</td>					
 				<td>
 					<label for="enable"></label><input type="checkbox" id="enable" checked>
@@ -135,7 +135,7 @@
 					<select id="credentials" required>
 						<option disabled selected value="0">Choose credentials</option>
 						{% for ssh in sshs %}
-							{% if ssh.5|string() == ssh_group.0 %}
+							{% if ssh.5|string() == group %}
 								<option value="{{ssh.0}}">{{ssh.1}}</option>
 							{% endif %}
 						{% endfor %}
@@ -164,7 +164,7 @@
 				<td></td>
 			</tr>
 			{% for ssh in sshs %}
-				{% if ssh.5|string() == ssh_group.0 %}
+				{% if ssh.5|string() == group %}
 					<tr style="width: 50%;" id="ssh-table-{{ssh.0}}">
 						<td class="first-collumn">
 							<input type="text" id="ssh_name-{{ssh.0}}" class="form-control" value="{{ssh.1}}" style="margin-bottom: 23px;">	
@@ -236,7 +236,7 @@
 					<select id="ssh-key-name">
 						<option disabled selected>Choose credentials</option>
 						{% for ssh in sshs %}
-							{% if ssh.5|string() == ssh_group.0 %}
+							{% if ssh.5|string() == group %}
 								<option value={{ssh.1}}>{{ssh.1}}</option>	
 							{% endif %}
 						{% endfor %}
@@ -262,7 +262,7 @@
 				<td></td>
 			</tr>
 			{% for telegram in telegrams %}
-				{% if telegram.3|string() == ssh_group.0 %}
+				{% if telegram.3|string() == group %}
 					<tr style="width: 50%;" id="telegram-table-{{telegram.0}}">
 						<td class="first-collumn" style="padding-top: 20px;">
 							<input type="text" id="telegram-token-{{telegram.0}}" class="form-control" value="{{telegram.1}}" style="margin-bottom: 23px;">	
@@ -307,4 +307,24 @@
 		<div id="ajax-telegram"></div>
 	</div>
 </div>
+<div id="group_error" style="display: none;">
+	<div class="alert alert-danger">
+		<b>Do not edit this section if your group is "ALL"!</b> Add first<a href="app/users.py#groups" title="Admin Area: Groups">group</a> or edit your own group at<a href="app/users.py#users" title="Admin Area: Users">users</a> page
+	</div>
+</div>
+<script>
+	if($('#new-server-group-add').val() == 1) {
+		$('#group_error').css('display', 'block');
+		$('#add-server-button').css('display', 'none');
+		$('#add-ssh-button').css('display', 'none');
+		$('#ssh_key_upload').css('display', 'none');
+		$('#add-telegram-button').css('display', 'none');
+		setTimeout(function() {
+			$("input[type=checkbox]").checkboxradio( "disable" );
+			$("select").selectmenu( "disable" );
+			$("input").attr( "readonly", "readonly" );
+		}, 500 );
+		
+	}
+</script>
 {% endblock %}

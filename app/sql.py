@@ -413,6 +413,19 @@ def get_user_role_by_uuid(uuid):
 			return user_id[0]
 	cur.close()    
 	con.close() 
+	
+def get_user_group_by_uuid(uuid):
+	con, cur = create_db.get_cur()
+	sql = """ select user.groups from user left join uuid as uuid on user.id = uuid.user_id  where uuid.uuid = '%s' """ % uuid
+	try:
+		cur.execute(sql)		
+	except sqltool.Error as e:
+		print("An error occurred:", e)
+	else:
+		for user_id in cur.fetchall():
+			return user_id[0]
+	cur.close()    
+	con.close() 
 
 def get_user_telegram_by_uuid(uuid):
 	con, cur = create_db.get_cur()
@@ -425,6 +438,18 @@ def get_user_telegram_by_uuid(uuid):
 		return cur.fetchall()
 	cur.close()    
 	con.close() 	
+	
+def get_telegram_by_ip(ip):
+	con, cur = create_db.get_cur()
+	sql = """ select telegram.* from telegram left join servers as serv on serv.groups = telegram.groups where serv.ip = '%s' """ % ip
+	try:
+		cur.execute(sql)		
+	except sqltool.Error as e:
+		print("An error occurred:", e)
+	else:
+		return cur.fetchall()
+	cur.close()    
+	con.close()
 
 def get_dick_permit(**kwargs):
 	import http.cookies
