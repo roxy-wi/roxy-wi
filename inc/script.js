@@ -15,6 +15,21 @@ jQuery.expr[':'].regex = function(elem, index, match) {
         regex = new RegExp(matchParams.join('').replace(/^\s+|\s+$/g,''), regexFlags);
     return regex.test(jQuery(elem)[attr.method](attr.property));
 }
+window.onblur= function() {
+	window.onfocus= function () {
+		if($('.auto-refresh-pause').attr('style') == "display: inline; margin-top: 4px; margin-left: -25px;" && Cookies.get('auto-refresh') > 5000) {
+			if (cur_url[0] == "logs.py") {
+				showLog();
+			} else if (cur_url[0] == "viewsttats.py") {
+				showStats()
+			} else if (cur_url[0] == "overview.py") {
+				showOverview(); 
+			} else if (cur_url[0] == "viewlogs.py") {
+				viewLogs();
+			}  
+		} 
+	}
+};
 
 function autoRefreshStyle(autoRefresh) {
 	var margin;
@@ -109,7 +124,7 @@ $( document ).ajaxComplete(function( event, request, settings ) {
 	NProgress.done();
 });
 
-function showOverview() {	
+function showOverview() {
 	showOverviewServers();
 	$.ajax( {
 		url: "options.py",
@@ -124,7 +139,6 @@ function showOverview() {
 		}					
 	} );
 }
-
 function showOverviewServers() {
 	$.ajax( {
 		url: "options.py",
@@ -139,7 +153,6 @@ function showOverviewServers() {
 		}					
 	} );
 }
-
 function showStats() {
 	$.ajax( {
 		url: "options.py",
@@ -155,6 +168,7 @@ function showStats() {
 			wait();
 		}					
 	} );
+
 }
 function showLog() {
 	$.ajax( {
@@ -302,8 +316,7 @@ function viewLogs() {
 				minut: $('#time_range_out_minut').val(),
 				hour1: $('#time_range_out_hour1').val(),
 				minut1: $('#time_range_out_minut1').val(),
-				token: $('#token').val(),
-				
+				token: $('#token').val(),				
 			},
 			type: "GET",
 			success: function( data ) {
@@ -313,7 +326,6 @@ function viewLogs() {
 		} );
 	}
 }
-
 $( function() {
 	$( "#serv" ).on('selectmenuchange',function()  {
 		$("#show").css("pointer-events", "inherit");
