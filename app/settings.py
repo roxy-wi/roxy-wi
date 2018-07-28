@@ -9,8 +9,6 @@ from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'))
 template = env.get_template('viewsettings.html')
 
-form = cgi.FieldStorage()
-
 path_config = "haproxy-webintarface.config"
 config = ConfigParser(interpolation=ExtendedInterpolation())
 config.read(path_config)

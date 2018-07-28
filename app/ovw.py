@@ -166,9 +166,6 @@ def show_compare_configs(serv):
 	template = env.get_template('/show_compare_configs.html')
 	left = form.getvalue('left')
 	right = form.getvalue('right')
-	haproxy_configs_server = funct.get_config_var('configs', 'haproxy_configs_server')
-	
-	
 	
 	output_from_parsed_template = template.render(serv = serv,
 													right = right,
@@ -181,7 +178,6 @@ def comapre_show():
 	import subprocess 
 	left = form.getvalue('left')
 	right = form.getvalue('right')
-	haproxy_configs_server = funct.get_config_var('configs', 'haproxy_configs_server')
 	cmd='diff -ub %s%s %s%s' % (hap_configs_dir, left, hap_configs_dir, right)
 	
 	output, stderr = funct.subprocess_execute(cmd)

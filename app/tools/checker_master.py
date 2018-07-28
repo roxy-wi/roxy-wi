@@ -3,7 +3,8 @@ import subprocess
 import time
 import argparse
 import os, sys
-sys.path.append(os.path.join(sys.path[0], '../'))
+sys.path.append(os.path.join(sys.path[0], os.path.dirname(os.getcwd())))
+sys.path.append(os.path.join(sys.path[0], os.getcwd()))
 import funct
 import sql
 import signal
@@ -69,7 +70,7 @@ if __name__ == "__main__":
 	
 	while True:
 		main()
-		time.sleep(30)
+		time.sleep(20)
 		
 		if killer.kill_now:
 			break

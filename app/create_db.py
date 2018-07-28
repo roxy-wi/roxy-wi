@@ -16,7 +16,7 @@ if mysql_enable == '1':
 	import mysql.connector as sqltool
 else:
 	fullpath = funct.get_config_var('main', 'fullpath')
-	db = fullpath+"/app/haproxy-wi.db"
+	db = funct.get_app_dir()+"/haproxy-wi.db"
 	import sqlite3 as sqltool
 	
 def check_db():
@@ -133,7 +133,6 @@ def create_table(**kwargs):
 			`token`	varchar(64),
 			`exp`  DATETIME default '0000-00-00 00:00:00'
 		);
-		insert into cred('enable','username','password') values ('1', 'root','password');
 		"""
 		try:
 			cur.executescript(sql)
@@ -246,34 +245,6 @@ def update_db_v_2_4(**kwargs):
 	cur.close() 
 	con.close()
 	
-def update_db_v_2_5_3(**kwargs):
-	con, cur = get_cur()
-	sql = """
-	CREATE TABLE IF NOT EXISTS `cred` (`id` integer primary key autoincrement, `enable`	INTEGER NOT NULL DEFAULT 1, `username`	VARCHAR ( 64 ) NOT NULL, `password` VARCHAR ( 64 ) NOT NULL );
-	"""
-	try:    
-		cur.execute(sql)		
-		con.commit()
-	except sqltool.Error as e:
-		print(kwargs.get('silent'))
-		if kwargs.get('silent') != 1:
-			if e.args[0] == 'duplicate column name: enable':
-				print('Updating... go to version 2.5.6')
-			else:
-				print("An error occurred:", e)
-		return False
-	else:
-		if kwargs.get('silent') != 1:
-			print("DB was update to 2.5.3<br />")
-			sql2 = """
-			insert or ignore into `cred` (id, `enable`,`username`,`password`) values ('1', '1', 'root','password');
-			"""
-			cur.execute(sql2)
-			con.commit()
-		return True
-	cur.close() 
-	con.close()
-
 def update_db_v_2_5_6(**kwargs):
 	con, cur = get_cur()
 	if mysql_enable == '1':
@@ -328,7 +299,7 @@ def update_db_v_2_5_6_1(**kwargs):
 	
 def update_db_v_2_6(**kwargs):
 	con, cur = get_cur()
-	sql = """ select id from cred limit 1 """
+	sql = """ select name from cred limit 1 """
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
@@ -469,7 +440,6 @@ def update_all():
 	update_db_v_2_0_1_1()
 	update_db_v_2_0_5()
 	update_db_v_2_4()
-	update_db_v_2_5_3()
 	update_db_v_2_5_6()
 	update_db_v_2_5_6_1()
 	update_db_v_2_6()
@@ -483,7 +453,6 @@ def update_all_silent():
 	update_db_v_2_0_1_1(silent=1)
 	update_db_v_2_0_5(silent=1)
 	update_db_v_2_4(silent=1)
-	update_db_v_2_5_3(silent=1)
 	update_db_v_2_5_6(silent=1)
 	update_db_v_2_5_6_1(silent=1)
 	update_db_v_2_6(silent=1)

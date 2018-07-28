@@ -3,7 +3,8 @@ import subprocess
 import time
 import argparse
 import os, sys
-sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app'))
+sys.path.append(os.path.join(sys.path[0], os.path.dirname(os.getcwd())))
+sys.path.append(os.path.join(sys.path[0], os.getcwd()))
 import funct
 import signal
 
@@ -47,7 +48,8 @@ def main(serv, port):
 					servername = str(vips[i])
 					servername = servername.split(",")
 					realserver = servername[0]
-					alert = realserver[2:]+ " has changed status and is now "+ currentstat[i] + " at " + serv 
+					server = servername[1]
+					alert = "Backend: "+realserver[2:]+", server: "+server+"  has changed status and is now "+ currentstat[i] + " at " + serv 
 					funct.telegram_send_mess(str(alert), ip=serv)
 					funct.logging("localhost", " "+alert, alerting=1)
 		firstrun = False
