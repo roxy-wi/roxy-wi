@@ -28,6 +28,7 @@ Support the project
 18.	SSH Key support for managing multiple HAproxy Servers straight from haproxy-wi
 19. SYN flood protect
 20. Alerting about changes backends state
+21. Alerting about HAProxy service state
 
 # Install
 The installer will ask you a few questions

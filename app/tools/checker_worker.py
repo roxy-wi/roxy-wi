@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import subprocess
+from subprocess import check_output, CalledProcessError
 import time
 import argparse
 import os, sys
@@ -23,18 +24,40 @@ def main(serv, port):
 	currentstat = []
 	readstats = ""
 	killer = GracefulKiller()
+	old_stat_service = ""
 	
 	while True:
-		try:
+		try:			
 			readstats = subprocess.check_output(["echo show stat | nc "+serv+" "+port], shell=True)
-		except:
-			print("Unexpected error:", sys.exc_info())
+		except CalledProcessError as e:
+			if firstrun == False:	
+				cur_stat_service = "error"
+				if old_stat_service != cur_stat_service:
+					alert = "Can't connect to HAProxy service at " + serv
+					funct.telegram_send_mess(str(alert), ip=serv)
+					funct.logging("localhost", " "+alert, alerting=1)
+
+			firstrun = False				
+			old_stat_service = cur_stat_service
+			continue
+		except OSError as e:
+			print(e)
 			sys.exit()
+		else:
+			cur_stat_service = "Ok"
+			if firstrun == False:	
+				if old_stat_service != cur_stat_service:
+					alert = "Now UP HAProxy service at " + serv
+					funct.telegram_send_mess(str(alert), ip=serv)
+					funct.logging("localhost", " "+alert, alerting=1)
+					firstrun = True
+					time.sleep(2)	
+			old_stat_service = cur_stat_service
 			
 		vips = readstats.splitlines()
-		
+
 		for i in range(0,len(vips)):
-			if "UP" in str(vips[i]):		 			
+			if "UP" in str(vips[i]):		
 				currentstat.append("UP")
 			elif "DOWN" in str(vips[i]):
 				currentstat.append("DOWN")

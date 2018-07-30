@@ -184,6 +184,8 @@ cat << EOF > /etc/logrotate.d/checker
     rotate 10
     missingok
     notifempty
+	create 0644 apache apache
+	dateext
     sharedscripts
 }
 EOF
