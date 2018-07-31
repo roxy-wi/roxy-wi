@@ -11,9 +11,17 @@ from configparser import ConfigParser, ExtendedInterpolation
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
 
+def get_app_dir():
+	d = sys.path[0]
+	d = d.split('/')[-1]
+	if d == "app":
+		return sys.path[0]		
+	else:
+		return os.path.dirname(sys.path[0])		
+
 def get_config_var(sec, var):
 	try:
-		path_config = "haproxy-webintarface.config"
+		path_config = get_app_dir()+"/haproxy-webintarface.config"
 		config = ConfigParser(interpolation=ExtendedInterpolation())
 		config.read(path_config)
 	except:

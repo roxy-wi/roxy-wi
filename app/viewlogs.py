@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-import os
-import sql
+import os, sys
 import http, cgi
-import funct
-import sql
 import glob
 import datetime
+import funct
+import sql
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'))
 template = env.get_template('logs.html')
@@ -52,7 +51,7 @@ except:
 	
 def get_files():
 	file = []
-	for files in glob.glob(os.path.join(log_path,'*.log')):
+	for files in glob.glob(os.path.join(log_path,'*.log*')):
 		file += [(files.split('/')[5], files.split('/')[5])]
 	return sorted(file, reverse=True)
 
