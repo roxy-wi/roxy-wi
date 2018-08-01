@@ -23,12 +23,12 @@ try:
 except:
 	pass
 
-output_from_parsed_template = template.render(h2 = 1,
-												autorefresh = 1,
-												title = "Overview",
-												role = sql.get_user_role_by_uuid(user_id.value),
-												user = user,
-												users = users,
-												groups = groups,
-												token = token)
-print(output_from_parsed_template)											
+template = template.render(h2 = 1,
+							autorefresh = 1,
+							title = "Overview",
+							role = sql.get_user_role_by_uuid(user_id.value),
+							user = user,
+							users = users,
+							groups = groups,
+							token = token)
+print(template)											

@@ -1,0 +1,45 @@
+{% for service in service_status %}
+	<tr>
+		<td class="padding10 first-collumn">
+			<a href="#{{ service.0 }}" title="Go to {{ service.0 }} status" style="color: #000">{{ service.0 }}</a>
+		</td>
+		<td  class="second-collumn">
+		{% if service.2|int() >= 1 %}
+			<span class="serverUp"> UP</span> running {{service.2 }} processes
+		{% else %}
+			<span class="serverDown"> DOWN</span> running {{service.2 }} processes
+		{% endif %}
+		</td>
+		<td>
+		{% if role <= 1 %}
+			<a id="{{ service.1 }}" class="start" title="Start HAproxy service">
+				<img src=/image/pic/start.png alt="start" class="icon">
+			</a>
+			<a id="{{ service.1 }}" class="stop" title="Stop HAproxy service">
+				<img src=/image/pic/stop.png alt="start" class="icon">
+			</a>
+			<a id="{{ service.1 }}" class="restart" title="Restart HAproxy service">
+				<img src=/image/pic/update.png alt="restart" class="icon">
+			</a>
+		{% endif %}
+		{% if role <= 2 %}
+			<a href="/app/configshow.py?serv={{ service.1 }}&open=open#conf"  title="Show config">
+				<img src="/image/pic/show.png" alt="show" class="icon">
+			</a>
+			<a href="/app/config.py?serv={{ service.1 }}&open=open#conf"  title="Edit config">
+				<img src="/image/pic/edit.png" alt="edit" class="icon">
+			</a>
+			<a href="/app/diff.py?serv={{ service.1 }}&open=open#diff"  title="Compare config">
+				<img src="/image/pic/compare.png" alt="compare" class="icon">
+			</a>
+			<a href="/app/map.py?serv={{ service.1 }}&open=open#map"  title="Map listen/frontend/backend">
+				<img src="/image/pic/map.png" alt="map" class="icon">
+			</a>
+		{% endif %}
+		</td>
+		<td>
+			{{ service.3 }}
+		</td>
+		<td></td>
+	</tr>
+{% endfor %}

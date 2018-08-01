@@ -12,49 +12,57 @@ hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 form = cgi.FieldStorage()
 
 def get_overview():
+	import os, http.cookies
+	from jinja2 import Environment, FileSystemLoader
+	env = Environment(loader=FileSystemLoader('templates/ajax'))
+	template = env.get_template('overview.html')
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_id = cookie.get('uuid')
+	
 	listhap = sql.get_dick_permit()
-		
 	commands = [ "ls -l %s |awk '{ print $6\" \"$7\" \"$8}'" % haproxy_config_path ]
+	servers = []
 
 	for server in listhap:
-		print('<tr><td class="padding10 first-collumn"><a href="#%s" title="Go to %s status" style="color: #000">%s</a></td><td  class="second-collumn">' % (server[1], server[1], server[1]))
+		server_status = ()
 		cmd = 'echo "show info" |nc %s 1999 |grep -e "Process_num"' % server[2]
-		funct.server_status(funct.subprocess_execute(cmd))
-		print('</td><td>')
-		if funct.is_admin():
-			print('<a id="%s" class="start" title="Start HAproxy service"><img src=/image/pic/start.png alt="start" class="icon"></a>' % server[2])
-			print('<a id="%s" class="stop" title="Stop HAproxy service"><img src=/image/pic/stop.png alt="start" class="icon"></a>' % server[2])
-			print('<a id="%s" class="restart" title="Restart HAproxy service"><img src=/image/pic/update.png alt="restart" class="icon"></a>' % server[2])
-		if funct.is_admin(level = 2):
-			print('<a href="/app/configshow.py?serv=%s&open=open#conf"  title="Show config"><img src=/image/pic/show.png alt="show" class="icon"></a>' % server[2])
-			print('<a href="/app/config.py?serv=%s&open=open#conf"  title="Edit config"><img src=/image/pic/edit.png alt="edit" class="icon"></a>' % server[2])
-			print('<a href="/app/diff.py?serv=%s&open=open#diff"  title="Compare config"><img src=/image/pic/compare.png alt="compare" class="icon"></a>' % server[2])
-			print('<a href="/app/map.py?serv=%s&open=open#map"  title="Map listen/frontend/backend"><img src=/image/pic/map.png alt="map" class="icon"></a>' % server[2])
-		print('</td><td>')
-		funct.ssh_command(server[2], commands)
-		print('</td><td></td></tr>')
+		server_status = (server[1],server[2], funct.server_status(funct.subprocess_execute(cmd)), funct.ssh_command(server[2], commands))
+		servers.append(server_status)
 
+	template = template.render(service_status = servers, role = sql.get_user_role_by_uuid(user_id.value))
+	print(template)	
+	
 def get_overviewServers():
+	import os, http.cookies
+	from jinja2 import Environment, FileSystemLoader
+	env = Environment(loader=FileSystemLoader('templates/ajax'))
+	template = env.get_template('overviewServers.html')
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_id = cookie.get('uuid')
+	
 	listhap = sql.get_dick_permit()
 	commands =  [ "top -u haproxy -b -n 1" ]
+	servers = []
 	
 	for server in sorted(listhap):
-		print('<tr><td class="overviewTr first-collumn"><a name="'+server[1]+'"></a><h3 title="IP ' + server[2] + '">' + server[1] + ':</h3></td>')
-		print('<td class="overviewTd" style="padding-top: 10px;"><pre style="font-size: 12px;">')
+		server_status = ()
 		cmd = 'echo "show info" |nc %s 1999 |grep -e "Ver\|CurrConns\|SessRate\|Maxco\|MB\|Uptime:"' % server[2]
 		out = funct.subprocess_execute(cmd)
-
+		out1 = ""
 		for k in out:
 			if "Ncat: Connection refused." not in k:
 				for r in k:
-					print(r)
+					out1 += r
+					out1 += "<br />"
 			else:
-				print("Can\'t connect to HAproxy")
-		print('</pre></td><td style="padding-top: 10px;"><pre style="font-size: 12px; padding-left: 0px;">')
-		funct.ssh_command(server[2], commands)
-		print('</td><td style="padding: 10px;font-size: 12px;">')
-		funct.show_backends(server[2])
-		print('</pre></td><td></td></tr>')
+				out1 = "Can\'t connect to HAproxy"
+				
+		server_status = (server[1],server[2], out1, funct.ssh_command(server[2], commands),funct.show_backends(server[2], ret=1))
+		servers.append(server_status)
+	
+	#print(servers)
+	template = template.render(service_status = servers, role = sql.get_user_role_by_uuid(user_id.value))
+	print(template)	
 	
 def get_map(serv):
 	from datetime import datetime

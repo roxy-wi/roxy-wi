@@ -186,13 +186,13 @@ def ssh_connect(serv, **kwargs):
 			return 'Unable to verify server\'s host key: %s ' % badHostKeyException
 			pass
 	except Exception as e:
-		if e.args[1] == "No such file or directory":
+		if e == "No such file or directory":
 			if kwargs.get('check'):
-				print('<div class="alert alert-danger">{}. Check ssh key</div>'.format(e.args[1]))	
+				print('<div class="alert alert-danger">{}. Check ssh key</div>'.format(e))	
 			else:
-				return '{}. Check ssh key'.format(e.args[1])
+				return '{}. Check ssh key'.format(e)
 				pass
-		elif e.args[1] == "Invalid argument":
+		elif e == "Invalid argument":
 			if kwargs.get('check'):
 				print('<div class="alert alert-danger">Check the IP of the new server</div>')
 			else:
@@ -200,9 +200,9 @@ def ssh_connect(serv, **kwargs):
 				pass
 		else:
 			if kwargs.get('check'):
-				print('<div class="alert alert-danger">{}</div>'.format(e.args[1]))	
+				print('<div class="alert alert-danger">{}</div>'.format(e))	
 			else:
-				error = e.args[1]	
+				error = e	
 				pass
 		if kwargs.get('check'):
 			return False
@@ -462,15 +462,9 @@ def server_status(stdout):
 		if "Ncat: Connection refused." not in line:
 			for k in line:
 				proc_count = k.split(":")[1]
-			err = 1
 		else:
-			err = 0
 			proc_count = 0
-			
-	if err != 0:
-		print('<span class="serverUp"> UP</span> running %s processes' % proc_count)
-	else:
-		print('<span class="serverDown"> DOWN</span> running %s processes' % proc_count)	
+	return proc_count		
 
 def ssh_command(serv, commands, **kwargs):
 	ssh = ssh_connect(serv)
@@ -490,7 +484,7 @@ def ssh_command(serv, commands, **kwargs):
 		elif kwargs.get("server_status") == "1":
 			server_status(stdout)
 		else:
-			print(stdout.read().decode(encoding='UTF-8'))
+			return stdout.read().decode(encoding='UTF-8')
 			
 		print(stderr.read().decode(encoding='UTF-8'))
 	try:	
@@ -510,17 +504,24 @@ def subprocess_execute(cmd):
 	
 	return output, stderr
 
-def show_backends(serv):
+def show_backends(serv, **kwargs):
 	import json
 	cmd='echo "show backend" |nc %s 1999' % serv 
 	output, stderr = subprocess_execute(cmd)
-	
+	ret = ""
 	for line in output:
 		if "#" in  line or "stats" in line:
 			continue
 		if line != "":
 			back = json.dumps(line).split("\"")
-			print(back[1]+"<br>")
+			if kwargs.get('ret'):
+				ret += back[1]
+				ret += "<br />"
+			else:
+				print(back[1]+"<br>")
+		
+	if kwargs.get('ret'):
+		return ret
 		
 def get_files():
 	import glob

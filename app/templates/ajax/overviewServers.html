@@ -1,0 +1,24 @@
+{% for service in service_status %}
+	<tr>
+		<td class="overviewTr first-collumn">
+			<a name="{{ service.0 }}"></a>
+			<h3 title="IP  {{ service.1 }}"> {{ service.0 }} :</h3>
+		</td>
+		<td class="overviewTd" style="padding-top: 10px;">
+			<pre style="font-size: 12px;">
+{{ service.2 }}
+			</pre>
+		</td>
+		<td style="padding-top: 10px;">
+			<pre style="font-size: 12px; padding-left: 0px;">
+{{ service.3 }}
+			</pre>
+		</td>
+		<td style="padding: 10px;font-size: 12px;">
+			<pre>
+{{ service.4 }}
+			</pre>
+		</td>
+		<td></td>
+	</tr>
+{% endfor %}
