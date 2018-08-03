@@ -4,7 +4,7 @@ pytz==2017.3
 requests==2.18.4
 requests_toolbelt==0.8.0
 pyTelegramBotAPI==3.6.3 
-dump==0.0.3
+dump==0.0.4
 networkx==2.1
 numpy==1.14.0
 matplotlib==2.1.2
