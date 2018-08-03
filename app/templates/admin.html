@@ -165,6 +165,7 @@
 				<td>Enable</td>
 				<td><span title="Vitrual IP, something like VRRP">Virt(?)</span></td>
 				<td><span title="Alert if backend change status. Before enable add Telgram chanel at Checker tab">Alert(?)</span></td>
+				<td><span title="Enable save and show metrics">Metrics(?)</span></td>
 				<td><span title="Actions with master config will automatically apply on slave">Slave for (?)</span></td>
 				<td>Credentials</td>
 				<td></td>
@@ -212,6 +213,13 @@
 					{% endif %}
 				</td>
 				<td>
+					{% if server.9 == 1 %}
+						<label for="metrics-{{server.0}}"></label><input type="checkbox" id="metrics-{{server.0}}" checked>
+					{% else %}
+						<label for="metrics-{{server.0}}"></label><input type="checkbox" id="metrics-{{server.0}}">
+					{% endif %}
+				</td>
+				<td>
 					<select id="slavefor-{{server.0}}">
 						<option value="0" selected>Not slave</option>
 						{% for master in masters %}
@@ -251,6 +259,7 @@
 				<td>Enable</td>
 				<td><span title="Vitrual IP, something like VRRP">Virt(?)</span></td>
 				<td><span title="Alert if backend change status">Alert(?)</span></td>
+				<td><span title="Enable save and show metrics">Metrics(?)</span></td>
 				<td title="Actions with master config will automatically apply on slave">Slave for</td>
 				<td>Credentials</td>
 				<td></td>
@@ -278,6 +287,9 @@
 				</td>
 				<td>
 					<label for="alert"></label><input type="checkbox" id="alert">
+				</td>
+				<td>
+					<label for="metrics"></label><input type="checkbox" id="metrics">
 				</td>
 				<td>
 					<select id="slavefor">

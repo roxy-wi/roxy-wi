@@ -31,6 +31,8 @@ $( function() {
 				$("#ajax").html('<div class="alert alert-danger">Please fill in all fields</div>')
 			} else if(! $("#vrrp-ip").val().match(ipformat)) {
 				$("#ajax").html('<div class="alert alert-danger">Please enter IP in "VRRP IP" field</div>')
+			} else if ($("#master").val() == $("#slave").val() ){
+				$("#ajax").html('<div class="alert alert-danger">Master and slave must be diff servers</div>')
 			} else {
 				$("#ajax").html('<div class="alert alert-warning">Please don\'t close and don\'t represh page. Wait until the work is completed. This may take some time </div>');
 				$.ajax( {
@@ -101,6 +103,7 @@ $( function() {
 		if ($('#syn_flood').is(':checked')) {
 			syn_flood = '1';
 		}
+		$("#ajax").html('<div class="alert alert-warning">Please don\'t close and don\'t represh page. Wait until the work is completed. This may take some time </div>');
 		$.ajax( {
 			url: "options.py",
 			data: {
@@ -181,6 +184,7 @@ $( function() {
 		var typeip = 0;
 		var enable = 0;
 		var alert_en = 0;
+		var metrics = 0;
 		if ($('#typeip').is(':checked')) {
 			typeip = '1';
 		}
@@ -188,6 +192,9 @@ $( function() {
 			enable = '1';
 		}
 		if ($('#alert').is(':checked')) {
+			var alert_en = 0;
+		}
+		if ($('#metrics').is(':checked')) {
 			var alert_en = 0;
 		}
 		$.ajax( {
@@ -201,6 +208,7 @@ $( function() {
 				slave: $('#slavefor' ).val(),
 				cred: $('#credentials').val(),
 				alert_en: alert_en,
+				metrics: metrics,
 				page: cur_url[0]
 			},
 			type: "GET",
@@ -621,6 +629,7 @@ function updateServer(id) {
 	var typeip = 0;
 	var enable = 0;
 	var alert_en = 0;
+	var metrics = 0;
 	if ($('#typeip-'+id).is(':checked')) {
 		typeip = '1';
 	}
@@ -629,6 +638,9 @@ function updateServer(id) {
 	}
 	if ($('#alert-'+id).is(':checked')) {
 		alert_en = '1';
+	}
+	if ($('#metrics-'+id).is(':checked')) {
+		metrics = '1';
 	}
 	var servergroup = $('#servergroup-'+id+' option:selected' ).val();
 	if (cur_url[0] == "servers.py") {
@@ -645,6 +657,7 @@ function updateServer(id) {
 			slave: $('#slavefor-'+id+' option:selected' ).val(),
 			cred: $('#credentials-'+id+' option:selected').val(),
 			id: id,
+			metrics: metrics,
 			alert_en: alert_en
 		},
 		type: "GET",

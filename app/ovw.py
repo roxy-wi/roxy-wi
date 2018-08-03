@@ -3,19 +3,14 @@ import os
 import cgi
 import sql
 
-cgi_path = funct.get_config_var('main', 'cgi_path')
-fullpath = funct.get_config_var('main', 'fullpath')
-stats_port= funct.get_config_var('haproxy', 'stats_port')
-haproxy_config_path  = funct.get_config_var('haproxy', 'haproxy_config_path')
-status_command = funct.get_config_var('haproxy', 'status_command')
-hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 form = cgi.FieldStorage()
 
 def get_overview():
-	import os, http.cookies
+	import http.cookies
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates/ajax'))
 	template = env.get_template('overview.html')
+	haproxy_config_path  = funct.get_config_var('haproxy', 'haproxy_config_path')
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_id = cookie.get('uuid')
 	
@@ -31,9 +26,9 @@ def get_overview():
 
 	template = template.render(service_status = servers, role = sql.get_user_role_by_uuid(user_id.value))
 	print(template)	
-	
+		
 def get_overviewServers():
-	import os, http.cookies
+	import http.cookies
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates/ajax'))
 	template = env.get_template('overviewServers.html')
@@ -60,7 +55,6 @@ def get_overviewServers():
 		server_status = (server[1],server[2], out1, funct.ssh_command(server[2], commands),funct.show_backends(server[2], ret=1))
 		servers.append(server_status)
 	
-	#print(servers)
 	template = template.render(service_status = servers, role = sql.get_user_role_by_uuid(user_id.value))
 	print(template)	
 	
@@ -72,6 +66,11 @@ def get_map(serv):
 	matplotlib.use('Agg')
 	import matplotlib.pyplot as plt
 	
+	cgi_path = funct.get_config_var('main', 'cgi_path')
+	fullpath = funct.get_config_var('main', 'fullpath')
+	stats_port= funct.get_config_var('haproxy', 'stats_port')
+	haproxy_config_path  = funct.get_config_var('haproxy', 'haproxy_config_path')
+	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 	date = funct.get_data('config')
 	cfg = hap_configs_dir + serv + "-" + date + ".cfg"
 	
@@ -186,6 +185,7 @@ def comapre_show():
 	import subprocess 
 	left = form.getvalue('left')
 	right = form.getvalue('right')
+	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 	cmd='diff -ub %s%s %s%s' % (hap_configs_dir, left, hap_configs_dir, right)
 	
 	output, stderr = funct.subprocess_execute(cmd)

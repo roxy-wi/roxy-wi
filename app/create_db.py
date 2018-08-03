@@ -347,7 +347,7 @@ def update_db_v_2_6(**kwargs):
 				return True
 			cur.close() 
 			con.close()
-	
+				
 def update_db_v_2_61(**kwargs):
 	con, cur = get_cur()
 	sql = """
@@ -406,7 +406,7 @@ def update_db_v_2_7(**kwargs):
 				print("An error occurred:", e)
 		return False
 	else:
-		print("DB was update to 2.7<br />")
+		print("DB was update to 2.7.2<br />")
 		return True
 	cur.close() 
 	con.close()
@@ -435,6 +435,63 @@ def update_db_v_2_7_2(**kwargs):
 	cur.close() 
 	con.close()
 	
+def update_db_v_2_8(**kwargs):
+	con, cur = get_cur()
+	sql = """CREATE TABLE IF NOT EXISTS `metrics` (`serv` varchar(64), curr_con INTEGER, cur_ssl_con INTEGER, sess_rate INTEGER, max_sess_rate INTEGER,`date`  DATETIME default '0000-00-00 00:00:00'); """
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: token' or e == "1060 (42S21): Duplicate column name 'token' ":
+				print('Updating... go to version 2.6')
+			else:
+				print("An error occurred:", e.args[0])
+			return False
+		else:
+			print("DB was update to 2.8<br />")
+			return True
+	cur.close() 
+	con.close()
+	
+def update_db_v_2_8(**kwargs):
+	con, cur = get_cur()
+	sql = """CREATE TABLE IF NOT EXISTS `metrics` (`serv` varchar(64), curr_con INTEGER, cur_ssl_con INTEGER, sess_rate INTEGER, max_sess_rate INTEGER,`date`  DATETIME default '0000-00-00 00:00:00'); """
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: token' or e == "1060 (42S21): Duplicate column name 'token' ":
+				print('Updating... go to version 2.6')
+			else:
+				print("An error occurred:", e.args[0])
+			return False
+		else:
+			print("DB was update to 2.8<br />")
+			return True
+	cur.close() 
+	con.close()
+	
+def update_db_v_2_8_2(**kwargs):
+	con, cur = get_cur()
+	sql = """ ALTER TABLE `servers` ADD COLUMN metrics INTEGER NOT NULL DEFAULT 0 """
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: metrics' or e == "1060 (42S21): Duplicate column name 'metrics' ":
+				print('DB was update to 2.8. It\' last version')
+			else:
+				print("An error occurred:", e.args[0])
+			return False
+		else:
+			print("DB was update to 2.8<br />")
+			return True
+	cur.close() 
+	con.close()	
+	
 def update_all():	
 	update_db_v_2_0_1()
 	update_db_v_2_0_1_1()
@@ -447,6 +504,8 @@ def update_all():
 	update_db_v_2_6_1()
 	update_db_v_2_7()
 	update_db_v_2_7_2()
+	update_db_v_2_8()
+	update_db_v_2_8_2()
 	
 def update_all_silent():
 	update_db_v_2_0_1(silent=1)
@@ -460,4 +519,6 @@ def update_all_silent():
 	update_db_v_2_6_1(silent=1)
 	update_db_v_2_7(silent=1)
 	update_db_v_2_7_2(silent=1)
+	update_db_v_2_8(silent=1)
+	update_db_v_2_8_2(silent=1)
 		

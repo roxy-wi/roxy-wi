@@ -110,13 +110,13 @@ def update_group(name, descript, id):
 	cur.close()    
 	con.close()
 
-def add_server(hostname, ip, group, typeip, enable, master, cred, alert):
+def add_server(hostname, ip, group, typeip, enable, master, cred, alert, metrics):
 	con, cur = create_db.get_cur()
 	sql = """
 			INSERT INTO servers 
-			(hostname, ip, groups, type_ip, enable, master, cred, alert) 
-			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
-		""" % (hostname, ip, group, typeip, enable, master, cred, alert)
+			(hostname, ip, groups, type_ip, enable, master, cred, alert, metrics) 
+			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
+		""" % (hostname, ip, group, typeip, enable, master, cred, alert, metrics)
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -143,7 +143,7 @@ def delete_server(id):
 	cur.close()    
 	con.close() 		
 
-def update_server(hostname, ip, group, typeip, enable, master, id, cred, alert):
+def update_server(hostname, ip, group, typeip, enable, master, id, cred, alert, metrics):
 	con, cur = create_db.get_cur()
 	sql = """update servers set 
 			hostname = '%s',
@@ -153,8 +153,9 @@ def update_server(hostname, ip, group, typeip, enable, master, id, cred, alert):
 			enable = '%s',
 			master = '%s',
 			cred = '%s',
-			alert = '%s'
-			where id = '%s'""" % (hostname, ip, group, typeip, enable, master, cred, alert, id)
+			alert = '%s',
+			metrics = '%s'
+			where id = '%s'""" % (hostname, ip, group, typeip, enable, master, cred, alert, metrics, id)
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -636,6 +637,60 @@ def update_telegram(token, chanel, group, id):
 	cur.close()    
 	con.close()
 	
+def insert_mentrics(serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate):
+	con, cur = create_db.get_cur()
+	if mysql_enable == '1':
+		sql = """ insert into metrics (serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate, date) values('%s', '%s', '%s', '%s', '%s', now()) """ % (serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate)
+	else:
+		sql = """ insert into metrics (serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate, date) values('%s', '%s', '%s', '%s', '%s',  datetime('now', 'localtime')) """ % (serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		con.rollback()
+	cur.close()    
+	con.close()
+	
+def delete_mentrics():
+	con, cur = create_db.get_cur()
+	if mysql_enable == '1':
+		sql = """ delete from metrics where date < now() - INTERVAL 3 day """ 
+	else:
+		sql = """ delete from metrics where date < datetime('now', '-3 days') """
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		con.rollback()
+	cur.close()    
+	con.close()
+	
+def select_metrics(serv, **kwargs):
+	con, cur = create_db.get_cur()
+	sql = """ select * from metrics where serv = '%s' order by `date` desc """ % serv
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+	else:
+		return cur.fetchall()
+	cur.close()    
+	con.close()
+	
+def select_servers_metrics(**kwargs):
+	con, cur = create_db.get_cur()
+	sql = """ select ip from servers where metrics = '1' """ 
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+	else:
+		return cur.fetchall()
+	cur.close()    
+	con.close()
+	
 def show_update_telegram(token, page):
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates/ajax'))
@@ -769,6 +824,7 @@ if form.getvalue('newserver') is not None:
 	master = form.getvalue('slave')
 	cred = form.getvalue('cred')
 	alert = form.getvalue('alert_en')
+	metrics = form.getvalue('metrics')
 	page = form.getvalue('page')
 	page = page.split("#")[0]
 	if ip is None or group is None or cred is None:
@@ -776,7 +832,7 @@ if form.getvalue('newserver') is not None:
 		print(error_mess)
 	else:	
 		print('Content-type: text/html\n')
-		if add_server(hostname, ip, group, typeip, enable, master, cred, alert):
+		if add_server(hostname, ip, group, typeip, enable, master, cred, alert, metrics):
 			show_update_server(ip, page)
 		
 if form.getvalue('serverdel') is not None:
@@ -818,13 +874,14 @@ if form.getvalue('updateserver') is not None:
 	id = form.getvalue('id')	
 	cred = form.getvalue('cred')	
 	alert = form.getvalue('alert_en')	
+	metrics = form.getvalue('metrics')	
 	if name is None or ip is None:
 		print('Content-type: text/html\n')
 		print(error_mess)
 	else:		
 		print('Content-type: text/html\n')
 		#if funct.ssh_connect(ip, check=1):
-		update_server(name, ip, group, typeip, enable, master, id, cred, alert)
+		update_server(name, ip, group, typeip, enable, master, id, cred, alert, metrics)
 		#else:
 		#	print('<span class="alert alert-danger" id="error"><a title="Close" id="errorMess"><b>X</b></a></span>')
 			

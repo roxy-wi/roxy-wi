@@ -40,7 +40,7 @@ echo ""
 echo "################################"
 
 if hash apt-get 2>/dev/null; then
-	apt-get install git  net-tools lshw dos2unix apache2 gcc netcat python3-pip -y
+	apt-get install git  net-tools lshw dos2unix apache2 gcc netcat python3-pip gcc-c++ -y
 	HTTPD_CONFIG="/etc/apache2/apache2.conf"
 	HAPROXY_WI_VHOST_CONF="/etc/apache2/sites-enabled/haproxy-wi.conf"
 	HTTPD_NAME="apache2"
@@ -57,7 +57,7 @@ else
         yum -y install epel-release
 	fi
 	
-	yum -y install git nmap-ncat net-tools lshw python34 dos2unix python34-pip  httpd mod_ssl python34-devel
+	yum -y install git nmap-ncat net-tools python34 dos2unix python34-pip httpd python34-devel gcc-c++
 	HTTPD_CONFIG="/etc/httpd/conf/httpd.conf"
 	HAPROXY_WI_VHOST_CONF="/etc/httpd/conf.d/haproxy-wi.conf"
 	HTTPD_NAME="httpd"
@@ -190,13 +190,54 @@ cat << EOF > /etc/logrotate.d/checker
 }
 EOF
 
+cat << EOF > /etc/systemd/system/multi-user.target.wants/metrics_haproxy.service
+[Unit]
+Description=Haproxy metrics
+After=syslog.target network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/var/www/haproxy-wi/app/
+ExecStart=/var/www/haproxy-wi/app/tools/metrics_master.py
+
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=metrics
+
+RestartSec=2s
+Restart=on-failure
+TimeoutStopSec=1s
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+cat << EOF > /etc/rsyslog.d/metrics.conf 
+if $programname startswith 'metrics' then /var/www/$HOME_HAPROXY_WI/log/metrics-error.log
+& stop
+EOF
+
+cat << EOF > /etc/logrotate.d/metrics
+/var/www/$HOME_HAPROXY_WI/log/metrics-error.log {
+    daily
+    rotate 10
+    missingok
+    notifempty
+	create 0644 apache apache
+	dateext
+    sharedscripts
+}
+EOF
+
 sed -i 's/#$UDPServerRun 514/$UDPServerRun 514/g' /etc/rsyslog.conf
 sed -i 's/#$ModLoad imudp/$ModLoad imudp/g' /etc/rsyslog.conf
 
 systemctl daemon-reload      
 systemctl restart logrotate
 systemctl restart rsyslog
+systemctl restart cmetrics_haproxy.service
 systemctl restart checker_haproxy.service
+systemctl enable metrics_haproxy.service
 systemctl enable checker_haproxy.service
 
 if hash apt-get 2>/dev/null; then

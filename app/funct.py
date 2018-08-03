@@ -57,12 +57,15 @@ def logging(serv, action, **kwargs):
 	except:
 		pass
 		
-	if kwargs.get('alerting') != 1:
-		mess = get_data('date_in_log') + " from " + IP + " user: " + login + " " + action + " for: " + serv + "\n"
-		log = open(log_path + "/config_edit-"+get_data('logs')+".log", "a")
-	else:
+	if kwargs.get('alerting') == 1:
 		mess = get_data('date_in_log') + action + "\n"
 		log = open(log_path + "/checker-"+get_data('logs')+".log", "a")
+	elif kwargs.get('metrics') == 1:
+		mess = get_data('date_in_log') + action + "\n"
+		log = open(log_path + "/metrics-"+get_data('logs')+".log", "a")
+	else:
+		mess = get_data('date_in_log') + " from " + IP + " user: " + login + " " + action + " for: " + serv + "\n"
+		log = open(log_path + "/config_edit-"+get_data('logs')+".log", "a")
 			
 	try:				
 		log.write(mess)
@@ -272,13 +275,12 @@ def show_config(cfg):
 
 def diff_config(oldcfg, cfg):
 	import subprocess 
-	cmd="/bin/diff -ub %s %s" % (oldcfg, cfg)
-	p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
-	stdout, stderr = p.communicate()
-	output = stdout.splitlines()
 	log_path = get_config_var('main', 'log_path')
 	diff = ""
 	date = get_data('date_in_log') 
+	cmd="/bin/diff -ub %s %s" % (oldcfg, cfg)
+	
+	output, stderr = subprocess_execute(cmd)
 	
 	for line in output:
 		diff += date + " " + line + "\n"

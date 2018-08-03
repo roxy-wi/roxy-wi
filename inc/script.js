@@ -17,7 +17,7 @@ jQuery.expr[':'].regex = function(elem, index, match) {
 }
 window.onblur= function() {
 	window.onfocus= function () {
-		if($('.auto-refresh-pause').attr('style') == "display: inline; margin-top: 4px; margin-left: -25px;" && Cookies.get('auto-refresh') > 5000) {
+		if(Cookies.get('auto-refresh-pause') == "0" && Cookies.get('auto-refresh') > 5000) {
 			if (cur_url[0] == "logs.py") {
 				showLog();
 			} else if (cur_url[0] == "viewsttats.py") {
@@ -74,6 +74,7 @@ function setRefreshInterval(interval) {
 	} else {
 		clearInterval(intervalId);
 		Cookies.set('auto-refresh', interval, { expires: 365 });
+		Cookies.set('auto-refresh-pause', "0", { expires: 365 });
 		startSetInterval(interval);
 		hideAutoRefreshDiv();
 		autoRefreshStyle(interval);
@@ -81,33 +82,42 @@ function setRefreshInterval(interval) {
 }
 
 function startSetInterval(interval) {	
-	if (cur_url[0] == "logs.py") {
-		intervalId = setInterval('showLog()', interval);
-		showLog();
-	} else if (cur_url[0] == "viewsttats.py") {
-		intervalId = setInterval('showStats()', interval);
-		showStats()
-	} else if (cur_url[0] == "overview.py") {
-		if(interval < 60000) {
-			interval = 60000;
-		}
-		intervalId = setInterval('showOverview()', interval);
-		showOverview(); 
-	} else if (cur_url[0] == "viewlogs.py") {
-		intervalId = setInterval('viewLogs()', interval);
-		viewLogs();
-	}  
+	if(Cookies.get('auto-refresh-pause') == "0") {
+		if (cur_url[0] == "logs.py") {
+			intervalId = setInterval('showLog()', interval);
+			showLog();
+		} else if (cur_url[0] == "viewsttats.py") {
+			intervalId = setInterval('showStats()', interval);
+			showStats()
+		} else if (cur_url[0] == "overview.py") {
+			if(interval < 60000) {
+				interval = 60000;
+			}
+			intervalId = setInterval('showOverview()', interval);
+			showOverview(); 
+		} else if (cur_url[0] == "viewlogs.py") {
+			intervalId = setInterval('viewLogs()', interval);
+			viewLogs();
+		} else if (cur_url[0] == "metrics.py") {
+			intervalId = setInterval('loadMetrics()', interval);
+			loadMetrics();
+		} 
+	} else {
+		pauseAutoRefresh();
+	}
 }
 function pauseAutoRefresh() {
 	clearInterval(intervalId);
 	$(function() {
 		$('.auto-refresh-pause').css('display', 'none');
 		$('.auto-refresh-resume').css('display', 'inline');
+		Cookies.set('auto-refresh-pause', "1", { expires: 365 });
 	});
 }	
 function pauseAutoResume(){
 	var autoRefresh = Cookies.get('auto-refresh');
 	setRefreshInterval(autoRefresh);
+	Cookies.set('auto-refresh-pause', "0", { expires: 365 });
 }
 
 function hideAutoRefreshDiv() {

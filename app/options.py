@@ -353,3 +353,84 @@ if form.getvalue('masteradd'):
 	
 if form.getvalue('haproxyaddserv'):
 	funct.install_haproxy(form.getvalue('haproxyaddserv'), syn_flood=form.getvalue('syn_flood'))
+	
+if form.getvalue('metrics'):
+	from datetime import timedelta
+	from bokeh.plotting import figure, output_file, show
+	from bokeh.models import ColumnDataSource, HoverTool, DatetimeTickFormatter, DatePicker
+	from bokeh.layouts import widgetbox, gridplot
+	from bokeh.models.widgets import Button, RadioButtonGroup, Select
+	import pandas as pd
+	import json
+	
+	servers = sql.select_servers_metrics()
+
+	p = {}
+	for serv in servers:
+		serv = serv[0]
+		p[serv] = {}
+		metric = sql.select_metrics(serv)
+		metrics = {}
+		
+		for i in metric:
+			rep_date = str(i[5])
+			metrics[rep_date] = {}
+			metrics[rep_date]['server'] = str(i[0])
+			metrics[rep_date]['curr_con'] = str(i[1])
+			metrics[rep_date]['curr_ssl_con'] = str(i[2])
+			metrics[rep_date]['sess_rate'] = str(i[3])
+			metrics[rep_date]['max_sess_rate'] = str(i[4])
+
+		df = pd.DataFrame.from_dict(metrics, orient="index")
+		df = df.fillna(0)
+		df.index = pd.to_datetime(df.index)
+		df.index.name = 'Date'
+		df.sort_index(inplace=True)
+		source = ColumnDataSource(df)
+		
+		output_file("templates/metrics_out.html")
+		
+		x_min = df.index.min() - pd.Timedelta(hours=1)
+		x_max = df.index.max() + pd.Timedelta(minutes=1)
+
+		p[serv] = figure(
+			tools="pan,box_zoom,reset,wheel_zoom",
+			title=metric[0][0],
+			x_axis_type="datetime", y_axis_label='Connections',
+			x_range = (x_max.timestamp()*1000-60*100000, x_max.timestamp()*1000)
+			)
+			
+		hover = HoverTool(
+			tooltips=[
+				("Connections", "@curr_con"),
+				("SSL connections", "@curr_ssl_con"),
+				("Sessions rate", "@sess_rate"),
+				("Max sessions rate", "@max_sess_rate"),
+			],
+			mode='mouse'
+		)
+
+		p[serv].ygrid.band_fill_color = "olive"
+		p[serv].ygrid.band_fill_alpha = 0.1
+		p[serv].y_range.start = 0
+		p[serv].y_range.end = int(df['max_sess_rate'].max()) + 100
+		p[serv].add_tools(hover)
+		
+		p[serv].line("Date", "curr_con", source=source, alpha=0.5, color='#5cb85c', line_width=2, legend="Conn")
+		p[serv].line("Date", "curr_ssl_con", source=source, alpha=0.5, color="#5d9ceb", line_width=2, legend="SSL con")
+		p[serv].line("Date", "sess_rate", source=source, alpha=0.5, color="#33414e", line_width=2, legend="Sessions")
+		p[serv].line("Date", "max_sess_rate", source=source, alpha=0.5, color="red", line_width=2, legend="Max sess")
+		p[serv].legend.orientation = "horizontal"
+
+	#select = Select(title="Option:", value="foo", options=["foo", "bar", "baz", "quux"])
+	#show(widgetbox(select, width=300))
+		
+	plots = []
+	i = 0
+	for key, value in p.items():
+		plots.append(value)
+	
+	#plots = plots.sort()
+
+	grid = gridplot(plots, ncols=2, plot_width=800, plot_height=250, toolbar_location = "left", toolbar_options=dict(logo=None))
+	show(grid)

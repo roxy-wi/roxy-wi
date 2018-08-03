@@ -29,6 +29,7 @@ Support the project
 19. SYN flood protect
 20. Alerting about changes backends state
 21. Alerting about HAProxy service state
+22. Metrics incoming connections
 
 # Install
 The installer will ask you a few questions
