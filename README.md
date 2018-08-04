@@ -31,6 +31,8 @@ Support the project
 21. Alerting about HAProxy service state
 22. Metrics incoming connections
 
+![alt text](image/haproxy-wi-metrics.jpeg "Merics")
+
 # Install
 The installer will ask you a few questions
 ```
