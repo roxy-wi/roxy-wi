@@ -15,7 +15,7 @@
 	<a class="ui-button ui-widget ui-corner-all" id="show" title="Show stats" onclick="{{ onclick }}">Show</a>
 </form>
 <br />
-<div id="ajax" style="margin-left: 20px; width: 98%"></div>
+<div id="ajax" style="margin-left: 20px; margin-right: 5px;"></div>
 <script> 
 	window.onload = showStats();
 	function sleep(ms) {
@@ -27,6 +27,7 @@
 		$( "input[type=submit], button" ).button();
 		$('li').css('margin-top', '0');
 		$('table.tbl th.pxname').css('background-color', '#5d9ceb');
+		$('table.tbl th.pxname').css('width', '100%');
 		$('a.px:link').css('color', '#fff');
 		$('h1').css('display', 'none');
 		$('h1').next().css('display', 'none');	  

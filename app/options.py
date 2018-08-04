@@ -415,6 +415,7 @@ if form.getvalue('metrics'):
 		p[serv].y_range.start = 0
 		p[serv].y_range.end = int(df['max_sess_rate'].max()) + 100
 		p[serv].add_tools(hover)
+		p[serv].title.text_font_size = "20px"
 		
 		p[serv].line("Date", "curr_con", source=source, alpha=0.5, color='#5cb85c', line_width=2, legend="Conn")
 		p[serv].line("Date", "curr_ssl_con", source=source, alpha=0.5, color="#5d9ceb", line_width=2, legend="SSL con")
