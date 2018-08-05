@@ -361,12 +361,16 @@ if form.getvalue('metrics'):
 	from bokeh.layouts import widgetbox, gridplot
 	from bokeh.models.widgets import Button, RadioButtonGroup, Select
 	import pandas as pd
-	import json
+	import http.cookies
 	
-	servers = sql.select_servers_metrics()
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_id = cookie.get('uuid')	
+	servers = sql.select_servers_metrics(user_id.value)
 
 	p = {}
+	k = 0
 	for serv in servers:
+		k += 1
 		serv = serv[0]
 		p[serv] = {}
 		metric = sql.select_metrics(serv)
@@ -394,7 +398,7 @@ if form.getvalue('metrics'):
 		x_max = df.index.max() + pd.Timedelta(minutes=1)
 
 		p[serv] = figure(
-			tools="pan,box_zoom,reset,wheel_zoom",
+			tools="pan,box_zoom,reset,xwheel_zoom",
 			title=metric[0][0],
 			x_axis_type="datetime", y_axis_label='Connections',
 			x_range = (x_max.timestamp()*1000-60*100000, x_max.timestamp()*1000)
@@ -404,25 +408,32 @@ if form.getvalue('metrics'):
 			tooltips=[
 				("Connections", "@curr_con"),
 				("SSL connections", "@curr_ssl_con"),
-				("Sessions rate", "@sess_rate"),
-				("Max sessions rate", "@max_sess_rate"),
+				("Sessions rate", "@sess_rate")
 			],
 			mode='mouse'
 		)
-
-		p[serv].ygrid.band_fill_color = "olive"
-		p[serv].ygrid.band_fill_alpha = 0.1
+		
+		p[serv].ygrid.band_fill_color = "#f3f8fb"
+		#p[serv].ygrid.band_fill_alpha = 0.1
 		p[serv].y_range.start = 0
-		p[serv].y_range.end = int(df['max_sess_rate'].max()) + 100
+		p[serv].y_range.end = int(df['curr_con'].max()) + 150
 		p[serv].add_tools(hover)
 		p[serv].title.text_font_size = "20px"
-		
-		p[serv].line("Date", "curr_con", source=source, alpha=0.5, color='#5cb85c', line_width=2, legend="Conn")
-		p[serv].line("Date", "curr_ssl_con", source=source, alpha=0.5, color="#5d9ceb", line_width=2, legend="SSL con")
-		p[serv].line("Date", "sess_rate", source=source, alpha=0.5, color="#33414e", line_width=2, legend="Sessions")
-		p[serv].line("Date", "max_sess_rate", source=source, alpha=0.5, color="red", line_width=2, legend="Max sess")
-		p[serv].legend.orientation = "horizontal"
-
+				
+		if k == 1:
+			p[serv].line("Date", "curr_con", source=source, alpha=0.5, color='#5cb85c', line_width=2, legend="Conn")
+			p[serv].line("Date", "curr_ssl_con", source=source, alpha=0.5, color="#5d9ceb", line_width=2, legend="SSL con")
+			p[serv].line("Date", "sess_rate", source=source, alpha=0.5, color="#33414e", line_width=2, legend="Sessions")
+			#p[serv].line("Date", "max_sess_rate", source=source, alpha=0.5, color="red", line_width=2, legend="Max sess")
+			p[serv].legend.orientation = "horizontal"
+			p[serv].legend.location = "top_left"
+			p[serv].legend.padding = 5
+		else:
+			p[serv].line("Date", "curr_con", source=source, alpha=0.5, color='#5cb85c', line_width=2)
+			p[serv].line("Date", "curr_ssl_con", source=source, alpha=0.5, color="#5d9ceb", line_width=2)
+			p[serv].line("Date", "sess_rate", source=source, alpha=0.5, color="#33414e", line_width=2)
+			#p[serv].line("Date", "max_sess_rate", source=source, alpha=0.5, color="red", line_width=2)
+			
 	#select = Select(title="Option:", value="foo", options=["foo", "bar", "baz", "quux"])
 	#show(widgetbox(select, width=300))
 		
@@ -430,8 +441,6 @@ if form.getvalue('metrics'):
 	i = 0
 	for key, value in p.items():
 		plots.append(value)
-	
-	#plots = plots.sort()
 
 	grid = gridplot(plots, ncols=2, plot_width=800, plot_height=250, toolbar_location = "left", toolbar_options=dict(logo=None))
 	show(grid)

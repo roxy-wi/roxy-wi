@@ -31,7 +31,7 @@
 			</tr>
 			<tr>
 		{% for user in users %}
-			<tr id="user-{{user.0}}">
+			<tr id="user-{{user.0}}" class="{{ loop.cycle('odd', 'even') }}">
 				<td class="padding10 first-collumn"><input type="text" id="login-{{user.0}}" value="{{user.1}}" class="form-control"></td> 
 				<td><input type="password" id="password-{{user.0}}" value="{{user.3}}" class="form-control"></td> 
 				<td><input type="text" id="email-{{user.0}}" value="{{user.2}}" class="form-control"></td>
@@ -116,7 +116,7 @@
 				<td></td>
 			</tr>
 		{% for group in groups %}
-			<tr id="group-{{ group.0 }}"> 
+			<tr id="group-{{ group.0 }}" class="{{ loop.cycle('odd', 'even') }}"> 
 			{% if group.1 == All %}
 				<td class="padding10 first-collumn">{{ group.1 }}</td>
 				<td>{{ group.2 }}</td>
@@ -172,7 +172,7 @@
 			</tr>
 						
 		{% for server in servers %}
-			<tr id="server-{{server.0}}">
+			<tr id="server-{{server.0}}" class="{{ loop.cycle('odd', 'even') }}">
 				<td class="padding10 first-collumn">
 					<input type="text" id="hostname-{{server.0}}" value="{{server.1}}" class="form-control">
 				</td>
@@ -324,7 +324,7 @@
 			</tr>
 			<tr>
 			{% for role in roles %}	
-			<tr id="group-{{role.0}}">
+			<tr id="group-{{role.0}}" class="{{ loop.cycle('odd', 'even') }}">
 				<td class="padding10 first-collumn">{{role.1}}</td>
 				<td>{{role.2}}</td>
 			</tr>
@@ -348,7 +348,7 @@
 				<td></td>
 			</tr>
 			{% for ssh in sshs %}
-				<tr style="width: 50%;" id="ssh-table-{{ssh.0}}">
+				<tr style="width: 50%;" id="ssh-table-{{ssh.0}}" class="{{ loop.cycle('odd', 'even') }}">
 					<td class="first-collumn">
 						<input type="text" id="ssh_name-{{ssh.0}}" class="form-control" value="{{ssh.1}}" style="margin-bottom: 23px;">	
 					</td>
@@ -461,7 +461,7 @@
 				<td></td>
 			</tr>
 			{% for telegram in telegrams %}
-				<tr id="telegram-table-{{telegram.0}}">
+				<tr id="telegram-table-{{telegram.0}}" class="{{ loop.cycle('odd', 'even') }}">
 					<td class="first-collumn" style="padding-top: 20px;">
 						<input type="text" id="telegram-token-{{telegram.0}}" class="form-control" value="{{telegram.1}}" style="margin-bottom: 23px;">	
 					</td>

@@ -26,7 +26,9 @@ window.onblur= function() {
 				showOverview(); 
 			} else if (cur_url[0] == "viewlogs.py") {
 				viewLogs();
-			}  
+			}  else if (cur_url[0] == "metrics.py") {
+				loadMetrics();
+			}	 
 		} 
 	}
 };

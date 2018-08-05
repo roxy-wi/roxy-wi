@@ -32,7 +32,7 @@
 		{% set ssh_group = [] %}		
 		{% for server in servers %}
 		{% do ssh_group.append(server.3) %}
-			<tr id="server-{{server.0}}">
+			<tr id="server-{{server.0}}" class="{{ loop.cycle('odd', 'even') }}">
 				<td class="padding10 first-collumn">
 					<input type="text" id="hostname-{{server.0}}" value="{{server.1}}" class="form-control">
 				</td>
@@ -177,7 +177,7 @@
 			</tr>
 			{% for ssh in sshs %}
 				{% if ssh.5|string() == group %}
-					<tr style="width: 50%;" id="ssh-table-{{ssh.0}}">
+					<tr style="width: 50%;" id="ssh-table-{{ssh.0}}" class="{{ loop.cycle('odd', 'even') }}">
 						<td class="first-collumn">
 							<input type="text" id="ssh_name-{{ssh.0}}" class="form-control" value="{{ssh.1}}" style="margin-bottom: 23px;">	
 							<input type="hidden" id="new-ssh-group-add" name="new-ssh-group-add" value="{{ ssh_group }}" >
@@ -275,7 +275,7 @@
 			</tr>
 			{% for telegram in telegrams %}
 				{% if telegram.3|string() == group %}
-					<tr style="width: 50%;" id="telegram-table-{{telegram.0}}">
+					<tr style="width: 50%;" id="telegram-table-{{telegram.0}}" class="{{ loop.cycle('odd', 'even') }}">
 						<td class="first-collumn" style="padding-top: 20px;">
 							<input type="text" id="telegram-token-{{telegram.0}}" class="form-control" value="{{telegram.1}}" style="margin-bottom: 23px;">	
 						</td>

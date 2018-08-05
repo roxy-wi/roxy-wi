@@ -1,5 +1,5 @@
 {% for service in service_status %}
-	<tr>
+	<tr class="{{ loop.cycle('odd', 'even') }}">
 		<td class="padding10 first-collumn">
 			<a href="#{{ service.0 }}" title="Go to {{ service.0 }} status" style="color: #000">{{ service.0 }}</a>
 		</td>

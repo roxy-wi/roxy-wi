@@ -679,17 +679,33 @@ def select_metrics(serv, **kwargs):
 	cur.close()    
 	con.close()
 	
-def select_servers_metrics(**kwargs):
+def select_servers_metrics(uuid, **kwargs):
 	con, cur = create_db.get_cur()
-	sql = """ select ip from servers where metrics = '1' """ 
+	sql = """ select * from user where username = '%s' """ % get_user_name_by_uuid(uuid)
+
+	if kwargs.get('disable') == 0:
+		disable = 'or enable = 0'
+	else:
+		disable = ''
+		
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		print("An error occurred:", e)
 	else:
-		return cur.fetchall()
+		for group in cur:
+			if group[5] == '1':
+				sql = """ select ip from servers where enable = 1 %s and metrics = '1' """ % (disable)
+			else:
+				sql = """ select ip from servers where groups like '%{group}%' and metrics = '1'""".format(group=group[5])		
+		try:   
+			cur.execute(sql)
+		except sqltool.Error as e:
+			print("An error occurred:", e.args[0])
+		else:
+			return cur.fetchall()
 	cur.close()    
-	con.close()
+	con.close() 
 	
 def show_update_telegram(token, page):
 	from jinja2 import Environment, FileSystemLoader

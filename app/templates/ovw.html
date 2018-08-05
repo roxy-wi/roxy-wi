@@ -24,7 +24,7 @@
 		{% for USER in users %}
 			{% set counter = counter + loop.index0 %}
 			{% if counter <= 2 %}
-				<tr>
+				<tr class="{{ loop.cycle('odd', 'even') }}">
 					<td class="padding10 first-collumn"> {{ USER.1 }}</td>
 					<td class="padding10"> {{ USER.2 }}</td>
 					{% for group in groups %}
@@ -36,7 +36,7 @@
 					<td></td>
 				</tr>
 			{% else %}
-				<tr style="display: none;" class="show-users">
+				<tr style="display: none;" class="show-users {{ loop.cycle('odd', 'even') }}">
 					<td class="padding10 first-collumn"> {{ USER.1 }}</td>
 					<td class="padding10"> {{ USER.2 }}</td>
 					{% for group in groups %}
