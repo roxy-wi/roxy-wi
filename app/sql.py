@@ -709,6 +709,7 @@ def select_servers_metrics(uuid, **kwargs):
 	
 def select_table_metrics(uuid):
 	con, cur = create_db.get_cur()
+	groups = ""
 	sql = """ select * from user where username = '%s' """ % get_user_name_by_uuid(uuid)
 	
 	try:    
@@ -721,6 +722,7 @@ def select_table_metrics(uuid):
 				groups = ""
 			else:
 				groups = "and servers.groups like '%{group}%' ".format(group=group[5])
+
 	sql = """
 	select ip.ip, hostname, avg_sess_1h, avg_sess_24h, avg_sess_3d, max_sess_1h, max_sess_24h, max_sess_3d, avg_cur_1h, avg_cur_24h, avg_cur_3d, max_con_1h, max_con_24h, max_con_3d from
 	(select servers.ip from servers where metrics = 1 ) as ip,
@@ -813,12 +815,14 @@ def select_table_metrics(uuid):
 	and ip.ip=max_con_24h.ip
 	and ip.ip=max_con_3d.ip
 
-	group by ip.ip""" % groups
+	group by hostname.ip """ % groups
+	
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 	else:
+		
 		return cur.fetchall()
 	cur.close()    
 	con.close()

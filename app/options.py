@@ -354,6 +354,19 @@ if form.getvalue('masteradd'):
 if form.getvalue('haproxyaddserv'):
 	funct.install_haproxy(form.getvalue('haproxyaddserv'), syn_flood=form.getvalue('syn_flood'))
 	
+if form.getvalue('table_metrics'):
+	import http.cookies
+	from jinja2 import Environment, FileSystemLoader
+	env = Environment(loader=FileSystemLoader('templates/ajax'))
+	template = env.get_template('table_metrics.html')
+		
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_id = cookie.get('uuid')	
+	table_stat = sql.select_table_metrics(user_id.value)
+
+	template = template.render(table_stat = sql.select_table_metrics(user_id.value))											
+	print(template)
+		
 if form.getvalue('metrics'):
 	from datetime import timedelta
 	from bokeh.plotting import figure, output_file, show
@@ -362,15 +375,13 @@ if form.getvalue('metrics'):
 	from bokeh.models.widgets import Button, RadioButtonGroup, Select
 	import pandas as pd
 	import http.cookies
-	
+		
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_id = cookie.get('uuid')	
 	servers = sql.select_servers_metrics(user_id.value)
-
+	
 	p = {}
-	k = 0
 	for serv in servers:
-		k += 1
 		serv = serv[0]
 		p[serv] = {}
 		metric = sql.select_metrics(serv)
@@ -414,25 +425,21 @@ if form.getvalue('metrics'):
 		)
 		
 		p[serv].ygrid.band_fill_color = "#f3f8fb"
-		#p[serv].ygrid.band_fill_alpha = 0.1
+		p[serv].ygrid.band_fill_alpha = 0.9
 		p[serv].y_range.start = 0
 		p[serv].y_range.end = int(df['curr_con'].max()) + 150
 		p[serv].add_tools(hover)
 		p[serv].title.text_font_size = "20px"
 				
-		if k == 1:
-			p[serv].line("Date", "curr_con", source=source, alpha=0.5, color='#5cb85c', line_width=2, legend="Conn")
-			p[serv].line("Date", "curr_ssl_con", source=source, alpha=0.5, color="#5d9ceb", line_width=2, legend="SSL con")
-			p[serv].line("Date", "sess_rate", source=source, alpha=0.5, color="#33414e", line_width=2, legend="Sessions")
-			#p[serv].line("Date", "max_sess_rate", source=source, alpha=0.5, color="red", line_width=2, legend="Max sess")
-			p[serv].legend.orientation = "horizontal"
-			p[serv].legend.location = "top_left"
-			p[serv].legend.padding = 5
-		else:
-			p[serv].line("Date", "curr_con", source=source, alpha=0.5, color='#5cb85c', line_width=2)
-			p[serv].line("Date", "curr_ssl_con", source=source, alpha=0.5, color="#5d9ceb", line_width=2)
-			p[serv].line("Date", "sess_rate", source=source, alpha=0.5, color="#33414e", line_width=2)
-			#p[serv].line("Date", "max_sess_rate", source=source, alpha=0.5, color="red", line_width=2)
+		
+		p[serv].line("Date", "curr_con", source=source, alpha=0.5, color='#5cb85c', line_width=2, legend="Conn")
+		p[serv].line("Date", "curr_ssl_con", source=source, alpha=0.5, color="#5d9ceb", line_width=2, legend="SSL con")
+		p[serv].line("Date", "sess_rate", source=source, alpha=0.5, color="#33414e", line_width=2, legend="Sessions")
+		#p[serv].line("Date", "max_sess_rate", source=source, alpha=0.5, color="red", line_width=2, legend="Max sess")
+		p[serv].legend.orientation = "horizontal"
+		p[serv].legend.location = "top_left"
+		p[serv].legend.padding = 5
+
 			
 	#select = Select(title="Option:", value="foo", options=["foo", "bar", "baz", "quux"])
 	#show(widgetbox(select, width=300))
