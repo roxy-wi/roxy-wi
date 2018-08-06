@@ -5,7 +5,60 @@ iframe {
 	border: none;
 	padding: 10px;
 }
+table, th, tr, td {
+	border: 1px solid #ddd;
+	align: center;
+	text-align: center;
+}
+th, tr, td {
+	width: 6%;
+	padding: 10px;
+}
 </style>
+
+<table>
+	<tr class="overviewHead">
+		<th colspan=13>Metrics</th>
+	</tr>
+	<tr>
+		<th class="padding10 first-collumn overviewTr" rowspan=2>Server</th>
+		<th colspan=3>Average sessions</th>
+		<th colspan=3>Peak sessions</th>
+		<th colspan=3>Average connections</th>
+		<th colspan=3>Peak connections</th>
+	</tr>
+	<tr class="overviewHead">
+		<th>60 minutes</th>
+		<th>24 hours</th>
+		<th>3 days</th>
+		<th>60 minutes</th>
+		<th>24 hours</th>
+		<th>3 days</th>
+		<th>60 minutes</th>
+		<th>24 hours</th>
+		<th>3 days</th>
+		<th>60 minutes</th>
+		<th>24 hours</th>
+		<th>3 days</th>
+	</tr>
+	{% for val in table_stat %}
+	<tr class="{{ loop.cycle('odd', 'even') }}">
+		<td class="padding10 first-collumn overviewTr"><span title="{{ val.0 }}">{{ val.1 }}</span></td>
+		<td>{{ val.2 }}</td>
+		<td>{{ val.3 }}</td>
+		<td>{{ val.4 }}</td>
+		<td>{{ val.5 }}</td>
+		<td>{{ val.6 }}</td>
+		<td>{{ val.7 }}</td>
+		<td>{{ val.8 }}</td>
+		<td>{{ val.9 }}</td>
+		<td>{{ val.10 }}</td>
+		<td>{{ val.11 }}</td>
+		<td>{{ val.12 }}</td>
+		<td>{{ val.13 }}</td>
+	</tr>
+	{% endfor %}
+</table>
  <div id="metrics_iframe"></div>
  <script>
 function callIframe(url, callback) {

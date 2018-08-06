@@ -192,10 +192,10 @@ $( function() {
 			enable = '1';
 		}
 		if ($('#alert').is(':checked')) {
-			var alert_en = 0;
+			var alert_en = '1';
 		}
 		if ($('#metrics').is(':checked')) {
-			var alert_en = 0;
+			var metrics = '1';
 		}
 		$.ajax( {
 			url: "sql.py",

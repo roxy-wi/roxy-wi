@@ -15,14 +15,14 @@ fi
 if hash apt-get 2>/dev/null; then
 	sudo apt-get install haproxy socat -y
 else
-	sudo wget http://cbs.centos.org/kojifiles/packages/haproxy/1.8.1/5.el7/x86_64/haproxy18-1.8.1-5.el7.x86_64.rpm 
+	wget http://cbs.centos.org/kojifiles/packages/haproxy/1.8.1/5.el7/x86_64/haproxy18-1.8.1-5.el7.x86_64.rpm 
 	sudo yum install haproxy18-1.8.1-5.el7.x86_64.rpm -y
 fi
 
 if [ $? -eq 1 ]
 then
 	sudo yum install wget socat -y > /dev/null
-	sudo wget http://cbs.centos.org/kojifiles/packages/haproxy/1.8.1/5.el7/x86_64/haproxy18-1.8.1-5.el7.x86_64.rpm 
+	wget http://cbs.centos.org/kojifiles/packages/haproxy/1.8.1/5.el7/x86_64/haproxy18-1.8.1-5.el7.x86_64.rpm 
 	sudo yum install haproxy18-1.8.1-5.el7.x86_64.rpm -y
 fi
 if [ $? -eq 1 ]
