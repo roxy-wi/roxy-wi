@@ -50,6 +50,44 @@
 			{% endif %}
 		{% endfor %}
 	</table>
+	<table class="overview">
+	<tr class="overviewHead">	
+		<th class="padding10 first-collumn" colspan=4>
+			Tools status
+		</th>
+	</tr>
+	
+	<tr>
+		<td class="padding10 first-collumn">
+		{% if metrics_master|int() >= 1 %}
+			<span title="running {{ metrics_master }} master processes"><span class="serverUp"> UP</span> Metrics master</span>
+		{% else %}
+			<span title="running {{ metrics_master }} master processes"><span class="serverDown"> DOWN</span> running {{metrics_master }} master processes
+		{% endif %}
+		</td>
+		<td>
+		{% if metrics_worker|int() >= 1 %}
+			<span title="running {{metrics_worker}} worker processes"><span class="serverUp"> UP</span> Metrics workers</span>
+		{% else %}
+			<span title="running {{metrics_worker}} worker processes"><span class="serverDown"> DOWN</span> Metrics workers</span>
+		{% endif %}
+		</td>
+		<td >
+		{% if checker_master|int() >= 1 %}
+			<span title="running {{ checker_master }} master processes"><span class="serverUp"> UP</span> Checker master</span>
+		{% else %}
+			<span title="running {{ checker_master }} master processes"><span class="serverDown"> DOWN</span> Checker master</span>
+		{% endif %}
+		</td>
+		<td>
+		{% if checker_worker|int() >= 1 %}
+			<span title="running {{ checker_worker }} worker processes"><span class="serverUp"> UP</span> Checker workers</span>
+		{% else %}
+			<span title="running {{ checker_worker }} worker processes"><span class="serverDown"> DOWN</span> Checker workers</span>
+		{% endif %}
+		</td>
+	</tr>
+</table>
 {% endif %}
 <table class="overview">
 	<tr class="overviewHead">

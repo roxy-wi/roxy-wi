@@ -20,6 +20,14 @@ try:
 	users = sql.select_users()
 	groups = sql.select_groups()
 	token = sql.get_token(user_id.value)
+	cmd = "ps ax |grep checker_mas |grep -v grep |wc -l"
+	checker_master, stderr = funct.subprocess_execute(cmd)
+	cmd = "ps ax |grep checker_worker |grep -v grep |wc -l"
+	checker_worker, stderr = funct.subprocess_execute(cmd)
+	cmd = "ps ax |grep metrics_master |grep -v grep |wc -l"
+	metrics_master, stderr = funct.subprocess_execute(cmd)
+	cmd = "ps ax |grep metrics_worker |grep -v grep |wc -l"
+	metrics_worker, stderr = funct.subprocess_execute(cmd)
 except:
 	pass
 
@@ -30,5 +38,10 @@ template = template.render(h2 = 1,
 							user = user,
 							users = users,
 							groups = groups,
+							metrics_master = ''.join(metrics_master),
+							metrics_worker = ''.join(metrics_worker),
+							checker_master = ''.join(checker_master),
+							checker_worker = ''.join(checker_worker),
+							error = stderr,
 							token = token)
 print(template)											

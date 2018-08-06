@@ -1,0 +1,43 @@
+<table>
+	<tr class="overviewHead">
+		<th colspan=13>Metrics</th>
+	</tr>
+	<tr>
+		<th class="padding10 first-collumn overviewTr" rowspan=2>Server</th>
+		<th colspan=3>Average sessions</th>
+		<th colspan=3>Peak sessions</th>
+		<th colspan=3>Average connections</th>
+		<th colspan=3>Peak connections</th>
+	</tr>
+	<tr class="overviewHead">
+		<th>60 minutes</th>
+		<th>24 hours</th>
+		<th>3 days</th>
+		<th>60 minutes</th>
+		<th>24 hours</th>
+		<th>3 days</th>
+		<th>60 minutes</th>
+		<th>24 hours</th>
+		<th>3 days</th>
+		<th>60 minutes</th>
+		<th>24 hours</th>
+		<th>3 days</th>
+	</tr>
+	{% for state in table_stat %}
+	<tr class="{{ loop.cycle('odd', 'even') }}">
+		<td class="padding10 first-collumn"><span title="{{ state.0 }}">{{ state.1 }}</span></td>
+		<td>{{ state.2 }}</td>
+		<td>{{ state.3 }}</td>
+		<td>{{ state.4 }}</td>
+		<td>{{ state.5 }}</td>
+		<td>{{ state.6 }}</td>
+		<td>{{ state.7 }}</td>
+		<td>{{ state.8 }}</td>
+		<td>{{ state.9 }}</td>
+		<td>{{ state.10 }}</td>
+		<td>{{ state.11 }}</td>
+		<td>{{ state.12 }}</td>
+		<td>{{ state.13 }}</td>
+	</tr>
+	{% endfor %}
+</table>
