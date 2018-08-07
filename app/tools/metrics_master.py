@@ -20,7 +20,7 @@ class GracefulKiller:
 
 def main():
 	sql.delete_mentrics()
-	servers = sql.select_servers_metrics()
+	servers = sql.select_servers_metrics_for_master()
 	started_workers = get_worker()
 	servers_list = []
 	
