@@ -158,8 +158,8 @@ After=syslog.target network.target
 
 [Service]
 Type=simple
-WorkingDirectory=/var/www/$HOME_HAPROXY_WI
-ExecStart=/var/www/$HOME_HAPROXY_WI/tools/checker_master.py
+WorkingDirectory=/var/www/$HOME_HAPROXY_WI/app/
+ExecStart=/var/www/$HOME_HAPROXY_WI/app/tools/checker_master.py
 
 StandardOutput=syslog
 StandardError=syslog
@@ -197,8 +197,8 @@ After=syslog.target network.target
 
 [Service]
 Type=simple
-WorkingDirectory=/var/www/haproxy-wi/app/
-ExecStart=/var/www/haproxy-wi/app/tools/metrics_master.py
+WorkingDirectory=/var/www/$HOME_HAPROXY_WI/app/
+ExecStart=/var/www/$HOME_HAPROXY_WI/app/tools/metrics_master.py
 
 StandardOutput=syslog
 StandardError=syslog

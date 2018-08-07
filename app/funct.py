@@ -301,7 +301,7 @@ def install_haproxy(serv, **kwargs):
 		proxy_serv = proxy
 	else:
 		proxy_serv = ""
-	commands = [ "chmod +x "+tmp_config_path+script, tmp_config_path+script +" " + proxy_serv]
+	commands = [ "chmod +x "+tmp_config_path+script+" && " +tmp_config_path+"/"+script +" " + proxy_serv]
 	
 	upload(serv, tmp_config_path, script)	
 	ssh_command(serv, commands)

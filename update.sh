@@ -23,7 +23,7 @@ After=syslog.target network.target
 
 [Service]
 Type=simple
-WorkingDirectory=$(pwd)/app
+WorkingDirectory=$(pwd)/app/
 ExecStart=$(pwd)/app/tools/checker_master.py
 
 StandardOutput=syslog
@@ -62,8 +62,8 @@ After=syslog.target network.target
 
 [Service]
 Type=simple
-WorkingDirectory=/var/www/haproxy-wi/app/
-ExecStart=/var/www/haproxy-wi/app/tools/metrics_master.py
+WorkingDirectory=$(pwd)/app/
+ExecStart=$(pwd)/app/tools/metrics_master.py
 
 StandardOutput=syslog
 StandardError=syslog
@@ -78,12 +78,12 @@ WantedBy=multi-user.target
 EOF
 
 cat << EOF > /etc/rsyslog.d/metrics.conf 
-if $programname startswith 'metrics' then /var/www/$HOME_HAPROXY_WI/log/metrics-error.log
+if $programname startswith 'metrics' then $(pwd)/log/metrics-error.log
 & stop
 EOF
 
 cat << EOF > /etc/logrotate.d/metrics
-/var/www/$HOME_HAPROXY_WI/log/metrics-error.log {
+$(pwd)/log/metrics-error.log {
     daily
     rotate 10
     missingok

@@ -679,6 +679,18 @@ def select_metrics(serv, **kwargs):
 	cur.close()    
 	con.close()
 	
+def select_servers_metrics_for_master():
+	con, cur = create_db.get_cur()
+	sql = """select ip from servers where enable = 1 """
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		print("An error occurred:", e.args[0])
+	else:
+		return cur.fetchall()
+	cur.close()    
+	con.close() 
+	
 def select_servers_metrics(uuid, **kwargs):
 	con, cur = create_db.get_cur()
 	sql = """ select * from user where username = '%s' """ % get_user_name_by_uuid(uuid)
