@@ -5,6 +5,8 @@ Web interface(user-frendly web GUI) for managing Haproxy servers. Leave your [fe
 Support the project
 [![Donate](https://img.shields.io/badge/PayPal-Donate-brightgreen.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5XVQTMKQS57NE&lc=US&Z3JncnB0=) or [Patreon](https://www.patreon.com/haproxy_wi/overview)
 
+[Demo video](https://youtu.be/HsE44h_Qyhk)
+
 ![alt text](image/haproxy-wi-config-show.jpeg "Show config page")
 
 # Features:
