@@ -41,6 +41,11 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f233";
 }
+.metrics::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f1fe";
+}
 .config-show::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";
