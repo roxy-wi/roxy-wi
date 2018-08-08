@@ -451,3 +451,8 @@ if form.getvalue('metrics'):
 
 	grid = gridplot(plots, ncols=2, plot_width=800, plot_height=250, toolbar_location = "left", toolbar_options=dict(logo=None))
 	show(grid)
+	
+if form.getvalue('get_hap_v'):
+	commands = [ "haproxy -v |grep ver|awk '{print $3}'" ]
+	output = funct.ssh_command(serv, commands)
+	print(output)

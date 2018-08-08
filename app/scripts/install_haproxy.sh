@@ -67,11 +67,12 @@ defaults
     maxconn                 3000
 
 listen stats 
-		bind *:8085 
-        stats enable
-        stats uri /stats
-        stats realm HAProxy-04\ Statistics
-        stats auth admin:password
+    bind *:8085 
+    stats enable
+    stats uri /stats
+    stats realm HAProxy-04\ Statistics
+    stats auth admin:password
+    stats admin if TRUE 
 EOF
 sudo bash -c cat << EOF > /etc/rsyslog.d/haproxy.conf
 local2.*                       /var/log/haproxy.log

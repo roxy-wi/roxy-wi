@@ -32,6 +32,7 @@ Support the project
 20. Alerting about changes backends state
 21. Alerting about HAProxy service state
 22. Metrics incoming connections
+23. Web acceleration settings
 
 ![alt text](image/haproxy-wi-metrics.jpeg "Merics")
 

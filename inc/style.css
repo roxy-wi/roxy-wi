@@ -321,10 +321,13 @@ pre {
 }
 .first-collumn {
 	padding-left: 15px;
-	width: 10%;
+	width: 15%;
 }
 .second-collumn {
-	width: 30%;
+	width: 25%;
+}
+.third-collumn {
+	width: 35%;
 }
 .ro {
   border: none;

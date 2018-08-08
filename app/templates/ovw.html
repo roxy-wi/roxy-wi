@@ -10,8 +10,8 @@
 		<tr class="overviewHead">
 			<td class="padding10 first-collumn">Login</td>
 			<td class="padding10 second-collumn">Email</td>
-			<td class="padding10 second-collumn">Group</td>
-			<td class="padding10">Role</td>
+			<td class="second-collumn">Group</td>
+			<td>Role</td>
 			<td class="padding10">
 				<span class="add-button">
 					<a title="Show all users" id="show-all-users" style="color: #fff">
@@ -26,10 +26,10 @@
 			{% if counter <= 2 %}
 				<tr class="{{ loop.cycle('odd', 'even') }}">
 					<td class="padding10 first-collumn"> {{ USER.1 }}</td>
-					<td class="padding10"> {{ USER.2 }}</td>
+					<td class="padding10 second-collumn"> {{ USER.2 }}</td>
 					{% for group in groups %}
 						{% if USER.5 == group.0|string() %}
-							<td class="second-collumn">{{ group.1 }}</td>
+							<td class="third-collumn">{{ group.1 }}</td>
 						{% endif %}
 					{% endfor %}
 					<td>{{ USER.4 }}</td>
@@ -41,7 +41,7 @@
 					<td class="padding10"> {{ USER.2 }}</td>
 					{% for group in groups %}
 						{% if group.0|string() == USER.5 %}
-							<td class="second-collumn">{{ group.1 }}</td>
+							<td class="third-collumn">{{ group.1 }}</td>
 						{% endif %}
 					{% endfor %}
 					<td>{{ USER.4 }}</td>
@@ -65,14 +65,14 @@
 			<span title="running {{ metrics_master }} master processes"><span class="serverDown"> DOWN</span> running {{metrics_master }} master processes
 		{% endif %}
 		</td>
-		<td>
+		<td class="padding10 second-collumn">
 		{% if metrics_worker|int() >= 1 %}
 			<span title="running {{metrics_worker}} worker processes"><span class="serverUp"> UP</span> Metrics workers</span>
 		{% else %}
 			<span title="running {{metrics_worker}} worker processes"><span class="serverDown"> DOWN</span> Metrics workers</span>
 		{% endif %}
 		</td>
-		<td >
+		<td class="third-collumn">
 		{% if checker_master|int() >= 1 %}
 			<span title="running {{ checker_master }} master processes"><span class="serverUp"> UP</span> Checker master</span>
 		{% else %}
@@ -93,11 +93,11 @@
 	<tr class="overviewHead">
 		<td class="padding10 first-collumn">
 			Server
-		</td>
+		</td class="padding10 second-collumn">
 		<td class="padding10 second-collumn">
 			HAproxy status
 		</td>
-		<td class="padding10 second-collumn">
+		<td class="padding10 third-collumn">
 			Action
 		</td>
 		<td class="padding10">
@@ -118,7 +118,7 @@
 		<td class="padding10 second-collumn">
 			HAproxy info
 		</td>
-		<td  class="padding10 second-collumn">
+		<td  class="padding10 third-collumn">
 			Server status
 		</td>
 		<td class="padding10">

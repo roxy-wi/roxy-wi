@@ -55,12 +55,15 @@ if form.getvalue('mode') is not None:
 	if form.getvalue('listner') is not None:
 		name = "\nlisten " + form.getvalue('listner')
 		backend = ""
+		end_name = form.getvalue('listner')
 	elif form.getvalue('frontend') is not None:
 		name = "\nfrontend " + form.getvalue('frontend')
 		backend = "    default_backend " + form.getvalue('backend') + "\n"
+		end_name = form.getvalue('frontend')
 	elif form.getvalue('new_backend') is not None: 
 		name = "\nbackend " + form.getvalue('new_backend')
 		backend = ""
+		end_name = form.getvalue('new_backend')
 				
 	if form.getvalue('ssl') == "https" and form.getvalue('mode') != "tcp":
 		ssl = "ssl crt " + cert_path + form.getvalue('cert')
@@ -143,8 +146,21 @@ if form.getvalue('mode') is not None:
 			servers_split += "    server " + j + check + "\n"
 	else:
 		servers_split = ""
+		
+	en_acceleration = form.getvalue("acceleration")
+	acceleration = ""
+	cache = ""
+	cache_set = ""
+	filter = ""
+	if en_acceleration:
+		filter = "    filter compression\n"
+		if en_acceleration == "1" or en_acceleration == "3":
+			acceleration = "    compression algo gzip\n    compression type text/html text/plain text/css\n"
+		if en_acceleration == "2" or en_acceleration == "3":
+			cache = "    http-request cache-use "+end_name+"\n    http-response cache-store "+end_name+"\n"
+			cache_set = "cache "+end_name+"\n    total-max-size 4\n    max-age 240\n"
 	
-	config_add = name + "\n" + bind +  mode  + "\n" + balance + options_split + backend + servers_split + "\n"
+	config_add = name + "\n" + bind +  mode  + "\n" + balance + options_split + backend + filter + acceleration + cache + servers_split + "\n" + cache_set
 	cfg = hap_configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
 	
 	funct.get_config(serv, cfg)
@@ -162,8 +178,11 @@ if form.getvalue('mode') is not None:
 		if master[0] != None:
 			funct.upload_and_restart(master[0], cfg)
 	
-	funct.upload_and_restart(serv, cfg)
-	print('<meta http-equiv="refresh" content="0; url=add.py?add=%s&conf=%s">' % (name, config_add))
+	stderr = funct.upload_and_restart(serv, cfg)
+	if stderr:
+		print('<div class="alert alert-danger">%s</div>' % stderr)
+	else:
+		print('<meta http-equiv="refresh" content="0; url=add.py?add=%s&conf=%s">' % (name, config_add))
 		
 	print('</div>')
 
