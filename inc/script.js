@@ -939,23 +939,27 @@ $( function() {
 			replace_text("#optionsInput2", ddos_var);
 		}	
 	});
-	$("#acceleration").selectmenu( "disable" );
-	$( "#serv" ).on('selectmenuchange',function() {
-		$("#acceleration").selectmenu( "enable" );
-		change_select_acceleration("");
-	});
-	
-	$("#acceleration2").selectmenu( "disable" );
-	$( "#serv2" ).on('selectmenuchange',function() {
-		$("#acceleration2").selectmenu( "enable" );
-		change_select_acceleration(2);
-	});
+	cur_url = cur_url[0].split('#');
+	console.log(cur_url[0])
+	if (cur_url[0] == "/app/add.py") {
+		$("#acceleration").selectmenu( "disable" );
+		$( "#serv" ).on('selectmenuchange',function() {
+			$("#acceleration").selectmenu( "enable" );
+			change_select_acceleration("");
+		});
 		
-	$("#acceleration3").selectmenu( "disable" );
-	$( "#serv3" ).on('selectmenuchange',function() {
-		$("#acceleration3").selectmenu( "enable" );
-		change_select_acceleration("3");
-	});
+		$("#acceleration2").selectmenu( "disable" );
+		$( "#serv2" ).on('selectmenuchange',function() {
+			$("#acceleration2").selectmenu( "enable" );
+			change_select_acceleration(2);
+		});
+			
+		$("#acceleration3").selectmenu( "disable" );
+		$( "#serv3" ).on('selectmenuchange',function() {
+			$("#acceleration3").selectmenu( "enable" );
+			change_select_acceleration("3");
+		});
+	}
 	$( "#path-cert-listen" ).autocomplete({
 		source: function( request, response ) {
 			$.ajax( {

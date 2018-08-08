@@ -73,25 +73,34 @@
 			</td>
 		</tr>
 		<tr>
-			<td class="addName">Web acceleration: </td>
+			<td class="addName"><span title="Cache support start 1.8 and latter">Web acceleration(?):</span></td>
 			<td class="addOption">
-				<select name="acceleration" id="acceleration">
-					<option value="0" selected>Off</option>
-					<option value="1">Compression</option>
-					<option value="2">Cache</option>
-					<option value="3">Compression + Cache</option>
-				</select>
+				<span class="controlgroup">	
+					<select name="acceleration" id="acceleration">
+						<option value="0" selected>Off</option>
+						<option value="1">Compression</option>
+						<option value="2">Cache</option>
+						<option value="3">Compression + Cache</option>
+					</select>
+					<label for="ssl_offloading" title="Enable SSL Offloading">SSL Offloading</label><input type="checkbox" id="ssl_offloading">
+				</span>
+			</td>
+		</tr>
+		<tr>
+			<td class="addName"><span title="Web application firewall">WAF(?):</span></td>
+			<td class="addOption">
+				<span class="controlgroup">
+					<label for="slow_atack" title="Slow atack protect">Slow atack</label><input type="checkbox" id="slow_atack">
+					<label for="ddos" title="DDOS atack protect">DDOS</label><input type="checkbox" id="ddos">
+				</span>
 			</td>
 		</tr>
 		<tr>
 			<td class="addName">Optinons:</td>
 			<td class="addOption">
-				<span class="controlgroup">
-					<label for="ssl_offloading" title="Enable SSL Offloading">SSL Offloading</label><input type="checkbox" id="ssl_offloading">
+				<span class="controlgroup">				
 					<label for="forward_for" title="Option Forward for if none">Forward for</label><input type="checkbox" id="forward_for">
-					<label for="redispatch" title="Enable Redispatch">Redispatch</label><input type="checkbox" id="redispatch">
-					<label for="slow_atack" title="Slow atack protect">Slow atack</label><input type="checkbox" id="slow_atack">
-					<label for="ddos" title="DDOS atack protect">DDOS</label><input type="checkbox" id="ddos">
+					<label for="redispatch" title="Enable Redispatch">Redispatch</label><input type="checkbox" id="redispatch">					
 					<select name="force_close" class="force_close">
 						<option disabled selected>Force HTTP close</option>
 						<option>Off</option>
@@ -230,24 +239,33 @@
 			</td>
 		</tr>
 		<tr>
-			<td class="addName">Web acceleration: </td>
+			<td class="addName"><span title="Cache support start 1.8 and latter">Web acceleration(?):</span></td>
 			<td class="addOption">
-				<select name="acceleration" id="acceleration2">
-					<option value="0" selected>Off</option>
-					<option value="1">Compression</option>
-					<option value="2">Cache</option>
-					<option value="3">Compression + Cache</option>
-				</select>
+				<span class="controlgroup">	
+					<select name="acceleration" id="acceleration2">
+						<option value="0" selected>Off</option>
+						<option value="1">Compression</option>
+						<option value="2">Cache</option>
+						<option value="3">Compression + Cache</option>
+					</select>
+					<label for="ssl_offloading1" title="Enable SSL Offloading">SSL Offloading</label><input type="checkbox" id="ssl_offloading1">
+				</span>
+			</td>
+		</tr>
+		<tr>
+			<td class="addName"><span title="Web application firewall">WAF(?):</span></td>
+			<td class="addOption">
+				<span class="controlgroup">
+					<label for="slow_atack1" title="Slow atack protect">Slow atack</label><input type="checkbox" id="slow_atack1">
+					<label for="ddos1" title="DDOS atack protect">DDOS</label><input type="checkbox" id="ddos1">
+				</span>
 			</td>
 		</tr>
 		<tr>
 			<td class="addName">Optinons:</td>
 			<td class="addOption">
 				<span class="controlgroup">
-					<label for="ssl_offloading1" title="Enable SSL Offloading">SSL Offloading</label><input type="checkbox" id="ssl_offloading1">
-					<label for="forward_for1" title="Option Forward for if none">Forward for</label><input type="checkbox" id="forward_for1">
-					<label for="slow_atack1" title="Slow atack protect">Slow atack</label><input type="checkbox" id="slow_atack1">
-					<label for="ddos1" title="DDOS atack protect">DDOS</label><input type="checkbox" id="ddos1">
+					<label for="forward_for1" title="Option Forward for if none">Forward for</label><input type="checkbox" id="forward_for1">					
 					<select name="force_close" class="force_close">
 						<option disabled selected>Force HTTP close</option>
 						<option>Off</option>
@@ -344,22 +362,31 @@
 		<tr>
 			<td class="addName"><span title="Cache support start 1.8 and latter">Web acceleration(?):</span></td>
 			<td class="addOption">
-				<select name="acceleration" id="acceleration3">
-					<option value="0" selected>Off</option>
-					<option value="1">Compression</option>
-					<option value="2">Cache</option>
-					<option value="3">Compression + Cache</option>
-				</select>
+				<span class="controlgroup">
+					<select name="acceleration" id="acceleration3">
+						<option value="0" selected>Off</option>
+						<option value="1">Compression</option>
+						<option value="2">Cache</option>
+						<option value="3">Compression + Cache</option>
+					</select>
+					<label for="ssl_offloading2" title="Enable SSL Offloading">SSL Offloading</label><input type="checkbox" id="ssl_offloading2">
+				</span>
+			</td>
+		</tr>
+		<tr>
+			<td class="addName"><span title="Web application firewall">WAF(?):</span></td>
+			<td class="addOption">
+				<span class="controlgroup">
+					<label for="ddos2" title="DDOS atack protect">DDOS</label><input type="checkbox" id="ddos2">
+				</span>
 			</td>
 		</tr>
 		<tr>
 			<td class="addName">Optinons:</td>
 			<td class="addOption">
-				<span class="controlgroup">
-					<label for="ssl_offloading2" title="Enable SSL Offloading">SSL Offloading</label><input type="checkbox" id="ssl_offloading2">
+				<span class="controlgroup">					
 					<label for="forward_for2" title="Option Forward for if none">Forward for</label><input type="checkbox" id="forward_for2">
-					<label for="redispatch2" title="Enable Redispatch">Redispatch</label><input type="checkbox" id="redispatch2">
-					<label for="ddos2" title="DDOS atack protect">DDOS</label><input type="checkbox" id="ddos2">
+					<label for="redispatch2" title="Enable Redispatch">Redispatch</label><input type="checkbox" id="redispatch2">				
 					<select name="force_close" class="force_close">
 						<option disabled selected>Force HTTP close</option>
 						<option>Off</option>
@@ -509,7 +536,7 @@
 	{% endif %}
 	
 	<div id="dialog-confirm" title="View certificate " style="display: none;">
-		<p id="dialog-confirm-body"></span></p>
+		<center><pre id="dialog-confirm-body"></pre></center>
 	</div>
 <script>
 $( ".force_close" ).selectmenu({

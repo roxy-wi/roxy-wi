@@ -681,7 +681,7 @@ def select_metrics(serv, **kwargs):
 	
 def select_servers_metrics_for_master():
 	con, cur = create_db.get_cur()
-	sql = """select ip from servers where enable = 1 """
+	sql = """select ip from servers where metrics = 1 """
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:

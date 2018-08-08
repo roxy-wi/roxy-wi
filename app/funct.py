@@ -253,6 +253,9 @@ def show_config(cfg):
 		if not line.find("backend"):
 			print('</div><span class="param">' + line + '</span><div>')
 			continue
+		if not line.find("cache"):
+			print('</div><span class="param">' + line + '</span><div>')
+			continue
 		if "acl" in line or "option" in line or "server" in line:
 			if "timeout" not in line and "default-server" not in line and "#use_backend" not in line:
 				print('<span class="paramInSec"><span class="numRow">')

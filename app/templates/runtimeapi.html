@@ -14,6 +14,9 @@
 					<select autofocus required id="{{ select_id }}" name="{{ select_id }}">
 						<option disabled>Choose server</option>
 						{% for select in selects %}
+							[% if serv == select.2 %]
+							<option value="{{ select.2 }}" selected>{{ select.1 }}</option>
+							{% else %}
 							<option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endfor %}
 					</select>
