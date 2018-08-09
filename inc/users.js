@@ -251,8 +251,9 @@ $( function() {
 					$("#ajax-ssh").append(data);
 					$.getScript(users);
 				} else {
-					var getId = new RegExp('[0-9]+');
-					var id = data.match(getId);
+					var getId = new RegExp('ssh-table-[0-9]+');
+					var id = data.match(getId) + '';
+					id = id.split('-').pop();;
 					$("#ssh_enable_table").append(data);
 					$( ".newgroup" ).addClass( "update", 1000, callbackGroup );
 					$('select:regex(id, credentials)').append('<option value='+id+'>'+$('#new-ssh-add').val()+'</option>').selectmenu("refresh");

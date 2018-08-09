@@ -458,25 +458,55 @@ $( function() {
 		if ($( "#listen-mode-select option:selected" ).val() == "tcp") {
 			$( "#https-listen-span" ).hide("fast");
 			$( "#https-hide-listen" ).hide("fast");
+			$("#compression").checkboxradio( "disable" );
+			$("#cache").checkboxradio( "disable" );
+			$("#ssl_offloading").checkboxradio( "disable" );
+			$("#cookie").checkboxradio( "disable" );
+			$("#slow_atack").checkboxradio( "disable" );
 			$( "#https-listen" ).prop("checked", false);
 		} else {
 			$( "#https-listen-span" ).show("fast");
+			$("#compression").checkboxradio( "enable" );
+			$("#cache").checkboxradio( "enable" );
+			$("#ssl_offloading").checkboxradio( "enable" );
+			$("#cookie").checkboxradio( "enable" );
+			$("#slow_atack").checkboxradio( "enable" );
 		}
 	});
 	$( "#frontend-mode-select" ).on('selectmenuchange',function()  {
 		if ($( "#frontend-mode-select option:selected" ).val() == "tcp") {
 			$( "#https-frontend-span" ).hide("fast");
 			$( "#https-hide-frontend" ).hide("fast");
+			$("#compression2").checkboxradio( "disable" );
+			$("#cache2").checkboxradio( "disable" );
+			$("#ssl_offloading2").checkboxradio( "disable" );
+			$("#cookie2").checkboxradio( "disable" );
+			$("#slow_atack1").checkboxradio( "disable" );
 		} else {
 			$( "#https-frontend-span" ).show("fast");
+			$("#compression2").checkboxradio( "enable" );
+			$("#cache2").checkboxradio( "enable" );
+			$("#ssl_offloading2").checkboxradio( "enable" );
+			$("#cookie2").checkboxradio( "enable" );
+			$("#slow_atack1").checkboxradio( "enable" );
 		}
 	});
 	$( "#backend-mode-select" ).on('selectmenuchange',function()  {
 		if ($( "#backend-mode-select option:selected" ).val() == "tcp") {
 			$( "#https-backend-span" ).hide("fast");
 			$( "#https-hide-backend" ).hide("fast");
+			$("#compression3").checkboxradio( "disable" );
+			$("#cache3").checkboxradio( "disable" );
+			$("#ssl_offloading3").checkboxradio( "disable" );
+			$("#cookie3").checkboxradio( "disable" );
+			$("#slow_atack2").checkboxradio( "disable" );
 		} else {
 			$( "#https-backend-span" ).show("fast");
+			$("#compression3").checkboxradio( "enable" );
+			$("#cache3").checkboxradio( "enable" );
+			$("#ssl_offloading3").checkboxradio( "enable" );
+			$("#cookie3").checkboxradio( "enable" );
+			$("#slow_atack2").checkboxradio( "enable" );
 		}
 	});
 	$( "#https-listen" ).click( function(){
@@ -736,6 +766,50 @@ $( function() {
 		autoFocus: true,
 		minLength: -1
 	});
+	$( "#blacklist-hide-input" ).autocomplete({
+		source: function( request, response ) {
+			if ( request.term == "" ) {
+				request.term = 1
+			}
+			$.ajax( {
+				url: "options.py",
+				data: {
+					get_lists: request.term,
+					color: "black",
+					group: $("#group").val(),
+					token: $('#token').val()
+				},
+				success: function( data ) {
+					data = data.replace(/\s+/g,' ');
+					response(data.split(" "));
+				}						
+			} );
+		},
+		autoFocus: true,
+		minLength: -1
+	});
+	$( "#blacklist-hide-input1" ).autocomplete({
+		source: function( request, response ) {
+			if ( request.term == "" ) {
+				request.term = 1
+			}
+			$.ajax( {
+				url: "options.py",
+				data: {
+					get_lists: request.term,
+					color: "black",
+					group: $("#group").val(),
+					token: $('#token').val()
+				},
+				success: function( data ) {
+					data = data.replace(/\s+/g,' ');
+					response(data.split(" "));
+				}						
+			} );
+		},
+		autoFocus: true,
+		minLength: -1
+	});
 	$( "#options" ).autocomplete({
 		source: availableTags,
 		autoFocus: true,
@@ -860,15 +934,6 @@ $( function() {
 			$("#ddos1").checkboxradio( "disable" );
 		}
 	});
-	$( "#new_backend" ).change(function() {
-		table_name = $('#new_backend').val();
-		table_name = $.trim(table_name)
-		if($('#new_backend').val() != "") {
-			$("#ddos2").checkboxradio( "enable" );
-		} else {
-			$("#ddos2").checkboxradio( "disable" );
-		}
-	});
 	
 	$('#ddos').click(function() {
 		if($('#name').val() == "") {
@@ -882,7 +947,7 @@ $( function() {
 								  "acl abuse sc1_http_req_rate("+table_name+") ge 100\n"+
 								  "acl flag_abuser sc1_inc_gpc0("+table_name+")\n"+
 								  "tcp-request content reject if abuse flag_abuser\n"+
-								  "End config for DDOS\n";
+								  "#End config for DDOS\n";
 		if($('#optionsInput').val().indexOf(ddos_var) == '-1') {			
 			if($('#name').val() == "") {
 				alert("First set Listen name")
@@ -905,7 +970,7 @@ $( function() {
 								  "acl abuse sc1_http_req_rate("+table_name+") ge 100\n"+
 								  "acl flag_abuser sc1_inc_gpc0("+table_name+")\n"+
 								  "tcp-request content reject if abuse flag_abuser\n"+
-								  "End config for DDOS\n";
+								  "#End config for DDOS\n";
 		if($('#optionsInput1').val().indexOf(ddos_var) == '-1') {
 			if($('#new_frontend').val() == "") {
 				alert("First set Frontend name")
@@ -916,47 +981,40 @@ $( function() {
 			replace_text("#optionsInput1", ddos_var);
 		}	
 	});
-	$('#ddos2').click(function() {
-		if($('#new_backend').val() == "") {
-			table_name = $('#new_backend').val();
-		}
-		var ddos_var = "#Start config for DDOS atack protecte\n"+
-								  "stick-table type ip size 1m expire 1m store gpc0,http_req_rate(10s),http_err_rate(10s)\n"+
-								  "tcp-request connection track-sc1 src\n"+
-								  "tcp-request connection reject if { sc1_get_gpc0 gt 0 }\n"+
-								  "# Abuser means more than 100reqs/10s\n"+
-								  "acl abuse sc1_http_req_rate("+table_name+") ge 100\n"+
-								  "acl flag_abuser sc1_inc_gpc0("+table_name+")\n"+
-								  "tcp-request content reject if abuse flag_abuser\n"+
-								  "End config for DDOS\n";
-		if($('#optionsInput2').val().indexOf(ddos_var) == '-1') {
-			if($('#new_backend').val() == "") {
-				alert("First set Backend name")
-			} else {
-				$("#optionsInput2").append(ddos_var)
-			}
+
+	$( "#blacklist_checkbox" ).click( function(){
+		if ($('#blacklist_checkbox').is(':checked')) {
+			$( "#blacklist-hide" ).show( "fast" );
+			$( "#blacklist-hide-input" ).attr('required',true);
 		} else {
-			replace_text("#optionsInput2", ddos_var);
-		}	
+			$( "#blacklist-hide" ).hide( "fast" );
+			$( "#blacklist-hide-input" ).prop('required',false);
+		}
 	});
+	$( "#blacklist_checkbox1" ).click( function(){
+		if ($('#blacklist_checkbox1').is(':checked')) {
+			$( "#blacklist-hide1" ).show( "fast" );
+			$( "#blacklist-hide-input1" ).attr('required',true);
+		} else {
+			$( "#blacklist-hide1" ).hide( "fast" );
+			$( "#blacklist-hide-input1" ).prop('required',false);
+		}
+	});
+
 	cur_url = cur_url[0].split('#');
-	console.log(cur_url[0])
 	if (cur_url[0] == "/app/add.py") {
-		$("#acceleration").selectmenu( "disable" );
+		$("#cache").checkboxradio( "disable" );
 		$( "#serv" ).on('selectmenuchange',function() {
-			$("#acceleration").selectmenu( "enable" );
 			change_select_acceleration("");
 		});
 		
-		$("#acceleration2").selectmenu( "disable" );
+		$("#cache2").checkboxradio( "disable" );
 		$( "#serv2" ).on('selectmenuchange',function() {
-			$("#acceleration2").selectmenu( "enable" );
 			change_select_acceleration(2);
 		});
 			
-		$("#acceleration3").selectmenu( "disable" );
+		$("#cache3").checkboxradio( "disable" );
 		$( "#serv3" ).on('selectmenuchange',function() {
-			$("#acceleration3").selectmenu( "enable" );
 			change_select_acceleration("3");
 		});
 	}
@@ -1142,16 +1200,11 @@ function change_select_acceleration(id) {
 		},
 		type: "GET",
 		success: function( data ) {		
-			if(parseFloat(data) < parseFloat('1.8')) {
-				console.log(false)
-				$('#acceleration'+id+' option[value=2]').attr('disabled','disabled');
-				$('#acceleration'+id+' option[value=3]').attr('disabled','disabled');		
+			if(parseFloat(data) < parseFloat('1.8')) {	
+				$("#cache"+id).checkboxradio( "disable" );
 			} else {
-				console.log('true')
-				$('#acceleration'+id+' option[value=2]').removeAttr('disabled','disabled');
-				$('#acceleration'+id+' option[value=3]').removeAttr('disabled','disabled');
+				$("#cache"+id).checkboxradio( "enable" );
 			}
-			$("#acceleration"+id).selectmenu( "refresh" );
 		}
 	} );
 }
@@ -1184,7 +1237,7 @@ function view_ssl(id) {
 				$( "#dialog-confirm" ).dialog({
 					resizable: false,
 					height: "auto",
-					width: 800,
+					width: 650,
 					modal: true,
 					title: "Certificate from "+$('#serv5').val()+", name: "+id,
 					buttons: {
@@ -1196,5 +1249,85 @@ function view_ssl(id) {
 			} 
 		}
 	} );
+}
 
+function createList(color) {
+	if(color == 'white') {
+		list = $('#new_whitelist_name').val() 
+	} else {
+		list = $('#new_blacklist_name').val()
+	}
+	$.ajax( {
+		url: "options.py",
+		data: {
+			bwlists_create: list,
+			color: color,
+			group: $('#group').val(),
+			token: $('#token').val()
+		},
+		type: "GET",
+		success: function( data ) {
+			$("#ajax").html(data); 
+			setTimeout(function() {
+						location.reload();
+					}, 2500 );			 
+		}
+	} );	
+}
+function editList(list, color) {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			bwlists: list,
+			color: color,
+			group: $('#group').val(),
+			token: $('#token').val()
+		},
+		type: "GET",
+		success: function( data ) {
+			if (data.indexOf('danger') != '-1') {
+				$("#ajax").html(data);
+			} else {
+				$('.alert-danger').remove();
+				$('#edit_lists').text(data);
+				$( "#dialog-confirm" ).dialog({
+					resizable: false,
+					height: "auto",
+					width: 650,
+					modal: true,
+					title: "Edit "+color+" list "+list,
+					buttons: {
+						"Just save": function() {
+							$( this ).dialog( "close" );	
+							saveList('save', list, color);
+						},
+						"Save and restart": function() {
+							$( this ).dialog( "close" );	
+							saveList('restart', list, color);
+						},
+						Cancel: function() {
+							$( this ).dialog( "close" );
+						}
+					  }
+				});					
+			} 
+		}
+	} );	
+}
+function saveList(action, list, color) {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			bwlists_save: list,
+			bwlists_content: $('#edit_lists').val(),
+			color: color,
+			group: $('#group').val(),
+			bwlists_restart: action,
+			token: $('#token').val()
+		},
+		type: "GET",
+		success: function( data ) {
+			$("#ajax").html(data); 
+		}
+	} );	
 }

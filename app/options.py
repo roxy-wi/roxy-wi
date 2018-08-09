@@ -456,3 +456,62 @@ if form.getvalue('get_hap_v'):
 	commands = [ "haproxy -v |grep ver|awk '{print $3}'" ]
 	output = funct.ssh_command(serv, commands)
 	print(output)
+	
+if form.getvalue('bwlists'):
+	list = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')+"/"+form.getvalue('group')+"/"+form.getvalue('color')+"/"+form.getvalue('bwlists')
+	try:
+		file = open(list, "r")
+		file_read = file.read()
+		file.close
+		print(file_read)
+	except IOError:
+		print('<div class="alert alert-danger" style="margin:0">Cat\'n read '+form.getvalue('color')+' list</div>')
+		
+if form.getvalue('bwlists_create'):
+	list_name = form.getvalue('bwlists_create').split('.')[0]
+	list_name += '.lst'
+	list = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')+"/"+form.getvalue('group')+"/"+form.getvalue('color')+"/"+list_name
+	try:
+		open(list, 'a').close()
+		print('<div class="alert alert-success" style="margin:0">'+form.getvalue('color')+' list was created</div>')
+	except IOError as e:
+		print('<div class="alert alert-danger" style="margin:0">Cat\'n create new '+form.getvalue('color')+' list. %s </div>' % e)
+		
+if form.getvalue('bwlists_save'):
+	list = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')+"/"+form.getvalue('group')+"/"+form.getvalue('color')+"/"+form.getvalue('bwlists_save')
+	try:
+		with open(list, "w") as file:
+			file.write(form.getvalue('bwlists_content'))
+	except IOError as e:
+		print('<div class="alert alert-danger" style="margin:0">Cat\'n save '+form.getvalue('color')+' list. %s </div>' % e)
+	
+	servers = sql.get_dick_permit()
+	path = funct.get_config_var('haproxy', 'haproxy_dir')+"/"+form.getvalue('color')
+	
+	for server in servers:
+		commands = [ "sudo mkdir "+path ]
+		funct.ssh_command(server[2], commands)
+		
+		try:
+			ssh = funct.ssh_connect(server[2])
+		except Exception as e:
+			print('<div class="alert alert-danger">Connect fail: %s</div>' % e)
+			
+		try:
+			sftp = ssh.open_sftp()
+			file = sftp.put(list, path+"/"+form.getvalue('bwlists_save'))
+			sftp.close()
+			ssh.close()
+			print('<div class="alert alert-success" style="margin:10px">Edited '+form.getvalue('color')+' list was uploaded to '+server[1]+'</div>')
+		except Exception as e:
+			print('<div class="alert alert-danger">Upload fail: %s</div>' % e)
+			
+		if form.getvalue('bwlists_restart') == 'restart':
+			commands = [ "sudo " + funct.get_config_var('haproxy', 'restart_command') ]
+			funct.ssh_command(server[2], commands)
+			
+if form.getvalue('get_lists'):
+	list = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')+"/"+form.getvalue('group')+"/"+form.getvalue('color')
+	lists = funct.get_files(dir=list, format="lst")
+	for list in lists:
+		print(list)

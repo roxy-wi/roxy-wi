@@ -285,7 +285,8 @@ echo -e "Installing required Python Packages"
 echo ""
 echo ""
 echo "################################"
-/usr/bin/pip3 install -r /var/www/$HOME_HAPROXY_WI/requirements.txt
+sudo -H pip3 install --upgrade pip
+sudo pip3 install -r /var/www/$HOME_HAPROXY_WI/requirements.txt
 
 if [ $? -eq 1 ]
 then

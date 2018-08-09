@@ -71,6 +71,11 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f044";
 }
+.lists::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f0cb";
+}
 .hap::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";

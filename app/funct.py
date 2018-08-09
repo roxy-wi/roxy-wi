@@ -528,18 +528,32 @@ def show_backends(serv, **kwargs):
 	if kwargs.get('ret'):
 		return ret
 		
-def get_files():
+def get_files(**kwargs):
 	import glob
 	file = set()
 	return_files = set()
-	hap_configs_dir = get_config_var('configs', 'haproxy_save_configs_dir')
+	if kwargs.get('dir'):
+		dir =  kwargs.get('dir')
+	else:
+		dir = get_config_var('configs', 'haproxy_save_configs_dir')
+		
+	if kwargs.get('format'):
+		format = kwargs.get('format')
+	else:
+		format = 'cfg'
 	
-	for files in glob.glob(os.path.join(hap_configs_dir,'*.cfg')):		
-		file.add(files.split('/')[6])
+	for files in glob.glob(os.path.join(dir,'*.'+format)):				
+		file.add(files.split('/')[-1])
 	files = sorted(file, reverse=True)
-	for file in files:
-		ip = file.split("-")
-		if serv == ip[0]:
-			return_files.add(file)
-	return sorted(return_files, reverse=True)
+
+	if format == 'cfg':
+		for file in files:
+			ip = file.split("-")
+			if serv == ip[0]:
+				return_files.add(file)
+		return sorted(return_files, reverse=True)
+	else: 
+		return files
+	
+	
 	

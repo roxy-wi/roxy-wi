@@ -839,6 +839,18 @@ def select_table_metrics(uuid):
 	cur.close()    
 	con.close()
 	
+def get_setting(param):
+	con, cur = create_db.get_cur()
+	sql = """select value from `settings` where param='%s' """ % param
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+	else:
+		for value in cur.fetchone():
+			return value
+	cur.close()    
+	con.close()  
 	
 def show_update_telegram(token, page):
 	from jinja2 import Environment, FileSystemLoader

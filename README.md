@@ -33,6 +33,7 @@ Support the project
 21. Alerting about HAProxy service state
 22. Metrics incoming connections
 23. Web acceleration settings
+24. Some functions WAF
 
 ![alt text](image/haproxy-wi-metrics.jpeg "Merics")
 

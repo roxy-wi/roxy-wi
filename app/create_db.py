@@ -169,7 +169,7 @@ def update_db_v_2_0_1(**kwargs):
 		con.commit()
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
-			if e.args[0] == 'duplicate column name: type_ip':
+			if e.args[0] == 'duplicate column name: type_ip' or e == " 1060 (42S21): Duplicate column name 'type_ip' ":
 				print('Updating... go to version 2.0.1.1<br />')
 			else:
 				print("An error occurred:", e)
@@ -413,13 +413,10 @@ def update_db_v_2_7(**kwargs):
 
 def update_db_v_2_7_2(**kwargs):
 	con, cur = get_cur()
-	sql = """ CREATE TABLE IF NOT EXISTS `telegram` (	
-				`id` integer primary key autoincrement,	
-				`token`	VARCHAR ( 64 ), 
-				`chanel_name` INTEGER NOT NULL DEFAULT 1, 
-				`groups` INTEGER NOT NULL DEFAULT 1
-				); 
-	"""
+	if mysql_enable == '0':
+		sql = """ CREATE TABLE IF NOT EXISTS `telegram` (`id` integer primary key autoincrement, `token` VARCHAR ( 64 ), `chanel_name` INTEGER NOT NULL DEFAULT 1, `groups` INTEGER NOT NULL DEFAULT 1); """
+	else:
+		sql = """ CREATE TABLE IF NOT EXISTS `telegram` (`id` integer primary key auto_increment, `token` VARCHAR ( 64 ), `chanel_name` INTEGER NOT NULL DEFAULT 1, `groups` INTEGER NOT NULL DEFAULT 1); """
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -462,7 +459,7 @@ def update_db_v_2_8_2(**kwargs):
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
 			if e.args[0] == 'duplicate column name: metrics' or e == "1060 (42S21): Duplicate column name 'metrics' ":
-				print('DB was update to 2.8. It\' last version')
+				print('DB was update to 2.8')
 			else:
 				print("An error occurred:", e)
 			return False
@@ -471,6 +468,45 @@ def update_db_v_2_8_2(**kwargs):
 			return True
 	cur.close() 
 	con.close()	
+		
+def update_db_v_2_9(**kwargs):
+	con, cur = get_cur()
+	sql = """CREATE TABLE IF NOT EXISTS `settings` (`param` varchar(64) UNIQUE, value varchar(64)); """
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: token' or e == "1060 (42S21): Duplicate column name 'token' ":
+				print('Updating... go to version 2.10')
+			else:
+				print("An error occurred:", e.args[0])
+				return False
+		else:
+			return True
+	cur.close() 
+	con.close()	
+	
+def update_db_v_2_91(**kwargs):
+	con, cur = get_cur()
+	sql = """
+	insert into `settings` (param, value) values ('lists_path', 'lists');
+	"""
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'column param is not unique' or e == "1060 (42S21): Duplicate column name 'cred' ":
+				print('DB was update to 2.9  It\' last version')
+			else:
+				print("An error occurred:", e)
+		return False
+	else:
+		print("DB was update to 2.9  It\' last version<br />")
+		return True
+	cur.close() 
+	con.close()
 	
 def update_all():	
 	update_db_v_2_0_1()
@@ -486,6 +522,8 @@ def update_all():
 	update_db_v_2_7_2()
 	update_db_v_2_8()
 	update_db_v_2_8_2()
+	update_db_v_2_9()
+	update_db_v_2_91()
 	
 def update_all_silent():
 	update_db_v_2_0_1(silent=1)
@@ -501,4 +539,6 @@ def update_all_silent():
 	update_db_v_2_7_2(silent=1)
 	update_db_v_2_8(silent=1)
 	update_db_v_2_8_2(silent=1)
+	update_db_v_2_9(silent=1)
+	update_db_v_2_91(silent=1)
 		

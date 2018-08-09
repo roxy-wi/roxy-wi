@@ -76,12 +76,8 @@
 			<td class="addName"><span title="Cache support start 1.8 and latter">Web acceleration(?):</span></td>
 			<td class="addOption">
 				<span class="controlgroup">	
-					<select name="acceleration" id="acceleration">
-						<option value="0" selected>Off</option>
-						<option value="1">Compression</option>
-						<option value="2">Cache</option>
-						<option value="3">Compression + Cache</option>
-					</select>
+					<label for="compression" title="Enable Compression">Compression</label><input type="checkbox" id="compression" name="compression" value="1">
+					<label for="cache" title="Enable Compression">Cache</label><input type="checkbox" id="cache" name="cache" value="2">
 					<label for="ssl_offloading" title="Enable SSL Offloading">SSL Offloading</label><input type="checkbox" id="ssl_offloading">
 				</span>
 			</td>
@@ -92,7 +88,12 @@
 				<span class="controlgroup">
 					<label for="slow_atack" title="Slow atack protect">Slow atack</label><input type="checkbox" id="slow_atack">
 					<label for="ddos" title="DDOS atack protect">DDOS</label><input type="checkbox" id="ddos">
+					<label for="blacklist_checkbox" title="Enable SSL Offloading">Blacklist</label><input type="checkbox" id="blacklist_checkbox">
 				</span>
+				<div id="blacklist-hide" style="display: none;">
+					<br /><span class="tooltip tooltipTop">Enter the name of the blacklist, or press down:</span><br />
+					<input type="text" name="blacklist" placeholder="blacklist.lst" class="form-control" size="39" id="blacklist-hide-input"><br />
+				</div>
 			</td>
 		</tr>
 		<tr>
@@ -242,14 +243,10 @@
 			<td class="addName"><span title="Cache support start 1.8 and latter">Web acceleration(?):</span></td>
 			<td class="addOption">
 				<span class="controlgroup">	
-					<select name="acceleration" id="acceleration2">
-						<option value="0" selected>Off</option>
-						<option value="1">Compression</option>
-						<option value="2">Cache</option>
-						<option value="3">Compression + Cache</option>
-					</select>
+					<label for="compression2" title="Enable Compression">Compression</label><input type="checkbox" id="compression2" name="compression" value="1">
+					<label for="cache2" title="Enable Compression">Cache</label><input type="checkbox" id="cache2" name="cache" value="2">
 					<label for="ssl_offloading1" title="Enable SSL Offloading">SSL Offloading</label><input type="checkbox" id="ssl_offloading1">
-				</span>
+				</span>	
 			</td>
 		</tr>
 		<tr>
@@ -258,7 +255,12 @@
 				<span class="controlgroup">
 					<label for="slow_atack1" title="Slow atack protect">Slow atack</label><input type="checkbox" id="slow_atack1">
 					<label for="ddos1" title="DDOS atack protect">DDOS</label><input type="checkbox" id="ddos1">
+					<label for="blacklist_checkbox1" title="Enable SSL Offloading">Blacklist</label><input type="checkbox" id="blacklist_checkbox1">
 				</span>
+				<div id="blacklist-hide1" style="display: none;">
+					<br /><span class="tooltip tooltipTop">Enter the name of the blacklist, or press down:</span><br />
+					<input type="text" name="blacklist" placeholder="blacklist.lst" class="form-control" size="39" id="blacklist-hide-input1"><br />
+				</div>
 			</td>
 		</tr>
 		<tr>
@@ -363,21 +365,9 @@
 			<td class="addName"><span title="Cache support start 1.8 and latter">Web acceleration(?):</span></td>
 			<td class="addOption">
 				<span class="controlgroup">
-					<select name="acceleration" id="acceleration3">
-						<option value="0" selected>Off</option>
-						<option value="1">Compression</option>
-						<option value="2">Cache</option>
-						<option value="3">Compression + Cache</option>
-					</select>
+					<label for="compression3" title="Enable Compression">Compression</label><input type="checkbox" id="compression3" name="compression" value="1">
+					<label for="cache3" title="Enable Compression">Cache</label><input type="checkbox" id="cache3" name="cache" value="2">
 					<label for="ssl_offloading2" title="Enable SSL Offloading">SSL Offloading</label><input type="checkbox" id="ssl_offloading2">
-				</span>
-			</td>
-		</tr>
-		<tr>
-			<td class="addName"><span title="Web application firewall">WAF(?):</span></td>
-			<td class="addOption">
-				<span class="controlgroup">
-					<label for="ddos2" title="DDOS atack protect">DDOS</label><input type="checkbox" id="ddos2">
 				</span>
 			</td>
 		</tr>
@@ -538,6 +528,7 @@
 	<div id="dialog-confirm" title="View certificate " style="display: none;">
 		<center><pre id="dialog-confirm-body"></pre></center>
 	</div>
+	<input type="hidden" id="group" value="{{ group }}">
 <script>
 $( ".force_close" ).selectmenu({
   width: 180

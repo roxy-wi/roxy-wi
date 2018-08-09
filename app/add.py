@@ -19,6 +19,7 @@ try:
 	user_id = cookie.get('uuid')
 	user = sql.get_user_name_by_uuid(user_id.value)
 	servers = sql.get_dick_permit()
+	user_group = sql.get_user_group_by_uuid(user_id.value)
 	token = sql.get_token(user_id.value)
 except:
 	pass
@@ -29,6 +30,7 @@ output_from_parsed_template = template.render(title = "Add",
 												selects = servers,
 												add = form.getvalue('add'),
 												conf_add = form.getvalue('conf'),
+												group = user_group,
 												token = token)										
 print(output_from_parsed_template)
 
@@ -108,6 +110,9 @@ if form.getvalue('mode') is not None:
 	elif force_close == "3":
 		options_split += "    option http-pretend-keepalive\n"
 		
+	if form.getvalue('blacklist') is not None:
+		options_split += "    tcp-request connection reject if { src -f /etc/haproxy/black/"+form.getvalue('blacklist')+" }\n"
+		
 	if form.getvalue('cookie'):
 		cookie = "    cookie "+form.getvalue('cookie_name')
 		if form.getvalue('cookie_domain'):
@@ -147,20 +152,21 @@ if form.getvalue('mode') is not None:
 	else:
 		servers_split = ""
 		
-	en_acceleration = form.getvalue("acceleration")
-	acceleration = ""
-	cache = ""
+	compression = form.getvalue("compression")
+	cache = form.getvalue("cache")
+	compression_s = ""
+	cache_s = ""
 	cache_set = ""
 	filter = ""
-	if en_acceleration:
+	if compression == "1" or cache == "2":
 		filter = "    filter compression\n"
-		if en_acceleration == "1" or en_acceleration == "3":
-			acceleration = "    compression algo gzip\n    compression type text/html text/plain text/css\n"
-		if en_acceleration == "2" or en_acceleration == "3":
-			cache = "    http-request cache-use "+end_name+"\n    http-response cache-store "+end_name+"\n"
+		if compression == "1":
+			compression_s = "    compression algo gzip\n    compression type text/html text/plain text/css\n"
+		if cache == "2":
+			cache_s = "    http-request cache-use "+end_name+"\n    http-response cache-store "+end_name+"\n"
 			cache_set = "cache "+end_name+"\n    total-max-size 4\n    max-age 240\n"
 	
-	config_add = name + "\n" + bind +  mode  + "\n" + balance + options_split + backend + filter + acceleration + cache + servers_split + "\n" + cache_set
+	config_add = name + "\n" + bind +  mode  + "\n" + balance + options_split + filter + compression_s + cache_s + backend + servers_split + "\n" + cache_set
 	cfg = hap_configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
 	
 	funct.get_config(serv, cfg)
