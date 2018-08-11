@@ -22,6 +22,7 @@ def main(serv, port):
 	port = str(port)
 	firstrun = True
 	currentstat = []
+	oldstat = []
 	readstats = ""
 	killer = GracefulKiller()
 	old_stat_service = ""
