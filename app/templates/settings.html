@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}	
+	<script src="/inc/users.js"></script>
+	<div id="ajax"></div>
+	<table id="settings">
+		<tr class="overviewHead">
+			<td class="padding10 first-collumn" style="width: 10%;">
+				Parameter
+			</td>
+			<td>
+				Value
+			</td>	
+			<td>
+				Description 
+			</td>
+		</tr>
+		{% set section = namespace(section='') %}
+		{% for set in settings %}
+		{% if section.section|string() != set.2|string() %}
+			<th><h3 style="margin-left: 20px; margin-bottom: 10px;">{{ set.2 }} section</h3></th>
+		{% endif %}
+		{% set section.section = set.2 %}	
+		<tr class="{{ loop.cycle('odd', 'even') }}">
+			<td class="addName">{{set.0}}</td>
+			<td class="addOption">
+				<input type="text" name="{{set.0}}" id="{{set.0}}" value="{{set.1}}" title="" size="25" class="form-control">
+			</td>
+			<td class="addOption">
+				{{set.3}}
+			</td>
+		</tr>
+		{% endfor %}
+
+	</table>
+{% endblock %}

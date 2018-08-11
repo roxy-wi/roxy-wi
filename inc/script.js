@@ -130,9 +130,11 @@ function hideAutoRefreshDiv() {
 	});
 }
 $( document ).ajaxSend(function( event, request, settings ) {
+	$('#cover').fadeIn('fast');
 	NProgress.start();
 });
 $( document ).ajaxComplete(function( event, request, settings ) {
+	$('#cover').fadeOut('fast');
 	NProgress.done();
 });
 

@@ -38,7 +38,7 @@ def main():
 			start_worker(serv)
 	
 def start_worker(serv):
-	port = funct.get_config_var('haproxy', 'haproxy_sock_port')
+	port = sql.get_setting('haproxy_sock_port')
 	cmd = "tools/checker_worker.py %s --port %s &" % (serv, port)
 	os.system(cmd)
 	funct.logging("localhost", " Masrer started new worker for: "+serv, alerting=1)

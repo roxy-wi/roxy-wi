@@ -11,6 +11,7 @@ template = env.get_template('admin.html')
 form = cgi.FieldStorage()
 
 print('Content-type: text/html\n')
+
 funct.check_login()
 funct.page_for_admin()
 try:

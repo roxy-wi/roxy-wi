@@ -1,9 +1,29 @@
 #!/bin/bash
 
-if [[ $1 != "" ]]
+for ARGUMENT in "$@"
+do
+
+    KEY=$(echo $ARGUMENT | cut -f1 -d=)
+    VALUE=$(echo $ARGUMENT | cut -f2 -d=)
+
+    case "$KEY" in
+            PROXY)              PROXY=${VALUE} ;;
+            SOCK_PORT)    SOCK_PORT=${VALUE} ;;
+            STAT_PORT)    STAT_PORT=${VALUE} ;;
+            STAT_FILE)    STAT_FILE=${VALUE} ;;
+            STATS_USER)    STATS_USER=${VALUE} ;;
+            STATS_PASS)    STATS_PASS=${VALUE} ;;
+            STAT_FILE)    STAT_FILE=${VALUE} ;;
+            *)
+    esac
+
+
+done
+
+if [[ $PROXY != "" ]]
 then
-	export http_proxy="$1"
-	export https_proxy="$1"
+	export http_proxy="$PROXY"
+	export https_proxy="$PROXY"
 	echo "Exporting proxy"
 fi
 
@@ -15,14 +35,14 @@ fi
 if hash apt-get 2>/dev/null; then
 	sudo apt-get install haproxy socat -y
 else
-	wget http://cbs.centos.org/kojifiles/packages/haproxy/1.8.1/4.el7/x86_64/haproxy18-1.8.1-4.el7.x86_64.rpm
+	sudo wget http://cbs.centos.org/kojifiles/packages/haproxy/1.8.1/5.el7/x86_64/haproxy18-1.8.1-5.el7.x86_64.rpm 
 	sudo yum install haproxy18-1.8.1-5.el7.x86_64.rpm -y
 fi
 
 if [ $? -eq 1 ]
 then
 	sudo yum install wget socat -y > /dev/null
-	wget http://cbs.centos.org/kojifiles/packages/haproxy/1.8.1/4.el7/x86_64/haproxy18-1.8.1-4.el7.x86_64.rpm
+	sudo wget http://cbs.centos.org/kojifiles/packages/haproxy/1.8.1/5.el7/x86_64/haproxy18-1.8.1-5.el7.x86_64.rpm 
 	sudo yum install haproxy18-1.8.1-5.el7.x86_64.rpm -y
 fi
 if [ $? -eq 1 ]
@@ -45,8 +65,9 @@ global
     group       haproxy
     daemon
     stats socket /var/lib/haproxy/stats
-    stats socket *:1999 level admin
-	stats socket /var/run/haproxy.sock mode 600 level admin
+    stats socket *:$SOCK_PORT level admin
+    stats socket /var/run/haproxy.sock mode 600 level admin
+    server-state-file $STAT_FILE 
 
 defaults
     mode                    http
@@ -67,11 +88,11 @@ defaults
     maxconn                 3000
 
 listen stats 
-    bind *:8085 
+    bind *:$STAT_PORT 
     stats enable
     stats uri /stats
     stats realm HAProxy-04\ Statistics
-    stats auth admin:password
+    stats auth $STATS_USER:$STATS_PASS
     stats admin if TRUE 
 EOF
 sudo bash -c cat << EOF > /etc/rsyslog.d/haproxy.conf

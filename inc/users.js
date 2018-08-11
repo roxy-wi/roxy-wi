@@ -360,6 +360,13 @@ $( function() {
 		updateSSH(id[1])
 		sshKeyEnableShow(id[1])
 	});
+	$( "#settings input" ).change(function() {
+		var id = $(this).attr('id');
+		var val = $(this).val();
+		console.log(id)
+		console.log(val)
+		updateSettings(id, val);
+	});
 	$('#new-ssh_enable').click(function() {
 		if ($('#new-ssh_enable').is(':checked')) {
 			$('#ssh_pass').css('display', 'none');
@@ -381,6 +388,30 @@ $( function() {
 		updateTelegram(id[1])
 	});
 } );
+function updateSettings(param, val) {
+	$('.alert-danger').remove();
+	$.ajax( {
+		url: "sql.py",
+		data: {
+			updatesettings: param,
+			val: val
+		},
+		type: "GET",
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if (data.indexOf('error') != '-1') {
+				$("#ajax").append(data);
+				$.getScript(users);
+			} else {
+				$('.alert-danger').remove();
+				$("#"+param).parent().parent().addClass( "update", 1000 );
+			setTimeout(function() {
+				$( "#"+param ).parent().parent().removeClass( "update" );
+			}, 2500 );
+			}
+		}
+	} );
+}
 function sshKeyEnableShow(id) {
 	$('#ssh_enable-'+id).click(function() {
 		if ($('#ssh_enable-'+id).is(':checked')) {

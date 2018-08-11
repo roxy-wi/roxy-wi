@@ -35,7 +35,7 @@ output_from_parsed_template = template.render(title = "Add",
 print(output_from_parsed_template)
 
 hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
-cert_path = funct.get_config_var('haproxy', 'cert_path')
+cert_path = sql.get_setting('cert_path')
 
 if form.getvalue('mode') is not None: 
 	serv = form.getvalue('serv')

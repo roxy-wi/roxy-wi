@@ -408,14 +408,14 @@ echo ""
 echo ""
 echo "################################"
 
-mkdir /var/www/$HOME_HAPROXY_WI/app/certs
-mkdir /var/www/$HOME_HAPROXY_WI/keys
-chmod +x /var/www/$HOME_HAPROXY_WI/app/*.py
-chmod +x /var/www/$HOME_HAPROXY_WI/app/tools/*.py
-rm -f /var/www/$HOME_HAPROXY_WI/log/config_edit.log
+sudo mkdir /var/www/$HOME_HAPROXY_WI/app/certs
+sudo mkdir /var/www/$HOME_HAPROXY_WI/keys
+sudo sudo chmod +x /var/www/$HOME_HAPROXY_WI/app/*.py
+sudo chmod +x /var/www/$HOME_HAPROXY_WI/app/tools/*.py
+sudo rm -f /var/www/$HOME_HAPROXY_WI/log/config_edit.log
 cd /var/www/$HOME_HAPROXY_WI/app
 ./update_db.py
-chown -R apache:apache /var/www/$HOME_HAPROXY_WI/
-chown -R apache:apache /var/log/httpd/
+sudo chown -R apache:apache /var/www/$HOME_HAPROXY_WI/
+sudo chown -R apache:apache /var/log/httpd/
 
 exit 0

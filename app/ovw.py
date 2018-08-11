@@ -10,9 +10,10 @@ def get_overview():
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates/ajax'))
 	template = env.get_template('overview.html')
-	haproxy_config_path  = funct.get_config_var('haproxy', 'haproxy_config_path')
+	haproxy_config_path  = sql.get_setting('haproxy_config_path')
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_id = cookie.get('uuid')
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 	
 	listhap = sql.get_dick_permit()
 	commands = [ "ls -l %s |awk '{ print $6\" \"$7\" \"$8}'" % haproxy_config_path ]
@@ -20,7 +21,7 @@ def get_overview():
 
 	for server in listhap:
 		server_status = ()
-		cmd = 'echo "show info" |nc %s 1999 |grep -e "Process_num"' % server[2]
+		cmd = 'echo "show info" |nc %s %s |grep -e "Process_num"' % (server[2], haproxy_sock_port)
 		server_status = (server[1],server[2], funct.server_status(funct.subprocess_execute(cmd)), funct.ssh_command(server[2], commands))
 		servers.append(server_status)
 
@@ -34,6 +35,7 @@ def get_overviewServers():
 	template = env.get_template('overviewServers.html')
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_id = cookie.get('uuid')
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 	
 	listhap = sql.get_dick_permit()
 	commands =  [ "top -u haproxy -b -n 1" ]
@@ -41,7 +43,7 @@ def get_overviewServers():
 	
 	for server in sorted(listhap):
 		server_status = ()
-		cmd = 'echo "show info" |nc %s 1999 |grep -e "Ver\|CurrConns\|SessRate\|Maxco\|MB\|Uptime:"' % server[2]
+		cmd = 'echo "show info" |nc %s %s |grep -e "Ver\|CurrConns\|SessRate\|Maxco\|MB\|Uptime:"' % (server[2], haproxy_sock_port)
 		out = funct.subprocess_execute(cmd)
 		out1 = ""
 		for k in out:
@@ -66,10 +68,8 @@ def get_map(serv):
 	matplotlib.use('Agg')
 	import matplotlib.pyplot as plt
 	
-	cgi_path = funct.get_config_var('main', 'cgi_path')
-	fullpath = funct.get_config_var('main', 'fullpath')
-	stats_port= funct.get_config_var('haproxy', 'stats_port')
-	haproxy_config_path  = funct.get_config_var('haproxy', 'haproxy_config_path')
+	stats_port= sql.get_setting('stats_port')
+	haproxy_config_path  = sql.get_setting('haproxy_config_path')
 	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 	date = funct.get_data('config')
 	cfg = hap_configs_dir + serv + "-" + date + ".cfg"
@@ -141,7 +141,6 @@ def get_map(serv):
 					G.add_edge(node,line_new[0])
 
 	os.system("/bin/rm -f " + cfg)	
-	os.chdir(cgi_path)
 
 	pos=nx.get_node_attributes(G,'pos')
 	pos_label=nx.get_node_attributes(G,'label_pos')
@@ -160,7 +159,7 @@ def get_map(serv):
 	except Exception as e:
 		print('<div class="alert alert-danger">' + str(e) + '</div>')
 		
-	cmd = "rm -f "+fullpath+"/map*.png && mv "+cgi_path+"/map.png "+fullpath+"/map"+date+".png"
+	cmd = "rm -f "+os.path.dirname(os.getcwd())+"/map*.png && mv map.png "+os.path.dirname(os.getcwd())+"/map"+date+".png"
 	output, stderr = funct.subprocess_execute(cmd)
 	print(stderr)
 

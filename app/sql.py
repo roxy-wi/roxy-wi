@@ -285,7 +285,7 @@ def get_enable_checkbox(id, **kwargs):
 	
 def write_user_uuid(login, user_uuid):
 	con, cur = create_db.get_cur()
-	session_ttl = funct.get_config_var('main', 'session_ttl')
+	session_ttl = get_setting('session_ttl')
 	session_ttl = int(session_ttl)
 	sql = """ select id from user where username = '%s' """ % login
 	try:    
@@ -308,7 +308,7 @@ def write_user_uuid(login, user_uuid):
 	
 def write_user_token(login, user_token):
 	con, cur = create_db.get_cur()
-	token_ttl = funct.get_config_var('main', 'token_ttl')	
+	token_ttl = get_setting('token_ttl')	
 	sql = """ select id from user where username = '%s' """ % login
 	try:    
 		cur.execute(sql)
@@ -374,7 +374,7 @@ def delete_old_uuid():
 
 def update_last_act_user(uuid):
 	con, cur = create_db.get_cur()
-	session_ttl = funct.get_config_var('main', 'session_ttl')
+	session_ttl = get_setting('session_ttl')
 	
 	if mysql_enable == '1':
 		sql = """ update uuid set exp = now()+ INTERVAL %s day where uuid = '%s' """ % (session_ttl, uuid)
@@ -839,18 +839,35 @@ def select_table_metrics(uuid):
 	cur.close()    
 	con.close()
 	
-def get_setting(param):
+def get_setting(param, **kwargs):
 	con, cur = create_db.get_cur()
 	sql = """select value from `settings` where param='%s' """ % param
+	if kwargs.get('all'):
+		sql = """select * from `settings` order by section desc"""
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
 		print('<span class="alert alert-danger" id="error">An error occurred: ' + e + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 	else:
-		for value in cur.fetchone():
-			return value
+		if kwargs.get('all'):
+			return cur
+		else:
+			for value in cur.fetchone():
+				return value
 	cur.close()    
 	con.close()  
+	
+def update_setting(param, val):
+	con, cur = create_db.get_cur()
+	sql = """update `settings` set `value` = '%s' where param = '%s' """ % (val, param)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		con.rollback()
+	cur.close()    
+	con.close()
 	
 def show_update_telegram(token, page):
 	from jinja2 import Environment, FileSystemLoader
@@ -1136,3 +1153,7 @@ if form.getvalue('updatetoken') is not None:
 	else:		
 		print('Content-type: text/html\n')
 		update_telegram(token, chanel, group, id)
+		
+if form.getvalue('updatesettings') is not None:
+	print('Content-type: text/html\n')
+	update_setting(form.getvalue('updatesettings'), form.getvalue('val') )

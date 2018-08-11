@@ -20,8 +20,8 @@ if form.getvalue('token') is None:
 	sys.exit()
 	
 if form.getvalue('getcerts') is not None and serv is not None:
-	cert_path = funct.get_config_var('haproxy', 'cert_path')
-	commands = [ "ls -1t /etc/ssl/certs/ |grep pem" ]
+	cert_path = sql.get_setting('cert_path')
+	commands = [ "ls -1t "+cert_path+" |grep pem" ]
 	try:
 		funct.ssh_command(serv, commands, ip="1")
 	except:
@@ -29,7 +29,7 @@ if form.getvalue('getcerts') is not None and serv is not None:
 		
 if form.getvalue('getcert') is not None and serv is not None:
 	id = form.getvalue('getcert')
-	cert_path = funct.get_config_var('haproxy', 'cert_path')
+	cert_path = sql.get_setting('cert_path')
 	commands = [ "cat "+cert_path+"/"+id ]
 	try:
 		funct.ssh_command(serv, commands, ip="1")
@@ -37,9 +37,8 @@ if form.getvalue('getcert') is not None and serv is not None:
 		print('<div class="alert alert-danger" style="margin:0">Can not connect to the server</div>')
 		
 if form.getvalue('ssh_cert'):
-	fullpath = funct.get_config_var('main', 'fullpath')
 	name = form.getvalue('name')
-	ssh_keys = fullpath+'/keys/'+name+'.pem'
+	ssh_keys = os.path.dirname(os.getcwd())+'/keys/'+name+'.pem'
 	
 	try:
 		with open(ssh_keys, "w") as conf:
@@ -55,7 +54,7 @@ if form.getvalue('ssh_cert'):
 			
 if serv and form.getvalue('ssl_cert'):
 	cert_local_dir = funct.get_config_var('main', 'cert_local_dir')
-	cert_path = funct.get_config_var('haproxy', 'cert_path')
+	cert_path = sql.get_setting('cert_path')
 	
 	if form.getvalue('ssl_name') is None:
 		print('<div class="alert alert-danger">Please enter desired name</div>')
@@ -114,10 +113,10 @@ if form.getvalue('action'):
 	import requests
 	from requests_toolbelt.utils import dump
 	
-	haproxy_user = funct.get_config_var('haproxy', 'stats_user')
-	haproxy_pass = funct.get_config_var('haproxy', 'stats_password')
-	stats_port = funct.get_config_var('haproxy', 'stats_port')
-	stats_page = funct.get_config_var('haproxy', 'stats_page')
+	haproxy_user = sql.get_setting('stats_user')
+	haproxy_pass = sql.get_setting('stats_password')
+	stats_port = sql.get_setting('stats_port')
+	stats_page = sql.get_setting('stats_page')
 	
 	postdata = {
 		'action' : form.getvalue('action'),
@@ -138,10 +137,10 @@ if serv is not None and act == "stats":
 	import requests
 	from requests_toolbelt.utils import dump
 	
-	haproxy_user = funct.get_config_var('haproxy', 'stats_user')
-	haproxy_pass = funct.get_config_var('haproxy', 'stats_password')
-	stats_port = funct.get_config_var('haproxy', 'stats_port')
-	stats_page = funct.get_config_var('haproxy', 'stats_page')
+	haproxy_user = sql.get_setting('stats_user')
+	haproxy_pass = sql.get_setting('stats_password')
+	stats_port = sql.get_setting('stats_port')
+	stats_page = sql.get_setting('stats_page')
 	try:
 		response = requests.get('http://%s:%s/%s' % (serv, stats_port, stats_page), auth=(haproxy_user, haproxy_pass)) 
 	except requests.exceptions.ConnectTimeout:
@@ -176,14 +175,14 @@ if serv is not None and form.getvalue('rows') is not None:
 		grep_act = ''
 		grep = ''
 
-	syslog_server_enable = funct.get_config_var('logs', 'syslog_server_enable')
+	syslog_server_enable = sql.get_setting('syslog_server_enable')
 	if syslog_server_enable is None or syslog_server_enable == "0":
-		local_path_logs = funct.get_config_var('logs', 'local_path_logs')
+		local_path_logs = sql.get_setting('local_path_logs')
 		syslog_server = serv	
 		commands = [ "sudo cat %s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s  %s %s" % (local_path_logs, date, date1, rows, grep_act, grep) ]	
 	else:
 		commands = [ "sudo cat /var/log/%s/syslog.log | sed '/ %s:00/,/ %s:00/! d' |tail -%s  %s %s" % (serv, date, date1, rows, grep_act, grep) ]
-		syslog_server = funct.get_config_var('logs', 'syslog_server')
+		syslog_server = sql.get_setting('syslog_server')
 
 	funct.ssh_command(syslog_server, commands, show_log="1")
 	
@@ -241,8 +240,8 @@ if serv is not None and act == "showMap":
 	ovw.get_map(serv)
 	
 if form.getvalue('servaction') is not None:
-	server_state_file = funct.get_config_var('haproxy', 'server_state_file')
-	haproxy_sock = funct.get_config_var('haproxy', 'haproxy_sock')
+	server_state_file = sql.get_setting('server_state_file')
+	haproxy_sock = sql.get_setting('haproxy_sock')
 	enable = form.getvalue('servaction')
 	backend = form.getvalue('servbackend')
 	
@@ -304,7 +303,7 @@ if form.getvalue('master'):
 	vrrpip = form.getvalue('vrrpip')
 	hap = form.getvalue('hap')
 	syn_flood = form.getvalue('syn_flood')
-	tmp_config_path = funct.get_config_var('haproxy', 'tmp_config_path')
+	tmp_config_path = sql.get_setting('tmp_config_path')
 	script = "install_keepalived.sh"
 	
 	if hap == "1":
@@ -335,7 +334,7 @@ if form.getvalue('masteradd'):
 	interface = form.getvalue('interfaceadd')
 	vrrpip = form.getvalue('vrrpipadd')
 	kp = form.getvalue('kp')
-	tmp_config_path = funct.get_config_var('haproxy', 'tmp_config_path')
+	tmp_config_path = sql.get_setting('tmp_config_path')
 	script = "add_vrrp.sh"
 	
 	os.system("cp scripts/%s ." % script)
@@ -486,7 +485,7 @@ if form.getvalue('bwlists_save'):
 		print('<div class="alert alert-danger" style="margin:0">Cat\'n save '+form.getvalue('color')+' list. %s </div>' % e)
 	
 	servers = sql.get_dick_permit()
-	path = funct.get_config_var('haproxy', 'haproxy_dir')+"/"+form.getvalue('color')
+	path = sql.get_setting('haproxy_dir')+"/"+form.getvalue('color')
 	
 	for server in servers:
 		commands = [ "sudo mkdir "+path ]
@@ -507,7 +506,7 @@ if form.getvalue('bwlists_save'):
 			print('<div class="alert alert-danger">Upload fail: %s</div>' % e)
 			
 		if form.getvalue('bwlists_restart') == 'restart':
-			commands = [ "sudo " + funct.get_config_var('haproxy', 'restart_command') ]
+			commands = [ "sudo " + sql.get_setting('restart_command') ]
 			funct.ssh_command(server[2], commands)
 			
 if form.getvalue('get_lists'):

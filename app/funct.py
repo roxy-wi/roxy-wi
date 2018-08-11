@@ -36,7 +36,8 @@ def get_config_var(sec, var):
 		print('<center><div class="alert alert-danger">Check the config file. Presence section %s and parameter %s</div>' % (sec, var))
 					
 def get_data(type):
-	now_utc = datetime.now(timezone(get_config_var('main', 'time_zone')))
+	import sql
+	now_utc = datetime.now(timezone(sql.get_setting('time_zone')))
 	if type == 'config':
 		fmt = "%Y-%m-%d.%H:%M:%S"
 	if type == 'logs':
@@ -85,7 +86,7 @@ def telegram_send_mess(mess, **kwargs):
 		token_bot = telegram[1]
 		channel_name = telegram[2]
 		
-	proxy = get_config_var('main', 'proxy')
+	proxy = sql.get_setting('proxy')
 	
 	if proxy is not None:
 		apihelper.proxy = {'https': proxy}
@@ -213,11 +214,12 @@ def ssh_connect(serv, **kwargs):
 			return error
 
 def get_config(serv, cfg, **kwargs):
+	import sql
 	error = ""
 	if kwargs.get("keepalived"):
 		config_path = "/etc/keepalived/keepalived.conf"
 	else:
-		config_path = get_config_var('haproxy', 'haproxy_config_path')
+		config_path = sql.get_setting('haproxy_config_path')
 		
 	ssh = ssh_connect(serv)
 	try:
@@ -296,15 +298,23 @@ def diff_config(oldcfg, cfg):
 		pass
 		
 def install_haproxy(serv, **kwargs):
+	import sql
 	script = "install_haproxy.sh"
-	tmp_config_path = get_config_var('haproxy', 'tmp_config_path')
-	proxy = get_config_var('main', 'proxy')
+	tmp_config_path = sql.get_setting('tmp_config_path')
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+	stats_port = sql.get_setting('stats_port')
+	server_state_file = sql.get_setting('server_state_file')
+	stats_user = sql.get_setting('stats_user')
+	stats_password = sql.get_setting('stats_password')
+	proxy = sql.get_setting('proxy')
 	os.system("cp scripts/%s ." % script)
 	if proxy is not None:
 		proxy_serv = proxy
 	else:
 		proxy_serv = ""
-	commands = [ "chmod +x "+tmp_config_path+script+" && " +tmp_config_path+"/"+script +" " + proxy_serv]
+	commands = [ "chmod +x "+tmp_config_path+script+" && " +tmp_config_path+"/"+script +" PROXY=" + proxy_serv+ 
+				" SOCK_PORT="+haproxy_sock_port+" STAT_PORT="+stats_port+" STAT_FILE="+server_state_file+
+				" STATS_USER="+stats_user+" STATS_PASS="+stats_password ]
 	
 	upload(serv, tmp_config_path, script)	
 	ssh_command(serv, commands)
@@ -315,8 +325,9 @@ def install_haproxy(serv, **kwargs):
 	os.system("rm -f %s" % script)
 	
 def syn_flood_protect(serv, **kwargs):
+	import sql
 	script = "syn_flood_protect.sh"
-	tmp_config_path = get_config_var('haproxy', 'tmp_config_path')
+	tmp_config_path = sql.get_setting('tmp_config_path')
 	
 	if kwargs.get('enable') == "0":
 		enable = "disable"
@@ -348,7 +359,8 @@ def upload(serv, path, file, **kwargs):
 		print('<div class="alert alert-danger">Upload fail: %s</div>' % e)
 	
 def upload_and_restart(serv, cfg, **kwargs):
-	tmp_file = get_config_var('haproxy', 'tmp_config_path') + "/" + get_data('config') + ".cfg"
+	import sql
+	tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".cfg"
 	error = ""
 	
 	try:
@@ -371,11 +383,11 @@ def upload_and_restart(serv, cfg, **kwargs):
 			commands = [ "sudo mv -f " + tmp_file + " /etc/keepalived/keepalived.conf", "sudo systemctl restart keepalived" ]
 	else:
 		if kwargs.get("just_save") == "save":
-			commands = [ "sudo /sbin/haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + get_config_var('haproxy', 'haproxy_config_path') ]
+			commands = [ "sudo /sbin/haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + sql.get_setting('haproxy_config_path') ]
 		else:
-			commands = [ "sudo /sbin/haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + get_config_var('haproxy', 'haproxy_config_path') + " && sudo " + get_config_var('haproxy', 'restart_command') ]	
+			commands = [ "sudo /sbin/haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + sql.get_setting('haproxy_config_path') + " && sudo " + sql.get_setting('restart_command') ]	
 		try:
-			if get_config_var('haproxy', 'firewall_enable') == "1":
+			if sql.get_setting('firewall_enable') == "1":
 				commands.extend(open_port_firewalld(cfg))
 		except:
 			return 'Please check the config for the presence of the parameter - "firewall_enable". Mast be: "0" or "1". Firewalld configure not working now'
@@ -406,7 +418,8 @@ def open_port_firewalld(cfg):
 	return firewalld_commands
 	
 def check_haproxy_config(serv):
-	commands = [ "/sbin/haproxy  -q -c -f %s" % get_config_var('haproxy', 'haproxy_config_path') ]
+	import sql
+	commands = [ "/sbin/haproxy  -q -c -f %s" % sql.get_setting('haproxy_config_path') ]
 	ssh = ssh_connect(serv)
 	for command in commands:
 		stdin , stdout, stderr = ssh.exec_command(command)

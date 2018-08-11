@@ -9,7 +9,6 @@ import sql
 import create_db
 import datetime
 import uuid
-from configparser import ConfigParser, ExtendedInterpolation
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'))
 template = env.get_template('login.html')
@@ -24,10 +23,6 @@ db_create = ""
 error_log = ""
 error = ""
 
-path_config = "haproxy-webintarface.config"
-config = ConfigParser(interpolation=ExtendedInterpolation())
-config.read(path_config)	
-
 if ref is None:
 	ref = "/index.html"	
 	
@@ -35,10 +30,10 @@ if form.getvalue('error'):
 	error_log = '<div class="alert alert-danger">Somthing wrong :( I\'m sad about this, but try again!</div><br /><br />'
 
 try:
-	if config.get('main', 'session_ttl'):
-		session_ttl = config.getint('main', 'session_ttl')
+	if sql.get_setting('session_ttl'):
+		session_ttl = sql.get_setting('session_ttl')
 except:
-	error = '<center><div class="alert alert-danger">Can not find "session_ttl" parametr. Check into config, "main" section</div>'
+	error = '<center><div class="alert alert-danger">Can not find "session_ttl" parametr. Check into settings, "main" section</div>'
 	pass
 	
 try:
@@ -61,8 +56,11 @@ if form.getvalue('logout'):
 if login is not None and password is not None:
 
 	USERS = sql.select_users()
-	session_ttl = config.getint('main', 'session_ttl')
-	expires = datetime.datetime.utcnow() + datetime.timedelta(days=session_ttl)
+	session_ttl = int()
+	session_ttl = sql.get_setting('session_ttl')
+	session_ttl = int(session_ttl)
+	
+	expires = datetime.datetime.utcnow() + datetime.timedelta(days=session_ttl) 
 	user_uuid = str(uuid.uuid4())
 	user_token = str(uuid.uuid4())
 	

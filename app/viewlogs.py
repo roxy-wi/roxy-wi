@@ -25,7 +25,7 @@ funct.check_login()
 funct.page_for_admin()
 
 log_path = funct.get_config_var('main', 'log_path')
-time_storage = funct.get_config_var('logs', 'log_time_storage')
+time_storage = sql.get_setting('log_time_storage')
 time_storage = int(time_storage)
 
 try:
