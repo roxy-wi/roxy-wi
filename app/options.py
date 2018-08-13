@@ -278,6 +278,7 @@ if serv is not None and act == "configShow":
 	print("<center><h3>Config from %s</h3>" % serv)
 	print('<p class="accordion-expand-holder">'
 			'<a class="accordion-expand-all ui-button ui-widget ui-corner-all" href="#">Expand all</a>'
+			'<a class="ui-button ui-widget ui-corner-all" title="Edit this run config" target="_blank" href="config.py?serv='+serv+'&open=open">Edit</a>'
 		'</p>')
 	print('</center>')
 	

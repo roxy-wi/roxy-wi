@@ -60,7 +60,7 @@ pre {
 	font-style: italic;
 	font-weight: bold;
 	height: 32px;
-	background-color: #f4ab76;
+	border-bottom: 1px solid aliceblue;
 	padding-left: 20px;
 	padding-top: 2px;
 	padding-bottom: 3px;
@@ -172,17 +172,14 @@ pre {
 	background-color: #dbedff;
 	margin-bottom: 10px;
 }
-.lineDiffMinus, .lineDiffPlus {
-	padding-left: 5px;
+.lineDiffMinus, .lineDiffPlus, .lineDog, .lineDiff {
+	padding-left: 15px;
 }
 .lineDiffMinus {
 	background-color: #ffdce0;
 }
 .lineDiffPlus {
 	background-color: #cdffd8;
-}
-.lineDiff {
-	padding-left: 5px;
 }
 .param {
 	font-weight: bold;
