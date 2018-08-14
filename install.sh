@@ -40,7 +40,7 @@ echo ""
 echo "################################"
 
 if hash apt-get 2>/dev/null; then
-	apt-get install git  net-tools lshw dos2unix apache2 gcc netcat python3-pip gcc-c++ -y
+	apt-get install git  net-tools lshw dos2unix apache2 gcc netcat python3-pip g++ -y
 	HTTPD_CONFIG="/etc/apache2/apache2.conf"
 	HAPROXY_WI_VHOST_CONF="/etc/apache2/sites-enabled/haproxy-wi.conf"
 	HTTPD_NAME="apache2"

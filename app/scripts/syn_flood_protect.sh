@@ -1,17 +1,21 @@
 #!/bin/bash
 
 if [[ $1 == "enable" ]]; then
-	sudo bash -c cat <<EOF >> /etc/sysctl.conf
+	if grep -q "net.ipv4.tcp_syncookie = 1" /etc/sysctl.conf; then
+		echo "SYN flood protectd allready enabled"
+    else
+		sudo bash -c cat <<EOF >> /etc/sysctl.conf
 # Protection SYN flood
 net.ipv4.tcp_syncookies = 1
 net.ipv4.conf.all.rp_filter = 1
 net.ipv4.tcp_max_syn_backlog = 1024 
 EOF
-
+	
 	sudo sysctl -w net.ipv4.tcp_syncookies=1
 	sudo sysctl -w net.ipv4.conf.all.rp_filter=1
 	sudo sysctl -w net.ipv4.tcp_max_syn_backlog=1024 
 	sudo sysctl -w net.ipv4.tcp_synack_retries=3
+	fi
 fi
 
 if [[ $1 == "disable" ]]; then

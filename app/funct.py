@@ -231,53 +231,6 @@ def get_config(serv, cfg, **kwargs):
 		ssh += str(e)
 		return ssh
 	
-def show_config(cfg):
-	print('<div style="margin-left: 16%" class="configShow">')
-	try:
-		conf = open(cfg, "r")
-	except IOError:
-		print('<div class="alert alert-danger">Can\'t read import config file</div>')
-	i = 0
-	for line in conf:
-		i = i + 1
-		if not line.find("global"):
-			print('<span class="param">' + line + '</span><div>')
-			continue
-		if not line.find("defaults"):
-			print('</div><span class="param">' + line + '</span><div>')
-			continue
-		if not line.find("listen"):
-			print('</div><span class="param">' + line + '</span><div>')
-			continue
-		if not line.find("frontend"):
-			print('</div><span class="param">' + line + '</span><div>')
-			continue
-		if not line.find("backend"):
-			print('</div><span class="param">' + line + '</span><div>')
-			continue
-		if not line.find("cache"):
-			print('</div><span class="param">' + line + '</span><div>')
-			continue
-		if "acl" in line or "option" in line or "server" in line:
-			if "timeout" not in line and "default-server" not in line and "#use_backend" not in line:
-				print('<span class="paramInSec"><span class="numRow">')
-				print(i)
-				print('</span>' + line + '</span><br />')
-				continue
-		if "#" in line:
-			print('<span class="comment"><span class="numRow">')
-			print(i)
-			print(line + '</span></span><br />')
-			continue	
-		if line.__len__() < 1:
-			print('</div>')
-		if line.__len__() > 1:
-			print('<span class="configLine"><span class="numRow">')
-			print(i)
-			print('</span>' + line + '</span><br />')					
-	print('</div></div>')
-	conf.close
-
 def diff_config(oldcfg, cfg):
 	import subprocess 
 	log_path = get_config_var('main', 'log_path')
@@ -317,7 +270,7 @@ def install_haproxy(serv, **kwargs):
 				" STATS_USER="+stats_user+" STATS_PASS="+stats_password ]
 	
 	upload(serv, tmp_config_path, script)	
-	ssh_command(serv, commands)
+	ssh_command(serv, commands, print_out="1")
 	
 	if kwargs.get('syn_flood') == "1":
 		syn_flood_protect(serv)
@@ -339,7 +292,7 @@ def syn_flood_protect(serv, **kwargs):
 	commands = [ "chmod +x "+tmp_config_path+script, tmp_config_path+script+ " "+enable ]
 	
 	upload(serv, tmp_config_path, script)	
-	ssh_command(serv, commands)
+	ssh_command(serv, commands, print_out="1")
 	
 	os.system("rm -f %s" % script)
 	
@@ -428,37 +381,6 @@ def check_haproxy_config(serv):
 		else:
 			return False
 	ssh.close()
-	
-def compare(stdout):
-	i = 0
-	minus = 0
-	plus = 0
-	total_change = 0
-	
-	print('</center><div class="out">')
-	print('<div class="diff">')
-		
-	for line in stdout:
-		i = i + 1
-
-		if i is 1:
-			print('<div class="diffHead">' + line + '<br />')
-		elif i is 2:
-			print(line + '</div>')
-		elif line.find("-") == 0 and i is not 1:
-			print('<div class="lineDiffMinus">' + line + '</div>')
-			minus = minus + 1
-		elif line.find("+") == 0 and i is not 2:
-			print('<div class="lineDiffPlus">' + line + '</div>')	
-			plus = plus + 1					
-		elif line.find("@") == 0:
-			print('<div class="lineDog">' + line + '</div>')
-		else:
-			print('<div class="lineDiff">' + line + '</div>')				
-			
-		total_change = minus + plus
-	print('<div class="diffHead">Total change: %s, additions: %s & deletions: %s </div>' % (total_change, minus, plus))	
-	print('</div></div>')
 		
 def show_log(stdout):
 	i = 0
@@ -501,6 +423,8 @@ def ssh_command(serv, commands, **kwargs):
 			show_log(stdout)
 		elif kwargs.get("server_status") == "1":
 			server_status(stdout)
+		elif kwargs.get('print_out'):
+			print(stdout.read().decode(encoding='UTF-8'))
 		else:
 			return stdout.read().decode(encoding='UTF-8')
 			

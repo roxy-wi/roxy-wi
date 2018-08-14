@@ -1,0 +1,77 @@
+	<center>
+		<h3>Config from {{serv}}</h3>
+		<p class="accordion-expand-holder">
+			<a class="accordion-expand-all ui-button ui-widget ui-corner-all" href="#">Expand all</a>
+			{% if not view %}
+			<a class="ui-button ui-widget ui-corner-all" title="Edit this run config" target="_blank" href="config.py?serv={{serv}}&open=open">Edit</a>
+			{% endif %}
+		</p>
+	</center>
+	<div style="margin-left: 16%" class="configShow">
+	{% set i = 0 -%}
+	{% for line in conf %}
+		{% set i = i + loop.index0 %}
+		{% if line.startswith('global') %}
+			<span class="param"> {{ line }} </span><div>
+			{% continue %}
+		{% endif %}
+		{% if line.startswith('defaults') %}
+			<span class="param"> {{ line }} </span><div>
+			{% continue %}
+		{% endif %}
+		{% if line.startswith('listen') %}
+			<span class="param"> {{ line }} </span><div>
+			{% continue %}
+		{% endif %}
+		{% if line.startswith('frontend') %}
+			<span class="param"> {{ line }} </span><div>
+			{% continue %} 
+		{% endif %}
+		{% if line.startswith('backend') %}
+			<span class="param"> {{ line }} </span><div>
+			{% continue %}
+		{% endif %}
+		{% if line.startswith('cache') %}
+			<span class="param"> {{ line }} </span><div>
+			{% continue %}
+		{% endif %}
+		{% if "acl" in line or "option" in line or "server" in line %}
+			{% if "timeout" not in line and "default-server" not in line and "#use_backend" not in line and "#" not in line%}
+				<span class="paramInSec">
+					<span class="numRow">
+						{{ i }}
+					</span> 
+					{{ line }} 
+				</span><br />
+				{% continue %}
+			{% endif %}
+		{% endif %}
+		
+		{% if line|length == 1 %}
+			</div>
+		{% endif %}
+
+		{% if line|length > 1 %}
+			<span class="configLine">
+				<span class="numRow">{{ i }}</span> 
+				{{ line }}
+			</span><br />	
+		{% endif %}
+	{% endfor %}
+	</div>
+	</div>
+	</div>
+	{% if configver %}
+	<br>
+	<center>
+		<form action="configver.py#conf" method="get">
+			<input type="hidden" value="{{serv}}" name="serv">
+			<input type="hidden" value="{{configver}}" name="configver">
+			<input type="hidden" value="1" name="config">
+			{% if not view %}
+				<button type='submit' value='save' name='save' class='btn btn-default'>Just save</button>
+				<button type='submit' value='' name='' class='btn btn-default'>Upload and restart</button>
+			{% endif %}
+		</form>
+	</center>
+	{% endif %}

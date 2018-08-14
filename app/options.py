@@ -261,10 +261,35 @@ if form.getvalue('servaction') is not None:
 	funct.logging(serv, action)
 
 if act == "showCompareConfigs":
-	ovw.show_compare_configs(serv)
+	import glob
+	from jinja2 import Environment, FileSystemLoader
+	env = Environment(loader=FileSystemLoader('templates/ajax'))
+	template = env.get_template('/show_compare_configs.html')
+	left = form.getvalue('left')
+	right = form.getvalue('right')
+	
+	output_from_parsed_template = template.render(serv = serv,
+													right = right,
+													left = left,
+													return_files = funct.get_files())
+									
+	print(output_from_parsed_template)
 	
 if serv is not None and form.getvalue('right') is not None:
-	ovw.comapre_show()
+	import subprocess 
+	from jinja2 import Environment, FileSystemLoader
+	left = form.getvalue('left')
+	right = form.getvalue('right')
+	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+	cmd='diff -ub %s%s %s%s' % (hap_configs_dir, left, hap_configs_dir, right)	
+	env = Environment(loader=FileSystemLoader('templates/ajax'),extensions=['jinja2.ext.loopcontrols'])
+	template = env.get_template('compare.html')
+	
+	output, stderr = funct.subprocess_execute(cmd)
+	template = template.render(stdout=output)	
+	
+	print(template)
+	print(stderr)
 	
 if serv is not None and act == "configShow":
 	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
@@ -275,27 +300,24 @@ if serv is not None and act == "configShow":
 	else: 
 		cfg = hap_configs_dir + form.getvalue('configver')
 		
-	print("<center><h3>Config from %s</h3>" % serv)
-	print('<p class="accordion-expand-holder">'
-			'<a class="accordion-expand-all ui-button ui-widget ui-corner-all" href="#">Expand all</a>'
-			'<a class="ui-button ui-widget ui-corner-all" title="Edit this run config" target="_blank" href="config.py?serv='+serv+'&open=open">Edit</a>'
-		'</p>')
-	print('</center>')
 	
-	funct.show_config(cfg)
+	try:
+		conf = open(cfg, "r")
+	except IOError:
+		print('<div class="alert alert-danger">Can\'t read import config file</div>')
+		
+	from jinja2 import Environment, FileSystemLoader
+	env = Environment(loader=FileSystemLoader('templates/ajax'),extensions=['jinja2.ext.loopcontrols'])
+	template = env.get_template('config_show.html')
+	
+	template = template.render(conf=conf, 
+								view=form.getvalue('view'),
+								serv=serv,
+								configver=form.getvalue('configver'))											
+	print(template)
 	
 	if form.getvalue('configver') is None:
 		os.system("/bin/rm -f " + cfg)	
-	else:
-		print('<br><center>')
-		print('<form action="configver.py#conf" method="get">')
-		print('<input type="hidden" value="%s" name="serv">' % serv)
-		print('<input type="hidden" value="%s" name="configver">' % form.getvalue('configver'))
-		print('<input type="hidden" value="1" name="config">')
-		if form.getvalue('view') is None:
-			print("<button type='submit' value='save' name='save' class='btn btn-default'>Just save</button>")
-			print("<button type='submit' value='' name='' class='btn btn-default'>Upload and restart</button>")
-		print('</form></center>')
 		
 if form.getvalue('master'):
 	master = form.getvalue('master')

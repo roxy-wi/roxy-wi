@@ -1,0 +1,31 @@
+</center>
+<div class="out">
+	<div class="diff">
+	{% set plus = 0 %}	
+	{% set minus = 0 %}	
+	{% set total_change = 0 %}	
+	{% for line in stdout %}	
+
+		{% if loop.index0 == 0 %}
+			<div class="diffHead">{{ line }}<br />
+		{% elif loop.index0 == 1 %}
+			{{ line }}</div>
+		{% elif line.startswith('-') and loop.index0 > 1 %}
+			<div class="lineDiffMinus">{{ line }}</div>
+			{% set minus = minus + 1 %}
+		{% elif line.startswith('+') and loop.index0 > 2 %}
+			<div class="lineDiffPlus">{{ line }}</div>	
+			{% set plus = plus + 1 %}	
+		{% elif line.startswith('@') %}
+			<div class="lineDog">{{ line }}</div>
+		{% else %}
+			<div class="lineDiff">{{ line }}</div>	
+		{% endif %}
+		{% set total_change = minus + plus %}
+		{% if loop.last  %}
+			<div class="diffHead">Total change: {{ total_change }}, additions: {{ plus }} & deletions: {{ minus }} </div>
+		{% endif %}
+	{% endfor %}
+	
+	</div>
+</div>
