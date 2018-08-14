@@ -16,23 +16,23 @@
 			{% continue %}
 		{% endif %}
 		{% if line.startswith('defaults') %}
-			<span class="param"> {{ line }} </span><div>
+			</div><span class="param"> {{ line }} </span><div>
 			{% continue %}
 		{% endif %}
 		{% if line.startswith('listen') %}
-			<span class="param"> {{ line }} </span><div>
+			</div><span class="param"> {{ line }} </span><div>
 			{% continue %}
 		{% endif %}
 		{% if line.startswith('frontend') %}
-			<span class="param"> {{ line }} </span><div>
+			</div><span class="param"> {{ line }} </span><div>
 			{% continue %} 
 		{% endif %}
 		{% if line.startswith('backend') %}
-			<span class="param"> {{ line }} </span><div>
+			</div><span class="param"> {{ line }} </span><div>
 			{% continue %}
 		{% endif %}
 		{% if line.startswith('cache') %}
-			<span class="param"> {{ line }} </span><div>
+			</div><span class="param"> {{ line }} </span><div>
 			{% continue %}
 		{% endif %}
 		{% if "acl" in line or "option" in line or "server" in line %}
@@ -46,11 +46,15 @@
 				{% continue %}
 			{% endif %}
 		{% endif %}
-		
-		{% if line|length == 1 %}
-			</div>
+		{% if line.startswith("#") %}
+			<span class="comment">
+				<span class="numRow">
+					{{ i }}
+				</span>
+				{{ line }}
+			</span><br />
+			{% continue %}	
 		{% endif %}
-
 		{% if line|length > 1 %}
 			<span class="configLine">
 				<span class="numRow">{{ i }}</span> 
@@ -58,7 +62,7 @@
 			</span><br />	
 		{% endif %}
 	{% endfor %}
-	</div>
+
 	</div>
 	</div>
 	{% if configver %}
