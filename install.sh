@@ -415,7 +415,13 @@ sudo chmod +x /var/www/$HOME_HAPROXY_WI/app/tools/*.py
 sudo rm -f /var/www/$HOME_HAPROXY_WI/log/config_edit.log
 cd /var/www/$HOME_HAPROXY_WI/app
 ./update_db.py
-sudo chown -R apache:apache /var/www/$HOME_HAPROXY_WI/
-sudo chown -R apache:apache /var/log/httpd/
+if hash apt-get 2>/dev/null; then
+	sudo chown -R www-data:www-data /var/www/$HOME_HAPROXY_WI/
+	sudo chown -R www-data:www-data /var/log/httpd/
+	sudo chown -R www-data:www-data /var/log/apache2/
+else
+	sudo chown -R apache:apache /var/www/$HOME_HAPROXY_WI/
+	sudo chown -R apache:apache /var/log/httpd/
+fi
 
 exit 0

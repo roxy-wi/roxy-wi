@@ -45,7 +45,6 @@ try:
 	user_id = cookie.get('uuid')
 	user = sql.get_user_name_by_uuid(user_id.value)
 	token = sql.get_token(user_id.value)
-	servers = [('haproxy-wi.error.log','error.log'), ('haproxy-wi.access.log','access.log')]
 except:
 	pass
 	
