@@ -496,7 +496,7 @@ def update_db_v_2_91(**kwargs):
 		con.commit()
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
-			if e.args[0] == 'column param is not unique' or e == "1060 (42S21): Duplicate column name 'cred' ":
+			if e.args[0] == 'column param is not unique' or e == "1062 (23000): Duplicate entry 'lists_path' for key 'param'":
 				print('Updating... go to version 3.0')
 			else:
 				print("An error occurred:", e)
@@ -522,45 +522,51 @@ def update_db_v_3(**kwargs):
 			else:
 				print("An error occurred:", e)
 		return False
+	cur.close() 
+	con.close()
+		
+def update_db_v_31(**kwargs):
+	con, cur = get_cur()
+	sql = [ "ALTER TABLE `settings` ADD COLUMN `desc` varchar(64); ", 
+				"INSERT INTO settings (param, value, section, `desc`) values('time_zone', 'UTC', 'main', 'Time Zone');",
+				"INSERT INTO settings (param, value, section, `desc`) values('proxy', '', 'main', 'Proxy server. Use proto://ip:port');",
+				"INSERT INTO settings (param, value, section, `desc`) values('session_ttl', '5', 'main', 'Time to live users sessions. In days');",
+				"INSERT INTO settings (param, value, section, `desc`) values('token_ttl', '5', 'main', 'Time to live users tokens. In days');",
+				"INSERT INTO settings (param, value, section, `desc`) values('local_path_logs', '/var/log/haproxy.log', 'logs', 'Logs save locally, disable by default');",
+				"INSERT INTO settings (param, value, section, `desc`) values('syslog_server_enable', '0', 'logs', 'If exist syslog server for HAproxy logs, enable this option');",
+				"INSERT INTO settings (param, value, section, `desc`) values('syslog_server', '0', 'logs', 'IP address syslog server');",
+				"INSERT INTO settings (param, value, section, `desc`) values('log_time_storage', '14', 'logs', 'Time of storage of logs of user activity, in days');",
+				"INSERT INTO settings (param, value, section, `desc`) values('restart_command', 'systemctl restart haproxy', 'haproxy', 'Command for restart HAproxy service');",
+				"INSERT INTO settings (param, value, section, `desc`) values('status_command', 'systemctl status haproxy', 'haproxy', 'Command for status check HAproxy service');",
+				"INSERT INTO settings (param, value, section, `desc`) values('stats_user', 'admin', 'haproxy', 'Username for Stats web page HAproxy');",
+				"INSERT INTO settings (param, value, section, `desc`) values('stats_password', 'password', 'haproxy', 'Password for Stats web page HAproxy');",
+				"INSERT INTO settings (param, value, section, `desc`) values('stats_port', '8085', 'haproxy', 'Port Stats web page HAproxy');",
+				"INSERT INTO settings (param, value, section, `desc`) values('stats_page', 'stats', 'haproxy', 'URI Stats web page HAproxy');",
+				"INSERT INTO settings (param, value, section, `desc`) values('haproxy_dir', '/etc/haproxy/', 'haproxy', 'Path to HAProxy dir');",
+				"INSERT INTO settings (param, value, section, `desc`) values('haproxy_config_path', '/etc/haproxy/haproxy.cfg', 'haproxy', 'Path to HAProxy config');",
+				"INSERT INTO settings (param, value, section, `desc`) values('server_state_file', '/etc/haproxy/haproxy.state', 'haproxy', 'Path to HAProxy state file');",
+				"INSERT INTO settings (param, value, section, `desc`) values('haproxy_sock', '/var/run/haproxy.sock', 'haproxy', 'Path to HAProxy sock file');",
+				"INSERT INTO settings (param, value, section, `desc`) values('haproxy_sock_port', '1999', 'haproxy', 'HAProxy sock port');",
+				"INSERT INTO settings (param, value, section, `desc`) values('tmp_config_path', '/tmp/', 'haproxy', 'Temp store configs, for haproxy check');",
+				"INSERT INTO settings (param, value, section, `desc`) values('cert_path', '/etc/ssl/certs/', 'haproxy', 'Path to SSL dir');",
+				"INSERT INTO settings (param, value, section, `desc`) values('firewall_enable', '0', 'haproxy', 'If enable this option Haproxy-wi will be configure firewalld based on config port');",
+				"update settings set `section` = 'main', `desc` = 'Path to black/white lists` where param = 'lists_path' "]
+	try:    
+		for i in sql:
+			cur.execute(i)
+			con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: desc' or e == "1060 (42S21): Duplicate column name 'desc' ":
+				print('DB was update to 3.0 It\' last version')
+			else:
+				print("An error occurred:", e)
+		return False
 	else:
-		sql = [ "ALTER TABLE `settings` ADD COLUMN desc varchar(128); ", 
-				"INSERT INTO settings (param, value, section, desc) values('time_zone', 'UTC', 'main', 'Time Zone');",
-				"INSERT INTO settings (param, value, section, desc) values('proxy', '', 'main', 'Proxy server. Use proto://ip:port');",
-				"INSERT INTO settings (param, value, section, desc) values('session_ttl', '5', 'main', 'Time to live users sessions. In days');",
-				"INSERT INTO settings (param, value, section, desc) values('token_ttl', '5', 'main', 'Time to live users tokens. In days');",
-				"INSERT INTO settings (param, value, section, desc) values('local_path_logs', '/var/log/haproxy.log', 'logs', 'Logs save locally, disable by default');",
-				"INSERT INTO settings (param, value, section, desc) values('syslog_server_enable', '0', 'logs', 'If exist syslog server for HAproxy logs, enable this option');",
-				"INSERT INTO settings (param, value, section, desc) values('syslog_server', '0', 'logs', 'IP address syslog server');",
-				"INSERT INTO settings (param, value, section, desc) values('log_time_storage', '14', 'logs', 'Time of storage of logs of user activity, in days');",
-				"INSERT INTO settings (param, value, section, desc) values('restart_command', 'systemctl restart haproxy', 'haproxy', 'Command for restart HAproxy service');",
-				"INSERT INTO settings (param, value, section, desc) values('status_command', 'systemctl status haproxy', 'haproxy', 'Command for status check HAproxy service');",
-				"INSERT INTO settings (param, value, section, desc) values('stats_user', 'admin', 'haproxy', 'Username for Stats web page HAproxy');",
-				"INSERT INTO settings (param, value, section, desc) values('stats_password', 'password', 'haproxy', 'Password for Stats web page HAproxy');",
-				"INSERT INTO settings (param, value, section, desc) values('stats_port', '8085', 'haproxy', 'Port Stats web page HAproxy');",
-				"INSERT INTO settings (param, value, section, desc) values('stats_page', 'stats', 'haproxy', 'URI Stats web page HAproxy');",
-				"INSERT INTO settings (param, value, section, desc) values('haproxy_dir', '/etc/haproxy/', 'haproxy', 'Path to HAProxy dir');",
-				"INSERT INTO settings (param, value, section, desc) values('haproxy_config_path', '/etc/haproxy/haproxy.cfg', 'haproxy', 'Path to HAProxy config');",
-				"INSERT INTO settings (param, value, section, desc) values('server_state_file', '/etc/haproxy/haproxy.state', 'haproxy', 'Path to HAProxy state file');",
-				"INSERT INTO settings (param, value, section, desc) values('haproxy_sock', '/var/run/haproxy.sock', 'haproxy', 'Path to HAProxy sock file');",
-				"INSERT INTO settings (param, value, section, desc) values('haproxy_sock_port', '1999', 'haproxy', 'HAProxy sock port');",
-				"INSERT INTO settings (param, value, section, desc) values('tmp_config_path', '/tmp/', 'haproxy', 'Temp store configs, for haproxy check');",
-				"INSERT INTO settings (param, value, section, desc) values('cert_path', '/etc/ssl/certs/', 'haproxy', 'Path to SSL dir');",
-				"INSERT INTO settings (param, value, section, desc) values('firewall_enable', '0', 'haproxy', 'If enable this option Haproxy-wi will be configure firewalld based on config port');" ]
-		try:    
-			for i in sql:
-				cur.execute(i)
-		except sqltool.Error as e:
-			if kwargs.get('silent') != 1:
-				if e.args[0] == 'duplicate column name: id' or e == "1060 (42S21): Duplicate column name 'id' ":
-					print('DB was update to 3.0 It\' last version')
-				else:
-					print("An error occurred:", e)
-			return False
-		else:
-			pass
-			return True
-		cur.close() 
-		con.close()
+		pass
+		return True
+	cur.close() 
+	con.close()
 			
 def update_all():	
 	update_db_v_2_0_1()
@@ -579,6 +585,7 @@ def update_all():
 	update_db_v_2_9()
 	update_db_v_2_91()
 	update_db_v_3()
+	update_db_v_31()
 	
 def update_all_silent():
 	update_db_v_2_0_1(silent=1)
@@ -597,4 +604,5 @@ def update_all_silent():
 	update_db_v_2_9(silent=1)
 	update_db_v_2_91(silent=1)
 	update_db_v_3(silent=1)
+	update_db_v_31(silent=1)
 		

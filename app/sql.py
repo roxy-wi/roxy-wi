@@ -850,7 +850,7 @@ def get_setting(param, **kwargs):
 		print('<span class="alert alert-danger" id="error">An error occurred: ' + e + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 	else:
 		if kwargs.get('all'):
-			return cur
+			return cur.fetchall()
 		else:
 			for value in cur.fetchone():
 				return value

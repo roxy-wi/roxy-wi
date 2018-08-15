@@ -27,5 +27,5 @@ template = template.render(h2 = 1, title = "Settings",
 							role = sql.get_user_role_by_uuid(user_id.value),
 							user = user,
 							settings = settings,
-							token = token)										
+							token = token)
 print(template)
