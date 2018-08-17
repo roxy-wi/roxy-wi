@@ -87,9 +87,9 @@ $( function() {
 					type: "GET",
 					success: function( data ) { 
 						data = data.replace(/\s+/g,' ');
-						if (data.indexOf('error') != '-1' || data.indexOf('alert') != '-1' || data.indexOf('Failed') != '-1') {
+						if (data.indexOf('error') != '-1') {
 							$("#ajax").html('<div class="alert alert-danger">'+data+'</data>');
-						} else if (data.indexOf('success') != '-1' ){
+						} else if (data.indexOf('success') != '-1'){
 							$('.alert-danger').remove();
 							$("#ajax").html('<div class="alert alert-success">All is ready!</data>');				
 						}	
@@ -100,8 +100,12 @@ $( function() {
 	$('#install').click(function() {
 		$("#ajax").html('')
 		var syn_flood = 0;
+		var waf = 0;
 		if ($('#syn_flood').is(':checked')) {
 			syn_flood = '1';
+		}
+		if ($('#waf').is(':checked')) {
+			waf = '1';
 		}
 		$("#ajax").html('<div class="alert alert-warning">Please don\'t close and don\'t represh page. Wait until the work is completed. This may take some time </div>');
 		$.ajax( {
@@ -109,15 +113,17 @@ $( function() {
 			data: {
 				haproxyaddserv: $('#haproxyaddserv').val(),
 				syn_flood: syn_flood,
+				waf: waf,
 				token: $('#token').val()
 				},
 			type: "GET",
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
-				if (data.indexOf('error') != '-1' || data.indexOf('alert') != '-1' || data.indexOf('Failed') != '-1') {
+				if (data.indexOf('error') != '-1' || data.indexOf('Failed') != '-1') {
 					$("#ajax").html('<div class="alert alert-danger">'+data+'</data>');
 				} else if (data.indexOf('success') != '-1' ){
 					$('.alert-danger').remove();
+					$('.alert-warning').remove();
 					$("#ajax").html('<div class="alert alert-success">'+data+'</data>');				
 				}	
 			}

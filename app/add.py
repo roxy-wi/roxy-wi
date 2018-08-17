@@ -36,6 +36,7 @@ print(output_from_parsed_template)
 
 hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 cert_path = sql.get_setting('cert_path')
+haproxy_dir = sql.get_setting('haproxy_dir')
 
 if form.getvalue('mode') is not None: 
 	serv = form.getvalue('serv')
@@ -111,7 +112,7 @@ if form.getvalue('mode') is not None:
 		options_split += "    option http-pretend-keepalive\n"
 		
 	if form.getvalue('blacklist') is not None:
-		options_split += "    tcp-request connection reject if { src -f /etc/haproxy/black/"+form.getvalue('blacklist')+" }\n"
+		options_split += "    tcp-request connection reject if { src -f "+haproxy_dir+"/black/"+form.getvalue('blacklist')+" }\n"
 		
 	if form.getvalue('cookie'):
 		cookie = "    cookie "+form.getvalue('cookie_name')
@@ -165,8 +166,13 @@ if form.getvalue('mode') is not None:
 		if cache == "2":
 			cache_s = "    http-request cache-use "+end_name+"\n    http-response cache-store "+end_name+"\n"
 			cache_set = "cache "+end_name+"\n    total-max-size 4\n    max-age 240\n"
+			
+	waf = ""
+	if form.getvalue('waf') is not None:
+		waf = "    filter spoe engine modsecurity config "+haproxy_dir+"/spoe-modsecurity.conf\n"
+		waf += "    http-request deny if { var(txn.modsec.code) -m int gt 0 }\n"
 	
-	config_add = name + "\n" + bind +  mode  + "\n" + balance + options_split + filter + compression_s + cache_s + backend + servers_split + "\n" + cache_set
+	config_add = name + "\n" + bind +  mode  + "\n" + balance + options_split + filter + compression_s + cache_s + waf + backend + servers_split + "\n" + cache_set
 	cfg = hap_configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
 	
 	funct.get_config(serv, cfg)

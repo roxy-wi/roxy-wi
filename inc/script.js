@@ -1006,13 +1006,17 @@ $( function() {
 	cur_url = cur_url[0].split('#');
 	if (cur_url[0] == "/app/add.py") {
 		$("#cache").checkboxradio( "disable" );
+		$("#waf").checkboxradio( "disable" );
 		$( "#serv" ).on('selectmenuchange',function() {
 			change_select_acceleration("");
+			change_select_waf("");
 		});
 		
 		$("#cache2").checkboxradio( "disable" );
+		$("#waf2").checkboxradio( "disable" );
 		$( "#serv2" ).on('selectmenuchange',function() {
-			change_select_acceleration(2);
+			change_select_acceleration("2");
+			change_select_waf("2");
 		});
 			
 		$("#cache3").checkboxradio( "disable" );
@@ -1201,7 +1205,8 @@ function change_select_acceleration(id) {
 			token: $('#token').val()
 		},
 		type: "GET",
-		success: function( data ) {		
+		success: function( data ) {	
+			console.log(data)
 			if(parseFloat(data) < parseFloat('1.8')) {	
 				$("#cache"+id).checkboxradio( "disable" );
 			} else {
@@ -1210,7 +1215,25 @@ function change_select_acceleration(id) {
 		}
 	} );
 }
-
+function change_select_waf(id) {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			get_hap_v: 1,
+			serv: $('#serv'+id+' option:selected').val(),
+			token: $('#token').val()
+		},
+		type: "GET",
+		success: function( data ) {	
+			console.log(data)
+			if(parseFloat(data) < parseFloat('1.7')) {	
+				$("#waf"+id).checkboxradio( "disable" );
+			} else {
+				$("#waf"+id).checkboxradio( "enable" );
+			}
+		}
+	} );
+}
 function replace_text(id_textarea, text_var) {
 	var str = $(id_textarea).val();
 	var len = str.length;

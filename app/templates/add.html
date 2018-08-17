@@ -89,6 +89,7 @@
 					<label for="slow_atack" title="Slow atack protect">Slow atack</label><input type="checkbox" id="slow_atack">
 					<label for="ddos" title="DDOS atack protect">DDOS</label><input type="checkbox" id="ddos">
 					<label for="blacklist_checkbox" title="Enable SSL Offloading">Blacklist</label><input type="checkbox" id="blacklist_checkbox">
+					<label for="waf" title="Web application firewall">WAF</label><input type="checkbox" id="waf" name="waf" value="1">
 				</span>
 				<div id="blacklist-hide" style="display: none;">
 					<br /><span class="tooltip tooltipTop">Enter the name of the blacklist, or press down:</span><br />
@@ -518,6 +519,7 @@
 		</table>
 		<div id="ajax-ssl"></div>
 	</div>
+	
 	{% if add %}
 		<div class="alert alert-success">	
 			<h3>{{ add }} was success added</h3>
@@ -529,6 +531,7 @@
 		<center><pre id="dialog-confirm-body"></pre></center>
 	</div>
 	<input type="hidden" id="group" value="{{ group }}">
+	
 <script>
 $( ".force_close" ).selectmenu({
   width: 180

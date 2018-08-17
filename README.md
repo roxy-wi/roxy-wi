@@ -33,7 +33,7 @@ Support the project
 21. Alerting about HAProxy service state
 22. Metrics incoming connections
 23. Web acceleration settings
-24. Some functions WAF
+24. Web application firewall
 
 ![alt text](image/haproxy-wi-metrics.jpeg "Merics")
 
@@ -107,7 +107,7 @@ Login http://haproxy-wi-server/users.py, and add: users, groups and servers. Def
 
 ![alt text](image/haproxy-wi-admin-area.jpeg "Admin area")
 
-For Runtime API enable state file on HAproxt servers and need install socat on all haproxy servers, and configre HAProxy:
+For Runtime API, Metrics and Alerting enable state file and stat socket on HAproxt servers and need install socat on all haproxy servers, and configre HAProxy:
 ```
     global
 		stats socket *:1999 level admin 

@@ -17,12 +17,13 @@ def get_overview():
 	
 	listhap = sql.get_dick_permit()
 	commands = [ "ls -l %s |awk '{ print $6\" \"$7\" \"$8}'" % haproxy_config_path ]
+	commands1 = [ "ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l" ]
 	servers = []
 
 	for server in listhap:
 		server_status = ()
 		cmd = 'echo "show info" |nc %s %s |grep -e "Process_num"' % (server[2], haproxy_sock_port)
-		server_status = (server[1],server[2], funct.server_status(funct.subprocess_execute(cmd)), funct.ssh_command(server[2], commands))
+		server_status = (server[1],server[2], funct.server_status(funct.subprocess_execute(cmd)), funct.ssh_command(server[2], commands), funct.ssh_command(server[2], commands1))
 		servers.append(server_status)
 
 	template = template.render(service_status = servers, role = sql.get_user_role_by_uuid(user_id.value))

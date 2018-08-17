@@ -254,7 +254,7 @@ if form.getvalue('servaction') is not None:
 		command = [ cmd ] 
 		
 	if enable != "show":
-			print('<center><h3>You %s %s on HAproxy %s. <a href="viewsttats.py?serv=%s" title="View stat" target="_blank">Look it</a> or <a href="edit.py" title="Edit">Edit something else</a></h3><br />' % (enable, backend, serv, serv))
+		print('<center><h3>You %s %s on HAproxy %s. <a href="viewsttats.py?serv=%s" title="View stat" target="_blank">Look it</a> or <a href="edit.py" title="Edit">Edit something else</a></h3><br />' % (enable, backend, serv, serv))
 			
 	funct.ssh_command(serv, command, show_log="1")
 	action = 'edit.py ' + enable + ' ' + backend
@@ -374,7 +374,7 @@ if form.getvalue('masteradd'):
 	os.system("rm -f %s" % script)
 	
 if form.getvalue('haproxyaddserv'):
-	funct.install_haproxy(form.getvalue('haproxyaddserv'), syn_flood=form.getvalue('syn_flood'))
+	funct.install_haproxy(form.getvalue('haproxyaddserv'), syn_flood=form.getvalue('syn_flood'), waf=form.getvalue('waf'))
 	
 if form.getvalue('table_metrics'):
 	import http.cookies
@@ -475,8 +475,7 @@ if form.getvalue('metrics'):
 	show(grid)
 	
 if form.getvalue('get_hap_v'):
-	commands = [ "haproxy -v |grep ver|awk '{print $3}'" ]
-	output = funct.ssh_command(serv, commands)
+	output = funct.check_haproxy_version(serv)
 	print(output)
 	
 if form.getvalue('bwlists'):

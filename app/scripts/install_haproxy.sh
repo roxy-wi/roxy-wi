@@ -35,14 +35,14 @@ fi
 if hash apt-get 2>/dev/null; then
 	sudo apt-get install haproxy socat -y
 else
-	sudo wget http://cbs.centos.org/kojifiles/packages/haproxy/1.8.1/5.el7/x86_64/haproxy18-1.8.1-5.el7.x86_64.rpm 
+	wget http://cbs.centos.org/kojifiles/packages/haproxy/1.8.1/5.el7/x86_64/haproxy18-1.8.1-5.el7.x86_64.rpm 
 	sudo yum install haproxy18-1.8.1-5.el7.x86_64.rpm -y
 fi
 
 if [ $? -eq 1 ]
 then
 	sudo yum install wget socat -y > /dev/null
-	sudo wget http://cbs.centos.org/kojifiles/packages/haproxy/1.8.1/5.el7/x86_64/haproxy18-1.8.1-5.el7.x86_64.rpm 
+	wget http://cbs.centos.org/kojifiles/packages/haproxy/1.8.1/5.el7/x86_64/haproxy18-1.8.1-5.el7.x86_64.rpm 
 	sudo yum install haproxy18-1.8.1-5.el7.x86_64.rpm -y
 fi
 if [ $? -eq 1 ]
@@ -103,7 +103,7 @@ sudo sed -i 's/#$UDPServerRun 514/$UDPServerRun 514/g' /etc/rsyslog.conf
 sudo sed -i 's/#$ModLoad imudp/$ModLoad imudp/g' /etc/rsyslog.conf 
 
 sudo firewall-cmd --zone=public --add-port=8085/tcp --permanent
-sudo sudo firewall-cmd --reload
+sudo firewall-cmd --reload
 sudo setenforce 0
 sudo sed -i 's/SELINUX=enforcing/SELINUX=permissive/' /etc/selinux/config 
 sudo systemctl enable haproxy

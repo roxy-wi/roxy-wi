@@ -275,6 +275,9 @@ def install_haproxy(serv, **kwargs):
 	if kwargs.get('syn_flood') == "1":
 		syn_flood_protect(serv)
 	
+	if kwargs.get('waf') == "1":
+		waf_install(serv)
+	
 	os.system("rm -f %s" % script)
 	
 def syn_flood_protect(serv, **kwargs):
@@ -295,6 +298,34 @@ def syn_flood_protect(serv, **kwargs):
 	ssh_command(serv, commands, print_out="1")
 	
 	os.system("rm -f %s" % script)
+	
+def waf_install(serv, **kwargs):
+	import sql
+	script = "waf.sh"
+	tmp_config_path = sql.get_setting('tmp_config_path')
+	proxy = sql.get_setting('proxy')
+	haproxy_dir = sql.get_setting('haproxy_dir')
+	ver = check_haproxy_version(serv)
+
+	os.system("cp scripts/%s ." % script)
+	
+	commands = [ "chmod +x "+tmp_config_path+script+" && " +tmp_config_path+script +" PROXY=" + proxy+ 
+				" HAPROXY_PATH="+haproxy_dir +" VERSION="+ver ]
+	
+	upload(serv, tmp_config_path, script)	
+	ssh_command(serv, commands, print_out="1")
+	
+	os.system("rm -f %s" % script)
+
+def check_haproxy_version(serv):
+	import sql
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+	ver = ""
+	cmd="echo 'show info' |nc %s %s |grep Version |awk '{print $2}'" % (serv, haproxy_sock_port)
+	output, stderr = subprocess_execute(cmd)
+	for line in output:
+		ver = line
+	return ver
 	
 def upload(serv, path, file, **kwargs):
 	full_path = path + file
@@ -399,7 +430,7 @@ def server_status(stdout):
 	proc_count = ""
 	
 	for line in stdout:
-		if "Ncat: Connection refused." not in line:
+		if "Ncat: " not in line:
 			for k in line:
 				proc_count = k.split(":")[1]
 		else:
@@ -417,8 +448,6 @@ def ssh_command(serv, commands, **kwargs):
 				
 		if kwargs.get("ip") == "1":
 			show_ip(stdout)
-		elif kwargs.get("compare") == "1":
-			compare(stdout)
 		elif kwargs.get("show_log") == "1":
 			show_log(stdout)
 		elif kwargs.get("server_status") == "1":
@@ -448,7 +477,9 @@ def subprocess_execute(cmd):
 
 def show_backends(serv, **kwargs):
 	import json
-	cmd='echo "show backend" |nc %s 1999' % serv 
+	import sql
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+	cmd='echo "show backend" |nc %s %s' % (serv, haproxy_sock_port)
 	output, stderr = subprocess_execute(cmd)
 	ret = ""
 	for line in output:
@@ -491,6 +522,4 @@ def get_files(**kwargs):
 		return sorted(return_files, reverse=True)
 	else: 
 		return files
-	
-	
 	
