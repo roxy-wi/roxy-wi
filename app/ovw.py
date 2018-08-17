@@ -28,14 +28,35 @@ def get_overview():
 
 	template = template.render(service_status = servers, role = sql.get_user_role_by_uuid(user_id.value))
 	print(template)	
+	
+def get_overviewWaf():
+	import http.cookies
+	from jinja2 import Environment, FileSystemLoader
+	env = Environment(loader=FileSystemLoader('templates/ajax'))
+	template = env.get_template('overivewWaf.html')
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_id = cookie.get('uuid')
+	haproxy_dir  = sql.get_setting('haproxy_dir')
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+	
+	listhap = sql.get_dick_permit()
+	commands = [ "ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l" ]
+	commands1 = [ "cat %s/waf/modsecurity.conf  |grep SecRuleEngine |grep -v '#' |awk '{print $2}'" % haproxy_dir ]	
+	servers = []
+
+	for server in listhap:
+		server_status = ()
+		server_status = (server[1],server[2], funct.ssh_command(server[2], commands), funct.ssh_command(server[2], commands1))
+		servers.append(server_status)
+
+	template = template.render(service_status = servers, role = sql.get_user_role_by_uuid(user_id.value))
+	print(template)	
 		
 def get_overviewServers():
 	import http.cookies
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates/ajax'))
 	template = env.get_template('overviewServers.html')
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_id = cookie.get('uuid')
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 	
 	listhap = sql.get_dick_permit()
@@ -58,7 +79,7 @@ def get_overviewServers():
 		server_status = (server[1],server[2], out1, funct.ssh_command(server[2], commands),funct.show_backends(server[2], ret=1))
 		servers.append(server_status)
 	
-	template = template.render(service_status = servers, role = sql.get_user_role_by_uuid(user_id.value))
+	template = template.render(service_status = servers)
 	print(template)	
 	
 def get_map(serv):

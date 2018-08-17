@@ -102,10 +102,20 @@ if form.getvalue('action_hap') is not None and serv is not None:
 		print("HAproxy was %s" % action)
 	else:
 		print("Bad config, check please")
-		
+	
+if form.getvalue('action_waf') is not None and serv is not None:
+	serv = form.getvalue('serv')
+	action = form.getvalue('action_waf')
+
+	commands = [ "sudo systemctl %s waf" % action ]
+	funct.ssh_command(serv, commands)		
+	
 if act == "overview":
 	ovw.get_overview()
-
+	
+if act == "overviewwaf":
+	ovw.get_overviewWaf()
+	
 if act == "overviewServers":
 	ovw.get_overviewServers()
 	
@@ -161,6 +171,7 @@ if serv is not None and act == "stats":
 
 if serv is not None and form.getvalue('rows') is not None:
 	rows = form.getvalue('rows')
+	waf = form.getvalue('waf')
 	grep = form.getvalue('grep')
 	hour = form.getvalue('hour')
 	minut = form.getvalue('minut')
@@ -179,11 +190,15 @@ if serv is not None and form.getvalue('rows') is not None:
 	if syslog_server_enable is None or syslog_server_enable == "0":
 		local_path_logs = sql.get_setting('local_path_logs')
 		syslog_server = serv	
-		commands = [ "sudo cat %s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s  %s %s" % (local_path_logs, date, date1, rows, grep_act, grep) ]	
+		commands = [ "sudo cat %s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s  %s %s" % (local_path_logs, date, date1, rows, grep_act, grep) ]		
 	else:
 		commands = [ "sudo cat /var/log/%s/syslog.log | sed '/ %s:00/,/ %s:00/! d' |tail -%s  %s %s" % (serv, date, date1, rows, grep_act, grep) ]
 		syslog_server = sql.get_setting('syslog_server')
-
+	
+	if waf == "1":
+		local_path_logs = '/var/log/modsec_audit.log'
+		commands = [ "sudo cat %s |tail -%s  %s %s" % (local_path_logs, rows, grep_act, grep) ]	
+		
 	funct.ssh_command(syslog_server, commands, show_log="1")
 	
 if serv is not None and form.getvalue('rows1') is not None:

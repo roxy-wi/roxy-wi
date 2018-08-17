@@ -14,7 +14,7 @@ function ajaxActionServers(action, id) {
 					if( data ==  'Bad config, check please ' ) {
 						alert(data);
 					} else {
-						setTimeout(showOverview, 2000)
+						setTimeout(showOverview, 2000)					
 					}
 				},
 				error: function(){
@@ -22,19 +22,52 @@ function ajaxActionServers(action, id) {
 				}					
 			} );
 	}
-	
+function ajaxActionWafServers(action, id) {
+		var bad_ans = 'Bad config, check please';
+		$.ajax( {
+				url: "options.py",
+				data: {
+					action_waf: action,
+					serv: id,
+					token: $('#token').val()
+				},
+				success: function( data ) {
+					data = data.replace(/\s+/g,' ');
+					if( data ==  'Bad config, check please ' ) {
+						alert(data);
+					} else {
+						setTimeout(showOverviewWaf, 2000)						
+					}
+				},
+				error: function(){
+					alert(w.data_error);
+				}					
+			} );
+	}
 $( function() {
 	$('.start').click(function() {
 		var id = $(this).attr('id');
-		confirmAjaxAction("start", id);
+		confirmAjaxAction("start", "hap", id);
 	});
 	$('.stop').click(function() {
 		var id = $(this).attr('id');
-		confirmAjaxAction("stop", id);
+		confirmAjaxAction("stop", "hap", id);
 	});
 	$('.restart').click(function() {
 		var id = $(this).attr('id');
-		confirmAjaxAction("restart", id);
+		confirmAjaxAction("restart", "hap", id);
+	});
+	$('.start-waf').click(function() {
+		var id = $(this).attr('id');
+		confirmAjaxAction("start", "waf", id);
+	});
+	$('.stop-waf').click(function() {
+		var id = $(this).attr('id');
+		confirmAjaxAction("stop", "waf", id);
+	});
+	$('.restart-waf').click(function() {
+		var id = $(this).attr('id');
+		confirmAjaxAction("restart", "waf", id);
 	});
 	$( "#show-all-users" ).click( function() {
 		if($( "#show-all-users" ).text() == "Show all") {
@@ -49,7 +82,7 @@ $( function() {
 	});
 	$('#secIntervals').css('display', 'none');
 });
-function confirmAjaxAction(action, id) {
+function confirmAjaxAction(action, service, id) {
 	$( "#dialog-confirm" ).dialog({
 		resizable: false,
 		height: "auto",
@@ -58,8 +91,12 @@ function confirmAjaxAction(action, id) {
 		title: "Are you sure you want "+ action + " " + id + "?",
 		buttons: {
 			"Sure": function() {
-				$( this ).dialog( "close" );	
-				ajaxActionServers(action, id);
+				$( this ).dialog( "close" );
+				if(service == "hap") {
+					ajaxActionServers(action, id);
+				} else if (service == "waf") {
+					ajaxActionWafServers(action, id)
+				}
 			},
 			Cancel: function() {
 				$( this ).dialog( "close" );

@@ -140,6 +140,7 @@ $( document ).ajaxComplete(function( event, request, settings ) {
 
 function showOverview() {
 	showOverviewServers();
+	showOverviewWaf()
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -150,6 +151,23 @@ function showOverview() {
 		success: function( data ) {
 			$("#ajaxstatus").empty();
 			$("#ajaxstatus").html(data);
+			$.getScript('/inc/overview.js');
+		}					
+	} );
+}
+function showOverviewWaf() {
+	showOverviewServers();
+	$.ajax( {
+		url: "options.py",
+		data: {
+			act: "overviewwaf",
+			token: $('#token').val()
+		},
+		type: "GET",
+		success: function( data ) {
+			$("#ajaxwafstatus").empty();
+			$("#ajaxwafstatus").html(data);
+			$.getScript('/inc/overview.js');
 		}					
 	} );
 }
@@ -185,11 +203,16 @@ function showStats() {
 
 }
 function showLog() {
+	var waf = 0;
+	if ($('#waf').is(':checked')) {
+		waf = '1';
+	}
 	$.ajax( {
 		url: "options.py",
 		data: {
 			rows: $('#rows').val(),
 			serv: $("#serv").val(),
+			waf: waf,
 			grep: $("#grep").val(),
 			hour: $('#time_range_out_hour').val(),
 			minut: $('#time_range_out_minut').val(),

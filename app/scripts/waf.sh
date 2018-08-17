@@ -28,11 +28,14 @@ fi
 if [ -f $HAPROXY_PATH/waf/modsecurity.conf  ];then
 	echo -e 'error: Haproxy WAF already installed. You can edit config<a href="/app/config.py" title="Edit HAProxy config">here</a> <br /><br />'
 	exit 1
-fi
-wget -O /tmp/yajl-devel-2.0.4-4.el7.x86_64.rpm http://rpmfind.net/linux/centos/7.5.1804/os/x86_64/Packages/yajl-devel-2.0.4-4.el7.x86_64.rpm
-wget -O /tmp/libevent-devel-2.0.21-4.el7.x86_64.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/libevent-devel-2.0.21-4.el7.x86_64.rpm
-wget -O /tmp/modsecurity-2.9.2.tar.gz https://www.modsecurity.org/tarball/2.9.2/modsecurity-2.9.2.tar.gz
-sudo yum install /tmp/libevent-devel-2.0.21-4.el7.x86_64.rpm /tmp/yajl-devel-2.0.4-4.el7.x86_64.rpm  httpd-devel libxml2-devel gcc curl-devel -y
+fiif hash apt-get 2>/dev/null; then
+	sudo apt-get install yajl-dev libevent-dev httpd-dev libxml2-dev gcc curl-dev -y
+else
+	wget -O /tmp/yajl-devel-2.0.4-4.el7.x86_64.rpm http://rpmfind.net/linux/centos/7.5.1804/os/x86_64/Packages/yajl-devel-2.0.4-4.el7.x86_64.rpm
+	wget -O /tmp/libevent-devel-2.0.21-4.el7.x86_64.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/libevent-devel-2.0.21-4.el7.x86_64.rpm
+	wget -O /tmp/modsecurity-2.9.2.tar.gz https://www.modsecurity.org/tarball/2.9.2/modsecurity-2.9.2.tar.gz
+	sudo yum install /tmp/libevent-devel-2.0.21-4.el7.x86_64.rpm /tmp/yajl-devel-2.0.4-4.el7.x86_64.rpm  httpd-devel libxml2-devel gcc curl-devel -y
+if
 
 if [ $? -eq 1 ]; then
 	echo -e "Can't download waf application. Check Internet connection"
@@ -119,6 +122,8 @@ sudo tar xf /tmp/owasp.tar.gz
 sudo mv /tmp/owasp-modsecurity-crs-2.2.9/modsecurity_crs_10_setup.conf.example  $HAPROXY_PATH/waf/rules/modsecurity_crs_10_setup.conf 
 sudo mv /tmp/owasp-modsecurity-crs-2.2.9/*rules/* $HAPROXY_PATH/waf/rules/
 sudo sed -i 's/#SecAction/SecAction/' $HAPROXY_PATH/waf/rules/modsecurity_crs_10_setup.conf 
+sudo sed -i 's/SecRuleEngine DetectionOnly/SecRuleEngine On/' $HAPROXY_PATH/waf/modsecurity.conf
+sudo sed -i 's/SecAuditLogParts ABIJDEFHZ/SecAuditLogParts ABIJDEH/' $HAPROXY_PATH/waf/modsecurity.conf
 sudo rm -f /tmp/owasp.tar.gz
 
 sudo bash -c cat << EOF > /etc/systemd/system/multi-user.target.wants/waf.service 
@@ -144,7 +149,7 @@ if $programname startswith 'waf' then /var/log/waf.log
 & stop
 EOF
 
-sudo bash -c cat << EOF > $HAPROXY_PATH/spoe-modsecurity.conf
+sudo bash -c cat << EOF > $HAPROXY_PATH/waf.conf
 [modsecurity]
 spoe-agent modsecurity-agent
    messages check-request
@@ -152,7 +157,7 @@ spoe-agent modsecurity-agent
    timeout hello      100ms
    timeout idle       30s
    timeout processing 15ms
-   use-backend spoe-modsecurity
+   use-backend waf
    
 spoe-message check-request
    args unique-id method path query req.ver req.hdrs_bin req.body_size req.body
@@ -163,7 +168,7 @@ if sudo grep -q "backend spoe-modsecurity" $HAPROXY_PATH/haproxy.cfg; then
 else
 	sudo bash -c cat << EOF >> $HAPROXY_PATH/haproxy.cfg
 
-backend spoe-modsecurity
+backend waf
     mode tcp
     timeout connect 5s
     timeout server  3m
