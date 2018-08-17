@@ -169,7 +169,7 @@ if form.getvalue('mode') is not None:
 			
 	waf = ""
 	if form.getvalue('waf') is not None:
-		waf = "    filter spoe engine modsecurity config "+haproxy_dir+"/spoe-modsecurity.conf\n"
+		waf = "    filter spoe engine modsecurity config "+haproxy_dir+"/waf.conf\n"
 		waf += "    http-request deny if { var(txn.modsec.code) -m int gt 0 }\n"
 	
 	config_add = name + "\n" + bind +  mode  + "\n" + balance + options_split + filter + compression_s + cache_s + waf + backend + servers_split + "\n" + cache_set

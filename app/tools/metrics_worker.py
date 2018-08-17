@@ -21,10 +21,8 @@ class GracefulKiller:
 def main(serv, port):
 	port = str(port)
 	firstrun = True
-	currentstat = []
 	readstats = ""
 	killer = GracefulKiller()
-	old_stat_service = ""
 	
 	while True:
 		try:			
@@ -49,7 +47,7 @@ def main(serv, port):
 			break
 
 if __name__ == "__main__":
-	parser = argparse.ArgumentParser(description='Metrics HAProxy service.', prog='check_haproxy.py', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+	parser = argparse.ArgumentParser(description='Metrics HAProxy service.', prog='metrics_worker.py', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 	
 	parser.add_argument('IP', help='Start get metrics from HAProxy service at this ip', nargs='?', type=str)
 	parser.add_argument('--port', help='Start get metrics from HAProxy service at this port', nargs='?', default=1999, type=int)

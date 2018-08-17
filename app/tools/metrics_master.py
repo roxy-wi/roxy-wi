@@ -52,7 +52,7 @@ def kill_worker(serv):
 		funct.logging("localhost", stderr, metrics=1)
 
 def kill_all_workers():
-	cmd = "ps ax |grep 'tools/metrics_worker.py' |grep -v grep |awk '{print $1}' |xargs kill"
+	cmd = "ps ax |grep -e 'tools/metrics_worker.py\|tools/metrics_waf_worker.py' |grep -v grep |awk '{print $1}' |xargs kill"
 	output, stderr = funct.subprocess_execute(cmd)
 	funct.logging("localhost", " Masrer killing all metrics workers", metrics=1)
 	if stderr:

@@ -26,7 +26,7 @@ try:
 	checker_worker, stderr = funct.subprocess_execute(cmd)
 	cmd = "ps ax |grep metrics_master |grep -v grep |wc -l"
 	metrics_master, stderr = funct.subprocess_execute(cmd)
-	cmd = "ps ax |grep metrics_worker |grep -v grep |wc -l"
+	cmd = "ps ax |grep -e 'metrics_worker\|metrics_waf_worker.py' |grep -v grep |wc -l"
 	metrics_worker, stderr = funct.subprocess_execute(cmd)
 except:
 	pass
