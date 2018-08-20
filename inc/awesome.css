@@ -34,7 +34,7 @@
 .map::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";
-	content: "\f279";
+	content: "\f0e8";
 }
 .runtime::before {
 	display: none;
@@ -75,6 +75,11 @@
 	display: none;
 	font-family: "Font Awesome 5 Solid";
 	content: "\f0cb";
+}
+.waf::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f06d";
 }
 .hap::before {
 	display: none;
