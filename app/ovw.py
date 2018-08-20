@@ -29,7 +29,7 @@ def get_overview():
 	template = template.render(service_status = servers, role = sql.get_user_role_by_uuid(user_id.value))
 	print(template)	
 	
-def get_overviewWaf():
+def get_overviewWaf(url):
 	import http.cookies
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates/ajax'))
@@ -46,10 +46,10 @@ def get_overviewWaf():
 
 	for server in listhap:
 		server_status = ()
-		server_status = (server[1],server[2], funct.ssh_command(server[2], commands), funct.ssh_command(server[2], commands1))
+		server_status = (server[1],server[2], funct.ssh_command(server[2], commands), funct.ssh_command(server[2], commands1), sql.select_waf_metrics_enable_server(server[2]))
 		servers.append(server_status)
 
-	template = template.render(service_status = servers, role = sql.get_user_role_by_uuid(user_id.value))
+	template = template.render(service_status = servers, role = sql.get_user_role_by_uuid(user_id.value), url=url)
 	print(template)	
 		
 def get_overviewServers():

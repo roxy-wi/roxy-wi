@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}	
+<table class="overview">
+	<tr class="overviewHead">
+		<td class="padding10 first-collumn">
+			Server
+		</td class="padding10 second-collumn">
+		<td class="padding10 second-collumn">
+			WAF status
+		</td>
+		<td class="padding10">
+			Action
+		</td>
+		<td class="padding10">
+			WAF mode
+		</td  class="padding10">
+		<td>
+			Metrics
+		</td>
+		<td>
+			<a onclick="showOverviewWaf()" title="Refresh" style="float: right; margin-right: 25px;"><img  src="/image/pic/update.png" alt="restart" class="icon"></a>
+		</td>
+	</tr>
+<tbody id="ajaxwafstatus"></tbody>	
+</table>
+<div id="ajax"></div>
+<style>
+iframe {
+	border: none;
+	padding: 10px;
+	}
+</style>
+
+<div id="metrics_iframe"></div>
+<script>
+showOverviewWaf()
+function callIframe(url, callback) {
+	$('#metrics_iframe').html('<iframe id="metrics" style="width:100%;height:100%;" />');
+	$('iframe#metrics').attr('src', url);
+	$('iframe#metrics').load(function() {
+		callback(this);
+	});
+}
+function loadMetrics() {
+	callIframe('templates/metrics_waf_out.html', function(){
+		$.get( "options.py?waf_metrics=1&token="+$('#token').val(), function( data ) {
+			$( ".result" ).html( data );
+		});
+	});
+}
+
+loadMetrics()
+</script>
+{% endblock %}

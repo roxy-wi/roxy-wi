@@ -270,15 +270,11 @@ def install_haproxy(serv, **kwargs):
 				" STATS_USER="+stats_user+" STATS_PASS="+stats_password ]
 	
 	upload(serv, tmp_config_path, script)	
+	os.system("rm -f %s" % script)
 	ssh_command(serv, commands, print_out="1")
 	
 	if kwargs.get('syn_flood') == "1":
 		syn_flood_protect(serv)
-	
-	if kwargs.get('waf') == "1":
-		waf_install(serv)
-	
-	os.system("rm -f %s" % script)
 	
 def syn_flood_protect(serv, **kwargs):
 	import sql
@@ -295,9 +291,8 @@ def syn_flood_protect(serv, **kwargs):
 	commands = [ "chmod +x "+tmp_config_path+script, tmp_config_path+script+ " "+enable ]
 	
 	upload(serv, tmp_config_path, script)	
-	ssh_command(serv, commands, print_out="1")
-	
 	os.system("rm -f %s" % script)
+	ssh_command(serv, commands, print_out="1")
 	
 def waf_install(serv, **kwargs):
 	import sql
@@ -313,9 +308,9 @@ def waf_install(serv, **kwargs):
 				" HAPROXY_PATH="+haproxy_dir +" VERSION="+ver ]
 	
 	upload(serv, tmp_config_path, script)	
-	ssh_command(serv, commands, print_out="1")
-	
 	os.system("rm -f %s" % script)
+	sql.insert_waf_metrics_enable(serv, "0")
+	ssh_command(serv, commands, print_out="1")
 
 def check_haproxy_version(serv):
 	import sql

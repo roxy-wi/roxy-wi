@@ -6,7 +6,7 @@ import funct
 import sql
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'))
-template = env.get_template('metrics.html')
+template = env.get_template('waf.html')
 
 print('Content-type: text/html\n')
 funct.check_login()
@@ -19,11 +19,10 @@ try:
 except:
 	pass
 
-template = template.render(h2 = 1, title = "Metrics",
+template = template.render(h2 = 1, title = "Web application firewall",
 							autorefresh = 1,
 							role = sql.get_user_role_by_uuid(user_id.value),
 							user = user,
-							onclick = "metricsShow()",
 							table_stat = sql.select_table_metrics(user_id.value),
 							token = token)											
 print(template)

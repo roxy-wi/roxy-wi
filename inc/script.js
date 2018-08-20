@@ -104,6 +104,11 @@ function startSetInterval(interval) {
 			intervalId = setInterval('loadMetrics()', interval);
 			loadMetrics();
 		} 
+		else if (cur_url[0] == "waf.py") {
+			intervalId = setInterval('loadMetrics()', interval);
+			showOverviewWaf();
+			loadMetrics();
+		} 
 	} else {
 		pauseAutoRefresh();
 	}
@@ -156,11 +161,11 @@ function showOverview() {
 	} );
 }
 function showOverviewWaf() {
-	showOverviewServers();
 	$.ajax( {
 		url: "options.py",
 		data: {
 			act: "overviewwaf",
+			page: cur_url[0],
 			token: $('#token').val()
 		},
 		type: "GET",
@@ -168,6 +173,8 @@ function showOverviewWaf() {
 			$("#ajaxwafstatus").empty();
 			$("#ajaxwafstatus").html(data);
 			$.getScript('/inc/overview.js');
+			$.getScript('/inc/waf.js');
+			$.getScript(url);
 		}					
 	} );
 }

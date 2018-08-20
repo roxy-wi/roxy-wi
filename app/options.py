@@ -114,7 +114,7 @@ if act == "overview":
 	ovw.get_overview()
 	
 if act == "overviewwaf":
-	ovw.get_overviewWaf()
+	ovw.get_overviewWaf(form.getvalue('page'))
 	
 if act == "overviewServers":
 	ovw.get_overviewServers()
@@ -389,8 +389,14 @@ if form.getvalue('masteradd'):
 	os.system("rm -f %s" % script)
 	
 if form.getvalue('haproxyaddserv'):
-	funct.install_haproxy(form.getvalue('haproxyaddserv'), syn_flood=form.getvalue('syn_flood'), waf=form.getvalue('waf'))
+	funct.install_haproxy(form.getvalue('haproxyaddserv'), syn_flood=form.getvalue('syn_flood'))
 	
+if form.getvalue('installwaf'):
+	funct.waf_install(form.getvalue('installwaf'))
+	
+if form.getvalue('metrics_waf'):
+	sql.update_waf_metrics_enable(form.getvalue('metrics_waf'), form.getvalue('enable'))
+		
 if form.getvalue('table_metrics'):
 	import http.cookies
 	from jinja2 import Environment, FileSystemLoader
@@ -480,6 +486,78 @@ if form.getvalue('metrics'):
 			
 	#select = Select(title="Option:", value="foo", options=["foo", "bar", "baz", "quux"])
 	#show(widgetbox(select, width=300))
+		
+	plots = []
+	i = 0
+	for key, value in p.items():
+		plots.append(value)
+
+	grid = gridplot(plots, ncols=2, plot_width=800, plot_height=250, toolbar_location = "left", toolbar_options=dict(logo=None))
+	show(grid)
+	
+if form.getvalue('waf_metrics'):
+	from datetime import timedelta
+	from bokeh.plotting import figure, output_file, show
+	from bokeh.models import ColumnDataSource, HoverTool, DatetimeTickFormatter, DatePicker
+	from bokeh.layouts import widgetbox, gridplot
+	from bokeh.models.widgets import Button, RadioButtonGroup, Select
+	import pandas as pd
+	import http.cookies
+		
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_id = cookie.get('uuid')	
+	servers = sql.select_waf_servers_metrics(user_id.value)
+	
+	p = {}
+	for serv in servers:
+		serv = serv[0]
+		p[serv] = {}
+		metric = sql.select_waf_metrics(serv)
+		metrics = {}
+		
+		for i in metric:
+			rep_date = str(i[2])
+			metrics[rep_date] = {}
+			metrics[rep_date]['conn'] = str(i[1])
+
+		df = pd.DataFrame.from_dict(metrics, orient="index")
+		df = df.fillna(0)
+		df.index = pd.to_datetime(df.index)
+		df.index.name = 'Date'
+		df.sort_index(inplace=True)
+		source = ColumnDataSource(df)
+		
+		output_file("templates/metrics_waf_out.html")
+		
+		x_min = df.index.min() - pd.Timedelta(hours=1)
+		x_max = df.index.max() + pd.Timedelta(minutes=1)
+
+		p[serv] = figure(
+			tools="pan,box_zoom,reset,xwheel_zoom",
+			title=metric[0][0],
+			x_axis_type="datetime", y_axis_label='Connections',
+			x_range = (x_max.timestamp()*1000-60*100000, x_max.timestamp()*1000)
+			)
+			
+		hover = HoverTool(
+			tooltips=[
+				("Connections", "@conn"),
+			],
+			mode='mouse'
+		)
+		
+		p[serv].ygrid.band_fill_color = "#f3f8fb"
+		p[serv].ygrid.band_fill_alpha = 0.9
+		p[serv].y_range.start = 0
+		p[serv].y_range.end = int(df['conn'].max()) + 150
+		p[serv].add_tools(hover)
+		p[serv].title.text_font_size = "20px"
+				
+		
+		p[serv].line("Date", "conn", source=source, alpha=0.5, color='#5cb85c', line_width=2, legend="Conn")
+		p[serv].legend.orientation = "horizontal"
+		p[serv].legend.location = "top_left"
+		p[serv].legend.padding = 5
 		
 	plots = []
 	i = 0

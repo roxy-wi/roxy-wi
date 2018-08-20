@@ -518,7 +518,7 @@ def update_db_v_3(**kwargs):
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
 			if e.args[0] == 'duplicate column name: section' or e == " 1060 (42S21): Duplicate column name 'section' ":
-				print('DB was update to 3.0 It\' last version')
+				print('Updating... go to version 3.2')
 			else:
 				print("An error occurred:", e)
 		return False
@@ -558,13 +558,49 @@ def update_db_v_31(**kwargs):
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
 			if e.args[0] == 'duplicate column name: desc' or e == "1060 (42S21): Duplicate column name 'desc' ":
-				print('DB was update to 3.0 It\' last version')
+				print('')
 			else:
 				print("An error occurred:", e)
 		return False
 	else:
 		pass
 		return True
+	cur.close() 
+	con.close()
+	
+def update_db_v_3_2(**kwargs):
+	con, cur = get_cur()
+	sql = """CREATE TABLE IF NOT EXISTS `waf` (`server_id` INTEGER UNIQUE, metrics INTEGER); """
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: server_id' or e == "1060 (42S21): Duplicate column name 'server_id' ":
+				print('DB was updated')
+			else:
+				print("An error occurred:", e.args[0])
+				return False
+		else:
+			return True
+	cur.close() 
+	con.close()	
+	
+def update_db_v_3_21(**kwargs):
+	con, cur = get_cur()
+	sql = """CREATE TABLE IF NOT EXISTS `waf_metrics` (`serv` varchar(64), conn INTEGER, `date`  DATETIME default '0000-00-00 00:00:00'); """
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: token' or e == "1060 (42S21): Duplicate column name 'token' ":
+				print('Updating... go to version 2.6')
+			else:
+				print("An error occurred:", e.args[0])
+			return False
+		else:
+			return True
 	cur.close() 
 	con.close()
 			
@@ -586,6 +622,8 @@ def update_all():
 	update_db_v_2_91()
 	update_db_v_3()
 	update_db_v_31()
+	update_db_v_3_2()
+	update_db_v_3_21()
 	
 def update_all_silent():
 	update_db_v_2_0_1(silent=1)
@@ -605,4 +643,6 @@ def update_all_silent():
 	update_db_v_2_91(silent=1)
 	update_db_v_3(silent=1)
 	update_db_v_31(silent=1)
+	update_db_v_3_2(silent=1)
+	update_db_v_3_21(silent=1)
 		

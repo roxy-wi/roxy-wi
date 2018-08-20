@@ -28,7 +28,8 @@ fi
 if [ -f $HAPROXY_PATH/waf/modsecurity.conf  ];then
 	echo -e 'error: Haproxy WAF already installed. You can edit config<a href="/app/config.py" title="Edit HAProxy config">here</a> <br /><br />'
 	exit 1
-fiif hash apt-get 2>/dev/null; then
+fi
+if hash apt-get 2>/dev/null; then
 	sudo apt-get install yajl-dev libevent-dev httpd-dev libxml2-dev gcc curl-dev -y
 else
 	wget -O /tmp/yajl-devel-2.0.4-4.el7.x86_64.rpm http://rpmfind.net/linux/centos/7.5.1804/os/x86_64/Packages/yajl-devel-2.0.4-4.el7.x86_64.rpm

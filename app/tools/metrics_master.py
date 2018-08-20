@@ -20,6 +20,7 @@ class GracefulKiller:
 
 def main():
 	sql.delete_mentrics()
+	sql.delete_waf_mentrics()
 	servers = sql.select_servers_metrics_for_master()
 	started_workers = get_worker()
 	servers_list = []
@@ -37,6 +38,24 @@ def main():
 	if need_start:
 		for serv in need_start:
 			start_worker(serv)
+			
+	waf_servers = sql.select_waf_servers()
+	waf_started_workers = get_waf_worker()
+	waf_servers_list = []
+			
+	for serv in waf_servers:
+		waf_servers_list.append(serv[0])
+			
+	waf_need_kill=list(set(waf_started_workers) - set(waf_servers_list))
+	waf_need_start=list(set(waf_servers_list) - set(waf_started_workers))
+	
+	if waf_need_kill:
+		for serv in waf_need_kill:
+			kill_waf_worker(serv)
+			
+	if waf_need_start:
+		for serv in waf_need_start:
+			start_waf_worker(serv)
 	
 def start_worker(serv):
 	port = sql.get_setting('haproxy_sock_port')
@@ -46,6 +65,19 @@ def start_worker(serv):
 	
 def kill_worker(serv):
 	cmd = "ps ax |grep 'tools/metrics_worker.py %s'|grep -v grep |awk '{print $1}' |xargs kill" % serv
+	output, stderr = funct.subprocess_execute(cmd)
+	funct.logging("localhost", " Masrer killed metrics worker for: "+serv, metrics=1)
+	if stderr:
+		funct.logging("localhost", stderr, metrics=1)
+		
+def start_waf_worker(serv):
+	port = sql.get_setting('haproxy_sock_port')
+	cmd = "tools/metrics_waf_worker.py %s --port %s &" % (serv, port)
+	os.system(cmd)
+	funct.logging("localhost", " Masrer started new metrics worker for: "+serv, metrics=1)
+	
+def kill_waf_worker(serv):
+	cmd = "ps ax |grep 'tools/metrics_waf_worker.py %s'|grep -v grep |awk '{print $1}' |xargs kill" % serv
 	output, stderr = funct.subprocess_execute(cmd)
 	funct.logging("localhost", " Masrer killed metrics worker for: "+serv, metrics=1)
 	if stderr:
@@ -60,6 +92,13 @@ def kill_all_workers():
 		
 def get_worker():
 	cmd = "ps ax |grep 'tools/metrics_worker.py' |grep -v grep |awk '{print $7}'"
+	output, stderr = funct.subprocess_execute(cmd)
+	if stderr:
+		funct.logging("localhost", stderr, metrics=1)
+	return output
+	
+def get_waf_worker():
+	cmd = "ps ax |grep 'tools/metrics_waf_worker.py' |grep -v grep |awk '{print $7}'"
 	output, stderr = funct.subprocess_execute(cmd)
 	if stderr:
 		funct.logging("localhost", stderr, metrics=1)

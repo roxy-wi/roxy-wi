@@ -100,12 +100,8 @@ $( function() {
 	$('#install').click(function() {
 		$("#ajax").html('')
 		var syn_flood = 0;
-		var waf = 0;
 		if ($('#syn_flood').is(':checked')) {
 			syn_flood = '1';
-		}
-		if ($('#waf').is(':checked')) {
-			waf = '1';
 		}
 		$("#ajax").html('<div class="alert alert-warning">Please don\'t close and don\'t represh page. Wait until the work is completed. This may take some time </div>');
 		$.ajax( {
@@ -128,9 +124,7 @@ $( function() {
 				}	
 			}
 		} );	
-	});
-	//$('.alert-danger').remove();	
-
+	});	
 	$('#add-user').click(function() {
 		$('#error').remove();	
 		$.ajax( {
@@ -393,7 +387,9 @@ $( function() {
 		var id = $(this).attr('id').split('-');
 		updateTelegram(id[1])
 	});
+	
 } );
+
 function updateSettings(param, val) {
 	$('.alert-danger').remove();
 	$.ajax( {

@@ -652,6 +652,137 @@ def insert_mentrics(serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate):
 	cur.close()    
 	con.close()
 	
+def select_waf_metrics_enable(id):
+	con, cur = create_db.get_cur()
+	sql = """ select waf.metrics from waf  left join servers as serv on waf.server_id = serv.id where server_id = '%s' """ % id
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+	else:
+		return cur.fetchall()
+	cur.close()    
+	con.close()
+	
+def select_waf_metrics_enable_server(ip):
+	con, cur = create_db.get_cur()
+	sql = """ select waf.metrics from waf  left join servers as serv on waf.server_id = serv.id where ip = '%s' """ % ip
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+	else:
+		for enable in cur.fetchall():
+			return enable[0]
+	cur.close()    
+	con.close()
+	
+def select_waf_servers():
+	con, cur = create_db.get_cur()
+	sql = """ select serv.ip from waf left join servers as serv on waf.server_id = serv.id where waf.metrics = '1'"""
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+	else:
+		return cur.fetchall()
+	cur.close()    
+	con.close()
+	
+def select_waf_servers_metrics(uuid, **kwargs):
+	con, cur = create_db.get_cur()
+	sql = """ select * from user where username = '%s' """ % get_user_name_by_uuid(uuid)
+
+	if kwargs.get('disable') == 0:
+		disable = 'or enable = 0'
+	else:
+		disable = ''
+		
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		print("An error occurred:", e)
+	else:
+		for group in cur:
+			if group[5] == '1':
+				sql = """ select servers.ip from servers left join waf as waf on waf.server_id = servers.id where servers.enable = 1 %s and waf.metrics = '1' """ % (disable)
+			else:
+				sql = """ select servers.ip from servers left join waf as waf on waf.server_id = servers.id where servers.enable = 1 %s and waf.metrics = '1' and servers.groups like '%{group}%' """.format(group=group[5])		
+		try:   
+			cur.execute(sql)
+		except sqltool.Error as e:
+			print("An error occurred:", e.args[0])
+		else:
+			return cur.fetchall()
+	cur.close()    
+	con.close() 
+	
+def select_waf_metrics(serv, **kwargs):
+	con, cur = create_db.get_cur()
+	sql = """ select * from waf_metrics where serv = '%s' order by `date` desc """ % serv
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+	else:
+		return cur.fetchall()
+	cur.close()    
+	con.close()
+	
+def insert_waf_metrics_enable(serv, enable):
+	con, cur = create_db.get_cur()
+	sql = """ insert into waf (server_id, metrics) values((select id from servers where ip = '%s'), '%s') """ % (serv, enable)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		con.rollback()
+	cur.close()    
+	con.close()
+	
+def insert_waf_mentrics(serv, conn):
+	con, cur = create_db.get_cur()
+	if mysql_enable == '1':
+		sql = """ insert into waf_metrics (serv, conn, date) values('%s', '%s', now()) """ % (serv, con)
+	else:
+		sql = """ insert into waf_metrics (serv, conn, date) values('%s', '%s',  datetime('now', 'localtime')) """ % (serv, conn)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		con.rollback()
+	cur.close()    
+	con.close()
+	
+def delete_waf_mentrics():
+	con, cur = create_db.get_cur()
+	if mysql_enable == '1':
+		sql = """ delete from metrics where date < now() - INTERVAL 3 day """ 
+	else:
+		sql = """ delete from metrics where date < datetime('now', '-3 days') """
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		con.rollback()
+	cur.close()    
+	con.close()
+	
+def update_waf_metrics_enable(name, enable):
+	con, cur = create_db.get_cur()
+	sql = """ update waf set metrics = %s where server_id = (select id from servers where hostname = '%s') """ % (enable, name)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		con.rollback()
+	cur.close()    
+	con.close()
+	
 def delete_mentrics():
 	con, cur = create_db.get_cur()
 	if mysql_enable == '1':
