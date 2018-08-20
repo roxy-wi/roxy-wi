@@ -69,7 +69,11 @@ sudo mkdir $HAPROXY_PATH/waf
 sudo mkdir $HAPROXY_PATH/waf/bin
 sudo mkdir $HAPROXY_PATH/waf/rules
 cd /tmp/haproxy-$VERSION/contrib/modsecurity
-sudo make MODSEC_INC=/tmp/modsecurity-2.9.2/INSTALL/include MODSEC_LIB=/tmp/modsecurity-2.9.2/INSTALL/include APACHE2_INC=/usr/include/httpd/ APR_INC=/usr/include/apr-1
+if hash apt-get 2>/dev/null; then
+	sudo make MODSEC_INC=/tmp/modsecurity-2.9.2/INSTALL/include MODSEC_LIB=/tmp/modsecurity-2.9.2/INSTALL/include APR_INC=/usr/include/apr-1
+else
+	sudo make MODSEC_INC=/tmp/modsecurity-2.9.2/INSTALL/include MODSEC_LIB=/tmp/modsecurity-2.9.2/INSTALL/include APACHE2_INC=/usr/include/httpd/ APR_INC=/usr/include/apr-1
+fi
 if [ $? -eq 1 ]; then
 	echo -e "Can't compile waf application"
 	exit 1
