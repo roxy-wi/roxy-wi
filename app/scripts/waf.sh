@@ -164,7 +164,7 @@ spoe-message check-request
    args unique-id method path query req.ver req.hdrs_bin req.body_size req.body
    event on-frontend-http-request
 EOF
-if sudo grep -q "backend spoe-modsecurity" $HAPROXY_PATH/haproxy.cfg; then
+if sudo grep -q "backend waf" $HAPROXY_PATH/haproxy.cfg; then
 	echo -e "Backend for WAF exists"
 else
 	sudo bash -c cat << EOF >> $HAPROXY_PATH/haproxy.cfg
