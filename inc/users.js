@@ -109,7 +109,6 @@ $( function() {
 			data: {
 				haproxyaddserv: $('#haproxyaddserv').val(),
 				syn_flood: syn_flood,
-				waf: waf,
 				token: $('#token').val()
 				},
 			type: "GET",

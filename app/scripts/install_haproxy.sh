@@ -24,14 +24,13 @@ if [[ $PROXY != "" ]]
 then
 	export http_proxy="$PROXY"
 	export https_proxy="$PROXY"
-	echo "Exporting proxy"
 fi
 
 if [ -f /etc/haproxy/haproxy.cfg ];then
 	echo -e 'error: Haproxy already installed. You can edit config<a href="/app/config.py" title="Edit HAProxy config">here</a> <br /><br />'
 	exit 1
 fi
-
+set +x
 if hash apt-get 2>/dev/null; then
 	sudo apt-get install haproxy socat -y
 else
@@ -54,8 +53,8 @@ then
 	fi
 fi
 
-sudo echo "" > /etc/haproxy/haproxy.cfg
-sudo bash -c cat << EOF > /etc/haproxy/haproxy.cfg
+bash -c 'echo "" > /tmp/haproxy.cfg'
+bash -c cat << EOF > /tmp/haproxy.cfg
 global
     log         127.0.0.1 local2
     chroot      /var/lib/haproxy
@@ -95,9 +94,10 @@ listen stats
     stats auth $STATS_USER:$STATS_PASS
     stats admin if TRUE 
 EOF
-sudo bash -c cat << EOF > /etc/rsyslog.d/haproxy.conf
+sudo cp /tmp/haproxy.cfg /etc/haproxy/haproxy.cfg
+sudo bash -c 'cat << EOF > /etc/rsyslog.d/haproxy.conf
 local2.*                       /var/log/haproxy.log
-EOF
+EOF'
 
 sudo sed -i 's/#$UDPServerRun 514/$UDPServerRun 514/g' /etc/rsyslog.conf
 sudo sed -i 's/#$ModLoad imudp/$ModLoad imudp/g' /etc/rsyslog.conf 

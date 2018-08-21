@@ -43,7 +43,8 @@ function installWaf(ip) {
 			} else if (data.indexOf('success') != '-1' ){
 				$('.alert-danger').remove();
 				$('.alert-warning').remove();
-				$("#ajax").html('<div class="alert alert-success">'+data+'</data>');				
+				$("#ajax").html('<div class="alert alert-success">'+data+'</data>');
+				showOverviewWaf()
 			}	
 		}
 	} );	

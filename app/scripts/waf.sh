@@ -22,7 +22,6 @@ if [[ $PROXY != "" ]]
 then
 	export http_proxy="$PROXY"
 	export https_proxy="$PROXY"
-	echo "Exporting proxy"
 fi
 
 if [ -f $HAPROXY_PATH/waf/modsecurity.conf  ];then
@@ -32,11 +31,12 @@ fi
 if hash apt-get 2>/dev/null; then
 	sudo apt-get install yajl-dev libevent-dev httpd-dev libxml2-dev gcc curl-dev -y
 else
-	wget -O /tmp/yajl-devel-2.0.4-4.el7.x86_64.rpm http://rpmfind.net/linux/centos/7.5.1804/os/x86_64/Packages/yajl-devel-2.0.4-4.el7.x86_64.rpm
-	wget -O /tmp/libevent-devel-2.0.21-4.el7.x86_64.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/libevent-devel-2.0.21-4.el7.x86_64.rpm
-	wget -O /tmp/modsecurity-2.9.2.tar.gz https://www.modsecurity.org/tarball/2.9.2/modsecurity-2.9.2.tar.gz
-	sudo yum install /tmp/libevent-devel-2.0.21-4.el7.x86_64.rpm /tmp/yajl-devel-2.0.4-4.el7.x86_64.rpm  httpd-devel libxml2-devel gcc curl-devel -y
-if
+	wget -O /tmp/yajl-devel-2.0.4-4.el7.x86_64.rpm http://rpmfind.net/linux/centos/7.5.1804/os/x86_64/Packages/yajl-devel-2.0.4-4.el7.x86_64.rpm >> /dev/null
+	wget -O /tmp/libevent-devel-2.0.21-4.el7.x86_64.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/libevent-devel-2.0.21-4.el7.x86_64.rpm >> /dev/null
+	sudo yum install /tmp/libevent-devel-2.0.21-4.el7.x86_64.rpm /tmp/yajl-devel-2.0.4-4.el7.x86_64.rpm  httpd-devel libxml2-devel gcc curl-devel -y >> /dev/null
+fi
+
+wget -O /tmp/modsecurity-2.9.2.tar.gz https://www.modsecurity.org/tarball/2.9.2/modsecurity-2.9.2.tar.gz >> /dev/null
 
 if [ $? -eq 1 ]; then
 	echo -e "Can't download waf application. Check Internet connection"
@@ -44,18 +44,22 @@ if [ $? -eq 1 ]; then
 fi
 cd /tmp
 sudo tar xf modsecurity-2.9.2.tar.gz
-cd /tmp/modsecurity-2.9.2
-sudo ./configure --prefix=/tmp/modsecurity-2.9.2 --enable-standalone-module --disable-mlogc --enable-pcre-study --without-lua --enable-pcre-jit
-sudo make
-sudo make -C standalone install
+sudo bash -c 'cd /tmp/modsecurity-2.9.2 && \
+sudo ./configure --prefix=/tmp/modsecurity-2.9.2 --enable-standalone-module --disable-mlogc --enable-pcre-study --without-lua --enable-pcre-jit >> /dev/null && \
+sudo make >> /dev/null && \
+sudo make -C standalone install >> /dev/null'
 if [ $? -eq 1 ]; then
 	echo -e "Can't compile waf application"
 	exit 1
 fi
 sudo mkdir -p /tmp/modsecurity-2.9.2/INSTALL/include
-sudo cp standalone/.libs/* /tmp/modsecurity-2.9.2/INSTALL/include
-sudo cp standalone/* /tmp/modsecurity-2.9.2/INSTALL/include
-sudo cp apache2/*.h /tmp/modsecurity-2.9.2/INSTALL/include
+sudo cp -R /tmp/modsecurity-2.9.2/standalone/.libs/ /tmp/modsecurity-2.9.2/INSTALL/include
+sudo cp -R /tmp/modsecurity-2.9.2/standalone/ /tmp/modsecurity-2.9.2/INSTALL/include
+sudo cp -R /tmp/modsecurity-2.9.2/apache2/ /tmp/modsecurity-2.9.2/INSTALL/include
+sudo chown -R $(whoami):$(whoami) /tmp/modsecurity-2.9.2/
+mv /tmp/modsecurity-2.9.2/INSTALL/include/.libs/* /tmp/modsecurity-2.9.2/INSTALL/include
+mv /tmp/modsecurity-2.9.2/INSTALL/include/apache2/* /tmp/modsecurity-2.9.2/INSTALL/include
+mv /tmp/modsecurity-2.9.2/INSTALL/include/standalone/* /tmp/modsecurity-2.9.2/INSTALL/include
 
 wget -O /tmp/haproxy-$VERSION.tar.gz http://www.haproxy.org/download/$VERSION_MAJ/src/haproxy-$VERSION.tar.gz
 
@@ -70,18 +74,23 @@ sudo mkdir $HAPROXY_PATH/waf/bin
 sudo mkdir $HAPROXY_PATH/waf/rules
 cd /tmp/haproxy-$VERSION/contrib/modsecurity
 if hash apt-get 2>/dev/null; then
-	sudo make MODSEC_INC=/tmp/modsecurity-2.9.2/INSTALL/include MODSEC_LIB=/tmp/modsecurity-2.9.2/INSTALL/include APR_INC=/usr/include/apr-1
+	sudo make MODSEC_INC=/tmp/modsecurity-2.9.2/INSTALL/include MODSEC_LIB=/tmp/modsecurity-2.9.2/INSTALL/include APR_INC=/usr/include/apr-1 >> /dev/null
 else
-	sudo make MODSEC_INC=/tmp/modsecurity-2.9.2/INSTALL/include MODSEC_LIB=/tmp/modsecurity-2.9.2/INSTALL/include APACHE2_INC=/usr/include/httpd/ APR_INC=/usr/include/apr-1
+	sudo make MODSEC_INC=/tmp/modsecurity-2.9.2/INSTALL/include MODSEC_LIB=/tmp/modsecurity-2.9.2/INSTALL/include APACHE2_INC=/usr/include/httpd/ APR_INC=/usr/include/apr-1 >> /dev/null
 fi
 if [ $? -eq 1 ]; then
 	echo -e "Can't compile waf application"
 	exit 1
 fi
 sudo mv /tmp/haproxy-$VERSION/contrib/modsecurity/modsecurity $HAPROXY_PATH/waf/bin
-wget -O $HAPROXY_PATH/waf/modsecurity.conf https://github.com/SpiderLabs/ModSecurity/raw/v2/master/modsecurity.conf-recommended 
+if [ $? -eq 1 ]; then
+	echo -e "Can't compile waf application"
+	exit 1
+fi
+wget -O /tmp/modsecurity.conf https://github.com/SpiderLabs/ModSecurity/raw/v2/master/modsecurity.conf-recommended 
 
-sudo bash -c cat << EOF >> 	$HAPROXY_PATH/waf/modsecurity.conf
+
+sudo bash -c cat << EOF >> /tmp/modsecurity.conf
 Include $HAPROXY_PATH/waf/rules/modsecurity_crs_10_ignore_static.conf
 Include $HAPROXY_PATH/waf/rules/modsecurity_crs_10_setup.conf
 Include $HAPROXY_PATH/waf/rules/modsecurity_crs_11_avs_traffic.conf
@@ -120,7 +129,9 @@ Include $HAPROXY_PATH/waf/rules/modsecurity_crs_59_outbound_blocking.conf
 Include $HAPROXY_PATH/waf/rules/modsecurity_crs_60_correlation.conf
 EOF
 
-wget -O $HAPROXY_PATH/waf/unicode.mapping https://github.com/SpiderLabs/ModSecurity/raw/v2/master/unicode.mapping
+sudo mv /tmp/modsecurity.conf $HAPROXY_PATH/waf/modsecurity.conf 
+wget -O /tmp/unicode.mapping https://github.com/SpiderLabs/ModSecurity/raw/v2/master/unicode.mapping
+sudo mv /tmp/unicode.mapping $HAPROXY_PATH/waf/unicode.mapping
 wget -O /tmp/owasp.tar.gz https://github.com/SpiderLabs/owasp-modsecurity-crs/archive/2.2.9.tar.gz
 cd /tmp/
 sudo tar xf /tmp/owasp.tar.gz
@@ -131,9 +142,9 @@ sudo sed -i 's/SecRuleEngine DetectionOnly/SecRuleEngine On/' $HAPROXY_PATH/waf/
 sudo sed -i 's/SecAuditLogParts ABIJDEFHZ/SecAuditLogParts ABIJDEH/' $HAPROXY_PATH/waf/modsecurity.conf
 sudo rm -f /tmp/owasp.tar.gz
 
-sudo bash -c cat << EOF > /etc/systemd/system/multi-user.target.wants/waf.service 
+sudo bash -c cat << EOF > /tmp/waf.service 
 [Unit]
-Description=Defender WAF
+Description=Haproxy WAF
 After=syslog.target network.target
 
 [Service]
@@ -148,13 +159,13 @@ SyslogIdentifier=waf
 [Install]
 WantedBy=multi-user.target
 EOF
-
-sudo bash -c cat << EOF > /etc/rsyslog.d/waf.conf 
-if $programname startswith 'waf' then /var/log/waf.log
+sudo mv /tmp/waf.service  /etc/systemd/system/multi-user.target.wants/waf.service 
+sudo bash -c 'cat << EOF > /etc/rsyslog.d/waf.conf 
+if $programname startswith "waf" then /var/log/waf.log
 & stop
-EOF
+EOF'
 
-sudo bash -c cat << EOF > $HAPROXY_PATH/waf.conf
+sudo bash -c cat << EOF > /tmp/waf.conf
 [modsecurity]
 spoe-agent modsecurity-agent
    messages check-request
@@ -168,17 +179,19 @@ spoe-message check-request
    args unique-id method path query req.ver req.hdrs_bin req.body_size req.body
    event on-frontend-http-request
 EOF
+
+sudo mv /tmp/waf.conf $HAPROXY_PATH/waf.conf
 if sudo grep -q "backend waf" $HAPROXY_PATH/haproxy.cfg; then
 	echo -e "Backend for WAF exists"
 else
-	sudo bash -c cat << EOF >> $HAPROXY_PATH/haproxy.cfg
+	sudo bash -c 'cat << EOF >> /etc/haproxy/haproxy.cfg
 
 backend waf
     mode tcp
     timeout connect 5s
     timeout server  3m
     server waf 127.0.0.1:12345 check
-EOF
+EOF'
 fi
 	
 sudo systemctl daemon-reload
@@ -187,9 +200,9 @@ sudo systemctl restart waf
 sudo rm -f /tmp/libevent-devel-2.0.21-4.el7.x86_64.rpm
 sudo rm -f /tmp/modsecurity-2.9.2.tar.gz
 sudo rm -f /tmp/yajl-devel-2.0.4-4.el7.x86_64.rpm
-sudo rm -rf /tmp/haproxy-$VERSION
+#sudo rm -rf /tmp/haproxy-$VERSION
 sudo rm -rf /tmp/haproxy-$VERSION.tar.gz
-sudo rm -rf /tmp/modsecurity-2.9.2
+#sudo rm -rf /tmp/modsecurity-2.9.2
 
 if [ $? -eq 1 ]; then
 	echo "error: Can't start Haproxy WAF service <br /><br />"

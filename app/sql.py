@@ -741,6 +741,18 @@ def insert_waf_metrics_enable(serv, enable):
 	cur.close()    
 	con.close()
 	
+def delete_waf_server(id):
+	con, cur = create_db.get_cur()
+	sql = """ delete from waf where server_id = '%s' """ % id
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		con.rollback()
+	cur.close()    
+	con.close()
+	
 def insert_waf_mentrics(serv, conn):
 	con, cur = create_db.get_cur()
 	if mysql_enable == '1':
@@ -1147,6 +1159,7 @@ if form.getvalue('newserver') is not None:
 if form.getvalue('serverdel') is not None:
 	print('Content-type: text/html\n')
 	if delete_server(form.getvalue('serverdel')):
+		delete_waf_server(form.getvalue('serverdel'))
 		print("Ok")
 	
 if form.getvalue('newgroup') is not None:
