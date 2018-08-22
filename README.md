@@ -51,6 +51,8 @@ For install just clone:
 $ cd /var/www/
 $ git clone https://github.com/Aidaho12/haproxy-wi.git /var/www/haproxy-wi
 $ chown -R apache:apache haproxy-wi/
+Or if use Debian/Ubuntu:
+$ chown -R www-data:www-data haproxy-wi/
 $ pip3 install -r haproxy-wi/requirements.txt 
 $ chmod +x haproxy-wi/app/*.py 
 ```
@@ -62,6 +64,7 @@ For Apache do virtualhost with cgi-bin. Like this:
         ServerName haproxy-wi
         ErrorLog /var/log/httpd/haproxy-wi.error.log
         CustomLog /var/log/httpd/haproxy-wi.access.log combined
+        TimeOut 600
 
         DocumentRoot /var/www/haproxy-wi
         ScriptAlias /cgi-bin/ "/var/www/haproxy-wi/app/"
@@ -83,6 +86,12 @@ For Apache do virtualhost with cgi-bin. Like this:
 ```
 docker service create --detach=false --name haproxy-wi --mount type=volume,src=haproxy-wi,dst=/var/www/haproxy-wi/app -p 8080:80 aidaho/haproxy-wi
 ```
+or
+```
+docker run -d --name haproxy-wi -v haproxy-wi:/var/www/haproxy-wi/app aidaho/haproxy-wi
+```
+# OS support
+HAProxy-WI was tested on EL 7, and all scripts too. Debian/Ubuntu OS support at 'beta' stage, may work not correct
 
 # Database support
 
@@ -110,15 +119,15 @@ Login http://haproxy-wi-server/users.py, and add: users, groups and servers. Def
 For Runtime API, Metrics and Alerting enable state file and stat socket on HAproxt servers and need install socat on all haproxy servers, and configre HAProxy:
 ```
     global
-		stats socket *:1999 level admin 
-		stats socket /var/run/haproxy.sock mode 600 level admin
-		server-state-file /etc/haproxy/haproxy/haproxy.state
+        stats socket *:1999 level admin 
+        stats socket /var/run/haproxy.sock mode 600 level admin
+        server-state-file /etc/haproxy/haproxy/haproxy.state
 		
     defaults
-		load-server-state-from-file global
+        load-server-state-from-file global
 		
-	listen stats 
-		stats admin if TRUE 
+    listen stats 
+        stats admin if TRUE 
    ```
 ![alt text](image/haproxy-wi-logs.jpeg "View logs page")
 
