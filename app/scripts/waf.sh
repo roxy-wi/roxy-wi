@@ -29,7 +29,7 @@ if [ -f $HAPROXY_PATH/waf/modsecurity.conf  ];then
 	exit 1
 fi
 if hash apt-get 2>/dev/null; then
-	sudo apt-get install yajl-dev libevent-dev httpd-dev libxml2-dev gcc curl-dev -y
+	sudo apt-get install yajl-dev libevent-dev apache2-dev libxml2-dev gcc curl-dev -y
 else
 	wget -O /tmp/yajl-devel-2.0.4-4.el7.x86_64.rpm http://rpmfind.net/linux/centos/7.5.1804/os/x86_64/Packages/yajl-devel-2.0.4-4.el7.x86_64.rpm >> /dev/null
 	wget -O /tmp/libevent-devel-2.0.21-4.el7.x86_64.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/libevent-devel-2.0.21-4.el7.x86_64.rpm >> /dev/null

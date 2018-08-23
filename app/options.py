@@ -357,10 +357,10 @@ if form.getvalue('master'):
 	funct.upload(master, tmp_config_path, script)
 	funct.upload(slave, tmp_config_path, script)
 	
-	commands = [ "chmod +x "+tmp_config_path+script, tmp_config_path+script+" MASTER "+interface+" "+vrrpip ]
+	commands = [ "sudo chmod +x "+tmp_config_path+script, tmp_config_path+script+" MASTER "+interface+" "+vrrpip ]
 	funct.ssh_command(master, commands)
 	
-	commands = [ "chmod +x "+tmp_config_path+script, tmp_config_path+script+" BACKUP "+interface+" "+vrrpip ]
+	commands = [ "sudo chmod +x "+tmp_config_path+script, tmp_config_path+script+" BACKUP "+interface+" "+vrrpip ]
 	funct.ssh_command(slave, commands)
 			
 	os.system("rm -f %s" % script)

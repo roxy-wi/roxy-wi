@@ -265,7 +265,7 @@ def install_haproxy(serv, **kwargs):
 		proxy_serv = proxy
 	else:
 		proxy_serv = ""
-	commands = [ "chmod +x "+tmp_config_path+script+" && " +tmp_config_path+"/"+script +" PROXY=" + proxy_serv+ 
+	commands = [ "sudo chmod +x "+tmp_config_path+script+" && " +tmp_config_path+"/"+script +" PROXY=" + proxy_serv+ 
 				" SOCK_PORT="+haproxy_sock_port+" STAT_PORT="+stats_port+" STAT_FILE="+server_state_file+
 				" STATS_USER="+stats_user+" STATS_PASS="+stats_password ]
 	
@@ -288,7 +288,7 @@ def syn_flood_protect(serv, **kwargs):
 
 	os.system("cp scripts/%s ." % script)
 	
-	commands = [ "chmod +x "+tmp_config_path+script, tmp_config_path+script+ " "+enable ]
+	commands = [ "sudo chmod +x "+tmp_config_path+script, tmp_config_path+script+ " "+enable ]
 	
 	upload(serv, tmp_config_path, script)	
 	os.system("rm -f %s" % script)
@@ -304,7 +304,7 @@ def waf_install(serv, **kwargs):
 
 	os.system("cp scripts/%s ." % script)
 	
-	commands = [ "chmod +x "+tmp_config_path+script+" && " +tmp_config_path+script +" PROXY=" + proxy+ 
+	commands = [ "sudo chmod +x "+tmp_config_path+script+" && " +tmp_config_path+script +" PROXY=" + proxy+ 
 				" HAPROXY_PATH="+haproxy_dir +" VERSION="+ver ]
 	
 	upload(serv, tmp_config_path, script)	

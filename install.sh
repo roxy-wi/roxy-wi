@@ -236,7 +236,7 @@ sed -i 's/#$ModLoad imudp/$ModLoad imudp/g' /etc/rsyslog.conf
 systemctl daemon-reload      
 systemctl restart logrotate
 systemctl restart rsyslog
-systemctl restart cmetrics_haproxy.service
+systemctl restart metrics_haproxy.service
 systemctl restart checker_haproxy.service
 systemctl enable metrics_haproxy.service
 systemctl enable checker_haproxy.service
@@ -418,7 +418,6 @@ cd /var/www/$HOME_HAPROXY_WI/app
 ./update_db.py
 if hash apt-get 2>/dev/null; then
 	sudo chown -R www-data:www-data /var/www/$HOME_HAPROXY_WI/
-	sudo chown -R www-data:www-data /var/log/httpd/
 	sudo chown -R www-data:www-data /var/log/apache2/
 else
 	sudo chown -R apache:apache /var/www/$HOME_HAPROXY_WI/
