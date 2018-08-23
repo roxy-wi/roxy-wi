@@ -362,9 +362,9 @@ def upload_and_restart(serv, cfg, **kwargs):
 			commands = [ "sudo mv -f " + tmp_file + " /etc/keepalived/keepalived.conf", "sudo systemctl restart keepalived" ]
 	else:
 		if kwargs.get("just_save") == "save":
-			commands = [ "sudo /sbin/haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + sql.get_setting('haproxy_config_path') ]
+			commands = [ "sudo haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + sql.get_setting('haproxy_config_path') ]
 		else:
-			commands = [ "sudo /sbin/haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + sql.get_setting('haproxy_config_path') + " && sudo " + sql.get_setting('restart_command') ]	
+			commands = [ "sudo haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + sql.get_setting('haproxy_config_path') + " && sudo " + sql.get_setting('restart_command') ]	
 		try:
 			if sql.get_setting('firewall_enable') == "1":
 				commands.extend(open_port_firewalld(cfg))
@@ -452,11 +452,11 @@ def ssh_command(serv, commands, **kwargs):
 		else:
 			return stdout.read().decode(encoding='UTF-8')
 			
-		print(stderr.read().decode(encoding='UTF-8'))
+		print("<div class='alert alert-warning'>"+stderr.read().decode(encoding='UTF-8')+"</div>")
 	try:	
 		ssh.close()
 	except:
-		print(ssh)
+		print("<div class='alert alert-danger'>"+ssh+"</div>")
 		pass
 
 def escape_html(text):

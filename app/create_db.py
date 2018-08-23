@@ -518,7 +518,7 @@ def update_db_v_3(**kwargs):
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
 			if e.args[0] == 'duplicate column name: section' or e == " 1060 (42S21): Duplicate column name 'section' ":
-				print('Updating... go to version 3.2')
+				print('Updating... go to version 3.1')
 			else:
 				print("An error occurred:", e)
 		return False
@@ -550,7 +550,7 @@ def update_db_v_31(**kwargs):
 				"INSERT INTO settings (param, value, section, `desc`) values('tmp_config_path', '/tmp/', 'haproxy', 'Temp store configs, for haproxy check');",
 				"INSERT INTO settings (param, value, section, `desc`) values('cert_path', '/etc/ssl/certs/', 'haproxy', 'Path to SSL dir');",
 				"INSERT INTO settings (param, value, section, `desc`) values('firewall_enable', '0', 'haproxy', 'If enable this option Haproxy-wi will be configure firewalld based on config port');",
-				"update settings set `section` = 'main', `desc` = 'Path to black/white lists` where param = 'lists_path' "]
+				"update settings set `section` = 'main', `desc` = 'Path to black/white lists' where param = 'lists_path' "]
 	try:    
 		for i in sql:
 			cur.execute(i)
@@ -558,7 +558,7 @@ def update_db_v_31(**kwargs):
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
 			if e.args[0] == 'duplicate column name: desc' or e == "1060 (42S21): Duplicate column name 'desc' ":
-				print('')
+				print('Updating... go to version 3.2')
 			else:
 				print("An error occurred:", e)
 		return False
@@ -603,6 +603,27 @@ def update_db_v_3_21(**kwargs):
 			return True
 	cur.close() 
 	con.close()
+	
+def update_db_v_3_2_1(**kwargs):
+	con, cur = get_cur()
+	sql = """
+	insert into `settings` (param, value, section, `desc`) values ('apache_log_path', '/var/log/httpd/', 'logs', 'Path to Apache logs');
+	"""
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'column param is not unique' or e == "1062 (23000): Duplicate entry 'lists_path' for key 'param'":
+				print('DB was update')
+			else:
+				print("An error occurred:", e)
+		return False
+	else:
+		print("Updating... go to version 3.0<br />")
+		return True
+	cur.close() 
+	con.close()
 			
 def update_all():	
 	update_db_v_2_0_1()
@@ -624,6 +645,7 @@ def update_all():
 	update_db_v_31()
 	update_db_v_3_2()
 	update_db_v_3_21()
+	update_db_v_3_2_1()
 	
 def update_all_silent():
 	update_db_v_2_0_1(silent=1)
@@ -645,4 +667,5 @@ def update_all_silent():
 	update_db_v_31(silent=1)
 	update_db_v_3_2(silent=1)
 	update_db_v_3_21(silent=1)
+	update_db_v_3_2_1(silent=1)
 		

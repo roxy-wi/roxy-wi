@@ -10,7 +10,9 @@
 				Server
 			{% endif %}
 		</td>
+		{% if onclick != 'viewLogs()' %}
 		<td style="width: 5%;">WAF logs</td>
+		{% endif %}
 		<td style="width: 10%;">Number rows</td>
 		<td class="padding10" style="width: 10%;">Ex for grep</td>
 		<td style="width: 10%;">
@@ -45,9 +47,11 @@
 					{% endif %}
 				</select>
 		</td>
+		{% if onclick != 'viewLogs()' %}
 		<td>
 			<label for="waf"></label><input type="checkbox" id="waf"> 
 		</td>
+		{% endif %}
 		<td class="padding10" style="width: 10%;">
 			<input type="number" name="rows" id="rows" value="{{ rows }}" class="form-control" required>
 		</td> 
