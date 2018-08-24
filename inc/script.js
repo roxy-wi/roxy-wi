@@ -1216,7 +1216,18 @@ $( function() {
 			type: "GET",
 			success: function( data ) {
 				if (data.indexOf('ok') != '-1') {
-					window.location.replace(ref);
+					 $( "#dialog-confirm" ).dialog({
+						  resizable: false,
+						  height: "auto",
+						  width: 400,
+						  modal: true,
+						  title: "Support the project!",
+						  buttons: {
+							"Ok": function() {
+								window.location.replace(ref);
+							}
+						  }
+						});
 				} else {
 					$('.alert-danger').remove();
 					$("#ajax").html(data);					

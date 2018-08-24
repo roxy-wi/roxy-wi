@@ -39,8 +39,8 @@ if form.getvalue('getcert') is not None and serv is not None:
 if form.getvalue('ssh_cert'):
 	name = form.getvalue('name')
 	
-	if not os.path.exists(os.getcwd())+'/keys/'):
-		os.makedirs(os.getcwd())+'/keys/')
+	if not os.path.exists(os.getcwd()+'/keys/'):
+		os.makedirs(os.getcwd()+'/keys/')
 	
 	ssh_keys = os.path.dirname(os.getcwd())+'/keys/'+name+'.pem'
 	
