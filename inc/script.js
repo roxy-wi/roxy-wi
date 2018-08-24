@@ -1256,7 +1256,7 @@ function change_select_waf(id) {
 		type: "GET",
 		success: function( data ) {	
 			console.log(data)
-			if(parseFloat(data) < parseFloat('1.7')) {	
+			if(parseFloat(data) < parseFloat('1.8')) {	
 				$("#waf"+id).checkboxradio( "disable" );
 			} else {
 				$("#waf"+id).checkboxradio( "enable" );

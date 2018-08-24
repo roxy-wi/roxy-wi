@@ -50,6 +50,10 @@ def get_data(type):
 def logging(serv, action, **kwargs):
 	import sql
 	log_path = get_config_var('main', 'log_path')
+	
+	if not os.path.exists(log_path):
+		os.makedirs(log_path)
+		
 	try:
 		IP = cgi.escape(os.environ["REMOTE_ADDR"])
 		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))

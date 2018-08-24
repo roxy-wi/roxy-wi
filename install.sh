@@ -40,7 +40,7 @@ echo ""
 echo "################################"
 
 if hash apt-get 2>/dev/null; then
-	apt-get install git  net-tools lshw dos2unix apache2 gcc netcat python3-pip g++ -y
+	apt-get install git  net-tools lshw dos2unix apache2 gcc netcat python3-pip g++ freetype2-demos libatlas-base-dev -y
 	HTTPD_CONFIG="/etc/apache2/apache2.conf"
 	HAPROXY_WI_VHOST_CONF="/etc/apache2/sites-enabled/haproxy-wi.conf"
 	HTTPD_NAME="apache2"
@@ -411,9 +411,13 @@ echo "################################"
 
 sudo mkdir /var/www/$HOME_HAPROXY_WI/app/certs
 sudo mkdir /var/www/$HOME_HAPROXY_WI/keys
+sudo mkdir /var/www/$HOME_HAPROXY_WI/configs/
+sudo mkdir /var/www/$HOME_HAPROXY_WI/configs/hap_config/
+sudo mkdir /var/www/$HOME_HAPROXY_WI/configs/kp_config/
+sudo mkdir /var/www/$HOME_HAPROXY_WI/log/
 sudo sudo chmod +x /var/www/$HOME_HAPROXY_WI/app/*.py
 sudo chmod +x /var/www/$HOME_HAPROXY_WI/app/tools/*.py
-sudo rm -f /var/www/$HOME_HAPROXY_WI/log/config_edit.log
+
 cd /var/www/$HOME_HAPROXY_WI/app
 ./update_db.py
 if hash apt-get 2>/dev/null; then

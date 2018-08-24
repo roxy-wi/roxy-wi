@@ -567,15 +567,15 @@ a:focus {
 .alert-danger, .alert-info, .alert-success, .alert-warning, .added {
 	width: 400px;
 	margin-left: 15px;
+	margin-top: 15px;
+	display: block;
 }
 .alert-danger {
 	color: #a94442;
 	background-color: #f2dede;
 	border-color: #ebccd1;
-	width: 400px;
-	display: block;
-	margin-top: 15px;
-	margin-bottom: -50px;
+	width: 400px;	
+	margin-bottom: -50px;	
 }
 .alert-success, .added{
 	color: #3c763d;

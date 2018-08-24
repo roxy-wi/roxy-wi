@@ -30,7 +30,6 @@ try:
 except:
 	pass
 
-log_path = funct.get_config_var('main', 'log_path')
 hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 
 if serv is not None:

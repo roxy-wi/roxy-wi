@@ -38,6 +38,10 @@ if form.getvalue('getcert') is not None and serv is not None:
 		
 if form.getvalue('ssh_cert'):
 	name = form.getvalue('name')
+	
+	if not os.path.exists(os.getcwd())+'/keys/'):
+		os.makedirs(os.getcwd())+'/keys/')
+	
 	ssh_keys = os.path.dirname(os.getcwd())+'/keys/'+name+'.pem'
 	
 	try:
@@ -55,6 +59,9 @@ if form.getvalue('ssh_cert'):
 if serv and form.getvalue('ssl_cert'):
 	cert_local_dir = funct.get_config_var('main', 'cert_local_dir')
 	cert_path = sql.get_setting('cert_path')
+	
+	if not os.path.exists(cert_local_dir):
+		os.makedirs(cert_local_dir)
 	
 	if form.getvalue('ssl_name') is None:
 		print('<div class="alert alert-danger">Please enter desired name</div>')
