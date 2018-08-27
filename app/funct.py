@@ -402,7 +402,7 @@ def open_port_firewalld(cfg):
 	
 def check_haproxy_config(serv):
 	import sql
-	commands = [ "/sbin/haproxy  -q -c -f %s" % sql.get_setting('haproxy_config_path') ]
+	commands = [ "haproxy  -q -c -f %s" % sql.get_setting('haproxy_config_path') ]
 	ssh = ssh_connect(serv)
 	for command in commands:
 		stdin , stdout, stderr = ssh.exec_command(command)
