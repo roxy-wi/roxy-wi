@@ -158,3 +158,9 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f00c";
 }
+.add-server::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f067";
+	width:3px;
+}

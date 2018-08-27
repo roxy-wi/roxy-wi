@@ -456,7 +456,9 @@ def ssh_command(serv, commands, **kwargs):
 		else:
 			return stdout.read().decode(encoding='UTF-8')
 			
-		print("<div class='alert alert-warning'>"+stderr.read().decode(encoding='UTF-8')+"</div>")
+		for line in stderr.read().decode(encoding='UTF-8'):
+			if line:
+				print("<div class='alert alert-warning'>"+line+"</div>")
 	try:	
 		ssh.close()
 	except:

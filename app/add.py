@@ -142,16 +142,15 @@ if form.getvalue('mode') is not None:
 		options_split += cookie
 		if form.getvalue('dynamic'):
 			options_split += "    dynamic-cookie-key " + form.getvalue('dynamic-cookie-key')+"\n"
-		
+			
+	servers_split = ""	
 	if form.getvalue('servers') is not None:	
-		servers = form.getvalue('servers')
-		i = servers.split("\n")
-		servers_split = ""
-		for j in i:	
-			j = j.strip('\t\n\r')
-			servers_split += "    server " + j + check + "\n"
-	else:
-		servers_split = ""
+		servers = form.getlist('servers')
+		server_port = form.getlist('server_port')
+		i = 0
+		for server in servers:
+			servers_split += "    server test " + server +":"+server_port[i]+ check + "\n"
+			i += 1
 		
 	compression = form.getvalue("compression")
 	cache = form.getvalue("cache")

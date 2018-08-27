@@ -1198,7 +1198,17 @@ $( function() {
 			}
 		} );
 	});
-
+	var add_server_var = '<br /><input name="servers" title="Backend port" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">: <input name="server_port" title="Backend port" size=1 placeholder="yyy" class="form-control">'
+	$('#add-server').click(function() {
+		$('#servers').append(add_server_var);		
+	});
+	$('#add-server2').click(function() {
+		$('#servers2').append(add_server_var);		
+	});
+	$('.advance-show').click(function() {
+		$('.advance-show').fadeOut();
+		$('.advance').fadeIn();
+	});
 	$('#auth').submit(function() {
 		$('.alert-danger').remove();
 		let searchParams = new URLSearchParams(window.location.search)
@@ -1216,18 +1226,18 @@ $( function() {
 			type: "GET",
 			success: function( data ) {
 				if (data.indexOf('ok') != '-1') {
-					 $( "#dialog-confirm" ).dialog({
-						  resizable: false,
-						  height: "auto",
-						  width: 400,
-						  modal: true,
-						  title: "Support the project!",
-						  buttons: {
-							"Ok": function() {
+					$( "#dialog-confirm" ).dialog({
+						resizable: false,
+						height: "auto",
+						width: 400,
+						modal: true,
+						title: "Support the project!",
+						buttons: {
+						"Ok": function() {
 								window.location.replace(ref);
 							}
 						  }
-						});
+					});
 				} else {
 					$('.alert-danger').remove();
 					$("#ajax").html(data);					

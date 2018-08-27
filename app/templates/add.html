@@ -42,7 +42,11 @@
 				<div class="tooltip tooltipTop">IP for bind listner, <b>if empty will be assignet on all IPs</b>. Start typing ip, or press down.<br>If you use <b>VRRP keep in blank</b>. If you assign an IP, the slave will not start</div>
 			</td>
 		</tr>
-		<tr>
+		<tr class="advance-show">
+			<td class="addName">Advanced:</td>
+			<td class="addOption"><a href="#" title="Show Advanced settings">Show Advanced settings</a></td>
+		</tr>
+		<tr class="advance">
 			<td class="addName">Mode: </td>
 			<td class="addOption">
 				<select required name="mode" id="listen-mode-select">
@@ -60,7 +64,7 @@
 				</div>
 			</td>
 		</tr>
-		<tr>
+		<tr class="advance">
 			<td class="addName">Balance: </td>
 			<td class="addOption">
 				<select required name="balance">
@@ -72,7 +76,7 @@
 				</select>
 			</td>
 		</tr>
-		<tr>
+		<tr class="advance">
 			<td class="addName"><span title="Cache support start 1.8 and latter">Web acceleration(?):</span></td>
 			<td class="addOption">
 				<span class="controlgroup">	
@@ -82,7 +86,7 @@
 				</span>
 			</td>
 		</tr>
-		<tr>
+		<tr class="advance">
 			<td class="addName"><span title="Web application firewall">WAF(?):</span></td>
 			<td class="addOption">
 				<span class="controlgroup">
@@ -97,7 +101,7 @@
 				</div>
 			</td>
 		</tr>
-		<tr>
+		<tr class="advance">
 			<td class="addName">Optinons:</td>
 			<td class="addOption">
 				<span class="controlgroup">				
@@ -153,7 +157,19 @@
 		<tr>
 			<td class="addName">Servers:</td>
 			<td class="addOption">
-				<textarea name="servers" required title="Backend servers" cols=80 rows=3 placeholder="hostname ip:port"></textarea>
+				<span id="servers">
+					<input name="servers" required title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">:
+					<input name="server_port" required title="Backend IP" size=1 placeholder="yyy" class="form-control">
+					<br />
+					<input name="servers" title="Backend port" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">:
+					<input name="server_port" title="Backend port" size=1 placeholder="yyy" class="form-control">
+					<br />
+					<input name="servers" title="Backend port" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">:
+					<input name="server_port" title="Backend port" size=1 placeholder="yyy" class="form-control">
+				</span>
+				<span>
+					<a class="add-server" id="add-server" title="Add backend server" style="cursor: pointer;"></a>
+				</span>
 				<div>
 					<label for="controlgroup-listen-show" style="margin-top: 5px;" title="Change default check">Cusmot check params</label>
 					<input type="checkbox" id="controlgroup-listen-show" name="default-check" value="1">
@@ -223,7 +239,11 @@
 				<div class="tooltip tooltipTop">IP for bind listner, <b>if empty will be assignet on all IPs</b>. Start typing ip, or press down.<br>If you use <b>VRRP keep in blank</b>. If you assign an IP, the slave will not start</div>
 			</td>
 		</tr>
-		<tr>
+		<tr class="advance-show">
+			<td class="addName">Advanced:</td>
+			<td class="addOption"><a href="#" title="Show Advanced settings">Show Advanced settings</a></td>
+		</tr>
+		<tr class="advance">
 			<td class="addName">Mode: </td>
 			<td class="addOption">
 				<select required name="mode" id="frontend-mode-select">
@@ -240,7 +260,7 @@
 				</div>				
 			</td>
 		</tr>
-		<tr>
+		<tr class="advance">
 			<td class="addName"><span title="Cache support start 1.8 and latter">Web acceleration(?):</span></td>
 			<td class="addOption">
 				<span class="controlgroup">	
@@ -250,7 +270,7 @@
 				</span>	
 			</td>
 		</tr>
-		<tr>
+		<tr class="advance">
 			<td class="addName"><span title="Web application firewall">WAF(?):</span></td>
 			<td class="addOption">
 				<span class="controlgroup">
@@ -264,7 +284,7 @@
 				</div>
 			</td>
 		</tr>
-		<tr>
+		<tr class="advance">
 			<td class="addName">Optinons:</td>
 			<td class="addOption">
 				<span class="controlgroup">
@@ -332,7 +352,11 @@
 				<input type="text" name="new_backend" id="new_backend" required title="Name backend"  placeholder="web_80" class="form-control">
 			</td>
 		</tr>
-		<tr>
+		<tr class="advance-show">
+			<td class="addName">Advanced:</td>
+			<td class="addOption"><a href="#" title="Show Advanced settings">Show Advanced settings</a></td>
+		</tr>
+		<tr class="advance">
 			<td class="addName">Mode: </td>
 			<td class="addOption">
 				<select required name="mode" id="backend-mode-select">
@@ -350,7 +374,7 @@
 				</div>				
 			</td>
 		</tr>
-		<tr>
+		<tr class="advance">
 			<td class="addName">Balance: </td>
 			<td class="addOption">
 				<select required name="balance">
@@ -362,7 +386,7 @@
 				</select>
 			</td>
 		</tr>
-		<tr>
+		<tr class="advance">
 			<td class="addName"><span title="Cache support start 1.8 and latter">Web acceleration(?):</span></td>
 			<td class="addOption">
 				<span class="controlgroup">
@@ -372,7 +396,7 @@
 				</span>
 			</td>
 		</tr>
-		<tr>
+		<tr class="advance">
 			<td class="addName">Optinons:</td>
 			<td class="addOption">
 				<span class="controlgroup">					
@@ -387,8 +411,8 @@
 					</select>	
 					<label for="cookie2" title="Enable Redispatch">Set cookie</label><input type="checkbox" id="cookie2" name="cookie" value="1">				
 					<label for="options-backend-show" title="Set options manualy">Set options</label><input type="checkbox" id="options-backend-show">
-					<br>
 				</span>
+				<br>
 				<span id="cookie_div2" style="display: none;">
 					<input type="text" placeholder="name" name="cookie_name" id="cookie_name2" class="form-control"><br><br>
 					<input type="text" placeholder="domain" name="cookie_domain" class="form-control"><br><br>
@@ -428,7 +452,19 @@
 		<tr>
 			<td class="addName">Servers:</td>
 			<td class="addOption">
-				<textarea name="servers" title="Backend servers" required cols=80 rows=3 placeholder="hostname ip:port"></textarea>
+				<span id="servers2">
+					<input name="servers" required title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">:
+					<input name="server_port" required title="Backend IP" size=1 placeholder="yyy" class="form-control">
+					<br />
+					<input name="servers" title="Backend port" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">:
+					<input name="server_port" title="Backend port" size=1 placeholder="yyy" class="form-control">
+					<br />
+					<input name="servers" title="Backend port" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">:
+					<input name="server_port" title="Backend port" size=1 placeholder="yyy" class="form-control">
+				</span>
+				<span>
+					<a class="add-server" id="add-server2" title="Add backend server" style="cursor: pointer;"></a>
+				</span>
 				<div>
 					<label for="controlgroup-backend-show" style="margin-top: 5px;" title="Change default check"	>Cusmot check params</label>
 					<input type="checkbox" id="controlgroup-backend-show" name="default-check">

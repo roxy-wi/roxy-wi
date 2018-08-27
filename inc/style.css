@@ -247,6 +247,12 @@ pre {
 	border-bottom: 1px solid #ddd;
 	padding: 15px;
 }
+.advance {
+	display: none;
+}
+.advance-show  a{
+	color: #9d9d9d !important;
+}
 .addButton {
 	padding-top: 15px;
 	padding-left: 15px;
