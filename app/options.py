@@ -15,10 +15,18 @@ backend = form.getvalue('backend')
 	
 print('Content-type: text/html\n')
 
+if act == "checkrestart":
+	servers = sql.get_dick_permit(ip=serv)
+	for server in servers:
+		if server != "":
+			print("ok")
+			sys.exit()
+	sys.exit()
+
 if form.getvalue('token') is None:
 	print("What the fuck?! U r hacker Oo?!")
 	sys.exit()
-	
+		
 if form.getvalue('getcerts') is not None and serv is not None:
 	cert_path = sql.get_setting('cert_path')
 	commands = [ "ls -1t "+cert_path+" |grep pem" ]

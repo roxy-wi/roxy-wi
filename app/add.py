@@ -10,6 +10,11 @@ env = Environment(loader=FileSystemLoader('templates/'))
 template = env.get_template('add.html')
 form = cgi.FieldStorage()
 
+if form.getvalue('add'):
+	c = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	c["restart"] = form.getvalue('serv')
+	print(c)
+	
 print('Content-type: text/html\n')
 funct.check_login()
 funct.page_for_admin(level = 2)
@@ -24,21 +29,20 @@ try:
 except:
 	pass
 
-output_from_parsed_template = template.render(title = "Add",
-												role = sql.get_user_role_by_uuid(user_id.value),
-												user = user,
-												selects = servers,
-												add = form.getvalue('add'),
-												conf_add = form.getvalue('conf'),
-												group = user_group,
-												token = token)										
-print(output_from_parsed_template)
-
-hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
-cert_path = sql.get_setting('cert_path')
-haproxy_dir = sql.get_setting('haproxy_dir')
+template = template.render(title = "Add",
+							role = sql.get_user_role_by_uuid(user_id.value),
+							user = user,
+							selects = servers,
+							add = form.getvalue('add'),
+							conf_add = form.getvalue('conf'),
+							group = user_group,
+							token = token)										
+print(template)
 
 if form.getvalue('mode') is not None: 
+	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+	cert_path = sql.get_setting('cert_path')
+	haproxy_dir = sql.get_setting('haproxy_dir')
 	serv = form.getvalue('serv')
 	port = form.getvalue('port')
 	force_close = form.getvalue('force_close')
@@ -189,11 +193,11 @@ if form.getvalue('mode') is not None:
 		if master[0] != None:
 			funct.upload_and_restart(master[0], cfg)
 	
-	stderr = funct.upload_and_restart(serv, cfg)
+	stderr = funct.upload_and_restart(serv, cfg, just_save="save")
 	if stderr:
 		print('<div class="alert alert-danger">%s</div>' % stderr)
 	else:
-		print('<meta http-equiv="refresh" content="0; url=add.py?add=%s&conf=%s">' % (name, config_add))
+		print('<meta http-equiv="refresh" content="0; url=add.py?add=%s&conf=%s&serv=%s">' % (name, config_add, serv))
 		
 	print('</div>')
 

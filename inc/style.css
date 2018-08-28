@@ -222,7 +222,7 @@ pre {
 	padding-left: 10px;
 	padding-right: 10px;
 }
-.line:hover, .line3:hover, tr:hover {
+.line:hover, .line3:hover {
 	background-color: #f6f8fa;
 }
 .time-range {
@@ -238,6 +238,9 @@ pre {
 }	
 .comment {
 	color: #aaa;
+}
+.add-table {
+	width: 100%;
 }
 .addName {
 	background-color: #f6f6f6;
@@ -268,6 +271,11 @@ pre {
 	padding-left: 20px;
 	padding-top: 20px;
 	color: #23527c;
+}
+.add-note {
+	width: 30%;
+	padding-left: 10px;
+	font-style: italic;
 }
 .tooltip {
 	font-size: 12px; 

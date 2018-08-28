@@ -81,6 +81,10 @@ $( function() {
 		}
 	});
 	$('#secIntervals').css('display', 'none');
+	$('#apply_close').click( function() {
+		$("#apply").css('display', 'none');
+		Cookies.remove('restart', { path: '' });
+	});
 });
 function confirmAjaxAction(action, service, id) {
 	$( "#dialog-confirm" ).dialog({
@@ -94,6 +98,12 @@ function confirmAjaxAction(action, service, id) {
 				$( this ).dialog( "close" );
 				if(service == "hap") {
 					ajaxActionServers(action, id);
+					if(action == "restart") {
+						if(Cookies.get('restart')) {
+							Cookies.remove('restart', { path: '' });
+							$("#apply").css('display', 'none');
+						}
+					}
 				} else if (service == "waf") {
 					ajaxActionWafServers(action, id)
 				}

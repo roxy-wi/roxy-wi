@@ -457,6 +457,8 @@ def get_dick_permit(**kwargs):
 	import os
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_id = cookie.get('uuid')
+	disable = ''
+	ip = ''
 	
 	con, cur = create_db.get_cur()
 	sql = """ select * from user where username = '%s' """ % get_user_name_by_uuid(user_id.value)
@@ -466,8 +468,9 @@ def get_dick_permit(**kwargs):
 		type_ip = "and type_ip = 0" 
 	if kwargs.get('disable') == 0:
 		disable = 'or enable = 0'
-	else:
-		disable = ''
+	if kwargs.get('ip'):
+		ip = "and ip = '%s'" % kwargs.get('ip')
+		
 		
 	try:    
 		cur.execute(sql)
@@ -478,7 +481,7 @@ def get_dick_permit(**kwargs):
 			if group[5] == '1':
 				sql = """ select * from servers where enable = 1 %s %s """ % (disable, type_ip)
 			else:
-				sql = """ select * from servers where groups like '%{group}%' and (enable = 1 {disable}) {type_ip} """.format(group=group[5], disable=disable, type_ip=type_ip)		
+				sql = """ select * from servers where groups like '%{group}%' and (enable = 1 {disable}) {type_ip} {ip} """.format(group=group[5], disable=disable, type_ip=type_ip, ip=ip)		
 		try:   
 			cur.execute(sql)
 		except sqltool.Error as e:

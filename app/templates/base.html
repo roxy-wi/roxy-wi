@@ -192,6 +192,13 @@
 					</div>
 				</div>
 			{% endif %}
+			{% if role %}
+				{% if role <= 2 %}
+					<div id="apply" style="display: none;">
+						<div class="alert alert-warning" id="apply_div"></div>
+					</div>
+				{% endif %}
+			{% endif %}
 			{% block content %}{% endblock %}
 			<div id="ajax-compare"></div>
 			<div id="ajax"></div>
