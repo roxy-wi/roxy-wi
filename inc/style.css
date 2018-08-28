@@ -250,6 +250,9 @@ pre {
 .advance {
 	display: none;
 }
+.advance-show  {
+	font-size: 13px !important;
+}
 .advance-show  a{
 	color: #9d9d9d !important;
 }

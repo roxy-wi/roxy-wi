@@ -562,10 +562,8 @@ $( function() {
 	$( "#https-backend" ).click( function(){
 		if ($('#https-backend').is(':checked')) {
 			$( "#https-hide-backend" ).show( "fast" );
-			$( "#path-cert-backend" ).attr('required',true);
 		} else {
 			$( "#https-hide-backend" ).hide( "fast" );
-			$( "#path-cert-backend" ).prop('required',false);
 		}
 	});	
 	$( "#options-listen-show" ).click( function(){
@@ -1079,24 +1077,6 @@ $( function() {
 				data: {
 					getcerts:1,
 					serv: $("#serv2").val(),
-					token: $('#token').val()
-				},
-				success: function( data ) {
-					data = data.replace(/\s+/g,' ');
-					response(data.split(" "));
-				}						
-			} );
-		},
-		autoFocus: true,
-		minLength: -1
-	});
-	$( "#path-cert-backend" ).autocomplete({
-		source: function( request, response ) {
-			$.ajax( {
-				url: "options.py",
-				data: {
-					getcerts:1,
-					serv: $("#serv3").val(),
 					token: $('#token').val()
 				},
 				success: function( data ) {

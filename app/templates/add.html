@@ -14,7 +14,7 @@
 	</ul>
 	<div id="listen">
 		<form name="add-listner" action="/app/add.py">
-		<table>
+		<table class="add-table">
 			<caption><h3 style="margin-left: 20px; margin-bottom: 10px;">Add listen</h3></caption>
 				<tr>
 					<td class="addName">Select server: </td>
@@ -26,6 +26,19 @@
 							{% endfor %}	
 						</select>
 						<div class="tooltip tooltipTop"><b>Note:</b> If you reconfigure Master server, Slave will reconfigured automatically</div>
+					</td>
+					<td rowspan="5" class="add-note addName">
+						A "listen" section defines a complete proxy with its frontend and backend parts combined in one section. It is generally useful for TCP-only traffic.
+						<br /><br />
+						All proxy names must be formed from upper and lower case letters, digits,
+						'-' (dash), '_' (underscore) , '.' (dot) and ':' (colon). ACL names are
+						case-sensitive, which means that "www" and "WWW" are two different proxies.
+						<br /><br />
+						Historically, all proxy names could overlap, it just caused troubles in the
+						logs. Since the introduction of content switching, it is mandatory that two
+						proxies with overlapping capabilities (frontend/backend) have different names.
+						However, it is still permitted that a frontend and a backend share the same
+						name, as this configuration seems to be commonly encountered.
 					</td>
 				</tr>
 		<tr>
@@ -41,10 +54,6 @@
 				<input type="number" name="port" id="listen-port" required title="Port for bind listen" size="5" placeholder="8080" class="form-control">
 				<div class="tooltip tooltipTop">IP for bind listner, <b>if empty will be assignet on all IPs</b>. Start typing ip, or press down.<br>If you use <b>VRRP keep in blank</b>. If you assign an IP, the slave will not start</div>
 			</td>
-		</tr>
-		<tr class="advance-show">
-			<td class="addName">Advanced:</td>
-			<td class="addOption"><a href="#" title="Show Advanced settings">Show Advanced settings</a></td>
 		</tr>
 		<tr class="advance">
 			<td class="addName">Mode: </td>
@@ -170,6 +179,11 @@
 				<span>
 					<a class="add-server" id="add-server" title="Add backend server" style="cursor: pointer;"></a>
 				</span>
+			</td>
+		</tr>
+		<tr class="advance">
+			<td class="addName">Check:</td>
+			<td class="addOption">
 				<div>
 					<label for="controlgroup-listen-show" style="margin-top: 5px;" title="Change default check">Cusmot check params</label>
 					<input type="checkbox" id="controlgroup-listen-show" name="default-check" value="1">
@@ -199,6 +213,10 @@
 				</div>
 			</td>
 		</tr>
+		<tr class="advance-show">
+			<td class="addName">Advanced:</td>
+			<td class="addOption"><a href="#" title="Show Advanced settings">Show Advanced settings</a></td>
+		</tr>
 		<tr>
 			<td class="addButton">
 				<button type="submit" value="" name="" class="btn btn-default">Add Listen</button>
@@ -224,6 +242,19 @@
 					</select>
 					<div class="tooltip tooltipTop"><b>Note:</b> If you reconfigure Master  server, Slave will reconfigured automatically</div>
 				</td>
+				<td rowspan="5" class="add-note addName">
+						A "frontend" section describes a set of listening sockets accepting client connections.
+						<br /><br />
+						All proxy names must be formed from upper and lower case letters, digits,
+						'-' (dash), '_' (underscore) , '.' (dot) and ':' (colon). ACL names are
+						case-sensitive, which means that "www" and "WWW" are two different proxies.
+						<br /><br />
+						Historically, all proxy names could overlap, it just caused troubles in the
+						logs. Since the introduction of content switching, it is mandatory that two
+						proxies with overlapping capabilities (frontend/backend) have different names.
+						However, it is still permitted that a frontend and a backend share the same
+						name, as this configuration seems to be commonly encountered.
+				</td>
 			</tr>
 		<tr>
 			<td class="addName">Name:</td>
@@ -238,10 +269,6 @@
 				<input type="number" name="port" required title="Port for bind frontend" placeholder="8080" class="form-control">
 				<div class="tooltip tooltipTop">IP for bind listner, <b>if empty will be assignet on all IPs</b>. Start typing ip, or press down.<br>If you use <b>VRRP keep in blank</b>. If you assign an IP, the slave will not start</div>
 			</td>
-		</tr>
-		<tr class="advance-show">
-			<td class="addName">Advanced:</td>
-			<td class="addOption"><a href="#" title="Show Advanced settings">Show Advanced settings</a></td>
 		</tr>
 		<tr class="advance">
 			<td class="addName">Mode: </td>
@@ -319,6 +346,10 @@
 				<p style="font-size: 12px"><b>Note:</b> If backend don\t exist, you must <a href="#" style="color: #23527c"  title="Create backend" id="redirectBackend">create backend first</a>.</p>
 			</td>
 		</tr>
+		<tr class="advance-show">
+			<td class="addName">Advanced:</td>
+			<td class="addOption"><a href="#" title="Show Advanced settings">Show Advanced settings</a></td>
+		</tr>
 		<tr>
 			<td class="addButton">
 				<button type="submit" value="" name="" class="btn btn-default">Add Frontend</button>
@@ -345,16 +376,25 @@
 					</select>
 					<div class="tooltip tooltipTop"><b>Note:</b> If you reconfigure Master server, Slave will reconfigured automatically</div>
 				</td>
+				<td rowspan="4" class="add-note addName">
+						A "backend" section describes a set of servers to which the proxy will connect to forward incoming connections.
+						<br /><br />
+						All proxy names must be formed from upper and lower case letters, digits,
+						'-' (dash), '_' (underscore) , '.' (dot) and ':' (colon). ACL names are
+						case-sensitive, which means that "www" and "WWW" are two different proxies.
+						<br /><br />
+						Historically, all proxy names could overlap, it just caused troubles in the
+						logs. Since the introduction of content switching, it is mandatory that two
+						proxies with overlapping capabilities (frontend/backend) have different names.
+						However, it is still permitted that a frontend and a backend share the same
+						name, as this configuration seems to be commonly encountered.
+				</td>
 			</tr>
 		<tr>
 			<td class="addName">Name:</td>
 			<td class="addOption">
 				<input type="text" name="new_backend" id="new_backend" required title="Name backend"  placeholder="web_80" class="form-control">
 			</td>
-		</tr>
-		<tr class="advance-show">
-			<td class="addName">Advanced:</td>
-			<td class="addOption"><a href="#" title="Show Advanced settings">Show Advanced settings</a></td>
 		</tr>
 		<tr class="advance">
 			<td class="addName">Mode: </td>
@@ -368,8 +408,6 @@
 					<input type="checkbox" id="https-backend" name="ssl" value="https">
 				</span>
 				<div id="https-hide-backend" style="display: none;">
-					<br /><span class="tooltip tooltipTop">Enter name to pem file, or press down:</span><br />
-					<input type="text" name="cert" placeholder="some_cert.pem" class="form-control" size="39" id="path-cert-backend"><br />
 					<label for="ssl-check" style="margin-top: 5px;">Disable ssl verify on servers?</label><input type="checkbox" id="ssl-check" name="ssl-check" value="ssl-check" checked>
 				</div>				
 			</td>
@@ -465,6 +503,11 @@
 				<span>
 					<a class="add-server" id="add-server2" title="Add backend server" style="cursor: pointer;"></a>
 				</span>
+			</td>
+		</tr>
+		<tr class="advance">
+			<td class="addName">Check:</td>
+			<td class="addOption">
 				<div>
 					<label for="controlgroup-backend-show" style="margin-top: 5px;" title="Change default check"	>Cusmot check params</label>
 					<input type="checkbox" id="controlgroup-backend-show" name="default-check">
@@ -493,6 +536,10 @@
 					</select>
 				</div>
 			</td>
+		</tr>
+		<tr class="advance-show">
+			<td class="addName">Advanced:</td>
+			<td class="addOption"><a href="#" title="Show Advanced settings">Show Advanced settings</a></td>
 		</tr>
 		<tr>
 			<td class="addButton">

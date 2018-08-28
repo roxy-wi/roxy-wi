@@ -77,7 +77,7 @@ if form.getvalue('mode') is not None:
 	else:
 		ssl_check = ""
 				
-	if not ip and form.getvalue('port') is not None:
+	if not ip and port is not None:
 		bind = "    bind *:"+ port + " " + ssl + "\n" 
 	elif port is not None:
 		bind = "    bind " + ip + ":" + port + " " + ssl + "\n"
