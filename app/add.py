@@ -149,7 +149,7 @@ if form.getvalue('mode') is not None:
 		server_port = form.getlist('server_port')
 		i = 0
 		for server in servers:
-			servers_split += "    server test " + server +":"+server_port[i]+ check + "\n"
+			servers_split += "    server "+server+" " + server +":"+server_port[i]+ check + "\n"
 			i += 1
 		
 	compression = form.getvalue("compression")
