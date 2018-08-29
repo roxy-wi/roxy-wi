@@ -39,7 +39,11 @@ function installWaf(ip) {
 		success: function( data ) { 
 		data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error') != '-1' || data.indexOf('Failed') != '-1') {
-				$("#ajax").html('<div class="alert alert-danger">'+data+'</data>');
+				$("#ajax").html('<div class="alert alert-danger" style="margin: 15px;">'+data+'</data>');
+				$('#errorMess').click(function() {
+					$('#error').remove();
+					$('.alert-danger').remove();
+				});
 			} else if (data.indexOf('success') != '-1' ){
 				$('.alert-danger').remove();
 				$('.alert-warning').remove();

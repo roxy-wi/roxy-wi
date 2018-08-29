@@ -18,6 +18,11 @@ done
 VERSION=$(echo $VERSION | awk -F"-" '{print $1}')
 VERSION_MAJ=$(echo $VERSION | awk -F"." '{print $1"."$2}')
 
+if (( $(awk 'BEGIN {print ("'$VERSION_MAJ'" < "'1.8'")}') )); then
+	echo 'error: Need HAProxy version 1.8 or later <a title="Close" id="errorMess"><b>X</b></a>'
+	exit 1
+fi
+
 if [[ $PROXY != "" ]]
 then
 	export http_proxy="$PROXY"

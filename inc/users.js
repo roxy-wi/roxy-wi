@@ -129,6 +129,7 @@ $( function() {
 		$.ajax( {
 			url: "sql.py",
 			data: {
+				newuser: "1",
 				newusername: $('#new-username').val(),
 				newpassword: $('#new-password').val(),
 				newemail: $('#new-email').val(),
@@ -158,7 +159,8 @@ $( function() {
 		$.ajax( {
 			url: "sql.py",
 			data: {
-				newgroup: $('#new-group-add').val(),
+				newgroup: "1",
+				groupname: $('#new-group-add').val(),
 				newdesc: $('#new-desc').val(),
 			},
 			type: "GET",
@@ -199,7 +201,8 @@ $( function() {
 		$.ajax( {
 			url: "sql.py",
 			data: {
-				newserver: $('#new-server-add').val(),
+				newserver: "1",
+				servername: $('#new-server-add').val(),
 				newip: $('#new-ip').val(),
 				newservergroup: $('#new-server-group-add').val(),
 				typeip: typeip,

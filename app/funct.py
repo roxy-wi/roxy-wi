@@ -313,8 +313,10 @@ def waf_install(serv, **kwargs):
 	
 	upload(serv, tmp_config_path, script)	
 	os.system("rm -f %s" % script)
-	sql.insert_waf_metrics_enable(serv, "0")
-	ssh_command(serv, commands, print_out="1")
+	
+	stderr = ssh_command(serv, commands, print_out="1")
+	if stderr is None:
+		sql.insert_waf_metrics_enable(serv, "0")
 
 def check_haproxy_version(serv):
 	import sql
@@ -453,6 +455,7 @@ def ssh_command(serv, commands, **kwargs):
 			server_status(stdout)
 		elif kwargs.get('print_out'):
 			print(stdout.read().decode(encoding='UTF-8'))
+			return stdout.read().decode(encoding='UTF-8')
 		else:
 			return stdout.read().decode(encoding='UTF-8')
 			

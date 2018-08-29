@@ -1202,10 +1202,10 @@ $( function() {
 		} );
 	});
 	var add_server_var = '<br /><input name="servers" title="Backend port" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">: <input name="server_port" title="Backend port" size=1 placeholder="yyy" class="form-control">'
-	$('#add-server').click(function() {
+	$('#add-server-input').click(function() {
 		$('#servers').append(add_server_var);		
 	});
-	$('#add-server2').click(function() {
+	$('#add-server-input2').click(function() {
 		$('#servers2').append(add_server_var);		
 	});
 	$('.advance-show').click(function() {

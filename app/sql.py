@@ -1105,17 +1105,16 @@ def select_alert(**kwargs):
 form = cgi.FieldStorage()
 error_mess = '<span class="alert alert-danger" id="error">All fields must be completed <a title="Close" id="errorMess"><b>X</b></a></span>'
 
-if form.getvalue('newusername') is not None:
+if form.getvalue('newuser') is not None:
 	email = form.getvalue('newemail')
 	password = form.getvalue('newpassword')
 	role = form.getvalue('newrole')
 	group = form.getvalue('newgroupuser')
 	new_user = form.getvalue('newusername')	
+	print('Content-type: text/html\n')
 	if password is None or role is None or group is None:
-		print('Content-type: text/html\n')
 		print(error_mess)
 	else:		
-		print('Content-type: text/html\n')
 		if add_user(new_user, email, password, role, group):
 			show_update_user(new_user)
 		
@@ -1126,11 +1125,10 @@ if form.getvalue('updateuser') is not None:
 	group = form.getvalue('usergroup')
 	new_user = form.getvalue('updateuser')	
 	id = form.getvalue('id')	
+	print('Content-type: text/html\n')
 	if password is None or role is None or group is None:
-		print('Content-type: text/html\n')
 		print(error_mess)
 	else:		
-		print('Content-type: text/html\n')
 		update_user(new_user, email, password, role, group, id)
 		
 if form.getvalue('userdel') is not None:
@@ -1140,7 +1138,7 @@ if form.getvalue('userdel') is not None:
 		
 if form.getvalue('newserver') is not None:
 	import funct
-	hostname = form.getvalue('newserver')	
+	hostname = form.getvalue('servername')	
 	ip = form.getvalue('newip')
 	group = form.getvalue('newservergroup')
 	typeip = form.getvalue('typeip')
@@ -1151,11 +1149,10 @@ if form.getvalue('newserver') is not None:
 	metrics = form.getvalue('metrics')
 	page = form.getvalue('page')
 	page = page.split("#")[0]
-	if ip is None or group is None or cred is None:
-		print('Content-type: text/html\n')
+	print('Content-type: text/html\n')
+	if ip is None or group is None or cred is None:		
 		print(error_mess)
 	else:	
-		print('Content-type: text/html\n')
 		if add_server(hostname, ip, group, typeip, enable, master, cred, alert, metrics):
 			show_update_server(ip, page)
 		
@@ -1166,11 +1163,14 @@ if form.getvalue('serverdel') is not None:
 		print("Ok")
 	
 if form.getvalue('newgroup') is not None:
-	newgroup = form.getvalue('newgroup')	
+	newgroup = form.getvalue('groupname')	
 	desc = form.getvalue('newdesc')
 	print('Content-type: text/html\n')
-	if add_group(newgroup, desc):
-		show_update_group(newgroup)
+	if newgroup is None:
+		print(error_mess)
+	else:
+		if add_group(newgroup, desc):
+			show_update_group(newgroup)
 
 if form.getvalue('groupdel') is not None:
 	print('Content-type: text/html\n')
@@ -1181,11 +1181,10 @@ if form.getvalue('updategroup') is not None:
 	name = form.getvalue('updategroup')
 	descript = form.getvalue('descript')	
 	id = form.getvalue('id')	
+	print('Content-type: text/html\n')
 	if name is None:
-		print('Content-type: text/html\n')
 		print(error_mess)
 	else:		
-		print('Content-type: text/html\n')
 		update_group(name, descript, id)
 		
 if form.getvalue('updateserver') is not None:
@@ -1200,11 +1199,10 @@ if form.getvalue('updateserver') is not None:
 	cred = form.getvalue('cred')	
 	alert = form.getvalue('alert_en')	
 	metrics = form.getvalue('metrics')	
+	print('Content-type: text/html\n')
 	if name is None or ip is None:
-		print('Content-type: text/html\n')
 		print(error_mess)
 	else:		
-		print('Content-type: text/html\n')
 		#if funct.ssh_connect(ip, check=1):
 		update_server(name, ip, group, typeip, enable, master, id, cred, alert, metrics)
 		#else:
@@ -1217,12 +1215,11 @@ if form.getvalue('updatessh'):
 	group = form.getvalue('group')	
 	username = form.getvalue('ssh_user')		
 	password = form.getvalue('ssh_pass')
+	print('Content-type: text/html\n')
 	if username is None:
-		print('Content-type: text/html\n')
 		print(error_mess)
 	else:
 		import funct
-		print('Content-type: text/html\n')
 		fullpath = funct.get_config_var('main', 'fullpath')
 		
 		for sshs in select_ssh(id=id):
@@ -1293,12 +1290,11 @@ if form.getvalue('updatetoken') is not None:
 	token = form.getvalue('updatetoken')
 	chanel = form.getvalue('updategchanel')	
 	group = form.getvalue('updategroup')	
-	id = form.getvalue('id')		
+	id = form.getvalue('id')	
+	print('Content-type: text/html\n')	
 	if token is None or chanel is None or group is None:
-		print('Content-type: text/html\n')
 		print(error_mess)
 	else:		
-		print('Content-type: text/html\n')
 		update_telegram(token, chanel, group, id)
 		
 if form.getvalue('updatesettings') is not None:
