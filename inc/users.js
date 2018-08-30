@@ -141,14 +141,19 @@ $( function() {
 				data = data.replace(/\s+/g,' ');
 				if (data.indexOf('error') != '-1') {
 					$("#ajax-users").append(data);
-					$.getScript(users);
+					$('#errorMess').click(function() {
+						$('#error').remove();
+						$('.alert-danger').remove();
+					});
 				} else {
 					$('.alert-danger').remove();
 					$("#ajax-users").append(data);
-					$( ".newuser" ).addClass( "update", 1000, callbackUser );					
-					$.getScript(url);					
+					$( ".newuser" ).addClass( "update", 1000, callbackUser );										
 					$.getScript(awesome);	
-					$.getScript(users);					
+					//$.getScript(url);	
+					$( "input[type=submit], button" ).button();
+					$( "input[type=checkbox]" ).checkboxradio();
+					$( "select" ).selectmenu();				
 				}	
 			}
 		} );
@@ -167,7 +172,10 @@ $( function() {
 			success: function( data ) {
 				if (data.indexOf('error') != '-1') {
 					$("#ajax-group").append(data);
-					$.getScript(users);
+					$('#errorMess').click(function() {
+						$('#error').remove();
+						$('.alert-danger').remove();
+					});
 				} else {
 					var getId = new RegExp('[0-9]+');
 					var id = data.match(getId);
@@ -218,12 +226,18 @@ $( function() {
 				data = data.replace(/\s+/g,' ');
 				if (data.indexOf('error') != '-1') {
 					$("#ajax-servers").append(data);
-					$.getScript(users);
+					$('#errorMess').click(function() {
+						$('#error').remove();
+						$('.alert-danger').remove();
+					});
 				} else {
 					$('.alert-danger').remove();
 					$("#ajax-servers").append(data);
 					$(".newserver").addClass( "update", 1000, callbackServer );		
-					$.getScript(url);	
+					//$.getScript(url);	
+					$( "input[type=submit], button" ).button();
+					$( "input[type=checkbox]" ).checkboxradio();
+					$( "select" ).selectmenu();
 					$.getScript(awesome);					
 				}
 			}					
@@ -251,17 +265,26 @@ $( function() {
 			success: function( data ) {
 				if (data.indexOf('error') != '-1') {
 					$("#ajax-ssh").append(data);
-					$.getScript(users);
+					$('#errorMess').click(function() {
+						$('#error').remove();
+						$('.alert-danger').remove();
+					});
 				} else {
 					var getId = new RegExp('ssh-table-[0-9]+');
 					var id = data.match(getId) + '';
 					id = id.split('-').pop();;
 					$("#ssh_enable_table").append(data);
-					$( ".newgroup" ).addClass( "update", 1000, callbackGroup );
+					$( ".new_ssh" ).addClass( "update", 1000 );
+					setTimeout(function() {
+						$( ".new_ssh" ).removeClass( "update" );
+					}, 2500 );
 					$('select:regex(id, credentials)').append('<option value='+id+'>'+$('#new-ssh-add').val()+'</option>').selectmenu("refresh");
 					$('select:regex(id, ssh-key-name)').append('<option value='+$('#new-ssh-add').val()+'>'+$('#new-ssh-add').val()+'</option>').selectmenu("refresh");
 					$.getScript(awesome);
-					$.getScript(url);	
+					//$.getScript(url);	
+					$( "input[type=submit], button" ).button();
+					$( "input[type=checkbox]" ).checkboxradio();
+					$( "select" ).selectmenu();
 				}
 			}					
 		} );
@@ -281,12 +304,18 @@ $( function() {
 			success: function( data ) {
 				if (data.indexOf('error') != '-1') {
 					$("#ajax-telegram").append(data);
-					$.getScript(users);
+					$('#errorMess').click(function() {
+						$('#error').remove();
+						$('.alert-danger').remove();
+					});
 				} else {
 					$("#checker_table").append(data);
 					$( ".newgroup" ).addClass( "update", 1000, callbackGroup );
 					$.getScript(awesome);
-					$.getScript(url);
+					//$.getScript(url);	
+					$( "input[type=submit], button" ).button();
+					$( "input[type=checkbox]" ).checkboxradio();
+					$( "select" ).selectmenu();
 				}
 			}					
 		} );
@@ -405,7 +434,10 @@ function updateSettings(param, val) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error') != '-1') {
 				$("#ajax").append(data);
-				$.getScript(users);
+				$('#errorMess').click(function() {
+					$('#error').remove();
+					$('.alert-danger').remove();
+				});
 			} else {
 				$('.alert-danger').remove();
 				$("#"+param).parent().parent().addClass( "update", 1000 );
@@ -622,13 +654,16 @@ function updateUser(id) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error') != '-1') {
 				$("#ajax-users").append(data);
-				$.getScript(users);
+				$('#errorMess').click(function() {
+					$('#error').remove();
+					$('.alert-danger').remove();
+				});
 			} else {
 				$('.alert-danger').remove();
 				$("#user-"+id).addClass( "update", 1000 );
-			setTimeout(function() {
-				$( "#user-"+id ).removeClass( "update" );
-			}, 2500 );
+				setTimeout(function() {
+					$( "#user-"+id ).removeClass( "update" );
+				}, 2500 );
 			}
 		}
 	} );
@@ -647,7 +682,10 @@ function updateGroup(id) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error') != '-1') {
 				$("#ajax-group").append(data);
-				$.getScript(users);
+				$('#errorMess').click(function() {
+					$('#error').remove();
+					$('.alert-danger').remove();
+				});
 			} else {
 				$('.alert-danger').remove();
 				$("#group-"+id).addClass( "update", 1000 );
@@ -701,7 +739,10 @@ function updateServer(id) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error') != '-1') {
 				$("#ajax-servers").append(data);
-				$.getScript(users);
+				$('#errorMess').click(function() {
+					$('#error').remove();
+					$('.alert-danger').remove();
+				});
 			} else {
 				$('.alert-danger').remove();
 				$("#server-"+id).addClass( "update", 1000 );
@@ -761,7 +802,10 @@ function updateSSH(id) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error') != '-1') {
 				$("#ajax-ssh").append(data);
-				$.getScript(users);
+				$('#errorMess').click(function() {
+					$('#error').remove();
+					$('.alert-danger').remove();
+				});
 			} else {
 				$('.alert-danger').remove();
 				$("#ssh-table-"+id).addClass( "update", 1000 );
@@ -791,7 +835,10 @@ function updateTelegram(id) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error') != '-1') {
 				$("#ajax-ssh").append(data);
-				$.getScript(users);
+				$('#errorMess').click(function() {
+					$('#error').remove();
+					$('.alert-danger').remove();
+				});
 			} else {
 				$('.alert-danger').remove();
 				$("#telegram-table-"+id).addClass( "update", 1000 );

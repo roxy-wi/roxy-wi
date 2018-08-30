@@ -101,7 +101,7 @@ pre {
 	margin-left: auto;
 	float: right;
 	margin-top: 5px;
-	margin-right: 30px;
+	margin-right: 5px;
 }
 .auto-refresh a {
 	color: #fff !important;
@@ -608,6 +608,9 @@ a:focus {
     color: #856404;
     background-color: #fff3cd;
     border-color: #ffeeba;
+}
+#errorMess {
+	float: right;
 }
 .added {
 	position: absolute;

@@ -49,11 +49,10 @@ if(Cookies.get('restart')) {
 				if (cur_url[0] == "overview.py") {
 					$("#apply_div").css('width', '650px');
 					$("#apply_div").html("You made changes to the server: "+ip+". Changes will take effect only after<a id='"+ip+"' class='restart' title='Restart HAproxy service'>restart</a><a href='#' title='close' id='apply_close' style='float: right'><b>X</b></a>");					
-					$.getScript('/inc/overview.js');
 				} else {
 					$("#apply_div").html("You made changes to the server: "+ip+". Changes will take effect only after restart. <a href='overview.py' title='Overview'>Go to Overview page and restart</a><a href='#' title='close' id='apply_close' style='float: right'><b>X</b></a>");
-					$.getScript('/inc/overview.js');
 				}
+				$.getScript('/inc/overview.js');
 			}
 		}					
 	} );
@@ -90,6 +89,7 @@ function autoRefreshStyle(autoRefresh) {
 function setRefreshInterval(interval) {
 	if (interval == "0") {
 		Cookies.remove('auto-refresh', { path: '' });
+		Cookies.remove('auto-refresh-pause', { path: '' });
 		pauseAutoRefresh();
 		$('.auto-refresh').prepend('<img src=/image/pic/update.png alt="restart" class="icon">');
 		$('.auto-refresh').css('margin-top', '-3px');
@@ -196,9 +196,12 @@ function showOverviewWaf() {
 		success: function( data ) {
 			$("#ajaxwafstatus").empty();
 			$("#ajaxwafstatus").html(data);
-			$.getScript('/inc/overview.js');
-			$.getScript('/inc/waf.js');
-			$.getScript(url);
+			$.getScript('/inc/overview.js');			
+			if (cur_url[0] == "waf.py") {
+				$.getScript('/inc/waf.js');
+				$( "input[type=submit], button" ).button();
+				$( "input[type=checkbox]" ).checkboxradio();
+			}
 		}					
 	} );
 }
@@ -306,7 +309,6 @@ function showCompare() {
 		type: "GET",
 		success: function( data ) {
 			$("#ajax").html(data);
-			$.getScript(url);
 		}					
 	} );
 }
@@ -322,7 +324,8 @@ function showCompareConfigs() {
 		type: "GET",
 		success: function( data ) {
 			$("#ajax-compare").html(data);
-			$.getScript(url);
+			$( "input[type=submit], button" ).button();
+			$( "select" ).selectmenu();
 		}					
 	} );
 }
@@ -337,8 +340,7 @@ function showConfig() {
 		type: "GET",
 		success: function( data ) {
 			$("#ajax").html(data);
-			var urlConfigShowJs = '/inc/configshow.js';
-			$.getScript(urlConfigShowJs);
+			$.getScript('/inc/configshow.js');
 		}					
 	} );
 }
@@ -364,8 +366,7 @@ function showUploadConfig() {
 			} else {
 				window.history.pushState("Show config", "Show config", cur_url[0]+"?serv="+$("#serv").val()+"&open=open&configver="+$('#configver').val());
 			}
-			var urlConfigShowJs = '/inc/configshow.js';
-			$.getScript(urlConfigShowJs);
+			$.getScript('/inc/configshow.js');
 		}					
 	} );
 }

@@ -33,5 +33,6 @@ output_from_parsed_template = template.render(h2 = 1,
 												select_id = "serv",
 												selects = servers,
 												token = token,
+												serv = serv,
 												servbackend = servbackend)											
 print(output_from_parsed_template)
