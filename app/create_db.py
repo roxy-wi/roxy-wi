@@ -527,7 +527,7 @@ def update_db_v_3(**kwargs):
 		
 def update_db_v_31(**kwargs):
 	con, cur = get_cur()
-	sql = [ "ALTER TABLE `settings` ADD COLUMN `desc` varchar(64); ", 
+	sql = [ "ALTER TABLE `settings` ADD COLUMN `desc` varchar(100); ", 
 				"INSERT INTO settings (param, value, section, `desc`) values('time_zone', 'UTC', 'main', 'Time Zone');",
 				"INSERT INTO settings (param, value, section, `desc`) values('proxy', '', 'main', 'Proxy server. Use proto://ip:port');",
 				"INSERT INTO settings (param, value, section, `desc`) values('session_ttl', '5', 'main', 'Time to live users sessions. In days');",

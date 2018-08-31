@@ -313,7 +313,7 @@ if serv is not None and form.getvalue('right') is not None:
 	right = form.getvalue('right')
 	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 	cmd='diff -ub %s%s %s%s' % (hap_configs_dir, left, hap_configs_dir, right)	
-	env = Environment(loader=FileSystemLoader('templates/ajax'),extensions=['jinja2.ext.loopcontrols'])
+	env = Environment(loader=FileSystemLoader('templates/ajax'),extensions=['jinja2.ext.loopcontrols', "jinja2.ext.do"])
 	template = env.get_template('compare.html')
 	
 	output, stderr = funct.subprocess_execute(cmd)
