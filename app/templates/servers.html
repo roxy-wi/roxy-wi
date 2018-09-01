@@ -21,6 +21,7 @@
 			<tr class="overviewHead">
 				<td class="padding10 first-collumn">Hostname</td>
 				<td>IP</td>
+				<td><span title="SSH port">Port(?)</span></td></td>
 				<td>Enable</td>
 				<td><span title="Vitrual IP, something like VRRP">Virt(?)</span></td>
 				<td><span title="Alert if backend change status. Before enable add Telgram chanel at Checker tab">Alert(?)</span></td>
@@ -40,6 +41,9 @@
 					<input type="text" id="ip-{{server.0}}" value="{{server.2}}" class="form-control">
 					<input type="hidden" id="new-server-group-add" name="servergroup-{{server.0}}" value="{{ group }}" >
 					<input type="hidden" id="servergroup-{{server.0}}" name="servergroup-{{server.0}}" value="{{ group }}" >					
+				</td>
+				<td>
+					<input type="text" id="port-{{server.0}}" value="{{server.10}}" size="1" class="form-control">
 				</td>
 				<td>
 					{% if server.5 == 1 %}
@@ -107,6 +111,7 @@
 			<tr class="overviewHead">
 				<td class="padding10 first-collumn">New hostname</td>
 				<td>IP</td>
+				<td><span title="SSH port">Port(?)</span></td></td>
 				<td>Enable</td>
 				<td><span title="Vitrual IP, something like VRRP">Virt(?)</span></td>
 				<td><span title="Alert if backend change status">Alert(?)</span></td>
@@ -122,7 +127,10 @@
 				<td>
 					<input type="text" name="new-ip" id="new-ip" class="form-control">
 					<input type="hidden" id="new-sshgroup" name="new-sshgroup" value="{{ group }}" >
-				</td>					
+				</td>	
+				<td>
+					<input type="text" name="new-port" id="new-port" size=1 class="form-control" value="22">
+				</td>				
 				<td>
 					<label for="enable"></label><input type="checkbox" id="enable" checked>
 				</td>

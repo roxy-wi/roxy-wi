@@ -159,15 +159,19 @@ def ssh_connect(serv, **kwargs):
 		ssh_user_name = sshs[4]
 		ssh_user_password = sshs[5]
 		ssh_key_name = fullpath+'/keys/%s.pem' % sshs[2]
+	servers = sql.select_servers(server=serv)
+	for server in servers:
+		ssh_port = server[10]
+
 	ssh = SSHClient()
 	ssh.load_system_host_keys()
 	ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 	try:
 		if ssh_enable == 1:
 			k = paramiko.RSAKey.from_private_key_file(ssh_key_name)
-			ssh.connect(hostname = serv, username = ssh_user_name, pkey = k )
+			ssh.connect(hostname = serv, port =  ssh_port, username = ssh_user_name, pkey = k)
 		else:
-			ssh.connect(hostname = serv, username = ssh_user_name, password = ssh_user_password)
+			ssh.connect(hostname = serv, port =  ssh_port, username = ssh_user_name, password = ssh_user_password)
 		if kwargs.get('check'):
 			return True
 		else:
@@ -196,9 +200,9 @@ def ssh_connect(serv, **kwargs):
 	except Exception as e:
 		if e == "No such file or directory":
 			if kwargs.get('check'):
-				print('<div class="alert alert-danger">{}. Check ssh key</div>'.format(e))	
+				print('<div class="alert alert-danger">%s. Check ssh key</div>') % e	
 			else:
-				return '{}. Check ssh key'.format(e)
+				return '%s. Check ssh key' % e
 				pass
 		elif e == "Invalid argument":
 			if kwargs.get('check'):
@@ -208,7 +212,7 @@ def ssh_connect(serv, **kwargs):
 				pass
 		else:
 			if kwargs.get('check'):
-				print('<div class="alert alert-danger">{}</div>'.format(e))	
+				print('<div class="alert alert-danger">%s</div>') % e	
 			else:
 				error = e	
 				pass
@@ -232,7 +236,7 @@ def get_config(serv, cfg, **kwargs):
 		sftp.close()
 		ssh.close()
 	except Exception as e:
-		ssh += str(e)
+		ssh = str(e)
 		return ssh
 	
 def diff_config(oldcfg, cfg):
@@ -465,6 +469,7 @@ def ssh_command(serv, commands, **kwargs):
 	try:	
 		ssh.close()
 	except:
+		ssh = str(ssh)
 		print("<div class='alert alert-danger'>"+ssh+"</div>")
 		pass
 

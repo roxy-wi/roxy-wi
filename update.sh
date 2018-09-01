@@ -17,7 +17,7 @@ else
 fi
 
 cd app/
-./update_db.py
+./create_db.py
 
 pip3 install -r ../requirements.txt
 

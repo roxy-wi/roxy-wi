@@ -9,6 +9,9 @@
 						<input type="hidden" id="servergroup-{{server.0}}" name="servergroup-{{server.0}}" value="{{ ssh_group.0 }}" >
 					{% endif %}
 				</td>
+				<td>
+					<input type="text" id="port-{{server.0}}" value="{{server.10}}" size="1" class="form-control">
+				</td>
 				{% if page != "servers.py" %}
 				<td>				
 					<select id="servergroup-{{server.0}}" name="servergroup-{{server.0}}">

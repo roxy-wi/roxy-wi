@@ -161,6 +161,7 @@
 			<tr class="overviewHead">
 				<td class="padding10 first-collumn">Hostname</td>
 				<td>IP</td>
+				<td><span title="SSH port">Port(?)</span></td></td>
 				<td>Group</td>
 				<td>Enable</td>
 				<td><span title="Vitrual IP, something like VRRP">Virt(?)</span></td>
@@ -178,6 +179,9 @@
 				</td>
 				<td>
 					<input type="text" id="ip-{{server.0}}" value="{{server.2}}" class="form-control">
+				</td>
+				<td>
+					<input type="text" id="port-{{server.0}}" value="{{server.10}}" size="1" class="form-control">
 				</td>
 				<td>
 					<select id="servergroup-{{server.0}}" name="servergroup-{{server.0}}">
@@ -255,6 +259,7 @@
 			<tr class="overviewHead">
 				<td class="padding10 first-collumn">New hostname</td>
 				<td>IP</td>
+				<td><span title="SSH port">Port(?)</span></td></td>
 				<td>Group</td>
 				<td>Enable</td>
 				<td><span title="Vitrual IP, something like VRRP">Virt(?)</span></td>
@@ -270,6 +275,9 @@
 				</td>
 				<td>
 					<input type="text" name="new-ip" id="new-ip" class="form-control">
+				</td>
+				<td>
+					<input type="text" name="new-port" id="new-port" size=1 class="form-control" value="22">
 				</td>
 				<td>
 					<select id="new-server-group-add" name="new-server-group-add">

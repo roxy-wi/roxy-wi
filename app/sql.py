@@ -143,7 +143,7 @@ def delete_server(id):
 	cur.close()    
 	con.close() 		
 
-def update_server(hostname, ip, group, typeip, enable, master, id, cred, alert, metrics):
+def update_server(hostname, ip, group, typeip, enable, master, id, cred, alert, metrics, port):
 	con, cur = create_db.get_cur()
 	sql = """update servers set 
 			hostname = '%s',
@@ -154,8 +154,9 @@ def update_server(hostname, ip, group, typeip, enable, master, id, cred, alert, 
 			master = '%s',
 			cred = '%s',
 			alert = '%s',
-			metrics = '%s'
-			where id = '%s'""" % (hostname, ip, group, typeip, enable, master, cred, alert, metrics, id)
+			metrics = '%s',
+			port = '%s'
+			where id = '%s'""" % (hostname, ip, group, typeip, enable, master, cred, alert, metrics, port, id)
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -1199,12 +1200,13 @@ if form.getvalue('updateserver') is not None:
 	cred = form.getvalue('cred')	
 	alert = form.getvalue('alert_en')	
 	metrics = form.getvalue('metrics')	
+	port = form.getvalue('port')	
 	print('Content-type: text/html\n')
 	if name is None or ip is None:
 		print(error_mess)
 	else:		
 		#if funct.ssh_connect(ip, check=1):
-		update_server(name, ip, group, typeip, enable, master, id, cred, alert, metrics)
+		update_server(name, ip, group, typeip, enable, master, id, cred, alert, metrics, port)
 		#else:
 		#	print('<span class="alert alert-danger" id="error"><a title="Close" id="errorMess"><b>X</b></a></span>')
 			
