@@ -192,7 +192,7 @@ def select_users(**kwargs):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		print("An error occurred:", e.args[0])
+		print("An error occurred:", e)
 	else:
 		return cur.fetchall()
 	cur.close()    
