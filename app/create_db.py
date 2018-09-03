@@ -187,8 +187,8 @@ def update_db_v_31(**kwargs):
 			"INSERT INTO settings (param, value, section, `desc`) values('tmp_config_path', '/tmp/', 'haproxy', 'Temp store configs, for haproxy check');",
 			"INSERT INTO settings (param, value, section, `desc`) values('cert_path', '/etc/ssl/certs/', 'haproxy', 'Path to SSL dir');",
 			"INSERT INTO settings (param, value, section, `desc`) values('firewall_enable', '0', 'haproxy', 'If enable this option Haproxy-wi will be configure firewalld based on config port');",
-			"INSERT INTO settings (param, value, section, `desc`) values('lists_path', 'lists', 'main', 'Path to black/white lists', 'lists_path');",
-			"INSERT INTO settings (param, value, section, `desc`) values ('apache_log_path', '/var/log/httpd/', 'logs', 'Path to Apache logs');" ]
+			"INSERT INTO settings (param, value, section, `desc`) values('lists_path', 'lists', 'main', 'Path to black/white lists');",
+			"INSERT INTO settings (param, value, section, `desc`) values('apache_log_path', '/var/log/httpd/', 'logs', 'Path to Apache logs');" ]
 	try:    
 		for i in sql:
 			cur.execute(i)
