@@ -114,11 +114,7 @@ def create_table(**kwargs):
 			`description`	VARCHAR ( 255 ),
 			PRIMARY KEY(`id`)
 		);
-		INSERT INTO `groups` (name, description) VALUES ('All','All servers enter in this group');		
-		CREATE TABLE IF NOT EXISTS `uuid` (
-			`user_id`	INTEGER NOT NULL,
-			`uuid`	varchar ( 64 )
-		);
+		INSERT INTO `groups` (name, description) VALUES ('All','All servers enter in this group');
 		CREATE TABLE IF NOT EXISTS `cred` (
 			`id` integer primary key autoincrement,
 			`name`	VARCHAR ( 64 ) UNIQUE,

@@ -11,6 +11,13 @@ if mysql_enable == '1':
 	import mysql.connector as sqltool
 else:	
 	import sqlite3 as sqltool
+	
+def out_error(e):
+	if mysql_enable == '1':
+		error = e
+	else:
+		error = e.args[0]
+	print('<span class="alert alert-danger" id="error">An error occurred: ' + error + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 		
 def add_user(user, email, password, role, group):
 	con, cur = create_db.get_cur()
@@ -19,7 +26,7 @@ def add_user(user, email, password, role, group):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 		con.rollback()
 		return False
 	else:
@@ -39,7 +46,7 @@ def update_user(user, email, password, role, group, id):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 		con.rollback()
 		return False
 	else:
@@ -54,7 +61,7 @@ def delete_user(id):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print("An error occurred:", e.args[0])
+		out_error(e)
 		con.rollback()
 	else: 
 		return True
@@ -67,7 +74,7 @@ def add_group(name, description):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 		con.rollback()
 		return False
 	else:
@@ -83,7 +90,7 @@ def delete_group(id):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 		con.rollback()
 	else: 
 		return True
@@ -102,7 +109,7 @@ def update_group(name, descript, id):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 		con.rollback()
 		return False
 	else:
@@ -122,7 +129,7 @@ def add_server(hostname, ip, group, typeip, enable, master, cred, alert, metrics
 		con.commit()
 		return True
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 		con.rollback()
 		return False
 		
@@ -136,7 +143,7 @@ def delete_server(id):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 		con.rollback()
 	else: 
 		return True
@@ -161,7 +168,7 @@ def update_server(hostname, ip, group, typeip, enable, master, id, cred, alert, 
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -179,7 +186,7 @@ def update_server_master(master, slave):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -192,7 +199,7 @@ def select_users(**kwargs):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		print("An error occurred:", e)
+		out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -206,7 +213,7 @@ def select_groups(**kwargs):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -218,7 +225,7 @@ def select_user_name_group(id):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 	else:
 		for group in cur.fetchone():
 			return group
@@ -244,45 +251,11 @@ def select_servers(**kwargs):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		print("An error occurred:", e.args[0])
+		out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
 	con.close()  
-	
-def get_type_ip_checkbox(id, **kwargs):
-	con, cur = create_db.get_cur()
-	sql = """select id, type_ip from servers where id='%s' """ % id
-	try:    
-		cur.execute(sql)
-	except sqltool.Error as e:
-		print("An error occurred:", e.args[0])
-	else:
-		for server in cur.fetchall():
-			if server[1] == 1:
-				checked = 'checked'
-			else:
-				checked = ""
-			print('<label for="typeip-%s"></label><input type="checkbox" id="typeip-%s" %s>' % (server[0],server[0], checked))
-	cur.close()    
-	con.close() 
-	
-def get_enable_checkbox(id, **kwargs):
-	con, cur = create_db.get_cur()
-	sql = """select id, enable from servers where id='%s' """ % id
-	try:    
-		cur.execute(sql)
-	except sqltool.Error as e:
-		print("An error occurred:", e.args[0])
-	else:
-		for server in cur.fetchall():
-			if server[1] == 1:
-				checked = 'checked'
-			else:
-				checked = ""
-			print('<label for="enable-%s"></label><input type="checkbox" id="enable-%s" %s>' % (server[0],server[0], checked))
-	cur.close()    
-	con.close() 
 	
 def write_user_uuid(login, user_uuid):
 	con, cur = create_db.get_cur()
@@ -292,17 +265,17 @@ def write_user_uuid(login, user_uuid):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 	for id in cur.fetchall():
 		if mysql_enable == '1':
-			sql = """ insert into uuid (user_id, uuid, exp) values('%s', '%s',  now()+ INTERVAL %s day) """ % (id[0], user_uuid, session_ttl)
+			sql = """ insert into uuid (user_id, uuid, exp) values('%s', '%s',  now()+ INTERVAL '%s' day) """ % (id[0], user_uuid, session_ttl)
 		else:
 			sql = """ insert into uuid (user_id, uuid, exp) values('%s', '%s',  datetime('now', '+%s days')) """ % (id[0], user_uuid, session_ttl)
 	try:    
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -324,19 +297,18 @@ def write_user_token(login, user_token):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
 	
 def get_token(uuid):
 	con, cur = create_db.get_cur()
-
 	sql = """ select token.token from token left join uuid as uuid on uuid.user_id = token.user_id where uuid.uuid = '%s' """ % uuid
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 	else:
 		for token in cur.fetchall():
 			return token[0]
@@ -368,7 +340,7 @@ def delete_old_uuid():
 		cur.execute(sql1)
 		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()		
@@ -385,7 +357,7 @@ def update_last_act_user(uuid):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('<div class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></div>')
+		out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -396,7 +368,7 @@ def get_user_name_by_uuid(uuid):
 	try:
 		cur.execute(sql)		
 	except sqltool.Error as e:
-		print("An error occurred:", e)
+		out_error(e)
 	else:
 		for user_id in cur.fetchall():
 			return user_id[0]
@@ -409,7 +381,7 @@ def get_user_role_by_uuid(uuid):
 	try:
 		cur.execute(sql)		
 	except sqltool.Error as e:
-		print("An error occurred:", e)
+		out_error(e)
 	else:
 		for user_id in cur.fetchall():
 			return user_id[0]
@@ -422,7 +394,7 @@ def get_user_group_by_uuid(uuid):
 	try:
 		cur.execute(sql)		
 	except sqltool.Error as e:
-		print("An error occurred:", e)
+		out_error(e)
 	else:
 		for user_id in cur.fetchall():
 			return user_id[0]
@@ -435,7 +407,7 @@ def get_user_telegram_by_uuid(uuid):
 	try:
 		cur.execute(sql)		
 	except sqltool.Error as e:
-		print("An error occurred:", e)
+		out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -447,7 +419,7 @@ def get_telegram_by_ip(ip):
 	try:
 		cur.execute(sql)		
 	except sqltool.Error as e:
-		print("An error occurred:", e)
+		out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -471,8 +443,7 @@ def get_dick_permit(**kwargs):
 		disable = 'or enable = 0'
 	if kwargs.get('ip'):
 		ip = "and ip = '%s'" % kwargs.get('ip')
-		
-		
+				
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
@@ -486,7 +457,11 @@ def get_dick_permit(**kwargs):
 		try:   
 			cur.execute(sql)
 		except sqltool.Error as e:
-			print("An error occurred:", e.args[0])
+			if mysql_enable == '1':
+				error = e
+			else:
+				error = e.args[0]
+			print('<span class="alert alert-danger" id="error">An error occurred: ' + error + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 		else:
 			return cur.fetchall()
 	cur.close()    
@@ -500,7 +475,7 @@ def is_master(ip, **kwargs):
 	try:
 		cur.execute(sql)		
 	except sqltool.Error as e:
-		print("An error occurred:", e)
+		out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -518,7 +493,7 @@ def select_ssh(**kwargs):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -531,7 +506,7 @@ def insert_new_ssh(name, enable, group, username, password):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 		con.rollback()
 	else: 
 		return True
@@ -545,7 +520,7 @@ def delete_ssh(id):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 		con.rollback()
 	else: 
 		return True
@@ -565,7 +540,7 @@ def update_ssh(id, name, enable, group, username, password):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -601,7 +576,7 @@ def delete_telegram(id):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 		con.rollback()
 	else: 
 		return True
@@ -618,7 +593,7 @@ def select_telegram(**kwargs):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		print("An error occurred:", e.args[0])
+		out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -636,7 +611,7 @@ def update_telegram(token, chanel, group, id):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -651,7 +626,7 @@ def insert_mentrics(serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -662,7 +637,7 @@ def select_waf_metrics_enable(id):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -674,7 +649,7 @@ def select_waf_metrics_enable_server(ip):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 	else:
 		for enable in cur.fetchall():
 			return enable[0]
@@ -687,7 +662,7 @@ def select_waf_servers():
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -715,7 +690,11 @@ def select_waf_servers_metrics(uuid, **kwargs):
 		try:   
 			cur.execute(sql)
 		except sqltool.Error as e:
-			print("An error occurred:", e.args[0])
+			if mysql_enable == '1':
+				error = e
+			else:
+				error = e.args[0]
+			print('<span class="alert alert-danger" id="error">An error occurred: ' + error + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 		else:
 			return cur.fetchall()
 	cur.close()    
@@ -727,7 +706,7 @@ def select_waf_metrics(serv, **kwargs):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -740,7 +719,7 @@ def insert_waf_metrics_enable(serv, enable):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -752,7 +731,7 @@ def delete_waf_server(id):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -767,7 +746,7 @@ def insert_waf_mentrics(serv, conn):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -782,7 +761,7 @@ def delete_waf_mentrics():
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -794,7 +773,7 @@ def update_waf_metrics_enable(name, enable):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -809,7 +788,7 @@ def delete_mentrics():
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -820,7 +799,7 @@ def select_metrics(serv, **kwargs):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -832,7 +811,7 @@ def select_servers_metrics_for_master():
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		print("An error occurred:", e.args[0])
+		out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -860,7 +839,11 @@ def select_servers_metrics(uuid, **kwargs):
 		try:   
 			cur.execute(sql)
 		except sqltool.Error as e:
-			print("An error occurred:", e.args[0])
+			if mysql_enable == '1':
+				error = e
+			else:
+				error = e.args[0]
+			print('<span class="alert alert-danger" id="error">An error occurred: ' + error + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 		else:
 			return cur.fetchall()
 	cur.close()    
@@ -979,7 +962,7 @@ def select_table_metrics(uuid):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 	else:
 		
 		return cur.fetchall()
@@ -994,7 +977,7 @@ def get_setting(param, **kwargs):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 	else:
 		if kwargs.get('all'):
 			return cur.fetchall()
@@ -1011,7 +994,7 @@ def update_setting(param, val):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -1062,20 +1045,6 @@ def show_update_group(group):
 
 	output_from_parsed_template = template.render(groups = select_groups(group=group))
 	print(output_from_parsed_template)
-
-def select_roles(**kwargs):
-	con, cur = create_db.get_cur()
-	sql = """select * from role ORDER BY id"""
-	if kwargs.get("role") is not None:
-		sql = """select * from role where name='%s' """ % kwargs.get("group")
-	try:    
-		cur.execute(sql)
-	except sqltool.Error as e:
-		print("An error occurred:", e.args[0])
-	else:
-		return cur.fetchall()
-	cur.close()    
-	con.close()  
 	
 def select_roles(**kwargs):
 	con, cur = create_db.get_cur()
@@ -1085,7 +1054,7 @@ def select_roles(**kwargs):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		print("An error occurred:", e.args[0])
+		out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -1097,7 +1066,7 @@ def select_alert(**kwargs):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		print("An error occurred:", e.args[0])
+		out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -1150,7 +1119,7 @@ if form.getvalue('newserver') is not None:
 	metrics = form.getvalue('metrics')
 	page = form.getvalue('page')
 	page = page.split("#")[0]
-	port = form.getvalue('port')	
+	port = form.getvalue('newport')	
 	print('Content-type: text/html\n')
 	if ip is None or group is None or cred is None or port is None:		
 		print(error_mess)
