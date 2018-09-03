@@ -110,13 +110,13 @@ def update_group(name, descript, id):
 	cur.close()    
 	con.close()
 
-def add_server(hostname, ip, group, typeip, enable, master, cred, alert, metrics):
+def add_server(hostname, ip, group, typeip, enable, master, cred, alert, metrics, port):
 	con, cur = create_db.get_cur()
 	sql = """
 			INSERT INTO servers 
-			(hostname, ip, groups, type_ip, enable, master, cred, alert, metrics) 
-			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
-		""" % (hostname, ip, group, typeip, enable, master, cred, alert, metrics)
+			(hostname, ip, groups, type_ip, enable, master, cred, alert, metrics, port) 
+			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
+		""" % (hostname, ip, group, typeip, enable, master, cred, alert, metrics, port)
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -1150,11 +1150,12 @@ if form.getvalue('newserver') is not None:
 	metrics = form.getvalue('metrics')
 	page = form.getvalue('page')
 	page = page.split("#")[0]
+	port = form.getvalue('port')	
 	print('Content-type: text/html\n')
-	if ip is None or group is None or cred is None:		
+	if ip is None or group is None or cred is None or port is None:		
 		print(error_mess)
 	else:	
-		if add_server(hostname, ip, group, typeip, enable, master, cred, alert, metrics):
+		if add_server(hostname, ip, group, typeip, enable, master, cred, alert, metrics, port):
 			show_update_server(ip, page)
 		
 if form.getvalue('serverdel') is not None:
@@ -1202,13 +1203,10 @@ if form.getvalue('updateserver') is not None:
 	metrics = form.getvalue('metrics')	
 	port = form.getvalue('port')	
 	print('Content-type: text/html\n')
-	if name is None or ip is None:
+	if name is None or ip is None or port is None:
 		print(error_mess)
 	else:		
-		#if funct.ssh_connect(ip, check=1):
 		update_server(name, ip, group, typeip, enable, master, id, cred, alert, metrics, port)
-		#else:
-		#	print('<span class="alert alert-danger" id="error"><a title="Close" id="errorMess"><b>X</b></a></span>')
 			
 if form.getvalue('updatessh'):
 	id = form.getvalue('id')

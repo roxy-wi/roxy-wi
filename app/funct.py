@@ -172,54 +172,27 @@ def ssh_connect(serv, **kwargs):
 			ssh.connect(hostname = serv, port =  ssh_port, username = ssh_user_name, pkey = k)
 		else:
 			ssh.connect(hostname = serv, port =  ssh_port, username = ssh_user_name, password = ssh_user_password)
-		if kwargs.get('check'):
-			return True
-		else:
-			return ssh
+		return ssh
 	except paramiko.AuthenticationException:
-		if kwargs.get('check'):
-			print('<div class="alert alert-danger">Authentication failed, please verify your credentials</div>')
-			return False
-		else:
-			return 'Authentication failed, please verify your credentials'
-			pass
+		return 'Authentication failed, please verify your credentials'
+		pass
 	except paramiko.SSHException as sshException:
-		if kwargs.get('check'):
-			print('<div class="alert alert-danger">Unable to establish SSH connection: %s </div>' % sshException)
-			return False
-		else:
-			return 'Unable to establish SSH connection: %s ' % sshException
-			pass
+		return 'Unable to establish SSH connection: %s ' % sshException
+		pass
 	except paramiko.BadHostKeyException as badHostKeyException:
-		if kwargs.get('check'):
-			print('<div class="alert alert-danger">Unable to verify server\'s host key: %s </div>' % badHostKeyException)	
-			return False
-		else:
-			return 'Unable to verify server\'s host key: %s ' % badHostKeyException
-			pass
+		return 'Unable to verify server\'s host key: %s ' % badHostKeyException
+		pass
 	except Exception as e:
 		if e == "No such file or directory":
-			if kwargs.get('check'):
-				print('<div class="alert alert-danger">%s. Check ssh key</div>') % e	
-			else:
-				return '%s. Check ssh key' % e
-				pass
+			return '%s. Check ssh key' % e
+			pass
 		elif e == "Invalid argument":
-			if kwargs.get('check'):
-				print('<div class="alert alert-danger">Check the IP of the new server</div>')
-			else:
-				error = 'Check the IP of the new server'
-				pass
+			error = 'Check the IP of the server'
+			pass
 		else:
-			if kwargs.get('check'):
-				print('<div class="alert alert-danger">%s</div>') % e	
-			else:
-				error = e	
-				pass
-		if kwargs.get('check'):
-			return False
-		else:
-			return error
+			error = e	
+			pass
+		return str(error)
 
 def get_config(serv, cfg, **kwargs):
 	import sql
@@ -470,7 +443,7 @@ def ssh_command(serv, commands, **kwargs):
 		ssh.close()
 	except:
 		ssh = str(ssh)
-		print("<div class='alert alert-danger'>"+ssh+"</div>")
+		print("<div class='alert alert-danger' style='margin: 0;'>"+ssh+"</div>")
 		pass
 
 def escape_html(text):
