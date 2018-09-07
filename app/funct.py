@@ -1,25 +1,18 @@
 # -*- coding: utf-8 -*-"
 import cgi
 import os, sys
-import paramiko
 import http.cookies
-from paramiko import SSHClient
-from datetime import datetime
-from pytz import timezone
-from configparser import ConfigParser, ExtendedInterpolation
 
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
 
 def get_app_dir():
 	d = sys.path[0]
-	d = d.split('/')[-1]
-	if d == "app":
-		return sys.path[0]		
-	else:
-		return os.path.dirname(sys.path[0])		
+	d = d.split('/')[-1]		
+	return sys.path[0] if d == "app" else os.path.dirname(sys.path[0])	
 
 def get_config_var(sec, var):
+	from configparser import ConfigParser, ExtendedInterpolation
 	try:
 		path_config = get_app_dir()+"/haproxy-webintarface.config"
 		config = ConfigParser(interpolation=ExtendedInterpolation())
@@ -27,15 +20,15 @@ def get_config_var(sec, var):
 	except:
 		print('Content-type: text/html\n')
 		print('<center><div class="alert alert-danger">Check the config file, whether it exists and the path. Must be: app/haproxy-webintarface.config</div>')
-
 	try:
-		var = config.get(sec, var)
-		return var
+		return config.get(sec, var)
 	except:
 		print('Content-type: text/html\n')
 		print('<center><div class="alert alert-danger">Check the config file. Presence section %s and parameter %s</div>' % (sec, var))
 					
 def get_data(type):
+	from datetime import datetime
+	from pytz import timezone
 	import sql
 	now_utc = datetime.now(timezone(sql.get_setting('time_zone')))
 	if type == 'config':
@@ -85,13 +78,12 @@ def telegram_send_mess(mess, **kwargs):
 	import sql
 	
 	telegrams = sql.get_telegram_by_ip(kwargs.get('ip'))
+	proxy = sql.get_setting('proxy')
 	
 	for telegram in telegrams:
 		token_bot = telegram[1]
 		channel_name = telegram[2]
-		
-	proxy = sql.get_setting('proxy')
-	
+			
 	if proxy is not None:
 		apihelper.proxy = {'https': proxy}
 	try:
@@ -131,20 +123,15 @@ def is_admin(**kwargs):
 		level = 1
 		
 	try:
-		if role <= level:
-			return True
-		else:
-			return False
+		return True if role <= level else False
 	except:
 		return False
 		pass
 
 def page_for_admin(**kwargs):
+	give_level = 1
 	give_level = kwargs.get("level")
-	
-	if give_level is None:
-		give_level = 1
-	
+		
 	if not is_admin(level = give_level):
 		print('<center><h3 style="color: red">How did you get here?! O_o You do not have need permissions</h>')
 		print('<meta http-equiv="refresh" content="10; url=/">')
@@ -152,6 +139,8 @@ def page_for_admin(**kwargs):
 		sys.exit()
 				
 def ssh_connect(serv, **kwargs):
+	import paramiko
+	from paramiko import SSHClient
 	import sql
 	fullpath = get_config_var('main', 'fullpath')
 	for sshs in sql.select_ssh(serv=serv):
@@ -196,12 +185,8 @@ def ssh_connect(serv, **kwargs):
 
 def get_config(serv, cfg, **kwargs):
 	import sql
-	error = ""
-	if kwargs.get("keepalived"):
-		config_path = "/etc/keepalived/keepalived.conf"
-	else:
-		config_path = sql.get_setting('haproxy_config_path')
-		
+
+	config_path = "/etc/keepalived/keepalived.conf" if kwargs.get("keepalived") else sql.get_setting('haproxy_config_path')	
 	ssh = ssh_connect(serv)
 	try:
 		sftp = ssh.open_sftp()
@@ -213,7 +198,6 @@ def get_config(serv, cfg, **kwargs):
 		return ssh
 	
 def diff_config(oldcfg, cfg):
-	import subprocess 
 	log_path = get_config_var('main', 'log_path')
 	diff = ""
 	date = get_data('date_in_log') 
@@ -242,10 +226,9 @@ def install_haproxy(serv, **kwargs):
 	stats_password = sql.get_setting('stats_password')
 	proxy = sql.get_setting('proxy')
 	os.system("cp scripts/%s ." % script)
-	if proxy is not None:
-		proxy_serv = proxy
-	else:
-		proxy_serv = ""
+	
+	proxy_serv = proxy if proxy is not None else ""
+		
 	commands = [ "sudo chmod +x "+tmp_config_path+script+" && " +tmp_config_path+"/"+script +" PROXY=" + proxy_serv+ 
 				" SOCK_PORT="+haproxy_sock_port+" STAT_PORT="+stats_port+" STAT_FILE="+server_state_file+
 				" STATS_USER="+stats_user+" STATS_PASS="+stats_password ]
@@ -262,10 +245,7 @@ def syn_flood_protect(serv, **kwargs):
 	script = "syn_flood_protect.sh"
 	tmp_config_path = sql.get_setting('tmp_config_path')
 	
-	if kwargs.get('enable') == "0":
-		enable = "disable"
-	else:
-		enable = "enable"
+	enable = "disable" if kwargs.get('enable') == "0" else "disable"
 
 	os.system("cp scripts/%s ." % script)
 	
@@ -393,12 +373,11 @@ def check_haproxy_config(serv):
 		
 def show_log(stdout):
 	i = 0
+
 	for line in stdout:
 		i = i + 1
-		if i % 2 == 0: 
-			print('<div class="line3">' + escape_html(line) + '</div>')
-		else:
-			print('<div class="line">' + escape_html(line) + '</div>')
+		line_class = "line3" if i % 2 == 0 else "line"
+		print('<div class="'+line_class+'">' + escape_html(line) + '</div>')
 			
 def show_ip(stdout):
 	for line in stdout:
@@ -478,19 +457,10 @@ def show_backends(serv, **kwargs):
 	if kwargs.get('ret'):
 		return ret
 		
-def get_files(**kwargs):
+def get_files(dir = get_config_var('configs', 'haproxy_save_configs_dir'), format = 'cfg', **kwargs):
 	import glob
 	file = set()
 	return_files = set()
-	if kwargs.get('dir'):
-		dir =  kwargs.get('dir')
-	else:
-		dir = get_config_var('configs', 'haproxy_save_configs_dir')
-		
-	if kwargs.get('format'):
-		format = kwargs.get('format')
-	else:
-		format = 'cfg'
 	
 	for files in glob.glob(os.path.join(dir,'*.'+format)):				
 		file.add(files.split('/')[-1])

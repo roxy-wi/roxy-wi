@@ -85,7 +85,7 @@ def add_group(name, description):
 
 def delete_group(id):
 	con, cur = create_db.get_cur()
-	sql = """delete from groups where id = '%s'""" % (id)
+	sql = """ delete from groups where id = '%s'""" % (id)
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -99,8 +99,7 @@ def delete_group(id):
 	
 def update_group(name, descript, id):
 	con, cur = create_db.get_cur()
-	sql = """
-		update groups set 
+	sql = """ update groups set 
 		name = '%s',
 		description = '%s' 
 		where id = '%s';
@@ -119,9 +118,7 @@ def update_group(name, descript, id):
 
 def add_server(hostname, ip, group, typeip, enable, master, cred, alert, metrics, port):
 	con, cur = create_db.get_cur()
-	sql = """
-			INSERT INTO servers 
-			(hostname, ip, groups, type_ip, enable, master, cred, alert, metrics, port) 
+	sql = """ INSERT INTO servers (hostname, ip, groups, type_ip, enable, master, cred, alert, metrics, port) 
 			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
 		""" % (hostname, ip, group, typeip, enable, master, cred, alert, metrics, port)
 	try:    
@@ -131,14 +128,13 @@ def add_server(hostname, ip, group, typeip, enable, master, cred, alert, metrics
 	except sqltool.Error as e:
 		out_error(e)
 		con.rollback()
-		return False
-		
+		return False	
 	cur.close()    
 	con.close() 	
 
 def delete_server(id):
 	con, cur = create_db.get_cur()
-	sql = """delete from servers where id = '%s'""" % (id)
+	sql = """ delete from servers where id = '%s'""" % (id)
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -152,7 +148,7 @@ def delete_server(id):
 
 def update_server(hostname, ip, group, typeip, enable, master, id, cred, alert, metrics, port):
 	con, cur = create_db.get_cur()
-	sql = """update servers set 
+	sql = """ update servers set 
 			hostname = '%s',
 			ip = '%s',
 			groups = '%s',
@@ -179,7 +175,7 @@ def update_server_master(master, slave):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 	for id in cur.fetchall():
 		sql = """ update servers set master = '%s' where ip = '%s' """ % (id[0], slave)
 	try:    
@@ -242,8 +238,7 @@ def select_servers(**kwargs):
 	if kwargs.get("get_master_servers") is not None:
 		sql = """select id,hostname from servers where master = 0 and type_ip = 0 and enable = 1 ORDER BY groups """ 
 	if kwargs.get("get_master_servers") is not None and kwargs.get('uuid') is not None:
-		sql = """
-			select servers.id, servers.hostname from servers 
+		sql = """ select servers.id, servers.hostname from servers 
 			left join user as user on servers.groups = user.groups 
 			left join uuid as uuid on user.id = uuid.user_id 
 			where uuid.uuid = '%s' and servers.master = 0 and servers.type_ip = 0 and servers.enable = 1 ORDER BY servers.groups 
@@ -311,8 +306,7 @@ def get_token(uuid):
 		out_error(e)
 	else:
 		for token in cur.fetchall():
-			return token[0]
-				
+			return token[0]				
 	cur.close()    
 	con.close()
 	
@@ -457,11 +451,7 @@ def get_dick_permit(**kwargs):
 		try:   
 			cur.execute(sql)
 		except sqltool.Error as e:
-			if mysql_enable == '1':
-				error = e
-			else:
-				error = e.args[0]
-			print('<span class="alert alert-danger" id="error">An error occurred: ' + error + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+			out_error(e)
 		else:
 			return cur.fetchall()
 	cur.close()    
@@ -529,8 +519,7 @@ def delete_ssh(id):
 
 def update_ssh(id, name, enable, group, username, password):
 	con, cur = create_db.get_cur()
-	sql = """ 
-			update cred set 
+	sql = """ update cred set 
 			name = '%s',
 			enable = '%s',
 			groups = %s,
@@ -551,7 +540,6 @@ def show_update_ssh(name, page):
 	template = env.get_template('/new_ssh.html')
 
 	print('Content-type: text/html\n')
-
 	output_from_parsed_template = template.render(groups = select_groups(), sshs = select_ssh(name=name),page=page)
 	print(output_from_parsed_template)
 
@@ -601,8 +589,7 @@ def select_telegram(**kwargs):
 	
 def update_telegram(token, chanel, group, id):
 	con, cur = create_db.get_cur()
-	sql = """ 
-			update telegram set 
+	sql = """ update telegram set 
 			`token` = '%s',
 			`chanel_name` = '%s',
 			`groups` = '%s'
@@ -672,11 +659,6 @@ def select_waf_servers_metrics(uuid, **kwargs):
 	con, cur = create_db.get_cur()
 	sql = """ select * from user where username = '%s' """ % get_user_name_by_uuid(uuid)
 
-	if kwargs.get('disable') == 0:
-		disable = 'or enable = 0'
-	else:
-		disable = ''
-		
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
@@ -684,17 +666,13 @@ def select_waf_servers_metrics(uuid, **kwargs):
 	else:
 		for group in cur:
 			if group[5] == '1':
-				sql = """ select servers.ip from servers left join waf as waf on waf.server_id = servers.id where servers.enable = 1 %s and waf.metrics = '1' """ % (disable)
+				sql = """ select servers.ip from servers left join waf as waf on waf.server_id = servers.id where servers.enable = 1 and waf.metrics = '1' """
 			else:
 				sql = """ select servers.ip from servers left join waf as waf on waf.server_id = servers.id where servers.enable = 1 %s and waf.metrics = '1' and servers.groups like '%{group}%' """.format(group=group[5])		
 		try:   
 			cur.execute(sql)
 		except sqltool.Error as e:
-			if mysql_enable == '1':
-				error = e
-			else:
-				error = e.args[0]
-			print('<span class="alert alert-danger" id="error">An error occurred: ' + error + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+			out_error(e)
 		else:
 			return cur.fetchall()
 	cur.close()    
@@ -821,11 +799,6 @@ def select_servers_metrics(uuid, **kwargs):
 	con, cur = create_db.get_cur()
 	sql = """ select * from user where username = '%s' """ % get_user_name_by_uuid(uuid)
 
-	if kwargs.get('disable') == 0:
-		disable = 'or enable = 0'
-	else:
-		disable = ''
-		
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
@@ -833,17 +806,13 @@ def select_servers_metrics(uuid, **kwargs):
 	else:
 		for group in cur:
 			if group[5] == '1':
-				sql = """ select ip from servers where enable = 1 %s and metrics = '1' """ % (disable)
+				sql = """ select ip from servers where enable = 1 and metrics = '1' """
 			else:
 				sql = """ select ip from servers where groups like '%{group}%' and metrics = '1'""".format(group=group[5])		
 		try:   
 			cur.execute(sql)
 		except sqltool.Error as e:
-			if mysql_enable == '1':
-				error = e
-			else:
-				error = e.args[0]
-			print('<span class="alert alert-danger" id="error">An error occurred: ' + error + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+			out_error(e)
 		else:
 			return cur.fetchall()
 	cur.close()    
@@ -963,8 +932,7 @@ def select_table_metrics(uuid):
 		cur.execute(sql)
 	except sqltool.Error as e:
 		out_error(e)
-	else:
-		
+	else:		
 		return cur.fetchall()
 	cur.close()    
 	con.close()
@@ -1005,7 +973,6 @@ def show_update_telegram(token, page):
 	template = env.get_template('/new_telegram.html')
 
 	print('Content-type: text/html\n')
-
 	output_from_parsed_template = template.render(groups = select_groups(), telegrams = select_telegram(token=token),page=page)
 	print(output_from_parsed_template)	
 
@@ -1015,7 +982,6 @@ def show_update_user(user):
 	template = env.get_template('/new_user.html')
 
 	print('Content-type: text/html\n')
-
 	output_from_parsed_template = template.render(users = select_users(user=user),
 													groups = select_groups(),
 													roles = select_roles())
@@ -1027,7 +993,6 @@ def show_update_server(server, page):
 	template = env.get_template('/new_server.html')
 
 	print('Content-type: text/html\n')
-
 	output_from_parsed_template = template.render(groups = select_groups(),
 													servers = select_servers(server=server),
 													roles = select_roles(),
@@ -1042,7 +1007,6 @@ def show_update_group(group):
 	template = env.get_template('/new_group.html')
 
 	print('Content-type: text/html\n')
-
 	output_from_parsed_template = template.render(groups = select_groups(group=group))
 	print(output_from_parsed_template)
 	
@@ -1107,7 +1071,6 @@ if form.getvalue('userdel') is not None:
 		print("Ok")
 		
 if form.getvalue('newserver') is not None:
-	import funct
 	hostname = form.getvalue('servername')	
 	ip = form.getvalue('newip')
 	group = form.getvalue('newservergroup')
@@ -1159,7 +1122,6 @@ if form.getvalue('updategroup') is not None:
 		update_group(name, descript, id)
 		
 if form.getvalue('updateserver') is not None:
-	import funct
 	name = form.getvalue('updateserver')
 	ip = form.getvalue('ip')	
 	group = form.getvalue('servergroup')	

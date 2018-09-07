@@ -1,27 +1,24 @@
 import funct
 import os
-import cgi
 import sql
-
-form = cgi.FieldStorage()
+import http.cookies
+from jinja2 import Environment, FileSystemLoader
+env = Environment(loader=FileSystemLoader('templates/ajax'))
+cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+user_id = cookie.get('uuid')
+haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+listhap = sql.get_dick_permit()
+servers = []
+server_status = ()
 
 def get_overview():
-	import http.cookies
-	from jinja2 import Environment, FileSystemLoader
-	env = Environment(loader=FileSystemLoader('templates/ajax'))
 	template = env.get_template('overview.html')
-	haproxy_config_path  = sql.get_setting('haproxy_config_path')
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_id = cookie.get('uuid')
-	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-	
-	listhap = sql.get_dick_permit()
+	haproxy_config_path  = sql.get_setting('haproxy_config_path')	
+
 	commands = [ "ls -l %s |awk '{ print $6\" \"$7\" \"$8}'" % haproxy_config_path ]
 	commands1 = [ "ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l" ]
-	servers = []
 
-	for server in listhap:
-		server_status = ()
+	for server in listhap:		
 		cmd = 'echo "show info" |nc %s %s |grep -e "Process_num"' % (server[2], haproxy_sock_port)
 		server_status = (server[1],server[2], funct.server_status(funct.subprocess_execute(cmd)), funct.ssh_command(server[2], commands), funct.ssh_command(server[2], commands1))
 		servers.append(server_status)
@@ -30,22 +27,13 @@ def get_overview():
 	print(template)	
 	
 def get_overviewWaf(url):
-	import http.cookies
-	from jinja2 import Environment, FileSystemLoader
-	env = Environment(loader=FileSystemLoader('templates/ajax'))
 	template = env.get_template('overivewWaf.html')
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_id = cookie.get('uuid')
 	haproxy_dir  = sql.get_setting('haproxy_dir')
-	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-	
-	listhap = sql.get_dick_permit()
+		
 	commands = [ "ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l" ]
 	commands1 = [ "cat %s/waf/modsecurity.conf  |grep SecRuleEngine |grep -v '#' |awk '{print $2}'" % haproxy_dir ]	
-	servers = []
 
 	for server in listhap:
-		server_status = ()
 		server_status = (server[1],server[2], funct.ssh_command(server[2], commands), funct.ssh_command(server[2], commands1), sql.select_waf_metrics_enable_server(server[2]))
 		servers.append(server_status)
 
@@ -53,18 +41,11 @@ def get_overviewWaf(url):
 	print(template)	
 		
 def get_overviewServers():
-	import http.cookies
-	from jinja2 import Environment, FileSystemLoader
-	env = Environment(loader=FileSystemLoader('templates/ajax'))
 	template = env.get_template('overviewServers.html')
-	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 	
-	listhap = sql.get_dick_permit()
 	commands =  [ "top -u haproxy -b -n 1" ]
-	servers = []
-	
+		
 	for server in sorted(listhap):
-		server_status = ()
 		cmd = 'echo "show info" |nc %s %s |grep -e "Ver\|CurrConns\|SessRate\|Maxco\|MB\|Uptime:"' % (server[2], haproxy_sock_port)
 		out = funct.subprocess_execute(cmd)
 		out1 = ""
@@ -109,10 +90,8 @@ def get_map(serv):
 	
 	node = ""
 	line_new2 = [1,""]
-	i = 1200
-	k = 1200
-	j = 0
-	m = 0
+	i,k  = 1200, 1200
+	j, m = 0, 0
 	for line in conf:
 		if "listen" in line or "frontend" in line:
 			if "stats" not in line:				

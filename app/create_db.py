@@ -92,12 +92,6 @@ def create_table(**kwargs):
 			metrics INTEGER NOT NULL DEFAULT 0,
 			PRIMARY KEY(`id`) 
 		);
-		CREATE TABLE IF NOT EXISTS `roles_users` (
-			`user_id`	INTEGER,
-			`role_id`	INTEGER,
-			FOREIGN KEY(`user_id`) REFERENCES `user`(`id`),
-			FOREIGN KEY(`role_id`) REFERENCES `role`(`id`)
-		);
 		CREATE TABLE IF NOT EXISTS `role` (
 			`id`	INTEGER NOT NULL,
 			`name`	VARCHAR ( 80 ) UNIQUE,
@@ -122,11 +116,6 @@ def create_table(**kwargs):
 			`username`	VARCHAR ( 64 ) NOT NULL,
 			`password`	VARCHAR ( 64 ) NOT NULL,
 			groups INTEGER NOT NULL DEFAULT 1
-		);
-		CREATE TABLE IF NOT EXISTS `token` (
-			`user_id`	INTEGER,
-			`token`	varchar(64),
-			`exp`  DATETIME default '0000-00-00 00:00:00'
 		);
 		CREATE TABLE IF NOT EXISTS `uuid` (`user_id` INTEGER NOT NULL, `uuid` varchar ( 64 ),`exp` timestamp default '0000-00-00 00:00:00');
 		CREATE TABLE IF NOT EXISTS `token` (`user_id` INTEGER, `token` varchar(64), `exp` timestamp default '0000-00-00 00:00:00');

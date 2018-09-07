@@ -438,6 +438,7 @@ if form.getvalue('metrics'):
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_id = cookie.get('uuid')	
 	servers = sql.select_servers_metrics(user_id.value)
+	servers = sorted(servers)
 	
 	p = {}
 	for serv in servers:
@@ -523,6 +524,7 @@ if form.getvalue('waf_metrics'):
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_id = cookie.get('uuid')	
 	servers = sql.select_waf_servers_metrics(user_id.value)
+	servers = sorted(servers)
 	
 	p = {}
 	for serv in servers:

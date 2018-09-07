@@ -59,7 +59,7 @@ if(Cookies.get('restart')) {
 }
 function autoRefreshStyle(autoRefresh) {
 	var margin;
-	if (cur_url[0] == "overview.py") {
+	if (cur_url[0] == "overview.py" || cur_url[0] == "waf.py" || cur_url[0] == "metrics.py") {
 		if(autoRefresh < 60000) {
 			autoRefresh = 60000;
 		}
@@ -126,10 +126,16 @@ function startSetInterval(interval) {
 			intervalId = setInterval('viewLogs()', interval);
 			viewLogs();
 		} else if (cur_url[0] == "metrics.py") {
+			if(interval < 60000) {
+				interval = 60000;
+			}
 			intervalId = setInterval('loadMetrics()', interval);
 			loadMetrics();
 		} 
 		else if (cur_url[0] == "waf.py") {
+			if(interval < 60000) {
+				interval = 60000;
+			}
 			intervalId = setInterval('loadMetrics()', interval);
 			showOverviewWaf();
 			loadMetrics();

@@ -100,7 +100,7 @@
 					</select>
 				</td>
 				<td>
-					<a class="delete" onclick="confirmDeleteServer({{server.0}})"  style="cursor: pointer;"></a>
+					<a class="delete_button" onclick="confirmDeleteServer({{server.0}})"  style="cursor: pointer;"></a>
 				</td> 
 			</tr>
 		{% endfor %}
@@ -209,7 +209,7 @@
 							<br>
 						</td>
 						<td>
-							<a class="delete" onclick="confirmDeleteSsh({{ssh.0}})"  style="cursor: pointer;"></a>
+							<a class="delete_button" onclick="confirmDeleteSsh({{ssh.0}})"  style="cursor: pointer;"></a>
 						</td>
 					</tr>
 				{% endif %}
@@ -291,7 +291,7 @@
 							<input type="text" id="telegram-chanel-{{telegram.0}}" class="form-control" value="{{telegram.2}}">		
 						</td>
 						<td>
-							<a class="delete" onclick="confirmDeleteSsh({{telegram.0}})"  style="cursor: pointer;"></a>
+							<a class="delete_button" onclick="confirmDeleteSsh({{telegram.0}})"  style="cursor: pointer;"></a>
 						</td>
 					</tr>
 				{% endif %}
@@ -344,7 +344,7 @@
 			$("input[type=checkbox]").checkboxradio( "disable" );
 			$("select").selectmenu( "disable" );
 			$("input").attr( "readonly", "readonly" );
-			$('.delete').remove()
+			$('.delete_button').remove()
 		}, 500 );
 		
 	}

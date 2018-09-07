@@ -117,7 +117,7 @@
 			</tr>
 		{% for group in groups %}
 			<tr id="group-{{ group.0 }}" class="{{ loop.cycle('odd', 'even') }}"> 
-			{% if group.1 == All %}
+			{% if group.1 == "All" %}
 				<td class="padding10 first-collumn">{{ group.1 }}</td>
 				<td>{{ group.2 }}</td>
 				<td></td>
