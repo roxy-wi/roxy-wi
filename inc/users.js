@@ -212,6 +212,7 @@ $( function() {
 				newserver: "1",
 				servername: $('#new-server-add').val(),
 				newip: $('#new-ip').val(),
+				newport: $('#new-port').val(),
 				newservergroup: $('#new-server-group-add').val(),
 				typeip: typeip,
 				enable: enable,
@@ -725,6 +726,7 @@ function updateServer(id) {
 		data: {
 			updateserver: $('#hostname-'+id).val(),
 			ip: $('#ip-'+id).val(),
+			port: $('#port-'+id).val(),
 			servergroup: servergroup,
 			typeip: typeip,
 			enable: enable,
