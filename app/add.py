@@ -50,7 +50,7 @@ if form.getvalue('mode') is not None:
 	force_close = form.getvalue('force_close')
 	balance = ""
 	mode = "    mode " + form.getvalue('mode') + "\n"
-	maxconn = "    maxconn " + form.getvalue('maxconn') + "\n"
+	maxconn = ""
 	options_split = ""
 	ssl = ""
 	ssl_check = ""
@@ -62,17 +62,20 @@ if form.getvalue('mode') is not None:
 		ip = form.getvalue('ip')
 	
 	if form.getvalue('listner') is not None:
-		name = "\nlisten " + form.getvalue('listner')
+		name = "listen " + form.getvalue('listner')
 		backend = ""
 		end_name = form.getvalue('listner')
 	elif form.getvalue('frontend') is not None:
-		name = "\nfrontend " + form.getvalue('frontend')
+		name = "frontend " + form.getvalue('frontend')
 		backend = "    default_backend " + form.getvalue('backend') + "\n"
 		end_name = form.getvalue('frontend')
 	elif form.getvalue('new_backend') is not None: 
-		name = "\nbackend " + form.getvalue('new_backend')
+		name = "backend " + form.getvalue('new_backend')
 		backend = ""
 		end_name = form.getvalue('new_backend')
+		
+	if form.getvalue('maxconn'):
+		maxconn = "    maxconn " + form.getvalue('maxconn') + "\n"
 				
 	if form.getvalue('ssl') == "https" and form.getvalue('mode') != "tcp":
 		ssl = "ssl crt " + cert_path + form.getvalue('cert')
@@ -170,7 +173,7 @@ if form.getvalue('mode') is not None:
 		waf = "    filter spoe engine modsecurity config "+haproxy_dir+"/waf.conf\n"
 		waf += "    http-request deny if { var(txn.modsec.code) -m int gt 0 }\n"
 	
-	config_add = name + "\n" + bind + mode + maxconn +  balance + options_split + filter + compression_s + cache_s + waf + backend + servers_split + "\n" + cache_set
+	config_add = "\n" + name + "\n" + bind + mode + maxconn +  balance + options_split + filter + compression_s + cache_s + waf + backend + servers_split + "\n" + cache_set
 	cfg = hap_configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
 	
 	funct.get_config(serv, cfg)
