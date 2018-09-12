@@ -4,7 +4,7 @@ import cgi
 import os
 import funct
 import sql
-import http
+import http.cookies
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'))
 template = env.get_template('add.html')
@@ -45,19 +45,21 @@ if form.getvalue('mode') is not None:
 	haproxy_dir = sql.get_setting('haproxy_dir')
 	serv = form.getvalue('serv')
 	port = form.getvalue('port')
+	bind = ""
+	ip = ""
 	force_close = form.getvalue('force_close')
-	mode = "    mode " + form.getvalue('mode')
+	balance = ""
+	mode = "    mode " + form.getvalue('mode') + "\n"
+	maxconn = "    maxconn " + form.getvalue('maxconn') + "\n"
+	options_split = ""
 	ssl = ""
+	ssl_check = ""
 	
 	if form.getvalue('balance')	 is not None:
 		balance = "    balance " + form.getvalue('balance')	+ "\n"
-	else:
-		balance = ""
 	
 	if form.getvalue('ip') is not None:
 		ip = form.getvalue('ip')
-	else:
-		ip = ""
 	
 	if form.getvalue('listner') is not None:
 		name = "\nlisten " + form.getvalue('listner')
@@ -78,15 +80,11 @@ if form.getvalue('mode') is not None:
 			ssl_check = " ssl verify none"
 		else:
 			ssl_check = " ssl verify"
-	else:
-		ssl_check = ""
 				
 	if not ip and port is not None:
 		bind = "    bind *:"+ port + " " + ssl + "\n" 
 	elif port is not None:
 		bind = "    bind " + ip + ":" + port + " " + ssl + "\n"
-	else:
-		bind = ""
 		
 	if form.getvalue('default-check') == "1":
 		if form.getvalue('check-servers') == "1":
@@ -102,11 +100,8 @@ if form.getvalue('mode') is not None:
 	if form.getvalue('option') is not None:
 		options = form.getvalue('option')
 		i = options.split("\n")
-		options_split = ""
 		for j in i:	
 			options_split += "    " + j + "\n"
-	else:
-		options_split = ""
 		
 	if force_close == "1":
 		options_split += "    option http-server-close\n"
@@ -175,7 +170,7 @@ if form.getvalue('mode') is not None:
 		waf = "    filter spoe engine modsecurity config "+haproxy_dir+"/waf.conf\n"
 		waf += "    http-request deny if { var(txn.modsec.code) -m int gt 0 }\n"
 	
-	config_add = name + "\n" + bind +  mode  + "\n" + balance + options_split + filter + compression_s + cache_s + waf + backend + servers_split + "\n" + cache_set
+	config_add = name + "\n" + bind + mode + maxconn +  balance + options_split + filter + compression_s + cache_s + waf + backend + servers_split + "\n" + cache_set
 	cfg = hap_configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
 	
 	funct.get_config(serv, cfg)

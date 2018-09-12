@@ -1,48 +1,58 @@
+{% set waf_servers = [] %}	
 {% for service in service_status %}
 	{% if service.3 or url == "waf.py" %}
-	<tr class="{{ loop.cycle('odd', 'even') }}">
-		<td class="padding10 first-collumn">
-			<a href="#{{ service.0 }}" title="Go to {{ service.0 }} status" style="color: #000">{{ service.0 }}</a>
-		</td>
-		<td  class="second-collumn">
-		{% if service.2|int() >= 1 %}
-			<span class="serverUp"> UP</span> running {{service.2 }} processes
-		{% else %}
-			<span class="serverDown"> DOWN</span> running {{service.2 }} processes
-		{% endif %}
-		</td>
-		<td>
-		{% if role <= 1 %}
-			<a id="{{ service.1 }}" class="start-waf" title="Start WAF service">
-				<img src=/image/pic/start.png alt="start" class="icon">
-			</a>
-			<a id="{{ service.1 }}" class="stop-waf" title="Stop WAF service">
-				<img src=/image/pic/stop.png alt="start" class="icon">
-			</a>
-			<a id="{{ service.1 }}" class="restart-waf" title="Restart WAF service">
-				<img src=/image/pic/update.png alt="restart" class="icon">
-			</a>
-		{% endif %}
-		</td>
-		<td>
-			{% if service.3 %}
-				{{ service.3 }}
-			{%else %}
-				<a title="Install WAF"><button onclick="installWaf('{{ service.1 }}')">Install</button></a>
+		{% do waf_servers.append(1) %}
+		<tr class="{{ loop.cycle('odd', 'even') }}">
+			<td class="padding10 first-collumn">
+				<a href="#{{ service.0 }}" title="Go to {{ service.0 }} status" style="color: #000">{{ service.0 }}</a>
+			</td>
+			<td  class="second-collumn">
+			{% if service.2|int() >= 1 %}
+				<span class="serverUp"> UP</span> running {{service.2 }} processes
+			{% else %}
+				<span class="serverDown"> DOWN</span> running {{service.2 }} processes
 			{% endif %}
-		</td>
-		{% if url == "waf.py" %}
-		<td>
-			{% if service.3 %}
-				{% if service.4|int() == 1 %}
-				<label for="{{ service.0 }}"></label><input type="checkbox" id="{{ service.0 }}" checked>
-				{% else %}
-				<label for="{{ service.0 }}"></label><input type="checkbox" id="{{ service.0 }}">
+			</td>
+			<td>
+			{% if role <= 1 %}
+				<a id="{{ service.1 }}" class="start-waf" title="Start WAF service">
+					<img src=/image/pic/start.png alt="start" class="icon">
+				</a>
+				<a id="{{ service.1 }}" class="stop-waf" title="Stop WAF service">
+					<img src=/image/pic/stop.png alt="start" class="icon">
+				</a>
+				<a id="{{ service.1 }}" class="restart-waf" title="Restart WAF service">
+					<img src=/image/pic/update.png alt="restart" class="icon">
+				</a>
+			{% endif %}
+			</td>
+			<td>
+				{% if service.3 %}
+					{{ service.3 }}
+				{%else %}
+					<a title="Install WAF"><button onclick="installWaf('{{ service.1 }}')">Install</button></a>
 				{% endif %}
+			</td>
+			{% if url == "waf.py" %}
+			<td>
+				{% if service.3 %}
+					{% if service.4|int() == 1 %}
+					<label for="{{ service.0 }}"></label><input type="checkbox" id="{{ service.0 }}" checked>
+					{% else %}
+					<label for="{{ service.0 }}"></label><input type="checkbox" id="{{ service.0 }}">
+					{% endif %}
+				{% endif %}
+			</td>
 			{% endif %}
-		</td>
-		{% endif %}
-		<td></td>
-	</tr>
+			<td></td>
+		</tr>
 	{% endif %}
 {% endfor %}
+{% if waf_servers|count == 0 and url != "waf.py" %}
+	<tr>
+		<td class="padding10 first-collumn">
+			You have not installed the WAF server yet
+			{{ waf_servers|length }}
+		</td>
+	</tr>
+{% endif %}

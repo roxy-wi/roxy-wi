@@ -307,7 +307,6 @@ if act == "showCompareConfigs":
 	print(output_from_parsed_template)
 	
 if serv is not None and form.getvalue('right') is not None:
-	import subprocess 
 	from jinja2 import Environment, FileSystemLoader
 	left = form.getvalue('left')
 	right = form.getvalue('right')
@@ -370,7 +369,10 @@ if form.getvalue('master'):
 	
 	os.system("cp scripts/%s ." % script)
 		
-	funct.upload(master, tmp_config_path, script)
+	error = str(funct.upload(master, tmp_config_path, script))
+	if error:
+		print('error: '+error)
+		sys.exit()
 	funct.upload(slave, tmp_config_path, script)
 	
 	commands = [ "sudo chmod +x "+tmp_config_path+script, tmp_config_path+script+" MASTER "+interface+" "+vrrpip ]
@@ -393,7 +395,10 @@ if form.getvalue('masteradd'):
 	
 	os.system("cp scripts/%s ." % script)
 		
-	funct.upload(master, tmp_config_path, script)
+	error = str(funct.upload(master, tmp_config_path, script))
+	if error:
+		print('error: '+error)
+		sys.exit()
 	funct.upload(slave, tmp_config_path, script)
 	
 	commands = [ "sudo chmod +x "+tmp_config_path+script, tmp_config_path+script+" MASTER "+interface+" "+vrrpip+" "+kp]

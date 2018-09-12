@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-"
 import cgi
 import os, sys
-import http.cookies
 
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
@@ -42,6 +41,7 @@ def get_data(type):
 			
 def logging(serv, action, **kwargs):
 	import sql
+	import http.cookies
 	log_path = get_config_var('main', 'log_path')
 	
 	if not os.path.exists(log_path):
@@ -64,12 +64,11 @@ def logging(serv, action, **kwargs):
 	else:
 		mess = get_data('date_in_log') + " from " + IP + " user: " + login + " " + action + " for: " + serv + "\n"
 		log = open(log_path + "/config_edit-"+get_data('logs')+".log", "a")
-			
-	try:				
+	try:	
 		log.write(mess)
 		log.close
-	except IOError:
-		print('<center><div class="alert alert-danger">Can\'t read write log. Please chech log_path in config</div></center>')
+	except IOError as e:
+		print('<center><div class="alert alert-danger">Can\'t write log. Please check log_path in config %e</div></center>' % e)
 		pass
 	
 def telegram_send_mess(mess, **kwargs):
@@ -95,6 +94,7 @@ def telegram_send_mess(mess, **kwargs):
 	
 def check_login(**kwargs):
 	import sql
+	import http.cookies
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_uuid = cookie.get('uuid')
 	ref = os.environ.get("SCRIPT_NAME")
@@ -110,6 +110,7 @@ def check_login(**kwargs):
 				
 def is_admin(**kwargs):
 	import sql
+	import http.cookies
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_id = cookie.get('uuid')
 	try:
@@ -134,7 +135,7 @@ def page_for_admin(**kwargs):
 		
 	if not is_admin(level = give_level):
 		print('<center><h3 style="color: red">How did you get here?! O_o You do not have need permissions</h>')
-		print('<meta http-equiv="refresh" content="10; url=/">')
+		print('<meta http-equiv="refresh" content="5; url=/">')
 		import sys
 		sys.exit()
 				
@@ -233,7 +234,10 @@ def install_haproxy(serv, **kwargs):
 				" SOCK_PORT="+haproxy_sock_port+" STAT_PORT="+stats_port+" STAT_FILE="+server_state_file+
 				" STATS_USER="+stats_user+" STATS_PASS="+stats_password ]
 	
-	upload(serv, tmp_config_path, script)	
+	error = str(upload(serv, tmp_config_path, script))
+	if error:
+		print('error: '+error)
+		
 	os.system("rm -f %s" % script)
 	ssh_command(serv, commands, print_out="1")
 	
@@ -251,7 +255,9 @@ def syn_flood_protect(serv, **kwargs):
 	
 	commands = [ "sudo chmod +x "+tmp_config_path+script, tmp_config_path+script+ " "+enable ]
 	
-	upload(serv, tmp_config_path, script)	
+	error = str(upload(serv, tmp_config_path, script))
+	if error:
+		print('error: '+error)
 	os.system("rm -f %s" % script)
 	ssh_command(serv, commands, print_out="1")
 	
@@ -268,7 +274,9 @@ def waf_install(serv, **kwargs):
 	commands = [ "sudo chmod +x "+tmp_config_path+script+" && " +tmp_config_path+script +" PROXY=" + proxy+ 
 				" HAPROXY_PATH="+haproxy_dir +" VERSION="+ver ]
 	
-	upload(serv, tmp_config_path, script)	
+	error = str(upload(serv, tmp_config_path, script))
+	if error:
+		print('error: '+error)
 	os.system("rm -f %s" % script)
 	
 	stderr = ssh_command(serv, commands, print_out="1")
@@ -286,19 +294,27 @@ def check_haproxy_version(serv):
 	return ver
 	
 def upload(serv, path, file, **kwargs):
+	error = ""
 	full_path = path + file
+
+	if kwargs.get('dir') == "fullpath":
+		full_path = path
 	
 	try:
 		ssh = ssh_connect(serv)
 	except Exception as e:
-		print('<div class="alert alert-danger">Connect fail: %s</div>' % e)
+		error = e
+		pass
 	try:
 		sftp = ssh.open_sftp()
 		file = sftp.put(file, full_path)
 		sftp.close()
 		ssh.close()
 	except Exception as e:
-		print('<div class="alert alert-danger">Upload fail: %s</div>' % e)
+		error = e
+		pass
+		
+	return error
 	
 def upload_and_restart(serv, cfg, **kwargs):
 	import sql
@@ -310,14 +326,7 @@ def upload_and_restart(serv, cfg, **kwargs):
 	except OSError:
 		return 'Please install dos2unix' 
 		pass
-		
-	try:
-		ssh = ssh_connect(serv)
-	except:
-		return 'Connect fail'
-	sftp = ssh.open_sftp()
-	sftp.put(cfg, tmp_file)
-	sftp.close()
+	
 	if kwargs.get("keepalived") == 1:
 		if kwargs.get("just_save") == "save":
 			commands = [ "sudo mv -f " + tmp_file + " /etc/keepalived/keepalived.conf" ]
@@ -332,13 +341,16 @@ def upload_and_restart(serv, cfg, **kwargs):
 			if sql.get_setting('firewall_enable') == "1":
 				commands.extend(open_port_firewalld(cfg))
 		except:
-			return 'Please check the config for the presence of the parameter - "firewall_enable". Mast be: "0" or "1". Firewalld configure not working now'
-			
-	for command in commands:
-		stdin, stdout, stderr = ssh.exec_command(command)
+			error = 'Please check the config for the presence of the parameter - "firewall_enable". Mast be: "0" or "1". Firewalld configure not working now'
+	
+	error += str(upload(serv, tmp_file, cfg, dir='fullpath'))
 
-	return stderr.read()
-	ssh.close()
+	try:
+		error += ssh_command(serv, commands, retunr_err=1)
+	except Exception as e:
+		error += e
+	if error:
+		return error
 		
 def open_port_firewalld(cfg):
 	try:
@@ -373,7 +385,6 @@ def check_haproxy_config(serv):
 		
 def show_log(stdout):
 	i = 0
-
 	for line in stdout:
 		i = i + 1
 		line_class = "line3" if i % 2 == 0 else "line"
@@ -412,6 +423,8 @@ def ssh_command(serv, commands, **kwargs):
 		elif kwargs.get('print_out'):
 			print(stdout.read().decode(encoding='UTF-8'))
 			return stdout.read().decode(encoding='UTF-8')
+		elif kwargs.get('retunr_err'):
+			return stderr.read().decode(encoding='UTF-8')
 		else:
 			return stdout.read().decode(encoding='UTF-8')
 			
@@ -421,8 +434,7 @@ def ssh_command(serv, commands, **kwargs):
 	try:	
 		ssh.close()
 	except:
-		ssh = str(ssh)
-		print("<div class='alert alert-danger' style='margin: 0;'>"+ssh+"</div>")
+		print("<div class='alert alert-danger' style='margin: 0;'>"+str(ssh)+"</div>")
 		pass
 
 def escape_html(text):
@@ -452,7 +464,7 @@ def show_backends(serv, **kwargs):
 				ret += back[1]
 				ret += "<br />"
 			else:
-				print(back[1]+"<br>")
+				print(back[1], end="<br>")
 		
 	if kwargs.get('ret'):
 		return ret

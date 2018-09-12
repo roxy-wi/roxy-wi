@@ -74,6 +74,13 @@
 			</td>
 		</tr>
 		<tr class="advance">
+			<td class="addName">Maxconn: </td>
+			<td class="addOption">
+				<input type="number" name="maxconn" required title="Fix the maximum number of concurrent connections on a frontend" size="5" value="2000" class="form-control">
+				<div class="tooltip tooltipTop">This value should not exceed the global maxconn. Default global maxconn value: 2000</div>
+			</td>
+		</tr>
+		<tr class="advance">
 			<td class="addName">Balance: </td>
 			<td class="addOption">
 				<select required name="balance">
@@ -285,6 +292,13 @@
 					<br /><span class="tooltip tooltipTop">Enter name to pem file, or press down:</span><br />
 					<input type="text" name="cert" placeholder="some_cert.pem" class="form-control" size="39" id="path-cert-frontend">					
 				</div>				
+			</td>
+		</tr>
+		<tr class="advance">
+			<td class="addName">Maxconn: </td>
+			<td class="addOption">
+				<input type="number" name="maxconn" required title="Fix the maximum number of concurrent connections on a frontend" size="5" value="2000" class="form-control">
+				<div class="tooltip tooltipTop">This value should not exceed the global maxconn. Default global maxconn value: 2000</div>
 			</td>
 		</tr>
 		<tr class="advance">

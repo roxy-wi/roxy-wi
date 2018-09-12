@@ -3,7 +3,7 @@ import os
 import sql
 import http.cookies
 from jinja2 import Environment, FileSystemLoader
-env = Environment(loader=FileSystemLoader('templates/ajax'))
+env = Environment(loader=FileSystemLoader('templates/ajax'),extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
 cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 user_id = cookie.get('uuid')
 haproxy_sock_port = sql.get_setting('haproxy_sock_port')
@@ -41,8 +41,7 @@ def get_overviewWaf(url):
 	print(template)	
 		
 def get_overviewServers():
-	template = env.get_template('overviewServers.html')
-	
+	template = env.get_template('overviewServers.html')	
 	commands =  [ "top -u haproxy -b -n 1" ]
 		
 	for server in sorted(listhap):
