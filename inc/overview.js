@@ -80,7 +80,9 @@ $( function() {
 			$( "#show-all-users" ).text("Show all");
 		}
 	});
-	$('#secIntervals').css('display', 'none');
+	if (cur_url[0] == "overview.py" || cur_url[0] == "waf.py" || cur_url[0] == "metrics.py") {
+		$('#secIntervals').css('display', 'none');
+	}
 	$('#apply_close').click( function() {
 		$("#apply").css('display', 'none');
 		Cookies.remove('restart', { path: '' });

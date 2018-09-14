@@ -757,30 +757,33 @@ function updateServer(id) {
 }
 function uploadSsh() {
 	$('.alert-danger').remove();
-	$.ajax( {
-		url: "options.py",
-		data: {
-			ssh_cert: $('#ssh_cert').val(),
-			name: $('#ssh-key-name').val(),
-			token: $('#token').val()
-		},
-		type: "GET",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('danger') != '-1') {
-					$("#ajax-ssh").html(data);
-				} else if (data.indexOf('success') != '-1') {
-					$('.alert-danger').remove();
-					$("#ajax-ssh").html(data);
-					setTimeout(function() {
-						$( "#ajax-ssh").html( "" );
-					}, 2500 );
-					
-				} else {
-					$("#ajax-ssh").html('<div class="alert alert-danger">Something wrong, check and try again</div>');
-				}
-		}
-	} );
+	if ($( "#ssh-key-name option:selected" ).val() == "Choose server" || $('#ssh_cert').val() == '') {
+		$("#ajax-ssh").html('<div class="alert alert-danger" style="margin: 10px;">All fields must be completed</div>');
+	} else {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				ssh_cert: $('#ssh_cert').val(),
+				name: $('#ssh-key-name').val(),
+				token: $('#token').val()
+			},
+			type: "GET",
+			success: function( data ) {
+				data = data.replace(/\s+/g,' ');
+				if (data.indexOf('danger') != '-1') {
+						$("#ajax-ssh").html(data);
+					} else if (data.indexOf('success') != '-1') {
+						$('.alert-danger').remove();
+						$("#ajax-ssh").html(data);
+						setTimeout(function() {
+							$( "#ajax-ssh").html( "" );
+						}, 2500 );					
+					} else {
+						$("#ajax-ssh").html('<div class="alert alert-danger">Something wrong, check and try again</div>');
+					}
+			}
+		} );
+	}
 }
 function updateSSH(id) {
 	$('#error').remove();	
