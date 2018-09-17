@@ -108,7 +108,6 @@ if form.getvalue('showif'):
 	funct.ssh_command(serv, commands, ip="1")
 	
 if form.getvalue('action_hap') is not None and serv is not None:
-	serv = form.getvalue('serv')
 	action = form.getvalue('action_hap')
 	
 	if funct.check_haproxy_config(serv):
@@ -274,8 +273,7 @@ if form.getvalue('servaction') is not None:
 	server_state_file = sql.get_setting('server_state_file')
 	haproxy_sock = sql.get_setting('haproxy_sock')
 	enable = form.getvalue('servaction')
-	backend = form.getvalue('servbackend')
-	
+	backend = form.getvalue('servbackend')	
 	cmd='echo "%s %s" |sudo socat stdio %s | cut -d "," -f 1-2,5-10,18,34-36 | column -s, -t' % (enable, backend, haproxy_sock)
 	
 	if form.getvalue('save') == "on":
@@ -299,12 +297,8 @@ if act == "showCompareConfigs":
 	left = form.getvalue('left')
 	right = form.getvalue('right')
 	
-	output_from_parsed_template = template.render(serv = serv,
-													right = right,
-													left = left,
-													return_files = funct.get_files())
-									
-	print(output_from_parsed_template)
+	template = template.render(serv=serv, right=right, left=left, return_files=funct.get_files())									
+	print(template)
 	
 if serv is not None and form.getvalue('right') is not None:
 	from jinja2 import Environment, FileSystemLoader
@@ -329,8 +323,7 @@ if serv is not None and act == "configShow":
 		funct.get_config(serv, cfg)
 	else: 
 		cfg = hap_configs_dir + form.getvalue('configver')
-		
-	
+			
 	try:
 		conf = open(cfg, "r")
 	except IOError:
@@ -340,10 +333,7 @@ if serv is not None and act == "configShow":
 	env = Environment(loader=FileSystemLoader('templates/ajax'),extensions=['jinja2.ext.loopcontrols'])
 	template = env.get_template('config_show.html')
 	
-	template = template.render(conf=conf, 
-								view=form.getvalue('view'),
-								serv=serv,
-								configver=form.getvalue('configver'))											
+	template = template.render(conf=conf, view=form.getvalue('view'), serv=serv, configver=form.getvalue('configver'))											
 	print(template)
 	
 	if form.getvalue('configver') is None:
@@ -428,7 +418,7 @@ if form.getvalue('table_metrics'):
 	user_id = cookie.get('uuid')	
 	table_stat = sql.select_table_metrics(user_id.value)
 
-	template = template.render(table_stat = sql.select_table_metrics(user_id.value))											
+	template = template.render(table_stat=sql.select_table_metrics(user_id.value))											
 	print(template)
 		
 if form.getvalue('metrics'):
@@ -494,21 +484,14 @@ if form.getvalue('metrics'):
 		p[serv].y_range.start = 0
 		p[serv].y_range.end = int(df['curr_con'].max()) + 150
 		p[serv].add_tools(hover)
-		p[serv].title.text_font_size = "20px"
-				
-		
+		p[serv].title.text_font_size = "20px"						
 		p[serv].line("Date", "curr_con", source=source, alpha=0.5, color='#5cb85c', line_width=2, legend="Conn")
 		p[serv].line("Date", "curr_ssl_con", source=source, alpha=0.5, color="#5d9ceb", line_width=2, legend="SSL con")
 		p[serv].line("Date", "sess_rate", source=source, alpha=0.5, color="#33414e", line_width=2, legend="Sessions")
-		#p[serv].line("Date", "max_sess_rate", source=source, alpha=0.5, color="red", line_width=2, legend="Max sess")
 		p[serv].legend.orientation = "horizontal"
 		p[serv].legend.location = "top_left"
 		p[serv].legend.padding = 5
 
-			
-	#select = Select(title="Option:", value="foo", options=["foo", "bar", "baz", "quux"])
-	#show(widgetbox(select, width=300))
-		
 	plots = []
 	i = 0
 	for key, value in p.items():
@@ -574,9 +557,7 @@ if form.getvalue('waf_metrics'):
 		p[serv].y_range.start = 0
 		p[serv].y_range.end = int(df['conn'].max()) + 150
 		p[serv].add_tools(hover)
-		p[serv].title.text_font_size = "20px"
-				
-		
+		p[serv].title.text_font_size = "20px"				
 		p[serv].line("Date", "conn", source=source, alpha=0.5, color='#5cb85c', line_width=2, legend="Conn")
 		p[serv].legend.orientation = "horizontal"
 		p[serv].legend.location = "top_left"
