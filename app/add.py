@@ -55,7 +55,7 @@ if form.getvalue('mode') is not None:
 	ssl = ""
 	ssl_check = ""
 	
-	if form.getvalue('balance')	 is not None:
+	if form.getvalue('balance') is not None:
 		balance = "    balance " + form.getvalue('balance')	+ "\n"
 	
 	if form.getvalue('ip') is not None:
@@ -118,28 +118,23 @@ if form.getvalue('mode') is not None:
 		
 	if form.getvalue('cookie'):
 		cookie = "    cookie "+form.getvalue('cookie_name')
+		rewrite = ""
+		prefix = ""
+		nocache = ""
+		postonly = ""
+		dynamic = ""
 		if form.getvalue('cookie_domain'):
 			cookie += " domain "+form.getvalue('cookie_domain')
 		if form.getvalue('rewrite'):
 			rewrite = form.getvalue('rewrite')
-		else:
-			rewrite = ""
 		if form.getvalue('prefix'):
 			prefix = form.getvalue('prefix')
-		else:
-			prefix = ""
 		if form.getvalue('nocache'):
 			nocache = form.getvalue('nocache')
-		else:
-			nocache = ""
 		if form.getvalue('postonly'):
 			postonly = form.getvalue('postonly')
-		else:
-			postonly = ""
 		if form.getvalue('dynamic'):
 			dynamic = form.getvalue('dynamic')
-		else:
-			dynamic = ""
 		cookie += " "+rewrite+" "+prefix+" "+nocache+" "+postonly+" "+dynamic+"\n"
 		options_split += cookie
 		if form.getvalue('dynamic'):

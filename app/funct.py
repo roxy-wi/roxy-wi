@@ -337,11 +337,8 @@ def upload_and_restart(serv, cfg, **kwargs):
 			commands = [ "sudo haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + sql.get_setting('haproxy_config_path') ]
 		else:
 			commands = [ "sudo haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + sql.get_setting('haproxy_config_path') + " && sudo " + sql.get_setting('restart_command') ]	
-		try:
-			if sql.get_setting('firewall_enable') == "1":
-				commands.extend(open_port_firewalld(cfg))
-		except:
-			error = 'Please check the config for the presence of the parameter - "firewall_enable". Mast be: "0" or "1". Firewalld configure not working now'
+		if sql.get_setting('firewall_enable') == "1":
+			commands.extend(open_port_firewalld(cfg))
 	
 	error += str(upload(serv, tmp_file, cfg, dir='fullpath'))
 

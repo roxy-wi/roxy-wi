@@ -8,10 +8,8 @@ import sql
 import ovw
 
 form = cgi.FieldStorage()
-req = form.getvalue('req')
 serv = form.getvalue('serv')
 act = form.getvalue('act')
-backend = form.getvalue('backend')	
 	
 print('Content-type: text/html\n')
 
@@ -96,7 +94,7 @@ if serv and form.getvalue('ssl_cert'):
 	os.system("mv %s %s" % (name, cert_local_dir))
 	funct.logging(serv, "add.py#ssl upload new ssl cert %s" % name)
 	
-if backend is not None:
+if form.getvalue('backend') is not None:
 	funct.show_backends(serv)
 	
 if form.getvalue('ip') is not None and serv is not None:
@@ -344,16 +342,14 @@ if form.getvalue('master'):
 	slave = form.getvalue('slave')
 	interface = form.getvalue('interface')
 	vrrpip = form.getvalue('vrrpip')
-	hap = form.getvalue('hap')
-	syn_flood = form.getvalue('syn_flood')
 	tmp_config_path = sql.get_setting('tmp_config_path')
 	script = "install_keepalived.sh"
 	
-	if hap == "1":
+	if form.getvalue('hap') == "1":
 		funct.install_haproxy(master)
 		funct.install_haproxy(slave)
 		
-	if syn_flood == "1":
+	if form.getvalue('syn_flood') == "1":
 		funct.syn_flood_protect(master)
 		funct.syn_flood_protect(slave)
 	
@@ -364,12 +360,9 @@ if form.getvalue('master'):
 		print('error: '+error)
 		sys.exit()
 	funct.upload(slave, tmp_config_path, script)
-	
-	commands = [ "sudo chmod +x "+tmp_config_path+script, tmp_config_path+script+" MASTER "+interface+" "+vrrpip ]
-	funct.ssh_command(master, commands)
-	
-	commands = [ "sudo chmod +x "+tmp_config_path+script, tmp_config_path+script+" BACKUP "+interface+" "+vrrpip ]
-	funct.ssh_command(slave, commands)
+
+	funct.ssh_command(master, ["sudo chmod +x "+tmp_config_path+script, tmp_config_path+script+" MASTER "+interface+" "+vrrpip])
+	funct.ssh_command(slave, ["sudo chmod +x "+tmp_config_path+script, tmp_config_path+script+" BACKUP "+interface+" "+vrrpip])
 			
 	os.system("rm -f %s" % script)
 	sql.update_server_master(master, slave)
@@ -391,11 +384,8 @@ if form.getvalue('masteradd'):
 		sys.exit()
 	funct.upload(slave, tmp_config_path, script)
 	
-	commands = [ "sudo chmod +x "+tmp_config_path+script, tmp_config_path+script+" MASTER "+interface+" "+vrrpip+" "+kp]
-	funct.ssh_command(master, commands)
-	
-	commands = [ "sudo chmod +x "+tmp_config_path+script, tmp_config_path+script+" BACKUP "+interface+" "+vrrpip+" "+kp ]
-	funct.ssh_command(slave, commands)
+	funct.ssh_command(master, ["sudo chmod +x "+tmp_config_path+script, tmp_config_path+script+" MASTER "+interface+" "+vrrpip+" "+kp])
+	funct.ssh_command(slave, ["sudo chmod +x "+tmp_config_path+script, tmp_config_path+script+" BACKUP "+interface+" "+vrrpip+" "+kp])
 			
 	os.system("rm -f %s" % script)
 	
@@ -493,7 +483,6 @@ if form.getvalue('metrics'):
 		p[serv].legend.padding = 5
 
 	plots = []
-	i = 0
 	for key, value in p.items():
 		plots.append(value)
 
@@ -564,7 +553,6 @@ if form.getvalue('waf_metrics'):
 		p[serv].legend.padding = 5
 		
 	plots = []
-	i = 0
 	for key, value in p.items():
 		plots.append(value)
 
@@ -607,26 +595,14 @@ if form.getvalue('bwlists_save'):
 	path = sql.get_setting('haproxy_dir')+"/"+form.getvalue('color')
 	
 	for server in servers:
-		commands = [ "sudo mkdir "+path ]
-		funct.ssh_command(server[2], commands)
-		
-		try:
-			ssh = funct.ssh_connect(server[2])
-		except Exception as e:
-			print('<div class="alert alert-danger">Connect fail: %s</div>' % e)
-			
-		try:
-			sftp = ssh.open_sftp()
-			file = sftp.put(list, path+"/"+form.getvalue('bwlists_save'))
-			sftp.close()
-			ssh.close()
+		funct.ssh_command(server[2], ["sudo mkdir "+path])
+		error = funct.upload(server[2], path+"/"+form.getvalue('bwlists_save'), list, dir='fullpath')
+		if error:
+			print('<div class="alert alert-danger">Upload fail: %s</div>' % error)			
+		else:
 			print('<div class="alert alert-success" style="margin:10px">Edited '+form.getvalue('color')+' list was uploaded to '+server[1]+'</div>')
-		except Exception as e:
-			print('<div class="alert alert-danger">Upload fail: %s</div>' % e)
-			
-		if form.getvalue('bwlists_restart') == 'restart':
-			commands = [ "sudo " + sql.get_setting('restart_command') ]
-			funct.ssh_command(server[2], commands)
+			if form.getvalue('bwlists_restart') == 'restart':
+				funct.ssh_command(server[2], ["sudo " + sql.get_setting('restart_command')])
 			
 if form.getvalue('get_lists'):
 	list = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')+"/"+form.getvalue('group')+"/"+form.getvalue('color')
