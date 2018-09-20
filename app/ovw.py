@@ -1,6 +1,7 @@
 import funct
 import os
 import sql
+import asyncio
 import http.cookies
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/ajax'),extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
@@ -11,56 +12,85 @@ listhap = sql.get_dick_permit()
 servers = []
 server_status = ()
 
-def get_overview():
-	template = env.get_template('overview.html')
-	haproxy_config_path  = sql.get_setting('haproxy_config_path')	
-
+async def async_get_overview(serv1, serv2):
+	haproxy_config_path  = sql.get_setting('haproxy_config_path')
 	commands = [ "ls -l %s |awk '{ print $6\" \"$7\" \"$8}'" % haproxy_config_path ]
 	commands1 = [ "ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l" ]
-
-	for server in listhap:		
-		cmd = 'echo "show info" |nc %s %s |grep -e "Process_num"' % (server[2], haproxy_sock_port)
-		server_status = (server[1],server[2], funct.server_status(funct.subprocess_execute(cmd)), funct.ssh_command(server[2], commands), funct.ssh_command(server[2], commands1))
-		servers.append(server_status)
-
-	template = template.render(service_status = servers, role = sql.get_user_role_by_uuid(user_id.value))
-	print(template)	
 	
-def get_overviewWaf(url):
-	template = env.get_template('overivewWaf.html')
+	cmd = 'echo "show info" |nc %s %s |grep -e "Process_num"' % (serv2, haproxy_sock_port)
+	server_status = (serv1, serv2, funct.server_status(funct.subprocess_execute(cmd)), funct.ssh_command(serv2, commands), funct.ssh_command(serv2, commands1))
+	return server_status
+
+async def get_runner_overview():
+	template = env.get_template('overview.html')
+	futures = [async_get_overview(server[1], server[2]) for server in listhap]
+	for i, future in enumerate(asyncio.as_completed(futures)):
+		result = await future
+		servers.append(result)
+	servers_sorted = sorted(servers, key=getKey)
+	template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_id.value))
+	print(template)
+
+def get_overview():
+	ioloop = asyncio.get_event_loop()
+	ioloop.run_until_complete(get_runner_overview())
+	ioloop.close()
+
+async def async_get_overviewWaf(serv1, serv2):
 	haproxy_dir  = sql.get_setting('haproxy_dir')
-		
 	commands = [ "ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l" ]
-	commands1 = [ "cat %s/waf/modsecurity.conf  |grep SecRuleEngine |grep -v '#' |awk '{print $2}'" % haproxy_dir ]	
-
-	for server in listhap:
-		server_status = (server[1],server[2], funct.ssh_command(server[2], commands), funct.ssh_command(server[2], commands1), sql.select_waf_metrics_enable_server(server[2]))
-		servers.append(server_status)
-
-	template = template.render(service_status = servers, role = sql.get_user_role_by_uuid(user_id.value), url=url)
-	print(template)	
-		
-def get_overviewServers():
-	template = env.get_template('overviewServers.html')	
-	commands =  [ "top -u haproxy -b -n 1" ]
-		
-	for server in sorted(listhap):
-		cmd = 'echo "show info" |nc %s %s |grep -e "Ver\|CurrConns\|SessRate\|Maxco\|MB\|Uptime:"' % (server[2], haproxy_sock_port)
-		out = funct.subprocess_execute(cmd)
-		out1 = ""
-		for k in out:
-			if "Ncat: Connection refused." not in k:
-				for r in k:
-					out1 += r
-					out1 += "<br />"
-			else:
-				out1 = "Can\'t connect to HAproxy"
-				
-		server_status = (server[1],server[2], out1, funct.ssh_command(server[2], commands),funct.show_backends(server[2], ret=1))
-		servers.append(server_status)
+	commands1 = [ "cat %s/waf/modsecurity.conf  |grep SecRuleEngine |grep -v '#' |awk '{print $2}'" % haproxy_dir ]
 	
-	template = template.render(service_status = servers)
+	server_status = (serv1,serv2, funct.ssh_command(serv2, commands), funct.ssh_command(serv2, commands1), sql.select_waf_metrics_enable_server(serv2))
+	return server_status
+
+async def get_runner_overviewWaf(url):
+	template = env.get_template('overivewWaf.html')
+	
+	futures = [async_get_overviewWaf(server[1], server[2]) for server in listhap]
+	for i, future in enumerate(asyncio.as_completed(futures)):
+		result = await future
+		servers.append(result)
+	servers_sorted = sorted(servers, key=getKey)
+	template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_id.value), url=url)
+	print(template)
+
+def get_overviewWaf(url):
+	ioloop = asyncio.get_event_loop()
+	ioloop.run_until_complete(get_runner_overviewWaf(url))
+	ioloop.close()
+
+async def async_get_overviewServers(serv1, serv2):
+	commands =  [ "top -u haproxy -b -n 1" ]
+	cmd = 'echo "show info" |nc %s %s |grep -e "Ver\|CurrConns\|SessRate\|Maxco\|MB\|Uptime:"' % (serv2, haproxy_sock_port)
+	out = funct.subprocess_execute(cmd)
+	out1 = ""
+	
+	for k in out:
+		if "Ncat: Connection refused." not in k:
+			for r in k:
+				out1 += r
+				out1 += "<br />"
+		else:
+			out1 = "Can\'t connect to HAproxy"
+	server_status = (serv1,serv2, out1, funct.ssh_command(serv2, commands),funct.show_backends(serv2, ret=1))
+	return server_status
+	
+async def get_runner_overviewServers():
+	template = env.get_template('overviewServers.html')	
+	
+	futures = [async_get_overviewServers(server[1], server[2]) for server in listhap]
+	for i, future in enumerate(asyncio.as_completed(futures)):
+		result = await future
+		servers.append(result)
+	servers_sorted = sorted(servers, key=getKey)
+	template = template.render(service_status=servers_sorted)
 	print(template)	
+	
+def get_overviewServers():
+	ioloop = asyncio.get_event_loop()
+	ioloop.run_until_complete(get_runner_overviewServers())
+	ioloop.close()
 	
 def get_map(serv):
 	from datetime import datetime

@@ -13,13 +13,14 @@ chmod +x app/tools/*py
 if hash apt-get 2>/dev/null; then
 	apt-get install git  net-tools lshw dos2unix apache2 gcc netcat python3-pip gcc-c++ -y
 else
-	yum -y install git nmap-ncat net-tools python34 dos2unix python34-pip httpd python34-devel gcc-c++
+	yum -y install git nmap-ncat net-tools python35u dos2unix python35u-pip httpd python35u-devel gcc-c++
 fi
 
 cd app/
 ./create_db.py
 
 pip3 install -r ../requirements.txt
+pip3.5 install -r ../requirements.txt
 
 echo ""
 echo "#################"
