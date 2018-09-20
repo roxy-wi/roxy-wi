@@ -484,3 +484,5 @@ def get_files(dir = get_config_var('configs', 'haproxy_save_configs_dir'), forma
 	else: 
 		return files
 	
+def get_key(item):
+	return item[0]

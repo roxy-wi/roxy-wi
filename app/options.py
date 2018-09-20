@@ -485,8 +485,9 @@ if form.getvalue('metrics'):
 	plots = []
 	for key, value in p.items():
 		plots.append(value)
-
-	grid = gridplot(plots, ncols=2, plot_width=800, plot_height=250, toolbar_location = "left", toolbar_options=dict(logo=None))
+		
+	plots_sorted = sorted(plots, key=funct.get_key)
+	grid = gridplot(plots_sorted, ncols=2, plot_width=800, plot_height=250, toolbar_location = "left", toolbar_options=dict(logo=None))
 	show(grid)
 	
 if form.getvalue('waf_metrics'):
@@ -555,8 +556,8 @@ if form.getvalue('waf_metrics'):
 	plots = []
 	for key, value in p.items():
 		plots.append(value)
-
-	grid = gridplot(plots, ncols=2, plot_width=800, plot_height=250, toolbar_location = "left", toolbar_options=dict(logo=None))
+	plots_sorted = sorted(plots, key=funct.get_key)
+	grid = gridplot(plots_sorted, ncols=2, plot_width=800, plot_height=250, toolbar_location = "left", toolbar_options=dict(logo=None))
 	show(grid)
 	
 if form.getvalue('get_hap_v'):

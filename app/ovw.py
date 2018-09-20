@@ -27,7 +27,7 @@ async def get_runner_overview():
 	for i, future in enumerate(asyncio.as_completed(futures)):
 		result = await future
 		servers.append(result)
-	servers_sorted = sorted(servers, key=getKey)
+	servers_sorted = sorted(servers, key=funct.get_key)
 	template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_id.value))
 	print(template)
 
@@ -51,7 +51,7 @@ async def get_runner_overviewWaf(url):
 	for i, future in enumerate(asyncio.as_completed(futures)):
 		result = await future
 		servers.append(result)
-	servers_sorted = sorted(servers, key=getKey)
+	servers_sorted = sorted(servers, key=funct.get_key)
 	template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_id.value), url=url)
 	print(template)
 
@@ -83,7 +83,7 @@ async def get_runner_overviewServers():
 	for i, future in enumerate(asyncio.as_completed(futures)):
 		result = await future
 		servers.append(result)
-	servers_sorted = sorted(servers, key=getKey)
+	servers_sorted = sorted(servers, key=funct.get_key)
 	template = template.render(service_status=servers_sorted)
 	print(template)	
 	
