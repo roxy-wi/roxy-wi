@@ -59,7 +59,7 @@
 						{% endfor %}
 					</select>
 				</td>
-				<td><a class="delete" onclick="confirmDeleteUser({{user.0}})"  style="cursor: pointer;"></a></td> 
+				<td><a class="delete" onclick="confirmDeleteUser({{user.0}})" title="Delete user {{user.1}}" style="cursor: pointer;"></a></td> 
 			</tr>
 		{% endfor %}
 		</table>
@@ -129,7 +129,7 @@
 					<input type="text" id="descript-{{ group.0 }}" value="{{ group.2 }}" class="form-control" size="100">
 				</td>
 				<td>
-					<a class="delete" onclick="confirmDeleteGroup({{ group.0 }})"  style="cursor: pointer;"></a>
+					<a class="delete" onclick="confirmDeleteGroup({{ group.0 }})" title="Delete group {{group.1}}" style="cursor: pointer;"></a>
 				</td>
 			{% endif %}
 			</tr>
@@ -169,6 +169,7 @@
 				<td><span title="Enable save and show metrics">Metrics(?)</span></td>
 				<td><span title="Actions with master config will automatically apply on slave">Slave for (?)</span></td>
 				<td>Credentials</td>
+				<td>Desciption</td>
 				<td></td>
 			</tr>
 						
@@ -178,7 +179,7 @@
 					<input type="text" id="hostname-{{server.0}}" value="{{server.1}}" class="form-control">
 				</td>
 				<td>
-					<input type="text" id="ip-{{server.0}}" value="{{server.2}}" class="form-control">
+					<input type="text" id="ip-{{server.0}}" value="{{server.2}}" size="14" class="form-control">
 				</td>
 				<td>
 					<input type="text" id="port-{{server.0}}" value="{{server.10}}" size="1" class="form-control">
@@ -248,7 +249,14 @@
 					</select>
 				</td>
 				<td>
-					<a class="delete" onclick="confirmDeleteServer({{server.0}})"  style="cursor: pointer;"></a>
+					{% if server.11 %}
+						<input type="text" id="desc-{{server.0}}" value="{{server.11}}" size="30" class="form-control">
+					{% else %}
+						<input type="text" id="desc-{{server.0}}" value="" size="30" class="form-control">
+					{% endif %}
+				</td>
+				<td>
+					<a class="delete" onclick="confirmDeleteServer({{server.0}})" title="Delete server {{server.1}}" style="cursor: pointer;"></a>
 				</td> 
 			</tr>
 		{% endfor %}
@@ -267,6 +275,7 @@
 				<td><span title="Enable save and show metrics">Metrics(?)</span></td>
 				<td title="Actions with master config will automatically apply on slave">Slave for</td>
 				<td>Credentials</td>
+				<td>Desciption</td>
 				<td></td>
 			</tr>
 			<tr>
@@ -274,7 +283,7 @@
 					<input type="text" name="new-server-add" id="new-server-add" class="form-control">
 				</td>
 				<td>
-					<input type="text" name="new-ip" id="new-ip" class="form-control">
+					<input type="text" name="new-ip" id="new-ip" size="14" class="form-control">
 				</td>
 				<td>
 					<input type="text" name="new-port" id="new-port" size=1 class="form-control" value="22">
@@ -314,6 +323,9 @@
 							<option value="{{ssh.0}}">{{ssh.1}}</option>
 						{% endfor %}
 					</select>
+				</td>
+				<td>
+					<input type="text" id="desc" size="30" class="form-control">
 				</td>
 				<td>
 					<a class="add-admin"  id="add-server" style="cursor: pointer;"></a>
@@ -390,7 +402,7 @@
 						<br>
 					</td>
 					<td>
-						<a class="delete" onclick="confirmDeleteSsh({{ssh.0}})"  style="cursor: pointer;"></a>
+						<a class="delete" onclick="confirmDeleteSsh({{ssh.0}})" title="Delete SSH credentials {{ssh.1}}" style="cursor: pointer;"></a>
 					</td>
 				</tr>
 			{% endfor %}
@@ -489,7 +501,7 @@
 						</select>
 					</td>
 					<td>
-						<a class="delete" onclick="confirmDeleteTelegram({{telegram.0}})"  style="cursor: pointer;"></a>
+						<a class="delete" onclick="confirmDeleteTelegram({{telegram.0}})" title="Delete channel {{telegram.2}}" style="cursor: pointer;"></a>
 					</td>
 				</tr>
 			{% endfor %}
@@ -528,4 +540,12 @@
 		<div id="ajax-telegram"></div>
 	</div>
 </div>
+<style>
+.ui-selectmenu-button.ui-button {
+    width: 12em;
+}
+.first-collumn {
+    width: 10%;
+}
+</style>
 {% endblock %}

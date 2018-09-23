@@ -143,7 +143,7 @@ After update old config saved at /tmp/ folder. Compare new and old config, if in
 # Update DB
 ```
 $ cd /var/www/haproxy-wi/app
-$ ./update_db.py
+$ ./create_db.py
 ```
 # Troubleshooting
 If you have error:
@@ -162,7 +162,7 @@ Internal Server Error
 Do this:
 ```
 $ cd /var/www/haproxy-wi/app
-$ ./update_db.py
+$ ./create_db.py
 ```
 and check executeble py files
 

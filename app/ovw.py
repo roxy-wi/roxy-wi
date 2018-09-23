@@ -60,7 +60,7 @@ def get_overviewWaf(url):
 	ioloop.run_until_complete(get_runner_overviewWaf(url))
 	ioloop.close()
 
-async def async_get_overviewServers(serv1, serv2):
+async def async_get_overviewServers(serv1, serv2, desc):
 	commands =  [ "top -u haproxy -b -n 1" ]
 	cmd = 'echo "show info" |nc %s %s |grep -e "Ver\|CurrConns\|SessRate\|Maxco\|MB\|Uptime:"' % (serv2, haproxy_sock_port)
 	out = funct.subprocess_execute(cmd)
@@ -73,13 +73,13 @@ async def async_get_overviewServers(serv1, serv2):
 				out1 += "<br />"
 		else:
 			out1 = "Can\'t connect to HAproxy"
-	server_status = (serv1,serv2, out1, funct.ssh_command(serv2, commands),funct.show_backends(serv2, ret=1))
+	server_status = (serv1,serv2, out1, funct.ssh_command(serv2, commands),funct.show_backends(serv2, ret=1), desc)
 	return server_status
 	
 async def get_runner_overviewServers():
 	template = env.get_template('overviewServers.html')	
 	
-	futures = [async_get_overviewServers(server[1], server[2]) for server in listhap]
+	futures = [async_get_overviewServers(server[1], server[2], server[11]) for server in listhap]
 	for i, future in enumerate(asyncio.as_completed(futures)):
 		result = await future
 		servers.append(result)

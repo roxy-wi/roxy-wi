@@ -116,11 +116,11 @@ def update_group(name, descript, id):
 	cur.close()    
 	con.close()
 
-def add_server(hostname, ip, group, typeip, enable, master, cred, alert, metrics, port):
+def add_server(hostname, ip, group, typeip, enable, master, cred, alert, metrics, port, desc):
 	con, cur = create_db.get_cur()
-	sql = """ INSERT INTO servers (hostname, ip, groups, type_ip, enable, master, cred, alert, metrics, port) 
-			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
-		""" % (hostname, ip, group, typeip, enable, master, cred, alert, metrics, port)
+	sql = """ INSERT INTO servers (hostname, ip, groups, type_ip, enable, master, cred, alert, metrics, port, desc) 
+			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
+		""" % (hostname, ip, group, typeip, enable, master, cred, alert, metrics, port, desc)
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -146,7 +146,7 @@ def delete_server(id):
 	cur.close()    
 	con.close() 		
 
-def update_server(hostname, ip, group, typeip, enable, master, id, cred, alert, metrics, port):
+def update_server(hostname, ip, group, typeip, enable, master, id, cred, alert, metrics, port, desc):
 	con, cur = create_db.get_cur()
 	sql = """ update servers set 
 			hostname = '%s',
@@ -158,8 +158,9 @@ def update_server(hostname, ip, group, typeip, enable, master, id, cred, alert, 
 			cred = '%s',
 			alert = '%s',
 			metrics = '%s',
-			port = '%s'
-			where id = '%s'""" % (hostname, ip, group, typeip, enable, master, cred, alert, metrics, port, id)
+			port = '%s',
+			desc = '%s'
+			where id = '%s'""" % (hostname, ip, group, typeip, enable, master, cred, alert, metrics, port, desc, id)
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -1083,11 +1084,12 @@ if form.getvalue('newserver') is not None:
 	page = form.getvalue('page')
 	page = page.split("#")[0]
 	port = form.getvalue('newport')	
+	desc = form.getvalue('desc')	
 	print('Content-type: text/html\n')
 	if ip is None or group is None or cred is None or port is None:		
 		print(error_mess)
 	else:	
-		if add_server(hostname, ip, group, typeip, enable, master, cred, alert, metrics, port):
+		if add_server(hostname, ip, group, typeip, enable, master, cred, alert, metrics, port, desc):
 			show_update_server(ip, page)
 		
 if form.getvalue('serverdel') is not None:
@@ -1133,11 +1135,12 @@ if form.getvalue('updateserver') is not None:
 	alert = form.getvalue('alert_en')	
 	metrics = form.getvalue('metrics')	
 	port = form.getvalue('port')	
+	desc = form.getvalue('desc')	
 	print('Content-type: text/html\n')
 	if name is None or ip is None or port is None:
 		print(error_mess)
 	else:		
-		update_server(name, ip, group, typeip, enable, master, id, cred, alert, metrics, port)
+		update_server(name, ip, group, typeip, enable, master, id, cred, alert, metrics, port, desc)
 			
 if form.getvalue('updatessh'):
 	id = form.getvalue('id')

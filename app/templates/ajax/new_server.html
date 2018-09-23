@@ -78,7 +78,10 @@
 					</select>
 				</td>
 				<td>
-					<a class="delete" onclick="removeServer({{server.0}})"  style="cursor: pointer;"></a>
+					<input type="text" id="desc-{{server.0}}" value="{{server.11}}" size="30" class="form-control">
+				</td>
+				<td>
+					<a class="delete" onclick="removeServer({{server.0}})" title="Delete server {{server.1}}" style="cursor: pointer;"></a>
 				</td> 
 			</tr>
 		{% endfor %}

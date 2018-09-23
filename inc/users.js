@@ -220,7 +220,8 @@ $( function() {
 				cred: $('#credentials').val(),
 				alert_en: alert_en,
 				metrics: metrics,
-				page: cur_url[0]
+				page: cur_url[0],
+				desc: $('#desc').val()
 			},
 			type: "GET",
 			success: function( data ) {
@@ -235,7 +236,6 @@ $( function() {
 					$('.alert-danger').remove();
 					$("#ajax-servers").append(data);
 					$(".newserver").addClass( "update", 1000, callbackServer );		
-					//$.getScript(url);	
 					$( "input[type=submit], button" ).button();
 					$( "input[type=checkbox]" ).checkboxradio();
 					$( "select" ).selectmenu();
@@ -734,7 +734,8 @@ function updateServer(id) {
 			cred: $('#credentials-'+id+' option:selected').val(),
 			id: id,
 			metrics: metrics,
-			alert_en: alert_en
+			alert_en: alert_en,
+			desc: $('#desc-'+id).val()
 		},
 		type: "GET",
 		success: function( data ) {

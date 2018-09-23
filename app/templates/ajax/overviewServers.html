@@ -2,7 +2,11 @@
 	<tr>
 		<td class="overviewTr first-collumn">
 			<a name="{{ service.0 }}"></a>
-			<h3 title="IP  {{ service.1 }}"> {{ service.0 }} :</h3>
+			{% if service.5 != "None" %}
+				<h3 title="IP  {{ service.1 }} {{ service.5 }}"> {{ service.0 }} :</h3>
+			{% else %}
+				<h3 title="IP  {{ service.1 }}"> {{ service.0 }} :</h3>
+			{% endif %}
 		</td>
 		<td class="overviewTd" style="padding-top: 10px;">
 			<pre style="font-size: 12px;">

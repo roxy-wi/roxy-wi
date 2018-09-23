@@ -238,12 +238,33 @@ def update_db_v_3_2_3(**kwargs):
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
 			if e.args[0] == 'duplicate column name: port' or e == " 1060 (42S21): Duplicate column name 'port' ":
-				print('DB was update<br />')
+				print('Updating... go to version 3.2.8')
 			else:
 				print("An error occurred:", e)
 		return False
 	else:
 		print("DB was update to 3.2.3<br />")
+		return True
+	cur.close() 
+	con.close()
+	
+def update_db_v_3_2_8(**kwargs):
+	con, cur = get_cur()
+	sql = """
+	ALTER TABLE `servers` ADD COLUMN desc varchar(64);
+	"""
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: desc' or e == " 1060 (42S21): Duplicate column name 'desc' ":
+				print('DB was update<br />')
+			else:
+				print("An error occurred:", e)
+		return False
+	else:
+		print("DB was update to 3.2.8<br />")
 		return True
 	cur.close() 
 	con.close()
@@ -253,12 +274,14 @@ def update_all():
 	update_db_v_3_2()
 	update_db_v_3_21()
 	update_db_v_3_2_3()
+	update_db_v_3_2_8()
 	
 def update_all_silent():
 	update_db_v_31(silent=1)
 	update_db_v_3_2(silent=1)
 	update_db_v_3_21(silent=1)
 	update_db_v_3_2_3(silent=1)
+	update_db_v_3_2_8(silent=1)
 	
 if __name__ == "__main__":
 	create_table()

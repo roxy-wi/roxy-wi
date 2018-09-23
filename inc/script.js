@@ -85,11 +85,9 @@ function autoRefreshStyle(autoRefresh) {
 	$('.auto-refresh-resume').css('margin-left', "-25px");		
 	$('.auto-refresh img').remove();
 }
-
 function setRefreshInterval(interval) {
 	if (interval == "0") {
 		Cookies.remove('auto-refresh');
-		Cookies.remove('auto-refresh-pause');
 		pauseAutoRefresh();
 		$('.auto-refresh').prepend('<img src=/image/pic/update.png alt="restart" class="icon">');
 		$('.auto-refresh').css('margin-top', '-3px');
