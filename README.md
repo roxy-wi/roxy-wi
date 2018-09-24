@@ -7,6 +7,9 @@ Support the project
 
 [Demo video](https://www.youtube.com/channel/UCo0lCg24j-H4f0S9kMjp-_w)
 
+# Twitter
+Began to lead a [Twitter](https://twitter.com/haproxy_wi), subscribe! I will write there about all the changes and news
+
 ![alt text](image/haproxy-wi-config-show.jpeg "Show config page")
 
 # Features:
