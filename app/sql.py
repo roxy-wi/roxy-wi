@@ -159,7 +159,7 @@ def update_server(hostname, ip, group, typeip, enable, master, id, cred, alert, 
 			alert = '%s',
 			metrics = '%s',
 			port = '%s',
-			desc = '%s'
+			`desc` = '%s'
 			where id = '%s'""" % (hostname, ip, group, typeip, enable, master, cred, alert, metrics, port, desc, id)
 	try:    
 		cur.execute(sql)
