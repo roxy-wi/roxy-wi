@@ -54,15 +54,13 @@
 							<li><a href=/app/metrics.py title="Metrics" class="metrics head-submenu">Metrics</a></li>
 						</li>
 						<li><a title="Actions with Haproxy configs" class="config-show">Haproxy</a>			
-							<li><a href=/app/configshow.py title="Show Haproxy Config" class="config-show head-submenu">Show config</a></li> 
-							<li><a href=/app/diff.py title="Compare Haproxy Configs" class="compare head-submenu">Compare configs</a></li>
-					{% if user %}	
+						{% if user %}	
+							<li><a href=/app/config.py title="Working with Haproxy Configs" class="edit head-submenu">Configs</a> </li>
 							{% if role <= 2 %}
 								<li><a href=/app/add.py#listner title="Add single listen" class="add head-submenu">Add listen</a></li>
 								<li><a href=/app/add.py#frontend title="Add single frontend" class="add head-submenu">Add frontend</a></li>
 								<li><a href=/app/add.py#backend title="Add single backend" class="add head-submenu">Add backend</a></li>
-								<li><a href=/app/add.py#ssl title="Upload SSL cert" class="cert head-submenu">SSL</a></li>
-								<li><a href=/app/config.py title="Edit Haproxy Config" class="edit head-submenu">Edit config</a> </li>	
+								<li><a href=/app/add.py#ssl title="Upload SSL cert" class="cert head-submenu">SSL</a></li>	
 								<li><a href=/app/lists.py title="Manage black and white lists" class="lists head-submenu">Lists</a> </li>	
 								<li><a href=/app/waf.py title="Web application firewall" class="waf head-submenu">WAF</a> </li>	
 								<li><a href=/app/ihap.py title="Installation HAProxy" class="hap head-submenu">Installation</a> </li>
@@ -101,7 +99,7 @@
 					</ul>
 				</nav>
 				<div class="copyright-menu">
-					HAproxy-WI v3.2.8
+					HAproxy-WI v3.2.9
 					<br>
 					<a href="https://www.patreon.com/haproxy_wi" title="Donate" target="_blank" style="color: #fff; margin-left: 30px; color: red;" class="patreon">  Patreon</a>
 				</div>

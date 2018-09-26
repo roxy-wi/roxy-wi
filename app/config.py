@@ -11,7 +11,6 @@ template = env.get_template('config.html')
 
 print('Content-type: text/html\n')
 funct.check_login()
-funct.page_for_admin(level = 2)
 
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
@@ -80,7 +79,7 @@ if form.getvalue('serv') is not None and form.getvalue('config') is not None:
 		
 	os.system("/bin/rm -f " + hap_configs_dir + "*.old")
 
-output_from_parsed_template = template.render(h2 = 1, title = "Edit Runnig HAProxy config",
+output_from_parsed_template = template.render(h2 = 1, title = "Working with HAProxy configs",
 													role = sql.get_user_role_by_uuid(user_id.value),
 													action = "config.py",
 													user = user,

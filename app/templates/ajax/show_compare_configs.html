@@ -9,18 +9,17 @@
 				<option disabled selected>Choose version</option>
 				{% for file in return_files %}
 					{% if file == left %}
-						<option value="{{ file }}" selected>{{ file }}</option>
+						<option value="{{ file }}" selected>{{ file.split('-', maxsplit=1)[1] }}</option>
 					{% else %}
-						<option value="{{ file }}">{{ file }}</option>
+						<option value="{{ file }}">{{ file.split('-', maxsplit=1)[1] }}</option>
 					{% endif %}
 				{% endfor %}
 			</select>
 
 			<select autofocus required name="right" id="right">
 				<option disabled selected>Choose version</option>
-				{% for file in return_files %}
-					
-					<option value="{{ file }}">{{ file }}</option>
+				{% for file in return_files %}				
+					<option value="{{ file }}">{{ file.split('-', maxsplit=1)[1] }}</option>
 				{% endfor %}
 			</select>
 	

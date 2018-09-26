@@ -40,9 +40,9 @@
 						<option disabled selected>Choose version</option>
 							{% for file in return_files %}
 								{% if file == configver %}
-									<option {{file}} selected>{{file}}</option>
+									<option value="{{file}}" selected>{{file.split('-', maxsplit=1)[1]}}</option>
 								{% else %}
-									<option {{file}}>{{file}}</option>
+									<option value="{{file}}">{{file.split('-', maxsplit=1)[1]}}</option>
 								{% endif %}
 							{% endfor %}
 					</select>

@@ -85,6 +85,7 @@ function autoRefreshStyle(autoRefresh) {
 	$('.auto-refresh-resume').css('margin-left', "-25px");		
 	$('.auto-refresh img').remove();
 }
+
 function setRefreshInterval(interval) {
 	if (interval == "0") {
 		Cookies.remove('auto-refresh');
@@ -317,6 +318,9 @@ function showCompare() {
 	} );
 }
 function showCompareConfigs() {
+	$("#ajax").empty();
+	$("#config").empty();
+	$(".alert-info").empty();
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -330,10 +334,15 @@ function showCompareConfigs() {
 			$("#ajax-compare").html(data);
 			$( "input[type=submit], button" ).button();
 			$( "select" ).selectmenu();
+			window.history.pushState("Compare configs", "Compare configs", cur_url[0]);
 		}					
 	} );
 }
 function showConfig() {
+	$("#ajax").empty();
+	$("#ajax-compare").empty();
+	$("#config").empty();
+	$(".alert-info").empty();
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -345,6 +354,7 @@ function showConfig() {
 		success: function( data ) {
 			$("#ajax").html(data);
 			$.getScript('/inc/configshow.js');
+			window.history.pushState("Show config", "Show config", cur_url[0]);
 		}					
 	} );
 }
