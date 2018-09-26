@@ -251,7 +251,7 @@ def update_db_v_3_2_3(**kwargs):
 def update_db_v_3_2_8(**kwargs):
 	con, cur = get_cur()
 	sql = """
-	ALTER TABLE `servers` ADD COLUMN desc varchar(64);
+	ALTER TABLE `servers` ADD COLUMN `desc` varchar(64);
 	"""
 	try:    
 		cur.execute(sql)

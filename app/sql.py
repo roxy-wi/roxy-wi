@@ -118,7 +118,7 @@ def update_group(name, descript, id):
 
 def add_server(hostname, ip, group, typeip, enable, master, cred, alert, metrics, port, desc):
 	con, cur = create_db.get_cur()
-	sql = """ INSERT INTO servers (hostname, ip, groups, type_ip, enable, master, cred, alert, metrics, port, desc) 
+	sql = """ INSERT INTO servers (hostname, ip, groups, type_ip, enable, master, cred, alert, metrics, port, `desc`) 
 			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
 		""" % (hostname, ip, group, typeip, enable, master, cred, alert, metrics, port, desc)
 	try:    
@@ -159,7 +159,7 @@ def update_server(hostname, ip, group, typeip, enable, master, id, cred, alert, 
 			alert = '%s',
 			metrics = '%s',
 			port = '%s',
-			desc = '%s'
+			`desc` = '%s'
 			where id = '%s'""" % (hostname, ip, group, typeip, enable, master, cred, alert, metrics, port, desc, id)
 	try:    
 		cur.execute(sql)

@@ -630,3 +630,7 @@ label {
 .even {
 	background-color: #f3f8fb;
 }
+.mCSB_container {
+	overflow-y: hidden !important;
+	overflow-x: auto !important;
+}
