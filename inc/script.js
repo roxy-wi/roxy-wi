@@ -266,6 +266,10 @@ function showLog() {
 	} );
 }
 function showMap() {
+	$("#ajax").empty();
+	$("#ajax-compare").empty();
+	$("#config").empty();
+	$(".alert-info").empty();
 	var unique = $.now();
 	$.ajax( {
 		url: "options.py",
@@ -277,10 +281,10 @@ function showMap() {
 		type: "GET",
 		success: function( data ) {
 			$("#ajax").html(data);
+			window.history.pushState("Show map", "Show map", cur_url[0]);
 		}					
 	} );
 }
-
 function showRuntime() {
 	if($('#save').prop('checked')) {
 		saveCheck = "on";
