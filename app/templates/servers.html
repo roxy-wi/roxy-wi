@@ -28,6 +28,7 @@
 				<td><span title="Enable save and show metrics">Metrics(?)</span></td>
 				<td><span title="Actions with master config will automatically apply on slave">Slave for (?)</span></td>
 				<td>Credentials</td>
+				<td>Desciption</td>
 				<td></td>
 			</tr>
 		{% set ssh_group = [] %}		
@@ -38,7 +39,7 @@
 					<input type="text" id="hostname-{{server.0}}" value="{{server.1}}" class="form-control">
 				</td>
 				<td>
-					<input type="text" id="ip-{{server.0}}" value="{{server.2}}" class="form-control">
+					<input type="text" id="ip-{{server.0}}" value="{{server.2}}" size="14" class="form-control">
 					<input type="hidden" id="new-server-group-add" name="servergroup-{{server.0}}" value="{{ group }}" >
 					<input type="hidden" id="servergroup-{{server.0}}" name="servergroup-{{server.0}}" value="{{ group }}" >					
 				</td>
@@ -100,7 +101,14 @@
 					</select>
 				</td>
 				<td>
-					<a class="delete_button" onclick="confirmDeleteServer({{server.0}})"  style="cursor: pointer;"></a>
+					{% if server.11  != "None" %}
+						<input type="text" id="desc-{{server.0}}" value="{{server.11}}" size="30" class="form-control">
+					{% else %}
+						<input type="text" id="desc-{{server.0}}" value="" size="30" class="form-control">
+					{% endif %}
+				</td>
+				<td>
+					<a class="delete" onclick="confirmDeleteServer({{server.0}})" title="Delete server {{server.1}}" style="cursor: pointer;"></a>
 				</td> 
 			</tr>
 		{% endfor %}
@@ -118,6 +126,7 @@
 				<td><span title="Enable save and show metrics">Metrics(?)</span></td>
 				<td title="Actions with master config will automatically apply on slave">Slave for</td>
 				<td>Credentials</td>
+				<td>Desciption</td>
 				<td></td>
 			</tr>
 			<tr>
@@ -125,7 +134,7 @@
 					<input type="text" name="new-server-add" id="new-server-add" class="form-control">
 				</td>
 				<td>
-					<input type="text" name="new-ip" id="new-ip" class="form-control">
+					<input type="text" name="new-ip" id="new-ip" size="14" class="form-control">
 					<input type="hidden" id="new-sshgroup" name="new-sshgroup" value="{{ group }}" >
 				</td>	
 				<td>
@@ -160,6 +169,9 @@
 							{% endif %}
 						{% endfor %}
 					</select>
+				</td>
+				<td>
+					<input type="text" id="desc" size="30" class="form-control">
 				</td>
 				<td>
 					<a class="add-admin"  id="add-server" style="cursor: pointer;"></a>
@@ -209,7 +221,7 @@
 							<br>
 						</td>
 						<td>
-							<a class="delete_button" onclick="confirmDeleteSsh({{ssh.0}})"  style="cursor: pointer;"></a>
+							<a class="delete" onclick="confirmDeleteSsh({{ssh.0}})"  style="cursor: pointer;"></a>
 						</td>
 					</tr>
 				{% endif %}
@@ -291,7 +303,7 @@
 							<input type="text" id="telegram-chanel-{{telegram.0}}" class="form-control" value="{{telegram.2}}">		
 						</td>
 						<td>
-							<a class="delete_button" onclick="confirmDeleteSsh({{telegram.0}})"  style="cursor: pointer;"></a>
+							<a class="delete" onclick="confirmDeleteSsh({{telegram.0}})"  style="cursor: pointer;"></a>
 						</td>
 					</tr>
 				{% endif %}
@@ -344,9 +356,17 @@
 			$("input[type=checkbox]").checkboxradio( "disable" );
 			$("select").selectmenu( "disable" );
 			$("input").attr( "readonly", "readonly" );
-			$('.delete_button').remove()
+			$('.delete').remove()
 		}, 500 );
 		
 	}
 </script>
+<style>
+.ui-selectmenu-button.ui-button {
+    width: 12em;
+}
+.first-collumn {
+    width: 10%;
+}
+</style>
 {% endblock %}

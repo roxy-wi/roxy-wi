@@ -6,7 +6,7 @@
 				<td>
 					<input type="text" id="ip-{{server.0}}" value="{{server.2}}" class="form-control">
 					{% if page == "servers.py" %}
-						<input type="hidden" id="servergroup-{{server.0}}" name="servergroup-{{server.0}}" value="{{ ssh_group.0 }}" >
+						<input type="hidden" id="servergroup-{{server.0}}" name="servergroup-{{server.0}}" value="" >
 					{% endif %}
 				</td>
 				<td>
@@ -78,7 +78,11 @@
 					</select>
 				</td>
 				<td>
-					<input type="text" id="desc-{{server.0}}" value="{{server.11}}" size="30" class="form-control">
+					{% if server.11  != "None" %}
+						<input type="text" id="desc-{{server.0}}" value="{{server.11}}" size="30" class="form-control">
+					{% else %}
+						<input type="text" id="desc-{{server.0}}" value="" size="30" class="form-control">
+					{% endif %}
 				</td>
 				<td>
 					<a class="delete" onclick="removeServer({{server.0}})" title="Delete server {{server.1}}" style="cursor: pointer;"></a>
