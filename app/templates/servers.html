@@ -6,6 +6,7 @@
 </div>
 <div id="tabs">
 	<ul>
+		<li><a href="#users">Users</a></li>
 		<li><a href="#servers">Servers</a></li>
 		<li><a href="#ssh">SSH credentials</a></li>
 		<li><a href="#checker">Checker</a></li>
@@ -15,7 +16,84 @@
 			<a href=/app/login.py title="Login" class="login"> Login</a>
 		{% endif %}
 	</ul>
-	
+	<div id="users">
+		<table class="overview" id="ajax-users">
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn">Login name</td>
+				<td>Password</td>
+				<td>Email</td>
+				<td>Role</td>
+				<td></td>
+			</tr>
+			<tr>
+		{% for user in users %}
+			{% if user.5 == group %}
+			<tr id="user-{{user.0}}" class="{{ loop.cycle('odd', 'even') }}">
+				<td class="padding10 first-collumn">
+					<input type="text" id="login-{{user.0}}" value="{{user.1}}" class="form-control">
+					<input type="hidden" id="new-group" name="new-group" value="{{ group }}">
+					<input type="hidden" id="usergroup-{{user.0}}" name="usergroup-{{user.0}}" value="{{ group }}">
+				</td> 
+				<td><input type="password" id="password-{{user.0}}" value="{{user.3}}" class="form-control"></td> 
+				<td><input type="text" id="email-{{user.0}}" value="{{user.2}}" class="form-control"></td>
+				<td>
+					<select id="role-{{user.0}}" name="role-{{user.0}}">
+						<option disabled selected>Choose role</option>
+						{% for role in roles %}
+							{% if role.1 != "admin" %}
+								{% if user.4 == role.1 %}
+									<option value="{{ role.1 }}" selected>{{ role.1 }}</option>
+								{% else %}
+									<option value="{{ role.1 }}">{{ role.1 }}</option>
+								{% endif %}
+							{% endif %}
+						{% endfor %}
+					</select>
+				</td>
+				<td>
+					<a class="delete" onclick="confirmDeleteUser({{user.0}})" title="Delete user {{user.1}}" style="cursor: pointer;"></a>
+				</td> 
+			</tr>
+			{% endif %}
+		{% endfor %}
+		</table>
+	<br /><span class="add-button" title="Add user" id="add-user-button">+ Add</span>
+	<br /><br />
+		<table class="overview" id="user-add-table" style="display: none;">
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn">New user</td>
+				<td>Password</td>
+				<td>Email</td>
+				<td>Role</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td class="padding10 first-collumn">
+					<input type="text" name="new-username" id="new-username" class="form-control">
+				</td>
+				<td>
+					<input type="password" name="new-password" id="new-password" class="form-control">
+				</td>
+				<td>
+					<input type="text" name="new-email" id="new-email" class="form-control">
+				</td>
+				<td>
+					<select id="new-role" name="new-role">
+						<option disabled selected>Choose role</option>
+						{% for role in roles %}
+							{% if role.1 != "admin" %}
+								<option value="{{ role.1 }}">{{ role.1 }}</option>
+							{% endif %}
+						{% endfor %}
+						</select>
+					</td>
+				<td>
+					<a class="add-admin" id="add-user" title="Add new user" style="cursor: pointer;"></a>
+				</td>
+			</tr>
+		</table>
+		
+	</div>
 	<div id="servers">
 		<table class="overview" id="ajax-servers">
 			<tr class="overviewHead">
@@ -172,7 +250,7 @@
 					<input type="text" id="desc" size="30" class="form-control">
 				</td>
 				<td>
-					<a class="add-admin"  id="add-server" style="cursor: pointer;"></a>
+					<a class="add-admin" id="add-server" title="Add new server" style="cursor: pointer;"></a>
 				</td>
 			</tr>
 		</table>
@@ -249,7 +327,7 @@
 					<br>
 				</td>
 				<td>
-					<a class="add-admin"  id="add-ssh" style="cursor: pointer;"></a>
+					<a class="add-admin" id="add-ssh" title="Add new SSH credentials" style="cursor: pointer;"></a>
 				</td>
 			</tr>
 		</table>
@@ -330,7 +408,7 @@
 					<input type="text" id="telegram-chanel-add" class="form-control">
 				</td>
 				<td>
-					<a class="add-admin"  id="add-telegram" style="cursor: pointer;"></a>
+					<a class="add-admin" id="add-telegram" title="Add new Telegram channel" style="cursor: pointer;"></a>
 				</td>
 			</tr>
 		</table>

@@ -28,7 +28,6 @@
 				<td>Role</td>
 				<td>Group</td>
 				<td></td>
-				<td></td>
 			</tr>
 			<tr>
 		{% for user in users %}
@@ -102,7 +101,7 @@
 						</select>
 					</td>
 				<td>
-					<a class="add-admin" id="add-user" style="cursor: pointer;"></a>
+					<a class="add-admin" id="add-user" title="Add new user" style="cursor: pointer;"></a>
 				</td>
 			</tr>
 		</table>
@@ -113,7 +112,6 @@
 			<tr class="overviewHead">
 				<td class="padding10 first-collumn">Name</td>
 				<td>Desciption</td>
-				<td></td>
 				<td></td>
 			</tr>
 		{% for group in groups %}
@@ -152,7 +150,7 @@
 					<input type="text" name="new-desc" id="new-desc" class="form-control" size="100">
 				</td>
 				<td>
-					<a class="add-admin" id="add-group" style="cursor: pointer;"></a>
+					<a class="add-admin" id="add-group" title="Add new group" style="cursor: pointer;"></a>
 				</td>
 			</tr>
 		</table>
@@ -329,7 +327,7 @@
 					<input type="text" id="desc" size="30" class="form-control">
 				</td>
 				<td>
-					<a class="add-admin"  id="add-server" style="cursor: pointer;"></a>
+					<a class="add-admin" id="add-server" title="Add new server" style="cursor: pointer;"></a>
 				</td>
 			</tr>
 		</table>
@@ -340,8 +338,6 @@
 			<tr class="overviewHead">
 				<td class="padding10 first-collumn">Name</td>
 				<td>Desciption</td>
-				<td></td>
-				<td></td>
 			</tr>
 			<tr>
 			{% for role in roles %}	
@@ -440,7 +436,7 @@
 					<br>
 				</td>
 				<td>
-					<a class="add-admin"  id="add-ssh" style="cursor: pointer;"></a>
+					<a class="add-admin" id="add-ssh" title="Add new SSH credentials" style="cursor: pointer;"></a>
 				</td>
 			</tr>
 		</table>
@@ -534,7 +530,7 @@
 					</select>
 				</td>
 				<td>
-					<a class="add-admin"  id="add-telegram" style="cursor: pointer;"></a>
+					<a class="add-admin"  id="add-telegram" title="Add new Telegram channel" style="cursor: pointer;"></a>
 				</td>
 			</tr>
 		</table>

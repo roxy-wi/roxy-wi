@@ -123,9 +123,10 @@ def get_map(serv):
 	j, m = 0, 0
 	for line in conf:
 		if "listen" in line or "frontend" in line:
-			if "stats" not in line:				
-				node = line
-				i = i - 500	
+			if ":" not in line:
+				if "stats" not in line:				
+					node = line
+					i = i - 500	
 		if line.find("backend") == 0: 
 			node = line
 			i = i - 500	

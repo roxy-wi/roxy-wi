@@ -1094,6 +1094,36 @@ $( function() {
 			change_select_acceleration("3");
 		});
 	}
+	if (cur_url[0] == "/app/users.py" || cur_url[0] == "/app/servers.py") {
+		$( ".users" ).on( "click", function() {
+			$( "#tabs" ).tabs( "option", "active", 0 );
+		} );
+		if (cur_url[0] == "/app/users.py") {
+			$( ".group" ).on( "click", function() {
+				$( "#tabs" ).tabs( "option", "active", 1 );
+			} );
+		} else {
+			$( ".runtime" ).on( "click", function() {
+				$( "#tabs" ).tabs( "option", "active", 1 );
+			} );
+		}
+		if (cur_url[0] == "/app/servers.py") {
+			$( ".admin" ).on( "click", function() {
+				$( "#tabs" ).tabs( "option", "active", 2 );
+			} );
+		}
+		if (cur_url[0] == "/app/users.py") {
+			$( ".runtime" ).on( "click", function() {
+				$( "#tabs" ).tabs( "option", "active", 2 );
+			} );
+		}
+		$( ".role" ).on( "click", function() {
+			$( "#tabs" ).tabs( "option", "active", 3 );
+		} );
+		$( ".admin" ).on( "click", function() {
+			$( "#tabs" ).tabs( "option", "active", 4 );
+		} );
+	}
 	$( "#path-cert-listen" ).autocomplete({
 		source: function( request, response ) {
 			$.ajax( {

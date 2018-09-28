@@ -134,6 +134,7 @@ $( function() {
 				newpassword: $('#new-password').val(),
 				newemail: $('#new-email').val(),
 				newrole: $('#new-role').val(),
+				page: cur_url[0],
 				newgroupuser: $('#new-group').val()
 			},
 			type: "GET",
@@ -640,6 +641,11 @@ function removeTelegram(id) {
 }
 function updateUser(id) {
 	$('.alert-danger').remove();
+	if (cur_url[0] != "servers.py") {
+		var usergroup = $('#usergroup-'+id+' option:selected' ).val();
+	} else {
+		var usergroup = $('#usergroup-'+id ).val();
+	}
 	$.ajax( {
 		url: "sql.py",
 		data: {
@@ -647,7 +653,7 @@ function updateUser(id) {
 			password: $('#password-'+id).val(),
 			email: $('#email-'+id).val(),
 			role: $('#role-'+id).val(),
-			usergroup: $('#usergroup-'+id+' option:selected' ).val(),
+			usergroup: usergroup,
 			id: id
 		},
 		type: "GET",

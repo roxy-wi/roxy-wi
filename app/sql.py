@@ -977,16 +977,17 @@ def show_update_telegram(token, page):
 	output_from_parsed_template = template.render(groups = select_groups(), telegrams = select_telegram(token=token),page=page)
 	print(output_from_parsed_template)	
 
-def show_update_user(user):
+def show_update_user(user,page):
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates/ajax'))
 	template = env.get_template('/new_user.html')
 
 	print('Content-type: text/html\n')
-	output_from_parsed_template = template.render(users = select_users(user=user),
-													groups = select_groups(),
-													roles = select_roles())
-	print(output_from_parsed_template)
+	template = template.render(users = select_users(user=user),
+								groups = select_groups(),
+								page=page,
+								roles = select_roles())
+	print(template)
 		
 def show_update_server(server, page):
 	from jinja2 import Environment, FileSystemLoader
@@ -1046,12 +1047,13 @@ if form.getvalue('newuser') is not None:
 	role = form.getvalue('newrole')
 	group = form.getvalue('newgroupuser')
 	new_user = form.getvalue('newusername')	
+	page = form.getvalue('page')	
 	print('Content-type: text/html\n')
 	if password is None or role is None or group is None:
 		print(error_mess)
 	else:		
 		if add_user(new_user, email, password, role, group):
-			show_update_user(new_user)
+			show_update_user(new_user, page)
 		
 if form.getvalue('updateuser') is not None:
 	email = form.getvalue('email')
