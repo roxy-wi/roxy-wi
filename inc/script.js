@@ -1072,7 +1072,6 @@ $( function() {
 			$( "#blacklist-hide-input1" ).prop('required',false);
 		}
 	});
-
 	cur_url = cur_url[0].split('#');
 	if (cur_url[0] == "/app/add.py") {
 		$("#cache").checkboxradio( "disable" );
@@ -1093,34 +1092,90 @@ $( function() {
 		$( "#serv3" ).on('selectmenuchange',function() {
 			change_select_acceleration("3");
 		});
+		$( "#add1" ).on( "click", function() {
+			 $('.menu li').each(function () {
+				$(this).removeClass('current');
+			});
+			$(this).parent().addClass('current');
+			$( "#tabs" ).tabs( "option", "active", 0 );
+		} );
+		$( "#add2" ).on( "click", function() {
+			 $('.menu li').each(function () {
+				$(this).removeClass('current');
+			});
+			$(this).parent().addClass('current');
+			$( "#tabs" ).tabs( "option", "active", 1 );
+		} );
+		$( "#add3" ).on( "click", function() {
+			 $('.menu li').each(function () {
+				$(this).removeClass('current');
+			});
+			$(this).parent().addClass('current');
+			$( "#tabs" ).tabs( "option", "active", 2 );
+		} );
+		$( "#add4" ).on( "click", function() {
+			 $('.menu li').each(function () {
+				$(this).removeClass('current');
+			});
+			$(this).parent().addClass('current');
+			$( "#tabs" ).tabs( "option", "active", 3 );
+		} );
 	}
 	if (cur_url[0] == "/app/users.py" || cur_url[0] == "/app/servers.py") {
 		$( ".users" ).on( "click", function() {
+			 $('.menu li').each(function () {
+				$(this).removeClass('current');
+			});
+			$(this).parent().addClass('current');
 			$( "#tabs" ).tabs( "option", "active", 0 );
 		} );
 		if (cur_url[0] == "/app/users.py") {
 			$( ".group" ).on( "click", function() {
+				$('.menu li').each(function () {
+				$(this).removeClass('current');
+			});
+				$(this).parent().addClass('current');
 				$( "#tabs" ).tabs( "option", "active", 1 );
 			} );
 		} else {
 			$( ".runtime" ).on( "click", function() {
+				$('.menu li').each(function () {
+				$(this).removeClass('current');
+			});
+				$(this).parent().addClass('current');
 				$( "#tabs" ).tabs( "option", "active", 1 );
 			} );
 		}
 		if (cur_url[0] == "/app/servers.py") {
 			$( ".admin" ).on( "click", function() {
+				$('.menu li').each(function () {
+				$(this).removeClass('current');
+			});
+				$(this).parent().addClass('current');
 				$( "#tabs" ).tabs( "option", "active", 2 );
 			} );
 		}
 		if (cur_url[0] == "/app/users.py") {
 			$( ".runtime" ).on( "click", function() {
+				$('.menu li').each(function () {
+				$(this).removeClass('current');
+			});
+				$(this).parent().addClass('current');
 				$( "#tabs" ).tabs( "option", "active", 2 );
 			} );
 		}
 		$( ".role" ).on( "click", function() {
+			$('.menu li').each(function () {
+				$(this).removeClass('current');
+			});
+			$(this).parent().addClass('current');
 			$( "#tabs" ).tabs( "option", "active", 3 );
 		} );
 		$( ".admin" ).on( "click", function() {
+			$('.menu li').each(function () {
+				$(this).removeClass('current');
+			});
+			$(this).parent().addClass('current');
 			$( "#tabs" ).tabs( "option", "active", 4 );
 		} );
 	}
