@@ -881,3 +881,26 @@ function showApacheLog(serv) {
 		}					
 	} );
 }
+function checkSshConnect(ip) {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			checkSshConnect: 1,
+			serv: ip,
+			token: $('#token').val()
+		},
+		type: "GET",
+		success: function( data ) {
+			if (data.indexOf('danger') != '-1') {
+				$("#ajax").html(data);
+			} else {
+				$("#ajax").html("<div class='alert alert-success' style='margin: 0;'>Connect accept<a title='Close' id='errorMess'><b>X</b></a></div>");
+			}
+			$('#errorMess').click(function() {
+				$('#error').remove();
+				$('.alert-danger').remove();
+				$('.alert-success').remove();
+			});
+		}					
+	} );
+}

@@ -144,11 +144,17 @@ def ssh_connect(serv, **kwargs):
 	from paramiko import SSHClient
 	import sql
 	fullpath = get_config_var('main', 'fullpath')
+	ssh_enable = ''
+	ssh_port = ''
+	ssh_user_name = ''
+	ssh_user_password = ''
+	
 	for sshs in sql.select_ssh(serv=serv):
 		ssh_enable = sshs[3]
 		ssh_user_name = sshs[4]
 		ssh_user_password = sshs[5]
 		ssh_key_name = fullpath+'/keys/%s.pem' % sshs[2]
+
 	servers = sql.select_servers(server=serv)
 	for server in servers:
 		ssh_port = server[10]
@@ -407,7 +413,7 @@ def ssh_command(serv, commands, **kwargs):
 		  
 	for command in commands:
 		try:
-			stdin, stdout, stderr = ssh.exec_command(command,get_pty=True)
+			stdin, stdout, stderr = ssh.exec_command(command, get_pty=True)
 		except:
 			continue
 				
@@ -431,7 +437,7 @@ def ssh_command(serv, commands, **kwargs):
 	try:	
 		ssh.close()
 	except:
-		print("<div class='alert alert-danger' style='margin: 0;'>"+str(ssh)+"</div>")
+		print("<div class='alert alert-danger' style='margin: 0;'>"+str(ssh)+"<a title='Close' id='errorMess'><b>X</b></a></div>")
 		pass
 
 def escape_html(text):

@@ -32,6 +32,12 @@ if form.getvalue('getcerts') is not None and serv is not None:
 		funct.ssh_command(serv, commands, ip="1")
 	except:
 		print('<div class="alert alert-danger" style="margin:0">Can not connect to the server</div>')
+
+if form.getvalue('checkSshConnect') is not None and serv is not None:
+	try:
+		funct.ssh_command(serv, ["ls -1t"])
+	except:
+		print('<div class="alert alert-danger" style="margin:0">Can not connect to the server</div>')
 		
 if form.getvalue('getcert') is not None and serv is not None:
 	id = form.getvalue('getcert')
@@ -486,8 +492,7 @@ if form.getvalue('metrics'):
 	for key, value in p.items():
 		plots.append(value)
 		
-	plots_sorted = sorted(plots, key=funct.get_key)
-	grid = gridplot(plots_sorted, ncols=2, plot_width=800, plot_height=250, toolbar_location = "left", toolbar_options=dict(logo=None))
+	grid = gridplot(plots, ncols=2, plot_width=800, plot_height=250, toolbar_location = "left", toolbar_options=dict(logo=None))
 	show(grid)
 	
 if form.getvalue('waf_metrics'):
@@ -556,8 +561,8 @@ if form.getvalue('waf_metrics'):
 	plots = []
 	for key, value in p.items():
 		plots.append(value)
-	plots_sorted = sorted(plots, key=funct.get_key)
-	grid = gridplot(plots_sorted, ncols=2, plot_width=800, plot_height=250, toolbar_location = "left", toolbar_options=dict(logo=None))
+		
+	grid = gridplot(plots, ncols=2, plot_width=800, plot_height=250, toolbar_location = "left", toolbar_options=dict(logo=None))
 	show(grid)
 	
 if form.getvalue('get_hap_v'):
