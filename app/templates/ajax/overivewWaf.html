@@ -1,6 +1,6 @@
 {% set waf_servers = [] %}	
 {% for service in service_status %}
-	{% if service.3 or url == "waf.py" %}
+	{% if service.3 == "On" or service.3 == "Off" or service.3 == "DetectionOnly" or url == "waf.py" %}
 		{% do waf_servers.append(1) %}
 		<tr class="{{ loop.cycle('odd', 'even') }}">
 			<td class="padding10 first-collumn">
@@ -27,7 +27,7 @@
 			{% endif %}
 			</td>
 			<td>
-				{% if service.3 %}
+				{% if service.3 == "On" or service.3 == "Off" or service.3 == "DetectionOnly" %}
 					{{ service.3 }}
 				{%else %}
 					<a title="Install WAF"><button onclick="installWaf('{{ service.1 }}')">Install</button></a>
@@ -35,11 +35,11 @@
 			</td>
 			{% if url == "waf.py" %}
 			<td>
-				{% if service.3 %}
+				{% if service.3 == "On" or service.3 == "Off" or service.3 == "DetectionOnly" %}
 					{% if service.4|int() == 1 %}
-					<label for="{{ service.0 }}"></label><input type="checkbox" id="{{ service.0 }}" checked>
+						<label for="{{ service.0 }}"></label><input type="checkbox" id="{{ service.0 }}" checked>
 					{% else %}
-					<label for="{{ service.0 }}"></label><input type="checkbox" id="{{ service.0 }}">
+						<label for="{{ service.0 }}"></label><input type="checkbox" id="{{ service.0 }}">
 					{% endif %}
 				{% endif %}
 			</td>

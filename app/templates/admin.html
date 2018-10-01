@@ -125,7 +125,11 @@
 					<input type="text" id="name-{{ group.0 }}" value="{{ group.1 }}" class="form-control">
 				</td>
 				<td>
-					<input type="text" id="descript-{{ group.0 }}" value="{{ group.2 }}" class="form-control" size="100">
+					{% if group.2  != "None" %}
+						<input type="text" id="descript-{{ group.0 }}" value="{{ group.2 }}" class="form-control" size="100">
+					{% else %}
+						<input type="text" id="descript-{{ group.0 }}" value="" class="form-control" size="100">
+					{% endif %}
 				</td>
 				<td>
 					<a class="delete" onclick="confirmDeleteGroup({{ group.0 }})" title="Delete group {{group.1}}" style="cursor: pointer;"></a>

@@ -71,7 +71,7 @@ pre {
 	padding-left: 20px;
 }
 .container {
-	min-height: calc(100vh - 0px);
+	min-height: calc(99vh - 0px);
 	max-width: 91%;
 	min-width: 40%;
 	background-color: #fff;

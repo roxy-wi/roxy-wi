@@ -10,6 +10,7 @@ template = env.get_template('waf.html')
 
 print('Content-type: text/html\n')
 funct.check_login()
+funct.page_for_admin(level = 2)
 
 try:
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))

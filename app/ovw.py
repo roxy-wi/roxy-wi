@@ -41,7 +41,7 @@ async def async_get_overviewWaf(serv1, serv2):
 	commands = [ "ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l" ]
 	commands1 = [ "cat %s/waf/modsecurity.conf  |grep SecRuleEngine |grep -v '#' |awk '{print $2}'" % haproxy_dir ]
 	
-	server_status = (serv1,serv2, funct.ssh_command(serv2, commands), funct.ssh_command(serv2, commands1), sql.select_waf_metrics_enable_server(serv2))
+	server_status = (serv1,serv2, funct.ssh_command(serv2, commands), funct.ssh_command(serv2, commands1).strip(), sql.select_waf_metrics_enable_server(serv2))
 	return server_status
 
 async def get_runner_overviewWaf(url):
@@ -111,7 +111,9 @@ def get_map(serv):
 	
 	G = nx.DiGraph()
 	
-	funct.get_config(serv, cfg)	
+	error = funct.get_config(serv, cfg)	
+	if error:
+		print('<div class="alert alert-danger">'+error+'</div>')
 	try:
 		conf = open(cfg, "r")
 	except IOError:
