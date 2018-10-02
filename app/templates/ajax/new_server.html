@@ -66,17 +66,19 @@
 					</select>
 				</td>
 				<td>
-					<select id="credentials-{{server.0}}">
-						<option value="0" selected>Choose credentials</option>
-						{% for ssh in sshs %}
-							{% if ssh.0 == server.7	%}
-								<option value="{{ssh.0}}" selected>{{ssh.1}}</option>
-							{% else %}
-								<option value="{{ssh.0}}">{{ssh.1}}</option>
-							{% endif %}
-						{% endfor %}
-					</select>
-					<button onclick="checkSshConnect('{{server.2}}')">Check SSH</button>
+					<div class="controlgroup">
+						<select id="credentials-{{server.0}}">
+							<option value="0" selected>Choose credentials</option>
+							{% for ssh in sshs %}
+								{% if ssh.0 == server.7	%}
+									<option value="{{ssh.0}}" selected>{{ssh.1}}</option>
+								{% else %}
+									<option value="{{ssh.0}}">{{ssh.1}}</option>
+								{% endif %}
+							{% endfor %}
+						</select>
+						<button onclick="checkSshConnect('{{server.2}}')" title="Check SSH connect to the server {{server.1}}">check</button>
+					</div>
 				</td>
 				<td>
 					{% if server.11  != "None" %}
