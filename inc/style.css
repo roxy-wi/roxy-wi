@@ -483,6 +483,12 @@ pre {
 .ui-menu, .ui-menu-item {
 	background: #EBF1F1 !important;
 }
+.ui-dialog { 
+	z-index: 1000 !important;
+}
+.ui-selectmenu-open, .ui-selectmenu-menu {
+	z-index: 1010 !important;
+}
 a {
   background-color: transparent;
 }
