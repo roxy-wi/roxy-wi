@@ -187,65 +187,7 @@ $( function() {
 				}
 			}					
 		} );
-	});
-	$('#add-server').click(function() {
-		$('#error').remove();	
-		$('.alert-danger').remove();	
-		var typeip = 0;
-		var enable = 0;
-		var alert_en = 0;
-		var metrics = 0;
-		if ($('#typeip').is(':checked')) {
-			typeip = '1';
-		}
-		if ($('#enable').is(':checked')) {
-			enable = '1';
-		}
-		if ($('#alert').is(':checked')) {
-			var alert_en = '1';
-		}
-		if ($('#metrics').is(':checked')) {
-			var metrics = '1';
-		}
-		$.ajax( {
-			url: "sql.py",
-			data: {
-				newserver: "1",
-				servername: $('#new-server-add').val(),
-				newip: $('#new-ip').val(),
-				newport: $('#new-port').val(),
-				newservergroup: $('#new-server-group-add').val(),
-				typeip: typeip,
-				enable: enable,
-				slave: $('#slavefor' ).val(),
-				cred: $('#credentials').val(),
-				alert_en: alert_en,
-				metrics: metrics,
-				page: cur_url[0],
-				desc: $('#desc').val()
-			},
-			type: "GET",
-			success: function( data ) {
-				data = data.replace(/\s+/g,' ');
-				if (data.indexOf('error') != '-1') {
-					$("#ajax-servers").append(data);
-					$('#errorMess').click(function() {
-						$('#error').remove();
-						$('.alert-danger').remove();
-					});
-				} else {
-					$('.alert-danger').remove();
-					$("#ajax-servers").append(data);
-					$(".newserver").addClass( "update", 1000, callbackServer );		
-					$( "input[type=submit], button" ).button();
-					$( "input[type=checkbox]" ).checkboxradio();
-					$( "select" ).selectmenu();
-					$.getScript(awesome);					
-				}
-			}					
-		} );
-	});
-	
+	});	
 	$('#add-ssh').click(function() {
 		$('#error').remove();	
 		$('.alert-danger').remove();	
@@ -349,9 +291,29 @@ $( function() {
 		} 
 	});
 	$('#add-server-button').click(function() {
-		if ($('#server-add-table').css('display', 'none')) {
-			$('#server-add-table').show("blind", "fast");
-		} 
+		$( "#server-add-table" ).dialog({
+			resizable: false,
+			height: "auto",
+			width: 600,
+			modal: true,
+			title: "Add new server",
+			show: {
+				effect: "fade",
+				duration: 200
+			},
+			hide: {
+				effect: "fade",
+				duration: 200
+			},
+			buttons: {
+				"Add": function() {	
+					addServer();
+				},
+				Cancel: function() {
+					$( this ).dialog( "close" );
+				}
+			}
+			});
 	});
 	$('#add-ssh-button').click(function() {
 		if ($('#ssh-add-table').css('display', 'none')) {
@@ -422,7 +384,75 @@ $( function() {
 	});
 	
 } );
-
+function addServer() {
+	$('#error').remove();	
+	$('.alert-danger').remove();	
+	var servername = $('#new-server-add').val();
+	var newip = $('#new-ip').val();
+	var newservergroup = $('#new-server-group-add').val();
+	var cred = $('#credentials').val();
+	var typeip = 0;
+	var enable = 0;
+	var alert_en = 0;
+	var metrics = 0;
+	if ($('#typeip').is(':checked')) {
+		typeip = '1';
+	}
+	if ($('#enable').is(':checked')) {
+		enable = '1';
+	}
+	if ($('#alert').is(':checked')) {
+		var alert_en = '1';
+	}
+	if ($('#metrics').is(':checked')) {
+		var metrics = '1';
+	}
+	if (servername == '' || newip == '' || newservergroup == '' || cred == '') {
+		alert('All fields must be completed');
+	} else {
+		$.ajax( {
+			url: "sql.py",
+			data: {
+				newserver: "1",
+				servername: servername,
+				newip: newip,
+				newport: $('#new-port').val(),
+				newservergroup: newservergroup,
+				typeip: typeip,
+				enable: enable,
+				slave: $('#slavefor' ).val(),
+				cred: cred,
+				alert_en: alert_en,
+				metrics: metrics,
+				page: cur_url[0],
+				desc: $('#desc').val()
+			},
+			type: "GET",
+			success: function( data ) {
+				data = data.replace(/\s+/g,' ');
+				if (data.indexOf('error') != '-1') {
+					$("#ajax-servers").append(data);
+					$('#errorMess').click(function() {
+						$('#error').remove();
+						$('.alert-danger').remove();
+					});
+				} else {
+					$('.alert-danger').remove();
+					$("#ajax-servers").append(data);
+					$(".newserver").addClass( "update", 1000 );
+					setTimeout(function() {
+						$( ".newserver" ).removeClass( "update" );
+					}, 2500 );		
+					$( "input[type=submit], button" ).button();
+					$( "input[type=checkbox]" ).checkboxradio();
+					$( "select" ).selectmenu();
+					$.getScript(awesome);					
+				}
+			}					
+		} );
+		$( "#server-add-table" ).dialog("close" );
+	}
+}
 function updateSettings(param, val) {
 	$('.alert-danger').remove();
 	$.ajax( {

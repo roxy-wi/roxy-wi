@@ -304,10 +304,25 @@ pre {
 	border-bottom: 1px solid #ddd;
 	border-radius: 5px;
 }
-
-/*.overviewTd {	
-	padding-top: 20px;
-}*/
+.checkbox {
+	width: 60px;
+	padding-left: 5px;
+}
+.checkbox-head {
+	padding: 0;
+}
+.ip-field {
+	width: 100px;
+}
+.group-field, .slave-field {
+	width: 10%;
+}
+.slave-field {
+	padding-left: 10px;
+}
+.cred-field {
+	width: 17%;
+}
 .overviewTr {
 	margin: 0;
 	background-color: #f6f8fa;
@@ -342,6 +357,10 @@ pre {
 	padding-left: 0px;
 	border: none;
 	width: 23%;
+}
+.padding20 {
+	padding: 15px;
+	width: 30%;
 }
 .first-collumn {
 	padding-left: 15px;
@@ -477,7 +496,7 @@ b,
 strong {
   font-weight: bold;
 }
-button,
+//button,
 input,
 optgroup,
 select,

@@ -4,6 +4,9 @@
 <div id="dialog-confirm" title="Are you sure you want to delete?" style="display: none;">
   <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>Deleting irreversibly all data will be lost?</p>
 </div>
+<input type="hidden" id="new-group" name="new-group" value="{{ group }}">
+<input type="hidden" id="new-server-group-add" name="new-server-group-add" value="{{ group }}" >
+<input type="hidden" id="new-ssh-group-add" name="new-ssh-group-add" value="{{ ssh_group }}" >
 <div id="tabs">
 	<ul>
 		<li><a href="#users">Users</a></li>
@@ -31,8 +34,7 @@
 			<tr id="user-{{user.0}}" class="{{ loop.cycle('odd', 'even') }}">
 				<td class="padding10 first-collumn">
 					<input type="text" id="login-{{user.0}}" value="{{user.1}}" class="form-control">
-					<input type="hidden" id="new-group" name="new-group" value="{{ group }}">
-					<input type="hidden" id="usergroup-{{user.0}}" name="usergroup-{{user.0}}" value="{{ group }}">
+					<input type="hidden" id="usergroup-{{user.0}}" name="usergroup-{{user.0}}" value="{{ group }}">					
 				</td> 
 				<td><input type="password" id="password-{{user.0}}" value="{{user.3}}" class="form-control"></td> 
 				<td><input type="text" id="email-{{user.0}}" value="{{user.2}}" class="form-control"></td>
@@ -98,14 +100,14 @@
 		<table class="overview" id="ajax-servers">
 			<tr class="overviewHead">
 				<td class="padding10 first-collumn">Hostname</td>
-				<td>IP</td>
-				<td><span title="SSH port">Port(?)</span></td></td>
-				<td>Enable</td>
-				<td><span title="Vitrual IP, something like VRRP">Virt(?)</span></td>
-				<td><span title="Alert if backend change status. Before enable add Telgram chanel at Checker tab">Alert(?)</span></td>
-				<td><span title="Enable save and show metrics">Metrics(?)</span></td>
-				<td><span title="Actions with master config will automatically apply on slave">Slave for (?)</span></td>
-				<td>Credentials</td>
+				<td class="ip-field">IP</td>
+				<td class="checkbox-head"><span title="SSH port">Port(?)</span></td></td>
+				<td class="checkbox-head">Enable</td>
+				<td class="checkbox-head"><span title="Vitrual IP, something like VRRP">Virt(?)</span></td>
+				<td class="checkbox-head"><span title="Alert if backend change status. Before enable add Telgram chanel at Checker tab">Alert(?)</span></td>
+				<td class="checkbox-head"><span title="Enable save and show metrics">Metrics(?)</span></td>
+				<td class="slave-field"><span title="Actions with master config will automatically apply on slave">Slave for (?)</span></td>
+				<td class="cred-field">Credentials</td>
 				<td>Desciption</td>
 				<td></td>
 			</tr>
@@ -118,34 +120,33 @@
 				</td>
 				<td>
 					<input type="text" id="ip-{{server.0}}" value="{{server.2}}" size="14" class="form-control">
-					<input type="hidden" id="new-server-group-add" name="servergroup-{{server.0}}" value="{{ group }}" >
 					<input type="hidden" id="servergroup-{{server.0}}" name="servergroup-{{server.0}}" value="{{ group }}" >					
 				</td>
-				<td>
+				<td  class="checkbox">
 					<input type="text" id="port-{{server.0}}" value="{{server.10}}" size="1" class="form-control">
 				</td>
-				<td>
+				<td  class="checkbox">
 					{% if server.5 == 1 %}
 						<label for="enable-{{server.0}}"></label><input type="checkbox" id="enable-{{server.0}}" checked>
 					{% else %}
 						<label for="enable-{{server.0}}"></label><input type="checkbox" id="enable-{{server.0}}">
 					{% endif %}
 				</td>
-				<td>
+				<td  class="checkbox">
 					{% if server.4 == 1 %}
 						<label for="typeip-{{server.0}}"></label><input type="checkbox" id="typeip-{{server.0}}" checked>
 					{% else %}
 						<label for="typeip-{{server.0}}"></label><input type="checkbox" id="typeip-{{server.0}}">
 					{% endif %}
 				</td>
-				<td>
+				<td  class="checkbox">
 					{% if server.8 == 1 %}
 						<label for="alert-{{server.0}}"></label><input type="checkbox" id="alert-{{server.0}}" checked>
 					{% else %}
 						<label for="alert-{{server.0}}"></label><input type="checkbox" id="alert-{{server.0}}">
 					{% endif %}
 				</td>
-				<td>
+				<td  class="checkbox">
 					{% if server.9 == 1 %}
 						<label for="metrics-{{server.0}}"></label><input type="checkbox" id="metrics-{{server.0}}" checked>
 					{% else %}
@@ -193,71 +194,7 @@
 		{% endfor %}
 		</table>
 		<br /><span class="add-button" title="Add server" id="add-server-button">+ Add</span>
-		<br /><br />
-		<table class="overview" id="server-add-table" style="display: none;">
-			<tr class="overviewHead">
-				<td class="padding10 first-collumn">New hostname</td>
-				<td>IP</td>
-				<td><span title="SSH port">Port(?)</span></td></td>
-				<td>Enable</td>
-				<td><span title="Vitrual IP, something like VRRP">Virt(?)</span></td>
-				<td><span title="Alert if backend change status">Alert(?)</span></td>
-				<td><span title="Enable save and show metrics">Metrics(?)</span></td>
-				<td title="Actions with master config will automatically apply on slave">Slave for</td>
-				<td>Credentials</td>
-				<td>Desciption</td>
-				<td></td>
-			</tr>
-			<tr>
-				<td class="padding10 first-collumn">
-					<input type="text" name="new-server-add" id="new-server-add" class="form-control">
-				</td>
-				<td>
-					<input type="text" name="new-ip" id="new-ip" size="14" class="form-control">
-					<input type="hidden" id="new-sshgroup" name="new-sshgroup" value="{{ group }}" >
-				</td>	
-				<td>
-					<input type="text" name="new-port" id="new-port" size=1 class="form-control" value="22">
-				</td>				
-				<td>
-					<label for="enable"></label><input type="checkbox" id="enable" checked>
-				</td>
-				<td>
-					<label for="typeip"></label><input type="checkbox" id="typeip">
-				</td>
-				<td>
-					<label for="alert"></label><input type="checkbox" id="alert">
-				</td>
-				<td>
-					<label for="metrics"></label><input type="checkbox" id="metrics">
-				</td>
-				<td>
-					<select id="slavefor">
-						<option selected value="0">Not slave</option>
-						{% for master in masters %}
-							<option value="{{master.0}}">{{master.1}}</option>
-						{% endfor %}
-					</select>
-				</td>
-				<td>
-					<select id="credentials" required>
-						<option disabled selected value="0">Choose credentials</option>
-						{% for ssh in sshs %}
-							{% if ssh.5|string() == group %}
-								<option value="{{ssh.0}}">{{ssh.1}}</option>
-							{% endif %}
-						{% endfor %}
-					</select>
-				</td>
-				<td>
-					<input type="text" id="desc" size="30" class="form-control">
-				</td>
-				<td>
-					<a class="add-admin" id="add-server" title="Add new server" style="cursor: pointer;"></a>
-				</td>
-			</tr>
-		</table>
-		
+		<br /><br />		
 	</div>
 
 	<div id="ssh">
@@ -278,8 +215,7 @@
 				{% if ssh.5|string() == group %}
 					<tr style="width: 50%;" id="ssh-table-{{ssh.0}}" class="{{ loop.cycle('odd', 'even') }}">
 						<td class="first-collumn">
-							<input type="text" id="ssh_name-{{ssh.0}}" class="form-control" value="{{ssh.1}}" style="margin-bottom: 23px;">	
-							<input type="hidden" id="new-ssh-group-add" name="new-ssh-group-add" value="{{ ssh_group }}" >
+							<input type="text" id="ssh_name-{{ssh.0}}" class="form-control" value="{{ssh.1}}" style="margin-bottom: 23px;">							
 						</td>
 						<td class="first-collumn" valign="top" style="padding-top: 15px;">
 							{% if ssh.2 == 1 %}
@@ -423,9 +359,87 @@
 		<b>Do not edit this section if your group is "ALL"!</b> Add first<a href="users.py#groups" title="Admin Area: Groups">group</a> or edit your own group at<a href="users.py#users" title="Admin Area: Users">users</a> page
 	</div>
 </div>
+<div id="server-add-table" title="View certificate " style="display: none;">	
+	<table class="overview">
+		<tr>
+			<td class="padding20">New hostname</td>
+			<td>
+				<input type="text" name="new-server-add" id="new-server-add" class="form-control">
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">IP</td>
+			<td>
+				<input type="text" name="new-ip" id="new-ip" size="14" class="form-control">
+				<input type="hidden" id="new-sshgroup" name="new-sshgroup" value="{{ group }}" >
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20"><span title="SSH port">Port(?)</span></td></td>
+			<td>
+				<input type="text" name="new-port" id="new-port" size=1 class="form-control" value="22">
+			</td>	
+		</tr>
+		<tr>
+			<td class="padding20">Enable</td>
+			<td>
+				<label for="enable"></label><input type="checkbox" id="enable" checked>
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20"><span title="Vitrual IP, something like VRRP">Virt(?)</span></td>
+			<td>
+				<label for="typeip"></label><input type="checkbox" id="typeip">
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20"><span title="Alert if backend change status">Alert(?)</span></td>
+			<td>
+				<label for="alert"></label><input type="checkbox" id="alert">
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20"><span title="Enable save and show metrics">Metrics(?)</span></td>
+			<td>
+				<label for="metrics"></label><input type="checkbox" id="metrics">
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20" title="Actions with master config will automatically apply on slave">Slave for</td>
+			<td>
+				<select id="slavefor">
+					<option selected value="0">Not slave</option>
+					{% for master in masters %}
+						<option value="{{master.0}}">{{master.1}}</option>
+					{% endfor %}
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">Credentials</td>
+			<td>
+				<select id="credentials" required>
+					<option disabled selected value="0">Choose credentials</option>
+					{% for ssh in sshs %}
+						{% if ssh.5|string() == group %}
+							<option value="{{ssh.0}}">{{ssh.1}}</option>
+						{% endif %}
+					{% endfor %}
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">Desciption</td>
+			<td>
+				<input type="text" id="desc" size="30" class="form-control">
+			</td>
+		</tr>
+	</table>
+</div>
 <script>
 	if($('#new-server-group-add').val() == 1) {
 		$('#group_error').css('display', 'block');
+		$('#add-user-button').css('display', 'none');
 		$('#add-server-button').css('display', 'none');
 		$('#add-ssh-button').css('display', 'none');
 		$('#ssh_key_upload').css('display', 'none');
@@ -443,10 +457,22 @@
 </script>
 <style>
 .ui-selectmenu-button.ui-button {
-    width: 12em;
+    width: 10em;
+}
+.ui-selectmenu-menu {
+	z-index: 1010;
 }
 .first-collumn {
     width: 10%;
+}
+.checkbox {
+	width: 90px;
+}
+.group-field, .slave-field {
+	width: 15%;
+}
+.cred-field {
+	width: 20%;
 }
 </style>
 {% endblock %}
