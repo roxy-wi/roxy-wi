@@ -124,17 +124,16 @@ def get_map(serv):
 	i,k  = 1200, 1200
 	j, m = 0, 0
 	for line in conf:
-		if "listen" in line or "frontend" in line:
-			if ":" not in line:
-				if "stats" not in line:				
-					node = line
-					i = i - 500	
+		if line.startswith('listen') or line.startswith('frontend'):
+			if "stats" not in line:				
+				node = line
+				i = i - 500	
 		if line.find("backend") == 0: 
 			node = line
 			i = i - 500	
 			G.add_node(node,pos=(k,i),label_pos=(k,i+150))
 		
-		if "bind" in line:
+		if "bind" in line or (line.startswith('listen') and ":" in line) or (line.startswith('frontend') and ":" in line):
 			try:
 				bind = line.split(":")
 				if stats_port not in bind[1]:
@@ -146,7 +145,7 @@ def get_map(serv):
 			except:
 				pass
 
-		if "server " in line or "use_backend" in line or "default_backend" in line and "stats" not in line:
+		if "server " in line or "use_backend" in line or "default_backend" in line and "stats" not in line and "#" not in line:
 			if "timeout" not in line and "default-server" not in line and "#" not in line and "stats" not in line:
 				i = i - 300
 				j = j + 1				
