@@ -13,7 +13,7 @@ def get_app_dir():
 def get_config_var(sec, var):
 	from configparser import ConfigParser, ExtendedInterpolation
 	try:
-		path_config = get_app_dir()+"/haproxy-webintarface.config"
+		path_config = get_app_dir()+"/haproxy-wi.cfg"
 		config = ConfigParser(interpolation=ExtendedInterpolation())
 		config.read(path_config)
 	except:
