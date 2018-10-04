@@ -63,49 +63,8 @@
 			</tr>
 		{% endfor %}
 		</table>
-	<br /><span class="add-button" title="Add user" id="add-user-button">+ Add</span>
-	<br /><br />
-		<table class="overview" id="user-add-table" style="display: none;">
-			<tr class="overviewHead">
-				<td class="padding10 first-collumn">New user</td>
-				<td>Password</td>
-				<td>Email</td>
-				<td>Role</td>
-				<td>Group</td>
-				<td></td>
-			</tr>
-			<tr>
-				<td class="padding10 first-collumn">
-					<input type="text" name="new-username" id="new-username" class="form-control">
-				</td>
-				<td>
-					<input type="password" name="new-password" id="new-password" class="form-control">
-				</td>
-				<td>
-					<input type="text" name="new-email" id="new-email" class="form-control">
-				</td>
-				<td>
-					<select id="new-role" name="new-role">
-						<option disabled selected>Choose role</option>
-						{% for role in roles %}
-							<option value="{{ role.1 }}">{{ role.1 }}</option>
-						{% endfor %}
-						</select>
-					</td>
-					<td>
-						<select id="new-group" name="new-group">
-							<option disabled selected>Choose group</option>
-							{% for group in groups %}
-								<option value="{{ group.0 }}">{{ group.1 }}</option>
-							{% endfor %}
-						</select>
-					</td>
-				<td>
-					<a class="add-admin" id="add-user" title="Add new user" style="cursor: pointer;"></a>
-				</td>
-			</tr>
-		</table>
-		
+		<br /><span class="add-button" title="Add user" id="add-user-button">+ Add</span>
+		<br /><br />
 	</div>
 	<div id="groups">
 		<table class="overview" id="ajax-group">
@@ -474,26 +433,108 @@
 		<div id="ajax-telegram"></div>
 	</div>
 </div>
+<div id="user-add-table" style="display: none;">	
+	<table class="overview">
+		<tr>
+			<td colspan="2">
+				  <p class="validateTips alert alert-success">Form fields tag "<span class="need-field">*</span>" are required.</p>
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">
+				New user
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				<input type="text" name="new-username" id="new-username" class="form-control">
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">
+				Password
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				<input type="password" name="new-password" id="new-password" class="form-control">
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">
+				Email
+			</td>
+			<td>
+				<input type="text" name="new-email" id="new-email" class="form-control">
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">
+				Role
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				<select id="new-role" name="new-role">
+					<option disabled selected>Choose role</option>
+					{% for role in roles %}
+						{% if role.1 != "admin" %}
+							<option value="{{ role.1 }}">{{ role.1 }}</option>
+						{% endif %}
+					{% endfor %}
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">
+				Group
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				<select id="new-group" name="new-group">
+					<option disabled selected>Choose group</option>
+					{% for group in groups %}
+						<option value="{{ group.0 }}">{{ group.1 }}</option>
+					{% endfor %}
+				</select>
+			</td>
+		</tr>
+	</table>
+</div>
 <div id="server-add-table" title="View certificate " style="display: none;">	
 	<table class="overview">
+		<tr>
+			<td colspan="2">
+				  <p class="validateTips alert alert-success">Form fields tag "<span class="need-field">*</span>" are required.</p>
+			</td>
+		</tr>
 			<tr>
-				<td class="padding20">New hostname</td>
+				<td class="padding20">
+					New hostname
+					<span class="need-field">*</span>
+				</td>
 				<td>
 					<input type="text" name="new-server-add" id="new-server-add" class="form-control">
 				</td>
 			<tr>
-				<td class="padding20">IP</td>
+				<td class="padding20">
+					IP
+					<span class="need-field">*</span>
+				</td>
 				<td>
 					<input type="text" name="new-ip" id="new-ip" size="14" class="form-control">
 				</td>
 			<tr>
-				<td class="padding20"><span title="SSH port">Port(?)</span></td>
+				<td class="padding20" title="SSH port">
+						Port
+						<span class="need-field">*</span>
+				</td>
 				<td>
 					<input type="text" name="new-port" id="new-port" size=1 class="form-control" value="22">
 				</td>
 			</tr>
 			<tr>
-				<td class="padding20">Group</td>
+				<td class="padding20">
+					Group
+					<span class="need-field">*</span>
+				</td>
 				<td>
 					<select id="new-server-group-add" name="new-server-group-add">
 						<option disabled selected value="0">Choose group</option>
@@ -510,19 +551,19 @@
 				</td>
 			</tr>
 			<tr>
-				<td class="padding20"><span title="Vitrual IP, something like VRRP">Virt(?)</span></td>
+				<td class="padding20" title="Vitrual IP, something like VRRP">Virt</td>
 				<td>
 					<label for="typeip"></label><input type="checkbox" id="typeip">
 				</td>
 			</tr>
 			<tr>
-				<td class="padding20"><span title="Alert if backend change status">Alert(?)</span></td>
+				<td class="padding20" title="Alert if backend change status">Alert</td>
 				<td>
 					<label for="alert"></label><input type="checkbox" id="alert">
 				</td>
 			</tr>
 			<tr>
-				<td class="padding20"><span title="Enable save and show metrics">Metrics(?)</span></td>
+				<td class="padding20" title="Enable save and show metrics">Metrics</td>
 				<td>
 					<label for="metrics"></label><input type="checkbox" id="metrics">
 				</td>
@@ -539,7 +580,10 @@
 				</td>
 			</tr>
 			<tr>
-				<td class="padding20">Credentials</td>
+				<td class="padding20">
+					Credentials
+					<span class="need-field">*</span>
+				</td>
 			<td>
 				<select id="credentials" required>
 					<option disabled selected>Choose credentials</option>

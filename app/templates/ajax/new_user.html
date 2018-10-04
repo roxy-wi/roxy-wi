@@ -21,7 +21,7 @@
 						{% endfor %}
 					</select>
 				</td>
-				{% if page != "servers.py" %}
+				{% if page != "servers.py" and page != "servers.py#users" %}
 				<td>
 					<select id="usergroup-{{user.0}}" name="usergroup-{{user.0}}">
 						<option disabled selected>Choose group</option>

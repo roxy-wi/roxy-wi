@@ -489,6 +489,9 @@ pre {
 .ui-selectmenu-open, .ui-selectmenu-menu {
 	z-index: 1010 !important;
 }
+.need-field {
+	color: red;
+}
 a {
   background-color: transparent;
 }
@@ -634,6 +637,11 @@ a:focus {
     color: #856404;
     background-color: #fff3cd;
     border-color: #ffeeba;
+}
+.validateTips {
+	width: 540px; 
+	margin: 0; 
+	margin-bottom: 10px;
 }
 #errorMess {
 	float: right;

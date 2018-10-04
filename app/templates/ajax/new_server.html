@@ -4,12 +4,12 @@
 					<input type="text" id="hostname-{{server.0}}" value="{{server.1}}" class="form-control">
 				</td>
 				<td>
-					<input type="text" id="ip-{{server.0}}" value="{{server.2}}" class="form-control">
+					<input type="text" id="ip-{{server.0}}" value="{{server.2}}" size="14" class="form-control">
 					{% if page == "servers.py" %}
 						<input type="hidden" id="servergroup-{{server.0}}" name="servergroup-{{server.0}}" value="" >
 					{% endif %}
 				</td>
-				<td>
+				<td class="checkbox">
 					<input type="text" id="port-{{server.0}}" value="{{server.10}}" size="1" class="form-control">
 				</td>
 				{% if page != "servers.py" %}
