@@ -164,6 +164,9 @@ pre {
 	border: 1px solid #DCDCDC;
 	border-radius: 5px;
 }
+.config {
+	height: 70%;
+}
 .diffHead {
 	background-color: #F5F5F5;
 	padding: 10px;

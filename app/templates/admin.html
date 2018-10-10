@@ -475,9 +475,7 @@
 				<select id="new-role" name="new-role">
 					<option disabled selected>Choose role</option>
 					{% for role in roles %}
-						{% if role.1 != "admin" %}
-							<option value="{{ role.1 }}">{{ role.1 }}</option>
-						{% endif %}
+						<option value="{{ role.1 }}">{{ role.1 }}</option>
 					{% endfor %}
 				</select>
 			</td>

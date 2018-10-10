@@ -401,7 +401,7 @@ else
 
 fi 
 
-sed -i "s|^fullpath = .*|fullpath = /var/www/$HOME_HAPROXY_WI|g" /var/www/$HOME_HAPROXY_WI/app/haproxy-webintarface.config
+sed -i "s|^fullpath = .*|fullpath = /var/www/$HOME_HAPROXY_WI|g" /var/www/$HOME_HAPROXY_WI/app/haproxy-wi.cfg
 echo "################################"
 echo ""
 echo ""
