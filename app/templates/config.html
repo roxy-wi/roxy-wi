@@ -55,7 +55,7 @@
 					<div class="alert alert-info"><b>Note:</b> If you reconfigure Master server, Slave will reconfigured automatically</div>
 				{% endif %}
 				<h3>Config from {{ serv }}</h3>
-				<form action="{{ action }}" name="saveconfig" method="get">
+				<form action="{{ action }}" name="saveconfig" method="post">
 					<input type="hidden" value="{{ serv }}" name="serv"> 
 					<input type="hidden" value="{{ cfg }}.old" name="oldconfig"> 
 					<textarea name="config" class="config" rows="35" cols="100">{{ config }}</textarea> 
