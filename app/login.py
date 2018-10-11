@@ -73,6 +73,7 @@ if login is not None and password is not None:
 			print(c)
 			sql.write_user_uuid(login, user_uuid)
 			sql.write_user_token(login, user_token)
+			funct.logging('locahost', sql.get_user_name_by_uuid(user_uuid)+' log in')
 			print("Content-type: text/html\n")			
 			print('ok')
 			sys.exit()	

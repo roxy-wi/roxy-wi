@@ -137,7 +137,6 @@ For Runtime API, Metrics and Alerting enable state file and stat socket on HApro
 # Update
 ```
 # cd /var/www/haproxy-wi
-# chmod +x update.sh
 # ./update.sh
 ```
 

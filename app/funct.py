@@ -43,6 +43,7 @@ def logging(serv, action, **kwargs):
 	import sql
 	import http.cookies
 	log_path = get_config_var('main', 'log_path')
+	login = ''
 	
 	if not os.path.exists(log_path):
 		os.makedirs(log_path)

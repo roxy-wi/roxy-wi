@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cp app/haproxy-webintarface.config /tmp/
+cp app/haproxy-wi.cfg  /tmp/
 
 git reset --hard
 git pull  https://github.com/Aidaho12/haproxy-wi.git
@@ -22,24 +22,14 @@ cd app/
 
 pip3 install -r ../requirements.txt
 pip3.5 install -r ../requirements.txt
+chmod +x ../update.sh
 
-echo ""
-echo "#################"
-echo "Change in config:"
-diff --expand-tabs -W 100 -y /tmp/haproxy-webintarface.config haproxy-wi.cfg 
-echo ""
-echo "Please set your config"
-echo ""
-echo "################"
-echo "Your config saved in /tmp/haproxy-webintarface.config. Please compare with new and set your env back"
-echo ""
-echo ""
-echo ""
+mv /tmp/haproxy-wi.cfg app/haproxy-wi.cfg 
 echo "################"
 echo ""
 echo ""
 echo ""
-echo "ATTENTION!!! New config file name: haproxy-wi.cfg"
+echo "ATTENTION!!! New config file name is: haproxy-wi.cfg"
 echo ""
 echo ""
 echo ""
