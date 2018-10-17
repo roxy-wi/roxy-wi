@@ -718,7 +718,7 @@ def delete_waf_server(id):
 def insert_waf_mentrics(serv, conn):
 	con, cur = create_db.get_cur()
 	if mysql_enable == '1':
-		sql = """ insert into waf_metrics (serv, conn, date) values('%s', '%s', now()) """ % (serv, con)
+		sql = """ insert into waf_metrics (serv, conn, date) values('%s', '%s', now()) """ % (serv, conn)
 	else:
 		sql = """ insert into waf_metrics (serv, conn, date) values('%s', '%s',  datetime('now', 'localtime')) """ % (serv, conn)
 	try:    
@@ -834,100 +834,190 @@ def select_table_metrics(uuid):
 				groups = ""
 			else:
 				groups = "and servers.groups like '%{group}%' ".format(group=group[5])
+	if mysql_enable == '1':
+		sql = """
+                select ip.ip, hostname, avg_sess_1h, avg_sess_24h, avg_sess_3d, max_sess_1h, max_sess_24h, max_sess_3d, avg_cur_1h, avg_cur_24h, avg_cur_3d, max_con_1h, max_con_24h, max_con_3d from
+                (select servers.ip from servers where metrics = 1 ) as ip,
 
-	sql = """
-	select ip.ip, hostname, avg_sess_1h, avg_sess_24h, avg_sess_3d, max_sess_1h, max_sess_24h, max_sess_3d, avg_cur_1h, avg_cur_24h, avg_cur_3d, max_con_1h, max_con_24h, max_con_3d from
-	(select servers.ip from servers where metrics = 1 ) as ip,
+                (select servers.ip, servers.hostname as hostname from servers left join metrics as metr on servers.ip = metr.serv where servers.metrics = 1 %s) as hostname,
 
-	(select servers.ip, servers.hostname as hostname from servers left join metrics as metr on servers.ip = metr.serv where servers.metrics = 1 %s) as hostname,
+                (select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_1h from servers
+                left join metrics as metr on metr.serv = servers.ip
+                where servers.metrics = 1 and
+                metr.date <= now() and metr.date >= DATE_ADD(NOW(), INTERVAL -1 HOUR)
+                group by servers.ip)   as avg_sess_1h,
 
-	(select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_1h from servers 
-	left join metrics as metr on metr.serv = servers.ip  
-	where servers.metrics = 1 and 
-	metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-1 hours', 'localtime')
-	group by servers.ip)   as avg_sess_1h,
+                (select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_24h from servers
+                left join metrics as metr on metr.serv = servers.ip
+                where servers.metrics = 1 and
+                metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -24 HOUR)
+                group by servers.ip) as avg_sess_24h,
 
-	(select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_24h from servers 
-	left join metrics as metr on metr.serv = servers.ip  
-	where servers.metrics = 1 and 
-	metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-24 hours', 'localtime')
-	group by servers.ip) as avg_sess_24h, 
+                (select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_3d from servers
+                left join metrics as metr on metr.serv = servers.ip
+                where servers.metrics = 1 and
+                metr.date <= now() and metr.date >= DATE_ADD(NOW(), INTERVAL -3 DAY)
+                group by servers.ip ) as avg_sess_3d,
+		
+		(select servers.ip,max(metr.sess_rate) as max_sess_1h from servers
+                left join metrics as metr on metr.serv = servers.ip
+                where servers.metrics = 1 and
+                metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -1 HOUR)
+                group by servers.ip)   as max_sess_1h,
 
-	(select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_3d from servers 
-	left join metrics as metr on metr.serv = servers.ip 
-	where servers.metrics = 1 and 
-	metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-3 days', 'localtime') 
-	group by servers.ip ) as avg_sess_3d,
+                (select servers.ip,max(metr.sess_rate) as max_sess_24h from servers
+                left join metrics as metr on metr.serv = servers.ip
+                where servers.metrics = 1 and
+                metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -24 HOUR)
+                group by servers.ip) as max_sess_24h,
 
-	(select servers.ip,max(metr.sess_rate) as max_sess_1h from servers 
-	left join metrics as metr on metr.serv = servers.ip  
-	where servers.metrics = 1 and 
-	metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-1 hours', 'localtime')
-	group by servers.ip)   as max_sess_1h,
+                (select servers.ip,max(metr.sess_rate) as max_sess_3d from servers
+                left join metrics as metr on metr.serv = servers.ip
+                where servers.metrics = 1 and
+                metr.date <=  now() and metr.date >= DATE_ADD(NOW(),INTERVAL -3 DAY)
+                group by servers.ip ) as max_sess_3d,
 
-	(select servers.ip,max(metr.sess_rate) as max_sess_24h from servers 
-	left join metrics as metr on metr.serv = servers.ip  
-	where servers.metrics = 1 and 
-	metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-24 hours', 'localtime')
-	group by servers.ip) as max_sess_24h, 
+                (select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_1h from servers
+                left join metrics as metr on metr.serv = servers.ip
+                where servers.metrics = 1 and
+                metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -1 HOUR)
+                group by servers.ip)   as avg_cur_1h,
 
-	(select servers.ip,max(metr.sess_rate) as max_sess_3d from servers 
-	left join metrics as metr on metr.serv = servers.ip 
-	where servers.metrics = 1 and 
-	metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-3 days', 'localtime') 
-	group by servers.ip ) as max_sess_3d,
+                (select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_24h from servers
+                left join metrics as metr on metr.serv = servers.ip
+                where servers.metrics = 1 and
+                metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -24 HOUR)
+                group by servers.ip) as avg_cur_24h,
+		
+		 (select servers.ip,max(metr.curr_con) as max_con_1h from servers
+                left join metrics as metr on metr.serv = servers.ip
+                where servers.metrics = 1 and
+                metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -1 HOUR)
+                group by servers.ip)   as max_con_1h,
 
-	(select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_1h from servers 
-	left join metrics as metr on metr.serv = servers.ip  
-	where servers.metrics = 1 and 
-	metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-1 hours', 'localtime')
-	group by servers.ip)   as avg_cur_1h,
+                (select servers.ip,max(metr.curr_con) as max_con_24h from servers
+                left join metrics as metr on metr.serv = servers.ip
+                where servers.metrics = 1 and
+                metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -24 HOUR)
+                group by servers.ip) as max_con_24h,
 
-	(select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_24h from servers 
-	left join metrics as metr on metr.serv = servers.ip  
-	where servers.metrics = 1 and 
-	metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-24 hours', 'localtime')
-	group by servers.ip) as avg_cur_24h, 
+                (select servers.ip,max(metr.curr_con) as max_con_3d from servers
+                left join metrics as metr on metr.serv = servers.ip
+                where servers.metrics = 1 and
+                metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -3 DAY)
+                group by servers.ip ) as max_con_3d		
+		
+		where ip.ip=hostname.ip
+                and ip.ip=avg_sess_1h.ip
+                and ip.ip=avg_sess_24h.ip
+                and ip.ip=avg_sess_3d.ip
+                and ip.ip=max_sess_1h.ip
+                and ip.ip=max_sess_24h.ip
+                and ip.ip=max_sess_3d.ip
+                and ip.ip=avg_cur_1h.ip
+                and ip.ip=avg_cur_24h.ip
+                and ip.ip=avg_cur_3d.ip
+                and ip.ip=max_con_1h.ip
+                and ip.ip=max_con_24h.ip
+                and ip.ip=max_con_3d.ip
 
-	(select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_3d from servers 
-	left join metrics as metr on metr.serv = servers.ip 
-	where servers.metrics = 1 and 
-	metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-3 days', 'localtime') 
-	group by servers.ip ) as avg_cur_3d,
+                group by hostname.ip """ % groups
 
-	(select servers.ip,max(metr.curr_con) as max_con_1h from servers 
-	left join metrics as metr on metr.serv = servers.ip  
-	where servers.metrics = 1 and 
-	metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-1 hours', 'localtime')
-	group by servers.ip)   as max_con_1h,
 
-	(select servers.ip,max(metr.curr_con) as max_con_24h from servers 
-	left join metrics as metr on metr.serv = servers.ip  
-	where servers.metrics = 1 and 
-	metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-24 hours', 'localtime')
-	group by servers.ip) as max_con_24h, 
+	else:
+		sql = """
+		select ip.ip, hostname, avg_sess_1h, avg_sess_24h, avg_sess_3d, max_sess_1h, max_sess_24h, max_sess_3d, avg_cur_1h, avg_cur_24h, avg_cur_3d, max_con_1h, max_con_24h, max_con_3d from
+		(select servers.ip from servers where metrics = 1 ) as ip,
 
-	(select servers.ip,max(metr.curr_con) as max_con_3d from servers 
-	left join metrics as metr on metr.serv = servers.ip 
-	where servers.metrics = 1 and 
-	metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-3 days', 'localtime') 
-	group by servers.ip ) as max_con_3d 
+		(select servers.ip, servers.hostname as hostname from servers left join metrics as metr on servers.ip = metr.serv where servers.metrics = 1 %s) as hostname,
 
-	where ip.ip=hostname.ip
-	and ip.ip=avg_sess_1h.ip
-	and ip.ip=avg_sess_24h.ip
-	and ip.ip=avg_sess_3d.ip
-	and ip.ip=max_sess_1h.ip
-	and ip.ip=max_sess_24h.ip
-	and ip.ip=max_sess_3d.ip
-	and ip.ip=avg_cur_1h.ip
-	and ip.ip=avg_cur_24h.ip
-	and ip.ip=avg_cur_3d.ip
-	and ip.ip=max_con_1h.ip
-	and ip.ip=max_con_24h.ip
-	and ip.ip=max_con_3d.ip
+		(select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_1h from servers 
+		left join metrics as metr on metr.serv = servers.ip  
+		where servers.metrics = 1 and 
+		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-1 hours', 'localtime')
+		group by servers.ip)   as avg_sess_1h,
 
-	group by hostname.ip """ % groups
+		(select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_24h from servers 
+		left join metrics as metr on metr.serv = servers.ip  
+		where servers.metrics = 1 and 
+		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-24 hours', 'localtime')
+		group by servers.ip) as avg_sess_24h, 
+
+		(select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_3d from servers 
+		left join metrics as metr on metr.serv = servers.ip 
+		where servers.metrics = 1 and 
+		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-3 days', 'localtime') 
+		group by servers.ip ) as avg_sess_3d,
+
+		(select servers.ip,max(metr.sess_rate) as max_sess_1h from servers 
+		left join metrics as metr on metr.serv = servers.ip  
+		where servers.metrics = 1 and 
+		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-1 hours', 'localtime')
+		group by servers.ip)   as max_sess_1h,
+
+		(select servers.ip,max(metr.sess_rate) as max_sess_24h from servers 
+		left join metrics as metr on metr.serv = servers.ip  
+		where servers.metrics = 1 and 
+		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-24 hours', 'localtime')
+		group by servers.ip) as max_sess_24h, 
+
+		(select servers.ip,max(metr.sess_rate) as max_sess_3d from servers 
+		left join metrics as metr on metr.serv = servers.ip 
+		where servers.metrics = 1 and 
+		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-3 days', 'localtime') 
+		group by servers.ip ) as max_sess_3d,
+
+		(select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_1h from servers 
+		left join metrics as metr on metr.serv = servers.ip  
+		where servers.metrics = 1 and 
+		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-1 hours', 'localtime')
+		group by servers.ip)   as avg_cur_1h,
+
+		(select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_24h from servers 
+		left join metrics as metr on metr.serv = servers.ip  
+		where servers.metrics = 1 and 
+		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-24 hours', 'localtime')
+		group by servers.ip) as avg_cur_24h, 
+
+		(select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_3d from servers 
+		left join metrics as metr on metr.serv = servers.ip 
+		where servers.metrics = 1 and 
+		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-3 days', 'localtime') 
+		group by servers.ip ) as avg_cur_3d,
+
+		(select servers.ip,max(metr.curr_con) as max_con_1h from servers 
+		left join metrics as metr on metr.serv = servers.ip  
+		where servers.metrics = 1 and 
+		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-1 hours', 'localtime')
+		group by servers.ip)   as max_con_1h,
+
+		(select servers.ip,max(metr.curr_con) as max_con_24h from servers 
+		left join metrics as metr on metr.serv = servers.ip  
+		where servers.metrics = 1 and 
+		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-24 hours', 'localtime')
+		group by servers.ip) as max_con_24h, 
+
+		(select servers.ip,max(metr.curr_con) as max_con_3d from servers 
+		left join metrics as metr on metr.serv = servers.ip 
+		where servers.metrics = 1 and 
+		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-3 days', 'localtime') 
+		group by servers.ip ) as max_con_3d 
+
+		where ip.ip=hostname.ip
+		and ip.ip=avg_sess_1h.ip
+		and ip.ip=avg_sess_24h.ip
+		and ip.ip=avg_sess_3d.ip
+		and ip.ip=max_sess_1h.ip
+		and ip.ip=max_sess_24h.ip
+		and ip.ip=max_sess_3d.ip
+		and ip.ip=avg_cur_1h.ip
+		and ip.ip=avg_cur_24h.ip
+		and ip.ip=avg_cur_3d.ip
+		and ip.ip=max_con_1h.ip
+		and ip.ip=max_con_24h.ip
+		and ip.ip=max_con_3d.ip
+
+		group by hostname.ip """ % groups
 	
 	try:    
 		cur.execute(sql)
