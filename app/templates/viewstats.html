@@ -16,6 +16,7 @@
 </form>
 <br />
 <div id="ajax" style="margin-left: 5px; margin-right: 5px;"></div>
+
 <script> 
 	window.onload = showStats();
 	function sleep(ms) {
@@ -44,6 +45,9 @@
 		$('h1').next().next().next().css('display', 'none');	  
 		$('h1').next().next().next().next().css('display', 'none');	  
 		$( "select" ).selectmenu();
+		{% if role == 3 %}
+			$('input[type=checkbox]').remove()	
+		{% endif %}
 		await sleep(2000);
 	  
 	  $("form").submit(function() {
@@ -61,7 +65,9 @@
 	}
 	$('#serv').on('selectmenuchange',function() {
 		showStats();
+		
 	});	
+	
 </script>
 <link href="/inc/style.css" rel="stylesheet">
 {% endblock %}
