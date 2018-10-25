@@ -58,6 +58,7 @@ Or if use Debian/Ubuntu:
 $ chown -R www-data:www-data haproxy-wi/
 $ pip3 install -r haproxy-wi/requirements.txt 
 $ chmod +x haproxy-wi/app/*.py 
+$ sudo ln -s /usr/bin/python3.5 /usr/bin/python3
 ```
 
 For Apache do virtualhost with cgi-bin. Like this:
