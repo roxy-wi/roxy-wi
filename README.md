@@ -112,9 +112,8 @@ MariaDB [(none)]> grant all on haproxywi.* to 'haproxy-wi'@'localhost' IDENTIFIE
 
 # Settings
 ```
-Edit $HOME_HAPROXY-WI/app/haproxy-webintarface.config with your env
+Edit $HOME_HAPROXY-WI/app/haproxy-wi.cfg with your env
 ```
-Copy ssh key on all HAproxy servers
 
 Login http://haproxy-wi-server/users.py, and add: users, groups and servers. Default: admin/admin
 
