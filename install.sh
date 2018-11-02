@@ -132,6 +132,7 @@ cat << EOF > $HAPROXY_WI_VHOST_CONF
         ErrorLog /var/log/httpd/haproxy-wi.error.log
         CustomLog /var/log/httpd/haproxy-wi.access.log combined
 		TimeOut 600
+		LimitRequestLine 16380
 
         DocumentRoot /var/www/$HOME_HAPROXY_WI
         ScriptAlias /cgi-bin/ "/var/www/$HOME_HAPROXY_WI/app/"

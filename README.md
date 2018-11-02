@@ -69,7 +69,8 @@ For Apache do virtualhost with cgi-bin. Like this:
         ErrorLog /var/log/httpd/haproxy-wi.error.log
         CustomLog /var/log/httpd/haproxy-wi.access.log combined
         TimeOut 600
-
+        LimitRequestLine 16380
+		
         DocumentRoot /var/www/haproxy-wi
         ScriptAlias /cgi-bin/ "/var/www/haproxy-wi/app/"
 
@@ -92,7 +93,7 @@ docker service create --detach=false --name haproxy-wi --mount type=volume,src=h
 ```
 or
 ```
-docker run -d --name haproxy-wi -v haproxy-wi:/var/www/haproxy-wi/app aidaho/haproxy-wi
+docker run -d --name haproxy-wi -v haproxy-wi:/var/www/haproxy-wi/app -p 8080:80 aidaho/haproxy-wi 
 ```
 # OS support
 HAProxy-WI was tested on EL 7, and all scripts too. Debian/Ubuntu OS support at 'beta' stage, may work not correct
