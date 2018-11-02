@@ -179,7 +179,7 @@ def get_map(serv):
 	edge_labels = nx.get_edge_attributes(G,'port')
 	
 	try:
-		plt.figure(10,figsize=(9.5,15))
+		plt.figure(10,figsize=(15,20))
 		nx.draw(G, pos, with_labels=False, font_weight='bold', width=3, alpha=0.1,linewidths=5)	
 		nx.draw_networkx_nodes(G,pos, node_color="skyblue", node_size=100, alpha=0.8, node_shape="p")
 		nx.draw_networkx_labels(G,pos=pos_label, alpha=1, font_color="green", font_size=10)
