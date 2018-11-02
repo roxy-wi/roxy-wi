@@ -350,7 +350,7 @@ def upload_and_restart(serv, cfg, **kwargs):
 	error += str(upload(serv, tmp_file, cfg, dir='fullpath'))
 
 	try:
-		error += ssh_command(serv, commands, retunr_err=1)
+		error += ssh_command(serv, commands)
 	except Exception as e:
 		error += e
 	if error:
@@ -427,7 +427,7 @@ def ssh_command(serv, commands, **kwargs):
 		elif kwargs.get('print_out'):
 			print(stdout.read().decode(encoding='UTF-8'))
 			return stdout.read().decode(encoding='UTF-8')
-		elif kwargs.get('retunr_err'):
+		elif kwargs.get('retunr_err') == 1:
 			return stderr.read().decode(encoding='UTF-8')
 		else:
 			return stdout.read().decode(encoding='UTF-8')
