@@ -365,11 +365,11 @@ if [[ $DB == 2 ]];then
 	echo ""
 	echo ""
 	echo "################################"
-	sed -i '0,/enable = 0/s//enable = 1/' /var/www/$HOME_HAPROXY_WI/app/haproxy-webintarface.config
+	sed -i '0,/enable = 0/s//enable = 1/' /var/www/$HOME_HAPROXY_WI/app/haproxy-wi.cfg
 fi
 
 if [[ -n $IP ]];then
-	sed -i "0,/mysql_host = 127.0.0.1/s//mysql_host = $IP/" /var/www/$HOME_HAPROXY_WI/app/haproxy-webintarface.config
+	sed -i "0,/mysql_host = 127.0.0.1/s//mysql_host = $IP/" /var/www/$HOME_HAPROXY_WI/app/haproxy-wi.cfg
 fi
 echo "################################"
 echo ""
