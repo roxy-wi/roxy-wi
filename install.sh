@@ -175,10 +175,11 @@ TimeoutStopSec=1s
 WantedBy=multi-user.target
 EOF
 
-cat << EOF > /etc/rsyslog.d/checker.conf 
-if $programname startswith 'checker' then /var/www/$HOME_HAPROXY_WI/log/checker-error.log
+cat << 'EOF' > /etc/rsyslog.d/checker.conf 
+if $programname startswith 'checker' then /var/www/__HOME_HAPROXY_WI__/log/checker-error.log
 & stop
 EOF
+sed -i -e "s/__HOME_HAPROXY_WI__/$HOME_HAPROXY_WI/g" /etc/rsyslog.d/checker.conf 
 
 cat << EOF > /etc/logrotate.d/checker
 /var/www/$HOME_HAPROXY_WI/log/checker-error.log {
@@ -214,10 +215,11 @@ TimeoutStopSec=1s
 WantedBy=multi-user.target
 EOF
 
-cat << EOF > /etc/rsyslog.d/metrics.conf 
-if $programname startswith 'metrics' then /var/www/$HOME_HAPROXY_WI/log/metrics-error.log
+cat << 'EOF' > /etc/rsyslog.d/metrics.conf 
+if $programname startswith 'metrics' then /var/www/__HOME_HAPROXY_WI__/log/metrics-error.log
 & stop
 EOF
+sed -i -e "s/__HOME_HAPROXY_WI__/$HOME_HAPROXY_WI/g" /etc/rsyslog.d/metrics.conf
 
 cat << EOF > /etc/logrotate.d/metrics
 /var/www/$HOME_HAPROXY_WI/log/metrics-error.log {
