@@ -186,6 +186,7 @@ function showOverview() {
 		success: function( data ) {
 			$("#ajaxstatus").empty();
 			$("#ajaxstatus").html(data);
+			$.getScript('/inc/overview.js');
 		}					
 	} );
 }
@@ -460,9 +461,7 @@ $( function() {
 		
     $('.menu li').each(function () {
         var link = $(this).find('a').attr('href');
-
-        if (cur_url[0] == link)
-        {
+        if (cur_url[0] == link) {
             $(this).addClass('current');
         }
     });
@@ -1072,6 +1071,7 @@ $( function() {
 			$( "#blacklist-hide-input1" ).prop('required',false);
 		}
 	});
+
 	cur_url = cur_url[0].split('#');
 	if (cur_url[0] == "/app/add.py") {
 		$("#cache").checkboxradio( "disable" );
