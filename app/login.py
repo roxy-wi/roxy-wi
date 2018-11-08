@@ -25,6 +25,60 @@ db_create = ""
 error_log = ""
 error = ""
 
+def send_cookie(login):
+	session_ttl = int()
+	session_ttl = sql.get_setting('session_ttl')
+	session_ttl = int(session_ttl)
+	expires = datetime.datetime.utcnow() + datetime.timedelta(days=session_ttl) 
+	user_uuid = str(uuid.uuid4())
+	user_token = str(uuid.uuid4())
+
+	c = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	c["uuid"] = user_uuid
+	c["uuid"]["path"] = "/app/"
+	c["uuid"]["expires"] = expires.strftime("%a, %d %b %Y %H:%M:%S GMT")
+	print(c)
+	sql.write_user_uuid(login, user_uuid)
+	sql.write_user_token(login, user_token)
+	funct.logging('locahost', sql.get_user_name_by_uuid(user_uuid)+' log in')
+	print("Content-type: text/html\n")			
+	print('ok')
+	sys.exit()	
+	
+
+def check_in_ldap(user, password):
+	import ldap
+	
+	server = sql.get_setting('ldap_server')
+	port = sql.get_setting('ldap_port')
+	
+	l = ldap.initialize("ldap://"+server+':'+port)
+	try:
+		l.protocol_version = ldap.VERSION3
+		l.set_option(ldap.OPT_REFERRALS, 0)
+
+		bind = l.simple_bind_s(user, password)
+	except ldap.INVALID_CREDENTIALS:
+		print("Content-type: text/html\n")	
+		print('<center><div class="alert alert-danger">Invalid credentials</div><br /><br />')
+		sys.exit()	
+	except ldap.SERVER_DOWN:
+		print("Content-type: text/html\n")	
+		print('<center><div class="alert alert-danger">Server down')
+		sys.exit()	
+	except ldap.LDAPError as e:
+		if type(e.message) == dict and e.message.has_key('desc'):
+			print("Content-type: text/html\n")	
+			print('<center><div class="alert alert-danger">Other LDAP error: %s</div><br /><br />' % e.message['desc'])
+			sys.exit()	
+		else: 
+			print("Content-type: text/html\n")	
+			print('<center><div class="alert alert-danger">Other LDAP error: %s</div><br /><br />' % e)
+			sys.exit()	
+
+	send_cookie(user)
+	
+	
 if ref is None:
 	ref = "/index.html"	
 	
@@ -57,33 +111,21 @@ if form.getvalue('logout'):
 
 if login is not None and password is not None:
 
-	USERS = sql.select_users()
-	session_ttl = int()
-	session_ttl = sql.get_setting('session_ttl')
-	session_ttl = int(session_ttl)
-	
-	expires = datetime.datetime.utcnow() + datetime.timedelta(days=session_ttl) 
-	user_uuid = str(uuid.uuid4())
-	user_token = str(uuid.uuid4())
-	
-	for users in USERS:	
-		if login in users[1] and password == users[3]:
-			c = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-			c["uuid"] = user_uuid
-			c["uuid"]["path"] = "/app/"
-			c["uuid"]["expires"] = expires.strftime("%a, %d %b %Y %H:%M:%S GMT")
-			print(c)
-			sql.write_user_uuid(login, user_uuid)
-			sql.write_user_token(login, user_token)
-			funct.logging('locahost', sql.get_user_name_by_uuid(user_uuid)+' log in')
-			print("Content-type: text/html\n")			
-			print('ok')
-			sys.exit()	
+	USERS = sql.select_users(user=login)
 		
+	for users in USERS:	
+		if users[6] == 1:
+			if login in users[1]:
+				check_in_ldap(login, password)
+		else:
+			if login in users[1] and password == users[3]:
+				send_cookie(login)
+			else:
+				print("Content-type: text/html\n")	
+				print('<center><div class="alert alert-danger">Somthing wrong :( I\'m sad about this, but try again!</div><br /><br />')
+				sys.exit()
 	print("Content-type: text/html\n")	
-	print('<center><div class="alert alert-danger">Somthing wrong :( I\'m sad about this, but try again!</div><br /><br />')
-	sys.exit()
-			
+	
 if login is None:
 	print("Content-type: text/html\n")	
 	if create_db.check_db():

@@ -340,6 +340,9 @@
 			</td>
 			<td>
 				<input type="text" name="new-username" id="new-username" class="form-control">
+				{% if ldap_enable == '1' %}
+					<a href="#" title="Search user in AD" id="search_ldap_user">Search user in AD</a>
+				{% endif %}
 			</td>
 		</tr>
 		<tr>

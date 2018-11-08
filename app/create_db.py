@@ -268,6 +268,53 @@ def update_db_v_3_2_8(**kwargs):
 		return True
 	cur.close() 
 	con.close()
+	
+	
+def update_db_v_3_3(**kwargs):
+	con, cur = get_cur()
+	sql = [ "INSERT INTO settings (param, value, section, `desc`) values('ldap_enable', '0', 'ldap', 'If 1 ldap enabled');",
+			"INSERT INTO settings (param, value, section, `desc`) values('ldap_server', '', 'ldap', 'IP address ldap server');",
+			"INSERT INTO settings (param, value, section, `desc`) values('ldap_port', '389', 'ldap', 'Default port is 389 or 636');",
+			"INSERT INTO settings (param, value, section, `desc`) values('ldap_user', '', 'ldap', 'Login for connect to LDAP server. Enter: user@domain.com');",
+			"INSERT INTO settings (param, value, section, `desc`) values('ldap_password', '', 'ldap', 'Password for connect to LDAP server');",
+			"INSERT INTO settings (param, value, section, `desc`) values('ldap_base', '', 'ldap', 'Base domain. Example: dc=domain, dc=com');"]
+	try:    
+		for i in sql:
+			cur.execute(i)
+			con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: desc' or e == "1060 (42S21): Duplicate column name 'desc' ":
+				print('Updating... go to version 3.2')
+			else:
+				print("An error occurred:", e)
+		return False
+	else:
+		pass
+		return True
+	cur.close() 
+	con.close()
+	
+def update_db_v_3_31(**kwargs):
+	con, cur = get_cur()
+	sql = """
+	ALTER TABLE `user` ADD COLUMN ldap_user INTEGER NOT NULL DEFAULT 0;
+	"""
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: ldap_user' or e == " 1060 (42S21): Duplicate column name 'ldap_user' ":
+				print('Updating... go to version 3.3')
+			else:
+				print("An error occurred:", e)
+		return False
+	else:
+		print("DB was update to 3.3<br />")
+		return True
+	cur.close() 
+	con.close()
 			
 def update_all():	
 	update_db_v_31()
@@ -275,6 +322,8 @@ def update_all():
 	update_db_v_3_21()
 	update_db_v_3_2_3()
 	update_db_v_3_2_8()
+	update_db_v_3_3()
+	update_db_v_3_31()
 	
 def update_all_silent():
 	update_db_v_31(silent=1)
@@ -282,6 +331,8 @@ def update_all_silent():
 	update_db_v_3_21(silent=1)
 	update_db_v_3_2_3(silent=1)
 	update_db_v_3_2_8(silent=1)
+	update_db_v_3_3(silent=1)
+	update_db_v_3_31(silent=1)
 	
 if __name__ == "__main__":
 	create_table()

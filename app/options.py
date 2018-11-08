@@ -615,3 +615,32 @@ if form.getvalue('get_lists'):
 	lists = funct.get_files(dir=list, format="lst")
 	for list in lists:
 		print(list)
+		
+if form.getvalue('get_ldap_email'):
+	username = form.getvalue('get_ldap_email')
+	import ldap
+	
+	server = sql.get_setting('ldap_server')
+	port = sql.get_setting('ldap_port')
+	user = sql.get_setting('ldap_user')
+	password = sql.get_setting('ldap_password')
+
+	l = ldap.initialize("ldap://"+server+':'+port)
+	try:
+		l.protocol_version = ldap.VERSION3
+		l.set_option(ldap.OPT_REFERRALS, 0)
+
+		bind = l.simple_bind_s(user, password)
+
+		base = "dc=kar-tel, dc=local"
+		criteria = "(&(objectClass=user)(sAMAccountName="+username+"))"
+		attributes = ['mail']
+		result = l.search_s(base, ldap.SCOPE_SUBTREE, criteria, attributes)
+
+		results = [entry for dn, entry in result if isinstance(entry, dict)]
+		try:
+			print('["'+results[0]['mail'][0].decode("utf-8")+'","'+user.split('@')[1]+'"]')
+		except:
+			print('error: user not found')
+	finally:
+		l.unbind()

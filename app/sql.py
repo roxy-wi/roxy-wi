@@ -22,7 +22,10 @@ def out_error(e):
 		
 def add_user(user, email, password, role, group):
 	con, cur = create_db.get_cur()
-	sql = """INSERT INTO user (username, email, password, role, groups) VALUES ('%s', '%s', '%s', '%s', '%s')""" % (user, email, password, role, group)
+	if password != 'aduser':
+		sql = """INSERT INTO user (username, email, password, role, groups) VALUES ('%s', '%s', '%s', '%s', '%s')""" % (user, email, password, role, group)
+	else:
+		sql = """INSERT INTO user (username, email, role, groups, ldap_user) VALUES ('%s', '%s', '%s', '%s', '1')""" % (user, email, role, group)		
 	try:    
 		cur.execute(sql)
 		con.commit()

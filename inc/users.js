@@ -362,6 +362,41 @@ $( function() {
 		var id = $(this).attr('id').split('-');
 		updateTelegram(id[1])
 	});
+	$('#search_ldap_user').click(function() {
+		var valid = true;
+		$('#error').remove();	
+		allFields = $( [] ).add( $('#new-username') ) 
+		allFields.removeClass( "ui-state-error" );
+		valid = valid && checkLength( $('#new-username'), "user name", 1 );
+		user = $('#new-username').val()
+		if (valid) {
+			$.ajax( {
+				url: "options.py",
+				data: {
+					get_ldap_email: $('#new-username').val(),
+					token: $('#token').val()
+				},
+				type: "GET",
+				success: function( data ) {
+					data = data.replace(/\s+/g,' ');
+					if (data.indexOf('error') != '-1') {
+						alert(data)
+						$('#new-email').val('');
+						$('#new-password').attr('readonly', false);	
+						$('#new-password').val('');	
+					} else {
+						var json = $.parseJSON(data);
+						$('.alert-danger').remove();
+						$('#new-email').val(json[0]);
+						$('#new-username').val(user+'@'+json[1]);					
+						$('#new-password').val('aduser');					
+						$('#new-password').attr('readonly', true);					
+					}	
+				}
+			} );
+			clearTips();
+		}
+	});
 	
 } );
 

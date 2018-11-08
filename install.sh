@@ -40,7 +40,7 @@ echo ""
 echo "################################"
 
 if hash apt-get 2>/dev/null; then
-	apt-get install git  net-tools lshw dos2unix apache2 gcc netcat python3.5  python3-pip g++ freetype2-demos libatlas-base-dev -y
+	apt-get install git  net-tools lshw dos2unix apache2 gcc netcat python3.5  python3-pip g++ freetype2-demos libatlas-base-dev openldap-dev -y
 	HTTPD_CONFIG="/etc/apache2/apache2.conf"
 	HAPROXY_WI_VHOST_CONF="/etc/apache2/sites-enabled/haproxy-wi.conf"
 	HTTPD_NAME="apache2"
@@ -57,7 +57,7 @@ else
         yum -y install epel-release
 	fi
 	yum -y install https://centos7.iuscommunity.org/ius-release.rpm 
-	yum -y install git nmap-ncat net-tools python35u dos2unix python35u-pip httpd python35u-devel gcc-c++
+	yum -y install git nmap-ncat net-tools python35u dos2unix python35u-pip httpd python35u-devel gcc-c++ openldap-devel
 	HTTPD_CONFIG="/etc/httpd/conf/httpd.conf"
 	HAPROXY_WI_VHOST_CONF="/etc/httpd/conf.d/haproxy-wi.conf"
 	HTTPD_NAME="httpd"

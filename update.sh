@@ -15,10 +15,10 @@ chmod +x app/*py
 chmod +x app/tools/*py
 
 if hash apt-get 2>/dev/null; then
-	apt-get install git  net-tools lshw dos2unix apache2 gcc netcat python3-pip gcc-c++ -y
+	apt-get install git  net-tools lshw dos2unix apache2 gcc netcat python3-pip gcc-c++ openldap-devel -y
 else
 	yum -y install https://centos7.iuscommunity.org/ius-release.rpm
-	yum -y install git nmap-ncat net-tools python35u dos2unix python35u-pip httpd python35u-devel gcc-c++
+	yum -y install git nmap-ncat net-tools python35u dos2unix python35u-pip httpd python35u-devel gcc-c++ openldap-devel 
 fi
 
 cd app/
