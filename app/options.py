@@ -624,6 +624,7 @@ if form.getvalue('get_ldap_email'):
 	port = sql.get_setting('ldap_port')
 	user = sql.get_setting('ldap_user')
 	password = sql.get_setting('ldap_password')
+	ldap_base = sql.get_setting('ldap_base')
 
 	l = ldap.initialize("ldap://"+server+':'+port)
 	try:
@@ -632,10 +633,9 @@ if form.getvalue('get_ldap_email'):
 
 		bind = l.simple_bind_s(user, password)
 
-		base = "dc=kar-tel, dc=local"
 		criteria = "(&(objectClass=user)(sAMAccountName="+username+"))"
 		attributes = ['mail']
-		result = l.search_s(base, ldap.SCOPE_SUBTREE, criteria, attributes)
+		result = l.search_s(ldap_base, ldap.SCOPE_SUBTREE, criteria, attributes)
 
 		results = [entry for dn, entry in result if isinstance(entry, dict)]
 		try:

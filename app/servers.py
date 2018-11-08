@@ -19,6 +19,7 @@ try:
 	user = sql.get_user_name_by_uuid(user_id.value)
 	servers = sql.get_dick_permit()
 	token = sql.get_token(user_id.value)
+	ldap_enable = sql.get_setting('ldap_enable')
 except:
 	pass
 
@@ -33,5 +34,6 @@ output_from_parsed_template = template.render(title = "Servers manage",
 												group = sql.get_user_group_by_uuid(user_id.value),
 												sshs = sql.select_ssh(),
 												telegrams = sql.get_user_telegram_by_uuid(user_id.value),
-												token = token)
+												token = token,
+												ldap_enable = ldap_enable)
 print(output_from_parsed_template)
