@@ -889,6 +889,12 @@ def select_table_metrics(uuid):
                 where servers.metrics = 1 and
                 metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -24 HOUR)
                 group by servers.ip) as avg_cur_24h,
+				
+		(select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_3d from servers 
+			left join metrics as metr on metr.serv = servers.ip 
+			where servers.metrics = 1 and 
+			metr.date <=  now() and metr.date >= DATE_ADD(NOW(),INTERVAL -3 DAY)
+			group by servers.ip ) as avg_cur_3d,
 		
 		 (select servers.ip,max(metr.curr_con) as max_con_1h from servers
                 left join metrics as metr on metr.serv = servers.ip
