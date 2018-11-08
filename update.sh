@@ -1,9 +1,13 @@
 #!/bin/bash
 
+# set -x 
+
 cp app/haproxy-wi.cfg  /tmp/
 
 git reset --hard
 git pull  https://github.com/Aidaho12/haproxy-wi.git
+
+mv -f /tmp/haproxy-wi.cfg app/haproxy-wi.cfg 
 
 mkdir keys
 mkdir app/certs
@@ -24,7 +28,6 @@ pip3 install -r ../requirements.txt
 pip3.5 install -r ../requirements.txt
 chmod +x ../update.sh
 
-mv /tmp/haproxy-wi.cfg app/haproxy-wi.cfg 
 echo "################"
 echo ""
 echo ""
