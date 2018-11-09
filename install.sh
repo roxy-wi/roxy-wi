@@ -40,7 +40,7 @@ echo ""
 echo "################################"
 
 if hash apt-get 2>/dev/null; then
-	apt-get install git  net-tools lshw dos2unix apache2 gcc netcat python3.5  python3-pip g++ freetype2-demos libatlas-base-dev openldap-dev -y
+	apt-get install git  net-tools lshw dos2unix apache2 gcc netcat python3.5  python3-pip g++ freetype2-demos libatlas-base-dev openldap-dev libpq-dev python-dev libxml2-dev libxslt1-dev libldap2-dev libsasl2-dev libffi-dev python3-dev -y
 	HTTPD_CONFIG="/etc/apache2/apache2.conf"
 	HAPROXY_WI_VHOST_CONF="/etc/apache2/sites-enabled/haproxy-wi.conf"
 	HTTPD_NAME="apache2"

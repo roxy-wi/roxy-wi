@@ -37,6 +37,7 @@ Began to lead a [Twitter](https://twitter.com/haproxy_wi), subscribe! I will wri
 22. Metrics incoming connections
 23. Web acceleration settings
 24. Web application firewall
+25. LDAP support
 
 ![alt text](image/haproxy-wi-metrics.jpeg "Merics")
 
