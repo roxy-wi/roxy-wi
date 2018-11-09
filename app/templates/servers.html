@@ -36,7 +36,13 @@
 					<input type="text" id="login-{{user.0}}" value="{{user.1}}" class="form-control">
 					<input type="hidden" id="usergroup-{{user.0}}" name="usergroup-{{user.0}}" value="{{ group }}">					
 				</td> 
-				<td><input type="password" id="password-{{user.0}}" value="{{user.3}}" class="form-control"></td> 
+				<td>
+					{% if user.6 == 1%}
+						<input type="password" id="password-{{user.0}}" value="{{user.3}}" class="form-control" readonly>
+					{% else %}
+						<input type="password" id="password-{{user.0}}" value="{{user.3}}" class="form-control">
+					{% endif %}
+				</td> 
 				<td><input type="text" id="email-{{user.0}}" value="{{user.2}}" class="form-control"></td>
 				<td>
 					<select id="role-{{user.0}}" name="role-{{user.0}}">

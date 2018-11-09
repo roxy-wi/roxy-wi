@@ -33,7 +33,13 @@
 		{% for user in users %}
 			<tr id="user-{{user.0}}" class="{{ loop.cycle('odd', 'even') }}">
 				<td class="padding10 first-collumn"><input type="text" id="login-{{user.0}}" value="{{user.1}}" class="form-control"></td> 
-				<td><input type="password" id="password-{{user.0}}" value="{{user.3}}" class="form-control"></td> 
+				<td>
+					{% if user.6 == 1%}
+						<input type="password" id="password-{{user.0}}" value="{{user.3}}" class="form-control" readonly>
+					{% else %}
+						<input type="password" id="password-{{user.0}}" value="{{user.3}}" class="form-control">
+					{% endif %}
+				</td>
 				<td><input type="text" id="email-{{user.0}}" value="{{user.2}}" class="form-control"></td>
 				<td>
 					<select id="role-{{user.0}}" name="role-{{user.0}}">

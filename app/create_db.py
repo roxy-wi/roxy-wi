@@ -277,7 +277,9 @@ def update_db_v_3_3(**kwargs):
 			"INSERT INTO settings (param, value, section, `desc`) values('ldap_port', '389', 'ldap', 'Default port is 389 or 636');",
 			"INSERT INTO settings (param, value, section, `desc`) values('ldap_user', '', 'ldap', 'Login for connect to LDAP server. Enter: user@domain.com');",
 			"INSERT INTO settings (param, value, section, `desc`) values('ldap_password', '', 'ldap', 'Password for connect to LDAP server');",
-			"INSERT INTO settings (param, value, section, `desc`) values('ldap_base', '', 'ldap', 'Base domain. Example: dc=domain, dc=com');"]
+			"INSERT INTO settings (param, value, section, `desc`) values('ldap_base', '', 'ldap', 'Base domain. Example: dc=domain, dc=com');",
+			"INSERT INTO settings (param, value, section, `desc`) values('ldap_domain', '', 'ldap', 'Domain for login, that after @, like user@domain.com, without user@');",
+			"INSERT INTO settings (param, value, section, `desc`) values('ldap_search_field', 'mail', 'ldap', 'Field where user e-mail saved');"]
 	try:    
 		for i in sql:
 			cur.execute(i)

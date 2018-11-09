@@ -4,8 +4,12 @@
 					<input type="text" id="login-{{user.0}}" value="{{user.1}}" class="form-control">
 				</td> 
 				<td>
-					<input type="password" id="password-{{user.0}}" value="{{user.3}}" class="form-control">
-				</td> 
+					{% if user.6 == 1%}
+						<input type="password" id="password-{{user.0}}" value="{{user.3}}" class="form-control" readonly>
+					{% else %}
+						<input type="password" id="password-{{user.0}}" value="{{user.3}}" class="form-control">
+					{% endif %}
+				</td>
 				<td>
 					<input type="text" id="email-{{user.0}}" value="{{user.2}}" class="form-control">
 				</td>
@@ -21,19 +25,21 @@
 						{% endfor %}
 					</select>
 				</td>
-				{% if page != "servers.py" and page != "servers.py#users" %}
-				<td>
-					<select id="usergroup-{{user.0}}" name="usergroup-{{user.0}}">
-						<option disabled selected>Choose group</option>
-						{% for group in groups %}
-							{% if user.5 == group.0|string() %}
-								<option value="{{ group.0 }}" selected>{{ group.1 }}</option>
-							{% else %}
-								<option value="{{ group.0 }}">{{ group.1 }}</option>
-							{% endif %}
-						{% endfor %}
-					</select>
-				</td>
+				{% if page != "servers.py"  %}
+					{% if page != "servers.py#users"  %}
+					<td>
+						<select id="usergroup-{{user.0}}" name="usergroup-{{user.0}}">
+							<option disabled selected>Choose group</option>
+							{% for group in groups %}
+								{% if user.5 == group.0|string() %}
+									<option value="{{ group.0 }}" selected>{{ group.1 }}</option>
+								{% else %}
+									<option value="{{ group.0 }}">{{ group.1 }}</option>
+								{% endif %}
+							{% endfor %}
+						</select>
+					</td>
+					{% endif %}
 				{% endif %}
 				<td><a class="delete" onclick="removeUser({{user.0}})"  style="cursor: pointer;"></a></td> 
 			</tr>

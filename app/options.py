@@ -625,6 +625,8 @@ if form.getvalue('get_ldap_email'):
 	user = sql.get_setting('ldap_user')
 	password = sql.get_setting('ldap_password')
 	ldap_base = sql.get_setting('ldap_base')
+	domain = sql.get_setting('ldap_domain')
+	ldap_search_field = sql.get_setting('ldap_search_field')
 
 	l = ldap.initialize("ldap://"+server+':'+port)
 	try:
@@ -634,12 +636,12 @@ if form.getvalue('get_ldap_email'):
 		bind = l.simple_bind_s(user, password)
 
 		criteria = "(&(objectClass=user)(sAMAccountName="+username+"))"
-		attributes = ['mail']
+		attributes = [ldap_search_field]
 		result = l.search_s(ldap_base, ldap.SCOPE_SUBTREE, criteria, attributes)
 
 		results = [entry for dn, entry in result if isinstance(entry, dict)]
 		try:
-			print('["'+results[0]['mail'][0].decode("utf-8")+'","'+user.split('@')[1]+'"]')
+			print('["'+results[0][ldap_search_field][0].decode("utf-8")+'","'+domain+'"]')
 		except:
 			print('error: user not found')
 	finally:
