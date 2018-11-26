@@ -120,11 +120,11 @@ def update_group(name, descript, id):
 	cur.close()    
 	con.close()
 
-def add_server(hostname, ip, group, typeip, enable, master, cred, alert, metrics, port, desc):
+def add_server(hostname, ip, group, typeip, enable, master, cred, alert, metrics, port, desc, active):
 	con, cur = create_db.get_cur()
-	sql = """ INSERT INTO servers (hostname, ip, groups, type_ip, enable, master, cred, alert, metrics, port, `desc`) 
-			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
-		""" % (hostname, ip, group, typeip, enable, master, cred, alert, metrics, port, desc)
+	sql = """ INSERT INTO servers (hostname, ip, groups, type_ip, enable, master, cred, alert, metrics, port, `desc`, active) 
+			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
+		""" % (hostname, ip, group, typeip, enable, master, cred, alert, metrics, port, desc, active)
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -150,7 +150,7 @@ def delete_server(id):
 	cur.close()    
 	con.close() 		
 
-def update_server(hostname, ip, group, typeip, enable, master, id, cred, alert, metrics, port, desc):
+def update_server(hostname, ip, group, typeip, enable, master, id, cred, alert, metrics, port, desc, active):
 	con, cur = create_db.get_cur()
 	sql = """ update servers set 
 			hostname = '%s',
@@ -163,8 +163,9 @@ def update_server(hostname, ip, group, typeip, enable, master, id, cred, alert, 
 			alert = '%s',
 			metrics = '%s',
 			port = '%s',
-			`desc` = '%s'
-			where id = '%s'""" % (hostname, ip, group, typeip, enable, master, cred, alert, metrics, port, desc, id)
+			`desc` = '%s',
+			active = '%s'
+			where id = '%s'""" % (hostname, ip, group, typeip, enable, master, cred, alert, metrics, port, desc, active, id)
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -1137,6 +1138,18 @@ def select_alert(**kwargs):
 		return cur.fetchall()
 	cur.close()    
 	con.close() 
+	
+def select_keep_alive(**kwargs):
+	con, cur = create_db.get_cur()
+	sql = """select ip from servers where active = 1 """
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		out_error(e)
+	else:
+		return cur.fetchall()
+	cur.close()    
+	con.close() 
 				
 form = cgi.FieldStorage()
 error_mess = '<span class="alert alert-danger" id="error">All fields must be completed <a title="Close" id="errorMess"><b>X</b></a></span>'
@@ -1187,11 +1200,12 @@ if form.getvalue('newserver') is not None:
 	page = page.split("#")[0]
 	port = form.getvalue('newport')	
 	desc = form.getvalue('desc')	
+	active = form.getvalue('active')	
 	print('Content-type: text/html\n')
 	if ip is None or group is None or cred is None or port is None:		
 		print(error_mess)
 	else:	
-		if add_server(hostname, ip, group, typeip, enable, master, cred, alert, metrics, port, desc):
+		if add_server(hostname, ip, group, typeip, enable, master, cred, alert, metrics, port, desc, active):
 			show_update_server(ip, page)
 		
 if form.getvalue('serverdel') is not None:
@@ -1238,11 +1252,12 @@ if form.getvalue('updateserver') is not None:
 	metrics = form.getvalue('metrics')	
 	port = form.getvalue('port')	
 	desc = form.getvalue('desc')	
+	active = form.getvalue('active')	
 	print('Content-type: text/html\n')
 	if name is None or ip is None or port is None:
 		print(error_mess)
 	else:		
-		update_server(name, ip, group, typeip, enable, master, id, cred, alert, metrics, port, desc)
+		update_server(name, ip, group, typeip, enable, master, id, cred, alert, metrics, port, desc, active)
 			
 if form.getvalue('updatessh'):
 	id = form.getvalue('id')

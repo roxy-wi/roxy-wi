@@ -52,7 +52,7 @@ def main(serv, port):
 					funct.telegram_send_mess(str(alert), ip=serv)
 					funct.logging("localhost", " "+alert, alerting=1)
 					firstrun = True
-					time.sleep(2)	
+					time.sleep(5)	
 			old_stat_service = cur_stat_service
 			
 		vips = readstats.splitlines()

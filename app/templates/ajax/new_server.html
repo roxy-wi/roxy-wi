@@ -54,6 +54,13 @@
 					{% endif %}
 				</td>
 				<td>
+					{% if server.11 == 1 %}
+						<label for="active-{{server.0}}"></label><input type="checkbox" id="active-{{server.0}}" checked>
+					{% else %}
+						<label for="active-{{server.0}}"></label><input type="checkbox" id="active-{{server.0}}">
+					{% endif %}
+				</td>
+				<td>
 					<select id="slavefor-{{server.0}}">
 						<option value="0" selected>Not slave</option>
 						{% for master in masters %}

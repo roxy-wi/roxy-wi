@@ -62,6 +62,9 @@ def logging(serv, action, **kwargs):
 	elif kwargs.get('metrics') == 1:
 		mess = get_data('date_in_log') + action + "\n"
 		log = open(log_path + "/metrics-"+get_data('logs')+".log", "a")
+	elif kwargs.get('keep_alive') == 1:
+		mess = get_data('date_in_log') + action + "\n"
+		log = open(log_path + "/keep_alive-"+get_data('logs')+".log", "a")
 	else:
 		mess = get_data('date_in_log') + " from " + IP + " user: " + login + " " + action + " for: " + serv + "\n"
 		log = open(log_path + "/config_edit-"+get_data('logs')+".log", "a")

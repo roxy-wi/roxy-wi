@@ -65,7 +65,7 @@ def get_worker():
 	return output
 	
 if __name__ == "__main__":
-	funct.logging("localhost", " Master started", alerting=1)
+	funct.logging("localhost", " Checker master started", alerting=1)
 	killer = GracefulKiller()
 	
 	while True:
@@ -76,4 +76,4 @@ if __name__ == "__main__":
 			break
 			
 	kill_all_workers()
-	funct.logging("localhost", " Master shutdown", alerting=1)
+	funct.logging("localhost", " Checker master shutdown", alerting=1)

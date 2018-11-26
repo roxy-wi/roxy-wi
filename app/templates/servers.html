@@ -33,7 +33,11 @@
 			{% if user.5 == group %}
 			<tr id="user-{{user.0}}" class="{{ loop.cycle('odd', 'even') }}">
 				<td class="padding10 first-collumn">
-					<input type="text" id="login-{{user.0}}" value="{{user.1}}" class="form-control">
+					{% if user.6 == 1%}
+						<input type="text" id="login-{{user.0}}" value="{{user.1}}" class="form-control" readonly>
+					{% else %}
+						<input type="text" id="login-{{user.0}}" value="{{user.1}}" class="form-control">
+					{% endif %}
 					<input type="hidden" id="usergroup-{{user.0}}" name="usergroup-{{user.0}}" value="{{ group }}">					
 				</td> 
 				<td>
@@ -43,7 +47,13 @@
 						<input type="password" id="password-{{user.0}}" value="{{user.3}}" class="form-control">
 					{% endif %}
 				</td> 
-				<td><input type="text" id="email-{{user.0}}" value="{{user.2}}" class="form-control"></td>
+				<td>
+					{% if user.6 == 1%}
+						<input type="text" id="email-{{user.0}}" value="{{user.2}}" class="form-control" readonly>
+					{% else %}
+						<input type="text" id="email-{{user.0}}" value="{{user.2}}" class="form-control">
+					{% endif %}
+				</td>
 				<td>
 					<select id="role-{{user.0}}" name="role-{{user.0}}">
 						<option disabled selected>Choose role</option>
@@ -79,6 +89,7 @@
 				<td class="checkbox-head"><span title="Vitrual IP, something like VRRP">Virt(?)</span></td>
 				<td class="checkbox-head"><span title="Alert if backend change status. Before enable add Telgram chanel at Checker tab">Alert(?)</span></td>
 				<td class="checkbox-head"><span title="Enable save and show metrics">Metrics(?)</span></td>
+				<td class="checkbox-head"><span title="Keep active HAProxy service if down">Active(?)</span></td>
 				<td class="slave-field"><span title="Actions with master config will automatically apply on slave">Slave for (?)</span></td>
 				<td class="cred-field">Credentials</td>
 				<td>Desciption</td>
@@ -124,6 +135,13 @@
 						<label for="metrics-{{server.0}}"></label><input type="checkbox" id="metrics-{{server.0}}" checked>
 					{% else %}
 						<label for="metrics-{{server.0}}"></label><input type="checkbox" id="metrics-{{server.0}}">
+					{% endif %}
+				</td>
+				<td class="checkbox">
+					{% if server.11 == 1 %}
+						<label for="active-{{server.0}}"></label><input type="checkbox" id="active-{{server.0}}" checked>
+					{% else %}
+						<label for="active-{{server.0}}"></label><input type="checkbox" id="active-{{server.0}}">
 					{% endif %}
 				</td>
 				<td>
@@ -444,6 +462,12 @@
 			<td class="padding20" title="Enable save and show metrics">Metrics</td>
 			<td>
 				<label for="metrics"></label><input type="checkbox" id="metrics">
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20" title="Keep active HAProxy service if down">Active</td>
+			<td>
+				<label for="active"></label><input type="checkbox" id="active">
 			</td>
 		</tr>
 		<tr>

@@ -233,6 +233,46 @@ cat << EOF > /etc/logrotate.d/metrics
 }
 EOF
 
+cat << EOF > /etc/systemd/system/keep_alive.service
+[Unit]
+Description=Keep Alive Haproxy 
+After=syslog.target network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/var/www/$HOME_HAPROXY_WI/app/
+ExecStart=/var/www/$HOME_HAPROXY_WI/app/tools/keep_alive.py
+
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=keep_alive
+
+RestartSec=2s
+Restart=on-failure
+TimeoutStopSec=1s
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+cat << 'EOF' > /etc/rsyslog.d/keep_alive.conf 
+if $programname startswith 'keep_alive' then /var/www/__HOME_HAPROXY_WI__/log/keep_alive.log
+& stop
+EOF
+sed -i -e "s/__HOME_HAPROXY_WI__/$HOME_HAPROXY_WI/g" /etc/rsyslog.d/keep_alive.conf
+
+cat << EOF > /etc/logrotate.d/metrics
+/var/www/$HOME_HAPROXY_WI/log/keep_alive.log {
+    daily
+    rotate 10
+    missingok
+    notifempty
+	create 0644 apache apache
+	dateext
+    sharedscripts
+}
+EOF
+
 sed -i 's/#$UDPServerRun 514/$UDPServerRun 514/g' /etc/rsyslog.conf
 sed -i 's/#$ModLoad imudp/$ModLoad imudp/g' /etc/rsyslog.conf
 
@@ -241,8 +281,10 @@ systemctl restart logrotate
 systemctl restart rsyslog
 systemctl restart metrics_haproxy.service
 systemctl restart checker_haproxy.service
+systemctl restart keep_alive.service
 systemctl enable metrics_haproxy.service
 systemctl enable checker_haproxy.service
+systemctl enable keep_alive.service
 
 if hash apt-get 2>/dev/null; then
 	sed -i 's|/var/log/httpd/|/var/log/apache2/|g' $HAPROXY_WI_VHOST_CONF
