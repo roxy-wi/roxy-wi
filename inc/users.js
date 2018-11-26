@@ -477,6 +477,7 @@ function addServer() {
 	var enable = 0;
 	var alert_en = 0;
 	var metrics = 0;
+	var active = 0;
 	if ($('#typeip').is(':checked')) {
 		typeip = '1';
 	}
@@ -488,6 +489,9 @@ function addServer() {
 	}
 	if ($('#metrics').is(':checked')) {
 		var metrics = '1';
+	}
+	if ($('#active').is(':checked')) {
+		var active = '1';
 	}
 	allFields = $( [] ).add( $('#new-server-add') ).add( $('#new-ip') ).add( $('#new-port') )
 	allFields.removeClass( "ui-state-error" );
@@ -510,7 +514,8 @@ function addServer() {
 				alert_en: alert_en,
 				metrics: metrics,
 				page: cur_url[0],
-				desc: $('#desc').val()
+				desc: $('#desc').val(),
+				active: active
 			},
 			type: "GET",
 			success: function( data ) {
@@ -758,6 +763,8 @@ function removeTelegram(id) {
 }
 function updateUser(id) {
 	$('.alert-danger').remove();
+	cur_url[0] = cur_url[0].split('#')[0]
+	console.log(cur_url[0])
 	if (cur_url[0] != "servers.py") {
 		var usergroup = $('#usergroup-'+id+' option:selected' ).val();
 	} else {
@@ -828,6 +835,7 @@ function updateServer(id) {
 	var enable = 0;
 	var alert_en = 0;
 	var metrics = 0;
+	var active = 0;
 	if ($('#typeip-'+id).is(':checked')) {
 		typeip = '1';
 	}
@@ -839,6 +847,9 @@ function updateServer(id) {
 	}
 	if ($('#metrics-'+id).is(':checked')) {
 		metrics = '1';
+	}
+	if ($('#active-'+id).is(':checked')) {
+		active = '1';
 	}
 	var servergroup = $('#servergroup-'+id+' option:selected' ).val();
 	if (cur_url[0] == "servers.py") {
@@ -858,7 +869,8 @@ function updateServer(id) {
 			id: id,
 			metrics: metrics,
 			alert_en: alert_en,
-			desc: $('#desc-'+id).val()
+			desc: $('#desc-'+id).val(),
+			active: active
 		},
 		type: "GET",
 		success: function( data ) {
