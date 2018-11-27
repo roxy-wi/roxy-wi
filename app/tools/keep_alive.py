@@ -22,50 +22,27 @@ class GracefulKiller:
 def main():
 	servers = sql.select_keep_alive()
 	port = sql.get_setting('haproxy_sock_port')
-	firstrun = True
-	currentstat = []
-	oldstat = []
 	readstats = ""
 	killer = GracefulKiller()
-	old_stat_service = ""
-	cur_stat_service = ""
 	
 	while True:
 		for serv in servers:
 			try:			
 				readstats = subprocess.check_output(["echo show stat | nc "+serv[0]+" "+port], shell=True)
 			except CalledProcessError as e:
-				if firstrun == False:	
-					cur_stat_service = "error"
-					if old_stat_service != cur_stat_service:
-						alert = "Try start HAProxy serivce at " + serv[0]
-						#funct.telegram_send_mess(str(alert), ip=serv[2])
-						funct.logging("localhost", " "+alert, keep_alive=1)
-						start_command = []
-						start_command.append(sql.get_setting('restart_command'))
-						funct.ssh_command(serv[0], start_command)
-
-				firstrun = False				
-				old_stat_service = cur_stat_service
+				alert = "Try start HAProxy serivce at " + serv[0]
+				funct.logging("localhost", " "+alert, keep_alive=1)
+				start_command = []
+				start_command.append(sql.get_setting('restart_command'))
+				funct.ssh_command(serv[0], start_command)
+				time.sleep(30)
 				continue
 			except OSError as e:
 				print(e)
 				sys.exit()
 			else:
 				cur_stat_service = "Ok"
-				"""
 						
-					if old_stat_service != cur_stat_service:
-						alert = "Now UP HAProxy service at " + serv
-						funct.telegram_send_mess(str(alert), ip=serv[2])
-						funct.logging("localhost", " "+alert, alerting=1)
-							
-						time.sleep(5)	
-				"""
-				if firstrun == False:
-					firstrun = True
-				old_stat_service = cur_stat_service	
-		
 		
 if __name__ == "__main__":
 	funct.logging("localhost", " Keep alive service started", keep_alive=1)
