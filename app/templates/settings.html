@@ -23,7 +23,19 @@
 		<tr class="{{ loop.cycle('odd', 'even') }}">
 			<td class="addName">{{set.0}}</td>
 			<td class="addOption">
-				<input type="text" name="{{set.0}}" id="{{set.0}}" value="{{set.1}}" title="" size="25" class="form-control">
+				{% if set.0 == 'ldap_password' %}
+					{% if set.1 == 'None' %}
+							<input type="password" name="{{set.0}}" id="{{set.0}}" value="" title="" size="25" class="form-control">
+						{% else %}
+							<input type="password" name="{{set.0}}" id="{{set.0}}" value="{{set.1}}" title="" size="25" class="form-control">
+						{% endif %}
+				{% else %}
+					{% if set.1 == 'None' %}
+						<input type="text" name="{{set.0}}" id="{{set.0}}" value="" title="" size="25" class="form-control">
+					{% else %}	
+						<input type="text" name="{{set.0}}" id="{{set.0}}" value="{{set.1}}" title="" size="25" class="form-control">
+					{% endif %}
+				{% endif %}
 			</td>
 			<td class="addOption">
 				{{set.3}}
