@@ -26,7 +26,7 @@ def main(serv, port):
 	
 	while True:
 		try:			
-			cmd = "echo show info | nc "+serv+" "+port+" |grep -e 'Curr\|MaxSessRate:\|SessRate:'|awk '{print $2}'"
+			cmd = "echo show info | nc "+serv+" "+port+" |grep -e 'CurrConns\|CurrSslConns\|MaxSessRate:\|SessRate:'|awk '{print $2}'"
 			readstats = subprocess.check_output([cmd], shell=True)
 		except CalledProcessError as e:
 			print("Command error")
