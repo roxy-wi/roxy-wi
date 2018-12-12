@@ -8,7 +8,7 @@ dump==0.0.4
 networkx==2.1
 numpy==1.14.0
 matplotlib==2.1.2
-urllib3==1.22
+urllib3>=1.23
 future==0.13.1
 mysql-connector-python==8.0.11
 Jinja2==2.10
