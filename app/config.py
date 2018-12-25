@@ -9,7 +9,7 @@ from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'))
 template = env.get_template('config.html')
 
-
+print('Content-type: text/html\n')
 funct.check_login()
 
 form = cgi.FieldStorage()
@@ -26,6 +26,7 @@ try:
 	user = sql.get_user_name_by_uuid(user_id.value)
 	servers = sql.get_dick_permit()
 	token = sql.get_token(user_id.value)
+	role = sql.get_user_role_by_uuid(user_id.value)
 except:
 	pass
 
@@ -84,9 +85,9 @@ if serv is not None and form.getvalue('config') is not None:
 		
 	os.system("/bin/rm -f " + hap_configs_dir + "*.old")
 
-print('Content-type: text/html\n')
+
 template = template.render(h2 = 1, title = "Working with HAProxy configs",
-							role = sql.get_user_role_by_uuid(user_id.value),
+							role = role,
 							action = "config.py",
 							user = user,
 							select_id = "serv",
