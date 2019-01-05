@@ -10,6 +10,13 @@
 						<input type="password" id="password-{{user.0}}" value="{{user.3}}" class="form-control">
 					{% endif %}
 				</td>
+				<td class="checkbox">
+					{% if user.7 == 1 %}
+						<label for="activeuser-{{user.0}}"></label><input type="checkbox" id="activeuser-{{user.0}}" checked>
+					{% else %}
+						<label for="activeuser-{{user.0}}"></label><input type="checkbox" id="activeuser-{{user.0}}">
+					{% endif %}
+				</td>
 				<td>
 					<input type="text" id="email-{{user.0}}" value="{{user.2}}" class="form-control">
 				</td>

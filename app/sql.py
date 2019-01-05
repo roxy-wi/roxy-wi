@@ -20,12 +20,12 @@ def out_error(e):
 		error = e.args[0]
 	print('<span class="alert alert-danger" id="error">An error occurred: ' + error + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 		
-def add_user(user, email, password, role, group):
+def add_user(user, email, password, role, group, activeuser):
 	con, cur = create_db.get_cur()
 	if password != 'aduser':
-		sql = """INSERT INTO user (username, email, password, role, groups) VALUES ('%s', '%s', '%s', '%s', '%s')""" % (user, email, password, role, group)
+		sql = """INSERT INTO user (username, email, password, role, groups, activeuser) VALUES ('%s', '%s', '%s', '%s', '%s', '%s')""" % (user, email, password, role, group, activeuser)
 	else:
-		sql = """INSERT INTO user (username, email, role, groups, ldap_user) VALUES ('%s', '%s', '%s', '%s', '1')""" % (user, email, role, group)		
+		sql = """INSERT INTO user (username, email, role, groups, ldap_user, activeuser) VALUES ('%s', '%s', '%s', '%s', '1', '%s')""" % (user, email, role, group, activeuser)		
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -38,14 +38,15 @@ def add_user(user, email, password, role, group):
 	cur.close()    
 	con.close()   
 	
-def update_user(user, email, password, role, group, id):
+def update_user(user, email, password, role, group, id, activeuser):
 	con, cur = create_db.get_cur()
 	sql = """update user set username = '%s', 
 			email = '%s',
 			password = '%s', 
 			role = '%s', 
-			groups = '%s' 
-			where id = '%s'""" % (user, email, password, role, group, id)
+			groups = '%s',
+			activeuser = '%s'
+			where id = '%s'""" % (user, email, password, role, group, activeuser, id)
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -1161,11 +1162,12 @@ if form.getvalue('newuser') is not None:
 	group = form.getvalue('newgroupuser')
 	new_user = form.getvalue('newusername')	
 	page = form.getvalue('page')	
+	activeuser = form.getvalue('activeuser')	
 	print('Content-type: text/html\n')
 	if password is None or role is None or group is None:
 		print(error_mess)
 	else:		
-		if add_user(new_user, email, password, role, group):
+		if add_user(new_user, email, password, role, group, activeuser):
 			show_update_user(new_user, page)
 		
 if form.getvalue('updateuser') is not None:
@@ -1175,11 +1177,12 @@ if form.getvalue('updateuser') is not None:
 	group = form.getvalue('usergroup')
 	new_user = form.getvalue('updateuser')	
 	id = form.getvalue('id')	
+	activeuser = form.getvalue('activeuser')	
 	print('Content-type: text/html\n')
 	if password is None or role is None or group is None:
 		print(error_mess)
 	else:		
-		update_user(new_user, email, password, role, group, id)
+		update_user(new_user, email, password, role, group, id, activeuser)
 		
 if form.getvalue('userdel') is not None:
 	print('Content-type: text/html\n')

@@ -330,15 +330,38 @@ def update_db_v_3_4(**kwargs):
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
 			if e.args[0] == 'duplicate column name: active' or e == " 1060 (42S21): Duplicate column name 'active' ":
-				print('Updating... go to version 3.4')
+				print('Updating... go to version 3.4.1')
 			else:
 				print("An error occurred:", e)
 		return False
 	else:
-		print("DB was update to 3.4<br />")
+		print("Updating... go to version 3.4.1<br />")
 		return True
 	cur.close() 
 	con.close()
+	
+	
+def update_db_v_3_4_1(**kwargs):
+	con, cur = get_cur()
+	sql = """
+	ALTER TABLE `user` ADD COLUMN activeuser INTEGER NOT NULL DEFAULT 1;
+	"""
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: active' or e == " 1060 (42S21): Duplicate column name 'active' ":
+				print('Updating... go to version 3.4.1')
+			else:
+				print("An error occurred:", e)
+		return False
+	else:
+		print("DB was update to 3.4.1<br />")
+		return True
+	cur.close() 
+	con.close()
+	
 			
 def update_all():	
 	update_db_v_31()
@@ -349,6 +372,7 @@ def update_all():
 	update_db_v_3_3()
 	update_db_v_3_31()
 	update_db_v_3_4()
+	update_db_v_3_4_1()
 	
 def update_all_silent():
 	update_db_v_31(silent=1)
@@ -359,6 +383,7 @@ def update_all_silent():
 	update_db_v_3_3(silent=1)
 	update_db_v_3_31(silent=1)
 	update_db_v_3_4(silent=1)
+	update_db_v_3_4_1(silent=1)
 	
 if __name__ == "__main__":
 	create_table()

@@ -426,6 +426,10 @@ function addUser() {
 	allFields.removeClass( "ui-state-error" );
 	valid = valid && checkLength( $('#new-username'), "user name", 1 );
 	valid = valid && checkLength( $('#new-password'), "password", 1 );
+	var activeuser = 0;
+	if ($('#activeuser').is(':checked')) {
+		activeuser = '1';
+	}
 	if (valid) {
 		$.ajax( {
 			url: "sql.py",
@@ -435,6 +439,7 @@ function addUser() {
 				newpassword: $('#new-password').val(),
 				newemail: $('#new-email').val(),
 				newrole: $('#new-role').val(),
+				activeuser: activeuser,
 				page: cur_url[0],
 				newgroupuser: $('#new-group').val()
 			},
@@ -770,6 +775,10 @@ function updateUser(id) {
 	} else {
 		var usergroup = $('#usergroup-'+id ).val();
 	}
+	var activeuser = 0;
+	if ($('#activeuser-'+id).is(':checked')) {
+		activeuser = '1';
+	}
 	$.ajax( {
 		url: "sql.py",
 		data: {
@@ -778,6 +787,7 @@ function updateUser(id) {
 			email: $('#email-'+id).val(),
 			role: $('#role-'+id).val(),
 			usergroup: usergroup,
+			activeuser: activeuser,
 			id: id
 		},
 		type: "GET",

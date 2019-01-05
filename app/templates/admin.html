@@ -24,6 +24,7 @@
 			<tr class="overviewHead">
 				<td class="padding10 first-collumn">Login name</td>
 				<td>Password</td>
+				<td>Active</td>
 				<td>Email</td>
 				<td>Role</td>
 				<td>Group</td>
@@ -44,6 +45,13 @@
 						<input type="password" id="password-{{user.0}}" value="{{user.3}}" class="form-control" readonly>
 					{% else %}
 						<input type="password" id="password-{{user.0}}" value="{{user.3}}" class="form-control">
+					{% endif %}
+				</td>
+				<td class="checkbox">
+					{% if user.7 == 1 %}
+						<label for="activeuser-{{user.0}}"></label><input type="checkbox" id="activeuser-{{user.0}}" checked>
+					{% else %}
+						<label for="activeuser-{{user.0}}"></label><input type="checkbox" id="activeuser-{{user.0}}">
 					{% endif %}
 				</td>
 				<td>
@@ -486,6 +494,12 @@
 			<td>
 				<input type="password" name="new-password" id="new-password" class="form-control">
 			</td>
+		</tr>
+		<tr>
+				<td class="padding20">Active</td>
+				<td>
+					<label for="activeuser"></label><input type="checkbox" id="activeuser" checked>
+				</td>
 		</tr>
 		<tr>
 			<td class="padding20">
