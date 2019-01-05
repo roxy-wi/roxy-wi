@@ -117,6 +117,10 @@ if login is not None and password is not None:
 	USERS = sql.select_users(user=login)
 		
 	for users in USERS:	
+		if users[7] == 0:
+			print("Content-type: text/html\n")	
+			print('<center><div class="alert alert-danger">Your login is disabled</div><br /><br />')
+			sys.exit()
 		if users[6] == 1:
 			if login in users[1]:
 				check_in_ldap(login, password)
@@ -125,7 +129,7 @@ if login is not None and password is not None:
 				send_cookie(login)
 			else:
 				print("Content-type: text/html\n")	
-				print('<center><div class="alert alert-danger">Somthing wrong :( I\'m sad about this, but try again!</div><br /><br />')
+				print('<center><div class="alert alert-danger">Your login or password is incorrect</div><br /><br />')
 				sys.exit()
 	print("Content-type: text/html\n")	
 	
