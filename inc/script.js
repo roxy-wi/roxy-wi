@@ -436,10 +436,10 @@ $( function() {
 		theme:"minimal-dark",
 		scrollInertia:30
 		});
-	$(".top-link").mCustomScrollbar({
+	/*$(".top-link").mCustomScrollbar({
 		theme:"minimal-dark",
 		scrollInertia:30
-		});	
+		});	*/
 	$(".diff").mCustomScrollbar({
 		theme:"minimal-dark",
 		scrollInertia:30
@@ -450,7 +450,7 @@ $( function() {
 	} );
 	$( "select" ).selectmenu();
 		
-    var tooltips = $( "[title]" ).tooltip();
+    //var tooltips = $( "[title]" ).tooltip();
 	$( "input[type=submit], button" ).button();
 	$( "input[type=checkbox]" ).checkboxradio();
 	$( ".controlgroup" ).controlgroup();
@@ -1333,18 +1333,7 @@ $( function() {
 			type: "GET",
 			success: function( data ) {
 				if (data.indexOf('ok') != '-1') {
-					$( "#dialog-confirm" ).dialog({
-						resizable: false,
-						height: "auto",
-						width: 400,
-						modal: true,
-						title: "Support the project!",
-						buttons: {
-						"Ok": function() {
-								window.location.replace(ref);
-							}
-						  }
-					});
+					window.location.replace(ref);
 				} else {
 					$('.alert-danger').remove();
 					$("#ajax").html(data);					
