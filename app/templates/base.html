@@ -43,18 +43,21 @@
 				</a>
 			</div>	
 			<div id="top-link" class="top-link">
-				<nav class="menu">
-					<ul id="menu">
-						<li><a title="Statistics, monitoring and logs" class="stats">Stats</a>			
-							<li><a href=/app/overview.py title="Server and service status" class="overview-link head-submenu">Overview</a></li>
-							<li><a href=/app/viewsttats.py title"Show stats" class="stats head-submenu">Stats</a></li>
-							<li><a href=/app/logs.py title="View logs" class="logs head-submenu"> Logs</a></li>	
-							<li><a href=/app/edit.py title="Runtime API" class="runtime head-submenu">Runtime API</a></li>
-							<li><a href=/app/metrics.py title="Metrics" class="metrics head-submenu">Metrics</a></li>
+				<nav id="menu">
+					<ul class="menu">
+						<li class="p_menu"><a title="Statistics, monitoring and logs" class="stats">Stats</a>			
+							<ul class="v_menu">
+								<li><a href=/app/overview.py title="Server and service status" class="overview-link head-submenu">Overview</a></li>
+								<li><a href=/app/viewsttats.py title"Show stats" class="stats head-submenu">Stats</a></li>
+								<li><a href=/app/logs.py title="View logs" class="logs head-submenu"> Logs</a></li>	
+								<li><a href=/app/edit.py title="Runtime API" class="runtime head-submenu">Runtime API</a></li>
+								<li><a href=/app/metrics.py title="Metrics" class="metrics head-submenu">Metrics</a></li>
+							</ul>
 						</li>
-						<li><a title="Actions with Haproxy configs" class="config-show">Haproxy</a>			
+						<li class="p_menu"><a title="Actions with Haproxy configs" class="config-show">Haproxy</a>			
 						{% if user %}	
-							<li><a href=/app/config.py title="Working with Haproxy Configs" class="edit head-submenu">Configs</a> </li>
+							<ul class="v_menu">
+								<li><a href=/app/config.py title="Working with Haproxy Configs" class="edit head-submenu">Configs</a> </li>
 							{% if role <= 2 %}
 								<li><a href=/app/add.py#listner title="Add single listen" class="add head-submenu" id="add1">Add listen</a></li>
 								<li><a href=/app/add.py#frontend title="Add single frontend" class="add head-submenu" id="add2">Add frontend</a></li>
@@ -64,42 +67,55 @@
 								<li><a href=/app/waf.py title="Web application firewall" class="waf head-submenu">WAF</a> </li>	
 								<li><a href=/app/ihap.py title="Installation HAProxy" class="hap head-submenu">Installation</a> </li>
 							{% endif %}
+							</ul>
 						</li>
 						{% if role <= 2 %}
-							<li><a title="Actions with configs" class="version">Versions</a>		
-								<li><a href=/app/configver.py title="Upload old versions configs" class="upload head-submenu">Upload</a></li>
+							<li class="p_menu">
+								<a title="Actions with configs" class="version">Versions</a>	
+								<ul class="v_menu">
+									<li><a href=/app/configver.py title="Upload old versions configs" class="upload head-submenu">Upload</a></li>
 						{% endif %}
 							{% if role <= 2 %}
 								<li><a href=/app/delver.py title="Delete old versions configs" class="deleteVer head-submenu">Delete</a></li>
 							{% endif %}	
+									</ul>
 							</li>	
 						{% if role <= 2 %}
-							<li><a title="Keepalived" class="ha">Keepalived</a>
-								<li><a href=/app/ha.py title="Create HA cluster" class="keepalived head-submenu">HA</a></li>
-								<li><a href=/app/keepalivedconfig.py title="Edit keepalived config" class="edit head-submenu">Edit config</a></li>		
+							<li class="p_menu">
+								<a title="Keepalived" class="ha">Keepalived</a>
+								<ul class="v_menu">
+									<li><a href=/app/ha.py title="Create HA cluster" class="keepalived head-submenu">HA</a></li>
+									<li><a href=/app/keepalivedconfig.py title="Edit keepalived config" class="edit head-submenu">Edit config</a></li>		
+								</ul>
 							</li>
-							<li><a title="Servers manage" class="runtime">Servers</a>
-								<li><a href=/app/servers.py#users title="Actions with users" class="users head-submenu">Users</a></li>
-								<li><a href=/app/servers.py#servers title="Server manage" class="runtime head-submenu">Servers</a></li>
-								<li><a href=/app/servers.py#ssh title="Manage SSH credentials" class="admin head-submenu">SSH credentials</a></li>		
+							<li class="p_menu">
+								<a title="Servers manage" class="runtime">Servers</a>
+								<ul class="v_menu">
+									<li><a href=/app/servers.py#users title="Actions with users" class="users head-submenu">Users</a></li>
+									<li><a href=/app/servers.py#servers title="Server manage" class="runtime head-submenu">Servers</a></li>
+									<li><a href=/app/servers.py#ssh title="Manage SSH credentials" class="admin head-submenu">SSH credentials</a></li>		
+								</ul>
 							</li>
 						{% endif %}
 						{% if role <= 1 %}
-							<li><a title="Admin area" class="admin">Admin area</a>
-								<li><a href=/app/users.py#users title="Actions with users" class="users head-submenu">Users</a></li>
-								<li><a href=/app/users.py#groups title="Actions with groups" class="group head-submenu">Groups</a></li>
-								<li><a href=/app/users.py#servers title="Actions with servers" class="runtime head-submenu">Servers</a></li>
-								<li><a href=/app/users.py#roles title="Users roles" class="role head-submenu">Roles</a></li>
-								<li><a href=/app/users.py#ssh title="Manage SSH credentials" class="admin head-submenu">SSH credentials</a></li>
-								<li><a href=/app/settings.py title="HAproxy-WI settings" class="settings head-submenu">Settings</a></li>
-								<li><a href=/app/viewlogs.py title="View internal logs" class="logs head-submenu">Internal logs</a></li>
+							<li class="p_menu">
+								<a title="Admin area" class="admin">Admin area</a>
+								<ul class="v_menu">
+									<li><a href=/app/users.py#users title="Actions with users" class="users head-submenu">Users</a></li>
+									<li><a href=/app/users.py#groups title="Actions with groups" class="group head-submenu">Groups</a></li>
+									<li><a href=/app/users.py#servers title="Actions with servers" class="runtime head-submenu">Servers</a></li>
+									<li><a href=/app/users.py#roles title="Users roles" class="role head-submenu">Roles</a></li>
+									<li><a href=/app/users.py#ssh title="Manage SSH credentials" class="admin head-submenu">SSH credentials</a></li>
+									<li><a href=/app/settings.py title="HAproxy-WI settings" class="settings head-submenu">Settings</a></li>
+									<li><a href=/app/viewlogs.py title="View internal logs" class="logs head-submenu">Internal logs</a></li>
+								</ul>
 							</li>
 						{% endif %}	
 					{% endif %}
 					</ul>
 				</nav>
 				<div class="copyright-menu">
-					HAproxy-WI v3.4.2
+					HAproxy-WI v3.4.3
 					<br>
 					<a href="https://www.patreon.com/haproxy_wi" title="Donate" target="_blank" style="color: #fff; margin-left: 30px; color: red;" class="patreon">  Patreon</a>
 				</div>
