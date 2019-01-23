@@ -5,7 +5,10 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 Support the project
 [![Donate](https://img.shields.io/badge/PayPal-Donate-brightgreen.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=5XVQTMKQS57NE&lc=US&Z3JncnB0=) or [Patreon](https://www.patreon.com/haproxy_wi/overview)
 
+# Youtube and IRC
 [Demo video](https://www.youtube.com/channel/UCo0lCg24j-H4f0S9kMjp-_w)
+
+irc.freenode.net using the following channel name: #haproxy-wi
 
 # Twitter
 Began to lead a [Twitter](https://twitter.com/haproxy_wi), subscribe! I will write there about all the changes and news
