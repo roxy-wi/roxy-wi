@@ -459,12 +459,12 @@ $( function() {
     var cur_url = '/app/' + location.split('/').pop();
 	cur_url = cur_url.split('?');
 		
-    $('.menu li').each(function () {
-        var link = $(this).find('a').attr('href');
-        if (cur_url[0] == link) {
-            $(this).addClass('current');
-        }
-    });
+   // $('.menu li').each(function () {
+   //     var link = $(this).find('a').attr('href');
+   //     if (cur_url[0] == link) {
+   //         $(this).addClass('current');
+   //     }
+   // });
 	var now = new Date(Date.now());
 	var date1 = now.getHours() * 60 - 1 * 60;
 	var date2 = now.getHours() * 60 + now.getMinutes();

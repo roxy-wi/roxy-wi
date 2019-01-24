@@ -52,7 +52,7 @@ pre {
 	display: block;
 }
 .top-menu, .footer {
-	background-color: #33414E;
+	background-color: #292e34;
 }
 .logoText {
 	color: #EBF1F1;
@@ -396,21 +396,23 @@ ul{
 }
 .menu {
 	min-height: calc(100vh - 95px);
+	font-size: 18px;
 }
 .menu a{
-	background: #33414e;
+	background: #292e34;
 	color: #fff;
 	padding: 10px;
 	display: block;
 	border-bottom: 1px solid #666;
 	transition: 0.5s all;
+	cursor: pointer;
 }
 .sidebar{
 	width: 200px;
 	margin: 20px;
 }
 .menu a:hover{
-	background: #33414e;
+	background: #48505A;
 	padding: 10px 0 10px 20px;
 	color: #fff;
 }
@@ -434,6 +436,9 @@ ul{
 	border-left: 10px solid transparent;
 	transition: 0.5s opacity;
 	z-index: 1001;
+}
+.v_menu a {
+	background-color: #48505A;
 }
 .p_menu:hover .v_menu{
 	opacity: 1;
