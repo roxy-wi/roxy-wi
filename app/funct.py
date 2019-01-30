@@ -341,7 +341,7 @@ def upload_and_restart(serv, cfg, **kwargs):
 		if kwargs.get("just_save") == "save":
 			commands = [ "sudo mv -f " + tmp_file + " /etc/keepalived/keepalived.conf" ]
 		else:
-			commands = [ "sudo mv -f " + tmp_file + " /etc/keepalived/keepalived.conf", "sudo systemctl restart keepalived" ]
+			commands = [ "sudo mv -f " + tmp_file + " /etc/keepalived/keepalived.conf && sudo systemctl restart keepalived" ]
 	else:
 		if kwargs.get("just_save") == "save":
 			commands = [ "sudo haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + sql.get_setting('haproxy_config_path') ]
