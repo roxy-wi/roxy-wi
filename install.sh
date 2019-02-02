@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 
 PORT=8080
 HOME_HAPROXY_WI=haproxy-wi
