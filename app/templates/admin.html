@@ -29,6 +29,7 @@
 				<td>Role</td>
 				<td>Group</td>
 				<td></td>
+				<td></td>
 			</tr>
 			<tr>
 		{% for user in users %}
@@ -85,7 +86,12 @@
 						{% endfor %}
 					</select>
 				</td>
-				<td><a class="delete" onclick="confirmDeleteUser({{user.0}})" title="Delete user {{user.1}}" style="cursor: pointer;"></a></td> 
+				<td>
+					<a class="add" onclick="cloneUser({{user.0}})" id="clone-{{user.0}}" title="Clone {{user.1}}" style="cursor: pointer;"></a>
+				</td> 
+				<td>
+					<a class="delete" onclick="confirmDeleteUser({{user.0}})" title="Delete user {{user.1}}" style="cursor: pointer;"></a>
+				</td> 
 			</tr>
 		{% endfor %}
 		</table>
@@ -159,6 +165,7 @@
 				<td class="slave-field"><span title="Actions with master config will automatically apply on slave">Slave for (?)</span></td>
 				<td class="cred-field">Credentials</td>
 				<td>Desciption</td>
+				<td></td>
 				<td></td>
 			</tr>
 						
@@ -254,6 +261,9 @@
 						<input type="text" id="desc-{{server.0}}" value="" size="30" class="form-control">
 					{% endif %}
 				</td>
+				<td>
+					<a class="add" onclick="cloneServer({{server.0}})" id="clone-{{server.0}}" title="Clone {{server.1}}" style="cursor: pointer;"></a>
+				</td> 
 				<td>
 					<a class="delete" onclick="confirmDeleteServer({{server.0}})" title="Delete server {{server.1}}" style="cursor: pointer;"></a>
 				</td> 
@@ -406,6 +416,7 @@
 				<td>Chanel name</td>
 				<td>Group</td>
 				<td></td>
+				<td></td>
 			</tr>
 			{% for telegram in telegrams %}
 				<tr id="telegram-table-{{telegram.0}}" class="{{ loop.cycle('odd', 'even') }}">
@@ -427,6 +438,9 @@
 							{% endfor %}
 						</select>
 					</td>
+					<td>
+						<a class="add" onclick="cloneTelegram({{telegram.0}})" id="clone-{{telegram.0}}" title="Clone {{telegram.1}}" style="cursor: pointer;"></a>
+					</td> 
 					<td>
 						<a class="delete" onclick="confirmDeleteTelegram({{telegram.0}})" title="Delete channel {{telegram.2}}" style="cursor: pointer;"></a>
 					</td>
@@ -594,7 +608,7 @@
 			<tr>
 				<td class="padding20" title="Vitrual IP, something like VRRP">Virt</td>
 				<td>
-					<label for="typeip"></label><input type="checkbox" id="typeip">
+					<label for="typeip"></label><input type="checkbox" id="typeip" name="typeip">
 				</td>
 			</tr>
 			<tr>

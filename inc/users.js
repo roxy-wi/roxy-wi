@@ -682,6 +682,66 @@ function confirmDeleteTelegram(id) {
       }
     });
 }
+function cloneServer(id) {
+	$( "#add-server-button" ).trigger( "click" );
+	if ($('#enable-'+id).is(':checked')) {
+		$('#enable').prop('checked', true)
+	} else {
+		$('#enable').prop('checked', false)
+	}
+	if ($('#typeip-'+id).is(':checked')) {
+		$('#typeip').prop('checked', true)
+	} else {
+		$('#typeip').prop('checked', false)
+	}
+	if ($('#alert-'+id).is(':checked')) {
+		$('#alert').prop('checked', true)
+	} else {
+		$('#alert').prop('checked', false)
+	}
+	if ($('#metrics-'+id).is(':checked')) {
+		$('#metrics').prop('checked', true)
+	} else {
+		$('#metrics').prop('checked', false)
+	}
+	if ($('#active-'+id).is(':checked')) {
+		$('#active').prop('checked', true)
+	} else {
+		$('#active').prop('checked', false)
+	}
+	$('#enable').checkboxradio("refresh");
+	$('#typeip').checkboxradio("refresh");
+	$('#alert').checkboxradio("refresh");
+	$('#active').checkboxradio("refresh");
+	$('#new-server-add').val($('#hostname-'+id).val())
+	$('#new-ip').val($('#ip-'+id).val())
+	$('#new-port').val($('#port-'+id).val())
+	$('#desc').val($('#desc-'+id).val())
+	$('#slavefor').val($('#slavefor-'+id+' option:selected').val()).change()
+	$('#slavefor').selectmenu("refresh");
+	$('#credentials').val($('#credentials-'+id+' option:selected').val()).change()
+	$('#credentials').selectmenu("refresh");
+	$('#new-server-group-add').val($('#servergroup-'+id+' option:selected').val()).change()
+	$('#new-server-group-add').selectmenu("refresh");
+}
+function cloneUser(id) {
+	$( "#add-user-button" ).trigger( "click" );
+	if ($('#activeuser-'+id).is(':checked')) {
+		$('#activeuser').prop('checked', true)
+	} else {
+		$('#activeuser').prop('checked', false)
+	}
+	$('#activeuser').checkboxradio("refresh");
+	$('#new-role').val($('#role-'+id+' option:selected').val()).change()
+	$('#new-role').selectmenu("refresh");
+	$('#new-group').val($('#usergroup-'+id+' option:selected').val()).change()
+	$('#new-group').selectmenu("refresh");
+}
+function cloneTelegram(id) {
+	$( "#add-telegram-button" ).trigger( "click" );
+	$('#telegram-token-add').val($('#telegram-token-'+id).val())
+	$('#telegram-chanel-add').val($('#telegram-chanel-'+id).val())
+}
 function removeUser(id) {
 	$("#user-"+id).css("background-color", "#f2dede");
 	$.ajax( {

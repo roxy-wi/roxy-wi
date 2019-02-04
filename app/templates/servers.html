@@ -28,6 +28,7 @@
 				<td>Email</td>
 				<td>Role</td>
 				<td></td>
+				<td></td>
 			</tr>
 			<tr>
 		{% for user in users %}
@@ -77,6 +78,9 @@
 					</select>
 				</td>
 				<td>
+					<a class="add" onclick="cloneUser({{user.0}})" id="clone-{{user.0}}" title="Clone {{user.1}}" style="cursor: pointer;"></a>
+				</td> 
+				<td>
 					<a class="delete" onclick="confirmDeleteUser({{user.0}})" title="Delete user {{user.1}}" style="cursor: pointer;"></a>
 				</td> 
 			</tr>
@@ -101,6 +105,7 @@
 				<td class="slave-field"><span title="Actions with master config will automatically apply on slave">Slave for (?)</span></td>
 				<td class="cred-field">Credentials</td>
 				<td>Desciption</td>
+				<td></td>
 				<td></td>
 			</tr>
 		{% set ssh_group = [] %}		
@@ -186,6 +191,9 @@
 						<input type="text" id="desc-{{server.0}}" value="" size="30" class="form-control">
 					{% endif %}
 				</td>
+				<td>
+					<a class="add" onclick="cloneServer({{server.0}})" id="clone-{{server.0}}" title="Clone {{server.1}}" style="cursor: pointer;"></a>
+				</td> 
 				<td>
 					<a class="delete" onclick="confirmDeleteServer({{server.0}})" title="Delete server {{server.1}}" style="cursor: pointer;"></a>
 				</td> 
