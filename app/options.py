@@ -454,7 +454,7 @@ if form.getvalue('metrics'):
 		df.sort_index(inplace=True)
 		source = ColumnDataSource(df)
 		
-		output_file("templates/metrics_out.html")
+		output_file("templates/metrics_out.html", mode='inline')
 		
 		x_min = df.index.min() - pd.Timedelta(hours=1)
 		x_max = df.index.max() + pd.Timedelta(minutes=1)
@@ -528,7 +528,7 @@ if form.getvalue('waf_metrics'):
 		df.sort_index(inplace=True)
 		source = ColumnDataSource(df)
 		
-		output_file("templates/metrics_waf_out.html")
+		output_file("templates/metrics_waf_out.html", mode='inline')
 		
 		x_min = df.index.min() - pd.Timedelta(hours=1)
 		x_max = df.index.max() + pd.Timedelta(minutes=1)
