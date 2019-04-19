@@ -11,7 +11,7 @@ matplotlib==2.1.2
 urllib3>=1.23
 future==0.13.1
 mysql-connector-python==8.0.11
-Jinja2==2.10
+Jinja2>=2.10.1
 pandas==0.22.0
 bokeh==0.13.0
 python-ldap>=3.1.0
