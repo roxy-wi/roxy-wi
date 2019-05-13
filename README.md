@@ -42,6 +42,7 @@ Began to lead a [Twitter](https://twitter.com/haproxy_wi), subscribe! I will wri
 24. Web application firewall
 25. LDAP support
 26. Keep active HAProxy service
+27. Ability to hide part of the config tags: "#HideBlockStart" and "#HideBlockEnd"
 
 ![alt text](image/haproxy-wi-metrics.jpeg "Merics")
 

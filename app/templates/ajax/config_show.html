@@ -13,6 +13,16 @@
 	{% set i = 0 -%}
 	{% for line in conf %}
 		{% set i = i + loop.index0 %}
+		{% if not role %}
+		{% if line.startswith('#HideBlockStart') %}
+			<!--{{line}}
+			{% continue %}	
+		{% endif %}
+		{% if line.startswith('#HideBlockEnd') %}
+			{{line}}-->
+			{% continue %}	
+		{% endif %}
+		{% endif %}
 		{% if line.startswith('global') %}
 			<span class="param"> {{ line }} </span><div>
 			{% continue %}

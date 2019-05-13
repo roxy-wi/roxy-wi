@@ -78,10 +78,10 @@ if serv is not None and form.getvalue('config') is not None:
 		
 	funct.diff_config(oldcfg, cfg)
 	
-	if save:
-		c = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-		c["restart"] = form.getvalue('serv')
-		print(c)
+	#if save:
+	#	c = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	#	c["restart"] = form.getvalue('serv')
+	#	print(c)
 		
 	os.system("/bin/rm -f " + hap_configs_dir + "*.old")
 
