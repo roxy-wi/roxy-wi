@@ -40,7 +40,7 @@ Began to lead a [Twitter](https://twitter.com/haproxy_wi), subscribe! I will wri
 24. Web application firewall
 25. LDAP support
 26. Keep active HAProxy service
-27. Ability to hide parts of the config with tags for users with "guest" role:  "HideBlockStart" and "HideBlockEnd"! 
+27. Ability to hide parts of the config with tags for users with "guest" role:  "HideBlockStart" and "HideBlockEnd"
 
 ![alt text](image/haproxy-wi-metrics.jpeg "Merics")
 
@@ -69,6 +69,10 @@ For Apache do virtualhost with cgi-bin. Like this:
 ```
 # vi /etc/httpd/conf.d/haproxy-wi.conf 
 <VirtualHost *:8080>
+        SSLEngine on
+        SSLCertificateFile /var/www/haproxy-wi/app/certs/haproxy-wi.crt
+        SSLCertificateKeyFile /var/www/haproxy-wi/app/certs/haproxy-wi.key
+
         ServerName haproxy-wi
         ErrorLog /var/log/httpd/haproxy-wi.error.log
         CustomLog /var/log/httpd/haproxy-wi.access.log combined
@@ -120,7 +124,7 @@ MariaDB [(none)]> grant all on haproxywi.* to 'haproxy-wi'@'localhost' IDENTIFIE
 Edit $HOME_HAPROXY-WI/app/haproxy-wi.cfg with your env
 ```
 
-Login http://haproxy-wi-server/users.py, and add: users, groups and servers. Default: admin/admin
+Login https://haproxy-wi-server/users.py, and add: users, groups and servers. Default: admin/admin
 
 ![alt text](image/haproxy-wi-admin-area.jpeg "Admin area")
 
