@@ -89,10 +89,27 @@ For Apache do virtualhost with cgi-bin. Like this:
                 Allow from all
         </Directory>
 		
-        <FilesMatch "\.config$">
-                Order Deny,Allow
-                Deny from all
-        </FilesMatch>
+        <Directory /var/www/haproxy-wi/app/certs>
+            Options +ExecCGI -Indexes +MultiViews
+			Order Deny,Allow
+			Deny from all
+        </Directory>
+	
+	<Directory /var/www/haproxy-wi/keys>
+		Options +ExecCGI -Indexes +MultiViews
+		Order Deny,Allow
+  		Deny from all
+	</Directory>
+
+	<FilesMatch "\.cfg$">
+  		Order Deny,Allow
+  		Deny from all
+	</FilesMatch>
+	
+	<FilesMatch "\.db$">
+  		Order Deny,Allow
+  		Deny from all
+	</FilesMatch>
 </VirtualHost>
 ```
 # Docker

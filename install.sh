@@ -144,17 +144,34 @@ cat << EOF > $HAPROXY_WI_VHOST_CONF
         ScriptAlias /cgi-bin/ "/var/www/$HOME_HAPROXY_WI/app/"
 
 
-        <Directory /var/www/$HOME_HAPROXY_WI/app>
+    <Directory /var/www/$HOME_HAPROXY_WI/app>
                 Options +ExecCGI
                 AddHandler cgi-script .py
                 Order deny,allow
                 Allow from all
-        </Directory>
+    </Directory>
 		
-		<FilesMatch "\.config$">
-                Order Deny,Allow
-                Deny from all
-        </FilesMatch>
+	<Directory /var/www/haproxy-wi/app/certs>
+		Options +ExecCGI -Indexes +MultiViews
+		Order Deny,Allow
+  		Deny from all
+	</Directory>
+	
+	<Directory /var/www/haproxy-wi/keys>
+		Options +ExecCGI -Indexes +MultiViews
+		Order Deny,Allow
+  		Deny from all
+	</Directory>
+
+	<FilesMatch "\.cfg$">
+  		Order Deny,Allow
+  		Deny from all
+	</FilesMatch>
+	
+	<FilesMatch "\.db$">
+  		Order Deny,Allow
+  		Deny from all
+	</FilesMatch>
 </VirtualHost>
 EOF
 fi 
