@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import cgi
-import html
 import os
 import sys
 import funct

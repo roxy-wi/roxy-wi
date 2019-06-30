@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import cgi
-import html
 import os
 import sys
 import funct

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import html, http
+import http
 import cgi
 import sys
 import os

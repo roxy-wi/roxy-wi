@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import html, http.cookies
+import http.cookies
 import cgi
 import os
 import funct, sql

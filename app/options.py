@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-"
-import html
 import cgi
 import os, sys
 import funct
@@ -337,7 +336,7 @@ if serv is not None and act == "configShow":
 	env = Environment(loader=FileSystemLoader('templates/ajax'),extensions=['jinja2.ext.loopcontrols'])
 	template = env.get_template('config_show.html')
 	
-	template = template.render(conf=conf, view=form.getvalue('view'), serv=serv, configver=form.getvalue('configver'))											
+	template = template.render(conf=conf, view=form.getvalue('view'), serv=serv, configver=form.getvalue('configver'), role=funct.is_admin(level=2))											
 	print(template)
 	
 	if form.getvalue('configver') is None:
@@ -460,7 +459,7 @@ if form.getvalue('metrics'):
 		x_max = df.index.max() + pd.Timedelta(minutes=1)
 
 		p[serv] = figure(
-			tools="pan,box_zoom,reset,xwheel_zoom",
+			tools="pan,box_zoom,reset,xwheel_zoom",		
 			title=metric[0][0],
 			x_axis_type="datetime", y_axis_label='Connections',
 			x_range = (x_max.timestamp()*1000-60*100000, x_max.timestamp()*1000)
