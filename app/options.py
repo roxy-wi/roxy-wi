@@ -295,7 +295,7 @@ if form.getvalue('servaction') is not None:
 if act == "showCompareConfigs":
 	import glob
 	from jinja2 import Environment, FileSystemLoader
-	env = Environment(loader=FileSystemLoader('templates/ajax'))
+	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
 	template = env.get_template('/show_compare_configs.html')
 	left = form.getvalue('left')
 	right = form.getvalue('right')
@@ -309,7 +309,7 @@ if serv is not None and form.getvalue('right') is not None:
 	right = form.getvalue('right')
 	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 	cmd='diff -ub %s%s %s%s' % (hap_configs_dir, left, hap_configs_dir, right)	
-	env = Environment(loader=FileSystemLoader('templates/ajax'),extensions=['jinja2.ext.loopcontrols', "jinja2.ext.do"])
+	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True, extensions=['jinja2.ext.loopcontrols', "jinja2.ext.do"])
 	template = env.get_template('compare.html')
 	
 	output, stderr = funct.subprocess_execute(cmd)
@@ -329,11 +329,13 @@ if serv is not None and act == "configShow":
 			
 	try:
 		conf = open(cfg, "r")
+		#conf = conf.read()
+		#conf = funct.escape_html(conf)
 	except IOError:
 		print('<div class="alert alert-danger">Can\'t read import config file</div>')
 		
 	from jinja2 import Environment, FileSystemLoader
-	env = Environment(loader=FileSystemLoader('templates/ajax'),extensions=['jinja2.ext.loopcontrols'])
+	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True, extensions=['jinja2.ext.loopcontrols'])
 	template = env.get_template('config_show.html')
 	
 	template = template.render(conf=conf, view=form.getvalue('view'), serv=serv, configver=form.getvalue('configver'), role=funct.is_admin(level=2))											
