@@ -195,9 +195,3 @@ $ ./create_db.py
 and check executeble py files
 
 If you see plain text, check section "Directory" in httpd conf
-
-# Further development and support
-
-Offer your ideas and wishes, ask questions. All this is [welcomed](https://github.com/Aidaho12/haproxy-wi/issues)
-
-
