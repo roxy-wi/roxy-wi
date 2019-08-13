@@ -151,13 +151,13 @@ cat << EOF > $HAPROXY_WI_VHOST_CONF
                 Allow from all
     </Directory>
 		
-	<Directory /var/www/haproxy-wi/app/certs>
+	<Directory /var/www/$HOME_HAPROXY_WI/app/certs>
 		Options +ExecCGI -Indexes +MultiViews
 		Order Deny,Allow
   		Deny from all
 	</Directory>
 	
-	<Directory /var/www/haproxy-wi/keys>
+	<Directory /var/www/$HOME_HAPROXY_WI/keys>
 		Options +ExecCGI -Indexes +MultiViews
 		Order Deny,Allow
   		Deny from all
