@@ -8,6 +8,9 @@ Support the project
 # Youtube
 [Demo video](https://www.youtube.com/channel/UCo0lCg24j-H4f0S9kMjp-_w)
 
+# Demo site
+[Demo site] (https://178.57.218.185) Login/password: admin/admin. Server resets every hour.
+
 # Twitter
 Began to lead a [Twitter](https://twitter.com/haproxy_wi), subscribe! I will write there about all the changes and news
 
