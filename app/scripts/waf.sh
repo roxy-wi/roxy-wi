@@ -34,11 +34,11 @@ if [ -f $HAPROXY_PATH/waf/modsecurity.conf  ];then
 	exit 1
 fi
 if hash apt-get 2>/dev/null; then
-	sudo apt install libevent-dev apache2-dev libpcre3-dev libxml2-dev gcc -y
+	sudo apt install libevent-dev apache2-dev libpcre3-dev libxml2-dev gcc pcre-devel -y
 else
-	wget -O /tmp/yajl-devel-2.0.4-4.el7.x86_64.rpm http://rpmfind.net/linux/centos/7.6.1810/os/x86_64/Packages/yajl-devel-2.0.4-4.el7.x86_64.rpm >> /dev/null
+	wget -O /tmp/yajl-devel-2.0.4-4.el7.x86_64.rpm http://rpmfind.net/linux/centos/7/os/x86_64/Packages/yajl-devel-2.0.4-4.el7.x86_64.rpm >> /dev/null
 	wget -O /tmp/libevent-devel-2.0.21-4.el7.x86_64.rpm http://mirror.centos.org/centos/7/os/x86_64/Packages/libevent-devel-2.0.21-4.el7.x86_64.rpm >> /dev/null
-	sudo yum install /tmp/libevent-devel-2.0.21-4.el7.x86_64.rpm /tmp/yajl-devel-2.0.4-4.el7.x86_64.rpm  httpd-devel libxml2-devel gcc curl-devel -y >> /dev/null
+	sudo yum install /tmp/libevent-devel-2.0.21-4.el7.x86_64.rpm /tmp/yajl-devel-2.0.4-4.el7.x86_64.rpm  httpd-devel libxml2-devel gcc curl-devel pcre-devel -y >> /dev/null
 fi
 
 wget -O /tmp/modsecurity-2.9.2.tar.gz https://www.modsecurity.org/tarball/2.9.2/modsecurity-2.9.2.tar.gz >> /dev/null
