@@ -18,7 +18,7 @@ async def async_get_overview(serv1, serv2):
 	commands1 = [ "ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l" ]
 	
 	cmd = 'echo "show info" |nc %s %s |grep -e "Process_num"' % (serv2, haproxy_sock_port)
-	server_status = (serv1, serv2, funct.server_status(funct.subprocess_execute(cmd)), funct.ssh_command(serv2, commands), funct.ssh_command(serv2, commands1))
+	server_status = (serv1, serv2, funct.server_status(funct.subprocess_execute(cmd)), funct.ssh_command(serv2, commands), funct.ssh_command(serv2, commands1), sql.select_servers(server=serv2, keep_alive=1))
 	return server_status
 
 async def get_runner_overview():

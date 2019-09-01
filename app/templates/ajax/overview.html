@@ -1,7 +1,12 @@
 {% for service in service_status %}
 	<tr class="{{ loop.cycle('odd', 'even') }}">
-		<td class="padding10 first-collumn">
-			<a href="#{{ service.0 }}" title="Go to {{ service.0 }} status" style="color: #000">{{ service.0 }}</a>
+		<td class="padding10">
+			<a href="#{{ service.0 }}" title="Go to {{ service.0 }} status" style="color: #000; padding-left: 15px;">
+				{{ service.0 }}
+				{% if service.5.0.0|int() >= 1 %}
+					<img src="/image/pic/shield.png" width=18 style="padding-left: 5px; margin-bottom: -3px;" title="Auto start enabled">
+				{% endif %}
+			</a>
 		</td>
 		<td  class="second-collumn">
 		{% if service.2|int() >= 1 %}

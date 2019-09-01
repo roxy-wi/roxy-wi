@@ -238,6 +238,7 @@ def select_user_name_group(id):
 def select_servers(**kwargs):
 	con, cur = create_db.get_cur()
 	sql = """select * from servers where enable = '1' ORDER BY groups """
+	
 	if kwargs.get("server") is not None:
 		sql = """select * from servers where ip='%s' """ % kwargs.get("server")
 	if kwargs.get("full") is not None:
@@ -250,6 +251,8 @@ def select_servers(**kwargs):
 			left join uuid as uuid on user.id = uuid.user_id 
 			where uuid.uuid = '%s' and servers.master = 0 and servers.type_ip = 0 and servers.enable = 1 ORDER BY servers.groups 
 			""" % kwargs.get('uuid')
+	if kwargs.get("server") and kwargs.get("keep_alive"):
+		sql = """select active from servers where ip='%s' """ % kwargs.get("server")
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
