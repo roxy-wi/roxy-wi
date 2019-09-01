@@ -28,8 +28,8 @@ After=syslog.target network.target
 
 [Service]
 Type=simple
-WorkingDirectory=/var/www/$HOME_HAPROXY_WI/app/
-ExecStart=/var/www/$HOME_HAPROXY_WI/app/tools/keep_alive.py
+WorkingDirectory=$(pwd)/app/
+ExecStart=$(pwd)/app/tools/keep_alive.py
 
 StandardOutput=syslog
 StandardError=syslog
@@ -44,13 +44,13 @@ WantedBy=multi-user.target
 EOF
 
 cat << 'EOF' > /etc/rsyslog.d/keep_alive.conf 
-if $programname startswith 'keep_alive' then /var/www/__HOME_HAPROXY_WI__/log/keep_alive.log
+if $programname startswith 'keep_alive' then $(pwd)/log/keep_alive.log
 & stop
 EOF
-sed -i -e "s/__HOME_HAPROXY_WI__/$HOME_HAPROXY_WI/g" /etc/rsyslog.d/keep_alive.conf
+
 
 cat << EOF > /etc/logrotate.d/metrics
-/var/www/$HOME_HAPROXY_WI/log/keep_alive.log {
+$(pwd)/log/keep_alive.log {
     daily
     rotate 10
     missingok
