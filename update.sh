@@ -61,6 +61,7 @@ cat << EOF > /etc/logrotate.d/metrics
 }
 EOF
 
+systemctl daemon-reload
 systemctl restart keep_alive.service
 systemctl enable keep_alive.service
 
