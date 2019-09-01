@@ -6,7 +6,7 @@
 				
 				{% if service.5.0.0|int() >= 1 %}
 					<img 
-						{% if service.6|int() >= 1 %}
+						{% if service.6.0.0|int() >= 1 %}
 							src="/image/pic/shield.png" title="Auto start enabled"
 						{% else %}
 							src="/image/pic/shield-red.png" title="Auto start enabled, but keep alive service does not work"
