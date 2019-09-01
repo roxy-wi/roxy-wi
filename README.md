@@ -55,6 +55,7 @@ $ cd /var/www/haproxy-wi
 $ chmod +x install.sh
 $ sudo ./install.sh
 ```
+
 ## Manual install
 For install just clone:
 ```
