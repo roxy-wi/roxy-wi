@@ -16,9 +16,16 @@ async def async_get_overview(serv1, serv2):
 	haproxy_config_path  = sql.get_setting('haproxy_config_path')
 	commands = [ "ls -l %s |awk '{ print $6\" \"$7\" \"$8}'" % haproxy_config_path ]
 	commands1 = [ "ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l" ]
+	commands2 = [ "ps ax |grep keep_alive.py |grep -v grep |wc -l" ]
 	
 	cmd = 'echo "show info" |nc %s %s |grep -e "Process_num"' % (serv2, haproxy_sock_port)
-	server_status = (serv1, serv2, funct.server_status(funct.subprocess_execute(cmd)), funct.ssh_command(serv2, commands), funct.ssh_command(serv2, commands1), sql.select_servers(server=serv2, keep_alive=1))
+	server_status = (serv1, 
+					serv2, 
+					funct.server_status(funct.subprocess_execute(cmd)), 
+					funct.ssh_command(serv2, commands), 
+					funct.ssh_command(serv2, commands1), 
+					sql.select_servers(server=serv2, keep_alive=1), 
+					funct.ssh_command(serv2, commands2))
 	return server_status
 
 async def get_runner_overview():
