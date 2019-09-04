@@ -57,9 +57,8 @@ else
         yum -y install epel-release
 	fi
 	yum -y install https://centos7.iuscommunity.org/ius-release.rpm 
-	yum -y install git nmap-ncat net-tools python35u dos2unix python35u-pip mod_ssl httpd python35u-devel gcc-c++ openldap-devel python-devel python-jinja2 nodejs
-	npm install js-cookie --save
-	npm install bokehjs
+	yum -y install git nmap-ncat net-tools python35u dos2unix python35u-pip mod_ssl httpd python35u-devel gcc-c++ openldap-devel python-devel python-jinja2
+
 	HTTPD_CONFIG="/etc/httpd/conf/httpd.conf"
 	HAPROXY_WI_VHOST_CONF="/etc/httpd/conf.d/haproxy-wi.conf"
 	HTTPD_NAME="httpd"

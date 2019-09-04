@@ -48,6 +48,11 @@ Began to lead a [Twitter](https://twitter.com/haproxy_wi), subscribe! I will wri
 ![alt text](image/haproxy-wi-metrics.jpeg "Merics")
 
 # Install
+
+## RPM
+[Download](https://github.com/Aidaho12/haproxy-wi/releases/download/3.4.4.6/haproxy-wi-3-4.4.6.noarch.rpm) RPM and install it
+
+## Script
 The installer will ask you a few questions
 ```
 $ git clone https://github.com/Aidaho12/haproxy-wi.git /var/www/haproxy-wi

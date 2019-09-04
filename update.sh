@@ -4,9 +4,6 @@
 
 cp app/haproxy-wi.cfg  /tmp/
 
-git reset --hard
-git pull  https://github.com/Aidaho12/haproxy-wi.git
-
 mv -f /tmp/haproxy-wi.cfg app/haproxy-wi.cfg 
 
 mkdir keys
@@ -21,49 +18,8 @@ else
 	yum -y install git nmap-ncat net-tools python35u dos2unix python35u-pip mod_ssl httpd python35u-devel gcc-c++ openldap-devel 
 fi
 
-cat << EOF > /etc/systemd/system/keep_alive.service
-[Unit]
-Description=Keep Alive Haproxy 
-After=syslog.target network.target
-
-[Service]
-Type=simple
-WorkingDirectory=$(pwd)/app/
-ExecStart=$(pwd)/app/tools/keep_alive.py
-
-StandardOutput=syslog
-StandardError=syslog
-SyslogIdentifier=keep_alive
-
-RestartSec=2s
-Restart=on-failure
-TimeoutStopSec=1s
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-cat << 'EOF' > /etc/rsyslog.d/keep_alive.conf 
-if $programname startswith 'keep_alive' then $(pwd)/log/keep_alive.log
-& stop
-EOF
-
-
-cat << EOF > /etc/logrotate.d/metrics
-$(pwd)/log/keep_alive.log {
-    daily
-    rotate 10
-    missingok
-    notifempty
-	create 0644 apache apache
-	dateext
-    sharedscripts
-}
-EOF
-
-systemctl daemon-reload
-systemctl restart keep_alive.service
-systemctl enable keep_alive.service
+git reset --hard
+git pull  https://github.com/Aidaho12/haproxy-wi.git
 
 cd app/
 ./create_db.py
