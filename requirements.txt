@@ -1,5 +1,5 @@
 configparser==3.5.0
-paramiko==2.4.2
+paramiko>=2.5.0
 pytz==2017.3
 requests>=2.20.0
 requests_toolbelt==0.8.0
