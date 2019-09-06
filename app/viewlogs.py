@@ -29,7 +29,7 @@ time_storage = sql.get_setting('log_time_storage')
 time_storage = int(time_storage)
 
 try:
-	time_storage_hours = time_storage * 10
+	time_storage_hours = time_storage * 24
 	for dirpath, dirnames, filenames in os.walk(log_path):
 		for file in filenames:
 			curpath = os.path.join(dirpath, file)
