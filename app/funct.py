@@ -465,7 +465,7 @@ def show_backends(serv, **kwargs):
 	output, stderr = subprocess_execute(cmd)
 	ret = ""
 	for line in output:
-		if "#" in  line or "stats" in line:
+		if "#" in  line or "stats" in line or "MASTER" in line:
 			continue
 		if line != "":
 			back = json.dumps(line).split("\"")

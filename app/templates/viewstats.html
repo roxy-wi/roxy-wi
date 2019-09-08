@@ -16,9 +16,14 @@
 </form>
 <br />
 <div id="ajax" style="margin-left: 5px; margin-right: 5px;"></div>
-
+	<div id="notice" style="padding-left: 15px; font-size: 25px;">
+		Please choose a server
+	</div>
 <script> 
-	window.onload = showStats();
+	if (cur_url[1]) {
+		showStats();		
+	}
+	
 	function sleep(ms) {
 	  return new Promise(resolve => setTimeout(resolve, ms));
 	}
@@ -26,7 +31,9 @@
 		$('form').append('<input type="hidden" name="serv" value='+$("#serv").val()+'>');
 		$('form').append('<input type="hidden" name="token" value='+$('#token').val()+'>');
 		$( "input[type=submit], button" ).button();
+		$('#notice').hide();
 		$('li').css('margin-top', '0');
+		$('li').css('width', '207px	');
 		$('th').css('background-color', '#f5faf4');
 		$('table.tbl th.pxname').css('background-color', '#5d9ceb');
 		
@@ -64,8 +71,7 @@
 		});		
 	}
 	$('#serv').on('selectmenuchange',function() {
-		showStats();
-		
+		showStats();		
 	});	
 	
 </script>
