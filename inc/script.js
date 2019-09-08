@@ -239,7 +239,12 @@ function showStats() {
 			wait();
 		}					
 	} );
-
+}
+function openStats() {
+	var serv = $("#serv").val();
+	var url = "viewsttats.py?serv="+serv
+	var win = window.open(url, '_blank');
+	win.focus();
 }
 function showLog() {
 	var waf = 0;
