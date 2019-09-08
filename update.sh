@@ -8,8 +8,6 @@ mv -f /tmp/haproxy-wi.cfg app/haproxy-wi.cfg
 
 mkdir keys
 mkdir app/certs
-chmod +x app/*py
-chmod +x app/tools/*py
 
 if hash apt-get 2>/dev/null; then
 	apt-get install git  net-tools lshw dos2unix apache2 gcc netcat mod_ssl python3-pip gcc-c++ openldap-devel libpq-dev python-dev libxml2-dev libxslt1-dev libldap2-dev libsasl2-dev libffi-dev python3-dev -y
@@ -20,6 +18,9 @@ fi
 
 git reset --hard
 git pull  https://github.com/Aidaho12/haproxy-wi.git
+
+chmod +x app/*py
+chmod +x app/tools/*py
 
 cd app/
 ./create_db.py
