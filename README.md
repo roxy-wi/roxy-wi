@@ -50,7 +50,7 @@ Began to lead a [Twitter](https://twitter.com/haproxy_wi), subscribe! I will wri
 # Install
 
 ## RPM
-[Download](https://github.com/Aidaho12/haproxy-wi/releases/download/3.4.4.6/haproxy-wi-3-4.4.6.noarch.rpm) RPM and install it
+[Download](https://github.com/Aidaho12/haproxy-wi/releases/) RPM and install it
 
 ## Script
 The installer will ask you a few questions
