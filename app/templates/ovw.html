@@ -23,7 +23,12 @@
 			{% set counter = counter + loop.index0 %}
 			{% if counter <= 2 %}
 				<tr class="{{ loop.cycle('odd', 'even') }}">
-					<td class="padding10 first-collumn"> {{ USER.1 }}</td>
+					<td class="padding10 first-collumn"> 
+						<a href="users.py#users" title="Edit user" style="color: #000;">
+							{{ USER.1 }}
+							<img src="/inc/images/edit.png" alt="Edit" width="15" style="margin-bottom: -3px;" />
+						</a>
+					</td>
 					<td class="padding10 second-collumn"> {{ USER.2 }}</td>
 					{% for group in groups %}
 						{% if USER.5 == group.0|string() %}
@@ -35,7 +40,12 @@
 				</tr>
 			{% else %}
 				<tr style="display: none;" class="show-users {{ loop.cycle('odd', 'even') }}">
-					<td class="padding10 first-collumn"> {{ USER.1 }}</td>
+					<td class="padding10 first-collumn"> 
+						<a href="users.py#users" title="Edit user" style="color: #000;">
+							{{ USER.1 }}
+							<img src="/inc/images/edit.png" alt="Edit" width="15" style="margin-bottom: -3px;" />
+						</a>
+					</td>
 					<td class="padding10"> {{ USER.2 }}</td>
 					{% for group in groups %}
 						{% if group.0|string() == USER.5 %}
@@ -58,31 +68,35 @@
 	<tr>
 		<td class="padding10 first-collumn">
 		{% if metrics_master|int() >= 1 %}
-			<span title="running {{ metrics_master }} master processes"><span class="serverUp"> UP</span> Metrics master</span>
+			<span title="running {{ metrics_master }} master processes"><span class="serverUp"> UP</span> 
 		{% else %}
-			<span title="running {{ metrics_master }} master processes"><span class="serverDown"> DOWN</span> running {{metrics_master }} master processes
+			<span title="running {{ metrics_master }} master processes"><span class="serverDown"> DOWN</span>
 		{% endif %}
+			<span>Metrics master</span>
 		</td>
 		<td class="padding10 second-collumn">
 		{% if metrics_worker|int() >= 1 %}
-			<span title="running {{metrics_worker}} worker processes"><span class="serverUp"> UP</span> Metrics workers</span>
+			<span title="running {{metrics_worker}} worker processes"><span class="serverUp"> UP</span> 
 		{% else %}
-			<span title="running {{metrics_worker}} worker processes"><span class="serverDown"> DOWN</span> Metrics workers</span>
+			<span title="running {{metrics_worker}} worker processes"><span class="serverDown"> DOWN</span> 
 		{% endif %}
+			<span>Metrics workers</span>
 		</td>
 		<td class="third-collumn">
 		{% if checker_master|int() >= 1 %}
-			<span title="running {{ checker_master }} master processes"><span class="serverUp"> UP</span> Checker master</span>
+			<span title="running {{ checker_master }} master processes"><span class="serverUp"> UP</span>
 		{% else %}
-			<span title="running {{ checker_master }} master processes"><span class="serverDown"> DOWN</span> Checker master</span>
+			<span title="running {{ checker_master }} master processes"><span class="serverDown"> DOWN</span> 
 		{% endif %}
+			<span>Checker master</span>
 		</td>
 		<td>
 		{% if checker_worker|int() >= 1 %}
-			<span title="running {{ checker_worker }} worker processes"><span class="serverUp"> UP</span> Checker workers</span>
+			<span title="running {{ checker_worker }} worker processes"><span class="serverUp"> UP</span>
 		{% else %}
-			<span title="running {{ checker_worker }} worker processes"><span class="serverDown"> DOWN</span> Checker workers</span>
+			<span title="running {{ checker_worker }} worker processes"><span class="serverDown"> DOWN</span> 
 		{% endif %}
+			<span>Checker workers</span>
 		</td>
 	</tr>
 </table>
@@ -102,7 +116,7 @@
 			Last edit
 		</td  class="padding10">
 		<td>
-			<a onclick="showOverview()" title="Refresh" style="float: right; margin-right: 25px;"><img  src="/image/pic/update.png" alt="restart" class="icon"></a>
+			<a onclick="showOverview()" title="Refresh" style="float: right; margin-right: 25px;"><img  src="/inc/images/update.png" alt="restart" class="icon"></a>
 		</td>
 	</tr>
 <tbody id="ajaxstatus"></tbody>
@@ -122,7 +136,7 @@
 			WAF mode
 		</td  class="padding10">
 		<td>
-			<a onclick="showOverviewWaf()" title="Refresh" style="float: right; margin-right: 25px;"><img  src="/image/pic/update.png" alt="restart" class="icon"></a>
+			<a onclick="showOverviewWaf()" title="Refresh" style="float: right; margin-right: 25px;"><img  src="/inc/images/update.png" alt="restart" class="icon"></a>
 		</td>
 	</tr>
 <tbody id="ajaxwafstatus"></tbody>	
@@ -142,7 +156,7 @@
 			Front/Back-ends
 		</td>
 		<td>
-			<a onclick="showOverviewServers()" title="Refresh Server Info" style="float: right; margin-right: 25px;"><img  src="/image/pic/update.png" alt="restart" class="icon"></a>
+			<a onclick="showOverviewServers()" title="Refresh Server Info" style="float: right; margin-right: 25px;"><img  src="/inc/images/update.png" alt="restart" class="icon"></a>
 		</td>
 	</tr>
 <tbody id="ajaxservers"></tbody>
