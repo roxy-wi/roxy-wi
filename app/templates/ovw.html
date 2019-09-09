@@ -58,31 +58,35 @@
 	<tr>
 		<td class="padding10 first-collumn">
 		{% if metrics_master|int() >= 1 %}
-			<span title="running {{ metrics_master }} master processes"><span class="serverUp"> UP</span> Metrics master</span>
+			<span title="running {{ metrics_master }} master processes"><span class="serverUp"> UP</span> 
 		{% else %}
-			<span title="running {{ metrics_master }} master processes"><span class="serverDown"> DOWN</span> running {{metrics_master }} master processes
+			<span title="running {{ metrics_master }} master processes"><span class="serverDown"> DOWN</span>
 		{% endif %}
+			<span>Metrics master</span>
 		</td>
 		<td class="padding10 second-collumn">
 		{% if metrics_worker|int() >= 1 %}
-			<span title="running {{metrics_worker}} worker processes"><span class="serverUp"> UP</span> Metrics workers</span>
+			<span title="running {{metrics_worker}} worker processes"><span class="serverUp"> UP</span> 
 		{% else %}
-			<span title="running {{metrics_worker}} worker processes"><span class="serverDown"> DOWN</span> Metrics workers</span>
+			<span title="running {{metrics_worker}} worker processes"><span class="serverDown"> DOWN</span> 
 		{% endif %}
+			<span>Metrics workers</span>
 		</td>
 		<td class="third-collumn">
 		{% if checker_master|int() >= 1 %}
-			<span title="running {{ checker_master }} master processes"><span class="serverUp"> UP</span> Checker master</span>
+			<span title="running {{ checker_master }} master processes"><span class="serverUp"> UP</span>
 		{% else %}
-			<span title="running {{ checker_master }} master processes"><span class="serverDown"> DOWN</span> Checker master</span>
+			<span title="running {{ checker_master }} master processes"><span class="serverDown"> DOWN</span> 
 		{% endif %}
+			<span>Checker master</span>
 		</td>
 		<td>
 		{% if checker_worker|int() >= 1 %}
-			<span title="running {{ checker_worker }} worker processes"><span class="serverUp"> UP</span> Checker workers</span>
+			<span title="running {{ checker_worker }} worker processes"><span class="serverUp"> UP</span>
 		{% else %}
-			<span title="running {{ checker_worker }} worker processes"><span class="serverDown"> DOWN</span> Checker workers</span>
+			<span title="running {{ checker_worker }} worker processes"><span class="serverDown"> DOWN</span> 
 		{% endif %}
+			<span>Checker workers</span>
 		</td>
 	</tr>
 </table>
