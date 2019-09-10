@@ -45,7 +45,11 @@
 			</a>			
 		</td>
 		<td>
-			{{ service.3 }}
+			{% if "ls: cannot access" in service.3 %}
+				Cannot find HAProxy config
+			{% else %}
+				{{ service.3 }}
+			{% endif %}
 		</td>
 		<td></td>
 	</tr>

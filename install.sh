@@ -299,7 +299,6 @@ sed -i 's/#$UDPServerRun 514/$UDPServerRun 514/g' /etc/rsyslog.conf
 sed -i 's/#$ModLoad imudp/$ModLoad imudp/g' /etc/rsyslog.conf
 
 systemctl daemon-reload      
-systemctl restart logrotate
 systemctl restart rsyslog
 systemctl restart metrics_haproxy.service
 systemctl restart checker_haproxy.service
@@ -353,8 +352,7 @@ echo -e "Installing required Python Packages"
 echo ""
 echo ""
 echo "################################"
-sudo -H pip3 install --upgrade pip
-sudo pip3 install -r /var/www/$HOME_HAPROXY_WI/requirements.txt
+sudo -H pip3.5 install --upgrade pip
 sudo pip3.5 install -r /var/www/$HOME_HAPROXY_WI/requirements.txt
 
 if [ $? -eq 1 ]

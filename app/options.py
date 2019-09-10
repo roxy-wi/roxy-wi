@@ -647,3 +647,12 @@ if form.getvalue('get_ldap_email'):
 			print('error: user not found')
 	finally:
 		l.unbind()
+		
+
+if form.getvalue('change_waf_mode'):
+	waf_mode = form.getvalue('change_waf_mode')
+	server_hostname = form.getvalue('server_hostname')
+	haproxy_dir  = sql.get_setting('haproxy_dir')
+	serv = sql.select_server_by_name(server_hostname)
+	commands = [ "sudo sed -i 's/^SecRuleEngine.*/SecRuleEngine %s/' %s/waf/modsecurity.conf " % (waf_mode, haproxy_dir) ]
+	funct.ssh_command(serv, commands)

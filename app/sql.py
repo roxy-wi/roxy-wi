@@ -235,6 +235,21 @@ def select_user_name_group(id):
 	cur.close()    
 	con.close()  
 	
+	
+def select_server_by_name(name):
+	con, cur = create_db.get_cur()
+	sql = """select ip from servers where hostname='%s' """ % name
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		out_error(e)
+	else:
+		for name in cur.fetchone():
+			return name
+	cur.close()    
+	con.close()
+	
+	
 def select_servers(**kwargs):
 	con, cur = create_db.get_cur()
 	sql = """select * from servers where enable = '1' ORDER BY groups """

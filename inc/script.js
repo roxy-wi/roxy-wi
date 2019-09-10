@@ -1508,3 +1508,23 @@ function saveList(action, list, color) {
 		}
 	} );	
 }
+function changeWafMode(id) {
+	var waf_mode = $('#'+id+' option:selected').val();
+	var server_hostname = id.split('_')[0];
+	 $.ajax( {
+		url: "options.py",
+		data: {
+			change_waf_mode: waf_mode,
+			server_hostname: server_hostname,
+			token: $('#token').val()
+		},
+		type: "GET",
+		success: function( data ) {
+			alert('Do not forget restart WAF server: '+server_hostname)
+			$( '#'+server_hostname+'-select-line' ).addClass( "update", 1000 );										
+			setTimeout(function() {
+				$( '#'+server_hostname+'-select-line' ).removeClass( "update" );
+			}, 2500 );
+		}
+	} ); 
+}

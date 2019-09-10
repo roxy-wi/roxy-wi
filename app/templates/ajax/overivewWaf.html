@@ -2,7 +2,7 @@
 {% for service in service_status %}
 	{% if service.3 == "On" or service.3 == "Off" or service.3 == "DetectionOnly" or url == "waf.py" %}
 		{% do waf_servers.append(1) %}
-		<tr class="{{ loop.cycle('odd', 'even') }}">
+		<tr class="{{ loop.cycle('odd', 'even') }}" id="{{service.0}}-select-line">
 			<td class="padding10 first-collumn">
 				<a href="#{{ service.0 }}" title="Go to {{ service.0 }} status" style="color: #000">{{ service.0 }}</a>
 			</td>
@@ -27,14 +27,30 @@
 			{% endif %}
 			</td>
 			<td>
+			{% if role <= 1 %}
 				{% if service.3 == "On" or service.3 == "Off" or service.3 == "DetectionOnly" %}
-					{{ service.3 }}
+					<select class="waf_mode" id="{{ service.0 }}_select">
+						{% set waf_modes = [] %}
+						{% do waf_modes.append("On") %}
+						{% do waf_modes.append("Off") %}
+						{% do waf_modes.append("DetectionOnly") %}
+						{% for waf_mode in waf_modes %}
+							{% if service.3 == waf_mode %} 
+								<option value={{waf_mode}} selected="selected">{{waf_mode}}</option>
+							{% else %}
+								<option value={{waf_mode}}>{{waf_mode}}</option>
+							{% endif %}
+						{% endfor %}
+					</select>
 				{%else %}
 					<a title="Install WAF"><button onclick="installWaf('{{ service.1 }}')">Install</button></a>
 				{% endif %}
+			{% else %}
+				{{ service.3 }}
+			{% endif %}
 			</td>
 			{% if url == "waf.py" %}
-			<td>
+			<td style="padding-top: 2px;">
 				{% if service.3 == "On" or service.3 == "Off" or service.3 == "DetectionOnly" %}
 					{% if service.4|int() == 1 %}
 						<label for="{{ service.0 }}"></label><input type="checkbox" id="{{ service.0 }}" checked>
@@ -55,3 +71,15 @@
 		</td>
 	</tr>
 {% endif %}
+<script>
+	$( "select" ).selectmenu();
+	{% if role <= 1 %}
+		$( "select" ).on('selectmenuchange',function() {
+			var id = $(this).attr('id');
+			changeWafMode(id)
+		});	
+	{% endif %}
+</script>
+<style>
+.ui-selectmenu-button.ui-button {width: 10em;}
+</style>
