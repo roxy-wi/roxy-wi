@@ -437,14 +437,14 @@ $( function() {
 			autoRefreshStyle(autoRefresh);
 		}
 	}
-	$("body").mCustomScrollbar({
+	/* $("body").mCustomScrollbar({
 		theme:"minimal-dark",
 		scrollInertia:30
 		});
 	$(".diff").mCustomScrollbar({
 		theme:"minimal-dark",
 		scrollInertia:30
-		});	
+		});	 */
 	$( "#tabs" ).tabs();
 	$( "#redirectBackend" ).on( "click", function() {
 		$( "#tabs" ).tabs( "option", "active", 2 );
