@@ -441,10 +441,6 @@ $( function() {
 		theme:"minimal-dark",
 		scrollInertia:30
 		});
-	/*$(".top-link").mCustomScrollbar({
-		theme:"minimal-dark",
-		scrollInertia:30
-		});	*/
 	$(".diff").mCustomScrollbar({
 		theme:"minimal-dark",
 		scrollInertia:30
@@ -1322,7 +1318,7 @@ $( function() {
 		$('.advance').fadeIn();
 	});
 	$('#auth').submit(function() {
-		$('.alert-danger').remove();
+
 		let searchParams = new URLSearchParams(window.location.search)
 		if(searchParams.has('ref')) {
 			var ref = searchParams.get('ref');
@@ -1339,15 +1335,37 @@ $( function() {
 			success: function( data ) {
 				if (data.indexOf('ok') != '-1') {
 					window.location.replace(ref);
-				} else {
-					$('.alert-danger').remove();
-					$("#ajax").html(data);					
+				} else if (data.indexOf('ban') != '-1') {
+					ban();				
 				} 
 			}
 		} );
 		return false;
 	});
 });
+function sleep(ms) {
+	  return new Promise(resolve => setTimeout(resolve, ms));
+}
+async function ban() {
+	$( '#login').attr('disabled', 'disabled');
+	$( '#pass').attr('disabled', 'disabled');
+	$( "input[type=submit], button" ).button('disable');
+	$('.alert').show();
+	$('#ban_10').show();
+	$( '#ban_timer').text(10);
+	
+	let i = 10;
+	while (i > 0) {
+		i--;
+		await sleep(1000);
+		$( '#ban_timer').text(i);
+		}
+		
+	$( '#login').removeAttr('disabled');
+	$( '#pass').removeAttr('disabled');
+	$( "input[type=submit], button" ).button('enable');
+	$('#ban_10').hide();
+} 
 function change_select_acceleration(id) {
 	$.ajax( {
 		url: "options.py",

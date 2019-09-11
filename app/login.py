@@ -47,7 +47,18 @@ def send_cookie(login):
 	print('ok')
 	sys.exit()	
 	
-
+	
+def ban():
+	c = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	expires = datetime.datetime.utcnow() + datetime.timedelta(seconds=10)
+	c["ban"] = 1
+	c["ban"]["path"] = "/app/"
+	c["ban"]["expires"] = expires.strftime("%a, %d %b %Y %H:%M:%S GMT")
+	print(c)
+	print("Content-type: text/html\n")			
+	print('ban')
+	
+	
 def check_in_ldap(user, password):
 	import ldap
 	
@@ -126,10 +137,13 @@ if login is not None and password is not None:
 		else:
 			if login in users[1] and password == users[3]:
 				send_cookie(login)
+				break
 			else:
-				print("Content-type: text/html\n")	
-				print('<center><div class="alert alert-danger">Your login or password is incorrect</div><br /><br />')
+				ban()
 				sys.exit()
+	else:
+		ban()
+		sys.exit()
 	print("Content-type: text/html\n")	
 	
 if login is None:
