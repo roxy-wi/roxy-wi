@@ -123,11 +123,11 @@ For Apache do virtualhost with cgi-bin. Like this:
 ```
 # Docker
 ```
-docker service create --detach=false --name haproxy-wi --mount type=volume,src=haproxy-wi,dst=/var/www/haproxy-wi/app -p 8080:80 aidaho/haproxy-wi
+docker service create --detach=false --name haproxy-wi --mount type=volume,src=haproxy-wi,dst=/var/www/haproxy-wi/app -p 8080:443 aidaho/haproxy-wi
 ```
 or
 ```
-docker run -d --name haproxy-wi -v haproxy-wi:/var/www/haproxy-wi/app -p 8080:80 aidaho/haproxy-wi 
+docker run -d --name haproxy-wi -v haproxy-wi:/var/www/haproxy-wi/app -p 8080:443 aidaho/haproxy-wi 
 ```
 # OS support
 HAProxy-WI was tested on EL 7, and all scripts too. Debian/Ubuntu OS support at 'beta' stage, may work not correct
