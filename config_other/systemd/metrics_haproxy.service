@@ -1,0 +1,19 @@
+[Unit]
+Description=Haproxy metrics
+After=syslog.target network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/var/www/haproxy-wi/app/
+ExecStart=/var/www/haproxy-wi/app/tools/metrics_master.py
+
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=metrics
+
+RestartSec=2s
+Restart=on-failure
+TimeoutStopSec=1s
+
+[Install]
+WantedBy=multi-user.target

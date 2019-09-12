@@ -1,0 +1,19 @@
+[Unit]
+Description=Haproxy backends state checker
+After=syslog.target network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/var/www/haproxy-wi/app/
+ExecStart=/var/www/haproxy-wi/app/tools/checker_master.py
+
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=checker
+
+RestartSec=2s
+Restart=on-failure
+TimeoutStopSec=1s
+
+[Install]
+WantedBy=multi-user.target
