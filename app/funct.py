@@ -522,7 +522,7 @@ def check_new_version():
 	context = ssl._create_unverified_context()
 	
 	if proxy:
-		proxyDict = { "https" : proxy }
+		proxyDict = { "https" : proxy, "http" : proxy }
 		response = urllib.request.urlopen('https://haproxy-wi.org/update.py?last_ver=1', context=context, proxies=proxyDict)
 	else:	
 		response = urllib.request.urlopen('https://haproxy-wi.org/update.py?last_ver=1', context=context)
