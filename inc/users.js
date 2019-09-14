@@ -151,6 +151,14 @@ $( function() {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
 					$("#ajax").html('<div class="alert alert-warning">It is seems like you do not have HAProxy-WI repository settings. Please read docs for<a href="https://haproxy-wi.org/updates.py">detail</a></data>');
+				} else if (data.indexOf('password for') != '-1') {
+					$('.alert-danger').remove();
+					$('.alert-warning').remove();
+					$("#ajax").html('<div class="alert alert-warning">It is seems like you need add Apache user to sudoers. Please read docs for<a href="https://haproxy-wi.org/updates.py">detail</a></data>');
+				} else if (data.indexOf('No packages marked for update') != '-1') {
+					$('.alert-danger').remove();
+					$('.alert-warning').remove();
+					$("#ajax").html('<div class="alert alert-warning">It is seems like you have the last version HAProxy-WI</data>');
 				}
 			}
 		} ); 	

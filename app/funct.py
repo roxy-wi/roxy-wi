@@ -516,16 +516,16 @@ def check_ver():
 def check_new_version():
 	import requests
 	import ssl
-	import sql
-	
+	import sql	
+
 	proxy = sql.get_setting('proxy')
 	
 	if proxy:
 		proxyDict = { "https" : proxy, "http" : proxy }
-		response = requests.get('https://haproxy-wi.org/update.py?last_ver=1', verify=False, proxies=proxyDict)
+		response = requests.get('https://haproxy-wi.org/update.py?last_ver=1', verify=False, timeout=10,  proxies=proxyDict)
 	else:	
-		response = requests.get('https://haproxy-wi.org/update.py?last_ver=1', verify=False)
+		response = requests.get('https://haproxy-wi.org/update.py?last_ver=1', verify=False, timeout=10)
 	
-	res = response.content().decode(encoding='UTF-8')
+	res = response.content.decode(encoding='UTF-8')
 
 	return res
