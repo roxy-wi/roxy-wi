@@ -27,6 +27,11 @@ try:
 	token = sql.get_token(user_id.value)
 except:
 	pass
+	
+try: 
+	current_ver = funct.check_ver()
+except:
+	pass
 
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
@@ -58,5 +63,6 @@ output_from_parsed_template = template.render(h2 = 1, title = "Delete old versio
 													open = form.getvalue('open'),
 													Select = form.getvalue('del'),
 													file = file,
+													current_ver = current_ver,
 													token = token)
 print(output_from_parsed_template)

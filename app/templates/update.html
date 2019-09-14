@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}	
+<script src="/inc/users.js"></script>
+<table class="overview">
+	<tr class="overviewHead">
+		<td class="padding10 first-collumn" >Currnet version</td>
+		<td class="padding10 first-collumn" style="width: 350px;">Last version</td>
+		<td></td>
+	</tr>
+	<tr>
+	<td class="padding10 first-collumn">
+		<b>{{current_ver}}</b>
+	</td>
+	<td class="padding10 first-collumn" style="width: 350px;">
+		<b>{{new_ver}}</b>
+	</td>
+	<td>
+		{% if current_ver_without_dots < new_ver_without_dots and current_ver_without_dots != new_ver_without_dots and new_ver != "Sorry cannot get current version" %}
+		<a class="ui-button ui-widget ui-corner-all" id="install" title="Install HAProxy">Update</a>
+		{% endif %}
+	</td>
+</table>
+<div class="add-note addName" style="width: inherit;">
+	<b style="font-size: 20px; display: block; padding-bottom: 10px;">Note:</b>
+	For update you have to use HAProxy-WI repository. If do not use repositiry then use update.sh script in HAProxy-WI home directory	<br />
+	<br />
+	Read more about update in <a href="https://haproxy-wi.org/updates.py" title="Doc" target="_blank">docs</a>
+	</div>
+<div id="ajax"></div>
+{% endblock %}

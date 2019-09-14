@@ -30,6 +30,11 @@ try:
 	token = sql.get_token(user_id.value)
 except:
 	pass
+	
+try: 
+	current_ver = funct.check_ver()
+except:
+	pass
 
 output_from_parsed_template = template.render(h2 = 1,
 												autorefresh = 1,
@@ -42,6 +47,7 @@ output_from_parsed_template = template.render(h2 = 1,
 												serv = form.getvalue('serv'),
 												rows = rows,
 												grep = grep,
+												current_ver = current_ver,
 												token = token)											
 print(output_from_parsed_template)
 

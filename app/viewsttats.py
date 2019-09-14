@@ -28,6 +28,11 @@ try:
 except:
 	pass
 	
+try: 
+	current_ver = funct.check_ver()
+except:
+	pass
+	
 output_from_parsed_template = template.render(h2 = 1,
 												autorefresh = 1,
 												title = "HAProxy statistics",
@@ -37,6 +42,7 @@ output_from_parsed_template = template.render(h2 = 1,
 												select_id = "serv",
 												selects = servers,
 												serv = serv,
+												current_ver = current_ver,
 												token = token)											
 print(output_from_parsed_template)
 

@@ -28,6 +28,11 @@ try:
 	role = sql.get_user_role_by_uuid(user_id.value)
 except:
 	pass
+	
+try: 
+	current_ver = funct.check_ver()
+except:
+	pass
 
 hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 
@@ -98,5 +103,6 @@ template = template.render(h2 = 1, title = "Working with HAProxy configs",
 							stderr = stderr,
 							error = error,
 							note = 1,
+							current_ver = current_ver,
 							token = token)
 print(template)

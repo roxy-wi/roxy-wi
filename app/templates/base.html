@@ -108,6 +108,7 @@
 									<li><a href=/app/users.py#ssh title="Manage SSH credentials" class="admin head-submenu">SSH credentials</a></li>
 									<li><a href=/app/settings.py title="HAproxy-WI settings" class="settings head-submenu">Settings</a></li>
 									<li><a href=/app/viewlogs.py title="View internal logs" class="logs head-submenu">Internal logs</a></li>
+									<li><a href=/app/update.py title="View internal logs" class="logs head-submenu">Update</a></li>
 								</ul>
 							</li>
 						{% endif %}	
@@ -115,7 +116,7 @@
 					</ul>
 				</nav>
 				<div class="copyright-menu">
-					<a href="https://github.com/aidaho12/haproxy-wi/" title="Github repo" target="_blank" style="color: #fff">HAproxy-WI v3.4.5.1</a>
+					<a href="https://github.com/aidaho12/haproxy-wi/" title="Github repo" target="_blank" style="color: #fff">HAproxy-WI</a> <span id="show-updates-button">v{{current_ver}}</span>
 					<br>
 					<a href="https://www.patreon.com/haproxy_wi" title="Donate" target="_blank" style="color: #fff; margin-left: 30px; color: red;" class="patreon">  Donate</a>
 				</div>
@@ -215,6 +216,12 @@
 			{% block content %}{% endblock %}
 			<div id="ajax-compare"></div>
 			<div id="ajax"></div>
-		</div>			
+			
+		</div>	
+<div id="show-updates" style="display: none;">	
+				<div>
+					There is a new version HAProxy-WI
+				</div>
+			</div>		
 	</body>
 </html>

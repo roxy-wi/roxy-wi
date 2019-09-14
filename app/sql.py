@@ -1088,6 +1088,20 @@ def update_setting(param, val):
 	cur.close()    
 	con.close()
 	
+	
+def get_ver():
+	con, cur = create_db.get_cur()
+	sql = """ select * from version; """ 
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		out_error(e)
+	else:
+		for ver in cur.fetchall():
+			return ver[0]
+	cur.close()    
+	con.close()
+	
 def show_update_telegram(token, page):
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates/ajax'))

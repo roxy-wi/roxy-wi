@@ -121,13 +121,14 @@ def create_table(**kwargs):
 		CREATE TABLE IF NOT EXISTS `telegram` (`id` integer primary key autoincrement, `token` VARCHAR ( 64 ), `chanel_name` INTEGER NOT NULL DEFAULT 1, `groups` INTEGER NOT NULL DEFAULT 1);
 		CREATE TABLE IF NOT EXISTS `metrics` (`serv` varchar(64), curr_con INTEGER, cur_ssl_con INTEGER, sess_rate INTEGER, max_sess_rate INTEGER,`date` timestamp default '0000-00-00 00:00:00');
 		CREATE TABLE IF NOT EXISTS `settings` (`param` varchar(64) UNIQUE, value varchar(64), section varchar(64), `desc` varchar(100));
+		CREATE TABLE IF NOT EXISTS `version` (`version` varchar(64));
 		"""
 		try:
 			cur.executescript(sql)
 		except sqltool.Error as e:
 			if kwargs.get('silent') != 1:
 				if e.args[0] == 'column email is not unique' or e == "1060 (42S21): column email is not unique' ":
-					print('Updating... go to version 3.0<br />')
+					print('Updating... go to version 3.0')
 				else:
 					print("An error occurred:", e)
 			return False
@@ -172,14 +173,22 @@ def update_db_v_31(**kwargs):
 			"INSERT INTO settings (param, value, section, `desc`) values('cert_path', '/etc/ssl/certs/', 'haproxy', 'Path to SSL dir');",
 			"INSERT INTO settings (param, value, section, `desc`) values('firewall_enable', '0', 'haproxy', 'If enable this option Haproxy-wi will be configure firewalld based on config port');",
 			"INSERT INTO settings (param, value, section, `desc`) values('lists_path', 'lists', 'main', 'Path to black/white lists');",
-			"INSERT INTO settings (param, value, section, `desc`) values('apache_log_path', '/var/log/httpd/', 'logs', 'Path to Apache logs');" ]
+			"INSERT INTO settings (param, value, section, `desc`) values('apache_log_path', '/var/log/httpd/', 'logs', 'Path to Apache logs');"
+			"INSERT INTO settings (param, value, section, `desc`) values('ldap_enable', '0', 'ldap', 'If 1 ldap enabled');",
+			"INSERT INTO settings (param, value, section, `desc`) values('ldap_server', '', 'ldap', 'IP address ldap server');",
+			"INSERT INTO settings (param, value, section, `desc`) values('ldap_port', '389', 'ldap', 'Default port is 389 or 636');",
+			"INSERT INTO settings (param, value, section, `desc`) values('ldap_user', '', 'ldap', 'Login for connect to LDAP server. Enter: user@domain.com');",
+			"INSERT INTO settings (param, value, section, `desc`) values('ldap_password', '', 'ldap', 'Password for connect to LDAP server');",
+			"INSERT INTO settings (param, value, section, `desc`) values('ldap_base', '', 'ldap', 'Base domain. Example: dc=domain, dc=com');",
+			"INSERT INTO settings (param, value, section, `desc`) values('ldap_domain', '', 'ldap', 'Domain for login, that after @, like user@domain.com, without user@');",
+			"INSERT INTO settings (param, value, section, `desc`) values('ldap_search_field', 'mail', 'ldap', 'Field where user e-mail saved'" ]
 	try:    
 		for i in sql:
 			cur.execute(i)
 			con.commit()
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
-			if e.args[0] == 'duplicate column name: desc' or e == "1060 (42S21): Duplicate column name 'desc' ":
+			if e.args[0] == 'column param is not unique' or e == "1060 (42S21): column param is not unique ":
 				print('Updating... go to version 3.2')
 			else:
 				print("An error occurred:", e)
@@ -199,7 +208,7 @@ def update_db_v_3_2(**kwargs):
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
 			if e.args[0] == 'duplicate column name: server_id' or e == "1060 (42S21): Duplicate column name 'server_id' ":
-				print('DB was updated')
+				print('Updating... go to version 3.2')
 			else:
 				print("An error occurred:", e.args[0])
 				return False
@@ -258,43 +267,16 @@ def update_db_v_3_2_8(**kwargs):
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
 			if e.args[0] == 'duplicate column name: desc' or e == " 1060 (42S21): Duplicate column name 'desc' ":
-				print('DB was update<br />')
+				print('Updating... go to version 3.3')
 			else:
 				print("An error occurred:", e)
 		return False
 	else:
-		print("DB was update to 3.2.8<br />")
+		print("DB was update to 3.2.8")
 		return True
 	cur.close() 
 	con.close()
 	
-	
-def update_db_v_3_3(**kwargs):
-	con, cur = get_cur()
-	sql = [ "INSERT INTO settings (param, value, section, `desc`) values('ldap_enable', '0', 'ldap', 'If 1 ldap enabled');",
-			"INSERT INTO settings (param, value, section, `desc`) values('ldap_server', '', 'ldap', 'IP address ldap server');",
-			"INSERT INTO settings (param, value, section, `desc`) values('ldap_port', '389', 'ldap', 'Default port is 389 or 636');",
-			"INSERT INTO settings (param, value, section, `desc`) values('ldap_user', '', 'ldap', 'Login for connect to LDAP server. Enter: user@domain.com');",
-			"INSERT INTO settings (param, value, section, `desc`) values('ldap_password', '', 'ldap', 'Password for connect to LDAP server');",
-			"INSERT INTO settings (param, value, section, `desc`) values('ldap_base', '', 'ldap', 'Base domain. Example: dc=domain, dc=com');",
-			"INSERT INTO settings (param, value, section, `desc`) values('ldap_domain', '', 'ldap', 'Domain for login, that after @, like user@domain.com, without user@');",
-			"INSERT INTO settings (param, value, section, `desc`) values('ldap_search_field', 'mail', 'ldap', 'Field where user e-mail saved');"]
-	try:    
-		for i in sql:
-			cur.execute(i)
-			con.commit()
-	except sqltool.Error as e:
-		if kwargs.get('silent') != 1:
-			if e.args[0] == 'duplicate column name: desc' or e == "1060 (42S21): Duplicate column name 'desc' ":
-				print('Updating... go to version 3.2')
-			else:
-				print("An error occurred:", e)
-		return False
-	else:
-		pass
-		return True
-	cur.close() 
-	con.close()
 	
 def update_db_v_3_31(**kwargs):
 	con, cur = get_cur()
@@ -312,7 +294,7 @@ def update_db_v_3_31(**kwargs):
 				print("An error occurred:", e)
 		return False
 	else:
-		print("DB was update to 3.3<br />")
+		print("DB was update to 3.3")
 		return True
 	cur.close() 
 	con.close()
@@ -334,7 +316,7 @@ def update_db_v_3_4(**kwargs):
 				print("An error occurred:", e)
 		return False
 	else:
-		print("Updating... go to version 3.4.1<br />")
+		print("Updating... go to version 3.4.1")
 		return True
 	cur.close() 
 	con.close()
@@ -350,14 +332,57 @@ def update_db_v_3_4_1(**kwargs):
 		con.commit()
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
-			if e.args[0] == 'duplicate column name: active' or e == " 1060 (42S21): Duplicate column name 'active' ":
-				print('Updating... go to version 3.4.1')
+			if e.args[0] == 'duplicate column name: activeuser' or e == " 1060 (42S21): Duplicate column name 'activeuser' ":
+				print('Updating... go to version 3.4.5.2')
 			else:
 				print("An error occurred:", e)
 		return False
 	else:
-		print("DB was update to 3.4.1<br />")
+		print("Updating... go to version  3.4.5.2")
 		return True
+	cur.close() 
+	con.close()
+	
+	
+def update_db_v_3_4_5_2(**kwargs):
+	con, cur = get_cur()
+	sql = """CREATE TABLE IF NOT EXISTS `version` (`version` varchar(64)); """
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: version' or e == "1060 (42S21): Duplicate column name 'version' ":
+				print('Updating... go to version 2.6')
+			else:
+				print("DB was update to 3.4.5.2")
+			return False
+		else:
+			return True
+	cur.close() 
+	con.close()
+	
+	
+def update_db_v_3_4_5_22(**kwargs):
+	con, cur = get_cur()
+	sql = """insert into version ('version') values ('3.4.5.2'); """
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		print('Cannot insert version')
+	cur.close() 
+	con.close()
+	
+	
+def update_ver(**kwargs):
+	con, cur = get_cur()
+	sql = """update version set version = '3.4.5.2'; """
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		print('Cannot update version')
 	cur.close() 
 	con.close()
 	
@@ -368,10 +393,14 @@ def update_all():
 	update_db_v_3_21()
 	update_db_v_3_2_3()
 	update_db_v_3_2_8()
-	update_db_v_3_3()
 	update_db_v_3_31()
 	update_db_v_3_4()
 	update_db_v_3_4_1()
+	update_db_v_3_4_5_2()
+	if funct.check_ver() is None:
+		update_db_v_3_4_5_22()
+	update_ver()
+	
 	
 def update_all_silent():
 	update_db_v_31(silent=1)
@@ -379,10 +408,14 @@ def update_all_silent():
 	update_db_v_3_21(silent=1)
 	update_db_v_3_2_3(silent=1)
 	update_db_v_3_2_8(silent=1)
-	update_db_v_3_3(silent=1)
 	update_db_v_3_31(silent=1)
 	update_db_v_3_4(silent=1)
 	update_db_v_3_4_1(silent=1)
+	update_db_v_3_4_5_2(silent=1)
+	if funct.check_ver() is None:
+		update_db_v_3_4_5_22()
+	update_ver()
+	
 	
 if __name__ == "__main__":
 	create_table()

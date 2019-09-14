@@ -402,6 +402,10 @@ if form.getvalue('haproxyaddserv'):
 if form.getvalue('installwaf'):
 	funct.waf_install(form.getvalue('installwaf'))
 	
+	
+if form.getvalue('update_haproxy_wi'):
+	funct.update_haproxy_wi()
+	
 if form.getvalue('metrics_waf'):
 	sql.update_waf_metrics_enable(form.getvalue('metrics_waf'), form.getvalue('enable'))
 		

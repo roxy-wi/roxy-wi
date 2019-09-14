@@ -27,6 +27,11 @@ try:
 	token = sql.get_token(user_id.value)
 except:
 	pass
+	
+try: 
+	current_ver = funct.check_ver()
+except:
+	pass
 
 if serv is not None and form.getvalue('config') is not None:
 	configver = form.getvalue('configver')
@@ -66,5 +71,6 @@ template = template.render(h2 = 1, title = "Old Versions HAProxy config",
 							onclick = "showUploadConfig()",
 							note = 1,
 							token = token,
+							current_ver = current_ver,
 							view = view)
 print(template)

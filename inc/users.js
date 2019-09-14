@@ -124,6 +124,37 @@ $( function() {
 			}
 		} );	
 	});	
+	$('#update_haproxy_wi').click(function() {
+		$("#ajax").html('')
+
+		$("#ajax").html('<div class="alert alert-warning">Please don\'t close and don\'t represh page. Wait until the work is completed. This may take some time </div>');
+		 $.ajax( {
+			url: "options.py",
+			data: {
+				update_haproxy_wi: 1,
+				token: $('#token').val()
+				},
+			type: "GET",
+			success: function( data ) { 
+			data = data.replace(/\s+/g,' ');
+				if (data.indexOf('error') != '-1' || data.indexOf('Failed') != '-1') {
+					$("#ajax").html('<div class="alert alert-danger">'+data+'</data>');
+				} else if (data.indexOf('success') != '-1'){
+					$('.alert-danger').remove();
+					$('.alert-warning').remove();
+					$("#ajax").html('<div class="alert alert-success">'+data+'</data>');				
+				} else if (data.indexOf('but not installed') != '-1') {
+					$('.alert-danger').remove();
+					$('.alert-warning').remove();
+					$("#ajax").html('<div class="alert alert-warning">You have settings for HAProxy-WI repository, but installed HAProxy-WI without repository. Please reinstall with yum or use update.sh</data>');
+				} else if (data.indexOf('No Match for argument') != '-1') {
+					$('.alert-danger').remove();
+					$('.alert-warning').remove();
+					$("#ajax").html('<div class="alert alert-warning">It is seems like you do not have HAProxy-WI repository settings. Please read docs for<a href="https://haproxy-wi.org/updates.py">detail</a></data>');
+				}
+			}
+		} ); 	
+	});	
 	$('#add-group').click(function() {
 		$('#error').remove();	
 		$('.alert-danger').remove();	
@@ -294,7 +325,6 @@ $( function() {
 	$('#add-server-button').click(function() {
 		addServerDialog.dialog('open');		
 	});
-	
 	$('#add-ssh-button').click(function() {
 		if ($('#ssh-add-table').css('display', 'none')) {
 			$('#ssh-add-table').show("blind", "fast");

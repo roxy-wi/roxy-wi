@@ -18,6 +18,11 @@ try:
 	token = sql.get_token(user_id.value)
 except:
 	pass
+	
+try: 
+	current_ver = funct.check_ver()
+except:
+	pass
 
 template = template.render(h2 = 1, title = "Metrics",
 							autorefresh = 1,
@@ -25,5 +30,6 @@ template = template.render(h2 = 1, title = "Metrics",
 							user = user,
 							onclick = "metricsShow()",
 							table_stat = sql.select_table_metrics(user_id.value),
+							current_ver = current_ver,
 							token = token)											
 print(template)

@@ -292,6 +292,14 @@ def waf_install(serv, **kwargs):
 	stderr = ssh_command(serv, commands, print_out="1")
 	if stderr is None:
 		sql.insert_waf_metrics_enable(serv, "0")
+		
+		
+def update_haproxy_wi():
+	cmd = 'sudo -S yum  -y update haproxy-wi'
+	output, stderr = subprocess_execute(cmd)
+	print(output)
+	print(stderr)
+	
 
 def check_haproxy_version(serv):
 	import sql
@@ -498,3 +506,27 @@ def get_files(dir = get_config_var('configs', 'haproxy_save_configs_dir'), forma
 	
 def get_key(item):
 	return item[0]
+	
+	
+def check_ver():
+	import sql
+	return sql.get_ver()
+	
+	
+def check_new_version():
+	import urllib.request
+	import ssl
+	import sql
+	
+	proxy = sql.get_setting('proxy')
+	context = ssl._create_unverified_context()
+	
+	if proxy:
+		proxyDict = { "https" : proxy }
+		response = urllib.request.urlopen('https://haproxy-wi.org/update.py?last_ver=1', context=context, proxies=proxyDict)
+	else:	
+		response = urllib.request.urlopen('https://haproxy-wi.org/update.py?last_ver=1', context=context)
+	
+	res = response.read().decode(encoding='UTF-8')
+
+	return res

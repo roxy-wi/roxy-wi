@@ -113,6 +113,11 @@ except:
 	user = ""
 	pass
 	
+try: 
+	current_ver = funct.check_ver()
+except:
+	pass	
+	
 if form.getvalue('logout'):
 	try:
 		sql.delete_uuid(user_id.value)
@@ -161,5 +166,6 @@ output_from_parsed_template = template.render(h2 = 1, title = "Login page. Enter
 													error_log = error_log,
 													error = error,
 													ref = ref,
+													current_ver = current_ver,
 													db_create = db_create)											
 print(output_from_parsed_template)

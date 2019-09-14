@@ -48,6 +48,11 @@ try:
 except:
 	pass
 	
+try: 
+	current_ver = funct.check_ver()
+except:
+	pass
+	
 def get_files():
 	file = []
 	for files in glob.glob(os.path.join(log_path,'*.log*')):
@@ -68,5 +73,6 @@ output_from_parsed_template = template.render(h2 = 1,
 												selects = selects,
 												rows = rows,
 												grep = grep,
+												current_ver = current_ver,
 												token = token)										
 print(output_from_parsed_template)
