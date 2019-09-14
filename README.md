@@ -11,9 +11,6 @@ Support the project
 # Demo site
 [Demo site](https://demo.haproxy-wi.org) Login/password: admin/admin. Server resets every hour.
 
-# Twitter
-Began to lead a [Twitter](https://twitter.com/haproxy_wi), subscribe! I will write there about all the changes and news
-
 ![alt text](image/haproxy-wi-config-show.jpeg "Show config page")
 
 # Features:
@@ -50,7 +47,7 @@ Began to lead a [Twitter](https://twitter.com/haproxy_wi), subscribe! I will wri
 # Install
 
 ## RPM
-[Download](https://github.com/Aidaho12/haproxy-wi/releases/) RPM and install it
+yum install https://repo.haproxy-wi.org/el7/haproxy-wi-release-7-1-0.noarch.rpm 
 
 ## Script
 The installer will ask you a few questions
