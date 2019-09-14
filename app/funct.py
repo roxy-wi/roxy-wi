@@ -514,19 +514,18 @@ def check_ver():
 	
 	
 def check_new_version():
-	import urllib.request
+	import requests
 	import ssl
 	import sql
 	
 	proxy = sql.get_setting('proxy')
-	context = ssl._create_unverified_context()
 	
 	if proxy:
 		proxyDict = { "https" : proxy, "http" : proxy }
-		response = urllib.request.urlopen('https://haproxy-wi.org/update.py?last_ver=1', context=context, proxies=proxyDict)
+		response = requests.get('https://haproxy-wi.org/update.py?last_ver=1', verify=False, proxies=proxyDict)
 	else:	
-		response = urllib.request.urlopen('https://haproxy-wi.org/update.py?last_ver=1', context=context)
+		response = requests.get('https://haproxy-wi.org/update.py?last_ver=1', verify=False)
 	
-	res = response.read().decode(encoding='UTF-8')
+	res = response.content().decode(encoding='UTF-8')
 
 	return res
