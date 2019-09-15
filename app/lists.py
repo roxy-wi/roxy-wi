@@ -27,10 +27,6 @@ try:
 except:
 	pass
 	
-try: 
-	current_ver = funct.check_ver()
-except:
-	pass
 	
 dir = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')
 white_dir = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')+"/"+user_group+"/white"
@@ -54,6 +50,6 @@ template = template.render(h2 = 1,
 							white_lists = white_lists,
 							black_lists = black_lists,
 							group = user_group,
-							current_ver = current_ver,
+							versions = funct.versions(),
 							token = token)											
 print(template)

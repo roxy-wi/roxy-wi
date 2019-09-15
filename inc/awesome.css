@@ -164,3 +164,9 @@
 	content: "\f067";
 	width:3px;
 }
+.new-version-exists::after {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f093";
+	padding-left: 5px;
+}

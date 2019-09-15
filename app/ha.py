@@ -22,17 +22,13 @@ try:
 	token = sql.get_token(user_id.value)
 except:
 	pass
-	
-try: 
-	current_ver = funct.check_ver()
-except:
-	pass
+
 
 output_from_parsed_template = template.render(h2 = 1, title = "Configure HA",
 													role = sql.get_user_role_by_uuid(user_id.value),
 													user = user,
 													serv = serv,
 													selects = servers,
-													current_ver = current_ver,
+													versions = funct.versions(),
 													token = token)
 print(output_from_parsed_template)

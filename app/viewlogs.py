@@ -47,11 +47,7 @@ try:
 	token = sql.get_token(user_id.value)
 except:
 	pass
-	
-try: 
-	current_ver = funct.check_ver()
-except:
-	pass
+
 	
 def get_files():
 	file = []
@@ -73,6 +69,6 @@ output_from_parsed_template = template.render(h2 = 1,
 												selects = selects,
 												rows = rows,
 												grep = grep,
-												current_ver = current_ver,
+												versions = funct.versions(),
 												token = token)										
 print(output_from_parsed_template)

@@ -15,7 +15,8 @@
 		<b>{{new_ver}}</b>
 	</td>
 	<td>
-		{% if current_ver_without_dots < new_ver_without_dots and current_ver_without_dots != new_ver_without_dots and new_ver != "Sorry cannot get current version" %}
+		
+		{% if new_ver_without_dots > current_ver_without_dots and new_ver != "Sorry cannot get current version" %}
 		<a class="ui-button ui-widget ui-corner-all" id="update_haproxy_wi" title="Update HAProxy">Update</a>
 		{% endif %}
 	</td>
@@ -25,6 +26,7 @@
 	For update you have to use HAProxy-WI repository. If do not use repositiry then use update.sh script in HAProxy-WI home directory	<br />
 	<br />
 	Read more about update in <a href="https://haproxy-wi.org/updates.py" title="Doc" target="_blank">docs</a>
+	and <a href="https://haproxy-wi.org/changelog.py" title="Changelog" target="_blank">changelog</a>
 	</div>
 <div id="ajax"></div>
 {% endblock %}

@@ -120,7 +120,11 @@ $( function() {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
 					$("#ajax").html('<div class="alert alert-success">'+data+'</data>');				
-				}	
+				} else if (data.indexOf('Info') != '-1' ){
+					$('.alert-danger').remove();
+					$('.alert-warning').remove();
+					$("#ajax").html('<div class="alert alert-info">'+data+'</data>');
+				}
 			}
 		} );	
 	});	
@@ -139,7 +143,7 @@ $( function() {
 			data = data.replace(/\s+/g,' ');
 				if (data.indexOf('error') != '-1' || data.indexOf('Failed') != '-1') {
 					$("#ajax").html('<div class="alert alert-danger">'+data+'</data>');
-				} else if (data.indexOf('success') != '-1'){
+				} else if (data.indexOf('Complete!') != '-1'){
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
 					$("#ajax").html('<div class="alert alert-success">'+data+'</data>');				
@@ -158,7 +162,7 @@ $( function() {
 				} else if (data.indexOf('No packages marked for update') != '-1') {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-success">It is seems like you have the last version HAProxy-WI</data>');
+					$("#ajax").html('<div class="alert alert-info">It is seems like you have the last version HAProxy-WI</data>');
 				}
 			}
 		} ); 	

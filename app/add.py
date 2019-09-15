@@ -27,11 +27,7 @@ try:
 	token = sql.get_token(user_id.value)
 except:
 	pass
-	
-try: 
-	current_ver = funct.check_ver()
-except:
-	pass
+
 
 template = template.render(title = "Add",
 							role = sql.get_user_role_by_uuid(user_id.value),
@@ -40,7 +36,7 @@ template = template.render(title = "Add",
 							add = form.getvalue('add'),
 							conf_add = form.getvalue('conf'),
 							group = user_group,
-							current_ver = current_ver,
+							versions = funct.versions(),
 							token = token)										
 print(template)
 

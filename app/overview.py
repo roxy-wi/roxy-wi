@@ -30,11 +30,7 @@ try:
 	metrics_worker, stderr = funct.subprocess_execute(cmd)
 except:
 	pass
-	
-try: 
-	current_ver = funct.check_ver()
-except:
-	pass
+
 
 template = template.render(h2 = 1,
 							autorefresh = 1,
@@ -48,6 +44,6 @@ template = template.render(h2 = 1,
 							checker_master = ''.join(checker_master),
 							checker_worker = ''.join(checker_worker),
 							error = stderr,
-							current_ver = current_ver,
+							versions = funct.versions(),
 							token = token)
 print(template)											

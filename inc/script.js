@@ -246,6 +246,12 @@ function openStats() {
 	var win = window.open(url, '_blank');
 	win.focus();
 }
+function openVersions() {
+	var serv = $("#serv").val();
+	var url = "configver.py?serv="+serv+"&open=open"
+	var win = window.open(url, '_blank');
+	win.focus();
+}
 function showLog() {
 	var waf = 0;
 	if ($('#waf').is(':checked')) {
@@ -1342,6 +1348,33 @@ $( function() {
 		} );
 		return false;
 	});
+	var showUpdates = $( "#show-updates" ).dialog({
+			autoOpen: false,
+			resizable: false,
+			height: "auto",
+			width: 600,
+			modal: true,
+			title: 'There is a new version HAProxy-WI.',
+			show: {
+				effect: "fade",
+				duration: 200
+			},
+			hide: {
+				effect: "fade",
+				duration: 200
+			},
+			buttons: {
+				Close: function() {
+					$( this ).dialog( "close" );
+					clearTips();
+				}
+			}
+		});
+
+
+	$('#show-updates-button').click(function() {
+		showUpdates.dialog('open');		
+	});
 });
 function sleep(ms) {
 	  return new Promise(resolve => setTimeout(resolve, ms));
@@ -1546,3 +1579,4 @@ function changeWafMode(id) {
 		}
 	} ); 
 }
+

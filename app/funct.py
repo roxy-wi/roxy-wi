@@ -65,6 +65,12 @@ def logging(serv, action, **kwargs):
 	elif kwargs.get('keep_alive') == 1:
 		mess = get_data('date_in_log') + action + "\n"
 		log = open(log_path + "/keep_alive-"+get_data('logs')+".log", "a")
+	elif kwargs.get('haproxywi') == 1:
+		if kwargs.get('login'):
+			mess = get_data('date_in_log') + " from " + IP + " user: " + login + " " + action + " for: " + serv + "\n"
+		else:
+			mess = get_data('date_in_log') + action + "\n"
+		log = open(log_path + "/haproxy-wi-"+get_data('logs')+".log", "a")
 	else:
 		mess = get_data('date_in_log') + " from " + IP + " user: " + login + " " + action + " for: " + serv + "\n"
 		log = open(log_path + "/config_edit-"+get_data('logs')+".log", "a")
@@ -93,7 +99,9 @@ def telegram_send_mess(mess, **kwargs):
 		bot = telebot.TeleBot(token=token_bot)
 		bot.send_message(chat_id=channel_name, text=mess)
 	except:
-		print("Fatal: Can't send message. Add Telegram chanel before use alerting at this servers group")
+		mess = "Fatal: Can't send message. Add Telegram chanel before use alerting at this servers group"
+		print(mess)
+		logging('localhost', mess, haproxywi=1)
 		sys.exit()
 	
 def check_login(**kwargs):
@@ -245,7 +253,9 @@ def install_haproxy(serv, **kwargs):
 				" STATS_USER="+stats_user+" STATS_PASS="+stats_password ]
 	
 	error = str(upload(serv, tmp_config_path, script))
+	
 	if error:
+		logging('localhost', error, haproxywi=1)
 		print('error: '+error)
 		
 	os.system("rm -f %s" % script)
@@ -267,7 +277,9 @@ def syn_flood_protect(serv, **kwargs):
 	
 	error = str(upload(serv, tmp_config_path, script))
 	if error:
+		logging('localhost', error, haproxywi=1)
 		print('error: '+error)
+		
 	os.system("rm -f %s" % script)
 	ssh_command(serv, commands, print_out="1")
 	
@@ -287,6 +299,7 @@ def waf_install(serv, **kwargs):
 	error = str(upload(serv, tmp_config_path, script))
 	if error:
 		print('error: '+error)
+		logging('localhost', error, haproxywi=1)
 	os.system("rm -f %s" % script)
 	
 	stderr = ssh_command(serv, commands, print_out="1")
@@ -520,12 +533,39 @@ def check_new_version():
 
 	proxy = sql.get_setting('proxy')
 	
-	if proxy:
-		proxyDict = { "https" : proxy, "http" : proxy }
-		response = requests.get('https://haproxy-wi.org/update.py?last_ver=1', verify=False, timeout=10,  proxies=proxyDict)
-	else:	
-		response = requests.get('https://haproxy-wi.org/update.py?last_ver=1', verify=False, timeout=10)
-	
-	res = response.content.decode(encoding='UTF-8')
-
+	try:
+		if proxy:
+			proxyDict = { "https" : proxy, "http" : proxy }
+			response = requests.get('https://haproxy-wi.org1/update.py?last_ver=1', verify=False, timeout=1,  proxies=proxyDict)
+		else:	
+			response = requests.get('https://haproxy-wi.org/update.py?last_ver=1', verify=False, timeout=1)
+		
+		res = response.content.decode(encoding='UTF-8')
+	except requests.exceptions.RequestException as e:
+		#print(e)
+		e = str(e)
+		logging('localhost', ' '+e, haproxywi=1)
+		
 	return res
+	
+	
+def versions():	
+	try: 
+		current_ver = check_ver()
+		current_ver_without_dots = current_ver.split('.')
+		current_ver_without_dots = ''.join(current_ver_without_dots)
+		current_ver_without_dots = int(current_ver_without_dots)
+	except:
+		current_ver = "Sorry cannot get current version"
+		current_ver_without_dots = 0
+
+	try:
+		new_ver = check_new_version()
+		new_ver_without_dots = new_ver.split('.')
+		new_ver_without_dots = ''.join(new_ver_without_dots)
+		new_ver_without_dots = int(new_ver_without_dots)
+	except:
+		new_ver = "Sorry cannot get new version"
+		new_ver_without_dots = 0
+		
+	return current_ver, new_ver, current_ver_without_dots, new_ver_without_dots

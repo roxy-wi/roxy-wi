@@ -40,7 +40,7 @@ def send_cookie(login):
 	sql.write_user_uuid(login, user_uuid)
 	sql.write_user_token(login, user_token)
 	try:
-		funct.logging('locahost', sql.get_user_name_by_uuid(user_uuid)+' log in')
+		funct.logging('locahost', sql.get_user_name_by_uuid(user_uuid)+' log in', haproxywi=1, login=1)
 	except:
 		pass
 	print("Content-type: text/html\n")			
@@ -113,10 +113,6 @@ except:
 	user = ""
 	pass
 	
-try: 
-	current_ver = funct.check_ver()
-except:
-	pass	
 	
 if form.getvalue('logout'):
 	try:
@@ -166,6 +162,6 @@ output_from_parsed_template = template.render(h2 = 1, title = "Login page. Enter
 													error_log = error_log,
 													error = error,
 													ref = ref,
-													current_ver = current_ver,
+													versions = funct.versions(),
 													db_create = db_create)											
 print(output_from_parsed_template)

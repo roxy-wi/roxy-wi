@@ -22,11 +22,7 @@ try:
 	ldap_enable = sql.get_setting('ldap_enable')
 except:
 	pass
-	
-try: 
-	current_ver = funct.check_ver()
-except:
-	pass
+
 
 output_from_parsed_template = template.render(title = "Servers manage",
 												role = sql.get_user_role_by_uuid(user_id.value),
@@ -40,6 +36,6 @@ output_from_parsed_template = template.render(title = "Servers manage",
 												sshs = sql.select_ssh(),
 												telegrams = sql.get_user_telegram_by_uuid(user_id.value),
 												token = token,
-												current_ver = current_ver,
+												versions = funct.versions(),
 												ldap_enable = ldap_enable)
 print(output_from_parsed_template)

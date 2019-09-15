@@ -31,11 +31,7 @@ try:
 	token = sql.get_token(user_id.value)
 except:
 	pass
-	
-try: 
-	current_ver = funct.check_ver()
-except:
-	pass
+
 
 if serv is not None:
 	cfg = kp_save_configs_dir+ serv + '-' + funct.get_data('config') + '.conf'
@@ -92,6 +88,6 @@ output_from_parsed_template = template.render(h2 = 1, title = "Edit Runnig Keepa
 													stderr = stderr,
 													error = error,
 													keepalived = 1,
-													current_ver = current_ver,
+													versions = funct.versions(),
 													token = token)
 print(output_from_parsed_template)
