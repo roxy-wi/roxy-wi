@@ -163,6 +163,10 @@ $( function() {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
 					$("#ajax").html('<div class="alert alert-info">It is seems like you have the last version HAProxy-WI</data>');
+				} else if (data.indexOf('Connection timed out') != '-1') {
+					$('.alert-danger').remove();
+					$('.alert-warning').remove();
+					$("#ajax").html('<div class="alert alert-danger">Cannot connect to HAProxy-WI repository. Connection timed out</data>');
 				}
 			}
 		} ); 	
