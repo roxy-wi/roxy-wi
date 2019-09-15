@@ -536,7 +536,7 @@ def check_new_version():
 	try:
 		if proxy:
 			proxyDict = { "https" : proxy, "http" : proxy }
-			response = requests.get('https://haproxy-wi.org1/update.py?last_ver=1', verify=False, timeout=1,  proxies=proxyDict)
+			response = requests.get('https://haproxy-wi.org/update.py?last_ver=1', verify=False, timeout=1,  proxies=proxyDict)
 		else:	
 			response = requests.get('https://haproxy-wi.org/update.py?last_ver=1', verify=False, timeout=1)
 		
