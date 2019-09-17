@@ -66,6 +66,11 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f0a3";
 }
+.option::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f0b0";
+}
 .edit::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";

@@ -10,7 +10,7 @@
 		</tr>
 		<tr>
 			<td class="padding10 first-collumn" style="width: 25%;">
-				<form action="{{ action }}" method="get">
+				<form action="{{ action }}" method="get" id="runtimeapiform">
 					<select autofocus required id="{{ select_id }}" name="{{ select_id }}">
 						<option disabled>Choose server</option>
 						{% for select in selects %}
@@ -42,7 +42,7 @@
 				{% endif %}
 			</td>
 			<td>
-				<a class="ui-button ui-widget ui-corner-all" id="show" title="Enter" onclick="{{ onclick }}">Enter</a>
+				<button type="submit" name="Enter" value="Enter" id="enter">Enter</button>
 			</td>
 				</form>
 		</tr>

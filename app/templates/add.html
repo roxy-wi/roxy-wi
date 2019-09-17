@@ -6,6 +6,7 @@
 		<li><a href="#frontend">Frontend</a></li>
 		<li><a href="#backend">Backend</a></li>
 		<li><a href="#ssl">SSL certificates</a></li>
+		<li><a href="#option">Options</a></li>
 		{% if user %}
 			<a href=/app/login.py?logout=logout title="Logout, user name: {{ user }}" class="login"> Logout</a>						
 		{% else %}
@@ -63,7 +64,7 @@
 					<option value="tcp">tcp</option>
 				</select>
 				<span id="https-listen-span">
-					<label for="https-listen" style="margin-top: 5px;" title="Enable ssl">ssl?</label>
+					<label for="https-listen" style="margin-top: 5px;" title="Enable ssl">SSL?</label>
 					<input type="checkbox" id="https-listen" name="ssl" value="https" >
 				</span>
 				<div id="https-hide-listen" style="display: none;">
@@ -165,6 +166,10 @@
 						<span style="padding-left: 10px;">
 							or press down. <a href="http://cbonte.github.io/haproxy-dconv/1.7/configuration.html" target="_blanck" style="color: #23527c" title="HAproxy docs">Read more about options</a>
 						</span>
+						<br />
+						<span style="padding-right: 10px;">Start typing saved options: </span>
+						<input type="text" id="saved-options" class="form-control">
+							It are the options that you saved in the "Options" tab
 					</div>
 					<textarea name="option" title="Options thru" id="optionsInput" cols=80 rows=5 placeholder="acl test hdr_beg(host) -i some_host"></textarea>
 				</div>
@@ -285,7 +290,7 @@
 					<option value="tcp">tcp</option>
 				</select>
 				<span id="https-frontend-span">
-					<label for="https-frontend" style="margin-top: 5px;">ssl?</label>
+					<label for="https-frontend" style="margin-top: 5px;">SSL?</label>
 					<input type="checkbox" id="https-frontend" name="ssl" value="https">
 				</span>
 				<div id="https-hide-frontend" style="display: none;">
@@ -346,6 +351,10 @@
 						<span style="padding-left: 10px;">
 							or press down. <a href="http://cbonte.github.io/haproxy-dconv/1.7/configuration.html" target="_blanck"  style="color: #23527c" title="HAproxy docs">Read more about options</a>
 						</span>
+						<br />
+						<span style="padding-right: 10px;">Start typing saved options: </span>
+						<input type="text" id="saved-options1" class="form-control">
+							It are the options that you saved in the "Options" tab
 					</div>
 					<textarea name="option" title="Options thru" cols=80 rows=5 id="optionsInput1" placeholder="acl test hdr_beg(host) -i some_host"></textarea>
 				</div>
@@ -496,6 +505,10 @@
 						<span style="padding-left: 10px;">
 							or press down. <a href="http://cbonte.github.io/haproxy-dconv/1.7/configuration.html" target="_blanck" style="color: #23527c" title="HAproxy docs">Read more about options</a>
 						</span>
+						<br />
+						<span style="padding-right: 10px;">Start typing saved options: </span>
+						<input type="text" id="saved-options2" class="form-control">
+							It are the options that you saved in the "Options" tab
 					</div>
 					<textarea name="option" title="Options thru" cols=80 rows=5 id="optionsInput2" placeholder="acl test hdr_beg(host) -i some_host"></textarea>
 				</div>
@@ -616,14 +629,61 @@
 		</table>
 		<div id="ajax-ssl"></div>
 	</div>
-	
+	<div id="option">
+		<table class="overview" id="option_table">
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn">Id</td>
+				<td class="padding10 first-collumn">Optinons</td>
+				<td></td>
+			</tr>
+		{% for option in options %}
+			<tr id="option-{{ option.0 }}" class="{{ loop.cycle('odd', 'even') }}"> 
+				{% if option.2 == group or group == '1' %}
+				<td class="padding10 first-collumn">
+					{{ option.0 }}
+				</td>			
+				<td class="padding10 first-collumn">
+					<input type="text" id="option-{{ option.0 }}" value="{{ option.1 }}" size="100" class="form-control">
+				</td>
+				<td>
+					<a class="delete" onclick="confirmDeleteOption({{ option.0 }})" title="Delete option {{option.1}}" style="cursor: pointer;"></a>
+				</td>
+				{% endif %}
+			</tr>
+		{% endfor %}
+		</table>
+		<br /><span class="add-button" title="Add option" id="add-option-button">+ Add</span>
+		<br /><br />
+		<table class="overview" id="option-add-table" style="display: none;">
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn">&nbsp;</td>
+				<td>Option</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td class="padding10 first-collumn">
+					Enter option for save:
+				</td>
+				<td>
+					<input type="hidden" id="newoptiongroup" name="newoptiongroup" value="{{ group }}">
+					<input type="text" name="new-option" id="new-option" class="form-control" size="100">
+				</td>
+				<td>
+					<a class="add-admin" id="add-option-new" title="Add new option" style="cursor: pointer;"></a>
+				</td>
+			</tr>
+		</table>
+		<div id="ajax-option">
+	</div>
 	{% if add %}
 		<div class="alert alert-success">	
 			<h3>{{ add }} was success added</h3>
 			{{ conf_add }}
 		</div>
 	{% endif %}
-	
+	<div id="dialog-confirm-delete" title="Are you sure you want to delete?" style="display: none;">
+	  <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>Deleting irreversibly all data will be lost?</p>
+	</div>
 	<div id="dialog-confirm" title="View certificate " style="display: none;">
 		<center><pre id="dialog-confirm-body"></pre></center>
 	</div>

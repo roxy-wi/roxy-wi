@@ -23,12 +23,14 @@
 	{% if open %}
 		<center>
 			<h3>Choose old version</h3>
-			<form action="delver.py#conf" method="get">
+			<form action="versions.py#conf" method="get">
 				<label for="select_all" id="label_select_all"><b>Select all</b></label>
 				<input type="checkbox" id="select_all"><br />
 				{% for file in return_files %}
 					<label for="{{file}}"> {{file.split('-', maxsplit=1)[1]}} </label><input type="checkbox" value="{{file}}" name="{{file}}" id="{{file}}">
-					<a href="/app/configver.py?serv={{serv}}&open=open&configver={{file}}&view=1" class="ui-button ui-widget ui-corner-all" target="_blanck" title="View this version of the config" style="margin-top: -6px;">View</a><br />
+					<a href="/app/versions.py?serv={{serv}}&open=open&configver={{file}}" class="ui-button ui-widget ui-corner-all" target="_blanc" title="View and upload this version of the config" style="margin-top: -6px;">
+						Upload
+					</a><br />
 				{% endfor %}
 				<input type="hidden" value="{{serv}}" name="serv">
 				<input type="hidden" value="open" name="open">

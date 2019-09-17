@@ -122,6 +122,8 @@ def create_table(**kwargs):
 		CREATE TABLE IF NOT EXISTS `metrics` (`serv` varchar(64), curr_con INTEGER, cur_ssl_con INTEGER, sess_rate INTEGER, max_sess_rate INTEGER,`date` timestamp default '0000-00-00 00:00:00');
 		CREATE TABLE IF NOT EXISTS `settings` (`param` varchar(64) UNIQUE, value varchar(64), section varchar(64), `desc` varchar(100));
 		CREATE TABLE IF NOT EXISTS `version` (`version` varchar(64));
+		CREATE TABLE IF NOT EXISTS `options` ( `id`	INTEGER NOT NULL, `options`	VARCHAR ( 64 ), `groups`	VARCHAR ( 120 ), PRIMARY KEY(`id`)); 
+		);
 		"""
 		try:
 			cur.executescript(sql)
@@ -377,7 +379,7 @@ def update_db_v_3_4_5_22(**kwargs):
 	
 def update_ver(**kwargs):
 	con, cur = get_cur()
-	sql = """update version set version = '3.4.6.1'; """
+	sql = """update version set version = '3.4.7'; """
 	try:    
 		cur.execute(sql)
 		con.commit()

@@ -14,10 +14,15 @@ funct.page_for_admin(level = 2)
 
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
+Select = form.getvalue('del')
+configver = form.getvalue('configver')
 stderr = ""
 aftersave = ""
 file = set()
 hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+
+if form.getvalue('configver'):
+	template = env.get_template('configver.html')
 
 try:
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
@@ -29,11 +34,7 @@ except:
 	pass
 
 
-form = cgi.FieldStorage()
-serv = form.getvalue('serv')
-Select = form.getvalue('del')
-
-if serv is not None and form.getvalue('open') is not None:
+if serv is not None and form.getvalue('del') is not None:
 	if Select is not None:
 		aftersave = 1
 		for get in form:
@@ -41,14 +42,37 @@ if serv is not None and form.getvalue('open') is not None:
 				try:
 					os.remove(os.path.join(hap_configs_dir, form.getvalue(get)))
 					file.add(form.getvalue(get) + "<br />")
-					funct.logging(serv, "delver.py deleted config: %s" % form.getvalue(get))				
+					funct.logging(serv, "versions.py deleted config: %s" % form.getvalue(get))				
 				except OSError as e: 
 					stderr = "Error: %s - %s." % (e.filename,e.strerror)
-		print('<meta http-equiv="refresh" content="10; url=delver.py?serv=%s&open=open">' % form.getvalue('serv'))		
+		print('<meta http-equiv="refresh" content="10; url=versions.py?serv=%s&open=open">' % form.getvalue('serv'))	
+
+
+if serv is not None and form.getvalue('config') is not None:
+	configver = hap_configs_dir + configver
+	save = form.getvalue('save')
+	aftersave = 1
+	try:
+		funct.logging(serv, "configver.py upload old config %s" % configver)
+	except:
+		pass
+
+	MASTERS = sql.is_master(serv)
+	for master in MASTERS:
+		if master[0] != None:
+			funct.upload_and_restart(master[0], configver, just_save=save)
+			
+	stderr = funct.upload_and_restart(serv, configver, just_save=save)
+	
+	if save:
+		c = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+		c["restart"] = form.getvalue('serv')
+		print(c)
 		
-output_from_parsed_template = template.render(h2 = 1, title = "Delete old versions HAProxy config",
+		
+output_from_parsed_template = template.render(h2 = 1, title = "Working with versions HAProxy configs",
 													role = sql.get_user_role_by_uuid(user_id.value),
-													action = "delver.py",
+													action = "versions.py",
 													user = user,
 													select_id = "serv",
 													serv = serv,
@@ -60,5 +84,6 @@ output_from_parsed_template = template.render(h2 = 1, title = "Delete old versio
 													Select = form.getvalue('del'),
 													file = file,
 													versions = funct.versions(),
+													configver = configver,
 													token = token)
 print(output_from_parsed_template)

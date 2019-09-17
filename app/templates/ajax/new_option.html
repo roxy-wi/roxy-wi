@@ -1,0 +1,14 @@
+{% for option in options %}
+	<tr style="width: 50%;" id="option-table-{{option.0}}" class="newoption update">
+		<td class="padding10 first-collumn">
+			{{ option.0 }}
+		</td>
+		<td class="first-collumn">
+			<input type="text" id="option-{{option.0}}" class="form-control" size="100" value="{{option.1}}">	
+
+		</td>
+		<td>
+			<a class="delete" onclick="confirmDeleteOption({{option.0}})"  style="cursor: pointer;"></a>
+		</td>
+	</tr>
+{% endfor %}

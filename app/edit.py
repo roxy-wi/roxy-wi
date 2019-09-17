@@ -24,11 +24,7 @@ try:
 		servbackend = ""
 except:
 	pass
-	
-try: 
-	current_ver = funct.check_ver()
-except:
-	pass
+
 
 output_from_parsed_template = template.render(h2 = 1,
 												title = "Runtime API",
@@ -39,6 +35,6 @@ output_from_parsed_template = template.render(h2 = 1,
 												selects = servers,
 												token = token,
 												serv = serv,
-												current_ver = current_ver,
+												versions = funct.versions(),
 												servbackend = servbackend)											
 print(output_from_parsed_template)

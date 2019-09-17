@@ -248,7 +248,7 @@ function openStats() {
 }
 function openVersions() {
 	var serv = $("#serv").val();
-	var url = "configver.py?serv="+serv+"&open=open"
+	var url = "versions.py?serv="+serv+"&open=open"
 	var win = window.open(url, '_blank');
 	win.focus();
 }
@@ -897,12 +897,32 @@ $( function() {
 			$("#options").empty();
 		}
 	});
+	$( "#saved-options" ).autocomplete({
+		dataType: "json",
+		source: "sql.py?getoption="+$('#newoptiongroup').val(),
+		autoFocus: true,
+	    minLength: -1,
+		select: function( event, ui ) {
+			$("#optionsInput").append(ui.item.value + " \n");	
+			$( "#saved-options" ).reset();		
+		}
+	});
 	$( "#options1" ).autocomplete({
 		source: availableTags,
 		autoFocus: true,
 	    minLength: -1,
 		select: function( event, ui ) {
-			$("#optionsInput1").append(ui.item.value + " ");				
+			$("#optionsInput1").append(ui.item.value + " ")
+		}
+	});
+	$( "#saved-options1" ).autocomplete({
+		dataType: "json",
+		source: "sql.py?getoption="+$('#newoptiongroup').val(),
+		autoFocus: true,
+	    minLength: -1,
+		select: function( event, ui ) {
+			$("#optionsInput1").append(ui.item.value + " \n");	
+			$( "#options1" ).reset();		
 		}
 	});
 	$( "#options2" ).autocomplete({
@@ -913,7 +933,50 @@ $( function() {
 			$("#optionsInput2").append(ui.item.value + " ")
 		}
 	});
-	
+	$( "#saved-options2" ).autocomplete({
+		dataType: "json",
+		source: "sql.py?getoption="+$('#newoptiongroup').val(),
+		autoFocus: true,
+	    minLength: -1,
+		select: function( event, ui ) {
+			$("#optionsInput2").append(ui.item.value + " \n");	
+			$( "#saved-options2" ).reset();		
+		}
+	});
+	$('#add-option-button').click(function() {
+		if ($('#option-add-table').css('display', 'none')) {
+			$('#option-add-table').show("blind", "fast");
+		} 
+	});
+	$('#add-option-new').click(function() {
+		$('#error').remove();	
+		$('.alert-danger').remove();	
+		$.ajax( {
+			
+			url: "sql.py",
+			data: {
+				newtoption: $('#new-option').val(),
+				newoptiongroup: $('#newoptiongroup').val(),
+				token: $('#token').val()
+			},
+			type: "GET",
+			success: function( data ) {
+				if (data.indexOf('error') != '-1') {
+					$("#ajax-option").append(data);
+					$('#errorMess').click(function() {
+						$('#error').remove();
+						$('.alert-danger').remove();
+					});
+				} else {
+					$("#option_table").append(data);
+					setTimeout(function() {
+						$( ".newoption" ).removeClass( "update" );
+					}, 2500 );	
+					$.getScript("/inc/fontawesome.min.js");
+				}
+			}					
+		} );
+	});
 	var ssl_offloading_var = "http-request set-header X-Forwarded-Port %[dst_port] \n"+
 						"http-request add-header X-Forwarded-Proto https if { ssl_fc } \n"+
 						"redirect scheme https if !{ ssl_fc } \n"
@@ -1127,6 +1190,13 @@ $( function() {
 			$(this).parent().addClass('current');
 			$( "#tabs" ).tabs( "option", "active", 3 );
 		} );
+		$( "#add5" ).on( "click", function() {
+			 $('.menu li').each(function () {
+				$(this).removeClass('current');
+			});
+			$(this).parent().addClass('current');
+			$( "#tabs" ).tabs( "option", "active", 4 );
+		} );
 	}
 	if (cur_url[0] == "/app/users.py" || cur_url[0] == "/app/servers.py") {
 		$( ".users" ).on( "click", function() {
@@ -1323,6 +1393,10 @@ $( function() {
 		$('.advance-show').fadeOut();
 		$('.advance').fadeIn();
 	});
+	 $('#runtimeapiform').submit(function() {
+		showRuntime();
+		return false;
+	}); 
 	$('#auth').submit(function() {
 
 		let searchParams = new URLSearchParams(window.location.search)
@@ -1376,6 +1450,40 @@ $( function() {
 		showUpdates.dialog('open');		
 	});
 });
+function confirmDeleteOption(id) {
+	 $( "#dialog-confirm-delete" ).dialog({
+      resizable: false,
+      height: "auto",
+      width: 400,
+      modal: true,
+	  title: "Are you sure you want to delete " +$('#option-'+id).val() + "?",
+      buttons: {
+        "Delete": function() {
+			$( this ).dialog( "close" );	
+			removeOption(id);
+        },
+        Cancel: function() {
+			$( this ).dialog( "close" );
+        }
+      }
+    });
+}
+function removeOption(id) {
+	$("#option-"+id).css("background-color", "#f2dede");
+	$.ajax( {
+		url: "sql.py",
+		data: {
+			optiondel: id,
+		},
+		type: "GET",
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if(data == "Ok ") {
+				$("#option-"+id).remove();
+			}
+		}					
+	} );
+}
 function sleep(ms) {
 	  return new Promise(resolve => setTimeout(resolve, ms));
 }

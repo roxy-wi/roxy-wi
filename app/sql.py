@@ -18,6 +18,7 @@ def out_error(e):
 		error = e
 	else:
 		error = e.args[0]
+	print('Content-type: text/html\n')
 	print('<span class="alert alert-danger" id="error">An error occurred: ' + error + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 		
 def add_user(user, email, password, role, group, activeuser):
@@ -612,6 +613,20 @@ def select_telegram(**kwargs):
 	cur.close()    
 	con.close() 
 	
+def insert_new_telegram(token, chanel, group):
+	con, cur = create_db.get_cur()
+	sql = """insert into telegram(`token`, `chanel_name`, `groups`) values ('%s', '%s', '%s') """ % (token, chanel, group)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		con.rollback()
+	else: 
+		return True
+	cur.close()    
+	con.close() 
+	
 def update_telegram(token, chanel, group, id):
 	con, cur = create_db.get_cur()
 	sql = """ update telegram set 
@@ -627,6 +642,66 @@ def update_telegram(token, chanel, group, id):
 		con.rollback()
 	cur.close()    
 	con.close()
+	
+def insert_new_option(option, group):
+	con, cur = create_db.get_cur()
+	sql = """insert into options(`options`, `groups`) values ('%s', '%s') """ % (option, group)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		out_error(e)
+		con.rollback()
+	else: 
+		return True
+	cur.close()    
+	con.close() 
+	
+def select_options(**kwargs):
+	con, cur = create_db.get_cur()
+	sql = """select * from options  """
+	if kwargs.get('option'):
+		sql = """select * from options where options = '%s' """ % kwargs.get('option')
+	if kwargs.get('group'):
+		sql = """select options from options where groups = '{}' and options like '{}%' """.format(kwargs.get('group'), kwargs.get('term'))
+	#print(sql)
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		out_error(e)
+	else:
+		return cur.fetchall()
+	cur.close()    
+	con.close() 
+	
+def update_options(option, id):
+	con, cur = create_db.get_cur()
+	sql = """ update options set 
+			`option` = '%s',
+			where id = '%s' """ % (option, id)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		out_error(e)
+		con.rollback()
+	cur.close()    
+	con.close()
+	
+def delete_option(id):
+	con, cur = create_db.get_cur()
+	sql = """ delete from options where id = %s """ % (id)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		out_error(e)
+		con.rollback()
+	else: 
+		return True
+	cur.close()    
+	con.close() 
+	
 	
 def insert_mentrics(serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate):
 	con, cur = create_db.get_cur()
@@ -1102,6 +1177,15 @@ def get_ver():
 	cur.close()    
 	con.close()
 	
+def show_update_option(option):
+	from jinja2 import Environment, FileSystemLoader
+	env = Environment(loader=FileSystemLoader('templates/ajax'))
+	template = env.get_template('/new_option.html')
+
+	print('Content-type: text/html\n')
+	template = template.render(options=select_options(option=option))
+	print(template)	
+	
 def show_update_telegram(token, page):
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates/ajax'))
@@ -1370,6 +1454,45 @@ if form.getvalue('newtelegram'):
 if form.getvalue('telegramdel') is not None:
 	print('Content-type: text/html\n')
 	if delete_telegram(form.getvalue('telegramdel')):
+		print("Ok")
+	
+if form.getvalue('getoption'):
+	group = form.getvalue('getoption')	
+	term = form.getvalue('term')	
+	print('Content-type: application/json\n')
+	options = select_options(group=group,term=term)
+	a = ""
+	a = {}
+	v = 0
+	for i in options:
+		a[v] = i[0]
+		v = v + 1
+	import json
+	print(json.dumps(a))
+
+	
+if form.getvalue('newtoption'):
+	option = form.getvalue('newtoption')	
+	group = form.getvalue('newoptiongroup')	
+	if option is None or group is None:
+		print('Content-type: text/html\n')
+		print(error_mess)
+	else:
+		if insert_new_option(option, group):
+			show_update_option(option)
+			
+if form.getvalue('updateoption') is not None:
+	option = form.getvalue('updateoption')
+	id = form.getvalue('optionid')	
+	print('Content-type: text/html\n')	
+	if token is None or chanel is None or group is None:
+		print(error_mess)
+	else:		
+		update_options(option, id)
+			
+if form.getvalue('optiondel') is not None:
+	print('Content-type: text/html\n')
+	if delete_option(form.getvalue('optiondel')):
 		print("Ok")
 		
 if form.getvalue('updatetoken') is not None:

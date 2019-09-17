@@ -3,7 +3,7 @@
 		<p class="accordion-expand-holder">
 			<a class="accordion-expand-all ui-button ui-widget ui-corner-all" href="#">Expand all</a>
 			{% if not view %}
-			<a class="ui-button ui-widget ui-corner-all" title="Edit this run config" target="_blank" href="config.py?serv={{serv}}&open=open">Edit</a>
+			<a class="ui-button ui-widget ui-corner-all" title="Edit this run config" target="_blank" href="versions.py?serv={{serv}}&open=open">Edit</a>
 			{% endif %}
 			<button id="raw">Raw</button>
 			<button id="according" style="display: none;">According</button>
@@ -80,14 +80,12 @@
 	{% if configver %}
 	<br>
 	<center>
-		<form action="configver.py#conf" method="get">
+		<form action="versions.py#conf" method="get">
 			<input type="hidden" value="{{serv}}" name="serv">
 			<input type="hidden" value="{{configver}}" name="configver">
 			<input type="hidden" value="1" name="config">
-			{% if not view %}
-				<button type='submit' value='save' name='save' class='btn btn-default'>Just save</button>
-				<button type='submit' value='' name='' class='btn btn-default'>Upload and restart</button>
-			{% endif %}
+			<button type='submit' value='save' name='save' class='btn btn-default'>Just save</button>
+			<button type='submit' value='' name='' class='btn btn-default'>Upload and restart</button>
 		</form>
 	</center>
 	{% endif %}

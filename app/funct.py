@@ -99,7 +99,7 @@ def telegram_send_mess(mess, **kwargs):
 		bot = telebot.TeleBot(token=token_bot)
 		bot.send_message(chat_id=channel_name, text=mess)
 	except:
-		mess = "Fatal: Can't send message. Add Telegram chanel before use alerting at this servers group"
+		mess = " Fatal: Can't send message. Add Telegram chanel before use alerting at this servers group"
 		print(mess)
 		logging('localhost', mess, haproxywi=1)
 		sys.exit()

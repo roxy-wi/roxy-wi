@@ -25,6 +25,7 @@ try:
 	servers = sql.get_dick_permit()
 	user_group = sql.get_user_group_by_uuid(user_id.value)
 	token = sql.get_token(user_id.value)
+	
 except:
 	pass
 
@@ -37,6 +38,7 @@ template = template.render(title = "Add",
 							conf_add = form.getvalue('conf'),
 							group = user_group,
 							versions = funct.versions(),
+							options = sql.select_options(),
 							token = token)										
 print(template)
 

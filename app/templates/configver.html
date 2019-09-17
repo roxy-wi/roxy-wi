@@ -48,8 +48,7 @@
 					</select>
 					<input type="hidden" value="{{serv}}" name="serv">
 					<input type="hidden" value="open" name="open">
-					<input type="hidden" value="{{ view }}" id="view">
-					<a class="ui-button ui-widget ui-corner-all" id="show" title="Enter" onclick="{{ onclick }}">Select</a>
+					<a class="ui-button ui-widget ui-corner-all" id="show" title="Enter" onclick="showUploadConfig()">Select</a>
 				</p>
 			</form> 
 		</center>
@@ -72,7 +71,7 @@
 		{% endif %}
 	{% endif %}
 </center>
-{% if view %}
+{% if aftersave != 1 %}
 	<script> 
 		showUploadConfig()
 	</script> 
