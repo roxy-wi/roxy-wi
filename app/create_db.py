@@ -355,7 +355,7 @@ def update_db_v_3_4_5_2(**kwargs):
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
 			if e.args[0] == 'duplicate column name: version' or e == "1060 (42S21): Duplicate column name 'version' ":
-				print('Updating... go to version 2.6')
+				print('Updating... go to version 3.4.7')
 			else:
 				print("DB was update to 3.4.5.2")
 			return False
@@ -373,6 +373,25 @@ def update_db_v_3_4_5_22(**kwargs):
 		con.commit()
 	except sqltool.Error as e:
 		print('Cannot insert version')
+	cur.close() 
+	con.close()
+	
+
+def update_db_v_3_4_7(**kwargs):
+	con, cur = get_cur()
+	sql = """CREATE TABLE IF NOT EXISTS `options` ( `id`	INTEGER NOT NULL, `options`	VARCHAR ( 64 ), `groups`	VARCHAR ( 120 ), PRIMARY KEY(`id`)); """
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: id' or e == "1060 (42S21): Duplicate column name 'id' ":
+				print('Updating... go to version 2.6')
+			else:
+				print("DB was update to 3.4.7")
+			return False
+		else:
+			return True
 	cur.close() 
 	con.close()
 	
@@ -401,6 +420,7 @@ def update_all():
 	update_db_v_3_4_5_2()
 	if funct.check_ver() is None:
 		update_db_v_3_4_5_22()
+	update_db_v_3_4_7()
 	update_ver()
 	
 	
@@ -416,6 +436,7 @@ def update_all_silent():
 	update_db_v_3_4_5_2(silent=1)
 	if funct.check_ver() is None:
 		update_db_v_3_4_5_22()
+	update_db_v_3_4_7(silent=1)
 	update_ver()
 	
 	
