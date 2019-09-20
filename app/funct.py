@@ -261,13 +261,18 @@ def get_section_from_config(config, section):
 				continue
 			if record:
 								
-				if line.startswith('listen') or line.startswith('frontend') or line.startswith('backend') or line.startswith('cache') or line.startswith('defaults') or line.startswith('global'):
+				if line.startswith('listen') or line.startswith('frontend') or line.startswith('backend') or line.startswith('cache') or line.startswith('defaults') or line.startswith('global') or line.startswith('#HideBlockEnd') or line.startswith('#HideBlockStart'):
 					record = False
 					end_line = index
 					end_line = end_line - 1
 				else:
 					return_config += line
-					
+		
+	if end_line == "":
+		f = open (config,"r" )
+		lineList = f.readlines()
+		end_line = len(lineList)
+			
 	return start_line, end_line, return_config
 	
 	
@@ -282,6 +287,7 @@ def rewrite_section(start_line, end_line, config, section):
 			if index == start_line:
 				record = True
 				return_config += section
+				return_config += "\n"
 				continue
 			if index == end_line:
 				record = False

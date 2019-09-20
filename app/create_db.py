@@ -152,51 +152,54 @@ def create_table(**kwargs):
 		
 def update_db_v_31(**kwargs):
 	con, cur = get_cur()
-	sql = [ "INSERT INTO settings (param, value, section, `desc`) values('time_zone', 'UTC', 'main', 'Time Zone');",
-			"INSERT INTO settings (param, value, section, `desc`) values('proxy', '', 'main', 'Proxy server. Use proto://ip:port');",
-			"INSERT INTO settings (param, value, section, `desc`) values('session_ttl', '5', 'main', 'Time to live users sessions. In days');",
-			"INSERT INTO settings (param, value, section, `desc`) values('token_ttl', '5', 'main', 'Time to live users tokens. In days');",
-			"INSERT INTO settings (param, value, section, `desc`) values('local_path_logs', '/var/log/haproxy.log', 'logs', 'Logs save locally, disable by default');",
-			"INSERT INTO settings (param, value, section, `desc`) values('syslog_server_enable', '0', 'logs', 'If exist syslog server for HAproxy logs, enable this option');",
-			"INSERT INTO settings (param, value, section, `desc`) values('syslog_server', '0', 'logs', 'IP address syslog server');",
-			"INSERT INTO settings (param, value, section, `desc`) values('log_time_storage', '14', 'logs', 'Time of storage of logs of user activity, in days');",
-			"INSERT INTO settings (param, value, section, `desc`) values('restart_command', 'systemctl restart haproxy', 'haproxy', 'Command for restart HAproxy service');",
-			"INSERT INTO settings (param, value, section, `desc`) values('status_command', 'systemctl status haproxy', 'haproxy', 'Command for status check HAproxy service');",
-			"INSERT INTO settings (param, value, section, `desc`) values('stats_user', 'admin', 'haproxy', 'Username for Stats web page HAproxy');",
-			"INSERT INTO settings (param, value, section, `desc`) values('stats_password', 'password', 'haproxy', 'Password for Stats web page HAproxy');",
-			"INSERT INTO settings (param, value, section, `desc`) values('stats_port', '8085', 'haproxy', 'Port Stats web page HAproxy');",
-			"INSERT INTO settings (param, value, section, `desc`) values('stats_page', 'stats', 'haproxy', 'URI Stats web page HAproxy');",
-			"INSERT INTO settings (param, value, section, `desc`) values('haproxy_dir', '/etc/haproxy/', 'haproxy', 'Path to HAProxy dir');",
-			"INSERT INTO settings (param, value, section, `desc`) values('haproxy_config_path', '/etc/haproxy/haproxy.cfg', 'haproxy', 'Path to HAProxy config');",
-			"INSERT INTO settings (param, value, section, `desc`) values('server_state_file', '/etc/haproxy/haproxy.state', 'haproxy', 'Path to HAProxy state file');",
-			"INSERT INTO settings (param, value, section, `desc`) values('haproxy_sock', '/var/run/haproxy.sock', 'haproxy', 'Path to HAProxy sock file');",
-			"INSERT INTO settings (param, value, section, `desc`) values('haproxy_sock_port', '1999', 'haproxy', 'HAProxy sock port');",
-			"INSERT INTO settings (param, value, section, `desc`) values('tmp_config_path', '/tmp/', 'haproxy', 'Temp store configs, for haproxy check');",
-			"INSERT INTO settings (param, value, section, `desc`) values('cert_path', '/etc/ssl/certs/', 'haproxy', 'Path to SSL dir');",
-			"INSERT INTO settings (param, value, section, `desc`) values('firewall_enable', '0', 'haproxy', 'If enable this option Haproxy-wi will be configure firewalld based on config port');",
-			"INSERT INTO settings (param, value, section, `desc`) values('lists_path', 'lists', 'main', 'Path to black/white lists');",
-			"INSERT INTO settings (param, value, section, `desc`) values('apache_log_path', '/var/log/httpd/', 'logs', 'Path to Apache logs');"
-			"INSERT INTO settings (param, value, section, `desc`) values('ldap_enable', '0', 'ldap', 'If 1 ldap enabled');",
-			"INSERT INTO settings (param, value, section, `desc`) values('ldap_server', '', 'ldap', 'IP address ldap server');",
-			"INSERT INTO settings (param, value, section, `desc`) values('ldap_port', '389', 'ldap', 'Default port is 389 or 636');",
-			"INSERT INTO settings (param, value, section, `desc`) values('ldap_user', '', 'ldap', 'Login for connect to LDAP server. Enter: user@domain.com');",
-			"INSERT INTO settings (param, value, section, `desc`) values('ldap_password', '', 'ldap', 'Password for connect to LDAP server');",
-			"INSERT INTO settings (param, value, section, `desc`) values('ldap_base', '', 'ldap', 'Base domain. Example: dc=domain, dc=com');",
-			"INSERT INTO settings (param, value, section, `desc`) values('ldap_domain', '', 'ldap', 'Domain for login, that after @, like user@domain.com, without user@');",
-			"INSERT INTO settings (param, value, section, `desc`) values('ldap_search_field', 'mail', 'ldap', 'Field where user e-mail saved'" ]
-	try:    
-		for i in sql:
+	sql = list()
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('time_zone', 'UTC', 'main', 'Time Zone');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('proxy', '', 'main', 'Proxy server. Use proto://ip:port');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('session_ttl', '5', 'main', 'Time to live users sessions. In days');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('token_ttl', '5', 'main', 'Time to live users tokens. In days');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('local_path_logs', '/var/log/haproxy.log', 'logs', 'Logs save locally, disable by default');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('syslog_server_enable', '0', 'logs', 'If exist syslog server for HAproxy logs, enable this option');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('syslog_server', '0', 'logs', 'IP address syslog server');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('log_time_storage', '14', 'logs', 'Time of storage of logs of user activity, in days');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('restart_command', 'systemctl restart haproxy', 'haproxy', 'Command for restart HAproxy service');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('status_command', 'systemctl status haproxy', 'haproxy', 'Command for status check HAproxy service');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('stats_user', 'admin', 'haproxy', 'Username for Stats web page HAproxy');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('stats_password', 'password', 'haproxy', 'Password for Stats web page HAproxy');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('stats_port', '8085', 'haproxy', 'Port Stats web page HAproxy');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('stats_page', 'stats', 'haproxy', 'URI Stats web page HAproxy');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('haproxy_dir', '/etc/haproxy/', 'haproxy', 'Path to HAProxy dir');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('haproxy_config_path', '/etc/haproxy/haproxy.cfg', 'haproxy', 'Path to HAProxy config');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('server_state_file', '/etc/haproxy/haproxy.state', 'haproxy', 'Path to HAProxy state file');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('haproxy_sock', '/var/run/haproxy.sock', 'haproxy', 'Path to HAProxy sock file');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('haproxy_sock_port', '1999', 'haproxy', 'HAProxy sock port');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('tmp_config_path', '/tmp/', 'haproxy', 'Temp store configs, for haproxy check');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('cert_path', '/etc/ssl/certs/', 'haproxy', 'Path to SSL dir');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('firewall_enable', '0', 'haproxy', 'If enable this option Haproxy-wi will be configure firewalld based on config port');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('lists_path', 'lists', 'main', 'Path to black/white lists');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('apache_log_path', '/var/log/httpd/', 'logs', 'Path to Apache logs');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_enable', '0', 'ldap', 'If 1 ldap enabled');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_server', '', 'ldap', 'IP address ldap server');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_port', '389', 'ldap', 'Default port is 389 or 636');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_user', '', 'ldap', 'Login for connect to LDAP server. Enter: user@domain.com');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_password', '', 'ldap', 'Password for connect to LDAP server');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_base', '', 'ldap', 'Base domain. Example: dc=domain, dc=com');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_domain', '', 'ldap', 'Domain for login, that after @, like user@domain.com, without user@');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_search_field', 'mail', 'ldap', 'Field where user e-mail saved');")
+	
+	for i in sql:
+		try:
 			cur.execute(i)
 			con.commit()
-	except sqltool.Error as e:
-		if kwargs.get('silent') != 1:
-			if e.args[0] == 'column param is not unique' or e == "1060 (42S21): column param is not unique ":
-				print('Updating... go to version 3.2')
-			else:
-				print("An error occurred:", e)
-		return False
+		except sqltool.Error as e:
+			pass
+			# if kwargs.get('silent') != 1:
+				# if e.args[0] == 'column param is not unique' or e == "1060 (42S21): column param is not unique ":
+					# print('Updating... go to version 3.2')
+				# else:
+					# print("An error occurred:", e)
 	else:
-		pass
+		if kwargs.get('silent') != 1:
+			print('Updating... go to version 3.2')
 		return True
 	cur.close() 
 	con.close()
@@ -398,7 +401,7 @@ def update_db_v_3_4_7(**kwargs):
 	
 def update_ver(**kwargs):
 	con, cur = get_cur()
-	sql = """update version set version = '3.4.7'; """
+	sql = """update version set version = '3.4.8'; """
 	try:    
 		cur.execute(sql)
 		con.commit()

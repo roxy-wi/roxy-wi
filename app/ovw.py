@@ -72,6 +72,8 @@ async def async_get_overviewServers(serv1, serv2, desc):
 	cmd = 'echo "show info" |nc %s %s |grep -e "Ver\|CurrConns\|SessRate\|Maxco\|MB\|Uptime:"' % (serv2, haproxy_sock_port)
 	out = funct.subprocess_execute(cmd)
 	out1 = ""
+	user_id = cookie.get('uuid')
+	role = sql.get_user_role_by_uuid(user_id.value)
 	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 	cfg = hap_configs_dir + serv2 + "-" + funct.get_data('config') + ".cfg"
 	funct.get_config(serv2, cfg)
@@ -86,19 +88,23 @@ async def async_get_overviewServers(serv1, serv2, desc):
 		else:
 			out1 = "Can\'t connect to HAproxy"
 	
-	# server_status = (serv1,serv2, out1, funct.ssh_command(serv2, commands),funct.show_backends(serv2, ret=1), desc)
-	server_status = (serv1,serv2, out1, funct.ssh_command(serv2, commands),backends, desc)
+	if role <= 2:
+		server_status = (serv1,serv2, out1, funct.ssh_command(serv2, commands),backends, desc)
+	else:
+		server_status = (serv1,serv2, out1, funct.ssh_command(serv2, commands),funct.show_backends(serv2, ret=1), desc)
+	
 	return server_status
 	
 async def get_runner_overviewServers():
 	template = env.get_template('overviewServers.html')	
-	
+	user_id = cookie.get('uuid')
+	role = sql.get_user_role_by_uuid(user_id.value)
 	futures = [async_get_overviewServers(server[1], server[2], server[11]) for server in listhap]
 	for i, future in enumerate(asyncio.as_completed(futures)):
 		result = await future
 		servers.append(result)
 	servers_sorted = sorted(servers, key=funct.get_key)
-	template = template.render(service_status=servers_sorted)
+	template = template.render(service_status=servers_sorted, role=role)
 	print(template)	
 	
 def get_overviewServers():
@@ -135,17 +141,17 @@ def get_map(serv):
 	
 	node = ""
 	line_new2 = [1,""]
-	i,k  = 1200, 1200
+	i,k  = 800, 800
 	j, m = 0, 0
 	for line in conf:
 		if line.startswith('listen') or line.startswith('frontend'):
 			if "stats" not in line:				
 				node = line
-				i = i - 500	
+				i = i - 750	
 		if line.find("backend") == 0: 
 			node = line
-			i = i - 500	
-			G.add_node(node,pos=(k,i),label_pos=(k,i+150))
+			i = i - 700	
+			G.add_node(node,pos=(k,i),label_pos=(k,i+100))
 		
 		if "bind" in line or (line.startswith('listen') and ":" in line) or (line.startswith('frontend') and ":" in line):
 			try:
@@ -155,13 +161,13 @@ def get_map(serv):
 					bind = bind[1].split("crt")
 					node = node.strip(' \t\n\r')
 					node = node + ":" + bind[0]
-					G.add_node(node,pos=(k,i),label_pos=(k,i+150))
+					G.add_node(node,pos=(k,i),label_pos=(k,i+100))
 			except:
 				pass
 
 		if "server " in line or "use_backend" in line or "default_backend" in line and "stats" not in line and "#" not in line:
 			if "timeout" not in line and "default-server" not in line and "#" not in line and "stats" not in line:
-				i = i - 300
+				i = i - 1050
 				j = j + 1				
 				if "check" in line:
 					line_new = line.split("check")
@@ -177,9 +183,9 @@ def get_map(serv):
 				line_new2[1] = line_new2[1].strip(' \t\n\r')
 
 				if j % 2 == 0:
-					G.add_node(line_new[0],pos=(k+250,i-350),label_pos=(k+225,i-100))
+					G.add_node(line_new[0],pos=(k+230,i-335),label_pos=(k+225,i-180))
 				else:
-					G.add_node(line_new[0],pos=(k-250,i-50),label_pos=(k-225,i+180))
+					G.add_node(line_new[0],pos=(k-230,i-0),label_pos=(k-225,i+180))
 
 				if line_new2[1] != "":	
 					G.add_edge(node, line_new[0], port=line_new2[1])
@@ -193,7 +199,7 @@ def get_map(serv):
 	edge_labels = nx.get_edge_attributes(G,'port')
 	
 	try:
-		plt.figure(10,figsize=(15,20))
+		plt.figure(10,figsize=(10,15))
 		nx.draw(G, pos, with_labels=False, font_weight='bold', width=3, alpha=0.1,linewidths=5)	
 		nx.draw_networkx_nodes(G,pos, node_color="skyblue", node_size=100, alpha=0.8, node_shape="p")
 		nx.draw_networkx_labels(G,pos=pos_label, alpha=1, font_color="green", font_size=10)

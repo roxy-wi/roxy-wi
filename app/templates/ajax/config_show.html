@@ -1,7 +1,9 @@
 	<center>
 		<h4>Config from {{serv}}</h4>
 		<p class="accordion-expand-holder">
-			<a class="ui-button ui-widget ui-corner-all" title="Edit this run config" href="config.py?serv={{serv}}&open=open">Edit</a>
+			{% if role %}
+				<a class="ui-button ui-widget ui-corner-all" title="Edit this run config" href="config.py?serv={{serv}}&open=open">Edit</a>
+			{% endif %}
 			<a class="accordion-expand-all ui-button ui-widget ui-corner-all" href="#">Expand all</a>		
 			<button id="raw">Raw</button>
 			<button id="according" style="display: none;">According</button>
@@ -23,7 +25,7 @@
 		{% endif %}
 		{% if line.startswith('global') %}
 			<span class="param">{{ line }}
-				{% if role <= 2 %}
+				{% if role %}
 				<span class="accordion-link">
 					<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
 				</span>
@@ -33,7 +35,7 @@
 		{% endif %}
 		{% if line.startswith('defaults') %}
 			</div><span class="param">{{ line }}
-				{% if role <= 2 %}
+				{% if role %}
 					<span class="accordion-link">
 					<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
 					</span>
@@ -43,7 +45,7 @@
 		{% endif %}
 		{% if line.startswith('listen') %}
 			</div><span class="param">{{ line }}
-				{% if role <= 2 %}
+				{% if role %}
 				<span class="accordion-link">
 					<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
 					</span>
@@ -53,7 +55,7 @@
 		{% endif %}
 		{% if line.startswith('frontend') %}
 			</div><span class="param">{{ line }}
-				{% if role <= 2 %}
+				{% if role %}
 				<span class="accordion-link">
 					<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
 					</span>
@@ -63,7 +65,7 @@
 		{% endif %}
 		{% if line.startswith('backend') %}
 			</div><span class="param"> {{ line }} 
-				{% if role <= 2 %}
+				{% if role %}
 				<span class="accordion-link">
 					<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
 					</span>
