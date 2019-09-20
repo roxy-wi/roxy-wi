@@ -72,6 +72,11 @@ async def async_get_overviewServers(serv1, serv2, desc):
 	cmd = 'echo "show info" |nc %s %s |grep -e "Ver\|CurrConns\|SessRate\|Maxco\|MB\|Uptime:"' % (serv2, haproxy_sock_port)
 	out = funct.subprocess_execute(cmd)
 	out1 = ""
+	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+	cfg = hap_configs_dir + serv2 + "-" + funct.get_data('config') + ".cfg"
+	funct.get_config(serv2, cfg)
+	backends = funct.get_sections(cfg)
+	os.system("/bin/rm -f " + cfg)
 	
 	for k in out:
 		if "Ncat: Connection refused." not in k:
@@ -80,7 +85,9 @@ async def async_get_overviewServers(serv1, serv2, desc):
 				out1 += "<br />"
 		else:
 			out1 = "Can\'t connect to HAproxy"
-	server_status = (serv1,serv2, out1, funct.ssh_command(serv2, commands),funct.show_backends(serv2, ret=1), desc)
+	
+	# server_status = (serv1,serv2, out1, funct.ssh_command(serv2, commands),funct.show_backends(serv2, ret=1), desc)
+	server_status = (serv1,serv2, out1, funct.ssh_command(serv2, commands),backends, desc)
 	return server_status
 	
 async def get_runner_overviewServers():
@@ -114,7 +121,7 @@ def get_map(serv):
 	cfg = hap_configs_dir + serv + "-" + date + ".cfg"
 	
 	print('<center>')
-	print("<h3>Map from %s</h3><br />" % serv)
+	print("<h4>Map from %s</h4><br />" % serv)
 	
 	G = nx.DiGraph()
 	

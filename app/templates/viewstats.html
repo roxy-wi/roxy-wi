@@ -18,7 +18,7 @@
 <div id="ajax" style="margin-left: 5px; margin-right: 5px;"></div>
 	<div id="notice" style="padding-left: 15px; font-size: 25px;">
 		Please choose a server
-	</div>
+	</div>	
 <script> 
 	if (cur_url[1]) {
 		showStats();		
@@ -34,9 +34,13 @@
 		$('#notice').hide();
 		$('li').css('margin-top', '0');
 		$('li').css('width', '207px	');
+		$('li').css('padding', '0px');
+		$('li').css('margin', '0px');
+		$('.menu li ul li').css('width', '227px');
+		$('.menu li ul li').css('margin-left', '-20px');		
 		$('th').css('background-color', '#f5faf4');
 		$('table.tbl th.pxname').css('background-color', '#5d9ceb');
-		
+		$('.v_menu').css('left', '200px');		
 		$('table.tbl th.pxname').css('width', '100%');
 		$('a.px:link').css('color', '#fff');
 		$('td').css('font-family', '"Helvetica Neue", Helvetica, Arial, sans-serif');

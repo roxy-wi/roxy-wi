@@ -17,7 +17,7 @@
 		{% set section = namespace(section='') %}
 		{% for set in settings %}
 		{% if section.section|string() != set.2|string() %}
-			<th><h3 style="margin-left: 20px; margin-bottom: 10px;">{{ set.2 }} section</h3></th>
+			<th colspan="3"><h3>{{ set.2 }} section</h3></th>
 		{% endif %}
 		{% set section.section = set.2 %}	
 		<tr class="{{ loop.cycle('odd', 'even') }}">

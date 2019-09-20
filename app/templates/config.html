@@ -27,15 +27,14 @@
 						{% endif %}
 					{% endfor %}
 			</select>
-			{% if role <= 2 %}
-				<button type="submit" value="open" name="open" class="btn btn-default" title="Edit running config">Edit</button>
-			{% endif %}
 			{% if not keepalived %}
-				<a class="ui-button ui-widget ui-corner-all" title="Show running config" onclick="showConfig()">Show</a>	
+				<a class="ui-button ui-widget ui-corner-all" title="Show running config" onclick="showConfig()">Open</a>	
 				<a class="ui-button ui-widget ui-corner-all" title="Compare configs" onclick="showCompareConfigs()">Compare</a>	
 				<a class="ui-button ui-widget ui-corner-all" title="Show map" onclick="showMap()">Map</a>	
 				<a class="ui-button ui-widget ui-corner-all" title="View stat" onclick="openStats()">Stat</a>	
-				<a class="ui-button ui-widget ui-corner-all" title="Show verisons" onclick="openVersions()">Verisons</a>	
+				{% if role <= 2 %}
+					<a class="ui-button ui-widget ui-corner-all" title="Show verisons" onclick="openVersions()">Verisons</a>	
+				{% endif %}
 			{% endif %}
 		</form>
 	</p>
@@ -53,10 +52,7 @@
 	{% if config %}
 		{% if role <= 2 %}
 			<div id="config">
-				{% if note %}
-					<div class="alert alert-info"><b>Note:</b> If you reconfigure Master server, Slave will reconfigured automatically</div>
-				{% endif %}
-				<h3>Config from {{ serv }}</h3>
+				<h4>Config from {{ serv }}</h4>
 				<form action="{{ action }}" name="saveconfig" method="get">
 					<input type="hidden" value="{{ serv }}" name="serv"> 
 					<input type="hidden" value="{{ cfg }}.old" name="oldconfig"> 
@@ -67,6 +63,9 @@
 						<button type="submit" value="" name="" class="btn btn-default">Save and restart</button>
 					</p>
 				</form>
+				{% if note %}
+					<div class="alert alert-info"><b>Note:</b> If you reconfigure Master server, Slave will reconfigured automatically</div>
+				{% endif %}
 			</div>
 		{% endif %}
 	{% endif %}

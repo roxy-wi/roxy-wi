@@ -3,6 +3,22 @@ var cur_url = window.location.href.split('/').pop();
 cur_url = cur_url.split('?');
 var intervalId;
 
+$( function() {		
+   $('.menu li ul li').each(function () {
+       var link = $(this).find('a').attr('href');
+	   var link2 = link.split('/')[2]
+       if (cur_url[0] == link2) {
+           $(this).parent().css('display', 'contents');
+           $(this).parent().css('top', '0');
+           $(this).parent().css('left', '0');
+           $(this).parent().children().css('margin-left', '-20px');
+		   $(this).parent().find('a').css('padding-left', '20px');
+		   $(this).find('a').css('padding-left', '30px');
+		   $(this).find('a').css('border-left', '4px solid #5D9CEB');
+       }
+   });
+});
+
 jQuery.expr[':'].regex = function(elem, index, match) {
     var matchParams = match[3].split(','),
         validLabels = /^(data|css):/,
@@ -462,16 +478,6 @@ $( function() {
 	$( "input[type=checkbox]" ).checkboxradio();
 	$( ".controlgroup" ).controlgroup();
 	
-    var location = window.location.href;
-    var cur_url = '/app/' + location.split('/').pop();
-	cur_url = cur_url.split('?');
-		
-   // $('.menu li').each(function () {
-   //     var link = $(this).find('a').attr('href');
-   //     if (cur_url[0] == link) {
-   //         $(this).addClass('current');
-   //     }
-   // });
 	var now = new Date(Date.now());
 	var date1 = now.getHours() * 60 - 1 * 60;
 	var date2 = now.getHours() * 60 + now.getMinutes();
@@ -750,15 +756,21 @@ $( function() {
 	$( "#hide_menu" ).click(function() {
 		$(".top-menu").hide( "drop", "fast" );
 		$(".container").css("max-width", "98%");
+		$(".footer").css("max-width", "98%");
 		$(".container").css("margin-left", "1%");
+		$(".footer").css("margin-left", "1%");
 		$(".show_menu").show();
+		$("#hide_menu").hide();
 		Cookies.set('hide_menu', 'hide', { expires: 365 });
 	});
 	$( "#show_menu" ).click(function() {
 		$(".top-menu").show( "drop", "fast" );
 		$(".container").css("max-width", "91%");
+		$(".footer").css("max-width", "91%");
 		$(".container").css("margin-left", "207px");
+		$(".footer").css("margin-left", "207px");
 		$(".show_menu").hide();
+		$("#hide_menu").show();
 		Cookies.set('hide_menu', 'show', { expires: 365 });
 	});
 	
@@ -887,6 +899,19 @@ $( function() {
 		},
 		autoFocus: true,
 		minLength: -1
+	});
+	$( "#new-option" ).autocomplete({
+		source: availableTags,
+		autoFocus: true,
+	    minLength: -1,
+		select: function( event, ui ) {
+			$("#new-option").append(ui.item.value + " ")
+		}
+	});
+	$( "#option_table input" ).change(function() {
+		var id = $(this).attr('id').split('-');
+		updateOptions(id[2])
+		console.log(id)
 	});
 	$( "#options" ).autocomplete({
 		source: availableTags,
@@ -1141,7 +1166,9 @@ $( function() {
 			$( "#blacklist-hide-input1" ).prop('required',false);
 		}
 	});
-
+	var location = window.location.href;
+    var cur_url = '/app/' + location.split('/').pop();
+	cur_url = cur_url.split('?');
 	cur_url = cur_url[0].split('#');
 	if (cur_url[0] == "/app/add.py") {
 		$("#cache").checkboxradio( "disable" );
@@ -1162,97 +1189,122 @@ $( function() {
 		$( "#serv3" ).on('selectmenuchange',function() {
 			change_select_acceleration("3");
 		});
+		
 		$( "#add1" ).on( "click", function() {
-			 $('.menu li').each(function () {
-				$(this).removeClass('current');
+			$('.menu li ul li').each(function () {
+				$(this).find('a').css('padding-left', '20px')
+				$(this).find('a').css('border-left', '0px solid #5D9CEB');
+				$(this).children("#add1").css('padding-left', '30px');
+				$(this).children("#add1").css('border-left', '4px solid #5D9CEB');
 			});
-			$(this).parent().addClass('current');
 			$( "#tabs" ).tabs( "option", "active", 0 );
 		} );
 		$( "#add2" ).on( "click", function() {
-			 $('.menu li').each(function () {
-				$(this).removeClass('current');
+			$('.menu li ul li').each(function () {
+				$(this).find('a').css('padding-left', '20px')
+				$(this).find('a').css('border-left', '0px solid #5D9CEB');
+				$(this).children("#add2").css('padding-left', '30px');
+				$(this).children("#add2").css('border-left', '4px solid #5D9CEB');
 			});
-			$(this).parent().addClass('current');
 			$( "#tabs" ).tabs( "option", "active", 1 );
 		} );
 		$( "#add3" ).on( "click", function() {
-			 $('.menu li').each(function () {
-				$(this).removeClass('current');
+			$('.menu li ul li').each(function () {
+				$(this).find('a').css('padding-left', '20px')
+				$(this).find('a').css('border-left', '0px solid #5D9CEB');
+				$(this).children("#add3").css('padding-left', '30px');
+				$(this).children("#add3").css('border-left', '4px solid #5D9CEB');
 			});
-			$(this).parent().addClass('current');
 			$( "#tabs" ).tabs( "option", "active", 2 );
 		} );
 		$( "#add4" ).on( "click", function() {
-			 $('.menu li').each(function () {
-				$(this).removeClass('current');
+			$('.menu li ul li').each(function () {
+				$(this).find('a').css('padding-left', '20px')
+				$(this).find('a').css('border-left', '0px solid #5D9CEB');
+				$(this).children("#add4").css('padding-left', '30px');;
+				$(this).children("#add4").css('border-left', '4px solid #5D9CEB');
 			});
-			$(this).parent().addClass('current');
 			$( "#tabs" ).tabs( "option", "active", 3 );
 		} );
 		$( "#add5" ).on( "click", function() {
-			 $('.menu li').each(function () {
-				$(this).removeClass('current');
+			$('.menu li ul li').each(function () {
+				$(this).find('a').css('padding-left', '20px')
+				$(this).find('a').css('border-left', '0px solid #5D9CEB');
+				$(this).children("#add5").css('padding-left', '30px');;
+				$(this).children("#add5").css('border-left', '4px solid #5D9CEB');
 			});
-			$(this).parent().addClass('current');
 			$( "#tabs" ).tabs( "option", "active", 4 );
 		} );
 	}
 	if (cur_url[0] == "/app/users.py" || cur_url[0] == "/app/servers.py") {
 		$( ".users" ).on( "click", function() {
-			 $('.menu li').each(function () {
-				$(this).removeClass('current');
+			$('.menu li ul li').each(function () {
+				$(this).find('a').css('padding-left', '20px')
+				$(this).find('a').css('border-left', '0px solid #5D9CEB');
+				$(this).children(".users").css('padding-left', '30px');
+				$(this).children(".users").css('border-left', '4px solid #5D9CEB');
 			});
-			$(this).parent().addClass('current');
 			$( "#tabs" ).tabs( "option", "active", 0 );
 		} );
-		if (cur_url[0] == "/app/users.py") {
-			$( ".group" ).on( "click", function() {
-				$('.menu li').each(function () {
-				$(this).removeClass('current');
+	if (cur_url[0] == "/app/users.py") {
+		$( ".group" ).on( "click", function() {
+			$('.menu li ul li').each(function () {
+				$(this).find('a').css('padding-left', '20px')
+				$(this).find('a').css('border-left', '0px solid #5D9CEB');
+				$(this).children(".group").css('padding-left', '30px');
+				$(this).children(".group").css('border-left', '4px solid #5D9CEB');
 			});
-				$(this).parent().addClass('current');
-				$( "#tabs" ).tabs( "option", "active", 1 );
-			} );
-		} else {
-			$( ".runtime" ).on( "click", function() {
-				$('.menu li').each(function () {
-				$(this).removeClass('current');
+			$( "#tabs" ).tabs( "option", "active", 1 );
+		} );
+	} else {
+		$( ".runtime" ).on( "click", function() {
+			$('.menu li ul li').each(function () {
+				$(this).find('a').css('padding-left', '20px')
+				$(this).find('a').css('border-left', '0px solid #5D9CEB');
+				$(this).children(".runtime").css('padding-left', '30px');
+				$(this).children(".runtime").css('border-left', '4px solid #5D9CEB');
 			});
-				$(this).parent().addClass('current');
-				$( "#tabs" ).tabs( "option", "active", 1 );
-			} );
-		}
+			$( "#tabs" ).tabs( "option", "active", 1 );
+		} );
+	}
 		if (cur_url[0] == "/app/servers.py") {
 			$( ".admin" ).on( "click", function() {
-				$('.menu li').each(function () {
-				$(this).removeClass('current');
-			});
-				$(this).parent().addClass('current');
+				$('.menu li ul li').each(function () {
+					$(this).find('a').css('padding-left', '20px')
+					$(this).find('a').css('border-left', '0px solid #5D9CEB');
+					$(this).children(".admin").css('padding-left', '30px');
+					$(this).children(".admin").css('border-left', '4px solid #5D9CEB');
+				});
 				$( "#tabs" ).tabs( "option", "active", 2 );
 			} );
 		}
 		if (cur_url[0] == "/app/users.py") {
 			$( ".runtime" ).on( "click", function() {
-				$('.menu li').each(function () {
-				$(this).removeClass('current');
-			});
-				$(this).parent().addClass('current');
+				$('.menu li ul li').each(function () {
+					$(this).find('a').css('border-left', '0px solid #5D9CEB');
+					$(this).find('a').css('padding-left', '20px')
+					$(this).children(".runtime").css('padding-left', '30px');
+					$(this).children(".runtime").css('border-left', '4px solid #5D9CEB');
+				});
 				$( "#tabs" ).tabs( "option", "active", 2 );
 			} );
 		}
 		$( ".role" ).on( "click", function() {
-			$('.menu li').each(function () {
-				$(this).removeClass('current');
+			$('.menu li ul li').each(function () {
+				$(this).find('a').css('border-left', '0px solid #5D9CEB');
+				$(this).find('a').css('padding-left', '20px')
+				$(this).children(".role").css('padding-left', '30px');
+				$(this).children(".role").css('border-left', '4px solid #5D9CEB');
 			});
-			$(this).parent().addClass('current');
 			$( "#tabs" ).tabs( "option", "active", 3 );
 		} );
 		$( ".admin" ).on( "click", function() {
-			$('.menu li').each(function () {
-				$(this).removeClass('current');
+			$('.menu li ul li').each(function () {
+				$(this).find('a').css('border-left', '0px solid #5D9CEB');
+				$(this).find('a').css('padding-left', '20px')
+				$(this).children(".admin").css('padding-left', '30px');
+				$(this).children(".admin").css('border-left', '4px solid #5D9CEB');
 			});
-			$(this).parent().addClass('current');
 			$( "#tabs" ).tabs( "option", "active", 4 );
 		} );
 	}
@@ -1450,6 +1502,33 @@ $( function() {
 		showUpdates.dialog('open');		
 	});
 });
+function updateOptions(id) {
+	$('#error').remove();	
+	$.ajax( {
+		url: "sql.py",
+		data: {
+			updateoption: $('#option-body-'+id).val(),
+			id: id
+		},
+		type: "GET",
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if (data.indexOf('error') != '-1') {
+				$("#ajax-ssh").append(data);
+				$('#errorMess').click(function() {
+					$('#error').remove();
+					$('.alert-danger').remove();
+				});
+			} else {
+				$('.alert-danger').remove();
+				$("#option-"+id).addClass( "update", 1000 );
+				setTimeout(function() {
+					$( "#option-"+id ).removeClass( "update" );
+				}, 2500 );
+			}
+		}
+	} );
+}
 function confirmDeleteOption(id) {
 	 $( "#dialog-confirm-delete" ).dialog({
       resizable: false,

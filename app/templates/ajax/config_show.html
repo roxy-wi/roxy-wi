@@ -1,10 +1,8 @@
 	<center>
-		<h3>Config from {{serv}}</h3>
+		<h4>Config from {{serv}}</h4>
 		<p class="accordion-expand-holder">
-			<a class="accordion-expand-all ui-button ui-widget ui-corner-all" href="#">Expand all</a>
-			{% if not view %}
-			<a class="ui-button ui-widget ui-corner-all" title="Edit this run config" target="_blank" href="versions.py?serv={{serv}}&open=open">Edit</a>
-			{% endif %}
+			<a class="ui-button ui-widget ui-corner-all" title="Edit this run config" href="config.py?serv={{serv}}&open=open">Edit</a>
+			<a class="accordion-expand-all ui-button ui-widget ui-corner-all" href="#">Expand all</a>		
 			<button id="raw">Raw</button>
 			<button id="according" style="display: none;">According</button>
 		</p>
@@ -24,23 +22,53 @@
 		{% endif %}
 		{% endif %}
 		{% if line.startswith('global') %}
-			<span class="param"> {{ line }} </span><div>
+			<span class="param">{{ line }}
+				{% if role <= 2 %}
+				<span class="accordion-link">
+					<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+				</span>
+				{% endif %}
+			</span><div>
 			{% continue %}
 		{% endif %}
 		{% if line.startswith('defaults') %}
-			</div><span class="param"> {{ line }} </span><div>
+			</div><span class="param">{{ line }}
+				{% if role <= 2 %}
+					<span class="accordion-link">
+					<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+					</span>
+				{% endif %}
+				</span><div>
 			{% continue %}
 		{% endif %}
 		{% if line.startswith('listen') %}
-			</div><span class="param"> {{ line }} </span><div>
+			</div><span class="param">{{ line }}
+				{% if role <= 2 %}
+				<span class="accordion-link">
+					<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+					</span>
+				{% endif %}
+				</span><div>
 			{% continue %}
 		{% endif %}
 		{% if line.startswith('frontend') %}
-			</div><span class="param"> {{ line }} </span><div>
+			</div><span class="param">{{ line }}
+				{% if role <= 2 %}
+				<span class="accordion-link">
+					<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+					</span>
+				{% endif %}
+				</span><div>
 			{% continue %} 
 		{% endif %}
 		{% if line.startswith('backend') %}
-			</div><span class="param"> {{ line }} </span><div>
+			</div><span class="param"> {{ line }} 
+				{% if role <= 2 %}
+				<span class="accordion-link">
+					<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+					</span>
+				{% endif %}
+				</span><div>
 			{% continue %}
 		{% endif %}
 		{% if line.startswith('cache') %}

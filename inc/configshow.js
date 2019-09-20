@@ -47,5 +47,9 @@ $( function() {
 	expandLink.text(isAllOpen? 'Collapse All': 'Expand all')
 				.data('isAllOpen', isAllOpen);    
 	});
+	$(".accordion-link a").on("click", function(event) { 
+	  window.location.href = $(this).attr("href"); 
+      event.preventDefault(); 
+	 }); 
 
 })

@@ -3,7 +3,7 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 
 # Donate
 Support the project
-[![Donate](https://img.shields.io/badge/PayPal-Donate-brightgreen.svg)](https://www.paypal.me/haproxywi) or [Patreon](https://www.patreon.com/haproxy_wi/overview)
+[![Donate](https://img.shields.io/badge/PayPal-Donate-brightgreen.svg)](https://www.paypal.me/loginovpavel) or [Patreon](https://www.patreon.com/haproxy_wi/overview)
 
 # Youtube
 [Demo video](https://www.youtube.com/channel/UCo0lCg24j-H4f0S9kMjp-_w)
@@ -47,8 +47,14 @@ Support the project
 # Install
 
 ## RPM
+Install repository^
+```
 yum install https://repo.haproxy-wi.org/el7/haproxy-wi-release-7-1-0.noarch.rpm 
-
+```
+After install HAProxy-WI:
+```
+yum install haproxy-wi
+```
 ## Script
 The installer will ask you a few questions
 ```

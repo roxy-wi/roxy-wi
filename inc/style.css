@@ -2,13 +2,14 @@ html {
   font-size: 10px;
 }
 body {
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 14px;
+  font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol;
+  font-size: 1.3em;
   line-height: 1.42857143;
   color: #000;
   background-color: #eee;
   margin: 0;
   padding: 0;
+  overflow: auto;
 }
 h2 {
 	background: #5D9CEB;
@@ -20,8 +21,12 @@ h2 {
 	margin-bottom: 0px;
 }
 h3 {
-	margin-top: 10px;
+	margin-top: -0;
 	margin-bottom: 0px;
+	background: #d1ecf1;
+	padding: 0.3em;
+	font-size: 1.6em;
+	border-bottom: 1px solid #ddd;
 }
 form {
 	margin: 0;
@@ -40,8 +45,8 @@ pre {
 	cursor: pointer;
 }
 .top-menu {	
-	position: fixed;
-	height: 100%;
+	position: absolute;
+	height: 110%;
 	width: 207px;
 	float: left;
 	margin-bottom: 20px;
@@ -51,7 +56,7 @@ pre {
 	z-index: 1000;
 	display: block;
 }
-.top-menu, .footer {
+.top-menu {
 	background-color: #292e34;
 }
 .logoText {
@@ -63,7 +68,10 @@ pre {
 	border-bottom: 1px solid aliceblue;
 	padding-left: 20px;
 	padding-top: 2px;
-	padding-bottom: 3px;
+}
+#logo_text {
+display: block;
+margin-top: -4px;
 }
 .top-menu img {
 	max-width: 125px;
@@ -71,13 +79,46 @@ pre {
 	padding-left: 20px;
 }
 .container {
-	min-height: calc(99vh - 0px);
+	min-height: calc(99vh - 50px);
 	max-width: 91%;
 	min-width: 40%;
 	background-color: #fff;
 	margin-left: 207px;
 	margin-right: 20px;
 	padding-bottom: 10px;
+}
+.footer {
+	min-height: 50px;
+	top: calc(99vh - 50px);
+	right: 0;
+	left: 0;
+	max-width: 91%;
+	min-width: 40%;
+	background-color: #fff;
+	margin-left: 207px;
+	margin-right: 20px;
+	border-top: 1px solid #ddd;
+	/* position: fixed; */
+}
+.footer-div {
+	display: block;
+	padding-top: 12px;
+	text-align: right;
+	margin-right: 20px;
+}
+
+.footer-link, .footer-copyright {
+	padding: 20px;
+	color: #5d9ceb;
+	font-size: 0.9em;
+	padding-top: 12px;
+	
+	padding-right: 5px;
+}
+.footer-copyright {
+	color: #586069 ;
+	float: left;
+	margin-left: 10px;
 }
 #cover {
 	position: absolute;
@@ -158,14 +199,13 @@ pre {
 }
 .configShow, .diff {
 	margin-left: 16%;
-	//height: 78%;
 	overflow: auto;
 	width: 70%;
 	border: 1px solid #DCDCDC;
 	border-radius: 5px;
 }
 .config {
-	height: 70%;
+	height: 60%;
 }
 .diffHead {
 	background-color: #F5F5F5;
@@ -228,6 +268,10 @@ pre {
 .line:hover, .line3:hover {
 	background-color: #f6f8fa;
 }
+.accordion-link {
+	float: right;
+	margin-right: 1em;
+}
 .time-range {
 	border: 0;
 	background-color: #f5faf4;
@@ -287,13 +331,6 @@ pre {
 .tooltipTop {
 	margin-bottom: -20px; 
 	padding-top: 10px;
-}
-.footer {
-  box-shadow: 1px 1px 5px grey;
-  min-height: 50px;
-  top: 0;
-  right: 0;
-  left: 0;
 }
 .overview {
 	width: 100%;
@@ -396,7 +433,7 @@ ul{
 }
 .menu {
 	min-height: calc(100vh - 95px);
-	font-size: 18px;
+	font-size: 1.1em;
 }
 .menu a{
 	background: #292e34;
@@ -415,6 +452,8 @@ ul{
 	background: #48505A;
 	padding: 10px 0 10px 20px;
 	color: #fff;
+	border-left-color: #5D9CEB;
+    border-left: 4px solid #5D9CEB;
 }
 .menu li:first-child a, .menu li .v_menu li:first-child a{
 	border-radius: 3px 3px 0 0;
@@ -507,6 +546,7 @@ ul{
 .ui-tabs-nav {
 	border-radius: 0 !important;
 	padding-left: 25px !important; 
+	padding-top: 0.28em !important;
   }
 .ui-tabs .ui-tabs-panel {
 	padding: 0 !important;
@@ -531,6 +571,9 @@ ul{
 }
 .need-field {
 	color: red;
+}
+.ui-corner-all {
+	border-radius: 0 !important;
 }
 a {
   background-color: transparent;
@@ -624,13 +667,6 @@ a:focus {
   outline: 5px auto -webkit-focus-ring-color;
   outline-offset: -2px;
 }
-
-.container-fluid {
-  padding-right: 15px;
-  padding-left: 15px;
-  margin-right: auto;
-  margin-left: auto;
-}
 .row {
   margin-right: -15px;
   margin-left: -15px;
@@ -642,7 +678,9 @@ a:focus {
 	padding:15px;
 	margin-bottom:20px;
 	border:1px solid transparent;
-	border-radius:4px
+	border-radius:4px;
+	width: 400px;
+	display: block;
 }
 .alert a {
 	cursor: pointer;
@@ -651,16 +689,13 @@ a:focus {
 	margin-bottom: 10px;	
 }
 .alert-danger, .alert-info, .alert-success, .alert-warning, .added {
-	width: 400px;
 	margin-left: 15px;
-	margin-top: 15px;
-	display: block;
+	margin-top: 15px;	
 }
 .alert-danger {
 	color: #a94442;
 	background-color: #f2dede;
 	border-color: #ebccd1;
-	width: 400px;	
 	margin-bottom: -50px;	
 }
 .alert-success, .added{

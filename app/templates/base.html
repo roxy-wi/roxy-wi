@@ -12,7 +12,6 @@
 		<script defer src="/inc/fa-solid.min.js"></script>
 		<script defer src="/inc/fontawesome.min.js"></script>
 		<link href="/inc/awesome.css" rel="stylesheet">
-		<!-- <link href="/inc/vertical_scrol/custom_scrollbar.css" rel="stylesheet"> -->
 		<link href="/inc/style.css" rel="stylesheet">
 		<link href="/inc/nprogress.css" rel="stylesheet">
 		<link rel="stylesheet" href="/inc/jquery-ui.css">
@@ -21,41 +20,27 @@
 		<script src="/inc/js-cookie.js"></script>
 		<script src="/inc/script.js"></script>
 		<script src="/inc/nprogress.js"></script>
-		<!-- <script src="/inc/vertical_scrol/custom_scrollbar.min.js"></script> -->
 	</head>
 	<body>
 		<input type="hidden" id="token" value="{{ token }}">
-		<a name="top"></a>
-		<div class="show_menu" style="display: none;">
-			<a href="#" id="show_menu" title="Show menu" style="margin-top: 30px;position: absolute;">
-				<span class="ui-state-default ui-corner-all">
-					<span class="ui-icon ui-icon-arrowthick-1-e" id="arrow"></span>
-				</span>
-			</a>
-		</div>
 		<div class="top-menu">
 			<div class="LogoText">
-				<span id="logo_text" style="padding: 10px;">HAproxy-WI</span>
-				<a href="#" id="hide_menu" title="Hide menu" style="margin-left: 24px;position: absolute;">
-					<span class="ui-state-default ui-corner-all">
-						<span class="ui-icon ui-icon-arrowthick-1-w" id="arrow"></span>
-					</span>
-				</a>
+				<span id="logo_text">HAproxy-WI</span>			
 			</div>	
 			<div id="top-link" class="top-link">
 				<nav id="menu">
 					<ul class="menu">
-						<li class="p_menu"><a title="Statistics, monitoring and logs" class="stats">Stats</a>			
+						{% if user %}	
+						<li><a href=/app/overview.py title="Server and service status" class="overview-link">Overview</a></li>
+						<li class="p_menu"><a title="Statistics, monitoring and logs" class="stats">Monitoring</a>			
 							<ul class="v_menu">
-								<li><a href=/app/overview.py title="Server and service status" class="overview-link head-submenu">Overview</a></li>
 								<li><a href=/app/viewsttats.py title="Show stats" class="stats head-submenu">Stats</a></li>
 								<li><a href=/app/logs.py title="View logs" class="logs head-submenu"> Logs</a></li>	
 								<li><a href=/app/edit.py title="Runtime API" class="runtime head-submenu">Runtime API</a></li>
 								<li><a href=/app/metrics.py title="Metrics" class="metrics head-submenu">Metrics</a></li>
 							</ul>
 						</li>
-						<li class="p_menu"><a title="Actions with Haproxy configs" class="config-show">Haproxy</a>			
-						{% if user %}	
+						<li class="p_menu"><a title="Actions with Haproxy configs" class="config-show">Haproxy</a>								
 							<ul class="v_menu">
 								<li><a href=/app/config.py title="Working with Haproxy Configs" class="edit head-submenu">Configs</a> </li>
 							{% if role <= 2 %}
@@ -229,6 +214,25 @@
 				<div>
 					There is a new version HAProxy-WI. Check the <a href="/app/update.py">Update page</a>
 				</div>
-			</div>		
+			</div>	
+		<div class="footer">
+			<a href="#" id="hide_menu" title="Hide menu" style="float: left;">
+				<span class="ui-state-default ui-corner-all">
+					<span class="ui-icon ui-icon-arrowthick-1-w" id="arrow"></span>
+				</span>
+			</a>
+			<div class="show_menu" style="display: none; float: left;">
+			<a href="#" id="show_menu" title="Show menu">
+				<span class="ui-state-default ui-corner-all">
+					<span class="ui-icon ui-icon-arrowthick-1-e" id="arrow"></span>
+				</span>
+			</a>
+		</div>
+			<div class="footer-div">
+				<a href="https://github.com/Aidaho12/haproxy-wi/issues" class="footer-link" target="_blank">Help</a>
+				<a href="https://github.com/Aidaho12" class="footer-link" target="_blank">Contact</a>
+				<a href="http://haproxy-wi.org" class="footer-link" target="_blank">About</a>
+			</div>
+		</div>
 	</body>
 </html>

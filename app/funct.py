@@ -234,6 +234,66 @@ def diff_config(oldcfg, cfg):
 		print('<center><div class="alert alert-danger">Can\'t read write change to log. %s</div></center>' % stderr)
 		pass
 		
+		
+def get_sections(config):
+	record = False
+	return_config = list()
+	with open(config, 'r') as f:
+		for line in f:		
+			if line.startswith('listen') or line.startswith('frontend') or line.startswith('backend') or line.startswith('cache') or line.startswith('defaults') or line.startswith('global'):
+				line = line.strip()
+				return_config.append(line)
+					
+	return return_config
+		
+      
+def get_section_from_config(config, section):
+	record = False
+	start_line = ""
+	end_line = ""
+	return_config = ""
+	with open(config, 'r') as f:
+		for index, line in enumerate(f):
+			if line.startswith(section):
+				start_line = index
+				return_config += line
+				record = True 
+				continue
+			if record:
+								
+				if line.startswith('listen') or line.startswith('frontend') or line.startswith('backend') or line.startswith('cache') or line.startswith('defaults') or line.startswith('global'):
+					record = False
+					end_line = index
+					end_line = end_line - 1
+				else:
+					return_config += line
+					
+	return start_line, end_line, return_config
+	
+	
+def rewrite_section(start_line, end_line, config, section):
+	record = False
+	start_line = int(start_line)
+	end_line = int(end_line)
+	return_config = ""
+	with open(config, 'r') as f:
+		for index, line in enumerate(f):
+			index = int(index)
+			if index == start_line:
+				record = True
+				return_config += section
+				continue
+			if index == end_line:
+				record = False
+				continue
+			if record:
+				continue
+			
+			return_config += line
+		
+	return return_config
+	
+	
 def install_haproxy(serv, **kwargs):
 	import sql
 	script = "install_haproxy.sh"
@@ -484,15 +544,18 @@ def show_backends(serv, **kwargs):
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 	cmd='echo "show backend" |nc %s %s' % (serv, haproxy_sock_port)
 	output, stderr = subprocess_execute(cmd)
-	ret = ""
+	if kwargs.get('ret'):
+		ret = list()
+	else:
+		ret = ""
 	for line in output:
 		if "#" in  line or "stats" in line or "MASTER" in line:
 			continue
-		if line != "":
+		if len(line) > 1:
 			back = json.dumps(line).split("\"")
 			if kwargs.get('ret'):
-				ret += back[1]
-				ret += "<br />"
+				ret.append(back[1])
+				#ret += ","
 			else:
 				print(back[1], end="<br>")
 		

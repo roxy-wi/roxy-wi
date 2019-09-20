@@ -677,7 +677,7 @@ def select_options(**kwargs):
 def update_options(option, id):
 	con, cur = create_db.get_cur()
 	sql = """ update options set 
-			`option` = '%s',
+			options = '%s'
 			where id = '%s' """ % (option, id)
 	try:    
 		cur.execute(sql)
@@ -1483,9 +1483,9 @@ if form.getvalue('newtoption'):
 			
 if form.getvalue('updateoption') is not None:
 	option = form.getvalue('updateoption')
-	id = form.getvalue('optionid')	
+	id = form.getvalue('id')	
 	print('Content-type: text/html\n')	
-	if token is None or chanel is None or group is None:
+	if option is None or id is None:
 		print(error_mess)
 	else:		
 		update_options(option, id)

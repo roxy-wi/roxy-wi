@@ -3,9 +3,9 @@
 		<td class="overviewTr first-collumn">
 			<a name="{{ service.0 }}"></a>
 			{% if service.5 != "None" %}
-				<h3 title="IP  {{ service.1 }} {{ service.5 }}"> {{ service.0 }} :</h3>
+				<h4 title="IP  {{ service.1 }} {{ service.5 }}"> {{ service.0 }} :</h4>
 			{% else %}
-				<h3 title="IP  {{ service.1 }}"> {{ service.0 }} :</h3>
+				<h4 title="IP  {{ service.1 }}"> {{ service.0 }} :</h4>
 			{% endif %}
 		</td>
 		<td class="overviewTd" style="padding-top: 10px;">
@@ -19,13 +19,17 @@
 			</pre>
 		</td>
 		<td style="padding: 10px; padding-bottom: 0;font-size: 12px;">
-			<pre style="padding-left: 0px; margin: 0;">
+			<span style="padding-left: 0px; margin: 0;">
 		{% if 'Unknown command' in service.4 %}
 Too old version HAProxy
 		{% else %}
-{{ service.4 }}
+		{% for s in service.4 %}
+<a href="/app/sections.py?serv={{service.1}}&section={{ s }}" title="Edit {{s}} section" target="_blanck">
+{{s}}
+</a><br />
+		{% endfor %}
 		{% endif %}
-			</pre>
+			</span>
 		</td>
 		<td></td>
 	</tr>

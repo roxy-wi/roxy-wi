@@ -122,6 +122,7 @@ if form.getvalue('logout'):
 	print("Set-cookie: uuid=; expires=Wed May 18 03:33:20 2003; path=/app/; httponly")
 	print("Content-type: text/html\n")
 	print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
+	sys.exit()
 
 if login is not None and password is not None:
 

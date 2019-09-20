@@ -167,6 +167,10 @@ $( function() {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
 					$("#ajax").html('<div class="alert alert-danger">Cannot connect to HAProxy-WI repository. Connection timed out</data>');
+				} else if (data.indexOf('--disable') != '-1') {
+					$('.alert-danger').remove();
+					$('.alert-warning').remove();
+					$("#ajax").html('<div class="alert alert-danger">It is seems like you have problem with your repositorys.</data>');
 				}
 			}
 		} ); 	
