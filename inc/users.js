@@ -146,7 +146,7 @@ $( function() {
 				} else if (data.indexOf('Complete!') != '-1'){
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-success">'+data+'</data>');				
+					$("#ajax").html('<div class="alert alert-success">Update was success!</data>');				
 				} else if (data.indexOf('but not installed') != '-1') {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();

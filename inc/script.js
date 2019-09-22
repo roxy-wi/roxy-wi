@@ -229,7 +229,13 @@ function showOverviewServer(name,ip,id) {
 			$(".div-pannel").css('display', 'block');
 			$(".div-pannel").css('padding-top', '10px');
 			$(".div-pannel").css('height', '70px');
+			$("#div-pannel-"+id).insertBefore('#up-pannel')
 			$("#ajax-server-"+id).html(data);
+			$("#ajax-server-"+id).addClass( "update", 1000 );
+				setTimeout(function() {
+					$("#ajax-server-"+id).removeClass( "update" );
+					$("#ajax-server-"+id).css('background-color', '#f9fff8');			
+			}, 2500 );
 			// $.getScript('/inc/overview.js');
 		}					
 	} );
