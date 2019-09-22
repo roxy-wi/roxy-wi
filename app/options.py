@@ -116,6 +116,7 @@ if form.getvalue('action_hap') is not None and serv is not None:
 	if funct.check_haproxy_config(serv):
 		commands = [ "sudo systemctl %s haproxy" % action ]
 		funct.ssh_command(serv, commands)		
+		funct.logging(serv, 'HAProxy was '+action, haproxywi=1, login=1)
 		print("HAproxy was %s" % action)
 	else:
 		print("Bad config, check please")
@@ -123,7 +124,7 @@ if form.getvalue('action_hap') is not None and serv is not None:
 if form.getvalue('action_waf') is not None and serv is not None:
 	serv = form.getvalue('serv')
 	action = form.getvalue('action_waf')
-
+	funct.logging(serv, 'WAF service was '+action, haproxywi=1, login=1)
 	commands = [ "sudo systemctl %s waf" % action ]
 	funct.ssh_command(serv, commands)		
 	
@@ -134,7 +135,9 @@ if act == "overviewwaf":
 	ovw.get_overviewWaf(form.getvalue('page'))
 	
 if act == "overviewServers":
-	ovw.get_overviewServers()
+	id = form.getvalue('id')
+	name = form.getvalue('name')
+	ovw.get_overviewServers(ip=serv,name=name,page=form.getvalue('page'))
 	
 if form.getvalue('action'):
 	import requests
