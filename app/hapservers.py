@@ -27,7 +27,7 @@ out1 = ""
 for s in servers:
 	# print(s[2])
 	servers_with_status = list()
-	cmd = 'echo "show info" |nc %s %s -w 1 |grep -e "Ver\|Uptime:"' % (s[2], haproxy_sock_port)
+	cmd = 'echo "show info" |nc %s %s -w 1 |grep -e "Ver\|Uptime:\|Process_num"' % (s[2], haproxy_sock_port)
 	# print(cmd	)
 	out = funct.subprocess_execute(cmd)
 	servers_with_status.append(s[0])

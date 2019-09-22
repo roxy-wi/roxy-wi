@@ -6,11 +6,13 @@
 	<div class="server-name">
 		
 		{% if s.5 != False %}
-			<span class="serverUp server-status" title="{{s.5.0.0}} {{s.5.0.1}}"></span>
+			<span class="serverUp server-status" title="{{s.5.0.2}}"></span>
 		{% else %}
 			<span class="serverDown server-status" title="HAProxy is down"></span>
 		{% endif %}
-		<span title="Show info about {{s.2}}" onclick="showOverviewServer('{{s.1}}', '{{s.2}}', '{{s.0}}')" style="cursor: pointer;">{{s.1}}</span>
+		<span title="Show info about {{s.2}}" onclick="showOverviewServer('{{s.1}}', '{{s.2}}', '{{s.0}}')" style="cursor: pointer;">
+			{{s.1}}
+		</span>
 		{% if role <= 1 %}
 		<span class="server-action">
 			<a id="{{ s.2 }}" class="start" title="Start HAProxy service">
@@ -27,6 +29,8 @@
 	</div>
 	<div class="server-desc">
 		{{s.3}}
+		<br />
+		{{s.5.0.0}} {{s.5.0.1}}
 	</div>
 	<div class="server-act-links">
 		<a href="/app/config.py?serv={{s.2}}&showConfig" class="ui-button ui-widget ui-corner-all" title="Open running config" target="_blank">Open</a>	

@@ -402,7 +402,7 @@ pre {
 }
 .first-collumn {
 	padding-left: 15px;
-	width: 15%;
+	width: 20%;
 }
 .second-collumn {
 	width: 20%;
@@ -789,13 +789,13 @@ label {
 	margin-top: px;
 	margin-bottom: 0px;
 	margin-top: 14px;
-	height: 11em;
+	height: 12.3em;
 }
 .haproxy-info {
 	display: inline-block;
 	width: 160px;
 	padding-left: 20px;
-	padding-top: 1.1em;
+	padding-top: 2em;
 	font-size: 0.88em;
 }
 .top-info {
