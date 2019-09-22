@@ -31,9 +31,6 @@ h3 {
 form {
 	margin: 0;
 }
-/* iframe { */
-	/* width: 33%; */
-/* } */
 pre {
 	padding-left: 15px;
 }
@@ -232,16 +229,6 @@ pre {
 .paramInSec {
 	font-weight: bold;
 }
-/* .conteinerIndex { */
-	/* width: 20%; */
-	/* background-color: #fff; */
-	/* padding: 20px; */
-	/* border-radius: 10px; */
-	/* margin-top: 2%; */
-/* } */
-/* .conteinerIndex img { */
-	/* max-width: 250px; */
-/* } */
 /* .copyright { */
 	/* color: #23527c; */
 	/* margin-left: 15px; */
@@ -335,9 +322,6 @@ pre {
 	background-color: #F9FFF8;
 	font-weight: bold;
 }
-/* .overviewHead:hover { */
-	/* background-color: #f4f9f3e6; */
-/* }	 */
 .overview  tr{
 	border-bottom: 1px solid #ddd;
 	border-radius: 5px;
@@ -595,60 +579,6 @@ a:focus {
   outline: 5px auto -webkit-focus-ring-color;
   outline-offset: -2px;
 }
-/* abbr[title] { */
-  /* border-bottom: 1px dotted; */
-/* } */
-/* b, */
-/* strong { */
-  /* font-weight: bold; */
-/* } */
-/* //button, */
-/* input, */
-/* optgroup, */
-/* select, */
-/* textarea { */
-  /* margin: 0; */
-  /* font: inherit; */
-  /* color: inherit; */
-  /* border-radius: 7px; */
-  /* padding: 3px; */
-/* } */
-/* button { */
-  /* overflow: visible; */
-/* } */
-/* button, */
-/* select { */
-  /* text-transform: none; */
-/* } */
-/* select { */
-  /* color: #000; */
-/* } */
-/* button { */
-  /* background-color: #337ab7; */
-  /* border-color: #2e6da4; */
-  /* color: #fff; */
-/* } */
-/* button, */
-/* html input[type="button"], */
-/* input[type="reset"], */
-/* input[type="submit"] { */
-  /* -webkit-appearance: button; */
-  /* cursor: pointer; */
-/* } */
-/* button[disabled], */
-/* html input[disabled] { */
-  /* cursor: default; */
-/* } */
-/* button::-moz-focus-inner, */
-/* input::-moz-focus-inner { */
-  /* padding: 0; */
-  /* border: 0; */
-/* } */
-/* input { */
-	/* line-height: normal; */
-	/* border-radius: 4px; */
-/* } */
-
 table {
   border-spacing: 0;
   border-collapse: collapse;
@@ -737,11 +667,6 @@ label {
 .even {
 	background-color: #f3f8fb;
 }
-/* .mCSB_container { */
-	/* overflow-y: hidden !important; */
-	/* overflow-x: auto !important; */
-/* } */
-
 .div-server {
 	background-color: #f9fff8;
 	border: 1px solid #ddd;
