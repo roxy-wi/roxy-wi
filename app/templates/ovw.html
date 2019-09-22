@@ -7,7 +7,7 @@
 	<table class="overview">
 		<tr class="overviewHead">
 			<td class="padding10 first-collumn">Login</td>
-			<td class="padding10 second-collumn">Email</td>
+			<td class="padding10 second-collumn"><!--Email--></td>
 			<td class="second-collumn">Group</td>
 			<td>Role</td>
 			<td class="padding10">
@@ -29,7 +29,7 @@
 							<img src="/inc/images/edit.png" alt="Edit" width="15" style="margin-bottom: -3px;" />
 						</a>
 					</td>
-					<td class="padding10 second-collumn"> {{ USER.2 }}</td>
+					 <td class="padding10 second-collumn"> <!--{{ USER.2 }}--></td> 
 					{% for group in groups %}
 						{% if USER.5 == group.0|string() %}
 							<td class="third-collumn">{{ group.1 }}</td>
@@ -73,8 +73,8 @@
 			<span title="running {{ metrics_master }} master processes"><span class="serverDown"> DOWN</span>
 		{% endif %}
 			<span>Metrics master</span>
-		</td>
-		<td class="padding10 second-collumn">
+			<br />
+			<br />
 		{% if metrics_worker|int() >= 1 %}
 			<span title="running {{metrics_worker}} worker processes"><span class="serverUp"> UP</span> 
 		{% else %}
@@ -82,6 +82,7 @@
 		{% endif %}
 			<span>Metrics workers</span>
 		</td>
+		<td class="padding10 second-collumn"></td>
 		<td class="third-collumn">
 		{% if checker_master|int() >= 1 %}
 			<span title="running {{ checker_master }} master processes"><span class="serverUp"> UP</span>
@@ -89,14 +90,22 @@
 			<span title="running {{ checker_master }} master processes"><span class="serverDown"> DOWN</span> 
 		{% endif %}
 			<span>Checker master</span>
-		</td>
-		<td>
+			<br />
+			<br />
 		{% if checker_worker|int() >= 1 %}
 			<span title="running {{ checker_worker }} worker processes"><span class="serverUp"> UP</span>
 		{% else %}
 			<span title="running {{ checker_worker }} worker processes"><span class="serverDown"> DOWN</span> 
 		{% endif %}
 			<span>Checker workers</span>
+		</td>
+		<td class="third-collumn">
+		{% if keep_alive|int() >= 1 %}
+			<span title="Keep alive is run"><span class="serverUp"> UP</span>
+		{% else %}
+			<span title="Keep alive is down"><span class="serverDown"> DOWN</span> 
+		{% endif %}
+			<span>Keep alive</span>
 		</td>
 	</tr>
 </table>
@@ -107,7 +116,7 @@
 			Server
 		</td class="padding10 second-collumn">
 		<td class="padding10 second-collumn">
-			HAproxy status
+			<!-- HAproxy status-->
 		</td>
 		<td class="padding10  third-collumn">
 			Action
@@ -124,10 +133,10 @@
 <table class="overview">
 	<tr class="overviewHead">
 		<td class="padding10 first-collumn">
-			Server
+			WAF
 		</td class="padding10 second-collumn">
 		<td class="padding10 second-collumn">
-			WAF status
+			<!-- WAF status -->
 		</td>
 		<td class="padding10  third-collumn">
 			Action
@@ -141,26 +150,26 @@
 	</tr>
 <tbody id="ajaxwafstatus"></tbody>	
 </table>
-<table class="overview" >
-	<tr class="overviewHead">
-		<td class="padding10 first-collumn">
-			Server
-		</td>
-		<td class="padding10 second-collumn">
-			HAproxy info
-		</td>
-		<td  class="padding10 third-collumn">
-			Server status
-		</td>
-		<td class="padding10">
-			Front/Back-ends
-		</td>
-		<td>
-			<a onclick="showOverviewServers()" title="Refresh Server Info" style="float: right; margin-right: 25px;"><img  src="/inc/images/update.png" alt="restart" class="icon"></a>
-		</td>
-	</tr>
-<tbody id="ajaxservers"></tbody>
-</table>
+<!-- <table class="overview" > -->
+	<!-- <tr class="overviewHead"> -->
+		<!-- <td class="padding10 first-collumn"> -->
+			<!-- Server -->
+		<!-- </td> -->
+		<!-- <td class="padding10 second-collumn"> -->
+			<!-- HAproxy info -->
+		<!-- </td> -->
+		<!-- <td  class="padding10 third-collumn"> -->
+			<!-- Server status -->
+		<!-- </td> -->
+		<!-- <td class="padding10"> -->
+			<!-- Front/Back-ends -->
+		<!-- </td> -->
+		<!-- <td> -->
+			<!-- <a onclick="showOverviewServers()" title="Refresh Server Info" style="float: right; margin-right: 25px;"><img  src="/inc/images/update.png" alt="restart" class="icon"></a> -->
+		<!-- </td> -->
+	<!-- </tr> -->
+<!-- <tbody id="ajaxservers"></tbody> -->
+<!-- </table> -->
 <div id="dialog-confirm" style="display: none;">
   <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>Are you sure?</p>
 </div>

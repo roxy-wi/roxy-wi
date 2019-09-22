@@ -28,9 +28,7 @@
 			</div>
 		{% endif %}
 	{% endif %}
-	{% if note %}
-		<div class="alert alert-info"><b>Note:</b> If you reconfigure Master server, Slave will reconfigured automatically</div>
-	{% endif %}
+
 	{% if open %}
 		<center>
 			<h4>Choose old version</h4>
@@ -51,6 +49,7 @@
 					<a class="ui-button ui-widget ui-corner-all" id="show" title="Enter" onclick="showUploadConfig()">Select</a>
 				</p>
 			</form> 
+			
 		</center>
 	{% endif %}
 	{% if aftersave %}

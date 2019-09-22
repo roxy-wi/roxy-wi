@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}	
+{% for s in servers %}
+<div class="div-pannel">
+<div id="div-server-{{s.0}}" class="div-server">
+	<div class="server-name">
+		
+		{% if s.5 != False %}
+			<span class="serverUp server-status" title="{{s.5.0.0}} {{s.5.0.1}}"></span>
+		{% else %}
+			<span class="serverDown server-status" title="HAProxy is down"></span>
+		{% endif %}
+		<span title="Show info about {{s.2}}" onclick="showOverviewServer('{{s.1}}', '{{s.2}}', '{{s.0}}')" style="cursor: pointer;">{{s.1}}</span>
+		{% if role <= 1 %}
+		<span class="server-action">
+			<a id="{{ s.2 }}" class="start" title="Start HAProxy service">
+				<img src=/inc/images/start.png alt="start" class="icon" style="margin-bottom: -2px;" onclick="confirmAjaxAction('start', 'hap', '{{s.2}}')">
+			</a>
+			<a id="{{ s.2 }}" class="stop" title="Stop HAProxy service">
+				<img src=/inc/images/stop.png alt="stop" class="icon" width="17px" onclick="confirmAjaxAction('stop', 'hap', '{{s.2}}')">
+			</a>
+			<a id="{{ s.2 }}" class="restart" title="Restart HAProxy service">
+				<img src=/inc/images/update.png alt="restart" class="icon">
+			</a>
+		</span>
+		{% endif %}
+	</div>
+	<div class="server-desc">
+		{{s.3}}
+	</div>
+	<div class="server-act-links">
+		<a href="/app/config.py?serv={{s.2}}&showConfig" class="ui-button ui-widget ui-corner-all" title="Open running config" target="_blank">Open</a>	
+		<a href="/app/config.py?serv={{s.2}}&showCompare" class="ui-button ui-widget ui-corner-all" title="Compare configs" target="_blank">Compare</a>	
+		<a href="/app/config.py?serv={{s.2}}&showMap" class="ui-button ui-widget ui-corner-all" title="Show map" target="_blank">Map</a>	
+		<a href="/app/viewsttats.py?serv={{s.2}}" class="ui-button ui-widget ui-corner-all" title="View stat" target="_blank">Stat</a>	
+		{% if role <= 2 %}
+			<a href="/app/versions.py?serv={{s.2}}&open=open" class="ui-button ui-widget ui-corner-all" title="Show verisons">Verisons</a>	
+		{% endif %}
+	</div>
+</div>
+<div id="ajax-server-{{s.0}}" class="ajax-server"></div>
+</div>
+{% endfor %}
+<div id="dialog-confirm" style="display: none;">
+  <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>Are you sure?</p>
+</div>
+<script src="/inc/overview.js"></script>
+
+{% endblock %}

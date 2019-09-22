@@ -146,8 +146,7 @@ function startSetInterval(interval) {
 			}
 			intervalId = setInterval('loadMetrics()', interval);
 			loadMetrics();
-		} 
-		else if (cur_url[0] == "waf.py") {
+		} else if (cur_url[0] == "waf.py") {
 			if(interval < 60000) {
 				interval = 60000;
 			}
@@ -190,7 +189,7 @@ $( document ).ajaxComplete(function( event, request, settings ) {
 });
 
 function showOverview() {
-	showOverviewServers();
+	// showOverviewServers();
 	showOverviewWaf()
 	$.ajax( {
 		url: "options.py",
@@ -203,6 +202,35 @@ function showOverview() {
 			$("#ajaxstatus").empty();
 			$("#ajaxstatus").html(data);
 			$.getScript('/inc/overview.js');
+		}					
+	} );
+}
+function showOverviewServer(name,ip,id) {
+	showOverviewServers();
+	showOverviewWaf()
+	$.ajax( {
+		url: "options.py",
+		data: {
+			act: "overviewServers",
+			name: name,
+			serv: ip,
+			page: 'hapservers.py',
+			token: $('#token').val()
+		},
+		type: "GET",
+		success: function( data ) {
+			$("#ajax-server-"+id).empty();
+			$("#ajax-server-"+id).css('display', 'block');
+			$("#ajax-server-"+id).css('background-color', '#f9fff8');
+			$("#ajax-server-"+id).css('border', '1px solid #ddd');
+			$(".ajax-server").css('display', 'block');
+			$(".div-server").css('clear', 'both');
+			$(".div-pannel").css('clear', 'both');
+			$(".div-pannel").css('display', 'block');
+			$(".div-pannel").css('padding-top', '10px');
+			$(".div-pannel").css('height', '70px');
+			$("#ajax-server-"+id).html(data);
+			// $.getScript('/inc/overview.js');
 		}					
 	} );
 }

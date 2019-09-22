@@ -14,7 +14,11 @@ function ajaxActionServers(action, id) {
 					if( data ==  'Bad config, check please ' ) {
 						alert(data);
 					} else {
-						setTimeout(showOverview, 2000)					
+						if (cur_url[0] == "hapservers.py") {
+							location.reload()
+						} else {
+							setTimeout(showOverview, 2000)					
+						}
 					}
 				},
 				error: function(){

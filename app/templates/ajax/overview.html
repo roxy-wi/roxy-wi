@@ -1,12 +1,17 @@
 {% for service in service_status %}
 	<tr class="{{ loop.cycle('odd', 'even') }}">
-		<td class="padding10">
-			<a href="#{{ service.0 }}" title="Go to {{ service.0 }} status" style="color: #000; padding-left: 15px;">
+		<td class="padding10 first-collumn">
+			{% if service.2|int() >= 1 %}
+			<span class="serverUp" title="running {{service.2 }} processes"> UP</span> 
+		{% else %}
+			<span class="serverDown"> DOWN</span>
+		{% endif %}
+			<a href="#{{ service.0 }}" title="Go to {{ service.0 }} status" style="color: #000;">
 				{{ service.0 }}
 				
-				{% if service.5.0.0|int() >= 1 %}
+				{% if service.4.0.0|int() >= 1 %}
 					<img 
-						{% if service.6.0.0|int() >= 1 %}
+						{% if service.5.0.0|int() >= 1 %}
 							src="/inc/images/shield.png" title="Auto start enabled"
 						{% else %}
 							src="/inc/images/shield-red.png" title="Auto start enabled, but keep alive service does not work"
@@ -17,11 +22,7 @@
 			</a>
 		</td>
 		<td  class="second-collumn">
-		{% if service.2|int() >= 1 %}
-			<span class="serverUp"> UP</span> running {{service.2 }} processes
-		{% else %}
-			<span class="serverDown"> DOWN</span> running {{service.2 }} processes
-		{% endif %}
+		
 		</td>
 		<td>
 		{% if role <= 1 %}

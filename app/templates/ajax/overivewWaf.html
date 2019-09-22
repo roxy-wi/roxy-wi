@@ -4,14 +4,15 @@
 		{% do waf_servers.append(1) %}
 		<tr class="{{ loop.cycle('odd', 'even') }}" id="{{service.0}}-select-line">
 			<td class="padding10 first-collumn">
+			{% if service.2|int() >= 1 %}
+				<span class="serverUp" title="running {{service.2 }} processes"> UP</span>
+			{% else %}
+				<span class="serverDown"> DOWN</span>
+			{% endif %}
 				<a href="#{{ service.0 }}" title="Go to {{ service.0 }} status" style="color: #000">{{ service.0 }}</a>
 			</td>
 			<td  class="second-collumn">
-			{% if service.2|int() >= 1 %}
-				<span class="serverUp"> UP</span> running {{service.2 }} processes
-			{% else %}
-				<span class="serverDown"> DOWN</span> running {{service.2 }} processes
-			{% endif %}
+			
 			</td>
 			<td>
 			{% if role <= 1 %}

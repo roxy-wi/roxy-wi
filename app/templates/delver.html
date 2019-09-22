@@ -16,10 +16,12 @@
 			</select>
 			<button type="submit" value="open" name="open" class="btn btn-default">Open</button>
 		</form>
+		{% if not aftersave and not open %}
+		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+			Here you can work with previous versions of HAProxy configs. Roll back to them, view or delete		
+		</div>
+		{% endif %}
 	</p>
-	{% if note %}
-		<div class="alert alert-info"><b>Note:</b> If you reconfigure Master server, Slave will reconfigured automatically</div>
-	{% endif %}
 	{% if open %}
 		<center>
 			<h4>Choose old version</h4>
@@ -40,6 +42,7 @@
 				</p>
 			</form> 
 		</center>
+		<div class="alert alert-info"><b>Note:</b> If you reconfigure Master server, Slave will reconfigured automatically</div>
 	{% endif %}
 	{% if aftersave %}
 		<div class="alert alert-info"><b>The following files were deleted:</b><br /> </div>

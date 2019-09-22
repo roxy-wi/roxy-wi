@@ -28,6 +28,8 @@ try:
 	metrics_master, stderr = funct.subprocess_execute(cmd)
 	cmd = "ps ax |grep -e 'metrics_worker\|metrics_waf_worker.py' |grep -v grep |wc -l"
 	metrics_worker, stderr = funct.subprocess_execute(cmd)
+	cmd = "ps ax |grep -e 'keep_alive.py' |grep -v grep |wc -l"
+	keep_alive, stderr = funct.subprocess_execute(cmd)
 except:
 	pass
 
@@ -43,6 +45,7 @@ template = template.render(h2 = 1,
 							metrics_worker = ''.join(metrics_worker),
 							checker_master = ''.join(checker_master),
 							checker_worker = ''.join(checker_worker),
+							keep_alive = ''.join(keep_alive),
 							error = stderr,
 							versions = funct.versions(),
 							token = token)
