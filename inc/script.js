@@ -231,6 +231,9 @@ function showOverviewServer(name,ip,id) {
 			$(".div-pannel").css('height', '70px');
 			$("#div-pannel-"+id).insertBefore('#up-pannel')
 			$("#ajax-server-"+id).html(data);
+			$([document.documentElement, document.body]).animate({
+				scrollTop: $("#ajax-server-"+id).offset().top
+			}, 200);
 			$("#ajax-server-"+id).addClass( "update", 1000 );
 				setTimeout(function() {
 					$("#ajax-server-"+id).removeClass( "update" );
