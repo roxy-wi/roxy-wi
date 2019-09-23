@@ -434,7 +434,7 @@ def update_to_hash():
 		if i == 4:
 			break
 		i += 1
-	if cur_ver <= '3490' and check_hash():	
+	if ver >= '3490' and check_hash():	
 		con, cur = get_cur()
 		sql = """select id, password from user """ 
 		try:    
