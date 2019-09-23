@@ -76,7 +76,7 @@ pre {
 }
 .container {
 	min-height: calc(99vh - 50px);
-	height: 100%;
+	height: auto;
 	max-width: 91%;
 	min-width: 40%;
 	background-color: #fff;
@@ -86,7 +86,7 @@ pre {
 }
 .footer {
 	min-height: 50px;
-	top: calc(99vh - 40px);
+	/* top: calc(99vh - 40px); */
 	right: 0;
 	left: 0;
 	max-width: 91%;
@@ -96,7 +96,6 @@ pre {
 	margin-right: 20px;
 	border-top: 1px solid #ddd;
 	clear: both;
-	position: fixed;
 }
 .footer-div {
 	display: block;
@@ -755,4 +754,7 @@ label {
 .top-info {
 	display: inline-block;
 	width: 350px;
+}
+.span-link {
+	cursor: pointer;
 }

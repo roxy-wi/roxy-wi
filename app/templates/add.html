@@ -2,6 +2,7 @@
 {% block content %}
 <div id="tabs">
 	<ul>
+		<li><a href="#create">Create proxy</a></li>
 		<li><a href="#listen">Listen</a></li>
 		<li><a href="#frontend">Frontend</a></li>
 		<li><a href="#backend">Backend</a></li>
@@ -13,6 +14,42 @@
 			<a href=/app/login.py title="Login" class="login"> Login</a>
 		{% endif %}
 	</ul>
+	<div id="create">
+		<div class="div-pannel">
+			<div class="div-server">
+				<div class="server-name">
+					<span title="Create Listen" class="redirectListen span-link">Create Listen</span>
+				</div>
+				<div class="server-desc">
+						A "listen" section defines a complete proxy with its frontend and backend parts combined in one section. It is generally useful for TCP-only traffic.
+				</div>
+				
+			</div>
+		</div>
+		<div class="div-pannel">
+			<div class="div-server">
+				<div class="server-name">
+					<span title="Create Frontend" class="redirectFrontend span-link">Create Frontend</span>
+				</div>
+				<div class="server-desc">
+					A "frontend" section describes a set of listening sockets accepting client connections.
+					And forwards them to backend
+				</div>			
+			</div>
+		</div>
+		<div class="div-pannel">
+			<div class="div-server">
+				<div class="server-name">
+					<span title="Create Backend" class="redirectBackend span-link">Create Backend</span>
+				</div>
+				<div class="server-desc">
+					A "backend" section describes a set of servers to which the proxy will connect to forward incoming connections. 
+					<br />
+					<br />
+				</div>			
+			</div>
+		</div>
+	</div>
 	<div id="listen">
 		<form name="add-listner" action="/app/add.py">
 		<table class="add-table">
@@ -235,7 +272,8 @@
 			</td>
 		</tr>
 		</form>
-		</table></div>
+		</table>
+	</div>
 		
 		<!-- Second tabs -->
 		
@@ -366,7 +404,7 @@
 				<div style="font-size: 12px; padding-bottom: 10px;">Start typing backend, or press down</div>
 				<input  name="backend" id="backends" required size="30" placeholder="some_backend" class="form-control">
 				<span style="font-size: 12px; padding-left: 10px;"> .</span>
-				<p style="font-size: 12px"><b>Note:</b> If backend don\t exist, you must <a href="#" style="color: #23527c"  title="Create backend" id="redirectBackend">create backend first</a>.</p>
+				<p style="font-size: 12px"><b>Note:</b> If backend don\t exist, you must <a href="#" style="color: #23527c"  title="Create backend" class="redirectBackend">create backend first</a>.</p>
 			</td>
 		</tr>
 		<tr class="advance-show">

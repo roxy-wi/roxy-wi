@@ -505,8 +505,14 @@ $( function() {
 		scrollInertia:30
 		});	 */
 	$( "#tabs" ).tabs();
-	$( "#redirectBackend" ).on( "click", function() {
+	$( ".redirectListen" ).on( "click", function() {
+		$( "#tabs" ).tabs( "option", "active", 1 );
+	} );
+	$( ".redirectFrontend" ).on( "click", function() {
 		$( "#tabs" ).tabs( "option", "active", 2 );
+	} );
+	$( ".redirectBackend" ).on( "click", function() {
+		$( "#tabs" ).tabs( "option", "active", 3 );
 	} );
 	$( "select" ).selectmenu();
 		
@@ -1236,24 +1242,24 @@ $( function() {
 			});
 			$( "#tabs" ).tabs( "option", "active", 0 );
 		} );
-		$( "#add2" ).on( "click", function() {
-			$('.menu li ul li').each(function () {
-				$(this).find('a').css('padding-left', '20px')
-				$(this).find('a').css('border-left', '0px solid #5D9CEB');
-				$(this).children("#add2").css('padding-left', '30px');
-				$(this).children("#add2").css('border-left', '4px solid #5D9CEB');
-			});
-			$( "#tabs" ).tabs( "option", "active", 1 );
-		} );
-		$( "#add3" ).on( "click", function() {
-			$('.menu li ul li').each(function () {
-				$(this).find('a').css('padding-left', '20px')
-				$(this).find('a').css('border-left', '0px solid #5D9CEB');
-				$(this).children("#add3").css('padding-left', '30px');
-				$(this).children("#add3").css('border-left', '4px solid #5D9CEB');
-			});
-			$( "#tabs" ).tabs( "option", "active", 2 );
-		} );
+		// $( "#add2" ).on( "click", function() {
+			// $('.menu li ul li').each(function () {
+				// $(this).find('a').css('padding-left', '20px')
+				// $(this).find('a').css('border-left', '0px solid #5D9CEB');
+				// $(this).children("#add2").css('padding-left', '30px');
+				// $(this).children("#add2").css('border-left', '4px solid #5D9CEB');
+			// });
+			// $( "#tabs" ).tabs( "option", "active", 1 );
+		// } );
+		// $( "#add3" ).on( "click", function() {
+			// $('.menu li ul li').each(function () {
+				// $(this).find('a').css('padding-left', '20px')
+				// $(this).find('a').css('border-left', '0px solid #5D9CEB');
+				// $(this).children("#add3").css('padding-left', '30px');
+				// $(this).children("#add3").css('border-left', '4px solid #5D9CEB');
+			// });
+			// $( "#tabs" ).tabs( "option", "active", 2 );
+		// } );
 		$( "#add4" ).on( "click", function() {
 			$('.menu li ul li').each(function () {
 				$(this).find('a').css('padding-left', '20px')
@@ -1261,7 +1267,7 @@ $( function() {
 				$(this).children("#add4").css('padding-left', '30px');;
 				$(this).children("#add4").css('border-left', '4px solid #5D9CEB');
 			});
-			$( "#tabs" ).tabs( "option", "active", 3 );
+			$( "#tabs" ).tabs( "option", "active", 4 );
 		} );
 		$( "#add5" ).on( "click", function() {
 			$('.menu li ul li').each(function () {
@@ -1270,7 +1276,7 @@ $( function() {
 				$(this).children("#add5").css('padding-left', '30px');;
 				$(this).children("#add5").css('border-left', '4px solid #5D9CEB');
 			});
-			$( "#tabs" ).tabs( "option", "active", 4 );
+			$( "#tabs" ).tabs( "option", "active", 5 );
 		} );
 	}
 	if (cur_url[0] == "/app/users.py" || cur_url[0] == "/app/servers.py") {
@@ -1326,15 +1332,15 @@ $( function() {
 				$( "#tabs" ).tabs( "option", "active", 2 );
 			} );
 		}
-		$( ".role" ).on( "click", function() {
-			$('.menu li ul li').each(function () {
-				$(this).find('a').css('border-left', '0px solid #5D9CEB');
-				$(this).find('a').css('padding-left', '20px')
-				$(this).children(".role").css('padding-left', '30px');
-				$(this).children(".role").css('border-left', '4px solid #5D9CEB');
-			});
-			$( "#tabs" ).tabs( "option", "active", 3 );
-		} );
+		// $( ".role" ).on( "click", function() {
+			// $('.menu li ul li').each(function () {
+				// $(this).find('a').css('border-left', '0px solid #5D9CEB');
+				// $(this).find('a').css('padding-left', '20px')
+				// $(this).children(".role").css('padding-left', '30px');
+				// $(this).children(".role").css('border-left', '4px solid #5D9CEB');
+			// });
+			// $( "#tabs" ).tabs( "option", "active", 3 );
+		// } );
 		$( ".admin" ).on( "click", function() {
 			$('.menu li ul li').each(function () {
 				$(this).find('a').css('border-left', '0px solid #5D9CEB');
@@ -1342,7 +1348,7 @@ $( function() {
 				$(this).children(".admin").css('padding-left', '30px');
 				$(this).children(".admin").css('border-left', '4px solid #5D9CEB');
 			});
-			$( "#tabs" ).tabs( "option", "active", 4 );
+			$( "#tabs" ).tabs( "option", "active", 3 );
 		} );
 	}
 	$( "#path-cert-listen" ).autocomplete({
