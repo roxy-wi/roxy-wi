@@ -131,6 +131,7 @@ if form.getvalue('logout'):
 if login is not None and password is not None:
 
 	USERS = sql.select_users(user=login)
+	password = funct.get_hash(password)
 		
 	for users in USERS:	
 		if users[7] == 0:

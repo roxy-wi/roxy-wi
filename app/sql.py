@@ -24,7 +24,7 @@ def out_error(e):
 def add_user(user, email, password, role, group, activeuser):
 	con, cur = create_db.get_cur()
 	if password != 'aduser':
-		sql = """INSERT INTO user (username, email, password, role, groups, activeuser) VALUES ('%s', '%s', '%s', '%s', '%s', '%s')""" % (user, email, password, role, group, activeuser)
+		sql = """INSERT INTO user (username, email, password, role, groups, activeuser) VALUES ('%s', '%s', '%s', '%s', '%s', '%s')""" % (user, email, funct.get_hash(password), role, group, activeuser)
 	else:
 		sql = """INSERT INTO user (username, email, role, groups, ldap_user, activeuser) VALUES ('%s', '%s', '%s', '%s', '1', '%s')""" % (user, email, role, group, activeuser)		
 	try:    
@@ -47,7 +47,7 @@ def update_user(user, email, password, role, group, id, activeuser):
 			role = '%s', 
 			groups = '%s',
 			activeuser = '%s'
-			where id = '%s'""" % (user, email, password, role, group, activeuser, id)
+			where id = '%s'""" % (user, email, funct.get_hash(password), role, group, activeuser, id)
 	try:    
 		cur.execute(sql)
 		con.commit()
