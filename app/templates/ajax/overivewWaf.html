@@ -3,7 +3,7 @@
 	{% if service.3 == "On" or service.3 == "Off" or service.3 == "DetectionOnly" or url == "waf.py" %}
 		{% do waf_servers.append(1) %}
 		<tr class="{{ loop.cycle('odd', 'even') }}" id="{{service.0}}-select-line">
-			<td class="padding10 first-collumn">
+			<td class="padding10 first-collumn-wi">
 			{% if service.2|int() >= 1 %}
 				<span class="serverUp" title="running {{service.2 }} processes"> UP</span>
 			{% else %}
@@ -11,9 +11,9 @@
 			{% endif %}
 				<a href="#{{ service.0 }}" title="Go to {{ service.0 }} status" style="color: #000">{{ service.0 }}</a>
 			</td>
-			<td  class="second-collumn">
+			<!-- <td  class="second-collumn"> -->
 			
-			</td>
+			<!-- </td> -->
 			<td>
 			{% if role <= 1 %}
 				<a id="{{ service.1 }}" class="start-waf" title="Start WAF service">
@@ -67,7 +67,7 @@
 {% endfor %}
 {% if waf_servers|count == 0 and url != "waf.py" %}
 	<tr>
-		<td class="padding10 first-collumn">
+		<td class="padding10 first-collumn-wi">
 			You have not installed the WAF server yet
 		</td>
 	</tr>

@@ -3,122 +3,15 @@
 <script>
 	$("#secIntervals").css("display", "none");
 </script>
-{% if role <= 1 %}
-	<table class="overview">
-		<tr class="overviewHead">
-			<td class="padding10 first-collumn">Login</td>
-			<td class="padding10 second-collumn"><!--Email--></td>
-			<td class="second-collumn">Group</td>
-			<td>Role</td>
-			<td class="padding10">
-				<span class="add-button">
-					<a title="Show all users" id="show-all-users" style="color: #fff">
-						Show all
-					</a>
-				</span>
-			</td>
-		</tr>		
-		{% set counter = 0 -%}
-		{% for USER in users %}
-			{% set counter = counter + loop.index0 %}
-			{% if counter <= 2 %}
-				<tr class="{{ loop.cycle('odd', 'even') }}">
-					<td class="padding10 first-collumn"> 
-						<a href="users.py#users" title="Edit user" style="color: #000;">
-							{{ USER.1 }}
-							<img src="/inc/images/edit.png" alt="Edit" width="15" style="margin-bottom: -3px;" />
-						</a>
-					</td>
-					 <td class="padding10 second-collumn"> <!--{{ USER.2 }}--></td> 
-					{% for group in groups %}
-						{% if USER.5 == group.0|string() %}
-							<td class="third-collumn">{{ group.1 }}</td>
-						{% endif %}
-					{% endfor %}
-					<td>{{ USER.4 }}</td>
-					<td></td>
-				</tr>
-			{% else %}
-				<tr style="display: none;" class="show-users {{ loop.cycle('odd', 'even') }}">
-					<td class="padding10 first-collumn"> 
-						<a href="users.py#users" title="Edit user" style="color: #000;">
-							{{ USER.1 }}
-							<img src="/inc/images/edit.png" alt="Edit" width="15" style="margin-bottom: -3px;" />
-						</a>
-					</td>
-					<td class="padding10"> {{ USER.2 }}</td>
-					{% for group in groups %}
-						{% if group.0|string() == USER.5 %}
-							<td class="third-collumn">{{ group.1 }}</td>
-						{% endif %}
-					{% endfor %}
-					<td>{{ USER.4 }}</td>
-					<td></td>
-				</tr>
-			{% endif %}
-		{% endfor %}
-	</table>
-	<table class="overview">
-	<tr class="overviewHead">	
-		<th class="padding10 first-collumn" colspan=4>
-			Tools status
-		</th>
-	</tr>
-	
-	<tr>
-		<td class="padding10 first-collumn">
-		{% if metrics_master|int() >= 1 %}
-			<span title="running {{ metrics_master }} master processes"><span class="serverUp"> UP</span> 
-		{% else %}
-			<span title="running {{ metrics_master }} master processes"><span class="serverDown"> DOWN</span>
-		{% endif %}
-			<span>Metrics master</span>
-			<br />
-			<br />
-		{% if metrics_worker|int() >= 1 %}
-			<span title="running {{metrics_worker}} worker processes"><span class="serverUp"> UP</span> 
-		{% else %}
-			<span title="running {{metrics_worker}} worker processes"><span class="serverDown"> DOWN</span> 
-		{% endif %}
-			<span>Metrics workers</span>
-		</td>
-		<td class="padding10 second-collumn"></td>
-		<td class="third-collumn">
-		{% if checker_master|int() >= 1 %}
-			<span title="running {{ checker_master }} master processes"><span class="serverUp"> UP</span>
-		{% else %}
-			<span title="running {{ checker_master }} master processes"><span class="serverDown"> DOWN</span> 
-		{% endif %}
-			<span>Checker master</span>
-			<br />
-			<br />
-		{% if checker_worker|int() >= 1 %}
-			<span title="running {{ checker_worker }} worker processes"><span class="serverUp"> UP</span>
-		{% else %}
-			<span title="running {{ checker_worker }} worker processes"><span class="serverDown"> DOWN</span> 
-		{% endif %}
-			<span>Checker workers</span>
-		</td>
-		<td class="third-collumn">
-		{% if keep_alive|int() >= 1 %}
-			<span title="Keep alive is run"><span class="serverUp"> UP</span>
-		{% else %}
-			<span title="Keep alive is down"><span class="serverDown"> DOWN</span> 
-		{% endif %}
-			<span>Keep alive</span>
-		</td>
-	</tr>
-</table>
-{% endif %}
-<table class="overview">
+<table class="overview-wi">
 	<tr class="overviewHead">
-		<td class="padding10 first-collumn">
+		<td class="padding10 first-collumn-wi">
 			Server
 		</td class="padding10 second-collumn">
-		<td class="padding10 second-collumn">
-			<!-- HAproxy status-->
-		</td>
-		<td class="padding10  third-collumn">
+		<!-- <td class="padding10 second-collumn"> -->
+			<!-- HAproxy status -->
+		<!-- </td> -->
+		<td class="padding10  third-collumn-wi">
 			Action
 		</td>
 		<td class="padding10">
@@ -129,16 +22,16 @@
 		</td>
 	</tr>
 <tbody id="ajaxstatus"></tbody>
-
-<table class="overview">
+</table>
+<table class="overview-wi">
 	<tr class="overviewHead">
-		<td class="padding10 first-collumn">
+		<td class="padding10 first-collumn-wi">
 			WAF
 		</td class="padding10 second-collumn">
-		<td class="padding10 second-collumn">
+		<!-- <td class="padding10 second-collumn"> -->
 			<!-- WAF status -->
-		</td>
-		<td class="padding10  third-collumn">
+		<!-- </td> -->
+		<td class="padding10  third-collumn-wi">
 			Action
 		</td>
 		<td class="padding10">
@@ -150,15 +43,167 @@
 	</tr>
 <tbody id="ajaxwafstatus"></tbody>	
 </table>
+<table class="overview-wi" style="height: 172;">
+	<tr class="overviewHead">	
+		<th class="padding10 first-collumn-wi" colspan=4>
+			Tools status
+		</th>
+	</tr>
+	<tr>
+		<td class="padding10 first-collumn-wi">
+		{% if metrics_master|int() >= 1 %}
+			<span title="running {{ metrics_master }} master processes"><span class="serverUp"> UP</span> 
+		{% else %}
+			<span title="running {{ metrics_master }} master processes"><span class="serverDown"> DOWN</span>
+		{% endif %}
+			<span>Metrics master</span>
+
+		</td>
+		<td class="third-collumn-wi">
+			{% if checker_master|int() >= 1 %}
+				<span title="running {{ checker_master }} master processes"><span class="serverUp"> UP</span>
+			{% else %}
+				<span title="running {{ checker_master }} master processes"><span class="serverDown"> DOWN</span> 
+			{% endif %}
+			<span>Checker master</span>
+		</td>
+		<td class="third-collumn-wi" style="border-right: 1px solid #ddd;">
+			{% if keep_alive|int() >= 1 %}
+				<span title="Keep alive is run"><span class="serverUp"> UP</span>
+			{% else %}
+				<span title="Keep alive is down"><span class="serverDown"> DOWN</span> 
+			{% endif %}
+				<span>Keep alive</span>
+		</td>
+	</tr>
+	<tr>
+		<td class="padding10 first-collumn-wi">
+		{% if metrics_worker|int() >= 1 %}
+			<span title="running {{metrics_worker}} worker processes"><span class="serverUp"> UP</span> 
+		{% else %}
+			<span title="running {{metrics_worker}} worker processes"><span class="serverDown"> DOWN</span> 
+		{% endif %}
+			<span>Metrics workers</span>
+		</td>
+		<td>
+		{% if checker_worker|int() >= 1 %}
+			<span title="running {{ checker_worker }} worker processes"><span class="serverUp"> UP</span>
+		{% else %}
+			<span title="running {{ checker_worker }} worker processes"><span class="serverDown"> DOWN</span> 
+		{% endif %}
+			<span>Checker workers</span>
+		</td>
+		<td style="border-right: 1px solid #ddd;"></td>
+		
+	</tr>
+</table>
+{% if role <= 1 %}
+	<table class="overview-wi">
+		<tr class="overviewHead">
+			<td class="padding10 first-collumn-wi">Login</td>
+			<!-- <td class="padding10 second-collumn">Email</td> -->
+			<td class="second-collumn">Group</td>
+			<td>Role</td>
+			<td class="padding10">
+				<span class="add-button-wi">
+					<a title="Show all users" id="show-all-users" style="color: #fff">
+						Show all
+					</a>
+				</span>
+			</td>
+		</tr>		
+		{% set counter = 0 -%}
+		{% for USER in users %}
+			{% set counter = counter + loop.index0 %}
+			{% if counter <= 2 %}
+				<tr class="{{ loop.cycle('odd', 'even') }}">
+					<td class="padding10 first-collumn-wi"> 
+						<a href="users.py#users" title="Edit user" style="color: #000;">
+							{{ USER.1 }}
+							<img src="/inc/images/edit.png" alt="Edit" width="15" style="margin-bottom: -3px;" />
+						</a>
+					</td>
+					 <!-- <td class="padding10 second-collumn"> {{ USER.2 }}</td>  -->
+					{% for group in groups %}
+						{% if USER.5 == group.0|string() %}
+							<td class="third-collumn-wi">{{ group.1 }}</td>
+						{% endif %}
+					{% endfor %}
+					<td>{{ USER.4 }}</td>
+					<td></td>
+				</tr>
+			{% else %}
+				<tr style="display: none;" class="show-users {{ loop.cycle('odd', 'even') }}">
+					<td class="padding10 first-collumn-wi"> 
+						<a href="users.py#users" title="Edit user" style="color: #000;">
+							{{ USER.1 }}
+							<img src="/inc/images/edit.png" alt="Edit" width="15" style="margin-bottom: -3px;" />
+						</a>
+					</td>
+					<!-- <td class="padding10"> {{ USER.2 }}</td> -->
+					{% for group in groups %}
+						{% if group.0|string() == USER.5 %}
+							<td class="third-collumn-wi">{{ group.1 }}</td>
+						{% endif %}
+					{% endfor %}
+					<td>{{ USER.4 }}</td>
+					<td></td>
+				</tr>
+			{% endif %}
+		{% endfor %}
+	</table>
+	
+	<table class="overview-wi">
+		<tr class="overviewHead">
+			<td class="padding10 first-collumn-wi">Group</td> 
+			<td class="second-collumn" style="width: 50%">Desctiption</td>
+			<td></td>
+			<td></td>
+		</tr>		
+		{% for group in groups %}
+			<tr class="{{ loop.cycle('odd', 'even') }}">
+				<td class="padding10 first-collumn-wi"> 
+					<a href="users.py#groups" title="Edit groups" style="color: #000;">
+							{{ group.1 }}
+						<img src="/inc/images/edit.png" alt="Edit" width="15" style="margin-bottom: -3px;" />
+					</a>			
+				</td>
+				<td class="third-collumn-wi">{{ group.2 }}</td>
+				<td></td>
+				<td></td>
+			</tr>
+		{% endfor %}
+	</table>
+	
+	<table class="overview-wi">
+		<tr class="overviewHead">
+			<td class="padding10 first-collumn-wi">Role</td> 
+			<td class="second-collumn" style="width: 50%">Desctiption</td>
+			<td></td>
+			<td></td>
+		</tr>		
+		{% for role in roles %}
+			<tr class="{{ loop.cycle('odd', 'even') }}">
+				<td class="padding10 first-collumn-wi"> 
+					{{ role.1 }}				
+				</td>
+				<td class="third-collumn-wi">{{ role.2 }}</td>
+				<td></td>
+				<td></td>
+			</tr>
+		{% endfor %}
+	</table>
+{% endif %}
+
 <!-- <table class="overview" > -->
 	<!-- <tr class="overviewHead"> -->
-		<!-- <td class="padding10 first-collumn"> -->
+		<!-- <td class="padding10 first-collumn-wi"> -->
 			<!-- Server -->
 		<!-- </td> -->
 		<!-- <td class="padding10 second-collumn"> -->
 			<!-- HAproxy info -->
 		<!-- </td> -->
-		<!-- <td  class="padding10 third-collumn"> -->
+		<!-- <td  class="padding10 third-collumn-wi"> -->
 			<!-- Server status -->
 		<!-- </td> -->
 		<!-- <td class="padding10"> -->

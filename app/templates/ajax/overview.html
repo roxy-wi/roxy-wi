@@ -21,9 +21,9 @@
 				
 			</a>
 		</td>
-		<td  class="second-collumn">
+		<!-- <td  class="second-collumn"> -->
 		
-		</td>
+		<!-- </td> -->
 		<td>
 		{% if role <= 1 %}
 			<a id="{{ service.1 }}" class="start" title="Start HAProxy service">
@@ -37,7 +37,7 @@
 			</a>
 		{% endif %}
 		{% if role <= 2 %}
-			<a href="/app/config.py?serv={{ service.1 }}" target="_blank" title="Working with HAProxy configs">
+			<a href="/app/config.py?serv={{ service.1 }}&open=open" target="_blank" title="Working with HAProxy configs">
 				<img src="/inc/images/edit.png" alt="edit" class="icon" width="15px">
 			</a>
 		{% endif %}
@@ -45,7 +45,7 @@
 				<img src="/inc/images/show.png" alt="show" class="icon" width="20px" style="margin-bottom: -3px;">
 			</a>			
 		</td>
-		<td>
+		<td class="third-collumn-wi">
 			{% if "ls: cannot access" in service.3 %}
 				Cannot find HAProxy config
 			{% else %}

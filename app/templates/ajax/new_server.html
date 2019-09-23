@@ -95,6 +95,9 @@
 					{% endif %}
 				</td>
 				<td>
+					<a class="add" onclick="cloneServer({{server.0}})" id="clone-{{server.0}}" title="Clone {{server.1}}" style="cursor: pointer;"></a>
+				</td> 
+				<td>
 					<a class="delete" onclick="removeServer({{server.0}})" title="Delete server {{server.1}}" style="cursor: pointer;"></a>
 				</td> 
 			</tr>

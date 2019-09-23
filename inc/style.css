@@ -10,6 +10,7 @@ body {
   margin: 0;
   padding: 0;
   overflow: auto;
+  height:100%
 }
 h2 {
 	background: #5D9CEB;
@@ -42,7 +43,8 @@ pre {
 }
 .top-menu {	
 	position: absolute;
-	height: 110%;
+	min-height: calc(99vh - 50px);
+	height: 120%;
 	width: 207px;
 	float: left;
 	margin-bottom: 20px;
@@ -74,6 +76,7 @@ pre {
 }
 .container {
 	min-height: calc(99vh - 50px);
+	height: 100%;
 	max-width: 91%;
 	min-width: 40%;
 	background-color: #fff;
@@ -83,7 +86,7 @@ pre {
 }
 .footer {
 	min-height: 50px;
-	top: calc(99vh - 50px);
+	top: calc(99vh - 40px);
 	right: 0;
 	left: 0;
 	max-width: 91%;
@@ -93,6 +96,7 @@ pre {
 	margin-right: 20px;
 	border-top: 1px solid #ddd;
 	clear: both;
+	position: fixed;
 }
 .footer-div {
 	display: block;
@@ -238,6 +242,7 @@ pre {
 	font-style: italic;
 	color: #fff;
 	margin-left: 30px;
+	position: fixed;
 }
 .line {
 	background-color: #f5faf4;
@@ -317,10 +322,22 @@ pre {
 	width: 100%;
 	/* margin-top: 1.5em; */
 }
+.overview-wi {
+	width: 46%;
+	min-width: 600px;
+    max-width: 50%;
+	border: 1px solid #ddd;
+	height: 160px;
+	float: left;
+	margin: 20px;
+}
 .overviewHead {
 	border-radius: 5px;
 	background-color: #F9FFF8;
 	font-weight: bold;
+}
+.overview-wi .overviewHead {
+	border: 1px solid #ddd;
 }
 .overview  tr{
 	border-bottom: 1px solid #ddd;
@@ -360,7 +377,7 @@ pre {
 .serverUp {
 	background-color: #5CB85C; 
 }
-.add-button {
+.add-button, .add-button-wi {
 	background-color: #5CB85C; 
 	border-radius: 5px;
 	color: #fff; 
@@ -368,8 +385,13 @@ pre {
 	padding-right: 10px;
 	padding-left: 10px;
 	float: right;
-	margin-right: 10px;
+	margin-right: 1px;
 	cursor: pointer;
+}
+.add-button-wi {
+	padding-right: 5px;
+	padding-left: 5px;
+	font-size: 13px;
 }
 .serverDown {
 	background-color: red; 
@@ -388,11 +410,18 @@ pre {
 	padding-left: 15px;
 	width: 20%;
 }
+.first-collumn-wi {
+	padding-left: 15px;
+	width: 40%;
+}
 .second-collumn {
 	width: 20%;
 }
 .third-collumn {
 	width: 45%;
+}
+.third-collumn-wi {
+	width: 30%;
 }
 .ro {
   border: none;
@@ -700,7 +729,7 @@ label {
 	color: #999;
 }
 .server-act-links a {
-	margin-right: 0.36em !important
+	margin-right: 4.3px !important
 }
 .server-act-links a:last-child {
 	margin-right: 0 !important;
