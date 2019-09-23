@@ -22,7 +22,7 @@
 					<a id="{{ s.2 }}" class="stop" title="Stop HAProxy service">
 						<img src=/inc/images/stop.png alt="stop" class="icon" width="17px" onclick="confirmAjaxAction('stop', 'hap', '{{s.2}}')">
 					</a>
-					<a id="{{ s.2 }}" class="restart" title="Restart HAProxy service">
+					<a id="{{ s.2 }}" class="restart" title="Restart HAProxy service" onclick="confirmAjaxAction('restart', 'hap', '{{s.2}}')">
 						<img src=/inc/images/update.png alt="restart" class="icon">
 					</a>
 				</span>

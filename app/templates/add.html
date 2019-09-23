@@ -14,7 +14,7 @@
 			<a href=/app/login.py title="Login" class="login"> Login</a>
 		{% endif %}
 	</ul>
-	<div id="create">
+	<div id="create" style="height: 50%;">
 		<div class="div-pannel">
 			<div class="div-server">
 				<div class="server-name">
@@ -49,6 +49,12 @@
 				</div>			
 			</div>
 		</div>
+		{% if add %}
+		<div class="alert alert-success" style="margin-left: 20px; clear: both;">	
+			<h3>{{ add }} was success added</h3>
+			{{ conf_add }}
+		</div>
+		{% endif %}
 	</div>
 	<div id="listen">
 		<form name="add-listner" action="/app/add.py">
@@ -716,12 +722,7 @@
 			In this section you can create, edit and delete options with given parameters. And after use them as autocomplete in the "Add" sections
 		</div>
 	</div>
-	{% if add %}
-		<div class="alert alert-success">	
-			<h3>{{ add }} was success added</h3>
-			{{ conf_add }}
-		</div>
-	{% endif %}
+	
 	<div id="dialog-confirm-delete" title="Are you sure you want to delete?" style="display: none;">
 	  <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>Deleting irreversibly all data will be lost?</p>
 	</div>

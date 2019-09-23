@@ -19,16 +19,16 @@ fi
 cd app/
 ./create_db.py
 
-pip3 install -r ../requirements.txt
-pip3.5 install -r ../requirements.txt
+LOG='/tmp/haproxy-wi_install.log'
+pip3.5 install -r /var/www/haproxy-wi/requirements.txt &> $LOG
+
 chmod +x ../update.sh
 
 echo "################"
 echo ""
-echo ""
-echo ""
 echo "ATTENTION!!! New config file name is: haproxy-wi.cfg"
 echo ""
 echo ""
+echo "Install log in $LOG"
 echo ""
 echo "################"
