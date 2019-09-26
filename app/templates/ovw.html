@@ -44,7 +44,7 @@
 <tbody id="ajaxwafstatus"></tbody>	
 </table>
 <table class="overview-wi" style="height: 172;">
-	<tr class="overviewHead">	
+	<tr class="overviewHead" style="height: 48px;">	
 		<th class="padding10 first-collumn-wi" colspan=4>
 			Tools status
 		</th>
@@ -67,7 +67,7 @@
 			{% endif %}
 			<span>Checker master</span>
 		</td>
-		<td class="third-collumn-wi" style="border-right: 1px solid #ddd;">
+		<td class="third-collumn-wi">
 			{% if keep_alive|int() >= 1 %}
 				<span title="Keep alive is run"><span class="serverUp"> UP</span>
 			{% else %}
@@ -93,7 +93,7 @@
 		{% endif %}
 			<span>Checker workers</span>
 		</td>
-		<td style="border-right: 1px solid #ddd;"></td>
+		<td></td>
 		
 	</tr>
 </table>

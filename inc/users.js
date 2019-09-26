@@ -290,7 +290,9 @@ $( function() {
 	$('#add-group-button').click(function() {
 		if ($('#group-add-table').css('display', 'none')) {
 			$('#group-add-table').show("blind", "fast");
-		} 
+		} else {
+			$('#group-add-table').hide("blind", "fast");
+		}
 	});
 	var addUserDialog = $( "#user-add-table" ).dialog({
 			autoOpen: false,
@@ -893,7 +895,6 @@ function updateUser(id) {
 		url: "sql.py",
 		data: {
 			updateuser: $('#login-'+id).val(),
-			password: $('#password-'+id).val(),
 			email: $('#email-'+id).val(),
 			role: $('#role-'+id).val(),
 			usergroup: usergroup,
@@ -1030,10 +1031,7 @@ function uploadSsh() {
 						$("#ajax-ssh").html(data);
 					} else if (data.indexOf('success') != '-1') {
 						$('.alert-danger').remove();
-						$("#ajax-ssh").html(data);
-						setTimeout(function() {
-							$( "#ajax-ssh").html( "" );
-						}, 2500 );					
+						$("#ajax-ssh").html(data);				
 					} else {
 						$("#ajax-ssh").html('<div class="alert alert-danger">Something wrong, check and try again</div>');
 					}
@@ -1152,4 +1150,70 @@ function checkSshConnect(ip) {
 			});
 		}					
 	} );
+}
+function openChangeUserPasswordDialog(id) {
+	changeUserPasswordDialog(id);
+}
+function changeUserPasswordDialog(id) {
+	$( "#user-change-password-table" ).dialog({
+			autoOpen: true,
+			resizable: false,
+			height: "auto",
+			width: 600,
+			modal: true,
+			title: "Change "+$('#login-'+id).val()+" password",
+			show: {
+				effect: "fade",
+				duration: 200
+			},
+			hide: {
+				effect: "fade",
+				duration: 200
+			},
+			// beforeClose: function( event, ui ) {return changeUserPassword(id);},
+			buttons: {
+				"Change": function() {	
+					changeUserPassword(id, $(this));
+				},
+				Cancel: function() {
+					$( this ).dialog( "close" );
+					$('#missmatchpass').hide();
+				}
+			}
+		});
+}
+function changeUserPassword(id, d) {
+	var pass = $('#change-password').val();
+	var pass2 = $('#change2-password').val();
+	if(pass != pass2) {
+		$('#missmatchpass').show();
+	} else {
+		$('#missmatchpass').hide();
+		$('#error').remove();	
+		$.ajax( {
+			url: "sql.py",
+			data: {
+				updatepassowrd: pass,
+				id: id
+			},
+			type: "GET",
+			success: function( data ) {
+				data = data.replace(/\s+/g,' ');
+				if (data.indexOf('error') != '-1') {
+					$("#ajax-users").append(data);
+					$('#errorMess').click(function() {
+						$('#error').remove();
+						$('.alert-danger').remove();
+					});
+				} else {
+					$('.alert-danger').remove();
+					$("#user-"+id).addClass( "update", 1000 );
+					setTimeout(function() {
+						$( "#user-"+id ).removeClass( "update" );
+					}, 2500 );
+					d.dialog( "close" );
+				}
+			}
+		} );
+	}
 }

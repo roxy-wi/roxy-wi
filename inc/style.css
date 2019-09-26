@@ -35,7 +35,6 @@ form {
 pre {
 	padding-left: 15px;
 }
-
 .icon {
 	max-width: 20px;
 	margin-left: 2px;
@@ -325,19 +324,20 @@ pre {
 	width: 46%;
 	min-width: 600px;
     max-width: 50%;
-	border: 1px solid #ddd;
+	/* border: 1px solid #A4C7F5; */
 	height: 160px;
 	float: left;
 	margin: 20px;
 }
 .overviewHead {
 	border-radius: 5px;
-	background-color: #F9FFF8;
+	background-color: #fbfbfb;
 	font-weight: bold;
 }
 .overview-wi .overviewHead {
-	border: 1px solid #ddd;
+	border-bottom: 1px solid #A4C7F5;
 }
+
 .overview  tr{
 	border-bottom: 1px solid #ddd;
 	border-radius: 5px;
@@ -529,8 +529,7 @@ ul{
     background-size: 0 100%,100% 100%;
     border: 0;
     transition: background 1s ease-out;
-    padding-left: 0;
-    padding-right: 0;
+	font-size: 15px;
 }
 .ui-button {
 	padding-left: 10px !important;
@@ -696,8 +695,8 @@ label {
 	background-color: #f3f8fb;
 }
 .div-server {
-	background-color: #f9fff8;
-	border: 1px solid #ddd;
+	background-color: #fbfbfb;
+	border: 1px solid #A4C7F5;
 	width: 25em;
 	padding: 20px;
 	margin: 20px;
@@ -707,9 +706,10 @@ label {
 	float: left;
 }
 .server-name {
-	padding-bottom: 5px;
-	font-size: 1.4em;
-	color: #5d9ceb;
+	padding-bottom: 3px;
+    font-size: 1.4em;
+    color: #5d9ceb;
+    border-bottom: 1px solid #A4C7F5;
 }
 .server-status {
 	border-radius: 50% 50%;
@@ -724,14 +724,19 @@ label {
 	margin-top: 6px;
 }
 .server-desc {
-	padding-bottom: 2em;
-	color: #999;
+	padding-bottom: 10px;
+    color: #999;
+    padding-top: 10px;;
 }
 .server-act-links a {
 	margin-right: 4.3px !important
 }
 .server-act-links a:last-child {
 	margin-right: 0 !important;
+}
+#left-collumn, #middle-collumn, #right-collumn {
+	width: 30%;
+	float: left;
 }
 .ajax-server {
 	margin: 25px;

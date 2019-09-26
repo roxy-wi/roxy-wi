@@ -48,8 +48,12 @@
 				{% if role %}
 				<span class="accordion-link">
 					<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
-					</span>
+				</span>
 				{% endif %}
+				{% set backend = line.split(' ') %}
+				<span class="accordion-link">
+					<a href="/app/viewsttats.py?serv={{serv}}#{{ backend[1]}}">Stats</a>
+				</span>
 				</span><div>
 			{% continue %}
 		{% endif %}
@@ -59,7 +63,11 @@
 				<span class="accordion-link">
 					<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
 					</span>
-				{% endif %}
+				{% endif %}	
+				{% set backend = line.split(' ') %}
+				<span class="accordion-link">
+					<a href="/app/viewsttats.py?serv={{serv}}#{{ backend[1]}}">Stats</a>
+				</span>				
 				</span><div>
 			{% continue %} 
 		{% endif %}
@@ -70,6 +78,10 @@
 					<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
 					</span>
 				{% endif %}
+				{% set backend = line.split(' ') %}
+				<span class="accordion-link">
+					<a href="/app/viewsttats.py?serv={{serv}}#{{ backend[1]}}">Stats</a>
+				</span>
 				</span><div>
 			{% continue %}
 		{% endif %}

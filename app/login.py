@@ -55,9 +55,9 @@ def ban():
 	c["ban"]["path"] = "/app/"
 	c["ban"]["expires"] = expires.strftime("%a, %d %b %Y %H:%M:%S GMT")
 	try:
-		funct.logging('locahost', login+' Failed log in', haproxywi=1, login=1)
+		funct.logging('locahost', login+' failed log in', haproxywi=1, login=1)
 	except:
-		funct.logging('locahost', ' Failed log in', haproxywi=1)
+		funct.logging('locahost', ' Failed log in. Wrong username', haproxywi=1)
 	print(c)
 	print("Content-type: text/html\n")			
 	print('ban')

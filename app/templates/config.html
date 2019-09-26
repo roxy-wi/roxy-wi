@@ -4,6 +4,7 @@
 	<h3>Choose server</h3>
 	<p>
 		<form action="{{ action }}" method="get">
+			<a class="ui-button ui-widget ui-corner-all" title="Return back" id="back" onclick="history.go(-2)">Back</a>
 			<select autofocus required name="serv" id="{{ select_id }}">
 				<option disabled>Choose server</option>
 					{% for select in selects %}
@@ -86,4 +87,15 @@
 		<script>window.history.pushState("Config", "Config", cur_url[0])</script>
 	{% endif %}
 	</center>
+<script> 
+	if (cur_url[1].split('&')[1] == 'showMap') {
+		showMap();		
+	}
+	if (cur_url[1].split('&')[1] == 'showCompare') {
+		showCompareConfigs();		
+	}
+	if (cur_url[1].split('&')[1] == 'showConfig') {
+		showConfig();		
+	}	
+</script>
 {% endblock %}

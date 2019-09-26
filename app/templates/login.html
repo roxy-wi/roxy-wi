@@ -1,24 +1,55 @@
 {% extends "base.html" %}
 {% block content %}	
-<center>
-	<form name="auth" id="auth" action="login.py" class="form-horizontal" method="post">
-		{{error_log}}
+<style>
+body, .container {
+	background-color: #fff;
+}
+.top-menu, .footer {
+	display: none !important;
+}
+.container {
+	margin: 0 !important;
+	width: 100% !important;
+	max-width: 100% !important;
+}
+.form-control {
+	text-align: center;
+	background-color: #fff;
+	padding: 10px;
+	width: 220px;
+	background-size: 0 !important;
+	border: 0 !important;
+}
+#enter {
+	width: 220px !important; 
+	padding: 10px !important; 
+	background-color: #ededee !important; 
+	font-weight: bold !important;
+}
+</style>
+<center style="margin-top: 15%; background-color: #5d9ceb;">
+	{{error_log}}
 		{{error}}
 		{{db_create}}
-		<br>
-		<label for="login">Login: </label><input type="text" name="login" id="login"  required class="form-control"><br /><br />
-		<label for="pass">Pass: </label><input type="password" name="pass" id="pass" required class="form-control"><br /><br />
-		<input type="hidden" value="{{reff}}" name="ref" id="ref">
-		<button type="submit" name="Login" value="Enter" id="enter">Sign Up</button>
-	</form>
-	<div class="alert alert-danger" style="display: none;">
-		Your login or password is incorrect
-		<br />
-		<span id="ban_10">
+	<div id="login-form" style="padding-top: 40px; padding-bottom: 50px; height: 250px; color: #000;">
+		<span style="font-size: 50px; font-weight: bold; color: #fff;">HAProxy-WI</span>
+		<!-- <span><img src="/inc/images/logo_big1.png" width=300 style="margin-top: -100px; margin-bottom: -100px; padding-left: 70px;"></span> -->
+		<form name="auth" id="auth" action="login.py" class="form-horizontal" method="post" >
+			<br>
+			<input type="text" name="login" id="login"  required class="form-control" placeholder="Login"><br /><br />
+			<input type="password" name="pass" id="pass" required class="form-control" placeholder="Password"><br /><br />
+			<input type="hidden" value="{{reff}}" name="ref" id="ref">
+			<button type="submit" name="Login" value="Enter" id="enter">Login</button>
+		</form>
+		<div class="alert alert-danger" style="display: none;">
+			Your login or password is incorrect
 			<br />
-			You can try again in <span id="ban_timer">10</span> seconds
-		</span>
-	</div><br /><br />
+			<span id="ban_10">
+				<br />
+				You can try again in <span id="ban_timer">10</span> seconds
+			</span>
+		</div>
+		<br /><br />
 </center>
 <div id="dialog-confirm" title="View certificate " style="display: none;">
 	<center>

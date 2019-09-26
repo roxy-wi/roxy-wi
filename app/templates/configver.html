@@ -4,6 +4,7 @@
 	<h3>Choose server</h3>
 	<p>
 		<form action="{{ action }}" method="get">
+			<a class="ui-button ui-widget ui-corner-all" title="Return back" onclick="history.back()">Back</a>
 			<select autofocus required name="serv" id="{{ select_id }}">
 				<option disabled>Choose server</option>
 					{% for select in selects %}

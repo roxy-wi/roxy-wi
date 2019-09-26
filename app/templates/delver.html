@@ -4,6 +4,7 @@
 	<h3>Choose server</h3>
 	<p>
 		<form action="{{ action }}" method="get">
+			<a class="ui-button ui-widget ui-corner-all" title="Return back" onclick="history.back()">Back</a>
 			<select autofocus required name="serv" id="{{ select_id }}">
 				<option disabled>Choose server</option>
 					{% for select in selects %}
@@ -30,7 +31,7 @@
 				<input type="checkbox" id="select_all"><br />
 				{% for file in return_files %}
 					<label for="{{file}}"> {{file.split('-', maxsplit=1)[1]}} </label><input type="checkbox" value="{{file}}" name="{{file}}" id="{{file}}">
-					<a href="/app/versions.py?serv={{serv}}&open=open&configver={{file}}" class="ui-button ui-widget ui-corner-all" target="_blanc" title="View and upload this version of the config" style="margin-top: -6px;">
+					<a href="/app/versions.py?serv={{serv}}&open=open&configver={{file}}" class="ui-button ui-widget ui-corner-all" title="View and upload this version of the config" style="margin-top: -6px;">
 						Upload
 					</a><br />
 				{% endfor %}
@@ -42,7 +43,7 @@
 				</p>
 			</form> 
 		</center>
-		<div class="alert alert-info"><b>Note:</b> If you reconfigure Master server, Slave will reconfigured automatically</div>
+		
 	{% endif %}
 	{% if aftersave %}
 		<div class="alert alert-info"><b>The following files were deleted:</b><br /> </div>

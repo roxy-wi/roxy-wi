@@ -25,7 +25,7 @@
 		<input type="hidden" id="token" value="{{ token }}">
 		<div class="top-menu">
 			<div class="LogoText">
-				<span id="logo_text">HAproxy-WI</span>			
+				<span id="logo_text">HAProxy-WI</span>			
 			</div>	
 			<div id="top-link" class="top-link">
 				<nav id="menu">
@@ -44,6 +44,7 @@
 							<ul class="v_menu">
 								<li><a href=/app/hapservers.py title="Working with Haproxy Configs" class="overview-link head-submenu">Overview</a> </li>
 							{% if role <= 2 %}
+								<li><a href=/app/config.py title="Working with HAProxy configs" class="edit head-submenu">Configs</a></li>
 								<li><a href=/app/add.py#proxy title="Add proxy" class="add head-submenu" id="add1">Add proxy</a></li>
 								<!-- <li><a href=/app/add.py#frontend title="Add single frontend" class="add head-submenu" id="add2">Add frontend</a></li> -->
 								<!-- <li><a href=/app/add.py#frontend title="Add single frontend" class="add head-submenu" id="add2">Add frontend</a></li> -->
