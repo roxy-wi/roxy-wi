@@ -81,7 +81,7 @@ RUN set -ex; \
         if [ $MYSQL_ENABLE -eq 0 ]; then \
                 cd /var/www/haproxy-wi/app && \
                 ./create_db.py && \
-                chown apache:apache /var/www/haproxy-wi/app/haproxy-wi.db; \
+                chown apache:apache /var/www/haproxy-wi/app/haproxy-wi.db \
         fi
 
 EXPOSE 443
