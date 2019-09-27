@@ -11,7 +11,7 @@ ENV MYSQL_DB "haproxywi2"
 ENV MYSQL_HOST 127.0.0.1
 
 # Copy external files
-COPY /config_other/httpd/haproxy-wi.conf /etc/httpd/conf.d/haproxy-wi.conf
+COPY config_other/httpd/haproxy-wi.conf /etc/httpd/conf.d/haproxy-wi.conf
 
 # Yum clean cache
 RUN yum remove epel-release && \
