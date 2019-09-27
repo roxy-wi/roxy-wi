@@ -11,8 +11,7 @@ ENV MYSQL_DB "haproxywi2"
 ENV MYSQL_HOST 127.0.0.1
 
 # Copy external files
-COPY epel.repo /etc/yum.repos.d/epel.repo
-COPY haproxy-wi.conf /etc/httpd/conf.d/haproxy-wi.conf
+COPY /config_other/httpd/haproxy-wi.conf /etc/httpd/conf.d/haproxy-wi.conf
 
 # Yum clean cache
 RUN yum remove epel-release && \
@@ -22,6 +21,7 @@ RUN yum remove epel-release && \
 # Yum install base packages
 RUN yum -y install https://centos7.iuscommunity.org/ius-release.rpm && \ 
         yum -y install \
+		epel-release \
         git \
         nmap-ncat \
         net-tools \
