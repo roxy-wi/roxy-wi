@@ -78,7 +78,7 @@ RUN ln -s /usr/bin/python3.5 /usr/bin/python3
 
 # Build sql database
 RUN set -ex; \
-        if ["$MYSQL_ENABLE" -eq 0]; then \
+        if [ $MYSQL_ENABLE -eq 0 ]; then \
                 cd /var/www/haproxy-wi/app && \
                 ./create_db.py && \
                 chown apache:apache /var/www/haproxy-wi/app/haproxy-wi.db; \
