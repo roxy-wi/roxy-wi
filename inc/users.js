@@ -184,6 +184,7 @@ $( function() {
 				newgroup: "1",
 				groupname: $('#new-group-add').val(),
 				newdesc: $('#new-desc').val(),
+				token: $('#token').val()
 			},
 			type: "GET",
 			success: function( data ) {
@@ -219,7 +220,8 @@ $( function() {
 				ssh_user: $('#ssh_user').val(),
 				ssh_pass: $('#ssh_pass').val(),
 				ssh_enable: ssh_enable,
-				page: cur_url[0]
+				page: cur_url[0],
+				token: $('#token').val()
 			},
 			type: "GET",
 			success: function( data ) {
@@ -257,7 +259,8 @@ $( function() {
 				newtelegram: $('#telegram-token-add').val(),
 				chanel: $('#telegram-chanel-add').val(),
 				telegramgroup: $('#new-telegram-group-add').val(),
-				page: cur_url[0]
+				page: cur_url[0],
+				token: $('#token').val()
 			},
 			type: "GET",
 			success: function( data ) {
@@ -493,7 +496,8 @@ function addUser() {
 				newrole: $('#new-role').val(),
 				activeuser: activeuser,
 				page: cur_url[0],
-				newgroupuser: $('#new-group').val()
+				newgroupuser: $('#new-group').val(),
+				token: $('#token').val()
 			},
 			type: "GET",
 			success: function( data ) {
@@ -572,7 +576,8 @@ function addServer() {
 				metrics: metrics,
 				page: cur_url[0],
 				desc: $('#desc').val(),
-				active: active
+				active: active,
+				token: $('#token').val()
 			},
 			type: "GET",
 			success: function( data ) {
@@ -608,7 +613,8 @@ function updateSettings(param, val) {
 		url: "sql.py",
 		data: {
 			updatesettings: param,
-			val: val
+			val: val,
+			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {
@@ -800,6 +806,7 @@ function removeUser(id) {
 		url: "sql.py",
 		data: {
 			userdel: id,
+			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {
@@ -816,6 +823,7 @@ function removeServer(id) {
 		url: "sql.py",
 		data: {
 			serverdel: id,
+			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {
@@ -832,6 +840,7 @@ function removeGroup(id) {
 		url: "sql.py",
 		data: {
 			groupdel: id,
+			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {
@@ -850,6 +859,7 @@ function removeSsh(id) {
 		url: "sql.py",
 		data: {
 			sshdel: id,
+			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {
@@ -868,6 +878,7 @@ function removeTelegram(id) {
 		url: "sql.py",
 		data: {
 			telegramdel: id,
+			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {
@@ -899,7 +910,8 @@ function updateUser(id) {
 			role: $('#role-'+id).val(),
 			usergroup: usergroup,
 			activeuser: activeuser,
-			id: id
+			id: id,
+			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {
@@ -927,7 +939,8 @@ function updateGroup(id) {
 		data: {
 			updategroup: $('#name-'+id).val(),
 			descript: $('#descript-'+id).val(),
-			id: id
+			id: id,
+			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {
@@ -991,7 +1004,8 @@ function updateServer(id) {
 			metrics: metrics,
 			alert_en: alert_en,
 			desc: $('#desc-'+id).val(),
-			active: active
+			active: active,
+			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {
@@ -1054,7 +1068,8 @@ function updateSSH(id) {
 			ssh_enable: ssh_enable,
 			ssh_user: $('#ssh_user-'+id).val(),
 			ssh_pass: $('#ssh_pass-'+id).val(),
-			id: id
+			id: id,
+			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {
@@ -1087,7 +1102,8 @@ function updateTelegram(id) {
 			updatetoken: $('#telegram-token-'+id).val(),
 			updategchanel: $('#telegram-chanel-'+id).val(),
 			updategroup: $('#telegramgroup-'+id).val(),
-			id: id
+			id: id,
+			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {
@@ -1194,7 +1210,8 @@ function changeUserPassword(id, d) {
 			url: "sql.py",
 			data: {
 				updatepassowrd: pass,
-				id: id
+				id: id,
+				token: $('#token').val()
 			},
 			type: "GET",
 			success: function( data ) {

@@ -39,15 +39,14 @@ def add_user(user, email, password, role, group, activeuser):
 	cur.close()    
 	con.close()   
 	
-def update_user(user, email, password, role, group, id, activeuser):
+def update_user(user, email, role, group, id, activeuser):
 	con, cur = create_db.get_cur()
 	sql = """update user set username = '%s', 
 			email = '%s',
-			password = '%s', 
 			role = '%s', 
 			groups = '%s',
 			activeuser = '%s'
-			where id = '%s'""" % (user, email, funct.get_hash(password), role, group, activeuser, id)
+			where id = '%s'""" % (user, email,  role, group, activeuser, id)
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -59,6 +58,24 @@ def update_user(user, email, password, role, group, id, activeuser):
 		return True
 	cur.close()    
 	con.close()
+	
+	
+def update_user_password(password, id):
+	con, cur = create_db.get_cur()
+	sql = """update user set password = '%s'
+			where id = '%s'""" % (funct.get_hash(password), id)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		out_error(e)
+		con.rollback()
+		return False
+	else:
+		return True
+	cur.close()    
+	con.close()
+	
 
 def delete_user(id):
 	con, cur = create_db.get_cur()
@@ -1271,6 +1288,14 @@ def select_keep_alive(**kwargs):
 form = cgi.FieldStorage()
 error_mess = '<span class="alert alert-danger" id="error">All fields must be completed <a title="Close" id="errorMess"><b>X</b></a></span>'
 
+
+def check_token():
+	if form.getvalue('token') is None:
+		print('Content-type: text/html\n')
+		print("What the fuck?! U r hacker Oo?!")
+		sys.exit()
+
+
 if form.getvalue('newuser') is not None:
 	email = form.getvalue('newemail')
 	password = form.getvalue('newpassword')
@@ -1280,6 +1305,7 @@ if form.getvalue('newuser') is not None:
 	page = form.getvalue('page')	
 	activeuser = form.getvalue('activeuser')	
 	print('Content-type: text/html\n')
+	check_token()
 	if password is None or role is None or group is None:
 		print(error_mess)
 	else:		
@@ -1288,20 +1314,34 @@ if form.getvalue('newuser') is not None:
 		
 if form.getvalue('updateuser') is not None:
 	email = form.getvalue('email')
-	password = form.getvalue('password')
 	role = form.getvalue('role')
 	group = form.getvalue('usergroup')
 	new_user = form.getvalue('updateuser')	
 	id = form.getvalue('id')	
 	activeuser = form.getvalue('activeuser')	
 	print('Content-type: text/html\n')
-	if password is None or role is None or group is None:
+	check_token()
+	if updateuser is None or role is None or group is None:
 		print(error_mess)
 	else:		
-		update_user(new_user, email, password, role, group, id, activeuser)
+		update_user(new_user, email, role, group, id, activeuser)
+
+
+if form.getvalue('updatepassowrd') is not None:
+	password = form.getvalue('updatepassowrd')
+	id = form.getvalue('id')	
+	print('Content-type: text/html\n')
+	check_token()
+	if password is None or id is None:
+		print(error_mess)
+	else:		
+		update_user_password(password, id)
+		print("Ok")
+		
 		
 if form.getvalue('userdel') is not None:
 	print('Content-type: text/html\n')
+	check_token()
 	if delete_user(form.getvalue('userdel')):
 		print("Ok")
 		
@@ -1321,6 +1361,7 @@ if form.getvalue('newserver') is not None:
 	desc = form.getvalue('desc')	
 	active = form.getvalue('active')	
 	print('Content-type: text/html\n')
+	check_token()
 	if ip is None or group is None or cred is None or port is None:		
 		print(error_mess)
 	else:	
@@ -1329,6 +1370,7 @@ if form.getvalue('newserver') is not None:
 		
 if form.getvalue('serverdel') is not None:
 	print('Content-type: text/html\n')
+	check_token()
 	if delete_server(form.getvalue('serverdel')):
 		delete_waf_server(form.getvalue('serverdel'))
 		print("Ok")
@@ -1337,6 +1379,7 @@ if form.getvalue('newgroup') is not None:
 	newgroup = form.getvalue('groupname')	
 	desc = form.getvalue('newdesc')
 	print('Content-type: text/html\n')
+	check_token()
 	if newgroup is None:
 		print(error_mess)
 	else:
@@ -1345,6 +1388,7 @@ if form.getvalue('newgroup') is not None:
 
 if form.getvalue('groupdel') is not None:
 	print('Content-type: text/html\n')
+	check_token()
 	if delete_group(form.getvalue('groupdel')):
 		print("Ok")
 		
@@ -1353,6 +1397,7 @@ if form.getvalue('updategroup') is not None:
 	descript = form.getvalue('descript')	
 	id = form.getvalue('id')	
 	print('Content-type: text/html\n')
+	check_token()
 	if name is None:
 		print(error_mess)
 	else:		
@@ -1373,6 +1418,7 @@ if form.getvalue('updateserver') is not None:
 	desc = form.getvalue('desc')	
 	active = form.getvalue('active')	
 	print('Content-type: text/html\n')
+	check_token()
 	if name is None or ip is None or port is None:
 		print(error_mess)
 	else:		
@@ -1385,6 +1431,7 @@ if form.getvalue('updatessh'):
 	group = form.getvalue('group')	
 	username = form.getvalue('ssh_user')		
 	password = form.getvalue('ssh_pass')
+	check_token()
 	print('Content-type: text/html\n')
 	if username is None:
 		print(error_mess)
@@ -1413,6 +1460,7 @@ if form.getvalue('new_ssh'):
 	password = form.getvalue('ssh_pass')
 	page = form.getvalue('page')
 	page = page.split("#")[0]
+	check_token()
 	if username is None or name is None:
 		print('Content-type: text/html\n')
 		print(error_mess)
@@ -1423,6 +1471,7 @@ if form.getvalue('new_ssh'):
 if form.getvalue('sshdel') is not None:
 	import funct
 	print('Content-type: text/html\n')
+	check_token()
 	fullpath = funct.get_config_var('main', 'fullpath')
 	
 	for sshs in select_ssh(id=form.getvalue('sshdel')):
@@ -1444,6 +1493,7 @@ if form.getvalue('newtelegram'):
 	group = form.getvalue('telegramgroup')	
 	page = form.getvalue('page')
 	page = page.split("#")[0]
+	check_token()
 	if token is None or chanel is None or group is None:
 		print('Content-type: text/html\n')
 		print(error_mess)
@@ -1453,6 +1503,7 @@ if form.getvalue('newtelegram'):
 			
 if form.getvalue('telegramdel') is not None:
 	print('Content-type: text/html\n')
+	check_token()
 	if delete_telegram(form.getvalue('telegramdel')):
 		print("Ok")
 	
@@ -1460,6 +1511,7 @@ if form.getvalue('getoption'):
 	group = form.getvalue('getoption')	
 	term = form.getvalue('term')	
 	print('Content-type: application/json\n')
+	check_token()
 	options = select_options(group=group,term=term)
 	a = ""
 	a = {}
@@ -1474,8 +1526,9 @@ if form.getvalue('getoption'):
 if form.getvalue('newtoption'):
 	option = form.getvalue('newtoption')	
 	group = form.getvalue('newoptiongroup')	
+	print('Content-type: text/html\n')
+	check_token()
 	if option is None or group is None:
-		print('Content-type: text/html\n')
 		print(error_mess)
 	else:
 		if insert_new_option(option, group):
@@ -1485,6 +1538,7 @@ if form.getvalue('updateoption') is not None:
 	option = form.getvalue('updateoption')
 	id = form.getvalue('id')	
 	print('Content-type: text/html\n')	
+	check_token()
 	if option is None or id is None:
 		print(error_mess)
 	else:		
@@ -1492,6 +1546,7 @@ if form.getvalue('updateoption') is not None:
 			
 if form.getvalue('optiondel') is not None:
 	print('Content-type: text/html\n')
+	check_token()
 	if delete_option(form.getvalue('optiondel')):
 		print("Ok")
 		
@@ -1508,4 +1563,6 @@ if form.getvalue('updatetoken') is not None:
 		
 if form.getvalue('updatesettings') is not None:
 	print('Content-type: text/html\n')
-	update_setting(form.getvalue('updatesettings'), form.getvalue('val') )
+	check_token()
+	if update_setting(form.getvalue('updatesettings'), form.getvalue('val')):
+		print("Ok")
