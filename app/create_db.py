@@ -478,8 +478,9 @@ def update_all():
 	if funct.check_ver() is None:
 		update_db_v_3_4_5_22()
 	update_db_v_3_4_7()
-	update_ver()
 	update_to_hash()
+	update_ver()
+	
 	
 	
 def update_all_silent():
@@ -495,8 +496,9 @@ def update_all_silent():
 	if funct.check_ver() is None:
 		update_db_v_3_4_5_22()
 	update_db_v_3_4_7(silent=1)
-	update_ver()
 	update_to_hash()
+	update_ver()
+	
 	
 	
 if __name__ == "__main__":
