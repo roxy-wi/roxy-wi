@@ -121,7 +121,7 @@ def create_table(**kwargs):
 		CREATE TABLE IF NOT EXISTS `telegram` (`id` integer primary key autoincrement, `token` VARCHAR ( 64 ), `chanel_name` INTEGER NOT NULL DEFAULT 1, `groups` INTEGER NOT NULL DEFAULT 1);
 		CREATE TABLE IF NOT EXISTS `metrics` (`serv` varchar(64), curr_con INTEGER, cur_ssl_con INTEGER, sess_rate INTEGER, max_sess_rate INTEGER,`date` timestamp default '0000-00-00 00:00:00');
 		CREATE TABLE IF NOT EXISTS `settings` (`param` varchar(64) UNIQUE, value varchar(64), section varchar(64), `desc` varchar(100));
-		CREATE TABLE IF NOT EXISTS `version` (`version` varchar(64), `hash` INTEGER NOT NULL DEFAULT 1);
+		CREATE TABLE IF NOT EXISTS `version` (`version` varchar(64));
 		CREATE TABLE IF NOT EXISTS `options` ( `id`	INTEGER NOT NULL, `options`	VARCHAR ( 64 ), `groups`	VARCHAR ( 120 ), PRIMARY KEY(`id`)); 
 		"""
 		try:
@@ -410,17 +410,17 @@ def update_ver(**kwargs):
 	con.close()
 	
 	
-def check_hash():
-	con, cur = get_cur()
-	sql = """select hash from version"""
+# def check_hash():
+	# con, cur = get_cur()
+	# sql = """select hash from version"""
 
-	try:    
-		cur.execute(sql)
-		return False
-	except sqltool.Error as e:
-		return True
-	cur.close()    
-	con.close() 
+	# try:    
+		# cur.execute(sql)
+		# return False
+	# except sqltool.Error as e:
+		# return True
+	# cur.close()    
+	# con.close() 
 	
 	
 def update_to_hash():
@@ -433,7 +433,7 @@ def update_to_hash():
 		if i == 4:
 			break
 		i += 1
-	if ver <= '3490' and check_hash():	
+	if ver <= '3490':	
 		con, cur = get_cur()
 		sql = """select id, password from user """ 
 		try:    
@@ -450,19 +450,19 @@ def update_to_hash():
 					if kwargs.get('silent') != 1:
 						print("An error occurred:", e)
 						
-		con, cur = get_cur()
-		sql = """
-		ALTER TABLE `version` ADD COLUMN hash INTEGER NOT NULL DEFAULT 1;
-		"""
-		try:    
-			cur.execute(sql)
-			con.commit()
-		except sqltool.Error as e:
-			if kwargs.get('silent') != 1:
-				print("An error occurred:", e)
+		# con, cur = get_cur()
+		# sql = """
+		# ALTER TABLE `version` ADD COLUMN hash INTEGER NOT NULL DEFAULT 1;
+		# """
+		# try:    
+			# cur.execute(sql)
+			# con.commit()
+		# except sqltool.Error as e:
+			# if kwargs.get('silent') != 1:
+				# print("An error occurred:", e)
 
-		cur.close() 
-		con.close()
+		# cur.close() 
+		# con.close()
 	
 			
 def update_all():	
