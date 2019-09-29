@@ -1125,22 +1125,32 @@ function updateTelegram(id) {
 	} );
 }
 function showApacheLog(serv) {
+	var rows = $('#rows').val()
+	var grep = $('#grep').val()
+	var hour = $('#time_range_out_hour').val()
+	var minut = $('#time_range_out_minut').val()
+	var hour1 = $('#time_range_out_hour1').val()
+	var minut1 = $('#time_range_out_minut1').val()
 	$.ajax( {
 		url: "options.py",
 		data: {
-			rows1: $('#rows').val(),
+			rows1: rows,
 			serv: serv,
-			grep: $("#grep").val(),
-			hour: $('#time_range_out_hour').val(),
-			minut: $('#time_range_out_minut').val(),
-			hour1: $('#time_range_out_hour1').val(),
-			minut1: $('#time_range_out_minut1').val(),
+			grep: grep,
+			hour: hour,
+			minut:minut,
+			hour1: hour1,
+			minut1: minut1,
 			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {
 			$("#ajax").html(data);
-			window.history.pushState("Logs", "Logs", cur_url[0]+"?serv="+$("#serv").val()+"&rows1="+$('#rows').val()+"&grep="+$("#grep").val());
+			window.history.pushState("Logs", "Logs", cur_url[0]+"?serv="+serv+"&rows1="+rows+"&grep="+grep+
+															'&hour='+hour+
+															'&minut='+minut+
+															'&hour1='+hour1+
+															'&minut1='+minut1);
 		}					
 	} );
 }

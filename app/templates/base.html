@@ -25,7 +25,11 @@
 		<input type="hidden" id="token" value="{{ token }}">
 		<div class="top-menu">
 			<div class="LogoText">
-				<span id="logo_text">HAProxy-WI</span>			
+				<span id="logo_text">
+					<a href="https://haproxy-wi.org" title="HAProxy-WI site" target="_blank">
+						<img src="/inc/images/logo_menu.png" alt="logo" width="170" />
+					</a>
+				</span>			
 			</div>	
 			<div id="top-link" class="top-link">
 				<nav id="menu">
@@ -101,7 +105,6 @@
 						{% set current_ver_without_dots = versions.2 %}
 						{% set new_ver_without_dots = versions.3 %}
 					{% endif %}
-					<a href="https://github.com/aidaho12/haproxy-wi/" title="Github repo" target="_blank" style="color: #fff">HAproxy-WI</a> 
 					{% if new_ver_without_dots is defined and current_ver_without_dots is defined and new_ver is defined and new_ver_without_dots is defined %}
 						{% if new_ver_without_dots > current_ver_without_dots and new_ver != "Sorry cannot get current version" %}
 							<span id="show-updates-button" class="new-version-exists">v{{current_ver}} </span>
@@ -112,7 +115,7 @@
 						v{{current_ver}}
 					{% endif %}
 					<br>
-					<a href="https://haproxy-wi.org/donate.py" title="Donate" target="_blank" style="color: #fff; margin-left: 30px; color: red;" class="patreon">  Donate</a>
+					<a href="https://haproxy-wi.org/donate.py" title="Donate" target="_blank" style="color: #fff; margin-left: -10px; color: red;" class="patreon">  Donate</a>
 				</div>
 			</div>
 		</div>

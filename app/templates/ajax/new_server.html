@@ -1,4 +1,5 @@
 {% for server in servers %}
+	
 			<tr id="server-{{server.0}}" class="newserver">
 				<td class="padding10 first-collumn" style="padding-top: 20px;">
 					<input type="text" id="hostname-{{server.0}}" value="{{server.1}}" class="form-control">
@@ -89,9 +90,9 @@
 				</td>
 				<td>
 					{% if server.11  != "None" %}
-						<input type="text" id="desc-{{server.0}}" value="{{server.11}}" size="30" class="form-control">
+						<input type="text" id="desc-{{server.0}}" value="{{server.11}}" size="20" class="form-control">
 					{% else %}
-						<input type="text" id="desc-{{server.0}}" value="" size="30" class="form-control">
+						<input type="text" id="desc-{{server.0}}" value="" size="20" class="form-control">
 					{% endif %}
 				</td>
 				<td>
@@ -101,4 +102,17 @@
 					<a class="delete" onclick="removeServer({{server.0}})" title="Delete server {{server.1}}" style="cursor: pointer;"></a>
 				</td> 
 			</tr>
-		{% endfor %}
+	<script>
+		$( function() {
+			$("#servergroup-{{ server.0}}" ).selectmenu({
+			  width: 100
+			});
+			$("#slavefor-{{server.0}}" ).selectmenu({
+			  width: 130
+			});
+			$("#credentials-{{server.0}}" ).selectmenu({
+			  width: 150
+			});
+		});
+	</script>
+{% endfor %}

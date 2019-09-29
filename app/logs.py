@@ -19,6 +19,11 @@ if form.getvalue('rows') is None:
 else:
 	rows = form.getvalue('rows')
 	
+hour = form.getvalue('hour')
+hour1 = form.getvalue('hour1')
+minut = form.getvalue('minut')
+minut1 = form.getvalue('minut1')
+	
 print('Content-type: text/html\n')
 funct.check_login()
 
@@ -34,7 +39,7 @@ except:
 
 output_from_parsed_template = template.render(h2 = 1,
 												autorefresh = 1,
-												title = "Show logs",
+												title = "HAProxy logs",
 												role = sql.get_user_role_by_uuid(user_id.value),
 												user = user,
 												onclick = "showLog()",
@@ -43,6 +48,10 @@ output_from_parsed_template = template.render(h2 = 1,
 												serv = form.getvalue('serv'),
 												rows = rows,
 												grep = grep,
+												hour = hour,
+												hour1 = hour1,
+												minut = minut,
+												minut1 = minut1,
 												versions = funct.versions(),
 												token = token)											
 print(output_from_parsed_template)

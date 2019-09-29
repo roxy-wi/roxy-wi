@@ -251,7 +251,7 @@ if serv is not None and form.getvalue('rows1') is not None:
 if form.getvalue('viewlogs') is not None:
 	viewlog = form.getvalue('viewlogs')
 	log_path = funct.get_config_var('main', 'log_path')
-	rows = form.getvalue('rows2')
+	rows = form.getvalue('rows')
 	grep = form.getvalue('grep')
 	hour = form.getvalue('hour')
 	minut = form.getvalue('minut')

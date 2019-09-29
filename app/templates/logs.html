@@ -17,8 +17,8 @@
 		<td class="padding10" style="width: 10%;">Ex for grep</td>
 		<td style="width: 10%;">
 			<label for="time_range_out_hour" style="padding: 0">Time range:</label>
-			<input type="text" id="time_range_out_hour" readonly class="time-range">:<input type="text" id="time_range_out_minut" readonly class="time-range"> -
-			<input type="text" id="time_range_out_hour1" readonly class="time-range">:<input type="text" id="time_range_out_minut1" readonly class="time-range">	
+			<input type="text" id="time_range_out_hour" readonly class="time-range" value="{{hour}}">:<input type="text" id="time_range_out_minut" readonly class="time-range" value="{{minut}}"> -
+			<input type="text" id="time_range_out_hour1" readonly class="time-range"  value="{{hour1}}">:<input type="text" id="time_range_out_minut1" readonly class="time-range"  value="{{minut1}}">	
 		</td>
 		<td style="width: 10%;"> </td>
 	</tr>
@@ -29,7 +29,7 @@
 					{% if onclick == 'viewLogs()' %}
 						<option disabled selected>Choose log</option>
 						{% for select in selects %}
-							{% if select.2 == serv %}
+							{% if select.0 == serv %}
 								<option value="{{ select.0 }}" selected>{{ select.1 }}</option>
 							{% else %}
 								<option value="{{ select.0 }}">{{ select.1 }}</option>
@@ -69,4 +69,17 @@
 </table>
 <div id="ajax">
 </div>
+{% if onclick == 'viewLogs()' and serv != '' and viewlogs != '' and viewlogs != 'haproxy-wi.error.log' and viewlogs != 'haproxy-wi.access.log' %}
+	<script>
+		viewLogs()
+	</script>
+{% elif serv == 'haproxy-wi.error.log' or serv == 'haproxy-wi.access.log' %}
+	<script>
+		showApacheLog('{{serv}}');
+	</script>
+{% else %}
+	<script>
+		showLog()
+	</script>
+{% endif %}
 {% endblock %}

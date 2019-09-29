@@ -106,7 +106,7 @@ function setRefreshInterval(interval) {
 	if (interval == "0") {
 		Cookies.remove('auto-refresh');
 		pauseAutoRefresh();
-		$('.auto-refresh').prepend('<img src=/image/pic/update.png alt="restart" class="icon">');
+		$('.auto-refresh').prepend('<img src=/inc/images/update.png alt="restart" class="icon">');
 		$('.auto-refresh').css('margin-top', '-3px');
 		$('#1').text('Auto-refresh');
 		$('#0').text('Auto-refresh');
@@ -310,23 +310,35 @@ function showLog() {
 	if ($('#waf').is(':checked')) {
 		waf = '1';
 	}
+	var rows = $('#rows').val()
+	var grep = $('#grep').val()
+	var hour = $('#time_range_out_hour').val()
+	var minut = $('#time_range_out_minut').val()
+	var hour1 = $('#time_range_out_hour1').val()
+	var minut1 = $('#time_range_out_minut1').val()
 	$.ajax( {
 		url: "options.py",
 		data: {
-			rows: $('#rows').val(),
+			rows: rows,
 			serv: $("#serv").val(),
 			waf: waf,
-			grep: $("#grep").val(),
-			hour: $('#time_range_out_hour').val(),
-			minut: $('#time_range_out_minut').val(),
-			hour1: $('#time_range_out_hour1').val(),
-			minut1: $('#time_range_out_minut1').val(),
+			grep: grep,
+			hour: hour,
+			minut: minut,
+			hour1: hour1,
+			minut1: minut1,
 			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {
 			$("#ajax").html(data);
-			window.history.pushState("Logs", "Logs", cur_url[0]+"?serv="+$("#serv").val()+"&rows="+$('#rows').val()+"&grep="+$("#grep").val());
+			window.history.pushState("Logs", "Logs", cur_url[0]+"?serv="+$("#serv").val()+
+																	'&rows='+rows+
+																	'&grep='+grep+
+																	'&hour='+hour+
+																	'&minut='+minut+
+																	'&hour1='+hour1+
+																	'&minut1='+minut1);
 		}					
 	} );
 }
@@ -457,22 +469,34 @@ function viewLogs() {
 	if($('#viewlogs').val() == 'haproxy-wi.error.log' || $('#viewlogs').val() == 'haproxy-wi.access.log') {
 		showApacheLog($('#viewlogs').val());
 	} else {
+		var rows = $('#rows').val()
+		var grep = $('#grep').val()
+		var hour = $('#time_range_out_hour').val()
+		var minut = $('#time_range_out_minut').val()
+		var hour1 = $('#time_range_out_hour1').val()
+		var minut1 = $('#time_range_out_minut1').val()
 		$.ajax( {
 			url: "options.py",
 			data: {
 				viewlogs: $('#viewlogs').val(),
-				rows2: $('#rows').val(),
-				grep: $("#grep").val(),
-				hour: $('#time_range_out_hour').val(),
-				minut: $('#time_range_out_minut').val(),
-				hour1: $('#time_range_out_hour1').val(),
-				minut1: $('#time_range_out_minut1').val(),
+				rows: rows,
+				grep: grep,
+				hour: hour,
+				minut: minut,
+				hour1: hour1,
+				minut1: minut1,
 				token: $('#token').val(),				
 			},
 			type: "GET",
 			success: function( data ) {
 				$("#ajax").html(data);
-				window.history.pushState("View logs", "View logs", cur_url[0]+"?viewlogs="+$("#viewlogs").val());
+				window.history.pushState("View logs", "View logs", cur_url[0]+"?viewlogs="+$("#viewlogs").val()+
+																	'&rows='+rows+
+																	'&grep='+grep+
+																	'&hour='+hour+
+																	'&minut='+minut+
+																	'&hour1='+hour1+
+																	'&minut1='+minut1);
 			}					
 		} );
 	}
@@ -547,8 +571,16 @@ $( function() {
 	}	
 	
 	var now = new Date(Date.now());
-	var date1 = now.getHours() * 60 - 1 * 60;
-	var date2 = now.getHours() * 60 + now.getMinutes();
+	if($('#time_range_out_hour').val() != '' && $('#time_range_out_hour').val() != 'None') {
+		var date1 = parseInt($('#time_range_out_hour').val(), 10) * 60 + parseInt($('#time_range_out_minut').val(), 10)
+	} else {
+		var date1 = now.getHours() * 60 - 1 * 60;
+	}
+	if($('#time_range_out_hour').val() != '' && $('#time_range_out_hour').val() != 'None') {
+		var date2 = parseInt($('#time_range_out_hour1').val(), 10) * 60 + parseInt($('#time_range_out_minut1').val(), 10)
+	} else {
+		var date2 = now.getHours() * 60 + now.getMinutes();
+	}
 	$("#time-range").slider({	
 		range: true,
 		min: 0,
@@ -567,10 +599,18 @@ $( function() {
 
 			if(hours1.toString().length == 1) hours1 = '0' + hours1;
 			if(minutes1.toString().length == 1) minutes1 = '0' + minutes1;
-			$('#time_range_out_hour').val(hours);
-			$('#time_range_out_minut').val(minutes);
-			$('#time_range_out_hour1').val(hours1);
-			$('#time_range_out_minut1').val(minutes1);
+			if($('#time_range_out_hour').val() != '' && $('#time_range_out_hour').val() != 'None') {
+				$('#time_range_out_hour').val(hours);
+			}
+			if($('#time_range_out_minut').val() != '' && $('#time_range_out_minut').val() != 'None') {
+				$('#time_range_out_minut').val(minutes);
+			}
+			if($('#time_range_out_hour1').val() != '' && $('#time_range_out_hour1').val() != 'None') {
+				$('#time_range_out_hour1').val(hours1);
+			}
+			if($('#time_range_out_minut1').val() != '' && $('#time_range_out_minut1').val() != 'None') {
+				$('#time_range_out_minut1').val(minutes1);
+			}
 		}
 	});
         var date1_hours = Math.floor(date1/60);
@@ -579,11 +619,26 @@ $( function() {
         if(date1_hours <= 9) date1_hours = '0' + date1_hours;
         if(date2_hours <= 9) date2_hours = '0' + date2_hours;
         if(date2_minute <= 9) date2_minute = '0' + date2_minute;
-
-	$('#time_range_out_hour').val(date1_hours);
-	$('#time_range_out_minut').val('00');
-	$('#time_range_out_hour1').val(date2_hours);
-	$('#time_range_out_minut1').val(date2_minute);
+	if($('#time_range_out_hour').val() != '' && $('#time_range_out_hour').val() != 'None') {
+		$('#time_range_out_hour').val($('#time_range_out_hour').val());
+	} else {
+		$('#time_range_out_hour').val(date1_hours);
+	}
+	if($('#time_range_out_minut').val() != '' && $('#time_range_out_minut').val() != 'None') {
+			$('#time_range_out_minut').val($('#time_range_out_minut').val());
+	} else {
+		$('#time_range_out_minut').val('00');
+	}
+	if($('#time_range_out_hour1').val() != '' && $('#time_range_out_hour1').val() != 'None') {
+		$('#time_range_out_hour1').val($('#time_range_out_hour1').val());
+	} else {
+		$('#time_range_out_hour1').val(date2_hours);
+	}
+	if($('#time_range_out_minut1').val() != '' && $('#time_range_out_minut1').val() != 'None') {
+		$('#time_range_out_minut1').val($('#time_range_out_minut1').val());
+	} else {
+		$('#time_range_out_minut1').val(date2_minute);
+	}
 		
 	$('#0').click(function() {
 		$('.auto-refresh-div').show("blind", "fast");

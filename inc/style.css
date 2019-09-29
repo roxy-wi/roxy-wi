@@ -52,7 +52,7 @@ pre {
 	left: 0;
 	z-index: 1000;
 	display: block;
-	background-color: #292e34;
+	background-color: #222a31;
 }
 .logoText {
 	color: #EBF1F1;
@@ -69,9 +69,9 @@ pre {
 	margin-top: -4px;
 }
 .top-menu img {
-	max-width: 125px;
-	float: left;
-	padding-left: 20px;
+	max-width: 200px;
+	margin-left: -7px;
+	margin-top: 3px;
 }
 .container {
 	min-height: calc(99vh - 50px);
@@ -234,16 +234,13 @@ pre {
 .paramInSec {
 	font-weight: bold;
 }
-/* .copyright { */
-	/* color: #23527c; */
-	/* margin-left: 15px; */
-/* } */
 .copyright-menu {
 	font-weight: bold;
 	font-style: italic;
 	color: #fff;
 	margin-left: 30px;
 	position: fixed;
+	margin-left: 65px;
 }
 .line {
 	background-color: #f5faf4;
@@ -346,8 +343,7 @@ pre {
 	border-radius: 5px;
 }
 .checkbox {
-	width: 60px;
-	padding-left: 5px;
+	min-width: 30px;
 }
 .checkbox-head {
 	padding: 0;
@@ -448,7 +444,7 @@ ul{
 	font-size: 1.1em;
 }
 .menu a{
-	background: #292e34;
+	background: #222a31;
 	color: #fff;
 	padding: 10px;
 	display: block;
@@ -700,9 +696,12 @@ label {
 .div-server {
 	background-color: #fbfbfb;
 	border: 1px solid #A4C7F5;
-	width: 25em;
+	width: 365px;
 	padding: 20px;
+	padding-left: 15px;
+	padding-right: 15px;
 	margin: 20px;
+	margin-right: 10px;
 	margin-bottom: 0;
 	margin-top: 13px;
 	display: block;
@@ -729,10 +728,14 @@ label {
 .server-desc {
 	padding-bottom: 10px;
     color: #999;
-    padding-top: 10px;;
+    padding-top: 10px;
+	min-height: 60px;
+}
+.server-act-links {
+	margin-left: -2px;
 }
 .server-act-links a {
-	margin-right: 4.3px !important
+	margin-right: 2.8px !important
 }
 .server-act-links a:last-child {
 	margin-right: 0 !important;
@@ -743,14 +746,14 @@ label {
 }
 .ajax-server {
 	margin: 25px;
-	margin-left: 32em;
+	margin-left: 440px;
 	margin-bottom: 0;
 	width: 60em;
 	display: none;
 	margin-top: px;
 	margin-bottom: 0px;
 	margin-top: 14px;
-	height: 12.3em;
+	height: 172px;
 }
 .haproxy-info {
 	display: inline-block;

@@ -19,6 +19,16 @@ if form.getvalue('rows') is None:
 	rows = 10
 else:
 	rows = form.getvalue('rows')
+	
+if form.getvalue('viewlogs') is None:
+	serv = form.getvalue('serv')
+else:
+	serv = form.getvalue('viewlogs')
+	
+hour = form.getvalue('hour')
+hour1 = form.getvalue('hour1')
+minut = form.getvalue('minut')
+minut1 = form.getvalue('minut1')
 
 print('Content-type: text/html\n')
 funct.check_login()
@@ -64,11 +74,15 @@ output_from_parsed_template = template.render(h2 = 1,
 												role = sql.get_user_role_by_uuid(user_id.value),
 												user = user,
 												onclick = "viewLogs()",
-												serv = form.getvalue('viewlogs'),
+												serv = serv,
 												select_id = "viewlogs",
 												selects = selects,
 												rows = rows,
 												grep = grep,
+												hour = hour,
+												hour1 = hour1,
+												minut = minut,
+												minut1 = minut1,
 												versions = funct.versions(),
 												token = token)										
 print(output_from_parsed_template)

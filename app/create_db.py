@@ -400,7 +400,7 @@ def update_db_v_3_4_7(**kwargs):
 	
 def update_ver(**kwargs):
 	con, cur = get_cur()
-	sql = """update version set version = '3.4.9.3'; """
+	sql = """update version set version = '3.4.9.4'; """
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -408,19 +408,6 @@ def update_ver(**kwargs):
 		print('Cannot update version')
 	cur.close() 
 	con.close()
-	
-	
-# def check_hash():
-	# con, cur = get_cur()
-	# sql = """select hash from version"""
-
-	# try:    
-		# cur.execute(sql)
-		# return False
-	# except sqltool.Error as e:
-		# return True
-	# cur.close()    
-	# con.close() 
 	
 	
 def update_to_hash():
@@ -450,20 +437,6 @@ def update_to_hash():
 					if kwargs.get('silent') != 1:
 						print("An error occurred:", e)
 						
-		# con, cur = get_cur()
-		# sql = """
-		# ALTER TABLE `version` ADD COLUMN hash INTEGER NOT NULL DEFAULT 1;
-		# """
-		# try:    
-			# cur.execute(sql)
-			# con.commit()
-		# except sqltool.Error as e:
-			# if kwargs.get('silent') != 1:
-				# print("An error occurred:", e)
-
-		# cur.close() 
-		# con.close()
-	
 			
 def update_all():	
 	update_db_v_31()

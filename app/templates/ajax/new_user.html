@@ -4,10 +4,10 @@
 					<input type="text" id="login-{{user.0}}" value="{{user.1}}" class="form-control">
 				</td> 
 				<td>
-					{% if user.6 == 1%}
-						<input type="password" id="password-{{user.0}}" value="{{user.3}}" class="form-control" readonly>
-					{% else %}
-						<input type="password" id="password-{{user.0}}" value="{{user.3}}" class="form-control">
+					{% if user.6 != 1%}
+					<span  title="Change password" style="cursor: pointer">
+						<img src="/inc/images/edit.png" alt="Edit" width="15" style="margin-bottom: -3px; padding-left: 15px;" onclick="openChangeUserPasswordDialog('{{user.0}}')" />
+					</span>
 					{% endif %}
 				</td>
 				<td class="checkbox">
@@ -48,9 +48,22 @@
 					</td>
 					{% endif %}
 				{% endif %}
+				<td>
+					<a class="add" onclick="cloneUser({{user.0}})" id="clone-{{user.0}}" title="Clone {{user.1}}" style="cursor: pointer;"></a>
+				</td> 
 				<td><a class="delete" onclick="removeUser({{user.0}})"  style="cursor: pointer;"></a></td> 
 			</tr>
-		{% endfor %}
+	<script>
+		$( function() {
+			$("#role-{{user.0}}" ).selectmenu({
+				width: 100
+			});
+			$("#usergroup-{{user.0}}" ).selectmenu({
+				width: 100
+			});			
+		});
+	</script>
+{% endfor %}
 <script>
 $( "#ajax-users input" ).change(function() {
 	var id = $(this).attr('id').split('-');

@@ -32,6 +32,30 @@
 				<td></td>
 			</tr>
 			<tr>
+			<script>
+				$( function() {
+				{% for user in users %}
+					$("#role-{{user.0}}" ).selectmenu({
+						  width: 100
+						});
+					$("#usergroup-{{user.0}}" ).selectmenu({
+						  width: 100
+						});
+					
+				{% endfor %}
+				{% for server in servers %}
+					$("#servergroup-{{ server.0}}" ).selectmenu({
+						  width: 100
+						});
+					$("#slavefor-{{server.0}}" ).selectmenu({
+						  width: 130
+						});
+					$("#credentials-{{server.0}}" ).selectmenu({
+						  width: 150
+						});
+				{% endfor %}
+				});
+			</script>
 		{% for user in users %}
 			<tr id="user-{{user.0}}" class="{{ loop.cycle('odd', 'even') }}">
 				<td class="padding10 first-collumn">
@@ -42,10 +66,10 @@
 					{% endif %}
 				</td> 
 				<td>
-					{% if user.6 == 1%}
-						<input type="password" id="password-{{user.0}}" value="{{user.3}}" class="form-control" readonly>
-					{% else %}
-						<input type="password" id="password-{{user.0}}" value="{{user.3}}" class="form-control">
+					{% if user.6 != 1%}
+					<span  title="Change password" style="cursor: pointer">
+						<img src="/inc/images/edit.png" alt="Edit" width="15" style="margin-bottom: -3px; padding-left: 15px;" onclick="openChangeUserPasswordDialog('{{user.0}}')" />
+					</span>
 					{% endif %}
 				</td>
 				<td class="checkbox">
@@ -256,9 +280,9 @@
 				</td>
 				<td>
 					{% if server.11  != "None" %}
-						<input type="text" id="desc-{{server.0}}" value="{{server.11}}" size="30" class="form-control">
+						<input type="text" id="desc-{{server.0}}" value="{{server.11}}" size="20" class="form-control">
 					{% else %}
-						<input type="text" id="desc-{{server.0}}" value="" size="30" class="form-control">
+						<input type="text" id="desc-{{server.0}}" value="" size="20" class="form-control">
 					{% endif %}
 				</td>
 				<td>
@@ -662,6 +686,36 @@
 			</tr>
 		</table>
 	</div>	
+	<div id="user-change-password-table" style="display: none;">	
+		<table class="overview">
+			<tr>
+				<td colspan="2">
+					  <p class="validateTips alert alert-success">Enter password and confirm</p>
+				</td>
+			</tr>
+			<tr>
+				<td class="padding20">
+					Password				
+				</td>
+				<td>
+					<input type="password" name="change-password" id="change-password" class="form-control">
+				</td>
+			</tr>
+			<tr>
+				<td class="padding20">
+					Confirm password
+				</td>
+				<td>
+					<input type="password" name="change2-password" id="change2-password" class="form-control">
+				</td>
+			</tr>
+			<tr id="missmatchpass" style="display: none;">
+				<td colspan="2">
+					  <p class="validateTips alert alert-danger" style="margin-top: 10px;">Passwords are mismatched</p>
+				</td>
+			</tr>
+		</table>
+	</div>
 <style>
 .ui-selectmenu-button.ui-button {
     width: 10em;
