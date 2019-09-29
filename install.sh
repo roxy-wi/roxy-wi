@@ -96,38 +96,6 @@ echo ""
 echo "################################"
 
 sudo sed -i "0,/^Listen .*/s//Listen $PORT/" $HTTPD_PORTS
-
-echo "################################"
-echo ""
-echo ""
-echo -e "Checking for Apache Vhost config"
-echo ""
-echo ""
-echo "################################"
-
-sudo touch $HAPROXY_WI_VHOST_CONF
-/bin/cat $HAPROXY_WI_VHOST_CONF
-
-if [ $? -eq 1 ]
-then
-	echo "################################"
-	echo ""
-	echo ""
-	echo "Didnt Sense exisitng installation Proceeding ...."
-	echo ""
-	echo ""
-	echo "################################"
-	exit 1
-
-else
-	echo "################################"
-	echo ""
-	echo ""
-	echo -e "Creating VirtualHost for Apache"
-	echo ""
-	echo ""
-	echo "################################"
-
 sudo sed -i "s/haprox-wi/$HOME_HAPROXY_WI" config_other/*/*
 sudo cp config_other/httpd/haprox-wi.conf $HAPROXY_WI_VHOST_CONF
 sudo cp config_other/logrotate/* /etc/logrotate.d/
@@ -138,6 +106,7 @@ sed -i 's/#$UDPServerRun 514/$UDPServerRun 514/g' /etc/rsyslog.conf
 sed -i 's/#$ModLoad imudp/$ModLoad imudp/g' /etc/rsyslog.conf
 
 systemctl daemon-reload      
+systemctl restart httpd
 systemctl restart rsyslog
 systemctl restart metrics_haproxy.service
 systemctl restart checker_haproxy.service
@@ -193,6 +162,7 @@ echo ""
 echo "################################"
 sudo -H pip3.5 install --upgrade pip
 sudo pip3.5 install -r /var/www/$HOME_HAPROXY_WI/requirements.txt
+sudo pip3 install -r /var/www/$HOME_HAPROXY_WI/requirements.txt
 
 if [ $? -eq 1 ]
 then
