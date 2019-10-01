@@ -344,6 +344,7 @@ pre {
 }
 .checkbox {
 	min-width: 30px;
+	padding-top: 5px;
 }
 .checkbox-head {
 	padding: 0;
@@ -352,13 +353,13 @@ pre {
 	width: 100px;
 }
 .group-field, .slave-field {
-	width: 10%;
+	min-width: 5%;
 }
 .slave-field {
 	padding-left: 10px;
 }
 .cred-field {
-	width: 17%;
+	min-width: 214px;
 }
 .overviewTr {
 	margin: 0;
@@ -618,7 +619,7 @@ caption {
 td,th {
   padding: 0;
   text-align: left;
-  min-width: 30px;
+  min-width: 25px;
 }
 
 .row {
@@ -741,7 +742,7 @@ label {
 	margin-right: 0 !important;
 }
 #left-collumn, #middle-collumn, #right-collumn {
-	width: 30%;
+	/* width: 30%; */
 	float: left;
 }
 .ajax-server {
@@ -768,4 +769,32 @@ label {
 }
 .span-link {
 	cursor: pointer;
+}
+#logo_span {
+	float: left;
+	margin-left: 8%;
+	border-right: 3px solid #ddd;
+	height: 270px;
+}
+#logo_span img {
+	margin-top: -40px; 
+	margin-bottom: -40px; 
+	padding-left: 70px;
+}
+@media (max-width: 1024px) {
+  #logo_span {
+	margin-left: -5%;
+	}
+}
+@media (max-width: 667px) {
+  #logo_span {
+	margin-left: -12%;
+	border: none;
+	}
+}
+@media (max-width: 768px) {
+  #logo_span {
+	margin-left: -12%;
+	border: none;
+	}
 }

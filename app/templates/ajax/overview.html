@@ -6,7 +6,6 @@
 		{% else %}
 			<span class="serverDown"> DOWN</span>
 		{% endif %}
-			<a href="#{{ service.0 }}" title="Go to {{ service.0 }} status" style="color: #000;">
 				{{ service.0 }}
 				
 				{% if service.4.0.0|int() >= 1 %}
@@ -18,8 +17,6 @@
 						{% endif %}
 						width=18 style="padding-left: 5px; margin-bottom: -3px;">
 				{% endif %}
-				
-			</a>
 		</td>
 		<!-- <td  class="second-collumn"> -->
 		

@@ -21,7 +21,9 @@
 		{% endif %}
 		{% set section.section = set.2 %}	
 		<tr class="{{ loop.cycle('odd', 'even') }}">
-			<td class="addName">{{set.0}}</td>
+			<td class="addName">
+				<a href="#{{set.0}}" title="{{set.0}}" style="color: #000;">{{set.0}}</a>
+			</td>
 			<td class="addOption">
 				{% if set.0 == 'ldap_password' %}
 					{% if set.1 == 'None' %}

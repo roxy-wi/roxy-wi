@@ -161,6 +161,7 @@ def update_db_v_31(**kwargs):
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('syslog_server', '0', 'logs', 'IP address syslog server');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('log_time_storage', '14', 'logs', 'Time of storage of logs of user activity, in days');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('restart_command', 'systemctl restart haproxy', 'haproxy', 'Command for restart HAproxy service');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('reload_command', 'systemctl reload haproxy', 'haproxy', 'Command for reload HAproxy service');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('status_command', 'systemctl status haproxy', 'haproxy', 'Command for status check HAproxy service');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('stats_user', 'admin', 'haproxy', 'Username for Stats web page HAproxy');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('stats_password', 'password', 'haproxy', 'Password for Stats web page HAproxy');")
@@ -337,7 +338,7 @@ def update_db_v_3_4_1(**kwargs):
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
 			if e.args[0] == 'duplicate column name: activeuser' or e == " 1060 (42S21): Duplicate column name 'activeuser' ":
-				print('Updating... go to version 3.4.5.2')
+				print('Updating... go to version 3.4.9.5')
 			else:
 				print("An error occurred:", e)
 		return False
@@ -398,9 +399,28 @@ def update_db_v_3_4_7(**kwargs):
 	con.close()
 	
 	
+def update_db_v_3_4_9_5(**kwargs):
+	con, cur = get_cur()
+	sql = """INSERT  INTO settings (param, value, section, `desc`) values('reload_command', 'systemctl reload haproxy', 'haproxy', 'Command for reload HAproxy service'); """
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: param' or e == "1060 (42S21): Duplicate column name 'param' ":
+				print('DB was update to 3.4.9.5')
+			else:
+				print("DB was update to 3.4.9.5")
+			return False
+		else:
+			return True
+	cur.close() 
+	con.close()
+	
+	
 def update_ver(**kwargs):
 	con, cur = get_cur()
-	sql = """update version set version = '3.4.9.4'; """
+	sql = """update version set version = '3.4.9.5'; """
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -451,6 +471,7 @@ def update_all():
 	if funct.check_ver() is None:
 		update_db_v_3_4_5_22()
 	update_db_v_3_4_7()
+	update_db_v_3_4_9_5()
 	update_to_hash()
 	update_ver()
 	
@@ -469,6 +490,7 @@ def update_all_silent():
 	if funct.check_ver() is None:
 		update_db_v_3_4_5_22()
 	update_db_v_3_4_7(silent=1)
+	update_db_v_3_4_9_5(silent=1)
 	update_to_hash()
 	update_ver()
 	

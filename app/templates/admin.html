@@ -179,16 +179,16 @@
 			<tr class="overviewHead">
 				<td class="padding10 first-collumn">Hostname</td>
 				<td class="ip-field">IP</td>
-				<td class="checkbox-head"><span title="SSH port">Port(?)</span></td></td>
+				<td class="checkbox-head"><span title="SSH port">Port</span></td></td>
 				<td class="group-field">Group</td>
 				<td class="checkbox-head">Enable</td>
-				<td class="checkbox-head"><span title="Vitrual IP, something like VRRP">Virt(?)</span></td>
-				<td class="checkbox-head"><span title="Alert if backend change status. Before enable add Telgram chanel at Checker tab">Alert(?)</span></td>
-				<td class="checkbox-head"><span title="Enable save and show metrics">Metrics(?)</span></td>
-				<td class="checkbox-head"><span title="Keep start HAProxy service if down">Start(?)</span></td>
-				<td class="slave-field"><span title="Actions with master config will automatically apply on slave">Slave for (?)</span></td>
+				<td class="checkbox-head"><span title="Vitrual IP, something like VRRP">Virt</span></td>
+				<td class="checkbox-head"><span title="Alert if backend change status. Before enable add Telgram chanel at Checker tab">Alert</span></td>
+				<td class="checkbox-head"><span title="Enable save and show metrics">Metrics</span></td>
+				<td class="checkbox-head"><span title="Keep start HAProxy service if down">Start</span></td>
+				<td class="slave-field"><span title="Actions with master config will automatically apply on slave">Slave for</span></td>
 				<td class="cred-field">Credentials</td>
-				<td>Desciption</td>
+				<td>Description</td>
 				<td></td>
 				<td></td>
 			</tr>
@@ -201,7 +201,7 @@
 				<td>
 					<input type="text" id="ip-{{server.0}}" value="{{server.2}}" size="14" class="form-control">
 				</td>
-				<td class="checkbox">
+				<td>
 					<input type="text" id="port-{{server.0}}" value="{{server.10}}" size="1" class="form-control">
 				</td>
 				<td>
@@ -296,6 +296,9 @@
 		</table>
 		<br /><span class="add-button" title="Add server" id="add-server-button">+ Add</span>
 		<br /><br />
+		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+			You can read the description of all parameters <a href="https://haproxy-wi.org/description.py?description=servers" title="Servers description" target="_blank">here</a>
+		</div>
 	</div>
 	<!-- <div id="roles"> -->
 		<!-- <table class="overview" id="ajax-group"> -->

@@ -7,7 +7,7 @@ env = Environment(loader=FileSystemLoader('templates/'))
 template = env.get_template('hapservers.html')
 	
 print('Content-type: text/html\n')
-
+funct.check_login()
 
 try:
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
@@ -42,7 +42,7 @@ for s in servers:
 		servers_with_status.append(out1)
 		
 	servers_with_status1.append(servers_with_status)
-# print(servers_with_status1)
+
 
 template = template.render(h2 = 1,
 							autorefresh = 1,

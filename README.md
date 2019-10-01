@@ -155,7 +155,7 @@ Edit $HOME_HAPROXY-WI/app/haproxy-wi.cfg with your env
 
 Login https://haproxy-wi-server/users.py, and add: users, groups and servers. Default: admin/admin
 
-![alt text](image/haproxy-wi-admin-area.jpeg "Admin area")
+![alt text](image/haproxy-wi-admin-area.png "Admin area")
 
 For Runtime API, Metrics and Alerting enable state file and stat socket on HAproxt servers and need install socat on all haproxy servers, and configre HAProxy:
 ```
