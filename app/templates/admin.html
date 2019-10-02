@@ -320,14 +320,14 @@
 		<table id="ssh_enable_table" class="overview">
 			<tr class="overviewHead" style="width: 50%;">
 				<td class="padding10 first-collumn" style="width: 15%;">
-					<span title="It's just name alias. This alias will be userd in 'Servers' page for choose credentials">Name(?)</span>
+					<span title="It's just name alias. This alias will be use in 'Servers' page for choose credentials">Name<span>
 				</td>
 				<td class="padding10 first-collumn" style="width: 25%;">
-					<span title="If enabled, the key will be used, if turned off - the password. Do not forget to download the keys to all servers or install the sudo without a password">SSH key(?)</span>
+					<span title="If it is enabled, the key will be used, if turned off - the password. Do not forget to download the keys to all servers or install the sudo without a password">SSH key</span>
 				</td>
 				<td>Group</td>
 				<td>
-					<span title="Enter SSH user name. If SSH key disabled, enter password for ssh user">Credentials(?)</span>
+					<span title="Enter SSH user name. If SSH key disabled, enter password for ssh user">Credentials</span>
 				</td>
 				<td></td>
 			</tr>
@@ -411,7 +411,7 @@
 			<tr class="overviewHead" style="width: 50%;">
 				<td class="padding10 first-collumn" style="width: 25%;">Upload SSH Key</td>
 				<td>
-					<span title="Private key. Note: The public key must be pre-installed on all servers to which you plan to connect">Key(?)</span>
+					<span title="Private key. Note: The public key must be pre-installed on all servers to which you plan to connect">Key</span>
 				</td>
 				<td></td>
 			</tr>
@@ -432,15 +432,18 @@
 			</tr>
 		</table>
 		<div id="ajax-ssh"></div>
+		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+			You can read the description of all parameters <a href="https://haproxy-wi.org/description.py?description=creds" title="Servers description" target="_blank">here</a>
+		</div>
 	</div>
 	
 	<div id="checker">
 		<table id="checker_table" class="overview">
 			<tr class="overviewHead" style="width: 50%;">
 				<td class="padding10 first-collumn" style="width: 25%;">
-					<span title="Token that gave you @father_bot">Token(?)</span>
+					<span title="Token that gave you @father_bot">Token</span>
 				</td>
-				<td>Chanel name</td>
+				<td>Channel name</td>
 				<td>Group</td>
 				<td></td>
 				<td></td>
@@ -479,7 +482,7 @@
 		<table class="overview" id="telegram-add-table" style="display: none;">
 			<tr class="overviewHead">
 				<td class="padding10 first-collumn" style="width: 25%;">
-					<span title="Token that gave you @father_bot">Token(?)</span>
+					<span title="Token that gave you @father_bot">Token</span>
 				</td>
 				<td>Chanel name</td>
 				<td>Group</td>
@@ -506,6 +509,9 @@
 			</tr>
 		</table>
 		<div id="ajax-telegram"></div>
+		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+			You can read the description of all parameters <a href="https://haproxy-wi.org/description.py?description=checker" title="Servers description" target="_blank">here</a>
+		</div>
 	</div>
 </div>
 <div id="user-add-table" style="display: none;">	

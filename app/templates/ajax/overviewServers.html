@@ -1,46 +1,12 @@
 {% for service in service_status %}
 <div class="server-info">
-
-		{% if page != 'hapservers.py' %}
-
-			<a name="{{ service.0 }}"></a>
-			{% if service.5 != "None" %}
-				<h4 title="IP  {{ service.1 }} {{ service.5 }}"> {{ service.0 }} :</h4>
-			{% else %}
-				<h4 title="IP  {{ service.1 }}"> {{ service.0 }} :</h4>
-			{% endif %}
-	
-		{% endif %}
-<div class="haproxy-info">
-
-{{ service.2 }}
-</div>
-<div class="top-info">
-<pre>
+	<div class="haproxy-info">
+		{{ service.2 }}
+	</div>
+	<div class="top-info">
+		<pre>
 {{ service.3 }}
-</pre>
-</div>
-		
-		{% if page != 'hapservers.py' %}
-		
-			<span style="padding-left: 0px; margin: 0;">
-			{% if 'Unknown command' in service.4 %}
-				Too old version HAProxy
-			{% else %}
-			{% for s in service.4 %}
-				{% if role <= 2 %}
-				<a href="/app/sections.py?serv={{service.1}}&section={{ s }}" title="Edit {{s}} section" target="_blanck">
-				{{s}}
-				</a>
-				{% else %}
-					{{ s }}
-				{% endif %}
-				<br />
-			{% endfor %}
-			{% endif %}
-			</span>
-	
-		{% endif %}
-		
+		</pre>
+	</div>		
 </div>
 {% endfor %}

@@ -70,7 +70,7 @@ selects.append(['haproxy-wi.error.log','error.log'])
 selects.append(['haproxy-wi.access.log','access.log'])
 output_from_parsed_template = template.render(h2 = 1,
 												autorefresh = 1, 
-												title = "View logs",
+												title = "View internal logs",
 												role = sql.get_user_role_by_uuid(user_id.value),
 												user = user,
 												onclick = "viewLogs()",

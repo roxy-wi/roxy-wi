@@ -15,7 +15,6 @@ server_status = ()
 async def async_get_overview(serv1, serv2):
 	haproxy_config_path  = sql.get_setting('haproxy_config_path')
 	commands = [ "ls -l %s |awk '{ print $6\" \"$7\" \"$8}'" % haproxy_config_path ]
-	# commands1 = [ "ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l" ]
 	commands2 = "ps ax |grep keep_alive.py |grep -v grep |wc -l"
 	
 	cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Process_num"' % (serv2, haproxy_sock_port)
@@ -66,23 +65,22 @@ def get_overviewWaf(url):
 	ioloop.run_until_complete(get_runner_overviewWaf(url))
 	ioloop.close()
 
-async def async_get_overviewServers(serv1, serv2, desc):
-	# commands =  [ "top -u haproxy -b -n 1" ]
-	# commands =  [ "top -u haproxy -b -n 1 -o %MEM |grep -e 'haproxy\|PID' |awk '{print $1\"\t\"$5\"\t\"$9\"\t\"$10\"\t\"$11}'" ]
+async def async_get_overviewServers(serv1, serv2):
 	commands =  [ "top -u haproxy -b -n 1 -w 67 |grep -e 'haproxy\|PID\|Cpu\|KiB' |grep -v Swap" ]
-	if desc == "hapservers.py":
-		cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|Maxco\|MB\|Uptime:"' % (serv2, haproxy_sock_port)
-	else:
-		cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|SessRate\|Maxco\|MB\|Uptime:"' % (serv2, haproxy_sock_port)
+	# if desc == "hapservers.py":
+		# cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|Maxco\|MB\|Uptime:"' % (serv2, haproxy_sock_port)
+	# else:
+		# cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|SessRate\|Maxco\|MB\|Uptime:"' % (serv2, haproxy_sock_port)
+	cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|Maxco\|MB\|Uptime:"' % (serv2, haproxy_sock_port)
 	out = funct.subprocess_execute(cmd)
 	out1 = ""
-	user_id = cookie.get('uuid')
-	role = sql.get_user_role_by_uuid(user_id.value)
-	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
-	cfg = hap_configs_dir + serv2 + "-" + funct.get_data('config') + ".cfg"
-	funct.get_config(serv2, cfg)
-	backends = funct.get_sections(cfg)
-	os.system("/bin/rm -f " + cfg)
+	# user_id = cookie.get('uuid')
+	# role = sql.get_user_role_by_uuid(user_id.value)
+	# hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+	# cfg = hap_configs_dir + serv2 + "-" + funct.get_data('config') + ".cfg"
+	# funct.get_config(serv2, cfg)
+	# backends = funct.get_sections(cfg)
+	# os.system("/bin/rm -f " + cfg)
 	
 	for k in out:
 		if "Ncat: Connection refused." not in k and "Ncat: Connection timed out." not in k:
@@ -92,26 +90,26 @@ async def async_get_overviewServers(serv1, serv2, desc):
 		else:
 			out1 = "Can\'t connect to HAproxy"
 	
-	if role <= 2:
-		server_status = (serv1,serv2, out1, funct.ssh_command(serv2, commands),backends, desc)
-	else:
-		server_status = (serv1,serv2, out1, funct.ssh_command(serv2, commands),funct.show_backends(serv2, ret=1), desc)
-	
+	# if role <= 2:
+		# server_status = (serv1,serv2, out1, funct.ssh_command(serv2, commands),backends, desc)
+	# else:
+		# server_status = (serv1,serv2, out1, funct.ssh_command(serv2, commands),funct.show_backends(serv2, ret=1), desc)
+	server_status = (serv1,serv2, out1, funct.ssh_command(serv2, commands))
 	return server_status
 	
 async def get_runner_overviewServers(**kwargs):
 	template = env.get_template('overviewServers.html')	
 	user_id = cookie.get('uuid')
 	role = sql.get_user_role_by_uuid(user_id.value)
-	if kwargs.get('server1'):
-		futures = [async_get_overviewServers(kwargs.get('server1'), kwargs.get('server2'), 'hapservers.py')]
-	else:
-		futures = [async_get_overviewServers(server[1], server[2], server[11]) for server in listhap]
+	# if kwargs.get('server1'):
+	futures = [async_get_overviewServers(kwargs.get('server1'), kwargs.get('server2'))]
+	# else:
+		# futures = [async_get_overviewServers(server[1], server[2], server[11]) for server in listhap]
 	for i, future in enumerate(asyncio.as_completed(futures)):
 		result = await future
 		servers.append(result)
 	servers_sorted = sorted(servers, key=funct.get_key)
-	template = template.render(service_status=servers_sorted, role=role,page=kwargs.get('page'))
+	template = template.render(service_status=servers_sorted, role=role)
 	print(template)	
 	
 def get_overviewServers(**kwargs):
@@ -119,7 +117,7 @@ def get_overviewServers(**kwargs):
 	server2 = kwargs.get('ip')
 	page = kwargs.get('page')
 	ioloop = asyncio.get_event_loop()
-	ioloop.run_until_complete(get_runner_overviewServers(server1=server1, server2=server2,page=page))
+	ioloop.run_until_complete(get_runner_overviewServers(server1=server1, server2=server2))
 	ioloop.close()
 	
 def get_map(serv):

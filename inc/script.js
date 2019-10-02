@@ -379,7 +379,7 @@ function showRuntime() {
 		},
 		type: "GET",
 		success: function( data ) {
-			$("#ajax").html(data);
+			$("#ajaxruntime").html(data);
 		}					
 	} );
 }

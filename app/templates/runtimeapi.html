@@ -4,8 +4,8 @@
 		<tr class="overviewHead">
 			<td class="padding10 first-collumn">Server</td>
 			<td>Disable/Enable server or output any information</td>
-			<td class="padding10">Command</td>
-			<td>Save change</td>
+			<td>Command</td>
+			<td class="checkbox-head">Save change</td>
 			<td></td>
 		</tr>
 		<tr>
@@ -36,7 +36,7 @@
 			<td>
 				<input type="text" name="servbackend" id="servbackend" size=35 title="Frontend, backend/server, show: info, pools or help" required class="form-control" value="{{ servbackend }}">
 			</td>
-			<td>
+			<td class="checkbox">
 				{% if role <= 2 %}
 					<label for="save"></label><input type="checkbox" name="save" id="save" value="123">
 				{% endif %}
@@ -52,4 +52,8 @@
 			window.onload = {{ onclick }}	
 		}
 	</script>
+	<div id="ajaxruntime"></div>
+	<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+			You can read the description of all Run Time API <a href="https://haproxy-wi.org/description.py?description=runtimeapi" title="Servers description" target="_blank">here</a>
+		</div>
 {% endblock %}
