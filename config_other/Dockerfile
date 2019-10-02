@@ -1,4 +1,4 @@
-FROM centos
+FROM centos:7.6
 
 MAINTAINER Pavel Loginov (https://github.com/Aidaho12/haproxy-wi)
 # REFACT by Vagner Rodrigues Fernandes (vagner.rodrigues@gmail.com)
