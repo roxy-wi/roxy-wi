@@ -139,6 +139,18 @@ if act == "overviewServers":
 	name = form.getvalue('name')
 	ovw.get_overviewServers(ip=serv,name=name,page=form.getvalue('page'))
 	
+	
+if act == "overviewHapwi":
+	from jinja2 import Environment, FileSystemLoader
+	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
+	template = env.get_template('/overviewHapwi.html')
+	cmd = "top -b -n 1 |head -9"
+	server_status, stderr = funct.subprocess_execute(cmd)
+	
+	template = template.render(server_status=server_status,stderr=stderr)									
+	print(template)
+	
+	
 if form.getvalue('action'):
 	import requests
 	from requests_toolbelt.utils import dump

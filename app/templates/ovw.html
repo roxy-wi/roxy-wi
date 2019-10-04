@@ -50,15 +50,16 @@
 			HAProxy-WI server status
 			</a>
 		</td> 
+		<td>
+			<a onclick="showOverviewHapWI()" title="Refresh" style="float: right; margin-right: 25px;"><img  src="/inc/images/update.png" alt="restart" class="icon"></a>
+		</td>
 	</tr>		
 	<tr>
 		<td style="width:90%">
-			<pre style="margin: 0;">
-			{% for s in server_status %}
-<span style="margin-bottom: -30px;display: block;font-size: 10px;">{{ s }}</span>
-{% endfor %}
+			<pre style="margin: 0;" id="ajaxHapwi">
 			</pre>
 		</td>
+		<td></td>
 	</tr>
 </table>
 <table class="overview-wi" style="height: 170;">

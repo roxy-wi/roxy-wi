@@ -191,6 +191,7 @@ $( document ).ajaxComplete(function( event, request, settings ) {
 function showOverview() {
 	// showOverviewServers();
 	showOverviewWaf()
+	showOverviewHapWI()
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -274,6 +275,19 @@ function showOverviewServers() {
 		type: "GET",
 		success: function( data ) {
 			$("#ajaxservers").html(data);
+		}					
+	} );
+}
+function showOverviewHapWI() {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			act: "overviewHapwi",
+			token: $('#token').val()
+		},
+		type: "GET",
+		success: function( data ) {
+			$("#ajaxHapwi").html(data);
 		}					
 	} );
 }
