@@ -50,6 +50,7 @@ template = template.render(h2 = 1,
 							checker_worker = ''.join(checker_worker),
 							keep_alive = ''.join(keep_alive),
 							server_status = server_status_row,
+							date = funct.get_data('logs'),
 							error = stderr,
 							versions = funct.versions(),
 							token = token)
