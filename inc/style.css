@@ -6,7 +6,8 @@ body {
   font-size: 1.3em;
   line-height: 1.42857143;
   color: #000;
-  background-color: #eee;
+  /* background-color: #eee; */
+  background-color: #fff;
   margin: 0;
   padding: 0;
   overflow: auto;
@@ -20,6 +21,7 @@ h2 {
 	color: #fff;
 	margin-top: 0px;
 	margin-bottom: 0px;
+	width: 99%
 }
 h3 {
 	margin-top: -0;
@@ -95,6 +97,7 @@ pre {
 	margin-right: 20px;
 	border-top: 1px solid #ddd;
 	clear: both;
+	/* position: fixed; */
 }
 #version { 
     float: left;
@@ -800,6 +803,11 @@ label {
 	margin-top: -40px; 
 	margin-bottom: -40px; 
 	padding-left: 70px;
+}
+@media (max-width: 1920px) {
+  #logo_span {
+	margin-left: 17%;
+	}
 }
 @media (max-width: 1024px) {
   #logo_span {

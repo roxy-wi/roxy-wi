@@ -74,15 +74,30 @@ $( function() {
 		confirmAjaxAction("restart", "waf", id);
 	});
 	$( "#show-all-users" ).click( function() {
-		if($( "#show-all-users" ).text() == "Show all") {
-			$( ".show-users" ).show("fast");
-			$( "#show-all-users" ).text("Hide");
-			$( "#show-all-users" ).attr("title", "Hide all users"); 
-		} else {
-			$( ".show-users" ).hide("fast");
-			$( "#show-all-users" ).attr("title", "Show all users");
-			$( "#show-all-users" ).text("Show all");
-		}
+		$( ".show-users" ).show("fast");
+		$( "#show-all-users" ).text("Hide");
+		$( "#show-all-users" ).attr("title", "Hide all users"); 
+		$( "#show-all-users" ).attr("id", "hide-all-users"); 
+		$.getScript('/inc/overview.js');			
+	});
+	$( "#hide-all-users" ).click( function() {
+		$( ".show-users" ).hide("fast");
+		$( "#hide-all-users" ).attr("title", "Show all users");
+		$( "#hide-all-users" ).text("Show all");
+		$( "#hide-all-users" ).attr("id", "show-all-users");
+	});
+	$( "#show-all-groups" ).click( function() {
+		$( ".show-groups" ).show("fast");
+		$( "#show-all-groups" ).text("Hide");
+		$( "#show-all-groups" ).attr("title", "Hide all groups"); 
+		$( "#show-all-groups" ).attr("id", "hide-all-groups"); 
+		$.getScript('/inc/overview.js');			
+	});
+	$( "#hide-all-groups" ).click( function() {
+		$( ".show-groups" ).hide("fast");
+		$( "#hide-all-groups" ).attr("title", "Show all groups");
+		$( "#hide-all-groups" ).text("Show all");
+		$( "#hide-all-groups" ).attr("id", "show-all-groups");
 	});
 	if (cur_url[0] == "overview.py" || cur_url[0] == "waf.py" || cur_url[0] == "metrics.py") {
 		$('#secIntervals').css('display', 'none');

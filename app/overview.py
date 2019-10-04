@@ -30,6 +30,8 @@ try:
 	metrics_worker, stderr = funct.subprocess_execute(cmd)
 	cmd = "ps ax |grep -e 'keep_alive.py' |grep -v grep |wc -l"
 	keep_alive, stderr = funct.subprocess_execute(cmd)
+	cmd = "top -b -n 1 -w 77 |head -9"
+	server_status_row, stderr = funct.subprocess_execute(cmd)
 except:
 	pass
 
@@ -47,6 +49,7 @@ template = template.render(h2 = 1,
 							checker_master = ''.join(checker_master),
 							checker_worker = ''.join(checker_worker),
 							keep_alive = ''.join(keep_alive),
+							server_status = server_status_row,
 							error = stderr,
 							versions = funct.versions(),
 							token = token)

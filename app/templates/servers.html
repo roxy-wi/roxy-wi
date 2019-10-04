@@ -43,10 +43,10 @@
 					<input type="hidden" id="usergroup-{{user.0}}" name="usergroup-{{user.0}}" value="{{ group }}">					
 				</td> 
 				<td>
-					{% if user.6 == 1%}
-						<input type="password" id="password-{{user.0}}" value="{{user.3}}" class="form-control" readonly>
-					{% else %}
-						<input type="password" id="password-{{user.0}}" value="{{user.3}}" class="form-control">
+					{% if user.6 != 1%}
+					<span  title="Change password" style="cursor: pointer" class="passwordChange">
+						<img src="/inc/images/edit.png" alt="Edit" width="15" style="margin-bottom: -3px; padding-left: 15px;" onclick="openChangeUserPasswordDialog('{{user.0}}')" />
+					</span>
 					{% endif %}
 				</td> 
 				<td class="checkbox">
@@ -538,11 +538,43 @@
 	<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
 	</form>
 </div>
+<div id="user-change-password-table" style="display: none;">	
+		<table class="overview">
+			<tr>
+				<td colspan="2">
+					  <p class="validateTips alert alert-success">Enter password and confirm</p>
+				</td>
+			</tr>
+			<tr>
+				<td class="padding20">
+					Password				
+				</td>
+				<td>
+					<input type="password" name="change-password" id="change-password" class="form-control">
+				</td>
+			</tr>
+			<tr>
+				<td class="padding20">
+					Confirm password
+				</td>
+				<td>
+					<input type="password" name="change2-password" id="change2-password" class="form-control">
+				</td>
+			</tr>
+			<tr id="missmatchpass" style="display: none;">
+				<td colspan="2">
+					  <p class="validateTips alert alert-danger" style="margin-top: 10px;">Passwords are mismatched</p>
+				</td>
+			</tr>
+		</table>
+	</div>
 <script>
 	if($('#new-server-group-add').val() == 1) {
 		$('#group_error').css('display', 'block');
 		$('#add-user-button').css('display', 'none');
 		$('#add-server-button').css('display', 'none');
+		$('.passwordChange').css('display', 'none');
+		$('.add').css('display', 'none');
 		$('#add-ssh-button').css('display', 'none');
 		$('#ssh_key_upload').css('display', 'none');
 		$('#add-telegram-button').css('display', 'none');
@@ -569,9 +601,6 @@
 			$("#credentials-{{server.0}}" ).selectmenu({
 			  width: 150
 			});
-			if($('#new-server-group-add').val() == 1) {
-				$('#clone-{{server.0}}').css('display', 'none')
-			}
 		{% endfor %}
 	});
 </script>

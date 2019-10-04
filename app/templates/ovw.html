@@ -44,6 +44,20 @@
 <tbody id="ajaxwafstatus"></tbody>	
 </table>
 <table class="overview-wi" style="height: 170;">
+	<tr class="overviewHead">
+		<td class="padding10 first-collumn-wi">HAProxy-WI server status</td> 
+	</tr>		
+	<tr>
+		<td style="width:90%">
+			<pre style="margin: 0;">
+			{% for s in server_status %}
+<span style="margin-bottom: -30px;display: block;font-size: 10px;">{{ s }}</span>
+{% endfor %}
+			</pre>
+		</td>
+	</tr>
+</table>
+<table class="overview-wi" style="height: 170;">
 	<tr class="overviewHead" style="height: 48px;">	
 		<th class="padding10 first-collumn-wi" colspan=4>
 			Tools status
@@ -161,11 +175,19 @@
 	<table class="overview-wi">
 		<tr class="overviewHead">
 			<td class="padding10 first-collumn-wi">Group</td> 
-			<td class="second-collumn" style="width: 50%">Desctiption</td>
-			<td></td>
-			<td></td>
+			<td class="second-collumn" style="width: 40%">Desctiption</td>
+			<td>
+			<span class="add-button-wi">
+					<a title="Show all groups" id="show-all-groups" style="color: #fff">
+						Show all
+					</a>
+				</span>
+			</td>
 		</tr>		
+		{% set counter = 0 -%}
 		{% for group in groups %}
+			{% set counter = counter + loop.index0 %}
+			{% if counter <= 2 %}
 			<tr class="{{ loop.cycle('odd', 'even') }}">
 				<td class="padding10 first-collumn-wi"> 
 					<a href="users.py#groups" title="Edit groups" class="logs_link">
@@ -175,8 +197,19 @@
 				</td>
 				<td class="third-collumn-wi">{{ group.2 }}</td>
 				<td></td>
+			</tr>
+			{% else %}
+			<tr style="display: none;" class="show-groups {{ loop.cycle('odd', 'even') }}">
+				<td class="padding10 first-collumn-wi"> 
+					<a href="users.py#groups" title="Edit groups" class="logs_link">
+							{{ group.1 }}
+						<img src="/inc/images/edit.png" alt="Edit" width="15" style="margin-bottom: -3px;" />
+					</a>			
+				</td>
+				<td class="third-collumn-wi">{{ group.2 }}</td>
 				<td></td>
 			</tr>
+			{% endif %}
 		{% endfor %}
 	</table>
 	

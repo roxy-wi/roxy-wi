@@ -785,7 +785,7 @@ def select_waf_servers_metrics(uuid, **kwargs):
 			if group[5] == '1':
 				sql = """ select servers.ip from servers left join waf as waf on waf.server_id = servers.id where servers.enable = 1 and waf.metrics = '1' """
 			else:
-				sql = """ select servers.ip from servers left join waf as waf on waf.server_id = servers.id where servers.enable = 1 %s and waf.metrics = '1' and servers.groups like '%{group}%' """.format(group=group[5])		
+				sql = """ select servers.ip from servers left join waf as waf on waf.server_id = servers.id where servers.enable = 1 and waf.metrics = '1' and servers.groups like '%{group}%' """.format(group=group[5])		
 		try:   
 			cur.execute(sql)
 		except sqltool.Error as e:
@@ -1321,7 +1321,7 @@ if form.getvalue('updateuser') is not None:
 	activeuser = form.getvalue('activeuser')	
 	print('Content-type: text/html\n')
 	check_token()
-	if updateuser is None or role is None or group is None:
+	if new_user is None or role is None or group is None:
 		print(error_mess)
 	else:		
 		update_user(new_user, email, role, group, id, activeuser)
