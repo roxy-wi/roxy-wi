@@ -628,6 +628,11 @@ def versions():
 		current_ver = check_ver()
 		current_ver_without_dots = current_ver.split('.')
 		current_ver_without_dots = ''.join(current_ver_without_dots)
+		current_ver_without_dots = current_ver_without_dots.replace('\n', '')
+		if len(current_ver_without_dots)  == 2:
+			current_ver_without_dots += '00'
+		if len(current_ver_without_dots) == 3:
+			current_ver_without_dots += '0'
 		current_ver_without_dots = int(current_ver_without_dots)
 	except:
 		current_ver = "Sorry cannot get current version"

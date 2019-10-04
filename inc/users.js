@@ -162,7 +162,7 @@ $( function() {
 				} else if (data.indexOf('No packages marked for update') != '-1') {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-info">It is seems like you have the last version HAProxy-WI</data>');
+					$("#ajax").html('<div class="alert alert-info">It is seems like you have the lastest version HAProxy-WI</data>');
 				} else if (data.indexOf('Connection timed out') != '-1') {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
