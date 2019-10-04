@@ -83,7 +83,7 @@ async def async_get_overviewServers(serv1, serv2):
 	# os.system("/bin/rm -f " + cfg)
 	
 	for k in out:
-		if "Ncat: Connection refused." not in k and "Ncat: Connection timed out." not in k:
+		if "Ncat:" not in k:
 			for r in k:
 				out1 += r
 				out1 += "<br />"

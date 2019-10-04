@@ -35,7 +35,7 @@ for s in servers:
 	servers_with_status.append(s[2])
 	servers_with_status.append(s[11])
 	for k in out:
-		if "Ncat: Connection refused." not in k and "Ncat: Connection timed out." not in k:
+		if "Ncat:" not in k:
 			out1 = out
 		else:
 			out1 = False

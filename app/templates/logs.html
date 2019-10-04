@@ -85,6 +85,9 @@
 		</div>
 {% else %}
 	<script>
+		{% if waf == '1' %}
+			$('#waf').prop('checked', true);
+		{% endif %}
 		showLog()
 	</script>
 {% endif %}

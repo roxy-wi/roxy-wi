@@ -2,12 +2,13 @@
 	<tr class="{{ loop.cycle('odd', 'even') }}">
 		<td class="padding10 first-collumn">
 			{% if service.2|int() >= 1 %}
-			<span class="serverUp" title="running {{service.2 }} processes"> UP</span> 
-		{% else %}
-			<span class="serverDown"> DOWN</span>
-		{% endif %}
-				{{ service.0 }}
-				
+			<span class="serverUp server-status" title="running {{service.2 }} processes"></span> 
+			{% else %}
+				<span class="serverDown server-status"></span>
+			{% endif %}
+				<a href="/app/logs.py?serv={{ service.1 }}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00&waf=0" title="View {{service.0 }}'s logs" class="logs_link">
+					{{ service.0 }}
+				</a>
 				{% if service.4.0.0|int() >= 1 %}
 					<img 
 						{% if service.5.0.0|int() >= 1 %}

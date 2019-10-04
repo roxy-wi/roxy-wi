@@ -420,7 +420,7 @@ def update_db_v_3_4_9_5(**kwargs):
 	
 def update_ver(**kwargs):
 	con, cur = get_cur()
-	sql = """update version set version = '3.4.9.6'; """
+	sql = """update version set version = '3.5'; """
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -437,9 +437,9 @@ def update_to_hash():
 	ver = ''
 	for l in cur_ver:
 		ver += l
-		if i == 4:
-			break
 		i += 1
+	if len(ver) < 4:
+		ver += '00'
 	if ver <= '3490':	
 		con, cur = get_cur()
 		sql = """select id, password from user """ 

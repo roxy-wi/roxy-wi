@@ -29,7 +29,10 @@ def get_data(type):
 	from datetime import datetime
 	from pytz import timezone
 	import sql
-	now_utc = datetime.now(timezone(sql.get_setting('time_zone')))
+	try:
+		now_utc = datetime.now(timezone(sql.get_setting('time_zone')))
+	except:
+		now_utc = datetime.now(timezone('UTC'))
 	if type == 'config':
 		fmt = "%Y-%m-%d.%H:%M:%S"
 	if type == 'logs':
@@ -634,11 +637,16 @@ def versions():
 		new_ver = check_new_version()
 		new_ver_without_dots = new_ver.split('.')
 		new_ver_without_dots = ''.join(new_ver_without_dots)
+		new_ver_without_dots = new_ver_without_dots.replace('\n', '')
+		if len(new_ver_without_dots)  == 2:
+			new_ver_without_dots += '00'
+		if len(new_ver_without_dots) == 3:
+			new_ver_without_dots += '0'
 		new_ver_without_dots = int(new_ver_without_dots)
 	except:
 		new_ver = "Sorry cannot get new version"
 		new_ver_without_dots = 0
-		
+	
 	return current_ver, new_ver, current_ver_without_dots, new_ver_without_dots
 	
 	

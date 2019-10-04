@@ -96,6 +96,21 @@ pre {
 	border-top: 1px solid #ddd;
 	clear: both;
 }
+#version { 
+    float: left;
+    padding: 20px;
+    padding-top: 10px;
+    font-size: 14.5px;
+    font-weight: bold;
+}
+#logo_footer {
+    float: left;
+    margin-left: 41%;
+}
+#logo_footer_img {
+    width: 35px;
+    margin-top: 8px;
+}
 .footer-div {
 	display: block;
 	padding-top: 12px;
@@ -234,13 +249,15 @@ pre {
 .paramInSec {
 	font-weight: bold;
 }
-.copyright-menu {
+.donate-menu {
 	font-weight: bold;
 	font-style: italic;
+	font-size: 15px;
 	color: #fff;
 	margin-left: 30px;
 	position: fixed;
 	margin-left: 65px;
+	margin-top: 25px;
 }
 .line {
 	background-color: #f5faf4;
@@ -606,6 +623,9 @@ a:focus {
   outline: 5px auto -webkit-focus-ring-color;
   outline-offset: -2px;
 }
+.logs_link {
+	color: #23527c;
+}
 table {
   border-spacing: 0;
   border-collapse: collapse;
@@ -736,7 +756,7 @@ label {
 	margin-left: -2px;
 }
 .server-act-links a {
-	margin-right: 2.8px !important
+	margin-right: 2.3px !important
 }
 .server-act-links a:last-child {
 	margin-right: 0 !important;

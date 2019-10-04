@@ -50,9 +50,6 @@
 							{% if role <= 2 %}
 								<li><a href=/app/config.py title="Working with HAProxy configs" class="edit head-submenu">Configs</a></li>
 								<li><a href=/app/add.py#proxy title="Add proxy" class="add head-submenu" id="add1">Add proxy</a></li>
-								<!-- <li><a href=/app/add.py#frontend title="Add single frontend" class="add head-submenu" id="add2">Add frontend</a></li> -->
-								<!-- <li><a href=/app/add.py#frontend title="Add single frontend" class="add head-submenu" id="add2">Add frontend</a></li> -->
-								<!-- <li><a href=/app/add.py#backend title="Add single backend" class="add head-submenu" id="add3">Add backend</a></li> -->
 								<li><a href=/app/versions.py title="Actions with configs versions" class="version head-submenu">Versions</a></li>
 								<li><a href=/app/add.py#ssl title="Upload SSL cert" class="cert head-submenu" id="add4">SSL</a></li>	
 								<li><a href=/app/add.py#option title="Save custom options" class="option head-submenu" id="add5">Options</a></li>	
@@ -98,23 +95,7 @@
 					{% endif %}
 					</ul>
 				</nav>
-				<div class="copyright-menu">
-					{% if versions is defined %}
-						{% set current_ver = versions.0 %}
-						{% set new_ver = versions.1 %}
-						{% set current_ver_without_dots = versions.2 %}
-						{% set new_ver_without_dots = versions.3 %}
-					{% endif %}
-					{% if new_ver_without_dots is defined and current_ver_without_dots is defined and new_ver is defined and new_ver_without_dots is defined %}
-						{% if new_ver_without_dots > current_ver_without_dots and new_ver != "Sorry cannot get current version" %}
-							<span id="show-updates-button" class="new-version-exists">v{{current_ver}} </span>
-						{% else %}
-							v{{current_ver}}
-						{% endif %}
-					{% else %}
-						v{{current_ver}}
-					{% endif %}
-					<br>
+				<div class="donate-menu">
 					<a href="https://haproxy-wi.org/donate.py" title="Donate" target="_blank" style="color: #fff; margin-left: -10px; color: red;" class="patreon">  Donate</a>
 				</div>
 			</div>
@@ -215,11 +196,11 @@
 			<div id="ajax"></div>
 			
 		</div>	
-<div id="show-updates" style="display: none;">	
-				<div>
-					There is a new version HAProxy-WI. Check the <a href="/app/update.py">Update page</a>
-				</div>
-			</div>	
+		<div id="show-updates" style="display: none;">	
+			<div>
+				There is a new version HAProxy-WI. Check the <a href="/app/update.py">Update page</a>
+			</div>
+		</div>	
 		<div class="footer">
 			<a href="#" id="hide_menu" title="Hide menu" style="float: left;">
 				<span class="ui-state-default ui-corner-all">
@@ -227,13 +208,39 @@
 				</span>
 			</a>
 			<div class="show_menu" style="display: none; float: left;">
-			<a href="#" id="show_menu" title="Show menu">
-				<span class="ui-state-default ui-corner-all">
-					<span class="ui-icon ui-icon-arrowthick-1-e" id="arrow"></span>
-				</span>
-			</a>
-		</div>
+				<a href="#" id="show_menu" title="Show menu">
+					<span class="ui-state-default ui-corner-all">
+						<span class="ui-icon ui-icon-arrowthick-1-e" id="arrow"></span>
+					</span>
+				</a>
+			</div>
+			<div id="version">
+				{% if versions is defined %}
+						{% set current_ver = versions.0 %}
+						{% set new_ver = versions.1 %}
+						{% set current_ver_without_dots = versions.2 %}
+						{% set new_ver_without_dots = versions.3 %}
+					{% endif %}
+					{% if new_ver_without_dots is defined and current_ver_without_dots is defined and new_ver is defined and new_ver_without_dots is defined %}
+						<a href="https://haproxy-wi.org/changelog.py" title="View changelog" target="_blank" style="color: #000;">
+							{% if new_ver_without_dots > current_ver_without_dots and new_ver != "Sorry cannot get current version" %}
+								<span id="show-updates-button" class="new-version-exists">v{{current_ver}} </span>
+							{% else %}
+								v{{current_ver}}
+							{% endif %}
+						</a>
+					{% else %}
+						v{{current_ver}}
+					{% endif %}
+					<br>
+			</div>
+			<div id="logo_footer">
+				<a href="https://haproxy-wi.org" title="HAProxy-WI site" target="_blank">
+					<img src="/inc/images/logo_footer.png" alt="logo" id="logo_footer_img" />
+				</a>
+			</div>
 			<div class="footer-div">
+				<a href="https://github.com/Aidaho12/haproxy-wi/" class="footer-link" target="_blank">Github</a>
 				<a href="https://github.com/Aidaho12/haproxy-wi/issues" class="footer-link" target="_blank">Help</a>
 				<a href="https://github.com/Aidaho12" class="footer-link" target="_blank">Contact</a>
 				<a href="http://haproxy-wi.org" class="footer-link" target="_blank">About</a>

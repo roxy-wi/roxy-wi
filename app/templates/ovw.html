@@ -43,7 +43,7 @@
 	</tr>
 <tbody id="ajaxwafstatus"></tbody>	
 </table>
-<table class="overview-wi" style="height: 172;">
+<table class="overview-wi" style="height: 170;">
 	<tr class="overviewHead" style="height: 48px;">	
 		<th class="padding10 first-collumn-wi" colspan=4>
 			Tools status
@@ -51,45 +51,50 @@
 	</tr>
 	<tr>
 		<td class="padding10 first-collumn-wi">
-		{% if metrics_master|int() >= 1 %}
-			<span title="running {{ metrics_master }} master processes"><span class="serverUp"> UP</span> 
-		{% else %}
-			<span title="running {{ metrics_master }} master processes"><span class="serverDown"> DOWN</span>
-		{% endif %}
-			<span>Metrics master</span>
-
+			{% if metrics_master|int() >= 1 %}
+				<span title="running {{ metrics_master }} master processes"><span class="serverUp server-status"></span></span> 
+			{% else %}
+				<span class="serverDown server-status"></span>
+			{% endif %}
+			<a href="/app/viewlogs.py?viewlogs=metrics-error.log&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View metrics master's logs" class="logs_link">			
+				<span>Metrics master</span>
+			</a>
 		</td>
 		<td class="third-collumn-wi">
 			{% if checker_master|int() >= 1 %}
-				<span title="running {{ checker_master }} master processes"><span class="serverUp"> UP</span>
+				<span title="running {{ checker_master }} master processes"><span class="serverUp server-status"></span></span>
 			{% else %}
-				<span title="running {{ checker_master }} master processes"><span class="serverDown"> DOWN</span> 
+				<span class="serverDown server-status"></span> 
 			{% endif %}
-			<span>Checker master</span>
+			<a href="/app/viewlogs.py?viewlogs=checker-error.log&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View checker master's logs" class="logs_link">
+				<span>Checker master</span>
+			</a>
 		</td>
 		<td class="third-collumn-wi">
 			{% if keep_alive|int() >= 1 %}
-				<span title="Keep alive is run"><span class="serverUp"> UP</span>
+				<span title="running {{ keep_alive }} processe"><span class="serverUp server-status"></span></span>
 			{% else %}
-				<span title="Keep alive is down"><span class="serverDown"> DOWN</span> 
+				<span class="serverDown server-status"></span> 
 			{% endif %}
+			<a href="/app/viewlogs.py?viewlogs=keep_alive.log&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View keep alive logs" class="logs_link">
 				<span>Keep alive</span>
+			</a>
 		</td>
 	</tr>
 	<tr>
 		<td class="padding10 first-collumn-wi">
 		{% if metrics_worker|int() >= 1 %}
-			<span title="running {{metrics_worker}} worker processes"><span class="serverUp"> UP</span> 
+			<span title="running {{metrics_worker}} worker processes"><span class="serverUp server-status"></span> 
 		{% else %}
-			<span title="running {{metrics_worker}} worker processes"><span class="serverDown"> DOWN</span> 
+			<span title="running {{metrics_worker}} worker processes"><span class="serverDown server-status"></span> 
 		{% endif %}
 			<span>Metrics workers</span>
 		</td>
 		<td>
 		{% if checker_worker|int() >= 1 %}
-			<span title="running {{ checker_worker }} worker processes"><span class="serverUp"> UP</span>
+			<span title="running {{ checker_worker }} worker processes"><span class="serverUp server-status"></span>
 		{% else %}
-			<span title="running {{ checker_worker }} worker processes"><span class="serverDown"> DOWN</span> 
+			<span title="running {{ checker_worker }} worker processes"><span class="serverDown server-status"></span> 
 		{% endif %}
 			<span>Checker workers</span>
 		</td>
@@ -118,7 +123,7 @@
 			{% if counter <= 2 %}
 				<tr class="{{ loop.cycle('odd', 'even') }}">
 					<td class="padding10 first-collumn-wi"> 
-						<a href="users.py#users" title="Edit user" style="color: #000;">
+						<a href="users.py#users" title="Edit user" class="logs_link">
 							{{ USER.1 }}
 							<img src="/inc/images/edit.png" alt="Edit" width="15" style="margin-bottom: -3px;" />
 						</a>
@@ -135,7 +140,7 @@
 			{% else %}
 				<tr style="display: none;" class="show-users {{ loop.cycle('odd', 'even') }}">
 					<td class="padding10 first-collumn-wi"> 
-						<a href="users.py#users" title="Edit user" style="color: #000;">
+						<a href="users.py#users" title="Edit user" class="logs_link">
 							{{ USER.1 }}
 							<img src="/inc/images/edit.png" alt="Edit" width="15" style="margin-bottom: -3px;" />
 						</a>
@@ -163,7 +168,7 @@
 		{% for group in groups %}
 			<tr class="{{ loop.cycle('odd', 'even') }}">
 				<td class="padding10 first-collumn-wi"> 
-					<a href="users.py#groups" title="Edit groups" style="color: #000;">
+					<a href="users.py#groups" title="Edit groups" class="logs_link">
 							{{ group.1 }}
 						<img src="/inc/images/edit.png" alt="Edit" width="15" style="margin-bottom: -3px;" />
 					</a>			

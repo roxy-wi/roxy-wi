@@ -338,7 +338,8 @@ function showLog() {
 																	'&hour='+hour+
 																	'&minut='+minut+
 																	'&hour1='+hour1+
-																	'&minut1='+minut1);
+																	'&minut1='+minut1+
+																	'&waf='+waf);
 		}					
 	} );
 }

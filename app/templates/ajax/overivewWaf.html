@@ -4,16 +4,19 @@
 		{% do waf_servers.append(1) %}
 		<tr class="{{ loop.cycle('odd', 'even') }}" id="{{service.0}}-select-line">
 			<td class="padding10 first-collumn-wi">
-			{% if service.2|int() >= 1 %}
-				<span class="serverUp" title="running {{service.2 }} processes"> UP</span>
-			{% else %}
-				<span class="serverDown"> DOWN</span>
-			{% endif %}
-				<a href="#{{ service.0 }}" title="Go to {{ service.0 }} status" style="color: #000">{{ service.0 }}</a>
+				{% if service.2|int() >= 1 %}
+					<span class="serverUp server-status" title="running {{service.2 }} processes"></span>
+				{% else %}
+					<span class="serverDown server-status"></span>
+				{% endif %}
+				<a href="/app/logs.py?serv={{ service.1 }}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00&waf=1" title="View {{service.0 }}'s WAF logs" class="logs_link">
+					{{ service.0 }}
+				</a>
 			</td>
-			<!-- <td  class="second-collumn"> -->
-			
-			<!-- </td> -->
+			{% if url == "waf.py" %}
+			<td>			
+			</td>
+			{% endif %}
 			<td>
 			{% if role <= 1 %}
 				<a id="{{ service.1 }}" class="start-waf" title="Start WAF service">

@@ -50,7 +50,7 @@ Support the project
 # Install
 
 ## RPM
-Install repository^
+Install repository:
 ```
 yum install https://repo.haproxy-wi.org/el7/haproxy-wi-release-7-1-0.noarch.rpm 
 ```
@@ -149,7 +149,7 @@ MariaDB [(none)]> create database haproxywi;
 MariaDB [(none)]> grant all on haproxywi.* to 'haproxy-wi'@'%' IDENTIFIED BY 'haproxy-wi';
 MariaDB [(none)]> grant all on haproxywi.* to 'haproxy-wi'@'localhost' IDENTIFIED BY 'haproxy-wi';
 ```
-![alt text](image/haproxy-wi-overview.jpeg "Overview page")
+![alt text](image/haproxy-wi-overview.png "Overview page")
 
 # Settings
 ```
@@ -165,7 +165,7 @@ For Runtime API, Metrics and Alerting enable state file and stat socket on HApro
     global
         stats socket *:1999 level admin 
         stats socket /var/run/haproxy.sock mode 600 level admin
-        server-state-file /etc/haproxy/haproxy/haproxy.state
+        server-state-file /etc/haproxy/haproxy.state
 		
     defaults
         load-server-state-from-file global
@@ -173,7 +173,7 @@ For Runtime API, Metrics and Alerting enable state file and stat socket on HApro
     listen stats 
         stats admin if TRUE 
    ```
-![alt text](image/haproxy-wi-logs.jpeg "View logs page")
+![alt text](image/haproxy-wi-logs.png "View logs page")
 
 # Update
 ```

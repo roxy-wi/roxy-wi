@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 {% block content %}	
+{% set current_ver = versions.0 %}
+						{% set new_ver = versions.1 %}
+						{% set current_ver_without_dots = versions.2 %}
+						{% set new_ver_without_dots = versions.3 %}
 <script src="/inc/users.js"></script>
 <table class="overview">
 	<tr class="overviewHead">
