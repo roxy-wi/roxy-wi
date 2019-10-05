@@ -24,31 +24,21 @@
 <tbody id="ajaxwafstatus"></tbody>	
 </table>
 <div id="ajax"></div>
-<style>
-iframe {
-	border: none;
-	padding: 10px;
-	}
-</style>
 
-<div id="metrics_iframe"></div>
+<link href="/inc/chart.min.css" rel="stylesheet">
+<script src="/inc/metrics.js"></script>
+<script src="/inc/chart.min.js"></script>
+
+{% for s in servers %}
+<div class="chart-container" style="">
+	<canvas id="{{s.0}}" role="img"></canvas>
+</div>
+	<script>
+		getWafChartData('{{s.0}}')
+	</script>
+{% endfor %}
+
 <script>
 showOverviewWaf()
-function callIframe(url, callback) {
-	$('#metrics_iframe').html('<iframe id="metrics" style="width:100%;height:100%;" />');
-	$('iframe#metrics').attr('src', url);
-	$('iframe#metrics').load(function() {
-		callback(this);
-	});
-}
-function loadMetrics() {
-	callIframe('templates/metrics_waf_out.html', function(){
-		$.get( "options.py?waf_metrics=1&token="+$('#token').val(), function( data ) {
-			$( ".result" ).html( data );
-		});
-	});
-}
-
-loadMetrics()
 </script>
 {% endblock %}

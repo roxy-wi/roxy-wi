@@ -25,7 +25,7 @@ template = template.render(h2 = 1, title = "Web application firewall",
 							autorefresh = 1,
 							role = sql.get_user_role_by_uuid(user_id.value),
 							user = user,
-							table_stat = sql.select_table_metrics(user_id.value),
+							servers = sql.select_waf_servers_metrics(user_id.value),
 							versions = funct.versions(),
 							token = token)											
 print(template)

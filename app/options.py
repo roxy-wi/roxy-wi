@@ -10,7 +10,7 @@ form = cgi.FieldStorage()
 serv = form.getvalue('serv')
 act = form.getvalue('act')
 
-if form.getvalue('new_metrics'):
+if form.getvalue('new_metrics') or form.getvalue('new_waf_metrics'):
 	print('Content-type: application/json\n')
 else:
 	print('Content-type: text/html\n')
@@ -442,19 +442,7 @@ if form.getvalue('table_metrics'):
 	
 	
 if form.getvalue('new_metrics'):
-	from datetime import timedelta
-	import http.cookies
-		
-	# cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	# user_id = cookie.get('uuid')	
-	# servers = sql.select_servers_metrics(user_id.value)
-	# servers = sorted(servers)
 	serv = form.getvalue('server')
-	
-	# p = {}
-	# for serv in servers:
-		# serv = serv[0]
-		# p[serv] = {}
 	metric = sql.select_metrics(serv)
 	metrics = {}
 	metrics['chartData'] = {}
@@ -463,175 +451,43 @@ if form.getvalue('new_metrics'):
 	curr_con = ''
 	curr_ssl_con = ''
 	sess_rate = ''
-	max_sess_rate = ''
+
 	for i in metric:
 		labels += str(i[5].split(' ')[1])+','
 		curr_con += str(i[1])+','
 		curr_ssl_con += str(i[2])+','
 		sess_rate += str(i[3])+','
-		max_sess_rate += str(i[4])+','
 		server = str(i[0])
 			
 	metrics['chartData']['labels'] = labels
-
-			# metrics[rep_date]['server'] = str(i[0])
 	metrics['chartData']['curr_con'] = curr_con
 	metrics['chartData']['curr_ssl_con'] = curr_ssl_con
 	metrics['chartData']['sess_rate'] = sess_rate
-	metrics['chartData']['max_sess_rate'] = max_sess_rate
 	metrics['chartData']['server'] = server
 	import json
-	
 	print(json.dumps(metrics))
 			
 
-if form.getvalue('metrics'):
-	from datetime import timedelta
-	from bokeh.plotting import figure, output_file, show
-	from bokeh.models import ColumnDataSource, HoverTool, DatetimeTickFormatter, DatePicker
-	from bokeh.layouts import widgetbox, gridplot
-	from bokeh.models.widgets import Button, RadioButtonGroup, Select
-	import pandas as pd
-	import http.cookies
-		
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_id = cookie.get('uuid')	
-	servers = sql.select_servers_metrics(user_id.value)
-	servers = sorted(servers)
-	
-	p = {}
-	for serv in servers:
-		serv = serv[0]
-		p[serv] = {}
-		metric = sql.select_metrics(serv)
-		metrics = {}
-		
-		for i in metric:
-			rep_date = str(i[5])
-			metrics[rep_date] = {}
-			metrics[rep_date]['server'] = str(i[0])
-			metrics[rep_date]['curr_con'] = str(i[1])
-			metrics[rep_date]['curr_ssl_con'] = str(i[2])
-			metrics[rep_date]['sess_rate'] = str(i[3])
-			metrics[rep_date]['max_sess_rate'] = str(i[4])
+if form.getvalue('new_waf_metrics'):	
+	serv = form.getvalue('server')
+	metric = sql.select_waf_metrics(serv)
+	metrics = {}
+	metrics['chartData'] = {}
+	metrics['chartData']['labels'] = {}
+	labels = ''
+	curr_con = ''
 
-		df = pd.DataFrame.from_dict(metrics, orient="index")
-		df = df.fillna(0)
-		df.index = pd.to_datetime(df.index)
-		df.index.name = 'Date'
-		df.sort_index(inplace=True)
-		source = ColumnDataSource(df)
-		
-		output_file("templates/metrics_out.html", mode='inline')
-		
-		x_min = df.index.min() - pd.Timedelta(hours=1)
-		x_max = df.index.max() + pd.Timedelta(minutes=1)
+	for i in metric:
+		labels += str(i[2].split(' ')[1])+','
+		curr_con += str(i[1])+','
 
-		p[serv] = figure(
-			tools="pan,box_zoom,reset,xwheel_zoom",		
-			title=metric[0][0],
-			x_axis_type="datetime", y_axis_label='Connections',
-			x_range = (x_max.timestamp()*1000-60*100000, x_max.timestamp()*1000)
-			)
 			
-		hover = HoverTool(
-			tooltips=[
-				("Connections", "@curr_con"),
-				("SSL connections", "@curr_ssl_con"),
-				("Sessions rate", "@sess_rate")
-			],
-			mode='mouse'
-		)
-		
-		p[serv].ygrid.band_fill_color = "#f3f8fb"
-		p[serv].ygrid.band_fill_alpha = 0.9
-		p[serv].y_range.start = 0
-		p[serv].y_range.end = int(df['curr_con'].max()) + 150
-		p[serv].add_tools(hover)
-		p[serv].title.text_font_size = "20px"						
-		p[serv].line("Date", "curr_con", source=source, alpha=0.5, color='#5cb85c', line_width=2, legend="Conn")
-		p[serv].line("Date", "curr_ssl_con", source=source, alpha=0.5, color="#5d9ceb", line_width=2, legend="SSL con")
-		p[serv].line("Date", "sess_rate", source=source, alpha=0.5, color="#33414e", line_width=2, legend="Sessions")
-		p[serv].legend.orientation = "horizontal"
-		p[serv].legend.location = "top_left"
-		p[serv].legend.padding = 5
-
-	plots = []
-	for key, value in p.items():
-		plots.append(value)
-		
-	grid = gridplot(plots, ncols=2, plot_width=800, plot_height=250, toolbar_location = "left", toolbar_options=dict(logo=None))
-	show(grid)
+	metrics['chartData']['labels'] = labels
+	metrics['chartData']['curr_con'] = curr_con
+	metrics['chartData']['server'] = serv
+	import json
+	print(json.dumps(metrics))
 	
-if form.getvalue('waf_metrics'):
-	from datetime import timedelta
-	from bokeh.plotting import figure, output_file, show
-	from bokeh.models import ColumnDataSource, HoverTool, DatetimeTickFormatter, DatePicker
-	from bokeh.layouts import widgetbox, gridplot
-	from bokeh.models.widgets import Button, RadioButtonGroup, Select
-	import pandas as pd
-	import http.cookies
-		
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_id = cookie.get('uuid')	
-	servers = sql.select_waf_servers_metrics(user_id.value)
-	servers = sorted(servers)
-	
-	p = {}
-	for serv in servers:
-		serv = serv[0]
-		p[serv] = {}
-		metric = sql.select_waf_metrics(serv)
-		metrics = {}
-		
-		for i in metric:
-			rep_date = str(i[2])
-			metrics[rep_date] = {}
-			metrics[rep_date]['conn'] = str(i[1])
-
-		df = pd.DataFrame.from_dict(metrics, orient="index")
-		df = df.fillna(0)
-		df.index = pd.to_datetime(df.index)
-		df.index.name = 'Date'
-		df.sort_index(inplace=True)
-		source = ColumnDataSource(df)
-		
-		output_file("templates/metrics_waf_out.html", mode='inline')
-		
-		x_min = df.index.min() - pd.Timedelta(hours=1)
-		x_max = df.index.max() + pd.Timedelta(minutes=1)
-
-		p[serv] = figure(
-			tools="pan,box_zoom,reset,xwheel_zoom",
-			title=metric[0][0],
-			x_axis_type="datetime", y_axis_label='Connections',
-			x_range = (x_max.timestamp()*1000-60*100000, x_max.timestamp()*1000)
-			)
-			
-		hover = HoverTool(
-			tooltips=[
-				("Connections", "@conn"),
-			],
-			mode='mouse'
-		)
-		
-		p[serv].ygrid.band_fill_color = "#f3f8fb"
-		p[serv].ygrid.band_fill_alpha = 0.9
-		p[serv].y_range.start = 0
-		p[serv].y_range.end = int(df['conn'].max()) + 150
-		p[serv].add_tools(hover)
-		p[serv].title.text_font_size = "20px"				
-		p[serv].line("Date", "conn", source=source, alpha=0.5, color='#5cb85c', line_width=2, legend="Conn")
-		p[serv].legend.orientation = "horizontal"
-		p[serv].legend.location = "top_left"
-		p[serv].legend.padding = 5
-		
-	plots = []
-	for key, value in p.items():
-		plots.append(value)
-		
-	grid = gridplot(plots, ncols=2, plot_width=800, plot_height=250, toolbar_location = "left", toolbar_options=dict(logo=None))
-	show(grid)
 	
 if form.getvalue('get_hap_v'):
 	output = funct.check_haproxy_version(serv)

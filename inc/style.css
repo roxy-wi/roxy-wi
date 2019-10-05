@@ -148,7 +148,7 @@ pre {
 	float: right;
 	margin-top: 5px;
 	margin-left: 14px;
-	margin-right: 15px;
+	margin-right: 20px;
 	color: #fff !important;
 	font-size: 15px;
 }
@@ -328,14 +328,14 @@ pre {
 	padding-left: 10px;
 	font-style: italic;
 }
-.tooltip {
-	font-size: 12px; 
-	padding-bottom: 10px;
-}
-.tooltipTop {
-	margin-bottom: -20px; 
-	padding-top: 10px;
-}
+/* .tooltip { */
+	/* font-size: 12px;  */
+	/* padding-bottom: 10px; */
+/* } */
+/* .tooltipTop { */
+	/* margin-bottom: -20px;  */
+	/* padding-top: 10px; */
+/* } */
 .overview {
 	width: 100%;
 	/* margin-top: 1.5em; */
@@ -565,12 +565,15 @@ ul{
 	border: none !important;
 	border-color: #5D9CEB !important;
 }
-.ui-tooltip, .arrow:after {
-    background: #33414E !important;
-    border: 1px solid #33414E !important;
-	border-radius: 5px !important;
-	color: #fff !important;
-  }
+/* .ui-tooltip, .arrow:after { */
+    /* background: #33414E !important; */
+    /* border: 1px solid #33414E !important; */
+	/* border-radius: 5px !important; */
+	/* color: #fff !important; */
+	/* font-size: 10px !important; */
+	/* padding: 2px !important; */
+	/* margin-bottom: -20px !important; */
+  /* } */
 .ui-tabs-nav {
 	border-radius: 0 !important;
 	padding-left: 25px !important; 
@@ -803,6 +806,14 @@ label {
 	margin-top: -40px; 
 	margin-bottom: -40px; 
 	padding-left: 70px;
+}
+.chart-container {
+	position: relative;
+	height: 310px;
+	width: 49%;
+	float: left;
+	margin-top: 20px;
+	margin-left: 10px;
 }
 @media (max-width: 1920px) {
   #logo_span {
