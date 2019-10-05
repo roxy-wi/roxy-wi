@@ -1,5 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
+<style>
+.container {
+	margin-right: 0;
+}
+</style>
 <script src="/inc/users.js"></script>
 <script src="/inc/fontawesome.min.js"></script>
 <div id="dialog-confirm" title="Are you sure you want to delete?" style="display: none;">
@@ -126,7 +131,7 @@
 		<table class="overview" id="ajax-group">
 			<tr class="overviewHead">
 				<td class="padding10 first-collumn">Name</td>
-				<td>Desciption</td>
+				<td>Description</td>
 				<td></td>
 			</tr>
 		{% for group in groups %}
@@ -158,7 +163,7 @@
 		<table class="overview" id="group-add-table" style="display: none;">
 			<tr class="overviewHead">
 				<td class="padding10 first-collumn">New group name</td>
-				<td>Desciption</td>
+				<td>Description</td>
 				<td></td>
 			</tr>
 			<tr>
@@ -304,7 +309,7 @@
 		<!-- <table class="overview" id="ajax-group"> -->
 			<!-- <tr class="overviewHead"> -->
 				<!-- <td class="padding10 first-collumn">Name</td> -->
-				<!-- <td>Desciption</td> -->
+				<!-- <td>Description</td> -->
 			<!-- </tr> -->
 			<!-- <tr> -->
 			<!-- {% for role in roles %}	 -->
@@ -688,7 +693,7 @@
 			</td>
 			</tr>
 			<tr>
-				<td class="padding20">Desciption</td>
+				<td class="padding20">Description</td>
 				<td>
 					<input type="text" id="desc" size="30" class="form-control">
 				</td>

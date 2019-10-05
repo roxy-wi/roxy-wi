@@ -13,33 +13,23 @@ table, th, tr, td {
 th, tr, td {
 	width: 6%;
 	padding: 10px;
+	}
+.metrics1 {
+	width: 400px;
+	height: 100px;}
 }
 </style>
-
+<script src="/inc/metrics.js"></script>
 <div id="table_metrics"></div>
+{% for s in servers %}
+	<canvas id="{{s.2}}" width="100" height="20" class="metrics1" role="img"></canvas>
+	<script>
+		getChartData('{{s.2}}')
+	</script>
+{% endfor %}
+
 <div id="metrics_iframe"></div>
 <script>
-$("#secIntervals").css("display", "none");	
-function callIframe(url, callback) {
-	$('#metrics_iframe').html('<iframe id="metrics" style="width:100%;height:100%;" />');
-	$('iframe#metrics').attr('src', url);
-	$('iframe#metrics').load(function() {
-		callback(this);
-	});
-}
-
-function loadMetrics() {
-	callIframe('templates/metrics_out.html', function(){
-		$.get( "options.py?metrics=1&token="+$('#token').val(), function( data ) {
-			$( ".result" ).html( data );
-		})
-		$.get( "options.py?table_metrics=1&token="+$('#token').val(), function( data ) {
-			$( "#table_metrics" ).html( data );
-		});
-	});
-}
-
-loadMetrics()
-
+	loadMetrics()
  </script>
 {% endblock %}

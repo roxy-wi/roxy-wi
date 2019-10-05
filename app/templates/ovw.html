@@ -7,10 +7,7 @@
 	<tr class="overviewHead">
 		<td class="padding10 first-collumn-wi">
 			Server
-		</td class="padding10 second-collumn">
-		<!-- <td class="padding10 second-collumn"> -->
-			<!-- HAproxy status -->
-		<!-- </td> -->
+		</td>
 		<td class="padding10  third-collumn-wi">
 			Action
 		</td>
@@ -28,9 +25,6 @@
 		<td class="padding10 first-collumn-wi">
 			WAF
 		</td class="padding10 second-collumn">
-		<!-- <td class="padding10 second-collumn"> -->
-			<!-- WAF status -->
-		<!-- </td> -->
 		<td class="padding10  third-collumn-wi">
 			Action
 		</td>
@@ -55,11 +49,10 @@
 		</td>
 	</tr>		
 	<tr>
-		<td style="width:90%">
+		<td style="width:90%" colspan="2">
 			<pre style="margin: 0;" id="ajaxHapwi">
 			</pre>
 		</td>
-		<td></td>
 	</tr>
 </table>
 <table class="overview-wi" style="height: 170;">
@@ -75,7 +68,7 @@
 			{% else %}
 				<span class="serverDown server-status"></span>
 			{% endif %}
-			<a href="/app/viewlogs.py?viewlogs=metrics-error.log&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View metrics master's logs" class="logs_link">			
+			<a href="/app/viewlogs.py?viewlogs=metrics-{{date}}.log&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View metrics master's logs" class="logs_link">			
 				<span>Metrics master</span>
 			</a>
 		</td>
@@ -85,7 +78,7 @@
 			{% else %}
 				<span class="serverDown server-status"></span> 
 			{% endif %}
-			<a href="/app/viewlogs.py?viewlogs=checker-error.log&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View checker master's logs" class="logs_link">
+			<a href="/app/viewlogs.py?viewlogs=checker-{{date}}.log&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View checker master's logs" class="logs_link">
 				<span>Checker master</span>
 			</a>
 		</td>
@@ -107,7 +100,9 @@
 		{% else %}
 			<span title="running {{metrics_worker}} worker processes"><span class="serverDown server-status"></span> 
 		{% endif %}
-			<span>Metrics workers</span>
+			<a href="/app/viewlogs.py?viewlogs=metrics-error.log&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View worker's logs" class="logs_link">
+				<span>Metrics workers</span>
+			</a>
 		</td>
 		<td>
 		{% if checker_worker|int() >= 1 %}
@@ -115,7 +110,9 @@
 		{% else %}
 			<span title="running {{ checker_worker }} worker processes"><span class="serverDown server-status"></span> 
 		{% endif %}
-			<span>Checker workers</span>
+			<a href="/app/viewlogs.py?viewlogs=checker-error.log&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View checker's logs" class="logs_link">
+				<span>Checker workers</span>
+			</a>
 		</td>
 		<td></td>
 		
@@ -125,7 +122,6 @@
 	<table class="overview-wi">
 		<tr class="overviewHead">
 			<td class="padding10 first-collumn-wi">Login</td>
-			<!-- <td class="padding10 second-collumn">Email</td> -->
 			<td class="second-collumn">Group</td>
 			<td>Role</td>
 			<td>
@@ -153,8 +149,7 @@
 							<td class="third-collumn-wi">{{ group.1 }}</td>
 						{% endif %}
 					{% endfor %}
-					<td>{{ USER.4 }}</td>
-					<td></td>
+					<td colspan="2">{{ USER.4 }}</td>
 				</tr>
 			{% else %}
 				<tr style="display: none;" class="show-users {{ loop.cycle('odd', 'even') }}">
@@ -170,8 +165,7 @@
 							<td class="third-collumn-wi">{{ group.1 }}</td>
 						{% endif %}
 					{% endfor %}
-					<td>{{ USER.4 }}</td>
-					<td></td>
+					<td colspan="2">{{ USER.4 }}</td>
 				</tr>
 			{% endif %}
 		{% endfor %}
@@ -200,8 +194,7 @@
 						<img src="/inc/images/edit.png" alt="Edit" width="15" style="margin-bottom: -3px;" />
 					</a>			
 				</td>
-				<td class="third-collumn-wi">{{ group.2 }}</td>
-				<td></td>
+				<td class="third-collumn-wi" colspan="2">{{ group.2 }}</td>
 			</tr>
 			{% else %}
 			<tr style="display: none;" class="show-groups {{ loop.cycle('odd', 'even') }}">
@@ -211,8 +204,7 @@
 						<img src="/inc/images/edit.png" alt="Edit" width="15" style="margin-bottom: -3px;" />
 					</a>			
 				</td>
-				<td class="third-collumn-wi">{{ group.2 }}</td>
-				<td></td>
+				<td class="third-collumn-wi" colspan="2">{{ group.2 }}</td>
 			</tr>
 			{% endif %}
 		{% endfor %}

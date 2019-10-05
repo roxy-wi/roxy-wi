@@ -546,7 +546,7 @@ $( function() {
 	$( "#tabs" ).tabs();
 	$( "select" ).selectmenu();
 		
-    //var tooltips = $( "[title]" ).tooltip();
+    // var tooltips = $( "[title]" ).tooltip();
 	$( "input[type=submit], button" ).button();
 	$( "input[type=checkbox]" ).checkboxradio();
 	$( ".controlgroup" ).controlgroup();
@@ -563,8 +563,8 @@ $( function() {
 	});
 	$( "#show_menu" ).click(function() {
 		$(".top-menu").show( "drop", "fast" );
-		$(".container").css("max-width", "91%");
-		$(".footer").css("max-width", "91%");
+		$(".container").css("max-width", "100%");
+		$(".footer").css("max-width", "100%");
 		$(".container").css("margin-left", "207px");
 		$(".footer").css("margin-left", "207px");
 		$(".show_menu").hide();
@@ -575,7 +575,7 @@ $( function() {
 	var hideMenu = Cookies.get('hide_menu');
 	if (hideMenu == "show") {
 		$(".top-menu").show( "drop", "fast" );
-		$(".container").css("max-width", "91%");
+		$(".container").css("max-width", "100%");
 		$(".container").css("margin-left", "207px");
 	}
 	if (hideMenu == "hide") {
@@ -818,7 +818,8 @@ function updateOptions(id) {
 		url: "sql.py",
 		data: {
 			updateoption: $('#option-body-'+id).val(),
-			id: id
+			id: id,
+			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {
@@ -863,6 +864,7 @@ function removeOption(id) {
 		url: "sql.py",
 		data: {
 			optiondel: id,
+			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {

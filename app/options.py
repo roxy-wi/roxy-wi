@@ -9,8 +9,11 @@ import ovw
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
 act = form.getvalue('act')
-	
-print('Content-type: text/html\n')
+
+if form.getvalue('new_metrics'):
+	print('Content-type: application/json\n')
+else:
+	print('Content-type: text/html\n')
 
 if act == "checkrestart":
 	servers = sql.get_dick_permit(ip=serv)
@@ -436,7 +439,52 @@ if form.getvalue('table_metrics'):
 
 	template = template.render(table_stat=sql.select_table_metrics(user_id.value))											
 	print(template)
+	
+	
+if form.getvalue('new_metrics'):
+	from datetime import timedelta
+	import http.cookies
 		
+	# cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	# user_id = cookie.get('uuid')	
+	# servers = sql.select_servers_metrics(user_id.value)
+	# servers = sorted(servers)
+	serv = form.getvalue('server')
+	
+	# p = {}
+	# for serv in servers:
+		# serv = serv[0]
+		# p[serv] = {}
+	metric = sql.select_metrics(serv)
+	metrics = {}
+	metrics['chartData'] = {}
+	metrics['chartData']['labels'] = {}
+	labels = ''
+	curr_con = ''
+	curr_ssl_con = ''
+	sess_rate = ''
+	max_sess_rate = ''
+	for i in metric:
+		labels += str(i[5].split(' ')[1])+','
+		curr_con += str(i[1])+','
+		curr_ssl_con += str(i[2])+','
+		sess_rate += str(i[3])+','
+		max_sess_rate += str(i[4])+','
+		server = str(i[0])
+			
+	metrics['chartData']['labels'] = labels
+
+			# metrics[rep_date]['server'] = str(i[0])
+	metrics['chartData']['curr_con'] = curr_con
+	metrics['chartData']['curr_ssl_con'] = curr_ssl_con
+	metrics['chartData']['sess_rate'] = sess_rate
+	metrics['chartData']['max_sess_rate'] = max_sess_rate
+	metrics['chartData']['server'] = server
+	import json
+	
+	print(json.dumps(metrics))
+			
+
 if form.getvalue('metrics'):
 	from datetime import timedelta
 	from bokeh.plotting import figure, output_file, show

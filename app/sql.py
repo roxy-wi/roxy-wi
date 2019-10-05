@@ -890,7 +890,7 @@ def delete_mentrics():
 	
 def select_metrics(serv, **kwargs):
 	con, cur = create_db.get_cur()
-	sql = """ select * from metrics where serv = '%s' order by `date` desc """ % serv
+	sql = """ select * from (select * from metrics where serv = '%s' order by `date` desc limit 30) order by `date` """ % serv
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
@@ -1513,7 +1513,7 @@ if form.getvalue('getoption'):
 	print('Content-type: application/json\n')
 	check_token()
 	options = select_options(group=group,term=term)
-	a = ""
+
 	a = {}
 	v = 0
 	for i in options:

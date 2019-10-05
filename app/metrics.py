@@ -24,8 +24,7 @@ template = template.render(h2 = 1, title = "Metrics",
 							autorefresh = 1,
 							role = sql.get_user_role_by_uuid(user_id.value),
 							user = user,
-							onclick = "metricsShow()",
-							table_stat = sql.select_table_metrics(user_id.value),
+							servers = sql.get_dick_permit(),
 							versions = funct.versions(),
 							token = token)											
 print(template)
