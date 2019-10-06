@@ -150,7 +150,7 @@ function startSetInterval(interval) {
 			if(interval < 60000) {
 				interval = 60000;
 			}
-			intervalId = setInterval('showMetrics()', interval);
+			intervalId = setInterval('showOverviewWaf()', interval);
 			showOverviewWaf();
 			showWafMetrics();
 		} 

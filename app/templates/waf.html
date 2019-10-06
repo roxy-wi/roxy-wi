@@ -28,10 +28,12 @@
 <link href="/inc/chart.min.css" rel="stylesheet">
 <script src="/inc/metrics.js"></script>
 <script src="/inc/chart.min.js"></script>
-
+<div id="refresh" style="text-align: right;margin-top: 20px;margin-right: 20px;" title="Refresh metrics" onclick="showWafMetrics()">
+	<img  src="/inc/images/update.png" alt="Refresh" class="icon">
+</div>
 {% for s in servers %}
 <div class="chart-container">
-	<canvas id="{{s.0}}" role="img"></canvas>
+	<canvas id="s_{{s.0}}" role="img"></canvas>
 </div>
 {% endfor %}
 

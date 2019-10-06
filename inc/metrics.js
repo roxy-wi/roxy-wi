@@ -81,10 +81,8 @@ function getWafChartData(server) {
 			token: $('#token').val()
 		},
 		type: "GET",
-        success: function (result) {
-     
+        success: function (result) {   
             var data = [];
-
             data.push(result.chartData.curr_con);
             data.push(result.chartData.server);
             var labels = result.chartData.labels;
@@ -93,7 +91,8 @@ function getWafChartData(server) {
     });
 }
 function renderWafChart(data, labels, server) {
-    var ctx = document.getElementById(server)
+	console.log(server)
+    var ctx = 's_'+server
     var myChart = new Chart(ctx, {
         type: 'line',
         data: {

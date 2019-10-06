@@ -16,6 +16,9 @@ th, tr, td {
 <script src="/inc/metrics.js"></script>
 <script src="/inc/chart.min.js"></script>
 <div id="table_metrics"></div>
+<div id="refresh" style="text-align: right;margin-top: 20px;margin-right: 10px;" title="Refresh metrics" onclick="showMetrics()">
+	<img  src="/inc/images/update.png" alt="Refresh" class="icon">
+</div>
 {% for s in servers %}
 <div class="chart-container">
 	<canvas id="{{s.0}}" role="img"></canvas>

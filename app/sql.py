@@ -783,7 +783,7 @@ def select_waf_servers_metrics(uuid, **kwargs):
 	else:
 		for group in cur:
 			if group[5] == '1':
-				sql = """ select servers.ip from servers left join waf as waf on waf.server_id = servers.id where servers.enable = 1 and waf.metrics = '1' """
+				sql = """ select servers.ip from servers left join waf as waf on waf.server_id = servers.id where servers.enable = 1 and waf.metrics = '1'  """
 			else:
 				sql = """ select servers.ip from servers left join waf as waf on waf.server_id = servers.id where servers.enable = 1 and waf.metrics = '1' and servers.groups like '%{group}%' """.format(group=group[5])		
 		try:   
@@ -797,7 +797,7 @@ def select_waf_servers_metrics(uuid, **kwargs):
 	
 def select_waf_metrics(serv, **kwargs):
 	con, cur = create_db.get_cur()
-	sql = """ select * from waf_metrics where serv = '%s' order by `date` desc """ % serv
+	sql = """ select * from (select * from waf_metrics where serv = '%s' order by `date` desc limit 30) order by `date`""" % serv
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
