@@ -45,7 +45,7 @@ Support the project
 26. Keep active HAProxy service
 27. Ability to hide parts of the config with tags for users with "guest" role:  "HideBlockStart" and "HideBlockEnd"
 
-![alt text](image/haproxy-wi-metrics.jpeg "Merics")
+![alt text](image/haproxy-wi-metrics.png "Merics")
 
 # Install
 
