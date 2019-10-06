@@ -467,6 +467,7 @@ if form.getvalue('new_metrics'):
 	metrics['chartData']['curr_ssl_con'] = curr_ssl_con
 	metrics['chartData']['sess_rate'] = sess_rate
 	metrics['chartData']['server'] = server
+	
 	import json
 	print(json.dumps(metrics))
 			
