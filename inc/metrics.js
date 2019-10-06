@@ -29,19 +29,19 @@ function renderChart(data, labels, server) {
             labels: labels.split(','),
             datasets: [
                 {
-                    label: 'curr_con',
+                    label: 'Connections',
                     data: data[0].split(','),
                     borderColor: 'rgba(75, 192, 192, 1)',
                     backgroundColor: 'rgba(75, 192, 192, 0.2)',
                 },
                 {
-                    label: 'curr_ssl_con',
+                    label: 'SSL Connections',
                     data: data[1].split(','),
                     borderColor: 'rgba(54, 162, 235, 1)',
                     backgroundColor: 'rgba(54, 162, 235, 0.2)',
                 },
 				 {
-                    label: 'sess_rate',
+                    label: 'Session rate',
                     data: data[2].split(','),
                     borderColor: 'rgba(255, 206, 86, 1)',
                     backgroundColor: 'rgba(255, 206, 86, 0.2)',
@@ -100,7 +100,7 @@ function renderWafChart(data, labels, server) {
             labels: labels.split(','),
             datasets: [
                 {
-                    label: 'curr_con',
+                    label: 'Connections',
                     data: data[0].split(','),
                     borderColor: 'rgba(75, 192, 192, 1)',
                     backgroundColor: 'rgba(75, 192, 192, 0.2)',
@@ -132,20 +132,11 @@ function renderWafChart(data, labels, server) {
 }
 
 $("#secIntervals").css("display", "none");	
-function callIframe(url, callback) {
-	$('#metrics_iframe').html('<iframe id="metrics" style="width:100%;height:100%;" />');
-	$('iframe#metrics').attr('src', url);
-	$('iframe#metrics').load(function() {
-		callback(this);
-	});
-}
 
 function loadMetrics() {
-
-		$.get( "options.py?table_metrics=1&token="+$('#token').val(), function( data ) {
-			$( "#table_metrics" ).html( data );
-		});
-
+	$.get( "options.py?table_metrics=1&token="+$('#token').val(), function( data ) {
+		$( "#table_metrics" ).html( data );
+	});
 }
 
 

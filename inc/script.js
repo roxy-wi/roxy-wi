@@ -43,7 +43,7 @@ window.onblur= function() {
 			} else if (cur_url[0] == "viewlogs.py") {
 				viewLogs();
 			}  else if (cur_url[0] == "metrics.py") {
-				loadMetrics();
+				showMetrics();
 			}	 
 		} 
 	}
@@ -144,15 +144,15 @@ function startSetInterval(interval) {
 			if(interval < 60000) {
 				interval = 60000;
 			}
-			intervalId = setInterval('loadMetrics()', interval);
-			loadMetrics();
+			intervalId = setInterval('showMetrics()', interval);
+			showMetrics();
 		} else if (cur_url[0] == "waf.py") {
 			if(interval < 60000) {
 				interval = 60000;
 			}
-			intervalId = setInterval('loadMetrics()', interval);
+			intervalId = setInterval('showMetrics()', interval);
 			showOverviewWaf();
-			loadMetrics();
+			showWafMetrics();
 		} 
 	} else {
 		pauseAutoRefresh();
@@ -245,6 +245,10 @@ function showOverviewServer(name,ip,id) {
 	} );
 }
 function showOverviewWaf() {
+	if (cur_url[0] == "waf.py") {
+		$.getScript('/inc/chart.min.js');
+		showWafMetrics()
+	}
 	$.ajax( {
 		url: "options.py",
 		data: {

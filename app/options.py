@@ -482,13 +482,16 @@ if form.getvalue('new_waf_metrics'):
 	curr_con = ''
 
 	for i in metric:
-		labels += str(i[2].split(' ')[1])+','
+		label = str(i[2])
+		label = label.split(' ')[1]
+		label = label.split(':')
+		labels += label[0]+':'+label[1]+','
 		curr_con += str(i[1])+','
-
-			
+		
 	metrics['chartData']['labels'] = labels
 	metrics['chartData']['curr_con'] = curr_con
 	metrics['chartData']['server'] = serv
+	
 	import json
 	print(json.dumps(metrics))
 	

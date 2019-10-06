@@ -1,7 +1,6 @@
 $( function() {
 	$( "#ajaxwafstatus input" ).change(function() {
 		var id = $(this).attr('id');
-		console.log(id);
 		metrics_waf(id);
 	});
 } );
