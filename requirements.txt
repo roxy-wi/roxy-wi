@@ -6,7 +6,6 @@ requests_toolbelt==0.8.0
 pyTelegramBotAPI==3.6.3 
 dump==0.0.4
 networkx==2.1
-numpy==1.14.0
 matplotlib==2.1.2
 future==0.13.1
 mysql-connector-python==8.0.11

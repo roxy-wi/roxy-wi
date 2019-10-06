@@ -453,7 +453,10 @@ if form.getvalue('new_metrics'):
 	sess_rate = ''
 
 	for i in metric:
-		labels += str(i[5].split(' ')[1])+','
+		label = str(i[5])
+		label = label.split(' ')[1]
+		label = label.split(':')
+		labels += label[0]+':'+label[1]+','
 		curr_con += str(i[1])+','
 		curr_ssl_con += str(i[2])+','
 		sess_rate += str(i[3])+','

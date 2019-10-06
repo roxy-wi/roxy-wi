@@ -30,15 +30,18 @@
 <script src="/inc/chart.min.js"></script>
 
 {% for s in servers %}
-<div class="chart-container" style="">
+<div class="chart-container">
 	<canvas id="{{s.0}}" role="img"></canvas>
 </div>
-	<script>
-		getWafChartData('{{s.0}}')
-	</script>
 {% endfor %}
 
 <script>
-showOverviewWaf()
+	function showWafMetrics() {
+		{% for s in servers %}
+			getWafChartData('{{s.0}}')
+		{% endfor %}
+	}
+	showWafMetrics()
+	showOverviewWaf()
 </script>
 {% endblock %}

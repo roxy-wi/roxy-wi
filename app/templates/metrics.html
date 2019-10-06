@@ -1,10 +1,6 @@
 {% extends "base.html" %}
 {% block content %}	
 <style>
-iframe {
-	border: none;
-	padding: 10px;
-}
 table, th, tr, td {
 	border: 1px solid #ddd;
 	align: center;
@@ -12,6 +8,7 @@ table, th, tr, td {
 }
 th, tr, td {
 	width: 6%;
+	min-width: 3%;
 	padding: 10px;
 	}
 </style>
@@ -20,16 +17,19 @@ th, tr, td {
 <script src="/inc/chart.min.js"></script>
 <div id="table_metrics"></div>
 {% for s in servers %}
-<div class="chart-container" style="">
+<div class="chart-container">
 	<canvas id="{{s.0}}" role="img"></canvas>
 </div>
-	<script>
-		getChartData('{{s.0}}')
-	</script>
 {% endfor %}
 
 <div id="metrics_iframe"></div>
 <script>
+function showMetrics() {
+	{% for s in servers %}
+		getChartData('{{s.0}}')
+	{% endfor %}
+}
+	showMetrics()
 	loadMetrics()
  </script>
 {% endblock %}
