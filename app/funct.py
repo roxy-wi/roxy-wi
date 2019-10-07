@@ -217,6 +217,7 @@ def get_config(serv, cfg, **kwargs):
 		ssh.close()
 	except Exception as e:
 		ssh = str(e)
+		logging('localhost', ssh, haproxywi=1)
 		return ssh
 	
 def diff_config(oldcfg, cfg):
@@ -404,6 +405,7 @@ def upload(serv, path, file, **kwargs):
 		ssh = ssh_connect(serv)
 	except Exception as e:
 		error = e
+		logging('localhost', e, haproxywi=1)
 		pass
 	try:
 		sftp = ssh.open_sftp()
@@ -412,6 +414,7 @@ def upload(serv, path, file, **kwargs):
 		ssh.close()
 	except Exception as e:
 		error = e
+		logging('localhost', e, haproxywi=1)
 		pass
 		
 	return error
@@ -451,6 +454,7 @@ def upload_and_restart(serv, cfg, **kwargs):
 	except Exception as e:
 		error += e
 	if error:
+		logging('localhost', error, haproxywi=1)
 		return error
 		
 def open_port_firewalld(cfg):

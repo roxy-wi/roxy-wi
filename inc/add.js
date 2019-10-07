@@ -354,12 +354,13 @@ $( function() {
 	});
 	$( "#saved-options" ).autocomplete({
 		dataType: "json",
-		source: "sql.py?getoption="+$('#newoptiongroup').val(),
+		source: "sql.py?getoption="+$('#newoptiongroup').val()+'&token='+$('#token').val(),
 		autoFocus: true,
-	    minLength: -1,
+	    minLength: 1,
 		select: function( event, ui ) {
-			$("#optionsInput").append(ui.item.value + " \n");	
-			$( "#saved-options" ).reset();		
+			$("#optionsInput").append(ui.item.value + " \n");
+			$(this).val('');	
+			$(this).autocomplete( "close" );
 		}
 	});
 	$( "#options1" ).autocomplete({
@@ -372,12 +373,13 @@ $( function() {
 	});
 	$( "#saved-options1" ).autocomplete({
 		dataType: "json",
-		source: "sql.py?getoption="+$('#newoptiongroup').val(),
+		source: "sql.py?getoption="+$('#newoptiongroup').val()+'&token='+$('#token').val(),
 		autoFocus: true,
-	    minLength: -1,
+	    minLength: 1,
 		select: function( event, ui ) {
 			$("#optionsInput1").append(ui.item.value + " \n");	
-			$( "#options1" ).reset();		
+			$(this).val('');	
+			$(this).autocomplete( "close" );		
 		}
 	});
 	$( "#options2" ).autocomplete({
@@ -390,12 +392,13 @@ $( function() {
 	});
 	$( "#saved-options2" ).autocomplete({
 		dataType: "json",
-		source: "sql.py?getoption="+$('#newoptiongroup').val(),
+		source: "sql.py?getoption="+$('#newoptiongroup').val()+'&token='+$('#token').val(),
 		autoFocus: true,
-	    minLength: -1,
+	    minLength: 1,
 		select: function( event, ui ) {
 			$("#optionsInput2").append(ui.item.value + " \n");	
-			$( "#saved-options2" ).reset();		
+			$(this).val('');	
+			$(this).autocomplete( "close" );	
 		}
 	});
 	$('#add-option-button').click(function() {

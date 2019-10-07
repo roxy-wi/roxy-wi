@@ -44,6 +44,7 @@ Support the project
 25. LDAP support
 26. Keep active HAProxy service
 27. Ability to hide parts of the config with tags for users with "guest" role:  "HideBlockStart" and "HideBlockEnd"
+28. Mobile-ready desing
 
 ![alt text](image/haproxy-wi-metrics.png "Merics")
 

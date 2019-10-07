@@ -21,7 +21,7 @@ h2 {
 	color: #fff;
 	margin-top: 0px;
 	margin-bottom: 0px;
-	width: 99%
+	width: 98.9%;
 }
 h3 {
 	margin-top: -0;
@@ -30,6 +30,7 @@ h3 {
 	padding: 0.3em;
 	font-size: 1.6em;
 	border-bottom: 1px solid #ddd;
+	width: 100.43%;
 }
 form {
 	margin: 0;
@@ -78,7 +79,7 @@ pre {
 .container {
 	min-height: calc(99vh - 50px);
 	height: auto;
-	max-width: 91%;
+	max-width: 100%;
 	min-width: 40%;
 	background-color: #fff;
 	margin-left: 207px;
@@ -328,24 +329,14 @@ pre {
 	padding-left: 10px;
 	font-style: italic;
 }
-/* .tooltip { */
-	/* font-size: 12px;  */
-	/* padding-bottom: 10px; */
-/* } */
-/* .tooltipTop { */
-	/* margin-bottom: -20px;  */
-	/* padding-top: 10px; */
-/* } */
 .overview {
 	width: 100%;
-	/* margin-top: 1.5em; */
 }
 .overview-wi {
 	width: 46%;
-	min-width: 600px;
+	min-width: 566px	;
     max-width: 50%;
-	/* border: 1px solid #A4C7F5; */
-	height: 160px;
+	min-height: 160px;
 	float: left;
 	margin: 20px;
 }
@@ -629,8 +620,8 @@ a:focus {
   outline: 5px auto -webkit-focus-ring-color;
   outline-offset: -2px;
 }
-.logs_link {
-	color: #23527c;
+.logs_link, .accordion-link {
+	color: #23527c !important;
 }
 table {
   border-spacing: 0;
@@ -809,7 +800,7 @@ label {
 }
 .chart-container {
 	position: relative;
-	height: 310px;
+	height: 400px;
 	width: 49%;
 	float: left;
 	margin-top: 20px;
@@ -818,11 +809,34 @@ label {
 @media (max-width: 1920px) {
   #logo_span {
 	margin-left: 17%;
+	}	
+}
+@media (max-width: 1080px) {
+	#logo_span {
+		margin-left: -5%;
+		}
+	.chart-container {
+		position: relative;
+		height: 410px;
+		width: 95%;
+	}
+	.overview-wi {
+		width: 95%;
+		max-width: 95%;
 	}
 }
 @media (max-width: 1024px) {
-  #logo_span {
-	margin-left: -5%;
+	#logo_span {
+		margin-left: -5%;
+		}
+	.chart-container {
+		position: relative;
+		height: 410px;
+		width: 95%;
+	}
+	.overview-wi {
+		width: 95%;
+		max-width: 95%;
 	}
 }
 @media (max-width: 667px) {
@@ -830,10 +844,28 @@ label {
 	margin-left: -12%;
 	border: none;
 	}
+	.chart-container {
+		position: relative;
+		height: 410px;
+		width: 95%;
+	}
+	.overview-wi {
+		width: 95%;
+		max-width: 95%;
+	}
 }
 @media (max-width: 768px) {
   #logo_span {
 	margin-left: -12%;
 	border: none;
+	}
+	.chart-container {
+		position: relative;
+		height: 410px;
+		width: 95%;
+	}
+	.overview-wi {
+		width: 95%;
+		max-width: 95%;
 	}
 }

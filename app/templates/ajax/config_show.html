@@ -52,7 +52,7 @@
 				{% endif %}
 				{% set backend = line.split(' ') %}
 				<span class="accordion-link">
-					<a href="/app/viewsttats.py?serv={{serv}}#{{ backend[1]}}">Stats</a>
+					<a href="/app/viewsttats.py?serv={{serv}}#{{ backend[1]}}" target="_blank">Stats</a>
 				</span>
 				</span><div>
 			{% continue %}
@@ -66,7 +66,7 @@
 				{% endif %}	
 				{% set backend = line.split(' ') %}
 				<span class="accordion-link">
-					<a href="/app/viewsttats.py?serv={{serv}}#{{ backend[1]}}">Stats</a>
+					<a href="/app/viewsttats.py?serv={{serv}}#{{ backend[1]}}" target="_blank">Stats</a>
 				</span>				
 				</span><div>
 			{% continue %} 
@@ -74,19 +74,35 @@
 		{% if line.startswith('backend') %}
 			</div><span class="param"> {{ line }} 
 				{% if role %}
-				<span class="accordion-link">
-					<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+					<span class="accordion-link">
+						<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
 					</span>
 				{% endif %}
 				{% set backend = line.split(' ') %}
 				<span class="accordion-link">
-					<a href="/app/viewsttats.py?serv={{serv}}#{{ backend[1]}}">Stats</a>
+					<a href="/app/viewsttats.py?serv={{serv}}#{{ backend[1]}}" target="_blank">Stats</a>
 				</span>
 				</span><div>
 			{% continue %}
 		{% endif %}
 		{% if line.startswith('cache') %}
-			</div><span class="param"> {{ line }} </span><div>
+			</div><span class="param"> {{ line }} 
+				{% if role %}
+					<span class="accordion-link">
+						<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+					</span>
+				{% endif %}
+			</span><div>
+			{% continue %}
+		{% endif %}
+		{% if line.startswith('peers') %}
+			</div><span class="param"> {{ line }}
+				{% if role %}
+					<span class="accordion-link">
+						<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+					</span>
+				{% endif %}
+			</span><div>
 			{% continue %}
 		{% endif %}
 		{% if "acl" in line or "option" in line or "server" in line %}

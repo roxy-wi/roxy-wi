@@ -36,6 +36,10 @@
 				{% if role <= 2 %}
 					<a class="ui-button ui-widget ui-corner-all" title="Show versions" onclick="openVersions()">Versions</a>	
 				{% endif %}
+			{% else %}
+				{% if role <= 2 %}
+				<button type="submit" value="open" name="open" class="btn btn-default" title="Edit running config">Edit</button>
+				{% endif %}
 			{% endif %}
 		</form>
 	</p>

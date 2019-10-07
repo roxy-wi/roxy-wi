@@ -265,6 +265,8 @@ function showOverviewWaf() {
 				$.getScript('/inc/waf.js');
 				$( "input[type=submit], button" ).button();
 				$( "input[type=checkbox]" ).checkboxradio();
+			} else {
+				$('.first-collumn-wi').css('padding', '15px');
 			}
 		}					
 	} );
