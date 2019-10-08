@@ -1,5 +1,5 @@
 # Warning:
-### Project will be closed in two month. The reason as always: not have enough money for servers infrastructure. We need $200 per month for buying servers. RPM repository and demo site will be closed, github will be work but without updates.
+### Project will be closed in two month. The reason as always: do not have enough money for servers infrastructure. We need $200 per month for buying servers. RPM repository and demo site will be closed, github will be work but without updates.
 
 Thank you all, it were greates years!
 
