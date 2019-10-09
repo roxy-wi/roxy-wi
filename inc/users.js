@@ -1,4 +1,3 @@
-var users = '/inc/usersdop.js'
 var awesome = "/inc/fontawesome.min.js"
 
 jQuery.expr[':'].regex = function(elem, index, match) {
@@ -510,15 +509,7 @@ function addUser() {
 					});
 				} else {
 					$('.alert-danger').remove();
-					$("#ajax-users").append(data);
-					$( ".newuser" ).addClass( "update", 1000 );										
-					setTimeout(function() {
-						$( ".newuser" ).removeClass( "update" );
-					}, 2500 );
-					$.getScript(awesome);	
-					$( "input[type=submit], button" ).button();
-					$( "input[type=checkbox]" ).checkboxradio();
-					$( "select" ).selectmenu();				
+					$("#ajax-users").append(data);											
 				}	
 			}
 		} );
@@ -779,8 +770,10 @@ function cloneServer(id) {
 	$('#slavefor').selectmenu("refresh");
 	$('#credentials').val($('#credentials-'+id+' option:selected').val()).change()
 	$('#credentials').selectmenu("refresh");
-	$('#new-server-group-add').val($('#servergroup-'+id+' option:selected').val()).change()
-	$('#new-server-group-add').selectmenu("refresh");
+	if (cur_url[0] == 'users.py') {
+		$('#new-server-group-add').val($('#servergroup-'+id+' option:selected').val()).change()
+		$('#new-server-group-add').selectmenu("refresh");
+	}
 }
 function cloneUser(id) {
 	$( "#add-user-button" ).trigger( "click" );
@@ -792,8 +785,10 @@ function cloneUser(id) {
 	$('#activeuser').checkboxradio("refresh");
 	$('#new-role').val($('#role-'+id+' option:selected').val()).change()
 	$('#new-role').selectmenu("refresh");
-	$('#new-group').val($('#usergroup-'+id+' option:selected').val()).change()
-	$('#new-group').selectmenu("refresh");
+	if (cur_url[0] == 'users.py') {
+		$('#new-group').val($('#usergroup-'+id+' option:selected').val()).change();
+		$('#new-group').selectmenu("refresh");
+	}
 }
 function cloneTelegram(id) {
 	$( "#add-telegram-button" ).trigger( "click" );

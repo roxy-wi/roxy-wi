@@ -292,7 +292,6 @@ sudo mkdir /var/www/$HOME_HAPROXY_WI/configs/kp_config/
 sudo mkdir /var/www/$HOME_HAPROXY_WI/log/
 sudo sudo chmod +x /var/www/$HOME_HAPROXY_WI/app/*.py
 sudo chmod +x /var/www/$HOME_HAPROXY_WI/app/tools/*.py
-chmod +x /var/www/$HOME_HAPROXY_WI/update.sh
 sudo ln -s /usr/bin/python3.5 /usr/bin/python3
 
 cd /var/www/$HOME_HAPROXY_WI/app

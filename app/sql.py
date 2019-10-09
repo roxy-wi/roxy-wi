@@ -425,6 +425,21 @@ def get_user_role_by_uuid(uuid):
 	cur.close()    
 	con.close() 
 	
+	
+def get_role_id_by_name(name):
+	con, cur = create_db.get_cur()
+	sql = """ select id from role where name = '%s' """ % name
+	try:
+		cur.execute(sql)		
+	except sqltool.Error as e:
+		out_error(e)
+	else:
+		for user_id in cur.fetchall():
+			return user_id[0]
+	cur.close()    
+	con.close() 
+	
+	
 def get_user_group_by_uuid(uuid):
 	con, cur = create_db.get_cur()
 	sql = """ select user.groups from user left join uuid as uuid on user.id = uuid.user_id  where uuid.uuid = '%s' """ % uuid
@@ -681,7 +696,6 @@ def select_options(**kwargs):
 		sql = """select * from options where options = '%s' """ % kwargs.get('option')
 	if kwargs.get('group'):
 		sql = """select options from options where groups = '{}' and options like '{}%' """.format(kwargs.get('group'), kwargs.get('term'))
-	#print(sql)
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
@@ -708,6 +722,66 @@ def update_options(option, id):
 def delete_option(id):
 	con, cur = create_db.get_cur()
 	sql = """ delete from options where id = %s """ % (id)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		out_error(e)
+		con.rollback()
+	else: 
+		return True
+	cur.close()    
+	con.close() 
+	
+	
+def insert_new_savedserver(server, description, group):
+	con, cur = create_db.get_cur()
+	sql = """insert into saved_servers(`server`, `description`, `groups`) values ('%s', '%s', '%s') """ % (server, description, group)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		out_error(e)
+		con.rollback()
+	else: 
+		return True
+	cur.close()    
+	con.close() 
+	
+def select_saved_servers(**kwargs):
+	con, cur = create_db.get_cur()
+	sql = """select * from saved_servers  """
+	if kwargs.get('server'):
+		sql = """select * from saved_servers where server = '%s' """ % kwargs.get('server')
+	if kwargs.get('group'):
+		sql = """select server,description from saved_servers where groups = '{}' and server like '{}%' """.format(kwargs.get('group'), kwargs.get('term'))
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		out_error(e)
+	else:
+		return cur.fetchall()
+	cur.close()    
+	con.close() 
+	
+def update_savedserver(server, description, id):
+	con, cur = create_db.get_cur()
+	sql = """ update saved_servers set 
+			server = '%s',
+			description = '%s'
+			where id = '%s' """ % (server, description, id)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		out_error(e)
+		con.rollback()
+	cur.close()    
+	con.close()
+	
+def delete_savedserver(id):
+	con, cur = create_db.get_cur()
+	sql = """ delete from saved_servers where id = %s """ % (id)
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -1203,6 +1277,17 @@ def show_update_option(option):
 	template = template.render(options=select_options(option=option))
 	print(template)	
 	
+	
+def show_update_savedserver(server):
+	from jinja2 import Environment, FileSystemLoader
+	env = Environment(loader=FileSystemLoader('templates/ajax'))
+	template = env.get_template('/new_saved_servers.html')
+
+	print('Content-type: text/html\n')
+	template = template.render(server=select_saved_servers(server=server))
+	print(template)	
+	
+	
 def show_update_telegram(token, page):
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates/ajax'))
@@ -1293,6 +1378,7 @@ def check_token():
 	if form.getvalue('token') is None:
 		print('Content-type: text/html\n')
 		print("What the fuck?! U r hacker Oo?!")
+		import sys
 		sys.exit()
 
 
@@ -1304,13 +1390,16 @@ if form.getvalue('newuser') is not None:
 	new_user = form.getvalue('newusername')	
 	page = form.getvalue('page')	
 	activeuser = form.getvalue('activeuser')	
-	print('Content-type: text/html\n')
 	check_token()
 	if password is None or role is None or group is None:
 		print(error_mess)
 	else:		
-		if add_user(new_user, email, password, role, group, activeuser):
-			show_update_user(new_user, page)
+		role_id = get_role_id_by_name(role)
+		if funct.is_admin(level=role_id):
+			if add_user(new_user, email, password, role, group, activeuser):
+				show_update_user(new_user, page)
+		else:
+			funct.logging(new_user, ' tried to do privilege escalation', haproxywi=1, login=1)
 		
 if form.getvalue('updateuser') is not None:
 	email = form.getvalue('email')
@@ -1324,7 +1413,11 @@ if form.getvalue('updateuser') is not None:
 	if new_user is None or role is None or group is None:
 		print(error_mess)
 	else:		
-		update_user(new_user, email, role, group, id, activeuser)
+		role_id = get_role_id_by_name(role)
+		if funct.is_admin(level=role_id):
+			update_user(new_user, email, role, group, id, activeuser)
+		else:
+			funct.logging(new_user, ' tried to do privilege escalation', haproxywi=1, login=1)
 
 
 if form.getvalue('updatepassowrd') is not None:
@@ -1548,6 +1641,56 @@ if form.getvalue('optiondel') is not None:
 	print('Content-type: text/html\n')
 	check_token()
 	if delete_option(form.getvalue('optiondel')):
+		print("Ok")
+		
+		
+if form.getvalue('getsavedserver'):
+	group = form.getvalue('getsavedserver')	
+	term = form.getvalue('term')	
+	print('Content-type: application/json\n')
+	check_token()
+	servers = select_saved_servers(group=group,term=term)
+
+	a = {}
+	v = 0
+	for i in servers:
+		a[v] = {}
+		a[v]['value'] = {}
+		a[v]['desc'] = {}
+		a[v]['value'] = i[0]
+		a[v]['desc'] = i[1]
+		v = v + 1
+	import json
+	print(json.dumps(a))
+
+	
+if form.getvalue('newsavedserver'):
+	savedserver = form.getvalue('newsavedserver')	
+	description = form.getvalue('newsavedserverdesc')	
+	group = form.getvalue('newsavedservergroup')	
+	print('Content-type: text/html\n')
+	check_token()
+	if savedserver is None or group is None:
+		print(error_mess)
+	else:
+		if insert_new_savedserver(savedserver, description, group):
+			show_update_savedserver(savedserver)
+			
+if form.getvalue('updatesavedserver') is not None:
+	savedserver = form.getvalue('updatesavedserver')
+	description = form.getvalue('description')
+	id = form.getvalue('id')	
+	print('Content-type: text/html\n')	
+	check_token()
+	if savedserver is None or id is None:
+		print(error_mess)
+	else:		
+		update_savedserver(savedserver, description, id)
+			
+if form.getvalue('savedserverdel') is not None:
+	print('Content-type: text/html\n')
+	check_token()
+	if delete_savedserver(form.getvalue('savedserverdel')):
 		print("Ok")
 		
 if form.getvalue('updatetoken') is not None:

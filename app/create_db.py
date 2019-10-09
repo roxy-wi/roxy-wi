@@ -123,6 +123,7 @@ def create_table(**kwargs):
 		CREATE TABLE IF NOT EXISTS `settings` (`param` varchar(64) UNIQUE, value varchar(64), section varchar(64), `desc` varchar(100));
 		CREATE TABLE IF NOT EXISTS `version` (`version` varchar(64));
 		CREATE TABLE IF NOT EXISTS `options` ( `id`	INTEGER NOT NULL, `options`	VARCHAR ( 64 ), `groups`	VARCHAR ( 120 ), PRIMARY KEY(`id`)); 
+		CREATE TABLE IF NOT EXISTS `saved_servers` ( `id` INTEGER NOT NULL, `server` VARCHAR ( 64 ), `description` VARCHAR ( 120 ), `groups` VARCHAR ( 120 ), PRIMARY KEY(`id`)); 
 		"""
 		try:
 			cur.executescript(sql)
@@ -360,7 +361,7 @@ def update_db_v_3_4_5_2(**kwargs):
 			if e.args[0] == 'duplicate column name: version' or e == "1060 (42S21): Duplicate column name 'version' ":
 				print('Updating... go to version 3.4.7')
 			else:
-				print("DB was update to 3.4.5.2")
+				print("DB was update to 3.4.5.3")
 			return False
 		else:
 			return True
@@ -418,6 +419,25 @@ def update_db_v_3_4_9_5(**kwargs):
 	con.close()
 	
 	
+def update_db_v_3_5_3(**kwargs):
+	con, cur = get_cur()
+	sql = """CREATE TABLE IF NOT EXISTS `saved_servers` ( `id` INTEGER NOT NULL, `server` VARCHAR ( 64 ), `description` VARCHAR ( 120 ), `groups` VARCHAR ( 120 ), PRIMARY KEY(`id`));  """
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: id' or e == "1060 (42S21): Duplicate column name 'id' ":
+				print('DB was update to 3.5.3')
+			else:
+				print("DB was update to 3.5.3")
+			return False
+		else:
+			return True
+	cur.close() 
+	con.close()	
+	
+	
 def update_ver(**kwargs):
 	con, cur = get_cur()
 	sql = """update version set version = '3.5.2'; """
@@ -472,6 +492,7 @@ def update_all():
 		update_db_v_3_4_5_22()
 	update_db_v_3_4_7()
 	update_db_v_3_4_9_5()
+	update_db_v_3_5_3()
 	update_to_hash()
 	update_ver()
 	
@@ -491,6 +512,7 @@ def update_all_silent():
 		update_db_v_3_4_5_22()
 	update_db_v_3_4_7(silent=1)
 	update_db_v_3_4_9_5(silent=1)
+	update_db_v_3_5_3(silent=1)
 	update_to_hash()
 	update_ver()
 	

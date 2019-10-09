@@ -341,7 +341,6 @@ $( function() {
 	$( "#option_table input" ).change(function() {
 		var id = $(this).attr('id').split('-');
 		updateOptions(id[2])
-		console.log(id)
 	});
 	$( "#options" ).autocomplete({
 		source: availableTags,
@@ -354,7 +353,7 @@ $( function() {
 	});
 	$( "#saved-options" ).autocomplete({
 		dataType: "json",
-		source: "sql.py?getoption="+$('#newoptiongroup').val()+'&token='+$('#token').val(),
+		source: "sql.py?getoption="+$('#group').val()+'&token='+$('#token').val(),
 		autoFocus: true,
 	    minLength: 1,
 		select: function( event, ui ) {
@@ -373,7 +372,7 @@ $( function() {
 	});
 	$( "#saved-options1" ).autocomplete({
 		dataType: "json",
-		source: "sql.py?getoption="+$('#newoptiongroup').val()+'&token='+$('#token').val(),
+		source: "sql.py?getoption="+$('#group').val()+'&token='+$('#token').val(),
 		autoFocus: true,
 	    minLength: 1,
 		select: function( event, ui ) {
@@ -392,7 +391,7 @@ $( function() {
 	});
 	$( "#saved-options2" ).autocomplete({
 		dataType: "json",
-		source: "sql.py?getoption="+$('#newoptiongroup').val()+'&token='+$('#token').val(),
+		source: "sql.py?getoption="+$('#group').val()+'&token='+$('#token').val(),
 		autoFocus: true,
 	    minLength: 1,
 		select: function( event, ui ) {
@@ -414,7 +413,7 @@ $( function() {
 			url: "sql.py",
 			data: {
 				newtoption: $('#new-option').val(),
-				newoptiongroup: $('#newoptiongroup').val(),
+				newoptiongroup: $('#group').val(),
 				token: $('#token').val()
 			},
 			type: "GET",
@@ -435,7 +434,64 @@ $( function() {
 			}					
 		} );
 	});
-	
+	$( "#servers_table input" ).change(function() {
+		var id = $(this).attr('id').split('-');
+		updateSavedServer(id[2])
+
+	});
+	$( '[name=servers]' ).autocomplete({
+		source: "sql.py?getsavedserver="+$('#group').val()+'&token='+$('#token').val(),
+		autoFocus: true,
+	    minLength: 1,
+		focus: function( event, ui ) {
+			$(this).val( ui.item.value );
+			return false;
+		},
+		select: function( event, ui ) {
+			$(this).append(ui.item.value + " ");
+			$(this).next().focus();
+		}
+	})
+	.autocomplete( "instance" )._renderItem = function( ul, item ) {
+		return $( "<li>" )
+		.append( "<div>" + item.value + "<br>" + item.desc + "</div>" )
+		.appendTo( ul );
+    };
+	$('#add-saved-server-button').click(function() {
+		if ($('#saved-server-add-table').css('display', 'none')) {
+			$('#saved-server-add-table').show("blind", "fast");
+		} 
+	});
+	$('#add-saved-server-new').click(function() {
+		$('#error').remove();	
+		$('.alert-danger').remove();	
+		$.ajax( {
+			
+			url: "sql.py",
+			data: {
+				newsavedserver: $('#new-saved-servers').val(),
+				newsavedservergroup: $('#group').val(),
+				newsavedserverdesc: $('#new-saved-servers-description').val(),
+				token: $('#token').val()
+			},
+			type: "GET",
+			success: function( data ) {
+				if (data.indexOf('error') != '-1') {
+					$("#ajax-option").append(data);
+					$('#errorMess').click(function() {
+						$('#error').remove();
+						$('.alert-danger').remove();
+					});
+				} else {
+					$("#servers_table").append(data);
+					setTimeout(function() {
+						$( ".newsavedserver" ).removeClass( "update" );
+					}, 2500 );	
+					$.getScript("/inc/fontawesome.min.js");
+				}
+			}					
+		} );
+	});
 	var forward_for_var = "option forwardfor if-none\n";
 	$('#forward_for').click(function() {
 		if($('#optionsInput').val().indexOf(forward_for_var) == '-1') {
@@ -909,4 +965,130 @@ function createHttps(TabId, proxy) {
 	$('#'+proxy+'-mode-select').selectmenu('refresh');
 	history.pushState('Add'+proxy, 'Add'+proxy, 'add.py#'+proxy)
 }
-
+function confirmDeleteOption(id) {
+	 $( "#dialog-confirm-delete" ).dialog({
+      resizable: false,
+      height: "auto",
+      width: 400,
+      modal: true,
+	  title: "Are you sure you want to delete " +$('#option-'+id).val() + "?",
+      buttons: {
+        "Delete": function() {
+			$( this ).dialog( "close" );	
+			removeOption(id);
+        },
+        Cancel: function() {
+			$( this ).dialog( "close" );
+        }
+      }
+    });
+}
+function removeOption(id) {
+	$("#option-"+id).css("background-color", "#f2dede");
+	$.ajax( {
+		url: "sql.py",
+		data: {
+			optiondel: id,
+			token: $('#token').val()
+		},
+		type: "GET",
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if(data == "Ok ") {
+				$("#option-"+id).remove();
+			}
+		}					
+	} );
+}
+function updateOptions(id) {
+	$('#error').remove();	
+	$.ajax( {
+		url: "sql.py",
+		data: {
+			updateoption: $('#option-body-'+id).val(),
+			id: id,
+			token: $('#token').val()
+		},
+		type: "GET",
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if (data.indexOf('error') != '-1') {
+				$("#ajax-ssh").append(data);
+				$('#errorMess').click(function() {
+					$('#error').remove();
+					$('.alert-danger').remove();
+				});
+			} else {
+				$('.alert-danger').remove();
+				$("#option-"+id).addClass( "update", 1000 );
+				setTimeout(function() {
+					$( "#option-"+id ).removeClass( "update" );
+				}, 2500 );
+			}
+		}
+	} );
+}
+function confirmDeleteSavedServer(id) {
+	 $( "#dialog-confirm-delete" ).dialog({
+      resizable: false,
+      height: "auto",
+      width: 400,
+      modal: true,
+	  title: "Are you sure you want to delete " +$('#servers-saved-'+id).val() + "?",
+      buttons: {
+        "Delete": function() {
+			$( this ).dialog( "close" );	
+			removeSavedServer(id);
+        },
+        Cancel: function() {
+			$( this ).dialog( "close" );
+        }
+      }
+    });
+}
+function removeSavedServer(id) {
+	$("#servers-saved-"+id).css("background-color", "#f2dede");
+	$.ajax( {
+		url: "sql.py",
+		data: {
+			savedserverdel: id,
+			token: $('#token').val()
+		},
+		type: "GET",
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if(data == "Ok ") {
+				$("#servers-saved-"+id).remove();
+			}
+		}					
+	} );
+}
+function updateSavedServer(id) {
+	$('#error').remove();	
+	$.ajax( {
+		url: "sql.py",
+		data: {
+			updatesavedserver: $('#servers-ip-'+id).val(),
+			description: $('#servers-desc-'+id).val(),
+			id: id,
+			token: $('#token').val()
+		},
+		type: "GET",
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if (data.indexOf('error') != '-1') {
+				$("#ajax-ssh").append(data);
+				$('#errorMess').click(function() {
+					$('#error').remove();
+					$('.alert-danger').remove();
+				});
+			} else {
+				$('.alert-danger').remove();
+				$("#option-"+id).addClass( "update", 1000 );
+				setTimeout(function() {
+					$( "#option-"+id ).removeClass( "update" );
+				}, 2500 );
+			}
+		}
+	} );
+}

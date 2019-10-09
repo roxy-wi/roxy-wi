@@ -60,7 +60,15 @@
 			});
 			$("#usergroup-{{user.0}}" ).selectmenu({
 				width: 100
-			});			
+			});	
+			$( ".newuser" ).addClass( "update", 1000 );	
+			$( "input[type=submit], button" ).button();
+			$( "input[type=checkbox]" ).checkboxradio();
+			$( "select" ).selectmenu();	
+			$.getScript(awesome);					
+			setTimeout(function() {
+				$( ".newuser" ).removeClass( "update" );
+			}, 2500 );
 		});
 	</script>
 {% endfor %}

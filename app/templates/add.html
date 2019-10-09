@@ -3,7 +3,10 @@
 <style>
 .container {
 	margin-right: 0;
-}
+	}
+h3 {
+	width: 98.8%
+	}
 </style>
 <script src="/inc/add.js"></script>
 <div id="tabs">
@@ -14,6 +17,7 @@
 		<li><a href="#backend">Backend</a></li>
 		<li><a href="#ssl">SSL certificates</a></li>
 		<li><a href="#option">Options</a></li>
+		<li><a href="#add-servers">Servers</a></li>
 		{% if user %}
 			<a href=/app/login.py?logout=logout title="Logout, user name: {{ user }}" class="login"> Logout</a>						
 		{% else %}
@@ -809,7 +813,6 @@
 					Enter option for save:
 				</td>
 				<td>
-					<input type="hidden" id="newoptiongroup" name="newoptiongroup" value="{{ group }}">
 					<input type="text" name="new-option" id="new-option" class="form-control" size="100">
 				</td>
 				<td>
@@ -817,9 +820,58 @@
 				</td>
 			</tr>
 		</table>
-		<div id="ajax-option">
+		<div id="ajax-option"></div>
 		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
 			In this section you can create, edit and delete options with given parameters. And after use them as autocomplete in the "Add" sections
+		</div>
+	</div>
+	
+	<div id="add-servers">
+		<table class="overview" id="servers_table">
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn">Server</td>
+				<td class="padding10 first-collumn">Description</td>
+				<td></td>
+			</tr>
+		{% for s in saved_servers %}
+			<tr id="servers-saved-{{ s.0 }}" class="{{ loop.cycle('odd', 'even') }}"> 
+				{% if s.3 == group or group == '1' %}
+				<td class="padding10 first-collumn">
+					<input type="text" id="servers-ip-{{ s.0 }}" value="{{ s.1 }}" size="15" class="form-control">
+				</td>			
+				<td class="padding10 first-collumn" style="width: 100%;">
+					<input type="text" id="servers-desc-{{ s.0 }}" value="{{ s.2 }}" size="60" class="form-control">
+				</td>
+				<td>
+					<a class="delete" onclick="confirmDeleteSavedServer({{ s.0 }})" title="Delete server {{s.1}}" style="cursor: pointer;"></a>
+				</td>
+				{% endif %}
+			</tr>
+		{% endfor %}
+		</table>
+		<br /><span class="add-button" title="Add server" id="add-saved-server-button">+ Add</span>
+		<br /><br />
+		<table class="overview" id="saved-server-add-table" style="display: none;">
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn">Server</td>
+				<td>Description</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td class="padding10 first-collumn">
+					<input type="text" name="new-saved-servers" id="new-saved-servers" class="form-control" size="15">
+				</td>
+				<td style="width: 100%;">
+					<input type="text" name="new-saved-servers-description" id="new-saved-servers-description" class="form-control" size="60">
+				</td>
+				<td>
+					<a class="add-admin" id="add-saved-server-new" title="Add new server" style="cursor: pointer;"></a>
+				</td>
+			</tr>
+		</table>
+		<div id="ajax-servers"></div>
+		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+			In this section you can create, edit and delete servers. And after use them as autocomplete in the "Add" sections
 		</div>
 	</div>
 	

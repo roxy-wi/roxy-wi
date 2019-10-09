@@ -240,7 +240,6 @@ function showOverviewServer(name,ip,id) {
 					$("#ajax-server-"+id).removeClass( "update" );
 					$("#ajax-server-"+id).css('background-color', '#f9fff8');			
 			}, 2500 );
-			// $.getScript('/inc/overview.js');
 		}					
 	} );
 }
@@ -266,7 +265,7 @@ function showOverviewWaf() {
 				$( "input[type=submit], button" ).button();
 				$( "input[type=checkbox]" ).checkboxradio();
 			} else {
-				$('.first-collumn-wi').css('padding', '15px');
+				$('.first-collumn-wi').css('padding', '10px');
 			}
 		}					
 	} );
@@ -818,69 +817,6 @@ $( function() {
 		} );
 	}
 });
-function updateOptions(id) {
-	$('#error').remove();	
-	$.ajax( {
-		url: "sql.py",
-		data: {
-			updateoption: $('#option-body-'+id).val(),
-			id: id,
-			token: $('#token').val()
-		},
-		type: "GET",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error') != '-1') {
-				$("#ajax-ssh").append(data);
-				$('#errorMess').click(function() {
-					$('#error').remove();
-					$('.alert-danger').remove();
-				});
-			} else {
-				$('.alert-danger').remove();
-				$("#option-"+id).addClass( "update", 1000 );
-				setTimeout(function() {
-					$( "#option-"+id ).removeClass( "update" );
-				}, 2500 );
-			}
-		}
-	} );
-}
-function confirmDeleteOption(id) {
-	 $( "#dialog-confirm-delete" ).dialog({
-      resizable: false,
-      height: "auto",
-      width: 400,
-      modal: true,
-	  title: "Are you sure you want to delete " +$('#option-'+id).val() + "?",
-      buttons: {
-        "Delete": function() {
-			$( this ).dialog( "close" );	
-			removeOption(id);
-        },
-        Cancel: function() {
-			$( this ).dialog( "close" );
-        }
-      }
-    });
-}
-function removeOption(id) {
-	$("#option-"+id).css("background-color", "#f2dede");
-	$.ajax( {
-		url: "sql.py",
-		data: {
-			optiondel: id,
-			token: $('#token').val()
-		},
-		type: "GET",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
-			if(data == "Ok ") {
-				$("#option-"+id).remove();
-			}
-		}					
-	} );
-}
 function sleep(ms) {
 	  return new Promise(resolve => setTimeout(resolve, ms));
 }

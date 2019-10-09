@@ -59,7 +59,7 @@ Support the project
 ## RPM
 Install repository:
 ```
-yum install https://repo.haproxy-wi.org/el7/haproxy-wi-release-7-1-0.noarch.rpm 
+yum install https://repo.haproxy-wi.org/haproxy-wi-release-7-1-0.noarch.rpm 
 ```
 After install HAProxy-WI:
 ```
@@ -182,13 +182,6 @@ For Runtime API, Metrics and Alerting enable state file and stat socket on HApro
    ```
 ![alt text](image/haproxy-wi-logs.png "View logs page")
 
-# Update
-```
-# cd /var/www/haproxy-wi
-# ./update.sh
-```
-
-After update old config saved at /tmp/ folder. Compare new and old config, if in new no changes overwrite the new configuration with the old one, or edit new with your ENV.
 
 # Update DB
 ```
