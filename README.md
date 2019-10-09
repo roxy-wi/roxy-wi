@@ -1,9 +1,3 @@
-# Warning:
-### Project will be closed in two month. The reason as always: do not have enough money for servers infrastructure. We need $200 per month for buying servers. RPM repository and demo site will be closed, github will be work but without updates.
-
-Thank you all, it were greates years!
-
-
 # Haproxy web interface
 Web interface(user-friendly web GUI, alerting, monitoring and secure) for managing Haproxy servers. Leave your [feedback](https://github.com/Aidaho12/haproxy-wi/issues)
 
