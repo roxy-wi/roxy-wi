@@ -770,7 +770,8 @@ function cloneServer(id) {
 	$('#slavefor').selectmenu("refresh");
 	$('#credentials').val($('#credentials-'+id+' option:selected').val()).change()
 	$('#credentials').selectmenu("refresh");
-	if (cur_url[0] == 'users.py') {
+	cur_url = cur_url[0].split('#')[0]
+	if (cur_url == 'users.py') {
 		$('#new-server-group-add').val($('#servergroup-'+id+' option:selected').val()).change()
 		$('#new-server-group-add').selectmenu("refresh");
 	}
@@ -785,7 +786,8 @@ function cloneUser(id) {
 	$('#activeuser').checkboxradio("refresh");
 	$('#new-role').val($('#role-'+id+' option:selected').val()).change()
 	$('#new-role').selectmenu("refresh");
-	if (cur_url[0] == 'users.py') {
+	cur_url = cur_url[0].split('#')[0]
+	if (cur_url == 'users.py') {
 		$('#new-group').val($('#usergroup-'+id+' option:selected').val()).change();
 		$('#new-group').selectmenu("refresh");
 	}
@@ -1191,7 +1193,6 @@ function changeUserPasswordDialog(id) {
 				effect: "fade",
 				duration: 200
 			},
-			// beforeClose: function( event, ui ) {return changeUserPassword(id);},
 			buttons: {
 				"Change": function() {	
 					changeUserPassword(id, $(this));

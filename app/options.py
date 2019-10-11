@@ -23,7 +23,7 @@ if act == "checkrestart":
 			sys.exit()
 	sys.exit()
 
-if form.getvalue('token') is None:
+if not sql.check_token_exists(form.getvalue('token')):
 	print("What the fuck?! U r hacker Oo?!")
 	sys.exit()
 		

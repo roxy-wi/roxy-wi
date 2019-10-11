@@ -7,10 +7,8 @@ function getChartData(server) {
 			token: $('#token').val()
 		},
 		type: "GET",
-        success: function (result) {
-     
+        success: function (result) {    
             var data = [];
-
             data.push(result.chartData.curr_con);
             data.push(result.chartData.curr_ssl_con);
             data.push(result.chartData.sess_rate);
@@ -133,9 +131,20 @@ function renderWafChart(data, labels, server) {
 $("#secIntervals").css("display", "none");	
 
 function loadMetrics() {
-	$.get( "options.py?table_metrics=1&token="+$('#token').val(), function( data ) {
-		$( "#table_metrics" ).html( data );
-	});
+	 $.ajax({
+        url: "options.py",
+		data: {
+			table_metrics: '1',
+			token: $('#token').val()
+		},
+		beforeSend: function() {
+			$('#table_metrics').prepend('<img class="loading_full_page" src="/inc/images/loading.gif" />')
+		},
+		type: "GET",
+        success: function (data) {   
+           $( "#table_metrics" ).html( data );
+        }
+    });
 }
 
 

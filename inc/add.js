@@ -928,6 +928,7 @@ function resetProxySettings() {
 	$('input:checkbox').checkboxradio("refresh");
 	$('.advance-show').fadeIn();
 	$('.advance').fadeOut();
+	$('[id^=https-hide]').hide();
 	$('[name=mode').val('http');
 	$('select').selectmenu('refresh');
 	replace_text("#optionsInput", ssl_offloading_var);

@@ -198,6 +198,9 @@ function showOverview() {
 			act: "overview",
 			token: $('#token').val()
 		},
+		beforeSend: function() {
+			$('#ajaxstatus').html('<img class="loading" src="/inc/images/loading.gif" />')
+		},
 		type: "GET",
 		success: function( data ) {
 			$("#ajaxstatus").empty();
@@ -217,6 +220,9 @@ function showOverviewServer(name,ip,id) {
 			serv: ip,
 			page: 'hapservers.py',
 			token: $('#token').val()
+		},
+		beforeSend: function() {
+			$("#ajax-server-"+id).html('<img class="loading" src="/inc/images/loading.gif" />')
 		},
 		type: "GET",
 		success: function( data ) {
@@ -255,6 +261,14 @@ function showOverviewWaf() {
 			page: cur_url[0],
 			token: $('#token').val()
 		},
+		beforeSend: function() {
+			if (cur_url[0] == "waf.py") {
+				var load_class = 'loading_full_page'
+			} else {
+				var load_class = 'loading'
+			}
+			$('#ajaxwafstatus').html('<img class="'+load_class+'" src="/inc/images/loading.gif" />')
+		},
 		type: "GET",
 		success: function( data ) {
 			$("#ajaxwafstatus").empty();
@@ -277,6 +291,9 @@ function showOverviewServers() {
 			act: "overviewServers",
 			token: $('#token').val()
 		},
+		beforeSend: function() {
+			$('#ajaxservers').html('<img class="loading" src="/inc/images/loading.gif" />')
+		},
 		type: "GET",
 		success: function( data ) {
 			$("#ajaxservers").html(data);
@@ -289,6 +306,9 @@ function showOverviewHapWI() {
 		data: {
 			act: "overviewHapwi",
 			token: $('#token').val()
+		},
+		beforeSend: function() {
+			$('#ajaxHapwi').html('<img class="loading_hapwi_overview" src="/inc/images/loading.gif" />')
 		},
 		type: "GET",
 		success: function( data ) {
@@ -307,7 +327,7 @@ function showStats() {
 		type: "GET",
 		success: function( data ) {
 			$("#ajax").html(data);			
-			// window.history.pushState("Stats", "Stats", cur_url[0]+"?serv="+$("#serv").val());
+			window.history.pushState("Stats", "Stats", cur_url[0]+"?serv="+$("#serv").val());
 			wait();
 		}					
 	} );

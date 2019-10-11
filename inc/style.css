@@ -309,7 +309,7 @@ pre {
 	font-size: 13px !important;
 }
 .advance-show  a{
-	color: #9d9d9d !important;
+	color: #23527c !important;
 }
 .addButton {
 	padding-top: 15px;
@@ -810,6 +810,10 @@ label {
   #logo_span {
 	margin-left: 17%;
 	}	
+	.chart-container {
+		height: 290px;
+		width: 32.4%;
+	}
 }
 @media (max-width: 1080px) {
 	#logo_span {
@@ -868,4 +872,24 @@ label {
 		width: 95%;
 		max-width: 95%;
 	}
+}
+.loading, .loading_full_page, .loading_hapwi_overview {
+	width: 100px;
+	height: 100px;
+	margin-left: 100%;
+}
+.loading_full_page {
+	margin-left: 45%;
+}
+.loading_hapwi_overview{
+	margin-left: 40%;
+}
+.tooltip {
+	font-size: 12px; 
+	padding-bottom: 10px;
+}
+.tooltipTop {
+	margin-bottom: -20px; 
+	padding-top: 10px;
+	color: #9d9d9d;
 }

@@ -1369,18 +1369,54 @@ def select_keep_alive(**kwargs):
 		return cur.fetchall()
 	cur.close()    
 	con.close() 
+	
+	
+def check_token_exists(token):
+	try:
+		import http.cookies
+		import os
+		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+		user_id = cookie.get('uuid')
+		if get_token(user_id.value) == token:
+			return True
+		else:
+			try:
+				funct.logging('localhost', ' tried do action with wrong token', haproxywi=1, login=1)
+			except:
+				funct.logging('localhost', ' An action with wrong token', haproxywi=1)
+				return False
+	except:
+		try:
+			funct.logging('localhost', ' cannot check token', haproxywi=1, login=1)
+		except:
+			funct.logging('localhost', ' Cannot check token', haproxywi=1)
+			return False
+
 				
 form = cgi.FieldStorage()
 error_mess = '<span class="alert alert-danger" id="error">All fields must be completed <a title="Close" id="errorMess"><b>X</b></a></span>'
 
 
 def check_token():
-	if form.getvalue('token') is None:
+	if not check_token_exists(form.getvalue('token')):
 		print('Content-type: text/html\n')
-		print("What the fuck?! U r hacker Oo?!")
+		print("What the fuck?! U r hacker Oo?!")		
 		import sys
 		sys.exit()
-
+		
+		
+def check_group(group):
+	import http.cookies
+	import os
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_id = cookie.get('uuid')
+	user_group = get_user_group_by_uuid(user_id.value)
+	if user_group == group or user_group == '1':
+		return True
+	else:
+		funct.logging(new_user, ' tried to change user group', haproxywi=1, login=1)
+		return False
+		
 
 if form.getvalue('newuser') is not None:
 	email = form.getvalue('newemail')
@@ -1394,13 +1430,16 @@ if form.getvalue('newuser') is not None:
 	if password is None or role is None or group is None:
 		print(error_mess)
 	else:		
-		role_id = get_role_id_by_name(role)
-		if funct.is_admin(level=role_id):
-			if add_user(new_user, email, password, role, group, activeuser):
-				show_update_user(new_user, page)
-		else:
-			funct.logging(new_user, ' tried to do privilege escalation', haproxywi=1, login=1)
-		
+		if check_group(group):
+			role_id = get_role_id_by_name(role)
+			if funct.is_admin(level=role_id):
+				if add_user(new_user, email, password, role, group, activeuser):
+					show_update_user(new_user, page)
+			else:
+				funct.logging(new_user, ' tried to privilege escalation', haproxywi=1, login=1)
+
+	
+	
 if form.getvalue('updateuser') is not None:
 	email = form.getvalue('email')
 	role = form.getvalue('role')
@@ -1412,12 +1451,14 @@ if form.getvalue('updateuser') is not None:
 	check_token()
 	if new_user is None or role is None or group is None:
 		print(error_mess)
-	else:		
-		role_id = get_role_id_by_name(role)
-		if funct.is_admin(level=role_id):
-			update_user(new_user, email, role, group, id, activeuser)
-		else:
-			funct.logging(new_user, ' tried to do privilege escalation', haproxywi=1, login=1)
+	else:	
+		if check_group(group):
+			role_id = get_role_id_by_name(role)
+			if funct.is_admin(level=role_id):
+				update_user(new_user, email, role, group, id, activeuser)
+			else:
+				funct.logging(new_user, ' tried to privilege escalation', haproxywi=1, login=1)
+		
 
 
 if form.getvalue('updatepassowrd') is not None:
@@ -1437,6 +1478,7 @@ if form.getvalue('userdel') is not None:
 	check_token()
 	if delete_user(form.getvalue('userdel')):
 		print("Ok")
+
 		
 if form.getvalue('newserver') is not None:
 	hostname = form.getvalue('servername')	
@@ -1460,6 +1502,7 @@ if form.getvalue('newserver') is not None:
 	else:	
 		if add_server(hostname, ip, group, typeip, enable, master, cred, alert, metrics, port, desc, active):
 			show_update_server(ip, page)
+
 		
 if form.getvalue('serverdel') is not None:
 	print('Content-type: text/html\n')
@@ -1467,6 +1510,7 @@ if form.getvalue('serverdel') is not None:
 	if delete_server(form.getvalue('serverdel')):
 		delete_waf_server(form.getvalue('serverdel'))
 		print("Ok")
+
 	
 if form.getvalue('newgroup') is not None:
 	newgroup = form.getvalue('groupname')	
@@ -1479,11 +1523,13 @@ if form.getvalue('newgroup') is not None:
 		if add_group(newgroup, desc):
 			show_update_group(newgroup)
 
+
 if form.getvalue('groupdel') is not None:
 	print('Content-type: text/html\n')
 	check_token()
 	if delete_group(form.getvalue('groupdel')):
 		print("Ok")
+
 		
 if form.getvalue('updategroup') is not None:
 	name = form.getvalue('updategroup')
@@ -1495,6 +1541,7 @@ if form.getvalue('updategroup') is not None:
 		print(error_mess)
 	else:		
 		update_group(name, descript, id)
+
 		
 if form.getvalue('updateserver') is not None:
 	name = form.getvalue('updateserver')
@@ -1516,6 +1563,7 @@ if form.getvalue('updateserver') is not None:
 		print(error_mess)
 	else:		
 		update_server(name, ip, group, typeip, enable, master, id, cred, alert, metrics, port, desc, active)
+
 			
 if form.getvalue('updatessh'):
 	id = form.getvalue('id')
@@ -1544,7 +1592,8 @@ if form.getvalue('updatessh'):
 			except:
 				pass
 		update_ssh(id, name, enable, group, username, password)
-		
+	
+	
 if form.getvalue('new_ssh'):
 	name = form.getvalue('new_ssh')
 	enable = form.getvalue('ssh_enable')	
@@ -1560,6 +1609,7 @@ if form.getvalue('new_ssh'):
 	else:
 		if insert_new_ssh(name, enable, group, username, password):
 			show_update_ssh(name, page)
+
 			
 if form.getvalue('sshdel') is not None:
 	import funct
@@ -1580,6 +1630,7 @@ if form.getvalue('sshdel') is not None:
 	if delete_ssh(form.getvalue('sshdel')):
 		print("Ok")
 
+
 if form.getvalue('newtelegram'):
 	token = form.getvalue('newtelegram')
 	chanel = form.getvalue('chanel')	
@@ -1593,12 +1644,14 @@ if form.getvalue('newtelegram'):
 	else:
 		if insert_new_telegram(token, chanel, group):
 			show_update_telegram(token, page)
+
 			
 if form.getvalue('telegramdel') is not None:
 	print('Content-type: text/html\n')
 	check_token()
 	if delete_telegram(form.getvalue('telegramdel')):
 		print("Ok")
+
 	
 if form.getvalue('getoption'):
 	group = form.getvalue('getoption')	
@@ -1626,7 +1679,8 @@ if form.getvalue('newtoption'):
 	else:
 		if insert_new_option(option, group):
 			show_update_option(option)
-			
+	
+	
 if form.getvalue('updateoption') is not None:
 	option = form.getvalue('updateoption')
 	id = form.getvalue('id')	
@@ -1636,6 +1690,7 @@ if form.getvalue('updateoption') is not None:
 		print(error_mess)
 	else:		
 		update_options(option, id)
+
 			
 if form.getvalue('optiondel') is not None:
 	print('Content-type: text/html\n')
@@ -1675,7 +1730,8 @@ if form.getvalue('newsavedserver'):
 	else:
 		if insert_new_savedserver(savedserver, description, group):
 			show_update_savedserver(savedserver)
-			
+	
+	
 if form.getvalue('updatesavedserver') is not None:
 	savedserver = form.getvalue('updatesavedserver')
 	description = form.getvalue('description')
@@ -1686,12 +1742,14 @@ if form.getvalue('updatesavedserver') is not None:
 		print(error_mess)
 	else:		
 		update_savedserver(savedserver, description, id)
-			
+	
+	
 if form.getvalue('savedserverdel') is not None:
 	print('Content-type: text/html\n')
 	check_token()
 	if delete_savedserver(form.getvalue('savedserverdel')):
 		print("Ok")
+
 		
 if form.getvalue('updatetoken') is not None:
 	token = form.getvalue('updatetoken')
@@ -1703,7 +1761,8 @@ if form.getvalue('updatetoken') is not None:
 		print(error_mess)
 	else:		
 		update_telegram(token, chanel, group, id)
-		
+	
+	
 if form.getvalue('updatesettings') is not None:
 	print('Content-type: text/html\n')
 	check_token()
