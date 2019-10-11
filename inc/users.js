@@ -146,6 +146,10 @@ $( function() {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
 					$("#ajax").html('<div class="alert alert-success">Update was success!</data>');				
+				} else if (data.indexOf('Unauthorized') != '-1') {
+					$('.alert-danger').remove();
+					$('.alert-warning').remove();
+					$("#ajax").html('<div class="alert alert-danger">It is seems like you Unauthorized in the HAProxy-WI repository.</data>');
 				} else if (data.indexOf('but not installed') != '-1') {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
@@ -170,6 +174,10 @@ $( function() {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
 					$("#ajax").html('<div class="alert alert-danger">It is seems like you have problem with your repositorys.</data>');
+				} else if (data.indexOf('Unauthorized') != '-1') {
+					$('.alert-danger').remove();
+					$('.alert-warning').remove();
+					$("#ajax").html('<div class="alert alert-danger">It is seems like you Unauthorized in the HAProxy-WI repository.</data>');
 				}
 			}
 		} ); 	
