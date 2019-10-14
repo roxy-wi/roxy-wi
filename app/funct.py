@@ -314,13 +314,14 @@ def install_haproxy(serv, **kwargs):
 	stats_user = sql.get_setting('stats_user')
 	stats_password = sql.get_setting('stats_password')
 	proxy = sql.get_setting('proxy')
+	hapver = kwargs.get('hapver')
 	os.system("cp scripts/%s ." % script)
 	
 	proxy_serv = proxy if proxy is not None else ""
 		
 	commands = [ "sudo chmod +x "+tmp_config_path+script+" && " +tmp_config_path+"/"+script +" PROXY=" + proxy_serv+ 
 				" SOCK_PORT="+haproxy_sock_port+" STAT_PORT="+stats_port+" STAT_FILE="+server_state_file+
-				" STATS_USER="+stats_user+" STATS_PASS="+stats_password ]
+				" STATS_USER="+stats_user+" STATS_PASS="+stats_password+" HAPVER="+hapver]
 	
 	error = str(upload(serv, tmp_config_path, script))
 	

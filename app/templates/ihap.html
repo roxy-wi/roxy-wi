@@ -3,14 +3,19 @@
 <script src="/inc/users.js"></script>
 <table class="overview">
 	<tr class="overviewHead">
-		<td class="padding10 first-collumn" style="width: 350px;">Note</td>
+		<td class="padding10 first-collumn" style="width: 350px;">Version</td>
 		<td class="padding10 first-collumn">Server</td>
 		<td style="width: 150px;">SYN flood protect</td>
 		<td></td>
 	</tr>
 	<tr>
 	<td class="padding10 first-collumn" style="width: 350px;">
-		<b>Haproxy-WI will try install haproxy-2.0.6, if it does not work then haproxy-1.15</b>
+		<select id="hapver" name="hapver" required>
+			<option disabled>Choose HAProxy version</option>
+			<option value="2.0.4-1">2.0.4-1</option>
+			<option value="2.0.6-1">2.0.6-1</option>
+			<option value="2.0.7-1" selected>2.0.7-1</option>
+		</select>
 	</td>
 	<td class="padding10 first-collumn">
 		<select autofocus required name="{{select_id}}" id="{{select_id}}">

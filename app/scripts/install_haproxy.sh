@@ -13,6 +13,7 @@ do
             STATS_USER)    STATS_USER=${VALUE} ;;
             STATS_PASS)    STATS_PASS=${VALUE} ;;
             STAT_FILE)    STAT_FILE=${VALUE} ;;
+            HAPVER)    HAPVER=${VALUE} ;;
             *)
     esac
 done
@@ -22,7 +23,11 @@ then
 	export http_proxy="$PROXY"
 	export https_proxy="$PROXY"
 fi
-
+if [ $? -eq 1 ]
+then
+	sudo yum install wget socat -y > /dev/null
+	sudo wget https://repo.haproxy-wi.org/haproxy-$HAPVER.el7.x86_64.rpm --no-check-certificate
+fi
 if [ -f /etc/haproxy/haproxy.cfg ];then
 	echo -e 'Info: Haproxy already installed. You can edit config<a href="/app/config.py" title="Edit HAProxy config">here</a> <br /><br />'
 	exit 1
@@ -31,15 +36,15 @@ set +x
 if hash apt-get 2>/dev/null; then
 	sudo apt-get install haproxy socat -y
 else
-	sudo wget https://repo.haproxy-wi.org/haproxy-2.0.6-1.el7.x86_64.rpm --no-check-certificate
-	sudo yum install haproxy-2.0.6-1.el7.x86_64.rpm -y
+	sudo wget https://repo.haproxy-wi.org/haproxy-$HAPVER.el7.x86_64.rpm --no-check-certificate
+	sudo yum install haproxy-$HAPVER.el7.x86_64.rpm -y
 fi
 
 if [ $? -eq 1 ]
 then
 	sudo yum install wget socat -y > /dev/null
-	sudo wget https://repo.haproxy-wi.org/haproxy-2.0.6-1.el7.x86_64.rpm --no-check-certificate
-	sudo yum install haproxy-2.0.6-1.el7.x86_64.rpm -y
+	sudo wget https://repo.haproxy-wi.org/haproxy-$HAPVER.el7.x86_64.rpm --no-check-certificate
+	sudo yum install haproxy-$HAPVER.el7.x86_64.rpm -y
 fi
 if [ $? -eq 1 ]
 then

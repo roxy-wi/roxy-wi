@@ -413,7 +413,7 @@ if form.getvalue('masteradd'):
 	os.system("rm -f %s" % script)
 	
 if form.getvalue('haproxyaddserv'):
-	funct.install_haproxy(form.getvalue('haproxyaddserv'), syn_flood=form.getvalue('syn_flood'))
+	funct.install_haproxy(form.getvalue('haproxyaddserv'), syn_flood=form.getvalue('syn_flood'), hapver=form.getvalue('hapver'))
 	
 if form.getvalue('installwaf'):
 	funct.waf_install(form.getvalue('installwaf'))
