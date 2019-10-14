@@ -2,7 +2,6 @@
 
 for ARGUMENT in "$@"
 do
-
     KEY=$(echo $ARGUMENT | cut -f1 -d=)
     VALUE=$(echo $ARGUMENT | cut -f2 -d=)
 
@@ -16,8 +15,6 @@ do
             STAT_FILE)    STAT_FILE=${VALUE} ;;
             *)
     esac
-
-
 done
 
 if [[ $PROXY != "" ]]
@@ -27,26 +24,22 @@ then
 fi
 
 if [ -f /etc/haproxy/haproxy.cfg ];then
-	echo -e 'error: Haproxy already installed. You can edit config<a href="/app/config.py" title="Edit HAProxy config">here</a> <br /><br />'
+	echo -e 'Info: Haproxy already installed. You can edit config<a href="/app/config.py" title="Edit HAProxy config">here</a> <br /><br />'
 	exit 1
 fi
 set +x
 if hash apt-get 2>/dev/null; then
 	sudo apt-get install haproxy socat -y
 else
-	#wget http://cbs.centos.org/kojifiles/packages/haproxy/1.8.1/5.el7/x86_64/haproxy18-1.8.1-5.el7.x86_64.rpm 
-	wget http://au1.mirror.crc.id.au/repo/el7-extra/x86_64/haproxy-2.0.3-2.el7.x86_64.rpm
-	#sudo yum install haproxy18-1.8.1-5.el7.x86_64.rpm -y
-	sudo yum install haproxy-2.0.3-2.el7.x86_64.rpm -y
+	sudo wget https://repo.haproxy-wi.org/haproxy-2.0.6-1.el7.x86_64.rpm --no-check-certificate
+	sudo yum install haproxy-2.0.6-1.el7.x86_64.rpm -y
 fi
 
 if [ $? -eq 1 ]
 then
 	sudo yum install wget socat -y > /dev/null
-	#wget http://cbs.centos.org/kojifiles/packages/haproxy/1.8.1/5.el7/x86_64/haproxy18-1.8.1-5.el7.x86_64.rpm 
-	wget http://au1.mirror.crc.id.au/repo/el7-extra/x86_64/haproxy-2.0.3-2.el7.x86_64.rpm
-	#sudo yum install haproxy18-1.8.1-5.el7.x86_64.rpm -y
-	sudo yum install haproxy-2.0.3-2.el7.x86_64.rpm -y
+	sudo wget https://repo.haproxy-wi.org/haproxy-2.0.6-1.el7.x86_64.rpm --no-check-certificate
+	sudo yum install haproxy-2.0.6-1.el7.x86_64.rpm -y
 fi
 if [ $? -eq 1 ]
 then
@@ -57,8 +50,8 @@ then
 	fi
 fi
 
-bash -c 'echo "" > /tmp/haproxy.cfg'
-bash -c cat << EOF > /tmp/haproxy.cfg
+sudo bash -c 'echo "" > /tmp/haproxy.cfg'
+sudo bash -c cat << EOF > /tmp/haproxy.cfg
 global
     log         127.0.0.1 local2
     chroot      /var/lib/haproxy

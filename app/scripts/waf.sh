@@ -205,9 +205,7 @@ sudo systemctl restart waf
 sudo rm -f /tmp/libevent-devel-2.0.21-4.el7.x86_64.rpm
 sudo rm -f /tmp/modsecurity-2.9.2.tar.gz
 sudo rm -f /tmp/yajl-devel-2.0.4-4.el7.x86_64.rpm
-#sudo rm -rf /tmp/haproxy-$VERSION
 sudo rm -rf /tmp/haproxy-$VERSION.tar.gz
-#sudo rm -rf /tmp/modsecurity-2.9.2
 
 if [ $? -eq 1 ]; then
 	echo "error: Can't start Haproxy WAF service <br /><br />"

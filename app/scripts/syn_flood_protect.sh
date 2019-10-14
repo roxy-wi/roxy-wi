@@ -2,7 +2,7 @@
 
 if [[ $1 == "enable" ]]; then
 	if sudo grep -q "net.ipv4.tcp_syncookies = 1" /etc/sysctl.conf; then
-		echo "SYN flood protectd allready enabled"
+		echo "SYN flood protect has already enabled"
 		exit 1
     else
 		sudo bash -c cat <<EOF >> /etc/sysctl.conf

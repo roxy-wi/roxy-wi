@@ -347,8 +347,6 @@ if serv is not None and act == "configShow":
 			
 	try:
 		conf = open(cfg, "r")
-		#conf = conf.read()
-		#conf = funct.escape_html(conf)
 	except IOError:
 		print('<div class="alert alert-danger">Can\'t read import config file</div>')
 		
