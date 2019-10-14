@@ -378,7 +378,7 @@ pre {
 	padding-left: 15px;
 	font-size: 15px;
 }
-.serverUp, .serverDown {
+.serverUp, .serverDown, .serverNone {
 	padding: 3px; 
 	border-radius: 3px;
 	color: #fff; 
@@ -386,6 +386,9 @@ pre {
 }
 .serverUp {
 	background-color: #5CB85C; 
+}
+.serverNone {
+	background-color: #ddd; 
 }
 .add-button, .add-button-wi {
 	background-color: #5CB85C; 
@@ -759,7 +762,6 @@ label {
 	margin-right: 0 !important;
 }
 #left-collumn, #middle-collumn, #right-collumn {
-	/* width: 30%; */
 	float: left;
 }
 .ajax-server {
@@ -771,18 +773,23 @@ label {
 	margin-top: px;
 	margin-bottom: 0px;
 	margin-top: 14px;
-	height: 172px;
+	height: 192px;
 }
 .haproxy-info {
 	display: inline-block;
 	width: 160px;
-	padding-left: 20px;
-	padding-top: 2em;
-	font-size: 0.88em;
+	padding-left: 30px;
+	padding-top: 27px;
+	font-size: 1em;
 }
 .top-info {
 	display: inline-block;
 	width: 350px;
+}
+.update-icon {
+	float: right;
+	margin-top: 35px;
+	margin-right: 15px;
 }
 .span-link {
 	cursor: pointer;

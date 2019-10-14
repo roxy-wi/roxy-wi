@@ -4,8 +4,7 @@
 	{% for s in servers %}
 	<div class="div-pannel" id="div-pannel-{{s.0}}">
 		<div id="div-server-{{s.0}}" class="div-server">
-			<div class="server-name">
-				
+			<div class="server-name">				
 				{% if s.5 != False %}
 					<span class="serverUp server-status" title="{{s.5.0.2}}"></span>
 				{% else %}
@@ -14,6 +13,15 @@
 				<span title="Show info about {{s.2}}" onclick="showOverviewServer('{{s.1}}', '{{s.2}}', '{{s.0}}')" style="cursor: pointer;">
 					{{s.1}}
 				</span>
+				{% if s.6|int() >= 1 %}
+					<img 
+						{% if keep_alive|int() >= 1 %}
+							src="/inc/images/shield.png" title="Auto start enabled"
+						{% else %}
+							src="/inc/images/shield-red.png" title="Auto start enabled, but keep alive service does not work"
+						{% endif %}
+						width=18 style="padding-left: 5px; margin-bottom: -3px;">
+				{% endif %}
 				{% if role <= 1 %}
 				<span class="server-action">
 					<a id="{{ s.2 }}" class="start" title="Start HAProxy service">
@@ -31,11 +39,19 @@
 			<div class="server-desc">
 				{{s.3}}
 				{% if s.5.0 is defined %}
+					<br />
+					{{s.5.0.0}} {{s.5.0.1}} {{s.5.0.2}}
+				{% endif %}				 
 				<br />
-				{{s.5.0.0}} {{s.5.0.1}} {{s.5.0.2}}
+				<span title="Date of last edit config">
+					{% if "ls: cannot access" in s.7 %}
+						Cannot find HAProxy config
+					{% else %}
+						Last edit: {{s.7}}
+					{% endif %}
+				</span>			
 				<br />
 				IP: {{s.2}}
-				{% endif %}
 			</div>
 			<div class="server-act-links">
 				<a href="/app/config.py?serv={{s.2}}&showConfig" class="ui-button ui-widget ui-corner-all" title="Open running config">Open</a>	

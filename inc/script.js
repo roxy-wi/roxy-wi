@@ -189,8 +189,6 @@ $( document ).ajaxComplete(function( event, request, settings ) {
 });
 
 function showOverview() {
-	// showOverviewServers();
-	showOverviewWaf()
 	showOverviewHapWI()
 	$.ajax( {
 		url: "options.py",
@@ -210,19 +208,15 @@ function showOverview() {
 	} );
 }
 function showOverviewServer(name,ip,id) {
-	showOverviewServers();
-	showOverviewWaf()
 	$.ajax( {
 		url: "options.py",
 		data: {
 			act: "overviewServers",
 			name: name,
 			serv: ip,
+			id: id,
 			page: 'hapservers.py',
 			token: $('#token').val()
-		},
-		beforeSend: function() {
-			$("#ajax-server-"+id).html('<img class="loading" src="/inc/images/loading.gif" />')
 		},
 		type: "GET",
 		success: function( data ) {
@@ -281,22 +275,6 @@ function showOverviewWaf() {
 			} else {
 				$('.first-collumn-wi').css('padding', '10px');
 			}
-		}					
-	} );
-}
-function showOverviewServers() {
-	$.ajax( {
-		url: "options.py",
-		data: {
-			act: "overviewServers",
-			token: $('#token').val()
-		},
-		beforeSend: function() {
-			$('#ajaxservers').html('<img class="loading" src="/inc/images/loading.gif" />')
-		},
-		type: "GET",
-		success: function( data ) {
-			$("#ajaxservers").html(data);
 		}					
 	} );
 }

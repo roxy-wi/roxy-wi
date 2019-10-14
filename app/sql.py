@@ -834,9 +834,9 @@ def select_waf_metrics_enable_server(ip):
 	cur.close()    
 	con.close()
 	
-def select_waf_servers():
+def select_waf_servers(serv):
 	con, cur = create_db.get_cur()
-	sql = """ select serv.ip from waf left join servers as serv on waf.server_id = serv.id where waf.metrics = '1'"""
+	sql = """ select serv.ip from waf left join servers as serv on waf.server_id = serv.id where serv.ip = '%s' """ % serv
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
@@ -1400,7 +1400,7 @@ error_mess = '<span class="alert alert-danger" id="error">All fields must be com
 def check_token():
 	if not check_token_exists(form.getvalue('token')):
 		print('Content-type: text/html\n')
-		print("What the fuck?! U r hacker Oo?!")		
+		print("Your token has been expired")		
 		import sys
 		sys.exit()
 		

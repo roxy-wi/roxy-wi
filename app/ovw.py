@@ -13,17 +13,18 @@ servers = []
 server_status = ()
 
 async def async_get_overview(serv1, serv2):
-	haproxy_config_path  = sql.get_setting('haproxy_config_path')
-	commands = [ "ls -l %s |awk '{ print $6\" \"$7\" \"$8}'" % haproxy_config_path ]
-	commands2 = "ps ax |grep keep_alive.py |grep -v grep |wc -l"
+	# haproxy_config_path  = sql.get_setting('haproxy_config_path')
+	# commands = [ "ls -l %s |awk '{ print $6\" \"$7\" \"$8}'" % haproxy_config_path ]
+	commands2 = [ "ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l" ]
+	# commands2 = "ps ax |grep keep_alive.py |grep -v grep |wc -l"
 	
 	cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Process_num"' % (serv2, haproxy_sock_port)
 	server_status = (serv1, 
 					serv2, 
 					funct.server_status(funct.subprocess_execute(cmd)), 
-					funct.ssh_command(serv2, commands),  
-					sql.select_servers(server=serv2, keep_alive=1), 
-					funct.subprocess_execute(commands2))
+					sql.select_servers(server=serv2, keep_alive=1),
+					funct.ssh_command(serv2, commands2),
+					sql.select_waf_servers(serv2))
 	return server_status
 
 async def get_runner_overview():
@@ -67,20 +68,9 @@ def get_overviewWaf(url):
 
 async def async_get_overviewServers(serv1, serv2):
 	commands =  [ "top -u haproxy -b -n 1 -w 67 |grep -e 'haproxy\|PID\|Cpu\|KiB' |grep -v Swap" ]
-	# if desc == "hapservers.py":
-		# cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|Maxco\|MB\|Uptime:"' % (serv2, haproxy_sock_port)
-	# else:
-		# cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|SessRate\|Maxco\|MB\|Uptime:"' % (serv2, haproxy_sock_port)
 	cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|Maxco\|MB\|Uptime:"' % (serv2, haproxy_sock_port)
 	out = funct.subprocess_execute(cmd)
 	out1 = ""
-	# user_id = cookie.get('uuid')
-	# role = sql.get_user_role_by_uuid(user_id.value)
-	# hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
-	# cfg = hap_configs_dir + serv2 + "-" + funct.get_data('config') + ".cfg"
-	# funct.get_config(serv2, cfg)
-	# backends = funct.get_sections(cfg)
-	# os.system("/bin/rm -f " + cfg)
 	
 	for k in out:
 		if "Ncat:" not in k:
@@ -89,11 +79,7 @@ async def async_get_overviewServers(serv1, serv2):
 				out1 += "<br />"
 		else:
 			out1 = "Can\'t connect to HAproxy"
-	
-	# if role <= 2:
-		# server_status = (serv1,serv2, out1, funct.ssh_command(serv2, commands),backends, desc)
-	# else:
-		# server_status = (serv1,serv2, out1, funct.ssh_command(serv2, commands),funct.show_backends(serv2, ret=1), desc)
+
 	server_status = (serv1,serv2, out1, funct.ssh_command(serv2, commands))
 	return server_status
 	
@@ -101,23 +87,21 @@ async def get_runner_overviewServers(**kwargs):
 	template = env.get_template('overviewServers.html')	
 	user_id = cookie.get('uuid')
 	role = sql.get_user_role_by_uuid(user_id.value)
-	# if kwargs.get('server1'):
 	futures = [async_get_overviewServers(kwargs.get('server1'), kwargs.get('server2'))]
-	# else:
-		# futures = [async_get_overviewServers(server[1], server[2], server[11]) for server in listhap]
+
 	for i, future in enumerate(asyncio.as_completed(futures)):
 		result = await future
 		servers.append(result)
 	servers_sorted = sorted(servers, key=funct.get_key)
-	template = template.render(service_status=servers_sorted, role=role)
+	template = template.render(service_status=servers_sorted, role=role, id=kwargs.get('id'))
 	print(template)	
 	
 def get_overviewServers(**kwargs):
 	server1 = kwargs.get('name')
 	server2 = kwargs.get('ip')
-	page = kwargs.get('page')
+	id = kwargs.get('id')
 	ioloop = asyncio.get_event_loop()
-	ioloop.run_until_complete(get_runner_overviewServers(server1=server1, server2=server2))
+	ioloop.run_until_complete(get_runner_overviewServers(server1=server1, server2=server2, id=id))
 	ioloop.close()
 	
 def get_map(serv):

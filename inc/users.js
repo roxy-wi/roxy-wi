@@ -149,7 +149,7 @@ $( function() {
 				} else if (data.indexOf('Unauthorized') != '-1') {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-danger">It is seems like you Unauthorized in the HAProxy-WI repository.</data>');
+					$("#ajax").html('<div class="alert alert-danger">It is seems like you Unauthorized in the HAProxy-WI repository. How to get HAProxy-WI auth you can read <a href="https://haproxy-wi.org/installation.py" title="How to get HAProxy-WI auth">hear</a> </data>');
 				} else if (data.indexOf('but not installed') != '-1') {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();

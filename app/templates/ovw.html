@@ -8,11 +8,15 @@
 		<td class="padding10 first-collumn-wi">
 			Server
 		</td>
-		<td class="padding10  third-collumn-wi">
-			Action
+		<td class="padding10  third-collumn-wi" style="width: 35%;">
+			<a href="/app/hapservers.py" title="HAProxy servers overview" class="logs_link">			
+				HAProxy
+			</a>
 		</td>
 		<td class="padding10">
-			Last edit
+			<a href="/app/waf.py" title="WAf servers overview" class="logs_link">
+				WAF
+			</a>
 		</td  class="padding10">
 		<td>
 			<a onclick="showOverview()" title="Refresh" style="float: right; margin-right: 25px;"><img  src="/inc/images/update.png" alt="restart" class="icon"></a>
@@ -20,29 +24,16 @@
 	</tr>
 <tbody id="ajaxstatus"></tbody>
 </table>
-<table class="overview-wi">
-	<tr class="overviewHead">
-		<td class="padding10 first-collumn-wi">
-			WAF
-		</td class="padding10 second-collumn">
-		<td class="padding10  third-collumn-wi">
-			Action
-		</td>
-		<td class="padding10">
-			WAF mode
-		</td  class="padding10">
-		<td>
-			<a onclick="showOverviewWaf()" title="Refresh" style="float: right; margin-right: 25px;"><img  src="/inc/images/update.png" alt="restart" class="icon"></a>
-		</td>
-	</tr>
-<tbody id="ajaxwafstatus"></tbody>	
-</table>
 <table class="overview-wi" style="height: 170;">
 	<tr class="overviewHead">
 		<td class="padding10 first-collumn-wi">
-			<a href="/app/viewlogs.py?viewlogs=haproxy-wi-{{date}}.log&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View HAProxy-WI logs" class="logs_link">			
-			HAProxy-WI server status
-			</a>
+			{% if role <= 1 %}
+				<a href="/app/viewlogs.py?viewlogs=haproxy-wi-{{date}}.log&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View HAProxy-WI logs" class="logs_link">			
+					HAProxy-WI server status
+				</a>
+			{% else %}
+				HAProxy-WI server status
+			{% endif %}
 		</td> 
 		<td>
 			<a onclick="showOverviewHapWI()" title="Refresh" style="float: right; margin-right: 25px;"><img  src="/inc/images/update.png" alt="restart" class="icon"></a>
@@ -55,8 +46,8 @@
 		</td>
 	</tr>
 </table>
-<table class="overview-wi" style="height: 170;">
-	<tr class="overviewHead" style="height: 48px;">	
+<table class="overview-wi" style="height: 165;">
+	<tr class="overviewHead" style="height: 40px;">	
 		<th class="padding10 first-collumn-wi" colspan=4>
 			Tools status
 		</th>
@@ -68,9 +59,13 @@
 			{% else %}
 				<span class="serverDown server-status"></span>
 			{% endif %}
+			{% if role <= 1 %}
 			<a href="/app/viewlogs.py?viewlogs=metrics-{{date}}.log&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View metrics master's logs" class="logs_link">			
 				<span>Metrics master</span>
 			</a>
+			{% else %}
+				<span>Metrics master</span>
+			{% endif %}
 		</td>
 		<td class="third-collumn-wi">
 			{% if checker_master|int() >= 1 %}
@@ -78,9 +73,13 @@
 			{% else %}
 				<span class="serverDown server-status"></span> 
 			{% endif %}
+			{% if role <= 1 %}
 			<a href="/app/viewlogs.py?viewlogs=checker-{{date}}.log&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View checker master's logs" class="logs_link">
 				<span>Checker master</span>
 			</a>
+			{% else %}
+				<span>Checker master</span>
+			{% endif %}
 		</td>
 		<td class="third-collumn-wi">
 			{% if keep_alive|int() >= 1 %}
@@ -88,9 +87,13 @@
 			{% else %}
 				<span class="serverDown server-status"></span> 
 			{% endif %}
+			{% if role <= 1 %}
 			<a href="/app/viewlogs.py?viewlogs=keep_alive.log&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View keep alive logs" class="logs_link">
 				<span>Keep alive</span>
 			</a>
+			{% else %}
+				<span>Keep alive</span>
+			{% endif %}
 		</td>
 	</tr>
 	<tr>
@@ -100,9 +103,13 @@
 		{% else %}
 			<span title="running {{metrics_worker}} worker processes"><span class="serverDown server-status"></span> 
 		{% endif %}
+		{% if role <= 1 %}
 			<a href="/app/viewlogs.py?viewlogs=metrics-error.log&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View worker's logs" class="logs_link">
 				<span>Metrics workers</span>
 			</a>
+		{% else %}
+			<span>Metrics workers</span>
+		{% endif %}
 		</td>
 		<td>
 		{% if checker_worker|int() >= 1 %}
@@ -110,9 +117,13 @@
 		{% else %}
 			<span title="running {{ checker_worker }} worker processes"><span class="serverDown server-status"></span> 
 		{% endif %}
+		{% if role <= 1 %}
 			<a href="/app/viewlogs.py?viewlogs=checker-error.log&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View checker's logs" class="logs_link">
 				<span>Checker workers</span>
 			</a>
+		{% else %}
+				<span>Checker workers</span>
+		{% endif %}
 		</td>
 		<td></td>
 		
@@ -229,27 +240,6 @@
 		{% endfor %}
 	</table>
 {% endif %}
-
-<!-- <table class="overview" > -->
-	<!-- <tr class="overviewHead"> -->
-		<!-- <td class="padding10 first-collumn-wi"> -->
-			<!-- Server -->
-		<!-- </td> -->
-		<!-- <td class="padding10 second-collumn"> -->
-			<!-- HAproxy info -->
-		<!-- </td> -->
-		<!-- <td  class="padding10 third-collumn-wi"> -->
-			<!-- Server status -->
-		<!-- </td> -->
-		<!-- <td class="padding10"> -->
-			<!-- Front/Back-ends -->
-		<!-- </td> -->
-		<!-- <td> -->
-			<!-- <a onclick="showOverviewServers()" title="Refresh Server Info" style="float: right; margin-right: 25px;"><img  src="/inc/images/update.png" alt="restart" class="icon"></a> -->
-		<!-- </td> -->
-	<!-- </tr> -->
-<!-- <tbody id="ajaxservers"></tbody> -->
-<!-- </table> -->
 <div id="dialog-confirm" style="display: none;">
   <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>Are you sure?</p>
 </div>

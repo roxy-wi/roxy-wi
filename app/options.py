@@ -24,7 +24,7 @@ if act == "checkrestart":
 	sys.exit()
 
 if not sql.check_token_exists(form.getvalue('token')):
-	print("What the fuck?! U r hacker Oo?!")
+	print("Your token has been expired")
 	sys.exit()
 		
 if form.getvalue('getcerts') is not None and serv is not None:
@@ -140,7 +140,7 @@ if act == "overviewwaf":
 if act == "overviewServers":
 	id = form.getvalue('id')
 	name = form.getvalue('name')
-	ovw.get_overviewServers(ip=serv,name=name,page=form.getvalue('page'))
+	ovw.get_overviewServers(ip=serv,name=name,id=form.getvalue('id'))
 	
 	
 if act == "overviewHapwi":

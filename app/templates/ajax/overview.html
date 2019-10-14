@@ -1,53 +1,24 @@
 {% for service in service_status %}
 	<tr class="{{ loop.cycle('odd', 'even') }}">
-		<td class="padding10 first-collumn">
-			{% if service.2|int() >= 1 %}
-			<span class="serverUp server-status" title="running {{service.2 }} processes"></span> 
-			{% else %}
-				<span class="serverDown server-status"></span>
-			{% endif %}
-				<a href="/app/logs.py?serv={{ service.1 }}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00&waf=0" title="View {{service.0 }}'s logs" class="logs_link">
-					{{ service.0 }}
-				</a>
-				{% if service.4.0.0|int() >= 1 %}
-					<img 
-						{% if service.5.0.0|int() >= 1 %}
-							src="/inc/images/shield.png" title="Auto start enabled"
-						{% else %}
-							src="/inc/images/shield-red.png" title="Auto start enabled, but keep alive service does not work"
-						{% endif %}
-						width=18 style="padding-left: 5px; margin-bottom: -3px;">
-				{% endif %}
+		<td class="padding10 first-collumn">		
+			<a href="/app/logs.py?serv={{ service.1 }}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00&waf=0" title="View {{service.0 }}'s logs" class="logs_link">
+				{{ service.0 }}
+			</a>
 		</td>
-		<!-- <td  class="second-collumn"> -->
-		
-		<!-- </td> -->
 		<td>
-		{% if role <= 1 %}
-			<a id="{{ service.1 }}" class="start" title="Start HAProxy service">
-				<img src=/inc/images/start.png alt="start" class="icon" style="margin-bottom: -2px;">
-			</a>
-			<a id="{{ service.1 }}" class="stop" title="Stop HAProxy service">
-				<img src=/inc/images/stop.png alt="start" class="icon" width="17px">
-			</a>
-			<a id="{{ service.1 }}" class="restart" title="Restart HAProxy service">
-				<img src=/inc/images/update.png alt="restart" class="icon">
-			</a>
-		{% endif %}
-		{% if role <= 2 %}
-			<a href="/app/config.py?serv={{ service.1 }}&open=open" target="_blank" title="Working with HAProxy configs">
-				<img src="/inc/images/edit.png" alt="edit" class="icon" width="15px">
-			</a>
-		{% endif %}
-			<a href="/app/viewsttats.py?serv={{ service.1 }}" target="_blank"  title="Show stats">
-				<img src="/inc/images/show.png" alt="show" class="icon" width="20px" style="margin-bottom: -3px;">
-			</a>			
+			{% if service.2|int() >= 1 %}
+				<span class="serverUp server-status" title="running {{service.2 }} processes" style="margin-left: 25px !important;"></span> 
+			{% else %}
+				<span class="serverDown server-status" style="margin-left: 25px !important;"></span>
+			{% endif %}		
 		</td>
 		<td class="third-collumn-wi">
-			{% if "ls: cannot access" in service.3 %}
-				Cannot find HAProxy config
-			{% else %}
-				{{ service.3 }}
+			{% if service.5.0|length() == 0 %}
+				<span class="serverNone server-status" title="WAF is not installed" style="margin-left: 10px !important;"></span>		
+			{% elif service.5.0 != '' and service.4|int() == 0 %}
+				<span class="serverDown server-status" title="WAF down" style="margin-left: 10px !important;"></span>
+			{% elif service.5.0 != '' and service.4|int() >= 1 %}
+				<span class="serverUp server-status" title="running {{service.5 }} processes" style="margin-left: 10px !important;"></span> 					
 			{% endif %}
 		</td>
 		<td></td>

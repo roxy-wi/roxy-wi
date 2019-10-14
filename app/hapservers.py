@@ -17,11 +17,14 @@ try:
 	groups = sql.select_groups()
 	token = sql.get_token(user_id.value)
 	servers = sql.get_dick_permit()
+	cmd = "ps ax |grep -e 'keep_alive.py' |grep -v grep |wc -l"
+	keep_alive, stderr = funct.subprocess_execute(cmd)
 except:
 	pass
 
 haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-
+haproxy_config_path  = sql.get_setting('haproxy_config_path')
+commands = [ "ls -l %s |awk '{ print $6\" \"$7\" \"$8}'" % haproxy_config_path ]
 servers_with_status1 = []
 out1 = ""
 for s in servers:
@@ -40,12 +43,17 @@ for s in servers:
 		else:
 			out1 = False
 		servers_with_status.append(out1)
-		
+	servers_with_status.append(s[12])
+	try:
+		servers_with_status.append(funct.ssh_command(s[2], commands))
+	except:
+		servers_with_status.append('Cannot get last date')
+	
 	servers_with_status1.append(servers_with_status)
 
 
 template = template.render(h2 = 1,
-							autorefresh = 1,
+							autorefresh = 0,
 							title = "HAProxy servers overview",
 							role = sql.get_user_role_by_uuid(user_id.value),
 							user = user,
@@ -53,5 +61,6 @@ template = template.render(h2 = 1,
 							groups = groups,
 							servers = servers_with_status1,
 							versions = funct.versions(),
+							keep_alive = ''.join(keep_alive),
 							token = token)
 print(template)											
