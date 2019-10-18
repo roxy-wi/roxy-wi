@@ -50,6 +50,8 @@ $( function() {
 						data = data.replace(/\s+/g,' ');
 						if (data.indexOf('error') != '-1' || data.indexOf('alert') != '-1' || data.indexOf('Failed') != '-1') {
 							$("#ajax").html('<div class="alert alert-danger">'+data+'</data>');
+						} else if (data.indexOf('info') != '-1' ){
+							$("#ajax").html('<div class="alert alert-info">'+data+'</data>');
 						} else if (data.indexOf('success') != '-1' ){
 							$('.alert-danger').remove();
 							$("#ajax").html('<div class="alert alert-success">All is ready!</data>');				

@@ -19,7 +19,7 @@ def out_error(e):
 	else:
 		error = e.args[0]
 	print('Content-type: text/html\n')
-	print('<span class="alert alert-danger" id="error">An error occurred: ' + error + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+	print('<span class="alert alert-danger" style="height: 20px;margin-bottom: 20px;" id="error">An error occurred: ' + error + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 		
 def add_user(user, email, password, role, group, activeuser):
 	con, cur = create_db.get_cur()
@@ -1683,10 +1683,10 @@ if form.getvalue('newtoption'):
 	
 if form.getvalue('updateoption') is not None:
 	option = form.getvalue('updateoption')
-	id = form.getvalue('id')	
-	print('Content-type: text/html\n')	
+	id = form.getvalue('id')			
 	check_token()
 	if option is None or id is None:
+		print('Content-type: text/html\n')
 		print(error_mess)
 	else:		
 		update_options(option, id)

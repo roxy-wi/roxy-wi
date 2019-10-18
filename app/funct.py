@@ -244,9 +244,20 @@ def get_sections(config):
 	return_config = list()
 	with open(config, 'r') as f:
 		for line in f:		
-			if line.startswith('listen') or line.startswith('frontend') or line.startswith('backend') or line.startswith('cache') or line.startswith('defaults') or line.startswith('global'):
-				line = line.strip()
-				return_config.append(line)
+			if ( 
+				line.startswith('listen') or 
+				line.startswith('frontend') or 
+				line.startswith('backend') or 
+				line.startswith('cache') or 
+				line.startswith('defaults') or 
+				line.startswith('global') or 
+				line.startswith('#HideBlockEnd') or 
+				line.startswith('#HideBlockStart') or
+				line.startswith('peers') or
+				line.startswith('userlist')
+				):		
+					line = line.strip()
+					return_config.append(line)
 					
 	return return_config
 		
@@ -265,10 +276,21 @@ def get_section_from_config(config, section):
 				continue
 			if record:
 								
-				if line.startswith('listen') or line.startswith('frontend') or line.startswith('backend') or line.startswith('cache') or line.startswith('defaults') or line.startswith('global') or line.startswith('#HideBlockEnd') or line.startswith('#HideBlockStart'):
-					record = False
-					end_line = index
-					end_line = end_line - 1
+				if ( 
+					line.startswith('listen') or 
+					line.startswith('frontend') or 
+					line.startswith('backend') or 
+					line.startswith('cache') or 
+					line.startswith('defaults') or 
+					line.startswith('global') or 
+					line.startswith('#HideBlockEnd') or 
+					line.startswith('#HideBlockStart') or
+					line.startswith('peers') or
+					line.startswith('userlist')
+					):
+						record = False
+						end_line = index
+						end_line = end_line - 1
 				else:
 					return_config += line
 		

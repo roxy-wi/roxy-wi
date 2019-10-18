@@ -5,7 +5,7 @@ import http.cookies
 import funct
 import sql
 from jinja2 import Environment, FileSystemLoader
-env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
+env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,extensions=['jinja2.ext.loopcontrols'])
 template = env.get_template('sections.html')
 
 print('Content-type: text/html\n')
@@ -81,11 +81,6 @@ if serv is not None and form.getvalue('config') is not None:
 		
 	funct.diff_config(oldcfg, cfg)
 	
-	#if save:
-	#	c = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	#	c["restart"] = form.getvalue('serv')
-	#	print(c)
-		
 	os.system("/bin/rm -f " + hap_configs_dir + "*.old")
 
 

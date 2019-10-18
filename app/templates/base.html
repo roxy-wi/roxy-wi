@@ -66,14 +66,15 @@
 								<li><a href=/app/hapservers.py title="Working with Haproxy Configs" class="overview-link head-submenu">Overview</a> </li>
 								<li><a href=/app/config.py title="Working with HAProxy configs" class="edit head-submenu">Configs</a></li>
 							{% if role <= 2 %}
-								<li><a href=/app/add.py#proxy title="Add proxy" class="add head-submenu" id="add1">Add proxy</a></li>
-								<li><a href=/app/versions.py title="Actions with configs versions" class="version head-submenu">Versions</a></li>
-								<li><a href=/app/add.py#ssl title="Upload SSL cert" class="cert head-submenu" id="add4">SSL</a></li>	
-								<li><a href=/app/add.py#option title="Save custom options" class="option head-submenu" id="add5">Options</a></li>	
-								<li><a href=/app/add.py#add-servers title="Save servers" class="runtime head-submenu" id="add6">Servers</a></li>	
-								<li><a href=/app/lists.py title="Manage black and white lists" class="lists head-submenu">Lists</a> </li>	
-								<li><a href=/app/waf.py title="Web application firewall" class="waf head-submenu">WAF</a> </li>	
-								<li><a href=/app/ihap.py title="Installation HAProxy" class="hap head-submenu">Installation</a> </li>
+								<li><a href="/app/add.py#proxy" title="Add proxy" class="add head-submenu" id="add1">Add proxy</a></li>
+								<li><a href="/app/versions.py" title="Actions with configs versions" class="version head-submenu">Versions</a></li>
+								<li><a href="/app/add.py#ssl" title="Upload SSL cert" class="cert head-submenu" id="add4">SSL</a></li>	
+								<li><a href="/app/add.py#option" title="Save custom options" class="option head-submenu" id="add5">Options</a></li>	
+								<li><a href="/app/add.py#add-servers" title="Save servers" class="runtime head-submenu" id="add6">Servers</a></li>	
+								<li><a href="/app/add.py#userlist" title="Add userlist" class="add-userlist head-submenu" id="add7">User list</a></li>	
+								<li><a href="/app/lists.py" title="Manage black and white lists" class="lists head-submenu">Lists</a> </li>	
+								<li><a href="/app/waf.py" title="Web application firewall" class="waf head-submenu">WAF</a> </li>	
+								<li><a href="/app/ihap.py" title="Installation HAProxy" class="hap head-submenu">Installation</a> </li>
 							{% endif %}
 							</ul>
 						</li>
@@ -102,7 +103,6 @@
 									<li><a href=/app/users.py#users title="Actions with users" class="users head-submenu">Users</a></li>
 									<li><a href=/app/users.py#groups title="Actions with groups" class="group head-submenu">Groups</a></li>
 									<li><a href=/app/users.py#servers title="Actions with servers" class="runtime head-submenu">Servers</a></li>
-									<!-- <li><a href=/app/users.py#roles title="Users roles" class="role head-submenu">Roles</a></li> -->
 									<li><a href=/app/users.py#ssh title="Manage SSH credentials" class="admin head-submenu">SSH credentials</a></li>
 									<li><a href=/app/settings.py title="HAproxy-WI settings" class="settings head-submenu">Settings</a></li>
 									<li><a href=/app/viewlogs.py title="View internal logs" class="logs head-submenu">Internal logs</a></li>

@@ -21,7 +21,6 @@ h2 {
 	color: #fff;
 	margin-top: 0px;
 	margin-bottom: 0px;
-	width: 98.9%;
 }
 h3 {
 	margin-top: -0;
@@ -30,7 +29,6 @@ h3 {
 	padding: 0.3em;
 	font-size: 1.6em;
 	border-bottom: 1px solid #ddd;
-	width: 100.43%;
 }
 form {
 	margin: 0;
@@ -83,12 +81,10 @@ pre {
 	min-width: 40%;
 	background-color: #fff;
 	margin-left: 207px;
-	margin-right: 20px;
 	padding-bottom: 10px;
 }
 .footer {
 	min-height: 50px;
-	/* top: calc(99vh - 40px); */
 	right: 0;
 	left: 0;
 	max-width: 91%;
@@ -98,7 +94,6 @@ pre {
 	margin-right: 20px;
 	border-top: 1px solid #ddd;
 	clear: both;
-	/* position: fixed; */
 }
 #version { 
     float: left;
@@ -836,6 +831,9 @@ label {
 		margin-right: -150px;
 	}
 }
+@media (max-width: 1280px) {
+
+}
 @media (max-width: 1080px) {
 	#logo_span {
 		margin-left: -5%;
@@ -886,6 +884,12 @@ label {
 	}
 	.wrong-login {
 		margin-right: -260px;
+	}
+	.overview {
+		width: 90% !important;
+	}
+	.overview h3 {
+		width: 46.4% !important;
 	}
 }
 @media (max-width: 667px) {

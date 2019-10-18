@@ -2,7 +2,6 @@
 
 for ARGUMENT in "$@"
 do
-
     KEY=$(echo $ARGUMENT | cut -f1 -d=)
     VALUE=$(echo $ARGUMENT | cut -f2 -d=)
 
@@ -12,8 +11,6 @@ do
             HAPROXY_PATH)       HAPROXY_PATH=${VALUE} ;;
             *)
     esac
-
-
 done
 VERSION=$(echo $VERSION | awk -F"-" '{print $1}')
 VERSION_MAJ=$(echo $VERSION | awk -F"." '{print $1"."$2}')
@@ -93,7 +90,6 @@ if [ $? -eq 1 ]; then
 	exit 1
 fi
 wget -O /tmp/modsecurity.conf https://github.com/SpiderLabs/ModSecurity/raw/v2/master/modsecurity.conf-recommended 
-
 
 sudo bash -c cat << EOF >> /tmp/modsecurity.conf
 Include $HAPROXY_PATH/waf/rules/modsecurity_crs_10_ignore_static.conf

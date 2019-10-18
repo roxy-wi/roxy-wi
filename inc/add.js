@@ -660,15 +660,6 @@ $( function() {
 			});
 			$( "#tabs" ).tabs( "option", "active", 0 );
 		} );
-		// $( "#add2" ).on( "click", function() {
-			// $('.menu li ul li').each(function () {
-				// $(this).find('a').css('padding-left', '20px')
-				// $(this).find('a').css('border-left', '0px solid #5D9CEB');
-				// $(this).children("#add2").css('padding-left', '30px');
-				// $(this).children("#add2").css('border-left', '4px solid #5D9CEB');
-			// });
-			// $( "#tabs" ).tabs( "option", "active", 1 );
-		// } );
 		$( "#add4" ).on( "click", function() {
 			$('.menu li ul li').each(function () {
 				$(this).find('a').css('padding-left', '20px')
@@ -695,6 +686,15 @@ $( function() {
 				$(this).children("#add6").css('border-left', '4px solid #5D9CEB');
 			});
 			$( "#tabs" ).tabs( "option", "active", 6 );
+		} );
+		$( "#add7" ).on( "click", function() {
+			$('.menu li ul li').each(function () {
+				$(this).find('a').css('padding-left', '20px')
+				$(this).find('a').css('border-left', '0px solid #5D9CEB');
+				$(this).children("#add7").css('padding-left', '30px');
+				$(this).children("#add7").css('border-left', '4px solid #5D9CEB');
+			});
+			$( "#tabs" ).tabs( "option", "active", 7 );
 		} );
 	}
 	
@@ -824,12 +824,20 @@ $( function() {
 			}
 		} );
 	});
-	var add_server_var = '<br /><input name="servers" title="Backend port" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">: <input name="server_port" title="Backend port" size=1 placeholder="yyy" class="form-control">'
+	var add_server_var = '<br /><input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">: <input name="server_port" title="Backend port" size=1 placeholder="yyy" class="form-control">'
 	$('#add-server-input').click(function() {
 		$('#servers').append(add_server_var);		
 	});
 	$('#add-server-input2').click(function() {
 		$('#servers2').append(add_server_var);		
+	});
+	var add_userlist_var = '<br /><input name="userlist-user" title="User name" placeholder="user_name" class="form-control"> <input name="userlist-password" required title="User password. By default it insecure-password" placeholder="password" class="form-control"> <input name="userlist-user-group" title="User`s group" placeholder="user`s group" class="form-control">'
+	$('#add-userlist-user').click(function() {
+		$('#userlist-users').append(add_userlist_var);		
+	});
+	var add_userlist_group_var = '<br /><input name="userlist-group" title="User`s group" placeholder="group_name" class="form-control">'
+	$('#add-userlist-group').click(function() {
+		$('#userlist-groups').append(add_userlist_group_var);		
 	});
 	$('.advance-show').click(function() {
 		$('.advance-show').fadeOut();

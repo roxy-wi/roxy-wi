@@ -63,11 +63,6 @@ if serv is not None and form.getvalue('config') is not None:
 			funct.upload_and_restart(master[0], configver, just_save=save)
 			
 	stderr = funct.upload_and_restart(serv, configver, just_save=save)
-	
-	if save:
-		c = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-		c["restart"] = form.getvalue('serv')
-		print(c)
 		
 		
 output_from_parsed_template = template.render(h2 = 1, title = "Working with versions HAProxy configs",

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import funct, sql
-import create_db
 import os, http.cookies
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'))
@@ -28,10 +27,8 @@ commands = [ "ls -l %s |awk '{ print $6\" \"$7\" \"$8}'" % haproxy_config_path ]
 servers_with_status1 = []
 out1 = ""
 for s in servers:
-	# print(s[2])
 	servers_with_status = list()
 	cmd = 'echo "show info" |nc %s %s -w 1 |grep -e "Ver\|Uptime:\|Process_num"' % (s[2], haproxy_sock_port)
-	# print(cmd	)
 	out = funct.subprocess_execute(cmd)
 	servers_with_status.append(s[0])
 	servers_with_status.append(s[1])

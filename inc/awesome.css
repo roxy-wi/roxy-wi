@@ -164,6 +164,11 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f00c";
 }
+.add-userlist::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f0c0";
+}
 .add-server::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";

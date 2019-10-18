@@ -2,7 +2,7 @@
 CONF=/etc/keepalived/keepalived.conf
 
 if [ -f $CONF ];then
-	echo -e 'error: Keepalived already installed. You can edit config <a href="/app/keepalivedconfig.py" title="Edit Keepalived config">here</a><br /><br />'
+	echo -e 'info: Keepalived already installed. You can edit config <a href="/app/keepalivedconfig.py" title="Edit Keepalived config">here</a><br /><br />'
 	exit 1
 fi
 

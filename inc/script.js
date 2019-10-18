@@ -556,8 +556,8 @@ $( function() {
 	
 	$( "#hide_menu" ).click(function() {
 		$(".top-menu").hide( "drop", "fast" );
-		$(".container").css("max-width", "98%");
-		$(".footer").css("max-width", "98%");
+		$(".container").css("max-width", "100%");
+		$(".footer").css("max-width", "97%");
 		$(".container").css("margin-left", "1%");
 		$(".footer").css("margin-left", "1%");
 		$(".show_menu").show();
@@ -583,7 +583,7 @@ $( function() {
 	}
 	if (hideMenu == "hide") {
 		$(".top-menu").hide();
-		$(".container").css("max-width", "98%");
+		$(".container").css("max-width", "97%");
 		$(".container").css("margin-left", "1%");
 		$(".show_menu").show();
 	}	

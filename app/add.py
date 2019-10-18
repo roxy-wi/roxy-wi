@@ -8,6 +8,7 @@ from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'))
 template = env.get_template('add.html')
 form = cgi.FieldStorage()
+serv = form.getvalue('serv')
 
 if form.getvalue('add'):
 	c = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
@@ -43,10 +44,8 @@ template = template.render(title = "Add",
 print(template)
 
 if form.getvalue('mode') is not None: 
-	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 	cert_path = sql.get_setting('cert_path')
 	haproxy_dir = sql.get_setting('haproxy_dir')
-	serv = form.getvalue('serv')
 	port = form.getvalue('port')
 	bind = ""
 	ip = ""
@@ -177,29 +176,61 @@ if form.getvalue('mode') is not None:
 		waf += "    http-request deny if { var(txn.modsec.code) -m int gt 0 }\n"
 	
 	config_add = "\n" + name + "\n" + bind + mode + maxconn +  balance + options_split + filter + compression_s + cache_s + waf + backend + servers_split + "\n" + cache_set
-	cfg = hap_configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
+
+if form.getvalue('new_userlist') is not None:
+	name = "userlist "+form.getvalue('new_userlist')+ "\n"
 	
-	funct.get_config(serv, cfg)
-	try:
-		with open(cfg, "a") as conf:
-			conf.write(config_add)			
-	except IOError:
-		print("Can't read import config file")
-	
-	funct.logging(serv, "add.py add new %s" % name)
-	print('<div class="line3">')
-	
-	MASTERS = sql.is_master(serv)
-	for master in MASTERS:
-		if master[0] != None:
-			funct.upload_and_restart(master[0], cfg)
-	
-	stderr = funct.upload_and_restart(serv, cfg, just_save="save")
-	if stderr:
-		print('<div class="alert alert-danger">%s</div>' % stderr)
-	else:
-		print('<meta http-equiv="refresh" content="0; url=add.py?add=%s&conf=%s&serv=%s">' % (name, config_add, serv))
+	new_userlist_groups = ""	
+	if form.getvalue('userlist-group') is not None:	
+		groups = form.getlist('userlist-group')
+		for group in groups:
+			new_userlist_groups += "    group "+group+ "\n"
+			
+	new_users_list = ""	
+	if form.getvalue('userlist-user') is not None:	
+		users = form.getlist('userlist-user')
+		passwords = form.getlist('userlist-password')
+		userlist_user_group = form.getlist('userlist-user-group')
+		i = 0
+		print(userlist_user_group)
+		for user in users:
+			try: 
+				group = ' groups '+userlist_user_group[i]
+			except:
+				group = ''
+			new_users_list += "    user "+user+" insecure-password " + passwords[i] +group+ "\n"
+			i += 1
 		
-	print('</div>')
+	config_add = "\n" + name + new_userlist_groups + new_users_list
+	
+try:
+	if config_add:
+		hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+		cfg = hap_configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
+		
+		funct.get_config(serv, cfg)
+		try:
+			with open(cfg, "a") as conf:
+				conf.write(config_add)			
+		except IOError:
+			print("Can't read import config file")
+		
+		funct.logging(serv, "add.py add new %s" % name)
+		print('<div class="line3">')
+		
+		MASTERS = sql.is_master(serv)
+		for master in MASTERS:
+			if master[0] != None:
+				funct.upload_and_restart(master[0], cfg)
+		
+		stderr = funct.upload_and_restart(serv, cfg, just_save="save")
+		if stderr:
+			print('<div class="alert alert-danger">%s</div>' % stderr)
+		else:
+			print('<meta http-equiv="refresh" content="0; url=add.py?add=%s&conf=%s&serv=%s">' % (name, config_add, serv))
+			
+		print('</div>')
+except:
+	pass
 
 	

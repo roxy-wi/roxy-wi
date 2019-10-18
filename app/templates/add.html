@@ -18,6 +18,7 @@ h3 {
 		<li><a href="#ssl">SSL certificates</a></li>
 		<li><a href="#option">Options</a></li>
 		<li><a href="#add-servers">Servers</a></li>
+		<li><a href="#userlist">Userlist</a></li>
 		{% if user %}
 			<a href=/app/login.py?logout=logout title="Logout, user name: {{ user }}" class="login"> Logout</a>						
 		{% else %}
@@ -308,7 +309,7 @@ h3 {
 				</span>
 				<div id="options-listen-show-div" style="display: none;">
 					<div class="tooltip">
-						<span style="padding-right: 10px;" class="form-control">Start typing options: </span>
+						<span style="padding-right: 10px;">Start typing options: </span>
 						<input type="text" id="options" class="form-control">
 						<span style="padding-left: 10px;">
 							or press down. <a href="http://cbonte.github.io/haproxy-dconv/1.7/configuration.html" target="_blanck" style="color: #23527c" title="HAproxy docs">Read more about options</a>
@@ -790,8 +791,8 @@ h3 {
 				<td class="padding10 first-collumn">
 					{{ option.0 }}
 				</td>			
-				<td class="padding10 first-collumn" style="width: 100%;">
-					<input type="text" id="option-body-{{ option.0 }}" value="{{ option.1 }}" size="100" class="form-control">
+				<td class="padding10 first-collumn" style="width: 77%;">
+					<input type="text" id="option-body-{{ option.0 }}" value="{{ option.1 }}" size="60" class="form-control">
 				</td>
 				<td>
 					<a class="delete" onclick="confirmDeleteOption({{ option.0 }})" title="Delete option {{option.1}}" style="cursor: pointer;"></a>
@@ -812,8 +813,8 @@ h3 {
 				<td class="padding10 first-collumn">
 					Enter option for save:
 				</td>
-				<td>
-					<input type="text" name="new-option" id="new-option" class="form-control" size="100">
+				<td style="width: 77%;">
+					<input type="text" name="new-option" id="new-option" class="form-control" size="60">
 				</td>
 				<td>
 					<a class="add-admin" id="add-option-new" title="Add new option" style="cursor: pointer;"></a>
@@ -845,8 +846,8 @@ h3 {
 				<td class="padding10 first-collumn">
 					<input type="text" id="servers-ip-{{ s.0 }}" value="{{ s.1 }}" size="15" class="form-control">
 				</td>			
-				<td class="padding10 first-collumn" style="width: 100%;">
-					<input type="text" id="servers-desc-{{ s.0 }}" value="{{ s.2 }}" size="60" class="form-control">
+				<td class="padding10 first-collumn" style="width: 77%;">
+					<input type="text" id="servers-desc-{{ s.0 }}" value="{{ s.2 }}" size="50" class="form-control">
 				</td>
 				<td>
 					<a class="delete" onclick="confirmDeleteSavedServer({{ s.0 }})" title="Delete server {{s.1}}" style="cursor: pointer;"></a>
@@ -867,8 +868,8 @@ h3 {
 				<td class="padding10 first-collumn">
 					<input type="text" name="new-saved-servers" id="new-saved-servers" class="form-control" size="15">
 				</td>
-				<td style="width: 100%;">
-					<input type="text" name="new-saved-servers-description" id="new-saved-servers-description" class="form-control" size="60">
+				<td style="width: 77%;">
+					<input type="text" name="new-saved-servers-description" id="new-saved-servers-description" class="form-control" size="50">
 				</td>
 				<td>
 					<a class="add-admin" id="add-saved-server-new" title="Add new server" style="cursor: pointer;"></a>
@@ -883,6 +884,76 @@ h3 {
 			How to use pre saved servers you can see in 
 			<a href="https://haproxy-wi.org/description.py?description=saved" title="How to use pre saved servers" target="_blank"> 
 				<b>this video</b>
+			</a>
+		</div>
+	</div>
+	<div id="userlist">
+		<form name="add-userlist" action="/app/add.py">
+		<table>
+			<caption><h3>Add Userlist</h3></caption>
+			<tr>
+				<td class="addName">Select server: </td>
+				<td class="addOption">
+					<select required name="serv" id="serv3">
+						<option disabled selected>Choose server</option>
+						{% for select in selects %}
+							<option value="{{ select.2 }}">{{ select.1 }}</option>
+						{% endfor %}
+					</select>
+					<div class="tooltip tooltipTop"><b>Note:</b> If you reconfigure Master server, Slave will reconfigured automatically</div>
+				</td>
+				<td rowspan="4" class="add-note addName alert-info">
+					It is possible to control access to frontend/backend/listen sections or to
+					http stats by allowing only authenticated and authorized users. To do this,
+					it is required to create at least one userlist and to define users.
+				</td>
+			</tr>
+			<tr>
+				<td class="addName">Userlist name:</td>
+				<td class="addOption">
+					<input type="text" name="new_userlist" id="new_userlist" required title="Userlist name"  placeholder="basic-auth-list" class="form-control">
+				</td>
+			</tr>
+			<tr>
+				<td class="addName">Groups:</td>
+				<td class="addOption">
+					<span id="userlist-groups">
+						<input name="userlist-group" title="User`s group" placeholder="group_name" class="form-control">			
+					</span>
+					<span>
+						<a class="add-server" id="add-userlist-group" title="Add extra group" style="cursor: pointer;"></a>
+					</span>
+					<div class="tooltip tooltipTop">It is also possible to attach users to this group by using a comma separated list of names preceded by "users" keyword.</div>
+				</td>
+			</tr>
+			<tr>
+				<td class="addName">User:</td>
+				<td class="addOption">
+					<span id="userlist-users">
+						<input name="userlist-user" required title="User name" placeholder="user_name" class="form-control">	
+						<input name="userlist-password" required title="User password. By default it insecure-password" placeholder="password" class="form-control">	
+						<input name="userlist-user-group" title="User`s group" placeholder="user`s group" class="form-control">			
+					</span>
+					<span>
+						<a class="add-server" id="add-userlist-user" title="Add extra user" style="cursor: pointer;"></a>
+					</span>
+					<div class="tooltip tooltipTop">It is also possible to attach groups to this user by using a comma separated list of groups.</div>
+				</td>
+			</tr>
+			<tr>
+			<td class="addButton">
+				<button type="submit" value="" name="" class="btn btn-default">Add Userlist</button>
+			</td>
+		</tr>
+		</table>
+		</form>
+		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+			In this section you can create userlists. And after use them  in the "Add" sections
+			<br />
+			<br />
+			How to use userlists you can read 
+			<a href="https://haproxy-wi.org/description.py?description=userlist" title="How to use userlists" target="_blank"> 
+				<b>here</b>
 			</a>
 		</div>
 	</div>
