@@ -58,14 +58,8 @@ try:
 except:
 	pass
 
-	
-def get_files():
-	file = []
-	for files in glob.glob(os.path.join(log_path,'*.log*')):
-		file += [(files.split('/')[5], files.split('/')[5])]
-	return sorted(file, reverse=True)
 
-selects = get_files()
+selects = funct.get_files(log_path, format="log")
 selects.append(['haproxy-wi.error.log','error.log'])
 selects.append(['haproxy-wi.access.log','access.log'])
 output_from_parsed_template = template.render(h2 = 1,

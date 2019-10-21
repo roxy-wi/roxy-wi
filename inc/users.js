@@ -131,9 +131,8 @@ $( function() {
 		} );	
 	});	
 	$('#update_haproxy_wi').click(function() {
-		$("#ajax").html('')
-
-		$("#ajax").html('<div class="alert alert-warning">Please don\'t close and don\'t represh page. Wait until the work is completed. This may take some time </div>');
+		$("#ajax-update").html('')
+		$("#ajax-update").html('<div class="alert alert-warning">Please don\'t close and don\'t represh page. Wait until the work is completed. This may take some time </div>');
 		 $.ajax( {
 			url: "options.py",
 			data: {
@@ -148,39 +147,39 @@ $( function() {
 				} else if (data.indexOf('Complete!') != '-1'){
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-success">Update was success!</data>');				
+					$("#ajax-update").html('<div class="alert alert-success">Update was success!</data>');				
 				} else if (data.indexOf('Unauthorized') != '-1') {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-danger">It is seems like you Unauthorized in the HAProxy-WI repository. How to get HAProxy-WI auth you can read <a href="https://haproxy-wi.org/installation.py" title="How to get HAProxy-WI auth">hear</a> </data>');
+					$("#ajax-update").html('<div class="alert alert-danger">It is seems like you Unauthorized in the HAProxy-WI repository. How to get HAProxy-WI auth you can read <a href="https://haproxy-wi.org/installation.py" title="How to get HAProxy-WI auth">hear</a> </data>');
 				} else if (data.indexOf('but not installed') != '-1') {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-warning">You have settings for HAProxy-WI repository, but installed HAProxy-WI without repository. Please reinstall with yum or use update.sh</data>');
+					$("#ajax-update").html('<div class="alert alert-warning">You have settings for HAProxy-WI repository, but installed HAProxy-WI without repository. Please reinstall with yum or use update.sh</data>');
 				} else if (data.indexOf('No Match for argument') != '-1') {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-warning">It is seems like you do not have HAProxy-WI repository settings. Please read docs for<a href="https://haproxy-wi.org/updates.py">detail</a></data>');
+					$("#ajax-update").html('<div class="alert alert-warning">It is seems like you do not have HAProxy-WI repository settings. Please read docs for<a href="https://haproxy-wi.org/updates.py">detail</a></data>');
 				} else if (data.indexOf('password for') != '-1') {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-warning">It is seems like you need add Apache user to sudoers. Please read docs for<a href="https://haproxy-wi.org/updates.py">detail</a></data>');
+					$("#ajax-update").html('<div class="alert alert-warning">It is seems like you need add Apache user to sudoers. Please read docs for<a href="https://haproxy-wi.org/updates.py">detail</a></data>');
 				} else if (data.indexOf('No packages marked for update') != '-1') {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-info">It is seems like you have the lastest version HAProxy-WI</data>');
+					$("#ajax-update").html('<div class="alert alert-info">It is seems like you have the lastest version HAProxy-WI</data>');
 				} else if (data.indexOf('Connection timed out') != '-1') {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-danger">Cannot connect to HAProxy-WI repository. Connection timed out</data>');
+					$("#ajax-update").html('<div class="alert alert-danger">Cannot connect to HAProxy-WI repository. Connection timed out</data>');
 				} else if (data.indexOf('--disable') != '-1') {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-danger">It is seems like you have problem with your repositorys.</data>');
+					$("#ajax-update").html('<div class="alert alert-danger">It is seems like you have problem with your repositorys.</data>');
 				} else if (data.indexOf('Unauthorized') != '-1') {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-danger">It is seems like you Unauthorized in the HAProxy-WI repository.</data>');
+					$("#ajax-update").html('<div class="alert alert-danger">It is seems like you Unauthorized in the HAProxy-WI repository.</data>');
 				}
 			}
 		} ); 	

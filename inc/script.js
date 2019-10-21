@@ -9,6 +9,7 @@ $( function() {
 	   var link2 = link.split('/')[2]
        if (cur_url[0] == link2) {
            $(this).parent().css('display', 'contents');
+           $(this).parent().css('font-size', '13px');
            $(this).parent().css('top', '0');
            $(this).parent().css('left', '0');
            $(this).parent().children().css('margin-left', '-20px');
@@ -752,39 +753,16 @@ $( function() {
 			});
 			$( "#tabs" ).tabs( "option", "active", 0 );
 		} );
-	if (cur_url[0] == "/app/users.py") {
-		$( ".group" ).on( "click", function() {
-			$('.menu li ul li').each(function () {
-				$(this).find('a').css('padding-left', '20px')
-				$(this).find('a').css('border-left', '0px solid #5D9CEB');
-				$(this).children(".group").css('padding-left', '30px');
-				$(this).children(".group").css('border-left', '4px solid #5D9CEB');
-			});
-			$( "#tabs" ).tabs( "option", "active", 1 );
-		} );
-	} else {
-		$( ".runtime" ).on( "click", function() {
-			$('.menu li ul li').each(function () {
-				$(this).find('a').css('padding-left', '20px')
-				$(this).find('a').css('border-left', '0px solid #5D9CEB');
-				$(this).children(".runtime").css('padding-left', '30px');
-				$(this).children(".runtime").css('border-left', '4px solid #5D9CEB');
-			});
-			$( "#tabs" ).tabs( "option", "active", 1 );
-		} );
-	}
-		if (cur_url[0] == "/app/servers.py") {
-			$( ".admin" ).on( "click", function() {
+		if (cur_url[0] == "/app/users.py") {
+			$( ".group" ).on( "click", function() {
 				$('.menu li ul li').each(function () {
 					$(this).find('a').css('padding-left', '20px')
 					$(this).find('a').css('border-left', '0px solid #5D9CEB');
-					$(this).children(".admin").css('padding-left', '30px');
-					$(this).children(".admin").css('border-left', '4px solid #5D9CEB');
+					$(this).children(".group").css('padding-left', '30px');
+					$(this).children(".group").css('border-left', '4px solid #5D9CEB');
 				});
-				$( "#tabs" ).tabs( "option", "active", 2 );
+				$( "#tabs" ).tabs( "option", "active", 1 );
 			} );
-		}
-		if (cur_url[0] == "/app/users.py") {
 			$( ".runtime" ).on( "click", function() {
 				$('.menu li ul li').each(function () {
 					$(this).find('a').css('border-left', '0px solid #5D9CEB');
@@ -794,25 +772,62 @@ $( function() {
 				});
 				$( "#tabs" ).tabs( "option", "active", 2 );
 			} );
+			$( ".admin" ).on( "click", function() {
+				$('.menu li ul li').each(function () {
+					$(this).find('a').css('padding-left', '20px')
+					$(this).find('a').css('border-left', '0px solid #5D9CEB');
+					$(this).children(".admin").css('padding-left', '30px');
+					$(this).children(".admin").css('border-left', '4px solid #5D9CEB');
+				});
+				$( "#tabs" ).tabs( "option", "active", 3 );
+			} );
+			$( ".settings" ).on( "click", function() {
+				$('.menu li ul li').each(function () {
+					$(this).find('a').css('border-left', '0px solid #5D9CEB');
+					$(this).find('a').css('padding-left', '20px')
+					$(this).children(".settings").css('padding-left', '30px');
+					$(this).children(".settings").css('border-left', '4px solid #5D9CEB');
+				});
+				$( "#tabs" ).tabs( "option", "active", 5 );
+			} );
+			$( ".updatehapwi" ).on( "click", function() {
+				$('.menu li ul li').each(function () {
+					$(this).find('a').css('border-left', '0px solid #5D9CEB');
+					$(this).find('a').css('padding-left', '20px')
+					$(this).children(".updatehapwi").css('padding-left', '30px');
+					$(this).children(".updatehapwi").css('border-left', '4px solid #5D9CEB');
+				});
+				$( "#tabs" ).tabs( "option", "active", 6 );
+			} );
+		} else {
+			$( ".runtime" ).on( "click", function() {
+				$('.menu li ul li').each(function () {
+					$(this).find('a').css('padding-left', '20px')
+					$(this).find('a').css('border-left', '0px solid #5D9CEB');
+					$(this).children(".runtime").css('padding-left', '30px');
+					$(this).children(".runtime").css('border-left', '4px solid #5D9CEB');
+				});
+				$( "#tabs" ).tabs( "option", "active", 1 );
+			} );					
+			$( ".admin" ).on( "click", function() {
+				$('.menu li ul li').each(function () {
+					$(this).find('a').css('border-left', '0px solid #5D9CEB');
+					$(this).find('a').css('padding-left', '20px')
+					$(this).children(".admin").css('padding-left', '30px');
+					$(this).children(".admin").css('border-left', '4px solid #5D9CEB');
+				});
+				$( "#tabs" ).tabs( "option", "active", 2 );
+			} );			
+			$( ".hap" ).on( "click", function() {
+				$('.menu li ul li').each(function () {
+					$(this).find('a').css('padding-left', '20px')
+					$(this).find('a').css('border-left', '0px solid #5D9CEB');
+					$(this).children(".hap").css('padding-left', '30px');
+					$(this).children(".hap").css('border-left', '4px solid #5D9CEB');
+				});
+				$( "#tabs" ).tabs( "option", "active", 4 );
+			} );
 		}
-		// $( ".role" ).on( "click", function() {
-			// $('.menu li ul li').each(function () {
-				// $(this).find('a').css('border-left', '0px solid #5D9CEB');
-				// $(this).find('a').css('padding-left', '20px')
-				// $(this).children(".role").css('padding-left', '30px');
-				// $(this).children(".role").css('border-left', '4px solid #5D9CEB');
-			// });
-			// $( "#tabs" ).tabs( "option", "active", 3 );
-		// } );
-		$( ".admin" ).on( "click", function() {
-			$('.menu li ul li').each(function () {
-				$(this).find('a').css('border-left', '0px solid #5D9CEB');
-				$(this).find('a').css('padding-left', '20px')
-				$(this).children(".admin").css('padding-left', '30px');
-				$(this).children(".admin").css('border-left', '4px solid #5D9CEB');
-			});
-			$( "#tabs" ).tabs( "option", "active", 3 );
-		} );
 	}
 });
 function sleep(ms) {

@@ -1405,13 +1405,13 @@ def check_token():
 		sys.exit()
 		
 		
-def check_group(group):
+def check_group(group, role_id):
 	import http.cookies
 	import os
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_id = cookie.get('uuid')
 	user_group = get_user_group_by_uuid(user_id.value)
-	if user_group == group or user_group == '1':
+	if user_group == group or user_group == '1' or role_id == 1:
 		return True
 	else:
 		funct.logging(new_user, ' tried to change user group', haproxywi=1, login=1)
@@ -1430,8 +1430,8 @@ if form.getvalue('newuser') is not None:
 	if password is None or role is None or group is None:
 		print(error_mess)
 	else:		
-		if check_group(group):
-			role_id = get_role_id_by_name(role)
+		role_id = get_role_id_by_name(role)
+		if check_group(group, role_id):
 			if funct.is_admin(level=role_id):
 				if add_user(new_user, email, password, role, group, activeuser):
 					show_update_user(new_user, page)
@@ -1452,8 +1452,8 @@ if form.getvalue('updateuser') is not None:
 	if new_user is None or role is None or group is None:
 		print(error_mess)
 	else:	
-		if check_group(group):
-			role_id = get_role_id_by_name(role)
+		role_id = get_role_id_by_name(role)
+		if check_group(group, role_id):			
 			if funct.is_admin(level=role_id):
 				update_user(new_user, email, role, group, id, activeuser)
 			else:

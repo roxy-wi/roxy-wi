@@ -47,7 +47,7 @@
 	</tr>
 </table>
 		
-<table>
+<table class="overview">
 	<caption><h3>Or add VRRP to exist</h3></caption>
 	<tr class="overviewHead">
 		<td class="padding10 first-collumn">Master</td>
@@ -55,6 +55,7 @@
 		<td>VRRP interface</td>
 		<td>VRRP IP</td>
 		<td><span title="If checked Haproxy-WI will restart Keepalived">Restart Keepalived(?)</span></td>
+		<td style="width: 11%;"></td>
 		<td></td>
 	</tr>
 	<tr>
@@ -66,7 +67,7 @@
 				{% endfor %}
 			</select>
 		</td>
-		<td style="width: 23%;">
+		<td>
 			<select id="slave-add">
 				<option disable selected>Choose master</option>
 				{% for select in selects %}
@@ -74,15 +75,16 @@
 				{% endfor %}
 			</select>
 		</td>
-		<td style="width: 15%;">
+		<td>
 			<input type="text" id="interface-add" class="form-control">
 		</td>
-		<td style="width: 16%;">
+		<td>
 			<input type="text" id="vrrp-ip-add" class="form-control">
 		</td>
-		<td style="width: 25%;">
+		<td>
 			<label for="kp"></label><input type="checkbox" id="kp">
 		</td>
+		<td></td>
 		<td>
 			<a class="ui-button ui-widget ui-corner-all" id="add-vrrp" title="Add HA configuration">Add</a>
 		</td>

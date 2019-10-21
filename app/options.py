@@ -4,7 +4,7 @@ import cgi
 import os, sys
 import funct
 import sql
-import ovw
+import asyncio
 
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
@@ -102,16 +102,20 @@ if serv and form.getvalue('ssl_cert'):
 	os.system("mv %s %s" % (name, cert_local_dir))
 	funct.logging(serv, "add.py#ssl upload new ssl cert %s" % name)
 	
+	
 if form.getvalue('backend') is not None:
 	funct.show_backends(serv)
+	
 	
 if form.getvalue('ip') is not None and serv is not None:
 	commands = [ "sudo ip a |grep inet |egrep -v  '::1' |awk '{ print $2  }' |awk -F'/' '{ print $1  }'" ]
 	funct.ssh_command(serv, commands, ip="1")
 	
+	
 if form.getvalue('showif'):
 	commands = ["sudo ip link|grep 'UP' | awk '{print $2}'  |awk -F':' '{print $1}'"]
 	funct.ssh_command(serv, commands, ip="1")
+	
 	
 if form.getvalue('action_hap') is not None and serv is not None:
 	action = form.getvalue('action_hap')
@@ -123,6 +127,7 @@ if form.getvalue('action_hap') is not None and serv is not None:
 		print("HAproxy was %s" % action)
 	else:
 		print("Bad config, check please")
+		
 	
 if form.getvalue('action_waf') is not None and serv is not None:
 	serv = form.getvalue('serv')
@@ -131,16 +136,123 @@ if form.getvalue('action_waf') is not None and serv is not None:
 	commands = [ "sudo systemctl %s waf" % action ]
 	funct.ssh_command(serv, commands)		
 	
+	
+async def async_get_overview(serv1, serv2):
+	server_status = ()
+	commands2 = [ "ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l" ]
+	cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Process_num"' % (serv2, sql.get_setting('haproxy_sock_port'))
+	server_status = (serv1, 
+					serv2, 
+					funct.server_status(funct.subprocess_execute(cmd)), 
+					sql.select_servers(server=serv2, keep_alive=1),
+					funct.ssh_command(serv2, commands2),
+					sql.select_waf_servers(serv2))
+	return server_status
+
+async def get_runner_overview():
+	import http.cookies
+	from jinja2 import Environment, FileSystemLoader
+	env = Environment(loader=FileSystemLoader('templates/ajax'),extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
+	
+	servers = []
+	template = env.get_template('overview.html')
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_id = cookie.get('uuid')
+	futures = [async_get_overview(server[1], server[2]) for server in sql.get_dick_permit()]
+	for i, future in enumerate(asyncio.as_completed(futures)):
+		result = await future
+		servers.append(result)
+	servers_sorted = sorted(servers, key=funct.get_key)
+	template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_id.value))
+	print(template)
+	
+	
 if act == "overview":
-	ovw.get_overview()
+	ioloop = asyncio.get_event_loop()
+	ioloop.run_until_complete(get_runner_overview())
+	ioloop.close()
+	
+
+async def async_get_overviewWaf(serv1, serv2):
+	haproxy_dir  = sql.get_setting('haproxy_dir')
+	server_status = ()
+	commands = [ "ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l" ]
+	commands1 = [ "cat %s/waf/modsecurity.conf  |grep SecRuleEngine |grep -v '#' |awk '{print $2}'" % haproxy_dir ]
+	
+	server_status = (serv1,serv2, funct.ssh_command(serv2, commands), funct.ssh_command(serv2, commands1).strip(), sql.select_waf_metrics_enable_server(serv2))
+	return server_status
+
+
+async def get_runner_overviewWaf(url):
+	import http.cookies
+	from jinja2 import Environment, FileSystemLoader
+	env = Environment(loader=FileSystemLoader('templates/ajax'),extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
+	template = env.get_template('overivewWaf.html')
+	
+	servers = []
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_id = cookie.get('uuid')
+	futures = [async_get_overviewWaf(server[1], server[2]) for server in sql.get_dick_permit()]
+	for i, future in enumerate(asyncio.as_completed(futures)):
+		result = await future
+		servers.append(result)
+	servers_sorted = sorted(servers, key=funct.get_key)
+	template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_id.value), url=url)
+	print(template)
+	
 	
 if act == "overviewwaf":
-	ovw.get_overviewWaf(form.getvalue('page'))
+	ioloop = asyncio.get_event_loop()
+	ioloop.run_until_complete(get_runner_overviewWaf(form.getvalue('page')))
+	ioloop.close()
+	
+	
+async def async_get_overviewServers(serv1, serv2):
+	server_status = ()
+	commands =  [ "top -u haproxy -b -n 1 -w 67 |grep -e 'haproxy\|PID\|Cpu\|KiB' |grep -v Swap" ]
+	cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|Maxco\|MB\|Uptime:"' % (serv2, sql.get_setting('haproxy_sock_port'))
+	out = funct.subprocess_execute(cmd)
+	out1 = ""
+	
+	for k in out:
+		if "Ncat:" not in k:
+			for r in k:
+				out1 += r
+				out1 += "<br />"
+		else:
+			out1 = "Can\'t connect to HAproxy"
+
+	server_status = (serv1,serv2, out1, funct.ssh_command(serv2, commands))
+	return server_status
+	
+	
+async def get_runner_overviewServers(**kwargs):
+	import http.cookies
+	from jinja2 import Environment, FileSystemLoader
+	env = Environment(loader=FileSystemLoader('templates/ajax'),extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
+	template = env.get_template('overviewServers.html')	
+	
+	servers = []	
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_id = cookie.get('uuid')
+	role = sql.get_user_role_by_uuid(user_id.value)
+	futures = [async_get_overviewServers(kwargs.get('server1'), kwargs.get('server2'))]
+
+	for i, future in enumerate(asyncio.as_completed(futures)):
+		result = await future
+		servers.append(result)
+	servers_sorted = sorted(servers, key=funct.get_key)
+	template = template.render(service_status=servers_sorted, role=role, id=kwargs.get('id'))
+	print(template)	
+	
 	
 if act == "overviewServers":
 	id = form.getvalue('id')
 	name = form.getvalue('name')
-	ovw.get_overviewServers(ip=serv,name=name,id=form.getvalue('id'))
+	ioloop = asyncio.get_event_loop()
+	ioloop.run_until_complete(get_runner_overviewServers(server1=name, server2=serv, id=id))
+	ioloop.close()
+
 	
 	
 if act == "overviewHapwi":
@@ -178,6 +290,7 @@ if form.getvalue('action'):
 
 	q = requests.post('http://'+serv+':'+stats_port+'/'+stats_page, headers=headers, data=postdata, auth=(haproxy_user, haproxy_pass))
 	
+	
 if serv is not None and act == "stats":
 	import requests
 	from requests_toolbelt.utils import dump
@@ -203,6 +316,7 @@ if serv is not None and act == "stats":
 		
 	data = response.content
 	print(data.decode('utf-8'))
+	
 
 if serv is not None and form.getvalue('rows') is not None:
 	rows = form.getvalue('rows')
@@ -236,6 +350,7 @@ if serv is not None and form.getvalue('rows') is not None:
 		
 	funct.ssh_command(syslog_server, commands, show_log="1")
 	
+	
 if serv is not None and form.getvalue('rows1') is not None:
 	rows = form.getvalue('rows1')
 	grep = form.getvalue('grep')
@@ -262,6 +377,7 @@ if serv is not None and form.getvalue('rows1') is not None:
 
 	funct.show_log(output)
 	print(stderr)
+	
 		
 if form.getvalue('viewlogs') is not None:
 	viewlog = form.getvalue('viewlogs')
@@ -287,8 +403,112 @@ if form.getvalue('viewlogs') is not None:
 	funct.show_log(output)
 	print(stderr)
 		
+		
 if serv is not None and act == "showMap":
-	ovw.get_map(serv)
+	from datetime import datetime
+	from pytz import timezone
+	import networkx as nx
+	import matplotlib
+	matplotlib.use('Agg')
+	import matplotlib.pyplot as plt
+	
+	stats_port= sql.get_setting('stats_port')
+	haproxy_config_path  = sql.get_setting('haproxy_config_path')
+	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+	date = funct.get_data('config')
+	cfg = hap_configs_dir + serv + "-" + date + ".cfg"
+	
+	print('<center>')
+	print("<h4>Map from %s</h4><br />" % serv)
+	
+	G = nx.DiGraph()
+	
+	error = funct.get_config(serv, cfg)	
+	if error:
+		print('<div class="alert alert-danger">'+error+'</div>')
+	try:
+		conf = open(cfg, "r")
+	except IOError:
+		print('<div class="alert alert-danger">Can\'t read import config file</div>')
+	
+	node = ""
+	line_new2 = [1,""]
+	i,k  = 800, 800
+	j, m = 0, 0
+	for line in conf:
+		if line.startswith('listen') or line.startswith('frontend'):
+			if "stats" not in line:				
+				node = line
+				i = i - 750	
+		if line.find("backend") == 0: 
+			node = line
+			i = i - 700	
+			G.add_node(node,pos=(k,i),label_pos=(k,i+100))
+		
+		if "bind" in line or (line.startswith('listen') and ":" in line) or (line.startswith('frontend') and ":" in line):
+			try:
+				bind = line.split(":")
+				if stats_port not in bind[1]:
+					bind[1] = bind[1].strip(' ')
+					bind = bind[1].split("crt")
+					node = node.strip(' \t\n\r')
+					node = node + ":" + bind[0]
+					G.add_node(node,pos=(k,i),label_pos=(k,i+100))
+			except:
+				pass
+
+		if "server " in line or "use_backend" in line or "default_backend" in line and "stats" not in line and "#" not in line:
+			if "timeout" not in line and "default-server" not in line and "#" not in line and "stats" not in line:
+				i = i - 1050
+				j = j + 1				
+				if "check" in line:
+					line_new = line.split("check")
+				else:
+					line_new = line.split("if ")
+				if "server" in line:
+					line_new1 = line_new[0].split("server")
+					line_new[0] = line_new1[1]	
+					line_new2 = line_new[0].split(":")
+					line_new[0] = line_new2[0]					
+				
+				line_new[0] = line_new[0].strip(' \t\n\r')
+				line_new2[1] = line_new2[1].strip(' \t\n\r')
+
+				if j % 2 == 0:
+					G.add_node(line_new[0],pos=(k+230,i-335),label_pos=(k+225,i-180))
+				else:
+					G.add_node(line_new[0],pos=(k-230,i-0),label_pos=(k-225,i+180))
+
+				if line_new2[1] != "":	
+					G.add_edge(node, line_new[0], port=line_new2[1])
+				else:
+					G.add_edge(node,line_new[0])
+
+	os.system("/bin/rm -f " + cfg)	
+
+	pos=nx.get_node_attributes(G,'pos')
+	pos_label=nx.get_node_attributes(G,'label_pos')
+	edge_labels = nx.get_edge_attributes(G,'port')
+	
+	try:
+		plt.figure(10,figsize=(10,15))
+		nx.draw(G, pos, with_labels=False, font_weight='bold', width=3, alpha=0.1,linewidths=5)	
+		nx.draw_networkx_nodes(G,pos, node_color="skyblue", node_size=100, alpha=0.8, node_shape="p")
+		nx.draw_networkx_labels(G,pos=pos_label, alpha=1, font_color="green", font_size=10)
+		nx.draw_networkx_edges(G,pos, width=0.5,alpha=0.5, edge_color="#5D9CEB",arrows=False)
+		nx.draw_networkx_edge_labels(G, pos,label_pos=0.5,font_color="blue", labels=edge_labels, font_size=8)
+		
+		plt.savefig("map.png")
+		plt.show()
+	except Exception as e:
+		print('<div class="alert alert-danger">' + str(e) + '</div>')
+		
+	cmd = "rm -f "+os.path.dirname(os.getcwd())+"/map*.png && mv map.png "+os.path.dirname(os.getcwd())+"/map"+date+".png"
+	output, stderr = funct.subprocess_execute(cmd)
+	print(stderr)
+
+	print('<img src="/map%s.png" alt="map">' % date)		
+	
 	
 if form.getvalue('servaction') is not None:
 	server_state_file = sql.get_setting('server_state_file')
@@ -310,6 +530,7 @@ if form.getvalue('servaction') is not None:
 	action = 'edit.py ' + enable + ' ' + backend
 	funct.logging(serv, action)
 
+
 if act == "showCompareConfigs":
 	import glob
 	from jinja2 import Environment, FileSystemLoader
@@ -320,6 +541,7 @@ if act == "showCompareConfigs":
 	
 	template = template.render(serv=serv, right=right, left=left, return_files=funct.get_files())									
 	print(template)
+	
 	
 if serv is not None and form.getvalue('right') is not None:
 	from jinja2 import Environment, FileSystemLoader
@@ -335,6 +557,7 @@ if serv is not None and form.getvalue('right') is not None:
 	
 	print(template)
 	print(stderr)
+	
 	
 if serv is not None and act == "configShow":
 	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
@@ -359,6 +582,7 @@ if serv is not None and act == "configShow":
 	
 	if form.getvalue('configver') is None:
 		os.system("/bin/rm -f " + cfg)	
+		
 		
 if form.getvalue('master'):
 	master = form.getvalue('master')
@@ -390,6 +614,7 @@ if form.getvalue('master'):
 	os.system("rm -f %s" % script)
 	sql.update_server_master(master, slave)
 	
+	
 if form.getvalue('masteradd'):
 	master = form.getvalue('masteradd')
 	slave = form.getvalue('slaveadd')
@@ -412,8 +637,10 @@ if form.getvalue('masteradd'):
 			
 	os.system("rm -f %s" % script)
 	
+	
 if form.getvalue('haproxyaddserv'):
 	funct.install_haproxy(form.getvalue('haproxyaddserv'), syn_flood=form.getvalue('syn_flood'), hapver=form.getvalue('hapver'))
+	
 	
 if form.getvalue('installwaf'):
 	funct.waf_install(form.getvalue('installwaf'))
@@ -422,8 +649,10 @@ if form.getvalue('installwaf'):
 if form.getvalue('update_haproxy_wi'):
 	funct.update_haproxy_wi()
 	
+	
 if form.getvalue('metrics_waf'):
 	sql.update_waf_metrics_enable(form.getvalue('metrics_waf'), form.getvalue('enable'))
+	
 		
 if form.getvalue('table_metrics'):
 	import http.cookies
@@ -498,6 +727,7 @@ if form.getvalue('get_hap_v'):
 	output = funct.check_haproxy_version(serv)
 	print(output)
 	
+	
 if form.getvalue('bwlists'):
 	list = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')+"/"+form.getvalue('group')+"/"+form.getvalue('color')+"/"+form.getvalue('bwlists')
 	try:
@@ -508,6 +738,7 @@ if form.getvalue('bwlists'):
 	except IOError:
 		print('<div class="alert alert-danger" style="margin:0">Cat\'n read '+form.getvalue('color')+' list</div>')
 		
+		
 if form.getvalue('bwlists_create'):
 	list_name = form.getvalue('bwlists_create').split('.')[0]
 	list_name += '.lst'
@@ -517,6 +748,7 @@ if form.getvalue('bwlists_create'):
 		print('<div class="alert alert-success" style="margin:0">'+form.getvalue('color')+' list was created</div>')
 	except IOError as e:
 		print('<div class="alert alert-danger" style="margin:0">Cat\'n create new '+form.getvalue('color')+' list. %s </div>' % e)
+		
 		
 if form.getvalue('bwlists_save'):
 	list = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')+"/"+form.getvalue('group')+"/"+form.getvalue('color')+"/"+form.getvalue('bwlists_save')
@@ -539,11 +771,13 @@ if form.getvalue('bwlists_save'):
 			if form.getvalue('bwlists_restart') == 'restart':
 				funct.ssh_command(server[2], ["sudo " + sql.get_setting('restart_command')])
 			
+			
 if form.getvalue('get_lists'):
 	list = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')+"/"+form.getvalue('group')+"/"+form.getvalue('color')
 	lists = funct.get_files(dir=list, format="lst")
 	for list in lists:
 		print(list)
+		
 		
 if form.getvalue('get_ldap_email'):
 	username = form.getvalue('get_ldap_email')

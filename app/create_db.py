@@ -193,11 +193,6 @@ def update_db_v_31(**kwargs):
 			con.commit()
 		except sqltool.Error as e:
 			pass
-			# if kwargs.get('silent') != 1:
-				# if e.args[0] == 'column param is not unique' or e == "1060 (42S21): column param is not unique ":
-					# print('Updating... go to version 3.2')
-				# else:
-					# print("An error occurred:", e)
 	else:
 		if kwargs.get('silent') != 1:
 			print('Updating... go to version 3.2')
@@ -440,7 +435,7 @@ def update_db_v_3_5_3(**kwargs):
 	
 def update_ver(**kwargs):
 	con, cur = get_cur()
-	sql = """update version set version = '3.5.7'; """
+	sql = """update version set version = '3.5.7.1'; """
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -495,8 +490,7 @@ def update_all():
 	update_db_v_3_5_3()
 	update_to_hash()
 	update_ver()
-	
-	
+		
 	
 def update_all_silent():
 	update_db_v_31(silent=1)
@@ -516,8 +510,7 @@ def update_all_silent():
 	update_to_hash()
 	update_ver()
 	
-	
-	
+		
 if __name__ == "__main__":
 	create_table()
 	update_all()
