@@ -100,7 +100,7 @@ sudo sed -i "s/haprox-wi/$HOME_HAPROXY_WI" config_other/*/*
 sudo cp config_other/httpd/haprox-wi.conf $HAPROXY_WI_VHOST_CONF
 sudo cp config_other/logrotate/* /etc/logrotate.d/
 sudo cp config_other/syslog/* /etc/rsyslog.d/
-sudo cp config_other/* /etc/systemd/system/
+sudo cp config_other/systemd/* /etc/systemd/system/
 
 sed -i 's/#$UDPServerRun 514/$UDPServerRun 514/g' /etc/rsyslog.conf
 sed -i 's/#$ModLoad imudp/$ModLoad imudp/g' /etc/rsyslog.conf
