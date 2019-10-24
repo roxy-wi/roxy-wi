@@ -96,8 +96,8 @@ echo ""
 echo "################################"
 
 sudo sed -i "0,/^Listen .*/s//Listen $PORT/" $HTTPD_PORTS
-sudo sed -i "s/haprox-wi/$HOME_HAPROXY_WI" config_other/*/*
-sudo cp config_other/httpd/haprox-wi.conf $HAPROXY_WI_VHOST_CONF
+sudo sed -i "s/haprox-wi/$HOME_HAPROXY_WI/" config_other/*/*
+sudo cp config_other/httpd/haproxy-wi.conf $HAPROXY_WI_VHOST_CONF
 sudo cp config_other/logrotate/* /etc/logrotate.d/
 sudo cp config_other/syslog/* /etc/rsyslog.d/
 sudo cp config_other/systemd/* /etc/systemd/system/
