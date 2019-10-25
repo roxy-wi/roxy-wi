@@ -38,24 +38,28 @@ def main():
 	if need_start:
 		for serv in need_start:
 			start_worker(serv)
-			
-	waf_servers = sql.select_waf_servers()
-	waf_started_workers = get_waf_worker()
-	waf_servers_list = []
-			
-	for serv in waf_servers:
-		waf_servers_list.append(serv[0])
-			
-	waf_need_kill=list(set(waf_started_workers) - set(waf_servers_list))
-	waf_need_start=list(set(waf_servers_list) - set(waf_started_workers))
 	
-	if waf_need_kill:
-		for serv in waf_need_kill:
-			kill_waf_worker(serv)
-			
-	if waf_need_start:
-		for serv in waf_need_start:
-			start_waf_worker(serv)
+	try:
+		waf_servers = sql.select_all_waf_servers()
+		waf_started_workers = get_waf_worker()
+		waf_servers_list = []
+				
+		for serv in waf_servers:
+			waf_servers_list.append(serv[0])
+				
+		waf_need_kill=list(set(waf_started_workers) - set(waf_servers_list))
+		waf_need_start=list(set(waf_servers_list) - set(waf_started_workers))
+		
+		if waf_need_kill:
+			for serv in waf_need_kill:
+				kill_waf_worker(serv)
+				
+		if waf_need_start:
+			for serv in waf_need_start:
+				start_waf_worker(serv)
+	except Exception as e:
+		funct.logging("localhost", 'Problems with WAF worker metrics '+e, metrics=1)
+		pass
 	
 def start_worker(serv):
 	port = sql.get_setting('haproxy_sock_port')

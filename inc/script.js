@@ -154,6 +154,12 @@ function startSetInterval(interval) {
 			intervalId = setInterval('showOverviewWaf()', interval);
 			showOverviewWaf();
 			showWafMetrics();
+		} else if (cur_url[0] == "hapservers.py") {
+			if(interval < 60000) {
+				interval = 60000;
+			}
+			intervalId = setInterval('showMetrics()', interval);
+			showMetrics();
 		} 
 	} else {
 		pauseAutoRefresh();
@@ -223,8 +229,8 @@ function showOverviewServer(name,ip,id) {
 		success: function( data ) {
 			$("#ajax-server-"+id).empty();
 			$("#ajax-server-"+id).css('display', 'block');
-			$("#ajax-server-"+id).css('background-color', '#f9fff8');
-			$("#ajax-server-"+id).css('border', '1px solid #ddd');
+			$("#ajax-server-"+id).css('background-color', '#fbfbfb');
+			$("#ajax-server-"+id).css('border', '1px solid #A4C7F5');
 			$(".ajax-server").css('display', 'block');
 			$(".div-server").css('clear', 'both');
 			$(".div-pannel").css('clear', 'both');
@@ -233,14 +239,6 @@ function showOverviewServer(name,ip,id) {
 			$(".div-pannel").css('height', '70px');
 			$("#div-pannel-"+id).insertBefore('#up-pannel')
 			$("#ajax-server-"+id).html(data);
-			$([document.documentElement, document.body]).animate({
-				scrollTop: $("#ajax-server-"+id).offset().top
-			}, 200);
-			$("#ajax-server-"+id).addClass( "update", 1000 );
-				setTimeout(function() {
-					$("#ajax-server-"+id).removeClass( "update" );
-					$("#ajax-server-"+id).css('background-color', '#f9fff8');			
-			}, 2500 );
 		}					
 	} );
 }
@@ -539,14 +537,6 @@ $( function() {
 			autoRefreshStyle(autoRefresh);
 		}
 	}
-	/* $("body").mCustomScrollbar({
-		theme:"minimal-dark",
-		scrollInertia:30
-		});
-	$(".diff").mCustomScrollbar({
-		theme:"minimal-dark",
-		scrollInertia:30
-		});	 */
 	$( "#tabs" ).tabs();
 	$( "select" ).selectmenu();
 		
@@ -682,7 +672,6 @@ $( function() {
         }
     });
 
-	
 	 $('#runtimeapiform').submit(function() {
 		showRuntime();
 		return false;
@@ -734,7 +723,6 @@ $( function() {
 				}
 			}
 		});
-
 
 	$('#show-updates-button').click(function() {
 		showUpdates.dialog('open');		
@@ -831,7 +819,7 @@ $( function() {
 	}
 });
 function sleep(ms) {
-	  return new Promise(resolve => setTimeout(resolve, ms));
+	return new Promise(resolve => setTimeout(resolve, ms));
 }
 async function ban() {
 	$( '#login').attr('disabled', 'disabled');
@@ -900,39 +888,26 @@ function replace_text(id_textarea, text_var) {
 	var text_val = str.substring(0, beg) + str.substring(end, len);
 	$(id_textarea).text(text_val);
 }
-
-function view_ssl(id) {
-	$.ajax( {
+function changeWafMode(id) {
+	var waf_mode = $('#'+id+' option:selected').val();
+	var server_hostname = id.split('_')[0];
+	 $.ajax( {
 		url: "options.py",
 		data: {
-			serv: $('#serv5').val(),
-			getcert: id,
+			change_waf_mode: waf_mode,
+			server_hostname: server_hostname,
 			token: $('#token').val()
 		},
 		type: "GET",
 		success: function( data ) {
-			if (data.indexOf('danger') != '-1') {
-				$("#ajax-show-ssl").html(data);
-			} else {
-				$('.alert-danger').remove();
-				$('#dialog-confirm-body').text(data);
-				$( "#dialog-confirm" ).dialog({
-					resizable: false,
-					height: "auto",
-					width: 650,
-					modal: true,
-					title: "Certificate from "+$('#serv5').val()+", name: "+id,
-					buttons: {
-						Ok: function() {
-							$( this ).dialog( "close" );
-						}
-					  }
-				});					
-			} 
+			alert('Do not forget restart WAF server: '+server_hostname)
+			$( '#'+server_hostname+'-select-line' ).addClass( "update", 1000 );										
+			setTimeout(function() {
+				$( '#'+server_hostname+'-select-line' ).removeClass( "update" );
+			}, 2500 );
 		}
-	} );
+	} ); 
 }
-
 function createList(color) {
 	if(color == 'white') {
 		list = $('#new_whitelist_name').val() 
@@ -1013,24 +988,3 @@ function saveList(action, list, color) {
 		}
 	} );	
 }
-function changeWafMode(id) {
-	var waf_mode = $('#'+id+' option:selected').val();
-	var server_hostname = id.split('_')[0];
-	 $.ajax( {
-		url: "options.py",
-		data: {
-			change_waf_mode: waf_mode,
-			server_hostname: server_hostname,
-			token: $('#token').val()
-		},
-		type: "GET",
-		success: function( data ) {
-			alert('Do not forget restart WAF server: '+server_hostname)
-			$( '#'+server_hostname+'-select-line' ).addClass( "update", 1000 );										
-			setTimeout(function() {
-				$( '#'+server_hostname+'-select-line' ).removeClass( "update" );
-			}, 2500 );
-		}
-	} ); 
-}
-

@@ -1,0 +1,23 @@
+{% from 'include/input_macros.html' import input %}
+<div id="user-change-password-table" style="display: none;">	
+	<table class="overview">
+		<tr>
+			<td colspan="2">
+				  <p class="validateTips alert alert-success">Enter password and confirm</p>
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">Password</td>
+			<td>{{ input('change-password', type='password') }}</td>
+		</tr>
+		<tr>
+			<td class="padding20">Confirm password</td>
+			<td>{{ input('change2-password', type='password') }}</td>
+		</tr>
+		<tr id="missmatchpass" style="display: none;">
+			<td colspan="2">
+				  <p class="validateTips alert alert-danger" style="margin-top: 10px;">Passwords are mismatched</p>
+			</td>
+		</tr>
+	</table>
+</div>

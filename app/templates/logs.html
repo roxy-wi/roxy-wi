@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}	
+{% from 'include/input_macros.html' import input, checkbox %}
 <script src="/inc/users.js"></script>
 <table class="overview">
 	<tr class="overviewHead">
@@ -17,16 +18,16 @@
 		<td class="padding10" style="width: 10%;">Ex for grep</td>
 		<td style="width: 10%;">
 			<label for="time_range_out_hour" style="padding: 0">Time range:</label>
-			<input type="text" id="time_range_out_hour" readonly class="time-range" value="{{hour}}">:<input type="text" id="time_range_out_minut" readonly class="time-range" value="{{minut}}"> -
-			<input type="text" id="time_range_out_hour1" readonly class="time-range"  value="{{hour1}}">:<input type="text" id="time_range_out_minut1" readonly class="time-range"  value="{{minut1}}">	
+			{{ input('time_range_out_hour', value=hour, class='time-range', readonly='readonly') }}:{{ input('time_range_out_minut', value=minut, class='time-range', readonly='readonly') }}
+			{{ input('time_range_out_hour1', value=hour1, class='time-range', readonly='readonly') }}:{{ input('time_range_out_minut1', value=minut1, class='time-range', readonly='readonly') }}	
 		</td>
 		<td style="width: 10%;"> </td>
 	</tr>
 	<tr>
 		<td class="padding10 first-collumn" style="width: 10%;">
 			<form action="" method="get">
-				<select autofocus required name="serv" id="{{ select_id }}">					
-					{% if onclick == 'viewLogs()' %}
+				{% if onclick == 'viewLogs()' %}
+					<select autofocus required name="serv" id="{{ select_id }}">									
 						<option disabled selected>Choose log</option>
 						{% for select in selects %}
 							{% if select.0 == serv %}
@@ -35,28 +36,21 @@
 								<option value="{{ select.0 }}">{{ select.1 }}</option>
 							{% endif %}
 						{% endfor %}
+					</select>
 					{% else %}
-						<option disabled selected>Choose server</option>
-						{% for select in selects %}						
-							{% if select.2 == serv %}
-								<option value="{{ select.2 }}" selected>{{ select.1 }}</option>
-							{% else %}
-								<option value="{{ select.2 }}">{{ select.1 }}</option>
-							{% endif %}
-						{% endfor %}
-					{% endif %}
-				</select>
+						{% include 'include/select.html' %}
+					{% endif %}			
 		</td>
 		{% if onclick != 'viewLogs()' %}
 		<td>
-			<label for="waf"></label><input type="checkbox" id="waf"> 
+			{{ checkbox('waf') }}
 		</td>
 		{% endif %}
 		<td class="padding10" style="width: 10%;">
-			<input type="number" name="rows" id="rows" value="{{ rows }}" class="form-control" required>
+			{{ input('rows', type='number', value=rows, required='required') }}
 		</td> 
 		<td class="padding10" style="width: 10%;">
-			<input type="text" name="grep" id="grep" class="form-control" value="{{ grep }}" >
+			{{ input('grep', value=grep) }}
 		</td>
 		<td class="padding10" style="width: 10%;">
 			<div id="time-range"></div>			

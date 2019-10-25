@@ -1,0 +1,135 @@
+<div id="create" style="height: 95%;">
+		<div id="left-collumn">
+			<div class="div-pannel">
+				<div class="div-server">
+					<div class="server-name">
+						<span title="Create Listen" class="redirectListen span-link">Create Listen</span>
+					</div>
+					<div class="server-desc">
+							A "listen" section defines a complete proxy with its frontend and backend parts combined in one section. It is generally useful for TCP-only traffic.
+					</div>					
+				</div>
+			</div>
+			<div class="div-pannel">
+				<div class="div-server">
+					<div class="server-name">
+						<span title="Create HTTP Listen" class="redirectListen span-link" id="create-http-listen">Create HTTP Listen</span>
+					</div>
+					<div class="server-desc">
+							Create HTTP proxy
+					</div>				
+				</div>
+			</div>
+			<div class="div-pannel">
+				<div class="div-server">
+					<div class="server-name">
+						<span title="Create SSL Listen" class="redirectListen span-link" id="create-ssl-listen">Create SSL Listen</span>
+					</div>
+					<div class="server-desc">
+							Create HTTPS Proxy with the SSL termination on HAProxy and SSL offload. 
+							HAProxy will send to backends HTTP traffic. You need have <span title="Upload SSL" class="redirectSsl span-link" style="color: #5d9ceb">uploaded a PEM certificat</span>
+					</div>				
+				</div>
+			</div>
+			<div class="div-pannel">
+				<div class="div-server">
+					<div class="server-name">
+						<span title="Create SSL Listen" class="redirectListen span-link" id="create-https-listen">Create HTTPS Listen</span>
+					</div>
+					<div class="server-desc">
+							Create HTTPS Proxy without the SSL termination on HAProxy and SSL offload. HAProxy will send to backends HTTPS traffic
+					</div>				
+				</div>
+			</div>
+		</div>
+		<div id="middle-collumn">
+			<div class="div-pannel">
+				<div class="div-server">
+					<div class="server-name">
+						<span title="Create Frontend" class="redirectFrontend span-link">Create Frontend</span>
+					</div>
+					<div class="server-desc">
+						A "frontend" section describes a set of listening sockets accepting client connections.
+						And forwards them to backend
+						<br />
+					</div>			
+				</div>
+			</div>
+			<div class="div-server">
+				<div class="server-name">
+					<span title="Create HTTP Frontend" class="redirectListen span-link" id="create-http-frontend">Create HTTP Frontend</span>
+				</div>
+				<div class="server-desc">
+						Create HTTP Frontend
+				</div>				
+			</div>
+			<div class="div-pannel">
+				<div class="div-server">
+					<div class="server-name">
+						<span title="Create SSL Frontend" class="redirectListen span-link" id="create-ssl-frontend">Create SSL Frontend</span>
+					</div>
+					<div class="server-desc">
+							Create HTTPS Frontend with the SSL termination on HAProxy and SSL offload. HAProxy will send to backends HTTP traffic. You need have <span title="Upload SSL" class="redirectSsl span-link" style="color: #5d9ceb">uploaded a PEM certificat</span>
+					</div>				
+				</div>
+			</div>
+			<div class="div-pannel">
+				<div class="div-server">
+					<div class="server-name">
+						<span title="Create HTTPS Frontend" class="redirectListen span-link" id="create-https-frontend">Create HTTPS Frontend</span>
+					</div>
+					<div class="server-desc">
+							Create HTTPS Frontend without the SSL termination on HAProxy and SSL offload. HAProxy will send to backends HTTPS traffic
+					</div>				
+				</div>
+			</div>
+		</div>
+		<div id="right-collumn">
+			<div class="div-pannel">
+				<div class="div-server">
+					<div class="server-name">
+						<span title="Create Backend" class="redirectBackend span-link">Create Backend</span>
+					</div>
+					<div class="server-desc">
+						A "backend" section describes a set of servers to which the proxy will connect to forward incoming connections. 
+						<br />
+						<br />
+					</div>			
+				</div>
+			</div>
+			<div class="div-server">
+				<div class="server-name">
+					<span title="Create SSL Backend" class="redirectListen span-link" id="create-http-backend">Create HTTP Backend</span>
+				</div>
+				<div class="server-desc">
+						Create HTTP Backend
+				</div>				
+			</div>
+			<div class="div-pannel">
+				<div class="div-server">
+					<div class="server-name">
+						<span title="Create HTTPS Backend" class="redirectListen span-link" id="create-ssl-backend">Create SSL Backend</span>
+					</div>
+					<div class="server-desc">
+							Create HTTPS Backend with the SSL termination on HAProxy and SSL offload. HAProxy will send to backends HTTP traffic. You need have <span title="Upload SSL" class="redirectSsl span-link" style="color: #5d9ceb">uploaded a PEM certificat</span>
+					</div>				
+				</div>
+			</div>
+			<div class="div-pannel">
+				<div class="div-server">
+					<div class="server-name">
+						<span title="Create SSL Backend" class="redirectListen span-link" id="create-https-backend">Create HTTPS Backend</span>
+					</div>
+					<div class="server-desc">
+							Create HTTPS Backend without the SSL termination on HAProxy and SSL offload. HAProxy will send to backends HTTPS traffic
+					</div>				
+				</div>
+			</div>
+		</div>
+		{% if add %}
+		<div class="alert alert-success" style="margin-left: 20px; clear: both;">	
+			<h3>{{ add }} was success added</h3>
+			{{ conf_add }}
+		</div>
+		{% endif %}
+	</div>

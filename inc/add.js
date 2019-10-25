@@ -264,7 +264,10 @@ $( function() {
 			} );
 		},
 		autoFocus: true,
-		minLength: -1
+		minLength: -1,
+		select: function( event, ui ) {
+			$(this).next().next().focus();				
+		}
 	});
 	$( "#backends" ).autocomplete({
 		source: function( request, response ) {
@@ -825,11 +828,8 @@ $( function() {
 		} );
 	});
 	var add_server_var = '<br /><input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">: <input name="server_port" title="Backend port" size=1 placeholder="yyy" class="form-control">'
-	$('#add-server-input').click(function() {
-		$('#servers').append(add_server_var);		
-	});
-	$('#add-server-input2').click(function() {
-		$('#servers2').append(add_server_var);		
+	$('[name=add-server-input]').click(function() {
+		$("[name=add_servers]").append(add_server_var);			
 	});
 	var add_userlist_var = '<br /><input name="userlist-user" title="User name" placeholder="user_name" class="form-control"> <input name="userlist-password" required title="User password. By default it insecure-password" placeholder="password" class="form-control"> <input name="userlist-user-group" title="User`s group" placeholder="user`s group" class="form-control">'
 	$('#add-userlist-user').click(function() {
@@ -971,7 +971,7 @@ function createHttps(TabId, proxy) {
 	history.pushState('Add'+proxy, 'Add'+proxy, 'add.py#'+proxy)
 }
 function confirmDeleteOption(id) {
-	 $( "#dialog-confirm-delete" ).dialog({
+	 $( "#dialog-confirm" ).dialog({
       resizable: false,
       height: "auto",
       width: 400,
@@ -1034,7 +1034,7 @@ function updateOptions(id) {
 	} );
 }
 function confirmDeleteSavedServer(id) {
-	 $( "#dialog-confirm-delete" ).dialog({
+	 $( "#dialog-confirm" ).dialog({
       resizable: false,
       height: "auto",
       width: 400,
@@ -1094,6 +1094,37 @@ function updateSavedServer(id) {
 					$( "#option-"+id ).removeClass( "update" );
 				}, 2500 );
 			}
+		}
+	} );
+}
+function view_ssl(id) {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			serv: $('#serv5').val(),
+			getcert: id,
+			token: $('#token').val()
+		},
+		type: "GET",
+		success: function( data ) {
+			if (data.indexOf('danger') != '-1') {
+				$("#ajax-show-ssl").html(data);
+			} else {
+				$('.alert-danger').remove();
+				$('#dialog-confirm-body').text(data);
+				$( "#dialog-confirm-cert" ).dialog({
+					resizable: false,
+					height: "auto",
+					width: 650,
+					modal: true,
+					title: "Certificate from "+$('#serv5').val()+", name: "+id,
+					buttons: {
+						Ok: function() {
+							$( this ).dialog( "close" );
+						}
+					  }
+				});					
+			} 
 		}
 	} );
 }

@@ -1,14 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
+{% from 'include/input_macros.html' import input, checkbox, select %}
 <style>
 .container {
 	margin-right: 0;
 }
 </style>
 <script src="/inc/users.js"></script>
-<div id="dialog-confirm" title="Are you sure you want to delete?" style="display: none;">
-  <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>Deleting irreversibly all data will be lost?</p>
-</div>
+{% include 'include/del_confirm.html' %}
 <input type="hidden" id="new-group" name="new-group" value="{{ group }}">
 <input type="hidden" id="new-server-group-add" name="new-server-group-add" value="{{ group }}" >
 <input type="hidden" id="new-ssh-group-add" name="new-ssh-group-add" value="{{ group }}" >
@@ -19,11 +18,7 @@
 		<li><a href="#ssh">SSH credentials</a></li>
 		<li><a href="#checker">Checker</a></li>
 		<li><a href="#installhaproxy">Install HAProxy</a></li>
-		{% if user %}
-			<a href=/app/login.py?logout=logout title="Logout, user name: {{ user }}" class="login"> Logout</a>						
-		{% else %}
-			<a href=/app/login.py title="Login" class="login"> Login</a>
-		{% endif %}
+		{% include 'include/login.html' %}
 	</ul>
 	<div id="users">
 		<table class="overview" id="ajax-users">
@@ -40,35 +35,7 @@
 		{% for user in users %}
 			{% if user.5 == group %}
 			<tr id="user-{{user.0}}" class="{{ loop.cycle('odd', 'even') }}">
-				<td class="padding10 first-collumn">
-					{% if user.6 == 1%}
-						<input type="text" id="login-{{user.0}}" value="{{user.1}}" class="form-control" readonly>
-					{% else %}
-						<input type="text" id="login-{{user.0}}" value="{{user.1}}" class="form-control">
-					{% endif %}
-					<input type="hidden" id="usergroup-{{user.0}}" name="usergroup-{{user.0}}" value="{{ group }}">					
-				</td> 
-				<td>
-					{% if user.6 != 1%}
-					<span  title="Change password" style="cursor: pointer" class="passwordChange">
-						<img src="/inc/images/edit.png" alt="Edit" width="15" style="margin-bottom: -3px; padding-left: 15px;" onclick="openChangeUserPasswordDialog('{{user.0}}')" />
-					</span>
-					{% endif %}
-				</td> 
-				<td class="checkbox">
-					{% if user.7 == 1 %}
-						<label for="activeuser-{{user.0}}"></label><input type="checkbox" id="activeuser-{{user.0}}" checked>
-					{% else %}
-						<label for="activeuser-{{user.0}}"></label><input type="checkbox" id="activeuser-{{user.0}}">
-					{% endif %}
-				</td>
-				<td>
-					{% if user.6 == 1%}
-						<input type="text" id="email-{{user.0}}" value="{{user.2}}" class="form-control" readonly>
-					{% else %}
-						<input type="text" id="email-{{user.0}}" value="{{user.2}}" class="form-control">
-					{% endif %}
-				</td>
+				{% include 'include/admin_users.html' %}
 				<td>
 					<select id="role-{{user.0}}" name="role-{{user.0}}">
 						<option disabled selected>Choose role</option>
@@ -128,81 +95,7 @@
 				<td>
 					<input type="text" id="port-{{server.0}}" value="{{server.10}}" size="1" class="form-control">
 				</td>
-				<td  class="checkbox">
-					{% if server.5 == 1 %}
-						<label for="enable-{{server.0}}"></label><input type="checkbox" id="enable-{{server.0}}" checked>
-					{% else %}
-						<label for="enable-{{server.0}}"></label><input type="checkbox" id="enable-{{server.0}}">
-					{% endif %}
-				</td>
-				<td  class="checkbox">
-					{% if server.4 == 1 %}
-						<label for="typeip-{{server.0}}"></label><input type="checkbox" id="typeip-{{server.0}}" checked>
-					{% else %}
-						<label for="typeip-{{server.0}}"></label><input type="checkbox" id="typeip-{{server.0}}">
-					{% endif %}
-				</td>
-				<td  class="checkbox">
-					{% if server.8 == 1 %}
-						<label for="alert-{{server.0}}"></label><input type="checkbox" id="alert-{{server.0}}" checked>
-					{% else %}
-						<label for="alert-{{server.0}}"></label><input type="checkbox" id="alert-{{server.0}}">
-					{% endif %}
-				</td>
-				<td  class="checkbox">
-					{% if server.9 == 1 %}
-						<label for="metrics-{{server.0}}"></label><input type="checkbox" id="metrics-{{server.0}}" checked>
-					{% else %}
-						<label for="metrics-{{server.0}}"></label><input type="checkbox" id="metrics-{{server.0}}">
-					{% endif %}
-				</td>
-				<td class="checkbox">
-					{% if server.12 == 1 %}
-						<label for="active-{{server.0}}"></label><input type="checkbox" id="active-{{server.0}}" checked>
-					{% else %}
-						<label for="active-{{server.0}}"></label><input type="checkbox" id="active-{{server.0}}">
-					{% endif %}
-				</td>
-				<td>
-					<select id="slavefor-{{server.0}}">
-						<option selected value="0">Not slave</option>
-						{% for master in masters %}
-							{% if master.0 == server.6 %}
-								<option value="{{master.0}}" selected>{{master.1}}</option>
-							{% else %}
-								<option value="{{master.0}}">{{master.1}}</option>
-							{% endif %}
-						{% endfor %}
-					</select>
-				</td>
-				<td>
-					<div class="controlgroup">
-						<select id="credentials-{{server.0}}">
-							<option disabled selected>Choose credentials</option>
-							{% for ssh in sshs %}
-									{% if ssh.0 == server.7	%}
-										<option value="{{ssh.0}}" selected>{{ssh.1}}</option>
-									{% else %}
-										<option value="{{ssh.0}}">{{ssh.1}}</option>
-									{% endif %}
-							{% endfor %}
-						</select>
-						<button onclick="checkSshConnect('{{server.2}}')" title="Check SSH connect to the server {{server.1}}">check</button>
-					</div>
-				</td>
-				<td>
-					{% if server.11  != "None" %}
-						<input type="text" id="desc-{{server.0}}" value="{{server.11}}" size="30" class="form-control">
-					{% else %}
-						<input type="text" id="desc-{{server.0}}" value="" size="30" class="form-control">
-					{% endif %}
-				</td>
-				<td>
-					<a class="add" onclick="cloneServer({{server.0}})" id="clone-{{server.0}}" title="Clone {{server.1}}" style="cursor: pointer;"></a>
-				</td> 
-				<td>
-					<a class="delete" onclick="confirmDeleteServer({{server.0}})" title="Delete server {{server.1}}" style="cursor: pointer;"></a>
-				</td> 
+				{% include 'include/admin_servers.html' %}
 			</tr>
 		{% endfor %}
 		</table>
@@ -270,16 +163,16 @@
 			</tr>
 			<tr>
 				<td class="padding10 first-collumn">
-					<input type="text" name="new-ssh-add" id="new-ssh-add" class="form-control">
+					{{ input('new-ssh-add') }}	
 				</td>
 				<td>
 					<label for="new-ssh_enable">Enable SSH key</label><input type="checkbox" id="new-ssh_enable" checked>
 				</td>
 				<td style="padding-top: 15px;">
 					<p>
-						<input type="text" id="ssh_user" class="form-control" value="{{ssh_user}}">		
+						{{ input('ssh_user', value=ssh_user) }}	
 					</p>
-						<input type="password" id="ssh_pass" class="form-control" value="{{ssh_pass}}" style="display: none;">
+						{{ input('ssh_pass', type='password', value=ssh_pass, style="display: none;") }}
 					<br>
 				</td>
 				<td>
@@ -359,13 +252,13 @@
 			</tr>
 			<tr>
 				<td class="padding10 first-collumn">
-					<input type="text" name="telegram-token-add" id="telegram-token-add" class="form-control">
+					{{ input('telegram-token-add') }}
 					{% for group in ssh_group %}
-						<input type="hidden" id="new-telegram-group-add" name="new-telegram-group-add" value="{{ group.0 }}" >
+						{{ input('new-telegram-group-add', value=group.0) }}
 					{% endfor %}
 				</td>
 				<td>
-					<input type="text" id="telegram-chanel-add" class="form-control">
+					{{ input('telegram-chanel-add') }}	
 				</td>
 				<td>
 					<a class="add-admin" id="add-telegram" title="Add new Telegram channel" style="cursor: pointer;"></a>
@@ -387,12 +280,9 @@
 			</tr>
 			<tr>
 				<td class="padding10 first-collumn" style="width: 20%;">
-					<select id="hapver" name="hapver" required>
-						<option disabled>Choose HAProxy version</option>
-						<option value="2.0.4-1">2.0.4-1</option>
-						<option value="2.0.6-1">2.0.6-1</option>
-						<option value="2.0.7-1" selected>2.0.7-1</option>
-					</select>
+					{% set values = dict() %}
+					{% set values = {'2.0.4-1':'2.0.4-1','2.0.6-1':'2.0.6-1', '2.0.7-1':'2.0.7-1'} %}
+					{{ select('hapver',  values=values, selected='2.0.7-1', required='required') }}
 				</td>
 				<td class="padding10 first-collumn">
 					<select autofocus required name="haproxyaddserv" id="haproxyaddserv">
@@ -403,7 +293,7 @@
 					</select>
 				</td>
 				<td>
-					<label for="syn_flood" title="Enable SYN flood protect"><input type="checkbox" id="syn_flood" checked>
+					{{ checkbox('syn_flood', title="Enable SYN flood protect", checked='checked') }}
 				</td>
 				<td>
 					<a class="ui-button ui-widget ui-corner-all" id="install" title="Install HAProxy">Install</a>
@@ -420,47 +310,7 @@
 </div>
 <div id="user-add-table" style="display: none;">	
 	<table class="overview">
-		<tr>
-			<td colspan="2">
-				  <p class="validateTips alert alert-success">Form fields tag "<span class="need-field">*</span>" are required.</p>
-			</td>
-		</tr>
-		<tr>
-			<td class="padding20">
-				New user
-				<span class="need-field">*</span>
-			</td>
-			<td>
-				<input type="text" name="new-username" id="new-username" class="form-control">
-				{% if ldap_enable == '1' %}
-					<a href="#" title="Search user in AD" id="search_ldap_user">Search user in AD</a>
-				{% endif %}
-			</td>
-		</tr>
-		<tr>
-			<td class="padding20">
-				Password
-				<span class="need-field">*</span>
-			</td>
-			<td>
-				<input type="password" name="new-password" id="new-password" class="form-control">
-			</td>
-		</tr>
-		<tr>
-				<td class="padding20">Active</td>
-				<td>
-					<label for="activeuser"></label><input type="checkbox" id="activeuser" checked>
-				</td>
-		</tr>
-		<tr>
-			<td class="padding20">
-				Email
-			</td>
-			<td>
-				<input type="text" name="new-email" id="new-email" class="form-control">
-			</td>
-		</tr>
-		<tr>
+		{% include 'include/admin_add_user.html' %}
 			<td class="padding20">
 				Role
 				<span class="need-field">*</span>
@@ -481,80 +331,7 @@
 <div id="server-add-table" style="display: none;">	
 	<form id="server-add-form">
 	<table class="overview">
-		<tr>
-			<td colspan="2">
-				  <p class="validateTips alert alert-success">Form fields tag "<span class="need-field">*</span>" are required.</p>
-			</td>
-		</tr>
-		<tr>
-			<td class="padding20">
-				New hostname
-				<span class="need-field">*</span>
-			</td>
-			<td>
-				<input type="text" name="new-server-add" id="new-server-add" class="form-control">
-			</td>
-		</tr>
-		<tr>
-			<td class="padding20">
-				IP
-				<span class="need-field">*</span>
-			</td>
-			<td>
-				<input type="text" name="new-ip" id="new-ip" size="14" class="form-control">
-				<input type="hidden" id="new-sshgroup" name="new-sshgroup" value="{{ group }}" >
-			</td>
-		</tr>
-		<tr>
-			<td class="padding20" title="SSH port">
-				Port
-				<span class="need-field">*</span>
-			</td>
-			<td>
-				<input type="text" name="new-port" id="new-port" size=1 class="form-control" value="22">
-			</td>	
-		</tr>
-		<tr>
-			<td class="padding20">Enable</td>
-			<td>
-				<label for="enable"></label><input type="checkbox" id="enable" checked>
-			</td>
-		</tr>
-		<tr>
-			<td class="padding20" title="Vitrual IP, something like VRRP">Virt</td>
-			<td>
-				<label for="typeip"></label><input type="checkbox" id="typeip">
-			</td>
-		</tr>
-		<tr>
-			<td class="padding20" title="Alert if backend change status">Alert</td>
-			<td>
-				<label for="alert"></label><input type="checkbox" id="alert">
-			</td>
-		</tr>
-		<tr>
-			<td class="padding20" title="Enable save and show metrics">Metrics</td>
-			<td>
-				<label for="metrics"></label><input type="checkbox" id="metrics">
-			</td>
-		</tr>
-		<tr>
-			<td class="padding20" title="Keep start HAProxy service if down">Start</td>
-			<td>
-				<label for="active"></label><input type="checkbox" id="active">
-			</td>
-		</tr>
-		<tr>
-			<td class="padding20" title="Actions with master config will automatically apply on slave">Slave for</td>
-			<td>
-				<select id="slavefor">
-					<option selected value="0">Not slave</option>
-					{% for master in masters %}
-						<option value="{{master.0}}">{{master.1}}</option>
-					{% endfor %}
-				</select>
-			</td>
-		</tr>
+		{% include 'include/admin_add_server.html' %}
 		<tr>
 			<td class="padding20">
 				Credentials
@@ -571,46 +348,11 @@
 				</select>
 			</td>
 		</tr>
-		<tr>
-			<td class="padding20">Desciption</td>
-			<td>
-				<input type="text" id="desc" size="30" class="form-control">
-			</td>
-		</tr>
 	</table>
 	<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
 	</form>
 </div>
-<div id="user-change-password-table" style="display: none;">	
-		<table class="overview">
-			<tr>
-				<td colspan="2">
-					  <p class="validateTips alert alert-success">Enter password and confirm</p>
-				</td>
-			</tr>
-			<tr>
-				<td class="padding20">
-					Password				
-				</td>
-				<td>
-					<input type="password" name="change-password" id="change-password" class="form-control">
-				</td>
-			</tr>
-			<tr>
-				<td class="padding20">
-					Confirm password
-				</td>
-				<td>
-					<input type="password" name="change2-password" id="change2-password" class="form-control">
-				</td>
-			</tr>
-			<tr id="missmatchpass" style="display: none;">
-				<td colspan="2">
-					  <p class="validateTips alert alert-danger" style="margin-top: 10px;">Passwords are mismatched</p>
-				</td>
-			</tr>
-		</table>
-	</div>
+{% include 'include/change_pass_form.html' %}
 <script>
 	if($('#new-server-group-add').val() == 1) {
 		$('#group_error').css('display', 'block');

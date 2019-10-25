@@ -35,10 +35,14 @@ form {
 pre {
 	padding-left: 15px;
 }
-.icon {
+.icon, .icon-hapservs {
 	max-width: 20px;
 	margin-left: 2px;
+	margin-bottom: -3px;
 	cursor: pointer;
+}
+.icon-hapservs {
+	margin-bottom: 0px;
 }
 .top-menu {	
 	position: absolute;
@@ -141,7 +145,7 @@ pre {
 }
 .login {
 	float: right;
-	margin-top: 5px;
+	margin-top: 3px;
 	margin-left: 14px;
 	margin-right: 20px;
 	color: #fff !important;
@@ -150,7 +154,7 @@ pre {
 .auto-refresh {
 	margin-left: auto;
 	float: right;
-	margin-top: 5px;
+	margin-top: 3.7px;
 	margin-right: 5px;
 }
 .auto-refresh a {
@@ -539,6 +543,14 @@ ul{
     transition: background 1s ease-out;
 	font-size: 15px;
 }
+.form-login {
+	text-align: center;
+	background-color: #fff;
+	padding: 10px;
+	width: 220px;
+	background-size: 0 !important;
+	border: 0 !important;
+}
 .ui-button {
 	padding-left: 10px !important;
 	padding-right: 10px !important;
@@ -547,7 +559,6 @@ ul{
 .ui-state-default {
 	background-color: #EBF1F1 !important;
 }
-
 .ui-state-active {
 	background-color: #4A89D8 !important;
 	border: none !important;
@@ -779,12 +790,15 @@ label {
 	display: inline-block;
 	width: 160px;
 	padding-left: 30px;
-	padding-top: 27px;
-	font-size: 1em;
+	padding-top: 35px;
+	font-size: 12px;
+	float: left;
 }
 .top-info {
 	display: inline-block;
 	width: 350px;
+	margin-top: 30px;
+	font-size: 10px;
 }
 .update-icon {
 	float: right;
@@ -831,7 +845,13 @@ label {
 	}
 }
 @media (max-width: 1280px) {
-
+	.div-server {
+		margin-bottom: 30px !important;
+	}
+	.ajax-server {
+		clear: both !important;
+		margin-left: 20px !important;
+	}
 }
 @media (max-width: 1080px) {
 	#logo_span {
@@ -848,6 +868,9 @@ label {
 	}
 	.wrong-login {
 		margin-right: -50px;
+	}
+	.ajax-server {
+		width: 750px !important;
 	}
 }
 @media (max-width: 1024px) {

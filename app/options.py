@@ -209,7 +209,7 @@ if act == "overviewwaf":
 	
 async def async_get_overviewServers(serv1, serv2):
 	server_status = ()
-	commands =  [ "top -u haproxy -b -n 1 -w 67 |grep -e 'haproxy\|PID\|Cpu\|KiB' |grep -v Swap" ]
+	commands =  [ "top -u haproxy -b -n 1" ]
 	cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|Maxco\|MB\|Uptime:"' % (serv2, sql.get_setting('haproxy_sock_port'))
 	out = funct.subprocess_execute(cmd)
 	out1 = ""

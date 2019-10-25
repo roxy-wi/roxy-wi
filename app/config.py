@@ -67,20 +67,10 @@ if serv is not None and form.getvalue('config') is not None:
 			conf.write(config)
 	except IOError:
 		error = "Can't read import config file"
-	
-	MASTERS = sql.is_master(serv)
-	for master in MASTERS:
-		if master[0] != None:
-			funct.upload_and_restart(master[0], cfg, just_save=save)
 		
-	stderr = funct.upload_and_restart(serv, cfg, just_save=save)
+	stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save=save)
 		
 	funct.diff_config(oldcfg, cfg)
-	
-	#if save:
-	#	c = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	#	c["restart"] = form.getvalue('serv')
-	#	print(c)
 		
 	os.system("/bin/rm -f " + hap_configs_dir + "*.old")
 

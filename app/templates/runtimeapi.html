@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+{% from 'include/input_macros.html' import input, checkbox %}
 	<table class="overview">
 		<tr class="overviewHead">
 			<td class="padding10 first-collumn">Server</td>
@@ -11,16 +12,7 @@
 		<tr>
 			<td class="padding10 first-collumn" style="width: 25%;">
 				<form action="{{ action }}" method="get" id="runtimeapiform">
-					<select autofocus required id="{{ select_id }}" name="{{ select_id }}">
-						<option disabled>Choose server</option>
-						{% for select in selects %}
-							{% if serv == select.2 %}
-								<option value="{{ select.2 }}" selected>{{ select.1 }}</option>
-							{% else %}
-								<option value="{{ select.2 }}">{{ select.1 }}</option>
-							{% endif %}
-						{% endfor %}
-					</select>
+					{% include 'include/select.html' %}
 			</td>
 			<td style="width: 30%;">
 				<select required name="servaction" id="servaction">
@@ -34,11 +26,11 @@
 				</select>
 			</td>
 			<td>
-				<input type="text" name="servbackend" id="servbackend" size=35 title="Frontend, backend/server, show: info, pools or help" required class="form-control" value="{{ servbackend }}">
+				{{ input('servbackend', value=servbackend, title='Frontend, backend/server, show: info, pools or help', required='required') }}
 			</td>
 			<td class="checkbox">
 				{% if role <= 2 %}
-					<label for="save"></label><input type="checkbox" name="save" id="save" value="123">
+					{{ checkbox('save', value='123') }}
 				{% endif %}
 			</td>
 			<td>

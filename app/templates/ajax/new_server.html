@@ -1,5 +1,4 @@
 {% for server in servers %}
-	
 			<tr id="server-{{server.0}}" class="newserver">
 				<td class="padding10 first-collumn" style="padding-top: 20px;">
 					<input type="text" id="hostname-{{server.0}}" value="{{server.1}}" class="form-control">
@@ -26,82 +25,7 @@
 						{% endfor %}
 					</select>
 				{% endif %}
-				<td>
-					{% if server.5 == 1 %}
-						<label for="enable-{{server.0}}"></label><input type="checkbox" id="enable-{{server.0}}" checked>
-					{% else %}
-						<label for="enable-{{server.0}}"></label><input type="checkbox" id="enable-{{server.0}}">
-					{% endif %}
-				</td>
-				<td>
-					{% if server.4 == 1 %}
-						<label for="typeip-{{server.0}}"></label><input type="checkbox" id="typeip-{{server.0}}" checked>
-					{% else %}
-						<label for="typeip-{{server.0}}"></label><input type="checkbox" id="typeip-{{server.0}}">
-					{% endif %}
-				</td>
-				<td>
-					{% if server.8 == 1 %}
-						<label for="alert-{{server.0}}"></label><input type="checkbox" id="alert-{{server.0}}" checked>
-					{% else %}
-						<label for="alert-{{server.0}}"></label><input type="checkbox" id="alert-{{server.0}}">
-					{% endif %}
-				</td>
-				<td>
-					{% if server.9 == 1 %}
-						<label for="metrics-{{server.0}}"></label><input type="checkbox" id="metrics-{{server.0}}" checked>
-					{% else %}
-						<label for="metrics-{{server.0}}"></label><input type="checkbox" id="metrics-{{server.0}}">
-					{% endif %}
-				</td>
-				<td>
-					{% if server.11 == 1 %}
-						<label for="active-{{server.0}}"></label><input type="checkbox" id="active-{{server.0}}" checked>
-					{% else %}
-						<label for="active-{{server.0}}"></label><input type="checkbox" id="active-{{server.0}}">
-					{% endif %}
-				</td>
-				<td>
-					<select id="slavefor-{{server.0}}">
-						<option value="0" selected>Not slave</option>
-						{% for master in masters %}
-							{% if master.0 == server.6 %}
-								<option value="{{master.0}}" selected>{{master.1}}</option>
-							{% else %}
-								<option value="{{master.0}}">{{master.1}}</option>
-							{% endif %}
-						{% endfor %}
-					</select>
-				</td>
-				<td>
-					<div class="controlgroup">
-						<select id="credentials-{{server.0}}">
-							<option value="0" selected>Choose credentials</option>
-							{% for ssh in sshs %}
-								{% if ssh.0 == server.7	%}
-									<option value="{{ssh.0}}" selected>{{ssh.1}}</option>
-								{% else %}
-									<option value="{{ssh.0}}">{{ssh.1}}</option>
-								{% endif %}
-							{% endfor %}
-						</select>
-						<button onclick="checkSshConnect('{{server.2}}')" title="Check SSH connect to the server {{server.1}}">check</button>
-					</div>
-				</td>
-				<td>
-					{% if server.11  != "None" %}
-						<input type="text" id="desc-{{server.0}}" value="{{server.11}}" size="20" class="form-control">
-					{% else %}
-						<input type="text" id="desc-{{server.0}}" value="" size="20" class="form-control">
-					{% endif %}
-				</td>
-				<td>
-					<a class="add" onclick="cloneServer({{server.0}})" id="clone-{{server.0}}" title="Clone {{server.1}}" style="cursor: pointer;"></a>
-				</td> 
-				<td>
-					<a class="delete" onclick="removeServer({{server.0}})" title="Delete server {{server.1}}" style="cursor: pointer;"></a>
-				</td> 
-			</tr>
+				{% include 'include/admin_servers.html' %}
 	<script>
 		$( function() {
 			$("#servergroup-{{ server.0}}" ).selectmenu({

@@ -1,0 +1,82 @@
+{% from 'include/input_macros.html' import input, checkbox %}
+<td class="checkbox">
+	{% set id = 'enable-' + server.0|string() %}
+	{% if server.5 == 1 %}
+		{{ checkbox(id, checked='checked') }}
+	{% else %}
+		{{ checkbox(id) }}
+	{% endif %}
+</td>
+<td class="checkbox">
+	{% set id = 'typeip-' + server.0|string() %}
+	{% if server.4 == 1 %}
+		{{ checkbox(id, checked='checked') }}
+	{% else %}
+		{{ checkbox(id) }}
+	{% endif %}
+</td>
+<td class="checkbox">
+	{% set id = 'alert-' + server.0|string() %}
+	{% if server.8 == 1 %}
+		{{ checkbox(id, checked='checked') }}
+	{% else %}
+		{{ checkbox(id) }}
+	{% endif %}
+</td>
+<td class="checkbox">
+	{% set id = 'metrics-' + server.0|string() %}
+	{% if server.9 == 1 %}
+		{{ checkbox(id, checked='checked') }}
+	{% else %}
+		{{ checkbox(id) }}
+	{% endif %}
+</td>
+<td class="checkbox">
+	{% set id = 'active-' + server.0|string() %}
+	{% if server.12 == 1 %}
+		{{ checkbox(id, checked='checked') }}
+	{% else %}
+		{{ checkbox(id) }}
+	{% endif %}
+</td>
+<td>
+	<select id="slavefor-{{server.0}}">
+		<option value="0" selected>Not slave</option>
+		{% for master in masters %}
+			{% if master.0 == server.6 %}
+				<option value="{{master.0}}" selected>{{master.1}}</option>
+			{% else %}
+				<option value="{{master.0}}">{{master.1}}</option>
+			{% endif %}
+		{% endfor %}
+	</select>
+</td>
+<td>
+	<div class="controlgroup">
+		<select id="credentials-{{server.0}}">
+			<option disabled selected>Choose credentials</option>
+			{% for ssh in sshs %}
+				{% if ssh.0 == server.7	%}
+					<option value="{{ssh.0}}" selected>{{ssh.1}}</option>
+				{% else %}
+					<option value="{{ssh.0}}">{{ssh.1}}</option>
+				{% endif %}
+			{% endfor %}
+		</select>
+		<button onclick="checkSshConnect('{{server.2}}')" title="Check SSH connect to the server {{server.1}}">check</button>
+	</div>
+</td>
+<td>
+	{% set id = 'desc-' + server.0|string() %}
+	{% if server.11  != "None" %}
+		{{ input(id, value=server.11, size='20') }}
+	{% else %}
+		{{ input(id, size='20') }}
+	{% endif %}
+</td>
+<td>
+	<a class="add" onclick="cloneServer({{server.0}})" id="clone-{{server.0}}" title="Clone {{server.1}}" style="cursor: pointer;"></a>
+</td> 
+<td>
+	<a class="delete" onclick="confirmDeleteServer({{server.0}})" title="Delete server {{server.1}}" style="cursor: pointer;"></a>
+</td> 

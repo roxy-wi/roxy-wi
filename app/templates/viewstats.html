@@ -22,11 +22,7 @@
 <script> 
 	if (cur_url[1]) {
 		showStats();		
-	}
-	
-	function sleep(ms) {
-	  return new Promise(resolve => setTimeout(resolve, ms));
-	}
+	}	
 	async function wait() {
 		$('form').append('<input type="hidden" name="serv" value='+$("#serv").val()+'>');
 		$('form').append('<input type="hidden" name="token" value='+$('#token').val()+'>');
@@ -43,7 +39,7 @@
 		$('.v_menu').css('left', '200px');		
 		$('table.tbl th.pxname').css('width', '100%');
 		$('a.px:link').css('color', '#fff');
-		$('td').css('font-family', '"Helvetica Neue", Helvetica, Arial, sans-serif');
+		$('td').css('font-family', '-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol');
 		$('td').css('font-size', '11');
 		$('h1').css('display', 'none');
 		$('td').css('border-color', '#ddd');
@@ -76,8 +72,7 @@
 	}
 	$('#serv').on('selectmenuchange',function() {
 		showStats();		
-	});	
-	
+	});		
 </script>
 <link href="/inc/style.css" rel="stylesheet">
 {% endblock %}

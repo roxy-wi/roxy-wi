@@ -442,6 +442,7 @@ def upload(serv, path, file, **kwargs):
 		
 	return error
 	
+	
 def upload_and_restart(serv, cfg, **kwargs):
 	import sql
 	tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".cfg"
@@ -480,6 +481,17 @@ def upload_and_restart(serv, cfg, **kwargs):
 		logging('localhost', error, haproxywi=1)
 		return error
 		
+		
+def master_slave_upload_and_restart(serv, cfg, just_save):
+	import sql
+	MASTERS = sql.is_master(serv)
+	for master in MASTERS:
+		if master[0] != None:
+			upload_and_restart(master[0], cfg, just_save=just_save)
+		
+	return upload_and_restart(serv, cfg, just_save=just_save)
+	
+		
 def open_port_firewalld(cfg):
 	try:
 		conf = open(cfg, "r")
@@ -499,6 +511,7 @@ def open_port_firewalld(cfg):
 	firewalld_commands.append('sudo firewall-cmd --reload')
 	return firewalld_commands
 	
+	
 def check_haproxy_config(serv):
 	import sql
 	commands = [ "haproxy  -q -c -f %s" % sql.get_setting('haproxy_config_path') ]
@@ -511,6 +524,7 @@ def check_haproxy_config(serv):
 			return False
 	ssh.close()
 		
+		
 def show_log(stdout):
 	i = 0
 	for line in stdout:
@@ -518,9 +532,11 @@ def show_log(stdout):
 		line_class = "line3" if i % 2 == 0 else "line"
 		print('<div class="'+line_class+'">' + escape_html(line) + '</div>')
 			
+			
 def show_ip(stdout):
 	for line in stdout:
 		print(line)
+		
 		
 def server_status(stdout):	
 	proc_count = ""
@@ -532,6 +548,7 @@ def server_status(stdout):
 		else:
 			proc_count = 0
 	return proc_count		
+
 
 def ssh_command(serv, commands, **kwargs):
 	ssh = ssh_connect(serv)
@@ -565,8 +582,10 @@ def ssh_command(serv, commands, **kwargs):
 		print("<div class='alert alert-danger' style='margin: 0;'>"+str(ssh)+"<a title='Close' id='errorMess'><b>X</b></a></div>")
 		pass
 
+
 def escape_html(text):
 	return cgi.escape(text, quote=True)
+	
 	
 def subprocess_execute(cmd):
 	import subprocess 
@@ -575,6 +594,7 @@ def subprocess_execute(cmd):
 	output = stdout.splitlines()
 	
 	return output, stderr
+
 
 def show_backends(serv, **kwargs):
 	import json
@@ -600,6 +620,7 @@ def show_backends(serv, **kwargs):
 	if kwargs.get('ret'):
 		return ret
 		
+		
 def get_files(dir = get_config_var('configs', 'haproxy_save_configs_dir'), format = 'cfg', **kwargs):
 	import glob
 	if format == 'log':
@@ -623,6 +644,7 @@ def get_files(dir = get_config_var('configs', 'haproxy_save_configs_dir'), forma
 		return sorted(return_files, reverse=True)
 	else: 
 		return files
+	
 	
 def get_key(item):
 	return item[0]

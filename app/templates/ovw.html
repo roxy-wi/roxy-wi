@@ -25,7 +25,7 @@
 <tbody id="ajaxstatus"></tbody>
 </table>
 <table class="overview-wi" style="height: 170;">
-	<tr class="overviewHead" style="height: 43px;">
+	<tr class="overviewHead" style="height: 40px;">
 		<td class="padding10 first-collumn-wi">
 			{% if role <= 1 %}
 				<a href="/app/viewlogs.py?viewlogs=haproxy-wi-{{date}}.log&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View HAProxy-WI logs" class="logs_link">			
@@ -154,7 +154,6 @@
 							<img src="/inc/images/edit.png" alt="Edit" width="15" style="margin-bottom: -3px;" />
 						</a>
 					</td>
-					 <!-- <td class="padding10 second-collumn"> {{ USER.2 }}</td>  -->
 					{% for group in groups %}
 						{% if USER.5 == group.0|string() %}
 							<td class="third-collumn-wi">{{ group.1 }}</td>
@@ -170,7 +169,6 @@
 							<img src="/inc/images/edit.png" alt="Edit" width="15" style="margin-bottom: -3px;" />
 						</a>
 					</td>
-					<!-- <td class="padding10"> {{ USER.2 }}</td> -->
 					{% for group in groups %}
 						{% if group.0|string() == USER.5 %}
 							<td class="third-collumn-wi">{{ group.1 }}</td>

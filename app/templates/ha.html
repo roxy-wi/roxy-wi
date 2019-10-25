@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}	
+{% from 'include/input_macros.html' import input, checkbox %}
 <script src="/inc/users.js"></script>
 <table class="overview">
 	<caption><h3>Create new HA cluster</h3></caption>
@@ -29,18 +30,10 @@
 				{% endfor %}
 			</select>
 		</td>
-		<td>
-			<input type="text" id="interface" class="form-control">
-		</td>
-		<td>
-			<input type="text" id="vrrp-ip" class="form-control">
-		</td>
-		<td>
-			<label for="hap"></label><input type="checkbox" id="hap">
-		</td>
-		<td>
-			<label for="syn_flood" title="Enable SYN flood protect"><input type="checkbox" id="syn_flood" checked>
-		</td>
+		<td>{{ input('interface') }}</td>
+		<td>{{ input('vrrp-ip') }}</td>
+		<td>{{ checkbox('hap') }}</td>
+		<td>{{ checkbox('syn_flood', checked='checked') }}</td>
 		<td>
 			<a class="ui-button ui-widget ui-corner-all" id="create" title="Create HA configuration">Create</a>
 		</td>
@@ -75,15 +68,9 @@
 				{% endfor %}
 			</select>
 		</td>
-		<td>
-			<input type="text" id="interface-add" class="form-control">
-		</td>
-		<td>
-			<input type="text" id="vrrp-ip-add" class="form-control">
-		</td>
-		<td>
-			<label for="kp"></label><input type="checkbox" id="kp">
-		</td>
+		<td>{{ input('interface-add') }}</td>
+		<td>{{ input('vrrp-ip-add') }}</td>
+		<td>{{ checkbox('kp') }}</td>
 		<td></td>
 		<td>
 			<a class="ui-button ui-widget ui-corner-all" id="add-vrrp" title="Add HA configuration">Add</a>

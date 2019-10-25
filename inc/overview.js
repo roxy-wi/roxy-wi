@@ -51,14 +51,17 @@ function ajaxActionWafServers(action, id) {
 $( function() {
 	$('.start').click(function() {
 		var id = $(this).attr('id');
+		id = id.split('-')[1]
 		confirmAjaxAction("start", "hap", id);
 	});
 	$('.stop').click(function() {
 		var id = $(this).attr('id');
+		id = id.split('-')[1]
 		confirmAjaxAction("stop", "hap", id);
 	});
 	$('.restart').click(function() {
 		var id = $(this).attr('id');
+		id = id.split('-')[1]
 		confirmAjaxAction("restart", "hap", id);
 	});
 	$('.start-waf').click(function() {

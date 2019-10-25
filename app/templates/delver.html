@@ -5,16 +5,7 @@
 	<p>
 		<form action="{{ action }}" method="get">
 			<a class="ui-button ui-widget ui-corner-all" title="Return back" onclick="history.back()">Back</a>
-			<select autofocus required name="serv" id="{{ select_id }}">
-				<option disabled>Choose server</option>
-					{% for select in selects %}
-						{% if select.2 == serv %}
-							<option value="{{ select.2 }}" selected>{{ select.1 }}</option>
-						{% else %}
-							<option value="{{ select.2 }}">{{ select.1 }}</option>
-						{% endif %}
-					{% endfor %}
-			</select>
+			{% include 'include/select.html' %}
 			<button type="submit" value="open" name="open" class="btn btn-default">Open</button>
 		</form>
 		{% if not aftersave and not open %}
@@ -42,18 +33,12 @@
 					<button type="submit" value="" name="" class="btn btn-default">Delete</button>
 				</p>
 			</form> 
-		</center>
-		
+		</center>	
 	{% endif %}
 	{% if aftersave %}
 		<div class="alert alert-info"><b>The following files were deleted:</b><br /> </div>
 		{% if stderr %}
-			<div class="alert alert-danger">
-				Some errors:
-				<br> 
-				<br> 
-					{{stderr}} 
-			</div>
+			{% include 'include/errors.html' %}
 		{% else %}
 			<div class="alert alert-success">
 			{% for f in file %}

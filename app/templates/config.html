@@ -46,13 +46,7 @@
 	</p>
 	{% if not aftersave %}
 		{% if stderr or error %}
-			<div class="alert alert-danger" style="margin-bottom: 10px;">
-				Some errors:
-				<br> 
-				<br> 
-				{{stderr}} 
-				{{error}} 
-			</div>
+			{% include 'include/errors.html' %}
 		{% endif %}
 	{% endif %}
 	{% if config %}
@@ -79,15 +73,9 @@
 	{% if aftersave %}
 		<div class="alert alert-info">New config was saved as: {{ cfg }} </div>
 		{% if stderr or error %}
-			<div class="alert alert-danger">
-				Some errors:
-				<br> 
-				<br> 
-					{{stderr}} 
-					{{error}} 
-			</div>
+			{% include 'include/errors.html' %}
 		{% else %}
-			<div class="alert alert-success">Config ok</div>
+			<div class="alert alert-success">Config is ok</div>
 			<a href="viewsttats.py?serv={{ serv }}" target="_blank" title="View stats">Go to view stats</a>
 		{% endif %}
 		<script>window.history.pushState("Config", "Config", cur_url[0])</script>

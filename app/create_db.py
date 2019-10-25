@@ -366,12 +366,15 @@ def update_db_v_3_4_5_2(**kwargs):
 	
 def update_db_v_3_4_5_22(**kwargs):
 	con, cur = get_cur()
-	sql = """insert into version ('version') values ('3.4.5.2'); """
+	if mysql_enable == '0':
+		sql = """insert into version ('version') values ('3.4.5.2'); """
+	else:
+		sql = """INSERT INTO version VALUES ('3.4.5.2'); """
 	try:    
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('Cannot insert version')
+		print('Cannot insert version %s' % e)
 	cur.close() 
 	con.close()
 	
@@ -435,7 +438,7 @@ def update_db_v_3_5_3(**kwargs):
 	
 def update_ver(**kwargs):
 	con, cur = get_cur()
-	sql = """update version set version = '3.5.7.1'; """
+	sql = """update version set version = '3.5.8'; """
 	try:    
 		cur.execute(sql)
 		con.commit()

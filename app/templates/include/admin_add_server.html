@@ -1,0 +1,62 @@
+{% from 'include/input_macros.html' import input, checkbox %}
+<tr>
+	<td colspan="2">
+		<p class="validateTips alert alert-success">
+			Form fields tag "<span class="need-field">*</span>" are required.
+		</p>
+	</td>
+</tr>
+<tr>
+	<td class="padding20">
+		New hostname
+		<span class="need-field">*</span>
+	</td>
+	<td>{{ input('new-server-add') }}</td>
+<tr>
+	<td class="padding20">
+		IP
+		<span class="need-field">*</span>
+	</td>
+	<td>{{ input('new-ip', size='14') }}</td>
+<tr>
+	<td class="padding20" title="SSH port">
+		Port
+		<span class="need-field">*</span>
+	</td>
+	<td>{{ input('new-port', value='22', size='1') }}</td>
+</tr>
+<tr>
+	<td class="padding20">Enable</td>
+	<td>{{ checkbox('enable', checked='checked') }}</td>
+</tr>
+<tr>
+	<td class="padding20" title="Vitrual IP, something like VRRP">Virt</td>
+	<td>{{ checkbox('typeip') }}</td>
+</tr>
+<tr>
+	<td class="padding20" title="Alert if backend change status">Alert</td>
+	<td>{{ checkbox('alert') }}	</td>
+</tr>
+<tr>
+	<td class="padding20" title="Enable save and show metrics">Metrics</td>
+	<td>{{ checkbox('metrics') }}</td>
+</tr>
+<tr>
+	<td class="padding20" title="Keep start HAProxy service if down">Start</td>
+	<td>{{ checkbox('active') }}</td>
+</tr>
+<tr>
+	<td class="padding20" title="Actions with master config will automatically apply on slave">Slave for</td>
+	<td>
+		<select id="slavefor">
+			<option value="0" selected>Not slave</option>
+			{% for master in masters %}
+				<option value="{{master.0}}">{{master.1}}</option>
+			{% endfor %}
+		</select>
+	</td>
+</tr>
+<tr>
+	<td class="padding20">Description</td>
+	<td>{{ input('desc', size='30') }}</td>
+</tr>

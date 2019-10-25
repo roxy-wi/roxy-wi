@@ -52,19 +52,19 @@
 				<nav id="menu">
 					<ul class="menu">
 						{% if user %}	
-						<li><a href=/app/overview.py title="Server and service status" class="overview-link">Overview</a></li>
+						<li><a href="/app/overview.py" title="Server and service status" class="overview-link">Overview</a></li>
 						<li class="p_menu"><a title="Statistics, monitoring and logs" class="stats">Monitoring</a>			
 							<ul class="v_menu">
-								<li><a href=/app/viewsttats.py title="Show stats" class="stats head-submenu">Stats</a></li>
-								<li><a href=/app/logs.py title="View logs" class="logs head-submenu"> Logs</a></li>	
-								<li><a href=/app/edit.py title="Runtime API" class="runtime head-submenu">Runtime API</a></li>
-								<li><a href=/app/metrics.py title="Metrics" class="metrics head-submenu">Metrics</a></li>
+								<li><a href="/app/viewsttats.py" title="Show stats" class="stats head-submenu">Stats</a></li>
+								<li><a href="/app/logs.py" title="View logs" class="logs head-submenu"> Logs</a></li>	
+								<li><a href="/app/edit.py" title="Runtime API" class="runtime head-submenu">Runtime API</a></li>
+								<li><a href="/app/metrics.py" title="Metrics" class="metrics head-submenu">Metrics</a></li>
 							</ul>
 						</li>
 						<li class="p_menu"><a title="Actions with Haproxy configs" class="config-show">Haproxy</a>								
 							<ul class="v_menu">
-								<li><a href=/app/hapservers.py title="Working with Haproxy Configs" class="overview-link head-submenu">Overview</a> </li>
-								<li><a href=/app/config.py title="Working with HAProxy configs" class="edit head-submenu">Configs</a></li>
+								<li><a href="/app/hapservers.py" title="Working with Haproxy Configs" class="overview-link head-submenu">Overview</a> </li>
+								<li><a href="/app/config.py" title="Working with HAProxy configs" class="edit head-submenu">Configs</a></li>
 							{% if role <= 2 %}
 								<li><a href="/app/add.py#proxy" title="Add proxy" class="add head-submenu" id="add1">Add proxy</a></li>
 								<li><a href="/app/versions.py" title="Actions with configs versions" class="version head-submenu">Versions</a></li>
@@ -82,8 +82,8 @@
 							<li class="p_menu">
 								<a title="Keepalived" class="ha">Keepalived</a>
 								<ul class="v_menu">
-									<li><a href=/app/ha.py title="Create HA cluster" class="keepalived head-submenu">HA</a></li>
-									<li><a href=/app/keepalivedconfig.py title="Edit keepalived config" class="edit head-submenu">Edit config</a></li>		
+									<li><a href="/app/ha.py" title="Create HA cluster" class="keepalived head-submenu">HA</a></li>
+									<li><a href="/app/keepalivedconfig.py" title="Edit keepalived config" class="edit head-submenu">Edit config</a></li>		
 								</ul>
 							</li>
 							<li class="p_menu">
@@ -123,11 +123,7 @@
 			{% if h2 %}
 				<h2>
 					{{title}}
-					{% if user %}
-						<a href=/app/login.py?logout=logout title="Logout, user name: {{ user }}" class="login"> Logout</a>						
-					{% else %}
-						<a href=/app/login.py title="Login" class="login"> Login</a>
-					{% endif %}
+					{% include 'include/login.html' %}
 					{% if autorefresh %}
 						<span class="auto-refresh">
 							<a onclick="pauseAutoRefresh()" class="auto-refresh-pause" style="display: none; margin-top: 4px;"></a>
@@ -211,8 +207,7 @@
 			{% endif %}
 			{% block content %}{% endblock %}
 			<div id="ajax-compare"></div>
-			<div id="ajax"></div>
-			
+			<div id="ajax"></div>			
 		</div>	
 		<div id="show-updates" style="display: none;">	
 			<div>

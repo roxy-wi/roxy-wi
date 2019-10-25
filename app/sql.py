@@ -275,7 +275,7 @@ def select_servers(**kwargs):
 	if kwargs.get("server") is not None:
 		sql = """select * from servers where ip='%s' """ % kwargs.get("server")
 	if kwargs.get("full") is not None:
-		sql = """select * from servers ORDER BY groups """ 
+		sql = """select * from servers ORDER BY hostname """ 
 	if kwargs.get("get_master_servers") is not None:
 		sql = """select id,hostname from servers where master = 0 and type_ip = 0 and enable = 1 ORDER BY groups """ 
 	if kwargs.get("get_master_servers") is not None and kwargs.get('uuid') is not None:
@@ -846,6 +846,20 @@ def select_waf_servers(serv):
 	cur.close()    
 	con.close()
 	
+	
+def select_all_waf_servers():
+	con, cur = create_db.get_cur()
+	sql = """ select serv.ip from waf left join servers as serv on waf.server_id = serv.id """
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		out_error(e)
+	else:
+		return cur.fetchall()
+	cur.close()    
+	con.close()
+	
+	
 def select_waf_servers_metrics(uuid, **kwargs):
 	con, cur = create_db.get_cur()
 	sql = """ select * from user where username = '%s' """ % get_user_name_by_uuid(uuid)
@@ -1299,8 +1313,8 @@ def show_update_telegram(token, page):
 
 def show_update_user(user,page):
 	from jinja2 import Environment, FileSystemLoader
-	env = Environment(loader=FileSystemLoader('templates/ajax'))
-	template = env.get_template('/new_user.html')
+	env = Environment(loader=FileSystemLoader('templates/'))
+	template = env.get_template('ajax/new_user.html')
 
 	print('Content-type: text/html\n')
 	template = template.render(users = select_users(user=user),
@@ -1311,8 +1325,8 @@ def show_update_user(user,page):
 		
 def show_update_server(server, page):
 	from jinja2 import Environment, FileSystemLoader
-	env = Environment(loader=FileSystemLoader('templates/ajax/'))
-	template = env.get_template('/new_server.html')
+	env = Environment(loader=FileSystemLoader('templates/'))
+	template = env.get_template('ajax/new_server.html')
 
 	print('Content-type: text/html\n')
 	output_from_parsed_template = template.render(groups = select_groups(),

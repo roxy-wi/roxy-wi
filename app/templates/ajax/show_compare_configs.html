@@ -1,3 +1,4 @@
+{% from 'include/input_macros.html' import input %}
 <form action="diff.py#diff" method="get">
 	<center>
 		<h4>
@@ -22,9 +23,8 @@
 					<option value="{{ file }}">{{ file.split('-', maxsplit=1)[1] }}</option>
 				{% endfor %}
 			</select>
-	
-			<input type="hidden" value="{{ serv }}" name="serv">
-			<input type="hidden" value="open" name="open">
+			{{ input('serv', value=serv) }}
+			{{ input('open', type='hidden', value='open') }}
 			<a class="ui-button ui-widget ui-corner-all" id="show" title="Compare" onclick="showCompare()">Show</a>
 		</p>
 	</center>

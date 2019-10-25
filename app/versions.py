@@ -57,12 +57,7 @@ if serv is not None and form.getvalue('config') is not None:
 	except:
 		pass
 
-	MASTERS = sql.is_master(serv)
-	for master in MASTERS:
-		if master[0] != None:
-			funct.upload_and_restart(master[0], configver, just_save=save)
-			
-	stderr = funct.upload_and_restart(serv, configver, just_save=save)
+	stderr = funct.master_slave_upload_and_restart(serv, configver, just_save=save)
 		
 		
 output_from_parsed_template = template.render(h2 = 1, title = "Working with versions HAProxy configs",

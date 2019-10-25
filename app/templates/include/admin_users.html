@@ -1,0 +1,32 @@
+{% from 'include/input_macros.html' import input, checkbox %}
+<td class="padding10 first-collumn">
+	{% set login_id = 'login-' + user.0|string() %}
+	{% if user.6 == 1%}
+		{{ input(login_id, value=user.1, readonly='readonly') }}
+	{% else %}
+		{{ input(login_id, value=user.1) }}
+	{% endif %}
+</td> 
+<td>
+	{% if user.6 != 1%}
+	<span  title="Change password" style="cursor: pointer">
+		<img src="/inc/images/edit.png" alt="Edit" width="15" style="margin-bottom: -3px; padding-left: 15px;" onclick="openChangeUserPasswordDialog('{{user.0}}')" />
+	</span>
+	{% endif %}
+</td>
+<td class="checkbox">
+	{% set activeuser_id = 'activeuser-' + user.0|string() %}
+	{% if user.7 == 1 %}
+		{{ checkbox(activeuser_id, checked='checked') }}
+	{% else %}
+		{{ checkbox(activeuser_id) }}
+	{% endif %}
+</td>
+<td>
+	{% set email_id = 'email-' + user.0|string() %}
+	{% if user.6 == 1%}
+		{{ input(email_id, value=user.2, readonly='readonly') }}
+	{% else %}
+		{{ input(email_id, value=user.2) }}
+	{% endif %}
+</td>

@@ -129,6 +129,19 @@ For Apache do virtualhost with cgi-bin. Like this:
   		Order Deny,Allow
   		Deny from all
 	</FilesMatch>
+	
+	<IfModule mod_headers.c>
+		Header set X-XSS-Protection: 1;
+		Header set X-Frame-Options: deny
+		Header set X-Content-Type-Options: nosniff
+		Header set Strict-Transport-Security: max-age=3600;
+		Header set Cache-Control no-cache
+		Header set Expires: 0
+
+		<filesMatch ".(ico|css|js|gif|jpeg|jpg|png|svg|woff|ttf|eot)$">
+			Header set Cache-Control "max-age=86400, public"
+		</filesMatch>
+	</IfModule>
 </VirtualHost>
 ```
 

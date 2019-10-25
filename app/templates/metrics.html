@@ -27,11 +27,15 @@ th, tr, td {
 
 <script>
 function showMetrics() {
-	{% for s in servers %}
-		getChartData('{{s.0}}')
-	{% endfor %}
+	let metrics = new Promise(
+		(resolve, reject) => {
+			{% for s in servers %}
+				getChartData('{{s.0}}')
+			{% endfor %}
+			loadMetrics()
+		});	
+	metrics.then();
 }
-	showMetrics()
-	loadMetrics()
+showMetrics()
  </script>
 {% endblock %}

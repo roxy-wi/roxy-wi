@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+{% from 'include/input_macros.html' import input, checkbox, select %}
 <style>
 .container {
 	margin-right: 0;
@@ -19,148 +20,9 @@ h3 {
 		<li><a href="#option">Options</a></li>
 		<li><a href="#add-servers">Servers</a></li>
 		<li><a href="#userlist">Userlist</a></li>
-		{% if user %}
-			<a href=/app/login.py?logout=logout title="Logout, user name: {{ user }}" class="login"> Logout</a>						
-		{% else %}
-			<a href=/app/login.py title="Login" class="login"> Login</a>
-		{% endif %}
+		{% include 'include/login.html' %}
 	</ul>
-	<div id="create" style="height: 95%;">
-		<div id="left-collumn">
-			<div class="div-pannel">
-				<div class="div-server">
-					<div class="server-name">
-						<span title="Create Listen" class="redirectListen span-link">Create Listen</span>
-					</div>
-					<div class="server-desc">
-							A "listen" section defines a complete proxy with its frontend and backend parts combined in one section. It is generally useful for TCP-only traffic.
-					</div>
-					
-				</div>
-			</div>
-			<div class="div-pannel">
-				<div class="div-server">
-					<div class="server-name">
-						<span title="Create HTTP Listen" class="redirectListen span-link" id="create-http-listen">Create HTTP Listen</span>
-					</div>
-					<div class="server-desc">
-							Create HTTP proxy
-					</div>				
-				</div>
-			</div>
-			<div class="div-pannel">
-				<div class="div-server">
-					<div class="server-name">
-						<span title="Create SSL Listen" class="redirectListen span-link" id="create-ssl-listen">Create SSL Listen</span>
-					</div>
-					<div class="server-desc">
-							Create HTTPS Proxy with the SSL termination on HAProxy and SSL offload. 
-							HAProxy will send to backends HTTP traffic. You need have <span title="Upload SSL" class="redirectSsl span-link" style="color: #5d9ceb">uploaded a PEM certificat</span>
-					</div>				
-				</div>
-			</div>
-			<div class="div-pannel">
-				<div class="div-server">
-					<div class="server-name">
-						<span title="Create SSL Listen" class="redirectListen span-link" id="create-https-listen">Create HTTPS Listen</span>
-					</div>
-					<div class="server-desc">
-							Create HTTPS Proxy without the SSL termination on HAProxy and SSL offload. HAProxy will send to backends HTTPS traffic
-					</div>				
-				</div>
-			</div>
-		</div>
-		<div id="middle-collumn">
-			<div class="div-pannel">
-				<div class="div-server">
-					<div class="server-name">
-						<span title="Create Frontend" class="redirectFrontend span-link">Create Frontend</span>
-					</div>
-					<div class="server-desc">
-						A "frontend" section describes a set of listening sockets accepting client connections.
-						And forwards them to backend
-						<br />
-					</div>			
-				</div>
-			</div>
-			<div class="div-server">
-				<div class="server-name">
-					<span title="Create HTTP Frontend" class="redirectListen span-link" id="create-http-frontend">Create HTTP Frontend</span>
-				</div>
-				<div class="server-desc">
-						Create HTTP Frontend
-				</div>				
-			</div>
-			<div class="div-pannel">
-				<div class="div-server">
-					<div class="server-name">
-						<span title="Create SSL Frontend" class="redirectListen span-link" id="create-ssl-frontend">Create SSL Frontend</span>
-					</div>
-					<div class="server-desc">
-							Create HTTPS Frontend with the SSL termination on HAProxy and SSL offload. HAProxy will send to backends HTTP traffic. You need have <span title="Upload SSL" class="redirectSsl span-link" style="color: #5d9ceb">uploaded a PEM certificat</span>
-					</div>				
-				</div>
-			</div>
-			<div class="div-pannel">
-				<div class="div-server">
-					<div class="server-name">
-						<span title="Create HTTPS Frontend" class="redirectListen span-link" id="create-https-frontend">Create HTTPS Frontend</span>
-					</div>
-					<div class="server-desc">
-							Create HTTPS Frontend without the SSL termination on HAProxy and SSL offload. HAProxy will send to backends HTTPS traffic
-					</div>				
-				</div>
-			</div>
-		</div>
-		<div id="right-collumn">
-			<div class="div-pannel">
-				<div class="div-server">
-					<div class="server-name">
-						<span title="Create Backend" class="redirectBackend span-link">Create Backend</span>
-					</div>
-					<div class="server-desc">
-						A "backend" section describes a set of servers to which the proxy will connect to forward incoming connections. 
-						<br />
-						<br />
-					</div>			
-				</div>
-			</div>
-			<div class="div-server">
-				<div class="server-name">
-					<span title="Create SSL Backend" class="redirectListen span-link" id="create-http-backend">Create HTTP Backend</span>
-				</div>
-				<div class="server-desc">
-						Create HTTP Backend
-				</div>				
-			</div>
-			<div class="div-pannel">
-				<div class="div-server">
-					<div class="server-name">
-						<span title="Create HTTPS Backend" class="redirectListen span-link" id="create-ssl-backend">Create SSL Backend</span>
-					</div>
-					<div class="server-desc">
-							Create HTTPS Backend with the SSL termination on HAProxy and SSL offload. HAProxy will send to backends HTTP traffic. You need have <span title="Upload SSL" class="redirectSsl span-link" style="color: #5d9ceb">uploaded a PEM certificat</span>
-					</div>				
-				</div>
-			</div>
-			<div class="div-pannel">
-				<div class="div-server">
-					<div class="server-name">
-						<span title="Create SSL Backend" class="redirectListen span-link" id="create-https-backend">Create HTTPS Backend</span>
-					</div>
-					<div class="server-desc">
-							Create HTTPS Backend without the SSL termination on HAProxy and SSL offload. HAProxy will send to backends HTTPS traffic
-					</div>				
-				</div>
-			</div>
-		</div>
-		{% if add %}
-		<div class="alert alert-success" style="margin-left: 20px; clear: both;">	
-			<h3>{{ add }} was success added</h3>
-			{{ conf_add }}
-		</div>
-		{% endif %}
-	</div>
+	{% include 'include/add_proxy.html' %}
 	<div id="listen">
 		<form name="add-listner" action="/app/add.py">
 		<table class="add-table">
@@ -193,31 +55,30 @@ h3 {
 		<tr>
 			<td class="addName">Name:</td>
 			<td class="addOption">
-				<input type="text" name="listner" id="name" required title="Name Listner" placeholder="web_80" class="form-control">
+				{{ input('name', name='listner', title="Name Listner", placeholder="web_80", required='required') }}
 			</td>
 		</tr>
 		<tr>
 			<td class="addName">IP and Port:</td>
 			<td class="addOption">
-				<input type="text" name="ip" id="ip" title="" size="15" placeholder="Any" class="form-control"><b>:</b>
-				<input type="number" name="port" id="listen-port" required title="Port for bind listen" size="5" placeholder="8080" class="form-control">
+				{{ input('ip', placeholder="Any", size='15') }}<b>:</b>
+				{{ input('listen-port', name='port', type="number", title="Port for bind listen", placeholder="8080", size='5', required='required') }}
 				<div class="tooltip tooltipTop">IP for bind listner, <b>if empty will be assignet on all IPs</b>. Start typing ip, or press down.<br>If you use <b>VRRP keep in blank</b>. If you assign an IP, the slave will not start</div>
 			</td>
 		</tr>
 		<tr class="advance">
 			<td class="addName">Mode: </td>
 			<td class="addOption">
-				<select required name="mode" id="listen-mode-select">
-					<option value="http" selected>http</option>
-					<option value="tcp">tcp</option>
-				</select>
+				{% set values = dict() %}
+				{% set values = {'http':'http','tcp':'tcp'} %}
+				{{ select('listen-mode-select', name='mode', values=values, selected='http', required='required', class='force_close') }}
 				<span id="https-listen-span">
 					<label for="https-listen" style="margin-top: 5px;" title="Enable ssl">SSL?</label>
 					<input type="checkbox" id="https-listen" name="ssl" value="https" >
 				</span>
 				<div id="https-hide-listen" style="display: none;">
 					<br /><span class="tooltip tooltipTop">Enter name to pem file, or press down:</span><br />
-					<input type="text" name="cert" placeholder="some_cert.pem" class="form-control" size="39" id="path-cert-listen"><br />
+					{{ input('path-cert-listen', name="cert", placeholder="some_cert.pem", size='39') }}<br />
 					<label for="ssl-check-listen" style="margin-top: 5px;">Disable ssl verify on servers?</label><input type="checkbox" id="ssl-check-listen" name="ssl-check" value="ssl-check" checked>
 				</div>
 			</td>
@@ -225,29 +86,25 @@ h3 {
 		<tr class="advance">
 			<td class="addName">Maxconn: </td>
 			<td class="addOption">
-				<input type="number" name="maxconn" required title="Fix the maximum number of concurrent connections on a frontend" size="5" value="2000" class="form-control">
+				{{ input('maxconn', value='2000', type="number", title="Fix the maximum number of concurrent connections on a frontend", size='5', required='required') }}
 				<div class="tooltip tooltipTop">This value should not exceed the global maxconn. Default global maxconn value: 2000</div>
 			</td>
 		</tr>
 		<tr class="advance">
 			<td class="addName">Balance: </td>
-			<td class="addOption">
-				<select required name="balance">
-					<option value="roundrobin" selected>roundrobin</option>
-					<option value="source">source</option>
-					<option value="leastconn">leastconn</option>
-					<option value="first">first</option>
-					<option value="rdp-cookie">rdp-cookie</option>
-				</select>
-			</td>
+				<td class="addOption">
+					{% set values = dict() %}
+					{% set values = {'roundrobin':'roundrobin','source':'source','leastconn':'leastconn', 'first':'first', 'rdp-cookie':'rdp-cookie'} %}
+					{{ select('balance', values=values, selected='roundrobin', required='required', class='force_close') }}
+				</td>
 		</tr>
 		<tr class="advance">
 			<td class="addName"><span title="Cache support start 1.8 and latter">Web acceleration(?):</span></td>
 			<td class="addOption">
 				<span class="controlgroup">	
-					<label for="compression" title="Enable Compression">Compression</label><input type="checkbox" id="compression" name="compression" value="1">
-					<label for="cache" title="Enable Compression">Cache</label><input type="checkbox" id="cache" name="cache" value="2">
-					<label for="ssl_offloading" title="Enable SSL Offloading">SSL Offloading</label><input type="checkbox" id="ssl_offloading">
+					{{ checkbox('compression', title='Enable Compression', value='1', desc='Compression') }}
+					{{ checkbox('cache', title='Enable cache', value='2', desc='Cache') }}
+					{{ checkbox('ssl_offloading', title='Enable SSL Offloading', desc='SSL Offloading') }}
 				</span>
 			</td>
 		</tr>
@@ -255,14 +112,14 @@ h3 {
 			<td class="addName"><span title="Web application firewall">WAF(?):</span></td>
 			<td class="addOption">
 				<span class="controlgroup">
-					<label for="slow_atack" title="Slow atack protect">Slow atack</label><input type="checkbox" id="slow_atack">
-					<label for="ddos" title="DDOS atack protect">DDOS</label><input type="checkbox" id="ddos">
-					<label for="blacklist_checkbox" title="Enable SSL Offloading">Blacklist</label><input type="checkbox" id="blacklist_checkbox">
-					<label for="waf" title="Web application firewall">WAF</label><input type="checkbox" id="waf" name="waf" value="1">
+					{{ checkbox('slow_atack', title='Slow atack protect', desc='Slow atack') }}
+					{{ checkbox('ddos', title='DDOS atack protect', desc='DDOS') }}
+					{{ checkbox('blacklist_checkbox', title='Use blacklist', desc='Blacklist') }}
+					{{ checkbox('waf', title='Web application firewall', desc='WAF', value='1') }}
 				</span>
 				<div id="blacklist-hide" style="display: none;">
 					<br /><span class="tooltip tooltipTop">Enter the name of the blacklist, or press down:</span><br />
-					<input type="text" name="blacklist" placeholder="blacklist.lst" class="form-control" size="39" id="blacklist-hide-input"><br />
+					{{ input('blacklist-hide-input', size='39', name="blacklist", placeholder="blacklist.lst") }}
 				</div>
 			</td>
 		</tr>
@@ -270,53 +127,42 @@ h3 {
 			<td class="addName">Optinons:</td>
 			<td class="addOption">
 				<span class="controlgroup">				
-					<label for="forward_for" title="Option Forward for if none">Forward for</label><input type="checkbox" id="forward_for">
-					<label for="redispatch" title="Enable Redispatch">Redispatch</label><input type="checkbox" id="redispatch">					
-					<select name="force_close" class="force_close">
-						<option disabled selected>Force HTTP close</option>
-						<option>Off</option>
-						<option value="1">Server only</option>
-						<option value="2">Force close</option>
-						<option value="3">Pretend keep alive</option>
-					</select>	
-					<label for="cookie" title="Enable Redispatch">Set cookie</label><input type="checkbox" id="cookie" name="cookie" value="1">
-					<label for="options-listen-show" title="Set options manualy">Set options</label><input type="checkbox" id="options-listen-show">
+					{{ checkbox('forward_for', title='Option Forward for if none', desc='Forward for') }}
+					{{ checkbox('redispatch', title='Enable Redispatch', desc='Redispatch') }}	
+					{% set values = dict() %}
+					{% set values = {'Off':'Off','Server only':'Server only','Force close':'Force close','Pretend keep alive':'Pretend keep alive'} %}
+					{{ select('force_close', values=values, first='Force HTTP close', class='force_close') }}	
+					{{ checkbox('cookie', title='Set cookie', desc='Set cookie', value='1') }}
+					{{ checkbox('options-listen-show', title='Set options manualy', desc='Set options') }}
 				</span>
 				<br>
 				<span id="cookie_div" style="display: none;">
 					<input type="text" placeholder="name" name="cookie_name" id="cookie_name" class="form-control"><br><br>
 					<input type="text" placeholder="domain" name="cookie_domain" class="form-control"><br><br>
 					<span class="controlgroup">
-						<select name="rewrite" id="rewrite" class="force_close">
-							<option disabled selected>rewrite/indirect/insert</option>
-							<option>None</option>
-							<option value="rewrite">rewrite</option>
-							<option value="indirect">indirect</option>
-							<option value="insert">insert</option>
-						</select>
-						<label for="prefix" title="This keyword indicates that instead of relying on a dedicated cookie for the persistence, an existing one will be completed.">prefix</label>
-						<input type="checkbox" name="prefix" value="prefix" id="prefix">
-						<label for="nocache" title="This option is recommended in conjunction with the insert mode when there is a cache between the client and HAProxy.">nocache</label>
-						<input type="checkbox" name="nocache" value="nocache" id="nocache">
-						<label for="postonly" title="This option ensures that cookie insertion will only be performed on responses to POST requests.">postonly</label>
-						<input type="checkbox" name="postonly" value="postonly" id="postonly">
-						<label for="dynamic" title="Activate dynamic cookies. When used, a session cookie is dynamically created for each server.">dynamic</label>
-						<input type="checkbox" name="dynamic" value="dynamic" id="dynamic">
+						{% set values = dict() %}
+						{% set values = {'None':'None','rewrite':'rewrite','indirect':'indirect','insert':'insert'} %}
+						{{ select('rewrite', values=values, first='rewrite/indirect/insert', class='force_close') }}	
+						{{ checkbox('prefix', title='This keyword indicates that instead of relying on a dedicated cookie for the persistence, an existing one will be completed', desc='prefix', value='prefix') }}
+						{{ checkbox('nocache', title='This option is recommended in conjunction with the insert mode when there is a cache between the client and HAProxy', desc='nocache', value='nocache') }}
+						{{ checkbox('postonly', title='This option ensures that cookie insertion will only be performed on responses to POST requests', desc='postonly', value='postonly') }}
+						{{ checkbox('dynamic', title='Activate dynamic cookies. When used, a session cookie is dynamically created for each server', desc='dynamic', value='dynamic') }}
 						<span id="dynamic_div" style="display: none;">
-							dynamic-cookie-key: <input type="text" placeholder="your-custom-key" name="dynamic-cookie-key" id="dynamic-cookie-key" class="form-control">
+							dynamic-cookie-key: {{ input('dynamic-cookie-key', placeholder="your-custom-key") }}
 						</span>
 					</span>
 				</span>
 				<div id="options-listen-show-div" style="display: none;">
 					<div class="tooltip">
 						<span style="padding-right: 10px;">Start typing options: </span>
+						{{ input('options') }}
 						<input type="text" id="options" class="form-control">
 						<span style="padding-left: 10px;">
 							or press down. <a href="http://cbonte.github.io/haproxy-dconv/1.7/configuration.html" target="_blanck" style="color: #23527c" title="HAproxy docs">Read more about options</a>
 						</span>
 						<br />
 						<span style="padding-right: 10px;">Start typing saved options: </span>
-						<input type="text" id="saved-options" class="form-control">
+						{{ input('saved-options') }}
 							It are the options that you saved in the "Options" tab
 					</div>
 					<textarea name="option" title="Options thru" id="optionsInput" cols=80 rows=5 placeholder="acl test hdr_beg(host) -i some_host"></textarea>
@@ -326,19 +172,7 @@ h3 {
 		<tr>
 			<td class="addName">Servers:</td>
 			<td class="addOption">
-				<span id="servers">
-					<input name="servers" required title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">:
-					<input name="server_port" required title="Backend IP" size=1 placeholder="yyy" class="form-control">
-					<br />
-					<input name="servers" title="Backend port" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">:
-					<input name="server_port" title="Backend port" size=1 placeholder="yyy" class="form-control">
-					<br />
-					<input name="servers" title="Backend port" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">:
-					<input name="server_port" title="Backend port" size=1 placeholder="yyy" class="form-control">
-				</span>
-				<span>
-					<a class="add-server" id="add-server-input" title="Add backend server" style="cursor: pointer;"></a>
-				</span>
+				{% include 'include/add_servers.html' %}
 			</td>
 		</tr>
 		<tr class="advance">
@@ -352,24 +186,15 @@ h3 {
 				<div class="controlgroup" id="controlgroup-listen" style="display: none;">
 					<label for="check-servers-listen" title="Ebable servers check">Check</label>
 					<input type="checkbox" id="check-servers-listen" name="check-servers" checked value="1">
-					<select name="inter" id="inter-listen" class="force_close">
-						<option value="inter" disabled selected>inter</option>
-						<option value="1000">1000</option>
-						<option value="2000">2000</option>
-						<option value="3000">3000</option>
-					</select>
-					<select name="rise" id="rise-listen">
-						<option value="rise" disabled selected class="force_close">rise</option>
-						<option value="1">1</option>
-						<option value="2">2</option>
-						<option value="3">3</option>
-					</select>
-					<select name="fall" id="fall-listen">
-						<option value="fall" disabled selected class="force_close">fall</option>
-						<option value="4">4</option>
-						<option value="5">5</option>
-						<option value="6">6</option>
-					</select>
+					{% set values = dict() %}
+					{% set values = {'1000':'1000','2000':'2000','3000':'3000'} %}
+					{{ select('inter', values=values, first='inter', class='force_close') }}	
+					{% set values = dict() %}
+					{% set values = {'1':'1','2':'2','3':'3'} %}
+					{{ select('rise-listen', name='rise-listen', values=values, first='rise', class='force_close') }}
+					{% set values = dict() %}
+					{% set values = {'4':'4','5':'5','6':'6'} %}
+					{{ select('fall-listen', name='fall', values=values, first='fall', class='force_close') }}
 				</div>
 			</td>
 		</tr>
@@ -434,24 +259,23 @@ h3 {
 		<tr class="advance">
 			<td class="addName">Mode: </td>
 			<td class="addOption">
-				<select required name="mode" id="frontend-mode-select">
-					<option value="http" selected>http</option>
-					<option value="tcp">tcp</option>
-				</select>
+				{% set values = dict() %}
+				{% set values = {'http':'http','tcp':'tcp'} %}
+				{{ select('frontend-mode-select', name='mode', values=values, selected='http', required='required', class='force_close') }}
 				<span id="https-frontend-span">
 					<label for="https-frontend" style="margin-top: 5px;">SSL?</label>
 					<input type="checkbox" id="https-frontend" name="ssl" value="https">
 				</span>
 				<div id="https-hide-frontend" style="display: none;">
 					<br /><span class="tooltip tooltipTop">Enter name to pem file, or press down:</span><br />
-					<input type="text" name="cert" placeholder="some_cert.pem" class="form-control" size="39" id="path-cert-frontend">					
+					{{ input('path-cert-frontend', name="cert", placeholder="some_cert.pem", size='39') }}	
 				</div>				
 			</td>
 		</tr>
 		<tr class="advance">
 			<td class="addName">Maxconn: </td>
 			<td class="addOption">
-				<input type="number" name="maxconn" required title="Fix the maximum number of concurrent connections on a frontend" size="5" value="2000" class="form-control">
+				{{ input('maxconn', value='2000', type="number", title="Fix the maximum number of concurrent connections on a frontend", size='5', required='required') }}
 				<div class="tooltip tooltipTop">This value should not exceed the global maxconn. Default global maxconn value: 2000</div>
 			</td>
 		</tr>
@@ -459,9 +283,9 @@ h3 {
 			<td class="addName"><span title="Cache support start 1.8 and latter">Web acceleration(?):</span></td>
 			<td class="addOption">
 				<span class="controlgroup">	
-					<label for="compression2" title="Enable Compression">Compression</label><input type="checkbox" id="compression2" name="compression" value="1">
-					<label for="cache2" title="Enable Compression">Cache</label><input type="checkbox" id="cache2" name="cache" value="2">
-					<label for="ssl_offloading1" title="Enable SSL Offloading">SSL Offloading</label><input type="checkbox" id="ssl_offloading1">
+					{{ checkbox('compression2', title='Enable Compression', value='1', desc='Compression') }}
+					{{ checkbox('cache2', title='Enable cache', value='2', desc='Cache') }}
+					{{ checkbox('ssl_offloading1', title='Enable SSL Offloading', desc='SSL Offloading') }}
 				</span>	
 			</td>
 		</tr>
@@ -469,13 +293,14 @@ h3 {
 			<td class="addName"><span title="Web application firewall">WAF(?):</span></td>
 			<td class="addOption">
 				<span class="controlgroup">
-					<label for="slow_atack1" title="Slow atack protect">Slow atack</label><input type="checkbox" id="slow_atack1">
-					<label for="ddos1" title="DDOS atack protect">DDOS</label><input type="checkbox" id="ddos1">
-					<label for="blacklist_checkbox1" title="Enable SSL Offloading">Blacklist</label><input type="checkbox" id="blacklist_checkbox1">
+					{{ checkbox('slow_atack1', title='Slow atack protect', desc='Slow atack') }}
+					{{ checkbox('ddos1', title='DDOS atack protect', desc='DDOS') }}
+					{{ checkbox('blacklist_checkbox1', title='Use blacklist', desc='Blacklist') }}
+					{{ checkbox('waf2', name='waf', title='Web application firewall', desc='WAF', value='1') }}
 				</span>
 				<div id="blacklist-hide1" style="display: none;">
 					<br /><span class="tooltip tooltipTop">Enter the name of the blacklist, or press down:</span><br />
-					<input type="text" name="blacklist" placeholder="blacklist.lst" class="form-control" size="39" id="blacklist-hide-input1"><br />
+					{{ input('blacklist-hide-input1', size='39', name="blacklist", placeholder="blacklist.lst") }}
 				</div>
 			</td>
 		</tr>
@@ -483,26 +308,22 @@ h3 {
 			<td class="addName">Optinons:</td>
 			<td class="addOption">
 				<span class="controlgroup">
-					<label for="forward_for1" title="Option Forward for if none">Forward for</label><input type="checkbox" id="forward_for1">					
-					<select name="force_close" class="force_close">
-						<option disabled selected>Force HTTP close</option>
-						<option>Off</option>
-						<option value="1">Server only</option>
-						<option value="2">Force close</option>
-						<option value="3">Pretend keep alive</option>
-					</select>	
-					<label for="options-frontend-show" title="Set options manualy">Set options</label><input type="checkbox" id="options-frontend-show">
+					{{ checkbox('forward_for1', title='Option Forward for if none', desc='Forward for') }}
+					{% set values = dict() %}
+					{% set values = {'Off':'Off','Server only':'Server only','Force close':'Force close','Pretend keep alive':'Pretend keep alive'} %}
+					{{ select('force_close', values=values, first='Force HTTP close', class='force_close') }}	
+					{{ checkbox('options-frontend-show', title='Set options manualy', desc='Set options') }}
 				</span>
 				<div id="options-frontend-show-div" style="display: none;">
 					<div style="font-size: 12px; padding-bottom: 10px;">
 						<span style="padding-right: 10px;">Start typing options: </span>
-						<input type="text" id="options1" class="form-control">
+						{{ input('options2') }}
 						<span style="padding-left: 10px;">
 							or press down. <a href="http://cbonte.github.io/haproxy-dconv/1.7/configuration.html" target="_blanck"  style="color: #23527c" title="HAproxy docs">Read more about options</a>
 						</span>
 						<br />
 						<span style="padding-right: 10px;">Start typing saved options: </span>
-						<input type="text" id="saved-options1" class="form-control">
+						{{ input('saved-options1') }}
 							It are the options that you saved in the "Options" tab
 					</div>
 					<textarea name="option" title="Options thru" cols=80 rows=5 id="optionsInput1" placeholder="acl test hdr_beg(host) -i some_host"></textarea>
@@ -513,9 +334,9 @@ h3 {
 			<td class="addName">Default backend</td>
 			<td class="addOption">
 				<div style="font-size: 12px; padding-bottom: 10px;">Start typing backend, or press down</div>
-				<input  name="backend" id="backends" required size="30" placeholder="some_backend" class="form-control">
+				{{ input('backends', name='backends', placeholder="some_backend", size='30') }}
 				<span style="font-size: 12px; padding-left: 10px;"> .</span>
-				<p style="font-size: 12px"><b>Note:</b> If backend don\t exist, you must <a href="#" style="color: #23527c"  title="Create backend" class="redirectBackend">create backend first</a>.</p>
+				<p style="font-size: 12px"><b>Note:</b> If backend don't exist, you have to <a href="#" style="color: #23527c"  title="Create backend" class="redirectBackend">create backend first</a>.</p>
 			</td>
 		</tr>
 		<tr class="advance-show">
@@ -565,16 +386,15 @@ h3 {
 		<tr>
 			<td class="addName">Name:</td>
 			<td class="addOption">
-				<input type="text" name="new_backend" id="new_backend" required title="Name backend"  placeholder="web_80" class="form-control">
+				{{ input('new_backend', title="Name backend", placeholder="web_80", required='required') }}
 			</td>
 		</tr>
 		<tr class="advance">
 			<td class="addName">Mode: </td>
 			<td class="addOption">
-				<select required name="mode" id="backend-mode-select">
-					<option value="http" selected>http</option>
-					<option value="tcp">tcp</option>
-				</select>
+				{% set values = dict() %}
+				{% set values = {'http':'http','tcp':'tcp'} %}
+				{{ select('backend-mode-select', name='mode', values=values, selected='http', required='required', class='force_close') }}
 				<span id="https-backend-span">
 					<label for="https-backend" style="margin-top: 5px;">SSL enabled on frontend?</label>
 					<input type="checkbox" id="https-backend" name="ssl" value="https">
@@ -586,23 +406,19 @@ h3 {
 		</tr>
 		<tr class="advance">
 			<td class="addName">Balance: </td>
-			<td class="addOption">
-				<select required name="balance">
-					<option value="roundrobin" selected>roundrobin</option>
-					<option value="source">source</option>
-					<option value="leastconn">leastconn</option>
-					<option value="first">first</option>
-					<option value="rdp-cookie">rdp-cookie</option>
-				</select>
-			</td>
+				<td class="addOption">
+					{% set values = dict() %}
+					{% set values = {'roundrobin':'roundrobin','source':'source','leastconn':'leastconn', 'first':'first', 'rdp-cookie':'rdp-cookie'} %}
+					{{ select('balance', values=values, selected='roundrobin', required='required', class='force_close') }}
+				</td>
 		</tr>
 		<tr class="advance">
 			<td class="addName"><span title="Cache support start 1.8 and latter">Web acceleration(?):</span></td>
 			<td class="addOption">
 				<span class="controlgroup">
-					<label for="compression3" title="Enable Compression">Compression</label><input type="checkbox" id="compression3" name="compression" value="1">
-					<label for="cache3" title="Enable Compression">Cache</label><input type="checkbox" id="cache3" name="cache" value="2">
-					<label for="ssl_offloading2" title="Enable SSL Offloading">SSL Offloading</label><input type="checkbox" id="ssl_offloading2">
+					{{ checkbox('compression3', title='Enable Compression', value='1', desc='Compression') }}
+					{{ checkbox('cache3', title='Enable cache', value='2', desc='Cache') }}
+					{{ checkbox('ssl_offloading2', title='Enable SSL Offloading', desc='SSL Offloading') }}
 				</span>
 			</td>
 		</tr>
@@ -610,47 +426,35 @@ h3 {
 			<td class="addName">Optinons:</td>
 			<td class="addOption">
 				<span class="controlgroup">					
-					<label for="forward_for2" title="Option Forward for if none">Forward for</label><input type="checkbox" id="forward_for2">
-					<label for="redispatch2" title="Enable Redispatch">Redispatch</label><input type="checkbox" id="redispatch2">				
-					<select name="force_close" class="force_close">
-						<option disabled selected>Force HTTP close</option>
-						<option>Off</option>
-						<option value="1">Server only</option>
-						<option value="2">Force close</option>
-						<option value="3">Pretend keep alive</option>
-					</select>	
-					<label for="cookie2" title="Enable Redispatch">Set cookie</label><input type="checkbox" id="cookie2" name="cookie" value="1">				
-					<label for="options-backend-show" title="Set options manualy">Set options</label><input type="checkbox" id="options-backend-show">
+					{{ checkbox('forward_for2', title='Option Forward for if none', desc='Forward for') }}
+					{{ checkbox('redispatch2', title='Enable Redispatch', desc='Redispatch') }}	
+					{% set values = dict() %}
+					{% set values = {'Off':'Off','Server only':'Server only','Force close':'Force close','Pretend keep alive':'Pretend keep alive'} %}
+					{{ select('force_close', values=values, first='Force HTTP close', class='force_close') }}	
+					{{ checkbox('cookie2', title='Set cookie', desc='Set cookie', value='1') }}
+					{{ checkbox('options-backend-show', title='Set options manualy', desc='Set options') }}
 				</span>
 				<br>
 				<span id="cookie_div2" style="display: none;">
 					<input type="text" placeholder="name" name="cookie_name" id="cookie_name2" class="form-control"><br><br>
 					<input type="text" placeholder="domain" name="cookie_domain" class="form-control"><br><br>
 					<span class="controlgroup">
-						<select name="rewrite" id="rewrite2">
-							<option disabled selected>rewrite/indirect/insert</option>
-							<option>None</option>
-							<option value="rewrite">rewrite</option>
-							<option value="indirect">indirect</option>
-							<option value="insert">insert</option>
-						</select>
-						<label for="prefix2" title="This keyword indicates that instead of relying on a dedicated cookie for the persistence, an existing one will be completed.">prefix</label>
-						<input type="checkbox" name="prefix" value="prefix" id="prefix2">
-						<label for="nocache2" title="This option is recommended in conjunction with the insert mode when there is a cache between the client and HAProxy.">nocache</label>
-						<input type="checkbox" name="nocache" value="nocache" id="nocache2">
-						<label for="postonly2" title="This option ensures that cookie insertion will only be performed on responses to POST requests..">postonly</label>
-						<input type="checkbox" name="postonly" value="postonly" id="postonly2">
-						<label for="dynamic2" title="Activate dynamic cookies. When used, a session cookie is dynamically created for each server.">dynamic</label>
-						<input type="checkbox" name="dynamic" value="dynamic" id="dynamic2">
+						{% set values = dict() %}
+						{% set values = {'None':'None','rewrite':'rewrite','indirect':'indirect','insert':'insert'} %}
+						{{ select('rewrite2', values=values, first='rewrite/indirect/insert', class='force_close') }}	
+						{{ checkbox('prefix2', name='prefix', title='This keyword indicates that instead of relying on a dedicated cookie for the persistence, an existing one will be completed', desc='prefix', value='prefix') }}
+						{{ checkbox('nocache2', name='nocache', title='This option is recommended in conjunction with the insert mode when there is a cache between the client and HAProxy', desc='nocache', value='nocache') }}
+						{{ checkbox('postonly2', name='postonly', title='This option ensures that cookie insertion will only be performed on responses to POST requests', desc='postonly', value='postonly') }}
+						{{ checkbox('dynamic2', name='dynamic', title='Activate dynamic cookies. When used, a session cookie is dynamically created for each server', desc='dynamic', value='dynamic') }}
 						<span id="dynamic_div2" style="display: none;">
-							dynamic-cookie-key: <input type="text" placeholder="your-custom-key" name="dynamic-cookie-key" id="dynamic-cookie-key2" class="form-control">
+							dynamic-cookie-key: {{ input('dynamic-cookie-key2', name='dynamic-cookie-key', placeholder="your-custom-key") }}
 						</span>
 					</span>
 				</span>
 				<div id="options-backend-show-div" style="display: none;">
 					<div style="font-size: 12px; padding-bottom: 10px;">
 						<span style="padding-right: 10px;">Start typing options: </span>
-						<input type="text" id="options2" class="form-control">
+						{{ input('options2') }}
 						<span style="padding-left: 10px;">
 							or press down. <a href="http://cbonte.github.io/haproxy-dconv/1.7/configuration.html" target="_blanck" style="color: #23527c" title="HAproxy docs">Read more about options</a>
 						</span>
@@ -666,50 +470,29 @@ h3 {
 		<tr>
 			<td class="addName">Servers:</td>
 			<td class="addOption">
-				<span id="servers2">
-					<input name="servers" required title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">:
-					<input name="server_port" required title="Backend IP" size=1 placeholder="yyy" class="form-control">
-					<br />
-					<input name="servers" title="Backend port" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">:
-					<input name="server_port" title="Backend port" size=1 placeholder="yyy" class="form-control">
-					<br />
-					<input name="servers" title="Backend port" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">:
-					<input name="server_port" title="Backend port" size=1 placeholder="yyy" class="form-control">
-				</span>
-				<span>
-					<a class="add-server" id="add-server-input2" title="Add backend server" style="cursor: pointer;"></a>
-				</span>
+				{% include 'include/add_servers.html' %}
 			</td>
 		</tr>
 		<tr class="advance">
 			<td class="addName">Check:</td>
 			<td class="addOption">
 				<div>
-					<label for="controlgroup-backend-show" style="margin-top: 5px;" title="Change default check"	>Cusmot check params</label>
+					<label for="controlgroup-backend-show" style="margin-top: 5px;" title="Change default check">Cusmot check params</label>
 					<input type="checkbox" id="controlgroup-backend-show" name="default-check">
 					<span class="tooltip tooltipTop"> Default params: inter 2000 rise 2 fall 5</span>
 				</div>
 				<div class="controlgroup" id="controlgroup-backend" style="display: none;">
 					<label for="check-servers-backend" title="Ebable servers check">Check</label>
 					<input type="checkbox" id="check-servers-backend" name="check-servers" checked value="1">
-					<select name="inter" id="inter-backend">
-						<option value="inter" disabled selected>inter</option>
-						<option value="1000">1000</option>
-						<option value="2000">2000</option>
-						<option value="3000">3000</option>
-					</select>
-					<select name="rise" id="rise-backend">
-						<option value="rise" disabled selected>rise</option>
-						<option value="1">1</option>
-						<option value="2">2</option>
-						<option value="3">3</option>
-					</select>
-					<select name="fall" id="fall-backend">
-						<option value="fall" disabled selected>fall</option>
-						<option value="4">4</option>
-						<option value="5">5</option>
-						<option value="6">6</option>
-					</select>
+					{% set values = dict() %}
+					{% set values = {'1000':'1000','2000':'2000','3000':'3000'} %}
+					{{ select('inter-backend', values=values, first='inter', class='force_close') }}	
+					{% set values = dict() %}
+					{% set values = {'1':'1','2':'2','3':'3'} %}
+					{{ select('rise-backend', name='rise-listen', values=values, first='rise', class='force_close') }}
+					{% set values = dict() %}
+					{% set values = {'4':'4','5':'5','6':'6'} %}
+					{{ select('fall-backend', name='fall', values=values, first='fall', class='force_close') }}
 				</div>
 			</td>
 		</tr>
@@ -768,7 +551,7 @@ h3 {
 					</select>
 				</td>
 				<td valign="top" style="padding-top: 27px;">
-					<input type="text" id="ssl_name" class="form-control">
+					{{ input('ssl_name') }}
 				</td>
 				<td style="padding-top: 15px; padding-bottom: 15px;">
 					<textarea id="ssl_cert" cols="50" rows="5"></textarea><br /><br />
@@ -814,7 +597,7 @@ h3 {
 					Enter option for save:
 				</td>
 				<td style="width: 77%;">
-					<input type="text" name="new-option" id="new-option" class="form-control" size="60">
+					{{ input('new-option', size='60') }}
 				</td>
 				<td>
 					<a class="add-admin" id="add-option-new" title="Add new option" style="cursor: pointer;"></a>
@@ -866,10 +649,10 @@ h3 {
 			</tr>
 			<tr>
 				<td class="padding10 first-collumn">
-					<input type="text" name="new-saved-servers" id="new-saved-servers" class="form-control" size="15">
+					{{ input('new-saved-servers', size='15') }}
 				</td>
 				<td style="width: 77%;">
-					<input type="text" name="new-saved-servers-description" id="new-saved-servers-description" class="form-control" size="50">
+					{{ input('new-saved-servers-description', size='50') }}
 				</td>
 				<td>
 					<a class="add-admin" id="add-saved-server-new" title="Add new server" style="cursor: pointer;"></a>
@@ -911,14 +694,14 @@ h3 {
 			<tr>
 				<td class="addName">Userlist name:</td>
 				<td class="addOption">
-					<input type="text" name="new_userlist" id="new_userlist" required title="Userlist name"  placeholder="basic-auth-list" class="form-control">
+					{{ input('new_userlist', required='required', title="Userlist name", placeholder="basic-auth-list") }}
 				</td>
 			</tr>
 			<tr>
 				<td class="addName">Groups:</td>
 				<td class="addOption">
 					<span id="userlist-groups">
-						<input name="userlist-group" title="User`s group" placeholder="group_name" class="form-control">			
+						{{ input('userlist-group', title="User`s group", placeholder="group_name") }}			
 					</span>
 					<span>
 						<a class="add-server" id="add-userlist-group" title="Add extra group" style="cursor: pointer;"></a>
@@ -930,9 +713,9 @@ h3 {
 				<td class="addName">User:</td>
 				<td class="addOption">
 					<span id="userlist-users">
-						<input name="userlist-user" required title="User name" placeholder="user_name" class="form-control">	
-						<input name="userlist-password" required title="User password. By default it insecure-password" placeholder="password" class="form-control">	
-						<input name="userlist-user-group" title="User`s group" placeholder="user`s group" class="form-control">			
+						{{ input('userlist-user', required='required', title="User name", placeholder="user_name") }}	
+						{{ input('userlist-password', required='required', title="User password. By default it insecure-password", placeholder="password") }}	
+						{{ input('userlist-user-group', title="User`s group",  placeholder="user`s group") }}			
 					</span>
 					<span>
 						<a class="add-server" id="add-userlist-user" title="Add extra user" style="cursor: pointer;"></a>
@@ -956,20 +739,19 @@ h3 {
 				<b>here</b>
 			</a>
 		</div>
-	</div>
-	
-	<div id="dialog-confirm-delete" title="Are you sure you want to delete?" style="display: none;">
-	  <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>Deleting all data will be lost?</p>
-	</div>
-	<div id="dialog-confirm" title="View certificate " style="display: none;">
+	</div>	
+	{% include 'include/del_confirm.html' %}
+	<div id="dialog-confirm-cert" title="View certificate " style="display: none;">
 		<center><pre id="dialog-confirm-body"></pre></center>
 	</div>
 	<input type="hidden" id="group" value="{{ group }}">
 </div>
 </div>
 <script>
-$( ".force_close" ).selectmenu({
-  width: 180
+$( function() {
+	$( ".force_close" ).selectmenu({
+	  width: 180
+	});
 });
 </script>
 {% endblock %}

@@ -1,7 +1,31 @@
 {% extends "base.html" %}
 {% block content %}	
+{% if serv %}
+<style>
+@media (max-width: 1280px) {
+	.div-pannel {
+		height: 430px !important;
+	}
+}
+</style>
+{% endif %}
 <div id="up-pannel">
 	{% for s in servers %}
+	{% if serv %}
+		<link href="/inc/chart.min.css" rel="stylesheet">
+		<script src="/inc/metrics.js"></script>
+		<script src="/inc/chart.min.js"></script>
+		<script>
+			function showMetrics() {
+				{% for s in servers %}
+					getChartData('{{s.2}}')
+					getWafChartData('{{s.2}}')
+				{% endfor %}
+				showOverviewServer('{{s.1}}', '{{s.2}}', '{{s.0}}');
+			}
+			showMetrics();
+		</script>
+	{% endif %}
 	<div class="div-pannel" id="div-pannel-{{s.0}}">
 		<div id="div-server-{{s.0}}" class="div-server">
 			<div class="server-name">				
@@ -10,9 +34,11 @@
 				{% else %}
 					<span class="serverDown server-status" title="HAProxy is down"></span>
 				{% endif %}
-				<span title="Show info about {{s.2}}" onclick="showOverviewServer('{{s.1}}', '{{s.2}}', '{{s.0}}')" style="cursor: pointer;">
+				{% if not serv %}
+					<a href="/app/hapservers.py?serv={{s.2}}" title="More about {{s.1}}" style="color: #5d9ceb">{{s.1}}</a>
+				{% else %}
 					{{s.1}}
-				</span>
+				{% endif %}
 				{% if s.6|int() >= 1 %}
 					<img 
 						{% if keep_alive|int() >= 1 %}
@@ -24,14 +50,14 @@
 				{% endif %}
 				{% if role <= 1 %}
 				<span class="server-action">
-					<a id="{{ s.2 }}" class="start" title="Start HAProxy service">
-						<img src=/inc/images/start.png alt="start" class="icon" style="margin-bottom: -2px;" onclick="confirmAjaxAction('start', 'hap', '{{s.2}}')">
+					<a id="start-{{ s.2 }}" class="start" title="Start HAProxy service">
+						<img src=/inc/images/start.png alt="start" class="icon-hapservs" style="margin-bottom: -2px;" onclick="confirmAjaxAction('start', 'hap', '{{s.2}}')">
 					</a>
-					<a id="{{ s.2 }}" class="stop" title="Stop HAProxy service">
-						<img src=/inc/images/stop.png alt="stop" class="icon" width="17px" onclick="confirmAjaxAction('stop', 'hap', '{{s.2}}')">
+					<a id="stop-{{ s.2 }}" class="stop" title="Stop HAProxy service">
+						<img src=/inc/images/stop.png alt="stop" class="icon-hapservs" width="17px" onclick="confirmAjaxAction('stop', 'hap', '{{s.2}}')">
 					</a>
-					<a id="{{ s.2 }}" class="restart" title="Restart HAProxy service" onclick="confirmAjaxAction('restart', 'hap', '{{s.2}}')">
-						<img src=/inc/images/update.png alt="restart" class="icon">
+					<a id="restart-{{ s.2 }}" class="restart" title="Restart HAProxy service" onclick="confirmAjaxAction('restart', 'hap', '{{s.2}}')">
+						<img src=/inc/images/update.png alt="restart" class="icon-hapservs">
 					</a>
 				</span>
 				{% endif %}
@@ -68,9 +94,21 @@
 	</div>
 	{% endfor %}
 </div>
+{% if serv %}
+	<div id="refresh" style="text-align: right;margin-right: 105px;clear: both;display: block;padding-top: 20px;margin-bottom: -25px;" title="Refresh metrics" onclick="showMetrics()">
+		<img  src="/inc/images/update.png" alt="Refresh" class="icon">
+	</div>
+	{% for s in servers %}
+		<div class="chart-container" style="display: block; width: 46%;">
+			<canvas id="{{s.2}}" role="img"></canvas>
+		</div>
+		<div class="chart-container" style="display: block; width: 46%;">
+			<canvas id="s_{{s.2}}" role="img"></canvas>
+		</div>
+	{% endfor %}
+{% endif %}
 <div id="dialog-confirm" style="display: none;">
   <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>Are you sure?</p>
 </div>
 <script src="/inc/overview.js"></script>
-
 {% endblock %}

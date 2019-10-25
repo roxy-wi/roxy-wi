@@ -107,7 +107,7 @@ function renderWafChart(data, labels, server) {
         options: {
 			title: {
 				display: true,
-				text: data[1],
+				text: "WAF "+data[1],
 				fontSize: 20,
 				padding: 0,
 			},
