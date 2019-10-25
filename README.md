@@ -205,7 +205,7 @@ For Runtime API, Metrics and Alerting enable state file and stat socket on HApro
 ![alt text](image/haproxy-wi-logs.png "View logs page")
 
 
-# Update DB
+# Create and update DB
 ```
 $ cd /var/www/haproxy-wi/app
 $ ./create_db.py
