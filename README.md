@@ -62,26 +62,45 @@ yum install haproxy-wi
 
 #### Before uses RPM repository you should donate to support project on [Patreon](https://www.patreon.com/haproxy_wi/overview) or on [PayPal](https://www.paypal.me/loginovpavel) and I will send you credentials for access. Actual prices you can see on [Patreon](https://www.patreon.com/haproxy_wi/overview)
 
-## Script
-The installer will ask you a few questions
-```
-$ git clone https://github.com/Aidaho12/haproxy-wi.git /var/www/haproxy-wi
-$ cd /var/www/haproxy-wi
-$ chmod +x install.sh
-$ sudo ./install.sh
-```
-
 ## Manual install
 For install just clone:
 ```
+CentOS:
+$ sudo 	yum -y install git nmap-ncat net-tools python35u dos2unix python35u-pip mod_ssl httpd python35u-devel gcc-c++ openldap-devel python-devel python-jinja2
 $ cd /var/www/
 $ git clone https://github.com/Aidaho12/haproxy-wi.git /var/www/haproxy-wi
 $ chown -R apache:apache haproxy-wi/
+
 Or if use Debian/Ubuntu:
+
+$ sudo 	apt-get install git  net-tools lshw dos2unix apache2 gcc netcat python3.5 mod_ssl python3-pip g++ freetype2-demos libatlas-base-dev openldap-dev libpq-dev python-dev libxml2-dev libxslt1-dev libldap2-dev libsasl2-dev libffi-dev python3-dev libssl-dev -y
 $ chown -R www-data:www-data haproxy-wi/
+
+Both
+
 $ pip3 install -r haproxy-wi/requirements.txt 
 $ chmod +x haproxy-wi/app/*.py 
 $ sudo ln -s /usr/bin/python3.5 /usr/bin/python3
+$ sudo cp config_other/logrotate/* /etc/logrotate.d/
+$ sudo cp config_other/syslog/* /etc/rsyslog.d/
+$ sudo cp config_other/systemd/* /etc/systemd/system/
+$ sudo systemctl daemon-reload      
+$ sudo systemctl restart httpd
+$ sudo systemctl restart rsyslog
+$ sudo systemctl restart metrics_haproxy.service
+$ sudo systemctl restart checker_haproxy.service
+$ sudo systemctl restart keep_alive.service
+$ sudo systemctl enable metrics_haproxy.service
+$ sudo systemctl enable checker_haproxy.service
+$ sudo systemctl enable keep_alive.service
+$ sudo mkdir /var/www/haproxy-wi/app/certs
+$ sudo mkdir /var/www/haproxy-wi/keys
+$ sudo mkdir /var/www/haproxy-wi/configs/
+$ sudo mkdir /var/www/haproxy-wi/configs/hap_config/
+$ sudo mkdir /var/www/haproxy-wi/configs/kp_config/
+$ sudo mkdir /var/www/haproxy-wi/log/
+
+
 ```
 
 For Apache do virtualhost with cgi-bin. Like this:
