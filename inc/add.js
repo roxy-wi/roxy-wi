@@ -791,9 +791,6 @@ $( function() {
 				} else if (data.indexOf('success') != '-1') {
 					$('.alert-danger').remove();
 					$( "#ajax-ssl").html(data);
-					setTimeout(function() {
-						$( "#ajax-ssl").html("");
-					}, 2500 );
 				} else {
 					$("#ajax-ssl").html('<div class="alert alert-danger">Something wrong, check and try again</div>');
 				}
@@ -819,7 +816,7 @@ $( function() {
 					data = data.split("\n");
 					
 					for (i = 0; i < data.length; i++) {
-						
+						data[i] = data[i].replace(/\s+/g,' ');
 						new_data += ' <a onclick="view_ssl(\''+data[i]+'\')" style="cursor: pointer;" title="View this cert">'+data[i]+'</a> '
 					}
 					$("#ajax-show-ssl").html("<b>"+new_data+"</b>");					

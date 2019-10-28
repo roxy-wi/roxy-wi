@@ -78,7 +78,7 @@ if serv and form.getvalue('ssl_cert'):
 		os.makedirs(cert_local_dir)
 	
 	if form.getvalue('ssl_name') is None:
-		print('<div class="alert alert-danger">Please enter desired name</div>')
+		print('<div class="alert alert-danger" style="float: left;">Please enter desired name</div>')
 	else:
 		name = form.getvalue('ssl_name') + '.pem'
 	
@@ -86,9 +86,9 @@ if serv and form.getvalue('ssl_cert'):
 		with open(name, "w") as ssl_cert:
 			ssl_cert.write(form.getvalue('ssl_cert'))
 	except IOError:
-		print('<div class="alert alert-danger">Can\'t save ssl keys file. Check ssh keys path in config</div>')
+		print('<div class="alert alert-danger style="float: left;"">Can\'t save ssl keys file. Check ssh keys path in config</div>')
 	else:
-		print('<div class="alert alert-success">SSL file was upload to %s into: %s </div>' % (serv, cert_path))
+		print('<div class="alert alert-success" style="float: left;">SSL file was upload to %s into: %s  %s</div>' % (serv, cert_path, name))
 		
 	MASTERS = sql.is_master(serv)
 	for master in MASTERS:
@@ -96,10 +96,13 @@ if serv and form.getvalue('ssl_cert'):
 			funct.upload(master[0], cert_path, name)
 	try:
 		funct.upload(serv, cert_path, name)
-	except:
-		pass
-	
-	os.system("mv %s %s" % (name, cert_local_dir))
+	except Exception as e:
+		funct.logging('localhost', e.args[0], haproxywi=1)
+	try:
+		os.system("mv %s %s" % (name, cert_local_dir))
+	except OSError as e:
+		funct.logging('localhost', e.args[0], haproxywi=1)
+		
 	funct.logging(serv, "add.py#ssl upload new ssl cert %s" % name)
 	
 	

@@ -13,7 +13,7 @@ def get_app_dir():
 def get_config_var(sec, var):
 	from configparser import ConfigParser, ExtendedInterpolation
 	try:
-		path_config = get_app_dir()+"/haproxy-wi.cfg"
+		path_config = "/var/www/haproxy-wi/app/haproxy-wi.cfg"
 		config = ConfigParser(interpolation=ExtendedInterpolation())
 		config.read(path_config)
 	except:
@@ -120,8 +120,10 @@ def check_login(**kwargs):
 		sql.update_last_act_user(user_uuid.value)
 		if sql.get_user_name_by_uuid(user_uuid.value) is None:
 			print('<meta http-equiv="refresh" content="0; url=login.py?ref=%s">' % ref)
+			return False
 	else:
 		print('<meta http-equiv="refresh" content="0; url=login.py?ref=%s">' % ref)
+		return False
 				
 def is_admin(**kwargs):
 	import sql
@@ -428,19 +430,29 @@ def upload(serv, path, file, **kwargs):
 		ssh = ssh_connect(serv)
 	except Exception as e:
 		error = e
-		logging('localhost', e, haproxywi=1)
+		logging('localhost', str(e.args[0]), haproxywi=1)
 		pass
+		
 	try:
 		sftp = ssh.open_sftp()
+	except Exception as e:
+		logging('localhost', str(e.args[0]), haproxywi=1)
+		
+	try:
 		file = sftp.put(file, full_path)
+	except Exception as e:
+		logging('localhost', ' Cannot upload '+file+' to '+full_path+'. Error: '+str(e.args), haproxywi=1)
+		pass
+		
+	try:	
 		sftp.close()
 		ssh.close()
 	except Exception as e:
-		error = e
-		logging('localhost', e, haproxywi=1)
+		error = e.args
+		logging('localhost', str(error[0]), haproxywi=1)
 		pass
 		
-	return error
+	return str(error)
 	
 	
 def upload_and_restart(serv, cfg, **kwargs):

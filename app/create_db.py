@@ -14,7 +14,7 @@ if mysql_enable == '1':
 	from mysql.connector import errorcode
 	import mysql.connector as sqltool
 else:
-	db = funct.get_app_dir()+"/haproxy-wi.db"
+	db = "/var/www/haproxy-wi/app/haproxy-wi.db"
 	import sqlite3 as sqltool
 	
 def check_db():
@@ -438,7 +438,7 @@ def update_db_v_3_5_3(**kwargs):
 	
 def update_ver(**kwargs):
 	con, cur = get_cur()
-	sql = """update version set version = '3.5.8'; """
+	sql = """update version set version = '3.6'; """
 	try:    
 		cur.execute(sql)
 		con.commit()

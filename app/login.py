@@ -34,7 +34,7 @@ def send_cookie(login):
 
 	c = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	c["uuid"] = user_uuid
-	c["uuid"]["path"] = "/app/"
+	c["uuid"]["path"] = "/"
 	c["uuid"]["expires"] = expires.strftime("%a, %d %b %Y %H:%M:%S GMT")
 	print(c)
 	sql.write_user_uuid(login, user_uuid)
@@ -52,7 +52,7 @@ def ban():
 	c = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	expires = datetime.datetime.utcnow() + datetime.timedelta(seconds=10)
 	c["ban"] = 1
-	c["ban"]["path"] = "/app/"
+	c["ban"]["path"] = "/"
 	c["ban"]["expires"] = expires.strftime("%a, %d %b %Y %H:%M:%S GMT")
 	try:
 		funct.logging('locahost', login+' failed log in', haproxywi=1, login=1)
@@ -123,7 +123,7 @@ if form.getvalue('logout'):
 		sql.delete_uuid(user_id.value)
 	except:
 		pass
-	print("Set-cookie: uuid=; expires=Wed May 18 03:33:20 2003; path=/app/; httponly")
+	print("Set-cookie: uuid=; expires=Wed, May 18 03:33:20 2003; path=/; httponly")
 	print("Content-type: text/html\n")
 	print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
 	sys.exit()

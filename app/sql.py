@@ -284,6 +284,12 @@ def select_servers(**kwargs):
 			left join uuid as uuid on user.id = uuid.user_id 
 			where uuid.uuid = '%s' and servers.master = 0 and servers.type_ip = 0 and servers.enable = 1 ORDER BY servers.groups 
 			""" % kwargs.get('uuid')
+	if kwargs.get("id"):
+		sql = """select * from servers where id='%s' """ % kwargs.get("id")
+	if kwargs.get("hostname"):
+		sql = """select * from servers where hostname='%s' """ % kwargs.get("hostname")
+	if kwargs.get("id_hostname"):
+		sql = """select * from servers where hostname='%s' or id = '%s' or ip = '%s'""" % (kwargs.get("id_hostname"), kwargs.get("id_hostname"), kwargs.get("id_hostname"))
 	if kwargs.get("server") and kwargs.get("keep_alive"):
 		sql = """select active from servers where ip='%s' """ % kwargs.get("server")
 	try:    
