@@ -129,10 +129,8 @@ if form.getvalue('logout'):
 	sys.exit()
 
 if login is not None and password is not None:
-
 	USERS = sql.select_users(user=login)
-	password = funct.get_hash(password)
-		
+			
 	for users in USERS:	
 		if users[7] == 0:
 			print("Content-type: text/html\n")	
@@ -142,7 +140,8 @@ if login is not None and password is not None:
 			if login in users[1]:
 				check_in_ldap(login, password)
 		else:
-			if login in users[1] and password == users[3]:
+			passwordHashed = funct.get_hash(password)
+			if login in users[1] and passwordHashed == users[3]:
 				send_cookie(login)
 				break
 			else:
