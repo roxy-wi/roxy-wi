@@ -821,7 +821,7 @@ label {
 }
 .chart-container {
 	position: relative;
-	height: 400px;
+	height: 300px;
 	width: 49%;
 	float: left;
 	margin-top: 20px;
@@ -831,10 +831,7 @@ label {
   #logo_span {
 	margin-left: 17%;
 	}	
-	.chart-container {
-		height: 290px;
-		width: 32.4%;
-	}
+	
 }
 @media (max-width: 1900px) {
 	#logo_span {
@@ -842,6 +839,16 @@ label {
 		}
 	.wrong-login {
 		margin-right: -150px;
+	}
+}
+@media (max-width: 1450px) {
+	.ajax-server {
+		clear: both !important;
+		margin-left: 20px !important;
+		width: 88% !important;
+	}
+	.div-server {
+		margin-bottom: 30px !important;
 	}
 }
 @media (max-width: 1280px) {
@@ -870,7 +877,11 @@ label {
 		margin-right: -50px;
 	}
 	.ajax-server {
-		width: 750px !important;
+		width: 88% !important;
+	}
+	.haproxy-info {
+		width: 120px;
+		padding-left: 10px;
 	}
 }
 @media (max-width: 1024px) {
@@ -888,6 +899,13 @@ label {
 	}
 	.wrong-login {
 		margin-right: -150px;
+	}
+	.ajax-server {
+		width: 88% !important;
+	}
+	.haproxy-info {
+		width: 120px;
+		padding-left: 10px;
 	}
 }
 @media (max-width: 768px) {
@@ -913,6 +931,13 @@ label {
 	.overview h3 {
 		width: 46.4% !important;
 	}
+	.ajax-server {
+		width: 88% !important;
+	}
+	.haproxy-info {
+		width: 120px;
+		padding-left: 10px;
+	}
 }
 @media (max-width: 667px) {
   #logo_span {
@@ -930,6 +955,13 @@ label {
 	}
 	.wrong-login {
 		margin-right: -210px;
+	}
+	.ajax-server {
+		width: 88% !important;
+	}
+	.haproxy-info {
+		width: 120px;
+		padding-left: 10px;
 	}
 }
 .loading, .loading_full_page, .loading_hapwi_overview {

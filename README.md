@@ -13,7 +13,7 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 ![alt text](image/haproxy-wi-config-show.jpeg "Show config page")
 
 # Features:
-1.	Configure HAproxy In a jiffy with haproxy-wi
+1.	Configure HAProxy In a jiffy with haproxy-wi
 2.	View and analyse Status of all Frontend/backend server via haproxy-wi from a single control panel.
 3.	Enable/disable servers through stats page without rebooting HAProxy
 4.	View/Analyse HAproxy logs straight from the haproxy-wi web interface
@@ -28,7 +28,7 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 13.	Multiple User Roles support for privileged based Viewing and editing of Config.
 14.	Create Groups and add /remove servers to ensure proper identification for your HAproxy Clusters
 15.	Send notifications to telegram directly from haproxy-wi.
-16.	haproxy-wi supports high Availability to ensure uptime to all Master slave servers configured.
+16.	HAProxy-WI supports high Availability to ensure uptime to all Master slave servers configured.
 17.	SSL certificate support.
 18.	SSH Key support for managing multiple HAproxy Servers straight from haproxy-wi
 19. SYN flood protect
@@ -41,6 +41,7 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 26. Keep active HAProxy service
 27. Ability to hide parts of the config with tags for users with "guest" role:  "HideBlockStart" and "HideBlockEnd"
 28. Mobile-ready desing
+29. REST API
 
 ![alt text](image/haproxy-wi-metrics.png "Merics")
 
@@ -103,7 +104,7 @@ For Apache do virtualhost with cgi-bin. Like this:
 ```
 # vi /etc/httpd/conf.d/haproxy-wi.conf 
 <VirtualHost *:8080>
-		WSGIDaemonProcess api user=apache group=apache processes=1 threads=5
+		WSGIDaemonProcess api display-name=%{GROUP} user=apache group=apache processes=1 threads=5
         WSGIScriptAlias /api /var/www/haproxy-wi/api/app.wsgi
 
         <Directory /var/www/haproxy-wi/api>

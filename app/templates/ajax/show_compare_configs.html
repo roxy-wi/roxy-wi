@@ -23,7 +23,7 @@
 					<option value="{{ file }}">{{ file.split('-', maxsplit=1)[1] }}</option>
 				{% endfor %}
 			</select>
-			{{ input('serv', value=serv) }}
+			{{ input('serv', type='hidden', value=serv) }}
 			{{ input('open', type='hidden', value='open') }}
 			<a class="ui-button ui-widget ui-corner-all" id="show" title="Compare" onclick="showCompare()">Show</a>
 		</p>

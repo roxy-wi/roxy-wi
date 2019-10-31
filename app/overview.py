@@ -30,6 +30,8 @@ try:
 	metrics_worker, stderr = funct.subprocess_execute(cmd)
 	cmd = "ps ax |grep -e 'keep_alive.py' |grep -v grep |wc -l"
 	keep_alive, stderr = funct.subprocess_execute(cmd)
+	cmd = "ps ax |grep '(wsgi:api)'|grep -v grep|wc -l"
+	api, stderr = funct.subprocess_execute(cmd)
 except:
 	pass
 
@@ -47,6 +49,7 @@ template = template.render(h2 = 1,
 							checker_master = ''.join(checker_master),
 							checker_worker = ''.join(checker_worker),
 							keep_alive = ''.join(keep_alive),
+							api = ''.join(api),
 							date = funct.get_data('logs'),
 							error = stderr,
 							versions = funct.versions(),

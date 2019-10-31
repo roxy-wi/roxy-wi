@@ -4,7 +4,7 @@ os.chdir(os.path.dirname(__file__))
 sys.path.append(os.path.dirname(__file__))
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app/'))
 
-from bottle import route, run, template, hook, response, request
+from bottle import route, run, template, hook, response, request, post
 import sql
 import funct
 
@@ -73,6 +73,28 @@ def get_status(id):
 	return dict(status=data)
 	
 	
+def get_all_statuses():
+	data = {}
+	try:
+		servers = sql.select_servers()
+		login = request.headers.get('login')
+		sock_port = sql.get_setting('haproxy_sock_port')
+			
+		for s in servers:		
+			servers = sql.get_dick_permit(username=login)
+			
+		for s in servers:
+			cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|Maxco\|MB\|Uptime:"' % (s[2], sock_port)
+			data[s[2]] = {}	
+			out = funct.subprocess_execute(cmd)
+			data[s[2]] = return_dict_from_out(s[1], out[0])
+	except:
+		data = {"error":"Cannot find the server"}
+		return dict(error=data)
+			
+	return dict(status=data)
+	
+	
 def actions(id, action):
 	if action == 'start' or action == 'stop' or action == 'restart':
 		try:			
@@ -130,6 +152,115 @@ def show_backends(id):
 		return dict(error=data)
 			
 	return dict(backends=data)		
+	
+	
+def get_config(id):
+	data = {}
+	try:
+		servers = check_permit_to_server(id)
 		
+		for s in servers:
+			cfg = '/tmp/'+s[2]+'.cfg'
+			out = funct.get_config(s[2], cfg)
+			os.system("sed -i 's/\\n/\n/g' "+cfg)
+		try:
+			conf = open(cfg, "r")
+			config_read = conf.read()
+			conf.close
+			
+		except IOError:
+			conf = '<br />Can\'t read import config file'
+			
+		data = {id: config_read}
+		
+	except:
+		data = {}
+		data[id] = {"error":"Cannot find the server"}
+		return dict(error=data)
+			
+	return dict(config=data)
+	
+	
+def upload_config(id):
+	data = {}
+	body = request.body.getvalue().decode('utf-8')
+	save = request.headers.get('action')
+	login = request.headers.get('login')
+	
+	if save == '':
+		save = 'save'
+	elif save == 'restart':
+		save = ''
+		
+	try:
+		servers = check_permit_to_server(id)
+		
+		for s in servers:
+			ip = s[2]
+		cfg = '/tmp/'+ip+'.cfg'
+		cfg_for_save = hap_configs_dir + ip + "-" + funct.get_data('config') + ".cfg"
+		
+		try:
+			with open(cfg, "w") as conf:
+				conf.write(body)
+			return_mess = 'config was uploaded'
+			os.system("/bin/cp %s %s" % (cfg, cfg_for_save))
+			out = funct.upload_and_restart(ip, cfg, just_save=save)
+			funct.logging('localhost', " config was uploaded via REST API", login=login)
+			
+			if out:
+				return_mess == out
+		except IOError:
+			return_mess = "cannot upload config"
+			
+		data = {id: return_mess}
+	except:
+		data = {}
+		data[id] = {"error":"Cannot find the server"}
+		return dict(error=data)
+			
+	return dict(config=data)	
+	
+	
+def add_to_config(id):
+	data = {}
+	body = request.body.getvalue().decode('utf-8')
+	save = request.headers.get('action')
+	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+	login = request.headers.get('login')
+	
+	if save == '':
+		save = 'save'
+	elif save == 'restart':
+		save = ''
+		
+	try:
+		servers = check_permit_to_server(id)
+		
+		for s in servers:
+			ip = s[2]
+		cfg = '/tmp/'+ip+'.cfg'
+		cfg_for_save = hap_configs_dir + ip + "-" + funct.get_data('config') + ".cfg"
+		out = funct.get_config(ip, cfg)
+		try:
+			with open(cfg, "a") as conf:
+				conf.write('\n'+body+'\n')
+			return_mess = 'section was added to the config'
+			os.system("/bin/cp %s %s" % (cfg, cfg_for_save))
+			funct.logging('localhost', " section was added via REST API", login=login)
+			out = funct.upload_and_restart(ip, cfg, just_save=save)
+
+			if out:
+				return_mess = out
+		except IOError:
+			return_mess = "cannot upload config"
+			
+		data = {id: return_mess}
+	except:
+		data = {}
+		data[id] = {"error":"Cannot find the server"}
+		return dict(error=data)
+			
+	return dict(config=data)	
 		
 	

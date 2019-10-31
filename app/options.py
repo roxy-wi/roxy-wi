@@ -537,8 +537,8 @@ if form.getvalue('servaction') is not None:
 if act == "showCompareConfigs":
 	import glob
 	from jinja2 import Environment, FileSystemLoader
-	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
-	template = env.get_template('/show_compare_configs.html')
+	env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
+	template = env.get_template('ajax/show_compare_configs.html')
 	left = form.getvalue('left')
 	right = form.getvalue('right')
 	
@@ -552,8 +552,8 @@ if serv is not None and form.getvalue('right') is not None:
 	right = form.getvalue('right')
 	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 	cmd='diff -ub %s%s %s%s' % (hap_configs_dir, left, hap_configs_dir, right)	
-	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True, extensions=['jinja2.ext.loopcontrols', "jinja2.ext.do"])
-	template = env.get_template('compare.html')
+	env = Environment(loader=FileSystemLoader('templates/'), autoescape=True, extensions=['jinja2.ext.loopcontrols', "jinja2.ext.do"])
+	template = env.get_template('ajax/compare.html')
 	
 	output, stderr = funct.subprocess_execute(cmd)
 	template = template.render(stdout=output)	
@@ -685,8 +685,9 @@ if form.getvalue('new_metrics'):
 	for i in metric:
 		label = str(i[5])
 		label = label.split(' ')[1]
-		label = label.split(':')
-		labels += label[0]+':'+label[1]+','
+		#label = label.split(':')
+		#labels += label[0]+':'+label[1]+','
+		labels += label+','
 		curr_con += str(i[1])+','
 		curr_ssl_con += str(i[2])+','
 		sess_rate += str(i[3])+','
@@ -714,8 +715,8 @@ if form.getvalue('new_waf_metrics'):
 	for i in metric:
 		label = str(i[2])
 		label = label.split(' ')[1]
-		label = label.split(':')
-		labels += label[0]+':'+label[1]+','
+		# label = label.split(':')
+		labels += label[0]+','
 		curr_con += str(i[1])+','
 		
 	metrics['chartData']['labels'] = labels

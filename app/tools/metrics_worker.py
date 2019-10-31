@@ -41,7 +41,7 @@ def main(serv, port):
 			
 		sql.insert_mentrics(serv, metrics[0], metrics[1], metrics[2], metrics[3])
 	
-		time.sleep(60)	
+		time.sleep(30)	
 				
 		if killer.kill_now:
 			break

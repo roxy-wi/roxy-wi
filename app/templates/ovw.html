@@ -125,8 +125,15 @@
 				<span>Checker workers</span>
 		{% endif %}
 		</td>
-		<td></td>
-		
+		<td>
+			{% if api|int() == 0 %}
+				<span class="serverNone server-status" title="REST API does not work"></span>
+				<span title="REST API">API</span>		
+			{% else %}
+				<span class="serverUp server-status" title="running {{api }} processes"></span>
+				<span title="REST API">API</span>							
+			{% endif %}
+		</td>		
 	</tr>
 </table>
 {% if role <= 1 %}

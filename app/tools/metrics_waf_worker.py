@@ -41,7 +41,7 @@ def main(serv, port):
 			for i in range(0,len(metric)):
 				sql.insert_waf_mentrics(serv, metric[i])
 
-		time.sleep(60)	
+		time.sleep(30)	
 				
 		if killer.kill_now:
 			break

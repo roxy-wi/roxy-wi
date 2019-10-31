@@ -6,3 +6,4 @@ import bottle
 bottle.debug(True)
 
 application = bottle.default_app()
+application.catchall = False
