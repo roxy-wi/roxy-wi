@@ -1,0 +1,128 @@
+---      
+- name: install HAProxy {{HAPVER}}
+  yum:
+    name: 
+      - http://repo.haproxy-wi.org/haproxy-{{HAPVER}}.el6.x86_64.rpm
+      - socat
+    state: present
+  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and ansible_facts['distribution_major_version']|int == 6
+  environment:
+    http_proxy: "{{PROXY}}"
+    https_proxy: "{{PROXY}}"
+    
+    
+- name: install HAProxy {{HAPVER}}
+  yum:
+    name: 
+      - http://repo.haproxy-wi.org/haproxy-{{HAPVER}}.el7.x86_64.rpm
+      - socat
+    state: present
+  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and ansible_facts['distribution_major_version']|int == 7
+  environment:
+    http_proxy: "{{PROXY}}"
+    https_proxy: "{{PROXY}}"
+    
+    
+- name: set_fact from wi`
+  set_fact:
+    haproxy_from_wi: "yes"
+  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and ansible_facts['distribution_major_version']|int == 7
+  
+  
+- name: install the latest version of HAProxy
+  yum:
+    name: 
+      - haproxy
+      - socat
+    state: latest
+  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and ansible_facts['distribution_major_version']|int != 7
+  environment:
+    http_proxy: "{{PROXY}}"
+    https_proxy: "{{PROXY}}"
+
+    
+- name: Install HAProxy
+  apt:
+    name: 
+      - haproxy
+      - socat
+    state: present
+  when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'Ubuntu'
+  environment:
+    http_proxy: "{{PROXY}}"
+    https_proxy: "{{PROXY}}"
+    
+    
+- name: Get HAProxy version.
+  command: haproxy -v
+  register: haproxy_version_result
+  changed_when: false
+  check_mode: false
+  
+- name: Set HAProxy version.
+  set_fact:
+    haproxy_version: "{{ '1.5' if '1.5.' in haproxy_version_result.stdout else '1.6' }}"
+  
+- name: Copy HAProxy configuration in place.
+  template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+    mode: 0644
+    validate: haproxy -f %s -c -q
+  notify: restart haproxy
+  
+  
+- name: Change wrong HAProxy service file
+  template:
+    src: haproxy.service.j2
+    dest: /usr/lib/systemd/system/haproxy.service
+    mode: 0644
+  when: haproxy_from_wi is defined
+  
+  
+- name: Enable and start service HAProxy
+  service:
+    name: haproxy
+    daemon_reload: yes
+    state: started
+    enabled: yes
+  ignore_errors: yes
+  
+- name: Enable net.ipv4.tcp_syncookies
+  sysctl:
+    name: net.ipv4.tcp_syncookies
+    value: '1'
+    sysctl_set: yes
+    state: present
+    reload: yes
+  when: (SYN_FLOOD is defined) and (SYN_FLOOD|length > 0)
+    
+
+- name: net.ipv4.conf.all.rp_filter   
+  sysctl:
+    name: net.ipv4.conf.all.rp_filter
+    value: '1'
+    sysctl_set: yes
+    state: present
+    reload: yes
+  when: (SYN_FLOOD is defined) and (SYN_FLOOD|length > 0)
+    
+- name: Enable net.ipv4.tcp_max_syn_backlog 
+  sysctl:
+    name: net.ipv4.tcp_max_syn_backlog
+    value: '1024'
+    sysctl_set: yes
+    state: present
+    reload: yes
+  when: (SYN_FLOOD is defined) and (SYN_FLOOD|length > 0)
+    
+- name: Enable net.ipv4.tcp_synack_retries   
+  sysctl:
+    name: net.ipv4.tcp_synack_retries
+    value: '3'
+    sysctl_set: yes
+    state: present
+    reload: yes
+  when: (SYN_FLOOD is defined) and (SYN_FLOOD|length > 0)
+    
+    

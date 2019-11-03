@@ -492,7 +492,10 @@ def get_dick_permit(**kwargs):
 	ip = ''
 	
 	con, cur = create_db.get_cur()
-	sql = """ select * from user where username = '%s' """ % get_user_name_by_uuid(user_id.value)
+	if kwargs.get('username'):
+		sql = """ select * from user where username = '%s' """ % kwargs.get('username')
+	else:
+		sql = """ select * from user where username = '%s' """ % get_user_name_by_uuid(user_id.value)
 	if kwargs.get('virt'):
 		type_ip = "" 
 	else:
@@ -1607,8 +1610,10 @@ if form.getvalue('updatessh'):
 					
 		if ssh_enable == 1:
 			cmd = 'mv %s %s' % (ssh_key_name, new_ssh_key_name)
+			cmd1 = 'chmod 600 %s' % new_ssh_key_name
 			try:
 				funct.subprocess_execute(cmd)
+				funct.subprocess_execute(cmd1)
 			except:
 				pass
 		update_ssh(id, name, enable, group, username, password)

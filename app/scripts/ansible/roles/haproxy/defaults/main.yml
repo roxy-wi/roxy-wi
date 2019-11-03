@@ -1,0 +1,5 @@
+---
+haproxy_socket: /var/run/haproxy.sock
+haproxy_chroot: /var/lib/haproxy
+haproxy_user: haproxy
+haproxy_group: haproxy

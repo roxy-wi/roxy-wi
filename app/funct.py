@@ -57,7 +57,8 @@ def logging(serv, action, **kwargs):
 		user_uuid = cookie.get('uuid')
 		login = sql.get_user_name_by_uuid(user_uuid.value)
 	except:
-		pass
+		IP = ''
+		login = kwargs.get('login')
 		
 	if kwargs.get('alerting') == 1:
 		mess = get_data('date_in_log') + action + "\n"
@@ -331,7 +332,6 @@ def rewrite_section(start_line, end_line, config, section):
 def install_haproxy(serv, **kwargs):
 	import sql
 	script = "install_haproxy.sh"
-	tmp_config_path = sql.get_setting('tmp_config_path')
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 	stats_port = sql.get_setting('stats_port')
 	server_state_file = sql.get_setting('server_state_file')
@@ -339,44 +339,37 @@ def install_haproxy(serv, **kwargs):
 	stats_password = sql.get_setting('stats_password')
 	proxy = sql.get_setting('proxy')
 	hapver = kwargs.get('hapver')
+	fullpath = get_config_var('main', 'fullpath')
+	ssh_enable = ''
+	ssh_port = ''
+	ssh_user_name = ''
+	ssh_user_password = ''
+	
+	for sshs in sql.select_ssh(serv=serv):
+		ssh_enable = sshs[3]
+		ssh_user_name = sshs[4]
+		ssh_user_password = sshs[5]
+		ssh_key_name = fullpath+'/keys/%s.pem' % sshs[2]
+		
 	os.system("cp scripts/%s ." % script)
 	
 	proxy_serv = proxy if proxy is not None else ""
+	syn_flood_protect = '1' if kwargs.get('syn_flood') == "1" else ''
 		
-	commands = [ "sudo chmod +x "+tmp_config_path+script+" && " +tmp_config_path+"/"+script +" PROXY=" + proxy_serv+ 
+	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+ 
 				" SOCK_PORT="+haproxy_sock_port+" STAT_PORT="+stats_port+" STAT_FILE="+server_state_file+
-				" STATS_USER="+stats_user+" STATS_PASS="+stats_password+" HAPVER="+hapver]
-	
-	error = str(upload(serv, tmp_config_path, script))
+				" STATS_USER="+stats_user+" STATS_PASS="+stats_password+" HAPVER="+hapver +" SYN_FLOOD="+syn_flood_protect+" HOST="+serv+
+				" USER="+ssh_user_name+" PASS="+ssh_user_password+" KEY="+ssh_key_name ]
+				
+	output, error = subprocess_execute(commands[0])
 	
 	if error:
 		logging('localhost', error, haproxywi=1)
 		print('error: '+error)
-		
-	os.system("rm -f %s" % script)
-	ssh_command(serv, commands, print_out="1")
-	
-	if kwargs.get('syn_flood') == "1":
-		syn_flood_protect(serv)
-	
-def syn_flood_protect(serv, **kwargs):
-	import sql
-	script = "syn_flood_protect.sh"
-	tmp_config_path = sql.get_setting('tmp_config_path')
-	
-	enable = "disable" if kwargs.get('enable') == "0" else "disable"
+	else:
+		print(output[0])
+			
 
-	os.system("cp scripts/%s ." % script)
-	
-	commands = [ "sudo chmod +x "+tmp_config_path+script, tmp_config_path+script+ " "+enable ]
-	
-	error = str(upload(serv, tmp_config_path, script))
-	if error:
-		logging('localhost', error, haproxywi=1)
-		print('error: '+error)
-		
-	os.system("rm -f %s" % script)
-	ssh_command(serv, commands, print_out="1")
 	
 def waf_install(serv, **kwargs):
 	import sql

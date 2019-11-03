@@ -1,0 +1,28 @@
+---
+dependencies: []
+
+galaxy_info:
+  author: Pavel Loginov
+  description: HAProxy installation and configuration.
+  company: "HAProxy-WI"
+  license: "license (BSD, MIT)"
+  min_ansible_version: 2.2
+  platforms:
+    - name: EL
+      versions:
+        - 6
+        - 7
+        - 8
+    - name: Ubuntu
+      versions:
+        - precise
+        - trusty
+        - xenial
+    - name: Debian
+  galaxy_tags:
+    - web
+    - networking
+    - cloud
+    - haproxy
+    - loadbalancer
+    - http

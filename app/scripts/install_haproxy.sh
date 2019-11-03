@@ -12,108 +12,30 @@ do
             STAT_FILE)    STAT_FILE=${VALUE} ;;
             STATS_USER)    STATS_USER=${VALUE} ;;
             STATS_PASS)    STATS_PASS=${VALUE} ;;
-            STAT_FILE)    STAT_FILE=${VALUE} ;;
             HAPVER)    HAPVER=${VALUE} ;;
+            HOST)    HOST=${VALUE} ;;
+            USER)    USER=${VALUE} ;;
+            PASS)    PASS=${VALUE} ;;
+            KEY)    KEY=${VALUE} ;;
+            SYN_FLOOD)    SYN_FLOOD=${VALUE} ;;
             *)
     esac
 done
+export ANSIBLE_HOST_KEY_CHECKING=False
+PWD=`pwd`
+PWD=$PWD/scripts/ansible/
+echo $HOST > $PWD/$HOST
 
-if [[ $PROXY != "" ]]
-then
-	export http_proxy="$PROXY"
-	export https_proxy="$PROXY"
-fi
-if [ $? -eq 1 ]
-then
-	sudo yum install wget socat -y > /dev/null
-	sudo wget https://repo.haproxy-wi.org/haproxy-$HAPVER.el7.x86_64.rpm --no-check-certificate
-fi
-if [ -f /etc/haproxy/haproxy.cfg ];then
-	echo -e 'Info: Haproxy already installed. You can edit config<a href="/app/config.py" title="Edit HAProxy config">here</a> <br /><br />'
-	exit 1
-fi
-set +x
-if hash apt-get 2>/dev/null; then
-	sudo apt-get install haproxy socat -y
-else
-	sudo wget https://repo.haproxy-wi.org/haproxy-$HAPVER.el7.x86_64.rpm --no-check-certificate
-	sudo yum install haproxy-$HAPVER.el7.x86_64.rpm -y
+if [[ $KEY == "" ]]; then
+	ansible-playbook $PWD/roles/haproxy.yml -e "ansible_user=$USER ansible_ssh_pass=$PASS variable_host=$HOST PROXY=$PROXY HAPVER=$HAPVER SOCK_PORT=$SOCK_PORT STAT_PORT=$STAT_PORT STATS_USER=$STATS_USER STATS_PASS=$STATS_PASS $STAT_FILE=$STAT_FILE SYN_FLOOD=$SYN_FLOOD" -i $PWD/$HOST > /tmp/install_haproxy.log
+else	
+	ansible-playbook $PWD/roles/haproxy.yml --key-file $KEY -e "ansible_user=$USER variable_host=$HOST PROXY=$PROXY HAPVER=$HAPVER SOCK_PORT=$SOCK_PORT STAT_PORT=$STAT_PORT STATS_USER=$STATS_USER STATS_PASS=$STATS_PASS STAT_FILE=$STAT_FILE SYN_FLOOD=$SYN_FLOOD" -i $PWD/$HOST > /tmp/install_haproxy.log
 fi
 
 if [ $? -eq 1 ]
 then
-	sudo yum install wget socat -y > /dev/null
-	sudo wget https://repo.haproxy-wi.org/haproxy-$HAPVER.el7.x86_64.rpm --no-check-certificate
-	sudo yum install haproxy-$HAPVER.el7.x86_64.rpm -y
-fi
-if [ $? -eq 1 ]
-then
-	if hash apt-get 2>/dev/null; then
-		sudo apt-get install socat  -y
-	else
-		sudo yum install haproxy socat -y > /dev/null
-	fi
-fi
-
-sudo bash -c 'echo "" > /tmp/haproxy.cfg'
-sudo bash -c cat << EOF > /tmp/haproxy.cfg
-global
-    log         127.0.0.1 local2
-    chroot      /var/lib/haproxy
-    pidfile     /var/run/haproxy.pid
-    maxconn     4000
-    user        haproxy
-    group       haproxy
-    daemon
-    stats socket /var/lib/haproxy/stats
-    stats socket *:$SOCK_PORT level admin
-    stats socket /var/run/haproxy.sock mode 600 level admin
-    server-state-file $STAT_FILE 
-
-defaults
-    mode                    http
-    log                     global
-    option                  httplog
-    option                  dontlognull
-    option http-server-close
-    option forwardfor       except 127.0.0.0/8
-    option                  redispatch
-    retries                 3
-    timeout http-request    10s
-    timeout queue           1m
-    timeout connect         10s
-    timeout client          1m
-    timeout server          1m
-    timeout http-keep-alive 10s
-    timeout check           10s
-    maxconn                 3000
-
-listen stats 
-    bind *:$STAT_PORT 
-    stats enable
-    stats uri /stats
-    stats realm HAProxy-04\ Statistics
-    stats auth $STATS_USER:$STATS_PASS
-    stats admin if TRUE 
-EOF
-sudo cp /tmp/haproxy.cfg /etc/haproxy/haproxy.cfg
-sudo bash -c 'cat << EOF > /etc/rsyslog.d/haproxy.conf
-local2.*                       /var/log/haproxy.log
-EOF'
-
-sudo sed -i 's/#$UDPServerRun 514/$UDPServerRun 514/g' /etc/rsyslog.conf
-sudo sed -i 's/#$ModLoad imudp/$ModLoad imudp/g' /etc/rsyslog.conf 
-
-sudo firewall-cmd --zone=public --add-port=8085/tcp --permanent
-sudo firewall-cmd --reload
-sudo setenforce 0
-sudo sed -i 's/SELINUX=enforcing/SELINUX=permissive/' /etc/selinux/config 
-sudo systemctl enable haproxy
-sudo systemctl restart haproxy
-
-if [ $? -eq 1 ]
-then
-        echo "error: Can't start Haproxy service <br /><br />"
+        echo "error: Can't install Haproxy service. Look log in the /tmp/install_haproxy.log<br /><br />"
         exit 1
 fi
 echo "success"
+rm -f $PWD/$HOST

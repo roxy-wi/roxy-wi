@@ -65,6 +65,13 @@ if form.getvalue('ssh_cert'):
 		print('<div class="alert alert-danger">Can\'t save ssh keys file. Check ssh keys path in config</div>')
 	else:
 		print('<div class="alert alert-success">Ssh key was save into: %s </div>' % ssh_keys)
+		
+	try:
+		cmd = 'chmod 600 %s' % ssh_keys
+		funct.subprocess_execute(cmd)
+	except IOError as e:
+		funct.logging('localhost', e.args[0], haproxywi=1)
+		
 	try:
 		funct.logging("local", "users.py#ssh upload new ssh cert %s" % ssh_keys)
 	except:
@@ -590,31 +597,56 @@ if serv is not None and act == "configShow":
 if form.getvalue('master'):
 	master = form.getvalue('master')
 	slave = form.getvalue('slave')
-	interface = form.getvalue('interface')
-	vrrpip = form.getvalue('vrrpip')
-	tmp_config_path = sql.get_setting('tmp_config_path')
+	ETH = form.getvalue('interface')
+	IP = form.getvalue('vrrpip')
+	syn_flood = form.getvalue('syn_flood')
 	script = "install_keepalived.sh"
+	fullpath = funct.get_config_var('main', 'fullpath')
+	proxy = sql.get_setting('proxy')
+	ssh_enable = ''
+	ssh_port = ''
+	ssh_user_name = ''
+	ssh_user_password = ''
+	
+	proxy_serv = proxy if proxy is not None else ""
+	
+	for sshs in sql.select_ssh(serv=master):
+		ssh_enable = sshs[3]
+		ssh_user_name = sshs[4]
+		ssh_user_password = sshs[5]
+		ssh_key_name = fullpath+'/keys/%s.pem' % sshs[2]
+		
+	os.system("cp scripts/%s ." % script)
 	
 	if form.getvalue('hap') == "1":
-		funct.install_haproxy(master)
-		funct.install_haproxy(slave)
+		funct.install_haproxy(master, syn_flood='1')
+		funct.install_haproxy(slave, syn_flood='1')
 		
-	if form.getvalue('syn_flood') == "1":
-		funct.syn_flood_protect(master)
-		funct.syn_flood_protect(slave)
+	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+ 
+				" ETH="+ETH+" IP="+str(IP)+" MASTER=MASTER"+" HOST="+str(master)+
+				" USER="+str(ssh_user_name)+" PASS="+str(ssh_user_password)+" KEY="+str(ssh_key_name) ]
 	
-	os.system("cp scripts/%s ." % script)
-		
-	error = str(funct.upload(master, tmp_config_path, script))
+	output, error = funct.subprocess_execute(commands[0])
+	
 	if error:
+		logging('localhost', error, haproxywi=1)
 		print('error: '+error)
-		sys.exit()
-	funct.upload(slave, tmp_config_path, script)
-
-	funct.ssh_command(master, ["sudo chmod +x "+tmp_config_path+script, tmp_config_path+script+" MASTER "+interface+" "+vrrpip])
-	funct.ssh_command(slave, ["sudo chmod +x "+tmp_config_path+script, tmp_config_path+script+" BACKUP "+interface+" "+vrrpip])
+	else:
+		print(output[0])
+		
+	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" +proxy_serv+ 
+				" ETH="+ETH+" IP="+IP+" MASTER=BACKUP"+" HOST="+str(slave)+
+				" USER="+str(ssh_user_name)+" PASS="+str(ssh_user_password)+" KEY="+str(ssh_key_name) ]
+	
+	output, error = funct.subprocess_execute(commands[0])
+	
+	if error:
+		logging('localhost', error, haproxywi=1)
+		print('error: '+error)
+	else:
+		print(output[0])
 			
-	os.system("rm -f %s" % script)
+	#os.system("rm -f %s" % script)
 	sql.update_server_master(master, slave)
 	
 	

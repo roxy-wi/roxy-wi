@@ -1,0 +1,29 @@
+global_defs {
+   router_id LVS_DEVEL
+}
+#health-check for keepalive
+vrrp_script chk_haproxy { 
+    script "pidof haproxy"
+    interval 2
+    weight 3 
+}
+vrrp_instance VI_1 {
+    state {{MASTER}}
+    interface {{ETH}}
+    virtual_router_id 100
+    priority 102
+
+    #check if we are still running
+    track_script {
+        chk_haproxy
+    }
+
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass VerySecretPass
+    }
+    virtual_ipaddress {
+        {{IP}}
+    }
+}
