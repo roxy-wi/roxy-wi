@@ -99,10 +99,10 @@
 		<img  src="/inc/images/update.png" alt="Refresh" class="icon">
 	</div>
 	{% for s in servers %}
-		<div class="chart-container" style="display: block; width: 46%;">
+		<div class="chart-container" style="display: block; width: 90%; height: 300px;">
 			<canvas id="{{s.2}}" role="img"></canvas>
 		</div>
-		<div class="chart-container" style="display: block; width: 46%;">
+		<div class="chart-container" style="display: block; width: 90%; height: 300px;">
 			<canvas id="s_{{s.2}}" role="img"></canvas>
 		</div>
 	{% endfor %}
