@@ -63,14 +63,14 @@ yum install haproxy-wi
 For install just clone:
 ```
 CentOS:
-$ sudo 	yum -y install git nmap-ncat net-tools python35u dos2unix python35u-pip mod_ssl httpd python35u-devel gcc-c++ openldap-devel python-devel python-jinja2 python35u-mod_wsgi
+$ sudo 	yum -y install git nmap-ncat net-tools python35u dos2unix python35u-pip mod_ssl httpd python35u-devel gcc-c++ openldap-devel python-devel python-jinja2 python35u-mod_wsgi ansible
 $ cd /var/www/
 $ git clone https://github.com/Aidaho12/haproxy-wi.git /var/www/haproxy-wi
 $ chown -R apache:apache haproxy-wi/
 
 Or if use Debian/Ubuntu:
 
-$ sudo 	apt-get install git  net-tools lshw dos2unix apache2 gcc netcat python3.5 python3.5-mod_wsgi mod_ssl python3-pip g++ freetype2-demos libatlas-base-dev openldap-dev libpq-dev python-dev libxml2-dev libxslt1-dev libldap2-dev libsasl2-dev libffi-dev python3-dev libssl-dev -y
+$ sudo 	apt-get install git  net-tools lshw dos2unix apache2 gcc netcat python3.5 python3.5-mod_wsgi mod_ssl python3-pip g++ freetype2-demos libatlas-base-dev openldap-dev libpq-dev python-dev libxml2-dev libxslt1-dev libldap2-dev libsasl2-dev libffi-dev python3-dev libssl-dev ansible -y
 $ chown -R www-data:www-data haproxy-wi/
 
 Both

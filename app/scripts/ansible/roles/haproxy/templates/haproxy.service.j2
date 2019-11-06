@@ -6,9 +6,9 @@ After=network.target
 EnvironmentFile=-/etc/default/haproxy
 EnvironmentFile=-/etc/sysconfig/haproxy
 Environment="CONFIG=/etc/haproxy/haproxy.cfg" "PIDFILE=/run/haproxy.pid" "EXTRAOPTS=-S /run/haproxy-master.sock"
-ExecStartPre=/usr/sbin/haproxy -f $CONFIG -c -q $EXTRAOPTS
-ExecStart=/usr/sbin/haproxy -Ws -f $CONFIG -p $PIDFILE $EXTRAOPTS
-ExecReload=/usr/sbin/haproxy -f $CONFIG -c -q $EXTRAOPTS
+ExecStartPre=/sbin/haproxy -f $CONFIG -c -q $EXTRAOPTS
+ExecStart=/sbin/haproxy -Ws -f $CONFIG -p $PIDFILE $EXTRAOPTS
+ExecReload=/sbin/haproxy -f $CONFIG -c -q $EXTRAOPTS
 ExecReload=/bin/kill -USR2 $MAINPID
 KillMode=mixed
 Restart=always

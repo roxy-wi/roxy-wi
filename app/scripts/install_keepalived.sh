@@ -1,5 +1,4 @@
 #!/bin/bash
-
 for ARGUMENT in "$@"
 do
     KEY=$(echo $ARGUMENT | cut -f1 -d=)
@@ -14,25 +13,28 @@ do
             USER)    USER=${VALUE} ;;
             PASS)    PASS=${VALUE} ;;
             KEY)    KEY=${VALUE} ;;
+            SYN_FLOOD)    SYN_FLOOD=${VALUE} ;;
+            RESTART)    RESTART=${VALUE} ;;
+            ADD_VRRP)    ADD_VRRP=${VALUE} ;;
             *)
     esac
 done
 
 export ANSIBLE_HOST_KEY_CHECKING=False
+export ANSIBLE_DISPLAY_SKIPPED_HOSTS=False
 PWD=`pwd`
 PWD=$PWD/scripts/ansible/
 echo $HOST > $PWD/$HOST
 
 if [[ $KEY == "" ]]; then
-	ansible-playbook $PWD/roles/keepalived.yml -e "ansible_user=$USER ansible_ssh_pass=$PASS variable_host=$HOST PROXY=$PROXY MASTER=$MASTER ETH=$ETH IP=$IP" -i $PWD/$HOST > /tmp/install_keepalived.log
+	ansible-playbook $PWD/roles/keepalived.yml -e "ansible_user=$USER ansible_ssh_pass=$PASS variable_host=$HOST SYN_FLOOD=$SYN_FLOOD PROXY=$PROXY MASTER=$MASTER ETH=$ETH IP=$IP RESTART=$RESTART ADD_VRRP=$ADD_VRRP" -i $PWD/$HOST
 else	
-	ansible-playbook $PWD/roles/keepalived.yml --key-file $KEY -e "ansible_user=$USER variable_host=$HOST PROXY=$PROXY MASTER=$MASTER ETH=$ETH IP=$IP" -i $PWD/$HOST > /tmp/install_keepalived.log
+	ansible-playbook $PWD/roles/keepalived.yml --key-file $KEY -e "ansible_user=$USER variable_host=$HOST SYN_FLOOD=$SYN_FLOOD PROXY=$PROXY MASTER=$MASTER ETH=$ETH IP=$IP RESTART=$RESTART ADD_VRRP=$ADD_VRRP" -i $PWD/$HOST
 fi
 
-if [ $? -eq 1 ]
+if [ $? -gt 0 ]
 then
-        echo "error: Can't install keepalived service. Look log in the /tmp/install_keepalived.log<br /><br />"
+        echo "error: Can't install keepalived service <br /><br />"
         exit 1
 fi
-echo "success"
 rm -f $PWD/$HOST

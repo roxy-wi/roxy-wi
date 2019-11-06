@@ -14,6 +14,42 @@ jQuery.expr[':'].regex = function(elem, index, match) {
 }
 
 $( function() {
+	$( "#interface" ).autocomplete({
+		source: function( request, response ) {
+			$.ajax( {
+				url: "options.py",
+				data: {
+					showif:1,
+					serv: $("#master").val(),
+					token: $('#token').val()
+				},
+				success: function( data ) {
+					data = data.replace(/\s+/g,' ');
+					response(data.split(" "));
+				}						
+			} );
+		},
+		autoFocus: true,
+		minLength: -1
+	});
+	$( "#interface-add" ).autocomplete({
+		source: function( request, response ) {
+			$.ajax( {
+				url: "options.py",
+				data: {
+					showif:1,
+					serv: $("#master-add").val(),
+					token: $('#token').val()
+				},
+				success: function( data ) {
+					data = data.replace(/\s+/g,' ');
+					response(data.split(" "));
+				}						
+			} );
+		},
+		autoFocus: true,
+		minLength: -1
+	});
 	var ipformat = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
 	$('#create').click(function() {
 		var hap = 0;
@@ -48,14 +84,18 @@ $( function() {
 					type: "GET",
 					success: function( data ) { 
 						data = data.replace(/\s+/g,' ');
-						if (data.indexOf('error') != '-1' || data.indexOf('alert') != '-1' || data.indexOf('Failed') != '-1') {
+						if (data.indexOf('error') != '-1' || data.indexOf('alert') != '-1' || data.indexOf('FAILED') != '-1') {
 							$("#ajax").html('<div class="alert alert-danger">'+data+'</data>');
 						} else if (data.indexOf('info') != '-1' ){
 							$("#ajax").html('<div class="alert alert-info">'+data+'</data>');
 						} else if (data.indexOf('success') != '-1' ){
 							$('.alert-danger').remove();
-							$("#ajax").html('<div class="alert alert-success">All is ready!</data>');				
-						}	
+							$("#ajax").html('<div class="alert alert-success">'+data+'</data>');				
+						} else {
+							$('.alert-danger').remove();
+							$('.alert-warning').remove();
+							$("#ajax").html('<div class="alert alert-info">'+data+'</data>');
+						}
 					}
 				} );
 			}
@@ -92,8 +132,12 @@ $( function() {
 							$("#ajax").html('<div class="alert alert-danger">'+data+'</data>');
 						} else if (data.indexOf('success') != '-1'){
 							$('.alert-danger').remove();
-							$("#ajax").html('<div class="alert alert-success">All is ready!</data>');				
-						}	
+							$("#ajax").html('<div class="alert alert-success">'+data+'</data>');				
+						} else {
+							$('.alert-danger').remove();
+							$('.alert-warning').remove();
+							$("#ajax").html('<div class="alert alert-info">'+data+'</data>');
+						}
 					}
 				} );
 			}
@@ -116,13 +160,17 @@ $( function() {
 			type: "GET",
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
-				if (data.indexOf('error') != '-1' || data.indexOf('Failed') != '-1') {
+				if (data.indexOf('error') != '-1' || data.indexOf('FAILED') != '-1') {
 					$("#ajax").html('<div class="alert alert-danger">'+data+'</data>');
 				} else if (data.indexOf('success') != '-1' ){
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
 					$("#ajax").html('<div class="alert alert-success">'+data+'</data>');				
 				} else if (data.indexOf('Info') != '-1' ){
+					$('.alert-danger').remove();
+					$('.alert-warning').remove();
+					$("#ajax").html('<div class="alert alert-info">'+data+'</data>');
+				} else {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
 					$("#ajax").html('<div class="alert alert-info">'+data+'</data>');

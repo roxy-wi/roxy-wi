@@ -4,7 +4,6 @@ import cgi
 import os, sys
 import funct
 import sql
-import asyncio
 
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
@@ -123,7 +122,7 @@ if form.getvalue('ip') is not None and serv is not None:
 	
 	
 if form.getvalue('showif'):
-	commands = ["sudo ip link|grep 'UP' | awk '{print $2}'  |awk -F':' '{print $1}'"]
+	commands = ["sudo ip link|grep 'UP' |grep -v 'lo'| awk '{print $2}'  |awk -F':' '{print $1}'"]
 	funct.ssh_command(serv, commands, ip="1")
 	
 	
@@ -147,116 +146,118 @@ if form.getvalue('action_waf') is not None and serv is not None:
 	funct.ssh_command(serv, commands)		
 	
 	
-async def async_get_overview(serv1, serv2):
-	server_status = ()
-	commands2 = [ "ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l" ]
-	cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Process_num"' % (serv2, sql.get_setting('haproxy_sock_port'))
-	server_status = (serv1, 
-					serv2, 
-					funct.server_status(funct.subprocess_execute(cmd)), 
-					sql.select_servers(server=serv2, keep_alive=1),
-					funct.ssh_command(serv2, commands2),
-					sql.select_waf_servers(serv2))
-	return server_status
+if act == "overview":	
+	import asyncio
+	async def async_get_overview(serv1, serv2):
+		server_status = ()
+		commands2 = [ "ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l" ]
+		cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Process_num"' % (serv2, sql.get_setting('haproxy_sock_port'))
+		server_status = (serv1, 
+						serv2, 
+						funct.server_status(funct.subprocess_execute(cmd)), 
+						sql.select_servers(server=serv2, keep_alive=1),
+						funct.ssh_command(serv2, commands2),
+						sql.select_waf_servers(serv2))
+		return server_status
 
-async def get_runner_overview():
-	import http.cookies
-	from jinja2 import Environment, FileSystemLoader
-	env = Environment(loader=FileSystemLoader('templates/ajax'),extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
+
+	async def get_runner_overview():
+		import http.cookies
+		from jinja2 import Environment, FileSystemLoader
+		env = Environment(loader=FileSystemLoader('templates/ajax'),extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
+		
+		servers = []
+		template = env.get_template('overview.html')
+		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+		user_id = cookie.get('uuid')
+		futures = [async_get_overview(server[1], server[2]) for server in sql.get_dick_permit()]
+		for i, future in enumerate(asyncio.as_completed(futures)):
+			result = await future
+			servers.append(result)
+		servers_sorted = sorted(servers, key=funct.get_key)
+		template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_id.value))
+		print(template)
 	
-	servers = []
-	template = env.get_template('overview.html')
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_id = cookie.get('uuid')
-	futures = [async_get_overview(server[1], server[2]) for server in sql.get_dick_permit()]
-	for i, future in enumerate(asyncio.as_completed(futures)):
-		result = await future
-		servers.append(result)
-	servers_sorted = sorted(servers, key=funct.get_key)
-	template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_id.value))
-	print(template)
 	
-	
-if act == "overview":
 	ioloop = asyncio.get_event_loop()
 	ioloop.run_until_complete(get_runner_overview())
 	ioloop.close()
 	
+	
+if act == "overviewwaf":	
+	import asyncio
+	async def async_get_overviewWaf(serv1, serv2):
+		haproxy_dir  = sql.get_setting('haproxy_dir')
+		server_status = ()
+		commands = [ "ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l" ]
+		commands1 = [ "cat %s/waf/modsecurity.conf  |grep SecRuleEngine |grep -v '#' |awk '{print $2}'" % haproxy_dir ]
+		
+		server_status = (serv1,serv2, funct.ssh_command(serv2, commands), funct.ssh_command(serv2, commands1).strip(), sql.select_waf_metrics_enable_server(serv2))
+		return server_status
 
-async def async_get_overviewWaf(serv1, serv2):
-	haproxy_dir  = sql.get_setting('haproxy_dir')
-	server_status = ()
-	commands = [ "ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l" ]
-	commands1 = [ "cat %s/waf/modsecurity.conf  |grep SecRuleEngine |grep -v '#' |awk '{print $2}'" % haproxy_dir ]
-	
-	server_status = (serv1,serv2, funct.ssh_command(serv2, commands), funct.ssh_command(serv2, commands1).strip(), sql.select_waf_metrics_enable_server(serv2))
-	return server_status
 
-
-async def get_runner_overviewWaf(url):
-	import http.cookies
-	from jinja2 import Environment, FileSystemLoader
-	env = Environment(loader=FileSystemLoader('templates/ajax'),extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
-	template = env.get_template('overivewWaf.html')
+	async def get_runner_overviewWaf(url):
+		import http.cookies
+		from jinja2 import Environment, FileSystemLoader
+		env = Environment(loader=FileSystemLoader('templates/ajax'),extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
+		template = env.get_template('overivewWaf.html')
+		
+		servers = []
+		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+		user_id = cookie.get('uuid')
+		futures = [async_get_overviewWaf(server[1], server[2]) for server in sql.get_dick_permit()]
+		for i, future in enumerate(asyncio.as_completed(futures)):
+			result = await future
+			servers.append(result)
+		servers_sorted = sorted(servers, key=funct.get_key)
+		template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_id.value), url=url)
+		print(template)
 	
-	servers = []
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_id = cookie.get('uuid')
-	futures = [async_get_overviewWaf(server[1], server[2]) for server in sql.get_dick_permit()]
-	for i, future in enumerate(asyncio.as_completed(futures)):
-		result = await future
-		servers.append(result)
-	servers_sorted = sorted(servers, key=funct.get_key)
-	template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_id.value), url=url)
-	print(template)
-	
-	
-if act == "overviewwaf":
 	ioloop = asyncio.get_event_loop()
 	ioloop.run_until_complete(get_runner_overviewWaf(form.getvalue('page')))
 	ioloop.close()
 	
 	
-async def async_get_overviewServers(serv1, serv2):
-	server_status = ()
-	commands =  [ "top -u haproxy -b -n 1" ]
-	cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|Maxco\|MB\|Uptime:"' % (serv2, sql.get_setting('haproxy_sock_port'))
-	out = funct.subprocess_execute(cmd)
-	out1 = ""
-	
-	for k in out:
-		if "Ncat:" not in k:
-			for r in k:
-				out1 += r
-				out1 += "<br />"
-		else:
-			out1 = "Can\'t connect to HAproxy"
-
-	server_status = (serv1,serv2, out1, funct.ssh_command(serv2, commands))
-	return server_status
-	
-	
-async def get_runner_overviewServers(**kwargs):
-	import http.cookies
-	from jinja2 import Environment, FileSystemLoader
-	env = Environment(loader=FileSystemLoader('templates/ajax'),extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
-	template = env.get_template('overviewServers.html')	
-	
-	servers = []	
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_id = cookie.get('uuid')
-	role = sql.get_user_role_by_uuid(user_id.value)
-	futures = [async_get_overviewServers(kwargs.get('server1'), kwargs.get('server2'))]
-
-	for i, future in enumerate(asyncio.as_completed(futures)):
-		result = await future
-		servers.append(result)
-	servers_sorted = sorted(servers, key=funct.get_key)
-	template = template.render(service_status=servers_sorted, role=role, id=kwargs.get('id'))
-	print(template)	
-	
-	
 if act == "overviewServers":
+	import asyncio	
+	async def async_get_overviewServers(serv1, serv2):
+		server_status = ()
+		commands =  [ "top -u haproxy -b -n 1" ]
+		cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|Maxco\|MB\|Uptime:"' % (serv2, sql.get_setting('haproxy_sock_port'))
+		out = funct.subprocess_execute(cmd)
+		out1 = ""
+		
+		for k in out:
+			if "Ncat:" not in k:
+				for r in k:
+					out1 += r
+					out1 += "<br />"
+			else:
+				out1 = "Can\'t connect to HAproxy"
+
+		server_status = (serv1,serv2, out1, funct.ssh_command(serv2, commands))
+		return server_status
+		
+		
+	async def get_runner_overviewServers(**kwargs):
+		import http.cookies
+		from jinja2 import Environment, FileSystemLoader
+		env = Environment(loader=FileSystemLoader('templates/ajax'),extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
+		template = env.get_template('overviewServers.html')	
+		
+		servers = []	
+		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+		user_id = cookie.get('uuid')
+		role = sql.get_user_role_by_uuid(user_id.value)
+		futures = [async_get_overviewServers(kwargs.get('server1'), kwargs.get('server2'))]
+
+		for i, future in enumerate(asyncio.as_completed(futures)):
+			result = await future
+			servers.append(result)
+		servers_sorted = sorted(servers, key=funct.get_key)
+		template = template.render(service_status=servers_sorted, role=role, id=kwargs.get('id'))
+		print(template)	
+	
 	id = form.getvalue('id')
 	name = form.getvalue('name')
 	ioloop = asyncio.get_event_loop()
@@ -619,11 +620,11 @@ if form.getvalue('master'):
 	os.system("cp scripts/%s ." % script)
 	
 	if form.getvalue('hap') == "1":
-		funct.install_haproxy(master, syn_flood='1')
-		funct.install_haproxy(slave, syn_flood='1')
+		funct.install_haproxy(master)
+		funct.install_haproxy(slave)
 		
 	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+ 
-				" ETH="+ETH+" IP="+str(IP)+" MASTER=MASTER"+" HOST="+str(master)+
+				" ETH="+ETH+" IP="+str(IP)+" MASTER=MASTER"+" SYN_FLOOD="+syn_flood+" HOST="+str(master)+
 				" USER="+str(ssh_user_name)+" PASS="+str(ssh_user_password)+" KEY="+str(ssh_key_name) ]
 	
 	output, error = funct.subprocess_execute(commands[0])
@@ -632,7 +633,20 @@ if form.getvalue('master'):
 		logging('localhost', error, haproxywi=1)
 		print('error: '+error)
 	else:
-		print(output[0])
+		for l in output:
+			if "msg" in l or "FAILED" in l:
+				l = l.split(':')[1]
+				l = l.split('"')[1]
+				print(l+"<br>")
+				break
+		else:
+			print('success: Master Keepalived was installed<br>')
+				
+	for sshs in sql.select_ssh(serv=slave):
+		ssh_enable = sshs[3]
+		ssh_user_name = sshs[4]
+		ssh_user_password = sshs[5]
+		ssh_key_name = fullpath+'/keys/%s.pem' % sshs[2]
 		
 	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" +proxy_serv+ 
 				" ETH="+ETH+" IP="+IP+" MASTER=BACKUP"+" HOST="+str(slave)+
@@ -644,31 +658,87 @@ if form.getvalue('master'):
 		logging('localhost', error, haproxywi=1)
 		print('error: '+error)
 	else:
-		print(output[0])
+		for l in output:
+			if "msg" in l or "FAILED" in l:
+				l = l.split(':')[1]
+				l = l.split('"')[1]
+				print(l+"<br>")
+				break
+		else:
+			print('success: Slave Keepalived was installed<br>')
 			
-	#os.system("rm -f %s" % script)
+	os.system("rm -f %s" % script)
 	sql.update_server_master(master, slave)
 	
 	
 if form.getvalue('masteradd'):
 	master = form.getvalue('masteradd')
 	slave = form.getvalue('slaveadd')
-	interface = form.getvalue('interfaceadd')
-	vrrpip = form.getvalue('vrrpipadd')
+	ETH = form.getvalue('interfaceadd')
+	IP = form.getvalue('vrrpipadd')
 	kp = form.getvalue('kp')
-	tmp_config_path = sql.get_setting('tmp_config_path')
-	script = "add_vrrp.sh"
+	script = "install_keepalived.sh"
+	fullpath = funct.get_config_var('main', 'fullpath')
+	proxy = sql.get_setting('proxy')
+	ssh_enable = ''
+	ssh_port = ''
+	ssh_user_name = ''
+	ssh_user_password = ''
 	
+	proxy_serv = proxy if proxy is not None else ""
+	
+	for sshs in sql.select_ssh(serv=master):
+		ssh_enable = sshs[3]
+		ssh_user_name = sshs[4]
+		ssh_user_password = sshs[5]
+		ssh_key_name = fullpath+'/keys/%s.pem' % sshs[2]
+		
 	os.system("cp scripts/%s ." % script)
 		
-	error = str(funct.upload(master, tmp_config_path, script))
-	if error:
-		print('error: '+error)
-		sys.exit()
-	funct.upload(slave, tmp_config_path, script)
+	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+ 
+				" ETH="+ETH+" IP="+str(IP)+" MASTER=MASTER"+" RESTART="+kp+" ADD_VRRP=1 HOST="+str(master)+
+				" USER="+str(ssh_user_name)+" PASS="+str(ssh_user_password)+" KEY="+str(ssh_key_name) ]
 	
-	funct.ssh_command(master, ["sudo chmod +x "+tmp_config_path+script, tmp_config_path+script+" MASTER "+interface+" "+vrrpip+" "+kp])
-	funct.ssh_command(slave, ["sudo chmod +x "+tmp_config_path+script, tmp_config_path+script+" BACKUP "+interface+" "+vrrpip+" "+kp])
+	output, error = funct.subprocess_execute(commands[0])
+	
+	if error:
+		logging('localhost', error, haproxywi=1)
+		print('error: '+error)
+	else:
+		for l in output:
+			if "msg" in l or "FAILED" in l:
+				l = l.split(':')[1]
+				l = l.split('"')[1]
+				print(l+"<br>")
+				break
+		else:
+			print('success: Master VRRP address was added<br>')
+		
+		
+	for sshs in sql.select_ssh(serv=slave):
+		ssh_enable = sshs[3]
+		ssh_user_name = sshs[4]
+		ssh_user_password = sshs[5]
+		ssh_key_name = fullpath+'/keys/%s.pem' % sshs[2]
+	
+	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+ 
+				" ETH="+ETH+" IP="+str(IP)+" MASTER=BACKUP"+" RESTART="+kp+" ADD_VRRP=1 HOST="+str(slave)+
+				" USER="+str(ssh_user_name)+" PASS="+str(ssh_user_password)+" KEY="+str(ssh_key_name) ]
+	
+	output, error = funct.subprocess_execute(commands[0])
+	
+	if error:
+		logging('localhost', error, haproxywi=1)
+		print('error: '+error)
+	else:
+		for l in output:
+			if "msg" in l or "FAILED" in l:
+				l = l.split(':')[1]
+				l = l.split('"')[1]
+				print(l+"<br>")
+				break
+		else:
+			print('success: Slave VRRP address was added<br>')
 			
 	os.system("rm -f %s" % script)
 	

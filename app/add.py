@@ -69,7 +69,7 @@ if form.getvalue('mode') is not None:
 		end_name = form.getvalue('listner')
 	elif form.getvalue('frontend') is not None:
 		name = "frontend " + form.getvalue('frontend')
-		backend = "    default_backend " + form.getvalue('backend') + "\n"
+		backend = "    default_backend " + form.getvalue('backends') + "\n"
 		end_name = form.getvalue('frontend')
 	elif form.getvalue('new_backend') is not None: 
 		name = "backend " + form.getvalue('new_backend')

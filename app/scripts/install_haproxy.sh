@@ -1,5 +1,4 @@
 #!/bin/bash
-
 for ARGUMENT in "$@"
 do
     KEY=$(echo $ARGUMENT | cut -f1 -d=)
@@ -21,21 +20,22 @@ do
             *)
     esac
 done
+
 export ANSIBLE_HOST_KEY_CHECKING=False
+export ANSIBLE_DISPLAY_SKIPPED_HOSTS=False
 PWD=`pwd`
 PWD=$PWD/scripts/ansible/
 echo $HOST > $PWD/$HOST
 
 if [[ $KEY == "" ]]; then
-	ansible-playbook $PWD/roles/haproxy.yml -e "ansible_user=$USER ansible_ssh_pass=$PASS variable_host=$HOST PROXY=$PROXY HAPVER=$HAPVER SOCK_PORT=$SOCK_PORT STAT_PORT=$STAT_PORT STATS_USER=$STATS_USER STATS_PASS=$STATS_PASS $STAT_FILE=$STAT_FILE SYN_FLOOD=$SYN_FLOOD" -i $PWD/$HOST > /tmp/install_haproxy.log
+	ansible-playbook $PWD/roles/haproxy.yml -e "ansible_user=$USER ansible_ssh_pass=$PASS variable_host=$HOST PROXY=$PROXY HAPVER=$HAPVER SOCK_PORT=$SOCK_PORT STAT_PORT=$STAT_PORT STATS_USER=$STATS_USER STATS_PASS=$STATS_PASS $STAT_FILE=$STAT_FILE SYN_FLOOD=$SYN_FLOOD" -i $PWD/$HOST
 else	
-	ansible-playbook $PWD/roles/haproxy.yml --key-file $KEY -e "ansible_user=$USER variable_host=$HOST PROXY=$PROXY HAPVER=$HAPVER SOCK_PORT=$SOCK_PORT STAT_PORT=$STAT_PORT STATS_USER=$STATS_USER STATS_PASS=$STATS_PASS STAT_FILE=$STAT_FILE SYN_FLOOD=$SYN_FLOOD" -i $PWD/$HOST > /tmp/install_haproxy.log
+	ansible-playbook $PWD/roles/haproxy.yml --key-file $KEY -e "ansible_user=$USER variable_host=$HOST PROXY=$PROXY HAPVER=$HAPVER SOCK_PORT=$SOCK_PORT STAT_PORT=$STAT_PORT STATS_USER=$STATS_USER STATS_PASS=$STATS_PASS STAT_FILE=$STAT_FILE SYN_FLOOD=$SYN_FLOOD" -i $PWD/$HOST 
 fi
 
-if [ $? -eq 1 ]
+if [ $? -gt 0 ]
 then
-        echo "error: Can't install Haproxy service. Look log in the /tmp/install_haproxy.log<br /><br />"
+        echo "error: Can't install Haproxy service <br /><br />"
         exit 1
 fi
-echo "success"
 rm -f $PWD/$HOST

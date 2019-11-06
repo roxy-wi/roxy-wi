@@ -1,0 +1,67 @@
+---        
+- name: check if Keepalived is installed
+  yum:
+    list=keepalived
+  register: is_installed
+  
+- name: Keepalived has already installed
+  debug:
+    msg: "Keepalived has already installed"
+  when: is_installed.results|selectattr("yumstate", "match", "installed")|list|length != 0
+
+- name: Exiting  
+  meta: end_play
+  when: is_installed.results|selectattr("yumstate", "match", "installed")|list|length != 0
+  
+  
+- name: install the latest version of Keepalived
+  yum:
+    name: 
+      - keepalived
+    state: latest
+  when: (ansible_facts['os_family'] == "RedHat") or (ansible_facts['os_family'] == 'CentOS')
+  environment:
+    http_proxy: "{{PROXY}}"
+    https_proxy: "{{PROXY}}"
+
+    
+- name: Install keepalived
+  apt:
+    name: 
+      - keepalived
+    state: present
+  when: (ansible_facts['os_family'] == 'Debian') or (ansible_facts['os_family'] == 'Ubuntu')
+  environment:
+    http_proxy: "{{PROXY}}"
+    https_proxy: "{{PROXY}}"
+
+  
+- name: Copy keepalived configuration in place.
+  template:
+    src: keepalived.conf.j2
+    dest: /etc/keepalived/keepalived.conf
+    mode: 0644
+  notify: restart keepalived
+  
+  
+- name: Enable and start service keepalived
+  service:
+    name: keepalived
+    daemon_reload: yes
+    state: started
+    enabled: yes
+  ignore_errors: yes
+  
+  
+- name: Enable net.ipv4.ip_forward
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_set: yes
+    state: present
+    reload: yes
+    
+    
+- name: Add syn_flood tasks
+  include: ../../haproxy/tasks/syn_flood.yml
+  when: (SYN_FLOOD is defined) and (SYN_FLOOD|length > 0)

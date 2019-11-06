@@ -353,7 +353,10 @@ def install_haproxy(serv, **kwargs):
 		
 	os.system("cp scripts/%s ." % script)
 	
-	proxy_serv = proxy if proxy is not None else ""
+	if hapver is None:
+		hapver = '2.0.7-1'
+		
+	proxy_serv = proxy if proxy is not None else ''
 	syn_flood_protect = '1' if kwargs.get('syn_flood') == "1" else ''
 		
 	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+ 
@@ -367,9 +370,17 @@ def install_haproxy(serv, **kwargs):
 		logging('localhost', error, haproxywi=1)
 		print('error: '+error)
 	else:
-		print(output[0])
+		for l in output:
+			if "msg" in l or "FAILED" in l:
+				l = l.split(':')[1]
+				l = l.split('"')[1]
+				print(l+"<br>")
+				break
+		else:
+			print('success: HAProxy was installed<br>')
 			
-
+	os.system("rm -f %s" % script)
+	
 	
 def waf_install(serv, **kwargs):
 	import sql
@@ -411,6 +422,7 @@ def check_haproxy_version(serv):
 	for line in output:
 		ver = line
 	return ver
+	
 	
 def upload(serv, path, file, **kwargs):
 	error = ""
@@ -618,7 +630,6 @@ def show_backends(serv, **kwargs):
 			back = json.dumps(line).split("\"")
 			if kwargs.get('ret'):
 				ret.append(back[1])
-				#ret += ","
 			else:
 				print(back[1], end="<br>")
 		
@@ -676,7 +687,6 @@ def check_new_version():
 		
 		res = response.content.decode(encoding='UTF-8')
 	except requests.exceptions.RequestException as e:
-		#print(e)
 		e = str(e)
 		logging('localhost', ' '+e, haproxywi=1)
 		

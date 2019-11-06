@@ -737,42 +737,6 @@ $( function() {
 		autoFocus: true,
 		minLength: -1
 	});
-	$( "#interface" ).autocomplete({
-		source: function( request, response ) {
-			$.ajax( {
-				url: "options.py",
-				data: {
-					showif:1,
-					serv: $("#master").val(),
-					token: $('#token').val()
-				},
-				success: function( data ) {
-					data = data.replace(/\s+/g,' ');
-					response(data.split(" "));
-				}						
-			} );
-		},
-		autoFocus: true,
-		minLength: -1
-	});
-	$( "#interface-add" ).autocomplete({
-		source: function( request, response ) {
-			$.ajax( {
-				url: "options.py",
-				data: {
-					showif:1,
-					serv: $("#master-add").val(),
-					token: $('#token').val()
-				},
-				success: function( data ) {
-					data = data.replace(/\s+/g,' ');
-					response(data.split(" "));
-				}						
-			} );
-		},
-		autoFocus: true,
-		minLength: -1
-	});
 	$( "#ssl_key_upload" ).click(function() {
 		$('.alert-danger').remove();
 		$.ajax( {

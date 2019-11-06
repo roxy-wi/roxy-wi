@@ -7,9 +7,9 @@
 	<tr class="overviewHead">
 		<td class="padding10 first-collumn">Master</td>
 		<td>Slave</td>
-		<td>VRRP interface</td>
+		<td><span title="Interface for VRRP addreess">Interface(?)</span></td>
 		<td>VRRP IP</td>
-		<td><span title="Haproxy-WI will try install haproxy-1.18.5, if it does not work then haproxy-1.15">Install HAProxy(?)</span></td>
+		<td><span title="HAProxy-WI will try install HAProxy">HAProxy(?)</span></td>
 		<td>SYN flood protect</td>
 		<td></td>
 	</tr>
@@ -30,8 +30,8 @@
 				{% endfor %}
 			</select>
 		</td>
-		<td>{{ input('interface') }}</td>
-		<td>{{ input('vrrp-ip') }}</td>
+		<td>{{ input('interface', size='7') }}</td>
+		<td>{{ input('vrrp-ip', size='14') }}</td>
 		<td>{{ checkbox('hap') }}</td>
 		<td>{{ checkbox('syn_flood') }}</td>
 		<td>
@@ -45,10 +45,10 @@
 	<tr class="overviewHead">
 		<td class="padding10 first-collumn">Master</td>
 		<td>Slave</td>
-		<td>VRRP interface</td>
+		<td><span title="Interface for VRRP addreess">Interface(?)</span></td>
 		<td>VRRP IP</td>
-		<td><span title="If checked Haproxy-WI will restart Keepalived">Restart Keepalived(?)</span></td>
-		<td style="width: 11%;"></td>
+		<td><span title="If checked HAProxy-WI will restart Keepalived">Restart(?)</span></td>
+		<td style="width: 20%;"></td>
 		<td></td>
 	</tr>
 	<tr>
@@ -68,8 +68,8 @@
 				{% endfor %}
 			</select>
 		</td>
-		<td>{{ input('interface-add') }}</td>
-		<td>{{ input('vrrp-ip-add') }}</td>
+		<td>{{ input('interface-add', size='7') }}</td>
+		<td>{{ input('vrrp-ip-add', size='14') }}</td>
 		<td>{{ checkbox('kp') }}</td>
 		<td></td>
 		<td>
@@ -78,4 +78,11 @@
 	</tr>
 </table>
 <div id="ajax"></div>
+<script>
+$( function() {
+	$( "select" ).selectmenu({
+	  width: 180
+	});
+});
+</script>
 {% endblock %}

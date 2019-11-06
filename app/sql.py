@@ -894,7 +894,7 @@ def select_waf_servers_metrics(uuid, **kwargs):
 	
 def select_waf_metrics(serv, **kwargs):
 	con, cur = create_db.get_cur()
-	sql = """ select * from (select * from waf_metrics where serv = '%s' order by `date` desc limit 30) order by `date`""" % serv
+	sql = """ select * from (select * from waf_metrics where serv = '%s' order by `date` desc limit 60) order by `date`""" % serv
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
@@ -987,7 +987,7 @@ def delete_mentrics():
 	
 def select_metrics(serv, **kwargs):
 	con, cur = create_db.get_cur()
-	sql = """ select * from (select * from metrics where serv = '%s' order by `date` desc limit 30) order by `date` """ % serv
+	sql = """ select * from (select * from metrics where serv = '%s' order by `date` desc limit 60) order by `date` """ % serv
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:

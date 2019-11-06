@@ -1,0 +1,28 @@
+---
+- name: Creation config from template
+  template:
+    src: add_vrrp.conf.j2
+    dest: /etc/keepalived/keepalived.conf_temp
+    mode: 0644
+    force: no
+    
+    
+- name: "Append keepalived.conf with content from temporary file"
+  shell: cat keepalived.conf_temp >> keepalived.conf
+  args:
+    chdir: "/etc/keepalived/"    
+ 
+ 
+- name: "Delete temporary file"
+  file:
+    path: /etc/keepalived/keepalived.conf_temp
+    state: absent
+    
+    
+- name: Restart service keepalived
+  service:
+    name: keepalived
+    state: restarted
+    force: no
+  ignore_errors: yes
+  when: (RESTART is defined) and (RESTART|length > 0)

@@ -58,10 +58,14 @@
 					<input type="hidden" value="{{ cfg }}.old" name="oldconfig"> 
 					<textarea name="config" class="config" rows="35" cols="100">{{ config }}</textarea> 
 					<p>
+					{% if not keepalived %}
 						<button type="submit" value="test" name="save" class="btn btn-default">Just test</button>
+					{% endif %}
 						<button type="submit" value="save" name="save" class="btn btn-default">Just save</button>
 						<button type="submit" value="" name="" class="btn btn-default">Save and restart</button>
+					{% if not keepalived %}
 						<button type="submit" value="reload" name="save" class="btn btn-default">Save and reload</button>
+					{% endif %}
 					</p>
 				</form>
 				{% if note %}
