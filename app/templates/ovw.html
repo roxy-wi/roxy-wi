@@ -128,11 +128,12 @@
 		<td>
 			{% if api|int() == 0 %}
 				<span class="serverNone server-status" title="REST API does not work"></span>
-				<span title="REST API">API</span>		
 			{% else %}
-				<span class="serverUp server-status" title="running {{api }} processes"></span>
-				<span title="REST API">API</span>							
+				<span class="serverUp server-status" title="running {{api }} processes"></span>							
 			{% endif %}
+			<a href="https://haproxy-wi.org/description.py?description=api" title="Read about REST API on HAProxy-WI.org" target="_blank" class="logs_link">
+				API	
+			</a>
 		</td>		
 	</tr>
 </table>

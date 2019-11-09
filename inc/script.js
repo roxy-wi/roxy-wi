@@ -571,12 +571,19 @@ $( function() {
 		$(".top-menu").show( "drop", "fast" );
 		$(".container").css("max-width", "100%");
 		$(".container").css("margin-left", "207px");
+		$(".footer").css("margin-left", "207px");
+		$(".footer").css("max-width", "100%");
+		$("#hide_menu").show();
+		$(".show_menu").hide();
 	}
 	if (hideMenu == "hide") {
 		$(".top-menu").hide();
 		$(".container").css("max-width", "97%");
 		$(".container").css("margin-left", "1%");
+		$(".footer").css("margin-left", "1%");
+		$(".footer").css("max-width", "97%");
 		$(".show_menu").show();
+		$("#hide_menu").hide();
 	}	
 	
 	var now = new Date(Date.now());
