@@ -7,6 +7,8 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 # Twitter
 [Twitter](https://twitter.com/haproxy_wi), subscribe! I will write there about all the changes and news
 
+# Telegram
+[Channel](https://t.me/haproxy_wi) about Haproxy-wi, talks and questions are welcome
 # Demo site
 [Demo site](https://demo.haproxy-wi.org) Login/password: admin/admin. Server resets every hour.
 
