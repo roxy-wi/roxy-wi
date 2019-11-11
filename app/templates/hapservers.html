@@ -90,7 +90,24 @@
 				{% endif %}
 			</div>
 		</div>
+		
 		<div id="ajax-server-{{s.0}}" class="ajax-server"></div>
+		{% if serv %}
+			{% if s.8 is defined %}
+			<div class="div-server">
+				<div class="server-name">	
+					Backends:
+				</div>
+				<div style="margin-top: 10px;">
+				{% for b in s.8 %}
+				<a href="/app/sections.py?serv={{ s.2 }}&section={{b}}" title="Edit backend {{b}}" target="_blank" style="padding-right: 10px;">
+					{{b}}
+				</a>
+				{% endfor %}
+				</div>
+			</div>
+			{% endif %}
+		{% endif %}
 	</div>
 	{% endfor %}
 </div>

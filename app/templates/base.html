@@ -235,7 +235,7 @@
 						{% set new_ver_without_dots = versions.3 %}
 					{% endif %}
 					{% if new_ver_without_dots is defined and current_ver_without_dots is defined and new_ver is defined and new_ver_without_dots is defined %}
-						<a href="https://haproxy-wi.org/changelog.py" title="View changelog" target="_blank" style="color: #000;">
+						<a style="color: #000; cursor: pointer;">
 							{% if new_ver_without_dots > current_ver_without_dots and new_ver != "Sorry cannot get current version" %}
 								<span id="show-updates-button" class="new-version-exists">v{{current_ver}} </span>
 							{% else %}

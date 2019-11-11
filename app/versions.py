@@ -42,7 +42,7 @@ if serv is not None and form.getvalue('del') is not None:
 				try:
 					os.remove(os.path.join(hap_configs_dir, form.getvalue(get)))
 					file.add(form.getvalue(get) + "<br />")
-					funct.logging(serv, "versions.py deleted config: %s" % form.getvalue(get))				
+					funct.logging(serv, "versions.py were deleted configs: %s" % form.getvalue(get))				
 				except OSError as e: 
 					stderr = "Error: %s - %s." % (e.filename,e.strerror)
 		print('<meta http-equiv="refresh" content="10; url=versions.py?serv=%s&open=open">' % form.getvalue('serv'))	
