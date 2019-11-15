@@ -597,6 +597,7 @@ def ssh_command(serv, commands, **kwargs):
 		ssh.close()
 	except:
 		print("<div class='alert alert-danger' style='margin: 0;'>"+str(ssh)+"<a title='Close' id='errorMess'><b>X</b></a></div>")
+		logging('localhost', ' '+str(ssh), haproxywi=1)
 		pass
 
 
