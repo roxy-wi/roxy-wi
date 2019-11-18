@@ -11,7 +11,8 @@
 	</center>
 	<div style="margin-left: 16%" class="configShow">
 	{% set i = 0 -%}
-	{% for line in conf %}
+	{% set section_name = {} %}
+	{% for line in conf -%}
 		{% set i = i + loop.index0 %}
 		{% if not role %}
 		{% if line.startswith('#HideBlockStart') %}
@@ -43,21 +44,24 @@
 				</span><div>
 			{% continue %}
 		{% endif %}
-		{% if line.startswith('listen') %}
-			</div><span class="param">{{ line }}
+		{%- if line.startswith('listen') -%}
+			</div><span class="param">{{- line -}}
 				{% if role %}
 				<span class="accordion-link">
 					<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
 				</span>
 				{% endif %}
-				{% set backend = line.split(' ') %}
+				{%- set backend = line.split(' ') -%}
 				<span class="accordion-link">
-					<a href="/app/viewsttats.py?serv={{serv}}#{{ backend[1]}}" target="_blank">Stats</a>
+					<a href="/app/viewsttats.py?serv={{-serv-}}#{{- backend[1]-}}" target="_blank">Stats</a>
 				</span>
-				</span><div>
-			{% continue %}
-		{% endif %}
-		{% if line.startswith('frontend') %}
+				{%- set backend = backend|join('_') -%}
+				{%- do section_name.update({i: backend}) -%}
+				<span id="{{-section_name[i]|replace('\n', '')-}}" class="accordion-link"></span>				
+				</span><div>	
+				{% continue %}
+		{%- endif -%}
+		{%- if line.startswith('frontend') -%}
 			</div><span class="param">{{ line }}
 				{% if role %}
 				<span class="accordion-link">
@@ -67,10 +71,13 @@
 				{% set backend = line.split(' ') %}
 				<span class="accordion-link">
 					<a href="/app/viewsttats.py?serv={{serv}}#{{ backend[1]}}" target="_blank">Stats</a>
-				</span>				
-				</span><div>
-			{% continue %} 
-		{% endif %}
+				</span>	
+				{% set backend = backend|join('_') %}
+				{% do section_name.update({i: backend}) %}
+				<span id="{{sep_section_name[i]|replace('\n', '')}}" class="accordion-link"></span>			
+				</span><div>	
+				{% continue %}
+		{%- endif -%}
 		{% if line.startswith('backend') %}
 			</div><span class="param">{{ line }} 
 				{% if role %}
@@ -141,7 +148,14 @@
 				{{ line }}
 			</span><br />	
 		{% endif %}
-	{% endfor %}
+		{%- if "bind" in line -%}
+			{%- set bind = line.split(':') -%}
+			<script>
+				{% set k = i - 1 %}
+				$('#{{-section_name[k]|replace("\n", "")-}}').html('<a href="http://{{-serv-}}:{{-bind[1]|replace("\n", "")-}}" title="Open {{serv-}}:{{-bind[1]|replace("\n", "")-}}" target="_blank">Open</a>')
+			</script>
+		{%- endif -%}
+	{%- endfor -%}
 	</div>
 	</div>
 	{% if configver %}

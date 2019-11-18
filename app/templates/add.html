@@ -156,7 +156,6 @@ h3 {
 					<div class="tooltip">
 						<span style="padding-right: 10px;">Start typing options: </span>
 						{{ input('options') }}
-						<input type="text" id="options" class="form-control">
 						<span style="padding-left: 10px;">
 							or press down. <a href="http://cbonte.github.io/haproxy-dconv/1.7/configuration.html" target="_blanck" style="color: #23527c" title="HAproxy docs">Read more about options</a>
 						</span>
@@ -214,7 +213,7 @@ h3 {
 		<!-- Second tabs -->
 		
 	<div id="frontend">
-		<form name="add-frontend" action="/app/add.py">
+		<form name="add-frontend" action="/app/add.py" method="get">
 		<table>
 			<caption><h3>Add frontend</h3></caption>
 			<tr>
@@ -345,7 +344,7 @@ h3 {
 		</tr>
 		<tr>
 			<td class="addButton">
-				<button type="submit" value="" name="" class="btn btn-default">Add Frontend</button>
+				<button type="submit">Add Frontend</button>
 			</td>
 		</tr>
 		</form>

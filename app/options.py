@@ -560,7 +560,7 @@ if serv is not None and form.getvalue('right') is not None:
 	right = form.getvalue('right')
 	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 	cmd='diff -ub %s%s %s%s' % (hap_configs_dir, left, hap_configs_dir, right)	
-	env = Environment(loader=FileSystemLoader('templates/'), autoescape=True, extensions=['jinja2.ext.loopcontrols', "jinja2.ext.do"])
+	env = Environment(loader=FileSystemLoader('templates/'), autoescape=True, extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
 	template = env.get_template('ajax/compare.html')
 	
 	output, stderr = funct.subprocess_execute(cmd)
@@ -585,7 +585,7 @@ if serv is not None and act == "configShow":
 		print('<div class="alert alert-danger">Can\'t read import config file</div>')
 		
 	from jinja2 import Environment, FileSystemLoader
-	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True, extensions=['jinja2.ext.loopcontrols'])
+	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True, trim_blocks=True, lstrip_blocks=True, extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
 	template = env.get_template('config_show.html')
 	
 	template = template.render(conf=conf, view=form.getvalue('view'), serv=serv, configver=form.getvalue('configver'), role=funct.is_admin(level=2))											
