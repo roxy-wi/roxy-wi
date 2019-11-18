@@ -74,7 +74,7 @@
 				</span>	
 				{% set backend = backend|join('_') %}
 				{% do section_name.update({i: backend}) %}
-				<span id="{{sep_section_name[i]|replace('\n', '')}}" class="accordion-link"></span>			
+				<span id="{{section_name[i]|replace('\n', '')}}" class="accordion-link"></span>			
 				</span><div>	
 				{% continue %}
 		{%- endif -%}
