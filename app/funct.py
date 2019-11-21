@@ -727,6 +727,8 @@ def versions():
 	
 	
 def get_hash(value):
+	if value is None:
+		return value
 	import hashlib
 	h = hashlib.md5(value.encode('utf-8'))
 	p = h.hexdigest()

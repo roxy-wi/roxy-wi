@@ -228,6 +228,10 @@ $( function() {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
 					$("#ajax-update").html('<div class="alert alert-danger">It is seems like you Unauthorized in the HAProxy-WI repository.</data>');
+				} else if (data.indexOf('Error: Package') != '-1') {
+					$('.alert-danger').remove();
+					$('.alert-warning').remove();
+					$("#ajax-update").html('<div class="alert alert-danger">'+data+'</data>');
 				}
 			}
 		} ); 	
