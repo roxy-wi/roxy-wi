@@ -372,10 +372,14 @@ def install_haproxy(serv, **kwargs):
 	else:
 		for l in output:
 			if "msg" in l or "FAILED" in l:
-				l = l.split(':')[1]
-				l = l.split('"')[1]
-				print(l+"<br>")
-				break
+				try:
+					l = l.split(':')[1]
+					l = l.split('"')[1]
+					print(l+"<br>")
+					break
+				except:
+					print(output)
+					break
 		else:
 			print('success: HAProxy was installed<br>')
 			
