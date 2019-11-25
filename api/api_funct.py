@@ -257,10 +257,48 @@ def add_to_config(id):
 			
 		data = {id: return_mess}
 	except:
-		data = {}
 		data[id] = {"error":"Cannot find the server"}
 		return dict(error=data)
 			
 	return dict(config=data)	
+	
+	
+def show_log(id):
+	data = {}
+	rows = request.headers.get('rows')
+	waf = request.headers.get('waf')
+	grep = request.headers.get('grep')
+	hour = request.headers.get('starthour')
+	minut = request.headers.get('startminut')
+	hour1 = request.headers.get('endhour')
+	minut1 = request.headers.get('endminut')
+	
+	if rows is None:
+		rows = '10'
+	if waf is None:
+		waf = '0'
+	if hour is None:
+		hour = '00'
+	if minut is None:
+		minut = '00'
+	if hour1 is None:
+		hour1 = '24'
+	if minut1 is None:
+		minut1 = '00'
+
+	try:
+		servers = check_permit_to_server(id)
+		
+		for s in servers:
+			ip = s[2]
+	except:
+		
+		data[id] = {"error":"Cannot find the server"}
+		return dict(error=data)
+		
+	out = funct.show_haproxy_log(ip, rows=rows, waf=str(waf), grep=grep, hour=str(hour), minut=str(minut), hour1=str(hour1), minut1=str(minut1), html=0)
+	data = {id: out}
+
+	return dict(log=data)
 		
 	

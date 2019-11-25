@@ -546,12 +546,51 @@ def check_haproxy_config(serv):
 	ssh.close()
 		
 		
-def show_log(stdout):
+def show_log(stdout, **kwargs):
 	i = 0
-	for line in stdout:
-		i = i + 1
-		line_class = "line3" if i % 2 == 0 else "line"
-		print('<div class="'+line_class+'">' + escape_html(line) + '</div>')
+	out = ''
+	for line in stdout:		
+		if kwargs.get("html") != 0:
+			i = i + 1
+			line_class = "line3" if i % 2 == 0 else "line"
+			out += '<div class="'+line_class+'">' + escape_html(line) + '</div>'
+		else:
+			out += line
+		
+	return out
+		
+		
+def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', hour1='24', minut1='00', **kwargs):
+	import sql
+	date = hour+':'+minut
+	date1 = hour1+':'+minut1
+	if grep is not None:
+        	grep_act  = '|grep'
+	else:
+		grep_act = ''
+		grep = ''
+
+	syslog_server_enable = sql.get_setting('syslog_server_enable')
+	if syslog_server_enable is None or syslog_server_enable == "0":
+		local_path_logs = sql.get_setting('local_path_logs')
+		syslog_server = serv	
+		commands = [ "sudo cat %s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s  %s %s" % (local_path_logs, date, date1, rows, grep_act, grep) ]		
+	else:
+		commands = [ "sudo cat /var/log/%s/syslog.log | sed '/ %s:00/,/ %s:00/! d' |tail -%s  %s %s" % (serv, date, date1, rows, grep_act, grep) ]
+		syslog_server = sql.get_setting('syslog_server')
+	
+	if waf == "1":
+		local_path_logs = '/var/log/modsec_audit.log'
+		commands = [ "sudo cat %s |tail -%s  %s %s" % (local_path_logs, rows, grep_act, grep) ]	
+		
+	
+	if kwargs.get('html') == 0:
+		a = ssh_command(syslog_server, commands)
+		return show_log(a, html=0)	
+	else:
+		return ssh_command(syslog_server, commands, show_log='1')
+
+	
 			
 			
 def show_ip(stdout):
@@ -583,7 +622,7 @@ def ssh_command(serv, commands, **kwargs):
 		if kwargs.get("ip") == "1":
 			show_ip(stdout)
 		elif kwargs.get("show_log") == "1":
-			show_log(stdout)
+			return show_log(stdout)
 		elif kwargs.get("server_status") == "1":
 			server_status(stdout)
 		elif kwargs.get('print_out'):

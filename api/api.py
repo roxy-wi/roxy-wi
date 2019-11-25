@@ -70,7 +70,8 @@ def index():
 		'server/<id,hostname,ip>/action/restart':'restart HAProxy service by id or hostname or ip',
 		'server/<id,hostname,ip>/config/get':'get HAProxy config from the server by id or hostname or ip',
 		'server/<id,hostname,ip>/config/send':'send HAProxy config to the server by id or hostname or ip. Has to have config header with config and action header for action after upload. Action header accepts next value: save, test, reload and restart. May be empty for just save',
-		'server/<id,hostname,ip>/config/add':'add section to the HAProxy config by id or hostname or ip. Has to have config header with section and action header for action after upload. Action header accepts next value: save, test, reload and restart. May be empty for just save'
+		'server/<id,hostname,ip>/config/add':'add section to the HAProxy config by id or hostname or ip. Has to have config header with section and action header for action after upload. Action header accepts next value: save, test, reload and restart. May be empty for just save',
+		'server/<id,hostname,ip>/log':'show HAProxy log by id or hostname or ip. May to have config next headers: rows(format INT) default: 10 grep, waf(if needs WAF log) deault: 0, start_hour(format: 24) default: 00, start_minut, end_hour(format: 24) default: 24, end_minut'
 	}
 	return dict(help=data)
 	
@@ -169,4 +170,12 @@ def callback(id):
 	if not check_login():
 		return dict(error=_error_auth)
 	return api_funct.add_to_config(id)
+	
+	
+@route('/server/<id>/log', method=['GET', 'POST'])
+@route('/server/<id:int>/log', method=['GET', 'POST'])
+def callback(id):
+	if not check_login():
+		return dict(error=_error_auth)
+	return api_funct.show_log(id)
 	

@@ -328,7 +328,7 @@ if serv is not None and act == "stats":
 	data = response.content
 	print(data.decode('utf-8'))
 	
-
+	
 if serv is not None and form.getvalue('rows') is not None:
 	rows = form.getvalue('rows')
 	waf = form.getvalue('waf')
@@ -337,29 +337,8 @@ if serv is not None and form.getvalue('rows') is not None:
 	minut = form.getvalue('minut')
 	hour1 = form.getvalue('hour1')
 	minut1 = form.getvalue('minut1')
-	date = hour+':'+minut
-	date1 = hour1+':'+minut1
-	
-	if grep is not None:
-        	grep_act  = '|grep'
-	else:
-		grep_act = ''
-		grep = ''
-
-	syslog_server_enable = sql.get_setting('syslog_server_enable')
-	if syslog_server_enable is None or syslog_server_enable == "0":
-		local_path_logs = sql.get_setting('local_path_logs')
-		syslog_server = serv	
-		commands = [ "sudo cat %s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s  %s %s" % (local_path_logs, date, date1, rows, grep_act, grep) ]		
-	else:
-		commands = [ "sudo cat /var/log/%s/syslog.log | sed '/ %s:00/,/ %s:00/! d' |tail -%s  %s %s" % (serv, date, date1, rows, grep_act, grep) ]
-		syslog_server = sql.get_setting('syslog_server')
-	
-	if waf == "1":
-		local_path_logs = '/var/log/modsec_audit.log'
-		commands = [ "sudo cat %s |tail -%s  %s %s" % (local_path_logs, rows, grep_act, grep) ]	
-		
-	funct.ssh_command(syslog_server, commands, show_log="1")
+	out = funct.show_haproxy_log(serv, rows=rows, waf=waf, grep=grep, hour=hour, minut=minut, hour1=hour1, minut1=minut1)
+	print(out)
 	
 	
 if serv is not None and form.getvalue('rows1') is not None:
@@ -386,7 +365,7 @@ if serv is not None and form.getvalue('rows1') is not None:
 
 	output, stderr = funct.subprocess_execute(cmd)
 
-	funct.show_log(output)
+	print(funct.show_log(output))
 	print(stderr)
 	
 		
@@ -411,7 +390,7 @@ if form.getvalue('viewlogs') is not None:
 	cmd="cat %s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s  %s %s" % (log_path + viewlog, date, date1, rows, grep_act, grep)
 	output, stderr = funct.subprocess_execute(cmd)
 
-	funct.show_log(output)
+	print(funct.show_log(output))
 	print(stderr)
 		
 		
