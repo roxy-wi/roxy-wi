@@ -609,7 +609,7 @@ if form.getvalue('master'):
 	output, error = funct.subprocess_execute(commands[0])
 	
 	if error:
-		logging('localhost', error, haproxywi=1)
+		funct.logging('localhost', error, haproxywi=1)
 		print('error: '+error)
 	else:
 		for l in output:
@@ -634,7 +634,7 @@ if form.getvalue('master'):
 	output, error = funct.subprocess_execute(commands[0])
 	
 	if error:
-		logging('localhost', error, haproxywi=1)
+		funct.logging('localhost', error, haproxywi=1)
 		print('error: '+error)
 	else:
 		for l in output:
@@ -681,7 +681,7 @@ if form.getvalue('masteradd'):
 	output, error = funct.subprocess_execute(commands[0])
 	
 	if error:
-		logging('localhost', error, haproxywi=1)
+		funct.logging('localhost', error, haproxywi=1)
 		print('error: '+error)
 	else:
 		for l in output:
@@ -707,7 +707,7 @@ if form.getvalue('masteradd'):
 	output, error = funct.subprocess_execute(commands[0])
 	
 	if error:
-		logging('localhost', error, haproxywi=1)
+		funct.logging('localhost', error, haproxywi=1)
 		print('error: '+error)
 	else:
 		for l in output:
