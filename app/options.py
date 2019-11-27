@@ -614,8 +614,6 @@ if form.getvalue('master'):
 	else:
 		for l in output:
 			if "msg" in l or "FAILED" in l:
-				l = l.split(':')[1]
-				l = l.split('"')[1]
 				print(l+"<br>")
 				break
 		else:
@@ -639,8 +637,6 @@ if form.getvalue('master'):
 	else:
 		for l in output:
 			if "msg" in l or "FAILED" in l:
-				l = l.split(':')[1]
-				l = l.split('"')[1]
 				print(l+"<br>")
 				break
 		else:
