@@ -3,15 +3,16 @@
   yum:
     list=haproxy
   register: is_installed
+  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS')
   
 - name: HAProxy has already installed
   debug:
     msg: "HAProxy has already installed"
-  when: is_installed.results|selectattr("yumstate", "match", "installed")|list|length != 0
+  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and is_installed.results|selectattr("yumstate", "match", "installed")|list|length != 0
 
 - name: Exiting  
   meta: end_play
-  when: is_installed.results|selectattr("yumstate", "match", "installed")|list|length != 0
+  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and is_installed.results|selectattr("yumstate", "match", "installed")|list|length != 0
 
 - name: install HAProxy {{HAPVER}}
   yum:
