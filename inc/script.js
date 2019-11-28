@@ -824,6 +824,36 @@ $( function() {
 			} );
 		}
 	}
+	$( "#haproxyaddserv" ).on('selectmenuchange',function() {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				get_hap_v: 1,
+				serv: $('#haproxyaddserv option:selected').val(),
+				token: $('#token').val()
+			},
+			type: "GET",
+			success: function( data ) {	
+				data = data.replace(/^\s+|\s+$/g,'');
+				if(data != '') {				
+					data = data+'-1';
+					$('#cur_hap_ver').text(data);
+					$('#install').text('Update');
+					$('#install').attr('title', 'Update HAProxy');
+					$('#syn_flood').checkboxradio('disable');
+					$('#syn_flood').prop( "checked", false );
+					$('#syn_flood').checkboxradio('refresh');
+				} else {
+					$('#cur_hap_ver').text('HAProxy has not installed');
+					$('#install').text('Install');
+					$('#install').attr('title', 'Install HAProxy');
+					$('#syn_flood').checkboxradio('enable');
+					$('#syn_flood').prop( "checked", true );
+					$('#syn_flood').checkboxradio('refresh');
+				}
+			}
+		} );
+	});
 });
 function sleep(ms) {
 	return new Promise(resolve => setTimeout(resolve, ms));
@@ -858,7 +888,6 @@ function change_select_acceleration(id) {
 		},
 		type: "GET",
 		success: function( data ) {	
-			console.log(data)
 			if(parseFloat(data) < parseFloat('1.8')) {	
 				$("#cache"+id).checkboxradio( "disable" );
 			} else {
@@ -877,7 +906,6 @@ function change_select_waf(id) {
 		},
 		type: "GET",
 		success: function( data ) {	
-			console.log(data)
 			if(parseFloat(data) < parseFloat('1.8')) {	
 				$("#waf"+id).checkboxradio( "disable" );
 			} else {

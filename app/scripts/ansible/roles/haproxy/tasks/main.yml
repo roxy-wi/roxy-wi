@@ -1,19 +1,9 @@
 ---      
-- name: check if HAProxy is installed
-  yum:
-    list=haproxy
-  register: is_installed
-  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS')
+- name: check if HAProxy is installed Ubuntu
+  package_facts:
+    manager: "auto"
   
-- name: HAProxy has already installed
-  debug:
-    msg: "HAProxy has already installed"
-  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and is_installed.results|selectattr("yumstate", "match", "installed")|list|length != 0
-
-- name: Exiting  
-  meta: end_play
-  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and is_installed.results|selectattr("yumstate", "match", "installed")|list|length != 0
-
+  
 - name: install HAProxy {{HAPVER}}
   yum:
     name: 
@@ -69,31 +59,12 @@
     https_proxy: "{{PROXY}}"
     
     
-- name: Get HAProxy version.
-  command: haproxy -v
-  register: haproxy_version_result
-  changed_when: false
-  check_mode: false
-  
-- name: Set HAProxy version.
-  set_fact:
-    haproxy_version: "{{ '1.5' if '1.5.' in haproxy_version_result.stdout else '1.6' }}"
-  
-- name: Copy HAProxy configuration in place.
-  template:
-    src: haproxy.cfg.j2
-    dest: /etc/haproxy/haproxy.cfg
-    mode: 0644
-    validate: haproxy -f %s -c -q
-  notify: restart haproxy
-  
-  
 - name: Change wrong HAProxy service file
   template:
     src: haproxy.service.j2
     dest: /usr/lib/systemd/system/haproxy.service
     mode: 0644
-  when: haproxy_from_wi is defined
+  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and haproxy_from_wi is defined
   
   
 - name: Enable and start service HAProxy
@@ -104,6 +75,44 @@
     enabled: yes
     force: no
   ignore_errors: yes
+  when: "'haproxy' in ansible_facts.packages"
+  
+
+- name: Exiting  
+  meta: end_play
+  when: "'haproxy' in ansible_facts.packages"
+    
+    
+- name: Get HAProxy version.
+  command: haproxy -v
+  register: haproxy_version_result
+  changed_when: false
+  check_mode: false
+  
+  
+- name: Set HAProxy version.
+  set_fact:
+    haproxy_version: "{{ '1.5' if '1.5.' in haproxy_version_result.stdout else '1.6' }}"
+    
+  
+- name: Copy HAProxy configuration in place.
+  template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+    mode: 0644
+    validate: haproxy -f %s -c -q
+  notify: restart haproxy
+  
+  
+- name: Enable and start service HAProxy
+  systemd:
+    name: haproxy
+    daemon_reload: yes
+    state: started
+    enabled: yes
+    force: no
+  ignore_errors: yes
+  
   
 - name: Add syn_flood tasks
   include: syn_flood.yml

@@ -12,7 +12,7 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 # Demo site
 [Demo site](https://demo.haproxy-wi.org) Login/password: admin/admin. Server resets every hour.
 
-![alt text](image/haproxy-wi-config-show.jpeg "Show config page")
+![alt text](image/haproxy-wi-config-show.png "Show config page")
 
 # Features:
 1.	Configure HAProxy In a jiffy with haproxy-wi
@@ -20,17 +20,17 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 3.	Enable/disable servers through stats page without rebooting HAProxy
 4.	View/Analyse HAproxy logs straight from the haproxy-wi web interface
 5.	Create and visualise the HAproxy workflow from Web Ui.
-6.	Push Your changes to your HAproxy servers with a single click through web interface.
-7.	Get info on past changes, Evaluate your config files and restore a previous stable config anytime with a single click straight from Web interface.
+6.	Push Your changes to your HAproxy servers with a single click through web interface
+7.	Get info on past changes, Evaluate your config files and restore a previous stable config anytime with a single click straight from Web interface
 8.	Add/Edit Frontend or backend servers via web interface with a click of a button.
-9.	Edit config of HAproxy and push changes to All Master/Slave server with a single click.
+9.	Edit config of HAProxy and push changes to All Master/Slave server with a single click
 10.	Add Multiple server to ensure Config Sync between servers.
 11.	Auto management of ports assigned to Fronted. 
 12.	Evaluate the changes of recent configs pushed to HAproxy instances straight from web ui
-13.	Multiple User Roles support for privileged based Viewing and editing of Config.
+13.	Multiple User Roles support for privileged based Viewing and editing of Config
 14.	Create Groups and add /remove servers to ensure proper identification for your HAproxy Clusters
-15.	Send notifications to telegram directly from haproxy-wi.
-16.	HAProxy-WI supports high Availability to ensure uptime to all Master slave servers configured.
+15.	Send notifications to telegram directly from HAProxy-WI
+16.	HAProxy-WI supports high Availability to ensure uptime to all Master slave servers configured
 17.	SSL certificate support.
 18.	SSH Key support for managing multiple HAproxy Servers straight from haproxy-wi
 19. SYN flood protect
@@ -44,6 +44,7 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 27. Ability to hide parts of the config with tags for users with "guest" role:  "HideBlockStart" and "HideBlockEnd"
 28. Mobile-ready desing
 29. REST API
+30. Installation and Upgrading HAProxy service via HAProxy-WI
 
 ![alt text](image/haproxy-wi-metrics.png "Merics")
 
@@ -73,6 +74,7 @@ $ chown -R apache:apache haproxy-wi/
 Or if use Debian/Ubuntu:
 
 $ sudo 	apt-get install git  net-tools lshw dos2unix apache2 gcc netcat python3.5 python3.5-mod_wsgi mod_ssl python3-pip g++ freetype2-demos libatlas-base-dev openldap-dev libpq-dev python-dev libxml2-dev libxslt1-dev libldap2-dev libsasl2-dev libffi-dev python3-dev libssl-dev ansible -y
+$ git clone https://github.com/Aidaho12/haproxy-wi.git /var/www/haproxy-wi
 $ chown -R www-data:www-data haproxy-wi/
 
 Both

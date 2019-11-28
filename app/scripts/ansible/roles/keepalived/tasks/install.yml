@@ -1,18 +1,17 @@
 ---        
 - name: check if Keepalived is installed
-  yum:
-    list=keepalived
-  register: is_installed
-  when: (ansible_facts['os_family'] == "RedHat") or (ansible_facts['os_family'] == 'CentOS')
+  package_facts:
+    manager: "auto"
+  
   
 - name: Keepalived has already installed
   debug:
     msg: "Keepalived has already installed"
-  when: is_installed.results|selectattr("yumstate", "match", "installed")|list|length != 0
+  when: "'keepalived' in ansible_facts.packages"
 
 - name: Exiting  
   meta: end_play
-  when: (ansible_facts['os_family'] == "RedHat") or (ansible_facts['os_family'] == 'CentOS') and is_installed.results|selectattr("yumstate", "match", "installed")|list|length != 0
+  when: "'keepalived' in ansible_facts.packages"
   
   
 - name: install the latest version of Keepalived

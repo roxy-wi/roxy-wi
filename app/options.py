@@ -614,10 +614,14 @@ if form.getvalue('master'):
 	else:
 		for l in output:
 			if "msg" in l or "FAILED" in l:
-				l = l.split(':')[1]
-				l = l.split('"')[1]
-				print(l+"<br>")
-				break
+				try:
+					l = l.split(':')[1]
+					l = l.split('"')[1]
+					print(l+"<br>")
+					break
+				except:
+					print(output)
+					break
 		else:
 			print('success: Master Keepalived was installed<br>')
 				
@@ -639,10 +643,14 @@ if form.getvalue('master'):
 	else:
 		for l in output:
 			if "msg" in l or "FAILED" in l:
-				l = l.split(':')[1]
-				l = l.split('"')[1]
-				print(l+"<br>")
-				break
+				try:
+					l = l.split(':')[1]
+					l = l.split('"')[1]
+					print(l+"<br>")
+					break
+				except:
+					print(output)
+					break
 		else:
 			print('success: Slave Keepalived was installed<br>')
 			
@@ -686,10 +694,14 @@ if form.getvalue('masteradd'):
 	else:
 		for l in output:
 			if "msg" in l or "FAILED" in l:
-				l = l.split(':')[1]
-				l = l.split('"')[1]
-				print(l+"<br>")
-				break
+				try:
+					l = l.split(':')[1]
+					l = l.split('"')[1]
+					print(l+"<br>")
+					break
+				except:
+					print(output)
+					break
 		else:
 			print('success: Master VRRP address was added<br>')
 		
@@ -712,10 +724,14 @@ if form.getvalue('masteradd'):
 	else:
 		for l in output:
 			if "msg" in l or "FAILED" in l:
-				l = l.split(':')[1]
-				l = l.split('"')[1]
-				print(l+"<br>")
-				break
+				try:
+					l = l.split(':')[1]
+					l = l.split('"')[1]
+					print(l+"<br>")
+					break
+				except:
+					print(output)
+					break
 		else:
 			print('success: Slave VRRP address was added<br>')
 			
