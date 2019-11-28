@@ -236,8 +236,7 @@ if act == "overviewServers":
 				out1 = "Can\'t connect to HAproxy"
 
 		server_status = (serv1,serv2, out1, funct.ssh_command(serv2, commands))
-		return server_status
-		
+		return server_status	
 		
 	async def get_runner_overviewServers(**kwargs):
 		import http.cookies
