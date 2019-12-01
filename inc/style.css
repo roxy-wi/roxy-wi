@@ -29,6 +29,17 @@ h3 {
 	font-size: 1.6em;
 	border-bottom: 1px solid #ddd;
 }
+#browse_histroy {
+    padding-left: 10px;
+    margin-bottom: 5px;
+    display: block;
+    margin-top: 5px;
+}
+#browse_histroy a {
+	font-size: 9.1px;
+	color: #000;
+	font-weight: bold;
+}
 form {
 	margin: 0;
 }
@@ -119,7 +130,6 @@ pre {
 	text-align: right;
 	margin-right: 20px;
 }
-
 .footer-link, .footer-copyright {
 	padding: 20px;
 	color: #5d9ceb;
@@ -346,7 +356,6 @@ pre {
 .overview-wi .overviewHead {
 	border-bottom: 1px solid #A4C7F5;
 }
-
 .overview  tr{
 	border-bottom: 1px solid #ddd;
 	border-radius: 5px;
@@ -529,7 +538,6 @@ ul{
 	50% {text-shadow: 0 0 30px black;}
 	to {box-shadow: 0 -5px 5px -5px #5D9CEB inset}
 }
-
 .form-control:hover {
 	animation: shadow-red  0.3s forwards;
 }
@@ -564,15 +572,6 @@ ul{
 	border: none !important;
 	border-color: #5D9CEB !important;
 }
-/* .ui-tooltip, .arrow:after { */
-    /* background: #33414E !important; */
-    /* border: 1px solid #33414E !important; */
-	/* border-radius: 5px !important; */
-	/* color: #fff !important; */
-	/* font-size: 10px !important; */
-	/* padding: 2px !important; */
-	/* margin-bottom: -20px !important; */
-  /* } */
 .ui-tabs-nav {
 	border-radius: 0 !important;
 	padding-left: 25px !important; 
@@ -611,18 +610,16 @@ a {
 a:active, a:hover {
   outline: 0;
 }
-a,
-a:visited {
+a, a:visited {
     text-decoration: underline;
   }
 a {
 	color: #9d9d9d;
 	text-decoration: none;
 }
-a:hover,
-a:focus {
+a:hover, a:focus {
   color: #23527c;
-  text-decoration: underline;
+  text-decoration:  derline;
 }
 a:focus {
   outline: 5px auto -webkit-focus-ring-color;
@@ -646,7 +643,6 @@ td,th {
   text-align: left;
   min-width: 25px;
 }
-
 .row {
   margin-right: -15px;
   margin-left: -15px;
@@ -919,6 +915,12 @@ label {
 	.div-backends {
 		width: 84.2% !important
 	}
+	#rows {
+		width: 50px;
+	}
+	#grep {
+		width: 100px;
+	}
 }
 @media (max-width: 768px) {
   #logo_span {
@@ -953,6 +955,12 @@ label {
 	.div-backends {
 		width: 82.5% !important
 	}
+	#rows {
+		width: 50px;
+	}
+	#grep {
+		width: 100px;
+	}
 }
 @media (max-width: 667px) {
   #logo_span {
@@ -980,6 +988,12 @@ label {
 	}
 	.div-backends {
 		width: 84.6% !important
+	}
+	#rows {
+		width: 50px;
+	}
+	#grep {
+		width: 100px;
 	}
 }
 .loading, .loading_full_page, .loading_hapwi_overview {

@@ -43,6 +43,14 @@
 		if($('#servbackend').val()) {
 			window.onload = {{ onclick }}	
 		}
+		if (window.matchMedia('(max-width: 786px)').matches || window.matchMedia('(max-width: 1024px)').matches || window.matchMedia('(max-width: 667px)').matches) {
+			$( "#servaction" ).selectmenu({
+			  width: 150
+			});
+			$( "#serv" ).selectmenu({
+			  width: 150
+			});
+		}
 	</script>
 	<div id="ajaxruntime"></div>
 	<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">

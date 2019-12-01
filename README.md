@@ -60,6 +60,8 @@ After install HAProxy-WI:
 yum install haproxy-wi
 ```
 
+Supports EL7 and EL8
+
 #### Before uses RPM repository you should donate to support project on [Patreon](https://www.patreon.com/haproxy_wi/overview) or on [PayPal](https://www.paypal.me/loginovpavel) and I will send you credentials for access. Actual prices you can see on [Patreon](https://www.patreon.com/haproxy_wi/overview)
 
 ## Manual install

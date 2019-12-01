@@ -102,7 +102,6 @@ function autoRefreshStyle(autoRefresh) {
 	$('.auto-refresh-resume').css('margin-left', "-25px");		
 	$('.auto-refresh img').remove();
 }
-
 function setRefreshInterval(interval) {
 	if (interval == "0") {
 		Cookies.remove('auto-refresh');
@@ -123,7 +122,6 @@ function setRefreshInterval(interval) {
 		autoRefreshStyle(interval);
 	}
 }
-
 function startSetInterval(interval) {	
 	if(Cookies.get('auto-refresh-pause') == "0") {
 		if (cur_url[0] == "logs.py") {
@@ -194,7 +192,6 @@ $( document ).ajaxComplete(function( event, request, settings ) {
 	$('#cover').fadeOut('fast');
 	NProgress.done();
 });
-
 function showOverview() {
 	showOverviewHapWI()
 	$.ajax( {
@@ -878,42 +875,6 @@ async function ban() {
 	$( "input[type=submit], button" ).button('enable');
 	$('#ban_10').hide();
 } 
-function change_select_acceleration(id) {
-	$.ajax( {
-		url: "options.py",
-		data: {
-			get_hap_v: 1,
-			serv: $('#serv'+id+' option:selected').val(),
-			token: $('#token').val()
-		},
-		type: "GET",
-		success: function( data ) {	
-			if(parseFloat(data) < parseFloat('1.8')) {	
-				$("#cache"+id).checkboxradio( "disable" );
-			} else {
-				$("#cache"+id).checkboxradio( "enable" );
-			}
-		}
-	} );
-}
-function change_select_waf(id) {
-	$.ajax( {
-		url: "options.py",
-		data: {
-			get_hap_v: 1,
-			serv: $('#serv'+id+' option:selected').val(),
-			token: $('#token').val()
-		},
-		type: "GET",
-		success: function( data ) {	
-			if(parseFloat(data) < parseFloat('1.8')) {	
-				$("#waf"+id).checkboxradio( "disable" );
-			} else {
-				$("#waf"+id).checkboxradio( "enable" );
-			}
-		}
-	} );
-}
 function replace_text(id_textarea, text_var) {
 	var str = $(id_textarea).val();
 	var len = str.length;
@@ -922,26 +883,6 @@ function replace_text(id_textarea, text_var) {
 	var end = beg + len_var
 	var text_val = str.substring(0, beg) + str.substring(end, len);
 	$(id_textarea).text(text_val);
-}
-function changeWafMode(id) {
-	var waf_mode = $('#'+id+' option:selected').val();
-	var server_hostname = id.split('_')[0];
-	 $.ajax( {
-		url: "options.py",
-		data: {
-			change_waf_mode: waf_mode,
-			server_hostname: server_hostname,
-			token: $('#token').val()
-		},
-		type: "GET",
-		success: function( data ) {
-			alert('Do not forget restart WAF server: '+server_hostname)
-			$( '#'+server_hostname+'-select-line' ).addClass( "update", 1000 );										
-			setTimeout(function() {
-				$( '#'+server_hostname+'-select-line' ).removeClass( "update" );
-			}, 2500 );
-		}
-	} ); 
 }
 function createList(color) {
 	if(color == 'white') {
@@ -1023,3 +964,51 @@ function saveList(action, list, color) {
 		}
 	} );	
 }
+function createHistroy() {
+	try {
+		var get_history_array = JSON.parse(Cookies.get('history'));
+	}	
+	catch {
+		var get_history_array = ['login.py', 'login.py','login.py'];
+		Cookies.set('history', JSON.stringify(get_history_array), { expires: 1 });
+	}
+}
+function listHistroy() {	
+	var browse_history = JSON.parse(Cookies.get('history'));
+	Cookies.remove('history');
+	var history_link = '';
+	var title = []
+	var link_text = []
+	for(let i = 0; i < browse_history.length; i++){
+		if (i == 0) {
+			if(browse_history[0] == browse_history[1]) {
+				continue
+			}
+			browse_history[0] = browse_history[1];
+		}
+		if (i == 1) {			
+			if(browse_history[1] == browse_history[2]) {
+				continue
+			}
+			browse_history[1] = browse_history[2]
+		}
+		if (i == 2) {
+			browse_history[2] = cur_url[0]
+		}
+		$( function() {		
+			$('.menu li ul li').each(function () {
+				var link1 = $(this).find('a').attr('href');
+				var link2 = link1.split('/')[2]
+				if (browse_history[i] == link2) {				
+					title[i] = $(this).find('a').attr('title');
+					link_text[i] = $(this).find('a').text();
+					history_link = '<a href="'+browse_history[i]+'" title="'+title[i]+'"> > '+link_text[i]+'</a>'
+					$('#browse_histroy').append(history_link);
+				}
+			});
+		});
+	}
+	Cookies.set('history', JSON.stringify(browse_history), { expires: 1 });
+}
+createHistroy()
+listHistroy()

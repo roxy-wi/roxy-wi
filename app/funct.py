@@ -636,6 +636,7 @@ def ssh_command(serv, commands, **kwargs):
 		for line in stderr.read().decode(encoding='UTF-8'):
 			if line:
 				print("<div class='alert alert-warning'>"+line+"</div>")
+				logging('localhost', ' '+line, haproxywi=1)
 	try:	
 		ssh.close()
 	except:
@@ -663,6 +664,8 @@ def show_backends(serv, **kwargs):
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 	cmd='echo "show backend" |nc %s %s' % (serv, haproxy_sock_port)
 	output, stderr = subprocess_execute(cmd)
+	if stderr:
+		logging('localhost', ' '+stderr, haproxywi=1)
 	if kwargs.get('ret'):
 		ret = list()
 	else:

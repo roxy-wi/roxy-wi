@@ -185,6 +185,8 @@ def update_db_v_31(**kwargs):
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_password', '', 'ldap', 'Password for connect to LDAP server');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_base', '', 'ldap', 'Base domain. Example: dc=domain, dc=com');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_domain', '', 'ldap', 'Domain for login, that after @, like user@domain.com, without user@');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_class_search', 'user', 'ldap', 'Class to search user');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_user_attribute', 'sAMAccountName', 'ldap', 'User\'s attribute for search');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_search_field', 'mail', 'ldap', 'Field where user e-mail saved');")
 	
 	for i in sql:
@@ -409,7 +411,7 @@ def update_db_v_3_4_9_5(**kwargs):
 			if e.args[0] == 'duplicate column name: param' or e == "1060 (42S21): Duplicate column name 'param' ":
 				print('DB was update to 3.4.9.5')
 			else:
-				print("DB was update to 3.4.9.5")
+				print("Updating... go to version 3.8.1")
 			return False
 		else:
 			return True
@@ -438,7 +440,7 @@ def update_db_v_3_5_3(**kwargs):
 	
 def update_ver(**kwargs):
 	con, cur = get_cur()
-	sql = """update version set version = '3.8'; """
+	sql = """update version set version = '3.8.1'; """
 	try:    
 		cur.execute(sql)
 		con.commit()

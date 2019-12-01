@@ -1089,3 +1089,39 @@ function view_ssl(id) {
 		}
 	} );
 }
+function change_select_acceleration(id) {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			get_hap_v: 1,
+			serv: $('#serv'+id+' option:selected').val(),
+			token: $('#token').val()
+		},
+		type: "GET",
+		success: function( data ) {	
+			if(parseFloat(data) < parseFloat('1.8')) {	
+				$("#cache"+id).checkboxradio( "disable" );
+			} else {
+				$("#cache"+id).checkboxradio( "enable" );
+			}
+		}
+	} );
+}
+function change_select_waf(id) {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			get_hap_v: 1,
+			serv: $('#serv'+id+' option:selected').val(),
+			token: $('#token').val()
+		},
+		type: "GET",
+		success: function( data ) {	
+			if(parseFloat(data) < parseFloat('1.8')) {	
+				$("#waf"+id).checkboxradio( "disable" );
+			} else {
+				$("#waf"+id).checkboxradio( "enable" );
+			}
+		}
+	} );
+}
