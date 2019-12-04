@@ -24,7 +24,7 @@ h3 {
 	</ul>
 	{% include 'include/add_proxy.html' %}
 	<div id="listen">
-		<form name="add-listner" action="/app/add.py">
+		<form name="add-listner" action="/app/add.py" method="post">
 		<table class="add-table">
 			<caption><h3>Add listen</h3></caption>
 				<tr>
@@ -213,7 +213,7 @@ h3 {
 		<!-- Second tabs -->
 		
 	<div id="frontend">
-		<form name="add-frontend" action="/app/add.py" method="get">
+		<form name="add-frontend" action="/app/add.py" method="post">
 		<table>
 			<caption><h3>Add frontend</h3></caption>
 			<tr>
@@ -354,7 +354,7 @@ h3 {
 				<!-- Third tabs -->
 		
 	<div id="backend">
-		<form name="add-backend" action="/app/add.py">
+		<form name="add-backend" action="/app/add.py" method="post">
 		<table>
 			<caption><h3>Add backend</h3></caption>
 			<tr>
@@ -670,7 +670,7 @@ h3 {
 		</div>
 	</div>
 	<div id="userlist">
-		<form name="add-userlist" action="/app/add.py">
+		<form name="add-userlist" action="/app/add.py" method="post">
 		<table>
 			<caption><h3>Add Userlist</h3></caption>
 			<tr>

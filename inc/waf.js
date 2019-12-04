@@ -16,7 +16,7 @@ function metrics_waf(name) {
 			enable: enable,
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			showOverviewWaf();
 			setTimeout(function() {
@@ -34,7 +34,7 @@ function installWaf(ip) {
 			installwaf: ip,
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) { 
 		data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error') != '-1' || data.indexOf('Failed') != '-1') {
@@ -62,7 +62,7 @@ function changeWafMode(id) {
 			server_hostname: server_hostname,
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			alert('Do not forget restart WAF server: '+server_hostname)
 			$( '#'+server_hostname+'-select-line' ).addClass( "update", 1000 );										

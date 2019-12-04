@@ -8,7 +8,7 @@ import sql
 from jinja2 import Environment, FileSystemLoader
 env = Environment(extensions=["jinja2.ext.do"],loader=FileSystemLoader('templates/'))
 template = env.get_template('servers.html')
-form = cgi.FieldStorage()
+form = funct.form
 
 print('Content-type: text/html\n')
 funct.check_login()

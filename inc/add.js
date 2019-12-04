@@ -419,7 +419,7 @@ $( function() {
 				newoptiongroup: $('#group').val(),
 				token: $('#token').val()
 			},
-			type: "GET",
+			type: "POST",
 			success: function( data ) {
 				if (data.indexOf('error') != '-1') {
 					$("#ajax-option").append(data);
@@ -473,7 +473,7 @@ $( function() {
 				newsavedserverdesc: $('#new-saved-servers-description').val(),
 				token: $('#token').val()
 			},
-			type: "GET",
+			type: "POST",
 			success: function( data ) {
 				if (data.indexOf('error') != '-1') {
 					$("#ajax-option").append(data);
@@ -747,7 +747,7 @@ $( function() {
 				ssl_name: $('#ssl_name').val(),
 				token: $('#token').val()
 			},
-			type: "GET",
+			type: "POST",
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
 				if (data.indexOf('danger') != '-1') {
@@ -769,7 +769,7 @@ $( function() {
 				getcerts: "viewcert",
 				token: $('#token').val()
 			},
-			type: "GET",
+			type: "POST",
 			success: function( data ) {
 				if (data.indexOf('danger') != '-1') {
 					$("#ajax-show-ssl").html(data);
@@ -957,7 +957,7 @@ function removeOption(id) {
 			optiondel: id,
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if(data == "Ok ") {
@@ -975,7 +975,7 @@ function updateOptions(id) {
 			id: id,
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error') != '-1') {
@@ -1020,7 +1020,7 @@ function removeSavedServer(id) {
 			savedserverdel: id,
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if(data == "Ok ") {
@@ -1039,7 +1039,7 @@ function updateSavedServer(id) {
 			id: id,
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error') != '-1') {
@@ -1066,7 +1066,7 @@ function view_ssl(id) {
 			getcert: id,
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			if (data.indexOf('danger') != '-1') {
 				$("#ajax-show-ssl").html(data);
@@ -1097,7 +1097,7 @@ function change_select_acceleration(id) {
 			serv: $('#serv'+id+' option:selected').val(),
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {	
 			if(parseFloat(data) < parseFloat('1.8')) {	
 				$("#cache"+id).checkboxradio( "disable" );
@@ -1115,7 +1115,7 @@ function change_select_waf(id) {
 			serv: $('#serv'+id+' option:selected').val(),
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {	
 			if(parseFloat(data) < parseFloat('1.8')) {	
 				$("#waf"+id).checkboxradio( "disable" );

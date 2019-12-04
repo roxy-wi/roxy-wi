@@ -81,7 +81,7 @@ $( function() {
 						syn_flood: syn_flood,
 						token: $('#token').val()
 					},
-					type: "GET",
+					type: "POST",
 					success: function( data ) { 
 						data = data.replace(/\s+/g,' ');
 						if (data.indexOf('error') != '-1' || data.indexOf('alert') != '-1' || data.indexOf('FAILED') != '-1') {
@@ -125,7 +125,7 @@ $( function() {
 						kp: kp,
 						token: $('#token').val()
 					},
-					type: "GET",
+					type: "POST",
 					success: function( data ) { 
 						data = data.replace(/\s+/g,' ');
 						if (data.indexOf('error') != '-1') {
@@ -157,7 +157,7 @@ $( function() {
 				hapver: $('#hapver option:selected' ).val(),
 				token: $('#token').val()
 				},
-			type: "GET",
+			type: "POST",
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
 				if (data.indexOf('error') != '-1' || data.indexOf('FAILED') != '-1') {
@@ -187,7 +187,7 @@ $( function() {
 				update_haproxy_wi: 1,
 				token: $('#token').val()
 				},
-			type: "GET",
+			type: "POST",
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
 				if (data.indexOf('error') != '-1' || data.indexOf('Failed') != '-1') {
@@ -247,7 +247,7 @@ $( function() {
 				newdesc: $('#new-desc').val(),
 				token: $('#token').val()
 			},
-			type: "GET",
+			type: "POST",
 			success: function( data ) {
 				if (data.indexOf('error') != '-1') {
 					$("#ajax-group").append(data);
@@ -284,7 +284,7 @@ $( function() {
 				page: cur_url[0],
 				token: $('#token').val()
 			},
-			type: "GET",
+			type: "POST",
 			success: function( data ) {
 				if (data.indexOf('error') != '-1') {
 					$("#ajax-ssh").append(data);
@@ -323,7 +323,7 @@ $( function() {
 				page: cur_url[0],
 				token: $('#token').val()
 			},
-			type: "GET",
+			type: "POST",
 			success: function( data ) {
 				if (data.indexOf('error') != '-1') {
 					$("#ajax-telegram").append(data);
@@ -492,7 +492,7 @@ $( function() {
 					get_ldap_email: $('#new-username').val(),
 					token: $('#token').val()
 				},
-				type: "GET",
+				type: "POST",
 				success: function( data ) {
 					data = data.replace(/\s+/g,' ');
 					if (data.indexOf('error') != '-1') {
@@ -560,7 +560,7 @@ function addUser() {
 				newgroupuser: $('#new-group').val(),
 				token: $('#token').val()
 			},
-			type: "GET",
+			type: "POST",
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
 				if (data.indexOf('error') != '-1') {
@@ -632,7 +632,7 @@ function addServer() {
 				active: active,
 				token: $('#token').val()
 			},
-			type: "GET",
+			type: "POST",
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
 				if (data.indexOf('error') != '-1') {
@@ -669,7 +669,7 @@ function updateSettings(param, val) {
 			val: val,
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error') != '-1') {
@@ -867,7 +867,7 @@ function removeUser(id) {
 			userdel: id,
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if(data == "Ok ") {
@@ -884,7 +884,7 @@ function removeServer(id) {
 			serverdel: id,
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if(data == "Ok ") {
@@ -901,7 +901,7 @@ function removeGroup(id) {
 			groupdel: id,
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if(data == "Ok ") {
@@ -920,7 +920,7 @@ function removeSsh(id) {
 			sshdel: id,
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if(data == "Ok ") {
@@ -939,7 +939,7 @@ function removeTelegram(id) {
 			telegramdel: id,
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if(data == "Ok ") {
@@ -972,7 +972,7 @@ function updateUser(id) {
 			id: id,
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error') != '-1') {
@@ -1001,7 +1001,7 @@ function updateGroup(id) {
 			id: id,
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error') != '-1') {
@@ -1066,7 +1066,7 @@ function updateServer(id) {
 			active: active,
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error') != '-1') {
@@ -1097,7 +1097,7 @@ function uploadSsh() {
 				name: $('#ssh-key-name').val(),
 				token: $('#token').val()
 			},
-			type: "GET",
+			type: "POST",
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
 				if (data.indexOf('danger') != '-1') {
@@ -1130,7 +1130,7 @@ function updateSSH(id) {
 			id: id,
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error') != '-1') {
@@ -1164,7 +1164,7 @@ function updateTelegram(id) {
 			id: id,
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error') != '-1') {
@@ -1202,7 +1202,7 @@ function showApacheLog(serv) {
 			minut1: minut1,
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			$("#ajax").html(data);
 			window.history.pushState("Logs", "Logs", cur_url[0]+"?serv="+serv+"&rows1="+rows+"&grep="+grep+
@@ -1221,7 +1221,7 @@ function checkSshConnect(ip) {
 			serv: ip,
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			if (data.indexOf('danger') != '-1') {
 				$("#ajax").html(data);
@@ -1281,7 +1281,7 @@ function changeUserPassword(id, d) {
 				id: id,
 				token: $('#token').val()
 			},
-			type: "GET",
+			type: "POST",
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
 				if (data.indexOf('error') != '-1') {

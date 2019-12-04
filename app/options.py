@@ -5,7 +5,7 @@ import os, sys
 import funct
 import sql
 
-form = cgi.FieldStorage()
+form = funct.form
 serv = form.getvalue('serv')
 act = form.getvalue('act')
 

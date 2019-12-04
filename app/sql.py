@@ -1415,8 +1415,8 @@ def check_token_exists(token):
 			funct.logging('localhost', ' Cannot check token', haproxywi=1)
 			return False
 
-				
-form = cgi.FieldStorage()
+			
+form = funct.form
 error_mess = '<span class="alert alert-danger" id="error">All fields must be completed <a title="Close" id="errorMess"><b>X</b></a></span>'
 
 

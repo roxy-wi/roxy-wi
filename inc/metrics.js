@@ -6,7 +6,7 @@ function getChartData(server) {
 			server: server,
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
         success: function (result) {    
             var data = [];
             data.push(result.chartData.curr_con);
@@ -81,7 +81,7 @@ function getWafChartData(server) {
 			server: server,
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
         success: function (result) {   
             var data = [];
             data.push(result.chartData.curr_con);
@@ -145,7 +145,7 @@ function loadMetrics() {
 		beforeSend: function() {
 			$('#table_metrics').html('<img class="loading_full_page" src="/inc/images/loading.gif" />')
 		},
-		type: "GET",
+		type: "POST",
         success: function (data) {   
            $( "#table_metrics" ).html( data );
         }

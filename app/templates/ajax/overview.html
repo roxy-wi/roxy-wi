@@ -1,4 +1,5 @@
 {% for service in service_status %}
+{{ service_status }}
 	<tr class="{{ loop.cycle('odd', 'even') }}">
 		<td class="padding10 first-collumn">		
 			<a href="/app/hapservers.py?serv={{ service.1 }}" title="{{service.0 }}'s overview" class="logs_link">
