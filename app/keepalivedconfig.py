@@ -13,7 +13,7 @@ print('Content-type: text/html\n')
 funct.check_login()
 funct.page_for_admin(level = 2)
 
-form = cgi.FieldStorage()
+form = funct.form
 serv = form.getvalue('serv')
 log_path = funct.get_config_var('main', 'log_path')
 kp_save_configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')

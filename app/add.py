@@ -7,7 +7,7 @@ import http.cookies
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'))
 template = env.get_template('add.html')
-form = cgi.FieldStorage()
+form = funct.form
 serv = form.getvalue('serv')
 
 if form.getvalue('add'):

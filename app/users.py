@@ -10,7 +10,7 @@ import sql
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'))
 template = env.get_template('admin.html')
-form = cgi.FieldStorage()
+form = funct.form
 
 print('Content-type: text/html\n')
 

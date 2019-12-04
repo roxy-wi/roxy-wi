@@ -4,7 +4,7 @@
 <center>
 	<h3>Choose server</h3>
 	<p>
-		<form action="{{ action }}" method="get">
+		<form action="{{ action }}" method="post">
 			<a class="ui-button ui-widget ui-corner-all" title="Return back" id="back" onclick="history.go(-2)">Back</a>
 			<select autofocus required name="serv" id="{{ select_id }}">
 				<option disabled>Choose server</option>
@@ -53,7 +53,7 @@
 		{% if role <= 2 %}
 			<div id="config">
 				<h4>Config from {{ serv }}</h4>
-				<form action="{{ action }}" name="saveconfig" method="get">
+				<form action="{{ action }}" name="saveconfig" method="post">
 					<input type="hidden" value="{{ serv }}" name="serv"> 
 					<input type="hidden" value="{{ cfg }}.old" name="oldconfig"> 
 					<textarea name="config" class="config" rows="35" cols="100">{{ config }}</textarea> 

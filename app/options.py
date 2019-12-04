@@ -5,7 +5,7 @@ import os, sys
 import funct
 import sql
 
-form = cgi.FieldStorage()
+form = funct.form
 serv = form.getvalue('serv')
 act = form.getvalue('act')
 
@@ -893,7 +893,7 @@ if form.getvalue('get_ldap_email'):
 	ldap_class_search = sql.get_setting('ldap_class_search')
 	ldap_user_attribute = sql.get_setting('ldap_user_attribute')
 
-	l = ldap.initialize("ldap://"+server+':'+port)
+	l = ldap.initialize(server+':'+port)
 	try:
 		l.protocol_version = ldap.VERSION3
 		l.set_option(ldap.OPT_REFERRALS, 0)

@@ -11,7 +11,7 @@ template = env.get_template('config.html')
 print('Content-type: text/html\n')
 funct.check_login()
 
-form = cgi.FieldStorage()
+form = funct.form
 serv = form.getvalue('serv')
 config_read = ""
 cfg = ""

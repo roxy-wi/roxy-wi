@@ -21,7 +21,7 @@ try:
 except:
 	pass
 	
-form = cgi.FieldStorage()
+form = funct.form
 serv = form.getvalue('serv')
 
 if serv:

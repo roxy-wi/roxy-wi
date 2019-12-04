@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import os
-import sql
 import http, cgi
 import funct
 import sql
@@ -10,7 +9,7 @@ template = env.get_template('lists.html')
 
 print('Content-type: text/html\n')
 funct.check_login()
-form = cgi.FieldStorage()
+form = funct.form
 funct.page_for_admin(level = 2)
 
 try:

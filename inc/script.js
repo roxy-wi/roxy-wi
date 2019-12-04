@@ -58,7 +58,7 @@ if(Cookies.get('restart')) {
 			serv: ip,
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			if(data.indexOf('ok') != '-1') {
 				$("#apply").css('display', 'block');
@@ -203,7 +203,7 @@ function showOverview() {
 		beforeSend: function() {
 			$('#ajaxstatus').html('<img class="loading" src="/inc/images/loading.gif" />')
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			$("#ajaxstatus").empty();
 			$("#ajaxstatus").html(data);
@@ -222,7 +222,7 @@ function showOverviewServer(name,ip,id) {
 			page: 'hapservers.py',
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			$("#ajax-server-"+id).empty();
 			$("#ajax-server-"+id).css('display', 'block');
@@ -259,7 +259,7 @@ function showOverviewWaf() {
 			}
 			$('#ajaxwafstatus').html('<img class="'+load_class+'" src="/inc/images/loading.gif" />')
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			$("#ajaxwafstatus").empty();
 			$("#ajaxwafstatus").html(data);
@@ -284,7 +284,7 @@ function showOverviewHapWI() {
 		beforeSend: function() {
 			$('#ajaxHapwi').html('<img class="loading_hapwi_overview" src="/inc/images/loading.gif" />')
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			$("#ajaxHapwi").html(data);
 		}					
@@ -298,7 +298,7 @@ function showStats() {
 			serv: $("#serv").val(),
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			$("#ajax").html(data);			
 			window.history.pushState("Stats", "Stats", cur_url[0]+"?serv="+$("#serv").val());
@@ -342,7 +342,7 @@ function showLog() {
 			minut1: minut1,
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			$("#ajax").html(data);
 			window.history.pushState("Logs", "Logs", cur_url[0]+"?serv="+$("#serv").val()+
@@ -369,7 +369,7 @@ function showMap() {
 			act: "showMap",
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			$("#ajax").html(data);
 			window.history.pushState("Show map", "Show map", cur_url[0]+'?serv='+$("#serv").val()+'&showMap');
@@ -391,7 +391,7 @@ function showRuntime() {
 			save: saveCheck,
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			$("#ajaxruntime").html(data);
 		}					
@@ -406,7 +406,7 @@ function showCompare() {
 			right: $("#right").val(),
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			$("#ajax").html(data);
 		}					
@@ -424,7 +424,7 @@ function showCompareConfigs() {
 			open: "open",
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			$("#ajax-compare").html(data);
 			$( "input[type=submit], button" ).button();
@@ -445,7 +445,7 @@ function showConfig() {
 			act: "configShow",
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			$("#ajax").html(data);
 			$.getScript('/inc/configshow.js');
@@ -467,7 +467,7 @@ function showUploadConfig() {
 			token: $('#token').val(),
 			view: view 
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			$("#ajax").html(data);
 			if(view == "1") {
@@ -501,7 +501,7 @@ function viewLogs() {
 				minut1: minut1,
 				token: $('#token').val(),				
 			},
-			type: "GET",
+			type: "POST",
 			success: function( data ) {
 				$("#ajax").html(data);
 				window.history.pushState("View logs", "View logs", cur_url[0]+"?viewlogs="+$("#viewlogs").val()+
@@ -694,7 +694,7 @@ $( function() {
 				login: $('#login').val(),
 				pass: $('#pass').val()
 			},
-			type: "GET",
+			type: "POST",
 			success: function( data ) {
 				if (data.indexOf('ok') != '-1') {
 					window.location.replace(ref);
@@ -829,7 +829,7 @@ $( function() {
 				serv: $('#haproxyaddserv option:selected').val(),
 				token: $('#token').val()
 			},
-			type: "GET",
+			type: "POST",
 			success: function( data ) {	
 				data = data.replace(/^\s+|\s+$/g,'');
 				if(data != '') {				
@@ -898,7 +898,7 @@ function createList(color) {
 			group: $('#group').val(),
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			$("#ajax").html(data); 
 			setTimeout(function() {
@@ -916,7 +916,7 @@ function editList(list, color) {
 			group: $('#group').val(),
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			if (data.indexOf('danger') != '-1') {
 				$("#ajax").html(data);
@@ -958,7 +958,7 @@ function saveList(action, list, color) {
 			bwlists_restart: action,
 			token: $('#token').val()
 		},
-		type: "GET",
+		type: "POST",
 		success: function( data ) {
 			$("#ajax").html(data); 
 		}

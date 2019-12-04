@@ -7,7 +7,7 @@ import os, http
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'))
 template = env.get_template('logs.html')
-form = cgi.FieldStorage()
+form = funct.form
 
 if form.getvalue('grep') is None:
 	grep = ""

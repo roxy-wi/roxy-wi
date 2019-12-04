@@ -6,7 +6,7 @@ import sql
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'))
 template = env.get_template('viewstats.html')
-form = cgi.FieldStorage()
+form = funct.form
 serv = form.getvalue('serv') 
 		
 print('Content-type: text/html\n')
