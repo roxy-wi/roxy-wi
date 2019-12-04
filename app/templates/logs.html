@@ -66,6 +66,11 @@
 {% if onclick == 'viewLogs()' and serv != '' and viewlogs != '' and viewlogs != 'haproxy-wi.error.log' and viewlogs != 'haproxy-wi.access.log' %}
 	<script>
 		viewLogs()
+		if (window.matchMedia('(max-width: 786px)').matches || window.matchMedia('(max-width: 1024px)').matches || window.matchMedia('(max-width: 667px)').matches) {
+			$( "#viewlogs" ).selectmenu({
+				  width: 150
+			});
+		}
 	</script>
 	<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
 			You can read the descriptions about all logs <a href="https://haproxy-wi.org/description.py?description=logs" title="Servers description" target="_blank">here</a>
@@ -83,6 +88,11 @@
 			$('#waf').prop('checked', true);
 		{% endif %}
 		showLog()
+		if (window.matchMedia('(max-width: 786px)').matches || window.matchMedia('(max-width: 1024px)').matches || window.matchMedia('(max-width: 667px)').matches) {
+			$( "#serv" ).selectmenu({
+				  width: 150
+			});
+		}
 	</script>
 {% endif %}
 {% endblock %}

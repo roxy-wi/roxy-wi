@@ -29,16 +29,35 @@ h3 {
 	font-size: 1.6em;
 	border-bottom: 1px solid #ddd;
 }
-#browse_histroy {
+ul#browse_histroy {
     padding-left: 10px;
     margin-bottom: 5px;
     display: block;
-    margin-top: 5px;
+    margin-top: 1px;
+	list-style: none;
 }
-#browse_histroy a {
-	font-size: 9.1px;
+ul#browse_histroy li {
+	display: inline;
+	padding-right: 5px;
+}
+ul#browse_histroy li+li:before {
+	content: "\003e";
 	color: #000;
 	font-weight: bold;
+	margin-right: 2.5px;	
+}
+#browse_histroy a {
+	color: #767676;
+	font-size: 9.1px;
+	font-weight: bold;
+}
+ul#browse_histroy li:first-child a {
+	font-size: 8.4px;
+	color: #979393;
+}
+ul#browse_histroy li:last-child a {
+	font-size: 9.8px;
+	color: #7e7b7b;
 }
 form {
 	margin: 0;

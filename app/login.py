@@ -68,13 +68,14 @@ def check_in_ldap(user, password):
 	
 	server = sql.get_setting('ldap_server')
 	port = sql.get_setting('ldap_port')
+	ldap_class_search = sql.get_setting('ldap_class_search')
 	
 	l = ldap.initialize("ldap://"+server+':'+port)
 	try:
 		l.protocol_version = ldap.VERSION3
 		l.set_option(ldap.OPT_REFERRALS, 0)
 
-		bind = l.simple_bind_s(user, password)
+		bind = l.simple_bind_s(ldap_class_search+'='+user, password)
 	except ldap.INVALID_CREDENTIALS:
 		print("Content-type: text/html\n")	
 		print('<center><div class="alert alert-danger">Invalid credentials</div><br /><br />')

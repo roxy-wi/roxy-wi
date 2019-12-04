@@ -178,7 +178,7 @@ For Apache do virtualhost with cgi-bin. Like this:
 ```
 
 # OS support
-HAProxy-WI was tested on EL 7, and all scripts too. Debian/Ubuntu OS support at 'beta' stage, may work not correct
+HAProxy-WI was tested on EL7, EL8 and all scripts too. Debian/Ubuntu OS support at 'beta' stage, may work not correct
 
 # Database support
 

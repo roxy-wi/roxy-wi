@@ -438,9 +438,28 @@ def update_db_v_3_5_3(**kwargs):
 	con.close()	
 	
 	
+def update_db_v_3_8_1(**kwargs):
+	con, cur = get_cur()
+	sql = list()
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_class_search', 'user', 'ldap', 'Class to search user');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_user_attribute', 'sAMAccountName', 'ldap', 'User attribute for search');")
+	
+	for i in sql:
+		try:
+			cur.execute(i)
+			con.commit()
+		except sqltool.Error as e:
+			pass
+	else:
+		if kwargs.get('silent') != 1:
+			print('DB was update to 3.8.1')
+		return True
+	cur.close() 
+	con.close()
+	
 def update_ver(**kwargs):
 	con, cur = get_cur()
-	sql = """update version set version = '3.8.1'; """
+	sql = """update version set version = '3.8.2'; """
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -493,6 +512,7 @@ def update_all():
 	update_db_v_3_4_7()
 	update_db_v_3_4_9_5()
 	update_db_v_3_5_3()
+	update_db_v_3_8_1()
 	update_to_hash()
 	update_ver()
 		
@@ -512,6 +532,7 @@ def update_all_silent():
 	update_db_v_3_4_7(silent=1)
 	update_db_v_3_4_9_5(silent=1)
 	update_db_v_3_5_3(silent=1)
+	update_db_v_3_8_1(silent=1)
 	update_to_hash()
 	update_ver()
 	

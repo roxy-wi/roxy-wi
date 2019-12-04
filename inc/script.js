@@ -970,12 +970,11 @@ function createHistroy() {
 	}	
 	catch {
 		var get_history_array = ['login.py', 'login.py','login.py'];
-		Cookies.set('history', JSON.stringify(get_history_array), { expires: 1 });
+		Cookies.set('history', JSON.stringify(get_history_array), { expires: 1, path: '/app' });
 	}
 }
 function listHistroy() {	
 	var browse_history = JSON.parse(Cookies.get('history'));
-	Cookies.remove('history');
 	var history_link = '';
 	var title = []
 	var link_text = []
@@ -1002,13 +1001,13 @@ function listHistroy() {
 				if (browse_history[i] == link2) {				
 					title[i] = $(this).find('a').attr('title');
 					link_text[i] = $(this).find('a').text();
-					history_link = '<a href="'+browse_history[i]+'" title="'+title[i]+'"> > '+link_text[i]+'</a>'
+					history_link = '<li><a href="'+browse_history[i]+'" title="'+title[i]+'">'+link_text[i]+'</a></li>'
 					$('#browse_histroy').append(history_link);
 				}
 			});
 		});
 	}
-	Cookies.set('history', JSON.stringify(browse_history), { expires: 1 });
+	Cookies.set('history', JSON.stringify(browse_history), { expires: 1, path: '/app' });
 }
 createHistroy()
 listHistroy()
