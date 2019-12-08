@@ -53,5 +53,6 @@ template = template.render(h2 = 1,
 							date = funct.get_data('logs'),
 							error = stderr,
 							versions = funct.versions(),
+							haproxy_wi_log = funct.haproxy_wi_log(),
 							token = token)
 print(template)											

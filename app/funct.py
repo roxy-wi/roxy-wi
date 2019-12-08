@@ -592,6 +592,12 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 		return ssh_command(syslog_server, commands, show_log='1')
 
 	
+def haproxy_wi_log():
+	log_path = get_config_var('main', 'log_path')
+	cmd = "find "+log_path+"/haproxy-wi-* -type f -exec stat --format '%Y :%y %n' '{}' \; | sort -nr | cut -d: -f2- | head -1 |awk '{print $4}' |xargs tail|sort -r"
+	output, stderr = subprocess_execute(cmd)
+
+	return output
 			
 			
 def show_ip(stdout):

@@ -245,6 +245,39 @@
 			</tr>
 		{% endfor %}
 	</table>
+	
+	<table class="overview-wi">
+		<tr class="overviewHead">
+			<td class="padding10 first-collumn-wi">Recent HAProxy-WI`s log</td> 
+			<td>
+				<span class="add-button-wi">
+					<a title="Show more log" id="show-all-haproxy-wi-log" style="color: #fff">
+						Show more log
+					</a>
+				</span>
+			</td>
+		</tr>		
+		<tr>
+		{% set counter = 0 -%}	
+		{% for log in haproxy_wi_log %}
+			{% set counter = counter + loop.index0 %}
+			{% if counter <= 2 %}
+			<tr class="{{ loop.cycle('odd', 'even') }}">
+				<td class="padding10 first-collumn-wi" style="font-size: 12.5px;" colspan="2"> 
+					{{log }}				
+				</td>
+			</tr>
+			{% else %}
+			<tr style="display: none;" class="show-haproxy-wi-log" class="{{ loop.cycle('odd', 'even') }}">
+				<td class="padding10 first-collumn-wi" style="font-size: 12.5px" colspan="2"> 
+					{{log }}				
+				</td>
+			</tr>
+			{% endif %}
+		{% endfor %}
+		</tr>	
+	</table>
+	
 {% endif %}
 <div id="dialog-confirm" style="display: none;">
   <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>Are you sure?</p>
