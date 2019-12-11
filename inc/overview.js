@@ -102,6 +102,19 @@ $( function() {
 		$( "#hide-all-groups" ).text("Show all");
 		$( "#hide-all-groups" ).attr("id", "show-all-groups");
 	});
+	$( "#show-all-haproxy-wi-log" ).click( function() {
+		$( ".show-haproxy-wi-log" ).show("fast");
+		$( "#show-all-haproxy-wi-log" ).text("Show less log");
+		$( "#show-all-haproxy-wi-log" ).attr("title", "Show less log"); 
+		$( "#show-all-haproxy-wi-log" ).attr("id", "hide-all-haproxy-wi-log"); 
+		$.getScript('/inc/overview.js');			
+	});
+	$( "#hide-all-haproxy-wi-log" ).click( function() {
+		$( ".show-haproxy-wi-log" ).hide("fast");
+		$( "#hide-all-haproxy-wi-log" ).attr("title", "Show more log");
+		$( "#hide-all-haproxy-wi-log" ).text("Show more log");
+		$( "#hide-all-haproxy-wi-log" ).attr("id", "show-all-haproxy-wi-log");
+	});
 	if (cur_url[0] == "overview.py" || cur_url[0] == "waf.py" || cur_url[0] == "metrics.py") {
 		$('#secIntervals').css('display', 'none');
 	}
