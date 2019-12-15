@@ -134,6 +134,7 @@ For Apache do virtualhost with cgi-bin. Like this:
         ScriptAlias /cgi-bin/ "/var/www/haproxy-wi/app/"
 
         <Directory /var/www/haproxy-wi/app>
+		    DirectoryIndex overview.py
             Options +ExecCGI
             AddHandler cgi-script .py
             Order deny,allow
@@ -146,33 +147,33 @@ For Apache do virtualhost with cgi-bin. Like this:
 			Deny from all
         </Directory>
 	
-		<Directory /var/www/haproxy-wi/keys>
-			Options +ExecCGI -Indexes +MultiViews
-			Order Deny,Allow
-			Deny from all
-		</Directory>
+        <Directory /var/www/haproxy-wi/keys>
+		    Options +ExecCGI -Indexes +MultiViews
+		    Order Deny,Allow
+		    Deny from all
+        </Directory>
 
-		<FilesMatch "\.cfg$">
+        <FilesMatch "\.cfg$">
 			Order Deny,Allow
 			Deny from all
-		</FilesMatch>
+        </FilesMatch>
 		
-		<FilesMatch "\.db$">
-			Order Deny,Allow
-			Deny from all
-		</FilesMatch>
+        <FilesMatch "\.db$">
+		    Order Deny,Allow
+		    Deny from all
+        </FilesMatch>
 		
-		<IfModule mod_headers.c>
-			Header set X-XSS-Protection: 1;
-			Header set X-Frame-Options: deny
-			Header set X-Content-Type-Options: nosniff
-			Header set Strict-Transport-Security: max-age=3600;
-			Header set Cache-Control no-cache
-			Header set Expires: 0
+        <IfModule mod_headers.c>
+		    Header set X-XSS-Protection: 1;
+		    Header set X-Frame-Options: deny
+		    Header set X-Content-Type-Options: nosniff
+		    Header set Strict-Transport-Security: max-age=3600;
+		    Header set Cache-Control no-cache
+		    Header set Expires: 0
 
-			<filesMatch ".(ico|css|js|gif|jpeg|jpg|png|svg|woff|ttf|eot)$">
+		    <filesMatch ".(ico|css|js|gif|jpeg|jpg|png|svg|woff|ttf|eot)$">
 				Header set Cache-Control "max-age=86400, public"
-			</filesMatch>
+		    </filesMatch>
 		</IfModule>
 </VirtualHost>
 ```
@@ -213,6 +214,11 @@ For Runtime API, Metrics and Alerting enable state file and stat socket on HApro
         load-server-state-from-file global
 		
     listen stats 
+        bind *:8085
+        stats enable
+        stats uri /stats
+        stats realm HAProxy-04\ Statistics
+        stats auth admin:password
         stats admin if TRUE 
    ```
 ![alt text](image/haproxy-wi-logs.png "View logs page")

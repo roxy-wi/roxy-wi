@@ -155,11 +155,10 @@ def page_for_admin(**kwargs):
 		print('<center><h3 style="color: red">How did you get here?! O_o You do not have need permissions</h>')
 		print('<meta http-equiv="refresh" content="5; url=/">')
 		import sys
-		sys.exit()
-				
-def ssh_connect(serv, **kwargs):
-	import paramiko
-	from paramiko import SSHClient
+		sys.exit()	
+	
+	
+def return_ssh_keys_path(serv):
 	import sql
 	fullpath = get_config_var('main', 'fullpath')
 	ssh_enable = ''
@@ -172,6 +171,16 @@ def ssh_connect(serv, **kwargs):
 		ssh_user_name = sshs[4]
 		ssh_user_password = sshs[5]
 		ssh_key_name = fullpath+'/keys/%s.pem' % sshs[2]
+		
+	return ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name
+	
+				
+def ssh_connect(serv, **kwargs):
+	import paramiko
+	from paramiko import SSHClient
+	import sql
+	
+	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = return_ssh_keys_path(serv)
 
 	servers = sql.select_servers(server=serv)
 	for server in servers:
@@ -327,7 +336,7 @@ def rewrite_section(start_line, end_line, config, section):
 			return_config += line
 		
 	return return_config
-	
+
 	
 def install_haproxy(serv, **kwargs):
 	import sql
@@ -339,17 +348,10 @@ def install_haproxy(serv, **kwargs):
 	stats_password = sql.get_setting('stats_password')
 	proxy = sql.get_setting('proxy')
 	hapver = kwargs.get('hapver')
-	fullpath = get_config_var('main', 'fullpath')
-	ssh_enable = ''
-	ssh_port = ''
-	ssh_user_name = ''
-	ssh_user_password = ''
+	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = return_ssh_keys_path(serv)
 	
-	for sshs in sql.select_ssh(serv=serv):
-		ssh_enable = sshs[3]
-		ssh_user_name = sshs[4]
-		ssh_user_password = sshs[5]
-		ssh_key_name = fullpath+'/keys/%s.pem' % sshs[2]
+	if ssh_enable == 0:
+		ssh_key_name = ''
 		
 	os.system("cp scripts/%s ." % script)
 	

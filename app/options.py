@@ -582,18 +582,12 @@ if form.getvalue('master'):
 	script = "install_keepalived.sh"
 	fullpath = funct.get_config_var('main', 'fullpath')
 	proxy = sql.get_setting('proxy')
-	ssh_enable = ''
-	ssh_port = ''
-	ssh_user_name = ''
-	ssh_user_password = ''
+	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(master)
+	
+	if ssh_enable == 0:
+		ssh_key_name = ''
 	
 	proxy_serv = proxy if proxy is not None else ""
-	
-	for sshs in sql.select_ssh(serv=master):
-		ssh_enable = sshs[3]
-		ssh_user_name = sshs[4]
-		ssh_user_password = sshs[5]
-		ssh_key_name = fullpath+'/keys/%s.pem' % sshs[2]
 		
 	os.system("cp scripts/%s ." % script)
 	
@@ -624,11 +618,10 @@ if form.getvalue('master'):
 		else:
 			print('success: Master Keepalived was installed<br>')
 				
-	for sshs in sql.select_ssh(serv=slave):
-		ssh_enable = sshs[3]
-		ssh_user_name = sshs[4]
-		ssh_user_password = sshs[5]
-		ssh_key_name = fullpath+'/keys/%s.pem' % sshs[2]
+	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(slave)
+	
+	if ssh_enable == 0:
+		ssh_key_name = ''
 		
 	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" +proxy_serv+ 
 				" ETH="+ETH+" IP="+IP+" MASTER=BACKUP"+" HOST="+str(slave)+
@@ -664,20 +657,11 @@ if form.getvalue('masteradd'):
 	IP = form.getvalue('vrrpipadd')
 	kp = form.getvalue('kp')
 	script = "install_keepalived.sh"
-	fullpath = funct.get_config_var('main', 'fullpath')
-	proxy = sql.get_setting('proxy')
-	ssh_enable = ''
-	ssh_port = ''
-	ssh_user_name = ''
-	ssh_user_password = ''
+	proxy = sql.get_setting('proxy')	
+	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(master)
 	
-	proxy_serv = proxy if proxy is not None else ""
-	
-	for sshs in sql.select_ssh(serv=master):
-		ssh_enable = sshs[3]
-		ssh_user_name = sshs[4]
-		ssh_user_password = sshs[5]
-		ssh_key_name = fullpath+'/keys/%s.pem' % sshs[2]
+	if ssh_enable == 0:
+		ssh_key_name = ''
 		
 	os.system("cp scripts/%s ." % script)
 		
@@ -705,11 +689,10 @@ if form.getvalue('masteradd'):
 			print('success: Master VRRP address was added<br>')
 		
 		
-	for sshs in sql.select_ssh(serv=slave):
-		ssh_enable = sshs[3]
-		ssh_user_name = sshs[4]
-		ssh_user_password = sshs[5]
-		ssh_key_name = fullpath+'/keys/%s.pem' % sshs[2]
+	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(slave)
+	
+	if ssh_enable == 0:
+		ssh_key_name = ''
 	
 	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+ 
 				" ETH="+ETH+" IP="+str(IP)+" MASTER=BACKUP"+" RESTART="+kp+" ADD_VRRP=1 HOST="+str(slave)+
@@ -781,8 +764,6 @@ if form.getvalue('new_metrics'):
 	for i in metric:
 		label = str(i[5])
 		label = label.split(' ')[1]
-		#label = label.split(':')
-		#labels += label[0]+':'+label[1]+','
 		labels += label+','
 		curr_con += str(i[1])+','
 		curr_ssl_con += str(i[2])+','
@@ -811,7 +792,6 @@ if form.getvalue('new_waf_metrics'):
 	for i in metric:
 		label = str(i[2])
 		label = label.split(' ')[1]
-		# label = label.split(':')
 		labels += label[0]+','
 		curr_con += str(i[1])+','
 		

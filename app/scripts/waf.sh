@@ -27,7 +27,7 @@ then
 fi
 
 if [ -f $HAPROXY_PATH/waf/modsecurity.conf  ];then
-	echo -e 'error: Haproxy WAF already installed. You can edit config<a href="/app/config.py" title="Edit HAProxy config">here</a> <br /><br />'
+	echo -e 'error: Haproxy WAF already installed.  <br /><br />'
 	exit 1
 fi
 if hash apt-get 2>/dev/null; then
