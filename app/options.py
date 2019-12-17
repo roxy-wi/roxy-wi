@@ -663,6 +663,8 @@ if form.getvalue('masteradd'):
 	if ssh_enable == 0:
 		ssh_key_name = ''
 		
+	proxy_serv = proxy if proxy is not None else ""
+		
 	os.system("cp scripts/%s ." % script)
 		
 	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+ 

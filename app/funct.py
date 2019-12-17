@@ -53,12 +53,14 @@ def logging(serv, action, **kwargs):
 		
 	try:
 		IP = cgi.escape(os.environ["REMOTE_ADDR"])
+	except:
+		IP = ''
+	try:
 		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 		user_uuid = cookie.get('uuid')
 		login = sql.get_user_name_by_uuid(user_uuid.value)
-	except:
-		IP = ''
-		login = kwargs.get('login')
+	except:	
+		login = ''
 		
 	if kwargs.get('alerting') == 1:
 		mess = get_data('date_in_log') + action + "\n"
