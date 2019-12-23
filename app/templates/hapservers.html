@@ -70,10 +70,14 @@
 				{% endif %}				 
 				<br />
 				<span title="Date of last edit config">
-					{% if "ls: cannot access" in s.7 %}
-						Cannot find HAProxy config
+					{% if s.7 != None %}
+						{% if "ls: cannot access" in s.7 %}
+							Cannot find HAProxy config
+						{% else %}
+							Last edit: {{s.7}}
+						{% endif %}
 					{% else %}
-						Last edit: {{s.7}}
+						Cannot connect to HAProxy server
 					{% endif %}
 				</span>			
 				<br />

@@ -20,6 +20,7 @@ try:
 	users = sql.select_users()
 	groups = sql.select_groups()
 	token = sql.get_token(user_id.value)
+	role = sql.get_user_role_by_uuid(user_id.value)
 	cmd = "ps ax |grep checker_mas |grep -v grep |wc -l"
 	checker_master, stderr = funct.subprocess_execute(cmd)
 	cmd = "ps ax |grep checker_worker |grep -v grep |wc -l"
@@ -39,7 +40,7 @@ except:
 template = template.render(h2 = 1,
 							autorefresh = 1,
 							title = "Overview",
-							role = sql.get_user_role_by_uuid(user_id.value),
+							role = role,
 							user = user,
 							users = users,
 							groups = groups,
