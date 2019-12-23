@@ -1,5 +1,5 @@
 ---      
-- name: check if HAProxy is installed Ubuntu
+- name: check if HAProxy is installed
   package_facts:
     manager: "auto"
   
@@ -8,7 +8,7 @@
   service_facts:
 
   
-- name: install HAProxy {{HAPVER}}
+- name: install HAProxy {{HAPVER}} on EL6
   yum:
     name: 
       - http://repo.haproxy-wi.org/haproxy-{{HAPVER}}.el6.x86_64.rpm
@@ -21,7 +21,7 @@
     https_proxy: "{{PROXY}}"
     
     
-- name: install HAProxy {{HAPVER}}
+- name: install HAProxy {{HAPVER}} on EL7
   yum:
     name: 
       - http://repo.haproxy-wi.org/haproxy-{{HAPVER}}.el7.x86_64.rpm
