@@ -65,12 +65,12 @@ def start_worker(serv):
 	port = sql.get_setting('haproxy_sock_port')
 	cmd = "tools/metrics_worker.py %s --port %s &" % (serv, port)
 	os.system(cmd)
-	funct.logging("localhost", " Masrer started new metrics worker for: "+serv, metrics=1)
+	funct.logging("localhost", " Master started new metrics worker for: "+serv, metrics=1)
 	
 def kill_worker(serv):
 	cmd = "ps ax |grep 'tools/metrics_worker.py %s'|grep -v grep |awk '{print $1}' |xargs kill" % serv
 	output, stderr = funct.subprocess_execute(cmd)
-	funct.logging("localhost", " Masrer killed metrics worker for: "+serv, metrics=1)
+	funct.logging("localhost", " Master killed metrics worker for: "+serv, metrics=1)
 	if stderr:
 		funct.logging("localhost", stderr, metrics=1)
 		
@@ -78,19 +78,19 @@ def start_waf_worker(serv):
 	port = sql.get_setting('haproxy_sock_port')
 	cmd = "tools/metrics_waf_worker.py %s --port %s &" % (serv, port)
 	os.system(cmd)
-	funct.logging("localhost", " Masrer started new WAF metrics worker for: "+serv, metrics=1)
+	funct.logging("localhost", " Master started new WAF metrics worker for: "+serv, metrics=1)
 	
 def kill_waf_worker(serv):
 	cmd = "ps ax |grep 'tools/metrics_waf_worker.py %s'|grep -v grep |awk '{print $1}' |xargs kill" % serv
 	output, stderr = funct.subprocess_execute(cmd)
-	funct.logging("localhost", " Masrer killed WAF metrics worker for: "+serv, metrics=1)
+	funct.logging("localhost", " Master killed WAF metrics worker for: "+serv, metrics=1)
 	if stderr:
 		funct.logging("localhost", stderr, metrics=1)
 
 def kill_all_workers():
 	cmd = "ps ax |grep -e 'tools/metrics_worker.py\|tools/metrics_waf_worker.py' |grep -v grep |awk '{print $1}' |xargs kill"
 	output, stderr = funct.subprocess_execute(cmd)
-	funct.logging("localhost", " Masrer killing all metrics workers", metrics=1)
+	funct.logging("localhost", " Master killing all metrics workers", metrics=1)
 	if stderr:
 		funct.logging("localhost", stderr, metrics=1)
 		
