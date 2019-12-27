@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}	
+<script src="/inc/overview.js"></script>
 {% if serv %}
 <style>
 @media (max-width: 1280px) {
@@ -9,8 +10,23 @@
 }
 </style>
 {% endif %}
+<style>
+.alert-danger {
+	width: 250px;
+	padding: 5px;
+	margin-bottom: -20px !important;
+}
+</style>
 <div id="up-pannel">
 	{% for s in servers %}
+		<script>
+			var ip = []
+			var hostnamea = []
+			{% for s in servers %}
+				ip.push("{{s[2]}}")
+				hostnamea.push("{{s[1]}}")
+			{% endfor %}
+		</script>
 	{% if serv %}
 		<link href="/inc/chart.min.css" rel="stylesheet">
 		<script src="/inc/metrics.js"></script>
@@ -69,16 +85,9 @@
 					{{s.5.0.0}} {{s.5.0.1}} {{s.5.0.2}}
 				{% endif %}				 
 				<br />
-				<span title="Date of last edit config">
-					{% if s.7 != None %}
-						{% if "ls: cannot access" in s.7 %}
-							Cannot find HAProxy config
-						{% else %}
-							Last edit: {{s.7}}
-						{% endif %}
-					{% else %}
-						Cannot connect to HAProxy server
-					{% endif %}
+				<span title="Date of last edit config" >
+					Last edit:
+					<span id="{{s.1}}"></span>
 				</span>			
 				<br />
 				IP: {{s.2}}
@@ -97,20 +106,12 @@
 		
 		<div id="ajax-server-{{s.0}}" class="ajax-server"></div>
 		{% if serv %}
-			{% if s.8 is defined %}
 			<div class="div-server div-backends">
 				<div class="server-name">	
 					Backends:
 				</div>
-				<div style="margin-top: 10px;">
-				{% for b in s.8 %}
-				<a href="/app/sections.py?serv={{ s.2 }}&section={{b}}" title="Edit backend {{b}}" target="_blank" style="padding-right: 10px;">
-					{{b}}
-				</a>
-				{% endfor %}
-				</div>
+				<div style="margin-top: 10px;" id="top-{{s.1}}"></div>
 			</div>
-			{% endif %}
 		{% endif %}
 	</div>
 	{% endfor %}
@@ -131,5 +132,10 @@
 <div id="dialog-confirm" style="display: none;">
   <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>Are you sure?</p>
 </div>
-<script src="/inc/overview.js"></script>
+<script>
+	{% if serv %}
+		overviewHapserverBackends(ip, hostnamea);
+	{% endif %}
+	showHapservers(ip, hostnamea);
+</script>
 {% endblock %}

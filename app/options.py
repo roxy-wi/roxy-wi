@@ -146,6 +146,42 @@ if form.getvalue('action_waf') is not None and serv is not None:
 	funct.ssh_command(serv, commands)		
 	
 	
+if act == "overviewHapserverBackends":
+	from jinja2 import Environment, FileSystemLoader
+	env = Environment(loader=FileSystemLoader('templates/ajax'))
+	template = env.get_template('haproxyservers_backends.html')
+	
+	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+	try:
+		sections = funct.get_sections(hap_configs_dir +funct.get_files()[0])
+	except:
+		try:
+			cfg = hap_configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
+		except:
+			funct.logging('localhost', ' Cannot generate cfg path', haproxywi=1)
+		try:
+			error = funct.get_config(serv, cfg)
+		except:
+			funct.logging('localhost', ' Cannot download config', haproxywi=1)
+		try:
+			sections = funct.get_sections(cfg)
+		except:
+			funct.logging('localhost', ' Cannot get sections from config file', haproxywi=1)
+			sections = 'Cannot get backends'
+			
+	template = template.render(backends=sections, serv=serv)
+	print(template)
+	
+	
+if act == "overviewHapservers":
+	haproxy_config_path  = sql.get_setting('haproxy_config_path')
+	commands = [ "ls -l %s |awk '{ print $6\" \"$7\" \"$8}'" % haproxy_config_path ]
+	try:
+		print(funct.ssh_command(serv, commands))
+	except:
+		print('Cannot get last date')
+	
+	
 if act == "overview":	
 	import asyncio
 	async def async_get_overview(serv1, serv2):
@@ -170,7 +206,7 @@ if act == "overview":
 		template = env.get_template('overview.html')
 		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 		user_id = cookie.get('uuid')
-		futures = [async_get_overview(server[1], server[2]) for server in sql.get_dick_permit()]
+		futures = [async_get_overview(server[1], server[2]) for server in sql.select_servers(server=serv)]
 		for i, future in enumerate(asyncio.as_completed(futures)):
 			result = await future
 			servers.append(result)
@@ -587,7 +623,10 @@ if form.getvalue('master'):
 	if ssh_enable == 0:
 		ssh_key_name = ''
 	
-	proxy_serv = proxy if proxy is not None else ""
+	if proxy is not None and proxy != '' and proxy != 'None':
+		proxy_serv = proxy 
+	else:
+		proxy_serv = ''		
 		
 	os.system("cp scripts/%s ." % script)
 	
@@ -663,7 +702,10 @@ if form.getvalue('masteradd'):
 	if ssh_enable == 0:
 		ssh_key_name = ''
 		
-	proxy_serv = proxy if proxy is not None else ""
+	if proxy is not None and proxy != '' and proxy != 'None':
+		proxy_serv = proxy 
+	else:
+		proxy_serv = ''		
 		
 	os.system("cp scripts/%s ." % script)
 		

@@ -33,6 +33,7 @@ try:
 	keep_alive, stderr = funct.subprocess_execute(cmd)
 	cmd = "ps ax |grep '(wsgi:api)'|grep -v grep|wc -l"
 	api, stderr = funct.subprocess_execute(cmd)
+	servers = sql.get_dick_permit()
 except:
 	pass
 
@@ -55,5 +56,6 @@ template = template.render(h2 = 1,
 							error = stderr,
 							versions = funct.versions(),
 							haproxy_wi_log = funct.haproxy_wi_log(),
+							servers = servers,
 							token = token)
 print(template)											

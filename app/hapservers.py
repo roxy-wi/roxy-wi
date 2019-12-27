@@ -27,14 +27,11 @@ serv = form.getvalue('serv')
 if serv:
 	servers = sql.select_servers(server=serv)
 	autorefresh = 1
-	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 else:
 	servers = sql.get_dick_permit()
 	autorefresh = 0
 	
 haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-haproxy_config_path  = sql.get_setting('haproxy_config_path')
-commands = [ "ls -l %s |awk '{ print $6\" \"$7\" \"$8}'" % haproxy_config_path ]
 servers_with_status1 = []
 out1 = ""
 for s in servers:
@@ -52,22 +49,6 @@ for s in servers:
 			out1 = False
 		servers_with_status.append(out1)
 	servers_with_status.append(s[12])
-	try:
-		servers_with_status.append(funct.ssh_command(s[2], commands))
-	except:
-		servers_with_status.append('Cannot get last date')
-	
-	if serv:
-		try:
-			sections = funct.get_sections(hap_configs_dir +funct.get_files()[0])
-		except:
-			try:
-				cfg = hap_configs_dir + s[2] + "-" + funct.get_data('config') + ".cfg"
-				error = funct.get_config(s[2], cfg)
-				sections = funct.get_sections(cfg)
-			except:
-				pass
-		servers_with_status.append(sections)
 	
 	servers_with_status1.append(servers_with_status)
 	

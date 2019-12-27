@@ -1,0 +1,14 @@
+<style>
+	.div-backends {
+		height: auto !important;
+	}
+</style>
+{% if backends == 'Cannot get backends' %}
+	{{backends}}
+{% else %}
+	{% for b in backends %}
+		<a href="/app/sections.py?serv={{ serv}}&section={{b}}" title="Edit backend {{b}}" target="_blank" style="padding-right: 10px;">
+			{{b}}
+		</a>
+	{% endfor %}
+{% endif %}

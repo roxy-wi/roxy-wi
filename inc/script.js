@@ -135,7 +135,7 @@ function startSetInterval(interval) {
 				interval = 60000;
 			}
 			intervalId = setInterval('showOverview()', interval);
-			showOverview(); 
+			showOverview(ip, hostnamea); 
 		} else if (cur_url[0] == "viewlogs.py") {
 			intervalId = setInterval('viewLogs()', interval);
 			viewLogs();
@@ -192,53 +192,6 @@ $( document ).ajaxComplete(function( event, request, settings ) {
 	$('#cover').fadeOut('fast');
 	NProgress.done();
 });
-function showOverview() {
-	showOverviewHapWI()
-	$.ajax( {
-		url: "options.py",
-		data: {
-			act: "overview",
-			token: $('#token').val()
-		},
-		beforeSend: function() {
-			$('#ajaxstatus').html('<img class="loading" src="/inc/images/loading.gif" />')
-		},
-		type: "POST",
-		success: function( data ) {
-			$("#ajaxstatus").empty();
-			$("#ajaxstatus").html(data);
-			$.getScript('/inc/overview.js');
-		}					
-	} );
-}
-function showOverviewServer(name,ip,id) {
-	$.ajax( {
-		url: "options.py",
-		data: {
-			act: "overviewServers",
-			name: name,
-			serv: ip,
-			id: id,
-			page: 'hapservers.py',
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function( data ) {
-			$("#ajax-server-"+id).empty();
-			$("#ajax-server-"+id).css('display', 'block');
-			$("#ajax-server-"+id).css('background-color', '#fbfbfb');
-			$("#ajax-server-"+id).css('border', '1px solid #A4C7F5');
-			$(".ajax-server").css('display', 'block');
-			$(".div-server").css('clear', 'both');
-			$(".div-pannel").css('clear', 'both');
-			$(".div-pannel").css('display', 'block');
-			$(".div-pannel").css('padding-top', '10px');
-			$(".div-pannel").css('height', '70px');
-			$("#div-pannel-"+id).insertBefore('#up-pannel')
-			$("#ajax-server-"+id).html(data);
-		}					
-	} );
-}
 function showOverviewWaf() {
 	if (cur_url[0] == "waf.py") {
 		$.getScript('/inc/chart.min.js');
@@ -271,22 +224,6 @@ function showOverviewWaf() {
 			} else {
 				$('.first-collumn-wi').css('padding', '10px');
 			}
-		}					
-	} );
-}
-function showOverviewHapWI() {
-	$.ajax( {
-		url: "options.py",
-		data: {
-			act: "overviewHapwi",
-			token: $('#token').val()
-		},
-		beforeSend: function() {
-			$('#ajaxHapwi').html('<img class="loading_hapwi_overview" src="/inc/images/loading.gif" />')
-		},
-		type: "POST",
-		success: function( data ) {
-			$("#ajaxHapwi").html(data);
 		}					
 	} );
 }
@@ -516,6 +453,9 @@ function viewLogs() {
 	}
 }
 $( function() {
+	$('#errorMess').click(function(){
+		$('#error').remove();
+	});
 	$( "#serv" ).on('selectmenuchange',function()  {
 		$("#show").css("pointer-events", "inherit");
 		$("#show").css("cursor", "pointer");

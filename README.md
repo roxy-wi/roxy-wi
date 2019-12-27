@@ -64,6 +64,8 @@ Supports EL7 and EL8
 
 #### Before uses RPM repository you should donate to support project on [Patreon](https://www.patreon.com/haproxy_wi/overview) or on [PayPal](https://www.paypal.me/loginovpavel) and I will send you credentials for access. Actual prices you can see on [Patreon](https://www.patreon.com/haproxy_wi/overview)
 
+### More information on the official [site](https://haproxy-wi.org/installation.py#rpm)
+
 ## Manual install
 For install just clone:
 ```
@@ -178,6 +180,8 @@ For Apache do virtualhost with cgi-bin. Like this:
 </VirtualHost>
 ```
 
+### More information on the official [site](https://haproxy-wi.org/installation.py#manual)
+
 # OS support
 HAProxy-WI was tested on EL7, EL8 and all scripts too. Debian/Ubuntu OS support at 'beta' stage, may work not correct
 
@@ -192,6 +196,9 @@ MariaDB [(none)]> create database haproxywi;
 MariaDB [(none)]> grant all on haproxywi.* to 'haproxy-wi'@'%' IDENTIFIED BY 'haproxy-wi';
 MariaDB [(none)]> grant all on haproxywi.* to 'haproxy-wi'@'localhost' IDENTIFIED BY 'haproxy-wi';
 ```
+
+### More information on the official [site](https://haproxy-wi.org/settings.py#db_settings)
+
 ![alt text](image/haproxy-wi-overview.png "Overview page")
 
 # Settings

@@ -1,26 +1,24 @@
-{% for service in service_status %}
-	<tr class="{{ loop.cycle('odd', 'even') }}">
-		<td class="padding10 first-collumn">		
-			<a href="/app/hapservers.py?serv={{ service.1 }}" title="{{service.0 }}'s overview" class="logs_link">
-				{{ service.0 }}
-			</a>
-		</td>
-		<td>
-			{% if service.2|int() >= 1 %}
-				<span class="serverUp server-status" title="running {{service.2 }} processes" style="margin-left: 25px !important;"></span> 
-			{% else %}
-				<span class="serverDown server-status" style="margin-left: 25px !important;"></span>
-			{% endif %}		
-		</td>
-		<td class="third-collumn-wi">
-			{% if service.5.0|length() == 0 %}
-				<span class="serverNone server-status" title="WAF is not installed" style="margin-left: 4px !important;"></span>		
-			{% elif service.5.0 != '' and service.4|int() == 0 %}
-				<span class="serverDown server-status" title="WAF down" style="margin-left: 4px !important;"></span>
-			{% elif service.5.0 != '' and service.4|int() >= 1 %}
-				<span class="serverUp server-status" title="running {{service.4 }} processes" style="margin-left: 4px !important;"></span> 					
-			{% endif %}
-		</td>
-		<td></td>
-	</tr>
+{% for service in service_status %}	
+	<td class="padding10 first-collumn">		
+		<a href="/app/hapservers.py?serv={{ service.1 }}" title="{{service.0 }}'s overview" class="logs_link">
+			{{ service.0 }}
+		</a>
+	</td>
+	<td>
+		{% if service.2|int() >= 1 %}
+			<span class="serverUp server-status" title="running {{service.2 }} processes" style="margin-left: 25px !important;"></span> 
+		{% else %}
+			<span class="serverDown server-status" style="margin-left: 25px !important;"></span>
+		{% endif %}		
+	</td>
+	<td class="third-collumn-wi">
+		{% if service.5.0|length() == 0 %}
+			<span class="serverNone server-status" title="WAF is not installed" style="margin-left: 4px !important;"></span>		
+		{% elif service.5.0 != '' and service.4|int() == 0 %}
+			<span class="serverDown server-status" title="WAF down" style="margin-left: 4px !important;"></span>
+		{% elif service.5.0 != '' and service.4|int() >= 1 %}
+			<span class="serverUp server-status" title="running {{service.4 }} processes" style="margin-left: 4px !important;"></span> 					
+		{% endif %}
+	</td>
+	<td></td>	
 {% endfor %}

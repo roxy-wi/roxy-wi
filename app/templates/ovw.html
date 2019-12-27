@@ -1,7 +1,14 @@
 {% extends "base.html" %}
 {% block content %}	
+<script src="/inc/overview.js"></script>
 <script>
 	$("#secIntervals").css("display", "none");
+	var ip = []
+	var hostnamea = []
+	{% for s in servers %}
+		ip.push("{{s[2]}}")
+		hostnamea.push("{{s[1]}}")
+	{% endfor %}
 </script>
 <table class="overview-wi">
 	<tr class="overviewHead">
@@ -19,10 +26,12 @@
 			</a>
 		</td  class="padding10">
 		<td>
-			<a onclick="showOverview()" title="Refresh" style="float: right; margin-right: 25px;"><img  src="/inc/images/update.png" alt="restart" class="icon"></a>
+			<a onclick="showOverview(ip, hostnamea)" title="Refresh" style="float: right; margin-right: 25px;"><img  src="/inc/images/update.png" alt="hostname" class="icon"></a>
 		</td>
 	</tr>
-<tbody id="ajaxstatus"></tbody>
+	{% for s in servers %}
+		<tr class="{{ loop.cycle('odd', 'even') }}" id="{{s[1]}}"></tr>
+	{% endfor %}
 </table>
 <table class="overview-wi" style="height: 170;">
 	<tr class="overviewHead" style="height: 40px;">
@@ -283,7 +292,7 @@
   <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>Are you sure?</p>
 </div>
 <script>
-	window.onload = showOverview()
+	showOverview(ip, hostnamea)
 </script>
 
 {% endblock %}

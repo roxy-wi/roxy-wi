@@ -2,9 +2,7 @@ configparser==3.5.0
 paramiko>=2.5.0
 pytz==2017.3
 requests>=2.22.0
-requests_toolbelt==0.8.0
 pyTelegramBotAPI==3.6.3 
-dump==0.0.4
 networkx==2.1
 matplotlib==2.1.2
 future==0.13.1

@@ -99,7 +99,7 @@ def telegram_send_mess(mess, **kwargs):
 		token_bot = telegram[1]
 		channel_name = telegram[2]
 			
-	if proxy is not None:
+	if proxy is not None and proxy != '' and proxy != 'None':
 		apihelper.proxy = {'https': proxy}
 	try:
 		bot = telebot.TeleBot(token=token_bot)
@@ -359,8 +359,12 @@ def install_haproxy(serv, **kwargs):
 	
 	if hapver is None:
 		hapver = '2.0.7-1'
+	
+	if proxy is not None and proxy != '' and proxy != 'None':
+		proxy_serv = proxy 
+	else:
+		proxy_serv = ''
 		
-	proxy_serv = proxy if proxy is not None else ''
 	syn_flood_protect = '1' if kwargs.get('syn_flood') == "1" else ''
 		
 	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+ 
@@ -400,7 +404,12 @@ def waf_install(serv, **kwargs):
 
 	os.system("cp scripts/%s ." % script)
 	
-	commands = [ "sudo chmod +x "+tmp_config_path+script+" && " +tmp_config_path+script +" PROXY=" + proxy+ 
+	if proxy is not None and proxy != '' and proxy != 'None':
+		proxy_serv = proxy 
+	else:
+		proxy_serv = ''
+	
+	commands = [ "sudo chmod +x "+tmp_config_path+script+" && " +tmp_config_path+script +" PROXY=" + proxy_serv+ 
 				" HAPROXY_PATH="+haproxy_dir +" VERSION="+ver ]
 	
 	error = str(upload(serv, tmp_config_path, script))
@@ -651,8 +660,8 @@ def ssh_command(serv, commands, **kwargs):
 	try:	
 		ssh.close()
 	except:
-		print("<div class='alert alert-danger' style='margin: 0;'>"+str(ssh)+"<a title='Close' id='errorMess'><b>X</b></a></div>")
 		logging('localhost', ' '+str(ssh), haproxywi=1)
+		return "<div class='alert alert-danger' style='margin: 0;'>"+str(ssh)+"<a title='Close' id='errorMess'><b>X</b></a></div>"
 		pass
 
 
@@ -731,13 +740,12 @@ def check_ver():
 	
 def check_new_version():
 	import requests
-	import ssl
 	import sql	
 
 	proxy = sql.get_setting('proxy')
 	
 	try:
-		if proxy:
+		if proxy is not None and proxy != '' and proxy != 'None':
 			proxyDict = { "https" : proxy, "http" : proxy }
 			response = requests.get('https://haproxy-wi.org/update.py?last_ver=1', timeout=1,  proxies=proxyDict)
 		else:	

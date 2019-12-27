@@ -1,5 +1,118 @@
 var cur_url = window.location.href.split('/').pop();
 cur_url = cur_url.split('?');
+function showOverviewHapWI() {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			act: "overviewHapwi",
+			token: $('#token').val()
+		},
+		beforeSend: function() {
+			$('#ajaxHapwi').html('<img class="loading_hapwi_overview" src="/inc/images/loading.gif" />')
+		},
+		type: "POST",
+		success: function( data ) {
+			$("#ajaxHapwi").html(data);
+		}					
+	} );
+}
+function showHapservers(serv, hostnamea) {
+	var i;
+	for (i = 0; i < serv.length; i++) { 
+		showHapserversCallBack(serv[i], hostnamea[i])
+	}
+}
+function showHapserversCallBack(serv, hostnamea) {	
+	$.ajax( {
+		url: "options.py",
+		data: {
+			act: "overviewHapservers",
+			serv: serv,
+			token: $('#token').val()
+		},
+		beforeSend: function() {
+			$("#"+hostnamea).html('<img class="loading_small_haproxyservers" src="/inc/images/loading.gif" />');
+		},
+		type: "POST",
+		success: function( data ) {
+			$("#"+hostnamea).empty();
+			$("#"+hostnamea).html(data);
+		}					
+	} );
+}
+function overviewHapserverBackends(serv, hostnamea) {	
+	console.log("#top-"+hostnamea)
+	$.ajax( {
+		url: "options.py",
+		data: {
+			act: "overviewHapserverBackends",
+			serv: serv[0],
+			token: $('#token').val()
+		},
+		beforeSend: function() {
+			$("#top-"+hostnamea).html('<img class="loading_small" style="padding-left: 45%;" src="/inc/images/loading.gif" />');
+		},
+		type: "POST",
+		success: function( data ) {
+			$("#top-"+hostnamea).empty();
+			$("#top-"+hostnamea).html(data);
+		}					
+	} );
+}
+function showOverview(serv, hostnamea) {
+	showOverviewHapWI()
+	var i;
+	for (i = 0; i < serv.length; i++) { 
+		showOverviewCallBack(serv[i], hostnamea[i])
+	}
+	$.getScript('/inc/overview.js');
+}
+function showOverviewCallBack(serv, hostnamea) {	
+	$.ajax( {
+		url: "options.py",
+		data: {
+			act: "overview",
+			serv: serv,
+			token: $('#token').val()
+		},
+		beforeSend: function() {
+			$("#"+hostnamea).html('<img class="loading_small" src="/inc/images/loading.gif" />');
+		},
+		type: "POST",
+		success: function( data ) {
+			$("#"+hostnamea).empty();
+			$("#"+hostnamea).html(data);
+		}					
+	} );
+}
+function showOverviewServer(name,ip,id) {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			act: "overviewServers",
+			name: name,
+			serv: ip,
+			id: id,
+			page: 'hapservers.py',
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			$("#ajax-server-"+id).empty();
+			$("#ajax-server-"+id).css('display', 'block');
+			$("#ajax-server-"+id).css('background-color', '#fbfbfb');
+			$("#ajax-server-"+id).css('border', '1px solid #A4C7F5');
+			$(".ajax-server").css('display', 'block');
+			$(".div-server").css('clear', 'both');
+			$(".div-pannel").css('clear', 'both');
+			$(".div-pannel").css('display', 'block');
+			$(".div-pannel").css('padding-top', '10px');
+			$(".div-pannel").css('height', '70px');
+			$("#div-pannel-"+id).insertBefore('#up-pannel')
+			$("#ajax-server-"+id).html(data);
+		}					
+	} );
+}
 function ajaxActionServers(action, id) {
 		var bad_ans = 'Bad config, check please';
 		$.ajax( {
@@ -17,7 +130,7 @@ function ajaxActionServers(action, id) {
 						if (cur_url[0] == "hapservers.py") {
 							location.reload()
 						} else {
-							setTimeout(showOverview, 2000)					
+							setTimeout(showOverview(ip, hostnamea), 2000)					
 						}
 					}
 				},
