@@ -234,7 +234,7 @@ if act == "overviewwaf":
 		return server_status
 
 
-	async def get_runner_overviewWaf(url):
+	async def get_runner_overviewWaf():
 		import http.cookies
 		from jinja2 import Environment, FileSystemLoader
 		env = Environment(loader=FileSystemLoader('templates/ajax'),extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
@@ -243,16 +243,16 @@ if act == "overviewwaf":
 		servers = []
 		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 		user_id = cookie.get('uuid')
-		futures = [async_get_overviewWaf(server[1], server[2]) for server in sql.get_dick_permit()]
+		futures = [async_get_overviewWaf(server[1], server[2]) for server in sql.select_servers(server=serv)]
 		for i, future in enumerate(asyncio.as_completed(futures)):
 			result = await future
 			servers.append(result)
 		servers_sorted = sorted(servers, key=funct.get_key)
-		template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_id.value), url=url)
+		template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_id.value))
 		print(template)
 	
 	ioloop = asyncio.get_event_loop()
-	ioloop.run_until_complete(get_runner_overviewWaf(form.getvalue('page')))
+	ioloop.run_until_complete(get_runner_overviewWaf())
 	ioloop.close()
 	
 	

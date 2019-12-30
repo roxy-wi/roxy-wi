@@ -1,6 +1,5 @@
 {% for service in service_status %}
-	{% if service.3 == "On" or service.3 == "Off" or service.3 == "DetectionOnly" or url == "waf.py" %}
-		<tr class="{{ loop.cycle('odd', 'even') }}" id="{{service.0}}-select-line">
+	{% if service.3 == "On" or service.3 == "Off" or service.3 == "DetectionOnly" %}
 			<td class="padding10 first-collumn-wi">
 				{% if service.2|int() >= 1 %}
 					<span class="serverUp server-status" title="running {{service.2 }} processes"></span>
@@ -57,7 +56,13 @@
 				{% endif %}
 			</td>
 			<td></td>
-		</tr>
+	{% else %}
+		<td class="padding10 first-collumn-wi">
+			<span class="serverDown server-status"></span> {{ service.0 }}
+		</td>
+		<td colspan="3">
+			{{ service.3 }}
+		</td>
 	{% endif %}
 {% endfor %}
 <script>

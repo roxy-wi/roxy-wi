@@ -112,6 +112,16 @@
 			</span><div>
 			{% continue %}
 		{% endif %}
+		{% if line.startswith('resolvers') %}
+			</div><span class="param">{{ line }}
+				{% if role %}
+					<span class="accordion-link">
+						<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+					</span>
+				{% endif %}
+			</span><div>
+			{% continue %}
+		{% endif %}
 		{% if line.startswith('userlist') %}
 			</div><span class="param">{{ line }}
 				{% if role %}

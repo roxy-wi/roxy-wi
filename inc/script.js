@@ -134,7 +134,7 @@ function startSetInterval(interval) {
 			if(interval < 60000) {
 				interval = 60000;
 			}
-			intervalId = setInterval('showOverview()', interval);
+			intervalId = setInterval('showOverview(ip, hostnamea)', interval);
 			showOverview(ip, hostnamea); 
 		} else if (cur_url[0] == "viewlogs.py") {
 			intervalId = setInterval('viewLogs()', interval);
@@ -149,8 +149,8 @@ function startSetInterval(interval) {
 			if(interval < 60000) {
 				interval = 60000;
 			}
-			intervalId = setInterval('showOverviewWaf()', interval);
-			showOverviewWaf();
+			intervalId = setInterval('showOverviewWaf(ip, hostnamea)', interval);
+			showOverviewWaf(ip, hostnamea);
 			showWafMetrics();
 		} else if (cur_url[0] == "hapservers.py") {
 			if(interval < 60000) {
@@ -192,41 +192,6 @@ $( document ).ajaxComplete(function( event, request, settings ) {
 	$('#cover').fadeOut('fast');
 	NProgress.done();
 });
-function showOverviewWaf() {
-	if (cur_url[0] == "waf.py") {
-		$.getScript('/inc/chart.min.js');
-		showWafMetrics()
-	}
-	$.ajax( {
-		url: "options.py",
-		data: {
-			act: "overviewwaf",
-			page: cur_url[0],
-			token: $('#token').val()
-		},
-		beforeSend: function() {
-			if (cur_url[0] == "waf.py") {
-				var load_class = 'loading_full_page'
-			} else {
-				var load_class = 'loading'
-			}
-			$('#ajaxwafstatus').html('<img class="'+load_class+'" src="/inc/images/loading.gif" />')
-		},
-		type: "POST",
-		success: function( data ) {
-			$("#ajaxwafstatus").empty();
-			$("#ajaxwafstatus").html(data);
-			$.getScript('/inc/overview.js');			
-			if (cur_url[0] == "waf.py") {
-				$.getScript('/inc/waf.js');
-				$( "input[type=submit], button" ).button();
-				$( "input[type=checkbox]" ).checkboxradio();
-			} else {
-				$('.first-collumn-wi').css('padding', '10px');
-			}
-		}					
-	} );
-}
 function showStats() {
 	$.ajax( {
 		url: "options.py",

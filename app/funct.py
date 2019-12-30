@@ -270,6 +270,7 @@ def get_sections(config):
 				line.startswith('#HideBlockEnd') or 
 				line.startswith('#HideBlockStart') or
 				line.startswith('peers') or
+				line.startswith('resolvers') or
 				line.startswith('userlist')
 				):		
 					line = line.strip()
@@ -302,6 +303,7 @@ def get_section_from_config(config, section):
 					line.startswith('#HideBlockEnd') or 
 					line.startswith('#HideBlockStart') or
 					line.startswith('peers') or
+					line.startswith('resolvers') or
 					line.startswith('userlist')
 					):
 						record = False

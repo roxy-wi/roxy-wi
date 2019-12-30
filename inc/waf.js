@@ -4,6 +4,37 @@ $( function() {
 		metrics_waf(id);
 	});
 } );
+function showOverviewWaf(serv, hostnamea) {
+	$.getScript('/inc/chart.min.js');
+	showWafMetrics();
+	console.log(serv)
+	var i;
+	for (i = 0; i < serv.length; i++) { 
+		showOverviewWafCallBack(serv[i], hostnamea[i])
+	}
+	$.getScript('/inc/overview.js');
+	$.getScript('/inc/waf.js');
+}
+function showOverviewWafCallBack(serv, hostnamea) {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			act: "overviewwaf",
+			serv: serv,
+			token: $('#token').val()
+		},
+		beforeSend: function() {
+			$("#"+hostnamea).html('<img class="loading_small" src="/inc/images/loading.gif" />');
+		},
+		type: "POST",
+		success: function( data ) {
+			$("#"+hostnamea).empty();
+			$("#"+hostnamea).html(data)		
+			$( "input[type=submit], button" ).button();
+			$( "input[type=checkbox]" ).checkboxradio();
+		}				
+	} );
+}
 function metrics_waf(name) {
 	var enable = 0;
 	if ($('#'+name).is(':checked')) {

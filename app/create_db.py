@@ -73,9 +73,9 @@ def create_table(**kwargs):
 			`groups`	VARCHAR ( 120 ),
 			PRIMARY KEY(`id`) 
 		);
-		INSERT INTO user (username, email, password, role, groups) VALUES ('admin','admin@localhost','admin','admin','1'),
-		 ('editor','editor@localhost','editor','editor','1'),
-		 ('guest','guest@localhost','guest','guest','1');
+		INSERT INTO user (username, email, password, role, groups) VALUES ('admin','admin@localhost','21232f297a57a5a743894a0e4a801fc3','admin','1'),
+		 ('editor','editor@localhost','5aee9dbd2a188839105073571bee1b1f','editor','1'),
+		 ('guest','guest@localhost','084e0343a0486ff05530df6c705c8bb4','guest','1');
 		CREATE TABLE IF NOT EXISTS `servers` (
 			`id`	INTEGER NOT NULL,
 			`hostname`	VARCHAR ( 64 ) UNIQUE,
@@ -465,34 +465,6 @@ def update_ver(**kwargs):
 		print('Cannot update version')
 	cur.close() 
 	con.close()
-	
-	
-def update_to_hash():
-	cur_ver = funct.check_ver()
-	cur_ver = cur_ver.replace('.','')
-	i = 1
-	ver = ''
-	for l in cur_ver:
-		ver += l
-		i += 1
-	if len(ver) < 4:
-		ver += '00'
-	if cur_ver <= '3.4.9':	
-		con, cur = get_cur()
-		sql = """select id, password from user """ 
-		try:    
-			cur.execute(sql)
-		except sqltool.Error as e:
-			out_error(e)
-		else:
-			for u in cur.fetchall():
-				sql = """ update user set password = '%s' where id = '%s' """ % (funct.get_hash(u[1]), u[0])
-				try:    
-					cur.execute(sql)
-					con.commit()
-				except sqltool.Error as e:
-					if kwargs.get('silent') != 1:
-						print("An error occurred:", e)
 						
 			
 def update_all():	
@@ -511,7 +483,6 @@ def update_all():
 	update_db_v_3_4_9_5()
 	update_db_v_3_5_3()
 	update_db_v_3_8_1()
-	update_to_hash()
 	update_ver()
 		
 	
@@ -531,7 +502,6 @@ def update_all_silent():
 	update_db_v_3_4_9_5(silent=1)
 	update_db_v_3_5_3(silent=1)
 	update_db_v_3_8_1(silent=1)
-	update_to_hash()
 	update_ver()
 	
 		

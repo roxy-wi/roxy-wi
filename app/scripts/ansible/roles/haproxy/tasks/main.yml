@@ -19,26 +19,14 @@
     https_proxy: "{{PROXY}}"
 
   
-- name: install HAProxy {{HAPVER}} on EL6
+- name: install HAProxy {{HAPVER}} on EL{{ansible_facts['distribution_major_version']}}
   yum:
     name: 
-      - http://repo.haproxy-wi.org/haproxy-{{HAPVER}}.el6.x86_64.rpm
+      - http://repo.haproxy-wi.org/haproxy-{{HAPVER}}.el{{ansible_facts['distribution_major_version']}}.x86_64.rpm
       - socat
     state: present
-  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and ansible_facts['distribution_major_version']|int == 6 and HAPVER|length > 0
+  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and HAPVER|length > 0
   register: install_result
-  environment:
-    http_proxy: "{{PROXY}}"
-    https_proxy: "{{PROXY}}"
-    
-    
-- name: install HAProxy {{HAPVER}} on EL7
-  yum:
-    name: 
-      - http://repo.haproxy-wi.org/haproxy-{{HAPVER}}.el7.x86_64.rpm
-      - socat
-    state: present
-  when: ((ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and ansible_facts['distribution_major_version']|int == 7) and HAPVER|length > 0
   environment:
     http_proxy: "{{PROXY}}"
     https_proxy: "{{PROXY}}"
@@ -47,7 +35,7 @@
 - name: set_fact from wi`
   set_fact:
     haproxy_from_wi: "yes"
-  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and ansible_facts['distribution_major_version']|int == 7 and HAPVER|length > 0
+  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and HAPVER|length > 0
   
   
 - name: install the latest version of HAProxy
@@ -56,7 +44,7 @@
       - haproxy
       - socat
     state: latest
-  when: ((ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and ansible_facts['distribution_major_version']|int != 7) or ("'FAILED' in install_result.stderr")
+  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and ("'FAILED' in install_result.stderr")
   environment:
     http_proxy: "{{PROXY}}"
     https_proxy: "{{PROXY}}"
