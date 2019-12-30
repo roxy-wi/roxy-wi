@@ -741,6 +741,9 @@ label {
 .even {
 	background-color: #f3f8fb;
 }
+#up-pannel {
+	margin-top: 15px;
+}
 .div-server {
 	background-color: #fbfbfb;
 	border: 1px solid #A4C7F5;
@@ -751,8 +754,8 @@ label {
 	padding-right: 15px;
 	margin: 20px;
 	margin-right: 10px;
-	margin-bottom: 0;
-	margin-top: 13px;
+	margin-bottom: 30px	;
+	margin-top: 0px;
 	display: block;
 	float: left;
 }
@@ -803,7 +806,7 @@ label {
 	display: none;
 	margin-top: px;
 	margin-bottom: 0px;
-	margin-top: 14px;
+	margin-top: 0px;
 	height: 192px;
 }
 .haproxy-info {

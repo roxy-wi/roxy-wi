@@ -454,8 +454,6 @@ $( function() {
 	$( "#settings input" ).change(function() {
 		var id = $(this).attr('id');
 		var val = $(this).val();
-		console.log(id)
-		console.log(val)
 		updateSettings(id, val);
 	});
 	$('#new-ssh_enable').click(function() {

@@ -40,7 +40,7 @@ def send_cookie(login):
 	sql.write_user_uuid(login, user_uuid)
 	sql.write_user_token(login, user_token)
 	try:
-		funct.logging('locahost', sql.get_user_name_by_uuid(user_uuid)+' log in', haproxywi=1, login=1)
+		funct.logging('locahost', ' '+sql.get_user_name_by_uuid(user_uuid)+' log in', haproxywi=1)
 	except:
 		pass
 	print("Content-type: text/html\n")			

@@ -501,8 +501,7 @@ $( function() {
 		$(".show_menu").hide();
 		$("#hide_menu").show();
 		Cookies.set('hide_menu', 'show', { expires: 365 });
-	});
-	
+	});	
 	var hideMenu = Cookies.get('hide_menu');
 	if (hideMenu == "show") {
 		$(".top-menu").show( "drop", "fast" );
@@ -621,7 +620,6 @@ $( function() {
 		return false;
 	}); 
 	$('#auth').submit(function() {
-
 		let searchParams = new URLSearchParams(window.location.search)
 		if(searchParams.has('ref')) {
 			var ref = searchParams.get('ref');

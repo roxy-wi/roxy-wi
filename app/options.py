@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-"
-import cgi
 import os, sys
 import funct
 import sql
@@ -228,7 +227,10 @@ if act == "overviewwaf":
 		commands = [ "ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l" ]
 		commands1 = [ "cat %s/waf/modsecurity.conf  |grep SecRuleEngine |grep -v '#' |awk '{print $2}'" % haproxy_dir ]
 		
-		server_status = (serv1,serv2, funct.ssh_command(serv2, commands), funct.ssh_command(serv2, commands1).strip(), sql.select_waf_metrics_enable_server(serv2))
+		server_status = (serv1,serv2, 
+							funct.ssh_command(serv2, commands), 
+							funct.ssh_command(serv2, commands1).strip(), 
+							sql.select_waf_metrics_enable_server(serv2))
 		return server_status
 
 
@@ -314,7 +316,6 @@ if act == "overviewHapwi":
 	
 if form.getvalue('action'):
 	import requests
-	from requests_toolbelt.utils import dump
 	
 	haproxy_user = sql.get_setting('stats_user')
 	haproxy_pass = sql.get_setting('stats_password')
@@ -339,7 +340,6 @@ if form.getvalue('action'):
 	
 if serv is not None and act == "stats":
 	import requests
-	from requests_toolbelt.utils import dump
 	
 	haproxy_user = sql.get_setting('stats_user')
 	haproxy_pass = sql.get_setting('stats_password')

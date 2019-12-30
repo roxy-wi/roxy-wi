@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-import cgi
-import os
-import sys
 import funct
 
 mysql_enable = funct.get_config_var('mysql', 'enable')
@@ -10,8 +7,7 @@ if mysql_enable == '1':
 	mysql_user = funct.get_config_var('mysql', 'mysql_user')
 	mysql_password = funct.get_config_var('mysql', 'mysql_password')
 	mysql_db = funct.get_config_var('mysql', 'mysql_db')
-	mysql_host = funct.get_config_var('mysql', 'mysql_host')
-	from mysql.connector import errorcode
+	mysql_host = funct.get_config_var('mysql', 'mysql_host')	
 	import mysql.connector as sqltool
 else:
 	db = "/var/www/haproxy-wi/app/haproxy-wi.db"
@@ -19,6 +15,7 @@ else:
 	
 def check_db():
 	if mysql_enable == '0':
+		import os
 		if os.path.isfile(db):
 			if os.path.getsize(db) > 100:
 				with open(db,'r', encoding = "ISO-8859-1") as f:
@@ -30,6 +27,7 @@ def check_db():
 		else:
 			return True
 	else:
+		from mysql.connector import errorcode
 		con, cur = get_cur()
 		sql = """ select id from `groups` where id='1' """
 		try:
@@ -58,7 +56,7 @@ def get_cur():
 									database=mysql_db)	
 		cur = con.cursor()
 	except sqltool.Error as e:
-		print("An error occurred:", e)
+		funct.logging('DB ', ' '+e, haproxywi=1, login=1)
 	else:
 		return con, cur
 			
@@ -459,7 +457,7 @@ def update_db_v_3_8_1(**kwargs):
 	
 def update_ver(**kwargs):
 	con, cur = get_cur()
-	sql = """update version set version = '3.10.0.0'; """
+	sql = """update version set version = '3.10.1.0'; """
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -479,7 +477,7 @@ def update_to_hash():
 		i += 1
 	if len(ver) < 4:
 		ver += '00'
-	if ver <= '3490':	
+	if cur_ver <= '3.4.9':	
 		con, cur = get_cur()
 		sql = """select id, password from user """ 
 		try:    

@@ -41,6 +41,7 @@ def get_data(type):
 		fmt = "%b %d %H:%M:%S"
 		
 	return now_utc.strftime(fmt)
+	
 			
 def logging(serv, action, **kwargs):
 	import sql
@@ -86,6 +87,7 @@ def logging(serv, action, **kwargs):
 	except IOError as e:
 		print('<center><div class="alert alert-danger">Can\'t write log. Please check log_path in config %e</div></center>' % e)
 		pass
+	
 	
 def telegram_send_mess(mess, **kwargs):
 	import telebot

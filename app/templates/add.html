@@ -187,10 +187,10 @@ h3 {
 					<input type="checkbox" id="check-servers-listen" name="check-servers" checked value="1">
 					{% set values = dict() %}
 					{% set values = {'1000':'1000','2000':'2000','3000':'3000'} %}
-					{{ select('inter', values=values, first='inter', class='force_close') }}	
+					{{ select('inter-listen', values=values, first='inter', class='force_close') }}	
 					{% set values = dict() %}
 					{% set values = {'1':'1','2':'2','3':'3'} %}
-					{{ select('rise-listen', name='rise-listen', values=values, first='rise', class='force_close') }}
+					{{ select('rise-listen', name='rise', values=values, first='rise', class='force_close') }}
 					{% set values = dict() %}
 					{% set values = {'4':'4','5':'5','6':'6'} %}
 					{{ select('fall-listen', name='fall', values=values, first='fall', class='force_close') }}
@@ -203,7 +203,7 @@ h3 {
 		</tr>
 		<tr>
 			<td class="addButton">
-				<button type="submit" value="" name="" class="btn btn-default">Add Listen</button>
+				<button type="submit" value="submit">Add Listen</button>
 			</td>
 		</tr>
 		</form>
@@ -488,7 +488,7 @@ h3 {
 					{{ select('inter-backend', values=values, first='inter', class='force_close') }}	
 					{% set values = dict() %}
 					{% set values = {'1':'1','2':'2','3':'3'} %}
-					{{ select('rise-backend', name='rise-listen', values=values, first='rise', class='force_close') }}
+					{{ select('rise-backend', name='rise', values=values, first='rise', class='force_close') }}
 					{% set values = dict() %}
 					{% set values = {'4':'4','5':'5','6':'6'} %}
 					{{ select('fall-backend', name='fall', values=values, first='fall', class='force_close') }}

@@ -2,21 +2,21 @@
 	{% if name == '' %}
 		{% set name = id %}
 	{% endif %}
-    <input type="{{ type }}" name="{{name}}" value="{{ value|e }}" id="{{ id }}" size="{{size}}" style="{{style}}" {{readonly}} {{required}} placeholder="{{placeholder}}" title="{{title}}" class="{{class}}">
+    <input type="{{ type }}" name="{{name}}" value="{{ value|e }}" id="{{ id }}" size="{{size}}" style="{{style}}" {{readonly}} {{required}} placeholder="{{placeholder}}" title="{{title}}" class="{{class}}" />
 {%- endmacro %}
 
 {%- macro checkbox(id, name='', checked='', title='', value='', desc='') -%}
 	{% if name == '' %}
 		{% set name = id %}
 	{% endif %}
-	<label for="{{id}}" title="{{title}}">{{desc}}</label><input name="{{name}}" type="checkbox" id="{{id}}" value="{{value|e}}" {{checked}}>
+	<label for="{{id}}" title="{{title}}">{{desc}}</label><input name="{{name}}" type="checkbox" id="{{id}}" value="{{value|e}}" {{checked}} />
 {%- endmacro %}
 
 {%- macro select(id, values, name='', required='', first='', class='', selected='') -%}
 	{% if name == '' %}
 		{% set name = id %}
 	{% endif %}
-	<select required="{{required}}" name="{{name}}" id="{{id}}" class="{{class}}">
+	<select {{required}} name="{{name}}" id="{{id}}" class="{{class}}">
 		{% if first %}
 			<option disabled selected>{{first}}</option>
 		{% endif %}

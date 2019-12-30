@@ -6,6 +6,17 @@
 
 - name: populate service facts
   service_facts:
+  
+  
+- name: install EPEL Repository
+  yum:
+    name: epel-release
+    state: latest
+  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and HAPVER|length > 0
+  ignore_errors: yes
+  environment:
+    http_proxy: "{{PROXY}}"
+    https_proxy: "{{PROXY}}"
 
   
 - name: install HAProxy {{HAPVER}} on EL6
