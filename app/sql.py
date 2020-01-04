@@ -20,8 +20,9 @@ def get_cur():
 			mysql_password = funct.get_config_var('mysql', 'mysql_password')
 			mysql_db = funct.get_config_var('mysql', 'mysql_db')
 			mysql_host = funct.get_config_var('mysql', 'mysql_host')
+			mysql_port = funct.get_config_var('mysql', 'mysql_port')	
 			con = sqltool.connect(user=mysql_user, password=mysql_password,
-									host=mysql_host,
+									host=mysql_host, port=mysql_port,
 									database=mysql_db)	
 		cur = con.cursor()
 	except sqltool.Error as e:

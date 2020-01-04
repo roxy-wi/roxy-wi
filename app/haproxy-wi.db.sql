@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS `user` (`id`	INTEGER NOT NULL AUTO_INCREMENT,`username`	VARCHAR ( 64 ) UNIQUE,`email`	VARCHAR ( 120 ) UNIQUE,	`password`	VARCHAR ( 128 ),`role`	VARCHAR ( 128 ),`groups` VARCHAR ( 120 ), PRIMARY KEY(`id`) );
-INSERT INTO `user` (username, email, password, role, groups) VALUES ('admin','admin@localhost','admin','admin','1');
-INSERT INTO `user` (username, email, password, role, groups) VALUES ('editor','editor@localhost','editor','editor','1');
-INSERT INTO `user` (username, email, password, role, groups) VALUES ('guest','guest@localhost','guest','guest','1');
+INSERT INTO `user` (username, email, password, role, groups) VALUES ('admin','admin@localhost','21232f297a57a5a743894a0e4a801fc3','admin','1');
+INSERT INTO `user` (username, email, password, role, groups) VALUES ('editor','editor@localhost','5aee9dbd2a188839105073571bee1b1f','editor','1');
+INSERT INTO `user` (username, email, password, role, groups) VALUES ('guest','guest@localhost','084e0343a0486ff05530df6c705c8bb4','guest','1');
 CREATE TABLE IF NOT EXISTS `servers` (`id`	INTEGER NOT NULL AUTO_INCREMENT,`hostname`	VARCHAR ( 64 ) UNIQUE,`ip`	VARCHAR ( 64 ) UNIQUE,`groups`	VARCHAR ( 64 ), type_ip INTEGER NOT NULL DEFAULT 0, enable INTEGER NOT NULL DEFAULT 1, master INTEGER NOT NULL DEFAULT 0, cred INTEGER NOT NULL DEFAULT 1, alert INTEGER NOT NULL DEFAULT 0, metrics INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`id`) );
 CREATE TABLE IF NOT EXISTS `role` (`id`	INTEGER NOT NULL AUTO_INCREMENT,`name`	VARCHAR ( 80 ) UNIQUE,`description`	VARCHAR ( 255 ),PRIMARY KEY(`id`) );
 INSERT INTO `role` (name, description) VALUES ('admin','Can do everything');
