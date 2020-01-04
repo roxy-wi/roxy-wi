@@ -7,7 +7,8 @@ if mysql_enable == '1':
 	mysql_user = funct.get_config_var('mysql', 'mysql_user')
 	mysql_password = funct.get_config_var('mysql', 'mysql_password')
 	mysql_db = funct.get_config_var('mysql', 'mysql_db')
-	mysql_host = funct.get_config_var('mysql', 'mysql_host')	
+	mysql_host = funct.get_config_var('mysql', 'mysql_host')
+	mysql_port = funct.get_config_var('mysql', 'mysql_port')	
 	import mysql.connector as sqltool
 else:
 	db = "/var/www/haproxy-wi/app/haproxy-wi.db"
@@ -52,7 +53,7 @@ def get_cur():
 			con = sqltool.connect(db, isolation_level=None)  
 		else:
 			con = sqltool.connect(user=mysql_user, password=mysql_password,
-									host=mysql_host,
+									host=mysql_host, port=mysql_port,
 									database=mysql_db)	
 		cur = con.cursor()
 	except sqltool.Error as e:
