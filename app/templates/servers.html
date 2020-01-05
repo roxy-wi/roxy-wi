@@ -284,7 +284,7 @@
 				</td>
 				<td class="padding10 first-collumn" style="width: 20%;">
 					{% set values = dict() %}
-					{% set values = {'2.0.5-1':'2.0.5-1','2.0.6-1':'2.0.6-1', '2.0.7-1':'2.0.7-1', '2.0.9-1':'2.0.9-1', '2.0.11-1':'2.0.11-1'} %}
+					{% set values = {'2.0.5-1':'2.0.5-1','2.0.6-1':'2.0.6-1', '2.0.7-1':'2.0.7-1', '2.0.9-1':'2.0.9-1', '2.0.11-1':'2.0.11-1', '2.0.12-1':'2.0.12-1'} %}
 					{{ select('hapver',  values=values, selected='2.0.11-1', required='required') }}
 				</td>
 				<td class="padding10 first-collumn">
@@ -305,6 +305,7 @@
 		</table>
 		<div id="ajax"></div>
 	</div>
+	
 </div>
 <div id="group_error" style="display: none;">
 	<div class="alert alert-danger">
@@ -354,6 +355,76 @@
 	</table>
 	<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
 	</form>
+	<div id="backup-add-table" title="Add a new backup job " style="display: none;">	
+	<table class="overview">
+		<tr>
+			<td class="padding20" style="width: 40%;">
+				Choose server for backup
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				<select autofocus required name="backup-server" id="backup-server">
+					<option disabled>Choose server</option>
+						{% for s in servers %}}
+							<option value="{{ s.2 }}">{{ s.1 }}</option>
+						{% endfor %}
+				</select>	
+			</td>
+		<tr>
+			<td class="padding20">
+				Enter backup server
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				{{ input('rserver', size='30', placeholder="172.0.0.1", required="required") }}
+			</td>
+		<tr>
+		<tr>
+			<td class="padding20">
+				Enter remote folder
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				{{ input('rpath', size='30', placeholder="/var/backups", required="required") }}
+			</td>
+		<tr>
+		<tr>
+			<td class="padding20">
+				Period time
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				{% set values = {'hourly':'hourly','daily':'daily','weekly':'weekly', 'monthly':'monthly'} %}
+				{{ select('backup-time', values=values, selected='weekly', required='required', class='force_close') }}
+			</td>
+		</tr>
+		</tr>
+		<tr>
+			<td class="padding20">
+				Credentials for remote server
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				<select id="backup-credentials" required>
+					<option disabled selected>Choose credentials</option>
+					{% for ssh in sshs %}
+						{% if ssh.2 == 1 and ssh.5|string() == group %}
+						<option value="{{ssh.0}}">{{ssh.1}}</option>
+						{% endif %}
+					{% endfor %}
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">
+				Description
+			</td>
+			<td>
+				{{ input('backup-description', size='30') }}
+			</td>
+		<tr>
+	</table>
+	</div>
 </div>
 {% include 'include/change_pass_form.html' %}
 <script>

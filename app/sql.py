@@ -350,7 +350,7 @@ def write_user_token(login, user_token):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		out_error(e)
 	for id in cur.fetchall():
 		if mysql_enable == '1':
 			sql = """ insert into token (user_id, token, exp) values('%s', '%s',  now()+ INTERVAL %s day) """ % (id[0], user_token, token_ttl)
@@ -619,6 +619,7 @@ def update_ssh(id, name, enable, group, username, password):
 		con.rollback()
 	cur.close()    
 	con.close()
+	
 	
 def show_update_ssh(name, page):
 	from jinja2 import Environment, FileSystemLoader
@@ -1501,7 +1502,7 @@ if form.getvalue('updateuser') is not None:
 		if check_group(group, role_id):			
 			if funct.is_admin(level=role_id):
 				update_user(new_user, email, role, group, id, activeuser)
-				funct.logging('user with id '+id, ' user '+user+' updated ', haproxywi=1, login=1)
+				funct.logging('user with id '+id, ' user '+new_user+' updated ', haproxywi=1, login=1)
 			else:
 				funct.logging(new_user, ' tried to privilege escalation', haproxywi=1, login=1)
 		
@@ -1687,7 +1688,6 @@ if form.getvalue('sshdel') is not None:
 			pass
 	if delete_ssh(sshdel):
 		print("Ok")
-		funct.logging('the ssh '+sshdel, ' deleted ', haproxywi=1, login=1)
 
 
 if form.getvalue('newtelegram'):

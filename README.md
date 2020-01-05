@@ -15,10 +15,10 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 ![alt text](image/haproxy-wi-config-show.png "Show config page")
 
 # Features:
-1.	Configure HAProxy In a jiffy with haproxy-wi
-2.	View and analyse Status of all Frontend/backend server via haproxy-wi from a single control panel.
+1.	Configure HAProxy In a jiffy with HAProxy-WI
+2.	View and analyse Status of all Frontend/backend server via HAProxy-WI from a single control panel.
 3.	Enable/disable servers through stats page without rebooting HAProxy
-4.	View/Analyse HAproxy logs straight from the haproxy-wi web interface
+4.	View/Analyse HAproxy logs straight from the HAProxy-WI web interface
 5.	Create and visualise the HAproxy workflow from Web Ui.
 6.	Push Your changes to your HAproxy servers with a single click through web interface
 7.	Get info on past changes, Evaluate your config files and restore a previous stable config anytime with a single click straight from Web interface
@@ -32,7 +32,7 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 15.	Send notifications to telegram directly from HAProxy-WI
 16.	HAProxy-WI supports high Availability to ensure uptime to all Master slave servers configured
 17.	SSL certificate support.
-18.	SSH Key support for managing multiple HAproxy Servers straight from haproxy-wi
+18.	SSH Key support for managing multiple HAProxy Servers straight from HAProxy-WI
 19. SYN flood protect
 20. Alerting about changes backends state
 21. Alerting about HAProxy service state
@@ -45,6 +45,7 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 28. Mobile-ready desing
 29. REST API
 30. Installation and Upgrading HAProxy service via HAProxy-WI
+31. Backup HAProxy's config files through HAProxy-WI
 
 ![alt text](image/haproxy-wi-metrics.png "Merics")
 

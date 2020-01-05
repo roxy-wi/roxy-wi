@@ -8,7 +8,7 @@ if mysql_enable == '1':
 	mysql_password = funct.get_config_var('mysql', 'mysql_password')
 	mysql_db = funct.get_config_var('mysql', 'mysql_db')
 	mysql_host = funct.get_config_var('mysql', 'mysql_host')
-	mysql_port = funct.get_config_var('mysql', 'mysql_port')	
+	mysql_port = funct.get_config_var('mysql', 'mysql_port')
 	import mysql.connector as sqltool
 else:
 	db = "/var/www/haproxy-wi/app/haproxy-wi.db"
@@ -123,6 +123,7 @@ def create_table(**kwargs):
 		CREATE TABLE IF NOT EXISTS `version` (`version` varchar(64));
 		CREATE TABLE IF NOT EXISTS `options` ( `id`	INTEGER NOT NULL, `options`	VARCHAR ( 64 ), `groups`	VARCHAR ( 120 ), PRIMARY KEY(`id`)); 
 		CREATE TABLE IF NOT EXISTS `saved_servers` ( `id` INTEGER NOT NULL, `server` VARCHAR ( 64 ), `description` VARCHAR ( 120 ), `groups` VARCHAR ( 120 ), PRIMARY KEY(`id`)); 
+		CREATE TABLE IF NOT EXISTS `backups` ( `id` INTEGER NOT NULL, `server` VARCHAR ( 64 ), `rhost` VARCHAR ( 120 ), `rpath` VARCHAR ( 120 ), `type` VARCHAR ( 120 ), `time` VARCHAR ( 120 ),  cred INTEGER, `description` VARCHAR ( 120 ), PRIMARY KEY(`id`));
 		"""
 		try:
 			cur.executescript(sql)
@@ -456,9 +457,10 @@ def update_db_v_3_8_1(**kwargs):
 	cur.close() 
 	con.close()
 	
+	
 def update_ver(**kwargs):
 	con, cur = get_cur()
-	sql = """update version set version = '3.10.1.0'; """
+	sql = """update version set version = '3.11.0.0'; """
 	try:    
 		cur.execute(sql)
 		con.commit()
