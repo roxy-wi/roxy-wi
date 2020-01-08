@@ -551,7 +551,7 @@ if form.getvalue('servaction') is not None:
 	if enable != "show":
 		print('<center><h3>You %s %s on HAproxy %s. <a href="viewsttats.py?serv=%s" title="View stat" target="_blank">Look it</a> or <a href="edit.py" title="Edit">Edit something else</a></h3><br />' % (enable, backend, serv, serv))
 			
-	funct.ssh_command(serv, command, show_log="1")
+	print(funct.ssh_command(serv, command, show_log="1"))
 	action = 'edit.py ' + enable + ' ' + backend
 	funct.logging(serv, action)
 
