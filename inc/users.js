@@ -85,16 +85,16 @@ $( function() {
 					success: function( data ) { 
 						data = data.replace(/\s+/g,' ');
 						if (data.indexOf('error') != '-1' || data.indexOf('alert') != '-1' || data.indexOf('FAILED') != '-1') {
-							$("#ajax").html('<div class="alert alert-danger">'+data+'</data>');
+							$("#ajax").html('<div class="alert alert-danger">'+data+'</div>');
 						} else if (data.indexOf('info') != '-1' ){
-							$("#ajax").html('<div class="alert alert-info">'+data+'</data>');
+							$("#ajax").html('<div class="alert alert-info">'+data+'</div>');
 						} else if (data.indexOf('success') != '-1' ){
 							$('.alert-danger').remove();
-							$("#ajax").html('<div class="alert alert-success">'+data+'</data>');				
+							$("#ajax").html('<div class="alert alert-success">'+data+'</div>');				
 						} else {
 							$('.alert-danger').remove();
 							$('.alert-warning').remove();
-							$("#ajax").html('<div class="alert alert-info">'+data+'</data>');
+							$("#ajax").html('<div class="alert alert-info">'+data+'</div>');
 						}
 					}
 				} );
@@ -129,14 +129,14 @@ $( function() {
 					success: function( data ) { 
 						data = data.replace(/\s+/g,' ');
 						if (data.indexOf('error') != '-1') {
-							$("#ajax").html('<div class="alert alert-danger">'+data+'</data>');
+							$("#ajax").html('<div class="alert alert-danger">'+data+'</div>');
 						} else if (data.indexOf('success') != '-1'){
 							$('.alert-danger').remove();
-							$("#ajax").html('<div class="alert alert-success">'+data+'</data>');				
+							$("#ajax").html('<div class="alert alert-success">'+data+'</div>');				
 						} else {
 							$('.alert-danger').remove();
 							$('.alert-warning').remove();
-							$("#ajax").html('<div class="alert alert-info">'+data+'</data>');
+							$("#ajax").html('<div class="alert alert-info">'+data+'</div>');
 						}
 					}
 				} );
@@ -161,19 +161,19 @@ $( function() {
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
 				if (data.indexOf('error') != '-1' || data.indexOf('FAILED') != '-1') {
-					$("#ajax").html('<div class="alert alert-danger">'+data+'</data>');
+					$("#ajax").html('<div class="alert alert-danger">'+data+'</div>');
 				} else if (data.indexOf('success') != '-1' ){
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-success">'+data+'</data>');				
+					$("#ajax").html('<div class="alert alert-success">'+data+'</div>');				
 				} else if (data.indexOf('Info') != '-1' ){
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-info">'+data+'</data>');
+					$("#ajax").html('<div class="alert alert-info">'+data+'</div>');
 				} else {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-info">'+data+'</data>');
+					$("#ajax").html('<div class="alert alert-info">'+data+'</div>');
 				}
 			}
 		} );	
@@ -191,47 +191,47 @@ $( function() {
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
 				if (data.indexOf('error') != '-1' || data.indexOf('Failed') != '-1') {
-					$("#ajax").html('<div class="alert alert-danger">'+data+'</data>');
+					$("#ajax").html('<div class="alert alert-danger">'+data+'</div>');
 				} else if (data.indexOf('Complete!') != '-1'){
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax-update").html('<div class="alert alert-success">Update was success!</data>');				
+					$("#ajax-update").html('<div class="alert alert-success">Update was success!</div>');				
 				} else if (data.indexOf('Unauthorized') != '-1') {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax-update").html('<div class="alert alert-danger">It is seems like you Unauthorized in the HAProxy-WI repository. How to get HAProxy-WI auth you can read <a href="https://haproxy-wi.org/installation.py" title="How to get HAProxy-WI auth">hear</a> </data>');
+					$("#ajax-update").html('<div class="alert alert-danger">It is seems like you Unauthorized in the HAProxy-WI repository. How to get HAProxy-WI auth you can read <a href="https://haproxy-wi.org/installation.py" title="How to get HAProxy-WI auth">hear</a> </div>');
 				} else if (data.indexOf('but not installed') != '-1') {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax-update").html('<div class="alert alert-warning">You have settings for HAProxy-WI repository, but installed HAProxy-WI without repository. Please reinstall with yum or use update.sh</data>');
+					$("#ajax-update").html('<div class="alert alert-warning">You have settings for HAProxy-WI repository, but installed HAProxy-WI without repository. Please reinstall with yum or use update.sh</div>');
 				} else if (data.indexOf('No Match for argument') != '-1') {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax-update").html('<div class="alert alert-warning">It is seems like you do not have HAProxy-WI repository settings. Please read docs for<a href="https://haproxy-wi.org/updates.py">detail</a></data>');
+					$("#ajax-update").html('<div class="alert alert-warning">It is seems like you do not have HAProxy-WI repository settings. Please read docs for<a href="https://haproxy-wi.org/updates.py">detail</a></div>');
 				} else if (data.indexOf('password for') != '-1') {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax-update").html('<div class="alert alert-warning">It is seems like you need add Apache user to sudoers. Please read docs for<a href="https://haproxy-wi.org/updates.py">detail</a></data>');
+					$("#ajax-update").html('<div class="alert alert-warning">It is seems like you need add Apache user to sudoers. Please read docs for<a href="https://haproxy-wi.org/updates.py">detail</a></div>');
 				} else if (data.indexOf('No packages marked for update') != '-1') {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax-update").html('<div class="alert alert-info">It is seems like you have the lastest version HAProxy-WI</data>');
+					$("#ajax-update").html('<div class="alert alert-info">It is seems like you have the lastest version HAProxy-WI</div>');
 				} else if (data.indexOf('Connection timed out') != '-1') {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax-update").html('<div class="alert alert-danger">Cannot connect to HAProxy-WI repository. Connection timed out</data>');
+					$("#ajax-update").html('<div class="alert alert-danger">Cannot connect to HAProxy-WI repository. Connection timed out</div>');
 				} else if (data.indexOf('--disable') != '-1') {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax-update").html('<div class="alert alert-danger">It is seems like you have problem with your repositorys.</data>');
+					$("#ajax-update").html('<div class="alert alert-danger">It is seems like you have problem with your repositorys.</div>');
 				} else if (data.indexOf('Unauthorized') != '-1') {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax-update").html('<div class="alert alert-danger">It is seems like you Unauthorized in the HAProxy-WI repository.</data>');
+					$("#ajax-update").html('<div class="alert alert-danger">It is seems like you Unauthorized in the HAProxy-WI repository.</div>');
 				} else if (data.indexOf('Error: Package') != '-1') {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax-update").html('<div class="alert alert-danger">'+data+'</data>');
+					$("#ajax-update").html('<div class="alert alert-danger">'+data+'</div>');
 				}
 			}
 		} ); 	
@@ -421,6 +421,34 @@ $( function() {
 			$('#telegram-add-table').show("blind", "fast");
 		} 
 	});
+	var addBackupDialog = $( "#backup-add-table" ).dialog({
+			autoOpen: false,
+			resizable: false,
+			height: "auto",
+			width: 600,
+			modal: true,
+			title: "Create a new backup job",
+			show: {
+				effect: "fade",
+				duration: 200
+			},
+			hide: {
+				effect: "fade",
+				duration: 200
+			},
+			buttons: {
+				"Add": function() {	
+					addBackup();
+				},
+				Cancel: function() {
+					$( this ).dialog( "close" );
+					clearTips();
+				}
+			}
+		});
+	$('#add-backup-button').click(function() {
+		addBackupDialog.dialog('open');		
+	});
 	$( "#ajax-users input" ).change(function() {
 		var id = $(this).attr('id').split('-');
 		updateUser(id[1])
@@ -475,6 +503,14 @@ $( function() {
 	$( "#checker_table select" ).on('selectmenuchange',function() {
 		var id = $(this).attr('id').split('-');
 		updateTelegram(id[1])
+	});
+	$( "#ajax-backup-table input" ).change(function() {
+		var id = $(this).attr('id').split('-');
+		updateBackup(id[2])
+	});
+	$( "#ajax-backup-table select" ).on('selectmenuchange',function() {
+		var id = $(this).attr('id').split('-');
+		updateBackup(id[2])
 	});
 	$('#search_ldap_user').click(function() {
 		var valid = true;
@@ -658,6 +694,58 @@ function addServer() {
 		$( "#server-add-table" ).dialog("close" );
 	}
 }
+function addBackup() {
+	var valid = true;
+	$('#error').remove();	
+	allFields = $( [] ).add( $('#backup-server') ).add( $('#rserver') ).add( $('#rpath') ).add( $('#backup-time') ).add( $('#backup-credentials') )
+	allFields.removeClass( "ui-state-error" );
+	valid = valid && checkLength( $('#backup-server'), "backup server ", 1 );
+	valid = valid && checkLength( $('#rserver'), "remote server", 1 );
+	valid = valid && checkLength( $('#rpath'), "remote path", 1 );
+	valid = valid && checkLength( $('#backup-time'), "backup time", 1 );
+	valid = valid && checkLength( $('#backup-credentials'), "backup credentials", 1 );
+	if (valid) {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				backup: '1',
+				server: $('#backup-server').val(),
+				rserver: $('#rserver').val(),
+				rpath: $('#rpath').val(),
+				type: $('#backup-type').val(),
+				time: $('#backup-time').val(),
+				cred: $('#backup-credentials').val(),
+				description: $('#backup-description').val(),
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+				data = data.replace(/\s+/g,' ');
+				if (data.indexOf('error') != '-1') {
+					$("#ajax-backup").html('<div class="alert alert-danger" style="width: 50%;">'+data+'</div><br /><br />');
+					$('#errorMess').click(function() {
+						$('#error').remove();
+						$('.alert-danger').remove();
+					});
+				} else if (data.indexOf('success') != '-1') {
+					$('.alert-danger').remove();
+					$("#ajax-backup-table").append(data);
+					$(".newbackup").addClass( "update", 1000 );
+					setTimeout(function() {
+						$( ".newbackup" ).removeClass( "update" );
+					}, 2500 );		
+					$( "select" ).selectmenu();
+					$.getScript(awesome);														
+				} else if (data.indexOf('info') != '-1') {
+					$('.alert-danger').remove();
+					$("#ajax-backup").html('<div class="alert alert-info">'+data+'</div><br />');											
+				}	
+			}
+		} );
+		clearTips();
+		$( "#backup-add-table" ).dialog("close" );
+	}
+}
 function updateSettings(param, val) {
 	$('.alert-danger').remove();
 	$.ajax( {
@@ -791,6 +879,24 @@ function confirmDeleteTelegram(id) {
       }
     });
 }
+function confirmDeleteBackup(id) {
+	 $( "#dialog-confirm" ).dialog({
+      resizable: false,
+      height: "auto",
+      width: 400,
+      modal: true,
+	  title: "Are you sure you want to delete job for" +$('#backup-server-'+id).val() + "?",
+      buttons: {
+        "Delete": function() {
+			$( this ).dialog( "close" );	
+			removeBackup(id);
+        },
+        Cancel: function() {
+			$( this ).dialog( "close" );
+        }
+      }
+    });
+}
 function cloneServer(id) {
 	$( "#add-server-button" ).trigger( "click" );
 	if ($('#enable-'+id).is(':checked')) {
@@ -856,6 +962,17 @@ function cloneTelegram(id) {
 	$( "#add-telegram-button" ).trigger( "click" );
 	$('#telegram-token-add').val($('#telegram-token-'+id).val())
 	$('#telegram-chanel-add').val($('#telegram-chanel-'+id).val())
+}
+function cloneBackup(id) {
+	$( "#add-backup-button" ).trigger( "click" );
+	$('#rserver').val($('#backup-rserver-'+id).val())
+	$('#rpath').val($('#backup-rpath-'+id).val())
+	$('#backup-type').val($('#backup-type-'+id+' option:selected').val()).change()
+	$('#backup-type').selectmenu("refresh");
+	$('#backup-time').val($('#backup-time-'+id+' option:selected').val()).change()
+	$('#backup-time').selectmenu("refresh");
+	$('#backup-credentials').val($('#backup-credentials-'+id+' option:selected').val()).change()
+	$('#backup-credentials').selectmenu("refresh");
 }
 function removeUser(id) {
 	$("#user-"+id).css("background-color", "#f2dede");
@@ -942,6 +1059,26 @@ function removeTelegram(id) {
 			data = data.replace(/\s+/g,' ');
 			if(data == "Ok ") {
 				$("#telegram-table-"+id).remove();
+			}
+		}					
+	} );	
+}
+function removeBackup(id) {
+	$("#backup-table-"+id).css("background-color", "#f2dede");
+	$.ajax( {
+		url: "options.py",
+		data: {
+			deljob: id,
+			cred: $('#backup-credentials-'+id).val(),
+			server: $('#backup-server-'+id).text(),
+			rserver: $('#backup-rserver-'+id).val(),
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if(data.indexOf('Ok') != '-1') {
+				$("#backup-table-"+id).remove();
 			}
 		}					
 	} );	
@@ -1180,6 +1317,49 @@ function updateTelegram(id) {
 			}
 		}
 	} );
+}
+function updateBackup(id) {
+	$('#error').remove();	
+	if ($( "#backup-type-"+id+" option:selected" ).val() == "Choose server" || $('#backup-rserver-'+id).val() == '' || $('#backup-rpath-'+id).val() == '') {
+		$("#ajax-backup").html('<div class="alert alert-danger" style="margin: 10px;">All fields must be completed</div>');
+	} else {
+		console.log($('#backup-credentials-'+id).val())
+		console.log($('#backup-rpath-'+id).val())
+		console.log($('#backup-type-'+id).val())
+		console.log($('#backup-server-'+id).text())
+		console.log($('#backup-rserver-'+id).val())
+		$.ajax( {
+			url: "options.py",
+			data: {
+				backupupdate: id,
+				server: $('#backup-server-'+id).text(),
+				rserver: $('#backup-rserver-'+id).val(),
+				rpath: $('#backup-rpath-'+id).val(),
+				type: $('#backup-type-'+id).val(),
+				time: $('#backup-time-'+id).val(),
+				cred: $('#backup-credentials-'+id).val(),
+				description: $('#backup-description-'+id).val(),
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+				data = data.replace(/\s+/g,' ');
+				if (data.indexOf('error') != '-1') {
+					$("#ajax-backup").html('<div class="alert alert-danger" style="margin: 10px;">'+data+'</div>');
+					$('#errorMess').click(function() {
+						$('#error').remove();
+						$('.alert-danger').remove();
+					});
+				} else {
+					$('.alert-danger').remove();
+					$("#backup-table-"+id).addClass( "update", 1000 );
+					setTimeout(function() {
+						$( "#backup-table-"+id ).removeClass( "update" );
+					}, 2500 );
+				}
+			}
+		} );
+	}
 }
 function showApacheLog(serv) {
 	var rows = $('#rows').val()

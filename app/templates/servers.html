@@ -18,6 +18,7 @@
 		<li><a href="#ssh">SSH credentials</a></li>
 		<li><a href="#checker">Checker</a></li>
 		<li><a href="#installhaproxy">Install HAProxy</a></li>
+		<li><a href="#backup">Backup</a></li>
 		{% include 'include/login.html' %}
 	</ul>
 	<div id="users">
@@ -306,6 +307,35 @@
 		<div id="ajax"></div>
 	</div>
 	
+	<div id="backup">
+		<table class="overview" id="ajax-backup-table">
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn">Servers</td>
+				<td class="padding10">Remote server</td>
+				<td class="padding10">Remote folder</td>
+				<td class="padding10">Backup type</td>
+				<td class="padding10">Period time</td>
+				<td class="padding10">Credentials</td>
+				<td class="padding10">Description</td>
+				<td></td>
+				<td></td>
+			</tr>
+			{% for b in backups %}
+				{% for s in servers %}
+					{% if b.1 in s.2 %}
+						{% include 'include/admin_backup.html' %}
+					{% endif %}
+				{% endfor %}
+			{% endfor %}
+		</table>
+		<br /><span class="add-button" title="Add a new backup job" id="add-backup-button">+ Add a new backup job</span>
+		<br /><br />
+		<div id="ajax-backup"></div>
+		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+			You can read the description of all parameters <a href="https://haproxy-wi.org/description.py?description=backup" title="Backup description" target="_blank">here</a>
+		</div>
+	</div>
+	
 </div>
 <div id="group_error" style="display: none;">
 	<div class="alert alert-danger">
@@ -355,50 +385,10 @@
 	</table>
 	<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
 	</form>
-	<div id="backup-add-table" title="Add a new backup job " style="display: none;">	
+</div>
+<div id="backup-add-table" title="Add a new backup job " style="display: none;">	
 	<table class="overview">
-		<tr>
-			<td class="padding20" style="width: 40%;">
-				Choose server for backup
-				<span class="need-field">*</span>
-			</td>
-			<td>
-				<select autofocus required name="backup-server" id="backup-server">
-					<option disabled>Choose server</option>
-						{% for s in servers %}}
-							<option value="{{ s.2 }}">{{ s.1 }}</option>
-						{% endfor %}
-				</select>	
-			</td>
-		<tr>
-			<td class="padding20">
-				Enter backup server
-				<span class="need-field">*</span>
-			</td>
-			<td>
-				{{ input('rserver', size='30', placeholder="172.0.0.1", required="required") }}
-			</td>
-		<tr>
-		<tr>
-			<td class="padding20">
-				Enter remote folder
-				<span class="need-field">*</span>
-			</td>
-			<td>
-				{{ input('rpath', size='30', placeholder="/var/backups", required="required") }}
-			</td>
-		<tr>
-		<tr>
-			<td class="padding20">
-				Period time
-				<span class="need-field">*</span>
-			</td>
-			<td>
-				{% set values = {'hourly':'hourly','daily':'daily','weekly':'weekly', 'monthly':'monthly'} %}
-				{{ select('backup-time', values=values, selected='weekly', required='required', class='force_close') }}
-			</td>
-		</tr>
-		</tr>
+		{% include 'include/add_backup.html' %}
 		<tr>
 			<td class="padding20">
 				Credentials for remote server
@@ -424,7 +414,6 @@
 			</td>
 		<tr>
 	</table>
-	</div>
 </div>
 {% include 'include/change_pass_form.html' %}
 <script>
@@ -462,6 +451,11 @@
 			});
 			$("#credentials-{{server.0}}" ).selectmenu({
 			  width: 150
+			});
+		{% endfor %}
+		{% for ssh in sshs %}
+			$("#sshgroup-{{ ssh.0}}" ).selectmenu({
+				  width: 150
 			});
 		{% endfor %}
 	});

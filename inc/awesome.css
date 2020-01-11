@@ -92,6 +92,11 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f074";
 }
+.backup::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f24d";
+}
 .ha::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";

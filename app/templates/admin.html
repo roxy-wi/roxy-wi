@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-{% from 'include/input_macros.html' import input %}
+{% from 'include/input_macros.html' import input, select %}
 <style>
 .container {
 	margin-right: 0;
@@ -18,6 +18,7 @@
 		<li><a href="#checker">Checker</a></li>
 		<li><a href="#settings">Settings</a></li>
 		<li><a href="#updatehapwi">Update</a></li>
+		<li><a href="#backup">Backup</a></li>
 		{% include 'include/login.html' %}
 	</ul>
 	<div id="users">
@@ -52,6 +53,24 @@
 						  width: 130
 						});
 					$("#credentials-{{server.0}}" ).selectmenu({
+						  width: 150
+						});
+				{% endfor %}
+				{% for ssh in sshs %}
+					if (window.matchMedia('(max-width: 1280px)').matches) {
+						$("#sshgroup-{{ ssh.0}}" ).selectmenu({
+							width: 100
+						});
+					}
+				{% endfor %}
+				{% for server in backups %}
+					$("#backup-time-{{ server.0}}" ).selectmenu({
+						  width: 100
+						});
+					$("#backup-type-{{server.0}}" ).selectmenu({
+						  width: 130
+						});
+					$("#backup-credentials-{{server.0}}" ).selectmenu({
 						  width: 150
 						});
 				{% endfor %}
@@ -485,6 +504,32 @@
 		</div>
 		<div id="ajax-update"></div>
 	</div>
+	
+	<div id="backup">
+		<table class="overview" id="ajax-backup-table">
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn">Servers</td>
+				<td class="padding10">Remote server</td>
+				<td class="padding10">Remote folder</td>
+				<td class="padding10">Backup type</td>
+				<td class="padding10">Period time</td>
+				<td class="padding10">Credentials</td>
+				<td class="padding10">Description</td>
+				<td></td>
+				<td></td>
+			</tr>
+			{% for b in backups %}
+				{% include 'include/admin_backup.html' %}
+			{% endfor %}
+		</table>
+		<br /><span class="add-button" title="Add a new backup job" id="add-backup-button">+ Add a new backup job</span>
+		<br /><br />
+		<div id="ajax-backup"></div>
+		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+			You can read the description of all parameters <a href="https://haproxy-wi.org/description.py?description=backup" title="Backup description" target="_blank">here</a>
+		</div>
+	</div>
+	
 </div>
 <div id="user-add-table" style="display: none;">	
 	<table class="overview">
@@ -519,7 +564,7 @@
 		</tr>
 	</table>
 </div>
-<div id="server-add-table" title="View certificate " style="display: none;">	
+<div id="server-add-table" title="Add a new server " style="display: none;">	
 	<table class="overview">
 		{% include 'include/admin_add_server.html' %}
 		<tr>
@@ -553,6 +598,33 @@
 		
 	</table>
 </div>	
+<div id="backup-add-table" title="Add a new backup job " style="display: none;">	
+	<table class="overview">
+		{% include 'include/add_backup.html' %}
+		<tr>
+			<td class="padding20">
+				Credentials for remote server
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				<select id="backup-credentials" required>
+					<option disabled selected>Choose credentials</option>
+					{% for ssh in sshs %}
+						<option value="{{ssh.0}}">{{ssh.1}}</option>
+					{% endfor %}
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">
+				Description
+			</td>
+			<td>
+				{{ input('backup-description', size='30') }}
+			</td>
+		</tr>
+	</table>
+</div>
 {% include 'include/change_pass_form.html' %}
 <style>
 .ui-selectmenu-button.ui-button {

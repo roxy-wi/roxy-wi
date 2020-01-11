@@ -1,0 +1,75 @@
+{% for b in backups %}
+	<tr class="newbackup" id="backup-table-{{b.0}}">
+		<td class="padding10 first-collumn">
+			<span id="backup-server-{{b.0}}">{{ b.1 }}</span>
+		</td>
+		<td>
+			<input type="text" id="backup-rserver-{{b.0}}" value="{{b.2}}" size="14" class="form-control">
+		</td>
+		<td>
+			<input type="text" id="backup-rpath-{{b.0}}" value="{{b.3}}" class="form-control">
+		</td>
+		<td>
+			{% set values = {'backup':'backup','synchronization':'synchronization'} %}
+			<select name="backup-type-{{b.0}}" id="backup-type-{{b.0}}" class="force_close">
+			{% for v, des in values|dictsort(false, 'value') %}
+				{% if v == b.4 %}
+					<option value="{{v}}" selected>{{des}}</option>
+				{% else %}
+					<option value="{{v}}">{{des}}</option>
+				{% endif %}
+			{% endfor %}
+			</select>
+		</td>
+		<td>
+			{% set values = {'hourly':'hourly','daily':'daily','weekly':'weekly', 'monthly':'monthly'} %}
+			<select name="backup-time-{{b.0}}" id="backup-time-{{b.0}}" class="force_close">
+			{% for v, des in values|dictsort(false, 'value') %}
+				{% if v == b.5 %}
+					<option value="{{v}}" selected>{{des}}</option>
+				{% else %}
+					<option value="{{v}}">{{des}}</option>
+				{% endif %}
+			{% endfor %}
+			</select>
+		</td>			
+		<td>
+			<select id="backup-credentials-{{b.0}}" required>
+				<option disabled selected>Choose credentials</option>
+				{% for ssh in sshs %}
+					{% if ssh.2 == 1 %}
+						{% if ssh.0 == b.6 %}
+							<option value="{{ssh.0}}" selected="selected">{{ssh.1}}</option>
+						{% else %}
+							<option value="{{ssh.0}}">{{ssh.1}}</option>
+						{% endif %}
+					{% endif %}
+				{% endfor %}
+			</select>
+		</td>
+		<td>	
+			{% if b.7 != 'None' %}
+				<input type="text" id="backup-description-{{b.0}}" value="{{b.7}}" class="form-control">
+			{% endif %}
+		</td>
+		<td>
+			<a class="add" onclick="cloneBackup({{b.0}})" id="clone-backup{{b.0}}" title="Clone {{b.1}}" style="cursor: pointer;"></a>
+		</td> 
+		<td>
+			<a class="delete" onclick="confirmDeleteBackup({{b.0}})" title="Delete backup {{b.1}}" style="cursor: pointer;"></a>
+		</td> 
+	</tr>
+	<script>
+		$( function() {
+			$("#backup-time-{{ b.0}}" ).selectmenu({
+				width: 100
+			});
+			$("#backup-type-{{b.0}}" ).selectmenu({
+				width: 130
+			});
+			$("#backup-credentials-{{b.0}}" ).selectmenu({
+				width: 150
+			});
+		});
+	</script>
+{% endfor %}

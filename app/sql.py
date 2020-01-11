@@ -621,6 +621,90 @@ def update_ssh(id, name, enable, group, username, password):
 	con.close()
 	
 	
+def insert_backup_job(server, rserver, rpath, type, time, cred, description):
+	con, cur = get_cur()
+	sql = """insert into backups(server, rhost, rpath, type, time, cred, description) values ('%s', '%s', '%s', '%s', '%s', '%s', '%s') """ % (server, rserver, rpath, type, time, cred, description)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		out_error(e)
+		con.rollback()
+		return False
+	else: 
+		return True
+	cur.close()    
+	con.close()
+	
+	
+def select_backups(**kwargs):
+	con, cur = get_cur()
+	sql = """select * from backups ORDER BY id"""
+	if kwargs.get("server") is not None and kwargs.get("rserver") is not None:
+		sql = """select * from backups where server='%s' and rhost = '%s' """ % (kwargs.get("server"), kwargs.get("rserver"))
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		out_error(e)
+	else:
+		return cur.fetchall()
+	cur.close()    
+	con.close()  
+	
+	
+def update_backup(server, rserver, rpath, type, time, cred, description, id):
+	con, cur = get_cur()
+	sql = """update backups set server = '%s', 
+			rhost = '%s', 
+			rpath = '%s', 
+			type = '%s', 
+			time = '%s', 
+			cred = '%s', 
+			description = '%s' where id = '%s' """ % (server, rserver, rpath, type, time, cred, description, id)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		out_error(e)
+		con.rollback()
+		return False
+	else: 
+		return True
+	cur.close()    
+	con.close()
+	
+	
+def delete_backups(id):
+	con, cur = get_cur()
+	sql = """ delete from backups where id = %s """ % (id)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		out_error(e)
+		con.rollback()
+	else: 
+		return True
+	cur.close()    
+	con.close() 
+	
+	
+def check_exists_backup(server):
+	con, cur = get_cur()
+	sql = """ select id from backups where server = '%s' """ % server
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		out_error(e)
+	else:
+		for s in cur.fetchall():
+			if s[0] is not None:
+				return True
+			else:
+				return False
+	cur.close()    
+	con.close()
+	
 def show_update_ssh(name, page):
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates/ajax'))
