@@ -1,0 +1,53 @@
+		<tr>
+			<td class="padding20" style="width: 40%;">
+				Choose server for backup
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				<select autofocus required name="backup-server" id="backup-server">
+					<option disabled>Choose server</option>
+						{% for s in servers %}}
+							<option value="{{ s.2 }}">{{ s.1 }}</option>
+						{% endfor %}
+				</select>	
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">
+				Enter backup server
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				{{ input('rserver', size='30', placeholder="172.0.0.1", required="required") }}
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">
+				Enter remote folder
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				{{ input('rpath', size='30', placeholder="/var/backups", required="required") }}
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">
+				Backup type
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				{% set values = {'backup':'backup','synchronization':'synchronization'} %}
+				{{ select('backup-type', values=values, selected='backup', required='required', class='force_close') }}
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">
+				Period time
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				{% set values = {'hourly':'hourly','daily':'daily','weekly':'weekly', 'monthly':'monthly'} %}
+				{{ select('backup-time', values=values, selected='weekly', required='required', class='force_close') }}
+			</td>
+		</tr>
+		

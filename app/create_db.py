@@ -458,9 +458,28 @@ def update_db_v_3_8_1(**kwargs):
 	con.close()
 	
 	
+def update_db_v_3_12(**kwargs):
+	con, cur = get_cur()
+	sql = """CREATE TABLE IF NOT EXISTS `backups` ( `id` INTEGER NOT NULL, `server` VARCHAR ( 64 ), `rhost` VARCHAR ( 120 ), `rpath` VARCHAR ( 120 ), `type` VARCHAR ( 120 ), `time` VARCHAR ( 120 ),  cred INTEGER, `description` VARCHAR ( 120 ), PRIMARY KEY(`id`));  """
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: id' or e == "1060 (42S21): Duplicate column name 'id' ":
+				print('DB was update to 3.12')
+			else:
+				print("DB was update to 3.12")
+			return False
+		else:
+			return True
+	cur.close() 
+	con.close()	
+	
+	
 def update_ver(**kwargs):
 	con, cur = get_cur()
-	sql = """update version set version = '3.11.0.0'; """
+	sql = """update version set version = '3.12.0.0'; """
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -486,6 +505,7 @@ def update_all():
 	update_db_v_3_4_9_5()
 	update_db_v_3_5_3()
 	update_db_v_3_8_1()
+	update_db_v_3_12()
 	update_ver()
 		
 	
@@ -505,6 +525,7 @@ def update_all_silent():
 	update_db_v_3_4_9_5(silent=1)
 	update_db_v_3_5_3(silent=1)
 	update_db_v_3_8_1(silent=1)
+	update_db_v_3_12(silent=1)
 	update_ver()
 	
 		

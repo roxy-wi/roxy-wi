@@ -35,6 +35,7 @@ try:
 	api, stderr = funct.subprocess_execute(cmd)
 	servers = sql.get_dick_permit()
 except:
+	role = ''
 	pass
 
 

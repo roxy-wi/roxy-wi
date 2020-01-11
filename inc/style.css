@@ -744,7 +744,7 @@ label {
 #up-pannel {
 	margin-top: 15px;
 }
-.div-server {
+.div-server, .div-server-hapwi {
 	background-color: #fbfbfb;
 	border: 1px solid #A4C7F5;
 	height: 153px;
@@ -758,6 +758,9 @@ label {
 	margin-top: 0px;
 	display: block;
 	float: left;
+}
+.div-server {
+	height: 95px;
 }
 .div-backends {
 	width: 89.3%;
@@ -854,6 +857,9 @@ label {
   #logo_span {
 	margin-left: 17%;
 	}	
+  #create {
+	margin-top: 20px;
+  }
 	
 }
 @media (max-width: 1900px) {
@@ -872,11 +878,15 @@ label {
 	}
 	.div-server {
 		margin-bottom: 30px !important;
+		width: 43%;
+		height: 100px;
 	}
 }
 @media (max-width: 1280px) {
 	.div-server {
 		margin-bottom: 30px !important;
+		width: 90%;
+		height: 70px;
 	}
 	.ajax-server {
 		clear: both !important;
@@ -884,6 +894,12 @@ label {
 	}
 	.div-backends {
 		width: 84.6% !important
+	}
+	#ssl_name {
+		width: 100px;
+	}
+	.form-control {
+		width: 120px;
 	}
 }
 @media (max-width: 1080px) {
@@ -912,6 +928,9 @@ label {
 	.div-backends {
 		width: 84.6% !important
 	}
+	#ssl_cert {
+		width: 60%;
+	}
 }
 @media (max-width: 1024px) {
 	#logo_span {
@@ -922,15 +941,8 @@ label {
 		height: 410px;
 		width: 95%;
 	}
-	.overview-wi {
-		width: 95%;
-		max-width: 95%;
-	}
 	.wrong-login {
 		margin-right: -150px;
-	}
-	.ajax-server {
-		width: 88% !important;
 	}
 	.haproxy-info {
 		width: 120px;
@@ -945,6 +957,7 @@ label {
 	#grep {
 		width: 100px;
 	}
+	
 }
 @media (max-width: 768px) {
   #logo_span {
@@ -956,10 +969,6 @@ label {
 		height: 410px;
 		width: 95%;
 	}
-	.overview-wi {
-		width: 95%;
-		max-width: 95%;
-	}
 	.wrong-login {
 		margin-right: -260px;
 	}
@@ -969,8 +978,8 @@ label {
 	.overview h3 {
 		width: 46.4% !important;
 	}
-	.ajax-server {
-		width: 88% !important;
+	.div-server {
+		height: 90px;
 	}
 	.haproxy-info {
 		width: 120px;
@@ -996,15 +1005,8 @@ label {
 		height: 410px;
 		width: 95%;
 	}
-	.overview-wi {
-		width: 95%;
-		max-width: 95%;
-	}
 	.wrong-login {
 		margin-right: -210px;
-	}
-	.ajax-server {
-		width: 88% !important;
 	}
 	.haproxy-info {
 		width: 120px;

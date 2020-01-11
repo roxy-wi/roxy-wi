@@ -751,6 +751,11 @@ $( function() {
 	$( ".force_close" ).selectmenu({
 	  width: 180
 	});
+	if (window.matchMedia('(max-width: 1280px)').matches || window.matchMedia('(max-width: 1024px)').matches || window.matchMedia('(max-width: 667px)').matches) {
+		$( "select" ).selectmenu({
+			  width: 150
+		});
+	}
 });
 </script>
 {% endblock %}

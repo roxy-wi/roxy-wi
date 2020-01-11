@@ -422,7 +422,10 @@ if form.getvalue('viewlogs') is not None:
 		grep_act = ''
 		grep = ''
 
-	cmd="cat %s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s  %s %s" % (log_path + viewlog, date, date1, rows, grep_act, grep)
+	if viewlog == 'backup.log':
+		cmd="cat %s| awk '$2>\"%s:00\" && $2<\"%s:00\"' |tail -%s  %s %s" % (log_path + viewlog, date, date1, rows, grep_act, grep)
+	else:
+		cmd="cat %s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s  %s %s" % (log_path + viewlog, date, date1, rows, grep_act, grep)
 	output, stderr = funct.subprocess_execute(cmd)
 
 	print(funct.show_log(output))
@@ -763,6 +766,75 @@ if form.getvalue('masteradd'):
 			
 	os.system("rm -f %s" % script)
 	
+	
+if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupupdate'):
+	server = form.getvalue('server')
+	rpath = form.getvalue('rpath')
+	time = form.getvalue('time')
+	type = form.getvalue('type')
+	rserver = form.getvalue('rserver')
+	cred = form.getvalue('cred')
+	deljob = form.getvalue('deljob')
+	update = form.getvalue('backupupdate')
+	description = form.getvalue('description')
+	script = "backup.sh"	
+	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path('localhost', id=int(cred))	
+	
+	if deljob:
+		time = ''
+		rpath = ''
+		type = ''
+	elif update:
+		deljob = ''
+	else:
+		deljob = ''	
+		if sql.check_exists_backup(server):
+			print('info: Backup job for %s already exists' % server)
+			sys.exit()
+		
+	os.system("cp scripts/%s ." % script)
+		
+	commands = [ "chmod +x "+script +" &&  ./"+script +"  HOST="+rserver+"  SERVER="+server+" TYPE="+type+
+				" TIME="+time+" RPATH="+rpath+" DELJOB="+deljob+" USER="+str(ssh_user_name)+" KEY="+str(ssh_key_name) ]
+	
+	output, error = funct.subprocess_execute(commands[0])
+	
+	if error:
+		funct.logging('backup', error, haproxywi=1)
+		print('error: '+error)
+	else:
+		for l in output:
+			if "msg" in l or "FAILED" in l:
+				try:
+					l = l.split(':')[1]
+					l = l.split('"')[1]
+					print(l+"<br>")
+					break
+				except:
+					print(output)
+					break
+		else:			
+			if deljob == '' and update == '':
+				if sql.insert_backup_job(server, rserver, rpath, type, time, cred, description):
+					funct.logging('backup ', ' has created a new backup job for server '+server , haproxywi=1, login=1)
+					import http.cookies
+					from jinja2 import Environment, FileSystemLoader
+					env = Environment(loader=FileSystemLoader('templates/ajax'))
+					template = env.get_template('new_backup.html')
+					template = template.render(backups=sql.select_backups(server=server, rserver=rserver), sshs=sql.select_ssh())											
+					print(template)
+					print('success: Backup job has created<br>')
+				else:
+					print('error: Cannot add job into DB<br>')
+			elif deljob:
+				sql.delete_backups(deljob)
+				print('Ok')
+				funct.logging('backup ', ' has deleted a backup job for server '+server, haproxywi=1, login=1)
+			elif update:
+				sql.update_backup(server, rserver, rpath, type, time, cred, description, update)
+				print('Ok')
+				funct.logging('backup ', ' has updated a backup job for server '+server, haproxywi=1, login=1)
+				
 	
 if form.getvalue('haproxyaddserv'):
 	funct.install_haproxy(form.getvalue('haproxyaddserv'), syn_flood=form.getvalue('syn_flood'), hapver=form.getvalue('hapver'))
