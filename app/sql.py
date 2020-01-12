@@ -1635,7 +1635,7 @@ if form.getvalue('newserver') is not None:
 	else:	
 		if add_server(hostname, ip, group, typeip, enable, master, cred, alert, metrics, port, desc, active):
 			show_update_server(ip, page)
-			funct.logging('a new server '+hostname, ' created  ', haproxywi=1, login=1)
+			#funct.logging('a new server '+hostname, ' created  ', haproxywi=1, login=1)
 
 		
 if form.getvalue('serverdel') is not None:

@@ -630,6 +630,19 @@ $( function() {
 			$( "#blacklist-hide-input1" ).prop('required',false);
 		}
 	});
+	$( ":regex(id, template)" ).click( function(){
+		if ($(':regex(id, template)').is(':checked')) {
+			$( ".prefix" ).show( "fast" );
+			$( ".second-server" ).hide( "fast" );
+			$( ".add-server" ).hide( "fast" );
+			$( ".prefix" ).attr('required',true);
+		} else {
+			$( ".prefix" ).hide( "fast" );
+			$( ".prefix" ).attr('required',false);
+			$( ".second-server" ).show( "fast" );
+			$( ".add-server" ).show( "fast" )
+		}
+	});
 	var location = window.location.href;
     var cur_url = '/app/' + location.split('/').pop();
 	cur_url = cur_url.split('?');
@@ -698,6 +711,15 @@ $( function() {
 				$(this).children("#add7").css('border-left', '4px solid #5D9CEB');
 			});
 			$( "#tabs" ).tabs( "option", "active", 7 );
+		} );
+		$( "#add8" ).on( "click", function() {
+			$('.menu li ul li').each(function () {
+				$(this).find('a').css('padding-left', '20px')
+				$(this).find('a').css('border-left', '0px solid #5D9CEB');
+				$(this).children("#add8").css('padding-left', '30px');
+				$(this).children("#add8").css('border-left', '4px solid #5D9CEB');
+			});
+			$( "#tabs" ).tabs( "option", "active", 8 );
 		} );
 	}
 	

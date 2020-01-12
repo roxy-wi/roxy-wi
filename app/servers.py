@@ -37,6 +37,6 @@ output_from_parsed_template = template.render(title = "Servers manage",
 												telegrams = sql.get_user_telegram_by_uuid(user_id.value),
 												token = token,
 												versions = funct.versions(),
-					      							backups = sql.select_backups(),
+												backups = sql.select_backups(),
 												ldap_enable = ldap_enable)
 print(output_from_parsed_template)
