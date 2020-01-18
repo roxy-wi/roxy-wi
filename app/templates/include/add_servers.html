@@ -1,13 +1,16 @@
 <span name="add_servers">
+	<input name="prefix" class="prefix form-control" title="servers prefix" size="3" placeholder="web" style="display: none;">
+	<input name="template-number" class="prefix form-control" title="servers num" value="3" type="number" style="width: 35px; display: none;">
 	<input name="servers" required title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">:
 	<input name="server_port" required title="Backend IP" size=1 placeholder="yyy" class="form-control">
 	<br />
-	<input name="servers" title="Backend port" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">:
-	<input name="server_port" title="Backend port" size=1 placeholder="yyy" class="form-control">
+	<input name="servers" title="Backend port" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server"><span class="second-server">:</span>
+	<input name="server_port" title="Backend port" size=1 placeholder="yyy" class="form-control second-server">
 	<br />
-	<input name="servers" title="Backend port" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">:
-	<input name="server_port" title="Backend port" size=1 placeholder="yyy" class="form-control">
+	<input name="servers" title="Backend port" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server"><span class="second-server">:</span>
+	<input name="server_port" title="Backend port" size=1 placeholder="yyy" class="form-control second-server">
 </span>
 <span>
 	<a class="add-server" name="add-server-input" title="Add backend server" style="cursor: pointer;"></a>
 </span>
+<a href="https://cbonte.github.io/haproxy-dconv/1.8/configuration.html#4.2-server-template" title="Read about Server-template" target="_blank" class="prefix" style="display: none; font-size: 13px; color: #23527c;">Read about Server-template</a>

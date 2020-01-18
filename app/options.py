@@ -76,7 +76,8 @@ if form.getvalue('ssh_cert'):
 		pass
 			
 if serv and form.getvalue('ssl_cert'):
-	cert_local_dir = funct.get_config_var('main', 'cert_local_dir')
+	#cert_local_dir = funct.get_config_var('main', 'cert_local_dir')
+	cert_local_dir = os.path.dirname(os.getcwd())+"/"+sql.get_setting('ssl_local_path')
 	cert_path = sql.get_setting('cert_path')
 	
 	if not os.path.exists(cert_local_dir):
@@ -936,34 +937,40 @@ if form.getvalue('bwlists'):
 		
 		
 if form.getvalue('bwlists_create'):
+	color = form.getvalue('color')
 	list_name = form.getvalue('bwlists_create').split('.')[0]
 	list_name += '.lst'
-	list = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')+"/"+form.getvalue('group')+"/"+form.getvalue('color')+"/"+list_name
+	list = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')+"/"+form.getvalue('group')+"/"+color+"/"+list_name
 	try:
 		open(list, 'a').close()
 		print('<div class="alert alert-success" style="margin:0">'+form.getvalue('color')+' list was created</div>')
+		funct.logging(server[1], 'has created  '+color+' list '+list_name, haproxywi=1, login=1)
 	except IOError as e:
 		print('<div class="alert alert-danger" style="margin:0">Cat\'n create new '+form.getvalue('color')+' list. %s </div>' % e)
 		
 		
 if form.getvalue('bwlists_save'):
-	list = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')+"/"+form.getvalue('group')+"/"+form.getvalue('color')+"/"+form.getvalue('bwlists_save')
+	color = form.getvalue('color')
+	bwlists_save = form.getvalue('bwlists_save')
+	list = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')+"/"+form.getvalue('group')+"/"+color+"/"+bwlists_save
 	try:
 		with open(list, "w") as file:
 			file.write(form.getvalue('bwlists_content'))
 	except IOError as e:
-		print('<div class="alert alert-danger" style="margin:0">Cat\'n save '+form.getvalue('color')+' list. %s </div>' % e)
+		print('<div class="alert alert-danger" style="margin:0">Cat\'n save '+color+' list. %s </div>' % e)
 	
 	servers = sql.get_dick_permit()
-	path = sql.get_setting('haproxy_dir')+"/"+form.getvalue('color')
+	path = sql.get_setting('haproxy_dir')+"/"+color
 	
 	for server in servers:
 		funct.ssh_command(server[2], ["sudo mkdir "+path])
-		error = funct.upload(server[2], path+"/"+form.getvalue('bwlists_save'), list, dir='fullpath')
+		funct.ssh_command(server[2], ["sudo chown $(whoami) "+path])
+		error = funct.upload(server[2], path+"/"+bwlists_save, list, dir='fullpath')
 		if error:
 			print('<div class="alert alert-danger">Upload fail: %s</div>' % error)			
 		else:
-			print('<div class="alert alert-success" style="margin:10px">Edited '+form.getvalue('color')+' list was uploaded to '+server[1]+'</div>')
+			print('<div class="alert alert-success" style="margin:10px">Edited '+color+' list was uploaded to '+server[1]+'</div>')
+			funct.logging(server[1], 'has edited  '+color+' list '+bwlists_save, haproxywi=1, login=1)
 			if form.getvalue('bwlists_restart') == 'restart':
 				funct.ssh_command(server[2], ["sudo " + sql.get_setting('restart_command')])
 			
@@ -1016,3 +1023,4 @@ if form.getvalue('change_waf_mode'):
 	serv = sql.select_server_by_name(server_hostname)
 	commands = [ "sudo sed -i 's/^SecRuleEngine.*/SecRuleEngine %s/' %s/waf/modsecurity.conf " % (waf_mode, haproxy_dir) ]
 	funct.ssh_command(serv, commands)
+	funct.logging(serv, 'Was changed WAF mod to '+waf_mode, haproxywi=1, login=1)

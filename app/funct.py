@@ -162,7 +162,7 @@ def page_for_admin(**kwargs):
 		sys.exit()	
 	
 	
-def return_ssh_keys_path(serv):
+def return_ssh_keys_path(serv, **kwargs):
 	import sql
 	fullpath = get_config_var('main', 'fullpath')
 	ssh_enable = ''
@@ -170,11 +170,18 @@ def return_ssh_keys_path(serv):
 	ssh_user_name = ''
 	ssh_user_password = ''
 	
-	for sshs in sql.select_ssh(serv=serv):
-		ssh_enable = sshs[3]
-		ssh_user_name = sshs[4]
-		ssh_user_password = sshs[5]
-		ssh_key_name = fullpath+'/keys/%s.pem' % sshs[2]
+	if kwargs.get('id') != '':	
+		for sshs in sql.select_ssh(id=kwargs.get('id')):
+			ssh_enable = sshs[2]
+			ssh_user_name = sshs[3]
+			ssh_user_password = sshs[4]
+			ssh_key_name = fullpath+'/keys/%s.pem' % sshs[1]
+	else:
+		for sshs in sql.select_ssh(serv=serv):
+			ssh_enable = sshs[3]
+			ssh_user_name = sshs[4]
+			ssh_user_password = sshs[5]
+			ssh_key_name = fullpath+'/keys/%s.pem' % sshs[2]
 		
 	return ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name
 	
@@ -466,7 +473,7 @@ def upload(serv, path, file, **kwargs):
 	try:
 		file = sftp.put(file, full_path)
 	except Exception as e:
-		logging('localhost', ' Cannot upload '+file+' to '+full_path+'. Error: '+str(e.args), haproxywi=1)
+		logging('localhost', ' Cannot upload '+file+' to '+full_path+' to server: '+serv+' Error: '+str(e.args), haproxywi=1)
 		pass
 		
 	try:
