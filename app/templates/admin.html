@@ -24,59 +24,19 @@
 	<ul id='browse_histroy'></ul>
 	<div id="users">
 		<table class="overview" id="ajax-users">
+			<thead>
 			<tr class="overviewHead">
-				<td class="padding10 first-collumn">Login name</td>
-				<td>Password</td>
-				<td>Active</td>
-				<td>Email</td>
-				<td>Role</td>
-				<td>Group</td>
-				<td></td>
-				<td></td>
+				<th class="padding10 first-collumn">Login name</th>
+				<th>Password</th>
+				<th>Active</th>
+				<th>Email</th>
+				<th>Role</th>
+				<th>Group</th>
+				<th></th>
+				<th></th>
 			</tr>
-			<tr>
-			<script>
-				$( function() {
-				{% for user in users %}
-					$("#role-{{user.0}}" ).selectmenu({
-						  width: 100
-						});
-					$("#usergroup-{{user.0}}" ).selectmenu({
-						  width: 100
-						});
-					
-				{% endfor %}
-				{% for server in servers %}
-					$("#servergroup-{{ server.0}}" ).selectmenu({
-						  width: 100
-						});
-					$("#slavefor-{{server.0}}" ).selectmenu({
-						  width: 130
-						});
-					$("#credentials-{{server.0}}" ).selectmenu({
-						  width: 150
-						});
-				{% endfor %}
-				{% for ssh in sshs %}
-					if (window.matchMedia('(max-width: 1280px)').matches) {
-						$("#sshgroup-{{ ssh.0}}" ).selectmenu({
-							width: 100
-						});
-					}
-				{% endfor %}
-				{% for server in backups %}
-					$("#backup-time-{{ server.0}}" ).selectmenu({
-						  width: 100
-						});
-					$("#backup-type-{{server.0}}" ).selectmenu({
-						  width: 130
-						});
-					$("#backup-credentials-{{server.0}}" ).selectmenu({
-						  width: 150
-						});
-				{% endfor %}
-				});
-			</script>
+			</thead>
+			<tbody>
 		{% for user in users %}
 			<tr id="user-{{user.0}}" class="{{ loop.cycle('odd', 'even') }}">
 				{% include 'include/admin_users.html' %}
@@ -112,17 +72,20 @@
 				</td> 
 			</tr>
 		{% endfor %}
+		<tbody>
 		</table>
 		<br /><span class="add-button" title="Add user" id="add-user-button">+ Add</span>
 		<br /><br />
 	</div>
 	<div id="groups">
 		<table class="overview" id="ajax-group">
+			<thead>
 			<tr class="overviewHead">
-				<td class="padding10 first-collumn">Name</td>
-				<td>Description</td>
-				<td></td>
+				<th class="padding10 first-collumn">Name</th>
+				<th>Description</th>
+				<th></th>
 			</tr>
+			<tbody>
 		{% for group in groups %}
 			<tr id="group-{{ group.0 }}" class="{{ loop.cycle('odd', 'even') }}"> 
 			{% if group.1 == "All" %}
@@ -146,6 +109,7 @@
 			{% endif %}
 			</tr>
 		{% endfor %}
+			</tbody>
 		</table>
 		<br /><span class="add-button" title="Add group" id="add-group-button">+ Add</span>
 		<br /><br />
@@ -159,7 +123,7 @@
 				<td class="padding10 first-collumn">
 					{{ input('new-group-add') }}
 				</td>
-				<td>
+				<td style="width: 100%;">
 					{{ input('new-desc', size="60") }}
 				</td>
 				<td>
@@ -173,22 +137,25 @@
 	</div>
 	<div id="servers">
 		<table class="overview" id="ajax-servers">
+			<thead>
 			<tr class="overviewHead">
-				<td class="padding10 first-collumn">Hostname</td>
-				<td class="ip-field">IP</td>
-				<td class="checkbox-head"><span title="SSH port">Port</span></td></td>
-				<td class="group-field">Group</td>
-				<td class="checkbox-head">Enable</td>
-				<td class="checkbox-head"><span title="Vitrual IP, something like VRRP">Virt</span></td>
-				<td class="checkbox-head"><span title="Alert if backend change status. Before enable add Telgram chanel at Checker tab">Alert</span></td>
-				<td class="checkbox-head"><span title="Enable save and show metrics">Metrics</span></td>
-				<td class="checkbox-head"><span title="Keep start HAProxy service if down">Start</span></td>
-				<td class="slave-field"><span title="Actions with master config will automatically apply on slave">Slave for</span></td>
-				<td class="cred-field">Credentials</td>
-				<td>Description</td>
-				<td></td>
-				<td></td>
-			</tr>						
+				<th class="padding10 first-collumn">Hostname</th>
+				<th class="ip-field">IP</th>
+				<th class="checkbox-head"><span title="SSH port">Port</span></th>
+				<th class="group-field">Group</th>
+				<th class="checkbox-head">Enable</th>
+				<th class="checkbox-head"><span title="Vitrual IP, something like VRRP">Virt</span></th>
+				<th class="checkbox-head"><span title="Alert if backend change status. Before enable add Telgram chanel at Checker tab">Alert</span></th>
+				<th class="checkbox-head"><span title="Enable save and show metrics">Metrics</span></th>
+				<th class="checkbox-head"><span title="Keep start HAProxy service if down">Start</span></th>
+				<th class="slave-field"><span title="Actions with master config will automatically apply on slave">Slave for</span></th>
+				<th class="cred-field">Credentials</th>
+				<th>Description</th>
+				<th></th>
+				<th></th>
+			</tr>	
+			</thead>
+			<tbody>
 		{% for server in servers %}
 			<tr id="server-{{server.0}}" class="{{ loop.cycle('odd', 'even') }}">
 				<td class="padding10 first-collumn">
@@ -215,6 +182,7 @@
 				{% include 'include/admin_servers.html' %}
 			</tr>
 		{% endfor %}
+			</tbody>
 		</table>
 		<br /><span class="add-button" title="Add server" id="add-server-button">+ Add</span>
 		<br /><br />
@@ -635,4 +603,46 @@
     width: 10%;
 }
 </style>
+<script>
+				$( function() {
+				{% for user in users %}
+					$("#role-{{user.0}}" ).selectmenu({
+						  width: 100
+						});
+					$("#usergroup-{{user.0}}" ).selectmenu({
+						  width: 100
+						});
+					
+				{% endfor %}
+				{% for server in servers %}
+					$("#servergroup-{{ server.0}}" ).selectmenu({
+						  width: 100
+						});
+					$("#slavefor-{{server.0}}" ).selectmenu({
+						  width: 130
+						});
+					$("#credentials-{{server.0}}" ).selectmenu({
+						  width: 150
+						});
+				{% endfor %}
+				{% for ssh in sshs %}
+					if (window.matchMedia('(max-width: 1280px)').matches) {
+						$("#sshgroup-{{ ssh.0}}" ).selectmenu({
+							width: 100
+						});
+					}
+				{% endfor %}
+				{% for server in backups %}
+					$("#backup-time-{{ server.0}}" ).selectmenu({
+						  width: 100
+						});
+					$("#backup-type-{{server.0}}" ).selectmenu({
+						  width: 130
+						});
+					$("#backup-credentials-{{server.0}}" ).selectmenu({
+						  width: 150
+						});
+				{% endfor %}
+				});
+			</script>
 {% endblock %}

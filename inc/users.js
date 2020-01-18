@@ -240,7 +240,7 @@ $( function() {
 		$('#error').remove();	
 		$('.alert-danger').remove();	
 		$.ajax( {
-			url: "sql.py",
+			url: "options.py",
 			data: {
 				newgroup: "1",
 				groupname: $('#new-group-add').val(),
@@ -274,7 +274,7 @@ $( function() {
 			ssh_enable = '1';
 		}
 		$.ajax( {
-			url: "sql.py",
+			url: "options.py",
 			data: {
 				new_ssh: $('#new-ssh-add').val(),
 				new_group: $('#new-sshgroup').val(),
@@ -315,7 +315,7 @@ $( function() {
 		$('#error').remove();	
 		$('.alert-danger').remove();	
 		$.ajax( {
-			url: "sql.py",
+			url: "options.py",
 			data: {
 				newtelegram: $('#telegram-token-add').val(),
 				chanel: $('#telegram-chanel-add').val(),
@@ -582,7 +582,7 @@ function addUser() {
 	}
 	if (valid) {
 		$.ajax( {
-			url: "sql.py",
+			url: "options.py",
 			data: {
 				newuser: "1",
 				newusername: $('#new-username').val(),
@@ -648,7 +648,7 @@ function addServer() {
 	valid = valid && checkLength( $('#new-port'), "Port", 1 );
 	if (valid) {
 		$.ajax( {
-			url: "sql.py",
+			url: "options.py",
 			data: {
 				newserver: "1",
 				servername: servername,
@@ -679,14 +679,14 @@ function addServer() {
 					$('.alert-danger').remove();
 					$("#ajax-servers").append(data);
 					$(".newserver").addClass( "update", 1000 );
-					setTimeout(function() {
-						$( ".newserver" ).removeClass( "update" );
-					}, 2500 );		
 					$( "input[type=submit], button" ).button();
 					$( "input[type=checkbox]" ).checkboxradio();
 					$( ".controlgroup" ).controlgroup();
 					$( "select" ).selectmenu();
-					$.getScript(awesome);					
+					$.getScript(awesome);
+					setTimeout(function() {
+						$( ".newserver" ).removeClass( "update" );
+					}, 2500 );							
 				}
 			}					
 		} );
@@ -749,7 +749,7 @@ function addBackup() {
 function updateSettings(param, val) {
 	$('.alert-danger').remove();
 	$.ajax( {
-		url: "sql.py",
+		url: "options.py",
 		data: {
 			updatesettings: param,
 			val: val,
@@ -977,7 +977,7 @@ function cloneBackup(id) {
 function removeUser(id) {
 	$("#user-"+id).css("background-color", "#f2dede");
 	$.ajax( {
-		url: "sql.py",
+		url: "options.py",
 		data: {
 			userdel: id,
 			token: $('#token').val()
@@ -994,7 +994,7 @@ function removeUser(id) {
 function removeServer(id) {
 	$("#server-"+id).css("background-color", "#f2dede");
 	$.ajax( {
-		url: "sql.py",
+		url: "options.py",
 		data: {
 			serverdel: id,
 			token: $('#token').val()
@@ -1011,7 +1011,7 @@ function removeServer(id) {
 function removeGroup(id) {
 	$("#group-"+id).css("background-color", "#f2dede");
 	$.ajax( {
-		url: "sql.py",
+		url: "options.py",
 		data: {
 			groupdel: id,
 			token: $('#token').val()
@@ -1030,7 +1030,7 @@ function removeGroup(id) {
 function removeSsh(id) {
 	$("#ssh-table-"+id).css("background-color", "#f2dede");
 	$.ajax( {
-		url: "sql.py",
+		url: "options.py",
 		data: {
 			sshdel: id,
 			token: $('#token').val()
@@ -1049,7 +1049,7 @@ function removeSsh(id) {
 function removeTelegram(id) {
 	$("#telegram-table-"+id).css("background-color", "#f2dede");
 	$.ajax( {
-		url: "sql.py",
+		url: "options.py",
 		data: {
 			telegramdel: id,
 			token: $('#token').val()
@@ -1097,7 +1097,7 @@ function updateUser(id) {
 		activeuser = '1';
 	}
 	$.ajax( {
-		url: "sql.py",
+		url: "options.py",
 		data: {
 			updateuser: $('#login-'+id).val(),
 			email: $('#email-'+id).val(),
@@ -1129,7 +1129,7 @@ function updateUser(id) {
 function updateGroup(id) {
 	$('#error').remove();	
 	$.ajax( {
-		url: "sql.py",
+		url: "options.py",
 		data: {
 			updategroup: $('#name-'+id).val(),
 			descript: $('#descript-'+id).val(),
@@ -1184,7 +1184,7 @@ function updateServer(id) {
 		 servergroup = $('#servergroup-'+id).val();
 	}
 	$.ajax( {
-		url: "sql.py",
+		url: "options.py",
 		data: {
 			updateserver: $('#hostname-'+id).val(),
 			ip: $('#ip-'+id).val(),
@@ -1254,7 +1254,7 @@ function updateSSH(id) {
 		ssh_enable = '1';
 	}
 	$.ajax( {
-		url: "sql.py",
+		url: "options.py",
 		data: {
 			updatessh: 1,
 			name: $('#ssh_name-'+id).val(),
@@ -1291,7 +1291,7 @@ function updateSSH(id) {
 function updateTelegram(id) {
 	$('#error').remove();	
 	$.ajax( {
-		url: "sql.py",
+		url: "options.py",
 		data: {
 			updatetoken: $('#telegram-token-'+id).val(),
 			updategchanel: $('#telegram-chanel-'+id).val(),
@@ -1453,7 +1453,7 @@ function changeUserPassword(id, d) {
 		$('#missmatchpass').hide();
 		$('#error').remove();	
 		$.ajax( {
-			url: "sql.py",
+			url: "options.py",
 			data: {
 				updatepassowrd: pass,
 				id: id,

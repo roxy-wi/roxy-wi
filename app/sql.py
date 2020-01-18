@@ -231,11 +231,14 @@ def update_server_master(master, slave):
 	cur.close()    
 	con.close()
 	
+	
 def select_users(**kwargs):
 	con, cur = get_cur()
 	sql = """select * from user ORDER BY id"""
 	if kwargs.get("user") is not None:
 		sql = """select * from user where username='%s' """ % kwargs.get("user")
+	if kwargs.get("id") is not None:
+		sql = """select * from user where id='%s' """ % kwargs.get("id")
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
@@ -245,11 +248,14 @@ def select_users(**kwargs):
 	cur.close()    
 	con.close()    
 	
+	
 def select_groups(**kwargs):
 	con, cur = get_cur()
 	sql = """select * from groups ORDER BY id"""
 	if kwargs.get("group") is not None:
 		sql = """select * from groups where name='%s' """ % kwargs.get("group")
+	if kwargs.get("id") is not None:
+		sql = """select * from groups where id='%s' """ % kwargs.get("id")
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
@@ -258,6 +264,7 @@ def select_groups(**kwargs):
 		return cur.fetchall()
 	cur.close()    
 	con.close()  
+	
 	
 def select_user_name_group(id):
 	con, cur = get_cur()
@@ -705,14 +712,6 @@ def check_exists_backup(server):
 	cur.close()    
 	con.close()
 	
-def show_update_ssh(name, page):
-	from jinja2 import Environment, FileSystemLoader
-	env = Environment(loader=FileSystemLoader('templates/ajax'))
-	template = env.get_template('/new_ssh.html')
-
-	print('Content-type: text/html\n')
-	output_from_parsed_template = template.render(groups = select_groups(), sshs = select_ssh(name=name),page=page)
-	print(output_from_parsed_template)
 
 def insert_new_telegram(token, chanel, group):
 	con, cur = get_cur()
@@ -727,6 +726,7 @@ def insert_new_telegram(token, chanel, group):
 		return True
 	cur.close()    
 	con.close() 
+
 
 def delete_telegram(id):
 	con, cur = get_cur()
@@ -742,6 +742,7 @@ def delete_telegram(id):
 	cur.close()    
 	con.close() 	
 	
+	
 def select_telegram(**kwargs):
 	con, cur = get_cur()
 	sql = """select * from telegram  """
@@ -749,6 +750,8 @@ def select_telegram(**kwargs):
 		sql = """select * from telegram where groups = '%s' """ % kwargs.get('group')
 	if kwargs.get('token'):
 		sql = """select * from telegram where token = '%s' """ % kwargs.get('token')
+	if kwargs.get('id'):
+		sql = """select * from telegram where id = '%s' """ % kwargs.get('id')
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
@@ -757,6 +760,7 @@ def select_telegram(**kwargs):
 		return cur.fetchall()
 	cur.close()    
 	con.close() 
+	
 	
 def insert_new_telegram(token, chanel, group):
 	con, cur = get_cur()
@@ -771,6 +775,7 @@ def insert_new_telegram(token, chanel, group):
 		return True
 	cur.close()    
 	con.close() 
+	
 	
 def update_telegram(token, chanel, group, id):
 	con, cur = get_cur()
@@ -788,6 +793,7 @@ def update_telegram(token, chanel, group, id):
 	cur.close()    
 	con.close()
 	
+	
 def insert_new_option(option, group):
 	con, cur = get_cur()
 	sql = """insert into options(`options`, `groups`) values ('%s', '%s') """ % (option, group)
@@ -801,6 +807,7 @@ def insert_new_option(option, group):
 		return True
 	cur.close()    
 	con.close() 
+	
 	
 def select_options(**kwargs):
 	con, cur = get_cur()
@@ -818,6 +825,7 @@ def select_options(**kwargs):
 	cur.close()    
 	con.close() 
 	
+	
 def update_options(option, id):
 	con, cur = get_cur()
 	sql = """ update options set 
@@ -831,6 +839,7 @@ def update_options(option, id):
 		con.rollback()
 	cur.close()    
 	con.close()
+	
 	
 def delete_option(id):
 	con, cur = get_cur()
@@ -861,6 +870,7 @@ def insert_new_savedserver(server, description, group):
 	cur.close()    
 	con.close() 
 	
+	
 def select_saved_servers(**kwargs):
 	con, cur = get_cur()
 	sql = """select * from saved_servers  """
@@ -877,6 +887,7 @@ def select_saved_servers(**kwargs):
 	cur.close()    
 	con.close() 
 	
+	
 def update_savedserver(server, description, id):
 	con, cur = get_cur()
 	sql = """ update saved_servers set 
@@ -891,6 +902,7 @@ def update_savedserver(server, description, id):
 		con.rollback()
 	cur.close()    
 	con.close()
+	
 	
 def delete_savedserver(id):
 	con, cur = get_cur()
@@ -922,6 +934,7 @@ def insert_mentrics(serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate):
 	cur.close()    
 	con.close()
 	
+	
 def select_waf_metrics_enable(id):
 	con, cur = get_cur()
 	sql = """ select waf.metrics from waf  left join servers as serv on waf.server_id = serv.id where server_id = '%s' """ % id
@@ -933,6 +946,7 @@ def select_waf_metrics_enable(id):
 		return cur.fetchall()
 	cur.close()    
 	con.close()
+	
 	
 def select_waf_metrics_enable_server(ip):
 	con, cur = get_cur()
@@ -996,6 +1010,7 @@ def select_waf_servers_metrics(uuid, **kwargs):
 	cur.close()    
 	con.close() 
 	
+	
 def select_waf_metrics(serv, **kwargs):
 	con, cur = get_cur()
 	sql = """ select * from (select * from waf_metrics where serv = '%s' order by `date` desc limit 60) order by `date`""" % serv
@@ -1007,6 +1022,7 @@ def select_waf_metrics(serv, **kwargs):
 		return cur.fetchall()
 	cur.close()    
 	con.close()
+	
 	
 def insert_waf_metrics_enable(serv, enable):
 	con, cur = get_cur()
@@ -1020,6 +1036,7 @@ def insert_waf_metrics_enable(serv, enable):
 	cur.close()    
 	con.close()
 	
+	
 def delete_waf_server(id):
 	con, cur = get_cur()
 	sql = """ delete from waf where server_id = '%s' """ % id
@@ -1031,6 +1048,7 @@ def delete_waf_server(id):
 		con.rollback()
 	cur.close()    
 	con.close()
+	
 	
 def insert_waf_mentrics(serv, conn):
 	con, cur = get_cur()
@@ -1047,6 +1065,7 @@ def insert_waf_mentrics(serv, conn):
 	cur.close()    
 	con.close()
 	
+	
 def delete_waf_mentrics():
 	con, cur = get_cur()
 	if mysql_enable == '1':
@@ -1062,6 +1081,7 @@ def delete_waf_mentrics():
 	cur.close()    
 	con.close()
 	
+	
 def update_waf_metrics_enable(name, enable):
 	con, cur = get_cur()
 	sql = """ update waf set metrics = %s where server_id = (select id from servers where hostname = '%s') """ % (enable, name)
@@ -1073,6 +1093,7 @@ def update_waf_metrics_enable(name, enable):
 		con.rollback()
 	cur.close()    
 	con.close()
+	
 	
 def delete_mentrics():
 	con, cur = get_cur()
@@ -1089,6 +1110,7 @@ def delete_mentrics():
 	cur.close()    
 	con.close()
 	
+	
 def select_metrics(serv, **kwargs):
 	con, cur = get_cur()
 	sql = """ select * from (select * from metrics where serv = '%s' order by `date` desc limit 60) order by `date` """ % serv
@@ -1101,6 +1123,7 @@ def select_metrics(serv, **kwargs):
 	cur.close()    
 	con.close()
 	
+	
 def select_servers_metrics_for_master():
 	con, cur = get_cur()
 	sql = """select ip from servers where metrics = 1 """
@@ -1112,6 +1135,7 @@ def select_servers_metrics_for_master():
 		return cur.fetchall()
 	cur.close()    
 	con.close() 
+	
 	
 def select_servers_metrics(uuid, **kwargs):
 	con, cur = get_cur()
@@ -1135,6 +1159,7 @@ def select_servers_metrics(uuid, **kwargs):
 			return cur.fetchall()
 	cur.close()    
 	con.close() 
+	
 	
 def select_table_metrics(uuid):
 	con, cur = get_cur()
@@ -1351,6 +1376,7 @@ def select_table_metrics(uuid):
 	cur.close()    
 	con.close()
 	
+	
 def get_setting(param, **kwargs):
 	con, cur = get_cur()
 	sql = """select value from `settings` where param='%s' """ % param
@@ -1368,6 +1394,7 @@ def get_setting(param, **kwargs):
 				return value
 	cur.close()    
 	con.close()  
+	
 	
 def update_setting(param, val):
 	con, cur = get_cur()
@@ -1396,70 +1423,7 @@ def get_ver():
 			return ver[0]
 	cur.close()    
 	con.close()
-	
-def show_update_option(option):
-	from jinja2 import Environment, FileSystemLoader
-	env = Environment(loader=FileSystemLoader('templates/ajax'))
-	template = env.get_template('/new_option.html')
 
-	print('Content-type: text/html\n')
-	template = template.render(options=select_options(option=option))
-	print(template)	
-	
-	
-def show_update_savedserver(server):
-	from jinja2 import Environment, FileSystemLoader
-	env = Environment(loader=FileSystemLoader('templates/ajax'))
-	template = env.get_template('/new_saved_servers.html')
-
-	print('Content-type: text/html\n')
-	template = template.render(server=select_saved_servers(server=server))
-	print(template)	
-	
-	
-def show_update_telegram(token, page):
-	from jinja2 import Environment, FileSystemLoader
-	env = Environment(loader=FileSystemLoader('templates/ajax'))
-	template = env.get_template('/new_telegram.html')
-
-	print('Content-type: text/html\n')
-	output_from_parsed_template = template.render(groups = select_groups(), telegrams = select_telegram(token=token),page=page)
-	print(output_from_parsed_template)	
-
-def show_update_user(user,page):
-	from jinja2 import Environment, FileSystemLoader
-	env = Environment(loader=FileSystemLoader('templates/'))
-	template = env.get_template('ajax/new_user.html')
-
-	print('Content-type: text/html\n')
-	template = template.render(users = select_users(user=user),
-								groups = select_groups(),
-								page=page,
-								roles = select_roles())
-	print(template)
-		
-def show_update_server(server, page):
-	from jinja2 import Environment, FileSystemLoader
-	env = Environment(loader=FileSystemLoader('templates/'))
-	template = env.get_template('ajax/new_server.html')
-
-	print('Content-type: text/html\n')
-	output_from_parsed_template = template.render(groups = select_groups(),
-													servers = select_servers(server=server),
-													roles = select_roles(),
-													masters = select_servers(get_master_servers=1),
-													sshs = select_ssh(),
-													page = page)
-	print(output_from_parsed_template)
-
-def show_update_group(group):
-	from jinja2 import Environment, FileSystemLoader
-	env = Environment(loader=FileSystemLoader('templates/ajax/'))
-	template = env.get_template('/new_group.html')
-
-	print('Content-type: text/html\n')
-	output_from_parsed_template = template.render(groups = select_groups(group=group))
-	print(output_from_parsed_template)
 	
 def select_roles(**kwargs):
 	con, cur = get_cur()
@@ -1543,257 +1507,28 @@ def check_group(group, role_id):
 	if user_group == group or user_group == '1' or role_id == 1:
 		return True
 	else:
-		funct.logging(new_user, ' tried to change user group', haproxywi=1, login=1)
+		funct.logging('localhost', ' has tried to actions in not own group ', haproxywi=1, login=1)
 		return False
 		
+		
+def show_update_option(option):
+	from jinja2 import Environment, FileSystemLoader
+	env = Environment(loader=FileSystemLoader('templates/ajax'))
+	template = env.get_template('/new_option.html')
 
-if form.getvalue('newuser') is not None:
-	email = form.getvalue('newemail')
-	password = form.getvalue('newpassword')
-	role = form.getvalue('newrole')
-	group = form.getvalue('newgroupuser')
-	new_user = form.getvalue('newusername')	
-	page = form.getvalue('page')	
-	activeuser = form.getvalue('activeuser')	
-	check_token()
-	if password is None or role is None or group is None:
-		print(error_mess)
-	else:		
-		role_id = get_role_id_by_name(role)
-		if check_group(group, role_id):
-			if funct.is_admin(level=role_id):
-				if add_user(new_user, email, password, role, group, activeuser):
-					show_update_user(new_user, page)
-					funct.logging('a new user '+new_user, ' created  ', haproxywi=1, login=1)
-			else:
-				funct.logging(new_user, ' tried to privilege escalation', haproxywi=1, login=1)
-
+	print('Content-type: text/html\n')
+	template = template.render(options=select_options(option=option))
+	print(template)	
 	
 	
-if form.getvalue('updateuser') is not None:
-	email = form.getvalue('email')
-	role = form.getvalue('role')
-	group = form.getvalue('usergroup')
-	new_user = form.getvalue('updateuser')	
-	id = form.getvalue('id')	
-	activeuser = form.getvalue('activeuser')	
-	check_token()
-	if new_user is None or role is None or group is None:
-		print('Content-type: text/html\n')
-		print(error_mess)
-	else:	
-		role_id = get_role_id_by_name(role)
-		if check_group(group, role_id):			
-			if funct.is_admin(level=role_id):
-				update_user(new_user, email, role, group, id, activeuser)
-				funct.logging('user with id '+id, ' user '+new_user+' updated ', haproxywi=1, login=1)
-			else:
-				funct.logging(new_user, ' tried to privilege escalation', haproxywi=1, login=1)
-		
+def show_update_savedserver(server):
+	from jinja2 import Environment, FileSystemLoader
+	env = Environment(loader=FileSystemLoader('templates/ajax'))
+	template = env.get_template('/new_saved_servers.html')
 
-
-if form.getvalue('updatepassowrd') is not None:
-	password = form.getvalue('updatepassowrd')
-	id = form.getvalue('id')	
 	print('Content-type: text/html\n')
-	check_token()
-	if password is None or id is None:
-		print(error_mess)
-	else:		
-		update_user_password(password, id)
-		funct.logging('user with id '+id, ' changed password ', haproxywi=1, login=1)
-		print("Ok")
-		
-		
-if form.getvalue('userdel') is not None:
-	print('Content-type: text/html\n')
-	userdel = form.getvalue('userdel')
-	check_token()
-	if delete_user(userdel):
-		print("Ok")
-
-		
-if form.getvalue('newserver') is not None:
-	hostname = form.getvalue('servername')	
-	ip = form.getvalue('newip')
-	group = form.getvalue('newservergroup')
-	typeip = form.getvalue('typeip')
-	enable = form.getvalue('enable')
-	master = form.getvalue('slave')
-	cred = form.getvalue('cred')
-	alert = form.getvalue('alert_en')
-	metrics = form.getvalue('metrics')
-	page = form.getvalue('page')
-	page = page.split("#")[0]
-	port = form.getvalue('newport')	
-	desc = form.getvalue('desc')	
-	active = form.getvalue('active')	
-	print('Content-type: text/html\n')
-	check_token()
-	if ip is None or group is None or cred is None or port is None:		
-		print(error_mess)
-	else:	
-		if add_server(hostname, ip, group, typeip, enable, master, cred, alert, metrics, port, desc, active):
-			show_update_server(ip, page)
-			#funct.logging('a new server '+hostname, ' created  ', haproxywi=1, login=1)
-
-		
-if form.getvalue('serverdel') is not None:
-	print('Content-type: text/html\n')
-	check_token()
-	serverdel = form.getvalue('serverdel')
-	if delete_server(serverdel):
-		delete_waf_server(serverdel)
-		print("Ok")
-
-	
-if form.getvalue('newgroup') is not None:
-	newgroup = form.getvalue('groupname')	
-	desc = form.getvalue('newdesc')
-	print('Content-type: text/html\n')
-	check_token()
-	if newgroup is None:
-		print(error_mess)
-	else:
-		if add_group(newgroup, desc):
-			show_update_group(newgroup)
-			funct.logging('a new group '+newgroup, ' created  ', haproxywi=1, login=1)
-
-
-if form.getvalue('groupdel') is not None:
-	print('Content-type: text/html\n')
-	check_token()
-	groupdel = form.getvalue('groupdel')
-	if delete_group(groupdel):
-		print("Ok")
-
-		
-if form.getvalue('updategroup') is not None:
-	name = form.getvalue('updategroup')
-	descript = form.getvalue('descript')	
-	id = form.getvalue('id')	
-	print('Content-type: text/html\n')
-	check_token()
-	if name is None:
-		print(error_mess)
-	else:		
-		update_group(name, descript, id)
-		funct.logging('the group '+name, ' update  ', haproxywi=1, login=1)
-
-		
-if form.getvalue('updateserver') is not None:
-	name = form.getvalue('updateserver')
-	ip = form.getvalue('ip')	
-	group = form.getvalue('servergroup')	
-	typeip = form.getvalue('typeip')		
-	enable = form.getvalue('enable')		
-	master = form.getvalue('slave')		
-	id = form.getvalue('id')	
-	cred = form.getvalue('cred')	
-	alert = form.getvalue('alert_en')	
-	metrics = form.getvalue('metrics')	
-	port = form.getvalue('port')	
-	desc = form.getvalue('desc')	
-	active = form.getvalue('active')	
-	print('Content-type: text/html\n')
-	check_token()
-	if name is None or ip is None or port is None:
-		print(error_mess)
-	else:		
-		update_server(name, ip, group, typeip, enable, master, id, cred, alert, metrics, port, desc, active)
-		funct.logging('the server '+name, ' updated ', haproxywi=1, login=1)
-
-			
-if form.getvalue('updatessh'):
-	id = form.getvalue('id')
-	name = form.getvalue('name')
-	enable = form.getvalue('ssh_enable')	
-	group = form.getvalue('group')	
-	username = form.getvalue('ssh_user')		
-	password = form.getvalue('ssh_pass')
-	check_token()
-	print('Content-type: text/html\n')
-	if username is None:
-		print(error_mess)
-	else:
-		import funct
-		fullpath = funct.get_config_var('main', 'fullpath')
-		
-		for sshs in select_ssh(id=id):
-			ssh_enable = sshs[2]
-			ssh_key_name = fullpath+'/keys/%s.pem' % sshs[1]
-			new_ssh_key_name = fullpath+'/keys/%s.pem' % name
-					
-		if ssh_enable == 1:
-			cmd = 'mv %s %s' % (ssh_key_name, new_ssh_key_name)
-			cmd1 = 'chmod 600 %s' % new_ssh_key_name
-			try:
-				funct.subprocess_execute(cmd)
-				funct.subprocess_execute(cmd1)
-			except:
-				pass
-		update_ssh(id, name, enable, group, username, password)
-		funct.logging('the SSH '+name, ' updated ', haproxywi=1, login=1)
-	
-	
-if form.getvalue('new_ssh'):
-	name = form.getvalue('new_ssh')
-	enable = form.getvalue('ssh_enable')	
-	group = form.getvalue('new_group')	
-	username = form.getvalue('ssh_user')		
-	password = form.getvalue('ssh_pass')
-	page = form.getvalue('page')
-	page = page.split("#")[0]
-	check_token()
-	if username is None or name is None:
-		print('Content-type: text/html\n')
-		print(error_mess)
-	else:
-		if insert_new_ssh(name, enable, group, username, password):
-			show_update_ssh(name, page)
-
-			
-if form.getvalue('sshdel') is not None:
-	import funct
-	print('Content-type: text/html\n')
-	check_token()
-	fullpath = funct.get_config_var('main', 'fullpath')
-	sshdel = form.getvalue('sshdel')
-	
-	for sshs in select_ssh(id=sshdel):
-		ssh_enable = sshs[2]
-		ssh_key_name = fullpath+'/keys/%s.pem' % sshs[1]
-				
-	if ssh_enable == 1:
-		cmd = 'rm -f %s' % ssh_key_name
-		try:
-			funct.subprocess_execute(cmd)
-		except:
-			pass
-	if delete_ssh(sshdel):
-		print("Ok")
-
-
-if form.getvalue('newtelegram'):
-	token = form.getvalue('newtelegram')
-	chanel = form.getvalue('chanel')	
-	group = form.getvalue('telegramgroup')	
-	page = form.getvalue('page')
-	page = page.split("#")[0]
-	check_token()
-	if token is None or chanel is None or group is None:
-		print('Content-type: text/html\n')
-		print(error_mess)
-	else:
-		if insert_new_telegram(token, chanel, group):
-			show_update_telegram(token, page)
-
-			
-if form.getvalue('telegramdel') is not None:
-	print('Content-type: text/html\n')
-	check_token()
-	if delete_telegram(form.getvalue('telegramdel')):
-		print("Ok")
+	template = template.render(server=select_saved_servers(server=server))
+	print(template)	
 
 	
 if form.getvalue('getoption'):
@@ -1891,27 +1626,4 @@ if form.getvalue('savedserverdel') is not None:
 	print('Content-type: text/html\n')
 	check_token()
 	if delete_savedserver(form.getvalue('savedserverdel')):
-		print("Ok")
-
-		
-if form.getvalue('updatetoken') is not None:
-	token = form.getvalue('updatetoken')
-	chanel = form.getvalue('updategchanel')	
-	group = form.getvalue('updategroup')	
-	id = form.getvalue('id')	
-	print('Content-type: text/html\n')	
-	if token is None or chanel is None or group is None:
-		print(error_mess)
-	else:		
-		update_telegram(token, chanel, group, id)
-		funct.logging('group '+group, ' telegram token was updated channel: '+chanel, haproxywi=1, login=1)
-	
-	
-if form.getvalue('updatesettings') is not None:
-	print('Content-type: text/html\n')
-	settings = form.getvalue('updatesettings')
-	val = form.getvalue('val')
-	check_token()
-	if update_setting(settings, val):
-		funct.logging('value '+val, ' changed settings '+settings, haproxywi=1, login=1)
 		print("Ok")
