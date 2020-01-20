@@ -147,7 +147,7 @@ if login is not None and password is not None:
 	for users in USERS:	
 		if users[7] == 0:
 			print("Content-type: text/html\n")	
-			print('<center><div class="alert alert-danger">Your login is disabled</div><br /><br />')
+			print('Your login is disabled')
 			sys.exit()
 		if users[6] == 1:
 			if login in users[1]:

@@ -48,32 +48,6 @@ if form.getvalue('getcert') is not None and serv is not None:
 	except:
 		print('<div class="alert alert-danger" style="margin:0">Can not connect to the server</div>')
 		
-if form.getvalue('ssh_cert'):
-	name = form.getvalue('name')
-	
-	if not os.path.exists(os.getcwd()+'/keys/'):
-		os.makedirs(os.getcwd()+'/keys/')
-	
-	ssh_keys = os.path.dirname(os.getcwd())+'/keys/'+name+'.pem'
-	
-	try:
-		with open(ssh_keys, "w") as conf:
-			conf.write(form.getvalue('ssh_cert'))
-	except IOError:
-		print('<div class="alert alert-danger">Can\'t save ssh keys file. Check ssh keys path in config</div>')
-	else:
-		print('<div class="alert alert-success">Ssh key was save into: %s </div>' % ssh_keys)
-		
-	try:
-		cmd = 'chmod 600 %s' % ssh_keys
-		funct.subprocess_execute(cmd)
-	except IOError as e:
-		funct.logging('localhost', e.args[0], haproxywi=1)
-		
-	try:
-		funct.logging("local", "users.py#ssh upload new ssh cert %s" % ssh_keys)
-	except:
-		pass
 			
 if serv and form.getvalue('ssl_cert'):
 	#cert_local_dir = funct.get_config_var('main', 'cert_local_dir')
@@ -1024,3 +998,320 @@ if form.getvalue('change_waf_mode'):
 	commands = [ "sudo sed -i 's/^SecRuleEngine.*/SecRuleEngine %s/' %s/waf/modsecurity.conf " % (waf_mode, haproxy_dir) ]
 	funct.ssh_command(serv, commands)
 	funct.logging(serv, 'Was changed WAF mod to '+waf_mode, haproxywi=1, login=1)
+	
+	
+error_mess = '<span class="alert alert-danger" id="error">All fields must be completed <a title="Close" id="errorMess"><b>X</b></a></span>'
+
+	
+if form.getvalue('newuser') is not None:
+	email = form.getvalue('newemail')
+	password = form.getvalue('newpassword')
+	role = form.getvalue('newrole')
+	group = form.getvalue('newgroupuser')
+	new_user = form.getvalue('newusername')	
+	page = form.getvalue('page')	
+	activeuser = form.getvalue('activeuser')	
+	role_id = sql.get_role_id_by_name(role)
+	
+	if sql.check_group(group, role_id):
+		if funct.is_admin(level=role_id):
+			if sql.add_user(new_user, email, password, role, group, activeuser):
+				from jinja2 import Environment, FileSystemLoader
+				env = Environment(loader=FileSystemLoader('templates/'))
+				template = env.get_template('ajax/new_user.html')
+
+				template = template.render(users=sql.select_users(user=new_user),
+											groups=sql.select_groups(),
+											page=page,
+											roles=sql.select_roles())
+				print(template)
+				funct.logging('a new user '+new_user, ' has created ', haproxywi=1, login=1)
+		else:
+			funct.logging(new_user, ' tried to privilege escalation', haproxywi=1, login=1)
+			
+			
+if form.getvalue('userdel') is not None:
+	userdel = form.getvalue('userdel')
+	user = sql.select_users(id=userdel)
+	for u in user:
+		username = u[1]
+	if sql.delete_user(userdel):
+		funct.logging(username, ' has deleted user ', haproxywi=1, login=1)
+		print("Ok")
+		
+		
+if form.getvalue('updateuser') is not None:
+	email = form.getvalue('email')
+	role = form.getvalue('role')
+	group = form.getvalue('usergroup')
+	new_user = form.getvalue('updateuser')	
+	id = form.getvalue('id')	
+	activeuser = form.getvalue('activeuser')	
+	role_id = sql.get_role_id_by_name(role)
+	
+	if sql.check_group(group, role_id):			
+		if funct.is_admin(level=role_id):
+			sql.update_user(new_user, email, role, group, id, activeuser)
+			funct.logging(new_user, ' has updated user ', haproxywi=1, login=1)
+		else:
+			funct.logging(new_user, ' tried to privilege escalation', haproxywi=1, login=1)
+			
+	
+if form.getvalue('updatepassowrd') is not None:
+	password = form.getvalue('updatepassowrd')
+	id = form.getvalue('id')	
+	user = sql.select_users(id=id)
+	for u in user:
+		username = u[1]
+	sql.update_user_password(password, id)
+	funct.logging('user '+username, ' has changed password ', haproxywi=1, login=1)
+	print("Ok")
+		
+	
+if form.getvalue('newserver') is not None:
+	hostname = form.getvalue('servername')	
+	ip = form.getvalue('newip')
+	group = form.getvalue('newservergroup')
+	typeip = form.getvalue('typeip')
+	enable = form.getvalue('enable')
+	master = form.getvalue('slave')
+	cred = form.getvalue('cred')
+	alert = form.getvalue('alert_en')
+	metrics = form.getvalue('metrics')
+	page = form.getvalue('page')
+	page = page.split("#")[0]
+	port = form.getvalue('newport')	
+	desc = form.getvalue('desc')	
+	active = form.getvalue('active')	
+
+	if sql.add_server(hostname, ip, group, typeip, enable, master, cred, alert, metrics, port, desc, active):
+		from jinja2 import Environment, FileSystemLoader
+		env = Environment(loader=FileSystemLoader('templates/'))
+		template = env.get_template('ajax/new_server.html')
+
+		template = template.render(groups = sql.select_groups(),
+									servers = sql.select_servers(server=ip),
+									roles = sql.select_roles(),
+									masters = sql.select_servers(get_master_servers=1),
+									sshs = sql.select_ssh(),
+									page = page)
+		print(template)
+		funct.logging('a new server '+hostname, ' has created  ', haproxywi=1, login=1)
+		
+		
+if form.getvalue('updateserver') is not None:
+	name = form.getvalue('updateserver')
+	ip = form.getvalue('ip')	
+	group = form.getvalue('servergroup')	
+	typeip = form.getvalue('typeip')		
+	enable = form.getvalue('enable')		
+	master = form.getvalue('slave')		
+	id = form.getvalue('id')	
+	cred = form.getvalue('cred')	
+	alert = form.getvalue('alert_en')	
+	metrics = form.getvalue('metrics')	
+	port = form.getvalue('port')	
+	desc = form.getvalue('desc')	
+	active = form.getvalue('active')	
+	if name is None or ip is None or port is None:
+		print(error_mess)
+	else:
+		sql.update_server(name, ip, group, typeip, enable, master, id, cred, alert, metrics, port, desc, active)
+		funct.logging('the server '+name, ' has updated ', haproxywi=1, login=1)
+			
+			
+if form.getvalue('serverdel') is not None:
+	serverdel = form.getvalue('serverdel')
+	server = sql.select_servers(id=serverdel)
+	for s in server:
+		hostname = s[1]
+	if sql.delete_server(serverdel):
+		sql.delete_waf_server(serverdel)
+		print("Ok")
+		funct.logging(hostname, ' has deleted server with ', haproxywi=1, login=1)
+		
+		
+if form.getvalue('newgroup') is not None:
+	newgroup = form.getvalue('groupname')	
+	desc = form.getvalue('newdesc')	
+	if newgroup is None:
+		print(error_mess)
+	else:
+		if sql.add_group(newgroup, desc):
+			from jinja2 import Environment, FileSystemLoader
+			env = Environment(loader=FileSystemLoader('templates/ajax/'))
+			template = env.get_template('/new_group.html')
+
+			output_from_parsed_template = template.render(groups = sql.select_groups(group=newgroup))
+			print(output_from_parsed_template)
+			funct.logging('a new group '+newgroup, ' created  ', haproxywi=1, login=1)
+
+
+if form.getvalue('groupdel') is not None:
+	groupdel = form.getvalue('groupdel')
+	group = sql.select_groups(id=groupdel)
+	for g in group:
+		groupname = g[1]
+	if sql.delete_group(groupdel):
+		print("Ok")
+		funct.logging(groupname, ' has deleted group ', haproxywi=1, login=1)
+
+		
+if form.getvalue('updategroup') is not None:
+	name = form.getvalue('updategroup')
+	descript = form.getvalue('descript')	
+	id = form.getvalue('id')		
+	if name is None:
+		print(error_mess)
+	else:
+		group = sql.select_groups(id=id)
+		for g in group:
+			groupname = g[1]		
+		sql.update_group(name, descript, id)	
+		funct.logging('the group '+groupname, ' has update  ', haproxywi=1, login=1)
+	
+	
+if form.getvalue('new_ssh'):
+	name = form.getvalue('new_ssh')
+	enable = form.getvalue('ssh_enable')	
+	group = form.getvalue('new_group')	
+	username = form.getvalue('ssh_user')		
+	password = form.getvalue('ssh_pass')
+	page = form.getvalue('page')
+	page = page.split("#")[0]
+	if username is None or name is None:
+		print(error_mess)
+	else:
+		if sql.insert_new_ssh(name, enable, group, username, password):
+			from jinja2 import Environment, FileSystemLoader
+			env = Environment(loader=FileSystemLoader('templates/ajax'))
+			template = env.get_template('/new_ssh.html')
+			output_from_parsed_template = template.render(groups = sql.select_groups(), sshs = sql.select_ssh(name=name),page=page)
+			print(output_from_parsed_template)
+			funct.logging(name, ' has created a new SSH credentials  ', haproxywi=1, login=1)
+			
+			
+if form.getvalue('sshdel') is not None:
+	fullpath = funct.get_config_var('main', 'fullpath')
+	sshdel = form.getvalue('sshdel')
+	
+	for sshs in sql.select_ssh(id=sshdel):
+		ssh_enable = sshs[2]
+		name = sshs[1]
+		ssh_key_name = fullpath+'/keys/%s.pem' % sshs[1]
+				
+	if ssh_enable == 1:
+		cmd = 'rm -f %s' % ssh_key_name
+		try:
+			funct.subprocess_execute(cmd)
+		except:
+			pass
+	if sql.delete_ssh(sshdel):
+		print("Ok")
+		funct.logging(name, ' has deleted the SSH credentials  ', haproxywi=1, login=1)
+			
+			
+if form.getvalue('updatessh'):
+	id = form.getvalue('id')
+	name = form.getvalue('name')
+	enable = form.getvalue('ssh_enable')	
+	group = form.getvalue('group')	
+	username = form.getvalue('ssh_user')		
+	password = form.getvalue('ssh_pass')
+
+	if username is None:
+		print(error_mess)
+	else:
+
+		fullpath = funct.get_config_var('main', 'fullpath')
+		
+		for sshs in sql.select_ssh(id=id):
+			ssh_enable = sshs[2]
+			ssh_key_name = fullpath+'/keys/%s.pem' % sshs[1]
+			new_ssh_key_name = fullpath+'/keys/%s.pem' % name
+					
+		if ssh_enable == 1:
+			cmd = 'mv %s %s' % (ssh_key_name, new_ssh_key_name)
+			cmd1 = 'chmod 600 %s' % new_ssh_key_name
+			try:
+				funct.subprocess_execute(cmd)
+				funct.subprocess_execute(cmd1)
+			except:
+				pass
+		sql.update_ssh(id, name, enable, group, username, password)
+		funct.logging('the SSH '+name, ' has updated credentials ', haproxywi=1, login=1)
+		
+		
+if form.getvalue('ssh_cert'):
+	name = form.getvalue('name')
+	
+	if not os.path.exists(os.getcwd()+'/keys/'):
+		os.makedirs(os.getcwd()+'/keys/')
+	
+	ssh_keys = os.path.dirname(os.getcwd())+'/keys/'+name+'.pem'
+	
+	try:
+		with open(ssh_keys, "w") as conf:
+			conf.write(form.getvalue('ssh_cert'))
+	except IOError:
+		print('<div class="alert alert-danger">Can\'t save ssh keys file. Check ssh keys path in config</div>')
+	else:
+		print('<div class="alert alert-success">Ssh key was save into: %s </div>' % ssh_keys)
+		
+	try:
+		cmd = 'chmod 600 %s' % ssh_keys
+		funct.subprocess_execute(cmd)
+	except IOError as e:
+		funct.logging('localhost', e.args[0], haproxywi=1)
+		
+	funct.logging("localhost", " upload a new SSH cert %s" % ssh_keys, haproxywi=1, login=1)
+	
+	
+if form.getvalue('newtelegram'):
+	token = form.getvalue('newtelegram')
+	channel = form.getvalue('chanel')	
+	group = form.getvalue('telegramgroup')	
+	page = form.getvalue('page')
+	page = page.split("#")[0]
+
+	if token is None or channel is None or group is None:
+		print(error_mess)
+	else:
+		if sql.insert_new_telegram(token, channel, group):
+			from jinja2 import Environment, FileSystemLoader
+			env = Environment(loader=FileSystemLoader('templates/ajax'))
+			template = env.get_template('/new_telegram.html')
+			output_from_parsed_template = template.render(groups = sql.select_groups(), telegrams = sql.select_telegram(token=token),page=page)
+			print(output_from_parsed_template)	
+			funct.logging(channel, ' has created a new Telegram channel ', haproxywi=1, login=1)
+			
+			
+if form.getvalue('telegramdel') is not None:
+	telegramdel = form.getvalue('telegramdel')
+	telegram = sql.select_telegram(id=telegramdel)
+	for t in telegram:
+		telegram_name = t[1]
+	if sql.delete_telegram(telegramdel):
+		print("Ok")
+		funct.logging(telegram_name, ' has deleted the Telegram channel ', haproxywi=1, login=1)
+		
+		
+if form.getvalue('updatetoken') is not None:
+	token = form.getvalue('updatetoken')
+	channel = form.getvalue('updategchanel')	
+	group = form.getvalue('updategroup')	
+	id = form.getvalue('id')	
+	if token is None or channel is None or group is None:
+		print(error_mess)
+	else:		
+		sql.update_telegram(token, channel, group, id)
+		funct.logging('group '+group, ' telegram token has updated channel: '+channel, haproxywi=1, login=1)
+		
+		
+if form.getvalue('updatesettings') is not None:
+	settings = form.getvalue('updatesettings')
+	val = form.getvalue('val')
+	if sql.update_setting(settings, val):
+		funct.logging('value '+val, ' changed settings '+settings, haproxywi=1, login=1)
+		print("Ok")
+	

@@ -1,4 +1,13 @@
-<div id="create" style="height: 95%;">
+{% if add %}
+	<div class="alert alert-success" style="position: absolute;top: 45px;left: 5px;">	
+		<div id="close">
+			<span title="Close" style="cursor: pointer; float: right;">X</span>
+		</div>
+		<h3>{{ add }} was success added</h3>
+		{{ conf_add }}
+	</div>
+{% endif %}
+<div id="create" style="height: 95%; margin-top: 20px;">
 		<div id="left-collumn">
 			<div class="div-pannel">
 				<div class="div-server">
@@ -126,10 +135,4 @@
 				</div>
 			</div>
 		</div>
-		{% if add %}
-		<div class="alert alert-success" style="margin-left: 20px; clear: both;">	
-			<h3>{{ add }} was success added</h3>
-			{{ conf_add }}
-		</div>
-		{% endif %}
 	</div>
