@@ -153,7 +153,7 @@ function ajaxActionWafServers(action, id) {
 					if( data ==  'Bad config, check please ' ) {
 						alert(data);
 					} else {
-						setTimeout(showOverviewWaf, 2000)						
+						setTimeout(showOverviewWaf(ip, hostnamea), 2000)						
 					}
 				},
 				error: function(){

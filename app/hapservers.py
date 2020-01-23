@@ -49,6 +49,7 @@ for s in servers:
 			out1 = False
 		servers_with_status.append(out1)
 	servers_with_status.append(s[12])
+	servers_with_status.append(sql.is_master(s[2]))
 	
 	servers_with_status1.append(servers_with_status)
 	
