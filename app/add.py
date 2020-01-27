@@ -236,7 +236,7 @@ try:
 			print("Can't read import config file")
 		
 		funct.logging(serv, "add.py add new %s" % name)
-		print('<div class="line3">')
+		print('<div class="line3" style="position: absolute;top: 35px;left: 200px;">')
 		
 		MASTERS = sql.is_master(serv)
 		for master in MASTERS:
@@ -245,7 +245,7 @@ try:
 		
 		stderr = funct.upload_and_restart(serv, cfg, just_save="save")
 		if stderr:
-			print('<div class="alert alert-danger">%s</div>' % stderr)
+			print('<div class="alert alert-danger">%s</div><div id="close"><span title="Close" style="cursor: pointer; float: right;">X</span></div>' % stderr)
 		else:
 			print('<meta http-equiv="refresh" content="0; url=add.py?add=%s&conf=%s&serv=%s">' % (name, config_add, serv))
 			

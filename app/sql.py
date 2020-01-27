@@ -188,11 +188,10 @@ def delete_server(id):
 	cur.close()    
 	con.close() 		
 
-def update_server(hostname, ip, group, typeip, enable, master, id, cred, alert, metrics, port, desc, active):
+def update_server(hostname, group, typeip, enable, master, id, cred, alert, metrics, port, desc, active):
 	con, cur = get_cur()
 	sql = """ update servers set 
 			hostname = '%s',
-			ip = '%s',
 			groups = '%s',
 			type_ip = '%s',
 			enable = '%s',
@@ -203,7 +202,7 @@ def update_server(hostname, ip, group, typeip, enable, master, id, cred, alert, 
 			port = '%s',
 			`desc` = '%s',
 			active = '%s'
-			where id = '%s'""" % (hostname, ip, group, typeip, enable, master, cred, alert, metrics, port, desc, active, id)
+			where id = '%s'""" % (hostname, group, typeip, enable, master, cred, alert, metrics, port, desc, active, id)
 	try:    
 		cur.execute(sql)
 		con.commit()

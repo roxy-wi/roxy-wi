@@ -1187,7 +1187,6 @@ function updateServer(id) {
 		url: "options.py",
 		data: {
 			updateserver: $('#hostname-'+id).val(),
-			ip: $('#ip-'+id).val(),
 			port: $('#port-'+id).val(),
 			servergroup: servergroup,
 			typeip: typeip,

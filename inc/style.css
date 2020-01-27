@@ -750,6 +750,7 @@ label {
 	height: 153px;
 	width: 365px;
 	padding: 20px;
+	padding-top: 10px;
 	padding-left: 15px;
 	padding-right: 15px;
 	margin: 20px;
@@ -810,7 +811,7 @@ label {
 	margin-top: px;
 	margin-bottom: 0px;
 	margin-top: 0px;
-	height: 192px;
+	height: 183px;
 }
 .haproxy-info {
 	display: inline-block;
@@ -857,10 +858,6 @@ label {
   #logo_span {
 	margin-left: 17%;
 	}	
-  #create {
-	margin-top: 20px;
-  }
-	
 }
 @media (max-width: 1900px) {
 	#logo_span {
@@ -874,6 +871,7 @@ label {
 	.ajax-server, .div-backends {
 		clear: both !important;
 		margin-left: 20px !important;
+		margin-bottom: 20px !important;
 		width: 88% !important;
 	}
 	.div-server {
@@ -900,6 +898,9 @@ label {
 	}
 	.form-control {
 		width: 120px;
+	}
+	#create {
+		margin-top: 20px;
 	}
 }
 @media (max-width: 1080px) {

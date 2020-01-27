@@ -917,10 +917,10 @@ if form.getvalue('bwlists_create'):
 	list = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')+"/"+form.getvalue('group')+"/"+color+"/"+list_name
 	try:
 		open(list, 'a').close()
-		print('<div class="alert alert-success" style="margin:0">'+form.getvalue('color')+' list was created</div>')
+		print('<div class="alert alert-success" style="margin-left:14px">'+form.getvalue('color')+' list was created</div>')
 		funct.logging(server[1], 'has created  '+color+' list '+list_name, haproxywi=1, login=1)
 	except IOError as e:
-		print('<div class="alert alert-danger" style="margin:0">Cat\'n create new '+form.getvalue('color')+' list. %s </div>' % e)
+		print('<div class="alert alert-danger" style="margin-left:14px">Cat\'n create new '+form.getvalue('color')+' list. %s </div>' % e)
 		
 		
 if form.getvalue('bwlists_save'):
@@ -931,7 +931,7 @@ if form.getvalue('bwlists_save'):
 		with open(list, "w") as file:
 			file.write(form.getvalue('bwlists_content'))
 	except IOError as e:
-		print('<div class="alert alert-danger" style="margin:0">Cat\'n save '+color+' list. %s </div>' % e)
+		print('<div class="alert alert-danger" style="margin-left:14px">Cat\'n save '+color+' list. %s </div>' % e)
 	
 	servers = sql.get_dick_permit()
 	path = sql.get_setting('haproxy_dir')+"/"+color
@@ -943,7 +943,7 @@ if form.getvalue('bwlists_save'):
 		if error:
 			print('<div class="alert alert-danger">Upload fail: %s</div>' % error)			
 		else:
-			print('<div class="alert alert-success" style="margin:10px">Edited '+color+' list was uploaded to '+server[1]+'</div>')
+			print('<div class="alert alert-success" style="margin:10px; margin-left:14px">Edited '+color+' list was uploaded to '+server[1]+'</div>')
 			funct.logging(server[1], 'has edited  '+color+' list '+bwlists_save, haproxywi=1, login=1)
 			if form.getvalue('bwlists_restart') == 'restart':
 				funct.ssh_command(server[2], ["sudo " + sql.get_setting('restart_command')])
@@ -1100,8 +1100,7 @@ if form.getvalue('newserver') is not None:
 		
 		
 if form.getvalue('updateserver') is not None:
-	name = form.getvalue('updateserver')
-	ip = form.getvalue('ip')	
+	name = form.getvalue('updateserver')	
 	group = form.getvalue('servergroup')	
 	typeip = form.getvalue('typeip')		
 	enable = form.getvalue('enable')		
@@ -1113,10 +1112,10 @@ if form.getvalue('updateserver') is not None:
 	port = form.getvalue('port')	
 	desc = form.getvalue('desc')	
 	active = form.getvalue('active')	
-	if name is None or ip is None or port is None:
+	if name is None or port is None:
 		print(error_mess)
 	else:
-		sql.update_server(name, ip, group, typeip, enable, master, id, cred, alert, metrics, port, desc, active)
+		sql.update_server(name, group, typeip, enable, master, id, cred, alert, metrics, port, desc, active)
 		funct.logging('the server '+name, ' has updated ', haproxywi=1, login=1)
 			
 			

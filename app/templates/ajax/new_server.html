@@ -4,7 +4,7 @@
 					<input type="text" id="hostname-{{server.0}}" value="{{server.1}}" class="form-control">
 				</td>
 				<td>
-					<input type="text" id="ip-{{server.0}}" value="{{server.2}}" size="14" class="form-control">
+					<span id="ip-{{server.0}}" style="margin-right: 6px;">{{server.2}}</span>
 					{% if page == "servers.py" %}
 						<input type="hidden" id="servergroup-{{server.0}}" name="servergroup-{{server.0}}" value="" >
 					{% endif %}

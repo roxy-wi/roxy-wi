@@ -919,7 +919,8 @@ function resetProxySettings() {
 	$('[name=port]').val('');
 	$('[name=server_port]').val('');
 	$('input:checkbox').prop( "checked", false );
-	$('[name=ssl-check').prop( "checked", true );
+	$('[name=ssl-check]').prop( "checked", true );
+	$('[name=check-servers]').prop( "checked", true );
 	$('input:checkbox').checkboxradio("refresh");
 	$('.advance-show').fadeIn();
 	$('.advance').fadeOut();
