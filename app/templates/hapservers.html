@@ -96,6 +96,9 @@
 				</span>			
 				<br />
 				IP: {{s.2}}
+				{% if s.7.0.0 != None %}
+					Master for: {{ s.7.0.1 }}
+				{% endif %}
 			</div>
 			<div class="server-act-links">
 				<a href="/app/config.py?serv={{s.2}}&showConfig" class="ui-button ui-widget ui-corner-all" title="Open running config">Open</a>	
