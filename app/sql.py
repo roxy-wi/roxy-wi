@@ -442,11 +442,12 @@ def get_user_name_by_uuid(uuid):
 			return user_id[0]
 	cur.close()    
 	con.close() 
+
 	
 def get_user_role_by_uuid(uuid):
 	con, cur = get_cur()
 	try:
-		cur.execute("select role.id from user left join uuid as uuid on user.id = uuid.user_id left join role on role.name = user.role where uuid.uuid = '%s'" % uuid)		
+		cur.execute("select role.id from user left join uuid as uuid on user.id = uuid.user_id left join role on role.name = user.role where uuid.uuid = ?", (uuid,))	
 	except sqltool.Error as e:
 		out_error(e)
 	else:
