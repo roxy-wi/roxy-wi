@@ -203,9 +203,9 @@ def ssh_connect(serv, **kwargs):
 	try:
 		if ssh_enable == 1:
 			k = paramiko.RSAKey.from_private_key_file(ssh_key_name)
-			ssh.connect(hostname = serv, port =  ssh_port, username = ssh_user_name, pkey = k)
+			ssh.connect(hostname = serv, port =  ssh_port, username = ssh_user_name, pkey = k, timeout=11)
 		else:
-			ssh.connect(hostname = serv, port =  ssh_port, username = ssh_user_name, password = ssh_user_password)
+			ssh.connect(hostname = serv, port =  ssh_port, username = ssh_user_name, password = ssh_user_password, timeout=11)
 		return ssh
 	except paramiko.AuthenticationException:
 		return 'Authentication failed, please verify your credentials'
@@ -235,7 +235,13 @@ def get_config(serv, cfg, **kwargs):
 	ssh = ssh_connect(serv)
 	try:
 		sftp = ssh.open_sftp()
+	except Exception as e:
+		logging('localhost', ssh, haproxywi=1)
+	try:
 		sftp.get(config_path, cfg)
+	except Exception as e:
+		logging('localhost', ssh, haproxywi=1)
+	try:	
 		sftp.close()
 		ssh.close()
 	except Exception as e:
@@ -526,15 +532,22 @@ def upload_and_restart(serv, cfg, **kwargs):
 	return error
 		
 		
-def master_slave_upload_and_restart(serv, cfg, just_save):
+def master_slave_upload_and_restart(serv, cfg, just_save, **kwargs):
 	import sql
 	MASTERS = sql.is_master(serv)
 	error = ""
 	for master in MASTERS:
 		if master[0] != None:
-			error += upload_and_restart(master[0], cfg, just_save=just_save)
+			if kwargs.get("keepalived") == 1:
+				error += upload_and_restart(master[0], cfg, just_save=just_save, keepalived=1)
+			else:
+				error += upload_and_restart(master[0], cfg, just_save=just_save)
+				
+	if kwargs.get("keepalived") == 1:
+		error += upload_and_restart(serv, cfg, just_save=just_save, keepalived=1)
+	else:
+		error += upload_and_restart(serv, cfg, just_save=just_save)
 		
-	error += upload_and_restart(serv, cfg, just_save=just_save)
 	return error
 	
 		
@@ -730,7 +743,7 @@ def get_files(dir = get_config_var('configs', 'haproxy_save_configs_dir'), forma
 			file.add(files.split('/')[-1])
 	files = sorted(file, reverse=True)
 
-	if format == 'cfg':
+	if format == 'cfg' or format == 'conf':
 		for file in files:
 			ip = file.split("-")
 			if serv == ip[0]:
