@@ -170,7 +170,7 @@ def return_ssh_keys_path(serv, **kwargs):
 	ssh_user_name = ''
 	ssh_user_password = ''
 	
-	if kwargs.get('id') != '':	
+	if kwargs.get('id'):	
 		for sshs in sql.select_ssh(id=kwargs.get('id')):
 			ssh_enable = sshs[2]
 			ssh_user_name = sshs[3]
