@@ -360,9 +360,31 @@ def update_db_v_3_12_1(**kwargs):
 	con.close()
 	
 	
+def update_db_v_3_13(**kwargs):
+	con, cur = get_cur()
+	sql = """
+	ALTER TABLE `servers` ADD COLUMN keepalived INTEGER NOT NULL DEFAULT 0;
+	"""
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: keepalived' or e == " 1060 (42S21): Duplicate column name 'keepalived' ":
+				print('DB was update to 3.13.0')
+			else:
+				print("An error occurred:", e)
+		return False
+	else:
+		print("DB was update to 3.13.0")
+		return True
+	cur.close() 
+	con.close()
+	
+	
 def update_ver(**kwargs):
 	con, cur = get_cur()
-	sql = """update version set version = '3.12.2.1'; """
+	sql = """update version set version = '3.12.2.2'; """
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -383,6 +405,7 @@ def update_all():
 	update_db_v_3_8_1()
 	update_db_v_3_12()
 	update_db_v_3_12_1()
+	update_db_v_3_13()
 	update_ver()
 		
 	
@@ -397,6 +420,7 @@ def update_all_silent():
 	update_db_v_3_8_1(silent=1)
 	update_db_v_3_12(silent=1)
 	update_db_v_3_12_1(silent=1)
+	update_db_v_3_13(silent=1)
 	update_ver()
 	
 		

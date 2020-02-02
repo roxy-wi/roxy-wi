@@ -188,11 +188,10 @@ def delete_server(id):
 	cur.close()    
 	con.close() 		
 
-def update_server(hostname, ip, group, typeip, enable, master, id, cred, alert, metrics, port, desc, active):
+def update_server(hostname, group, typeip, enable, master, id, cred, alert, metrics, port, desc, active):
 	con, cur = get_cur()
 	sql = """ update servers set 
 			hostname = '%s',
-			ip = '%s',
 			groups = '%s',
 			type_ip = '%s',
 			enable = '%s',
@@ -203,7 +202,7 @@ def update_server(hostname, ip, group, typeip, enable, master, id, cred, alert, 
 			port = '%s',
 			`desc` = '%s',
 			active = '%s'
-			where id = '%s'""" % (hostname, ip, group, typeip, enable, master, cred, alert, metrics, port, desc, active, id)
+			where id = '%s'""" % (hostname, group, typeip, enable, master, cred, alert, metrics, port, desc, active, id)
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -443,12 +442,12 @@ def get_user_name_by_uuid(uuid):
 			return user_id[0]
 	cur.close()    
 	con.close() 
+
 	
 def get_user_role_by_uuid(uuid):
 	con, cur = get_cur()
-	sql = """ select role.id from user left join uuid as uuid on user.id = uuid.user_id left join role on role.name = user.role where uuid.uuid = '%s' """ % uuid
 	try:
-		cur.execute(sql)		
+		cur.execute("select role.id from user left join uuid as uuid on user.id = uuid.user_id left join role on role.name = user.role where uuid.uuid = ?", (uuid,))	
 	except sqltool.Error as e:
 		out_error(e)
 	else:
@@ -1451,6 +1450,7 @@ def select_alert(**kwargs):
 	cur.close()    
 	con.close() 
 	
+	
 def select_keep_alive(**kwargs):
 	con, cur = get_cur()
 	sql = """select ip from servers where active = 1 """
@@ -1462,6 +1462,35 @@ def select_keep_alive(**kwargs):
 		return cur.fetchall()
 	cur.close()    
 	con.close() 
+	
+	
+def select_keealived(serv, **kwargs):
+	con, cur = get_cur()
+	sql = """select keepalived from `servers` where ip='%s' """ % serv
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		out_error(e)
+	else:
+		for value in cur.fetchone():
+			return value
+	cur.close()    
+	con.close()  
+	
+	
+def update_keepalived(serv):
+	con, cur = get_cur()
+	sql = """update `servers` set `keepalived` = '1' where ip = '%s' """ % serv
+	try:    
+		cur.execute(sql)
+		con.commit()
+		return True
+	except sqltool.Error as e:
+		out_error(e)
+		con.rollback()
+		return False
+	cur.close()    
+	con.close()
 	
 	
 def check_token_exists(token):
