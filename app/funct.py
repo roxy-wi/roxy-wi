@@ -538,15 +538,9 @@ def master_slave_upload_and_restart(serv, cfg, just_save, **kwargs):
 	error = ""
 	for master in MASTERS:
 		if master[0] != None:
-			if kwargs.get("keepalived") == 1:
-				error += upload_and_restart(master[0], cfg, just_save=just_save, keepalived=1)
-			else:
-				error += upload_and_restart(master[0], cfg, just_save=just_save)
+			error += upload_and_restart(master[0], cfg, just_save=just_save)
 				
-	if kwargs.get("keepalived") == 1:
-		error += upload_and_restart(serv, cfg, just_save=just_save, keepalived=1)
-	else:
-		error += upload_and_restart(serv, cfg, just_save=just_save)
+	error += upload_and_restart(serv, cfg, just_save=just_save)
 		
 	return error
 	
