@@ -162,12 +162,20 @@ if act == "overview":
 		server_status = ()
 		commands2 = [ "ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l" ]
 		cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Process_num"' % (serv2, sql.get_setting('haproxy_sock_port'))
+		keepalived = sql.select_keealived(serv2)
+		if keepalived == 1:
+			command = [ "ps ax |grep keepalived|grep -v grep|wc -l" ]
+			keepalived_process = funct.ssh_command(serv2, command)
+		else:
+			keepalived_process = ''
 		server_status = (serv1, 
 						serv2, 
 						funct.server_status(funct.subprocess_execute(cmd)), 
 						sql.select_servers(server=serv2, keep_alive=1),
 						funct.ssh_command(serv2, commands2),
-						sql.select_waf_servers(serv2))
+						sql.select_waf_servers(serv2),
+						sql.select_keealived(serv2),
+						keepalived_process)
 		return server_status
 
 
@@ -563,13 +571,16 @@ if serv is not None and form.getvalue('right') is not None:
 	
 	
 if serv is not None and act == "configShow":
-	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+	if form.getvalue('service') == 'keepalived':
+		configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
+	else:
+		configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 	
 	if form.getvalue('configver') is None:	
-		cfg = hap_configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
+		cfg = configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
 		funct.get_config(serv, cfg)
 	else: 
-		cfg = hap_configs_dir + form.getvalue('configver')
+		cfg = configs_dir + form.getvalue('configver')
 			
 	try:
 		conf = open(cfg, "r")
@@ -580,7 +591,11 @@ if serv is not None and act == "configShow":
 	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True, trim_blocks=True, lstrip_blocks=True, extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
 	template = env.get_template('config_show.html')
 	
-	template = template.render(conf=conf, view=form.getvalue('view'), serv=serv, configver=form.getvalue('configver'), role=funct.is_admin(level=2))											
+	template = template.render(conf=conf,
+								serv=serv, 
+								configver=form.getvalue('configver'), 
+								role=funct.is_admin(level=2), 
+								service=form.getvalue('service'))											
 	print(template)
 	
 	if form.getvalue('configver') is None:
@@ -665,6 +680,8 @@ if form.getvalue('master'):
 			
 	os.system("rm -f %s" % script)
 	sql.update_server_master(master, slave)
+	sql.update_keepalived(master)
+	sql.update_keepalived(slave)
 	
 	
 if form.getvalue('masteradd'):

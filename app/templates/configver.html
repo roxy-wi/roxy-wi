@@ -30,6 +30,7 @@
 				</select>
 				<input type="hidden" value="{{serv}}" name="serv">
 				<input type="hidden" value="open" name="open">
+				<input type="hidden" value="{{service}}" name="service" id="service">
 				<a class="ui-button ui-widget ui-corner-all" id="show" title="Enter" onclick="showUploadConfig()">Select</a>
 			</p>		
 		</center>
@@ -42,7 +43,7 @@
 			<div class="alert alert-success">Config is ok</div>
 			<a href="viewsttats.py?serv={{ serv }}" target="_blank" title="View stats">Go to view stats</a>
 		{% endif %}
-		<script>window.history.pushState("Config", "Config", cur_url[0])</script>
+
 	{% endif %}
 </center>
 {% if aftersave != 1 %}

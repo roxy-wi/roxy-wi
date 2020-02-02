@@ -11,11 +11,22 @@
 			<span class="serverDown server-status" style="margin-left: 25px !important;"></span>
 		{% endif %}		
 	</td>
+	<td class="padding10 first-collumn">
+		{% if service.6|int() == 0 %}
+			<span class="serverNone server-status" title="Keepalived is not installed" style="margin-left: 4px !important;"></span>		
+		{% else %}
+			{% if service.7|int() >= 1 %}
+				<span class="serverUp server-status" title="running {{service.7 }} processes" style="margin-left: 4px !important;"></span> 		
+			{% else %}
+				<span class="serverDown server-status" title="Keepalived is down" style="margin-left: 4px !important;"></span>
+			{% endif %}
+		{% endif %}
+	</td>
 	<td class="third-collumn-wi">
 		{% if service.5.0|length() == 0 %}
 			<span class="serverNone server-status" title="WAF is not installed" style="margin-left: 4px !important;"></span>		
 		{% elif service.5.0 != '' and service.4|int() == 0 %}
-			<span class="serverDown server-status" title="WAF down" style="margin-left: 4px !important;"></span>
+			<span class="serverDown server-status" title="WAF is down" style="margin-left: 4px !important;"></span>
 		{% elif service.5.0 != '' and service.4|int() >= 1 %}
 			<span class="serverUp server-status" title="running {{service.4 }} processes" style="margin-left: 4px !important;"></span> 					
 		{% endif %}

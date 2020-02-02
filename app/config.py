@@ -13,6 +13,7 @@ funct.check_login()
 
 form = funct.form
 serv = form.getvalue('serv')
+service = form.getvalue('service')
 config_read = ""
 cfg = ""
 stderr = ""
@@ -23,25 +24,44 @@ try:
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_id = cookie.get('uuid')
 	user = sql.get_user_name_by_uuid(user_id.value)
-	servers = sql.get_dick_permit()
 	token = sql.get_token(user_id.value)
 	role = sql.get_user_role_by_uuid(user_id.value)
 except:
 	pass
 
-hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+
+if service == 'keepalived':
+	title = "Working with Keepalived configs"
+	action = "config.py?service=keepalived"
+	configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')	
+	format = 'conf'
+	servers = sql.is_master("123", master_slave=1)
+	keepalived = 1
+else:
+	title = "Working with HAProxy configs"
+	action = "config.py"
+	configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+	format = 'cfg'
+	servers = sql.get_dick_permit()
+	keepalived = 0
 
 if serv is not None:
-	cfg = hap_configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
+	cfg = configs_dir + serv + "-" + funct.get_data('config') + "."+format
 
 if serv is not None and form.getvalue('open') is not None :
 	
-	try:
-		funct.logging(serv, "config.py open config")
-	except:
-		pass
-	
-	error = funct.get_config(serv, cfg)
+	if service == 'keepalived':
+		error = funct.get_config(serv, cfg, keepalived=1)
+		try:
+			funct.logging(serv, "keepalivedconfig.py open config")
+		except:
+			pass
+	else:
+		error = funct.get_config(serv, cfg)
+		try:
+			funct.logging(serv, "config.py open config")
+		except:
+			pass
 	
 	try:
 		conf = open(cfg, "r")
@@ -67,17 +87,20 @@ if serv is not None and form.getvalue('config') is not None:
 			conf.write(config)
 	except IOError:
 		error = "Can't read import config file"
-		
-	stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save=save)
+	
+	if service == 'keepalived':
+		stderr = funct.upload_and_restart(serv, cfg, just_save=save, keepalived=1)
+	else:
+		stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save=save)
 		
 	funct.diff_config(oldcfg, cfg)
 		
-	os.system("/bin/rm -f " + hap_configs_dir + "*.old")
+	os.system("/bin/rm -f " + configs_dir + "*.old")
 
 
-template = template.render(h2 = 1, title = "Working with HAProxy configs",
+template = template.render(h2 = 1, title = title,
 							role = role,
-							action = "config.py",
+							action = action,
 							user = user,
 							select_id = "serv",
 							serv = serv,
@@ -89,5 +112,6 @@ template = template.render(h2 = 1, title = "Working with HAProxy configs",
 							error = error,
 							note = 1,
 							versions = funct.versions(),
+							keepalived = keepalived,
 							token = token)
 print(template)

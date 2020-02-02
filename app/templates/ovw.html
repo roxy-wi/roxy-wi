@@ -15,10 +15,13 @@
 		<td class="padding10 first-collumn-wi">
 			Server
 		</td>
-		<td class="padding10  third-collumn-wi" style="width: 35%;">
+		<td class="padding10  third-collumn-wi" style="width: 27%;">
 			<a href="/app/hapservers.py" title="HAProxy servers overview" class="logs_link">			
 				HAProxy
 			</a>
+		</td>
+		<td class="padding10">			
+			Keealived
 		</td>
 		<td class="padding10">
 			<a href="/app/waf.py" title="WAf servers overview" class="logs_link">
@@ -98,10 +101,10 @@
 			{% endif %}
 			{% if role <= 1 %}
 			<a href="/app/viewlogs.py?viewlogs=keep_alive.log&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View keep alive logs" class="logs_link">
-				<span>Keep alive</span>
+				<span>Auto start</span>
 			</a>
 			{% else %}
-				<span>Keep alive</span>
+				<span>Auto star</span>
 			{% endif %}
 		</td>
 	</tr>
