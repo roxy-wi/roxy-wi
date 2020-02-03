@@ -35,7 +35,7 @@ if service == 'keepalived':
 	action = "config.py?service=keepalived"
 	configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')	
 	format = 'conf'
-	servers = sql.is_master("123", master_slave=1)
+	servers = sql.get_dick_permit()
 	keepalived = 1
 else:
 	title = "Working with HAProxy configs"
