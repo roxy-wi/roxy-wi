@@ -15,30 +15,6 @@
 		{{ checkbox(id) }}
 	{% endif %}
 </td>
-<td class="checkbox">
-	{% set id = 'alert-' + server.0|string() %}
-	{% if server.8 == 1 %}
-		{{ checkbox(id, checked='checked') }}
-	{% else %}
-		{{ checkbox(id) }}
-	{% endif %}
-</td>
-<td class="checkbox">
-	{% set id = 'metrics-' + server.0|string() %}
-	{% if server.9 == 1 %}
-		{{ checkbox(id, checked='checked') }}
-	{% else %}
-		{{ checkbox(id) }}
-	{% endif %}
-</td>
-<td class="checkbox">
-	{% set id = 'active-' + server.0|string() %}
-	{% if server.12 == 1 %}
-		{{ checkbox(id, checked='checked') }}
-	{% else %}
-		{{ checkbox(id) }}
-	{% endif %}
-</td>
 <td>
 	<select id="slavefor-{{server.0}}">
 		<option value="0" selected>Not slave</option>

@@ -7,7 +7,10 @@ $( function() {
    $('.menu li ul li').each(function () {
        var link = $(this).find('a').attr('href');
 	   var link2 = link.split('/')[2]
-       if (cur_url[0] == link2 && cur_url[1] != 'service=keepalived') {
+	   if (cur_url[1] == null) {
+		cur_url[1] = 'haproxy';
+	   }
+       if (cur_url[0] == link2 && cur_url[1].split('&')[0] != 'service=keepalived' && cur_url[1].split('&')[0] != 'service=nginx') {
 			$(this).parent().css('display', 'contents');
 			$(this).parent().css('font-size', '13px');
 			$(this).parent().css('top', '0');
@@ -16,7 +19,7 @@ $( function() {
 			$(this).parent().find('a').css('padding-left', '20px');
 			$(this).find('a').css('padding-left', '30px');
 			$(this).find('a').css('border-left', '4px solid #5D9CEB');
-		} else if(cur_url[0] == 'versions.py' && cur_url[1] == 'service=keepalived' && link2 == 'versions.py?service=keepalived'){ 
+		} else if(cur_url[0] == 'versions.py' && cur_url[1].split('&')[0] == 'service=keepalived' && link2 == 'versions.py?service=keepalived'){ 
 			$(this).parent().css('display', 'contents');
 			$(this).parent().css('font-size', '13px');
 			$(this).parent().css('top', '0');
@@ -25,7 +28,34 @@ $( function() {
 			$(this).parent().find('a').css('padding-left', '20px');
 			$(this).find('a').css('padding-left', '30px');
 			$(this).find('a').css('border-left', '4px solid #5D9CEB');
-		} else if(cur_url[0] == 'config.py' && cur_url[1] == 'service=keepalived' && link2 == 'config.py?service=keepalived'){
+		} else if(cur_url[0] == 'config.py' && cur_url[1].split('&')[0] == 'service=keepalived' && link2 == 'config.py?service=keepalived'){
+			$(this).parent().css('display', 'contents');
+			$(this).parent().css('font-size', '13px');
+			$(this).parent().css('top', '0');
+			$(this).parent().css('left', '0');
+			$(this).parent().children().css('margin-left', '-20px');
+			$(this).parent().find('a').css('padding-left', '20px');
+			$(this).find('a').css('padding-left', '30px');
+			$(this).find('a').css('border-left', '4px solid #5D9CEB');
+		} else if(cur_url[0] == 'versions.py' && cur_url[1].split('&')[0] == 'service=nginx' && link2 == 'versions.py?service=nginx'){ 
+			$(this).parent().css('display', 'contents');
+			$(this).parent().css('font-size', '13px');
+			$(this).parent().css('top', '0');
+			$(this).parent().css('left', '0');
+			$(this).parent().children().css('margin-left', '-20px');
+			$(this).parent().find('a').css('padding-left', '20px');
+			$(this).find('a').css('padding-left', '30px');
+			$(this).find('a').css('border-left', '4px solid #5D9CEB');
+		} else if(cur_url[0] == 'config.py' && cur_url[1].split('&')[0] == 'service=nginx' && link2 == 'config.py?service=nginx'){
+			$(this).parent().css('display', 'contents');
+			$(this).parent().css('font-size', '13px');
+			$(this).parent().css('top', '0');
+			$(this).parent().css('left', '0');
+			$(this).parent().children().css('margin-left', '-20px');
+			$(this).parent().find('a').css('padding-left', '20px');
+			$(this).find('a').css('padding-left', '30px');
+			$(this).find('a').css('border-left', '4px solid #5D9CEB');
+		} else if(cur_url[0] == 'hapservers.py' && cur_url[1].split('&')[0] == 'service=nginx' && link2 == 'hapservers.py?service=nginx'){
 			$(this).parent().css('display', 'contents');
 			$(this).parent().css('font-size', '13px');
 			$(this).parent().css('top', '0');
@@ -236,6 +266,8 @@ function openVersions() {
 	var serv = $("#serv").val();
 	if (cur_url[1] == "service=keepalived") {
 		var url = "versions.py?service=keepalived&serv="+serv+"&open=open"
+	} else if (cur_url[1] == "service=nginx") {
+		var url = "versions.py?service=nginx&serv="+serv+"&open=open"
 	} else {	
 		var url = "versions.py?serv="+serv+"&open=open"
 	}
@@ -253,6 +285,7 @@ function showLog() {
 	var minut = $('#time_range_out_minut').val()
 	var hour1 = $('#time_range_out_hour1').val()
 	var minut1 = $('#time_range_out_minut1').val()
+	var service = $('#service').val()
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -264,12 +297,13 @@ function showLog() {
 			minut: minut,
 			hour1: hour1,
 			minut1: minut1,
+			service: service,
 			token: $('#token').val()
 		},
 		type: "POST",
 		success: function( data ) {
 			$("#ajax").html(data);
-			window.history.pushState("Logs", "Logs", cur_url[0]+"?serv="+$("#serv").val()+
+			window.history.pushState("Logs", "Logs", cur_url[0]+"?service="+service+"&serv="+$("#serv").val()+
 																	'&rows='+rows+
 																	'&grep='+grep+
 																	'&hour='+hour+
@@ -328,6 +362,7 @@ function showCompare() {
 			serv: $("#serv").val(),
 			left: $('#left').val(),
 			right: $("#right").val(),
+			service: $("#service").val(),
 			token: $('#token').val()
 		},
 		type: "POST",
@@ -346,6 +381,7 @@ function showCompareConfigs() {
 			serv: $("#serv").val(),
 			act: "showCompareConfigs",
 			open: "open",
+			service: $("#service").val(),
 			token: $('#token').val()
 		},
 		type: "POST",
@@ -353,7 +389,7 @@ function showCompareConfigs() {
 			$("#ajax-compare").html(data);
 			$( "input[type=submit], button" ).button();
 			$( "select" ).selectmenu();
-			window.history.pushState("Show compare config", "Show compare config", cur_url[0]+'?serv='+$("#serv").val()+'&showCompare');
+			window.history.pushState("Show compare config", "Show compare config", cur_url[0]+'?service='+$("#service").val()+'&serv='+$("#serv").val()+'&showCompare');
 		}					
 	} );
 }
@@ -393,7 +429,7 @@ function showUploadConfig() {
 		type: "POST",
 		success: function( data ) {
 			$("#ajax").html(data);
-			window.history.pushState("Show config", "Show config", cur_url[0]+"?serv="+serv+"&open=open&configver="+configver+"&service="+service);
+			window.history.pushState("Show config", "Show config", cur_url[0]+"?service="+service+"&serv="+serv+"&open=open&configver="+configver);
 			$.getScript('/inc/configshow.js');
 		}					
 	} );
@@ -769,16 +805,33 @@ $( function() {
 					$('#cur_hap_ver').text(data);
 					$('#install').text('Update');
 					$('#install').attr('title', 'Update HAProxy');
-					$('#syn_flood').checkboxradio('disable');
-					$('#syn_flood').prop( "checked", false );
-					$('#syn_flood').checkboxradio('refresh');
 				} else {
 					$('#cur_hap_ver').text('HAProxy has not installed');
 					$('#install').text('Install');
 					$('#install').attr('title', 'Install HAProxy');
-					$('#syn_flood').checkboxradio('enable');
-					$('#syn_flood').prop( "checked", true );
-					$('#syn_flood').checkboxradio('refresh');
+				}
+			}
+		} );
+	});
+	$( "#nginxaddserv" ).on('selectmenuchange',function() {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				get_nginx_v: 1,
+				serv: $('#nginxaddserv option:selected').val(),
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {	
+				data = data.replace(/^\s+|\s+$/g,'');
+				if(data.indexOf('bash') != '-1') {			
+					$('#cur_nginx_ver').text('Nginx has not installed');
+					$('#nginx_install').text('Install');
+					$('#nginx_install').attr('title', 'Install Nginx');				
+				} else {
+					$('#cur_nginx_ver').text(data);
+					$('#nginx_install').text('Update');
+					$('#nginx_install').attr('title', 'Update Nginx');
 				}
 			}
 		} );

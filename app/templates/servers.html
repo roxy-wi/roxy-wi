@@ -17,7 +17,7 @@
 		<li><a href="#servers">Servers</a></li>
 		<li><a href="#ssh">SSH credentials</a></li>
 		<li><a href="#checker">Checker</a></li>
-		<li><a href="#installhaproxy">Install HAProxy</a></li>
+		<li><a href="#installhaproxy">Installation</a></li>
 		<li><a href="#backup">Backup</a></li>
 		{% include 'include/login.html' %}
 	</ul>
@@ -74,9 +74,6 @@
 				<td class="checkbox-head"><span title="SSH port">Port</span></td></td>
 				<td class="checkbox-head">Enable</td>
 				<td class="checkbox-head"><span title="Vitrual IP, something like VRRP">Virt</span></td>
-				<td class="checkbox-head"><span title="Alert if backend change status. Before enable add Telgram chanel at Checker tab">Alert</span></td>
-				<td class="checkbox-head"><span title="Enable save and show metrics">Metrics</span></td>
-				<td class="checkbox-head"><span title="Keep start HAProxy service if down">Start</span></td>
 				<td class="slave-field"><span title="Actions with master config will automatically apply on slave">Slave for</span></td>
 				<td class="cred-field">Credentials</td>
 				<td>Description</td>
@@ -274,6 +271,7 @@
 	</div>
 	<div id="installhaproxy">
 		<table class="overview">
+			<caption><h3>Install HAProxy</h3></caption>
 			<tr class="overviewHead">
 				<td class="padding10 first-collumn">Current version</td>
 				<td class="padding10 first-collumn" style="width: 25%;">Available Versions</td>			
@@ -302,6 +300,37 @@
 				</td>
 				<td>
 					<a class="ui-button ui-widget ui-corner-all" id="install" title="Install HAProxy">Install</a>
+				</td>
+			</tr>
+		</table>
+		<table>
+			<caption><h3>Install Nginx</h3></caption>
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn">Current version</td>
+				<td class="padding10 first-collumn" style="width: 25%;">Available Versions</td>			
+				<td class="padding10 first-collumn" style="width: 35%;">Server</td>
+				<td>SYN flood protect</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td id="cur_nginx_ver" class="padding10 first-collumn">
+				</td>
+				<td class="padding10 first-collumn" style="width: 20%;">
+					HAProxy-WI will try to install the latest Nginx version from official Nginx repository
+				</td>
+				<td class="padding10 first-collumn">
+					<select autofocus required name="nginxaddserv" id="nginxaddserv">
+						<option disabled selected>Choose server</option>
+						{% for select in servers %}
+								<option value="{{ select.2 }}">{{ select.1 }}</option>
+						{% endfor %}
+					</select>
+				</td>
+				<td>
+					{{ checkbox('nginx_syn_flood', title="Enable SYN flood protect", checked='checked') }}
+				</td>
+				<td>
+					<a class="ui-button ui-widget ui-corner-all" id="nginx_install" title="Install Nginx">Install</a>
 				</td>
 			</tr>
 		</table>
@@ -436,7 +465,9 @@
 			$('.delete').remove()
 			$('#hapver').selectmenu('enable');
 			$('#haproxyaddserv').selectmenu('enable');
+			$('#nginxaddserv').selectmenu('enable');
 			$('#syn_flood').checkboxradio('enable');
+			$('#nginx_syn_flood').checkboxradio('enable');
 		}, 500 );
 		
 	}

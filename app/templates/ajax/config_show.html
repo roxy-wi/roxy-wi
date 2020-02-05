@@ -2,15 +2,25 @@
 		<h4>Config from {{serv}}</h4>
 		<p class="accordion-expand-holder">
 			{% if role %}
-				{% if service != 'keepalived' %}
 				<a class="ui-button ui-widget ui-corner-all" title="Edit this run config" href="config.py?serv={{serv}}&open=open">Edit</a>
-				{% endif %}
 			{% endif %}
-			<a class="accordion-expand-all ui-button ui-widget ui-corner-all" href="#">Expand all</a>		
-			<button id="raw">Raw</button>
-			<button id="according" style="display: none;">According</button>
+			{% if service != 'keepalived' and service != 'nginx' %}
+				<a class="accordion-expand-all ui-button ui-widget ui-corner-all" href="#">Expand all</a>		
+				<button id="raw">Raw</button>
+				<button id="according" style="display: none;">According</button>
+			{% endif %}
 		</p>
 	</center>
+	
+	{% if service == 'nginx' %}
+	<div style="margin-left: 20%; border: 1px solid #ddd; padding-left: 50px; width: 60%;">
+		<pre>
+		{%- for line in conf -%}
+			{{ line }}
+		{% endfor %}
+		</pre>
+	</div>
+	{% else %}
 	<div style="margin-left: 16%" class="configShow">
 	{% set i = 0 -%}
 	{% set section_name = {} %}
@@ -172,6 +182,7 @@
 	{%- endfor -%}
 	</div>
 	</div>
+	{% endif %}
 	{% if configver %}
 	<br>
 	<center>

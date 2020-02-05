@@ -12,6 +12,17 @@
 		{% endif %}		
 	</td>
 	<td class="padding10 first-collumn">
+		{% if service.8|int() == 0 %}
+			<span class="serverNone server-status" title="Nginx is not installed" style="margin-left: 4px !important;"></span>		
+		{% else %}
+			{% if service.9|int() >= 1 %}
+				<span class="serverUp server-status" title="running {{service.9 }} processes" style="margin-left: 4px !important;"></span> 		
+			{% else %}
+				<span class="serverDown server-status" title="Nginx is down" style="margin-left: 4px !important;"></span>
+			{% endif %}
+		{% endif %}
+	</td>
+	<td class="padding10 first-collumn">
 		{% if service.6|int() == 0 %}
 			<span class="serverNone server-status" title="Keepalived is not installed" style="margin-left: 4px !important;"></span>		
 		{% else %}

@@ -230,17 +230,23 @@ def ssh_connect(serv, **kwargs):
 
 def get_config(serv, cfg, **kwargs):
 	import sql
-
-	config_path = "/etc/keepalived/keepalived.conf" if kwargs.get("keepalived") else sql.get_setting('haproxy_config_path')	
+	
+	if kwargs.get("keepalived"):
+		config_path = "/etc/keepalived/keepalived.conf"  
+	elif kwargs.get("nginx"):
+		config_path = sql.get_setting('nginx_config_path')
+	else: 
+		config_path = sql.get_setting('haproxy_config_path')	
+		
 	ssh = ssh_connect(serv)
 	try:
 		sftp = ssh.open_sftp()
 	except Exception as e:
-		logging('localhost', ssh, haproxywi=1)
+		logging('localhost', str(e), haproxywi=1)
 	try:
 		sftp.get(config_path, cfg)
 	except Exception as e:
-		logging('localhost', ssh, haproxywi=1)
+		logging('localhost', str(e), haproxywi=1)
 	try:	
 		sftp.close()
 		ssh.close()
@@ -495,7 +501,13 @@ def upload(serv, path, file, **kwargs):
 	
 def upload_and_restart(serv, cfg, **kwargs):
 	import sql
-	tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".cfg"
+	
+	if kwargs.get("nginx"):
+		config_path = sql.get_setting('nginx_config_path')
+		tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".conf"
+	else:
+		config_path = sql.get_setting('haproxy_config_path')
+		tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".cfg"
 	error = ""
 
 	try:
@@ -509,15 +521,22 @@ def upload_and_restart(serv, cfg, **kwargs):
 			commands = [ "sudo mv -f " + tmp_file + " /etc/keepalived/keepalived.conf" ]
 		else:
 			commands = [ "sudo mv -f " + tmp_file + " /etc/keepalived/keepalived.conf && sudo systemctl restart keepalived" ]
+	elif kwargs.get("nginx"):
+		if kwargs.get("just_save") == "save":
+			commands = [ "sudo mv -f " + tmp_file + " " + config_path + " && sudo nginx -t -q"]
+		elif kwargs.get("just_save") == "reload":
+			commands = [ "sudo mv -f " + tmp_file + " " + config_path + " && sudo nginx -t -q && sudo " + sql.get_setting('nginx_reload_command') ]	
+		else:
+			commands = [ "sudo mv -f " + tmp_file + " " + config_path + " && sudo nginx -t -q && sudo " + sql.get_setting('nginx_restart_command') ]	
 	else:
 		if kwargs.get("just_save") == "test":
 			commands = [ "sudo haproxy  -q -c -f " + tmp_file + "&& sudo rm -f " + tmp_file ]
 		elif kwargs.get("just_save") == "save":
-			commands = [ "sudo haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + sql.get_setting('haproxy_config_path') ]
+			commands = [ "sudo haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + config_path ]
 		elif kwargs.get("just_save") == "reload":
-			commands = [ "sudo haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + sql.get_setting('haproxy_config_path') + " && sudo " + sql.get_setting('reload_command') ]	
+			commands = [ "sudo haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + config_path + " && sudo " + sql.get_setting('reload_command') ]	
 		else:
-			commands = [ "sudo haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + sql.get_setting('haproxy_config_path') + " && sudo " + sql.get_setting('restart_command') ]	
+			commands = [ "sudo haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + config_path + " && sudo " + sql.get_setting('restart_command') ]	
 		if sql.get_setting('firewall_enable') == "1":
 			commands.extend(open_port_firewalld(cfg))
 	error += str(upload(serv, tmp_file, cfg, dir='fullpath'))
@@ -538,9 +557,9 @@ def master_slave_upload_and_restart(serv, cfg, just_save, **kwargs):
 	error = ""
 	for master in MASTERS:
 		if master[0] != None:
-			error += upload_and_restart(master[0], cfg, just_save=just_save)
+			error += upload_and_restart(master[0], cfg, just_save=just_save, nginx=kwargs.get('nginx'))
 				
-	error += upload_and_restart(serv, cfg, just_save=just_save)
+	error += upload_and_restart(serv, cfg, just_save=just_save, nginx=kwargs.get('nginx'))
 		
 	return error
 	
@@ -592,7 +611,7 @@ def show_log(stdout, **kwargs):
 	return out
 		
 		
-def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', hour1='24', minut1='00', **kwargs):
+def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', hour1='24', minut1='00', service='haproxy', **kwargs):
 	import sql
 	date = hour+':'+minut
 	date1 = hour1+':'+minut1
@@ -604,9 +623,15 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 
 	syslog_server_enable = sql.get_setting('syslog_server_enable')
 	if syslog_server_enable is None or syslog_server_enable == "0":
-		local_path_logs = sql.get_setting('local_path_logs')
+		if service == 'nginx':
+			local_path_logs = sql.get_setting('nginx_path_error_logs')
+			commands = [ "sudo cat %s| awk '$2>\"%s:00\" && $2<\"%s:00\"' |tail -%s  %s %s" % (local_path_logs, date, date1, rows, grep_act, grep) ]
+		else:
+			local_path_logs = sql.get_setting('local_path_logs')
+			commands = [ "sudo cat %s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s  %s %s" % (local_path_logs, date, date1, rows, grep_act, grep) ]
 		syslog_server = serv	
-		commands = [ "sudo cat %s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s  %s %s" % (local_path_logs, date, date1, rows, grep_act, grep) ]		
+			
+		
 	else:
 		commands = [ "sudo cat /var/log/%s/syslog.log | sed '/ %s:00/,/ %s:00/! d' |tail -%s  %s %s" % (serv, date, date1, rows, grep_act, grep) ]
 		syslog_server = sql.get_setting('syslog_server')
@@ -614,7 +639,7 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 	if waf == "1":
 		local_path_logs = '/var/log/modsec_audit.log'
 		commands = [ "sudo cat %s |tail -%s  %s %s" % (local_path_logs, rows, grep_act, grep) ]	
-		
+	logging('localhost', str(commands), haproxywi=1)
 	
 	if kwargs.get('html') == 0:
 		a = ssh_command(syslog_server, commands)

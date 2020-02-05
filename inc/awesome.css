@@ -107,6 +107,11 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f126";
 }
+.nginx::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f0e8";
+}
 .version::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";

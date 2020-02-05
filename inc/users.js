@@ -178,6 +178,41 @@ $( function() {
 			}
 		} );	
 	});	
+	$('#nginx_install').click(function() {
+		$("#ajax").html('')
+		var syn_flood = 0;
+		if ($('#nginx_syn_flood').is(':checked')) {
+			syn_flood = '1';
+		}
+		$("#ajax").html('<div class="alert alert-warning">Please don\'t close and don\'t represh page. Wait until the work is completed. This may take some time </div>');
+		$.ajax( {
+			url: "options.py",
+			data: {
+				install_nginx: $('#nginxaddserv').val(),
+				syn_flood: syn_flood,
+				token: $('#token').val()
+				},
+			type: "POST",
+			success: function( data ) { 
+			data = data.replace(/\s+/g,' ');
+				if (data.indexOf('error') != '-1' || data.indexOf('FAILED') != '-1') {
+					$("#ajax").html('<div class="alert alert-danger">'+data+'</div>');
+				} else if (data.indexOf('success') != '-1' ){
+					$('.alert-danger').remove();
+					$('.alert-warning').remove();
+					$("#ajax").html('<div class="alert alert-success">'+data+'</div>');				
+				} else if (data.indexOf('Info') != '-1' ){
+					$('.alert-danger').remove();
+					$('.alert-warning').remove();
+					$("#ajax").html('<div class="alert alert-info">'+data+'</div>');
+				} else {
+					$('.alert-danger').remove();
+					$('.alert-warning').remove();
+					$("#ajax").html('<div class="alert alert-info">'+data+'</div>');
+				}
+			}
+		} );	
+	});	
 	$('#update_haproxy_wi').click(function() {
 		$("#ajax-update").html('')
 		$("#ajax-update").html('<div class="alert alert-warning">Please don\'t close and don\'t represh page. Wait until the work is completed. This may take some time </div>');
@@ -623,23 +658,11 @@ function addServer() {
 	var cred = $('#credentials').val();
 	var typeip = 0;
 	var enable = 0;
-	var alert_en = 0;
-	var metrics = 0;
-	var active = 0;
 	if ($('#typeip').is(':checked')) {
 		typeip = '1';
 	}
 	if ($('#enable').is(':checked')) {
 		enable = '1';
-	}
-	if ($('#alert').is(':checked')) {
-		var alert_en = '1';
-	}
-	if ($('#metrics').is(':checked')) {
-		var metrics = '1';
-	}
-	if ($('#active').is(':checked')) {
-		var active = '1';
 	}
 	allFields = $( [] ).add( $('#new-server-add') ).add( $('#new-ip') ).add( $('#new-port') )
 	allFields.removeClass( "ui-state-error" );
@@ -659,11 +682,8 @@ function addServer() {
 				enable: enable,
 				slave: $('#slavefor' ).val(),
 				cred: cred,
-				alert_en: alert_en,
-				metrics: metrics,
 				page: cur_url[0],
 				desc: $('#desc').val(),
-				active: active,
 				token: $('#token').val()
 			},
 			type: "POST",
@@ -1161,23 +1181,11 @@ function updateServer(id) {
 	$('.alert-danger').remove();
 	var typeip = 0;
 	var enable = 0;
-	var alert_en = 0;
-	var metrics = 0;
-	var active = 0;
 	if ($('#typeip-'+id).is(':checked')) {
 		typeip = '1';
 	}
 	if ($('#enable-'+id).is(':checked')) {
 		enable = '1';
-	}
-	if ($('#alert-'+id).is(':checked')) {
-		alert_en = '1';
-	}
-	if ($('#metrics-'+id).is(':checked')) {
-		metrics = '1';
-	}
-	if ($('#active-'+id).is(':checked')) {
-		active = '1';
 	}
 	var servergroup = $('#servergroup-'+id+' option:selected' ).val();
 	if (cur_url[0] == "servers.py") {
@@ -1194,10 +1202,7 @@ function updateServer(id) {
 			slave: $('#slavefor-'+id+' option:selected' ).val(),
 			cred: $('#credentials-'+id+' option:selected').val(),
 			id: id,
-			metrics: metrics,
-			alert_en: alert_en,
 			desc: $('#desc-'+id).val(),
-			active: active,
 			token: $('#token').val()
 		},
 		type: "POST",
