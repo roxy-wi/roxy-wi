@@ -46,6 +46,7 @@ elif service == 'nginx':
 	files = funct.get_files(dir=configs_dir, format='conf')
 	action = 'versions.py?service=nginx'	
 	format = 'conf'
+	servers = sql.get_dick_permit(nginx=1)
 else:
 	title = "Working with versions HAProxy configs"
 	files = funct.get_files()
@@ -65,7 +66,7 @@ if serv is not None and form.getvalue('del') is not None:
 					funct.logging(serv, "versions.py were deleted configs: %s" % form.getvalue(get))				
 				except OSError as e: 
 					stderr = "Error: %s - %s." % (e.filename,e.strerror)
-		print('<meta http-equiv="refresh" content="10; url=versions.py?serv=%s&open=open&service=%s">' % (form.getvalue('serv'), service))	
+		print('<meta http-equiv="refresh" content="10; url=versions.py?service=%s&serv=%s&open=open">' % (service, form.getvalue('serv')))	
 
 
 if serv is not None and form.getvalue('config') is not None:
