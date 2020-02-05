@@ -7,16 +7,34 @@ $( function() {
    $('.menu li ul li').each(function () {
        var link = $(this).find('a').attr('href');
 	   var link2 = link.split('/')[2]
-       if (cur_url[0] == link2) {
-           $(this).parent().css('display', 'contents');
-           $(this).parent().css('font-size', '13px');
-           $(this).parent().css('top', '0');
-           $(this).parent().css('left', '0');
-           $(this).parent().children().css('margin-left', '-20px');
-		   $(this).parent().find('a').css('padding-left', '20px');
-		   $(this).find('a').css('padding-left', '30px');
-		   $(this).find('a').css('border-left', '4px solid #5D9CEB');
-       }
+       if (cur_url[0] == link2 && cur_url[1] != 'service=keepalived') {
+			$(this).parent().css('display', 'contents');
+			$(this).parent().css('font-size', '13px');
+			$(this).parent().css('top', '0');
+			$(this).parent().css('left', '0');
+			$(this).parent().children().css('margin-left', '-20px');
+			$(this).parent().find('a').css('padding-left', '20px');
+			$(this).find('a').css('padding-left', '30px');
+			$(this).find('a').css('border-left', '4px solid #5D9CEB');
+		} else if(cur_url[0] == 'versions.py' && cur_url[1] == 'service=keepalived' && link2 == 'versions.py?service=keepalived'){ 
+			$(this).parent().css('display', 'contents');
+			$(this).parent().css('font-size', '13px');
+			$(this).parent().css('top', '0');
+			$(this).parent().css('left', '0');
+			$(this).parent().children().css('margin-left', '-20px');
+			$(this).parent().find('a').css('padding-left', '20px');
+			$(this).find('a').css('padding-left', '30px');
+			$(this).find('a').css('border-left', '4px solid #5D9CEB');
+		} else if(cur_url[0] == 'config.py' && cur_url[1] == 'service=keepalived' && link2 == 'config.py?service=keepalived'){
+			$(this).parent().css('display', 'contents');
+			$(this).parent().css('font-size', '13px');
+			$(this).parent().css('top', '0');
+			$(this).parent().css('left', '0');
+			$(this).parent().children().css('margin-left', '-20px');
+			$(this).parent().find('a').css('padding-left', '20px');
+			$(this).find('a').css('padding-left', '30px');
+			$(this).find('a').css('border-left', '4px solid #5D9CEB');
+		} 
    });
 });
 
@@ -216,7 +234,11 @@ function openStats() {
 }
 function openVersions() {
 	var serv = $("#serv").val();
-	var url = "versions.py?serv="+serv+"&open=open"
+	if (cur_url[1] == "service=keepalived") {
+		var url = "versions.py?service=keepalived&serv="+serv+"&open=open"
+	} else {	
+		var url = "versions.py?serv="+serv+"&open=open"
+	}
 	var win = window.open(url,"_self");
 	win.focus();
 }
@@ -356,27 +378,22 @@ function showConfig() {
 	} );
 }
 function showUploadConfig() {
-	var view = $('#view').val();
-	if(view != "1") {
-		view = ""
-	}
+	var service = $('#service').val();
+	var configver = $('#configver').val();
+	var serv = $("#serv").val()
 	$.ajax( {
 		url: "options.py",
 		data: {
-			serv: $("#serv").val(),
+			serv: serv,
 			act: "configShow",
-			configver: $('#configver').val(),
+			configver: configver,
+			service: service,
 			token: $('#token').val(),
-			view: view 
 		},
 		type: "POST",
 		success: function( data ) {
 			$("#ajax").html(data);
-			if(view == "1") {
-				window.history.pushState("Show config", "Show config", cur_url[0]+"?serv="+$("#serv").val()+"&open=open&configver="+$('#configver').val()+"&view="+$('#view').val());
-			} else {
-				window.history.pushState("Show config", "Show config", cur_url[0]+"?serv="+$("#serv").val()+"&open=open&configver="+$('#configver').val());
-			}
+			window.history.pushState("Show config", "Show config", cur_url[0]+"?serv="+serv+"&open=open&configver="+configver+"&service="+service);
 			$.getScript('/inc/configshow.js');
 		}					
 	} );

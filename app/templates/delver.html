@@ -10,19 +10,19 @@
 		</form>
 		{% if not aftersave and not open %}
 		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
-			Here you can work with previous versions of HAProxy configs. Roll back to them, view or delete		
+			Here you can work with previous versions of {%if service == 'keepalived' %}Keepalived{%else%}HAProxy{%endif%} configs. Roll back to them, view or delete		
 		</div>
 		{% endif %}
 	</p>
 	{% if open %}
 		<center>
 			<h4>Choose old version</h4>
-			<form action="versions.py#conf" method="post">
+			<form action="{{action}}" method="post">
 				<label for="select_all" id="label_select_all"><b>Select all</b></label>
 				<input type="checkbox" id="select_all"><br />
 				{% for file in return_files %}
 					<label for="{{file}}"> {{file.split('-', maxsplit=1)[1]}} </label><input type="checkbox" value="{{file}}" name="{{file}}" id="{{file}}">
-					<a href="/app/versions.py?serv={{serv}}&open=open&configver={{file}}" class="ui-button ui-widget ui-corner-all" title="View and upload this version of the config" style="margin-top: -6px;">
+					<a href="/app/versions.py?serv={{serv}}&open=open&configver={{file}}&service={{service}}" class="ui-button ui-widget ui-corner-all" title="View and upload this version of the config" style="margin-top: -6px;">
 						Upload
 					</a><br />
 				{% endfor %}

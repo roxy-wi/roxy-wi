@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}	
+{% from 'include/input_macros.html' import input, checkbox, select %}
 <script src="/inc/overview.js"></script>
 {% if serv %}
 <style>
@@ -30,21 +31,21 @@
 </script>
 <div id="up-pannel">
 	{% for s in servers %}
-	{% if serv %}
-		<link href="/inc/chart.min.css" rel="stylesheet">
-		<script src="/inc/metrics.js"></script>
-		<script src="/inc/chart.min.js"></script>
-		<script>
-			function showMetrics() {
-				{% for s in servers %}
-					getChartData('{{s.2}}')
-					getWafChartData('{{s.2}}')
-				{% endfor %}
-				showOverviewServer('{{s.1}}', '{{s.2}}', '{{s.0}}');
-			}
-			showMetrics();
-		</script>
-	{% endif %}
+		{% if serv %}
+			<link href="/inc/chart.min.css" rel="stylesheet">
+			<script src="/inc/metrics.js"></script>
+			<script src="/inc/chart.min.js"></script>
+			<script>
+				function showMetrics() {
+					{% for s in servers %}
+						getChartData('{{s.2}}')
+						getWafChartData('{{s.2}}')
+					{% endfor %}
+					showOverviewServer('{{s.1}}', '{{s.2}}', '{{s.0}}');
+				}
+				showMetrics();
+			</script>
+		{% endif %}
 	<div class="div-pannel" id="div-pannel-{{s.0}}">
 		<div id="div-server-{{s.0}}" class="div-server-hapwi">
 			<div class="server-name">				

@@ -350,9 +350,9 @@ def update_db_v_3_12_1(**kwargs):
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
 			if e.args[0] == 'duplicate column name: param' or e == "1060 (42S21): Duplicate column name 'param' ":
-				print('DB was update to 3.12.1.0')
+				print('Updating... go to version 3.12.1.0')
 			else:
-				print("DB was update to 3.12.1.0")
+				print("Updating... go to version 3.12.1.0")
 			return False
 		else:
 			return True
@@ -384,7 +384,7 @@ def update_db_v_3_13(**kwargs):
 	
 def update_ver(**kwargs):
 	con, cur = get_cur()
-	sql = """update version set version = '3.12.2.2'; """
+	sql = """update version set version = '3.13.0.0'; """
 	try:    
 		cur.execute(sql)
 		con.commit()

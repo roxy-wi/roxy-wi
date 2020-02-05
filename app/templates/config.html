@@ -39,7 +39,8 @@
 				{% endif %}
 			{% else %}
 				{% if role <= 2 %}
-				<button type="submit" value="open" name="open" class="btn btn-default" title="Edit running config">Edit</button>
+					<button type="submit" value="open" name="open" class="btn btn-default" title="Edit running config">Edit</button>
+					<a class="ui-button ui-widget ui-corner-all" title="Show versions" onclick="openVersions()">Versions</a>
 				{% endif %}
 			{% endif %}
 		</form>
@@ -82,7 +83,6 @@
 			<div class="alert alert-success">Config is ok</div>
 			<a href="viewsttats.py?serv={{ serv }}" target="_blank" title="View stats">Go to view stats</a>
 		{% endif %}
-		<script>window.history.pushState("Config", "Config", cur_url[0])</script>
 	{% endif %}
 	</center>
 <script> 

@@ -50,6 +50,7 @@ for s in servers:
 		servers_with_status.append(out1)
 	servers_with_status.append(s[12])
 	servers_with_status.append(sql.is_master(s[2]))
+	servers_with_status.append(sql.select_servers(server=s[2]))
 	
 	servers_with_status1.append(servers_with_status)
 	
