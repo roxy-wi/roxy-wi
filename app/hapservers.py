@@ -28,7 +28,7 @@ if service == 'nginx':
 	title = "Nginx servers overview"
 	keep_alive = ''
 	stderr = ''
-	servers = sql.get_dick_permit(nginx=1)
+	servers = sql.get_dick_permit(virt=1, nginx=1)
 	service = 'nginx'
 else:
 	title = "HAProxy servers overview"
@@ -39,7 +39,7 @@ else:
 		servers = sql.select_servers(server=serv)
 		autorefresh = 1
 	else:
-		servers = sql.get_dick_permit()
+		servers = sql.get_dick_permit(virt=1)
 	
 haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 servers_with_status1 = []
