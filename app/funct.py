@@ -415,6 +415,7 @@ def install_haproxy(serv, **kwargs):
 			print('success: HAProxy was installed<br>')
 			
 	os.system("rm -f %s" % script)
+	sql.update_haproxy(serv)
 	
 	
 def waf_install(serv, **kwargs):
@@ -446,7 +447,8 @@ def waf_install(serv, **kwargs):
 		sql.insert_waf_metrics_enable(serv, "0")
 		
 
-def install_nginx():
+def install_nginx(serv):
+	import sql
 	script = "install_nginx.sh"	
 	stats_user = sql.get_setting('nginx_stats_user')
 	stats_password = sql.get_setting('nginx_stats_password')

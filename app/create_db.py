@@ -385,6 +385,8 @@ def update_db_v_3_13(**kwargs):
 def update_db_v_4(**kwargs):
 	con, cur = get_cur()
 	sql = list()
+	sql.append("update settings set section = 'main', `desc` = 'Temp store configs, for check' where param = 'tmp_config_path';")
+	sql.append("update settings set section = 'main' where param = 'cert_path';")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('nginx_path_error_logs', '/var/log/nginx/error.log', 'nginx', 'Nginx error log');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('nginx_stats_user', 'admin', 'nginx', 'Username for Stats web page Nginx');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('nginx_stats_password', 'password', 'nginx', 'Password for Stats web page Nginx');")
@@ -395,6 +397,7 @@ def update_db_v_4(**kwargs):
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('nginx_status_command', 'systemctl status nginx', 'nginx', 'Command for status check Nginx service');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('nginx_dir', '/etc/nginx/conf.d/', 'nginx', 'Path to Nginx dir');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('nginx_config_path', '/etc/nginx/conf.d/default.conf', 'nginx', 'Path to Nginx config');")
+	sql.append("update `servers` set `haproxy` = '1';")
 	for i in sql:
 		try:
 			cur.execute(i)
@@ -411,27 +414,30 @@ def update_db_v_4(**kwargs):
 	
 def update_db_v_41(**kwargs):
 	con, cur = get_cur()
-	sql = list()
-	sql.append("update settings set section = 'main', `desc` = 'Temp store configs, for check' where param = 'tmp_config_path';")
-	sql.append("update settings set section = 'main' where param = 'cert_path';")
-	for i in sql:
-		try:
-			cur.execute(i)
-			con.commit()
-		except sqltool.Error as e:
-			pass
-	else:
+	sql = """
+	ALTER TABLE `servers` ADD COLUMN nginx INTEGER NOT NULL DEFAULT 0;
+	"""
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
-			print('Updating... one more for version 4.0.0')
+			if e.args[0] == 'duplicate column name: nginx' or e == " 1060 (42S21): Duplicate column name 'nginx' ":
+				print('Updating... one more for version 4.0.0')
+			else:
+				print("An error occurred:", e)
+		return False
+	else:
+		print("Updating... one more for version 4.0.0")
 		return True
 	cur.close() 
 	con.close()
 	
-	
+
 def update_db_v_42(**kwargs):
 	con, cur = get_cur()
 	sql = """
-	ALTER TABLE `servers` ADD COLUMN nginx INTEGER NOT NULL DEFAULT 0;
+	ALTER TABLE `servers` ADD COLUMN haproxy INTEGER NOT NULL DEFAULT 0;
 	"""
 	try:    
 		cur.execute(sql)

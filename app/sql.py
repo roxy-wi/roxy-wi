@@ -534,6 +534,7 @@ def get_dick_permit(**kwargs):
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_id = cookie.get('uuid')
 	disable = ''
+	haproxy = ''
 	nginx = ''
 	ip = ''
 	
@@ -550,6 +551,8 @@ def get_dick_permit(**kwargs):
 		disable = 'or enable = 0'
 	if kwargs.get('ip'):
 		ip = "and ip = '%s'" % kwargs.get('ip')
+	if kwargs.get('haproxy'):
+		haproxy = "and haproxy = 1"
 	if kwargs.get('nginx'):
 		nginx = "and nginx = 1"
 				
@@ -562,13 +565,15 @@ def get_dick_permit(**kwargs):
 			if group[5] == '1':
 				sql = """ select * from servers where enable = 1 %s %s %s """ % (disable, type_ip, nginx)
 			else:
-				sql = """ select * from servers where groups like '%{group}%' and (enable = 1 {disable}) {type_ip} {ip} {nginx} """.format(group=group[5], disable=disable, type_ip=type_ip, ip=ip, nginx=nginx)		
+				sql = """ select * from servers where groups like '%{group}%' and (enable = 1 {disable}) {type_ip} {ip} {haproxy} {nginx} 
+				""".format(group=group[5], disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx)		
 		try:   
 			cur.execute(sql)
 		except sqltool.Error as e:
 			out_error(e)
 		else:
 			return cur.fetchall()
+	
 	cur.close()    
 	con.close() 
 	
@@ -1538,6 +1543,21 @@ def select_nginx(serv, **kwargs):
 def update_nginx(serv):
 	con, cur = get_cur()
 	sql = """update `servers` set `nginx` = '1' where ip = '%s' """ % serv
+	try:    
+		cur.execute(sql)
+		con.commit()
+		return True
+	except sqltool.Error as e:
+		out_error(e)
+		con.rollback()
+		return False
+	cur.close()    
+	con.close()
+	
+	
+def update_haproxy(serv):
+	con, cur = get_cur()
+	sql = """update `servers` set `haproxy` = '1' where ip = '%s' """ % serv
 	try:    
 		cur.execute(sql)
 		con.commit()

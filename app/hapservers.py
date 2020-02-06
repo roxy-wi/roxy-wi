@@ -39,7 +39,7 @@ else:
 		servers = sql.select_servers(server=serv)
 		autorefresh = 1
 	else:
-		servers = sql.get_dick_permit(virt=1)
+		servers = sql.get_dick_permit(virt=1, haproxy=1)
 	
 haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 servers_with_status1 = []
