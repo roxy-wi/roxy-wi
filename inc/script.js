@@ -246,12 +246,13 @@ function showStats() {
 		data: {
 			act: "stats",
 			serv: $("#serv").val(),
+			service: $("#service").val(),
 			token: $('#token').val()
 		},
 		type: "POST",
 		success: function( data ) {
 			$("#ajax").html(data);			
-			window.history.pushState("Stats", "Stats", cur_url[0]+"?serv="+$("#serv").val());
+			window.history.pushState("Stats", "Stats", cur_url[0]+"?service="+$("#service").val()+"&serv="+$("#serv").val());
 			wait();
 		}					
 	} );

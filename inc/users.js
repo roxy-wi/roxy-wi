@@ -663,11 +663,19 @@ function addServer() {
 	var cred = $('#credentials').val();
 	var typeip = 0;
 	var enable = 0;
+	var haproxy = 0;
+	var nginx = 0;
 	if ($('#typeip').is(':checked')) {
 		typeip = '1';
 	}
 	if ($('#enable').is(':checked')) {
 		enable = '1';
+	}
+	if ($('#haproxy').is(':checked')) {
+		haproxy = '1';
+	}
+	if ($('#nginx').is(':checked')) {
+		nginx = '1';
 	}
 	allFields = $( [] ).add( $('#new-server-add') ).add( $('#new-ip') ).add( $('#new-port') )
 	allFields.removeClass( "ui-state-error" );
@@ -684,6 +692,8 @@ function addServer() {
 				newport: $('#new-port').val(),
 				newservergroup: newservergroup,
 				typeip: typeip,
+				haproxy: haproxy,
+				nginx: nginx,
 				enable: enable,
 				slave: $('#slavefor' ).val(),
 				cred: cred,
@@ -934,25 +944,20 @@ function cloneServer(id) {
 	} else {
 		$('#typeip').prop('checked', false)
 	}
-	if ($('#alert-'+id).is(':checked')) {
-		$('#alert').prop('checked', true)
+	if ($('#haproxy-'+id).is(':checked')) {
+		$('#haproxy').prop('checked', true)
 	} else {
-		$('#alert').prop('checked', false)
+		$('#haproxy').prop('checked', false)
 	}
-	if ($('#metrics-'+id).is(':checked')) {
-		$('#metrics').prop('checked', true)
+	if ($('#nginx-'+id).is(':checked')) {
+		$('#nginx').prop('checked', true)
 	} else {
-		$('#metrics').prop('checked', false)
-	}
-	if ($('#active-'+id).is(':checked')) {
-		$('#active').prop('checked', true)
-	} else {
-		$('#active').prop('checked', false)
+		$('#nginx').prop('checked', false)
 	}
 	$('#enable').checkboxradio("refresh");
 	$('#typeip').checkboxradio("refresh");
-	$('#alert').checkboxradio("refresh");
-	$('#active').checkboxradio("refresh");
+	$('#haproxy').checkboxradio("refresh");
+	$('#nginx').checkboxradio("refresh");
 	$('#new-server-add').val($('#hostname-'+id).val())
 	$('#new-ip').val($('#ip-'+id).val())
 	$('#new-port').val($('#port-'+id).val())
@@ -1186,16 +1191,27 @@ function updateServer(id) {
 	$('.alert-danger').remove();
 	var typeip = 0;
 	var enable = 0;
+	var haproxy = 0;
+	var nginx = 0;
 	if ($('#typeip-'+id).is(':checked')) {
 		typeip = '1';
+	}
+	if ($('#haproxy-'+id).is(':checked')) {
+		haproxy = '1';
+	}
+	if ($('#nginx-'+id).is(':checked')) {
+		nginx = '1';
 	}
 	if ($('#enable-'+id).is(':checked')) {
 		enable = '1';
 	}
 	var servergroup = $('#servergroup-'+id+' option:selected' ).val();
-	if (cur_url[0] == "servers.py") {
-		 servergroup = $('#servergroup-'+id).val();
+	console.log(cur_url[0])
+	if (cur_url[0].split('#')[0] == "servers.py") {
+		 servergroup = $('#new-server-group-add').val();
+		 console.log('1')
 	}
+	console.log(servergroup)
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -1203,6 +1219,8 @@ function updateServer(id) {
 			port: $('#port-'+id).val(),
 			servergroup: servergroup,
 			typeip: typeip,
+			haproxy: haproxy,
+			nginx: nginx,
 			enable: enable,
 			slave: $('#slavefor-'+id+' option:selected' ).val(),
 			cred: $('#credentials-'+id+' option:selected').val(),

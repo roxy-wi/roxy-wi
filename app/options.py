@@ -312,7 +312,7 @@ if act == "overviewHapwi":
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
 	template = env.get_template('/overviewHapwi.html')
-	cmd = "top -b -n 1 |head -9"
+	cmd = "top -b -n 1 |head -12"
 	server_status, stderr = funct.subprocess_execute(cmd)
 	
 	template = template.render(server_status=server_status,stderr=stderr)									
@@ -1159,6 +1159,8 @@ if form.getvalue('newserver') is not None:
 	ip = form.getvalue('newip')
 	group = form.getvalue('newservergroup')
 	typeip = form.getvalue('typeip')
+	haproxy = form.getvalue('haproxy')
+	nginx = form.getvalue('nginx')
 	enable = form.getvalue('enable')
 	master = form.getvalue('slave')
 	cred = form.getvalue('cred')
@@ -1167,7 +1169,7 @@ if form.getvalue('newserver') is not None:
 	port = form.getvalue('newport')	
 	desc = form.getvalue('desc')		
 
-	if sql.add_server(hostname, ip, group, typeip, enable, master, cred, port, desc):
+	if sql.add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx):
 		from jinja2 import Environment, FileSystemLoader
 		env = Environment(loader=FileSystemLoader('templates/'))
 		template = env.get_template('ajax/new_server.html')
@@ -1195,6 +1197,8 @@ if form.getvalue('updateserver') is not None:
 	name = form.getvalue('updateserver')	
 	group = form.getvalue('servergroup')	
 	typeip = form.getvalue('typeip')		
+	haproxy = form.getvalue('haproxy')		
+	nginx = form.getvalue('nginx')		
 	enable = form.getvalue('enable')		
 	master = form.getvalue('slave')		
 	id = form.getvalue('id')	
@@ -1205,7 +1209,7 @@ if form.getvalue('updateserver') is not None:
 	if name is None or port is None:
 		print(error_mess)
 	else:
-		sql.update_server(name, group, typeip, enable, master, id, cred, port, desc)
+		sql.update_server(name, group, typeip, enable, master, id, cred, port, desc, haproxy, nginx)
 		funct.logging('the server '+name, ' has updated ', haproxywi=1, login=1)
 			
 			

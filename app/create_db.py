@@ -397,7 +397,6 @@ def update_db_v_4(**kwargs):
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('nginx_status_command', 'systemctl status nginx', 'nginx', 'Command for status check Nginx service');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('nginx_dir', '/etc/nginx/conf.d/', 'nginx', 'Path to Nginx dir');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('nginx_config_path', '/etc/nginx/conf.d/default.conf', 'nginx', 'Path to Nginx config');")
-	sql.append("update `servers` set `haproxy` = '1';")
 	for i in sql:
 		try:
 			cur.execute(i)

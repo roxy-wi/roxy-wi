@@ -161,11 +161,11 @@ def update_group(name, descript, id):
 	con.close()
 	
 
-def add_server(hostname, ip, group, typeip, enable, master, cred, port, desc):
+def add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx):
 	con, cur = get_cur()
-	sql = """ INSERT INTO servers (hostname, ip, groups, type_ip, enable, master, cred, port, `desc`) 
+	sql = """ INSERT INTO servers (hostname, ip, groups, type_ip, enable, master, cred, port, `desc`, haproxy, nginx) 
 			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
-		""" % (hostname, ip, group, typeip, enable, master, cred, port, desc)
+		""" % (hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx)
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -210,7 +210,7 @@ def update_hapwi_server(id, alert, metrics, active):
 	con.close()
 	
 
-def update_server(hostname, group, typeip, enable, master, id, cred, port, desc):
+def update_server(hostname, group, typeip, enable, master, id, cred, port, desc, haproxy, nginx):
 	con, cur = get_cur()
 	sql = """ update servers set 
 			hostname = '%s',
@@ -220,8 +220,10 @@ def update_server(hostname, group, typeip, enable, master, id, cred, port, desc)
 			master = '%s',
 			cred = '%s',
 			port = '%s',
-			`desc` = '%s'
-			where id = '%s'""" % (hostname, group, typeip, enable, master, cred, port, desc, id)
+			`desc` = '%s',
+			haproxy = '%s',
+			nginx = '%s'
+			where id = '%s'""" % (hostname, group, typeip, enable, master, cred, port, desc, haproxy, nginx, id)
 	try:    
 		cur.execute(sql)
 		con.commit()
