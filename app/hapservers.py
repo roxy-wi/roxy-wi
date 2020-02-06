@@ -51,7 +51,7 @@ for s in servers:
 	servers_with_status.append(s[2])
 	servers_with_status.append(s[11])
 	if service == 'nginx':
-		cmd = [ "/usr/sbin/nginx -v && systemctl status nginx |grep -e 'Active\|Tasks' |awk '{print $2, $9}'" ] 
+		cmd = [ "/usr/sbin/nginx -v && systemctl status nginx |grep -e 'Active\|Tasks' |awk '{print $2, $9$10$11$12$13}'" ] 
 		out = funct.ssh_command(s[2], cmd)
 		h = ()
 		out1 = []
