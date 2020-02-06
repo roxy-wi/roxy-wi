@@ -10,6 +10,7 @@
 		<td><span title="Interface for VRRP addreess">Interface(?)</span></td>
 		<td>VRRP IP</td>
 		<td><span title="HAProxy-WI will try install HAProxy">HAProxy(?)</span></td>
+		<td><span title="HAProxy-WI will try install Nginx">Nginx(?)</span></td>
 		<td>SYN flood protect</td>
 		<td></td>
 	</tr>
@@ -33,6 +34,7 @@
 		<td>{{ input('interface', size='7') }}</td>
 		<td>{{ input('vrrp-ip', size='14') }}</td>
 		<td>{{ checkbox('hap') }}</td>
+		<td>{{ checkbox('nginx') }}</td>
 		<td>{{ checkbox('syn_flood') }}</td>
 		<td>
 			<a class="ui-button ui-widget ui-corner-all" id="create" title="Create HA configuration">Create</a>
@@ -48,7 +50,8 @@
 		<td><span title="Interface for VRRP addreess">Interface(?)</span></td>
 		<td>VRRP IP</td>
 		<td><span title="If checked HAProxy-WI will restart Keepalived">Restart(?)</span></td>
-		<td style="width: 20%;"></td>
+		<td style="width: 23%;"></td>
+		<td></td>
 		<td></td>
 	</tr>
 	<tr>
@@ -71,6 +74,7 @@
 		<td>{{ input('interface-add', size='7') }}</td>
 		<td>{{ input('vrrp-ip-add', size='14') }}</td>
 		<td>{{ checkbox('kp') }}</td>
+		<td></td>
 		<td></td>
 		<td>
 			<a class="ui-button ui-widget ui-corner-all" id="add-vrrp" title="Add HA configuration">Add</a>

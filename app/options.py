@@ -50,7 +50,6 @@ if form.getvalue('getcert') is not None and serv is not None:
 		
 			
 if serv and form.getvalue('ssl_cert'):
-	#cert_local_dir = funct.get_config_var('main', 'cert_local_dir')
 	cert_local_dir = os.path.dirname(os.getcwd())+"/"+sql.get_setting('ssl_local_path')
 	cert_path = sql.get_setting('cert_path')
 	
@@ -347,10 +346,16 @@ if form.getvalue('action'):
 if serv is not None and act == "stats":
 	import requests
 	
-	haproxy_user = sql.get_setting('stats_user')
-	haproxy_pass = sql.get_setting('stats_password')
-	stats_port = sql.get_setting('stats_port')
-	stats_page = sql.get_setting('stats_page')
+	if form.getvalue('service') == 'nginx':
+		haproxy_user = sql.get_setting('nginx_stats_user')
+		haproxy_pass = sql.get_setting('nginx_stats_password')
+		stats_port = sql.get_setting('nginx_stats_port')
+		stats_page = sql.get_setting('nginx_stats_page')
+	else:
+		haproxy_user = sql.get_setting('stats_user')
+		haproxy_pass = sql.get_setting('stats_password')
+		stats_port = sql.get_setting('stats_port')
+		stats_page = sql.get_setting('stats_page')
 	try:
 		response = requests.get('http://%s:%s/%s' % (serv, stats_port, stats_page), auth=(haproxy_user, haproxy_pass)) 
 	except requests.exceptions.ConnectTimeout:
@@ -367,7 +372,25 @@ if serv is not None and act == "stats":
 		print ("OOps: Something Else",err)
 		
 	data = response.content
-	print(data.decode('utf-8'))
+	if form.getvalue('service') == 'nginx':
+		from jinja2 import Environment, FileSystemLoader
+		env = Environment(loader=FileSystemLoader('templates/'))
+		template = env.get_template('ajax/nginx_stats.html')
+		
+		servers_with_status = list()
+		h = ()
+		out1 = []
+		for k in data.decode('utf-8').split():
+			out1.append(k) 
+		h = (out1, )
+		servers_with_status.append(h)
+		
+		template = template.render(out=servers_with_status)
+		print(template)
+		
+		
+	else:	
+		print(data.decode('utf-8'))
 	
 	
 if serv is not None and form.getvalue('rows') is not None:
@@ -660,6 +683,10 @@ if form.getvalue('master'):
 		funct.install_haproxy(master)
 		funct.install_haproxy(slave)
 		
+	if form.getvalue('nginx') == "1":
+		funct.install_nginx(master)
+		funct.install_nginx(slave)
+		
 	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+ 
 				" ETH="+ETH+" IP="+str(IP)+" MASTER=MASTER"+" SYN_FLOOD="+syn_flood+" HOST="+str(master)+
 				" USER="+str(ssh_user_name)+" PASS="+str(ssh_user_password)+" KEY="+str(ssh_key_name) ]
@@ -862,53 +889,7 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
 				
 				
 if form.getvalue('install_nginx'):
-	script = "install_nginx.sh"
-	serv = form.getvalue('install_nginx')
-	stats_user = sql.get_setting('nginx_stats_user')
-	stats_password = sql.get_setting('nginx_stats_password')
-	stats_port = sql.get_setting('nginx_stats_port')
-	stats_page = sql.get_setting('nginx_stats_page')
-	config_path = sql.get_setting('nginx_config_path')
-	proxy = sql.get_setting('proxy')
-	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(serv)
-	
-	if ssh_enable == 0:
-		ssh_key_name = ''
-		
-	os.system("cp scripts/%s ." % script)
-	
-	if proxy is not None and proxy != '' and proxy != 'None':
-		proxy_serv = proxy 
-	else:
-		proxy_serv = ''
-		
-	syn_flood_protect = '1' if form.getvalue('syn_flood') == "1" else ''
-		
-	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+" STATS_USER="+stats_user+" STATS_PASS="+stats_password+
-				" CONFIG_PATH="+config_path+" STAT_PORT="+stats_port+" STAT_PAGE="+stats_page+" SYN_FLOOD="+syn_flood_protect+" HOST="+serv+
-				" USER="+ssh_user_name+" PASS="+ssh_user_password+" KEY="+ssh_key_name ]
-				
-	output, error = funct.subprocess_execute(commands[0])
-	
-	if error:
-		funct.logging('localhost', error, haproxywi=1)
-		print('error: '+error)
-	else:
-		for l in output:
-			if "msg" in l or "FAILED" in l:
-				try:
-					l = l.split(':')[1]
-					l = l.split('"')[1]
-					print(l+"<br>")
-					break
-				except:
-					print(output)
-					break
-		else:
-			print('success: Nginx was installed<br>')
-			
-	os.system("rm -f %s" % script)
-	sql.update_nginx(serv)
+	funct.install_nginx(form.getvalue('install_nginx'))
 				
 	
 if form.getvalue('haproxyaddserv'):

@@ -1,10 +1,4 @@
-{% if MASTER == 'BACKUP' %}
-	{% set ID = '101' %}
-{% else %}
-	{% set ID = '100' %}
-{% endif %}
-
-vrrp_instance VI_{{ID}} {
+vrrp_instance VI_{{IP}} {
 	state {{MASTER}}
 	interface {{ETH}}
 	virtual_router_id 101

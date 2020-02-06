@@ -445,6 +445,55 @@ def waf_install(serv, **kwargs):
 	if stderr is None:
 		sql.insert_waf_metrics_enable(serv, "0")
 		
+
+def install_nginx():
+	script = "install_nginx.sh"	
+	stats_user = sql.get_setting('nginx_stats_user')
+	stats_password = sql.get_setting('nginx_stats_password')
+	stats_port = sql.get_setting('nginx_stats_port')
+	stats_page = sql.get_setting('nginx_stats_page')
+	config_path = sql.get_setting('nginx_config_path')
+	proxy = sql.get_setting('proxy')
+	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = return_ssh_keys_path(serv)
+	
+	if ssh_enable == 0:
+		ssh_key_name = ''
+		
+	os.system("cp scripts/%s ." % script)
+	
+	if proxy is not None and proxy != '' and proxy != 'None':
+		proxy_serv = proxy 
+	else:
+		proxy_serv = ''
+		
+	syn_flood_protect = '1' if form.getvalue('syn_flood') == "1" else ''
+		
+	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+" STATS_USER="+stats_user+" STATS_PASS="+stats_password+
+				" CONFIG_PATH="+config_path+" STAT_PORT="+stats_port+" STAT_PAGE="+stats_page+" SYN_FLOOD="+syn_flood_protect+" HOST="+serv+
+				" USER="+ssh_user_name+" PASS="+ssh_user_password+" KEY="+ssh_key_name ]
+				
+	output, error = subprocess_execute(commands[0])
+	
+	if error:
+		logging('localhost', error, haproxywi=1)
+		print('error: '+error)
+	else:
+		for l in output:
+			if "msg" in l or "FAILED" in l:
+				try:
+					l = l.split(':')[1]
+					l = l.split('"')[1]
+					print(l+"<br>")
+					break
+				except:
+					print(output)
+					break
+		else:
+			print('success: Nginx was installed<br>')
+			
+	os.system("rm -f %s" % script)
+	sql.update_nginx(serv)
+
 		
 def update_haproxy_wi():
 	cmd = 'sudo -S yum  -y update haproxy-wi'

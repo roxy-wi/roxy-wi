@@ -53,9 +53,13 @@ $( function() {
 	var ipformat = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
 	$('#create').click(function() {
 		var hap = 0;
+		var nginx = 0;
 		var syn_flood = 0;
 		if ($('#hap').is(':checked')) {
 			hap = '1';
+		}
+		if ($('#nginx').is(':checked')) {
+			nginx = '1';
 		}		
 		if ($('#syn_flood').is(':checked')) {
 			syn_flood = '1';
@@ -78,6 +82,7 @@ $( function() {
 						interface: $("#interface").val(),
 						vrrpip: $('#vrrp-ip').val(),
 						hap: hap,
+						nginx: nginx,
 						syn_flood: syn_flood,
 						token: $('#token').val()
 					},
