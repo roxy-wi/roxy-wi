@@ -538,6 +538,7 @@ def get_dick_permit(**kwargs):
 	disable = ''
 	haproxy = ''
 	nginx = ''
+	keepalived = ''
 	ip = ''
 	
 	con, cur = get_cur()
@@ -557,6 +558,8 @@ def get_dick_permit(**kwargs):
 		haproxy = "and haproxy = 1"
 	if kwargs.get('nginx'):
 		nginx = "and nginx = 1"
+	if kwargs.get('keepalived'):
+		nginx = "and keepalived = 1"
 				
 	try:    
 		cur.execute(sql)
@@ -567,8 +570,8 @@ def get_dick_permit(**kwargs):
 			if group[5] == '1':
 				sql = """ select * from servers where enable = 1 %s %s %s """ % (disable, type_ip, nginx)
 			else:
-				sql = """ select * from servers where groups like '%{group}%' and (enable = 1 {disable}) {type_ip} {ip} {haproxy} {nginx} 
-				""".format(group=group[5], disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx)		
+				sql = """ select * from servers where groups like '%{group}%' and (enable = 1 {disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} 
+				""".format(group=group[5], disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx, keepalived=keepalived)		
 		try:   
 			cur.execute(sql)
 		except sqltool.Error as e:

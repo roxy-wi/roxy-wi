@@ -10,23 +10,10 @@
 			<select autofocus required name="serv" id="{{ select_id }}">
 				<option disabled>Choose server</option>
 					{% for select in selects %}
-						{% if service == 'keepalived' %}
-							{% if select.1 == serv %}
-								<option value="{{ select.1 }}" selected>{{ select.0 }}</option>								
-							{% else %}
-								<option value="{{ select.1 }}">{{ select.0 }}</option>								
-							{% endif %}
-							{% if select.3 == serv %}
-								<option value="{{ select.3 }}" selected>{{ select.2 }}</option>
-							{% else %}
-								<option value="{{ select.3 }}">{{ select.2 }}</option>
-							{% endif %}
+						{% if select.2 == serv %}
+							<option value="{{ select.2 }}" selected>{{ select.1 }}</option>
 						{% else %}
-							{% if select.2 == serv %}
-								<option value="{{ select.2 }}" selected>{{ select.1 }}</option>
-							{% else %}
-								<option value="{{ select.2 }}">{{ select.1 }}</option>
-							{% endif %}
+							<option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endif %}
 					{% endfor %}
 			</select>
