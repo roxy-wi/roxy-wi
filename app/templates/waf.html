@@ -32,7 +32,9 @@
 			Metrics
 		</td>
 		<td>
-			<a onclick="showOverviewWaf(ip, hostnamea)" title="Refresh" style="float: right; margin-right: 25px;"><img  src="/inc/images/update.png" alt="Refresh" class="icon"></a>
+			<a onclick="showOverviewWaf(ip, hostnamea)" title="Refresh" style="float: right; margin-right: 25px;">
+				<span class="service-reload"></span>
+			</a>
 		</td>
 	</tr>
 	{% for s in servers_all %}
@@ -46,7 +48,7 @@
 <script src="/inc/chart.min.js"></script>
 <script src="/inc/waf.js"></script>
 <div id="refresh" style="text-align: right;margin-top: 20px;margin-right: 20px;" title="Refresh metrics" onclick="showWafMetrics()">
-	<img  src="/inc/images/update.png" alt="Refresh" class="icon">
+	<span class="service-reload"></span>
 </div>
 {% for s in servers %}
 <div class="chart-container">

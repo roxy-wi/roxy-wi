@@ -42,7 +42,6 @@ function showHapserversCallBack(serv, hostnamea, service) {
 	} );
 }
 function overviewHapserverBackends(serv, hostnamea) {	
-	console.log("#top-"+hostnamea)
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -111,6 +110,7 @@ function showOverviewServer(name,ip,id) {
 			$(".div-pannel").css('height', '70px');
 			$("#div-pannel-"+id).insertBefore('#up-pannel')
 			$("#ajax-server-"+id).html(data);
+			$.getScript("/inc/fontawesome.min.js")
 		}					
 	} );
 }
@@ -189,18 +189,6 @@ function ajaxActionWafServers(action, id) {
 			} );
 	}
 $( function() {
-	$('.start-waf').click(function() {
-		var id = $(this).attr('id');
-		confirmAjaxAction("start", "waf", id);
-	});
-	$('.stop-waf').click(function() {
-		var id = $(this).attr('id');
-		confirmAjaxAction("stop", "waf", id);
-	});
-	$('.restart-waf').click(function() {
-		var id = $(this).attr('id');
-		confirmAjaxAction("restart", "waf", id);
-	});
 	$( "#show-all-users" ).click( function() {
 		$( ".show-users" ).show("fast");
 		$( "#show-all-users" ).text("Hide");

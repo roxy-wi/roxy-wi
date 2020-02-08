@@ -154,13 +154,14 @@ function setRefreshInterval(interval) {
 	if (interval == "0") {
 		Cookies.remove('auto-refresh');
 		pauseAutoRefresh();
-		$('.auto-refresh').prepend('<img src=/inc/images/update.png alt="restart" class="icon">');
+		$('.auto-refresh').prepend('<span class="service-reload"></span>');
 		$('.auto-refresh').css('margin-top', '-3px');
 		$('#1').text('Auto-refresh');
 		$('#0').text('Auto-refresh');
 		$('.auto-refresh-pause').css('display', 'none');
 		$('.auto-refresh-resume').css('display', 'none');
 		hideAutoRefreshDiv();
+		$.getScript("/inc/fontawesome.min.js")
 	} else {
 		clearInterval(intervalId);
 		Cookies.set('auto-refresh', interval, { expires: 365 });

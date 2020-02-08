@@ -89,13 +89,13 @@
 						{% set action_service = 'hap' %}
 					{% endif %}
 					<a id="start-{{ s.2 }}" class="start" title="Start HAProxy service">
-						<img src=/inc/images/start.png alt="start" class="icon-hapservs" style="margin-bottom: -2px;" onclick="confirmAjaxAction('start', '{{action_service}}', '{{s.2}}')">
+						<span class="service-start" onclick="confirmAjaxAction('start', '{{action_service}}', '{{s.2}}')"></span>
 					</a>
 					<a id="stop-{{ s.2 }}" class="stop" title="Stop HAProxy service">
-						<img src=/inc/images/stop.png alt="stop" class="icon-hapservs" width="17px" onclick="confirmAjaxAction('stop', '{{action_service}}', '{{s.2}}')">
+						<span class="service-stop" onclick="confirmAjaxAction('stop', '{{action_service}}', '{{s.2}}')"></span>
 					</a>
-					<a id="restart-{{ s.2 }}" class="restart" title="Restart HAProxy service" onclick="confirmAjaxAction('restart', '{{action_service}}', '{{s.2}}')">
-						<img src=/inc/images/update.png alt="restart" class="icon-hapservs">
+					<a id="restart-{{ s.2 }}" class="restart" title="Restart HAProxy service">
+						<span class="service-reload" onclick="confirmAjaxAction('restart', '{{action_service}}', '{{s.2}}')"></span>
 					</a>
 				</span>
 				{% endif %}
@@ -167,7 +167,7 @@
 		{% if serv %}
 			<div id="ajax-server-{{s.0}}" class="ajax-server"></div>
 			<div class="div-server div-backends">
-				<div class="server-name">	
+				<div class="server-name backends">	
 					Backends:
 				</div>
 				<div style="margin-top: 10px;" id="top-{{s.1}}"></div>
@@ -178,7 +178,7 @@
 </div>
 {% if serv %}
 	<div id="refresh" style="text-align: right;margin-right: 105px;clear: both;display: block;padding-top: 20px;margin-bottom: -25px;" title="Refresh metrics" onclick="showMetrics()">
-		<img  src="/inc/images/update.png" alt="Refresh" class="icon">
+		<span class="service-reload"></span>
 	</div>
 	{% for s in servers %}
 		<div class="chart-container" style="display: block; width: 90%; height: 300px;">
