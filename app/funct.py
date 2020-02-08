@@ -47,7 +47,6 @@ def logging(serv, action, **kwargs):
 	import sql
 	import http.cookies
 	log_path = get_config_var('main', 'log_path')
-	login = ''
 	
 	if not os.path.exists(log_path):
 		os.makedirs(log_path)
@@ -76,7 +75,7 @@ def logging(serv, action, **kwargs):
 		if kwargs.get('login'):
 			mess = get_data('date_in_log') + " from " + IP + " user: " + login + " " + action + " for: " + serv + "\n"
 		else:
-			mess = get_data('date_in_log') + action + "\n"
+			mess = get_data('date_in_log') + action + " from " + IP + "\n"
 		log = open(log_path + "/haproxy-wi-"+get_data('logs')+".log", "a")
 	else:
 		mess = get_data('date_in_log') + " from " + IP + " user: " + login + " " + action + " for: " + serv + "\n"
