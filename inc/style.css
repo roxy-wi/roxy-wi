@@ -806,30 +806,33 @@ label {
 	margin: 25px;
 	margin-left: 440px;
 	margin-bottom: 0;
-	width: 60em;
+	width: 750px;
 	display: none;
 	margin-top: px;
 	margin-bottom: 0px;
 	margin-top: 0px;
-	height: 195px;
+	height: 185px;
+	padding-bottom: 0px;
+	padding-top: 10px;
+	padding-left: 15px;
+	padding-right: 15px;
 }
 .haproxy-info {
 	display: inline-block;
 	width: 160px;
 	padding-left: 30px;
-	padding-top: 35px;
+	padding-top: 15px;
 	font-size: 12px;
 	float: left;
 }
 .top-info {
 	display: inline-block;
 	width: 350px;
-	margin-top: 30px;
+	margin-top: 10px;
 	font-size: 10px;
 }
 .update-icon {
 	float: right;
-	margin-top: 35px;
 	margin-right: 15px;
 }
 .span-link {
