@@ -81,15 +81,17 @@ Or if use Debian/Ubuntu:
 $ sudo 	apt-get install git  net-tools lshw dos2unix apache2 gcc netcat python3.5 python3.5-mod_wsgi mod_ssl python3-pip g++ freetype2-demos libatlas-base-dev openldap-dev libpq-dev python-dev libxml2-dev libxslt1-dev libldap2-dev libsasl2-dev libffi-dev python3-dev libssl-dev ansible -y
 $ git clone https://github.com/Aidaho12/haproxy-wi.git /var/www/haproxy-wi
 $ chown -R www-data:www-data haproxy-wi/
+```
 
 Both
 
+```
 $ pip3 install -r haproxy-wi/requirements.txt 
 $ chmod +x haproxy-wi/app/*.py 
 $ sudo ln -s /usr/bin/python3.5 /usr/bin/python3
-$ sudo cp config_other/logrotate/* /etc/logrotate.d/
-$ sudo cp config_other/syslog/* /etc/rsyslog.d/
-$ sudo cp config_other/systemd/* /etc/systemd/system/
+$ sudo cp haproxy-wi/config_other/logrotate/* /etc/logrotate.d/
+$ sudo cp haproxy-wi/config_other/syslog/* /etc/rsyslog.d/
+$ sudo cp haproxy-wi/config_other/systemd/* /etc/systemd/system/
 $ sudo systemctl daemon-reload      
 $ sudo systemctl restart httpd
 $ sudo systemctl restart rsyslog
