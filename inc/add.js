@@ -680,32 +680,23 @@ $( function() {
 			});
 			$( "#tabs" ).tabs( "option", "active", 0 );
 		} );
-		$( "#add4" ).on( "click", function() {
+		$( "#add3" ).on( "click", function() {
 			$('.menu li ul li').each(function () {
 				$(this).find('a').css('padding-left', '20px')
 				$(this).find('a').css('border-left', '0px solid #5D9CEB');
-				$(this).children("#add4").css('padding-left', '30px');;
-				$(this).children("#add4").css('border-left', '4px solid #5D9CEB');
+				$(this).children("#add3").css('padding-left', '30px');
+				$(this).children("#add3").css('border-left', '4px solid #5D9CEB');
 			});
 			$( "#tabs" ).tabs( "option", "active", 4 );
 		} );
-		$( "#add5" ).on( "click", function() {
-			$('.menu li ul li').each(function () {
-				$(this).find('a').css('padding-left', '20px')
-				$(this).find('a').css('border-left', '0px solid #5D9CEB');
-				$(this).children("#add5").css('padding-left', '30px');;
-				$(this).children("#add5").css('border-left', '4px solid #5D9CEB');
-			});
+		$( "#add4" ).on( "click", function() {
 			$( "#tabs" ).tabs( "option", "active", 5 );
 		} );
-		$( "#add6" ).on( "click", function() {
-			$('.menu li ul li').each(function () {
-				$(this).find('a').css('padding-left', '20px')
-				$(this).find('a').css('border-left', '0px solid #5D9CEB');
-				$(this).children("#add6").css('padding-left', '30px');
-				$(this).children("#add6").css('border-left', '4px solid #5D9CEB');
-			});
+		$( "#add5" ).on( "click", function() {
 			$( "#tabs" ).tabs( "option", "active", 6 );
+		} );
+		$( "#add6" ).on( "click", function() {
+			$( "#tabs" ).tabs( "option", "active", 7 );
 		} );
 		$( "#add7" ).on( "click", function() {
 			$('.menu li ul li').each(function () {
@@ -713,15 +704,6 @@ $( function() {
 				$(this).find('a').css('border-left', '0px solid #5D9CEB');
 				$(this).children("#add7").css('padding-left', '30px');
 				$(this).children("#add7").css('border-left', '4px solid #5D9CEB');
-			});
-			$( "#tabs" ).tabs( "option", "active", 7 );
-		} );
-		$( "#add8" ).on( "click", function() {
-			$('.menu li ul li').each(function () {
-				$(this).find('a').css('padding-left', '20px')
-				$(this).find('a').css('border-left', '0px solid #5D9CEB');
-				$(this).children("#add8").css('padding-left', '30px');
-				$(this).children("#add8").css('border-left', '4px solid #5D9CEB');
 			});
 			$( "#tabs" ).tabs( "option", "active", 8 );
 		} );

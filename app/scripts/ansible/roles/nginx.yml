@@ -1,0 +1,58 @@
+- hosts: "{{ variable_host }}"
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: check if Nginx is installed
+      package_facts:
+        manager: "auto"
+  
+    - name: populate service facts
+      service_facts:
+      
+    - name: Creates directory
+      file:
+        path: /etc/nginx
+        state: directory
+      when: "'nginx' not in ansible_facts.packages"
+      
+    - name: Creates directory
+      file:
+        path: /etc/nginx/conf.d
+        state: directory
+      when: "'nginx' not in ansible_facts.packages"
+      
+    - name: Install passlib
+      package:
+        name: python-passlib
+        state: present
+      when: "'nginx' not in ansible_facts.packages"
+      environment:
+        http_proxy: "{{PROXY}}"
+        https_proxy: "{{PROXY}}"
+      
+    - name: Copy Nginx configuration in place.
+      template:
+        src: ./default.conf.j2
+        dest: "{{CONFIG_PATH}}"
+        mode: 0644
+      when: "'nginx' not in ansible_facts.packages"
+      
+    - htpasswd:
+        path: /etc/nginx/status_page_passwdfile
+        name: "{{STATS_USER}}"
+        password: "{{STATS_PASS}}"
+      when: "'nginx' not in ansible_facts.packages"
+      
+- hosts: "{{ variable_host }}"
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Add syn_flood tasks
+      include: haproxy/tasks/syn_flood.yml
+      when: (SYN_FLOOD is defined) and (SYN_FLOOD|length > 0)
+  roles:
+    - role: nginxinc.nginx
+      environment:
+        http_proxy: "{{PROXY}}"
+        https_proxy: "{{PROXY}}"
+

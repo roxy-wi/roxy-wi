@@ -50,7 +50,6 @@ if form.getvalue('getcert') is not None and serv is not None:
 		
 			
 if serv and form.getvalue('ssl_cert'):
-	#cert_local_dir = funct.get_config_var('main', 'cert_local_dir')
 	cert_local_dir = os.path.dirname(os.getcwd())+"/"+sql.get_setting('ssl_local_path')
 	cert_path = sql.get_setting('cert_path')
 	
@@ -111,6 +110,18 @@ if form.getvalue('action_hap') is not None and serv is not None:
 	else:
 		print("Bad config, check please")
 		
+		
+if form.getvalue('action_nginx') is not None and serv is not None:
+	action = form.getvalue('action_nginx')
+	
+	if funct.check_haproxy_config(serv):
+		commands = [ "sudo systemctl %s nginx" % action ]
+		funct.ssh_command(serv, commands)		
+		funct.logging(serv, 'Nginx was '+action, haproxywi=1, login=1)
+		print("Nginx was %s" % action)
+	else:
+		print("Bad config, check please")
+		
 	
 if form.getvalue('action_waf') is not None and serv is not None:
 	serv = form.getvalue('serv')
@@ -148,8 +159,11 @@ if act == "overviewHapserverBackends":
 	
 	
 if act == "overviewHapservers":
-	haproxy_config_path  = sql.get_setting('haproxy_config_path')
-	commands = [ "ls -l %s |awk '{ print $6\" \"$7\" \"$8}'" % haproxy_config_path ]
+	if form.getvalue('service') == 'nginx':
+		config_path  = sql.get_setting('nginx_config_path')
+	else:
+		config_path  = sql.get_setting('haproxy_config_path')
+	commands = [ "ls -l %s |awk '{ print $6\" \"$7\" \"$8}'" % config_path ]
 	try:
 		print(funct.ssh_command(serv, commands))
 	except:
@@ -168,14 +182,22 @@ if act == "overview":
 			keepalived_process = funct.ssh_command(serv2, command)
 		else:
 			keepalived_process = ''
+		nginx = sql.select_nginx(serv2)
+		if nginx == 1:
+			command = [ "ps ax |grep nginx:|grep -v grep|wc -l" ]
+			nginx_process = funct.ssh_command(serv2, command)
+		else:
+			nginx_process = ''
 		server_status = (serv1, 
 						serv2, 
 						funct.server_status(funct.subprocess_execute(cmd)), 
 						sql.select_servers(server=serv2, keep_alive=1),
 						funct.ssh_command(serv2, commands2),
 						sql.select_waf_servers(serv2),
-						sql.select_keealived(serv2),
-						keepalived_process)
+						keepalived,
+						keepalived_process,
+						nginx,
+						nginx_process)
 		return server_status
 
 
@@ -290,7 +312,7 @@ if act == "overviewHapwi":
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
 	template = env.get_template('/overviewHapwi.html')
-	cmd = "top -b -n 1 |head -9"
+	cmd = "top -b -n 1 |head -12"
 	server_status, stderr = funct.subprocess_execute(cmd)
 	
 	template = template.render(server_status=server_status,stderr=stderr)									
@@ -324,10 +346,16 @@ if form.getvalue('action'):
 if serv is not None and act == "stats":
 	import requests
 	
-	haproxy_user = sql.get_setting('stats_user')
-	haproxy_pass = sql.get_setting('stats_password')
-	stats_port = sql.get_setting('stats_port')
-	stats_page = sql.get_setting('stats_page')
+	if form.getvalue('service') == 'nginx':
+		haproxy_user = sql.get_setting('nginx_stats_user')
+		haproxy_pass = sql.get_setting('nginx_stats_password')
+		stats_port = sql.get_setting('nginx_stats_port')
+		stats_page = sql.get_setting('nginx_stats_page')
+	else:
+		haproxy_user = sql.get_setting('stats_user')
+		haproxy_pass = sql.get_setting('stats_password')
+		stats_port = sql.get_setting('stats_port')
+		stats_page = sql.get_setting('stats_page')
 	try:
 		response = requests.get('http://%s:%s/%s' % (serv, stats_port, stats_page), auth=(haproxy_user, haproxy_pass)) 
 	except requests.exceptions.ConnectTimeout:
@@ -344,7 +372,25 @@ if serv is not None and act == "stats":
 		print ("OOps: Something Else",err)
 		
 	data = response.content
-	print(data.decode('utf-8'))
+	if form.getvalue('service') == 'nginx':
+		from jinja2 import Environment, FileSystemLoader
+		env = Environment(loader=FileSystemLoader('templates/'))
+		template = env.get_template('ajax/nginx_stats.html')
+		
+		servers_with_status = list()
+		h = ()
+		out1 = []
+		for k in data.decode('utf-8').split():
+			out1.append(k) 
+		h = (out1, )
+		servers_with_status.append(h)
+		
+		template = template.render(out=servers_with_status)
+		print(template)
+		
+		
+	else:	
+		print(data.decode('utf-8'))
 	
 	
 if serv is not None and form.getvalue('rows') is not None:
@@ -355,7 +401,8 @@ if serv is not None and form.getvalue('rows') is not None:
 	minut = form.getvalue('minut')
 	hour1 = form.getvalue('hour1')
 	minut1 = form.getvalue('minut1')
-	out = funct.show_haproxy_log(serv, rows=rows, waf=waf, grep=grep, hour=hour, minut=minut, hour1=hour1, minut1=minut1)
+	service = form.getvalue('service')
+	out = funct.show_haproxy_log(serv, rows=rows, waf=waf, grep=grep, hour=hour, minut=minut, hour1=hour1, minut1=minut1, service=service)
 	print(out)
 	
 	
@@ -550,7 +597,12 @@ if act == "showCompareConfigs":
 	left = form.getvalue('left')
 	right = form.getvalue('right')
 	
-	template = template.render(serv=serv, right=right, left=left, return_files=funct.get_files())									
+	if form.getvalue('service') == 'nginx':
+		return_files=funct.get_files(funct.get_config_var('configs', 'nginx_save_configs_dir'), 'conf')
+	else:
+		return_files=funct.get_files()
+	
+	template = template.render(serv=serv, right=right, left=left, return_files=return_files)									
 	print(template)
 	
 	
@@ -558,8 +610,11 @@ if serv is not None and form.getvalue('right') is not None:
 	from jinja2 import Environment, FileSystemLoader
 	left = form.getvalue('left')
 	right = form.getvalue('right')
-	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
-	cmd='diff -ub %s%s %s%s' % (hap_configs_dir, left, hap_configs_dir, right)	
+	if form.getvalue('service') == 'nginx':
+		configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
+	else:
+		configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+	cmd='diff -ub %s%s %s%s' % (configs_dir, left, configs_dir, right)	
 	env = Environment(loader=FileSystemLoader('templates/'), autoescape=True, extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
 	template = env.get_template('ajax/compare.html')
 	
@@ -573,6 +628,8 @@ if serv is not None and form.getvalue('right') is not None:
 if serv is not None and act == "configShow":
 	if form.getvalue('service') == 'keepalived':
 		configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
+	elif form.getvalue('service') == 'nginx':
+		configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
 	else:
 		configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 	
@@ -581,11 +638,10 @@ if serv is not None and act == "configShow":
 		funct.get_config(serv, cfg)
 	else: 
 		cfg = configs_dir + form.getvalue('configver')
-			
 	try:
 		conf = open(cfg, "r")
 	except IOError:
-		print('<div class="alert alert-danger">Can\'t read import config file</div>')
+		print('<div class="alert alert-danger">Can\'t read config file</div>')
 		
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True, trim_blocks=True, lstrip_blocks=True, extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
@@ -626,6 +682,10 @@ if form.getvalue('master'):
 	if form.getvalue('hap') == "1":
 		funct.install_haproxy(master)
 		funct.install_haproxy(slave)
+		
+	if form.getvalue('nginx') == "1":
+		funct.install_nginx(master)
+		funct.install_nginx(slave)
 		
 	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+ 
 				" ETH="+ETH+" IP="+str(IP)+" MASTER=MASTER"+" SYN_FLOOD="+syn_flood+" HOST="+str(master)+
@@ -827,6 +887,10 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
 				print('Ok')
 				funct.logging('backup ', ' has updated a backup job for server '+server, haproxywi=1, login=1)
 				
+				
+if form.getvalue('install_nginx'):
+	funct.install_nginx(form.getvalue('install_nginx'))
+				
 	
 if form.getvalue('haproxyaddserv'):
 	funct.install_haproxy(form.getvalue('haproxyaddserv'), syn_flood=form.getvalue('syn_flood'), hapver=form.getvalue('hapver'))
@@ -914,6 +978,11 @@ if form.getvalue('new_waf_metrics'):
 if form.getvalue('get_hap_v'):
 	output = funct.check_haproxy_version(serv)
 	print(output)
+	
+	
+if form.getvalue('get_nginx_v'):
+	cmd = [ "/usr/sbin/nginx -v" ]
+	print(funct.ssh_command(serv, cmd))
 	
 	
 if form.getvalue('bwlists'):
@@ -1090,18 +1159,17 @@ if form.getvalue('newserver') is not None:
 	ip = form.getvalue('newip')
 	group = form.getvalue('newservergroup')
 	typeip = form.getvalue('typeip')
+	haproxy = form.getvalue('haproxy')
+	nginx = form.getvalue('nginx')
 	enable = form.getvalue('enable')
 	master = form.getvalue('slave')
 	cred = form.getvalue('cred')
-	alert = form.getvalue('alert_en')
-	metrics = form.getvalue('metrics')
 	page = form.getvalue('page')
 	page = page.split("#")[0]
 	port = form.getvalue('newport')	
-	desc = form.getvalue('desc')	
-	active = form.getvalue('active')	
+	desc = form.getvalue('desc')		
 
-	if sql.add_server(hostname, ip, group, typeip, enable, master, cred, alert, metrics, port, desc, active):
+	if sql.add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx):
 		from jinja2 import Environment, FileSystemLoader
 		env = Environment(loader=FileSystemLoader('templates/'))
 		template = env.get_template('ajax/new_server.html')
@@ -1116,23 +1184,32 @@ if form.getvalue('newserver') is not None:
 		funct.logging('a new server '+hostname, ' has created  ', haproxywi=1, login=1)
 		
 		
+if form.getvalue('updatehapwiserver') is not None:
+	id = form.getvalue('updatehapwiserver')
+	active = form.getvalue('active')
+	alert = form.getvalue('alert_en')	
+	metrics = form.getvalue('metrics')
+	sql.update_hapwi_server(id, alert, metrics, active)
+	funct.logging('the server '+name, ' has updated ', haproxywi=1, login=1)
+		
+	
 if form.getvalue('updateserver') is not None:
 	name = form.getvalue('updateserver')	
 	group = form.getvalue('servergroup')	
 	typeip = form.getvalue('typeip')		
+	haproxy = form.getvalue('haproxy')		
+	nginx = form.getvalue('nginx')		
 	enable = form.getvalue('enable')		
 	master = form.getvalue('slave')		
 	id = form.getvalue('id')	
-	cred = form.getvalue('cred')	
-	alert = form.getvalue('alert_en')	
-	metrics = form.getvalue('metrics')	
+	cred = form.getvalue('cred')		
 	port = form.getvalue('port')	
 	desc = form.getvalue('desc')	
-	active = form.getvalue('active')	
+		
 	if name is None or port is None:
 		print(error_mess)
 	else:
-		sql.update_server(name, group, typeip, enable, master, id, cred, alert, metrics, port, desc, active)
+		sql.update_server(name, group, typeip, enable, master, id, cred, port, desc, haproxy, nginx)
 		funct.logging('the server '+name, ' has updated ', haproxywi=1, login=1)
 			
 			

@@ -35,15 +35,19 @@ if service == 'keepalived':
 	action = "config.py?service=keepalived"
 	configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')	
 	format = 'conf'
-	servers = sql.get_dick_permit()
-	keepalived = 1
+	servers = sql.get_dick_permit(keepalived=1)
+elif service == 'nginx':
+	title = "Working with Nginx configs"
+	action = "config.py?service=nginx"
+	configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')	
+	format = 'conf'
+	servers = sql.get_dick_permit(nginx=1)
 else:
 	title = "Working with HAProxy configs"
 	action = "config.py"
 	configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 	format = 'cfg'
 	servers = sql.get_dick_permit()
-	keepalived = 0
 
 if serv is not None:
 	cfg = configs_dir + serv + "-" + funct.get_data('config') + "."+format
@@ -53,13 +57,19 @@ if serv is not None and form.getvalue('open') is not None :
 	if service == 'keepalived':
 		error = funct.get_config(serv, cfg, keepalived=1)
 		try:
-			funct.logging(serv, "keepalivedconfig.py open config")
+			funct.logging(serv, " Keepalived config has opened for ")
+		except:
+			pass
+	elif service == 'nginx':
+		error = funct.get_config(serv, cfg, nginx=1)
+		try:
+			funct.logging(serv, " Nginx config has opened ")
 		except:
 			pass
 	else:
 		error = funct.get_config(serv, cfg)
 		try:
-			funct.logging(serv, "config.py open config")
+			funct.logging(serv, " HAProxy config has opened ")
 		except:
 			pass
 	
@@ -90,6 +100,8 @@ if serv is not None and form.getvalue('config') is not None:
 	
 	if service == 'keepalived':
 		stderr = funct.upload_and_restart(serv, cfg, just_save=save, keepalived=1)
+	elif service == 'nginx':
+		stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save=save, nginx=1)
 	else:
 		stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save=save)
 		
@@ -112,6 +124,6 @@ template = template.render(h2 = 1, title = title,
 							error = error,
 							note = 1,
 							versions = funct.versions(),
-							keepalived = keepalived,
+							service = service,
 							token = token)
 print(template)

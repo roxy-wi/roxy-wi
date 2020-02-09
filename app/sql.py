@@ -124,6 +124,7 @@ def add_group(name, description):
 		return True
 	cur.close()    
 	con.close() 
+	
 
 def delete_group(id):
 	con, cur = get_cur()
@@ -138,6 +139,7 @@ def delete_group(id):
 		return True
 	cur.close()    
 	con.close() 
+	
 	
 def update_group(name, descript, id):
 	con, cur = get_cur()
@@ -157,12 +159,13 @@ def update_group(name, descript, id):
 		return True
 	cur.close()    
 	con.close()
+	
 
-def add_server(hostname, ip, group, typeip, enable, master, cred, alert, metrics, port, desc, active):
+def add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx):
 	con, cur = get_cur()
-	sql = """ INSERT INTO servers (hostname, ip, groups, type_ip, enable, master, cred, alert, metrics, port, `desc`, active) 
-			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
-		""" % (hostname, ip, group, typeip, enable, master, cred, alert, metrics, port, desc, active)
+	sql = """ INSERT INTO servers (hostname, ip, groups, type_ip, enable, master, cred, port, `desc`, haproxy, nginx) 
+			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
+		""" % (hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx)
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -173,6 +176,7 @@ def add_server(hostname, ip, group, typeip, enable, master, cred, alert, metrics
 		return False	
 	cur.close()    
 	con.close() 	
+	
 
 def delete_server(id):
 	con, cur = get_cur()
@@ -187,22 +191,15 @@ def delete_server(id):
 		return True
 	cur.close()    
 	con.close() 		
-
-def update_server(hostname, group, typeip, enable, master, id, cred, alert, metrics, port, desc, active):
+	
+	
+def update_hapwi_server(id, alert, metrics, active):
 	con, cur = get_cur()
 	sql = """ update servers set 
-			hostname = '%s',
-			groups = '%s',
-			type_ip = '%s',
-			enable = '%s',
-			master = '%s',
-			cred = '%s',
 			alert = '%s',
 			metrics = '%s',
-			port = '%s',
-			`desc` = '%s',
 			active = '%s'
-			where id = '%s'""" % (hostname, group, typeip, enable, master, cred, alert, metrics, port, desc, active, id)
+			where id = '%s'""" % (alert, metrics, active, id)
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -211,6 +208,31 @@ def update_server(hostname, group, typeip, enable, master, id, cred, alert, metr
 		con.rollback()
 	cur.close()    
 	con.close()
+	
+
+def update_server(hostname, group, typeip, enable, master, id, cred, port, desc, haproxy, nginx):
+	con, cur = get_cur()
+	sql = """ update servers set 
+			hostname = '%s',
+			groups = '%s',
+			type_ip = '%s',
+			enable = '%s',
+			master = '%s',
+			cred = '%s',
+			port = '%s',
+			`desc` = '%s',
+			haproxy = '%s',
+			nginx = '%s'
+			where id = '%s'""" % (hostname, group, typeip, enable, master, cred, port, desc, haproxy, nginx, id)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		out_error(e)
+		con.rollback()
+	cur.close()    
+	con.close()
+	
 
 def update_server_master(master, slave):
 	con, cur = get_cur()
@@ -514,6 +536,9 @@ def get_dick_permit(**kwargs):
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_id = cookie.get('uuid')
 	disable = ''
+	haproxy = ''
+	nginx = ''
+	keepalived = ''
 	ip = ''
 	
 	con, cur = get_cur()
@@ -529,6 +554,12 @@ def get_dick_permit(**kwargs):
 		disable = 'or enable = 0'
 	if kwargs.get('ip'):
 		ip = "and ip = '%s'" % kwargs.get('ip')
+	if kwargs.get('haproxy'):
+		haproxy = "and haproxy = 1"
+	if kwargs.get('nginx'):
+		nginx = "and nginx = 1"
+	if kwargs.get('keepalived'):
+		nginx = "and keepalived = 1"
 				
 	try:    
 		cur.execute(sql)
@@ -537,17 +568,20 @@ def get_dick_permit(**kwargs):
 	else:
 		for group in cur:
 			if group[5] == '1':
-				sql = """ select * from servers where enable = 1 %s %s """ % (disable, type_ip)
+				sql = """ select * from servers where enable = 1 %s %s %s """ % (disable, type_ip, nginx)
 			else:
-				sql = """ select * from servers where groups like '%{group}%' and (enable = 1 {disable}) {type_ip} {ip} """.format(group=group[5], disable=disable, type_ip=type_ip, ip=ip)		
+				sql = """ select * from servers where groups like '%{group}%' and (enable = 1 {disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} 
+				""".format(group=group[5], disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx, keepalived=keepalived)		
 		try:   
 			cur.execute(sql)
 		except sqltool.Error as e:
 			out_error(e)
 		else:
 			return cur.fetchall()
+	
 	cur.close()    
 	con.close() 
+	
 	
 def is_master(ip, **kwargs):
 	con, cur = get_cur()
@@ -562,6 +596,7 @@ def is_master(ip, **kwargs):
 		return cur.fetchall()
 	cur.close()    
 	con.close() 
+	
 	
 def select_ssh(**kwargs):
 	con, cur = get_cur()
@@ -581,6 +616,7 @@ def select_ssh(**kwargs):
 	cur.close()    
 	con.close() 
 	
+	
 def insert_new_ssh(name, enable, group, username, password):
 	con, cur = get_cur()
 	sql = """insert into cred(name, enable, groups, username, password) values ('%s', '%s', '%s', '%s', '%s') """ % (name, enable, group, username, password)
@@ -595,6 +631,7 @@ def insert_new_ssh(name, enable, group, username, password):
 	cur.close()    
 	con.close() 
 	
+	
 def delete_ssh(id):
 	con, cur = get_cur()
 	sql = """ delete from cred where id = %s """ % (id)
@@ -608,6 +645,7 @@ def delete_ssh(id):
 		return True
 	cur.close()    
 	con.close() 
+
 
 def update_ssh(id, name, enable, group, username, password):
 	con, cur = get_cur()
@@ -1481,6 +1519,50 @@ def select_keealived(serv, **kwargs):
 def update_keepalived(serv):
 	con, cur = get_cur()
 	sql = """update `servers` set `keepalived` = '1' where ip = '%s' """ % serv
+	try:    
+		cur.execute(sql)
+		con.commit()
+		return True
+	except sqltool.Error as e:
+		out_error(e)
+		con.rollback()
+		return False
+	cur.close()    
+	con.close()
+
+	
+def select_nginx(serv, **kwargs):
+	con, cur = get_cur()
+	sql = """select nginx from `servers` where ip='%s' """ % serv
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		out_error(e)
+	else:
+		for value in cur.fetchone():
+			return value
+	cur.close()    
+	con.close()  
+	
+	
+def update_nginx(serv):
+	con, cur = get_cur()
+	sql = """update `servers` set `nginx` = '1' where ip = '%s' """ % serv
+	try:    
+		cur.execute(sql)
+		con.commit()
+		return True
+	except sqltool.Error as e:
+		out_error(e)
+		con.rollback()
+		return False
+	cur.close()    
+	con.close()
+	
+	
+def update_haproxy(serv):
+	con, cur = get_cur()
+	sql = """update `servers` set `haproxy` = '1' where ip = '%s' """ % serv
 	try:    
 		cur.execute(sql)
 		con.commit()

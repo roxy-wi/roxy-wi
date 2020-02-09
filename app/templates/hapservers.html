@@ -47,37 +47,55 @@
 			</script>
 		{% endif %}
 	<div class="div-pannel" id="div-pannel-{{s.0}}">
-		<div id="div-server-{{s.0}}" class="div-server-hapwi">
-			<div class="server-name">				
-				{% if s.5 != False %}
-					<span class="serverUp server-status" title="{{s.5.0.2}}"></span>
-				{% else %}
-					<span class="serverDown server-status" title="HAProxy is down"></span>
-				{% endif %}
-				{% if not serv %}
-					<a href="/app/hapservers.py?serv={{s.2}}" title="More about {{s.1}}" style="color: #5d9ceb">{{s.1}}</a>
-				{% else %}
+		<div id="div-server-{{s.0}}" class="div-server-hapwi" {% if service == 'nginx' %}style="height:138px;"{%endif%}>
+			<div class="server-name">	
+				{% if service == 'nginx' %}
+					<input type="hidden" id="service" value="nginx" />
+					{% if s.5.0.3 == 'active' %}
+						<span class="serverUp server-status" title="Uptime: {{s.5.0.4}}"></span>
+					{% else %}
+						<span class="serverDown server-status" title="Downtime: : {{s.5.0.4}}"></span>
+					{% endif %}
 					{{s.1}}
+				{% else %}
+					<input type="hidden" id="service" value="haproxy" />
+					{% if s.5 != False %}
+						<span class="serverUp server-status" title="{{s.5.0.2}}"></span>
+					{% else %}
+						<span class="serverDown server-status" title="HAProxy is down"></span>
+					{% endif %}
+					{% if not serv %}
+						<a href="/app/hapservers.py?serv={{s.2}}" title="More about {{s.1}}" style="color: #5d9ceb">{{s.1}}</a>
+					{% else %}
+						{{s.1}}
+					{% endif %}
 				{% endif %}
-				{% if s.6|int() >= 1 %}
-					<img 
-						{% if keep_alive|int() >= 1 %}
-							src="/inc/images/shield.png" title="Auto start enabled"
-						{% else %}
-							src="/inc/images/shield-red.png" title="Auto start enabled, but keep alive service does not work"
-						{% endif %}
-						width=18 style="padding-left: 5px; margin-bottom: -3px;">
+				{% if service == 'haproxy' %}
+					{% if s.6|int() >= 1 %}
+						<img 
+							{% if keep_alive|int() >= 1 %}
+								src="/inc/images/shield.png" title="Auto start enabled"
+							{% else %}
+								src="/inc/images/shield-red.png" title="Auto start enabled, but keep alive service does not work"
+							{% endif %}
+							width=18 style="padding-left: 5px; margin-bottom: -3px;">
+					{% endif %}
 				{% endif %}
 				{% if role <= 1 %}
 				<span class="server-action">
+					{% if service == 'nginx' %}
+						{% set action_service = 'nginx' %}
+					{% else %}
+						{% set action_service = 'hap' %}
+					{% endif %}
 					<a id="start-{{ s.2 }}" class="start" title="Start HAProxy service">
-						<img src=/inc/images/start.png alt="start" class="icon-hapservs" style="margin-bottom: -2px;" onclick="confirmAjaxAction('start', 'hap', '{{s.2}}')">
+						<span class="service-start" onclick="confirmAjaxAction('start', '{{action_service}}', '{{s.2}}')"></span>
 					</a>
 					<a id="stop-{{ s.2 }}" class="stop" title="Stop HAProxy service">
-						<img src=/inc/images/stop.png alt="stop" class="icon-hapservs" width="17px" onclick="confirmAjaxAction('stop', 'hap', '{{s.2}}')">
+						<span class="service-stop" onclick="confirmAjaxAction('stop', '{{action_service}}', '{{s.2}}')"></span>
 					</a>
-					<a id="restart-{{ s.2 }}" class="restart" title="Restart HAProxy service" onclick="confirmAjaxAction('restart', 'hap', '{{s.2}}')">
-						<img src=/inc/images/update.png alt="restart" class="icon-hapservs">
+					<a id="restart-{{ s.2 }}" class="restart" title="Restart HAProxy service">
+						<span class="service-reload" onclick="confirmAjaxAction('restart', '{{action_service}}', '{{s.2}}')"></span>
 					</a>
 				</span>
 				{% endif %}
@@ -85,10 +103,14 @@
 			<div class="server-desc">
 				{{s.3}}
 				<br />
-				{% if s.5.0 is defined %}				
-					{{s.5.0.0}} {{s.5.0.1}} {{s.5.0.2}}
+				{% if service == 'nginx' %}
+					Version: {{s.5.0.2}} Process_num: {{s.5.0.5}} {% if s.5.0.3 == 'active' %} Uptime: {% else %} Downtime: {% endif %} {{s.5.0.4}}
 				{% else %}
-					Cannot get information about HAProxy 
+					{% if s.5.0 is defined %}
+						{{s.5.0.0}} {{s.5.0.1}} {{s.5.0.2}}
+					{% else %}
+						Cannot get information about HAProxy 
+					{% endif %}				 
 				{% endif %}				 
 				<br />
 				<span title="Date of last edit config" >
@@ -101,21 +123,51 @@
 					Master for: {{ s.7.0.1 }}
 				{% endif %}
 			</div>
+			{% if service == 'haproxy' %}
+				<div class="server-act-links" id="server-{{s.8.0.0|string()}}">
+				{% if role <= 1 %}
+					{% set id = 'alert-' + s.8.0.0|string() %}
+					{% if s.8.0.8 == 1 %}
+						{{ checkbox(id, title='Enable alerting', value='1', desc='Alert', checked='checked') }}
+					{% else %}
+						{{ checkbox(id, title='Enable alerting', value='1', desc='Alert') }}
+					{% endif %}
+					{% set id = 'metrics-' + s.8.0.0|string() %}
+					{% if s.8.0.9 == 1 %}
+						{{ checkbox(id, title='Enable collect metrics', value='1', desc='Metrics', checked='checked') }}
+					{% else %}
+						{{ checkbox(id, title='Enable collect metrics', value='1', desc='Metrics') }}
+					{% endif %}	
+					{% set id = 'active-' + s.8.0.0|string() %}
+					{% if s.8.0.12 == 1 %}
+						{{ checkbox(id, title='Enable Compression', value='1', desc='Auto Start', checked='checked') }}
+					{% else %}
+						{{ checkbox(id, title='Enable Auto Start', value='1', desc='Auto Start') }}
+					{% endif %}
+				{% endif %}
+				</div>
+			{% endif %}
 			<div class="server-act-links">
+			{% if service != 'nginx' %}
 				<a href="/app/config.py?serv={{s.2}}&showConfig" class="ui-button ui-widget ui-corner-all" title="Open running config">Open</a>	
-				<a href="/app/config.py?serv={{s.2}}&showCompare" class="ui-button ui-widget ui-corner-all" title="Compare configs">Compare</a>	
+			{% else %}
+				<a class="ui-button ui-widget ui-corner-all" title="Edit this run config" href="config.py?service={{service}}&serv={{s.2}}&open=open">Edit</a>
+			{% endif %}
+				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showCompare" class="ui-button ui-widget ui-corner-all" title="Compare configs">Compare</a>	
+			{% if service != 'nginx' %}
 				<a href="/app/config.py?serv={{s.2}}&showMap" class="ui-button ui-widget ui-corner-all" title="Show map">Map</a>	
 				<a href="/app/viewsttats.py?serv={{s.2}}" class="ui-button ui-widget ui-corner-all" title="View stat">Stat</a>	
-				<a href="/app/logs.py?serv={{s.2}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" class="ui-button ui-widget ui-corner-all" title="View log">Log</a>	
+			{% endif %}
+				<a href="/app/logs.py?service={{service}}&serv={{s.2}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" class="ui-button ui-widget ui-corner-all" title="View log">Log</a>	
 				{% if role <= 2 %}
-					<a href="/app/versions.py?serv={{s.2}}&open=open" class="ui-button ui-widget ui-corner-all">Versions</a>	
+					<a href="/app/versions.py?service={{service}}&serv={{s.2}}&open=open" class="ui-button ui-widget ui-corner-all">Versions</a>	
 				{% endif %}
 			</div>
 		</div>
 		{% if serv %}
 			<div id="ajax-server-{{s.0}}" class="ajax-server"></div>
 			<div class="div-server div-backends">
-				<div class="server-name">	
+				<div class="server-name backends">	
 					Backends:
 				</div>
 				<div style="margin-top: 10px;" id="top-{{s.1}}"></div>
@@ -126,7 +178,7 @@
 </div>
 {% if serv %}
 	<div id="refresh" style="text-align: right;margin-right: 105px;clear: both;display: block;padding-top: 20px;margin-bottom: -25px;" title="Refresh metrics" onclick="showMetrics()">
-		<img  src="/inc/images/update.png" alt="Refresh" class="icon">
+		<span class="service-reload"></span>
 	</div>
 	{% for s in servers %}
 		<div class="chart-container" style="display: block; width: 90%; height: 300px;">
@@ -144,6 +196,6 @@
 	{% if serv %}
 		overviewHapserverBackends(ip, hostnamea);
 	{% endif %}
-	showHapservers(ip, hostnamea);
+	showHapservers(ip, hostnamea, '{{service}}');
 </script>
 {% endblock %}

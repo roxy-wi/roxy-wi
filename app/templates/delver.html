@@ -22,7 +22,7 @@
 				<input type="checkbox" id="select_all"><br />
 				{% for file in return_files %}
 					<label for="{{file}}"> {{file.split('-', maxsplit=1)[1]}} </label><input type="checkbox" value="{{file}}" name="{{file}}" id="{{file}}">
-					<a href="/app/versions.py?serv={{serv}}&open=open&configver={{file}}&service={{service}}" class="ui-button ui-widget ui-corner-all" title="View and upload this version of the config" style="margin-top: -6px;">
+					<a href="/app/versions.py?service={{service}}&serv={{serv}}&open=open&configver={{file}}" class="ui-button ui-widget ui-corner-all" title="View and upload this version of the config" style="margin-top: -6px;">
 						Upload
 					</a><br />
 				{% endfor %}

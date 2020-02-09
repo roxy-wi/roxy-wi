@@ -87,6 +87,7 @@ pre {
 	z-index: 1000;
 	display: block;
 	background-color: #222a31;
+	font-size: 12px;
 }
 .logoText {
 	color: #EBF1F1;
@@ -289,10 +290,10 @@ pre {
 	margin-left: 30px;
 	position: fixed;
 	margin-left: 65px;
-	margin-top: 25px;
+	margin-top: 15px;
 }
 .line {
-	background-color: #f5faf4;
+	background-color: #f3f8fb;
 	border: 1px solid #ddd;
 }
 .line, .line3 {
@@ -747,7 +748,7 @@ label {
 .div-server, .div-server-hapwi {
 	background-color: #fbfbfb;
 	border: 1px solid #A4C7F5;
-	height: 153px;
+	height: 165px;
 	width: 365px;
 	padding: 20px;
 	padding-top: 10px;
@@ -755,7 +756,7 @@ label {
 	padding-right: 15px;
 	margin: 20px;
 	margin-right: 10px;
-	margin-bottom: 30px	;
+	margin-bottom: 20px	;
 	margin-top: 0px;
 	display: block;
 	float: left;
@@ -785,9 +786,8 @@ label {
 	margin-top: 6px;
 }
 .server-desc {
-	padding-bottom: 10px;
     color: #999;
-    padding-top: 10px;
+    padding-top: 5px;
 	height: 80px;
 }
 .server-act-links {
@@ -806,30 +806,33 @@ label {
 	margin: 25px;
 	margin-left: 440px;
 	margin-bottom: 0;
-	width: 60em;
+	width: 750px;
 	display: none;
 	margin-top: px;
 	margin-bottom: 0px;
 	margin-top: 0px;
-	height: 183px;
+	height: 185px;
+	padding-bottom: 0px;
+	padding-top: 10px;
+	padding-left: 15px;
+	padding-right: 15px;
 }
 .haproxy-info {
 	display: inline-block;
 	width: 160px;
 	padding-left: 30px;
-	padding-top: 35px;
+	padding-top: 15px;
 	font-size: 12px;
 	float: left;
 }
 .top-info {
 	display: inline-block;
 	width: 350px;
-	margin-top: 30px;
+	margin-top: 10px;
 	font-size: 10px;
 }
 .update-icon {
 	float: right;
-	margin-top: 35px;
 	margin-right: 15px;
 }
 .span-link {

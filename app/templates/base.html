@@ -53,26 +53,18 @@
 					<ul class="menu">
 						{% if user %}	
 						<li><a href="/app/overview.py" title="Server and service status" class="overview-link">Overview</a></li>
-						<li class="p_menu"><a title="Statistics, monitoring and logs" class="stats">Monitoring</a>			
-							<ul class="v_menu">
-								<li><a href="/app/viewsttats.py" title="Show stats" class="stats head-submenu">Stats</a></li>
-								<li><a href="/app/logs.py" title="View logs" class="logs head-submenu"> Logs</a></li>	
-								<li><a href="/app/edit.py" title="Runtime API" class="runtime head-submenu">Runtime API</a></li>
-								<li><a href="/app/metrics.py" title="Metrics" class="metrics head-submenu">Metrics</a></li>
-							</ul>
-						</li>
 						<li class="p_menu"><a title="Actions with Haproxy configs" class="config-show">Haproxy</a>								
 							<ul class="v_menu">
-								<li><a href="/app/hapservers.py" title="Working with Haproxy Configs" class="overview-link head-submenu">Overview</a> </li>
+								<li><a href="/app/hapservers.py" title="Overview HAProxy servers" class="overview-link head-submenu">Overview</a> </li>
 								<li><a href="/app/config.py" title="Working with HAProxy configs" class="edit head-submenu">Configs</a></li>
+								<li><a href="/app/viewsttats.py" title="Show stats" class="stats head-submenu">Stats</a></li>
+								<li><a href="/app/edit.py" title="Runtime API" class="runtime head-submenu">Runtime API</a></li>
+								<li><a href="/app/metrics.py" title="Metrics" class="metrics head-submenu">Metrics</a></li>
 							{% if role <= 2 %}
 								<li><a href="/app/add.py#proxy" title="Add proxy" class="add head-submenu" id="add1">Add proxy</a></li>
 								<li><a href="/app/versions.py" title="Actions with configs versions" class="version head-submenu">Versions</a></li>
-								<li><a href="/app/add.py#ssl" title="Upload SSL cert" class="cert head-submenu" id="add4">SSL</a></li>	
-								<li><a href="/app/add.py#option" title="Save custom options" class="option head-submenu" id="add5">Options</a></li>	
-								<li><a href="/app/add.py#add-servers" title="Save servers" class="runtime head-submenu" id="add6">Servers</a></li>	
-								<li><a href="/app/add.py#userlist" title="Add userlist" class="add-userlist head-submenu" id="add7">User lists</a></li>	
-								<li><a href="/app/add.py#lists" title="Manage black and white lists" class="lists head-submenu" id="add8">Lists</a></li>	
+								<li><a href="/app/add.py#ssl" title="Upload SSL cert" class="cert head-submenu" id="add3">SSL</a></li>	
+								<li><a href="/app/add.py#lists" title="Manage black and white lists" class="lists head-submenu" id="add7">Lists</a></li>	
 								<li><a href="/app/waf.py" title="Web application firewall" class="waf head-submenu">WAF</a> </li>	
 							{% endif %}
 							</ul>
@@ -80,10 +72,18 @@
 	
 						{% if role <= 2 %}
 							<li class="p_menu">
+								<a title="Nginx" class="nginx">Nginx</a>
+								<ul class="v_menu">
+									<li><a href="/app/hapservers.py?service=nginx" title="Overview Nginx servers" class="overview-link head-submenu">Overview</a> </li>
+									<li><a href="/app/config.py?service=nginx" title="Edit Nginx config" class="edit head-submenu">Configs</a></li>
+									<li><a href="/app/versions.py?service=nginx" title="Actions with Nginx configs versions" class="version head-submenu">Versions</a></li>
+								</ul>
+							</li>
+							<li class="p_menu">
 								<a title="Keepalived" class="ha">Keepalived</a>
 								<ul class="v_menu">
 									<li><a href="/app/ha.py" title="Create HA cluster" class="keepalived head-submenu">HA</a></li>
-									<li><a href="/app/config.py?service=keepalived" title="Edit keepalived config" class="edit head-submenu">Edit config</a></li>
+									<li><a href="/app/config.py?service=keepalived" title="Edit Keepalived config" class="edit head-submenu">Configs</a></li>
 									<li><a href="/app/versions.py?service=keepalived" title="Actions with Keepalived configs versions" class="version head-submenu keepalived_versions">Versions</a></li>
 								</ul>
 							</li>
@@ -130,8 +130,8 @@
 						<span class="auto-refresh">
 							<a onclick="pauseAutoRefresh()" class="auto-refresh-pause" style="display: none; margin-top: 4px;"></a>
 							<a onclick="pauseAutoResume()" class="auto-refresh-resume" style="display: none; margin-top: 4px;"></a>
-							<a id="0"><img  src="/inc/images/update.png" alt="restart" class="icon"> Auto-refresh</a>
-							<a id="1" style="display: none;"><img  src="/inc/images/update.png" alt="restart" class="icon"> Auto-refresh</a>
+							<a id="0"><span class="service-reload"></span> Auto-refresh</a>
+							<a id="1" style="display: none;"><span class="service-reload"></span> Auto-refresh</a>
 						</span>		
 					{% endif %}
 				</h2>
@@ -241,7 +241,7 @@
 					{% endif %}
 					{% if new_ver_without_dots is defined and current_ver_without_dots is defined and new_ver is defined and new_ver_without_dots is defined %}
 						<a style="color: #000; cursor: pointer;">
-							{% if new_ver_without_dots > current_ver_without_dots and new_ver != "Sorry cannot get current version" %}
+							{% if new_ver > current_ver and new_ver != "Sorry cannot get current version" %}
 								<span id="show-updates-button" class="new-version-exists">v{{current_ver}} </span>
 							{% else %}
 								v{{current_ver}}

@@ -1,5 +1,13 @@
-{% for service in service_status %}
+{%- for service in service_status -%}
 <div class="server-info">
+	<div class="server-name">
+		Server status
+		<span class="update-icon">
+			<a onclick="showOverviewServer('{{ service.0 }}', '{{ service.1 }}', '{{id}}')" title="Refresh">
+				<span class="service-reload"></span>
+			</a>
+		</span>
+	</div>
 	<div class="haproxy-info">
 		{{ service.2 }}
 	</div>
@@ -7,11 +15,6 @@
 		<pre>
 {{ service.3 }}
 		</pre>
-	</div>	
-	<div class="update-icon">
-		<a onclick="showOverviewServer('{{ service.0 }}', '{{ service.1 }}', '{{id}}')" title="Refresh">
-			<img  src="/inc/images/update.png" alt="restart" class="icon">
-		</a>
-	</div>
+	</div>		
 </div>
 {% endfor %}

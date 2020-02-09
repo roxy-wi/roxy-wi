@@ -35,11 +35,18 @@ except:
 	
 	
 if service == 'keepalived':
-	title = "Working with versions Keepalived configs"
-	files = funct.get_files(dir=funct.get_config_var('configs', 'kp_save_configs_dir'), format='conf')
-	action = 'versions.py?service=keepalived'
 	configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
+	title = "Working with versions Keepalived configs"
+	files = funct.get_files(dir=configs_dir, format='conf')
+	action = 'versions.py?service=keepalived'	
 	format = 'conf'
+elif service == 'nginx':
+	configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
+	title = "Working with versions Nginx configs"
+	files = funct.get_files(dir=configs_dir, format='conf')
+	action = 'versions.py?service=nginx'	
+	format = 'conf'
+	servers = sql.get_dick_permit(nginx=1)
 else:
 	title = "Working with versions HAProxy configs"
 	files = funct.get_files()
@@ -59,7 +66,7 @@ if serv is not None and form.getvalue('del') is not None:
 					funct.logging(serv, "versions.py were deleted configs: %s" % form.getvalue(get))				
 				except OSError as e: 
 					stderr = "Error: %s - %s." % (e.filename,e.strerror)
-		print('<meta http-equiv="refresh" content="10; url=versions.py?serv=%s&open=open&service=%s">' % (form.getvalue('serv'), service))	
+		print('<meta http-equiv="refresh" content="10; url=versions.py?service=%s&serv=%s&open=open">' % (service, form.getvalue('serv')))	
 
 
 if serv is not None and form.getvalue('config') is not None:
@@ -71,7 +78,9 @@ if serv is not None and form.getvalue('config') is not None:
 	except:
 		pass
 	if service == 'keepalived':
-		stderr = funct.master_slave_upload_and_restart(serv, configver, just_save=save, keepalived=1)
+		stderr = funct.upload_and_restart(serv, configver, just_save=save, keepalived=1)
+	elif service == 'nginx':
+		stderr = funct.master_slave_upload_and_restart(serv, configver, just_save=save, nginx=1)
 	else:
 		stderr = funct.master_slave_upload_and_restart(serv, configver, just_save=save)
 		

@@ -165,7 +165,10 @@ def update_db_v_31(**kwargs):
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('proxy', '', 'main', 'Proxy server. Use proto://ip:port');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('session_ttl', '5', 'main', 'Time to live users sessions. In days');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('token_ttl', '5', 'main', 'Time to live users tokens. In days');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('local_path_logs', '/var/log/haproxy.log', 'logs', 'Logs save locally, disable by default');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('tmp_config_path', '/tmp/', 'main', 'Temp store configs, for check');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('cert_path', '/etc/ssl/certs/', 'main', 'Path to SSL dir');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('lists_path', 'lists', 'main', 'Path to black/white lists. This is a relative path, begins with $HOME_HAPROXY-WI');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('local_path_logs', '/var/log/haproxy.log', 'logs', 'Logs save locally, enabled by default');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('syslog_server_enable', '0', 'logs', 'If exist syslog server for HAproxy logs, enable this option');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('syslog_server', '0', 'logs', 'IP address syslog server');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('log_time_storage', '14', 'logs', 'Time of storage of logs of user activity, in days');")
@@ -181,10 +184,7 @@ def update_db_v_31(**kwargs):
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('server_state_file', '/etc/haproxy/haproxy.state', 'haproxy', 'Path to HAProxy state file');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('haproxy_sock', '/var/run/haproxy.sock', 'haproxy', 'Path to HAProxy sock file');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('haproxy_sock_port', '1999', 'haproxy', 'HAProxy sock port');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('tmp_config_path', '/tmp/', 'haproxy', 'Temp store configs, for haproxy check');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('cert_path', '/etc/ssl/certs/', 'haproxy', 'Path to SSL dir');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('firewall_enable', '0', 'haproxy', 'If enable this option Haproxy-wi will be configure firewalld based on config port');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('lists_path', 'lists', 'main', 'Path to black/white lists. This is a relative path, begins with $HOME_HAPROXY-WI');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('apache_log_path', '/var/log/httpd/', 'logs', 'Path to Apache logs');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_enable', '0', 'ldap', 'If 1 ldap enabled');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_server', '', 'ldap', 'IP address ldap server');")
@@ -371,12 +371,85 @@ def update_db_v_3_13(**kwargs):
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
 			if e.args[0] == 'duplicate column name: keepalived' or e == " 1060 (42S21): Duplicate column name 'keepalived' ":
-				print('DB was update to 3.13.0')
+				print('Updating... go to version 4.0.0')
 			else:
 				print("An error occurred:", e)
 		return False
 	else:
-		print("DB was update to 3.13.0")
+		print("Updating... go to version 4.0.0")
+		return True
+	cur.close() 
+	con.close()
+	
+	
+def update_db_v_4(**kwargs):
+	con, cur = get_cur()
+	sql = list()
+	sql.append("update settings set section = 'main', `desc` = 'Temp store configs, for check' where param = 'tmp_config_path';")
+	sql.append("update settings set section = 'main' where param = 'cert_path';")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('nginx_path_error_logs', '/var/log/nginx/error.log', 'nginx', 'Nginx error log');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('nginx_stats_user', 'admin', 'nginx', 'Username for Stats web page Nginx');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('nginx_stats_password', 'password', 'nginx', 'Password for Stats web page Nginx');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('nginx_stats_port', '8086', 'nginx', 'Stats port for web page Nginx');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('nginx_stats_page', 'stats', 'nginx', 'URI Stats for web page Nginx');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('nginx_restart_command', 'systemctl restart nginx', 'nginx', 'Command for restart Nginx service');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('nginx_reload_command', 'systemctl reload nginx', 'nginx', 'Command for reload Nginx service');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('nginx_status_command', 'systemctl status nginx', 'nginx', 'Command for status check Nginx service');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('nginx_dir', '/etc/nginx/conf.d/', 'nginx', 'Path to Nginx dir');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('nginx_config_path', '/etc/nginx/conf.d/default.conf', 'nginx', 'Path to Nginx config');")
+	for i in sql:
+		try:
+			cur.execute(i)
+			con.commit()
+		except sqltool.Error as e:
+			pass
+	else:
+		if kwargs.get('silent') != 1:
+			print('Updating... one more for version 4.0.0')
+		return True
+	cur.close() 
+	con.close()
+	
+	
+def update_db_v_41(**kwargs):
+	con, cur = get_cur()
+	sql = """
+	ALTER TABLE `servers` ADD COLUMN nginx INTEGER NOT NULL DEFAULT 0;
+	"""
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: nginx' or e == " 1060 (42S21): Duplicate column name 'nginx' ":
+				print('Updating... one more for version 4.0.0')
+			else:
+				print("An error occurred:", e)
+		return False
+	else:
+		print("Updating... one more for version 4.0.0")
+		return True
+	cur.close() 
+	con.close()
+	
+
+def update_db_v_42(**kwargs):
+	con, cur = get_cur()
+	sql = """
+	ALTER TABLE `servers` ADD COLUMN haproxy INTEGER NOT NULL DEFAULT 0;
+	"""
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: nginx' or e == " 1060 (42S21): Duplicate column name 'nginx' ":
+				print('DB was update to 4.0.0')
+			else:
+				print("An error occurred:", e)
+		return False
+	else:
+		print("DB was update to 4.0.0")
 		return True
 	cur.close() 
 	con.close()
@@ -384,7 +457,7 @@ def update_db_v_3_13(**kwargs):
 	
 def update_ver(**kwargs):
 	con, cur = get_cur()
-	sql = """update version set version = '3.13.0.0'; """
+	sql = """update version set version = '4.0.0.0'; """
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -406,6 +479,9 @@ def update_all():
 	update_db_v_3_12()
 	update_db_v_3_12_1()
 	update_db_v_3_13()
+	update_db_v_4()
+	update_db_v_41()
+	update_db_v_42()
 	update_ver()
 		
 	
@@ -421,6 +497,9 @@ def update_all_silent():
 	update_db_v_3_12(silent=1)
 	update_db_v_3_12_1(silent=1)
 	update_db_v_3_13(silent=1)
+	update_db_v_4(silent=1)
+	update_db_v_41(silent=1)
+	update_db_v_42(silent=1)
 	update_ver()
 	
 		

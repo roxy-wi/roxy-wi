@@ -13,13 +13,13 @@
 			<td>
 			{% if role <= 1 %}
 				<a id="{{ service.1 }}" class="start-waf" title="Start WAF service">
-					<img src=/inc/images/start.png alt="start" class="icon" style="margin-bottom: -4px;">
+					<span class="service-start" onclick="confirmAjaxAction('start', 'waf', '{{service.1}}')"></span>
 				</a>
 				<a id="{{ service.1 }}" class="stop-waf" title="Stop WAF service">
-					<img src=/inc/images/stop.png alt="start" class="icon" width="17px">
+					<span class="service-stop" onclick="confirmAjaxAction('stop', 'waf', '{{service.1}}')"></span>
 				</a>
 				<a id="{{ service.1 }}" class="restart-waf" title="Restart WAF service">
-					<img src=/inc/images/update.png alt="restart" class="icon">
+					<span class="service-reload" onclick="confirmAjaxAction('restart', 'restart', '{{service.1}}')"></span>
 				</a>
 			{% endif %}
 			</td>
@@ -76,4 +76,5 @@
 </script>
 <style>
 .ui-selectmenu-button.ui-button {width: 10em;}
+.fa-play, .fa-stop, .fa-sync-alt { margin-bottom: -1px; }
 </style>

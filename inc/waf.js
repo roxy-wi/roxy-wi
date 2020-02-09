@@ -1,3 +1,5 @@
+var awesome = "/inc/fontawesome.min.js"
+
 $( function() {
 	$( "#ajaxwafstatus input" ).change(function() {
 		var id = $(this).attr('id');
@@ -32,6 +34,7 @@ function showOverviewWafCallBack(serv, hostnamea) {
 			$( "input[type=submit], button" ).button();
 			$( "input[type=checkbox]" ).checkboxradio();
 			$.getScript('/inc/overview.js');
+			$.getScript(awesome);
 		}				
 	} );
 }

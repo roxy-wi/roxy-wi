@@ -53,9 +53,13 @@ $( function() {
 	var ipformat = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
 	$('#create').click(function() {
 		var hap = 0;
+		var nginx = 0;
 		var syn_flood = 0;
 		if ($('#hap').is(':checked')) {
 			hap = '1';
+		}
+		if ($('#nginx').is(':checked')) {
+			nginx = '1';
 		}		
 		if ($('#syn_flood').is(':checked')) {
 			syn_flood = '1';
@@ -78,6 +82,7 @@ $( function() {
 						interface: $("#interface").val(),
 						vrrpip: $('#vrrp-ip').val(),
 						hap: hap,
+						nginx: nginx,
 						syn_flood: syn_flood,
 						token: $('#token').val()
 					},
@@ -155,6 +160,41 @@ $( function() {
 				haproxyaddserv: $('#haproxyaddserv').val(),
 				syn_flood: syn_flood,
 				hapver: $('#hapver option:selected' ).val(),
+				token: $('#token').val()
+				},
+			type: "POST",
+			success: function( data ) { 
+			data = data.replace(/\s+/g,' ');
+				if (data.indexOf('error') != '-1' || data.indexOf('FAILED') != '-1') {
+					$("#ajax").html('<div class="alert alert-danger">'+data+'</div>');
+				} else if (data.indexOf('success') != '-1' ){
+					$('.alert-danger').remove();
+					$('.alert-warning').remove();
+					$("#ajax").html('<div class="alert alert-success">'+data+'</div>');				
+				} else if (data.indexOf('Info') != '-1' ){
+					$('.alert-danger').remove();
+					$('.alert-warning').remove();
+					$("#ajax").html('<div class="alert alert-info">'+data+'</div>');
+				} else {
+					$('.alert-danger').remove();
+					$('.alert-warning').remove();
+					$("#ajax").html('<div class="alert alert-info">'+data+'</div>');
+				}
+			}
+		} );	
+	});	
+	$('#nginx_install').click(function() {
+		$("#ajax").html('')
+		var syn_flood = 0;
+		if ($('#nginx_syn_flood').is(':checked')) {
+			syn_flood = '1';
+		}
+		$("#ajax").html('<div class="alert alert-warning">Please don\'t close and don\'t represh page. Wait until the work is completed. This may take some time </div>');
+		$.ajax( {
+			url: "options.py",
+			data: {
+				install_nginx: $('#nginxaddserv').val(),
+				syn_flood: syn_flood,
 				token: $('#token').val()
 				},
 			type: "POST",
@@ -623,23 +663,19 @@ function addServer() {
 	var cred = $('#credentials').val();
 	var typeip = 0;
 	var enable = 0;
-	var alert_en = 0;
-	var metrics = 0;
-	var active = 0;
+	var haproxy = 0;
+	var nginx = 0;
 	if ($('#typeip').is(':checked')) {
 		typeip = '1';
 	}
 	if ($('#enable').is(':checked')) {
 		enable = '1';
 	}
-	if ($('#alert').is(':checked')) {
-		var alert_en = '1';
+	if ($('#haproxy').is(':checked')) {
+		haproxy = '1';
 	}
-	if ($('#metrics').is(':checked')) {
-		var metrics = '1';
-	}
-	if ($('#active').is(':checked')) {
-		var active = '1';
+	if ($('#nginx').is(':checked')) {
+		nginx = '1';
 	}
 	allFields = $( [] ).add( $('#new-server-add') ).add( $('#new-ip') ).add( $('#new-port') )
 	allFields.removeClass( "ui-state-error" );
@@ -656,14 +692,13 @@ function addServer() {
 				newport: $('#new-port').val(),
 				newservergroup: newservergroup,
 				typeip: typeip,
+				haproxy: haproxy,
+				nginx: nginx,
 				enable: enable,
 				slave: $('#slavefor' ).val(),
 				cred: cred,
-				alert_en: alert_en,
-				metrics: metrics,
 				page: cur_url[0],
 				desc: $('#desc').val(),
-				active: active,
 				token: $('#token').val()
 			},
 			type: "POST",
@@ -909,25 +944,20 @@ function cloneServer(id) {
 	} else {
 		$('#typeip').prop('checked', false)
 	}
-	if ($('#alert-'+id).is(':checked')) {
-		$('#alert').prop('checked', true)
+	if ($('#haproxy-'+id).is(':checked')) {
+		$('#haproxy').prop('checked', true)
 	} else {
-		$('#alert').prop('checked', false)
+		$('#haproxy').prop('checked', false)
 	}
-	if ($('#metrics-'+id).is(':checked')) {
-		$('#metrics').prop('checked', true)
+	if ($('#nginx-'+id).is(':checked')) {
+		$('#nginx').prop('checked', true)
 	} else {
-		$('#metrics').prop('checked', false)
-	}
-	if ($('#active-'+id).is(':checked')) {
-		$('#active').prop('checked', true)
-	} else {
-		$('#active').prop('checked', false)
+		$('#nginx').prop('checked', false)
 	}
 	$('#enable').checkboxradio("refresh");
 	$('#typeip').checkboxradio("refresh");
-	$('#alert').checkboxradio("refresh");
-	$('#active').checkboxradio("refresh");
+	$('#haproxy').checkboxradio("refresh");
+	$('#nginx').checkboxradio("refresh");
 	$('#new-server-add').val($('#hostname-'+id).val())
 	$('#new-ip').val($('#ip-'+id).val())
 	$('#new-port').val($('#port-'+id).val())
@@ -1161,28 +1191,27 @@ function updateServer(id) {
 	$('.alert-danger').remove();
 	var typeip = 0;
 	var enable = 0;
-	var alert_en = 0;
-	var metrics = 0;
-	var active = 0;
+	var haproxy = 0;
+	var nginx = 0;
 	if ($('#typeip-'+id).is(':checked')) {
 		typeip = '1';
+	}
+	if ($('#haproxy-'+id).is(':checked')) {
+		haproxy = '1';
+	}
+	if ($('#nginx-'+id).is(':checked')) {
+		nginx = '1';
 	}
 	if ($('#enable-'+id).is(':checked')) {
 		enable = '1';
 	}
-	if ($('#alert-'+id).is(':checked')) {
-		alert_en = '1';
-	}
-	if ($('#metrics-'+id).is(':checked')) {
-		metrics = '1';
-	}
-	if ($('#active-'+id).is(':checked')) {
-		active = '1';
-	}
 	var servergroup = $('#servergroup-'+id+' option:selected' ).val();
-	if (cur_url[0] == "servers.py") {
-		 servergroup = $('#servergroup-'+id).val();
+	console.log(cur_url[0])
+	if (cur_url[0].split('#')[0] == "servers.py") {
+		 servergroup = $('#new-server-group-add').val();
+		 console.log('1')
 	}
+	console.log(servergroup)
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -1190,14 +1219,13 @@ function updateServer(id) {
 			port: $('#port-'+id).val(),
 			servergroup: servergroup,
 			typeip: typeip,
+			haproxy: haproxy,
+			nginx: nginx,
 			enable: enable,
 			slave: $('#slavefor-'+id+' option:selected' ).val(),
 			cred: $('#credentials-'+id+' option:selected').val(),
 			id: id,
-			metrics: metrics,
-			alert_en: alert_en,
 			desc: $('#desc-'+id).val(),
-			active: active,
 			token: $('#token').val()
 		},
 		type: "POST",

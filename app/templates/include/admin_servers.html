@@ -16,24 +16,16 @@
 	{% endif %}
 </td>
 <td class="checkbox">
-	{% set id = 'alert-' + server.0|string() %}
-	{% if server.8 == 1 %}
+	{% set id = 'haproxy-' + server.0|string() %}
+	{% if server.15 == 1 %}
 		{{ checkbox(id, checked='checked') }}
 	{% else %}
 		{{ checkbox(id) }}
 	{% endif %}
 </td>
 <td class="checkbox">
-	{% set id = 'metrics-' + server.0|string() %}
-	{% if server.9 == 1 %}
-		{{ checkbox(id, checked='checked') }}
-	{% else %}
-		{{ checkbox(id) }}
-	{% endif %}
-</td>
-<td class="checkbox">
-	{% set id = 'active-' + server.0|string() %}
-	{% if server.12 == 1 %}
+	{% set id = 'nginx-' + server.0|string() %}
+	{% if server.14 == 1 %}
 		{{ checkbox(id, checked='checked') }}
 	{% else %}
 		{{ checkbox(id) }}
