@@ -689,7 +689,6 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 	if waf == "1":
 		local_path_logs = '/var/log/modsec_audit.log'
 		commands = [ "sudo cat %s |tail -%s  %s %s" % (local_path_logs, rows, grep_act, grep) ]	
-	logging('localhost', str(commands), haproxywi=1)
 	
 	if kwargs.get('html') == 0:
 		a = ssh_command(syslog_server, commands)
