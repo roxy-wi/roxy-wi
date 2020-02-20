@@ -164,7 +164,7 @@ def update_group(name, descript, id):
 def add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx):
 	con, cur = get_cur()
 	sql = """ INSERT INTO servers (hostname, ip, groups, type_ip, enable, master, cred, port, `desc`, haproxy, nginx) 
-			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
+			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
 		""" % (hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx)
 	try:    
 		cur.execute(sql)
