@@ -890,3 +890,12 @@ def get_hash(value):
 	h = hashlib.md5(value.encode('utf-8'))
 	p = h.hexdigest()
 	return p
+	
+	
+def out_error(e):
+	if get_config_var('mysql', 'enable') == '1':
+		error = e
+	else:
+		error = e.args[0]
+	print('<span class="alert alert-danger" style="height: 20px;margin-bottom: 20px;" id="error">An error occurred: ' + error + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		

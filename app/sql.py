@@ -31,14 +31,6 @@ def get_cur():
 		return con, cur
 		
 	
-def out_error(e):
-	if mysql_enable == '1':
-		error = e
-	else:
-		error = e.args[0]
-	print('Content-type: text/html\n')
-	print('<span class="alert alert-danger" style="height: 20px;margin-bottom: 20px;" id="error">An error occurred: ' + error + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
-		
 def add_user(user, email, password, role, group, activeuser):
 	con, cur = get_cur()
 	if password != 'aduser':
@@ -49,7 +41,7 @@ def add_user(user, email, password, role, group, activeuser):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 		return False
 	else:
@@ -69,7 +61,7 @@ def update_user(user, email, role, group, id, activeuser):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 		return False
 	else:
@@ -86,7 +78,7 @@ def update_user_password(password, id):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 		return False
 	else:
@@ -102,7 +94,7 @@ def delete_user(id):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 		return False
 	else: 
@@ -117,7 +109,7 @@ def add_group(name, description):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 		return False
 	else:
@@ -133,7 +125,7 @@ def delete_group(id):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 	else: 
 		return True
@@ -152,7 +144,7 @@ def update_group(name, descript, id):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 		return False
 	else:
@@ -171,7 +163,7 @@ def add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, ha
 		con.commit()
 		return True
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 		return False	
 	cur.close()    
@@ -185,7 +177,7 @@ def delete_server(id):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 	else: 
 		return True
@@ -204,7 +196,7 @@ def update_hapwi_server(id, alert, metrics, active):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -228,7 +220,7 @@ def update_server(hostname, group, typeip, enable, master, id, cred, port, desc,
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -240,14 +232,14 @@ def update_server_master(master, slave):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	for id in cur.fetchall():
 		sql = """ update servers set master = '%s' where ip = '%s' """ % (id[0], slave)
 	try:    
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -263,7 +255,7 @@ def select_users(**kwargs):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -280,7 +272,7 @@ def select_groups(**kwargs):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -293,7 +285,7 @@ def select_user_name_group(id):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		for group in cur.fetchone():
 			return group
@@ -307,7 +299,7 @@ def select_server_by_name(name):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		for name in cur.fetchone():
 			return name
@@ -342,7 +334,7 @@ def select_servers(**kwargs):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -356,7 +348,7 @@ def write_user_uuid(login, user_uuid):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	for id in cur.fetchall():
 		if mysql_enable == '1':
 			sql = """ insert into uuid (user_id, uuid, exp) values('%s', '%s',  now()+ INTERVAL '%s' day) """ % (id[0], user_uuid, session_ttl)
@@ -366,7 +358,7 @@ def write_user_uuid(login, user_uuid):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -378,7 +370,7 @@ def write_user_token(login, user_token):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	for id in cur.fetchall():
 		if mysql_enable == '1':
 			sql = """ insert into token (user_id, token, exp) values('%s', '%s',  now()+ INTERVAL %s day) """ % (id[0], user_token, token_ttl)
@@ -388,7 +380,7 @@ def write_user_token(login, user_token):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -399,7 +391,7 @@ def get_token(uuid):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		for token in cur.fetchall():
 			return token[0]				
@@ -430,7 +422,7 @@ def delete_old_uuid():
 		cur.execute(sql1)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()		
@@ -447,7 +439,7 @@ def update_last_act_user(uuid):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -458,7 +450,7 @@ def get_user_name_by_uuid(uuid):
 	try:
 		cur.execute(sql)		
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		for user_id in cur.fetchall():
 			return user_id[0]
@@ -471,7 +463,7 @@ def get_user_role_by_uuid(uuid):
 	try:
 		cur.execute("select role.id from user left join uuid as uuid on user.id = uuid.user_id left join role on role.name = user.role where uuid.uuid = ?", (uuid,))	
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		for user_id in cur.fetchall():
 			return user_id[0]
@@ -485,7 +477,7 @@ def get_role_id_by_name(name):
 	try:
 		cur.execute(sql)		
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		for user_id in cur.fetchall():
 			return user_id[0]
@@ -499,7 +491,7 @@ def get_user_group_by_uuid(uuid):
 	try:
 		cur.execute(sql)		
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		for user_id in cur.fetchall():
 			return user_id[0]
@@ -512,7 +504,7 @@ def get_user_telegram_by_uuid(uuid):
 	try:
 		cur.execute(sql)		
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -524,7 +516,7 @@ def get_telegram_by_ip(ip):
 	try:
 		cur.execute(sql)		
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -575,7 +567,7 @@ def get_dick_permit(**kwargs):
 		try:   
 			cur.execute(sql)
 		except sqltool.Error as e:
-			out_error(e)
+			funct.out_error(e)
 		else:
 			return cur.fetchall()
 	
@@ -591,7 +583,7 @@ def is_master(ip, **kwargs):
 	try:
 		cur.execute(sql)		
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -610,7 +602,7 @@ def select_ssh(**kwargs):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -624,7 +616,7 @@ def insert_new_ssh(name, enable, group, username, password):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 	else: 
 		return True
@@ -639,7 +631,7 @@ def delete_ssh(id):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 	else: 
 		return True
@@ -659,7 +651,7 @@ def update_ssh(id, name, enable, group, username, password):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -672,7 +664,7 @@ def insert_backup_job(server, rserver, rpath, type, time, cred, description):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 		return False
 	else: 
@@ -689,7 +681,7 @@ def select_backups(**kwargs):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -709,7 +701,7 @@ def update_backup(server, rserver, rpath, type, time, cred, description, id):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 		return False
 	else: 
@@ -725,7 +717,7 @@ def delete_backups(id):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 	else: 
 		return True
@@ -739,7 +731,7 @@ def check_exists_backup(server):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		for s in cur.fetchall():
 			if s[0] is not None:
@@ -772,7 +764,7 @@ def delete_telegram(id):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 	else: 
 		return True
@@ -792,7 +784,7 @@ def select_telegram(**kwargs):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -825,7 +817,7 @@ def update_telegram(token, chanel, group, id):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -838,7 +830,7 @@ def insert_new_option(option, group):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 	else: 
 		return True
@@ -856,7 +848,7 @@ def select_options(**kwargs):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -872,7 +864,7 @@ def update_options(option, id):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -885,7 +877,7 @@ def delete_option(id):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 	else: 
 		return True
@@ -900,7 +892,7 @@ def insert_new_savedserver(server, description, group):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 	else: 
 		return True
@@ -918,7 +910,7 @@ def select_saved_servers(**kwargs):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -935,7 +927,7 @@ def update_savedserver(server, description, id):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -948,7 +940,7 @@ def delete_savedserver(id):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 	else: 
 		return True
@@ -966,7 +958,7 @@ def insert_mentrics(serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -978,7 +970,7 @@ def select_waf_metrics_enable(id):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -991,7 +983,7 @@ def select_waf_metrics_enable_server(ip):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		for enable in cur.fetchall():
 			return enable[0]
@@ -1004,7 +996,7 @@ def select_waf_servers(serv):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -1017,7 +1009,7 @@ def select_all_waf_servers():
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -1041,7 +1033,7 @@ def select_waf_servers_metrics(uuid, **kwargs):
 		try:   
 			cur.execute(sql)
 		except sqltool.Error as e:
-			out_error(e)
+			funct.out_error(e)
 		else:
 			return cur.fetchall()
 	cur.close()    
@@ -1054,7 +1046,7 @@ def select_waf_metrics(serv, **kwargs):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -1068,7 +1060,7 @@ def insert_waf_metrics_enable(serv, enable):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -1081,7 +1073,7 @@ def delete_waf_server(id):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -1097,7 +1089,7 @@ def insert_waf_mentrics(serv, conn):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -1113,7 +1105,7 @@ def delete_waf_mentrics():
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -1126,7 +1118,7 @@ def update_waf_metrics_enable(name, enable):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -1142,7 +1134,7 @@ def delete_mentrics():
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 	cur.close()    
 	con.close()
@@ -1154,7 +1146,7 @@ def select_metrics(serv, **kwargs):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -1167,7 +1159,7 @@ def select_servers_metrics_for_master():
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -1191,7 +1183,7 @@ def select_servers_metrics(uuid, **kwargs):
 		try:   
 			cur.execute(sql)
 		except sqltool.Error as e:
-			out_error(e)
+			funct.out_error(e)
 		else:
 			return cur.fetchall()
 	cur.close()    
@@ -1407,7 +1399,7 @@ def select_table_metrics(uuid):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:		
 		return cur.fetchall()
 	cur.close()    
@@ -1422,7 +1414,7 @@ def get_setting(param, **kwargs):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		if kwargs.get('all'):
 			return cur.fetchall()
@@ -1441,7 +1433,7 @@ def update_setting(param, val):
 		con.commit()
 		return True
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 		return False
 	cur.close()    
@@ -1454,7 +1446,7 @@ def get_ver():
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		for ver in cur.fetchall():
 			return ver[0]
@@ -1470,7 +1462,7 @@ def select_roles(**kwargs):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -1482,7 +1474,7 @@ def select_alert(**kwargs):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -1495,7 +1487,7 @@ def select_keep_alive(**kwargs):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		return cur.fetchall()
 	cur.close()    
@@ -1508,7 +1500,7 @@ def select_keealived(serv, **kwargs):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		for value in cur.fetchone():
 			return value
@@ -1524,7 +1516,7 @@ def update_keepalived(serv):
 		con.commit()
 		return True
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 		return False
 	cur.close()    
@@ -1537,7 +1529,7 @@ def select_nginx(serv, **kwargs):
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		for value in cur.fetchone():
 			return value
@@ -1553,7 +1545,7 @@ def update_nginx(serv):
 		con.commit()
 		return True
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 		return False
 	cur.close()    
@@ -1568,7 +1560,7 @@ def update_haproxy(serv):
 		con.commit()
 		return True
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 		con.rollback()
 		return False
 	cur.close()    

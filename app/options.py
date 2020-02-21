@@ -21,9 +21,11 @@ if act == "checkrestart":
 			sys.exit()
 	sys.exit()
 
+
 if not sql.check_token_exists(form.getvalue('token')):
 	print("Your token has been expired")
 	sys.exit()
+
 		
 if form.getvalue('getcerts') is not None and serv is not None:
 	cert_path = sql.get_setting('cert_path')
@@ -33,11 +35,13 @@ if form.getvalue('getcerts') is not None and serv is not None:
 	except:
 		print('<div class="alert alert-danger" style="margin:0">Can not connect to the server</div>')
 
+
 if form.getvalue('checkSshConnect') is not None and serv is not None:
 	try:
 		funct.ssh_command(serv, ["ls -1t"])
 	except:
-		print('<div class="alert alert-danger" style="margin:0">Can not connect to the server</div>')
+		print('<div class="alert alert-danger" style="margin:0; margin-left: 20px;">Can not connect to the server</div>')
+
 		
 if form.getvalue('getcert') is not None and serv is not None:
 	id = form.getvalue('getcert')

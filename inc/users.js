@@ -1429,9 +1429,9 @@ function checkSshConnect(ip) {
 		type: "POST",
 		success: function( data ) {
 			if (data.indexOf('danger') != '-1') {
-				$("#ajax").html(data);
+				$("#checkSshConnect").html(data);
 			} else {
-				$("#ajax").html("<div class='alert alert-success' style='margin: 0;'>Connect accept<a title='Close' id='errorMess'><b>X</b></a></div>");
+				$("#checkSshConnect").html("<div class='alert alert-success' style='margin: 0; margin-left: 15px;'>Connect is accepted<a title='Close' id='errorMess'><b>X</b></a></div>");
 			}
 			$('#errorMess').click(function() {
 				$('#error').remove();
