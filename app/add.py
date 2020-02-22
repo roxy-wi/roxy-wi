@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import cgi
 import os
 import funct
 import sql
@@ -20,12 +19,8 @@ funct.check_login()
 funct.page_for_admin(level = 2)
 
 try:
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_id = cookie.get('uuid')
-	user = sql.get_user_name_by_uuid(user_id.value)
-	servers = sql.get_dick_permit()
+	user, user_id, role, token, servers = funct.get_users_params()
 	user_group = sql.get_user_group_by_uuid(user_id.value)
-	token = sql.get_token(user_id.value)
 except:
 	pass
 	
@@ -46,7 +41,7 @@ black_lists = funct.get_files(dir=black_dir, format="lst")
 
 
 template = template.render(title = "Add",
-							role = sql.get_user_role_by_uuid(user_id.value),
+							role = role,
 							user = user,
 							selects = servers,
 							add = form.getvalue('add'),

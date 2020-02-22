@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-import cgi
 import os
-import http.cookies
 import funct
 import sql
 from jinja2 import Environment, FileSystemLoader
@@ -21,14 +19,9 @@ error = ""
 aftersave = ""
 
 try:
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_id = cookie.get('uuid')
-	user = sql.get_user_name_by_uuid(user_id.value)
-	token = sql.get_token(user_id.value)
-	role = sql.get_user_role_by_uuid(user_id.value)
+	user, user_id, role, token, servers = funct.get_users_params()
 except:
 	pass
-
 
 if service == 'keepalived':
 	title = "Working with Keepalived configs"

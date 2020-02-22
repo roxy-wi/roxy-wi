@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
-import http
-import cgi
-import sys
-import os
 import funct
 import sql
 from jinja2 import Environment, FileSystemLoader
@@ -17,12 +12,8 @@ print('Content-type: text/html\n')
 funct.check_login()
 funct.page_for_admin()
 try:
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_id = cookie.get('uuid')
-	user = sql.get_user_name_by_uuid(user_id.value)
+	user, user_id, role, token, servers = funct.get_users_params()
 	users = sql.select_users()
-	servers = sql.get_dick_permit()
-	token = sql.get_token(user_id.value)
 	settings = sql.get_setting('', all=1)
 	ldap_enable = sql.get_setting('ldap_enable')
 except:
@@ -30,7 +21,7 @@ except:
 
 
 template = template.render(title = "Admin area: users manage",
-							role = sql.get_user_role_by_uuid(user_id.value),
+							role = role,
 							user = user,
 							users = users,
 							groups = sql.select_groups(),
@@ -42,5 +33,6 @@ template = template.render(title = "Admin area: users manage",
 							token = token,
 							versions = funct.versions(),
 							settings = settings,
+							backups = sql.select_backups(),
 							ldap_enable = ldap_enable)
 print(template)

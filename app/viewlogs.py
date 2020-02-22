@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-import os, sys
-import http, cgi
-import glob
+import os
 import datetime
 import funct
 import sql
@@ -51,10 +49,7 @@ except:
 	pass
 	
 try:
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_id = cookie.get('uuid')
-	user = sql.get_user_name_by_uuid(user_id.value)
-	token = sql.get_token(user_id.value)
+	user, user_id, role, token, servers = funct.get_users_params()
 except:
 	pass
 
@@ -65,7 +60,7 @@ selects.append(['haproxy-wi.access.log','access.log'])
 output_from_parsed_template = template.render(h2 = 1,
 												autorefresh = 1, 
 												title = "View internal logs",
-												role = sql.get_user_role_by_uuid(user_id.value),
+												role = role,
 												user = user,
 												onclick = "viewLogs()",
 												serv = serv,

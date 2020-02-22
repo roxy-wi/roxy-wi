@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-import http
-import cgi
-import sys
-import os
 import funct
 import sql
 from jinja2 import Environment, FileSystemLoader
@@ -14,18 +10,14 @@ print('Content-type: text/html\n')
 funct.check_login()
 funct.page_for_admin(level = 2)
 try:
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_id = cookie.get('uuid')
-	user = sql.get_user_name_by_uuid(user_id.value)
-	servers = sql.get_dick_permit()
-	token = sql.get_token(user_id.value)
+	user, user_id, role, token, servers = funct.get_users_params()
 	ldap_enable = sql.get_setting('ldap_enable')
 except:
 	pass
 
 
 output_from_parsed_template = template.render(title = "Servers manage",
-												role = sql.get_user_role_by_uuid(user_id.value),
+												role = role,
 												user = user,
 												users = sql.select_users(),
 												groups = sql.select_groups(),

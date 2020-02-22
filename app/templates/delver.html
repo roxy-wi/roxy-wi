@@ -14,6 +14,18 @@
 		</div>
 		{% endif %}
 	</p>
+	{% if aftersave %}
+		<div class="alert alert-info"><b>The following files have been deleted:</b><br /> </div>
+		{% if stderr %}
+			{% include 'include/errors.html' %}
+		{% else %}
+			<div class="alert alert-success">
+			{% for f in file %}
+				{{f}}
+			{% endfor %}
+			</div>
+		{% endif %}
+	{% endif %}
 	{% if open %}
 		<center>
 			<h4>Choose old version</h4>
@@ -34,18 +46,6 @@
 				</p>
 			</form> 
 		</center>	
-	{% endif %}
-	{% if aftersave %}
-		<div class="alert alert-info"><b>The following files were deleted:</b><br /> </div>
-		{% if stderr %}
-			{% include 'include/errors.html' %}
-		{% else %}
-			<div class="alert alert-success">
-			{% for f in file %}
-				{{f}}
-			{% endfor %}
-			</div>
-		{% endif %}
 	{% endif %}
 	</center>
 {% endblock %}

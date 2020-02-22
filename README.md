@@ -1,4 +1,4 @@
-# Haproxy web interface
+# HAProxy-WI
 Web interface(user-friendly web GUI, alerting, monitoring and secure) for managing HAProxy servers. Leave your [feedback](https://github.com/Aidaho12/haproxy-wi/issues)
 
 # Youtube

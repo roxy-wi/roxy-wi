@@ -5,10 +5,12 @@ import os, sys
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
 
+
 def get_app_dir():
 	d = sys.path[0]
 	d = d.split('/')[-1]		
 	return sys.path[0] if d == "app" else os.path.dirname(sys.path[0])	
+
 
 def get_config_var(sec, var):
 	from configparser import ConfigParser, ExtendedInterpolation
@@ -24,6 +26,7 @@ def get_config_var(sec, var):
 	except:
 		print('Content-type: text/html\n')
 		print('<center><div class="alert alert-danger">Check the config file. Presence section %s and parameter %s</div>' % (sec, var))
+					
 					
 def get_data(type):
 	from datetime import datetime
@@ -111,6 +114,7 @@ def telegram_send_mess(mess, **kwargs):
 		logging('localhost', mess, haproxywi=1)
 		sys.exit()
 	
+	
 def check_login(**kwargs):
 	import sql
 	import http.cookies
@@ -128,6 +132,7 @@ def check_login(**kwargs):
 	else:
 		print('<meta http-equiv="refresh" content="0; url=login.py?ref=%s">' % ref)
 		return False
+				
 				
 def is_admin(**kwargs):
 	import sql
@@ -149,6 +154,7 @@ def is_admin(**kwargs):
 	except:
 		return False
 		pass
+
 
 def page_for_admin(**kwargs):
 	give_level = 1
@@ -227,6 +233,7 @@ def ssh_connect(serv, **kwargs):
 			pass
 		return str(error)
 
+
 def get_config(serv, cfg, **kwargs):
 	import sql
 	
@@ -253,6 +260,7 @@ def get_config(serv, cfg, **kwargs):
 		ssh = str(e)
 		logging('localhost', ssh, haproxywi=1)
 		return ssh
+	
 	
 def diff_config(oldcfg, cfg):
 	log_path = get_config_var('main', 'log_path')
@@ -898,4 +906,21 @@ def out_error(e):
 	else:
 		error = e.args[0]
 	print('<span class="alert alert-danger" style="height: 20px;margin-bottom: 20px;" id="error">An error occurred: ' + error + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
-		
+	
+
+def get_users_params(**kwargs):
+	import http.cookies
+	import sql
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_id = cookie.get('uuid')
+	user = sql.get_user_name_by_uuid(user_id.value)
+	role =  sql.get_user_role_by_uuid(user_id.value)
+	token = sql.get_token(user_id.value)
+	if kwargs.get('virt'):
+		servers = sql.get_dick_permit(virt=1)
+	elif kwargs.get('disable'):
+		servers = sql.get_dick_permit(disable=0)
+	else:
+		servers = sql.get_dick_permit()
+	
+	return user, user_id, role, token, servers
