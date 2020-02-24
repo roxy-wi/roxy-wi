@@ -88,13 +88,13 @@
 					{% else %}
 						{% set action_service = 'hap' %}
 					{% endif %}
-					<a id="start-{{ s.2 }}" class="start" title="Start HAProxy service">
+					<a id="start-{{ s.2 }}" class="start" title="Start {{service}} service">
 						<span class="service-start" onclick="confirmAjaxAction('start', '{{action_service}}', '{{s.2}}')"></span>
 					</a>
-					<a id="stop-{{ s.2 }}" class="stop" title="Stop HAProxy service">
+					<a id="stop-{{ s.2 }}" class="stop" title="Stop {{service}} service">
 						<span class="service-stop" onclick="confirmAjaxAction('stop', '{{action_service}}', '{{s.2}}')"></span>
 					</a>
-					<a id="restart-{{ s.2 }}" class="restart" title="Restart HAProxy service">
+					<a id="restart-{{ s.2 }}" class="restart" title="Restart {{service}} service">
 						<span class="service-reload" onclick="confirmAjaxAction('restart', '{{action_service}}', '{{s.2}}')"></span>
 					</a>
 				</span>

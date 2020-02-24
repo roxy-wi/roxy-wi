@@ -29,7 +29,7 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 12.	Auto management of ports assigned to Fronted. 
 13.	Evaluate the changes of recent configs pushed to HAProxy, Nginx and Keepalived instances straight from web ui
 14.	Multiple User Roles support for privileged based Viewing and editing of Config
-15.	Create Groups and add /remove servers to ensure proper identification for your HAProxy Clusters
+15.	Create Groups and add/remove servers to ensure proper identification for your HAProxy, Nginx Clusters
 16.	Send notifications to telegram directly from HAProxy-WI
 17.	HAProxy-WI supports high Availability to ensure uptime to all Master slave servers configured
 18.	SSL certificate support.
@@ -45,7 +45,7 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 28. Ability to hide parts of the config with tags for users with "guest" role:  "HideBlockStart" and "HideBlockEnd"
 29. Mobile-ready desing
 30. REST API
-31. Backup HAProxy's and Keepalived's config files through HAProxy-WI
+31. Backup HAProxy's, Nginx's and Keepalived's config files through HAProxy-WI
 
 ![alt text](image/haproxy-wi-metrics.png "Merics")
 

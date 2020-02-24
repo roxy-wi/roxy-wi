@@ -811,12 +811,13 @@ def get_files(dir = get_config_var('configs', 'haproxy_save_configs_dir'), forma
 	else:
 		file = set()
 	return_files = set()
-	
+	i = 0
 	for files in glob.glob(os.path.join(dir,'*.'+format)):	
 		if format == 'log':
-			file += [(files.split('/')[5], files.split('/')[5])]
+			file += [(i, files.split('/')[5])]
 		else:
 			file.add(files.split('/')[-1])
+		i += 1
 	files = sorted(file, reverse=True)
 
 	if format == 'cfg' or format == 'conf':

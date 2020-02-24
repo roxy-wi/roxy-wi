@@ -429,7 +429,7 @@ if serv is not None and form.getvalue('rows1') is not None:
 		
 	if serv == 'haproxy-wi.access.log':
 		cmd="cat %s| awk -F\"/|:\" '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s  %s %s" % (apache_log_path+"/"+serv, date, date1, rows, grep_act, grep)
-	else:
+	elif serv == 'haproxy-wi.error.log':
 		cmd="cat %s| awk '$4>\"%s:00\" && $4<\"%s:00\"' |tail -%s  %s %s" % (apache_log_path+"/"+serv, date, date1, rows, grep_act, grep)
 
 	output, stderr = funct.subprocess_execute(cmd)
@@ -455,7 +455,16 @@ if form.getvalue('viewlogs') is not None:
 	else:
 		grep_act = ''
 		grep = ''
-
+		
+	logs_files = funct.get_files(log_path, format="log")
+	for key, value in logs_files:
+		if int(viewlog) == key:
+			viewlog = value
+			break
+	else:
+		print('Haha')
+		sys.exit()
+		
 	if viewlog == 'backup.log':
 		cmd="cat %s| awk '$2>\"%s:00\" && $2<\"%s:00\"' |tail -%s  %s %s" % (log_path + viewlog, date, date1, rows, grep_act, grep)
 	else:
