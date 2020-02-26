@@ -1245,7 +1245,7 @@ if form.getvalue('newgroup') is not None:
 	else:
 		if sql.add_group(newgroup, desc):
 			from jinja2 import Environment, FileSystemLoader
-			env = Environment(loader=FileSystemLoader('templates/ajax/'))
+			env = Environment(loader=FileSystemLoader('templates/ajax/'), autoescape=True)
 			template = env.get_template('/new_group.html')
 
 			output_from_parsed_template = template.render(groups = sql.select_groups(group=newgroup))
