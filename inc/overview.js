@@ -246,7 +246,7 @@ function confirmAjaxAction(action, service, id) {
 		height: "auto",
 		width: 400,
 		modal: true,
-		title: "Are you sure you want "+ action + " " + id + "?",
+		title: "Are you sure you want to "+ action + " " + id + "?",
 		buttons: {
 			"Sure": function() {
 				$( this ).dialog( "close" );

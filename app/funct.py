@@ -583,18 +583,18 @@ def upload_and_restart(serv, cfg, **kwargs):
 		if kwargs.get("just_save") == "save":
 			commands = [ "sudo mv -f " + tmp_file + " " + config_path + " && sudo nginx -t -q"]
 		elif kwargs.get("just_save") == "reload":
-			commands = [ "sudo mv -f " + tmp_file + " " + config_path + " && sudo nginx -t -q && sudo " + sql.get_setting('nginx_reload_command') ]	
+			commands = [ "sudo mv -f " + tmp_file + " " + config_path + " && sudo nginx -t -q && sudo systemctl reload nginx" ]	
 		else:
-			commands = [ "sudo mv -f " + tmp_file + " " + config_path + " && sudo nginx -t -q && sudo " + sql.get_setting('nginx_restart_command') ]	
+			commands = [ "sudo mv -f " + tmp_file + " " + config_path + " && sudo nginx -t -q && sudo systemctl restart nginx" ]	
 	else:
 		if kwargs.get("just_save") == "test":
 			commands = [ "sudo haproxy  -q -c -f " + tmp_file + "&& sudo rm -f " + tmp_file ]
 		elif kwargs.get("just_save") == "save":
 			commands = [ "sudo haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + config_path ]
 		elif kwargs.get("just_save") == "reload":
-			commands = [ "sudo haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + config_path + " && sudo " + sql.get_setting('reload_command') ]	
+			commands = [ "sudo haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + config_path + " && sudo systemctl reload haproxy" ]	
 		else:
-			commands = [ "sudo haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + config_path + " && sudo " + sql.get_setting('restart_command') ]	
+			commands = [ "sudo haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + config_path + " && sudo systemctl restart haproxy" ]	
 		if sql.get_setting('firewall_enable') == "1":
 			commands.extend(open_port_firewalld(cfg))
 	error += str(upload(serv, tmp_file, cfg, dir='fullpath'))

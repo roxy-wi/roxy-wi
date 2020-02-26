@@ -137,7 +137,7 @@ if form.getvalue('action_waf') is not None and serv is not None:
 	
 if act == "overviewHapserverBackends":
 	from jinja2 import Environment, FileSystemLoader
-	env = Environment(loader=FileSystemLoader('templates/ajax'))
+	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
 	template = env.get_template('haproxyservers_backends.html')
 	
 	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
@@ -208,7 +208,7 @@ if act == "overview":
 	async def get_runner_overview():
 		import http.cookies
 		from jinja2 import Environment, FileSystemLoader
-		env = Environment(loader=FileSystemLoader('templates/ajax'),extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
+		env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True,extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
 		
 		servers = []
 		template = env.get_template('overview.html')
@@ -246,7 +246,7 @@ if act == "overviewwaf":
 	async def get_runner_overviewWaf():
 		import http.cookies
 		from jinja2 import Environment, FileSystemLoader
-		env = Environment(loader=FileSystemLoader('templates/ajax'),extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
+		env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True,extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
 		template = env.get_template('overivewWaf.html')
 		
 		servers = []
@@ -288,7 +288,7 @@ if act == "overviewServers":
 	async def get_runner_overviewServers(**kwargs):
 		import http.cookies
 		from jinja2 import Environment, FileSystemLoader
-		env = Environment(loader=FileSystemLoader('templates/ajax'),extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
+		env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True,extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
 		template = env.get_template('overviewServers.html')	
 		
 		servers = []	
@@ -884,7 +884,7 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
 					funct.logging('backup ', ' has created a new backup job for server '+server , haproxywi=1, login=1)
 					import http.cookies
 					from jinja2 import Environment, FileSystemLoader
-					env = Environment(loader=FileSystemLoader('templates/ajax'))
+					env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
 					template = env.get_template('new_backup.html')
 					template = template.render(backups=sql.select_backups(server=server, rserver=rserver), sshs=sql.select_ssh())											
 					print(template)
@@ -924,7 +924,7 @@ if form.getvalue('metrics_waf'):
 if form.getvalue('table_metrics'):
 	import http.cookies
 	from jinja2 import Environment, FileSystemLoader
-	env = Environment(loader=FileSystemLoader('templates/ajax'))
+	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
 	template = env.get_template('table_metrics.html')
 		
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
@@ -1045,7 +1045,7 @@ if form.getvalue('bwlists_save'):
 			print('<div class="alert alert-success" style="margin:10px; margin-left:14px">Edited '+color+' list was uploaded to '+server[1]+'</div>')
 			funct.logging(server[1], 'has edited  '+color+' list '+bwlists_save, haproxywi=1, login=1)
 			if form.getvalue('bwlists_restart') == 'restart':
-				funct.ssh_command(server[2], ["sudo " + sql.get_setting('restart_command')])
+				funct.ssh_command(server[2], ["sudo systemctl restart haproxy"])
 			
 			
 if form.getvalue('get_lists'):
@@ -1290,7 +1290,7 @@ if form.getvalue('new_ssh'):
 	else:
 		if sql.insert_new_ssh(name, enable, group, username, password):
 			from jinja2 import Environment, FileSystemLoader
-			env = Environment(loader=FileSystemLoader('templates/ajax'))
+			env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
 			template = env.get_template('/new_ssh.html')
 			output_from_parsed_template = template.render(groups = sql.select_groups(), sshs = sql.select_ssh(name=name),page=page)
 			print(output_from_parsed_template)
@@ -1385,7 +1385,7 @@ if form.getvalue('newtelegram'):
 	else:
 		if sql.insert_new_telegram(token, channel, group):
 			from jinja2 import Environment, FileSystemLoader
-			env = Environment(loader=FileSystemLoader('templates/ajax'))
+			env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
 			template = env.get_template('/new_telegram.html')
 			output_from_parsed_template = template.render(groups = sql.select_groups(), telegrams = sql.select_telegram(token=token),page=page)
 			print(output_from_parsed_template)	

@@ -2,7 +2,7 @@
 import funct, sql
 import create_db
 from jinja2 import Environment, FileSystemLoader
-env = Environment(loader=FileSystemLoader('templates/'))
+env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('ovw.html')
 	
 print('Content-type: text/html\n')

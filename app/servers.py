@@ -2,7 +2,7 @@
 import funct
 import sql
 from jinja2 import Environment, FileSystemLoader
-env = Environment(extensions=["jinja2.ext.do"],loader=FileSystemLoader('templates/'))
+env = Environment(extensions=["jinja2.ext.do"],loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('servers.html')
 form = funct.form
 

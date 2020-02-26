@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import funct, sql
 from jinja2 import Environment, FileSystemLoader
-env = Environment(loader=FileSystemLoader('templates/'))
+env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('hapservers.html')
 	
 print('Content-type: text/html\n')
@@ -25,6 +25,9 @@ if service == 'nginx':
 	stderr = ''
 	servers = sql.get_dick_permit(virt=1, nginx=1)
 	service = 'nginx'
+	if serv:
+		servers = sql.select_servers(server=serv)
+		autorefresh = 1
 else:
 	title = "HAProxy servers overview"
 	cmd = "ps ax |grep -e 'keep_alive.py' |grep -v grep |wc -l"

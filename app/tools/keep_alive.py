@@ -34,7 +34,7 @@ def main():
 				funct.logging("localhost", " "+alert, keep_alive=1)
 				
 				start_command = []
-				start_command.append('sudo '+sql.get_setting('restart_command'))
+				start_command.append('sudo systemct restart haproxy')
 				funct.ssh_command(serv[0], start_command)
 				time.sleep(30)
 				continue

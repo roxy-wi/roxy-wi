@@ -2,7 +2,7 @@
 import os
 import funct, sql
 from jinja2 import Environment, FileSystemLoader
-env = Environment(loader=FileSystemLoader('templates/'))
+env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('delver.html')
 
 print('Content-type: text/html\n')

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import funct
 from jinja2 import Environment, FileSystemLoader
-env = Environment(loader=FileSystemLoader('templates/'))
+env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('runtimeapi.html')
 
 print('Content-type: text/html\n')
