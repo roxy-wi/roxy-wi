@@ -418,7 +418,7 @@ def update_db_v_42(**kwargs):
 		con.commit()
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
-			if e.args[0] == 'duplicate column name: nginx' or e == " 1060 (42S21): Duplicate column name 'nginx' ":
+			if e.args[0] == 'duplicate column name: haproxy' or e == " 1060 (42S21): Duplicate column name 'haproxy' ":
 				print('DB was update to 4.0.0')
 			else:
 				print("An error occurred:", e)
