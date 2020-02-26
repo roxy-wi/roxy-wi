@@ -925,3 +925,16 @@ def get_users_params(**kwargs):
 		servers = sql.get_dick_permit()
 	
 	return user, user_id, role, token, servers
+	
+
+def check_group(group, role_id):
+	import http.cookies
+	import sql
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_id = cookie.get('uuid')
+	user_group = sql.get_user_group_by_uuid(user_id.value)
+	if user_group == group or user_group == '1' or role_id == 1:
+		return True
+	else:
+		logging('localhost', ' has tried to actions in not own group ', haproxywi=1, login=1)
+		return False

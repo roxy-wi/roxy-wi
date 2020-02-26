@@ -1601,22 +1601,9 @@ def check_token():
 		sys.exit()
 		
 		
-def check_group(group, role_id):
-	import http.cookies
-	import os
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_id = cookie.get('uuid')
-	user_group = get_user_group_by_uuid(user_id.value)
-	if user_group == group or user_group == '1' or role_id == 1:
-		return True
-	else:
-		funct.logging('localhost', ' has tried to actions in not own group ', haproxywi=1, login=1)
-		return False
-		
-		
 def show_update_option(option):
 	from jinja2 import Environment, FileSystemLoader
-	env = Environment(loader=FileSystemLoader('templates/ajax'))
+	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
 	template = env.get_template('/new_option.html')
 
 	print('Content-type: text/html\n')
@@ -1626,7 +1613,7 @@ def show_update_option(option):
 	
 def show_update_savedserver(server):
 	from jinja2 import Environment, FileSystemLoader
-	env = Environment(loader=FileSystemLoader('templates/ajax'))
+	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
 	template = env.get_template('/new_saved_servers.html')
 
 	print('Content-type: text/html\n')

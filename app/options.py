@@ -378,7 +378,7 @@ if serv is not None and act == "stats":
 	data = response.content
 	if form.getvalue('service') == 'nginx':
 		from jinja2 import Environment, FileSystemLoader
-		env = Environment(loader=FileSystemLoader('templates/'))
+		env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 		template = env.get_template('ajax/nginx_stats.html')
 		
 		servers_with_status = list()
@@ -1112,11 +1112,11 @@ if form.getvalue('newuser') is not None:
 	activeuser = form.getvalue('activeuser')	
 	role_id = sql.get_role_id_by_name(role)
 	
-	if sql.check_group(group, role_id):
+	if funct.check_group(group, role_id):
 		if funct.is_admin(level=role_id):
 			if sql.add_user(new_user, email, password, role, group, activeuser):
 				from jinja2 import Environment, FileSystemLoader
-				env = Environment(loader=FileSystemLoader('templates/'))
+				env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 				template = env.get_template('ajax/new_user.html')
 
 				template = template.render(users=sql.select_users(user=new_user),
@@ -1148,7 +1148,7 @@ if form.getvalue('updateuser') is not None:
 	activeuser = form.getvalue('activeuser')	
 	role_id = sql.get_role_id_by_name(role)
 	
-	if sql.check_group(group, role_id):			
+	if funct.check_group(group, role_id):			
 		if funct.is_admin(level=role_id):
 			sql.update_user(new_user, email, role, group, id, activeuser)
 			funct.logging(new_user, ' has updated user ', haproxywi=1, login=1)
@@ -1184,7 +1184,7 @@ if form.getvalue('newserver') is not None:
 
 	if sql.add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx):
 		from jinja2 import Environment, FileSystemLoader
-		env = Environment(loader=FileSystemLoader('templates/'))
+		env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 		template = env.get_template('ajax/new_server.html')
 
 		template = template.render(groups = sql.select_groups(),
