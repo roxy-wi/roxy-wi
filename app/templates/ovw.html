@@ -50,7 +50,7 @@
 	<tr class="overviewHead" style="height: 40px;">
 		<td class="padding10 first-collumn-wi">
 			{% if role <= 1 %}
-				<a href="/app/viewlogs.py?viewlogs=haproxy-wi-{{date}}.log&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View HAProxy-WI logs" class="logs_link">			
+				<a href="/app/viewlogs.py?viewlogs={{haproxy_wi_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View HAProxy-WI logs" class="logs_link">			
 					HAProxy-WI server status
 				</a>
 			{% else %}
@@ -84,7 +84,7 @@
 				<span class="serverDown server-status"></span>
 			{% endif %}
 			{% if role <= 1 %}
-			<a href="/app/viewlogs.py?viewlogs=metrics-{{date}}.log&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View metrics master's logs" class="logs_link">			
+			<a href="/app/viewlogs.py?viewlogs={{metrics_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View metrics master's logs" class="logs_link">			
 				<span>Metrics master</span>
 			</a>
 			{% else %}
@@ -98,7 +98,7 @@
 				<span class="serverDown server-status"></span> 
 			{% endif %}
 			{% if role <= 1 %}
-			<a href="/app/viewlogs.py?viewlogs=checker-{{date}}.log&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View checker master's logs" class="logs_link">
+			<a href="/app/viewlogs.py?viewlogs={{checker_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View checker master's logs" class="logs_link">
 				<span>Checker master</span>
 			</a>
 			{% else %}
@@ -112,7 +112,7 @@
 				<span class="serverDown server-status"></span> 
 			{% endif %}
 			{% if role <= 1 %}
-			<a href="/app/viewlogs.py?viewlogs=keep_alive.log&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View keep alive logs" class="logs_link">
+			<a href="/app/viewlogs.py?viewlogs={{keep_alive_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View keep alive logs" class="logs_link">
 				<span>Auto start</span>
 			</a>
 			{% else %}
@@ -128,7 +128,7 @@
 			<span title="running {{metrics_worker}} worker processes"><span class="serverDown server-status"></span> 
 		{% endif %}
 		{% if role <= 1 %}
-			<a href="/app/viewlogs.py?viewlogs=metrics-error.log&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View worker's logs" class="logs_link">
+			<a href="/app/viewlogs.py?viewlogs={{metrics_error_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View worker's logs" class="logs_link">
 				<span>Metrics workers</span>
 			</a>
 		{% else %}
@@ -142,7 +142,7 @@
 			<span title="running {{ checker_worker }} worker processes"><span class="serverDown server-status"></span> 
 		{% endif %}
 		{% if role <= 1 %}
-			<a href="/app/viewlogs.py?viewlogs=checker-error.log&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View checker's logs" class="logs_link">
+			<a href="/app/viewlogs.py?viewlogs={{checker_error_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View checker's logs" class="logs_link">
 				<span>Checker workers</span>
 			</a>
 		{% else %}
@@ -269,7 +269,11 @@
 	
 	<table class="overview-wi">
 		<tr class="overviewHead">
-			<td class="padding10 first-collumn-wi">Recent HAProxy-WI`s log</td> 
+			<td class="padding10 first-collumn-wi">
+				<a href="/app/viewlogs.py?viewlogs={{haproxy_wi_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View HAProxy-WI logs" class="logs_link">			
+					Recent HAProxy-WI`s log
+				</a>
+			</td> 
 			<td>
 				<span class="add-button-wi">
 					<a title="Show more log" id="show-all-haproxy-wi-log" style="color: #fff">

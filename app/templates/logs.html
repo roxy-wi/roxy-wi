@@ -31,7 +31,7 @@
 					<select autofocus required name="serv" id="{{ select_id }}">									
 						<option disabled selected>Choose log</option>
 						{% for select in selects %}
-							{% if select.0 == serv %}
+							{% if select.0|int() == serv|int() %}
 								<option value="{{ select.0 }}" selected>{{ select.1 }}</option>
 							{% else %}
 								<option value="{{ select.0 }}">{{ select.1 }}</option>

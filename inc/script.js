@@ -436,6 +436,16 @@ function showUploadConfig() {
 		}					
 	} );
 }
+function findGetParameter(parameterName) {
+    var result = null,
+        tmp = [];
+    var items = location.search.substr(1).split("&");
+    for (var index = 0; index < items.length; index++) {
+        tmp = items[index].split("=");
+        if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
+    }
+    return result;
+}
 function viewLogs() {
 	if($('#viewlogs').val() == 'haproxy-wi.error.log' || $('#viewlogs').val() == 'haproxy-wi.access.log') {
 		showApacheLog($('#viewlogs').val());
@@ -446,10 +456,15 @@ function viewLogs() {
 		var minut = $('#time_range_out_minut').val()
 		var hour1 = $('#time_range_out_hour1').val()
 		var minut1 = $('#time_range_out_minut1').val()
+		var viewlogs = $('#viewlogs').val()
+		console.log(findGetParameter('viewlogs'))
+		if (viewlogs == null){
+			viewlogs = findGetParameter('viewlogs')
+		}	
 		$.ajax( {
 			url: "options.py",
 			data: {
-				viewlogs: $('#viewlogs').val(),
+				viewlogs: viewlogs,
 				rows: rows,
 				grep: grep,
 				hour: hour,
@@ -461,7 +476,7 @@ function viewLogs() {
 			type: "POST",
 			success: function( data ) {
 				$("#ajax").html(data);
-				window.history.pushState("View logs", "View logs", cur_url[0]+"?viewlogs="+$("#viewlogs").val()+
+				window.history.pushState("View logs", "View logs", cur_url[0]+"?viewlogs="+viewlogs+
 																	'&rows='+rows+
 																	'&grep='+grep+
 																	'&hour='+hour+
