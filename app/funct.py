@@ -596,7 +596,7 @@ def upload_and_restart(serv, cfg, **kwargs):
 		else:
 			commands = [ "sudo haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + config_path + " && sudo systemctl restart haproxy" ]	
 		if sql.get_setting('firewall_enable') == "1":
-			commands.extend(open_port_firewalld(cfg))
+			commands[0] += open_port_firewalld(cfg)
 	error += str(upload(serv, tmp_file, cfg, dir='fullpath'))
 
 	try:
@@ -628,7 +628,8 @@ def open_port_firewalld(cfg):
 	except IOError:
 		print('<div class="alert alert-danger">Can\'t read export config file</div>')
 	
-	firewalld_commands = []
+	firewalld_commands = ' &&'
+	ports = ''
 	
 	for line in conf:
 		if "bind" in line:
@@ -636,9 +637,11 @@ def open_port_firewalld(cfg):
 			bind[1] = bind[1].strip(' ')
 			bind = bind[1].split("ssl")
 			bind = bind[0].strip(' \t\n\r')
-			firewalld_commands.append('sudo firewall-cmd --zone=public --add-port=%s/tcp --permanent' % bind)
+			firewalld_commands += ' sudo firewall-cmd --zone=public --add-port=%s/tcp --permanent -q &&' % bind
+			ports += bind+' '
 				
-	firewalld_commands.append('sudo firewall-cmd --reload')
+	firewalld_commands += 'sudo firewall-cmd --reload -q' 
+	logging('localhost', ' Next ports have opened: '+ports+ ' has opened ')
 	return firewalld_commands
 	
 	
