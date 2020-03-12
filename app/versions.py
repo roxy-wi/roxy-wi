@@ -33,6 +33,7 @@ if service == 'keepalived':
 	files = funct.get_files(dir=configs_dir, format='conf')
 	action = 'versions.py?service=keepalived'	
 	format = 'conf'
+	servers = sql.get_dick_permit(keepalived=1)
 elif service == 'nginx':
 	configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
 	title = "Working with versions Nginx configs"
