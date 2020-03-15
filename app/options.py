@@ -779,7 +779,7 @@ if form.getvalue('masteradd'):
 	
 	servers = sql.select_servers(server=master)
 	for server in servers:
-		ssh_port = server[10]
+		ssh_port = str(server[10])
 		
 	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+ 
 				" SSH_PORT="+ssh_port+
@@ -813,7 +813,7 @@ if form.getvalue('masteradd'):
 		
 	servers = sql.select_servers(server=slave)
 	for server in servers:
-		ssh_port = server[10]
+		ssh_port = str(server[10])
 	
 	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+ 
 				" SSH_PORT="+ssh_port+
@@ -869,7 +869,7 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
 	
 	servers = sql.select_servers(server=serv)
 	for server in servers:
-		ssh_port = server[10]
+		ssh_port = str(server[10])
 		
 	os.system("cp scripts/%s ." % script)
 		

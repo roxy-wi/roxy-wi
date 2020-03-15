@@ -387,7 +387,7 @@ def install_haproxy(serv, **kwargs):
 		
 	servers = sql.select_servers(server=serv)
 	for server in servers:
-		ssh_port = server[10]
+		ssh_port = str(server[10])
 		
 	os.system("cp scripts/%s ." % script)
 	
@@ -482,7 +482,7 @@ def install_nginx(serv):
 		
 	servers = sql.select_servers(server=serv)
 	for server in servers:
-		ssh_port = server[10]
+		ssh_port = str(server[10])
 		
 	syn_flood_protect = '1' if form.getvalue('syn_flood') == "1" else ''
 		
