@@ -385,6 +385,10 @@ def install_haproxy(serv, **kwargs):
 	if ssh_enable == 0:
 		ssh_key_name = ''
 		
+	servers = sql.select_servers(server=serv)
+	for server in servers:
+		ssh_port = server[10]
+		
 	os.system("cp scripts/%s ." % script)
 	
 	if hapver is None:
@@ -399,6 +403,7 @@ def install_haproxy(serv, **kwargs):
 		
 	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+ 
 				" SOCK_PORT="+haproxy_sock_port+" STAT_PORT="+stats_port+" STAT_FILE="+server_state_file+
+				" SSH_PORT="+ssh_port+
 				" STATS_USER="+stats_user+" STATS_PASS="+stats_password+" HAPVER="+hapver +" SYN_FLOOD="+syn_flood_protect+" HOST="+serv+
 				" USER="+ssh_user_name+" PASS="+ssh_user_password+" KEY="+ssh_key_name ]
 				
@@ -475,9 +480,14 @@ def install_nginx(serv):
 	else:
 		proxy_serv = ''
 		
+	servers = sql.select_servers(server=serv)
+	for server in servers:
+		ssh_port = server[10]
+		
 	syn_flood_protect = '1' if form.getvalue('syn_flood') == "1" else ''
 		
 	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+" STATS_USER="+stats_user+" STATS_PASS="+stats_password+
+				" SSH_PORT="+ssh_port+
 				" CONFIG_PATH="+config_path+" STAT_PORT="+stats_port+" STAT_PAGE="+stats_page+" SYN_FLOOD="+syn_flood_protect+" HOST="+serv+
 				" USER="+ssh_user_name+" PASS="+ssh_user_password+" KEY="+ssh_key_name ]
 				

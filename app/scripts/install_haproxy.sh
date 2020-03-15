@@ -17,6 +17,7 @@ do
             PASS)    PASS=${VALUE} ;;
             KEY)    KEY=${VALUE} ;;
             SYN_FLOOD)    SYN_FLOOD=${VALUE} ;;
+            SSH_PORT)    SSH_PORT=${VALUE} ;;
             *)
     esac
 done
@@ -28,9 +29,9 @@ PWD=$PWD/scripts/ansible/
 echo $HOST > $PWD/$HOST
 
 if [[ $KEY == "" ]]; then
-	ansible-playbook $PWD/roles/haproxy.yml -e "ansible_user=$USER ansible_ssh_pass=$PASS variable_host=$HOST PROXY=$PROXY HAPVER=$HAPVER SOCK_PORT=$SOCK_PORT STAT_PORT=$STAT_PORT STATS_USER=$STATS_USER STATS_PASS=$STATS_PASS STAT_FILE=$STAT_FILE SYN_FLOOD=$SYN_FLOOD" -i $PWD/$HOST
+	ansible-playbook $PWD/roles/haproxy.yml -e "ansible_user=$USER ansible_ssh_pass=$PASS variable_host=$HOST PROXY=$PROXY HAPVER=$HAPVER SOCK_PORT=$SOCK_PORT STAT_PORT=$STAT_PORT STATS_USER=$STATS_USER STATS_PASS=$STATS_PASS STAT_FILE=$STAT_FILE SSH_PORT=$SSH_PORT SYN_FLOOD=$SYN_FLOOD" -i $PWD/$HOST
 else	
-	ansible-playbook $PWD/roles/haproxy.yml --key-file $KEY -e "ansible_user=$USER variable_host=$HOST PROXY=$PROXY HAPVER=$HAPVER SOCK_PORT=$SOCK_PORT STAT_PORT=$STAT_PORT STATS_USER=$STATS_USER STATS_PASS=$STATS_PASS STAT_FILE=$STAT_FILE SYN_FLOOD=$SYN_FLOOD" -i $PWD/$HOST 
+	ansible-playbook $PWD/roles/haproxy.yml --key-file $KEY -e "ansible_user=$USER variable_host=$HOST PROXY=$PROXY HAPVER=$HAPVER SOCK_PORT=$SOCK_PORT STAT_PORT=$STAT_PORT STATS_USER=$STATS_USER STATS_PASS=$STATS_PASS STAT_FILE=$STAT_FILE SSH_PORT=$SSH_PORT SYN_FLOOD=$SYN_FLOOD" -i $PWD/$HOST 
 fi
 
 if [ $? -gt 0 ]

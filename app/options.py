@@ -288,7 +288,7 @@ if act == "overviewServers":
 	async def get_runner_overviewServers(**kwargs):
 		import http.cookies
 		from jinja2 import Environment, FileSystemLoader
-		env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True,extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
+		env = Environment(loader=FileSystemLoader('templates/ajax'),extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
 		template = env.get_template('overviewServers.html')	
 		
 		servers = []	
@@ -776,8 +776,13 @@ if form.getvalue('masteradd'):
 		proxy_serv = ''		
 		
 	os.system("cp scripts/%s ." % script)
+	
+	servers = sql.select_servers(server=master)
+	for server in servers:
+		ssh_port = server[10]
 		
 	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+ 
+				" SSH_PORT="+ssh_port+
 				" ETH="+ETH+" IP="+str(IP)+" MASTER=MASTER"+" RESTART="+kp+" ADD_VRRP=1 HOST="+str(master)+
 				" USER="+str(ssh_user_name)+" PASS="+str(ssh_user_password)+" KEY="+str(ssh_key_name) ]
 	
@@ -805,8 +810,13 @@ if form.getvalue('masteradd'):
 	
 	if ssh_enable == 0:
 		ssh_key_name = ''
+		
+	servers = sql.select_servers(server=slave)
+	for server in servers:
+		ssh_port = server[10]
 	
 	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+ 
+				" SSH_PORT="+ssh_port+
 				" ETH="+ETH+" IP="+str(IP)+" MASTER=BACKUP"+" RESTART="+kp+" ADD_VRRP=1 HOST="+str(slave)+
 				" USER="+str(ssh_user_name)+" PASS="+str(ssh_user_password)+" KEY="+str(ssh_key_name) ]
 	
@@ -856,10 +866,15 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
 		if sql.check_exists_backup(server):
 			print('info: Backup job for %s already exists' % server)
 			sys.exit()
+	
+	servers = sql.select_servers(server=serv)
+	for server in servers:
+		ssh_port = server[10]
 		
 	os.system("cp scripts/%s ." % script)
 		
 	commands = [ "chmod +x "+script +" &&  ./"+script +"  HOST="+rserver+"  SERVER="+server+" TYPE="+type+
+				" SSH_PORT="+ssh_port+
 				" TIME="+time+" RPATH="+rpath+" DELJOB="+deljob+" USER="+str(ssh_user_name)+" KEY="+str(ssh_key_name) ]
 	
 	output, error = funct.subprocess_execute(commands[0])

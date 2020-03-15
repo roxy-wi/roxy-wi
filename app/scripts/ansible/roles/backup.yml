@@ -3,6 +3,10 @@
   become_method: sudo
   gather_facts: no
   tasks:
+  - name: Set SSH port
+    set_fact:
+      ansible_port: "{{SSH_PORT}}"
+      
   - name: Creates directory
     file:
       path: "{{ RPATH }}/haproxy-wi-configs-backup/configs"
@@ -25,6 +29,7 @@
     with_items: 
       - kp_config
       - hap_config
+      - nginx_config
      
   - name: Removes backup jobs
     cron:
@@ -34,3 +39,4 @@
     with_items: 
       - kp_config
       - hap_config
+      - nginx_config

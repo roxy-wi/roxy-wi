@@ -15,6 +15,7 @@ do
 			STAT_PAGE)    STAT_PAGE=${VALUE} ;;
 			STATS_USER)    STATS_USER=${VALUE} ;;
             STATS_PASS)    STATS_PASS=${VALUE} ;;
+			SSH_PORT)    SSH_PORT=${VALUE} ;;
             *)
     esac
 done
@@ -35,9 +36,9 @@ PWD=$PWD/scripts/ansible/
 echo $HOST > $PWD/$HOST
 
 if [[ $KEY == "" ]]; then
-	ansible-playbook $PWD/roles/nginx.yml -e "ansible_user=$USER ansible_ssh_pass=$PASS variable_host=$HOST PROXY=$PROXY SYN_FLOOD=$SYN_FLOOD STAT_PAGE=$STAT_PAGE STAT_PORT=$STAT_PORT STATS_USER=$STATS_USER STATS_PASS=$STATS_PASS" -i $PWD/$HOST
+	ansible-playbook $PWD/roles/nginx.yml -e "ansible_user=$USER ansible_ssh_pass=$PASS variable_host=$HOST PROXY=$PROXY SYN_FLOOD=$SYN_FLOOD STAT_PAGE=$STAT_PAGE STAT_PORT=$STAT_PORT STATS_USER=$STATS_USER STATS_PASS=$STATS_PASS SSH_PORT=$SSH_PORT" -i $PWD/$HOST
 else	
-	ansible-playbook $PWD/roles/nginx.yml --key-file $KEY -e "ansible_user=$USER variable_host=$HOST PROXY=$PROXY SYN_FLOOD=$SYN_FLOOD STAT_PAGE=$STAT_PAGE STAT_PORT=$STAT_PORT STATS_USER=$STATS_USER STATS_PASS=$STATS_PASS" -i $PWD/$HOST 
+	ansible-playbook $PWD/roles/nginx.yml --key-file $KEY -e "ansible_user=$USER variable_host=$HOST PROXY=$PROXY SYN_FLOOD=$SYN_FLOOD STAT_PAGE=$STAT_PAGE STAT_PORT=$STAT_PORT STATS_USER=$STATS_USER STATS_PASS=$STATS_PASS SSH_PORT=$SSH_PORT" -i $PWD/$HOST 
 fi
 
 if [ $? -gt 0 ]

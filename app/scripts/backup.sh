@@ -13,6 +13,7 @@ do
             USER)    USER=${VALUE} ;;
             KEY)    KEY=${VALUE} ;;
 			DELJOB) DELJOB=${VALUE} ;;
+			SSH_PORT) SSH_PORT=${VALUE} ;;
             *)
     esac
 done
@@ -32,7 +33,7 @@ else
 	TYPE=''
 fi 
 
-ansible-playbook $PWD/roles/backup.yml --key-file $KEY -e "ansible_user=$USER variable_host=$HOST RPATH=$RPATH TYPE=$TYPE TIME=$TIME HOST=$HOST SERVER=$SERVER KEY=$KEY DELJOB=$DELJOB" -i $PWD/$HOST
+ansible-playbook $PWD/roles/backup.yml --key-file $KEY -e "ansible_user=$USER variable_host=$HOST RPATH=$RPATH TYPE=$TYPE TIME=$TIME HOST=$HOST SERVER=$SERVER KEY=$KEY DELJOB=$DELJOB SSH_PORT=$SSH_PORT" -i $PWD/$HOST
 
 if [ $? -gt 0 ]
 then

@@ -2,6 +2,10 @@
   become: yes
   become_method: sudo
   tasks:
+    - name: Set SSH port
+      set_fact:
+        ansible_port: "{{SSH_PORT}}"
+        
     - name: check if Nginx is installed
       package_facts:
         manager: "auto"
