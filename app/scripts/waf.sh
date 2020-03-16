@@ -12,7 +12,7 @@ do
             *)
     esac
 done
-VERSION=$(echo $VERSION | awk -F"-" '{print $1}')
+VERSION=$(echo 2.1.3| awk -F"-" '{print $1}')
 VERSION_MAJ=$(echo $VERSION | awk -F"." '{print $1"."$2}')
 
 if (( $(awk 'BEGIN {print ("'$VERSION_MAJ'" < "'1.8'")}') )); then

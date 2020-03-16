@@ -466,7 +466,7 @@ def get_user_role_by_uuid(uuid):
 		funct.out_error(e)
 	else:
 		for user_id in cur.fetchall():
-			return user_id[0]
+			return int(user_id[0])
 	cur.close()    
 	con.close() 
 	
