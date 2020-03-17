@@ -75,6 +75,14 @@
   when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and haproxy_from_wi is defined
   
   
+- name: Disble SELINUX in config
+  shell: sed -i 's\SELINUX=enforcing\SELINUX=permissive\' /etc/selinux/config
+  
+  
+- name: Disble SELINUX in env
+  shell: setenforce 0
+  
+  
 - name: Enable and start service HAProxy
   systemd:
     name: haproxy

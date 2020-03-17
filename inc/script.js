@@ -64,6 +64,15 @@ $( function() {
 			$(this).parent().find('a').css('padding-left', '20px');
 			$(this).find('a').css('padding-left', '30px');
 			$(this).find('a').css('border-left', '4px solid #5D9CEB');
+		} else if(cur_url[0] == 'viewsttats.py' && cur_url[1].split('&')[0] == 'service=nginx' && link2 == 'viewsttats.py?service=nginx'){
+			$(this).parent().css('display', 'contents');
+			$(this).parent().css('font-size', '13px');
+			$(this).parent().css('top', '0');
+			$(this).parent().css('left', '0');
+			$(this).parent().children().css('margin-left', '-20px');
+			$(this).parent().find('a').css('padding-left', '20px');
+			$(this).find('a').css('padding-left', '30px');
+			$(this).find('a').css('border-left', '4px solid #5D9CEB');
 		} 
    });
 });

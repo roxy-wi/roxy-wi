@@ -37,10 +37,12 @@
 			<script src="/inc/chart.min.js"></script>
 			<script>
 				function showMetrics() {
-					{% for s in servers %}
-						getChartData('{{s.2}}')
-						getWafChartData('{{s.2}}')
-					{% endfor %}
+					{% if service == 'haproxy' %}
+						{% for s in servers %}
+							getChartData('{{s.2}}')
+							getWafChartData('{{s.2}}')
+						{% endfor %}
+					{% endif %}
 					showOverviewServer('{{s.1}}', '{{s.2}}', '{{s.0}}');
 				}
 				showMetrics();
@@ -155,10 +157,10 @@
 			{% endif %}
 				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showCompare" class="ui-button ui-widget ui-corner-all" title="Compare configs">Compare</a>	
 			{% if service != 'nginx' %}
-				<a href="/app/config.py?serv={{s.2}}&showMap" class="ui-button ui-widget ui-corner-all" title="Show map">Map</a>	
-				<a href="/app/viewsttats.py?serv={{s.2}}" class="ui-button ui-widget ui-corner-all" title="View stat">Stat</a>	
+				<a href="/app/config.py?serv={{s.2}}&showMap" class="ui-button ui-widget ui-corner-all" title="Show map">Map</a>
 			{% endif %}
-				<a href="/app/logs.py?service={{service}}&serv={{s.2}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" class="ui-button ui-widget ui-corner-all" title="View log">Log</a>	
+			<a href="/app/viewsttats.py?service={{service}}&serv={{s.2}}" class="ui-button ui-widget ui-corner-all" title="View stat">Stat</a>
+			<a href="/app/logs.py?service={{service}}&serv={{s.2}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" class="ui-button ui-widget ui-corner-all" title="View log">Log</a>	
 				{% if role <= 2 %}
 					<a href="/app/versions.py?service={{service}}&serv={{s.2}}&open=open" class="ui-button ui-widget ui-corner-all">Versions</a>	
 				{% endif %}
@@ -166,17 +168,19 @@
 		</div>
 		{% if serv %}
 			<div id="ajax-server-{{s.0}}" class="ajax-server"></div>
-			<div class="div-server div-backends">
+			{% if service == 'haproxy' %}
+			<div class="div-server div-backends">			
 				<div class="server-name backends">	
 					Backends:
-				</div>
+				</div>				
 				<div style="margin-top: 10px;" id="top-{{s.1}}"></div>
 			</div>
+			{% endif %}
 		{% endif %}
 	</div>
 	{% endfor %}
 </div>
-{% if serv %}
+{% if serv and service == 'haproxy' %}
 	<div id="refresh" style="text-align: right;margin-right: 105px;clear: both;display: block;padding-top: 20px;margin-bottom: -25px;" title="Refresh metrics" onclick="showMetrics()">
 		<span class="service-reload"></span>
 	</div>
@@ -193,7 +197,7 @@
   <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>Are you sure?</p>
 </div>
 <script>
-	{% if serv %}
+	{% if serv and service == 'haproxy' %}
 		overviewHapserverBackends(ip, hostnamea);
 	{% endif %}
 	showHapservers(ip, hostnamea, '{{service}}');

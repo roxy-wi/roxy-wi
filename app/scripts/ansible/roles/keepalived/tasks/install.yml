@@ -55,6 +55,14 @@
   notify: restart keepalived
   
   
+- name: Disble SELINUX in config
+  shell: sed -i 's\SELINUX=enforcing\SELINUX=permissive\' /etc/selinux/config
+  
+  
+- name: Disble SELINUX in env
+  shell: setenforce 0
+  
+  
 - name: Enable and start service keepalived
   service:
     name: keepalived

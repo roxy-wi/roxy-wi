@@ -47,6 +47,15 @@
         password: "{{STATS_PASS}}"
       when: "'nginx' not in ansible_facts.packages"
       
+      
+    - name: Disble SELINUX in config
+      shell: sed -i 's\SELINUX=enforcing\SELINUX=permissive\' /etc/selinux/config
+  
+  
+    - name: Disble SELINUX in env
+      shell: setenforce 0 
+      
+      
 - hosts: "{{ variable_host }}"
   become: yes
   become_method: sudo

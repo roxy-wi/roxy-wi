@@ -1,0 +1,126 @@
+<style>
+body { font-family: arial, helvetica, sans-serif; font-size: 12px; font-weight: normal; color: black; background: white;}
+th,td { font-size: 10px; }
+h1 { font-size: x-large; margin-bottom: 0.5em;}
+h2 { font-family: helvetica, arial; font-size: x-large; font-weight: bold; font-style: italic; color: #6020a0; margin-top: 0em; margin-bottom: 0em;}
+h3 { font-family: helvetica, arial; font-size: 16px; font-weight: bold; color: #b00040; background: #e8e8d0; margin-top: 0em; margin-bottom: 0em;}
+li { margin-top: 0.25em; margin-right: 2em;}
+.hr {margin-top: 0.25em; border-color: black; border-bottom-style: solid;}
+.titre	{background: #20D0D0;color: #000000; font-weight: bold; text-align: center;}
+.total	{background: #20D0D0;color: #ffff80;}
+.frontend	{background: #e8e8d0;}
+.socket	{background: #d0d0d0;}
+.backend	{background: #e8e8d0;}
+.active_down		{background: #ff9090;}
+.active_going_up		{background: #ffd020;}
+.active_going_down	{background: #ffffa0;}
+.active_up		{background: #c0ffc0;}
+.active_nolb		{background: #20a0ff;}
+.active_draining		{background: #20a0FF;}
+.active_no_check		{background: #e0e0e0;}
+.backup_down		{background: #ff9090;}
+.backup_going_up		{background: #ff80ff;}
+.backup_going_down	{background: #c060ff;}
+.backup_up		{background: #b0d0ff;}
+.backup_nolb		{background: #90b0e0;}
+.backup_draining		{background: #cc9900;}
+.backup_no_check		{background: #e0e0e0;}
+.maintain	{background: #c07820;}
+.rls      {letter-spacing: 0.2em; margin-right: 1px;}
+
+a.px:link {color: #ffff40; text-decoration: none;}a.px:visited {color: #ffff40; text-decoration: none;}a.px:hover {color: #ffffff; text-decoration: none;}a.lfsb:link {color: #000000; text-decoration: none;}a.lfsb:visited {color: #000000; text-decoration: none;}a.lfsb:hover {color: #505050; text-decoration: none;}
+table.tbl { border-collapse: collapse; border-style: none;}
+table.tbl td { text-align: right; border-width: 1px 1px 1px 1px; border-style: solid solid solid solid; padding: 2px 3px; border-color: gray; white-space: nowrap;}
+table.tbl td.ac { text-align: center;}
+table.tbl th { border-width: 1px; border-style: solid solid solid solid; border-color: gray; padding-left: 10px;}
+table.tbl th.pxname { background: #b00040; color: #ffff40; font-weight: bold; border-style: solid solid none solid; padding: 2px 3px; white-space: nowrap;}
+table.tbl th.empty { border-style: none; empty-cells: hide; background: white;}
+table.tbl th.desc { background: white; border-style: solid solid none solid; text-align: left; padding: 2px 3px;}
+
+table.lgd { border-collapse: collapse; border-width: 1px; border-style: none none none solid; border-color: black;}
+table.lgd td { border-width: 1px; border-style: solid solid solid solid; border-color: gray; padding: 2px;}
+table.lgd td.noborder { border-style: none; padding: 2px; white-space: nowrap;}
+table.det { border-collapse: collapse; border-style: none; }
+table.det th { text-align: left; border-width: 0px; padding: 0px 1px 0px 0px; font-style:normal;font-size:11px;font-weight:bold;font-family: sans-serif;}
+table.det td { text-align: right; border-width: 0px; padding: 0px 0px 0px 4px; white-space: nowrap; font-style:normal;font-size:11px;font-weight:normal;}
+u {text-decoration:none; border-bottom: 1px dotted black;}
+div.tips {
+ display:block;
+ visibility:hidden;
+ z-index:2147483647;
+ position:absolute;
+ padding:2px 4px 3px;
+ background:#f0f060; color:#000000;
+ border:1px solid #7040c0;
+ white-space:nowrap;
+ font-style:normal;font-size:11px;font-weight:normal;
+ -moz-border-radius:3px;-webkit-border-radius:3px;border-radius:3px;
+ -moz-box-shadow:gray 2px 2px 3px;-webkit-box-shadow:gray 2px 2px 3px;box-shadow:gray 2px 2px 3px;
+}
+u:hover div.tips {visibility:visible;}
+</style>
+
+
+	{% for l in out %}
+	<table class="tbl" width="100%">
+	<tr class="titre">
+		<th class="pxname" style="background-color: rgb(93, 156, 235); width: 100%; padding-top: 4px; padding-bottom: 4px; border-color: rgb(221, 221, 221);">
+			<a name="status">
+			<a class="px" href="#stats" style="color: rgb(255, 255, 255);">Nginx status</a>
+		</th>
+	</tr>
+	
+	</table>
+	<table class="tbl" width="100%">
+	<tr class="titre">
+		<th style="background-color: rgb(245, 250, 244); padding-top: 4px; padding-bottom: 4px; border-color: rgb(221, 221, 221); width: 15%;">
+			{{l.0.0}} {{l.0.1}} 
+		</th>
+		<th style="background-color: rgb(245, 250, 244); padding-top: 4px; padding-bottom: 4px; border-color: rgb(221, 221, 221);">
+			{{l.0.4}}  
+		</th>
+		<th style="background-color: rgb(245, 250, 244); padding-top: 4px; padding-bottom: 4px; border-color: rgb(221, 221, 221);">
+			{{l.0.5}} 
+		</th>
+		<th style="background-color: rgb(245, 250, 244); padding-top: 4px; padding-bottom: 4px; border-color: rgb(221, 221, 221);">
+			{{l.0.6}}
+		</th>
+		<th style="background-color: rgb(245, 250, 244); padding-top: 4px; padding-bottom: 4px; border-color: rgb(221, 221, 221);">
+			{{l.0.10}}
+		</th>
+		<th style="background-color: rgb(245, 250, 244); padding-top: 4px; padding-bottom: 4px; border-color: rgb(221, 221, 221);">
+			{{l.0.12}} 
+		</th>
+		<th style="background-color: rgb(245, 250, 244); padding-top: 4px; padding-bottom: 4px; border-color: rgb(221, 221, 221);">
+			{{l.0.14}}  
+		</th>
+	</tr>
+	<tr class="frontend">
+		<td style="font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol; font-size: 11px; border-color: rgb(221, 221, 221); padding: 3px;">
+			{{l.0.2}}
+		</td>
+		<td style="font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol; font-size: 11px; border-color: rgb(221, 221, 221); padding: 3px;">
+			{{l.0.7}}
+		</td>
+		<td style="font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol; font-size: 11px; border-color: rgb(221, 221, 221); padding: 3px;">
+			{{l.0.8}}
+		</td>
+		<td style="font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol; font-size: 11px; border-color: rgb(221, 221, 221); padding: 3px;">
+			{{l.0.9}}
+		</td>
+		<td style="font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol; font-size: 11px; border-color: rgb(221, 221, 221); padding: 3px;">
+			{{l.0.11}}
+		</td>
+		<td style="font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol; font-size: 11px; border-color: rgb(221, 221, 221); padding: 3px;">
+			{{l.0.13}}
+		</td>
+		<td style="font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol; font-size: 11px; border-color: rgb(221, 221, 221); padding: 3px;">
+			{{l.0.15}}
+		</td>
+
+	</tr>
+	</table>
+	<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+		You can read the description about statuses <a href="https://haproxy-wi.org/description.py?description=nginx_status" title="Nginx status page description" target="_blank">here</a>
+	</div>
+	{% endfor %}

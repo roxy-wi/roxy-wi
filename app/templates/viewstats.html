@@ -2,6 +2,7 @@
 {% block content %}	
 <br />
 <form style="padding-left: 5px;" action="viewsttats.py" method="post">
+	<input type="hidden" id="service" value="{{service}}" />
 	<select autofocus required name="serv" id="serv">
 		<option disabled>Choose server</option>
 			{% for select in selects %}
