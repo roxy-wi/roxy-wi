@@ -118,6 +118,7 @@
     permanent: yes
     immediate: yes
   ignore_errors: yes
+  no_log: True
   when: ansible_facts.services["firewalld.service"]['state'] == "running"
   with_items:  [ "{{ STAT_PORT }}", "{{ SOCK_PORT }}" ]
   
