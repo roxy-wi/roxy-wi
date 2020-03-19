@@ -14,7 +14,9 @@
 	var hostnamea = []
 	{% for s in servers_all %}
 		ip.push("{{s[2]}}")
-		hostnamea.push("{{s[1]}}")
+		var host = "{{s[1]}}"
+		host = host.replace(/\./g, '\\.');
+		hostnamea.push(host)
 	{% endfor %}
 </script>
 <table class="overview">
