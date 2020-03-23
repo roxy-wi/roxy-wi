@@ -46,11 +46,11 @@
         name: "{{STATS_USER}}"
         password: "{{STATS_PASS}}"
       when: "'nginx' not in ansible_facts.packages"
-      
-      
+          
     - name: Disble SELINUX in config
-      shell: sed -i 's\SELINUX=enforcing\SELINUX=permissive\' /etc/selinux/config
-  
+      template:
+        src: /var/www/haproxy-wi/app/scripts/ansible/roles/haproxy/templates/selinux.j2
+        dest: /etc/selinux/config
   
     - name: Disble SELINUX in env
       shell: setenforce 0 

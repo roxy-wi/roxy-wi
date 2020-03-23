@@ -76,7 +76,9 @@
   
   
 - name: Disble SELINUX in config
-  shell: sed -i 's\SELINUX=enforcing\SELINUX=permissive\' /etc/selinux/config
+  template:
+   src: selinux.j2
+   dest: /etc/selinux/config
   
   
 - name: Disble SELINUX in env

@@ -235,23 +235,23 @@
 			</div>
 			<div id="version">
 				{% if versions is defined %}
-						{% set current_ver = versions.0 %}
-						{% set new_ver = versions.1 %}
-						{% set current_ver_without_dots = versions.2 %}
-						{% set new_ver_without_dots = versions.3 %}
-					{% endif %}
-					{% if new_ver_without_dots is defined and current_ver_without_dots is defined and new_ver is defined and new_ver_without_dots is defined %}
-						<a style="color: #000; cursor: pointer;">
-							{% if new_ver > current_ver and new_ver != "Sorry cannot get current version" %}
-								<span id="show-updates-button" class="new-version-exists">v{{current_ver}} </span>
-							{% else %}
-								v{{current_ver}}
-							{% endif %}
-						</a>
-					{% else %}
-						v{{current_ver}}
-					{% endif %}
-					<br>
+					{% set current_ver = versions.0 %}
+					{% set new_ver = versions.1 %}
+					{% set current_ver_without_dots = versions.2 %}
+					{% set new_ver_without_dots = versions.3 %}
+				{% endif %}
+				{% if new_ver_without_dots is defined and current_ver_without_dots is defined and new_ver is defined and new_ver_without_dots is defined %}
+					<a style="color: #000; cursor: pointer;">
+						{% if new_ver_without_dots > current_ver_without_dots and new_ver != "Sorry cannot get current version" %}
+							<span id="show-updates-button" class="new-version-exists">v{{current_ver}} </span>
+						{% else %}
+							v{{current_ver}}
+						{% endif %}
+					</a>
+				{% else %}
+					v{{current_ver}}
+				{% endif %}
+				<br>
 			</div>
 			<div id="logo_footer">
 				<a href="https://haproxy-wi.org" title="HAProxy-WI site" target="_blank">
