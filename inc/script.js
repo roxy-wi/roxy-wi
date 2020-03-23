@@ -269,7 +269,11 @@ function showStats() {
 }
 function openStats() {
 	var serv = $("#serv").val();
-	var url = "viewsttats.py?serv="+serv
+	if (cur_url[1] == "service=nginx") {
+		var url = "viewsttats.py?service=nginx&serv="+serv+"&open=open"
+	} else {	
+		var url = "viewsttats.py?serv="+serv+"&open=open"
+	}
 	var win = window.open(url, '_blank');
 	win.focus();
 }
