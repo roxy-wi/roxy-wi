@@ -60,9 +60,11 @@
 		<td class="padding10 first-collumn-wi">
 			<span class="serverDown server-status"></span> {{ service.0 }}
 		</td>
-		<td colspan="3">
-			{{ service.3 }}
+		{% if role <= 1 %}
+		<td>
+			<a title="Install WAF"><button onclick="installWaf('{{ service.1 }}')">Install</button></a>
 		</td>
+		{% endif %}	
 	{% endif %}
 {% endfor %}
 <script>

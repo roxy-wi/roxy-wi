@@ -40,7 +40,17 @@
         dest: "{{CONFIG_PATH}}"
         mode: 0644
       when: "'nginx' not in ansible_facts.packages"
+      ignore_errors: yes      
+      
+    - name: Open stat port for firewalld
+      firewalld:
+        port: "{{ STAT_PORT }}/tcp"
+        state: enabled
+        permanent: yes
+        immediate: yes
       ignore_errors: yes
+      no_log: True
+      debugger: never
       
     - htpasswd:
         path: /etc/nginx/status_page_passwdfile
@@ -57,6 +67,7 @@
     - name: Disble SELINUX in env
       shell: setenforce 0 
       ignore_errors: yes
+      debugger: never
       
 - hosts: "{{ variable_host }}"
   become: yes
