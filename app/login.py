@@ -76,7 +76,7 @@ def check_in_ldap(user, password):
 	ldap_search_field = sql.get_setting('ldap_search_field')
 	ldap_user_attribute = sql.get_setting('ldap_user_attribute')
 	
-	l = ldap.initialize(server+':'+port)
+	l = ldap.initialize('ldap://{}:{}/'.format(server, port))
 	try:
 		l.protocol_version = ldap.VERSION3
 		l.set_option(ldap.OPT_REFERRALS, 0)
