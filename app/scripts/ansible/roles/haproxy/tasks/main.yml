@@ -79,11 +79,13 @@
   template:
    src: selinux.j2
    dest: /etc/selinux/config
-  
+  ignore_errors: yes
+  ignore_errors: yes
   
 - name: Disble SELINUX in env
   shell: setenforce 0
-  
+  ignore_errors: yes
+  ignore_errors: yes
   
 - name: Enable and start service HAProxy
   systemd:

@@ -40,6 +40,7 @@
         dest: "{{CONFIG_PATH}}"
         mode: 0644
       when: "'nginx' not in ansible_facts.packages"
+      ignore_errors: yes
       
     - htpasswd:
         path: /etc/nginx/status_page_passwdfile
@@ -51,10 +52,11 @@
       template:
         src: /var/www/haproxy-wi/app/scripts/ansible/roles/haproxy/templates/selinux.j2
         dest: /etc/selinux/config
+      ignore_errors: yes
   
     - name: Disble SELINUX in env
       shell: setenforce 0 
-      
+      ignore_errors: yes
       
 - hosts: "{{ variable_host }}"
   become: yes
