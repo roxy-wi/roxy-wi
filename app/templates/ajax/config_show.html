@@ -2,187 +2,212 @@
 		<h4>Config from {{serv}}</h4>
 		<p class="accordion-expand-holder">
 			{% if role %}
-				<a class="ui-button ui-widget ui-corner-all" title="Edit this run config" href="config.py?serv={{serv}}&open=open">Edit</a>
+				<a class="ui-button ui-widget ui-corner-all" title="Edit this run config" href="config.py?service={{service}}&serv={{serv}}&open=open">Edit</a>
 			{% endif %}
-			{% if service != 'keepalived' and service != 'nginx' %}
-				<a class="accordion-expand-all ui-button ui-widget ui-corner-all" href="#">Expand all</a>		
-				<button id="raw">Raw</button>
-				<button id="according" style="display: none;">According</button>
-			{% endif %}
+			<a class="accordion-expand-all ui-button ui-widget ui-corner-all" href="#">Expand all</a>		
+			<button id="raw">Raw</button>
+			<button id="according" style="display: none;">According</button>
 		</p>
-	</center>
-	
-	{% if service == 'nginx' %}
-	<div style="margin-left: 20%; border: 1px solid #ddd; padding-left: 50px; width: 60%;">
-		<pre>
-		{%- for line in conf -%}
-			{{ line }}
-		{% endfor %}
-		</pre>
-	</div>
-	{% else %}
+	</center>	
+
 	<div style="margin-left: 16%" class="configShow">
 	{% set i = 0 -%}
 	{% set section_name = {} %}
 	{% for line in conf -%}
 		{% set i = i + loop.index0 %}
 		{% if not role %}
-		{% if line.startswith('#HideBlockStart') %}
-			<!--{{line}}
-			{% continue %}	
+			{% if line.startswith('#HideBlockStart') %}
+				<!--{{line}}
+				{% continue %}	
+			{% endif %}
+			{% if line.startswith('#HideBlockEnd') %}
+				{{line}}-->
+				{% continue %}	
+			{% endif %}
 		{% endif %}
-		{% if line.startswith('#HideBlockEnd') %}
-			{{line}}-->
-			{% continue %}	
-		{% endif %}
-		{% endif %}
-		{% if line.startswith('global') %}
-			<span class="param">{{ line }}
-				{% if role %}
-					{% if service != 'keepalived' %}
+		{% if service == 'nginx' %}
+			{%- if "server {" in line -%} 
+				{% if i > 1 %}
+					</div>
+				{% endif %}
+				<span class="param">{{ line }}
+				</span><div>
+				{% continue %}
+			{% endif %}
+			{% if "listen " in line or "location" in line or "server_name" in line or "}" in line  %}
+				{% if "#" not in line %}
+					<span class="numRow">
+						{{ i }}
+					</span> 
+					<span class="paramInSec">
+						&emsp;{{ line }} 
+					</span><br />
+					{% continue %}
+				{% endif %}
+			{% endif %}
+			{% if "#" in line %}
+				<span class="numRow">
+					{{ i }}
+				</span>
+				<span class="comment">
+					&emsp;{{ line }}
+				</span><br />
+				{% continue %}	
+			{% endif %}
+			{% if line|length > 1 %}
+				<span class="configLine">
+					<span class="numRow">{{ i }}</span> 
+					&emsp;&emsp;{{ line }}
+				</span><br />	
+			{% endif %}
+		{% else %}
+			{% if line.startswith('global') %}
+				<span class="param">{{ line }}
+					{% if role %}
+						{% if service != 'keepalived' %}
+						<span class="accordion-link">
+							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+						</span>
+						{% endif %}
+					{% endif %}
+				</span><div>
+				{% continue %}
+			{% endif %}
+			{% if line.startswith('defaults') %}
+				</div><span class="param">{{ line }}
+					{% if role %}
+						<span class="accordion-link">
+						<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+						</span>
+					{% endif %}
+					</span><div>
+				{% continue %}
+			{% endif %}
+			{%- if line.startswith('listen') -%}
+				</div><span class="param">{{- line -}}
+					{% if role %}
 					<span class="accordion-link">
 						<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
 					</span>
 					{% endif %}
-				{% endif %}
-			</span><div>
-			{% continue %}
-		{% endif %}
-		{% if line.startswith('defaults') %}
-			</div><span class="param">{{ line }}
-				{% if role %}
+					{%- set backend = line.split(' ') -%}
 					<span class="accordion-link">
-					<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+						<a href="/app/viewsttats.py?serv={{-serv-}}#{{- backend[1]-}}" target="_blank">Stats</a>
 					</span>
-				{% endif %}
-				</span><div>
-			{% continue %}
-		{% endif %}
-		{%- if line.startswith('listen') -%}
-			</div><span class="param">{{- line -}}
-				{% if role %}
-				<span class="accordion-link">
-					<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
-				</span>
-				{% endif %}
-				{%- set backend = line.split(' ') -%}
-				<span class="accordion-link">
-					<a href="/app/viewsttats.py?serv={{-serv-}}#{{- backend[1]-}}" target="_blank">Stats</a>
-				</span>
-				{%- set backend = backend|join('_') -%}
-				{%- do section_name.update({i: backend}) -%}
-				<span id="{{-section_name[i]|replace('\n', '')-}}" class="accordion-link"></span>				
-				</span><div>	
+					{%- set backend = backend|join('_') -%}
+					{%- do section_name.update({i: backend}) -%}
+					<span id="{{-section_name[i]|replace('\n', '')-}}" class="accordion-link"></span>				
+					</span><div>	
+					{% continue %}
+			{%- endif -%}
+			{%- if line.startswith('frontend') -%}
+				</div><span class="param">{{ line }}
+					{% if role %}
+						<span class="accordion-link">
+							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+						</span>
+					{% endif %}	
+					{% set backend = line.split(' ') %}
+					<span class="accordion-link">
+						<a href="/app/viewsttats.py?serv={{serv}}#{{ backend[1]}}" target="_blank">Stats</a>
+					</span>	
+					{% set backend = backend|join('_') %}
+					{% do section_name.update({i: backend}) %}
+					<span id="{{section_name[i]|replace('\n', '')}}" class="accordion-link"></span>			
+					</span><div>	
+					{% continue %}
+			{%- endif -%}
+			{% if line.startswith('backend') %}
+				</div><span class="param">{{ line }} 
+					{% if role %}
+						<span class="accordion-link">
+							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+						</span>
+					{% endif %}
+					{% set backend = line.split(' ') %}
+					<span class="accordion-link">
+						<a href="/app/viewsttats.py?serv={{serv}}#{{ backend[1]}}" target="_blank">Stats</a>
+					</span>
+					</span><div>
 				{% continue %}
-		{%- endif -%}
-		{%- if line.startswith('frontend') -%}
-			</div><span class="param">{{ line }}
-				{% if role %}
-				<span class="accordion-link">
-					<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
-					</span>
-				{% endif %}	
-				{% set backend = line.split(' ') %}
-				<span class="accordion-link">
-					<a href="/app/viewsttats.py?serv={{serv}}#{{ backend[1]}}" target="_blank">Stats</a>
-				</span>	
-				{% set backend = backend|join('_') %}
-				{% do section_name.update({i: backend}) %}
-				<span id="{{section_name[i]|replace('\n', '')}}" class="accordion-link"></span>			
-				</span><div>	
-				{% continue %}
-		{%- endif -%}
-		{% if line.startswith('backend') %}
-			</div><span class="param">{{ line }} 
-				{% if role %}
-					<span class="accordion-link">
-						<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
-					</span>
-				{% endif %}
-				{% set backend = line.split(' ') %}
-				<span class="accordion-link">
-					<a href="/app/viewsttats.py?serv={{serv}}#{{ backend[1]}}" target="_blank">Stats</a>
-				</span>
+			{% endif %}
+			{% if line.startswith('cache') %}
+				</div><span class="param">{{ line }} 
+					{% if role %}
+						<span class="accordion-link">
+							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+						</span>
+					{% endif %}
 				</span><div>
-			{% continue %}
-		{% endif %}
-		{% if line.startswith('cache') %}
-			</div><span class="param">{{ line }} 
-				{% if role %}
-					<span class="accordion-link">
-						<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
-					</span>
-				{% endif %}
-			</span><div>
-			{% continue %}
-		{% endif %}
-		{% if line.startswith('peers') %}
-			</div><span class="param">{{ line }}
-				{% if role %}
-					<span class="accordion-link">
-						<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
-					</span>
-				{% endif %}
-			</span><div>
-			{% continue %}
-		{% endif %}
-		{% if line.startswith('resolvers') %}
-			</div><span class="param">{{ line }}
-				{% if role %}
-					<span class="accordion-link">
-						<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
-					</span>
-				{% endif %}
-			</span><div>
-			{% continue %}
-		{% endif %}
-		{% if line.startswith('userlist') %}
-			</div><span class="param">{{ line }}
-				{% if role %}
-					<span class="accordion-link">
-						<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
-					</span>
-				{% endif %}
-			</span><div>
-			{% continue %}
-		{% endif %}
-		{% if "acl" in line or "option" in line or "server" in line %}
-			{% if "timeout" not in line and "default-server" not in line and "#use_backend" not in line and "#" not in line%}
-				<span class="paramInSec">
+				{% continue %}
+			{% endif %}
+			{% if line.startswith('peers') %}
+				</div><span class="param">{{ line }}
+					{% if role %}
+						<span class="accordion-link">
+							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+						</span>
+					{% endif %}
+				</span><div>
+				{% continue %}
+			{% endif %}
+			{% if line.startswith('resolvers') %}
+				</div><span class="param">{{ line }}
+					{% if role %}
+						<span class="accordion-link">
+							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+						</span>
+					{% endif %}
+				</span><div>
+				{% continue %}
+			{% endif %}
+			{% if line.startswith('userlist') %}
+				</div><span class="param">{{ line }}
+					{% if role %}
+						<span class="accordion-link">
+							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+						</span>
+					{% endif %}
+				</span><div>
+				{% continue %}
+			{% endif %}
+			{% if "acl" in line or "option" in line or "server" in line %}
+				{% if "timeout" not in line and "default-server" not in line and "#use_backend" not in line and "#" not in line%}
 					<span class="numRow">
 						{{ i }}
 					</span> 
-					{{ line }} 
-				</span><br />
-				{% continue %}
+					<span class="paramInSec">
+						{{ line }} 
+					</span><br />
+					{% continue %}
+				{% endif %}
 			{% endif %}
-		{% endif %}
-		{% if line.startswith("#") %}
-			<span class="comment">
+			{% if line.startswith("#") %}
 				<span class="numRow">
 					{{ i }}
 				</span>
+				<span class="comment">
 					{{ line }}
-			</span><br />
-			{% continue %}	
-		{% endif %}
-		{% if line|length > 1 %}
-			<span class="configLine">
-				<span class="numRow">{{ i }}</span> 
-				{{ line }}
-			</span><br />	
-		{% endif %}
-		{%- if "bind" in line -%}
-			{%- set bind = line.split(':') -%}
-			<script>
-				{% set k = i - 1 %}
-				$('#{{-section_name[k]|replace("\n", "")-}}').html('<a href="http://{{-serv-}}:{{-bind[1]|replace("\n", "")-}}" title="Open {{serv-}}:{{-bind[1]|replace("\n", "")-}}" target="_blank">Open</a>')
-			</script>
+				</span><br />
+				{% continue %}	
+			{% endif %}
+			{% if line|length > 1 %}
+				<span class="configLine">
+					<span class="numRow">{{ i }}</span> 
+					{{ line }}
+				</span><br />	
+			{% endif %}
+			{%- if "bind" in line -%}
+				{%- set bind = line.split(':') -%}
+				<script>
+					{% set k = i - 1 %}
+					$('#{{-section_name[k]|replace("\n", "")-}}').html('<a href="http://{{-serv-}}:{{-bind[1]|replace("\n", "")-}}" title="Open {{serv-}}:{{-bind[1]|replace("\n", "")-}}" target="_blank">Open</a>')
+				</script>
+			{%- endif -%}
 		{%- endif -%}
 	{%- endfor -%}
 	</div>
 	</div>
-	{% endif %}
 	{% if configver %}
 	<br>
 	<center>

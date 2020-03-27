@@ -134,11 +134,11 @@ EOF
 sudo mv /tmp/modsecurity.conf $HAPROXY_PATH/waf/modsecurity.conf 
 wget -O /tmp/unicode.mapping https://github.com/SpiderLabs/ModSecurity/raw/v2/master/unicode.mapping
 sudo mv /tmp/unicode.mapping $HAPROXY_PATH/waf/unicode.mapping
-wget -O /tmp/owasp.tar.gz https://github.com/SpiderLabs/owasp-modsecurity-crs/archive/v3.0.2.tar.gz
+wget -O /tmp/owasp.tar.gz https://github.com/SpiderLabs/owasp-modsecurity-crs/archive/2.2.9.tar.gz
 cd /tmp/
 sudo tar xf /tmp/owasp.tar.gz
-sudo mv /tmp/owasp-modsecurity-crs-3.0.2/crs-setup.conf.example  $HAPROXY_PATH/waf/rules/modsecurity_crs_10_setup.conf 
-sudo mv /tmp/owasp-modsecurity-crs-3.0.2/*rules/* $HAPROXY_PATH/waf/rules/
+sudo mv /tmp/owasp-modsecurity-crs-2.2.9/modsecurity_crs_10_setup.conf.example  $HAPROXY_PATH/waf/rules/modsecurity_crs_10_setup.conf 
+sudo mv /tmp/owasp-modsecurity-crs-2.2.9/*rules/* $HAPROXY_PATH/waf/rules/
 sudo sed -i 's/#SecAction/SecAction/' $HAPROXY_PATH/waf/rules/modsecurity_crs_10_setup.conf 
 sudo sed -i 's/SecRuleEngine DetectionOnly/SecRuleEngine On/' $HAPROXY_PATH/waf/modsecurity.conf
 sudo sed -i 's/SecAuditLogParts ABIJDEFHZ/SecAuditLogParts ABIJDEH/' $HAPROXY_PATH/waf/modsecurity.conf

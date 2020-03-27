@@ -17,13 +17,10 @@
 						{% endif %}
 					{% endfor %}
 			</select>
-			{% if service != 'keepalived' and service != 'nginx'%}
-				<a class="ui-button ui-widget ui-corner-all" title="Show running config" onclick="showConfig()">Open</a>
-				<a class="ui-button ui-widget ui-corner-all" title="Show map" onclick="showMap()">Map</a>	
-			{% endif %}
+			<a class="ui-button ui-widget ui-corner-all" title="Show running config" onclick="showConfig()">Open</a>
 			<a class="ui-button ui-widget ui-corner-all" title="View stat" onclick="openStats()">Stat</a>
-			{% if role <= 2 and service == 'nginx'%}
-				<button type="submit" value="open" name="open" class="btn btn-default" title="Edit running config">Edit</button>
+			{% if service != 'keepalived' and service != 'nginx'%}
+				<a class="ui-button ui-widget ui-corner-all" title="Show map" onclick="showMap()">Map</a>	
 			{% endif %}
 			{% if service != 'keepalived' %}					
 				<a class="ui-button ui-widget ui-corner-all" title="Compare configs" onclick="showCompareConfigs()">Compare</a>	
@@ -85,7 +82,7 @@
 	if (cur_url[1].split('&')[1] == 'showCompare' || cur_url[1].split('&')[2] == 'showCompare') {
 		showCompareConfigs();		
 	}
-	if (cur_url[1].split('&')[1] == 'showConfig') {
+	if (cur_url[1].split('&')[2] == 'showConfig') {
 		showConfig();		
 	}	
 	$('textarea').linenumbers({col_width: '25px'});

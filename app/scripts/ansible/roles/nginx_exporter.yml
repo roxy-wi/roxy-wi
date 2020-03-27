@@ -1,0 +1,15 @@
+- hosts: "{{ variable_host }}"
+  become: yes
+  become_method: sudo
+  tasks:
+  - name: Set SSH port
+    set_fact:
+      ansible_port: "{{SSH_PORT}}"
+      
+  roles:
+  - role: bdellegrazie.nginx_exporter
+    environment:
+      http_proxy: "{{PROXY}}"
+      https_proxy: "{{PROXY}}"
+    vars:
+      nginx_exporter_options: ['-nginx.scrape-uri http://{{STATS_USER}}:{{STATS_PASS}}@{{variable_host}}:{{STAT_PORT}}/{{STAT_PAGE}}']

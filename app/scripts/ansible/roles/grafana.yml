@@ -1,0 +1,35 @@
+- hosts: localhost
+  become: yes
+  become_method: sudo
+  roles:
+    - role: cloudalchemy.prometheus
+      environment:
+        http_proxy: "{{PROXY}}"
+        https_proxy: "{{PROXY}}"
+      vars:
+        prometheus_targets:
+          node:
+          - targets:
+            - "{{ansible_hostname}}:9100"
+            
+    - role: cloudalchemy.grafana
+      environment:
+        http_proxy: "{{PROXY}}"
+        https_proxy: "{{PROXY}}"
+      vars:
+        grafana_security:
+          admin_user: admin
+          admin_password: admin
+        grafana_datasources:
+        - name: prometheus
+          type: prometheus
+          url: "http://{{ansible_default_ipv4.address}}:9090"
+          basicAuth: false
+        grafana_dashboards:
+        - dashboard_id: 2428
+          revision_id: 7
+          datasource: prometheus
+        - dashboard_id: 11879
+          revision_id: 3
+          datasource: prometheus
+   

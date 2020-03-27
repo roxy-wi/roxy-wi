@@ -152,11 +152,7 @@
 				</div>
 			{% endif %}
 			<div class="server-act-links">
-			{% if service != 'nginx' %}
-				<a href="/app/config.py?serv={{s.2}}&showConfig" class="ui-button ui-widget ui-corner-all" title="Open running config">Open</a>	
-			{% else %}
-				<a class="ui-button ui-widget ui-corner-all" title="Edit this run config" href="config.py?service={{service}}&serv={{s.2}}&open=open">Edit</a>
-			{% endif %}
+				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showConfig" class="ui-button ui-widget ui-corner-all" title="Open running config">Open</a>	
 				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showCompare" class="ui-button ui-widget ui-corner-all" title="Compare configs">Compare</a>	
 			{% if service != 'nginx' %}
 				<a href="/app/config.py?serv={{s.2}}&showMap" class="ui-button ui-widget ui-corner-all" title="Show map">Map</a>
