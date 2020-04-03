@@ -65,7 +65,7 @@
       ignore_errors: yes
   
     - name: Disble SELINUX in env
-      shell: setenforce 0 
+      shell: setenforce 0 2> /dev/null
       ignore_errors: yes
       debugger: never
       

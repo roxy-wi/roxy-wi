@@ -143,6 +143,8 @@ sudo sed -i 's/#SecAction/SecAction/' $HAPROXY_PATH/waf/rules/modsecurity_crs_10
 sudo sed -i 's/SecRuleEngine DetectionOnly/SecRuleEngine On/' $HAPROXY_PATH/waf/modsecurity.conf
 sudo sed -i 's/SecAuditLogParts ABIJDEFHZ/SecAuditLogParts ABIJDEH/' $HAPROXY_PATH/waf/modsecurity.conf
 sudo rm -f /tmp/owasp.tar.gz
+sudo rm -f /tmp/owasp-modsecurity-crs-2.2.9
+sudo rm -f /tmp/haproxy-$VERSION
 
 sudo bash -c cat << EOF > /tmp/waf.service 
 [Unit]

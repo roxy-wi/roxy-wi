@@ -690,6 +690,10 @@ if form.getvalue('master'):
 	
 	if ssh_enable == 0:
 		ssh_key_name = ''
+		
+	servers = sql.select_servers(server=master)
+	for server in servers:
+		ssh_port = str(server[10])
 	
 	if proxy is not None and proxy != '' and proxy != 'None':
 		proxy_serv = proxy 
@@ -706,7 +710,7 @@ if form.getvalue('master'):
 		funct.install_nginx(master)
 		funct.install_nginx(slave)
 		
-	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+ 
+	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+" SSH_PORT="+ssh_port+
 				" ETH="+ETH+" IP="+str(IP)+" MASTER=MASTER"+" SYN_FLOOD="+syn_flood+" HOST="+str(master)+
 				" USER="+str(ssh_user_name)+" PASS="+str(ssh_user_password)+" KEY="+str(ssh_key_name) ]
 	
@@ -733,8 +737,12 @@ if form.getvalue('master'):
 	
 	if ssh_enable == 0:
 		ssh_key_name = ''
-		
-	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" +proxy_serv+ 
+	
+	servers = sql.select_servers(server=slave)
+	for server in servers:
+		ssh_port = str(server[10])
+	
+	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" +proxy_serv+" SSH_PORT="+ssh_port+
 				" ETH="+ETH+" IP="+IP+" MASTER=BACKUP"+" HOST="+str(slave)+
 				" USER="+str(ssh_user_name)+" PASS="+str(ssh_user_password)+" KEY="+str(ssh_key_name) ]
 	

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-"
+# -*- coding: utf-8 -*-
 import cgi
 import os, sys
 
@@ -455,8 +455,8 @@ def waf_install(serv, **kwargs):
 	os.system("rm -f %s" % script)
 	
 	stderr = ssh_command(serv, commands, print_out="1")
-	if stderr is None:
-		sql.insert_waf_metrics_enable(serv, "0")
+	
+	sql.insert_waf_metrics_enable(serv, "0")
 		
 
 def install_nginx(serv):
@@ -961,3 +961,10 @@ def check_group(group, role_id):
 	else:
 		logging('localhost', ' has tried to actions in not own group ', haproxywi=1, login=1)
 		return False
+		
+		
+def check_service(serv, service_name):
+	commands = [ "systemctl status "+service_name+" |grep Active |awk '{print $1}'" ]
+	return ssh_command(serv, commands)
+
+	
