@@ -59,13 +59,13 @@ function metrics_waf(name) {
 		}					
 	} );
 }
-function installWaf(ip) {
+function installWaf(ip1) {
 	$("#ajax").html('')
 	$("#ajax").html('<div class="alert alert-warning">Please don\'t close and don\'t represh page. Wait until the work is completed. This may take some time </div>');
 	$.ajax( {
 		url: "options.py",
 		data: {
-			installwaf: ip,
+			installwaf: ip1,
 			token: $('#token').val()
 		},
 		type: "POST",
@@ -84,7 +84,7 @@ function installWaf(ip) {
 			} else if (data.indexOf('success') != '-1' ){
 				$('.alert-danger').remove();
 				$('.alert-warning').remove();
-				$("#ajax").html('<div class="alert alert-success">'+data+'</data>');
+				$("#ajax").html('<div class="alert alert-success">WAF service has installed</data>');
 				showOverviewWaf(ip, hostnamea)
 			}	
 		}

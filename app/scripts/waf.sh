@@ -161,7 +161,7 @@ SyslogIdentifier=waf
 [Install]
 WantedBy=multi-user.target
 EOF
-sudo mv /tmp/waf.service  /etc/systemd/system/multi-user.target.wants/waf.service 
+sudo mv /tmp/waf.service  /etc/systemd/system/waf.service 
 sudo bash -c 'cat << EOF > /etc/rsyslog.d/waf.conf 
 if $programname startswith "waf" then /var/log/waf.log
 & stop
@@ -195,12 +195,13 @@ backend waf
     server waf 127.0.0.1:12345 check
 EOF'
 fi
-	
+
+sudo rm -f /tmp/modsecurity.tar.gz
+sudo rm -rf /tmp/haproxy-$VERSION.tar.gz
+
 sudo systemctl daemon-reload
 sudo systemctl enable waf
 sudo systemctl restart waf
-sudo rm -f /tmp/modsecurity.tar.gz
-sudo rm -rf /tmp/haproxy-$VERSION.tar.gz
 
 if [ $? -eq 1 ]; then
 	echo "error: Can't start Haproxy WAF service <br /><br />"

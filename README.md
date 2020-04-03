@@ -16,6 +16,8 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 
 # Features:
 1.  Installation and updating HAProxy, Nginx and Keepalived with HAProxy-WI
+1.  Installation and updating Grafana, Prometheus servers with HAProxy-WI
+1.  Installation and updating HAProxy and Nginx exporters with HAProxy-WI
 2.	Configure HAProxy, Nginx and Keepalived In a jiffy with HAProxy-WI
 3.	View and analyse Status of all Frontend/backend server via HAProxy-WI from a single control panel.
 4.	Enable/disable servers through stats page without rebooting HAProxy
