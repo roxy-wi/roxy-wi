@@ -53,18 +53,28 @@
     dest: /etc/keepalived/keepalived.conf
     mode: 0644
   notify: restart keepalived
-  
+
+
+- name: test to see if selinux is running
+  command: getenforce
+  register: sestatus
+  changed_when: false
+
   
 - name: Disble SELINUX in config
   template:
    src: ../../haproxy/templates/selinux.j2
    dest: /etc/selinux/config
   ignore_errors: yes
+  when: '"Enabled" in sestatus.stdout'
+  
   
 - name: Disble SELINUX in env
   shell: setenforce 0 2> /dev/null
   ignore_errors: yes
   debugger: never
+  when: '"Enabled" in sestatus.stdout'
+  
   
 - name: Enable and start service keepalived
   service:

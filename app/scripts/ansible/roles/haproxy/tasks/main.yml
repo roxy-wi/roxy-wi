@@ -74,18 +74,27 @@
     mode: 0644
   when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and haproxy_from_wi is defined
   
-  
+
+- name: test to see if selinux is running
+  command: getenforce
+  register: sestatus
+  changed_when: false
+
+    
 - name: Disble SELINUX in config
   template:
    src: selinux.j2
    dest: /etc/selinux/config
   ignore_errors: yes
+  when: '"Enabled" in sestatus.stdout'
   
   
 - name: Disble SELINUX in env
-  shell: setenforce 0 2> /dev/null
+  shell: setenforce 0 &> /dev/null
   ignore_errors: yes
   debugger: never
+  when: '"Enabled" in sestatus.stdout'
+  
   
 - name: Enable and start service HAProxy
   systemd:
@@ -102,6 +111,21 @@
   meta: end_play
   when: "'haproxy' in ansible_facts.packages"
     
+    
+- name: Installing HAProxy conf for rsyslog
+  template:
+   src: haproxy_rsyslog.conf.j2
+   dest: /etc/rsyslog.d/haproxy.conf
+  ignore_errors: yes
+  
+  
+- name: Installing rsyslog config
+  template:
+   src: rsyslog.conf
+   dest: /etc/rsyslog.conf
+  ignore_errors: yes
+  notify: restart rsyslog
+  
     
 - name: Get HAProxy version.
   command: haproxy -v

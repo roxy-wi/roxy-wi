@@ -57,17 +57,28 @@
         name: "{{STATS_USER}}"
         password: "{{STATS_PASS}}"
       when: "'nginx' not in ansible_facts.packages"
+      
+      
+    - name: test to see if selinux is running
+      command: getenforce
+      register: sestatus
+      changed_when: false
+
           
     - name: Disble SELINUX in config
       template:
         src: /var/www/haproxy-wi/app/scripts/ansible/roles/haproxy/templates/selinux.j2
         dest: /etc/selinux/config
       ignore_errors: yes
-  
+      when: '"Enabled" in sestatus.stdout'
+      
+      
     - name: Disble SELINUX in env
-      shell: setenforce 0 2> /dev/null
+      shell: setenforce 0 
       ignore_errors: yes
       debugger: never
+      when: '"Enabled" in sestatus.stdout'
+      
       
 - hosts: "{{ variable_host }}"
   become: yes
