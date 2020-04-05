@@ -34,8 +34,9 @@ def main():
 				funct.logging("localhost", " "+alert, keep_alive=1)
 				
 				start_command = []
-				start_command.append('sudo systemct restart haproxy')
+				start_command.append('sudo systemctl restart haproxy')
 				funct.ssh_command(serv[0], start_command)
+
 				time.sleep(30)
 				continue
 			except OSError as e:
@@ -43,7 +44,7 @@ def main():
 				sys.exit()
 			else:
 				cur_stat_service = "Ok"
-		time.sleep(40)			
+		
 		
 if __name__ == "__main__":
 	funct.logging("localhost", " Keep alive service started", keep_alive=1)
