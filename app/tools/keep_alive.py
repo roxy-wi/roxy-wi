@@ -30,7 +30,7 @@ def main():
 			try:			
 				readstats = subprocess.check_output(["echo show stat | nc "+serv[0]+" "+port], shell=True)
 			except CalledProcessError as e:
-				alert = "Try start HAProxy serivce at " + serv[0]
+				alert = "Try to start HAProxy serivce on " + serv[0]
 				funct.logging("localhost", " "+alert, keep_alive=1)
 				
 				start_command = []
@@ -47,7 +47,7 @@ def main():
 		
 		
 if __name__ == "__main__":
-	funct.logging("localhost", " Keep alive service started", keep_alive=1)
+	funct.logging("localhost", " Keep alive service is started", keep_alive=1)
 	killer = GracefulKiller()
 	
 	while True:
@@ -57,4 +57,4 @@ if __name__ == "__main__":
 		if killer.kill_now:
 			break
 			
-	funct.logging("localhost", " Keep alive service shutdown", keep_alive=1)
+	funct.logging("localhost", " Keep alive service is shutdown", keep_alive=1)

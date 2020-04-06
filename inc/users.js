@@ -50,6 +50,7 @@ $( function() {
 		autoFocus: true,
 		minLength: -1
 	});
+	var wait_mess = '<div class="alert alert-warning">Please don\'t close and don\'t represh page. Wait until the work is completed. This may take some time </div>'
 	var ipformat = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
 	$('#create').click(function() {
 		var hap = 0;
@@ -73,7 +74,7 @@ $( function() {
 			} else if ($("#master").val() == $("#slave").val() ){
 				$("#ajax").html('<div class="alert alert-danger">Master and slave must be diff servers</div>')
 			} else {
-				$("#ajax").html('<div class="alert alert-warning">Please don\'t close and don\'t represh page. Wait until the work is completed. This may take some time </div>');
+				$("#ajax").html(wait_mess);
 				$.ajax( {
 					url: "options.py",
 					data: {
@@ -119,7 +120,7 @@ $( function() {
 			} else if(! $("#vrrp-ip-add").val().match(ipformat)) {
 				$("#ajax").html('<div class="alert alert-danger">Please enter IP in "VRRP IP" field</div>')
 			} else {
-				$("#ajax").html('<div class="alert alert-warning">Please don\'t close and don\'t represh page. Wait until the work is completed. This may take some time </div>');
+				$("#ajax").html(wait_mess);
 				$.ajax( {
 					url: "options.py",
 					data: {
@@ -153,13 +154,48 @@ $( function() {
 		if ($('#syn_flood').is(':checked')) {
 			syn_flood = '1';
 		}
-		$("#ajax").html('<div class="alert alert-warning">Please don\'t close and don\'t represh page. Wait until the work is completed. This may take some time </div>');
+		$("#ajax").html(wait_mess);
 		$.ajax( {
 			url: "options.py",
 			data: {
 				haproxyaddserv: $('#haproxyaddserv').val(),
 				syn_flood: syn_flood,
 				hapver: $('#hapver option:selected' ).val(),
+				token: $('#token').val()
+				},
+			type: "POST",
+			success: function( data ) { 
+			data = data.replace(/\s+/g,' ');
+				if (data.indexOf('error') != '-1' || data.indexOf('FAILED') != '-1') {
+					$("#ajax").html('<div class="alert alert-danger">'+data+'</div>');
+				} else if (data.indexOf('success') != '-1' ){
+					$('.alert-danger').remove();
+					$('.alert-warning').remove();
+					$("#ajax").html('<div class="alert alert-success">'+data+'</div>');						
+				} else if (data.indexOf('Info') != '-1' ){
+					$('.alert-danger').remove();
+					$('.alert-warning').remove();
+					$("#ajax").html('<div class="alert alert-info">'+data+'</div>');
+				} else {
+					$('.alert-danger').remove();
+					$('.alert-warning').remove();
+					$("#ajax").html('<div class="alert alert-info">'+data+'</div>');
+				}
+			}
+		} );	
+	});	
+	$('#nginx_install').click(function() {
+		$("#ajax").html('')
+		var syn_flood = 0;
+		if ($('#nginx_syn_flood').is(':checked')) {
+			syn_flood = '1';
+		}
+		$("#ajax").html(wait_mess);
+		$.ajax( {
+			url: "options.py",
+			data: {
+				install_nginx: $('#nginxaddserv').val(),
+				syn_flood: syn_flood,
 				token: $('#token').val()
 				},
 			type: "POST",
@@ -183,18 +219,43 @@ $( function() {
 			}
 		} );	
 	});	
-	$('#nginx_install').click(function() {
+	$('#grafna_install').click(function() {
 		$("#ajax").html('')
-		var syn_flood = 0;
-		if ($('#nginx_syn_flood').is(':checked')) {
-			syn_flood = '1';
-		}
-		$("#ajax").html('<div class="alert alert-warning">Please don\'t close and don\'t represh page. Wait until the work is completed. This may take some time </div>');
+		$("#ajax").html(wait_mess);
 		$.ajax( {
 			url: "options.py",
 			data: {
-				install_nginx: $('#nginxaddserv').val(),
-				syn_flood: syn_flood,
+				install_grafana: '1',
+				token: $('#token').val()
+				},
+			type: "POST",
+			success: function( data ) { 
+			data = data.replace(/\s+/g,' ');
+				if (data.indexOf('FAILED') != '-1') {
+					$("#ajax").html('<div class="alert alert-danger">'+data+'</div>');
+				} else if (data.indexOf('success') != '-1' ){
+					$('.alert-danger').remove();
+					$('.alert-warning').remove();
+					$("#ajax").html('<div class="alert alert-success">'+data+'</div>');				
+				} else if (data.indexOf('Info') != '-1' ){
+					$('.alert-danger').remove();
+					$('.alert-warning').remove();
+					$("#ajax").html('<div class="alert alert-info">'+data+'</div>');
+				} else {
+					$('.alert-danger').remove();
+					$('.alert-warning').remove();
+					$("#ajax").html('<div class="alert alert-info">'+data+'</div>');
+				}
+			}
+		} );	
+	});	
+	$('#haproxy_exp_install').click(function() {
+		$("#ajax").html('')
+		$("#ajax").html(wait_mess);
+		$.ajax( {
+			url: "options.py",
+			data: {
+				haproxy_exp_install: $('#haproxy_exp_addserv').val(),
 				token: $('#token').val()
 				},
 			type: "POST",
@@ -205,7 +266,41 @@ $( function() {
 				} else if (data.indexOf('success') != '-1' ){
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-success">'+data+'</div>');				
+					$("#ajax").html('<div class="alert alert-success">'+data+'</div>');	
+					$('#cur_haproxy_exp_ver').text('HAProxy expoter is installed');
+					$('#haproxy_exp_install').text('Update');
+				} else if (data.indexOf('Info') != '-1' ){
+					$('.alert-danger').remove();
+					$('.alert-warning').remove();
+					$("#ajax").html('<div class="alert alert-info">'+data+'</div>');
+				} else {
+					$('.alert-danger').remove();
+					$('.alert-warning').remove();
+					$("#ajax").html('<div class="alert alert-info">'+data+'</div>');
+				}
+			}
+		} );	
+	});	
+	$('#nginx_exp_install').click(function() {
+		$("#ajax").html('')
+		$("#ajax").html(wait_mess);
+		$.ajax( {
+			url: "options.py",
+			data: {
+				nginx_exp_install: $('#nginx_exp_addserv').val(),
+				token: $('#token').val()
+				},
+			type: "POST",
+			success: function( data ) { 
+			data = data.replace(/\s+/g,' ');
+				if (data.indexOf('error') != '-1' || data.indexOf('FAILED') != '-1') {
+					$("#ajax").html('<div class="alert alert-danger">'+data+'</div>');
+				} else if (data.indexOf('success') != '-1' ){
+					$('.alert-danger').remove();
+					$('.alert-warning').remove();
+					$("#ajax").html('<div class="alert alert-success">'+data+'</div>');	
+					$('#cur_nginx_exp_ver').text('Nginx expoter is installed');
+					$('#nginx_exp_install').text('Update');
 				} else if (data.indexOf('Info') != '-1' ){
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
@@ -1206,10 +1301,8 @@ function updateServer(id) {
 		enable = '1';
 	}
 	var servergroup = $('#servergroup-'+id+' option:selected' ).val();
-	console.log(cur_url[0])
 	if (cur_url[0].split('#')[0] == "servers.py") {
 		 servergroup = $('#new-server-group-add').val();
-		 console.log('1')
 	}
 	console.log(servergroup)
 	$.ajax( {
@@ -1280,12 +1373,16 @@ function updateSSH(id) {
 	if ($('#ssh_enable-'+id).is(':checked')) {
 		ssh_enable = '1';
 	}
+	var group = $('#sshgroup-'+id).val();
+	if (cur_url[0].split('#')[0] == "servers.py") {
+		 group = $('#new-server-group-add').val();
+	}
 	$.ajax( {
 		url: "options.py",
 		data: {
 			updatessh: 1,
 			name: $('#ssh_name-'+id).val(),
-			group: $('#sshgroup-'+id).val(),
+			group: group,
 			ssh_enable: ssh_enable,
 			ssh_user: $('#ssh_user-'+id).val(),
 			ssh_pass: $('#ssh_pass-'+id).val(),
