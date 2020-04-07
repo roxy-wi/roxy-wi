@@ -3,7 +3,7 @@ global_defs {
 }
 #health-check for keepalive
 vrrp_script chk_haproxy { 
-    script "pgrep haproxy"
+    script "/usr/bin/pgrep haproxy"
     interval 2
     weight 3 
 }

@@ -17,8 +17,10 @@
 						{% endif %}
 					{% endfor %}
 			</select>
-			<a class="ui-button ui-widget ui-corner-all" title="Show running config" onclick="showConfig()">Open</a>
-			<a class="ui-button ui-widget ui-corner-all" title="View stat" onclick="openStats()">Stat</a>
+			{% if service != 'keepalived' %}
+				<a class="ui-button ui-widget ui-corner-all" title="Show running config" onclick="showConfig()">Open</a>
+				<a class="ui-button ui-widget ui-corner-all" title="View stat" onclick="openStats()">Stat</a>
+			{% endif %}
 			{% if service != 'keepalived' and service != 'nginx'%}
 				<a class="ui-button ui-widget ui-corner-all" title="Show map" onclick="showMap()">Map</a>	
 			{% endif %}

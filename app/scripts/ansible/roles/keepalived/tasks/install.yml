@@ -46,6 +46,23 @@
     http_proxy: "{{PROXY}}"
     https_proxy: "{{PROXY}}"
 
+
+- name: Ensure group "keepalived_script" exists
+  group:
+    name: keepalived_script
+    state: present
+    system: yes
+    
+    
+- name: Add the user 'keepalived_script' 
+  user:
+    name: keepalived_script
+    comment: User for keepalived_script
+    group: keepalived_script
+    shell: /sbin/nologin
+    create_home: no
+    system: yes
+
   
 - name: Copy keepalived configuration in place.
   template:

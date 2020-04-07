@@ -23,7 +23,7 @@ def main():
 	port = sql.get_setting('haproxy_sock_port')
 	readstats = ""
 	killer = GracefulKiller()
-	
+
 	while True:
 		servers = sql.select_keep_alive()
 		for serv in servers:
@@ -44,7 +44,7 @@ def main():
 				sys.exit()
 			else:
 				cur_stat_service = "Ok"
-		
+		time.sleep(30)
 		
 if __name__ == "__main__":
 	funct.logging("localhost", " Keep alive service is started", keep_alive=1)
@@ -53,7 +53,7 @@ if __name__ == "__main__":
 	while True:
 		main()
 		time.sleep(60)
-		
+
 		if killer.kill_now:
 			break
 			
