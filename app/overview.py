@@ -31,7 +31,7 @@ try:
 	api, stderr = funct.subprocess_execute(cmd)
 	cmd = "ps ax |grep grafana|grep -v grep|wc -l"
 	grafana, stderr = funct.subprocess_execute(cmd)
-	cmd = "ps ax |grep prometheus |grep -v grep|wc -l"
+	cmd = "ps ax |grep 'prometheus ' |grep -v grep|wc -l"
 	prometheus, stderr = funct.subprocess_execute(cmd)
 except:
 	role = ''

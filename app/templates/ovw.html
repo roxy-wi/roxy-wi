@@ -74,9 +74,9 @@
 </table>
 <table class="overview-wi" style="height: 160;">
 	<tr class="overviewHead" style="height: 40px;">	
-		<th class="padding10 first-collumn-wi" colspan=4>
+		<td class="padding10 first-collumn-wi" colspan=4>
 			Tools status
-		</th>
+		</td>
 	</tr>
 	<tr>
 		<td class="padding10 first-collumn-wi">
@@ -122,12 +122,12 @@
 			{% endif %}
 		</td>
 	</tr>
-	<tr>
+	<tr class="even">
 		<td class="padding10 first-collumn-wi">
 		{% if metrics_worker|int() >= 1 %}
-			<span title="running {{metrics_worker}} worker processes"><span class="serverUp server-status"></span> 
+			<span title="running {{metrics_worker}} worker processes"><span class="serverUp server-status"></span></span>
 		{% else %}
-			<span title="running {{metrics_worker}} worker processes"><span class="serverDown server-status"></span> 
+			<span title="running {{metrics_worker}} worker processes"><span class="serverDown server-status"></span></span>
 		{% endif %}
 		{% if role <= 1 %}
 			<a href="/app/viewlogs.py?viewlogs={{metrics_error_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View worker's logs" class="logs_link">
@@ -139,9 +139,9 @@
 		</td>
 		<td>
 		{% if checker_worker|int() >= 1 %}
-			<span title="running {{ checker_worker }} worker processes"><span class="serverUp server-status"></span>
+			<span title="running {{ checker_worker }} worker processes"><span class="serverUp server-status"></span></span>
 		{% else %}
-			<span title="running {{ checker_worker }} worker processes"><span class="serverDown server-status"></span> 
+			<span title="running {{ checker_worker }} worker processes"><span class="serverDown server-status"></span> </span>
 		{% endif %}
 		{% if role <= 1 %}
 			<a href="/app/viewlogs.py?viewlogs={{checker_error_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View checker's logs" class="logs_link">
@@ -161,6 +161,24 @@
 				API	
 			</a>
 		</td>		
+	</tr>
+	<tr>
+		<td class="padding10 first-collumn-wi">
+		{% if grafana|int() >= 1 %}
+			<span title="running {{grafana}} process"><span class="serverUp server-status"></span></span> 
+		{% else %}
+			<span title="The service does not started or does not installed"><span class="serverNone server-status"></span></span> 
+		{% endif %}
+			<span>Grafana</span>
+		</td>
+		<td>
+		{% if prometheus|int() >= 1 %}
+			<span title="running {{ prometheus }} process"><span class="serverUp server-status"></span></span>
+		{% else %}
+			<span title="The service does not started or does not installed"><span class="serverNone server-status" title="The service does not started or does not installed"></span></span> 
+		{% endif %}
+				<span>Prometheus</span>
+		</td>	
 	</tr>
 </table>
 {% if role <= 1 %}
