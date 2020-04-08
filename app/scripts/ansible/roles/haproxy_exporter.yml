@@ -7,6 +7,11 @@
       ansible_port: "{{SSH_PORT}}"
       
       
+  - name: collect facts about system services
+    service_facts:
+    register: services_state
+
+            
   - name: Open stat port for firewalld
     firewalld:
       port: "9101/tcp"
@@ -22,7 +27,7 @@
   - name: Open stat port for iptables
     iptables:
       chain: INPUT
-      destination_port: 9101
+      destination_port: "9101"
       jump: ACCEPT
       protocol: tcp
     ignore_errors: yes
