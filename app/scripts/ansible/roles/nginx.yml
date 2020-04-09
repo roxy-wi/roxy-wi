@@ -88,14 +88,14 @@
         src: /var/www/haproxy-wi/app/scripts/ansible/roles/haproxy/templates/selinux.j2
         dest: /etc/selinux/config
       ignore_errors: yes
-      when: '"Enabled" in sestatus.stdout'
+      when: '"Enforcing" in sestatus.stdout'
       
       
     - name: Disble SELINUX in env
       shell: setenforce 0 
       ignore_errors: yes
       debugger: never
-      when: '"Enabled" in sestatus.stdout'
+      when: '"Enforcing" in sestatus.stdout'
       
       
 - hosts: "{{ variable_host }}"
