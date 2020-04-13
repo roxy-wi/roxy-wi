@@ -1184,6 +1184,10 @@ function editList(list, color) {
 							$( this ).dialog( "close" );	
 							saveList('save', list, color);
 						},
+						"Save and reload": function() {
+							$( this ).dialog( "close" );	
+							saveList('reload', list, color);
+						},
 						"Save and restart": function() {
 							$( this ).dialog( "close" );	
 							saveList('restart', list, color);

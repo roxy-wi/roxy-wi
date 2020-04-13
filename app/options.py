@@ -37,10 +37,7 @@ if form.getvalue('getcerts') is not None and serv is not None:
 
 
 if form.getvalue('checkSshConnect') is not None and serv is not None:
-	try:
-		funct.ssh_command(serv, ["ls -1t"])
-	except:
-		print('<div class="alert alert-danger" style="margin:0; margin-left: 20px;">Can not connect to the server</div>')
+	print(funct.ssh_command(serv, ["ls -1t"]))
 
 		
 if form.getvalue('getcert') is not None and serv is not None:
@@ -109,7 +106,7 @@ if form.getvalue('action_hap') is not None and serv is not None:
 	if funct.check_haproxy_config(serv):
 		commands = [ "sudo systemctl %s haproxy" % action ]
 		funct.ssh_command(serv, commands)		
-		funct.logging(serv, 'HAProxy was '+action, haproxywi=1, login=1)
+		funct.logging(serv, 'HAProxy was '+action+'ed', haproxywi=1, login=1)
 		print("HAproxy was %s" % action)
 	else:
 		print("Bad config, check please")
@@ -121,7 +118,7 @@ if form.getvalue('action_nginx') is not None and serv is not None:
 	if funct.check_haproxy_config(serv):
 		commands = [ "sudo systemctl %s nginx" % action ]
 		funct.ssh_command(serv, commands)		
-		funct.logging(serv, 'Nginx was '+action, haproxywi=1, login=1)
+		funct.logging(serv, 'Nginx was '+action+'ed', haproxywi=1, login=1)
 		print("Nginx was %s" % action)
 	else:
 		print("Bad config, check please")
@@ -130,7 +127,7 @@ if form.getvalue('action_nginx') is not None and serv is not None:
 if form.getvalue('action_waf') is not None and serv is not None:
 	serv = form.getvalue('serv')
 	action = form.getvalue('action_waf')
-	funct.logging(serv, 'WAF service was '+action, haproxywi=1, login=1)
+	funct.logging(serv, 'WAF service was '+action+'ed', haproxywi=1, login=1)
 	commands = [ "sudo systemctl %s waf" % action ]
 	funct.ssh_command(serv, commands)		
 	
@@ -1190,10 +1187,13 @@ if form.getvalue('bwlists_create'):
 	list = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')+"/"+form.getvalue('group')+"/"+color+"/"+list_name
 	try:
 		open(list, 'a').close()
-		print('<div class="alert alert-success" style="margin-left:14px">'+form.getvalue('color')+' list was created</div>')
-		funct.logging(server[1], 'has created  '+color+' list '+list_name, haproxywi=1, login=1)
+		print('<div class="alert alert-success" style="margin-left:14px">'+color+' list was created</div>')
+		try:
+			funct.logging(server[1], 'has created  '+color+' list '+list_name, haproxywi=1, login=1)
+		except:
+			pass
 	except IOError as e:
-		print('<div class="alert alert-danger" style="margin-left:14px">Cat\'n create new '+form.getvalue('color')+' list. %s </div>' % e)
+		print('<div class="alert alert-danger" style="margin-left:14px">Cat\'n create new '+color+' list. %s </div>' % e)
 		
 		
 if form.getvalue('bwlists_save'):
@@ -1217,9 +1217,14 @@ if form.getvalue('bwlists_save'):
 			print('<div class="alert alert-danger">Upload fail: %s</div>' % error)			
 		else:
 			print('<div class="alert alert-success" style="margin:10px; margin-left:14px">Edited '+color+' list was uploaded to '+server[1]+'</div>')
-			funct.logging(server[1], 'has edited  '+color+' list '+bwlists_save, haproxywi=1, login=1)
+			try:
+				funct.logging(server[1], 'has edited  '+color+' list '+bwlists_save, haproxywi=1, login=1)
+			except:
+				pass
 			if form.getvalue('bwlists_restart') == 'restart':
 				funct.ssh_command(server[2], ["sudo systemctl restart haproxy"])
+			elif form.getvalue('bwlists_restart') == 'reload':
+				funct.ssh_command(server[2], ["sudo systemctl reload haproxy"])
 			
 			
 if form.getvalue('get_lists'):

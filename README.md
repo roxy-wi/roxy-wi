@@ -1,5 +1,5 @@
 # HAProxy-WI
-Web interface(user-friendly web GUI, alerting, monitoring and secure) for managing HAProxy servers. Leave your [feedback](https://github.com/Aidaho12/haproxy-wi/issues)
+Web interface(user-friendly web GUI, alerting, monitoring and secure) for managing HAProxy, Nginx and Keepalived servers. Leave your [feedback](https://github.com/Aidaho12/haproxy-wi/issues)
 
 # Youtube
 [Demo video](https://www.youtube.com/channel/UCo0lCg24j-H4f0S9kMjp-_w)
