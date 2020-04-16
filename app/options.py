@@ -1379,6 +1379,7 @@ if form.getvalue('newserver') is not None:
 if form.getvalue('updatehapwiserver') is not None:
 	id = form.getvalue('updatehapwiserver')
 	active = form.getvalue('active')
+	name = form.getvalue('name')
 	alert = form.getvalue('alert_en')	
 	metrics = form.getvalue('metrics')
 	sql.update_hapwi_server(id, alert, metrics, active)
@@ -1584,7 +1585,7 @@ if form.getvalue('telegramdel') is not None:
 if form.getvalue('updatetoken') is not None:
 	token = form.getvalue('updatetoken')
 	channel = form.getvalue('updategchanel')	
-	group = form.getvalue('updategroup')	
+	group = form.getvalue('updatetelegramgroup')	
 	id = form.getvalue('id')	
 	if token is None or channel is None or group is None:
 		print(error_mess)

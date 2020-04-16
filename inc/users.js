@@ -313,6 +313,101 @@ $( function() {
 			}
 		} );	
 	});	
+	$( "#haproxyaddserv" ).on('selectmenuchange',function() {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				get_hap_v: 1,
+				serv: $('#haproxyaddserv option:selected').val(),
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {	
+				data = data.replace(/^\s+|\s+$/g,'');
+				if(data != '') {				
+					data = data+'-1';
+					$('#cur_hap_ver').text(data);
+					$('#install').text('Update');
+					$('#install').attr('title', 'Update HAProxy');
+				} else {
+					$('#cur_hap_ver').text('HAProxy has not installed');
+					$('#install').text('Install');
+					$('#install').attr('title', 'Install HAProxy');
+				}
+			}
+		} );
+	});
+	$( "#nginxaddserv" ).on('selectmenuchange',function() {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				get_nginx_v: 1,
+				serv: $('#nginxaddserv option:selected').val(),
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {	
+				data = data.replace(/^\s+|\s+$/g,'');
+				if(data.indexOf('bash') != '-1') {			
+					$('#cur_nginx_ver').text('Nginx has not installed');
+					$('#nginx_install').text('Install');
+					$('#nginx_install').attr('title', 'Install Nginx');				
+				} else {
+					$('#cur_nginx_ver').text(data);
+					$('#nginx_install').text('Update');
+					$('#nginx_install').attr('title', 'Update Nginx');
+				}
+			}
+		} );
+	});
+	$( "#haproxy_exp_addserv" ).on('selectmenuchange',function() {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				get_exporter_v: 'haproxy_exporter',
+				serv: $('#haproxy_exp_addserv option:selected').val(),
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {	
+				data = data.replace(/^\s+|\s+$/g,'');
+				console.log(data)
+				if(data == 'Active:') {				
+					$('#cur_haproxy_exp_ver').text('HAProxy expoter is installed');
+					$('#haproxy_exp_install').text('Update');
+					$('#haproxy_exp_install').attr('title', 'Update HAProxy expoter');
+				} else {
+					$('#cur_haproxy_exp_ver').text('HAProxy expoter has not installed');
+					$('#haproxy_exp_install').text('Install');
+					$('#haproxy_exp_install').attr('title', 'Install HAProxy expoter');
+				}
+			}
+		} );
+	});
+	$( "#nginx_exp_addserv" ).on('selectmenuchange',function() {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				get_exporter_v: 'nginx_exporter',
+				serv: $('#nginx_exp_addserv option:selected').val(),
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {	
+				data = data.replace(/^\s+|\s+$/g,'');
+				console.log(data)
+				if(data == 'Active:') {				
+					$('#cur_nginx_exp_ver').text('Nginx expoter is installed');
+					$('#nginx_exp_install').text('Update');
+					$('#nginx_exp_install').attr('title', 'Update Nginx expoter');
+				} else {
+					$('#cur_nginx_exp_ver').text('Nginx expoter has not installed');
+					$('#nginx_exp_install').text('Install');
+					$('#nginx_exp_install').attr('title', 'Install Nginx expoter');
+				}
+			}
+		} );
+	});
 	$('#update_haproxy_wi').click(function() {
 		$("#ajax-update").html('')
 		$("#ajax-update").html('<div class="alert alert-warning">Please don\'t close and don\'t represh page. Wait until the work is completed. This may take some time </div>');
@@ -1419,7 +1514,7 @@ function updateTelegram(id) {
 		data: {
 			updatetoken: $('#telegram-token-'+id).val(),
 			updategchanel: $('#telegram-chanel-'+id).val(),
-			updategroup: $('#telegramgroup-'+id).val(),
+			updatetelegramgroup: $('#telegramgroup-'+id).val(),
 			id: id,
 			token: $('#token').val()
 		},
@@ -1525,7 +1620,7 @@ function checkSshConnect(ip) {
 		},
 		type: "POST",
 		success: function( data ) {
-			if (data.indexOf('danger') != '-1') {
+			if (data.indexOf('error') != '-1') {
 				$("#checkSshConnect").html(data);
 			} else {
 				$("#checkSshConnect").html("<div class='alert alert-success' style='margin: 0; margin-left: 15px;'>Connect is accepted<a title='Close' id='errorMess'><b>X</b></a></div>");

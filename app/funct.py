@@ -108,10 +108,9 @@ def telegram_send_mess(mess, **kwargs):
 	try:
 		bot = telebot.TeleBot(token=token_bot)
 		bot.send_message(chat_id=channel_name, text=mess)
-	except:
-		mess = " Fatal: Can't send message. Add Telegram chanel before use alerting at this servers group"
-		print(mess)
-		logging('localhost', mess, haproxywi=1)
+	except Exception as e:
+		print(str(e).decode(encoding='UTF-8'))
+		logging('localhost', str(e).decode(encoding='UTF-8'), haproxywi=1)
 		sys.exit()
 	
 	
@@ -213,20 +212,20 @@ def ssh_connect(serv, **kwargs):
 			ssh.connect(hostname = serv, port =  ssh_port, username = ssh_user_name, password = ssh_user_password, timeout=11)
 		return ssh
 	except paramiko.AuthenticationException:
-		return 'Authentication failed, please verify your credentials'
+		return 'error: Authentication failed, please verify your credentials'
 		pass
 	except paramiko.SSHException as sshException:
-		return 'Unable to establish SSH connection: %s ' % sshException
+		return 'error: Unable to establish SSH connection: %s ' % sshException
 		pass
 	except paramiko.BadHostKeyException as badHostKeyException:
-		return 'Unable to verify server\'s host key: %s ' % badHostKeyException
+		return 'error: Unable to verify server\'s host key: %s ' % badHostKeyException
 		pass
 	except Exception as e:
 		if e == "No such file or directory":
-			return '%s. Check ssh key' % e
+			return 'error: %s. Check ssh key' % e
 			pass
 		elif e == "Invalid argument":
-			error = 'Check the IP of the server'
+			error = 'error: Check the IP of the server'
 			pass
 		else:
 			error = e	

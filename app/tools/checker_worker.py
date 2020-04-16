@@ -40,6 +40,7 @@ def main(serv, port):
 
 			firstrun = False				
 			old_stat_service = cur_stat_service
+			time.sleep(60)	
 			continue
 		except OSError as e:
 			print(e)

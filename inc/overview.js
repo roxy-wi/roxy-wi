@@ -287,6 +287,7 @@ function updateHapWIServer(id) {
 		url: "options.py",
 		data: {
 			updatehapwiserver: id,
+			name: $('#server-name-'+id).val(),
 			metrics: metrics,
 			alert_en: alert_en,
 			active: active,

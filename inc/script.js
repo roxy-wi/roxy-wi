@@ -409,6 +409,7 @@ function showCompareConfigs() {
 	} );
 }
 function showConfig() {
+	var service = $('#service').val();
 	$("#ajax").empty();
 	$("#ajax-compare").empty();
 	$("#config").empty();
@@ -418,13 +419,14 @@ function showConfig() {
 		data: {
 			serv: $("#serv").val(),
 			act: "configShow",
+			service: service,
 			token: $('#token').val()
 		},
 		type: "POST",
 		success: function( data ) {
 			$("#ajax").html(data);
 			$.getScript('/inc/configshow.js');
-			window.history.pushState("Show config", "Show config", cur_url[0]+'?serv='+$("#serv").val()+'&showConfig');
+			window.history.pushState("Show config", "Show config", cur_url[0]+"?service="+service+"&serv="+$("#serv").val()+"&showConfig");
 		}					
 	} );
 }
@@ -819,53 +821,6 @@ $( function() {
 			} );
 		}
 	}
-	$( "#haproxyaddserv" ).on('selectmenuchange',function() {
-		$.ajax( {
-			url: "options.py",
-			data: {
-				get_hap_v: 1,
-				serv: $('#haproxyaddserv option:selected').val(),
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function( data ) {	
-				data = data.replace(/^\s+|\s+$/g,'');
-				if(data != '') {				
-					data = data+'-1';
-					$('#cur_hap_ver').text(data);
-					$('#install').text('Update');
-					$('#install').attr('title', 'Update HAProxy');
-				} else {
-					$('#cur_hap_ver').text('HAProxy has not installed');
-					$('#install').text('Install');
-					$('#install').attr('title', 'Install HAProxy');
-				}
-			}
-		} );
-	});
-	$( "#nginxaddserv" ).on('selectmenuchange',function() {
-		$.ajax( {
-			url: "options.py",
-			data: {
-				get_nginx_v: 1,
-				serv: $('#nginxaddserv option:selected').val(),
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function( data ) {	
-				data = data.replace(/^\s+|\s+$/g,'');
-				if(data.indexOf('bash') != '-1') {			
-					$('#cur_nginx_ver').text('Nginx has not installed');
-					$('#nginx_install').text('Install');
-					$('#nginx_install').attr('title', 'Install Nginx');				
-				} else {
-					$('#cur_nginx_ver').text(data);
-					$('#nginx_install').text('Update');
-					$('#nginx_install').attr('title', 'Update Nginx');
-				}
-			}
-		} );
-	});
 });
 function sleep(ms) {
 	return new Promise(resolve => setTimeout(resolve, ms));

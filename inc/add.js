@@ -222,7 +222,7 @@ $( function() {
 	
 	
 	var availableTags = [
-		"acl", "http-request", "http-response", "set-uri", "set-url", "set-header", "add-header", "del-header", "replace-header", "path_beg", "url_beg()", "urlp_sub()", "set cookie", "dynamic-cookie-key", "mysql-check", "tcpka", "tcplog", "forwardfor", "option"
+		"acl", "hdr(host)", "hdr_beg(host)", "hdr_dom(host)", "http-request", "http-response", "set-uri", "set-url", "set-header", "add-header", "del-header", "replace-header", "path_beg", "url_beg()", "urlp_sub()", "set cookie", "dynamic-cookie-key", "mysql-check", "tcpka", "tcplog", "forwardfor", "option"
 	];
 			
 	$( "#ip" ).autocomplete({
@@ -355,7 +355,8 @@ $( function() {
 	    minLength: -1,
 		select: function( event, ui ) {
 			$("#optionsInput").append(ui.item.value + " ");
-			$("#options").empty();
+			$(this).val('');
+			return false;
 		}
 	});
 	$( "#saved-options" ).autocomplete({
@@ -365,8 +366,8 @@ $( function() {
 	    minLength: 1,
 		select: function( event, ui ) {
 			$("#optionsInput").append(ui.item.value + " \n");
-			$(this).val('');	
-			$(this).autocomplete( "close" );
+			$(this).val('');
+			return false;
 		}
 	});
 	$( "#options1" ).autocomplete({
@@ -374,9 +375,12 @@ $( function() {
 		autoFocus: true,
 	    minLength: -1,
 		select: function( event, ui ) {
-			$("#optionsInput1").append(ui.item.value + " ")
+			$("#optionsInput1").append(ui.item.value + " ");
+			$(this).val('');
+			return false; 
 		}
 	});
+	
 	$( "#saved-options1" ).autocomplete({
 		dataType: "json",
 		source: "sql.py?getoption="+$('#group').val()+'&token='+$('#token').val(),
@@ -384,8 +388,8 @@ $( function() {
 	    minLength: 1,
 		select: function( event, ui ) {
 			$("#optionsInput1").append(ui.item.value + " \n");	
-			$(this).val('');	
-			$(this).autocomplete( "close" );		
+			$(this).val('');
+			return false;		
 		}
 	});
 	$( "#options2" ).autocomplete({
@@ -393,7 +397,9 @@ $( function() {
 		autoFocus: true,
 	    minLength: -1,
 		select: function( event, ui ) {
-			$("#optionsInput2").append(ui.item.value + " ")
+			$("#optionsInput2").append(ui.item.value + " ");
+			$(this).val('');
+			return false;
 		}
 	});
 	$( "#saved-options2" ).autocomplete({
@@ -403,8 +409,8 @@ $( function() {
 	    minLength: 1,
 		select: function( event, ui ) {
 			$("#optionsInput2").append(ui.item.value + " \n");	
-			$(this).val('');	
-			$(this).autocomplete( "close" );	
+			$(this).val('');
+			return false;
 		}
 	});
 	$('#add-option-button').click(function() {
