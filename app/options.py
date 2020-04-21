@@ -136,26 +136,35 @@ if act == "overviewHapserverBackends":
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
 	template = env.get_template('haproxyservers_backends.html')
-	
-	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+	service = form.getvalue('service')
+	if service == 'haproxy':
+		configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+		format = 'cfg'
+	elif service == 'nginx':
+		configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
+		format = 'conf'
 	try:
-		sections = funct.get_sections(hap_configs_dir +funct.get_files()[0])
-	except:
+		sections = funct.get_sections(configs_dir+funct.get_files(dir=configs_dir, format=format)[0], service=service)
+	except Exception as e:
+		funct.logging('localhost', str(e), haproxywi=1)
 		try:
-			cfg = hap_configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
+			cfg = configs_dir + serv + "-" + funct.get_data('config') + '.'+format
 		except:
 			funct.logging('localhost', ' Cannot generate cfg path', haproxywi=1)
 		try:
-			error = funct.get_config(serv, cfg)
+			if service == 'nginx':
+				error = funct.get_config(serv, cfg, nginx=1)
+			else:
+				error = funct.get_config(serv, cfg)
 		except:
 			funct.logging('localhost', ' Cannot download config', haproxywi=1)
 		try:
-			sections = funct.get_sections(cfg)
+			sections = funct.get_sections(cfg, service=service)
 		except:
 			funct.logging('localhost', ' Cannot get sections from config file', haproxywi=1)
 			sections = 'Cannot get backends'
 			
-	template = template.render(backends=sections, serv=serv)
+	template = template.render(backends=sections, serv=serv, service=service)
 	print(template)
 	
 	
@@ -264,20 +273,27 @@ if act == "overviewwaf":
 	
 if act == "overviewServers":
 	import asyncio	
-	async def async_get_overviewServers(serv1, serv2):
+	async def async_get_overviewServers(serv1, serv2, service):
 		server_status = ()
-		commands =  [ "top -u haproxy -b -n 1" ]
-		cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|Maxco\|MB\|Uptime:"' % (serv2, sql.get_setting('haproxy_sock_port'))
-		out = funct.subprocess_execute(cmd)
-		out1 = ""
+		if service == 'haproxy':
+			commands =  [ "top -u haproxy -b -n 1" ]
+		else:
+			commands =  [ "top -u nginx -b -n 1" ]
 		
-		for k in out:
-			if "Ncat:" not in k:
-				for r in k:
-					out1 += r
-					out1 += "<br />"
-			else:
-				out1 = "Can\'t connect to HAproxy"
+		if service == 'haproxy':
+			cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|Maxco\|MB\|Uptime:"' % (serv2, sql.get_setting('haproxy_sock_port'))
+			out = funct.subprocess_execute(cmd)
+			out1 = ""
+			
+			for k in out:
+				if "Ncat:" not in k:
+					for r in k:
+						out1 += r
+						out1 += "<br />"
+				else:
+					out1 = "Can\'t connect to HAproxy"
+		else:
+			out1 = ''
 
 		server_status = (serv1,serv2, out1, funct.ssh_command(serv2, commands))
 		return server_status	
@@ -292,19 +308,20 @@ if act == "overviewServers":
 		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 		user_id = cookie.get('uuid')
 		role = sql.get_user_role_by_uuid(user_id.value)
-		futures = [async_get_overviewServers(kwargs.get('server1'), kwargs.get('server2'))]
+		futures = [async_get_overviewServers(kwargs.get('server1'), kwargs.get('server2'), kwargs.get('service'))]
 
 		for i, future in enumerate(asyncio.as_completed(futures)):
 			result = await future
 			servers.append(result)
 		servers_sorted = sorted(servers, key=funct.get_key)
-		template = template.render(service_status=servers_sorted, role=role, id=kwargs.get('id'))
+		template = template.render(service_status=servers_sorted, role=role, id=kwargs.get('id'), service_page=service)
 		print(template)	
 	
 	id = form.getvalue('id')
 	name = form.getvalue('name')
+	service = form.getvalue('service')
 	ioloop = asyncio.get_event_loop()
-	ioloop.run_until_complete(get_runner_overviewServers(server1=name, server2=serv, id=id))
+	ioloop.run_until_complete(get_runner_overviewServers(server1=name, server2=serv, id=id, service=service))
 	ioloop.close()
 
 	

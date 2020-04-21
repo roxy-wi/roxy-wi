@@ -102,7 +102,13 @@ def telegram_send_mess(mess, **kwargs):
 	for telegram in telegrams:
 		token_bot = telegram[1]
 		channel_name = telegram[2]
-			
+		
+	if token_bot == '' or channel_name == '':
+		mess = " Fatal: Can't send message. Add Telegram chanel before use alerting at this servers group"
+		print(mess)
+		logging('localhost', mess, haproxywi=1)
+		sys.exit()
+		
 	if proxy is not None and proxy != '' and proxy != 'None':
 		apihelper.proxy = {'https': proxy}
 	try:
@@ -280,26 +286,33 @@ def diff_config(oldcfg, cfg):
 		pass
 		
 		
-def get_sections(config):
+def get_sections(config, **kwargs):
 	record = False
 	return_config = list()
 	with open(config, 'r') as f:
 		for line in f:		
-			if ( 
-				line.startswith('listen') or 
-				line.startswith('frontend') or 
-				line.startswith('backend') or 
-				line.startswith('cache') or 
-				line.startswith('defaults') or 
-				line.startswith('global') or 
-				line.startswith('#HideBlockEnd') or 
-				line.startswith('#HideBlockStart') or
-				line.startswith('peers') or
-				line.startswith('resolvers') or
-				line.startswith('userlist')
-				):		
+			if kwargs.get('service') == 'nginx':
+				if 'server_name' in line:
+					line = line.split('server_name')[1]
+					line = line.split(';')[0]
 					line = line.strip()
 					return_config.append(line)
+			else:	
+				if ( 
+					line.startswith('listen') or 
+					line.startswith('frontend') or 
+					line.startswith('backend') or 
+					line.startswith('cache') or 
+					line.startswith('defaults') or 
+					line.startswith('global') or 
+					line.startswith('#HideBlockEnd') or 
+					line.startswith('#HideBlockStart') or
+					line.startswith('peers') or
+					line.startswith('resolvers') or
+					line.startswith('userlist')
+					):		
+						line = line.strip()
+						return_config.append(line)
 					
 	return return_config
 		
@@ -834,22 +847,21 @@ def get_files(dir = get_config_var('configs', 'haproxy_save_configs_dir'), forma
 		file = set()
 	return_files = set()
 	i = 0
-	for files in glob.glob(os.path.join(dir,'*.'+format)):	
+	for files in sorted(glob.glob(os.path.join(dir,'*.'+format))):		
 		if format == 'log':
 			file += [(i, files.split('/')[5])]
-		else:
+		else:		
 			file.add(files.split('/')[-1])
 		i += 1
-	files = sorted(file, reverse=True)
-
+	files = file
 	if format == 'cfg' or format == 'conf':
-		for file in files:
+		for file in files:		
 			ip = file.split("-")
 			if serv == ip[0]:
-				return_files.add(file)
+				return_files.add(file)			
 		return sorted(return_files, reverse=True)
 	else: 
-		return files
+		return file
 	
 	
 def get_key(item):

@@ -7,8 +7,12 @@
 	{{backends}}
 {% else %}
 	{% for b in backends %}
+		{% if service == 'haproxy' %}
 		<a href="/app/sections.py?serv={{ serv}}&section={{b}}" title="Edit backend {{b}}" target="_blank" style="padding-right: 10px;">
 			{{b}}
 		</a>
+		{% else %}
+			{{b}}
+		{% endif %}
 	{% endfor %}
 {% endif %}

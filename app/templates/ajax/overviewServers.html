@@ -1,17 +1,27 @@
 {%- for service in service_status -%}
 <div class="server-info">
+	{% if service_page == 'nginx' %}
+	<div class="server-name" style="padding-bottom: 0px;">
+	{% else %}
 	<div class="server-name">
+	{% endif %}
 		Server status
 		<span class="update-icon">
-			<a onclick="showOverviewServer('{{ service.0 }}', '{{ service.1 }}', '{{id}}')" title="Refresh">
+			<a onclick="showOverviewServer('{{ service.0 }}', '{{ service.1 }}', '{{id}}', '{{service_page}}')" title="Refresh">
 				<span class="service-reload"></span>
 			</a>
 		</span>
 	</div>
+	{% if service_page == 'haproxy' %}
 	<div class="haproxy-info">
 		{{ service.2 }}
 	</div>
+	{% endif %}
+	{% if service_page == 'nginx' %}
+	<div class="top-info" style="margin-top: 5px;">
+	{% else %}
 	<div class="top-info">
+	{% endif %}
 		<pre>
 {{ service.3 }}
 		</pre>

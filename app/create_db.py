@@ -432,7 +432,7 @@ def update_db_v_42(**kwargs):
 	
 def update_ver(**kwargs):
 	con, cur = get_cur()
-	sql = """update version set version = '4.2.2.0'; """
+	sql = """update version set version = '4.2.3.0'; """
 	try:    
 		cur.execute(sql)
 		con.commit()

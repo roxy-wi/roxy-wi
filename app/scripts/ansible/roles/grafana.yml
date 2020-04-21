@@ -32,4 +32,27 @@
         - dashboard_id: 11879
           revision_id: 3
           datasource: prometheus
-   
+  tasks:
+    - name: populate service facts
+      service_facts:
+      
+    - name: Open stat port for firewalld
+      firewalld:
+        port: "{{ item }}/tcp"
+        state: enabled
+        permanent: yes
+        immediate: yes
+      ignore_errors: yes
+      no_log: True
+      debugger: never
+      when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS')  and ansible_facts.services["firewalld.service"]['state'] == "running"
+      with_items:  [ "3000", "9090" ]
+      
+    - name: Open stat port for iptables
+      iptables:
+        chain: INPUT
+        destination_port: "{{ item }}"
+        jump: ACCEPT
+        protocol: tcp
+      ignore_errors: yes  
+      with_items:  [ "3000", "9090" ]

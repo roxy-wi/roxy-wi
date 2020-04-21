@@ -41,12 +41,13 @@ function showHapserversCallBack(serv, hostnamea, service) {
 		}					
 	} );
 }
-function overviewHapserverBackends(serv, hostnamea) {	
+function overviewHapserverBackends(serv, hostnamea, service) {	
 	$.ajax( {
 		url: "options.py",
 		data: {
 			act: "overviewHapserverBackends",
 			serv: serv[0],
+			service: service,
 			token: $('#token').val()
 		},
 		beforeSend: function() {
@@ -85,7 +86,7 @@ function showOverviewCallBack(serv, hostnamea) {
 		}					
 	} );
 }
-function showOverviewServer(name,ip,id) {
+function showOverviewServer(name,ip,id, service) {
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -93,6 +94,7 @@ function showOverviewServer(name,ip,id) {
 			name: name,
 			serv: ip,
 			id: id,
+			service: service,
 			page: 'hapservers.py',
 			token: $('#token').val()
 		},

@@ -33,14 +33,18 @@ def main(serv, port):
 		except OSError as e:
 			print(e)
 			sys.exit()
-		readstats = readstats.decode(encoding='UTF-8')	
-		metric = readstats.splitlines()
-		metrics = []
-		for i in range(0,len(metric)):
-			metrics.append(metric[i])
+		
+		try:
+			readstats = readstats.decode(encoding='UTF-8')	
+			metric = readstats.splitlines()
+			metrics = []
+			for i in range(0,len(metric)):
+				metrics.append(metric[i])
+				
+			sql.insert_mentrics(serv, metrics[0], metrics[1], metrics[2], metrics[3])
+		except Exception as e:
+			print(str(e))
 			
-		sql.insert_mentrics(serv, metrics[0], metrics[1], metrics[2], metrics[3])
-	
 		time.sleep(30)	
 				
 		if killer.kill_now:

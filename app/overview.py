@@ -33,6 +33,17 @@ try:
 	grafana, stderr = funct.subprocess_execute(cmd)
 	cmd = "ps ax |grep 'prometheus ' |grep -v grep|wc -l"
 	prometheus, stderr = funct.subprocess_execute(cmd)
+	is_checker_workers = sql.select_alert()
+	i = 0
+	for s in sql.select_alert():
+		i += 1 
+	is_checker_worker = i
+	is_metrics_workers = sql.select_servers_metrics_for_master()
+	i = 0
+	for s in is_metrics_workers:
+		i += 1
+	is_metrics_worker = i
+
 except:
 	role = ''
 	user = ''
@@ -51,6 +62,9 @@ except:
 	haproxy_wi_log = ''
 	servers = ''
 	stderr = ''
+	is_checker_worker = ''
+	is_metrics_worker = ''
+	token = ''
 
 
 template = template.render(h2 = 1,
@@ -79,5 +93,7 @@ template = template.render(h2 = 1,
 							versions = funct.versions(),
 							haproxy_wi_log = funct.haproxy_wi_log(),
 							servers = servers,
+							is_checker_worker = is_checker_worker,
+							is_metrics_worker = is_metrics_worker,
 							token = token)
 print(template)
