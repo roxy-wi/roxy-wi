@@ -608,6 +608,8 @@ def upload_and_restart(serv, cfg, **kwargs):
 			commands = [ "sudo mv -f " + tmp_file + " " + config_path + " && sudo nginx -t -q && sudo systemctl reload nginx" ]	
 		else:
 			commands = [ "sudo mv -f " + tmp_file + " " + config_path + " && sudo nginx -t -q && sudo systemctl restart nginx" ]	
+		if sql.get_setting('firewall_enable') == "1":
+			commands[0] += open_port_firewalld(cfg, serv=serv, service='nginx')
 	else:
 		if kwargs.get("just_save") == "test":
 			commands = [ "sudo haproxy  -q -c -f " + tmp_file + "&& sudo rm -f " + tmp_file ]
@@ -618,7 +620,7 @@ def upload_and_restart(serv, cfg, **kwargs):
 		else:
 			commands = [ "sudo haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + config_path + " && sudo systemctl restart haproxy" ]	
 		if sql.get_setting('firewall_enable') == "1":
-			commands[0] += open_port_firewalld(cfg)
+			commands[0] += open_port_firewalld(cfg, serv=serv)
 	error += str(upload(serv, tmp_file, cfg, dir='fullpath'))
 
 	try:
@@ -644,7 +646,7 @@ def master_slave_upload_and_restart(serv, cfg, just_save, **kwargs):
 	return error
 	
 		
-def open_port_firewalld(cfg):
+def open_port_firewalld(cfg, serv, **kwargs):
 	try:
 		conf = open(cfg, "r")
 	except IOError:
@@ -654,16 +656,23 @@ def open_port_firewalld(cfg):
 	ports = ''
 	
 	for line in conf:
-		if "bind" in line:
-			bind = line.split(":")
-			bind[1] = bind[1].strip(' ')
-			bind = bind[1].split("ssl")
-			bind = bind[0].strip(' \t\n\r')
-			firewalld_commands += ' sudo firewall-cmd --zone=public --add-port=%s/tcp --permanent -q &&' % bind
-			ports += bind+' '
+		if kwargs.get('service') == 'nginx':
+			if "listen " in line and '#' not in line:			
+				listen = ' '.join(line.split())
+				listen = listen.split(" ")[1]
+				listen = listen.split(";")[0]
+				ports += listen+' '
+		else:
+			if "bind" in line:
+				bind = line.split(":")
+				bind[1] = bind[1].strip(' ')
+				bind = bind[1].split("ssl")
+				bind = bind[0].strip(' \t\n\r')
+				firewalld_commands += ' sudo firewall-cmd --zone=public --add-port=%s/tcp --permanent -q &&' % bind
+				ports += bind+' '
 				
 	firewalld_commands += 'sudo firewall-cmd --reload -q' 
-	logging('localhost', ' Next ports have opened: '+ports+ ' has opened ')
+	logging(serv, ' Next ports have been opened: '+ports+ ' has opened ')
 	return firewalld_commands
 	
 	

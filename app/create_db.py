@@ -419,12 +419,34 @@ def update_db_v_42(**kwargs):
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
 			if e.args[0] == 'duplicate column name: haproxy' or e == " 1060 (42S21): Duplicate column name 'haproxy' ":
-				print('DB was update to 4.0.0')
+				print('Updating... go to version 4.2.3')
 			else:
 				print("An error occurred:", e)
 		return False
 	else:
-		print("DB was update to 4.0.0")
+		print("Updating... go to version 4.2.3")
+		return True
+	cur.close() 
+	con.close()
+	
+	
+def update_db_v_4_2_3(**kwargs):
+	con, cur = get_cur()
+	sql = """
+	update settings set section = 'main' where param = 'firewall_enable';
+	"""
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: haproxy' or e == " 1060 (42S21): Duplicate column name 'haproxy' ":
+				print('DB was update to 4.2.3')
+			else:
+				print("An error occurred:", e)
+		return False
+	else:
+		print("DB was update to 4.2.3")
 		return True
 	cur.close() 
 	con.close()
@@ -456,6 +478,7 @@ def update_all():
 	update_db_v_4()
 	update_db_v_41()
 	update_db_v_42()
+	update_db_v_4_2_3()
 	update_ver()
 		
 	
@@ -473,6 +496,7 @@ def update_all_silent():
 	update_db_v_4(silent=1)
 	update_db_v_41(silent=1)
 	update_db_v_42(silent=1)
+	update_db_v_4_2_3(silent=1)
 	update_ver()
 	
 		
