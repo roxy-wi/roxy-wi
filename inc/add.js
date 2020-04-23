@@ -1212,6 +1212,7 @@ function saveList(action, list, color) {
 		url: "options.py",
 		data: {
 			bwlists_save: list,
+			serv: $( "#serv-"+color+"-list option:selected" ).val(),
 			bwlists_content: $('#edit_lists').val(),
 			color: color,
 			group: $('#group').val(),

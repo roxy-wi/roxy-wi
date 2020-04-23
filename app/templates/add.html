@@ -750,13 +750,20 @@ h3 {
 	<div id="lists">
 		<table class="overview">
 			<tr class="overviewHead">
-				<td class="padding10 first-collumn">New black list</th>
-				<td>Exists black lists</th>
-				<td class="padding10 first-collumn">New white list</th>
-				<td>Exists white lists</th>
+				<th class="padding10 first-collumn">Server for upload</th>
+				<th>New black list</th>
+				<th>Exists black lists</th>
 			</tr>
 			<tr>
-				<td class="padding10 first-collumn" style="width: 25%;">
+				<td class="padding10 first-collumn">
+					<select required name="serv-black-list" id="serv-black-list">
+						<option disabled selected>Choose server</option>
+							{% for select in selects %}
+								<option value="{{ select.2 }}">{{ select.1 }}</option>
+							{% endfor %}	
+					</select>
+				</td>
+				<td style="width: 25%;">
 					Name: {{ input('new_blacklist_name') }}
 					<button onclick="createList('black')">Create</button>
 				</td>
@@ -765,7 +772,26 @@ h3 {
 						<a onclick="editList('{{ list }}', 'black')" style="cursor: pointer;" title="Edit list {{ list }}">{{ list }}</a>
 					{% endfor %}
 				</td>
-				<td class="padding10 first-collumn" style="width: 25%;">
+				
+			</tr>
+			{{ input('group', value=group, type='hidden') }}
+		</table>
+		<table>
+			<tr class="overviewHead">
+				<th class="padding10 first-collumn">Server for upload</th>
+				<th>New white list</th>
+				<th>Exists white lists</th>
+			</tr>
+			<tr>
+				<td class="padding10 first-collumn">
+					<select required name="serv-white-list" id="serv-white-list">
+						<option disabled selected>Choose server</option>
+							{% for select in selects %}
+								<option value="{{ select.2 }}">{{ select.1 }}</option>
+							{% endfor %}	
+					</select>
+				</td>
+				<td style="width: 25%;">
 					Name: {{ input('new_whitelist_name') }}
 					<button onclick="createList( 'white')">Create</button>
 				</td>
@@ -775,12 +801,11 @@ h3 {
 					{% endfor %}
 				</td>
 			</tr>
-			{{ input('group', value=group, type='hidden') }}
 		</table>
+		<div id="ajax"></div>
 		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
 			In this section you can create and edit black and white lists. And after use them in the HAProxy configs or in the "Add proxy" pages
 		</div>
-		<div id="ajax"></div>
 		<div id="dialog-confirm-cert-edit" title="View certificate " style="display: none;">
 			<span><b>Note:</b> Each new address must be specified from a new line</span>
 			<textarea id="edit_lists" style="width: 100%" rows=20></textarea>

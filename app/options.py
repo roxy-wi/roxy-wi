@@ -1223,25 +1223,30 @@ if form.getvalue('bwlists_save'):
 	except IOError as e:
 		print('<div class="alert alert-danger" style="margin-left:14px">Cat\'n save '+color+' list. %s </div>' % e)
 	
-	servers = sql.get_dick_permit()
 	path = sql.get_setting('haproxy_dir')+"/"+color
-	
-	for server in servers:
-		funct.ssh_command(server[2], ["sudo mkdir "+path])
-		funct.ssh_command(server[2], ["sudo chown $(whoami) "+path])
-		error = funct.upload(server[2], path+"/"+bwlists_save, list, dir='fullpath')
+	servers = []
+	servers.append(serv)
+
+	MASTERS = sql.is_master(serv)
+	for master in MASTERS:
+		if master[0] != None:
+			servers.append(master[0])
+	for serv in servers:
+		funct.ssh_command(serv, ["sudo mkdir "+path])
+		funct.ssh_command(serv, ["sudo chown $(whoami) "+path])
+		error = funct.upload(serv, path+"/"+bwlists_save, list, dir='fullpath')
 		if error:
 			print('<div class="alert alert-danger">Upload fail: %s</div>' % error)			
 		else:
-			print('<div class="alert alert-success" style="margin:10px; margin-left:14px">Edited '+color+' list was uploaded to '+server[1]+'</div>')
+			print('<div class="alert alert-success" style="margin:10px; margin-left:14px">Edited '+color+' list was uploaded to '+serv+'</div>')
 			try:
-				funct.logging(server[1], 'has edited  '+color+' list '+bwlists_save, haproxywi=1, login=1)
+				funct.logging(serv, 'has edited  '+color+' list '+bwlists_save, haproxywi=1, login=1)
 			except:
 				pass
 			if form.getvalue('bwlists_restart') == 'restart':
-				funct.ssh_command(server[2], ["sudo systemctl restart haproxy"])
+				funct.ssh_command(serv, ["sudo systemctl restart haproxy"])
 			elif form.getvalue('bwlists_restart') == 'reload':
-				funct.ssh_command(server[2], ["sudo systemctl reload haproxy"])
+				funct.ssh_command(serv, ["sudo systemctl reload haproxy"])
 			
 			
 if form.getvalue('get_lists'):

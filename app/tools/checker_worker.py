@@ -74,7 +74,7 @@ def main(serv, port):
 					servername = servername.split(",")
 					realserver = servername[0]
 					server = servername[1]
-					alert = "Backend: "+realserver[2:]+", server: "+server+"  has changed status and is now "+ currentstat[i] + " at " + serv 
+					alert = "Backend: "+realserver[2:]+", server: "+server+"  has changed status to "+ currentstat[i] + " at " + serv 
 					funct.telegram_send_mess(str(alert), ip=serv)
 					funct.logging("localhost", " "+alert, alerting=1)
 		firstrun = False
