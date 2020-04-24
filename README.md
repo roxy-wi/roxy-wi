@@ -1,14 +1,11 @@
 # ![alt text](inc/images/logo_menu.png "Logo")
 Web interface(user-friendly web GUI, alerting, monitoring and secure) for managing HAProxy, Nginx and Keepalived servers. Leave your [feedback](https://github.com/Aidaho12/haproxy-wi/issues)
 
-# Youtube
-[Demo video](https://www.youtube.com/channel/UCo0lCg24j-H4f0S9kMjp-_w)
-
-# Twitter
+# Get involved
+[Youtube Demo video](https://www.youtube.com/channel/UCo0lCg24j-H4f0S9kMjp-_w)
 [Twitter](https://twitter.com/haproxy_wi), subscribe! I will write there about all the changes and news
-
-# Telegram
 [Channel](https://t.me/haproxy_wi) about HAProxy-WI, talks and questions are welcome
+
 # Demo site
 [Demo site](https://demo.haproxy-wi.org) Login/password: admin/admin. Server resets every hour.
 
