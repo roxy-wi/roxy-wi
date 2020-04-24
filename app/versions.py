@@ -52,6 +52,8 @@ else:
 if serv is not None and form.getvalue('del') is not None:
 	if Select is not None:
 		aftersave = 1
+		env = Environment(loader=FileSystemLoader('templates/'))
+		template = env.get_template('delver.html')
 		for get in form:
 			if format in get:
 				try:

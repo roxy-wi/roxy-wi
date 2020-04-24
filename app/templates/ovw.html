@@ -174,10 +174,11 @@
 		<td class="padding10 first-collumn-wi">
 		{% if grafana|int() >= 1 %}
 			<span title="running {{grafana}} process"><span class="serverUp server-status"></span></span> 
+			<a href="http://{{host}}:3000" target="_blank" title="Open Grafana" class="logs_link">Grafana</a>
 		{% else %}
-			<span title="The service does not started or does not installed"><span class="serverNone server-status"></span></span> 
+			<span title="The service does not started or does not installed"><span class="serverNone server-status"></span></span>
+			<span>Grafana</span>			
 		{% endif %}
-			<span>Grafana</span>
 		</td>
 		<td>
 		{% if prometheus|int() >= 1 %}

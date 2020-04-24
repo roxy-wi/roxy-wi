@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import funct, sql
 import create_db
+import os
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('ovw.html')
@@ -43,6 +44,7 @@ try:
 	for s in is_metrics_workers:
 		i += 1
 	is_metrics_worker = i
+	host = os.environ.get('HTTP_HOST', '')
 
 except:
 	role = ''
@@ -65,6 +67,7 @@ except:
 	is_checker_worker = ''
 	is_metrics_worker = ''
 	token = ''
+	host = ''
 
 
 template = template.render(h2 = 1,
@@ -95,5 +98,6 @@ template = template.render(h2 = 1,
 							servers = servers,
 							is_checker_worker = is_checker_worker,
 							is_metrics_worker = is_metrics_worker,
+							host = host,
 							token = token)
 print(template)
