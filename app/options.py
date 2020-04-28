@@ -1225,12 +1225,19 @@ if form.getvalue('bwlists_save'):
 	
 	path = sql.get_setting('haproxy_dir')+"/"+color
 	servers = []
-	servers.append(serv)
+	
+	if serv != 'all':	
+		servers.append(serv)
 
-	MASTERS = sql.is_master(serv)
-	for master in MASTERS:
-		if master[0] != None:
-			servers.append(master[0])
+		MASTERS = sql.is_master(serv)
+		for master in MASTERS:
+			if master[0] != None:
+				servers.append(master[0])
+	else:
+		server = sql.get_dick_permit()
+		for s in server:
+			servers.append(s[2])
+			
 	for serv in servers:
 		funct.ssh_command(serv, ["sudo mkdir "+path])
 		funct.ssh_command(serv, ["sudo chown $(whoami) "+path])
@@ -1307,10 +1314,10 @@ if form.getvalue('newuser') is not None:
 	email = form.getvalue('newemail')
 	password = form.getvalue('newpassword')
 	role = form.getvalue('newrole')
-	group = form.getvalue('newgroupuser')
 	new_user = form.getvalue('newusername')	
 	page = form.getvalue('page')	
 	activeuser = form.getvalue('activeuser')	
+	group = form.getvalue('newgroupuser')	
 	role_id = sql.get_role_id_by_name(role)
 	
 	if funct.check_group(group, role_id):
@@ -1343,10 +1350,10 @@ if form.getvalue('userdel') is not None:
 if form.getvalue('updateuser') is not None:
 	email = form.getvalue('email')
 	role = form.getvalue('role')
-	group = form.getvalue('usergroup')
 	new_user = form.getvalue('updateuser')	
 	id = form.getvalue('id')	
 	activeuser = form.getvalue('activeuser')	
+	group = form.getvalue('usergroup')	
 	role_id = sql.get_role_id_by_name(role)
 	
 	if funct.check_group(group, role_id):			
@@ -1622,4 +1629,3 @@ if form.getvalue('updatesettings') is not None:
 	if sql.update_setting(settings, val):
 		funct.logging('value '+val, ' changed settings '+settings, haproxywi=1, login=1)
 		print("Ok")
-	
