@@ -6,6 +6,7 @@
     state: present
     reload: yes
   when: (SYN_FLOOD is defined) and (SYN_FLOOD|length > 0)
+  ignore_errors: yes
     
 
 - name: net.ipv4.conf.all.rp_filter   
@@ -16,6 +17,7 @@
     state: present
     reload: yes
   when: (SYN_FLOOD is defined) and (SYN_FLOOD|length > 0)
+  ignore_errors: yes
     
 - name: Enable net.ipv4.tcp_max_syn_backlog 
   sysctl:
@@ -25,6 +27,7 @@
     state: present
     reload: yes
   when: (SYN_FLOOD is defined) and (SYN_FLOOD|length > 0)
+  ignore_errors: yes
     
 - name: Enable net.ipv4.tcp_synack_retries   
   sysctl:
@@ -34,3 +37,4 @@
     state: present
     reload: yes
   when: (SYN_FLOOD is defined) and (SYN_FLOOD|length > 0)
+  ignore_errors: yes
