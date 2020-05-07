@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
+
+{% if selects|length == 0 %}
+	{% include 'include/getstarted.html' %}
+{% else %}
 <center>
 	<h3>Choose server</h3>
 	<p>
@@ -47,5 +51,6 @@
 			</form> 
 		</center>	
 	{% endif %}
-	</center>
+</center>
+{% endif %}
 {% endblock %}

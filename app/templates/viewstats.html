@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% block content %}	
 <br />
+{% if selects|length == 0 %}
+	{% include 'include/getstarted.html' %}
+{% else %}
 <form style="padding-left: 5px;" action="viewsttats.py" method="post">
 	<input type="hidden" id="service" value="{{service}}" />
 	<select autofocus required name="serv" id="serv">
@@ -76,4 +79,5 @@
 	});		
 </script>
 <link href="/inc/style.css" rel="stylesheet">
+{% endif %}
 {% endblock %}

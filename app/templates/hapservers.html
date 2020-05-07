@@ -32,6 +32,9 @@
 	{% endfor %}
 </script>
 <div id="up-pannel" class="sortable">
+	{% if servers|length == 0 %}
+		{% include 'include/getstarted.html' %}
+	{% endif %}
 	{% for s in servers %}
 		{% if serv %}
 			<link href="/inc/chart.min.css" rel="stylesheet">
@@ -50,7 +53,7 @@
 				showMetrics();
 			</script>
 		{% endif %}
-		<div id="div-server-{{s.0}}" class="div-server-hapwi" {% if service == 'nginx' %}style="height:138px;"{%endif%}>
+		<div id="div-server-{{s.0}}" class="div-server-hapwi" >
 			<div class="server-name">	
 				<input type="hidden" id="server-name-{{s.0}}" value="{{s.1}}" />
 				<input type="hidden" id="service" value="{{service}}" />
@@ -163,11 +166,9 @@
 			</div>
 		</div>
 		{% if serv %}
-			{% if service == 'haproxy' %}
+
 			<div id="ajax-server-{{s.0}}" class="ajax-server"></div>
-			{% else %}
-			<div id="ajax-server-{{s.0}}" class="ajax-server" style="height: 158px;"></div>
-			{% endif %}
+	
 			<div class="div-server div-backends">			
 				<div class="server-name backends">	
 					{% if service == 'haproxy' %}

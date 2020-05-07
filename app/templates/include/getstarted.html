@@ -1,0 +1,18 @@
+<center>
+	<h4 style="font-size: 25px">Welcome and let's get started!</h4>
+	<iframe width="760" height="415" src="https://www.youtube.com/embed/VU-LFTAQSiw" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+	<br />
+	<br />
+	<h4>
+		You don't have any servers. 
+		Watch video how to add your first server 
+		{% if role == 2 %}
+			and go to the 
+			"<a href="servers.py#servers" title="Servers">Servers</a>"
+		{% elif role == 1 %}
+			and go to the 
+                        "<a href="users.py#servers" title="Servers">Admin area</a>"
+		{% endif %}
+		to add your first server
+	</h4>
+</center>

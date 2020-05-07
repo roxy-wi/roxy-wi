@@ -19,6 +19,9 @@
 		hostnamea.push(host)
 	{% endfor %}
 </script>
+{% if servers_all|length == 0 %}
+	{% include 'include/getstarted.html' %}
+{% else %}
 <table class="overview">
 	<tr class="overviewHead">
 		<td class="padding10 first-collumn">
@@ -69,4 +72,5 @@
 	showWafMetrics()
 	showOverviewWaf(ip, hostnamea)
 </script>
+{% endif %}
 {% endblock %}
