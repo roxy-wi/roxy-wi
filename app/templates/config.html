@@ -4,7 +4,7 @@
 <center>
 	{% if selects|length == 0 %}
 		{% include 'include/getstarted.html' %}
-	{% endif %}
+	{% else %}
 	<h3>Choose server</h3>
 	<p>
 		<form action="{{ action }}" method="post">
@@ -40,6 +40,7 @@
 			{% endif %}
 		</form>
 	</p>
+	{% endif %}
 	{% if not aftersave %}
 		{% if stderr or error %}
 			{% include 'include/errors.html' %}
@@ -75,7 +76,7 @@
 		{% if stderr or error %}
 			{% include 'include/errors.html' %}
 		{% else %}
-			<div class="alert alert-success">The config is ok</div>
+			<div class="alert alert-success">Config is ok</div>
 			<a href="viewsttats.py?serv={{ serv }}" target="_blank" title="View stats">Go to view stats</a>
 		{% endif %}
 	{% endif %}

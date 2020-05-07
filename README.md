@@ -4,7 +4,7 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 # Get involved
 * [Youtube Demo video](https://www.youtube.com/channel/UCo0lCg24j-H4f0S9kMjp-_w)
 * [Twitter](https://twitter.com/haproxy_wi), subscribe! I will write there about all the changes and news
-* [Channel](https://t.me/haproxy_wi) about HAProxy-WI, talks and questions are welcome
+* [Telegram Channel](https://t.me/haproxy_wi) about HAProxy-WI, talks and questions are welcome
 
 # Demo site
 [Demo site](https://demo.haproxy-wi.org) Login/password: admin/admin. Server resets every hour.
