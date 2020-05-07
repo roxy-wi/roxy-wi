@@ -89,7 +89,6 @@ def get_servers():
 				'id':s[0],
 				'hostname':s[1],
 				'ip':s[2],
-				'group':s[3],
 				'virt':s[4],
 				'enable':s[5],
 				'is_master':s[6],

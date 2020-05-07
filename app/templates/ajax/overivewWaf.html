@@ -46,12 +46,12 @@
 				{{ service.3 }}
 			{% endif %}
 			</td>
-			<td style="padding-top: 2px;">
+			<td style="padding-top: 2px;" class="ajaxwafstatus">
 				{% if service.3 == "On" or service.3 == "Off" or service.3 == "DetectionOnly" %}
 					{% if service.4|int() == 1 %}
-						<label for="{{ service.0 }}"></label><input type="checkbox" id="{{ service.0 }}" checked>
+						<label for="metrics{{ service.0 }}"></label><input type="checkbox" id="metrics{{ service.0 }}" checked />
 					{% else %}
-						<label for="{{ service.0 }}"></label><input type="checkbox" id="{{ service.0 }}">
+						<label for="metrics{{ service.0 }}"></label><input type="checkbox" id="metrics{{ service.0 }}" />
 					{% endif %}
 				{% endif %}
 			</td>
@@ -68,12 +68,18 @@
 	{% endif %}
 {% endfor %}
 <script>
-	$( "select" ).selectmenu();
 	{% if role <= 1 %}
+		$( "select" ).selectmenu();
+		$( "input[type=checkbox]" ).checkboxradio();
 		$( "select" ).on('selectmenuchange',function() {
 			var id = $(this).attr('id');
 			changeWafMode(id)
 		});	
+		$( ".ajaxwafstatus input" ).change(function() {
+			var id = $(this).attr('id');
+			console.log(id)
+			metrics_waf(id);
+		});
 	{% endif %}
 </script>
 <style>

@@ -1,11 +1,4 @@
 var awesome = "/inc/fontawesome.min.js"
-
-$( function() {
-	$( "#ajaxwafstatus input" ).change(function() {
-		var id = $(this).attr('id');
-		metrics_waf(id);
-	});
-} );
 function showOverviewWaf(serv, hostnamea) {
 	$.getScript('/inc/chart.min.js');
 	showWafMetrics();
@@ -43,6 +36,7 @@ function metrics_waf(name) {
 	if ($('#'+name).is(':checked')) {
 		enable = '1';
 	}
+	name = name.split('metrics')[1]
 	$.ajax( {
 		url: "options.py",
 		data: {
