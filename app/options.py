@@ -603,8 +603,8 @@ if form.getvalue('servaction') is not None:
 	cmd='echo "%s %s" |sudo socat stdio %s | cut -d "," -f 1-2,5-10,18,34-36 | column -s, -t' % (enable, backend, haproxy_sock)
 	
 	if form.getvalue('save') == "on":
-		save_command = 'echo "show servers state" | sudo socat stdio %s > %s' % (haproxy_sock, server_state_file)
-		command = [ cmd, save_command ] 
+		save_command = 'echo "show servers state" | sudo socat %s stdio > %s' % (haproxy_sock, server_state_file)
+		command = [ cmd + ';' + save_command ] 
 	else:
 		command = [ cmd ] 
 		
