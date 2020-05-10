@@ -35,7 +35,6 @@
 			</tr>
 			<tr>
 		{% for user in users %}
-			{% if user.5 == group %}
 			<tr id="user-{{user.0}}" class="{{ loop.cycle('odd', 'even') }}">
 				{% include 'include/admin_users.html' %}
 				<td>
@@ -59,7 +58,6 @@
 					<a class="delete" onclick="confirmDeleteUser({{user.0}})" title="Delete user {{user.1}}" style="cursor: pointer;"></a>
 				</td> 
 			</tr>
-			{% endif %}
 		{% endfor %}
 		</table>
 		<br /><span class="add-button" title="Add user" id="add-user-button">+ Add</span>

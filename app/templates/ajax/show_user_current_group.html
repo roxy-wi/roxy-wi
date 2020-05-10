@@ -1,0 +1,15 @@
+<table class="overview" style="border: none;">
+	<tr style="border: none;">
+		<td style="border: none">
+			<select id="newCurrentGroup" name="newCurrentGroup" >
+				{% for g in groups %}
+					{% if g.0|string() == group|string() %}
+						<option value="{{ g.0 }}" selected>{{ g.1 }}</option>
+					{% else %}
+						<option value="{{ g.0 }}">{{ g.1 }}</option>
+					{% endif %}
+				{% endfor %}
+			</select>
+		</td>
+	</tr>
+</table>

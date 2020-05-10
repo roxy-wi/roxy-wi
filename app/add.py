@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import os
 import funct
 import sql
@@ -20,7 +21,9 @@ funct.page_for_admin(level = 2)
 
 try:
 	user, user_id, role, token, servers = funct.get_users_params()
-	user_group = sql.get_user_group_by_uuid(user_id.value)
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	group = cookie.get('group')
+	user_group = group.value
 except:
 	pass
 	

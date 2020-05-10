@@ -659,6 +659,9 @@ caption {
   color: #777;
   text-align: left;
 }
+caption h3 {
+	font-size: 1.2em;
+}
 td,th {
   padding: 0;
   text-align: left;
@@ -1026,16 +1029,13 @@ label {
 		width: 100px;
 	}
 }
-.loading, .loading_full_page, .loading_hapwi_overview {
-	width: 100px;
-	height: 100px;
+.loading, .loading_full_page {
+	width: 50px;
+	height: 50px;
 	margin-left: 100%;
 }
 .loading_full_page {
 	margin-left: 45%;
-}
-.loading_hapwi_overview{
-	margin-left: 40%;
 }
 .loading_small {
 	width: 39px;

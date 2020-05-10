@@ -664,6 +664,41 @@ $( function() {
 		  $("#label_select_all").text("Select all");
         }
     });
+	$('#changeCurrentGroup').click(function() {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				getcurrentusergroup: 1,
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+				if (data.indexOf('danger') != '-1') {
+					$("#ajax").html(data);
+				} else {
+					$('.alert-danger').remove();
+					$('#current-user-groups-form').html(data);
+					$( "select" ).selectmenu();
+					$( "#current-user-groups-dialog" ).dialog({
+						resizable: false,
+						height: "auto",
+						width: 290,
+						modal: true,
+						title: "Change a new current group",
+						buttons: {
+							"Change": function() {
+								$( this ).dialog( "close" );	
+								changeCurrentGroupF();
+							},
+							Cancel: function() {
+								$( this ).dialog( "close" );
+							}
+						  }
+					});					
+				} 
+			}
+		} );
+	 });
 
 	 $('#runtimeapiform').submit(function() {
 		showRuntime();
@@ -901,3 +936,9 @@ function listHistroy() {
 }
 createHistroy()
 listHistroy()
+
+function changeCurrentGroupF(){
+	Cookies.remove('group');
+	Cookies.set('group', $('#newCurrentGroup').val(), { path: '/app' });
+	location.reload(); 
+}

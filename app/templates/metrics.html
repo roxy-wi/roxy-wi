@@ -30,6 +30,14 @@ th, tr, td {
 {% endfor %}
 
 <script>
+$( function() {
+    $( "#sortable" ).sortable({
+      	revert: true,
+	items: "> div",
+    	placeholder: "ui-state-highlight"
+    });
+    $( "sortable" ).disableSelection();
+  } );
 function showMetrics() {
 	let metrics = new Promise(
 		(resolve, reject) => {

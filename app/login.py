@@ -30,14 +30,21 @@ def send_cookie(login):
 	expires = datetime.datetime.utcnow() + datetime.timedelta(days=session_ttl) 
 	user_uuid = str(uuid.uuid4())
 	user_token = str(uuid.uuid4())
+	sql.write_user_uuid(login, user_uuid)
+	sql.write_user_token(login, user_token)
+	
+	id = sql.get_user_id_by_uuid(user_uuid)
+	user_groups = sql.select_user_groups(id, limit=1)
 
 	c = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	c["uuid"] = user_uuid
 	c["uuid"]["path"] = "/"
 	c["uuid"]["expires"] = expires.strftime("%a, %d %b %Y %H:%M:%S GMT")
+	c["group"] = user_groups
+	c["group"]["path"] = "/"
+	c["group"]["expires"] = expires.strftime("%a, %d %b %Y %H:%M:%S GMT")
 	print(c)
-	sql.write_user_uuid(login, user_uuid)
-	sql.write_user_token(login, user_token)
+	
 	try:
 		funct.logging('locahost', ' '+sql.get_user_name_by_uuid(user_uuid)+' log in', haproxywi=1)
 	except:

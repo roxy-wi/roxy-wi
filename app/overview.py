@@ -67,7 +67,6 @@ except:
 	is_checker_worker = ''
 	is_metrics_worker = ''
 	token = ''
-	host = ''
 
 
 template = template.render(h2 = 1,
@@ -77,6 +76,7 @@ template = template.render(h2 = 1,
 							user = user,
 							users = users,
 							groups = groups,
+							users_groups = sql.select_user_groups_with_names(1, all=1),
 							roles = sql.select_roles(),
 							metrics_master = ''.join(metrics_master),
 							metrics_worker = ''.join(metrics_worker),

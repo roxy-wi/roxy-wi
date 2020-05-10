@@ -53,16 +53,7 @@
 					</select>
 				</td>
 				<td>
-					<select id="usergroup-{{user.0}}" name="usergroup-{{user.0}}">
-						<option disabled selected>Choose group</option>
-						{% for group in groups %}
-							{% if user.5 == group.0|string() %}
-								<option value="{{ group.0 }}" selected>{{ group.1 }}</option>
-							{% else %}
-								<option value="{{ group.0 }}">{{ group.1 }}</option>
-							{% endif %}
-						{% endfor %}
-					</select>
+					<span title="Change user groups" style="cursor: pointer; margin-left: 15px;" class="div-pic" onclick="openChangeUserGroupDialog('{{user.0}}')">
 				</td>
 				<td>
 					<a class="add" onclick="cloneUser({{user.0}})" id="clone-{{user.0}}" title="Clone {{user.1}}" style="cursor: pointer;"></a>
@@ -603,6 +594,9 @@
 	</table>
 </div>
 {% include 'include/change_pass_form.html' %}
+<div id="change-user-groups-dialog" style="display: none;">
+	<div id="change-user-groups-form"></div>
+</div>
 <style>
 .ui-selectmenu-button.ui-button {
     width: 10em;
@@ -612,45 +606,41 @@
 }
 </style>
 <script>
-				$( function() {
-				{% for user in users %}
-					$("#role-{{user.0}}" ).selectmenu({
-						  width: 100
-						});
-					$("#usergroup-{{user.0}}" ).selectmenu({
-						  width: 100
-						});
-					
-				{% endfor %}
-				{% for server in servers %}
-					$("#servergroup-{{ server.0}}" ).selectmenu({
-						  width: 100
-						});
-					$("#slavefor-{{server.0}}" ).selectmenu({
-						  width: 130
-						});
-					$("#credentials-{{server.0}}" ).selectmenu({
-						  width: 150
-						});
-				{% endfor %}
-				{% for ssh in sshs %}
-					if (window.matchMedia('(max-width: 1280px)').matches) {
-						$("#sshgroup-{{ ssh.0}}" ).selectmenu({
-							width: 100
-						});
-					}
-				{% endfor %}
-				{% for server in backups %}
-					$("#backup-time-{{ server.0}}" ).selectmenu({
-						  width: 100
-						});
-					$("#backup-type-{{server.0}}" ).selectmenu({
-						  width: 130
-						});
-					$("#backup-credentials-{{server.0}}" ).selectmenu({
-						  width: 150
-						});
-				{% endfor %}
+	$( function() {
+		{% for user in users %}
+			$("#role-{{user.0}}" ).selectmenu({
+				width: 100
+			});
+		{% endfor %}
+		{% for server in servers %}
+			$("#servergroup-{{ server.0}}" ).selectmenu({
+				width: 100
+			});
+			$("#slavefor-{{server.0}}" ).selectmenu({
+				width: 130
+			});
+			$("#credentials-{{server.0}}" ).selectmenu({
+				width: 150
+			});
+		{% endfor %}
+		{% for ssh in sshs %}
+			if (window.matchMedia('(max-width: 1280px)').matches) {
+				$("#sshgroup-{{ ssh.0}}" ).selectmenu({
+					width: 100
 				});
-			</script>
+			}
+		{% endfor %}
+		{% for server in backups %}
+			$("#backup-time-{{ server.0}}" ).selectmenu({
+				width: 100
+			});
+			$("#backup-type-{{server.0}}" ).selectmenu({
+				width: 130
+			});
+			$("#backup-credentials-{{server.0}}" ).selectmenu({
+				width: 150
+			});
+		{% endfor %}
+	});
+</script>
 {% endblock %}

@@ -1,4 +1,5 @@
 {% if user %}
+	<span id="changeCurrentGroup" class="menu-bar login" title="Change current group" style="margin-top: 7px;margin-left: -10px;cursor: pointer;"></span>
 	<a href=/app/login.py?logout=logout title="Logout, user name: {{ user }}" class="login"> Logout</a>						
 {% else %}
 	<a href=/app/login.py title="Login" class="login"> Login</a>

@@ -8,7 +8,7 @@ form = funct.form
 serv = form.getvalue('serv')
 act = form.getvalue('act')
 
-if form.getvalue('new_metrics') or form.getvalue('new_waf_metrics'):
+if form.getvalue('new_metrics') or form.getvalue('new_waf_metrics') or form.getvalue('metrics_hapwi_ram') or form.getvalue('metrics_hapwi_cpu'):
 	print('Content-type: application/json\n')
 else:
 	print('Content-type: text/html\n')
@@ -275,10 +275,6 @@ if act == "overviewServers":
 	import asyncio	
 	async def async_get_overviewServers(serv1, serv2, service):
 		server_status = ()
-		if service == 'haproxy':
-			commands =  [ "top -u haproxy -b -n 1" ]
-		else:
-			commands =  [ "top -u nginx -b -n 1" ]
 		
 		if service == 'haproxy':
 			cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|Maxco\|MB\|Uptime:"' % (serv2, sql.get_setting('haproxy_sock_port'))
@@ -295,7 +291,7 @@ if act == "overviewServers":
 		else:
 			out1 = ''
 
-		server_status = (serv1,serv2, out1, funct.ssh_command(serv2, commands))
+		server_status = (serv1,serv2, out1)
 		return server_status	
 		
 	async def get_runner_overviewServers(**kwargs):
@@ -324,18 +320,6 @@ if act == "overviewServers":
 	ioloop.run_until_complete(get_runner_overviewServers(server1=name, server2=serv, id=id, service=service))
 	ioloop.close()
 
-	
-	
-if act == "overviewHapwi":
-	from jinja2 import Environment, FileSystemLoader
-	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
-	template = env.get_template('/overviewHapwi.html')
-	cmd = "top -b -n 1 |head -12"
-	server_status, stderr = funct.subprocess_execute(cmd)
-	
-	template = template.render(server_status=server_status,stderr=stderr)									
-	print(template)
-	
 	
 if form.getvalue('action'):
 	import requests
@@ -1119,6 +1103,50 @@ if form.getvalue('table_metrics'):
 	print(template)
 	
 	
+if form.getvalue('metrics_hapwi_ram'):	
+	ip = form.getvalue('ip')
+	metrics = {}
+	metrics['chartData'] = {}
+	rams = ''
+	
+	if ip == '1':
+		cmd = "free -m |grep Mem |awk '{print $3,$4,$5,$6,$7}'"
+		metric, error = funct.subprocess_execute(cmd)
+	else:
+		commands = [ "free -m |grep Mem |awk '{print $3,$4,$5,$6,$7}'" ]	
+		metric, error = funct.subprocess_execute(commands[0])
+	
+	for i in metric:
+		rams = i
+			
+	metrics['chartData']['rams'] = rams
+	
+	import json
+	print(json.dumps(metrics))
+	
+	
+if form.getvalue('metrics_hapwi_cpu'):
+	ip = form.getvalue('ip')
+	metrics = {}
+	metrics['chartData'] = {}
+	cpus = ''
+	
+	if ip == '1':
+		cmd = "top -b -n 1 |grep Cpu |awk -F':' '{print $2}'|awk  -F' ' 'BEGIN{ORS=\" \";} { for (i=1;i<=NF;i+=2) print $i}'"
+		metric, error = funct.subprocess_execute(cmd)
+	else:
+		commands = [ "top -b -n 1 |grep Cpu |awk -F':' '{print $2}'|awk  -F' ' 'BEGIN{ORS=\" \";} { for (i=1;i<=NF;i+=2) print $i}'" ]	
+		metric, error = funct.subprocess_execute(commands[0])
+	
+	for i in metric:
+		cpus = i
+			
+	metrics['chartData']['cpus'] = cpus
+	
+	import json
+	print(json.dumps(metrics))
+	
+	
 if form.getvalue('new_metrics'):
 	serv = form.getvalue('server')
 	metric = sql.select_metrics(serv)
@@ -1322,7 +1350,7 @@ if form.getvalue('newuser') is not None:
 	
 	if funct.check_group(group, role_id):
 		if funct.is_admin(level=role_id):
-			if sql.add_user(new_user, email, password, role, group, activeuser):
+			if sql.add_user(new_user, email, password, role, activeuser):
 				from jinja2 import Environment, FileSystemLoader
 				env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 				template = env.get_template('ajax/new_user.html')
@@ -1343,6 +1371,7 @@ if form.getvalue('userdel') is not None:
 	for u in user:
 		username = u[1]
 	if sql.delete_user(userdel):
+		sql.delete_user_groups(userdel)
 		funct.logging(username, ' has deleted user ', haproxywi=1, login=1)
 		print("Ok")
 		
@@ -1358,7 +1387,7 @@ if form.getvalue('updateuser') is not None:
 	
 	if funct.check_group(group, role_id):			
 		if funct.is_admin(level=role_id):
-			sql.update_user(new_user, email, role, group, id, activeuser)
+			sql.update_user(new_user, email, role, id, activeuser)
 			funct.logging(new_user, ' has updated user ', haproxywi=1, login=1)
 		else:
 			funct.logging(new_user, ' tried to privilege escalation', haproxywi=1, login=1)
@@ -1629,3 +1658,44 @@ if form.getvalue('updatesettings') is not None:
 	if sql.update_setting(settings, val):
 		funct.logging('value '+val, ' changed settings '+settings, haproxywi=1, login=1)
 		print("Ok")
+	
+
+if form.getvalue('getusergroups'):
+	id = form.getvalue('getusergroups')
+	groups = []
+	u_g = sql.select_user_groups(id=id)
+	for g in u_g:
+		groups.append(g[0])
+	from jinja2 import Environment, FileSystemLoader
+	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
+	template = env.get_template('/show_user_groups.html')
+	template = template.render(groups=sql.select_groups(), user_groups=groups,id=id)
+	print(template)
+	
+	
+if form.getvalue('changeUserGroupId') is not None:
+	id = form.getvalue('changeUserGroupId')
+	groups = form.getvalue('changeUserGroups')
+	user = form.getvalue('changeUserGroupsUser')
+	if sql.delete_user_groups(id):
+		for group in groups:
+			if group[0] == ',':
+				continue
+			sql.update_user_groups(groups=group[0], id=id)
+				
+	funct.logging('localhost', ' has upgraded groups for user: '+user, haproxywi=1, login=1)
+	
+	
+if form.getvalue('getcurrentusergroup') is not None:
+	import http.cookies
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_id = cookie.get('uuid')
+	group = cookie.get('group')
+	id = sql.get_user_id_by_uuid(user_id.value)
+	groups = sql.select_user_groups_with_names(id=id)
+
+	from jinja2 import Environment, FileSystemLoader
+	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
+	template = env.get_template('/show_user_current_group.html')
+	template = template.render(groups=groups, group=group.value,id=id)
+	print(template)

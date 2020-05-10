@@ -151,5 +151,132 @@ function loadMetrics() {
         }
     });
 }
+function getChartDataHapWiRam(ip) {
+    $.ajax({
+        url: "options.py",
+		data: {
+			metrics_hapwi_ram: '1',
+			ip: ip,
+			token: $('#token').val()
+		},
+		beforeSend: function() {
+			$('#ram').html('<img class="loading_hapwi_overview" src="/inc/images/loading.gif" />')
+		},
+		type: "POST",
+        success: function (result) {  
+            var data = [];
+            data.push(result.chartData.rams);
 
+            renderChartHapWiRam(data);
+        }
+    });
+}
+function renderChartHapWiRam(data) {
+    var ctx = 'ram'
+    var myChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['used','free','shared','buff/cache','avaliable'],
+            datasets: [
+                {
+                    data: data[0].split(' '),
+                    backgroundColor: [						
+						'#ff6384',
+						'#36a2eb',
+						'#ff9f40',
+						'#ffcd56',
+						'#4bc0c0',
+						
+					]
+                }
+            ]
+        },
+        options: {
+			maintainAspectRatio: false,
+			title: {
+				display: true,
+				text: "RAM usage in Mb",
+				fontSize: 15,
+				padding: 0,
+			},
+			legend: {
+				display: true,
+				align: 'start',
+				position: 'left',
+				labels: {
+					fontColor: 'rgb(255, 99, 132)',
+					defaultFontSize: 2,
+					fontColor: 'black',
+					defaultFontFamily: 'BlinkMacSystemFont',					
+					boxWidth: 13,
+					padding: 5
+				},
+			}
+        }
+    });
+}
+function getChartDataHapWiCpu(ip) {
+    $.ajax({
+        url: "options.py",
+		data: {
+			metrics_hapwi_cpu: '1',
+			ip: ip,
+			token: $('#token').val()
+		},
+		type: "POST",
+        success: function (result) {   
+            var data = [];
+            data.push(result.chartData.cpus);
+
+            renderChartHapWiCpu(data);
+        }
+    });
+}
+
+function renderChartHapWiCpu(data) {
+    var ctx = 'cpu'
+    var myChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['user','sys','nice','idle','wait','hi','si','steal'],
+            datasets: [
+                {
+                    data: data[0].split(' '),
+                    backgroundColor: [						
+						'#ff6384',
+						'#36a2eb',
+						'#ff9f40',
+						'#ffcd56',
+						'#4bc0c0',
+						'#5d9ceb',
+						'#4bc0c0',
+						
+					]
+                }
+            ]
+        },
+        options: {
+			maintainAspectRatio: false,
+			title: {
+				display: true,
+				text: "CPU usage in %",
+				fontSize: 15,
+				padding: 0,
+			},
+			legend: {
+				display: true,
+				position: 'left',
+				align: 'end',
+				labels: {
+					fontColor: 'rgb(255, 99, 132)',
+					defaultFontSize: 2,
+					defaultFontFamily: 'BlinkMacSystemFont',
+					fontColor: 'black',
+					boxWidth: 13,
+					padding: 5
+				},
+			}
+        }
+    });
+}
 

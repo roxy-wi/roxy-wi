@@ -230,3 +230,8 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f2f1";	
 }
+.menu-bar::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f0c9";
+}

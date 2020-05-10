@@ -1,20 +1,8 @@
 var cur_url = window.location.href.split('/').pop();
 cur_url = cur_url.split('?');
 function showOverviewHapWI() {
-	$.ajax( {
-		url: "options.py",
-		data: {
-			act: "overviewHapwi",
-			token: $('#token').val()
-		},
-		beforeSend: function() {
-			$('#ajaxHapwi').html('<img class="loading_hapwi_overview" src="/inc/images/loading.gif" />')
-		},
-		type: "POST",
-		success: function( data ) {
-			$("#ajaxHapwi").html(data);
-		}					
-	} );
+	getChartDataHapWiCpu('1')
+	getChartDataHapWiRam('1')
 }
 function showHapservers(serv, hostnamea, service) {
 	var i;
@@ -113,35 +101,38 @@ function showOverviewServer(name,ip,id, service) {
 			$("#div-pannel-"+id).insertBefore('#up-pannel')
 			$("#ajax-server-"+id).html(data);
 			$.getScript("/inc/fontawesome.min.js")
+			getChartDataHapWiRam()
+			getChartDataHapWiCpu()
+		}					
+	} );
+	
+}
+function ajaxActionServers(action, id) {
+	var bad_ans = 'Bad config, check please';
+	$.ajax( {
+		url: "options.py",
+		data: {
+			action_hap: action,
+			serv: id,
+			token: $('#token').val()
+		},
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if( data ==  'Bad config, check please ' ) {
+				alert(data);
+			} else {
+				if (cur_url[0] == "hapservers.py") {
+					location.reload()
+				} else {
+					setTimeout(showOverview(ip, hostnamea), 2000)					
+				}
+			}
+		},
+		error: function(){
+			alert(w.data_error);
 		}					
 	} );
 }
-function ajaxActionServers(action, id) {
-		var bad_ans = 'Bad config, check please';
-		$.ajax( {
-				url: "options.py",
-				data: {
-					action_hap: action,
-					serv: id,
-					token: $('#token').val()
-				},
-				success: function( data ) {
-					data = data.replace(/\s+/g,' ');
-					if( data ==  'Bad config, check please ' ) {
-						alert(data);
-					} else {
-						if (cur_url[0] == "hapservers.py") {
-							location.reload()
-						} else {
-							setTimeout(showOverview(ip, hostnamea), 2000)					
-						}
-					}
-				},
-				error: function(){
-					alert(w.data_error);
-				}					
-			} );
-	}
 function ajaxActionNginxServers(action, id) {
 		var bad_ans = 'Bad config, check please';
 		$.ajax( {

@@ -835,7 +835,11 @@ function addUser() {
 					});
 				} else {
 					$('.alert-danger').remove();
-					$("#ajax-users").append(data);											
+					$("#ajax-users").append(data);
+					var getId = new RegExp('[0-9]+');
+					var id = data.match(getId);
+					console.log(id[0])
+					addUserGroup(id[0]);
 				}	
 			}
 		} );
@@ -1306,12 +1310,7 @@ function removeBackup(id) {
 function updateUser(id) {
 	$('.alert-danger').remove();
 	cur_url[0] = cur_url[0].split('#')[0]
-	console.log(cur_url[0])
-	if (cur_url[0] != "servers.py") {
-		var usergroup = $('#usergroup-'+id+' option:selected' ).val();
-	} else {
-		var usergroup = $('#usergroup-'+id ).val();
-	}
+	var usergroup = Cookies.get('group');
 	var activeuser = 0;
 	if ($('#activeuser-'+id).is(':checked')) {
 		activeuser = '1';
@@ -1636,6 +1635,9 @@ function checkSshConnect(ip) {
 function openChangeUserPasswordDialog(id) {
 	changeUserPasswordDialog(id);
 }
+function openChangeUserGroupDialog(id) {
+	changeUserGroupDialog(id);
+}
 function changeUserPasswordDialog(id) {
 	$( "#user-change-password-table" ).dialog({
 			autoOpen: true,
@@ -1698,4 +1700,75 @@ function changeUserPassword(id, d) {
 			}
 		} );
 	}
+}
+function changeUserGroupDialog(id) {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			getusergroups: id,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			if (data.indexOf('danger') != '-1') {
+				$("#ajax").html(data);
+			} else {
+				$('.alert-danger').remove();
+				$('#change-user-groups-form').html(data);
+				$( "#change-user-groups-dialog" ).dialog({
+					resizable: false,
+					height: "auto",
+					width: 450,
+					modal: true,
+					title: "Change "+$('#login-'+id).val()+" groups",
+					buttons: {
+						"Save": function() {
+							$( this ).dialog( "close" );	
+							changeUserGroup(id);
+						},
+						Cancel: function() {
+							$( this ).dialog( "close" );
+						}
+					  }
+				});					
+			} 
+		}
+	} );	
+}
+function changeUserGroup(id) {
+	var groups = $('#usergroup-'+id).val().toString();
+	$.ajax( {
+		url: "options.py",
+		data: {
+			changeUserGroupId: id,
+			changeUserGroups: groups,
+			changeUserGroupsUser: $('#login-'+id).val(),
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			$("#user-"+id).addClass( "update", 1000 );
+			setTimeout(function() {
+				$( "#user-"+id ).removeClass( "update" );
+			}, 2500 );	
+		}			
+	} );
+}
+function addUserGroup(id) {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			changeUserGroupId: id,
+			changeUserGroups: $('#new-group').val(),
+			changeUserGroupsUser: 'new',
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			$("#user-"+id).addClass( "update", 1000 );
+			setTimeout(function() {
+				$( "#user-"+id ).removeClass( "update" );
+			}, 2500 );	
+		}			
+	} );
 }

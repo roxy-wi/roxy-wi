@@ -975,8 +975,8 @@ def check_group(group, role_id):
 	import sql
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_id = cookie.get('uuid')
-	user_group = sql.get_user_group_by_uuid(user_id.value)
-	if user_group == group or user_group == '1' or role_id == 1:
+	id = sql.get_user_id_by_uuid(user_id.value)
+	if sql.select_user_groups(id, check_id=group) or role_id == 1:
 		return True
 	else:
 		logging('localhost', ' has tried to actions in not own group ', haproxywi=1, login=1)

@@ -31,12 +31,12 @@ def get_cur():
 		return con, cur
 		
 	
-def add_user(user, email, password, role, group, activeuser):
+def add_user(user, email, password, role, activeuser):
 	con, cur = get_cur()
 	if password != 'aduser':
-		sql = """INSERT INTO user (username, email, password, role, groups, activeuser) VALUES ('%s', '%s', '%s', '%s', '%s', '%s')""" % (user, email, funct.get_hash(password), role, group, activeuser)
+		sql = """INSERT INTO user (username, email, password, role, activeuser) VALUES ('%s', '%s', '%s', '%s', '%s')""" % (user, email, funct.get_hash(password), role, activeuser)
 	else:
-		sql = """INSERT INTO user (username, email, role, groups, ldap_user, activeuser) VALUES ('%s', '%s', '%s', '%s', '1', '%s')""" % (user, email, role, group, activeuser)		
+		sql = """INSERT INTO user (username, email, role, ldap_user, activeuser) VALUES ('%s', '%s', '%s', '1', '%s')""" % (user, email, role, activeuser)		
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -49,14 +49,47 @@ def add_user(user, email, password, role, group, activeuser):
 	cur.close()    
 	con.close()   
 	
-def update_user(user, email, role, group, id, activeuser):
+	
+def update_user(user, email, role, id, activeuser):
 	con, cur = get_cur()
 	sql = """update user set username = '%s', 
 			email = '%s',
-			role = '%s', 
-			groups = '%s',
+			role = '%s',
 			activeuser = '%s'
-			where id = '%s'""" % (user, email,  role, group, activeuser, id)
+			where id = '%s'""" % (user, email,  role, activeuser, id)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
+		return False
+	else:
+		return True
+	cur.close()    
+	con.close()
+	
+	
+def update_user_groups(groups, id):
+	con, cur = get_cur()
+	sql = """insert into user_groups(user_id, user_group_id) values('%s', '%s')""" % (id, groups)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
+		return False
+	else:
+		return True
+	cur.close()    
+	con.close()
+	
+	
+def delete_user_groups(id):
+	con, cur = get_cur()
+	sql = """delete from user_groups
+			where user_id = '%s'""" % (id)
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -252,6 +285,9 @@ def select_users(**kwargs):
 		sql = """select * from user where username='%s' """ % kwargs.get("user")
 	if kwargs.get("id") is not None:
 		sql = """select * from user where id='%s' """ % kwargs.get("id")
+	if kwargs.get("group") is not None:
+		sql = """ select user.* from user left join user_groups as groups on user.id = groups.user_id where groups.user_group_id = '%s' group by id;
+		""" % kwargs.get("group")
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
@@ -259,7 +295,57 @@ def select_users(**kwargs):
 	else:
 		return cur.fetchall()
 	cur.close()    
-	con.close()    
+	con.close()  
+
+
+def select_user_groups(id, **kwargs):
+	con, cur = get_cur()
+	sql = """select user_group_id from user_groups where user_id = '%s' """ % id
+	if kwargs.get("limit") is not None:
+		sql = """select user_group_id from user_groups where user_id = '%s' limit 1 """ % id
+	if kwargs.get("check_id") is not None:
+		sql = """select * from user_groups where user_id='%s' and user_group_id = '%s' """ % (id, kwargs.get("check_id"))
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		funct.out_error(e)
+	else:
+		if kwargs.get("check_id") is not None:
+			for g in cur.fetchall():
+				if g[0] is None:
+					return False
+				else:
+					return True
+		elif kwargs.get("limit") is not None:
+			for g in cur.fetchall():
+				return g[0]	
+		else:
+			return cur.fetchall()
+	cur.close()    
+	con.close() 
+
+
+def select_user_groups_with_names(id, **kwargs):
+	con, cur = get_cur()
+	if kwargs.get("all") is not None:
+		sql = """select user_groups.user_id, groups.name from user_groups 
+			left join groups as groups on user_groups.user_group_id = groups.id """
+	else:
+		sql = """select user_groups.user_group_id, groups.name from user_groups 
+			left join groups as groups on user_groups.user_group_id = groups.id 
+			where user_groups.user_id = '%s' """ % id
+	try:    
+		cur.execute(sql)
+	except sqltool.Error as e:
+		funct.out_error(e)
+	else:
+		if kwargs.get("limit") is not None:
+			for g in cur.fetchall():
+				return g[0]	
+		else:
+			return cur.fetchall()
+	cur.close()    
+	con.close() 		
 	
 	
 def select_groups(**kwargs):
@@ -398,6 +484,7 @@ def get_token(uuid):
 	cur.close()    
 	con.close()
 	
+	
 def delete_uuid(uuid):
 	con, cur = get_cur()
 	sql = """ delete from uuid where uuid = '%s' """ % uuid
@@ -408,6 +495,7 @@ def delete_uuid(uuid):
 		pass
 	cur.close()    
 	con.close() 
+	
 	
 def delete_old_uuid():
 	con, cur = get_cur()
@@ -427,6 +515,7 @@ def delete_old_uuid():
 	cur.close()    
 	con.close()		
 
+
 def update_last_act_user(uuid):
 	con, cur = get_cur()
 	session_ttl = get_setting('session_ttl')
@@ -444,6 +533,7 @@ def update_last_act_user(uuid):
 	cur.close()    
 	con.close()
 	
+	
 def get_user_name_by_uuid(uuid):
 	con, cur = get_cur()
 	sql = """ select user.username from user left join uuid as uuid on user.id = uuid.user_id where uuid.uuid = '%s' """ % uuid
@@ -457,6 +547,20 @@ def get_user_name_by_uuid(uuid):
 	cur.close()    
 	con.close() 
 
+
+def get_user_id_by_uuid(uuid):
+	con, cur = get_cur()
+	sql = """ select user.id from user left join uuid as uuid on user.id = uuid.user_id where uuid.uuid = '%s' """ % uuid
+	try:
+		cur.execute(sql)		
+	except sqltool.Error as e:
+		funct.out_error(e)
+	else:
+		for user_id in cur.fetchall():
+			return user_id[0]
+	cur.close()    
+	con.close() 
+	
 	
 def get_user_role_by_uuid(uuid):
 	con, cur = get_cur()
@@ -487,19 +591,6 @@ def get_role_id_by_name(name):
 	cur.close()    
 	con.close() 
 	
-	
-def get_user_group_by_uuid(uuid):
-	con, cur = get_cur()
-	sql = """ select user.groups from user left join uuid as uuid on user.id = uuid.user_id  where uuid.uuid = '%s' """ % uuid
-	try:
-		cur.execute(sql)		
-	except sqltool.Error as e:
-		funct.out_error(e)
-	else:
-		for user_id in cur.fetchall():
-			return user_id[0]
-	cur.close()    
-	con.close() 
 
 def get_user_telegram_by_uuid(uuid):
 	con, cur = get_cur()
@@ -513,6 +604,7 @@ def get_user_telegram_by_uuid(uuid):
 	cur.close()    
 	con.close() 	
 	
+	
 def get_telegram_by_ip(ip):
 	con, cur = get_cur()
 	sql = """ select telegram.* from telegram left join servers as serv on serv.groups = telegram.groups where serv.ip = '%s' """ % ip
@@ -525,22 +617,25 @@ def get_telegram_by_ip(ip):
 	cur.close()    
 	con.close()
 
+
 def get_dick_permit(**kwargs):
 	import http.cookies
 	import os
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_id = cookie.get('uuid')
+	if kwargs.get('username'):
+		user = kwargs.get('username')
+		grp = '1'
+	else:
+		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+		user_id = cookie.get('uuid')
+		group = cookie.get('group')
+		grp = group.value
+		user = get_user_id_by_uuid(user_id.value)
 	disable = ''
 	haproxy = ''
 	nginx = ''
 	keepalived = ''
 	ip = ''
 	
-	con, cur = get_cur()
-	if kwargs.get('username'):
-		sql = """ select * from user where username = '%s' """ % kwargs.get('username')
-	else:
-		sql = """ select * from user where username = '%s' """ % get_user_name_by_uuid(user_id.value)
 	if kwargs.get('virt'):
 		type_ip = "" 
 	else:
@@ -555,18 +650,15 @@ def get_dick_permit(**kwargs):
 		nginx = "and nginx = 1"
 	if kwargs.get('keepalived'):
 		nginx = "and keepalived = 1"
-				
-	try:    
-		cur.execute(sql)
-	except sqltool.Error as e:
-		print("An error occurred:", e)
-	else:
-		for group in cur:
-			if group[5] == '1':
-				sql = """ select * from servers where enable = 1 %s %s %s """ % (disable, type_ip, nginx)
-			else:
-				sql = """ select * from servers where groups like '%{group}%' and (enable = 1 {disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} 
-				""".format(group=group[5], disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx, keepalived=keepalived)		
+
+	if select_user_groups(user, check_id=grp):
+		con, cur = get_cur()
+		if grp == '1':
+			sql = """ select * from servers where enable = 1 %s %s %s """ % (disable, type_ip, nginx)
+		else:
+			sql = """ select * from servers where groups like '%{group}%' and (enable = 1 {disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} 
+			""".format(group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx, keepalived=keepalived)		
+
 		try:   
 			cur.execute(sql)
 		except sqltool.Error as e:
@@ -574,8 +666,11 @@ def get_dick_permit(**kwargs):
 		else:
 			return cur.fetchall()
 	
-	cur.close()    
-	con.close() 
+		cur.close()    
+		con.close() 
+	else:
+		print('Atata!')
+	
 	
 	
 def is_master(ip, **kwargs):
@@ -1171,18 +1266,18 @@ def select_servers_metrics_for_master():
 	
 def select_servers_metrics(uuid, **kwargs):
 	con, cur = get_cur()
-	sql = """ select * from user where username = '%s' """ % get_user_name_by_uuid(uuid)
-
-	try:    
-		cur.execute(sql)
-	except sqltool.Error as e:
-		print("An error occurred:", e)
-	else:
-		for group in cur:
-			if group[5] == '1':
-				sql = """ select ip from servers where enable = 1 and metrics = '1' """
-			else:
-				sql = """ select ip from servers where groups like '%{group}%' and metrics = '1'""".format(group=group[5])		
+	import http.cookies
+	import os
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_id = cookie.get('uuid')
+	group = cookie.get('group')
+	group = group.value
+	id = get_user_id_by_uuid(user_id.value)
+	if select_user_groups(id, check_id=group) is not None:
+		if group == '1':
+			sql = """ select ip from servers where enable = 1 and metrics = '1' """
+		else:
+			sql = """ select ip from servers where groups like '%{group}%' and metrics = '1'""".format(group=group)		
 		try:   
 			cur.execute(sql)
 		except sqltool.Error as e:
@@ -1195,19 +1290,18 @@ def select_servers_metrics(uuid, **kwargs):
 	
 def select_table_metrics(uuid):
 	con, cur = get_cur()
-	groups = ""
-	sql = """ select * from user where username = '%s' """ % get_user_name_by_uuid(uuid)
-	
-	try:    
-		cur.execute(sql)
-	except sqltool.Error as e:
-		print("An error occurred:", e)
-	else:
-		for group in cur:
-			if group[5] == '1':
-				groups = ""
-			else:
-				groups = "and servers.groups like '%{group}%' ".format(group=group[5])
+	import http.cookies
+	import os
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_id = cookie.get('uuid')
+	group = cookie.get('group')
+	group = group.value
+	id = get_user_id_by_uuid(user_id.value)
+	if select_user_groups(id, check_id=group) is not None:
+		if group == '1':
+			groups = ""
+		else:
+			groups = "and servers.groups like '%{group}%' ".format(group=group)
 	if mysql_enable == '1':
 		sql = """
                 select ip.ip, hostname, avg_sess_1h, avg_sess_24h, avg_sess_3d, max_sess_1h, max_sess_24h, max_sess_3d, avg_cur_1h, avg_cur_24h, avg_cur_3d, max_con_1h, max_con_24h, max_con_3d from

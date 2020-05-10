@@ -30,6 +30,22 @@
 		host = host.replace(/\./g, '\\.');
 		hostnamea.push(host)
 	{% endfor %}
+	$( function() {
+		$( ".sortable" ).sortable({
+			revert: true,
+			placeholder: "ui-state-highlight"
+		});
+		$( ".sortable" ).disableSelection();
+
+		$( ".sortable" ).sortable({
+			stop: function(event, ui) {
+				var itemOrder = $('.sortable').sortable("toArray");
+				for (var i = 0; i < itemOrder.length; i++) {
+					console.log("Position: " + i + " ID: " + itemOrder[i]);
+				}
+			}
+		});
+	});
 </script>
 <div id="up-pannel" class="sortable">
 	{% if servers|length == 0 %}

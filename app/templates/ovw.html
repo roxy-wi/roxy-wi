@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 {% block content %}	
+<link href="/inc/chart.min.css" rel="stylesheet">
+<script src="/inc/metrics.js"></script>
+<script src="/inc/chart.min.js"></script>
 <script src="/inc/overview.js"></script>
 <script>
 	$("#secIntervals").css("display", "none");
@@ -31,7 +34,7 @@
 			</a>
 		</td>
 		<td class="padding10">			
-			Keealived
+			Keepalived
 		</td>
 		<td class="padding10">
 			<a href="/app/waf.py" title="WAf servers overview" class="logs_link">
@@ -66,9 +69,13 @@
 		</td>
 	</tr>		
 	<tr>
-		<td style="width:90%" colspan="2">
-			<pre style="margin: 0;" id="ajaxHapwi">
-			</pre>
+		<td style="width:100%" colspan="2">					
+			<div style="height: 140px;width: 50%;float: left; margin:0; padding:0;">
+				<canvas id="cpu" role="img"></canvas>
+			</div>
+			<div style="height: 140px;width: 50%;float: right;margin:0; padding:0;">
+				<canvas id="ram" role="img"></canvas>
+			</div>		
 		</td>
 	</tr>
 </table>
@@ -194,7 +201,7 @@
 	<table class="overview-wi">
 		<tr class="overviewHead">
 			<td class="padding10 first-collumn-wi">Login</td>
-			<td class="second-collumn">Group</td>
+			<td class="second-collumn">Groups</td>
 			<td>Role</td>
 			<td>
 				<span class="add-button-wi">
@@ -204,22 +211,23 @@
 				</span>
 			</td>
 		</tr>		
-		{% set counter = 0 -%}
+		{% set counter = 0 %}
 		{% for USER in users %}
 			{% set counter = counter + loop.index0 %}
 			{% if counter <= 2 %}
 				<tr class="{{ loop.cycle('odd', 'even') }}">
 					<td class="padding10 first-collumn-wi"> 
 						<a href="users.py#users" title="Edit user" class="logs_link div-pic">
-							{{ USER.1 }}
-							
+							{{ USER.1 }}							
 						</a>
 					</td>
-					{% for group in groups %}
-						{% if USER.5 == group.0|string() %}
-							<td class="third-collumn-wi">{{ group.1 }}</td>
-						{% endif %}
-					{% endfor %}
+					<td class="third-collumn-wi">
+						{% for group in users_groups %}
+							{% if USER.0|string() == group.0|string() %}
+								{{ group.1 }}{{ "," if not loop.last }}
+							{% endif %}
+						{% endfor %}
+					</td>
 					<td colspan="2">{{ USER.4 }}</td>
 				</tr>
 			{% else %}
@@ -229,11 +237,13 @@
 							{{ USER.1 }}
 						</a>
 					</td>
-					{% for group in groups %}
-						{% if group.0|string() == USER.5 %}
-							<td class="third-collumn-wi">{{ group.1 }}</td>
-						{% endif %}
-					{% endfor %}
+					<td class="third-collumn-wi">
+						{% for group in users_groups %}
+							{% if group.0|string() == USER.0|string() %}
+								{{ group.1 }}{{ "," if not loop.last }}
+							{% endif %}
+						{% endfor %}
+					</td>
 					<td colspan="2">{{ USER.4 }}</td>
 				</tr>
 			{% endif %}

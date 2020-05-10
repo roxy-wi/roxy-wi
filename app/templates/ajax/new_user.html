@@ -16,16 +16,7 @@
 				{% if page != "servers.py"  %}
 					{% if page != "servers.py#users"  %}
 					<td>
-						<select id="usergroup-{{user.0}}" name="usergroup-{{user.0}}">
-							<option disabled selected>Choose group</option>
-							{% for group in groups %}
-								{% if user.5 == group.0|string() %}
-									<option value="{{ group.0 }}" selected>{{ group.1 }}</option>
-								{% else %}
-									<option value="{{ group.0 }}">{{ group.1 }}</option>
-								{% endif %}
-							{% endfor %}
-						</select>
+						<span title="Change user groups" style="cursor: pointer; margin-left: 15px;" class="div-pic" onclick="openChangeUserGroupDialog('{{user.0}}')">
 					</td>
 					{% endif %}
 				{% endif %}

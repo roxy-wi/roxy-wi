@@ -131,6 +131,7 @@ def create_table(**kwargs):
 		CREATE TABLE IF NOT EXISTS `backups` ( `id` INTEGER NOT NULL, `server` VARCHAR ( 64 ), `rhost` VARCHAR ( 120 ), `rpath` VARCHAR ( 120 ), `type` VARCHAR ( 120 ), `time` VARCHAR ( 120 ),  cred INTEGER, `description` VARCHAR ( 120 ), PRIMARY KEY(`id`));
 		CREATE TABLE IF NOT EXISTS `waf` (`server_id` INTEGER UNIQUE, metrics INTEGER);
 		CREATE TABLE IF NOT EXISTS `waf_metrics` (`serv` varchar(64), conn INTEGER, `date`  DATETIME default '0000-00-00 00:00:00');
+		CREATE TABLE IF NOT EXISTS user_groups(user_id INTEGER NOT NULL, user_group_id INTEGER NOT NULL, UNIQUE(user_id,user_group_id));
 		"""
 		try:
 			cur.executescript(sql)
@@ -451,9 +452,51 @@ def update_db_v_4_2_3(**kwargs):
 	con.close()
 	
 	
+def update_db_v_4_3(**kwargs):
+	con, cur = get_cur()
+	sql = """
+	CREATE TABLE IF NOT EXISTS user_groups(user_id INTEGER NOT NULL, user_group_id INTEGER NOT NULL, UNIQUE(user_id,user_group_id));
+	"""
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: haproxy' or e == " 1060 (42S21): Duplicate column name 'haproxy' ":
+				print('Updating... go to version 4.3.0')
+			else:
+				print("An error occurred:", e)
+		return False
+	else:
+		return True
+	cur.close() 
+	con.close()
+	
+	
+def update_db_v_4_3_1(**kwargs):
+	con, cur = get_cur()
+	sql = """
+	insert OR IGNORE into user_groups(user_id, user_group_id) select id, groups from user;
+	"""
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: haproxy' or e == " 1060 (42S21): Duplicate column name 'haproxy' ":
+				print('DB was update to 4.3.0')
+			else:
+				print("An error occurred:", e)
+		return False
+	else:
+		return True
+	cur.close() 
+	con.close()
+	
+	
 def update_ver(**kwargs):
 	con, cur = get_cur()
-	sql = """update version set version = '4.2.3.0'; """
+	sql = """update version set version = '4.3.0.0'; """
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -478,6 +521,8 @@ def update_all():
 	update_db_v_41()
 	update_db_v_42()
 	update_db_v_4_2_3()
+	update_db_v_4_3()
+	update_db_v_4_3_1()
 	update_ver()
 		
 	
@@ -496,6 +541,8 @@ def update_all_silent():
 	update_db_v_41(silent=1)
 	update_db_v_42(silent=1)
 	update_db_v_4_2_3(silent=1)
+	update_db_v_4_3(silent=1)
+	update_db_v_4_3_1(silent=1)
 	update_ver()
 	
 		

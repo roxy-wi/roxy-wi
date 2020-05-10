@@ -41,6 +41,10 @@ try:
 	for dirpath, dirnames, filenames in os.walk(log_path):
 		for file in filenames:
 			curpath = os.path.join(dirpath, file)
+			try:
+				funct.subprocess_execute('sudo chown apache:apache '+curpath)
+			except:
+				pass
 			file_modified = datetime.datetime.fromtimestamp(os.path.getmtime(curpath))
 			if datetime.datetime.now() - file_modified > datetime.timedelta(hours=time_storage_hours):
 				os.remove(curpath)

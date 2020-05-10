@@ -1,5 +1,5 @@
 {%- for service in service_status -%}
-<div class="server-info">
+<div class="server-info" style="height: 100%;">
 	{% if service_page == 'nginx' %}
 	<div class="server-name" style="padding-bottom: 0px;">
 	{% else %}
@@ -18,13 +18,16 @@
 	</div>
 	{% endif %}
 	{% if service_page == 'nginx' %}
-	<div class="top-info" style="margin-top: 5px;">
+		<div class="top-info" style="margin-top: 5px; width: 100%;">
 	{% else %}
-	<div class="top-info">
+		<div class="top-info" style="width: 550px;">
 	{% endif %}
-		<pre>
-{{ service.3 }}
-		</pre>
-	</div>		
+			<div style="height: 140px;width: 50%;float: left; margin:0; padding:0;">
+				<canvas id="cpu" role="img"></canvas>
+			</div>
+			<div style="height: 140px;width: 50%;float: right;margin:0; padding:0;">
+				<canvas id="ram" role="img"></canvas>
+			</div>	
+		</div>		
 </div>
 {% endfor %}
