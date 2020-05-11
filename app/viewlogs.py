@@ -59,6 +59,7 @@ except:
 
 
 selects = funct.get_files(log_path, format="log")
+selects.append(['fail2ban.log','fail2ban.log'])
 selects.append(['haproxy-wi.error.log','error.log'])
 selects.append(['haproxy-wi.access.log','access.log'])
 output_from_parsed_template = template.render(h2 = 1,

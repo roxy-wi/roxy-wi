@@ -30,22 +30,6 @@
 		host = host.replace(/\./g, '\\.');
 		hostnamea.push(host)
 	{% endfor %}
-	$( function() {
-		$( ".sortable" ).sortable({
-			revert: true,
-			placeholder: "ui-state-highlight"
-		});
-		$( ".sortable" ).disableSelection();
-
-		$( ".sortable" ).sortable({
-			stop: function(event, ui) {
-				var itemOrder = $('.sortable').sortable("toArray");
-				for (var i = 0; i < itemOrder.length; i++) {
-					console.log("Position: " + i + " ID: " + itemOrder[i]);
-				}
-			}
-		});
-	});
 </script>
 <div id="up-pannel" class="sortable">
 	{% if servers|length == 0 %}
@@ -112,11 +96,14 @@
 					<a id="start-{{ s.2 }}" class="start" title="Start {{service}} service">
 						<span class="service-start" onclick="confirmAjaxAction('start', '{{action_service}}', '{{s.2}}')"></span>
 					</a>
-					<a id="stop-{{ s.2 }}" class="stop" title="Stop {{service}} service">
-						<span class="service-stop" onclick="confirmAjaxAction('stop', '{{action_service}}', '{{s.2}}')"></span>
+					<a id="reload-{{ s.2 }}" class="reload" title="Reload {{service}} service">
+						<span class="service-reload" onclick="confirmAjaxAction('reload', '{{action_service}}', '{{s.2}}', '{{s.1}}')"></span>
 					</a>
 					<a id="restart-{{ s.2 }}" class="restart" title="Restart {{service}} service">
-						<span class="service-reload" onclick="confirmAjaxAction('restart', '{{action_service}}', '{{s.2}}')"></span>
+						<span class="service-reload service-restart" onclick="confirmAjaxAction('restart', '{{action_service}}', '{{s.2}}')"></span>
+					</a>
+					<a id="stop-{{ s.2 }}" class="stop" title="Stop {{service}} service">
+						<span class="service-stop" onclick="confirmAjaxAction('stop', '{{action_service}}', '{{s.2}}')"></span>
 					</a>
 				</span>
 				{% endif %}

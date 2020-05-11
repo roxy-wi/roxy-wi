@@ -225,6 +225,9 @@
 .fa-stop {
 	color: red !important;
 }
+.service-restart > .fa-sync-alt {
+	color: orange !important;
+}
 .service-reload::after {
 	display: none;
 	font-family: "Font Awesome 5 Solid";

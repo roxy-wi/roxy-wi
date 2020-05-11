@@ -429,11 +429,14 @@ if serv is not None and form.getvalue('rows1') is not None:
 		cmd="cat %s| awk -F\"/|:\" '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s  %s %s" % (apache_log_path+"/"+serv, date, date1, rows, grep_act, grep)
 	elif serv == 'haproxy-wi.error.log':
 		cmd="cat %s| awk '$4>\"%s:00\" && $4<\"%s:00\"' |tail -%s  %s %s" % (apache_log_path+"/"+serv, date, date1, rows, grep_act, grep)
+	elif serv == 'fail2ban.log':
+		cmd="cat %s| awk -F\"/|:\" '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s  %s %s" % ("/var/log/"+serv, date, date1, rows, grep_act, grep)
 
 	output, stderr = funct.subprocess_execute(cmd)
 
 	print(funct.show_log(output))
 	print(stderr)
+	
 	
 		
 if form.getvalue('viewlogs') is not None:
