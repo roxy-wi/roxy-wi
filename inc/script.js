@@ -808,6 +808,15 @@ $( function() {
 				});
 				$( "#tabs" ).tabs( "option", "active", 5 );
 			} );
+			$( ".services" ).on( "click", function() {
+				$('.menu li ul li').each(function () {
+					$(this).find('a').css('border-left', '0px solid #5D9CEB');
+					$(this).find('a').css('padding-left', '20px')
+					$(this).children(".services").css('padding-left', '30px');
+					$(this).children(".services").css('border-left', '4px solid #5D9CEB');
+				});
+				$( "#tabs" ).tabs( "option", "active", 6 );
+			} );
 			$( ".updatehapwi" ).on( "click", function() {
 				$('.menu li ul li').each(function () {
 					$(this).find('a').css('border-left', '0px solid #5D9CEB');
@@ -815,7 +824,7 @@ $( function() {
 					$(this).children(".updatehapwi").css('padding-left', '30px');
 					$(this).children(".updatehapwi").css('border-left', '4px solid #5D9CEB');
 				});
-				$( "#tabs" ).tabs( "option", "active", 6 );
+				$( "#tabs" ).tabs( "option", "active", 7 );
 			} );
 		} else {
 			$( ".runtime" ).on( "click", function() {

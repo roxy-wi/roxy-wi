@@ -245,7 +245,7 @@ function confirmAjaxAction(action, service, id) {
 				$( this ).dialog( "close" );
 				if(service == "hap") {
 					ajaxActionServers(action, id);
-					if(action == "restart") {
+					if(action == "restart" || action == "reload") {
 						if(Cookies.get('restart')) {
 							Cookies.remove('restart', { path: '' });
 							$("#apply").css('display', 'none');

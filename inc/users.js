@@ -1772,3 +1772,38 @@ function addUserGroup(id) {
 		}			
 	} );
 }
+function confirmAjaxServiceAction(action, service) {
+	$( "#dialog-confirm-services" ).dialog({
+		resizable: false,
+		height: "auto",
+		width: 400,
+		modal: true,
+		title: "Are you sure you want to "+ action + " " + service+"?",
+		buttons: {
+			"Sure": function() {
+				$( this ).dialog( "close" );
+				ajaxActionServies(action, service)
+			},
+			Cancel: function() {
+				$( this ).dialog( "close" );
+			}
+		}
+	});
+}
+function ajaxActionServies(action, service) {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			action_service: action,
+			serv: service,
+			token: $('#token').val()
+		},
+		success: function( data ) {
+			window.history.pushState("services", "services", cur_url[0].split("#")[0]+"#services")
+			location.reload()
+		},
+		error: function(){
+			alert(w.data_error);
+		}					
+	} );
+}

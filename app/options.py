@@ -132,6 +132,17 @@ if form.getvalue('action_waf') is not None and serv is not None:
 	funct.ssh_command(serv, commands)		
 	
 	
+if form.getvalue('action_service') is not None:	
+	action = form.getvalue('action_service')
+	if action == 'stop':
+		cmd="sudo systemctl disable %s --now" % serv
+	elif action == "start":
+		cmd="sudo systemctl enable %s --now" % serv
+	elif action == "restart":
+		cmd="sudo systemctl restart %s --now" % serv
+	output, stderr = funct.subprocess_execute(cmd)
+	funct.logging('localhost', ' The service '+serv+ 'was '+action+'ed', haproxywi=1, login=1)
+	
 if act == "overviewHapserverBackends":
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
