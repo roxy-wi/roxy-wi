@@ -39,9 +39,13 @@ def send_cookie(login):
 	c = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	c["uuid"] = user_uuid
 	c["uuid"]["path"] = "/"
+	# c["uuid"]["sameSite"] = "Strict"
+	c["uuid"]["Secure"] = "True"
 	c["uuid"]["expires"] = expires.strftime("%a, %d %b %Y %H:%M:%S GMT")
 	c["group"] = user_groups
 	c["group"]["path"] = "/"
+	# c["group"]["sameSite"] = "Strict"
+	c["group"]["Secure"] = "True"
 	c["group"]["expires"] = expires.strftime("%a, %d %b %Y %H:%M:%S GMT")
 	print(c)
 	
@@ -59,6 +63,8 @@ def ban():
 	expires = datetime.datetime.utcnow() + datetime.timedelta(seconds=10)
 	c["ban"] = 1
 	c["ban"]["path"] = "/"
+	# c["ban"]["sameSite"] = "Strict"
+	c["ban"]["Secure"] = "True"
 	c["ban"]["expires"] = expires.strftime("%a, %d %b %Y %H:%M:%S GMT")
 	try:
 		funct.logging('locahost', login+' failed log in', haproxywi=1, login=1)

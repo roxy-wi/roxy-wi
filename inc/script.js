@@ -904,7 +904,7 @@ function createHistroy() {
 	}	
 	catch {
 		var get_history_array = ['login.py', 'login.py','login.py'];
-		Cookies.set('history', JSON.stringify(get_history_array), { expires: 1, path: '/app' });
+		Cookies.set('history', JSON.stringify(get_history_array), { expires: 1, path: '/app', sameSite: 'Strict', Secure: 'True' });
 	}
 }
 function listHistroy() {	
@@ -941,13 +941,13 @@ function listHistroy() {
 			});
 		});
 	}
-	Cookies.set('history', JSON.stringify(browse_history), { expires: 1, path: '/app' });
+	Cookies.set('history', JSON.stringify(browse_history), { expires: 1, path: '/app', sameSite: 'Strict', Secure: 'True' });
 }
 createHistroy()
 listHistroy()
 
 function changeCurrentGroupF(){
 	Cookies.remove('group');
-	Cookies.set('group', $('#newCurrentGroup').val(), { path: '/app' });
+	Cookies.set('group', $('#newCurrentGroup').val(), { path: '/app', sameSite: 'Strict', Secure: 'True' });
 	location.reload(); 
 }
