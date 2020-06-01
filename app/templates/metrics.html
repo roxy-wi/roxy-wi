@@ -28,27 +28,19 @@ th, tr, td {
 		<canvas id="{{s.0}}" role="img"></canvas>
 	</div>
 {% endfor %}
-
+	</div>
 <script>
-$( function() {
-    $( "#sortable" ).sortable({
-      	revert: true,
-	items: "> div",
-    	placeholder: "ui-state-highlight"
-    });
-    $( "sortable" ).disableSelection();
-  } );
-function showMetrics() {
-	let metrics = new Promise(
-		(resolve, reject) => {
-			{% for s in servers %}
-				getChartData('{{s.0}}')
-			{% endfor %}
-			loadMetrics()
-		});	
-	metrics.then();
-}
-showMetrics()
+	function showMetrics() {
+		let metrics = new Promise(
+			(resolve, reject) => {
+				{% for s in servers %}
+					getChartData('{{s.0}}')
+				{% endfor %}
+				loadMetrics()
+			});	
+		metrics.then();
+	}
+	showMetrics()
  </script>
 {% endif %}
 {% endblock %}

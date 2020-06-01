@@ -90,8 +90,14 @@ if form.getvalue('backend') is not None:
 	funct.show_backends(serv)
 	
 	
+if form.getvalue('change_pos') is not None:
+	import sql
+	pos = form.getvalue('change_pos')
+	sql.update_server_pos(pos, serv)
+	
+	
 if form.getvalue('ip') is not None and serv is not None:
-	commands = [ "sudo ip a |grep inet |egrep -v  '::1' |awk '{ print $2  }' |awk -F'/' '{ print $1  }'" ]
+	commands = [ "sudo ip a |grep inet |egrep -v  '::1' |awk '{ print $2 }' |awk -F'/' '{ print $1 }'" ]
 	funct.ssh_command(serv, commands, ip="1")
 	
 	
@@ -142,6 +148,7 @@ if form.getvalue('action_service') is not None:
 		cmd="sudo systemctl restart %s --now" % serv
 	output, stderr = funct.subprocess_execute(cmd)
 	funct.logging('localhost', ' The service '+serv+ 'was '+action+'ed', haproxywi=1, login=1)
+	
 	
 if act == "overviewHapserverBackends":
 	from jinja2 import Environment, FileSystemLoader
@@ -598,7 +605,7 @@ if form.getvalue('servaction') is not None:
 	haproxy_sock = sql.get_setting('haproxy_sock')
 	enable = form.getvalue('servaction')
 	backend = form.getvalue('servbackend')	
-	cmd='echo "%s %s" |sudo socat stdio %s | cut -d "," -f 1-2,5-10,18,34-36 | column -s, -t' % (enable, backend, haproxy_sock)
+	cmd='echo "%s %s" |sudo socat stdio %s' % (enable, backend, haproxy_sock)
 	
 	if form.getvalue('save') == "on":
 		save_command = 'echo "show servers state" | sudo socat %s stdio > %s' % (haproxy_sock, server_state_file)

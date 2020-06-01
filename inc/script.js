@@ -854,6 +854,15 @@ $( function() {
 				});
 				$( "#tabs" ).tabs( "option", "active", 4 );
 			} );
+			$( ".hap1" ).on( "click", function() {
+				$('.menu li ul li').each(function () {
+					$(this).find('a').css('padding-left', '20px')
+					$(this).find('a').css('border-left', '0px solid #5D9CEB');
+					$(this).children(".hap1").css('padding-left', '30px');
+					$(this).children(".hap1").css('border-left', '4px solid #5D9CEB');
+				});
+				$( "#tabs" ).tabs( "option", "active", 5 );
+			} );
 			$( ".backup" ).on( "click", function() {
 				$('.menu li ul li').each(function () {
 					$(this).find('a').css('padding-left', '20px')
@@ -861,7 +870,7 @@ $( function() {
 					$(this).children(".backup").css('padding-left', '30px');
 					$(this).children(".backup").css('border-left', '4px solid #5D9CEB');
 				});
-				$( "#tabs" ).tabs( "option", "active", 5 );
+				$( "#tabs" ).tabs( "option", "active", 6 );
 			} );
 		}
 	}

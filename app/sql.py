@@ -654,9 +654,9 @@ def get_dick_permit(**kwargs):
 	if select_user_groups(user, check_id=grp):
 		con, cur = get_cur()
 		if grp == '1':
-			sql = """ select * from servers where enable = 1 %s %s %s """ % (disable, type_ip, nginx)
+			sql = """ select * from servers where enable = 1 %s %s %s order by pos""" % (disable, type_ip, nginx)
 		else:
-			sql = """ select * from servers where groups = '{group}' and (enable = 1 {disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} 
+			sql = """ select * from servers where groups = '{group}' and (enable = 1 {disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} order by pos
 			""".format(group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx, keepalived=keepalived)		
 
 		try:   
@@ -1666,6 +1666,21 @@ def update_haproxy(serv):
 		funct.out_error(e)
 		con.rollback()
 		return False
+	cur.close()    
+	con.close()
+	
+	
+def update_server_pos(pos, id):
+	con, cur = get_cur()
+	sql = """ update servers set 
+			pos = '%s'
+			where id = '%s'""" % (pos, id)
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
 	cur.close()    
 	con.close()
 	

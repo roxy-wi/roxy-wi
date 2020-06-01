@@ -220,8 +220,8 @@ $( function() {
 		} );	
 	});	
 	$('#grafna_install').click(function() {
-		$("#ajax").html('')
-		$("#ajax").html(wait_mess);
+		$("#ajaxmon").html('')
+		$("#ajaxmon").html(wait_mess);
 		$.ajax( {
 			url: "options.py",
 			data: {
@@ -232,26 +232,26 @@ $( function() {
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
 				if (data.indexOf('FAILED') != '-1') {
-					$("#ajax").html('<div class="alert alert-danger">'+data+'</div>');
+					$("#ajaxmon").html('<div class="alert alert-danger">'+data+'</div>');
 				} else if (data.indexOf('success') != '-1' ){
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-success">'+data+'</div>');				
+					$("#ajaxmon").html('<div class="alert alert-success">'+data+'</div>');				
 				} else if (data.indexOf('Info') != '-1' ){
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-info">'+data+'</div>');
+					$("#ajaxmon").html('<div class="alert alert-info">'+data+'</div>');
 				} else {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-info">'+data+'</div>');
+					$("#ajaxmon").html('<div class="alert alert-info">'+data+'</div>');
 				}
 			}
 		} );	
 	});	
 	$('#haproxy_exp_install').click(function() {
-		$("#ajax").html('')
-		$("#ajax").html(wait_mess);
+		$("#ajaxmon").html('')
+		$("#ajaxmon").html(wait_mess);
 		$.ajax( {
 			url: "options.py",
 			data: {
@@ -262,17 +262,17 @@ $( function() {
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
 				if (data.indexOf('error') != '-1' || data.indexOf('FAILED') != '-1') {
-					$("#ajax").html('<div class="alert alert-danger">'+data+'</div>');
+					$("#ajaxmon").html('<div class="alert alert-danger">'+data+'</div>');
 				} else if (data.indexOf('success') != '-1' ){
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-success">'+data+'</div>');	
+					$("#ajaxmon").html('<div class="alert alert-success">'+data+'</div>');	
 					$('#cur_haproxy_exp_ver').text('HAProxy expoter is installed');
 					$('#haproxy_exp_install').text('Update');
 				} else if (data.indexOf('Info') != '-1' ){
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-info">'+data+'</div>');
+					$("#ajaxmon").html('<div class="alert alert-info">'+data+'</div>');
 				} else {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
@@ -282,8 +282,8 @@ $( function() {
 		} );	
 	});	
 	$('#nginx_exp_install').click(function() {
-		$("#ajax").html('')
-		$("#ajax").html(wait_mess);
+		$("#ajaxmon").html('')
+		$("#ajaxmon").html(wait_mess);
 		$.ajax( {
 			url: "options.py",
 			data: {
@@ -294,21 +294,21 @@ $( function() {
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
 				if (data.indexOf('error') != '-1' || data.indexOf('FAILED') != '-1') {
-					$("#ajax").html('<div class="alert alert-danger">'+data+'</div>');
+					$("#ajaxmon").html('<div class="alert alert-danger">'+data+'</div>');
 				} else if (data.indexOf('success') != '-1' ){
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-success">'+data+'</div>');	
+					$("#ajaxmon").html('<div class="alert alert-success">'+data+'</div>');	
 					$('#cur_nginx_exp_ver').text('Nginx expoter is installed');
 					$('#nginx_exp_install').text('Update');
 				} else if (data.indexOf('Info') != '-1' ){
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-info">'+data+'</div>');
+					$("#ajaxmon").html('<div class="alert alert-info">'+data+'</div>');
 				} else {
 					$('.alert-danger').remove();
 					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-info">'+data+'</div>');
+					$("#ajaxmon").html('<div class="alert alert-info">'+data+'</div>');
 				}
 			}
 		} );	

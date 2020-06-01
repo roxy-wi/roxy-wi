@@ -17,7 +17,8 @@
 		<li><a href="#servers">Servers</a></li>
 		<li><a href="#ssh">SSH credentials</a></li>
 		<li><a href="#checker">Checker</a></li>
-		<li><a href="#installhaproxy">Installation</a></li>
+		<li><a href="#installproxy">Installation Proxy</a></li>
+		<li><a href="#installmon">Installation Monitoring</a></li>
 		<li><a href="#backup">Backup</a></li>
 		{% include 'include/login.html' %}
 	</ul>
@@ -276,7 +277,7 @@
 			You can read the description of all parameters <a href="https://haproxy-wi.org/description.py?description=checker" title="Servers description" target="_blank">here</a>
 		</div>
 	</div>
-	<div id="installhaproxy">
+	<div id="installproxy">
 		<table class="overview">
 			<caption><h3>Install HAProxy</h3></caption>
 			<tr class="overviewHead">
@@ -341,6 +342,10 @@
 				</td>
 			</tr>
 		</table>
+		<div id="ajax"></div>
+	</div>
+	
+	<div id="installmon">
 		<table>
 			<caption><h3>Install Grafana and Prometheus servers</h3></caption>
 			<tr class="overviewHead">
@@ -434,7 +439,7 @@
 				</td>
 			</tr>
 		</table>
-		<div id="ajax"></div>
+		<div id="ajaxmon"></div>
 	</div>
 	
 	<div id="backup">

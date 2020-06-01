@@ -134,53 +134,53 @@ function ajaxActionServers(action, id) {
 	} );
 }
 function ajaxActionNginxServers(action, id) {
-		var bad_ans = 'Bad config, check please';
-		$.ajax( {
-				url: "options.py",
-				data: {
-					action_nginx: action,
-					serv: id,
-					token: $('#token').val()
-				},
-				success: function( data ) {
-					data = data.replace(/\s+/g,' ');
-					if( data ==  'Bad config, check please ' ) {
-						alert(data);
-					} else {
-						if (cur_url[0] == "hapservers.py") {
-							location.reload()
-						} else {
-							setTimeout(showOverview(ip, hostnamea), 2000)					
-						}
-					}
-				},
-				error: function(){
-					alert(w.data_error);
-				}					
-			} );
-	}
+	var bad_ans = 'Bad config, check please';
+	$.ajax( {
+		url: "options.py",
+		data: {
+			action_nginx: action,
+			serv: id,
+			token: $('#token').val()
+		},
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if( data ==  'Bad config, check please ' ) {
+				alert(data);
+			} else {
+				if (cur_url[0] == "hapservers.py") {
+					location.reload()
+				} else {
+					setTimeout(showOverview(ip, hostnamea), 2000)					
+				}
+			}
+		},
+		error: function(){
+			alert(w.data_error);
+		}					
+	} );
+}
 function ajaxActionWafServers(action, id) {
-		var bad_ans = 'Bad config, check please';
-		$.ajax( {
-				url: "options.py",
-				data: {
-					action_waf: action,
-					serv: id,
-					token: $('#token').val()
-				},
-				success: function( data ) {
-					data = data.replace(/\s+/g,' ');
-					if( data ==  'Bad config, check please ' ) {
-						alert(data);
-					} else {
-						setTimeout(showOverviewWaf(ip, hostnamea), 2000)						
-					}
-				},
-				error: function(){
-					alert(w.data_error);
-				}					
-			} );
-	}
+	var bad_ans = 'Bad config, check please';
+	$.ajax( {
+		url: "options.py",
+			data: {
+				action_waf: action,
+				serv: id,
+				token: $('#token').val()
+			},
+			success: function( data ) {
+				data = data.replace(/\s+/g,' ');
+				if( data ==  'Bad config, check please ' ) {
+					alert(data);
+				} else {
+					setTimeout(showOverviewWaf(ip, hostnamea), 2000)						
+				}
+			},
+			error: function(){
+				alert(w.data_error);
+			}					
+	} );
+}
 $( function() {
 	$( "#show-all-users" ).click( function() {
 		$( ".show-users" ).show("fast");
@@ -303,5 +303,18 @@ function updateHapWIServer(id) {
 				}, 2500 );
 			}
 		}
+	} );
+}
+function change_pos(pos, id) {
+	$.ajax( {
+		url: "options.py",
+			data: {
+				change_pos: pos,
+				serv: id,
+				token: $('#token').val()
+			},
+		error: function(){
+			console.log(w.data_error);
+		}					
 	} );
 }
