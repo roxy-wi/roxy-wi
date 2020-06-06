@@ -380,8 +380,59 @@ def rewrite_section(start_line, end_line, config, section):
 			return_config += line
 		
 	return return_config
-
 	
+	
+def get_backends_from_config(serv, backends='', **kwargs):
+	configs_dir = get_config_var('configs', 'haproxy_save_configs_dir')
+	format = 'cfg'
+	record = False
+	
+	try:
+		cfg = configs_dir+get_files(dir=configs_dir, format=format)[0]
+	except Exception as e:
+		logging('localhost', str(e), haproxywi=1)
+		try:
+			cfg = configs_dir + serv + "-" + get_data('config') + '.'+format
+		except:
+			logging('localhost', ' Cannot generate cfg path', haproxywi=1)
+		try:
+			error = get_config(serv, cfg)
+		except:
+			logging('localhost', ' Cannot download config', haproxywi=1)
+			print('error: Cannot get backends')
+			sys.exit()
+
+	with open(cfg, 'r') as f:
+		for line in f:	
+			if backends == 'frontend':
+				if (line.startswith('listen') or line.startswith('frontend')) and 'stats' not in line:
+					line = line.strip()
+					print(line.split(' ')[1], end="<br>")
+	
+
+def get_all_stick_table():
+	import sql
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+	cmd='echo "show table"|nc %s %s |awk \'{print $3}\' | tr -d \'\n\' | tr -d \'[:space:]\'' % (serv, haproxy_sock_port)
+	output, stderr = subprocess_execute(cmd)
+	return output[0]
+						
+def get_stick_table(table):
+	import sql
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+	cmd='echo "show table %s"|nc %s %s |awk -F"#" \'{print $2}\' |head -1 | tr -d \'\n\'' % (table, serv, haproxy_sock_port)
+	output, stderr = subprocess_execute(cmd)
+	tables_head = []
+	for i in output[0].split(','):
+		i = i.split(':')[1]
+		tables_head.append(i)
+			
+	cmd='echo "show table %s"|nc %s %s |grep -v "#"' % (table, serv, haproxy_sock_port)
+	output, stderr = subprocess_execute(cmd)
+	
+	return tables_head, output
+	
+
 def install_haproxy(serv, **kwargs):
 	import sql
 	script = "install_haproxy.sh"

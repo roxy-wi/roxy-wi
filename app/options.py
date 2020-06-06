@@ -8,10 +8,12 @@ form = funct.form
 serv = form.getvalue('serv')
 act = form.getvalue('act')
 
+
 if form.getvalue('new_metrics') or form.getvalue('new_waf_metrics') or form.getvalue('metrics_hapwi_ram') or form.getvalue('metrics_hapwi_cpu'):
 	print('Content-type: application/json\n')
 else:
 	print('Content-type: text/html\n')
+
 
 if act == "checkrestart":
 	servers = sql.get_dick_permit(ip=serv)
@@ -88,6 +90,150 @@ if serv and form.getvalue('ssl_cert'):
 	
 if form.getvalue('backend') is not None:
 	funct.show_backends(serv)
+	
+	
+if form.getvalue('ip_select') is not None:
+	funct.show_backends(serv)
+
+
+if form.getvalue('ipbackend') is not None and form.getvalue('backend_server') is None:
+	import sql
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+	backend = form.getvalue('ipbackend')
+	cmd='echo "show servers state"|nc %s %s |grep "%s" |awk \'{print $4}\'' % (serv, haproxy_sock_port, backend)
+	output, stderr = funct.subprocess_execute(cmd)
+	for i in output:
+		if i == ' ':
+			continue
+		i = i.strip()
+		print(i+'<br>')
+
+
+if form.getvalue('ipbackend') is not None and form.getvalue('backend_server') is not None:
+	import sql
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+	backend = form.getvalue('ipbackend')
+	backend_server = form.getvalue('backend_server')
+	cmd='echo "show servers state"|nc %s %s |grep "%s" |grep "%s" |awk \'{print $5":"$19}\' |head -1' % (serv, haproxy_sock_port, backend, backend_server)
+	output, stderr = funct.subprocess_execute(cmd)
+	print(output[0])
+	
+	
+if form.getvalue('backend_ip') is not None:	
+	import sql
+	backend_backend = form.getvalue('backend_backend')
+	backend_server = form.getvalue('backend_server')
+	backend_ip = form.getvalue('backend_ip')
+	backend_port = form.getvalue('backend_port')
+	if form.getvalue('backend_ip') is None:
+		print('error: Backend IP must be IP and not 0')
+		sys.exit()
+	
+	if form.getvalue('backend_port') is None:
+		print('error: Backend port must be integer and not 0')
+		sys.exit()
+		
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+	
+	MASTERS = sql.is_master(serv)
+	for master in MASTERS:
+		if master[0] != None:
+			cmd='echo "set server %s/%s addr %s port %s check-port %s" |nc %s %s' % (backend_backend, backend_server, backend_ip, backend_port, backend_port, master[0], haproxy_sock_port)
+			output, stderr = funct.subprocess_execute(cmd)
+			print(output[0])
+			
+	cmd='echo "set server %s/%s addr %s port %s check-port %s" |nc %s %s' % (backend_backend, backend_server, backend_ip, backend_port, backend_port, serv, haproxy_sock_port)
+	output, stderr = funct.subprocess_execute(cmd)
+	
+	if stderr != '':
+		print('error: '+stderr[0])
+	else:
+		print(output[0])
+		configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+		cfg = configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
+		
+		error = funct.get_config(serv, cfg)
+		cmd = 'string=`grep %s %s -n -A25 |grep "server %s" |head -1|awk -F"-" \'{print $1}\'` && sed -Ei "$( echo $string)s/((1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])\.){3}(1?[0-9][0-9]?|2[0-4][0-9]|25[0-5]):[0-9]+/%s:%s/g" %s' % (backend_backend, cfg, backend_server, backend_ip, backend_port, cfg)
+		output, stderr = funct.subprocess_execute(cmd)
+		stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save='save')
+		
+	
+	
+if form.getvalue('maxconn_select') is not None:
+	serv = form.getvalue('maxconn_select')
+	funct.get_backends_from_config(serv, backends='frontend')
+	
+
+if form.getvalue('maxconn_frontend') is not None:	
+	import sql
+	frontend = form.getvalue('maxconn_frontend')
+	maxconn = form.getvalue('maxconn_int')
+	if form.getvalue('maxconn_int') is None:
+		print('error: Maxconn must be integer and not 0')
+		sys.exit()
+		
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+	
+	MASTERS = sql.is_master(serv)
+	for master in MASTERS:
+		if master[0] != None:
+			if frontend == 'global':
+				cmd='echo "set maxconn %s %s" |nc %s %s' % (frontend, maxconn, master[0], haproxy_sock_port)
+			else:	
+				cmd='echo "set maxconn frontend %s %s" |nc %s %s' % (frontend, maxconn, master[0], haproxy_sock_port)
+			output, stderr = funct.subprocess_execute(cmd)
+			
+	if frontend == 'global':
+		cmd='echo "set maxconn %s %s" |nc %s %s' % (frontend, maxconn, serv, haproxy_sock_port)
+	else:	
+		cmd='echo "set maxconn frontend %s %s" |nc %s %s' % (frontend, maxconn, serv, haproxy_sock_port)
+	output, stderr = funct.subprocess_execute(cmd)
+	
+	if stderr != '':
+		print(stderr[0])
+	elif output[0] == '':
+		configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+		cfg = configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
+		
+		error = funct.get_config(serv, cfg)
+		cmd = 'string=`grep %s %s -n -A5 |grep maxcon -n |awk -F":" \'{print $2}\'|awk -F"-" \'{print $1}\'` && sed -Ei "$( echo $string)s/[0-9]+/%s/g" %s' % (frontend, cfg, maxconn, cfg)
+		output, stderr = funct.subprocess_execute(cmd)
+		stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save='save')
+		print('Maxconn for %s has been set to %s ' % (frontend, maxconn))
+	else:
+		print('error: '+output[0])	
+	
+
+if form.getvalue('table_serv_select') is not None:
+	print(funct.get_all_stick_table())
+	
+	
+if form.getvalue('table_select') is not None:
+	from jinja2 import Environment, FileSystemLoader
+	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True,extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'], trim_blocks=True, lstrip_blocks=True)
+	table = form.getvalue('table_select')
+	
+	if table == 'All':		
+		template = env.get_template('/stick_tables.html')
+		tables = funct.get_all_stick_table()
+		table = []
+		for t in tables.split(','):
+			if t != '':
+				id = []
+				tables_head = []
+				
+				tables_head1, table1 = funct.get_stick_table(t)
+				id.append(tables_head1)
+				id.append(table1)
+				table.append(id)
+			
+		template = template.render(table=table)
+	else:
+		template = env.get_template('/stick_table.html')
+		tables_head, table = funct.get_stick_table(table)
+		template = template.render(tables_head=tables_head, table=table)
+		
+	print(template)
 	
 	
 if form.getvalue('change_pos') is not None:
