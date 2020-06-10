@@ -111,13 +111,13 @@
 					{% else %}
 						{% set action_service = 'hap' %}
 					{% endif %}
-					<a id="start-{{ s.2 }}" class="start" title="Start {{service}} service" style="padding-right: 4px;">
+					<a id="start-{{ s.2 }}" class="start" title="Start {{service}} service">
 						<span class="service-start" onclick="confirmAjaxAction('start', '{{action_service}}', '{{s.2}}')"></span>
 					</a>
-					<a id="reload-{{ s.2 }}" class="reload" title="Reload {{service}} service" style="padding-right: 4px;">
+					<a id="reload-{{ s.2 }}" class="reload" title="Reload {{service}} service">
 						<span class="service-reload" onclick="confirmAjaxAction('reload', '{{action_service}}', '{{s.2}}', '{{s.1}}')"></span>
 					</a>
-					<a id="restart-{{ s.2 }}" class="restart" title="Restart {{service}} service" style="padding-right: 4px;">
+					<a id="restart-{{ s.2 }}" class="restart" title="Restart {{service}} service">
 						<span class="service-reload service-restart" onclick="confirmAjaxAction('restart', '{{action_service}}', '{{s.2}}')"></span>
 					</a>
 					<a id="stop-{{ s.2 }}" class="stop" title="Stop {{service}} service">

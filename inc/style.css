@@ -302,8 +302,11 @@ pre {
 	padding-left: 10px;
 	padding-right: 10px;
 }
-.line:hover, .line3:hover {
+.line:hover, {
 	background-color: #f6f8fa;
+}
+.line3:hover {
+	background-color: #f6f8ff;
 }
 .accordion-link {
 	float: right;
@@ -859,6 +862,9 @@ label {
 	float: left;
 	margin-top: 20px;
 	margin-left: 10px;
+}
+.restart, .reload, .stop, .stop-waf, .restart-waf {
+	padding-left: 4px;
 }
 @media (max-width: 1920px) {
   #logo_span {
