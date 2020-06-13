@@ -42,7 +42,7 @@
       
     - name: Copy Nginx configuration in place.
       template:
-        src: ./default.conf.j2
+        src: /var/www/haproxy-wi/app/scripts/ansible/roles/default.conf.j2
         dest: "{{CONFIG_PATH}}"
         mode: 0644
       when: "'nginx' not in ansible_facts.packages"
