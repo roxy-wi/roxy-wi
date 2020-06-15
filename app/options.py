@@ -552,9 +552,7 @@ if serv is not None and act == "stats":
 		servers_with_status.append(h)
 		
 		template = template.render(out=servers_with_status)
-		print(template)
-		
-		
+		print(template)	
 	else:	
 		print(data.decode('utf-8'))
 	
@@ -579,65 +577,20 @@ if serv is not None and form.getvalue('rows1') is not None:
 	minut = form.getvalue('minut')
 	hour1 = form.getvalue('hour1')
 	minut1 = form.getvalue('minut1')
-	date = hour+':'+minut
-	date1 = hour1+':'+minut1
-	apache_log_path = sql.get_setting('apache_log_path')
-	
-	if grep is not None:
-		grep_act  = '|grep'
-	else:
-		grep_act = ''
-		grep = ''
-		
-	if serv == 'haproxy-wi.access.log':
-		cmd="cat %s| awk -F\"/|:\" '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s  %s %s" % (apache_log_path+"/"+serv, date, date1, rows, grep_act, grep)
-	elif serv == 'haproxy-wi.error.log':
-		cmd="cat %s| awk '$4>\"%s:00\" && $4<\"%s:00\"' |tail -%s  %s %s" % (apache_log_path+"/"+serv, date, date1, rows, grep_act, grep)
-	elif serv == 'fail2ban.log':
-		cmd="cat %s| awk -F\"/|:\" '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s  %s %s" % ("/var/log/"+serv, date, date1, rows, grep_act, grep)
-
-	output, stderr = funct.subprocess_execute(cmd)
-
-	print(funct.show_log(output))
-	print(stderr)
-	
+	out = funct.show_haproxy_log(serv, rows=rows, waf='0', grep=grep, hour=hour, minut=minut, hour1=hour1, minut1=minut1, service='apache')
+	print(out)
 	
 		
 if form.getvalue('viewlogs') is not None:
-	viewlog = form.getvalue('viewlogs')
-	log_path = funct.get_config_var('main', 'log_path')
+	viewlog = form.getvalue('viewlogs')	
 	rows = form.getvalue('rows')
 	grep = form.getvalue('grep')
 	hour = form.getvalue('hour')
 	minut = form.getvalue('minut')
 	hour1 = form.getvalue('hour1')
 	minut1 = form.getvalue('minut1')
-	date = hour+':'+minut
-	date1 = hour1+':'+minut1
-	
-	if grep is not None:
-		grep_act  = '|grep'
-	else:
-		grep_act = ''
-		grep = ''
-		
-	logs_files = funct.get_files(log_path, format="log")
-	for key, value in logs_files:
-		if int(viewlog) == key:
-			viewlog = value
-			break
-	else:
-		print('Haha')
-		sys.exit()
-		
-	if viewlog == 'backup.log':
-		cmd="cat %s| awk '$2>\"%s:00\" && $2<\"%s:00\"' |tail -%s  %s %s" % (log_path + viewlog, date, date1, rows, grep_act, grep)
-	else:
-		cmd="cat %s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s  %s %s" % (log_path + viewlog, date, date1, rows, grep_act, grep)
-	output, stderr = funct.subprocess_execute(cmd)
-
-	print(funct.show_log(output))
-	print(stderr)
+	out = funct.show_haproxy_log(serv=viewlog, rows=rows, waf='0', grep=grep, hour=hour, minut=minut, hour1=hour1, minut1=minut1, service='internal')
+	print(out)
 		
 		
 if serv is not None and act == "showMap":

@@ -296,6 +296,7 @@ function showLog() {
 	}
 	var rows = $('#rows').val()
 	var grep = $('#grep').val()
+	var exgrep = $('#exgrep').val()
 	var hour = $('#time_range_out_hour').val()
 	var minut = $('#time_range_out_minut').val()
 	var hour1 = $('#time_range_out_hour1').val()
@@ -308,6 +309,7 @@ function showLog() {
 			serv: $("#serv").val(),
 			waf: waf,
 			grep: grep,
+			exgrep: exgrep,
 			hour: hour,
 			minut: minut,
 			hour1: hour1,
@@ -320,6 +322,7 @@ function showLog() {
 			$("#ajax").html(data);
 			window.history.pushState("Logs", "Logs", cur_url[0]+"?service="+service+"&serv="+$("#serv").val()+
 																	'&rows='+rows+
+																	'&exgrep='+exgrep+
 																	'&grep='+grep+
 																	'&hour='+hour+
 																	'&minut='+minut+
@@ -346,27 +349,6 @@ function showMap() {
 		success: function( data ) {
 			$("#ajax").html(data);
 			window.history.pushState("Show map", "Show map", cur_url[0]+'?serv='+$("#serv").val()+'&showMap');
-		}					
-	} );
-}
-function showRuntime() {
-	if($('#save').prop('checked')) {
-		saveCheck = "on";
-	} else {
-		saveCheck = "";
-	}
-	$.ajax( {
-		url: "options.py",
-		data: {
-			servaction: $('#servaction').val(),
-			serv: $("#serv").val(),
-			servbackend: $("#servbackend").val(),
-			save: saveCheck,
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function( data ) {
-			$("#ajaxruntime").html(data);
 		}					
 	} );
 }
@@ -467,6 +449,7 @@ function viewLogs() {
 	} else {
 		var rows = $('#rows').val()
 		var grep = $('#grep').val()
+		var exgrep = $('#exgrep').val()
 		var hour = $('#time_range_out_hour').val()
 		var minut = $('#time_range_out_minut').val()
 		var hour1 = $('#time_range_out_hour1').val()
@@ -482,6 +465,7 @@ function viewLogs() {
 				viewlogs: viewlogs,
 				rows: rows,
 				grep: grep,
+				exgrep: exgrep,
 				hour: hour,
 				minut: minut,
 				hour1: hour1,
@@ -494,6 +478,7 @@ function viewLogs() {
 				window.history.pushState("View logs", "View logs", cur_url[0]+"?viewlogs="+viewlogs+
 																	'&rows='+rows+
 																	'&grep='+grep+
+																	'&exgrep='+exgrep+
 																	'&hour='+hour+
 																	'&minut='+minut+
 																	'&hour1='+hour1+
@@ -699,11 +684,6 @@ $( function() {
 			}
 		} );
 	 });
-
-	 $('#runtimeapiform').submit(function() {
-		showRuntime();
-		return false;
-	}); 
 	$('#auth').submit(function() {
 		let searchParams = new URLSearchParams(window.location.search)
 		if(searchParams.has('ref')) {

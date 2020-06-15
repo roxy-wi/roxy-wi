@@ -505,7 +505,7 @@ def update_db_v_4_3_1(**kwargs):
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
 			if e.args[0] == 'duplicate column name: pos' or e == " 1060 (42S21): Duplicate column name 'pos' ":
-				print('DB was update to 4.3.1')
+				print('Updating... go to version 4.3.2')
 			else:
 				print("An error occurred:", e)
 		return False
@@ -516,9 +516,31 @@ def update_db_v_4_3_1(**kwargs):
 	con.close()
 	
 	
+def update_db_v_4_3_2(**kwargs):
+	con, cur = get_cur()
+	sql = """
+	INSERT  INTO settings (param, value, section, `desc`) values('ldap_type', '0', 'ldap', 'If 0 then will be used LDAP, if 1 then will be used LDAPS ');
+	"""
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: pos' or e == " 1060 (42S21): Duplicate column name 'pos' ":
+				print('DB was update to 4.3.2')
+			else:
+				print("An error occurred:", e)
+		return False
+	else:
+		print("DB was update to 4.3.2")
+		return True
+	cur.close() 
+	con.close()
+	
+	
 def update_ver(**kwargs):
 	con, cur = get_cur()
-	sql = """update version set version = '4.3.1.0'; """
+	sql = """update version set version = '4.3.2.0'; """
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -546,6 +568,7 @@ def update_all():
 	update_db_v_4_3()
 	update_db_v_4_3_0()
 	update_db_v_4_3_1()
+	update_db_v_4_3_2()
 	update_ver()
 		
 	
@@ -567,6 +590,7 @@ def update_all_silent():
 	update_db_v_4_3(silent=1)
 	update_db_v_4_3_0(silent=1)
 	update_db_v_4_3_1(silent=1)
+	update_db_v_4_3_2(silent=1)
 	update_ver()
 	
 		

@@ -371,7 +371,6 @@ $( function() {
 			type: "POST",
 			success: function( data ) {	
 				data = data.replace(/^\s+|\s+$/g,'');
-				console.log(data)
 				if(data == 'Active:') {				
 					$('#cur_haproxy_exp_ver').text('HAProxy expoter is installed');
 					$('#haproxy_exp_install').text('Update');
@@ -395,7 +394,6 @@ $( function() {
 			type: "POST",
 			success: function( data ) {	
 				data = data.replace(/^\s+|\s+$/g,'');
-				console.log(data)
 				if(data == 'Active:') {				
 					$('#cur_nginx_exp_ver').text('Nginx expoter is installed');
 					$('#nginx_exp_install').text('Update');
@@ -1582,6 +1580,7 @@ function updateBackup(id) {
 function showApacheLog(serv) {
 	var rows = $('#rows').val()
 	var grep = $('#grep').val()
+	var exgrep = $('#exgrep').val()
 	var hour = $('#time_range_out_hour').val()
 	var minut = $('#time_range_out_minut').val()
 	var hour1 = $('#time_range_out_hour1').val()
@@ -1592,6 +1591,7 @@ function showApacheLog(serv) {
 			rows1: rows,
 			serv: serv,
 			grep: grep,
+			exgrep: exgrep,
 			hour: hour,
 			minut:minut,
 			hour1: hour1,
@@ -1602,6 +1602,7 @@ function showApacheLog(serv) {
 		success: function( data ) {
 			$("#ajax").html(data);
 			window.history.pushState("Logs", "Logs", cur_url[0]+"?serv="+serv+"&rows1="+rows+"&grep="+grep+
+															'&exgrep='+exgrep+
 															'&hour='+hour+
 															'&minut='+minut+
 															'&hour1='+hour1+

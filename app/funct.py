@@ -743,11 +743,18 @@ def check_haproxy_config(serv):
 def show_log(stdout, **kwargs):
 	i = 0
 	out = ''
+	if kwargs.get('grep'):
+		import re
+		grep = kwargs.get('grep')
+		grep = re.sub(r'[?|$|.|!|^|*|\]|\[|,| |]',r'', grep)
+		
 	for line in stdout:		
 		if kwargs.get("html") != 0:
 			i = i + 1
+			if kwargs.get('grep'):
+				line = line.replace(grep, '<span style="color: red; font-weight: bold;">'+grep+'</span>');
 			line_class = "line3" if i % 2 == 0 else "line"
-			out += '<div class="'+line_class+'">' + escape_html(line) + '</div>'
+			out += '<div class="'+line_class+'">' + line + '</div>'
 		else:
 			out += line
 		
@@ -756,39 +763,76 @@ def show_log(stdout, **kwargs):
 		
 def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', hour1='24', minut1='00', service='haproxy', **kwargs):
 	import sql
+	exgrep = form.getvalue('exgrep')
 	date = hour+':'+minut
 	date1 = hour1+':'+minut1
+	
 	if grep is not None:
-        	grep_act  = '|grep'
+        	grep_act  = '|egrep "%s"' % grep
 	else:
 		grep_act = ''
-		grep = ''
-
-	syslog_server_enable = sql.get_setting('syslog_server_enable')
-	if syslog_server_enable is None or syslog_server_enable == "0":
-		if service == 'nginx':
-			local_path_logs = sql.get_setting('nginx_path_error_logs')
-			commands = [ "sudo cat %s| awk '$2>\"%s:00\" && $2<\"%s:00\"' |tail -%s  %s %s" % (local_path_logs, date, date1, rows, grep_act, grep) ]
-		else:
-			local_path_logs = sql.get_setting('local_path_logs')
-			commands = [ "sudo cat %s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s  %s %s" % (local_path_logs, date, date1, rows, grep_act, grep) ]
-		syslog_server = serv	
-			
 		
+	if exgrep is not None:
+        	exgrep_act  = '|egrep -v "%s"' % exgrep
 	else:
-		commands = [ "sudo cat /var/log/%s/syslog.log | sed '/ %s:00/,/ %s:00/! d' |tail -%s  %s %s" % (serv, date, date1, rows, grep_act, grep) ]
-		syslog_server = sql.get_setting('syslog_server')
-	
-	if waf == "1":
-		local_path_logs = '/var/log/modsec_audit.log'
-		commands = [ "sudo cat %s |tail -%s  %s %s" % (local_path_logs, rows, grep_act, grep) ]	
-	
-	if kwargs.get('html') == 0:
-		a = ssh_command(syslog_server, commands)
-		return show_log(a, html=0)	
-	else:
-		return ssh_command(syslog_server, commands, show_log='1')
+		exgrep_act = ''
 
+	if service == 'nginx' or service == 'haproxy':
+		syslog_server_enable = sql.get_setting('syslog_server_enable')
+		if syslog_server_enable is None or syslog_server_enable == "0":
+			if service == 'nginx':
+				local_path_logs = sql.get_setting('nginx_path_error_logs')
+				commands = [ "sudo cat %s| awk '$2>\"%s:00\" && $2<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, date, date1, rows, grep_act, exgrep_act) ]
+			else:
+				local_path_logs = sql.get_setting('local_path_logs')
+				commands = [ "sudo cat %s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, date, date1, rows, grep_act, exgrep_act) ]
+			syslog_server = serv	
+		else:
+			commands = [ "sudo cat /var/log/%s/syslog.log | sed '/ %s:00/,/ %s:00/! d' |tail -%s %s %s %s" % (serv, date, date1, rows, grep_act, grep, exgrep_act) ]
+			syslog_server = sql.get_setting('syslog_server')
+		
+		if waf == "1":
+			local_path_logs = '/var/log/modsec_audit.log'
+			commands = [ "sudo cat %s |tail -%s %s %s" % (local_path_logs, rows, grep_act, exgrep_act) ]	
+		
+		if kwargs.get('html') == 0:
+			a = ssh_command(syslog_server, commands)
+			return show_log(a, html=0, grep=grep)	
+		else:
+			return ssh_command(syslog_server, commands, show_log='1', grep=grep)
+	elif service == 'apache':
+		apache_log_path = sql.get_setting('apache_log_path')
+		
+		if serv == 'haproxy-wi.access.log':
+			cmd="cat %s| awk -F\"/|:\" '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (apache_log_path+"/"+serv, date, date1, rows, grep_act, exgrep_act)
+		elif serv == 'haproxy-wi.error.log':
+			cmd="cat %s| awk '$4>\"%s:00\" && $4<\"%s:00\"' |tail -%s %s %s" % (apache_log_path+"/"+serv, date, date1, rows, grep_act, exgrep_act)
+		elif serv == 'fail2ban.log':
+			cmd="cat %s| awk -F\"/|:\" '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % ("/var/log/"+serv, date, date1, rows, grep_act, exgrep_act)
+
+		output, stderr = subprocess_execute(cmd)
+		
+		return show_log(output, grep=grep)
+	elif service == 'internal':
+		log_path = get_config_var('main', 'log_path')
+		logs_files = get_files(log_path, format="log")
+		for key, value in logs_files:
+			if int(serv) == key:
+				serv = value
+				break
+		else:
+			print('Haha')
+			sys.exit()
+			
+		if serv == 'backup.log':
+			cmd="cat %s| awk '$2>\"%s:00\" && $2<\"%s:00\"' |tail -%s %s %s" % (log_path + serv, date, date1, rows, grep_act, exgrep_act)
+		else:
+			cmd="cat %s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (log_path + serv, date, date1, rows, grep_act, exgrep_act)
+		
+		output, stderr = subprocess_execute(cmd)
+		
+		return show_log(output, grep=grep)
+		
 	
 def haproxy_wi_log(**kwargs):
 	log_path = get_config_var('main', 'log_path')
@@ -837,7 +881,7 @@ def ssh_command(serv, commands, **kwargs):
 		if kwargs.get("ip") == "1":
 			show_ip(stdout)
 		elif kwargs.get("show_log") == "1":
-			return show_log(stdout)
+			return show_log(stdout, grep=kwargs.get("grep"))
 		elif kwargs.get("server_status") == "1":
 			server_status(stdout)
 		elif kwargs.get('print_out'):
@@ -1000,7 +1044,7 @@ def out_error(e):
 		error = e
 	else:
 		error = e.args[0]
-	print('<span class="alert alert-danger" style="height: 20px;margin-bottom: 20px;" id="error">An error occurred: ' + error + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+	print(error)
 	
 
 def get_users_params(**kwargs):

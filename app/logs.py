@@ -10,10 +10,16 @@ if form.getvalue('grep') is None:
 else:
 	grep = form.getvalue('grep')
 	
+
+exgrep = form.getvalue('exgrep') if form.getvalue('exgrep') else ''
+	
 if form.getvalue('rows') is None:
 	rows = 10
 else:
-	rows = form.getvalue('rows')
+	if form.getvalue('rows1') not is None:
+		rows = form.getvalue('rows1')
+	else:
+		rows = form.getvalue('rows')
 	
 hour = form.getvalue('hour')
 hour1 = form.getvalue('hour1')
@@ -46,6 +52,7 @@ template = template.render(h2 = 1,
 							serv = form.getvalue('serv'),
 							rows = rows,
 							grep = grep,
+							exgrep = exgrep,
 							hour = hour,
 							hour1 = hour1,
 							minut = minut,
