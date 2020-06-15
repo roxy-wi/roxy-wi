@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
-<script src="/inc/jquery-linenumbers.js"></script>
+<link rel="stylesheet" href="/inc/codemirror/codemirror.css">
+<script src="/inc/codemirror/codemirror.js"></script>
+<script src="/inc/codemirror/nginx.js"></script>
 <center>
 	{% if selects|length == 0 %}
 		{% include 'include/getstarted.html' %}
@@ -50,11 +52,15 @@
 		{% if role <= 2 %}
 			<div id="config">
 				<h4>Config from {{ serv }}</h4>
+				</center>
 				<form action="{{ action }}" name="saveconfig" method="post">
 					<input type="hidden" value="{{ serv }}" name="serv"> 
 					<input type="hidden" value="{{ cfg }}.old" name="oldconfig"> 
-					<textarea name="config" class="config" rows="35" cols="100">{{ config }}</textarea> 
-					<p>
+					<div style="margin-left: 23%;width: 60%;">
+						<textarea name="config" id="config_text_area" class="config" rows="35" cols="100">{{ config }}</textarea> 
+					</div>
+					<p>					
+					<center>
 					{% if service == 'haproxy' %}
 						<button type="submit" value="test" name="save" class="btn btn-default">Just test</button>
 					{% endif %}
@@ -91,6 +97,15 @@
 	if (cur_url[1].split('&')[2] == 'showConfig') {
 		showConfig();		
 	}	
-	$('textarea').linenumbers({col_width: '25px'});
+	var myCodeMirror = CodeMirror.fromTextArea(document.getElementById("config_text_area"), {mode: "nginx", lineNumbers: true});
+</script>
+<style>
+.CodeMirror {
+  line-height: 1.2em;
+  height: 50%;
+}
+</style>
+<script>
+	myCodeMirror.refresh();
 </script>
 {% endblock %}

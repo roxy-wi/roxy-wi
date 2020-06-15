@@ -12,9 +12,6 @@
   typeof define === 'function' && define.amd ? define(factory) :
   (global.CodeMirror = factory());
 }(this, (function () { 'use strict';
-
-  // Kludges for bugs and behavior differences that can't be feature
-  // detected are enabled based on userAgent etc sniffing.
   var userAgent = navigator.userAgent;
   var platform = navigator.platform;
 
@@ -31,24 +28,18 @@
   var safari = /Apple Computer/.test(navigator.vendor);
   var mac_geMountainLion = /Mac OS X 1\d\D([8-9]|\d\d)\D/.test(userAgent);
   var phantom = /PhantomJS/.test(userAgent);
-
   var ios = !edge && /AppleWebKit/.test(userAgent) && /Mobile\/\w+/.test(userAgent);
   var android = /Android/.test(userAgent);
-  // This is woefully incomplete. Suggestions for alternative methods welcome.
   var mobile = ios || android || /webOS|BlackBerry|Opera Mini|Opera Mobi|IEMobile/i.test(userAgent);
   var mac = ios || /Mac/.test(platform);
   var chromeOS = /\bCrOS\b/.test(userAgent);
   var windows = /win/i.test(platform);
-
   var presto_version = presto && userAgent.match(/Version\/(\d*\.\d*)/);
   if (presto_version) { presto_version = Number(presto_version[1]); }
   if (presto_version && presto_version >= 15) { presto = false; webkit = true; }
-  // Some browsers use the wrong event properties to signal cmd/ctrl on OS X
   var flipCtrlCmd = mac && (qtwebkit || presto && (presto_version == null || presto_version < 12.11));
   var captureRightClick = gecko || (ie && ie_version >= 9);
-
   function classTest(cls) { return new RegExp("(^|\\s)" + cls + "(?:$|\\s)\\s*") }
-
   var rmClass = function(node, cls) {
     var current = node.className;
     var match = classTest(cls).exec(current);
@@ -57,17 +48,14 @@
       node.className = current.slice(0, match.index) + (after ? match[1] + after : "");
     }
   };
-
   function removeChildren(e) {
     for (var count = e.childNodes.length; count > 0; --count)
       { e.removeChild(e.firstChild); }
     return e
   }
-
   function removeChildrenAndAdd(parent, e) {
     return removeChildren(parent).appendChild(e)
   }
-
   function elt(tag, content, className, style) {
     var e = document.createElement(tag);
     if (className) { e.className = className; }
@@ -76,13 +64,11 @@
     else if (content) { for (var i = 0; i < content.length; ++i) { e.appendChild(content[i]); } }
     return e
   }
-  // wrapper for elt, which removes the elt from the accessibility tree
   function eltP(tag, content, className, style) {
     var e = elt(tag, content, className, style);
     e.setAttribute("role", "presentation");
     return e
   }
-
   var range;
   if (document.createRange) { range = function(node, start, end, endNode) {
     var r = document.createRange();
@@ -99,7 +85,6 @@
     r.moveStart("character", start);
     return r
   }; }
-
   function contains(parent, child) {
     if (child.nodeType == 3) // Android browser always returns false when child is a textnode
       { child = child.parentNode; }
@@ -110,11 +95,7 @@
       if (child == parent) { return true }
     } while (child = child.parentNode)
   }
-
   function activeElt() {
-    // IE and Edge may throw an "Unspecified Error" when accessing document.activeElement.
-    // IE < 10 will throw when accessed while the page is loading or in an iframe.
-    // IE > 9 and Edge will throw when accessed in an iframe if document.body is unavailable.
     var activeElement;
     try {
       activeElement = document.activeElement;
@@ -125,7 +106,6 @@
       { activeElement = activeElement.shadowRoot.activeElement; }
     return activeElement
   }
-
   function addClass(node, cls) {
     var current = node.className;
     if (!classTest(cls).test(current)) { node.className += (current ? " " : "") + cls; }
@@ -136,18 +116,15 @@
       { if (as[i] && !classTest(as[i]).test(b)) { b += " " + as[i]; } }
     return b
   }
-
   var selectInput = function(node) { node.select(); };
   if (ios) // Mobile Safari apparently has a bug where select() is broken.
     { selectInput = function(node) { node.selectionStart = 0; node.selectionEnd = node.value.length; }; }
   else if (ie) // Suppress mysterious IE10 errors
     { selectInput = function(node) { try { node.select(); } catch(_e) {} }; }
-
   function bind(f) {
     var args = Array.prototype.slice.call(arguments, 1);
     return function(){return f.apply(null, args)}
   }
-
   function copyObj(obj, target, overwrite) {
     if (!target) { target = {}; }
     for (var prop in obj)
@@ -155,9 +132,6 @@
         { target[prop] = obj[prop]; } }
     return target
   }
-
-  // Counts the column offset in a string, taking tabs into account.
-  // Used mostly to find indentation.
   function countColumn(string, end, tabSize, startIndex, startValue) {
     if (end == null) {
       end = string.search(/[^\s\u00a0]/);
@@ -172,7 +146,6 @@
       i = nextTab + 1;
     }
   }
-
   var Delayed = function() {
     this.id = null;
     this.f = null;
@@ -196,25 +169,14 @@
       this.time = time;
     }
   };
-
   function indexOf(array, elt) {
     for (var i = 0; i < array.length; ++i)
       { if (array[i] == elt) { return i } }
     return -1
   }
-
-  // Number of pixels added to scroller and sizer to hide scrollbar
   var scrollerGap = 50;
-
-  // Returned or thrown by various protocols to signal 'I'm not
-  // handling this'.
   var Pass = {toString: function(){return "CodeMirror.Pass"}};
-
-  // Reused option objects for setSelection & friends
   var sel_dontScroll = {scroll: false}, sel_mouse = {origin: "*mouse"}, sel_move = {origin: "+move"};
-
-  // The inverse of countColumn -- find the offset that corresponds to
-  // a particular column.
   function findColumn(string, goal, tabSize) {
     for (var pos = 0, col = 0;;) {
       var nextTab = string.indexOf("\t", pos);
@@ -228,30 +190,24 @@
       if (col >= goal) { return pos }
     }
   }
-
   var spaceStrs = [""];
   function spaceStr(n) {
     while (spaceStrs.length <= n)
       { spaceStrs.push(lst(spaceStrs) + " "); }
     return spaceStrs[n]
   }
-
   function lst(arr) { return arr[arr.length-1] }
-
   function map(array, f) {
     var out = [];
     for (var i = 0; i < array.length; i++) { out[i] = f(array[i], i); }
     return out
   }
-
   function insertSorted(array, value, score) {
     var pos = 0, priority = score(value);
     while (pos < array.length && score(array[pos]) <= priority) { pos++; }
     array.splice(pos, 0, value);
   }
-
   function nothing() {}
-
   function createObj(base, props) {
     var inst;
     if (Object.create) {
@@ -263,7 +219,6 @@
     if (props) { copyObj(props, inst); }
     return inst
   }
-
   var nonASCIISingleCaseWordChar = /[\u00df\u0587\u0590-\u05f4\u0600-\u06ff\u3040-\u309f\u30a0-\u30ff\u3400-\u4db5\u4e00-\u9fcc\uac00-\ud7af]/;
   function isWordCharBasic(ch) {
     return /\w/.test(ch) || ch > "\x80" &&
@@ -274,32 +229,17 @@
     if (helper.source.indexOf("\\w") > -1 && isWordCharBasic(ch)) { return true }
     return helper.test(ch)
   }
-
   function isEmpty(obj) {
     for (var n in obj) { if (obj.hasOwnProperty(n) && obj[n]) { return false } }
     return true
   }
-
-  // Extending unicode characters. A series of a non-extending char +
-  // any number of extending chars is treated as a single unit as far
-  // as editing and measuring is concerned. This is not fully correct,
-  // since some scripts/fonts/browsers also treat other configurations
-  // of code points as a group.
   var extendingChars = /[\u0300-\u036f\u0483-\u0489\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7\u0610-\u061a\u064b-\u065e\u0670\u06d6-\u06dc\u06de-\u06e4\u06e7\u06e8\u06ea-\u06ed\u0711\u0730-\u074a\u07a6-\u07b0\u07eb-\u07f3\u0816-\u0819\u081b-\u0823\u0825-\u0827\u0829-\u082d\u0900-\u0902\u093c\u0941-\u0948\u094d\u0951-\u0955\u0962\u0963\u0981\u09bc\u09be\u09c1-\u09c4\u09cd\u09d7\u09e2\u09e3\u0a01\u0a02\u0a3c\u0a41\u0a42\u0a47\u0a48\u0a4b-\u0a4d\u0a51\u0a70\u0a71\u0a75\u0a81\u0a82\u0abc\u0ac1-\u0ac5\u0ac7\u0ac8\u0acd\u0ae2\u0ae3\u0b01\u0b3c\u0b3e\u0b3f\u0b41-\u0b44\u0b4d\u0b56\u0b57\u0b62\u0b63\u0b82\u0bbe\u0bc0\u0bcd\u0bd7\u0c3e-\u0c40\u0c46-\u0c48\u0c4a-\u0c4d\u0c55\u0c56\u0c62\u0c63\u0cbc\u0cbf\u0cc2\u0cc6\u0ccc\u0ccd\u0cd5\u0cd6\u0ce2\u0ce3\u0d3e\u0d41-\u0d44\u0d4d\u0d57\u0d62\u0d63\u0dca\u0dcf\u0dd2-\u0dd4\u0dd6\u0ddf\u0e31\u0e34-\u0e3a\u0e47-\u0e4e\u0eb1\u0eb4-\u0eb9\u0ebb\u0ebc\u0ec8-\u0ecd\u0f18\u0f19\u0f35\u0f37\u0f39\u0f71-\u0f7e\u0f80-\u0f84\u0f86\u0f87\u0f90-\u0f97\u0f99-\u0fbc\u0fc6\u102d-\u1030\u1032-\u1037\u1039\u103a\u103d\u103e\u1058\u1059\u105e-\u1060\u1071-\u1074\u1082\u1085\u1086\u108d\u109d\u135f\u1712-\u1714\u1732-\u1734\u1752\u1753\u1772\u1773\u17b7-\u17bd\u17c6\u17c9-\u17d3\u17dd\u180b-\u180d\u18a9\u1920-\u1922\u1927\u1928\u1932\u1939-\u193b\u1a17\u1a18\u1a56\u1a58-\u1a5e\u1a60\u1a62\u1a65-\u1a6c\u1a73-\u1a7c\u1a7f\u1b00-\u1b03\u1b34\u1b36-\u1b3a\u1b3c\u1b42\u1b6b-\u1b73\u1b80\u1b81\u1ba2-\u1ba5\u1ba8\u1ba9\u1c2c-\u1c33\u1c36\u1c37\u1cd0-\u1cd2\u1cd4-\u1ce0\u1ce2-\u1ce8\u1ced\u1dc0-\u1de6\u1dfd-\u1dff\u200c\u200d\u20d0-\u20f0\u2cef-\u2cf1\u2de0-\u2dff\u302a-\u302f\u3099\u309a\ua66f-\ua672\ua67c\ua67d\ua6f0\ua6f1\ua802\ua806\ua80b\ua825\ua826\ua8c4\ua8e0-\ua8f1\ua926-\ua92d\ua947-\ua951\ua980-\ua982\ua9b3\ua9b6-\ua9b9\ua9bc\uaa29-\uaa2e\uaa31\uaa32\uaa35\uaa36\uaa43\uaa4c\uaab0\uaab2-\uaab4\uaab7\uaab8\uaabe\uaabf\uaac1\uabe5\uabe8\uabed\udc00-\udfff\ufb1e\ufe00-\ufe0f\ufe20-\ufe26\uff9e\uff9f]/;
   function isExtendingChar(ch) { return ch.charCodeAt(0) >= 768 && extendingChars.test(ch) }
-
-  // Returns a number from the range [`0`; `str.length`] unless `pos` is outside that range.
   function skipExtendingChars(str, pos, dir) {
     while ((dir < 0 ? pos > 0 : pos < str.length) && isExtendingChar(str.charAt(pos))) { pos += dir; }
     return pos
   }
-
-  // Returns the value from the range [`from`; `to`] that satisfies
-  // `pred` and is closest to `from`. Assumes that at least `to`
-  // satisfies `pred`. Supports `from` being greater than `to`.
   function findFirst(pred, from, to) {
-    // At any point we are certain `to` satisfies `pred`, don't know
-    // whether `from` does.
     var dir = from > to ? -1 : 1;
     for (;;) {
       if (from == to) { return from }
@@ -309,9 +249,6 @@
       else { from = mid + dir; }
     }
   }
-
-  // BIDI HELPERS
-
   function iterateBidiSections(order, from, to, f) {
     if (!order) { return f(from, to, "ltr", 0) }
     var found = false;
@@ -324,7 +261,6 @@
     }
     if (!found) { f(from, to, "ltr"); }
   }
-
   var bidiOther = null;
   function getBidiPartAt(order, ch, sticky) {
     var found;
@@ -343,34 +279,8 @@
     }
     return found != null ? found : bidiOther
   }
-
-  // Bidirectional ordering algorithm
-  // See http://unicode.org/reports/tr9/tr9-13.html for the algorithm
-  // that this (partially) implements.
-
-  // One-char codes used for character types:
-  // L (L):   Left-to-Right
-  // R (R):   Right-to-Left
-  // r (AL):  Right-to-Left Arabic
-  // 1 (EN):  European Number
-  // + (ES):  European Number Separator
-  // % (ET):  European Number Terminator
-  // n (AN):  Arabic Number
-  // , (CS):  Common Number Separator
-  // m (NSM): Non-Spacing Mark
-  // b (BN):  Boundary Neutral
-  // s (B):   Paragraph Separator
-  // t (S):   Segment Separator
-  // w (WS):  Whitespace
-  // N (ON):  Other Neutrals
-
-  // Returns null if characters are ordered as they appear
-  // (left-to-right), or an array of sections ({from, to, level}
-  // objects) in the order in which they occur visually.
   var bidiOrdering = (function() {
-    // Character types for codepoints 0 to 0xff
     var lowTypes = "bbbbbbbbbtstwsbbbbbbbbbbbbbbssstwNN%%%NNNNNN,N,N1111111111NNNNNNNLLLLLLLLLLLLLLLLLLLLLLLLLLNNNNNNLLLLLLLLLLLLLLLLLLLLLLLLLLNNNNbbbbbbsbbbbbbbbbbbbbbbbbbbbbbbbbb,N%%%%NNNNLNNNNN%%11NLNNN1LNNNNNLLLLLLLLLLLLLLLLLLLLLLLNLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLN";
-    // Character types for codepoints 0x600 to 0x6f9
     var arabicTypes = "nnnnnnNNr%%r,rNNmmmmmmmmmmmrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrmmmmmmmmmmmmmmmmmmmmmnnnnnnnnnn%nnrrrmrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrmmmmmmmnNmmmmmmrrmmNmmmmrr1111111111";
     function charType(code) {
       if (code <= 0xf7) { return lowTypes.charAt(code) }
@@ -381,15 +291,12 @@
       else if (code == 0x200c) { return "b" }
       else { return "L" }
     }
-
     var bidiRE = /[\u0590-\u05f4\u0600-\u06ff\u0700-\u08ac]/;
     var isNeutral = /[stwN]/, isStrong = /[LRr]/, countsAsLeft = /[Lb1n]/, countsAsNum = /[1n]/;
-
     function BidiSpan(level, from, to) {
       this.level = level;
       this.from = from; this.to = to;
     }
-
     return function(str, direction) {
       var outerType = direction == "ltr" ? "L" : "R";
 
@@ -397,31 +304,16 @@
       var len = str.length, types = [];
       for (var i = 0; i < len; ++i)
         { types.push(charType(str.charCodeAt(i))); }
-
-      // W1. Examine each non-spacing mark (NSM) in the level run, and
-      // change the type of the NSM to the type of the previous
-      // character. If the NSM is at the start of the level run, it will
-      // get the type of sor.
       for (var i$1 = 0, prev = outerType; i$1 < len; ++i$1) {
         var type = types[i$1];
         if (type == "m") { types[i$1] = prev; }
         else { prev = type; }
       }
-
-      // W2. Search backwards from each instance of a European number
-      // until the first strong type (R, L, AL, or sor) is found. If an
-      // AL is found, change the type of the European number to Arabic
-      // number.
-      // W3. Change all ALs to R.
       for (var i$2 = 0, cur = outerType; i$2 < len; ++i$2) {
         var type$1 = types[i$2];
         if (type$1 == "1" && cur == "r") { types[i$2] = "n"; }
         else if (isStrong.test(type$1)) { cur = type$1; if (type$1 == "r") { types[i$2] = "R"; } }
       }
-
-      // W4. A single European separator between two European numbers
-      // changes to a European number. A single common separator between
-      // two numbers of the same type changes to that type.
       for (var i$3 = 1, prev$1 = types[0]; i$3 < len - 1; ++i$3) {
         var type$2 = types[i$3];
         if (type$2 == "+" && prev$1 == "1" && types[i$3+1] == "1") { types[i$3] = "1"; }
@@ -429,11 +321,6 @@
                  (prev$1 == "1" || prev$1 == "n")) { types[i$3] = prev$1; }
         prev$1 = type$2;
       }
-
-      // W5. A sequence of European terminators adjacent to European
-      // numbers changes to all European numbers.
-      // W6. Otherwise, separators and terminators change to Other
-      // Neutral.
       for (var i$4 = 0; i$4 < len; ++i$4) {
         var type$3 = types[i$4];
         if (type$3 == ",") { types[i$4] = "N"; }
@@ -445,22 +332,11 @@
           i$4 = end - 1;
         }
       }
-
-      // W7. Search backwards from each instance of a European number
-      // until the first strong type (R, L, or sor) is found. If an L is
-      // found, then change the type of the European number to L.
       for (var i$5 = 0, cur$1 = outerType; i$5 < len; ++i$5) {
         var type$4 = types[i$5];
         if (cur$1 == "L" && type$4 == "1") { types[i$5] = "L"; }
         else if (isStrong.test(type$4)) { cur$1 = type$4; }
       }
-
-      // N1. A sequence of neutrals takes the direction of the
-      // surrounding strong text if the text on both sides has the same
-      // direction. European and Arabic numbers act as if they were R in
-      // terms of their influence on neutrals. Start-of-level-run (sor)
-      // and end-of-level-run (eor) are used at level run boundaries.
-      // N2. Any remaining neutrals take the embedding direction.
       for (var i$6 = 0; i$6 < len; ++i$6) {
         if (isNeutral.test(types[i$6])) {
           var end$1 = (void 0);
@@ -472,12 +348,6 @@
           i$6 = end$1 - 1;
         }
       }
-
-      // Here we depart from the documented algorithm, in order to avoid
-      // building up an actual levels array. Since there are only three
-      // levels (0, 1, 2) in an implementation that doesn't take
-      // explicit embedding into account, we can build up the order on
-      // the fly, without following the level-based algorithm.
       var order = [], m;
       for (var i$7 = 0; i$7 < len;) {
         if (countsAsLeft.test(types[i$7])) {
@@ -514,23 +384,12 @@
       return direction == "rtl" ? order.reverse() : order
     }
   })();
-
-  // Get the bidi ordering for the given line (and cache it). Returns
-  // false for lines that are fully left-to-right, and an array of
-  // BidiSpan objects otherwise.
   function getOrder(line, direction) {
     var order = line.order;
     if (order == null) { order = line.order = bidiOrdering(line.text, direction); }
     return order
   }
-
-  // EVENT HANDLING
-
-  // Lightweight event framework. on/off also work on DOM nodes,
-  // registering native DOM handlers.
-
   var noHandlers = [];
-
   var on = function(emitter, type, f) {
     if (emitter.addEventListener) {
       emitter.addEventListener(type, f, false);
@@ -541,11 +400,9 @@
       map$$1[type] = (map$$1[type] || noHandlers).concat(f);
     }
   };
-
   function getHandlers(emitter, type) {
     return emitter._handlers && emitter._handlers[type] || noHandlers
   }
-
   function off(emitter, type, f) {
     if (emitter.removeEventListener) {
       emitter.removeEventListener(type, f, false);
@@ -560,24 +417,18 @@
       }
     }
   }
-
   function signal(emitter, type /*, values...*/) {
     var handlers = getHandlers(emitter, type);
     if (!handlers.length) { return }
     var args = Array.prototype.slice.call(arguments, 2);
     for (var i = 0; i < handlers.length; ++i) { handlers[i].apply(null, args); }
   }
-
-  // The DOM events that CodeMirror handles can be overridden by
-  // registering a (non-DOM) handler on the editor for the event name,
-  // and preventDefault-ing the event in that handler.
   function signalDOMEvent(cm, e, override) {
     if (typeof e == "string")
       { e = {type: e, preventDefault: function() { this.defaultPrevented = true; }}; }
     signal(cm, override || e.type, cm, e);
     return e_defaultPrevented(e) || e.codemirrorIgnore
   }
-
   function signalCursorActivity(cm) {
     var arr = cm._handlers && cm._handlers.cursorActivity;
     if (!arr) { return }
@@ -585,21 +436,13 @@
     for (var i = 0; i < arr.length; ++i) { if (indexOf(set, arr[i]) == -1)
       { set.push(arr[i]); } }
   }
-
   function hasHandler(emitter, type) {
     return getHandlers(emitter, type).length > 0
   }
-
-  // Add on and off methods to a constructor's prototype, to make
-  // registering events on such objects more convenient.
   function eventMixin(ctor) {
     ctor.prototype.on = function(type, f) {on(this, type, f);};
     ctor.prototype.off = function(type, f) {off(this, type, f);};
   }
-
-  // Due to the fact that we still support jurassic IE versions, some
-  // compatibility wrappers are needed.
-
   function e_preventDefault(e) {
     if (e.preventDefault) { e.preventDefault(); }
     else { e.returnValue = false; }
@@ -612,7 +455,6 @@
     return e.defaultPrevented != null ? e.defaultPrevented : e.returnValue == false
   }
   function e_stop(e) {e_preventDefault(e); e_stopPropagation(e);}
-
   function e_target(e) {return e.target || e.srcElement}
   function e_button(e) {
     var b = e.which;
@@ -624,16 +466,11 @@
     if (mac && e.ctrlKey && b == 1) { b = 3; }
     return b
   }
-
-  // Detect drag-and-drop
   var dragAndDrop = function() {
-    // There is *some* kind of drag-and-drop support in IE6-8, but I
-    // couldn't get it to work yet.
     if (ie && ie_version < 9) { return false }
     var div = elt('div');
     return "draggable" in div || "dragDrop" in div
   }();
-
   var zwspSupported;
   function zeroWidthElement(measure) {
     if (zwspSupported == null) {
@@ -647,8 +484,6 @@
     node.setAttribute("cm-text", "");
     return node
   }
-
-  // Feature-detect IE's crummy client rect reporting for bidi text
   var badBidiRects;
   function hasBadBidiRects(measure) {
     if (badBidiRects != null) { return badBidiRects }
@@ -659,9 +494,6 @@
     if (!r0 || r0.left == r0.right) { return false } // Safari returns null in some cases (#2780)
     return badBidiRects = (r1.right - r0.right < 3)
   }
-
-  // See if "".split is the broken IE version, if so, provide an
-  // alternative way to split lines.
   var splitLinesAuto = "\n\nb".split(/\n/).length != 3 ? function (string) {
     var pos = 0, result = [], l = string.length;
     while (pos <= l) {
@@ -679,7 +511,6 @@
     }
     return result
   } : function (string) { return string.split(/\r\n?|\n/); };
-
   var hasSelection = window.getSelection ? function (te) {
     try { return te.selectionStart != te.selectionEnd }
     catch(e) { return false }
@@ -690,14 +521,12 @@
     if (!range$$1 || range$$1.parentElement() != te) { return false }
     return range$$1.compareEndPoints("StartToEnd", range$$1) != 0
   };
-
   var hasCopyEvent = (function () {
     var e = elt("div");
     if ("oncopy" in e) { return true }
     e.setAttribute("oncopy", "return;");
     return typeof e.oncopy == "function"
   })();
-
   var badZoomedRects = null;
   function hasBadZoomedRects(measure) {
     if (badZoomedRects != null) { return badZoomedRects }
@@ -706,25 +535,15 @@
     var fromRange = range(node, 0, 1).getBoundingClientRect();
     return badZoomedRects = Math.abs(normal.left - fromRange.left) > 1
   }
-
-  // Known modes, by name and by MIME
   var modes = {}, mimeModes = {};
-
-  // Extra arguments are stored as the mode's dependencies, which is
-  // used by (legacy) mechanisms like loadmode.js to automatically
-  // load a mode. (Preferred mechanism is the require/define calls.)
   function defineMode(name, mode) {
     if (arguments.length > 2)
       { mode.dependencies = Array.prototype.slice.call(arguments, 2); }
     modes[name] = mode;
   }
-
   function defineMIME(mime, spec) {
     mimeModes[mime] = spec;
   }
-
-  // Given a MIME type, a {name, ...options} config object, or a name
-  // string, return a mode config object.
   function resolveMode(spec) {
     if (typeof spec == "string" && mimeModes.hasOwnProperty(spec)) {
       spec = mimeModes[spec];
@@ -741,9 +560,6 @@
     if (typeof spec == "string") { return {name: spec} }
     else { return spec || {name: "null"} }
   }
-
-  // Given a mode spec (anything that resolveMode accepts), find and
-  // initialize an actual mode object.
   function getMode(options, spec) {
     spec = resolveMode(spec);
     var mfactory = modes[spec.name];
@@ -764,15 +580,11 @@
 
     return modeObj
   }
-
-  // This can be used to attach properties to mode objects from
-  // outside the actual mode definition.
   var modeExtensions = {};
   function extendMode(mode, properties) {
     var exts = modeExtensions.hasOwnProperty(mode) ? modeExtensions[mode] : (modeExtensions[mode] = {});
     copyObj(properties, exts);
   }
-
   function copyState(mode, state) {
     if (state === true) { return state }
     if (mode.copyState) { return mode.copyState(state) }
@@ -784,9 +596,6 @@
     }
     return nstate
   }
-
-  // Given a mode and a state (for that mode), find the inner mode and
-  // state at the position that the state refers to.
   function innerMode(mode, state) {
     var info;
     while (mode.innerMode) {
@@ -797,16 +606,9 @@
     }
     return info || {mode: mode, state: state}
   }
-
   function startState(mode, a1, a2) {
     return mode.startState ? mode.startState(a1, a2) : true
   }
-
-  // STRING STREAM
-
-  // Fed to the mode parsers, provides helper functions to make
-  // parsers more succinct.
-
   var StringStream = function(string, tabSize, lineOracle) {
     this.pos = this.start = 0;
     this.string = string;
@@ -815,7 +617,6 @@
     this.lineStart = 0;
     this.lineOracle = lineOracle;
   };
-
   StringStream.prototype.eol = function () {return this.pos >= this.string.length};
   StringStream.prototype.sol = function () {return this.pos == this.lineStart};
   StringStream.prototype.peek = function () {return this.string.charAt(this.pos) || undefined};
@@ -888,8 +689,6 @@
     var oracle = this.lineOracle;
     return oracle && oracle.baseToken(this.pos)
   };
-
-  // Find the line object corresponding to the given line number.
   function getLine(doc, n) {
     n -= doc.first;
     if (n < 0 || n >= doc.size) { throw new Error("There is no line " + (n + doc.first) + " in the document.") }
@@ -903,9 +702,6 @@
     }
     return chunk.lines[n]
   }
-
-  // Get the part of a document between two positions, as an array of
-  // strings.
   function getBetween(doc, start, end) {
     var out = [], n = start.line;
     doc.iter(start.line, end.line + 1, function (line) {
@@ -917,22 +713,15 @@
     });
     return out
   }
-  // Get the lines between from and to, as array of strings.
   function getLines(doc, from, to) {
     var out = [];
     doc.iter(from, to, function (line) { out.push(line.text); }); // iter aborts when callback returns truthy value
     return out
   }
-
-  // Update the height of a line, propagating the height change
-  // upwards to parent nodes.
   function updateLineHeight(line, height) {
     var diff = height - line.height;
     if (diff) { for (var n = line; n; n = n.parent) { n.height += diff; } }
   }
-
-  // Given a line object, find its line number by walking up through
-  // its parent links.
   function lineNo(line) {
     if (line.parent == null) { return null }
     var cur = line.parent, no = indexOf(cur.lines, line);
@@ -944,9 +733,6 @@
     }
     return no + cur.first
   }
-
-  // Find the line at the given vertical position, using the height
-  // information in the document tree.
   function lineAtHeight(chunk, h) {
     var n = chunk.first;
     outer: do {
@@ -966,14 +752,10 @@
     }
     return n + i
   }
-
   function isLine(doc, l) {return l >= doc.first && l < doc.first + doc.size}
-
   function lineNumberFor(options, i) {
     return String(options.lineNumberFormatter(i + options.firstLineNumber))
   }
-
-  // A Pos instance represents a position within the text.
   function Pos(line, ch, sticky) {
     if ( sticky === void 0 ) sticky = null;
 
@@ -982,19 +764,11 @@
     this.ch = ch;
     this.sticky = sticky;
   }
-
-  // Compare two positions, return 0 if they are the same, a negative
-  // number when a is less, and a positive number otherwise.
   function cmp(a, b) { return a.line - b.line || a.ch - b.ch }
-
   function equalCursorPos(a, b) { return a.sticky == b.sticky && cmp(a, b) == 0 }
-
   function copyPos(x) {return Pos(x.line, x.ch)}
   function maxPos(a, b) { return cmp(a, b) < 0 ? b : a }
   function minPos(a, b) { return cmp(a, b) < 0 ? a : b }
-
-  // Most of the external API clips given positions to make sure they
-  // actually exist within the document.
   function clipLine(doc, n) {return Math.max(doc.first, Math.min(n, doc.first + doc.size - 1))}
   function clipPos(doc, pos) {
     if (pos.line < doc.first) { return Pos(doc.first, 0) }
@@ -1013,12 +787,10 @@
     for (var i = 0; i < array.length; i++) { out[i] = clipPos(doc, array[i]); }
     return out
   }
-
   var SavedContext = function(state, lookAhead) {
     this.state = state;
     this.lookAhead = lookAhead;
   };
-
   var Context = function(doc, state, line, lookAhead) {
     this.state = state;
     this.doc = doc;
@@ -1027,16 +799,13 @@
     this.baseTokens = null;
     this.baseTokenPos = 1;
   };
-
   Context.prototype.lookAhead = function (n) {
     var line = this.doc.getLine(this.line + n);
     if (line != null && n > this.maxLookAhead) { this.maxLookAhead = n; }
     return line
   };
-
   Context.prototype.baseToken = function (n) {
       var this$1 = this;
-
     if (!this.baseTokens) { return null }
     while (this.baseTokens[this.baseTokenPos] <= n)
       { this$1.baseTokenPos += 2; }
@@ -1044,46 +813,31 @@
     return {type: type && type.replace(/( |^)overlay .*/, ""),
             size: this.baseTokens[this.baseTokenPos] - n}
   };
-
   Context.prototype.nextLine = function () {
     this.line++;
     if (this.maxLookAhead > 0) { this.maxLookAhead--; }
   };
-
   Context.fromSaved = function (doc, saved, line) {
     if (saved instanceof SavedContext)
       { return new Context(doc, copyState(doc.mode, saved.state), line, saved.lookAhead) }
     else
       { return new Context(doc, copyState(doc.mode, saved), line) }
   };
-
   Context.prototype.save = function (copy) {
     var state = copy !== false ? copyState(this.doc.mode, this.state) : this.state;
     return this.maxLookAhead > 0 ? new SavedContext(state, this.maxLookAhead) : state
   };
-
-
-  // Compute a style array (an array starting with a mode generation
-  // -- for invalidation -- followed by pairs of end positions and
-  // style strings), which is used to highlight the tokens on the
-  // line.
   function highlightLine(cm, line, context, forceToEnd) {
-    // A styles array always starts with a number identifying the
-    // mode/overlays that it is based on (for easy invalidation).
     var st = [cm.state.modeGen], lineClasses = {};
-    // Compute the base array of styles
     runMode(cm, line.text, cm.doc.mode, context, function (end, style) { return st.push(end, style); },
             lineClasses, forceToEnd);
     var state = context.state;
-
-    // Run overlays, adjust style array.
     var loop = function ( o ) {
       context.baseTokens = st;
       var overlay = cm.state.overlays[o], i = 1, at = 0;
       context.state = true;
       runMode(cm, line.text, overlay.mode, context, function (end, style) {
         var start = i;
-        // Ensure there's a token end at the current position, and that i points at it
         while (at < end) {
           var i_end = st[i];
           if (i_end > end)
@@ -1106,12 +860,9 @@
       context.baseTokens = null;
       context.baseTokenPos = 1;
     };
-
     for (var o = 0; o < cm.state.overlays.length; ++o) loop( o );
-
     return {styles: st, classes: lineClasses.bgClass || lineClasses.textClass ? lineClasses : null}
   }
-
   function getLineStyles(cm, line, updateFrontier) {
     if (!line.styles || line.styles[0] != cm.state.modeGen) {
       var context = getContextBefore(cm, lineNo(line));
@@ -1127,14 +878,12 @@
     }
     return line.styles
   }
-
   function getContextBefore(cm, n, precise) {
     var doc = cm.doc, display = cm.display;
     if (!doc.mode.startState) { return new Context(doc, true, n) }
     var start = findStartLine(cm, n, precise);
     var saved = start > doc.first && getLine(doc, start - 1).stateAfter;
     var context = saved ? Context.fromSaved(doc, saved, start) : new Context(doc, startState(doc.mode), start);
-
     doc.iter(start, n, function (line) {
       processLine(cm, line.text, context);
       var pos = context.line;
@@ -1144,10 +893,6 @@
     if (precise) { doc.modeFrontier = context.line; }
     return context
   }
-
-  // Lightweight form of highlight -- proceed over this line and
-  // update state, but don't save a style array. Used for lines that
-  // aren't currently visible.
   function processLine(cm, text, context, startAt) {
     var mode = cm.doc.mode;
     var stream = new StringStream(text, cm.options.tabSize, context);
@@ -1158,14 +903,12 @@
       stream.start = stream.pos;
     }
   }
-
   function callBlankLine(mode, state) {
     if (mode.blankLine) { return mode.blankLine(state) }
     if (!mode.innerMode) { return }
     var inner = innerMode(mode, state);
     if (inner.mode.blankLine) { return inner.mode.blankLine(inner.state) }
   }
-
   function readToken(mode, stream, state, inner) {
     for (var i = 0; i < 10; i++) {
       if (inner) { inner[0] = innerMode(mode, state).mode; }
@@ -1174,15 +917,12 @@
     }
     throw new Error("Mode " + mode.name + " failed to advance stream.")
   }
-
   var Token = function(stream, type, state) {
     this.start = stream.start; this.end = stream.pos;
     this.string = stream.current();
     this.type = type || null;
     this.state = state;
   };
-
-  // Utility for getTokenAt and getLineTokens
   function takeToken(cm, pos, precise, asArray) {
     var doc = cm.doc, mode = doc.mode, style;
     pos = clipPos(doc, pos);
@@ -1196,7 +936,6 @@
     }
     return asArray ? tokens : new Token(stream, style, context.state)
   }
-
   function extractLineClasses(type, output) {
     if (type) { for (;;) {
       var lineClass = type.match(/(?:^|\s+)line-(background-)?(\S+)/);
@@ -1210,8 +949,6 @@
     } }
     return type
   }
-
-  // Run the given mode's parser over a line, calling f for each token.
   function runMode(cm, text, mode, context, f, lineClasses, forceToEnd) {
     var flattenSpans = mode.flattenSpans;
     if (flattenSpans == null) { flattenSpans = cm.options.flattenSpans; }
@@ -1242,20 +979,11 @@
       stream.start = stream.pos;
     }
     while (curStart < stream.pos) {
-      // Webkit seems to refuse to render text nodes longer than 57444
-      // characters, and returns inaccurate measurements in nodes
-      // starting around 5000 chars.
       var pos = Math.min(stream.pos, curStart + 5000);
       f(pos, curStyle);
       curStart = pos;
     }
   }
-
-  // Finds the line to start with when starting a parse. Tries to
-  // find a line with a stateAfter, so that it can start with a
-  // valid state. If that fails, it returns the line with the
-  // smallest indentation, which tends to need the least context to
-  // parse correctly.
   function findStartLine(cm, n, precise) {
     var minindent, minline, doc = cm.doc;
     var lim = precise ? -1 : n - (cm.doc.mode.innerMode ? 1000 : 100);
@@ -1272,16 +1000,12 @@
     }
     return minline
   }
-
   function retreatFrontier(doc, n) {
     doc.modeFrontier = Math.min(doc.modeFrontier, n);
     if (doc.highlightFrontier < n - 10) { return }
     var start = doc.first;
     for (var line = n - 1; line > start; line--) {
       var saved = getLine(doc, line).stateAfter;
-      // change is on 3
-      // state on line 1 looked ahead 2 -- so saw 3
-      // test 1 + 2 < 3 should cover this
       if (saved && (!(saved instanceof SavedContext) || line + saved.lookAhead < n)) {
         start = line + 1;
         break
@@ -1289,50 +1013,33 @@
     }
     doc.highlightFrontier = Math.min(doc.highlightFrontier, start);
   }
-
-  // Optimize some code when these features are not used.
   var sawReadOnlySpans = false, sawCollapsedSpans = false;
-
   function seeReadOnlySpans() {
     sawReadOnlySpans = true;
   }
-
   function seeCollapsedSpans() {
     sawCollapsedSpans = true;
   }
-
-  // TEXTMARKER SPANS
-
   function MarkedSpan(marker, from, to) {
     this.marker = marker;
     this.from = from; this.to = to;
   }
-
-  // Search an array of spans for a span matching the given marker.
   function getMarkedSpanFor(spans, marker) {
     if (spans) { for (var i = 0; i < spans.length; ++i) {
       var span = spans[i];
       if (span.marker == marker) { return span }
     } }
   }
-  // Remove a span from an array, returning undefined if no spans are
-  // left (we don't store arrays for lines without spans).
   function removeMarkedSpan(spans, span) {
     var r;
     for (var i = 0; i < spans.length; ++i)
       { if (spans[i] != span) { (r || (r = [])).push(spans[i]); } }
     return r
   }
-  // Add a span to a line.
   function addMarkedSpan(line, span) {
     line.markedSpans = line.markedSpans ? line.markedSpans.concat([span]) : [span];
     span.marker.attachLine(line);
   }
-
-  // Used for the algorithm that adjusts markers for a change in the
-  // document. These functions cut an array of spans at a given
-  // character position, returning an array of remaining chunks (or
-  // undefined if nothing remains).
   function markedSpansBefore(old, startCh, isInsert) {
     var nw;
     if (old) { for (var i = 0; i < old.length; ++i) {
@@ -1358,28 +1065,16 @@
     } }
     return nw
   }
-
-  // Given a change object, compute the new set of marker spans that
-  // cover the line in which the change took place. Removes spans
-  // entirely within the change, reconnects spans belonging to the
-  // same marker that appear on both sides of the change, and cuts off
-  // spans partially within the change. Returns an array of span
-  // arrays with one element for each line in (after) the change.
   function stretchSpansOverChange(doc, change) {
     if (change.full) { return null }
     var oldFirst = isLine(doc, change.from.line) && getLine(doc, change.from.line).markedSpans;
     var oldLast = isLine(doc, change.to.line) && getLine(doc, change.to.line).markedSpans;
     if (!oldFirst && !oldLast) { return null }
-
     var startCh = change.from.ch, endCh = change.to.ch, isInsert = cmp(change.from, change.to) == 0;
-    // Get the spans that 'stick out' on both sides
     var first = markedSpansBefore(oldFirst, startCh, isInsert);
     var last = markedSpansAfter(oldLast, endCh, isInsert);
-
-    // Next, merge those two ends
     var sameLine = change.text.length == 1, offset = lst(change.text).length + (sameLine ? startCh : 0);
     if (first) {
-      // Fix up .to properties of first
       for (var i = 0; i < first.length; ++i) {
         var span = first[i];
         if (span.to == null) {
@@ -1390,7 +1085,6 @@
       }
     }
     if (last) {
-      // Fix up .from in last (or move them into first in case of sameLine)
       for (var i$1 = 0; i$1 < last.length; ++i$1) {
         var span$1 = last[i$1];
         if (span$1.to != null) { span$1.to += offset; }
@@ -1406,13 +1100,10 @@
         }
       }
     }
-    // Make sure we didn't create any zero-length spans
     if (first) { first = clearEmptySpans(first); }
     if (last && last != first) { last = clearEmptySpans(last); }
-
     var newMarkers = [first];
     if (!sameLine) {
-      // Fill gap with whole-line-spans
       var gap = change.text.length - 2, gapMarkers;
       if (gap > 0 && first)
         { for (var i$2 = 0; i$2 < first.length; ++i$2)
@@ -1424,9 +1115,6 @@
     }
     return newMarkers
   }
-
-  // Remove spans that are empty and don't have a clearWhenEmpty
-  // option of false.
   function clearEmptySpans(spans) {
     for (var i = 0; i < spans.length; ++i) {
       var span = spans[i];
@@ -1436,8 +1124,6 @@
     if (!spans.length) { return null }
     return spans
   }
-
-  // Used to 'clip' out readOnly ranges when making a change.
   function removeReadOnlyRanges(doc, from, to) {
     var markers = null;
     doc.iter(from.line, to.line + 1, function (line) {
@@ -1465,8 +1151,6 @@
     }
     return parts
   }
-
-  // Connect or disconnect spans from a line.
   function detachMarkedSpans(line) {
     var spans = line.markedSpans;
     if (!spans) { return }
@@ -1480,15 +1164,8 @@
       { spans[i].marker.attachLine(line); }
     line.markedSpans = spans;
   }
-
-  // Helpers used when computing which overlapping collapsed span
-  // counts as the larger one.
   function extraLeft(marker) { return marker.inclusiveLeft ? -1 : 0 }
   function extraRight(marker) { return marker.inclusiveRight ? 1 : 0 }
-
-  // Returns a number indicating which of two overlapping collapsed
-  // spans is larger (and thus includes the other). Falls back to
-  // comparing ids when the spans cover exactly the same range.
   function compareCollapsedMarkers(a, b) {
     var lenDiff = a.lines.length - b.lines.length;
     if (lenDiff != 0) { return lenDiff }
@@ -1499,9 +1176,6 @@
     if (toCmp) { return toCmp }
     return b.id - a.id
   }
-
-  // Find out whether a line ends or starts in a collapsed span. If
-  // so, return the marker for that span.
   function collapsedSpanAtSide(line, start) {
     var sps = sawCollapsedSpans && line.markedSpans, found;
     if (sps) { for (var sp = (void 0), i = 0; i < sps.length; ++i) {
@@ -1514,7 +1188,6 @@
   }
   function collapsedSpanAtStart(line) { return collapsedSpanAtSide(line, true) }
   function collapsedSpanAtEnd(line) { return collapsedSpanAtSide(line, false) }
-
   function collapsedSpanAround(line, ch) {
     var sps = sawCollapsedSpans && line.markedSpans, found;
     if (sps) { for (var i = 0; i < sps.length; ++i) {
@@ -1524,10 +1197,6 @@
     } }
     return found
   }
-
-  // Test whether there exists a collapsed span that partially
-  // overlaps (covers the start or end, but not both) of a new span.
-  // Such overlap is not allowed.
   function conflictingCollapsedRange(doc, lineNo$$1, from, to, marker) {
     var line = getLine(doc, lineNo$$1);
     var sps = sawCollapsedSpans && line.markedSpans;
@@ -1543,27 +1212,18 @@
         { return true }
     } }
   }
-
-  // A visual line is a line as drawn on the screen. Folding, for
-  // example, can cause multiple logical lines to appear on the same
-  // visual line. This finds the start of the visual line that the
-  // given line is part of (usually that is the line itself).
   function visualLine(line) {
     var merged;
     while (merged = collapsedSpanAtStart(line))
       { line = merged.find(-1, true).line; }
     return line
   }
-
   function visualLineEnd(line) {
     var merged;
     while (merged = collapsedSpanAtEnd(line))
       { line = merged.find(1, true).line; }
     return line
   }
-
-  // Returns an array of logical lines that continue the visual line
-  // started by the argument, or undefined if there are no such lines.
   function visualLineContinued(line) {
     var merged, lines;
     while (merged = collapsedSpanAtEnd(line)) {
@@ -1572,17 +1232,11 @@
     }
     return lines
   }
-
-  // Get the line number of the start of the visual line that the
-  // given line number is part of.
   function visualLineNo(doc, lineN) {
     var line = getLine(doc, lineN), vis = visualLine(line);
     if (line == vis) { return lineN }
     return lineNo(vis)
   }
-
-  // Get the line number of the start of the next visual line after
-  // the given line.
   function visualLineEndNo(doc, lineN) {
     if (lineN > doc.lastLine()) { return lineN }
     var line = getLine(doc, lineN), merged;
@@ -1591,10 +1245,6 @@
       { line = merged.find(1, true).line; }
     return lineNo(line) + 1
   }
-
-  // Compute whether a line is hidden. Lines count as hidden when they
-  // are part of a visual line that starts with another line, or when
-  // they are entirely covered by collapsed, non-widget span.
   function lineIsHidden(doc, line) {
     var sps = sawCollapsedSpans && line.markedSpans;
     if (sps) { for (var sp = (void 0), i = 0; i < sps.length; ++i) {
@@ -1621,8 +1271,6 @@
           lineIsHiddenInner(doc, line, sp)) { return true }
     }
   }
-
-  // Find the height above the given line.
   function heightAtLine(lineObj) {
     lineObj = visualLine(lineObj);
 
@@ -1641,10 +1289,6 @@
     }
     return h
   }
-
-  // Compute the character length of a line, taking into account
-  // collapsed ranges (see markText) that might hide parts, and join
-  // other lines onto it.
   function lineLength(line) {
     if (line.height == 0) { return 0 }
     var len = line.text.length, merged, cur = line;
@@ -1662,8 +1306,6 @@
     }
     return len
   }
-
-  // Find the longest line in the document.
   function findMaxLine(cm) {
     var d = cm.display, doc = cm.doc;
     d.maxLine = getLine(doc, doc.first);
@@ -1677,11 +1319,6 @@
       }
     });
   }
-
-  // LINE DATA STRUCTURE
-
-  // Line objects. These hold state related to a line, including
-  // highlighting info (the styles array).
   var Line = function(text, markedSpans, estimateHeight) {
     this.text = text;
     attachMarkedSpans(this, markedSpans);
@@ -1690,10 +1327,6 @@
 
   Line.prototype.lineNo = function () { return lineNo(this) };
   eventMixin(Line);
-
-  // Change the content (text, markers) of a line. Automatically
-  // invalidates cached information and tries to re-estimate the
-  // line's height.
   function updateLine(line, text, markedSpans, estimateHeight) {
     line.text = text;
     if (line.stateAfter) { line.stateAfter = null; }
@@ -1704,16 +1337,10 @@
     var estHeight = estimateHeight ? estimateHeight(line) : 1;
     if (estHeight != line.height) { updateLineHeight(line, estHeight); }
   }
-
-  // Detach a line from the document tree and its markers.
   function cleanUpLine(line) {
     line.parent = null;
     detachMarkedSpans(line);
   }
-
-  // Convert a style as returned by a mode (either null, or a string
-  // containing one or more styles) to a CSS style. This is cached,
-  // and also looks for line-wide styles.
   var styleToClassCache = {}, styleToClassCacheWithMode = {};
   function interpretTokenStyle(style, options) {
     if (!style || /^\s*$/.test(style)) { return null }
@@ -1721,30 +1348,17 @@
     return cache[style] ||
       (cache[style] = style.replace(/\S+/g, "cm-$&"))
   }
-
-  // Render the DOM representation of the text of a line. Also builds
-  // up a 'line map', which points at the DOM nodes that represent
-  // specific stretches of text, and is used by the measuring code.
-  // The returned object contains the DOM node, this map, and
-  // information about line-wide styles that were set by the mode.
   function buildLineContent(cm, lineView) {
-    // The padding-right forces the element to have a 'border', which
-    // is needed on Webkit to be able to get line-level bounding
-    // rectangles for it (in measureChar).
     var content = eltP("span", null, null, webkit ? "padding-right: .1px" : null);
     var builder = {pre: eltP("pre", [content], "CodeMirror-line"), content: content,
                    col: 0, pos: 0, cm: cm,
                    trailingSpace: false,
                    splitSpaces: cm.getOption("lineWrapping")};
     lineView.measure = {};
-
-    // Iterate over the logical lines that make up this visual line.
     for (var i = 0; i <= (lineView.rest ? lineView.rest.length : 0); i++) {
       var line = i ? lineView.rest[i - 1] : lineView.line, order = (void 0);
       builder.pos = 0;
       builder.addToken = buildToken;
-      // Optionally wire in some hacks into the token-rendering
-      // algorithm, to deal with browser quirks.
       if (hasBadBidiRects(cm.display.measure) && (order = getOrder(line, cm.doc.direction)))
         { builder.addToken = buildTokenBadBidi(builder.addToken, order); }
       builder.map = [];
@@ -1756,12 +1370,8 @@
         if (line.styleClasses.textClass)
           { builder.textClass = joinClasses(line.styleClasses.textClass, builder.textClass || ""); }
       }
-
-      // Ensure at least a single node is present, for measuring.
       if (builder.map.length == 0)
         { builder.map.push(0, 0, builder.content.appendChild(zeroWidthElement(cm.display.measure))); }
-
-      // Store the map and a cache object for the current logical line
       if (i == 0) {
         lineView.measure.map = builder.map;
         lineView.measure.cache = {};
@@ -1770,30 +1380,23 @@
         ;(lineView.measure.caches || (lineView.measure.caches = [])).push({});
       }
     }
-
-    // See issue #2901
     if (webkit) {
       var last = builder.content.lastChild;
       if (/\bcm-tab\b/.test(last.className) || (last.querySelector && last.querySelector(".cm-tab")))
         { builder.content.className = "cm-tab-wrap-hack"; }
     }
-
     signal(cm, "renderLine", cm, lineView.line, builder.pre);
     if (builder.pre.className)
       { builder.textClass = joinClasses(builder.pre.className, builder.textClass || ""); }
 
     return builder
   }
-
   function defaultSpecialCharPlaceholder(ch) {
     var token = elt("span", "\u2022", "cm-invalidchar");
     token.title = "\\u" + ch.charCodeAt(0).toString(16);
     token.setAttribute("aria-label", token.title);
     return token
   }
-
-  // Build up the DOM representation for a single token, and add it to
-  // the line map. Takes care to render special characters separately.
   function buildToken(builder, text, style, startStyle, endStyle, css, attributes) {
     if (!text) { return }
     var displayText = builder.splitSpaces ? splitSpaces(text, builder.trailingSpace) : text;
@@ -1858,9 +1461,6 @@
     }
     builder.content.appendChild(content);
   }
-
-  // Change some spaces to NBSP to prevent the browser from collapsing
-  // trailing spaces at the end of a line when rendering text (issue #1362).
   function splitSpaces(text, trailingBefore) {
     if (text.length > 1 && !/  /.test(text)) { return text }
     var spaceBefore = trailingBefore, result = "";
@@ -1873,15 +1473,11 @@
     }
     return result
   }
-
-  // Work around nonsense dimensions being reported for stretches of
-  // right-to-left text.
   function buildTokenBadBidi(inner, order) {
     return function (builder, text, style, startStyle, endStyle, css, attributes) {
       style = style ? style + " cm-force-border" : "cm-force-border";
       var start = builder.pos, end = start + text.length;
       for (;;) {
-        // Find the part that overlaps with the start of this text
         var part = (void 0);
         for (var i = 0; i < order.length; i++) {
           part = order[i];
@@ -1895,7 +1491,6 @@
       }
     }
   }
-
   function buildCollapsedSpan(builder, size, marker, ignoreWidget) {
     var widget = !ignoreWidget && marker.widgetNode;
     if (widget) { builder.map.push(builder.pos, builder.pos + size, widget); }
@@ -1911,9 +1506,6 @@
     builder.pos += size;
     builder.trailingSpace = false;
   }
-
-  // Outputs a number of spans to make up a line, taking highlighting
-  // and marked text into account.
   function insertLineContent(line, builder, styles) {
     var spans = line.markedSpans, allText = line.text, at = 0;
     if (!spans) {
@@ -1943,8 +1535,7 @@
             if (m.css) { css = (css ? css + ";" : "") + m.css; }
             if (m.startStyle && sp.from == pos) { spanStartStyle += " " + m.startStyle; }
             if (m.endStyle && sp.to == nextChange) { (endStyles || (endStyles = [])).push(m.endStyle, sp.to); }
-            // support for the old title property
-            // https://github.com/codemirror/CodeMirror/pull/5673
+
             if (m.title) { (attributes || (attributes = {})).title = m.title; }
             if (m.attributes) {
               for (var attr in m.attributes)
@@ -1969,7 +1560,6 @@
         }
       }
       if (pos >= len) { break }
-
       var upto = Math.min(len, nextChange);
       while (true) {
         if (text) {
@@ -1988,23 +1578,13 @@
       }
     }
   }
-
-
-  // These objects are used to represent the visible (currently drawn)
-  // part of the document. A LineView may correspond to multiple
-  // logical lines, if those are connected by collapsed ranges.
   function LineView(doc, line, lineN) {
-    // The starting line
     this.line = line;
-    // Continuing lines, if any
     this.rest = visualLineContinued(line);
-    // Number of logical lines in this visual line
     this.size = this.rest ? lineNo(lst(this.rest)) - lineN + 1 : 1;
     this.node = this.text = null;
     this.hidden = lineIsHidden(doc, line);
   }
-
-  // Create a range of LineView objects for the given lines.
   function buildViewArray(cm, from, to) {
     var array = [], nextPos;
     for (var pos = from; pos < to; pos = nextPos) {
@@ -2014,9 +1594,7 @@
     }
     return array
   }
-
   var operationGroup = null;
-
   function pushOperation(op) {
     if (operationGroup) {
       operationGroup.ops.push(op);
@@ -2027,10 +1605,7 @@
       };
     }
   }
-
   function fireCallbacksForOps(group) {
-    // Calls delayed callbacks and cursorActivity handlers until no
-    // new ones appear
     var callbacks = group.delayedCallbacks, i = 0;
     do {
       for (; i < callbacks.length; i++)
@@ -2043,7 +1618,6 @@
       }
     } while (i < callbacks.length)
   }
-
   function finishOperation(op, endCb) {
     var group = op.ownsGroup;
     if (!group) { return }
@@ -2054,16 +1628,7 @@
       endCb(group);
     }
   }
-
   var orphanDelayedCallbacks = null;
-
-  // Often, we want to signal events at a point where we are in the
-  // middle of some work, but don't want the handler to start calling
-  // other methods on the editor, which might be in an inconsistent
-  // state or simply not expect any other events to happen.
-  // signalLater looks whether there are any handlers, and schedules
-  // them to be executed when the last operation ends, or, if no
-  // operation is active, when a timeout fires.
   function signalLater(emitter, type /*, values...*/) {
     var arr = getHandlers(emitter, type);
     if (!arr.length) { return }
@@ -2079,20 +1644,14 @@
     var loop = function ( i ) {
       list.push(function () { return arr[i].apply(null, args); });
     };
-
     for (var i = 0; i < arr.length; ++i)
       loop( i );
   }
-
   function fireOrphanDelayed() {
     var delayed = orphanDelayedCallbacks;
     orphanDelayedCallbacks = null;
     for (var i = 0; i < delayed.length; ++i) { delayed[i](); }
   }
-
-  // When an aspect of a line changes, a string is added to
-  // lineView.changes. This updates the relevant part of the line's
-  // DOM structure.
   function updateLineForChanges(cm, lineView, lineN, dims) {
     for (var j = 0; j < lineView.changes.length; j++) {
       var type = lineView.changes[j];
@@ -2103,9 +1662,6 @@
     }
     lineView.changes = null;
   }
-
-  // Lines with gutter elements, widgets or a background class need to
-  // be wrapped, and have the extra elements added to the wrapper div
   function ensureLineWrapped(lineView) {
     if (lineView.node == lineView.text) {
       lineView.node = elt("div", null, null, "position: relative");
@@ -2116,7 +1672,6 @@
     }
     return lineView.node
   }
-
   function updateLineBackground(cm, lineView) {
     var cls = lineView.bgClass ? lineView.bgClass + " " + (lineView.line.bgClass || "") : lineView.line.bgClass;
     if (cls) { cls += " CodeMirror-linebackground"; }
@@ -2129,9 +1684,6 @@
       cm.display.input.setUneditable(lineView.background);
     }
   }
-
-  // Wrapper around buildLineContent which will reuse the structure
-  // in display.externalMeasured when possible.
   function getLineContent(cm, lineView) {
     var ext = cm.display.externalMeasured;
     if (ext && ext.line == lineView.line) {
@@ -2141,10 +1693,6 @@
     }
     return buildLineContent(cm, lineView)
   }
-
-  // Redraw the line's text. Interacts with the background and text
-  // classes because the mode may output tokens that influence these
-  // classes.
   function updateLineText(cm, lineView) {
     var cls = lineView.text.className;
     var built = getLineContent(cm, lineView);
@@ -2159,7 +1707,6 @@
       lineView.text.className = cls;
     }
   }
-
   function updateLineClasses(cm, lineView) {
     updateLineBackground(cm, lineView);
     if (lineView.line.wrapClass)
@@ -2169,7 +1716,6 @@
     var textClass = lineView.textClass ? lineView.textClass + " " + (lineView.line.textClass || "") : lineView.line.textClass;
     lineView.text.className = textClass || "";
   }
-
   function updateLineGutter(cm, lineView, lineN, dims) {
     if (lineView.gutter) {
       lineView.node.removeChild(lineView.gutter);
@@ -2207,7 +1753,6 @@
       } }
     }
   }
-
   function updateLineWidgets(cm, lineView, dims) {
     if (lineView.alignable) { lineView.alignable = null; }
     var isWidget = classTest("CodeMirror-linewidget");
@@ -2217,8 +1762,6 @@
     }
     insertLineWidgets(cm, lineView, dims);
   }
-
-  // Build a line's DOM representation from scratch
   function buildLineElement(cm, lineView, lineN, dims) {
     var built = getLineContent(cm, lineView);
     lineView.text = lineView.node = built.pre;
@@ -2230,15 +1773,11 @@
     insertLineWidgets(cm, lineView, dims);
     return lineView.node
   }
-
-  // A lineView may contain multiple logical lines (when merged by
-  // collapsed spans). The widgets for all of them need to be drawn.
   function insertLineWidgets(cm, lineView, dims) {
     insertLineWidgetsFor(cm, lineView.line, lineView, dims, true);
     if (lineView.rest) { for (var i = 0; i < lineView.rest.length; i++)
       { insertLineWidgetsFor(cm, lineView.rest[i], lineView, dims, false); } }
   }
-
   function insertLineWidgetsFor(cm, line, lineView, dims, allowAbove) {
     if (!line.widgets) { return }
     var wrap = ensureLineWrapped(lineView);
@@ -2254,7 +1793,6 @@
       signalLater(widget, "redraw");
     }
   }
-
   function positionLineWidget(widget, node, lineView, dims) {
     if (widget.noHScroll) {
   (lineView.alignable || (lineView.alignable = [])).push(node);
@@ -2272,7 +1810,6 @@
       if (!widget.noHScroll) { node.style.marginLeft = -dims.gutterTotalWidth + "px"; }
     }
   }
-
   function widgetHeight(widget) {
     if (widget.height != null) { return widget.height }
     var cm = widget.doc.cm;
@@ -2287,8 +1824,6 @@
     }
     return widget.height = widget.node.parentNode.offsetHeight
   }
-
-  // Return true when the given mouse event happened in a widget
   function eventInWidget(display, e) {
     for (var n = e_target(e); n != display.wrapper; n = n.parentNode) {
       if (!n || (n.nodeType == 1 && n.getAttribute("cm-ignore-events") == "true") ||
@@ -2296,9 +1831,6 @@
         { return true }
     }
   }
-
-  // POSITION MEASUREMENT
-
   function paddingTop(display) {return display.lineSpace.offsetTop}
   function paddingVert(display) {return display.mover.offsetHeight - display.lineSpace.offsetHeight}
   function paddingH(display) {
@@ -2309,7 +1841,6 @@
     if (!isNaN(data.left) && !isNaN(data.right)) { display.cachedPaddingH = data; }
     return data
   }
-
   function scrollGap(cm) { return scrollerGap - cm.display.nativeBarWidth }
   function displayWidth(cm) {
     return cm.display.scroller.clientWidth - scrollGap(cm) - cm.display.barWidth
@@ -2317,11 +1848,6 @@
   function displayHeight(cm) {
     return cm.display.scroller.clientHeight - scrollGap(cm) - cm.display.barHeight
   }
-
-  // Ensure the lineView.wrapping.heights array is populated. This is
-  // an array of bottom offsets for the lines that make up a drawn
-  // line. When lineWrapping is on, there might be more than one
-  // height.
   function ensureLineHeights(cm, lineView, rect) {
     var wrapping = cm.options.lineWrapping;
     var curWidth = wrapping && displayWidth(cm);
@@ -2339,10 +1865,6 @@
       heights.push(rect.bottom - rect.top);
     }
   }
-
-  // Find a line map (mapping character offsets to text nodes) and a
-  // measurement cache for the given line number. (A line view might
-  // contain multiple lines when collapsed ranges are present.)
   function mapFromLineView(lineView, line, lineN) {
     if (lineView.line == line)
       { return {map: lineView.measure.map, cache: lineView.measure.cache} }
@@ -2353,9 +1875,6 @@
       { if (lineNo(lineView.rest[i$1]) > lineN)
         { return {map: lineView.measure.maps[i$1], cache: lineView.measure.caches[i$1], before: true} } }
   }
-
-  // Render a line into the hidden node display.externalMeasured. Used
-  // when measurement is needed for a line that's not in the viewport.
   function updateExternalMeasurement(cm, line) {
     line = visualLine(line);
     var lineN = lineNo(line);
@@ -2366,14 +1885,9 @@
     removeChildrenAndAdd(cm.display.lineMeasure, built.pre);
     return view
   }
-
-  // Get a {top, bottom, left, right} box (in line-local coordinates)
-  // for a given character.
   function measureChar(cm, line, ch, bias) {
     return measureCharPrepared(cm, prepareMeasureForLine(cm, line), ch, bias)
   }
-
-  // Find a line view that corresponds to the given line number.
   function findViewForLine(cm, lineN) {
     if (lineN >= cm.display.viewFrom && lineN < cm.display.viewTo)
       { return cm.display.view[findViewIndex(cm, lineN)] }
@@ -2381,12 +1895,6 @@
     if (ext && lineN >= ext.lineN && lineN < ext.lineN + ext.size)
       { return ext }
   }
-
-  // Measurement can be split in two steps, the set-up work that
-  // applies to the whole line, and the measurement of the actual
-  // character. Functions like coordsChar, that need to do a lot of
-  // measurements in a row, can thus ensure that the set-up work is
-  // only done once.
   function prepareMeasureForLine(cm, line) {
     var lineN = lineNo(line);
     var view = findViewForLine(cm, lineN);
@@ -2398,7 +1906,6 @@
     }
     if (!view)
       { view = updateExternalMeasurement(cm, line); }
-
     var info = mapFromLineView(view, line, lineN);
     return {
       line: line, view: view, rect: null,
@@ -2406,9 +1913,6 @@
       hasHeights: false
     }
   }
-
-  // Given a prepared measurement object, measures the position of an
-  // actual character (or fetches it from the cache).
   function measureCharPrepared(cm, prepared, ch, bias, varHeight) {
     if (prepared.before) { ch = -1; }
     var key = ch + (bias || ""), found;
@@ -2428,13 +1932,9 @@
             top: varHeight ? found.rtop : found.top,
             bottom: varHeight ? found.rbottom : found.bottom}
   }
-
   var nullRect = {left: 0, right: 0, top: 0, bottom: 0};
-
   function nodeAndOffsetInLineMap(map$$1, ch, bias) {
     var node, start, end, collapse, mStart, mEnd;
-    // First, search the line map for the text node corresponding to,
-    // or closest to, the target character.
     for (var i = 0; i < map$$1.length; i += 3) {
       mStart = map$$1[i];
       mEnd = map$$1[i + 1];
@@ -2468,7 +1968,6 @@
     }
     return {node: node, start: start, end: end, collapse: collapse, coverStart: mStart, coverEnd: mEnd}
   }
-
   function getUsefulRect(rects, bias) {
     var rect = nullRect;
     if (bias == "left") { for (var i = 0; i < rects.length; i++) {
@@ -2478,11 +1977,9 @@
     } }
     return rect
   }
-
   function measureCharInner(cm, prepared, ch, bias) {
     var place = nodeAndOffsetInLineMap(prepared.map, ch, bias);
     var node = place.node, start = place.start, end = place.end, collapse = place.collapse;
-
     var rect;
     if (node.nodeType == 3) { // If it is a text node, use a range to retrieve the coordinates.
       for (var i$1 = 0; i$1 < 4; i$1++) { // Retry a maximum of 4 times when nonsense rectangles are returned
@@ -2513,7 +2010,6 @@
       else
         { rect = nullRect; }
     }
-
     var rtop = rect.top - prepared.rect.top, rbot = rect.bottom - prepared.rect.top;
     var mid = (rtop + rbot) / 2;
     var heights = prepared.view.measure.heights;
@@ -2529,9 +2025,6 @@
 
     return result
   }
-
-  // Work around problem with bounding client rects on ranges being
-  // returned incorrectly when zoomed on IE10 and below.
   function maybeUpdateRectForZooming(measure, rect) {
     if (!window.screen || screen.logicalXDPI == null ||
         screen.logicalXDPI == screen.deviceXDPI || !hasBadZoomedRects(measure))
@@ -2541,7 +2034,6 @@
     return {left: rect.left * scaleX, right: rect.right * scaleX,
             top: rect.top * scaleY, bottom: rect.bottom * scaleY}
   }
-
   function clearLineMeasurementCacheFor(lineView) {
     if (lineView.measure) {
       lineView.measure.cache = {};
@@ -2550,25 +2042,19 @@
         { lineView.measure.caches[i] = {}; } }
     }
   }
-
   function clearLineMeasurementCache(cm) {
     cm.display.externalMeasure = null;
     removeChildren(cm.display.lineMeasure);
     for (var i = 0; i < cm.display.view.length; i++)
       { clearLineMeasurementCacheFor(cm.display.view[i]); }
   }
-
   function clearCaches(cm) {
     clearLineMeasurementCache(cm);
     cm.display.cachedCharWidth = cm.display.cachedTextHeight = cm.display.cachedPaddingH = null;
     if (!cm.options.lineWrapping) { cm.display.maxLineChanged = true; }
     cm.display.lineNumChars = null;
   }
-
   function pageScrollX() {
-    // Work around https://bugs.chromium.org/p/chromium/issues/detail?id=489206
-    // which causes page_Offset and bounding client rects to use
-    // different reference viewports and invalidate our calculations.
     if (chrome && android) { return -(document.body.getBoundingClientRect().left - parseInt(getComputedStyle(document.body).marginLeft)) }
     return window.pageXOffset || (document.documentElement || document.body).scrollLeft
   }
@@ -2576,7 +2062,6 @@
     if (chrome && android) { return -(document.body.getBoundingClientRect().top - parseInt(getComputedStyle(document.body).marginTop)) }
     return window.pageYOffset || (document.documentElement || document.body).scrollTop
   }
-
   function widgetTopHeight(lineObj) {
     var height = 0;
     if (lineObj.widgets) { for (var i = 0; i < lineObj.widgets.length; ++i) { if (lineObj.widgets[i].above)
