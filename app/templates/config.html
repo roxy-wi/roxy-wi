@@ -3,6 +3,7 @@
 <link rel="stylesheet" href="/inc/codemirror/codemirror.css">
 <script src="/inc/codemirror/codemirror.js"></script>
 <script src="/inc/codemirror/nginx.js"></script>
+<script src="/inc/codemirror/haproxy.js"></script>
 <center>
 	{% if selects|length == 0 %}
 		{% include 'include/getstarted.html' %}
@@ -97,7 +98,11 @@
 	if (cur_url[1].split('&')[2] == 'showConfig') {
 		showConfig();		
 	}	
-	var myCodeMirror = CodeMirror.fromTextArea(document.getElementById("config_text_area"), {mode: "nginx", lineNumbers: true});
+	if (cur_url[1].split('&')[0] == 'service=haproxy' || cur_url[1].split('&')[0] == 'service=None') {
+		var myCodeMirror = CodeMirror.fromTextArea(document.getElementById("config_text_area"), {mode: "haproxy", lineNumbers: true});
+	} else {
+		var myCodeMirror = CodeMirror.fromTextArea(document.getElementById("config_text_area"), {mode: "nginx", lineNumbers: true});
+	}
 </script>
 <style>
 .CodeMirror {
