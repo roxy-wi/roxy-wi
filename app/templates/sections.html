@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
+<link rel="stylesheet" href="/inc/codemirror/codemirror.css">
+<script src="/inc/codemirror/codemirror.js"></script>
+<script src="/inc/codemirror/nginx.js"></script>
+<script src="/inc/codemirror/haproxy.js"></script>
 <center>
 	<h3>Choose a section</h3>
 	<p>
@@ -29,12 +33,16 @@
 		{% if role <= 2 %}
 			<div id="config">
 				<h4>You are editting "{{section}}" from server {{ serv }}</h4>
+				</center>
 				<form action="{{ action }}" name="saveconfig" method="post">
 					<input type="hidden" value="{{ serv }}" name="serv"> 
 					<input type="hidden" value="{{ start_line }}" name="start_line"> 
 					<input type="hidden" value="{{ end_line }}" name="end_line"> 
-					<input type="hidden" value="{{ cfg }}.old" name="oldconfig"> 
-					<textarea name="config" class="config" rows="35" cols="80" style="height: 40%">{{ config }}</textarea> 
+					<input type="hidden" value="{{ cfg }}.old" name="oldconfig">
+					<div style="margin-left: 23%;width: 60%;">
+						<textarea name="config" class="config" id="config_text_area" rows="35" cols="80" style="height: 40%">{{ config }}</textarea>
+					</div>
+					<center>
 					<p>
 						<button type="submit" value="test" name="save" class="btn btn-default">Just test</button>
 						<button type="submit" value="save" name="save" class="btn btn-default">Just save</button>
@@ -45,9 +53,19 @@
 				{% if note %}
 					<div class="alert alert-info"><b>Note:</b> If you reconfigure Master server, Slave will reconfigured automatically</div>
 				{% endif %}
-			</div>
-			<script src="/inc/jquery-linenumbers.js"></script>
-			<script>$('textarea').linenumbers({col_width: '25px'});</script>
+				<script>
+					var myCodeMirror = CodeMirror.fromTextArea(document.getElementById("config_text_area"), {mode: "haproxy", lineNumbers: true});
+				</script>
+				<style>
+					.CodeMirror {
+						line-height: 1.2em;
+						height: 50%;
+					}
+				</style>
+				<script>
+					myCodeMirror.refresh();
+				</script>
+			</center>
 		{% endif %}
 	{% endif %}
 	{% if aftersave %}
