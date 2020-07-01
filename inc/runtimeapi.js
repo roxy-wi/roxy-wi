@@ -92,7 +92,9 @@ $( function() {
 					var value = data.split('<br>')
 					$('#ipbackend').find('option').remove();
 					$('#ipbackend').append($("<option></option>").attr("value","disabled").text("Choose Backend"));
-						
+					$('#backend_server').find('option').remove();
+					$('#backend_port').val('');
+					$('#backend_ip').val('');
 					for(let i = 0; i < data.split('<br>').length; i++){
 						if(value[i] != '') {
 						$('#ipbackend').append($("<option></option>")
@@ -101,6 +103,7 @@ $( function() {
 						}
 					}
 					$('#ipbackend').selectmenu("refresh");
+					$('#backend_server').selectmenu("refresh");
 				}	
 			}
 		} );
@@ -122,7 +125,8 @@ $( function() {
 					var value = data.split('<br>')
 					$('#backend_server').find('option').remove();
 					$('#backend_server').append($("<option></option>").attr("value","disabled").text("Choose Server"));
-							
+					$('#backend_port').val('');
+					$('#backend_ip').val('');			
 					for(let i = 0; i < data.split('<br>').length; i++){
 						if(value[i] != ' ') {						
 							value[i] = value[i].replace(/\s+/g,'');
