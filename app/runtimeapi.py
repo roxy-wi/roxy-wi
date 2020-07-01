@@ -18,15 +18,13 @@ except:
 	pass
 
 
-output_from_parsed_template = template.render(h2 = 1,
-												title = "Runtime API",
-												role = role,
-												user = user,
-												onclick = "showRuntime()",
-												select_id = "serv",
-												selects = servers,
-												token = token,
-												serv = serv,
-												versions = funct.versions(),
-												servbackend = servbackend)											
-print(output_from_parsed_template)
+template = template.render(h2 = 0,
+							title = "RunTime API",
+							role = role,
+							user = user,
+							select_id = "serv",
+							selects = servers,
+							token = token,
+							versions = funct.versions(),
+							servbackend = servbackend)											
+print(template)

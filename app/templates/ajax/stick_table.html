@@ -1,0 +1,151 @@
+{% if table[0] != '' %}
+	{% set headers = table[0].split(':')[1] %}
+	{% set headers = headers.split(' ') %}
+<script>
+	$(document).ready(function() {
+		$('#{{tables_head.0.strip()}}').on( 'page.dt',   function () { $.getScript("/inc/fontawesome.min.js"); } )
+		.DataTable( {
+			"order": [[ 4, "desc" ]],
+			"pageLength": 25,
+			"columnDefs": [
+				{ 
+					"searchable": false,
+					"orderable": false, 
+					"targets": {{headers|length  - 1 }} 
+				}
+			],
+			"lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
+		} );	  
+	} );
+</script>
+{% endif %}
+<table class="overview">
+	<tr class="overviewHead">
+		<td class="padding10 first-collumn">
+			Table name: {{tables_head.0}}
+		</td>
+		<td class="padding10 first-collumn">
+			Type: {{tables_head.1}}
+		</td>
+		<td class="padding10 first-collumn">
+			Size: {{tables_head.2|int() / 1024 / 1024}} Mb
+		</td>
+		<td class="padding10 first-collumn">
+			Used: {{tables_head.3}}
+		</td>
+		<!-- <td> -->
+			<!-- <button title="Clear table {{tables_head.0}}">Clear table</button> -->
+		<!-- </td> -->
+	</tr>
+</table>
+<table class="overview hover order-column display compact" id="{{tables_head.0.strip()}}">
+	{% for t in table %}
+		{% if t != '' %}
+		{% if loop.index == 1 %}
+			{% set headers = t.split(':')[1] %}
+			{% set headers = headers.split(' ') %}
+			<thead>
+				<tr class="overviewHead">
+					<th class="padding10" style="width: 10%; padding-left: 10px;">
+						IP
+					</th>
+					<th>
+						Use
+					</th>
+					<th>
+						Exp
+					</th>
+					<th>					
+						{{headers.4.split('=')[0].split('(')[0]}}
+					</th>
+					{% if headers|length > 5 %}
+					<th>
+						{{headers.5.split('=')[0].split('(')[0]}}
+					</th>
+					{% endif %}
+					{% if headers|length > 6 %}
+					<th>
+						{{headers.6.split('=')[0].split('(')[0]}}
+					</th>
+					{% endif %}
+					{% if headers|length > 7 %}
+					<th>
+						{{headers.7.split('=')[0].split('(')[0]}}
+					</th>
+					{% endif %}
+					{% if headers|length > 8 %}
+					<th>
+						{{headers.9.split('=')[0].split('(')[0]}}
+					</th>
+					{% endif %}
+					{% if headers|length > 10 %}
+					<th>
+						{{headers.10.split('=')[0].split('(')[0]}}
+					</th>
+					{% endif %}
+					{% if headers|length > 11 %}
+					<th>
+						{{headers.11.split('=')[0].split('(')[0]}}
+					</th>
+					{% endif %}
+					<th>
+					</th>
+				</tr>
+			</thead>
+		<tbody>
+		{% endif %}
+			{% set body = t.split(':')[1] %}
+			{% set body = t.split(' ') %}
+			<tr>
+				<td class="padding10" style="width: 10%; padding-left: 10px;">					
+					{{body.1.split('=')[1]}}
+				</td>
+				<td>					
+					{{body.2.split('=')[1]}}
+				</td>
+				<td>					
+					{{body.3.split('=')[1]|int() / 1000 }} s
+				</td>
+				{% if body|length > 4 %}
+				<td>
+					{{body.4.split('=')[1]}}
+				</td>
+				{% endif %}
+				{% if body|length > 5 %}
+				<td>
+					{{body.5.split('=')[1]}}
+				</td>
+				{% endif %}
+				{% if body|length > 6 %}
+				<td>
+					{{body.6.split('=')[1]}}
+				</td>
+				{% endif %}
+				{% if body|length > 7 %}
+				<td>
+					{{body.7.split('=')[1]}}
+				</td>
+				{% endif %}
+				{% if body|length > 8 %}
+				<td>
+					{{body.8.split('=')[1]}}
+				</td>
+				{% endif %}
+				{% if body|length > 9 %}
+				<td>
+					{{body.9.split('=')[1]}}
+				</td>
+				{% endif %}
+				{% if body|length > 10 %}
+				<td>
+					{{body.10.split('=')[1]}}
+				</td>
+				{% endif %}
+				<td>
+					<a class="delete" title="Delete this entry" style="cursor: pointer;" onclick="deleteTableEntry(this, '{{tables_head.0.strip()}}', '{{body.1.split('=')[1]}}')"></a>
+				</td>	
+			</tr>
+		{% endif %}
+	{% endfor %}
+	</tbody>
+</table>

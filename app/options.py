@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import os, sys
+import os
+import sys
 import funct
 import sql
 
 form = funct.form
-serv = form.getvalue('serv')
-act = form.getvalue('act')
+serv = form.getvalue("serv")
+act = form.getvalue("act")
 
 
 if form.getvalue('new_metrics') or form.getvalue('new_waf_metrics') or form.getvalue('metrics_hapwi_ram') or form.getvalue('metrics_hapwi_cpu'):
@@ -24,11 +25,11 @@ if act == "checkrestart":
 	sys.exit()
 
 
-if not sql.check_token_exists(form.getvalue('token')):
+if not sql.check_token_exists(form.getvalue("token")):
 	print("Your token has been expired")
 	sys.exit()
 
-		
+
 if form.getvalue('getcerts') is not None and serv is not None:
 	cert_path = sql.get_setting('cert_path')
 	commands = [ "ls -1t "+cert_path+" |grep pem" ]
@@ -41,7 +42,7 @@ if form.getvalue('getcerts') is not None and serv is not None:
 if form.getvalue('checkSshConnect') is not None and serv is not None:
 	print(funct.ssh_command(serv, ["ls -1t"]))
 
-		
+
 if form.getvalue('getcert') is not None and serv is not None:
 	id = form.getvalue('getcert')
 	cert_path = sql.get_setting('cert_path')
@@ -50,20 +51,20 @@ if form.getvalue('getcert') is not None and serv is not None:
 		funct.ssh_command(serv, commands, ip="1")
 	except:
 		print('<div class="alert alert-danger" style="margin:0">Can not connect to the server</div>')
-		
-			
+
+
 if serv and form.getvalue('ssl_cert'):
 	cert_local_dir = os.path.dirname(os.getcwd())+"/"+sql.get_setting('ssl_local_path')
 	cert_path = sql.get_setting('cert_path')
-	
+
 	if not os.path.exists(cert_local_dir):
 		os.makedirs(cert_local_dir)
-	
+
 	if form.getvalue('ssl_name') is None:
 		print('<div class="alert alert-danger" style="float: left;">Please enter desired name</div>')
 	else:
 		name = form.getvalue('ssl_name') + '.pem'
-	
+
 	try:
 		with open(name, "w") as ssl_cert:
 			ssl_cert.write(form.getvalue('ssl_cert'))
@@ -71,7 +72,7 @@ if serv and form.getvalue('ssl_cert'):
 		print('<div class="alert alert-danger style="float: left;"">Can\'t save ssl keys file. Check ssh keys path in config</div>')
 	else:
 		print('<div class="alert alert-success" style="float: left;">SSL file was upload to %s into: %s  %s</div>' % (serv, cert_path, name))
-		
+
 	MASTERS = sql.is_master(serv)
 	for master in MASTERS:
 		if master[0] != None:
@@ -84,14 +85,14 @@ if serv and form.getvalue('ssl_cert'):
 		os.system("mv %s %s" % (name, cert_local_dir))
 	except OSError as e:
 		funct.logging('localhost', e.args[0], haproxywi=1)
-		
+
 	funct.logging(serv, "add.py#ssl upload new ssl cert %s" % name)
-	
-	
+
+
 if form.getvalue('backend') is not None:
 	funct.show_backends(serv)
-	
-	
+
+
 if form.getvalue('ip_select') is not None:
 	funct.show_backends(serv)
 
@@ -117,9 +118,9 @@ if form.getvalue('ipbackend') is not None and form.getvalue('backend_server') is
 	cmd='echo "show servers state"|nc %s %s |grep "%s" |grep "%s" |awk \'{print $5":"$19}\' |head -1' % (serv, haproxy_sock_port, backend, backend_server)
 	output, stderr = funct.subprocess_execute(cmd)
 	print(output[0])
-	
-	
-if form.getvalue('backend_ip') is not None:	
+
+
+if form.getvalue('backend_ip') is not None:
 	import sql
 	backend_backend = form.getvalue('backend_backend')
 	backend_server = form.getvalue('backend_server')
@@ -128,92 +129,92 @@ if form.getvalue('backend_ip') is not None:
 	if form.getvalue('backend_ip') is None:
 		print('error: Backend IP must be IP and not 0')
 		sys.exit()
-	
+
 	if form.getvalue('backend_port') is None:
 		print('error: Backend port must be integer and not 0')
 		sys.exit()
-		
+
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-	
+
 	MASTERS = sql.is_master(serv)
 	for master in MASTERS:
-		if master[0] != None:
+		if master[0] is not None:
 			cmd='echo "set server %s/%s addr %s port %s check-port %s" |nc %s %s' % (backend_backend, backend_server, backend_ip, backend_port, backend_port, master[0], haproxy_sock_port)
 			output, stderr = funct.subprocess_execute(cmd)
 			print(output[0])
-			
+
 	cmd='echo "set server %s/%s addr %s port %s check-port %s" |nc %s %s' % (backend_backend, backend_server, backend_ip, backend_port, backend_port, serv, haproxy_sock_port)
 	output, stderr = funct.subprocess_execute(cmd)
-	
+
 	if stderr != '':
 		print('error: '+stderr[0])
 	else:
 		print(output[0])
 		configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 		cfg = configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
-		
+
 		error = funct.get_config(serv, cfg)
 		cmd = 'string=`grep %s %s -n -A25 |grep "server %s" |head -1|awk -F"-" \'{print $1}\'` && sed -Ei "$( echo $string)s/((1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])\.){3}(1?[0-9][0-9]?|2[0-4][0-9]|25[0-5]):[0-9]+/%s:%s/g" %s' % (backend_backend, cfg, backend_server, backend_ip, backend_port, cfg)
 		output, stderr = funct.subprocess_execute(cmd)
 		stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save='save')
-		
-	
-	
+
+
+
 if form.getvalue('maxconn_select') is not None:
 	serv = form.getvalue('maxconn_select')
 	funct.get_backends_from_config(serv, backends='frontend')
-	
 
-if form.getvalue('maxconn_frontend') is not None:	
+
+if form.getvalue('maxconn_frontend') is not None:
 	import sql
 	frontend = form.getvalue('maxconn_frontend')
 	maxconn = form.getvalue('maxconn_int')
 	if form.getvalue('maxconn_int') is None:
 		print('error: Maxconn must be integer and not 0')
 		sys.exit()
-		
+
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-	
+
 	MASTERS = sql.is_master(serv)
 	for master in MASTERS:
 		if master[0] != None:
 			if frontend == 'global':
 				cmd='echo "set maxconn %s %s" |nc %s %s' % (frontend, maxconn, master[0], haproxy_sock_port)
-			else:	
+			else:
 				cmd='echo "set maxconn frontend %s %s" |nc %s %s' % (frontend, maxconn, master[0], haproxy_sock_port)
 			output, stderr = funct.subprocess_execute(cmd)
-			
+
 	if frontend == 'global':
 		cmd='echo "set maxconn %s %s" |nc %s %s' % (frontend, maxconn, serv, haproxy_sock_port)
-	else:	
+	else:
 		cmd='echo "set maxconn frontend %s %s" |nc %s %s' % (frontend, maxconn, serv, haproxy_sock_port)
 	output, stderr = funct.subprocess_execute(cmd)
-	
+
 	if stderr != '':
 		print(stderr[0])
 	elif output[0] == '':
 		configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 		cfg = configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
-		
+
 		error = funct.get_config(serv, cfg)
 		cmd = 'string=`grep %s %s -n -A5 |grep maxcon -n |awk -F":" \'{print $2}\'|awk -F"-" \'{print $1}\'` && sed -Ei "$( echo $string)s/[0-9]+/%s/g" %s' % (frontend, cfg, maxconn, cfg)
 		output, stderr = funct.subprocess_execute(cmd)
 		stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save='save')
 		print('Maxconn for %s has been set to %s ' % (frontend, maxconn))
 	else:
-		print('error: '+output[0])	
-	
+		print('error: '+output[0])
+
 
 if form.getvalue('table_serv_select') is not None:
 	print(funct.get_all_stick_table())
-	
-	
+
+
 if form.getvalue('table_select') is not None:
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True,extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'], trim_blocks=True, lstrip_blocks=True)
 	table = form.getvalue('table_select')
-	
-	if table == 'All':		
+
+	if table == 'All':
 		template = env.get_template('/stick_tables.html')
 		tables = funct.get_all_stick_table()
 		table = []
@@ -221,70 +222,82 @@ if form.getvalue('table_select') is not None:
 			if t != '':
 				id = []
 				tables_head = []
-				
+
 				tables_head1, table1 = funct.get_stick_table(t)
 				id.append(tables_head1)
 				id.append(table1)
 				table.append(id)
-			
+
 		template = template.render(table=table)
 	else:
 		template = env.get_template('/stick_table.html')
 		tables_head, table = funct.get_stick_table(table)
 		template = template.render(tables_head=tables_head, table=table)
-		
+
 	print(template)
-	
-	
-if form.getvalue('change_pos') is not None:
+
+
+if form.getvalue('ip_for_delete') is not None:
+	import sql
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+	ip = form.getvalue('ip_for_delete')
+	table = form.getvalue('table_for_delete')
+
+	cmd='echo "clear table %s key %s" |nc %s %s' % (table, ip, serv, haproxy_sock_port)
+	output, stderr = funct.subprocess_execute(cmd)
+	if stderr[0] != '':
+		print(stderr[0])
+
+
+if form.getvalue("change_pos") is not None:
 	import sql
 	pos = form.getvalue('change_pos')
 	sql.update_server_pos(pos, serv)
-	
-	
+
+
 if form.getvalue('ip') is not None and serv is not None:
 	commands = [ "sudo ip a |grep inet |egrep -v  '::1' |awk '{ print $2 }' |awk -F'/' '{ print $1 }'" ]
 	funct.ssh_command(serv, commands, ip="1")
-	
-	
+
+
 if form.getvalue('showif'):
 	commands = ["sudo ip link|grep 'UP' |grep -v 'lo'| awk '{print $2}'  |awk -F':' '{print $1}'"]
 	funct.ssh_command(serv, commands, ip="1")
-	
-	
+
+
 if form.getvalue('action_hap') is not None and serv is not None:
 	action = form.getvalue('action_hap')
-	
+
 	if funct.check_haproxy_config(serv):
 		commands = [ "sudo systemctl %s haproxy" % action ]
-		funct.ssh_command(serv, commands)		
+		funct.ssh_command(serv, commands)
 		funct.logging(serv, 'HAProxy was '+action+'ed', haproxywi=1, login=1)
 		print("HAproxy was %s" % action)
 	else:
 		print("Bad config, check please")
-		
-		
+
+
 if form.getvalue('action_nginx') is not None and serv is not None:
 	action = form.getvalue('action_nginx')
-	
+
 	if funct.check_haproxy_config(serv):
 		commands = [ "sudo systemctl %s nginx" % action ]
-		funct.ssh_command(serv, commands)		
+		funct.ssh_command(serv, commands)
 		funct.logging(serv, 'Nginx was '+action+'ed', haproxywi=1, login=1)
 		print("Nginx was %s" % action)
 	else:
 		print("Bad config, check please")
-		
-	
+
+
 if form.getvalue('action_waf') is not None and serv is not None:
 	serv = form.getvalue('serv')
 	action = form.getvalue('action_waf')
 	funct.logging(serv, 'WAF service was '+action+'ed', haproxywi=1, login=1)
 	commands = [ "sudo systemctl %s waf" % action ]
-	funct.ssh_command(serv, commands)		
-	
-	
-if form.getvalue('action_service') is not None:	
+	funct.ssh_command(serv, commands)
+
+
+if form.getvalue('action_service') is not None:
 	action = form.getvalue('action_service')
 	if action == 'stop':
 		cmd="sudo systemctl disable %s --now" % serv
@@ -294,8 +307,8 @@ if form.getvalue('action_service') is not None:
 		cmd="sudo systemctl restart %s --now" % serv
 	output, stderr = funct.subprocess_execute(cmd)
 	funct.logging('localhost', ' The service '+serv+ 'was '+action+'ed', haproxywi=1, login=1)
-	
-	
+
+
 if act == "overviewHapserverBackends":
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
@@ -327,11 +340,11 @@ if act == "overviewHapserverBackends":
 		except:
 			funct.logging('localhost', ' Cannot get sections from config file', haproxywi=1)
 			sections = 'Cannot get backends'
-			
+
 	template = template.render(backends=sections, serv=serv, service=service)
 	print(template)
-	
-	
+
+
 if act == "overviewHapservers":
 	if form.getvalue('service') == 'nginx':
 		config_path  = sql.get_setting('nginx_config_path')
@@ -342,9 +355,9 @@ if act == "overviewHapservers":
 		print(funct.ssh_command(serv, commands))
 	except:
 		print('Cannot get last date')
-	
-	
-if act == "overview":	
+
+
+if act == "overview":
 	import asyncio
 	async def async_get_overview(serv1, serv2):
 		server_status = ()
@@ -362,9 +375,9 @@ if act == "overview":
 			nginx_process = funct.ssh_command(serv2, command)
 		else:
 			nginx_process = ''
-		server_status = (serv1, 
-						serv2, 
-						funct.server_status(funct.subprocess_execute(cmd)), 
+		server_status = (serv1,
+						serv2,
+						funct.server_status(funct.subprocess_execute(cmd)),
 						sql.select_servers(server=serv2, keep_alive=1),
 						funct.ssh_command(serv2, commands2),
 						sql.select_waf_servers(serv2),
@@ -379,7 +392,7 @@ if act == "overview":
 		import http.cookies
 		from jinja2 import Environment, FileSystemLoader
 		env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True,extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
-		
+
 		servers = []
 		template = env.get_template('overview.html')
 		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
@@ -391,24 +404,24 @@ if act == "overview":
 		servers_sorted = sorted(servers, key=funct.get_key)
 		template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_id.value))
 		print(template)
-	
-	
+
+
 	ioloop = asyncio.get_event_loop()
 	ioloop.run_until_complete(get_runner_overview())
 	ioloop.close()
-	
-	
-if act == "overviewwaf":	
+
+
+if act == "overviewwaf":
 	import asyncio
 	async def async_get_overviewWaf(serv1, serv2):
 		haproxy_dir  = sql.get_setting('haproxy_dir')
 		server_status = ()
 		commands = [ "ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l" ]
 		commands1 = [ "cat %s/waf/modsecurity.conf  |grep SecRuleEngine |grep -v '#' |awk '{print $2}'" % haproxy_dir ]
-		
-		server_status = (serv1,serv2, 
-							funct.ssh_command(serv2, commands), 
-							funct.ssh_command(serv2, commands1).strip(), 
+
+		server_status = (serv1,serv2,
+							funct.ssh_command(serv2, commands),
+							funct.ssh_command(serv2, commands1).strip(),
 							sql.select_waf_metrics_enable_server(serv2))
 		return server_status
 
@@ -418,7 +431,7 @@ if act == "overviewwaf":
 		from jinja2 import Environment, FileSystemLoader
 		env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True,extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
 		template = env.get_template('overivewWaf.html')
-		
+
 		servers = []
 		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 		user_id = cookie.get('uuid')
@@ -429,22 +442,22 @@ if act == "overviewwaf":
 		servers_sorted = sorted(servers, key=funct.get_key)
 		template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_id.value))
 		print(template)
-	
+
 	ioloop = asyncio.get_event_loop()
 	ioloop.run_until_complete(get_runner_overviewWaf())
 	ioloop.close()
-	
-	
+
+
 if act == "overviewServers":
-	import asyncio	
+	import asyncio
 	async def async_get_overviewServers(serv1, serv2, service):
 		server_status = ()
-		
+
 		if service == 'haproxy':
 			cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|Maxco\|MB\|Uptime:"' % (serv2, sql.get_setting('haproxy_sock_port'))
 			out = funct.subprocess_execute(cmd)
 			out1 = ""
-			
+
 			for k in out:
 				if "Ncat:" not in k:
 					for r in k:
@@ -456,15 +469,15 @@ if act == "overviewServers":
 			out1 = ''
 
 		server_status = (serv1,serv2, out1)
-		return server_status	
-		
+		return server_status
+
 	async def get_runner_overviewServers(**kwargs):
 		import http.cookies
 		from jinja2 import Environment, FileSystemLoader
 		env = Environment(loader=FileSystemLoader('templates/ajax'),extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
-		template = env.get_template('overviewServers.html')	
-		
-		servers = []	
+		template = env.get_template('overviewServers.html')
+
+		servers = []
 		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 		user_id = cookie.get('uuid')
 		role = sql.get_user_role_by_uuid(user_id.value)
@@ -475,8 +488,8 @@ if act == "overviewServers":
 			servers.append(result)
 		servers_sorted = sorted(servers, key=funct.get_key)
 		template = template.render(service_status=servers_sorted, role=role, id=kwargs.get('id'), service_page=service)
-		print(template)	
-	
+		print(template)
+
 	id = form.getvalue('id')
 	name = form.getvalue('name')
 	service = form.getvalue('service')
@@ -484,15 +497,15 @@ if act == "overviewServers":
 	ioloop.run_until_complete(get_runner_overviewServers(server1=name, server2=serv, id=id, service=service))
 	ioloop.close()
 
-	
+
 if form.getvalue('action'):
 	import requests
-	
+
 	haproxy_user = sql.get_setting('stats_user')
 	haproxy_pass = sql.get_setting('stats_password')
 	stats_port = sql.get_setting('stats_port')
 	stats_page = sql.get_setting('stats_page')
-	
+
 	postdata = {
 		'action' : form.getvalue('action'),
 		's' : form.getvalue('s'),
@@ -507,11 +520,11 @@ if form.getvalue('action'):
 	}
 
 	q = requests.post('http://'+serv+':'+stats_port+'/'+stats_page, headers=headers, data=postdata, auth=(haproxy_user, haproxy_pass))
-	
-	
+
+
 if serv is not None and act == "stats":
 	import requests
-	
+
 	if form.getvalue('service') == 'nginx':
 		haproxy_user = sql.get_setting('nginx_stats_user')
 		haproxy_pass = sql.get_setting('nginx_stats_password')
@@ -523,7 +536,7 @@ if serv is not None and act == "stats":
 		stats_port = sql.get_setting('stats_port')
 		stats_page = sql.get_setting('stats_page')
 	try:
-		response = requests.get('http://%s:%s/%s' % (serv, stats_port, stats_page), auth=(haproxy_user, haproxy_pass)) 
+		response = requests.get('http://%s:%s/%s' % (serv, stats_port, stats_page), auth=(haproxy_user, haproxy_pass))
 	except requests.exceptions.ConnectTimeout:
 		print('Oops. Connection timeout occured!')
 	except requests.exceptions.ReadTimeout:
@@ -536,27 +549,27 @@ if serv is not None and act == "stats":
 		print ("Timeout Error:",errt)
 	except requests.exceptions.RequestException as err:
 		print ("OOps: Something Else",err)
-		
+
 	data = response.content
 	if form.getvalue('service') == 'nginx':
 		from jinja2 import Environment, FileSystemLoader
 		env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 		template = env.get_template('ajax/nginx_stats.html')
-		
+
 		servers_with_status = list()
 		h = ()
 		out1 = []
 		for k in data.decode('utf-8').split():
-			out1.append(k) 
+			out1.append(k)
 		h = (out1, )
 		servers_with_status.append(h)
-		
+
 		template = template.render(out=servers_with_status)
-		print(template)	
-	else:	
+		print(template)
+	else:
 		print(data.decode('utf-8'))
-	
-	
+
+
 if serv is not None and form.getvalue('rows') is not None:
 	rows = form.getvalue('rows')
 	waf = form.getvalue('waf')
@@ -568,8 +581,8 @@ if serv is not None and form.getvalue('rows') is not None:
 	service = form.getvalue('service')
 	out = funct.show_haproxy_log(serv, rows=rows, waf=waf, grep=grep, hour=hour, minut=minut, hour1=hour1, minut1=minut1, service=service)
 	print(out)
-	
-	
+
+
 if serv is not None and form.getvalue('rows1') is not None:
 	rows = form.getvalue('rows1')
 	grep = form.getvalue('grep')
@@ -579,10 +592,10 @@ if serv is not None and form.getvalue('rows1') is not None:
 	minut1 = form.getvalue('minut1')
 	out = funct.show_haproxy_log(serv, rows=rows, waf='0', grep=grep, hour=hour, minut=minut, hour1=hour1, minut1=minut1, service='apache')
 	print(out)
-	
-		
+
+
 if form.getvalue('viewlogs') is not None:
-	viewlog = form.getvalue('viewlogs')	
+	viewlog = form.getvalue('viewlogs')
 	rows = form.getvalue('rows')
 	grep = form.getvalue('grep')
 	hour = form.getvalue('hour')
@@ -591,8 +604,8 @@ if form.getvalue('viewlogs') is not None:
 	minut1 = form.getvalue('minut1')
 	out = funct.show_haproxy_log(serv=viewlog, rows=rows, waf='0', grep=grep, hour=hour, minut=minut, hour1=hour1, minut1=minut1, service='internal')
 	print(out)
-		
-		
+
+
 if serv is not None and act == "showMap":
 	from datetime import datetime
 	from pytz import timezone
@@ -600,40 +613,40 @@ if serv is not None and act == "showMap":
 	import matplotlib
 	matplotlib.use('Agg')
 	import matplotlib.pyplot as plt
-	
+
 	stats_port= sql.get_setting('stats_port')
 	haproxy_config_path  = sql.get_setting('haproxy_config_path')
 	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 	date = funct.get_data('config')
 	cfg = hap_configs_dir + serv + "-" + date + ".cfg"
-	
+
 	print('<center>')
 	print("<h4>Map from %s</h4><br />" % serv)
-	
+
 	G = nx.DiGraph()
-	
-	error = funct.get_config(serv, cfg)	
+
+	error = funct.get_config(serv, cfg)
 	if error:
 		print('<div class="alert alert-danger">'+error+'</div>')
 	try:
 		conf = open(cfg, "r")
 	except IOError:
 		print('<div class="alert alert-danger">Can\'t read import config file</div>')
-	
+
 	node = ""
 	line_new2 = [1,""]
 	i,k  = 800, 800
 	j, m = 0, 0
 	for line in conf:
 		if line.startswith('listen') or line.startswith('frontend'):
-			if "stats" not in line:				
+			if "stats" not in line:
 				node = line
-				i = i - 750	
-		if line.find("backend") == 0: 
+				i = i - 750
+		if line.find("backend") == 0:
 			node = line
-			i = i - 700	
+			i = i - 700
 			G.add_node(node,pos=(k,i),label_pos=(k,i+100))
-		
+
 		if "bind" in line or (line.startswith('listen') and ":" in line) or (line.startswith('frontend') and ":" in line):
 			try:
 				bind = line.split(":")
@@ -649,17 +662,17 @@ if serv is not None and act == "showMap":
 		if "server " in line or "use_backend" in line or "default_backend" in line and "stats" not in line and "#" not in line:
 			if "timeout" not in line and "default-server" not in line and "#" not in line and "stats" not in line:
 				i = i - 1050
-				j = j + 1				
+				j = j + 1
 				if "check" in line:
 					line_new = line.split("check")
 				else:
 					line_new = line.split("if ")
 				if "server" in line:
 					line_new1 = line_new[0].split("server")
-					line_new[0] = line_new1[1]	
+					line_new[0] = line_new1[1]
 					line_new2 = line_new[0].split(":")
-					line_new[0] = line_new2[0]					
-				
+					line_new[0] = line_new2[0]
+
 				line_new[0] = line_new[0].strip(' \t\n\r')
 				line_new2[1] = line_new2[1].strip(' \t\n\r')
 
@@ -668,53 +681,53 @@ if serv is not None and act == "showMap":
 				else:
 					G.add_node(line_new[0],pos=(k-230,i-0),label_pos=(k-225,i+180))
 
-				if line_new2[1] != "":	
+				if line_new2[1] != "":
 					G.add_edge(node, line_new[0], port=line_new2[1])
 				else:
 					G.add_edge(node,line_new[0])
 
-	os.system("/bin/rm -f " + cfg)	
+	os.system("/bin/rm -f " + cfg)
 
 	pos=nx.get_node_attributes(G,'pos')
 	pos_label=nx.get_node_attributes(G,'label_pos')
 	edge_labels = nx.get_edge_attributes(G,'port')
-	
+
 	try:
 		plt.figure(10,figsize=(10,15))
-		nx.draw(G, pos, with_labels=False, font_weight='bold', width=3, alpha=0.1,linewidths=5)	
+		nx.draw(G, pos, with_labels=False, font_weight='bold', width=3, alpha=0.1,linewidths=5)
 		nx.draw_networkx_nodes(G,pos, node_color="skyblue", node_size=100, alpha=0.8, node_shape="p")
 		nx.draw_networkx_labels(G,pos=pos_label, alpha=1, font_color="green", font_size=10)
 		nx.draw_networkx_edges(G,pos, width=0.5,alpha=0.5, edge_color="#5D9CEB",arrows=False)
 		nx.draw_networkx_edge_labels(G, pos,label_pos=0.5,font_color="blue", labels=edge_labels, font_size=8)
-		
+
 		plt.savefig("map.png")
 		plt.show()
 	except Exception as e:
 		print('<div class="alert alert-danger">' + str(e) + '</div>')
-		
+
 	cmd = "rm -f "+os.path.dirname(os.getcwd())+"/map*.png && mv map.png "+os.path.dirname(os.getcwd())+"/map"+date+".png"
 	output, stderr = funct.subprocess_execute(cmd)
 	print(stderr)
 
-	print('<img src="/map%s.png" alt="map">' % date)		
-	
-	
+	print('<img src="/map%s.png" alt="map">' % date)
+
+
 if form.getvalue('servaction') is not None:
 	server_state_file = sql.get_setting('server_state_file')
 	haproxy_sock = sql.get_setting('haproxy_sock')
 	enable = form.getvalue('servaction')
-	backend = form.getvalue('servbackend')	
+	backend = form.getvalue('servbackend')
 	cmd='echo "%s %s" |sudo socat stdio %s' % (enable, backend, haproxy_sock)
-	
+
 	if form.getvalue('save') == "on":
 		save_command = 'echo "show servers state" | sudo socat %s stdio > %s' % (haproxy_sock, server_state_file)
-		command = [ cmd + ';' + save_command ] 
+		command = [ cmd + ';' + save_command ]
 	else:
-		command = [ cmd ] 
-		
+		command = [ cmd ]
+
 	if enable != "show":
 		print('<center><h3>You %s %s on HAproxy %s. <a href="viewsttats.py?serv=%s" title="View stat" target="_blank">Look it</a> or <a href="runtimeapi.py" title="RutimeAPI">Edit something else</a></h3><br />' % (enable, backend, serv, serv))
-			
+
 	print(funct.ssh_command(serv, command, show_log="1"))
 	action = 'runtimeapi.py ' + enable + ' ' + backend
 	funct.logging(serv, action)
@@ -727,16 +740,16 @@ if act == "showCompareConfigs":
 	template = env.get_template('ajax/show_compare_configs.html')
 	left = form.getvalue('left')
 	right = form.getvalue('right')
-	
+
 	if form.getvalue('service') == 'nginx':
 		return_files=funct.get_files(funct.get_config_var('configs', 'nginx_save_configs_dir'), 'conf')
 	else:
 		return_files=funct.get_files()
-	
-	template = template.render(serv=serv, right=right, left=left, return_files=return_files)									
+
+	template = template.render(serv=serv, right=right, left=left, return_files=return_files)
 	print(template)
-	
-	
+
+
 if serv is not None and form.getvalue('right') is not None:
 	from jinja2 import Environment, FileSystemLoader
 	left = form.getvalue('left')
@@ -745,17 +758,17 @@ if serv is not None and form.getvalue('right') is not None:
 		configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
 	else:
 		configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
-	cmd='diff -ub %s%s %s%s' % (configs_dir, left, configs_dir, right)	
+	cmd='diff -ub %s%s %s%s' % (configs_dir, left, configs_dir, right)
 	env = Environment(loader=FileSystemLoader('templates/'), autoescape=True, extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
 	template = env.get_template('ajax/compare.html')
-	
+
 	output, stderr = funct.subprocess_execute(cmd)
-	template = template.render(stdout=output)	
-	
+	template = template.render(stdout=output)
+
 	print(template)
 	print(stderr)
-	
-	
+
+
 if serv is not None and act == "configShow":
 	if form.getvalue('service') == 'keepalived':
 		configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
@@ -766,35 +779,35 @@ if serv is not None and act == "configShow":
 	else:
 		configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 		cfg = '.cfg'
-	
-	if form.getvalue('configver') is None:	
+
+	if form.getvalue('configver') is None:
 		cfg = configs_dir + serv + "-" + funct.get_data('config') + cfg
 		if form.getvalue('service') == 'nginx':
 			funct.get_config(serv, cfg, nginx=1)
 		else:
 			funct.get_config(serv, cfg)
-	else: 
+	else:
 		cfg = configs_dir + form.getvalue('configver')
 	try:
 		conf = open(cfg, "r")
 	except IOError:
 		print('<div class="alert alert-danger">Can\'t read config file</div>')
-		
+
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True, trim_blocks=True, lstrip_blocks=True, extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
 	template = env.get_template('config_show.html')
-	
+
 	template = template.render(conf=conf,
-								serv=serv, 
-								configver=form.getvalue('configver'), 
-								role=funct.is_admin(level=2), 
-								service=form.getvalue('service'))											
+								serv=serv,
+								configver=form.getvalue('configver'),
+								role=funct.is_admin(level=2),
+								service=form.getvalue('service'))
 	print(template)
-	
+
 	if form.getvalue('configver') is None:
-		os.system("/bin/rm -f " + cfg)	
-		
-		
+		os.system("/bin/rm -f " + cfg)
+
+
 if form.getvalue('master'):
 	master = form.getvalue('master')
 	slave = form.getvalue('slave')
@@ -805,35 +818,35 @@ if form.getvalue('master'):
 	fullpath = funct.get_config_var('main', 'fullpath')
 	proxy = sql.get_setting('proxy')
 	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(master)
-	
+
 	if ssh_enable == 0:
 		ssh_key_name = ''
-		
+
 	servers = sql.select_servers(server=master)
 	for server in servers:
 		ssh_port = str(server[10])
-	
+
 	if proxy is not None and proxy != '' and proxy != 'None':
-		proxy_serv = proxy 
+		proxy_serv = proxy
 	else:
-		proxy_serv = ''		
-		
+		proxy_serv = ''
+
 	os.system("cp scripts/%s ." % script)
-	
+
 	if form.getvalue('hap') == "1":
 		funct.install_haproxy(master)
 		funct.install_haproxy(slave)
-		
+
 	if form.getvalue('nginx') == "1":
 		funct.install_nginx(master)
 		funct.install_nginx(slave)
-		
+
 	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+" SSH_PORT="+ssh_port+
 				" ETH="+ETH+" IP="+str(IP)+" MASTER=MASTER"+" SYN_FLOOD="+syn_flood+" HOST="+str(master)+
 				" USER="+str(ssh_user_name)+" PASS="+str(ssh_user_password)+" KEY="+str(ssh_key_name) ]
-	
+
 	output, error = funct.subprocess_execute(commands[0])
-	
+
 	if error:
 		funct.logging('localhost', error, haproxywi=1)
 		print('error: '+error)
@@ -850,22 +863,22 @@ if form.getvalue('master'):
 					break
 		else:
 			print('success: Master Keepalived was installed<br>')
-				
+
 	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(slave)
-	
+
 	if ssh_enable == 0:
 		ssh_key_name = ''
-	
+
 	servers = sql.select_servers(server=slave)
 	for server in servers:
 		ssh_port = str(server[10])
-	
+
 	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" +proxy_serv+" SSH_PORT="+ssh_port+
 				" ETH="+ETH+" IP="+IP+" MASTER=BACKUP"+" HOST="+str(slave)+
 				" USER="+str(ssh_user_name)+" PASS="+str(ssh_user_password)+" KEY="+str(ssh_key_name) ]
-	
+
 	output, error = funct.subprocess_execute(commands[0])
-	
+
 	if error:
 		funct.logging('localhost', error, haproxywi=1)
 		print('error: '+error)
@@ -882,13 +895,13 @@ if form.getvalue('master'):
 					break
 		else:
 			print('success: Slave Keepalived was installed<br>')
-			
+
 	os.system("rm -f %s" % script)
 	sql.update_server_master(master, slave)
 	sql.update_keepalived(master)
 	sql.update_keepalived(slave)
-	
-	
+
+
 if form.getvalue('masteradd'):
 	master = form.getvalue('masteradd')
 	slave = form.getvalue('slaveadd')
@@ -896,30 +909,30 @@ if form.getvalue('masteradd'):
 	IP = form.getvalue('vrrpipadd')
 	kp = form.getvalue('kp')
 	script = "install_keepalived.sh"
-	proxy = sql.get_setting('proxy')	
+	proxy = sql.get_setting('proxy')
 	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(master)
-	
+
 	if ssh_enable == 0:
 		ssh_key_name = ''
-		
+
 	if proxy is not None and proxy != '' and proxy != 'None':
-		proxy_serv = proxy 
+		proxy_serv = proxy
 	else:
-		proxy_serv = ''		
-		
+		proxy_serv = ''
+
 	os.system("cp scripts/%s ." % script)
-	
+
 	servers = sql.select_servers(server=master)
 	for server in servers:
 		ssh_port = str(server[10])
-		
-	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+ 
+
+	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+
 				" SSH_PORT="+ssh_port+
 				" ETH="+ETH+" IP="+str(IP)+" MASTER=MASTER"+" RESTART="+kp+" ADD_VRRP=1 HOST="+str(master)+
 				" USER="+str(ssh_user_name)+" PASS="+str(ssh_user_password)+" KEY="+str(ssh_key_name) ]
-	
+
 	output, error = funct.subprocess_execute(commands[0])
-	
+
 	if error:
 		funct.logging('localhost', error, haproxywi=1)
 		print('error: '+error)
@@ -936,24 +949,24 @@ if form.getvalue('masteradd'):
 					break
 		else:
 			print('success: Master VRRP address was added<br>')
-		
-		
+
+
 	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(slave)
-	
+
 	if ssh_enable == 0:
 		ssh_key_name = ''
-		
+
 	servers = sql.select_servers(server=slave)
 	for server in servers:
 		ssh_port = str(server[10])
-	
-	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+ 
+
+	commands = ["chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+
 				" SSH_PORT="+ssh_port+
 				" ETH="+ETH+" IP="+str(IP)+" MASTER=BACKUP"+" RESTART="+kp+" ADD_VRRP=1 HOST="+str(slave)+
-				" USER="+str(ssh_user_name)+" PASS="+str(ssh_user_password)+" KEY="+str(ssh_key_name) ]
-	
+				" USER="+str(ssh_user_name)+" PASS="+str(ssh_user_password)+" KEY="+str(ssh_key_name)]
+
 	output, error = funct.subprocess_execute(commands[0])
-	
+
 	if error:
 		funct.logging('localhost', error, haproxywi=1)
 		print('error: '+error)
@@ -970,28 +983,28 @@ if form.getvalue('masteradd'):
 					break
 		else:
 			print('success: Slave VRRP address was added<br>')
-			
+
 	os.system("rm -f %s" % script)
-	
-	
-if form.getvalue('install_grafana'):	
-	script = "install_grafana.sh"	
+
+
+if form.getvalue('install_grafana'):
+	script = "install_grafana.sh"
 	proxy = sql.get_setting('proxy')
-		
+
 	os.system("cp scripts/%s ." % script)
-	
+
 	if proxy is not None and proxy != '' and proxy != 'None':
-		proxy_serv = proxy 
+		proxy_serv = proxy
 	else:
 		proxy_serv = ''
-		
+
 	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv ]
-				
+
 	output, error = funct.subprocess_execute(commands[0])
-	
+
 	if error:
 		funct.logging('localhost', error, haproxywi=1)
-		import socket 
+		import socket
 		print('success: Grafana and Prometheus servers were installed. You can find Grafana on http://'+socket.gethostname()+':3000<br>')
 	else:
 		for l in output:
@@ -1005,12 +1018,12 @@ if form.getvalue('install_grafana'):
 					print(output)
 					break
 		else:
-			import socket 
+			import socket
 			print('success: Grafana and Prometheus servers were installed. You can find Grafana on http://'+socket.gethostname()+':3000<br>')
-			
+
 	os.system("rm -f %s" % script)
-	
-	
+
+
 if form.getvalue('haproxy_exp_install'):
 	serv = form.getvalue('haproxy_exp_install')
 	script = "install_haproxy_exporter.sh"
@@ -1021,29 +1034,29 @@ if form.getvalue('haproxy_exp_install'):
 	stat_page = sql.get_setting('stats_page')
 	proxy = sql.get_setting('proxy')
 	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(serv)
-	
+
 	if ssh_enable == 0:
 		ssh_key_name = ''
-		
+
 	servers = sql.select_servers(server=serv)
 	for server in servers:
 		ssh_port = str(server[10])
-		
+
 	os.system("cp scripts/%s ." % script)
-	
+
 	if proxy is not None and proxy != '' and proxy != 'None':
-		proxy_serv = proxy 
+		proxy_serv = proxy
 	else:
 		proxy_serv = ''
-		
-	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+ 
+
+	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+
 				" STAT_PORT="+stats_port+" STAT_FILE="+server_state_file+
 				" SSH_PORT="+ssh_port+" STAT_PAGE="+stat_page+
 				" STATS_USER="+stats_user+" STATS_PASS="+stats_password+" HOST="+serv+
 				" USER="+ssh_user_name+" PASS="+ssh_user_password+" KEY="+ssh_key_name ]
-				
+
 	output, error = funct.subprocess_execute(commands[0])
-	
+
 	if error:
 		funct.logging('localhost', error, haproxywi=1)
 		print('error: '+error)
@@ -1060,10 +1073,10 @@ if form.getvalue('haproxy_exp_install'):
 					break
 		else:
 			print('success: HAProxy exporter was installed<br>')
-			
+
 	os.system("rm -f %s" % script)
-	
-	
+
+
 if form.getvalue('nginx_exp_install'):
 	serv = form.getvalue('nginx_exp_install')
 	script = "install_nginx_exporter.sh"
@@ -1073,28 +1086,28 @@ if form.getvalue('nginx_exp_install'):
 	stats_page = sql.get_setting('nginx_stats_page')
 	proxy = sql.get_setting('proxy')
 	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(serv)
-	
+
 	if ssh_enable == 0:
 		ssh_key_name = ''
-		
+
 	servers = sql.select_servers(server=serv)
 	for server in servers:
 		ssh_port = str(server[10])
-		
+
 	os.system("cp scripts/%s ." % script)
-	
+
 	if proxy is not None and proxy != '' and proxy != 'None':
-		proxy_serv = proxy 
+		proxy_serv = proxy
 	else:
 		proxy_serv = ''
-		
-	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+ 
+
+	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+
 				" STAT_PORT="+stats_port+" SSH_PORT="+ssh_port+" STAT_PAGE="+stats_page+
 				" STATS_USER="+stats_user+" STATS_PASS="+stats_password+" HOST="+serv+
 				" USER="+ssh_user_name+" PASS="+ssh_user_password+" KEY="+ssh_key_name ]
-				
+
 	output, error = funct.subprocess_execute(commands[0])
-	
+
 	if error:
 		funct.logging('localhost', error, haproxywi=1)
 		print('error: '+error)
@@ -1111,10 +1124,10 @@ if form.getvalue('nginx_exp_install'):
 					break
 		else:
 			print('success: Nginx exporter was installed<br>')
-			
+
 	os.system("rm -f %s" % script)
-	
-	
+
+
 if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupupdate'):
 	server = form.getvalue('server')
 	rpath = form.getvalue('rpath')
@@ -1125,9 +1138,9 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
 	deljob = form.getvalue('deljob')
 	update = form.getvalue('backupupdate')
 	description = form.getvalue('description')
-	script = "backup.sh"	
-	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path('localhost', id=int(cred))	
-	
+	script = "backup.sh"
+	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path('localhost', id=int(cred))
+
 	if deljob:
 		time = ''
 		rpath = ''
@@ -1135,23 +1148,23 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
 	elif update:
 		deljob = ''
 	else:
-		deljob = ''	
+		deljob = ''
 		if sql.check_exists_backup(server):
 			print('info: Backup job for %s already exists' % server)
 			sys.exit()
-	
+
 	servers = sql.select_servers(server=serv)
 	for server in servers:
 		ssh_port = str(server[10])
-		
+
 	os.system("cp scripts/%s ." % script)
-		
+
 	commands = [ "chmod +x "+script +" &&  ./"+script +"  HOST="+rserver+"  SERVER="+server+" TYPE="+type+
 				" SSH_PORT="+ssh_port+
 				" TIME="+time+" RPATH="+rpath+" DELJOB="+deljob+" USER="+str(ssh_user_name)+" KEY="+str(ssh_key_name) ]
-	
+
 	output, error = funct.subprocess_execute(commands[0])
-	
+
 	if error:
 		funct.logging('backup', error, haproxywi=1)
 		print('error: '+error)
@@ -1166,7 +1179,7 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
 				except:
 					print(output)
 					break
-		else:			
+		else:
 			if deljob == '' and update == '':
 				if sql.insert_backup_job(server, rserver, rpath, type, time, cred, description):
 					funct.logging('backup ', ' has created a new backup job for server '+server , haproxywi=1, login=1)
@@ -1174,7 +1187,7 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
 					from jinja2 import Environment, FileSystemLoader
 					env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
 					template = env.get_template('new_backup.html')
-					template = template.render(backups=sql.select_backups(server=server, rserver=rserver), sshs=sql.select_ssh())											
+					template = template.render(backups=sql.select_backups(server=server, rserver=rserver), sshs=sql.select_ssh())
 					print(template)
 					print('success: Backup job has created<br>')
 				else:
@@ -1187,86 +1200,86 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
 				sql.update_backup(server, rserver, rpath, type, time, cred, description, update)
 				print('Ok')
 				funct.logging('backup ', ' has updated a backup job for server '+server, haproxywi=1, login=1)
-				
-				
+
+
 if form.getvalue('install_nginx'):
 	funct.install_nginx(form.getvalue('install_nginx'))
-				
-	
+
+
 if form.getvalue('haproxyaddserv'):
 	funct.install_haproxy(form.getvalue('haproxyaddserv'), syn_flood=form.getvalue('syn_flood'), hapver=form.getvalue('hapver'))
-	
-	
+
+
 if form.getvalue('installwaf'):
 	funct.waf_install(form.getvalue('installwaf'))
-	
-	
+
+
 if form.getvalue('update_haproxy_wi'):
 	funct.update_haproxy_wi()
-	
-	
+
+
 if form.getvalue('metrics_waf'):
 	sql.update_waf_metrics_enable(form.getvalue('metrics_waf'), form.getvalue('enable'))
-	
-		
+
+
 if form.getvalue('table_metrics'):
 	import http.cookies
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
 	template = env.get_template('table_metrics.html')
-		
+
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_id = cookie.get('uuid')	
+	user_id = cookie.get('uuid')
 	table_stat = sql.select_table_metrics(user_id.value)
 
-	template = template.render(table_stat=sql.select_table_metrics(user_id.value))											
+	template = template.render(table_stat=sql.select_table_metrics(user_id.value))
 	print(template)
-	
-	
-if form.getvalue('metrics_hapwi_ram'):	
+
+
+if form.getvalue('metrics_hapwi_ram'):
 	ip = form.getvalue('ip')
 	metrics = {}
 	metrics['chartData'] = {}
 	rams = ''
-	
+
 	if ip == '1':
 		cmd = "free -m |grep Mem |awk '{print $3,$4,$5,$6,$7}'"
 		metric, error = funct.subprocess_execute(cmd)
 	else:
-		commands = [ "free -m |grep Mem |awk '{print $3,$4,$5,$6,$7}'" ]	
+		commands = [ "free -m |grep Mem |awk '{print $3,$4,$5,$6,$7}'" ]
 		metric, error = funct.subprocess_execute(commands[0])
-	
+
 	for i in metric:
 		rams = i
-			
+
 	metrics['chartData']['rams'] = rams
-	
+
 	import json
 	print(json.dumps(metrics))
-	
-	
+
+
 if form.getvalue('metrics_hapwi_cpu'):
 	ip = form.getvalue('ip')
 	metrics = {}
 	metrics['chartData'] = {}
 	cpus = ''
-	
+
 	if ip == '1':
 		cmd = "top -b -n 1 |grep Cpu |awk -F':' '{print $2}'|awk  -F' ' 'BEGIN{ORS=\" \";} { for (i=1;i<=NF;i+=2) print $i}'"
 		metric, error = funct.subprocess_execute(cmd)
 	else:
-		commands = [ "top -b -n 1 |grep Cpu |awk -F':' '{print $2}'|awk  -F' ' 'BEGIN{ORS=\" \";} { for (i=1;i<=NF;i+=2) print $i}'" ]	
+		commands = [ "top -b -n 1 |grep Cpu |awk -F':' '{print $2}'|awk  -F' ' 'BEGIN{ORS=\" \";} { for (i=1;i<=NF;i+=2) print $i}'" ]
 		metric, error = funct.subprocess_execute(commands[0])
-	
+
 	for i in metric:
 		cpus = i
-			
+
 	metrics['chartData']['cpus'] = cpus
-	
+
 	import json
 	print(json.dumps(metrics))
-	
-	
+
+
 if form.getvalue('new_metrics'):
 	serv = form.getvalue('server')
 	metric = sql.select_metrics(serv)
@@ -1286,18 +1299,18 @@ if form.getvalue('new_metrics'):
 		curr_ssl_con += str(i[2])+','
 		sess_rate += str(i[3])+','
 		server = str(i[0])
-			
+
 	metrics['chartData']['labels'] = labels
 	metrics['chartData']['curr_con'] = curr_con
 	metrics['chartData']['curr_ssl_con'] = curr_ssl_con
 	metrics['chartData']['sess_rate'] = sess_rate
 	metrics['chartData']['server'] = server
-	
+
 	import json
 	print(json.dumps(metrics))
-			
 
-if form.getvalue('new_waf_metrics'):	
+
+if form.getvalue('new_waf_metrics'):
 	serv = form.getvalue('server')
 	metric = sql.select_waf_metrics(serv)
 	metrics = {}
@@ -1311,29 +1324,29 @@ if form.getvalue('new_waf_metrics'):
 		label = label.split(' ')[1]
 		labels += label[0]+','
 		curr_con += str(i[1])+','
-		
+
 	metrics['chartData']['labels'] = labels
 	metrics['chartData']['curr_con'] = curr_con
 	metrics['chartData']['server'] = serv
-	
+
 	import json
 	print(json.dumps(metrics))
-	
-	
+
+
 if form.getvalue('get_hap_v'):
 	output = funct.check_haproxy_version(serv)
 	print(output)
-	
-	
+
+
 if form.getvalue('get_nginx_v'):
 	cmd = [ "/usr/sbin/nginx -v" ]
 	print(funct.ssh_command(serv, cmd))
-	
+
 
 if form.getvalue('get_exporter_v'):
 	print(funct.check_service(serv, form.getvalue('get_exporter_v')))
 
-	
+
 if form.getvalue('bwlists'):
 	list = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')+"/"+form.getvalue('group')+"/"+form.getvalue('color')+"/"+form.getvalue('bwlists')
 	try:
@@ -1343,8 +1356,8 @@ if form.getvalue('bwlists'):
 		print(file_read)
 	except IOError:
 		print('<div class="alert alert-danger" style="margin:0">Cat\'n read '+form.getvalue('color')+' list</div>')
-		
-		
+
+
 if form.getvalue('bwlists_create'):
 	color = form.getvalue('color')
 	list_name = form.getvalue('bwlists_create').split('.')[0]
@@ -1359,8 +1372,8 @@ if form.getvalue('bwlists_create'):
 			pass
 	except IOError as e:
 		print('<div class="alert alert-danger" style="margin-left:14px">Cat\'n create new '+color+' list. %s </div>' % e)
-		
-		
+
+
 if form.getvalue('bwlists_save'):
 	color = form.getvalue('color')
 	bwlists_save = form.getvalue('bwlists_save')
@@ -1370,11 +1383,11 @@ if form.getvalue('bwlists_save'):
 			file.write(form.getvalue('bwlists_content'))
 	except IOError as e:
 		print('<div class="alert alert-danger" style="margin-left:14px">Cat\'n save '+color+' list. %s </div>' % e)
-	
+
 	path = sql.get_setting('haproxy_dir')+"/"+color
 	servers = []
-	
-	if serv != 'all':	
+
+	if serv != 'all':
 		servers.append(serv)
 
 		MASTERS = sql.is_master(serv)
@@ -1385,13 +1398,13 @@ if form.getvalue('bwlists_save'):
 		server = sql.get_dick_permit()
 		for s in server:
 			servers.append(s[2])
-			
+
 	for serv in servers:
 		funct.ssh_command(serv, ["sudo mkdir "+path])
 		funct.ssh_command(serv, ["sudo chown $(whoami) "+path])
 		error = funct.upload(serv, path+"/"+bwlists_save, list, dir='fullpath')
 		if error:
-			print('<div class="alert alert-danger">Upload fail: %s</div>' % error)			
+			print('<div class="alert alert-danger">Upload fail: %s</div>' % error)
 		else:
 			print('<div class="alert alert-success" style="margin:10px; margin-left:14px">Edited '+color+' list was uploaded to '+serv+'</div>')
 			try:
@@ -1402,19 +1415,19 @@ if form.getvalue('bwlists_save'):
 				funct.ssh_command(serv, ["sudo systemctl restart haproxy"])
 			elif form.getvalue('bwlists_restart') == 'reload':
 				funct.ssh_command(serv, ["sudo systemctl reload haproxy"])
-			
-			
+
+
 if form.getvalue('get_lists'):
 	list = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')+"/"+form.getvalue('group')+"/"+form.getvalue('color')
 	lists = funct.get_files(dir=list, format="lst")
 	for list in lists:
 		print(list)
-		
-		
+
+
 if form.getvalue('get_ldap_email'):
 	username = form.getvalue('get_ldap_email')
 	import ldap
-	
+
 	server = sql.get_setting('ldap_server')
 	port = sql.get_setting('ldap_port')
 	user = sql.get_setting('ldap_user')
@@ -1443,7 +1456,7 @@ if form.getvalue('get_ldap_email'):
 			print('error: user not found')
 	finally:
 		l.unbind()
-		
+
 
 if form.getvalue('change_waf_mode'):
 	waf_mode = form.getvalue('change_waf_mode')
@@ -1453,21 +1466,21 @@ if form.getvalue('change_waf_mode'):
 	commands = [ "sudo sed -i 's/^SecRuleEngine.*/SecRuleEngine %s/' %s/waf/modsecurity.conf " % (waf_mode, haproxy_dir) ]
 	funct.ssh_command(serv, commands)
 	funct.logging(serv, 'Was changed WAF mod to '+waf_mode, haproxywi=1, login=1)
-	
-	
+
+
 error_mess = '<span class="alert alert-danger" id="error">All fields must be completed <a title="Close" id="errorMess"><b>X</b></a></span>'
 
-	
+
 if form.getvalue('newuser') is not None:
 	email = form.getvalue('newemail')
 	password = form.getvalue('newpassword')
 	role = form.getvalue('newrole')
-	new_user = form.getvalue('newusername')	
-	page = form.getvalue('page')	
-	activeuser = form.getvalue('activeuser')	
-	group = form.getvalue('newgroupuser')	
+	new_user = form.getvalue('newusername')
+	page = form.getvalue('page')
+	activeuser = form.getvalue('activeuser')
+	group = form.getvalue('newgroupuser')
 	role_id = sql.get_role_id_by_name(role)
-	
+
 	if funct.check_group(group, role_id):
 		if funct.is_admin(level=role_id):
 			if sql.add_user(new_user, email, password, role, activeuser):
@@ -1483,8 +1496,8 @@ if form.getvalue('newuser') is not None:
 				funct.logging('a new user '+new_user, ' has created ', haproxywi=1, login=1)
 		else:
 			funct.logging(new_user, ' tried to privilege escalation', haproxywi=1, login=1)
-			
-			
+
+
 if form.getvalue('userdel') is not None:
 	userdel = form.getvalue('userdel')
 	user = sql.select_users(id=userdel)
@@ -1494,38 +1507,38 @@ if form.getvalue('userdel') is not None:
 		sql.delete_user_groups(userdel)
 		funct.logging(username, ' has deleted user ', haproxywi=1, login=1)
 		print("Ok")
-		
-		
+
+
 if form.getvalue('updateuser') is not None:
 	email = form.getvalue('email')
 	role = form.getvalue('role')
-	new_user = form.getvalue('updateuser')	
-	id = form.getvalue('id')	
-	activeuser = form.getvalue('activeuser')	
-	group = form.getvalue('usergroup')	
+	new_user = form.getvalue('updateuser')
+	id = form.getvalue('id')
+	activeuser = form.getvalue('activeuser')
+	group = form.getvalue('usergroup')
 	role_id = sql.get_role_id_by_name(role)
-	
-	if funct.check_group(group, role_id):			
+
+	if funct.check_group(group, role_id):
 		if funct.is_admin(level=role_id):
 			sql.update_user(new_user, email, role, id, activeuser)
 			funct.logging(new_user, ' has updated user ', haproxywi=1, login=1)
 		else:
 			funct.logging(new_user, ' tried to privilege escalation', haproxywi=1, login=1)
-			
-	
+
+
 if form.getvalue('updatepassowrd') is not None:
 	password = form.getvalue('updatepassowrd')
-	id = form.getvalue('id')	
+	id = form.getvalue('id')
 	user = sql.select_users(id=id)
 	for u in user:
 		username = u[1]
 	sql.update_user_password(password, id)
 	funct.logging('user '+username, ' has changed password ', haproxywi=1, login=1)
 	print("Ok")
-		
-	
+
+
 if form.getvalue('newserver') is not None:
-	hostname = form.getvalue('servername')	
+	hostname = form.getvalue('servername')
 	ip = form.getvalue('newip')
 	group = form.getvalue('newservergroup')
 	typeip = form.getvalue('typeip')
@@ -1536,8 +1549,8 @@ if form.getvalue('newserver') is not None:
 	cred = form.getvalue('cred')
 	page = form.getvalue('page')
 	page = page.split("#")[0]
-	port = form.getvalue('newport')	
-	desc = form.getvalue('desc')		
+	port = form.getvalue('newport')
+	desc = form.getvalue('desc')
 
 	if sql.add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx):
 		from jinja2 import Environment, FileSystemLoader
@@ -1552,38 +1565,38 @@ if form.getvalue('newserver') is not None:
 									page = page)
 		print(template)
 		funct.logging('a new server '+hostname, ' has created  ', haproxywi=1, login=1)
-		
-		
+
+
 if form.getvalue('updatehapwiserver') is not None:
 	id = form.getvalue('updatehapwiserver')
 	active = form.getvalue('active')
 	name = form.getvalue('name')
-	alert = form.getvalue('alert_en')	
+	alert = form.getvalue('alert_en')
 	metrics = form.getvalue('metrics')
 	sql.update_hapwi_server(id, alert, metrics, active)
 	funct.logging('the server '+name, ' has updated ', haproxywi=1, login=1)
-		
-	
+
+
 if form.getvalue('updateserver') is not None:
-	name = form.getvalue('updateserver')	
-	group = form.getvalue('servergroup')	
-	typeip = form.getvalue('typeip')		
-	haproxy = form.getvalue('haproxy')		
-	nginx = form.getvalue('nginx')		
-	enable = form.getvalue('enable')		
-	master = form.getvalue('slave')		
-	id = form.getvalue('id')	
-	cred = form.getvalue('cred')		
-	port = form.getvalue('port')	
-	desc = form.getvalue('desc')	
-		
+	name = form.getvalue('updateserver')
+	group = form.getvalue('servergroup')
+	typeip = form.getvalue('typeip')
+	haproxy = form.getvalue('haproxy')
+	nginx = form.getvalue('nginx')
+	enable = form.getvalue('enable')
+	master = form.getvalue('slave')
+	id = form.getvalue('id')
+	cred = form.getvalue('cred')
+	port = form.getvalue('port')
+	desc = form.getvalue('desc')
+
 	if name is None or port is None:
 		print(error_mess)
 	else:
 		sql.update_server(name, group, typeip, enable, master, id, cred, port, desc, haproxy, nginx)
 		funct.logging('the server '+name, ' has updated ', haproxywi=1, login=1)
-			
-			
+
+
 if form.getvalue('serverdel') is not None:
 	serverdel = form.getvalue('serverdel')
 	server = sql.select_servers(id=serverdel)
@@ -1593,11 +1606,11 @@ if form.getvalue('serverdel') is not None:
 		sql.delete_waf_server(serverdel)
 		print("Ok")
 		funct.logging(hostname, ' has deleted server with ', haproxywi=1, login=1)
-		
-		
+
+
 if form.getvalue('newgroup') is not None:
-	newgroup = form.getvalue('groupname')	
-	desc = form.getvalue('newdesc')	
+	newgroup = form.getvalue('groupname')
+	desc = form.getvalue('newdesc')
 	if newgroup is None:
 		print(error_mess)
 	else:
@@ -1620,26 +1633,26 @@ if form.getvalue('groupdel') is not None:
 		print("Ok")
 		funct.logging(groupname, ' has deleted group ', haproxywi=1, login=1)
 
-		
+
 if form.getvalue('updategroup') is not None:
 	name = form.getvalue('updategroup')
-	descript = form.getvalue('descript')	
-	id = form.getvalue('id')		
+	descript = form.getvalue('descript')
+	id = form.getvalue('id')
 	if name is None:
 		print(error_mess)
 	else:
 		group = sql.select_groups(id=id)
 		for g in group:
-			groupname = g[1]		
-		sql.update_group(name, descript, id)	
+			groupname = g[1]
+		sql.update_group(name, descript, id)
 		funct.logging('the group '+groupname, ' has update  ', haproxywi=1, login=1)
-	
-	
+
+
 if form.getvalue('new_ssh'):
 	name = form.getvalue('new_ssh')
-	enable = form.getvalue('ssh_enable')	
-	group = form.getvalue('new_group')	
-	username = form.getvalue('ssh_user')		
+	enable = form.getvalue('ssh_enable')
+	group = form.getvalue('new_group')
+	username = form.getvalue('ssh_user')
 	password = form.getvalue('ssh_pass')
 	page = form.getvalue('page')
 	page = page.split("#")[0]
@@ -1650,20 +1663,20 @@ if form.getvalue('new_ssh'):
 			from jinja2 import Environment, FileSystemLoader
 			env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
 			template = env.get_template('/new_ssh.html')
-			output_from_parsed_template = template.render(groups = sql.select_groups(), sshs = sql.select_ssh(name=name),page=page)
+			output_from_parsed_template = template.render(groups=sql.select_groups(), sshs=sql.select_ssh(name=name),page=page)
 			print(output_from_parsed_template)
 			funct.logging(name, ' has created a new SSH credentials  ', haproxywi=1, login=1)
-			
-			
+
+
 if form.getvalue('sshdel') is not None:
 	fullpath = funct.get_config_var('main', 'fullpath')
 	sshdel = form.getvalue('sshdel')
-	
+
 	for sshs in sql.select_ssh(id=sshdel):
 		ssh_enable = sshs[2]
 		name = sshs[1]
 		ssh_key_name = fullpath+'/keys/%s.pem' % sshs[1]
-				
+
 	if ssh_enable == 1:
 		cmd = 'rm -f %s' % ssh_key_name
 		try:
@@ -1673,14 +1686,14 @@ if form.getvalue('sshdel') is not None:
 	if sql.delete_ssh(sshdel):
 		print("Ok")
 		funct.logging(name, ' has deleted the SSH credentials  ', haproxywi=1, login=1)
-			
-			
+
+
 if form.getvalue('updatessh'):
 	id = form.getvalue('id')
 	name = form.getvalue('name')
-	enable = form.getvalue('ssh_enable')	
-	group = form.getvalue('group')	
-	username = form.getvalue('ssh_user')		
+	enable = form.getvalue('ssh_enable')
+	group = form.getvalue('group')
+	username = form.getvalue('ssh_user')
 	password = form.getvalue('ssh_pass')
 
 	if username is None:
@@ -1688,12 +1701,12 @@ if form.getvalue('updatessh'):
 	else:
 
 		fullpath = funct.get_config_var('main', 'fullpath')
-		
+
 		for sshs in sql.select_ssh(id=id):
 			ssh_enable = sshs[2]
 			ssh_key_name = fullpath+'/keys/%s.pem' % sshs[1]
 			new_ssh_key_name = fullpath+'/keys/%s.pem' % name
-					
+
 		if ssh_enable == 1:
 			cmd = 'mv %s %s' % (ssh_key_name, new_ssh_key_name)
 			cmd1 = 'chmod 600 %s' % new_ssh_key_name
@@ -1704,16 +1717,16 @@ if form.getvalue('updatessh'):
 				pass
 		sql.update_ssh(id, name, enable, group, username, password)
 		funct.logging('the SSH '+name, ' has updated credentials ', haproxywi=1, login=1)
-		
-		
+
+
 if form.getvalue('ssh_cert'):
 	name = form.getvalue('name')
-	
+
 	if not os.path.exists(os.getcwd()+'/keys/'):
 		os.makedirs(os.getcwd()+'/keys/')
-	
+
 	ssh_keys = os.path.dirname(os.getcwd())+'/keys/'+name+'.pem'
-	
+
 	try:
 		with open(ssh_keys, "w") as conf:
 			conf.write(form.getvalue('ssh_cert'))
@@ -1721,20 +1734,20 @@ if form.getvalue('ssh_cert'):
 		print('<div class="alert alert-danger">Can\'t save ssh keys file. Check ssh keys path in config</div>')
 	else:
 		print('<div class="alert alert-success">Ssh key was save into: %s </div>' % ssh_keys)
-		
+
 	try:
 		cmd = 'chmod 600 %s' % ssh_keys
 		funct.subprocess_execute(cmd)
 	except IOError as e:
 		funct.logging('localhost', e.args[0], haproxywi=1)
-		
+
 	funct.logging("localhost", " upload a new SSH cert %s" % ssh_keys, haproxywi=1, login=1)
-	
-	
+
+
 if form.getvalue('newtelegram'):
 	token = form.getvalue('newtelegram')
-	channel = form.getvalue('chanel')	
-	group = form.getvalue('telegramgroup')	
+	channel = form.getvalue('chanel')
+	group = form.getvalue('telegramgroup')
 	page = form.getvalue('page')
 	page = page.split("#")[0]
 
@@ -1746,10 +1759,10 @@ if form.getvalue('newtelegram'):
 			env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
 			template = env.get_template('/new_telegram.html')
 			output_from_parsed_template = template.render(groups = sql.select_groups(), telegrams = sql.select_telegram(token=token),page=page)
-			print(output_from_parsed_template)	
+			print(output_from_parsed_template)
 			funct.logging(channel, ' has created a new Telegram channel ', haproxywi=1, login=1)
-			
-			
+
+
 if form.getvalue('telegramdel') is not None:
 	telegramdel = form.getvalue('telegramdel')
 	telegram = sql.select_telegram(id=telegramdel)
@@ -1758,27 +1771,27 @@ if form.getvalue('telegramdel') is not None:
 	if sql.delete_telegram(telegramdel):
 		print("Ok")
 		funct.logging(telegram_name, ' has deleted the Telegram channel ', haproxywi=1, login=1)
-		
-		
+
+
 if form.getvalue('updatetoken') is not None:
 	token = form.getvalue('updatetoken')
-	channel = form.getvalue('updategchanel')	
-	group = form.getvalue('updatetelegramgroup')	
-	id = form.getvalue('id')	
+	channel = form.getvalue('updategchanel')
+	group = form.getvalue('updatetelegramgroup')
+	id = form.getvalue('id')
 	if token is None or channel is None or group is None:
 		print(error_mess)
-	else:		
+	else:
 		sql.update_telegram(token, channel, group, id)
 		funct.logging('group '+group, ' telegram token has updated channel: '+channel, haproxywi=1, login=1)
-		
-		
+
+
 if form.getvalue('updatesettings') is not None:
 	settings = form.getvalue('updatesettings')
 	val = form.getvalue('val')
 	if sql.update_setting(settings, val):
 		funct.logging('value '+val, ' changed settings '+settings, haproxywi=1, login=1)
 		print("Ok")
-	
+
 
 if form.getvalue('getusergroups'):
 	id = form.getvalue('getusergroups')
@@ -1791,8 +1804,8 @@ if form.getvalue('getusergroups'):
 	template = env.get_template('/show_user_groups.html')
 	template = template.render(groups=sql.select_groups(), user_groups=groups,id=id)
 	print(template)
-	
-	
+
+
 if form.getvalue('changeUserGroupId') is not None:
 	id = form.getvalue('changeUserGroupId')
 	groups = form.getvalue('changeUserGroups')
@@ -1802,10 +1815,10 @@ if form.getvalue('changeUserGroupId') is not None:
 			if group[0] == ',':
 				continue
 			sql.update_user_groups(groups=group[0], id=id)
-				
+
 	funct.logging('localhost', ' has upgraded groups for user: '+user, haproxywi=1, login=1)
-	
-	
+
+
 if form.getvalue('getcurrentusergroup') is not None:
 	import http.cookies
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))

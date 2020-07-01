@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox %}
+<link href="/inc/table.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" charset="utf8" src="/inc/dataTables.min.js"></script>
 <script type="text/javascript" charset="utf8" src="/inc/runtimeapi.js"></script>
 <div id="tabs">
 	<ul>
@@ -8,6 +10,7 @@
 		{% if role <= 2 %}
 			<li><a href="#maxconn">Change Maxconn</a></li>
 			<li><a href="#ip">Change IP and Port</a></li>
+			<li><a href="#table">Stick Table</a></li>
 		{% endif %}
 		{% include 'include/login.html' %}
 	</ul>
@@ -144,6 +147,38 @@
 			</tr>
 		</table>
 		<div id="ajaxip"></div>
+		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+			You can read how it works <a href="https://haproxy-wi.org/description.py?description=runtimeapi#ip" title="Change IP and Port" target="_blank">here</a>
+		</div>	
+	</div>
+	<div id="table">
+		<table class="overview">
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn">Server</td>
+				<td>Choose Table</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td class="padding10 first-collumn" style="width: 25%;">
+					<form action="" method="post" id="runtimeapitable">
+						<select autofocus required name="table_serv_select" id="table_serv_select">
+							<option disabled selected>Choose server</option>
+							{% for select in selects %}
+								<option value="{{ select.2 }}">{{ select.1 }}</option>
+							{% endfor %}
+						</select>
+				</td>
+				<td>
+					<select required name="table_select" id="table_select">
+					</select>				
+				</td>
+				<td>
+					<button type="submit" name="Enter" value="Enter" id="enter">Enter</button>
+				</td>
+					</form>
+			</tr>
+		</table>
+		<div id="ajaxtable"></div>
 		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
 			You can read how it works <a href="https://haproxy-wi.org/description.py?description=runtimeapi#ip" title="Change IP and Port" target="_blank">here</a>
 		</div>	

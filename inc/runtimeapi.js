@@ -186,4 +186,78 @@ $( function() {
 		} );
 		return false;
 	});
+	$( "#table_serv_select" ).on('selectmenuchange',function() {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				serv: $('#table_serv_select').val(),
+				table_serv_select: $('#table_serv_select').val(),
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+				data = data.replace(/\s+/g,'');
+				if (data.indexOf('error') != '-1') {
+					alert(data)	
+				} else {
+					var value = data.split(',')
+					$('#table_select').find('option').remove();
+					$('#table_select').append($("<option titile='Show all tables'></option>").attr("value","All").text("All"));
+							
+					for(let i = 0; i < data.split(',').length; i++){
+						if(value[i] != '') {						
+							value[i] = value[i].replace(/\s+/g,'');
+							$('#table_select').append($("<option titile='Show "+value[i]+" table'></option>")
+								.attr("value",value[i])
+								.text(value[i]));
+						}
+					}
+					$('#table_select').selectmenu("refresh");
+				}	
+			}
+		} );
+	});
+	$('#runtimeapitable').submit(function() {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				serv: $('#table_serv_select').val(),
+				table_select: $('#table_select').val(),
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+					if (data.indexOf('error') != '-1') {
+						$("#ajaxtable").html(data);
+					} else {
+						$("#ajaxtable").html(data);
+						$( "input[type=submit], button" ).button();
+						$.getScript("/inc/fontawesome.min.js");
+						FontAwesomeConfig = { searchPseudoElements: true, observeMutations: false };
+					}				
+			}
+		} );
+		return false;
+	});
 });
+function deleteTableEntry(id, table, ip) {
+	console.log(table)
+	console.log(ip)
+	$.ajax( {
+    	url: "options.py",
+    	data: {
+    	    serv: $('#table_serv_select').val(),
+    		table_for_delete: table,
+    		ip_for_delete: ip,
+    		token: $('#token').val()
+    	},
+    	type: "POST",
+    	success: function( data ) {
+    	    if (data.indexOf('error') != '-1') {
+    		    alert(data);
+    		} else {
+    		    $(id).parent().parent().remove()
+    		}
+    	}
+    } );
+}

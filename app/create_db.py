@@ -526,7 +526,7 @@ def update_db_v_4_3_2(**kwargs):
 		con.commit()
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
-			if e.args[0] == 'duplicate column name: pos' or e == " 1060 (42S21): Duplicate column name 'pos' ":
+			if e.args[0] == 'column param is not unique' or e == " 1060 (42S21): column param is not unique ":
 				print('DB was update to 4.3.2')
 			else:
 				print("An error occurred:", e)
@@ -538,9 +538,10 @@ def update_db_v_4_3_2(**kwargs):
 	con.close()
 	
 	
+	
 def update_ver(**kwargs):
 	con, cur = get_cur()
-	sql = """update version set version = '4.3.2.0'; """
+	sql = """update version set version = '4.3.3.0'; """
 	try:    
 		cur.execute(sql)
 		con.commit()
