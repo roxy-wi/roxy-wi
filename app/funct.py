@@ -95,8 +95,11 @@ def telegram_send_mess(mess, **kwargs):
 	import telebot
 	from telebot import apihelper
 	import sql
-	
-	telegrams = sql.get_telegram_by_ip(kwargs.get('ip'))
+
+	if kwargs.get('telegram_channel_id'):
+		telegrams = sql.get_telegram_by_id(kwargs.get('telegram_channel_id'))
+	else:
+		telegrams = sql.get_telegram_by_ip(kwargs.get('ip'))
 	proxy = sql.get_setting('proxy')
 	
 	for telegram in telegrams:
@@ -115,7 +118,7 @@ def telegram_send_mess(mess, **kwargs):
 		bot = telebot.TeleBot(token=token_bot)
 		bot.send_message(chat_id=channel_name, text=mess)
 	except Exception as e:
-		print(str(e).decode(encoding='UTF-8'))
+		print(str(e))
 		logging('localhost', str(e).decode(encoding='UTF-8'), haproxywi=1)
 		sys.exit()
 	
@@ -1044,7 +1047,7 @@ def out_error(e):
 		error = e
 	else:
 		error = e.args[0]
-	print(error)
+	print('error: '+error)
 	
 
 def get_users_params(**kwargs):

@@ -157,20 +157,24 @@ function autoRefreshStyle(autoRefresh) {
 	$('.auto-refresh-resume').css('display', 'none');		
 	$('.auto-refresh-pause').css('margin-left', "-25px");	
 	$('.auto-refresh-resume').css('margin-left', "-25px");		
+	$('#browse_histroy').css("border-bottom", "none");
 	$('.auto-refresh img').remove();
 }
 function setRefreshInterval(interval) {
 	if (interval == "0") {
-		Cookies.remove('auto-refresh');
-		pauseAutoRefresh();
-		$('.auto-refresh').prepend('<span class="service-reload"></span>');
-		$('.auto-refresh').css('margin-top', '-3px');
-		$('#1').text('Auto-refresh');
-		$('#0').text('Auto-refresh');
-		$('.auto-refresh-pause').css('display', 'none');
-		$('.auto-refresh-resume').css('display', 'none');
+		var autoRefresh = Cookies.get('auto-refresh');
+		if (autoRefresh !== undefined) {
+			Cookies.remove('auto-refresh');
+			pauseAutoRefresh();
+			$('.auto-refresh').prepend('<span class="service-reload auto-refresh-reload-icon"></span>');
+			$('.auto-refresh').css('font-size', '15px');
+			$('#1').text('Auto-refresh');
+			$('#0').text('Auto-refresh');
+			$('.auto-refresh-pause').css('display', 'none');
+			$('.auto-refresh-resume').css('display', 'none');
+			$.getScript("/inc/fontawesome.min.js")
+		}
 		hideAutoRefreshDiv();
-		$.getScript("/inc/fontawesome.min.js")
 	} else {
 		clearInterval(intervalId);
 		Cookies.set('auto-refresh', interval, { expires: 365 });
@@ -302,6 +306,9 @@ function showLog() {
 	var hour1 = $('#time_range_out_hour1').val()
 	var minut1 = $('#time_range_out_minut1').val()
 	var service = $('#service').val()
+	if (service == 'None') {
+		service = 'haproxy';
+	}
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -917,11 +924,11 @@ function listHistroy() {
 		if (i == 2) {
 			browse_history[2] = cur_url[0]
 		}
-		$( function() {		
+		$( function() {
 			$('.menu li ul li').each(function () {
 				var link1 = $(this).find('a').attr('href');
 				var link2 = link1.split('/')[2]
-				if (browse_history[i] == link2) {				
+				if (browse_history[i] == link2) {
 					title[i] = $(this).find('a').attr('title');
 					link_text[i] = $(this).find('a').text();
 					history_link = '<li><a href="'+browse_history[i]+'" title="'+title[i]+'">'+link_text[i]+'</a></li>'

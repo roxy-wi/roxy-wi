@@ -133,8 +133,8 @@
 						<span class="auto-refresh">
 							<a onclick="pauseAutoRefresh()" class="auto-refresh-pause" style="display: none; margin-top: 4px;"></a>
 							<a onclick="pauseAutoResume()" class="auto-refresh-resume" style="display: none; margin-top: 4px;"></a>
-							<a id="0"><span class="service-reload"></span> Auto-refresh</a>
-							<a id="1" style="display: none;"><span class="service-reload"></span> Auto-refresh</a>
+							<a id="0"><span class="service-reload auto-refresh-reload-icon"></span> Auto-refresh</a>
+							<a id="1" style="display: none;"><span class="service-reload auto-refresh-reload-icon"></span> Auto-refresh</a>
 						</span>		
 					{% endif %}
 				</h2>
@@ -146,14 +146,14 @@
 					</div>
 					<div class="auto-refresh-interval">
 						<div class="auto-refresh-ul">
-							<ul>
+							<ul style="width: 60px;">
 								<li>
 									<a class="ui-button ui-widget ui-corner-all" onclick="setRefreshInterval(0)" title="Turn off auto-refresh">Off</a> 
 								</li>
 							</ul>
 						</div>
 						<div class="auto-refresh-ul" id="secIntervals">
-							<ul>
+							<ul style="width: 100px;">
 								<li>
 									<a title="Auto-refresh every 5 seconds" onclick="setRefreshInterval(5000)">5 seconds</a>
 								</li>
@@ -169,7 +169,7 @@
 							</ul>
 						</div>
 						<div class="auto-refresh-ul">
-							<ul>
+							<ul style="width: 100px;">
 								<li>
 									<a title="Auto-refresh every 1 minute" onclick="setRefreshInterval(60000)">1 minute</a>
 								</li>
@@ -185,7 +185,7 @@
 							</ul>
 						</div>
 						<div class="auto-refresh-ul">
-							<ul>
+							<ul style="width: 100px;">
 								<li>
 									<a title="Auto-refresh every 1 hour" onclick="setRefreshInterval(3600000)">1 hour</a>
 								</li>

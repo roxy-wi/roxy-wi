@@ -478,7 +478,7 @@ $( function() {
 			type: "POST",
 			success: function( data ) {
 				if (data.indexOf('error') != '-1') {
-					$("#ajax-group").append(data);
+					$("#ajax-group").append('<div class="alert alert-danger" style="width: 100%;">'+data+'</div><br /><br />');
 					$('#errorMess').click(function() {
 						$('#error').remove();
 						$('.alert-danger').remove();
@@ -515,7 +515,7 @@ $( function() {
 			type: "POST",
 			success: function( data ) {
 				if (data.indexOf('error') != '-1') {
-					$("#ajax-ssh").append(data);
+					$("#ajax-ssh").append('<div class="alert alert-danger" style="width: 100%;">'+data+'</div><br /><br />');
 					$('#errorMess').click(function() {
 						$('#error').remove();
 						$('.alert-danger').remove();
@@ -554,7 +554,7 @@ $( function() {
 			type: "POST",
 			success: function( data ) {
 				if (data.indexOf('error') != '-1') {
-					$("#ajax-telegram").append(data);
+					$("#ajax-telegram").append('<div class="alert alert-danger" style="width: 100%;">'+data+'</div><br /><br />');
 					$('#errorMess').click(function() {
 						$('#error').remove();
 						$('.alert-danger').remove();
@@ -677,6 +677,34 @@ $( function() {
 	$('#add-backup-button').click(function() {
 		addBackupDialog.dialog('open');		
 	});
+	var addSmonServer = $( "#smon-add-table" ).dialog({
+    			autoOpen: false,
+    			resizable: false,
+    			height: "auto",
+    			width: 600,
+    			modal: true,
+    			title: "Create a new server for monitoring",
+    			show: {
+    				effect: "fade",
+    				duration: 200
+    			},
+    			hide: {
+    				effect: "fade",
+    				duration: 200
+    			},
+    			buttons: {
+    				"Add": function() {
+    					addNewSmonServer();
+    				},
+    				Cancel: function() {
+    					$( this ).dialog( "close" );
+    					clearTips();
+    				}
+    			}
+    		});
+    	$('#add-smon-button').click(function() {
+    		addSmonServer.dialog('open');
+    	});
 	$( "#ajax-users input" ).change(function() {
 		var id = $(this).attr('id').split('-');
 		updateUser(id[1])
@@ -791,10 +819,82 @@ function clearTips() {
 function checkLength( o, n, min ) {
 	if ( o.val().length < min ) {
 		o.addClass( "ui-state-error" );
-		updateTips("Filed "+n+" required");
+		updateTips("Filed "+n+" is required");
         return false;
 	} else {
 		return true;
+	}
+}
+function addNewSmonServer() {
+	var valid = true;
+	$('#error').remove();	
+	allFields = $( [] ).add( $('#new-smon-ip') ).add( $('#new-smon-port') )
+	allFields.removeClass( "ui-state-error" );
+	valid = valid && checkLength( $('#new-smon-ip'), "IP", 1 );
+	valid = valid && checkLength( $('#new-smon-port'), "Port", 1 );
+	if ($('#new-smon-proto').val() != '' || $('#new-smon-uri').val() != '') {
+		allFields = $( [] ).add( $('#new-smon-ip') ).add( $('#new-smon-port') )
+			.add( $('#new-smon-proto') ).add( $('#new-smon-uri') );
+		allFields.removeClass( "ui-state-error" );
+		valid = valid && checkLength( $('#new-smon-ip'), "IP", 1 );
+		valid = valid && checkLength( $('#new-smon-port'), "Port", 1 );
+		valid = valid && checkLength( $('#new-smon-proto'), "Protocol", 1 );
+		valid = valid && checkLength( $('#new-smon-uri'), "URI", 1 );
+	}
+	if( $('#new-smon-body').val() != '') {
+		allFields = $( [] ).add( $('#new-smon-ip') ).add( $('#new-smon-port') )
+			.add( $('#new-smon-proto') ).add( $('#new-smon-uri') );
+		allFields.removeClass( "ui-state-error" );
+		valid = valid && checkLength( $('#new-smon-ip'), "IP", 1 );
+		valid = valid && checkLength( $('#new-smon-port'), "Port", 1 );
+		valid = valid && checkLength( $('#new-smon-proto'), "Protocol", 1 );
+		valid = valid && checkLength( $('#new-smon-uri'), "URI", 1 );
+		valid = valid && checkLength( $('#new-smon-body'), "Body", 1 );
+	}
+	var enable = 0;
+	if ($('#new-smon-enable').is(':checked')) {
+		enable = '1';
+	}
+	if (valid) {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				newsmon: $('#new-smon-ip').val(),
+				newsmonport: $('#new-smon-port').val(),
+				newsmonenable: enable,
+				newsmonproto: $('#new-smon-proto').val(),
+				newsmonuri: $('#new-smon-uri').val(),
+				newsmonbody: $('#new-smon-body').val(),
+				newsmongroup: $('#new-smon-group').val(),
+				newsmondescription: $('#new-smon-description').val(),
+				newsmontelegram: $('#new-smon-telegram').val(),
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+				data = data.replace(/\s+/g,' ');
+				if (data.indexOf('error') != '-1' || data.indexOf('unique') != '-1') {
+					$("#ajax").html('<div class="alert alert-danger" style="width: 50%;">'+data+'</div><br /><br />');;
+					$('#errorMess').click(function() {
+						$('#error').remove();
+						$('.alert-danger').remove();
+					});
+				} else {
+					$('.alert-danger').remove();
+					$("#ajax-smon").append(data);
+					$(".newserver").addClass( "update", 1000 );
+					$( "input[type=submit], button" ).button();
+					$( "input[type=checkbox]" ).checkboxradio();
+					$( "select" ).selectmenu();
+					$.getScript(awesome);
+					setTimeout(function() {
+						$( ".newserver" ).removeClass( "update" );
+					}, 2500 );	
+				}	
+			}
+		} );
+		clearTips();
+		$( "#smon-add-table" ).dialog("close" );
 	}
 }
 function addUser() {
@@ -826,7 +926,7 @@ function addUser() {
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
 				if (data.indexOf('error') != '-1') {
-					$("#ajax-users").append(data);
+					$("#ajax-users").append('<div class="alert alert-danger" style="width: 100%;">'+data+'</div><br /><br />');
 					$('#errorMess').click(function() {
 						$('#error').remove();
 						$('.alert-danger').remove();
@@ -836,7 +936,6 @@ function addUser() {
 					$("#ajax-users").append(data);
 					var getId = new RegExp('[0-9]+');
 					var id = data.match(getId);
-					console.log(id[0])
 					addUserGroup(id[0]);
 				}	
 			}
@@ -897,7 +996,7 @@ function addServer() {
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
 				if (data.indexOf('error') != '-1') {
-					$("#ajax-servers").append(data);
+					$("#ajax-servers").append('<div class="alert alert-danger" style="width: 100%;">'+data+'</div><br /><br />');
 					$('#errorMess').click(function() {
 						$('#error').remove();
 						$('.alert-danger').remove();
@@ -1124,6 +1223,24 @@ function confirmDeleteBackup(id) {
       }
     });
 }
+function confirmDeleteSmon(id) {
+	$( "#dialog-confirm" ).dialog({
+		resizable: false,
+		height: "auto",
+		width: 400,
+		modal: true,
+		title: "Are you sure you want to delete server " +$('#smon-ip-'+id).val() + "?",
+		buttons: {
+			"Delete": function() {
+				$( this ).dialog( "close" );
+				removeSmon(id);
+			},
+			Cancel: function() {
+				$( this ).dialog( "close" );
+			}
+		}
+	});
+}
 function cloneServer(id) {
 	$( "#add-server-button" ).trigger( "click" );
 	if ($('#enable-'+id).is(':checked')) {
@@ -1305,6 +1422,25 @@ function removeBackup(id) {
 		}					
 	} );	
 }
+function removeSmon(id) {
+	$("#smon-"+id).css("background-color", "#f2dede");
+	$.ajax( {
+		url: "options.py",
+		data: {
+			smondel: id,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if(data == "Ok ") {
+				$("#smon-"+id).remove();
+			} else {
+				alert(data);
+			}
+		}
+	} );
+}
 function updateUser(id) {
 	$('.alert-danger').remove();
 	cur_url[0] = cur_url[0].split('#')[0]
@@ -1396,7 +1532,6 @@ function updateServer(id) {
 	if (cur_url[0].split('#')[0] == "servers.py") {
 		 servergroup = $('#new-server-group-add').val();
 	}
-	console.log(servergroup)
 	$.ajax( {
 		url: "options.py",
 		data: {

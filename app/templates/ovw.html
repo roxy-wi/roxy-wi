@@ -51,9 +51,9 @@
 		<tr class="{{ loop.cycle('odd', 'even') }}" id="{{s[1]}}"></tr>
 	{% endfor %}
 </table>
-<table class="overview-wi" style="height: 170;">
+<table class="overview-wi">
 	<tr class="overviewHead" style="height: 40px;">
-		<td class="padding10 first-collumn-wi">
+		<td class="padding10 first-collumn-wi" colspan="2">
 			{% if role <= 1 %}
 				<a href="/app/viewlogs.py?viewlogs={{haproxy_wi_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View HAProxy-WI logs" class="logs_link">			
 					HAProxy-WI server status
@@ -79,8 +79,8 @@
 		</td>
 	</tr>
 </table>
-<table class="overview-wi" style="height: 160;">
-	<tr class="overviewHead" style="height: 40px;">	
+<table class="overview-wi">
+	<tr class="overviewHead">
 		<td class="padding10 first-collumn-wi" colspan=4>
 			Tools status
 		</td>
