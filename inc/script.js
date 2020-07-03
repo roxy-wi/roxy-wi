@@ -402,7 +402,7 @@ function showConfig() {
 	$("#ajax").empty();
 	$("#ajax-compare").empty();
 	$("#config").empty();
-	$(".alert-info").empty();
+	$(".alert").empty();
 	$.ajax( {
 		url: "options.py",
 		data: {

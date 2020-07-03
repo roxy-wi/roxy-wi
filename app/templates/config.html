@@ -12,7 +12,7 @@
 	<p>
 		<form action="{{ action }}" method="post">
 			<a class="ui-button ui-widget ui-corner-all" title="Return back" id="back" onclick="history.go(-2)">Back</a>
-			<input type="hidden" id="service" value="{{service}}" />
+			<input type="hidden" id="service" value="{{service|default('haproxy', true)}}" />
 			<select autofocus required name="serv" id="{{ select_id }}">
 				<option disabled>Choose server</option>
 					{% for select in selects %}
