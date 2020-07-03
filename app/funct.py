@@ -666,13 +666,13 @@ def upload_and_restart(serv, cfg, **kwargs):
 			commands[0] += open_port_firewalld(cfg, serv=serv, service='nginx')
 	else:
 		if kwargs.get("just_save") == "test":
-			commands = [ "sudo haproxy  -q -c -f " + tmp_file + "&& sudo rm -f " + tmp_file ]
+			commands = [ "sudo haproxy  -q -c -f " + tmp_file + " && sudo rm -f " + tmp_file ]
 		elif kwargs.get("just_save") == "save":
-			commands = [ "sudo haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + config_path ]
+			commands = [ "sudo haproxy  -q -c -f " + tmp_file + " && sudo mv -f " + tmp_file + " " + config_path ]
 		elif kwargs.get("just_save") == "reload":
-			commands = [ "sudo haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + config_path + " && sudo systemctl reload haproxy" ]	
+			commands = [ "sudo haproxy  -q -c -f " + tmp_file + " && sudo mv -f " + tmp_file + " " + config_path + " && sudo systemctl reload haproxy" ]
 		else:
-			commands = [ "sudo haproxy  -q -c -f " + tmp_file + "&& sudo mv -f " + tmp_file + " " + config_path + " && sudo systemctl restart haproxy" ]	
+			commands = [ "sudo haproxy  -q -c -f " + tmp_file + " && sudo mv -f " + tmp_file + " " + config_path + " && sudo systemctl restart haproxy" ]
 		if sql.get_setting('firewall_enable') == "1":
 			commands[0] += open_port_firewalld(cfg, serv=serv)
 	error += str(upload(serv, tmp_file, cfg, dir='fullpath'))
@@ -1084,5 +1084,3 @@ def check_group(group, role_id):
 def check_service(serv, service_name):
 	commands = [ "systemctl status "+service_name+" |grep Active |awk '{print $1}'" ]
 	return ssh_command(serv, commands)
-
-	
