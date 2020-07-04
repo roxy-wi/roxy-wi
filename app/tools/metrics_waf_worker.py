@@ -26,7 +26,7 @@ def main(serv, port):
 	
 	while True:
 		try:			
-			cmd = "echo 'show stat' |nc "+serv+" "+port+" | cut -d ',' -f 1-2,34 |grep waf |grep BACKEND |awk -F',' '{print $3}'"
+			cmd = "echo 'show stat' |nc "+serv+" "+port+" | cut -d ',' -f 1-2,5 |grep waf |grep BACKEND |awk -F',' '{print $3}'"
 			readstats = subprocess.check_output([cmd], shell=True)
 		except CalledProcessError as e:
 			print("Command error")
@@ -35,11 +35,11 @@ def main(serv, port):
 			sys.exit()
 		readstats = readstats.decode(encoding='UTF-8')	
 		metric = readstats.splitlines()
-		metrics = []
-		
-		if metric:
-			for i in range(0,len(metric)):
-				sql.insert_waf_mentrics(serv, metric[i])
+
+		try:
+			sql.insert_waf_mentrics(serv, metric[0])
+		except:
+			pass
 
 		time.sleep(30)	
 				

@@ -26,7 +26,7 @@ if act == "checkrestart":
 
 
 if not sql.check_token_exists(form.getvalue("token")):
-	print("Your token has been expired")
+	print('<div class="alert alert-danger" style="margin:20px;">Your token has been expired</div>')
 	sys.exit()
 
 
@@ -1322,7 +1322,7 @@ if form.getvalue('new_waf_metrics'):
 	for i in metric:
 		label = str(i[2])
 		label = label.split(' ')[1]
-		labels += label[0]+','
+		labels += label+','
 		curr_con += str(i[1])+','
 
 	metrics['chartData']['labels'] = labels
