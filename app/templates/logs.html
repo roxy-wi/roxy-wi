@@ -6,7 +6,7 @@
 <table class="overview">
 	<tr class="overviewHead">
 		<td class="padding10 first-collumn" style="width: 10%;">
-			{% if onclick == 'viewLogs()' %}
+			{% if select_id == 'viewlogs' %}
 				Log
 			{% else %}
 				Server
@@ -15,20 +15,21 @@
 		{% if onclick != 'viewLogs()' and service != 'nginx' %}
 		<td style="width: 5%;">WAF logs</td>
 		{% endif %}
-		<td style="width: 10%;">Number rows</td>
-		<td class="padding10" style="width: 10%;">Ex for grep</td>
+		<td>Number rows</td>
+		<td class="padding10"><span title="Find in log file(supports regular expressions)">Find (?)<span></td>
+		<td class="padding10"><span title="Exclude from search in log file(supports regular expressions)">Exclude (?)<span></td>
 		<td style="width: 10%;">
 			<label for="time_range_out_hour" style="padding: 0">Time range:</label>
 			{{ input('time_range_out_hour', value=hour, class='time-range', readonly='readonly') }}:{{ input('time_range_out_minut', value=minut, class='time-range', readonly='readonly') }}
 			{{ input('time_range_out_hour1', value=hour1, class='time-range', readonly='readonly') }}:{{ input('time_range_out_minut1', value=minut1, class='time-range', readonly='readonly') }}	
 		</td>
-		<td style="width: 10%;"> </td>
+		<td></td>
 	</tr>
 	<tr>
 		<td class="padding10 first-collumn" style="width: 10%;">
-			<form action="" method="post">
-				{% if onclick == 'viewLogs()' %}
-					<select autofocus required name="serv" id="{{ select_id }}">									
+			<form action="" method="post" id="show_log_form">
+				{% if select_id == 'viewlogs' %}
+					<select autofocus required name="serv" id="{{ select_id }}">
 						<option disabled selected>Choose log</option>
 						{% for select in selects %}
 							{% if select.0|int() == serv|int() %}
@@ -42,29 +43,32 @@
 						{% include 'include/select.html' %}
 					{% endif %}			
 		</td>
-		{% if onclick != 'viewLogs()' and service != 'nginx' %}
+		{% if select_id == 'viewlogs' and service != 'nginx' %}
 		<td>
 			{{ checkbox('waf') }}
 		</td>
 		{% endif %}
 		<td class="padding10" style="width: 10%;">
-			{{ input('rows', type='number', value=rows, required='required') }}
+			{{ input('rows', type='number', value=rows, required='required', size='5') }}
 		</td> 
 		<td class="padding10" style="width: 10%;">
 			{{ input('grep', value=grep) }}
 		</td>
 		<td class="padding10" style="width: 10%;">
+			{{ input('exgrep', value=exgrep) }}
+		</td>
+		<td class="padding10" style="width: 10%;">
 			<div id="time-range"></div>			
 		</td>			
 		<td class="padding10 first-collumn" style="width: 10%;">
-			<a class="ui-button ui-widget ui-corner-all" id="show" title="Show logs" onclick="{{ onclick }}">Show</a>
+			<button type="submit" name="Show log" value="Show" id="show_log_button">Show</button>
 			</form>
 		</td>
 	</tr>
 </table>
 <div id="ajax">
 </div>
-{% if onclick == 'viewLogs()' and serv != '' and viewlogs != '' and viewlogs != 'haproxy-wi.error.log' and viewlogs != 'haproxy-wi.access.log' %}
+{% if select_id == 'viewlogs' and serv != '' and viewlogs != '' and viewlogs != 'haproxy-wi.error.log' and viewlogs != 'haproxy-wi.access.log' %}
 	<script>
 		viewLogs()
 		if (window.matchMedia('(max-width: 786px)').matches || window.matchMedia('(max-width: 1024px)').matches || window.matchMedia('(max-width: 667px)').matches) {

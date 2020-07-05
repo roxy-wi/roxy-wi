@@ -718,6 +718,14 @@ $( function() {
 		} );
 		return false;
 	});
+	$('#show_log_form').submit(function() {
+		if(cur_url[0] == '/app/logs.py') {
+			showLog();
+		} else {
+			viewLogs();
+		}
+		return false;
+	});
 	var showUpdates = $( "#show-updates" ).dialog({
 			autoOpen: false,
 			resizable: false,

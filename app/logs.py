@@ -16,7 +16,7 @@ exgrep = form.getvalue('exgrep') if form.getvalue('exgrep') else ''
 if form.getvalue('rows') is None:
 	rows = 10
 else:
-	if form.getvalue('rows1') not is None:
+	if form.getvalue('rows1') is not None:
 		rows = form.getvalue('rows1')
 	else:
 		rows = form.getvalue('rows')
@@ -46,7 +46,6 @@ template = template.render(h2 = 1,
 							title = title,
 							role = role,
 							user = user,
-							onclick = "showLog()",
 							select_id = "serv",
 							selects = servers,
 							serv = form.getvalue('serv'),
