@@ -128,7 +128,7 @@ def check_login(**kwargs):
 	import http.cookies
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_uuid = cookie.get('uuid')
-	ref = os.environ.get("SCRIPT_NAME")
+	ref = os.environ.get("REQUEST_URI")
 
 	sql.delete_old_uuid()
 	

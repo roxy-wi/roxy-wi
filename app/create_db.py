@@ -538,10 +538,48 @@ def update_db_v_4_3_2(**kwargs):
 	con.close()
 	
 	
+def update_db_v_4_4(**kwargs):
+	con, cur = get_cur()
+	sql = """
+		CREATE TABLE IF NOT EXISTS `smon` (
+			`id`	INTEGER NOT NULL,
+			`ip`	INTEGER,
+			`port` INTEGER,
+			`status` INTEGER DEFAULT 1,
+			`en` INTEGER DEFAULT 1,
+			`desc` varchar(64),
+			`response_time` varchar(64),
+			`time_state` integer default 0,
+			`group` varchar(64),
+			`script` varchar(64),
+			`http` varchar(64),
+			`http_status` INTEGER DEFAULT 1,
+			`body` varchar(64),
+			`body_status` INTEGER DEFAULT 1,
+			`telegram_channel_id` INTEGER,
+			`user_group` INTEGER,
+			UNIQUE(ip, port, http, body),
+			PRIMARY KEY(`id`) 
+		);"""
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: pos' or e == " 1060 (42S21): Duplicate column name 'pos' ":
+				print('DB was update to 4.4.0')
+			else:
+				print("An error occurred:", e)
+		return False
+	else:
+		return True
+	cur.close() 
+	con.close()
+	
 	
 def update_ver(**kwargs):
 	con, cur = get_cur()
-	sql = """update version set version = '4.3.3.0'; """
+	sql = """update version set version = '4.4.0.0'; """
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -570,6 +608,7 @@ def update_all():
 	update_db_v_4_3_0()
 	update_db_v_4_3_1()
 	update_db_v_4_3_2()
+	update_db_v_4_4()
 	update_ver()
 		
 	
@@ -592,6 +631,7 @@ def update_all_silent():
 	update_db_v_4_3_0(silent=1)
 	update_db_v_4_3_1(silent=1)
 	update_db_v_4_3_2(silent=1)
+	update_db_v_4_4(silent=1)
 	update_ver()
 	
 		

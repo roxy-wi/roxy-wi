@@ -22,6 +22,7 @@ try:
 					"metrics_haproxy":"Master metrics service", 
 					"prometheus":"Prometheus service", 
 					"grafana-server":"Grafana service", 
+					"smon":"Simple monitoring network ports",
 					"fail2ban": "Fail2ban service"}
 	for s, v in services_name.items():
 		cmd = "systemctl status %s |grep Act |awk  '{print $2}'" %s

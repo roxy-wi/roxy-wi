@@ -1,0 +1,84 @@
+{% from 'include/input_macros.html' import input, checkbox %}
+    <td class="padding10 first-collumn" style="width: 150px;">
+        {% set id = 'smon-ip-' + s.0|string() %}
+        {{ input(id, value=s.1, size='20') }}
+    </td>
+    <td>
+        {% set id = 'smon-port-' + s.0|string() %}
+        {{ input(id, value=s.2, size='5') }}
+    </td>
+    <td class="checkbox">
+        {% set id = 'smon-enable-' + s.0|string() %}
+        {% if s.3 == 1 %}
+            {{ checkbox(id, checked='checked') }}
+        {% else %}
+            {{ checkbox(id) }}
+        {% endif %}
+    </td>
+    <td>
+        <span id="smon-proto1-{{s.0}}">{{ s.4.split(':')[0] }}</span>
+        {# {% if s.4|length > 0 %}
+            {% set values = dict() %}
+            {% set id = 'smon-proto-' + s.0|string() %}
+            {% set values = {'':'', 'http':'http','https':'https'} %}
+            {{ select(id,  values=values, selected=s.4.split(':')[0]) }}
+        {% endif %} #}
+    </td>
+    <td id="smon-uri-{{s.0}}">
+        {% if s.4|length > 0 %}
+            {{ s.4.split(':')[1] }}
+        {% endif %}
+    </td>
+    <td>
+        {% set id = 'smon-body-' + s.0|string() %}
+        {% if s.5 != 'None' %}
+            {{ input(id, value=s.5, size='10') }}
+        {% else %}
+            {{ input(id, size='10') }}
+        {% endif %}
+    </td>
+    <td>
+        <select id="smon-telegram-{{s.0}}">
+            <option value="0">Disabled</option>
+            {% for t in telegrams %}
+                {% if s.6|int() == t.0|int() %}
+                    <option value="{{t.0}}" selected>{{t.2}}</option>
+                {% else %}
+                    <option value="{{t.0}}">{{t.2}}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+    </td>
+    <td>
+        {% set id = 'smon-group-' + s.0|string() %}
+        {% if s.8 != 'None' %}
+            {{ input(id, value=s.8, size='15') }}
+        {% else %}
+            {{ input(id, size='15') }}
+        {% endif %}
+    </td>
+    <td>
+        {% set id = 'smon-desc-' + s.0|string() %}
+        {% if s.7 != 'None' %}
+            {{ input(id, value=s.7, size='20') }}
+        {% else %}
+            {{ input(id, size='20') }}
+        {% endif %}
+    </td>
+    <!--<td>
+        <a class="add" onclick="cloneSmom({{s.0}})" id="clone-{{s.0}}" title="Clone {{s.1}}" style="cursor: pointer; color: #000;"></a>
+    </td>-->
+    <td>
+        <a class="delete" onclick="confirmDeleteSmon({{s.0}})" title="Delete server {{s.1}}" style="cursor: pointer; color: #000;"></a>
+    </td>
+</tr>
+<script>
+    $( function() {
+        $("#smon-telegram-{{s.0}}" ).selectmenu({
+            width: 170
+        });
+        $("#smon-proto-{{s.0}}" ).selectmenu({
+            width: 78
+        });
+    });
+</script>

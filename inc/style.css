@@ -403,7 +403,7 @@ pre {
 	width: 100px;
 }
 .group-field, .slave-field {
-	min-width: 5%;
+	//min-width: 5%;
 }
 .slave-field {
 	padding-left: 10px;
@@ -759,7 +759,7 @@ label {
 #up-pannel {
 	margin-top: 15px;
 }
-.div-server, .div-server-hapwi {
+.div-server, .div-server-hapwi, .bin_bout {
 	background-color: #fbfbfb;
 	border: 1px solid #A4C7F5;
 	height: 165px;
@@ -820,7 +820,7 @@ label {
 	margin: 25px;
 	margin-left: 440px;
 	margin-bottom: 0;
-	width: 750px;
+	width: 778px;
 	display: none;
 	margin-top: px;
 	margin-bottom: 0px;
@@ -845,9 +845,18 @@ label {
 	margin-top: 10px;
 	font-size: 10px;
 }
+.bin_bout {
+	width: 110px;
+	margin-left: 10px;
+}
+.bytes {
+	padding-top: 17px;
+	padding-bottom: 12px;
+	font-size: 17px;
+	font-weight: bold;
+}
 .update-icon {
 	float: right;
-	margin-right: 15px;
 }
 .span-link {
 	cursor: pointer;
@@ -866,10 +875,9 @@ label {
 .chart-container {
 	position: relative;
 	height: 300px;
-	width: 49%;
+	width: 48.8%;
 	float: left;
-	margin-top: 20px;
-	margin-left: 10px;
+	margin-left: 20px;
 }
 .restart, .reload, .stop, .stop-waf, .restart-waf {
 	padding-left: 4px;
@@ -879,7 +887,6 @@ label {
 }
 .sort_menu {
 	clear: both;
-	margin-bottom: 20px;
 }
 .smon_group {
 	clear: both;
@@ -889,10 +896,11 @@ label {
 	padding: 20px;
 	padding-left:15px;
 	padding-bottom: 0px;
+	padding-top: 10px;
 }
 .smon_services {
-	width: 190px;
-	height: 160px;
+	width: 192px;
+	height: 162px;
 	float: left;
 	background-color: #fbfbfb;;
 	margin: 10px;
@@ -925,17 +933,27 @@ label {
 .res_time {
 	height: 25px;
 }
-.up, .down, .disable {
+.up, .down, .disable, .unknown {
 	height: 45px;
 	width: 177px;
 	font-size: 30px;
 	color: #fff;
 }
 .up {
-	background-color: #5CB85C;
+	color: #3c763d;
+	background-color: #dff0d8;
+	border-color: #d6e9c6;
 }
 .down {
-	background-color: red;
+	color: #a94442;
+	background-color: #f2dede;
+	border-color: #ebccd1;
+	font-size: 22px;
+}
+.unknown {
+	color: #856404;
+	background-color: #fff3cd;
+	border-color: #ffeeba;
 	font-size: 22px;
 }
 .disable {
@@ -953,6 +971,14 @@ label {
 		}
 	.wrong-login {
 		margin-right: -150px;
+	}
+}
+@media (max-width: 1600px) {
+	.ajax-server {
+		clear: both !important;
+		margin-left: 20px !important;
+		margin-bottom: 20px !important;
+		width: 89.3% !important;
 	}
 }
 @media (max-width: 1450px) {
@@ -973,13 +999,6 @@ label {
 		margin-bottom: 30px !important;
 		width: 90%;
 		height: 70px;
-	}
-	.ajax-server {
-		clear: both !important;
-		margin-left: 20px !important;
-	}
-	.div-backends {
-		width: 84.6% !important
 	}
 	#ssl_name {
 		width: 100px;
@@ -1008,14 +1027,11 @@ label {
 		margin-right: -50px;
 	}
 	.ajax-server {
-		width: 88% !important;
+		min-width: 680px !important;
 	}
 	.haproxy-info {
 		width: 120px;
 		padding-left: 10px;
-	}
-	.div-backends {
-		width: 84.6% !important
 	}
 	#ssl_cert {
 		width: 60%;
@@ -1025,20 +1041,12 @@ label {
 	#logo_span {
 		margin-left: -5%;
 		}
-	.chart-container {
-		position: relative;
-		height: 410px;
-		width: 95%;
-	}
 	.wrong-login {
 		margin-right: -150px;
 	}
 	.haproxy-info {
 		width: 120px;
 		padding-left: 10px;
-	}
-	.div-backends {
-		width: 84.2% !important
 	}
 	#rows {
 		width: 50px;
@@ -1052,11 +1060,6 @@ label {
   #logo_span {
 	margin-left: -12%;
 	border: none;
-	}
-	.chart-container {
-		position: relative;
-		height: 410px;
-		width: 95%;
 	}
 	.wrong-login {
 		margin-right: -260px;
@@ -1089,11 +1092,6 @@ label {
 	margin-left: -12%;
 	border: none;
 	}
-	.chart-container {
-		position: relative;
-		height: 410px;
-		width: 95%;
-	}
 	.wrong-login {
 		margin-right: -210px;
 	}
@@ -1119,10 +1117,14 @@ label {
 .loading_full_page {
 	margin-left: 45%;
 }
-.loading_small {
+.loading_small, .loading_small_bin_bout {
 	width: 39px;
 	height: 39px;
 	padding-left: 103%;
+}
+.loading_small_bin_bout {
+	padding-left: 30%;
+	padding-top: 50%;
 }
 .loading_small_haproxyservers {
 	width: 15px;

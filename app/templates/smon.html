@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block content %}
+{% from 'include/input_macros.html' import input, checkbox, select %}
+<script src="/inc/users.js"></script>
+<script src="/inc/fontawesome.min.js"></script>
+<script src="/inc/jquery.timeago.js" type="text/javascript"></script>
+{% if smon_error != '' %}
+<center>
+	<h3>You do not have installed SMON service. Read <a href="https://haproxy-wi.org/services.py?service=smon"
+	title="Simple monitoring network ports with alerting via Telegram and WEB pannel" target="_blank">here</a> how install SMON service</h3>
+</center>
+{% elif smon_status.0 == 'failed' %}
+<center>
+	<h3>SMON service is not run. Run the SMON service <a href="users.py#services" title="HAProxy-WI services" target="_blank">here</a> before use</h3>
+</center>
+{% elif smon|length == 0 and action != 'add' %}
+<center>
+	<h3>You do not have added servers in SMON service. Create you first server <a href="smon.py?action=add" title="HAProxy-WI SMON" target="_blank">here</a> before use</h3>
+</center>
+{% else %}
+{% if action == 'add' %}
+<table class="overview" id="ajax-smon">
+	<thead>
+		<tr class="overviewHead">
+			<th class="padding10 first-collumn" style="width: 150px;">IP</th>
+			<th style="width: 10px;">Port</th>
+			<th style="width: 80px;">Enabled</th>
+			<th style="width: 80px;">Protocol</th>
+			<th>URI</th>
+			<th>Body</th>
+			<th style="width: 190px;">Telegram</th>
+			<th>Group</th>
+			<th>Description</th>
+			<!--<th></th>-->
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+		{{env}}
+		{% for s in smon %}
+			<tr id="smon-{{s.0}}">
+				{% include 'include/smon_server.html' %}
+		{% endfor %}
+	</tbody>
+</table>
+<br /><span class="add-button" title="Add a new server" id="add-smon-button">+ Add</span>
+<br /><br />
+<div id="ajax"></div>
+<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+	You can read the description of all parameters <a href="https://haproxy-wi.org/services.py?service=smon" title="SMON service description" target="_blank">here</a>
+</div>
+<div id="smon-add-table" style="display: none;">	
+	<table class="overview">
+		<tr>
+			<td colspan="2">
+				<p class="validateTips alert alert-success">
+					Form fields tag "<span class="need-field">*</span>" are required.
+				</p>
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">
+				IP
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				{{ input('new-smon-ip') }}
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">
+				Port
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				{{ input('new-smon-port', type='number', size='4') }}
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">
+				Enable
+			</td>
+			<td>
+				{{ checkbox('new-smon-enable', checked='checked') }}
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">
+				Protocol
+			</td>
+			<td>
+				{% set values = dict() %}
+				{% set values = {'':'', 'http':'http','https':'https'} %}
+				{{ select('new-smon-proto',  values=values, selected='') }}
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">
+				URI
+			</td>
+			<td>
+				{{ input('new-smon-uri') }}
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">
+				Body
+			</td>
+			<td>
+				{{ input('new-smon-body') }}
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">
+				Telegram
+			</td>
+			<td>
+				<select id="new-smon-telegram">
+					<option value="0">Disabled</option>
+				{% for t in telegrams %}
+					<option value="{{t.0}}">{{t.2}}</option>
+				{% endfor %}
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">
+				Group
+			</td>
+			<td>
+				{{ input('new-smon-group') }}
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">
+				Description
+			</td>
+			<td>
+				{{ input('new-smon-description') }}
+			</td>
+		</tr>
+	</table>
+	{% include 'include/del_confirm.html' %}
+{% else %}
+	<div class="main" id="smon_dashboard">
+		{% include 'ajax/smon_dashboard.html' %}
+	</div>
+{% endif %}
+</div>
+{% endif %}
+{% endblock %}

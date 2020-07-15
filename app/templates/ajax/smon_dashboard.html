@@ -1,0 +1,142 @@
+<div class="sort_menu">
+    <a href="#" title="Do not sort by status" onclick="showSmon('not_sort')">Do not sort</a> |
+    <a href="#" id="sort_by_status" title="Sort by status" onclick="sort_by_status()">Sort by status</a> |
+    <a href="#" title="Refresh page" onclick="showSmon('refresh');">Refresh</a>
+    <span style="padding-left: 20px;">
+		{% set down = [] %}
+		{% set up = [] %}
+		{% set dis = [] %}
+		{% for s in smon %}
+			{% if s.3 == 1 %}
+				{% if s.2 == 1 and s.10 == 1 and s.12 == 1 %}
+					{% if  up.append('1') %} {% endif %}
+				{% else %}
+					{% if  down.append('1') %} {% endif %}
+				{% endif %}
+			{% else %}
+				{% if  dis.append(s.7) %} {% endif %}
+			{% endif %}
+		{% endfor %}
+		<b>Counting state: UP: {{up|length}}, DOWN: {{down|length}}, Disabled: {{dis|length}}</b>
+	<span>
+</div>
+{% set group = [] %}
+{% set group_prev = [] %}
+{%- for s in smon -%}
+    {% if s.7 %}
+        {% if s.7 not in group %}
+        <div class="smon_group">
+            <div class="group_name">
+                {{ s.7 }}
+            </div>
+        </div>
+        {% endif %}
+        {% if  group.append(s.7) %} {% endif %}
+    {% endif %}
+    {% if s.3 == 1 %}
+        {% if s.2 == 1 and s.10 == 1 and s.12 == 1 %}
+            <div class="smon_services good">
+        {% else %}
+            <div class="smon_services err">
+        {% endif %}
+    {% else %}
+        <div class="smon_services dis">
+    {% endif %}
+    <div class="ip">
+        {% if s.0|string|length > 23 %}
+            <span style="font-size: 11px;">
+        {% elif s.0|string|length > 20 %}
+            <span style="font-size: 12px;">
+        {% elif s.0|string|length > 17 %}
+            <span style="font-size: 15px;">
+        {% else %}
+            <span>
+        {% endif %}
+        {{s.0}}:{{s.1}}
+        </span>
+    </div>
+    <div class="desc">
+        {% if s.4 != 'None' %}
+            <b>{{s.4}}</b>
+        {% else %}
+            Desc: None
+        {% endif %}
+    </div>
+    <div class="desc">
+        {% if s.3 == 1 %}
+            {% if s.2 == 1 and s.10 == 1 and s.12 == 1 %}
+                Uptime: <time class="timeago" datetime="{{s.6}}">{{s.6}}</time>
+            {% elif s.2 == 0 or s.10 == 0 or s.12 == 0 %}
+                Downtime: <time class="timeago" datetime="{{s.6}}">{{s.6}}</time>
+            {% else %}
+                Uptime: N/A
+            {% endif %}
+        {% else %}
+            Uptime: N/A
+        {% endif %}
+    </div>
+    <div class="res_time">
+        {% if s.3 == 1 %}
+            {% if s.2 == 1 %}
+                Resp time:
+            {% else %}
+                Last resp time:
+            {% endif %}
+            {% if s.5 %}
+                <span title="{{s.5}} ms">{{s.5|truncate(9)}} ms</span>
+            {% else %}
+                N/A
+            {% endif %}
+        {% else %}
+            N/A
+        {% endif %}
+    </div>
+    {% if s.3 == 1 %}
+         {% if s.2 == 1 and s.10 == 1 and s.12 == 1 %}
+            <div class="up">
+                <center>
+                    UP
+                </center>
+            </div>
+         {% elif s.10 == 0 %}
+            <div class="down">
+                 <center style="padding-top: 7px;">
+                      HTTP IS FAILURE
+                 </center>
+            </div>
+         {% elif s.12 == 0 %}
+            <div class="down">
+                 <center style="padding-top: 7px;">
+                      BODY IS FAILURE
+                 </center>
+            </div>
+         {% elif s.2 == 3 %}
+            <div class="unknown">
+                <center style="padding-top: 7px;">
+                    UNKNOWN
+                </center>
+            </div>
+         {% else %}
+            <div class="down">
+                <center style="padding-top: 7px;">
+                    PORT IS DOWN
+                </center>
+            </div>
+         {% endif %}
+    {% else %}
+        <div class="disable">
+            <center>
+                Disabled
+            </center>
+        </div>
+    {% endif %}
+    </div>
+{% endfor %}
+<script>
+    jQuery(document).ready(function() {
+        jQuery("time.timeago").timeago();
+    })
+    {% if sort == 'by_status' %}
+        sort_by_status();
+    {% endif %}
+</script>

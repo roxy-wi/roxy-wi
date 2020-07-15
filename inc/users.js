@@ -740,6 +740,14 @@ $( function() {
 		var val = $(this).val();
 		updateSettings(id, val);
 	});
+	$( "#ajax-smon input" ).change(function() {
+		var id = $(this).attr('id').split('-');
+		updateSmon(id[2])
+	});
+	$( "#ajax-smon select" ).on('selectmenuchange',function() {
+		var id = $(this).attr('id').split('-');
+		updateSmon(id[2])
+	});
 	$('#new-ssh_enable').click(function() {
 		if ($('#new-ssh_enable').is(':checked')) {
 			$('#ssh_pass').css('display', 'none');
@@ -1674,11 +1682,6 @@ function updateBackup(id) {
 	if ($( "#backup-type-"+id+" option:selected" ).val() == "Choose server" || $('#backup-rserver-'+id).val() == '' || $('#backup-rpath-'+id).val() == '') {
 		$("#ajax-backup").html('<div class="alert alert-danger" style="margin: 10px;">All fields must be completed</div>');
 	} else {
-		console.log($('#backup-credentials-'+id).val())
-		console.log($('#backup-rpath-'+id).val())
-		console.log($('#backup-type-'+id).val())
-		console.log($('#backup-server-'+id).text())
-		console.log($('#backup-rserver-'+id).val())
 		$.ajax( {
 			url: "options.py",
 			data: {
@@ -1711,6 +1714,45 @@ function updateBackup(id) {
 			}
 		} );
 	}
+}
+function updateSmon(id) {
+	$('#error').remove();
+	var enable = 0;
+	if ($('#smon-enable-'+id).is(':checked')) {
+		enable = '1';
+	}
+	$.ajax( {
+		url: "options.py",
+		data: {
+			updateSmonIp: $('#smon-ip-'+id).val(),
+			updateSmonPort: $('#smon-port-'+id).val(),
+			updateSmonEn: enable,
+			updateSmonHttp: $('#smon-proto1-'+id).text(),
+			updateSmonBody: $('#smon-body-'+id).val(),
+			updateSmonTelegram: $('#smon-telegram-'+id).val(),
+			updateSmonGroup: $('#smon-group-'+id).val(),
+			updateSmonDesc: $('#smon-desc-'+id).val(),
+			id: id,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if (data.indexOf('error') != '-1') {
+				$("#ajax").html('<div class="alert alert-danger" style="margin: 10px;">'+data+'</div>');
+				$('#errorMess').click(function() {
+					$('#error').remove();
+					$('.alert-danger').remove();
+				});
+			} else {
+				$('.alert-danger').remove();
+				$("#smon-"+id).addClass( "update", 1000 );
+				setTimeout(function() {
+					$( "#smon-"+id ).removeClass( "update" );
+				}, 2500 );
+			}
+		}
+	} );
 }
 function showApacheLog(serv) {
 	var rows = $('#rows').val()

@@ -73,7 +73,25 @@ $( function() {
 			$(this).parent().find('a').css('padding-left', '20px');
 			$(this).find('a').css('padding-left', '30px');
 			$(this).find('a').css('border-left', '4px solid #5D9CEB');
-		} 
+		} else if(cur_url[0] == 'smon.py' && cur_url[1].split('&')[0] == 'action=view' && link2 == 'smon.py?action=view'){
+		   $(this).parent().css('display', 'contents');
+		   $(this).parent().css('font-size', '13px');
+		   $(this).parent().css('top', '0');
+		   $(this).parent().css('left', '0');
+		   $(this).parent().children().css('margin-left', '-20px');
+		   $(this).parent().find('a').css('padding-left', '20px');
+		   $(this).find('a').css('padding-left', '30px');
+		   $(this).find('a').css('border-left', '4px solid #5D9CEB');
+	   	} else if(cur_url[0] == 'smon.py' && cur_url[1].split('&')[0] == 'action=add' && link2 == 'smon.py?action=add'){
+		   $(this).parent().css('display', 'contents');
+		   $(this).parent().css('font-size', '13px');
+		   $(this).parent().css('top', '0');
+		   $(this).parent().css('left', '0');
+		   $(this).parent().children().css('margin-left', '-20px');
+		   $(this).parent().find('a').css('padding-left', '20px');
+		   $(this).find('a').css('padding-left', '30px');
+		   $(this).find('a').css('border-left', '4px solid #5D9CEB');
+	   }
    });
 });
 
@@ -462,7 +480,6 @@ function viewLogs() {
 		var hour1 = $('#time_range_out_hour1').val()
 		var minut1 = $('#time_range_out_minut1').val()
 		var viewlogs = $('#viewlogs').val()
-		console.log(findGetParameter('viewlogs'))
 		if (viewlogs == null){
 			viewlogs = findGetParameter('viewlogs')
 		}	
@@ -918,25 +935,23 @@ function listHistroy() {
 	var link_text = []
 	for(let i = 0; i < browse_history.length; i++){
 		if (i == 0) {
-			if(browse_history[0] == browse_history[1]) {
-				continue
-			}
 			browse_history[0] = browse_history[1];
 		}
-		if (i == 1) {			
-			if(browse_history[1] == browse_history[2]) {
-				continue
-			}
+		if (i == 1) {
 			browse_history[1] = browse_history[2]
 		}
 		if (i == 2) {
-			browse_history[2] = cur_url[0]
+			if(cur_url[1] !== undefined) {
+				browse_history[2] = cur_url[0] + '?' + cur_url[1]
+			}else {
+				browse_history[2] = cur_url[0]
+			}
 		}
 		$( function() {
 			$('.menu li ul li').each(function () {
 				var link1 = $(this).find('a').attr('href');
 				var link2 = link1.split('/')[2]
-				if (browse_history[i] == link2) {
+				if (browse_history[i].split('?')[0] == link2) {
 					title[i] = $(this).find('a').attr('title');
 					link_text[i] = $(this).find('a').text();
 					history_link = '<li><a href="'+browse_history[i]+'" title="'+title[i]+'">'+link_text[i]+'</a></li>'
@@ -954,4 +969,51 @@ function changeCurrentGroupF(){
 	Cookies.remove('group');
 	Cookies.set('group', $('#newCurrentGroup').val(), { path: '/app', sameSite: 'Strict', Secure: 'True' });
 	location.reload(); 
+}
+function sort_by_status() {
+	$('<div id="err_services" style="clear: both;"></div>').appendTo('.main');
+	$('<div id="good_services" style="clear: both;"></div>').appendTo('.main');
+	$('<div id="dis_services" style="clear: both;"></div>').appendTo('.main');
+	$(".good").prependTo("#good_services");
+	$(".err").prependTo("#err_services");
+	$(".dis").prependTo("#dis_services");
+	$('.group').remove();
+	$('.group_name').detach();
+	window.history.pushState("SMON Dashboard", "SMON Dashboard", cur_url[0]+"?action=view&sort=by_status");
+}
+function showSmon(action) {
+	var sort = '';
+	if (action == 'refresh') {
+		try {
+			var location = window.location.href;
+			var cur_url = '/app/' + location.split('/').pop();
+			cur_url = cur_url.split('?');
+			cur_url[1] = cur_url[1].split('#')[0];
+			sort = cur_url[1].split('&')[1];
+			sort = sort.split('=')[1];
+		} catch (e) {
+			sort = '';
+		}
+	}
+	$.ajax( {
+		url: "options.py",
+		data: {
+			showsmon: 1,
+			sort: sort,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			if (data.indexOf('error') != '-1') {
+				alert(data);
+			} else {
+				$("#smon_dashboard").html(data);
+				if (action == 'not_sort') {
+					window.history.pushState("SMON Dashboard", document.title, "smon.py?action=view");
+				} else {
+					window.history.pushState("SMON Dashboard", document.title, cur_url[0] + "?" + cur_url[1]);
+				}
+			}
+		}
+	} );
 }

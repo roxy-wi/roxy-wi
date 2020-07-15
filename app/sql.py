@@ -602,9 +602,22 @@ def get_user_telegram_by_uuid(uuid):
 	else:
 		return cur.fetchall()
 	cur.close()    
-	con.close() 	
-	
-	
+	con.close()
+
+
+def get_user_telegram_by_group(group):
+	con, cur = get_cur()
+	sql = """ select telegram.* from telegram where groups = '%s' """ % group
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		funct.out_error(e)
+	else:
+		return cur.fetchall()
+	cur.close()
+	con.close()
+
+
 def get_telegram_by_ip(ip):
 	con, cur = get_cur()
 	sql = """ select telegram.* from telegram left join servers as serv on serv.groups = telegram.groups where serv.ip = '%s' """ % ip
@@ -615,6 +628,19 @@ def get_telegram_by_ip(ip):
 	else:
 		return cur.fetchall()
 	cur.close()    
+	con.close()
+
+
+def get_telegram_by_id(id):
+	con, cur = get_cur()
+	sql = """ select * from telegram where id = '%s' """ % id
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		funct.out_error(e)
+	else:
+		return cur.fetchall()
+	cur.close()
 	con.close()
 
 
@@ -1706,7 +1732,269 @@ def check_token_exists(token):
 			funct.logging('localhost', ' Cannot check token', haproxywi=1)
 			return False
 
-			
+
+def insert_smon(server, port, enable, proto, uri, body, group, desc, telegram, user_group):
+	try:
+		http = proto+':'+uri
+	except:
+		http = ''
+	con, cur = get_cur()
+	sql = """INSERT INTO smon (ip, port, en, `desc`, `group`, http, body, telegram_channel_id, user_group, `status`) 
+			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '3')
+			""" % (server, port, enable, desc, group, http, body, telegram, user_group)
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
+		return False
+	else:
+		return True
+	cur.close()
+	con.close()
+
+
+def select_smon(user_group, **kwargs):
+	con, cur = get_cur()
+
+	if user_group == '1':
+		user_group = ''
+	else:
+		if kwargs.get('ip'):
+			user_group = "and user_group = '%s'" % user_group
+		else:
+			user_group = "where user_group='%s'" % user_group
+
+	if kwargs.get('ip'):
+		try:
+			http = kwargs.get('proto')+':'+kwargs.get('uri')
+		except:
+			http = ''
+		sql = """select id, ip, port, en, http, body, telegram_channel_id, `desc`, `group`, user_group from smon 
+		where ip='%s' and port='%s' and http='%s' and body='%s' %s 
+		""" % (kwargs.get('ip'), kwargs.get('port'), http, kwargs.get('body'), user_group)
+	elif kwargs.get('action') == 'add':
+		sql = """select id, ip, port, en, http, body, telegram_channel_id, `desc`, `group`, user_group from smon
+		%s order by `group`""" % user_group
+	else:
+		sql = """select * from `smon` %s """ % user_group
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		funct.out_error(e)
+	else:
+		return cur.fetchall()
+	cur.close()
+	con.close()
+
+
+def delete_smon(id, user_group):
+	con, cur = get_cur()
+	sql = """delete from smon
+			where id = '%s' and user_group = '%s' """ % (id, user_group)
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
+		return False
+	else:
+		return True
+	cur.close()
+	con.close()
+
+
+def update_smon(id, ip, port, body, telegram, group, desc, en):
+	con, cur = get_cur()
+	sql = """ update smon set 
+			ip = '%s',
+			port = '%s',
+			body = '%s',
+			telegram_channel_id = '%s',
+			`group` = '%s',
+			`desc` = '%s',
+			en = '%s'
+			where id = '%s'""" % (ip, port, body, telegram, group, desc, en, id)
+	try:
+		cur.execute(sql)
+		con.commit()
+		return True
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
+		return False
+	cur.close()
+	con.close()
+
+def select_en_service():
+	con, cur = get_cur()
+	sql = """ select ip, port, telegram_channel_id, id from smon where en = 1"""
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		out_error(e)
+	else:
+		return cur.fetchall()
+
+
+def select_status(id):
+	con, cur = get_cur()
+	sql = """ select status from smon where id = '%s' """ % (id)
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		print("An error occurred:", e)
+	else:
+		for status in cur:
+			return status[0]
+
+
+def select_http_status(id):
+	con, cur = get_cur()
+	sql = """ select http_status from smon where id = '%s' """ % (id)
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		print("An error occurred:", e)
+	else:
+		for status in cur:
+			return status[0]
+
+
+def select_body_status(id):
+	con, cur = get_cur()
+	sql = """ select body_status from smon where id = '%s' """ % (id)
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		print("An error occurred:", e)
+	else:
+		for status in cur:
+			return status[0]
+
+
+def select_script(id):
+	con, cur = get_cur()
+	sql = """ select script from smon where id = '%s' """ % (id)
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		print("An error occurred:", e)
+	else:
+		for script in cur:
+			return script[0]
+
+
+def select_http(id):
+	con, cur = get_cur()
+	sql = """ select http from smon where id = '%s' """ % (id)
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		print("An error occurred:", e)
+	else:
+		for script in cur:
+			return script[0]
+
+
+def select_body(id):
+	con, cur = get_cur()
+	sql = """ select body from smon where id = '%s' """ % (id)
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		print("An error occurred:", e)
+	else:
+		for script in cur:
+			return script[0]
+
+
+def change_status(status, id):
+	con, cur = get_cur()
+	sql = """ update smon set status = '%s' where id = '%s' """ % (status, id)
+	try:
+		cur.executescript(sql)
+	except sqltool.Error as e:
+		print("An error occurred:", e)
+	cur.close()
+	con.close()
+
+
+def change_http_status(status, id):
+	con, cur = get_cur()
+	sql = """ update smon set http_status = '%s' where id = '%s' """ % (status, id)
+	try:
+		cur.executescript(sql)
+	except sqltool.Error as e:
+		print("An error occurred:", e)
+	cur.close()
+	con.close()
+
+
+def change_body_status(status, id):
+	con, cur = get_cur()
+	sql = """ update smon set body_status = '%s' where id = '%s' """ % (status, id)
+	try:
+		cur.executescript(sql)
+	except sqltool.Error as e:
+		print("An error occurred:", e)
+	cur.close()
+	con.close()
+
+
+def add_sec_to_state_time(time, id):
+	con, cur = get_cur()
+	sql = """ update smon set time_state = '%s' where id = '%s' """ % (time, id)
+	try:
+		cur.executescript(sql)
+	except sqltool.Error as e:
+		print("An error occurred:", e)
+	cur.close()
+	con.close()
+
+
+def set_to_zero_time_state(id):
+	con, cur = get_cur()
+	sql = """ update smon set time_state = 0 where id = '%s' """ % (id)
+	try:
+		cur.executescript(sql)
+	except sqltool.Error as e:
+		print("An error occurred:", e)
+	cur.close()
+	con.close()
+
+
+def response_time(time, id):
+	con, cur = get_cur()
+	sql = """ update smon set response_time = '%s' where id = '%s' """ % (time, id)
+	try:
+		cur.executescript(sql)
+	except sqltool.Error as e:
+		print("An error occurred:", e)
+	cur.close()
+	con.close()
+
+
+def smon_list(user_group):
+	con, cur = get_cur()
+
+	if user_group == '1':
+		user_group = ''
+	else:
+		user_group = "where user_group='%s'" % user_group
+
+	sql = """ select ip,port,status,en,`desc`,response_time,time_state,`group`,script,http,http_status,body,body_status 
+	from smon %s order by `group` desc """ % user_group
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		out_error(e)
+	else:
+		return cur.fetchall()
+
+
 form = funct.form
 error_mess = '<span class="alert alert-danger" id="error">All fields must be completed <a title="Close" id="errorMess"><b>X</b></a></span>'
 
