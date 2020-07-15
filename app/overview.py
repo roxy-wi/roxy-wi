@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import funct, sql
+import funct
+import sql
 import create_db
 import os
 from jinja2 import Environment, FileSystemLoader
@@ -28,8 +29,8 @@ try:
 	metrics_worker, stderr = funct.subprocess_execute(cmd)
 	cmd = "ps ax |grep -e 'keep_alive.py' |grep -v grep |wc -l"
 	keep_alive, stderr = funct.subprocess_execute(cmd)
-	cmd = "ps ax |grep '(wsgi:api)'|grep -v grep|wc -l"
-	api, stderr = funct.subprocess_execute(cmd)
+	cmd = "systemctl status smon |grep Act |awk  '{print $2}'"
+	smon, stderr = funct.subprocess_execute(cmd)
 	cmd = "ps ax |grep grafana|grep -v grep|wc -l"
 	grafana, stderr = funct.subprocess_execute(cmd)
 	cmd = "ps ax |grep 'prometheus ' |grep -v grep|wc -l"
@@ -57,7 +58,7 @@ except:
 	checker_master = ''
 	checker_worker = ''
 	keep_alive = ''
-	api = ''
+	smon = ''
 	grafana = ''
 	prometheus = ''
 	versions = ''
@@ -83,7 +84,7 @@ template = template.render(h2 = 1,
 							checker_master = ''.join(checker_master),
 							checker_worker = ''.join(checker_worker),
 							keep_alive = ''.join(keep_alive),
-							api = ''.join(api),
+							smon = ''.join(smon),
 							grafana = ''.join(grafana),
 							prometheus = ''.join(prometheus),
 							haproxy_wi_log_id = funct.haproxy_wi_log(log_id=1, file="haproxy-wi-", with_date=1),
