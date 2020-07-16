@@ -117,16 +117,24 @@
 		<td class="third-collumn-wi">
 			{% if keep_alive|int() >= 1 %}
 				<span title="running {{ keep_alive }} processe"><span class="serverUp server-status"></span></span>
+				{% if role <= 1 %}
+					<a href="/app/viewlogs.py?viewlogs={{keep_alive_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View keep alive logs" class="logs_link">
+						<span>Auto start</span>
+					</a>
+				{% else %}
+					<span>Auto star</span>
+				{% endif %}
 			{% else %}
 				<span class="serverDown server-status"></span>
+				{% if role <= 1 %}
+					<a href="/app/users.py#services" title="Start Auto star - HAProxy-WI service" class="logs_link">
+						Auto start
+					</a>
+				{% else %}
+					<span>Auto star</span>
+				{% endif %}
 			{% endif %}
-			{% if role <= 1 %}
-			<a href="/app/viewlogs.py?viewlogs={{keep_alive_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View keep alive logs" class="logs_link">
-				<span>Auto start</span>
-			</a>
-			{% else %}
-				<span>Auto star</span>
-			{% endif %}
+
 		</td>
 	</tr>
 	<tr class="even">
@@ -167,14 +175,24 @@
 		{% endif %}
 		</td>
 		<td>
-			{% if api|int() == 0 %}
-				<span class="serverNone server-status" title="REST API does not work"></span>
+			{% if smon == 'active' %}
+				<span title="SMON is started"><span class="serverUp server-status"></span></span>
+				<a href="/app/smon.py?action=view" title="SMON Dashboard" class="logs_link">
+					SMON
+				</a>
 			{% else %}
-				<span class="serverUp server-status" title="running {{api }} processes"></span>							
+				{% if smon == 'inactive' or smon== 'failed' %}
+					<span title="SMON is stoped"><span class="serverDown server-status"></span></span>
+					<a href="/app/users.py#services" title="Start SMON - HAProxy-WI service" class="logs_link">
+						SMON
+					</a>
+				{% else %}
+					<span title="SMON is not installed"><span class="serverNone server-status"></span></span>
+					<a href="https://haproxy-wi.org/services.py?service=smon" title="Simple monitoring ports installation" target="_blank" class="logs_link">
+						SMON
+					</a>
+				{% endif %}
 			{% endif %}
-			<a href="https://haproxy-wi.org/description.py?description=api" title="Read about REST API on HAProxy-WI.org" target="_blank" class="logs_link">
-				API	
-			</a>
 		</td>		
 	</tr>
 	<tr>
