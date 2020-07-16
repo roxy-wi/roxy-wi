@@ -44,7 +44,7 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 27. Keep active HAProxy service
 28. Ability to hide parts of the config with tags for users with "guest" role:  "HideBlockStart" and "HideBlockEnd"
 29. Mobile-ready desing
-30. REST API
+30. Simple port monitoring
 31. Backup HAProxy's, Nginx's and Keepalived's config files through HAProxy-WI
 
 ![alt text](image/haproxy-wi-metrics.png "Merics")

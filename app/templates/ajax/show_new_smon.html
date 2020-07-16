@@ -1,0 +1,5 @@
+{% from 'include/input_macros.html' import input, checkbox %}
+{% for s in smon %}
+    <tr class="newserver" id="smon-{{s.0}}">
+    {% include 'include/smon_server.html' %}
+{% endfor %}
