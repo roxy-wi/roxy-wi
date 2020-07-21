@@ -7,7 +7,7 @@
 		{{ checkbox(id) }}
 	{% endif %}
 </td>
-<td class="checkbox">
+<td class="checkbox" style="padding-left: 0px;">
 	{% set id = 'typeip-' + server.0|string() %}
 	{% if server.4 == 1 %}
 		{{ checkbox(id, checked='checked') }}

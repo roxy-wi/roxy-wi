@@ -395,6 +395,7 @@ pre {
 .checkbox {
 	min-width: 30px;
 	padding-top: 5px;
+	padding-left: 10px;
 }
 .checkbox-head {
 	padding: 0;

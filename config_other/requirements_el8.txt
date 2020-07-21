@@ -3,4 +3,3 @@ pyTelegramBotAPI==3.6.3
 networkx==2.1
 matplotlib==2.1.2
 mysql-connector-python==8.0.11
-bottle>=0.12.17
