@@ -898,11 +898,11 @@ function addNewSmonServer() {
 					setTimeout(function() {
 						$( ".newserver" ).removeClass( "update" );
 					}, 2500 );	
+					clearTips();
+					$( "#smon-add-table" ).dialog("close" );
 				}	
 			}
 		} );
-		clearTips();
-		$( "#smon-add-table" ).dialog("close" );
 	}
 }
 function addUser() {
