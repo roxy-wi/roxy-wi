@@ -67,9 +67,9 @@ $( function() {
 			success: function( data ) {
 					data = data.replace(/\s+/g,' ');
 					if (data.indexOf('error') != '-1') {
-						$("#ajaxmaxconn").html('<div class="alert alert-danger" style="margin: 10px;">'+data+'</div>');
+						toastr.error(data);
 					} else {
-						$("#ajaxmaxconn").html('<div class="alert alert-success" style="margin: 10px;">'+data+'</div>');
+						toastr.success(data);
 					}	
 			}
 		} );
@@ -182,9 +182,9 @@ $( function() {
 			success: function( data ) {
 					data = data.replace(/\s+/g,' ');
 					if (data.indexOf('error') != '-1') {
-						$("#ajaxip").html('<div class="alert alert-danger" style="margin: 10px;">'+data+'</div>');
+						toastr.error(data);
 					} else {
-						$("#ajaxip").html('<div class="alert alert-success" style="margin: 10px;">'+data+'</div>');
+						toastr.success(data);
 					}	
 			}
 		} );
@@ -202,7 +202,7 @@ $( function() {
 			success: function( data ) {
 				data = data.replace(/\s+/g,'');
 				if (data.indexOf('error') != '-1') {
-					alert(data)	
+					toastr.error(data);
 				} else {
 					var value = data.split(',')
 					$('#table_select').find('option').remove();
@@ -245,8 +245,7 @@ $( function() {
 	});
 });
 function deleteTableEntry(id, table, ip) {
-	console.log(table)
-	console.log(ip)
+	$(id).parent().parent().css("background-color", "#f2dede");
 	$.ajax( {
     	url: "options.py",
     	data: {
@@ -258,7 +257,7 @@ function deleteTableEntry(id, table, ip) {
     	type: "POST",
     	success: function( data ) {
     	    if (data.indexOf('error') != '-1') {
-    		    alert(data);
+				toastr.error(data);
     		} else {
     		    $(id).parent().parent().remove()
     		}

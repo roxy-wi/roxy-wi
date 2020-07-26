@@ -24,8 +24,12 @@ function showHapserversCallBack(serv, hostnamea, service) {
 		},
 		type: "POST",
 		success: function( data ) {
-			$("#"+hostnamea).empty();
-			$("#"+hostnamea).html(data);
+			if (data.indexOf('error') != '-1') {
+				toastr.error(data);
+			} else {
+				$("#" + hostnamea).empty();
+				$("#" + hostnamea).html(data);
+			}
 		}					
 	} );
 }
@@ -43,8 +47,12 @@ function overviewHapserverBackends(serv, hostnamea, service) {
 		},
 		type: "POST",
 		success: function( data ) {
-			$("#top-"+hostnamea).empty();
-			$("#top-"+hostnamea).html(data);
+			if (data.indexOf('error') != '-1') {
+				toastr.error(data);
+			} else {
+				$("#top-" + hostnamea).empty();
+				$("#top-" + hostnamea).html(data);
+			}
 		}					
 	} );
 }
@@ -69,8 +77,12 @@ function showOverviewCallBack(serv, hostnamea) {
 		},
 		type: "POST",
 		success: function( data ) {
-			$("#"+hostnamea).empty();
-			$("#"+hostnamea).html(data);
+			if (data.indexOf('error') != '-1') {
+				toastr.error(data);
+			} else {
+				$("#" + hostnamea).empty();
+				$("#" + hostnamea).html(data);
+			}
 		}					
 	} );
 }
@@ -88,21 +100,25 @@ function showOverviewServer(name,ip,id, service) {
 		},
 		type: "POST",
 		success: function( data ) {
-			$("#ajax-server-"+id).empty();
-			$("#ajax-server-"+id).css('display', 'block');
-			$("#ajax-server-"+id).css('background-color', '#fbfbfb');
-			$("#ajax-server-"+id).css('border', '1px solid #A4C7F5');
-			$(".ajax-server").css('display', 'block');
-			$(".div-server").css('clear', 'both');
-			$(".div-pannel").css('clear', 'both');
-			$(".div-pannel").css('display', 'block');
-			$(".div-pannel").css('padding-top', '10px');
-			$(".div-pannel").css('height', '70px');
-			$("#div-pannel-"+id).insertBefore('#up-pannel')
-			$("#ajax-server-"+id).html(data);
-			$.getScript("/inc/fontawesome.min.js")
-			getChartDataHapWiRam()
-			getChartDataHapWiCpu()
+			if (data.indexOf('error') != '-1') {
+				toastr.error(data);
+			} else {
+				$("#ajax-server-" + id).empty();
+				$("#ajax-server-" + id).css('display', 'block');
+				$("#ajax-server-" + id).css('background-color', '#fbfbfb');
+				$("#ajax-server-" + id).css('border', '1px solid #A4C7F5');
+				$(".ajax-server").css('display', 'block');
+				$(".div-server").css('clear', 'both');
+				$(".div-pannel").css('clear', 'both');
+				$(".div-pannel").css('display', 'block');
+				$(".div-pannel").css('padding-top', '10px');
+				$(".div-pannel").css('height', '70px');
+				$("#div-pannel-" + id).insertBefore('#up-pannel')
+				$("#ajax-server-" + id).html(data);
+				$.getScript("/inc/fontawesome.min.js")
+				getChartDataHapWiRam()
+				getChartDataHapWiCpu()
+			}
 		}					
 	} );
 	
@@ -119,7 +135,7 @@ function ajaxActionServers(action, id) {
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if( data ==  'Bad config, check please ' ) {
-				alert(data);
+				toastr.error(data);
 			} else {
 				if (cur_url[0] == "hapservers.py") {
 					location.reload()
@@ -171,7 +187,7 @@ function ajaxActionWafServers(action, id) {
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
 				if( data ==  'Bad config, check please ' ) {
-					alert(data);
+					toastr.error(data);
 				} else {
 					setTimeout(showOverviewWaf(ip, hostnamea), 2000)						
 				}
@@ -290,11 +306,7 @@ function updateHapWIServer(id) {
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error') != '-1') {
-				$("#ajax-servers").append(data);
-				$('#errorMess').click(function() {
-					$('#error').remove();
-					$('.alert-danger').remove();
-				});
+				toastr.error(data);
 			} else {
 				$('.alert-danger').remove();
 				$("#server-"+id).addClass( "update", 1000 );
@@ -316,5 +328,28 @@ function change_pos(pos, id) {
 		error: function(){
 			console.log(w.data_error);
 		}					
+	} );
+}
+function showBytes(serv) {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			showBytes: serv,
+			token: $('#token').val()
+		},
+		type: "POST",
+		beforeSend: function() {
+			$("#show_bin_bout").html('<img class="loading_small_bin_bout" src="/inc/images/loading.gif" />');
+			$("#sessions").html('<img class="loading_small_bin_bout" src="/inc/images/loading.gif" />');
+		},
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if (data.indexOf('error') != '-1') {
+				toastr.error(data);
+			} else {
+				$("#bin_bout").html(data);
+				$.getScript("/inc/fontawesome.min.js")
+			}
+		}
 	} );
 }

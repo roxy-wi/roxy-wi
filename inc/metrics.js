@@ -146,8 +146,12 @@ function loadMetrics() {
 			$('#table_metrics').html('<img class="loading_full_page" src="/inc/images/loading.gif" />')
 		},
 		type: "POST",
-        success: function (data) {   
-           $( "#table_metrics" ).html( data );
+        success: function (data) {
+            if (data.indexOf('error') != '-1') {
+                toastr.error(data);
+            } else {
+                $("#table_metrics").html(data);
+            }
         }
     });
 }
@@ -166,7 +170,6 @@ function getChartDataHapWiRam(ip) {
         success: function (result) {  
             var data = [];
             data.push(result.chartData.rams);
-
             renderChartHapWiRam(data);
         }
     });
@@ -227,7 +230,6 @@ function getChartDataHapWiCpu(ip) {
         success: function (result) {   
             var data = [];
             data.push(result.chartData.cpus);
-
             renderChartHapWiCpu(data);
         }
     });
