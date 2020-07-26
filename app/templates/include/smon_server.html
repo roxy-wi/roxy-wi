@@ -32,10 +32,15 @@
     <td>
         {% set id = 'smon-body-' + s.0|string() %}
         {% if s.5 != 'None' %}
+            <span id="{{id}}">{{s.5}}</span>
+        {% else %}
+            <span id="{{id}}"></span>
+        {% endif %} 
+        {#{% if s.5 != 'None' %}
             {{ input(id, value=s.5, size='10') }}
         {% else %}
             {{ input(id, size='10') }}
-        {% endif %}
+        {% endif %} #}
     </td>
     <td>
         <select id="smon-telegram-{{s.0}}">

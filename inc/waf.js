@@ -66,19 +66,13 @@ function installWaf(ip1) {
 		success: function( data ) { 
 		data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error') != '-1' || data.indexOf('Failed') != '-1') {
-				$("#ajax").html('<div class="alert alert-danger" style="margin: 15px;">'+data+'</data>');
-				$('#errorMess').click(function() {
-					$('#error').remove();
-					$('.alert-danger').remove();
-				});
+				toastr.error(data);
 			} else if (data.indexOf('Info') != '-1' ){
-				$('.alert-danger').remove();
-				$('.alert-warning').remove();
-				$("#ajax").html('<div class="alert alert-info">'+data+'</data>');
+				toastr.clear();
+				toastr.info(data);
 			} else if (data.indexOf('success') != '-1' ){
-				$('.alert-danger').remove();
-				$('.alert-warning').remove();
-				$("#ajax").html('<div class="alert alert-success">WAF service has installed</data>');
+				toastr.clear();
+				toastr.success('WAF service has installed');
 				showOverviewWaf(ip, hostnamea)
 			}	
 		}
@@ -96,11 +90,39 @@ function changeWafMode(id) {
 		},
 		type: "POST",
 		success: function( data ) {
-			alert('Do not forget restart WAF server: '+server_hostname)
+			toastr.info('Do not forget restart WAF service');
 			$( '#'+server_hostname+'-select-line' ).addClass( "update", 1000 );										
 			setTimeout(function() {
 				$( '#'+server_hostname+'-select-line' ).removeClass( "update" );
 			}, 2500 );
 		}
 	} ); 
+}
+$( function() {
+	$( "#waf_rules input" ).change(function() {
+		var id = $(this).attr('id').split('-');
+		waf_rules_en(id[1])
+	});
+});
+function waf_rules_en(id) {
+	var enable = 0;
+	if ($('#rule_id-'+id).is(':checked')) {
+		enable = '1';
+	}
+	$.ajax( {
+		url: "options.py",
+		data: {
+			waf_rule_id: id,
+			waf_en: enable,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			toastr.info('Do not forget restart WAF service');
+			$( '#rule-'+id ).addClass( "update", 1000 );
+			setTimeout(function() {
+				$( '#rule-'+id ).removeClass( "update" );
+			}, 2500 );
+		}
+	} );
 }

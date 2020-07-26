@@ -283,9 +283,14 @@ function showStats() {
 		},
 		type: "POST",
 		success: function( data ) {
-			$("#ajax").html(data);			
-			window.history.pushState("Stats", "Stats", cur_url[0]+"?service="+$("#service").val()+"&serv="+$("#serv").val());
-			wait();
+			if (data.indexOf('error') != '-1') {
+				toastr.error(data);
+			} else {
+				toastr.clear();
+				$("#ajax").html(data);
+				window.history.pushState("Stats", "Stats", cur_url[0] + "?service=" + $("#service").val() + "&serv=" + $("#serv").val());
+				wait();
+			}
 		}					
 	} );
 }
@@ -344,16 +349,21 @@ function showLog() {
 		},
 		type: "POST",
 		success: function( data ) {
-			$("#ajax").html(data);
-			window.history.pushState("Logs", "Logs", cur_url[0]+"?service="+service+"&serv="+$("#serv").val()+
-																	'&rows='+rows+
-																	'&exgrep='+exgrep+
-																	'&grep='+grep+
-																	'&hour='+hour+
-																	'&minut='+minut+
-																	'&hour1='+hour1+
-																	'&minut1='+minut1+
-																	'&waf='+waf);
+			if (data.indexOf('error') != '-1') {
+				toastr.error(data);
+			} else {
+				toastr.clear();
+				$("#ajax").html(data);
+				window.history.pushState("Logs", "Logs", cur_url[0] + "?service=" + service + "&serv=" + $("#serv").val() +
+					'&rows=' + rows +
+					'&exgrep=' + exgrep +
+					'&grep=' + grep +
+					'&hour=' + hour +
+					'&minut=' + minut +
+					'&hour1=' + hour1 +
+					'&minut1=' + minut1 +
+					'&waf=' + waf);
+			}
 		}					
 	} );
 }
@@ -372,8 +382,13 @@ function showMap() {
 		},
 		type: "POST",
 		success: function( data ) {
-			$("#ajax").html(data);
-			window.history.pushState("Show map", "Show map", cur_url[0]+'?serv='+$("#serv").val()+'&showMap');
+			if (data.indexOf('error') != '-1') {
+				toastr.error(data);
+			} else {
+				toastr.clear();
+				$("#ajax").html(data);
+				window.history.pushState("Show map", "Show map", cur_url[0] + '?serv=' + $("#serv").val() + '&showMap');
+			}
 		}					
 	} );
 }
@@ -389,7 +404,12 @@ function showCompare() {
 		},
 		type: "POST",
 		success: function( data ) {
-			$("#ajax").html(data);
+			if (data.indexOf('error') != '-1') {
+				toastr.error(data);
+			} else {
+				toastr.clear();
+				$("#ajax").html(data);
+			}
 		}					
 	} );
 }
@@ -408,11 +428,16 @@ function showCompareConfigs() {
 		},
 		type: "POST",
 		success: function( data ) {
-			$("#ajax-compare").html(data);
-			$( "input[type=submit], button" ).button();
-			$( "select" ).selectmenu();
-			window.history.pushState("Show compare config", "Show compare config", cur_url[0]+'?service='+$("#service").val()+'&serv='+$("#serv").val()+'&showCompare');
-		}					
+			if (data.indexOf('error') != '-1') {
+				toastr.error(data);
+			} else {
+				toastr.clear();
+				$("#ajax-compare").html(data);
+				$("input[type=submit], button").button();
+				$("select").selectmenu();
+				window.history.pushState("Show compare config", "Show compare config", cur_url[0] + '?service=' + $("#service").val() + '&serv=' + $("#serv").val() + '&showCompare');
+			}
+		}
 	} );
 }
 function showConfig() {
@@ -431,9 +456,14 @@ function showConfig() {
 		},
 		type: "POST",
 		success: function( data ) {
-			$("#ajax").html(data);
-			$.getScript('/inc/configshow.js');
-			window.history.pushState("Show config", "Show config", cur_url[0]+"?service="+service+"&serv="+$("#serv").val()+"&showConfig");
+			if (data.indexOf('error') != '-1') {
+				toastr.error(data);
+			} else {
+				toastr.clear();
+				$("#ajax").html(data);
+				$.getScript('/inc/configshow.js');
+				window.history.pushState("Show config", "Show config", cur_url[0] + "?service=" + service + "&serv=" + $("#serv").val() + "&showConfig");
+			}
 		}					
 	} );
 }
@@ -452,9 +482,14 @@ function showUploadConfig() {
 		},
 		type: "POST",
 		success: function( data ) {
-			$("#ajax").html(data);
-			window.history.pushState("Show config", "Show config", cur_url[0]+"?service="+service+"&serv="+serv+"&open=open&configver="+configver);
-			$.getScript('/inc/configshow.js');
+			if (data.indexOf('error') != '-1') {
+				toastr.error(data);
+			} else {
+				toastr.clear();
+				$("#ajax").html(data);
+				window.history.pushState("Show config", "Show config", cur_url[0] + "?service=" + service + "&serv=" + serv + "&open=open&configver=" + configver);
+				$.getScript('/inc/configshow.js');
+			}
 		}					
 	} );
 }
@@ -499,19 +534,24 @@ function viewLogs() {
 			type: "POST",
 			success: function( data ) {
 				$("#ajax").html(data);
-				window.history.pushState("View logs", "View logs", cur_url[0]+"?viewlogs="+viewlogs+
-																	'&rows='+rows+
-																	'&grep='+grep+
-																	'&exgrep='+exgrep+
-																	'&hour='+hour+
-																	'&minut='+minut+
-																	'&hour1='+hour1+
-																	'&minut1='+minut1);
+				window.history.pushState("View logs", "View logs", cur_url[0] + "?viewlogs=" + viewlogs +
+						'&rows=' + rows +
+						'&grep=' + grep +
+						'&exgrep=' + exgrep +
+						'&hour=' + hour +
+						'&minut=' + minut +
+						'&hour1=' + hour1 +
+						'&minut1=' + minut1);
 			}					
 		} );
 	}
 }
 $( function() {
+	toastr.options.closeButton = true;
+	toastr.options.progressBar = true;
+	toastr.options.positionClass = 'toast-bottom-full-width';
+	toastr.options.timeOut = 25000;
+	toastr.options.extendedTimeOut = 50000;
 	$('#errorMess').click(function(){
 		$('#error').remove();
 	});
@@ -1005,7 +1045,7 @@ function showSmon(action) {
 		type: "POST",
 		success: function( data ) {
 			if (data.indexOf('error') != '-1') {
-				alert(data);
+				toastr.error(data);
 			} else {
 				$("#smon_dashboard").html(data);
 				if (action == 'not_sort') {

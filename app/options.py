@@ -26,17 +26,17 @@ if act == "checkrestart":
 
 
 if not sql.check_token_exists(form.getvalue("token")):
-	print('<div class="alert alert-danger" style="margin:20px;">Your token has been expired</div>')
+	print('error: Your token has been expired')
 	sys.exit()
 
 
 if form.getvalue('getcerts') is not None and serv is not None:
 	cert_path = sql.get_setting('cert_path')
-	commands = [ "ls -1t "+cert_path+" |grep pem" ]
+	commands = ["sudo ls -1t "+cert_path+" |grep pem"]
 	try:
 		funct.ssh_command(serv, commands, ip="1")
-	except:
-		print('<div class="alert alert-danger" style="margin:0">Can not connect to the server</div>')
+	except Exception as e:
+		print('error: Cannot connect to the server: ' + str(e))
 
 
 if form.getvalue('checkSshConnect') is not None and serv is not None:
@@ -50,7 +50,7 @@ if form.getvalue('getcert') is not None and serv is not None:
 	try:
 		funct.ssh_command(serv, commands, ip="1")
 	except:
-		print('<div class="alert alert-danger" style="margin:0">Can not connect to the server</div>')
+		print('error: Can not connect to the server')
 
 
 if serv and form.getvalue('ssl_cert'):
@@ -61,24 +61,24 @@ if serv and form.getvalue('ssl_cert'):
 		os.makedirs(cert_local_dir)
 
 	if form.getvalue('ssl_name') is None:
-		print('<div class="alert alert-danger" style="float: left;">Please enter desired name</div>')
+		print('error: Please enter desired name')
 	else:
 		name = form.getvalue('ssl_name') + '.pem'
 
 	try:
 		with open(name, "w") as ssl_cert:
 			ssl_cert.write(form.getvalue('ssl_cert'))
-	except IOError:
-		print('<div class="alert alert-danger style="float: left;"">Can\'t save ssl keys file. Check ssh keys path in config</div>')
-	else:
-		print('<div class="alert alert-success" style="float: left;">SSL file was upload to %s into: %s  %s</div>' % (serv, cert_path, name))
+	except IOError as e :
+		print('error: Can\'t save ssl keys file. Check ssh keys path in config '+e.args[0])
 
 	MASTERS = sql.is_master(serv)
 	for master in MASTERS:
 		if master[0] != None:
 			funct.upload(master[0], cert_path, name)
 	try:
-		funct.upload(serv, cert_path, name)
+		error = funct.upload(serv, cert_path, name)
+		if error == '':
+			print('success: SSL file has been uploaded to %s into: %s%s' % (serv, cert_path, '/'+name))
 	except Exception as e:
 		funct.logging('localhost', e.args[0], haproxywi=1)
 	try:
@@ -86,7 +86,7 @@ if serv and form.getvalue('ssl_cert'):
 	except OSError as e:
 		funct.logging('localhost', e.args[0], haproxywi=1)
 
-	funct.logging(serv, "add.py#ssl upload new ssl cert %s" % name)
+	funct.logging(serv, "add.py#ssl uploaded a new SSL cert %s" % name, haproxywi=1, login=1)
 
 
 if form.getvalue('backend') is not None:
@@ -200,7 +200,7 @@ if form.getvalue('maxconn_frontend') is not None:
 		cmd = 'string=`grep %s %s -n -A5 |grep maxcon -n |awk -F":" \'{print $2}\'|awk -F"-" \'{print $1}\'` && sed -Ei "$( echo $string)s/[0-9]+/%s/g" %s' % (frontend, cfg, maxconn, cfg)
 		output, stderr = funct.subprocess_execute(cmd)
 		stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save='save')
-		print('Maxconn for %s has been set to %s ' % (frontend, maxconn))
+		print('success: Maxconn for %s has been set to %s ' % (frontend, maxconn))
 	else:
 		print('error: '+output[0])
 
@@ -272,9 +272,9 @@ if form.getvalue('action_hap') is not None and serv is not None:
 		commands = [ "sudo systemctl %s haproxy" % action ]
 		funct.ssh_command(serv, commands)
 		funct.logging(serv, 'HAProxy was '+action+'ed', haproxywi=1, login=1)
-		print("HAproxy was %s" % action)
+		print("success: HAproxy was %s" % action)
 	else:
-		print("Bad config, check please")
+		print("error: Bad config, check please")
 
 
 if form.getvalue('action_nginx') is not None and serv is not None:
@@ -284,9 +284,9 @@ if form.getvalue('action_nginx') is not None and serv is not None:
 		commands = [ "sudo systemctl %s nginx" % action ]
 		funct.ssh_command(serv, commands)
 		funct.logging(serv, 'Nginx was '+action+'ed', haproxywi=1, login=1)
-		print("Nginx was %s" % action)
+		print("success: Nginx was %s" % action)
 	else:
-		print("Bad config, check please")
+		print("error: Bad config, check please")
 
 
 if form.getvalue('action_waf') is not None and serv is not None:
@@ -354,7 +354,7 @@ if act == "overviewHapservers":
 	try:
 		print(funct.ssh_command(serv, commands))
 	except:
-		print('Cannot get last date')
+		print('error: Cannot get last date')
 
 
 if act == "overview":
@@ -538,17 +538,17 @@ if serv is not None and act == "stats":
 	try:
 		response = requests.get('http://%s:%s/%s' % (serv, stats_port, stats_page), auth=(haproxy_user, haproxy_pass))
 	except requests.exceptions.ConnectTimeout:
-		print('Oops. Connection timeout occured!')
+		print('error: Oops. Connection timeout occured!')
 	except requests.exceptions.ReadTimeout:
-		print('Oops. Read timeout occured')
+		print('error: Oops. Read timeout occured')
 	except requests.exceptions.HTTPError as errh:
-		print ("Http Error:",errh)
+		print ("error: Http Error:",errh)
 	except requests.exceptions.ConnectionError as errc:
-		print ('<div class="alert alert-danger">Error Connecting: %s</div>' % errc)
+		print ('error: Error Connecting: %s' % errc)
 	except requests.exceptions.Timeout as errt:
-		print ("Timeout Error:",errt)
+		print ("error: Timeout Error:",errt)
 	except requests.exceptions.RequestException as err:
-		print ("OOps: Something Else",err)
+		print ("error: OOps: Something Else",err)
 
 	data = response.content
 	if form.getvalue('service') == 'nginx':
@@ -627,11 +627,11 @@ if serv is not None and act == "showMap":
 
 	error = funct.get_config(serv, cfg)
 	if error:
-		print('<div class="alert alert-danger">'+error+'</div>')
+		print(error)
 	try:
 		conf = open(cfg, "r")
 	except IOError:
-		print('<div class="alert alert-danger">Can\'t read import config file</div>')
+		print('error: Can\'t read import config file')
 
 	node = ""
 	line_new2 = [1,""]
@@ -703,7 +703,7 @@ if serv is not None and act == "showMap":
 		plt.savefig("map.png")
 		plt.show()
 	except Exception as e:
-		print('<div class="alert alert-danger">' + str(e) + '</div>')
+		print(str(e))
 
 	cmd = "rm -f "+os.path.dirname(os.getcwd())+"/map*.png && mv map.png "+os.path.dirname(os.getcwd())+"/map"+date+".png"
 	output, stderr = funct.subprocess_execute(cmd)
@@ -1339,7 +1339,7 @@ if form.getvalue('get_hap_v'):
 
 
 if form.getvalue('get_nginx_v'):
-	cmd = [ "/usr/sbin/nginx -v" ]
+	cmd = [ '/usr/sbin/nginx -v' ]
 	print(funct.ssh_command(serv, cmd))
 
 
@@ -1355,7 +1355,7 @@ if form.getvalue('bwlists'):
 		file.close
 		print(file_read)
 	except IOError:
-		print('<div class="alert alert-danger" style="margin:0">Cat\'n read '+form.getvalue('color')+' list</div>')
+		print('error: Cat\'n read '+form.getvalue('color')+' list , ')
 
 
 if form.getvalue('bwlists_create'):
@@ -1365,13 +1365,13 @@ if form.getvalue('bwlists_create'):
 	list = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')+"/"+form.getvalue('group')+"/"+color+"/"+list_name
 	try:
 		open(list, 'a').close()
-		print('<div class="alert alert-success" style="margin-left:14px">'+color+' list was created</div>')
+		print(color)
 		try:
 			funct.logging(server[1], 'has created  '+color+' list '+list_name, haproxywi=1, login=1)
 		except:
 			pass
 	except IOError as e:
-		print('<div class="alert alert-danger" style="margin-left:14px">Cat\'n create new '+color+' list. %s </div>' % e)
+		print('error: Cat\'n create new '+color+' list. %s , ' % e)
 
 
 if form.getvalue('bwlists_save'):
@@ -1382,7 +1382,7 @@ if form.getvalue('bwlists_save'):
 		with open(list, "w") as file:
 			file.write(form.getvalue('bwlists_content'))
 	except IOError as e:
-		print('<div class="alert alert-danger" style="margin-left:14px">Cat\'n save '+color+' list. %s </div>' % e)
+		print('error: Cat\'n save '+color+' list. %s , ' % e)
 
 	path = sql.get_setting('haproxy_dir')+"/"+color
 	servers = []
@@ -1404,9 +1404,9 @@ if form.getvalue('bwlists_save'):
 		funct.ssh_command(serv, ["sudo chown $(whoami) "+path])
 		error = funct.upload(serv, path+"/"+bwlists_save, list, dir='fullpath')
 		if error:
-			print('<div class="alert alert-danger">Upload fail: %s</div>' % error)
+			print('error: Upload fail: %s , ' % error)
 		else:
-			print('<div class="alert alert-success" style="margin:10px; margin-left:14px">Edited '+color+' list was uploaded to '+serv+'</div>')
+			print('success: Edited '+color+' list was uploaded to '+serv+' , ')
 			try:
 				funct.logging(serv, 'has edited  '+color+' list '+bwlists_save, haproxywi=1, login=1)
 			except:
@@ -1468,7 +1468,7 @@ if form.getvalue('change_waf_mode'):
 	funct.logging(serv, 'Was changed WAF mod to '+waf_mode, haproxywi=1, login=1)
 
 
-error_mess = '<span class="alert alert-danger" id="error">All fields must be completed <a title="Close" id="errorMess"><b>X</b></a></span>'
+error_mess = 'error: All fields must be completed'
 
 
 if form.getvalue('newuser') is not None:
@@ -1731,9 +1731,9 @@ if form.getvalue('ssh_cert'):
 		with open(ssh_keys, "w") as conf:
 			conf.write(form.getvalue('ssh_cert'))
 	except IOError:
-		print('<div class="alert alert-danger">Can\'t save ssh keys file. Check ssh keys path in config</div>')
+		print('error: Can\'t save ssh keys file. Check ssh keys path in config')
 	else:
-		print('<div class="alert alert-success">Ssh key was save into: %s </div>' % ssh_keys)
+		print('success: Ssh key was save into: %s </div>' % ssh_keys)
 
 	try:
 		cmd = 'chmod 600 %s' % ssh_keys
@@ -1867,6 +1867,7 @@ if form.getvalue('smondel') is not None:
 
 	if sql.delete_smon(id, user_group):
 		print('Ok')
+		funct.logging('SMON','Has been delete server from SMON ', haproxywi=1, login=1)
 
 
 if form.getvalue('showsmon') is not None:
@@ -1907,6 +1908,7 @@ if form.getvalue('updateSmonIp') is not None:
 		sys.exit()
 	if sql.update_smon(id, ip, port, body, telegram, group, desc, en):
 		print("Ok")
+		funct.logging('SMON','Has been update the server '+ip+' to SMON ', haproxywi=1, login=1)
 
 
 if form.getvalue('showBytes') is not None:

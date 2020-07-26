@@ -25,7 +25,11 @@ $( function() {
 				},
 				success: function( data ) {
 					data = data.replace(/\s+/g,' ');
-					response(data.split(" "));
+					if (data.indexOf('error') != '-1' || data.indexOf('Failed') != '-1') {
+						toastr.error(data);
+					} else {
+						response(data.split(" "));
+					}
 				}						
 			} );
 		},
@@ -43,7 +47,11 @@ $( function() {
 				},
 				success: function( data ) {
 					data = data.replace(/\s+/g,' ');
-					response(data.split(" "));
+					if (data.indexOf('error') != '-1' || data.indexOf('Failed') != '-1') {
+						toastr.error(data);
+					} else {
+						response(data.split(" "));
+					}
 				}						
 			} );
 		},
@@ -68,11 +76,11 @@ $( function() {
 		$("#ajax").html('')
 		if( $("#master").val() == "" || $("#slave").val() == "" || $("#interface").val() == "" ||
 			$("#vrrp-ip").val() == "") {
-				$("#ajax").html('<div class="alert alert-danger">Please fill in all fields</div>')
+				toastr.warning('Please fill in all fields');
 			} else if(! $("#vrrp-ip").val().match(ipformat)) {
-				$("#ajax").html('<div class="alert alert-danger">Please enter IP in "VRRP IP" field</div>')
+				toastr.warning('Please enter IP in "VRRP IP" field');
 			} else if ($("#master").val() == $("#slave").val() ){
-				$("#ajax").html('<div class="alert alert-danger">Master and slave must be diff servers</div>')
+				toastr.warning('Master and slave must be diff servers');
 			} else {
 				$("#ajax").html(wait_mess);
 				$.ajax( {
@@ -91,16 +99,16 @@ $( function() {
 					success: function( data ) { 
 						data = data.replace(/\s+/g,' ');
 						if (data.indexOf('error') != '-1' || data.indexOf('alert') != '-1' || data.indexOf('FAILED') != '-1') {
-							$("#ajax").html('<div class="alert alert-danger">'+data+'</div>');
+							toastr.error(data);
 						} else if (data.indexOf('info') != '-1' ){
-							$("#ajax").html('<div class="alert alert-info">'+data+'</div>');
+							toastr.clear();
+							toastr.info(data);
 						} else if (data.indexOf('success') != '-1' ){
-							$('.alert-danger').remove();
-							$("#ajax").html('<div class="alert alert-success">'+data+'</div>');				
+							toastr.clear();
+							toastr.success(data);
 						} else {
-							$('.alert-danger').remove();
-							$('.alert-warning').remove();
-							$("#ajax").html('<div class="alert alert-info">'+data+'</div>');
+							toastr.clear();
+							toastr.info(data);
 						}
 					}
 				} );
@@ -116,9 +124,9 @@ $( function() {
 		$("#ajax").html('')
 		if( $("#master-add").val() == "" || $("#slave-add").val() == "" || $("#interface-add").val() == "" ||
 			$("#vrrp-ip-add").val() == "") {
-				$("#ajax").html('<div class="alert alert-danger">Please fill in all fields</div>')
+				toastr.warning('Please fill in all fields')
 			} else if(! $("#vrrp-ip-add").val().match(ipformat)) {
-				$("#ajax").html('<div class="alert alert-danger">Please enter IP in "VRRP IP" field</div>')
+				toastr.warning('Please enter IP in "VRRP IP" field')
 			} else {
 				$("#ajax").html(wait_mess);
 				$.ajax( {
@@ -135,14 +143,14 @@ $( function() {
 					success: function( data ) { 
 						data = data.replace(/\s+/g,' ');
 						if (data.indexOf('error') != '-1') {
-							$("#ajax").html('<div class="alert alert-danger">'+data+'</div>');
+							toastr.clear();
+							toastr.error(data);
 						} else if (data.indexOf('success') != '-1'){
-							$('.alert-danger').remove();
-							$("#ajax").html('<div class="alert alert-success">'+data+'</div>');				
+							toastr.clear();
+							toastr.success(data);
 						} else {
-							$('.alert-danger').remove();
-							$('.alert-warning').remove();
-							$("#ajax").html('<div class="alert alert-info">'+data+'</div>');
+							toastr.clear();
+							toastr.info(data);
 						}
 					}
 				} );
@@ -167,19 +175,16 @@ $( function() {
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
 				if (data.indexOf('error') != '-1' || data.indexOf('FAILED') != '-1') {
-					$("#ajax").html('<div class="alert alert-danger">'+data+'</div>');
+					toastr.error(data);
 				} else if (data.indexOf('success') != '-1' ){
-					$('.alert-danger').remove();
-					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-success">'+data+'</div>');						
+					toastr.remove();
+					toastr.success(data);
 				} else if (data.indexOf('Info') != '-1' ){
-					$('.alert-danger').remove();
-					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-info">'+data+'</div>');
+					toastr.remove();
+					toastr.info(data);
 				} else {
-					$('.alert-danger').remove();
-					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-info">'+data+'</div>');
+					toastr.remove();
+					toastr.info(data);
 				}
 			}
 		} );	
@@ -202,19 +207,17 @@ $( function() {
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
 				if (data.indexOf('error') != '-1' || data.indexOf('FAILED') != '-1') {
-					$("#ajax").html('<div class="alert alert-danger">'+data+'</div>');
+					toastr.clear();
+					toastr.error(data);
 				} else if (data.indexOf('success') != '-1' ){
-					$('.alert-danger').remove();
-					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-success">'+data+'</div>');				
+					toastr.clear();
+					toastr.success(data);
 				} else if (data.indexOf('Info') != '-1' ){
-					$('.alert-danger').remove();
-					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-info">'+data+'</div>');
+					toastr.clear();
+					toastr.info(data);
 				} else {
-					$('.alert-danger').remove();
-					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-info">'+data+'</div>');
+					toastr.clear();
+					toastr.info(data);
 				}
 			}
 		} );	
@@ -232,19 +235,17 @@ $( function() {
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
 				if (data.indexOf('FAILED') != '-1') {
-					$("#ajaxmon").html('<div class="alert alert-danger">'+data+'</div>');
+					toastr.clear();
+					toastr.error(data);;
 				} else if (data.indexOf('success') != '-1' ){
-					$('.alert-danger').remove();
-					$('.alert-warning').remove();
-					$("#ajaxmon").html('<div class="alert alert-success">'+data+'</div>');				
+					toastr.clear();
+					toastr.success(data);
 				} else if (data.indexOf('Info') != '-1' ){
-					$('.alert-danger').remove();
-					$('.alert-warning').remove();
-					$("#ajaxmon").html('<div class="alert alert-info">'+data+'</div>');
+					toastr.clear();
+					toastr.info(data);
 				} else {
-					$('.alert-danger').remove();
-					$('.alert-warning').remove();
-					$("#ajaxmon").html('<div class="alert alert-info">'+data+'</div>');
+					toastr.clear();
+					toastr.info(data);
 				}
 			}
 		} );	
@@ -262,21 +263,19 @@ $( function() {
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
 				if (data.indexOf('error') != '-1' || data.indexOf('FAILED') != '-1') {
-					$("#ajaxmon").html('<div class="alert alert-danger">'+data+'</div>');
+					toastr.clear();
+					toastr.error(data);
 				} else if (data.indexOf('success') != '-1' ){
-					$('.alert-danger').remove();
-					$('.alert-warning').remove();
-					$("#ajaxmon").html('<div class="alert alert-success">'+data+'</div>');	
+					toastr.clear();
+					toastr.success(data);
 					$('#cur_haproxy_exp_ver').text('HAProxy expoter is installed');
 					$('#haproxy_exp_install').text('Update');
 				} else if (data.indexOf('Info') != '-1' ){
-					$('.alert-danger').remove();
-					$('.alert-warning').remove();
-					$("#ajaxmon").html('<div class="alert alert-info">'+data+'</div>');
+					toastr.clear();
+					toastr.info(data);
 				} else {
-					$('.alert-danger').remove();
-					$('.alert-warning').remove();
-					$("#ajax").html('<div class="alert alert-info">'+data+'</div>');
+					toastr.clear();
+					toastr.info(data);
 				}
 			}
 		} );	
@@ -294,21 +293,18 @@ $( function() {
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
 				if (data.indexOf('error') != '-1' || data.indexOf('FAILED') != '-1') {
-					$("#ajaxmon").html('<div class="alert alert-danger">'+data+'</div>');
+					toastr.error(data);
 				} else if (data.indexOf('success') != '-1' ){
-					$('.alert-danger').remove();
-					$('.alert-warning').remove();
-					$("#ajaxmon").html('<div class="alert alert-success">'+data+'</div>');	
+					toastr.clear();
+					toastr.success(data);
 					$('#cur_nginx_exp_ver').text('Nginx expoter is installed');
 					$('#nginx_exp_install').text('Update');
 				} else if (data.indexOf('Info') != '-1' ){
-					$('.alert-danger').remove();
-					$('.alert-warning').remove();
-					$("#ajaxmon").html('<div class="alert alert-info">'+data+'</div>');
+					toastr.clear();
+					toastr.info(data);
 				} else {
-					$('.alert-danger').remove();
-					$('.alert-warning').remove();
-					$("#ajaxmon").html('<div class="alert alert-info">'+data+'</div>');
+					toastr.clear();
+					toastr.info(data);
 				}
 			}
 		} );	
@@ -419,54 +415,46 @@ $( function() {
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
 				if (data.indexOf('error') != '-1' || data.indexOf('Failed') != '-1') {
-					$("#ajax").html('<div class="alert alert-danger">'+data+'</div>');
+					toastr.error(data);
 				} else if (data.indexOf('Complete!') != '-1'){
-					$('.alert-danger').remove();
-					$('.alert-warning').remove();
-					$("#ajax-update").html('<div class="alert alert-success">Update was success!</div>');				
+					toastr.clear();
+					toastr.success('Update was success!');
 				} else if (data.indexOf('Unauthorized') != '-1') {
-					$('.alert-danger').remove();
-					$('.alert-warning').remove();
-					$("#ajax-update").html('<div class="alert alert-danger">It is seems like you Unauthorized in the HAProxy-WI repository. How to get HAProxy-WI auth you can read <a href="https://haproxy-wi.org/installation.py" title="How to get HAProxy-WI auth">hear</a> </div>');
+					toastr.clear();
+					toastr.error('It is seems like you Unauthorized in the HAProxy-WI repository. How to get HAProxy-WI auth you can read <a href="https://haproxy-wi.org/installation.py" title="How to get HAProxy-WI auth">hear</a>');
 				} else if (data.indexOf('but not installed') != '-1') {
-					$('.alert-danger').remove();
-					$('.alert-warning').remove();
-					$("#ajax-update").html('<div class="alert alert-warning">You have settings for HAProxy-WI repository, but installed HAProxy-WI without repository. Please reinstall with yum or use update.sh</div>');
+					toastr.clear();
+					toastr.error('You have settings for HAProxy-WI repository, but installed HAProxy-WI without repository. Please reinstall with yum');
 				} else if (data.indexOf('No Match for argument') != '-1') {
-					$('.alert-danger').remove();
-					$('.alert-warning').remove();
-					$("#ajax-update").html('<div class="alert alert-warning">It is seems like you do not have HAProxy-WI repository settings. Please read docs for<a href="https://haproxy-wi.org/updates.py">detail</a></div>');
+					toastr.clear();
+					toastr.error('It is seems like you do not have HAProxy-WI repository settings. Please read docs for <a href="https://haproxy-wi.org/updates.py">detail</a>');
 				} else if (data.indexOf('password for') != '-1') {
-					$('.alert-danger').remove();
-					$('.alert-warning').remove();
-					$("#ajax-update").html('<div class="alert alert-warning">It is seems like you need add Apache user to sudoers. Please read docs for<a href="https://haproxy-wi.org/updates.py">detail</a></div>');
+					toastr.clear();
+					toastr.error('It is seems like you need add Apache user to sudoers. Please read docs for<a href="https://haproxy-wi.org/updates.py">detail</a>');
 				} else if (data.indexOf('No packages marked for update') != '-1') {
-					$('.alert-danger').remove();
-					$('.alert-warning').remove();
-					$("#ajax-update").html('<div class="alert alert-info">It is seems like you have the lastest version HAProxy-WI</div>');
+					toastr.clear();
+					toastr.error('It is seems like you have the lastest version HAProxy-WI');
 				} else if (data.indexOf('Connection timed out') != '-1') {
-					$('.alert-danger').remove();
-					$('.alert-warning').remove();
-					$("#ajax-update").html('<div class="alert alert-danger">Cannot connect to HAProxy-WI repository. Connection timed out</div>');
+					toastr.clear();
+					toastr.error('Cannot connect to HAProxy-WI repository. Connection timed out');
 				} else if (data.indexOf('--disable') != '-1') {
-					$('.alert-danger').remove();
-					$('.alert-warning').remove();
-					$("#ajax-update").html('<div class="alert alert-danger">It is seems like you have problem with your repositorys.</div>');
+					toastr.clear();
+					toastr.error('It is seems like you have problem with your repositorys');
 				} else if (data.indexOf('Unauthorized') != '-1') {
-					$('.alert-danger').remove();
-					$('.alert-warning').remove();
-					$("#ajax-update").html('<div class="alert alert-danger">It is seems like you Unauthorized in the HAProxy-WI repository.</div>');
+					toastr.clear();
+					toastr.error('It is seems like you Unauthorized in the HAProxy-WI repository');
 				} else if (data.indexOf('Error: Package') != '-1') {
-					$('.alert-danger').remove();
-					$('.alert-warning').remove();
-					$("#ajax-update").html('<div class="alert alert-danger">'+data+'</div>');
+					toastr.clear();
+					toastr.error(data);
+				} else if (data.indexOf('conflicts with file from') != '-1') {
+					toastr.clear();
+					toastr.error(data);
 				}
 			}
 		} ); 	
 	});	
 	$('#add-group').click(function() {
-		$('#error').remove();	
-		$('.alert-danger').remove();	
+		toastr.clear();
 		$.ajax( {
 			url: "options.py",
 			data: {
@@ -478,12 +466,9 @@ $( function() {
 			type: "POST",
 			success: function( data ) {
 				if (data.indexOf('error') != '-1') {
-					$("#ajax-group").append('<div class="alert alert-danger" style="width: 100%;">'+data+'</div><br /><br />');
-					$('#errorMess').click(function() {
-						$('#error').remove();
-						$('.alert-danger').remove();
-					});
+					toastr.error(data);
 				} else {
+					toastr.clear();
 					var getId = new RegExp('[0-9]+');
 					var id = data.match(getId);
 					$("#ajax-group").append(data);
@@ -495,8 +480,7 @@ $( function() {
 		} );
 	});	
 	$('#add-ssh').click(function() {
-		$('#error').remove();	
-		$('.alert-danger').remove();	
+		toastr.clear();
 		var ssh_enable = 0;
 		if ($('#new-ssh_enable').is(':checked')) {
 			ssh_enable = '1';
@@ -515,12 +499,9 @@ $( function() {
 			type: "POST",
 			success: function( data ) {
 				if (data.indexOf('error') != '-1') {
-					$("#ajax-ssh").append('<div class="alert alert-danger" style="width: 100%;">'+data+'</div><br /><br />');
-					$('#errorMess').click(function() {
-						$('#error').remove();
-						$('.alert-danger').remove();
-					});
+					toastr.error(data);
 				} else {
+					toastr.clear();
 					var getId = new RegExp('ssh-table-[0-9]+');
 					var id = data.match(getId) + '';
 					id = id.split('-').pop();;
@@ -540,8 +521,7 @@ $( function() {
 		} );
 	});
 	$('#add-telegram').click(function() {
-		$('#error').remove();	
-		$('.alert-danger').remove();	
+		toastr.clear();
 		$.ajax( {
 			url: "options.py",
 			data: {
@@ -554,11 +534,7 @@ $( function() {
 			type: "POST",
 			success: function( data ) {
 				if (data.indexOf('error') != '-1') {
-					$("#ajax-telegram").append('<div class="alert alert-danger" style="width: 100%;">'+data+'</div><br /><br />');
-					$('#errorMess').click(function() {
-						$('#error').remove();
-						$('.alert-danger').remove();
-					});
+					toastr.error(data);
 				} else {
 					$("#checker_table").append(data);
 					$( ".newgroup" ).addClass( "update", 1000, callbackGroup );
@@ -794,13 +770,13 @@ $( function() {
 				success: function( data ) {
 					data = data.replace(/\s+/g,' ');
 					if (data.indexOf('error') != '-1') {
-						alert(data)
+						toastr.error(data);
 						$('#new-email').val('');
 						$('#new-password').attr('readonly', false);	
 						$('#new-password').val('');	
 					} else {
 						var json = $.parseJSON(data);
-						$('.alert-danger').remove();
+						toastr.clear();
 						$('#new-email').val(json[0]);
 						$('#new-username').val(user+'@'+json[1]);					
 						$('#new-password').val('aduser');					
@@ -882,22 +858,19 @@ function addNewSmonServer() {
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
 				if (data.indexOf('error') != '-1' || data.indexOf('unique') != '-1') {
-					$("#ajax").html('<div class="alert alert-danger" style="width: 50%;">'+data+'</div><br /><br />');;
-					$('#errorMess').click(function() {
-						$('#error').remove();
-						$('.alert-danger').remove();
-					});
+					toastr.error(data);
 				} else {
-					$('.alert-danger').remove();
+					toastr.clear();
 					$("#ajax-smon").append(data);
 					$(".newserver").addClass( "update", 1000 );
 					$( "input[type=submit], button" ).button();
 					$( "input[type=checkbox]" ).checkboxradio();
 					$( "select" ).selectmenu();
 					$.getScript(awesome);
+					$.getScript('/inc/unsers.js');
 					setTimeout(function() {
 						$( ".newserver" ).removeClass( "update" );
-					}, 2500 );	
+					}, 2500 );
 					clearTips();
 					$( "#smon-add-table" ).dialog("close" );
 				}	
@@ -934,13 +907,9 @@ function addUser() {
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
 				if (data.indexOf('error') != '-1') {
-					$("#ajax-users").append('<div class="alert alert-danger" style="width: 100%;">'+data+'</div><br /><br />');
-					$('#errorMess').click(function() {
-						$('#error').remove();
-						$('.alert-danger').remove();
-					});
+					toastr.error(data);
 				} else {
-					$('.alert-danger').remove();
+					toastr.remove();
 					$("#ajax-users").append(data);
 					var getId = new RegExp('[0-9]+');
 					var id = data.match(getId);
@@ -953,8 +922,7 @@ function addUser() {
 	}
 }
 function addServer() {
-	$('#error').remove();	
-	$('.alert-danger').remove();	
+	toastr.clear()
 	var valid = true;
 	var servername = $('#new-server-add').val();
 	var newip = $('#new-ip').val();
@@ -1004,13 +972,9 @@ function addServer() {
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
 				if (data.indexOf('error') != '-1') {
-					$("#ajax-servers").append('<div class="alert alert-danger" style="width: 100%;">'+data+'</div><br /><br />');
-					$('#errorMess').click(function() {
-						$('#error').remove();
-						$('.alert-danger').remove();
-					});
+					toastr.error(data);
 				} else {
-					$('.alert-danger').remove();
+					toastr.clear()
 					$("#ajax-servers").append(data);
 					$(".newserver").addClass( "update", 1000 );
 					$( "input[type=submit], button" ).button();
@@ -1056,13 +1020,9 @@ function addBackup() {
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
 				if (data.indexOf('error') != '-1') {
-					$("#ajax-backup").html('<div class="alert alert-danger" style="width: 50%;">'+data+'</div><br /><br />');
-					$('#errorMess').click(function() {
-						$('#error').remove();
-						$('.alert-danger').remove();
-					});
+					toastr.error(data);
 				} else if (data.indexOf('success') != '-1') {
-					$('.alert-danger').remove();
+					toastr.remove();
 					$("#ajax-backup-table").append(data);
 					$(".newbackup").addClass( "update", 1000 );
 					setTimeout(function() {
@@ -1071,8 +1031,8 @@ function addBackup() {
 					$( "select" ).selectmenu();
 					$.getScript(awesome);														
 				} else if (data.indexOf('info') != '-1') {
-					$('.alert-danger').remove();
-					$("#ajax-backup").html('<div class="alert alert-info">'+data+'</div><br />');											
+					toastr.remove();
+					toastr.info(data);
 				}	
 			}
 		} );
@@ -1081,7 +1041,7 @@ function addBackup() {
 	}
 }
 function updateSettings(param, val) {
-	$('.alert-danger').remove();
+	toastr.clear();
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -1093,13 +1053,9 @@ function updateSettings(param, val) {
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error') != '-1') {
-				$("#ajax").append(data);
-				$('#errorMess').click(function() {
-					$('#error').remove();
-					$('.alert-danger').remove();
-				});
+				toastr.error(data);
 			} else {
-				$('.alert-danger').remove();
+				toastr.clear();
 				$("#"+param).parent().parent().addClass( "update", 1000 );
 			setTimeout(function() {
 				$( "#"+param ).parent().parent().removeClass( "update" );
@@ -1444,13 +1400,13 @@ function removeSmon(id) {
 			if(data == "Ok ") {
 				$("#smon-"+id).remove();
 			} else {
-				alert(data);
+				toastr.error(data);
 			}
 		}
 	} );
 }
 function updateUser(id) {
-	$('.alert-danger').remove();
+	toastr.remove();
 	cur_url[0] = cur_url[0].split('#')[0]
 	var usergroup = Cookies.get('group');
 	var activeuser = 0;
@@ -1472,13 +1428,9 @@ function updateUser(id) {
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error') != '-1') {
-				$("#ajax-users").append(data);
-				$('#errorMess').click(function() {
-					$('#error').remove();
-					$('.alert-danger').remove();
-				});
+				toastr.error(data);
 			} else {
-				$('.alert-danger').remove();
+				toastr.remove();
 				$("#user-"+id).addClass( "update", 1000 );
 				setTimeout(function() {
 					$( "#user-"+id ).removeClass( "update" );
@@ -1488,7 +1440,7 @@ function updateUser(id) {
 	} );
 }
 function updateGroup(id) {
-	$('#error').remove();	
+	toastr.clear();
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -1501,13 +1453,9 @@ function updateGroup(id) {
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error') != '-1') {
-				$("#ajax-group").append(data);
-				$('#errorMess').click(function() {
-					$('#error').remove();
-					$('.alert-danger').remove();
-				});
+				toastr.error(data);
 			} else {
-				$('.alert-danger').remove();
+				toastr.clear();
 				$("#group-"+id).addClass( "update", 1000 );
 				setTimeout(function() {
 					$( "#group-"+id ).removeClass( "update" );
@@ -1519,7 +1467,7 @@ function updateGroup(id) {
 	} );
 }
 function updateServer(id) {
-	$('.alert-danger').remove();
+	toastr.clear();
 	var typeip = 0;
 	var enable = 0;
 	var haproxy = 0;
@@ -1560,13 +1508,9 @@ function updateServer(id) {
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error') != '-1') {
-				$("#ajax-servers").append(data);
-				$('#errorMess').click(function() {
-					$('#error').remove();
-					$('.alert-danger').remove();
-				});
+				toastr.error(data);
 			} else {
-				$('.alert-danger').remove();
+				toastr.clear();
 				$("#server-"+id).addClass( "update", 1000 );
 				setTimeout(function() {
 					$( "#server-"+id ).removeClass( "update" );
@@ -1576,9 +1520,9 @@ function updateServer(id) {
 	} );
 }
 function uploadSsh() {
-	$('.alert-danger').remove();
+	toastr.clear();
 	if ($( "#ssh-key-name option:selected" ).val() == "Choose server" || $('#ssh_cert').val() == '') {
-		$("#ajax-ssh").html('<div class="alert alert-danger" style="margin: 10px;">All fields must be completed</div>');
+		toastr.error('All fields must be completed');
 	} else {
 		$.ajax( {
 			url: "options.py",
@@ -1591,19 +1535,19 @@ function uploadSsh() {
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
 				if (data.indexOf('danger') != '-1') {
-						$("#ajax-ssh").html(data);
+						toastr.error(data);
 					} else if (data.indexOf('success') != '-1') {
-						$('.alert-danger').remove();
-						$("#ajax-ssh").html(data);				
+						toastr.clear();
+						toastr.success(data)
 					} else {
-						$("#ajax-ssh").html('<div class="alert alert-danger">Something wrong, check and try again</div>');
+						toastr.error('Something wrong, check and try again');
 					}
 			}
 		} );
 	}
 }
 function updateSSH(id) {
-	$('#error').remove();	
+	toastr.clear();
 	var ssh_enable = 0;
 	if ($('#ssh_enable-'+id).is(':checked')) {
 		ssh_enable = '1';
@@ -1628,13 +1572,9 @@ function updateSSH(id) {
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error') != '-1') {
-				$("#ajax-ssh").append(data);
-				$('#errorMess').click(function() {
-					$('#error').remove();
-					$('.alert-danger').remove();
-				});
+				toastr.error(data);
 			} else {
-				$('.alert-danger').remove();
+				toastr.clear();
 				$("#ssh-table-"+id).addClass( "update", 1000 );
 				setTimeout(function() {
 					$( "#ssh-table-"+id ).removeClass( "update" );
@@ -1648,7 +1588,7 @@ function updateSSH(id) {
 	} );
 }
 function updateTelegram(id) {
-	$('#error').remove();	
+	toastr.clear();
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -1662,13 +1602,9 @@ function updateTelegram(id) {
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error') != '-1') {
-				$("#ajax-ssh").append(data);
-				$('#errorMess').click(function() {
-					$('#error').remove();
-					$('.alert-danger').remove();
-				});
+				toastr.error(data);
 			} else {
-				$('.alert-danger').remove();
+				toastr.clear();
 				$("#telegram-table-"+id).addClass( "update", 1000 );
 				setTimeout(function() {
 					$( "#telegram-table-"+id ).removeClass( "update" );
@@ -1678,9 +1614,9 @@ function updateTelegram(id) {
 	} );
 }
 function updateBackup(id) {
-	$('#error').remove();	
+	toastr.clear();
 	if ($( "#backup-type-"+id+" option:selected" ).val() == "Choose server" || $('#backup-rserver-'+id).val() == '' || $('#backup-rpath-'+id).val() == '') {
-		$("#ajax-backup").html('<div class="alert alert-danger" style="margin: 10px;">All fields must be completed</div>');
+		toastr.error('All fields must be completed');
 	} else {
 		$.ajax( {
 			url: "options.py",
@@ -1699,13 +1635,9 @@ function updateBackup(id) {
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
 				if (data.indexOf('error') != '-1') {
-					$("#ajax-backup").html('<div class="alert alert-danger" style="margin: 10px;">'+data+'</div>');
-					$('#errorMess').click(function() {
-						$('#error').remove();
-						$('.alert-danger').remove();
-					});
+					toastr.error(data);
 				} else {
-					$('.alert-danger').remove();
+					toastr.clear();
 					$("#backup-table-"+id).addClass( "update", 1000 );
 					setTimeout(function() {
 						$( "#backup-table-"+id ).removeClass( "update" );
@@ -1716,7 +1648,7 @@ function updateBackup(id) {
 	}
 }
 function updateSmon(id) {
-	$('#error').remove();
+	toastr.clear();
 	var enable = 0;
 	if ($('#smon-enable-'+id).is(':checked')) {
 		enable = '1';
@@ -1728,7 +1660,7 @@ function updateSmon(id) {
 			updateSmonPort: $('#smon-port-'+id).val(),
 			updateSmonEn: enable,
 			updateSmonHttp: $('#smon-proto1-'+id).text(),
-			updateSmonBody: $('#smon-body-'+id).val(),
+			updateSmonBody: $('#smon-body-'+id).text(),
 			updateSmonTelegram: $('#smon-telegram-'+id).val(),
 			updateSmonGroup: $('#smon-group-'+id).val(),
 			updateSmonDesc: $('#smon-desc-'+id).val(),
@@ -1739,13 +1671,9 @@ function updateSmon(id) {
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error') != '-1') {
-				$("#ajax").html('<div class="alert alert-danger" style="margin: 10px;">'+data+'</div>');
-				$('#errorMess').click(function() {
-					$('#error').remove();
-					$('.alert-danger').remove();
-				});
+				toastr.error(data);
 			} else {
-				$('.alert-danger').remove();
+				toastr.clear();
 				$("#smon-"+id).addClass( "update", 1000 );
 				setTimeout(function() {
 					$( "#smon-"+id ).removeClass( "update" );
@@ -1778,12 +1706,12 @@ function showApacheLog(serv) {
 		type: "POST",
 		success: function( data ) {
 			$("#ajax").html(data);
-			window.history.pushState("Logs", "Logs", cur_url[0]+"?serv="+serv+"&rows1="+rows+"&grep="+grep+
-															'&exgrep='+exgrep+
-															'&hour='+hour+
-															'&minut='+minut+
-															'&hour1='+hour1+
-															'&minut1='+minut1);
+			window.history.pushState("Logs", "Logs", cur_url[0] + "?serv=" + serv + "&rows1=" + rows + "&grep=" + grep +
+					'&exgrep=' + exgrep +
+					'&hour=' + hour +
+					'&minut=' + minut +
+					'&hour1=' + hour1 +
+					'&minut1=' + minut1);
 		}					
 	} );
 }
@@ -1798,15 +1726,11 @@ function checkSshConnect(ip) {
 		type: "POST",
 		success: function( data ) {
 			if (data.indexOf('error') != '-1') {
-				$("#checkSshConnect").html(data);
+				toastr.error(data)
 			} else {
-				$("#checkSshConnect").html("<div class='alert alert-success' style='margin: 0; margin-left: 15px;'>Connect is accepted<a title='Close' id='errorMess'><b>X</b></a></div>");
+				toastr.clear();
+				toastr.success('Connect is accepted');
 			}
-			$('#errorMess').click(function() {
-				$('#error').remove();
-				$('.alert-danger').remove();
-				$('.alert-success').remove();
-			});
 		}					
 	} );
 }
@@ -1862,13 +1786,9 @@ function changeUserPassword(id, d) {
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
 				if (data.indexOf('error') != '-1') {
-					$("#ajax-users").append(data);
-					$('#errorMess').click(function() {
-						$('#error').remove();
-						$('.alert-danger').remove();
-					});
+					toastr.error(data);
 				} else {
-					$('.alert-danger').remove();
+					toastr.clear();
 					$("#user-"+id).addClass( "update", 1000 );
 					setTimeout(function() {
 						$( "#user-"+id ).removeClass( "update" );
@@ -1889,9 +1809,9 @@ function changeUserGroupDialog(id) {
 		type: "POST",
 		success: function( data ) {
 			if (data.indexOf('danger') != '-1') {
-				$("#ajax").html(data);
+				toastr.error(data);
 			} else {
-				$('.alert-danger').remove();
+				toastr.clear();
 				$('#change-user-groups-form').html(data);
 				$( "#change-user-groups-dialog" ).dialog({
 					resizable: false,
@@ -1925,10 +1845,14 @@ function changeUserGroup(id) {
 		},
 		type: "POST",
 		success: function( data ) {
-			$("#user-"+id).addClass( "update", 1000 );
-			setTimeout(function() {
-				$( "#user-"+id ).removeClass( "update" );
-			}, 2500 );	
+			if (data.indexOf('error') != '-1' || data.indexOf('Failed') != '-1') {
+				toastr.error(data);
+			} else {
+				$("#user-" + id).addClass("update", 1000);
+				setTimeout(function () {
+					$("#user-" + id).removeClass("update");
+				}, 2500);
+			}
 		}			
 	} );
 }
@@ -1943,10 +1867,14 @@ function addUserGroup(id) {
 		},
 		type: "POST",
 		success: function( data ) {
-			$("#user-"+id).addClass( "update", 1000 );
-			setTimeout(function() {
-				$( "#user-"+id ).removeClass( "update" );
-			}, 2500 );	
+			if (data.indexOf('error') != '-1' || data.indexOf('Failed') != '-1') {
+				toastr.error(data);
+			} else {
+				$("#user-" + id).addClass("update", 1000);
+				setTimeout(function () {
+					$("#user-" + id).removeClass("update");
+				}, 2500);
+			}
 		}			
 	} );
 }

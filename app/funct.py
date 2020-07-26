@@ -523,6 +523,7 @@ def waf_install(serv, **kwargs):
 	stderr = ssh_command(serv, commands, print_out="1")
 	
 	sql.insert_waf_metrics_enable(serv, "0")
+	sql.insert_waf_rules(serv)
 		
 
 def install_nginx(serv):
@@ -607,18 +608,23 @@ def upload(serv, path, file, **kwargs):
 	try:
 		ssh = ssh_connect(serv)
 	except Exception as e:
-		error = e
+		error = e.args
 		logging('localhost', str(e.args[0]), haproxywi=1)
+		print(' Cannot upload '+file+' to '+full_path+' to server: '+serv+' error: '+str(e.args))
 		pass
 		
 	try:
 		sftp = ssh.open_sftp()
 	except Exception as e:
+		error = e.args
 		logging('localhost', str(e.args[0]), haproxywi=1)
+		print('Cannot upload '+file+' to '+full_path+' to server: '+serv+' error: '+str(e.args))
 		
 	try:
 		file = sftp.put(file, full_path)
 	except Exception as e:
+		error = e.args
+		print('Cannot upload '+file+' to '+full_path+' to server: '+serv+' error: '+str(e.args))
 		logging('localhost', ' Cannot upload '+file+' to '+full_path+' to server: '+serv+' Error: '+str(e.args), haproxywi=1)
 		pass
 		
@@ -628,6 +634,7 @@ def upload(serv, path, file, **kwargs):
 	except Exception as e:
 		error = e.args
 		logging('localhost', str(error[0]), haproxywi=1)
+		print('Cannot upload '+file+' to '+full_path+' to server: '+serv+' error: '+str(e.args))
 		pass
 
 	return str(error)
@@ -903,7 +910,7 @@ def ssh_command(serv, commands, **kwargs):
 		ssh.close()
 	except:
 		logging('localhost', ' '+str(ssh), haproxywi=1)
-		return "<div class='alert alert-danger' style='margin: 0;'>"+str(ssh)+"<a title='Close' id='errorMess'><b>X</b></a></div>"
+		return "error: "+str(ssh)
 		pass
 
 
