@@ -308,7 +308,7 @@ function updateHapWIServer(id) {
 			if (data.indexOf('error') != '-1') {
 				toastr.error(data);
 			} else {
-				$('.alert-danger').remove();
+				toastr.clear();
 				$("#server-"+id).addClass( "update", 1000 );
 				setTimeout(function() {
 					$( "#server-"+id ).removeClass( "update" );
