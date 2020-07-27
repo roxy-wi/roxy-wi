@@ -52,7 +52,11 @@
         {% else %}
             <span>
         {% endif %}
-        {{s.0}}:{{s.1}}
+        {% if s.9 %}
+            <span title="HTTP check: {{s.9.split(':')[0]}}://{{s.0}}:{{s.1}}{{s.9.split(':')[1]}}"</span> {{s.0}}:{{s.1}}
+        {% else %}
+            {{s.0}}:{{s.1}}
+        {% endif %}
         </span>
     </div>
     <div class="desc">

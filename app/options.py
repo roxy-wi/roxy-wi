@@ -32,7 +32,7 @@ if not sql.check_token_exists(form.getvalue("token")):
 
 if form.getvalue('getcerts') is not None and serv is not None:
 	cert_path = sql.get_setting('cert_path')
-	commands = ["sudo ls -1t "+cert_path+" |grep pem"]
+	commands = ["ls -1t "+cert_path+" |grep ."]
 	try:
 		funct.ssh_command(serv, commands, ip="1")
 	except Exception as e:
@@ -63,7 +63,7 @@ if serv and form.getvalue('ssl_cert'):
 	if form.getvalue('ssl_name') is None:
 		print('error: Please enter desired name')
 	else:
-		name = form.getvalue('ssl_name') + '.pem'
+		name = form.getvalue('ssl_name')
 
 	try:
 		with open(name, "w") as ssl_cert:
@@ -1842,18 +1842,33 @@ if form.getvalue('newsmon') is not None:
 	server = form.getvalue('newsmon')
 	port = form.getvalue('newsmonport')
 	enable = form.getvalue('newsmonenable')
-	proto = form.getvalue('newsmonproto')
+	http = form.getvalue('newsmonproto')
 	uri = form.getvalue('newsmonuri')
 	body = form.getvalue('newsmonbody')
 	group = form.getvalue('newsmongroup')
 	desc = form.getvalue('newsmondescription')
 	telegram = form.getvalue('newsmontelegram')
 
-	if sql.insert_smon(server, port, enable, proto, uri, body, group, desc, telegram, user_group):
+	try:
+		port = int(port)
+	except:
+		print('error: port must number')
+		sys.exit()
+	if port > 65535 or port < 0:
+		print('error: port must be 0-65535')
+		sys.exit()
+	if port == 80 and http == 'https':
+		print('error: Cannot be HTTPS with 80 port')
+		sys.exit()
+	if port == 443 and http == 'http':
+		print('error: Cannot be HTTP with 443 port')
+		sys.exit()
+
+	if sql.insert_smon(server, port, enable, http, uri, body, group, desc, telegram, user_group):
 		from jinja2 import Environment, FileSystemLoader
 		env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
 		template = env.get_template('ajax/show_new_smon.html')
-		template = template.render(smon=sql.select_smon(user_group,ip=server,port=port,proto=proto,uri=uri,body=body), telegrams=sql.get_user_telegram_by_group(user_group))
+		template = template.render(smon=sql.select_smon(user_group,ip=server,port=port,proto=http,uri=uri,body=body), telegrams=sql.get_user_telegram_by_group(user_group))
 		print(template)
 		funct.logging('SMON','Has been add a new server '+server+' to SMON ', haproxywi=1, login=1)
 
@@ -1906,6 +1921,10 @@ if form.getvalue('updateSmonIp') is not None:
 	if port == 80 and http == 'https':
 		print('error: Cannot be https with 80 port')
 		sys.exit()
+	if port == 443 and http == 'http':
+		print('error: Cannot be HTTP with 443 port')
+		sys.exit()
+
 	if sql.update_smon(id, ip, port, body, telegram, group, desc, en):
 		print("Ok")
 		funct.logging('SMON','Has been update the server '+ip+' to SMON ', haproxywi=1, login=1)
