@@ -34,7 +34,7 @@ $( function() {
 			type: "POST",
 			success: function( data ) {
 					data = data.replace(/\s+/g,' ');
-					if (data.indexOf('error') != '-1') {
+					if (data.indexOf('error:') != '-1') {
 						alert(data)	
 					} else {
 						var value = data.split('<br>')
@@ -66,7 +66,7 @@ $( function() {
 			type: "POST",
 			success: function( data ) {
 					data = data.replace(/\s+/g,' ');
-					if (data.indexOf('error') != '-1') {
+					if (data.indexOf('error:') != '-1') {
 						toastr.error(data);
 					} else {
 						toastr.success(data);
@@ -86,7 +86,7 @@ $( function() {
 			type: "POST",
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
-				if (data.indexOf('error') != '-1') {
+				if (data.indexOf('error:') != '-1') {
 					alert(data)	
 				} else {
 					var value = data.split('<br>')
@@ -119,7 +119,7 @@ $( function() {
 			type: "POST",
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
-				if (data.indexOf('error') != '-1') {
+				if (data.indexOf('error:') != '-1') {
 					alert(data)	
 				} else {
 					var value = data.split('<br>')
@@ -154,7 +154,7 @@ $( function() {
 			type: "POST",
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
-				if (data.indexOf('error') != '-1') {
+				if (data.indexOf('error:') != '-1') {
 					alert(data)	
 				} else {
 					var server = data.split(':')[0]
@@ -181,7 +181,7 @@ $( function() {
 			type: "POST",
 			success: function( data ) {
 					data = data.replace(/\s+/g,' ');
-					if (data.indexOf('error') != '-1') {
+					if (data.indexOf('error:') != '-1') {
 						toastr.error(data);
 					} else {
 						toastr.success(data);
@@ -201,7 +201,7 @@ $( function() {
 			type: "POST",
 			success: function( data ) {
 				data = data.replace(/\s+/g,'');
-				if (data.indexOf('error') != '-1') {
+				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
 					var value = data.split(',')
@@ -231,7 +231,7 @@ $( function() {
 			},
 			type: "POST",
 			success: function( data ) {
-					if (data.indexOf('error') != '-1') {
+					if (data.indexOf('error:') != '-1') {
 						$("#ajaxtable").html(data);
 					} else {
 						$("#ajaxtable").html(data);
@@ -256,7 +256,7 @@ function deleteTableEntry(id, table, ip) {
     	},
     	type: "POST",
     	success: function( data ) {
-    	    if (data.indexOf('error') != '-1') {
+    	    if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
     		} else {
     		    $(id).parent().parent().remove()

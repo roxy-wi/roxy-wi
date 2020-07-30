@@ -1,11 +1,7 @@
 var ssl_offloading_var = "http-request set-header X-Forwarded-Port %[dst_port] \n"+
 						"http-request add-header X-Forwarded-Proto https if { ssl_fc } \n"+
 						"redirect scheme https if !{ ssl_fc } \n"
-$( function() {	
-	$('#close').click(function(){
-		$('.alert-success').remove();
-		$('.alert-danger').remove();
-	});
+$( function() {
 	$( "#listen-mode-select" ).on('selectmenuchange',function()  {
 		if ($( "#listen-mode-select option:selected" ).val() == "tcp") {
 			$( "#https-listen-span" ).hide("fast");
@@ -419,8 +415,6 @@ $( function() {
 		} 
 	});
 	$('#add-option-new').click(function() {
-		$('#error').remove();	
-		$('.alert-danger').remove();	
 		$.ajax( {
 			
 			url: "sql.py",
@@ -431,12 +425,8 @@ $( function() {
 			},
 			type: "POST",
 			success: function( data ) {
-				if (data.indexOf('error') != '-1') {
-					$("#ajax-option").append(data);
-					$('#errorMess').click(function() {
-						$('#error').remove();
-						$('.alert-danger').remove();
-					});
+				if (data.indexOf('error:') != '-1') {
+					toastr.error(data);
 				} else {
 					$("#option_table").append(data);
 					setTimeout(function() {
@@ -472,8 +462,6 @@ $( function() {
 		} 
 	});
 	$('#add-saved-server-new').click(function() {
-		$('#error').remove();	
-		$('.alert-danger').remove();	
 		$.ajax( {
 			
 			url: "sql.py",
@@ -485,12 +473,8 @@ $( function() {
 			},
 			type: "POST",
 			success: function( data ) {
-				if (data.indexOf('error') != '-1') {
-					$("#ajax-option").append(data);
-					$('#errorMess').click(function() {
-						$('#error').remove();
-						$('.alert-danger').remove();
-					});
+				if (data.indexOf('error:') != '-1') {
+					toastr.error(data);
 				} else {
 					$("#servers_table").append(data);
 					setTimeout(function() {
@@ -579,7 +563,7 @@ $( function() {
 		if($('#name').val() == "") {
 			$("#optionsInput").append(ddos_var)
 		}
-		var ddos_var = "#Start config for DDOS atack protecte\n"+
+		var ddos_var = "#Start config for DDOS atack protect\n"+
 								  "stick-table type ip size 1m expire 1m store gpc0,http_req_rate(10s),http_err_rate(10s)\n"+
 								  "tcp-request connection track-sc1 src\n"+
 								  "tcp-request connection reject if { sc1_get_gpc0 gt 0 }\n"+
@@ -602,7 +586,7 @@ $( function() {
 		if($('#new_frontend').val() == "") {
 			$("#optionsInput1").append(ddos_var)
 		}
-		var ddos_var = "#Start config for DDOS atack protecte\n"+
+		var ddos_var = "#Start config for DDOS atack protect\n"+
 								  "stick-table type ip size 1m expire 1m store gpc0,http_req_rate(10s),http_err_rate(10s)\n"+
 								  "tcp-request connection track-sc1 src\n"+
 								  "tcp-request connection reject if { sc1_get_gpc0 gt 0 }\n"+
@@ -752,7 +736,6 @@ $( function() {
 		minLength: -1
 	});
 	$( "#ssl_key_upload" ).click(function() {
-		$('.alert-danger').remove();
 		$.ajax( {
 			url: "options.py",
 			data: {
@@ -764,13 +747,12 @@ $( function() {
 			type: "POST",
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
-				if (data.indexOf('danger') != '-1') {
-					$("#ajax-ssl").html(data);
+				if (data.indexOf('error:') != '-1') {
+					toastr.error(data);
 				} else if (data.indexOf('success') != '-1') {
-					$('.alert-danger').remove();
-					$( "#ajax-ssl").html(data);
+					toastr.success(data);
 				} else {
-					$("#ajax-ssl").html('<div class="alert alert-danger">Something wrong, check and try again</div>');
+					toastr.error('Something wrong, check and try again');
 				}
 			}
 		} );
@@ -785,10 +767,9 @@ $( function() {
 			},
 			type: "POST",
 			success: function( data ) {
-				if (data.indexOf('danger') != '-1') {
-					$("#ajax-show-ssl").html(data);
+				if (data.indexOf('error:') != '-1') {
+					toastr.error(data);
 				} else {
-					$('.alert-danger').remove();
 					var i;
 					var new_data = "";
 					data = data.split("\n");
@@ -982,7 +963,7 @@ function removeOption(id) {
 	} );
 }
 function updateOptions(id) {
-	$('#error').remove();	
+	toastr.clear();
 	$.ajax( {
 		url: "sql.py",
 		data: {
@@ -993,14 +974,9 @@ function updateOptions(id) {
 		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error') != '-1') {
-				$("#ajax-ssh").append(data);
-				$('#errorMess').click(function() {
-					$('#error').remove();
-					$('.alert-danger').remove();
-				});
+			if (data.indexOf('error:') != '-1') {
+				toastr.error(data);
 			} else {
-				$('.alert-danger').remove();
 				$("#option-"+id).addClass( "update", 1000 );
 				setTimeout(function() {
 					$( "#option-"+id ).removeClass( "update" );
@@ -1045,7 +1021,7 @@ function removeSavedServer(id) {
 	} );
 }
 function updateSavedServer(id) {
-	$('#error').remove();	
+	toastr.clear();
 	$.ajax( {
 		url: "sql.py",
 		data: {
@@ -1057,14 +1033,9 @@ function updateSavedServer(id) {
 		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error') != '-1') {
-				$("#ajax-ssh").append(data);
-				$('#errorMess').click(function() {
-					$('#error').remove();
-					$('.alert-danger').remove();
-				});
+			if (data.indexOf('error:') != '-1') {
+				toastr.error(data);
 			} else {
-				$('.alert-danger').remove();
 				$("#option-"+id).addClass( "update", 1000 );
 				setTimeout(function() {
 					$( "#option-"+id ).removeClass( "update" );
@@ -1083,10 +1054,9 @@ function view_ssl(id) {
 		},
 		type: "POST",
 		success: function( data ) {
-			if (data.indexOf('danger') != '-1') {
-				$("#ajax-show-ssl").html(data);
+			if (data.indexOf('error:') != '-1') {
+				toastr.error(data);
 			} else {
-				$('.alert-danger').remove();
 				$('#dialog-confirm-body').text(data);
 				$( "#dialog-confirm-cert" ).dialog({
 					resizable: false,
@@ -1156,10 +1126,19 @@ function createList(color) {
 		},
 		type: "POST",
 		success: function( data ) {
-			$("#ajax").html(data); 
-			setTimeout(function() {
-						location.reload();
-					}, 2500 );			 
+			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
+				toastr.error(data);
+			} else if (data.indexOf('Info') != '-1' ){
+				toastr.clear();
+				toastr.info(data);
+			} else if (data.indexOf('success') != '-1' ) {
+				toastr.clear();
+				toastr.success('WAF service has installed');
+				showOverviewWaf(ip, hostnamea)
+				setTimeout(function () {
+					location.reload();
+				}, 2500);
+			}
 		}
 	} );	
 }
@@ -1174,10 +1153,9 @@ function editList(list, color) {
 		},
 		type: "POST",
 		success: function( data ) {
-			if (data.indexOf('danger') != '-1') {
-				$("#ajax").html(data);
+			if (data.indexOf('error:') != '-1') {
+				toastr.error(data);
 			} else {
-				$('.alert-danger').remove();
 				$('#edit_lists').text(data);
 				$( "#dialog-confirm-cert-edit" ).dialog({
 					resizable: false,
@@ -1221,7 +1199,17 @@ function saveList(action, list, color) {
 		},
 		type: "POST",
 		success: function( data ) {
-			$("#ajax").html(data); 
+			data = data.split(" , ");
+
+			for (i = 0; i < data.length; i++) {
+				if (data[i]) {
+					if (data[i].indexOf('error:') != '-1') {
+						toastr.error(data[i]);
+					} else {
+						toastr.success(data[i]);
+					}
+				}
+			}
 		}
 	} );	
 }

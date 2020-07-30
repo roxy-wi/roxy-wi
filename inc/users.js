@@ -25,7 +25,7 @@ $( function() {
 				},
 				success: function( data ) {
 					data = data.replace(/\s+/g,' ');
-					if (data.indexOf('error') != '-1' || data.indexOf('Failed') != '-1') {
+					if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 						toastr.error(data);
 					} else {
 						response(data.split(" "));
@@ -47,7 +47,7 @@ $( function() {
 				},
 				success: function( data ) {
 					data = data.replace(/\s+/g,' ');
-					if (data.indexOf('error') != '-1' || data.indexOf('Failed') != '-1') {
+					if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 						toastr.error(data);
 					} else {
 						response(data.split(" "));
@@ -98,7 +98,7 @@ $( function() {
 					type: "POST",
 					success: function( data ) { 
 						data = data.replace(/\s+/g,' ');
-						if (data.indexOf('error') != '-1' || data.indexOf('alert') != '-1' || data.indexOf('FAILED') != '-1') {
+						if (data.indexOf('error:') != '-1' || data.indexOf('alert') != '-1' || data.indexOf('FAILED') != '-1') {
 							toastr.error(data);
 						} else if (data.indexOf('info') != '-1' ){
 							toastr.clear();
@@ -142,7 +142,7 @@ $( function() {
 					type: "POST",
 					success: function( data ) { 
 						data = data.replace(/\s+/g,' ');
-						if (data.indexOf('error') != '-1') {
+						if (data.indexOf('error:') != '-1') {
 							toastr.clear();
 							toastr.error(data);
 						} else if (data.indexOf('success') != '-1'){
@@ -174,7 +174,7 @@ $( function() {
 			type: "POST",
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
-				if (data.indexOf('error') != '-1' || data.indexOf('FAILED') != '-1') {
+				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1') {
 					toastr.error(data);
 				} else if (data.indexOf('success') != '-1' ){
 					toastr.remove();
@@ -206,7 +206,7 @@ $( function() {
 			type: "POST",
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
-				if (data.indexOf('error') != '-1' || data.indexOf('FAILED') != '-1') {
+				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1') {
 					toastr.clear();
 					toastr.error(data);
 				} else if (data.indexOf('success') != '-1' ){
@@ -262,7 +262,7 @@ $( function() {
 			type: "POST",
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
-				if (data.indexOf('error') != '-1' || data.indexOf('FAILED') != '-1') {
+				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1') {
 					toastr.clear();
 					toastr.error(data);
 				} else if (data.indexOf('success') != '-1' ){
@@ -292,7 +292,7 @@ $( function() {
 			type: "POST",
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
-				if (data.indexOf('error') != '-1' || data.indexOf('FAILED') != '-1') {
+				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1') {
 					toastr.error(data);
 				} else if (data.indexOf('success') != '-1' ){
 					toastr.clear();
@@ -414,7 +414,7 @@ $( function() {
 			type: "POST",
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
-				if (data.indexOf('error') != '-1' || data.indexOf('Failed') != '-1') {
+				if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 					toastr.error(data);
 				} else if (data.indexOf('Complete!') != '-1'){
 					toastr.clear();
@@ -465,7 +465,7 @@ $( function() {
 			},
 			type: "POST",
 			success: function( data ) {
-				if (data.indexOf('error') != '-1') {
+				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
 					toastr.clear();
@@ -498,7 +498,7 @@ $( function() {
 			},
 			type: "POST",
 			success: function( data ) {
-				if (data.indexOf('error') != '-1') {
+				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
 					toastr.clear();
@@ -533,7 +533,7 @@ $( function() {
 			},
 			type: "POST",
 			success: function( data ) {
-				if (data.indexOf('error') != '-1') {
+				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
 					$("#checker_table").append(data);
@@ -754,7 +754,7 @@ $( function() {
 	});
 	$('#search_ldap_user').click(function() {
 		var valid = true;
-		$('#error').remove();	
+		toastr.clear();
 		allFields = $( [] ).add( $('#new-username') ) 
 		allFields.removeClass( "ui-state-error" );
 		valid = valid && checkLength( $('#new-username'), "user name", 1 );
@@ -769,7 +769,7 @@ $( function() {
 				type: "POST",
 				success: function( data ) {
 					data = data.replace(/\s+/g,' ');
-					if (data.indexOf('error') != '-1') {
+					if (data.indexOf('error:') != '-1') {
 						toastr.error(data);
 						$('#new-email').val('');
 						$('#new-password').attr('readonly', false);	
@@ -811,7 +811,6 @@ function checkLength( o, n, min ) {
 }
 function addNewSmonServer() {
 	var valid = true;
-	$('#error').remove();	
 	allFields = $( [] ).add( $('#new-smon-ip') ).add( $('#new-smon-port') )
 	allFields.removeClass( "ui-state-error" );
 	valid = valid && checkLength( $('#new-smon-ip'), "IP", 1 );
@@ -857,7 +856,7 @@ function addNewSmonServer() {
 			type: "POST",
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
-				if (data.indexOf('error') != '-1' || data.indexOf('unique') != '-1') {
+				if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 					toastr.error(data);
 				} else {
 					toastr.clear();
@@ -880,7 +879,7 @@ function addNewSmonServer() {
 }
 function addUser() {
 	var valid = true;
-	$('#error').remove();	
+	toastr.clear();
 	allFields = $( [] ).add( $('#new-username') ).add( $('#new-password') )
 	allFields.removeClass( "ui-state-error" );
 	valid = valid && checkLength( $('#new-username'), "user name", 1 );
@@ -906,10 +905,10 @@ function addUser() {
 			type: "POST",
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
-				if (data.indexOf('error') != '-1') {
+				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
-					toastr.remove();
+					toastr.clear();
 					$("#ajax-users").append(data);
 					var getId = new RegExp('[0-9]+');
 					var id = data.match(getId);
@@ -971,7 +970,7 @@ function addServer() {
 			type: "POST",
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
-				if (data.indexOf('error') != '-1') {
+				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
 					toastr.clear()
@@ -994,7 +993,7 @@ function addServer() {
 }
 function addBackup() {
 	var valid = true;
-	$('#error').remove();	
+	toastr.clear();
 	allFields = $( [] ).add( $('#backup-server') ).add( $('#rserver') ).add( $('#rpath') ).add( $('#backup-time') ).add( $('#backup-credentials') )
 	allFields.removeClass( "ui-state-error" );
 	valid = valid && checkLength( $('#backup-server'), "backup server ", 1 );
@@ -1019,7 +1018,7 @@ function addBackup() {
 			type: "POST",
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
-				if (data.indexOf('error') != '-1') {
+				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else if (data.indexOf('success') != '-1') {
 					toastr.remove();
@@ -1052,7 +1051,7 @@ function updateSettings(param, val) {
 		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error') != '-1') {
+			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
@@ -1427,7 +1426,7 @@ function updateUser(id) {
 		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error') != '-1') {
+			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.remove();
@@ -1452,7 +1451,7 @@ function updateGroup(id) {
 		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error') != '-1') {
+			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
@@ -1507,7 +1506,7 @@ function updateServer(id) {
 		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error') != '-1') {
+			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
@@ -1571,7 +1570,7 @@ function updateSSH(id) {
 		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error') != '-1') {
+			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
@@ -1601,7 +1600,7 @@ function updateTelegram(id) {
 		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error') != '-1') {
+			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
@@ -1634,7 +1633,7 @@ function updateBackup(id) {
 			type: "POST",
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
-				if (data.indexOf('error') != '-1') {
+				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
 					toastr.clear();
@@ -1670,7 +1669,7 @@ function updateSmon(id) {
 		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error') != '-1') {
+			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
@@ -1725,7 +1724,7 @@ function checkSshConnect(ip) {
 		},
 		type: "POST",
 		success: function( data ) {
-			if (data.indexOf('error') != '-1') {
+			if (data.indexOf('error:') != '-1') {
 				toastr.error(data)
 			} else {
 				toastr.clear();
@@ -1774,7 +1773,7 @@ function changeUserPassword(id, d) {
 		$('#missmatchpass').show();
 	} else {
 		$('#missmatchpass').hide();
-		$('#error').remove();	
+		toastr.clear();
 		$.ajax( {
 			url: "options.py",
 			data: {
@@ -1785,7 +1784,7 @@ function changeUserPassword(id, d) {
 			type: "POST",
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
-				if (data.indexOf('error') != '-1') {
+				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
 					toastr.clear();
@@ -1845,7 +1844,7 @@ function changeUserGroup(id) {
 		},
 		type: "POST",
 		success: function( data ) {
-			if (data.indexOf('error') != '-1' || data.indexOf('Failed') != '-1') {
+			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 				toastr.error(data);
 			} else {
 				$("#user-" + id).addClass("update", 1000);
@@ -1867,7 +1866,7 @@ function addUserGroup(id) {
 		},
 		type: "POST",
 		success: function( data ) {
-			if (data.indexOf('error') != '-1' || data.indexOf('Failed') != '-1') {
+			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 				toastr.error(data);
 			} else {
 				$("#user-" + id).addClass("update", 1000);

@@ -24,7 +24,7 @@ function showHapserversCallBack(serv, hostnamea, service) {
 		},
 		type: "POST",
 		success: function( data ) {
-			if (data.indexOf('error') != '-1') {
+			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
 				$("#" + hostnamea).empty();
@@ -47,7 +47,7 @@ function overviewHapserverBackends(serv, hostnamea, service) {
 		},
 		type: "POST",
 		success: function( data ) {
-			if (data.indexOf('error') != '-1') {
+			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
 				$("#top-" + hostnamea).empty();
@@ -77,7 +77,7 @@ function showOverviewCallBack(serv, hostnamea) {
 		},
 		type: "POST",
 		success: function( data ) {
-			if (data.indexOf('error') != '-1') {
+			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
 				$("#" + hostnamea).empty();
@@ -100,7 +100,7 @@ function showOverviewServer(name,ip,id, service) {
 		},
 		type: "POST",
 		success: function( data ) {
-			if (data.indexOf('error') != '-1') {
+			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
 				$("#ajax-server-" + id).empty();
@@ -305,7 +305,7 @@ function updateHapWIServer(id) {
 		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error') != '-1') {
+			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
@@ -344,7 +344,7 @@ function showBytes(serv) {
 		},
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error') != '-1') {
+			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
 				$("#bin_bout").html(data);

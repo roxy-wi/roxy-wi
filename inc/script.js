@@ -283,7 +283,7 @@ function showStats() {
 		},
 		type: "POST",
 		success: function( data ) {
-			if (data.indexOf('error') != '-1') {
+			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
@@ -349,7 +349,7 @@ function showLog() {
 		},
 		type: "POST",
 		success: function( data ) {
-			if (data.indexOf('error') != '-1') {
+			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
@@ -382,7 +382,7 @@ function showMap() {
 		},
 		type: "POST",
 		success: function( data ) {
-			if (data.indexOf('error') != '-1') {
+			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
@@ -404,7 +404,7 @@ function showCompare() {
 		},
 		type: "POST",
 		success: function( data ) {
-			if (data.indexOf('error') != '-1') {
+			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
@@ -428,7 +428,7 @@ function showCompareConfigs() {
 		},
 		type: "POST",
 		success: function( data ) {
-			if (data.indexOf('error') != '-1') {
+			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
@@ -456,7 +456,7 @@ function showConfig() {
 		},
 		type: "POST",
 		success: function( data ) {
-			if (data.indexOf('error') != '-1') {
+			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
@@ -482,7 +482,7 @@ function showUploadConfig() {
 		},
 		type: "POST",
 		success: function( data ) {
-			if (data.indexOf('error') != '-1') {
+			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
@@ -1049,7 +1049,7 @@ function showSmon(action) {
 		},
 		type: "POST",
 		success: function( data ) {
-			if (data.indexOf('SMON error') != '-1') {
+			if (data.indexOf('SMON error:') != '-1') {
 				toastr.error(data);
 			} else {
 				$("#smon_dashboard").html(data);

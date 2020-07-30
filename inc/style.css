@@ -77,7 +77,7 @@ pre {
 	margin-bottom: 0px;
 }
 .top-menu {	
-	position: absolute;
+	position: fixed;
 	min-height: calc(99vh - 50px);
 	height: 120%;
 	width: 207px;
@@ -289,7 +289,7 @@ pre {
 .paramInSec {
 	font-weight: bold;
 }
-.donate-menu {
+/*.donate-menu {
 	font-weight: bold;
 	font-style: italic;
 	font-size: 15px;
@@ -298,7 +298,7 @@ pre {
 	position: fixed;
 	margin-left: 65px;
 	margin-top: 15px;
-}
+}*/
 .line {
 	background-color: #f3f8fb;
 	border: 1px solid #ddd;

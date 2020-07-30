@@ -147,7 +147,7 @@ function loadMetrics() {
 		},
 		type: "POST",
         success: function (data) {
-            if (data.indexOf('error') != '-1') {
+            if (data.indexOf('error:') != '-1') {
                 toastr.error(data);
             } else {
                 $("#table_metrics").html(data);
