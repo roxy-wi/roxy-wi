@@ -52,14 +52,12 @@
         {% else %}
             <span>
         {% endif %}
-        {% if s.9 %}
-            <span title="HTTP check: {{s.9.split(':')[0]}}://{{s.0}}:{{s.1}}{{s.9.split(':')[1]}}
-{% if s.11 and s.11 != 'None' %}Body check: {{s.11}}{% endif %}"
+            <span title="Enabled checks:
+Port check{% if s.9 %}
+HTTP status check: {{s.9.split(':')[0]}}://{{s.0}}:{{s.1}}{{s.9.split(':')[1]}}
+{% if s.11 and s.11 != 'None' %}Body response check: {{s.11}}{% endif %}
+{% endif %}"> {{s.0}}:{{s.1}}
             </span>
-            {{s.0}}:{{s.1}}
-        {% else %}
-            {{s.0}}:{{s.1}}
-        {% endif %}
         </span>
     </div>
     <div class="desc">

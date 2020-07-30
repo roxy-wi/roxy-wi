@@ -991,7 +991,12 @@ function listHistroy() {
 			$('.menu li ul li').each(function () {
 				var link1 = $(this).find('a').attr('href');
 				var link2 = link1.split('/')[2]
-				if (browse_history[i].split('?')[0] == link2) {
+				if (browse_history[i] == link2) {
+					title[i] = $(this).find('a').attr('title');
+					link_text[i] = $(this).find('a').text();
+					history_link = '<li><a href="'+browse_history[i]+'" title="'+title[i]+'">'+link_text[i]+'</a></li>'
+					$('#browse_histroy').append(history_link);
+				} else if (browse_history[i].split('?')[0] == link2) {
 					title[i] = $(this).find('a').attr('title');
 					link_text[i] = $(this).find('a').text();
 					history_link = '<li><a href="'+browse_history[i]+'" title="'+title[i]+'">'+link_text[i]+'</a></li>'
@@ -1044,7 +1049,7 @@ function showSmon(action) {
 		},
 		type: "POST",
 		success: function( data ) {
-			if (data.indexOf('error') != '-1') {
+			if (data.indexOf('SMON error') != '-1') {
 				toastr.error(data);
 			} else {
 				$("#smon_dashboard").html(data);
