@@ -631,6 +631,9 @@ ul{
 .ui-selectmenu-open, .ui-selectmenu-menu {
 	z-index: 1010 !important;
 }
+.ui-widget.ui-widget-content {
+	border-bottom: none !important;
+}
 .need-field {
 	color: red;
 }

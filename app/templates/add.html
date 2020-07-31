@@ -38,7 +38,7 @@ h3 {
 								<option value="{{ select.2 }}">{{ select.1 }}</option>
 							{% endfor %}	
 						</select>
-						<div class="tooltip tooltipTop"><b>Note:</b> If you reconfigure Master server, Slave will reconfigured automatically</div>
+						<div class="tooltip tooltipTop"><b>Note:</b> If you re-configure the master server, the slave server will re-configured automatically</div>
 					</td>
 					<td rowspan="5" class="add-note addName alert-info">
 						A "listen" section defines a complete proxy with its frontend and backend parts combined in one section. It is generally useful for TCP-only traffic.
@@ -65,7 +65,10 @@ h3 {
 			<td class="addOption">
 				{{ input('ip', placeholder="Any", size='15') }}<b>:</b>
 				{{ input('listen-port', name='port', type="number", title="Port for bind listen", placeholder="8080", size='5', required='required') }}
-				<div class="tooltip tooltipTop">IP for bind listner, <b>if empty will be assignet on all IPs</b>. Start typing ip, or press down.<br>If you use <b>VRRP keep in blank</b>. If you assign an IP, the slave will not start</div>
+				<div class="tooltip tooltipTop">
+					IP for bind listener, <b>if empty will be assigned on all IPs</b>.
+					Start typing IP, or press down.<br>If you are using <b>VRRP, leave the IP field blank</b>. If you assign an IP, the slave server will not start
+				</div>
 			</td>
 		</tr>
 		<tr class="advance">
@@ -230,7 +233,7 @@ h3 {
 							<option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endfor %}
 					</select>
-					<div class="tooltip tooltipTop"><b>Note:</b> If you reconfigure Master  server, Slave will reconfigured automatically</div>
+					<div class="tooltip tooltipTop"><b>Note:</b> If you re-configure the master server, the slave server will re-configured automatically</div>
 				</td>
 				<td rowspan="5" class="add-note addName alert-info">
 						A "frontend" section describes a set of listening sockets accepting client connections.
@@ -257,7 +260,10 @@ h3 {
 			<td class="addOption">
 				<input type="text" name="ip" id="ip1" size="15" placeholder="Any" class="form-control"><b>:</b>
 				<input type="number" name="port" required title="Port for bind frontend" placeholder="8080" class="form-control">
-				<div class="tooltip tooltipTop">IP for bind listner, <b>if empty will be assignet on all IPs</b>. Start typing ip, or press down.<br>If you use <b>VRRP keep in blank</b>. If you assign an IP, the slave will not start</div>
+				<div class="tooltip tooltipTop">
+					IP for bind listener, <b>if empty will be assigned on all IPs</b>.
+					Start typing IP, or press down.<br>If you are using <b>VRRP, leave the IP field blank</b>. If you assign an IP, the slave server will not start
+				</div>
 			</td>
 		</tr>
 		<tr class="advance">
@@ -340,7 +346,7 @@ h3 {
 				<div style="font-size: 12px; padding-bottom: 10px;">Start typing backend, or press down</div>
 				{{ input('backends', name='backends', placeholder="some_backend", size='30') }}
 				<span style="font-size: 12px; padding-left: 10px;"> .</span>
-				<p style="font-size: 12px"><b>Note:</b> If backend don't exist, you have to <a href="#" style="color: #23527c"  title="Create backend" class="redirectBackend">create backend first</a>.</p>
+				<p style="font-size: 12px"><b>Note:</b> If backend doesn't exist, you must first <a href="#" style="color: #23527c"  title="Create backend" class="redirectBackend">create a new backend</a>.</p>
 			</td>
 		</tr>
 		<tr class="advance-show">
@@ -371,7 +377,7 @@ h3 {
 							<option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endfor %}
 					</select>
-					<div class="tooltip tooltipTop"><b>Note:</b> If you reconfigure Master server, Slave will reconfigured automatically</div>
+					<div class="tooltip tooltipTop"><b>Note:</b> If you re-configure the master server, the slave server will reconfigured automatically</div>
 				</td>
 				<td rowspan="4" class="add-note addName alert-info">
 						A "backend" section describes a set of servers to which the proxy will connect to forward incoming connections.
@@ -521,7 +527,7 @@ h3 {
 			<tr class="overviewHead">
 				<td class="padding10 first-collumn" style="width: 30%;">View certificates</td>
 				<td>
-					Exist certificates
+					Existing certificates
 				</td>
 			</tr>
 			<tr>
@@ -751,8 +757,8 @@ h3 {
 		<table class="overview">
 			<tr class="overviewHead">
 				<th class="padding10 first-collumn">Server for upload</th>
-				<th>New black list</th>
-				<th>Exists black lists</th>
+				<th>New blacklist</th>
+				<th>Existing blacklists</th>
 			</tr>
 			<tr>
 				<td class="padding10 first-collumn">
@@ -780,8 +786,8 @@ h3 {
 		<table>
 			<tr class="overviewHead">
 				<th class="padding10 first-collumn">Server for upload</th>
-				<th>New white list</th>
-				<th>Exists white lists</th>
+				<th>New whitelist</th>
+				<th>Existing whitelists</th>
 			</tr>
 			<tr>
 				<td class="padding10 first-collumn">
