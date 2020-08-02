@@ -77,7 +77,7 @@ pre {
 	margin-bottom: 0px;
 }
 .top-menu {	
-	position: fixed;
+	position: absolute;
 	min-height: calc(99vh - 50px);
 	height: 120%;
 	width: 207px;
@@ -631,7 +631,7 @@ ul{
 .ui-selectmenu-open, .ui-selectmenu-menu {
 	z-index: 1010 !important;
 }
-.ui-widget.ui-widget-content {
+#tabs.ui-widget.ui-widget-content {
 	border-bottom: none !important;
 }
 .need-field {

@@ -98,7 +98,6 @@ if form.getvalue('ip_select') is not None:
 
 
 if form.getvalue('ipbackend') is not None and form.getvalue('backend_server') is None:
-	import sql
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 	backend = form.getvalue('ipbackend')
 	cmd='echo "show servers state"|nc %s %s |grep "%s" |awk \'{print $4}\'' % (serv, haproxy_sock_port, backend)
@@ -111,7 +110,6 @@ if form.getvalue('ipbackend') is not None and form.getvalue('backend_server') is
 
 
 if form.getvalue('ipbackend') is not None and form.getvalue('backend_server') is not None:
-	import sql
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 	backend = form.getvalue('ipbackend')
 	backend_server = form.getvalue('backend_server')
@@ -121,7 +119,6 @@ if form.getvalue('ipbackend') is not None and form.getvalue('backend_server') is
 
 
 if form.getvalue('backend_ip') is not None:
-	import sql
 	backend_backend = form.getvalue('backend_backend')
 	backend_server = form.getvalue('backend_server')
 	backend_ip = form.getvalue('backend_ip')
@@ -166,7 +163,6 @@ if form.getvalue('maxconn_select') is not None:
 
 
 if form.getvalue('maxconn_frontend') is not None:
-	import sql
 	frontend = form.getvalue('maxconn_frontend')
 	maxconn = form.getvalue('maxconn_int')
 	if form.getvalue('maxconn_int') is None:
@@ -238,7 +234,6 @@ if form.getvalue('table_select') is not None:
 
 
 if form.getvalue('ip_for_delete') is not None:
-	import sql
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 	ip = form.getvalue('ip_for_delete')
 	table = form.getvalue('table_for_delete')
@@ -246,11 +241,90 @@ if form.getvalue('ip_for_delete') is not None:
 	cmd='echo "clear table %s key %s" |nc %s %s' % (table, ip, serv, haproxy_sock_port)
 	output, stderr = funct.subprocess_execute(cmd)
 	if stderr[0] != '':
-		print(stderr[0])
+		print('error: ' + stderr[0])
+
+
+if form.getvalue('list_serv_select') is not None:
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+	cmd='echo "show acl"|nc %s %s |grep "loaded from" |awk \'{print $1,$2}\'' % (serv, haproxy_sock_port)
+	output, stderr = funct.subprocess_execute(cmd)
+	print(output)
+
+
+if form.getvalue('list_select_id') is not None:
+	from jinja2 import Environment, FileSystemLoader
+	env = Environment(loader=FileSystemLoader('templates/'), autoescape=True, extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'], trim_blocks=True, lstrip_blocks=True)
+	template = env.get_template('ajax/list.html')
+	list_id = form.getvalue('list_select_id')
+	list_name = form.getvalue('list_select_name')
+
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+	cmd='echo "show acl #%s"|nc %s %s' % (list_id, serv, haproxy_sock_port)
+	output, stderr = funct.subprocess_execute(cmd)
+
+	template = template.render(list=output, list_id=list_id, list_name=list_name)
+	print(template)
+
+
+if form.getvalue('list_id_for_delete') is not None:
+	import http.cookies
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+	lists_path = sql.get_setting('lists_path')
+	fullpath = funct.get_config_var('main', 'fullpath')
+	ip_id = form.getvalue('list_ip_id_for_delete')
+	ip = form.getvalue('list_ip_for_delete')
+	list_id = form.getvalue('list_id_for_delete')
+	list_name = form.getvalue('list_name')
+
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_group = cookie.get('group')
+	user_group = user_group.value
+
+	cmd = "sed -i 's!%s$!!' %s/%s/%s/%s && sed -i '/^$/d' %s/%s/%s/%s" % (ip, fullpath, lists_path, user_group, list_name, fullpath, lists_path, user_group, list_name)
+	output, stderr = funct.subprocess_execute(cmd)
+	if output:
+		print('error: ' + str(output))
+	if stderr:
+		print('error: ' + str(stderr))
+
+
+	cmd='echo "del acl #%s #%s" |nc %s %s' % (list_id, ip_id, serv, haproxy_sock_port)
+	output, stderr = funct.subprocess_execute(cmd)
+	if output[0] != '':
+		print('error: ' + output[0])
+	if stderr[0] != '':
+		print('error: ' + stderr[0])
+
+
+if form.getvalue('list_ip_for_add') is not None:
+	import http.cookies
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+	lists_path = sql.get_setting('lists_path')
+	fullpath = funct.get_config_var('main', 'fullpath')
+	ip = form.getvalue('list_ip_for_add')
+	list_id = form.getvalue('list_id_for_add')
+	list_name = form.getvalue('list_name')
+
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_group = cookie.get('group')
+	user_group = user_group.value
+
+	cmd = 'echo "%s" >> %s/%s/%s/%s' % (ip, fullpath, lists_path, user_group, list_name)
+	output, stderr = funct.subprocess_execute(cmd)
+	if output:
+		print('error: ' + str(output))
+	if stderr:
+		print('error: ' + str(stderr))
+
+	cmd = 'echo "add acl #%s %s" |nc %s %s' % (list_id, ip, serv, haproxy_sock_port)
+	output, stderr = funct.subprocess_execute(cmd)
+	if output[0]:
+		print('error: ' + output[0])
+	if stderr:
+		print('error: ' + stderr[0])
 
 
 if form.getvalue("change_pos") is not None:
-	import sql
 	pos = form.getvalue('change_pos')
 	sql.update_server_pos(pos, serv)
 
@@ -1049,11 +1123,11 @@ if form.getvalue('haproxy_exp_install'):
 	else:
 		proxy_serv = ''
 
-	commands = [ "chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+
+	commands = ["chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+
 				" STAT_PORT="+stats_port+" STAT_FILE="+server_state_file+
 				" SSH_PORT="+ssh_port+" STAT_PAGE="+stat_page+
 				" STATS_USER="+stats_user+" STATS_PASS="+stats_password+" HOST="+serv+
-				" USER="+ssh_user_name+" PASS="+ssh_user_password+" KEY="+ssh_key_name ]
+				" USER="+ssh_user_name+" PASS="+ssh_user_password+" KEY="+ssh_key_name]
 
 	output, error = funct.subprocess_execute(commands[0])
 
@@ -1246,7 +1320,7 @@ if form.getvalue('metrics_hapwi_ram'):
 		cmd = "free -m |grep Mem |awk '{print $3,$4,$5,$6,$7}'"
 		metric, error = funct.subprocess_execute(cmd)
 	else:
-		commands = [ "free -m |grep Mem |awk '{print $3,$4,$5,$6,$7}'" ]
+		commands = ["free -m |grep Mem |awk '{print $3,$4,$5,$6,$7}'"]
 		metric, error = funct.subprocess_execute(commands[0])
 
 	for i in metric:
@@ -1268,7 +1342,7 @@ if form.getvalue('metrics_hapwi_cpu'):
 		cmd = "top -b -n 1 |grep Cpu |awk -F':' '{print $2}'|awk  -F' ' 'BEGIN{ORS=\" \";} { for (i=1;i<=NF;i+=2) print $i}'"
 		metric, error = funct.subprocess_execute(cmd)
 	else:
-		commands = [ "top -b -n 1 |grep Cpu |awk -F':' '{print $2}'|awk  -F' ' 'BEGIN{ORS=\" \";} { for (i=1;i<=NF;i+=2) print $i}'" ]
+		commands = ["top -b -n 1 |grep Cpu |awk -F':' '{print $2}'|awk  -F' ' 'BEGIN{ORS=\" \";} { for (i=1;i<=NF;i+=2) print $i}'"]
 		metric, error = funct.subprocess_execute(commands[0])
 
 	for i in metric:
@@ -1339,7 +1413,7 @@ if form.getvalue('get_hap_v'):
 
 
 if form.getvalue('get_nginx_v'):
-	cmd = [ '/usr/sbin/nginx -v' ]
+	cmd = ['/usr/sbin/nginx -v']
 	print(funct.ssh_command(serv, cmd))
 
 

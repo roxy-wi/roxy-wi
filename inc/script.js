@@ -1061,6 +1061,7 @@ function showSmon(action) {
 			if (data.indexOf('SMON error:') != '-1') {
 				toastr.error(data);
 			} else {
+				toastr.clear();
 				$("#smon_dashboard").html(data);
 				if (action == 'not_sort') {
 					window.history.pushState("SMON Dashboard", document.title, "smon.py?action=view");
@@ -1070,4 +1071,23 @@ function showSmon(action) {
 			}
 		}
 	} );
+}
+function updateTips( t ) {
+	var tips = $( ".validateTips" );
+	tips.text( t ).addClass( "alert-warning" );
+}
+function clearTips() {
+	var tips = $( ".validateTips" );
+	tips.html('Form fields tag "<span class="need-field">*</span>" are required.').removeClass( "alert-warning" );
+	allFields = $( [] ).add( $('#new-server-add') ).add( $('#new-ip') ).add( $('#new-port')).add( $('#new-username') ).add( $('#new-password') )
+	allFields.removeClass( "ui-state-error" );
+}
+function checkLength( o, n, min ) {
+	if ( o.val().length < min ) {
+		o.addClass( "ui-state-error" );
+		updateTips("Filed "+n+" is required");
+		return false;
+	} else {
+		return true;
+	}
 }

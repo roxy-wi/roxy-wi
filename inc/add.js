@@ -1135,7 +1135,6 @@ function change_select_acceleration(id) {
 		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			console.log('"'+data+'"');
 			if(parseFloat(data) < parseFloat('1.8') || data == ' ') {
 				$("#cache"+id).checkboxradio( "disable" );
 			} else {

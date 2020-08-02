@@ -568,7 +568,7 @@ $( function() {
 			height: "auto",
 			width: 600,
 			modal: true,
-			title: "Add new user",
+			title: "Add a new user",
 			show: {
 				effect: "fade",
 				duration: 200
@@ -593,7 +593,7 @@ $( function() {
 			height: "auto",
 			width: 600,
 			modal: true,
-			title: "Add new server",
+			title: "Add a new server",
 			show: {
 				effect: "fade",
 				duration: 200
@@ -789,26 +789,6 @@ $( function() {
 	});
 	
 } );
-
-function updateTips( t ) {	
-	var tips = $( ".validateTips" );
-	tips.text( t ).addClass( "alert-warning" );
-}
-function clearTips() {
-	var tips = $( ".validateTips" );
-	tips.html('Form fields tag "<span class="need-field">*</span>" are required.').removeClass( "alert-warning" );
-	allFields = $( [] ).add( $('#new-server-add') ).add( $('#new-ip') ).add( $('#new-port')).add( $('#new-username') ).add( $('#new-password') ) 
-	allFields.removeClass( "ui-state-error" );
-}
-function checkLength( o, n, min ) {
-	if ( o.val().length < min ) {
-		o.addClass( "ui-state-error" );
-		updateTips("Filed "+n+" is required");
-        return false;
-	} else {
-		return true;
-	}
-}
 function addNewSmonServer() {
 	var valid = true;
 	allFields = $( [] ).add( $('#new-smon-ip') ).add( $('#new-smon-port') )

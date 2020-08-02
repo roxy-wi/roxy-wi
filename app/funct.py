@@ -179,10 +179,9 @@ def return_ssh_keys_path(serv, **kwargs):
 	import sql
 	fullpath = get_config_var('main', 'fullpath')
 	ssh_enable = ''
-	ssh_port = ''
 	ssh_user_name = ''
 	ssh_user_password = ''
-	
+
 	if kwargs.get('id'):	
 		for sshs in sql.select_ssh(id=kwargs.get('id')):
 			ssh_enable = sshs[2]
@@ -419,6 +418,7 @@ def get_all_stick_table():
 	cmd='echo "show table"|nc %s %s |awk \'{print $3}\' | tr -d \'\n\' | tr -d \'[:space:]\'' % (serv, haproxy_sock_port)
 	output, stderr = subprocess_execute(cmd)
 	return output[0]
+
 						
 def get_stick_table(table):
 	import sql

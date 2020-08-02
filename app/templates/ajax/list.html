@@ -1,0 +1,111 @@
+{% from 'include/input_macros.html' import input, checkbox %}
+<script>
+    $(document).ready(function() {
+        $('#{{list_id}}').on( 'page.dt',   function () { $.getScript("/inc/fontawesome.min.js"); } )
+            .DataTable( {
+                "order": [[ 0, "desc" ]],
+                "pageLength": 25,
+                "columnDefs": [
+                    {
+                        "searchable": false,
+                        "orderable": false,
+                        "targets": 2
+    }
+    ],
+        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
+    } );
+    } );
+</script>
+<table class="overview">
+    <tr class="overviewHead">
+        <td class="padding10 first-collumn" style="width: 95%">
+            List name: {{list_name}}
+        </td>
+        <td>
+            <button title="Add IP in this list" id="list_add_ip" data-list-id="{{list_id}}" data-list-name="{{list_name}}">Add IP</button>
+        </td>
+    </tr>
+</table>
+<table class="overview hover order-column display compact" id="{{list_id}}">
+    <thead>
+    <tr class="overviewHead">
+        <th class="padding10" style="width: 10%; padding-left: 10px;">
+            Id
+        </th>
+        <th>
+            Ip
+        </th>
+        <th>
+        </th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for l in list %}
+    {% if l != '' %}
+        <tr>
+            <td class="padding10" style="width: 10%; padding-left: 10px;">
+                {{ loop.index }}
+            </td>
+            <td style="width: 85%">
+                {{l.split(' ')[1]}}
+            </td>
+            <td>
+                <a class="delete" title="Delete this IP" style="cursor: pointer;" onclick="deleteListIp(this, '{{list_id}}', '{{l.split(' ')[0]}}', '{{l.split(' ')[1]}}')"></a>
+            </td>
+        </tr>
+    {% endif %}
+    {% endfor %}
+    </tbody>
+</table>
+<div id="list_add_ip_form" title="Add a new IP " style="display: none;">
+    <table class="overview">
+        <tr>
+            <td colspan="2">
+                <p class="validateTips alert alert-success">
+                    Form fields tag "<span class="need-field">*</span>" are required.
+                </p>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                IP
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{ input('list_add_ip_new_ip', size='30') }}
+            </td>
+        </tr>
+    </table>
+</div>
+<script>
+    $( function() {
+        $('#list_add_ip').click(function () {
+            addListIp.dialog('open');
+        });
+        var addListIp = $("#list_add_ip_form").dialog({
+            autoOpen: false,
+            resizable: false,
+            height: "auto",
+            width: 600,
+            modal: true,
+            title: "Add a new IP",
+            show: {
+                effect: "fade",
+                duration: 200
+            },
+            hide: {
+                effect: "fade",
+                duration: 200
+            },
+            buttons: {
+                "Add": function () {
+                    addNewIp();
+                },
+                Cancel: function () {
+                    $(this).dialog("destroy");
+                    clearTips();
+                }
+            }
+        });
+    });
+</script>
