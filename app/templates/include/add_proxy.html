@@ -6,6 +6,11 @@
 		<h3>{{ add }} was success added</h3>
 		{{ conf_add }}
 	</div>
+	<script>
+		$('#close').click(function(){
+			$('.alert-success').remove();
+		});
+	</script>
 {% endif %}
 <div id="create" style="height: 95%; margin-top: 20px;">
 		<div id="left-collumn">

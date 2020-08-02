@@ -49,7 +49,11 @@
 		});
 	});
 </script>
-<div id="up-pannel" class="sortable">
+{% if serv %}
+	<div id="up-pannel">
+{% else %}
+	<div id="up-pannel" class="sortable">
+{% endif %}
 	{% if servers|length == 0 %}
 		{% include 'include/getstarted.html' %}
 	{% endif %}
@@ -67,6 +71,7 @@
 						{% endfor %}
 					{% endif %}
 					showOverviewServer('{{s.1}}', '{{s.2}}', '{{s.0}}', '{{service}}');
+					showBytes('{{ s.2 }}')
 				}
 				showMetrics();
 			</script>
@@ -126,11 +131,17 @@
 				</span>
 				{% endif %}
 			</div>
-			<div class="server-desc">
+			{% if service == 'nginx' %}
+				<div class="server-desc" style="height: 110px;">
+			{% else %}
+				<div class="server-desc">
+			{% endif %}
 				{{s.3}}
 				<br />
 				{% if service == 'nginx' %}
-					Version: {{s.5.0.2}} Process_num: {{s.5.0.5}} {% if s.5.0.3 == 'active' %} Uptime: {% else %} Downtime: {% endif %} {{s.5.0.4}}
+					Version: {{s.5.0.2}} Process_num: {{s.5.0.5}} {% if s.5.0.3 == 'active' %}
+					<br />
+					Uptime: {% else %} Downtime: {% endif %} {{s.5.0.4}}
 				{% else %}
 					{% if s.5.0 is defined %}
 						{{s.5.0.0}} {{s.5.0.1}} {{s.5.0.2}}
@@ -187,28 +198,29 @@
 			</div>
 		</div>
 		{% if serv %}
-
+			{% if service == 'haproxy' %}
+				<div id="bin_bout"></div>
+			{% endif %}
 			<div id="ajax-server-{{s.0}}" class="ajax-server"></div>
-	
-			<div class="div-server div-backends">			
-				<div class="server-name backends">	
+			<div class="div-server div-backends">
+				<div class="server-name backends">
 					{% if service == 'haproxy' %}
 						Backends:
 					{% else %}
 						Virtual hosts:
 					{% endif %}
-				</div>				
+				</div>
 				<div style="margin-top: 10px;" id="top-{{s.1}}"></div>
 			</div>
 		{% endif %}
 	{% endfor %}
 </div>
 {% if serv and service == 'haproxy' %}
-	<div id="refresh" style="text-align: right;margin-right: 105px;clear: both;display: block;padding-top: 20px;margin-bottom: -25px;" title="Refresh metrics" onclick="showMetrics()">
+	<div id="refresh" style="text-align: right;margin-right: 105px;clear: both;display: block;margin-bottom: -25px;" title="Refresh metrics" onclick="showMetrics()">
 		<span class="service-reload"></span>
 	</div>
 	{% for s in servers %}
-		<div class="chart-container" style="display: block; width: 90%; height: 300px;">
+		<div class="chart-container" style="display: block; width: 91.3%; height: 300px;">
 			<canvas id="{{s.2}}" role="img"></canvas>
 		</div>
 		<div class="chart-container" style="display: block; width: 90%; height: 300px;">

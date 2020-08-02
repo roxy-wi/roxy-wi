@@ -1852,16 +1852,16 @@ if form.getvalue('newsmon') is not None:
 	try:
 		port = int(port)
 	except:
-		print('error: port must number')
+		print('SMON error: port must number')
 		sys.exit()
 	if port > 65535 or port < 0:
-		print('error: port must be 0-65535')
+		print('SMON error: port must be 0-65535')
 		sys.exit()
 	if port == 80 and http == 'https':
-		print('error: Cannot be HTTPS with 80 port')
+		print('SMON error: Cannot be HTTPS with 80 port')
 		sys.exit()
 	if port == 443 and http == 'http':
-		print('error: Cannot be HTTP with 443 port')
+		print('SMON error: Cannot be HTTP with 443 port')
 		sys.exit()
 
 	if sql.insert_smon(server, port, enable, http, uri, body, group, desc, telegram, user_group):
@@ -1870,7 +1870,7 @@ if form.getvalue('newsmon') is not None:
 		template = env.get_template('ajax/show_new_smon.html')
 		template = template.render(smon=sql.select_smon(user_group,ip=server,port=port,proto=http,uri=uri,body=body), telegrams=sql.get_user_telegram_by_group(user_group))
 		print(template)
-		funct.logging('SMON','Has been add a new server '+server+' to SMON ', haproxywi=1, login=1)
+		funct.logging('SMON', ' Has been add a new server '+server+' to SMON ', haproxywi=1, login=1)
 
 
 if form.getvalue('smondel') is not None:
@@ -1882,7 +1882,7 @@ if form.getvalue('smondel') is not None:
 
 	if sql.delete_smon(id, user_group):
 		print('Ok')
-		funct.logging('SMON','Has been delete server from SMON ', haproxywi=1, login=1)
+		funct.logging('SMON', ' Has been delete server from SMON ', haproxywi=1, login=1)
 
 
 if form.getvalue('showsmon') is not None:
@@ -1913,21 +1913,21 @@ if form.getvalue('updateSmonIp') is not None:
 	try:
 		port = int(port)
 	except:
-		print('error: port must number')
+		print('SMON error: port must number')
 		sys.exit()
 	if port > 65535 or port < 0:
-		print('error: port must be 0-65535')
+		print('SMON error: port must be 0-65535')
 		sys.exit()
 	if port == 80 and http == 'https':
-		print('error: Cannot be https with 80 port')
+		print('SMON error: Cannot be https with 80 port')
 		sys.exit()
 	if port == 443 and http == 'http':
-		print('error: Cannot be HTTP with 443 port')
+		print('SMON error: Cannot be HTTP with 443 port')
 		sys.exit()
 
 	if sql.update_smon(id, ip, port, body, telegram, group, desc, en):
 		print("Ok")
-		funct.logging('SMON','Has been update the server '+ip+' to SMON ', haproxywi=1, login=1)
+		funct.logging('SMON', ' Has been update the server '+ip+' to SMON ', haproxywi=1, login=1)
 
 
 if form.getvalue('showBytes') is not None:

@@ -182,18 +182,18 @@ if form.getvalue('mode') is not None:
 	filter = ""
 	if compression == "1" or cache == "2":
 		filter = "    filter compression\n"
-		if compression == "1":
-			compression_s = "    compression algo gzip\n    compression type text/html text/plain text/css\n"
 		if cache == "2":
 			cache_s = "    http-request cache-use "+end_name+"\n    http-response cache-store "+end_name+"\n"
 			cache_set = "cache "+end_name+"\n    total-max-size 4\n    max-age 240\n"
+		if compression == "1":
+			compression_s = "    compression algo gzip\n    compression type text/html text/plain text/css\n"
 			
 	waf = ""
 	if form.getvalue('waf') is not None:
 		waf = "    filter spoe engine modsecurity config "+haproxy_dir+"/waf.conf\n"
 		waf += "    http-request deny if { var(txn.modsec.code) -m int gt 0 }\n"
 	
-	config_add = "\n" + name + "\n" + bind + mode + maxconn +  balance + options_split + filter + compression_s + cache_s + waf + backend + servers_split + "\n" + cache_set
+	config_add = "\n" + name + "\n" + bind + mode + maxconn +  balance + options_split + cache_s + filter + compression_s + waf + backend + servers_split + "\n" + cache_set + "\n"
 
 if form.getvalue('new_userlist') is not None:
 	name = "userlist "+form.getvalue('new_userlist')+ "\n"
@@ -231,7 +231,7 @@ try:
 			with open(cfg, "a") as conf:
 				conf.write(config_add)			
 		except IOError:
-			print("Can't read import config file")
+			print("error: Can't read import config file")
 		
 		funct.logging(serv, "add.py add new %s" % name)
 		print('<div class="line3" style="position: absolute;top: 35px;left: 200px;">')
@@ -243,7 +243,7 @@ try:
 		
 		stderr = funct.upload_and_restart(serv, cfg, just_save="save")
 		if stderr:
-			print('<div class="alert alert-danger">%s</div><div id="close"><span title="Close" style="cursor: pointer; float: right;">X</span></div>' % stderr)
+			print('<div class="alert alert-danger">%s</div><div id="close"><span title="Close" style="cursor: pointer; float: right;">X</span></div><script>$("#errorMess").click(function(){$("#error").remove();});</script>' % stderr)
 		else:
 			print('<meta http-equiv="refresh" content="0; url=add.py?add=%s&conf=%s&serv=%s">' % (name, config_add, serv))
 			

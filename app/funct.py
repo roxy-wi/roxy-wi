@@ -864,7 +864,10 @@ def haproxy_wi_log(**kwargs):
 			
 def show_ip(stdout):
 	for line in stdout:
-		print(line)
+		if "Permission denied" in line:
+			print('error: '+line)
+		else:
+			print(line)
 		
 		
 def server_status(stdout):	

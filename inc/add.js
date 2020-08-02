@@ -660,7 +660,54 @@ $( function() {
 		$( "#serv3" ).on('selectmenuchange',function() {
 			change_select_acceleration("3");
 		});
-		
+		$('#compression').on( "click", function() {
+			if ($('#compression').is(':checked')) {
+				$("#cache").checkboxradio( "disable" );
+				$("#cache").prop('checked', false);
+			} else {
+				change_select_acceleration("");
+			}
+		});
+		$('#compression2').on( "click", function() {
+			if ($('#compression2').is(':checked')) {
+				$("#cache2").checkboxradio( "disable" );
+				$("#cache2").prop('checked', false);
+			} else {
+				change_select_acceleration('2');
+			}
+		});
+		$('#compression3').on( "click", function() {
+			if ($('#compression3').is(':checked')) {
+				$("#cache3").checkboxradio( "disable" );
+				$("#cache3").prop('checked', false);
+			} else {
+				change_select_acceleration('3');
+			}
+		});
+		$('#cache').on( "click", function() {
+			if ($('#cache').is(':checked')) {
+				$("#compression").checkboxradio( "disable" );
+				$("#compression").prop('checked', false);
+			} else {
+				$("#compression").checkboxradio( "enable" );
+			}
+		});
+		$('#cache2').on( "click", function() {
+			if ($('#cache2').is(':checked')) {
+				$("#compression2").checkboxradio( "disable" );
+				$("#compression2").prop('checked', false);
+			} else {
+				$("#compression2").checkboxradio( "enable" );
+			}
+		});
+		$('#cache3').on( "click", function() {
+			if ($('#cache3').is(':checked')) {
+				$("#compression3").checkboxradio( "disable" );
+				$("#compression3").prop('checked', false);
+			} else {
+				$("#compression3").checkboxradio( "enable" );
+			}
+		});
 		$( "#add1" ).on( "click", function() {
 			$('.menu li ul li').each(function () {
 				$(this).find('a').css('padding-left', '20px')
@@ -896,6 +943,8 @@ function resetProxySettings() {
 	$('[id^=https-hide]').hide();
 	$('[name=mode').val('http');
 	$('select').selectmenu('refresh');
+	$("#path-cert-listen" ).attr('required',false);
+	$("#path-cert-frontend" ).attr('required',false);
 	replace_text("#optionsInput", ssl_offloading_var);
 	replace_text("#optionsInput1", ssl_offloading_var);
 	replace_text("#optionsInput2", ssl_offloading_var);
@@ -914,7 +963,8 @@ function createSsl(TabId, proxy) {
 	$( "#tabs" ).tabs( "option", "active", TabId );
 	$( "#https-hide-"+proxy).show("fast");
 	$('#https-'+proxy).prop( "checked", true );
-	$('#https-'+proxy).checkboxradio("refresh")
+	$('#https-'+proxy).checkboxradio("refresh");
+	$("#path-cert-"+proxy ).attr('required',true);
 	history.pushState('Add'+proxy, 'Add'+proxy, 'add.py#'+proxy)
 }
 function createHttps(TabId, proxy) {
@@ -1083,8 +1133,10 @@ function change_select_acceleration(id) {
 			token: $('#token').val()
 		},
 		type: "POST",
-		success: function( data ) {	
-			if(parseFloat(data) < parseFloat('1.8')) {	
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			console.log('"'+data+'"');
+			if(parseFloat(data) < parseFloat('1.8') || data == ' ') {
 				$("#cache"+id).checkboxradio( "disable" );
 			} else {
 				$("#cache"+id).checkboxradio( "enable" );
