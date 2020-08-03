@@ -17,7 +17,7 @@ except:
 	pass
 
 
-output_from_parsed_template = template.render(h2 = 1, title = "Configure HA",
+output_from_parsed_template = template.render(h2 = 1, title = "Create and configure HA cluster",
 													role = role,
 													user = user,
 													serv = serv,

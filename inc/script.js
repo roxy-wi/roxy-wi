@@ -556,6 +556,14 @@ function viewLogs() {
 	}
 }
 $( function() {
+	$('a').click(function(e) {
+		var cur_path = window.location.pathname;
+		$('title').text($(this).attr('title'));
+		history.pushState({}, '', $(this).attr('href'));
+		if ($(this).attr('href').split('#')[0] && $(this).attr('href').split('#')[0] != cur_path) {
+			window.history.go()
+		}
+	});
 	toastr.options.closeButton = true;
 	toastr.options.progressBar = true;
 	toastr.options.positionClass = 'toast-bottom-full-width';

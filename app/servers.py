@@ -21,7 +21,7 @@ except:
 	pass
 
 
-output_from_parsed_template = template.render(title = "Servers manage",
+output_from_parsed_template = template.render(title = "Servers: ",
 												role = role,
 												user = user,
 												users = sql.select_users(group=user_group),

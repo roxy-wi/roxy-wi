@@ -55,18 +55,18 @@
 					<ul class="menu">
 						{% if user %}	
 						<li><a href="/app/overview.py" title="Server and service status" class="overview-link">Overview</a></li>
-						<li class="p_menu"><a title="Actions with Haproxy configs" class="config-show">Haproxy</a>								
+						<li class="p_menu"><a title="Actions with Haproxy" class="config-show">Haproxy</a>
 							<ul class="v_menu">
-								<li><a href="/app/hapservers.py" title="Overview HAProxy servers" class="overview-link head-submenu">Overview</a> </li>
+								<li><a href="/app/hapservers.py" title="HAProxy servers overview" class="overview-link head-submenu">Overview</a> </li>
 								<li><a href="/app/config.py" title="Working with HAProxy configs" class="edit head-submenu">Configs</a></li>
-								<li><a href="/app/viewsttats.py" title="Show stats" class="stats head-submenu">Stats</a></li>
-								<li><a href="/app/runtimeapi.py" title="Runtime API" class="runtime head-submenu">Runtime API</a></li>
+								<li><a href="/app/viewsttats.py" title="HAProxy statistics " class="stats head-submenu">Stats</a></li>
+								<li><a href="/app/runtimeapi.py" title="Runtime API - HAProxy-WI" class="runtime head-submenu">Runtime API</a></li>
 								<li><a href="/app/metrics.py" title="Metrics" class="metrics head-submenu">Metrics</a></li>
 							{% if role <= 2 %}
-								<li><a href="/app/add.py#proxy" title="Add proxy" class="add head-submenu" id="add1">Add proxy</a></li>
-								<li><a href="/app/versions.py" title="Actions with configs versions" class="version head-submenu">Versions</a></li>
-								<li><a href="/app/add.py#ssl" title="Upload SSL cert" class="cert head-submenu" id="add3">SSL</a></li>	
-								<li><a href="/app/add.py#lists" title="Manage black and white lists" class="lists head-submenu" id="add7">Lists</a></li>	
+								<li><a href="/app/add.py#proxy" title="Add proxy: Create proxy - HAProxy-WI" class="add head-submenu" id="add1">Add proxy</a></li>
+								<li><a href="/app/versions.py" title="Working with versions HAProxy configs" class="version head-submenu">Versions</a></li>
+								<li><a href="/app/add.py#ssl" title="Add proxy: Upload SSL certificates - HAProxy-WI" class="cert head-submenu" id="add3">SSL</a></li>
+								<li><a href="/app/add.py#lists" title="Add proxy: Create and upload whitelists or blacklists - HAProxy-WI" class="lists head-submenu" id="add7">Lists</a></li>
 								<li><a href="/app/waf.py" title="Web application firewall" class="waf head-submenu">WAF</a> </li>	
 							{% endif %}
 							</ul>
@@ -74,21 +74,21 @@
 	
 						{% if role <= 2 %}
 							<li class="p_menu">
-								<a title="Nginx" class="nginx">Nginx</a>
+								<a title="Actions with Nginx" class="nginx">Nginx</a>
 								<ul class="v_menu">
 									<li><a href="/app/hapservers.py?service=nginx" title="Overview Nginx servers" class="overview-link head-submenu">Overview</a> </li>
-									<li><a href="/app/config.py?service=nginx" title="Edit Nginx config" class="edit head-submenu">Configs</a></li>
-									<li><a href="/app/viewsttats.py?service=nginx" title="Show stats" class="stats head-submenu">Stats</a></li>
-									<li><a href="/app/versions.py?service=nginx" title="Actions with Nginx configs versions" class="version head-submenu">Versions</a></li>
-									<li><a href="/app/add.py?service=nginx#ssl" title="Upload SSL cert" class="cert head-submenu" id="add3">SSL</a></li>
+									<li><a href="/app/config.py?service=nginx" title="Working with Nginx configs" class="edit head-submenu">Configs</a></li>
+									<li><a href="/app/viewsttats.py?service=nginx" title="Nginx statistics" class="stats head-submenu">Stats</a></li>
+									<li><a href="/app/versions.py?service=nginx" title="Working with versions Nginx configs" class="version head-submenu">Versions</a></li>
+									<li><a href="/app/add.py?service=nginx#ssl" title="Add proxy: Upload SSL certificates - HAProxy-WI" class="cert head-submenu" id="add3">SSL</a></li>
 								</ul>
 							</li>
 							<li class="p_menu">
 								<a title="Keepalived" class="ha">Keepalived</a>
 								<ul class="v_menu">
-									<li><a href="/app/ha.py" title="Create HA cluster" class="keepalived head-submenu">HA</a></li>
-									<li><a href="/app/config.py?service=keepalived" title="Edit Keepalived config" class="edit head-submenu">Configs</a></li>
-									<li><a href="/app/versions.py?service=keepalived" title="Actions with Keepalived configs versions" class="version head-submenu keepalived_versions">Versions</a></li>
+									<li><a href="/app/ha.py" title="Create and configure HA cluster - HAProxy-WI" class="keepalived head-submenu">HA</a></li>
+									<li><a href="/app/config.py?service=keepalived" title="Working with Keepalived configs" class="edit head-submenu">Configs</a></li>
+									<li><a href="/app/versions.py?service=keepalived" title="Working with versions Keepalived configs" class="version head-submenu keepalived_versions">Versions</a></li>
 								</ul>
 							</li>
 							<li class="p_menu">
@@ -103,12 +103,12 @@
 							<li class="p_menu">
 								<a title="Servers manage" class="runtime">Servers</a>
 								<ul class="v_menu">
-									<li><a href="/app/servers.py#users" title="Actions with users" class="users head-submenu">Users</a></li>
-									<li><a href="/app/servers.py#servers" title="Server manage" class="runtime head-submenu">Servers</a></li>
-									<li><a href="/app/servers.py#ssh" title="Manage SSH credentials" class="admin head-submenu">SSH credentials</a></li>	
-									<li><a href="/app/servers.py#installproxy" title="Proxy services installation" class="hap head-submenu">Proxy installation</a> </li>									
-									<li><a href="/app/servers.py#installmon" title="Monitoring services installation" class="hap1 head-submenu">Monitoring installation</a> </li>									
-									<li><a href="/app/servers.py#backup" title="Backups HAProxy's config files" class="backup head-submenu">Backups</a> </li>									
+									<li><a href="/app/servers.py#users" title="Servers: Manage users - HAProxy-WI" class="users head-submenu">Users</a></li>
+									<li><a href="/app/servers.py#servers" title="Servers: Manage servers - HAProxy-WI" class="runtime head-submenu">Servers</a></li>
+									<li><a href="/app/servers.py#ssh" title="Servers: Manage SSH credentials - HAProxy-WI" class="admin head-submenu">SSH credentials</a></li>
+									<li><a href="/app/servers.py#installproxy" title="Servers: Proxy service installation - HAProxy-WI" class="hap head-submenu">Proxy installation</a> </li>
+									<li><a href="/app/servers.py#installmon" title="Servers: Monitoring service installation - HAProxy-WI" class="hap1 head-submenu">Monitoring installation</a> </li>
+									<li><a href="/app/servers.py#backup" title="Servers: Backup configs - HAProxy-WI" class="backup head-submenu">Backups</a> </li>
 								</ul>
 							</li>
 						{% endif %}
@@ -116,14 +116,14 @@
 							<li class="p_menu">
 								<a title="Admin area" class="admin">Admin area</a>
 								<ul class="v_menu">
-									<li><a href="/app/users.py#users" title="Actions with users" class="users head-submenu">Users</a></li>
-									<li><a href="/app/users.py#groups" title="Actions with groups" class="group head-submenu">Groups</a></li>
-									<li><a href="/app/users.py#servers" title="Actions with servers" class="runtime head-submenu">Servers</a></li>
-									<li><a href="/app/users.py#ssh" title="Manage SSH credentials" class="admin head-submenu">SSH credentials</a></li>
-									<li><a href="/app/users.py#settings" title="HAProxy-WI settings" class="settings head-submenu">Settings</a></li>
-									<li><a href="/app/users.py#services" title="HAProxy-WI services" class="services head-submenu">Services</a></li>
-									<li><a href="/app/viewlogs.py" title="View internal logs" class="logs head-submenu">Internal logs</a></li>
-									<li><a href="/app/users.py#updatehapwi" title="Update HAProxy-WI" class="upload updatehapwi head-submenu">Update</a></li>
+									<li><a href="/app/users.py#users" title="Admin area: Manage users - HAProxy-WI" class="users head-submenu">Users</a></li>
+									<li><a href="/app/users.py#groups" title="Admin area: Manage groups - HAProxy-WI" class="group head-submenu">Groups</a></li>
+									<li><a href="/app/users.py#servers" title="Admin area: Manage servers - HAProxy-WI" class="runtime head-submenu">Servers</a></li>
+									<li><a href="/app/users.py#ssh" title="Admin area: Manage SSH credentials - HAProxy-WI" class="admin head-submenu">SSH credentials</a></li>
+									<li><a href="/app/users.py#settings" title="Admin area: Manage HAProxy-WI settings - HAProxy-WI" class="settings head-submenu">Settings</a></li>
+									<li><a href="/app/users.py#services" title="Admin area: Manage HAProxy-WI services - HAProxy-WI" class="services head-submenu">Services</a></li>
+									<li><a href="/app/viewlogs.py" title="Admin area: View internal logs - HAProxy-WI" class="logs head-submenu">Internal logs</a></li>
+									<li><a href="/app/users.py#updatehapwi" title="Admin area: Update HAProxy-WI - HAProxy-WI" class="upload updatehapwi head-submenu">Update</a></li>
 								</ul>
 							</li>
 						{% endif %}	

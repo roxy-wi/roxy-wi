@@ -6,12 +6,12 @@
 <script type="text/javascript" charset="utf8" src="/inc/runtimeapi.js"></script>
 <div id="tabs">
 	<ul>
-		<li><a href="#runtimeapi">Runtime API</a></li>
+		<li><a href="#runtimeapi" title="Runtime API - HAProxy-WI">Runtime API</a></li>
 		{% if role <= 2 %}
-			<li><a href="#maxconn">Change Maxconn</a></li>
-			<li><a href="#ip">Change IP and Port</a></li>
-			<li><a href="#table">Stick Table</a></li>
-			<li><a href="#lists">Lists</a></li>
+			<li><a href="#maxconn" title="Runtime API: Changing Maxconn - HAProxy-WI">Change Maxconn</a></li>
+			<li><a href="#ip" title="Runtime API: Changing IP and Port for backend servers - HAProxy-WI">Change IP and Port</a></li>
+			<li><a href="#table" title="Runtime API: Stick Table - HAProxy-WI">Stick Table</a></li>
+			<li><a href="#lists" title="Runtime API: Change dynamically whitelist and blacklist - HAProxy-WI">Lists</a></li>
 		{% endif %}
 		{% include 'include/login.html' %}
 	</ul>

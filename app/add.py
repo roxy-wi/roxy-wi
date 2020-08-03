@@ -43,7 +43,7 @@ white_lists = funct.get_files(dir=white_dir, format="lst")
 black_lists = funct.get_files(dir=black_dir, format="lst")
 
 
-template = template.render(title = "Add",
+template = template.render(title = "Add: ",
 							role = role,
 							user = user,
 							selects = servers,

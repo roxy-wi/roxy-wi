@@ -32,7 +32,7 @@ except:
 	pass
 
 
-template = template.render(title = "Admin area: users manage",
+template = template.render(title = "Admin area: Manage users",
 							role = role,
 							user = user,
 							users = users,
