@@ -17,9 +17,9 @@
 		<li><a href="#servers" title="Servers: Manage servers - HAProxy-WI">Servers</a></li>
 		<li><a href="#ssh" title="Servers: Manage SSH credentials - HAProxy-WI">SSH credentials</a></li>
 		<li><a href="#checker" title="Servers: Manage checker - HAProxy-WI">Checker</a></li>
-		<li><a href="#installproxy" title="Servers: Proxy installation - HAProxy-WI">Proxy installation</a></li>
-		<li><a href="#installmon" title="Servers: Monitoring installation - HAProxy-WI">Monitoring installation</a></li>
-		<li><a href="#backup" title="Servers: Backuping configs - HAProxy-WI">Backup</a></li>
+		<li><a href="#installproxy" title="Servers: Proxy service installation - HAProxy-WI">Proxy installation</a></li>
+		<li><a href="#installmon" title="Servers: Monitoring service installation - HAProxy-WI">Monitoring installation</a></li>
+		<li><a href="#backup" title="Servers: Backup configs - HAProxy-WI">Backup</a></li>
 		{% include 'include/login.html' %}
 	</ul>
 	<ul id='browse_histroy'></ul>
@@ -141,17 +141,17 @@
 						<td style="padding-top: 15px;">
 							<p>
 								{% set id = 'ssh_user-' + ssh.0|string() %}
-								{{ input(id, value=ssh.3, size='10') }}		
+								{{ input(id, value=ssh.3) }}
 							</p>
 							{% if ssh.2 == 1 %}
-								<input type="password" id="ssh_pass-{{ssh.0}}" class="form-control" value="{{ssh.4}}" style="display: none;" autocomplete="new-password">
+								<input type="password" id="ssh_pass-{{ssh.0}}" class="form-control" value="{{ssh.4}}" style="display: none;" autocomplete="off" />
 							{% else %}
-								<input type="password" id="ssh_pass-{{ssh.0}}" class="form-control" value="{{ssh.4}}" autocomplete="new-password">
+								<input type="password" id="ssh_pass-{{ssh.0}}" class="form-control" value="{{ssh.4}}" autocomplete="off" />
 							{% endif %}
 							<br>
 						</td>
 						<td>
-							<a class="delete" onclick="confirmDeleteSsh({{ssh.0}})"  style="cursor: pointer;"></a>
+							<a class="delete" onclick="confirmDeleteSsh({{ssh.0}})" title="Delete this SSH credentials" style="cursor: pointer;"></a>
 						</td>
 					</tr>
 				{% endif %}
@@ -170,7 +170,7 @@
 				<td class="padding10 first-collumn">
 					{{ input('new-ssh-add') }}	
 				</td>
-				<td>
+				<td class="first-collumn">
 					<label for="new-ssh_enable">Enable SSH key</label><input type="checkbox" id="new-ssh_enable" checked>
 				</td>
 				<td style="padding-top: 15px;">
@@ -181,7 +181,7 @@
 					<br>
 				</td>
 				<td>
-					<a class="add-admin" id="add-ssh" title="Add new SSH credentials" style="cursor: pointer;"></a>
+					<span class="add-admin" id="add-ssh" title="Add a new SSH credentials" style="cursor: pointer;"></span>
 				</td>
 			</tr>
 		</table>
@@ -206,7 +206,7 @@
 				</td>
 				<td style="padding-top: 15px;">
 					<textarea id="ssh_cert" cols="50" rows="5"></textarea><br /><br />
-					<a class="ui-button ui-widget ui-corner-all" id="ssh_key_upload" title="Upload ssh key" onclick="uploadSsh()">Upload</a>		
+					<button id="ssh_key_upload" title="Upload ssh key" onclick="uploadSsh()">Upload</button>		
 				</td>
 				<td></td>
 			</tr>
@@ -226,17 +226,21 @@
 				</td>
 				<td>Chanel name</td>
 				<td></td>
+				<td></td>
 			</tr>
 			{% for telegram in telegrams %}
 				{% if telegram.3|string() == group %}
 					<tr style="width: 50%;" id="telegram-table-{{telegram.0}}" class="{{ loop.cycle('odd', 'even') }}">
-						<td class="first-collumn" style="padding-top: 20px;">
+						<td class="padding10 first-collumn">
 							{% set id = 'telegram-token-' + telegram.0|string() %}
-							{{ input(id, value=telegram.1, style="margin-bottom: 23px;") }}
+							{{ input(id, value=telegram.1) }}
 						</td>
 						<td>
 							{% set id = 'telegram-chanel-' + telegram.0|string() %}
 							{{ input(id, value=telegram.2) }}		
+						</td>
+						<td>
+							<a class="add" onclick="cloneTelegram({{telegram.0}})" id="clone-{{telegram.0}}" title="Clone {{telegram.2}}" style="cursor: pointer;"></a>
 						</td>
 						<td>
 							<a class="delete" onclick="confirmDeleteSsh({{telegram.0}})"  style="cursor: pointer;"></a>
@@ -256,6 +260,7 @@
 					Channel name
 				</td>
 				<td></td>
+				<td></td>
 			</tr>
 			<tr>
 				<td class="padding10 first-collumn">
@@ -267,8 +272,9 @@
 				<td>
 					{{ input('telegram-chanel-add') }}	
 				</td>
+				<td></td>
 				<td>
-					<a class="add-admin" id="add-telegram" title="Add new Telegram channel" style="cursor: pointer;"></a>
+					<span class="add-admin" id="add-telegram" title="Add new Telegram channel" style="cursor: pointer;"></span>
 				</td>
 			</tr>
 		</table>
@@ -307,7 +313,7 @@
 					{{ checkbox('syn_flood', title="Enable SYN flood protect", checked='checked') }}
 				</td>
 				<td>
-					<a class="ui-button ui-widget ui-corner-all" id="install" title="Install HAProxy">Install</a>
+					<span class="ui-button ui-widget ui-corner-all" id="install" title="Install HAProxy">Install</span>
 				</td>
 			</tr>
 		</table>
@@ -338,7 +344,7 @@
 					{{ checkbox('nginx_syn_flood', title="Enable SYN flood protect", checked='checked') }}
 				</td>
 				<td>
-					<a class="ui-button ui-widget ui-corner-all" id="nginx_install" title="Install Nginx">Install</a>
+					<span class="ui-button ui-widget ui-corner-all" id="nginx_install" title="Install Nginx">Install</span>
 				</td>
 			</tr>
 		</table>
@@ -374,7 +380,7 @@
 				</td>
 				<td>
 					{% if grafana != "Active:" %}
-					<a class="ui-button ui-widget ui-corner-all" id="grafna_install" title="Install Grafana and Prometheus server">Install</a>
+					<span class="ui-button ui-widget ui-corner-all" id="grafna_install" title="Install Grafana and Prometheus server">Install</span>
 					{% endif %}
 				</td>
 			</tr>
@@ -405,7 +411,7 @@
 				<td>
 				</td>
 				<td>
-					<a class="ui-button ui-widget ui-corner-all" id="haproxy_exp_install" title="Install HAProxy Exporter">Install</a>
+					<span class="ui-button ui-widget ui-corner-all" id="haproxy_exp_install" title="Install HAProxy Exporter">Install</span>
 				</td>
 			</tr>
 		</table>
@@ -435,7 +441,7 @@
 				<td>
 				</td>
 				<td>
-					<a class="ui-button ui-widget ui-corner-all" id="nginx_exp_install" title="Install Nginx Exporter">Install</a>
+					<span class="ui-button ui-widget ui-corner-all" id="nginx_exp_install" title="Install Nginx Exporter">Install</span>
 				</td>
 			</tr>
 		</table>

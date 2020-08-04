@@ -538,7 +538,7 @@ h3 {
 							<option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endfor %}
 					</select>
-					<a class="ui-button ui-widget ui-corner-all" id="ssl_key_view" title="View certificates">View</a>	
+					<button id="ssl_key_view" title="View certificates">View</button>	
 				</td>
 				<td>
 					<span  id="ajax-show-ssl"></span>
@@ -568,7 +568,7 @@ h3 {
 				</td>
 				<td style="padding-top: 15px; padding-bottom: 15px;">
 					<textarea id="ssl_cert" cols="50" rows="5"></textarea><br /><br />
-					<a class="ui-button ui-widget ui-corner-all" id="ssl_key_upload" title="Upload ssl certificates">Upload</a>	
+					<button id="ssl_key_upload" title="Upload ssl certificates">Upload</button>	
 				</td>	
 			</tr>
 		</table>
@@ -613,7 +613,7 @@ h3 {
 					{{ input('new-option', size='60') }}
 				</td>
 				<td>
-					<a class="add-admin" id="add-option-new" title="Add new option" style="cursor: pointer;"></a>
+					<span class="add-admin" id="add-option-new" title="Add new option" style="cursor: pointer;"></span>
 				</td>
 			</tr>
 		</table>
@@ -668,7 +668,7 @@ h3 {
 					{{ input('new-saved-servers-description', size='50') }}
 				</td>
 				<td>
-					<a class="add-admin" id="add-saved-server-new" title="Add new server" style="cursor: pointer;"></a>
+					<button class="add-admin" id="add-saved-server-new" title="Add new server" style="cursor: pointer;"></button>
 				</td>
 			</tr>
 		</table>
@@ -717,7 +717,7 @@ h3 {
 						{{ input('userlist-group', title="User`s group", placeholder="group_name") }}			
 					</span>
 					<span>
-						<a class="add-server" id="add-userlist-group" title="Add extra group" style="cursor: pointer;"></a>
+						<span class="add-server" id="add-userlist-group" title="Add extra group" style="cursor: pointer;"></span>
 					</span>
 					<div class="tooltip tooltipTop">It is also possible to attach users to this group by using a comma separated list of names preceded by "users" keyword.</div>
 				</td>
@@ -731,7 +731,7 @@ h3 {
 						{{ input('userlist-user-group', title="User`s group",  placeholder="user`s group") }}			
 					</span>
 					<span>
-						<a class="add-server" id="add-userlist-user" title="Add extra user" style="cursor: pointer;"></a>
+						<span class="add-server" id="add-userlist-user" title="Add extra user" style="cursor: pointer;"></span>
 					</span>
 					<div class="tooltip tooltipTop">It is also possible to attach groups to this user by using a comma separated list of groups.</div>
 				</td>

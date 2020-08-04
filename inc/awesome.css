@@ -146,7 +146,7 @@
 	display: none;
 	font-family: "Font Awesome 5 Solid";
 	content: "\f004";
-	color: red;
+	color: #ff0000;
 	padding-left: 3px;
 }
 .update-row::before {

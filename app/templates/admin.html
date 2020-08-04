@@ -26,7 +26,7 @@
 	<div id="users">
 		<table class="overview" id="ajax-users">
 			<thead>
-			<tr class="overviewHead">
+				<tr class="overviewHead">
 				<th class="padding10 first-collumn">Login name</th>
 				<th>Password</th>
 				<th>Active</th>
@@ -89,7 +89,7 @@
 					{% set id = 'name-' + group.0|string() %}
 					{{ input(id, value=group.1) }}
 				</td>
-				<td style="width: 100%;">
+				<td>
 					{% set id = 'descript-' + group.0|string() %}					
 					{% if group.2  != "None" %}
 						{{ input(id, value=group.2, size='60') }}
@@ -115,13 +115,13 @@
 			</tr>
 			<tr>
 				<td class="padding10 first-collumn">
-					{{ input('new-group-add') }}
+					{{ input('new-group-add', autofocus='autofocus') }}
 				</td>
-				<td style="width: 100%;">
+				<td>
 					{{ input('new-desc', size="60") }}
 				</td>
 				<td>
-					<a class="add-admin" id="add-group" title="Add new group" style="cursor: pointer;"></a>
+					<span class="add-admin" id="add-group" title="Add new group" style="cursor: pointer;"></span>
 				</td>
 			</tr>
 		</table>
@@ -199,7 +199,7 @@
 				</td>
 				<td>Group</td>
 				<td>
-					<span title="Enter SSH user name. If SSH key disabled, enter password for ssh user">Credentials</span>
+					<span title="Enter SSH user name. If SSH key disabled, enter password for SSH user">Credentials</span>
 				</td>
 				<td></td>
 			</tr>
@@ -257,9 +257,9 @@
 			</tr>
 			<tr>
 				<td class="padding10 first-collumn">
-					{{ input('new-ssh-add') }}	
+					{{ input('new-ssh-add', size='10', autofocus='autofocus') }}
 				</td>
-				<td>
+				<td class="first-collumn" valign="top" style="padding-top: 15px;">
 					<label for="new-ssh_enable">Enable SSH key</label><input type="checkbox" id="new-ssh_enable" checked>
 				</td>
 				<td>
@@ -270,14 +270,14 @@
 					</select>
 				</td>
 				<td style="padding-top: 15px;">
-					<p>
+					<p style="width: 100px;">
 						{{ input('ssh_user', value=ssh_user) }}	
 					</p>
 						{{ input('ssh_pass', type='password', value=ssh_pass, style="display: none;") }}
 					<br>
 				</td>
 				<td>
-					<a class="add-admin" id="add-ssh" title="Add new SSH credentials" style="cursor: pointer;"></a>
+					<span class="add-admin" id="add-ssh" title="Add new SSH credentials" style="cursor: pointer;"></span>
 				</td>
 			</tr>
 		</table>
@@ -325,9 +325,9 @@
 			</tr>
 			{% for telegram in telegrams %}
 				<tr id="telegram-table-{{telegram.0}}" class="{{ loop.cycle('odd', 'even') }}">
-					<td class="first-collumn" style="padding-top: 20px;">
+					<td class="padding10 first-collumn">
 						{% set id = 'telegram-token-' + telegram.0|string() %}
-						{{ input(id, value=telegram.1, style="margin-bottom: 23px;") }}
+						{{ input(id, value=telegram.1) }}
 					</td>
 					<td>
 						{% set id = 'telegram-chanel-' + telegram.0|string() %}
@@ -346,7 +346,7 @@
 						</select>
 					</td>
 					<td>
-						<a class="add" onclick="cloneTelegram({{telegram.0}})" id="clone-{{telegram.0}}" title="Clone {{telegram.1}}" style="cursor: pointer;"></a>
+						<a class="add" onclick="cloneTelegram({{telegram.0}})" id="clone-{{telegram.0}}" title="Clone {{telegram.2}}" style="cursor: pointer;"></a>
 					</td> 
 					<td>
 						<a class="delete" onclick="confirmDeleteTelegram({{telegram.0}})" title="Delete channel {{telegram.2}}" style="cursor: pointer;"></a>
@@ -364,6 +364,7 @@
 				<td>Chanel name</td>
 				<td>Group</td>
 				<td></td>
+				<td></td>
 			</tr>
 			<tr>
 				<td class="padding10 first-collumn">
@@ -380,8 +381,9 @@
 						{% endfor %}
 					</select>
 				</td>
+				<td></td>
 				<td>
-					<a class="add-admin"  id="add-telegram" title="Add new Telegram channel" style="cursor: pointer;"></a>
+					<span class="add-admin"  id="add-telegram" title="Add new Telegram channel" style="cursor: pointer;"></span>
 				</td>
 			</tr>
 		</table>
