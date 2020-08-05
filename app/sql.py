@@ -7,7 +7,7 @@ mysql_enable = funct.get_config_var('mysql', 'enable')
 if mysql_enable == '1':	
 	import mysql.connector as sqltool
 else:
-	db = "/var/www/haproxy-wi/app/haproxy-wi.db"
+	db = "haproxy-wi.db"
 	import sqlite3 as sqltool
 	
 	
@@ -1191,7 +1191,65 @@ def insert_waf_metrics_enable(serv, enable):
 		con.rollback()
 	cur.close()    
 	con.close()
-	
+
+def insert_waf_rules(serv):
+	con, cur = get_cur()
+	sql = list()
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'Ignore static', 'modsecurity_crs_10_ignore_static.conf', 'This ruleset will skip all tests for media files, but will skip only the request body phase (phase 2) for text files. To skip the outbound stage for text files, add file 47 (skip_outbound_checks) to your configuration, in addition to this fileth/aws/login');" % serv)
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'Brute force protection', 'modsecurity_crs_11_brute_force.conf', 'Anti-Automation Rule for specific Pages (Brute Force Protection) This is a rate-limiting rule set and does not directly correlate whether the authentication attempt was successful or not');" % serv)
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'DOS Protections', 'modsecurity_crs_11_dos_protection.conf', 'Enforce an existing IP address block and log only 1-time/minute. We do not want to get flooded by alerts during an attack or scan so we are only triggering an alert once/minute.  You can adjust how often you want to receive status alerts by changing the expirevar setting below');" % serv)
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'Proxy abuse', 'modsecurity_crs_11_proxy_abuse.conf', 'Rule set for detecting Open Proxy Abuse/Chaining');" % serv)
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'Slow DOS protection', 'modsecurity_crs_11_slow_dos_protection.conf', 'Rule set for detecting Slow HTTP Denial of Service Attacks');" % serv)
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'XML enabler', 'modsecurity_crs_13_xml_enabler.conf', 'The rules in this file will trigger the XML parser upon an XML request');" % serv)
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'Session hijacking', 'modsecurity_crs_16_session_hijacking.conf', 'This rule file will identify outbound Set-Cookie/Set-Cookie2 response headers and then initiate the proper ModSecurity session persistent collection (setsid). The rules in this file are required if you plan to run other checks such as  Session Hijacking, Missing HTTPOnly flag, etc...');" % serv)
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'Protocol violations', 'modsecurity_crs_20_protocol_violations.conf', 'Some protocol violations are common in application layer attacks. Validating HTTP requests eliminates a large number of application layer attacks. The purpose of this rules file is to enforce HTTP RFC requirements that state how  the client is supposed to interact with the server. http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html');" % serv)
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'Protocol anomalies', 'modsecurity_crs_21_protocol_anomalies.conf', 'Some common HTTP usage patterns are indicative of attacks but may also be used by non-browsers for legitimate uses. Do not accept requests without common headers. All normal web browsers include Host, User-Agent and Accept headers. Implies either an attacker or a legitimate automation client');" % serv)
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'Detect CC#', 'modsecurity_crs_25_cc_known.conf', 'Detect CC# in input, log transaction and sanitize');" % serv)
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'CC traker', 'modsecurity_crs_25_cc_track_pan.conf', 'Credit Card Track 1 and 2 and PAN Leakage Checks');" % serv)
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'HTTP policy', 'modsecurity_crs_30_http_policy.conf', 'HTTP policy enforcement The HTTP policy enforcement rule set sets limitations on the use of HTTP by clients. Few applications require the breadth and depth of the HTTP protocol. On the other hand many attacks abuse valid but rare HTTP use patterns. Restricting  HTTP protocol usage is effective in therefore effective in blocking many  application layer attacks');" % serv)
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'Bad robots', 'modsecurity_crs_35_bad_robots.conf', 'Bad robots detection is based on checking elements easily controlled by the client. As such a determined attacked can bypass those checks. Therefore bad robots detection should not be viewed as a security mechanism against targeted attacks but rather as a nuisance reduction, eliminating most of the random attacks against your web site');" % serv)
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'OS Injection Attacks', 'modsecurity_crs_40_generic_attacks.conf', 'OS Command Injection Attacks');" % serv)
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'SQL injection', 'modsecurity_crs_41_sql_injection_attacks.conf', 'SQL injection protection');" % serv)
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'XSS Protections', 'modsecurity_crs_41_xss_attacks.conf', 'XSS attacks protection');" % serv)
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'Comment spam', 'modsecurity_crs_42_comment_spam.conf', 'Comment spam is an attack against blogs, guestbooks, wikis and other types of interactive web sites that accept and display hyperlinks submitted by visitors. The spammers automatically post specially crafted random comments which include links that point to the spammer\'s web site. The links artificially increas the site's search engine ranking and may make the site more noticable in search results.');" % serv)
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'CSP enforcement', 'modsecurity_crs_42_csp_enforcement.conf', 'The purpose of these settings is to send CSP response headers to Mozilla FireFox users so that you can enforce how dynamic content is used. CSP usage helps to prevent XSS attacks against your users.');" % serv)
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'CSRF Protections', 'modsecurity_crs_43_csrf_protection.conf', 'You must have also activated the session hijacking conf file as it initiates the Session Collection and creates the CSRF token');" % serv)
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'Trojans Protections', 'modsecurity_crs_45_trojans.conf ', 'The trojan access detection rules detects access to known Trojans already installed on a server. Uploading of Trojans is part of the Anti-Virus rules  and uses external Anti Virus program when uploading files. Detection of Trojans access is especially important in a hosting environment where the actual Trojan upload may be done through valid methods and not through hacking');" % serv)
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'Joomla Protections', 'modsecurity_crs_46_slr_et_joomla_attacks.conf', 'Use this if you have Joomla CMS');" % serv)
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'RFI Protections', 'modsecurity_crs_46_slr_et_lfi_attacks.conf', 'Remote file inclusion is an attack targeting vulnerabilities in web applications that dynamically reference external scripts. The perpetrator’s goal is to exploit the referencing function in an application to upload malware (e.g., backdoor shells) from a remote URL located within a different domain');" % serv)
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'phpBB Protections', 'modsecurity_crs_46_slr_et_phpbb_attacks.conf', 'Use this if you have phpBB forum');" % serv)
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'RFI Protections 2', 'modsecurity_crs_46_slr_et_rfi_attacks.conf', 'Remote file inclusion is an attack targeting vulnerabilities in web applications that dynamically reference external scripts. The perpetrator’s goal is to exploit the referencing function in an application to upload malware (e.g., backdoor shells) from a remote URL located within a different domain');" % serv)
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'SQLi Protections', ' modsecurity_crs_46_slr_et_sqli_attacks.conf', 'SQLi injection attacks protection');" % serv)
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'Wordpress Protections', 'modsecurity_crs_46_slr_et_wordpress_attacks.conf', 'Use this if you have Wordpess CMS');" % serv)
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'XSS Protections 2', 'modsecurity_crs_46_slr_et_xss_attacks.conf', 'XSS attacks protection');" % serv)
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'Common exceptions', 'modsecurity_crs_47_common_exceptions.conf', 'This file is used as an exception mechanism to remove common false positives that may be encountered');" % serv)
+	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'Hader tagging', 'modsecurity_crs_49_header_tagging.conf', 'This file will add Request Header Tagging which allows ModSecurity to communicate any event/rule matches it finds with the downstream application server.  The concept is similar to that of Anti-SPAM apps for Email (such as SpamAssassin). The idea is that if the WAF is in a DetectionOnly mode, it can still share data with the destination app server and then the app server may choose to inspect the new WAF request headers and factor in this data into a possible blocking decision. This concept is tremendously useful in a distributed architecture and/or when there are Fraud Detection Systems at the app server layer that can correlate the WAF data into the overall Fraud Score.  This is also useful in Hosting Environments where the decision to block may not be as clear');" % serv)
+	for i in sql:
+		try:
+			cur.execute(i)
+			con.commit()
+		except sqltool.Error as e:
+			pass
+	else:
+		if kwargs.get('silent') != 1:
+			print('Updating... one more for version 4.0.0')
+		return True
+	cur.close()
+	con.close()
+
+
+def select_waf_rules(serv):
+	con, cur = get_cur()
+	sql = """ select id, rule_name, en, `desc` from waf_rules where serv = '%s' """ % serv
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		funct.out_error(e)
+	else:
+		return cur.fetchall()
+	cur.close()
+	con.close()
+
 	
 def delete_waf_server(id):
 	con, cur = get_cur()

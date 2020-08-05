@@ -81,6 +81,7 @@
     $( function() {
         $('#list_add_ip').click(function () {
             addListIp.dialog('open');
+            $.getScript("/inc/runtumeapi.js");
         });
         var addListIp = $("#list_add_ip_form").dialog({
             autoOpen: false,

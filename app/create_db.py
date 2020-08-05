@@ -11,7 +11,7 @@ if mysql_enable == '1':
 	mysql_port = funct.get_config_var('mysql', 'mysql_port')
 	import mysql.connector as sqltool
 else:
-	db = "/var/www/haproxy-wi/app/haproxy-wi.db"
+	db = "haproxy-wi.db"
 	import sqlite3 as sqltool
 	
 def check_db():
