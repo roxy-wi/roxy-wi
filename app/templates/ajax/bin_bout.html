@@ -1,0 +1,53 @@
+<div class="bin_bout" id="show_bin_bout">
+    <div class="server-name">
+        Bytes in
+        <span class="update-icon">
+            <a onclick="showBytes('{{ serv }}')" title="Refresh">
+                <span class="service-reload"></span>
+            </a>
+        </span>
+    </div>
+    <div class="bytes" id="bin">
+        {% set total = bin_bout.0|int / 1024 %}
+        {% set metric = 'Kb' %}
+        {% if total > 1000 %}
+            {% set total = total / 1024 %}
+            {% set metric = 'Mb' %}
+        {% endif %}
+        {% if total > 1000 %}
+            {% set total = total / 1024 %}
+            {% set metric = 'Gb' %}
+        {% endif %}
+        {{total|round(2)}} {{metric}}
+    </div>
+    <div class="server-name">
+        Bytes Out
+    </div>
+    <div class="bytes" id="bout">
+        {% set total = bin_bout.1|int / 1024 %}
+        {% set metric = 'Kb' %}
+        {% if total > 1000 %}
+            {% set total = total / 1024 %}
+            {% set metric = 'Mb' %}
+        {% endif %}
+        {% if total > 1000 %}
+            {% set total = total / 1024 %}
+            {% set metric = 'Gb' %}
+        {% endif %}
+        {{total|round(2)}} {{metric}}
+    </div>
+</div>
+<div id="sessions" class="bin_bout">
+    <div class="server-name">
+        Current ses
+    </div>
+    <div class="bytes" id="cur_sess">
+        {{bin_bout.2}}
+    </div>
+    <div class="server-name">
+        Total ses
+    </div>
+    <div class="bytes" id="total_sess">
+        {{bin_bout.3}}
+    </div>
+</div>
