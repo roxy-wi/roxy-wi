@@ -47,5 +47,6 @@ template = template.render(title = "Admin area: Manage users",
 							settings = settings,
 							backups = sql.select_backups(),
 							services = services,
+						   	page = "users.py",
 							ldap_enable = ldap_enable)
 print(template)

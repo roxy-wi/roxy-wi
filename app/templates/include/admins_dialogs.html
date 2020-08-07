@@ -1,0 +1,222 @@
+{% if page != "servers.py" %}
+<div id="user-add-table" style="display: none;">
+    <table class="overview">
+        {% include 'include/tr_validate_tips.html' %}
+        {% include 'include/admin_add_user.html' %}
+        <tr>
+            <td class="padding20">
+                Role
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                <select id="new-role" name="new-role">
+                    <option disabled selected>Choose role</option>
+                    {% for role in roles %}
+                    <option value="{{ role.1 }}">{{ role.1 }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                Group
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                <select id="new-group" name="new-group">
+                    <option disabled selected>Choose group</option>
+                    {% for group in groups %}
+                    <option value="{{ group.0 }}">{{ group.1 }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="group-add-table" style="display: none;">
+    <table class="overview">
+        {% include 'include/tr_validate_tips.html' %}
+        <tr>
+            <td class="padding20">
+                New group name
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{ input('new-group-add', autofocus='autofocus') }}
+            </td>
+        </tr>
+        <td class="padding20">Description</td>
+        <td>{{ input('new-desc', size="40") }}</td>
+        </tr>
+    </table>
+</div>
+{% else %}
+<div id="user-add-table" style="display: none;">
+    <table class="overview">
+        {% include 'include/tr_validate_tips.html' %}
+        {% include 'include/admin_add_user.html' %}
+        <td class="padding20">
+            Role
+            <span class="need-field">*</span>
+        </td>
+        <td>
+            <select id="new-role" name="new-role">
+                <option disabled selected>Choose role</option>
+                {% for role in roles %}
+                {% if role.1 != "admin" %}
+                <option value="{{ role.1 }}">{{ role.1 }}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
+        </td>
+        </tr>
+    </table>
+</div>
+{% endif %}
+<div id="server-add-table" title="Add a new server " style="display: none;">
+    <table class="overview">
+        {% include 'include/tr_validate_tips.html' %}
+        {% include 'include/admin_add_server.html' %}
+        <tr>
+            <td class="padding20">
+                Credentials
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                <select id="credentials" required>
+                    <option disabled selected>Choose credentials</option>
+                    {% for ssh in sshs %}
+                    <option value="{{ssh.0}}">{{ssh.1}}</option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        {% if page != "servers.py" %}
+        <tr>
+            <td class="padding20">
+                Group
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                <select id="new-server-group-add" name="new-server-group-add">
+                    <option disabled selected value="0">Choose group</option>
+                    {% for group in groups %}
+                    <option value="{{ group.0 }}">{{ group.1 }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        {% endif %}
+    </table>
+</div>
+<div id="ssh-add-table" style="display: none;">
+    <table>
+        {% include 'include/tr_validate_tips.html' %}
+        <tr>
+            <td class="padding20">
+                Name
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{ input('new-ssh-add', autofocus='autofocus') }}
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">SSH key</td>
+            <td>
+                <label for="new-ssh_enable">Enabled SSH key</label><input type="checkbox" id="new-ssh_enable" checked>
+            </td>
+        </tr>
+        {% if page != "servers.py" %}
+        <tr>
+            <td class="padding20">Group</td>
+            <td>
+                <select id="new-sshgroup" name="new-sshgroup">
+                    {% for group in groups %}
+                    <option value="{{ group.0 }}">{{ group.1 }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        {% endif %}
+        <tr>
+            <td class="padding20">
+                Credentials
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                <p style="width: 100px;">
+                    {{ input('ssh_user', value=ssh_user, title='SSH user name') }}
+                </p>
+                {{ input('ssh_pass', type='password', style="display: none;", title='SSH password') }}
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="telegram-add-table" style="display: none;">
+    <table>
+        {% include 'include/tr_validate_tips.html' %}
+        <tr>
+            <td class="padding20">
+                <span title="Token that gave you @father_bot">Token</span>
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{ input('telegram-token-add', size='30') }}
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                Channel name
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{ input('telegram-chanel-add') }}
+            </td>
+        </tr>
+        {% if page != "servers.py" %}
+        <tr>
+            <td class="padding20">Group</td>
+            <td>
+                <select id="new-telegram-group-add" name="new-telegram-group-add">
+                    <option disabled selected value="0">Choose group</option>
+                    {% for group in groups %}
+                    <option value="{{ group.0 }}">{{ group.1 }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        {% endif %}
+    </table>
+</div>
+<div id="backup-add-table" title="Add a new backup job " style="display: none;">
+    <table class="overview">
+        {% include 'include/tr_validate_tips.html' %}
+        {% include 'include/add_backup.html' %}
+        <tr>
+            <td class="padding20">
+                Credentials for remote server
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                <select id="backup-credentials" required>
+                    <option disabled selected>Choose credentials</option>
+                    {% for ssh in sshs %}
+                    <option value="{{ssh.0}}">{{ssh.1}}</option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                Description
+            </td>
+            <td>
+                {{ input('backup-description', size='30') }}
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dialog-confirm-services" style="display: none;">
+    <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>Are you sure?</p>
+</div>

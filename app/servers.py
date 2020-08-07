@@ -31,10 +31,11 @@ output_from_parsed_template = template.render(title = "Servers: ",
 												masters = sql.select_servers(get_master_servers=1, uuid=user_id.value),
 												group = user_group,
 												sshs = sql.select_ssh(),
-												telegrams = sql.get_user_telegram_by_uuid(user_id.value),
+												telegrams = sql.get_user_telegram_by_group(user_group),
 												token = token,
 												versions = funct.versions(),
 												backups = sql.select_backups(),
 												grafana = ''.join(grafana),
+											  	page = "servers.py",
 												ldap_enable = ldap_enable)
 print(output_from_parsed_template)

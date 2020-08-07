@@ -1,7 +1,7 @@
 {% for telegram in telegrams %}
 	<tr style="width: 50%;" id="telegram-table-{{telegram.0}}" class="newgroup">
-		<td class="first-collumn" style="padding-top: 15px;">
-			<input type="text" id="telegram-token-{{telegram.0}}" class="form-control" value="{{telegram.1}}" style="margin-bottom: 23px;">	
+		<td class="padding10 first-collumn">
+			<input type="text" id="telegram-token-{{telegram.0}}" class="form-control" value="{{telegram.1}}">
 			<input type="hidden" id="telegramgroup-{{telegram.0}}" name="telegramgroup-{{telegram.0}}">
 		</td>
 		<td>
@@ -20,6 +20,9 @@
 				</select>
 			</td>	
 		{% endif %}
+		<td>
+			<a class="add" onclick="cloneTelegram({{telegram.0}})" id="clone-{{telegram.0}}" title="Clone {{telegram.2}}" style="cursor: pointer;"></a>
+		</td>
 		<td>
 			<a class="delete" onclick="confirmDeleteTelegram({{telegram.0}})"  style="cursor: pointer;"></a>
 		</td>

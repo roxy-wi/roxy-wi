@@ -28,11 +28,11 @@
 			<thead>
 				<tr class="overviewHead">
 				<th class="padding10 first-collumn">Login name</th>
-				<th>Password</th>
-				<th>Active</th>
-				<th>Email</th>
-				<th>Role</th>
-				<th>Group</th>
+				<th style="width: 10%">Password</th>
+				<th style="width: 10%">Active</th>
+				<th style="width: 20%">Email</th>
+				<th style="width: 10%">Role</th>
+				<th style="width: 100%">Group</th>
 				<th></th>
 				<th></th>
 			</tr>
@@ -74,7 +74,7 @@
 			<thead>
 			<tr class="overviewHead">
 				<th class="padding10 first-collumn">Name</th>
-				<th>Description</th>
+				<th style="width: 100%;">Description</th>
 				<th></th>
 			</tr>
 			<tbody>
@@ -107,24 +107,6 @@
 		</table>
 		<br /><span class="add-button" title="Add group" id="add-group-button">+ Add</span>
 		<br /><br />
-		<table class="overview" id="group-add-table" style="display: none;">
-			<tr class="overviewHead">
-				<td class="padding10 first-collumn">New group name</td>
-				<td>Description</td>
-				<td></td>
-			</tr>
-			<tr>
-				<td class="padding10 first-collumn">
-					{{ input('new-group-add', autofocus='autofocus') }}
-				</td>
-				<td>
-					{{ input('new-desc', size="60") }}
-				</td>
-				<td>
-					<span class="add-admin" id="add-group" title="Add new group" style="cursor: pointer;"></span>
-				</td>
-			</tr>
-		</table>
 		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
 			 How to setup groups you can watch in this video <a href="https://haproxy-wi.org/description.py?description=setup" title="How to setup servers, group and SSH credentials" target="_blank">here</a>
 		</div>
@@ -134,16 +116,20 @@
 			<thead>
 			<tr class="overviewHead">
 				<th class="padding10 first-collumn">Hostname</th>
-				<th class="ip-field">IP</th>
-				<th class="checkbox-head"><span title="SSH port">Port</span></th>
-				<th class="group-field">Group</th>
-				<th class="checkbox-head">Enabled</th>
-				<th class="checkbox-head"><span title="Vitrual IP, something like VRRP">Virt</span></th>
-				<th class="checkbox-head">HAProxy</th>
-				<th class="checkbox-head">Nginx</th>
-				<th class="slave-field"><span title="Actions with master config will automatically apply on slave">Slave for</span></th>
-				<th class="cred-field">Credentials</th>
-				<th>Description</th>
+				<th class="ip-field" style="width: 5%">IP</th>
+				<th class="checkbox-head" style="width: 5%"><span title="SSH port">Port</span></th>
+				<th class="group-field" style="width: 10%">Group</th>
+				<th class="checkbox-head" style="width: 5%">Enabled</th>
+				<th class="checkbox-head" style="width: 5%">
+					<span title="Virtual IP, something like VRRP">Virt</span>
+				</th>
+				<th class="checkbox-head" style="width: 5%">HAProxy</th>
+				<th class="checkbox-head" style="width: 5%">Nginx</th>
+				<th class="slave-field" style="width: 10%">
+					<span title="Actions with the master config will automatically apply on the slave">Slave for</span>
+				</th>
+				<th class="cred-field" style="width: 15%">Credentials</th>
+				<th style="width: 100%">Description</th>
 				<th></th>
 				<th></th>
 			</tr>	
@@ -197,8 +183,8 @@
 				<td class="padding10 first-collumn" style="width: 25%;">
 					<span title="If it is enabled, the key will be used, if turned off - the password. Do not forget to download the keys to all servers or install the sudo without a password">SSH key</span>
 				</td>
-				<td>Group</td>
-				<td>
+				<td style="width: 25%;">Group</td>
+				<td style="width: 100%;">
 					<span title="Enter SSH user name. If SSH key disabled, enter password for SSH user">Credentials</span>
 				</td>
 				<td></td>
@@ -230,12 +216,12 @@
 					<td style="padding-top: 15px;">
 						<p>
 							{% set id = 'ssh_user-' + ssh.0|string() %}
-							{{ input(id, value=ssh.3, size='10') }}	
+							{{ input(id, value=ssh.3, title='SSH user name') }}
 						</p>
 						{% if ssh.2 == 1 %}
-							<input type="password" id="ssh_pass-{{ssh.0}}" class="form-control" value="{{ssh.4}}" style="display: none;" autocomplete="new-password">
+							<input type="password" id="ssh_pass-{{ssh.0}}" class="form-control"  placeholder="*****" style="display: none;" autocomplete="new-password">
 						{% else %}
-							<input type="password" id="ssh_pass-{{ssh.0}}" class="form-control" value="{{ssh.4}}" autocomplete="new-password">
+							<input type="password" id="ssh_pass-{{ssh.0}}" class="form-control" placeholder="*****" autocomplete="new-password">
 						{% endif %}
 						<br>
 					</td>
@@ -247,40 +233,6 @@
 		</table>
 		<br /><span class="add-button" title="Add ssh" id="add-ssh-button">+ Add</span>
 		<br /><br />
-		<table class="overview" id="ssh-add-table" style="display: none;">
-			<tr class="overviewHead">
-				<td class="padding10 first-collumn" style="width: 15%;">Name</td>
-				<td class="padding10 first-collumn" style="width: 25%;">SSH key</td>
-				<td>Group</td>
-				<td>Credentials</td>
-				<td></td>
-			</tr>
-			<tr>
-				<td class="padding10 first-collumn">
-					{{ input('new-ssh-add', size='10', autofocus='autofocus') }}
-				</td>
-				<td class="first-collumn" valign="top" style="padding-top: 15px;">
-					<label for="new-ssh_enable">Enable SSH key</label><input type="checkbox" id="new-ssh_enable" checked>
-				</td>
-				<td>
-					<select id="new-sshgroup" name="new-sshgroup">
-						{% for group in groups %}
-							<option value="{{ group.0 }}">{{ group.1 }}</option>
-						{% endfor %}
-					</select>
-				</td>
-				<td style="padding-top: 15px;">
-					<p style="width: 100px;">
-						{{ input('ssh_user', value=ssh_user) }}	
-					</p>
-						{{ input('ssh_pass', type='password', value=ssh_pass, style="display: none;") }}
-					<br>
-				</td>
-				<td>
-					<span class="add-admin" id="add-ssh" title="Add new SSH credentials" style="cursor: pointer;"></span>
-				</td>
-			</tr>
-		</table>
 		<table id="ssh_key">
 			<tr class="overviewHead" style="width: 50%;">
 				<td class="padding10 first-collumn" style="width: 25%;">Upload SSH Key</td>
@@ -318,8 +270,8 @@
 				<td class="padding10 first-collumn" style="width: 25%;">
 					<span title="Token that gave you @father_bot">Token</span>
 				</td>
-				<td>Channel name</td>
-				<td>Group</td>
+				<td style="width: 25%;">Channel name</td>
+				<td style="width: 100%;">Group</td>
 				<td></td>
 				<td></td>
 			</tr>
@@ -327,7 +279,7 @@
 				<tr id="telegram-table-{{telegram.0}}" class="{{ loop.cycle('odd', 'even') }}">
 					<td class="padding10 first-collumn">
 						{% set id = 'telegram-token-' + telegram.0|string() %}
-						{{ input(id, value=telegram.1) }}
+						{{ input(id, value=telegram.1, size='30') }}
 					</td>
 					<td>
 						{% set id = 'telegram-chanel-' + telegram.0|string() %}
@@ -356,37 +308,6 @@
 		</table>
 		<br /><span class="add-button" title="Add telegram channel" id="add-telegram-button">+ Add</span>
 		<br /><br />
-		<table class="overview" id="telegram-add-table" style="display: none;">
-			<tr class="overviewHead">
-				<td class="padding10 first-collumn" style="width: 25%;">
-					<span title="Token that gave you @father_bot">Token</span>
-				</td>
-				<td>Chanel name</td>
-				<td>Group</td>
-				<td></td>
-				<td></td>
-			</tr>
-			<tr>
-				<td class="padding10 first-collumn">
-					{{ input('telegram-token-add') }}
-				</td>
-				<td>
-					{{ input('telegram-chanel-add') }}	
-				</td>
-				<td>
-					<select id="new-telegram-group-add" name="new-telegram-group-add">
-						<option disabled selected value="0">Choose group</option>
-						{% for group in groups %}
-							<option value="{{ group.0 }}">{{ group.1 }}</option>
-						{% endfor %}
-					</select>
-				</td>
-				<td></td>
-				<td>
-					<span class="add-admin"  id="add-telegram" title="Add new Telegram channel" style="cursor: pointer;"></span>
-				</td>
-			</tr>
-		</table>
 		<div id="ajax-telegram"></div>
 		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
 			You can read the description of all parameters <a href="https://haproxy-wi.org/description.py?description=checker" title="Servers description" target="_blank">here</a>
@@ -419,9 +340,9 @@
 				<td class="addOption">
 					{% if set.0 == 'ldap_password' %}
 						{% if set.1 == 'None' %}
-								<input type="password" name="{{set.0}}" id="{{set.0}}" value="" title="" size="25" class="form-control">
+								<input type="password" name="{{set.0}}" id="{{set.0}}" value="" title="" size="25" class="form-control" autocomplete="new-password">
 							{% else %}
-								<input type="password" name="{{set.0}}" id="{{set.0}}" value="{{set.1}}" title="" size="25" class="form-control">
+								<input type="password" name="{{set.0}}" id="{{set.0}}" value="" placeholder="*****" title="" size="25" class="form-control" autocomplete="new-password">
 							{% endif %}
 					{% else %}
 						{% if set.1 == 'None' %}
@@ -547,116 +468,19 @@
 			You can read the description of all parameters <a href="https://haproxy-wi.org/description.py?description=backup" title="Backup description" target="_blank">here</a>
 		</div>
 	</div>
-	
 </div>
-<div id="user-add-table" style="display: none;">	
-	<table class="overview">
-		{% include 'include/admin_add_user.html' %}
-		<tr>
-			<td class="padding20">
-				Role
-				<span class="need-field">*</span>
-			</td>
-			<td>
-				<select id="new-role" name="new-role">
-					<option disabled selected>Choose role</option>
-					{% for role in roles %}
-						<option value="{{ role.1 }}">{{ role.1 }}</option>
-					{% endfor %}
-				</select>
-			</td>
-		</tr>
-		<tr>
-			<td class="padding20">
-				Group
-				<span class="need-field">*</span>
-			</td>
-			<td>
-				<select id="new-group" name="new-group">
-					<option disabled selected>Choose group</option>
-					{% for group in groups %}
-						<option value="{{ group.0 }}">{{ group.1 }}</option>
-					{% endfor %}
-				</select>
-			</td>
-		</tr>
-	</table>
-</div>
-<div id="server-add-table" title="Add a new server " style="display: none;">	
-	<table class="overview">
-		{% include 'include/admin_add_server.html' %}
-		<tr>
-			<td class="padding20">
-				Credentials
-				<span class="need-field">*</span>
-			</td>
-			<td>
-				<select id="credentials" required>
-					<option disabled selected>Choose credentials</option>
-					{% for ssh in sshs %}
-						<option value="{{ssh.0}}">{{ssh.1}}</option>
-					{% endfor %}
-				</select>
-			</td>
-		</tr>
-		<tr>
-			<td class="padding20">
-				Group
-				<span class="need-field">*</span>
-			</td>
-			<td>
-				<select id="new-server-group-add" name="new-server-group-add">
-					<option disabled selected value="0">Choose group</option>
-					{% for group in groups %}
-						<option value="{{ group.0 }}">{{ group.1 }}</option>
-					{% endfor %}
-				</select>
-			</td>
-		</tr>
-		
-	</table>
-</div>	
-<div id="backup-add-table" title="Add a new backup job " style="display: none;">	
-	<table class="overview">
-		{% include 'include/add_backup.html' %}
-		<tr>
-			<td class="padding20">
-				Credentials for remote server
-				<span class="need-field">*</span>
-			</td>
-			<td>
-				<select id="backup-credentials" required>
-					<option disabled selected>Choose credentials</option>
-					{% for ssh in sshs %}
-						<option value="{{ssh.0}}">{{ssh.1}}</option>
-					{% endfor %}
-				</select>
-			</td>
-		</tr>
-		<tr>
-			<td class="padding20">
-				Description
-			</td>
-			<td>
-				{{ input('backup-description', size='30') }}
-			</td>
-		</tr>
-	</table>
-</div>
+{% include 'include/admins_dialogs.html' %}
 {% include 'include/change_pass_form.html' %}
 <div id="change-user-groups-dialog" style="display: none;">
 	<div id="change-user-groups-form"></div>
 </div>
-<div id="dialog-confirm-services" style="display: none;">
-  <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>Are you sure?</p>
-</div>
 <style>
-.ui-selectmenu-button.ui-button {
-    width: 10em;
-}
-.first-collumn {
-    width: 10%;
-}
+	.ui-selectmenu-button.ui-button {
+		width: 10em;
+	}
+	.first-collumn {
+		width: 10%;
+	}
 </style>
 <script>
 	$( function() {

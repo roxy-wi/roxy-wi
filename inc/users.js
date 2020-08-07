@@ -452,235 +452,203 @@ $( function() {
 				}
 			}
 		} ); 	
-	});	
-	$('#add-group').click(function() {
-		toastr.clear();
-		$.ajax( {
-			url: "options.py",
-			data: {
-				newgroup: "1",
-				groupname: $('#new-group-add').val(),
-				newdesc: $('#new-desc').val(),
-				token: $('#token').val()
+	});
+	$('#add-group-button').click(function() {
+		addGroupDialog.dialog('open');
+	});
+	var addGroupDialog = $( "#group-add-table" ).dialog({
+		autoOpen: false,
+		resizable: false,
+		height: "auto",
+		width: 600,
+		modal: true,
+		title: "Add a new group",
+		show: {
+			effect: "fade",
+			duration: 200
+		},
+		hide: {
+			effect: "fade",
+			duration: 200
+		},
+		buttons: {
+			"Add": function() {
+				addGroup(this);
 			},
-			type: "POST",
-			success: function( data ) {
-				if (data.indexOf('error:') != '-1') {
-					toastr.error(data);
-				} else {
-					toastr.clear();
-					var getId = new RegExp('[0-9]+');
-					var id = data.match(getId);
-					$("#ajax-group").append(data);
-					$( ".newgroup" ).addClass( "update", 1000, callbackGroup );
-					$('select:regex(id, group)').append('<option value='+id+'>'+$('#new-group-add').val()+'</option>').selectmenu("refresh");
-					$.getScript(awesome);
-				}
-			}					
-		} );
-	});	
-	$('#add-ssh').click(function() {
-		toastr.clear();
-		var ssh_enable = 0;
-		if ($('#new-ssh_enable').is(':checked')) {
-			ssh_enable = '1';
+			Cancel: function() {
+				$( this ).dialog( "close" );
+				clearTips();
+			}
 		}
-		$.ajax( {
-			url: "options.py",
-			data: {
-				new_ssh: $('#new-ssh-add').val(),
-				new_group: $('#new-sshgroup').val(),
-				ssh_user: $('#ssh_user').val(),
-				ssh_pass: $('#ssh_pass').val(),
-				ssh_enable: ssh_enable,
-				page: cur_url[0],
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function( data ) {
-				if (data.indexOf('error:') != '-1') {
-					toastr.error(data);
-				} else {
-					toastr.clear();
-					var getId = new RegExp('ssh-table-[0-9]+');
-					var id = data.match(getId) + '';
-					id = id.split('-').pop();;
-					$("#ssh_enable_table").append(data);
-					$( ".new_ssh" ).addClass( "update", 1000 );
-					setTimeout(function() {
-						$( ".new_ssh" ).removeClass( "update" );
-					}, 2500 );
-					$('select:regex(id, credentials)').append('<option value='+id+'>'+$('#new-ssh-add').val()+'</option>').selectmenu("refresh");
-					$('select:regex(id, ssh-key-name)').append('<option value='+$('#new-ssh-add').val()+'>'+$('#new-ssh-add').val()+'</option>').selectmenu("refresh");
-					$.getScript(awesome);
-					$( "input[type=submit], button" ).button();
-					$( "input[type=checkbox]" ).checkboxradio();
-					$( "select" ).selectmenu();
-				}
-			}					
-		} );
 	});
-	$('#add-telegram').click(function() {
-		toastr.clear();
-		$.ajax( {
-			url: "options.py",
-			data: {
-				newtelegram: $('#telegram-token-add').val(),
-				chanel: $('#telegram-chanel-add').val(),
-				telegramgroup: $('#new-telegram-group-add').val(),
-				page: cur_url[0],
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function( data ) {
-				if (data.indexOf('error:') != '-1') {
-					toastr.error(data);
-				} else {
-					$("#checker_table").append(data);
-					$( ".newgroup" ).addClass( "update", 1000, callbackGroup );
-					$.getScript(awesome);
-					$( "input[type=submit], button" ).button();
-					$( "input[type=checkbox]" ).checkboxradio();
-					$( "select" ).selectmenu();
-				}
-			}					
-		} );
-	});
-	function callbackGroup() {
-		setTimeout(function() {
-			$( ".newgroup" ).removeClass( "update" );
-		}, 2500 );
-    }
-	
 	$('#add-user-button').click(function() {
 		addUserDialog.dialog('open');
 	});
-	$('#add-group-button').click(function() {
-		if ($('#group-add-table').css('display', 'none')) {
-			$('#group-add-table').show("blind", "fast");
-		} else {
-			$('#group-add-table').hide("blind", "fast");
+	var addUserDialog = $( "#user-add-table" ).dialog({
+		autoOpen: false,
+		resizable: false,
+		height: "auto",
+		width: 600,
+		modal: true,
+		title: "Add a new user",
+		show: {
+			effect: "fade",
+			duration: 200
+		},
+		hide: {
+			effect: "fade",
+			duration: 200
+		},
+		buttons: {
+			"Add": function () {
+				addUser(this);
+			},
+			Cancel: function () {
+				$(this).dialog("close");
+				clearTips();
+			}
 		}
 	});
-	var addUserDialog = $( "#user-add-table" ).dialog({
-			autoOpen: false,
-			resizable: false,
-			height: "auto",
-			width: 600,
-			modal: true,
-			title: "Add a new user",
-			show: {
-				effect: "fade",
-				duration: 200
-			},
-			hide: {
-				effect: "fade",
-				duration: 200
-			},
-			buttons: {
-				"Add": function() {	
-					addUser();
-				},
-				Cancel: function() {
-					$( this ).dialog( "close" );
-					clearTips();
-				}
-			}
-		});
-	var addServerDialog = $( "#server-add-table" ).dialog({
-			autoOpen: false,
-			resizable: false,
-			height: "auto",
-			width: 600,
-			modal: true,
-			title: "Add a new server",
-			show: {
-				effect: "fade",
-				duration: 200
-			},
-			hide: {
-				effect: "fade",
-				duration: 200
-			},
-			buttons: {
-				"Add": function() {	
-					addServer();
-				},
-				Cancel: function() {
-					$( this ).dialog( "close" );
-					clearTips();
-				}
-			}
-		});
 	$('#add-server-button').click(function() {
-		addServerDialog.dialog('open');		
+		addServerDialog.dialog('open');
+	});
+	var addServerDialog = $( "#server-add-table" ).dialog({
+		autoOpen: false,
+		resizable: false,
+		height: "auto",
+		width: 600,
+		modal: true,
+		title: "Add a new server",
+		show: {
+			effect: "fade",
+			duration: 200
+		},
+		hide: {
+			effect: "fade",
+			duration: 200
+		},
+		buttons: {
+			"Add": function () {
+				addServer(this);
+			},
+			Cancel: function () {
+				$(this).dialog("close");
+				clearTips();
+			}
+		}
 	});
 	$('#add-ssh-button').click(function() {
-		if ($('#ssh-add-table').css('display', 'none')) {
-			$('#ssh-add-table').show("blind", "fast");
-		} 
+		addCredsDialog.dialog('open');
+	});
+	var addCredsDialog = $( "#ssh-add-table" ).dialog({
+		autoOpen: false,
+		resizable: false,
+		height: "auto",
+		width: 600,
+		modal: true,
+		title: "Add a new SSH credentials",
+		show: {
+			effect: "fade",
+			duration: 200
+		},
+		hide: {
+			effect: "fade",
+			duration: 200
+		},
+		buttons: {
+			"Add": function () {
+				addCreds(this);
+			},
+			Cancel: function () {
+				$(this).dialog("close");
+				clearTips();
+			}
+		}
 	});
 	$('#add-telegram-button').click(function() {
-		if ($('#telegram-add-table').css('display', 'none')) {
-			$('#telegram-add-table').show("blind", "fast");
-		} 
+		addTelegramDialog.dialog('open');
+	});
+	var addTelegramDialog = $( "#telegram-add-table" ).dialog({
+		autoOpen: false,
+		resizable: false,
+		height: "auto",
+		width: 600,
+		modal: true,
+		title: "Create a new Telegram channel",
+		show: {
+			effect: "fade",
+			duration: 200
+		},
+		hide: {
+			effect: "fade",
+			duration: 200
+		},
+		buttons: {
+			"Add": function () {
+				addTelegram(this);
+			},
+			Cancel: function () {
+				$(this).dialog("close");
+				clearTips();
+			}
+		}
+	});
+	$('#add-backup-button').click(function() {
+		addBackupDialog.dialog('open');
 	});
 	var addBackupDialog = $( "#backup-add-table" ).dialog({
-			autoOpen: false,
-			resizable: false,
-			height: "auto",
-			width: 600,
-			modal: true,
-			title: "Create a new backup job",
-			show: {
-				effect: "fade",
-				duration: 200
+		autoOpen: false,
+		resizable: false,
+		height: "auto",
+		width: 600,
+		modal: true,
+		title: "Create a new backup job",
+		show: {
+			effect: "fade",
+			duration: 200
+		},
+		hide: {
+			effect: "fade",
+			duration: 200
+		},
+		buttons: {
+			"Add": function () {
+				addBackup(this);
 			},
-			hide: {
-				effect: "fade",
-				duration: 200
-			},
-			buttons: {
-				"Add": function() {	
-					addBackup();
-				},
-				Cancel: function() {
-					$( this ).dialog( "close" );
-					clearTips();
-				}
+			Cancel: function () {
+				$(this).dialog("close");
+				clearTips();
 			}
-		});
-	$('#add-backup-button').click(function() {
-		addBackupDialog.dialog('open');		
+		}
+	});
+	$('#add-smon-button').click(function() {
+		addSmonServer.dialog('open');
 	});
 	var addSmonServer = $( "#smon-add-table" ).dialog({
-    			autoOpen: false,
-    			resizable: false,
-    			height: "auto",
-    			width: 600,
-    			modal: true,
-    			title: "Create a new server for monitoring",
-    			show: {
-    				effect: "fade",
-    				duration: 200
-    			},
-    			hide: {
-    				effect: "fade",
-    				duration: 200
-    			},
-    			buttons: {
-    				"Add": function() {
-    					addNewSmonServer();
-    				},
-    				Cancel: function() {
-    					$( this ).dialog( "close" );
-    					clearTips();
-    				}
-    			}
-    		});
-    	$('#add-smon-button').click(function() {
-    		addSmonServer.dialog('open');
-    	});
+		autoOpen: false,
+		resizable: false,
+		height: "auto",
+		width: 600,
+		modal: true,
+		title: "Create a new server for monitoring",
+		show: {
+			effect: "fade",
+			duration: 200
+		},
+		hide: {
+			effect: "fade",
+			duration: 200
+		},
+		buttons: {
+			"Add": function () {
+				addNewSmonServer(this);
+			},
+			Cancel: function () {
+				$(this).dialog("close");
+				clearTips();
+			}
+		}
+	});
 	$( "#ajax-users input" ).change(function() {
 		var id = $(this).attr('id').split('-');
 		updateUser(id[1])
@@ -787,9 +755,20 @@ $( function() {
 			clearTips();
 		}
 	});
-	
 } );
-function addNewSmonServer() {
+function common_ajax_action_after_success(dialog_id, new_group, ajax_append_id, data) {
+	toastr.clear();
+	$("#"+ajax_append_id).append(data);
+	console.log(new_group);
+	$( "."+new_group ).addClass( "update", 1000);
+	$.getScript(awesome);
+	clearTips();
+	$( dialog_id ).dialog("close" );
+	setTimeout(function() {
+		$( "."+new_group ).removeClass( "update" );
+	}, 2500 );
+}
+function addNewSmonServer(dialog_id) {
 	var valid = true;
 	allFields = $( [] ).add( $('#new-smon-ip') ).add( $('#new-smon-port') )
 	allFields.removeClass( "ui-state-error" );
@@ -839,25 +818,17 @@ function addNewSmonServer() {
 				if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 					toastr.error(data);
 				} else {
-					toastr.clear();
-					$("#ajax-smon").append(data);
-					$(".newserver").addClass( "update", 1000 );
 					$( "input[type=submit], button" ).button();
 					$( "input[type=checkbox]" ).checkboxradio();
 					$( "select" ).selectmenu();
-					$.getScript(awesome);
 					$.getScript('/inc/unsers.js');
-					setTimeout(function() {
-						$( ".newserver" ).removeClass( "update" );
-					}, 2500 );
-					clearTips();
-					$( "#smon-add-table" ).dialog("close" );
+					common_ajax_action_after_success(dialog_id, 'newserver', 'ajax-smon', data);
 				}	
 			}
 		} );
 	}
 }
-function addUser() {
+function addUser(dialog_id) {
 	var valid = true;
 	toastr.clear();
 	allFields = $( [] ).add( $('#new-username') ).add( $('#new-password') )
@@ -888,19 +859,45 @@ function addUser() {
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
-					toastr.clear();
-					$("#ajax-users").append(data);
 					var getId = new RegExp('[0-9]+');
 					var id = data.match(getId);
 					addUserGroup(id[0]);
+					common_ajax_action_after_success(dialog_id, 'user-'+id, 'ajax-users', data);
 				}	
 			}
 		} );
-		clearTips();
-		$( "#user-add-table" ).dialog("close" );
 	}
 }
-function addServer() {
+function addGroup(dialog_id) {
+	toastr.clear();
+	var valid = true;
+	allFields = $( [] ).add( $('#new-group-add') );
+	allFields.removeClass( "ui-state-error" );
+	valid = valid && checkLength( $('#new-group-add'), "new group name", 1 );
+	if(valid) {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				newgroup: "1",
+				groupname: $('#new-group-add').val(),
+				newdesc: $('#new-desc').val(),
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+				if (data.indexOf('error:') != '-1') {
+					toastr.error(data);
+				} else {
+					var getId = new RegExp('[0-9]+');
+					var id = data.match(getId);
+					$('select:regex(id, group)').append('<option value='+id+'>'+$('#new-group-add').val()+'</option>').selectmenu("refresh");
+					common_ajax_action_after_success(dialog_id, 'newgroup', 'ajax-group', data);
+				}
+			}
+		} );
+	}
+}
+function addServer(dialog_id) {
 	toastr.clear()
 	var valid = true;
 	var servername = $('#new-server-add').val();
@@ -953,25 +950,91 @@ function addServer() {
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
-					toastr.clear()
-					$("#ajax-servers").append(data);
-					$(".newserver").addClass( "update", 1000 );
+					common_ajax_action_after_success(dialog_id, 'newserver', 'ajax-servers', data);
 					$( "input[type=submit], button" ).button();
 					$( "input[type=checkbox]" ).checkboxradio();
 					$( ".controlgroup" ).controlgroup();
 					$( "select" ).selectmenu();
-					$.getScript(awesome);
-					setTimeout(function() {
-						$( ".newserver" ).removeClass( "update" );
-					}, 2500 );							
 				}
 			}					
 		} );
-		clearTips();
-		$( "#server-add-table" ).dialog("close" );
 	}
 }
-function addBackup() {
+function addCreds(dialog_id) {
+	toastr.clear();
+	var ssh_enable = 0;
+	if ($('#new-ssh_enable').is(':checked')) {
+		ssh_enable = '1';
+	}
+	var valid = true;
+	allFields = $( [] ).add( $('#new-ssh-add') ).add( $('#ssh_user') )
+	allFields.removeClass( "ui-state-error" );
+	valid = valid && checkLength( $('#new-ssh-add'), "Name", 1 );
+	valid = valid && checkLength( $('#ssh_user'), "Credentials", 1 );
+	if(valid) {
+		$.ajax({
+			url: "options.py",
+			data: {
+				new_ssh: $('#new-ssh-add').val(),
+				new_group: $('#new-sshgroup').val(),
+				ssh_user: $('#ssh_user').val(),
+				ssh_pass: $('#ssh_pass').val(),
+				ssh_enable: ssh_enable,
+				page: cur_url[0],
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function (data) {
+				if (data.indexOf('error:') != '-1') {
+					toastr.error(data);
+				} else {
+					var getId = new RegExp('ssh-table-[0-9]+');
+					var id = data.match(getId) + '';
+					id = id.split('-').pop();
+					common_ajax_action_after_success(dialog_id, 'ssh-table-'+id, 'ssh_enable_table', data);
+					$('select:regex(id, credentials)').append('<option value=' + id + '>' + $('#new-ssh-add').val() + '</option>').selectmenu("refresh");
+					$('select:regex(id, ssh-key-name)').append('<option value=' + $('#new-ssh-add').val() + '>' + $('#new-ssh-add').val() + '</option>').selectmenu("refresh");
+					$("input[type=submit], button").button();
+					$("input[type=checkbox]").checkboxradio();
+					$("select").selectmenu();
+				}
+			}
+		});
+	}
+}
+function addTelegram(dialog_id) {
+	var valid = true;
+	toastr.clear();
+	allFields = $( [] ).add( $('#telegram-token-add') ).add( $('#telegram-chanel-add') )
+	allFields.removeClass( "ui-state-error" );
+	valid = valid && checkLength( $('#telegram-token-add'), "token", 1 );
+	valid = valid && checkLength( $('#telegram-chanel-add'), "channel name", 1 );
+	if(valid) {
+		toastr.clear();
+		$.ajax( {
+			url: "options.py",
+			data: {
+				newtelegram: $('#telegram-token-add').val(),
+				chanel: $('#telegram-chanel-add').val(),
+				telegramgroup: $('#new-telegram-group-add').val(),
+				page: cur_url[0],
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+				if (data.indexOf('error:') != '-1') {
+					toastr.error(data);
+				} else {
+					common_ajax_action_after_success(dialog_id, 'newgroup', 'checker_table', data);
+					$( "input[type=submit], button" ).button();
+					$( "input[type=checkbox]" ).checkboxradio();
+					$( "select" ).selectmenu();
+				}
+			}
+		} );
+	}
+}
+function addBackup(dialog_id) {
 	var valid = true;
 	toastr.clear();
 	allFields = $( [] ).add( $('#backup-server') ).add( $('#rserver') ).add( $('#rpath') ).add( $('#backup-time') ).add( $('#backup-credentials') )
@@ -1001,22 +1064,14 @@ function addBackup() {
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else if (data.indexOf('success') != '-1') {
-					toastr.remove();
-					$("#ajax-backup-table").append(data);
-					$(".newbackup").addClass( "update", 1000 );
-					setTimeout(function() {
-						$( ".newbackup" ).removeClass( "update" );
-					}, 2500 );		
 					$( "select" ).selectmenu();
-					$.getScript(awesome);														
+					common_ajax_action_after_success(dialog_id, 'newbackup', 'ajax-backup-table', data);
 				} else if (data.indexOf('info') != '-1') {
 					toastr.remove();
 					toastr.info(data);
 				}	
 			}
 		} );
-		clearTips();
-		$( "#backup-add-table" ).dialog("close" );
 	}
 }
 function updateSettings(param, val) {
@@ -1848,11 +1903,6 @@ function addUserGroup(id) {
 		success: function( data ) {
 			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 				toastr.error(data);
-			} else {
-				$("#user-" + id).addClass("update", 1000);
-				setTimeout(function () {
-					$("#user-" + id).removeClass("update");
-				}, 2500);
 			}
 		}			
 	} );
