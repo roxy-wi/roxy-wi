@@ -557,11 +557,18 @@ function viewLogs() {
 }
 $( function() {
 	$('a').click(function(e) {
-		var cur_path = window.location.pathname;
-		$('title').text($(this).attr('title'));
-		history.pushState({}, '', $(this).attr('href'));
-		if ($(this).attr('href').split('#')[0] && $(this).attr('href').split('#')[0] != cur_path) {
-			window.history.go()
+		try {
+			var cur_path = window.location.pathname;
+			var attr = $(this).attr('href');
+			if (typeof attr !== typeof undefined && attr !== false) {
+				$('title').text($(this).attr('title'));
+				history.pushState({}, '', $(this).attr('href'));
+				if ($(this).attr('href').split('#')[0] && $(this).attr('href').split('#')[0] != cur_path) {
+					window.history.go()
+				}
+			}
+		} catch (err) {
+			console.log(err);
 		}
 	});
 	toastr.options.closeButton = true;

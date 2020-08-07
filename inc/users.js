@@ -759,7 +759,6 @@ $( function() {
 function common_ajax_action_after_success(dialog_id, new_group, ajax_append_id, data) {
 	toastr.clear();
 	$("#"+ajax_append_id).append(data);
-	console.log(new_group);
 	$( "."+new_group ).addClass( "update", 1000);
 	$.getScript(awesome);
 	clearTips();
