@@ -818,11 +818,11 @@ function addNewSmonServer(dialog_id) {
 				if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 					toastr.error(data);
 				} else {
+					common_ajax_action_after_success(dialog_id, 'newserver', 'ajax-smon', data);
 					$( "input[type=submit], button" ).button();
 					$( "input[type=checkbox]" ).checkboxradio();
 					$( "select" ).selectmenu();
 					$.getScript('/inc/unsers.js');
-					common_ajax_action_after_success(dialog_id, 'newserver', 'ajax-smon', data);
 				}	
 			}
 		} );
@@ -1064,10 +1064,10 @@ function addBackup(dialog_id) {
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else if (data.indexOf('success') != '-1') {
-					$( "select" ).selectmenu();
 					common_ajax_action_after_success(dialog_id, 'newbackup', 'ajax-backup-table', data);
+					$( "select" ).selectmenu();
 				} else if (data.indexOf('info') != '-1') {
-					toastr.remove();
+					toastr.clear();
 					toastr.info(data);
 				}	
 			}
@@ -1324,6 +1324,8 @@ function removeUser(id) {
 			data = data.replace(/\s+/g,' ');
 			if(data == "Ok ") {
 				$("#user-"+id).remove();
+			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
+				toastr.error(data);
 			}
 		}					
 	} );
@@ -1341,6 +1343,8 @@ function removeServer(id) {
 			data = data.replace(/\s+/g,' ');
 			if(data == "Ok ") {
 				$("#server-"+id).remove();
+			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
+				toastr.error(data);
 			}
 		}					
 	} );	
@@ -1360,6 +1364,8 @@ function removeGroup(id) {
 				$("#group-"+id).remove();
 				$('select:regex(id, group) option[value='+id+']').remove();
 				$('select:regex(id, group)').selectmenu("refresh");
+			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
+				toastr.error(data);
 			}
 		}					
 	} );	
@@ -1379,6 +1385,8 @@ function removeSsh(id) {
 				$("#ssh-table-"+id).remove();
 				$('select:regex(id, credentials) option[value='+id+']').remove();
 				$('select:regex(id, credentials)').selectmenu("refresh");
+			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
+				toastr.error(data);
 			}
 		}					
 	} );	
@@ -1396,6 +1404,8 @@ function removeTelegram(id) {
 			data = data.replace(/\s+/g,' ');
 			if(data == "Ok ") {
 				$("#telegram-table-"+id).remove();
+			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
+				toastr.error(data);
 			}
 		}					
 	} );	
@@ -1416,6 +1426,8 @@ function removeBackup(id) {
 			data = data.replace(/\s+/g,' ');
 			if(data.indexOf('Ok') != '-1') {
 				$("#backup-table-"+id).remove();
+			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
+				toastr.error(data);
 			}
 		}					
 	} );	
@@ -1461,7 +1473,7 @@ function updateUser(id) {
 		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error:') != '-1') {
+			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.remove();
@@ -1486,7 +1498,7 @@ function updateGroup(id) {
 		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error:') != '-1') {
+			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
@@ -1541,7 +1553,7 @@ function updateServer(id) {
 		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error:') != '-1') {
+			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
@@ -1568,7 +1580,7 @@ function uploadSsh() {
 			type: "POST",
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
-				if (data.indexOf('danger') != '-1') {
+				if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1')  {
 						toastr.error(data);
 					} else if (data.indexOf('success') != '-1') {
 						toastr.clear();
@@ -1605,7 +1617,7 @@ function updateSSH(id) {
 		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error:') != '-1') {
+			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
@@ -1635,7 +1647,7 @@ function updateTelegram(id) {
 		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error:') != '-1') {
+			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
@@ -1668,7 +1680,7 @@ function updateBackup(id) {
 			type: "POST",
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
-				if (data.indexOf('error:') != '-1') {
+				if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 					toastr.error(data);
 				} else {
 					toastr.clear();
@@ -1704,7 +1716,7 @@ function updateSmon(id) {
 		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error:') != '-1') {
+			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();

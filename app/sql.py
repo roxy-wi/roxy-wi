@@ -365,20 +365,6 @@ def select_groups(**kwargs):
 	con.close()  
 	
 	
-def select_user_name_group(id):
-	con, cur = get_cur()
-	sql = """select name from groups where id='%s' """ % id
-	try:    
-		cur.execute(sql)
-	except sqltool.Error as e:
-		funct.out_error(e)
-	else:
-		for group in cur.fetchone():
-			return group
-	cur.close()    
-	con.close()  
-	
-	
 def select_server_by_name(name):
 	con, cur = get_cur()
 	sql = """select ip from servers where hostname='%s' """ % name
@@ -590,19 +576,6 @@ def get_role_id_by_name(name):
 			return user_id[0]
 	cur.close()    
 	con.close() 
-	
-
-def get_user_telegram_by_uuid(uuid):
-	con, cur = get_cur()
-	sql = """ select telegram.* from telegram left join user as user on telegram.groups = user.groups left join uuid as uuid on user.id = uuid.user_id where uuid.uuid = '%s' """ % uuid
-	try:
-		cur.execute(sql)		
-	except sqltool.Error as e:
-		funct.out_error(e)
-	else:
-		return cur.fetchall()
-	cur.close()    
-	con.close()
 
 
 def get_user_telegram_by_group(group):
@@ -1367,7 +1340,7 @@ def select_servers_metrics(uuid, **kwargs):
 		if group == '1':
 			sql = """ select ip from servers where enable = 1 and metrics = '1' """
 		else:
-			sql = """ select ip from servers where groups like '%{group}%' and metrics = '1'""".format(group=group)		
+			sql = """ select ip from servers where groups = '{group}' and metrics = '1'""".format(group=group)		
 		try:   
 			cur.execute(sql)
 		except sqltool.Error as e:
@@ -1654,7 +1627,8 @@ def select_roles(**kwargs):
 		return cur.fetchall()
 	cur.close()    
 	con.close()  
-	
+
+
 def select_alert(**kwargs):
 	con, cur = get_cur()
 	sql = """select ip from servers where alert = 1 """
@@ -1886,6 +1860,7 @@ def update_smon(id, ip, port, body, telegram, group, desc, en):
 	cur.close()
 	con.close()
 
+
 def select_en_service():
 	con, cur = get_cur()
 	sql = """ select ip, port, telegram_channel_id, id from smon where en = 1"""
@@ -2054,13 +2029,13 @@ def smon_list(user_group):
 
 
 form = funct.form
-error_mess = '<span class="alert alert-danger" id="error">All fields must be completed <a title="Close" id="errorMess"><b>X</b></a></span>'
+error_mess = 'error: All fields must be completed'
 
 
 def check_token():
 	if not check_token_exists(form.getvalue('token')):
 		print('Content-type: text/html\n')
-		print("Your token has been expired")		
+		print("error: Your token has been expired")		
 		import sys
 		sys.exit()
 		
