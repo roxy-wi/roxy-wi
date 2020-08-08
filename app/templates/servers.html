@@ -399,34 +399,9 @@
 		</table>
 		<div id="ajaxmon"></div>
 	</div>
-	
+
 	<div id="backup">
-		<table class="overview" id="ajax-backup-table">
-			<tr class="overviewHead">
-				<td class="padding10 first-collumn">Servers</td>
-				<td class="padding10">Remote server</td>
-				<td class="padding10">Remote folder</td>
-				<td class="padding10">Backup type</td>
-				<td class="padding10">Period time</td>
-				<td class="padding10">Credentials</td>
-				<td class="padding10">Description</td>
-				<td></td>
-				<td></td>
-			</tr>
-			{% for b in backups %}
-				{% for s in servers %}
-					{% if b.1 in s.2 %}
-						{% include 'include/admin_backup.html' %}
-					{% endif %}
-				{% endfor %}
-			{% endfor %}
-		</table>
-		<br /><span class="add-button" title="Add a new backup job" id="add-backup-button">+ Add a new backup job</span>
-		<br /><br />
-		<div id="ajax-backup"></div>
-		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
-			You can read the description of all parameters <a href="https://haproxy-wi.org/description.py?description=backup" title="Backup description" target="_blank">here</a>
-		</div>
+		{% include 'include/admin_backup.html' %}
 	</div>
 	
 </div>

@@ -1062,13 +1062,16 @@ function addBackup(dialog_id) {
 				data = data.replace(/\s+/g,' ');
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
-				} else if (data.indexOf('success') != '-1') {
+				} else if (data.indexOf('success: ') != '-1') {
 					common_ajax_action_after_success(dialog_id, 'newbackup', 'ajax-backup-table', data);
 					$( "select" ).selectmenu();
-				} else if (data.indexOf('info') != '-1') {
+				} else if (data.indexOf('info: ') != '-1') {
 					toastr.clear();
 					toastr.info(data);
-				}	
+				} else if (data.indexOf('warning: ') != '-1') {
+					toastr.clear();
+					toastr.warning(data);
+				}
 			}
 		} );
 	}
@@ -1342,8 +1345,11 @@ function removeServer(id) {
 			data = data.replace(/\s+/g,' ');
 			if(data == "Ok ") {
 				$("#server-"+id).remove();
-			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
+			} else if (data.indexOf('error: ') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
+			} else if (data.indexOf('warning: ') != '-1') {
+				toastr.clear();
+				toastr.warning(data);
 			}
 		}					
 	} );	

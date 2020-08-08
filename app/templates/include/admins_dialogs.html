@@ -202,7 +202,9 @@
                 <select id="backup-credentials" required>
                     <option disabled selected>Choose credentials</option>
                     {% for ssh in sshs %}
-                    <option value="{{ssh.0}}">{{ssh.1}}</option>
+                        {% if ssh.2 == 1 %}
+                            <option value="{{ssh.0}}">{{ssh.1}}</option>
+                        {% endif %}
                     {% endfor %}
                 </select>
             </td>

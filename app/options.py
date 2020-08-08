@@ -1203,7 +1203,7 @@ if form.getvalue('nginx_exp_install'):
 
 
 if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupupdate'):
-	server = form.getvalue('server')
+	serv = form.getvalue('server')
 	rpath = form.getvalue('rpath')
 	time = form.getvalue('time')
 	type = form.getvalue('type')
@@ -1223,8 +1223,8 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
 		deljob = ''
 	else:
 		deljob = ''
-		if sql.check_exists_backup(server):
-			print('info: Backup job for %s already exists' % server)
+		if sql.check_exists_backup(serv):
+			print('warning: Backup job for %s already exists' % serv)
 			sys.exit()
 
 	servers = sql.select_servers(server=serv)
@@ -1233,9 +1233,9 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
 
 	os.system("cp scripts/%s ." % script)
 
-	commands = [ "chmod +x "+script +" &&  ./"+script +"  HOST="+rserver+"  SERVER="+server+" TYPE="+type+
+	commands = ["chmod +x "+script +" &&  ./"+script +"  HOST="+rserver+"  SERVER="+serv+" TYPE="+type+
 				" SSH_PORT="+ssh_port+
-				" TIME="+time+" RPATH="+rpath+" DELJOB="+deljob+" USER="+str(ssh_user_name)+" KEY="+str(ssh_key_name) ]
+				" TIME="+time+" RPATH="+rpath+" DELJOB="+deljob+" USER="+str(ssh_user_name)+" KEY="+str(ssh_key_name)]
 
 	output, error = funct.subprocess_execute(commands[0])
 
@@ -1248,32 +1248,32 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
 				try:
 					l = l.split(':')[1]
 					l = l.split('"')[1]
-					print(l+"<br>")
+					print('error: '+l+"<br>")
 					break
 				except:
-					print(output)
+					print('error: ' + output)
 					break
 		else:
-			if deljob == '' and update == '':
-				if sql.insert_backup_job(server, rserver, rpath, type, time, cred, description):
-					funct.logging('backup ', ' has created a new backup job for server '+server , haproxywi=1, login=1)
-					import http.cookies
+			if not deljob and not update:
+				if sql.insert_backup_job(serv, rserver, rpath, type, time, cred, description):
+					#import http.cookies
 					from jinja2 import Environment, FileSystemLoader
 					env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
 					template = env.get_template('new_backup.html')
-					template = template.render(backups=sql.select_backups(server=server, rserver=rserver), sshs=sql.select_ssh())
+					template = template.render(backups=sql.select_backups(server=serv, rserver=rserver), sshs=sql.select_ssh())
 					print(template)
-					print('success: Backup job has created<br>')
+					print('success: Backup job has created')
+					funct.logging('backup ', ' has created a new backup job for server '+serv , haproxywi=1, login=1)
 				else:
-					print('error: Cannot add job into DB<br>')
+					print('error: Cannot add job into DB')
 			elif deljob:
 				sql.delete_backups(deljob)
 				print('Ok')
-				funct.logging('backup ', ' has deleted a backup job for server '+server, haproxywi=1, login=1)
+				funct.logging('backup ', ' has deleted a backup job for server '+serv, haproxywi=1, login=1)
 			elif update:
-				sql.update_backup(server, rserver, rpath, type, time, cred, description, update)
+				sql.update_backup(serv, rserver, rpath, type, time, cred, description, update)
 				print('Ok')
-				funct.logging('backup ', ' has updated a backup job for server '+server, haproxywi=1, login=1)
+				funct.logging('backup ', ' has updated a backup job for server '+serv, haproxywi=1, login=1)
 
 
 if form.getvalue('install_nginx'):
@@ -1676,6 +1676,10 @@ if form.getvalue('serverdel') is not None:
 	server = sql.select_servers(id=serverdel)
 	for s in server:
 		hostname = s[1]
+		ip = s[2]
+	if sql.check_exists_backup(ip):
+		print('warning: Delete the backup first ')
+		sys.exit()
 	if sql.delete_server(serverdel):
 		sql.delete_waf_server(serverdel)
 		print("Ok")

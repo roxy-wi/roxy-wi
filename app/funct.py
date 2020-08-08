@@ -15,7 +15,7 @@ def get_app_dir():
 def get_config_var(sec, var):
 	from configparser import ConfigParser, ExtendedInterpolation
 	try:
-		path_config = "/var/www/haproxy-wi/app/haproxy-wi.cfg"
+		path_config = "haproxy-wi.cfg"
 		config = ConfigParser(interpolation=ExtendedInterpolation())
 		config.read(path_config)
 	except:
@@ -956,7 +956,7 @@ def show_backends(serv, **kwargs):
 		return ret
 		
 		
-def get_files(dir = get_config_var('configs', 'haproxy_save_configs_dir'), format = 'cfg', **kwargs):
+def get_files(dir=get_config_var('configs', 'haproxy_save_configs_dir'), format='cfg', **kwargs):
 	import glob
 	if format == 'log':
 		file = []
@@ -1057,6 +1057,7 @@ def out_error(e):
 		error = e
 	else:
 		error = e.args[0]
+	logging('localhost', error, haproxywi=1, login=1)
 	print('error: '+error)
 	
 

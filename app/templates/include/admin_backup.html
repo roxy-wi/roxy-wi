@@ -1,4 +1,19 @@
-<tr id="backup-table-{{b.0}}">
+	<table class="overview" id="ajax-backup-table">
+		<tr class="overviewHead">
+			<td class="padding10 first-collumn">Servers</td>
+			<td class="padding10">Remote server</td>
+			<td class="padding10">Remote folder</td>
+			<td class="padding10">Backup type</td>
+			<td class="padding10">Period time</td>
+			<td class="padding10">Credentials</td>
+			<td class="padding10">Description</td>
+			<td></td>
+			<td></td>
+		</tr>
+		{% for b in backups %}
+		{% for s in servers %}
+		{% if b.1 in s.2 %}
+			<tr id="backup-table-{{b.0}}">
 					<td class="padding10 first-collumn">
 						<span id="backup-server-{{b.0}}">{{ b.1 }}</span>
 					</td>
@@ -6,7 +21,6 @@
 						{{ input('backup-rserver-'+b.0|string(), value=b.2, size='14') }}
 					</td>
 					<td>
-
 						{{ input('backup-rpath-'+b.0|string(), value=b.3) }}
 					</td>
 					<td>
@@ -14,9 +28,8 @@
 						{{ select('backup-type-'+b.0|string(), values=values, selected=b.4, required='required', class='force_close') }}
 					</td>
 					<td>
-					{% set values = {'hourly':'hourly','daily':'daily','weekly':'weekly', 'monthly':'monthly'} %}
+						{% set values = {'hourly':'hourly','daily':'daily','weekly':'weekly', 'monthly':'monthly'} %}
 						{{ select('backup-time-'+b.0|string(), values=values, selected=b.5, required='required', class='force_close') }}
-						
 					</td>
 					<td>
 						<select id="backup-credentials-{{b.0}}" required>
@@ -44,5 +57,15 @@
 				</td> 
 				<td>
 					<a class="delete" onclick="confirmDeleteBackup({{b.0}})" title="Delete backup {{b.1}}" style="cursor: pointer;"></a>
-				</td> 
-				</tr>
+				</td>
+		</tr>
+		{% endif %}
+		{% endfor %}
+		{% endfor %}
+	</table>
+	<br /><span class="add-button" title="Add a new backup job" id="add-backup-button">+ Add a new backup job</span>
+	<br /><br />
+	<div id="ajax-backup"></div>
+	<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+		You can read the description of all parameters <a href="https://haproxy-wi.org/description.py?description=backup" title="Backup description" target="_blank">here</a>
+	</div>

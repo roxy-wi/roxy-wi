@@ -756,12 +756,14 @@ def update_ssh(id, name, enable, group, username, password):
 	
 def insert_backup_job(server, rserver, rpath, type, time, cred, description):
 	con, cur = get_cur()
-	sql = """insert into backups(server, rhost, rpath, type, time, cred, description) values ('%s', '%s', '%s', '%s', '%s', '%s', '%s') """ % (server, rserver, rpath, type, time, cred, description)
-	try:    
+	sql = """insert into backups(server, rhost, rpath, `type`, `time`, `cred`, `description`) 
+			values ('%s', '%s', '%s', '%s', '%s', '%s', '%s') """ % (server, rserver, rpath, type, time, cred, description)
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
+		print('error: '+str(e))
 		con.rollback()
 		return False
 	else: 
