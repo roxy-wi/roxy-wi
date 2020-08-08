@@ -1,0 +1,94 @@
+ <table>
+        {% if page == 'users.py' %}
+        <caption><h3>Install Grafana and Prometheus servers</h3></caption>
+        <tr class="overviewHead">
+            <td class="padding10 first-collumn">Current instalation</td>
+            <td class="padding10 first-collumn" style="width: 30%;">Available Versions</td>
+            <td class="padding10 first-collumn" style="width: 30%;">Note</td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td id="cur_grafana_ver" class="padding10 first-collumn">
+                {% if grafana == "Active:" %}
+                Grafana and Prometheus servers have already installed
+                {% else %}
+                There are no Grafana and Prometheus servers
+                {% endif %}
+            </td>
+            <td class="padding10 first-collumn" style="width: 20%;">
+                HAProxy-WI will try to install the latest Grafana and Prometheus server versions
+            </td>
+            <td class="padding10 first-collumn">
+                Before Install any Exporters install Grafana and Prometheus servers first
+            </td>
+            <td></td>
+            <td>
+                {% if grafana != "Active:" %}
+                <span class="ui-button ui-widget ui-corner-all" id="grafna_install" title="Install Grafana and Prometheus server">Install</span>
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+    {% endif %}
+    <table>
+        <caption><h3>Install HAProxy Exporter</h3></caption>
+        <tr class="overviewHead">
+            <td class="padding10 first-collumn">Current instalation</td>
+            <td class="padding10 first-collumn" style="width: 30%;">Available Versions</td>
+            <td class="padding10 first-collumn" style="width: 30%;">Server</td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td id="cur_haproxy_exp_ver" class="padding10 first-collumn">
+            </td>
+            <td class="padding10 first-collumn" style="width: 20%;">
+                HAProxy-WI will try to install the latest HAProxy Exporter version
+            </td>
+            <td class="padding10 first-collumn">
+                <select autofocus required name="haproxy_exp_addserv" id="haproxy_exp_addserv">
+                    <option disabled selected>Choose server</option>
+                    {% for select in servers %}
+                    <option value="{{ select.2 }}">{{ select.1 }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td>
+            </td>
+            <td>
+                <span class="ui-button ui-widget ui-corner-all" id="haproxy_exp_install" title="Install HAProxy Exporter">Install</span>
+            </td>
+        </tr>
+    </table>
+    <table>
+        <caption><h3>Install Nginx Exporter</h3></caption>
+        <tr class="overviewHead">
+            <td class="padding10 first-collumn">Current instalation</td>
+            <td class="padding10 first-collumn" style="width: 30%;">Available Versions</td>
+            <td class="padding10 first-collumn" style="width: 30%;">Server</td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td id="cur_nginx_exp_ver" class="padding10 first-collumn">
+            </td>
+            <td class="padding10 first-collumn" style="width: 20%;">
+                HAProxy-WI will try to install the latest Nginx Exporter version
+            </td>
+            <td class="padding10 first-collumn">
+                <select autofocus required name="nginx_exp_addserv" id="nginx_exp_addserv">
+                    <option disabled selected>Choose server</option>
+                    {% for select in servers %}
+                    <option value="{{ select.2 }}">{{ select.1 }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td>
+            </td>
+            <td>
+                <span class="ui-button ui-widget ui-corner-all" id="nginx_exp_install" title="Install Nginx Exporter">Install</span>
+            </td>
+        </tr>
+    </table>
+    <div id="ajaxmon"></div>

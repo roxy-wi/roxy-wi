@@ -20,6 +20,7 @@
 		<li><a href="#services" title="Admin area: Manage HAProxy-WI services - HAProxy-WI">Services</a></li>
 		<li><a href="#updatehapwi" title="Admin area: Update HAProxy-WI - HAProxy-WI">Update</a></li>
 		<li><a href="#backup" title="Admin area: Backup configs - HAProxy-WI">Backup</a></li>
+		<li><a href="#installmon" title="Servers: Monitoring service installation - HAProxy-WI">Monitoring installation</a></li>
 		{% include 'include/login.html' %}
 	</ul>
 	<ul id='browse_histroy'></ul>
@@ -446,6 +447,10 @@
 
 	<div id="backup">
 		{% include 'include/admin_backup.html' %}
+	</div>
+
+	<div id="installmon">
+		{% include 'include/mon_installation.html' %}
 	</div>
 </div>
 {% include 'include/admins_dialogs.html' %}

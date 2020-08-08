@@ -71,26 +71,29 @@
 							{% endif %}
 							</ul>
 						</li>
-	
+
+						<li class="p_menu">
+							<a title="Actions with Nginx" class="nginx">Nginx</a>
+							<ul class="v_menu">
+								<li><a href="/app/hapservers.py?service=nginx" title="Overview Nginx servers" class="overview-link head-submenu">Overview</a> </li>
+								<li><a href="/app/config.py?service=nginx" title="Working with Nginx configs" class="edit head-submenu">Configs</a></li>
+								<li><a href="/app/viewsttats.py?service=nginx" title="Nginx statistics" class="stats head-submenu">Stats</a></li>
+								{% if role <= 2 %}
+								<li><a href="/app/versions.py?service=nginx" title="Working with versions Nginx configs" class="version head-submenu">Versions</a></li>
+								<li><a href="/app/add.py?service=nginx#ssl" title="Add proxy: Upload SSL certificates - HAProxy-WI" class="cert head-submenu" id="add3">SSL</a></li>
+								{% endif %}
+							</ul>
+						</li>
 						{% if role <= 2 %}
-							<li class="p_menu">
-								<a title="Actions with Nginx" class="nginx">Nginx</a>
-								<ul class="v_menu">
-									<li><a href="/app/hapservers.py?service=nginx" title="Overview Nginx servers" class="overview-link head-submenu">Overview</a> </li>
-									<li><a href="/app/config.py?service=nginx" title="Working with Nginx configs" class="edit head-submenu">Configs</a></li>
-									<li><a href="/app/viewsttats.py?service=nginx" title="Nginx statistics" class="stats head-submenu">Stats</a></li>
-									<li><a href="/app/versions.py?service=nginx" title="Working with versions Nginx configs" class="version head-submenu">Versions</a></li>
-									<li><a href="/app/add.py?service=nginx#ssl" title="Add proxy: Upload SSL certificates - HAProxy-WI" class="cert head-submenu" id="add3">SSL</a></li>
-								</ul>
-							</li>
-							<li class="p_menu">
-								<a title="Keepalived" class="ha">Keepalived</a>
-								<ul class="v_menu">
-									<li><a href="/app/ha.py" title="Create and configure HA cluster - HAProxy-WI" class="keepalived head-submenu">HA</a></li>
-									<li><a href="/app/config.py?service=keepalived" title="Working with Keepalived configs" class="edit head-submenu">Configs</a></li>
-									<li><a href="/app/versions.py?service=keepalived" title="Working with versions Keepalived configs" class="version head-submenu keepalived_versions">Versions</a></li>
-								</ul>
-							</li>
+						<li class="p_menu">
+							<a title="Keepalived" class="ha">Keepalived</a>
+							<ul class="v_menu">
+								<li><a href="/app/ha.py" title="Create and configure HA cluster - HAProxy-WI" class="keepalived head-submenu">HA</a></li>
+								<li><a href="/app/config.py?service=keepalived" title="Working with Keepalived configs" class="edit head-submenu">Configs</a></li>
+								<li><a href="/app/versions.py?service=keepalived" title="Working with versions Keepalived configs" class="version head-submenu keepalived_versions">Versions</a></li>
+							</ul>
+						</li>
+						{% endif %}
 							<li class="p_menu">
 								<a title="Simple monitoring network ports" class="stats">SMON</a>
 								<ul class="v_menu">
@@ -100,6 +103,7 @@
 									{% endif %}
 								</ul>
 							</li>
+						{% if role <= 2 %}
 							<li class="p_menu">
 								<a title="Servers manage" class="runtime">Servers</a>
 								<ul class="v_menu">

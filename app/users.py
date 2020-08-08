@@ -16,6 +16,7 @@ try:
 	users = sql.select_users()
 	settings = sql.get_setting('', all=1)
 	ldap_enable = sql.get_setting('ldap_enable')
+	grafana, stderr = funct.subprocess_execute("service grafana-server status |grep Active |awk '{print $1}'")
 	services = []
 	services_name = {"checker_haproxy":"Master checker service", 
 					"keep_alive":"Auto start service", 
@@ -47,6 +48,7 @@ template = template.render(title = "Admin area: Manage users",
 							settings = settings,
 							backups = sql.select_backups(),
 							services = services,
+						   	grafana = ''.join(grafana),
 						   	page = "users.py",
 							ldap_enable = ldap_enable)
 print(template)

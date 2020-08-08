@@ -109,7 +109,7 @@
 							width=18 style="padding-left: 5px; margin-bottom: -3px;">
 					{% endif %}
 				{% endif %}
-				{% if role <= 1 %}
+				{% if role <= 2 %}
 				<span class="server-action">
 					{% if service == 'nginx' %}
 						{% set action_service = 'nginx' %}
@@ -162,7 +162,7 @@
 			</div>
 			{% if service == 'haproxy' %}
 				<div class="server-act-links" id="server-{{s.8.0.0|string()}}">
-				{% if role <= 1 %}
+				{% if role <= 2 %}
 					{% set id = 'alert-' + s.8.0.0|string() %}
 					{% if s.8.0.8 == 1 %}
 						{{ checkbox(id, title='Enable alerting', value='1', desc='Alert', checked='checked') }}
