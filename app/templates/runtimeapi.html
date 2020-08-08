@@ -70,6 +70,7 @@
 			You can read the description of all Run Time API <a href="https://haproxy-wi.org/description.py?description=runtimeapi#commands" title="Run Time API description" target="_blank">here</a>
 		</div>
 	</div>
+	{% if role <= 2 %}
 	<div id="maxconn">
 		<table class="overview">
 			<tr class="overviewHead">
@@ -174,7 +175,7 @@
 					</select>				
 				</td>
 				<td>
-					<button type="submit" name="Enter" value="Enter" id="enter">Enter</button>
+					<button type="submit" name="Enter" value="Enter" id="enter">Get table</button>
 				</td>
 					</form>
 			</tr>
@@ -206,7 +207,7 @@
 					</select>
 				</td>
 				<td>
-					<button type="submit" name="Enter" value="Enter" id="enter">Enter</button>
+					<button type="submit" name="Enter" value="Enter" id="enter">Get list</button>
 				</td>
 				</form>
 			</tr>
@@ -216,6 +217,7 @@
 			You can read how it works <a href="https://haproxy-wi.org/description.py?description=runtimeapi#ip" title="Change IP and Port" target="_blank">here</a>
 		</div>
 	</div>
+	{% endif %}
 </div>
 <script>
 $( function() {

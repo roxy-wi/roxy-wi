@@ -12,7 +12,7 @@
 				Server
 			{% endif %}
 		</td>
-		{% if onclick != 'viewLogs()' and service != 'nginx' %}
+		{% if select_id != 'viewlogs' and service != 'nginx' %}
 		<td style="width: 5%;">WAF logs</td>
 		{% endif %}
 		<td>Number rows</td>
@@ -43,7 +43,7 @@
 						{% include 'include/select.html' %}
 					{% endif %}			
 		</td>
-		{% if select_id == 'viewlogs' and service != 'nginx' %}
+		{% if select_id != 'viewlogs' and service != 'nginx' %}
 		<td>
 			{{ checkbox('waf') }}
 		</td>
