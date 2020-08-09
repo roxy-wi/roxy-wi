@@ -89,7 +89,7 @@ def logging(serv, action, **kwargs):
 			mess = get_data('date_in_log') + " from " + IP + " user: " + login + ", group: " +user_group + ", " + \
 				   action + " for: " + serv + "\n"
 		else:
-			mess = get_data('date_in_log') + ", group: " +user_group + ", " + action + " from " + IP + "\n"
+			mess = get_data('date_in_log') + " " + action + " from " + IP + "\n"
 		log = open(log_path + "/haproxy-wi-"+get_data('logs')+".log", "a")
 	else:
 		mess = get_data('date_in_log') + " from " + IP + " user: " + login + ", group: " +user_group + ", " + \

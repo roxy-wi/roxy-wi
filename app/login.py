@@ -35,8 +35,12 @@ def send_cookie(login):
 	id = sql.get_user_id_by_uuid(user_uuid)
 	try:
 		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-		user_groups = cookie.get('group')
-		user_groups = user_groups.value
+		user_group_id = cookie.get('group')
+		user_group_id = user_group_id.value
+		if sql.select_user_groups(id=id,check_id=user_group_id):
+			user_groups = user_group_id
+		else:
+			user_groups = sql.select_user_groups(id, limit=1)
 	except:
 		user_groups = sql.select_user_groups(id, limit=1)
 
@@ -54,7 +58,15 @@ def send_cookie(login):
 	print(c.output())
 
 	try:
-		funct.logging('locahost', ' user: '+sql.get_user_name_by_uuid(user_uuid)+' log in', haproxywi=1)
+		groups = sql.select_groups(id=user_groups)
+		for g in groups:
+			if g[0] == int(user_groups):
+				user_group = g[1]
+	except:
+		user_group = ''
+
+	try:
+		funct.logging('locahost', ' user: '+sql.get_user_name_by_uuid(user_uuid)+', group: '+user_group+' log in', haproxywi=1)
 	except:
 		pass
 	print("Content-type: text/html\n")
