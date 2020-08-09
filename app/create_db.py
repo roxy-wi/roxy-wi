@@ -81,7 +81,7 @@ def create_table(**kwargs):
 		 ('guest','guest@localhost','084e0343a0486ff05530df6c705c8bb4','guest','1');
 		CREATE TABLE IF NOT EXISTS `servers` (
 			`id`	INTEGER NOT NULL,
-			`hostname`	VARCHAR ( 64 ) UNIQUE,
+			`hostname`	VARCHAR ( 64 ),
 			`ip`	VARCHAR ( 64 ) UNIQUE,
 			`groups`	VARCHAR ( 64 ),
 			type_ip INTEGER NOT NULL DEFAULT 0,
@@ -107,18 +107,19 @@ def create_table(**kwargs):
 		
 		CREATE TABLE IF NOT EXISTS `groups` (
 			`id`	INTEGER NOT NULL,
-			`name`	VARCHAR ( 80 ) UNIQUE,
+			`name`	VARCHAR ( 80 ),
 			`description`	VARCHAR ( 255 ),
 			PRIMARY KEY(`id`)
 		);
 		INSERT INTO `groups` (name, description) VALUES ('All','All servers enter in this group');
 		CREATE TABLE IF NOT EXISTS `cred` (
 			`id` integer primary key autoincrement,
-			`name`	VARCHAR ( 64 ) UNIQUE,
+			`name`	VARCHAR ( 64 ),
 			`enable`	INTEGER NOT NULL DEFAULT 1,
 			`username`	VARCHAR ( 64 ) NOT NULL,
 			`password`	VARCHAR ( 64 ) NOT NULL,
-			groups INTEGER NOT NULL DEFAULT 1
+			groups INTEGER NOT NULL DEFAULT 1,
+			UNIQUE(name,groups)
 		);
 		CREATE TABLE IF NOT EXISTS `uuid` (`user_id` INTEGER NOT NULL, `uuid` varchar ( 64 ),`exp` timestamp default '0000-00-00 00:00:00');
 		CREATE TABLE IF NOT EXISTS `token` (`user_id` INTEGER, `token` varchar(64), `exp` timestamp default '0000-00-00 00:00:00');

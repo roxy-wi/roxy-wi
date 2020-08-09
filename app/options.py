@@ -1727,13 +1727,19 @@ if form.getvalue('updategroup') is not None:
 
 
 if form.getvalue('new_ssh'):
+	import http.cookies
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	group = cookie.get('group')
+	user_group = group.value
 	name = form.getvalue('new_ssh')
+	name = name + '_' + user_group
 	enable = form.getvalue('ssh_enable')
 	group = form.getvalue('new_group')
 	username = form.getvalue('ssh_user')
 	password = form.getvalue('ssh_pass')
 	page = form.getvalue('page')
 	page = page.split("#")[0]
+
 	if username is None or name is None:
 		print(error_mess)
 	else:
@@ -1798,7 +1804,12 @@ if form.getvalue('updatessh'):
 
 
 if form.getvalue('ssh_cert'):
+	import http.cookies
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	group = cookie.get('group')
+	user_group = group.value
 	name = form.getvalue('name')
+	name = name + '_' + user_group
 
 	if not os.path.exists(os.getcwd()+'/keys/'):
 		os.makedirs(os.getcwd()+'/keys/')
