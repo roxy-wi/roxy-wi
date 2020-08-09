@@ -51,10 +51,9 @@
 	{% endif %}
 	{% if config %}
 		{% if role <= 2 %}
-			<div id="config">
 				<h4>Config from {{ serv }}</h4>
 				</center>
-				<form action="{{ action }}" name="saveconfig" method="post">
+				<form action="{{ action }}" name="saveconfig" id="saveconfig" method="post">
 					<input type="hidden" value="{{ serv }}" name="serv"> 
 					<input type="hidden" value="{{ cfg }}.old" name="oldconfig"> 
 					<div style="margin-left: 23%;width: 60%;">
@@ -75,7 +74,6 @@
 				{% if note %}
 					<div class="alert alert-info"><b>Note:</b> If you reconfigure Master server, Slave will reconfigured automatically</div>
 				{% endif %}
-			</div>
 		{% endif %}
 	{% endif %}
 	{% if aftersave %}

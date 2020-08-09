@@ -50,7 +50,8 @@ def logging(serv, action, **kwargs):
 	import sql
 	import http.cookies
 	log_path = get_config_var('main', 'log_path')
-	
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+
 	if not os.path.exists(log_path):
 		os.makedirs(log_path)
 		
@@ -59,11 +60,20 @@ def logging(serv, action, **kwargs):
 	except:
 		IP = ''
 	try:
-		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 		user_uuid = cookie.get('uuid')
 		login = sql.get_user_name_by_uuid(user_uuid.value)
 	except:	
 		login = ''
+
+	try:
+		user_group_id = cookie.get('group')
+		user_group_id1 = user_group_id.value
+		groups = sql.select_groups(id=user_group_id1)
+		for g in groups:
+			if g[0] == int(user_group_id1):
+				user_group = g[1]
+	except:
+		user_group = ''
 		
 	if kwargs.get('alerting') == 1:
 		mess = get_data('date_in_log') + action + "\n"
@@ -76,12 +86,14 @@ def logging(serv, action, **kwargs):
 		log = open(log_path + "/keep_alive-"+get_data('logs')+".log", "a")
 	elif kwargs.get('haproxywi') == 1:
 		if kwargs.get('login'):
-			mess = get_data('date_in_log') + " from " + IP + " user: " + login + " " + action + " for: " + serv + "\n"
+			mess = get_data('date_in_log') + " from " + IP + " user: " + login + ", group: " +user_group + ", " + \
+				   action + " for: " + serv + "\n"
 		else:
-			mess = get_data('date_in_log') + action + " from " + IP + "\n"
+			mess = get_data('date_in_log') + ", group: " +user_group + ", " + action + " from " + IP + "\n"
 		log = open(log_path + "/haproxy-wi-"+get_data('logs')+".log", "a")
 	else:
-		mess = get_data('date_in_log') + " from " + IP + " user: " + login + " " + action + " for: " + serv + "\n"
+		mess = get_data('date_in_log') + " from " + IP + " user: " + login + ", group: " +user_group + ", " + \
+			   action + " for: " + serv + "\n"
 		log = open(log_path + "/config_edit-"+get_data('logs')+".log", "a")
 	try:	
 		log.write(mess)

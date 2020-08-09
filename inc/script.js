@@ -204,8 +204,8 @@ function setRefreshInterval(interval) {
 		hideAutoRefreshDiv();
 	} else {
 		clearInterval(intervalId);
-		Cookies.set('auto-refresh', interval, { expires: 365 });
-		Cookies.set('auto-refresh-pause', "0", { expires: 365 });
+		Cookies.set('auto-refresh', interval, { expires: 365, samesite: 'strict', secure: 'true' });
+		Cookies.set('auto-refresh-pause', "0", { expires: 365, samesite: 'strict', secure: 'true' });
 		startSetInterval(interval);
 		hideAutoRefreshDiv();
 		autoRefreshStyle(interval);
@@ -257,13 +257,13 @@ function pauseAutoRefresh() {
 	$(function() {
 		$('.auto-refresh-pause').css('display', 'none');
 		$('.auto-refresh-resume').css('display', 'inline');
-		Cookies.set('auto-refresh-pause', "1", { expires: 365 });
+		Cookies.set('auto-refresh-pause', "1", { expires: 365, samesite: 'strict', secure: 'true' });
 	});
 }	
 function pauseAutoResume(){
 	var autoRefresh = Cookies.get('auto-refresh');
 	setRefreshInterval(autoRefresh);
-	Cookies.set('auto-refresh-pause', "0", { expires: 365 });
+	Cookies.set('auto-refresh-pause', "0", { expires: 365, samesite: 'strict', secure: 'true' });
 }
 
 function hideAutoRefreshDiv() {
@@ -378,6 +378,13 @@ function showLog() {
 }
 function showMap() {
 	$("#ajax").empty();
+	try {
+		myCodeMirror.toTextArea();
+	} catch (e) {
+		console.log(e)
+	}
+	$("#saveconfig").remove();
+	$("h4").remove();
 	$("#ajax-compare").empty();
 	$("#config").empty();
 	$(".alert-info").empty();
@@ -424,7 +431,13 @@ function showCompare() {
 }
 function showCompareConfigs() {
 	$("#ajax").empty();
-	$("#config").empty();
+	try {
+		myCodeMirror.toTextArea();
+	} catch (e) {
+		console.log(e)
+	}
+	$("#saveconfig").remove();
+	$("h4").remove();
 	$(".alert-info").empty();
 	$.ajax( {
 		url: "options.py",
@@ -452,6 +465,13 @@ function showCompareConfigs() {
 function showConfig() {
 	var service = $('#service').val();
 	$("#ajax").empty();
+	try {
+		myCodeMirror.toTextArea();
+	} catch (e) {
+		console.log(e)
+	}
+	$("#saveconfig").remove();
+	$("h4").remove();
 	$("#ajax-compare").empty();
 	$("#config").empty();
 	$(".alert").empty();
@@ -613,7 +633,7 @@ $( function() {
 		$(".footer").css("margin-left", "1%");
 		$(".show_menu").show();
 		$("#hide_menu").hide();
-		Cookies.set('hide_menu', 'hide', { expires: 365 });
+		Cookies.set('hide_menu', 'hide', { expires: 365, samesite: 'strict', secure: 'true' });
 	});
 	$( "#show_menu" ).click(function() {
 		$(".top-menu").show( "drop", "fast" );
@@ -623,7 +643,7 @@ $( function() {
 		$(".footer").css("margin-left", "207px");
 		$(".show_menu").hide();
 		$("#hide_menu").show();
-		Cookies.set('hide_menu', 'show', { expires: 365 });
+		Cookies.set('hide_menu', 'show', { expires: 365, samesite: 'strict', secure: 'true' });
 	});	
 	var hideMenu = Cookies.get('hide_menu');
 	if (hideMenu == "show") {
@@ -789,6 +809,7 @@ $( function() {
 			success: function( data ) {
 				if (data.indexOf('ok') != '-1') {
 					window.location.replace(ref);
+					console.log(data)
 				} else if (data.indexOf('disabled') != '-1') {
 					$('.alert').show();
 					$('.alert').html(data);
@@ -989,7 +1010,7 @@ function createHistroy() {
 	}	
 	catch {
 		var get_history_array = ['login.py', 'login.py','login.py'];
-		Cookies.set('history', JSON.stringify(get_history_array), { expires: 1, path: '/app', sameSite: 'Strict', Secure: 'True' });
+		Cookies.set('history', JSON.stringify(get_history_array), { expires: 10, path: '/app', samesite: 'strict', secure: 'true' });
 	}
 }
 function listHistroy() {	
@@ -1029,14 +1050,14 @@ function listHistroy() {
 			});
 		});
 	}
-	Cookies.set('history', JSON.stringify(browse_history), { expires: 1, path: '/app', sameSite: 'Strict', Secure: 'True' });
+	Cookies.set('history', JSON.stringify(browse_history), { expires: 10, path: '/app', samesite: 'strict', secure: 'true' });
 }
 createHistroy()
 listHistroy()
 
 function changeCurrentGroupF(){
 	Cookies.remove('group');
-	Cookies.set('group', $('#newCurrentGroup').val(), { path: '/app', sameSite: 'Strict', Secure: 'True' });
+	Cookies.set('group', $('#newCurrentGroup').val(), { expires: 365, path: '/app', samesite: 'strict', secure: 'true' });
 	location.reload(); 
 }
 function sort_by_status() {
