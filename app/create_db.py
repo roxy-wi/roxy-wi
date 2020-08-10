@@ -125,7 +125,7 @@ def create_table(**kwargs):
 		CREATE TABLE IF NOT EXISTS `token` (`user_id` INTEGER, `token` varchar(64), `exp` timestamp default '0000-00-00 00:00:00');
 		CREATE TABLE IF NOT EXISTS `telegram` (`id` integer primary key autoincrement, `token` VARCHAR ( 64 ), `chanel_name` INTEGER NOT NULL DEFAULT 1, `groups` INTEGER NOT NULL DEFAULT 1);
 		CREATE TABLE IF NOT EXISTS `metrics` (`serv` varchar(64), curr_con INTEGER, cur_ssl_con INTEGER, sess_rate INTEGER, max_sess_rate INTEGER,`date` timestamp default '0000-00-00 00:00:00');
-		CREATE TABLE IF NOT EXISTS `settings` (`param` varchar(64) UNIQUE, value varchar(64), section varchar(64), `desc` varchar(100));
+		CREATE TABLE IF NOT EXISTS `settings` (`param` varchar(64) UNIQUE, value varchar(64), section varchar(64), `desc` varchar(100), `group` INTEGER NOT NULL DEFAULT 1);
 		CREATE TABLE IF NOT EXISTS `version` (`version` varchar(64));
 		CREATE TABLE IF NOT EXISTS `options` ( `id`	INTEGER NOT NULL, `options`	VARCHAR ( 64 ), `groups`	VARCHAR ( 120 ), PRIMARY KEY(`id`)); 
 		CREATE TABLE IF NOT EXISTS `saved_servers` ( `id` INTEGER NOT NULL, `server` VARCHAR ( 64 ), `description` VARCHAR ( 120 ), `groups` VARCHAR ( 120 ), PRIMARY KEY(`id`)); 
@@ -573,7 +573,7 @@ def update_db_v_4_4(**kwargs):
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
 			if e.args[0] == 'duplicate column name: pos' or e == " 1060 (42S21): Duplicate column name 'pos' ":
-				print('Updating... go to version 4.4.2')
+				print('Updating... go to version 4.4.1')
 			else:
 				print("An error occurred:", e)
 		return False
@@ -599,12 +599,34 @@ def update_db_v_4_4_2(**kwargs):
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
 			if e.args[0] == 'duplicate column name: version' or e == "1060 (42S21): Duplicate column name 'version' ":
-				print('DB was update to 4.4.2')
+				print('Updating... go to version 4.4.1')
 			else:
-				print("DB was update to 4.4.2")
+				print("Updating... go to version to 4.4.1")
 			return False
 		else:
 			return True
+	cur.close()
+	con.close()
+
+
+def update_db_v_4_4_2_1(**kwargs):
+	con, cur = get_cur()
+	sql = """
+	ALTER TABLE `settings` ADD COLUMN `group` INTEGER NOT NULL DEFAULT 1;
+	"""
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: group' or e == " 1060 (42S21): Duplicate column name 'group' ":
+				print('Updating... go to version 4.4.2')
+			else:
+				print("An error occurred:", e)
+		return False
+	else:
+		print("DB was update to 4.4.2")
+		return True
 	cur.close()
 	con.close()
 	
@@ -642,6 +664,7 @@ def update_all():
 	update_db_v_4_3_2()
 	update_db_v_4_4()
 	update_db_v_4_4_2()
+	update_db_v_4_4_2_1()
 	update_ver()
 		
 	
@@ -666,10 +689,10 @@ def update_all_silent():
 	update_db_v_4_3_2(silent=1)
 	update_db_v_4_4(silent=1)
 	update_db_v_4_4_2(silent=1)
+	update_db_v_4_4_2_1(silent=1)
 	update_ver()
 	
 		
 if __name__ == "__main__":
 	create_table()
 	update_all()
-		

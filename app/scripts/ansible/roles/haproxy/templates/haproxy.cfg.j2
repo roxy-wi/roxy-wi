@@ -37,4 +37,10 @@ listen stats
     stats uri /stats
     stats realm HAProxy-04\ Statistics
     stats auth {{STATS_USER}}:{{STATS_PASS}}
-    stats admin if TRUE 
+    stats admin if TRUE
+    
+backend per_ip_and_url_rates
+    stick-table type binary len 8 size 1m expire 24h store http_req_rate(24h)
+
+backend per_ip_rates
+    stick-table type ip size 1m expire 24h store gpc0,gpc0_rate(30s)

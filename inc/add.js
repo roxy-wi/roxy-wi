@@ -603,9 +603,29 @@ $( function() {
 			}
 		} else {
 			replace_text("#optionsInput1", ddos_var);
-		}	
+		}
 	});
-
+	var antibot_var = "#Start config for Antibot protection\n"+
+		"http-request track-sc0 src table per_ip_rates\n" +
+		"http-request track-sc1 url32+src table per_ip_and_url_rates unless { path_end .css .js .png .jpeg .gif }\n" +
+		"acl exceeds_limit sc_gpc0_rate(0) gt 15 \n" +
+		"http-request sc-inc-gpc0(0) if { sc_http_req_rate(1) eq 1 } !exceeds_limit\n" +
+		"http-request deny if exceeds_limit\n" +
+		"#End config for Antibot\n";
+	$('#antibot').click(function() {
+		if($('#optionsInput').val().indexOf(antibot_var) == '-1') {
+			$("#optionsInput").append(antibot_var)
+		} else {
+			replace_text("#optionsInput", antibot_var);
+		}
+	});
+	$('#antibot1').click(function() {
+		if($('#optionsInput1').val().indexOf(antibot_var) == '-1') {
+			$("#optionsInput1").append(antibot_var)
+		} else {
+			replace_text("#optionsInput1", antibot_var);
+		}
+	});
 	$( "#blacklist_checkbox" ).click( function(){
 		if ($('#blacklist_checkbox').is(':checked')) {
 			$( "#blacklist-hide" ).show( "fast" );
