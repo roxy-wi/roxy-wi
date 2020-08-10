@@ -1,0 +1,43 @@
+<table id="settings">
+    <tr class="overviewHead">
+        <td class="padding10 first-collumn" style="width: 10%;">
+            Parameter
+        </td>
+        <td>
+            Value
+        </td>
+        <td>
+            Description
+        </td>
+    </tr>
+    {% set section = namespace(section='') %}
+    {% for set in settings %}
+    {% if section.section|string() != set.2|string() %}
+    <th colspan="3"><h3>{{ set.2 }} section</h3></th>
+    {% endif %}
+    {% set section.section = set.2 %}
+    <tr class="{{ loop.cycle('odd', 'even') }}">
+        <td class="addName">
+            <a href="#{{set.0}}" title="{{set.0}}" style="color: #000;">{{set.0}}</a>
+        </td>
+        <td class="addOption">
+            {% if set.0 == 'ldap_password' %}
+            {% if set.1 == 'None' %}
+            <input type="password" name="{{set.0}}" id="{{set.0}}" value="" title="" size="25" class="form-control" autocomplete="new-password">
+            {% else %}
+            <input type="password" name="{{set.0}}" id="{{set.0}}" value="" placeholder="*****" title="" size="25" class="form-control" autocomplete="new-password">
+            {% endif %}
+            {% else %}
+            {% if set.1 == 'None' %}
+            <input type="text" name="{{set.0}}" id="{{set.0}}" value="" title="" size="25" class="form-control">
+            {% else %}
+            <input type="text" name="{{set.0}}" id="{{set.0}}" value="{{set.1}}" title="" size="25" class="form-control">
+            {% endif %}
+            {% endif %}
+        </td>
+        <td class="addOption">
+            {{set.3}}
+        </td>
+    </tr>
+    {% endfor %}
+</table>

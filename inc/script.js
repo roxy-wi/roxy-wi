@@ -941,7 +941,16 @@ $( function() {
 					$(this).children(".admin").css('border-left', '4px solid #5D9CEB');
 				});
 				$( "#tabs" ).tabs( "option", "active", 2 );
-			} );			
+			} );
+			$( ".settings" ).on( "click", function() {
+				$('.menu li ul li').each(function () {
+					$(this).find('a').css('border-left', '0px solid #5D9CEB');
+					$(this).find('a').css('padding-left', '20px')
+					$(this).children(".settings").css('padding-left', '30px');
+					$(this).children(".settings").css('border-left', '4px solid #5D9CEB');
+				});
+				$( "#tabs" ).tabs( "option", "active", 4 );
+			} );
 			$( ".hap" ).on( "click", function() {
 				$('.menu li ul li').each(function () {
 					$(this).find('a').css('padding-left', '20px')
@@ -949,7 +958,7 @@ $( function() {
 					$(this).children(".hap").css('padding-left', '30px');
 					$(this).children(".hap").css('border-left', '4px solid #5D9CEB');
 				});
-				$( "#tabs" ).tabs( "option", "active", 4 );
+				$( "#tabs" ).tabs( "option", "active", 5 );
 			} );
 			$( ".hap1" ).on( "click", function() {
 				$('.menu li ul li').each(function () {
@@ -958,7 +967,7 @@ $( function() {
 					$(this).children(".hap1").css('padding-left', '30px');
 					$(this).children(".hap1").css('border-left', '4px solid #5D9CEB');
 				});
-				$( "#tabs" ).tabs( "option", "active", 5 );
+				$( "#tabs" ).tabs( "option", "active", 6 );
 			} );
 			$( ".backup" ).on( "click", function() {
 				$('.menu li ul li').each(function () {
@@ -967,7 +976,7 @@ $( function() {
 					$(this).children(".backup").css('padding-left', '30px');
 					$(this).children(".backup").css('border-left', '4px solid #5D9CEB');
 				});
-				$( "#tabs" ).tabs( "option", "active", 6 );
+				$( "#tabs" ).tabs( "option", "active", 7 );
 			} );
 		}
 	}

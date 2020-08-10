@@ -130,7 +130,7 @@ def delete_user(id):
 		funct.out_error(e)
 		con.rollback()
 		return False
-	else: 
+	else:
 		return True
 	cur.close()
 	con.close()
@@ -146,10 +146,92 @@ def add_group(name, description):
 		con.rollback()
 		return False
 	else:
+		sql = """select last_insert_rowid()"""
+		try:
+			cur.execute(sql)
+			con.commit()
+		except sqltool.Error as e:
+			funct.out_error(e)
+			con.rollback()
+		else:
+			for g in cur.fetchall():
+				group_id = g[0]
+			add_setting_for_new_group(group_id)
+
 		return True
+
 	cur.close()    
-	con.close() 
-	
+	con.close()
+
+
+def add_setting_for_new_group(group_id):
+	con, cur = get_cur()
+	group_id = str(group_id)
+	sql = list()
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('time_zone', 'UTC', 'main', 'Time Zone','" + group_id + "');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('proxy', '', 'main', 'Proxy server. Use proto://ip:port','" + group_id + "');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('session_ttl', '5', 'main', 'Time to live users sessions. In days', '" + group_id + "')")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('token_ttl', '5', 'main', 'Time to live users tokens. In days','" + group_id + "');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('tmp_config_path', '/tmp/', 'main', 'Temp store configs, for check. Path must exist','" + group_id + "');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('cert_path', '/etc/ssl/certs/', 'main', 'Path to SSL dir. Folder owner must be a user which set in the SSH settings. Path must exist','" + group_id + "');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('local_path_logs', '/var/log/haproxy.log', 'logs', 'Logs save locally, enabled by default','" + group_id + "');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('syslog_server_enable', '0', 'logs', 'If exist syslog server for HAproxy logs, enable this option','" + group_id + "');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('syslog_server', '0', 'logs', 'IP address syslog server','" + group_id + "');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('log_time_storage', '14', 'logs', 'Time of storage of logs of user activity, in days','" + group_id + "');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('stats_user', 'admin', 'haproxy', 'Username for Stats web page HAproxy','" + group_id + "');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('stats_password', 'password', 'haproxy', 'Password for Stats web page HAproxy','" + group_id + "');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('stats_port', '8085', 'haproxy', 'Port Stats web page HAproxy','" + group_id + "');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('stats_page', 'stats', 'haproxy', 'URI Stats web page HAproxy','" + group_id + "');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('haproxy_dir', '/etc/haproxy/', 'haproxy', 'Path to HAProxy dir','" + group_id + "');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('haproxy_config_path', '/etc/haproxy/haproxy.cfg', 'haproxy', 'Path to HAProxy config','" + group_id + "');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('server_state_file', '/etc/haproxy/haproxy.state', 'haproxy', 'Path to HAProxy state file','" + group_id + "');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('haproxy_sock', '/var/run/haproxy.sock', 'haproxy', 'Path to HAProxy sock file','" + group_id + "');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('haproxy_sock_port', '1999', 'haproxy', 'HAProxy sock port','" + group_id + "');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('firewall_enable', '0', 'haproxy', 'If enable this option Haproxy-wi will be configure firewalld based on config port','" + group_id + "');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('nginx_path_error_logs', '/var/log/nginx/error.log', 'nginx', 'Nginx error log','" + group_id + "');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('nginx_stats_user', 'admin', 'nginx', 'Username for Stats web page Nginx','" + group_id + "');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('nginx_stats_password', 'password', 'nginx', 'Password for Stats web page Nginx','" + group_id + "');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('nginx_stats_port', '8086', 'nginx', 'Stats port for web page Nginx','" + group_id + "');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('nginx_stats_page', 'stats', 'nginx', 'URI Stats for web page Nginx','" + group_id + "');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('nginx_dir', '/etc/nginx/conf.d/', 'nginx', 'Path to Nginx dir','" + group_id + "');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('nginx_config_path', '/etc/nginx/conf.d/default.conf', 'nginx', 'Path to Nginx config','" + group_id + "');")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('ldap_enable', '0', 'ldap', 'If 1 ldap enabled', " + group_id + ");")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('ldap_server', '', 'ldap', 'IP address ldap server', " + group_id + ");")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('ldap_port', '389', 'ldap', 'Default port is 389 or 636', " + group_id + ");")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('ldap_user', '', 'ldap', 'Login for connect to LDAP server. Enter: user@domain.com',  " + group_id + ");")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('ldap_password', '', 'ldap', 'Password for connect to LDAP server', " + group_id + ");")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('ldap_base', '', 'ldap', 'Base domain. Example: dc=domain, dc=com', " + group_id + ");")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('ldap_domain', '', 'ldap', 'Domain for login, that after @, like user@domain.com, without user@', " + group_id + ");")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('ldap_class_search', 'user', 'ldap', 'Class to search user', " + group_id + ");")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('ldap_user_attribute', 'sAMAccountName', 'ldap', 'User attribute for search', " + group_id + ");")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('ldap_search_field', 'mail', 'ldap', 'Field where user e-mail saved', " + group_id + ");")
+
+	for i in sql:
+		try:
+			cur.execute(i)
+			con.commit()
+		except sqltool.Error as e:
+			funct.out_error(e)
+	else:
+		return True
+	cur.close()
+	con.close()
+
+
+def delete_group_settings(group_id):
+	con, cur = get_cur()
+	sql = """ delete from settings where `group` = '%s'""" % (group_id)
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
+	else:
+		return True
+	cur.close()
+	con.close()
+
 
 def delete_group(id):
 	con, cur = get_cur()
@@ -160,7 +242,8 @@ def delete_group(id):
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	else: 
+	else:
+		delete_group_settings(id)
 		return True
 	cur.close()    
 	con.close() 
@@ -312,10 +395,10 @@ def select_user_groups(id, **kwargs):
 	else:
 		if kwargs.get("check_id") is not None:
 			for g in cur.fetchall():
-				if g[0] is None:
-					return False
-				else:
+				if g[0]:
 					return True
+				else:
+					return False
 		elif kwargs.get("limit") is not None:
 			for g in cur.fetchall():
 				return g[0]	
@@ -355,6 +438,7 @@ def select_groups(**kwargs):
 		sql = """select * from groups where name='%s' """ % kwargs.get("group")
 	if kwargs.get("id") is not None:
 		sql = """select * from groups where id='%s' """ % kwargs.get("id")
+
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
@@ -696,6 +780,8 @@ def select_ssh(**kwargs):
 		sql = """select * from cred where id = '%s' """ % kwargs.get("id")
 	if kwargs.get("serv") is not None:
 		sql = """select serv.cred, cred.* from servers as serv left join cred on cred.id = serv.cred where serv.ip = '%s' """ % kwargs.get("serv")
+	if kwargs.get("group") is not None:
+		sql = """select * from cred where groups = '%s' """ % kwargs.get("group")
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
@@ -1316,9 +1402,11 @@ def select_metrics(serv, **kwargs):
 	con.close()
 	
 	
-def select_servers_metrics_for_master():
+def select_servers_metrics_for_master(**kwargs):
 	con, cur = get_cur()
 	sql = """select ip from servers where metrics = 1 """
+	if kwargs.get('group') is not None:
+		sql = """select ip from servers where metrics = 1 and groups = '%s' """ % kwargs.get('group')
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
@@ -1338,7 +1426,7 @@ def select_servers_metrics(uuid, **kwargs):
 	group = cookie.get('group')
 	group = group.value
 	id = get_user_id_by_uuid(user_id.value)
-	if select_user_groups(id, check_id=group) is not None:
+	if select_user_groups(id, check_id=group):
 		if group == '1':
 			sql = """ select ip from servers where enable = 1 and metrics = '1' """
 		else:
@@ -1362,11 +1450,11 @@ def select_table_metrics(uuid):
 	group = cookie.get('group')
 	group = group.value
 	id = get_user_id_by_uuid(user_id.value)
-	if select_user_groups(id, check_id=group) is not None:
+	if select_user_groups(id, check_id=group):
 		if group == '1':
 			groups = ""
 		else:
-			groups = "and servers.groups like '%{group}%' ".format(group=group)
+			groups = "and servers.groups = '{group}' ".format(group=group)
 	if mysql_enable == '1':
 		sql = """
                 select ip.ip, hostname, avg_sess_1h, avg_sess_24h, avg_sess_3d, max_sess_1h, max_sess_24h, max_sess_3d, avg_cur_1h, avg_cur_24h, avg_cur_3d, max_con_1h, max_con_24h, max_con_3d from
@@ -1569,10 +1657,19 @@ def select_table_metrics(uuid):
 	
 	
 def get_setting(param, **kwargs):
+	import os
+	import http.cookies
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	group = cookie.get('group')
+	user_group = group.value
+
+	if user_group == '' or param == 'lists_path':
+		user_group = '1'
+
 	con, cur = get_cur()
-	sql = """select value from `settings` where param='%s' """ % param
+	sql = """select value from `settings` where param='%s' and `group` = '%s'""" % (param, user_group)
 	if kwargs.get('all'):
-		sql = """select * from `settings` order by section desc"""
+		sql = """select * from `settings` where `group` = '%s' order by section desc""" % user_group
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
@@ -1588,8 +1685,13 @@ def get_setting(param, **kwargs):
 	
 	
 def update_setting(param, val):
+	import http.cookies
+	import os
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	group = cookie.get('group')
+	user_group = group.value
 	con, cur = get_cur()
-	sql = """update `settings` set `value` = '%s' where param = '%s' """ % (val, param)
+	sql = """update `settings` set `value` = '%s' where param = '%s' and `group` = '%s' """ % (val, param, user_group)
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -1634,6 +1736,8 @@ def select_roles(**kwargs):
 def select_alert(**kwargs):
 	con, cur = get_cur()
 	sql = """select ip from servers where alert = 1 """
+	if kwargs.get("group") is not None:
+		sql = """select ip from servers where alert = 1 and `groups` = '%s' """ % kwargs.get("group")
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:

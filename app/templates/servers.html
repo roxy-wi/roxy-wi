@@ -18,6 +18,7 @@
 		<li><a href="#servers" title="Servers: Manage servers - HAProxy-WI">Servers</a></li>
 		<li><a href="#ssh" title="Servers: Manage SSH credentials - HAProxy-WI">SSH credentials</a></li>
 		<li><a href="#checker" title="Servers: Manage checker - HAProxy-WI">Checker</a></li>
+		<li><a href="#settings" title="Admin area: Manage HAProxy-WI settings - HAProxy-WI">Settings</a></li>
 		<li><a href="#installproxy" title="Servers: Proxy service installation - HAProxy-WI">Proxy installation</a></li>
 		<li><a href="#installmon" title="Servers: Monitoring service installation - HAProxy-WI">Monitoring installation</a></li>
 		<li><a href="#backup" title="Servers: Backup configs - HAProxy-WI">Backup</a></li>
@@ -237,6 +238,11 @@
 			You can read the description of all parameters <a href="https://haproxy-wi.org/description.py?description=checker" title="Servers description" target="_blank">here</a>
 		</div>
 	</div>
+	
+	<div id="settings">
+		{% include 'include/admin_settings.html' %}
+	</div>
+
 	<div id="installproxy">
 		<table class="overview">
 			<caption><h3>Install HAProxy</h3></caption>
