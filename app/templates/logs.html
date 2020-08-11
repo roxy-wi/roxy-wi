@@ -32,10 +32,20 @@
 					<select autofocus required name="serv" id="{{ select_id }}">
 						<option disabled selected>Choose log</option>
 						{% for select in selects %}
-							{% if select.0|int() == serv|int() %}
-								<option value="{{ select.0 }}" selected>{{ select.1 }}</option>
+							{% if page == 'for_editor' %}
+								{% if select.1.startswith('haproxy-wi') or select.1.startswith('config_edit') %}
+									{% if select.0|int() == serv|int() %}
+										<option value="{{ select.0 }}" selected>{{ select.1 }}</option>
+									{% else %}
+										<option value="{{ select.0 }}">{{ select.1 }}</option>
+									{% endif %}
+								{% endif %}
 							{% else %}
-								<option value="{{ select.0 }}">{{ select.1 }}</option>
+								{% if select.0|int() == serv|int() %}
+									<option value="{{ select.0 }}" selected>{{ select.1 }}</option>
+								{% else %}
+									<option value="{{ select.0 }}">{{ select.1 }}</option>
+								{% endif %}
 							{% endif %}
 						{% endfor %}
 					</select>

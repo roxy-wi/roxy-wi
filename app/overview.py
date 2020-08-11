@@ -17,37 +17,72 @@ funct.check_login()
 
 try:
 	user, user_id, role, token, servers = funct.get_users_params()
-	users = sql.select_users()
 	groups = sql.select_groups()
-	cmd = "ps ax |grep checker_mas |grep -v grep |wc -l"
-	checker_master, stderr = funct.subprocess_execute(cmd)
-	cmd = "ps ax |grep checker_worker |grep -v grep |wc -l"
-	checker_worker, stderr = funct.subprocess_execute(cmd)
+	import http.cookies
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	group = cookie.get('group')
+	user_group = group.value
+
+	if (role == 2 or role == 3) and int(user_group) != 1:
+		users = sql.select_users(group=user_group)
+		servers_for_grep = ''
+		i = 0
+		servers_len = len(servers)
+
+		for s in servers:
+			i += 1
+			if i != servers_len:
+				servers_for_grep += s[2]+'|'
+			else:
+				servers_for_grep += s[2]
+
+		cmd = "ps ax |grep -e 'metrics_worker\|metrics_waf_worker.py'|grep -E %s|grep -v grep |wc -l" % servers_for_grep
+		metrics_worker, stderr = funct.subprocess_execute(cmd)
+		cmd = "ps ax |grep checker_worker|grep -E %s |grep -v grep |wc -l" % servers_for_grep
+		checker_worker, stderr = funct.subprocess_execute(cmd)
+		i = 0
+		for s in sql.select_alert(group=user_group):
+			i += 1
+		is_checker_worker = i
+		is_metrics_workers = sql.select_servers_metrics_for_master(group=user_group)
+		i = 0
+		for s in is_metrics_workers:
+			i += 1
+		is_metrics_worker = i
+		grafana = ''
+		prometheus = ''
+		host = ''
+	else:
+		users = sql.select_users()
+		cmd = "ps ax |grep -e 'metrics_worker\|metrics_waf_worker.py' |grep -v grep |wc -l"
+		metrics_worker, stderr = funct.subprocess_execute(cmd)
+		cmd = "ps ax |grep checker_worker |grep -v grep |wc -l"
+		checker_worker, stderr = funct.subprocess_execute(cmd)
+		i = 0
+		for s in sql.select_alert():
+			i += 1
+		is_checker_worker = i
+		is_metrics_workers = sql.select_servers_metrics_for_master()
+		i = 0
+		for s in is_metrics_workers:
+			i += 1
+		is_metrics_worker = i
+		cmd = "ps ax |grep grafana|grep -v grep|wc -l"
+		grafana, stderr = funct.subprocess_execute(cmd)
+		cmd = "ps ax |grep 'prometheus ' |grep -v grep|wc -l"
+		prometheus, stderr = funct.subprocess_execute(cmd)
+		host = os.environ.get('HTTP_HOST', '')
+
 	cmd = "ps ax |grep metrics_master |grep -v grep |wc -l"
 	metrics_master, stderr = funct.subprocess_execute(cmd)
-	cmd = "ps ax |grep -e 'metrics_worker\|metrics_waf_worker.py' |grep -v grep |wc -l"
-	metrics_worker, stderr = funct.subprocess_execute(cmd)
+	cmd = "ps ax |grep checker_mas |grep -v grep |wc -l"
+	checker_master, stderr = funct.subprocess_execute(cmd)
 	cmd = "ps ax |grep -e 'keep_alive.py' |grep -v grep |wc -l"
 	keep_alive, stderr = funct.subprocess_execute(cmd)
 	cmd = "systemctl status smon |grep Act |awk  '{print $2}'"
 	smon, stderr = funct.subprocess_execute(cmd)
-	cmd = "ps ax |grep grafana|grep -v grep|wc -l"
-	grafana, stderr = funct.subprocess_execute(cmd)
-	cmd = "ps ax |grep 'prometheus ' |grep -v grep|wc -l"
-	prometheus, stderr = funct.subprocess_execute(cmd)
-	is_checker_workers = sql.select_alert()
-	i = 0
-	for s in sql.select_alert():
-		i += 1 
-	is_checker_worker = i
-	is_metrics_workers = sql.select_servers_metrics_for_master()
-	i = 0
-	for s in is_metrics_workers:
-		i += 1
-	is_metrics_worker = i
-	host = os.environ.get('HTTP_HOST', '')
 
-except:
+except Exception as e:
 	role = ''
 	user = ''
 	users = ''
@@ -68,7 +103,6 @@ except:
 	is_checker_worker = ''
 	is_metrics_worker = ''
 	token = ''
-
 
 template = template.render(h2 = 1,
 							autorefresh = 1,

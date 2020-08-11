@@ -544,6 +544,8 @@ function viewLogs() {
 		var hour1 = $('#time_range_out_hour1').val()
 		var minut1 = $('#time_range_out_minut1').val()
 		var viewlogs = $('#viewlogs').val()
+		var type = findGetParameter('type')
+		console.log(type)
 		if (viewlogs == null){
 			viewlogs = findGetParameter('viewlogs')
 		}	
@@ -570,7 +572,8 @@ function viewLogs() {
 						'&hour=' + hour +
 						'&minut=' + minut +
 						'&hour1=' + hour1 +
-						'&minut1=' + minut1);
+						'&minut1=' + minut1 +
+						'&type=' + type);
 			}					
 		} );
 	}

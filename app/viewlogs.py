@@ -31,7 +31,12 @@ minut1 = form.getvalue('minut1')
 
 print('Content-type: text/html\n')
 funct.check_login()
-funct.page_for_admin()
+if form.getvalue('type') == '2':
+	funct.page_for_admin(level=2)
+	page = 'for_editor'
+else:
+	funct.page_for_admin()
+	page = ''
 
 log_path = funct.get_config_var('main', 'log_path')
 time_storage = sql.get_setting('log_time_storage')
@@ -60,9 +65,11 @@ except:
 	pass
 
 selects = funct.get_files(log_path, format="log")
-selects.append(['fail2ban.log', 'fail2ban.log'])
-selects.append(['haproxy-wi.error.log', 'error.log'])
-selects.append(['haproxy-wi.access.log', 'access.log'])
+if form.getvalue('type') is None:
+	selects.append(['fail2ban.log', 'fail2ban.log'])
+	selects.append(['haproxy-wi.error.log', 'error.log'])
+	selects.append(['haproxy-wi.access.log', 'access.log'])
+
 output_from_parsed_template = template.render(h2=1,
                                               autorefresh=1,
                                               title="View internal logs",
@@ -78,5 +85,6 @@ output_from_parsed_template = template.render(h2=1,
                                               minut=minut,
                                               minut1=minut1,
                                               versions=funct.versions(),
+											  page = page,
                                               token=token)
 print(output_from_parsed_template)

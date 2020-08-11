@@ -681,8 +681,8 @@ if form.getvalue('viewlogs') is not None:
 
 
 if serv is not None and act == "showMap":
-	from datetime import datetime
-	from pytz import timezone
+	#from datetime import datetime
+	#from pytz import timezone
 	import networkx as nx
 	import matplotlib
 	matplotlib.use('Agg')

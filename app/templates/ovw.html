@@ -142,8 +142,8 @@
 		{% if metrics_worker|int() >= 1 %}
 			<span title="running {{metrics_worker}} worker processes"><span class="serverUp server-status"></span></span>
 		{% else %}
-			{% if is_metrics_worker|int == 0 %}
-			<span title="There is not jobs for metrics"><span class="serverNone server-status"></span></span>
+			{% if is_metrics_worker|int() == 0 %}
+			<span title="There is not job for metrics"><span class="serverNone server-status"></span></span>
 			{% else %}
 			<span title="running {{is_checker_worker}} worker processes"><span class="serverDown server-status"></span></span>
 			{% endif %}
@@ -160,8 +160,8 @@
 		{% if checker_worker|int() >= 1 %}
 			<span title="running {{ checker_worker }} worker processes"><span class="serverUp server-status"></span></span>
 		{% else %}
-			{% if is_checker_worker|int == 0 %}
-			<span title="There is not jobs for checker"><span class="serverNone server-status"></span> </span>
+			{% if is_checker_worker|int() == 0 %}
+			<span title="There is not job for checker"><span class="serverNone server-status"></span> </span>
 			{% else %}
 			<span title="running {{ checker_worker }} worker processes"><span class="serverDown server-status"></span> </span>
 			{% endif %}
@@ -196,6 +196,7 @@
 		</td>		
 	</tr>
 	<tr>
+		{% if role == 1 %}
 		<td class="padding10 first-collumn-wi">
 		{% if grafana|int() >= 1 %}
 			<span title="running {{grafana}} process"><span class="serverUp server-status"></span></span> 
@@ -212,10 +213,11 @@
 			<span title="The service does not started or does not installed"><span class="serverNone server-status" title="The service does not started or does not installed"></span></span> 
 		{% endif %}
 				<span>Prometheus</span>
-		</td>	
+		</td>
+		{% endif %}
 	</tr>
 </table>
-{% if role <= 1 %}
+{% if role <= 2 %}
 	<table class="overview-wi">
 		<tr class="overviewHead">
 			<td class="padding10 first-collumn-wi">Login</td>
@@ -228,14 +230,19 @@
 					</span>
 				</span>
 			</td>
-		</tr>		
+		</tr>
+		{% if role == 2 %}
+			{% set admin_uri = 'servers.py' %}
+		{% elif role == 1 %}
+			{% set admin_uri = 'users.py' %}
+		{% endif %}
 		{% set counter = 0 %}
 		{% for USER in users %}
 			{% set counter = counter + loop.index0 %}
 			{% if counter <= 2 %}
 				<tr class="{{ loop.cycle('odd', 'even') }}">
 					<td class="padding10 first-collumn-wi"> 
-						<a href="users.py#users" title="Edit user" class="logs_link div-pic">
+						<a href="{{admin_uri}}#users" title="Edit user" class="logs_link div-pic">
 							{{ USER.1 }}							
 						</a>
 					</td>
@@ -267,7 +274,8 @@
 			{% endif %}
 		{% endfor %}
 	</table>
-	
+{% endif %}
+{% if role <= 1 %}
 	<table class="overview-wi">
 		<tr class="overviewHead">
 			<td class="padding10 first-collumn-wi">Group</td> 

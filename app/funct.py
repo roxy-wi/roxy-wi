@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import cgi
-import os, sys
+import os
+import sys
 
 form = cgi.FieldStorage()
 serv = form.getvalue('serv')
@@ -59,6 +60,7 @@ def logging(serv, action, **kwargs):
 		IP = cgi.escape(os.environ["REMOTE_ADDR"])
 	except:
 		IP = ''
+
 	try:
 		user_uuid = cookie.get('uuid')
 		login = sql.get_user_name_by_uuid(user_uuid.value)
@@ -177,8 +179,10 @@ def is_admin(**kwargs):
 
 
 def page_for_admin(**kwargs):
-	give_level = 1
-	give_level = kwargs.get("level")
+	if kwargs.get("level"):
+		give_level = kwargs.get("level")
+	else:
+		give_level = 1
 		
 	if not is_admin(level=give_level):
 		print('<center><h3 style="color: red">How did you get here?! O_o You do not have need permissions</h>')
@@ -282,15 +286,34 @@ def get_config(serv, cfg, **kwargs):
 	
 	
 def diff_config(oldcfg, cfg):
+	import http.cookies
+	import sql
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	log_path = get_config_var('main', 'log_path')
 	diff = ""
 	date = get_data('date_in_log') 
 	cmd="/bin/diff -ub %s %s" % (oldcfg, cfg)
-	
+
+	try:
+		user_uuid = cookie.get('uuid')
+		login = sql.get_user_name_by_uuid(user_uuid.value)
+	except:
+		login = ''
+
+	try:
+		user_group_id = cookie.get('group')
+		user_group_id1 = user_group_id.value
+		groups = sql.select_groups(id=user_group_id1)
+		for g in groups:
+			if g[0] == int(user_group_id1):
+				user_group = g[1]
+	except:
+		user_group = ''
+
 	output, stderr = subprocess_execute(cmd)
 	
 	for line in output:
-		diff += date + " " + line + "\n"
+		diff += date + " user: " + login + ", group: " + user_group + " " + line + "\n"
 	try:		
 		log = open(log_path + "/config_edit-"+get_data('logs')+".log", "a")
 		log.write(diff)
@@ -330,7 +353,7 @@ def get_sections(config, **kwargs):
 					
 	return return_config
 		
-      
+
 def get_section_from_config(config, section):
 	record = False
 	start_line = ""
@@ -790,12 +813,12 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 	date1 = hour1+':'+minut1
 	
 	if grep is not None:
-        	grep_act  = '|egrep "%s"' % grep
+		grep_act  = '|egrep "%s"' % grep
 	else:
 		grep_act = ''
 		
 	if exgrep is not None:
-        	exgrep_act  = '|egrep -v "%s"' % exgrep
+		exgrep_act  = '|egrep -v "%s"' % exgrep
 	else:
 		exgrep_act = ''
 
@@ -836,8 +859,27 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 		
 		return show_log(output, grep=grep)
 	elif service == 'internal':
+		import http.cookies
+		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+
+		try:
+			user_group_id = cookie.get('group')
+			user_group_id1 = user_group_id.value
+			groups = sql.select_groups(id=user_group_id1)
+			for g in groups:
+				if g[0] == int(user_group_id1):
+					user_group = g[1]
+		except:
+			user_group = ''
+
+		if user_group != '' and user_group != 'All':
+			user_grep = "|grep 'group: " + user_group + "'"
+		else:
+			user_grep = ''
+
 		log_path = get_config_var('main', 'log_path')
 		logs_files = get_files(log_path, format="log")
+
 		for key, value in logs_files:
 			if int(serv) == key:
 				serv = value
@@ -847,9 +889,9 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 			sys.exit()
 			
 		if serv == 'backup.log':
-			cmd="cat %s| awk '$2>\"%s:00\" && $2<\"%s:00\"' |tail -%s %s %s" % (log_path + serv, date, date1, rows, grep_act, exgrep_act)
+			cmd="cat %s| awk '$2>\"%s:00\" && $2<\"%s:00\"' |tail -%s %s %s %s" % (log_path + serv, date, date1, rows, user_grep, grep_act, exgrep_act)
 		else:
-			cmd="cat %s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (log_path + serv, date, date1, rows, grep_act, exgrep_act)
+			cmd="cat %s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s %s" % (log_path + serv, date, date1, rows, user_grep, grep_act, exgrep_act)
 		
 		output, stderr = subprocess_execute(cmd)
 		
