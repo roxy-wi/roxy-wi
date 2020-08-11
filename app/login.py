@@ -37,7 +37,7 @@ def send_cookie(login):
 		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 		user_group_id = cookie.get('group')
 		user_group_id = user_group_id.value
-		if sql.select_user_groups(id=id,check_id=user_group_id):
+		if sql.check_user_group(id,user_group_id):
 			user_groups = user_group_id
 		else:
 			user_groups = sql.select_user_groups(id, limit=1)

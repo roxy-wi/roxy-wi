@@ -533,7 +533,7 @@ def update_db_v_4_3_2(**kwargs):
 		con.commit()
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
-			if e.args[0] == 'column param is not unique' or e == " 1060 (42S21): column param is not unique ":
+			if e.args[0] == 'columns param, group are not unique' or e == " 1060 (42S21): columns param, group are not unique ":
 				print('DB was update to 4.3.2')
 			else:
 				print("An error occurred:", e)

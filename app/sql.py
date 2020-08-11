@@ -205,6 +205,7 @@ def add_setting_for_new_group(group_id):
 	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('ldap_class_search', 'user', 'ldap', 'Class to search user', " + group_id + ");")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('ldap_user_attribute', 'sAMAccountName', 'ldap', 'User attribute for search', " + group_id + ");")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('ldap_search_field', 'mail', 'ldap', 'Field where user e-mail saved', " + group_id + ");")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('ldap_type', '0', 'ldap', 'If 0 then will be used LDAP, if 1 then will be used LDAPS ', " + group_id + ");")
 
 	for i in sql:
 		try:
