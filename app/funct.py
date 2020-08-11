@@ -901,7 +901,13 @@ def haproxy_wi_log(**kwargs):
 			if log_file == value:
 				return key
 	else:
-		cmd = "find "+log_path+"/haproxy-wi-* -type f -exec stat --format '%Y :%y %n' '{}' \; | sort -nr | cut -d: -f2- | head -1 |awk '{print $4}' |xargs tail|sort -r"
+		user_group_id = get_user_group(id=1)
+		if user_group_id != 1:
+			user_group = get_user_group()
+			group_grep = '|grep "group: '+ user_group +'"'
+		else:
+			group_grep = ''
+		cmd = "find "+log_path+"/haproxy-wi-* -type f -exec stat --format '%Y :%y %n' '{}' \; | sort -nr | cut -d: -f2- | head -1 |awk '{print $4}' |xargs tail"+group_grep+"|sort -r"
 		output, stderr = subprocess_execute(cmd)
 		return output
 			

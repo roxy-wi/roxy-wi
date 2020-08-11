@@ -848,7 +848,7 @@ function addUser(dialog_id) {
 				newemail: $('#new-email').val(),
 				newrole: $('#new-role').val(),
 				activeuser: activeuser,
-				page: cur_url[0],
+				page: cur_url[0].split('#')[0],
 				newgroupuser: $('#new-group').val(),
 				token: $('#token').val()
 			},
@@ -939,7 +939,7 @@ function addServer(dialog_id) {
 				enable: enable,
 				slave: $('#slavefor' ).val(),
 				cred: cred,
-				page: cur_url[0],
+				page: cur_url[0].split('#')[0],
 				desc: $('#desc').val(),
 				token: $('#token').val()
 			},
@@ -979,7 +979,7 @@ function addCreds(dialog_id) {
 				ssh_user: $('#ssh_user').val(),
 				ssh_pass: $('#ssh_pass').val(),
 				ssh_enable: ssh_enable,
-				page: cur_url[0],
+				page: cur_url[0].split('#')[0],
 				token: $('#token').val()
 			},
 			type: "POST",
@@ -1016,7 +1016,7 @@ function addTelegram(dialog_id) {
 				newtelegram: $('#telegram-token-add').val(),
 				chanel: $('#telegram-chanel-add').val(),
 				telegramgroup: $('#new-telegram-group-add').val(),
-				page: cur_url[0],
+				page: cur_url[0].split('#')[0],
 				token: $('#token').val()
 			},
 			type: "POST",

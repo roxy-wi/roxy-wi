@@ -1910,7 +1910,7 @@ def insert_smon(server, port, enable, proto, uri, body, group, desc, telegram, u
 def select_smon(user_group, **kwargs):
 	con, cur = get_cur()
 
-	if user_group == '1':
+	if user_group == 1:
 		user_group = ''
 	else:
 		if kwargs.get('ip'):
@@ -2133,7 +2133,7 @@ def response_time(time, id):
 def smon_list(user_group):
 	con, cur = get_cur()
 
-	if user_group == '1':
+	if user_group == 1:
 		user_group = ''
 	else:
 		user_group = "where user_group='%s'" % user_group

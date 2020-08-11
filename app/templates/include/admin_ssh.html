@@ -1,0 +1,91 @@
+<table id="ssh_enable_table" class="overview">
+    <tr class="overviewHead" style="width: 50%;">
+        <td class="padding10 first-collumn" style="width: 15%;">
+					<span title="It's just name alias. This alias will be use in 'Servers' page for choose credentials">Name<span>
+        </td>
+        <td class="padding10 first-collumn" style="width: 25%;">
+            <span title="If it is enabled, the key will be used, if turned off - the password. Do not forget to download the keys to all servers or install the sudo without a password">SSH key</span>
+        </td>
+        {% if page != "servers.py" %}
+        <td style="width: 25%;">Group</td>
+        {% endif %}
+        <td style="width: 100%;">
+            <span title="Enter SSH user name. If SSH key disabled, enter password for SSH user">Credentials</span>
+        </td>
+        <td></td>
+    </tr>
+    {% for ssh in sshs %}
+    <tr style="width: 50%;" id="ssh-table-{{ssh.0}}" class="{{ loop.cycle('odd', 'even') }}">
+        <td class="first-collumn">
+            {% set id = 'ssh_name-' + ssh.0|string() %}
+            {{ input(id, value=ssh.1, size='15') }}
+        </td>
+        <td class="first-collumn" valign="top" style="padding-top: 15px;">
+            {% if ssh.2 == 1 %}
+            <label for="ssh_enable-{{ssh.0}}">Enable SSH key</label><input type="checkbox" id="ssh_enable-{{ssh.0}}" checked>
+            {% else %}
+            <label for="ssh_enable-{{ssh.0}}">Enable SSH key</label><input type="checkbox" id="ssh_enable-{{ssh.0}}">
+            {% endif %}
+        </td>
+        {% if page != "servers.py" %}
+        <td>
+            <select id="sshgroup-{{ssh.0}}" name="sshgroup-{{ssh.0}}">
+                {% for group in groups %}
+                {% if ssh.5 == group.0 %}
+                <option value="{{ group.0 }}" selected>{{ group.1 }}</option>
+                {% else %}
+                <option value="{{ group.0 }}">{{ group.1 }}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
+        </td>
+        {% endif %}
+        <td style="padding-top: 15px;">
+            <p>
+                {% set id = 'ssh_user-' + ssh.0|string() %}
+                {{ input(id, value=ssh.3, title='SSH user name') }}
+            </p>
+            {% if ssh.2 == 1 %}
+            <input type="password" id="ssh_pass-{{ssh.0}}" class="form-control"  placeholder="*****" style="display: none;" autocomplete="new-password">
+            {% else %}
+            <input type="password" id="ssh_pass-{{ssh.0}}" class="form-control" placeholder="*****" autocomplete="new-password">
+            {% endif %}
+            <br>
+        </td>
+        <td>
+            <a class="delete" onclick="confirmDeleteSsh({{ssh.0}})" title="Delete SSH credentials {{ssh.1}}" style="cursor: pointer;"></a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+<br /><span class="add-button" title="Add ssh" id="add-ssh-button">+ Add</span>
+<br /><br />
+<table id="ssh_key">
+    <tr class="overviewHead" style="width: 50%;">
+        <td class="padding10 first-collumn" style="width: 25%;">Upload SSH Key</td>
+        <td>
+            <span title="Private key. Note: The public key must be pre-installed on all servers to which you plan to connect">Key</span>
+        </td>
+        <td></td>
+    </tr>
+    <tr style="width: 50%;">
+        <td class="first-collumn" valign="top" style="padding-top: 15px;">
+            <select id="ssh-key-name">
+                <option disabled selected>Choose credentials</option>
+                {% for ssh in sshs %}
+                <option value={{ssh.1}}>{{ssh.1}}</option>
+                {% endfor %}
+            </select>
+        </td>
+        <td style="padding-top: 15px;">
+            <textarea id="ssh_cert" cols="50" rows="5"></textarea><br /><br />
+            <a class="ui-button ui-widget ui-corner-all" id="ssh_key_upload" title="Upload ssh key" onclick="uploadSsh()">Upload</a>
+        </td>
+        <td></td>
+    </tr>
+</table>
+<div id="ajax-ssh"></div>
+<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+    You can read the description of all parameters <a href="https://haproxy-wi.org/description.py?description=creds" title="Servers description" target="_blank">here</a>
+    or watch video <a href="https://haproxy-wi.org/description.py?description=setup" title="How to setup servers, group and SSH credentials" target="_blank">here</a>
+</div>
