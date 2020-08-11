@@ -386,26 +386,40 @@ def select_user_groups(id, **kwargs):
 	sql = """select user_group_id from user_groups where user_id = '%s' """ % id
 	if kwargs.get("limit") is not None:
 		sql = """select user_group_id from user_groups where user_id = '%s' limit 1 """ % id
-	if kwargs.get("check_id") is not None:
-		sql = """select * from user_groups where user_id='%s' and user_group_id = '%s' """ % (id, kwargs.get("check_id"))
+
 	try:    
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
-		if kwargs.get("check_id") is not None:
-			for g in cur.fetchall():
-				if g[0]:
-					return True
-				else:
-					return False
-		elif kwargs.get("limit") is not None:
+		if kwargs.get("limit") is not None:
 			for g in cur.fetchall():
 				return g[0]	
 		else:
 			return cur.fetchall()
 	cur.close()    
-	con.close() 
+	con.close()
+
+
+def check_user_group(user_id, group_id):
+	con, cur = get_cur()
+	sql = """select * from user_groups where user_id='%s' and user_group_id = '%s' """ % (user_id, group_id)
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		funct.out_error(e)
+		print(str(e))
+	else:
+		for g in cur.fetchall():
+			#print(str(g[0]))
+			if g[0] != '':
+				return True
+			else:
+				#print('Atata!')
+				return False
+
+	cur.close()
+	con.close()
 
 
 def select_user_groups_with_names(id, **kwargs):
@@ -734,43 +748,43 @@ def get_dick_permit(**kwargs):
 	if kwargs.get('keepalived'):
 		nginx = "and keepalived = 1"
 
-	if select_user_groups(user, check_id=grp):
+	if funct.check_user_group():
 		con, cur = get_cur()
 		if grp == '1':
 			sql = """ select * from servers where enable = 1 %s %s %s order by pos""" % (disable, type_ip, nginx)
 		else:
 			sql = """ select * from servers where groups = '{group}' and (enable = 1 {disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} order by pos
-			""".format(group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx, keepalived=keepalived)		
+			""".format(group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx, keepalived=keepalived)
 
-		try:   
+		try:
 			cur.execute(sql)
 		except sqltool.Error as e:
 			funct.out_error(e)
 		else:
 			return cur.fetchall()
-	
-		cur.close()    
-		con.close() 
+
+		cur.close()
+		con.close()
 	else:
 		print('Atata!')
-	
-	
-	
+
+
+
 def is_master(ip, **kwargs):
 	con, cur = get_cur()
 	sql = """ select slave.ip, slave.hostname from servers as master left join servers as slave on master.id = slave.master where master.ip = '%s' """ % ip
 	if kwargs.get('master_slave'):
 		sql = """ select master.hostname, master.ip, slave.hostname, slave.ip from servers as master left join servers as slave on master.id = slave.master where slave.master > 0 """
 	try:
-		cur.execute(sql)		
+		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		return cur.fetchall()
-	cur.close()    
-	con.close() 
-	
-	
+	cur.close()
+	con.close()
+
+
 def select_ssh(**kwargs):
 	con, cur = get_cur()
 	sql = """select * from cred """
@@ -782,44 +796,44 @@ def select_ssh(**kwargs):
 		sql = """select serv.cred, cred.* from servers as serv left join cred on cred.id = serv.cred where serv.ip = '%s' """ % kwargs.get("serv")
 	if kwargs.get("group") is not None:
 		sql = """select * from cred where groups = '%s' """ % kwargs.get("group")
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		return cur.fetchall()
-	cur.close()    
-	con.close() 
-	
-	
+	cur.close()
+	con.close()
+
+
 def insert_new_ssh(name, enable, group, username, password):
 	con, cur = get_cur()
 	sql = """insert into cred(name, enable, groups, username, password) values ('%s', '%s', '%s', '%s', '%s') """ % (name, enable, group, username, password)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	else: 
+	else:
 		return True
-	cur.close()    
-	con.close() 
-	
-	
+	cur.close()
+	con.close()
+
+
 def delete_ssh(id):
 	con, cur = get_cur()
 	sql = """ delete from cred where id = %s """ % (id)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	else: 
+	else:
 		return True
-	cur.close()    
-	con.close() 
+	cur.close()
+	con.close()
 
 
 def update_ssh(id, name, enable, group, username, password):
@@ -830,16 +844,16 @@ def update_ssh(id, name, enable, group, username, password):
 			groups = %s,
 			username = '%s',
 			password = '%s' where id = '%s' """ % (name, enable, group, username, password, id)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	cur.close()    
+	cur.close()
 	con.close()
-	
-	
+
+
 def insert_backup_job(server, rserver, rpath, type, time, cred, description):
 	con, cur = get_cur()
 	sql = """insert into backups(server, rhost, rpath, `type`, `time`, `cred`, `description`) 
@@ -852,27 +866,27 @@ def insert_backup_job(server, rserver, rpath, type, time, cred, description):
 		print('error: '+str(e))
 		con.rollback()
 		return False
-	else: 
+	else:
 		return True
-	cur.close()    
+	cur.close()
 	con.close()
-	
-	
+
+
 def select_backups(**kwargs):
 	con, cur = get_cur()
 	sql = """select * from backups ORDER BY id"""
 	if kwargs.get("server") is not None and kwargs.get("rserver") is not None:
 		sql = """select * from backups where server='%s' and rhost = '%s' """ % (kwargs.get("server"), kwargs.get("rserver"))
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		return cur.fetchall()
-	cur.close()    
-	con.close()  
-	
-	
+	cur.close()
+	con.close()
+
+
 def update_backup(server, rserver, rpath, type, time, cred, description, id):
 	con, cur = get_cur()
 	sql = """update backups set server = '%s', 
@@ -882,38 +896,38 @@ def update_backup(server, rserver, rpath, type, time, cred, description, id):
 			time = '%s', 
 			cred = '%s', 
 			description = '%s' where id = '%s' """ % (server, rserver, rpath, type, time, cred, description, id)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
 		return False
-	else: 
+	else:
 		return True
-	cur.close()    
+	cur.close()
 	con.close()
-	
-	
+
+
 def delete_backups(id):
 	con, cur = get_cur()
 	sql = """ delete from backups where id = %s """ % (id)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	else: 
+	else:
 		return True
-	cur.close()    
-	con.close() 
-	
-	
+	cur.close()
+	con.close()
+
+
 def check_exists_backup(server):
 	con, cur = get_cur()
 	sql = """ select id from backups where server = '%s' """ % server
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
@@ -923,40 +937,40 @@ def check_exists_backup(server):
 				return True
 			else:
 				return False
-	cur.close()    
+	cur.close()
 	con.close()
-	
+
 
 def insert_new_telegram(token, chanel, group):
 	con, cur = get_cur()
 	sql = """insert into telegram(`token`, `chanel_name`, `groups`) values ('%s', '%s', '%s') """ % (token, chanel, group)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 		con.rollback()
-	else: 
+	else:
 		return True
-	cur.close()    
-	con.close() 
+	cur.close()
+	con.close()
 
 
 def delete_telegram(id):
 	con, cur = get_cur()
 	sql = """ delete from telegram where id = %s """ % (id)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	else: 
+	else:
 		return True
-	cur.close()    
-	con.close() 	
-	
-	
+	cur.close()
+	con.close()
+
+
 def select_telegram(**kwargs):
 	con, cur = get_cur()
 	sql = """select * from telegram  """
@@ -966,31 +980,31 @@ def select_telegram(**kwargs):
 		sql = """select * from telegram where token = '%s' """ % kwargs.get('token')
 	if kwargs.get('id'):
 		sql = """select * from telegram where id = '%s' """ % kwargs.get('id')
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		return cur.fetchall()
-	cur.close()    
-	con.close() 
-	
-	
+	cur.close()
+	con.close()
+
+
 def insert_new_telegram(token, chanel, group):
 	con, cur = get_cur()
 	sql = """insert into telegram(`token`, `chanel_name`, `groups`) values ('%s', '%s', '%s') """ % (token, chanel, group)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
 		con.rollback()
-	else: 
+	else:
 		return True
-	cur.close()    
-	con.close() 
-	
-	
+	cur.close()
+	con.close()
+
+
 def update_telegram(token, chanel, group, id):
 	con, cur = get_cur()
 	sql = """ update telegram set 
@@ -998,31 +1012,31 @@ def update_telegram(token, chanel, group, id):
 			`chanel_name` = '%s',
 			`groups` = '%s'
 			where id = '%s' """ % (token, chanel, group, id)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	cur.close()    
+	cur.close()
 	con.close()
-	
-	
+
+
 def insert_new_option(option, group):
 	con, cur = get_cur()
 	sql = """insert into options(`options`, `groups`) values ('%s', '%s') """ % (option, group)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	else: 
+	else:
 		return True
-	cur.close()    
-	con.close() 
-	
-	
+	cur.close()
+	con.close()
+
+
 def select_options(**kwargs):
 	con, cur = get_cur()
 	sql = """select * from options  """
@@ -1030,61 +1044,61 @@ def select_options(**kwargs):
 		sql = """select * from options where options = '%s' """ % kwargs.get('option')
 	if kwargs.get('group'):
 		sql = """select options from options where groups = '{}' and options like '{}%' """.format(kwargs.get('group'), kwargs.get('term'))
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		return cur.fetchall()
-	cur.close()    
-	con.close() 
-	
-	
+	cur.close()
+	con.close()
+
+
 def update_options(option, id):
 	con, cur = get_cur()
 	sql = """ update options set 
 			options = '%s'
 			where id = '%s' """ % (option, id)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	cur.close()    
+	cur.close()
 	con.close()
-	
-	
+
+
 def delete_option(id):
 	con, cur = get_cur()
 	sql = """ delete from options where id = %s """ % (id)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	else: 
+	else:
 		return True
-	cur.close()    
-	con.close() 
-	
-	
+	cur.close()
+	con.close()
+
+
 def insert_new_savedserver(server, description, group):
 	con, cur = get_cur()
 	sql = """insert into saved_servers(`server`, `description`, `groups`) values ('%s', '%s', '%s') """ % (server, description, group)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	else: 
+	else:
 		return True
-	cur.close()    
-	con.close() 
-	
-	
+	cur.close()
+	con.close()
+
+
 def select_saved_servers(**kwargs):
 	con, cur = get_cur()
 	sql = """select * from saved_servers  """
@@ -1092,120 +1106,120 @@ def select_saved_servers(**kwargs):
 		sql = """select * from saved_servers where server = '%s' """ % kwargs.get('server')
 	if kwargs.get('group'):
 		sql = """select server,description from saved_servers where groups = '{}' and server like '{}%' """.format(kwargs.get('group'), kwargs.get('term'))
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		return cur.fetchall()
-	cur.close()    
-	con.close() 
-	
-	
+	cur.close()
+	con.close()
+
+
 def update_savedserver(server, description, id):
 	con, cur = get_cur()
 	sql = """ update saved_servers set 
 			server = '%s',
 			description = '%s'
 			where id = '%s' """ % (server, description, id)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	cur.close()    
+	cur.close()
 	con.close()
-	
-	
+
+
 def delete_savedserver(id):
 	con, cur = get_cur()
 	sql = """ delete from saved_servers where id = %s """ % (id)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	else: 
+	else:
 		return True
-	cur.close()    
-	con.close() 
-	
-	
+	cur.close()
+	con.close()
+
+
 def insert_mentrics(serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate):
 	con, cur = get_cur()
 	if mysql_enable == '1':
 		sql = """ insert into metrics (serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate, date) values('%s', '%s', '%s', '%s', '%s', now()) """ % (serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate)
 	else:
 		sql = """ insert into metrics (serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate, date) values('%s', '%s', '%s', '%s', '%s',  datetime('now', 'localtime')) """ % (serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	cur.close()    
+	cur.close()
 	con.close()
-	
-	
+
+
 def select_waf_metrics_enable(id):
 	con, cur = get_cur()
 	sql = """ select waf.metrics from waf  left join servers as serv on waf.server_id = serv.id where server_id = '%s' """ % id
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		return cur.fetchall()
-	cur.close()    
+	cur.close()
 	con.close()
-	
-	
+
+
 def select_waf_metrics_enable_server(ip):
 	con, cur = get_cur()
 	sql = """ select waf.metrics from waf  left join servers as serv on waf.server_id = serv.id where ip = '%s' """ % ip
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		for enable in cur.fetchall():
 			return enable[0]
-	cur.close()    
+	cur.close()
 	con.close()
-	
+
 def select_waf_servers(serv):
 	con, cur = get_cur()
 	sql = """ select serv.ip from waf left join servers as serv on waf.server_id = serv.id where serv.ip = '%s' """ % serv
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		return cur.fetchall()
-	cur.close()    
+	cur.close()
 	con.close()
-	
-	
+
+
 def select_all_waf_servers():
 	con, cur = get_cur()
 	sql = """ select serv.ip from waf left join servers as serv on waf.server_id = serv.id """
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		return cur.fetchall()
-	cur.close()    
+	cur.close()
 	con.close()
-	
-	
+
+
 def select_waf_servers_metrics(uuid, **kwargs):
 	con, cur = get_cur()
 	sql = """ select * from user where username = '%s' """ % get_user_name_by_uuid(uuid)
 
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		print("An error occurred:", e)
@@ -1214,43 +1228,43 @@ def select_waf_servers_metrics(uuid, **kwargs):
 			if group[5] == '1':
 				sql = """ select servers.ip from servers left join waf as waf on waf.server_id = servers.id where servers.enable = 1 and waf.metrics = '1'  """
 			else:
-				sql = """ select servers.ip from servers left join waf as waf on waf.server_id = servers.id where servers.enable = 1 and waf.metrics = '1' and servers.groups like '%{group}%' """.format(group=group[5])		
-		try:   
+				sql = """ select servers.ip from servers left join waf as waf on waf.server_id = servers.id where servers.enable = 1 and waf.metrics = '1' and servers.groups like '%{group}%' """.format(group=group[5])
+		try:
 			cur.execute(sql)
 		except sqltool.Error as e:
 			funct.out_error(e)
 		else:
 			return cur.fetchall()
-	cur.close()    
-	con.close() 
-	
-	
+	cur.close()
+	con.close()
+
+
 def select_waf_metrics(serv, **kwargs):
 	con, cur = get_cur()
 	if mysql_enable == '1':
 		sql = """ select * from waf_metrics where serv = '%s' order by `date` desc limit 60 """ % serv
 	else:
 		sql = """ select * from (select * from waf_metrics where serv = '%s' order by `date` desc limit 60) order by `date`""" % serv
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		return cur.fetchall()
-	cur.close()    
+	cur.close()
 	con.close()
-	
-	
+
+
 def insert_waf_metrics_enable(serv, enable):
 	con, cur = get_cur()
 	sql = """ insert into waf (server_id, metrics) values((select id from servers where ip = '%s'), '%s') """ % (serv, enable)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	cur.close()    
+	cur.close()
 	con.close()
 
 def insert_waf_rules(serv):
@@ -1311,146 +1325,144 @@ def select_waf_rules(serv):
 	cur.close()
 	con.close()
 
-	
+
 def delete_waf_server(id):
 	con, cur = get_cur()
 	sql = """ delete from waf where server_id = '%s' """ % id
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	cur.close()    
+	cur.close()
 	con.close()
-	
-	
+
+
 def insert_waf_mentrics(serv, conn):
 	con, cur = get_cur()
 	if mysql_enable == '1':
 		sql = """ insert into waf_metrics (serv, conn, date) values('%s', '%s', now()) """ % (serv, conn)
 	else:
 		sql = """ insert into waf_metrics (serv, conn, date) values('%s', '%s',  datetime('now', 'localtime')) """ % (serv, conn)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	cur.close()    
+	cur.close()
 	con.close()
-	
-	
+
+
 def delete_waf_mentrics():
 	con, cur = get_cur()
 	if mysql_enable == '1':
-		sql = """ delete from metrics where date < now() - INTERVAL 3 day """ 
+		sql = """ delete from metrics where date < now() - INTERVAL 3 day """
 	else:
 		sql = """ delete from metrics where date < datetime('now', '-3 days') """
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	cur.close()    
+	cur.close()
 	con.close()
-	
-	
+
+
 def update_waf_metrics_enable(name, enable):
 	con, cur = get_cur()
 	sql = """ update waf set metrics = %s where server_id = (select id from servers where hostname = '%s') """ % (enable, name)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	cur.close()    
+	cur.close()
 	con.close()
-	
-	
+
+
 def delete_mentrics():
 	con, cur = get_cur()
 	if mysql_enable == '1':
-		sql = """ delete from metrics where date < now() - INTERVAL 3 day """ 
+		sql = """ delete from metrics where date < now() - INTERVAL 3 day """
 	else:
 		sql = """ delete from metrics where date < datetime('now', '-3 days') """
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	cur.close()    
+	cur.close()
 	con.close()
-	
-	
+
+
 def select_metrics(serv, **kwargs):
 	con, cur = get_cur()
 	if mysql_enable == '1':
 		sql = """ select * from metrics where serv = '%s' order by `date` desc limit 60 """ % serv
 	else:
 		sql = """ select * from (select * from metrics where serv = '%s' order by `date` desc limit 60) order by `date` """ % serv
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		return cur.fetchall()
-	cur.close()    
+	cur.close()
 	con.close()
-	
-	
+
+
 def select_servers_metrics_for_master(**kwargs):
 	con, cur = get_cur()
 	sql = """select ip from servers where metrics = 1 """
 	if kwargs.get('group') is not None:
 		sql = """select ip from servers where metrics = 1 and groups = '%s' """ % kwargs.get('group')
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		return cur.fetchall()
-	cur.close()    
-	con.close() 
-	
-	
+	cur.close()
+	con.close()
+
+
 def select_servers_metrics(uuid, **kwargs):
 	con, cur = get_cur()
 	import http.cookies
 	import os
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_id = cookie.get('uuid')
 	group = cookie.get('group')
 	group = group.value
-	id = get_user_id_by_uuid(user_id.value)
-	if select_user_groups(id, check_id=group):
+
+	if funct.check_user_group():
 		if group == '1':
 			sql = """ select ip from servers where enable = 1 and metrics = '1' """
 		else:
-			sql = """ select ip from servers where groups = '{group}' and metrics = '1'""".format(group=group)		
-		try:   
+			sql = """ select ip from servers where groups = '{group}' and metrics = '1'""".format(group=group)
+		try:
 			cur.execute(sql)
 		except sqltool.Error as e:
 			funct.out_error(e)
 		else:
 			return cur.fetchall()
-	cur.close()    
-	con.close() 
-	
-	
+	cur.close()
+	con.close()
+
+
 def select_table_metrics(uuid):
 	con, cur = get_cur()
 	import http.cookies
 	import os
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_id = cookie.get('uuid')
 	group = cookie.get('group')
 	group = group.value
-	id = get_user_id_by_uuid(user_id.value)
-	if select_user_groups(id, check_id=group):
+
+	if funct.check_user_group():
 		if group == '1':
 			groups = ""
 		else:
@@ -1645,17 +1657,17 @@ def select_table_metrics(uuid):
 		and ip.ip=max_con_3d.ip
 
 		group by hostname.ip """ % groups
-	
-	try:    
+
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
-	else:		
+	else:
 		return cur.fetchall()
-	cur.close()    
+	cur.close()
 	con.close()
-	
-	
+
+
 def get_setting(param, **kwargs):
 	import os
 	import http.cookies
@@ -1670,7 +1682,7 @@ def get_setting(param, **kwargs):
 	sql = """select value from `settings` where param='%s' and `group` = '%s'""" % (param, user_group)
 	if kwargs.get('all'):
 		sql = """select * from `settings` where `group` = '%s' order by section desc""" % user_group
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
@@ -1680,28 +1692,30 @@ def get_setting(param, **kwargs):
 		else:
 			for value in cur.fetchone():
 				return value
-	cur.close()    
-	con.close()  
-	
-	
+	cur.close()
+	con.close()
+
+
 def update_setting(param, val):
 	import http.cookies
 	import os
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	group = cookie.get('group')
 	user_group = group.value
-	con, cur = get_cur()
-	sql = """update `settings` set `value` = '%s' where param = '%s' and `group` = '%s' """ % (val, param, user_group)
-	try:    
-		cur.execute(sql)
-		con.commit()
-		return True
-	except sqltool.Error as e:
-		funct.out_error(e)
-		con.rollback()
-		return False
-	cur.close()    
-	con.close()
+
+	if funct.check_user_group():
+		con, cur = get_cur()
+		sql = """update `settings` set `value` = '%s' where param = '%s' and `group` = '%s' """ % (val, param, user_group)
+		try:
+			cur.execute(sql)
+			con.commit()
+			return True
+		except sqltool.Error as e:
+			funct.out_error(e)
+			con.rollback()
+			return False
+		cur.close()
+		con.close()
 	
 	
 def get_ver():

@@ -267,7 +267,6 @@ if form.getvalue('list_select_id') is not None:
 
 
 if form.getvalue('list_id_for_delete') is not None:
-	import http.cookies
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 	lists_path = sql.get_setting('lists_path')
 	fullpath = funct.get_config_var('main', 'fullpath')
@@ -275,10 +274,7 @@ if form.getvalue('list_id_for_delete') is not None:
 	ip = form.getvalue('list_ip_for_delete')
 	list_id = form.getvalue('list_id_for_delete')
 	list_name = form.getvalue('list_name')
-
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_group = cookie.get('group')
-	user_group = user_group.value
+	user_group = funct.get_user_group(id=1)
 
 	cmd = "sed -i 's!%s$!!' %s/%s/%s/%s && sed -i '/^$/d' %s/%s/%s/%s" % (ip, fullpath, lists_path, user_group, list_name, fullpath, lists_path, user_group, list_name)
 	output, stderr = funct.subprocess_execute(cmd)
@@ -297,17 +293,13 @@ if form.getvalue('list_id_for_delete') is not None:
 
 
 if form.getvalue('list_ip_for_add') is not None:
-	import http.cookies
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 	lists_path = sql.get_setting('lists_path')
 	fullpath = funct.get_config_var('main', 'fullpath')
 	ip = form.getvalue('list_ip_for_add')
 	list_id = form.getvalue('list_id_for_add')
 	list_name = form.getvalue('list_name')
-
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_group = cookie.get('group')
-	user_group = user_group.value
+	user_group = funct.get_user_group(id=1)
 
 	cmd = 'echo "%s" >> %s/%s/%s/%s' % (ip, fullpath, lists_path, user_group, list_name)
 	output, stderr = funct.subprocess_execute(cmd)
@@ -676,13 +668,12 @@ if form.getvalue('viewlogs') is not None:
 	minut = form.getvalue('minut')
 	hour1 = form.getvalue('hour1')
 	minut1 = form.getvalue('minut1')
-	out = funct.show_haproxy_log(serv=viewlog, rows=rows, waf='0', grep=grep, hour=hour, minut=minut, hour1=hour1, minut1=minut1, service='internal')
+	if funct.check_user_group():
+		out = funct.show_haproxy_log(serv=viewlog, rows=rows, waf='0', grep=grep, hour=hour, minut=minut, hour1=hour1, minut1=minut1, service='internal')
 	print(out)
 
 
 if serv is not None and act == "showMap":
-	#from datetime import datetime
-	#from pytz import timezone
 	import networkx as nx
 	import matplotlib
 	matplotlib.use('Agg')
@@ -1555,7 +1546,7 @@ if form.getvalue('newuser') is not None:
 	group = form.getvalue('newgroupuser')
 	role_id = sql.get_role_id_by_name(role)
 
-	if funct.check_group(group, role_id):
+	if funct.check_user_group():
 		if funct.is_admin(level=role_id):
 			if sql.add_user(new_user, email, password, role, activeuser):
 				from jinja2 import Environment, FileSystemLoader
@@ -1592,7 +1583,7 @@ if form.getvalue('updateuser') is not None:
 	group = form.getvalue('usergroup')
 	role_id = sql.get_role_id_by_name(role)
 
-	if funct.check_group(group, role_id):
+	if funct.check_user_group():
 		if funct.is_admin(level=role_id):
 			sql.update_user(new_user, email, role, id, activeuser)
 			funct.logging(new_user, ' has updated user ', haproxywi=1, login=1)
@@ -1727,10 +1718,7 @@ if form.getvalue('updategroup') is not None:
 
 
 if form.getvalue('new_ssh'):
-	import http.cookies
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	group = cookie.get('group')
-	user_group = group.value
+	user_group = funct.get_user_group()
 	name = form.getvalue('new_ssh')
 	name = name + '_' + user_group
 	enable = form.getvalue('ssh_enable')
@@ -1804,10 +1792,7 @@ if form.getvalue('updatessh'):
 
 
 if form.getvalue('ssh_cert'):
-	import http.cookies
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	group = cookie.get('group')
-	user_group = group.value
+	user_group = funct.get_user_group()
 	name = form.getvalue('name')
 	name = name + '_' + user_group
 
@@ -1924,10 +1909,7 @@ if form.getvalue('getcurrentusergroup') is not None:
 
 
 if form.getvalue('newsmon') is not None:
-	import http.cookies
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_group = cookie.get('group')
-	user_group = user_group.value
+	user_group = funct.get_user_group(id=1)
 	server = form.getvalue('newsmon')
 	port = form.getvalue('newsmonport')
 	enable = form.getvalue('newsmonenable')
@@ -1963,22 +1945,17 @@ if form.getvalue('newsmon') is not None:
 
 
 if form.getvalue('smondel') is not None:
-	import http.cookies
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_group = cookie.get('group')
-	user_group = user_group.value
+	user_group = funct.get_user_group(id=1)
 	id = form.getvalue('smondel')
 
-	if sql.delete_smon(id, user_group):
-		print('Ok')
-		funct.logging('SMON', ' Has been delete server from SMON ', haproxywi=1, login=1)
+	if funct.check_user_group():
+		if sql.delete_smon(id, user_group):
+			print('Ok')
+			funct.logging('SMON', ' Has been delete server from SMON ', haproxywi=1, login=1)
 
 
 if form.getvalue('showsmon') is not None:
-	import http.cookies
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_group = cookie.get('group')
-	user_group = user_group.value
+	user_group = funct.get_user_group(id=1)
 	sort = form.getvalue('sort')
 
 	from jinja2 import Environment, FileSystemLoader

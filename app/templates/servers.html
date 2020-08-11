@@ -133,7 +133,7 @@
 				<td></td>
 			</tr>
 			{% for ssh in sshs %}
-				{% if ssh.5|string() == group %}
+				{% if ssh.5|string() == group|string() %}
 					<tr style="width: 50%;" id="ssh-table-{{ssh.0}}" class="{{ loop.cycle('odd', 'even') }}">
 						<td class="first-collumn">
 							{% set id = 'ssh_name-' + ssh.0|string() %}
@@ -238,7 +238,7 @@
 			You can read the description of all parameters <a href="https://haproxy-wi.org/description.py?description=checker" title="Servers description" target="_blank">here</a>
 		</div>
 	</div>
-	
+
 	<div id="settings">
 		{% include 'include/admin_settings.html' %}
 	</div>

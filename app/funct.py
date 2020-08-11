@@ -45,12 +45,32 @@ def get_data(type):
 		fmt = "%b %d %H:%M:%S"
 		
 	return now_utc.strftime(fmt)
-	
+
+
+def get_user_group(**kwargs):
+	import sql
+	import http.cookies
+	try:
+		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+		user_group_id = cookie.get('group')
+		user_group_id1 = user_group_id.value
+		groups = sql.select_groups(id=user_group_id1)
+		for g in groups:
+			if g[0] == int(user_group_id1):
+				if kwargs.get('id'):
+					user_group = g[0]
+				else:
+					user_group = g[1]
+	except:
+		user_group = ''
+
+	return user_group
 			
 def logging(serv, action, **kwargs):
 	import sql
 	import http.cookies
 	log_path = get_config_var('main', 'log_path')
+	user_group = get_user_group()
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 
 	if not os.path.exists(log_path):
@@ -66,16 +86,6 @@ def logging(serv, action, **kwargs):
 		login = sql.get_user_name_by_uuid(user_uuid.value)
 	except:	
 		login = ''
-
-	try:
-		user_group_id = cookie.get('group')
-		user_group_id1 = user_group_id.value
-		groups = sql.select_groups(id=user_group_id1)
-		for g in groups:
-			if g[0] == int(user_group_id1):
-				user_group = g[1]
-	except:
-		user_group = ''
 		
 	if kwargs.get('alerting') == 1:
 		mess = get_data('date_in_log') + action + "\n"
@@ -290,6 +300,7 @@ def diff_config(oldcfg, cfg):
 	import sql
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	log_path = get_config_var('main', 'log_path')
+	user_group = get_user_group()
 	diff = ""
 	date = get_data('date_in_log') 
 	cmd="/bin/diff -ub %s %s" % (oldcfg, cfg)
@@ -299,16 +310,6 @@ def diff_config(oldcfg, cfg):
 		login = sql.get_user_name_by_uuid(user_uuid.value)
 	except:
 		login = ''
-
-	try:
-		user_group_id = cookie.get('group')
-		user_group_id1 = user_group_id.value
-		groups = sql.select_groups(id=user_group_id1)
-		for g in groups:
-			if g[0] == int(user_group_id1):
-				user_group = g[1]
-	except:
-		user_group = ''
 
 	output, stderr = subprocess_execute(cmd)
 	
@@ -859,18 +860,7 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 		
 		return show_log(output, grep=grep)
 	elif service == 'internal':
-		import http.cookies
-		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-
-		try:
-			user_group_id = cookie.get('group')
-			user_group_id1 = user_group_id.value
-			groups = sql.select_groups(id=user_group_id1)
-			for g in groups:
-				if g[0] == int(user_group_id1):
-					user_group = g[1]
-		except:
-			user_group = ''
+		user_group = get_user_group()
 
 		if user_group != '' and user_group != 'All':
 			user_grep = "|grep 'group: " + user_group + "'"
@@ -1131,21 +1121,27 @@ def get_users_params(**kwargs):
 		servers = sql.get_dick_permit()
 	
 	return user, user_id, role, token, servers
-	
 
-def check_group(group, role_id):
+
+def check_user_group(**kwargs):
 	import http.cookies
+	import os
 	import sql
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_id = cookie.get('uuid')
-	id = sql.get_user_id_by_uuid(user_id.value)
-	if sql.select_user_groups(id, check_id=group) or role_id == 1:
+	user_uuid = cookie.get('uuid')
+	group = cookie.get('group')
+	group_id = group.value
+	user_id = sql.get_user_id_by_uuid(user_uuid.value)
+
+	if sql.check_user_group(user_id, group_id):
 		return True
 	else:
 		logging('localhost', ' has tried to actions in not own group ', haproxywi=1, login=1)
+		print('Atata!')
+		sys.exit()
 		return False
-		
-		
+
+
 def check_service(serv, service_name):
 	commands = [ "systemctl status "+service_name+" |grep Active |awk '{print $1}'" ]
 	return ssh_command(serv, commands)

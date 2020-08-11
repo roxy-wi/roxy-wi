@@ -15,23 +15,20 @@ funct.check_login()
 
 try:
 	user, user_id, role, token, servers = funct.get_users_params()
-	import http.cookies
-	import os
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	group = cookie.get('group')
-	user_group = group.value
+	user_group = funct.get_user_group(id=1)
 	cmd = "systemctl status smon |grep Active |awk '{print $2}'"
 	smon_status, stderr = funct.subprocess_execute(cmd)
-except:
+except Exception as e:
 	pass
 
 if action == 'add':
-	smon = sql.select_smon(user_group=user_group,action='add')
+	smon = sql.select_smon(user_group,action='add')
 	funct.page_for_admin(level=2)
 	title = "SMON Admin"
 else:
 	smon = sql.smon_list(user_group)
 	title = "SMON Dashboard"
+
 
 template = template.render(h2 = 1, title = title,
 							autoreœfresh = 1,

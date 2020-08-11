@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 import funct
 import sql
-import http.cookies
-import os
 from jinja2 import Environment, FileSystemLoader
 env = Environment(extensions=["jinja2.ext.do"],loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('servers.html')
@@ -15,9 +13,7 @@ try:
 	user, user_id, role, token, servers = funct.get_users_params()
 	ldap_enable = sql.get_setting('ldap_enable')
 	grafana, stderr = funct.subprocess_execute("service grafana-server status |grep Active |awk '{print $1}'")
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	group = cookie.get('group')
-	user_group = group.value
+	user_group = funct.get_user_group(id=1)
 	settings = sql.get_setting('', all=1)
 except Exception as e:
 	pass
