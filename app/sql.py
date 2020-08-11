@@ -1669,11 +1669,7 @@ def select_table_metrics(uuid):
 
 
 def get_setting(param, **kwargs):
-	import os
-	import http.cookies
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	group = cookie.get('group')
-	user_group = group.value
+	user_group = funct.get_user_group(id=1)
 
 	if user_group == '' or param == 'lists_path':
 		user_group = '1'
@@ -1697,11 +1693,7 @@ def get_setting(param, **kwargs):
 
 
 def update_setting(param, val):
-	import http.cookies
-	import os
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	group = cookie.get('group')
-	user_group = group.value
+	user_group = funct.get_user_group(id=1)
 
 	if funct.check_user_group():
 		con, cur = get_cur()
@@ -1910,6 +1902,8 @@ def insert_smon(server, port, enable, proto, uri, body, group, desc, telegram, u
 def select_smon(user_group, **kwargs):
 	con, cur = get_cur()
 
+	funct.check_user_group()
+
 	if user_group == 1:
 		user_group = ''
 	else:
@@ -1943,6 +1937,9 @@ def select_smon(user_group, **kwargs):
 
 def delete_smon(id, user_group):
 	con, cur = get_cur()
+
+	funct.check_user_group()
+
 	sql = """delete from smon
 			where id = '%s' and user_group = '%s' """ % (id, user_group)
 	try:
@@ -1959,6 +1956,7 @@ def delete_smon(id, user_group):
 
 
 def update_smon(id, ip, port, body, telegram, group, desc, en):
+	funct.check_user_group()
 	con, cur = get_cur()
 	sql = """ update smon set 
 			ip = '%s',

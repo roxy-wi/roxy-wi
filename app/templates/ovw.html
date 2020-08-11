@@ -336,8 +336,12 @@
 	<table class="overview-wi">
 		<tr class="overviewHead">
 			<td class="padding10 first-collumn-wi">
-				<a href="/app/viewlogs.py?viewlogs={{haproxy_wi_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View HAProxy-WI logs" class="logs_link">			
-					Recent HAProxy-WI`s log
+				{% if role == 2 %}
+				<a href="/app/viewlogs.py?type=2&viewlogs={{haproxy_wi_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View HAProxy-WI logs" class="logs_link">
+				{% else %}
+				<a href="/app/viewlogs.py?viewlogs={{haproxy_wi_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View HAProxy-WI logs" class="logs_link">
+				{% endif %}
+					Recent HAProxy-WI log
 				</a>
 			</td> 
 			<td>

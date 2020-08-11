@@ -100,6 +100,15 @@ $( function() {
 		   $(this).parent().find('a').css('padding-left', '20px');
 		   $(this).find('a').css('padding-left', '30px');
 		   $(this).find('a').css('border-left', '4px solid #5D9CEB');
+	   } else if(cur_url[0] == 'viewlogs.py' && cur_url[1].split('&')[0] == 'type=2' && link2 == 'viewlogs.py?type=2'){
+		   $(this).parent().css('display', 'contents');
+		   $(this).parent().css('font-size', '13px');
+		   $(this).parent().css('top', '0');
+		   $(this).parent().css('left', '0');
+		   $(this).parent().children().css('margin-left', '-20px');
+		   $(this).parent().find('a').css('padding-left', '20px');
+		   $(this).find('a').css('padding-left', '30px');
+		   $(this).find('a').css('border-left', '4px solid #5D9CEB');
 	   }
    });
 });
@@ -545,7 +554,6 @@ function viewLogs() {
 		var minut1 = $('#time_range_out_minut1').val()
 		var viewlogs = $('#viewlogs').val()
 		var type = findGetParameter('type')
-		console.log(type)
 		if (viewlogs == null){
 			viewlogs = findGetParameter('viewlogs')
 		}	
@@ -565,15 +573,15 @@ function viewLogs() {
 			type: "POST",
 			success: function( data ) {
 				$("#ajax").html(data);
-				window.history.pushState("View logs", "View logs", cur_url[0] + "?viewlogs=" + viewlogs +
+				window.history.pushState("View logs", "View logs", cur_url[0] + "?type="+ type +
+						"&viewlogs=" + viewlogs +
 						'&rows=' + rows +
 						'&grep=' + grep +
 						'&exgrep=' + exgrep +
 						'&hour=' + hour +
 						'&minut=' + minut +
 						'&hour1=' + hour1 +
-						'&minut1=' + minut1 +
-						'&type=' + type);
+						'&minut1=' + minut1);
 			}					
 		} );
 	}
