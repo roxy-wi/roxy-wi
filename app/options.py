@@ -276,12 +276,18 @@ if form.getvalue('list_id_for_delete') is not None:
 	list_name = form.getvalue('list_name')
 	user_group = funct.get_user_group(id=1)
 
-	cmd = "sed -i 's!%s$!!' %s/%s/%s/%s && sed -i '/^$/d' %s/%s/%s/%s" % (ip, fullpath, lists_path, user_group, list_name, fullpath, lists_path, user_group, list_name)
+	cmd = "sed -i 's!%s$!!' %s/%s/%s/%s" % (ip, fullpath, lists_path, user_group, list_name)
+	cmd1 = "sed -i '/^$/d' %s/%s/%s/%s" % (fullpath, lists_path, user_group, list_name)
 	output, stderr = funct.subprocess_execute(cmd)
+	output1, stderr1 = funct.subprocess_execute(cmd1)
 	if output:
 		print('error: ' + str(output))
 	if stderr:
 		print('error: ' + str(stderr))
+	if output1:
+		print('error: ' + str(output1))
+	if stderr1:
+		print('error: ' + str(stderr1))
 
 
 	cmd='echo "del acl #%s #%s" |nc %s %s' % (list_id, ip_id, serv, haproxy_sock_port)
