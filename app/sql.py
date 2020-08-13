@@ -1672,7 +1672,7 @@ def select_table_metrics(uuid):
 def get_setting(param, **kwargs):
 	user_group = funct.get_user_group(id=1)
 
-	if user_group == '' or param == 'lists_path':
+	if user_group == '' or param == 'lists_path' or param == 'ssl_local_path':
 		user_group = '1'
 
 	con, cur = get_cur()
