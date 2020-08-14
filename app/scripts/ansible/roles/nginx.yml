@@ -28,11 +28,25 @@
         path: /etc/nginx/conf.d
         state: directory
       when: "'nginx' not in ansible_facts.packages"
-      
-      
+
+
+    - name: Set passlib version
+      set_fact:
+        passlib_ver: "python3-passlib"
+      when: ansible_facts['distribution_major_version'] == 8 and (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS')
+      ignore_errors: True
+
+
+    - name: Set passlib version
+      set_fact:
+        passlib_ver: "python3-passlib"
+      when: ansible_facts['distribution_major_version'] == 7 or (ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'Ubuntu')
+      ignore_errors: True
+
+
     - name: Install passlib
       package:
-        name: python-passlib
+        name: "{{passlib_ver}}"
         state: present
       when: "'nginx' not in ansible_facts.packages"
       environment:
