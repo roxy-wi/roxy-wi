@@ -754,19 +754,34 @@ def open_port_firewalld(cfg, serv, **kwargs):
 	
 	for line in conf:
 		if kwargs.get('service') == 'nginx':
-			if "listen " in line and '#' not in line:			
-				listen = ' '.join(line.split())
-				listen = listen.split(" ")[1]
-				listen = listen.split(";")[0]
-				ports += listen+' '
+			if "listen " in line and '#' not in line:
+				try:
+					listen = ' '.join(line.split())
+					listen = listen.split(" ")[1]
+					listen = listen.split(";")[0]
+					try:
+						listen = int(listen)
+						ports += str(listen)+' '
+						firewalld_commands += ' sudo firewall-cmd --zone=public --add-port=%s/tcp --permanent -q &&' % str(listen)
+					except:
+						pass
+				except:
+					pass
 		else:
 			if "bind" in line:
-				bind = line.split(":")
-				bind[1] = bind[1].strip(' ')
-				bind = bind[1].split("ssl")
-				bind = bind[0].strip(' \t\n\r')
-				firewalld_commands += ' sudo firewall-cmd --zone=public --add-port=%s/tcp --permanent -q &&' % bind
-				ports += bind+' '
+				try:
+					bind = line.split(":")
+					bind[1] = bind[1].strip(' ')
+					bind = bind[1].split("ssl")
+					bind = bind[0].strip(' \t\n\r')
+					try:
+						bind = int(bind)
+						firewalld_commands += ' sudo firewall-cmd --zone=public --add-port=%s/tcp --permanent -q &&' % str(bind)
+						ports += str(bind)+' '
+					except:
+						pass
+				except:
+					pass
 				
 	firewalld_commands += 'sudo firewall-cmd --reload -q' 
 	logging(serv, ' Next ports have been opened: '+ports+ ' has opened ')
