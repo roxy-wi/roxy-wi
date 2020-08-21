@@ -1020,6 +1020,27 @@ label {
 		margin-top: 20px;
 	}
 }
+@media (max-width: 1024px) {
+	#logo_span {
+		margin-left: -5%;
+	}
+	.wrong-login {
+		margin-right: -150px;
+	}
+	.haproxy-info {
+		width: 120px;
+		padding-left: 10px;
+	}
+	#rows {
+		width: 50px;
+	}
+	#grep {
+		width: 100px;
+	}
+	.add-note {
+		display: none !important;
+	}
+}
 @media (max-width: 1080px) {
 	#logo_span {
 		margin-left: -5%;
@@ -1046,25 +1067,6 @@ label {
 	#ssl_cert {
 		width: 60%;
 	}
-}
-@media (max-width: 1024px) {
-	#logo_span {
-		margin-left: -5%;
-		}
-	.wrong-login {
-		margin-right: -150px;
-	}
-	.haproxy-info {
-		width: 120px;
-		padding-left: 10px;
-	}
-	#rows {
-		width: 50px;
-	}
-	#grep {
-		width: 100px;
-	}
-	
 }
 @media (max-width: 768px) {
   #logo_span {
@@ -1148,4 +1150,48 @@ label {
 	margin-bottom: -20px; 
 	padding-top: 10px;
 	color: #9d9d9d;
+}
+#stats_filter {
+	margin-left: 5px;
+	margin-right: 5px;
+	margin-top: -4px;
+	float: right;
+	padding-top: 7px;
+	display: none;
+}
+#stats_filter_text {
+	float: left;
+	padding: 5px;
+	font-size: 20px;
+	padding-top: 0;
+	margin-top: -2px;
+	padding-right: 10px;
+}
+.stats_active, .stats_drain, .stats_maintain, .stats_down, .stats_not_checked, .stats_backup, .stats_frontends, .stats_backends {
+	color: #000 ;
+	border-color: rgb(221, 221, 221) !important;
+}
+.stats_active:hover, .stats_not_checked:hover, .stats_backup:hover {
+	color: darkgrey !important;
+}
+.stats_active {
+	background-color: #c0ffc0 !important;
+}
+.stats_drain {
+	background-color: #20a0FF !important;
+}
+.stats_maintain {
+	background-color: #c07820 !important;
+}
+.stats_down {
+	background-color: #ff9090 !important;
+}
+.stats_not_checked {
+	background-color: #e0e0e0 !important;
+}
+.stats_backup {
+	background-color: #b0d0ff !important;
+}
+.stats_frontends {
+	background-color: rgb(93, 156, 235) !important;
 }
