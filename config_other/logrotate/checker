@@ -1,9 +1,0 @@
-/var/www/haproxy-wi/log/checker-error.log {
-    daily
-    rotate 10
-    missingok
-    notifempty
-	create 0644 apache apache
-	dateext
-    sharedscripts
-}

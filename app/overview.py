@@ -72,7 +72,7 @@ try:
 
 	cmd = "ps ax |grep metrics_master |grep -v grep |wc -l"
 	metrics_master, stderr = funct.subprocess_execute(cmd)
-	cmd = "ps ax |grep checker_mas |grep -v grep |wc -l"
+	cmd = "systemctl status checker_haproxy |grep Act |awk  '{print $2}'"
 	checker_master, stderr = funct.subprocess_execute(cmd)
 	cmd = "ps ax |grep -e 'keep_alive.py' |grep -v grep |wc -l"
 	keep_alive, stderr = funct.subprocess_execute(cmd)

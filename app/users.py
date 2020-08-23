@@ -18,7 +18,7 @@ try:
 	ldap_enable = sql.get_setting('ldap_enable')
 	grafana, stderr = funct.subprocess_execute("service grafana-server status |grep Active |awk '{print $1}'")
 	services = []
-	services_name = {"checker_haproxy":"Master checker service", 
+	services_name = {"checker_haproxy":"Master backends checker service",
 					"keep_alive":"Auto start service", 
 					"metrics_haproxy":"Master metrics service", 
 					"prometheus":"Prometheus service", 

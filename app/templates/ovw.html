@@ -101,17 +101,27 @@
 			{% endif %}
 		</td>
 		<td class="third-collumn-wi">
-			{% if checker_master|int() >= 1 %}
+			{% if checker_master == 'active' %}
 				<span title="running {{ checker_master }} master processes"><span class="serverUp server-status"></span></span>
-			{% else %}
-				<span class="serverDown server-status"></span> 
-			{% endif %}
-			{% if role <= 1 %}
-			<a href="/app/viewlogs.py?viewlogs={{checker_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View checker master's logs" class="logs_link">
+				{% if role <= 1 %}
+				<a href="/app/viewlogs.py?viewlogs={{checker_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View checker master's logs" class="logs_link">
+					<span>Checker master</span>
+				</a>
+				{% else %}
 				<span>Checker master</span>
-			</a>
+				{% endif %}
 			{% else %}
-				<span>Checker master</span>
+				{% if checker_master == 'inactive' or checker_master == 'failed' %}
+					<span title="Checker is stopped"><span class="serverDown server-status"></span></span>
+					<a href="/app/users.py#services" title="Start Checker - HAProxy-WI service" class="logs_link">
+						Checker master
+					</a>
+				{% else %}
+					<span title="Backends checker is not installed"><span class="serverNone server-status"></span></span>
+					<a href="https://haproxy-wi.org/services.py?service=checker#installation" title="Backends checker installation" target="_blank" class="logs_link">
+						Checker master
+					</a>
+				{% endif %}
 			{% endif %}
 		</td>
 		<td class="third-collumn-wi">
@@ -182,7 +192,7 @@
 				</a>
 			{% else %}
 				{% if smon == 'inactive' or smon== 'failed' %}
-					<span title="SMON is stoped"><span class="serverDown server-status"></span></span>
+					<span title="SMON is stopped"><span class="serverDown server-status"></span></span>
 					<a href="/app/users.py#services" title="Start SMON - HAProxy-WI service" class="logs_link">
 						SMON
 					</a>
