@@ -31,14 +31,14 @@ dir = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')
 white_dir = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')+"/"+user_group+"/white"
 black_dir = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')+"/"+user_group+"/black"
 if not os.path.exists(dir):
-    os.makedirs(dir)
+	os.makedirs(dir)
 if not os.path.exists(dir+"/"+user_group):
-    os.makedirs(dir+"/"+user_group)
+	os.makedirs(dir+"/"+user_group)
 if not os.path.exists(white_dir):
-    os.makedirs(white_dir)
+	os.makedirs(white_dir)
 if not os.path.exists(black_dir):
-    os.makedirs(black_dir)
-	
+	os.makedirs(black_dir)
+
 white_lists = funct.get_files(dir=white_dir, format="lst")
 black_lists = funct.get_files(dir=black_dir, format="lst")
 
@@ -58,7 +58,7 @@ template = template.render(title = "Add: ",
 							token = token)										
 print(template)
 
-if form.getvalue('mode') is not None: 
+if form.getvalue('mode') is not None:
 	cert_path = sql.get_setting('cert_path')
 	haproxy_dir = sql.get_setting('haproxy_dir')
 	port = form.getvalue('port')
@@ -222,6 +222,7 @@ if form.getvalue('new_userlist') is not None:
 	config_add = "\n" + name + new_userlist_groups + new_users_list
 	
 try:
+	funct.check_is_server_in_group(serv)
 	if config_add:
 		hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 		cfg = hap_configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
@@ -250,5 +251,3 @@ try:
 		print('</div>')
 except:
 	pass
-
-	

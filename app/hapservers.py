@@ -26,16 +26,18 @@ if service == 'nginx':
 	servers = sql.get_dick_permit(virt=1, nginx=1)
 	service = 'nginx'
 	if serv:
-		servers = sql.select_servers(server=serv)
-		autorefresh = 1
+		if funct.check_is_server_in_group(serv):
+			servers = sql.select_servers(server=serv)
+			autorefresh = 1
 else:
 	title = "HAProxy servers overview"
 	cmd = "ps ax |grep -e 'keep_alive.py' |grep -v grep |wc -l"
 	keep_alive, stderr = funct.subprocess_execute(cmd)
 	service = 'haproxy'
 	if serv:
-		servers = sql.select_servers(server=serv)
-		autorefresh = 1
+		if funct.check_is_server_in_group(serv):
+			servers = sql.select_servers(server=serv)
+			autorefresh = 1
 	else:
 		servers = sql.get_dick_permit(virt=1, haproxy=1)
 	

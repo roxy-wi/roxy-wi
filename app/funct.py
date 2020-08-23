@@ -65,7 +65,7 @@ def get_user_group(**kwargs):
 		user_group = ''
 
 	return user_group
-			
+
 def logging(serv, action, **kwargs):
 	import sql
 	import http.cookies
@@ -1157,12 +1157,27 @@ def check_user_group(**kwargs):
 	if sql.check_user_group(user_id, group_id):
 		return True
 	else:
-		logging('localhost', ' has tried to actions in not own group ', haproxywi=1, login=1)
+		logging('localhost', ' has tried to actions in not his group ', haproxywi=1, login=1)
 		print('Atata!')
 		sys.exit()
 		return False
 
 
+def check_is_server_in_group(serv):
+	import sql
+	group_id = get_user_group(id=1)
+	servers = sql.select_servers(server=serv)
+	for s in servers:
+		if s[2] == serv and int(s[3]) == int(group_id):
+			return True
+		else:
+			logging('localhost', ' has tried to actions in not his group server ', haproxywi=1, login=1)
+			print('Atata!')
+			sys.exit()
+			return False
+
+
 def check_service(serv, service_name):
 	commands = [ "systemctl status "+service_name+" |grep Active |awk '{print $1}'" ]
 	return ssh_command(serv, commands)
+

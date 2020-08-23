@@ -10,7 +10,7 @@ template = env.get_template('ovw.html')
 	
 print('Content-type: text/html\n')
 if create_db.check_db():
-	if create_db.create_table():	
+	if create_db.create_table():
 		create_db.update_all()
 create_db.update_all_silent()
 funct.check_login()
@@ -18,10 +18,7 @@ funct.check_login()
 try:
 	user, user_id, role, token, servers = funct.get_users_params()
 	groups = sql.select_groups()
-	import http.cookies
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	group = cookie.get('group')
-	user_group = group.value
+	user_group = funct.get_user_group(id=1)
 
 	if (role == 2 or role == 3) and int(user_group) != 1:
 		users = sql.select_users(group=user_group)
