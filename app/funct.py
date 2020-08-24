@@ -1168,7 +1168,7 @@ def check_is_server_in_group(serv):
 	group_id = get_user_group(id=1)
 	servers = sql.select_servers(server=serv)
 	for s in servers:
-		if s[2] == serv and int(s[3]) == int(group_id):
+		if (s[2] == serv and int(s[3]) == int(group_id)) or group_id == 1:
 			return True
 		else:
 			logging('localhost', ' has tried to actions in not his group server ', haproxywi=1, login=1)
