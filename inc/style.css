@@ -157,23 +157,12 @@ pre {
 	color: #5d9ceb;
 	font-size: 0.9em;
 	padding-top: 12px;
-	
 	padding-right: 5px;
 }
 .footer-copyright {
 	color: #586069 ;
 	float: left;
 	margin-left: 10px;
-}
-#cover {
-	position: absolute;
-    display: none;
-    top:0;
-    left: 0;
-    width: 100%;
-    height: 110%;
-    background: rgba(0,0,0,.1);
-    z-index: 500;
 }
 .login {
 	float: right;

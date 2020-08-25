@@ -76,7 +76,7 @@
 				showMetrics();
 			</script>
 		{% endif %}
-		<div id="div-server-{{s.0}}" class="div-server-hapwi" >
+		<div id="div-server-{{s.0}}" class="div-server-hapwi" {% if not serv %}style="cursor: move;"{%endif%}>
 			<div class="server-name">	
 				<input type="hidden" id="server-name-{{s.0}}" value="{{s.1}}" />
 				<input type="hidden" id="service" value="{{service}}" />

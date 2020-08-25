@@ -136,9 +136,11 @@ window.onblur= function() {
 				showOverview(); 
 			} else if (cur_url[0] == "viewlogs.py") {
 				viewLogs();
-			}  else if (cur_url[0] == "metrics.py") {
+			} else if (cur_url[0] == "metrics.py") {
 				showMetrics();
-			}	 
+			} else if (cur_url[0] == "smon.py" && cur_url[1].split('&')[0] == "action=view") {
+				showSmon('refresh')
+			}
 		} 
 	}
 };
@@ -220,7 +222,7 @@ function setRefreshInterval(interval) {
 		autoRefreshStyle(interval);
 	}
 }
-function startSetInterval(interval) {	
+function startSetInterval(interval) {
 	if(Cookies.get('auto-refresh-pause') == "0") {
 		if (cur_url[0] == "logs.py") {
 			intervalId = setInterval('showLog()', interval);
@@ -256,7 +258,10 @@ function startSetInterval(interval) {
 			}
 			intervalId = setInterval('showMetrics()', interval);
 			showMetrics();
-		} 
+		} else if (cur_url[0] == "smon.py" && cur_url[1].split('&')[0] == "action=view") {
+			intervalId = setInterval("showSmon('refresh')", interval);
+			showSmon('refresh');
+		}
 	} else {
 		pauseAutoRefresh();
 	}
@@ -283,11 +288,9 @@ function hideAutoRefreshDiv() {
 	});
 }
 $( document ).ajaxSend(function( event, request, settings ) {
-	$('#cover').fadeIn('fast');
 	NProgress.start();
 });
 $( document ).ajaxComplete(function( event, request, settings ) {
-	$('#cover').fadeOut('fast');
 	NProgress.done();
 });
 function showStats() {
@@ -1093,12 +1096,12 @@ function sort_by_status() {
 }
 function showSmon(action) {
 	var sort = '';
+	var location = window.location.href;
+	var cur_url = '/app/' + location.split('/').pop();
+	cur_url = cur_url.split('?');
+	cur_url[1] = cur_url[1].split('#')[0];
 	if (action == 'refresh') {
 		try {
-			var location = window.location.href;
-			var cur_url = '/app/' + location.split('/').pop();
-			cur_url = cur_url.split('?');
-			cur_url[1] = cur_url[1].split('#')[0];
 			sort = cur_url[1].split('&')[1];
 			sort = sort.split('=')[1];
 		} catch (e) {
