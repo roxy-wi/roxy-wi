@@ -534,12 +534,12 @@ def update_db_v_4_3_2(**kwargs):
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
 			if e.args[0] == 'columns param, group are not unique' or e == " 1060 (42S21): columns param, group are not unique ":
-				print('DB was update to 4.3.2')
+				print('Updating... go to version 4.4.0')
 			else:
 				print("An error occurred:", e)
 		return False
 	else:
-		print("DB was update to 4.3.2")
+		print("Updating... go to version 4.4.0")
 		return True
 	cur.close() 
 	con.close()
@@ -630,11 +630,38 @@ def update_db_v_4_4_2_1(**kwargs):
 		return True
 	cur.close()
 	con.close()
+
+
+def update_db_v_4_5(**kwargs):
+	con, cur = get_cur()
+	sql = """CREATE TABLE IF NOT EXISTS `alerts` (`id`	INTEGER NOT NULL,
+				`message` varchar(64),
+				`level` varchar(64),
+				`ip` varchar(64),
+				`port` INTEGER,
+				`user_group` INTEGER default 1,
+				`service` varchar(64),
+				`date`  DATETIME default '0000-00-00 00:00:00',
+				PRIMARY KEY(`id`) ); """
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: version' or e == "1060 (42S21): Duplicate column name 'version' ":
+				print('Updating... go to version 4.5.1')
+			else:
+				print("Updating... go to version to 4.5.1")
+			return False
+		else:
+			return True
+	cur.close()
+	con.close()
 	
 	
 def update_ver(**kwargs):
 	con, cur = get_cur()
-	sql = """update version set version = '4.4.2.0'; """
+	sql = """update version set version = '4.4.3.0'; """
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -666,6 +693,7 @@ def update_all():
 	update_db_v_4_4()
 	update_db_v_4_4_2()
 	update_db_v_4_4_2_1()
+	update_db_v_4_5()
 	update_ver()
 		
 	
@@ -691,6 +719,7 @@ def update_all_silent():
 	update_db_v_4_4(silent=1)
 	update_db_v_4_4_2(silent=1)
 	update_db_v_4_4_2_1(silent=1)
+	update_db_v_4_5(silent=1)
 	update_ver()
 	
 		

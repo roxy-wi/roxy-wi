@@ -1,9 +1,13 @@
 {% extends "base.html" %}
-{% block content %}	
+{% block content %}
+{% from 'include/input_macros.html' import input, checkbox, select %}
 <br />
 {% if selects|length == 0 %}
 	{% include 'include/getstarted.html' %}
 {% else %}
+<style>
+
+</style>
 <form style="padding-left: 5px;" action="viewsttats.py" method="post">
 	<input type="hidden" id="service" value="{{service}}" />
 	<select autofocus required name="serv" id="serv">
@@ -17,12 +21,24 @@
 			{% endfor %}
 	</select>		
 	<a class="ui-button ui-widget ui-corner-all" id="show" title="Show stats" onclick="{{ onclick }}">Show</a>
+	<div id="stats_filter">
+		<div id="stats_filter_text">Filter:</div>
+		{{ checkbox('stats_active', title='Show active servers', desc='Active', checked='checked') }}
+		{{ checkbox('stats_drain', title='Show drain servers', desc='Drain', checked='checked') }}
+		{{ checkbox('stats_maintain', title='Show maintain servers', desc='Maintain', checked='checked') }}
+		{{ checkbox('stats_down', title='Show DOWN servers', desc='DOWN', checked='checked') }}
+		{{ checkbox('stats_not_checked', title='Show not checked servers', desc='Not checked', checked='checked') }}
+		{{ checkbox('stats_backup', title='Show backup servers', desc='Backup', checked='checked') }}
+		{{ checkbox('stats_frontends', title='Show frontends servers', desc='Frontends', checked='checked') }}
+		{{ checkbox('stats_backends', title='Show backends servers', desc='Backends', checked='checked') }}
+	</div>
 </form>
-<br />
+
 <div id="ajax" style="margin-left: 5px; margin-right: 5px;"></div>
 	<div id="notice" style="padding-left: 15px; font-size: 25px;">
 		Please choose a server
-	</div>	
+		<br />
+	</div>
 <script> 
 	if (cur_url[1]) {
 		showStats();		
@@ -56,6 +72,62 @@
 		$('h1').next().next().next().next().css('display', 'none');	  
 		$('body').css('font-family', '-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol');	  
 		$( "select" ).selectmenu();
+		$('#stats_filter').show();
+		var backends = $('.backend').parents('p');
+		var backends_form = $('.backend').parents('form');
+		var frontends = $('.frontend').parents('p');
+		var filter_array = {'#stats_active': '.active_up', '#stats_maintain': '.maintain', '#stats_drain': '.active_draining',
+			'#stats_down': '.active_down', '#stats_not_checked': '.active_no_check', '#stats_backup': '.backup_up',
+			'#stats_backends': backends, '#stats_backends': backends_form,'#stats_frontends': frontends};
+		trigger_filter(filter_array);
+		$('#stats_active').click(function() {
+			var stats_active = {'#stats_active': '.active_up'};
+			trigger_filter(stats_active);
+		});
+		$('#stats_maintain').click(function() {
+			var stats_maintain = {'#stats_maintain': '.maintain'};
+			trigger_filter(stats_maintain);
+		});
+		$('#stats_drain').click(function() {
+			var stats_drain = {'#stats_drain': '.active_draining'};
+			trigger_filter(stats_drain);
+		});
+		$('#stats_down').click(function() {
+			var stats_down = {'#stats_down': '.active_down'};
+			trigger_filter(stats_down);
+		});
+		$('#stats_not_checked').click(function() {
+			var stats_not_checked = {'#stats_not_checked': '.active_no_check'};
+			trigger_filter(stats_not_checked);
+		});
+		$('#stats_backup').click(function() {
+			var stats_backup = {'#stats_backup': '.backup_up'};
+			trigger_filter(stats_backup);
+		});
+		$('#stats_backends').click(function() {
+			var stats_backends = {'#stats_backends': backends};
+			trigger_filter(stats_backends);
+			var stats_backends = {'#stats_backends': backends_form};
+			trigger_filter(stats_backends);
+		});
+		$('#stats_frontends').click(function() {
+			var stats_frontends = {'#stats_frontends': frontends};
+			trigger_filter(stats_frontends);
+		});
+		function trigger_filter(filter_array) {
+			for (var filter_id in filter_array) {
+				if ($(filter_id).prop('checked')) {
+					if (filter_id == '#stats_backends' || filter_id == '#stats_frontends' || filter_id == '#stats_listens') {
+						$(filter_array[filter_id]).css('display', 'block');
+						$(filter_array[filter_id]).css('addClass', 'tbl');
+					} else {
+						$(filter_array[filter_id]).css('display', 'table-row');
+					}
+				} else {
+					$(filter_array[filter_id]).css('display', 'none');
+				}
+			}
+		}
 		{% if role == 3 %}
 			$('input[type=checkbox]').remove()	
 		{% endif %}
@@ -76,7 +148,7 @@
 	}
 	$('#serv').on('selectmenuchange',function() {
 		showStats();		
-	});		
+	});
 </script>
 <link href="/inc/style.css" rel="stylesheet">
 {% endif %}

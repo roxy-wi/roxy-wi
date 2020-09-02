@@ -222,25 +222,7 @@ $( function() {
 		} );
 	});
 	$('#runtimeapitable').submit(function() {
-		$.ajax( {
-			url: "options.py",
-			data: {
-				serv: $('#table_serv_select').val(),
-				table_select: $('#table_select').val(),
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function( data ) {
-					if (data.indexOf('error:') != '-1') {
-						toastr.error(data);
-					} else {
-						$("#ajaxtable").html(data);
-						$( "input[type=submit], button" ).button();
-						$.getScript("/inc/fontawesome.min.js");
-						FontAwesomeConfig = { searchPseudoElements: true, observeMutations: false };
-					}				
-			}
-		} );
+		getTable();
 		return false;
 	});
 	$('#runtimeapilist').submit(function() {
@@ -308,6 +290,45 @@ function deleteTableEntry(id, table, ip) {
     		}
     	}
     } );
+}
+function clearTable(table) {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			serv: $('#table_serv_select').val(),
+			table_for_clear: table,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			if (data.indexOf('error: ') != '-1') {
+				toastr.error(data);
+			} else {
+				getTable();
+			}
+		}
+	} );
+}
+function getTable() {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			serv: $('#table_serv_select').val(),
+			table_select: $('#table_select').val(),
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			if (data.indexOf('error:') != '-1') {
+				toastr.error(data);
+			} else {
+				$("#ajaxtable").html(data);
+				$( "input[type=submit], button" ).button();
+				$.getScript("/inc/fontawesome.min.js");
+				FontAwesomeConfig = { searchPseudoElements: true, observeMutations: false };
+			}
+		}
+	} );
 }
 function getList() {
 	$.ajax( {

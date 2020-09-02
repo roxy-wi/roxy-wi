@@ -25,9 +25,10 @@ if act == "checkrestart":
 	sys.exit()
 
 
-if not sql.check_token_exists(form.getvalue("token")):
-	print('error: Your token has been expired')
-	sys.exit()
+if form.getvalue('alert_consumer') is None:
+	if not sql.check_token_exists(form.getvalue("token")):
+		print('error: Your token has been expired')
+		sys.exit()
 
 
 if form.getvalue('getcerts') is not None and serv is not None:
@@ -239,6 +240,16 @@ if form.getvalue('ip_for_delete') is not None:
 	table = form.getvalue('table_for_delete')
 
 	cmd='echo "clear table %s key %s" |nc %s %s' % (table, ip, serv, haproxy_sock_port)
+	output, stderr = funct.subprocess_execute(cmd)
+	if stderr[0] != '':
+		print('error: ' + stderr[0])
+
+
+if form.getvalue('table_for_clear') is not None:
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+	table = form.getvalue('table_for_clear')
+
+	cmd='echo "clear table %s " |nc %s %s' % (table, serv, haproxy_sock_port)
 	output, stderr = funct.subprocess_execute(cmd)
 	if stderr[0] != '':
 		print('error: ' + stderr[0])
@@ -2024,3 +2035,38 @@ if form.getvalue('showBytes') is not None:
 	template = env.get_template('ajax/bin_bout.html')
 	template = template.render(bin_bout=bin_bout,serv=serv)
 	print(template)
+
+
+if form.getvalue('alert_consumer'):
+	try:
+		user_group = funct.get_user_group(id=1)
+		if funct.check_user_group():
+			message = sql.select_alerts(user_group)
+			for m in message:
+				print(m[0]+ ': '+ m[1] +' date: '+m[2]+';')
+	except:
+		pass
+
+
+if form.getvalue('waf_rule_id'):
+	enable = form.getvalue('waf_en')
+	rule_id = form.getvalue('waf_rule_id')
+	haproxy_path = sql.get_setting('haproxy_dir')
+	rule_file = sql.select_waf_rule_by_id(rule_id)
+	conf_file_path = haproxy_path + 'waf/modsecurity.conf'
+	rule_file_path = 'Include ' + haproxy_path + '/waf/rules/' + rule_file
+
+	if enable == '0':
+		cmd = ["sudo sed -i 's!"+rule_file_path+"!#"+rule_file_path+"!' "+conf_file_path]
+		en_for_log = 'disable'
+	else:
+		cmd = ["sudo sed -i 's!#"+rule_file_path+"!"+rule_file_path+"!' "+conf_file_path]
+		en_for_log = 'enable'
+
+	try:
+		funct.logging('WAF', ' Has been '+en_for_log+' WAF rule: '+rule_file+' for the server '+serv, haproxywi=1, login=1)
+	except:
+		pass
+
+	print(funct.ssh_command(serv, cmd))
+	sql.update_enable_waf_rules(rule_id, serv, enable)

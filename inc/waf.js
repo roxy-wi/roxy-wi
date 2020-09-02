@@ -109,20 +109,29 @@ function waf_rules_en(id) {
 	if ($('#rule_id-'+id).is(':checked')) {
 		enable = '1';
 	}
+	var serv = findGetParameter('serv')
+	console.log(serv)
+	console.log(id)
+	console.log(enable)
 	$.ajax( {
 		url: "options.py",
 		data: {
 			waf_rule_id: id,
 			waf_en: enable,
+			serv: serv,
 			token: $('#token').val()
 		},
 		type: "POST",
 		success: function( data ) {
-			toastr.info('Do not forget restart WAF service');
-			$( '#rule-'+id ).addClass( "update", 1000 );
-			setTimeout(function() {
-				$( '#rule-'+id ).removeClass( "update" );
-			}, 2500 );
+			if (data.indexOf('sed:') != '-1' || data.indexOf('error: ') != '-1' ) {
+				toastr.error(data);
+			} else {
+				toastr.info('Do not forget restart WAF service');
+				$('#rule-' + id).addClass("update", 1000);
+				setTimeout(function () {
+					$('#rule-' + id).removeClass("update");
+				}, 2500);
+			}
 		}
 	} );
 }

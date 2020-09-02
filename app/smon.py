@@ -25,13 +25,15 @@ if action == 'add':
 	smon = sql.select_smon(user_group,action='add')
 	funct.page_for_admin(level=2)
 	title = "SMON Admin"
+	autorefresh = 0
 else:
 	smon = sql.smon_list(user_group)
 	title = "SMON Dashboard"
+	autorefresh = 1
 
 
 template = template.render(h2 = 1, title = title,
-							autoreœfresh = 1,
+						   	autorefresh = autorefresh,
 							role = role,
 							user = user,
 							group = user_group,

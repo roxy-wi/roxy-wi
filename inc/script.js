@@ -823,7 +823,6 @@ $( function() {
 			success: function( data ) {
 				if (data.indexOf('ok') != '-1') {
 					window.location.replace(ref);
-					console.log(data)
 				} else if (data.indexOf('disabled') != '-1') {
 					$('.alert').show();
 					$('.alert').html(data);
