@@ -97,7 +97,7 @@
 				<span>Metrics master</span>
 				{% endif %}
 			{% else %}
-				{% if checker_master == 'inactive' or checker_master == 'failed' %}
+				{% if metrics_master == 'inactive' or metrics_master == 'failed' %}
 					<span title="Metrics is stopped"><span class="serverDown server-status"></span></span>
 					<a href="/app/users.py#services" title="Start Metrics - HAProxy-WI service" class="logs_link">
 						Metrics master
