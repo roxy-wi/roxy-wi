@@ -70,7 +70,7 @@ try:
 		prometheus, stderr = funct.subprocess_execute(cmd)
 		host = os.environ.get('HTTP_HOST', '')
 
-	cmd = "ps ax |grep metrics_master |grep -v grep |wc -l"
+	cmd = "systemctl status metrics_haproxy |grep Act |awk  '{print $2}'"
 	metrics_master, stderr = funct.subprocess_execute(cmd)
 	cmd = "systemctl status checker_haproxy |grep Act |awk  '{print $2}'"
 	checker_master, stderr = funct.subprocess_execute(cmd)

@@ -87,17 +87,27 @@
 	</tr>
 	<tr>
 		<td class="padding10 first-collumn-wi">
-			{% if metrics_master|int() >= 1 %}
-				<span title="running {{ metrics_master }} master processes"><span class="serverUp server-status"></span></span> 
-			{% else %}
-				<span class="serverDown server-status"></span>
-			{% endif %}
-			{% if role <= 1 %}
-			<a href="/app/viewlogs.py?viewlogs={{metrics_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View metrics master's logs" class="logs_link">			
+			{% if metrics_master == 'active' %}
+				<span title="running {{ metrics_master }} master processes"><span class="serverUp server-status"></span></span>
+				{% if role <= 1 %}
+				<a href="/app/viewlogs.py?viewlogs={{metrics_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View metrics master's logs" class="logs_link">
+					<span>Metrics master</span>
+				</a>
+				{% else %}
 				<span>Metrics master</span>
-			</a>
+				{% endif %}
 			{% else %}
-				<span>Metrics master</span>
+				{% if checker_master == 'inactive' or checker_master == 'failed' %}
+					<span title="Metrics is stopped"><span class="serverDown server-status"></span></span>
+					<a href="/app/users.py#services" title="Start Metrics - HAProxy-WI service" class="logs_link">
+						Checker master
+					</a>
+					{% else %}
+					<span title="Metrics is not installed"><span class="serverNone server-status"></span></span>
+					<a href="https://haproxy-wi.org/services.py?service=metrics#installation" title="Metrics installation" target="_blank" class="logs_link">
+						Checker master
+					</a>
+				{% endif %}
 			{% endif %}
 		</td>
 		<td class="third-collumn-wi">
