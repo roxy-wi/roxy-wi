@@ -635,9 +635,6 @@ ul{
 .ui-corner-all {
 	border-radius: 0 !important;
 }
-a {
-  background-color: transparent;
-}
 a:active, a:hover {
   outline: 0;
 }
@@ -645,8 +642,9 @@ a, a:visited {
     text-decoration: underline;
   }
 a {
-	color: #9d9d9d;
+	color: #23527c;
 	text-decoration: none;
+	background-color: transparent;
 }
 a:hover, a:focus {
   color: #23527c;

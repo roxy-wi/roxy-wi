@@ -137,6 +137,11 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f00d";
 }
+.info::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f129";
+}
 .login::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";
