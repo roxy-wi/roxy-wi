@@ -33,7 +33,7 @@ if form.getvalue('alert_consumer') is None:
 
 if form.getvalue('getcerts') is not None and serv is not None:
 	cert_path = sql.get_setting('cert_path')
-	commands = ["ls -1t "+cert_path+" |grep ."]
+	commands = ["ls -1t "+cert_path+" |grep -E 'pem|crt|key'"]
 	try:
 		funct.ssh_command(serv, commands, ip="1")
 	except Exception as e:
@@ -47,7 +47,7 @@ if form.getvalue('checkSshConnect') is not None and serv is not None:
 if form.getvalue('getcert') is not None and serv is not None:
 	id = form.getvalue('getcert')
 	cert_path = sql.get_setting('cert_path')
-	commands = [ "cat "+cert_path+"/"+id ]
+	commands = ["cat "+cert_path+"/"+id]
 	try:
 		funct.ssh_command(serv, commands, ip="1")
 	except:
@@ -816,7 +816,6 @@ if form.getvalue('servaction') is not None:
 
 
 if act == "showCompareConfigs":
-	import glob
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 	template = env.get_template('ajax/show_compare_configs.html')
@@ -1643,8 +1642,9 @@ if form.getvalue('newserver') is not None:
 									servers = sql.select_servers(server=ip),
 									roles = sql.select_roles(),
 									masters = sql.select_servers(get_master_servers=1),
-									sshs = sql.select_ssh(),
-									page = page)
+									sshs = sql.select_ssh(group=group),
+									page = page,
+								   	adding = 1)
 		print(template)
 		funct.logging('a new server '+hostname, ' has created  ', haproxywi=1, login=1)
 
@@ -1811,7 +1811,7 @@ if form.getvalue('updatessh'):
 if form.getvalue('ssh_cert'):
 	user_group = funct.get_user_group()
 	name = form.getvalue('name')
-	name = name + '_' + user_group
+	# name = name + '_' + user_group
 
 	if not os.path.exists(os.getcwd()+'/keys/'):
 		os.makedirs(os.getcwd()+'/keys/')
