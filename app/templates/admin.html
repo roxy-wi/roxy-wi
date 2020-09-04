@@ -113,66 +113,7 @@
 		</div>
 	</div>
 	<div id="servers">
-		<table class="overview" id="ajax-servers">
-			<thead>
-			<tr class="overviewHead">
-				<th class="padding10 first-collumn">Hostname</th>
-				<th class="ip-field" style="width: 5%">IP</th>
-				<th class="checkbox-head" style="width: 5%"><span title="SSH port">Port</span></th>
-				<th class="group-field" style="width: 10%">Group</th>
-				<th class="checkbox-head" style="width: 5%">Enabled</th>
-				<th class="checkbox-head" style="width: 5%">
-					<span title="Virtual IP, something like VRRP">Virt</span>
-				</th>
-				<th class="checkbox-head" style="width: 5%">HAProxy</th>
-				<th class="checkbox-head" style="width: 5%">Nginx</th>
-				<th class="slave-field" style="width: 10%">
-					<span title="Actions with the master config will automatically apply on the slave">Slave for</span>
-				</th>
-				<th class="cred-field" style="width: 15%">Credentials</th>
-				<th style="width: 100%">Description</th>
-				<th></th>
-				<th></th>
-			</tr>	
-			</thead>
-			<tbody>
-		{% for server in servers %}
-			<tr id="server-{{server.0}}" class="{{ loop.cycle('odd', 'even') }}">
-				<td class="padding10 first-collumn">
-					{% set id = 'hostname-' + server.0|string() %}
-					{{ input(id, value=server.1, size='10') }}
-				</td>
-				<td>
-					<span id="ip-{{server.0}}" style="margin-right: 6px;">{{server.2}}</span>
-				</td>
-				<td>
-					{% set id = 'port-' + server.0|string() %}
-					{{ input(id, value=server.10, size='2') }}
-				</td>
-				<td>
-					<select id="servergroup-{{server.0}}" name="servergroup-{{server.0}}">
-						<option disabled selected>Choose group</option>
-						{% for group in groups %}
-							{% if server.3 == group.0|string() %}
-								<option value="{{ group.0 }}" selected>{{ group.1 }}</option>
-							{% else %}
-								<option value="{{ group.0 }}">{{ group.1 }}</option>
-							{% endif %}
-						{% endfor %}
-					</select>
-				</td>
-				{% include 'include/admin_servers.html' %}
-			</tr>
-		{% endfor %}
-			</tbody>
-		</table>
-		<br /><span class="add-button" title="Add server" id="add-server-button">+ Add</span>
-		<br /><br />
-		<div id="checkSshConnect"></div>
-		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
-			You can read the description of all parameters <a href="https://haproxy-wi.org/description.py?description=servers" title="Servers description" target="_blank">here</a>
-			or watch video <a href="https://haproxy-wi.org/description.py?description=setup" title="How to setup servers, group and SSH credentials" target="_blank">here</a>
-		</div>
+		{% include 'include/admin_servers.html' %}
 	</div>
 
 	<div id="ssh">

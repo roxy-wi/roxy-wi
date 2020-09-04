@@ -1,31 +1,5 @@
 {% for server in servers %}
-			<tr id="server-{{server.0}}" class="newserver">
-				<td class="padding10 first-collumn" style="padding-top: 20px;">
-					<input type="text" id="hostname-{{server.0}}" value="{{server.1}}" class="form-control">
-				</td>
-				<td>
-					<span id="ip-{{server.0}}" style="margin-right: 6px;">{{server.2}}</span>
-					{% if page == "servers.py" %}
-						<input type="hidden" id="servergroup-{{server.0}}" name="servergroup-{{server.0}}" value="" >
-					{% endif %}
-				</td>
-				<td>
-					<input type="text" id="port-{{server.0}}" value="{{server.10}}" size="1" class="form-control">
-				</td>
-				{% if page != "servers.py" %}
-				<td>				
-					<select id="servergroup-{{server.0}}" name="servergroup-{{server.0}}">
-						<option disabled selected>Choose group</option>
-						{% for group in groups %}
-							{% if server.3 == group.0|string() %}
-								<option value="{{ group.0 }}" selected>{{ group.1 }}</option>
-							{% else %}
-								<option value="{{ group.0 }}">{{ group.1 }}</option>
-							{% endif %}
-						{% endfor %}
-					</select>
-				{% endif %}
-				{% include 'include/admin_servers.html' %}
+	{% include 'include/admin_servers.html' %}
 	<script>
 		$( function() {
 			{% if page != "servers.py" %}

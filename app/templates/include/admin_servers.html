@@ -1,74 +1,143 @@
 {% from 'include/input_macros.html' import input, checkbox %}
-<td class="checkbox">
-	{% set id = 'enable-' + server.0|string() %}
-	{% if server.5 == 1 %}
-		{{ checkbox(id, checked='checked') }}
-	{% else %}
-		{{ checkbox(id) }}
-	{% endif %}
-</td>
-<td class="checkbox" style="padding-left: 0px;">
-	{% set id = 'typeip-' + server.0|string() %}
-	{% if server.4 == 1 %}
-		{{ checkbox(id, checked='checked') }}
-	{% else %}
-		{{ checkbox(id) }}
-	{% endif %}
-</td>
-<td class="checkbox">
-	{% set id = 'haproxy-' + server.0|string() %}
-	{% if server.15 == 1 %}
-		{{ checkbox(id, checked='checked') }}
-	{% else %}
-		{{ checkbox(id) }}
-	{% endif %}
-</td>
-<td class="checkbox">
-	{% set id = 'nginx-' + server.0|string() %}
-	{% if server.14 == 1 %}
-		{{ checkbox(id, checked='checked') }}
-	{% else %}
-		{{ checkbox(id) }}
-	{% endif %}
-</td>
-<td>
-	<select id="slavefor-{{server.0}}">
-		<option value="0" selected>Not slave</option>
-		{% for master in masters %}
-			{% if master.0 == server.6 %}
-				<option value="{{master.0}}" selected>{{master.1}}</option>
-			{% else %}
-				<option value="{{master.0}}">{{master.1}}</option>
+{% if not adding %}
+<table class="overview" id="ajax-servers">
+	<thead>
+		<tr class="overviewHead">
+			<th class="padding10 first-collumn">Hostname</th>
+			<th class="ip-field" style="width: 5%">IP</th>
+			<th class="checkbox-head" style="width: 5%"><span title="SSH port">Port</span></th>
+			{% if page != "servers.py" %}
+			<th class="group-field" style="width: 10%">Group</th>
 			{% endif %}
-		{% endfor %}
-	</select>
-</td>
-<td>
-	<div class="controlgroup">
-		<select id="credentials-{{server.0}}">
-			<option disabled selected>Choose credentials</option>
-			{% for ssh in sshs %}
-				{% if ssh.0 == server.7	%}
-					<option value="{{ssh.0}}" selected>{{ssh.1}}</option>
+			<th class="checkbox-head" style="width: 5%">Enabled</th>
+			<th class="checkbox-head" style="width: 5%">
+				<span title="Virtual IP, something like VRRP">Virt</span>
+			</th>
+			<th class="checkbox-head" style="width: 5%">HAProxy</th>
+			<th class="checkbox-head" style="width: 5%">Nginx</th>
+			<th class="slave-field" style="width: 10%">
+				<span title="Actions with the master config will automatically apply on the slave">Slave for</span>
+			</th>
+			<th class="cred-field" style="width: 15%">Credentials</th>
+			<th style="width: 100%">Description</th>
+			<th></th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+{% endif %}
+		{% for server in servers %}
+		<tr id="server-{{server.0}}" class="{{ loop.cycle('odd', 'even') }} {% if adding %}newserver{% endif %}">
+			<td class="padding10 first-collumn">
+				{% set id = 'hostname-' + server.0|string() %}
+				{{ input(id, value=server.1, size='10') }}
+			</td>
+			<td>
+				<span id="ip-{{server.0}}" style="margin-right: 6px;">{{server.2}}</span>
+			</td>
+			<td>
+				{% set id = 'port-' + server.0|string() %}
+				{{ input(id, value=server.10, size='2') }}
+			</td>
+			{% if page != "servers.py" %}
+			<td>
+				<select id="servergroup-{{server.0}}" name="servergroup-{{server.0}}">
+					<option disabled selected>Choose group</option>
+					{% for group in groups %}
+					{% if server.3 == group.0|string() %}
+					<option value="{{ group.0 }}" selected>{{ group.1 }}</option>
+					{% else %}
+					<option value="{{ group.0 }}">{{ group.1 }}</option>
+					{% endif %}
+					{% endfor %}
+				</select>
+			</td>
+			{% else %}
+			<input type="hidden" id="servergroup-{{server.0}}" name="servergroup-{{server.0}}" value="{{ group }}" />
+			{% endif %}
+			<td class="checkbox">
+				{% set id = 'enable-' + server.0|string() %}
+				{% if server.5 == 1 %}
+					{{ checkbox(id, checked='checked') }}
 				{% else %}
-					<option value="{{ssh.0}}">{{ssh.1}}</option>
+					{{ checkbox(id) }}
 				{% endif %}
-			{% endfor %}
-		</select>
-		<button onclick="checkSshConnect('{{server.2}}')" title="Check SSH connect to the server {{server.1}}">check</button>
-	</div>
-</td>
-<td>
-	{% set id = 'desc-' + server.0|string() %}
-	{% if server.11  != "None" %}
-		{{ input(id, value=server.11, size='20') }}
-	{% else %}
-		{{ input(id, size='20') }}
-	{% endif %}
-</td>
-<td>
-	<a class="add" onclick="cloneServer({{server.0}})" id="clone-{{server.0}}" title="Clone {{server.1}}" style="cursor: pointer;"></a>
-</td> 
-<td>
-	<a class="delete" onclick="confirmDeleteServer({{server.0}})" title="Delete server {{server.1}}" style="cursor: pointer;"></a>
-</td> 
+			</td>
+			<td class="checkbox" style="padding-left: 0px;">
+				{% set id = 'typeip-' + server.0|string() %}
+				{% if server.4 == 1 %}
+					{{ checkbox(id, checked='checked') }}
+				{% else %}
+					{{ checkbox(id) }}
+				{% endif %}
+			</td>
+			<td class="checkbox">
+				{% set id = 'haproxy-' + server.0|string() %}
+				{% if server.15 == 1 %}
+					{{ checkbox(id, checked='checked') }}
+				{% else %}
+					{{ checkbox(id) }}
+				{% endif %}
+			</td>
+			<td class="checkbox">
+				{% set id = 'nginx-' + server.0|string() %}
+				{% if server.14 == 1 %}
+					{{ checkbox(id, checked='checked') }}
+				{% else %}
+					{{ checkbox(id) }}
+				{% endif %}
+			</td>
+			<td>
+				<select id="slavefor-{{server.0}}">
+					<option value="0" selected>Not slave</option>
+					{% for master in masters %}
+						{% if master.0 == server.6 %}
+							<option value="{{master.0}}" selected>{{master.1}}</option>
+						{% else %}
+							<option value="{{master.0}}">{{master.1}}</option>
+						{% endif %}
+					{% endfor %}
+				</select>
+			</td>
+			<td>
+				<div class="controlgroup">
+					<select id="credentials-{{server.0}}">
+						<option disabled selected>Choose credentials</option>
+						{% for ssh in sshs %}
+							{% if ssh.0 == server.7	%}
+								<option value="{{ssh.0}}" selected>{{ssh.1}}</option>
+							{% else %}
+								<option value="{{ssh.0}}">{{ssh.1}}</option>
+							{% endif %}
+						{% endfor %}
+					</select>
+					<button onclick="checkSshConnect('{{server.2}}')" title="Check SSH connect to the server {{server.1}}">check</button>
+				</div>
+			</td>
+			<td>
+				{% set id = 'desc-' + server.0|string() %}
+				{% if server.11  != "None" %}
+					{{ input(id, value=server.11, size='20') }}
+				{% else %}
+					{{ input(id, size='20') }}
+				{% endif %}
+			</td>
+			<td>
+				<a class="add" onclick="cloneServer({{server.0}})" id="clone-{{server.0}}" title="Clone {{server.1}}" style="cursor: pointer;"></a>
+			</td>
+			<td>
+				<a class="delete" onclick="confirmDeleteServer({{server.0}})" title="Delete server {{server.1}}" style="cursor: pointer;"></a>
+			</td>
+		</tr>
+		{% endfor %}
+{% if not adding %}
+	</tbody>
+</table>
+<br /><span class="add-button" title="Add server" id="add-server-button">+ Add</span>
+<br /><br />
+<div id="checkSshConnect"></div>
+<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+	You can read the description of all parameters <a href="https://haproxy-wi.org/description.py?description=servers" title="Servers description" target="_blank">here</a>
+	or watch video <a href="https://haproxy-wi.org/description.py?description=setup" title="How to setup servers, group and SSH credentials" target="_blank">here</a>
+</div>
+{% endif %}

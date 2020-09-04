@@ -87,7 +87,7 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f06d";
 }
-.hap::before {
+.hap-menu::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";
 	content: "\f074";
@@ -112,7 +112,7 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f126";
 }
-.nginx::before {
+.nginx-menu::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";
 	content: "\f0e8";
