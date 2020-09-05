@@ -24,52 +24,11 @@
 		{% include 'include/login.html' %}
 	</ul>
 	<ul id='browse_histroy'></ul>
+
 	<div id="users">
-		<table class="overview" id="ajax-users">
-			<thead>
-				<tr class="overviewHead">
-				<th class="padding10 first-collumn">Login name</th>
-				<th style="width: 10%">Password</th>
-				<th style="width: 10%">Active</th>
-				<th style="width: 20%">Email</th>
-				<th style="width: 10%">Role</th>
-				<th style="width: 100%">Group</th>
-				<th></th>
-				<th></th>
-			</tr>
-			</thead>
-			<tbody>
-		{% for user in users %}
-			<tr id="user-{{user.0}}" class="{{ loop.cycle('odd', 'even') }}">
-				{% include 'include/admin_users.html' %}
-				<td>
-					<select id="role-{{user.0}}" name="role-{{user.0}}">
-						<option disabled selected>Choose role</option>
-						{% for role in roles %}
-							{% if user.4 == role.1 %}
-								<option value="{{ role.1 }}" selected>{{ role.1 }}</option>
-							{% else %}
-								<option value="{{ role.1 }}">{{ role.1 }}</option>
-							{% endif %}
-						{% endfor %}
-					</select>
-				</td>
-				<td>
-					<span title="Change user groups" style="cursor: pointer; margin-left: 15px;" class="div-pic" onclick="openChangeUserGroupDialog('{{user.0}}')">
-				</td>
-				<td>
-					<a class="add" onclick="cloneUser({{user.0}})" id="clone-{{user.0}}" title="Clone {{user.1}}" style="cursor: pointer;"></a>
-				</td> 
-				<td>
-					<a class="delete" onclick="confirmDeleteUser({{user.0}})" title="Delete user {{user.1}}" style="cursor: pointer;"></a>
-				</td> 
-			</tr>
-		{% endfor %}
-		<tbody>
-		</table>
-		<br /><span class="add-button" title="Add user" id="add-user-button">+ Add</span>
-		<br /><br />
+		{% include 'include/admin_users.html' %}
 	</div>
+
 	<div id="groups">
 		<table class="overview" id="ajax-group">
 			<thead>
@@ -121,53 +80,7 @@
 	</div>
 	
 	<div id="checker">
-		<table id="checker_table" class="overview">
-			<tr class="overviewHead" style="width: 50%;">
-				<td class="padding10 first-collumn" style="width: 25%;">
-					<span title="Token that gave you @father_bot">Token</span>
-				</td>
-				<td style="width: 25%;">Channel name</td>
-				<td style="width: 100%;">Group</td>
-				<td></td>
-				<td></td>
-			</tr>
-			{% for telegram in telegrams %}
-				<tr id="telegram-table-{{telegram.0}}" class="{{ loop.cycle('odd', 'even') }}">
-					<td class="padding10 first-collumn">
-						{% set id = 'telegram-token-' + telegram.0|string() %}
-						{{ input(id, value=telegram.1, size='30') }}
-					</td>
-					<td>
-						{% set id = 'telegram-chanel-' + telegram.0|string() %}
-						{{ input(id, value=telegram.2) }}	
-					</td>
-					<td>
-						<select id="telegramgroup-{{telegram.0}}" name="telegramgroup-{{telegram.0}}">
-							<option disabled selected>Choose group</option>
-							{% for group in groups %}
-								{% if telegram.3|string() == group.0|string() %}
-									<option value="{{ group.0 }}" selected>{{ group.1 }}</option>
-								{% else %}
-									<option value="{{ group.0 }}">{{ group.1 }}</option>
-								{% endif %}
-							{% endfor %}
-						</select>
-					</td>
-					<td>
-						<a class="add" onclick="cloneTelegram({{telegram.0}})" id="clone-{{telegram.0}}" title="Clone {{telegram.2}}" style="cursor: pointer;"></a>
-					</td> 
-					<td>
-						<a class="delete" onclick="confirmDeleteTelegram({{telegram.0}})" title="Delete channel {{telegram.2}}" style="cursor: pointer;"></a>
-					</td>
-				</tr>
-			{% endfor %}
-		</table>
-		<br /><span class="add-button" title="Add telegram channel" id="add-telegram-button">+ Add</span>
-		<br /><br />
-		<div id="ajax-telegram"></div>
-		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
-			You can read the description of all parameters <a href="https://haproxy-wi.org/description.py?description=checker" title="Servers description" target="_blank">here</a>
-		</div>
+		{% include 'include/admin_telegram.html' %}
 	</div>
 	
 	<div id="settings">

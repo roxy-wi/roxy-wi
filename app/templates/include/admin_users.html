@@ -1,31 +1,82 @@
 {% from 'include/input_macros.html' import input, checkbox %}
-<td class="padding10 first-collumn">
-	{% set login_id = 'login-' + user.0|string() %}
-	{% if user.6 == 1%}
-		{{ input(login_id, value=user.1, readonly='readonly') }}
-	{% else %}
-		{{ input(login_id, value=user.1) }}
+{% if not adding %}
+<table class="overview" id="ajax-users">
+	<thead>
+		<tr class="overviewHead">
+			<th class="padding10 first-collumn">Login name</th>
+			<th style="width: 10%">Password</th>
+			<th style="width: 10%">Active</th>
+			<th style="width: 20%">Email</th>
+			<th style="width: {% if page == "servers.py" %}100{% else %}10{% endif %}%">Role</th>
+			{% if page != "servers.py" %}
+			<th style="width: 100%">Group</th>
+			{% endif %}
+			<th></th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
 	{% endif %}
-</td> 
-<td>
-	{% if user.6 != 1%}
-	<span title="Change password" style="cursor: pointer; margin-left: 15px;" class="div-pic" onclick="openChangeUserPasswordDialog('{{user.0}}')">
-	</span>
-	{% endif %}
-</td>
-<td class="checkbox">
-	{% set activeuser_id = 'activeuser-' + user.0|string() %}
-	{% if user.7 == 1 %}
-		{{ checkbox(activeuser_id, checked='checked') }}
-	{% else %}
-		{{ checkbox(activeuser_id) }}
-	{% endif %}
-</td>
-<td>
-	{% set email_id = 'email-' + user.0|string() %}
-	{% if user.6 == 1%}
-		{{ input(email_id, value=user.2, readonly='readonly') }}
-	{% else %}
-		{{ input(email_id, value=user.2) }}
-	{% endif %}
-</td>
+	{% for user in users %}
+		<tr id="user-{{user.0}}" class="{{ loop.cycle('odd', 'even') }} {% if adding %}newuser{% endif %}">
+			<td class="padding10 first-collumn">
+				{% set login_id = 'login-' + user.0|string() %}
+				{% if user.6 == 1%}
+					{{ input(login_id, value=user.1, readonly='readonly') }}
+				{% else %}
+					{{ input(login_id, value=user.1) }}
+				{% endif %}
+			</td>
+			<td>
+				{% if user.6 != 1%}
+				<span title="Change password" style="cursor: pointer; margin-left: 15px;" class="div-pic" onclick="openChangeUserPasswordDialog('{{user.0}}')">
+				</span>
+				{% endif %}
+			</td>
+			<td class="checkbox">
+				{% set activeuser_id = 'activeuser-' + user.0|string() %}
+				{% if user.7 == 1 %}
+					{{ checkbox(activeuser_id, checked='checked') }}
+				{% else %}
+					{{ checkbox(activeuser_id) }}
+				{% endif %}
+			</td>
+			<td>
+				{% set email_id = 'email-' + user.0|string() %}
+				{% if user.6 == 1%}
+					{{ input(email_id, value=user.2, readonly='readonly') }}
+				{% else %}
+					{{ input(email_id, value=user.2) }}
+				{% endif %}
+			</td>
+			<td>
+				<select id="role-{{user.0}}" name="role-{{user.0}}">
+					<option disabled selected>Choose role</option>
+					{% for role in roles %}
+					{% if user.4 == role.1 %}
+					<option value="{{ role.1 }}" selected>{{ role.1 }}</option>
+					{% else %}
+					<option value="{{ role.1 }}">{{ role.1 }}</option>
+					{% endif %}
+					{% endfor %}
+				</select>
+			</td>
+			{% if page != "servers.py" %}
+			<td>
+				<span title="Change user groups" style="cursor: pointer; margin-left: 15px;" class="div-pic" onclick="openChangeUserGroupDialog('{{user.0}}')">
+			</td>
+			{% endif %}
+			<td>
+				<a class="add" onclick="cloneUser({{user.0}})" id="clone-{{user.0}}" title="Clone {{user.1}}" style="cursor: pointer;"></a>
+			</td>
+			<td>
+				<a class="delete" onclick="confirmDeleteUser({{user.0}})" title="Delete user {{user.1}}" style="cursor: pointer;"></a>
+			</td>
+		</tr>
+	{% endfor %}
+	{% if not adding %}
+	<tbody>
+</table>
+<br /><span class="add-button" title="Add user" id="add-user-button">+ Add</span>
+<br /><br />
+{% endif %}

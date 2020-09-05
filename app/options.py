@@ -1572,7 +1572,8 @@ if form.getvalue('newuser') is not None:
 				template = template.render(users=sql.select_users(user=new_user),
 											groups=sql.select_groups(),
 											page=page,
-											roles=sql.select_roles())
+											roles=sql.select_roles(),
+											adding=1)
 				print(template)
 				funct.logging('a new user '+new_user, ' has created ', haproxywi=1, login=1)
 		else:

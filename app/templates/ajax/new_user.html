@@ -1,30 +1,5 @@
 {% for user in users %}
-			<tr id="user-{{user.0}}" class="newuser">
-				{% include 'include/admin_users.html' %}
-				<td>
-					<select id="role-{{user.0}}" name="role-{{user.0}}">
-						<option disabled selected>Choose role</option>
-						{% for role in roles %}
-							{% if user.4 == role.1 %}
-								<option value="{{ role.1 }}" selected>{{ role.1 }}</option>
-							{% else %}
-								<option value="{{ role.1 }}">{{ role.1 }}</option>
-							{% endif %}
-						{% endfor %}
-					</select>
-				</td>
-				{% if page != "servers.py"  %}
-					{% if page != "servers.py#users"  %}
-					<td>
-						<span title="Change user groups" style="cursor: pointer; margin-left: 15px;" class="div-pic" onclick="openChangeUserGroupDialog('{{user.0}}')">
-					</td>
-					{% endif %}
-				{% endif %}
-				<td>
-					<a class="add" onclick="cloneUser({{user.0}})" id="clone-{{user.0}}" title="Clone {{user.1}}" style="cursor: pointer;"></a>
-				</td> 
-				<td><a class="delete" onclick="removeUser({{user.0}})"  style="cursor: pointer;"></a></td> 
-			</tr>
+	{% include 'include/admin_users.html' %}
 	<script>
 		$( function() {
 			$("#role-{{user.0}}" ).selectmenu({
