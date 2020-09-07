@@ -12,7 +12,7 @@
 	{% if name == '' %}
 		{% set name = id %}
 	{% endif %}
-	<label for="{{id}}" title="{{title}}">{{desc}}</label><input name="{{name}}" type="checkbox" id="{{id}}" value="{{value|e}}" {{checked}} />
+	<label for="{{id}}" title="{{title}}" class="{{id}}">{{desc}}</label><input name="{{name}}" type="checkbox" id="{{id}}" value="{{value|e}}" {{checked}} />
 {%- endmacro %}
 
 {%- macro select(id, values, name='', required='', first='', class='', selected='') -%}
