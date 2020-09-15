@@ -333,6 +333,50 @@ if form.getvalue('list_ip_for_add') is not None:
 		print('error: ' + stderr[0])
 
 
+if form.getvalue('sessions_select') is not None:
+	from jinja2 import Environment, FileSystemLoader
+	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True,extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'], trim_blocks=True, lstrip_blocks=True)
+	serv = form.getvalue('sessions_select')
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+
+	cmd = 'echo "show sess" |nc %s %s' % (serv, haproxy_sock_port)
+	output, stderr = funct.subprocess_execute(cmd)
+
+	template = env.get_template('/sessions_table.html')
+	template = template.render(sessions=output)
+
+	print(template)
+
+
+if form.getvalue('sessions_select_show') is not None:
+	serv = form.getvalue('sessions_select_show')
+	sess_id = form.getvalue('sessions_select_id')
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+
+	cmd = 'echo "show sess %s" |nc %s %s' % (sess_id, serv, haproxy_sock_port)
+	output, stderr = funct.subprocess_execute(cmd)
+
+	output, stderr = funct.subprocess_execute(cmd)
+
+	if stderr:
+		print('error: ' + stderr[0])
+	else:
+		for o in output:
+			print(o+'<br />')
+
+
+if form.getvalue('session_delete_id') is not None:
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+	sess_id = form.getvalue('session_delete_id')
+
+	cmd='echo "shutdown session %s" |nc %s %s' % (sess_id, serv, haproxy_sock_port)
+	output, stderr = funct.subprocess_execute(cmd)
+	if output[0] != '':
+		print('error: ' + output[0])
+	if stderr[0] != '':
+		print('error: ' + stderr[0])
+
+
 if form.getvalue("change_pos") is not None:
 	pos = form.getvalue('change_pos')
 	sql.update_server_pos(pos, serv)
@@ -352,10 +396,16 @@ if form.getvalue('action_hap') is not None and serv is not None:
 	action = form.getvalue('action_hap')
 
 	if funct.check_haproxy_config(serv):
-		commands = [ "sudo systemctl %s haproxy" % action ]
+		haproxy_enterprise = sql.get_setting('haproxy_enterprise')
+		if haproxy_enterprise:
+			haproxy_service_name = "hapee-2.0-lb"
+		else:
+			haproxy_service_name = "haproxy"
+
+		commands = ["sudo systemctl %s %s" % (action, haproxy_service_name)]
 		funct.ssh_command(serv, commands)
 		funct.logging(serv, 'HAProxy was '+action+'ed', haproxywi=1, login=1)
-		print("success: HAproxy was %s" % action)
+		print("success: HAProxy was %s" % action)
 	else:
 		print("error: Bad config, check please")
 
@@ -1492,10 +1542,17 @@ if form.getvalue('bwlists_save'):
 				funct.logging(serv, 'has edited  '+color+' list '+bwlists_save, haproxywi=1, login=1)
 			except:
 				pass
+
+			haproxy_enterprise = sql.get_setting('haproxy_enterprise')
+			if haproxy_enterprise:
+				haproxy_service_name = "hapee-2.0-lb"
+			else:
+				haproxy_service_name = "haproxy"
+
 			if form.getvalue('bwlists_restart') == 'restart':
-				funct.ssh_command(serv, ["sudo systemctl restart haproxy"])
+				funct.ssh_command(serv, ["sudo systemctl restart "+haproxy_service_name])
 			elif form.getvalue('bwlists_restart') == 'reload':
-				funct.ssh_command(serv, ["sudo systemctl reload haproxy"])
+				funct.ssh_command(serv, ["sudo systemctl reload "+haproxy_service_name])
 
 
 if form.getvalue('get_lists'):
@@ -2071,3 +2128,52 @@ if form.getvalue('waf_rule_id'):
 
 	print(funct.ssh_command(serv, cmd))
 	sql.update_enable_waf_rules(rule_id, serv, enable)
+
+
+if form.getvalue('lets_domain'):
+	serv = form.getvalue('serv')
+	lets_domain = form.getvalue('lets_domain')
+	lets_email = form.getvalue('lets_email')
+	proxy = sql.get_setting('proxy')
+	ssl_path = sql.get_setting('cert_path')
+	script = "letsencrypt.sh"
+	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(serv)
+
+	if ssh_enable == 0:
+		ssh_key_name = ''
+
+	servers = sql.select_servers(server=serv)
+	for server in servers:
+		ssh_port = str(server[10])
+
+	os.system("cp scripts/%s ." % script)
+
+	if proxy is not None and proxy != '' and proxy != 'None':
+		proxy_serv = proxy
+	else:
+		proxy_serv = ''
+
+	commands = ["chmod +x "+script +" &&  ./"+script +" PROXY=" + proxy_serv+
+				" DOMAIN="+lets_domain+" EMAIL="+lets_email+" SSH_PORT="+ssh_port+" SSL_PATH="+ssl_path+
+				" HOST="+serv+" USER="+ssh_user_name+" PASS="+ssh_user_password+" KEY="+ssh_key_name]
+
+	output, error = funct.subprocess_execute(commands[0])
+
+	if error:
+		funct.logging('localhost', error, haproxywi=1)
+		print(error)
+	else:
+		for l in output:
+			if "msg" in l or "FAILED" in l:
+				try:
+					l = l.split(':')[1]
+					l = l.split('"')[1]
+					print(l+"<br>")
+					break
+				except:
+					print(output)
+					break
+		else:
+			print('success: Certificate has been created')
+
+	os.system("rm -f %s" % script)

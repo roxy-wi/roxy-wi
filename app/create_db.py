@@ -632,6 +632,36 @@ def update_db_v_4_4_2_1(**kwargs):
 	con.close()
 
 
+def update_db_v_4_3_2_1(**kwargs):
+	con, cur = get_cur()
+	groups = ''
+	sql = """ select id from `groups` """
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		funct.out_error(e)
+	else:
+		groups = cur.fetchall()
+
+	for g in groups:
+		sql = """
+		INSERT  INTO settings (param, value, section, `desc`, `group`) values('haproxy_enterprise', '0', 'haproxy', 'Use this option, if your HAProxy is enterprise. It change service name for rebooting/reloading', '%s');
+		""" % g[0]
+		try:
+			cur.execute(sql)
+			con.commit()
+		except sqltool.Error as e:
+			if kwargs.get('silent') != 1:
+				if e.args[0] == 'columns param, group are not unique' or e == " 1060 (42S21): columns param, group are not unique ":
+					print('Updating... groups')
+				else:
+					print("An error occurred:", e)
+		else:
+			print("Updating... groups")
+	cur.close()
+	con.close()
+
+
 def update_db_v_4_5(**kwargs):
 	con, cur = get_cur()
 	sql = """CREATE TABLE IF NOT EXISTS `alerts` (`id`	INTEGER NOT NULL,
@@ -661,7 +691,7 @@ def update_db_v_4_5(**kwargs):
 	
 def update_ver(**kwargs):
 	con, cur = get_cur()
-	sql = """update version set version = '4.4.3.0'; """
+	sql = """update version set version = '4.5.0.0'; """
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -693,6 +723,7 @@ def update_all():
 	update_db_v_4_4()
 	update_db_v_4_4_2()
 	update_db_v_4_4_2_1()
+	update_db_v_4_3_2_1()
 	update_db_v_4_5()
 	update_ver()
 		
@@ -719,6 +750,7 @@ def update_all_silent():
 	update_db_v_4_4(silent=1)
 	update_db_v_4_4_2(silent=1)
 	update_db_v_4_4_2_1(silent=1)
+	update_db_v_4_3_2_1(silent=1)
 	update_db_v_4_5(silent=1)
 	update_ver()
 	

@@ -526,6 +526,7 @@ h3 {
 		
 	<div id="ssl">
 		<table>
+			<caption><h3>SSL</h3></caption>
 			<tr class="overviewHead">
 				<td class="padding10 first-collumn" style="width: 30%;">View certificates</td>
 				<td>
@@ -546,7 +547,6 @@ h3 {
 					<span  id="ajax-show-ssl"></span>
 				</td>
 			</tr>
-		<table>
 			<tr class="overviewHead">
 				<td class="padding10 first-collumn" style="width: 30%;">Upload SSL certificates</td>
 				<td>
@@ -572,6 +572,40 @@ h3 {
 					<textarea id="ssl_cert" cols="50" rows="5"></textarea><br /><br />
 					<button id="ssl_key_upload" title="Upload ssl certificates">Upload</button>	
 				</td>	
+			</tr>
+		</table>
+		<table>
+			<caption><h3>Let's Encrypt</h3></caption>
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn">
+					Server
+				</td>
+				<td>
+					Domain name
+				</td>
+				<td>
+					E-mail
+				</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td class="padding10 first-collumn">
+					<select required id="serv_for_lets">
+						<option disabled selected>Choose server</option>
+						{% for select in selects %}
+						<option value="{{ select.2 }}">{{ select.1 }}</option>
+						{% endfor %}
+					</select>
+				</td>
+				<td>
+					{{ input('lets_domain', placeholder="example.com") }}
+				</td>
+				<td>
+					{{ input('lets_email') }}
+				</td>
+				<td>
+					<button id="lets_button">Get certificate</button>
+				</td>
 			</tr>
 		</table>
 		<div id="ajax-ssl"></div>

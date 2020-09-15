@@ -708,14 +708,21 @@ def upload_and_restart(serv, cfg, **kwargs):
 		if sql.get_setting('firewall_enable') == "1":
 			commands[0] += open_port_firewalld(cfg, serv=serv, service='nginx')
 	else:
-		if kwargs.get("just_save") == "test":
-			commands = [ "sudo haproxy  -q -c -f " + tmp_file + " && sudo rm -f " + tmp_file ]
-		elif kwargs.get("just_save") == "save":
-			commands = [ "sudo haproxy  -q -c -f " + tmp_file + " && sudo mv -f " + tmp_file + " " + config_path ]
-		elif kwargs.get("just_save") == "reload":
-			commands = [ "sudo haproxy  -q -c -f " + tmp_file + " && sudo mv -f " + tmp_file + " " + config_path + " && sudo systemctl reload haproxy" ]
+		haproxy_enterprise = sql.get_setting('haproxy_enterprise')
+
+		if haproxy_enterprise:
+			haproxy_service_name = "hapee-2.0-lb"
 		else:
-			commands = [ "sudo haproxy  -q -c -f " + tmp_file + " && sudo mv -f " + tmp_file + " " + config_path + " && sudo systemctl restart haproxy" ]
+			haproxy_service_name = "haproxy"
+
+		if kwargs.get("just_save") == "test":
+			commands = [ "sudo "+haproxy_service_name+"  -q -c -f " + tmp_file + " && sudo rm -f " + tmp_file ]
+		elif kwargs.get("just_save") == "save":
+			commands = [ "sudo "+haproxy_service_name+"  -q -c -f " + tmp_file + " && sudo mv -f " + tmp_file + " " + config_path ]
+		elif kwargs.get("just_save") == "reload":
+			commands = [ "sudo "+haproxy_service_name+"  -q -c -f " + tmp_file + " && sudo mv -f " + tmp_file + " " + config_path + " && sudo systemctl reload "+haproxy_service_name+"" ]
+		else:
+			commands = [ "sudo "+haproxy_service_name+"  -q -c -f " + tmp_file + " && sudo mv -f " + tmp_file + " " + config_path + " && sudo systemctl restart "+haproxy_service_name+"" ]
 		if sql.get_setting('firewall_enable') == "1":
 			commands[0] += open_port_firewalld(cfg, serv=serv)
 	error += str(upload(serv, tmp_file, cfg, dir='fullpath'))
@@ -894,9 +901,9 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 			sys.exit()
 			
 		if serv == 'backup.log':
-			cmd="cat %s| awk '$2>\"%s:00\" && $2<\"%s:00\"' |tail -%s %s %s %s" % (log_path + serv, date, date1, rows, user_grep, grep_act, exgrep_act)
+			cmd="cat %s| awk '$2>\"%s:00\" && $2<\"%s:00\"' %s %s %s |tail -%s" % (log_path + serv, date, date1, user_grep, grep_act, exgrep_act, rows)
 		else:
-			cmd="cat %s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s %s" % (log_path + serv, date, date1, rows, user_grep, grep_act, exgrep_act)
+			cmd="cat %s| awk '$3>\"%s:00\" && $3<\"%s:00\"' %s %s %s |tail -%s" % (log_path + serv, date, date1, user_grep, grep_act, exgrep_act, rows)
 		
 		output, stderr = subprocess_execute(cmd)
 		

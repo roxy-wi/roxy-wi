@@ -1,6 +1,7 @@
 var ssl_offloading_var = "http-request set-header X-Forwarded-Port %[dst_port] \n"+
 						"http-request add-header X-Forwarded-Proto https if { ssl_fc } \n"+
 						"redirect scheme https if !{ ssl_fc } \n"
+
 $( function() {
 	$( "#listen-mode-select" ).on('selectmenuchange',function()  {
 		if ($( "#listen-mode-select option:selected" ).val() == "tcp") {
@@ -849,6 +850,41 @@ $( function() {
 				} 
 			}
 		} );
+	});
+	$('#lets_button').click(function() {
+		var lets_domain = $('#lets_domain').val();
+		var lets_email = $('#lets_email').val();
+		if (lets_email == '' || lets_domain == '') {
+			toastr.error('Fields cannot be empty');
+		} else if (validateEmail(lets_email)) {
+			$("#ajax-ssl").html(wait_mess);
+			$.ajax({
+				url: "options.py",
+				data: {
+					serv: $('#serv_for_lets').val(),
+					lets_domain: lets_domain,
+					lets_email: lets_email,
+					token: $('#token').val()
+				},
+				type: "POST",
+				success: function (data) {
+					if (data.indexOf('error:') != '-1' || data.indexOf('ERROR') != '-1' || data.indexOf('FAILED') != '-1') {
+						toastr.clear();
+						toastr.error(data);
+					} else if (data.indexOf('WARNING') != '-1') {
+						toastr.clear();
+						toastr.warning(data);
+					} else {
+						toastr.clear();
+						toastr.success(data);
+					}
+					$("#ajax-ssl").html('');
+				}
+			});
+		} else {
+			toastr.clear();
+			toastr.error('Wrong e-mail format');
+		}
 	});
 	var add_server_var = '<br /><input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">: <input name="server_port" title="Backend port" size=1 placeholder="yyy" class="form-control">'
 	$('[name=add-server-input]').click(function() {

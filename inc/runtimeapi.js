@@ -229,6 +229,10 @@ $( function() {
 		getList();
 		return false;
 	});
+	$('#runtimeapisessions').submit(function() {
+		getSessions();
+		return false;
+	});
 	$( "#list_serv_select" ).on('selectmenuchange',function() {
 		$.ajax( {
 			url: "options.py",
@@ -410,4 +414,78 @@ function addNewIp() {
 			}
 		});
 	}
+}
+function getSessions() {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			sessions_select: $('#sessions_serv_select').val(),
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			if (data.indexOf('error: ') != '-1') {
+				toastr.error(data);
+			} else {
+				$("#ajaxsessions").html(data);
+				$( "input[type=submit], button" ).button();
+				$.getScript("/inc/fontawesome.min.js");
+				FontAwesomeConfig = { searchPseudoElements: true, observeMutations: false };
+			}
+		}
+	} );
+}
+function getSessionInfo(sess_id) {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			sessions_select_show: $('#sessions_serv_select').val(),
+			sessions_select_id: sess_id,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			if (data.indexOf('danger') != '-1') {
+				toastr.error(data);
+			} else {
+				toastr.clear();
+				$("#get-session-info-body").html(data);
+				$( "#get-session-info" ).dialog({
+					resizable: false,
+					height: "auto",
+					width: 760,
+					modal: true,
+					title: "View session",
+					buttons: {
+						Close: function() {
+							$( this ).dialog( "close" );
+							$("#get-session-info-body").html('');
+						}
+					}
+				});
+			}
+		}
+	} );
+}
+function deleteSession(id, sess_id) {
+	toastr.clear();
+	$(id).parent().parent().css("background-color", "#f2dede !important");
+	$.ajax( {
+		url: "options.py",
+		data: {
+			serv: $('#sessions_serv_select').val(),
+			session_delete_id: sess_id,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			if (data.indexOf('error: ') != '-1') {
+				toastr.error(data);
+			} else {
+				$(id).parent().parent().remove();
+				toastr.success('The sessions has been deleted');
+				getSessions();
+			}
+		}
+	} );
 }

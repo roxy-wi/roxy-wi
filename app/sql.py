@@ -206,6 +206,7 @@ def add_setting_for_new_group(group_id):
 	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('ldap_user_attribute', 'sAMAccountName', 'ldap', 'User attribute for search', " + group_id + ");")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('ldap_search_field', 'mail', 'ldap', 'Field where user e-mail saved', " + group_id + ");")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('ldap_type', '0', 'ldap', 'If 0 then will be used LDAP, if 1 then will be used LDAPS ', " + group_id + ");")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('haproxy_enterprise', '0', 'haproxy', 'Use this option if your HAProxy is enterprise. It change service name for rebooting/reloading', " + group_id + ");")
 
 	for i in sql:
 		try:
@@ -2165,12 +2166,12 @@ def smon_list(user_group):
 		return cur.fetchall()
 
 
-def insert_alerts(user_group, message):
+def insert_alerts(user_group, level, ip, port, message, service):
 	con, cur = get_cur()
 	if mysql_enable == '1':
-		sql = """ insert into alerts (user_group, message, date) values('%s', '%s', now()) """ % (user_group, message)
+		sql = """ insert into alerts (user_group, message, level, ip, port, service, date) values('%s', '%s', '%s', '%s', '%s', '%s', now()) """ % (user_group, message, level, ip, port, service)
 	else:
-		sql = """ insert into alerts (user_group, message, date) values('%s', '%s',  datetime('now', 'localtime')) """ % (user_group, message)
+		sql = """ insert into alerts (user_group, message, level, ip, port, service, date) values('%s', '%s', '%s', '%s', '%s', '%s', datetime('now', 'localtime')) """ % (user_group, message, level, ip, port, service)
 	try:
 		cur.execute(sql)
 		con.commit()
@@ -2184,9 +2185,9 @@ def insert_alerts(user_group, message):
 def select_alerts(user_group):
 	con, cur = get_cur()
 	if mysql_enable == '1':
-		sql = """ select message, `date` from alerts where user_group = '%s' and `date` <= (now()+ INTERVAL 10 second) """ % (user_group)
+		sql = """ select level, message, `date` from alerts where user_group = '%s' and `date` <= (now()+ INTERVAL 10 second) """ % (user_group)
 	else:
-		sql = """ select message, `date` from alerts where user_group = '%s' and `date` >= datetime('now', '-20 second', 'localtime') and `date` <=  datetime('now', 'localtime') ; """ % (user_group)
+		sql = """ select level, message, `date` from alerts where user_group = '%s' and `date` >= datetime('now', '-20 second', 'localtime') and `date` <=  datetime('now', 'localtime') ; """ % (user_group)
 	try:
 		cur.execute(sql)
 	except sqltool.Error as e:

@@ -1,0 +1,24 @@
+#!/bin/bash
+
+cd /etc/letsencrypt/live/
+email='{{EMAIL}}'
+path='{{SSL_PATH}}'
+
+ps ax |grep 'certbot certonly --standalone' |grep -v grep |awk '{print $1}' |xargs kill
+
+command='sudo certbot certonly --standalone'
+
+for i in $(ls -d */ |awk -F"/" '{print $1}'); do
+	echo $i
+	command+=" -d "$i
+done
+
+command+=' --non-interactive --agree-tos --email $email --http-01-port=8888'
+
+for i in $(ls -d */ |awk -F"/" '{print $1}'); do
+	bash -c "cat /etc/letsencrypt/live/$i/fullchain.pem /etc/letsencrypt/live/$i/privkey.pem > $path/$i.pem"
+done
+
+bash -c $command
+# Reload  HAProxy
+sudo systemctl status haproxy

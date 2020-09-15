@@ -2,7 +2,11 @@ var url = "/inc/script.js";
 var cur_url = window.location.href.split('/').pop();
 cur_url = cur_url.split('?');
 var intervalId;
-
+function validateEmail(email) {
+	const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+	return re.test(email);
+}
+var wait_mess = '<div class="alert alert-warning">Please don\'t close and don\'t represh page. Wait until the work is completed. This may take some time </div>'
 $( function() {		
    $('.menu li ul li').each(function () {
        var link = $(this).find('a').attr('href');
@@ -1149,3 +1153,4 @@ function checkLength( o, n, min ) {
 		return true;
 	}
 }
+

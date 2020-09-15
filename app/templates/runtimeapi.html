@@ -12,6 +12,7 @@
 			<li><a href="#ip" title="Runtime API: Changing IP and Port for backend servers - HAProxy-WI">Change IP and Port</a></li>
 			<li><a href="#table" title="Runtime API: Stick Table - HAProxy-WI">Stick Table</a></li>
 			<li><a href="#lists" title="Runtime API: Change dynamically whitelist and blacklist - HAProxy-WI">Lists</a></li>
+			<li><a href="#sessions" title="Runtime API: Sessions - HAProxy-WI">Sessions</a></li>
 		{% endif %}
 		{% include 'include/login.html' %}
 	</ul>
@@ -35,6 +36,7 @@
 						<option disabled>Choose action</option>
 						{% if role <= 2 %}
 							<option value="disable">Disable</option>
+							<option value="shutdown">Shutdown</option>
 							<option value="enable">Enable</option>
 							<option value="set">Set</option>
 						{% endif %}
@@ -217,7 +219,37 @@
 			You can read how it works <a href="https://haproxy-wi.org/description.py?description=runtimeapi#lists" title="Manage lists" target="_blank">here</a>
 		</div>
 	</div>
+	<div id="sessions">
+		<table class="overview">
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn">Server</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td class="padding10 first-collumn" style="width: 25%;">
+					<form action="" method="post" id="runtimeapisessions">
+						<select autofocus required name="sessions_serv_select" id="sessions_serv_select">
+							<option disabled selected>Choose server</option>
+							{% for select in selects %}
+							<option value="{{ select.2 }}">{{ select.1 }}</option>
+							{% endfor %}
+						</select>
+				</td>
+				<td>
+					<button type="submit" name="Enter" value="Enter" id="enter">Get sessions</button>
+				</td>
+				</form>
+			</tr>
+		</table>
+		<div id="ajaxsessions"></div>
+		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+			You can read how it works <a href="https://haproxy-wi.org/description.py?description=runtimeapi#lists" title="Manage lists" target="_blank">here</a>
+		</div>
+	</div>
 	{% endif %}
+</div>
+<div id="get-session-info" title="View session" style="display: none;">
+	<pre id="get-session-info-body"></pre>
 </div>
 <script>
 $( function() {

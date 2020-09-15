@@ -59,6 +59,20 @@ function renderChart(data, labels, server) {
                     ticks: {
                         beginAtZero: true,
                     }
+                }],
+                xAxes: [{
+                    offset: true,
+                    ticks: {
+                        major: {
+                            enabled: true,
+                            fontStyle: 'bold'
+                        },
+                        source: 'data',
+                        autoSkip: true,
+                        autoSkipPadding:45,
+                        maxRotation: 0,
+                        sampleSize: 100
+                    }
                 }]
             },
 			legend: {
@@ -118,6 +132,19 @@ function renderWafChart(data, labels, server) {
                 yAxes: [{
                     ticks: {
                         beginAtZero: true,
+                    }
+                }],
+                xAxes: [{
+                    ticks: {
+                        major: {
+                            enabled: true,
+                            fontStyle: 'bold'
+                        },
+                        source: 'data',
+                        autoSkip: true,
+                        autoSkipPadding: 45,
+                        maxRotation: 0,
+                        sampleSize: 100
                     }
                 }]
             },

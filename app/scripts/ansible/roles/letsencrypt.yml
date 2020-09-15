@@ -1,0 +1,48 @@
+- hosts: "{{ variable_host }}"
+  become: yes
+  become_method: sudo
+  tasks:
+
+    - name: install EPEL Repository
+      yum:
+        name: epel-release
+        state: latest
+      when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS')
+      ignore_errors: yes
+      failed_when: false
+      no_log: True
+      environment:
+        http_proxy: "{{PROXY}}"
+        https_proxy: "{{PROXY}}"
+
+    - name: Install certbot
+      package:
+        name: certbot
+        state: present
+      environment:
+        http_proxy: "{{PROXY}}"
+        https_proxy: "{{PROXY}}"
+
+    - name: Kill cerbot standalone
+      shell: ps ax |grep 'certbot certonly --standalone' |grep -v grep |awk '{print $1}' |xargs kill
+      ignore_errors: yes
+      failed_when: false
+      no_log: True
+
+#    - name: Get cert
+#      command: certbot certonly --standalone -d "{{DOMAIN}}" --non-interactive --agree-tos --email "{{EMAIL}}" --http-01-port=8888
+
+    - name: Combine into pem file
+      shell: cat /etc/letsencrypt/live/"{{DOMAIN}}"/fullchain.pem /etc/letsencrypt/live/"{{DOMAIN}}"/privkey.pem > "{{SSL_PATH}}"/"{{DOMAIN}}".pem
+
+    - name: Copy renew script
+      template:
+        src: /var/www/haproxy-wi/app/scripts/ansible/roles/renew_letsencrypt.j2
+        dest: /etc/haproxy/renew_letsencrypt.sh
+        mode: '0755'
+
+    - name: Creates cron jobs
+      cron:
+        name: "Let's encrypt renew script"
+        special_time: "monthly"
+        job: '/etc/haproxy/renew_letsencrypt.sh'
