@@ -703,10 +703,10 @@ def update_db_v_4_5_1(**kwargs):
 	if not role:
 		sql = list()
 		sql.append("update role set name = 'superAdmin' where id = '1';")
-		sql.append("update role set name = 'admin' `description` = 'Has access everywhere except the Admin area' where id = '2';")
+		sql.append("update role set name = 'admin', `description` = 'Has access everywhere except the Admin area' where id = '2';")
 		sql.append("update role set id = '4' where id = '3';")
 		sql.append("INSERT  INTO role (id, name, `description`) values('3', 'editor', 'Has the same as the admin except the Servers page');")
-		sql.append("update user set role = 's uperAdmin' where role = 'admin';")
+		sql.append("update user set role = 'superAdmin' where role = 'admin';")
 		sql.append("update user set role = 'admin' where role = 'editor';")
 		for i in sql:
 			try:
