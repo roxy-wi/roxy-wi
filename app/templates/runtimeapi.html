@@ -7,7 +7,7 @@
 <div id="tabs">
 	<ul>
 		<li><a href="#runtimeapi" title="Runtime API - HAProxy-WI">Runtime API</a></li>
-		{% if role <= 2 %}
+		{% if role <= 3 %}
 			<li><a href="#maxconn" title="Runtime API: Changing Maxconn - HAProxy-WI">Change Maxconn</a></li>
 			<li><a href="#ip" title="Runtime API: Changing IP and Port for backend servers - HAProxy-WI">Change IP and Port</a></li>
 			<li><a href="#table" title="Runtime API: Stick Table - HAProxy-WI">Stick Table</a></li>
@@ -23,7 +23,9 @@
 				<td class="padding10 first-collumn">Server</td>
 				<td>Disable/Enable server or output any information</td>
 				<td>Command</td>
+				{% if role <= 3 %}
 				<td class="checkbox-head">Save change</td>
+				{% endif %}
 				<td></td>
 			</tr>
 			<tr>
@@ -34,7 +36,7 @@
 				<td style="width: 30%;">
 					<select required name="servaction" id="servaction">
 						<option disabled>Choose action</option>
-						{% if role <= 2 %}
+						{% if role <= 3 %}
 							<option value="disable">Disable</option>
 							<option value="shutdown">Shutdown</option>
 							<option value="enable">Enable</option>
@@ -46,11 +48,11 @@
 				<td>
 					{{ input('servbackend', value=servbackend, title='Frontend, backend/server, show: info, pools or help', required='required') }}
 				</td>
+				{% if role <= 3 %}
 				<td class="checkbox">
-					{% if role <= 2 %}
-						{{ checkbox('save', value='123') }}
-					{% endif %}
+					{{ checkbox('save', value='123') }}
 				</td>
+				{% endif %}
 				<td>
 					<button type="submit" name="Enter" value="Enter" id="enter">Enter</button>
 				</td>
@@ -72,7 +74,7 @@
 			You can read the description of all Run Time API <a href="https://haproxy-wi.org/description.py?description=runtimeapi#commands" title="Run Time API description" target="_blank">here</a>
 		</div>
 	</div>
-	{% if role <= 2 %}
+	{% if role <= 3 %}
 	<div id="maxconn">
 		<table class="overview">
 			<tr class="overviewHead">

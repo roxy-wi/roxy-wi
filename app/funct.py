@@ -174,7 +174,7 @@ def is_admin(**kwargs):
 	try:
 		role = sql.get_user_role_by_uuid(user_id.value)
 	except:
-		role = 3
+		role = 4
 		pass
 	level = kwargs.get("level")
 		
@@ -710,7 +710,7 @@ def upload_and_restart(serv, cfg, **kwargs):
 	else:
 		haproxy_enterprise = sql.get_setting('haproxy_enterprise')
 
-		if haproxy_enterprise:
+		if haproxy_enterprise == '1':
 			haproxy_service_name = "hapee-2.0-lb"
 		else:
 			haproxy_service_name = "haproxy"

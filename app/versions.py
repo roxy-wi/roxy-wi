@@ -7,7 +7,7 @@ template = env.get_template('delver.html')
 
 print('Content-type: text/html\n')
 funct.check_login()
-funct.page_for_admin(level = 2)
+funct.page_for_admin(level=3)
 
 form = funct.form
 serv = form.getvalue('serv')

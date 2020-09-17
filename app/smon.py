@@ -23,7 +23,7 @@ except Exception as e:
 
 if action == 'add':
 	smon = sql.select_smon(user_group,action='add')
-	funct.page_for_admin(level=2)
+	funct.page_for_admin(level=3)
 	title = "SMON Admin"
 	autorefresh = 0
 else:

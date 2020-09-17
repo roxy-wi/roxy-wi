@@ -17,7 +17,7 @@ if form.getvalue('add'):
 	
 print('Content-type: text/html\n')
 funct.check_login()
-funct.page_for_admin(level = 2)
+funct.page_for_admin(level=3)
 
 try:
 	user, user_id, role, token, servers = funct.get_users_params()

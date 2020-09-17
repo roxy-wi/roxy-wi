@@ -46,7 +46,7 @@ if serv is not None:
 	cfg = configs_dir + serv + "-" + funct.get_data('config') + "."+format
 
 if serv is not None and form.getvalue('open') is not None :
-	
+	funct.check_is_server_in_group(serv)
 	if service == 'keepalived':
 		error = funct.get_config(serv, cfg, keepalived=1)
 		try:
@@ -76,6 +76,7 @@ if serv is not None and form.getvalue('open') is not None :
 	os.system("/bin/mv %s %s.old" % (cfg, cfg))	
 
 if serv is not None and form.getvalue('config') is not None:
+	funct.check_is_server_in_group(serv)
 	try:
 		funct.logging(serv, "config.py edited config")
 	except:

@@ -397,7 +397,7 @@ if form.getvalue('action_hap') is not None and serv is not None:
 
 	if funct.check_haproxy_config(serv):
 		haproxy_enterprise = sql.get_setting('haproxy_enterprise')
-		if haproxy_enterprise:
+		if haproxy_enterprise == '1':
 			haproxy_service_name = "hapee-2.0-lb"
 		else:
 			haproxy_service_name = "haproxy"
@@ -931,7 +931,7 @@ if serv is not None and act == "configShow":
 	template = template.render(conf=conf,
 								serv=serv,
 								configver=form.getvalue('configver'),
-								role=funct.is_admin(level=2),
+								role=funct.is_admin(level=3),
 								service=form.getvalue('service'))
 	print(template)
 
@@ -1544,7 +1544,7 @@ if form.getvalue('bwlists_save'):
 				pass
 
 			haproxy_enterprise = sql.get_setting('haproxy_enterprise')
-			if haproxy_enterprise:
+			if haproxy_enterprise == '1':
 				haproxy_service_name = "hapee-2.0-lb"
 			else:
 				haproxy_service_name = "haproxy"

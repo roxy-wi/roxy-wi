@@ -24,13 +24,13 @@
 					{% endfor %}
 			</select>
 			<input type="hidden" value="{{ serv }}" name="serv"> 
-			{% if role <= 2 %}
+			{% if role <= 3 %}
 				<button type="submit" value="open" name="open" class="btn btn-default" title="Edit running config">Edit</button>
 			{% endif %}
 		</form>
 	</p>
 	{% if config %}
-		{% if role <= 2 %}
+		{% if role <= 3 %}
 			<div id="config">
 				<h4>You are editting "{{section}}" from server {{ serv }}</h4>
 				</center>

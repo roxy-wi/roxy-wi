@@ -52,12 +52,22 @@
 			<td>
 				<select id="role-{{user.0}}" name="role-{{user.0}}">
 					<option disabled selected>Choose role</option>
-					{% for role in roles %}
-					{% if user.4 == role.1 %}
-					<option value="{{ role.1 }}" selected>{{ role.1 }}</option>
-					{% else %}
-					<option value="{{ role.1 }}">{{ role.1 }}</option>
-					{% endif %}
+					{% for r in roles %}
+						{% if page == "servers.py" %}
+							{% if r.1 != "superAdmin" %}
+								{% if user.4 == r.1 %}
+								<option value="{{ r.1 }}" selected>{{ r.1 }}</option>
+								{% else %}
+								<option value="{{ r.1 }}">{{ r.1 }}</option>
+								{% endif %}
+							{% endif %}
+						{% else %}
+							{% if user.4 == r.1 %}
+							<option value="{{ r.1 }}" selected>{{ r.1 }}</option>
+							{% else %}
+							<option value="{{ r.1 }}">{{ r.1 }}</option>
+							{% endif %}
+						{% endif %}
 					{% endfor %}
 				</select>
 			</td>

@@ -62,7 +62,7 @@
 								<li><a href="/app/viewsttats.py" title="HAProxy statistics " class="stats head-submenu">Stats</a></li>
 								<li><a href="/app/runtimeapi.py" title="Runtime API - HAProxy-WI" class="runtime head-submenu">Runtime API</a></li>
 								<li><a href="/app/metrics.py" title="Metrics" class="metrics head-submenu">Metrics</a></li>
-							{% if role <= 2 %}
+							{% if role <= 3 %}
 								<li><a href="/app/add.py#proxy" title="Add proxy: Create proxy - HAProxy-WI" class="add head-submenu" id="add1">Add proxy</a></li>
 								<li><a href="/app/versions.py" title="Working with versions HAProxy configs" class="version head-submenu">Versions</a></li>
 								<li><a href="/app/add.py#ssl" title="Add proxy: Upload SSL certificates - HAProxy-WI" class="cert head-submenu" id="add3">SSL</a></li>
@@ -78,7 +78,7 @@
 								<li><a href="/app/hapservers.py?service=nginx" title="Overview Nginx servers" class="overview-link head-submenu">Overview</a> </li>
 								<li><a href="/app/config.py?service=nginx" title="Working with Nginx configs" class="edit head-submenu">Configs</a></li>
 								<li><a href="/app/viewsttats.py?service=nginx" title="Nginx statistics" class="stats head-submenu">Stats</a></li>
-								{% if role <= 2 %}
+								{% if role <= 3 %}
 								<li><a href="/app/versions.py?service=nginx" title="Working with versions Nginx configs" class="version head-submenu">Versions</a></li>
 								<li><a href="/app/add.py?service=nginx#ssl" title="Add proxy: Upload SSL certificates - HAProxy-WI" class="cert head-submenu" id="add3">SSL</a></li>
 								{% endif %}
@@ -98,7 +98,7 @@
 								<a title="Simple monitoring network ports" class="stats">SMON</a>
 								<ul class="v_menu">
 									<li><a href="/app/smon.py?action=view" title="SMON Dashboard" class="overview-link head-submenu">Dashboard</a></li>
-									{% if role <= 2 %}
+									{% if role <= 3 %}
 									<li><a href="/app/smon.py?action=add" title="SMON admin panel" class="edit head-submenu">Admin panel</a></li>
 									{% endif %}
 								</ul>

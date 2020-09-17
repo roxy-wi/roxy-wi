@@ -653,7 +653,7 @@ def update_db_v_4_3_2_1(**kwargs):
 		except sqltool.Error as e:
 			if kwargs.get('silent') != 1:
 				if e.args[0] == 'columns param, group are not unique' or e == " 1060 (42S21): columns param, group are not unique ":
-					print('Updating... groups')
+					pass
 				else:
 					print("An error occurred:", e)
 		else:
@@ -679,11 +679,44 @@ def update_db_v_4_5(**kwargs):
 	except sqltool.Error as e:
 		if kwargs.get('silent') != 1:
 			if e.args[0] == 'duplicate column name: version' or e == "1060 (42S21): Duplicate column name 'version' ":
-				print('Updating... go to version 4.5.1')
+				print('Updating... go to version 4.5.0')
 			else:
-				print("Updating... go to version to 4.5.1")
+				print("Updating... go to version to 4.5.0")
 			return False
 		else:
+			return True
+	cur.close()
+	con.close()
+
+
+def update_db_v_4_5_1(**kwargs):
+	con, cur = get_cur()
+
+	sql = """ select name from role where name  = 'superAdmin';"""
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		funct.out_error(e)
+	else:
+		role = cur.fetchall()
+
+	if not role:
+		sql = list()
+		sql.append("update role set name = 'superAdmin' where id = '1';")
+		sql.append("update role set name = 'admin' `description` = 'Has access everywhere except the Admin area' where id = '2';")
+		sql.append("update role set id = '4' where id = '3';")
+		sql.append("INSERT  INTO role (id, name, `description`) values('3', 'editor', 'Has the same as the admin except the Servers page');")
+		sql.append("update user set role = 's uperAdmin' where role = 'admin';")
+		sql.append("update user set role = 'admin' where role = 'editor';")
+		for i in sql:
+			try:
+				cur.execute(i)
+				con.commit()
+			except sqltool.Error as e:
+				pass
+		else:
+			if kwargs.get('silent') != 1:
+				print('DB was update to 4.5.0')
 			return True
 	cur.close()
 	con.close()
@@ -725,6 +758,7 @@ def update_all():
 	update_db_v_4_4_2_1()
 	update_db_v_4_3_2_1()
 	update_db_v_4_5()
+	update_db_v_4_5_1()
 	update_ver()
 		
 	
@@ -752,6 +786,7 @@ def update_all_silent():
 	update_db_v_4_4_2_1(silent=1)
 	update_db_v_4_3_2_1(silent=1)
 	update_db_v_4_5(silent=1)
+	update_db_v_4_5_1(silent=1)
 	update_ver()
 	
 		

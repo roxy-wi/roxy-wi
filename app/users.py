@@ -19,7 +19,7 @@ try:
 	grafana, stderr = funct.subprocess_execute("service grafana-server status |grep Active |awk '{print $1}'")
 	services = []
 	services_name = {"checker_haproxy":"Master backends checker service",
-					"keep_alive":"Auto start service", 
+					"keep_alive":"Auto start service",
 					"metrics_haproxy":"Master metrics service", 
 					"prometheus":"Prometheus service", 
 					"grafana-server":"Grafana service", 
