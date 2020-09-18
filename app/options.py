@@ -1869,7 +1869,7 @@ if form.getvalue('updatessh'):
 if form.getvalue('ssh_cert'):
 	user_group = funct.get_user_group()
 	name = form.getvalue('name')
-	# name = name + '_' + user_group
+	name = name + '_' + user_group
 
 	if not os.path.exists(os.getcwd()+'/keys/'):
 		os.makedirs(os.getcwd()+'/keys/')
