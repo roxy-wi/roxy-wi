@@ -17,6 +17,7 @@
   yum:
     name: epel-release
     state: latest
+    disable_gpg_check: yes
   when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and HAPVER|length > 0
   ignore_errors: yes
   environment:
@@ -30,6 +31,7 @@
       - http://repo.haproxy-wi.org/haproxy-{{HAPVER}}.el{{ansible_facts['distribution_major_version']}}.x86_64.rpm
       - socat
     state: present
+    disable_gpg_check: yes
   when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and HAPVER|length > 0
   ignore_errors: yes
   register: install_result
