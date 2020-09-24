@@ -617,8 +617,10 @@ def install_nginx(serv):
 	sql.update_nginx(serv)
 
 		
-def update_haproxy_wi():
-	cmd = 'sudo -S yum  -y update haproxy-wi'
+def update_haproxy_wi(service):
+	if service != 'haproxy-wi':
+		service = 'haprxoy-wi-'+service
+	cmd = 'sudo -S yum  -y update '+service
 	output, stderr = subprocess_execute(cmd)
 	print(output)
 	print(stderr)
@@ -1062,18 +1064,23 @@ def check_ver():
 	return sql.get_ver()
 	
 	
-def check_new_version():
+def check_new_version(**kwargs):
 	import requests
 	import sql	
 
 	proxy = sql.get_setting('proxy')
-	
+
+	if kwargs.get('service'):
+		last_ver = '_'+kwargs.get('service')
+	else:
+		last_ver = ''
+
 	try:
 		if proxy is not None and proxy != '' and proxy != 'None':
 			proxyDict = { "https" : proxy, "http" : proxy }
-			response = requests.get('https://haproxy-wi.org/update.py?last_ver=1', timeout=1,  proxies=proxyDict)
+			response = requests.get('https://haproxy-wi.org/update.py?last_ver'+last_ver+'=1', timeout=1,  proxies=proxyDict)
 		else:	
-			response = requests.get('https://haproxy-wi.org/update.py?last_ver=1', timeout=1)
+			response = requests.get('https://haproxy-wi.org/update.py?last_ver'+last_ver+'=1', timeout=1)
 		
 		res = response.content.decode(encoding='UTF-8')
 	except requests.exceptions.RequestException as e:

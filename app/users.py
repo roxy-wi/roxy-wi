@@ -18,17 +18,23 @@ try:
 	ldap_enable = sql.get_setting('ldap_enable')
 	grafana, stderr = funct.subprocess_execute("service grafana-server status |grep Active |awk '{print $1}'")
 	services = []
-	services_name = {"checker_haproxy":"Master backends checker service",
-					"keep_alive":"Auto start service",
-					"metrics_haproxy":"Master metrics service", 
-					"prometheus":"Prometheus service", 
-					"grafana-server":"Grafana service", 
-					"smon":"Simple monitoring network ports",
-					"fail2ban": "Fail2ban service"}
+	services_name = {'checker_haproxy':'Master backends checker service',
+					'keep_alive':'Auto start service',
+					'metrics_haproxy':'Master metrics service',
+					'prometheus':'Prometheus service',
+					'grafana-server':'Grafana service',
+					'smon':'Simple monitoring network ports',
+					'fail2ban': 'Fail2ban service'}
 	for s, v in services_name.items():
 		cmd = "systemctl status %s |grep Act |awk  '{print $2}'" %s
 		status, stderr = funct.subprocess_execute(cmd)
-		services.append([s, status, v])
+		if s != 'keep_alive':
+			service_name = s.split('_')[0]
+		else:
+			service_name = s
+		cmd = "rpm --query haproxy-wi-"+service_name+"-* |awk -F\""+service_name+"\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
+		service_ver, stderr = funct.subprocess_execute(cmd)
+		services.append([s, status, v, service_ver[0]])
 except:
 	pass
 
@@ -45,6 +51,10 @@ template = template.render(title = "Admin area: Manage users",
 							telegrams = sql.select_telegram(),
 							token = token,
 							versions = funct.versions(),
+						   	checker_ver = funct.check_new_version(service='checker'),
+						   	smon_ver = funct.check_new_version(service='smon'),
+						   	metrics_ver = funct.check_new_version(service='metrics'),
+						   	keep_ver = funct.check_new_version(service='keep'),
 							settings = settings,
 							backups = sql.select_backups(),
 							services = services,

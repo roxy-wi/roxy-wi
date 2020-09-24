@@ -1346,7 +1346,12 @@ if form.getvalue('installwaf'):
 
 
 if form.getvalue('update_haproxy_wi'):
-	funct.update_haproxy_wi()
+	service = form.getvalue('service')
+	services = ['checker_haproxy', 'haproxy-wi', 'keep_alive', 'smon', 'metrics_haproxy']
+	if service not in services:
+		print('error: '+service+' is not part of HAProxy-WI')
+		sys.exit()
+	funct.update_haproxy_wi(service)
 
 
 if form.getvalue('metrics_waf'):
