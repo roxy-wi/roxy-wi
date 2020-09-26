@@ -1,3 +1,6 @@
+{% for s in services %}
+{% if s.0 == 'checker_haproxy' %}
+{% if s.3 != '* is not installed' %}
 <table id="checker_table" class="overview">
     <tr class="overviewHead" style="width: 50%;">
         <td class="padding10 first-collumn" style="width: 25%;">
@@ -49,3 +52,13 @@
 <div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
     You can read the description of all parameters <a href="https://haproxy-wi.org/description.py?description=checker" title="Servers description" target="_blank">here</a>
 </div>
+{% else %}
+    <center>
+        <h4 style="font-size: 25px">Welcome and let's get started!</h4>
+        You do not have installed Backends checker.
+        Read <a href="https://haproxy-wi.org/services.py?service=checker#installation" title="Checker installation" style="color: #5d9ceb;" target="_blank">hear</a>
+        how to install it
+    </center>
+{% endif %}
+{% endif %}
+{% endfor %}

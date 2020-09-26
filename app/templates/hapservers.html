@@ -47,6 +47,17 @@
 				}
 			}
 		});
+		{% for s in services %}
+			{% if s.1 == '* is not installed' %}
+				{% if s.0 == 'checker_haproxy' %}
+					$(':regex(id, alert)').checkboxradio('disable');
+				{% elif s.0 == 'keep_alive' %}
+					$(':regex(id, active-)').checkboxradio('disable');
+				{% elif s.0 == 'metrics_haproxy' %}
+					$(':regex(id, metrics-)').checkboxradio('disable');
+				{% endif %}
+			{% endif %}
+		{% endfor %}
 	});
 </script>
 {% if serv %}
@@ -77,7 +88,7 @@
 			</script>
 		{% endif %}
 		<div id="div-server-{{s.0}}" class="div-server-hapwi" {% if not serv %}style="cursor: move;"{%endif%}>
-			<div class="server-name">	
+			<div class="server-name">
 				<input type="hidden" id="server-name-{{s.0}}" value="{{s.1}}" />
 				<input type="hidden" id="service" value="{{service}}" />
 				{% if service == 'nginx' %}
@@ -165,19 +176,19 @@
 				{% if role <= 2 %}
 					{% set id = 'alert-' + s.8.0.0|string() %}
 					{% if s.8.0.8 == 1 %}
-						{{ checkbox(id, title='Enable alerting', value='1', desc='Alert', checked='checked') }}
+						{{ checkbox(id, title='Alerting is enabled', value='1', desc='Alert', checked='checked') }}
 					{% else %}
 						{{ checkbox(id, title='Enable alerting', value='1', desc='Alert') }}
 					{% endif %}
 					{% set id = 'metrics-' + s.8.0.0|string() %}
 					{% if s.8.0.9 == 1 %}
-						{{ checkbox(id, title='Enable collect metrics', value='1', desc='Metrics', checked='checked') }}
+						{{ checkbox(id, title='Collecting metrics is enabled', value='1', desc='Metrics', checked='checked') }}
 					{% else %}
 						{{ checkbox(id, title='Enable collect metrics', value='1', desc='Metrics') }}
 					{% endif %}	
 					{% set id = 'active-' + s.8.0.0|string() %}
 					{% if s.8.0.12 == 1 %}
-						{{ checkbox(id, title='Enable Compression', value='1', desc='Auto Start', checked='checked') }}
+						{{ checkbox(id, title='Auto Start is enabled', value='1', desc='Auto Start', checked='checked') }}
 					{% else %}
 						{{ checkbox(id, title='Enable Auto Start', value='1', desc='Auto Start') }}
 					{% endif %}

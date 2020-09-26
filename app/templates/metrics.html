@@ -1,5 +1,6 @@
 {% extends "base.html" %}
-{% block content %}	
+{% block content %}
+
 <style>
 table, th, tr, td {
 	border: 1px solid #ddd;
@@ -15,6 +16,15 @@ th, tr, td {
 <link href="/inc/chart.min.css" rel="stylesheet">
 <script src="/inc/metrics.js"></script>
 <script src="/inc/chart.min.js"></script>
+
+{% if services == '* is not installed' %}
+<center>
+	<h4 style="font-size: 25px">Welcome and let's get started!</h4>
+	You do not have installed Metrics service.
+	Read <a href="https://haproxy-wi.org/services.py?service=metrics#installation" title="Metrics installation" style="color: #5d9ceb;" target="_blank">hear</a>
+	how to install it
+</center>
+{% else %}
 {% if servers|length == 0 %}
 	{% include 'include/getstarted.html' %}
 {% else %}
@@ -42,5 +52,6 @@ th, tr, td {
 	}
 	showMetrics()
  </script>
+{% endif %}
 {% endif %}
 {% endblock %}
