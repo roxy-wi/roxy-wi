@@ -1068,7 +1068,8 @@ def check_new_version(**kwargs):
 	import sql	
 	current_ver = check_ver()
 	proxy = sql.get_setting('proxy')
-
+	res = ''
+	
 	if kwargs.get('service'):
 		last_ver = '_'+kwargs.get('service')
 	else:
@@ -1076,17 +1077,16 @@ def check_new_version(**kwargs):
 
 	try:
 		if proxy is not None and proxy != '' and proxy != 'None':
-			proxyDict = {"https": proxy, "http": proxy}
-			response = requests.get('https://haproxy-wi.org/update.py?last_ver'+last_ver+'=1', timeout=1,  proxies=proxyDict)
-			requests.get('https://haproxy-wi.org/update.py?ver_send='+current_ver, timeout=1,  proxies=proxyDict)
+			proxy_dict = {"https": proxy, "http": proxy}
+			response = requests.get('https://haproxy-wi.org/update.py?last_ver'+last_ver+'=1', timeout=1,  proxies=proxy_dict)
+			requests.get('https://haproxy-wi.org/update.py?ver_send='+current_ver, timeout=1,  proxies=proxy_dict)
 		else:
 			response = requests.get('https://haproxy-wi.org/update.py?last_ver'+last_ver+'=1', timeout=1)
 			requests.get('https://haproxy-wi.org/update.py?ver_send='+current_ver, timeout=1)
 
 		res = response.content.decode(encoding='UTF-8')
 	except requests.exceptions.RequestException as e:
-		e = str(e)
-		logging('localhost', ' '+e, haproxywi=1)
+		logging('localhost', ' '+str(e), haproxywi=1)
 		
 	return res
 	

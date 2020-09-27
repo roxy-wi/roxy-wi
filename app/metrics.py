@@ -11,10 +11,10 @@ funct.check_login()
 
 try:
 	user, user_id, role, token, servers = funct.get_users_params()
-	cmd = "rpm --query haproxy-wi-metrics-* |awk -F\"metrics_haproxy\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
+	cmd = "rpm --query haproxy-wi-metrics-* |awk -F\"metrics\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
 	service_ver, stderr = funct.subprocess_execute(cmd)
 
-	if service_ver[0] == '* is not installed':
+	if service_ver == '* is not installed':
 		servers = ''
 	else:
 		servers = sql.select_servers_metrics(user_id.value)
