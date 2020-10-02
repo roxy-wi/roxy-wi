@@ -1,0 +1,82 @@
+<script>
+    $(document).ready(function() {
+        $('#sessions_table').on( 'page.dt',   function () { $.getScript("/inc/fontawesome.min.js"); } )
+            .DataTable( {
+                "order": [[ 5, "desc" ]],
+                "pageLength": 25,
+                "columnDefs": [
+                    {
+                        "searchable": false,
+                        "orderable": false,
+                        "targets": [ -1, -2 ]
+                    }
+                ],
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
+            } );
+    } );
+</script>
+<table class="overview hover order-column display compact" id="sessions_table">
+    <thead>
+        <tr class="overviewHead">
+            <th class="padding10" style="padding-left: 15px;">
+                Protocol
+            </th>
+            <th>
+                Source
+            </th>
+            <th>
+                Frontend
+            </th>
+            <th>
+                Backend
+            </th>
+            <th>
+                Age
+            </th>
+            <th>
+                Rate
+            </th>
+            <th>
+                Expire
+            </th>
+            <th></th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for s in sessions %}
+        {% if s != '' %}
+        {% set session = s.split(' ') %}
+        <tr>
+            <td class="padding10" style="padding-left: 15px;">
+                {{session.1.split('=')[1]}}
+            </td>
+            <td style="width: 20%">
+                {{session.2.split('=')[1]}}
+            </td>
+            <td style="width: 10%">
+                {{session.3.split('=')[1]}}
+            </td>
+            <td style="width: 10%">
+                {{session.4.split('=')[1]}}
+            </td>
+            <td style="width: 10%">
+                {{session.7.split('=')[1]}}
+            </td>
+            <td style="width: 10%">
+                {{session.9.split('=')[1]}}
+            </td>
+            <td style="width: 70%">
+                {{session.16.split('=')[1]}}
+            </td>
+            <td>
+                <a class="info" title="Get more info about this session" style="cursor: pointer;" onclick="getSessionInfo('{{s.strip().split(':')[0]}}')"></a>
+            </td>
+            <td>
+                <a class="delete" title="Delete this session" style="cursor: pointer;" onclick="deleteSession(this, '{{s.strip().split(':')[0]}}')"></a>
+            </td>
+        </tr>
+        {% endif %}
+    {% endfor %}
+    </tbody>
+</table>

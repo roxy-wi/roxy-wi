@@ -6,15 +6,18 @@
 <script src="/inc/jquery.timeago.js" type="text/javascript"></script>
 {% if smon_error != '' %}
 <center>
+	<br />
 	<h3>You do not have installed SMON service. Read <a href="https://haproxy-wi.org/services.py?service=smon"
 	title="Simple monitoring network ports with alerting via Telegram and WEB pannel" target="_blank">here</a> how install SMON service</h3>
 </center>
 {% elif smon_status.0 == 'failed' %}
 <center>
+	<br />
 	<h3>SMON service is not run. Run the SMON service <a href="users.py#services" title="HAProxy-WI services" target="_blank">here</a> before use</h3>
 </center>
 {% elif smon|length == 0 and action != 'add' %}
 <center>
+	<br />
 	<h3>You do not have added servers in SMON service. Create you first server <a href="smon.py?action=add" title="HAProxy-WI SMON" target="_blank">here</a> before use</h3>
 	<br />
 	<iframe width="860" height="515" src="https://www.youtube.com/embed/bJtRJeHG5B0" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>

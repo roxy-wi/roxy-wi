@@ -4,126 +4,40 @@ import funct
 
 mysql_enable = funct.get_config_var('mysql', 'enable')
 
-if mysql_enable == '1':	
+if mysql_enable == '1':
 	import mysql.connector as sqltool
 else:
 	db = "haproxy-wi.db"
 	import sqlite3 as sqltool
-	
-	
+
+
 def get_cur():
 	try:
 		if mysql_enable == '0':
-			con = sqltool.connect(db, isolation_level=None)  
+			con = sqltool.connect(db, isolation_level=None)
 		else:
 			mysql_user = funct.get_config_var('mysql', 'mysql_user')
 			mysql_password = funct.get_config_var('mysql', 'mysql_password')
 			mysql_db = funct.get_config_var('mysql', 'mysql_db')
 			mysql_host = funct.get_config_var('mysql', 'mysql_host')
-			mysql_port = funct.get_config_var('mysql', 'mysql_port')	
+			mysql_port = funct.get_config_var('mysql', 'mysql_port')
 			con = sqltool.connect(user=mysql_user, password=mysql_password,
 									host=mysql_host, port=mysql_port,
-									database=mysql_db)	
+									database=mysql_db)
 		cur = con.cursor()
 	except sqltool.Error as e:
 		funct.logging('DB ', ' '+e, haproxywi=1, login=1)
 	else:
 		return con, cur
-		
-	
+
+
 def add_user(user, email, password, role, activeuser):
 	con, cur = get_cur()
 	if password != 'aduser':
 		sql = """INSERT INTO user (username, email, password, role, activeuser) VALUES ('%s', '%s', '%s', '%s', '%s')""" % (user, email, funct.get_hash(password), role, activeuser)
 	else:
-		sql = """INSERT INTO user (username, email, role, ldap_user, activeuser) VALUES ('%s', '%s', '%s', '1', '%s')""" % (user, email, role, activeuser)		
-	try:    
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
-		funct.out_error(e)
-		con.rollback()
-		return False
-	else:
-		return True
-	cur.close()    
-	con.close()   
-	
-	
-def update_user(user, email, role, id, activeuser):
-	con, cur = get_cur()
-	sql = """update user set username = '%s', 
-			email = '%s',
-			role = '%s',
-			activeuser = '%s'
-			where id = '%s'""" % (user, email,  role, activeuser, id)
-	try:    
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
-		funct.out_error(e)
-		con.rollback()
-		return False
-	else:
-		return True
-	cur.close()    
-	con.close()
-	
-	
-def update_user_groups(groups, id):
-	con, cur = get_cur()
-	sql = """insert into user_groups(user_id, user_group_id) values('%s', '%s')""" % (id, groups)
-	try:    
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
-		funct.out_error(e)
-		con.rollback()
-		return False
-	else:
-		return True
-	cur.close()    
-	con.close()
-	
-	
-def delete_user_groups(id):
-	con, cur = get_cur()
-	sql = """delete from user_groups
-			where user_id = '%s'""" % (id)
-	try:    
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
-		funct.out_error(e)
-		con.rollback()
-		return False
-	else:
-		return True
-	cur.close()    
-	con.close()
-	
-	
-def update_user_password(password, id):
-	con, cur = get_cur()
-	sql = """update user set password = '%s'
-			where id = '%s'""" % (funct.get_hash(password), id)
-	try:    
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
-		funct.out_error(e)
-		con.rollback()
-		return False
-	else:
-		return True
-	cur.close()    
-	con.close()
-	
-
-def delete_user(id):
-	con, cur = get_cur()
-	sql = """delete from user where id = '%s'""" % (id)
-	try:    
+		sql = """INSERT INTO user (username, email, role, ldap_user, activeuser) VALUES ('%s', '%s', '%s', '1', '%s')""" % (user, email, role, activeuser)
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
@@ -134,11 +48,97 @@ def delete_user(id):
 		return True
 	cur.close()
 	con.close()
-	
+
+
+def update_user(user, email, role, id, activeuser):
+	con, cur = get_cur()
+	sql = """update user set username = '%s', 
+			email = '%s',
+			role = '%s',
+			activeuser = '%s'
+			where id = '%s'""" % (user, email,  role, activeuser, id)
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
+		return False
+	else:
+		return True
+	cur.close()
+	con.close()
+
+
+def update_user_groups(groups, id):
+	con, cur = get_cur()
+	sql = """insert into user_groups(user_id, user_group_id) values('%s', '%s')""" % (id, groups)
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
+		return False
+	else:
+		return True
+	cur.close()
+	con.close()
+
+
+def delete_user_groups(id):
+	con, cur = get_cur()
+	sql = """delete from user_groups
+			where user_id = '%s'""" % (id)
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
+		return False
+	else:
+		return True
+	cur.close()
+	con.close()
+
+
+def update_user_password(password, id):
+	con, cur = get_cur()
+	sql = """update user set password = '%s'
+			where id = '%s'""" % (funct.get_hash(password), id)
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
+		return False
+	else:
+		return True
+	cur.close()
+	con.close()
+
+
+def delete_user(id):
+	con, cur = get_cur()
+	sql = """delete from user where id = '%s'""" % (id)
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
+		return False
+	else:
+		return True
+	cur.close()
+	con.close()
+
 def add_group(name, description):
 	con, cur = get_cur()
 	sql = """INSERT INTO groups (name, description) VALUES ('%s', '%s')""" % (name, description)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
@@ -160,7 +160,7 @@ def add_group(name, description):
 
 		return True
 
-	cur.close()    
+	cur.close()
 	con.close()
 
 
@@ -238,7 +238,7 @@ def delete_group_settings(group_id):
 def delete_group(id):
 	con, cur = get_cur()
 	sql = """ delete from groups where id = '%s'""" % (id)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
@@ -247,10 +247,10 @@ def delete_group(id):
 	else:
 		delete_group_settings(id)
 		return True
-	cur.close()    
-	con.close() 
-	
-	
+	cur.close()
+	con.close()
+
+
 def update_group(name, descript, id):
 	con, cur = get_cur()
 	sql = """ update groups set 
@@ -258,7 +258,7 @@ def update_group(name, descript, id):
 		description = '%s' 
 		where id = '%s';
 		""" % (name, descript, id)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
@@ -267,42 +267,42 @@ def update_group(name, descript, id):
 		return False
 	else:
 		return True
-	cur.close()    
+	cur.close()
 	con.close()
-	
+
 
 def add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx):
 	con, cur = get_cur()
 	sql = """ INSERT INTO servers (hostname, ip, groups, type_ip, enable, master, cred, port, `desc`, haproxy, nginx) 
 			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
 		""" % (hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 		return True
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-		return False	
-	cur.close()    
-	con.close() 	
-	
+		return False
+	cur.close()
+	con.close()
+
 
 def delete_server(id):
 	con, cur = get_cur()
 	sql = """ delete from servers where id = '%s'""" % (id)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	else: 
+	else:
 		return True
-	cur.close()    
-	con.close() 		
-	
-	
+	cur.close()
+	con.close()
+
+
 def update_hapwi_server(id, alert, metrics, active):
 	con, cur = get_cur()
 	sql = """ update servers set 
@@ -310,15 +310,15 @@ def update_hapwi_server(id, alert, metrics, active):
 			metrics = '%s',
 			active = '%s'
 			where id = '%s'""" % (alert, metrics, active, id)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	cur.close()    
+	cur.close()
 	con.close()
-	
+
 
 def update_server(hostname, group, typeip, enable, master, id, cred, port, desc, haproxy, nginx):
 	con, cur = get_cur()
@@ -334,35 +334,35 @@ def update_server(hostname, group, typeip, enable, master, id, cred, port, desc,
 			haproxy = '%s',
 			nginx = '%s'
 			where id = '%s'""" % (hostname, group, typeip, enable, master, cred, port, desc, haproxy, nginx, id)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	cur.close()    
+	cur.close()
 	con.close()
-	
+
 
 def update_server_master(master, slave):
 	con, cur = get_cur()
 	sql = """ select id from servers where ip = '%s' """ % master
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	for id in cur.fetchall():
 		sql = """ update servers set master = '%s' where ip = '%s' """ % (id[0], slave)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	cur.close()    
+	cur.close()
 	con.close()
-	
-	
+
+
 def select_users(**kwargs):
 	con, cur = get_cur()
 	sql = """select * from user ORDER BY id"""
@@ -373,14 +373,14 @@ def select_users(**kwargs):
 	if kwargs.get("group") is not None:
 		sql = """ select user.* from user left join user_groups as groups on user.id = groups.user_id where groups.user_group_id = '%s' group by id;
 		""" % kwargs.get("group")
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		return cur.fetchall()
-	cur.close()    
-	con.close()  
+	cur.close()
+	con.close()
 
 
 def select_user_groups(id, **kwargs):
@@ -389,17 +389,17 @@ def select_user_groups(id, **kwargs):
 	if kwargs.get("limit") is not None:
 		sql = """select user_group_id from user_groups where user_id = '%s' limit 1 """ % id
 
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		if kwargs.get("limit") is not None:
 			for g in cur.fetchall():
-				return g[0]	
+				return g[0]
 		else:
 			return cur.fetchall()
-	cur.close()    
+	cur.close()
 	con.close()
 
 
@@ -433,20 +433,20 @@ def select_user_groups_with_names(id, **kwargs):
 		sql = """select user_groups.user_group_id, groups.name from user_groups 
 			left join groups as groups on user_groups.user_group_id = groups.id 
 			where user_groups.user_id = '%s' """ % id
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		if kwargs.get("limit") is not None:
 			for g in cur.fetchall():
-				return g[0]	
+				return g[0]
 		else:
 			return cur.fetchall()
-	cur.close()    
-	con.close() 		
-	
-	
+	cur.close()
+	con.close()
+
+
 def select_groups(**kwargs):
 	con, cur = get_cur()
 	sql = """select * from groups ORDER BY id"""
@@ -455,30 +455,30 @@ def select_groups(**kwargs):
 	if kwargs.get("id") is not None:
 		sql = """select * from groups where id='%s' """ % kwargs.get("id")
 
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		return cur.fetchall()
-	cur.close()    
-	con.close()  
-	
-	
+	cur.close()
+	con.close()
+
+
 def select_server_by_name(name):
 	con, cur = get_cur()
 	sql = """select ip from servers where hostname='%s' """ % name
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		for name in cur.fetchone():
 			return name
-	cur.close()    
+	cur.close()
 	con.close()
-	
-	
+
+
 def select_servers(**kwargs):
 	con, cur = get_cur()
 	sql = """select * from servers where enable = '1' ORDER BY groups """
@@ -511,13 +511,13 @@ def select_servers(**kwargs):
 		return cur.fetchall()
 	cur.close()
 	con.close()
-	
+
 def write_user_uuid(login, user_uuid):
 	con, cur = get_cur()
 	session_ttl = get_setting('session_ttl')
 	session_ttl = int(session_ttl)
 	sql = """ select id from user where username = '%s' """ % login
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
@@ -526,20 +526,20 @@ def write_user_uuid(login, user_uuid):
 			sql = """ insert into uuid (user_id, uuid, exp) values('%s', '%s',  now()+ INTERVAL '%s' day) """ % (id[0], user_uuid, session_ttl)
 		else:
 			sql = """ insert into uuid (user_id, uuid, exp) values('%s', '%s',  datetime('now', '+%s days')) """ % (id[0], user_uuid, session_ttl)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	cur.close()    
+	cur.close()
 	con.close()
-	
+
 def write_user_token(login, user_token):
 	con, cur = get_cur()
-	token_ttl = get_setting('token_ttl')	
+	token_ttl = get_setting('token_ttl')
 	sql = """ select id from user where username = '%s' """ % login
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
@@ -548,134 +548,134 @@ def write_user_token(login, user_token):
 			sql = """ insert into token (user_id, token, exp) values('%s', '%s',  now()+ INTERVAL %s day) """ % (id[0], user_token, token_ttl)
 		else:
 			sql = """ insert into token (user_id, token, exp) values('%s', '%s',  datetime('now', '+%s days')) """ % (id[0], user_token, token_ttl)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	cur.close()    
+	cur.close()
 	con.close()
-	
+
 def get_token(uuid):
 	con, cur = get_cur()
 	sql = """ select token.token from token left join uuid as uuid on uuid.user_id = token.user_id where uuid.uuid = '%s' """ % uuid
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		for token in cur.fetchall():
-			return token[0]				
-	cur.close()    
+			return token[0]
+	cur.close()
 	con.close()
-	
-	
+
+
 def delete_uuid(uuid):
 	con, cur = get_cur()
 	sql = """ delete from uuid where uuid = '%s' """ % uuid
 	try:
-		cur.execute(sql)		
+		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		pass
-	cur.close()    
-	con.close() 
-	
-	
+	cur.close()
+	con.close()
+
+
 def delete_old_uuid():
 	con, cur = get_cur()
 	if mysql_enable == '1':
 		sql = """ delete from uuid where exp < now() or exp is NULL """
 		sql1 = """ delete from token where exp < now() or exp is NULL """
 	else:
-		sql = """ delete from uuid where exp < datetime('now') or exp is NULL""" 
-		sql1 = """ delete from token where exp < datetime('now') or exp is NULL""" 
-	try:    
+		sql = """ delete from uuid where exp < datetime('now') or exp is NULL"""
+		sql1 = """ delete from token where exp < datetime('now') or exp is NULL"""
+	try:
 		cur.execute(sql)
 		cur.execute(sql1)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	cur.close()    
-	con.close()		
+	cur.close()
+	con.close()
 
 
 def update_last_act_user(uuid):
 	con, cur = get_cur()
 	session_ttl = get_setting('session_ttl')
-	
+
 	if mysql_enable == '1':
 		sql = """ update uuid set exp = now()+ INTERVAL %s day where uuid = '%s' """ % (session_ttl, uuid)
 	else:
 		sql = """ update uuid set exp = datetime('now', '+%s days') where uuid = '%s' """ % (session_ttl, uuid)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	cur.close()    
+	cur.close()
 	con.close()
-	
-	
+
+
 def get_user_name_by_uuid(uuid):
 	con, cur = get_cur()
 	sql = """ select user.username from user left join uuid as uuid on user.id = uuid.user_id where uuid.uuid = '%s' """ % uuid
 	try:
-		cur.execute(sql)		
+		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		for user_id in cur.fetchall():
 			return user_id[0]
-	cur.close()    
-	con.close() 
+	cur.close()
+	con.close()
 
 
 def get_user_id_by_uuid(uuid):
 	con, cur = get_cur()
 	sql = """ select user.id from user left join uuid as uuid on user.id = uuid.user_id where uuid.uuid = '%s' """ % uuid
 	try:
-		cur.execute(sql)		
+		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		for user_id in cur.fetchall():
 			return user_id[0]
-	cur.close()    
-	con.close() 
-	
-	
+	cur.close()
+	con.close()
+
+
 def get_user_role_by_uuid(uuid):
 	con, cur = get_cur()
 	try:
 		if mysql_enable == '1':
 			cur.execute( """ select role.id from user left join uuid as uuid on user.id = uuid.user_id left join role on role.name = user.role where uuid.uuid = '%s' """ % uuid )
 		else:
-			cur.execute("select role.id from user left join uuid as uuid on user.id = uuid.user_id left join role on role.name = user.role where uuid.uuid = ?", (uuid,))	
+			cur.execute("select role.id from user left join uuid as uuid on user.id = uuid.user_id left join role on role.name = user.role where uuid.uuid = ?", (uuid,))
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		for user_id in cur.fetchall():
 			return int(user_id[0])
-	cur.close()    
-	con.close() 
-	
-	
+	cur.close()
+	con.close()
+
+
 def get_role_id_by_name(name):
 	con, cur = get_cur()
 	sql = """ select id from role where name = '%s' """ % name
 	try:
-		cur.execute(sql)		
+		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		for user_id in cur.fetchall():
 			return user_id[0]
-	cur.close()    
-	con.close() 
+	cur.close()
+	con.close()
 
 
 def get_user_telegram_by_group(group):
@@ -695,12 +695,12 @@ def get_telegram_by_ip(ip):
 	con, cur = get_cur()
 	sql = """ select telegram.* from telegram left join servers as serv on serv.groups = telegram.groups where serv.ip = '%s' """ % ip
 	try:
-		cur.execute(sql)		
+		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		return cur.fetchall()
-	cur.close()    
+	cur.close()
 	con.close()
 
 
@@ -734,11 +734,11 @@ def get_dick_permit(**kwargs):
 	nginx = ''
 	keepalived = ''
 	ip = ''
-	
+
 	if kwargs.get('virt'):
-		type_ip = "" 
+		type_ip = ""
 	else:
-		type_ip = "and type_ip = 0" 
+		type_ip = "and type_ip = 0"
 	if kwargs.get('disable') == 0:
 		disable = 'or enable = 0'
 	if kwargs.get('ip'):
@@ -1191,6 +1191,7 @@ def select_waf_metrics_enable_server(ip):
 	cur.close()
 	con.close()
 
+
 def select_waf_servers(serv):
 	con, cur = get_cur()
 	sql = """ select serv.ip from waf left join servers as serv on waf.server_id = serv.id where serv.ip = '%s' """ % serv
@@ -1268,6 +1269,7 @@ def insert_waf_metrics_enable(serv, enable):
 		con.rollback()
 	cur.close()
 	con.close()
+
 
 def insert_waf_rules(serv):
 	con, cur = get_cur()
@@ -1422,16 +1424,40 @@ def delete_mentrics():
 
 def select_metrics(serv, **kwargs):
 	con, cur = get_cur()
+
 	if mysql_enable == '1':
-		sql = """ select * from metrics where serv = '%s' order by `date` desc limit 60 """ % serv
+		if kwargs.get('time_range') == 60:
+			date_from = "and date > now() - INTERVAL 60 minute and rowid % 2 = 0"
+		elif kwargs.get('time_range') == 180:
+			date_from = "and date > now() - INTERVAL 180 minute and rowid % 5 = 0"
+		elif kwargs.get('time_range') == 720:
+			date_from = "and date > now() - INTERVAL 720 minute and rowid % 9 = 0"
+		elif kwargs.get('time_range') == 1440:
+			date_from = "and date > now() - INTERVAL 1440 minute and rowid % 17 = 0"
+		else:
+			date_from = "and date > now() - INTERVAL 30 minute"
+		sql = """ select * from metrics where serv = '{serv}' {date_from} order by `date` desc limit 60 """.format(serv=serv, date_from=date_from)
 	else:
-		sql = """ select * from (select * from metrics where serv = '%s' order by `date` desc limit 60) order by `date` """ % serv
+		if kwargs.get('time_range') == 60:
+			date_from = "and date > datetime('now', '-60 minutes', 'localtime') and rowid % 2 = 0"
+		elif kwargs.get('time_range') == 180:
+			date_from = "and date > datetime('now', '-180 minutes', 'localtime') and rowid % 5 = 0"
+		elif kwargs.get('time_range') == 720:
+			date_from = "and date > datetime('now', '-720 minutes', 'localtime') and rowid % 9 = 0"
+		elif kwargs.get('time_range') == 1440:
+			date_from = "and date > datetime('now', '-1440 minutes', 'localtime') and rowid % 17 = 0"
+		else:
+			date_from = "and date > datetime('now', '-30 minutes', 'localtime')"
+
+		sql = """ select * from (select * from metrics where serv = '{serv}' {date_from} order by `date`) order by `date` """.format(serv=serv, date_from=date_from)
+
 	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		return cur.fetchall()
+
 	cur.close()
 	con.close()
 
@@ -1474,7 +1500,7 @@ def select_servers_metrics(uuid, **kwargs):
 	con.close()
 
 
-def select_table_metrics(uuid):
+def select_table_metrics():
 	con, cur = get_cur()
 	import http.cookies
 	import os
@@ -1728,35 +1754,35 @@ def update_setting(param, val):
 			return False
 		cur.close()
 		con.close()
-	
-	
+
+
 def get_ver():
 	con, cur = get_cur()
-	sql = """ select * from version; """ 
-	try:    
+	sql = """ select * from version; """
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		for ver in cur.fetchall():
 			return ver[0]
-	cur.close()    
+	cur.close()
 	con.close()
 
-	
+
 def select_roles(**kwargs):
 	con, cur = get_cur()
 	sql = """select * from role ORDER BY id"""
 	if kwargs.get("roles") is not None:
 		sql = """select * from role where name='%s' """ % kwargs.get("roles")
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		return cur.fetchall()
-	cur.close()    
-	con.close()  
+	cur.close()
+	con.close()
 
 
 def select_alert(**kwargs):
@@ -1764,47 +1790,47 @@ def select_alert(**kwargs):
 	sql = """select ip from servers where alert = 1 """
 	if kwargs.get("group") is not None:
 		sql = """select ip from servers where alert = 1 and `groups` = '%s' """ % kwargs.get("group")
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		return cur.fetchall()
-	cur.close()    
-	con.close() 
-	
-	
+	cur.close()
+	con.close()
+
+
 def select_keep_alive(**kwargs):
 	con, cur = get_cur()
 	sql = """select ip from servers where active = 1 """
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		return cur.fetchall()
-	cur.close()    
-	con.close() 
-	
-	
+	cur.close()
+	con.close()
+
+
 def select_keealived(serv, **kwargs):
 	con, cur = get_cur()
 	sql = """select keepalived from `servers` where ip='%s' """ % serv
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		for value in cur.fetchone():
 			return value
-	cur.close()    
-	con.close()  
-	
-	
+	cur.close()
+	con.close()
+
+
 def update_keepalived(serv):
 	con, cur = get_cur()
 	sql = """update `servers` set `keepalived` = '1' where ip = '%s' """ % serv
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 		return True
@@ -1812,28 +1838,28 @@ def update_keepalived(serv):
 		funct.out_error(e)
 		con.rollback()
 		return False
-	cur.close()    
+	cur.close()
 	con.close()
 
-	
+
 def select_nginx(serv, **kwargs):
 	con, cur = get_cur()
 	sql = """select nginx from `servers` where ip='%s' """ % serv
-	try:    
+	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
 		funct.out_error(e)
 	else:
 		for value in cur.fetchone():
 			return value
-	cur.close()    
-	con.close()  
-	
-	
+	cur.close()
+	con.close()
+
+
 def update_nginx(serv):
 	con, cur = get_cur()
 	sql = """update `servers` set `nginx` = '1' where ip = '%s' """ % serv
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 		return True
@@ -1841,14 +1867,14 @@ def update_nginx(serv):
 		funct.out_error(e)
 		con.rollback()
 		return False
-	cur.close()    
+	cur.close()
 	con.close()
-	
-	
+
+
 def update_haproxy(serv):
 	con, cur = get_cur()
 	sql = """update `servers` set `haproxy` = '1' where ip = '%s' """ % serv
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 		return True
@@ -1856,25 +1882,25 @@ def update_haproxy(serv):
 		funct.out_error(e)
 		con.rollback()
 		return False
-	cur.close()    
+	cur.close()
 	con.close()
-	
-	
+
+
 def update_server_pos(pos, id):
 	con, cur = get_cur()
 	sql = """ update servers set 
 			pos = '%s'
 			where id = '%s'""" % (pos, id)
-	try:    
+	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
-	cur.close()    
+	cur.close()
 	con.close()
-	
-	
+
+
 def check_token_exists(token):
 	try:
 		import http.cookies
@@ -2203,11 +2229,11 @@ error_mess = 'error: All fields must be completed'
 def check_token():
 	if not check_token_exists(form.getvalue('token')):
 		print('Content-type: text/html\n')
-		print("error: Your token has been expired")		
+		print("error: Your token has been expired")
 		import sys
 		sys.exit()
-		
-		
+
+
 def show_update_option(option):
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
@@ -2215,9 +2241,9 @@ def show_update_option(option):
 
 	print('Content-type: text/html\n')
 	template = template.render(options=select_options(option=option))
-	print(template)	
-	
-	
+	print(template)
+
+
 def show_update_savedserver(server):
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
@@ -2225,12 +2251,12 @@ def show_update_savedserver(server):
 
 	print('Content-type: text/html\n')
 	template = template.render(server=select_saved_servers(server=server))
-	print(template)	
+	print(template)
 
-	
+
 if form.getvalue('getoption'):
-	group = form.getvalue('getoption')	
-	term = form.getvalue('term')	
+	group = form.getvalue('getoption')
+	term = form.getvalue('term')
 	print('Content-type: application/json\n')
 	check_token()
 	options = select_options(group=group,term=term)
@@ -2243,10 +2269,10 @@ if form.getvalue('getoption'):
 	import json
 	print(json.dumps(a))
 
-	
+
 if form.getvalue('newtoption'):
-	option = form.getvalue('newtoption')	
-	group = form.getvalue('newoptiongroup')	
+	option = form.getvalue('newtoption')
+	group = form.getvalue('newoptiongroup')
 	print('Content-type: text/html\n')
 	check_token()
 	if option is None or group is None:
@@ -2254,29 +2280,29 @@ if form.getvalue('newtoption'):
 	else:
 		if insert_new_option(option, group):
 			show_update_option(option)
-	
-	
+
+
 if form.getvalue('updateoption') is not None:
 	option = form.getvalue('updateoption')
-	id = form.getvalue('id')			
+	id = form.getvalue('id')
 	check_token()
 	if option is None or id is None:
 		print('Content-type: text/html\n')
 		print(error_mess)
-	else:		
+	else:
 		update_options(option, id)
 
-			
+
 if form.getvalue('optiondel') is not None:
 	print('Content-type: text/html\n')
 	check_token()
 	if delete_option(form.getvalue('optiondel')):
 		print("Ok")
-		
-		
+
+
 if form.getvalue('getsavedserver'):
-	group = form.getvalue('getsavedserver')	
-	term = form.getvalue('term')	
+	group = form.getvalue('getsavedserver')
+	term = form.getvalue('term')
 	print('Content-type: application/json\n')
 	check_token()
 	servers = select_saved_servers(group=group,term=term)
@@ -2293,11 +2319,11 @@ if form.getvalue('getsavedserver'):
 	import json
 	print(json.dumps(a))
 
-	
+
 if form.getvalue('newsavedserver'):
-	savedserver = form.getvalue('newsavedserver')	
-	description = form.getvalue('newsavedserverdesc')	
-	group = form.getvalue('newsavedservergroup')	
+	savedserver = form.getvalue('newsavedserver')
+	description = form.getvalue('newsavedserverdesc')
+	group = form.getvalue('newsavedservergroup')
 	print('Content-type: text/html\n')
 	check_token()
 	if savedserver is None or group is None:
@@ -2305,20 +2331,20 @@ if form.getvalue('newsavedserver'):
 	else:
 		if insert_new_savedserver(savedserver, description, group):
 			show_update_savedserver(savedserver)
-	
-	
+
+
 if form.getvalue('updatesavedserver') is not None:
 	savedserver = form.getvalue('updatesavedserver')
 	description = form.getvalue('description')
-	id = form.getvalue('id')	
-	print('Content-type: text/html\n')	
+	id = form.getvalue('id')
+	print('Content-type: text/html\n')
 	check_token()
 	if savedserver is None or id is None:
 		print(error_mess)
-	else:		
+	else:
 		update_savedserver(savedserver, description, id)
-	
-	
+
+
 if form.getvalue('savedserverdel') is not None:
 	print('Content-type: text/html\n')
 	check_token()

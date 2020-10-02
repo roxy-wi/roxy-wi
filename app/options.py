@@ -1349,17 +1349,12 @@ if form.getvalue('metrics_waf'):
     sql.update_waf_metrics_enable(form.getvalue('metrics_waf'), form.getvalue('enable'))
 
 if form.getvalue('table_metrics'):
-    import http.cookies
     from jinja2 import Environment, FileSystemLoader
 
     env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
     template = env.get_template('table_metrics.html')
 
-    cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-    user_id = cookie.get('uuid')
-    table_stat = sql.select_table_metrics(user_id.value)
-
-    template = template.render(table_stat=sql.select_table_metrics(user_id.value))
+    template = template.render(table_stat=sql.select_table_metrics())
     print(template)
 
 if form.getvalue('metrics_hapwi_ram'):

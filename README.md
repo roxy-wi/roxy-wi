@@ -32,7 +32,7 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 15.	Create Groups and add/remove servers to ensure proper identification for your HAProxy, Nginx Clusters
 16.	Send notifications to telegram directly from HAProxy-WI
 17.	HAProxy-WI supports high Availability to ensure uptime to all Master slave servers configured
-18.	SSL certificate support.
+18.	SSL certificate support, Let's Encrypt support
 19.	SSH Key support for managing multiple HAProxy Servers straight from HAProxy-WI
 20. SYN flood protect
 21. Alerting about changes backends state

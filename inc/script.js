@@ -1153,4 +1153,63 @@ function checkLength( o, n, min ) {
 		return true;
 	}
 }
-
+$(function () {
+	ion.sound({
+		sounds: [
+			{
+				name: "bell_ring",
+			},
+			{
+				name: "glass",
+				volume: 1,
+			},
+			{
+				name: "alert_sound",
+				volume: 0.3,
+				preload: false
+			}
+		],
+		volume: 0.5,
+		path: "/inc/sounds/",
+		preload: true
+	});
+});
+async function waitConsumer() {
+	cur_url = window.location.href.split('/').pop();
+	cur_url = cur_url.split('?');
+	if (cur_url[0] != 'servers.py#installproxy' && cur_url[0] != 'servers.py#installmon' &&
+		cur_url[0] != 'users.py#installmon' && cur_url[0] != 'ha.py' &&
+		cur_url[0] != 'add.py?service=nginx#ssl' && cur_url[0] != 'add.py#ssl') {
+		NProgress.configure({showSpinner: false});
+		$.ajax({
+			url: "options.py",
+			data: {
+				alert_consumer: '1',
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function (data) {
+				data = data.split(";");
+				for (i = 0; i < data.length; i++) {
+					if (data[i].indexOf('error:') != '-1' || data[i].indexOf('alert') != '-1' || data[i].indexOf('FAILED') != '-1') {
+						if (data[i].indexOf('error: database is locked') == '-1') {
+							toastr.error(data[i]);
+							ion.sound.play("bell_ring");
+						}
+					} else if (data[i].indexOf('info: ') != '-1') {
+						toastr.info(data[i]);
+						ion.sound.play("glass");
+					} else if (data[i].indexOf('success: ') != '-1') {
+						toastr.success(data[i]);
+						ion.sound.play("glass");
+					} else if (data[i].indexOf('warning: ') != '-1') {
+						toastr.warning(data[i]);
+						ion.sound.play("bell_ring");
+					}
+				}
+			}
+		});
+		NProgress.configure({showSpinner: true});
+	}
+}
+setInterval(waitConsumer, 20000);

@@ -145,6 +145,8 @@
 					<a class="delete" title="Delete this entry" style="cursor: pointer;" onclick="deleteTableEntry(this, '{{tables_head.0.strip()}}', '{{body.1.split('=')[1]}}')"></a>
 				</td>	
 			</tr>
+		{% else %}
+			<span class="alert alert-warning" style="margin-bottom: 0px;">Table is empty</span>
 		{% endif %}
 	{% endfor %}
 	</tbody>
