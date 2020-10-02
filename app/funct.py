@@ -449,7 +449,7 @@ def get_backends_from_config(serv, backends='', **kwargs):
 
 def get_all_stick_table():
 	import sql
-	hap_sock_p = sql.get_setting('hap_sock_p')
+	hap_sock_p = sql.get_setting('haproxy_sock_port')
 	cmd = 'echo "show table"|nc %s %s |awk \'{print $3}\' | tr -d \'\n\' | tr -d \'[:space:]\'' % (serv, hap_sock_p)
 	output, stderr = subprocess_execute(cmd)
 	return output[0]
@@ -457,7 +457,7 @@ def get_all_stick_table():
 						
 def get_stick_table(table):
 	import sql
-	hap_sock_p = sql.get_setting('hap_sock_p')
+	hap_sock_p = sql.get_setting('haproxy_sock_port')
 	cmd = 'echo "show table %s"|nc %s %s |awk -F"#" \'{print $2}\' |head -1 | tr -d \'\n\'' % (table, serv, hap_sock_p)
 	output, stderr = subprocess_execute(cmd)
 	tables_head = []
@@ -474,7 +474,7 @@ def get_stick_table(table):
 def install_haproxy(serv, **kwargs):
 	import sql
 	script = "install_haproxy.sh"
-	hap_sock_p = sql.get_setting('hap_sock_p')
+	hap_sock_p = sql.get_setting('haproxy_sock_port')
 	stats_port = sql.get_setting('stats_port')
 	server_state_file = sql.get_setting('server_state_file')
 	stats_user = sql.get_setting('stats_user')
@@ -627,7 +627,7 @@ def update_haproxy_wi(service):
 
 def check_haproxy_version(serv):
 	import sql
-	hap_sock_p = sql.get_setting('hap_sock_p')
+	hap_sock_p = sql.get_setting('haproxy_sock_port')
 	ver = ""
 	cmd = "echo 'show info' |nc %s %s |grep Version |awk '{print $2}'" % (serv, hap_sock_p)
 	output, stderr = subprocess_execute(cmd)
@@ -1006,7 +1006,7 @@ def subprocess_execute(cmd):
 def show_backends(serv, **kwargs):
 	import json
 	import sql
-	hap_sock_p = sql.get_setting('hap_sock_p')
+	hap_sock_p = sql.get_setting('haproxy_sock_port')
 	cmd = 'echo "show backend" |nc %s %s' % (serv, hap_sock_p)
 	output, stderr = subprocess_execute(cmd)
 	if stderr:
@@ -1069,7 +1069,7 @@ def check_new_version(**kwargs):
 	current_ver = check_ver()
 	proxy = sql.get_setting('proxy')
 	res = ''
-	
+
 	if kwargs.get('service'):
 		last_ver = '_'+kwargs.get('service')
 	else:
@@ -1117,7 +1117,7 @@ def versions():
 			new_ver_without_dots += '0'
 		new_ver_without_dots = int(new_ver_without_dots)
 	except:
-		new_ver = "Sorry cannot get new version"
+		new_ver = "Cannot get a new version"
 		new_ver_without_dots = 0
 	
 	return current_ver, new_ver, current_ver_without_dots, new_ver_without_dots
