@@ -82,7 +82,7 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f0cb";
 }
-.waf::before {
+.waf-menu::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";
 	content: "\f06d";
