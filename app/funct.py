@@ -78,9 +78,9 @@ def logging(serv, action, **kwargs):
 		os.makedirs(log_path)
 		
 	try:
-		IP = cgi.escape(os.environ["REMOTE_ADDR"])
+		ip = cgi.escape(os.environ["REMOTE_ADDR"])
 	except:
-		IP = ''
+		ip = ''
 
 	try:
 		user_uuid = cookie.get('uuid')
@@ -99,14 +99,14 @@ def logging(serv, action, **kwargs):
 		log = open(log_path + "/keep_alive-"+get_data('logs')+".log", "a")
 	elif kwargs.get('haproxywi') == 1:
 		if kwargs.get('login'):
-			mess = get_data('date_in_log') + " from " + IP + " user: " + login + ", group: " +user_group + ", " + \
-				   action + " for: " + serv + "\n"
+			mess = get_data('date_in_log') + " from " + ip + " user: " + login + ", group: " + user_group + ", " + \
+				action + " for: " + serv + "\n"
 		else:
-			mess = get_data('date_in_log') + " " + action + " from " + IP + "\n"
+			mess = get_data('date_in_log') + " " + action + " from " + ip + "\n"
 		log = open(log_path + "/haproxy-wi-"+get_data('logs')+".log", "a")
 	else:
-		mess = get_data('date_in_log') + " from " + IP + " user: " + login + ", group: " +user_group + ", " + \
-			   action + " for: " + serv + "\n"
+		mess = get_data('date_in_log') + " from " + ip + " user: " + login + ", group: " + user_group + ", " + \
+				action + " for: " + serv + "\n"
 		log = open(log_path + "/config_edit-"+get_data('logs')+".log", "a")
 	try:	
 		log.write(mess)
@@ -349,8 +349,8 @@ def get_sections(config, **kwargs):
 					line.startswith('resolvers') or
 					line.startswith('userlist')
 					):		
-						line = line.strip()
-						return_config.append(line)
+					line = line.strip()
+					return_config.append(line)
 					
 	return return_config
 		
@@ -382,9 +382,9 @@ def get_section_from_config(config, section):
 					line.startswith('resolvers') or
 					line.startswith('userlist')
 					):
-						record = False
-						end_line = index
-						end_line = end_line - 1
+					record = False
+					end_line = index
+					end_line = end_line - 1
 				else:
 					return_config += line
 		
@@ -589,9 +589,9 @@ def install_nginx(serv):
 	syn_flood_protect = '1' if form.getvalue('syn_flood') == "1" else ''
 		
 	commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " STATS_USER=" + stats_user +
-				" STATS_PASS=" + stats_password + " SSH_PORT="+ ssh_port + " CONFIG_PATH=" + config_path +
-				" STAT_PORT=" + stats_port +" STAT_PAGE=" + stats_page+" SYN_FLOOD=" + syn_flood_protect +
-				" HOST="+ serv + " USER=" + ssh_user_name + " PASS=" + ssh_user_password + " KEY=" + ssh_key_name]
+				" STATS_PASS=" + stats_password + " SSH_PORT=" + ssh_port + " CONFIG_PATH=" + config_path +
+				" STAT_PORT=" + stats_port + " STAT_PAGE=" + stats_page+" SYN_FLOOD=" + syn_flood_protect +
+				" HOST=" + serv + " USER=" + ssh_user_name + " PASS=" + ssh_user_password + " KEY=" + ssh_key_name]
 				
 	output, error = subprocess_execute(commands[0])
 	
@@ -618,7 +618,7 @@ def install_nginx(serv):
 		
 def update_haproxy_wi(service):
 	if service != 'haproxy-wi':
-		service = 'haprxoy-wi-'+service
+		service = 'haproxy-wi-'+service
 	cmd = 'sudo -S yum  -y update '+service
 	output, stderr = subprocess_execute(cmd)
 	print(output)
@@ -743,7 +743,7 @@ def master_slave_upload_and_restart(serv, cfg, just_save, **kwargs):
 	masters = sql.is_master(serv)
 	error = ""
 	for master in masters:
-		if master[0] != None:
+		if master[0] is not None:
 			error += upload_and_restart(master[0], cfg, just_save=just_save, nginx=kwargs.get('nginx'))
 				
 	error += upload_and_restart(serv, cfg, just_save=just_save, nginx=kwargs.get('nginx'))
@@ -927,7 +927,7 @@ def haproxy_wi_log(**kwargs):
 		user_group_id = get_user_group(id=1)
 		if user_group_id != 1:
 			user_group = get_user_group()
-			group_grep = '|grep "group: '+ user_group +'"'
+			group_grep = '|grep "group: ' + user_group + '"'
 		else:
 			group_grep = ''
 		cmd = "find "+log_path+"/haproxy-wi-* -type f -exec stat --format '%Y :%y %n' '{}' \; | sort -nr | cut -d: -f2- | head -1 |awk '{print $4}' |xargs tail"+group_grep+"|sort -r"
@@ -973,7 +973,7 @@ def ssh_command(serv, commands, **kwargs):
 		elif kwargs.get('print_out'):
 			print(stdout.read().decode(encoding='UTF-8'))
 			return stdout.read().decode(encoding='UTF-8')
-		elif kwargs.get('retunr_err') == 1:
+		elif kwargs.get('return_err') == 1:
 			return stderr.read().decode(encoding='UTF-8')
 		else:
 			return stdout.read().decode(encoding='UTF-8')
@@ -1111,7 +1111,7 @@ def versions():
 		new_ver_without_dots = new_ver.split('.')
 		new_ver_without_dots = ''.join(new_ver_without_dots)
 		new_ver_without_dots = new_ver_without_dots.replace('\n', '')
-		if len(new_ver_without_dots)  == 2:
+		if len(new_ver_without_dots) == 2:
 			new_ver_without_dots += '00'
 		if len(new_ver_without_dots) == 3:
 			new_ver_without_dots += '0'
