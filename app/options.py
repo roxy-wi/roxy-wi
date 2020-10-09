@@ -2145,3 +2145,62 @@ if form.getvalue('lets_domain'):
             print('success: Certificate has been created')
 
     os.system("rm -f %s" % script)
+
+if form.getvalue('uploadovpn'):
+    name = form.getvalue('ovpnname')
+
+    ovpn_file = os.path.dirname('/tmp/') + "/" + name + '.ovpn'
+
+    try:
+        with open(ovpn_file, "w") as conf:
+            conf.write(form.getvalue('uploadovpn'))
+    except IOError as e:
+        print(str(e))
+        print('error: Can\'t save ovpn file')
+    else:
+        print('success: ovpn file has been saved </div>')
+
+    try:
+        cmd = 'sudo openvpn3 config-import --config %s --persistent' % ovpn_file
+        funct.subprocess_execute(cmd)
+    except IOError as e:
+        funct.logging('localhost', e.args[0], haproxywi=1)
+
+    try:
+        cmd = 'sudo cp %s /etc/openvpn3/%s.conf' % (ovpn_file, name)
+        funct.subprocess_execute(cmd)
+    except IOError as e:
+        funct.logging('localhost', e.args[0], haproxywi=1)
+
+    funct.logging("localhost", " has been uploaded a new ovpn file %s" % ovpn_file, haproxywi=1, login=1)
+
+if form.getvalue('openvpndel') is not None:
+    openvpndel = form.getvalue('openvpndel')
+
+    cmd = 'sudo openvpn3 config-remove --config /tmp/%s.ovpn --force' % openvpndel
+    try:
+        funct.subprocess_execute(cmd)
+        print("Ok")
+        funct.logging(openvpndel, ' has deleted the ovpn file ', haproxywi=1, login=1)
+    except IOError as e:
+        print(e.args[0])
+        funct.logging('localhost', e.args[0], haproxywi=1)
+
+if form.getvalue('actionvpn') is not None:
+    openvpn = form.getvalue('openvpnprofile')
+    action = form.getvalue('actionvpn')
+
+    if action == 'start':
+        cmd = 'sudo openvpn3 session-start --config /tmp/%s.ovpn' % openvpn
+    elif action == 'restart':
+        cmd = 'sudo openvpn3 session-manage --config /tmp/%s.ovpn --restart' % openvpn
+    elif action == 'disconnect':
+        cmd = 'sudo openvpn3 session-manage --config /tmp/%s.ovpn --disconnect' % openvpn
+    try:
+        funct.subprocess_execute(cmd)
+        print("success: The " + openvpn + " has been " + action + "ed")
+        funct.logging(openvpn, ' has ' + action + ' the ovpn session ', haproxywi=1, login=1)
+    except IOError as e:
+        print(e.args[0])
+        funct.logging('localhost', e.args[0], haproxywi=1)
+

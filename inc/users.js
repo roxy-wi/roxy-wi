@@ -1957,3 +1957,93 @@ function updateService(service) {
 		}
 	} );
 }
+function confirmDeleteOpenVpnProfile(id) {
+	$( "#dialog-confirm" ).dialog({
+		resizable: false,
+		height: "auto",
+		width: 400,
+		modal: true,
+		title: "Are you sure you want to delete profile " +id+ "?",
+		buttons: {
+			"Delete": function() {
+				$( this ).dialog( "close" );
+				removeOpenVpnProfile(id);
+			},
+			Cancel: function() {
+				$( this ).dialog( "close" );
+			}
+		}
+	});
+}
+
+function removeOpenVpnProfile(id) {
+	console.log(id)
+	$("#"+id).css("background-color", "#f2dede");
+	$.ajax( {
+		url: "options.py",
+		data: {
+			openvpndel: id,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if(data == "Ok ") {
+				$("#"+id).remove();
+			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
+				toastr.error(data);
+			}
+		}
+	} );
+}
+function uploadOvpn() {
+	toastr.clear();
+	if ($( "#ovpn_upload_name" ).val() == '' || $('#ovpn_upload_file').val() == '') {
+		toastr.error('All fields must be completed');
+	} else {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				uploadovpn: $('#ovpn_upload_file').val(),
+				ovpnname: $('#ovpn_upload_name').val(),
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+				data = data.replace(/\s+/g,' ');
+				if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1')  {
+					toastr.error(data);
+				} else if (data.indexOf('success') != '-1') {
+					toastr.clear();
+					toastr.success(data)
+					location.reload()
+				} else {
+					toastr.error('Something wrong, check and try again');
+				}
+			}
+		} );
+	}
+}
+function OpenVpnSess(id, action) {
+	$.ajax({
+		url: "options.py",
+		data: {
+			actionvpn: action,
+			openvpnprofile: id,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1') {
+				toastr.error(data);
+			} else if (data.indexOf('success') != '-1') {
+				toastr.clear();
+				toastr.success(data)
+				location.reload()
+			} else {
+				toastr.error('Something wrong, check and try again');
+			}
+		}
+	} );
+}
