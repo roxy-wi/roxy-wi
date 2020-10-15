@@ -1178,7 +1178,7 @@ async function waitConsumer() {
 	cur_url = window.location.href.split('/').pop();
 	cur_url = cur_url.split('?');
 	if (cur_url[0] != 'servers.py#installproxy' && cur_url[0] != 'servers.py#installmon' &&
-		cur_url[0] != 'users.py#installmon' && cur_url[0] != 'ha.py' &&
+		cur_url[0] != 'users.py#installmon' && cur_url[0] != 'ha.py' && cur_url[0] != 'users.py#updatehapwi' &&
 		cur_url[0] != 'add.py?service=nginx#ssl' && cur_url[0] != 'add.py#ssl') {
 		NProgress.configure({showSpinner: false});
 		$.ajax({
