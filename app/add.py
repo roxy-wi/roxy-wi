@@ -43,19 +43,19 @@ white_lists = funct.get_files(dir=white_dir, format="lst")
 black_lists = funct.get_files(dir=black_dir, format="lst")
 
 
-template = template.render(title = "Add: ",
-							role = role,
-							user = user,
-							selects = servers,
-							add = form.getvalue('add'),
-							conf_add = form.getvalue('conf'),
-							group = user_group,
-							versions = funct.versions(),
-							options = sql.select_options(),
-							saved_servers = sql.select_saved_servers(),
-							white_lists = white_lists,
-							black_lists = black_lists,
-							token = token)										
+template = template.render(title="Add: ",
+							role=role,
+							user=user,
+							selects=servers,
+							add=form.getvalue('add'),
+							conf_add=form.getvalue('conf'),
+							group=user_group,
+							versions=funct.versions(),
+							options=sql.select_options(),
+							saved_servers=sql.select_saved_servers(),
+							white_lists=white_lists,
+							black_lists=black_lists,
+							token=token)
 print(template)
 
 if form.getvalue('mode') is not None:
@@ -71,25 +71,29 @@ if form.getvalue('mode') is not None:
 	options_split = ""
 	ssl = ""
 	ssl_check = ""
+	backend = ""
 	
-	if form.getvalue('balance')	 is not None:
-		balance = "    balance " + form.getvalue('balance')	+ "\n"
-	
+	if form.getvalue('balance') is not None:
+		balance = "    balance " + form.getvalue('balance') + "\n"
+
+	if form.getvalue('health_check') is not None:
+		balance += "    " + form.getvalue('health_check') + "\n"
+
 	if form.getvalue('ip') is not None:
 		ip = form.getvalue('ip')
-	
-	if form.getvalue('listner') is not None:
-		name = "listen " + form.getvalue('listner')
-		backend = ""
-		end_name = form.getvalue('listner')
+
+	if form.getvalue('listener') is not None:
+		name = "listen " + form.getvalue('listener')
+		end_name = form.getvalue('listener')
 	elif form.getvalue('frontend') is not None:
 		name = "frontend " + form.getvalue('frontend')
-		backend = "    default_backend " + form.getvalue('backends') + "\n"
 		end_name = form.getvalue('frontend')
 	elif form.getvalue('new_backend') is not None: 
 		name = "backend " + form.getvalue('new_backend')
-		backend = ""
 		end_name = form.getvalue('new_backend')
+
+	if form.getvalue('backends') is not None:
+		backend = "    default_backend " + form.getvalue('backends') + "\n"
 		
 	if form.getvalue('maxconn'):
 		maxconn = "    maxconn " + form.getvalue('maxconn') + "\n"
@@ -102,7 +106,7 @@ if form.getvalue('mode') is not None:
 			ssl_check = " ssl verify"
 				
 	if not ip and port is not None:
-		bind = "    bind *:"+ port + " " + ssl + "\n" 
+		bind = "    bind *:" + port + " " + ssl + "\n"
 	elif port is not None:
 		bind = "    bind " + ip + ":" + port + " " + ssl + "\n"
 		
@@ -166,12 +170,36 @@ if form.getvalue('mode') is not None:
 	if form.getvalue('servers') is not None:	
 		servers = form.getlist('servers')
 		server_port = form.getlist('server_port')
+		send_proxy = form.getlist('send_proxy')
+		backup = form.getlist('backup')
 		i = 0
 		for server in servers:
 			if form.getvalue('template') is None:
-				servers_split += "    server "+server+" " + server +":"+server_port[i]+ check + "\n"
+				try:
+					if send_proxy[i] == '1':
+						send_proxy_param = 'send-proxy'
+					else:
+						send_proxy_param = ''
+				except:
+					send_proxy_param = ''
+				try:
+					if backup[i] == '1':
+						backup_param = 'backup'
+					else:
+						backup_param = ''
+				except:
+					backup_param = ''
+				servers_split += "    server {0} {0}:{1}{2} {3} {4} \n".format(server,
+																			server_port[i],
+																			check,
+																			send_proxy_param,
+																			backup_param)
 			else:
-				servers_split += "    server-template "+form.getvalue('prefix')+" "+form.getvalue('template-number')+"  "+ server +":"+server_port[i]+ check + "\n"
+				servers_split += "    server-template {0} {1}  {2}:{3} {4} \n".format(form.getvalue('prefix'),
+																						form.getvalue('template-number'),
+																						server,
+																						server_port[i],
+																						check)
 			i += 1
 		
 	compression = form.getvalue("compression")
@@ -193,16 +221,16 @@ if form.getvalue('mode') is not None:
 		waf = "    filter spoe engine modsecurity config "+haproxy_dir+"/waf.conf\n"
 		waf += "    http-request deny if { var(txn.modsec.code) -m int gt 0 }\n"
 	
-	config_add = "\n" + name + "\n" + bind + mode + maxconn +  balance + options_split + cache_s + filter + compression_s + waf + backend + servers_split + "\n" + cache_set + "\n"
+	config_add = "\n" + name + "\n" + bind + mode + maxconn + balance + options_split + cache_s + filter + compression_s + waf + backend + servers_split + "\n" + cache_set + "\n"
 
 if form.getvalue('new_userlist') is not None:
-	name = "userlist "+form.getvalue('new_userlist')+ "\n"
+	name = "userlist "+form.getvalue('new_userlist') + "\n"
 	
 	new_userlist_groups = ""	
 	if form.getvalue('userlist-group') is not None:	
 		groups = form.getlist('userlist-group')
 		for group in groups:
-			new_userlist_groups += "    group "+group+ "\n"
+			new_userlist_groups += "    group " + group + "\n"
 			
 	new_users_list = ""	
 	if form.getvalue('userlist-user') is not None:	
@@ -216,7 +244,7 @@ if form.getvalue('new_userlist') is not None:
 				group = ' groups '+userlist_user_group[i]
 			except:
 				group = ''
-			new_users_list += "    user "+user+" insecure-password " + passwords[i] +group+ "\n"
+			new_users_list += "    user "+user+" insecure-password " + passwords[i] + group + "\n"
 			i += 1
 		
 	config_add = "\n" + name + new_userlist_groups + new_users_list
@@ -239,7 +267,7 @@ try:
 		
 		MASTERS = sql.is_master(serv)
 		for master in MASTERS:
-			if master[0] != None:
+			if master[0] is not None:
 				funct.upload_and_restart(master[0], cfg)
 		
 		stderr = funct.upload_and_restart(serv, cfg, just_save="save")
@@ -247,7 +275,7 @@ try:
 			print('<div class="alert alert-danger">%s</div><div id="close"><span title="Close" style="cursor: pointer; float: right;">X</span></div><script>$("#errorMess").click(function(){$("#error").remove();});</script>' % stderr)
 		else:
 			print('<meta http-equiv="refresh" content="0; url=add.py?add=%s&conf=%s&serv=%s">' % (name, config_add, serv))
-			
+
 		print('</div>')
 except:
 	pass

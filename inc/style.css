@@ -15,15 +15,14 @@ body {
 h2 {
 	background: #5D9CEB;
 	border: 1px solid #5D9CEB;
-	padding: 3px;
-	padding-left: 2%;
+	padding: 3px 3px 3px 2%;
 	color: #fff;
-	margin-top: 0px;
-	margin-bottom: 0px;
+	margin-top: 0;
+	margin-bottom: 0;
 }
 h3 {
 	margin-top: -0;
-	margin-bottom: 0px;
+	margin-bottom: 0;
 	background: #d1ecf1;
 	padding: 0.3em;
 	font-size: 1.6em;
@@ -74,7 +73,7 @@ pre {
 	cursor: pointer;
 }
 .icon-hapservs {
-	margin-bottom: 0px;
+	margin-bottom: 0;
 }
 .top-menu {	
 	position: absolute;
@@ -133,9 +132,8 @@ pre {
 }
 #version { 
     float: left;
-    padding: 20px;
-    padding-top: 10px;
-    font-size: 14.5px;
+	padding: 10px 20px 20px;
+	font-size: 14.5px;
     font-weight: bold;
 }
 #logo_footer {
@@ -153,11 +151,9 @@ pre {
 	margin-right: 20px;
 }
 .footer-link, .footer-copyright {
-	padding: 20px;
 	color: #5d9ceb;
 	font-size: 0.9em;
-	padding-top: 12px;
-	padding-right: 5px;
+	padding: 12px 5px 20px 20px;
 }
 .footer-copyright {
 	color: #586069 ;
@@ -204,7 +200,7 @@ pre {
 }
 .auto-refresh-interval {
 	float: right;
-	padding: 0px 15px;
+	padding: 0 15px;
 	margin-top: 5px;
 	margin-bottom: 10px;
 	margin-left: 60%;
@@ -217,8 +213,7 @@ pre {
 }
 .auto-refresh-ul ul li {
 	margin: 0;
-	padding: 0;
-	padding-left: 15px;
+	padding: 0 0 0 15px;
 	border: 0;
 	font-family: inherit;
 	vertical-align: baseline;
@@ -230,7 +225,7 @@ pre {
 	position: fixed;
 	color: #000;
 	font-size: 12px;
-	height: 15;
+	height: 15px;
 }
 .auto-refresh-reload-icon {
 	margin-top: 3px;
@@ -277,27 +272,14 @@ pre {
 .paramInSec {
 	font-weight: bold;
 }
-/*.donate-menu {
-	font-weight: bold;
-	font-style: italic;
-	font-size: 15px;
-	color: #fff;
-	margin-left: 30px;
-	position: fixed;
-	margin-left: 65px;
-	margin-top: 15px;
-}*/
 .line {
 	background-color: #f3f8fb;
 	border: 1px solid #ddd;
 }
 .line, .line3 {
-	padding-top:5px;
-	padding-bottom: 5px;
-	padding-left: 10px;
-	padding-right: 10px;
+	padding: 5px 10px;
 }
-.line:hover, {
+.line:hover {
 	background-color: #f6f8fa;
 }
 .line3:hover {
@@ -365,8 +347,7 @@ pre {
     max-width: 50%;
 	min-height: 160px;
 	float: left;
-	margin: 20px;
-	margin-top: 0;
+	margin: 0 20px 20px;
 }
 .overviewHead {
 	border-radius: 5px;
@@ -421,10 +402,8 @@ pre {
 .add-button, .add-button-wi {
 	background-color: #5CB85C; 
 	border-radius: 5px;
-	color: #fff; 
-	padding: 5px;
-	padding-right: 10px;
-	padding-left: 10px;
+	color: #fff;
+	padding: 5px 10px;
 	float: right;
 	margin-right: 1px;
 	cursor: pointer;
@@ -445,8 +424,7 @@ pre {
 	background-color: red; 
 }
 .padding10 {
-	padding: 10px;
-	padding-left: 0px;
+	padding: 10px 10px 10px 0;
 	border: none;
 	width: 15%;
 }
@@ -510,8 +488,7 @@ ul{
 	background: #48505A;
 	padding: 10px 0 10px 20px;
 	color: #fff;
-	border-left-color: #5D9CEB;
-    border-left: 4px solid #5D9CEB;
+	border-left: 4px solid #5D9CEB;
 }
 .menu li:first-child a, .menu li .v_menu li:first-child a{
 	border-radius: 3px 3px 0 0;
@@ -557,12 +534,12 @@ ul{
 	margin-left: 20px;
 }
 @keyframes shadow {
-	from {box-shadow: 0px 0px 0px red inset;}
+	from {box-shadow: 0 0 0 red inset;}
 	50% {text-shadow: 0 0 30px black;}
 	to {box-shadow: 0 -5px 5px -5px rgb(38, 137, 60) inset}
 }
 @keyframes shadow-red {
-	from {box-shadow: 0px 0px 0px red inset;}
+	from {box-shadow: 0 0 0 red inset;}
 	50% {text-shadow: 0 0 30px black;}
 	to {box-shadow: 0 -5px 5px -5px #5D9CEB inset}
 }
@@ -597,8 +574,7 @@ ul{
 }
 .ui-state-active {
 	background-color: #4A89D8 !important;
-	border: none !important;
-	border-color: #5D9CEB !important;
+	border: none #5D9CEB !important;
 }
 .ui-tabs-nav {
 	border-radius: 0 !important;
@@ -648,14 +624,15 @@ a {
 }
 a:hover, a:focus {
   color: #23527c;
-  text-decoration:  derline;
+  text-decoration: underline;
 }
 a:focus {
   outline: 5px auto -webkit-focus-ring-color;
   outline-offset: -2px;
 }
-.logs_link, .accordion-link {
+.logs_link, .accordion-link, .link {
 	color: #23527c !important;
+	cursor: pointer;
 }
 table {
   border-spacing: 0;
@@ -728,9 +705,8 @@ td,th {
 	width: 300px;
 }
 .validateTips {
-	width: 540px; 
-	margin: 0; 
-	margin-bottom: 10px;
+	width: 540px;
+	margin: 0 0 10px;
 }
 #errorMess {
 	float: right;
@@ -761,14 +737,8 @@ label {
 	border: 1px solid #A4C7F5;
 	height: 165px;
 	width: 375px;
-	padding: 20px;
-	padding-top: 10px;
-	padding-left: 15px;
-	padding-right: 15px;
-	margin: 20px;
-	margin-right: 5px;
-	margin-bottom: 20px	;
-	margin-top: 0px;
+	padding: 10px 15px 20px;
+	margin: 0 5px 20px 20px;
 	display: block;
 	float: left;
 }
@@ -814,19 +784,11 @@ label {
 	float: left;
 }
 .ajax-server {
-	margin: 25px;
-	margin-left: 757px;
-	margin-bottom: 0;
+	margin: 25px 25px 0 757px;
 	width: 778px;
 	display: none;
-	margin-top: px;
-	margin-bottom: 0px;
-	margin-top: 0px;
 	height: 185px;
-	padding-bottom: 0px;
-	padding-top: 10px;
-	padding-left: 15px;
-	padding-right: 15px;
+	padding: 10px 15px 0;
 }
 .haproxy-info {
 	display: inline-block;
@@ -890,10 +852,7 @@ label {
 }
 .group_name {
 	font-size: 18px;
-	padding: 20px;
-	padding-left:15px;
-	padding-bottom: 0px;
-	padding-top: 10px;
+	padding: 10px 20px 0 15px;
 }
 .smon_services {
 	width: 192px;
@@ -1148,11 +1107,9 @@ label {
 }
 #stats_filter_text {
 	float: left;
-	padding: 5px;
 	font-size: 20px;
-	padding-top: 0;
 	margin-top: -2px;
-	padding-right: 10px;
+	padding: 0 10px 5px 5px;
 }
 .stats_active, .stats_drain, .stats_maintain, .stats_down, .stats_not_checked, .stats_backup, .stats_frontends, .stats_backends {
 	color: #000 ;

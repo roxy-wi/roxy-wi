@@ -886,9 +886,9 @@ $( function() {
 			toastr.error('Wrong e-mail format');
 		}
 	});
-	var add_server_var = '<br /><input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">: <input name="server_port" title="Backend port" size=1 placeholder="yyy" class="form-control">'
+	var add_server_var = '<br /><input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">: <input name="server_port" title="Backend port" size=3 placeholder="yyy" class="form-control">'
 	$('[name=add-server-input]').click(function() {
-		$("[name=add_servers]").append(add_server_var);			
+		$("[name=add_servers]").append(add_server_var);
 	});
 	var add_userlist_var = '<br /><input name="userlist-user" title="User name" placeholder="user_name" class="form-control"> <input name="userlist-password" required title="User password. By default it insecure-password" placeholder="password" class="form-control"> <input name="userlist-user-group" title="User`s group" placeholder="user`s group" class="form-control">'
 	$('#add-userlist-user').click(function() {
@@ -933,9 +933,10 @@ $( function() {
 		resetProxySettings()
 		$( "#tabs" ).tabs( "option", "active", 2 );
 	} );
-	$( ".redirectBackend" ).on( "click", function() {
+	$( "#redirectBackend" ).on( "click", function() {
 		resetProxySettings()
 		$( "#tabs" ).tabs( "option", "active", 3 );
+		history.pushState('Add backend', 'Add backend', 'add.py#backend')
 	} );
 	$( ".redirectSsl" ).on( "click", function() {
 		$( "#tabs" ).tabs( "option", "active", 4 );
@@ -985,6 +986,78 @@ $( function() {
 	$( "#create-https-backend" ).on( "click", function() {
 		resetProxySettings();
 		createHttps(3, 'backend');	
+	});
+	var tcp_note = 'The check is valid when the server answers with a <b>SYN/ACK</b> packet'
+	var ssl_note = 'The check is valid if the server answers with a valid SSL server <b>hello</b> message'
+	var httpchk_note = 'The check is valid if the server answers with a status code of <b>2xx</b> or <b>3xx</b>'
+	var ldap_note = 'The check is valid if the server response contains a successful <b>resultCode</b>.\n' +
+		'<p>You must configure the LDAP servers according to this check to allow anonymous binding. ' +
+		'You can do this with an IP alias on the server side that allows only HAProxy IP addresses to bind to it.</p>'
+	var mysql_note = 'The check is valid if the server response contains a successful <b>Authentication</b> request'
+	var pgsql_note = 'The check is valid if the server response contains a successful <b>Authentication</b> request'
+	var redis_note = 'The check is valid if the server response contains the string <b>+PONG</b>'
+	var smtpchk_note = 'The check is valid if the server response code starts with <b>\'2\'</b>'
+	$( "#listener_checks" ).on('selectmenuchange',function()  {
+		if ($( "#listener_checks option:selected" ).val() == "option tcp-check") {
+			$("#listener_checks_note").html(tcp_note)
+		}
+		if ($( "#listener_checks option:selected" ).val() == "option ssl-hello-chk") {
+			$("#listener_checks_note").html(ssl_note)
+		}
+		if ($( "#listener_checks option:selected" ).val() == "option httpchk") {
+			$("#listener_checks_note").html(httpchk_note)
+		}
+		if ($( "#listener_checks option:selected" ).val() == "option ldap-check") {
+			$("#listener_checks_note").html(ldap_note)
+		}
+		if ($( "#listener_checks option:selected" ).val() == "option mysql-check") {
+			$("#listener_checks_note").html(mysql_note)
+		}
+		if ($( "#listener_checks option:selected" ).val() == "option pgsql-check") {
+			$("#listener_checks_note").html(pgsql_note)
+		}
+		if ($( "#listener_checks option:selected" ).val() == "option redis-check") {
+			$("#listener_checks_note").html(redis_note)
+		}
+		if ($( "#listener_checks option:selected" ).val() == "option smtpchk") {
+			$("#listener_checks_note").html(smtpchk_note)
+		}
+		if ($( "#listener_checks option:selected" ).val() == "") {
+			$("#listener_checks_note").html('')
+		}
+	});
+	$( "#backend_checks" ).on('selectmenuchange',function()  {
+
+		if ($( "#backend_checks option:selected" ).val() == "") {
+			$("#backend_checks_note").html('')
+		}
+		if ($( "#backend_checks option:selected" ).val() == "option tcp-check") {
+			$("#backend_checks_note").html(tcp_note)
+		}
+		if ($( "#backend_checks option:selected" ).val() == "option ssl-hello-chk") {
+			$("#backend_checks_note").html(ssl_note)
+		}
+		if ($( "#backend_checks option:selected" ).val() == "option httpchk") {
+			$("#backend_checks_note").html(httpchk_note)
+		}
+		if ($( "#backend_checks option:selected" ).val() == "option ldap-check") {
+			$("#backend_checks_note").html(ldap_note)
+		}
+		if ($( "#backend_checks option:selected" ).val() == "option mysql-check") {
+			$("#backend_checks_note").html(mysql_note)
+		}
+		if ($( "#backend_checks option:selected" ).val() == "option pgsql-check") {
+			$("#backend_checks_note").html(pgsql_note)
+		}
+		if ($( "#backend_checks option:selected" ).val() == "option redis-check") {
+			$("#backend_checks_note").html(redis_note)
+		}
+		if ($( "#backend_checks option:selected" ).val() == "option smtpchk") {
+			$("#backend_checks_note").html(smtpchk_note)
+		}
+		if ($( "#backend_checks option:selected" ).val() == "") {
+			$("#backend_checks_note").html('')
+		}
 	});
 });
 function resetProxySettings() {

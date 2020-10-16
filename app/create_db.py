@@ -13,7 +13,8 @@ if mysql_enable == '1':
 else:
 	db = "haproxy-wi.db"
 	import sqlite3 as sqltool
-	
+
+
 def check_db():
 	if mysql_enable == '0':
 		import os
@@ -46,7 +47,8 @@ def check_db():
 		else:
 			return False
 			con.close()
-			
+
+
 def get_cur():
 	try:
 		if mysql_enable == '0':
@@ -57,10 +59,11 @@ def get_cur():
 									database=mysql_db)	
 		cur = con.cursor()
 	except sqltool.Error as e:
-		funct.logging('DB ', ' '+e, haproxywi=1, login=1)
+		funct.logging('DB ', ' '+str(e), haproxywi=1, login=1)
 	else:
 		return con, cur
-			
+
+
 def create_table(**kwargs):
 	con, cur = get_cur()
 	if mysql_enable == '0':
@@ -76,9 +79,10 @@ def create_table(**kwargs):
 			activeuser INTEGER NOT NULL DEFAULT 1,
 			PRIMARY KEY(`id`) 
 		);
-		INSERT INTO user (username, email, password, role, groups) VALUES ('admin','admin@localhost','21232f297a57a5a743894a0e4a801fc3','admin','1'),
-		 ('editor','editor@localhost','5aee9dbd2a188839105073571bee1b1f','editor','1'),
-		 ('guest','guest@localhost','084e0343a0486ff05530df6c705c8bb4','guest','1');
+		INSERT INTO user (username, email, password, role, groups) VALUES 
+		('admin','admin@localhost','21232f297a57a5a743894a0e4a801fc3','admin','1'),
+		('editor','editor@localhost','5aee9dbd2a188839105073571bee1b1f','editor','1'),
+		('guest','guest@localhost','084e0343a0486ff05530df6c705c8bb4','guest','1');
 		CREATE TABLE IF NOT EXISTS `servers` (
 			`id`	INTEGER NOT NULL,
 			`hostname`	VARCHAR ( 64 ),
@@ -102,8 +106,8 @@ def create_table(**kwargs):
 			PRIMARY KEY(`id`) 
 		);
 		INSERT INTO `role` (name, description) VALUES ('admin','Can do everything'),
-		 ('editor','Can edit configs'),
-		 ('guest','Read only access');
+		('editor','Can edit configs'),
+		('guest','Read only access');
 		
 		CREATE TABLE IF NOT EXISTS `groups` (
 			`id`	INTEGER NOT NULL,
@@ -624,12 +628,14 @@ def update_db_v_4_4_2_1(**kwargs):
 				print('Updating... go to version 4.4.2')
 			else:
 				print("An error occurred:", e)
+		cur.close()
+		con.close()
 		return False
 	else:
 		print("DB was update to 4.4.2")
+		cur.close()
+		con.close()
 		return True
-	cur.close()
-	con.close()
 
 
 def update_db_v_4_3_2_1(**kwargs):
@@ -724,7 +730,7 @@ def update_db_v_4_5_1(**kwargs):
 	
 def update_ver(**kwargs):
 	con, cur = get_cur()
-	sql = """update version set version = '4.5.1.0'; """
+	sql = """update version set version = '4.5.2.0'; """
 	try:    
 		cur.execute(sql)
 		con.commit()
