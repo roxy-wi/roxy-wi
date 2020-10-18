@@ -46,6 +46,7 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 29. Mobile-ready desing
 30. Simple port monitoring
 31. Backup HAProxy's, Nginx's and Keepalived's config files through HAProxy-WI
+32. Manage OpenVPN3 as client via HAProxy-WI
 
 ![alt text](image/haproxy-wi-metrics.png "Merics")
 
