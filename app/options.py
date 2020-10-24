@@ -71,7 +71,7 @@ if serv and form.getvalue('ssl_cert'):
 
     MASTERS = sql.is_master(serv)
     for master in MASTERS:
-        if master[0] != None:
+        if master[0] is not None:
             funct.upload(master[0], cert_path, name)
     try:
         error = funct.upload(serv, cert_path, name)
@@ -167,7 +167,7 @@ if form.getvalue('maxconn_frontend') is not None:
 
     MASTERS = sql.is_master(serv)
     for master in MASTERS:
-        if master[0] != None:
+        if master[0] is not None:
             if frontend == 'global':
                 cmd = 'echo "set maxconn %s %s" |nc %s %s' % (frontend, maxconn, master[0], haproxy_sock_port)
             else:
@@ -1508,7 +1508,7 @@ if form.getvalue('bwlists_save'):
 
         MASTERS = sql.is_master(serv)
         for master in MASTERS:
-            if master[0] != None:
+            if master[0] is not None:
                 servers.append(master[0])
     else:
         server = sql.get_dick_permit()
@@ -1841,7 +1841,10 @@ if form.getvalue('updatessh'):
 if form.getvalue('ssh_cert'):
     user_group = funct.get_user_group()
     name = form.getvalue('name')
-    name = name + '_' + user_group
+    ssh_keys = os.path.dirname(os.getcwd()) + '/keys/' + name + '.pem'
+
+    if not os.path.isfile(ssh_keys):
+        name = name + '_' + user_group
 
     if not os.path.exists(os.getcwd() + '/keys/'):
         os.makedirs(os.getcwd() + '/keys/')
@@ -1852,9 +1855,9 @@ if form.getvalue('ssh_cert'):
         with open(ssh_keys, "w") as conf:
             conf.write(form.getvalue('ssh_cert'))
     except IOError:
-        print('error: Can\'t save ssh keys file. Check ssh keys path in config')
+        print('error: Cannot save SSH key file. Check SSH keys path in config')
     else:
-        print('success: Ssh key was save into: %s </div>' % ssh_keys)
+        print('success: SSH key has been saved into: %s </div>' % ssh_keys)
 
     try:
         cmd = 'chmod 600 %s' % ssh_keys
@@ -1862,7 +1865,7 @@ if form.getvalue('ssh_cert'):
     except IOError as e:
         funct.logging('localhost', e.args[0], haproxywi=1)
 
-    funct.logging("localhost", " upload a new SSH cert %s" % ssh_keys, haproxywi=1, login=1)
+    funct.logging("localhost", " has been uploaded a new SSH cert %s" % ssh_keys, haproxywi=1, login=1)
 
 if form.getvalue('newtelegram'):
     token = form.getvalue('newtelegram')
@@ -2203,4 +2206,3 @@ if form.getvalue('actionvpn') is not None:
     except IOError as e:
         print(e.args[0])
         funct.logging('localhost', e.args[0], haproxywi=1)
-
