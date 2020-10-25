@@ -34,20 +34,24 @@ def get_cur():
 def add_user(user, email, password, role, activeuser):
 	con, cur = get_cur()
 	if password != 'aduser':
-		sql = """INSERT INTO user (username, email, password, role, activeuser) VALUES ('%s', '%s', '%s', '%s', '%s')""" % (user, email, funct.get_hash(password), role, activeuser)
+		sql = """INSERT INTO user (username, email, password, role, activeuser) 
+		VALUES ('%s', '%s', '%s', '%s', '%s')""" % (user, email, funct.get_hash(password), role, activeuser)
 	else:
-		sql = """INSERT INTO user (username, email, role, ldap_user, activeuser) VALUES ('%s', '%s', '%s', '1', '%s')""" % (user, email, role, activeuser)
+		sql = """INSERT INTO user (username, email, role, ldap_user, activeuser) 
+		VALUES ('%s', '%s', '%s', '1', '%s')""" % (user, email, role, activeuser)
 	try:
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
+		cur.close()
+		con.close()
 		return False
 	else:
+		cur.close()
+		con.close()
 		return True
-	cur.close()
-	con.close()
 
 
 def update_user(user, email, role, id, activeuser):
@@ -63,11 +67,13 @@ def update_user(user, email, role, id, activeuser):
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
+		cur.close()
+		con.close()
 		return False
 	else:
+		cur.close()
+		con.close()
 		return True
-	cur.close()
-	con.close()
 
 
 def update_user_groups(groups, id):
@@ -79,11 +85,13 @@ def update_user_groups(groups, id):
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
+		cur.close()
+		con.close()
 		return False
 	else:
+		cur.close()
+		con.close()
 		return True
-	cur.close()
-	con.close()
 
 
 def delete_user_groups(id):
@@ -96,11 +104,13 @@ def delete_user_groups(id):
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
+		cur.close()
+		con.close()
 		return False
 	else:
+		cur.close()
+		con.close()
 		return True
-	cur.close()
-	con.close()
 
 
 def update_user_password(password, id):
@@ -113,11 +123,13 @@ def update_user_password(password, id):
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
+		cur.close()
+		con.close()
 		return False
 	else:
+		cur.close()
+		con.close()
 		return True
-	cur.close()
-	con.close()
 
 
 def delete_user(id):
@@ -129,11 +141,14 @@ def delete_user(id):
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
+		cur.close()
+		con.close()
 		return False
 	else:
+		cur.close()
+		con.close()
 		return True
-	cur.close()
-	con.close()
+
 
 def add_group(name, description):
 	con, cur = get_cur()
@@ -158,10 +173,9 @@ def add_group(name, description):
 				group_id = g[0]
 			add_setting_for_new_group(group_id)
 
+		cur.close()
+		con.close()
 		return True
-
-	cur.close()
-	con.close()
 
 
 def add_setting_for_new_group(group_id):
@@ -215,9 +229,9 @@ def add_setting_for_new_group(group_id):
 		except sqltool.Error as e:
 			funct.out_error(e)
 	else:
+		cur.close()
+		con.close()
 		return True
-	cur.close()
-	con.close()
 
 
 def delete_group_settings(group_id):
@@ -230,6 +244,8 @@ def delete_group_settings(group_id):
 		funct.out_error(e)
 		con.rollback()
 	else:
+		cur.close()
+		con.close()
 		return True
 	cur.close()
 	con.close()
@@ -244,11 +260,14 @@ def delete_group(id):
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
+		cur.close()
+		con.close()
+		return False
 	else:
 		delete_group_settings(id)
+		cur.close()
+		con.close()
 		return True
-	cur.close()
-	con.close()
 
 
 def update_group(name, descript, id):
@@ -264,11 +283,13 @@ def update_group(name, descript, id):
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
+		cur.close()
+		con.close()
 		return False
 	else:
+		cur.close()
+		con.close()
 		return True
-	cur.close()
-	con.close()
 
 
 def add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx):
@@ -279,13 +300,15 @@ def add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, ha
 	try:
 		cur.execute(sql)
 		con.commit()
+		cur.close()
+		con.close()
 		return True
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
+		cur.close()
+		con.close()
 		return False
-	cur.close()
-	con.close()
 
 
 def delete_server(id):
@@ -371,7 +394,8 @@ def select_users(**kwargs):
 	if kwargs.get("id") is not None:
 		sql = """select * from user where id='%s' """ % kwargs.get("id")
 	if kwargs.get("group") is not None:
-		sql = """ select user.* from user left join user_groups as groups on user.id = groups.user_id where groups.user_group_id = '%s' group by id;
+		sql = """ select user.* from user left 
+		join user_groups as groups on user.id = groups.user_id where groups.user_group_id = '%s' group by id;
 		""" % kwargs.get("group")
 	try:
 		cur.execute(sql)
@@ -413,11 +437,9 @@ def check_user_group(user_id, group_id):
 		print(str(e))
 	else:
 		for g in cur.fetchall():
-			#print(str(g[0]))
 			if g[0] != '':
 				return True
 			else:
-				#print('Atata!')
 				return False
 
 	cur.close()
@@ -512,6 +534,7 @@ def select_servers(**kwargs):
 	cur.close()
 	con.close()
 
+
 def write_user_uuid(login, user_uuid):
 	con, cur = get_cur()
 	session_ttl = get_setting('session_ttl')
@@ -535,6 +558,7 @@ def write_user_uuid(login, user_uuid):
 	cur.close()
 	con.close()
 
+
 def write_user_token(login, user_token):
 	con, cur = get_cur()
 	token_ttl = get_setting('token_ttl')
@@ -556,6 +580,7 @@ def write_user_token(login, user_token):
 		con.rollback()
 	cur.close()
 	con.close()
+
 
 def get_token(uuid):
 	con, cur = get_cur()
@@ -1911,13 +1936,13 @@ def check_token_exists(token):
 			return True
 		else:
 			try:
-				funct.logging('localhost', ' tried do action with wrong token', haproxywi=1, login=1)
+				funct.logging('localhost', ' Tried do action with wrong token', haproxywi=1, login=1)
 			except:
 				funct.logging('localhost', ' An action with wrong token', haproxywi=1)
 				return False
 	except:
 		try:
-			funct.logging('localhost', ' cannot check token', haproxywi=1, login=1)
+			funct.logging('localhost', ' Cannot check token', haproxywi=1, login=1)
 		except:
 			funct.logging('localhost', ' Cannot check token', haproxywi=1)
 			return False
@@ -2220,6 +2245,23 @@ def select_alerts(user_group):
 		print("An error occurred:", e)
 	else:
 		return cur.fetchall()
+
+
+def is_cloud():
+	con, cur = get_cur()
+	sql = """ select * from cloud_uuid """
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		print("An error occurred:", e)
+		cur.close()
+		con.close()
+		return ""
+	else:
+		cur.close()
+		con.close()
+		for cloud_uuid in cur.fetchall():
+			return cloud_uuid[0]
 
 
 form = funct.form

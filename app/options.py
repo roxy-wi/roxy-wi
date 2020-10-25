@@ -1839,8 +1839,11 @@ if form.getvalue('updatessh'):
         funct.logging('the SSH ' + name, ' has updated credentials ', haproxywi=1, login=1)
 
 if form.getvalue('ssh_cert'):
+    import paramiko
+
     user_group = funct.get_user_group()
     name = form.getvalue('name')
+    key = paramiko.pkey.load_private_key(form.getvalue('ssh_cert'))
     ssh_keys = os.path.dirname(os.getcwd()) + '/keys/' + name + '.pem'
 
     if not os.path.isfile(ssh_keys):
@@ -1852,8 +1855,11 @@ if form.getvalue('ssh_cert'):
     ssh_keys = os.path.dirname(os.getcwd()) + '/keys/' + name + '.pem'
 
     try:
-        with open(ssh_keys, "w") as conf:
-            conf.write(form.getvalue('ssh_cert'))
+        cloud = sql.is_cloud()
+        if cloud != '':
+            key.write_private_key_file(ssh_keys, password=cloud)
+        else:
+            key.write_private_key_file(ssh_keys)
     except IOError:
         print('error: Cannot save SSH key file. Check SSH keys path in config')
     else:

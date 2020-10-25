@@ -241,7 +241,11 @@ def ssh_connect(serv, **kwargs):
 	ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 	try:
 		if ssh_enable == 1:
-			k = paramiko.RSAKey.from_private_key_file(ssh_key_name)
+			cloud = sql.is_cloud()
+			if cloud != '':
+				k = paramiko.pkey.load_private_key_file(ssh_key_name, password=cloud)
+			else:
+				k = paramiko.pkey.load_private_key_file(ssh_key_name)
 			ssh.connect(hostname=serv, port=ssh_port, username=ssh_user_name, pkey=k, timeout=11)
 		else:
 			ssh.connect(hostname=serv, port=ssh_port, username=ssh_user_name, password=ssh_user_password, timeout=11)
@@ -251,6 +255,9 @@ def ssh_connect(serv, **kwargs):
 		pass
 	except paramiko.SSHException as sshException:
 		return 'error: Unable to establish SSH connection: %s ' % sshException
+		pass
+	except paramiko.PasswordRequiredException as e:
+		return 'error: %s ' % e
 		pass
 	except paramiko.BadHostKeyException as badHostKeyException:
 		return 'error: Unable to verify server\'s host key: %s ' % badHostKeyException

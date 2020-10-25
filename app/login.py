@@ -23,6 +23,7 @@ db_create = ""
 error_log = ""
 error = ""
 
+
 def send_cookie(login):
 	session_ttl = sql.get_setting('session_ttl')
 	session_ttl = int(session_ttl)
@@ -37,7 +38,7 @@ def send_cookie(login):
 		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 		user_group_id = cookie.get('group')
 		user_group_id = user_group_id.value
-		if sql.check_user_group(id,user_group_id):
+		if sql.check_user_group(id, user_group_id):
 			user_groups = user_group_id
 		else:
 			user_groups = sql.select_user_groups(id, limit=1)
@@ -66,7 +67,8 @@ def send_cookie(login):
 		user_group = ''
 
 	try:
-		funct.logging('locahost', ' user: '+sql.get_user_name_by_uuid(user_uuid)+', group: '+user_group+' log in', haproxywi=1)
+		user_name = sql.get_user_name_by_uuid(user_uuid)
+		funct.logging('localhost', ' user: ' + user_name + ', group: ' + user_group + ' log in', haproxywi=1)
 	except:
 		pass
 	print("Content-type: text/html\n")
@@ -77,15 +79,15 @@ def send_cookie(login):
 def ban():
 	c = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	expires = datetime.datetime.utcnow() + datetime.timedelta(seconds=10)
-	c["ban"] = 1
+	c["ban"] = "1"
 	c["ban"]["path"] = "/"
 	# c["ban"]["samesite"] = "Strict"
 	c["ban"]["Secure"] = "True"
 	c["ban"]["expires"] = expires.strftime("%a, %d %b %Y %H:%M:%S GMT")
 	try:
-		funct.logging('locahost', login+' failed log in', haproxywi=1, login=1)
+		funct.logging('localhost', login+' failed log in', haproxywi=1, login=1)
 	except:
-		funct.logging('locahost', ' Failed log in. Wrong username', haproxywi=1)
+		funct.logging('localhost', ' Failed log in. Wrong username', haproxywi=1)
 	print(c.output())
 	print("Content-type: text/html\n")
 	print('ban')
@@ -106,7 +108,7 @@ def check_in_ldap(user, password):
 
 	ldap_proto = 'ldap' if ldap_type == "0" else 'ldaps'
 
-	l = ldap.initialize('{}://{}:{}/'.format(ldap_proto,server, port))
+	l = ldap.initialize('{}://{}:{}/'.format(ldap_proto, server, port))
 	try:
 		l.protocol_version = ldap.VERSION3
 		l.set_option(ldap.OPT_REFERRALS, 0)
@@ -127,7 +129,7 @@ def check_in_ldap(user, password):
 		print('<center><div class="alert alert-danger">Server down</div><br /><br />')
 		sys.exit()
 	except ldap.LDAPError as e:
-		if type(e.message) == dict and e.message.has_key('desc'):
+		if type(e.message) == dict and 'desc' in e.message:
 			print("Content-type: text/html\n")
 			print('<center><div class="alert alert-danger">Other LDAP error: %s</div><br /><br />' % e.message['desc'])
 			sys.exit()
@@ -143,13 +145,14 @@ if ref is None:
 	ref = "/index.html"
 
 if form.getvalue('error'):
-	error_log = '<div class="alert alert-danger">Somthing wrong :( I\'m sad about this, but try again!</div><br /><br />'
+	error_log = '<div class="alert alert-danger">Something wrong. Try again</div><br /><br />'
 
 try:
 	if sql.get_setting('session_ttl'):
 		session_ttl = sql.get_setting('session_ttl')
 except:
-	error = '<center><div class="alert alert-danger">Can not find "session_ttl" parametr. Check into settings, "main" section</div>'
+	error = '<center><div class="alert alert-danger">Cannot find "session_ttl" parameter. ' \
+			'Check it into settings, "main" section</div>'
 	pass
 
 try:
@@ -195,21 +198,14 @@ if login is not None and password is not None:
 		sys.exit()
 	print("Content-type: text/html\n")
 
-if login is None:
-	print("Content-type: text/html\n")
-	if create_db.check_db():
-		if create_db.create_table():
-			create_db.update_all()
-			db_create = '<div class="alert alert-success">DB was created<br /><br />Now you can login, default: admin/admin</div>'
-
 create_db.update_all_silent()
 
-output_from_parsed_template = template.render(h2 = 0, title = "Login page",
-													role = role,
-													user = user,
-													error_log = error_log,
-													error = error,
-													ref = ref,
-													versions = funct.versions(),
-													db_create = db_create)
+output_from_parsed_template = template.render(h2=0, title="Login page",
+													role=role,
+													user=user,
+													error_log=error_log,
+													error=error,
+													ref=ref,
+													versions=funct.versions(),
+													db_create=db_create)
 print(output_from_parsed_template)
