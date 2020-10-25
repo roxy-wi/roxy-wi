@@ -1846,7 +1846,13 @@ if form.getvalue('ssh_cert'):
     key = paramiko.pkey.load_private_key(form.getvalue('ssh_cert'))
     ssh_keys = os.path.dirname(os.getcwd()) + '/keys/' + name + '.pem'
 
-    if not os.path.isfile(ssh_keys):
+    try:
+        split_name = name.split('_')[1]
+        split_name = True
+    except Exception:
+        split_name = False
+
+    if not os.path.isfile(ssh_keys) and not split_name:
         name = name + '_' + user_group
 
     if not os.path.exists(os.getcwd() + '/keys/'):

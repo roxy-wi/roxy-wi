@@ -251,7 +251,7 @@ def ssh_connect(serv, **kwargs):
 			ssh.connect(hostname=serv, port=ssh_port, username=ssh_user_name, password=ssh_user_password, timeout=11)
 		return ssh
 	except paramiko.AuthenticationException:
-		return 'error: Authentication failed, please verify your credentials'
+		return 'Authentication failed, please verify your credentials'
 		pass
 	except paramiko.SSHException as sshException:
 		return 'error: Unable to establish SSH connection: %s ' % sshException

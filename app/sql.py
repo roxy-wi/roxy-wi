@@ -1772,13 +1772,15 @@ def update_setting(param, val):
 		try:
 			cur.execute(sql)
 			con.commit()
+			cur.close()
+			con.close()
 			return True
 		except sqltool.Error as e:
 			funct.out_error(e)
 			con.rollback()
+			cur.close()
+			con.close()
 			return False
-		cur.close()
-		con.close()
 
 
 def get_ver():
@@ -2257,10 +2259,12 @@ def is_cloud():
 		con.close()
 		return ""
 	else:
-		cur.close()
-		con.close()
-		for cloud_uuid in cur.fetchall():
-			return cloud_uuid[0]
+		for cl_uuid in cur.fetchall():
+			cloud_uuid = cl_uuid[0]
+
+	cur.close()
+	con.close()
+	return cloud_uuid
 
 
 form = funct.form
