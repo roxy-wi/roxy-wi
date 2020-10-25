@@ -198,6 +198,9 @@ if login is not None and password is not None:
 		sys.exit()
 	print("Content-type: text/html\n")
 
+if login is None:
+	print("Content-type: text/html\n")
+	
 create_db.update_all_silent()
 
 output_from_parsed_template = template.render(h2=0, title="Login page",
