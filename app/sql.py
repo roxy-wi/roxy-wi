@@ -2253,7 +2253,6 @@ def is_cloud():
 	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
-		print("An error occurred:", e)
 		cur.close()
 		con.close()
 		return ""
