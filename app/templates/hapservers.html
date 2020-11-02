@@ -85,9 +85,35 @@
 					showBytes('{{ s.2 }}')
 				}
 				showMetrics();
+				$( function() {
+					$("#time-range").on('selectmenuchange', function () {
+						removeData()
+						let metrics = new Promise(
+								(resolve, reject) => {
+									{% for s in servers %}
+									getChartData('{{s.2}}')
+									getWafChartData('{{s.2}}')
+									{% endfor %}
+								});
+						metrics.then();
+					});
+				});
 			</script>
 		{% endif %}
-		<div id="div-server-{{s.0}}" class="div-server-hapwi" {% if not serv %}style="cursor: move;"{%endif%}>
+		{% if service == 'nginx' %}
+			{% if s.5.0.3 == 'active' %}
+				{% set additional_status_class = 'div-server-head-up' %}
+			{% else %}
+				{% set additional_status_class = 'div-server-head-down' %}
+			{% endif %}
+		{% else %}
+			{% if s.5 != False %}
+				{% set additional_status_class = 'div-server-head-up' %}
+			{% else %}
+				{% set additional_status_class = 'div-server-head-down' %}
+			{% endif %}
+		{% endif %}
+		<div id="div-server-{{s.0}}" class="div-server-hapwi {{additional_status_class}}" {% if not serv %}style="cursor: move;"{%endif%}>
 			<div class="server-name">
 				<input type="hidden" id="server-name-{{s.0}}" value="{{s.1}}" />
 				<input type="hidden" id="service" value="{{service}}" />
@@ -96,7 +122,7 @@
 						<span class="serverUp server-status" title="Uptime: {{s.5.0.4}}"></span>
 					{% else %}
 						<span class="serverDown server-status" title="Downtime: : {{s.5.0.4}}"></span>
-					{% endif %}					
+					{% endif %}
 				{% else %}
 					{% if s.5 != False %}
 						<span class="serverUp server-status" title="{{s.5.0.2}}"></span>
@@ -227,8 +253,20 @@
 	{% endfor %}
 </div>
 {% if serv and service == 'haproxy' %}
-	<div id="refresh" style="text-align: right;margin-right: 105px;clear: both;display: block;margin-bottom: -25px;" title="Refresh metrics" onclick="showMetrics()">
-		<span class="service-reload"></span>
+	<div style="clear: both; width: 95%;">
+		<div style="padding-left: 25px;float: left;margin-top: -15px;">
+			<b>Time range:</b>
+			<select title="Choose time range" id="time-range">
+				<option value="30">30 minutes</option>
+				<option value="60">1 hour</option>
+				<option value="180">3 hours</option>
+				<option value="360">6 hours</option>
+				<option value="720">12 hours</option>
+			</select>
+		</div>
+		<div id="refresh" style="text-align: right;margin-right: 3%;" title="Refresh metrics" onclick="showMetrics()">
+			<span class="service-reload"></span>
+		</div>
 	</div>
 	{% for s in servers %}
 		<div class="chart-container" style="display: block; width: 91.3%; height: 300px;">

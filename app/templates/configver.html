@@ -1,11 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
 <center>
-	<h3>Choose server</h3>
 	<p>	
 		<form action="{{ action }}" method="post">
 			<input type="hidden" id="service" value="{{service}}">
-			<a class="ui-button ui-widget ui-corner-all" title="Return back" onclick="history.back()">Back</a>
 			{% include 'include/select.html' %}
 			<button type="submit" value="open" name="open" class="btn btn-default">Open</button>
 		</form>

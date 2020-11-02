@@ -5,15 +5,17 @@
 	{% include 'include/getstarted.html' %}
 {% else %}
 <center>
-	<h3>Choose server</h3>
 	<p>
 		<form action="{{ action }}" method="post">
-			<a class="ui-button ui-widget ui-corner-all" title="Return back" onclick="history.back()">Back</a>
 			{% include 'include/select.html' %}
 			<button type="submit" value="open" name="open" class="btn btn-default">Open</button>
+			{% if service != 'keepalived' %}
+				<a href="config.py" class="ui-button ui-widget ui-corner-all" title="Configs page">Configs</a>
+				<a class="ui-button ui-widget ui-corner-all" title="View stat" onclick="openStats()">Stat</a>
+			{% endif %}
 		</form>
 		{% if not aftersave and not open %}
-		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px; margin-top: 40%">
 			Here you can work with previous versions of {%if service == 'keepalived' %}Keepalived{%else%}HAProxy{%endif%} configs. Roll back to them, view or delete		
 		</div>
 		{% endif %}

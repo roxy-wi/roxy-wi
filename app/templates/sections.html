@@ -5,14 +5,8 @@
 <script src="/inc/codemirror/nginx.js"></script>
 <script src="/inc/codemirror/haproxy.js"></script>
 <center>
-	<h3>Choose a section</h3>
 	<p>
 		<form action="{{ action }}" method="post">
-			{% if aftersave %}
-				<a class="ui-button ui-widget ui-corner-all" title="Return back" onclick="history.go(-3)">Back</a>
-			{% else %}
-				<a class="ui-button ui-widget ui-corner-all" title="Return back" onclick="history.back()">Back</a>
-			{% endif %}
 			<select autofocus required name="section" id="{{ select_id }}">
 				<option disabled>Choose a section</option>
 					{% for s in sections %}

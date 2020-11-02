@@ -4,6 +4,7 @@ function getChartData(server) {
 		data: {
 			new_metrics: '1',
 			server: server,
+            time_range: $( "#time-range option:selected" ).val(),
 			token: $('#token').val()
 		},
 		type: "POST",
@@ -19,6 +20,13 @@ function getChartData(server) {
         }
     });
 }
+function removeData() {
+    for (i = 0; i < charts.length; i++) {
+        chart = charts[i];
+        chart.destroy();
+    }
+}
+var charts = []
 function renderChart(data, labels, server) {
     var ctx = document.getElementById(server)
     var myChart = new Chart(ctx, {
@@ -85,6 +93,7 @@ function renderChart(data, labels, server) {
 			}
         }
     });
+    charts.push(myChart);
 }
 
 function getWafChartData(server) {
@@ -93,6 +102,7 @@ function getWafChartData(server) {
 		data: {
 			new_waf_metrics: '1',
 			server: server,
+            time_range: $( "#time-range option:selected" ).val(),
 			token: $('#token').val()
 		},
 		type: "POST",
@@ -158,8 +168,9 @@ function renderWafChart(data, labels, server) {
 			}
         }
     });
+    charts.push(myChart);
 }
-
+console.log(charts);
 $("#secIntervals").css("display", "none");	
 
 function loadMetrics() {

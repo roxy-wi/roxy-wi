@@ -795,11 +795,15 @@
 	<div id="lists">
 		<table class="overview">
 			<tr class="overviewHead">
-				<th class="padding10 first-collumn">Server for upload</th>
-				<th>New blacklist</th>
+				<th class="padding10 first-collumn">New blacklist</th>
+				<th>Server for uploading</th>
 				<th>Existing blacklists</th>
 			</tr>
 			<tr>
+				<td class="padding10 first-collumn" style="width: 25%;">
+					Name: {{ input('new_blacklist_name') }}
+					<button onclick="createList('black')">Create</button>
+				</td>
 				<td class="padding10 first-collumn">
 					<select required name="serv-black-list" id="serv-black-list">
 						<option disabled selected>Choose server</option>
@@ -808,10 +812,6 @@
 								<option value="{{ select.2 }}">{{ select.1 }}</option>
 							{% endfor %}	
 					</select>
-				</td>
-				<td style="width: 25%;">
-					Name: {{ input('new_blacklist_name') }}
-					<button onclick="createList('black')">Create</button>
 				</td>
 				<td style="width: 30%;">
 					{% for list in black_lists %}
@@ -824,11 +824,15 @@
 		</table>
 		<table>
 			<tr class="overviewHead">
-				<th class="padding10 first-collumn">Server for upload</th>
-				<th>New whitelist</th>
+				<th class="padding10 first-collumn">New whitelist</th>
+				<th>Server for uploading</th>
 				<th>Existing whitelists</th>
 			</tr>
 			<tr>
+				<td class="padding10 first-collumn" style="width: 25%;">
+					Name: {{ input('new_whitelist_name') }}
+					<button onclick="createList('white')">Create</button>
+				</td>
 				<td class="padding10 first-collumn">
 					<select required name="serv-white-list" id="serv-white-list">
 						<option disabled selected>Choose server</option>
@@ -837,10 +841,6 @@
 								<option value="{{ select.2 }}">{{ select.1 }}</option>
 							{% endfor %}	
 					</select>
-				</td>
-				<td style="width: 25%;">
-					Name: {{ input('new_whitelist_name') }}
-					<button onclick="createList( 'white')">Create</button>
 				</td>
 				<td style="width: 30%;">
 					{% for list in white_lists %}

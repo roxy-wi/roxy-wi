@@ -32,6 +32,9 @@ fi
 export ANSIBLE_HOST_KEY_CHECKING=False
 export ANSIBLE_DISPLAY_SKIPPED_HOSTS=False
 export ACTION_WARNINGS=False
+export LOCALHOST_WARNING=False
+export COMMAND_WARNINGS=False
+
 PWD=`pwd`
 PWD=$PWD/scripts/ansible/
 echo $HOST > $PWD/$HOST
@@ -44,7 +47,9 @@ fi
 
 if [ $? -gt 0 ]
 then
-        echo "error: Can't install Nginx service <br /><br />"
-        exit 1
+    echo "error: Can't install Nginx service <br /><br />"
+    exit 1
+else
+	echo "ok"
 fi
 rm -f $PWD/$HOST

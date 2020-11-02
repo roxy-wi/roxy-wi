@@ -49,6 +49,7 @@
 			host = host.replace(/\./g, '\\.');
 			hostnamea.push(host);
 		{% endfor %}
+
 	</script>
 	{% if servers_all|length == 0 %}
 		{% include 'include/getstarted.html' %}
@@ -63,7 +64,7 @@
 			</td>
 			<td class="padding10">
 				WAF mode
-			</td  class="padding10">
+			</td>
 			<td>
 				Metrics
 			</td>
@@ -85,7 +86,17 @@
 	<script src="/inc/overview.js"></script>
 	<script src="/inc/metrics.js"></script>
 	<script src="/inc/chart.min.js"></script>
-	<div id="refresh" style="text-align: right;margin-top: 20px;margin-right: 20px;" title="Refresh metrics" onclick="showWafMetrics()">
+	<div style="padding-left: 25px;float: left;margin-top: 3px;">
+		<b>Time range:</b>
+		<select title="Choose time range" id="time-range">
+			<option value="30">30 minutes</option>
+			<option value="60">1 hour</option>
+			<option value="180">3 hours</option>
+			<option value="360">6 hours</option>
+			<option value="720">12 hours</option>
+		</select>
+	</div>
+	<div id="refresh" style="text-align: right;margin-top: 10px;margin-right: 20px; margin-bottom: 10px;" title="Refresh metrics" onclick="showWafMetrics()">
 		<span class="service-reload"></span>
 	</div>
 	{% for s in servers %}
@@ -104,6 +115,18 @@
 		}
 		showWafMetrics();
 		showOverviewWaf(ip, hostnamea);
+		$( function() {
+			$("#time-range").on('selectmenuchange', function () {
+				removeData()
+				let metrics = new Promise(
+					(resolve, reject) => {
+						{% for s in servers %}
+							getWafChartData('{{s.0}}')
+						{% endfor %}
+					});
+				metrics.then();
+			});
+		});
 	</script>
 	<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px; clear: both;">
 		You can read the description and watch a video about WAF <a href="https://haproxy-wi.org/description.py?description=waf" title="WAF" target="_blank">here</a>

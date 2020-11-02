@@ -29,16 +29,24 @@ th, tr, td {
 	{% include 'include/getstarted.html' %}
 {% else %}
 	<div id="table_metrics"></div>
-	<div id="refresh" style="text-align: right;margin-top: 20px;margin-right: 10px;" title="Refresh metrics" onclick="showMetrics()">
-		<span class="service-reload"></span>
+	<div style="padding-left: 25px;float: left;margin-top: 6px;">
+		<b>Time range:</b>
+		<select title="Choose time range" id="time-range">
+			<option value="30">30 minutes</option>
+			<option value="60">1 hour</option>
+			<option value="180">3 hours</option>
+			<option value="360">6 hours</option>
+			<option value="720">12 hours</option>
+		</select>
 	</div>
-	<div id="sortable">
+	<div id="refresh" style="text-align: right;margin-top: 20px;margin-right: 10px;" title="Refresh metrics" onclick="showMetrics()">
+		<span  class="service-reload"></span>
+	</div>
 {% for s in servers %}
 	<div class="chart-container">
 		<canvas id="{{s.0}}" role="img"></canvas>
 	</div>
 {% endfor %}
-	</div>
 <script>
 	function showMetrics() {
 		let metrics = new Promise(
@@ -51,6 +59,18 @@ th, tr, td {
 		metrics.then();
 	}
 	showMetrics()
+	$( function() {
+		$("#time-range").on('selectmenuchange', function () {
+			removeData()
+			let metrics = new Promise(
+					(resolve, reject) => {
+						{% for s in servers %}
+						getChartData('{{s.0}}')
+						{% endfor %}
+					});
+			metrics.then();
+		});
+	});
  </script>
 {% endif %}
 {% endif %}

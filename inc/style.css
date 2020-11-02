@@ -394,7 +394,7 @@ pre {
 	font-weight: bold;
 }
 .serverUp {
-	background-color: #5CB85C; 
+	background-color: #5ad05a;
 }
 .serverNone {
 	background-color: #ddd; 
@@ -421,7 +421,7 @@ pre {
 	font-size: 13px;
 }
 .serverDown {
-	background-color: red; 
+	background-color: #be2424;
 }
 .padding10 {
 	padding: 10px 10px 10px 0;
@@ -745,6 +745,27 @@ label {
 .div-server {
 	height: 95px;
 }
+.div-server-head-up {
+	border-top: 3px solid #5ad05a !important;
+}
+.div-server-head-down {
+	border-top: 3px solid #be2424 !important;
+}
+.div-server-head-dis {
+	border-top: 3px solid #aaa !important;
+}
+.div-server-head-up, .div-server-head-down, .div-server-head-dis {
+	padding-top: 7px;
+}
+.add-proxy-listen-head {
+	border-top: 3px solid #02869b;
+}
+.add-proxy-frontend-head {
+	border-top: 3px solid #00a4bd;
+}
+.add-proxy-backend-head {
+	border-top: 3px solid #00b8d7;
+}
 .div-backends {
 	width: 89.3%;
 }
@@ -862,6 +883,7 @@ label {
 	background-color: #fbfbfb;;
 	margin: 10px;
 	padding-left: 15px;
+	padding-top: 0;
 	border: 1px solid #A4C7F5;
 }
 #good_services {
@@ -947,15 +969,17 @@ label {
 	}
 	.div-server {
 		margin-bottom: 30px !important;
-		width: 43%;
+		width: 300px;
 		height: 100px;
+	}
+	.server-desc {
+		width: 300px;
 	}
 }
 @media (max-width: 1280px) {
 	.div-server {
 		margin-bottom: 30px !important;
-		width: 90%;
-		height: 70px;
+		height: 100px;
 	}
 	#ssl_name {
 		width: 100px;

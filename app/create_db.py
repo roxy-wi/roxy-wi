@@ -297,13 +297,13 @@ def update_db_v_3_8_1(**kwargs):
 		try:
 			cur.execute(i)
 			con.commit()
-		except sqltool.Error as e:
+		except sqltool.Error:
 			pass
 	else:
 		if kwargs.get('silent') != 1:
 			print('Updating... go to version 3.12.0.0')
-		return True
-	cur.close() 
+
+	cur.close()
 	con.close()
 	
 	
@@ -359,11 +359,10 @@ def update_db_v_3_13(**kwargs):
 				print('Updating... go to version 4.0.0')
 			else:
 				print("An error occurred:", e)
-		return False
 	else:
 		print("Updating... go to version 4.0.0")
-		return True
-	cur.close() 
+
+	cur.close()
 	con.close()
 	
 	
@@ -388,8 +387,8 @@ def update_db_v_4(**kwargs):
 	else:
 		if kwargs.get('silent') != 1:
 			print('Updating... one more for version 4.0.0')
-		return True
-	cur.close() 
+
+	cur.close()
 	con.close()
 	
 	
@@ -407,11 +406,10 @@ def update_db_v_41(**kwargs):
 				print('Updating... one more for version 4.0.0')
 			else:
 				print("An error occurred:", e)
-		return False
 	else:
 		print("Updating... one more for version 4.0.0")
-		return True
-	cur.close() 
+
+	cur.close()
 	con.close()
 	
 
@@ -429,11 +427,10 @@ def update_db_v_42(**kwargs):
 				print('Updating... go to version 4.2.3')
 			else:
 				print("An error occurred:", e)
-		return False
 	else:
 		print("Updating... go to version 4.2.3")
-		return True
-	cur.close() 
+
+	cur.close()
 	con.close()
 	
 	
@@ -451,9 +448,7 @@ def update_db_v_4_2_3(**kwargs):
 				print('Updating... go to version 4.3.0')
 			else:
 				print("An error occurred:", e)
-		return False
-	else:
-		return True
+
 	cur.close() 
 	con.close()
 	
@@ -472,9 +467,7 @@ def update_db_v_4_3(**kwargs):
 				print('Updating... go to version 4.3.0')
 			else:
 				print("An error occurred:", e)
-		return False
-	else:
-		return True
+
 	cur.close() 
 	con.close()
 	
@@ -498,9 +491,7 @@ def update_db_v_4_3_0(**kwargs):
 				print('Updating... go to version 4.3.1')
 			else:
 				print("An error occurred:", e)
-		return False
-	else:
-		return True
+
 	cur.close() 
 	con.close()
 	
@@ -519,11 +510,10 @@ def update_db_v_4_3_1(**kwargs):
 				print('Updating... go to version 4.3.2')
 			else:
 				print("An error occurred:", e)
-		return False
 	else:
 		print("DB was update to 4.3.1")
-		return True
-	cur.close() 
+
+	cur.close()
 	con.close()
 	
 	
@@ -541,11 +531,10 @@ def update_db_v_4_3_2(**kwargs):
 				print('Updating... go to version 4.4.0')
 			else:
 				print("An error occurred:", e)
-		return False
 	else:
 		print("Updating... go to version 4.4.0")
-		return True
-	cur.close() 
+
+	cur.close()
 	con.close()
 	
 	
@@ -581,9 +570,7 @@ def update_db_v_4_4(**kwargs):
 				print('Updating... go to version 4.4.1')
 			else:
 				print("An error occurred:", e)
-		return False
-	else:
-		return True
+
 	cur.close() 
 	con.close()
 
@@ -607,9 +594,7 @@ def update_db_v_4_4_2(**kwargs):
 				print('Updating... go to version 4.4.1')
 			else:
 				print("Updating... go to version to 4.4.1")
-			return False
-		else:
-			return True
+
 	cur.close()
 	con.close()
 
@@ -628,14 +613,11 @@ def update_db_v_4_4_2_1(**kwargs):
 				print('Updating... go to version 4.4.2')
 			else:
 				print("An error occurred:", e)
-		cur.close()
-		con.close()
-		return False
 	else:
 		print("DB was update to 4.4.2")
-		cur.close()
-		con.close()
-		return True
+
+	cur.close()
+	con.close()
 
 
 def update_db_v_4_3_2_1(**kwargs):
@@ -688,9 +670,7 @@ def update_db_v_4_5(**kwargs):
 				print('Updating... go to version 4.5.0')
 			else:
 				print("Updating... go to version to 4.5.0")
-			return False
-		else:
-			return True
+
 	cur.close()
 	con.close()
 
@@ -723,14 +703,13 @@ def update_db_v_4_5_1(**kwargs):
 		else:
 			if kwargs.get('silent') != 1:
 				print('DB was update to 4.5.0')
-			return True
 	cur.close()
 	con.close()
 	
 	
 def update_ver(**kwargs):
 	con, cur = get_cur()
-	sql = """update version set version = '4.5.2.0'; """
+	sql = """update version set version = '4.5.3.0'; """
 	try:    
 		cur.execute(sql)
 		con.commit()

@@ -1313,8 +1313,7 @@ function createList(color) {
 				toastr.info(data);
 			} else if (data.indexOf('success') != '-1' ) {
 				toastr.clear();
-				toastr.success('WAF service has installed');
-				showOverviewWaf(ip, hostnamea)
+				toastr.success('List has been created');
 				setTimeout(function () {
 					location.reload();
 				}, 2500);
@@ -1383,7 +1382,7 @@ function saveList(action, list, color) {
 
 			for (i = 0; i < data.length; i++) {
 				if (data[i]) {
-					if (data[i].indexOf('error:') != '-1') {
+					if (data[i].indexOf('error: ') != '-1') {
 						toastr.error(data[i]);
 					} else {
 						toastr.success(data[i]);

@@ -19,12 +19,12 @@ def get_config_var(sec, var):
 		path_config = "haproxy-wi.cfg"
 		config = ConfigParser(interpolation=ExtendedInterpolation())
 		config.read(path_config)
-	except:
+	except Exception:
 		print('Content-type: text/html\n')
-		print('<center><div class="alert alert-danger">Check the config file, whether it exists and the path. Must be: app/haproxy-webintarface.config</div>')
+		print('<center><div class="alert alert-danger">Check the config file, whether it exists and the path. Must be: app/haproxy-wi.cfg</div>')
 	try:
 		return config.get(sec, var)
-	except:
+	except Exception:
 		print('Content-type: text/html\n')
 		print('<center><div class="alert alert-danger">Check the config file. Presence section %s and parameter %s</div>' % (sec, var))
 					
@@ -35,7 +35,7 @@ def get_data(type):
 	import sql
 	try:
 		now_utc = datetime.now(timezone(sql.get_setting('time_zone')))
-	except:
+	except Exception:
 		now_utc = datetime.now(timezone('UTC'))
 	if type == 'config':
 		fmt = "%Y-%m-%d.%H:%M:%S"
@@ -50,6 +50,7 @@ def get_data(type):
 def get_user_group(**kwargs):
 	import sql
 	import http.cookies
+
 	try:
 		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 		user_group_id = cookie.get('group')
@@ -61,7 +62,7 @@ def get_user_group(**kwargs):
 					user_group = g[0]
 				else:
 					user_group = g[1]
-	except:
+	except Exception:
 		user_group = ''
 
 	return user_group
@@ -79,13 +80,13 @@ def logging(serv, action, **kwargs):
 		
 	try:
 		ip = cgi.escape(os.environ["REMOTE_ADDR"])
-	except:
+	except Exception:
 		ip = ''
 
 	try:
 		user_uuid = cookie.get('uuid')
 		login = sql.get_user_name_by_uuid(user_uuid.value)
-	except:	
+	except Exception:
 		login = ''
 		
 	if kwargs.get('alerting') == 1:
@@ -114,7 +115,7 @@ def logging(serv, action, **kwargs):
 	except IOError as e:
 		print('<center><div class="alert alert-danger">Can\'t write log. Please check log_path in config %e</div></center>' % e)
 		pass
-	
+
 	
 def telegram_send_mess(mess, **kwargs):
 	import telebot
@@ -132,7 +133,7 @@ def telegram_send_mess(mess, **kwargs):
 		channel_name = telegram[2]
 		
 	if token_bot == '' or channel_name == '':
-		mess = " Fatal: Can't send message. Add Telegram chanel before use alerting at this servers group"
+		mess = " Fatal: Can't send message. Add Telegram channel before use alerting at this servers group"
 		print(mess)
 		logging('localhost', mess, haproxywi=1)
 		sys.exit()
@@ -144,7 +145,7 @@ def telegram_send_mess(mess, **kwargs):
 		bot.send_message(chat_id=channel_name, text=mess)
 	except Exception as e:
 		print(str(e))
-		logging('localhost', str(e).decode(encoding='UTF-8'), haproxywi=1)
+		logging('localhost', str(e), haproxywi=1)
 		sys.exit()
 	
 	
@@ -233,6 +234,7 @@ def ssh_connect(serv, **kwargs):
 	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = return_ssh_keys_path(serv)
 
 	servers = sql.select_servers(server=serv)
+	ssh_port = 22
 	for server in servers:
 		ssh_port = server[10]
 
@@ -316,7 +318,7 @@ def diff_config(oldcfg, cfg):
 	try:
 		user_uuid = cookie.get('uuid')
 		login = sql.get_user_name_by_uuid(user_uuid.value)
-	except:
+	except Exception:
 		login = ''
 
 	output, stderr = subprocess_execute(cmd)
@@ -429,19 +431,19 @@ def rewrite_section(start_line, end_line, config, section):
 	
 def get_backends_from_config(serv, backends='', **kwargs):
 	configs_dir = get_config_var('configs', 'haproxy_save_configs_dir')
-	format = 'cfg'
+	format_cfg = 'cfg'
 	
 	try:
-		cfg = configs_dir+get_files(dir=configs_dir, format=format)[0]
+		cfg = configs_dir+get_files(dir=configs_dir, format=format_cfg)[0]
 	except Exception as e:
 		logging('localhost', str(e), haproxywi=1)
 		try:
-			cfg = configs_dir + serv + "-" + get_data('config') + '.'+format
-		except:
+			cfg = configs_dir + serv + "-" + get_data('config') + '.'+format_cfg
+		except Exception:
 			logging('localhost', ' Cannot generate cfg path', haproxywi=1)
 		try:
 			error = get_config(serv, cfg)
-		except:
+		except Exception:
 			logging('localhost', ' Cannot download config', haproxywi=1)
 			print('error: Cannot get backends')
 			sys.exit()
@@ -488,6 +490,7 @@ def install_haproxy(serv, **kwargs):
 	stats_password = sql.get_setting('stats_password')
 	proxy = sql.get_setting('proxy')
 	hapver = kwargs.get('hapver')
+	ssh_port = 22
 	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = return_ssh_keys_path(serv)
 	
 	if ssh_enable == 0:

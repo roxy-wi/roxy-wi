@@ -173,6 +173,7 @@ $( function() {
 			type: "POST",
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
+				$("#ajax").html('')
 				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1') {
 					toastr.error(data);
 				} else if (data.indexOf('success') != '-1' ){
@@ -205,6 +206,7 @@ $( function() {
 			type: "POST",
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
+				$("#ajax").html('')
 				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1') {
 					toastr.clear();
 					toastr.error(data);
@@ -222,7 +224,7 @@ $( function() {
 		} );	
 	});	
 	$('#grafna_install').click(function() {
-		$("#ajaxmon").html('')
+		$("#ajaxmon").html('');
 		$("#ajaxmon").html(wait_mess);
 		$.ajax( {
 			url: "options.py",
@@ -233,6 +235,7 @@ $( function() {
 			type: "POST",
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
+				$("#ajaxmon").html('');
 				if (data.indexOf('FAILED') != '-1') {
 					toastr.clear();
 					toastr.error(data);;
@@ -261,6 +264,7 @@ $( function() {
 			type: "POST",
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
+				$("#ajaxmon").html('');
 				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1') {
 					toastr.clear();
 					toastr.error(data);
@@ -291,6 +295,7 @@ $( function() {
 			type: "POST",
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
+				$("#ajaxmon").html('');
 				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1') {
 					toastr.error(data);
 				} else if (data.indexOf('success') != '-1' ){
@@ -2043,6 +2048,38 @@ function OpenVpnSess(id, action) {
 				location.reload()
 			} else {
 				toastr.error('Something wrong, check and try again');
+			}
+		}
+	} );
+}
+function scanPorts(id) {
+	$.ajax({
+		url: "options.py",
+		data: {
+			scan_ports: id,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1') {
+				toastr.error(data);
+			} else {
+				toastr.clear();
+				$("#show_scans_ports_body").html(data);
+				$("#show_scans_ports" ).dialog({
+					resizable: false,
+					height: "auto",
+					width: 360,
+					modal: true,
+					title: "Openned ports",
+					buttons: {
+						Close: function() {
+							$( this ).dialog( "close" );
+							$("#show_scans_ports_body").html('');
+						}
+					}
+				});
 			}
 		}
 	} );

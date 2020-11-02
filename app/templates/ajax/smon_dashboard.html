@@ -1,7 +1,7 @@
 <div class="sort_menu">
     <a href="#" title="Do not sort by status" onclick="showSmon('not_sort')">Do not sort</a> |
     <a href="#" id="sort_by_status" title="Sort by status" onclick="sort_by_status()">Sort by status</a> |
-    <a href="#" title="Refresh page" onclick="showSmon('refresh');">Refresh</a>
+    <a href="#" title="SMOM Dashboard - HAProxy-WI" onclick="showSmon('refresh');">Refresh</a>
     <span style="padding-left: 20px;">
 		{% set down = [] %}
 		{% set up = [] %}
@@ -35,12 +35,12 @@
     {% endif %}
     {% if s.3 == 1 %}
         {% if s.2 == 1 and s.10 == 1 and s.12 == 1 %}
-            <div class="smon_services good">
+            <div class="smon_services good div-server-head-up">
         {% else %}
-            <div class="smon_services err">
+            <div class="smon_services err div-server-head-down">
         {% endif %}
     {% else %}
-        <div class="smon_services dis">
+        <div class="smon_services dis div-server-head-dis">
     {% endif %}
     <div class="ip">
         {% if s.0|string|length > 23 %}

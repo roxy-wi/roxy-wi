@@ -80,6 +80,7 @@ function installWaf(ip1) {
 }
 function changeWafMode(id) {
 	var waf_mode = $('#'+id+' option:selected').val();
+	console.log('1')
 	var server_hostname = id.split('_')[0];
 	 $.ajax( {
 		url: "options.py",
@@ -105,14 +106,12 @@ $( function() {
 	});
 });
 function waf_rules_en(id) {
+	console.log('1')
 	var enable = 0;
 	if ($('#rule_id-'+id).is(':checked')) {
 		enable = '1';
 	}
 	var serv = findGetParameter('serv')
-	console.log(serv)
-	console.log(id)
-	console.log(enable)
 	$.ajax( {
 		url: "options.py",
 		data: {

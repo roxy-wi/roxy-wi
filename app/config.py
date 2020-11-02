@@ -20,58 +20,58 @@ aftersave = ""
 
 try:
 	user, user_id, role, token, servers = funct.get_users_params()
-except:
+except Exception:
 	pass
 
 if service == 'keepalived':
-	title = "Working with Keepalived configs"
+	title = "Working with Keepalived configuration files"
 	action = "config.py?service=keepalived"
 	configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')	
-	format = 'conf'
+	file_format = 'conf'
 	servers = sql.get_dick_permit(keepalived=1)
 elif service == 'nginx':
-	title = "Working with Nginx configs"
+	title = "Working with Nginx configuration files"
 	action = "config.py?service=nginx"
 	configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')	
-	format = 'conf'
+	file_format = 'conf'
 	servers = sql.get_dick_permit(nginx=1)
 else:
-	title = "Working with HAProxy configs"
+	title = "Working with HAProxy configuration files"
 	action = "config.py"
 	configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
-	format = 'cfg'
+	file_format = 'cfg'
 	servers = sql.get_dick_permit()
 
 if serv is not None:
-	cfg = configs_dir + serv + "-" + funct.get_data('config') + "."+format
+	cfg = configs_dir + serv + "-" + funct.get_data('config') + "."+file_format
 
-if serv is not None and form.getvalue('open') is not None :
+if serv is not None and form.getvalue('open') is not None:
 	funct.check_is_server_in_group(serv)
 	if service == 'keepalived':
 		error = funct.get_config(serv, cfg, keepalived=1)
 		try:
 			funct.logging(serv, " Keepalived config has opened for ")
-		except:
+		except Exception:
 			pass
 	elif service == 'nginx':
 		error = funct.get_config(serv, cfg, nginx=1)
 		try:
 			funct.logging(serv, " Nginx config has opened ")
-		except:
+		except Exception:
 			pass
 	else:
 		error = funct.get_config(serv, cfg)
 		try:
 			funct.logging(serv, " HAProxy config has opened ")
-		except:
+		except Exception:
 			pass
 	
 	try:
 		conf = open(cfg, "r")
 		config_read = conf.read()
-		conf.close
+		conf.close()
 	except IOError:
-		error += '<br />Can\'t read import config file'
+		error += '<br />Cannot read import config file'
 
 	os.system("/bin/mv %s %s.old" % (cfg, cfg))	
 
@@ -79,7 +79,7 @@ if serv is not None and form.getvalue('config') is not None:
 	funct.check_is_server_in_group(serv)
 	try:
 		funct.logging(serv, "config.py edited config")
-	except:
+	except Exception:
 		pass
 		
 	config = form.getvalue('config')
@@ -104,20 +104,20 @@ if serv is not None and form.getvalue('config') is not None:
 	os.system("/bin/rm -f " + configs_dir + "*.old")
 
 
-template = template.render(h2 = 1, title = title,
-							role = role,
-							action = action,
-							user = user,
-							select_id = "serv",
-							serv = serv,
-							aftersave = aftersave,
-							config = config_read,
-							cfg = cfg,
-							selects = servers,
-							stderr = stderr,
-							error = error,
-							note = 1,
-							versions = funct.versions(),
-							service = service,
-							token = token)
+template = template.render(h2=1, title=title,
+							role=role,
+							action=action,
+							user=user,
+							select_id="serv",
+							serv=serv,
+							aftersave=aftersave,
+							config=config_read,
+							cfg=cfg,
+							selects=servers,
+							stderr=stderr,
+							error=error,
+							note=1,
+							versions=funct.versions(),
+							service=service,
+							token=token)
 print(template)
