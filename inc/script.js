@@ -131,7 +131,7 @@ jQuery.expr[':'].regex = function(elem, index, match) {
 }
 window.onblur= function() {
 	window.onfocus= function () {
-		if(Cookies.get('auto-refresh-pause') == "0" && Cookies.get('auto-refresh') > 5000) {
+		if(sessionStorage.getItem('auto-refresh-pause') == "0" && sessionStorage.getItem('auto-refresh') > 5000) {
 			if (cur_url[0] == "logs.py") {
 				showLog();
 			} else if (cur_url[0] == "viewsttats.py") {
@@ -204,30 +204,32 @@ function autoRefreshStyle(autoRefresh) {
 }
 function setRefreshInterval(interval) {
 	if (interval == "0") {
-		var autoRefresh = Cookies.get('auto-refresh');
+		var autoRefresh = sessionStorage.getItem('auto-refresh');
 		if (autoRefresh !== undefined) {
-			Cookies.remove('auto-refresh');
+			sessionStorage.removeItem('auto-refresh');
 			pauseAutoRefresh();
-			$('.auto-refresh').prepend('<span class="service-reload auto-refresh-reload-icon"></span>');
+			$('#0').html('<span class="auto-refresh-reload auto-refresh-reload-icon"></span> Auto-refresh');
+			$('.auto-refresh').css('display', 'inline');
 			$('.auto-refresh').css('font-size', '15px');
 			$('#1').text('Auto-refresh');
-			$('#0').text('Auto-refresh');
+			//$('#0').text('Auto-refresh');
 			$('.auto-refresh-pause').css('display', 'none');
 			$('.auto-refresh-resume').css('display', 'none');
 			$.getScript("/inc/fontawesome.min.js")
+			$.getScript("/inc/scripts.js")
 		}
 		hideAutoRefreshDiv();
 	} else {
 		clearInterval(intervalId);
-		Cookies.set('auto-refresh', interval, { expires: 365, samesite: 'strict', secure: 'true' });
-		Cookies.set('auto-refresh-pause', "0", { expires: 365, samesite: 'strict', secure: 'true' });
+		sessionStorage.setItem('auto-refresh', interval)
+		sessionStorage.setItem('auto-refresh-pause', 0)
 		startSetInterval(interval);
 		hideAutoRefreshDiv();
 		autoRefreshStyle(interval);
 	}
 }
 function startSetInterval(interval) {
-	if(Cookies.get('auto-refresh-pause') == "0") {
+	if(sessionStorage.getItem('auto-refresh-pause') == "0") {
 		if (cur_url[0] == "logs.py") {
 			intervalId = setInterval('showLog()', interval);
 			showLog();
@@ -275,13 +277,13 @@ function pauseAutoRefresh() {
 	$(function() {
 		$('.auto-refresh-pause').css('display', 'none');
 		$('.auto-refresh-resume').css('display', 'inline');
-		Cookies.set('auto-refresh-pause', "1", { expires: 365, samesite: 'strict', secure: 'true' });
+		sessionStorage.setItem('auto-refresh-pause', '1')
 	});
 }	
 function pauseAutoResume(){
-	var autoRefresh = Cookies.get('auto-refresh');
+	var autoRefresh = sessionStorage.getItem('auto-refresh');
 	setRefreshInterval(autoRefresh);
-	Cookies.set('auto-refresh-pause', "0", { expires: 365, samesite: 'strict', secure: 'true' });
+	sessionStorage.setItem('auto-refresh-pause', '0');
 }
 
 function hideAutoRefreshDiv() {
@@ -627,7 +629,7 @@ $( function() {
 	}
 	
 	var pause = '<a onclick="pauseAutoRefresh()" title="Pause auto-refresh" class="auto-refresh-pause"></a>'
-	var autoRefresh = Cookies.get('auto-refresh');
+	var autoRefresh = sessionStorage.getItem('auto-refresh');
 	
 	if ($('.auto-refresh')) {
 		if(autoRefresh) {
@@ -651,7 +653,7 @@ $( function() {
 		$(".footer").css("margin-left", "1%");
 		$(".show_menu").show();
 		$("#hide_menu").hide();
-		Cookies.set('hide_menu', 'hide', { expires: 365, samesite: 'strict', secure: 'true' });
+		sessionStorage.setItem('hide_menu', 'hide');
 	});
 	$( "#show_menu" ).click(function() {
 		$(".top-menu").show( "drop", "fast" );
@@ -661,9 +663,9 @@ $( function() {
 		$(".footer").css("margin-left", "207px");
 		$(".show_menu").hide();
 		$("#hide_menu").show();
-		Cookies.set('hide_menu', 'show', { expires: 365, samesite: 'strict', secure: 'true' });
-	});	
-	var hideMenu = Cookies.get('hide_menu');
+		sessionStorage.setItem('hide_menu', 'show');
+	});
+	var hideMenu = sessionStorage.getItem('hide_menu');
 	if (hideMenu == "show") {
 		$(".top-menu").show( "drop", "fast" );
 		$(".container").css("max-width", "100%");

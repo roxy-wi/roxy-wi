@@ -2,6 +2,14 @@
     margin-right: 0.5em;
 	width: 1.5em;
   }
+.auto-refresh-reload::after {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f2f1";
+}
+.auto-refresh-reload > .fa-sync-alt, .auto-refresh-resume > .fa-play {
+	color: white !important;
+}
 .auto-refresh-pause::before  {
 	display: none;
 	font-family: "Font Awesome 5 Solid";
@@ -146,13 +154,6 @@
 	display: none;
 	font-family: "Font Awesome 5 Solid";
 	content: "\f007";
-}
-.patreon::before {
-	display: none;
-	font-family: "Font Awesome 5 Solid";
-	content: "\f004";
-	color: #ff0000;
-	padding-left: 3px;
 }
 .update-row::before {
 	display: none;
