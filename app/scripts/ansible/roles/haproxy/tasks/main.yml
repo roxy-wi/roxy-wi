@@ -186,7 +186,16 @@
     mode: 0644
     validate: haproxy -f %s -c -q
   notify: restart haproxy
-  
+
+
+- name: Creates HAProxy stats directory
+  file:
+    path: /var/lib/haproxy
+    owner: haproxy
+    group: haproxy
+    state: directory
+  ignore_errors: yes
+
   
 - name: Enable and start service HAProxy
   systemd:
