@@ -30,7 +30,7 @@ export COMMAND_WARNINGS=False
 
 PWD=`pwd`
 PWD=$PWD/scripts/ansible/
-echo $HOST > $PWD/$HOST
+echo "$HOST ansible_port=$SSH_PORT" > $PWD/$HOST
 
 if [[ $KEY == "" ]]; then
 	ansible-playbook $PWD/roles/haproxy.yml -e "ansible_user=$USER ansible_ssh_pass=$PASS variable_host=$HOST PROXY=$PROXY HAPVER=$HAPVER SOCK_PORT=$SOCK_PORT STAT_PORT=$STAT_PORT STATS_USER=$STATS_USER STATS_PASS=$STATS_PASS STAT_FILE=$STAT_FILE SSH_PORT=$SSH_PORT SYN_FLOOD=$SYN_FLOOD" -i $PWD/$HOST

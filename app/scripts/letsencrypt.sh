@@ -21,9 +21,12 @@ done
 export ANSIBLE_HOST_KEY_CHECKING=False
 export ANSIBLE_DISPLAY_SKIPPED_HOSTS=False
 export ACTION_WARNINGS=False
+export LOCALHOST_WARNING=False
+export COMMAND_WARNINGS=False
+
 PWD=`pwd`
 PWD=$PWD/scripts/ansible/
-echo $HOST > $PWD/$HOST
+echo "$HOST ansible_port=$SSH_PORT" > $PWD/$HOST
 
 if [[ $KEY == "" ]]; then
 	ansible-playbook $PWD/roles/letsencrypt.yml -e "ansible_user=$USER ansible_ssh_pass=$PASS ansible_port=$SSH_PORT variable_host=$HOST PROXY=$PROXY DOMAIN=$DOMAIN EMAIL=$EMAIL SSL_PATH=$SSL_PATH" -i $PWD/$HOST

@@ -35,7 +35,7 @@ export COMMAND_WARNINGS=False
 
 PWD=`pwd`
 PWD=$PWD/scripts/ansible/
-echo $HOST > $PWD/$HOST
+echo "$HOST ansible_port=$SSH_PORT" > $PWD/$HOST
 
 if [[ $KEY == "" ]]; then
 	ansible-playbook $PWD/roles/nginx_exporter.yml -e "ansible_user=$USER ansible_ssh_pass=$PASS variable_host=$HOST PROXY=$PROXY STAT_PAGE=$STAT_PAGE STAT_PORT=$STAT_PORT STATS_USER=$STATS_USER STATS_PASS=$STATS_PASS SSH_PORT=$SSH_PORT" -i $PWD/$HOST
