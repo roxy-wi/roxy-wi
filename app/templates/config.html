@@ -70,7 +70,7 @@
 					</p>
 				</form>
 				{% if note %}
-					<div class="alert alert-info"><b>Note:</b> If you reconfigure Master server, Slave will reconfigured automatically</div>
+					<div class="alert alert-info"><b>Note:</b> When reconfiguring the master server, the slave will be reconfigured automatically</div>
 				{% endif %}
 		{% endif %}
 	{% endif %}
@@ -80,7 +80,7 @@
 			{% include 'include/errors.html' %}
 		{% else %}
 			<div class="alert alert-success">Config is ok</div>
-			<a href="viewsttats.py?serv={{ serv }}" target="_blank" title="View stats">Go to view stats</a>
+			<a href="viewsttats.py?serv={{ serv }}" target="_blank" title="View stats">Go to stats</a>
 		{% endif %}
 	{% endif %}
 	</center>
