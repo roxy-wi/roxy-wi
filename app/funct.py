@@ -29,7 +29,7 @@ def get_config_var(sec, var):
 		print('<center><div class="alert alert-danger">Check the config file. Presence section %s and parameter %s</div>' % (sec, var))
 					
 					
-def get_data(type):
+def get_data(log_type):
 	from datetime import datetime
 	from pytz import timezone
 	import sql
@@ -37,11 +37,11 @@ def get_data(type):
 		now_utc = datetime.now(timezone(sql.get_setting('time_zone')))
 	except Exception:
 		now_utc = datetime.now(timezone('UTC'))
-	if type == 'config':
+	if log_type == 'config':
 		fmt = "%Y-%m-%d.%H:%M:%S"
-	if type == 'logs':
+	if log_type == 'logs':
 		fmt = '%Y%m%d'
-	if type == "date_in_log":
+	if log_type == "date_in_log":
 		fmt = "%b %d %H:%M:%S"
 		
 	return now_utc.strftime(fmt)
@@ -111,7 +111,7 @@ def logging(serv, action, **kwargs):
 		log = open(log_path + "/config_edit-"+get_data('logs')+".log", "a")
 	try:	
 		log.write(mess)
-		log.close
+		log.close()
 	except IOError as e:
 		print('<center><div class="alert alert-danger">Can\'t write log. Please check log_path in config %e</div></center>' % e)
 		pass
@@ -146,10 +146,9 @@ def telegram_send_mess(mess, **kwargs):
 	except Exception as e:
 		print(str(e))
 		logging('localhost', str(e), haproxywi=1)
-		sys.exit()
+
 	
-	
-def check_login(**kwargs):
+def check_login():
 	import sql
 	import http.cookies
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
@@ -175,7 +174,7 @@ def is_admin(**kwargs):
 	user_id = cookie.get('uuid')
 	try:
 		role = sql.get_user_role_by_uuid(user_id.value)
-	except:
+	except Exception:
 		role = 4
 		pass
 	level = kwargs.get("level")
@@ -185,7 +184,7 @@ def is_admin(**kwargs):
 		
 	try:
 		return True if role <= level else False
-	except:
+	except Exception:
 		return False
 		pass
 
@@ -328,7 +327,7 @@ def diff_config(oldcfg, cfg):
 	try:		
 		log = open(log_path + "/config_edit-"+get_data('logs')+".log", "a")
 		log.write(diff)
-		log.close
+		log.close()
 	except IOError:
 		print('<center><div class="alert alert-danger">Can\'t read write change to log. %s</div></center>' % stderr)
 		pass
@@ -423,7 +422,7 @@ def rewrite_section(start_line, end_line, config, section):
 				continue
 			if record:
 				continue
-			
+
 			return_config += line
 		
 	return return_config
@@ -531,7 +530,7 @@ def install_haproxy(serv, **kwargs):
 					l = l.split('"')[1]
 					print(l+"<br>")
 					break
-				except:
+				except Exception:
 					print(output)
 					break
 		else:
@@ -541,7 +540,7 @@ def install_haproxy(serv, **kwargs):
 	sql.update_haproxy(serv)
 	
 	
-def waf_install(serv, **kwargs):
+def waf_install(serv):
 	import sql
 	script = "waf.sh"
 	tmp_config_path = sql.get_setting('tmp_config_path')
@@ -616,7 +615,7 @@ def install_nginx(serv):
 					l = l.split('"')[1]
 					print(l+"<br>")
 					break
-				except:
+				except Exception:
 					print(output)
 					break
 		else:
@@ -781,9 +780,9 @@ def open_port_firewalld(cfg, serv, **kwargs):
 						listen = int(listen)
 						ports += str(listen)+' '
 						firewalld_commands += ' sudo firewall-cmd --zone=public --add-port=%s/tcp --permanent -q &&' % str(listen)
-					except:
+					except Exception:
 						pass
-				except:
+				except Exception:
 					pass
 		else:
 			if "bind" in line:
@@ -796,9 +795,9 @@ def open_port_firewalld(cfg, serv, **kwargs):
 						bind = int(bind)
 						firewalld_commands += ' sudo firewall-cmd --zone=public --add-port=%s/tcp --permanent -q &&' % str(bind)
 						ports += str(bind)+' '
-					except:
+					except Exception:
 						pass
-				except:
+				except Exception:
 					pass
 				
 	firewalld_commands += 'sudo firewall-cmd --reload -q' 
@@ -825,7 +824,7 @@ def show_log(stdout, **kwargs):
 	if kwargs.get('grep'):
 		import re
 		grep = kwargs.get('grep')
-		grep = re.sub(r'[?|$|.|!|^|*|\]|\[|,| |]',r'', grep)
+		grep = re.sub(r'[?|$|.|!|^|*|\]|\[|,| |]', r'', grep)
 		
 	for line in stdout:		
 		if kwargs.get("html") != 0:
@@ -971,7 +970,7 @@ def ssh_command(serv, commands, **kwargs):
 	for command in commands:
 		try:
 			stdin, stdout, stderr = ssh.exec_command(command, get_pty=True)
-		except:
+		except Exception:
 			continue
 				
 		if kwargs.get("ip") == "1":
@@ -994,7 +993,7 @@ def ssh_command(serv, commands, **kwargs):
 				logging('localhost', ' '+line, haproxywi=1)
 	try:	
 		ssh.close()
-	except:
+	except Exception:
 		logging('localhost', ' '+str(ssh), haproxywi=1)
 		return "error: "+str(ssh)
 		pass
@@ -1047,7 +1046,7 @@ def get_files(dir=get_config_var('configs', 'haproxy_save_configs_dir'), format=
 		file = set()
 	return_files = set()
 	i = 0
-	for files in sorted(glob.glob(os.path.join(dir,'*.'+format))):		
+	for files in sorted(glob.glob(os.path.join(dir, '*.'+format))):
 		if format == 'log':
 			file += [(i, files.split('/')[5])]
 		else:		
@@ -1107,12 +1106,12 @@ def versions():
 		current_ver_without_dots = current_ver.split('.')
 		current_ver_without_dots = ''.join(current_ver_without_dots)
 		current_ver_without_dots = current_ver_without_dots.replace('\n', '')
-		if len(current_ver_without_dots)  == 2:
+		if len(current_ver_without_dots) == 2:
 			current_ver_without_dots += '00'
 		if len(current_ver_without_dots) == 3:
 			current_ver_without_dots += '0'
 		current_ver_without_dots = int(current_ver_without_dots)
-	except:
+	except Exception:
 		current_ver = "Sorry cannot get current version"
 		current_ver_without_dots = 0
 
@@ -1126,7 +1125,7 @@ def versions():
 		if len(new_ver_without_dots) == 3:
 			new_ver_without_dots += '0'
 		new_ver_without_dots = int(new_ver_without_dots)
-	except:
+	except Exception:
 		new_ver = "Cannot get a new version"
 		new_ver_without_dots = 0
 	
@@ -1169,7 +1168,7 @@ def get_users_params(**kwargs):
 	return user, user_id, role, token, servers
 
 
-def check_user_group(**kwargs):
+def check_user_group():
 	import http.cookies
 	import os
 	import sql
@@ -1203,4 +1202,3 @@ def check_is_server_in_group(serv):
 def check_service(serv, service_name):
 	commands = ["systemctl status "+service_name+" |grep Active |awk '{print $1}'"]
 	return ssh_command(serv, commands)
-
