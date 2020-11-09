@@ -38,16 +38,24 @@ try:
 		service_ver, stderr = funct.subprocess_execute(cmd)
 		services.append([s, status, v, service_ver[0]])
 
-	openvpn, stderr = funct.subprocess_execute("rpm --query openvpn3-client")
-	if openvpn[0] != 'package openvpn3-client is not installed':
-		cmd = "sudo openvpn3 configs-list |grep -E 'ovpn|(^|[^0-9])[0-9]{4}($|[^0-9])' |grep -v net|awk -F\"    \" '{print $1}'|awk 'ORS=NR%2?\" \":\"\\n\"'"
-		openvpn_configs, stderr = funct.subprocess_execute(cmd)
-		cmd = "sudo openvpn3 sessions-list|grep -E 'Config|Status'|awk -F\":\" '{print $2}'|awk 'ORS=NR%2?\" \":\"\\n\"'| sed 's/^ //g'"
-		openvpn_sess, stderr = funct.subprocess_execute(cmd)
-	else:
+	try:
+		stdout, stderr = funct.subprocess_execute("rpm --query openvpn3-client")
+		if stdout[0] != 'package openvpn3-client is not installed':
+			cmd = "sudo openvpn3 configs-list |grep -E 'ovpn|(^|[^0-9])[0-9]{4}($|[^0-9])' |grep -v net|awk -F\"    \" '{print $1}'|awk 'ORS=NR%2?\" \":\"\\n\"'"
+			openvpn_configs, stderr = funct.subprocess_execute(cmd)
+			cmd = "sudo openvpn3 sessions-list|grep -E 'Config|Status'|awk -F\":\" '{print $2}'|awk 'ORS=NR%2?\" \":\"\\n\"'| sed 's/^ //g'"
+			openvpn_sess, stderr = funct.subprocess_execute(cmd)
+			openvpn = stdout[0]
+		else:
+			openvpn_configs = ''
+			openvpn_sess = ''
+			openvpn = ''
+	except Exception:
 		openvpn_configs = ''
 		openvpn_sess = ''
-except:
+		openvpn = ''
+		
+except Exception:
 	pass
 
 
@@ -67,7 +75,7 @@ template = template.render(title="Admin area: Manage users",
 							smon_ver=funct.check_new_version(service='smon'),
 							metrics_ver=funct.check_new_version(service='metrics'),
 							keep_ver=funct.check_new_version(service='keep'),
-							openvpn=openvpn[0],
+							openvpn=openvpn,
 							openvpn_configs=openvpn_configs,
 							openvpn_sess=openvpn_sess,
 							settings=settings,
