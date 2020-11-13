@@ -38,23 +38,20 @@ try:
 		service_ver, stderr = funct.subprocess_execute(cmd)
 		services.append([s, status, v, service_ver[0]])
 
-	try:
-		stdout, stderr = funct.subprocess_execute("rpm --query openvpn3-client")
-		if stdout[0] != 'package openvpn3-client is not installed':
-			cmd = "sudo openvpn3 configs-list |grep -E 'ovpn|(^|[^0-9])[0-9]{4}($|[^0-9])' |grep -v net|awk -F\"    \" '{print $1}'|awk 'ORS=NR%2?\" \":\"\\n\"'"
-			openvpn_configs, stderr = funct.subprocess_execute(cmd)
-			cmd = "sudo openvpn3 sessions-list|grep -E 'Config|Status'|awk -F\":\" '{print $2}'|awk 'ORS=NR%2?\" \":\"\\n\"'| sed 's/^ //g'"
-			openvpn_sess, stderr = funct.subprocess_execute(cmd)
-			openvpn = stdout[0]
-		else:
-			openvpn_configs = ''
-			openvpn_sess = ''
-			openvpn = ''
-	except Exception:
-		openvpn_configs = ''
-		openvpn_sess = ''
-		openvpn = ''
-		
+	openvpn_configs = ''
+	openvpn_sess = ''
+	openvpn = ''
+
+	stdout, stderr = funct.subprocess_execute("rpm --query openvpn3-client")
+	if stdout[0] != 'package openvpn3-client is not installed':
+		cmd = "sudo openvpn3 configs-list |grep -E 'ovpn|(^|[^0-9])[0-9]{4}($|[^0-9])' |grep -v net|awk -F\"    \" '{print $1}'|awk 'ORS=NR%2?\" \":\"\\n\"'"
+		openvpn_configs, stderr = funct.subprocess_execute(cmd)
+		cmd = "sudo openvpn3 sessions-list|grep -E 'Config|Status'|awk -F\":\" '{print $2}'|awk 'ORS=NR%2?\" \":\"\\n\"'| sed 's/^ //g'"
+		# cmd = 'echo "client.ovpn  Connection, Client connected"'
+		openvpn_sess, stderr = funct.subprocess_execute(cmd)
+		openvpn = stdout[0]
+
+
 except Exception:
 	pass
 
