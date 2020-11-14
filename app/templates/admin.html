@@ -238,6 +238,9 @@
 				<td>Currnet version</td>
 				<td class="padding10">Last version</td>
 				<td></td>
+				<td>
+					Description
+				</td>
 			</tr>
 			<tr>
 				<td class="padding10 first-collumn">
@@ -254,6 +257,9 @@
 					<a class="ui-button ui-widget ui-corner-all" onclick="updateService('haproxy-wi')" title="Update HAProxy-WI">Update</a>
 					{% endif %}
 				</td>
+				<td>
+					The main application
+				</td>
 			</tr>
 			{% for s in services %}
 			{% if s.0 == 'smon' or s.0 == 'checker_haproxy' or s.0 == 'keep_alive' or s.0 == 'metrics_haproxy' %}
@@ -262,24 +268,28 @@
 				{% if s.0 == 'smon' %}
 					{% set service_name = 'SMON' %}
 					{% set service_link = 'smon' %}
+					{% set desc_link = 'https://haproxy-wi.org/services.py?service=smon' %}
 					{% if s.3|int() < smon_ver|int() %}
 						{% set is_need_update = 1 %}
 					{% endif %}
 				{% elif s.0 == 'checker_haproxy' %}
 					{% set service_name = 'Checker' %}
 					{% set service_link = 'checker' %}
+					{% set desc_link = 'https://haproxy-wi.org/services.py?service=checker' %}
 					{% if s.3|int() < checker_ver|int() %}
 						{% set is_need_update = 1 %}
 					{% endif %}
 				{% elif s.0 == 'keep_alive' %}
 					{% set service_name = 'Auto start' %}
 					{% set service_link = 'auto_start' %}
+					{% set desc_link = 'https://haproxy-wi.org/services.py?service=auto_start' %}
 					{% if s.3|int() < keep_ver|int() %}
 						{% set is_need_update = 1 %}
 					{% endif %}
 				{% elif s.0 == 'metrics_haproxy' %}
 					{% set service_name = 'Metrics' %}
 					{% set service_link = 'metrics' %}
+					{% set desc_link = 'https://haproxy-wi.org/services.py?service=metrics' %}
 					{% if s.3|int() < metrics_ver|int() %}
 						{% set is_need_update = 1 %}
 					{% endif %}
@@ -312,8 +322,11 @@
 					{% endif %}
 					{% else %}
 					{{service_name}} service is not installed
-					<a href="https://haproxy-wi.org/services.py?service={{service_link}}#installation" title="{{service_name}} installtion" target="_blank" style="color: #5d9ceb;">Read about installation</a>
+					<a href="https://haproxy-wi.org/services.py?service={{service_link}}#installation" title="{{service_name}} installation" target="_blank" style="color: #5d9ceb;">Read about installation</a>
 					{% endif %}
+				</td>
+				<td>
+					Read more about <a href="{{desc_link}}" title="Read more about {{service_name}}" target="_blank" class="link">{{service_name}}</a>
 				</td>
 			</tr>
 			{% endif %}
@@ -321,11 +334,11 @@
 		</table>
 		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
 			<b style="font-size: 20px; display: block; padding-bottom: 10px;">Note:</b>
-			For update you have to use HAProxy-WI repository. How start use repository read <a href="https://haproxy-wi.org/installation.py" title="HAProxy-WI installation" target="_blank">here</a>	
+			For updating you have to use HAProxy-WI RPM. How to start using repository read <a href="https://haproxy-wi.org/installation.py" title="HAProxy-WI installation" target="_blank">here</a>
 			<br /><br />
-			If server uses proxy to connection Internet add proxy settings in yum.conf
+			If the HAProxy-WI server uses a proxy to connect to the Internet, add the proxy settings to yum.conf
 			<br /><br />
-			Read more about update in <a href="https://haproxy-wi.org/updates.py" title="Doc" target="_blank">docs</a>
+			Read more about updating in <a href="https://haproxy-wi.org/updates.py" title="Doc" target="_blank">docs</a>
 			and <a href="https://haproxy-wi.org/changelog.py" title="Changelog" target="_blank">changelog</a>
 		</div>
 		<div id="ajax-update"></div>

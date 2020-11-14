@@ -263,11 +263,11 @@
 						{% if new_ver_without_dots > current_ver_without_dots and new_ver != "Sorry cannot get current version" %}
 							<span id="show-updates-button" class="new-version-exists">v{{current_ver}} </span>
 						{% else %}
-							v{{current_ver}}
+							<a href="/app/users.py#updatehapwi" title="Update center" style="color: black;">v{{current_ver}}</a>
 						{% endif %}
 					</a>
 				{% else %}
-					v{{current_ver}}
+					<a href="/app/users.py#updatehapwi" title="Update center" style="color: black;">v{{current_ver}}</a>
 				{% endif %}
 				<br>
 			</div>
