@@ -246,7 +246,15 @@ $( function() {
 	});
 	$( ".server-act-links" ).change(function() {
 		var id = $(this).attr('id').split('-');
-		updateHapWIServer(id[1])
+
+		try {
+			var service_name = id[2]
+ 		}
+		catch (err) {
+			var service_name = 'haproxy'
+		}
+
+		updateHapWIServer(id[1], service_name)
 	});
 });
 function confirmAjaxAction(action, service, id) {
@@ -279,7 +287,7 @@ function confirmAjaxAction(action, service, id) {
 		}
 	});
 }
-function updateHapWIServer(id) {
+function updateHapWIServer(id, service_name) {
 	var alert_en = 0;
 	var metrics = 0;
 	var active = 0;
@@ -300,6 +308,7 @@ function updateHapWIServer(id) {
 			metrics: metrics,
 			alert_en: alert_en,
 			active: active,
+			service_name: service_name,
 			token: $('#token').val()
 		},
 		type: "POST",
@@ -309,9 +318,10 @@ function updateHapWIServer(id) {
 				toastr.error(data);
 			} else {
 				toastr.clear();
-				$("#server-"+id).addClass( "update", 1000 );
+				console.log("#server-"+id+"-"+service_name)
+				$("#server-"+id+"-"+service_name).addClass( "update", 1000 );
 				setTimeout(function() {
-					$( "#server-"+id ).removeClass( "update" );
+					$( "#server-"+id+"-"+service_name).removeClass( "update" );
 				}, 2500 );
 			}
 		}

@@ -188,7 +188,6 @@ def update_db_v_31(**kwargs):
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('server_state_file', '/etc/haproxy/haproxy.state', 'haproxy', 'Path to HAProxy state file');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('haproxy_sock', '/var/run/haproxy.sock', 'haproxy', 'Path to HAProxy sock file');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('haproxy_sock_port', '1999', 'haproxy', 'HAProxy sock port');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('firewall_enable', '0', 'haproxy', 'If enable this option Haproxy-wi will be configure firewalld based on config port');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('apache_log_path', '/var/log/httpd/', 'logs', 'Path to Apache logs');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_enable', '0', 'ldap', 'If 1 ldap enabled');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_server', '', 'ldap', 'IP address ldap server');")
@@ -432,26 +431,7 @@ def update_db_v_42(**kwargs):
 
 	cur.close()
 	con.close()
-	
-	
-def update_db_v_4_2_3(**kwargs):
-	con, cur = get_cur()
-	sql = """
-	update settings set section = 'main' where param = 'firewall_enable';
-	"""
-	try:    
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
-		if kwargs.get('silent') != 1:
-			if e.args[0] == 'duplicate column name: haproxy' or e == " 1060 (42S21): Duplicate column name 'haproxy' ":
-				print('Updating... go to version 4.3.0')
-			else:
-				print("An error occurred:", e)
 
-	cur.close() 
-	con.close()
-	
 	
 def update_db_v_4_3(**kwargs):
 	con, cur = get_cur()
@@ -705,11 +685,31 @@ def update_db_v_4_5_1(**kwargs):
 				print('DB was update to 4.5.0')
 	cur.close()
 	con.close()
+
+
+def update_db_v_4_5_4(**kwargs):
+	con, cur = get_cur()
+	sql = list()
+	sql.append("ALTER TABLE `servers` ADD COLUMN `nginx_active` INTEGER NOT NULL DEFAULT 0;")
+	sql.append("ALTER TABLE `servers` ADD COLUMN `firewall_enable` INTEGER NOT NULL DEFAULT 0;")
+	sql.append("delete from settings where param = 'firewall_enable';")
+	for i in sql:
+		try:
+			cur.execute(i)
+			con.commit()
+		except sqltool.Error as e:
+			pass
+	else:
+		if kwargs.get('silent') != 1:
+			print('DB was update to 4.5.4')
+
+	cur.close()
+	con.close()
 	
 	
 def update_ver(**kwargs):
 	con, cur = get_cur()
-	sql = """update version set version = '4.5.3.0'; """
+	sql = """update version set version = '4.5.4.0'; """
 	try:    
 		cur.execute(sql)
 		con.commit()
@@ -733,7 +733,6 @@ def update_all():
 	update_db_v_4()
 	update_db_v_41()
 	update_db_v_42()
-	update_db_v_4_2_3()
 	update_db_v_4_3()
 	update_db_v_4_3_0()
 	update_db_v_4_3_1()
@@ -744,6 +743,7 @@ def update_all():
 	update_db_v_4_3_2_1()
 	update_db_v_4_5()
 	update_db_v_4_5_1()
+	update_db_v_4_5_4()
 	update_ver()
 		
 	
@@ -761,7 +761,6 @@ def update_all_silent():
 	update_db_v_4(silent=1)
 	update_db_v_41(silent=1)
 	update_db_v_42(silent=1)
-	update_db_v_4_2_3(silent=1)
 	update_db_v_4_3(silent=1)
 	update_db_v_4_3_0(silent=1)
 	update_db_v_4_3_1(silent=1)
@@ -772,6 +771,7 @@ def update_all_silent():
 	update_db_v_4_3_2_1(silent=1)
 	update_db_v_4_5(silent=1)
 	update_db_v_4_5_1(silent=1)
+	update_db_v_4_5_4(silent=1)
 	update_ver()
 	
 		

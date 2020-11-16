@@ -1365,30 +1365,35 @@ function editList(list, color) {
 	} );	
 }
 function saveList(action, list, color) {
-	$.ajax( {
-		url: "options.py",
-		data: {
-			bwlists_save: list,
-			serv: $( "#serv-"+color+"-list option:selected" ).val(),
-			bwlists_content: $('#edit_lists').val(),
-			color: color,
-			group: $('#group').val(),
-			bwlists_restart: action,
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function( data ) {
-			data = data.split(" , ");
+	var serv = $( "#serv-"+color+"-list option:selected" ).val();
+	if (serv == 'Choose server') {
+		toastr.warning('Choose a server before updating');
+	} else {
+		$.ajax({
+			url: "options.py",
+			data: {
+				bwlists_save: list,
+				serv: serv,
+				bwlists_content: $('#edit_lists').val(),
+				color: color,
+				group: $('#group').val(),
+				bwlists_restart: action,
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function (data) {
+				data = data.split(" , ");
 
-			for (i = 0; i < data.length; i++) {
-				if (data[i]) {
-					if (data[i].indexOf('error: ') != '-1') {
-						toastr.error(data[i]);
-					} else {
-						toastr.success(data[i]);
+				for (i = 0; i < data.length; i++) {
+					if (data[i]) {
+						if (data[i].indexOf('error: ') != '-1') {
+							toastr.error(data[i]);
+						} else {
+							toastr.success(data[i]);
+						}
 					}
 				}
 			}
-		}
-	} );	
+		});
+	}
 }

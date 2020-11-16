@@ -43,9 +43,9 @@ if form.getvalue('checkSshConnect') is not None and serv is not None:
     print(funct.ssh_command(serv, ["ls -1t"]))
 
 if form.getvalue('getcert') is not None and serv is not None:
-    id = form.getvalue('getcert')
+    cert_id = form.getvalue('getcert')
     cert_path = sql.get_setting('cert_path')
-    commands = ["cat " + cert_path + "/" + id]
+    commands = ["cat " + cert_path + "/" + cert_id]
     try:
         funct.ssh_command(serv, commands, ip="1")
     except Exception as e:
@@ -206,12 +206,12 @@ if form.getvalue('table_select') is not None:
         table = []
         for t in tables.split(','):
             if t != '':
-                id = []
+                table_id = []
                 tables_head = []
                 tables_head1, table1 = funct.get_stick_table(t)
-                id.append(tables_head1)
-                id.append(table1)
-                table.append(id)
+                table_id.append(tables_head1)
+                table_id.append(table1)
+                table.append(table_id)
 
         template = template.render(table=table)
     else:
@@ -561,8 +561,7 @@ if act == "overviewServers":
 
     async def async_get_overviewServers(serv1, serv2, service):
         if service == 'haproxy':
-            cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|Maxco\|MB\|Uptime:"' % (
-            serv2, sql.get_setting('haproxy_sock_port'))
+            cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|Maxco\|MB\|Uptime:"' % (serv2, sql.get_setting('haproxy_sock_port'))
             out = funct.subprocess_execute(cmd)
             out1 = ""
 
@@ -1061,7 +1060,7 @@ if form.getvalue('masteradd'):
                     print(output)
                     break
         else:
-            print('success: Master VRRP address was added<br>')
+            print('success: Master VRRP address has been added<br>')
 
     ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(slave)
 
@@ -1094,7 +1093,7 @@ if form.getvalue('masteradd'):
                     print(output)
                     break
         else:
-            print('success: Slave VRRP address was added<br>')
+            print('success: Slave VRRP address has been added<br>')
 
     os.system("rm -f %s" % script)
 
@@ -1127,7 +1126,7 @@ if form.getvalue('install_grafana'):
                     l = l.split('"')[1]
                     print(l + "<br>")
                     break
-                except:
+                except Exception:
                     print(output)
                     break
         else:
@@ -1182,7 +1181,7 @@ if form.getvalue('haproxy_exp_install'):
                     l = l.split('"')[1]
                     print(l + "<br>")
                     break
-                except:
+                except Exception:
                     print(output)
                     break
         else:
@@ -1232,7 +1231,7 @@ if form.getvalue('nginx_exp_install'):
                     l = l.split('"')[1]
                     print(l + "<br>")
                     break
-                except:
+                except Exception:
                     print(output)
                     break
         else:
@@ -1288,7 +1287,7 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
                     l = l.split('"')[1]
                     print('error: ' + l + "<br>")
                     break
-                except:
+                except Exception:
                     print('error: ' + output)
                     break
         else:
@@ -1674,12 +1673,13 @@ if form.getvalue('newserver') is not None:
         funct.logging('a new server ' + hostname, ' has created  ', haproxywi=1, login=1)
 
 if form.getvalue('updatehapwiserver') is not None:
-    id = form.getvalue('updatehapwiserver')
+    hapwi_id = form.getvalue('updatehapwiserver')
     active = form.getvalue('active')
     name = form.getvalue('name')
     alert = form.getvalue('alert_en')
     metrics = form.getvalue('metrics')
-    sql.update_hapwi_server(id, alert, metrics, active)
+    service_name = form.getvalue('service_name')
+    sql.update_hapwi_server(hapwi_id, alert, metrics, active, service_name)
     funct.logging('the server ' + name, ' has updated ', haproxywi=1, login=1)
 
 if form.getvalue('updateserver') is not None:
@@ -1690,7 +1690,7 @@ if form.getvalue('updateserver') is not None:
     nginx = form.getvalue('nginx')
     enable = form.getvalue('enable')
     master = form.getvalue('slave')
-    id = form.getvalue('id')
+    serv_id = form.getvalue('id')
     cred = form.getvalue('cred')
     port = form.getvalue('port')
     desc = form.getvalue('desc')
@@ -1698,7 +1698,7 @@ if form.getvalue('updateserver') is not None:
     if name is None or port is None:
         print(error_mess)
     else:
-        sql.update_server(name, group, typeip, enable, master, id, cred, port, desc, haproxy, nginx)
+        sql.update_server(name, group, typeip, enable, master, serv_id, cred, port, desc, haproxy, nginx)
         funct.logging('the server ' + name, ' has updated ', haproxywi=1, login=1)
 
 if form.getvalue('serverdel') is not None:
@@ -1743,14 +1743,14 @@ if form.getvalue('groupdel') is not None:
 if form.getvalue('updategroup') is not None:
     name = form.getvalue('updategroup')
     descript = form.getvalue('descript')
-    id = form.getvalue('id')
+    group_id = form.getvalue('id')
     if name is None:
         print(error_mess)
     else:
-        group = sql.select_groups(id=id)
+        group = sql.select_groups(id=group_id)
         for g in group:
             groupname = g[1]
-        sql.update_group(name, descript, id)
+        sql.update_group(name, descript, group_id)
         funct.logging('the group ' + groupname, ' has update  ', haproxywi=1, login=1)
 
 if form.getvalue('new_ssh'):
@@ -1797,7 +1797,7 @@ if form.getvalue('sshdel') is not None:
         funct.logging(name, ' has deleted the SSH credentials  ', haproxywi=1, login=1)
 
 if form.getvalue('updatessh'):
-    id = form.getvalue('id')
+    ssh_id = form.getvalue('id')
     name = form.getvalue('name')
     enable = form.getvalue('ssh_enable')
     group = form.getvalue('group')
@@ -1810,7 +1810,7 @@ if form.getvalue('updatessh'):
 
         fullpath = funct.get_config_var('main', 'fullpath')
 
-        for sshs in sql.select_ssh(id=id):
+        for sshs in sql.select_ssh(id=ssh_id):
             ssh_enable = sshs[2]
             ssh_key_name = fullpath + '/keys/%s.pem' % sshs[1]
             new_ssh_key_name = fullpath + '/keys/%s.pem' % name
@@ -1821,9 +1821,9 @@ if form.getvalue('updatessh'):
             try:
                 funct.subprocess_execute(cmd)
                 funct.subprocess_execute(cmd1)
-            except:
+            except Exception:
                 pass
-        sql.update_ssh(id, name, enable, group, username, password)
+        sql.update_ssh(ssh_id, name, enable, group, username, password)
         funct.logging('the SSH ' + name, ' has updated credentials ', haproxywi=1, login=1)
 
 if form.getvalue('ssh_cert'):
@@ -1900,11 +1900,11 @@ if form.getvalue('updatetoken') is not None:
     token = form.getvalue('updatetoken')
     channel = form.getvalue('updategchanel')
     group = form.getvalue('updatetelegramgroup')
-    id = form.getvalue('id')
+    user_id = form.getvalue('id')
     if token is None or channel is None or group is None:
         print(error_mess)
     else:
-        sql.update_telegram(token, channel, group, id)
+        sql.update_telegram(token, channel, group, user_id)
         funct.logging('group ' + group, ' telegram token has updated channel: ' + channel, haproxywi=1, login=1)
 
 if form.getvalue('updatesettings') is not None:

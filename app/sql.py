@@ -201,7 +201,6 @@ def add_setting_for_new_group(group_id):
 	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('server_state_file', '/etc/haproxy/haproxy.state', 'haproxy', 'Path to HAProxy state file','" + group_id + "');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('haproxy_sock', '/var/run/haproxy.sock', 'haproxy', 'Path to HAProxy sock file','" + group_id + "');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('haproxy_sock_port', '1999', 'haproxy', 'HAProxy sock port','" + group_id + "');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('firewall_enable', '0', 'haproxy', 'If enable this option Haproxy-wi will be configure firewalld based on config port','" + group_id + "');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('nginx_path_error_logs', '/var/log/nginx/error.log', 'nginx', 'Nginx error log','" + group_id + "');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('nginx_stats_user', 'admin', 'nginx', 'Username for Stats web page Nginx','" + group_id + "');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('nginx_stats_password', 'password', 'nginx', 'Password for Stats web page Nginx','" + group_id + "');")
@@ -326,13 +325,17 @@ def delete_server(id):
 	con.close()
 
 
-def update_hapwi_server(id, alert, metrics, active):
+def update_hapwi_server(server_id, alert, metrics, active, service_name):
 	con, cur = get_cur()
+	updated_service = 'active'
+	if service_name == 'nginx':
+		updated_service = 'nginx_active'
+
 	sql = """ update servers set 
 			alert = '%s',
 			metrics = '%s',
-			active = '%s'
-			where id = '%s'""" % (alert, metrics, active, id)
+			'%s' = '%s'
+			where id = '%s'""" % (alert, metrics, updated_service, active, server_id)
 	try:
 		cur.execute(sql)
 		con.commit()
@@ -1269,10 +1272,32 @@ def select_waf_servers_metrics(uuid, **kwargs):
 
 def select_waf_metrics(serv, **kwargs):
 	con, cur = get_cur()
+
 	if mysql_enable == '1':
-		sql = """ select * from waf_metrics where serv = '%s' order by `date` desc limit 60 """ % serv
+		if kwargs.get('time_range') == '60':
+			date_from = "and date > now() - INTERVAL 60 minute and rowid % 2 = 0"
+		elif kwargs.get('time_range') == '180':
+			date_from = "and date > now() - INTERVAL 180 minute and rowid % 5 = 0"
+		elif kwargs.get('time_range') == '360':
+			date_from = "and date > now() - INTERVAL 360 minute and rowid % 7 = 0"
+		elif kwargs.get('time_range') == '720':
+			date_from = "and date > now() - INTERVAL 720 minute and rowid % 9 = 0"
+		else:
+			date_from = "and date > now() - INTERVAL 30 minute"
+		sql = """ select * from waf_metrics where serv = '{serv}' {date_from} order by `date` desc limit 60 """.format(serv=serv, date_from=date_from)
 	else:
-		sql = """ select * from (select * from waf_metrics where serv = '%s' order by `date` desc limit 60) order by `date`""" % serv
+		if kwargs.get('time_range') == '60':
+			date_from = "and date > datetime('now', '-60 minutes', 'localtime') and rowid % 2 = 0"
+		elif kwargs.get('time_range') == '180':
+			date_from = "and date > datetime('now', '-180 minutes', 'localtime') and rowid % 5 = 0"
+		elif kwargs.get('time_range') == '360':
+			date_from = "and date > datetime('now', '-360 minutes', 'localtime') and rowid % 7 = 0"
+		elif kwargs.get('time_range') == '720':
+			date_from = "and date > datetime('now', '-720 minutes', 'localtime') and rowid % 9 = 0"
+		else:
+			date_from = "and date > datetime('now', '-30 minutes', 'localtime')"
+		sql = """ select * from (select * from waf_metrics where serv = '{serv}' {date_from} order by `date`) order by `date` """.format(serv=serv, date_from=date_from)
+
 	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
@@ -1451,26 +1476,26 @@ def select_metrics(serv, **kwargs):
 	con, cur = get_cur()
 
 	if mysql_enable == '1':
-		if kwargs.get('time_range') == 60:
+		if kwargs.get('time_range') == '60':
 			date_from = "and date > now() - INTERVAL 60 minute and rowid % 2 = 0"
-		elif kwargs.get('time_range') == 180:
+		elif kwargs.get('time_range') == '180':
 			date_from = "and date > now() - INTERVAL 180 minute and rowid % 5 = 0"
-		elif kwargs.get('time_range') == 720:
+		elif kwargs.get('time_range') == '360':
+			date_from = "and date > now() - INTERVAL 360 minute and rowid % 7 = 0"
+		elif kwargs.get('time_range') == '720':
 			date_from = "and date > now() - INTERVAL 720 minute and rowid % 9 = 0"
-		elif kwargs.get('time_range') == 1440:
-			date_from = "and date > now() - INTERVAL 1440 minute and rowid % 17 = 0"
 		else:
 			date_from = "and date > now() - INTERVAL 30 minute"
 		sql = """ select * from metrics where serv = '{serv}' {date_from} order by `date` desc limit 60 """.format(serv=serv, date_from=date_from)
 	else:
-		if kwargs.get('time_range') == 60:
+		if kwargs.get('time_range') == '60':
 			date_from = "and date > datetime('now', '-60 minutes', 'localtime') and rowid % 2 = 0"
-		elif kwargs.get('time_range') == 180:
+		elif kwargs.get('time_range') == '180':
 			date_from = "and date > datetime('now', '-180 minutes', 'localtime') and rowid % 5 = 0"
-		elif kwargs.get('time_range') == 720:
+		elif kwargs.get('time_range') == '360':
+			date_from = "and date > datetime('now', '-360 minutes', 'localtime') and rowid % 7 = 0"
+		elif kwargs.get('time_range') == '720':
 			date_from = "and date > datetime('now', '-720 minutes', 'localtime') and rowid % 9 = 0"
-		elif kwargs.get('time_range') == 1440:
-			date_from = "and date > datetime('now', '-1440 minutes', 'localtime') and rowid % 17 = 0"
 		else:
 			date_from = "and date > datetime('now', '-30 minutes', 'localtime')"
 
@@ -2052,13 +2077,25 @@ def update_smon(id, ip, port, body, telegram, group, desc, en):
 	con.close()
 
 
+def alerts_history(service, user_group):
+	con, cur = get_cur()
+	sql = """ select message, level, ip, port, date from alerts 
+	where service = '%s' and user_group = '%s' order by date desc; """ % (service, user_group)
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		funct.out_error(e)
+	else:
+		return cur.fetchall()
+
+
 def select_en_service():
 	con, cur = get_cur()
 	sql = """ select ip, port, telegram_channel_id, id, user_group from smon where en = 1"""
 	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
-		out_error(e)
+		funct.out_error(e)
 	else:
 		return cur.fetchall()
 
@@ -2069,7 +2106,7 @@ def select_status(id):
 	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
-		print("An error occurred:", e)
+		funct.out_error(e)
 	else:
 		for status in cur:
 			return status[0]

@@ -128,7 +128,7 @@
 .version::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";
-	content: "\f021";
+	content: "\f1da";
 }
 .services::before {
 	display: none;

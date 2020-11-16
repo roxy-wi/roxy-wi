@@ -102,6 +102,7 @@
 		{% endif %}
 		{% if service == 'nginx' %}
 			{% set checker_desc = 'Checker monitors Nginx services. If Nginx service is down, Checker will alert via Telegram' %}
+			{% set is_checker_enabled = s.8.0.17 %}
 			{% if s.5.0.3 == 'active' %}
 				{% set additional_status_class = 'div-server-head-up' %}
 			{% else %}
@@ -109,6 +110,7 @@
 			{% endif %}
 		{% else %}
 			{% set checker_desc = 'Checker monitors HAProxy services and its backends. If some backend or HAProxy service is down, Checker will alert via Telegram' %}
+			{% set is_checker_enabled = s.8.0.12 %}
 			{% if s.5 != False %}
 				{% set additional_status_class = 'div-server-head-up' %}
 			{% else %}
@@ -137,16 +139,14 @@
 					{% else %}
 						{{s.1}}
 					{% endif %}
-				{% if service == 'haproxy' %}
-					{% if s.6|int() >= 1 %}
-						<img 
-							{% if keep_alive|int() >= 1 %}
-								src="/inc/images/shield.png" title="Auto start enabled"
-							{% else %}
-								src="/inc/images/shield-red.png" title="Auto start enabled, but keep alive service does not work"
-							{% endif %}
-							width=18 style="padding-left: 5px; margin-bottom: -3px;">
-					{% endif %}
+				{% if s.6|int() >= 1 %}
+					<img
+						{% if keep_alive|int() >= 1 %}
+						src="/inc/images/shield.png" title="Auto start enabled"
+						{% else %}
+						src="/inc/images/shield-red.png" title="Auto start enabled, but keep alive service does not work"
+						{% endif %}
+						width=18 style="padding-left: 5px; margin-bottom: -3px;" />
 				{% endif %}
 				{% if role <= 2 %}
 				<span class="server-action">
@@ -170,11 +170,7 @@
 				</span>
 				{% endif %}
 			</div>
-			{% if service == 'nginx' %}
-				<div class="server-desc" style="height: 110px;">
-			{% else %}
-				<div class="server-desc">
-			{% endif %}
+			<div class="server-desc">
 				{{s.3}}
 				<br />
 				{% if service == 'nginx' %}
@@ -183,13 +179,13 @@
 					Uptime: {% else %} Downtime: {% endif %} {{s.5.0.4}}
 				{% else %}
 					{% if s.5.0 is defined %}
-						{{s.5.0.0}} {{s.5.0.1}} {{s.5.0.2}}
+						{{s.5.0.0}} {{s.5.0.1}}
+						<br />{{s.5.0.2}}
 					{% else %}
 						Cannot get information about HAProxy 
 					{% endif %}				 
 				{% endif %}				 
-				<br />
-				<span title="Date of last edit config" >
+				<span title="Date of last configuration edit" >
 					Last edit:
 					<span id="{{s.1}}"></span>
 				</span>			
@@ -199,9 +195,10 @@
 					Master for: {{ s.7.0.1 }}
 				{% endif %}
 			</div>
-			{% if service == 'haproxy' %}
-				<div class="server-act-links" id="server-{{s.8.0.0|string()}}">
+			<div class="server-act-links" id="server-{{s.8.0.0|string()}}-{{service}}">
 				{% if role <= 2 %}
+			{% if service == 'haproxy' %}
+
 					{% set id = 'alert-' + s.8.0.0|string() %}
 					{% if s.8.0.8 == 1 %}
 						{{ checkbox(id, title=checker_desc, value='1', desc='Checker', checked='checked') }}
@@ -213,15 +210,16 @@
 						{{ checkbox(id, title='Collecting metrics is enabled', value='1', desc='Metrics', checked='checked') }}
 					{% else %}
 						{{ checkbox(id, title='Enable collecting metrics', value='1', desc='Metrics') }}
-					{% endif %}	
+					{% endif %}
+			{% endif %}
 					{% set id = 'active-' + s.8.0.0|string() %}
-					{% if s.8.0.12 == 1 %}
+					{% if is_checker_enabled == 1 %}
 						{{ checkbox(id, title='Auto Start is enabled', value='1', desc='Auto Start', checked='checked') }}
 					{% else %}
 						{{ checkbox(id, title='Enable Auto Start', value='1', desc='Auto Start') }}
 					{% endif %}
-				{% endif %}
-				</div>
+
+			</div>
 			{% endif %}
 			<div class="server-act-links">
 				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showConfig" class="ui-button ui-widget ui-corner-all" title="Open running config">Open</a>	
