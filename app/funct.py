@@ -733,7 +733,7 @@ def upload_and_restart(serv, cfg, **kwargs):
 			commands = ["sudo "+haproxy_service_name+"  -q -c -f " + tmp_file + " && sudo mv -f " + tmp_file + " " + config_path + " && sudo systemctl reload "+haproxy_service_name+""]
 		else:
 			commands = ["sudo "+haproxy_service_name+"  -q -c -f " + tmp_file + " && sudo mv -f " + tmp_file + " " + config_path + " && sudo systemctl restart "+haproxy_service_name+""]
-		if sql.get_setting('firewall_enable') == "1":
+		if sql.return_firewall(serv):
 			commands[0] += open_port_firewalld(cfg, serv=serv)
 	error += str(upload(serv, tmp_file, cfg, dir='fullpath'))
 

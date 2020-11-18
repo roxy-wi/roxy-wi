@@ -405,6 +405,7 @@ function showLog() {
 }
 function showMap() {
 	$("#ajax").empty();
+	$('.alert').remove();
 	try {
 		myCodeMirror.toTextArea();
 	} catch (e) {
@@ -414,7 +415,6 @@ function showMap() {
 	$("h4").remove();
 	$("#ajax-compare").empty();
 	$("#config").empty();
-	$(".alert-info").empty();
 	var unique = $.now();
 	$.ajax( {
 		url: "options.py",
@@ -458,6 +458,7 @@ function showCompare() {
 }
 function showCompareConfigs() {
 	$("#ajax").empty();
+	$('.alert').remove();
 	try {
 		myCodeMirror.toTextArea();
 	} catch (e) {
@@ -465,7 +466,6 @@ function showCompareConfigs() {
 	}
 	$("#saveconfig").remove();
 	$("h4").remove();
-	$(".alert-info").empty();
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -492,6 +492,7 @@ function showCompareConfigs() {
 function showConfig() {
 	var service = $('#service').val();
 	$("#ajax").empty();
+	$('.alert').remove();
 	try {
 		myCodeMirror.toTextArea();
 	} catch (e) {
@@ -501,7 +502,6 @@ function showConfig() {
 	$("h4").remove();
 	$("#ajax-compare").empty();
 	$("#config").empty();
-	$(".alert").empty();
 	$.ajax( {
 		url: "options.py",
 		data: {

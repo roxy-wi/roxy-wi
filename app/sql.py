@@ -291,11 +291,11 @@ def update_group(name, descript, id):
 		return True
 
 
-def add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx):
+def add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, firewall):
 	con, cur = get_cur()
-	sql = """ INSERT INTO servers (hostname, ip, groups, type_ip, enable, master, cred, port, `desc`, haproxy, nginx) 
-			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
-		""" % (hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx)
+	sql = """ INSERT INTO servers (hostname, ip, groups, type_ip, enable, master, cred, port, `desc`, haproxy, nginx, firewall_enable) 
+			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
+		""" % (hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, firewall)
 	try:
 		cur.execute(sql)
 		con.commit()
@@ -336,6 +336,7 @@ def update_hapwi_server(server_id, alert, metrics, active, service_name):
 			metrics = '%s',
 			'%s' = '%s'
 			where id = '%s'""" % (alert, metrics, updated_service, active, server_id)
+
 	try:
 		cur.execute(sql)
 		con.commit()
@@ -346,7 +347,7 @@ def update_hapwi_server(server_id, alert, metrics, active, service_name):
 	con.close()
 
 
-def update_server(hostname, group, typeip, enable, master, id, cred, port, desc, haproxy, nginx):
+def update_server(hostname, group, typeip, enable, master, id, cred, port, desc, haproxy, nginx, firewall):
 	con, cur = get_cur()
 	sql = """ update servers set 
 			hostname = '%s',
@@ -358,8 +359,9 @@ def update_server(hostname, group, typeip, enable, master, id, cred, port, desc,
 			port = '%s',
 			`desc` = '%s',
 			haproxy = '%s',
-			nginx = '%s'
-			where id = '%s'""" % (hostname, group, typeip, enable, master, cred, port, desc, haproxy, nginx, id)
+			nginx = '%s',
+			firewall_enable = '%s'
+			where id = '%s'""" % (hostname, group, typeip, enable, master, cred, port, desc, haproxy, nginx, firewall, id)
 	try:
 		cur.execute(sql)
 		con.commit()
@@ -2302,6 +2304,24 @@ def is_cloud():
 	cur.close()
 	con.close()
 	return cloud_uuid
+
+
+def return_firewall(serv):
+	con, cur = get_cur()
+	sql = """ select firewall_enable from servers where ip = '%s' """ % serv
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		cur.close()
+		con.close()
+		return False
+	else:
+		for server in cur.fetchall():
+			firewall = server[0]
+
+	cur.close()
+	con.close()
+	return True if firewall == '1' else False
 
 
 form = funct.form

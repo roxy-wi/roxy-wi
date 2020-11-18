@@ -860,6 +860,7 @@ function addServer(dialog_id) {
 	var enable = 0;
 	var haproxy = 0;
 	var nginx = 0;
+	var firewall = 0;
 	if ($('#typeip').is(':checked')) {
 		typeip = '1';
 	}
@@ -871,6 +872,9 @@ function addServer(dialog_id) {
 	}
 	if ($('#nginx').is(':checked')) {
 		nginx = '1';
+	}
+	if ($('#firewall').is(':checked')) {
+		firewall = '1';
 	}
 	allFields = $( [] ).add( $('#new-server-add') ).add( $('#new-ip') ).add( $('#new-port') )
 	allFields.removeClass( "ui-state-error" );
@@ -889,6 +893,7 @@ function addServer(dialog_id) {
 				typeip: typeip,
 				haproxy: haproxy,
 				nginx: nginx,
+				firewall: firewall,
 				enable: enable,
 				slave: $('#slavefor' ).val(),
 				cred: cred,
@@ -1476,6 +1481,7 @@ function updateServer(id) {
 	var enable = 0;
 	var haproxy = 0;
 	var nginx = 0;
+	var firewall = 0;
 	if ($('#typeip-'+id).is(':checked')) {
 		typeip = '1';
 	}
@@ -1487,6 +1493,9 @@ function updateServer(id) {
 	}
 	if ($('#enable-'+id).is(':checked')) {
 		enable = '1';
+	}
+	if ($('#firewall-'+id).is(':checked')) {
+		firewall = '1';
 	}
 	var servergroup = $('#servergroup-'+id+' option:selected' ).val();
 	if (cur_url[0].split('#')[0] == "servers.py") {
@@ -1501,6 +1510,7 @@ function updateServer(id) {
 			typeip: typeip,
 			haproxy: haproxy,
 			nginx: nginx,
+			firewall: firewall,
 			enable: enable,
 			slave: $('#slavefor-'+id+' option:selected' ).val(),
 			cred: $('#credentials-'+id+' option:selected').val(),

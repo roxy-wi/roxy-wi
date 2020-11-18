@@ -16,7 +16,7 @@
 		Port
 		<span class="need-field">*</span>
 	</td>
-	<td>{{ input('new-port', value='22', size='1') }}</td>
+	<td>{{ input('new-port', value='22', size='3') }}</td>
 </tr>
 <tr>
 	<td class="padding20">Enable</td>
@@ -33,6 +33,10 @@
 <tr>
 	<td class="padding20" title="Is there Nginx?">Nginx</td>
 	<td>{{ checkbox('nginx') }}</td>
+</tr>
+<tr>
+	<td class="padding20" title="Is there Firewall?">Firewall</td>
+	<td>{{ checkbox('firewall') }}</td>
 </tr>
 <tr>
 	<td class="padding20" title="Actions with master config will automatically apply on slave">Slave for</td>

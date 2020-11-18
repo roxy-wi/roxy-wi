@@ -1648,6 +1648,7 @@ if form.getvalue('newserver') is not None:
     typeip = form.getvalue('typeip')
     haproxy = form.getvalue('haproxy')
     nginx = form.getvalue('nginx')
+    firewall = form.getvalue('firewall')
     enable = form.getvalue('enable')
     master = form.getvalue('slave')
     cred = form.getvalue('cred')
@@ -1656,7 +1657,7 @@ if form.getvalue('newserver') is not None:
     port = form.getvalue('newport')
     desc = form.getvalue('desc')
 
-    if sql.add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx):
+    if sql.add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, firewall):
         from jinja2 import Environment, FileSystemLoader
 
         env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
@@ -1688,6 +1689,7 @@ if form.getvalue('updateserver') is not None:
     typeip = form.getvalue('typeip')
     haproxy = form.getvalue('haproxy')
     nginx = form.getvalue('nginx')
+    firewall = form.getvalue('firewall')
     enable = form.getvalue('enable')
     master = form.getvalue('slave')
     serv_id = form.getvalue('id')
@@ -1698,7 +1700,7 @@ if form.getvalue('updateserver') is not None:
     if name is None or port is None:
         print(error_mess)
     else:
-        sql.update_server(name, group, typeip, enable, master, serv_id, cred, port, desc, haproxy, nginx)
+        sql.update_server(name, group, typeip, enable, master, serv_id, cred, port, desc, haproxy, nginx, firewall)
         funct.logging('the server ' + name, ' has updated ', haproxywi=1, login=1)
 
 if form.getvalue('serverdel') is not None:

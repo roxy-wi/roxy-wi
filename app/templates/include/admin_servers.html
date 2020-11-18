@@ -15,6 +15,9 @@
 			</th>
 			<th class="checkbox-head" style="width: 5%">HAProxy</th>
 			<th class="checkbox-head" style="width: 5%">Nginx</th>
+			<th class="checkbox-head" style="width: 5%">
+				<span title="If the server has a firewall enabled, enable this option">Firewall</span>
+			</th>
 			<th class="slave-field" style="width: 10%">
 				<span title="Actions with the master config will automatically apply on the slave">Slave for</span>
 			</th>
@@ -86,6 +89,14 @@
 					{{ checkbox(id, checked='checked') }}
 				{% else %}
 					{{ checkbox(id) }}
+				{% endif %}
+			</td>
+			<td class="checkbox">
+				{% set id = 'firewall-' + server.0|string() %}
+				{% if server.18 == 1 %}
+				{{ checkbox(id, checked='checked') }}
+				{% else %}
+				{{ checkbox(id) }}
 				{% endif %}
 			</td>
 			<td>

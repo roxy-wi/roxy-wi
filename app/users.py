@@ -47,7 +47,7 @@ try:
 		cmd = "sudo openvpn3 configs-list |grep -E 'ovpn|(^|[^0-9])[0-9]{4}($|[^0-9])' |grep -v net|awk -F\"    \" '{print $1}'|awk 'ORS=NR%2?\" \":\"\\n\"'"
 		openvpn_configs, stderr = funct.subprocess_execute(cmd)
 		cmd = "sudo openvpn3 sessions-list|grep -E 'Config|Status'|awk -F\":\" '{print $2}'|awk 'ORS=NR%2?\" \":\"\\n\"'| sed 's/^ //g'"
-		# cmd = 'echo "client.ovpn  Connection, Client connected"'
+		cmd = 'echo "client.ovpn  Connection, Client connected"'
 		openvpn_sess, stderr = funct.subprocess_execute(cmd)
 		openvpn = stdout[0]
 
