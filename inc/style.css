@@ -569,6 +569,10 @@ ul{
 	padding-right: 10px !important;
 	background: #f4f9f380 !important;
 }
+.ui-checkboxradio-label {
+	padding-bottom: 0.6em !important;
+	padding-top: 0.6em !important;
+}
 .ui-state-default {
 	background-color: #EBF1F1 !important;
 }
