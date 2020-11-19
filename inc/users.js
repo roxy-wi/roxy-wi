@@ -1943,25 +1943,25 @@ function updateService(service) {
 				toastr.success('Update was success!');
 			} else if (data.indexOf('Unauthorized') != '-1') {
 				toastr.clear();
-				toastr.error('It is seems like you Unauthorized in the HAProxy-WI repository. How to get HAProxy-WI auth you can read <a href="https://haproxy-wi.org/installation.py" title="How to get HAProxy-WI auth">hear</a>');
+				toastr.error('It seems like Unauthorized in the HAProxy-WI repository. How to get HAProxy-WI auth you can read <a href="https://haproxy-wi.org/installation.py" title="How to get HAProxy-WI auth">hear</a>');
 			} else if (data.indexOf('but not installed') != '-1') {
 				toastr.clear();
-				toastr.error('You have settings for HAProxy-WI repository, but installed HAProxy-WI without repository. Please reinstall with yum');
+				toastr.error('There is settings for HAProxy-WI repository, but HAProxy-WI is installed without repository. Please reinstall with yum');
 			} else if (data.indexOf('No Match for argument') != '-1') {
 				toastr.clear();
-				toastr.error('It is seems like you do not have HAProxy-WI repository settings. Please read docs for <a href="https://haproxy-wi.org/updates.py">detail</a>');
+				toastr.error('It seems like HAProxy-WI repository is not set. Please read docs for <a href="https://haproxy-wi.org/updates.py">detail</a>');
 			} else if (data.indexOf('password for') != '-1') {
 				toastr.clear();
-				toastr.error('It is seems like you need add Apache user to sudoers. Please read docs for<a href="https://haproxy-wi.org/updates.py">detail</a>');
+				toastr.error('It seems like apache user needs to be add to sudoers. Please read docs for<a href="https://haproxy-wi.org/updates.py">detail</a>');
 			} else if (data.indexOf('No packages marked for update') != '-1') {
 				toastr.clear();
-				toastr.info('It is seems like you have the lastest version HAProxy-WI');
+				toastr.info('It seems like the lastest version HAProxy-WI is installed');
 			} else if (data.indexOf('Connection timed out') != '-1') {
 				toastr.clear();
 				toastr.error('Cannot connect to HAProxy-WI repository. Connection timed out');
 			} else if (data.indexOf('--disable') != '-1') {
 				toastr.clear();
-				toastr.error('It is seems like you have problem with your repositories');
+				toastr.error('It seems like there is a problem with repositories');
 			} else if (data.indexOf('Error: Package') != '-1') {
 				toastr.clear();
 				toastr.error(data);
@@ -2087,6 +2087,38 @@ function scanPorts(id) {
 						Close: function() {
 							$( this ).dialog( "close" );
 							$("#show_scans_ports_body").html('');
+						}
+					}
+				});
+			}
+		}
+	} );
+}
+function viewFirewallRules(id) {
+	$.ajax({
+		url: "options.py",
+		data: {
+			viewFirewallRules: id,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1') {
+				toastr.error(data);
+			} else {
+				toastr.clear();
+				$("#firewall_rules_body").html(data);
+				$("#firewall_rules" ).dialog({
+					resizable: false,
+					height: "auto",
+					width: 860,
+					modal: true,
+					title: "Firewall rules",
+					buttons: {
+						Close: function() {
+							$( this ).dialog( "close" );
+							$("#firewall_rules_body").html('');
 						}
 					}
 				});

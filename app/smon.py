@@ -22,9 +22,17 @@ except Exception as e:
 	pass
 
 if action == 'add':
-	smon = sql.select_smon(user_group,action='add')
+	smon = sql.select_smon(user_group, action='add')
 	funct.page_for_admin(level=3)
 	title = "SMON Admin"
+	autorefresh = 0
+elif action == 'history':
+	smon = sql.alerts_history('SMON', user_group)
+	title = "SMON History"
+	autorefresh = 0
+elif action == 'checker_history':
+	smon = sql.alerts_history('Checker', user_group)
+	title = "Checker History"
 	autorefresh = 0
 else:
 	smon = sql.smon_list(user_group)
@@ -32,17 +40,17 @@ else:
 	autorefresh = 1
 
 
-template = template.render(h2 = 1, title = title,
-						   	autorefresh = autorefresh,
-							role = role,
-							user = user,
-							group = user_group,
-							telegrams = sql.get_user_telegram_by_group(user_group),
-							versions = funct.versions(),
-							smon = smon,
-							smon_status = smon_status,
-							smon_error = stderr,
-						   	action = action,
-						   	sort = sort,
-							token = token)
+template = template.render(h2=1, title=title,
+							autorefresh=autorefresh,
+							role=role,
+							user=user,
+							group=user_group,
+							telegrams=sql.get_user_telegram_by_group(user_group),
+							versions=funct.versions(),
+							smon=smon,
+							smon_status=smon_status,
+							smon_error=stderr,
+							action=action,
+							sort=sort,
+							token=token)
 print(template)
