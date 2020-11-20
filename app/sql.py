@@ -2321,7 +2321,7 @@ def return_firewall(serv):
 
 	cur.close()
 	con.close()
-	return True if firewall == '1' else False
+	return True if firewall == 1 else False
 
 
 form = funct.form

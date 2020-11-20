@@ -715,7 +715,7 @@ def upload_and_restart(serv, cfg, **kwargs):
 			commands = ["sudo mv -f " + tmp_file + " " + config_path + " && sudo nginx -t -q && sudo systemctl reload nginx"]
 		else:
 			commands = ["sudo mv -f " + tmp_file + " " + config_path + " && sudo nginx -t -q && sudo systemctl restart nginx"]
-		if sql.get_setting('firewall_enable') == "1":
+		if sql.return_firewall(serv):
 			commands[0] += open_port_firewalld(cfg, serv=serv, service='nginx')
 	else:
 		haproxy_enterprise = sql.get_setting('haproxy_enterprise')
@@ -984,6 +984,8 @@ def ssh_command(serv, commands, **kwargs):
 			return stdout.read().decode(encoding='UTF-8')
 		elif kwargs.get('return_err') == 1:
 			return stderr.read().decode(encoding='UTF-8')
+		elif kwargs.get('raw'):
+			return stdout
 		else:
 			return stdout.read().decode(encoding='UTF-8')
 			
