@@ -30,13 +30,13 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 13.	Evaluate the changes of recent configs pushed to HAProxy, Nginx and Keepalived instances straight from web ui
 14.	Multiple User Roles support for privileged based Viewing and editing of Config
 15.	Create Groups and add/remove servers to ensure proper identification for your HAProxy, Nginx Clusters
-16.	Send notifications to telegram directly from HAProxy-WI
+16.	Send notifications to Telegram directly from HAProxy-WI and in web interface
 17.	HAProxy-WI supports high Availability to ensure uptime to all Master slave servers configured
 18.	SSL certificate support, Let's Encrypt support
 19.	SSH Key support for managing multiple HAProxy Servers straight from HAProxy-WI
 20. SYN flood protect
-21. Alerting about changes backends state
-22. Alerting about HAProxy service state
+21. Alerting about changes HAProxy backends state
+22. Alerting about HAProxy and Nginx service state
 23. Metrics incoming connections
 24. Web acceleration settings
 25. Web application firewall
@@ -45,7 +45,7 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 28. Ability to hide parts of the config with tags for users with "guest" role:  "HideBlockStart" and "HideBlockEnd"
 29. Mobile-ready desing
 30. Simple port monitoring
-31. Backup HAProxy's, Nginx's and Keepalived's config files through HAProxy-WI
+31. Backup HAProxy, Nginx and Keepalived config files through HAProxy-WI
 32. Manage OpenVPN3 as client via HAProxy-WI
 
 ![alt text](image/haproxy-wi-metrics.png "Merics")
