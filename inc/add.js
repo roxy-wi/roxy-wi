@@ -1296,6 +1296,7 @@ function createList(color) {
 	} else {
 		list = $('#new_blacklist_name').val()
 	}
+	list = escapeHtml(list);
 	$.ajax( {
 		url: "options.py",
 		data: {

@@ -87,7 +87,7 @@ pre {
 	left: 0;
 	z-index: 1000;
 	display: block;
-	background-color: #222a31;
+	background-color: #18262e;
 	font-size: 12px;
 }
 .logoText {
@@ -357,7 +357,7 @@ pre {
 .overview-wi .overviewHead {
 	border-bottom: 1px solid #A4C7F5;
 }
-.overview  tr{
+.overview tr{
 	border-bottom: 1px solid #ddd;
 	border-radius: 5px;
 }
@@ -472,7 +472,7 @@ ul{
 	font-size: 1.1em;
 }
 .menu a{
-	background: #222a31;
+	background: #18262e;
 	color: #fff;
 	padding: 10px;
 	display: block;
@@ -569,9 +569,17 @@ ul{
 	padding-right: 10px !important;
 	background: #f4f9f380 !important;
 }
-.ui-checkboxradio-label {
-	padding-bottom: 0.6em !important;
-	padding-top: 0.6em !important;
+@media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm) {
+	.ui-checkboxradio-label {
+		padding-bottom: 0.6em !important;
+		padding-top: 0.6em !important;
+	}
+}
+@-moz-document url-prefix() {
+	.ui-checkboxradio-label {
+		padding-bottom: 5px !important;
+		padding-top: 7.5px !important;
+	}
 }
 .ui-state-default {
 	background-color: #EBF1F1 !important;
@@ -842,6 +850,7 @@ label {
 }
 .update-icon {
 	float: right;
+	margin-top: 5px;
 }
 .span-link {
 	cursor: pointer;
@@ -1167,4 +1176,9 @@ label {
 }
 .stats_frontends {
 	background-color: rgb(93, 156, 235) !important;
+}
+.switcher_table_metric {
+	margin-left: 99%;
+	color: #a0d100;
+	cursor: pointer;
 }
