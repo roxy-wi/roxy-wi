@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import sql
 import funct
 import sql
 from jinja2 import Environment, FileSystemLoader
@@ -18,7 +17,7 @@ try:
 		servers = ''
 	else:
 		servers = sql.select_servers_metrics(user_id.value)
-except:
+except Exception:
 	pass
 
 
@@ -28,6 +27,6 @@ template = template.render(h2=1, title="Metrics",
 							user=user,
 							servers=servers,
 							versions=funct.versions(),
-						   	services=service_ver[0],
+							services=service_ver[0],
 							token=token)
 print(template)

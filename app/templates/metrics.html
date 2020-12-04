@@ -20,7 +20,7 @@ th, tr, td {
 {% if services == '* is not installed' %}
 <center>
 	<br />
-	<h3>You do not have installed Metrics service
+	<h3>You do not have installed Metrics service.
 	Read <a href="https://haproxy-wi.org/services.py?service=metrics#installation" title="Metrics installation" style="color: #5d9ceb;" target="_blank">hear</a>
 	how to install Metrics service</h3>
 </center>
@@ -28,6 +28,15 @@ th, tr, td {
 {% if servers|length == 0 %}
 	{% include 'include/getstarted.html' %}
 {% else %}
+	<table style="min-width: 40%;">
+		<tr class="overviewHead">
+			<th colspan=13 style="background-color: #d1ecf1">
+				<span id="table_metrics_head" style="position: absolute;margin-left: 43%;">Metrics</span>
+				<span id="en_table_metric" class="add switcher_table_metric" title="Enable showing Average table"></span>
+				<span id="dis_table_metric" class="minus switcher_table_metric" title="Disable showing Average table"></span>
+			</th>
+		</tr>
+	</table>
 	<div id="table_metrics"></div>
 	<div style="padding-left: 25px;float: left;margin-top: 6px;">
 		<b>Time range:</b>
@@ -54,7 +63,12 @@ th, tr, td {
 				{% for s in servers %}
 					getChartData('{{s.0}}')
 				{% endfor %}
-				loadMetrics()
+				if (localStorage.getItem('table_metrics') == 0 || localStorage.getItem('table_metrics') === null) {
+					$('#dis_table_metric').css('display', 'none');
+				} else {
+					$('#en_table_metric').css('display', 'none');
+					loadMetrics();
+				}
 			});	
 		metrics.then();
 	}
@@ -71,6 +85,7 @@ th, tr, td {
 			metrics.then();
 		});
 	});
+
  </script>
 {% endif %}
 {% endif %}

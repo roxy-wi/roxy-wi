@@ -627,8 +627,13 @@ def install_nginx(serv):
 		
 def update_haproxy_wi(service):
 	if service != 'haproxy-wi':
+		try:
+			if service != 'keep_alive':
+				service = service.split('_')[0]
+		except Exception:
+			pass
 		service = 'haproxy-wi-'+service
-	cmd = 'sudo -S yum  -y update '+service
+	cmd = 'sudo -S yum -y update '+service
 	output, stderr = subprocess_execute(cmd)
 	print(output)
 	print(stderr)

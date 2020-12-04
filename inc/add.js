@@ -1344,6 +1344,10 @@ function editList(list, color) {
 					modal: true,
 					title: "Edit "+color+" list "+list,
 					buttons: {
+						"Delete": function() {
+							$( this ).dialog( "close" );
+							deleteList(list, color);
+						},
 						"Just save": function() {
 							$( this ).dialog( "close" );	
 							saveList('save', list, color);
@@ -1393,6 +1397,38 @@ function saveList(action, list, color) {
 							toastr.success(data[i]);
 						}
 					}
+				}
+			}
+		});
+	}
+}
+function deleteList(list, color) {
+	var serv = $( "#serv-"+color+"-list option:selected" ).val();
+	if (serv == 'Choose server') {
+		toastr.warning('Choose a server before deleting');
+	} else {
+		$.ajax({
+			url: "options.py",
+			data: {
+				bwlists_delete: list,
+				serv: serv,
+				color: color,
+				group: $('#group').val(),
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function (data) {
+				if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
+					toastr.error(data);
+				} else if (data.indexOf('Info') != '-1' ){
+					toastr.clear();
+					toastr.info(data);
+				} else if (data.indexOf('success') != '-1' ) {
+					toastr.clear();
+					toastr.success('List has been deleted');
+					setTimeout(function () {
+						location.reload();
+					}, 2500);
 				}
 			}
 		});

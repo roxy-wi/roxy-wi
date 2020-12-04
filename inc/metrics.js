@@ -170,8 +170,7 @@ function renderWafChart(data, labels, server) {
     });
     charts.push(myChart);
 }
-console.log(charts);
-$("#secIntervals").css("display", "none");	
+$("#secIntervals").css("display", "none");
 
 function loadMetrics() {
 	 $.ajax({
@@ -319,4 +318,17 @@ function renderChartHapWiCpu(data) {
         }
     });
 }
-
+$( function() {
+   $('#dis_table_metric').click(function() {
+       localStorage.setItem('table_metrics', 0);
+       $('#body_table_metrics').css('display', 'none');
+       $('#en_table_metric').css('display', 'inline');
+       $('#dis_table_metric').css('display', 'none');
+   });
+    $('#en_table_metric').click(function() {
+        localStorage.setItem('table_metrics', 1);
+        $('#en_table_metric').css('display', 'none');
+        $('#dis_table_metric').css('display', 'inline');
+        loadMetrics();
+    });
+});

@@ -1526,6 +1526,42 @@ if form.getvalue('bwlists_save'):
             elif form.getvalue('bwlists_restart') == 'reload':
                 funct.ssh_command(serv, ["sudo systemctl reload " + haproxy_service_name])
 
+if form.getvalue('bwlists_delete'):
+    color = form.getvalue('color')
+    bwlists_delete = form.getvalue('bwlists_delete')
+    list_path = os.path.dirname(os.getcwd()) + "/" + sql.get_setting('lists_path') + "/" + form.getvalue('group') + "/" + color + "/" + bwlists_delete
+    try:
+        os.remove(list_path)
+    except IOError as e:
+        print('error: Cannot delete ' + color + ' list. %s , ' % e)
+
+    path = sql.get_setting('haproxy_dir') + "/" + color
+    servers = []
+
+    if serv != 'all':
+        servers.append(serv)
+
+        MASTERS = sql.is_master(serv)
+        for master in MASTERS:
+            if master[0] is not None:
+                servers.append(master[0])
+    else:
+        server = sql.get_dick_permit()
+        for s in server:
+            servers.append(s[2])
+
+    for serv in servers:
+        error = funct.ssh_command(serv, ["sudo rm " + path + "/" + bwlists_delete], return_err=1)
+
+        if error:
+            print('error: Deleting fail: %s , ' % error)
+        else:
+            print('success: ' + color + ' list was delete on ' + serv + ' , ')
+            try:
+                funct.logging(serv, 'has deleted  ' + color + ' list ' + bwlists_save, haproxywi=1, login=1)
+            except Exception:
+                pass
+
 if form.getvalue('get_lists'):
     list_path = os.path.dirname(os.getcwd()) + "/" + sql.get_setting('lists_path') + "/" + form.getvalue('group') + "/" + form.getvalue('color')
     lists = funct.get_files(dir=list_path, format="lst")
@@ -2069,6 +2105,34 @@ if form.getvalue('showBytes') is not None:
     template = template.render(bin_bout=bin_bout, serv=serv)
     print(template)
 
+if form.getvalue('nginxConnections'):
+    import requests
+    serv = form.getvalue('nginxConnections')
+    port = sql.get_setting('nginx_stats_port')
+    user = sql.get_setting('nginx_stats_user')
+    password = sql.get_setting('nginx_stats_password')
+    page = sql.get_setting('nginx_stats_page')
+
+    r = requests.get('http://' + serv + ':' + port + '/' + page, auth=(user, password))
+
+    if r.status_code == 200:
+        bin_bout = [0, 0]
+        for num, line in enumerate(r.text.split('\n')):
+            #bin_bout.append(line.encode(encoding='ISO-8859-1'))
+            if num == 0:
+                bin_bout.append(line.split(' ')[2])
+            if num == 2:
+                bin_bout.append(line.split(' ')[3])
+
+        from jinja2 import Environment, FileSystemLoader
+
+        env = Environment(loader=FileSystemLoader('templates'))
+        template = env.get_template('ajax/bin_bout.html')
+        template = template.render(bin_bout=bin_bout, serv=serv, service='nginx')
+        print(template)
+    else:
+        print('error: cannot connect to Nginx stat page')
+
 if form.getvalue('alert_consumer'):
     try:
         user_group = funct.get_user_group(id=1)
@@ -2231,3 +2295,21 @@ if form.getvalue('scan_ports') is not None:
         template = env.get_template('ajax/scan_ports.html')
         template = template.render(ports=stdout, info=stdout1)
         print(template)
+
+if form.getvalue('viewFirewallRules') is not None:
+    serv = form.getvalue('viewFirewallRules')
+
+    cmd = ["sudo iptables -L INPUT -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"]
+    cmd1 = ["sudo iptables -L IN_public_allow -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"]
+    cmd2 = ["sudo iptables -L OUTPUT -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"]
+
+    input = funct.ssh_command(serv, cmd, raw=1)
+    IN_public_allow = funct.ssh_command(serv, cmd1, raw=1)
+    output = funct.ssh_command(serv, cmd2, raw=1)
+
+    from jinja2 import Environment, FileSystemLoader
+
+    env = Environment(loader=FileSystemLoader('templates'))
+    template = env.get_template('ajax/firewall_rules.html')
+    template = template.render(input=input, IN_public_allow=IN_public_allow, output=output)
+    print(template)
