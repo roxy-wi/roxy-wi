@@ -9,7 +9,7 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 # Demo site
 [Demo site](https://demo.haproxy-wi.org) Login/password: admin/admin. Server resets every hour.
 
-![alt text](image/haproxy-wi-config-show.png "Show config page")
+![alt text](https://haproxy-wi.org/inc/images/viewstat.png "HAProxy state page")
 
 # Features:
 1.  Installation and updating HAProxy, Nginx and Keepalived with HAProxy-WI
