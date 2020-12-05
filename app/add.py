@@ -24,7 +24,7 @@ try:
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	group = cookie.get('group')
 	user_group = group.value
-except:
+except Exception:
 	pass
 	
 dir = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')
@@ -77,7 +77,10 @@ if form.getvalue('mode') is not None:
 		balance = "    balance " + form.getvalue('balance') + "\n"
 
 	if form.getvalue('health_check') is not None:
-		balance += "    " + form.getvalue('health_check') + "\n"
+		health_check = form.getvalue('health_check')
+		if health_check == 'option httpchk' and form.getvalue('checks_http_domain') is not None:
+			health_check = health_check + ' GET ' + form.getvalue('checks_http_path') + ' "HTTP/1.0\\r\\nHost: ' + form.getvalue('checks_http_domain') + '"'
+		balance += "    " + health_check + "\n"
 
 	if form.getvalue('ip') is not None:
 		ip = form.getvalue('ip')
@@ -180,14 +183,14 @@ if form.getvalue('mode') is not None:
 						send_proxy_param = 'send-proxy'
 					else:
 						send_proxy_param = ''
-				except:
+				except Exception:
 					send_proxy_param = ''
 				try:
 					if backup[i] == '1':
 						backup_param = 'backup'
 					else:
 						backup_param = ''
-				except:
+				except Exception:
 					backup_param = ''
 				servers_split += "    server {0} {0}:{1}{2} {3} {4} \n".format(server,
 																			server_port[i],
@@ -242,7 +245,7 @@ if form.getvalue('new_userlist') is not None:
 		for user in users:
 			try: 
 				group = ' groups '+userlist_user_group[i]
-			except:
+			except Exception:
 				group = ''
 			new_users_list += "    user "+user+" insecure-password " + passwords[i] + group + "\n"
 			i += 1
@@ -277,5 +280,5 @@ try:
 			print('<meta http-equiv="refresh" content="0; url=add.py?add=%s&conf=%s&serv=%s">' % (name, config_add, serv))
 
 		print('</div>')
-except:
+except Exception:
 	pass

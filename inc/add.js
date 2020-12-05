@@ -989,7 +989,8 @@ $( function() {
 	});
 	var tcp_note = 'The check is valid when the server answers with a <b>SYN/ACK</b> packet'
 	var ssl_note = 'The check is valid if the server answers with a valid SSL server <b>hello</b> message'
-	var httpchk_note = 'The check is valid if the server answers with a status code of <b>2xx</b> or <b>3xx</b>'
+	var httpchk_note = 'The check is valid if the server answers with a status code of <b>2xx</b> or <b>3xx</b>. You can ' +
+		'add a page for checking and Domain name'
 	var ldap_note = 'The check is valid if the server response contains a successful <b>resultCode</b>.\n' +
 		'<p>You must configure the LDAP servers according to this check to allow anonymous binding. ' +
 		'You can do this with an IP alias on the server side that allows only HAProxy IP addresses to bind to it.</p>'
@@ -1027,7 +1028,6 @@ $( function() {
 		}
 	});
 	$( "#backend_checks" ).on('selectmenuchange',function()  {
-
 		if ($( "#backend_checks option:selected" ).val() == "") {
 			$("#backend_checks_note").html('')
 		}
@@ -1057,6 +1057,26 @@ $( function() {
 		}
 		if ($( "#backend_checks option:selected" ).val() == "") {
 			$("#backend_checks_note").html('')
+		}
+	});
+	$( "#listener_checks" ).on('selectmenuchange',function() {
+		if ($("#listener_checks").val() == 'option httpchk') {
+			$("#listener_checks_http").show();
+			$("#listener_checks_http_path").attr('required', 'true');
+		} else {
+			$("#listener_checks_http").hide();
+			$("#listener_checks_http_path").removeAttr('required');
+			$("#listener_checks_http_domain").removeAttr('required');
+		}
+	});
+	$( "#backend_checks" ).on('selectmenuchange',function() {
+		if ($("#backend_checks").val() == 'option httpchk') {
+			$("#backend_checks_http").show();
+			$("#backend_checks_http_path").attr('required', 'true');
+		} else {
+			$("#backend_checks_http").hide();
+			$("#backend_checks_http_path").removeAttr('required');
+			$("#backend_checks_http_domain").removeAttr('required');
 		}
 	});
 });

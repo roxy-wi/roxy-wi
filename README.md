@@ -48,7 +48,7 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 31. Backup HAProxy, Nginx and Keepalived config files through HAProxy-WI
 32. Manage OpenVPN3 as client via HAProxy-WI
 
-![alt text](image/haproxy-wi-metrics.png "Merics")
+![alt text](https://haproxy-wi.org/inc/images/haproxy-wi-metrics.png "Merics")
 
 # Install
 
@@ -63,7 +63,7 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 # OS support
 HAProxy-WI was tested on EL7, EL8 and all scripts too. Debian/Ubuntu OS support at 'beta' stage, may work not correct
 
-![alt text](image/haproxy-wi-admin-area.png "Admin area")
+![alt text](https://haproxy-wi.org/inc/images/smon_dashboard.png "SMON area")
 
 # Database support
 
@@ -73,7 +73,7 @@ Default HAProxy-WI use Sqlite, if you want use MySQL enable in config, and creat
 
 ### Read instruction on the official [site](https://haproxy-wi.org/settings.py#db_settings)
 
-![alt text](image/haproxy-wi-overview.png "Overview page")
+![alt text](https://haproxy-wi.org/inc/images/haproxy-wi_overview.png "Overview page")
 
 # Settings
 
@@ -82,10 +82,10 @@ Login https://haproxy-wi-server/users.py, and add: users, groups and servers. De
 
 ### Read instruction on the official [site](https://haproxy-wi.org/settings.py)
 
-![alt text](image/haproxy-wi-admin-area.png "Admin area")
+![alt text](https://haproxy-wi.org/inc/images/haproxy_overview.png "HAProxy server overview page")
 
 
-![alt text](image/haproxy-wi-logs.png "View logs page")
+![alt text](https://haproxy-wi.org/inc/images/add.png "Add proxy page")
 
 
 
