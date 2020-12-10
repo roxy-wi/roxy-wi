@@ -3,6 +3,7 @@
 import funct
 import sql
 from jinja2 import Environment, FileSystemLoader
+import platform
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('admin.html')
 form = funct.form
@@ -42,13 +43,19 @@ try:
 	openvpn_sess = ''
 	openvpn = ''
 
-	stdout, stderr = funct.subprocess_execute("rpm --query openvpn3-client")
-	if stdout[0] != 'package openvpn3-client is not installed' and stderr != '/bin/sh: rpm: command not found':
-		cmd = "sudo openvpn3 configs-list |grep -E 'ovpn|(^|[^0-9])[0-9]{4}($|[^0-9])' |grep -v net|awk -F\"    \" '{print $1}'|awk 'ORS=NR%2?\" \":\"\\n\"'"
-		openvpn_configs, stderr = funct.subprocess_execute(cmd)
-		cmd = "sudo openvpn3 sessions-list|grep -E 'Config|Status'|awk -F\":\" '{print $2}'|awk 'ORS=NR%2?\" \":\"\\n\"'| sed 's/^ //g'"
-		openvpn_sess, stderr = funct.subprocess_execute(cmd)
-		openvpn = stdout[0]
+	try:
+		os_name = platform.linux_distribution()[0]
+	except Exception:
+		os_name = ''
+
+	if os_name == 'CentOS Linux' or os_name == 'Red Hat Enterprise Linux Server':
+		stdout, stderr = funct.subprocess_execute("rpm --query openvpn3-client")
+		if stdout[0] != 'package openvpn3-client is not installed' and stderr != '/bin/sh: rpm: command not found':
+			cmd = "sudo openvpn3 configs-list |grep -E 'ovpn|(^|[^0-9])[0-9]{4}($|[^0-9])' |grep -v net|awk -F\"    \" '{print $1}'|awk 'ORS=NR%2?\" \":\"\\n\"'"
+			openvpn_configs, stderr = funct.subprocess_execute(cmd)
+			cmd = "sudo openvpn3 sessions-list|grep -E 'Config|Status'|awk -F\":\" '{print $2}'|awk 'ORS=NR%2?\" \":\"\\n\"'| sed 's/^ //g'"
+			openvpn_sess, stderr = funct.subprocess_execute(cmd)
+			openvpn = stdout[0]
 
 except Exception:
 	pass
