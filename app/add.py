@@ -10,55 +10,51 @@ template = env.get_template('add.html')
 form = funct.form
 serv = form.getvalue('serv')
 
-if form.getvalue('add'):
-	c = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	c["restart"] = form.getvalue('serv')
-	print(c)
-	
 print('Content-type: text/html\n')
 funct.check_login()
 funct.page_for_admin(level=3)
 
-try:
-	user, user_id, role, token, servers = funct.get_users_params()
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	group = cookie.get('group')
-	user_group = group.value
-except Exception:
-	pass
-	
-dir = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')
-white_dir = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')+"/"+user_group+"/white"
-black_dir = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')+"/"+user_group+"/black"
-if not os.path.exists(dir):
-	os.makedirs(dir)
-if not os.path.exists(dir+"/"+user_group):
-	os.makedirs(dir+"/"+user_group)
-if not os.path.exists(white_dir):
-	os.makedirs(white_dir)
-if not os.path.exists(black_dir):
-	os.makedirs(black_dir)
+if form.getvalue('mode') is None and form.getvalue('new_userlist') is None:
+	try:
+		user, user_id, role, token, servers = funct.get_users_params()
+		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+		group = cookie.get('group')
+		user_group = group.value
+	except Exception as e:
+		print(str(e))
 
-white_lists = funct.get_files(dir=white_dir, format="lst")
-black_lists = funct.get_files(dir=black_dir, format="lst")
+	dir = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')
+	white_dir = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')+"/"+user_group+"/white"
+	black_dir = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')+"/"+user_group+"/black"
 
+	if not os.path.exists(dir):
+		os.makedirs(dir)
+	if not os.path.exists(dir+"/"+user_group):
+		os.makedirs(dir+"/"+user_group)
+	if not os.path.exists(white_dir):
+		os.makedirs(dir)
+	if not os.path.exists(black_dir):
+		os.makedirs(black_dir)
 
-template = template.render(title="Add: ",
-							role=role,
-							user=user,
-							selects=servers,
-							add=form.getvalue('add'),
-							conf_add=form.getvalue('conf'),
-							group=user_group,
-							versions=funct.versions(),
-							options=sql.select_options(),
-							saved_servers=sql.select_saved_servers(),
-							white_lists=white_lists,
-							black_lists=black_lists,
-							token=token)
-print(template)
+	white_lists = funct.get_files(dir=white_dir, format="lst")
+	black_lists = funct.get_files(dir=black_dir, format="lst")
 
-if form.getvalue('mode') is not None:
+	template = template.render(title="Add: ",
+								role=role,
+								user=user,
+								selects=servers,
+								add=form.getvalue('add'),
+								conf_add=form.getvalue('conf'),
+								group=user_group,
+								versions=funct.versions(),
+								options=sql.select_options(),
+								saved_servers=sql.select_saved_servers(),
+								white_lists=white_lists,
+								black_lists=black_lists,
+								token=token)
+	print(template)
+
+elif form.getvalue('mode') is not None:
 	cert_path = sql.get_setting('cert_path')
 	haproxy_dir = sql.get_setting('haproxy_dir')
 	port = form.getvalue('port')
@@ -72,6 +68,8 @@ if form.getvalue('mode') is not None:
 	ssl = ""
 	ssl_check = ""
 	backend = ""
+	acl = ""
+	servers_split = ""
 	
 	if form.getvalue('balance') is not None:
 		balance = "    balance " + form.getvalue('balance') + "\n"
@@ -168,8 +166,47 @@ if form.getvalue('mode') is not None:
 		options_split += cookie
 		if form.getvalue('dynamic'):
 			options_split += "    dynamic-cookie-key " + form.getvalue('dynamic-cookie-key')+"\n"
-			
-	servers_split = ""	
+
+	if form.getvalue('acl_if'):
+		acl_if = form.getlist('acl_if')
+		acl_value = form.getlist('acl_value')
+		acl_then = form.getlist('acl_then')
+		acl_then_values = form.getlist('acl_then_value')
+		i = 0
+
+		for a in acl_if:
+
+			acl_then_value = '' if acl_then_values[i] == 'IsEmptY' else acl_then_values[i]
+
+			try:
+				if a == '1':
+					acl_if_word = 'hdr_beg(host) -i '
+				elif a == '2':
+					acl_if_word = 'hdr_end(host) -i '
+				elif a == '3':
+					acl_if_word = 'path_beg -i '
+				elif a == '4':
+					acl_if_word = 'path_end -i '
+				else:
+					acl_if_word = ''
+
+				if acl_then[i] == '5':
+					acl += '    use_backend '
+				elif acl_then[i] == '2':
+					acl += '    http-request redirect location '
+				elif acl_then[i] == '3':
+					acl += '    http-request allow'
+					acl_then_value = ''
+				elif acl_then[i] == '4':
+					acl += '    http-request deny'
+					acl_then_value = ''
+
+				acl += acl_then_value + ' if { ' + acl_if_word + acl_value[i] + ' } \n'
+			except Exception:
+				acl = ''
+
+			i += 1
+
 	if form.getvalue('servers') is not None:	
 		servers = form.getlist('servers')
 		server_port = form.getlist('server_port')
@@ -210,9 +247,9 @@ if form.getvalue('mode') is not None:
 	compression_s = ""
 	cache_s = ""
 	cache_set = ""
-	filter = ""
+	filter_com = ""
 	if compression == "1" or cache == "2":
-		filter = "    filter compression\n"
+		filter_com = "    filter compression\n"
 		if cache == "2":
 			cache_s = "    http-request cache-use "+end_name+"\n    http-response cache-store "+end_name+"\n"
 			cache_set = "cache "+end_name+"\n    total-max-size 4\n    max-age 240\n"
@@ -224,7 +261,7 @@ if form.getvalue('mode') is not None:
 		waf = "    filter spoe engine modsecurity config "+haproxy_dir+"/waf.conf\n"
 		waf += "    http-request deny if { var(txn.modsec.code) -m int gt 0 }\n"
 	
-	config_add = "\n" + name + "\n" + bind + mode + maxconn + balance + options_split + cache_s + filter + compression_s + waf + backend + servers_split + "\n" + cache_set + "\n"
+	config_add = "\n" + name + "\n" + bind + mode + maxconn + balance + options_split + cache_s + filter_com + compression_s + waf + acl + backend + servers_split + "\n" + cache_set + "\n"
 
 if form.getvalue('new_userlist') is not None:
 	name = "userlist "+form.getvalue('new_userlist') + "\n"
@@ -241,7 +278,7 @@ if form.getvalue('new_userlist') is not None:
 		passwords = form.getlist('userlist-password')
 		userlist_user_group = form.getlist('userlist-user-group')
 		i = 0
-		print(userlist_user_group)
+
 		for user in users:
 			try: 
 				group = ' groups '+userlist_user_group[i]
@@ -251,34 +288,35 @@ if form.getvalue('new_userlist') is not None:
 			i += 1
 		
 	config_add = "\n" + name + new_userlist_groups + new_users_list
-	
-try:
-	funct.check_is_server_in_group(serv)
-	if config_add:
-		hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
-		cfg = hap_configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
-		
-		funct.get_config(serv, cfg)
-		try:
-			with open(cfg, "a") as conf:
-				conf.write(config_add)			
-		except IOError:
-			print("error: Can't read import config file")
-		
-		funct.logging(serv, "add.py add new %s" % name)
-		print('<div class="line3" style="position: absolute;top: 35px;left: 200px;">')
-		
-		MASTERS = sql.is_master(serv)
-		for master in MASTERS:
-			if master[0] is not None:
-				funct.upload_and_restart(master[0], cfg)
-		
-		stderr = funct.upload_and_restart(serv, cfg, just_save="save")
-		if stderr:
-			print('<div class="alert alert-danger">%s</div><div id="close"><span title="Close" style="cursor: pointer; float: right;">X</span></div><script>$("#errorMess").click(function(){$("#error").remove();});</script>' % stderr)
-		else:
-			print('<meta http-equiv="refresh" content="0; url=add.py?add=%s&conf=%s&serv=%s">' % (name, config_add, serv))
 
-		print('</div>')
-except Exception:
-	pass
+if form.getvalue('generateconfig') is None:
+	try:
+		funct.check_is_server_in_group(serv)
+		if config_add:
+			hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+			cfg = hap_configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
+
+			funct.get_config(serv, cfg)
+			try:
+				with open(cfg, "a") as conf:
+					conf.write(config_add)
+			except IOError:
+				print("error: Can't read import config file")
+
+			funct.logging(serv, "add.py add new %s" % name)
+
+			MASTERS = sql.is_master(serv)
+			for master in MASTERS:
+				if master[0] is not None:
+					funct.upload_and_restart(master[0], cfg)
+
+			stderr = funct.upload_and_restart(serv, cfg, just_save="save")
+			if stderr:
+				print(stderr)
+			else:
+				print(name)
+
+	except Exception:
+		pass
+else:
+	print(config_add)

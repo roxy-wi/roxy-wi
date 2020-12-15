@@ -30,6 +30,7 @@
     name: 
       - http://repo.haproxy-wi.org/haproxy-{{HAPVER}}.el{{ansible_facts['distribution_major_version']}}.x86_64.rpm
       - socat
+      - rsyslog
     state: present
     disable_gpg_check: yes
   when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and HAPVER|length > 0
@@ -45,6 +46,7 @@
     name: 
       - http://repo1.haproxy-wi.org/haproxy-{{HAPVER}}.el{{ansible_facts['distribution_major_version']}}.x86_64.rpm
       - socat
+      - rsyslog
     state: present
   register: install_result1
   when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and ("'timed out' in install_result.stderr")
@@ -65,6 +67,7 @@
     name: 
       - haproxy
       - socat
+      - rsyslog
     state: latest
   when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and ("'FAILED' in install_result1.stderr")
   environment:
@@ -77,6 +80,7 @@
     name: 
       - haproxy
       - socat
+      - rsyslog
     state: present
   when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'Ubuntu'
   environment:
@@ -142,6 +146,13 @@
    dest: /etc/rsyslog.conf
   ignore_errors: yes
   notify: restart rsyslog
+
+
+- name: Installing HAProxy conf for logrotate
+  template:
+    src: logrotate.conf.j2
+    dest: /etc/logrotate.d/haproxy.conf
+  ignore_errors: yes
   
     
 - name: Get HAProxy version.

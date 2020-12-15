@@ -124,7 +124,7 @@
 	</div>
 	
 </div>
-<div id="group_error" style="display: none;">
+<div id="group_error" style="display: none; clear: both;">
 	<div class="alert alert-danger">
 		<b>Do not edit this section if your group is "ALL"!</b> Add first<a href="users.py#groups" title="Admin Area: Groups">group</a> or edit your own group at<a href="users.py#users" title="Admin Area: Users">users</a> page
 	</div>
@@ -152,8 +152,10 @@
 			$('#nginxaddserv').selectmenu('enable');
 			$('#haproxy_exp_addserv').selectmenu('enable');
 			$('#nginx_exp_addserv').selectmenu('enable');
+			$('#geoipserv').selectmenu('enable');
 			$('#syn_flood').checkboxradio('enable');
 			$('#nginx_syn_flood').checkboxradio('enable');
+			$('#updating_geoip').checkboxradio('enable');
 		}, 500 );
 		
 	}

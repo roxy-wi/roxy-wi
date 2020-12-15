@@ -708,6 +708,36 @@ $( function() {
 			clearTips();
 		}
 	});
+	$('#show_country_codes').click(function() {
+		$('#hide_country_codes').show();
+		$('#geoip_country_codes').show();
+		$('#show_country_codes').hide();
+	});
+	$('#hide_country_codes').click(function() {
+		$('#show_country_codes').show();
+		$('#geoip_country_codes').hide();
+		$('#hide_country_codes').hide();
+	});
+	$( "#geoipserv" ).on('selectmenuchange',function() {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				geoipserv: $('#geoipserv option:selected').val(),
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+				data = data.replace(/^\s+|\s+$/g,'');
+				if(data.indexOf('No such file or directory') != '-1') {
+					$('#cur_geoip').text('GeoLite2 has not installed');
+					$('#geoip_install').show();
+				} else {
+					$('#cur_geoip').text('GeoLite2 has already installed');
+					$('#geoip_install').hide();
+				}
+			}
+		} );
+	});
 } );
 function common_ajax_action_after_success(dialog_id, new_group, ajax_append_id, data) {
 	toastr.clear();
@@ -1943,16 +1973,16 @@ function updateService(service) {
 				toastr.success('Update was success!');
 			} else if (data.indexOf('Unauthorized') != '-1') {
 				toastr.clear();
-				toastr.error('It seems like Unauthorized in the HAProxy-WI repository. How to get HAProxy-WI auth you can read <a href="https://haproxy-wi.org/installation.py" title="How to get HAProxy-WI auth">hear</a>');
+				toastr.error('It seems like Unauthorized in the HAProxy-WI repository. How to get HAProxy-WI auth you can read <b><a href="https://haproxy-wi.org/installation.py" title="How to get HAProxy-WI auth">hear</a></b>');
 			} else if (data.indexOf('but not installed') != '-1') {
 				toastr.clear();
 				toastr.error('There is settings for HAProxy-WI repository, but HAProxy-WI is installed without repository. Please reinstall with yum');
 			} else if (data.indexOf('No Match for argument') != '-1') {
 				toastr.clear();
-				toastr.error('It seems like HAProxy-WI repository is not set. Please read docs for <a href="https://haproxy-wi.org/updates.py">detail</a>');
+				toastr.error('It seems like HAProxy-WI repository is not set. Please read docs for <b><a href="https://haproxy-wi.org/updates.py">detail</a></b>');
 			} else if (data.indexOf('password for') != '-1') {
 				toastr.clear();
-				toastr.error('It seems like apache user needs to be add to sudoers. Please read docs for<a href="https://haproxy-wi.org/updates.py">detail</a>');
+				toastr.error('It seems like apache user needs to be add to sudoers. Please read docs for <b><a href="https://haproxy-wi.org/updates.py">detail</a></b>');
 			} else if (data.indexOf('No packages marked for update') != '-1') {
 				toastr.clear();
 				toastr.info('It seems like the lastest version HAProxy-WI is installed');
@@ -1969,6 +1999,7 @@ function updateService(service) {
 				toastr.clear();
 				toastr.error(data);
 			}
+			$("#ajax-update").html('')
 		}
 	} );
 }

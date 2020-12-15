@@ -1079,6 +1079,50 @@ $( function() {
 			$("#backend_checks_http_domain").removeAttr('required');
 		}
 	});
+	$( "#add_frontend_acl" ).on( "click", function() {
+		$( "#frontend_acl" ).show();
+		$( "#frontend_add_acl" ).show();
+		$( "#add_frontend_acl" ).hide();
+	} );
+	$( "#add_listener_acl" ).on( "click", function() {
+		$( "#listener_acl" ).show();
+		$( "#listener_add_acl" ).show();
+		$( "#add_listener_acl" ).hide();
+	} );
+	var acl_option = '<b class="padding10">if</b>\n' +
+		'<select name="acl_if">\n' +
+		'\t<option selected>Choose if</option>\n' +
+		'\t<option value="1">Host name starts with</option>\n' +
+		'\t<option value="2">Host name ends with</option>\n' +
+		'\t<option value="3">Path starts with</option>\n' +
+		'\t<option value="4">Path ends with</option>\n' +
+		'</select>' +
+		'<b class="padding10">value</b>\n' +
+		'<input type="text" name="acl_value" class="form-control">\n' +
+		'<p style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">\n' +
+		'<b class="padding10">then</b>\n' +
+		'<select name="acl_then">\n' +
+		'\t<option selected>Choose then</option>\n' +
+		'\t<option value="5">Use backend</option>\n' +
+		'\t<option value="2">Redirect to</option>\n' +
+		'\t<option value="3">Allow</option>\n' +
+		'\t<option value="4">Deny</option>\n' +
+		'</select>\n' +
+		'<b class="padding10">value</b>\n' +
+		'<input type="text" name="acl_then_value" class="form-control" value="" title="Required if \"then\" is \"Use backend\" or \"Redirect\""></p>'
+	$("#listener_add_acl").click(function(){
+		$("#listener_acl").append(acl_option);
+		$("#listener_acl").find('option[value=5]').remove();
+		$( "select" ).selectmenu();
+		$('[name=acl_if]').selectmenu({width: 180});
+		$('[name=acl_then]').selectmenu({width: 180});
+	});
+	$("#frontend_add_acl").click(function(){
+		$("#frontend_acl").append(acl_option);
+		$( "select" ).selectmenu();
+		$('[name=acl_if]').selectmenu({width: 180});
+		$('[name=acl_then]').selectmenu({width: 180});
+	});
 });
 function resetProxySettings() {
 	$('[name=port]').val('');
@@ -1453,4 +1497,75 @@ function deleteList(list, color) {
 			}
 		});
 	}
+}
+function generateConfig(form_name) {
+	var frm = $('#'+form_name);
+	var input = $("<input>")
+		.attr("name", "generateconfig").val("1").attr("type", "hidden").attr("id", "generateconfig");
+	$('#'+form_name +' input[name=acl_then_value]').each(function(){
+		if (!$(this).val()){
+			$(this).val('IsEmptY')
+		}
+	});
+	frm.append(input);
+	$.ajax({
+		url: frm.attr('action'),
+		data: frm.serialize(),
+		type: frm.attr('method'),
+		success: function (data) {
+			$('#dialog-confirm-body').text(data);
+			$( "#dialog-confirm-cert" ).dialog({
+				resizable: false,
+				height: "auto",
+				width: 650,
+				modal: true,
+				title: "Generated config",
+				buttons: {
+					Ok: function() {
+						$( this ).dialog( "close" );
+					}
+				}
+			});
+		}
+	});
+	$("#generateconfig").remove();
+	$('#'+form_name +' input[name=acl_then_value]').each(function(){
+		if ($(this).val() == 'IsEmptY'){
+			$(this).val('')
+		}
+	});
+}
+function addProxy(form_name) {
+	var frm = $('#'+form_name);
+	$('#'+form_name +' input').each(function(){
+		if ($(this).val().length === 0){
+			$(this).val() = 'IsEmptY'
+		}
+	});
+	$.ajax({
+		url: frm.attr('action'),
+		data: frm.serialize(),
+		type: frm.attr('method'),
+		success: function( data ) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('error: ') != '-1' || data.indexOf('Fatal') != '-1') {
+				toastr.clear();
+				toastr.error(data);
+			} else if (data == '') {
+				toastr.clear();
+				toastr.error('error: Proxy cannot be empty');
+			} else {
+				toastr.clear();
+				toastr.success('Section: ' + data + 'has been added. Do not forget restart server');
+				var ip = frm.find('select[name=serv]').val();
+				localStorage.setItem('restart', ip);
+				resetProxySettings();
+			}
+		}
+	});
+	$('#'+form_name +' input[name=acl_then_value]').each(function(){
+		if ($(this).val() == 'IsEmptY'){
+			$(this).val('')
+		}
+	});
 }

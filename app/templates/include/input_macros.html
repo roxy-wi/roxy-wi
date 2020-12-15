@@ -15,13 +15,18 @@
 	<label for="{{id}}" title="{{title}}" class="{{id}}">{{desc}}</label><input name="{{name}}" type="checkbox" id="{{id}}" value="{{value|e}}" {{checked}} />
 {%- endmacro %}
 
-{%- macro select(id, values, name='', required='', first='', class='', selected='') -%}
+{%- macro select(id, values, name='', required='', first='', class='', selected='', disabled='true') -%}
 	{% if name == '' %}
 		{% set name = id %}
 	{% endif %}
+	{% if disabled == 'true' %}
+		{% set disabled = 'disabled' %}
+	{% else %}
+		{% set disabled = '' %}
+	{% endif %}
 	<select {{required}} name="{{name}}" id="{{id}}" class="{{class}}">
 		{% if first %}
-			<option disabled selected>{{first}}</option>
+			<option {{disabled}} selected>{{first}}</option>
 		{% endif %}
 		{% for v, des in values|dictsort(false, 'value') %}
 			{% if v == selected %}

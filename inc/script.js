@@ -165,8 +165,8 @@ window.onblur= function() {
 		} 
 	}
 };
-if(Cookies.get('restart')) {
-	var ip = Cookies.get('restart');
+if(localStorage.getItem('restart')) {
+	var ip = localStorage.getItem('restart');
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -181,9 +181,9 @@ if(Cookies.get('restart')) {
 				$("#apply_div").css('width', '850px');
 				if (cur_url[0] == "hapservers.py") {
 					$("#apply_div").css('width', '650px');
-					$("#apply_div").html("You made changes to the server: "+ip+". Changes will take effect only after<a id='"+ip+"' class='restart' title='Restart HAproxy service' onclick=\"confirmAjaxAction('stop', 'hap', '"+ip+"')\">restart</a><a href='#' title='close' id='apply_close' style='float: right'><b>X</b></a>");					
+					$("#apply_div").html("You have made changes to the server: "+ip+". Changes will take effect only after<a id='"+ip+"' class='restart' title='Restart HAproxy service' onclick=\"confirmAjaxAction('stop', 'hap', '"+ip+"')\">restart</a><a href='#' title='close' id='apply_close' style='float: right'><b>X</b></a>");
 				} else {
-					$("#apply_div").html("You made changes to the server: "+ip+". Changes will take effect only after restart. <a href='hapservers.py' title='Overview'>Go to the HAProxy Overview page and restart</a><a href='#' title='close' id='apply_close' style='float: right'><b>X</b></a>");
+					$("#apply_div").html("You have made changes to the server: "+ip+". Changes will take effect only after restart. <a href='hapservers.py' title='Overview'>Go to the HAProxy Overview page and restart</a><a href='#' title='close' id='apply_close' style='float: right'><b>X</b></a>");
 				}
 				$.getScript('/inc/overview.js');
 			}

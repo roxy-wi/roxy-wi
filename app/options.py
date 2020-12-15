@@ -1845,7 +1845,6 @@ if form.getvalue('updatessh'):
     if username is None:
         print(error_mess)
     else:
-
         fullpath = funct.get_config_var('main', 'fullpath')
 
         for sshs in sql.select_ssh(id=ssh_id):
@@ -2118,7 +2117,6 @@ if form.getvalue('nginxConnections'):
     if r.status_code == 200:
         bin_bout = [0, 0]
         for num, line in enumerate(r.text.split('\n')):
-            #bin_bout.append(line.encode(encoding='ISO-8859-1'))
             if num == 0:
                 bin_bout.append(line.split(' ')[2])
             if num == 2:
@@ -2303,13 +2301,13 @@ if form.getvalue('viewFirewallRules') is not None:
     cmd1 = ["sudo iptables -L IN_public_allow -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"]
     cmd2 = ["sudo iptables -L OUTPUT -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"]
 
-    input = funct.ssh_command(serv, cmd, raw=1)
+    input_chain = funct.ssh_command(serv, cmd, raw=1)
     IN_public_allow = funct.ssh_command(serv, cmd1, raw=1)
-    output = funct.ssh_command(serv, cmd2, raw=1)
+    output_chain = funct.ssh_command(serv, cmd2, raw=1)
 
     from jinja2 import Environment, FileSystemLoader
 
     env = Environment(loader=FileSystemLoader('templates'))
     template = env.get_template('ajax/firewall_rules.html')
-    template = template.render(input=input, IN_public_allow=IN_public_allow, output=output)
+    template = template.render(input=input_chain, IN_public_allow=IN_public_allow, output=output_chain)
     print(template)

@@ -242,7 +242,7 @@ $( function() {
 	}
 	$('#apply_close').click( function() {
 		$("#apply").css('display', 'none');
-		Cookies.remove('restart', { path: '' });
+		localStorage.removeItem('restart');
 	});
 	$( ".server-act-links" ).change(function() {
 		var id = $(this).attr('id').split('-');
@@ -270,8 +270,8 @@ function confirmAjaxAction(action, service, id) {
 				if(service == "hap") {
 					ajaxActionServers(action, id);
 					if(action == "restart" || action == "reload") {
-						if(Cookies.get('restart')) {
-							Cookies.remove('restart', { path: '' });
+						if(localStorage.getItem('restart')) {
+							localStorage.removeItem('restart');
 							$("#apply").css('display', 'none');
 						}
 					}
@@ -350,6 +350,28 @@ function showBytes(serv) {
 		type: "POST",
 		beforeSend: function() {
 			$("#show_bin_bout").html('<img class="loading_small_bin_bout" src="/inc/images/loading.gif" />');
+			$("#sessions").html('<img class="loading_small_bin_bout" src="/inc/images/loading.gif" />');
+		},
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if (data.indexOf('error:') != '-1') {
+				toastr.error(data);
+			} else {
+				$("#bin_bout").html(data);
+				$.getScript("/inc/fontawesome.min.js")
+			}
+		}
+	} );
+}
+function showNginxConnections(serv) {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			nginxConnections: serv,
+			token: $('#token').val()
+		},
+		type: "POST",
+		beforeSend: function() {
 			$("#sessions").html('<img class="loading_small_bin_bout" src="/inc/images/loading.gif" />');
 		},
 		success: function( data ) {

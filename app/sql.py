@@ -1488,7 +1488,7 @@ def select_metrics(serv, **kwargs):
 			date_from = "and date > now() - INTERVAL 720 minute and rowid % 9 = 0"
 		else:
 			date_from = "and date > now() - INTERVAL 30 minute"
-		sql = """ select * from metrics where serv = '{serv}' {date_from} order by `date` desc limit 60 """.format(serv=serv, date_from=date_from)
+		sql = """ select * from metrics where serv = '{serv}' {date_from} order by `date` desc """.format(serv=serv, date_from=date_from)
 	else:
 		if kwargs.get('time_range') == '60':
 			date_from = "and date > datetime('now', '-60 minutes', 'localtime') and rowid % 2 = 0"

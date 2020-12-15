@@ -12,6 +12,9 @@
 'option pgsql-check':'Check a PgSQL Service', 'option redis-check': 'Check a Redis Service',
 'option smtpchk':'Check a SMTP service'} %}
 
+{% set if_values = dict() %}
+{% set if_values = {'1':'Host name starts with','2':'Host name ends with','3':'Path starts with','4':'Path ends with'} %}
+
 <script src="/inc/add.js"></script>
 <div id="tabs">
 	<ul>
@@ -29,7 +32,7 @@
 	<ul id='browse_histroy'></ul>
 	{% include 'include/add_proxy.html' %}
 	<div id="listen">
-		<form name="add-listener" action="/app/add.py" method="post">
+		<form name="add-listener" id="add-listener" action="/app/add.py" method="post">
 			<table class="add-table">
 				<caption><h3>Add listen</h3></caption>
 				<tr>
@@ -110,6 +113,31 @@
 						<span id="listener_checks_http" style="display: none;">
 							URI path for checking: {{ input('listener_checks_http_path', name='checks_http_path', value='/',  title="URI for checking e.g. /check") }}
 							Domain name: {{ input('listener_checks_http_domain', name='checks_http_domain', placeholder='domain.com',  title="Domain name for checking e.g. domain.com") }}
+						</span>
+					</td>
+				</tr>
+				<tr class="advance">
+					<td class="addName" title="Access control list">ACL: </td>
+					<td class="addOption">
+						<span title="Add ACL" id="add_listener_acl" class="link add-server"></span>
+						<div id="listener_acl" style="display: none;">
+							<span id="listener_acl_for_cloning">
+								<b class="padding10">if</b>
+								{{ select('listener_acl_if', name='acl_if', values=if_values, first='Choose if', class='force_close', disabled=false) }}
+								<b class="padding10">value</b>
+								{{ input('listener_acl_value', name="acl_value") }}
+								<p style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">
+									<b class="padding10">then</b>
+									{% set values = dict() %}
+									{% set values = {'2':'Redirect to','3':'Allow','4':'Deny'} %}
+									{{ select('listener_acl_then', name='acl_then', values=values, first='Choose action', class='force_close', disabled=false) }}
+									<b class="padding10">value</b>
+									{{ input('frontend_acl_then_value', name='acl_then_value', title="Required if \'then\' is \'Use backend\' or \'Redirect\'") }}
+								</p>
+							</span>
+						</div>
+						<span>
+							<a class="link add-server" id="listener_add_acl" title="Add ACL" style="cursor: pointer; display: none;"></a>
 						</span>
 					</td>
 				</tr>
@@ -222,7 +250,10 @@
 				</tr>
 				<tr>
 					<td class="addButton">
-						<button type="submit" value="submit">Add Listen</button>
+						<a class="ui-button ui-widget ui-corner-all" title="Add Listen" onclick="addProxy('add-listener')">Add Listen</a>
+					</td>
+					<td class="addButton">
+						<a class="ui-button ui-widget ui-corner-all" title="Generate config and show it" onclick="generateConfig('add-listener')">Generate config</a>
 					</td>
 				</tr>
 			</table>
@@ -232,7 +263,7 @@
 		<!-- Second tabs -->
 		
 	<div id="frontend">
-		<form name="add-frontend" action="/app/add.py" method="post">
+		<form name="add-frontend" id="add-frontend" action="/app/add.py" method="post">
 		<table>
 			<caption><h3>Add frontend</h3></caption>
 			<tr>
@@ -298,11 +329,36 @@
 				</td>
 			</tr>
 			<tr class="advance">
+				<td class="addName" title="Access control list">ACL: </td>
+				<td class="addOption">
+					<span title="Add ACL" id="add_frontend_acl" class="link add-server"></span>
+					<div id="frontend_acl" style="display: none;">
+						<span id="frontend_acl_for_cloning">
+							<b class="padding10">if</b>
+							{{ select('frontend_acl_if', name='acl_if', values=if_values, first='Choose if', class='force_close', disabled=false) }}
+							<b class="padding10">value</b>
+							{{ input('frontend_acl_value', name='acl_value') }}
+							<p style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">
+								<b class="padding10">then</b>
+								{% set values = dict() %}
+								{% set values = {'5':'Use backend','2':'Redirect to','3':'Allow','4':'Deny'} %}
+								{{ select('frontend_acl_then', name='acl_then', values=values, first='Choose action', class='force_close', disabled=false) }}
+								<b class="padding10">value</b>
+								{{ input('frontend_acl_then_value', name='acl_then_value', title="Required if \'then\' is \'Use backend\' or \'Redirect\'") }}
+							</p>
+						</span>
+					</div>
+					<span>
+						<a class="link add-server" id="frontend_add_acl" title="Add ACL" style="cursor: pointer; display: none;"></a>
+					</span>
+				</td>
+			</tr>
+			<tr class="advance">
 				<td class="addName"><span title="Cache support start 1.8 and latter">Web acceleration(?):</span></td>
 				<td class="addOption">
 					<span class="controlgroup">
-						{{ checkbox('compression2', title='Enable Compression', value='1', desc='Compression') }}
-						{{ checkbox('cache2', title='Enable cache', value='2', desc='Cache') }}
+						{{ checkbox('compression2', name="compression", title='Enable Compression', value='1', desc='Compression') }}
+						{{ checkbox('cache2', name="cache", title='Enable cache', value='2', desc='Cache') }}
 						{{ checkbox('ssl_offloading1', title='Enable SSL Offloading', desc='SSL Offloading') }}
 					</span>
 				</td>
@@ -363,7 +419,10 @@
 			</tr>
 			<tr>
 				<td class="addButton">
-					<button type="submit">Add Frontend</button>
+					<a class="ui-button ui-widget ui-corner-all" title="Add Frontend" onclick="addProxy('add-frontend')">Add Frontend</a>
+				</td>
+				<td class="addButton">
+					<a class="ui-button ui-widget ui-corner-all" title="Generate config and show it" onclick="generateConfig('add-frontend')">Generate config</a>
 				</td>
 			</tr>
 		</table>
@@ -373,7 +432,7 @@
 				<!-- Third tabs -->
 		
 	<div id="backend">
-		<form name="add-backend" action="/app/add.py" method="post">
+		<form name="add-backend" id="add-backend" action="/app/add.py" method="post">
 		<table>
 			<caption><h3>Add backend</h3></caption>
 			<tr>
@@ -441,8 +500,8 @@
 				<td class="addName"><span title="Cache support start 1.8 and latter">Web acceleration(?):</span></td>
 				<td class="addOption">
 					<span class="controlgroup">
-						{{ checkbox('compression3', title='Enable Compression', value='1', desc='Compression') }}
-						{{ checkbox('cache3', title='Enable cache', value='2', desc='Cache') }}
+						{{ checkbox('compression3', name="compression", title='Enable Compression', value='1', desc='Compression') }}
+						{{ checkbox('cache3', name="cache", title='Enable cache', value='2', desc='Cache') }}
 						{{ checkbox('ssl_offloading2', title='Enable SSL Offloading', desc='SSL Offloading') }}
 					</span>
 				</td>
@@ -530,7 +589,10 @@
 			</tr>
 			<tr>
 				<td class="addButton">
-					<button type="submit" value="" name="" class="btn btn-default">Add Backend</button>
+					<a class="ui-button ui-widget ui-corner-all" title="Add Backend" onclick="addProxy('add-backend')">Add Backend</a>
+				</td>
+				<td class="addButton">
+					<a class="ui-button ui-widget ui-corner-all" title="Generate config and show it" onclick="generateConfig('add-backend')">Generate config</a>
 				</td>
 			</tr>
 		</table>
@@ -733,7 +795,7 @@
 		</div>
 	</div>
 	<div id="userlist">
-		<form name="add-userlist" action="/app/add.py" method="post">
+		<form name="add-userlist" id="add-userlist" action="/app/add.py" method="post">
 		<table>
 			<caption><h3>Add Userlist</h3></caption>
 			<tr>
@@ -786,10 +848,13 @@
 				</td>
 			</tr>
 			<tr>
-			<td class="addButton">
-				<button type="submit" value="" name="" class="btn btn-default">Add Userlist</button>
-			</td>
-		</tr>
+				<td class="addButton">
+					<a class="ui-button ui-widget ui-corner-all" title="Add Userlist" onclick="addProxy('add-userlist')">Add Userlist</a>
+				</td>
+				<td class="addButton">
+					<a class="ui-button ui-widget ui-corner-all" title="Generate config and show it" onclick="generateConfig('add-userlist')">Generate config</a>
+				</td>
+			</tr>
 		</table>
 		</form>
 		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
@@ -870,7 +935,7 @@
 	</div>
 	{% include 'include/del_confirm.html' %}
 	<div id="dialog-confirm-cert" title="View certificate " style="display: none;">
-		<center><pre id="dialog-confirm-body"></pre></center>
+		<pre id="dialog-confirm-body"></pre>
 	</div>
 	<input type="hidden" id="group" value="{{ group }}">
 </div>
