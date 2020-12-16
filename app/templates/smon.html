@@ -15,14 +15,14 @@
 	<br />
 	<h3>SMON service is not run. Run the SMON service <a href="users.py#services" title="HAProxy-WI services" target="_blank">here</a> before use</h3>
 </center>
-{% elif smon|length == 0 and action != 'add' and action != 'history' %}
+{% elif smon|length == 0 and action != 'add' and action != 'history' and action != 'checker_history' %}
 <center>
 	<br />
 	<h3>You do not have added servers in SMON service. Create you first server <a href="smon.py?action=add" title="HAProxy-WI SMON" target="_blank">here</a> before use</h3>
 	<br />
 	<iframe width="860" height="515" src="https://www.youtube.com/embed/bJtRJeHG5B0" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 </center>
-{% elif smon|length == 0 and action != 'add' and action == 'history' %}
+{% elif smon|length == 0 and action != 'add' and (action == 'history' or action == 'checker_history') %}
 <center>
 	<br />
 	<h3>There are not any events yet. Check if there are any checks added <a href="smon.py?action=add" title="HAProxy-WI SMON" target="_blank">here</a></h3>
