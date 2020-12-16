@@ -22,10 +22,16 @@
 	<br />
 	<iframe width="860" height="515" src="https://www.youtube.com/embed/bJtRJeHG5B0" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 </center>
-{% elif smon|length == 0 and action != 'add' and (action == 'history' or action == 'checker_history') %}
+{% elif smon|length == 0 and action != 'add' and action == 'history' %}
 <center>
 	<br />
 	<h3>There are not any events yet. Check if there are any checks added <a href="smon.py?action=add" title="HAProxy-WI SMON" target="_blank">here</a></h3>
+	<br />
+</center>
+{% elif smon|length == 0 and action != 'add' and action == 'checker_history' %}
+<center>
+	<br />
+	<h3>There are not any events yet. Check if there are any Checker are enabled on the "HAProxy Overview" or on "Nginx Overview" pages</h3>
 	<br />
 </center>
 {% else %}
