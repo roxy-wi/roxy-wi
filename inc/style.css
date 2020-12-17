@@ -571,8 +571,8 @@ ul{
 }
 @media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm) {
 	.ui-checkboxradio-label {
-		padding-bottom: 0.6em !important;
-		padding-top: 0.6em !important;
+		padding-bottom: 0.4em !important;
+		padding-top: 0.4em !important;
 	}
 }
 @-moz-document url-prefix() {

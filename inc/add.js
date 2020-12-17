@@ -1537,9 +1537,9 @@ function generateConfig(form_name) {
 }
 function addProxy(form_name) {
 	var frm = $('#'+form_name);
-	$('#'+form_name +' input').each(function(){
+	$('#'+form_name +' input[name=acl_then_value]').each(function(){
 		if ($(this).val().length === 0){
-			$(this).val() = 'IsEmptY'
+			$(this).val('IsEmptY')
 		}
 	});
 	$.ajax({

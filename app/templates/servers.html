@@ -1,11 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select %}
-<style>
-.container {
-	margin-right: 0;
-}
-</style>
 <script src="/inc/users.js"></script>
 {% include 'include/del_confirm.html' %}
 <input type="hidden" id="new-group" name="new-group" value="{{ group }}">
@@ -181,11 +176,20 @@
 	});
 </script>
 <style>
-.ui-selectmenu-button.ui-button {
-    width: 10em;
-}
-.checkbox {
-	width: 90px;
-}
+	.ui-selectmenu-button.ui-button {
+		width: 10em;
+	}
+	.checkbox {
+		width: 90px;
+	}
+	.container {
+		margin-right: 0;
+	}
+	@media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm) {
+		.ui-checkboxradio-label {
+			padding-bottom: 0.6em !important;
+			padding-top: 0.6em !important;
+		}
+	}
 </style>
 {% endblock %}
