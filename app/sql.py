@@ -2081,8 +2081,12 @@ def update_smon(id, ip, port, body, telegram, group, desc, en):
 
 def alerts_history(service, user_group):
 	con, cur = get_cur()
+	if user_group == 1:
+		sql_user_group = ""
+	else:
+		sql_user_group = "and user_group = '" + str(user_group) + "'"
 	sql = """ select message, level, ip, port, date from alerts 
-	where service = '%s' and user_group = '%s' order by date desc; """ % (service, user_group)
+	where service = '%s' %s order by date desc; """ % (service, sql_user_group)
 	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
@@ -2322,6 +2326,17 @@ def return_firewall(serv):
 	cur.close()
 	con.close()
 	return True if firewall == 1 else False
+
+
+def select_geoip_country_codes():
+	con, cur = get_cur()
+	sql = """ select * from geoip_codes"""
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		funct.out_error(e)
+	else:
+		return cur.fetchall()
 
 
 form = funct.form

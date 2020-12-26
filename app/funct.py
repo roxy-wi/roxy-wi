@@ -186,7 +186,6 @@ def is_admin(**kwargs):
 		return True if role <= level else False
 	except Exception:
 		return False
-		pass
 
 
 def page_for_admin(**kwargs):
@@ -477,7 +476,27 @@ def get_stick_table(table):
 	output, stderr = subprocess_execute(cmd)
 	
 	return tables_head, output
-	
+
+
+def show_installation_output(error, output, service):
+	if error:
+		if "WARNING" not in error:
+			logging('localhost', error, haproxywi=1)
+			print('error: '+error)
+	else:
+		for l in output:
+			if "msg" in l or "FAILED" in l:
+				try:
+					l = l.split(':')[1]
+					l = l.split('"')[1]
+					print(l)
+					break
+				except Exception:
+					print(output)
+					break
+		else:
+			print('success: ' + service + ' has been installed')
+
 
 def install_haproxy(serv, **kwargs):
 	import sql
@@ -518,24 +537,9 @@ def install_haproxy(serv, **kwargs):
 				" HOST=" + serv + " USER=" + ssh_user_name + " PASS=" + ssh_user_password + " KEY=" + ssh_key_name]
 				
 	output, error = subprocess_execute(commands[0])
-	
-	if error:
-		logging('localhost', error, haproxywi=1)
-		print('error: '+error)
-	else:
-		for l in output:
-			if "msg" in l or "FAILED" in l:
-				try:
-					l = l.split(':')[1]
-					l = l.split('"')[1]
-					print(l+"<br>")
-					break
-				except Exception:
-					print(output)
-					break
-		else:
-			print('success: HAProxy was installed<br>')
-			
+
+	show_installation_output(error, output, 'HAProxy')
+
 	os.system("rm -f %s" % script)
 	sql.update_haproxy(serv)
 	
@@ -603,23 +607,8 @@ def install_nginx(serv):
 				" HOST=" + serv + " USER=" + ssh_user_name + " PASS=" + ssh_user_password + " KEY=" + ssh_key_name]
 				
 	output, error = subprocess_execute(commands[0])
-	
-	if error:
-		logging('localhost', error, haproxywi=1)
-		print('error: '+error)
-	else:
-		for l in output:
-			if "msg" in l or "FAILED" in l:
-				try:
-					l = l.split(':')[1]
-					l = l.split('"')[1]
-					print(l+"<br>")
-					break
-				except Exception:
-					print(output)
-					break
-		else:
-			print('success: Nginx was installed<br>')
+
+	show_installation_output(error, output, 'Nginx')
 			
 	os.system("rm -f %s" % script)
 	sql.update_nginx(serv)

@@ -960,22 +960,7 @@ if form.getvalue('master'):
 
     output, error = funct.subprocess_execute(commands[0])
 
-    if error:
-        funct.logging('localhost', error, haproxywi=1)
-        print('error: ' + error)
-    else:
-        for l in output:
-            if "msg" in l or "FAILED" in l:
-                try:
-                    l = l.split(':')[1]
-                    l = l.split('"')[1]
-                    print(l + "<br>")
-                    break
-                except Exception:
-                    print(output)
-                    break
-        else:
-            print('success: Master Keepalived was installed<br>')
+    funct.show_installation_output(error, output, 'Master Keepalived')
 
     ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(slave)
 
@@ -992,22 +977,7 @@ if form.getvalue('master'):
 
     output, error = funct.subprocess_execute(commands[0])
 
-    if error:
-        funct.logging('localhost', error, haproxywi=1)
-        print('error: ' + error)
-    else:
-        for l in output:
-            if "msg" in l or "FAILED" in l:
-                try:
-                    l = l.split(':')[1]
-                    l = l.split('"')[1]
-                    print(l + "<br>")
-                    break
-                except Exception:
-                    print(output)
-                    break
-        else:
-            print('success: Slave Keepalived was installed<br>')
+    funct.show_installation_output(error, output, 'Slave Keepalived')
 
     os.system("rm -f %s" % script)
     sql.update_server_master(master, slave)
@@ -1045,22 +1015,7 @@ if form.getvalue('masteradd'):
 
     output, error = funct.subprocess_execute(commands[0])
 
-    if error:
-        funct.logging('localhost', error, haproxywi=1)
-        print('error: ' + error)
-    else:
-        for l in output:
-            if "msg" in l or "FAILED" in l:
-                try:
-                    l = l.split(':')[1]
-                    l = l.split('"')[1]
-                    print(l + "<br>")
-                    break
-                except:
-                    print(output)
-                    break
-        else:
-            print('success: Master VRRP address has been added<br>')
+    funct.show_installation_output(error, output, 'Master VRRP address')
 
     ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(slave)
 
@@ -1078,22 +1033,7 @@ if form.getvalue('masteradd'):
 
     output, error = funct.subprocess_execute(commands[0])
 
-    if error:
-        funct.logging('localhost', error, haproxywi=1)
-        print('error: ' + error)
-    else:
-        for l in output:
-            if "msg" in l or "FAILED" in l:
-                try:
-                    l = l.split(':')[1]
-                    l = l.split('"')[1]
-                    print(l + "<br>")
-                    break
-                except:
-                    print(output)
-                    break
-        else:
-            print('success: Slave VRRP address has been added<br>')
+    funct.show_installation_output(error, output, 'Slave VRRP address')
 
     os.system("rm -f %s" % script)
 
@@ -1170,22 +1110,7 @@ if form.getvalue('haproxy_exp_install'):
 
     output, error = funct.subprocess_execute(commands[0])
 
-    if error:
-        funct.logging('localhost', error, haproxywi=1)
-        print('error: ' + error)
-    else:
-        for l in output:
-            if "msg" in l or "FAILED" in l:
-                try:
-                    l = l.split(':')[1]
-                    l = l.split('"')[1]
-                    print(l + "<br>")
-                    break
-                except Exception:
-                    print(output)
-                    break
-        else:
-            print('success: HAProxy exporter was installed<br>')
+    funct.show_installation_output(error, output, 'HAProxy exporter')
 
     os.system("rm -f %s" % script)
 
@@ -1220,22 +1145,7 @@ if form.getvalue('nginx_exp_install'):
 
     output, error = funct.subprocess_execute(commands[0])
 
-    if error:
-        funct.logging('localhost', error, haproxywi=1)
-        print('error: ' + error)
-    else:
-        for l in output:
-            if "msg" in l or "FAILED" in l:
-                try:
-                    l = l.split(':')[1]
-                    l = l.split('"')[1]
-                    print(l + "<br>")
-                    break
-                except Exception:
-                    print(output)
-                    break
-        else:
-            print('success: Nginx exporter was installed<br>')
+    funct.show_installation_output(error, output, 'Nginx exporter')
 
     os.system("rm -f %s" % script)
 
@@ -2311,3 +2221,10 @@ if form.getvalue('viewFirewallRules') is not None:
     template = env.get_template('ajax/firewall_rules.html')
     template = template.render(input=input_chain, IN_public_allow=IN_public_allow, output=output_chain)
     print(template)
+
+if form.getvalue('geoipserv') is not None:
+    serv = form.getvalue('geoipserv')
+    haproxy_dir = sql.get_setting('haproxy_dir')
+
+    cmd = ["ls " + haproxy_dir + "/geoip/"]
+    print(funct.ssh_command(serv, cmd))
