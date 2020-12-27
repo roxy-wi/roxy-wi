@@ -40,6 +40,9 @@
         src: /var/www/haproxy-wi/app/scripts/ansible/roles/renew_letsencrypt.j2
         dest: /etc/haproxy/renew_letsencrypt.sh
         mode: '0755'
+      ignore_errors: yes
+      failed_when: false
+      no_log: True
 
     - name: Creates cron jobs
       cron:
