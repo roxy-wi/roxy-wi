@@ -29,11 +29,11 @@
       failed_when: false
       no_log: True
 
-#    - name: Get cert
-#      command: certbot certonly --standalone -d "{{DOMAIN}}" --non-interactive --agree-tos --email "{{EMAIL}}" --http-01-port=8888
+    - name: Get cert
+      command: certbot certonly --standalone -d "{{DOMAIN}}" --non-interactive --agree-tos --email "{{EMAIL}}" --http-01-port=8888
 
     - name: Combine into pem file
-      shell: cat /etc/letsencrypt/live/"{{DOMAIN}}"/fullchain.pem /etc/letsencrypt/live/"{{DOMAIN}}"/privkey.pem > "{{SSL_PATH}}"/"{{DOMAIN}}".pem
+      shell: cat /etc/letsencrypt/live/{{DOMAIN}}/fullchain.pem /etc/letsencrypt/live/{{DOMAIN}}/privkey.pem > "{{SSL_PATH}}"/"{{DOMAIN}}".pem
 
     - name: Copy renew script
       template:
