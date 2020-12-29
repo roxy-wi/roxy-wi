@@ -1,4 +1,4 @@
-# ![alt text](inc/images/logo_menu.png "Logo")
+# ![alt text](https://haproxy-wi.org/inc/images/logo_menu.png "Logo")
 Web interface(user-friendly web GUI, alerting, monitoring and secure) for managing HAProxy, Nginx and Keepalived servers. Leave your [feedback](https://github.com/Aidaho12/haproxy-wi/issues)
 
 # Get involved
