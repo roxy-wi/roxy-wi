@@ -29,17 +29,20 @@
       failed_when: false
       no_log: True
 
-#    - name: Get cert
-#      command: certbot certonly --standalone -d "{{DOMAIN}}" --non-interactive --agree-tos --email "{{EMAIL}}" --http-01-port=8888
+    - name: Get cert
+      command: certbot certonly --standalone -d "{{DOMAIN}}" --non-interactive --agree-tos --email "{{EMAIL}}" --http-01-port=8888
 
     - name: Combine into pem file
-      shell: cat /etc/letsencrypt/live/"{{DOMAIN}}"/fullchain.pem /etc/letsencrypt/live/"{{DOMAIN}}"/privkey.pem > "{{SSL_PATH}}"/"{{DOMAIN}}".pem
+      shell: cat /etc/letsencrypt/live/{{DOMAIN}}/fullchain.pem /etc/letsencrypt/live/{{DOMAIN}}/privkey.pem > "{{SSL_PATH}}"/"{{DOMAIN}}".pem
 
     - name: Copy renew script
       template:
         src: /var/www/haproxy-wi/app/scripts/ansible/roles/renew_letsencrypt.j2
         dest: /etc/haproxy/renew_letsencrypt.sh
         mode: '0755'
+      ignore_errors: yes
+      failed_when: false
+      no_log: True
 
     - name: Creates cron jobs
       cron:
