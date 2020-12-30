@@ -7,17 +7,17 @@
 	<tr class="overviewHead">
 		<td class="padding10 first-collumn">Master</td>
 		<td>Slave</td>
-		<td><span title="Interface for VRRP addreess">Interface(?)</span></td>
+		<td><span title="Interface for VRRP address">Interface(?)</span></td>
 		<td>VRRP IP</td>
-		<td><span title="HAProxy-WI will try install HAProxy">HAProxy(?)</span></td>
-		<td><span title="HAProxy-WI will try install Nginx">Nginx(?)</span></td>
+		<td><span title="HAProxy-WI will try to install HAProxy">HAProxy(?)</span></td>
+		<td><span title="HAProxy-WI will try to install Nginx">Nginx(?)</span></td>
 		<td>SYN flood protect</td>
 		<td></td>
 	</tr>
 	<tr>
 		<td class="padding10 first-collumn">
 			<select id="master">
-				<option disable selected>Choose master</option>
+				<option disabled selected>Choose master</option>
 				{% for select in selects %}
 					<option value="{{ select.2 }}">{{ select.1 }}</option>
 				{% endfor %}
@@ -25,7 +25,7 @@
 		</td>
 		<td>
 			<select id="slave">
-				<option disable selected>Choose master</option>
+				<option disabled selected>Choose master</option>
 				{% for select in selects %}
 					<option value="{{ select.2 }}">{{ select.1 }}</option>
 				{% endfor %}
@@ -47,7 +47,7 @@
 	<tr class="overviewHead">
 		<td class="padding10 first-collumn">Master</td>
 		<td>Slave</td>
-		<td><span title="Interface for VRRP addreess">Interface(?)</span></td>
+		<td><span title="Interface for VRRP address">Interface(?)</span></td>
 		<td>VRRP IP</td>
 		<td><span title="If checked HAProxy-WI will restart Keepalived">Restart(?)</span></td>
 		<td style="width: 23%;"></td>
@@ -57,7 +57,7 @@
 	<tr>
 		<td class="padding10 first-collumn">
 			<select id="master-add">
-				<option disable selected>Choose master</option>
+				<option disabled selected>Choose master</option>
 				{% for select in selects %}
 					<option value="{{ select.2 }}">{{ select.1 }}</option>
 				{% endfor %}
@@ -65,7 +65,7 @@
 		</td>
 		<td>
 			<select id="slave-add">
-				<option disable selected>Choose master</option>
+				<option disabled selected>Choose master</option>
 				{% for select in selects %}
 					<option value="{{ select.2 }}">{{ select.1 }}</option>
 				{% endfor %}
@@ -82,6 +82,9 @@
 	</tr>
 </table>
 <div id="ajax"></div>
+<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+	Read <a href="https://haproxy-wi.org/howto.py?howto=ha_cluster" title="How to create high available cluster" target="_blank">How to create high available cluster</a>
+</div>
 <script>
 $( function() {
 	$( "select" ).selectmenu({
