@@ -1079,15 +1079,20 @@ $( function() {
 			$("#backend_checks_http_domain").removeAttr('required');
 		}
 	});
+	$( "#add_listener_acl" ).on( "click", function() {
+		$( "#listener_acl" ).show();
+		$( "#listener_add_acl" ).show();
+		$( "#add_listener_acl" ).hide();
+	} );
 	$( "#add_frontend_acl" ).on( "click", function() {
 		$( "#frontend_acl" ).show();
 		$( "#frontend_add_acl" ).show();
 		$( "#add_frontend_acl" ).hide();
 	} );
-	$( "#add_listener_acl" ).on( "click", function() {
-		$( "#listener_acl" ).show();
-		$( "#listener_add_acl" ).show();
-		$( "#add_listener_acl" ).hide();
+	$( "#add_backend_acl" ).on( "click", function() {
+		$( "#backend_acl" ).show();
+		$( "#backend_add_acl" ).show();
+		$( "#add_backend_acl" ).hide();
 	} );
 	var acl_option = '<b class="padding10">if</b>\n' +
 		'<select name="acl_if">\n' +
@@ -1119,6 +1124,12 @@ $( function() {
 	});
 	$("#frontend_add_acl").click(function(){
 		$("#frontend_acl").append(acl_option);
+		$( "select" ).selectmenu();
+		$('[name=acl_if]').selectmenu({width: 180});
+		$('[name=acl_then]').selectmenu({width: 180});
+	});
+	$("#backend_add_acl").click(function(){
+		$("#backend_acl").append(acl_option);
 		$( "select" ).selectmenu();
 		$('[name=acl_if]').selectmenu({width: 180});
 		$('[name=acl_then]').selectmenu({width: 180});
