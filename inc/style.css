@@ -805,6 +805,9 @@ label {
 	height: 80px;
 	width: 390px;
 }
+.add_proxy {
+	width: 380px;
+}
 .server-act-links {
 	margin-left: -2px;
 }

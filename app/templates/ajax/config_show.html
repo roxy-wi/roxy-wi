@@ -171,6 +171,16 @@
 				</span><div>
 				{% continue %}
 			{% endif %}
+			{% if line.startswith('http-errors') %}
+				</div><span class="param">{{ line }}
+					{% if role %}
+						<span class="accordion-link">
+							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+						</span>
+					{% endif %}
+				</span><div>
+			{% continue %}
+			{% endif %}
 			{% if "acl" in line or "option" in line or "server" in line %}
 				{% if "timeout" not in line and "default-server" not in line and "#use_backend" not in line and "#" not in line%}
 					<span class="numRow">

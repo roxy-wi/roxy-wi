@@ -1112,7 +1112,24 @@ listHistroy()
 function changeCurrentGroupF(){
 	Cookies.remove('group');
 	Cookies.set('group', $('#newCurrentGroup').val(), { expires: 365, path: '/app', samesite: 'strict', secure: 'true' });
-	location.reload(); 
+	$.ajax( {
+		url: "options.py",
+		data: {
+			changeUserCurrentGroupId: $('#newCurrentGroup').val(),
+			changeUserGroupsUser: Cookies.get('uuid'),
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			if (data.indexOf('error: ') != '-1') {
+				toastr.error(data);
+			} else {
+				toastr.clear();
+				location.reload();
+			}
+		}
+	} );
+
 }
 function sort_by_status() {
 	$('<div id="err_services" style="clear: both;"></div>').appendTo('.main');

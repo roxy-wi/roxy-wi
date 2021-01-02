@@ -20,6 +20,10 @@
 	padding-bottom: 8px;
 	margin-bottom: -20px !important;
 }
+.ui-checkboxradio-label {
+	padding-bottom: 5px !important;
+	padding-top: 5px !important;
+}
 </style>
 <script>
 	var ip = []
@@ -82,7 +86,11 @@
 						{% endfor %}
 					{% endif %}
 					showOverviewServer('{{s.1}}', '{{s.2}}', '{{s.0}}', '{{service}}');
-					showBytes('{{ s.2 }}')
+					{% if service == 'nginx' %}
+						showNginxConnections('{{ s.2 }}')
+					{% else %}
+						showBytes('{{ s.2 }}')
+					{% endif %}
 				}
 				showMetrics();
 				$( function() {
@@ -227,17 +235,15 @@
 			{% if service != 'nginx' %}
 				<a href="/app/config.py?serv={{s.2}}&showMap" class="ui-button ui-widget ui-corner-all" title="Show map">Map</a>
 			{% endif %}
-			<a href="/app/viewsttats.py?service={{service}}&serv={{s.2}}" class="ui-button ui-widget ui-corner-all" title="View stat">Stat</a>
-			<a href="/app/logs.py?service={{service}}&serv={{s.2}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" class="ui-button ui-widget ui-corner-all" title="View log">Log</a>	
-				{% if role <= 2 %}
-					<a href="/app/versions.py?service={{service}}&serv={{s.2}}&open=open" class="ui-button ui-widget ui-corner-all">Versions</a>	
-				{% endif %}
+			<a href="/app/viewsttats.py?service={{service}}&serv={{s.2}}" class="ui-button ui-widget ui-corner-all" title="View stat">Stats</a>
+			<a href="/app/logs.py?service={{service}}&serv={{s.2}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" class="ui-button ui-widget ui-corner-all" title="View log">Log</a>
+			{% if role <= 2 %}
+				<a href="/app/versions.py?service={{service}}&serv={{s.2}}&open=open" class="ui-button ui-widget ui-corner-all">Versions</a>
+			{% endif %}
 			</div>
 		</div>
 		{% if serv %}
-			{% if service == 'haproxy' %}
-				<div id="bin_bout"></div>
-			{% endif %}
+			<div id="bin_bout"></div>
 			<div id="ajax-server-{{s.0}}" class="ajax-server"></div>
 			<div class="div-server div-backends">
 				<div class="server-name backends">

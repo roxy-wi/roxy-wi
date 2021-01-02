@@ -31,14 +31,14 @@ def get_cur():
 		return con, cur
 
 
-def add_user(user, email, password, role, activeuser):
+def add_user(user, email, password, role, activeuser, group):
 	con, cur = get_cur()
 	if password != 'aduser':
-		sql = """INSERT INTO user (username, email, password, role, activeuser) 
-		VALUES ('%s', '%s', '%s', '%s', '%s')""" % (user, email, funct.get_hash(password), role, activeuser)
+		sql = """INSERT INTO user (username, email, password, role, activeuser, 'groups') 
+		VALUES ('%s', '%s', '%s', '%s', '%s', '%s')""" % (user, email, funct.get_hash(password), role, activeuser, group)
 	else:
-		sql = """INSERT INTO user (username, email, role, ldap_user, activeuser) 
-		VALUES ('%s', '%s', '%s', '1', '%s')""" % (user, email, role, activeuser)
+		sql = """INSERT INTO user (username, email, role, ldap_user, activeuser, 'groups') 
+		VALUES ('%s', '%s', '%s', '1', '%s')""" % (user, email, role, activeuser, group)
 	try:
 		cur.execute(sql)
 		con.commit()
@@ -98,6 +98,25 @@ def delete_user_groups(id):
 	con, cur = get_cur()
 	sql = """delete from user_groups
 			where user_id = '%s'""" % (id)
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
+		cur.close()
+		con.close()
+		return False
+	else:
+		cur.close()
+		con.close()
+		return True
+
+
+def update_user_current_groups(groups, user_uuid):
+	con, cur = get_cur()
+	user_id = get_user_id_by_uuid(user_uuid)
+	sql = """update user set groups = '%s' where id = '%s'""" % (groups, user_id)
 	try:
 		cur.execute(sql)
 		con.commit()
@@ -799,7 +818,6 @@ def get_dick_permit(**kwargs):
 		con.close()
 	else:
 		print('Atata!')
-
 
 
 def is_master(ip, **kwargs):

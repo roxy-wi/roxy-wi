@@ -45,11 +45,20 @@ if form.getvalue('checkSshConnect') is not None and serv is not None:
 if form.getvalue('getcert') is not None and serv is not None:
     cert_id = form.getvalue('getcert')
     cert_path = sql.get_setting('cert_path')
-    commands = ["cat " + cert_path + "/" + cert_id]
+    commands = ["openssl x509 -in " + cert_path + "/" + cert_id + " -text"]
     try:
         funct.ssh_command(serv, commands, ip="1")
     except Exception as e:
-        print('error: Can not connect to the server ' + e.args[0])
+        print('error: Cannot connect to the server ' + e.args[0])
+
+if form.getvalue('delcert') is not None and serv is not None:
+    cert_id = form.getvalue('delcert')
+    cert_path = sql.get_setting('cert_path')
+    commands = ["sudo rm -f " + cert_path + "/" + cert_id]
+    try:
+        funct.ssh_command(serv, commands, ip="1")
+    except Exception as e:
+        print('error: Cannot delete the certificate ' + e.args[0])
 
 if serv and form.getvalue('ssl_cert'):
     cert_local_dir = os.path.dirname(os.getcwd()) + "/" + sql.get_setting('ssl_local_path')
@@ -1534,7 +1543,7 @@ if form.getvalue('newuser') is not None:
 
     if funct.check_user_group():
         if funct.is_admin(level=role_id):
-            if sql.add_user(new_user, email, password, role, activeuser):
+            if sql.add_user(new_user, email, password, role, activeuser, group):
                 from jinja2 import Environment, FileSystemLoader
 
                 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
@@ -1885,6 +1894,15 @@ if form.getvalue('changeUserGroupId') is not None:
             sql.update_user_groups(groups=group[0], id=group_id)
 
     funct.logging('localhost', ' has upgraded groups for user: ' + user, haproxywi=1, login=1)
+
+if form.getvalue('changeUserCurrentGroupId') is not None:
+    group_id = form.getvalue('changeUserCurrentGroupId')
+    user_uuid = form.getvalue('changeUserGroupsUser')
+
+    if sql.update_user_current_groups(group_id, user_uuid):
+        print('Ok')
+    else:
+        print('error: Cannot change group')
 
 if form.getvalue('getcurrentusergroup') is not None:
     import http.cookies

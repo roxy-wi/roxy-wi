@@ -354,8 +354,9 @@ def get_sections(config, **kwargs):
 					line.startswith('#HideBlockStart') or
 					line.startswith('peers') or
 					line.startswith('resolvers') or
-					line.startswith('userlist')
-					):		
+					line.startswith('userlist') or
+					line.startswith('http-errors')
+					):
 					line = line.strip()
 					return_config.append(line)
 					
@@ -387,7 +388,8 @@ def get_section_from_config(config, section):
 					line.startswith('#HideBlockStart') or
 					line.startswith('peers') or
 					line.startswith('resolvers') or
-					line.startswith('userlist')
+					line.startswith('userlist') or
+					line.startswith('http-errors')
 					):
 					record = False
 					end_line = index
