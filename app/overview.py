@@ -29,7 +29,7 @@ try:
 		for s in servers:
 			i += 1
 			if i != servers_len:
-				servers_for_grep += s[2]+'|'
+				servers_for_grep += s[2]+'\|'
 			else:
 				servers_for_grep += s[2]
 

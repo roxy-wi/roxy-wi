@@ -73,36 +73,45 @@ if serv is not None and form.getvalue('open') is not None:
 	except IOError:
 		error += '<br />Cannot read import config file'
 
-	os.system("/bin/mv %s %s.old" % (cfg, cfg))	
+	os.system("/bin/mv %s %s.old" % (cfg, cfg))
 
 if serv is not None and form.getvalue('config') is not None:
+	import sys
 	funct.check_is_server_in_group(serv)
 	try:
 		funct.logging(serv, "config.py edited config")
 	except Exception:
 		pass
-		
+
 	config = form.getvalue('config')
 	oldcfg = form.getvalue('oldconfig')
 	save = form.getvalue('save')
-	aftersave = 1
+
 	try:
 		with open(cfg, "a") as conf:
 			conf.write(config)
 	except IOError:
-		error = "Can't read import config file"
-	
+		print("error: Cannot read import config file")
+
 	if service == 'keepalived':
 		stderr = funct.upload_and_restart(serv, cfg, just_save=save, keepalived=1)
 	elif service == 'nginx':
 		stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save=save, nginx=1)
 	else:
 		stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save=save)
-		
+
 	funct.diff_config(oldcfg, cfg)
-		
+
 	os.system("/bin/rm -f " + configs_dir + "*.old")
 
+	if stderr:
+		print(stderr)
+	else:
+		if save == 'test':
+			print('Config is ok')
+		else:
+			print('Config is ok <br /> Config has been updated')
+	sys.exit()
 
 template = template.render(h2=1, title=title,
 							role=role,

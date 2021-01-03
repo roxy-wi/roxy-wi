@@ -50,6 +50,27 @@ $( function() {
 	$(".accordion-link a").on("click", function(event) { 
 	  window.location.href = $(this).attr("href"); 
       event.preventDefault(); 
-	 }); 
+	 });
+
+	$( "#saveconfig" ).on("click", ":submit", function(e){
+		var frm = $('#saveconfig');
+		myCodeMirror.save();
+		$.ajax({
+			url: frm.attr('action'),
+			data: frm.serialize() + "&save=" + $(this).val(),
+			type: frm.attr('method'),
+			success: function( data ) {
+				data = data.replace('\n', '<br>');
+				if (data.indexOf('error: ') != '-1' || data.indexOf('Fatal') != '-1') {
+					toastr.clear();
+					toastr.error(data);
+				} else {
+					toastr.clear();
+					toastr.success(data);
+				}
+			}
+		});
+		event.preventDefault();
+	});
 
 })
