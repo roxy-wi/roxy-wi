@@ -346,15 +346,15 @@ def delete_server(id):
 
 def update_hapwi_server(server_id, alert, metrics, active, service_name):
 	con, cur = get_cur()
-	updated_service = 'active'
+	updated_service = ''
 	if service_name == 'nginx':
-		updated_service = 'nginx_active'
+		updated_service = 'nginx_'
 
 	sql = """ update servers set 
-			alert = '%s',
+			'%salert' = '%s',
 			metrics = '%s',
-			'%s' = '%s'
-			where id = '%s'""" % (alert, metrics, updated_service, active, server_id)
+			'%sactive' = '%s'
+			where id = '%s'""" % (updated_service, alert, metrics, updated_service, active, server_id)
 
 	try:
 		cur.execute(sql)
@@ -1872,9 +1872,37 @@ def select_alert(**kwargs):
 	con.close()
 
 
+def select_nginx_alert(**kwargs):
+	con, cur = get_cur()
+	sql = """select ip from servers where nginx_alert = 1 """
+	if kwargs.get("group") is not None:
+		sql = """select ip from servers where nginx_alert = 1 and `groups` = '%s' """ % kwargs.get("group")
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		funct.out_error(e)
+	else:
+		return cur.fetchall()
+	cur.close()
+	con.close()
+
+
 def select_keep_alive(**kwargs):
 	con, cur = get_cur()
 	sql = """select ip from servers where active = 1 """
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		funct.out_error(e)
+	else:
+		return cur.fetchall()
+	cur.close()
+	con.close()
+
+
+def select_nginx_keep_alive(**kwargs):
+	con, cur = get_cur()
+	sql = """select ip from servers where nginx_active = 1 """
 	try:
 		cur.execute(sql)
 	except sqltool.Error as e:

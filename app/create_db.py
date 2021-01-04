@@ -701,10 +701,32 @@ def update_db_v_4_5_4(**kwargs):
 			pass
 	else:
 		if kwargs.get('silent') != 1:
-			print('Updating... go to version 4.5.6')
+			print('Updating... go to version 4.5.7')
 
 	cur.close()
 	con.close()
+
+
+def update_db_v_4_5_7(**kwargs):
+	con, cur = get_cur()
+	sql = """
+	ALTER TABLE `servers` ADD COLUMN nginx_alert INTEGER NOT NULL DEFAULT 0;
+	"""
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: nginx_alert' or e == " 1060 (42S21): Duplicate column name 'nginx_alert' ":
+				print('Updating... go to version 4.5.8')
+			else:
+				print("An error occurred:", e)
+	else:
+		print("DB was update to 4.3.1")
+
+	cur.close()
+	con.close()
+
 
 
 def update_ver(**kwargs):
@@ -744,6 +766,7 @@ def update_all():
 	update_db_v_4_5()
 	update_db_v_4_5_1()
 	update_db_v_4_5_4()
+	update_db_v_4_5_7()
 	update_ver()
 		
 	
@@ -772,6 +795,7 @@ def update_all_silent():
 	update_db_v_4_5(silent=1)
 	update_db_v_4_5_1(silent=1)
 	update_db_v_4_5_4(silent=1)
+	update_db_v_4_5_7(silent=1)
 	update_ver()
 	
 		

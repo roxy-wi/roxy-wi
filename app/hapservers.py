@@ -76,6 +76,7 @@ for s in servers:
         h = (out1,)
         servers_with_status.append(h)
         servers_with_status.append(h)
+        servers_with_status.append(s[17])
     else:
         cmd = 'echo "show info" |nc %s %s -w 1 |grep -e "Ver\|Uptime:\|Process_num"' % (s[2], haproxy_sock_port)
         out = funct.subprocess_execute(cmd)
@@ -85,10 +86,9 @@ for s in servers:
             else:
                 out1 = False
             servers_with_status.append(out1)
-    if service == 'haproxy':
+
         servers_with_status.append(s[12])
-    else:
-        servers_with_status.append(s[17])
+
     servers_with_status.append(sql.is_master(s[2]))
     servers_with_status.append(sql.select_servers(server=s[2]))
 
