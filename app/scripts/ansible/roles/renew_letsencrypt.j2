@@ -16,7 +16,7 @@ command+=" --non-interactive --agree-tos --email $email --http-01-port=8888"
 bash -c "$command"
 
 for i in $(ls -d */ |awk -F"/" '{print $1}'); do
-        bash -c "cat /etc/letsencrypt/live/$i/fullchain.pem /etc/letsencrypt/live/$i/privkey.pem > $path/$i.pem"
+        bash -c "cat /etc/letsencrypt/live/$i/fullchain.pem /etc/letsencrypt/live/$i/private.pem > $path/$i.pem"
 done
 
 # Reload  HAProxy

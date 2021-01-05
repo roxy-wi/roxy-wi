@@ -7,6 +7,9 @@ import platform
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('admin.html')
 form = funct.form
+openvpn_configs = ''
+openvpn_sess = ''
+openvpn = ''
 
 print('Content-type: text/html\n')
 
@@ -21,9 +24,9 @@ try:
 	grafana, stderr = funct.subprocess_execute("service grafana-server status |grep Active |awk '{print $1}'")
 
 	services = []
-	services_name = {'checker_haproxy': 'Master backends checker service',
+	services_name = {'checker_haproxy': 'Checker backends master service',
 					'keep_alive': 'Auto start service',
-					'metrics_haproxy': 'Master metrics service',
+					'metrics_haproxy': 'Metrics master service',
 					'prometheus': 'Prometheus service',
 					'grafana-server': 'Grafana service',
 					'smon': 'Simple monitoring network ports',
@@ -38,10 +41,6 @@ try:
 		cmd = "rpm --query haproxy-wi-"+service_name+"-* |awk -F\""+service_name + "\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
 		service_ver, stderr = funct.subprocess_execute(cmd)
 		services.append([s, status, v, service_ver[0]])
-
-	openvpn_configs = ''
-	openvpn_sess = ''
-	openvpn = ''
 
 	try:
 		os_name = platform.linux_distribution()[0]

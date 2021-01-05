@@ -53,8 +53,10 @@ for s, v in services_name.items():
         service_name = s
     cmd = "rpm --query haproxy-wi-" + service_name + "-* |awk -F\"" + service_name + "\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
     service_ver, stderr = funct.subprocess_execute(cmd)
-
-    services.append([s, service_ver[0]])
+    try:
+        services.append([s, service_ver[0]])
+    except Exception:
+        services.append([s, ''])
 
 haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 servers_with_status1 = []
