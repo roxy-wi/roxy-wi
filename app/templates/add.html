@@ -81,11 +81,11 @@
 						{% set values = {'http':'http','tcp':'tcp'} %}
 						{{ select('listen-mode-select', name='mode', values=values, selected='http', required='required', class='force_close') }}
 						<span id="https-listen-span">
-							<label for="https-listen" style="margin-top: 5px;" title="Enable ssl">SSL?</label>
+							<label for="https-listen" style="margin-top: 5px;" title="Enable SSL Offloading">SSL Offloading</label>
 							<input type="checkbox" id="https-listen" name="ssl" value="https" >
 						</span>
 						<div id="https-hide-listen" style="display: none;">
-							<br /><span class="tooltip tooltipTop">Enter name to pem file, or press down:</span><br />
+							<br /><span class="tooltip tooltipTop">Enter name of pem file, or press the "down" button:</span><br />
 							{{ input('path-cert-listen', name="cert", placeholder="some_cert.pem", size='39') }}<br />
 							<label for="ssl-check-listen" style="margin-top: 5px;">Disable ssl verify on servers?</label><input type="checkbox" id="ssl-check-listen" name="ssl-check" value="ssl-check" checked>
 						</div>
@@ -147,7 +147,7 @@
 						<span class="controlgroup">
 							{{ checkbox('compression', title='Enable Compression', value='1', desc='Compression') }}
 							{{ checkbox('cache', title='Enable cache', value='2', desc='Cache') }}
-							{{ checkbox('ssl_offloading', title='Enable SSL Offloading', desc='SSL Offloading') }}
+							{{ checkbox('ssl_offloading', title='Enable redirect from HTTP to HTTPS', desc='HTTP->HTTPS') }}
 						</span>
 					</td>
 				</tr>
@@ -312,11 +312,11 @@
 					{% set values = {'http':'http','tcp':'tcp'} %}
 					{{ select('frontend-mode-select', name='mode', values=values, selected='http', required='required', class='force_close') }}
 					<span id="https-frontend-span">
-						<label for="https-frontend" style="margin-top: 5px;">SSL?</label>
+						<label for="https-frontend" style="margin-top: 5px;" title="Enable SSL Offloading">SSL Offloading</label>
 						<input type="checkbox" id="https-frontend" name="ssl" value="https">
 					</span>
 					<div id="https-hide-frontend" style="display: none;">
-						<br /><span class="tooltip tooltipTop">Enter name to pem file, or press down:</span><br />
+						<br /><span class="tooltip tooltipTop">Enter name of pem file, or press the "down" button:</span><br />
 						{{ input('path-cert-frontend', name="cert", placeholder="some_cert.pem", size='39') }}
 					</div>
 				</td>
@@ -359,7 +359,7 @@
 					<span class="controlgroup">
 						{{ checkbox('compression2', name="compression", title='Enable Compression', value='1', desc='Compression') }}
 						{{ checkbox('cache2', name="cache", title='Enable cache', value='2', desc='Cache') }}
-						{{ checkbox('ssl_offloading1', title='Enable SSL Offloading', desc='SSL Offloading') }}
+						{{ checkbox('ssl_offloading1', title='Enable redirect from HTTP to HTTPS', desc='HTTP->HTTPS') }}
 					</span>
 				</td>
 			</tr>

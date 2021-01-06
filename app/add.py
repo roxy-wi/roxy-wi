@@ -32,7 +32,7 @@ if form.getvalue('mode') is None and form.getvalue('new_userlist') is None:
 	if not os.path.exists(dir+"/"+user_group):
 		os.makedirs(dir+"/"+user_group)
 	if not os.path.exists(white_dir):
-		os.makedirs(dir)
+		os.makedirs(white_dir)
 	if not os.path.exists(black_dir):
 		os.makedirs(black_dir)
 

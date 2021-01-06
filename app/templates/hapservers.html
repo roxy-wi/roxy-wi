@@ -52,7 +52,7 @@
 			}
 		});
 		{% for s in services %}
-			{% if s.1 == '* is not installed' %}
+			{% if s.1 == '* is not installed' or s.1 == '' %}
 				{% if s.0 == 'checker_haproxy' %}
 					$(':regex(id, alert)').checkboxradio('disable');
 				{% elif s.0 == 'keep_alive' %}

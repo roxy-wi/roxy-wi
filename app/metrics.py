@@ -12,11 +12,14 @@ try:
 	user, user_id, role, token, servers = funct.get_users_params()
 	cmd = "rpm --query haproxy-wi-metrics-* |awk -F\"metrics\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
 	service_ver, stderr = funct.subprocess_execute(cmd)
+	services = '0'
 
-	if service_ver == '* is not installed':
-		servers = ''
-	else:
-		servers = sql.select_servers_metrics(user_id.value)
+	if not stderr:
+		if service_ver[0] == '* is not installed':
+			servers = ''
+		else:
+			servers = sql.select_servers_metrics(user_id.value)
+			services = '1'
 except Exception:
 	pass
 
@@ -27,6 +30,6 @@ template = template.render(h2=1, title="Metrics",
 							user=user,
 							servers=servers,
 							versions=funct.versions(),
-							services=service_ver[0],
+							services=services,
 							token=token)
 print(template)

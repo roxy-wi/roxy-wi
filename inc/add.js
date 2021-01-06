@@ -956,24 +956,15 @@ $( function() {
 	});
 	$( "#create-ssl-listen" ).on( "click", function() {
 		resetProxySettings();
-		createSsl(1, 'listen'); 
-		$('#ssl_offloading').prop( "checked", true );
-		$('#ssl_offloading').checkboxradio("refresh")
-		$("#optionsInput").append(ssl_offloading_var)
+		createSsl(1, 'listen');
 	});
 	$( "#create-ssl-frontend" ).on( "click", function() {
 		resetProxySettings();
-		createSsl(2, 'frontend');	
-		$('#ssl_offloading1').prop( "checked", true );
-		$('#ssl_offloading1').checkboxradio("refresh")	
-		$("#optionsInput1").append(ssl_offloading_var)		
+		createSsl(2, 'frontend');		
 	});
 	$( "#create-ssl-backend" ).on( "click", function() {
 		resetProxySettings();
 		createSsl(3, 'backend');	
-		$('#ssl_offloading2').prop( "checked", true );
-		$('#ssl_offloading2').checkboxradio("refresh");
-		$("#optionsInput2").append(ssl_offloading_var);
 	});
 	$( "#create-https-listen" ).on( "click", function() {
 		resetProxySettings();
