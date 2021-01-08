@@ -649,13 +649,15 @@ $( function() {
 		if ($(':regex(id, template)').is(':checked')) {
 			$( ".prefix" ).show( "fast" );
 			$( ".second-server" ).hide( "fast" );
-			$( ".add-server" ).hide( "fast" );
+			$( ".backend_server" ).hide( "fast" );
+			$( ".send_proxy" ).hide( "fast" );
 			$( ".prefix" ).attr('required',true);
 		} else {
 			$( ".prefix" ).hide( "fast" );
 			$( ".prefix" ).attr('required',false);
 			$( ".second-server" ).show( "fast" );
-			$( ".add-server" ).show( "fast" )
+			$( ".backend_server" ).show( "fast" )
+			$( ".send_proxy" ).show( "fast" )
 		}
 	});
 	var location = window.location.href;
@@ -886,7 +888,9 @@ $( function() {
 			toastr.error('Wrong e-mail format');
 		}
 	});
-	var add_server_var = '<br /><input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">: <input name="server_port" title="Backend port" size=3 placeholder="yyy" class="form-control">'
+	var add_server_var = '<br /><input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">: ' +
+		'<input name="server_port" required title="Backend IP" size=3 placeholder="yyy" class="form-control add_server_number" type="number">' +
+		'<input name="server_maxconn" required title="Maxconn. Default 200" size=5 value="200" class="form-control add_server_number" type="number">'
 	$('[name=add-server-input]').click(function() {
 		$("[name=add_servers]").append(add_server_var);
 	});
@@ -960,11 +964,11 @@ $( function() {
 	});
 	$( "#create-ssl-frontend" ).on( "click", function() {
 		resetProxySettings();
-		createSsl(2, 'frontend');		
+		createSsl(2, 'frontend');
 	});
 	$( "#create-ssl-backend" ).on( "click", function() {
 		resetProxySettings();
-		createSsl(3, 'backend');	
+		createSsl(3, 'backend');
 	});
 	$( "#create-https-listen" ).on( "click", function() {
 		resetProxySettings();
@@ -1299,18 +1303,18 @@ function view_ssl(id) {
 		},
 		type: "POST",
 		success: function( data ) {
-			if (data.indexOf('error:') != '-1') {
+			if (data.indexOf('error: ') != '-1') {
 				toastr.error(data);
 			} else {
 				$('#dialog-confirm-body').text(data);
 				$( "#dialog-confirm-cert" ).dialog({
 					resizable: false,
 					height: "auto",
-					width: 650,
+					width: 670,
 					modal: true,
 					title: "Certificate from "+$('#serv5').val()+", name: "+id,
 					buttons: {
-						Ok: function() {
+						Close: function() {
 							$( this ).dialog( "close" );
 						}
 					  }
@@ -1412,7 +1416,7 @@ function editList(list, color) {
 					buttons: {
 						"Delete": function() {
 							$( this ).dialog( "close" );
-							deleteList(list, color);
+							confirmDeleting('list', list, $( this ), color);
 						},
 						"Just save": function() {
 							$( this ).dialog( "close" );	
@@ -1568,6 +1572,31 @@ function addProxy(form_name) {
 	$('#'+form_name +' input[name=acl_then_value]').each(function(){
 		if ($(this).val() == 'IsEmptY'){
 			$(this).val('')
+		}
+	});
+}
+function confirmDeleting(deleting_thing, id, dialog_id, color) {
+	$( "#dialog-confirm" ).dialog({
+		resizable: false,
+		height: "auto",
+		width: 400,
+		modal: true,
+		title: "Are you sure you want to delete this " + deleting_thing + " " +id + "?",
+		buttons: {
+			"Delete": function() {
+				if (deleting_thing == "SSL cert") {
+					deleteSsl(id);
+					$(dialog_id).dialog( "close" );
+				} else if (deleting_thing == "list") {
+					deleteList(id, color);
+					$(dialog_id).dialog( "close" );
+				}
+				$( this ).dialog( "close" );
+			},
+			Cancel: function() {
+				$( this ).dialog( "close" );
+				$(dialog_id).dialog( "open" );
+			}
 		}
 	});
 }

@@ -338,6 +338,9 @@ pre {
 	padding-left: 10px;
 	font-style: italic;
 }
+.add_server_number {
+	width: 50px;
+}
 .overview {
 	width: 100%;
 }

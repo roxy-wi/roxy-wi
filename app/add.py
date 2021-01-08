@@ -212,6 +212,7 @@ elif form.getvalue('mode') is not None:
 		server_port = form.getlist('server_port')
 		send_proxy = form.getlist('send_proxy')
 		backup = form.getlist('backup')
+		server_maxconn = form.getlist('server_maxconn')
 		i = 0
 		for server in servers:
 			if form.getvalue('template') is None:
@@ -222,6 +223,7 @@ elif form.getvalue('mode') is not None:
 						send_proxy_param = ''
 				except Exception:
 					send_proxy_param = ''
+
 				try:
 					if backup[i] == '1':
 						backup_param = 'backup'
@@ -229,11 +231,18 @@ elif form.getvalue('mode') is not None:
 						backup_param = ''
 				except Exception:
 					backup_param = ''
-				servers_split += "    server {0} {0}:{1}{2} {3} {4} \n".format(server,
+
+				try:
+					maxconn_val = server_maxconn[i]
+				except Exception:
+					maxconn_val = '200'
+
+				servers_split += "    server {0} {0}:{1} maxconn {5}{2} {3} {4} \n".format(server,
 																			server_port[i],
 																			check,
 																			send_proxy_param,
-																			backup_param)
+																			backup_param,
+																			maxconn_val)
 			else:
 				servers_split += "    server-template {0} {1}  {2}:{3} {4} \n".format(form.getvalue('prefix'),
 																						form.getvalue('template-number'),
