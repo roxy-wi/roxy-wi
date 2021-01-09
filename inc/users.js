@@ -179,6 +179,7 @@ $( function() {
 				} else if (data.indexOf('success') != '-1' ){
 					toastr.remove();
 					toastr.success(data);
+					$( "#haproxyaddserv" ).trigger( "selectmenuchange" );
 				} else if (data.indexOf('Info') != '-1' ){
 					toastr.remove();
 					toastr.info(data);
@@ -213,6 +214,7 @@ $( function() {
 				} else if (data.indexOf('success') != '-1' ){
 					toastr.clear();
 					toastr.success(data);
+					$("#nginxaddserv").trigger( "selectmenuchange" );
 				} else if (data.indexOf('Info') != '-1' ){
 					toastr.clear();
 					toastr.info(data);
@@ -273,6 +275,7 @@ $( function() {
 					toastr.success(data);
 					$('#cur_haproxy_exp_ver').text('HAProxy expoter is installed');
 					$('#haproxy_exp_install').text('Update');
+					$("#haproxy_exp_addserv").trigger( "selectmenuchange" );
 				} else if (data.indexOf('Info') != '-1' ){
 					toastr.clear();
 					toastr.info(data);
@@ -303,6 +306,7 @@ $( function() {
 					toastr.success(data);
 					$('#cur_nginx_exp_ver').text('Nginx expoter is installed');
 					$('#nginx_exp_install').text('Update');
+					$("#nginx_exp_addserv").trigger( "selectmenuchange" );
 				} else if (data.indexOf('Info') != '-1' ){
 					toastr.clear();
 					toastr.info(data);
@@ -734,6 +738,40 @@ $( function() {
 				} else {
 					$('#cur_geoip').text('GeoLite2 has already installed');
 					$('#geoip_install').hide();
+				}
+			}
+		} );
+	});
+	$( "#geoip_install" ).click(function() {
+		var updating_geoip = 0;
+		if ($('#updating_geoip').is(':checked')) {
+			updating_geoip = '1';
+		}
+		$("#ajax-geoip").html(wait_mess);
+		$.ajax( {
+			url: "options.py",
+			data: {
+				geoip_install: $('#geoipserv option:selected').val(),
+				geoip_update: updating_geoip,
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+				data = data.replace(/^\s+|\s+$/g,'');
+				$("#ajax-geoip").html('')
+				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1') {
+					toastr.clear();
+					toastr.error(data);
+				} else if (data.indexOf('success:') != '-1' ){
+					toastr.clear();
+					toastr.success(data);
+					$( "#geoipserv" ).trigger( "selectmenuchange" );
+				} else if (data.indexOf('Info') != '-1' ){
+					toastr.clear();
+					toastr.info(data);
+				} else {
+					toastr.clear();
+					toastr.info(data);
 				}
 			}
 		} );

@@ -1059,16 +1059,13 @@ function replace_text(id_textarea, text_var) {
 	$(id_textarea).text(text_val);
 }
 function createHistroy() {
-	try {
-		var get_history_array = JSON.parse(Cookies.get('history'));
-	}	
-	catch {
+	if(localStorage.getItem('history') === null) {
 		var get_history_array = ['login.py', 'login.py','login.py'];
-		Cookies.set('history', JSON.stringify(get_history_array), { expires: 10, path: '/app', samesite: 'strict', secure: 'true' });
+		localStorage.setItem('history', JSON.stringify(get_history_array));
 	}
 }
 function listHistroy() {	
-	var browse_history = JSON.parse(Cookies.get('history'));
+	var browse_history = JSON.parse(localStorage.getItem('history'));
 	var history_link = '';
 	var title = []
 	var link_text = []
@@ -1082,7 +1079,7 @@ function listHistroy() {
 		if (i == 2) {
 			if(cur_url[1] !== undefined) {
 				browse_history[2] = cur_url[0] + '?' + cur_url[1]
-			}else {
+			} else {
 				browse_history[2] = cur_url[0]
 			}
 		}
@@ -1095,16 +1092,11 @@ function listHistroy() {
 					link_text[i] = $(this).find('a').text();
 					history_link = '<li><a href="'+browse_history[i]+'" title="'+title[i]+'">'+link_text[i]+'</a></li>'
 					$('#browse_histroy').append(history_link);
-				} else if (browse_history[i].split('?')[0] == link2) {
-					title[i] = $(this).find('a').attr('title');
-					link_text[i] = $(this).find('a').text();
-					history_link = '<li><a href="'+browse_history[i]+'" title="'+title[i]+'">'+link_text[i]+'</a></li>'
-					$('#browse_histroy').append(history_link);
 				}
 			});
 		});
 	}
-	Cookies.set('history', JSON.stringify(browse_history), { expires: 10, path: '/app', samesite: 'strict', secure: 'true' });
+	localStorage.setItem('history', JSON.stringify(browse_history));
 }
 createHistroy()
 listHistroy()
@@ -1224,7 +1216,7 @@ async function waitConsumer() {
 	cur_url = cur_url.split('?');
 	if (cur_url[0] != 'servers.py#installproxy' && cur_url[0] != 'servers.py#installmon' &&
 		cur_url[0] != 'users.py#installmon' && cur_url[0] != 'ha.py' && cur_url[0] != 'users.py#updatehapwi' &&
-		cur_url[0] != 'add.py?service=nginx#ssl' && cur_url[0] != 'add.py#ssl') {
+		cur_url[0] != 'add.py?service=nginx#ssl' && cur_url[0] != 'add.py#ssl' && cur_url[0] != 'servers.py#geolite2') {
 		NProgress.configure({showSpinner: false});
 		$.ajax({
 			url: "options.py",

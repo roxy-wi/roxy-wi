@@ -2246,3 +2246,37 @@ if form.getvalue('geoipserv') is not None:
 
     cmd = ["ls " + haproxy_dir + "/geoip/"]
     print(funct.ssh_command(serv, cmd))
+
+if form.getvalue('geoip_install'):
+    serv = form.getvalue('geoip_install')
+    geoip_update = form.getvalue('geoip_update')
+    proxy = sql.get_setting('proxy')
+    maxmind_key = sql.get_setting('maxmind_key')
+    haproxy_dir = sql.get_setting('haproxy_dir')
+    script = 'install_geoip.sh'
+    ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(serv)
+
+    if ssh_enable == 0:
+        ssh_key_name = ''
+
+    servers = sql.select_servers(server=serv)
+    for server in servers:
+        ssh_port = str(server[10])
+
+    if proxy is not None and proxy != '' and proxy != 'None':
+        proxy_serv = proxy
+    else:
+        proxy_serv = ''
+
+    os.system("cp scripts/%s ." % script)
+
+    commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port +
+                " UPDATE=" + str(geoip_update) + " maxmind_key=" + maxmind_key + " haproxy_dir=" + haproxy_dir +
+                " HOST=" + str(serv) +" USER=" + str(ssh_user_name) + " PASS=" + str(ssh_user_password) +
+                " KEY=" + str(ssh_key_name)]
+
+    output, error = funct.subprocess_execute(commands[0])
+
+    funct.show_installation_output(error, output, 'GeoLite2 Database')
+
+    os.system("rm -f %s" % script)

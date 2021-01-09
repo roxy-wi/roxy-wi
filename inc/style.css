@@ -42,10 +42,9 @@ ul#browse_histroy li {
 	padding-right: 5px;
 }
 ul#browse_histroy li+li:before {
-	content: "\003e";
-	color: #000;
-	font-weight: bold;
-	margin-right: 2.5px;	
+	content: "/";
+	color: #767676;
+	margin: 0 9px 0px 2.5px;
 }
 #browse_histroy a {
 	color: #767676;
@@ -570,7 +569,6 @@ ul{
 .ui-button {
 	padding-left: 10px !important;
 	padding-right: 10px !important;
-	background: #f4f9f380 !important;
 }
 @media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm) {
 	.ui-checkboxradio-label {
@@ -678,15 +676,13 @@ td,th {
 	padding:15px;
 	margin-bottom:20px;
 	border:1px solid transparent;
-	border-radius:4px;
 	width: 400px;
 	display: block;
 }
 .alert a {
 	cursor: pointer;
-	font-weight: bold;
-	padding-left: 10px;
-	margin-bottom: 10px;	
+	margin-bottom: 10px;
+	color: #23527c !important;
 }
 .alert-danger, .alert-info, .alert-success, .alert-warning, .added {
 	margin-left: 15px;

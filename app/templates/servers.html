@@ -16,28 +16,34 @@
 		<li><a href="#settings" title="Admin area: Manage HAProxy-WI settings - HAProxy-WI">Settings</a></li>
 		<li><a href="#installproxy" title="Servers: Proxy service installation - HAProxy-WI">Proxy installation</a></li>
 		<li><a href="#installmon" title="Servers: Monitoring service installation - HAProxy-WI">Monitoring installation</a></li>
+		<li><a href="#geolite2" title="Servers: GeoLite2 - HAProxy-WI">GeoLite2</a></li>
 		<li><a href="#backup" title="Servers: Backup configs - HAProxy-WI">Backup</a></li>
 		{% include 'include/login.html' %}
 	</ul>
 	<ul id='browse_histroy'></ul>
 	<div id="users">
 		{% include 'include/admin_users.html' %}
+		{% include 'include/servers_group_error.html' %}
 	</div>
 
 	<div id="servers">
 		{% include 'include/admin_servers.html' %}
+		{% include 'include/servers_group_error.html' %}
 	</div>
 
 	<div id="ssh">
 		{% include 'include/admin_ssh.html' %}
+		{% include 'include/servers_group_error.html' %}
 	</div>
 	
 	<div id="checker">
 		{% include 'include/admin_telegram.html' %}
+		{% include 'include/servers_group_error.html' %}
 	</div>
 
 	<div id="settings">
 		{% include 'include/admin_settings.html' %}
+		{% include 'include/servers_group_error.html' %}
 	</div>
 
 	<div id="installproxy">
@@ -114,21 +120,64 @@
 		{% include 'include/mon_installation.html' %}
 	</div>
 
+	<div id="geolite2">
+		<table>
+			<caption><h3>Install GeoLite2</h3></caption>
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn">Server</td>
+				<td class="padding10 first-collumn" style="width: 30%;">Current installation</td>
+				<td class="" style="width: 30%;" title="GeoLite2 DB is released every Tuesday. Should HAProxy-WI update it?">Updating</td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td class="padding10 first-collumn">
+					<select autofocus required name="geoipserv" id="geoipserv">
+						<option disabled selected>Choose server</option>
+						{% for select in servers %}
+						<option value="{{ select.2 }}">{{ select.1 }}</option>
+						{% endfor %}
+					</select>
+				</td>
+				<td id="cur_geoip" class="padding10"></td>
+				<td class="checkbox">
+					{{ checkbox('updating_geoip', title="Update the database?", checked='checked') }}
+				</td>
+				<td>
+					<span class="ui-button ui-widget ui-corner-all" id="geoip_install" title="Install GeoLite2" style="display: none;">Install</span>
+				</td>
+			</tr>
+		</table>
+		<div id="ajax-geoip"></div>
+		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px; margin-bottom: 15px;">
+			Read the "how to" in this <a href="https://haproxy-wi.org/howto.py?howto=geoip" title="GeoLite2 description" target="_blank">article</a>
+		</div>
+		<table style="min-width: 40%;">
+			<tr class="overviewHead">
+				<th colspan=13 style="background-color: #d1ecf1; padding: 10px;">
+					<span id="table_metrics_head" style="position: absolute;margin-left: 43%;">Country codes</span>
+					<span id="show_country_codes" class="add switcher_table_metric" title="Show country codes"></span>
+					<span id="hide_country_codes" class="minus switcher_table_metric" title="Hide country codes" style="display: none;"></span>
+				</th>
+			</tr>
+		</table>
+		<div id="geoip_country_codes" style="display: none;">
+			{% for code in geoip_country_codes %}
+			<div class="geoip_country_code" id="{{code.1}}">{{code.1}} ({{code.2}})</div>
+			{% endfor %}
+		</div>
+	</div>
+
 	<div id="backup">
 		{% include 'include/admin_backup.html' %}
-	</div>
-	
-</div>
-<div id="group_error" style="display: none; clear: both;">
-	<div class="alert alert-danger">
-		<b>Do not edit this section if your group is "ALL"!</b> Add first<a href="users.py#groups" title="Admin Area: Groups">group</a> or edit your own group at<a href="users.py#users" title="Admin Area: Users">users</a> page
+		{% include 'include/servers_group_error.html' %}
 	</div>
 </div>
 {% include 'include/admins_dialogs.html' %}
 {% include 'include/change_pass_form.html' %}
 <script>
 	if($('#new-server-group-add').val() == 1) {
-		$('#group_error').css('display', 'block');
+		$('.group_error').css('display', 'block');
 		$('#add-user-button').css('display', 'none');
 		$('#add-server-button').css('display', 'none');
 		$('.passwordChange').css('display', 'none');
@@ -190,6 +239,11 @@
 			padding-bottom: 0.6em !important;
 			padding-top: 0.6em !important;
 		}
+	}
+	.group_error {
+		display: none;
+		clear: both;
+		height: 60px;
 	}
 </style>
 {% endblock %}
