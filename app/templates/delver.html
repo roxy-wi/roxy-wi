@@ -16,7 +16,7 @@
 		</form>
 		{% if not aftersave and not open %}
 		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px; margin-top: 40%">
-			Here you can work with previous versions of {%if service == 'keepalived' %}Keepalived{%else%}HAProxy{%endif%} configs. Roll back to them, view or delete		
+			Here you can work with previous versions of {%if service == 'keepalived' %}Keepalived{%elif service == 'nginx' %}Nginx{%else%}HAProxy{%endif%} configs. Roll back to them, view or delete
 		</div>
 		{% endif %}
 	</p>
@@ -41,7 +41,7 @@
 				{% for file in return_files %}
 					<label for="{{file}}"> {{file.split('-', maxsplit=1)[1]}} </label><input type="checkbox" value="{{file}}" name="{{file}}" id="{{file}}">
 					<a href="/app/versions.py?service={{service}}&serv={{serv}}&open=open&configver={{file}}" class="ui-button ui-widget ui-corner-all" title="View and upload this version of the config" style="margin-top: -6px;">
-						Upload
+						View/Upload
 					</a><br />
 				{% endfor %}
 				<input type="hidden" value="{{serv}}" name="serv">

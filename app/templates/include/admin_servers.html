@@ -106,10 +106,12 @@
 				<select id="slavefor-{{server.0}}">
 					<option value="0" selected>Not slave</option>
 					{% for master in masters %}
-						{% if master.0 == server.6 %}
+						{% if master.0 == server.6  %}
 							<option value="{{master.0}}" selected>{{master.1}}</option>
 						{% else %}
+							{% if master.0 != server.0 %}
 							<option value="{{master.0}}">{{master.1}}</option>
+							{% endif %}
 						{% endif %}
 					{% endfor %}
 				</select>
@@ -154,7 +156,7 @@
 <br /><span class="add-button" title="Add server" id="add-server-button">+ Add</span>
 <br /><br />
 <div id="checkSshConnect"></div>
-<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+<div class="add-note addName alert alert-info" style="width: inherit; margin-right: 15px;">
 	You can read the description of all parameters <a href="https://haproxy-wi.org/description.py?description=servers" title="Servers description" target="_blank">here</a>
 	or read HowTo in this <a href="https://haproxy-wi.org/howto.py?howto=setup" title="How to setup servers, group and SSH credentials" target="_blank">article</a>
 </div>

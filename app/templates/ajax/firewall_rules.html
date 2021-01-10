@@ -1,0 +1,118 @@
+{% set thead = ' <thead>
+<tr class="overviewHead">
+    <th class="padding10" style="padding-left: 10px; width: 50px;">Number</th>
+    <th>Target</th>
+    <th>Protocol</th>
+    <th>Source</th>
+    <th>Destination</th>
+    <th>Port</th>
+</tr>
+</thead>' %}
+<div id="firewall_tabs">
+    <ul>
+        <li><a href="#input" title="Input firewall rules">Input</a></li>
+        <li><a href="#IN_public_allow" title="IN_public_allow firewall rules">IN_public_allow</a></li>
+        <li><a href="#output" title="Output firewall rules">Output</a></li>
+    </ul>
+    <div id="input">
+        <table class="overview">
+           {{thead}}
+            <tbody>
+            {% for p in input %}
+            <tr class="{{ loop.cycle('odd', 'even') }}">
+                <td class="padding10" style="padding-left: 10px;">
+                    {{p.split(' ')[0]}}
+                </td>
+                <td>
+                    {{p.split(' ')[1]}}
+                </td>
+                <td>
+                    {{p.split(' ')[2]}}
+                </td>
+                <td>
+                    {{p.split(' ')[4]}}
+                </td>
+                <td>
+                    {{p.split(' ')[5]}}
+                </td>
+                <td>
+                    {{p.split(' ')[7]}}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div id="IN_public_allow">
+        <table class="overview">
+            {{thead}}
+            <tbody>
+            {% for p in IN_public_allow %}
+            <tr class="{{ loop.cycle('odd', 'even') }}">
+                <td class="padding10" style="padding-left: 10px;">
+                    {{p.split(' ')[0]}}
+                </td>
+                <td>
+                    {{p.split(' ')[1]}}
+                </td>
+                <td>
+                    {{p.split(' ')[2]}}
+                </td>
+                <td>
+                    {{p.split(' ')[4]}}
+                </td>
+                <td>
+                    {{p.split(' ')[5]}}
+                </td>
+                <td>
+                    {{p.split(' ')[7]}}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div id="output">
+        <table class="overview">
+            {{thead}}
+            <tbody>
+            {% for p in output %}
+            <tr class="{{ loop.cycle('odd', 'even') }}">
+                <td class="padding10" style="padding-left: 10px;">
+                    {{p.split(' ')[0]}}
+                </td>
+                <td>
+                    {{p.split(' ')[1]}}
+                </td>
+                <td>
+                    {{p.split(' ')[2]}}
+                </td>
+                <td>
+                    {{p.split(' ')[4]}}
+                </td>
+                <td>
+                    {{p.split(' ')[5]}}
+                </td>
+                <td>
+                    {{p.split(' ')[7]}}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="alert alert-warning">
+    There are rules only from INPUT, IN_public_allow and OUTPUT chains
+</div>
+<script>
+    $( function() {
+        $("#firewall_tabs").tabs();
+    });
+</script>
+<style>
+    #firewall_tabs {
+        border: none !important;
+        width: 100% !important;
+    }
+</style>

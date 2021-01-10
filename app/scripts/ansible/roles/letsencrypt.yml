@@ -35,10 +35,15 @@
     - name: Combine into pem file
       shell: cat /etc/letsencrypt/live/{{DOMAIN}}/fullchain.pem /etc/letsencrypt/live/{{DOMAIN}}/privkey.pem > "{{SSL_PATH}}"/"{{DOMAIN}}".pem
 
+    - name: Creates directory
+      file:
+        path: "{{haproxy_dir}}/scripts"
+        state: directory
+
     - name: Copy renew script
       template:
         src: /var/www/haproxy-wi/app/scripts/ansible/roles/renew_letsencrypt.j2
-        dest: /etc/haproxy/renew_letsencrypt.sh
+        dest: "{{haproxy_dir}}/scripts/renew_letsencrypt.sh"
         mode: '0755'
       ignore_errors: yes
       failed_when: false
@@ -48,4 +53,4 @@
       cron:
         name: "Let's encrypt renew script"
         special_time: "monthly"
-        job: '/etc/haproxy/renew_letsencrypt.sh'
+        job: '{{haproxy_dir}}/scripts/renew_letsencrypt.sh'

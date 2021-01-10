@@ -570,7 +570,7 @@ if act == "overviewServers":
 
     async def async_get_overviewServers(serv1, serv2, service):
         if service == 'haproxy':
-            cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|Maxco\|MB\|Uptime:"' % (serv2, sql.get_setting('haproxy_sock_port'))
+            cmd = 'echo "show info" |nc %s %s -w 1|grep -e "node\|Nbproc\|Maxco\|MB\|Peers\|Nbthread"' % (serv2, sql.get_setting('haproxy_sock_port'))
             out = funct.subprocess_execute(cmd)
             out1 = ""
 
@@ -2099,6 +2099,7 @@ if form.getvalue('lets_domain'):
     lets_email = form.getvalue('lets_email')
     proxy = sql.get_setting('proxy')
     ssl_path = sql.get_setting('cert_path')
+    haproxy_dir = sql.get_setting('haproxy_dir')
     script = "letsencrypt.sh"
     ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(serv)
 
@@ -2116,7 +2117,7 @@ if form.getvalue('lets_domain'):
     else:
         proxy_serv = ''
 
-    commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv +
+    commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " haproxy_dir=" + haproxy_dir +
                 " DOMAIN=" + lets_domain + " EMAIL=" + lets_email + " SSH_PORT=" + ssh_port + " SSL_PATH=" + ssl_path +
                 " HOST=" + serv + " USER=" + ssh_user_name + " PASS=" + ssh_user_password + " KEY=" + ssh_key_name]
 
@@ -2207,7 +2208,7 @@ if form.getvalue('scan_ports') is not None:
         ip = s[2]
 
     cmd = "sudo nmap -sS %s |grep -E '^[[:digit:]]'|sed 's/  */ /g'" % ip
-    cmd1 = "sudo nmap -sS %s |head -5|tail -3" % ip
+    cmd1 = "sudo nmap -sS %s |head -5|tail -2" % ip
 
     stdout, stderr = funct.subprocess_execute(cmd)
     stdout1, stderr1 = funct.subprocess_execute(cmd1)

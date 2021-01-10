@@ -829,20 +829,19 @@ label {
 .haproxy-info {
 	display: inline-block;
 	width: 160px;
-	padding-left: 30px;
-	padding-top: 15px;
-	font-size: 12px;
+	padding-top: 5px;
+	font-size: 11.5px;
 	float: left;
 }
 .top-info {
 	display: inline-block;
 	width: 350px;
-	margin-top: 10px;
+	margin-top: 5px;
 	font-size: 10px;
 }
 .bin_bout {
 	width: 110px;
-	margin-left: 10px;
+	margin-left: 12px;
 }
 .bytes {
 	padding-top: 17px;

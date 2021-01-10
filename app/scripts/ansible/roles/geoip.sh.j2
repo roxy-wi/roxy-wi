@@ -6,6 +6,13 @@ country_location="GeoLite2-Country-CSV_*/GeoLite2-Country-Locations-en.csv"
 country_ip="GeoLite2-Country-CSV_*/GeoLite2-Country-Blocks-IPv4.csv"
 haproxy_dir="{{haproxy_dir}}"
 MAXMIND_LICENSE="{{maxmind_key}}"
+PROXY="{{PROXY}}"
+
+if [[ $PROXY != "" ]]
+then
+	export http_proxy="$PROXY"
+	export https_proxy="$PROXY"
+fi
 
 cd /tmp
 
@@ -41,3 +48,5 @@ if [[ ! -d "$haproxy_dir"/geoip ]]; then
 fi
 
 cp subnets/* "$haproxy_dir"/geoip
+
+systemctl reload haproxy

@@ -1,0 +1,30 @@
+<table class="overview">
+    <thead>
+    <tr class="overviewHead">
+        <th class="padding10 first-collumn">Port</th>
+        <th>State</th>
+        <th>Service</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for p in ports %}
+    <tr class="{{ loop.cycle('odd', 'even') }}">
+        <td class="padding10 first-collumn">
+            {{p.split(' ')[0]}}
+        </td>
+        <td>
+            {{p.split(' ')[1]}}
+        </td>
+        <td>
+            {{p.split(' ')[2]}}
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<br />
+<div style="padding-left: 10px">
+{% for i in info %}
+    {{i}}<br />
+{% endfor %}
+</div>

@@ -14,6 +14,7 @@ do
             DOMAIN)    DOMAIN=${VALUE} ;;
 			      EMAIL)    EMAIL=${VALUE} ;;
 			      SSL_PATH)    SSL_PATH=${VALUE} ;;
+			      haproxy_dir)    haproxy_dir=${VALUE} ;;
             *)
     esac
 done
@@ -29,9 +30,9 @@ PWD=$PWD/scripts/ansible/
 echo "$HOST ansible_port=$SSH_PORT" > $PWD/$HOST
 
 if [[ $KEY == "" ]]; then
-	ansible-playbook $PWD/roles/letsencrypt.yml -e "ansible_user=$USER ansible_ssh_pass=$PASS ansible_port=$SSH_PORT variable_host=$HOST PROXY=$PROXY DOMAIN=$DOMAIN EMAIL=$EMAIL SSL_PATH=$SSL_PATH" -i $PWD/$HOST
+	ansible-playbook $PWD/roles/letsencrypt.yml -e "ansible_user=$USER ansible_ssh_pass=$PASS ansible_port=$SSH_PORT variable_host=$HOST PROXY=$PROXY DOMAIN=$DOMAIN EMAIL=$EMAIL haproxy_dir=$haproxy_dir SSL_PATH=$SSL_PATH" -i $PWD/$HOST
 else
-	ansible-playbook $PWD/roles/letsencrypt.yml --key-file $KEY -e "ansible_user=$USER ansible_port=$SSH_PORT variable_host=$HOST PROXY=$PROXY DOMAIN=$DOMAIN EMAIL=$EMAIL SSL_PATH=$SSL_PATH" -i $PWD/$HOST
+	ansible-playbook $PWD/roles/letsencrypt.yml --key-file $KEY -e "ansible_user=$USER ansible_port=$SSH_PORT variable_host=$HOST PROXY=$PROXY DOMAIN=$DOMAIN EMAIL=$EMAIL haproxy_dir=$haproxy_dir SSL_PATH=$SSL_PATH" -i $PWD/$HOST
 fi
 
 if [ $? -gt 0 ]
