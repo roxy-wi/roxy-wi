@@ -352,23 +352,6 @@
 <div id="change-user-groups-dialog" style="display: none;">
 	<div id="change-user-groups-form"></div>
 </div>
-<style>
-	.ui-selectmenu-button.ui-button {
-		width: 10em;
-	}
-	.first-collumn {
-		width: 10%;
-	}
-	.container {
-		margin-right: 0;
-	}
-	@media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm) {
-		.ui-checkboxradio-label {
-			padding-bottom: 0.6em !important;
-			padding-top: 0.6em !important;
-		}
-	}
-</style>
 <script>
 	$( function() {
 		{% for user in users %}
@@ -407,4 +390,5 @@
 		{% endfor %}
 	});
 </script>
+<link href="/inc/servers.css" rel="stylesheet"/>
 {% endblock %}

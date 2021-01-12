@@ -21,8 +21,8 @@
 			<th class="slave-field" style="width: 10%">
 				<span title="Actions with the master config will automatically apply on the slave">Slave for</span>
 			</th>
-			<th class="cred-field" style="width: 15%">Credentials</th>
-			<th class="cred-field" style="width: 200px;"></th>
+			<th class="cred-field">Credentials</th>
+			<th class="cred-field" style="min-width: 70px;"></th>
 			<th style="width: 100%">Description</th>
 			<th></th>
 			<th></th>
@@ -41,7 +41,7 @@
 			</td>
 			<td>
 				{% set id = 'port-' + server.0|string() %}
-				{{ input(id, value=server.10, size='2') }}
+				{{ input(id, value=server.10, type='number', style='width: 50px;') }}
 			</td>
 			{% if page != "servers.py" %}
 			<td>

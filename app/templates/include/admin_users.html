@@ -7,7 +7,7 @@
 			<th style="width: 10%">Password</th>
 			<th style="width: 10%">Active</th>
 			<th style="width: 20%">Email</th>
-			<th style="width: {% if page == "servers.py" %}100{% else %}10{% endif %}%">Role</th>
+			<th style="width: {% if page == 'servers.py' %}100{% else %}10{% endif %}%">Role</th>
 			{% if page != "servers.py" %}
 			<th style="width: 100%">Group</th>
 			{% endif %}
@@ -46,7 +46,7 @@
 				{% if user.6 == 1%}
 					{{ input(email_id, value=user.2, readonly='readonly') }}
 				{% else %}
-					{{ input(email_id, value=user.2) }}
+					{{ input(email_id, value=user.2, type='email') }}
 				{% endif %}
 			</td>
 			<td>

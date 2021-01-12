@@ -313,11 +313,8 @@ pre {
 .advance {
 	display: none;
 }
-.advance-show  {
+.advance-show, .advance-hide  {
 	font-size: 13px !important;
-}
-.advance-show  a{
-	color: #23527c !important;
 }
 .addButton {
 	padding-top: 15px;
@@ -381,7 +378,7 @@ pre {
 	padding-left: 10px;
 }
 .cred-field {
-	min-width: 214px;
+	min-width: 225px;
 }
 .overviewTr {
 	margin: 0;
@@ -615,14 +612,14 @@ ul{
 .ui-selectmenu-open, .ui-selectmenu-menu {
 	z-index: 1010 !important;
 }
+.ui-corner-all {
+	border-radius: 0 !important;
+}
 #tabs.ui-widget.ui-widget-content {
 	border-bottom: none !important;
 }
 .need-field {
 	color: red;
-}
-.ui-corner-all {
-	border-radius: 0 !important;
 }
 a:active, a:hover {
   outline: 0;

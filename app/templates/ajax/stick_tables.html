@@ -6,7 +6,6 @@
 			$(document).ready(function() {
 				$('#{{t.0.0.strip()}}').on( 'page.dt',   function () { $.getScript("/inc/fontawesome.min.js"); } )
 				.DataTable( {
-					"order": [[ 4, "desc" ]],
 					"pageLength": 10,
 					"columnDefs": [
 						{ 
@@ -45,15 +44,9 @@
 				{% set headers = headers.split(' ') %}
 				<thead>
 					<tr class="overviewHead">
-						<th class="padding10" style="width: 10%; padding-left: 10px;">
-							IP
-						</th>
-						<th>
-							Use
-						</th>
-						<th>
-							Exp
-						</th>
+						<th class="padding10" style="width: 10%; padding-left: 10px;">IP</th>
+						<th>Use</th>
+						<th>Exp</th>
 						<th>					
 							{{headers.4.split('=')[0].split('(')[0]}}
 						</th>
@@ -87,7 +80,7 @@
 							{{headers.11.split('=')[0].split('(')[0]}}
 						</th>
 						{% endif %}
-						<th>
+						<th  style="width: 10px;">
 						</th>
 					</tr>
 				</thead>

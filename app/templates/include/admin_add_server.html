@@ -10,20 +10,20 @@
 		IP
 		<span class="need-field">*</span>
 	</td>
-	<td>{{ input('new-ip', size='14') }}</td>
+	<td>{{ input('new-ip') }}</td>
 <tr>
 	<td class="padding20" title="SSH port">
 		Port
 		<span class="need-field">*</span>
 	</td>
-	<td>{{ input('new-port', value='22', size='3') }}</td>
+	<td>{{ input('new-port', value='22', type='number') }}</td>
 </tr>
 <tr>
 	<td class="padding20">Enable</td>
 	<td>{{ checkbox('enable', checked='checked') }}</td>
 </tr>
 <tr>
-	<td class="padding20" title="Vitrual IP, something like VRRP">Virt</td>
+	<td class="padding20" title="Virtual IP(VRRP)">Virt</td>
 	<td>{{ checkbox('typeip') }}</td>
 </tr>
 <tr>

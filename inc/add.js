@@ -902,9 +902,15 @@ $( function() {
 	$('#add-userlist-group').click(function() {
 		$('#userlist-groups').append(add_userlist_group_var);		
 	});
-	$('.advance-show').click(function() {
-		$('.advance-show').fadeOut();
+	$('.advance-show-button').click(function() {
 		$('.advance').fadeIn();
+		$('.advance-show-button').css('display', 'none');
+		$('.advance-hide-button').css('display', 'block');
+	});
+	$('.advance-hide-button').click(function() {
+		$('.advance').fadeOut();
+		$('.advance-show-button').css('display', 'block');
+		$('.advance-hide-button').css('display', 'none');
 	});
 	$('#ssl_offloading').click(function() {
 		if($('#optionsInput').val().indexOf('ssl_fc ') == '-1') {

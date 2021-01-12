@@ -181,7 +181,7 @@ $( function() {
 			type: "POST",
 			success: function( data ) {
 					data = data.replace(/\s+/g,' ');
-					if (data.indexOf('error: ') != '-1') {
+					if (data.indexOf('error: ') != '-1' || data.indexOf('Invalid ') != '-1') {
 						toastr.error(data);
 					} else {
 						toastr.success(data);
@@ -249,7 +249,6 @@ $( function() {
 				} else {
 					var value = data.split(',');
 					$('#list_select').find('option').remove();
-					//$('#list_select').append($("<option titile='Show all tables'></option>").attr("value","All").text("All"));
 
 					for (let i = 0; i < data.split(',').length; i++) {
 						if (value[i] != '') {
@@ -388,8 +387,6 @@ function addNewIp() {
 	allFields.removeClass( "ui-state-error" );
 	valid = valid && checkLength( $('#list_add_ip_new_ip'), "IP", 1 );
 	var ip = $('#list_add_ip_new_ip').val();
-	console.log($('#list_add_ip_new_ip').val());
-	console.log($('#list_add_ip').data("list-id"))
 	if(valid) {
 		$.ajax({
 			url: "options.py",

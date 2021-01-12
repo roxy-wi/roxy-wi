@@ -70,7 +70,7 @@
 						{{ input('listen-port', name='port', type="number", title="Port for bind listen", placeholder="8080", size='5', required='required') }}
 						<div class="tooltip tooltipTop">
 							IP for bind listener, <b>if empty will be assigned on all IPs</b>.
-							Start typing IP, or press down.<br>If you are using <b>VRRP, leave the IP field blank</b>. If you assign an IP, the slave server will not start
+							Start typing IP, or press the "down" button.<br>If you are using <b>VRRP, leave the IP field blank</b>. If you assign an IP, the slave server will not start
 						</div>
 					</td>
 				</tr>
@@ -162,7 +162,7 @@
 							{{ checkbox('antibot', title='Antibot Protection', desc='Antibot', value='1') }}
 						</span>
 						<div id="blacklist-hide" style="display: none;">
-							<br /><span class="tooltip tooltipTop">Enter the name of the blacklist, or press down:</span><br />
+							<br /><span class="tooltip tooltipTop">Enter a blacklist name, or press the "down" button:</span><br />
 							{{ input('blacklist-hide-input', size='39', name="blacklist", placeholder="blacklist.lst") }}
 						</div>
 					</td>
@@ -201,7 +201,7 @@
 								<span style="padding-right: 10px;">Start typing options: </span>
 								{{ input('options') }}
 								<span style="padding-left: 10px;">
-									or press down. <a href="http://cbonte.github.io/haproxy-dconv/1.7/configuration.html" target="_blanck" style="color: #23527c" title="HAproxy docs">Read more about options</a>
+									or press the "down" button. <a href="http://cbonte.github.io/haproxy-dconv/1.7/configuration.html" target="_blanck" style="color: #23527c" title="HAproxy docs">Read more about options</a>
 								</span>
 								<br />
 								<span style="padding-right: 10px;">Start typing saved options: </span>
@@ -245,8 +245,10 @@
 					</td>
 				</tr>
 				<tr class="advance-show">
-					<td class="addName">Advanced:</td>
-					<td class="addOption"><span title="Show Advanced settings" class="link">Show Advanced settings</span></td>
+					<td class="addOption" colspan="2">
+						<button title="Show full list of settings" class="row-down advance-show-button">Show Advanced settings</button>
+						<button title="Hide full list of settings" class="row-up advance-hide-button" style="display: none">Hide Advanced settings</button>
+					</td>
 				</tr>
 				<tr>
 					<td class="addButton">
@@ -301,7 +303,7 @@
 					<input type="number" name="port" required title="Port for bind frontend" placeholder="8080" class="form-control">
 					<div class="tooltip tooltipTop">
 						IP for bind listener, <b>if empty will be assigned on all IPs</b>.
-						Start typing IP, or press down.<br>If you are using <b>VRRP, leave the IP field blank</b>. If you assign an IP, the slave server will not start
+						Start typing IP, or press the "down" button.<br>If you are using <b>VRRP, leave the IP field blank</b>. If you assign an IP, the slave server will not start
 					</div>
 				</td>
 			</tr>
@@ -316,7 +318,7 @@
 						<input type="checkbox" id="https-frontend" name="ssl" value="https">
 					</span>
 					<div id="https-hide-frontend" style="display: none;">
-						<br /><span class="tooltip tooltipTop">Enter name of pem file, or press the "down" button:</span><br />
+						<br /><span class="tooltip tooltipTop">Enter a name of pem file, or press the "down" button:</span><br />
 						{{ input('path-cert-frontend', name="cert", placeholder="some_cert.pem", size='39') }}
 					</div>
 				</td>
@@ -374,7 +376,7 @@
 						{{ checkbox('antibot1', title='Antibot Protection', desc='Antibot', value='1') }}
 					</span>
 					<div id="blacklist-hide1" style="display: none;">
-						<br /><span class="tooltip tooltipTop">Enter the name of the blacklist, or press down:</span><br />
+						<br /><span class="tooltip tooltipTop">Enter a blacklist name, or press the "down" button::</span><br />
 						{{ input('blacklist-hide-input1', size='39', name="blacklist", placeholder="blacklist.lst") }}
 					</div>
 				</td>
@@ -394,7 +396,7 @@
 							<span style="padding-right: 10px;">Start typing options: </span>
 							{{ input('options1') }}
 							<span style="padding-left: 10px;">
-								or press down. <a href="http://cbonte.github.io/haproxy-dconv/1.7/configuration.html" target="_blanck"  style="color: #23527c" title="HAproxy docs">Read more about options</a>
+								or press the "down" button:. <a href="http://cbonte.github.io/haproxy-dconv/1.7/configuration.html" target="_blanck"  style="color: #23527c" title="HAproxy docs">Read more about options</a>
 							</span>
 							<br />
 							<span style="padding-right: 10px;">Start typing saved options: </span>
@@ -408,14 +410,16 @@
 			<tr>
 				<td class="addName">Default backend</td>
 				<td class="addOption">
-					<div style="font-size: 12px; padding-bottom: 10px;">Start typing backend, or press down</div>
+					<div style="font-size: 12px; padding-bottom: 10px;">Start typing backend, or press the "down" button</div>
 					{{ input('backends', name='backends', placeholder="some_backend", size='30') }}
 					<p style="font-size: 12px"><b>Note:</b> If you want to use a default backend, you must <span title="Create backend" id="redirectBackend" class="link">create a new backend</span> first.</p>
 				</td>
 			</tr>
 			<tr class="advance-show">
-				<td class="addName">Advanced:</td>
-				<td class="addOption"><span title="Show Advanced settings" class="link">Show Advanced settings</span></td>
+				<td class="addOption" colspan="2">
+					<button title="Show full list of settings" class="row-down advance-show-button">Show Advanced settings</button>
+					<button title="Hide full list of settings" class="row-up advance-hide-button" style="display: none">Hide Advanced settings</button>
+				</td>
 			</tr>
 			<tr>
 				<td class="addButton">
@@ -565,7 +569,7 @@
 							<span style="padding-right: 10px;">Start typing options: </span>
 							{{ input('options2') }}
 							<span style="padding-left: 10px;">
-								or press down. <a href="http://cbonte.github.io/haproxy-dconv/1.7/configuration.html" target="_blanck" style="color: #23527c" title="HAproxy docs">Read more about options</a>
+								or press the "down" button. <a href="http://cbonte.github.io/haproxy-dconv/1.7/configuration.html" target="_blanck" style="color: #23527c" title="HAproxy docs">Read more about options</a>
 							</span>
 							<br />
 							<span style="padding-right: 10px;">Start typing saved options: </span>
@@ -609,8 +613,10 @@
 				</td>
 			</tr>
 			<tr class="advance-show">
-				<td class="addName">Advanced:</td>
-				<td class="addOption"><span title="Show Advanced settings" class="link">Show Advanced settings</span></td>
+				<td class="addOption" colspan="2">
+					<button title="Show full list of settings" class="row-down advance-show-button">Show Advanced settings</button>
+					<button title="Hide full list of settings" class="row-up advance-hide-button" style="display: none">Hide Advanced settings</button>
+				</td>
 			</tr>
 			<tr>
 				<td class="addButton">

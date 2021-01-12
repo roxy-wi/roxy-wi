@@ -259,3 +259,18 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f068";
 }
+.row-down::after {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f078";
+}
+.row-up::after {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f077";
+}
+.row-down .fa-chevron-down, .row-up .fa-chevron-up {
+	margin-bottom: -1px;
+	padding-left: 5px;
+}
+
