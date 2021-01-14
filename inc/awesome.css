@@ -273,4 +273,27 @@
 	margin-bottom: -1px;
 	padding-left: 5px;
 }
-
+.alert-info::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f05a";
+}
+.alert-warning::before, .alert-danger::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f06a";
+}
+.alert-info .fa-info-circle, .alert-warning .fa-exclamation-circle, .alert-danger .fa-exclamation-circle {
+	padding-right: 10px;
+	float: left;
+	margin-bottom: 10px;
+	margin-top: 4px;
+	font-size: 25px;
+}
+.alert-info .fa-info-circle {
+	margin-top: -3px;
+}
+.alert-two-rows .fa-info-circle {
+	margin-top: 5px;
+	padding-left: 2px;
+}

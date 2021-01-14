@@ -7,7 +7,7 @@ import os
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('ovw.html')
-	
+
 print('Content-type: text/html\n')
 if create_db.check_db():
 	if create_db.create_table():
@@ -23,22 +23,23 @@ try:
 	if (role == 2 or role == 3) and int(user_group) != 1:
 		users = sql.select_users(group=user_group)
 		servers_for_grep = ''
-		i = 0
+		i = 1
 		servers_len = len(servers)
 
 		for s in servers:
-			i += 1
 			if i != servers_len:
 				servers_for_grep += s[2]+'\|'
 			else:
 				servers_for_grep += s[2]
 
-		cmd = "ps ax |grep -e 'metrics_worker\|metrics_waf_worker.py'|grep -E %s|grep -v grep |wc -l" % servers_for_grep
+			i += 1
+
+		cmd = "ps ax |grep 'metrics_worker\|metrics_waf_worker.py'|grep -v grep|grep '%s' |wc -l" % servers_for_grep
 		metrics_worker, stderr = funct.subprocess_execute(cmd)
-		cmd = "ps ax |grep checker_worker|grep -E %s |grep -v grep |wc -l" % servers_for_grep
+		cmd = "ps ax |grep 'checker_worker\|checker_nginx'|grep -v grep |grep '%s' |wc -l" % servers_for_grep
 		checker_worker, stderr = funct.subprocess_execute(cmd)
 		i = 0
-		for s in sql.select_alert(group=user_group):
+		for s in sql.select_all_alerts(group=user_group):
 			i += 1
 		is_checker_worker = i
 		is_metrics_workers = sql.select_servers_metrics_for_master(group=user_group)
@@ -51,12 +52,12 @@ try:
 		host = ''
 	else:
 		users = sql.select_users()
-		cmd = "ps ax |grep -e 'metrics_worker\|metrics_waf_worker.py' |grep -v grep |wc -l"
+		cmd = "ps ax |grep 'metrics_worker\|metrics_waf_worker.py' |grep -v grep |wc -l"
 		metrics_worker, stderr = funct.subprocess_execute(cmd)
-		cmd = "ps ax |grep checker_worker |grep -v grep |wc -l"
+		cmd = "ps ax |grep 'checker_worker\|checker_nginx' |grep -v grep |wc -l"
 		checker_worker, stderr = funct.subprocess_execute(cmd)
 		i = 0
-		for s in sql.select_alert():
+		for s in sql.select_all_alerts():
 			i += 1
 		is_checker_worker = i
 		is_metrics_workers = sql.select_servers_metrics_for_master()
@@ -74,7 +75,7 @@ try:
 	metrics_master, stderr = funct.subprocess_execute(cmd)
 	cmd = "systemctl status checker_haproxy |grep Act |awk  '{print $2}'"
 	checker_master, stderr = funct.subprocess_execute(cmd)
-	cmd = "ps ax |grep -e 'keep_alive.py' |grep -v grep |wc -l"
+	cmd = "systemctl status keep_alive |grep Act |awk  '{print $2}'"
 	keep_alive, stderr = funct.subprocess_execute(cmd)
 	cmd = "systemctl status smon |grep Act |awk  '{print $2}'"
 	smon, stderr = funct.subprocess_execute(cmd)

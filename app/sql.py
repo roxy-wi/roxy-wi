@@ -1266,6 +1266,19 @@ def select_all_waf_servers():
 	con.close()
 
 
+def select_waf_servers_metrics_for_master():
+	con, cur = get_cur()
+	sql = """ select servers.ip from servers left join waf as waf on waf.server_id = servers.id where servers.enable = 1 and waf.metrics = '1'  """
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		funct.out_error(e)
+	else:
+		return cur.fetchall()
+	cur.close()
+	con.close()
+
+
 def select_waf_servers_metrics(uuid, **kwargs):
 	con, cur = get_cur()
 	sql = """ select * from user where username = '%s' """ % get_user_name_by_uuid(uuid)
@@ -1859,9 +1872,24 @@ def select_roles(**kwargs):
 
 def select_alert(**kwargs):
 	con, cur = get_cur()
-	sql = """select ip from servers where alert = 1 """
+	sql = """select ip from servers where alert = 1  """
 	if kwargs.get("group") is not None:
 		sql = """select ip from servers where alert = 1 and `groups` = '%s' """ % kwargs.get("group")
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		funct.out_error(e)
+	else:
+		return cur.fetchall()
+	cur.close()
+	con.close()
+
+
+def select_all_alerts(**kwargs):
+	con, cur = get_cur()
+	sql = """select ip from servers where alert = 1 or nginx_alert = 1 """
+	if kwargs.get("group") is not None:
+		sql = """select ip from servers where (alert = 1 or nginx_alert = 1) and `groups` = '%s' """ % kwargs.get("group")
 	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
