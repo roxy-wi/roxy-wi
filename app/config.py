@@ -125,8 +125,6 @@ template = template.render(h2=1, title=title,
 							selects=servers,
 							stderr=stderr,
 							error=error,
-							note=1,
-							versions=funct.versions(),
 							service=service,
 							token=token)
 print(template)

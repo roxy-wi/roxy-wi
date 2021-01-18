@@ -46,7 +46,6 @@ if form.getvalue('mode') is None and form.getvalue('new_userlist') is None:
 								add=form.getvalue('add'),
 								conf_add=form.getvalue('conf'),
 								group=user_group,
-								versions=funct.versions(),
 								options=sql.select_options(),
 								saved_servers=sql.select_saved_servers(),
 								white_lists=white_lists,

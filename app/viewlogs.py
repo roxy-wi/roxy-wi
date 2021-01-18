@@ -49,19 +49,17 @@ try:
 			curpath = os.path.join(dirpath, file)
 			try:
 				funct.subprocess_execute('sudo chown apache:apache ' + curpath)
-			except:
+			except Exception:
 				pass
 			file_modified = datetime.datetime.fromtimestamp(os.path.getmtime(curpath))
 			if datetime.datetime.now() - file_modified > datetime.timedelta(hours=time_storage_hours):
 				os.remove(curpath)
-except:
-	print(
-		'<center><div class="alert alert-danger" style="margin: 0; margin-bottom: 10px;">Can\'t delete old logs file. <br> Please check "log_time_storage" in config and <br>exist directory </div></center>')
+except Exception:
 	pass
 
 try:
 	user, user_id, role, token, servers = funct.get_users_params()
-except:
+except Exception:
 	pass
 
 selects = funct.get_files(log_path, format="log")
@@ -84,7 +82,6 @@ output_from_parsed_template = template.render(h2=1,
                                               hour1=hour1,
                                               minut=minut,
                                               minut1=minut1,
-                                              versions=funct.versions(),
 											  page = page,
                                               token=token)
 print(output_from_parsed_template)

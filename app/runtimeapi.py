@@ -14,17 +14,16 @@ try:
 	serv = form.getvalue('serv')
 	if servbackend is None:
 		servbackend = ""
-except:
+except Exception:
 	pass
 
 
-template = template.render(h2 = 0,
-							title = "RunTime API",
-							role = role,
-							user = user,
-							select_id = "serv",
-							selects = servers,
-							token = token,
-							versions = funct.versions(),
-							servbackend = servbackend)											
+template = template.render(h2=0,
+							title="RunTime API",
+							role=role,
+							user=user,
+							select_id="serv",
+							selects=servers,
+							token=token,
+							servbackend=servbackend)
 print(template)

@@ -71,7 +71,7 @@ if serv is not None and form.getvalue('config') is not None:
 	aftersave = 1
 	try:
 		funct.logging(serv, "configver.py upload old config %s" % configver)
-	except:
+	except Exception:
 		pass
 	if service == 'keepalived':
 		stderr = funct.upload_and_restart(serv, configver, just_save=save, keepalived=1)
@@ -81,21 +81,20 @@ if serv is not None and form.getvalue('config') is not None:
 		stderr = funct.master_slave_upload_and_restart(serv, configver, just_save=save)
 		
 		
-template = template.render(h2 = 1, title = title,
-							role = role,
-							action = action,
-							user = user,
-							select_id = "serv",
-							serv = serv,
-							aftersave = aftersave,
-							return_files = files,
-							selects = servers,
-							stderr = stderr,
-							open = form.getvalue('open'),
-							Select = form.getvalue('del'),
-							file = file,
-							versions = funct.versions(),
-							configver = configver,
-							service = service,
-							token = token)
+template = template.render(h2=1, title=title,
+							role=role,
+							action=action,
+							user=user,
+							select_id="serv",
+							serv=serv,
+							aftersave=aftersave,
+							return_files=files,
+							selects=servers,
+							stderr=stderr,
+							open=form.getvalue('open'),
+							Select=form.getvalue('del'),
+							file=file,
+							configver=configver,
+							service=service,
+							token=token)
 print(template)

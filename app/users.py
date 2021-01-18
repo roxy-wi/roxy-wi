@@ -40,7 +40,11 @@ try:
 			service_name = s
 		cmd = "rpm --query haproxy-wi-"+service_name+"-* |awk -F\""+service_name + "\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
 		service_ver, stderr = funct.subprocess_execute(cmd)
-		services.append([s, status, v, service_ver[0]])
+		
+		try:
+			services.append([s, status, v, service_ver[0]])
+		except Exception:
+			services.append([s, status, v, ''])
 
 	try:
 		os_name = platform.linux_distribution()[0]

@@ -28,7 +28,7 @@
 		{% if first %}
 			<option {{disabled}} selected>{{first}}</option>
 		{% endif %}
-		{% for v, des in values|dictsort(false, 'value') %}
+		{% for v, des in values.items() %}
 			{% if v == selected %}
 				<option value="{{v}}" selected>{{des}}</option>
 			{% else %}

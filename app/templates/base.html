@@ -26,11 +26,9 @@
 		<meta name="msapplication-TileColor" content="#ffffff">
 		<meta name="msapplication-TileImage" content="/inc/images/favicon/ms-icon-144x144.png">
 		<meta name="theme-color" content="#ffffff">
-		<script>
-			FontAwesomeConfig = { searchPseudoElements: true, observeMutations: false };
-		</script>
 		<script defer src="/inc/fa-solid.min.js"></script>
 		<script defer src="/inc/fontawesome.min.js"></script>
+		<script>FontAwesomeConfig = { searchPseudoElements: true, observeMutations: false };</script>
 		<script defer src="/inc/ion.sound.min.js"></script>
 		<link href="/inc/awesome.css" rel="stylesheet">
 		<link href="/inc/style.css" rel="stylesheet">
@@ -175,50 +173,26 @@
 						</div>
 						<div class="auto-refresh-ul" id="secIntervals">
 							<ul style="width: 100px;">
-								<li>
-									<a title="Auto-refresh every 5 seconds" onclick="setRefreshInterval(5000)">5 seconds</a>
-								</li>
-								<li>
-									<a title="Auto-refresh every 10 seconds" onclick="setRefreshInterval(10000)">10 seconds</a>
-								</li>
-								<li>
-									<a title="Auto-refresh every 30 seconds" onclick="setRefreshInterval(30000)">30 seconds</a>
-								</li>
-								<li>
-									<a title="Auto-refresh ever 45 seconds" onclick="setRefreshInterval(45000)">45 seconds</a>		
-								</li>
+								<li><a title="Auto-refresh every 5 seconds" onclick="setRefreshInterval(5000)">5 seconds</a></li>
+								<li><a title="Auto-refresh every 10 seconds" onclick="setRefreshInterval(10000)">10 seconds</a></li>
+								<li><a title="Auto-refresh every 30 seconds" onclick="setRefreshInterval(30000)">30 seconds</a></li>
+								<li><a title="Auto-refresh ever 45 seconds" onclick="setRefreshInterval(45000)">45 seconds</a></li>
 							</ul>
 						</div>
 						<div class="auto-refresh-ul">
 							<ul style="width: 100px;">
-								<li>
-									<a title="Auto-refresh every 1 minute" onclick="setRefreshInterval(60000)">1 minute</a>
-								</li>
-								<li>
-									<a title="Auto-refresh every 5 minutes" onclick="setRefreshInterval(300000)">5 minutes</a>
-								</li>
-								<li>
-									<a title="Auto-refresh every 15 minutes" onclick="setRefreshInterval(900000)">15 minutes</a>
-								</li>
-								<li>
-									<a title="Auto-refresh ever 30 minutes" onclick="setRefreshInterval(1800000)">30 minutes</a>		
-								</li>
+								<li><a title="Auto-refresh every 1 minute" onclick="setRefreshInterval(60000)">1 minute</a></li>
+								<li><a title="Auto-refresh every 5 minutes" onclick="setRefreshInterval(300000)">5 minutes</a></li>
+								<li><a title="Auto-refresh every 15 minutes" onclick="setRefreshInterval(900000)">15 minutes</a></li>
+								<li><a title="Auto-refresh ever 30 minutes" onclick="setRefreshInterval(1800000)">30 minutes</a></li>
 							</ul>
 						</div>
 						<div class="auto-refresh-ul">
 							<ul style="width: 100px;">
-								<li>
-									<a title="Auto-refresh every 1 hour" onclick="setRefreshInterval(3600000)">1 hour</a>
-								</li>
-								<li>
-									<a title="Auto-refresh every 2 hour" onclick="setRefreshInterval(7200000)">2 hour</a>
-								</li>
-								<li>
-									<a title="Auto-refresh every 12 hour" onclick="setRefreshInterval(43200000)">12 hour</a>
-								</li>
-								<li>
-									<a title="Auto-refresh ever 1 day" onclick="setRefreshInterval(86400000)">1 day</a>		
-								</li>
+								<li><a title="Auto-refresh every 1 hour" onclick="setRefreshInterval(3600000)">1 hour</a></li>
+								<li><a title="Auto-refresh every 2 hour" onclick="setRefreshInterval(7200000)">2 hour</a></li>
+								<li><a title="Auto-refresh every 12 hour" onclick="setRefreshInterval(43200000)">12 hour</a></li>
+								<li><a title="Auto-refresh ever 1 day" onclick="setRefreshInterval(86400000)">1 day</a></li>
 							</ul>
 						</div>
 					</div>
@@ -256,26 +230,7 @@
 					</span>
 				</a>
 			</div>
-			<div id="version">
-				{% if versions is defined %}
-					{% set current_ver = versions.0 %}
-					{% set new_ver = versions.1 %}
-					{% set current_ver_without_dots = versions.2 %}
-					{% set new_ver_without_dots = versions.3 %}
-				{% endif %}
-				{% if new_ver_without_dots is defined and current_ver_without_dots is defined and new_ver is defined and new_ver_without_dots is defined %}
-					<a style="color: #000; cursor: pointer;">
-						{% if new_ver_without_dots > current_ver_without_dots and new_ver != "Sorry cannot get current version" %}
-							<span id="show-updates-button" class="new-version-exists">v{{current_ver}} </span>
-						{% else %}
-							<a href="/app/users.py#updatehapwi" title="Update center" style="color: black;">v{{current_ver}}</a>
-						{% endif %}
-					</a>
-				{% else %}
-					<a href="/app/users.py#updatehapwi" title="Update center" style="color: black;">v{{current_ver}}</a>
-				{% endif %}
-				<br>
-			</div>
+			<div id="version"></div>
 			<div id="logo_footer">
 				<a href="https://haproxy-wi.org" title="HAProxy-WI official site" target="_blank">
 					<img src="/inc/images/logo_footer.png" alt="logo" id="logo_footer_img" />

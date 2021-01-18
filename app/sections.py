@@ -87,6 +87,5 @@ template = template.render(h2=1, title="Working with HAProxy configs",
 							end_line=end_line,
 							section=section,
 							sections=sections,
-							versions=funct.versions(),
 							token=token)
 print(template)

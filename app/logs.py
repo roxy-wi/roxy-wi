@@ -33,7 +33,7 @@ funct.check_login()
 
 try:
 	user, user_id, role, token, servers = funct.get_users_params()
-except:
+except Exception:
 	pass
 
 if service == 'nginx':
@@ -41,26 +41,22 @@ if service == 'nginx':
 else:
 	title = "HAProxy`s logs"
 
-template = template.render(h2 = 1,
-							autorefresh = 1,
-							title = title,
-							role = role,
-							user = user,
-							select_id = "serv",
-							selects = servers,
-							serv = form.getvalue('serv'),
-							rows = rows,
-							grep = grep,
-							exgrep = exgrep,
-							hour = hour,
-							hour1 = hour1,
-							minut = minut,
-							minut1 = minut1,
-							waf = waf,
-							versions = funct.versions(),
-							service = service,
-							token = token)											
+template = template.render(h2=1,
+							autorefresh=1,
+							title=title,
+							role=role,
+							user=user,
+							select_id="serv",
+							selects=servers,
+							serv=form.getvalue('serv'),
+							rows=rows,
+							grep=grep,
+							exgrep=exgrep,
+							hour=hour,
+							hour1=hour1,
+							minut=minut,
+							minut1=minut1,
+							waf=waf,
+							service=service,
+							token=token)
 print(template)
-
-
-

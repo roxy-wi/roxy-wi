@@ -873,6 +873,17 @@ $( function() {
 		}
 		return false;
 	});
+	$.ajax( {
+			url: "options.py",
+			data: {
+				show_versions: 1,
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+				$('#version').html(data);
+			}
+		} );
 	var showUpdates = $( "#show-updates" ).dialog({
 			autoOpen: false,
 			resizable: false,

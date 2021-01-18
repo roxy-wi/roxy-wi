@@ -29,7 +29,6 @@ template = template.render(h2=1, title="Metrics",
 							role=role,
 							user=user,
 							servers=servers,
-							versions=funct.versions(),
 							services=services,
 							token=token)
 print(template)

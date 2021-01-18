@@ -10,6 +10,11 @@ service = form.getvalue('service')
 print('Content-type: text/html\n')
 funct.check_login()
 
+if service == 'nginx':
+	title = 'Nginx stats page'
+else:
+	title = 'HAProxy stats page'
+
 try:
 	user, user_id, role, token, servers = funct.get_users_params(virt=1)
 	
@@ -18,21 +23,20 @@ try:
 		for i in first_serv:
 			serv = i[2]
 			break
-except:
+except Exception:
 	pass
 
 	
-output_from_parsed_template = template.render(h2 = 1,
-												autorefresh = 1,
-												title = "HAProxy statistics",
-												role = role,
-												user = user,
-												onclick = "showStats()",
-												select_id = "serv",
-												selects = servers,
-												serv = serv,
-												versions = funct.versions(),
-												service = service,
-												token = token)											
+output_from_parsed_template = template.render(h2=1,
+												autorefresh=1,
+												title=title,
+												role=role,
+												user=user,
+												onclick="showStats()",
+												select_id="serv",
+												selects=servers,
+												serv=serv,
+												service=service,
+												token=token)
 print(output_from_parsed_template)
 
