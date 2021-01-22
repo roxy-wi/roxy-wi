@@ -373,12 +373,6 @@ pre {
 .ip-field {
 	width: 100px;
 }
-.group-field, .slave-field {
-	//min-width: 5%;
-}
-.slave-field {
-	padding-left: 10px;
-}
 .cred-field {
 	min-width: 225px;
 }

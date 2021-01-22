@@ -318,7 +318,6 @@ function updateHapWIServer(id, service_name) {
 				toastr.error(data);
 			} else {
 				toastr.clear();
-				console.log("#server-"+id+"-"+service_name)
 				$("#server-"+id+"-"+service_name).addClass( "update", 1000 );
 				setTimeout(function() {
 					$( "#server-"+id+"-"+service_name).removeClass( "update" );

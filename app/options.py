@@ -399,13 +399,10 @@ if form.getvalue('action_hap') is not None and serv is not None:
 if form.getvalue('action_nginx') is not None and serv is not None:
     action = form.getvalue('action_nginx')
 
-    if funct.check_haproxy_config(serv):
-        commands = ["sudo systemctl %s nginx" % action]
-        funct.ssh_command(serv, commands)
-        funct.logging(serv, 'Nginx was ' + action + 'ed', haproxywi=1, login=1)
-        print("success: Nginx was %s" % action)
-    else:
-        print("error: Bad config, check please")
+    commands = ["sudo systemctl %s nginx" % action]
+    funct.ssh_command(serv, commands)
+    funct.logging(serv, 'Nginx was ' + action + 'ed', haproxywi=1, login=1)
+    print("success: Nginx was %s" % action)
 
 if form.getvalue('action_waf') is not None and serv is not None:
     serv = form.getvalue('serv')
@@ -1626,7 +1623,7 @@ if form.getvalue('newserver') is not None:
                                    page=page,
                                    adding=1)
         print(template)
-        funct.logging('a new server ' + hostname, ' has created  ', haproxywi=1, login=1)
+        funct.logging('a new server ' + hostname, ' has been created  ', haproxywi=1, login=1)
 
 if form.getvalue('updatehapwiserver') is not None:
     hapwi_id = form.getvalue('updatehapwiserver')
@@ -1636,7 +1633,7 @@ if form.getvalue('updatehapwiserver') is not None:
     metrics = form.getvalue('metrics')
     service_name = form.getvalue('service_name')
     sql.update_hapwi_server(hapwi_id, alert, metrics, active, service_name)
-    funct.logging('the server ' + name, ' has updated ', haproxywi=1, login=1)
+    funct.logging('the server ' + name, ' has been updated ', haproxywi=1, login=1)
 
 if form.getvalue('updateserver') is not None:
     name = form.getvalue('updateserver')
@@ -1656,7 +1653,7 @@ if form.getvalue('updateserver') is not None:
         print(error_mess)
     else:
         sql.update_server(name, group, typeip, enable, master, serv_id, cred, port, desc, haproxy, nginx, firewall)
-        funct.logging('the server ' + name, ' has updated ', haproxywi=1, login=1)
+        funct.logging('the server ' + name, ' has been updated ', haproxywi=1, login=1)
 
 if form.getvalue('serverdel') is not None:
     serverdel = form.getvalue('serverdel')
@@ -1670,7 +1667,7 @@ if form.getvalue('serverdel') is not None:
     if sql.delete_server(serverdel):
         sql.delete_waf_server(serverdel)
         print("Ok")
-        funct.logging(hostname, ' has deleted server with ', haproxywi=1, login=1)
+        funct.logging(hostname, ' has been deleted server with ', haproxywi=1, login=1)
 
 if form.getvalue('newgroup') is not None:
     newgroup = form.getvalue('groupname')
@@ -2231,6 +2228,15 @@ if form.getvalue('viewFirewallRules') is not None:
     cmd2 = ["sudo iptables -L OUTPUT -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"]
 
     input_chain = funct.ssh_command(serv, cmd, raw=1)
+
+    input_chain2 = []
+    for each_line in input_chain:
+        input_chain2.append(each_line.strip('\n'))
+
+    if 'error:' in input_chain:
+        print(input_chain)
+        sys.exit()
+
     IN_public_allow = funct.ssh_command(serv, cmd1, raw=1)
     output_chain = funct.ssh_command(serv, cmd2, raw=1)
 
@@ -2238,7 +2244,7 @@ if form.getvalue('viewFirewallRules') is not None:
 
     env = Environment(loader=FileSystemLoader('templates'))
     template = env.get_template('ajax/firewall_rules.html')
-    template = template.render(input=input_chain, IN_public_allow=IN_public_allow, output=output_chain)
+    template = template.render(input=input_chain2, IN_public_allow=IN_public_allow, output=output_chain)
     print(template)
 
 if form.getvalue('geoipserv') is not None:
@@ -2273,7 +2279,7 @@ if form.getvalue('geoip_install'):
 
     commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port +
                 " UPDATE=" + str(geoip_update) + " maxmind_key=" + maxmind_key + " haproxy_dir=" + haproxy_dir +
-                " HOST=" + str(serv) +" USER=" + str(ssh_user_name) + " PASS=" + str(ssh_user_password) +
+                " HOST=" + str(serv) + " USER=" + str(ssh_user_name) + " PASS=" + str(ssh_user_password) +
                 " KEY=" + str(ssh_key_name)]
 
     output, error = funct.subprocess_execute(commands[0])
@@ -2281,3 +2287,11 @@ if form.getvalue('geoip_install'):
     funct.show_installation_output(error, output, 'GeoLite2 Database')
 
     os.system("rm -f %s" % script)
+
+if form.getvalue('show_versions'):
+    from jinja2 import Environment, FileSystemLoader
+
+    env = Environment(loader=FileSystemLoader('templates'))
+    template = env.get_template('ajax/check_version.html')
+    template = template.render(versions=funct.versions())
+    print(template)

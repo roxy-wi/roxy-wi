@@ -959,7 +959,7 @@ $( function() {
 					$(this).children(".settings").css('padding-left', '30px');
 					$(this).children(".settings").css('border-left', '4px solid #5D9CEB');
 				});
-				$( "#tabs" ).tabs( "option", "active", 5 );
+				$( "#tabs" ).tabs( "option", "active", 6 );
 			} );
 			$( ".services" ).on( "click", function() {
 				$('.menu li ul li').each(function () {
@@ -968,7 +968,7 @@ $( function() {
 					$(this).children(".services").css('padding-left', '30px');
 					$(this).children(".services").css('border-left', '4px solid #5D9CEB');
 				});
-				$( "#tabs" ).tabs( "option", "active", 6 );
+				$( "#tabs" ).tabs( "option", "active", 7 );
 			} );
 			$( ".updatehapwi" ).on( "click", function() {
 				$('.menu li ul li').each(function () {
@@ -977,7 +977,7 @@ $( function() {
 					$(this).children(".updatehapwi").css('padding-left', '30px');
 					$(this).children(".updatehapwi").css('border-left', '4px solid #5D9CEB');
 				});
-				$( "#tabs" ).tabs( "option", "active", 7 );
+				$( "#tabs" ).tabs( "option", "active", 8 );
 			} );
 		} else {
 			$( ".runtime" ).on( "click", function() {

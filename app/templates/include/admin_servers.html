@@ -7,18 +7,18 @@
 			<th class="ip-field" style="width: 5%">IP</th>
 			<th class="checkbox-head" style="width: 5%"><span title="SSH port">Port</span></th>
 			{% if page != "servers.py" %}
-			<th class="group-field" style="width: 10%">Group</th>
+			<th style="width: 10%">Group</th>
 			{% endif %}
 			<th class="checkbox-head" style="width: 5%">Enabled</th>
-			<th class="checkbox-head" style="width: 5%">
+			<th style="width: 5%; padding-left: 5px;">
 				<span title="Virtual IP, something like VRRP">Virt</span>
 			</th>
 			<th class="checkbox-head" style="width: 5%">HAProxy</th>
-			<th class="checkbox-head" style="width: 5%">Nginx</th>
-			<th class="checkbox-head" style="width: 15%">
+			<th style="width: 5%">Nginx</th>
+			<th style="width: 15%;">
 				<span title="If the server has a firewall enabled, enable this option">Firewalld</span>
 			</th>
-			<th class="slave-field" style="width: 10%">
+			<th style="width: 10%">
 				<span title="Actions with the master config will automatically apply on the slave">Slave for</span>
 			</th>
 			<th class="cred-field">Credentials</th>
@@ -83,7 +83,7 @@
 					{{ checkbox(id) }}
 				{% endif %}
 			</td>
-			<td class="checkbox">
+			<td class="checkbox" style="padding-left: 5px;">
 				{% set id = 'nginx-' + server.0|string() %}
 				{% if server.14 == 1 %}
 					{{ checkbox(id, checked='checked') }}
@@ -91,7 +91,7 @@
 					{{ checkbox(id) }}
 				{% endif %}
 			</td>
-			<td class="checkbox">
+			<td class="checkbox" style="padding-left: 0">
 				<div class="controlgroup">
 					{% set id = 'firewall-' + server.0|string() %}
 					{% if server.18 == 1 %}

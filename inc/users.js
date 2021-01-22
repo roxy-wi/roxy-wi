@@ -2173,7 +2173,7 @@ function viewFirewallRules(id) {
 		type: "POST",
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1') {
+			if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error: ') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();

@@ -651,6 +651,7 @@ $( function() {
 			$( ".second-server" ).hide( "fast" );
 			$( ".backend_server" ).hide( "fast" );
 			$( ".send_proxy" ).hide( "fast" );
+			$( "input[name=server_maxconn]" ).hide( "fast" );
 			$( ".prefix" ).attr('required',true);
 		} else {
 			$( ".prefix" ).hide( "fast" );
@@ -658,6 +659,7 @@ $( function() {
 			$( ".second-server" ).show( "fast" );
 			$( ".backend_server" ).show( "fast" )
 			$( ".send_proxy" ).show( "fast" )
+			$( "input[name=server_maxconn]" ).show( "fast" );
 		}
 	});
 	var location = window.location.href;
@@ -888,8 +890,8 @@ $( function() {
 			toastr.error('Wrong e-mail format');
 		}
 	});
-	var add_server_var = '<br /><input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">: ' +
-		'<input name="server_port" required title="Backend IP" size=3 placeholder="yyy" class="form-control add_server_number" type="number">' +
+	var add_server_var = '<br /><input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server">: ' +
+		'<input name="server_port" required title="Backend IP" size=3 placeholder="yyy" class="form-control second-server add_server_number" type="number">' +
 		'<input name="server_maxconn" required title="Maxconn. Default 200" size=5 value="200" class="form-control add_server_number" type="number">'
 	$('[name=add-server-input]').click(function() {
 		$("[name=add_servers]").append(add_server_var);
