@@ -52,11 +52,11 @@ def check_db():
 def get_cur():
 	try:
 		if mysql_enable == '0':
-			con = sqltool.connect(db, isolation_level=None)
+			con = sqltool.connect(db, isolation_level=None)  
 		else:
 			con = sqltool.connect(user=mysql_user, password=mysql_password,
 									host=mysql_host, port=mysql_port,
-									database=mysql_db)
+									database=mysql_db)	
 		cur = con.cursor()
 	except sqltool.Error as e:
 		funct.logging('DB ', ' '+str(e), haproxywi=1, login=1)
@@ -77,9 +77,9 @@ def create_table(**kwargs):
 			`groups`	VARCHAR ( 120 ),
 			ldap_user INTEGER NOT NULL DEFAULT 0,
 			activeuser INTEGER NOT NULL DEFAULT 1,
-			PRIMARY KEY(`id`)
+			PRIMARY KEY(`id`) 
 		);
-		INSERT INTO user (username, email, password, role, groups) VALUES
+		INSERT INTO user (username, email, password, role, groups) VALUES 
 		('admin','admin@localhost','21232f297a57a5a743894a0e4a801fc3','admin','1'),
 		('editor','editor@localhost','5aee9dbd2a188839105073571bee1b1f','editor','1'),
 		('guest','guest@localhost','084e0343a0486ff05530df6c705c8bb4','guest','1');
@@ -97,18 +97,18 @@ def create_table(**kwargs):
 			port INTEGER NOT NULL DEFAULT 22,
 			`desc` varchar(64),
 			active INTEGER NOT NULL DEFAULT 0,
-			PRIMARY KEY(`id`)
+			PRIMARY KEY(`id`) 
 		);
 		CREATE TABLE IF NOT EXISTS `role` (
 			`id`	INTEGER NOT NULL,
 			`name`	VARCHAR ( 80 ) UNIQUE,
 			`description`	VARCHAR ( 255 ),
-			PRIMARY KEY(`id`)
+			PRIMARY KEY(`id`) 
 		);
 		INSERT INTO `role` (name, description) VALUES ('admin','Can do everything'),
 		('editor','Can edit configs'),
 		('guest','Read only access');
-
+		
 		CREATE TABLE IF NOT EXISTS `groups` (
 			`id`	INTEGER NOT NULL,
 			`name`	VARCHAR ( 80 ),
@@ -127,16 +127,16 @@ def create_table(**kwargs):
 		);
 		CREATE TABLE IF NOT EXISTS `uuid` (`user_id` INTEGER NOT NULL, `uuid` varchar ( 64 ),`exp` timestamp default '0000-00-00 00:00:00');
 		CREATE TABLE IF NOT EXISTS `token` (`user_id` INTEGER, `token` varchar(64), `exp` timestamp default '0000-00-00 00:00:00');
-		CREATE TABLE IF NOT EXISTS `telegram` (`id` integer primary key autoincrement, `token` VARCHAR ( 64 ), `chanel_name` INTEGER NOT NULL DEFAULT 1, `groups` INTEGER NOT NULL DEFAULT 1);
+		CREATE TABLE IF NOT EXISTS `telegram` (`id` integer primary key autoincrement, `token` VARCHAR (64), `chanel_name` INTEGER NOT NULL DEFAULT 1, `groups` INTEGER NOT NULL DEFAULT 1);
 		CREATE TABLE IF NOT EXISTS `metrics` (`serv` varchar(64), curr_con INTEGER, cur_ssl_con INTEGER, sess_rate INTEGER, max_sess_rate INTEGER,`date` timestamp default '0000-00-00 00:00:00');
 		CREATE TABLE IF NOT EXISTS `settings` (`param` varchar(64), value varchar(64), section varchar(64), `desc` varchar(100), `group` INTEGER NOT NULL DEFAULT 1, UNIQUE(param, `group`));
 		CREATE TABLE IF NOT EXISTS `version` (`version` varchar(64));
-		CREATE TABLE IF NOT EXISTS `options` ( `id`	INTEGER NOT NULL, `options`	VARCHAR ( 64 ), `groups`	VARCHAR ( 120 ), PRIMARY KEY(`id`));
-		CREATE TABLE IF NOT EXISTS `saved_servers` ( `id` INTEGER NOT NULL, `server` VARCHAR ( 64 ), `description` VARCHAR ( 120 ), `groups` VARCHAR ( 120 ), PRIMARY KEY(`id`));
-		CREATE TABLE IF NOT EXISTS `backups` ( `id` INTEGER NOT NULL, `server` VARCHAR ( 64 ), `rhost` VARCHAR ( 120 ), `rpath` VARCHAR ( 120 ), `type` VARCHAR ( 120 ), `time` VARCHAR ( 120 ),  cred INTEGER, `description` VARCHAR ( 120 ), PRIMARY KEY(`id`));
+		CREATE TABLE IF NOT EXISTS `options` (`id` INTEGER NOT NULL, `options` VARCHAR ( 64 ), `groups` VARCHAR ( 120 ), PRIMARY KEY(`id`)); 
+		CREATE TABLE IF NOT EXISTS `saved_servers` (`id` INTEGER NOT NULL, `server` VARCHAR ( 64 ), `description` VARCHAR ( 120 ), `groups` VARCHAR ( 120 ), PRIMARY KEY(`id`)); 
+		CREATE TABLE IF NOT EXISTS `backups` (`id` INTEGER NOT NULL, `server` VARCHAR ( 64 ), `rhost` VARCHAR ( 120 ), `rpath` VARCHAR ( 120 ), `type` VARCHAR ( 120 ), `time` VARCHAR ( 120 ),  cred INTEGER, `description` VARCHAR ( 120 ), PRIMARY KEY(`id`));
 		CREATE TABLE IF NOT EXISTS `waf` (`server_id` INTEGER UNIQUE, metrics INTEGER);
-		CREATE TABLE IF NOT EXISTS `waf_metrics` (`serv` varchar(64), conn INTEGER, `date`  DATETIME default '0000-00-00 00:00:00');
-		CREATE TABLE IF NOT EXISTS user_groups(user_id INTEGER NOT NULL, user_group_id INTEGER NOT NULL, UNIQUE(user_id,user_group_id));
+		CREATE TABLE IF NOT EXISTS `waf_metrics` (`serv` varchar(64), conn INTEGER, `date` DATETIME default '0000-00-00 00:00:00');
+		CREATE TABLE IF NOT EXISTS user_groups(user_id INTEGER NOT NULL, user_group_id INTEGER NOT NULL, UNIQUE(user_id,user_group_id)); 
 		"""
 		try:
 			cur.executescript(sql)
@@ -150,7 +150,7 @@ def create_table(**kwargs):
 		else:
 			return True
 	else:
-		try:
+		try: 
 			for line in open("haproxy-wi.db.sql"):
 				cur.execute(line)
 		except sqltool.Error as e:
@@ -160,10 +160,10 @@ def create_table(**kwargs):
 			return False
 		else:
 			return True
-	cur.close()
+	cur.close() 
 	con.close()
-
-
+	
+	
 def update_db_v_31(**kwargs):
 	con, cur = get_cur()
 	sql = list()
@@ -199,7 +199,7 @@ def update_db_v_31(**kwargs):
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_class_search', 'user', 'ldap', 'Class to search user');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_user_attribute', 'sAMAccountName', 'ldap', 'User\'s attribute for search');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_search_field', 'mail', 'ldap', 'Field where user e-mail saved');")
-
+	
 	for i in sql:
 		try:
 			cur.execute(i)
@@ -210,14 +210,14 @@ def update_db_v_31(**kwargs):
 		if kwargs.get('silent') != 1:
 			print('Updating... go to version 3.2')
 		return True
-	cur.close()
+	cur.close() 
 	con.close()
-
-
+	
+	
 def update_db_v_3_4_5_2(**kwargs):
 	con, cur = get_cur()
 	sql = """CREATE TABLE IF NOT EXISTS `version` (`version` varchar(64)); """
-	try:
+	try:    
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
@@ -229,29 +229,29 @@ def update_db_v_3_4_5_2(**kwargs):
 			return False
 		else:
 			return True
-	cur.close()
+	cur.close() 
 	con.close()
-
-
+	
+	
 def update_db_v_3_4_5_22(**kwargs):
 	con, cur = get_cur()
 	if mysql_enable == '0':
 		sql = """insert into version ('version') values ('3.4.5.2'); """
 	else:
 		sql = """INSERT INTO version VALUES ('3.4.5.2'); """
-	try:
+	try:    
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
 		print('Cannot insert version %s' % e)
-	cur.close()
+	cur.close() 
 	con.close()
-
+	
 
 def update_db_v_3_4_7(**kwargs):
 	con, cur = get_cur()
 	sql = """CREATE TABLE IF NOT EXISTS `options` ( `id`	INTEGER NOT NULL, `options`	VARCHAR ( 64 ), `groups`	VARCHAR ( 120 ), PRIMARY KEY(`id`)); """
-	try:
+	try:    
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
@@ -263,14 +263,14 @@ def update_db_v_3_4_7(**kwargs):
 			return False
 		else:
 			return True
-	cur.close()
+	cur.close() 
 	con.close()
-
-
+	
+	
 def update_db_v_3_5_3(**kwargs):
 	con, cur = get_cur()
 	sql = """CREATE TABLE IF NOT EXISTS `saved_servers` ( `id` INTEGER NOT NULL, `server` VARCHAR ( 64 ), `description` VARCHAR ( 120 ), `groups` VARCHAR ( 120 ), PRIMARY KEY(`id`));  """
-	try:
+	try:    
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
@@ -282,16 +282,16 @@ def update_db_v_3_5_3(**kwargs):
 			return False
 		else:
 			return True
-	cur.close()
-	con.close()
-
-
+	cur.close() 
+	con.close()	
+	
+	
 def update_db_v_3_8_1(**kwargs):
 	con, cur = get_cur()
 	sql = list()
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_class_search', 'user', 'ldap', 'Class to search user');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_user_attribute', 'sAMAccountName', 'ldap', 'User attribute for search');")
-
+	
 	for i in sql:
 		try:
 			cur.execute(i)
@@ -304,12 +304,12 @@ def update_db_v_3_8_1(**kwargs):
 
 	cur.close()
 	con.close()
-
-
+	
+	
 def update_db_v_3_12(**kwargs):
 	con, cur = get_cur()
 	sql = """CREATE TABLE IF NOT EXISTS `backups` ( `id` INTEGER NOT NULL, `server` VARCHAR ( 64 ), `rhost` VARCHAR ( 120 ), `rpath` VARCHAR ( 120 ), `type` VARCHAR ( 120 ), `time` VARCHAR ( 120 ),  cred INTEGER, `description` VARCHAR ( 120 ), PRIMARY KEY(`id`));  """
-	try:
+	try:    
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
@@ -321,14 +321,14 @@ def update_db_v_3_12(**kwargs):
 			return False
 		else:
 			return True
-	cur.close()
-	con.close()
-
-
+	cur.close() 
+	con.close()	
+	
+	
 def update_db_v_3_12_1(**kwargs):
 	con, cur = get_cur()
 	sql = """INSERT  INTO settings (param, value, section, `desc`) values('ssl_local_path', 'certs', 'main', 'Path to dir for local save SSL certs. This is a relative path, begins with $HOME_HAPROXY-WI/app/'); """
-	try:
+	try:    
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
@@ -340,16 +340,16 @@ def update_db_v_3_12_1(**kwargs):
 			return False
 		else:
 			return True
-	cur.close()
+	cur.close() 
 	con.close()
-
-
+	
+	
 def update_db_v_3_13(**kwargs):
 	con, cur = get_cur()
 	sql = """
 	ALTER TABLE `servers` ADD COLUMN keepalived INTEGER NOT NULL DEFAULT 0;
 	"""
-	try:
+	try:    
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
@@ -363,8 +363,8 @@ def update_db_v_3_13(**kwargs):
 
 	cur.close()
 	con.close()
-
-
+	
+	
 def update_db_v_4(**kwargs):
 	con, cur = get_cur()
 	sql = list()
@@ -389,14 +389,14 @@ def update_db_v_4(**kwargs):
 
 	cur.close()
 	con.close()
-
-
+	
+	
 def update_db_v_41(**kwargs):
 	con, cur = get_cur()
 	sql = """
 	ALTER TABLE `servers` ADD COLUMN nginx INTEGER NOT NULL DEFAULT 0;
 	"""
-	try:
+	try:    
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
@@ -410,14 +410,14 @@ def update_db_v_41(**kwargs):
 
 	cur.close()
 	con.close()
-
+	
 
 def update_db_v_42(**kwargs):
 	con, cur = get_cur()
 	sql = """
 	ALTER TABLE `servers` ADD COLUMN haproxy INTEGER NOT NULL DEFAULT 0;
 	"""
-	try:
+	try:    
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
@@ -432,13 +432,13 @@ def update_db_v_42(**kwargs):
 	cur.close()
 	con.close()
 
-
+	
 def update_db_v_4_3(**kwargs):
 	con, cur = get_cur()
 	sql = """
 	CREATE TABLE IF NOT EXISTS user_groups(user_id INTEGER NOT NULL, user_group_id INTEGER NOT NULL, UNIQUE(user_id,user_group_id));
 	"""
-	try:
+	try:    
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
@@ -448,10 +448,10 @@ def update_db_v_4_3(**kwargs):
 			else:
 				print("An error occurred:", e)
 
-	cur.close()
+	cur.close() 
 	con.close()
-
-
+	
+	
 def update_db_v_4_3_0(**kwargs):
 	con, cur = get_cur()
 	if mysql_enable == '1':
@@ -462,7 +462,7 @@ def update_db_v_4_3_0(**kwargs):
 		sql = """
 		insert OR IGNORE into user_groups(user_id, user_group_id) select id, groups from user;
 		"""
-	try:
+	try:    
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
@@ -472,16 +472,16 @@ def update_db_v_4_3_0(**kwargs):
 			else:
 				print("An error occurred:", e)
 
-	cur.close()
+	cur.close() 
 	con.close()
-
-
+	
+	
 def update_db_v_4_3_1(**kwargs):
 	con, cur = get_cur()
 	sql = """
 	ALTER TABLE `servers` ADD COLUMN pos INTEGER NOT NULL DEFAULT 0;
 	"""
-	try:
+	try:    
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
@@ -495,14 +495,14 @@ def update_db_v_4_3_1(**kwargs):
 
 	cur.close()
 	con.close()
-
-
+	
+	
 def update_db_v_4_3_2(**kwargs):
 	con, cur = get_cur()
 	sql = """
 	INSERT  INTO settings (param, value, section, `desc`) values('ldap_type', '0', 'ldap', 'If 0 then will be used LDAP, if 1 then will be used LDAPS ');
 	"""
-	try:
+	try:    
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
@@ -516,8 +516,8 @@ def update_db_v_4_3_2(**kwargs):
 
 	cur.close()
 	con.close()
-
-
+	
+	
 def update_db_v_4_4(**kwargs):
 	con, cur = get_cur()
 	sql = """
@@ -539,9 +539,9 @@ def update_db_v_4_4(**kwargs):
 			`telegram_channel_id` INTEGER,
 			`user_group` INTEGER,
 			UNIQUE(ip, port, http, body),
-			PRIMARY KEY(`id`)
+			PRIMARY KEY(`id`) 
 		);"""
-	try:
+	try:    
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
@@ -551,7 +551,7 @@ def update_db_v_4_4(**kwargs):
 			else:
 				print("An error occurred:", e)
 
-	cur.close()
+	cur.close() 
 	con.close()
 
 
@@ -1046,19 +1046,38 @@ def update_db_v_4_5_8_2(**kwargs):
 	con.close()
 
 
-def update_ver(**kwargs):
+def update_db_v_4_5_9(**kwargs):
 	con, cur = get_cur()
-	sql = """update version set version = '4.5.8.0'; """
-	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
-		print('Cannot update version')
+	sql = list()
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('smon_check_interval', '1', 'monitoring', 'SMON check interval, in minutes')")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('checker_check_interval', '1', 'monitoring', 'Checker check interval, in minutes')")
+	for i in sql:
+		try:
+			cur.execute(i)
+			con.commit()
+		except sqltool.Error as e:
+			pass
+	else:
+		if kwargs.get('silent') != 1:
+			print('Updating... DB has been updated to version 4.5.9')
 	cur.close()
 	con.close()
 
 
-def update_all():
+
+def update_ver(**kwargs):
+	con, cur = get_cur()
+	sql = """update version set version = '4.5.8.0'; """
+	try:    
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		print('Cannot update version')
+	cur.close() 
+	con.close()
+						
+			
+def update_all():	
 	update_db_v_31()
 	update_db_v_3_4_5_2()
 	if funct.check_ver() is None:
@@ -1087,9 +1106,10 @@ def update_all():
 	update_db_v_4_5_8()
 	update_db_v_4_5_8_1()
 	update_db_v_4_5_8_2()
+	update_db_v_4_5_9()
 	update_ver()
-
-
+		
+	
 def update_all_silent():
 	update_db_v_31(silent=1)
 	update_db_v_3_4_5_2(silent=1)
@@ -1119,9 +1139,10 @@ def update_all_silent():
 	update_db_v_4_5_8(silent=1)
 	update_db_v_4_5_8_1(silent=1)
 	update_db_v_4_5_8_2(silent=1)
+	update_db_v_4_5_9(silent=1)
 	update_ver()
-
-
+	
+		
 if __name__ == "__main__":
 	create_table()
 	update_all()

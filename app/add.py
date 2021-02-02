@@ -180,8 +180,16 @@ elif form.getvalue('mode') is not None:
 			try:
 				if a == '1':
 					acl_if_word = 'hdr_beg(host) -i '
+					if form.getvalue('ssl') == "https" and form.getvalue('mode') != "tcp":
+						acl_if_word = 'ssl_fc_sni -i '
+					if form.getvalue('mode') == "tcp":
+						acl_if_word = 'req.ssl_sni -i '
 				elif a == '2':
 					acl_if_word = 'hdr_end(host) -i '
+					if form.getvalue('ssl') == "https" and form.getvalue('mode') != "tcp":
+						acl_if_word = 'ssl_fc_sni -i '
+					if form.getvalue('mode') == "tcp":
+						acl_if_word = 'req.ssl_sni -i '
 				elif a == '3':
 					acl_if_word = 'path_beg -i '
 				elif a == '4':
