@@ -511,6 +511,21 @@ def select_groups(**kwargs):
 	con.close()
 
 
+def get_group_name_by_id(group_id):
+	con, cur = get_cur()
+	sql = """select name from groups where id = '%s' """ % group_id
+
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		funct.out_error(e)
+	else:
+		for name in cur.fetchone():
+			return name
+	cur.close()
+	con.close()
+
+
 def select_server_by_name(name):
 	con, cur = get_cur()
 	sql = """select ip from servers where hostname='%s' """ % name
@@ -570,9 +585,9 @@ def write_user_uuid(login, user_uuid):
 		funct.out_error(e)
 	for id in cur.fetchall():
 		if mysql_enable == '1':
-			sql = """ insert into uuid (user_id, uuid, exp) values('%s', '%s',  now()+ INTERVAL '%s' day) """ % (id[0], user_uuid, session_ttl)
+			sql = """ insert into uuid (user_id, uuid, exp) values('%s', '%s', now()+ INTERVAL '%s' day) """ % (id[0], user_uuid, session_ttl)
 		else:
-			sql = """ insert into uuid (user_id, uuid, exp) values('%s', '%s',  datetime('now', '+%s days')) """ % (id[0], user_uuid, session_ttl)
+			sql = """ insert into uuid (user_id, uuid, exp) values('%s', '%s', datetime('now', '+%s days')) """ % (id[0], user_uuid, session_ttl)
 	try:
 		cur.execute(sql)
 		con.commit()
@@ -2378,7 +2393,6 @@ def is_cloud():
 	else:
 		for cl_uuid in cur.fetchall():
 			cloud_uuid = cl_uuid[0]
-
 	cur.close()
 	con.close()
 	return cloud_uuid

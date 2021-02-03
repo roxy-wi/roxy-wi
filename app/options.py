@@ -1497,8 +1497,12 @@ if form.getvalue('get_ldap_email'):
     ldap_search_field = sql.get_setting('ldap_search_field')
     ldap_class_search = sql.get_setting('ldap_class_search')
     ldap_user_attribute = sql.get_setting('ldap_user_attribute')
+    ldap_type = sql.get_setting('ldap_type')
 
-    l = ldap.initialize(server + ':' + port)
+    ldap_proto = 'ldap' if ldap_type == "0" else 'ldaps'
+
+    l = ldap.initialize('{}://{}:{}/'.format(ldap_proto, server, port))
+
     try:
         l.protocol_version = ldap.VERSION3
         l.set_option(ldap.OPT_REFERRALS, 0)
@@ -1666,6 +1670,7 @@ if form.getvalue('serverdel') is not None:
         sys.exit()
     if sql.delete_server(serverdel):
         sql.delete_waf_server(serverdel)
+        sql.delete_port_scanner_settings(serverdel)
         print("Ok")
         funct.logging(hostname, ' has been deleted server with ', haproxywi=1, login=1)
 
@@ -2295,3 +2300,6 @@ if form.getvalue('show_versions'):
     template = env.get_template('ajax/check_version.html')
     template = template.render(versions=funct.versions())
     print(template)
+
+if form.getvalue('get_group_name_by_id'):
+    print(sql.get_group_name_by_id(form.getvalue('get_group_name_by_id')))

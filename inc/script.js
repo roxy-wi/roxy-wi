@@ -803,41 +803,6 @@ $( function() {
 		  $("#label_select_all").text("Select all");
         }
     });
-	$('#changeCurrentGroup').click(function() {
-		$.ajax( {
-			url: "options.py",
-			data: {
-				getcurrentusergroup: 1,
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function( data ) {
-				if (data.indexOf('danger') != '-1') {
-					$("#ajax").html(data);
-				} else {
-					$('.alert-danger').remove();
-					$('#current-user-groups-form').html(data);
-					$( "select" ).selectmenu();
-					$( "#current-user-groups-dialog" ).dialog({
-						resizable: false,
-						height: "auto",
-						width: 290,
-						modal: true,
-						title: "Change a new current group",
-						buttons: {
-							"Change": function() {
-								$( this ).dialog( "close" );	
-								changeCurrentGroupF();
-							},
-							Cancel: function() {
-								$( this ).dialog( "close" );
-							}
-						  }
-					});					
-				} 
-			}
-		} );
-	 });
 	$('#auth').submit(function() {
 		let searchParams = new URLSearchParams(window.location.search)
 		if(searchParams.has('ref')) {
@@ -886,19 +851,9 @@ $( function() {
 		} );
 	var showUpdates = $( "#show-updates" ).dialog({
 			autoOpen: false,
-			resizable: false,
-			height: "auto",
 			width: 600,
 			modal: true,
-			title: 'There is a new version HAProxy-WI.',
-			show: {
-				effect: "fade",
-				duration: 200
-			},
-			hide: {
-				effect: "fade",
-				duration: 200
-			},
+			title: 'There is a new version HAProxy-WI',
 			buttons: {
 				Close: function() {
 					$( this ).dialog( "close" );
@@ -908,7 +863,39 @@ $( function() {
 		});
 
 	$('#show-updates-button').click(function() {
-		showUpdates.dialog('open');		
+		showUpdates.dialog('open');
+	});
+	var showUserSettings = $( "#show-user-settings" ).dialog({
+			autoOpen: false,
+			width: 600,
+			modal: true,
+			title: 'User settings',
+			buttons: {
+				Save: function() {
+					saveUserSettings();
+					$( this ).dialog( "close" );
+				},
+				"Change group": function(){
+					showCurrentGroup(this);
+					$( this ).dialog( "close" );
+				},
+				Close: function() {
+					$( this ).dialog( "close" );
+					clearTips();
+				}
+			}
+		});
+
+	$('#show-user-settings-button').click(function() {
+		if (sessionStorage.getItem('disabled_alert') == '1') {
+			$('#disable_alert_for_tab').prop('checked', true);
+			$( "input[type=checkbox]" ).checkboxradio('refresh');
+		}
+		if (localStorage.getItem('disabled_alert') == '1') {
+			$('#disable_alert_for_all').prop('checked', true);
+			$( "input[type=checkbox]" ).checkboxradio('refresh');
+		}
+		showUserSettings.dialog('open');
 	});
 	var location = window.location.href;
     var cur_url = '/app/' + location.split('/').pop();
@@ -1037,6 +1024,52 @@ $( function() {
 		}
 	}
 });
+function saveUserSettings(){
+	if ($('#disable_alert_for_tab').is(':checked')) {
+		sessionStorage.setItem('disabled_alert', '1');
+	} else {
+		sessionStorage.removeItem('disabled_alert');
+	}
+	if ($('#disable_alert_for_all').is(':checked')) {
+		localStorage.setItem('disabled_alert', '1');
+	} else {
+		localStorage.removeItem('disabled_alert');
+	}
+}
+function showCurrentGroup(dialog_id) {
+	$.ajax( {
+			url: "options.py",
+			data: {
+				getcurrentusergroup: 1,
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+				if (data.indexOf('danger') != '-1') {
+					$("#ajax").html(data);
+				} else {
+					$('.alert-danger').remove();
+					$('#current-user-groups-form').html(data);
+					$( "select" ).selectmenu();
+					$( "#current-user-groups-dialog" ).dialog({
+						width: 290,
+						modal: true,
+						title: "Change a new current group",
+						buttons: {
+							"Change": function() {
+								$( this ).dialog( "close" );
+								changeCurrentGroupF();
+							},
+							Cancel: function() {
+								$( this ).dialog( "close" );
+								$( dialog_id ).dialog("open" );
+							}
+						  }
+					});
+				}
+			}
+		} );
+}
 function sleep(ms) {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -1227,7 +1260,8 @@ async function waitConsumer() {
 	cur_url = cur_url.split('?');
 	if (cur_url[0] != 'servers.py#installproxy' && cur_url[0] != 'servers.py#installmon' &&
 		cur_url[0] != 'users.py#installmon' && cur_url[0] != 'ha.py' && cur_url[0] != 'users.py#updatehapwi' &&
-		cur_url[0] != 'add.py?service=nginx#ssl' && cur_url[0] != 'add.py#ssl' && cur_url[0] != 'servers.py#geolite2') {
+		cur_url[0] != 'add.py?service=nginx#ssl' && cur_url[0] != 'add.py#ssl' && cur_url[0] != 'servers.py#geolite2'
+		&& cur_url[0] != 'login.py' && sessionStorage.getItem('disabled_alert') === null && localStorage.getItem('disabled_alert') === null) {
 		NProgress.configure({showSpinner: false});
 		$.ajax({
 			url: "options.py",

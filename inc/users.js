@@ -1013,12 +1013,14 @@ function addCreds(dialog_id) {
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
+					var group_name = getGroupNameById($('#new-sshgroup').val());
+					console.log(group_name)
 					var getId = new RegExp('ssh-table-[0-9]+');
 					var id = data.match(getId) + '';
 					id = id.split('-').pop();
 					common_ajax_action_after_success(dialog_id, 'ssh-table-'+id, 'ssh_enable_table', data);
 					$('select:regex(id, credentials)').append('<option value=' + id + '>' + $('#new-ssh-add').val() + '</option>').selectmenu("refresh");
-					$('select:regex(id, ssh-key-name)').append('<option value=' + $('#new-ssh-add').val() + '>' + $('#new-ssh-add').val() + '</option>').selectmenu("refresh");
+					$('select:regex(id, ssh-key-name)').append('<option value=' + $('#new-ssh-add').val() + '_'+group_name+'>' + $('#new-ssh-add').val() + '_'+group_name+'</option>').selectmenu("refresh");
 					$("input[type=submit], button").button();
 					$("input[type=checkbox]").checkboxradio();
 					$("select").selectmenu();
@@ -1026,6 +1028,27 @@ function addCreds(dialog_id) {
 			}
 		});
 	}
+}
+function getGroupNameById(group_id) {
+	var group_name = ''
+	$.ajax({
+		url: "options.py",
+		async: false,
+		data: {
+			get_group_name_by_id: group_id,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			if (data.indexOf('error:') != '-1') {
+				toastr.error(data);
+			} else {
+				console.log(data);
+				group_name = data;
+			}
+		}
+	});
+	return group_name;
 }
 function addTelegram(dialog_id) {
 	var valid = true;

@@ -427,6 +427,9 @@ pre {
 	padding: 15px;
 	width: 30%;
 }
+.padding-top20 {
+	padding-top: 20px;
+}
 .first-collumn {
 	padding-left: 15px;
 	width: 20%;
@@ -1123,11 +1126,15 @@ label {
 .tooltip {
 	font-size: 12px; 
 	padding-bottom: 10px;
+	color: #9d9d9d;
 }
 .tooltipTop {
 	margin-bottom: -20px; 
 	padding-top: 10px;
-	color: #9d9d9d;
+}
+.tooltipTd {
+	margin-bottom: -10px;
+	padding: 0;
 }
 #stats_filter {
 	margin-left: 5px;
