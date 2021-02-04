@@ -38,7 +38,7 @@ def add_user(user, email, password, role, activeuser, group):
 		VALUES ('%s', '%s', '%s', '%s', '%s', '%s')""" % (user, email, funct.get_hash(password), role, activeuser, group)
 	else:
 		sql = """INSERT INTO user (username, email, role, ldap_user, activeuser, 'groups') 
-		VALUES ('%s', '%s', '%s', '1', '%s')""" % (user, email, role, activeuser, group)
+		VALUES ('%s', '%s', '%s', '1', '%s', '%s')""" % (user, email, role, activeuser, group)
 	try:
 		cur.execute(sql)
 		con.commit()

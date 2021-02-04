@@ -227,8 +227,8 @@
 					{% else %}
 						{{ checkbox(id, title='Enable Auto Start', value='1', desc='Auto Start') }}
 					{% endif %}
+				{% endif %}
 			</div>
-			{% endif %}
 			<div class="server-act-links">
 				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showConfig" class="ui-button ui-widget ui-corner-all" title="Open running config">Open</a>	
 				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showCompare" class="ui-button ui-widget ui-corner-all" title="Compare configs">Compare</a>	
