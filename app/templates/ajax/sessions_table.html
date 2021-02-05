@@ -18,27 +18,13 @@
 <table class="overview hover order-column display compact" id="sessions_table">
     <thead>
         <tr class="overviewHead">
-            <th class="padding10" style="padding-left: 15px;">
-                Protocol
-            </th>
-            <th>
-                Source
-            </th>
-            <th>
-                Frontend
-            </th>
-            <th>
-                Backend
-            </th>
-            <th>
-                Age
-            </th>
-            <th>
-                Rate
-            </th>
-            <th>
-                Expire
-            </th>
+            <th class="padding10" style="padding-left: 15px;">Protocol</th>
+            <th>Source</th>
+            <th>Frontend</th>
+            <th>Backend</th>
+            <th>Age</th>
+            <th>Rate</th>
+            <th>Expire</th>
             <th></th>
             <th></th>
         </tr>
@@ -67,7 +53,9 @@
                 {{session.9.split('=')[1]}}
             </td>
             <td style="width: 70%">
+                {% if session.16 %}
                 {{session.16.split('=')[1]}}
+                {% endif %}
             </td>
             <td>
                 <a class="info" title="Get more info about this session" style="cursor: pointer;" onclick="getSessionInfo('{{s.strip().split(':')[0]}}')"></a>
