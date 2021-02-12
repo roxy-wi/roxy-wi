@@ -246,9 +246,9 @@ def ssh_connect(serv, **kwargs):
 				k = paramiko.pkey.load_private_key_file(ssh_key_name, password=cloud)
 			else:
 				k = paramiko.pkey.load_private_key_file(ssh_key_name)
-			ssh.connect(hostname=serv, port=ssh_port, username=ssh_user_name, pkey=k, timeout=11)
+			ssh.connect(hostname=serv, port=ssh_port, username=ssh_user_name, pkey=k, timeout=11, banner_timeout=200)
 		else:
-			ssh.connect(hostname=serv, port=ssh_port, username=ssh_user_name, password=ssh_user_password, timeout=11)
+			ssh.connect(hostname=serv, port=ssh_port, username=ssh_user_name, password=ssh_user_password, timeout=11, banner_timeout=200)
 		return ssh
 	except paramiko.AuthenticationException:
 		return 'Authentication failed, please verify your credentials'
@@ -905,12 +905,12 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 		else:
 			print('Haha')
 			sys.exit()
-			
+
 		if serv == 'backup.log':
 			cmd = "cat %s| awk '$2>\"%s:00\" && $2<\"%s:00\"' %s %s %s |tail -%s" % (log_path + serv, date, date1, user_grep, grep_act, exgrep_act, rows)
 		else:
 			cmd = "cat %s| awk '$3>\"%s:00\" && $3<\"%s:00\"' %s %s %s |tail -%s" % (log_path + serv, date, date1, user_grep, grep_act, exgrep_act, rows)
-		
+
 		output, stderr = subprocess_execute(cmd)
 		
 		return show_log(output, grep=grep)
@@ -989,7 +989,7 @@ def ssh_command(serv, commands, **kwargs):
 			if line:
 				print("<div class='alert alert-warning'>"+line+"</div>")
 				logging('localhost', ' '+line, haproxywi=1)
-	try:	
+	try:
 		ssh.close()
 	except Exception:
 		logging('localhost', ' '+str(ssh), haproxywi=1)
@@ -997,10 +997,6 @@ def ssh_command(serv, commands, **kwargs):
 		pass
 
 
-def escape_html(text):
-	return cgi.escape(text, quote=True)
-	
-	
 def subprocess_execute(cmd):
 	import subprocess 
 	p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
@@ -1144,7 +1140,10 @@ def out_error(e):
 		error = e
 	else:
 		error = e.args[0]
-	logging('localhost', error, haproxywi=1, login=1)
+	try:
+		logging('localhost', error, haproxywi=1, login=1)
+	except Exception:
+		logging('localhost', error, haproxywi=1)
 	print('error: '+error)
 	
 
