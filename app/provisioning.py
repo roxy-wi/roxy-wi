@@ -16,6 +16,15 @@ try:
     else:
         groups=funct.get_user_group(id=1)
     user_group = funct.get_user_group(id=1)
+
+    cmd = 'which terraform'
+    output, stderr = funct.subprocess_execute(cmd)
+
+    if stderr != '':
+        is_terraform = False
+    else:
+        is_terraform = True
+
 except Exception as e:
     print(str(e))
 
@@ -27,5 +36,6 @@ output_from_parsed_template = template.render(title="Servers provisioning",
                                                 user_group=user_group,
                                                 servers=sql.select_provisioned_servers(),
                                                 providers=sql.select_providers(user_group),
+                                                is_terraform=is_terraform,
 												token=token)
 print(output_from_parsed_template)

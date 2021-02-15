@@ -13,6 +13,13 @@
 	</ul>
 	<ul id='browse_histroy'></ul>
 	<div id="provisioning">
+		{% if not is_terraform %}
+		<center>
+			<br />
+			<h3>You do not have installed Terraform. Read <a href="https://www.terraform.io/downloads.html"
+			title="Download Terraform" target="_blank">here</a> how to install Terraform</h3>
+		</center>
+		{% else %}
         <table class="overview" id="ajax-provisioning">
 			<thead>
 				<tr class="overviewHead">
@@ -37,6 +44,7 @@
             </tbody>
         </table>
         <br /><span class="add-button" title="Create a new server" id="create-provider-button">+ Add</span>
+		{% endif %}
 	</div>
 	<div id="providers">
         <table class="overview" id="ajax-providers">

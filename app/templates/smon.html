@@ -8,7 +8,7 @@
 <center>
 	<br />
 	<h3>You do not have installed SMON service. Read <a href="https://haproxy-wi.org/services.py?service=smon"
-	title="Simple monitoring network ports with alerting via Telegram and WEB pannel" target="_blank">here</a> how install SMON service</h3>
+	title="Simple monitoring network ports with alerting via Telegram and WEB pannel" target="_blank">here</a> how to install SMON service</h3>
 </center>
 {% elif smon_status.0 == 'failed' %}
 <center>
@@ -31,7 +31,10 @@
 {% elif smon|length == 0 and action != 'add' and action == 'checker_history' %}
 <center>
 	<br />
-	<h3>There are not any events yet. Check if there are any Checker are enabled on the "HAProxy Overview" or on "Nginx Overview" pages</h3>
+	<h3>
+		There are not any events yet. Check if there are any Checker are enabled on the "<a href="hapservers.py" title="HAProxy Overview">HAProxy Overview</a>"
+		or on "<a href="hapservers.py?service=nginx" title="Nginx Overview">Nginx Overview</a>" pages
+	</h3>
 	<br />
 </center>
 {% else %}
