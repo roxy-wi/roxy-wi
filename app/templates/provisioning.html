@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+{% from 'include/input_macros.html' import input, select, checkbox %}
+<link href="/inc/provisioning.css" rel="stylesheet">
+<script src="/inc/users.js"></script>
+<script src="/inc/fontawesome.min.js"></script>
+{% include 'include/del_confirm.html' %}
+<div id="tabs">
+	<ul>
+		<li><a href="#provisioning" title="Server provisioning - HAProxy-WI">Provisioning</a></li>
+		<li><a href="#providers" title="Providers settings - HAProxy-WI">Providers</a></li>
+		{% include 'include/login.html' %}
+	</ul>
+	<ul id='browse_histroy'></ul>
+	<div id="provisioning">
+        <table class="overview" id="ajax-provisioning">
+			<thead>
+				<tr class="overviewHead">
+					<th class="padding10 first-collumn">Name</th>
+					<th>Provider</th>
+					{% if role == 1 %}
+					<th>Group</th>
+					{% endif %}
+					<th>Cloud</th>
+					<th>Region</th>
+					<th>OS</th>
+					<th>IP</th>
+					<th>Instance type</th>
+					<th>Status</th>
+					<th>Created at</th>
+					<th></th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody id="ajax-provisioning-body">
+                {% include 'ajax/provisioning/provisioned_servers.html' %}
+            </tbody>
+        </table>
+        <br /><span class="add-button" title="Create a new server" id="create-provider-button">+ Add</span>
+	</div>
+	<div id="providers">
+        <table class="overview" id="ajax-providers">
+			<thead>
+				<tr class="overviewHead">
+					<th class="padding10 first-collumn">Name</th>
+					<th>Cloud</th>
+					{% if role == 1 %}
+					<th>Group</th>
+					{% endif %}
+					<th></th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+                {% include 'ajax/provisioning/providers.html' %}
+            </tbody>
+        </table>
+        <br /><span class="add-button" title="Add a new provider" id="add-provider-button">+ Add</span>
+	</div>
+</div>
+{% include 'include/provisioning/creating_dialogs.html' %}
+{% include 'include/provisioning/providers_dialogs.html' %}
+<script src="/inc/provisioning.js"></script>
+{% endblock %}

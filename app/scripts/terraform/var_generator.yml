@@ -1,0 +1,20 @@
+- hosts: localhost
+  gather_facts: no
+  connection: local
+  tasks:
+    - name: Create vars directory
+      file:
+        path: vars
+        state: directory
+
+    - name: Create aws var file
+      template:
+        src: templates/aws_vars_template.j2
+        dest: "vars/{{server_name}}_{{group}}_{{cloud}}.tfvars"
+      when: cloud == "aws"
+
+    - name: Create do var file
+      template:
+        src: templates/do_vars_template.j2
+        dest: "vars/{{server_name}}_{{group}}_{{cloud}}.tfvars"
+      when: cloud == "do"

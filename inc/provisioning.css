@@ -1,0 +1,63 @@
+.padding20{ width: 160px;}
+.server-creating {padding-bottom: 10px;}
+.proccessing_done {color: green;}
+.proccessing, .processing_error {font-weight: bold; color: green;}
+.proccessing::before {
+    display: none;
+    font-family: "Font Awesome 5 Solid";
+    content: "\f35a";
+}
+.processing .fa-arrow-alt-circle-right {
+    padding-right: 10px !important;
+    margin-bottom: -1px !important;
+}
+.processing_error .svg-inline--fa {
+    padding-right: 10px !important;
+    margin-bottom: -1px !important;
+}
+.processing_error { color: red;}
+.processing_error::before {
+    display: none;
+    font-family: "Font Awesome 5 Solid";
+    content: "\f06a";
+}
+#creating-progress, #editing-progress {
+    clear: both;
+    width: 100%;
+    height: 10px;
+}
+progress {
+    border-radius: 5px;
+}
+progress::-webkit-progress-bar {
+    background-color: #ddd;
+    border-radius: 5px;
+}
+progress::-webkit-progress-value {
+    background-color: #5d9ceb;
+    border-radius: 5px;
+}
+progress::-moz-progress-bar {
+    background-color: #5d9ceb;
+    border-radius: 5px;
+}
+.alert-danger {
+    margin-bottom: 10px;
+    margin-top: 0;
+}
+.headers {
+    padding-left: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    color: #aaa;
+    background-color: #eee;
+}
+.validateTips {
+    margin: 0;
+}
+.provisioning_table {
+    width: 99%;
+}
+.provisioning_table tr:last-of-type {
+    border: none;
+}

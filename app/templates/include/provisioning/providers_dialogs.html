@@ -1,0 +1,142 @@
+{% set providers_for_choose = dict() %}
+{% set providers_for_choose = {'aws':'AWS','do':'DigitalOcean'} %}
+<div id="add_providers_choosing" style="display: none;">
+    {{ select('add_select_providers', values=providers_for_choose) }}
+</div>
+<div id="create_providers_choosing" style="display: none;">
+    {{ select('create_select_providers', values=providers_for_choose) }}
+</div>
+<div id="aws_provider" style="display: none; padding: 0 2px 0 0; margin-left: 1px; margin-right: -4px;">
+    <table class="overview">
+        {% include 'include/tr_validate_tips.html' %}
+        <tr>
+            <td class="padding20">
+                Provider name
+                <span class="need-field">*</span>
+            </td>
+            <td>{{input('aws_new_name', required='required', size='30')}}</td>
+        </tr>
+        {% if role == 1 %}
+        <tr>
+            <td class="padding20">
+                Group
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                <select id="aws_new_group">
+                {% for group in groups %}
+					<option value="{{ group.0 }}">{{ group.1 }}</option>
+                {% endfor %}
+                </select>
+            </td>
+        </tr>
+        {% else %}
+            {{input('aws_new_group', value=groups, type='hidden')}}
+        {% endif %}
+        <tr>
+            <td class="padding20">
+                ACCESS_KEY
+                <span class="need-field">*</span>
+            </td>
+            <td>{{input('aws_new_key', required='required', size='30')}}</td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                SECRET_KEY
+                <span class="need-field">*</span>
+            </td>
+            <td>{{input('aws_new_secret', required='required', size='30')}}</td>
+        </tr>
+    </table>
+    <div class="alert alert-info">
+        How to get the AWS access key read <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html" target="_blank"><b>here</b></a>
+    </div>
+</div>
+<div id="do_provider" style="display: none; padding: 0 2px 0 0; margin-left: 1px; margin-right: -4px;">
+    <table class="overview">
+        {% include 'include/tr_validate_tips.html' %}
+        <tr>
+            <td class="padding20">
+                Provider name
+                <span class="need-field">*</span>
+            </td>
+            <td>{{input('do_new_name', required='required', size='30')}}</td>
+        </tr>
+        {% if role == 1 %}
+        <tr>
+            <td class="padding20">
+                Group
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                <select id="do_new_group">
+                {% for group in groups %}
+					<option value="{{ group.0 }}">{{ group.1 }}</option>
+                {% endfor %}
+                </select>
+            </td>
+        </tr>
+        {% else %}
+            {{input('do_new_group', value=groups, type='hidden')}}
+        {% endif %}
+        <tr>
+            <td class="padding20">
+                TOKEN
+                <span class="need-field">*</span>
+            </td>
+            <td>{{input('do_new_token', required='required', size='30')}}</td>
+        </tr>
+    </table>
+    <div class="alert alert-info">
+        How to get the DigitalOcean token read <a href="https://www.digitalocean.com/docs/apis-clis/api/create-personal-access-token" target="_blank"><b>here</b></a>
+    </div>
+</div>
+<div id="aws_edit_provider" style="display: none; padding: 0 2px 0 0; margin-left: 1px; margin-right: -4px;">
+    <table class="overview">
+        {% include 'include/tr_validate_tips.html' %}
+        <tr>
+            <td class="padding20">
+                Provider name
+                <span class="need-field">*</span>
+            </td>
+            <td>{{input('aws_edit_provider_name', required='required', size='30')}}</td>
+        </tr>
+        {{input('aws_edit_provider_group', value=groups, type='hidden')}}
+        {{input('aws_edit_provider_id', type='hidden')}}
+        <tr>
+            <td class="padding20">
+                ACCESS_KEY
+                <span class="need-field">*</span>
+            </td>
+            <td>{{input('aws_edit_provider_key', required='required', size='30')}}</td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                SECRET_KEY
+                <span class="need-field">*</span>
+            </td>
+            <td>{{input('aws_edit_provider_secret', required='required', size='30')}}</td>
+        </tr>
+    </table>
+</div>
+<div id="do_edit_provider" style="display: none; padding: 0 2px 0 0; margin-left: 1px; margin-right: -4px;">
+    <table class="overview">
+        {% include 'include/tr_validate_tips.html' %}
+        <tr>
+            <td class="padding20">
+                Provider name
+                <span class="need-field">*</span>
+            </td>
+            <td>{{input('do_edit_provider_name', required='required', size='30')}}</td>
+        </tr>
+        {{input('do_edit_provider_group', value=groups, type='hidden')}}
+        {{input('do_edit_provider_id', type='hidden')}}
+        <tr>
+            <td class="padding20">
+                TOKEN
+                <span class="need-field">*</span>
+            </td>
+            <td>{{input('do_edit_provider_token', required='required', size='30')}}</td>
+        </tr>
+    </table>
+</div>

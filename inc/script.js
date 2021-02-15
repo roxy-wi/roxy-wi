@@ -1261,7 +1261,7 @@ async function waitConsumer() {
 	if (cur_url[0] != 'servers.py#installproxy' && cur_url[0] != 'servers.py#installmon' &&
 		cur_url[0] != 'users.py#installmon' && cur_url[0] != 'ha.py' && cur_url[0] != 'users.py#updatehapwi' &&
 		cur_url[0] != 'add.py?service=nginx#ssl' && cur_url[0] != 'add.py#ssl' && cur_url[0] != 'servers.py#geolite2'
-		&& cur_url[0] != 'login.py' && sessionStorage.getItem('disabled_alert') === null && localStorage.getItem('disabled_alert') === null) {
+		&& cur_url[0] != 'login.py?ref=/app/overview.py' && sessionStorage.getItem('disabled_alert') === null && localStorage.getItem('disabled_alert') === null) {
 		NProgress.configure({showSpinner: false});
 		$.ajax({
 			url: "options.py",

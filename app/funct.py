@@ -98,6 +98,9 @@ def logging(serv, action, **kwargs):
 	elif kwargs.get('keep_alive') == 1:
 		mess = get_data('date_in_log') + action + "\n"
 		log = open(log_path + "/keep_alive-"+get_data('logs')+".log", "a")
+	elif kwargs.get('port_scanner') == 1:
+		mess = get_data('date_in_log') + action + "\n"
+		log = open(log_path + "/port_scanner-"+get_data('logs')+".log", "a")
 	elif kwargs.get('haproxywi') == 1:
 		if kwargs.get('login'):
 			mess = get_data('date_in_log') + " from " + ip + " user: " + login + ", group: " + user_group + ", " + \
@@ -105,6 +108,10 @@ def logging(serv, action, **kwargs):
 		else:
 			mess = get_data('date_in_log') + " " + action + " from " + ip + "\n"
 		log = open(log_path + "/haproxy-wi-"+get_data('logs')+".log", "a")
+	elif kwargs.get('provisioning') == 1:
+		mess = get_data('date_in_log') + " from " + ip + " user: " + login + ", group: " + user_group + ", " + \
+				action + "\n"
+		log = open(log_path + "/provisioning-"+get_data('logs')+".log", "a")
 	else:
 		mess = get_data('date_in_log') + " from " + ip + " user: " + login + ", group: " + user_group + ", " + \
 				action + " for: " + serv + "\n"

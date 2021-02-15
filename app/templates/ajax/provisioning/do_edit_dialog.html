@@ -1,0 +1,188 @@
+{% from 'include/input_macros.html' import input, select, checkbox %}
+{% for s in server %}
+<div id="do_edit" style="display: none; padding: 0 2px 0 0; margin-left: 1px; margin-right: -4px;">
+    <table class="overview provisioning_table">
+        {% include 'include/tr_validate_tips.html' %}
+        <tr>
+            <td colspan="2" class="headers">
+                <b>General information</b>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                Server name
+            </td>
+            <td>
+                <span id="do_edit_server_name">{{s.6}}</span>
+            </td>
+        </tr>
+            {{input('do_edit_group', value=s.12, type='hidden')}}
+            {{input('do_edit_id', value=s.13, type='hidden')}}
+        <tr>
+            <td class="padding20">
+                Provider credentials
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                <select id="do_edit_id_provider">
+                {% for p in providers %}
+                    {% if p.2 == 'do' %}
+                        {% if s.11|int() == p.0|int() %}
+                        <option value="{{ p.0 }}" selected>{{ p.1 }}</option>
+                        {% else %}
+                        <option value="{{ p.0 }}">{{ p.1 }}</option>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20 padding-top20">
+                Region
+            </td>
+            <td>
+                <span id="do_edit_regions">{{s.0}}</span>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" class="headers">
+                <b>Instance</b>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                Size
+                <span class="need-field">*</span>
+            </td>
+            <td>{{input('do_edit_size', size='30', value=s.1)}}</td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                OS
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {% set oss = dict() %}
+                {% set oss = {'centos-7-x64':'Centos 7 x64', 'centos-8-x64':'Centos 8 x64','ubuntu-18-04-x64':'Ubuntu 18.04 x64','ubuntu-20-04-x64':'Ubuntu 20.04 x64',
+                              'ubuntu-20-10-x64':'Ubuntu 20.10 x64','debian-10-x64':'Debian 10 x86','debian-9-x64':'Debian 9 x86'} %}
+                {{ select('do_edit_oss', values=oss, first=s.7, disabled='false') }}
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                SSH
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                <select id="do_edit_ssh_choose">
+                    {% if s.5 != 'None' %}
+                    <option value="ssh_name" selected>Set SSH key name</option>
+                    {% else %}
+                    <option value="ssh_name">Set SSH key name</option>
+                    {% endif %}
+                    {% if s.4 != 'None' %}
+                    <option value="ssh_ids" selected>Set SSH key ids</option>
+                    {% else %}
+                    <option value="ssh_ids">Set SSH key ids</option>
+                    {% endif %}
+                </select>
+            </td>
+        </tr>
+        <tr id="do_edit_ssh_ids_tr" {% if s.4 == 'None' %}style="display: none;"{% endif %}>
+            <td class="padding20 padding-top20">
+                SSH key ids
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{input('do_edit_ssh_ids', size='30', value=s.4)}}
+                <div class="tooltip tooltipTop tooltipTd">List comma separated. Required if SSH key name is empty</div>
+            </td>
+        </tr>
+        <tr id="do_edit_ssh_name_tr" {% if s.5 == 'None' %}style="display: none;"{% endif %}>
+            <td class="padding20 padding-top20">
+                SSH key name
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{input('do_edit_ssh_name', size='30', value=s.5)}}
+                <div class="tooltip tooltipTop tooltipTd">Required if SSH key ids is empty</div>
+            </td>
+        </tr>
+        <tr>
+            {% set checked='checked' %}
+            {% if s.10 == 'false' %}
+                {% set checked='' %}
+            {% endif %}
+            <td class="padding20">Monitoring</td>
+            <td>
+                {{checkbox('do_edit_monitoring', checked=checked)}}
+            </td>
+        </tr>
+        <tr>
+            {% set checked='checked' %}
+            {% if s.9 == 'false' %}
+                {% set checked='' %}
+            {% endif %}
+            <td class="padding20">Backup</td>
+            <td>
+                {{checkbox('do_edit_backup', checked=checked)}}
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" class="headers">
+                <b>Network</b>
+            </td>
+        </tr>
+        <tr>
+            {% set checked='checked' %}
+            {% if s.2 == 'false' %}
+                {% set checked='' %}
+            {% endif %}
+            <td class="padding20">Private IP</td>
+            <td>
+                {{checkbox('do_edit_private_networking', checked=checked)}}
+            </td>
+        </tr>
+        <tr>
+            {% set checked='checked' %}
+            {% if s.3 == 'false' %}
+                {% set checked='' %}
+            {% endif %}
+            <td class="padding20">Floating Ip</td>
+            <td>
+                {{checkbox('do_edit_floating_ip', checked=checked)}}
+            </td>
+        </tr>
+        <tr>
+            {% set checked='checked' %}
+            {% if s.8 == 'false' %}
+                {% set checked='' %}
+            {% endif %}
+            <td class="padding20" style="padding-bottom: 25px;padding-top: 25px;">Firewall</td>
+            <td>
+                {{checkbox('do_edit_firewall', checked=checked)}}
+                <div class="tooltip tooltipTop tooltipTd">HAProxy-WI will create Security group and open 22, 443, 1999, 8085, 8086 ports. Otherwise all ports will be closed</div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <p class="validateTips alert alert-warning">Be aware: some changes may cause server re-creation. And all your data will be lost</p>
+            </td>
+        </tr>
+    </table>
+    <script>
+    $( function() {
+        $('#do_edit_ssh_choose').on('selectmenuchange', function (){
+            if ($('#do_edit_ssh_choose option:selected').val() == 'ssh_name') {
+                $('#do_edit_ssh_name_tr').show();
+                $('#do_edit_ssh_ids_tr').hide();
+            } else if ($('#do_edit_ssh_choose option:selected').val() == 'ssh_ids') {
+                $('#do_edit_ssh_name_tr').hide();
+                $('#do_edit_ssh_ids_tr').show();
+            }
+        });
+    });
+    </script>
+</div>
+{% endfor %}

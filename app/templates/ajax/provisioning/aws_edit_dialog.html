@@ -1,0 +1,159 @@
+{% from 'include/input_macros.html' import input, select, checkbox %}
+{% for s in server %}
+<div id="aws_edit" style="display: none; padding: 0 2px 0 0; margin-left: 1px; margin-right: -4px;">
+    <table class="overview provisioning_table">
+        {% include 'include/tr_validate_tips.html' %}
+        <tr>
+            <td colspan="2" class="headers">
+                <b>General information</b>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                Server name
+            </td>
+            <td>
+                <span id="aws_edit_server_name">{{s.6}}</span>
+            </td>
+        </tr>
+            {{input('aws_edit_group', value=s.10, type='hidden')}}
+            {{input('aws_edit_id', value=s.11, type='hidden')}}
+        <tr>
+            <td class="padding20">
+                Provider credentials
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                <select id="aws_edit_id_provider">
+                {% for p in providers %}
+                    {% if p.2 == 'aws' %}
+                        {% if s.9|int() == p.0|int() %}
+                        <option value="{{ p.0 }}" selected>{{ p.1 }}</option>
+                        {% else %}
+                        <option value="{{ p.0 }}">{{ p.1 }}</option>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                Region
+            </td>
+            <td>
+                <span id="aws_edit_region">{{s.0}}</span>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" class="headers">
+                <b>Instance</b>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20 padding-top20">
+                Instance type
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{input('aws_edit_size', size='30', value=s.1)}}
+                <div class="tooltip tooltipTop tooltipTd">
+                    Instance types list is <a href="https://aws.amazon.com/ec2/instance-types/" title="Instance types list" target="_blank">here</a>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                OS
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {% set oss = dict() %}
+                {% set oss = {'centos-7':'Centos 7 x64','ubuntu-18.04':'Ubuntu 18.04 x64','ubuntu-18.10':'Ubuntu 18.10 x64',
+                              'debian-10':'Debian 10 x86','debian-9':'Debian 9 x86','rhel-7':'RHEL 7 x86','rhel-8':'RHEL 8 x86',
+                              'amazon-2_lts':'Amazon Linux 2 x86'} %}
+                {{ select('aws_edit_oss', values=oss, first=s.7, disabled='false') }}
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20 padding-top20">
+                SSH key pair name
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{input('aws_edit_ssh_name', size='30', value=s.5)}}
+                <div class="tooltip tooltipTop tooltipTd">SSH key must exists in region where instance create</div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" class="headers">
+                <b>Volume</b>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20 padding-top20">
+                Volume size
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{input('aws_edit_volume_size', size='30', value=s.4, type='number')}}
+                <div class="tooltip tooltipTop tooltipTd">Size in GB</div>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20 padding-top20">Delete on termination</td>
+            <td>
+                {% set checked='checked' %}
+                {% if s.12 == 'false' %}
+                    {% set checked='' %}
+                {% endif %}
+                {{checkbox('aws_edit_delete_on_termination', checked=checked)}}
+                <div class="tooltip tooltipTop tooltipTd">Whether the volume should be destroyed on instance termination</div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" class="headers">
+                <b>Network</b>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">Public IP</td>
+            <td>
+                <select id="aws_edit_public_ip">
+                    {% if s.2 == 'true' %}
+                    <option value="public" selected>Public IP</option>
+                    {% else %}
+                    <option value="public">Public IP</option>
+                    {% endif %}
+                    {% if s.3 == 'true' %}
+                    <option value="elastic" selected>Elastic IP</option>
+                    {% else %}
+                    <option value="elastic">Elastic IP</option>
+                    {% endif %}
+                    {% if s.2 == 'false' and s.3 == 'false' %}
+                    <option value="none" selected>None</option>
+                    {% else %}
+                    <option value="none">None</option>
+                    {% endif %}
+                </select>
+            </td>
+        </tr>
+        <tr>
+            {% set checked='checked' %}
+            {% if s.8 == 'false' %}
+                {% set checked='' %}
+            {% endif %}
+            <td class="padding20" style="padding-bottom: 25px;padding-top: 25px;">Firewall</td>
+            <td>
+                {{checkbox('aws_edit_firewall', checked=checked)}}
+                <div class="tooltip tooltipTop tooltipTd">HAProxy-WI will create Security group and open 22, 443, 1999, 8085, 8086 ports. Otherwise all ports will be closed</div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <p class="validateTips alert alert-warning">Be aware: some changes may cause server re-creation. And all your data will be lost</p>
+            </td>
+        </tr>
+    </table>
+</div>
+{% endfor %}

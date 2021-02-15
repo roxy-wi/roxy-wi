@@ -1,0 +1,71 @@
+{% for s in servers %}
+<tr id="server-{{s.0}}" class="{{ loop.cycle('odd', 'even') }} {% if adding %}newserver{% endif %}">
+    <td class="padding10 first-collumn"><span id="server-name-{{s.0}}">{{s.1}}</span></td>
+    <td>
+        {% for p in providers %}
+            {% if p.0|int() == s.2|int() %}
+		        <span>{{ p.1 }}</span>
+                <span id="server-provider-{{s.0}}" style="display: none;">{{p.0}}</span>
+            {% endif %}
+        {% endfor %}
+     </td>
+    {% if role == 1 %}
+     <td>
+        {% for g in groups %}
+            {% if adding %}
+            {% if user_group|int() == g.0|int() %}
+		        {{ g.1 }}
+		        <span id="server-group-{{s.0}}" style="display: none;">{{ g.0 }}</span>
+            {% endif %}
+            {% else %}
+            {% if s.4|int() == g.0|int() %}
+		        {{ g.1 }}
+		        <span id="server-group-{{s.0}}" style="display: none;">{{ g.0 }}</span>
+            {% endif %}
+            {% endif %}
+        {% endfor %}
+     </td>
+     {% else %}
+        <span id="server-group-{{s.0}}" style="display: none;">{{user_group}}</span>
+     {% endif %}
+    <td>
+        {% if s.3 == 'do' %}
+            DigitalOcean
+            {% set onclickEditAction = 'editDoServer' %}
+        {% elif s.3 == 'aws' %}
+            AWS
+            {% set onclickEditAction = 'editAwsServer' %}
+        {% endif %}
+        <span id="server-cloud-{{s.0}}" style="display: none;">{{s.3}}</span>
+    </td>
+    <td>
+        {{s.8}}
+    </td>
+    <td>
+        <span id="sever-os-{{s.0}}">{{s.9}}</span>
+    </td>
+    <td>
+        <span id="sever-ip-{{s.0}}">{{s.10}}</span>
+    </td>
+    <td>
+        <span id="sever-size-{{s.0}}">{{s.5}}</span>
+    </td>
+    <td>
+        {% if s.6 == 'Created ' %}
+        {% set style='сolor: green;' %}
+        {% elif s.6 == 'Error ' %}
+        {% set style='color: red;cursor: help;' %}
+        {% endif %}
+        <span id="sever-status-{{s.0}}" title="Last error: {{s.11}}" style="font-weight: bold;{{style}}">{{s.6}}</span>
+    </td>
+    <td>
+        {{s.7}}
+    </td>
+    <td>
+	    <a class="edit" onclick="{{onclickEditAction}}({{s.0}})" title="Edit server {{s.1}}" style="cursor: pointer;"></a>
+	</td>
+	<td>
+	    <a class="delete" onclick="confirmDeleteProvisionedServer({{s.0}})" title="Delete server {{s.1}}" style="cursor: pointer;"></a>
+    </td>
+</tr>
+{% endfor %}

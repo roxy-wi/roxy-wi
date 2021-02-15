@@ -1,0 +1,332 @@
+<div id="do_create" style="display: none; padding: 0 2px 0 0; margin-left: 1px; margin-right: -4px;">
+    <table class="overview provisioning_table">
+        {% include 'include/tr_validate_tips.html' %}
+        <tr>
+            <td colspan="2" class="headers">
+                <b>General information</b>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20 padding-top20">
+                Server name
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{input('do_create_server_name', required='required', size='30')}}
+                <div class="tooltip tooltipTop tooltipTd">The name must contain only URL safe characters, and no path separators</div>
+            </td>
+        </tr>
+         {% if role == 1 %}
+        <tr>
+            <td class="padding20">
+                Group
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                <select id="do_create_group">
+                {% for group in groups %}
+					<option value="{{ group.0 }}">{{ group.1 }}</option>
+                {% endfor %}
+                </select>
+            </td>
+        </tr>
+        {% else %}
+            {{input('do_create_group', value=groups, type='hidden')}}
+        {% endif %}
+        <tr>
+            <td class="padding20">
+                Provider credentials
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                <select id="do_create_provider">
+                {% for p in providers %}
+                    {% if p.2 == 'do' %}
+					<option value="{{ p.0 }}">{{ p.1 }}</option>
+                    {% endif %}
+                {% endfor %}
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20 padding-top20">
+                Region
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {% set regions = dict() %}
+                {% set regions = {'nyc1':'New York 1','nyc2':'New York 2','nyc3':'New York 3',
+                                'ams1':'Amsterdam 1','ams2':'Amsterdam 2','ams3':'Amsterdam 3',
+                                'sfo1':'San Francisco 1','sfo2':'San Francisco 2','sfo3':'San Francisco 3',
+                                'sgp1':'Singapore 1','lon1':'London 1','fra1':'Frankfurt 1','tor1':'Toronto 1', 'blr1':'Bangalore 1'} %}
+                {{ select('do_create_regions', values=regions) }}
+                <div class="tooltip tooltipTop tooltipTd">Not all regions may be active</div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" class="headers">
+                <b>Instance</b>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                Size
+                <span class="need-field">*</span>
+            </td>
+            <td>{{input('do_create_size', required='required', size='30')}}</td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                OS
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {% set oss = dict() %}
+                {% set oss = {'centos-7-x64':'Centos 7 x64', 'centos-8-x64':'Centos 8 x64','ubuntu-18-04-x64':'Ubuntu 18.04 x64','ubuntu-20-04-x64':'Ubuntu 20.04 x64',
+                              'ubuntu-20-10-x64':'Ubuntu 20.10 x64','debian-10-x64':'Debian 10 x86','debian-9-x64':'Debian 9 x86'} %}
+                {{ select('do_create_oss', values=oss) }}
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                SSH
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                <select id="do_create_ssh_choose">
+                    <option value="none" disabled selected>Choose SSH</option>
+                    <option value="ssh_name">Set SSH key name</option>
+                    <option value="ssh_ids">Set SSH key ids</option>
+                </select>
+            </td>
+        </tr>
+        <tr id="do_create_ssh_ids_tr" style="display: none;">
+            <td class="padding20 padding-top20"">
+                SSH key ids
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{input('do_create_ssh_ids', size='30')}}
+                <div class="tooltip tooltipTop tooltipTd">List comma separated. Required if SSH key name is empty</div>
+            </td>
+        </tr>
+        <tr id="do_create_ssh_name_tr" style="display: none;">
+            <td class="padding20 padding-top20">
+                SSH key name
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{input('do_create_ssh_name', size='30')}}
+                <div class="tooltip tooltipTop tooltipTd">Required if SSH key ids is empty</div>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">Monitoring</td>
+            <td>{{checkbox('do_create_monitoring', checked='checked')}}</td>
+        </tr>
+        <tr>
+            <td class="padding20">Backup</td>
+            <td>{{checkbox('do_create_backup')}}</td>
+        </tr>
+        <tr>
+            <td colspan="2" class="headers">
+                <b>Network</b>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">Private IP</td>
+            <td>{{checkbox('do_create_private_net', checked='checked')}}</td>
+        </tr>
+        <tr>
+            <td class="padding20 padding-top20">Floating IP</td>
+            <td>{{checkbox('do_create_floating_net')}}<div class="tooltip tooltipTop tooltipTd">If unchecked then will be used public IP</div></td>
+        </tr>
+        <tr>
+            <td class="padding20" style="padding-bottom: 25px;padding-top: 25px;">Firewall</td>
+            <td>
+                {{checkbox('do_create_firewall', checked='checked')}}
+                <div class="tooltip tooltipTop tooltipTd">HAProxy-WI will create firewall and open 22, 443, 1999, 8085, 8086 ports. Otherwise all ports will be opened</div>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="aws_create" style="display: none; padding: 0 2px 0 0; margin-left: 1px; margin-right: -4px;">
+    <table class="overview provisioning_table">
+        {% include 'include/tr_validate_tips.html' %}
+        <tr>
+            <td colspan="2" class="headers">
+                <b>General information</b>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20 padding-top20">
+                Server name
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{input('aws_create_server_name', required='required', size='30')}}
+                <div class="tooltip tooltipTop tooltipTd">The name must contain only URL safe characters, and no path separators</div>
+            </td>
+        </tr>
+         {% if role == 1 %}
+        <tr>
+            <td class="padding20">
+                Group
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                <select id="aws_create_group">
+                {% for group in groups %}
+					<option value="{{ group.0 }}">{{ group.1 }}</option>
+                {% endfor %}
+                </select>
+            </td>
+        </tr>
+        {% else %}
+            {{input('aws_create_group', value=groups, type='hidden')}}
+        {% endif %}
+        <tr>
+            <td class="padding20">
+                Provider credentials
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                <select id="aws_create_provider">
+                {% for p in providers %}
+                    {% if p.2 == 'aws' %}
+					<option value="{{ p.0 }}">{{ p.1 }}</option>
+                    {% endif %}
+                {% endfor %}
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20 padding-top20">
+                Region
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {% set regions = dict() %}
+                {% set regions = {'us-east-1':'US East (N. Virginia)','us-east-2':'US East (Ohio)','us-west-1':'US West (N. California)',
+                                'us-west-2':'US West (Oregon)','af-south-1':'Africa (Cape Town)','ap-east-1':'Asia Pacific (Hong Kong)',
+                                'ap-south-1':'Asia Pacific (Mumbai)','ap-northeast-2':'Asia Pacific (Seoul)','ap-southeast-1':'Asia Pacific (Singapore)',
+                                'ap-southeast-2':'Asia Pacific (Sydney)','ap-northeast-1':'Asia Pacific (Tokyo)','ca-central-1':'Canada (Central)',
+                                'eu-central-1':'Europe (Frankfurt)', 'eu-west-1':'Europe (Ireland)', 'eu-west-2':'Europe (London)',
+                                'eu-south-1':'Europe (Milan)', 'eu-west-3':'Europe (Paris)', 'eu-north-1':'Europe (Stockholm)',
+                                'me-south-1':'Middle East (Bahrain)', 'sa-east-1':'South America (São Paulo)'} %}
+                {{ select('aws_create_regions', values=regions) }}
+                <div class="tooltip tooltipTop tooltipTd">Not all regions may be active</div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" class="headers">
+                <b>Instance</b>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20 padding-top20">
+                Instance type
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{input('aws_create_size', required='required', size='30')}}
+                <div class="tooltip tooltipTop tooltipTd">
+                    Instance types list is <a href="https://aws.amazon.com/ec2/instance-types/" title="Instance types list" target="_blank">here</a>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                OS
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {% set oss = dict() %}
+                {% set oss = {'centos-7':'Centos 7 x64','ubuntu-18.04':'Ubuntu 18.04 x64','ubuntu-18.10':'Ubuntu 18.10 x64',
+                              'debian-10':'Debian 10 x86','debian-9':'Debian 9 x86','rhel-7':'RHEL 7 x86','rhel-8':'RHEL 8 x86',
+                              'amazon-2_lts':'Amazon Linux 2 x86'} %}
+                {{ select('aws_create_oss', values=oss) }}
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20 padding-top20">
+                SSH key pair name
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{input('aws_create_ssh_name', size='30')}}
+                <div class="tooltip tooltipTop tooltipTd">SSH key must exists in region where instance create</div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" class="headers">
+                <b>Volume</b>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20 padding-top20">
+                Volume size
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{input('aws_create_volume_size', size='30', value='10', type='number')}}
+                <div class="tooltip tooltipTop tooltipTd">Size in GB</div>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20 padding-top20">Delete on termination</td>
+            <td>
+                {{checkbox('aws_create_delete_on_termination', checked='checked')}}
+                <div class="tooltip tooltipTop tooltipTd">Whether the volume should be destroyed on instance termination</div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" class="headers">
+                <b>Network</b>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">Public IP</td>
+            <td>
+                <select id="aws_create_public_ip">
+                    <option value="public">Public IP</option>
+                    <option value="elastic">Elastic IP</option>
+                    <option value="none">None</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20" style="padding-bottom: 25px;padding-top: 25px;">Firewall</td>
+            <td>
+                {{checkbox('aws_create_firewall', checked='checked')}}
+                <div class="tooltip tooltipTop tooltipTd">HAProxy-WI will create Security group and open 22, 443, 1999, 8085, 8086 ports. Otherwise all ports will be closed</div>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="server_creating" style="display: none;">
+    <ul style="padding: 20px 20px 0px 20px;font-size: 15px;">
+        <li id="creating-init" class="server-creating">Creating environment...</li>
+        <li id="creating-vars" class="server-creating">Creating vars...</li>
+        <li id="creating-validate" class="server-creating">Validation...</li>
+        <li id="creating-workspace" class="server-creating">Creating workspace...</li>
+        <li id="creating-server" class="server-creating">Creating server...</li>
+    </ul>
+    <div id="wait-mess"></div>
+    <div id="created-mess" class="alert alert-success" style="display:none;"></div>
+    <div id="creating-error" class="alert alert-danger" style="display:none;"></div>
+    <progress id="creating-progress" value="0" max="100"></progress>
+</div>
+<div id="server_editing" style="display: none;">
+    <ul style="padding: 20px 20px 0px 20px;font-size: 15px;">
+        <li id="editing-init" class="server-creating">Updating environment...</li>
+        <li id="editing-vars" class="server-creating">Updating vars...</li>
+        <li id="editing-validate" class="server-creating">Validation...</li>
+        <li id="editing-workspace" class="server-creating">Updating workspace...</li>
+        <li id="editing-server" class="server-creating">Updating server...</li>
+    </ul>
+    <div id="editing-wait-mess"></div>
+    <div id="edited-mess" class="alert alert-success" style="display:none;"></div>
+    <div id="editing-error" class="alert alert-danger" style="display:none;"></div>
+    <progress id="editing-progress" value="0" max="100"></progress>
+</div>
