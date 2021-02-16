@@ -61,3 +61,6 @@ progress::-moz-progress-bar {
 .provisioning_table tr:last-of-type {
     border: none;
 }
+.first-collumn {
+    width: 15%;
+}

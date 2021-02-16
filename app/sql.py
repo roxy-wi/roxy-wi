@@ -2428,7 +2428,10 @@ def select_geoip_country_codes():
 
 def add_provider_do(provider_name, provider_group, provider_token):
 	con, cur = get_cur()
-	sql = """ insert into providers_creds (name, type, `group`, key) values ('%s', 'do', '%s', '%s')""" % (provider_name, provider_group, provider_token)
+	if mysql_enable == '1':
+		sql = """ insert into providers_creds (name, type, `group`, key, create_date, edit_date) values ('%s', 'do', '%s', '%s', now(), now())""" % (provider_name, provider_group, provider_token)
+	else:
+		sql = """ insert into providers_creds (name, type, `group`, key, create_date, edit_date) values ('%s', 'do', '%s', '%s', datetime('now', 'localtime'), datetime('now', 'localtime'))""" % (provider_name, provider_group, provider_token)
 
 	try:
 		cur.execute(sql)
@@ -2443,7 +2446,11 @@ def add_provider_do(provider_name, provider_group, provider_token):
 
 def add_provider_aws(provider_name, provider_group, provider_key, provider_secret):
 	con, cur = get_cur()
-	sql = """ insert into providers_creds (name, type, `group`, key, secret) values ('%s', 'aws', '%s', '%s', '%s')""" % (provider_name, provider_group, provider_key, provider_secret)
+
+	if mysql_enable == '1':
+		sql = """ insert into providers_creds (name, type, `group`, key, secret, create_date, edit_date) values ('%s', 'aws', '%s', '%s', '%s', now(), now())""" % (provider_name, provider_group, provider_key, provider_secret)
+	else:
+		sql = """ insert into providers_creds (name, type, `group`, key, secret, create_date, edit_date) values ('%s', 'aws', '%s', '%s', '%s', datetime('now', 'localtime'), datetime('now', 'localtime'))""" % (provider_name, provider_group, provider_key, provider_secret)
 
 	try:
 		cur.execute(sql)
@@ -2756,10 +2763,19 @@ def select_do_provider(provider_id):
 
 def update_do_provider(new_name, new_token, provider_id):
 	con, cur = get_cur()
-	sql = """ update providers_creds set 
-				name = '%s',
-				key = '%s'
-				where id = '%s'  """ % (new_name, new_token, provider_id)
+
+	if mysql_enable == '1':
+		sql = """ update providers_creds set 
+					name = '%s',
+					key = '%s',
+					edit_date = now()
+					where id = '%s'  """ % (new_name, new_token, provider_id)
+	else:
+		sql = """ update providers_creds set 
+					name = '%s',
+					key = '%s',
+					edit_date = datetime('now', 'localtime')
+					where id = '%s'  """ % (new_name, new_token, provider_id)
 
 	try:
 		cur.execute(sql)
@@ -2776,11 +2792,21 @@ def update_do_provider(new_name, new_token, provider_id):
 
 def update_aws_provider(new_name, new_key, new_secret, provider_id):
 	con, cur = get_cur()
-	sql = """ update providers_creds set 
-				name = '%s',
-				key = '%s',
-				secret = '%s'
-				where id = '%s'  """ % (new_name, new_key, new_secret, provider_id)
+
+	if mysql_enable == '1':
+		sql = """ update providers_creds set 
+						name = '%s',
+						key = '%s',
+						secret = '%s',
+						edit_date = now()
+						where id = '%s'  """ % (new_name, new_key, new_secret, provider_id)
+	else:
+		sql = """ update providers_creds set 
+					name = '%s',
+					key = '%s',
+					secret = '%s',
+					edit_date = datetime('now', 'localtime')
+					where id = '%s'  """ % (new_name, new_key, new_secret, provider_id)
 
 	try:
 		cur.execute(sql)

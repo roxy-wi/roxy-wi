@@ -1,7 +1,7 @@
 {% for p in providers %}
 <tr id="provider-{{p.0}}" class="{{ loop.cycle('odd', 'even') }} {% if adding %}newprovider{% endif %}">
     <td class="padding10 first-collumn"><span id="provider-name-{{p.0}}">{{p.1}}</span></td>
-    <td style="width: {% if role != 1 %}100{% else %} 10{% endif %}%;">
+    <td style="width: 10%">
         <span id="provider-type-{{p.0}}">
         {% if p.2 == 'do' %}
             DigitalOcean
@@ -13,7 +13,7 @@
         </span>
     </td>
     {% if role == 1 %}
-     <td style="width: 100%">
+    <td style="width: 10%">
         {% for g in groups %}
             {% if adding %}
             {% if user_group|int() == g.0|int() %}
@@ -25,15 +25,17 @@
             {% endif %}
             {% endif %}
         {% endfor %}
-     </td>
-     {% else %}
+    </td>
+    {% else %}
         <span id="provider-group-{{p.0}}" style="display: none;">user_group</span>
-     {% endif %}
-     <td>
+    {% endif %}
+    <td id="provider-created-date-{{p.0}}" style="width: 15%">{{p.6}}</td>
+    <td id="provider-edited-date-{{p.0}}" style="width: 100%">{{p.7}}</td>
+    <td>
 	    <a class="edit" onclick="{{onclickEditAction}}({{p.0}})" title="Edit provider {{p.1}}" style="cursor: pointer;"></a>
-	 </td>
-	 <td>
+	</td>
+	<td>
 	    <a class="delete" onclick="confirmDeleteProvider({{p.0}})" title="Delete provider {{p.1}}" style="cursor: pointer;"></a>
-	 </td>
+	</td>
 </tr>
 {% endfor %}

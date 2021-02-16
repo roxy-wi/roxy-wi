@@ -948,6 +948,7 @@ function doEditProviderSave() {
 				setTimeout(function() {
 					$( "#provider-"+id ).removeClass( "update" );
 				}, 2500 );
+                $('#provider-edited-date-'+id).text(returnFormatedDate())
 			} else if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			}
@@ -996,6 +997,7 @@ function awsEditProviderSave() {
 			if(data == "ok ") {
 				$("#provider-name-"+id).text(new_name);
 				$("#provider-"+id).addClass( "update", 1000 );
+                $('#provider-edited-date-'+id).text(returnFormatedDate())
 				setTimeout(function() {
 					$( "#provider-"+id ).removeClass( "update" );
 				}, 2500 );
@@ -1377,4 +1379,9 @@ function doProvisiningServer() {
             }
         }
     } );
+}
+function returnFormatedDate() {
+    let date = new Date();
+    current_date = date.toISOString().slice(0,10)+' '+date.toTimeString().split(' ')[0]
+    return current_date
 }
