@@ -282,7 +282,7 @@ function awsVarsServer() {
 	        aws_create_oss: $('#aws_create_oss').val(),
 	        aws_create_ssh_name: $('#aws_create_ssh_name').val(),
 	        aws_create_volume_size: $('#aws_create_volume_size').val(),
-	        delete_on_termination: delete_on_termination,
+	        delete_on_termination: aws_create_delete_on_termination,
 	        aws_create_floating_net: aws_create_floating_net,
 	        aws_create_firewall: aws_create_firewall,
 	        aws_create_public_ip: aws_create_public_ip,
@@ -394,7 +394,7 @@ function awsProvisiningServer() {
                 $('#created-mess').html('Server has been created. Server IPs are:' + data);
                 $('#created-mess').show();
                 $('#sever-status-'+server_id).text('Created');
-                $('#sever-ip'+server_id).text(data);
+                $('#sever-ip-'+server_id).text(data);
                 add_button_after_server_created();
             }
         }
@@ -1339,10 +1339,11 @@ function doWorkspaceServer() {
 		success: function( data ) {
             data = data.replace(/\s+/g, ' ');
             if (data.indexOf('error:') != '-1' && data.indexOf('Last error:') == '-1') {
+                var server_id = $('#ajax-provisioning-body tr td span:regex(id, sever-ip-)').last().attr('id').split('-')[2]
                 showProvisioningError(data, '#creating-workspace', '#creating-validate', '#wait-mess', '#creating-error', '#creating-progress', 'do');
-                $('#ajax-provisioning-body tr td span:regex(id, sever-status-)').last().text('Error');
-                $('#ajax-provisioning-body tr td span:regex(id, sever-status-)').last().attr('title', data);
-                $('#ajax-provisioning-body tr td span:regex(id, sever-status-)').last().css('color', 'red');
+                $('#sever-status-'+server_id).text('Error');
+                $('#sever-status-'+server_id).attr('title', data);
+               	$('#sever-status-'+server_id).css('color', 'red');
             } else {
                 showProvisioningProccess('#creating-validate', '#creating-workspace', '#creating-server', '80', '#creating-progress');
                 common_ajax_action_after_success('1', 'newserver', 'ajax-provisioning-body', data);
@@ -1363,18 +1364,19 @@ function doProvisiningServer() {
 		type: "POST",
 		success: function( data ) {
             data = data.replace(/\s+/g, ' ');
+            var server_id = $('#ajax-provisioning-body tr td span:regex(id, sever-ip-)').last().attr('id').split('-')[2]
             if (data.indexOf('error:') != '-1' && data.indexOf('Last error:') == '-1') {
                 showProvisioningError(data, '#creating-server', '#creating-workspace', '#wait-mess', '#creating-error', '#creating-progress', 'do');
-                $('#ajax-provisioning-body tr td span:regex(id, sever-status-)').last().text('Error');
-                $('#ajax-provisioning-body tr td span:regex(id, sever-status-)').last().attr('title', data);
-                $('#ajax-provisioning-body tr td span:regex(id, sever-status-)').last().css('color', 'red');
+                $('#sever-status-'+server_id).text('Error');
+                $('#sever-status-'+server_id).attr('title', data);
+               	$('#sever-status-'+server_id).css('color', 'red');
             } else {
                 showProvisioningProccess('#creating-workspace', '#creating-server', '', '100', '#creating-progress');
                 $('#wait-mess').hide();
                 $('#created-mess').html('Server has been created. Server IPs are: ' + data);
                 $('#created-mess').show();
-                $('#ajax-provisioning-body tr td span:regex(id, sever-status-)').last().text('Created');
-                $('#ajax-provisioning-body tr td span:regex(id, sever-ip-)').last().text(data);
+                $('#sever-status-'+server_id).text('Created');
+                $('#sever-ip-'+server_id).text(data);
                 add_do_button_after_server_created();
             }
         }

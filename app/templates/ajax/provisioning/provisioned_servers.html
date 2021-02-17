@@ -10,7 +10,7 @@
         {% endfor %}
      </td>
     {% if role == 1 %}
-     <td style="width: 10%">
+     <td style="width: 5%">
         {% for g in groups %}
             {% if adding %}
             {% if user_group|int() == g.0|int() %}
@@ -38,13 +38,13 @@
         {% endif %}
         <span id="server-cloud-{{s.0}}" style="display: none;">{{s.3}}</span>
     </td>
-    <td style="width: 10%">
+    <td style="width: 5%">
         {{s.8}}
     </td>
     <td style="width: 10%">
         <span id="sever-os-{{s.0}}">{{s.9}}</span>
     </td>
-    <td style="width: 10%">
+    <td style="width: 15%">
         <span id="sever-ip-{{s.0}}">{{s.10}}</span>
     </td>
     <td style="width: 10%">
