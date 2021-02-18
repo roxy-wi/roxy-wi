@@ -61,7 +61,7 @@ $( function() {
 			type: frm.attr('method'),
 			success: function( data ) {
 				data = data.replace('\n', '<br>');
-				if (data.indexOf('error: ') != '-1' || data.indexOf('Fatal') != '-1' || data.indexOf('Error(s)') != '-1') {
+				if (data.indexOf('error: ') != '-1' || data.indexOf('Fatal') != '-1' || data.indexOf('Error(s)') != '-1' || data.indexOf('failed ') != '-1') {
 					toastr.clear();
 					toastr.error(data);
 				} else {
