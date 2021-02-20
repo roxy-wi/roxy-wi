@@ -1,0 +1,30 @@
+{% for s in services %}
+<tr class="{{ loop.cycle('odd', 'even') }}" id="{{s.0}}">
+    <td class="padding10 first-collumn">
+        {% if s.1.0 == 'active' %}
+            <span title="{{s.0}} is started"><span class="serverUp server-status"></span></span>
+        {% else %}
+            {% if s.1.0 == 'inactive' or s.1.0 == 'failed' %}
+                <span title="{{s.0}} is stoped"><span class="serverDown server-status"></span></span>
+            {% else %}
+                <span title="{{s.0}} is not installed"><span class="serverNone server-status"></span></span>
+            {% endif %}
+        {% endif %}
+        {{s.0}}
+    </td>
+    <td class="padding10 first-collumn">
+        <a id="start-{{ s.0 }}" class="start" title="Start and enable {{s.0}} service">
+            <span class="service-start" onclick="confirmAjaxServiceAction('start', '{{s.0}}')"></span>
+        </a>
+        <a id="restart-{{ s.2 }}" class="restart" title="Restart {{s.0}} service">
+            <span class="service-reload service-restart" onclick="confirmAjaxServiceAction('restart', '{{s.0}}')"></span>
+        </a>
+        <a id="stop-{{ s.0 }}" class="stop" title="Stop and disable {{s.0}} service">
+            <span class="service-stop" onclick="confirmAjaxServiceAction('stop', '{{s.0}}')"></span>
+        </a>
+    </td>
+    <td>
+        {{ s.2 }}
+    </td>
+</tr>
+{% endfor %}

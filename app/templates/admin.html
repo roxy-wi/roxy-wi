@@ -75,101 +75,9 @@
 		{% include 'include/admin_ssh.html' %}
 	</div>
 	
-	<div id="checker">
-		{% include 'include/admin_telegram.html' %}
-	</div>
+	<div id="checker"></div>
 
-	<div id="openvpn">
-		{% if openvpn != '' %}
-		<table id="openvpn_table" class="overview">
-			<caption><h3>OpenVPN profiles</h3></caption>
-			<tr class="overviewHead">
-				<td class="padding10 first-collumn" style="width: 25%;">
-					Profile name
-				</td>
-				<td class="padding10 first-collumn" style="width: 35%;">
-					Time of creation
-				</td>
-				<td></td>
-				<td></td>
-			</tr>
-			{% for c in openvpn_configs %}
-			<tr class="{{ loop.cycle('odd', 'even') }}" id="{{c.split('/')[-1].split('.')[0]}}">
-				<td class="padding10 first-collumn">
-					{{c.split('/')[-1]}}
-				</td>
-				<td style="width: 100%">
-					{{c.split('/')[0]}}
-				</td>
-				<td>
-					<a class="service-start" onclick="OpenVpnSess('{{c.split('/')[-1].split('.')[0]}}', 'start')" title="Start OpenVPN with profile {{c.split('/')[-1]}}"></a>
-				</td>
-				<td>
-					<a class="delete" onclick="confirmDeleteOpenVpnProfile('{{c.split('/')[-1].split('.')[0]}}')" title="Delete OpenVPN profile {{c.split('/')[-1]}}" style="cursor: pointer;"></a>
-				</td>
-			</tr>
-			{% endfor %}
-		</table>
-		<br />
-		<table id="openvpn_table" class="overview">
-			<caption><h3>OpenVPN sessions</h3></caption>
-			<tr class="overviewHead">
-				<td class="padding10 first-collumn" style="width: 25%;">
-					Session name
-				</td>
-				<td class="padding10 first-collumn" style="width: 35%;">
-					Status
-				</td>
-				<td></td>
-				<td></td>
-			</tr>
-			{% for c in openvpn_sess %}
-			<tr class="{{ loop.cycle('odd', 'even') }}">
-				<td class="padding10 first-collumn">
-					{{c.split(' ')[0]}}
-				</td>
-				<td style="width: 100%">
-					{{c.split(' ')[4]}}
-				</td>
-				<td>
-					<a class="service-reload" onclick="OpenVpnSess('{{c.split(' ')[0]}}', 'restart')" title="Restart OpenVPN with profile {{c.split('/')[0]}}"></a>
-				</td>
-				<td>
-					<a class="delete" onclick="OpenVpnSess('{{c.split(' ')[0]}}', 'disconnect')" title="Disconnect OpenVPN profile {{c.split('/')[2]}}" style="cursor: pointer;"></a>
-				</td>
-			</tr>
-			{% endfor %}
-		</table>
-		<br />
-		<table id="openvpn_upload_table" class="overview">
-			<caption><h3>Uploading ovpn files</h3></caption>
-			<tr class="overviewHead" style="width: 50%;">
-				<td class="padding10 first-collumn" style="width: 25%;">Ovpn file name</td>
-				<td>
-					<span title="Ovpn file must be with an auto-login profile">Upload ovpn file (?)</span>
-				</td>
-			</tr>
-			<tr style="width: 50%;">
-				<td class="first-collumn" valign="top" style="padding-top: 15px;">
-					{{ input('ovpn_upload_name', size='30') }}
-				</td>
-				<td style="padding-top: 15px;">
-					<textarea id="ovpn_upload_file" cols="50" rows="5"></textarea><br /><br />
-					<a class="ui-button ui-widget ui-corner-all" id="ovpn_upload" title="Upload ovpn file" onclick="uploadOvpn()">Upload</a>
-					<br /><br />
-				</td>
-			</tr>
-		</table>
-
-		{% else %}
-		<center>
-			<br />
-			<h3>You do not have installed OpenVPN client.
-				Read <a href="https://haproxy-wi.org/services.py?service=openvpn" title="OpenVPN" style="color: #5d9ceb;" target="_blank">hear</a>
-				how to install OpenVPN client</h3>
-		</center>
-		{% endif %}
-	</div>
+	<div id="openvpn"></div>
 	
 	<div id="settings">
 		{% include 'include/admin_settings.html' %}
@@ -177,45 +85,18 @@
 	
 	<div id="services">
 		<table id="services_table" class="overview">
-			<tr class="overviewHead">
-				<td class="padding10 first-collumn" style="width: 25%;">
-					Service
-				</td>
-				<td class="padding10 first-collumn" style="width: 35%;">
-					Actions
-				</td>
-				<td>Description</td>
-			</tr>
-			{% for s in services %}
-				<tr class="{{ loop.cycle('odd', 'even') }}" id="{{s.0}}">
-					<td class="padding10 first-collumn">
-						{% if s.1.0 == 'active' %}
-							<span title="{{s.0}} is started"><span class="serverUp server-status"></span></span>
-						{% else %}
-							{% if s.1.0 == 'inactive' or s.1.0 == 'failed' %}
-							<span title="{{s.0}} is stoped"><span class="serverDown server-status"></span></span>
-							{% else %}
-							<span title="{{s.0}} is not installed"><span class="serverNone server-status"></span></span>
-							{% endif %}
-						{% endif %}
-						{{s.0}}
+			<thead>
+				<tr class="overviewHead">
+					<td class="padding10 first-collumn" style="width: 25%;">
+						Service
 					</td>
-					<td class="padding10 first-collumn">
-						<a id="start-{{ s.0 }}" class="start" title="Start and enable {{s.0}} service">
-							<span class="service-start" onclick="confirmAjaxServiceAction('start', '{{s.0}}')"></span>
-						</a>
-						<a id="restart-{{ s.2 }}" class="restart" title="Restart {{s.0}} service">
-						<span class="service-reload service-restart" onclick="confirmAjaxServiceAction('restart', '{{s.0}}')"></span>
-					</a>
-						<a id="stop-{{ s.0 }}" class="stop" title="Stop and disable {{s.0}} service">
-							<span class="service-stop" onclick="confirmAjaxServiceAction('stop', '{{s.0}}')"></span>
-						</a>
+					<td class="padding10 first-collumn" style="width: 35%;">
+						Actions
 					</td>
-					<td>
-						{{ s.2 }}
-					</td>
+					<td>Description</td>
 				</tr>
-			{% endfor %}
+			</thead>
+			<tbody id="ajax-services-body"></tbody>
 		</table>
 		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
 			You can read about services <a href="https://haproxy-wi.org/services.py" title="HAProxy-WI services" target="_blank">here</a>
@@ -223,11 +104,8 @@
 	</div>
 	
 	<div id="updatehapwi">
-		{% set current_ver = versions.0 %}
-		{% set new_ver = versions.1 %}
-		{% set current_ver_without_dots = versions.2 %}
-		{% set new_ver_without_dots = versions.3 %}
 		<table class="overview">
+			<thead>
 			<tr class="overviewHead">
 				<td class="padding10 first-collumn" style="width: 25%;">Service</td>
 				<td>Currnet version</td>
@@ -237,95 +115,8 @@
 					Description
 				</td>
 			</tr>
-			<tr>
-				<td class="padding10 first-collumn">
-					HAProxy-WI
-				</td>
-				<td>
-					<b>{{current_ver}}</b>
-				</td>
-				<td class="padding10">
-					<b>{{new_ver}}</b>
-				</td>
-				<td>
-					{% if new_ver_without_dots > current_ver_without_dots and new_ver != "Sorry cannot get current version" %}
-					<a class="ui-button ui-widget ui-corner-all" onclick="updateService('haproxy-wi')" title="Update HAProxy-WI">Update</a>
-					{% endif %}
-				</td>
-				<td>
-					The main application
-				</td>
-			</tr>
-			{% for s in services %}
-			{% if s.0 == 'smon' or s.0 == 'checker_haproxy' or s.0 == 'keep_alive' or s.0 == 'metrics_haproxy' %}
-			<tr>
-				{% set is_need_update = 0 %}
-				{% if s.0 == 'smon' %}
-					{% set service_name = 'SMON' %}
-					{% set service_link = 'smon' %}
-					{% set desc_link = 'https://haproxy-wi.org/services.py?service=smon' %}
-					{% if s.3|float < smon_ver|float %}
-						{% set is_need_update = 1 %}
-					{% endif %}
-				{% elif s.0 == 'checker_haproxy' %}
-					{% set service_name = 'Checker' %}
-					{% set service_link = 'checker' %}
-					{% set desc_link = 'https://haproxy-wi.org/services.py?service=checker' %}
-					{% if s.3|float < checker_ver|float %}
-						{% set is_need_update = 1 %}
-					{% endif %}
-				{% elif s.0 == 'keep_alive' %}
-					{% set service_name = 'Auto start' %}
-					{% set service_link = 'auto_start' %}
-					{% set desc_link = 'https://haproxy-wi.org/services.py?service=auto_start' %}
-					{% if s.3|float < keep_ver|float %}
-						{% set is_need_update = 1 %}
-					{% endif %}
-				{% elif s.0 == 'metrics_haproxy' %}
-					{% set service_name = 'Metrics' %}
-					{% set service_link = 'metrics' %}
-					{% set desc_link = 'https://haproxy-wi.org/services.py?service=metrics' %}
-					{% if s.3|float < metrics_ver|float %}
-						{% set is_need_update = 1 %}
-					{% endif %}
-				{% endif %}
-				<td class="padding10 first-collumn">
-					{{service_name}}
-				</td>
-				<td>
-					{% if s.3 != '* is not installed' %}
-					<b>{{s.3}}</b>
-					{% endif %}
-				</td>
-				<td class="padding10">
-					<b>
-						{% if s.0 == 'smon' %}
-							{{smon_ver}}
-						{% elif s.0 == 'checker_haproxy' %}
-							{{checker_ver}}
-						{% elif s.0 == 'keep_alive' %}
-							{{keep_ver}}
-						{% elif s.0 == 'metrics_haproxy' %}
-							{{metrics_ver}}
-						{% endif %}
-					</b>
-				</td>
-				<td>
-					{% if s.3 != '* is not installed' %}
-					{% if is_need_update %}
-					<a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}')" title="Update {{service_name}}">Update</a>
-					{% endif %}
-					{% else %}
-					{{service_name}} service is not installed
-					<a href="https://haproxy-wi.org/services.py?service={{service_link}}#installation" title="{{service_name}} installation" target="_blank" style="color: #5d9ceb;">Read about installation</a>
-					{% endif %}
-				</td>
-				<td>
-					Read more about <a href="{{desc_link}}" title="Read more about {{service_name}}" target="_blank" class="link">{{service_name}}</a>
-				</td>
-			</tr>
-			{% endif %}
-			{% endfor %}
+			</thead>
+			<tbody id="ajax-updatehapwi-body"></tbody>
 		</table>
 		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
 			<b style="font-size: 20px; display: block; padding-bottom: 10px;">Note:</b>

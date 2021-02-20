@@ -1,0 +1,89 @@
+{% from 'include/input_macros.html' import input, select %}
+{% if openvpn != '' %}
+	<table id="openvpn_table" class="overview">
+        <caption><h3>OpenVPN profiles</h3></caption>
+        <tr class="overviewHead">
+            <td class="padding10 first-collumn" style="width: 25%;">
+                Profile name
+            </td>
+            <td class="padding10 first-collumn" style="width: 35%;">
+                Time of creation
+            </td>
+            <td></td>
+            <td></td>
+        </tr>
+        {% for c in openvpn_configs %}
+        <tr class="{{ loop.cycle('odd', 'even') }}" id="{{c.split('/')[-1].split('.')[0]}}">
+            <td class="padding10 first-collumn">
+                {{c.split('/')[-1]}}
+            </td>
+            <td style="width: 100%">
+                {{c.split('/')[0]}}
+            </td>
+            <td>
+                <a class="service-start" onclick="OpenVpnSess('{{c.split('/')[-1].split('.')[0]}}', 'start')" title="Start OpenVPN with profile {{c.split('/')[-1]}}"></a>
+            </td>
+            <td>
+                <a class="delete" onclick="confirmDeleteOpenVpnProfile('{{c.split('/')[-1].split('.')[0]}}')" title="Delete OpenVPN profile {{c.split('/')[-1]}}" style="cursor: pointer;"></a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br />
+    <table id="openvpn_table" class="overview">
+        <caption><h3>OpenVPN sessions</h3></caption>
+        <tr class="overviewHead">
+            <td class="padding10 first-collumn" style="width: 25%;">
+                Session name
+            </td>
+            <td class="padding10 first-collumn" style="width: 35%;">
+                Status
+            </td>
+            <td></td>
+            <td></td>
+        </tr>
+        {% for c in openvpn_sess %}
+        <tr class="{{ loop.cycle('odd', 'even') }}">
+            <td class="padding10 first-collumn">
+                {{c.split(' ')[0]}}
+            </td>
+            <td style="width: 100%">
+                {{c.split(' ')[4]}}
+            </td>
+            <td>
+                <a class="service-reload" onclick="OpenVpnSess('{{c.split(' ')[0]}}', 'restart')" title="Restart OpenVPN with profile {{c.split('/')[0]}}"></a>
+            </td>
+            <td>
+                <a class="delete" onclick="OpenVpnSess('{{c.split(' ')[0]}}', 'disconnect')" title="Disconnect OpenVPN profile {{c.split('/')[2]}}" style="cursor: pointer;"></a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br />
+    <table id="openvpn_upload_table" class="overview">
+        <caption><h3>Uploading ovpn files</h3></caption>
+        <tr class="overviewHead" style="width: 50%;">
+            <td class="padding10 first-collumn" style="width: 25%;">Ovpn file name</td>
+            <td>
+                <span title="Ovpn file must be with an auto-login profile">Upload ovpn file (?)</span>
+            </td>
+        </tr>
+        <tr style="width: 50%;">
+            <td class="first-collumn" valign="top" style="padding-top: 15px;">
+                {{ input('ovpn_upload_name', size='30') }}
+            </td>
+            <td style="padding-top: 15px;">
+                <textarea id="ovpn_upload_file" cols="50" rows="5"></textarea><br /><br />
+                <a class="ui-button ui-widget ui-corner-all" id="ovpn_upload" title="Upload ovpn file" onclick="uploadOvpn()">Upload</a>
+                <br /><br />
+            </td>
+        </tr>
+    </table>
+{% else %}
+<center>
+    <br />
+    <h3>You do not have installed OpenVPN client.
+        Read <a href="https://haproxy-wi.org/services.py?service=openvpn" title="OpenVPN" style="color: #5d9ceb;" target="_blank">hear</a>
+        how to install OpenVPN client</h3>
+</center>
+{% endif %}

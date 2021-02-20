@@ -776,7 +776,38 @@ $( function() {
 			}
 		} );
 	});
+	$("#tabs ul li").click(function() {
+		var activeTab = $(this).find("a").attr("href");
+
+		if (activeTab == '#services') {
+			loadServices();
+		} else if (activeTab == '#updatehapwi') {
+			loadupdatehapwi();
+		} else if (activeTab == '#checker'){
+			loadchecker();
+		} else if (activeTab == '#openvpn'){
+			loadopenvpn();
+		}
+	});
 } );
+window.onload = function() {
+	var activeTabIdx = $('#tabs').tabs('option','active')
+	if (cur_url[0].split('#')[0] == 'users.py') {
+		if (activeTabIdx == 7) {
+			loadServices();
+		} else if (activeTabIdx == 8) {
+			loadupdatehapwi();
+		} else if (activeTabIdx == 4) {
+			loadchecker();
+		} else if (activeTabIdx == 5) {
+			loadopenvpn();
+		}
+	} else if (cur_url[0].split('#')[0] == 'servers.py') {
+		if (activeTabIdx == 3) {
+			loadchecker();
+		}
+	}
+}
 function common_ajax_action_after_success(dialog_id, new_group, ajax_append_id, data) {
 	toastr.clear();
 	$("#"+ajax_append_id).append(data);
@@ -842,7 +873,7 @@ function addNewSmonServer(dialog_id) {
 					$( "input[type=submit], button" ).button();
 					$( "input[type=checkbox]" ).checkboxradio();
 					$( "select" ).selectmenu();
-					$.getScript('/inc/unsers.js');
+					$.getScript('/inc/users.js');
 				}	
 			}
 		} );
@@ -1014,7 +1045,6 @@ function addCreds(dialog_id) {
 					toastr.error(data);
 				} else {
 					var group_name = getGroupNameById($('#new-sshgroup').val());
-					console.log(group_name)
 					var getId = new RegExp('ssh-table-[0-9]+');
 					var id = data.match(getId) + '';
 					id = id.split('-').pop();
@@ -1043,7 +1073,6 @@ function getGroupNameById(group_id) {
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
-				console.log(data);
 				group_name = data;
 			}
 		}
@@ -2005,8 +2034,13 @@ function ajaxActionServies(action, service) {
 			token: $('#token').val()
 		},
 		success: function( data ) {
-			window.history.pushState("services", "services", cur_url[0].split("#")[0]+"#services")
-			location.reload()
+			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
+				toastr.error(data);
+			} else {
+				window.history.pushState("services", "services", cur_url[0].split("#")[0] + "#services");
+				toastr.success('The ' + service + 'has been ' + action +'ed');
+				loadServices();
+			}
 		},
 		error: function(){
 			alert(w.data_error);
@@ -2025,7 +2059,6 @@ function updateService(service) {
 		},
 		type: "POST",
 		success: function( data ) {
-			console.log(data)
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 				toastr.error(data);
@@ -2060,7 +2093,8 @@ function updateService(service) {
 				toastr.clear();
 				toastr.error(data);
 			}
-			$("#ajax-update").html('')
+			$("#ajax-update").html('');
+			loadupdatehapwi();
 		}
 	} );
 }
@@ -2084,7 +2118,6 @@ function confirmDeleteOpenVpnProfile(id) {
 }
 
 function removeOpenVpnProfile(id) {
-	console.log(id)
 	$("#"+id).css("background-color", "#f2dede");
 	$.ajax( {
 		url: "options.py",
@@ -2218,3 +2251,82 @@ function viewFirewallRules(id) {
 		}
 	} );
 }
+function loadServices() {
+	$.ajax({
+		url: "options.py",
+		data: {
+			loadservices: 1,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1') {
+				toastr.error(data);
+			} else {
+				$('#ajax-services-body').html(data);
+				$.getScript(awesome);
+			}
+		}
+	} );
+}
+function loadupdatehapwi() {
+	$.ajax({
+		url: "options.py",
+		data: {
+			loadupdatehapwi: 1,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1') {
+				toastr.error(data);
+			} else {
+				$('#ajax-updatehapwi-body').html(data);
+			}
+		}
+	} );
+}
+function loadchecker() {
+	$.ajax({
+		url: "options.py",
+		data: {
+			loadchecker: 1,
+			page: cur_url[0].split('#')[0],
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('group_error') == '-1' && data.indexOf('error:') != '-1') {
+				toastr.error(data);
+			} else {
+				$('#checker').html(data);
+				$( "select" ).selectmenu();
+				$.getScript('/inc/users.js');
+				$.getScript(awesome);
+			}
+		}
+	} );
+}
+function loadopenvpn() {
+	$.ajax({
+		url: "options.py",
+		data: {
+			loadopenvpn: 1,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('group_error') == '-1' && data.indexOf('error:') != '-1') {
+				toastr.error(data);
+			} else {
+				$('#openvpn').html(data);
+				$.getScript(awesome);
+			}
+		}
+	} );
+}
+

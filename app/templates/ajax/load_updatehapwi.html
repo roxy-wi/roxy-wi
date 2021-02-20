@@ -1,0 +1,93 @@
+{% set current_ver = versions.0 %}
+{% set new_ver = versions.1 %}
+{% set current_ver_without_dots = versions.2 %}
+{% set new_ver_without_dots = versions.3 %}
+<tr>
+    <td class="padding10 first-collumn">
+        HAProxy-WI
+    </td>
+    <td>
+        <b>{{current_ver}}</b>
+    </td>
+    <td class="padding10">
+        <b>{{new_ver}}</b>
+    </td>
+    <td>
+        {% if new_ver_without_dots > current_ver_without_dots and new_ver != "Sorry cannot get current version" %}
+        <a class="ui-button ui-widget ui-corner-all" onclick="updateService('haproxy-wi')" title="Update HAProxy-WI">Update</a>
+        {% endif %}
+    </td>
+    <td>
+        The main application
+    </td>
+</tr>
+{% for s in services %}
+    {% if s.0 == 'smon' or s.0 == 'checker_haproxy' or s.0 == 'keep_alive' or s.0 == 'metrics_haproxy' %}
+<tr>
+    {% set is_need_update = 0 %}
+    {% if s.0 == 'smon' %}
+        {% set service_name = 'SMON' %}
+        {% set service_link = 'smon' %}
+        {% set desc_link = 'https://haproxy-wi.org/services.py?service=smon' %}
+    {% if s.3|float < smon_ver|float %}
+        {% set is_need_update = 1 %}
+    {% endif %}
+{% elif s.0 == 'checker_haproxy' %}
+    {% set service_name = 'Checker' %}
+    {% set service_link = 'checker' %}
+    {% set desc_link = 'https://haproxy-wi.org/services.py?service=checker' %}
+    {% if s.3|float < checker_ver|float %}
+        {% set is_need_update = 1 %}
+    {% endif %}
+{% elif s.0 == 'keep_alive' %}
+    {% set service_name = 'Auto start' %}
+    {% set service_link = 'auto_start' %}
+    {% set desc_link = 'https://haproxy-wi.org/services.py?service=auto_start' %}
+    {% if s.3|float < keep_ver|float %}
+        {% set is_need_update = 1 %}
+    {% endif %}
+{% elif s.0 == 'metrics_haproxy' %}
+    {% set service_name = 'Metrics' %}
+    {% set service_link = 'metrics' %}
+    {% set desc_link = 'https://haproxy-wi.org/services.py?service=metrics' %}
+    {% if s.3|float < metrics_ver|float %}
+        {% set is_need_update = 1 %}
+    {% endif %}
+{% endif %}
+    <td class="padding10 first-collumn">
+        {{service_name}}
+    </td>
+    <td>
+        {% if s.3 != '* is not installed' %}
+        <b>{{s.3}}</b>
+        {% endif %}
+    </td>
+    <td class="padding10">
+        <b>
+            {% if s.0 == 'smon' %}
+                {{smon_ver}}
+            {% elif s.0 == 'checker_haproxy' %}
+                {{checker_ver}}
+            {% elif s.0 == 'keep_alive' %}
+                {{keep_ver}}
+            {% elif s.0 == 'metrics_haproxy' %}
+                {{metrics_ver}}
+            {% endif %}
+        </b>
+    </td>
+    <td>
+        {% if s.3 != '* is not installed' %}
+            {% if is_need_update %}
+                <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}')" title="Update {{service_name}}">Update</a>
+            {% endif %}
+        {% else %}
+            {{service_name}} service is not installed
+            <a href="https://haproxy-wi.org/services.py?service={{service_link}}#installation" title="{{service_name}} installation" target="_blank" style="color: #5d9ceb;">Read about installation</a>
+        {% endif %}
+    </td>
+    <td>
+        Read more about <a href="{{desc_link}}" title="Read more about {{service_name}}" target="_blank" class="link">{{service_name}}</a>
+    </td>
+</tr>
+{% endif %}
+{% endfor %}
