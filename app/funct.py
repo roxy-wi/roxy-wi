@@ -1206,3 +1206,30 @@ def check_is_server_in_group(serv):
 def check_service(serv, service_name):
 	commands = ["systemctl status "+service_name+" |grep Active |awk '{print $1}'"]
 	return ssh_command(serv, commands)
+
+
+def get_services_status():
+	services = []
+	services_name = {'checker_haproxy': 'Checker backends master service',
+					 'keep_alive': 'Auto start service',
+					 'metrics_haproxy': 'Metrics master service',
+					 'prometheus': 'Prometheus service',
+					 'grafana-server': 'Grafana service',
+					 'smon': 'Simple monitoring network ports',
+					 'fail2ban': 'Fail2ban service'}
+	for s, v in services_name.items():
+		cmd = "systemctl status %s |grep Act |awk  '{print $2}'" % s
+		status, stderr = subprocess_execute(cmd)
+		if s != 'keep_alive':
+			service_name = s.split('_')[0]
+		else:
+			service_name = s
+		cmd = "rpm --query haproxy-wi-" + service_name + "-* |awk -F\"" + service_name + "\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
+		service_ver, stderr = subprocess_execute(cmd)
+
+		try:
+			services.append([s, status, v, service_ver[0]])
+		except Exception:
+			services.append([s, status, v, ''])
+
+	return services

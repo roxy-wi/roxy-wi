@@ -2351,7 +2351,7 @@ if form.getvalue('providerdel'):
 
 if form.getvalue('awsinit') or form.getvalue('doinit'):
     funct.check_user_group()
-    cmd = 'cd scripts/terraform/ && sudo terraform init -upgrade'
+    cmd = 'cd scripts/terraform/ && sudo terraform init -upgrade -no-color'
     output, stderr = funct.subprocess_execute(cmd)
     if stderr != '':
         print('error: '+stderr)
@@ -2773,70 +2773,53 @@ if form.getvalue('edit_aws_provider'):
         print('ok')
         funct.logging('localhost', 'Provider has been renamed. New name is ' + new_name, provisioning=1)
 
-if form.getvalue('loadservices') or form.getvalue('loadupdatehapwi') or form.getvalue('loadchecker'):
+if form.getvalue('loadservices'):
     from jinja2 import Environment, FileSystemLoader
     env = Environment(loader=FileSystemLoader('templates'))
-    versions = ''
-    checker_ver = ''
-    smon_ver = ''
-    metrics_ver = ''
-    keep_ver = ''
-    telegrams = ''
-    groups = ''
-    page = ''
+    template = env.get_template('ajax/load_services.html')
+    services = funct.get_services_status()
 
-    if form.getvalue('loadservices'):
-        template = env.get_template('ajax/load_services.html')
-    elif form.getvalue('loadupdatehapwi'):
-        versions = funct.versions()
-        checker_ver = funct.check_new_version(service='checker')
-        smon_ver = funct.check_new_version(service='smon')
-        metrics_ver = funct.check_new_version(service='metrics')
-        keep_ver = funct.check_new_version(service='keep')
-        template = env.get_template('ajax/load_updatehapwi.html')
-    elif form.getvalue('loadchecker'):
-        groups = sql.select_groups()
-        page = form.getvalue('page')
-        if page == 'servers.py':
-            user_group = funct.get_user_group(id=1)
-            telegrams = sql.get_user_telegram_by_group(user_group)
-        else:
-            telegrams = sql.select_telegram()
+    template = template.render(services=services)
+    print(template)
 
-        template = env.get_template('ajax/load_telegram.html')
+if form.getvalue('loadchecker'):
+    from jinja2 import Environment, FileSystemLoader
+    env = Environment(loader=FileSystemLoader('templates'))
+    template = env.get_template('ajax/load_telegram.html')
+    services = funct.get_services_status()
+    groups = sql.select_groups()
+    page = form.getvalue('page')
+    if page == 'servers.py':
+        user_group = funct.get_user_group(id=1)
+        telegrams = sql.get_user_telegram_by_group(user_group)
+    else:
+        telegrams = sql.select_telegram()
 
-    services = []
-    services_name = {'checker_haproxy': 'Checker backends master service',
-                     'keep_alive': 'Auto start service',
-                     'metrics_haproxy': 'Metrics master service',
-                     'prometheus': 'Prometheus service',
-                     'grafana-server': 'Grafana service',
-                     'smon': 'Simple monitoring network ports',
-                     'fail2ban': 'Fail2ban service'}
-    for s, v in services_name.items():
-        cmd = "systemctl status %s |grep Act |awk  '{print $2}'" % s
-        status, stderr = funct.subprocess_execute(cmd)
-        if s != 'keep_alive':
-            service_name = s.split('_')[0]
-        else:
-            service_name = s
-        cmd = "rpm --query haproxy-wi-" + service_name + "-* |awk -F\"" + service_name + "\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
-        service_ver, stderr = funct.subprocess_execute(cmd)
+    template = template.render(services=services,
+                               telegrams=telegrams,
+                               groups=groups,
+                               page=page)
+    print(template)
 
-        try:
-            services.append([s, status, v, service_ver[0]])
-        except Exception:
-            services.append([s, status, v, ''])
+if form.getvalue('loadupdatehapwi'):
+    from jinja2 import Environment, FileSystemLoader
+    env = Environment(loader=FileSystemLoader('templates'))
+    template = env.get_template('ajax/load_updatehapwi.html')
+
+    versions = funct.versions()
+    checker_ver = funct.check_new_version(service='checker')
+    smon_ver = funct.check_new_version(service='smon')
+    metrics_ver = funct.check_new_version(service='metrics')
+    keep_ver = funct.check_new_version(service='keep')
+
+    services = funct.get_services_status()
 
     template = template.render(services=services,
                                versions=versions,
                                checker_ver=checker_ver,
                                smon_ver=smon_ver,
                                metrics_ver=metrics_ver,
-                               keep_ver=keep_ver,
-                               telegrams=telegrams,
-                               groups=groups,
-                               page=page)
+                               keep_ver=keep_ver)
     print(template)
 
 if form.getvalue('loadopenvpn'):

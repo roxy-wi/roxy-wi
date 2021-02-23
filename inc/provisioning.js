@@ -773,7 +773,7 @@ function showProvisioningError(data, step_id, prev_step_id, wait_mess, error_id,
 	$(error_id).show();
 	$(prev_step_id).removeClass('proccessing');
 	$(step_id).addClass('processing_error');
-	$(progress_id).val('0');
+	$(progress_id).css('width', '0%');
 	if(cloud == 'aws') {
 		add_button_after_server_created();
 	} else if (cloud == 'do') {
@@ -793,7 +793,7 @@ function showProvisioningProccess(prev_step_id, step_id, next_step_id, progress_
     $(step_id).addClass('proccessing_done');
     $(step_id).removeClass('proccessing');
     $(next_step_id).addClass('proccessing');
-    $(progress_id).val(progress_value);
+    $(progress_id).css('width', progress_value+'%');
     $.getScript("/inc/fontawesome.min.js");
 }
 function cleanProvisioningProccess(div_id, success_div) {

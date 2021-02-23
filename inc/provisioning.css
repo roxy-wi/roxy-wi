@@ -26,20 +26,45 @@
     width: 100%;
     height: 10px;
 }
-progress {
-    border-radius: 5px;
+.progress-bar-striped {
+    overflow: hidden;
+    height: 10px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    -webkit-box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    -moz-box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
 }
-progress::-webkit-progress-bar {
-    background-color: #ddd;
-    border-radius: 5px;
-}
-progress::-webkit-progress-value {
+.progress-bar-striped > div {
+    background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+    background-size: 40px 40px;
+    float: left;
+    width: 0%;
+    height: 100%;
+    font-size: 12px;
+    line-height: 20px;
+    color: #ffffff;
+    text-align: center;
+    -webkit-box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+    -moz-box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+    box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+    -webkit-transition: width 3s ease;
+    -moz-transition: width 3s ease;
+    -o-transition: width 3s ease;
+    transition: width 3s ease;
+    animation: progress-bar-stripes 2s linear infinite;
     background-color: #5d9ceb;
-    border-radius: 5px;
 }
-progress::-moz-progress-bar {
-    background-color: #5d9ceb;
-    border-radius: 5px;
+.progress-bar-striped p{
+    margin: 0;
+}
+@keyframes progress-bar-stripes {
+    0% {
+        background-position: 40px 0;
+    }
+    100% {
+        background-position: 0 0;
+    }
 }
 .alert-danger {
     margin-bottom: 10px;
