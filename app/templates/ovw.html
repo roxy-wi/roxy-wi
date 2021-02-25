@@ -82,7 +82,13 @@
 <table class="overview-wi">
 	<tr class="overviewHead">
 		<td class="padding10 first-collumn-wi" colspan=4>
-			Tools status
+			{% if role <= 1 %}
+				<a href="/app/users.py#services" title="View tools status" class="logs_link">
+					Tools status
+				</a>
+			{% else %}
+				Tools status
+			{% endif %}
 		</td>
 	</tr>
 	<tr>

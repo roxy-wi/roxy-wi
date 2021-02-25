@@ -2274,7 +2274,7 @@ function loadupdatehapwi() {
 	$.ajax({
 		url: "options.py",
 		data: {
-			loadupdatehapwi: 1,
+			load_update_hapwi: 1,
 			token: $('#token').val()
 		},
 		type: "POST",

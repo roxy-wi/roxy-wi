@@ -2801,7 +2801,7 @@ if form.getvalue('loadchecker'):
                                page=page)
     print(template)
 
-if form.getvalue('loadupdatehapwi'):
+if form.getvalue('load_update_hapwi'):
     from jinja2 import Environment, FileSystemLoader
     env = Environment(loader=FileSystemLoader('templates'))
     template = env.get_template('ajax/load_updatehapwi.html')
