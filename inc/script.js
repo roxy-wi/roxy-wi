@@ -622,6 +622,32 @@ function viewLogs() {
 	}
 }
 $( function() {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			show_versions: 1,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			$('#version').html(data);
+			var showUpdates = $( "#show-updates" ).dialog({
+				autoOpen: false,
+				width: 600,
+				modal: true,
+				title: 'There is a new version HAProxy-WI',
+				buttons: {
+					Close: function() {
+						$( this ).dialog( "close" );
+						clearTips();
+					}
+				}
+			});
+			$('#show-updates-button').click(function() {
+				showUpdates.dialog('open');
+			});
+		}
+	} );
 	$('a').click(function(e) {
 		try {
 			var cur_path = window.location.pathname;
@@ -838,33 +864,6 @@ $( function() {
 		}
 		return false;
 	});
-	$.ajax( {
-			url: "options.py",
-			data: {
-				show_versions: 1,
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function( data ) {
-				$('#version').html(data);
-			}
-		} );
-	var showUpdates = $( "#show-updates" ).dialog({
-			autoOpen: false,
-			width: 600,
-			modal: true,
-			title: 'There is a new version HAProxy-WI',
-			buttons: {
-				Close: function() {
-					$( this ).dialog( "close" );
-					clearTips();
-				}
-			}
-		});
-
-	$('#show-updates-button').click(function() {
-		showUpdates.dialog('open');
-	});
 	var showUserSettings = $( "#show-user-settings" ).dialog({
 			autoOpen: false,
 			width: 600,
@@ -955,6 +954,7 @@ $( function() {
 					$(this).children(".services").css('padding-left', '30px');
 					$(this).children(".services").css('border-left', '4px solid #5D9CEB');
 				});
+				loadServices();
 				$( "#tabs" ).tabs( "option", "active", 7 );
 			} );
 			$( ".updatehapwi" ).on( "click", function() {
@@ -965,6 +965,7 @@ $( function() {
 					$(this).children(".updatehapwi").css('border-left', '4px solid #5D9CEB');
 				});
 				$( "#tabs" ).tabs( "option", "active", 8 );
+				loadupdatehapwi();
 			} );
 		} else {
 			$( ".runtime" ).on( "click", function() {

@@ -22,30 +22,17 @@
     } );
 </script>
 <table class="overview hover order-column display compact" id="alerts_table">
-
     <thead>
-    <tr class="overviewHead">
-        <th class="padding10" style="width: 10%; padding-left: 10px;">
-            Level
-        </th>
-        <th>
-            Host
-        </th>
-        {% if action != "checker_history" %}
-        <th>
-            Port
-        </th>
-        {% endif %}
-        <th>
-            Alert
-        </th>
-        <th>
-            Date
-        </th>
-        <th>
-            Time
-        </th>
-    </tr>
+        <tr class="overviewHead">
+            <th class="padding10" style="width: 10%; padding-left: 10px;">Level</th>
+            <th>Host</th>
+            {% if action != "checker_history" %}
+            <th>Port</th>
+            {% endif %}
+            <th>Alert</th>
+            <th>Date</th>
+            <th>Time</th>
+        </tr>
     </thead>
     <tbody>
     {% if smon != '' %}
@@ -59,23 +46,14 @@
             {% endif %}
             <span style="color: {{color}};"><b>{{t.1 |upper}}</b></span>
         </td>
-        <td>
-            {{t.2}}
-        </td>
+        <td>{{t.2}}</td>
         {% if action != "checker_history" %}
-        <td>
-            {{t.3}}
-        </td>
+        <td>{{t.3}}</td>
         {% endif %}
-        <td>
-            {{t.0}}
+        <td>{{t.0}}</td>
+        <td>{{t.4.split(' ')[0]}}
         </td>
-        <td>
-            {{t.4.split(' ')[0]}}
-        </td>
-        <td>
-            {{t.4.split(' ')[1]}}
-        </td>
+        <td>{{t.4.split(' ')[1]}}</td>
     </tr>
     {% endfor %}
     {% else %}
