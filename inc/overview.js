@@ -1,9 +1,5 @@
 var cur_url = window.location.href.split('/').pop();
 cur_url = cur_url.split('?');
-function showOverviewHapWI() {
-	getChartDataHapWiCpu('1')
-	getChartDataHapWiRam('1')
-}
 function showHapservers(serv, hostnamea, service) {
 	var i;
 	for (i = 0; i < serv.length; i++) { 
@@ -62,7 +58,6 @@ function showOverview(serv, hostnamea) {
 	for (i = 0; i < serv.length; i++) { 
 		showOverviewCallBack(serv[i], hostnamea[i])
 	}
-	$.getScript('/inc/overview.js');
 }
 function showOverviewCallBack(serv, hostnamea) {	
 	$.ajax( {
@@ -198,45 +193,55 @@ function ajaxActionWafServers(action, id) {
 	} );
 }
 $( function() {
+	ChartsIntervalId = setInterval(updatingCpuRamCharts, 30000);
+	$(window).focus(function(){
+  		ChartsIntervalId = setInterval(updatingCpuRamCharts, 30000);
+	});
+	$(window).blur(function(){
+	  	clearInterval(ChartsIntervalId);
+	});
 	$( "#show-all-users" ).click( function() {
 		$( ".show-users" ).show("fast");
 		$( "#show-all-users" ).text("Hide");
 		$( "#show-all-users" ).attr("title", "Hide all users"); 
 		$( "#show-all-users" ).attr("id", "hide-all-users"); 
-		$.getScript('/inc/overview.js');			
+
+		$("#hide-all-users").click(function() {
+			$( ".show-users" ).hide("fast");
+			$( "#hide-all-users" ).attr("title", "Show all users");
+			$( "#hide-all-users" ).text("Show all");
+			$( "#hide-all-users" ).attr("id", "show-all-users");
+		});
 	});
-	$( "#hide-all-users" ).click( function() {
-		$( ".show-users" ).hide("fast");
-		$( "#hide-all-users" ).attr("title", "Show all users");
-		$( "#hide-all-users" ).text("Show all");
-		$( "#hide-all-users" ).attr("id", "show-all-users");
-	});
+
 	$( "#show-all-groups" ).click( function() {
 		$( ".show-groups" ).show("fast");
 		$( "#show-all-groups" ).text("Hide");
 		$( "#show-all-groups" ).attr("title", "Hide all groups"); 
-		$( "#show-all-groups" ).attr("id", "hide-all-groups"); 
-		$.getScript('/inc/overview.js');			
+		$( "#show-all-groups" ).attr("id", "hide-all-groups");
+
+		$( "#hide-all-groups" ).click( function() {
+			$( ".show-groups" ).hide("fast");
+			$( "#hide-all-groups" ).attr("title", "Show all groups");
+			$( "#hide-all-groups" ).text("Show all");
+			$( "#hide-all-groups" ).attr("id", "show-all-groups");
+		});
 	});
-	$( "#hide-all-groups" ).click( function() {
-		$( ".show-groups" ).hide("fast");
-		$( "#hide-all-groups" ).attr("title", "Show all groups");
-		$( "#hide-all-groups" ).text("Show all");
-		$( "#hide-all-groups" ).attr("id", "show-all-groups");
-	});
+
 	$( "#show-all-haproxy-wi-log" ).click( function() {
 		$( ".show-haproxy-wi-log" ).show("fast");
 		$( "#show-all-haproxy-wi-log" ).text("Show less log");
-		$( "#show-all-haproxy-wi-log" ).attr("title", "Show less log"); 
-		$( "#show-all-haproxy-wi-log" ).attr("id", "hide-all-haproxy-wi-log"); 
-		$.getScript('/inc/overview.js');			
+		$( "#show-all-haproxy-wi-log" ).attr("title", "Show less log");
+		$( "#show-all-haproxy-wi-log" ).attr("id", "hide-all-haproxy-wi-log");
+
+		$( "#hide-all-haproxy-wi-log" ).click( function() {
+			$( ".show-haproxy-wi-log" ).hide("fast");
+			$( "#hide-all-haproxy-wi-log" ).attr("title", "Show more log");
+			$( "#hide-all-haproxy-wi-log" ).text("Show more log");
+			$( "#hide-all-haproxy-wi-log" ).attr("id", "show-all-haproxy-wi-log");
+		});
 	});
-	$( "#hide-all-haproxy-wi-log" ).click( function() {
-		$( ".show-haproxy-wi-log" ).hide("fast");
-		$( "#hide-all-haproxy-wi-log" ).attr("title", "Show more log");
-		$( "#hide-all-haproxy-wi-log" ).text("Show more log");
-		$( "#hide-all-haproxy-wi-log" ).attr("id", "show-all-haproxy-wi-log");
-	});
+
 	if (cur_url[0] == "overview.py" || cur_url[0] == "waf.py" || cur_url[0] == "metrics.py") {
 		$('#secIntervals').css('display', 'none');
 	}

@@ -20,12 +20,6 @@ function getChartData(server) {
         }
     });
 }
-function removeData() {
-    for (i = 0; i < charts.length; i++) {
-        chart = charts[i];
-        chart.destroy();
-    }
-}
 var charts = []
 function renderChart(data, labels, server) {
     var ctx = document.getElementById(server)
@@ -232,6 +226,7 @@ function renderChartHapWiRam(data) {
             ]
         },
         options: {
+            animation: false,
 			maintainAspectRatio: false,
 			title: {
 				display: true,
@@ -288,13 +283,14 @@ function renderChartHapWiCpu(data) {
 						'#ffcd56',
 						'#4bc0c0',
 						'#5d9ceb',
-						'#4bc0c0',
+						'#2c6969',
 						
 					]
                 }
             ]
         },
         options: {
+            animation: false,
 			maintainAspectRatio: false,
 			title: {
 				display: true,
@@ -332,3 +328,36 @@ $( function() {
         loadMetrics();
     });
 });
+function removeData() {
+    for (i = 0; i < charts.length; i++) {
+        chart = charts[i];
+        chart.destroy();
+    }
+}
+function showOverviewHapWI() {
+	getChartDataHapWiCpu('1');
+	getChartDataHapWiRam('1');
+	NProgress.configure({showSpinner: false});
+}
+function removeCpuRamCharts() {
+    var ctxCpu = document.getElementById("cpu")
+    var ctxRam = document.getElementById("ram")
+    ctxCpu.remove();
+    ctxRam.remove();
+    $('#cpu_div').html('<canvas id="cpu" role="img"></canvas>');
+    $('#ram_div').html('<canvas id="ram" role="img"></canvas>');
+}
+function updatingCpuRamCharts() {
+	if (cur_url[0] == 'overview.py') {
+		removeCpuRamCharts();
+		showOverviewHapWI();
+	} else if (cur_url[0] == 'hapservers.py' && cur_url[1].split('=')[0] == 'service') {
+		removeCpuRamCharts();
+		NProgress.configure({showSpinner: false});
+		getChartDataHapWiCpu(server_ip);
+		getChartDataHapWiRam(server_ip);
+		removeData();
+		getChartData(server_ip);
+		getWafChartData(server_ip);
+	}
+}

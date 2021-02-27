@@ -11,7 +11,7 @@
 				</a>
 			</td>
 			<td>
-			{% if role <= 1 %}
+			{% if role <= 2 %}
 				<a id="{{ service.1 }}" class="start-waf" title="Start WAF service">
 					<span class="service-start" onclick="confirmAjaxAction('start', 'waf', '{{service.1}}')"></span>
 				</a>
@@ -24,7 +24,7 @@
 			{% endif %}
 			</td>
 			<td>
-			{% if role <= 1 %}
+			{% if role <= 2 %}
 				{% if service.3 == "On" or service.3 == "Off" or service.3 == "DetectionOnly" %}
 					<select class="waf_mode" id="{{ service.0 }}_select">
 						{% set waf_modes = [] %}
@@ -55,12 +55,19 @@
 					{% endif %}
 				{% endif %}
 			</td>
+			<td>
+				{% if role <= 2 %}
+					{% if service.3 == "On" or service.3 == "Off" or service.3 == "DetectionOnly" %}
+						<a href="/app/waf.py?manage_rules=1&serv={{service.1}}" class="ui-button ui-widget ui-corner-all">Open</a>
+					{% endif %}
+				{% endif %}
+			</td>
 			<td></td>
 	{% else %}
 		<td class="padding10 first-collumn-wi">
 			<span class="serverDown server-status"></span> {{ service.0 }}
 		</td>
-		{% if role <= 1 %}
+		{% if role <= 2 %}
 		<td>
 			<a title="Install WAF"><button onclick="installWaf('{{ service.1 }}')">Install</button></a>
 		</td>
@@ -68,16 +75,15 @@
 	{% endif %}
 {% endfor %}
 <script>
-	{% if role <= 1 %}
+	{% if role <= 2 %}
 		$( "select" ).selectmenu();
 		$( "input[type=checkbox]" ).checkboxradio();
-		$( "select" ).on('selectmenuchange',function() {
+		$( ".waf_mode" ).on('selectmenuchange',function() {
 			var id = $(this).attr('id');
 			changeWafMode(id)
 		});	
 		$( ".ajaxwafstatus input" ).change(function() {
 			var id = $(this).attr('id');
-			console.log(id)
 			metrics_waf(id);
 		});
 	{% endif %}

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block content %}	
+{% block content %}
 <link href="/inc/chart.min.css" rel="stylesheet">
 <script src="/inc/metrics.js"></script>
 <script src="/inc/chart.min.js"></script>
@@ -40,8 +40,8 @@
 			<a href="/app/waf.py" title="WAf servers overview" class="logs_link">
 				WAF
 			</a>
-		</td  class="padding10">
-		<td>
+		</td>
+		<td class="padding10">
 			<a onclick="showOverview(ip, hostnamea)" title="Refresh" style="float: right; margin-right: 25px;">
 				<span class="service-reload"></span>
 			</a>
@@ -70,10 +70,10 @@
 	</tr>		
 	<tr>
 		<td style="width:100%" colspan="2">					
-			<div style="height: 140px;width: 50%;float: left; margin:0; padding:0;">
+			<div id="cpu_div" style="height: 140px;width: 50%;float: left; margin:0; padding:0;">
 				<canvas id="cpu" role="img"></canvas>
 			</div>
-			<div style="height: 140px;width: 50%;float: right;margin:0; padding:0;">
+			<div id="ram_div" style="height: 140px;width: 50%;float: right;margin:0; padding:0;">
 				<canvas id="ram" role="img"></canvas>
 			</div>		
 		</td>
@@ -289,7 +289,7 @@
 					<td class="third-collumn-wi">
 						{% for group in users_groups %}
 							{% if USER.0|string() == group.0|string() %}
-								{{ group.1 }}{{ "," if not loop.last }}
+								{{ group.1 }}
 							{% endif %}
 						{% endfor %}
 					</td>

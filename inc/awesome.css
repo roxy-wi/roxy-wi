@@ -201,11 +201,14 @@
 	content: "\f067";
 	width:3px;
 }
-.new-version-exists::after {
+.new-version-exists::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";
 	content: "\f093";
 	padding-left: 5px;
+}
+.new-version-exists .fa-upload {
+	padding-right: 5px;
 }
 .backends::before {
 	display: none;
@@ -296,4 +299,12 @@
 .alert-two-rows .fa-info-circle {
 	margin-top: 5px;
 	padding-left: 2px;
+}
+.note-symbol::after {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f059";
+}
+.note-symbol .question-circle {
+	padding-left: 5px;
 }

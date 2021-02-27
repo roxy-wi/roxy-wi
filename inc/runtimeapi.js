@@ -450,7 +450,7 @@ function getSessionInfo(sess_id) {
 				$( "#get-session-info" ).dialog({
 					resizable: false,
 					height: "auto",
-					width: 760,
+					width: 790,
 					modal: true,
 					title: "View session",
 					buttons: {

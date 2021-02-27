@@ -78,18 +78,19 @@
 			<script src="/inc/metrics.js"></script>
 			<script src="/inc/chart.min.js"></script>
 			<script>
+				var server_ip = '{{s.2}}'
 				function showMetrics() {
 					{% if service == 'haproxy' %}
 						{% for s in servers %}
-							getChartData('{{s.2}}')
-							getWafChartData('{{s.2}}')
+							getChartData(server_ip)
+							getWafChartData(server_ip)
 						{% endfor %}
 					{% endif %}
-					showOverviewServer('{{s.1}}', '{{s.2}}', '{{s.0}}', '{{service}}');
+					showOverviewServer('{{s.1}}', server_ip, '{{s.0}}', '{{service}}');
 					{% if service == 'nginx' %}
-						showNginxConnections('{{ s.2 }}')
+						showNginxConnections(server_ip)
 					{% else %}
-						showBytes('{{ s.2 }}')
+						showBytes(server_ip)
 					{% endif %}
 				}
 				showMetrics();
@@ -99,8 +100,8 @@
 						let metrics = new Promise(
 								(resolve, reject) => {
 									{% for s in servers %}
-									getChartData('{{s.2}}')
-									getWafChartData('{{s.2}}')
+									getChartData(server_ip)
+									getWafChartData(server_ip)
 									{% endfor %}
 								});
 						metrics.then();
@@ -189,12 +190,13 @@
 					Uptime: {% else %} Downtime: {% endif %} {{s.5.0.4}}
 				{% else %}
 					{% if s.5.0 is defined %}
-				{{s.5.0.0}} {{s.5.0.1}}
+						{{s.5.0.0}} {{s.5.0.1}}
+						<br />
 						{{s.5.0.2}}
 					{% else %}
 						Cannot get information about HAProxy 
 					{% endif %}				 
-				{% endif %}				 
+				{% endif %}
 				<span title="Date of last configuration edit" >
 					Last edit:
 					<span id="{{s.1}}"></span>
@@ -227,7 +229,7 @@
 					{% else %}
 						{{ checkbox(id, title='Enable Auto Start', value='1', desc='Auto Start') }}
 					{% endif %}
-				{% endif %}
+			{% endif %}
 			</div>
 			<div class="server-act-links">
 				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showConfig" class="ui-button ui-widget ui-corner-all" title="Open running config">Open</a>	
@@ -275,10 +277,10 @@
 		</div>
 	</div>
 	{% for s in servers %}
-		<div class="chart-container" style="display: block; width: 91.3%; height: 300px;">
+		<div id="server_metrics_div" class="chart-container" style="display: block; width: 91.3%; height: 300px;">
 			<canvas id="{{s.2}}" role="img"></canvas>
 		</div>
-		<div class="chart-container" style="display: block; width: 90%; height: 300px;">
+		<div id="waf_metrics_div" class="chart-container" style="display: block; width: 90%; height: 300px;">
 			<canvas id="s_{{s.2}}" role="img"></canvas>
 		</div>
 	{% endfor %}
