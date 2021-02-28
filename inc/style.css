@@ -781,6 +781,7 @@ label {
     font-size: 1.4em;
     color: #5d9ceb;
     border-bottom: 1px solid #A4C7F5;
+	width: 99%;
 }
 .server-status {
 	border-radius: 50% 50%;
@@ -817,17 +818,21 @@ label {
 }
 .ajax-server {
 	margin: 25px 25px 0 757px;
-	width: 778px;
+	width: 794px;
 	display: none;
 	height: 185px;
-	padding: 10px 15px 0;
+	padding: 10px 0 0 15px;
 }
 .haproxy-info {
 	display: inline-block;
-	width: 160px;
+	width: 150px;
 	padding-top: 5px;
 	font-size: 11.5px;
 	float: left;
+}
+.server-info {
+	height: 100%;
+	width: 790px;
 }
 .top-info {
 	display: inline-block;

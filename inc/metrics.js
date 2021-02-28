@@ -29,18 +29,24 @@ function renderChart(data, labels, server) {
             labels: labels.split(','),
             datasets: [
                 {
+                    parsing: false,
+                    normalized: true,
                     label: 'Connections',
                     data: data[0].split(','),
                     borderColor: 'rgba(75, 192, 192, 1)',
                     backgroundColor: 'rgba(75, 192, 192, 0.2)',
                 },
                 {
+                    parsing: false,
+                    normalized: true,
                     label: 'SSL Connections',
                     data: data[1].split(','),
                     borderColor: 'rgba(54, 162, 235, 1)',
                     backgroundColor: 'rgba(54, 162, 235, 0.2)',
                 },
-				 {
+                {
+				    parsing: false,
+                    normalized: true,
                     label: 'Session rate',
                     data: data[2].split(','),
                     borderColor: 'rgba(255, 206, 86, 1)',
@@ -117,6 +123,8 @@ function renderWafChart(data, labels, server) {
             labels: labels.split(','),
             datasets: [
                 {
+                    parsing: false,
+                    normalized: true,
                     label: 'Connections',
                     data: data[0].split(','),
                     borderColor: 'rgba(75, 192, 192, 1)',
@@ -208,11 +216,13 @@ function getChartDataHapWiRam(ip) {
 function renderChartHapWiRam(data) {
     var ctx = 'ram'
     var myChart = new Chart(ctx, {
-        type: 'pie',
+        type: 'horizontalBar',
         data: {
             labels: ['used','free','shared','buff/cache','avaliable'],
             datasets: [
                 {
+                    parsing: false,
+                    normalized: true,
                     data: data[0].split(' '),
                     backgroundColor: [						
 						'#ff6384',
@@ -235,7 +245,7 @@ function renderChartHapWiRam(data) {
 				padding: 0,
 			},
 			legend: {
-				display: true,
+				display: false,
 				align: 'start',
 				position: 'left',
 				labels: {
@@ -270,11 +280,13 @@ function getChartDataHapWiCpu(ip) {
 function renderChartHapWiCpu(data) {
     var ctx = 'cpu'
     var myChart = new Chart(ctx, {
-        type: 'pie',
+        type: 'horizontalBar',
         data: {
             labels: ['user','sys','nice','idle','wait','hi','si','steal'],
             datasets: [
                 {
+                    parsing: false,
+                    normalized: true,
                     data: data[0].split(' '),
                     backgroundColor: [						
 						'#ff6384',
@@ -299,7 +311,7 @@ function renderChartHapWiCpu(data) {
 				padding: 0,
 			},
 			legend: {
-				display: true,
+				display: false,
 				position: 'left',
 				align: 'end',
 				labels: {

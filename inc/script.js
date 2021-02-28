@@ -171,7 +171,7 @@ window.onblur= function() {
 			} else if (cur_url[0] == "smon.py" && cur_url[1].split('&')[0] == "action=view") {
 				showSmon('refresh')
 			}
-		} 
+		}
 	}
 };
 if(localStorage.getItem('restart')) {
@@ -238,7 +238,6 @@ function setRefreshInterval(interval) {
 			$('.auto-refresh').css('display', 'inline');
 			$('.auto-refresh').css('font-size', '15px');
 			$('#1').text('Auto-refresh');
-			//$('#0').text('Auto-refresh');
 			$('.auto-refresh-pause').css('display', 'none');
 			$('.auto-refresh-resume').css('display', 'none');
 			$.getScript("/inc/fontawesome.min.js")

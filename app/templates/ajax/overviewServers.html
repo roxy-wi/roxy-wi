@@ -1,12 +1,12 @@
 {%- for service in service_status -%}
-<div class="server-info" style="height: 100%;">
+<div class="server-info">
 	{% if service_page == 'nginx' %}
 	<div class="server-name" style="padding-bottom: 0px;">
 	{% else %}
 	<div class="server-name">
 	{% endif %}
 		Server status
-		<span class="update-icon">
+		<span class="update-icon" style="margin-right: 10px">
 			<a onclick="showOverviewServer('{{ service.0 }}', '{{ service.1 }}', '{{id}}', '{{service_page}}')" title="Refresh">
 				<span class="service-reload"></span>
 			</a>
@@ -20,7 +20,7 @@
 	{% if service_page == 'nginx' %}
 		<div class="top-info" style="margin-top: 5px; width: 100%;">
 	{% else %}
-		<div class="top-info" style="width: 550px;">
+		<div class="top-info" style="width: 640px;">
 	{% endif %}
 			<div id="cpu_div" style="height: 140px;width: 50%;float: left; margin:0; padding:0;">
 				<canvas id="cpu" role="img"></canvas>
