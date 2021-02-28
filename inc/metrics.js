@@ -55,6 +55,7 @@ function renderChart(data, labels, server) {
             ]
         },
         options: {
+            animation: false,
 			maintainAspectRatio: false,
 			title: {
 				display: true,
@@ -69,7 +70,6 @@ function renderChart(data, labels, server) {
                     }
                 }],
                 xAxes: [{
-                    offset: true,
                     ticks: {
                         major: {
                             enabled: true,
@@ -78,8 +78,7 @@ function renderChart(data, labels, server) {
                         source: 'data',
                         autoSkip: true,
                         autoSkipPadding:45,
-                        maxRotation: 0,
-                        sampleSize: 100
+                        maxRotation: 0
                     }
                 }]
             },
@@ -133,6 +132,7 @@ function renderWafChart(data, labels, server) {
             ]
         },
         options: {
+            animation: false,
 			maintainAspectRatio: false,
 			title: {
 				display: true,
@@ -155,8 +155,7 @@ function renderWafChart(data, labels, server) {
                         source: 'data',
                         autoSkip: true,
                         autoSkipPadding: 45,
-                        maxRotation: 0,
-                        sampleSize: 100
+                        maxRotation: 0
                     }
                 }]
             },
