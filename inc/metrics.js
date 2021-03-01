@@ -217,15 +217,16 @@ function renderChartHapWiRam(data) {
     var myChart = new Chart(ctx, {
         type: 'horizontalBar',
         data: {
-            labels: ['used','free','shared','buff/cache','avaliable'],
+            labels: ['total','used','free','shared','buff/cache','avaliable'],
             datasets: [
                 {
                     parsing: false,
                     normalized: true,
                     data: data[0].split(' '),
-                    backgroundColor: [						
+                    backgroundColor: [
+                        '#36a2eb',
 						'#ff6384',
-						'#36a2eb',
+						'#33ff26',
 						'#ff9f40',
 						'#ffcd56',
 						'#4bc0c0',
@@ -321,7 +322,14 @@ function renderChartHapWiCpu(data) {
 					boxWidth: 13,
 					padding: 5
 				},
-			}
+			},
+            scales: {
+                xAxes: [{
+                    ticks: {
+                        suggestedMax: 100
+                    }
+                }]
+            },
         }
     });
 }

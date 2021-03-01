@@ -21,7 +21,11 @@
 <table class="overview-wi">
 	<tr class="overviewHead">
 		<td class="padding10 first-collumn-wi">
-			Server
+			{% if role <= 2 %}
+				<a href="servers.py#servers" title="Manage servers">Servers</a>
+			{% else %}
+				Server
+			{% endif %}
 		</td>
 		<td class="padding10  third-collumn-wi" style="width: 20%;">
 			<a href="/app/hapservers.py" title="HAProxy servers overview" class="logs_link">			

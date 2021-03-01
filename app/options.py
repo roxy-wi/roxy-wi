@@ -1265,10 +1265,10 @@ if form.getvalue('metrics_hapwi_ram'):
     rams = ''
 
     if ip == '1':
-        cmd = "free -m |grep Mem |awk '{print $3,$4,$5,$6,$7}'"
+        cmd = "free -m |grep Mem |awk '{print $2,$3,$4,$5,$6,$7}'"
         metric, error = funct.subprocess_execute(cmd)
     else:
-        commands = ["free -m |grep Mem |awk '{print $3,$4,$5,$6,$7}'"]
+        commands = ["free -m |grep Mem |awk '{print $2,$3,$4,$5,$6,$7}'"]
         metric, error = funct.subprocess_execute(commands[0])
 
     for i in metric:
@@ -2811,7 +2811,6 @@ if form.getvalue('load_update_hapwi'):
     smon_ver = funct.check_new_version(service='smon')
     metrics_ver = funct.check_new_version(service='metrics')
     keep_ver = funct.check_new_version(service='keep')
-
     services = funct.get_services_status()
 
     template = template.render(services=services,
