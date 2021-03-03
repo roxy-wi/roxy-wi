@@ -1097,45 +1097,15 @@ $( function() {
 		$( "#backend_add_acl" ).show();
 		$( "#add_backend_acl" ).hide();
 	} );
-	var acl_option = '<b class="padding10">if</b>\n' +
-		'<select name="acl_if">\n' +
-		'\t<option selected>Choose if</option>\n' +
-		'\t<option value="1">Host name starts with</option>\n' +
-		'\t<option value="2">Host name ends with</option>\n' +
-		'\t<option value="3">Path starts with</option>\n' +
-		'\t<option value="4">Path ends with</option>\n' +
-		'</select>' +
-		'<b class="padding10">value</b>\n' +
-		'<input type="text" name="acl_value" class="form-control">\n' +
-		'<p style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">\n' +
-		'<b class="padding10">then</b>\n' +
-		'<select name="acl_then">\n' +
-		'\t<option selected>Choose then</option>\n' +
-		'\t<option value="5">Use backend</option>\n' +
-		'\t<option value="2">Redirect to</option>\n' +
-		'\t<option value="3">Allow</option>\n' +
-		'\t<option value="4">Deny</option>\n' +
-		'</select>\n' +
-		'<b class="padding10">value</b>\n' +
-		'<input type="text" name="acl_then_value" class="form-control" value="" title="Required if \"then\" is \"Use backend\" or \"Redirect\""></p>'
 	$("#listener_add_acl").click(function(){
-		$("#listener_acl").append(acl_option);
+		make_actions_for_adding_acl_rule('#listener_acl');
 		$("#listener_acl").find('option[value=5]').remove();
-		$( "select" ).selectmenu();
-		$('[name=acl_if]').selectmenu({width: 180});
-		$('[name=acl_then]').selectmenu({width: 180});
 	});
 	$("#frontend_add_acl").click(function(){
-		$("#frontend_acl").append(acl_option);
-		$( "select" ).selectmenu();
-		$('[name=acl_if]').selectmenu({width: 180});
-		$('[name=acl_then]').selectmenu({width: 180});
+		make_actions_for_adding_acl_rule('#frontend_acl');
 	});
 	$("#backend_add_acl").click(function(){
-		$("#backend_acl").append(acl_option);
-		$( "select" ).selectmenu();
-		$('[name=acl_if]').selectmenu({width: 180});
-		$('[name=acl_then]').selectmenu({width: 180});
+		make_actions_for_adding_acl_rule('#backend_acl');
 	});
 });
 function resetProxySettings() {
@@ -1324,10 +1294,34 @@ function view_ssl(id) {
 					buttons: {
 						Close: function() {
 							$( this ).dialog( "close" );
+						},
+						Delete: function () {
+							$( this ).dialog( "close" );
+							confirmDeleting("SSL cert", id, $( this ), "");
 						}
 					  }
 				});					
 			} 
+		}
+	} );
+}
+function deleteSsl(id) {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			serv: $('#serv5').val(),
+			delcert: id,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			if (data.indexOf('error: ') != '-1') {
+				toastr.error(data);
+			} else {
+				toastr.clear();
+				toastr.success('SSL cert ' + id + ' has been deleted');
+				$("#ssl_key_view").trigger( "click" );
+			}
 		}
 	} );
 }
@@ -1607,4 +1601,54 @@ function confirmDeleting(deleting_thing, id, dialog_id, color) {
 			}
 		}
 	});
+}
+function delete_acl_rule(id) {
+	$('#'+id).remove();
+}
+var acl_option = '<p id="new_acl_p" style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">\n' +
+		'<b class="padding10">if</b>\n' +
+		'<select name="acl_if">\n' +
+		'\t<option selected>Choose if</option>\n' +
+		'\t<option value="1">Host name starts with</option>\n' +
+		'\t<option value="2">Host name ends with</option>\n' +
+		'\t<option value="3">Path starts with</option>\n' +
+		'\t<option value="4">Path ends with</option>\n' +
+		'\t<option value="6">Src ip</option>\n' +
+		'</select> ' +
+		'<b class="padding10">value</b>\n' +
+		'<input type="text" name="acl_value" class="form-control">\n' +
+		'<b class="padding10">then</b>\n' +
+		'<select name="acl_then">\n' +
+		'\t<option selected>Choose then</option>\n' +
+		'\t<option value="5">Use backend</option>\n' +
+		'\t<option value="2">Redirect to</option>\n' +
+		'\t<option value="3">Allow</option>\n' +
+		'\t<option value="4">Deny</option>\n' +
+		'\t<option value="6">Return</option>\n' +
+		'\t<option value="7">Set-header</option>\n' +
+		'</select>\n' +
+		'<b class="padding10">value</b>\n' +
+		'<input type="text" name="acl_then_value" class="form-control" value="" title="Required if \"then\" is \"Use backend\" or \"Redirect\"">\n' +
+		'<span class="minus minus-style" id="new_acl_rule_minus" title="Delete this ACL"></span>' +
+		'</p>'
+function make_actions_for_adding_acl_rule(section_id) {
+	var random_id = makeid(3);
+	$(section_id).append(acl_option);
+	$('#new_acl_rule_minus').attr('onclick', 'delete_acl_rule(\''+random_id+'\')');
+	$('#new_acl_rule_minus').attr('id', '');
+	$('#new_acl_p').attr('id', random_id);
+	$('#new_acl_rule_minus').attr('id', '');
+	$.getScript("/inc/fontawesome.min.js");
+	$( "select" ).selectmenu();
+	$('[name=acl_if]').selectmenu({width: 180});
+	$('[name=acl_then]').selectmenu({width: 180});
+}
+function makeid(length) {
+   var result           = '';
+   var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+   var charactersLength = characters.length;
+   for ( var i = 0; i < length; i++ ) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+   }
+   return result;
 }

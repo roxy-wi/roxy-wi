@@ -194,6 +194,8 @@ elif form.getvalue('mode') is not None:
 					acl_if_word = 'path_beg -i '
 				elif a == '4':
 					acl_if_word = 'path_end -i '
+				elif a == '6':
+					acl_if_word = 'src ip '
 				else:
 					acl_if_word = ''
 
@@ -207,6 +209,10 @@ elif form.getvalue('mode') is not None:
 				elif acl_then[i] == '4':
 					acl += '    http-request deny'
 					acl_then_value = ''
+				elif acl_then[i] == '6':
+					acl += '    return '
+				elif acl_then[i] == '7':
+					acl += '    set-header '
 
 				acl += acl_then_value + ' if { ' + acl_if_word + acl_value[i] + ' } \n'
 			except Exception:

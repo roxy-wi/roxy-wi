@@ -72,7 +72,7 @@
 				{% endif %}
 				</p>
 			</form>
-			<div class="alert alert-info"><b>Note:</b> When reconfiguring the master server, the slave will be reconfigured automatically</div>
+			<div class="alert alert-info alert-two-rows"><b>Note:</b> When reconfiguring the master server, the slave will be reconfigured automatically</div>
 		{% endif %}
 	{% endif %}
 	</center>
@@ -87,15 +87,17 @@
 		showConfig();		
 	}	
 	if (cur_url[1].split('&')[0] == 'service=haproxy' || cur_url[1].split('&')[0] == 'service=None') {
-		var myCodeMirror = CodeMirror.fromTextArea(document.getElementById("config_text_area"), {mode: "haproxy", lineNumbers: true});
+		var myCodeMirror = CodeMirror.fromTextArea(document.getElementById("config_text_area"),
+				{mode: "haproxy", lineNumbers: true, autocapitalize: true, autocorrect: true, spellcheck: true});
 	} else {
-		var myCodeMirror = CodeMirror.fromTextArea(document.getElementById("config_text_area"), {mode: "nginx", lineNumbers: true});
+		var myCodeMirror = CodeMirror.fromTextArea(document.getElementById("config_text_area"),
+				{mode: "nginx", lineNumbers: true, autocapitalize: true, autocorrect: true, spellcheck: true});
 	}
 </script>
 <style>
 .CodeMirror {
-  line-height: 1.2em;
-  height: 60%;
+  	line-height: 1.2em;
+  	height: 70%;
 }
 </style>
 <script>

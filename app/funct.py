@@ -494,7 +494,7 @@ def show_installation_output(error, output, service):
 			print('error: '+error)
 	else:
 		for l in output:
-			if "msg" in l or "FAILED" in l:
+			if "FAILED" in l:
 				try:
 					l = l.split(':')[1]
 					l = l.split('"')[1]

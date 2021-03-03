@@ -991,7 +991,7 @@ def update_db_v_5(**kwargs):
 				`type` VARCHAR ( 64 ),
 				`group` VARCHAR ( 64 ), 
 				`key` VARCHAR ( 64 ), 
-				`secret` VARCHAR ( 64 ),
+				`secret` VARCHAR ( 64 ), 
 				`create_date`  DATETIME default '0000-00-00 00:00:00',
 				`edit_date`  DATETIME default '0000-00-00 00:00:00',
 				PRIMARY KEY(`id`)
@@ -1053,7 +1053,7 @@ def update_db_v_51(**kwargs):
 
 def update_ver():
 	con, cur = get_cur()
-	sql = """update version set version = '5.0.0.0'; """
+	sql = """update version set version = '5.0.1.0'; """
 	try:
 		cur.execute(sql)
 		con.commit()

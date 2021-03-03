@@ -23,24 +23,20 @@
 	<ul id='browse_histroy'></ul>
 	<div id="users">
 		{% include 'include/admin_users.html' %}
-		{% include 'include/servers_group_error.html' %}
 	</div>
 
 	<div id="servers">
 		{% include 'include/admin_servers.html' %}
-		{% include 'include/servers_group_error.html' %}
 	</div>
 
 	<div id="ssh">
 		{% include 'include/admin_ssh.html' %}
-		{% include 'include/servers_group_error.html' %}
 	</div>
 	
 	<div id="checker"></div>
 
 	<div id="settings">
 		{% include 'include/admin_settings.html' %}
-		{% include 'include/servers_group_error.html' %}
 	</div>
 
 	<div id="installproxy">
@@ -167,39 +163,11 @@
 
 	<div id="backup">
 		{% include 'include/admin_backup.html' %}
-		{% include 'include/servers_group_error.html' %}
 	</div>
 </div>
 {% include 'include/admins_dialogs.html' %}
 {% include 'include/change_pass_form.html' %}
 <script>
-	if($('#new-server-group-add').val() == 1) {
-		$('.group_error').css('display', 'block');
-		$('#add-user-button').css('display', 'none');
-		$('#add-server-button').css('display', 'none');
-		$('.passwordChange').css('display', 'none');
-		$('#add-ssh-button').css('display', 'none');
-		$('#ssh_key_upload').css('display', 'none');
-		$('#add-telegram-button').css('display', 'none');
-		$('input').css('color', 'rgba(0, 0, 0, 0.3)');
-		setTimeout(function() {
-			$("input[type=checkbox]").checkboxradio( "disable" );
-			$("select").selectmenu( "disable" );
-			$("button").button( "disable" );
-			$("input").attr( "readonly", "readonly" );
-			$('.delete').remove()
-			$('#hapver').selectmenu('enable');
-			$('#haproxyaddserv').selectmenu('enable');
-			$('#nginxaddserv').selectmenu('enable');
-			$('#haproxy_exp_addserv').selectmenu('enable');
-			$('#nginx_exp_addserv').selectmenu('enable');
-			$('#geoipserv').selectmenu('enable');
-			$('#syn_flood').checkboxradio('enable');
-			$('#nginx_syn_flood').checkboxradio('enable');
-			$('#updating_geoip').checkboxradio('enable');
-		}, 500 );
-		
-	}
 	$( function() {
 		{% for user in users %}
 			$("#role-{{user.0}}" ).selectmenu({

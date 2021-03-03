@@ -954,6 +954,9 @@ label {
 	background-color: grey;
 	color: #aaa;
 }
+.minus-style {
+	cursor: pointer;
+}
 @media (max-width: 1920px) {
   #logo_span {
 	margin-left: 17%;

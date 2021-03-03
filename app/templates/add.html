@@ -13,7 +13,7 @@
 'option smtpchk':'Check a SMTP service'} %}
 
 {% set if_values = dict() %}
-{% set if_values = {'1':'Host name starts with','2':'Host name ends with','3':'Path starts with','4':'Path ends with'} %}
+{% set if_values = {'1':'Host name starts with','2':'Host name ends with','3':'Path starts with','4':'Path ends with', '6': 'Src ip'} %}
 
 <script src="/inc/add.js"></script>
 <div id="tabs">
@@ -121,20 +121,19 @@
 					<td class="addOption">
 						<span title="Add ACL" id="add_listener_acl" class="link add-server"></span>
 						<div id="listener_acl" style="display: none;">
-							<span id="listener_acl_for_cloning">
+							<p style="border-bottom: 1px solid #ddd; padding-bottom: 10px;" id="listener_acl_rule">
 								<b class="padding10">if</b>
 								{{ select('listener_acl_if', name='acl_if', values=if_values, first='Choose if', class='force_close', disabled=false) }}
 								<b class="padding10">value</b>
 								{{ input('listener_acl_value', name="acl_value") }}
-								<p style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">
-									<b class="padding10">then</b>
-									{% set values = dict() %}
-									{% set values = {'2':'Redirect to','3':'Allow','4':'Deny'} %}
-									{{ select('listener_acl_then', name='acl_then', values=values, first='Choose action', class='force_close', disabled=false) }}
-									<b class="padding10">value</b>
-									{{ input('listener_acl_then_value', name='acl_then_value', title="Required if \'then\' is \'Use backend\' or \'Redirect\'") }}
-								</p>
-							</span>
+								<b class="padding10">then</b>
+								{% set values = dict() %}
+								{% set values = {'2':'Redirect to','3':'Allow','4':'Deny', '6': 'Return', '7': 'Set-header'} %}
+								{{ select('listener_acl_then', name='acl_then', values=values, first='Choose action', class='force_close', disabled=false) }}
+								<b class="padding10">value</b>
+								{{ input('listener_acl_then_value', name='acl_then_value', title="Required if \'then\' is \'Use backend\' or \'Redirect\', \'Return\', or \'Set-header\'") }}
+								<span class="minus minus-style" onclick="delete_acl_rule('listener_acl_rule')" title="Delete this rule"></span>
+							</p>
 						</div>
 						<span>
 							<a class="link add-server" id="listener_add_acl" title="Add ACL" style="cursor: pointer; display: none;"></a>
@@ -261,9 +260,9 @@
 			</table>
 		</form>
 	</div>
-		
+
 		<!-- Second tabs -->
-		
+
 	<div id="frontend">
 		<form name="add-frontend" id="add-frontend" action="/app/add.py" method="post">
 		<table>
@@ -335,20 +334,19 @@
 				<td class="addOption">
 					<span title="Add ACL" id="add_frontend_acl" class="link add-server"></span>
 					<div id="frontend_acl" style="display: none;">
-						<span id="frontend_acl_for_cloning">
+						<p id="frontend_acl_rule" style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">
 							<b class="padding10">if</b>
 							{{ select('frontend_acl_if', name='acl_if', values=if_values, first='Choose if', class='force_close', disabled=false) }}
 							<b class="padding10">value</b>
 							{{ input('frontend_acl_value', name='acl_value') }}
-							<p style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">
-								<b class="padding10">then</b>
-								{% set values = dict() %}
-								{% set values = {'5':'Use backend','2':'Redirect to','3':'Allow','4':'Deny'} %}
-								{{ select('frontend_acl_then', name='acl_then', values=values, first='Choose action', class='force_close', disabled=false) }}
-								<b class="padding10">value</b>
-								{{ input('frontend_acl_then_value', name='acl_then_value', title="Required if \'then\' is \'Use backend\' or \'Redirect\'") }}
-							</p>
-						</span>
+							<b class="padding10">then</b>
+							{% set values = dict() %}
+							{% set values = {'5':'Use backend','2':'Redirect to','3':'Allow','4':'Deny', '6': 'Return', '7': 'Set-header'} %}
+							{{ select('frontend_acl_then', name='acl_then', values=values, first='Choose action', class='force_close', disabled=false) }}
+							<b class="padding10">value</b>
+							{{ input('frontend_acl_then_value', name='acl_then_value', title="Required if \'then\' is \'Use backend\' or \'Redirect\', \'Return\', or \'Set-header\'") }}
+							<span class="minus minus-style" onclick="delete_acl_rule('frontend_acl_rule')" title="Delete this rule"></span>
+						</p>
 					</div>
 					<span>
 						<a class="link add-server" id="frontend_add_acl" title="Add ACL" style="cursor: pointer; display: none;"></a>
@@ -432,9 +430,9 @@
 		</table>
 		</form>
 	</div>
-				
+
 				<!-- Third tabs -->
-		
+
 	<div id="backend">
 		<form name="add-backend" id="add-backend" action="/app/add.py" method="post">
 		<table>
@@ -505,20 +503,19 @@
 				<td class="addOption">
 					<span title="Add ACL" id="add_backend_acl" class="link add-server"></span>
 					<div id="backend_acl" style="display: none;">
-							<span id="backend_acl_for_cloning">
-								<b class="padding10">if</b>
-								{{ select('backend_acl_if', name='acl_if', values=if_values, first='Choose if', class='force_close', disabled=false) }}
-								<b class="padding10">value</b>
-								{{ input('backend_acl_value', name="acl_value") }}
-								<p style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">
-									<b class="padding10">then</b>
-									{% set values = dict() %}
-									{% set values = {'2':'Redirect to','3':'Allow','4':'Deny'} %}
-									{{ select('backend_acl_then', name='acl_then', values=values, first='Choose action', class='force_close', disabled=false) }}
-									<b class="padding10">value</b>
-									{{ input('backend_acl_then_value', name='acl_then_value', title="Required if \'then\' is \'Use backend\' or \'Redirect\'") }}
-								</p>
-							</span>
+						<p id="backend_acl_rule" style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">
+							<b class="padding10">if</b>
+							{{ select('backend_acl_if', name='acl_if', values=if_values, first='Choose if', class='force_close', disabled=false) }}
+							<b class="padding10">value</b>
+							{{ input('backend_acl_value', name="acl_value") }}
+							<b class="padding10">then</b>
+							{% set values = dict() %}
+							{% set values = {'2':'Redirect to','3':'Allow','4':'Deny', '6': 'Return', '7': 'Set-header'} %}
+							{{ select('backend_acl_then', name='acl_then', values=values, first='Choose action', class='force_close', disabled=false) }}
+							<b class="padding10">value</b>
+							{{ input('backend_acl_then_value', name='acl_then_value', title="Required if \'then\' is \'Use backend\', \'Redirect\', \'Return\', or \'Set-header\'") }}
+							<span class="minus minus-style" onclick="delete_acl_rule('backend_acl_rule')" title="Delete this rule"></span>
+						</p>
 					</div>
 					<span>
 						<a class="link add-server" id="backend_add_acl" title="Add ACL" style="cursor: pointer; display: none;"></a>
@@ -629,7 +626,7 @@
 		</table>
 		</form>
 	</div>
-		
+
 	<div id="ssl">
 		<table>
 			<caption><h3>SSL</h3></caption>
@@ -647,7 +644,7 @@
 							<option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endfor %}
 					</select>
-					<button id="ssl_key_view" title="View certificates">View</button>	
+					<button id="ssl_key_view" title="View certificates">View</button>
 				</td>
 				<td colspan="2">
 					<span  id="ajax-show-ssl"></span>
@@ -676,8 +673,8 @@
 				</td>
 				<td style="padding-top: 15px; padding-bottom: 15px;">
 					<textarea id="ssl_cert" cols="50" rows="5"></textarea><br /><br />
-					<button id="ssl_key_upload" title="Upload ssl certificates">Upload</button>	
-				</td>	
+					<button id="ssl_key_upload" title="Upload ssl certificates">Upload</button>
+				</td>
 			</tr>
 		</table>
 		<table>
@@ -724,11 +721,11 @@
 				<td></td>
 			</tr>
 		{% for option in options %}
-			<tr id="option-{{ option.0 }}" class="{{ loop.cycle('odd', 'even') }}"> 
+			<tr id="option-{{ option.0 }}" class="{{ loop.cycle('odd', 'even') }}">
 				{% if option.2 == group or group == '1' %}
 				<td class="padding10 first-collumn">
 					{{ option.0 }}
-				</td>			
+				</td>
 				<td class="padding10 first-collumn" style="width: 77%;">
 					<input type="text" id="option-body-{{ option.0 }}" value="{{ option.1 }}" size="60" class="form-control">
 				</td>
@@ -762,15 +759,15 @@
 		<div id="ajax-option"></div>
 		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
 			In this section you can create, edit and delete options with given parameters. And after use them as autocomplete in the "Add" sections
-			<br />
-			<br />
-			How to use pre saved option you can see in 
-			<a href="https://haproxy-wi.org/description.py?description=saved" title="How to use pre saved options" target="_blank"> 
+		</div>
+		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+			How to use pre saved option you can see in
+			<a href="https://haproxy-wi.org/description.py?description=saved" title="How to use pre saved options" target="_blank">
 				<b>this video</b>
 			</a>
 		</div>
 	</div>
-	
+
 	<div id="add-servers">
 		<table class="overview" id="servers_table">
 			<tr class="overviewHead">
@@ -779,11 +776,11 @@
 				<td></td>
 			</tr>
 		{% for s in saved_servers %}
-			<tr id="servers-saved-{{ s.0 }}" class="{{ loop.cycle('odd', 'even') }}"> 
+			<tr id="servers-saved-{{ s.0 }}" class="{{ loop.cycle('odd', 'even') }}">
 				{% if s.3 == group or group == '1' %}
 				<td class="padding10 first-collumn">
 					<input type="text" id="servers-ip-{{ s.0 }}" value="{{ s.1 }}" size="15" class="form-control">
-				</td>			
+				</td>
 				<td class="padding10 first-collumn" style="width: 77%;">
 					<input type="text" id="servers-desc-{{ s.0 }}" value="{{ s.2 }}" size="50" class="form-control">
 				</td>
@@ -817,10 +814,10 @@
 		<div id="ajax-servers"></div>
 		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
 			In this section you can create, edit and delete servers. And after use them as autocomplete in the "Add" sections
-			<br />
-			<br />
-			How to use pre saved servers you can see in 
-			<a href="https://haproxy-wi.org/description.py?description=saved" title="How to use pre saved servers" target="_blank"> 
+		</div>
+		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+			How to use pre saved servers you can see in
+			<a href="https://haproxy-wi.org/description.py?description=saved" title="How to use pre saved servers" target="_blank">
 				<b>this video</b>
 			</a>
 		</div>
@@ -856,7 +853,7 @@
 				<td class="addName">Groups:</td>
 				<td class="addOption">
 					<span id="userlist-groups">
-						{{ input('userlist-group', title="User`s group", placeholder="group_name") }}			
+						{{ input('userlist-group', title="User`s group", placeholder="group_name") }}
 					</span>
 					<span>
 						<span class="add-server" id="add-userlist-group" title="Add extra group" style="cursor: pointer;"></span>
@@ -868,9 +865,9 @@
 				<td class="addName">User:</td>
 				<td class="addOption">
 					<span id="userlist-users">
-						{{ input('userlist-user', required='required', title="User name", placeholder="user_name") }}	
-						{{ input('userlist-password', required='required', title="User password. By default it insecure-password", placeholder="password") }}	
-						{{ input('userlist-user-group', title="User`s group",  placeholder="user`s group") }}			
+						{{ input('userlist-user', required='required', title="User name", placeholder="user_name") }}
+						{{ input('userlist-password', required='required', title="User password. By default it insecure-password", placeholder="password") }}
+						{{ input('userlist-user-group', title="User`s group",  placeholder="user`s group") }}
 					</span>
 					<span>
 						<span class="add-server" id="add-userlist-user" title="Add extra user" style="cursor: pointer;"></span>
@@ -890,14 +887,14 @@
 		</form>
 		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
 			In this section you can create userlists. And after use them  in the "Add" sections
-			<br />
-			<br />
-			How to use userlists you can read 
-			<a href="https://haproxy-wi.org/description.py?description=userlist" title="How to use userlists" target="_blank"> 
+		</div>
+		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+			How to use userlists you can read
+			<a href="https://haproxy-wi.org/description.py?description=userlist" title="How to use userlists" target="_blank">
 				<b>here</b>
 			</a>
 		</div>
-	</div>	
+	</div>
 	<div id="lists">
 		<table class="overview">
 			<tr class="overviewHead">
@@ -916,7 +913,7 @@
 						<option value="all">ALL</option>
 							{% for select in selects %}
 								<option value="{{ select.2 }}">{{ select.1 }}</option>
-							{% endfor %}	
+							{% endfor %}
 					</select>
 				</td>
 				<td style="width: 30%;">
@@ -924,7 +921,7 @@
 						<a onclick="editList('{{ list }}', 'black')" style="cursor: pointer;" title="Edit list {{ list }}">{{ list }}</a>
 					{% endfor %}
 				</td>
-				
+
 			</tr>
 			{{ input('group', value=group, type='hidden') }}
 		</table>
@@ -945,7 +942,7 @@
 						<option value="all">ALL</option>
 							{% for select in selects %}
 								<option value="{{ select.2 }}">{{ select.1 }}</option>
-							{% endfor %}	
+							{% endfor %}
 					</select>
 				</td>
 				<td style="width: 30%;">
@@ -963,7 +960,7 @@
 		<div id="dialog-confirm-cert-edit" title="View certificate " style="display: none;">
 			<span><b>Note:</b> Each new address must be specified from a new line</span>
 			<textarea id="edit_lists" style="width: 100%" rows=20></textarea>
-		</div>	
+		</div>
 	</div>
 	{% include 'include/del_confirm.html' %}
 	<div id="dialog-confirm-cert" title="View certificate " style="display: none;">
@@ -984,17 +981,7 @@ $( function() {
 		});
 	}
 });
-function makeid(length) {
-	var result           = '';
-	var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-	var charactersLength = characters.length;
-	for ( var i = 0; i < length; i++ ) {
-		result += characters.charAt(Math.floor(Math.random() * charactersLength));
-	}
-	return result;
-}
 var serv_ports = $('.send_proxy');
-console.log(serv_ports)
 
 for (var i = 0; i <= serv_ports.length; i++) {
 	var uniqId = makeid(3);
