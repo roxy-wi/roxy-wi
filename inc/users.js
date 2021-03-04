@@ -58,103 +58,6 @@ $( function() {
 		autoFocus: true,
 		minLength: -1
 	});
-	var ipformat = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-	$('#create').click(function() {
-		var hap = 0;
-		var nginx = 0;
-		var syn_flood = 0;
-		if ($('#hap').is(':checked')) {
-			hap = '1';
-		}
-		if ($('#nginx').is(':checked')) {
-			nginx = '1';
-		}		
-		if ($('#syn_flood').is(':checked')) {
-			syn_flood = '1';
-		}
-		$("#ajax").html('')
-		if( $("#master").val() == "" || $("#slave").val() == "" || $("#interface").val() == "" ||
-			$("#vrrp-ip").val() == "") {
-				toastr.warning('Please fill in all fields');
-			} else if(! $("#vrrp-ip").val().match(ipformat)) {
-				toastr.warning('Please enter IP in "VRRP IP" field');
-			} else if ($("#master").val() == $("#slave").val() ){
-				toastr.warning('Master and slave must be diff servers');
-			} else {
-				$("#ajax").html(wait_mess);
-				$.ajax( {
-					url: "options.py",
-					data: {
-						master: $('#master').val(),
-						slave: $('#slave').val(),
-						interface: $("#interface").val(),
-						vrrpip: $('#vrrp-ip').val(),
-						hap: hap,
-						nginx: nginx,
-						syn_flood: syn_flood,
-						token: $('#token').val()
-					},
-					type: "POST",
-					success: function( data ) { 
-						data = data.replace(/\s+/g,' ');
-						if (data.indexOf('error:') != '-1' || data.indexOf('alert') != '-1' || data.indexOf('FAILED') != '-1') {
-							toastr.error(data);
-						} else if (data.indexOf('info') != '-1' ){
-							toastr.clear();
-							toastr.info(data);
-						} else if (data.indexOf('success') != '-1' ){
-							toastr.clear();
-							toastr.success(data);
-						} else {
-							toastr.clear();
-							toastr.info(data);
-						}
-					}
-				} );
-			}
-	});
-	$('#add-vrrp').click(function() {
-		var kp = 0;
-		if ($('#kp').is(':checked')) {
-			kp = '1';
-		} else {
-			kp = '0';
-		}
-		$("#ajax").html('')
-		if( $("#master-add").val() == "" || $("#slave-add").val() == "" || $("#interface-add").val() == "" ||
-			$("#vrrp-ip-add").val() == "") {
-				toastr.warning('Please fill in all fields')
-			} else if(! $("#vrrp-ip-add").val().match(ipformat)) {
-				toastr.warning('Please enter IP in "VRRP IP" field')
-			} else {
-				$("#ajax").html(wait_mess);
-				$.ajax( {
-					url: "options.py",
-					data: {
-						masteradd: $('#master-add').val(),
-						slaveadd: $('#slave-add').val(),
-						interfaceadd: $("#interface-add").val(),
-						vrrpipadd: $('#vrrp-ip-add').val(),
-						kp: kp,
-						token: $('#token').val()
-					},
-					type: "POST",
-					success: function( data ) { 
-						data = data.replace(/\s+/g,' ');
-						if (data.indexOf('error:') != '-1') {
-							toastr.clear();
-							toastr.error(data);
-						} else if (data.indexOf('success') != '-1'){
-							toastr.clear();
-							toastr.success(data);
-						} else {
-							toastr.clear();
-							toastr.info(data);
-						}
-					}
-				} );
-			}
-	});
 	$('#install').click(function() {
 		$("#ajax").html('')
 		var syn_flood = 0;
@@ -206,7 +109,7 @@ $( function() {
 				},
 			type: "POST",
 			success: function( data ) { 
-			data = data.replace(/\s+/g,' ');
+				data = data.replace(/\s+/g,' ');
 				$("#ajax").html('')
 				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1') {
 					toastr.clear();

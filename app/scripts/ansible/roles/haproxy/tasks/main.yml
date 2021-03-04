@@ -47,6 +47,7 @@
       - http://repo1.haproxy-wi.org/haproxy-{{HAPVER}}.el{{ansible_facts['distribution_major_version']}}.x86_64.rpm
       - socat
       - rsyslog
+      - bind-utils
     state: present
   register: install_result1
   when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and ("'timed out' in install_result.stderr")
@@ -176,7 +177,10 @@
   ignore_errors: yes
   no_log: True
   debugger: never
-  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS')  and ansible_facts.services["firewalld.service"]['state'] == "running"
+  when:
+    - '"firewalld" in ansible_facts.packages'
+    - ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
+    - ansible_facts.services["firewalld.service"]['state'] == "running"
   with_items:  [ "{{ STAT_PORT }}", "{{ SOCK_PORT }}" ]
   
   

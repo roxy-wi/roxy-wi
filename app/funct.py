@@ -488,13 +488,12 @@ def get_stick_table(table):
 
 
 def show_installation_output(error, output, service):
-	if error:
-		if "WARNING" not in error:
-			logging('localhost', error, haproxywi=1)
-			print('error: '+error)
+	if error and "WARNING" not in error:
+		logging('localhost', error, haproxywi=1)
+		print('error: '+error)
 	else:
 		for l in output:
-			if "FAILED" in l:
+			if "Traceback" in l or "FAILED" in l:
 				try:
 					l = l.split(':')[1]
 					l = l.split('"')[1]
@@ -517,6 +516,7 @@ def install_haproxy(serv, **kwargs):
 	stats_password = sql.get_setting('stats_password')
 	proxy = sql.get_setting('proxy')
 	hapver = kwargs.get('hapver')
+	server_for_installing = kwargs.get('server')
 	ssh_port = 22
 	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = return_ssh_keys_path(serv)
 	
@@ -546,8 +546,11 @@ def install_haproxy(serv, **kwargs):
 				" HOST=" + serv + " USER=" + ssh_user_name + " PASS=" + ssh_user_password + " KEY=" + ssh_key_name]
 				
 	output, error = subprocess_execute(commands[0])
-
-	show_installation_output(error, output, 'HAProxy')
+	if server_for_installing:
+		service = server_for_installing + ' HAProxy'
+	else:
+		service = ' HAProxy'
+	show_installation_output(error, output, service)
 
 	os.system("rm -f %s" % script)
 	sql.update_haproxy(serv)
@@ -583,7 +586,7 @@ def waf_install(serv):
 	sql.insert_waf_rules(serv)
 		
 
-def install_nginx(serv):
+def install_nginx(serv, **kwargs):
 	import sql
 	script = "install_nginx.sh"	
 	stats_user = sql.get_setting('nginx_stats_user')
@@ -591,6 +594,7 @@ def install_nginx(serv):
 	stats_port = sql.get_setting('nginx_stats_port')
 	stats_page = sql.get_setting('nginx_stats_page')
 	config_path = sql.get_setting('nginx_config_path')
+	server_for_installing = kwargs.get('server')
 	proxy = sql.get_setting('proxy')
 	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = return_ssh_keys_path(serv)
 	
@@ -616,8 +620,11 @@ def install_nginx(serv):
 				" HOST=" + serv + " USER=" + ssh_user_name + " PASS=" + ssh_user_password + " KEY=" + ssh_key_name]
 				
 	output, error = subprocess_execute(commands[0])
-
-	show_installation_output(error, output, 'Nginx')
+	if server_for_installing:
+		service = server_for_installing + ' Nginx'
+	else:
+		service = ' Nginx'
+	show_installation_output(error, output, service)
 			
 	os.system("rm -f %s" % script)
 	sql.update_nginx(serv)

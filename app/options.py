@@ -567,7 +567,7 @@ if act == "overviewServers":
 
     async def async_get_overviewServers(serv1, serv2, service):
         if service == 'haproxy':
-            cmd = 'echo "show info" |nc %s %s -w 1|grep -e "node\|Nbproc\|Maxco\|MB\|Peers\|Nbthread"' % (serv2, sql.get_setting('haproxy_sock_port'))
+            cmd = 'echo "show info" |nc %s %s -w 1|grep -e "node\|Nbproc\|Maxco\|MB\|Nbthread"' % (serv2, sql.get_setting('haproxy_sock_port'))
             out = funct.subprocess_execute(cmd)
             out1 = ""
 
@@ -952,22 +952,25 @@ if form.getvalue('master'):
 
     os.system("cp scripts/%s ." % script)
 
-    if form.getvalue('hap') == "1":
-        funct.install_haproxy(master)
-        funct.install_haproxy(slave)
-
-    if form.getvalue('nginx') == "1":
-        funct.install_nginx(master)
-        funct.install_nginx(slave)
-
     commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port +
                 " ETH=" + ETH + " IP=" + str(IP) + " MASTER=MASTER" + " SYN_FLOOD=" + syn_flood + " HOST=" + str(master) +
                 " USER=" + str(ssh_user_name) + " PASS=" + str(ssh_user_password) + " KEY=" + str(ssh_key_name)]
 
     output, error = funct.subprocess_execute(commands[0])
 
-    funct.show_installation_output(error, output, 'Master Keepalived')
+    funct.show_installation_output(error, output, 'master Keepalived')
 
+    sql.update_keepalived(master)
+
+if form.getvalue('master_slave'):
+    master = form.getvalue('master')
+    slave = form.getvalue('slave')
+    ETH = form.getvalue('interface')
+    IP = form.getvalue('vrrpip')
+    syn_flood = form.getvalue('syn_flood')
+    script = "install_keepalived.sh"
+    fullpath = funct.get_config_var('main', 'fullpath')
+    proxy = sql.get_setting('proxy')
     ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(slave)
 
     if ssh_enable == 0:
@@ -977,17 +980,23 @@ if form.getvalue('master'):
     for server in servers:
         ssh_port = str(server[10])
 
+    if proxy is not None and proxy != '' and proxy != 'None':
+        proxy_serv = proxy
+    else:
+        proxy_serv = ''
+
+    os.system("cp scripts/%s ." % script)
+
     commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port +
                 " ETH=" + ETH + " IP=" + IP + " MASTER=BACKUP" + " HOST=" + str(slave) +
                 " USER=" + str(ssh_user_name) + " PASS=" + str(ssh_user_password) + " KEY=" + str(ssh_key_name)]
 
     output, error = funct.subprocess_execute(commands[0])
 
-    funct.show_installation_output(error, output, 'Slave Keepalived')
+    funct.show_installation_output(error, output, 'slave Keepalived')
 
     os.system("rm -f %s" % script)
     sql.update_server_master(master, slave)
-    sql.update_keepalived(master)
     sql.update_keepalived(slave)
 
 if form.getvalue('masteradd'):
@@ -1021,7 +1030,7 @@ if form.getvalue('masteradd'):
 
     output, error = funct.subprocess_execute(commands[0])
 
-    funct.show_installation_output(error, output, 'Master VRRP address')
+    funct.show_installation_output(error, output, 'master VRRP address')
 
     ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(slave)
 
@@ -1039,9 +1048,29 @@ if form.getvalue('masteradd'):
 
     output, error = funct.subprocess_execute(commands[0])
 
-    funct.show_installation_output(error, output, 'Slave VRRP address')
+    funct.show_installation_output(error, output, 'slave VRRP address')
 
     os.system("rm -f %s" % script)
+
+if form.getvalue('master_slave_hap'):
+    master = form.getvalue('master_slave_hap')
+    slave = form.getvalue('slave')
+    server = form.getvalue('server')
+
+    if server == 'master':
+        funct.install_haproxy(master, server=server)
+    elif server == 'slave':
+        funct.install_haproxy(slave, server=server)
+
+if form.getvalue('master_slave_nginx'):
+    master = form.getvalue('master_slave_nginx')
+    slave = form.getvalue('slave')
+    server = form.getvalue('server')
+
+    if server == 'master':
+        funct.install_nginx(master, server=server)
+    elif server == 'slave':
+        funct.install_nginx(slave, server=server)
 
 if form.getvalue('install_grafana'):
     script = "install_grafana.sh"

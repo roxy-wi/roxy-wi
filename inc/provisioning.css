@@ -7,7 +7,7 @@
     font-family: "Font Awesome 5 Solid";
     content: "\f35a";
 }
-.processing .fa-arrow-alt-circle-right {
+.proccessing .fa-arrow-alt-circle-right {
     padding-right: 10px !important;
     margin-bottom: -1px !important;
 }
@@ -16,7 +16,8 @@
     margin-bottom: -1px !important;
 }
 .processing_error { color: red;}
-.processing_error::before {
+.processing_warning { color: #efba22;}
+.processing_error::before, .processing_warning::before {
     display: none;
     font-family: "Font Awesome 5 Solid";
     content: "\f06a";

@@ -11,7 +11,6 @@
       package_facts:
         manager: "auto"
   
-  
     - name: populate service facts
       service_facts:
       
@@ -72,7 +71,10 @@
       ignore_errors: yes
       no_log: True
       debugger: never
-      when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS')  and ansible_facts.services["firewalld.service"]['state'] == "running"
+      when:
+        - '"firewalld" in ansible_facts.packages'
+        - ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
+        - ansible_facts.services["firewalld.service"]['state'] == "running"
       
       
     - name: Open stat port for iptables
