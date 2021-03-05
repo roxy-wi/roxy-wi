@@ -1032,10 +1032,25 @@ if form.getvalue('masteradd'):
 
     funct.show_installation_output(error, output, 'master VRRP address')
 
+if form.getvalue('masteradd_slave'):
+    master = form.getvalue('masteradd_slave')
+    slave = form.getvalue('slaveadd')
+    ETH = form.getvalue('interfaceadd')
+    IP = form.getvalue('vrrpipadd')
+    kp = form.getvalue('kp')
+    script = "install_keepalived.sh"
+    proxy = sql.get_setting('proxy')
     ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(slave)
 
     if ssh_enable == 0:
         ssh_key_name = ''
+
+    if proxy is not None and proxy != '' and proxy != 'None':
+        proxy_serv = proxy
+    else:
+        proxy_serv = ''
+
+    os.system("cp scripts/%s ." % script)
 
     servers = sql.select_servers(server=slave)
     for server in servers:

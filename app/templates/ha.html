@@ -111,4 +111,17 @@
         <div id="creating-progress" style="width: 0%;"></div>
     </div>
 </div>
+<div id="address_creating" style="display: none;">
+    <ul style="padding: 20px 20px 0px 20px;font-size: 15px;">
+        <li id="creating-master-add" class="server-creating proccessing">Creating a new address on Master Keepalived...</li>
+        <li id="creating-slave-add" class="server-creating proccessing">Creating a new address on Slave Keepalived...</li>
+	</ul>
+    <div id="wait-mess-add"></div>
+    <div id="created-mess-add" class="alert alert-success" style="display:none;"></div>
+    <div id="creating-error-add" class="alert alert-danger" style="display:none;"></div>
+    <div id="creating-warning-add" class="alert alert-warning" style="display:none;"></div>
+    <div class="progress-bar-striped">
+        <div id="creating-progress-add" style="width: 0%;"></div>
+    </div>
+</div>
 {% endblock %}
