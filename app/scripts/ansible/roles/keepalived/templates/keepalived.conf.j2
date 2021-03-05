@@ -10,7 +10,7 @@ vrrp_script chk_haproxy {
 vrrp_instance VI_1 {
     state {{MASTER}}
     interface {{ETH}}
-    virtual_router_id 100
+    virtual_router_id 1
     priority 102
 
     #check if we are still running

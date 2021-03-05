@@ -1,7 +1,7 @@
 vrrp_instance VI_{{IP}} {
 	state {{MASTER}}
 	interface {{ETH}}
-	virtual_router_id {{ range(101, 1000) | random }}
+	virtual_router_id {{ range(2, 255) | random }}
 	priority 103
 
 	track_script {
