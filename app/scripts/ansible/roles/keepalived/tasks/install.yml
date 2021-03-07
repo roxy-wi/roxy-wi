@@ -18,7 +18,7 @@
   yum:
     name: epel-release
     state: latest
-  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and HAPVER|length > 0
+  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS')
   ignore_errors: yes
   environment:
     http_proxy: "{{PROXY}}"
