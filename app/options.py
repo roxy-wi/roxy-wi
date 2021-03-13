@@ -33,7 +33,7 @@ if form.getvalue('alert_consumer') is None:
 
 if form.getvalue('getcerts') is not None and serv is not None:
     cert_path = sql.get_setting('cert_path')
-    commands = ["ls -1t " + cert_path + " |grep -E 'pem|crt|key'"]
+    commands = ["sudo ls -1t " + cert_path + " |grep -E 'pem|crt|key'"]
     try:
         funct.ssh_command(serv, commands, ip="1")
     except Exception as e:

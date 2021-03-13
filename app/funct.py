@@ -495,8 +495,6 @@ def show_installation_output(error, output, service):
 		for l in output:
 			if "Traceback" in l or "FAILED" in l:
 				try:
-					l = l.split(':')[1]
-					l = l.split('"')[1]
 					print(l)
 					break
 				except Exception:
@@ -530,7 +528,7 @@ def install_haproxy(serv, **kwargs):
 	os.system("cp scripts/%s ." % script)
 	
 	if hapver is None:
-		hapver = '2.0.7-1'
+		hapver = '2.3.0-1'
 	
 	if proxy is not None and proxy != '' and proxy != 'None':
 		proxy_serv = proxy 
