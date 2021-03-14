@@ -300,6 +300,9 @@
 	margin-top: 5px;
 	padding-left: 2px;
 }
+.alert-one-row .fa-exclamation-circle {
+	margin-top: -5px;
+}
 .note-symbol::after {
 	display: none;
 	font-family: "Font Awesome 5 Solid";

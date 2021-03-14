@@ -175,12 +175,12 @@ window.onblur= function() {
 	}
 };
 if(localStorage.getItem('restart')) {
-	var ip = localStorage.getItem('restart');
+	var ip_for_restart = localStorage.getItem('restart');
 	$.ajax( {
 		url: "options.py",
 		data: {
 			act: "checkrestart",
-			serv: ip,
+			serv: ip_for_restart,
 			token: $('#token').val()
 		},
 		type: "POST",
@@ -190,9 +190,10 @@ if(localStorage.getItem('restart')) {
 				$("#apply_div").css('width', '850px');
 				if (cur_url[0] == "hapservers.py") {
 					$("#apply_div").css('width', '650px');
-					$("#apply_div").html("You have made changes to the server: "+ip+". Changes will take effect only after<a id='"+ip+"' class='restart' title='Restart HAproxy service' onclick=\"confirmAjaxAction('stop', 'hap', '"+ip+"')\">restart</a><a href='#' title='close' id='apply_close' style='float: right'><b>X</b></a>");
+					$("#apply_div").addClass("alert-one-row");
+					$("#apply_div").html("You have made changes to the server: "+ip_for_restart+". Changes will take effect only after<a id='"+ip_for_restart+"' class='restart' title='Restart HAproxy service' onclick=\"confirmAjaxAction('restart', 'hap', '"+ip_for_restart+"')\">restart</a><a href='#' title='close' id='apply_close' style='float: right'><b>X</b></a>");
 				} else {
-					$("#apply_div").html("You have made changes to the server: "+ip+". Changes will take effect only after restart. <a href='hapservers.py' title='Overview'>Go to the HAProxy Overview page and restart</a><a href='#' title='close' id='apply_close' style='float: right'><b>X</b></a>");
+					$("#apply_div").html("You have made changes to the server: "+ip_for_restart+". Changes will take effect only after restart. <a href='hapservers.py' title='Overview'>Go to the HAProxy Overview page and restart</a><a href='#' title='close' id='apply_close' style='float: right'><b>X</b></a>");
 				}
 				$.getScript('/inc/overview.js');
 			}
@@ -348,7 +349,7 @@ function showStats() {
 }
 function openStats() {
 	var serv = $("#serv").val();
-	if (cur_url[1] == "service=nginx") {
+	if (cur_url[1].split('&')[0] == "service=nginx") {
 		var url = "viewsttats.py?service=nginx&serv="+serv+"&open=open"
 	} else {	
 		var url = "viewsttats.py?serv="+serv+"&open=open"
@@ -358,9 +359,9 @@ function openStats() {
 }
 function openVersions() {
 	var serv = $("#serv").val();
-	if (cur_url[1] == "service=keepalived") {
+	if (cur_url[1].split('&')[0] == "service=keepalived") {
 		var url = "versions.py?service=keepalived&serv="+serv+"&open=open"
-	} else if (cur_url[1] == "service=nginx") {
+	} else if (cur_url[1].split('&')[0] == "service=nginx") {
 		var url = "versions.py?service=nginx&serv="+serv+"&open=open"
 	} else {	
 		var url = "versions.py?serv="+serv+"&open=open"

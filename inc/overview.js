@@ -23,8 +23,13 @@ function showHapserversCallBack(serv, hostnamea, service) {
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
-				$("#" + hostnamea).empty();
-				$("#" + hostnamea).html(data);
+				if (data.indexOf('ls: cannot access') != '-1') {
+					$("#" + hostnamea).empty();
+					$("#" + hostnamea).html();
+				} else {
+					$("#" + hostnamea).empty();
+					$("#" + hostnamea).html(data);
+				}
 			}
 		}					
 	} );
@@ -193,13 +198,15 @@ function ajaxActionWafServers(action, id) {
 	} );
 }
 $( function() {
-	ChartsIntervalId = setInterval(updatingCpuRamCharts, 30000);
-	$(window).focus(function(){
-  		ChartsIntervalId = setInterval(updatingCpuRamCharts, 30000);
-	});
-	$(window).blur(function(){
-	  	clearInterval(ChartsIntervalId);
-	});
+	if ((cur_url[0] == 'hapservers.py' && cur_url[1].split('=')[0] == 'service') || cur_url[0] == 'overview.py') {
+		ChartsIntervalId = setInterval(updatingCpuRamCharts, 30000);
+		$(window).focus(function () {
+			ChartsIntervalId = setInterval(updatingCpuRamCharts, 30000);
+		});
+		$(window).blur(function () {
+			clearInterval(ChartsIntervalId);
+		});
+	}
 	$( "#show-all-users" ).click( function() {
 		$( ".show-users" ).show("fast");
 		$( "#show-all-users" ).text("Hide");
