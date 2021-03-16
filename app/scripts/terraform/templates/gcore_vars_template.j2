@@ -1,8 +1,8 @@
-region       			= "{{region}}"
+region       			= {{region}}
 instance_type 	        = "{{size}}"
-public_ip		        = {% if public_ip == 'true' %}true{%else%}false{%endif%}
-
-floating_ip     		= {% if floating_ip == 'true' %}true{%else%}false{%endif%}
+project 	            = "{{project}}"
+network_name	        = "{{network_name}}"
+network_type     		= "{{network_type}}"
 
 delete_on_termination   = {% if delete_on_termination == 'true' %}true{%else%}false{%endif%}
 
@@ -13,5 +13,5 @@ os      				= "{{os}}"
 ssh_key_name        	= "{{ssh_name}}"
 firewall                = {% if firewall == 'true' %}true{%else%}false{%endif%}
 
-AWS_ACCESS_KEY	        = "{{AWS_ACCESS_KEY}}"
-AWS_SECRET_KEY	        = "{{AWS_SECRET_KEY}}"
+username	        = "{{username}}"
+password	        = "{{pass}}"

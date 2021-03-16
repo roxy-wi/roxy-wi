@@ -6,6 +6,7 @@ module "aws_module" {
 	public_ip				= var.public_ip
 	floating_ip				= var.floating_ip
 	volume_size				= var.volume_size
+	volume_type				= var.volume_type
 	delete_on_termination	= var.delete_on_termination
 	name					= var.name
 	os						= var.os

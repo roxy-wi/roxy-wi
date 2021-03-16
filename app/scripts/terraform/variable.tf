@@ -1,16 +1,40 @@
 variable "region" {}
+variable "project" {
+  default = "123"
+}
+variable "username" {
+  type = string
+  default = "123"
+}
+variable "password" {
+  type = string
+  default = "123"
+}
 variable "instance_type" {
   default = "123"
+}
+variable "network_type" {
+  type = string
+  default = "any_subnet"
+}
+variable "network_name" {
+  type    = string
+  default = ""
 }
 variable "public_ip" {
   default = false
 }
-variable "floating_ip" {}
+variable "floating_ip" {
+  default = false
+}
 variable "volume_size" {
   default = "123"
 }
 variable "delete_on_termination" {
   default = false
+}
+variable "volume_type" {
+  default = "standard"
 }
 variable "name" {}
 variable "os" {}

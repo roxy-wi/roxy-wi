@@ -18,3 +18,9 @@
         src: templates/do_vars_template.j2
         dest: "vars/{{server_name}}_{{group}}_{{cloud}}.tfvars"
       when: cloud == "do"
+
+    - name: Create gcore var file
+      template:
+        src: templates/gcore_vars_template.j2
+        dest: "vars/{{server_name}}_{{group}}_{{cloud}}.tfvars"
+      when: cloud == "gcore"
