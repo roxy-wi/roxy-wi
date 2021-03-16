@@ -1,5 +1,7 @@
 {% from 'include/input_macros.html' import input, select, checkbox %}
+{% from 'include/provisioning/variables.html' import do_regions, do_oss  %}
 {% for s in server %}
+{% set region_name = [] %}
 <div id="do_edit" style="display: none; padding: 0 2px 0 0; margin-left: 1px; margin-right: -4px;">
     <table class="overview provisioning_table">
         {% include 'include/tr_validate_tips.html' %}
@@ -42,7 +44,13 @@
                 Region
             </td>
             <td>
-                <span id="do_edit_regions">{{s.0}}</span>
+                {% for key, value in do_regions.items() %}
+                {% if s.0|int() == key|int() %}
+                    {% do region_name.append(value) %}
+                {% endif %}
+                {% endfor %}
+                <span id="do_edit_regions" style="display: none;">{{s.0}}</span>
+                {{region_name.0}}
             </td>
         </tr>
         <tr>
@@ -63,10 +71,7 @@
                 <span class="need-field">*</span>
             </td>
             <td>
-                {% set oss = dict() %}
-                {% set oss = {'centos-7-x64':'Centos 7 x64', 'centos-8-x64':'Centos 8 x64','ubuntu-18-04-x64':'Ubuntu 18.04 x64','ubuntu-20-04-x64':'Ubuntu 20.04 x64',
-                              'ubuntu-20-10-x64':'Ubuntu 20.10 x64','debian-10-x64':'Debian 10 x86','debian-9-x64':'Debian 9 x86'} %}
-                {{ select('do_edit_oss', values=oss, first=s.7, disabled='false') }}
+                {{ select('do_edit_oss', values=do_oss, first=s.7, disabled='false') }}
             </td>
         </tr>
         <tr>

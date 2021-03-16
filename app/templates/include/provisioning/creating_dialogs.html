@@ -1,3 +1,4 @@
+{% from 'include/provisioning/variables.html' import gcore_regions, do_regions, aws_regions, aws_oss, do_oss, aws_volume_type, gcore_volume_type %}
 <div id="do_create" style="display: none; padding: 0 2px 0 0; margin-left: 1px; margin-right: -4px;">
     <table class="overview provisioning_table">
         {% include 'include/tr_validate_tips.html' %}
@@ -12,7 +13,7 @@
                 <span class="need-field">*</span>
             </td>
             <td>
-                {{input('do_create_server_name', required='required', size='30')}}
+                {{input('do_create_server_name', required='required', size='26')}}
                 <div class="tooltip tooltipTop tooltipTd">The name must contain only URL safe characters, and no path separators</div>
             </td>
         </tr>
@@ -54,12 +55,7 @@
                 <span class="need-field">*</span>
             </td>
             <td>
-                {% set regions = dict() %}
-                {% set regions = {'nyc1':'New York 1','nyc2':'New York 2','nyc3':'New York 3',
-                                'ams1':'Amsterdam 1','ams2':'Amsterdam 2','ams3':'Amsterdam 3',
-                                'sfo1':'San Francisco 1','sfo2':'San Francisco 2','sfo3':'San Francisco 3',
-                                'sgp1':'Singapore 1','lon1':'London 1','fra1':'Frankfurt 1','tor1':'Toronto 1', 'blr1':'Bangalore 1'} %}
-                {{ select('do_create_regions', values=regions) }}
+                {{ select('do_create_regions', values=do_regions) }}
                 <div class="tooltip tooltipTop tooltipTd">Not all regions may be active</div>
             </td>
         </tr>
@@ -73,7 +69,44 @@
                 Size
                 <span class="need-field">*</span>
             </td>
-            <td>{{input('do_create_size', required='required', size='30')}}</td>
+            <td>
+                <select id="do_create_size" required="required">
+                    <optgroup label="Basic">
+                        <option value="s-1vcpu-1gb">s-1vcpu-1gb</option>
+                        <option value="s-1vcpu-2gb">s-1vcpu-2gb</option>
+                        <option value="s-2vcpu-2gb">s-2vcpu-2gb</option>
+                        <option value="s-2vcpu-4gb">s-2vcpu-4gb</option>
+                        <option value="s-4vcpu-8gb">s-4vcpu-8gb</option>
+                        <option value="s-8vcpu-16gb">s-8vcpu-16gb</option>
+                    </optgroup>
+                    <optgroup label="General     Purpose">
+                        <option value="g-2vcpu-8gb">g-2vcpu-8gb</option>
+                        <option value="g-4vcpu-16gb">g-4vcpu-16gb</option>
+                        <option value="g-8vcpu-32gb">g-8vcpu-32gb</option>
+                        <option value="g-16vcpu-64gb">g-16vcpu-64gb</option>
+                        <option value="g-32vcpu-128gb">g-32vcpu-128gb</option>
+                        <option value="g-40vcpu-160gb">g-40vcpu-160gb</option>
+                    </optgroup>
+                    <optgroup label="CPU-Optimized">
+                        <option value="c-2-4gib">c-2-4gib</option>
+                        <option value="c-4-8gib">c-4-8gib</option>
+                        <option value="c-8-16gib">c-8-16gib</option>
+                        <option value="c-16-32gib">c-16-32gib</option>
+                        <option value="c-32-64gib">c-32-64gib</option>
+                    </optgroup>
+                    <optgroup label="Memory-Optimized">
+                        <option value="m-2vcpu-16gb">m-2vcpu-16gb</option>
+                        <option value="m-4vcpu-32gb">m-4vcpu-32gb</option>
+                        <option value="m-8vcpu-64gb">m-8vcpu-64gb</option>
+                        <option value="m-16vcpu-128gb">m-16vcpu-128gb</option>
+                        <option value="m-24vcpu-192gb">m-24vcpu-192gb</option>
+                        <option value="m-32vcpu-256gb">m-32vcpu-256gb</option>
+                    </optgroup>
+                </select>
+                {{input('do_create_size_text', size='26', style='display: none')}}
+                <a class="link" id="do-instance-enter">Enter manually</a>
+                <a class="link" id="do-instance-enter-select" style="display: none; margin-left: 27px;">Change to select</a>
+            </td>
         </tr>
         <tr>
             <td class="padding20">
@@ -81,10 +114,7 @@
                 <span class="need-field">*</span>
             </td>
             <td>
-                {% set oss = dict() %}
-                {% set oss = {'centos-7-x64':'Centos 7 x64', 'centos-8-x64':'Centos 8 x64','ubuntu-18-04-x64':'Ubuntu 18.04 x64','ubuntu-20-04-x64':'Ubuntu 20.04 x64',
-                              'ubuntu-20-10-x64':'Ubuntu 20.10 x64','debian-10-x64':'Debian 10 x86','debian-9-x64':'Debian 9 x86'} %}
-                {{ select('do_create_oss', values=oss) }}
+                {{ select('do_create_oss', values=do_oss) }}
             </td>
         </tr>
         <tr>
@@ -106,7 +136,7 @@
                 <span class="need-field">*</span>
             </td>
             <td>
-                {{input('do_create_ssh_ids', size='30')}}
+                {{input('do_create_ssh_ids', size='26')}}
                 <div class="tooltip tooltipTop tooltipTd">List comma separated. Required if SSH key name is empty</div>
             </td>
         </tr>
@@ -116,7 +146,7 @@
                 <span class="need-field">*</span>
             </td>
             <td>
-                {{input('do_create_ssh_name', size='30')}}
+                {{input('do_create_ssh_name', size='26')}}
                 <div class="tooltip tooltipTop tooltipTd">Required if SSH key ids is empty</div>
             </td>
         </tr>
@@ -164,7 +194,7 @@
                 <span class="need-field">*</span>
             </td>
             <td>
-                {{input('aws_create_server_name', required='required', size='30')}}
+                {{input('aws_create_server_name', required='required', size='26')}}
                 <div class="tooltip tooltipTop tooltipTd">The name must contain only URL safe characters, and no path separators</div>
             </td>
         </tr>
@@ -206,15 +236,7 @@
                 <span class="need-field">*</span>
             </td>
             <td>
-                {% set regions = dict() %}
-                {% set regions = {'us-east-1':'US East (N. Virginia)','us-east-2':'US East (Ohio)','us-west-1':'US West (N. California)',
-                                'us-west-2':'US West (Oregon)','af-south-1':'Africa (Cape Town)','ap-east-1':'Asia Pacific (Hong Kong)',
-                                'ap-south-1':'Asia Pacific (Mumbai)','ap-northeast-2':'Asia Pacific (Seoul)','ap-southeast-1':'Asia Pacific (Singapore)',
-                                'ap-southeast-2':'Asia Pacific (Sydney)','ap-northeast-1':'Asia Pacific (Tokyo)','ca-central-1':'Canada (Central)',
-                                'eu-central-1':'Europe (Frankfurt)', 'eu-west-1':'Europe (Ireland)', 'eu-west-2':'Europe (London)',
-                                'eu-south-1':'Europe (Milan)', 'eu-west-3':'Europe (Paris)', 'eu-north-1':'Europe (Stockholm)',
-                                'me-south-1':'Middle East (Bahrain)', 'sa-east-1':'South America (São Paulo)'} %}
-                {{ select('aws_create_regions', values=regions) }}
+                {{ select('aws_create_regions', values=aws_regions) }}
                 <div class="tooltip tooltipTop tooltipTd">Not all regions may be active</div>
             </td>
         </tr>
@@ -229,7 +251,7 @@
                 <span class="need-field">*</span>
             </td>
             <td>
-                {{input('aws_create_size', required='required', size='30')}}
+                {{input('aws_create_size', required='required', size='26')}}
                 <div class="tooltip tooltipTop tooltipTd">
                     Instance types list is <a href="https://aws.amazon.com/ec2/instance-types/" title="Instance types list" target="_blank">here</a>
                 </div>
@@ -241,11 +263,7 @@
                 <span class="need-field">*</span>
             </td>
             <td>
-                {% set oss = dict() %}
-                {% set oss = {'centos-7':'Centos 7 x64','ubuntu-18.04':'Ubuntu 18.04 x64','ubuntu-18.10':'Ubuntu 18.10 x64',
-                              'debian-10':'Debian 10 x86','debian-9':'Debian 9 x86','rhel-7':'RHEL 7 x86','rhel-8':'RHEL 8 x86',
-                              'amazon-2_lts':'Amazon Linux 2 x86'} %}
-                {{ select('aws_create_oss', values=oss) }}
+                {{ select('aws_create_oss', values=aws_oss) }}
             </td>
         </tr>
         <tr>
@@ -254,7 +272,7 @@
                 <span class="need-field">*</span>
             </td>
             <td>
-                {{input('aws_create_ssh_name', size='30')}}
+                {{input('aws_create_ssh_name', size='26')}}
                 <div class="tooltip tooltipTop tooltipTd">SSH key must exists in region where instance create</div>
             </td>
         </tr>
@@ -264,13 +282,21 @@
             </td>
         </tr>
         <tr>
-            <td class="padding20 padding-top20">
+            <td class="padding20">
                 Volume size
                 <span class="need-field">*</span>
             </td>
             <td>
-                {{input('aws_create_volume_size', size='30', value='10', type='number')}}
-                <div class="tooltip tooltipTop tooltipTd">Size in GB</div>
+                {{input('aws_create_volume_size', size='26', value='10', type='number')}}Gb
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                Volume type
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{ select('aws_create_volume_type', values=aws_volume_type) }}
             </td>
         </tr>
         <tr>
@@ -300,6 +326,200 @@
             <td>
                 {{checkbox('aws_create_firewall', checked='checked')}}
                 <div class="tooltip tooltipTop tooltipTd">HAProxy-WI will create Security group and open 22, 443, 1999, 8085, 8086 ports. Otherwise all ports will be closed</div>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="gcore_create" style="display: none; padding: 0 2px 0 0; margin-left: 1px; margin-right: -4px;">
+    <table class="overview provisioning_table">
+        {% include 'include/tr_validate_tips.html' %}
+        <tr>
+            <td colspan="2" class="headers">
+                <b>General information</b>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20 padding-top20">
+                Server name
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{input('gcore_create_server_name', required='required', size='26')}}
+                <div class="tooltip tooltipTop tooltipTd">The name must contain only URL safe characters, and no path separators</div>
+            </td>
+        </tr>
+         {% if role == 1 %}
+        <tr>
+            <td class="padding20">
+                Group
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                <select id="gcore_create_group">
+                {% for group in groups %}
+					<option value="{{ group.0 }}">{{ group.1 }}</option>
+                {% endfor %}
+                </select>
+            </td>
+        </tr>
+        {% else %}
+            {{input('gcore_create_group', value=groups, type='hidden')}}
+        {% endif %}
+        <tr>
+            <td class="padding20">
+                Provider credentials
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                <select id="gcore_create_provider">
+                {% for p in providers %}
+                    {% if p.2 == 'gcore' %}
+					<option value="{{ p.0 }}">{{ p.1 }}</option>
+                    {% endif %}
+                {% endfor %}
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                Region
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{ select('gcore_create_regions', values=gcore_regions) }}
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                Project name
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{input('gcore_create_project_name', size='26', value='default')}}
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" class="headers">
+                <b>Instance</b>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                Flavor
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                <select id="gcore_create_size" required="required">
+                    <optgroup label="Standard">
+                        <option value="g1-standard-1-2">g1-standard-1-2</option>
+                        <option value="g1-standard-2-4">g1-standard-2-4</option>
+                        <option value="g1-standard-2-8">g1-standard-2-8</option>
+                        <option value="g1-standard-4-8">g1-standard-4-8</option>
+                        <option value="g1-standard-4-16">g1-standard-4-16</option>
+                        <option value="g1-standard-8-16">g1-standard-8-16</option>
+                        <option value="g1-standard-8-32">g1-standard-8-32</option>
+                        <option value="g1-standard-16-32">g1-standard-16-32</option>
+                        <option value="g1-standard-16-64">g1-standard-16-64</option>
+                        <option value="g1-standard-32-64">g1-standard-32-64</option>
+                        <option value="g1-standard-32-128">g1-standard-32-128</option>
+                    </optgroup>
+                    <optgroup label="vCPU">
+                        <option value="g1-cpu-2-2">g1-cpu-2-2</option>
+                        <option value="g1-cpu-4-4">g1-cpu-4-4</option>
+                        <option value="g1-cpu-8-8">g1-cpu-8-8</option>
+                        <option value="g1-cpu-16-16">g1-cpu-16-16</option>
+                        <option value="g1-cpu-32-32">g1-cpu-32-32</option>
+                    </optgroup>
+                    <optgroup label="Memory">
+                        <option value="g1-memory-2-16">g1-memory-2-16</option>
+                        <option value="g1-memory-4-32">g1-memory-4-32</option>
+                        <option value="g1-memory-8-64">g1-memory-8-64</option>
+                        <option value="g1-memory-16-128">g1-memory-16-128</option>
+                        <option value="g1-memory-32-256">g1-memory-32-256</option>
+                    </optgroup>
+                </select>
+                {{input('gcore_create_size_text', size='26', style='display: none')}}
+                <a class="link" id="gcore-instance-enter">Enter manually</a>
+                <a class="link" id="gcore-instance-enter-select" style="display: none; margin-left: 27px;">Change to select</a>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                OS
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {% set oss = dict() %}
+                {% set oss = {'centos-7-gcore':'Centos 7'} %}
+                {{ select('gcore_create_oss', values=oss) }}
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20 padding-top20">
+                SSH key pair name
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{input('gcore_create_ssh_name', size='26')}}
+                <div class="tooltip tooltipTop tooltipTd">SSH key must exists in region where instance create</div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" class="headers">
+                <b>Volume</b>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                Volume size
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{input('gcore_create_volume_size', size='26', value='10', type='number')}}Gb
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                Volume type
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{ select('gcore_create_volume_type', values=gcore_volume_type) }}
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20 padding-top20">Delete on termination</td>
+            <td>
+                {{checkbox('gcore_create_delete_on_termination', checked='checked')}}
+                <div class="tooltip tooltipTop tooltipTd">Whether the volume should be destroyed on instance termination</div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" class="headers">
+                <b>Network</b>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">Network Type</td>
+            <td>
+                <select id="gcore_create_network_type">
+                    <option value="external">External IP</option>
+                    <option value="any_subnet">Custom Network</option>
+                </select>
+            </td>
+        </tr>
+        <tr id="gcore_any_subnet" style="display: none">
+            <td class="padding20">
+                Network name
+                <span class="need-field">*</span>
+            </td>
+            <td>{{input('gcore_create_network_name', size='26')}}</td>
+        </tr>
+        <tr>
+            <td class="padding20" style="padding-bottom: 25px;padding-top: 25px;">Firewall</td>
+            <td>
+                {{checkbox('gcore_create_firewall', checked='checked')}}
+                <div class="tooltip tooltipTop tooltipTd">HAProxy-WI will create Security group and open 22, 443, 1999, 8085, 8086 ports. Otherwise will be used the default SG</div>
             </td>
         </tr>
     </table>

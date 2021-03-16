@@ -2348,7 +2348,7 @@ if form.getvalue('show_versions'):
 if form.getvalue('get_group_name_by_id'):
     print(sql.get_group_name_by_id(form.getvalue('get_group_name_by_id')))
 
-if form.getvalue('do_new_name') or form.getvalue('aws_new_name'):
+if form.getvalue('do_new_name') or form.getvalue('aws_new_name') or form.getvalue('gcore_new_name'):
     funct.check_user_group()
     is_add = False
     if form.getvalue('do_new_name'):
@@ -2366,6 +2366,15 @@ if form.getvalue('do_new_name') or form.getvalue('aws_new_name'):
         provider_secret = form.getvalue('aws_new_secret')
 
         if sql.add_provider_aws(provider_name, provider_group, provider_token, provider_secret):
+            is_add = True
+
+    elif form.getvalue('gcore_new_name'):
+        provider_name = form.getvalue('gcore_new_name')
+        provider_group = form.getvalue('gcore_new_group')
+        provider_token = form.getvalue('gcore_new_user')
+        provider_pass = form.getvalue('gcore_new_pass')
+
+        if sql.add_provider_gcore(provider_name, provider_group, provider_token, provider_pass):
             is_add = True
 
     if is_add:
@@ -2393,7 +2402,7 @@ if form.getvalue('providerdel'):
         print('Ok')
         funct.logging('localhost', 'Provider has been deleted', provisioning=1)
 
-if form.getvalue('awsinit') or form.getvalue('doinit'):
+if form.getvalue('awsinit') or form.getvalue('doinit') or form.getvalue('gcoreinitserver'):
     funct.check_user_group()
     cmd = 'cd scripts/terraform/ && sudo terraform init -upgrade -no-color'
     output, stderr = funct.subprocess_execute(cmd)
@@ -2417,6 +2426,7 @@ if form.getvalue('awsvars') or form.getvalue('awseditvars'):
         oss = form.getvalue('aws_create_oss')
         ssh_name = form.getvalue('aws_create_ssh_name')
         volume_size = form.getvalue('aws_create_volume_size')
+        volume_type = form.getvalue('aws_create_volume_type')
         delete_on_termination = form.getvalue('aws_create_delete_on_termination')
         floating_ip = form.getvalue('aws_create_floating_net')
         firewall = form.getvalue('aws_create_firewall')
@@ -2430,6 +2440,7 @@ if form.getvalue('awsvars') or form.getvalue('awseditvars'):
         oss = form.getvalue('aws_editing_oss')
         ssh_name = form.getvalue('aws_editing_ssh_name')
         volume_size = form.getvalue('aws_editing_volume_size')
+        volume_type = form.getvalue('aws_editing_volume_type')
         delete_on_termination = form.getvalue('aws_editing_delete_on_termination')
         floating_ip = form.getvalue('aws_editing_floating_net')
         firewall = form.getvalue('aws_editing_firewall')
@@ -2439,9 +2450,9 @@ if form.getvalue('awsvars') or form.getvalue('awseditvars'):
 
     cmd = 'cd scripts/terraform/ && sudo ansible-playbook var_generator.yml -i inventory -e "region={} ' \
           'group={} size={} os={} floating_ip={} volume_size={} server_name={} AWS_ACCESS_KEY={} ' \
-          'AWS_SECRET_KEY={} firewall={} public_ip={} ssh_name={} delete_on_termination={} ' \
+          'AWS_SECRET_KEY={} firewall={} public_ip={} ssh_name={} delete_on_termination={} volume_type={} ' \
           'cloud=aws"'.format(region, group, size, oss, floating_ip, volume_size, awsvars, aws_key, aws_secret,
-                                firewall, public_ip, ssh_name, delete_on_termination)
+                                firewall, public_ip, ssh_name, delete_on_termination, volume_type)
 
     output, stderr = funct.subprocess_execute(cmd)
     if stderr != '':
@@ -2543,7 +2554,7 @@ if form.getvalue('doworkspace'):
             user, user_id, role, token, servers = funct.get_users_params()
             new_server = sql.select_provisioned_servers(new=workspace, group=group, type='do')
 
-            env = Environment(loader=FileSystemLoader('templates'))
+            env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
             template = env.get_template('ajax/provisioning/provisioned_servers.html')
             template = template.render(servers=new_server,
                                        groups=sql.select_groups(),
@@ -2610,6 +2621,7 @@ if form.getvalue('awsworkspace'):
     oss = form.getvalue('aws_create_oss')
     ssh_name = form.getvalue('aws_create_ssh_name')
     volume_size = form.getvalue('aws_create_volume_size')
+    volume_type = form.getvalue('aws_create_volume_type')
     delete_on_termination = form.getvalue('aws_create_delete_on_termination')
     floating_ip = form.getvalue('aws_create_floating_net')
     firewall = form.getvalue('aws_create_firewall')
@@ -2628,14 +2640,14 @@ if form.getvalue('awsworkspace'):
         print('error: ' + stderr)
     else:
         if sql.add_server_aws(region, size, public_ip, floating_ip, volume_size, ssh_name, workspace, oss, firewall,
-                          provider, group, 'Creating', delete_on_termination):
+                          provider, group, 'Creating', delete_on_termination, volume_type):
 
             from jinja2 import Environment, FileSystemLoader
 
             user, user_id, role, token, servers = funct.get_users_params()
             new_server = sql.select_provisioned_servers(new=workspace, group=group, type='aws')
 
-            env = Environment(loader=FileSystemLoader('templates'))
+            env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
             template = env.get_template('ajax/provisioning/provisioned_servers.html')
             template = template.render(servers=new_server,
                                        groups=sql.select_groups(),
@@ -2654,13 +2666,15 @@ if form.getvalue('awseditworkspace'):
     oss = form.getvalue('aws_editing_oss')
     ssh_name = form.getvalue('aws_editing_ssh_name')
     volume_size = form.getvalue('aws_editing_volume_size')
+    volume_type = form.getvalue('aws_editing_volume_type')
     delete_on_termination = form.getvalue('aws_editing_delete_on_termination')
     floating_ip = form.getvalue('aws_editing_floating_net')
     firewall = form.getvalue('aws_editing_firewall')
     public_ip = form.getvalue('aws_editing_public_ip')
     server_id = form.getvalue('server_id')
 
-    if sql.update_server_aws(region, size, public_ip, floating_ip, volume_size, ssh_name, workspace, oss, firewall, provider, group, 'Editing', server_id, delete_on_termination):
+    if sql.update_server_aws(region, size, public_ip, floating_ip, volume_size, ssh_name, workspace, oss, firewall,
+                             provider, group, 'Editing', server_id, delete_on_termination, volume_type):
 
         try:
             cmd = 'cd scripts/terraform/ && sudo terraform workspace select ' + workspace + '_' + group + '_aws'
@@ -2678,7 +2692,14 @@ if form.getvalue('awseditworkspace'):
         else:
             print('ok')
 
-if form.getvalue('awsprovisining') or form.getvalue('awseditingprovisining') or form.getvalue('doprovisining') or form.getvalue('doeditprovisining'):
+if (
+        form.getvalue('awsprovisining') or
+        form.getvalue('awseditingprovisining') or
+        form.getvalue('doprovisining') or
+        form.getvalue('doeditprovisining') or
+        form.getvalue('gcoreprovisining') or
+        form.getvalue('gcoreeditgprovisining')
+    ):
     funct.check_user_group()
     if form.getvalue('awsprovisining'):
         workspace = form.getvalue('awsprovisining')
@@ -2708,6 +2729,20 @@ if form.getvalue('awsprovisining') or form.getvalue('awseditingprovisining') or 
         action = 'modified'
         cloud = 'do'
         state_name = 'digitalocean_droplet'
+    elif form.getvalue('gcoreprovisining'):
+        workspace = form.getvalue('gcoreprovisining')
+        group = form.getvalue('gcore_create_group')
+        provider_id = form.getvalue('gcore_create_provider')
+        action = 'created'
+        cloud = 'gcore'
+        state_name = 'gcore_instance'
+    elif form.getvalue('gcoreeditgprovisining'):
+        workspace = form.getvalue('gcoreeditgprovisining')
+        group = form.getvalue('gcore_edit_group')
+        provider_id = form.getvalue('gcore_edit_provider')
+        action = 'modified'
+        cloud = 'gcore'
+        state_name = 'gcore_instance'
 
     tfvars = workspace + '_'+group+'_' + cloud + '.tfvars'
     cmd = 'cd scripts/terraform/ && sudo terraform apply -auto-approve -no-color -input=false -target=module.' + cloud + '_module -var-file vars/' + tfvars
@@ -2737,6 +2772,13 @@ if form.getvalue('awsprovisining') or form.getvalue('awseditingprovisining') or 
             ips += ' '
         print(ips)
         sql.update_provisioning_server_status('Created', group, workspace, provider_id, update_ip=ips)
+
+        if cloud == 'gcore':
+            cmd = 'cd scripts/terraform/ && sudo terraform state show module.gcore_module.gcore_instance.hapwi|grep "name"|grep -v -e "_name\|name_" |head -1 |awk -F"\\\"" \'{print $2}\''
+            output, stderr = funct.subprocess_execute(cmd)
+            print(':'+output[0])
+            sql.update_provisioning_server_gcore_name(workspace, output[0], group, provider_id)
+
         funct.logging('localhost', 'Server ' + workspace + ' has been ' + action, provisioning=1)
 
 if form.getvalue('provisiningdestroyserver'):
@@ -2774,15 +2816,169 @@ if form.getvalue('provisiningdestroyserver'):
             funct.logging('localhost', 'Server has been destroyed', provisioning=1)
             sql.delete_provisioned_servers(server_id)
 
+if form.getvalue('gcorevars') or form.getvalue('gcoreeditvars'):
+    if form.getvalue('gcorevars'):
+        gcorevars = form.getvalue('gcorevars')
+        group = form.getvalue('gcore_create_group')
+        provider = form.getvalue('gcore_create_provider')
+        region = form.getvalue('gcore_create_regions')
+        project = form.getvalue('gcore_create_project')
+        size = form.getvalue('gcore_create_size')
+        oss = form.getvalue('gcore_create_oss')
+        ssh_name = form.getvalue('gcore_create_ssh_name')
+        volume_size = form.getvalue('gcore_create_volume_size')
+        volume_type = form.getvalue('gcore_create_volume_type')
+        delete_on_termination = form.getvalue('gcore_create_delete_on_termination')
+        network_name = form.getvalue('gcore_create_network_name')
+        firewall = form.getvalue('gcore_create_firewall')
+        network_type = form.getvalue('gcore_create_network_type')
+    elif form.getvalue('gcoreeditvars'):
+        gcorevars = form.getvalue('gcoreeditvars')
+        group = form.getvalue('gcore_edit_group')
+        provider = form.getvalue('gcore_edit_provider')
+        region = form.getvalue('gcore_edit_regions')
+        project = form.getvalue('gcore_edit_project')
+        size = form.getvalue('gcore_edit_size')
+        oss = form.getvalue('gcore_edit_oss')
+        ssh_name = form.getvalue('gcore_edit_ssh_name')
+        volume_size = form.getvalue('gcore_edit_volume_size')
+        volume_type = form.getvalue('gcore_edit_volume_type')
+        delete_on_termination = form.getvalue('gcore_edit_delete_on_termination')
+        network_name = form.getvalue('gcore_edit_network_name')
+        firewall = form.getvalue('gcore_edit_firewall')
+        network_type = form.getvalue('gcore_edit_network_type')
+
+    gcore_user, gcore_pass = sql.select_gcore_provider(provider)
+
+    cmd = 'cd scripts/terraform/ && sudo ansible-playbook var_generator.yml -i inventory -e "region={} ' \
+          'group={} size={} os={} network_name={} volume_size={} server_name={} username={} ' \
+          'pass={} firewall={} network_type={} ssh_name={} delete_on_termination={} project={} volume_type={} ' \
+          'cloud=gcore"'.format(region, group, size, oss, network_name, volume_size, gcorevars, gcore_user, gcore_pass,
+                                firewall, network_type, ssh_name, delete_on_termination, project, volume_type)
+
+    output, stderr = funct.subprocess_execute(cmd)
+    if stderr != '':
+        print('error: ' + stderr)
+    else:
+        print('ok')
+
+if form.getvalue('gcorevalidate') or form.getvalue('gcoreeditvalidate'):
+    if form.getvalue('gcorevalidate'):
+        workspace = form.getvalue('gcorevalidate')
+        group = form.getvalue('gcore_create_group')
+    elif form.getvalue('gcoreeditvalidate'):
+        workspace = form.getvalue('gcoreeditvalidate')
+        group = form.getvalue('gcore_edit_group')
+
+    cmd = 'cd scripts/terraform/ && sudo terraform plan -no-color -input=false -target=module.gcore_module -var-file vars/' + workspace + '_'+group+'_gcore.tfvars'
+    output, stderr = funct.subprocess_execute(cmd)
+    if stderr != '':
+        print('error: ' + stderr)
+    else:
+        print('ok')
+
+if form.getvalue('gcoreworkspace'):
+    workspace = form.getvalue('gcoreworkspace')
+    group = form.getvalue('gcore_create_group')
+    provider = form.getvalue('gcore_create_provider')
+    region = form.getvalue('gcore_create_regions')
+    project = form.getvalue('gcore_create_project')
+    size = form.getvalue('gcore_create_size')
+    oss = form.getvalue('gcore_create_oss')
+    ssh_name = form.getvalue('gcore_create_ssh_name')
+    volume_size = form.getvalue('gcore_create_volume_size')
+    volume_type = form.getvalue('gcore_create_volume_type')
+    delete_on_termination = form.getvalue('gcore_create_delete_on_termination')
+    network_type = form.getvalue('gcore_create_network_type')
+    firewall = form.getvalue('gcore_create_firewall')
+    network_name = form.getvalue('gcore_create_network_name')
+
+    cmd = 'cd scripts/terraform/ && sudo terraform workspace new ' + workspace + '_' + group + '_gcore'
+    output, stderr = funct.subprocess_execute(cmd)
+
+    if stderr != '':
+        stderr = stderr.strip()
+        stderr = repr(stderr)
+        stderr = stderr.replace("'", "")
+        stderr = stderr.replace("\'", "")
+        sql.update_provisioning_server_status('Error', group, workspace, provider)
+        sql.update_provisioning_server_error(stderr, group, workspace, provider)
+        print('error: ' + stderr)
+    else:
+        if sql.add_server_gcore(project, region, size, network_type, network_name, volume_size, ssh_name, workspace, oss, firewall,
+                          provider, group, 'Creating', delete_on_termination, volume_type):
+
+            from jinja2 import Environment, FileSystemLoader
+
+            user, user_id, role, token, servers = funct.get_users_params()
+            new_server = sql.select_provisioned_servers(new=workspace, group=group, type='gcore')
+
+            env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
+            template = env.get_template('ajax/provisioning/provisioned_servers.html')
+            template = template.render(servers=new_server,
+                                       groups=sql.select_groups(),
+                                       user_group=group,
+                                       providers=sql.select_providers(group),
+                                       role=role,
+                                       adding=1)
+            print(template)
+
+if form.getvalue('gcoreeditworkspace'):
+    workspace = form.getvalue('gcoreeditworkspace')
+    group = form.getvalue('gcore_edit_group')
+    provider = form.getvalue('gcore_edit_provider')
+    region = form.getvalue('gcore_edit_regions')
+    project = form.getvalue('gcore_edit_project')
+    size = form.getvalue('gcore_edit_size')
+    oss = form.getvalue('gcore_edit_oss')
+    ssh_name = form.getvalue('gcore_edit_ssh_name')
+    volume_size = form.getvalue('gcore_edit_volume_size')
+    volume_type = form.getvalue('gcore_edit_volume_type')
+    delete_on_termination = form.getvalue('gcore_edit_delete_on_termination')
+    network_type = form.getvalue('gcore_edit_network_type')
+    firewall = form.getvalue('gcore_edit_firewall')
+    network_name = form.getvalue('gcore_edit_network_name')
+    server_id = form.getvalue('server_id')
+
+    if sql.update_server_gcore(region, size, network_type, network_name, volume_size, ssh_name, workspace, oss, firewall,
+                             provider, group, 'Editing', server_id, delete_on_termination, volume_type, project):
+
+        try:
+            cmd = 'cd scripts/terraform/ && sudo terraform workspace select ' + workspace + '_' + group + '_gcore'
+            output, stderr = funct.subprocess_execute(cmd)
+        except Exception as e:
+            print('error: ' + str(e))
+
+        if stderr != '':
+            stderr = stderr.strip()
+            stderr = repr(stderr)
+            stderr = stderr.replace("'", "")
+            stderr = stderr.replace("\'", "")
+            sql.update_provisioning_server_error(stderr, group, workspace, provider)
+            print('error: ' + stderr)
+        else:
+            print('ok')
+
 if form.getvalue('editAwsServer'):
     funct.check_user_group()
     server_id = form.getvalue('editAwsServer')
     user_group = form.getvalue('editAwsGroup')
     from jinja2 import Environment, FileSystemLoader
 
-    env = Environment(loader=FileSystemLoader('templates'))
+    env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
     template = env.get_template('ajax/provisioning/aws_edit_dialog.html')
-    template = template.render(server=sql.select_aws_server(server_id=server_id), providers=sql.select_providers(user_group))
+    template = template.render(server=sql.select_aws_server(server_id=server_id), providers=sql.select_providers(int(user_group)))
+    print(template)
+
+if form.getvalue('editGcoreServer'):
+    funct.check_user_group()
+    server_id = form.getvalue('editGcoreServer')
+    user_group = form.getvalue('editGcoreGroup')
+    from jinja2 import Environment, FileSystemLoader
+
+    env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
+    template = env.get_template('ajax/provisioning/gcore_edit_dialog.html')
+    template = template.render(server=sql.select_gcore_server(server_id=server_id), providers=sql.select_providers(int(user_group)))
     print(template)
 
 if form.getvalue('editDoServer'):
@@ -2791,9 +2987,9 @@ if form.getvalue('editDoServer'):
     user_group = form.getvalue('editDoGroup')
     from jinja2 import Environment, FileSystemLoader
 
-    env = Environment(loader=FileSystemLoader('templates'))
+    env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
     template = env.get_template('ajax/provisioning/do_edit_dialog.html')
-    template = template.render(server=sql.select_do_server(server_id=server_id), providers=sql.select_providers(user_group))
+    template = template.render(server=sql.select_do_server(server_id=server_id), providers=sql.select_providers(int(user_group)))
     print(template)
 
 if form.getvalue('edit_do_provider'):
@@ -2803,6 +2999,17 @@ if form.getvalue('edit_do_provider'):
     new_token = form.getvalue('edit_do_provider_token')
 
     if sql.update_do_provider(new_name, new_token, provider_id):
+        print('ok')
+        funct.logging('localhost', 'Provider has been renamed. New name is ' + new_name, provisioning=1)
+
+if form.getvalue('edit_gcore_provider'):
+    funct.check_user_group()
+    provider_id = form.getvalue('edit_gcore_provider')
+    new_name = form.getvalue('edit_gcore_provider_name')
+    new_user = form.getvalue('edit_gcore_provider_user')
+    new_pass = form.getvalue('edit_gcore_provider_pass')
+
+    if sql.update_gcore_provider(new_name, new_user, new_pass, provider_id):
         print('ok')
         funct.logging('localhost', 'Provider has been renamed. New name is ' + new_name, provisioning=1)
 

@@ -1,3 +1,6 @@
+:root {
+	--green-color: #5ad05a;
+}
 html {
   font-size: 10px;
 }
@@ -389,7 +392,7 @@ pre {
 	font-weight: bold;
 }
 .serverUp {
-	background-color: #5ad05a;
+	background-color: var(--green-color);
 }
 .serverNone {
 	background-color: #ddd; 
@@ -753,7 +756,7 @@ label {
 	height: 95px;
 }
 .div-server-head-up {
-	border-top: 3px solid #5ad05a !important;
+	border-top: 3px solid var(--green-color) !important;
 }
 .div-server-head-down {
 	border-top: 3px solid #be2424 !important;

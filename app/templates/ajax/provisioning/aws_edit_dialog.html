@@ -1,5 +1,7 @@
 {% from 'include/input_macros.html' import input, select, checkbox %}
+{% from 'include/provisioning/variables.html' import aws_regions, aws_oss, aws_volume_type  %}
 {% for s in server %}
+{% set region_name = [] %}
 <div id="aws_edit" style="display: none; padding: 0 2px 0 0; margin-left: 1px; margin-right: -4px;">
     <table class="overview provisioning_table">
         {% include 'include/tr_validate_tips.html' %}
@@ -42,7 +44,13 @@
                 Region
             </td>
             <td>
-                <span id="aws_edit_region">{{s.0}}</span>
+                {% for key, value in aws_regions.items() %}
+                {% if s.0|int() == key|int() %}
+                    {% do region_name.append(value) %}
+                {% endif %}
+                {% endfor %}
+                <span id="aws_edit_region" style="display: none;">{{s.0}}</span>
+                {{region_name.0}}
             </td>
         </tr>
         <tr>
@@ -56,7 +64,7 @@
                 <span class="need-field">*</span>
             </td>
             <td>
-                {{input('aws_edit_size', size='30', value=s.1)}}
+                {{input('aws_edit_size', size='26', value=s.1)}}
                 <div class="tooltip tooltipTop tooltipTd">
                     Instance types list is <a href="https://aws.amazon.com/ec2/instance-types/" title="Instance types list" target="_blank">here</a>
                 </div>
@@ -68,11 +76,7 @@
                 <span class="need-field">*</span>
             </td>
             <td>
-                {% set oss = dict() %}
-                {% set oss = {'centos-7':'Centos 7 x64','ubuntu-18.04':'Ubuntu 18.04 x64','ubuntu-18.10':'Ubuntu 18.10 x64',
-                              'debian-10':'Debian 10 x86','debian-9':'Debian 9 x86','rhel-7':'RHEL 7 x86','rhel-8':'RHEL 8 x86',
-                              'amazon-2_lts':'Amazon Linux 2 x86'} %}
-                {{ select('aws_edit_oss', values=oss, first=s.7, disabled='false') }}
+                {{ select('aws_edit_oss', values=aws_oss, first=s.7, disabled='false') }}
             </td>
         </tr>
         <tr>
@@ -81,7 +85,7 @@
                 <span class="need-field">*</span>
             </td>
             <td>
-                {{input('aws_edit_ssh_name', size='30', value=s.5)}}
+                {{input('aws_edit_ssh_name', size='26', value=s.5)}}
                 <div class="tooltip tooltipTop tooltipTd">SSH key must exists in region where instance create</div>
             </td>
         </tr>
@@ -91,13 +95,29 @@
             </td>
         </tr>
         <tr>
-            <td class="padding20 padding-top20">
+            <td class="padding20">
                 Volume size
                 <span class="need-field">*</span>
             </td>
             <td>
-                {{input('aws_edit_volume_size', size='30', value=s.4, type='number')}}
-                <div class="tooltip tooltipTop tooltipTd">Size in GB</div>
+                {{input('aws_edit_volume_size', size='26', value=s.4, type='number')}}Gb
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                Volume type
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                <select id="aws_edit_volume_type">
+                    {% for key, value in aws_volume_type.items() %}
+                        {% if s.13 == key %}
+                            <option value="{{key}}" selected>{{value}}</option>
+                        {% else %}
+                            <option value="{{key}}">{{value}}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
             </td>
         </tr>
         <tr>

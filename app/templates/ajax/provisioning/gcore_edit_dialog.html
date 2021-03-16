@@ -1,0 +1,244 @@
+{% from 'include/input_macros.html' import input, select, checkbox %}
+{% from 'include/provisioning/variables.html' import gcore_regions, gcore_volume_type  %}
+{% for s in server %}
+{% set region_name = [] %}
+<div id="gcore_edit" style="display: none; padding: 0 2px 0 0; margin-left: 1px; margin-right: -4px;">
+    <table class="overview provisioning_table">
+        {% include 'include/tr_validate_tips.html' %}
+        <tr>
+            <td colspan="2" class="headers">
+                <b>General information</b>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                Server name
+            </td>
+            <td>
+                <span id="gcore_edit_server_name">{{s.6}}</span>({{s.16}})
+            </td>
+        </tr>
+            {{input('gcore_edit_group', value=s.10, type='hidden')}}
+            {{input('gcore_edit_id', value=s.11, type='hidden')}}
+        <tr>
+            <td class="padding20">
+                Provider credentials
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                <select id="gcore_edit_id_provider">
+                {% for p in providers %}
+                    {% if p.2 == 'gcore' %}
+                        {% if s.9|int() == p.0|int() %}
+                        <option value="{{ p.0 }}" selected>{{ p.1 }}</option>
+                        {% else %}
+                        <option value="{{ p.0 }}">{{ p.1 }}</option>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                Region
+            </td>
+            <td>
+                {% for key, value in gcore_regions.items() %}
+                {% if s.0|int() == key|int() %}
+                    {% do region_name.append(value) %}
+                {% endif %}
+                {% endfor %}
+                <span id="gcore_edit_region" style="display: none;">{{s.0}}</span>
+                {{region_name.0}}
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                Project name
+            </td>
+            <td>
+                <span id="gcore_edit_project_name">{{s.13}}</span>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" class="headers">
+                <b>Instance</b>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                Flavor
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{input('gcore_edit_size', size='26', value=s.1)}}
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                OS
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {% set oss = dict() %}
+                {% set oss = {"centos-7-1811-x64-qcow2": "Centos 7", "centos8-1911-x64": "Centos 8", "sles15-SP2": "SLES 15-SP2", "fedora-32-x64-qcow2": "Fedora 32", "fedora-33-x64-qcow2": "Fedora 33",
+                "fedora-coreos-32-x64": "Fedora CoreOS 32", "ubuntu-16.04-x64": "Ubuntu 16.04", "ubuntu-18.04-x64": "Ubuntu 18.04",
+                "ubuntu-20.04-x64": "Ubuntu 20.04", "ubuntu-20.10-x64": "Ubuntu 20.10", "debian-9.7-x64-qcow2": "Debian 9.7",
+                "debian-10.1-x64-qcow2": "Debian 10.1", "debian-10.3-x64-qcow2": "Debian 10.3"} %}
+                {{ select('gcore_edit_oss', values=oss, first=s.7, disabled='false') }}
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20 padding-top20">
+                SSH key pair name
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{input('gcore_edit_ssh_name', size='26', value=s.5)}}
+                <div class="tooltip tooltipTop tooltipTd">SSH key must exists in region where instance edit</div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" class="headers">
+                <b>Volume</b>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                Volume size
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{input('gcore_edit_volume_size', size='26', value=s.4, type='number')}}Gb
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20 padding-top20">
+                Volume type
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                <select id="gcore_edit_volume_type">
+                    {% for key, value in gcore_volume_type.items() %}
+                        {% if s.15 == key %}
+                            <option value="{{key}}" selected>{{value}}</option>
+                        {% else %}
+                            <option value="{{key}}">{{value}}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20 padding-top20">Delete on termination</td>
+            <td>
+                {% set checked='checked' %}
+                {% if s.12 == 'false' %}
+                    {% set checked='' %}
+                {% endif %}
+                {{checkbox('gcore_edit_delete_on_termination', checked=checked)}}
+                <div class="tooltip tooltipTop tooltipTd">Whether the volume should be destroyed on instance termination</div>
+            </td>
+        </tr>
+         <tr>
+            <td colspan="2" class="headers">
+                <b>Network</b>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">Network Type</td>
+            <td>
+                <select id="gcore_edit_network_type">
+                    {% if s.2 == 'external' %}
+                    <option value="external" selected>External IP</option>
+                    {% else %}
+                    <option value="external">External IP</option>
+                    {% endif %}
+                    {% if s.2 == 'any_subnet' %}
+                    <option value="any_subnet" selected>Custom network</option>
+                    {% set style = 'display: table-row;' %}
+                    {% else %}
+                    <option value="any_subnet">Custom network</option>
+                    {% set style = 'display: none;' %}
+                    {% endif %}
+                </select>
+            </td>
+        </tr>
+        <tr id="gcore_edit_any_subnet" style="{{style}}">
+            <td class="padding20">
+                Network name
+                <span class="need-field">*</span>
+            </td>
+            <td>{{input('gcore_edit_network_name', size='26', value=s.14)}}</td>
+        </tr>
+        <tr>
+            {% set checked='checked' %}
+            {% if s.8 == 'false' %}
+                {% set checked='' %}
+            {% endif %}
+            <td class="padding20" style="padding-bottom: 25px;padding-top: 25px;">Firewall</td>
+            <td>
+                {{checkbox('gcore_edit_firewall', checked=checked)}}
+                <div class="tooltip tooltipTop tooltipTd">HAProxy-WI will edit Security group and open 22, 443, 1999, 8085, 8086 ports. Otherwise all ports will be closed</div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <p class="validateTips alert alert-warning">Be aware: some changes may cause server re-creation. And all your data will be lost</p>
+            </td>
+        </tr>
+    </table>
+</div>
+<script>
+$( function() {
+    $('select').selectmenu();
+    $('#gcore_edit_network_type').on('selectmenuchange', function (){
+    	if ($('#gcore_edit_network_type option:selected').val() == 'any_subnet') {
+    		$('#gcore_edit_any_subnet').show();
+		} else if ($('#gcore_edit_network_type option:selected').val() == 'external') {
+    		$('#gcore_edit_any_subnet').hide();
+		}
+	});
+});
+function refreshOss() {
+    var newOptions = {
+    		    "centos-7-gcore": "Centos 7"
+    		};
+    	if ($('#gcore_edit_region').text() == '6' || $('#gcore_edit_region').text() == '14') {
+    		var newOptions = {
+    		    "centos-7-gcore": "Centos 7"
+    		};
+		} else if ($('#gcore_edit_region').text() == '10') {
+    		var newOptions = {
+    		    "centos-7-gcore": "Centos 7",
+                "sles15-SP2": "SLES 15-SP2"
+    		};
+		} else if ($('#gcore_edit_region').text() == '18' || $('#gcore_edit_region').text() == '22') {
+    		var newOptions = {
+    		    "centos-7-1811-x64-qcow2": "Centos 7",
+    		    "centos8-1911-x64": "Centos 8",
+                "sles15-SP2": "SLES 15-SP2",
+                "fedora-32-x64-qcow2": "Fedora 32",
+                "fedora-33-x64-qcow2": "Fedora 33",
+                "fedora-coreos-32-x64": "Fedora CoreOS 32",
+                "ubuntu-16.04-x64": "Ubuntu 16.04",
+                "ubuntu-18.04-x64": "Ubuntu 18.04",
+                "ubuntu-20.04-x64": "Ubuntu 20.04",
+                "ubuntu-20.10-x64": "Ubuntu 20.10",
+                "debian-9.7-x64-qcow2": "Debian 9.7",
+                "debian-10.1-x64-qcow2": "Debian 10.1",
+                "debian-10.3-x64-qcow2": "Debian 10.3"
+    		};
+		}
+    	var $el = $("#gcore_edit_oss");
+        $el.empty();
+        $.each(newOptions, function(key,value) {
+            $el.append($("<option></option>")
+             .attr("value", key).text(value));
+        });
+        $el.selectmenu("refresh");
+}
+refreshOss();
+</script>
+{% endfor %}

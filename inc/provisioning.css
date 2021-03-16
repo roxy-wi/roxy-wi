@@ -1,7 +1,7 @@
 .padding20{ width: 160px;}
 .server-creating {padding-bottom: 10px;}
-.proccessing_done {color: green;}
-.proccessing, .processing_error {font-weight: bold; color: green;}
+.proccessing_done {color: var(--green-color);}
+.proccessing, .processing_error {font-weight: bold; color: var(--green-color);}
 .proccessing::before {
     display: none;
     font-family: "Font Awesome 5 Solid";

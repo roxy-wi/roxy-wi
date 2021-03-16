@@ -144,7 +144,9 @@ def create_table(**kwargs):
 			`type` VARCHAR ( 64 ),
 			`group` VARCHAR ( 64 ), 
 			`key` VARCHAR ( 64 ), 
-			`secret` VARCHAR ( 64 ), 
+			`secret` VARCHAR ( 64 ),
+			`create_date`  DATETIME default '0000-00-00 00:00:00',
+			`edit_date`  DATETIME default '0000-00-00 00:00:00',
 			PRIMARY KEY(`id`)
 		); 
 		CREATE TABLE IF NOT EXISTS provisioned_servers (
@@ -169,7 +171,7 @@ def create_table(**kwargs):
 			`date`  DATETIME default '0000-00-00 00:00:00',
 			`IP` VARCHAR ( 64 ),
 			`last_error` VARCHAR ( 256 ),
-			`delete_on_termination` INTEGER
+			`delete_on_termination` INTEGER,
 			PRIMARY KEY(`id`)
 		); 
 		"""
@@ -1051,9 +1053,29 @@ def update_db_v_51(**kwargs):
 	con.close()
 
 
+def update_db_v_5_0_1(**kwargs):
+	con, cur = get_cur()
+	sql = list()
+	sql.append("alter table provisioned_servers add column project VARCHAR ( 64 )")
+	sql.append("alter table provisioned_servers add column network_name VARCHAR ( 64 )")
+	sql.append("alter table provisioned_servers add column volume_type VARCHAR ( 64 )")
+	sql.append("alter table provisioned_servers add column name_template VARCHAR ( 64 )")
+	for i in sql:
+		try:
+			cur.execute(i)
+			con.commit()
+		except sqltool.Error as e:
+			pass
+	else:
+		if kwargs.get('silent') != 1:
+			print('Updating... DB has been updated to version 5.0.1')
+	cur.close()
+	con.close()
+
+
 def update_ver():
 	con, cur = get_cur()
-	sql = """update version set version = '5.0.1.0'; """
+	sql = """update version set version = '5.0.2.0'; """
 	try:
 		cur.execute(sql)
 		con.commit()
@@ -1089,6 +1111,7 @@ def update_all():
 	update_db_v_4_5_9()
 	update_db_v_5()
 	update_db_v_51()
+	update_db_v_5_0_1()
 	update_ver()
 
 
@@ -1118,6 +1141,7 @@ def update_all_silent():
 	update_db_v_4_5_9(silent=1)
 	update_db_v_5(silent=1)
 	update_db_v_51(silent=1)
+	update_db_v_5_0_1(silent=1)
 	update_ver()
 
 

@@ -7,7 +7,7 @@ mysql_enable = funct.get_config_var('mysql', 'enable')
 if mysql_enable == '1':
 	import mysql.connector as sqltool
 else:
-	db = "haproxy-wi.db"
+	db = "/var/www/haproxy-wi/app/haproxy-wi.db"
 	import sqlite3 as sqltool
 
 
@@ -34,10 +34,10 @@ def get_cur():
 def add_user(user, email, password, role, activeuser, group):
 	con, cur = get_cur()
 	if password != 'aduser':
-		sql = """INSERT INTO user (username, email, password, role, activeuser, 'groups') 
+		sql = """INSERT INTO user (username, email, password, role, activeuser, `groups`) 
 		VALUES ('%s', '%s', '%s', '%s', '%s', '%s')""" % (user, email, funct.get_hash(password), role, activeuser, group)
 	else:
-		sql = """INSERT INTO user (username, email, role, ldap_user, activeuser, 'groups') 
+		sql = """INSERT INTO user (username, email, role, ldap_user, activeuser, `groups`) 
 		VALUES ('%s', '%s', '%s', '1', '%s', '%s')""" % (user, email, role, activeuser, group)
 	try:
 		cur.execute(sql)
@@ -792,6 +792,11 @@ def get_dick_permit(**kwargs):
 		group = cookie.get('group')
 		grp = group.value
 		user = get_user_id_by_uuid(user_id.value)
+	if kwargs.get('token'):
+		token = kwargs.get('token')
+	else:
+		token = ''
+	only_group = kwargs.get('only_group')
 	disable = ''
 	haproxy = ''
 	nginx = ''
@@ -813,10 +818,10 @@ def get_dick_permit(**kwargs):
 	if kwargs.get('keepalived'):
 		nginx = "and keepalived = 1"
 
-	if funct.check_user_group():
+	if funct.check_user_group(token=token):
 		con, cur = get_cur()
-		if grp == '1':
-			sql = """ select * from servers where enable = 1 %s %s %s order by pos""" % (disable, type_ip, nginx)
+		if grp == '1' and not only_group:
+			sql = """ select * from servers where enable = 1 %s %s %s %s order by pos""" % (disable, type_ip, nginx, ip)
 		else:
 			sql = """ select * from servers where groups = '{group}' and (enable = 1 {disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} order by pos
 			""".format(group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx, keepalived=keepalived)
@@ -1227,17 +1232,17 @@ def insert_mentrics(serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate):
 	con.close()
 
 
-def select_waf_metrics_enable(id):
-	con, cur = get_cur()
-	sql = """ select waf.metrics from waf  left join servers as serv on waf.server_id = serv.id where server_id = '%s' """ % id
-	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
-		funct.out_error(e)
-	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+# def select_waf_metrics_enable(id):
+# 	con, cur = get_cur()
+# 	sql = """ select waf.metrics from waf left join servers as serv on waf.server_id = serv.id where server_id = '%s' """ % id
+# 	try:
+# 		cur.execute(sql)
+# 	except sqltool.Error as e:
+# 		funct.out_error(e)
+# 	else:
+# 		return cur.fetchall()
+# 	cur.close()
+# 	con.close()
 
 
 def select_waf_metrics_enable_server(ip):
@@ -1812,7 +1817,10 @@ def select_table_metrics():
 
 
 def get_setting(param, **kwargs):
-	user_group = funct.get_user_group(id=1)
+	try:
+		user_group = funct.get_user_group(id=1)
+	except Exception as e:
+		user_group = ''
 
 	if user_group == '' or param == 'lists_path' or param == 'ssl_local_path':
 		user_group = '1'
@@ -2426,6 +2434,192 @@ def select_geoip_country_codes():
 		return cur.fetchall()
 
 
+def insert_port_scanner_settings(server_id, user_group_id, enabled, notify, history):
+	con, cur = get_cur()
+	sql = """ insert into port_scanner_settings values('%s', '%s', '%s', '%s', '%s') """ % (server_id, user_group_id, enabled, notify, history)
+	try:
+		cur.execute(sql)
+		con.commit()
+		return True
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
+		return False
+	finally:
+		cur.close()
+		con.close()
+
+
+def update_port_scanner_settings(server_id, user_group_id, enabled, notify, history):
+	con, cur = get_cur()
+	sql = """ update port_scanner_settings set 
+				user_group_id = '%s', 
+				enabled = '%s', 
+				notify = '%s', 
+				history = '%s'
+				where server_id = '%s' """ % (user_group_id, enabled, notify, history, server_id)
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
+	cur.close()
+	con.close()
+
+
+def select_port_scanner_settings(user_group):
+	con, cur = get_cur()
+	sql_group = ''
+	if user_group != 1:
+		sql_group = "where user_group_id = '%s'" % str(user_group)
+
+	sql = """select * from port_scanner_settings %s """ % sql_group
+
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		funct.out_error(e)
+	else:
+		return cur.fetchall()
+	cur.close()
+	con.close()
+
+
+def select_port_scanner_settings_for_service():
+	con, cur = get_cur()
+	sql = """select * from port_scanner_settings """
+
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		funct.out_error(e)
+	else:
+		return cur.fetchall()
+	cur.close()
+	con.close()
+
+
+def delete_port_scanner_settings(server_id):
+	con, cur = get_cur()
+	sql = """ delete from port_scanner_settings where server_id = '%s' """ % server_id
+
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		con.rollback()
+	cur.close()
+	con.close()
+
+
+def insert_port_scanner_port(serv, user_group_id, port, service_name):
+	con, cur = get_cur()
+	if mysql_enable == '1':
+		sql = """ insert into port_scanner_ports values('%s', '%s', '%s', '%s', now()) """ % (serv, user_group_id, port, service_name)
+	else:
+		sql = """ insert into port_scanner_ports values('%s', '%s', '%s', '%s', datetime('now', 'localtime')) """ % (serv, user_group_id, port, service_name)
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
+	cur.close()
+	con.close()
+
+
+def select_ports(serv):
+	con, cur = get_cur()
+	sql = """select port from port_scanner_ports where serv =  '%s' """ % serv
+
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		funct.out_error(e)
+	else:
+		return cur.fetchall()
+	cur.close()
+	con.close()
+
+
+def select_port_name(serv, port):
+	con, cur = get_cur()
+	sql = """select service_name from port_scanner_ports where serv =  '%s' and port = '%s' """ % (serv, port)
+
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		funct.out_error(e)
+	else:
+		for port in cur.fetchall():
+			return port[0]
+	cur.close()
+	con.close()
+
+
+def select_count_opened_ports(serv):
+	con, cur = get_cur()
+	sql = """ select date, count(port) from port_scanner_ports where serv =  '%s' """ % serv
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		cur.close()
+		con.close()
+		return ""
+	else:
+		port = list()
+		for ports in cur.fetchall():
+			port.append([ports[1], ports[0]])
+	cur.close()
+	con.close()
+	return port
+
+
+def delete_ports(serv):
+	con, cur = get_cur()
+	sql = """ delete from port_scanner_ports where serv = '%s' """ % serv
+
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
+	cur.close()
+	con.close()
+
+
+def insert_port_scanner_history(serv, port, port_status, service_name):
+	con, cur = get_cur()
+	if mysql_enable == '1':
+		sql = """ insert into port_scanner_history values('%s', '%s', '%s', '%s', now()) """ % (serv, port, port_status, service_name)
+	else:
+		sql = """ insert into port_scanner_history values('%s', '%s', '%s', '%s', datetime('now', 'localtime')) """ % (serv, port, port_status, service_name)
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
+	cur.close()
+	con.close()
+
+
+def select_port_scanner_history(serv):
+	con, cur = get_cur()
+	sql = """select * from port_scanner_history where serv =  '%s' """ % serv
+
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		funct.out_error(e)
+	else:
+		return cur.fetchall()
+	cur.close()
+	con.close()
+
+
 def add_provider_do(provider_name, provider_group, provider_token):
 	con, cur = get_cur()
 	if mysql_enable == '1':
@@ -2451,6 +2645,25 @@ def add_provider_aws(provider_name, provider_group, provider_key, provider_secre
 		sql = """ insert into providers_creds (name, type, `group`, key, secret, create_date, edit_date) values ('%s', 'aws', '%s', '%s', '%s', now(), now())""" % (provider_name, provider_group, provider_key, provider_secret)
 	else:
 		sql = """ insert into providers_creds (name, type, `group`, key, secret, create_date, edit_date) values ('%s', 'aws', '%s', '%s', '%s', datetime('now', 'localtime'), datetime('now', 'localtime'))""" % (provider_name, provider_group, provider_key, provider_secret)
+
+	try:
+		cur.execute(sql)
+		return True
+	except sqltool.Error as e:
+		funct.out_error(e)
+		return False
+	finally:
+		cur.close()
+		con.close()
+
+
+def add_provider_gcore(provider_name, provider_group, provider_user, provider_pass):
+	con, cur = get_cur()
+
+	if mysql_enable == '1':
+		sql = """ insert into providers_creds (name, type, `group`, key, secret, create_date, edit_date) values ('%s', 'gcore', '%s', '%s', '%s', now(), now())""" % (provider_name, provider_group, provider_user, provider_pass)
+	else:
+		sql = """ insert into providers_creds (name, type, `group`, key, secret, create_date, edit_date) values ('%s', 'gcore', '%s', '%s', '%s', datetime('now', 'localtime'), datetime('now', 'localtime'))""" % (provider_name, provider_group, provider_user, provider_pass)
 
 	try:
 		cur.execute(sql)
@@ -2503,21 +2716,48 @@ def delete_provider(provider_id):
 		con.close()
 		
 
-def add_server_aws(region, instance_type, public_ip, floating_ip, volume_size, ssh_key_name, name, os, firewall, provider_id, group_id, status, delete_on_termination):
+def add_server_aws(region, instance_type, public_ip, floating_ip, volume_size, ssh_key_name, name, os, firewall, provider_id, group_id, status, delete_on_termination, volume_type):
 	con, cur = get_cur()
 	if mysql_enable == '1':
 		sql = """ insert into provisioned_servers 
-					(region, instance_type, public_ip, floating_ip, volume_size, ssh_key_name, name, os, firewall, provider_id, group_id, type, status, date, delete_on_termination) 
-					values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', 'aws', '%s',  now()), '%s'""" % (
-		region, instance_type, public_ip, floating_ip, volume_size, ssh_key_name, name, os, firewall, provider_id,
+					(region, instance_type, public_ip, floating_ip, volume_size, volume_type, ssh_key_name, name, os, firewall, provider_id, group_id, type, status, date, delete_on_termination) 
+					values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', 'aws', '%s',  now()), '%s'""" % (
+		region, instance_type, public_ip, floating_ip, volume_size, volume_type, ssh_key_name, name, os, firewall, provider_id,
 		group_id, status, delete_on_termination)
 
 	else:
 		sql = """ insert into provisioned_servers 
-			(region, instance_type, public_ip, floating_ip, volume_size, ssh_key_name, name, os, firewall, provider_id, group_id, type, status, date, delete_on_termination) 
-			values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', 'aws', '%s', datetime('now', 'localtime'), '%s')""" % (
-			region, instance_type, public_ip, floating_ip, volume_size, ssh_key_name, name, os, firewall, provider_id,
+			(region, instance_type, public_ip, floating_ip, volume_size, volume_type, ssh_key_name, name, os, firewall, provider_id, group_id, type, status, date, delete_on_termination) 
+			values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', 'aws', '%s', datetime('now', 'localtime'), '%s')""" % (
+			region, instance_type, public_ip, floating_ip, volume_size, volume_type, ssh_key_name, name, os, firewall, provider_id,
 			group_id, status, delete_on_termination)
+
+	try:
+		cur.execute(sql)
+		return True
+	except sqltool.Error as e:
+		funct.out_error(e)
+		return False
+	finally:
+		cur.close()
+		con.close()
+
+
+def add_server_gcore(project ,region, instance_type, network_type, network_name, volume_size, ssh_key_name, name, os, firewall, provider_id, group_id, status, delete_on_termination, volume_type):
+	con, cur = get_cur()
+	if mysql_enable == '1':
+		sql = """ insert into provisioned_servers 
+					(region, instance_type, public_ip, network_name, volume_size, volume_type, ssh_key_name, name, os, firewall, provider_id, group_id, type, status, date, delete_on_termination, project) 
+					values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', 'gcore', '%s',  now()), '%s', '%s'""" % (
+		region, instance_type, network_type, network_name, volume_size, volume_type, ssh_key_name, name, os, firewall, provider_id,
+		group_id, status, delete_on_termination, project)
+
+	else:
+		sql = """ insert into provisioned_servers 
+			(region, instance_type, public_ip, network_name, volume_size, volume_type, ssh_key_name, name, os, firewall, provider_id, group_id, type, status, date, delete_on_termination, project) 
+			values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', 'gcore', '%s', datetime('now', 'localtime'), '%s', '%s')""" % (
+			region, instance_type, network_type, network_name, volume_size, volume_type, ssh_key_name, name, os, firewall, provider_id,
+			group_id, status, delete_on_termination, project)
 
 	try:
 		cur.execute(sql)
@@ -2559,7 +2799,24 @@ def add_server_do(region, size, privet_net, floating_ip, ssh_ids, ssh_key_name, 
 
 def select_aws_server(server_id):
 	con, cur = get_cur()
-	sql = """ select region, instance_type, public_ip, floating_ip, volume_size, ssh_key_name, name, os, firewall, provider_id, group_id, id, delete_on_termination
+	sql = """ select region, instance_type, public_ip, floating_ip, volume_size, ssh_key_name, name, os, firewall, provider_id, group_id, id, delete_on_termination, volume_type
+			from provisioned_servers where id = '%s' """ % server_id
+
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		funct.out_error(e)
+	else:
+		return cur.fetchall()
+	finally:
+		cur.close()
+		con.close()
+
+
+def select_gcore_server(server_id):
+	con, cur = get_cur()
+	sql = """ select region, instance_type, public_ip, floating_ip, volume_size, ssh_key_name, name, os, firewall, 
+			provider_id, group_id, id, delete_on_termination, project, network_name, volume_type, name_template
 			from provisioned_servers where id = '%s' """ % server_id
 
 	try:
@@ -2612,6 +2869,22 @@ def update_provisioning_server_status(status, user_group_id, name, provider_id, 
 	con.close()
 
 
+def update_provisioning_server_gcore_name(name, template_name, user_group_id, provider_id):
+	con, cur = get_cur()
+
+	sql = """update provisioned_servers set name_template = '%s' 
+			where group_id = '%s' and name = '%s' and provider_id = '%s' """ % (template_name, user_group_id, name, provider_id)
+
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
+	cur.close()
+	con.close()
+
+
 def update_provisioning_server_error(status, user_group_id, name, provider_id):
 	con, cur = get_cur()
 
@@ -2628,7 +2901,7 @@ def update_provisioning_server_error(status, user_group_id, name, provider_id):
 	con.close()
 
 
-def update_server_aws(region, size, public_ip, floating_ip, volume_size, ssh_name, workspace, oss, firewall, provider, group, status, server_id, delete_on_termination):
+def update_server_aws(region, size, public_ip, floating_ip, volume_size, ssh_name, workspace, oss, firewall, provider, group, status, server_id, delete_on_termination, volume_type):
 	con, cur = get_cur()
 	sql = """ update provisioned_servers set 
 				region = '%s',
@@ -2643,9 +2916,43 @@ def update_server_aws(region, size, public_ip, floating_ip, volume_size, ssh_nam
 				provider_id = '%s',
 				group_id = '%s',
 				status = '%s',
-				delete_on_termination = '%s'
-				where id = '%s'  """ % (region, size, public_ip, floating_ip, volume_size, ssh_name, workspace, oss, firewall, provider, group, status, delete_on_termination, server_id)
+				delete_on_termination = '%s',
+				volume_type = '%s'
+				where id = '%s'  """ % (region, size, public_ip, floating_ip, volume_size, ssh_name, workspace, oss, firewall, provider, group, status, delete_on_termination, volume_type, server_id)
 	
+	try:
+		cur.execute(sql)
+		con.commit()
+		return True
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
+		return False
+	finally:
+		cur.close()
+		con.close()
+
+
+def update_server_gcore(region, size, network_type, network_name, volume_size, ssh_name, workspace, oss, firewall, provider, group, status, server_id, delete_on_termination, volume_type, project):
+	con, cur = get_cur()
+	sql = """ update provisioned_servers set 
+				region = '%s',
+				instance_type = '%s',
+				public_ip = '%s',
+				network_name = '%s',
+				volume_size = '%s',
+				ssh_key_name = '%s',
+				name = '%s',
+				os = '%s',
+				firewall = '%s',
+				provider_id = '%s',
+				group_id = '%s',
+				status = '%s',
+				delete_on_termination = '%s',
+				volume_type = '%s',
+				project = '%s'
+				where id = '%s'  """ % (region, size, network_type, network_name, volume_size, ssh_name, workspace, oss, firewall, provider, group, status, delete_on_termination, volume_type, project, server_id)
+
 	try:
 		cur.execute(sql)
 		con.commit()
@@ -2706,7 +3013,7 @@ def delete_provisioned_servers(server_id):
 
 def select_provisioned_servers(**kwargs):
 	con, cur = get_cur()
-	sql = """select id, name, provider_id, type, group_id, instance_type, status, date, region, os, IP, last_error from provisioned_servers"""
+	sql = """select id, name, provider_id, type, group_id, instance_type, status, date, region, os, IP, last_error, name_template from provisioned_servers"""
 
 	if kwargs.get('all'):
 		sql = """select * from provisioned_servers where id = '%s' """ % kwargs.get('all')
@@ -2743,6 +3050,25 @@ def select_aws_provider(provider_id):
 	return aws_key, aws_secret
 
 
+def select_gcore_provider(provider_id):
+	con, cur = get_cur()
+	sql = """ select key, secret from providers_creds where id = '%s'""" % provider_id
+
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		cur.close()
+		con.close()
+		return ""
+	else:
+		for p in cur.fetchall():
+			user_name = p[0]
+			password = p[1]
+	cur.close()
+	con.close()
+	return user_name, password
+
+
 def select_do_provider(provider_id):
 	con, cur = get_cur()
 	sql = """ select key from providers_creds where id = '%s'""" % provider_id
@@ -2776,6 +3102,37 @@ def update_do_provider(new_name, new_token, provider_id):
 					key = '%s',
 					edit_date = datetime('now', 'localtime')
 					where id = '%s'  """ % (new_name, new_token, provider_id)
+
+	try:
+		cur.execute(sql)
+		con.commit()
+		return True
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
+		return False
+	finally:
+		cur.close()
+		con.close()
+
+
+def update_gcore_provider(new_name, new_user, new_pass, provider_id):
+	con, cur = get_cur()
+
+	if mysql_enable == '1':
+		sql = """ update providers_creds set 
+					name = '%s',
+					key = '%s',
+					secret = '%s',
+					edit_date = now()
+					where id = '%s'  """ % (new_name, new_user, new_pass, provider_id)
+	else:
+		sql = """ update providers_creds set 
+					name = '%s',
+					key = '%s',
+					secret = '%s',
+					edit_date = datetime('now', 'localtime')
+					where id = '%s'  """ % (new_name, new_user, new_pass, provider_id)
 
 	try:
 		cur.execute(sql)
