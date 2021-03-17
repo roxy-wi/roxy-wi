@@ -2207,6 +2207,7 @@ function loadchecker() {
 			} else {
 				$('#checker').html(data);
 				$( "select" ).selectmenu();
+				$("button").button();
 				$.getScript('/inc/users.js');
 				$.getScript(awesome);
 			}
@@ -2228,6 +2229,24 @@ function loadopenvpn() {
 			} else {
 				$('#openvpn').html(data);
 				$.getScript(awesome);
+			}
+		}
+	} );
+}
+function checkTelegram(telegram_id) {
+	$.ajax({
+		url: "options.py",
+		data: {
+			check_telegram: telegram_id,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {
+				toastr.error(data);
+			} else {
+				toastr.success('Test message has been sent');
 			}
 		}
 	} );

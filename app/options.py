@@ -3099,3 +3099,8 @@ if form.getvalue('loadopenvpn'):
                                openvpn_sess=openvpn_sess,
                                openvpn_configs=openvpn_configs)
     print(template)
+
+if form.getvalue('check_telegram'):
+    telegram_id = form.getvalue('check_telegram')
+    mess = 'Test message from HAProxy-WI'
+    funct.telegram_send_mess(mess, telegram_channel_id=telegram_id)

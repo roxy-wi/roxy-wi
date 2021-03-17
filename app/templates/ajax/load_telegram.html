@@ -7,10 +7,11 @@
             <td class="padding10 first-collumn" style="width: 25%;">
                 <span title="Token that has given @father_bot">Token</span>
             </td>
-            <td style="width: {% if page == "servers.py" %}100{% else %}20{% endif %}%;">Channel name</td>
+            <td style="width: 20%;">Channel name</td>
             {% if page != "servers.py" %}
-            <td style="width: 100%;">Group</td>
+            <td style="width: 25%;">Group</td>
             {% endif %}
+            <td style="width: 100%;"></td>
             <td></td>
             <td></td>
         </tr>
@@ -22,7 +23,7 @@
             </td>
             <td>
                 {% set id = 'telegram-chanel-' + telegram.0|string() %}
-                {{ input(id, value=telegram.2) }}
+                {{ input(id, value=telegram.2, size='30') }}
             </td>
             {% if page != "servers.py" %}
             <td>
@@ -38,6 +39,9 @@
                 </select>
             </td>
             {% endif %}
+            <td>
+                <button title="Send test message" onclick="checkTelegram({{telegram.0}})">Test</button>
+            </td>
             <td>
                 <a class="add" onclick="cloneTelegram({{telegram.0}})" id="clone-{{telegram.0}}" title="Clone {{telegram.2}}" style="cursor: pointer;"></a>
             </td>
