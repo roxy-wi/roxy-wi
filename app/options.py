@@ -792,7 +792,10 @@ if serv is not None and act == "showMap":
                     line_new[0] = line_new2[0]
 
                 line_new[0] = line_new[0].strip(' \t\n\r')
-                line_new2[1] = line_new2[1].strip(' \t\n\r')
+                try:
+                    line_new2[1] = line_new2[1].strip(' \t\n\r')
+                except Exception as e:
+                    line_new2 = ['','']
 
                 if j % 2 == 0:
                     G.add_node(line_new[0], pos=(k + 230, i - 335), label_pos=(k + 225, i - 180))
@@ -2791,7 +2794,7 @@ if form.getvalue('provisiningdestroyserver'):
 
     tf_workspace = workspace + '_' + group + '_' + cloud_type
 
-    cmd = 'cd scripts/terraform/ && sudo terraform workspace select ' + tf_workspace
+    cmd = 'cd scripts/terraform/ && sudo terraform init -upgrade -no-color && sudo terraform workspace select ' + tf_workspace
     output, stderr = funct.subprocess_execute(cmd)
 
     if stderr != '':

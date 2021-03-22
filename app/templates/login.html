@@ -19,8 +19,17 @@ body, .container {
 	background-color: #ededee !important; 
 	font-weight: bold !important;
 }
+#main_div {
+	margin-top: 15%;
+	background-color: #5d9ceb;
+}
+@supports (-moz-osx-font-smoothing: auto) {
+	#main_div {
+		background-color: #4a91e7;
+	}
+}
 </style>
-<center style="margin-top: 15%; background-color: #5d9ceb;">
+<div id="main_div">
 	{{error_log}}
 		{{error}}
 	<div id="login-form" style="padding-top: 40px; padding-bottom: 50px; height: 250px; color: #000;">
@@ -29,7 +38,7 @@ body, .container {
 		</span>
 		<form name="auth" id="auth" action="login.py" class="form-horizontal" method="post" style="margin-top: 40px;left: 0;float: left;margin-left: 93px;">
 			<br>
-			{{ input('login', class='form-login', placeholder='Login', required='required') }}<br /><br />
+			{{ input('login', class='form-login', placeholder='Login', required='required', autofocus='autofocus') }}<br /><br />
 			{{ input('pass', type='password', class='form-login', placeholder='Password', required='required') }}<br /><br />
 			{{ input('ref', type='hidden', value=ref) }}
 			<button type="submit" name="Login" value="Enter" id="enter">Login</button>
@@ -43,5 +52,6 @@ body, .container {
 			</span>
 		</div>
 		<br /><br />
-</center>
+	</div>
+</div>
 {% endblock %}
