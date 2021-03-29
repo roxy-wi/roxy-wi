@@ -525,6 +525,21 @@ def get_group_name_by_id(group_id):
 	con.close()
 
 
+def get_group_id_by_name(group_name):
+	con, cur = get_cur()
+	sql = """select id from groups where name = '%s' """ % group_name
+
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		return funct.out_error(e)
+	else:
+		for group_id in cur.fetchone():
+			return group_id
+	cur.close()
+	con.close()
+
+
 def select_server_by_name(name):
 	con, cur = get_cur()
 	sql = """select ip from servers where hostname='%s' """ % name
@@ -616,6 +631,52 @@ def write_user_token(login, user_token):
 	except sqltool.Error as e:
 		funct.out_error(e)
 		con.rollback()
+	cur.close()
+	con.close()
+
+
+def write_api_token(user_token, group_id, user_role, user_name):
+	con, cur = get_cur()
+	token_ttl = get_setting('token_ttl')
+
+	if mysql_enable == '1':
+		sql = """ insert into api_tokens (token, user_name, user_group_id, user_role, create_date, expire_date) values('%s', '%s', '%s', '%s', now(), now()+ INTERVAL %s day) """ % (user_token, user_name, group_id, user_role, token_ttl)
+	else:
+		sql = """ insert into api_tokens (token, user_name, user_group_id, user_role, create_date, expire_date) values('%s', '%s', '%s', '%s', datetime('now'), datetime('now', '+%s days')) """ % (user_token, user_name, group_id, user_role, token_ttl)
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		return str(e)
+		con.rollback()
+	cur.close()
+	con.close()
+
+
+def get_api_token(token):
+	con, cur = get_cur()
+	sql = """ select token from api_tokens where token = '%s' """ % token
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		return str(e)
+	else:
+		for user_token in cur.fetchall():
+			return True if token == user_token[0] else False
+	cur.close()
+	con.close()
+
+
+def get_username_groupid_from_api_token(token):
+	con, cur = get_cur()
+	sql = """ select user_name, user_group_id from api_tokens where token = '%s' """ % token
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		return str(e)
+	else:
+		for u in cur.fetchall():
+			return u[0], u[1]
 	cur.close()
 	con.close()
 
@@ -784,14 +845,14 @@ def get_dick_permit(**kwargs):
 	import http.cookies
 	import os
 	if kwargs.get('username'):
-		user = kwargs.get('username')
-		grp = '1'
+		# user = kwargs.get('username')
+		grp = kwargs.get('group_id')
 	else:
 		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-		user_id = cookie.get('uuid')
+		# user_id = cookie.get('uuid')
 		group = cookie.get('group')
 		grp = group.value
-		user = get_user_id_by_uuid(user_id.value)
+		# user = get_user_id_by_uuid(user_id.value)
 	if kwargs.get('token'):
 		token = kwargs.get('token')
 	else:
@@ -818,7 +879,7 @@ def get_dick_permit(**kwargs):
 	if kwargs.get('keepalived'):
 		nginx = "and keepalived = 1"
 
-	if funct.check_user_group():
+	if funct.check_user_group(token=token):
 		con, cur = get_cur()
 		if grp == '1' and not only_group:
 			sql = """ select * from servers where enable = 1 %s %s %s %s order by pos""" % (disable, type_ip, nginx, ip)
@@ -2442,7 +2503,6 @@ def insert_port_scanner_settings(server_id, user_group_id, enabled, notify, hist
 		con.commit()
 		return True
 	except sqltool.Error as e:
-		funct.out_error(e)
 		con.rollback()
 		return False
 	finally:

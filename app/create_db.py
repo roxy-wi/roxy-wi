@@ -138,6 +138,28 @@ def create_table(**kwargs):
 		CREATE TABLE IF NOT EXISTS `waf` (`server_id` INTEGER UNIQUE, metrics INTEGER);
 		CREATE TABLE IF NOT EXISTS `waf_metrics` (`serv` varchar(64), conn INTEGER, `date` DATETIME default '0000-00-00 00:00:00');
 		CREATE TABLE IF NOT EXISTS user_groups(user_id INTEGER NOT NULL, user_group_id INTEGER NOT NULL, UNIQUE(user_id,user_group_id));
+		CREATE TABLE IF NOT EXISTS port_scanner_settings (
+			server_id INTEGER NOT NULL, 
+			user_group_id INTEGER NOT NULL, 
+			enabled INTEGER NOT NULL, 
+			notify INTEGER NOT NULL, 
+			history INTEGER NOT NULL, 
+			UNIQUE(server_id)
+		);
+		CREATE TABLE IF NOT EXISTS port_scanner_ports (
+			`serv` varchar(64), 
+			user_group_id INTEGER NOT NULL,
+			port INTEGER NOT NULL,
+			service_name varchar(64),
+			`date`  DATETIME default '0000-00-00 00:00:00'
+		);
+		CREATE TABLE IF NOT EXISTS port_scanner_history (
+			`serv` varchar(64), 
+			port INTEGER NOT NULL,
+			status varchar(64),
+			service_name varchar(64),
+			`date`  DATETIME default '0000-00-00 00:00:00'
+		);
 		CREATE TABLE IF NOT EXISTS providers_creds (
 			`id` INTEGER NOT NULL,
 			`name` VARCHAR ( 64 ), 
@@ -173,7 +195,15 @@ def create_table(**kwargs):
 			`last_error` VARCHAR ( 256 ),
 			`delete_on_termination` INTEGER,
 			PRIMARY KEY(`id`)
-		); 
+		);
+		CREATE TABLE api_tokens (
+			`token` varchar(64),
+			`user_name` varchar(64),
+			`user_group_id` INTEGER NOT NULL,
+			`user_role` INTEGER NOT NULL,
+			`create_date`  DATETIME default '0000-00-00 00:00:00',
+			`expire_date`  DATETIME default '0000-00-00 00:00:00'
+		);
 		"""
 		try:
 			cur.executescript(sql)
@@ -1012,6 +1042,7 @@ def update_db_v_5(**kwargs):
 	cur.close()
 	con.close()
 
+
 def update_db_v_51(**kwargs):
 	con, cur = get_cur()
 	sql = """CREATE TABLE IF NOT EXISTS provisioned_servers (
@@ -1073,6 +1104,51 @@ def update_db_v_5_0_1(**kwargs):
 	con.close()
 
 
+def update_db_v_5_1_0(**kwargs):
+	con, cur = get_cur()
+	sql = """
+	INSERT  INTO settings (param, value, section, `desc`) values('port_scan_interval', '5', 'monitoring', 'Port scanner check interval, in minutes');
+	"""
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'columns param, group are not unique' or e == " 1060 (42S21): columns param, group are not unique ":
+				print('Updating... DB has been updated to version 5.1.0')
+			else:
+				print("An error occurred:", e)
+	else:
+		print("Updating... DB has been updated to version 5.1.0")
+
+	cur.close()
+	con.close()
+
+
+def update_db_v_5_1_0_1(**kwargs):
+	con, cur = get_cur()
+	sql = """CREATE TABLE api_tokens (
+			`token` varchar(64),
+			`user_name` varchar(64),
+			`user_group_id` INTEGER NOT NULL,
+			`user_role` INTEGER NOT NULL,
+			`create_date`  DATETIME default '0000-00-00 00:00:00',
+			`expire_date`  DATETIME default '0000-00-00 00:00:00'
+		);  """
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: version' or e == "1060 (42S21): Duplicate column name 'version' ":
+				print('Updating... DB has been updated to version 5.1.0')
+			else:
+				print("Updating... DB has been updated to version 5.1.0")
+
+	cur.close()
+	con.close()
+
+
 def update_ver():
 	con, cur = get_cur()
 	sql = """update version set version = '5.0.2.0'; """
@@ -1112,6 +1188,8 @@ def update_all():
 	update_db_v_5()
 	update_db_v_51()
 	update_db_v_5_0_1()
+	update_db_v_5_1_0()
+	update_db_v_5_1_0_1()
 	update_ver()
 
 
@@ -1142,6 +1220,8 @@ def update_all_silent():
 	update_db_v_5(silent=1)
 	update_db_v_51(silent=1)
 	update_db_v_5_0_1(silent=1)
+	update_db_v_5_1_0(silent=1)
+	update_db_v_5_1_0_1(silent=1)
 	update_ver()
 
 

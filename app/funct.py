@@ -16,7 +16,7 @@ def get_app_dir():
 def get_config_var(sec, var):
 	from configparser import ConfigParser, ExtendedInterpolation
 	try:
-		path_config = "haproxy-wi.cfg"
+		path_config = "/var/www/haproxy-wi/app/haproxy-wi.cfg"
 		config = ConfigParser(interpolation=ExtendedInterpolation())
 		config.read(path_config)
 	except Exception:
@@ -63,7 +63,7 @@ def get_user_group(**kwargs):
 				else:
 					user_group = g[1]
 	except Exception:
-		user_group = ''
+		check_user_group()
 
 	return user_group
 
@@ -72,8 +72,11 @@ def logging(serv, action, **kwargs):
 	import sql
 	import http.cookies
 	log_path = get_config_var('main', 'log_path')
-	user_group = get_user_group()
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	try:
+		user_group = get_user_group()
+		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	except:
+		user_group = ''
 
 	if not os.path.exists(log_path):
 		os.makedirs(log_path)
@@ -140,7 +143,7 @@ def telegram_send_mess(mess, **kwargs):
 		channel_name = telegram[2]
 		
 	if token_bot == '' or channel_name == '':
-		mess = " Fatal: Can't send message. Add Telegram channel before use alerting at this servers group"
+		mess = " error: Can't send message. Add Telegram channel before use alerting at this servers group"
 		print(mess)
 		logging('localhost', mess, haproxywi=1)
 		sys.exit()
@@ -1177,7 +1180,10 @@ def get_users_params(**kwargs):
 	return user, user_id, role, token, servers
 
 
-def check_user_group():
+def check_user_group(**kwargs):
+	if kwargs.get('token') is not None:
+		return True
+
 	import http.cookies
 	import os
 	import sql
@@ -1218,9 +1224,10 @@ def get_services_status():
 	services_name = {'checker_haproxy': 'Checker backends master service',
 					 'keep_alive': 'Auto start service',
 					 'metrics_haproxy': 'Metrics master service',
+					 'portscanner': 'Port scanner service',
+					 'smon': 'Simple monitoring network ports',
 					 'prometheus': 'Prometheus service',
 					 'grafana-server': 'Grafana service',
-					 'smon': 'Simple monitoring network ports',
 					 'fail2ban': 'Fail2ban service'}
 	for s, v in services_name.items():
 		cmd = "systemctl status %s |grep Act |awk  '{print $2}'" % s
