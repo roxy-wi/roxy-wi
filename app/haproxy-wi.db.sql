@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS `user` (`id`	INTEGER NOT NULL AUTO_INCREMENT,`usernam
 INSERT INTO `user` (username, email, password, role, `groups`) VALUES ('admin','admin@localhost','21232f297a57a5a743894a0e4a801fc3','admin','1');
 INSERT INTO `user` (username, email, password, role, `groups`) VALUES ('editor','editor@localhost','5aee9dbd2a188839105073571bee1b1f','editor','1');
 INSERT INTO `user` (username, email, password, role, `groups`) VALUES ('guest','guest@localhost','084e0343a0486ff05530df6c705c8bb4','guest','1');
-CREATE TABLE IF NOT EXISTS `servers` (`id`	INTEGER NOT NULL AUTO_INCREMENT,`hostname` VARCHAR ( 64 ),`ip` VARCHAR ( 64 ) UNIQUE,`groups` VARCHAR ( 64 ), type_ip INTEGER NOT NULL DEFAULT 0, enable INTEGER NOT NULL DEFAULT 1, master INTEGER NOT NULL DEFAULT 0, cred INTEGER NOT NULL DEFAULT 1, alert INTEGER NOT NULL DEFAULT 0, metrics INTEGER NOT NULL DEFAULT 0, port INTEGER NOT NULL DEFAULT 22, `desc` varchar(64), active INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(`id`) );
+CREATE TABLE IF NOT EXISTS `servers` (`id`	INTEGER NOT NULL AUTO_INCREMENT,`hostname` VARCHAR ( 64 ),`ip` VARCHAR ( 64 ) UNIQUE,`groups` VARCHAR ( 64 ), type_ip INTEGER NOT NULL DEFAULT 0, enable INTEGER NOT NULL DEFAULT 1, master INTEGER NOT NULL DEFAULT 0, cred INTEGER NOT NULL DEFAULT 1, alert INTEGER NOT NULL DEFAULT 0, metrics INTEGER NOT NULL DEFAULT 0, port INTEGER NOT NULL DEFAULT 22, `desc` varchar(64), active INTEGER NOT NULL DEFAULT 0, keepalived INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(`id`) );
 CREATE TABLE IF NOT EXISTS `role` (`id`	INTEGER NOT NULL AUTO_INCREMENT,`name`	VARCHAR ( 80 ) UNIQUE,`description`	VARCHAR ( 255 ),PRIMARY KEY(`id`) );
 INSERT INTO `role` (name, description) VALUES ('admin','Can do everything');
 INSERT INTO `role` (name, description) VALUES ('editor','Can edit configs');
@@ -16,9 +16,15 @@ CREATE TABLE IF NOT EXISTS `telegram` (`id` integer primary key auto_increment, 
 CREATE TABLE IF NOT EXISTS `metrics` (`serv` varchar(64), curr_con INTEGER, cur_ssl_con INTEGER, sess_rate INTEGER, max_sess_rate INTEGER,`date`  DATETIME default '0000-00-00 00:00:00');
 CREATE TABLE IF NOT EXISTS `settings` (`param` varchar(64), value varchar(64), section varchar(64), `desc` varchar(100), `group` INTEGER NOT NULL DEFAULT 1, UNIQUE(param, `group`));
 CREATE TABLE IF NOT EXISTS `version` (`version` varchar(64));
-CREATE TABLE IF NOT EXISTS `options` ( `id`	INTEGER NOT NULL, `options`	VARCHAR ( 64 ), `groups`	VARCHAR ( 120 ), PRIMARY KEY(`id`));
-CREATE TABLE IF NOT EXISTS `saved_servers` ( `id` INTEGER NOT NULL, `server` VARCHAR ( 64 ), `description` VARCHAR ( 120 ), `groups` VARCHAR ( 120 ), PRIMARY KEY(`id`)); 
-CREATE TABLE IF NOT EXISTS `backups` ( `id` INTEGER NOT NULL, `server` VARCHAR ( 64 ), `rhost` VARCHAR ( 120 ), `rpath` VARCHAR ( 120 ), `time` VARCHAR ( 120 ),  cred INTEGER, `description` VARCHAR ( 120 ), PRIMARY KEY(`id`));
+CREATE TABLE IF NOT EXISTS `options` (`id` INTEGER NOT NULL, `options` VARCHAR ( 64 ), `groups` VARCHAR ( 120 ), PRIMARY KEY(`id`));
+CREATE TABLE IF NOT EXISTS `saved_servers` (`id` INTEGER NOT NULL, `server` VARCHAR ( 64 ), `description` VARCHAR ( 120 ), `groups` VARCHAR ( 120 ), PRIMARY KEY(`id`));
+CREATE TABLE IF NOT EXISTS `backups` (`id` INTEGER NOT NULL, `server` VARCHAR ( 64 ), `rhost` VARCHAR ( 120 ), `rpath` VARCHAR ( 120 ), `time` VARCHAR ( 120 ),  cred INTEGER, `description` VARCHAR ( 120 ), PRIMARY KEY(`id`));
 CREATE TABLE IF NOT EXISTS `waf` (`server_id` INTEGER UNIQUE, metrics INTEGER);
-CREATE TABLE IF NOT EXISTS `waf_metrics` (`serv` varchar(64), conn INTEGER, `date`  DATETIME default '0000-00-00 00:00:00');
+CREATE TABLE IF NOT EXISTS `waf_metrics` (`serv` varchar(64), conn INTEGER, `date` DATETIME default '0000-00-00 00:00:00');
 CREATE TABLE IF NOT EXISTS user_groups(user_id INTEGER NOT NULL, user_group_id INTEGER NOT NULL, UNIQUE(user_id,user_group_id));
+CREATE TABLE IF NOT EXISTS port_scanner_settings (server_id INTEGER NOT NULL, user_group_id INTEGER NOT NULL, enabled INTEGER NOT NULL, notify INTEGER NOT NULL, history INTEGER NOT NULL, UNIQUE(server_id));
+CREATE TABLE IF NOT EXISTS port_scanner_ports (`serv` varchar(64), user_group_id INTEGER NOT NULL, port INTEGER NOT NULL, service_name varchar(64), `date`  DATETIME default '0000-00-00 00:00:00');
+CREATE TABLE IF NOT EXISTS port_scanner_history (`serv` varchar(64), port INTEGER NOT NULL, status varchar(64), service_name varchar(64), `date`  DATETIME default '0000-00-00 00:00:00');
+CREATE TABLE IF NOT EXISTS providers_creds (`id` INTEGER NOT NULL, `name` VARCHAR ( 64 ), `type` VARCHAR ( 64 ), `group` VARCHAR ( 64 ), `key` VARCHAR ( 64 ),  `secret` VARCHAR ( 64 ), `create_date`  DATETIME default '0000-00-00 00:00:00', `edit_date`  DATETIME default '0000-00-00 00:00:00', PRIMARY KEY(`id`)); 
+CREATE TABLE IF NOT EXISTS provisioned_servers (`id` INTEGER NOT NULL, `region` VARCHAR ( 64 ), `instance_type` VARCHAR ( 64 ), `public_ip` INTEGER, `floating_ip` INTEGER, `volume_size` INTEGER, `backup` INTEGER, `monitoring` INTEGER, `private_networking` INTEGER, `ssh_key_name` VARCHAR ( 64 ), `ssh_ids` VARCHAR ( 64 ), `name` VARCHAR ( 64 ), `os` VARCHAR ( 64 ), `firewall` INTEGER, `provider_id` INTEGER, `type` VARCHAR ( 64 ), `status` VARCHAR ( 64 ), `group_id` INTEGER NOT NULL, `date`  DATETIME default '0000-00-00 00:00:00', `IP` VARCHAR ( 64 ), `last_error` VARCHAR ( 256 ), `delete_on_termination` INTEGER, PRIMARY KEY(`id`));
+CREATE TABLE IF NOT EXISTS api_tokens (`token` varchar(64), `user_name` varchar(64), `user_group_id` INTEGER NOT NULL, `user_role` INTEGER NOT NULL, `create_date`  DATETIME default '0000-00-00 00:00:00', `expire_date`  DATETIME default '0000-00-00 00:00:00');

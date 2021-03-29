@@ -196,7 +196,7 @@ def create_table(**kwargs):
 			`delete_on_termination` INTEGER,
 			PRIMARY KEY(`id`)
 		);
-		CREATE TABLE api_tokens (
+		CREATE TABLE IF NOT EXISTS api_tokens (
 			`token` varchar(64),
 			`user_name` varchar(64),
 			`user_group_id` INTEGER NOT NULL,
