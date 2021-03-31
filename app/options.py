@@ -792,10 +792,12 @@ if serv is not None and act == "showMap":
                     line_new[0] = line_new2[0]
 
                 line_new[0] = line_new[0].strip(' \t\n\r')
+
                 try:
-                    line_new2[1] = line_new2[1].strip(' \t\n\r')
+                    backend_server_port = line_new2[1].strip(' \t\n\r')
+                    backend_server_port = 'port: ' + backend_server_port
                 except Exception as e:
-                    line_new2 = ['','']
+                    backend_server_port = ''
 
                 if j % 2 == 0:
                     G.add_node(line_new[0], pos=(k + 230, i - 335), label_pos=(k + 225, i - 180))
@@ -803,9 +805,9 @@ if serv is not None and act == "showMap":
                     G.add_node(line_new[0], pos=(k - 230, i - 0), label_pos=(k - 225, i + 180))
 
                 if line_new2[1] != "":
-                    G.add_edge(node, line_new[0], port=line_new2[1])
+                    G.add_edge(node, line_new[0], port=backend_server_port)
                 else:
-                    G.add_edge(node, line_new[0])
+                    G.add_edge(node, line_new[0], port='')
 
     os.system("/bin/rm -f " + cfg)
 
@@ -819,7 +821,7 @@ if serv is not None and act == "showMap":
         nx.draw_networkx_nodes(G, pos, node_color="skyblue", node_size=100, alpha=0.8, node_shape="p")
         nx.draw_networkx_labels(G, pos=pos_label, alpha=1, font_color="green", font_size=10)
         nx.draw_networkx_edges(G, pos, width=0.5, alpha=0.5, edge_color="#5D9CEB", arrows=False)
-        nx.draw_networkx_edge_labels(G, pos, label_pos=0.5, font_color="blue", labels=edge_labels, font_size=8)
+        nx.draw_networkx_edge_labels(G, pos, label_pos=0.5, font_color="blue", edge_labels=edge_labels, font_size=8)
 
         plt.savefig("map.png")
         plt.show()
