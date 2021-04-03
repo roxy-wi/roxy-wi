@@ -311,3 +311,13 @@
 .note-symbol .question-circle {
 	padding-left: 5px;
 }
+.port-scanner::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f796";
+}
+.net-tools::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f7d9";
+}

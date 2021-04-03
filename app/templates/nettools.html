@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% block content %}
+{% from 'include/input_macros.html' import input, checkbox, select %}
+{% if servers|length == 0 %}
+    {% include 'include/getstarted.html' %}
+{% else %}
+<style>
+    .ping_pre {
+        display: block;
+        padding: 9.5px;
+        margin: 0 0 10px;
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+        line-height: 1.42857143;
+        color: #333;
+        word-break: break-all;
+        word-wrap: break-word;
+        background-color: #f5f5f5;
+        border: 1px solid #ccc;
+    }
+</style>
+<form name="nettools_icmp_form" id="nettools_icmp_form" method="post" action="options.py">
+    <table class="overview">
+        <caption><h3>ICMP</h3></caption>
+        <tr class="overviewHead">
+            <th class="padding10 first-collumn">From server</th>
+            <th class="padding10 first-collumn">To server</th>
+            <th class="padding10 first-collumn"></th>
+            <th></th>
+        </tr>
+        <tr>
+                <td class="padding10 first-collumn">
+                    <select autofocus required name="nettools_icmp_server_from" id="nettools_icmp_server_from">
+                        <option disabled selected>Choose server</option>
+                        <option value="localhost">HAProxy-WI</option>
+                        {% for server in servers %}
+                        <option value="{{ server.2 }}">{{ server.1 }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td class="padding10 first-collumn">
+                    {{ input('nettools_icmp_server_to', title='Enter IP or Name') }}
+                    {{ input('token', value=token, type='hidden') }}
+                </td>
+                <td class="padding10 first-collumn">
+                    <button type="submit" title="Run Ping" id="nettools_ping" name="nettools_ping" value="nettools_ping">Ping</button>
+                </td>
+                <td>
+                    <button type="submit" title="Run Traceroute" id="nettools_trace" name="nettools_trace" value="nettools_trace">Traceroute</button>
+                </td>
+        </tr>
+    </table>
+</form>
+<form name="nettools_telnet_form" id="nettools_telnet_form" method="post" action="options.py">
+    <table class="overview">
+        <caption><h3>Check port</h3></caption>
+        <tr class="overviewHead">
+            <th class="padding10 first-collumn">From server</th>
+            <th class="padding10 first-collumn">To server</th>
+            <th class="padding10 first-collumn">Port</th>
+            <th></th>
+        </tr>
+        <tr>
+            <td class="padding10 first-collumn">
+                <select autofocus required name="nettools_telnet_server_from" id="nettools_telnet_server_from">
+                    <option disabled selected>Choose server</option>
+                    <option value="localhost">HAProxy-WI</option>
+                    {% for server in servers %}
+                    <option value="{{ server.2 }}">{{ server.1 }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td class="padding10 first-collumn">
+                {{ input('nettools_telnet_server_to', title='Enter IP or Name') }}
+                {{ input('token', value=token, type='hidden') }}
+            </td>
+            <td class="padding10 first-collumn">
+                {{ input('nettools_telnet_port_to', title='Enter port', type='number', style='width: 60px;') }}
+            </td>
+            <td>
+                <button type="submit" title="Run Telnet" id="nettools_telnet" name="nettools_telnet" value="nettools_telnet">Connect</button>
+            </td>
+        </tr>
+    </table>
+</form>
+<form name="nettools_nslookup_form" id="nettools_nslookup_form" method="post" action="options.py">
+    <table class="overview">
+        <caption><h3>NSLookup</h3></caption>
+        <tr class="overviewHead">
+            <th class="padding10 first-collumn">From server</th>
+            <th class="padding10 first-collumn">Record type</th>
+            <th class="padding10 first-collumn">DNS name</th>
+            <th></th>
+        </tr>
+        <tr>
+            <td class="padding10 first-collumn">
+                <select autofocus required name="nettools_nslookup_server_from" id="nettools_nslookup_server_from">
+                    <option disabled selected>Choose server</option>
+                    <option value="localhost">HAProxy-WI</option>
+                    {% for server in servers %}
+                    <option value="{{ server.2 }}">{{ server.1 }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td class="padding10 first-collumn">
+                {% set values = dict() %}
+                {% set values = {'A':'A','AAA':'AAA', 'CNAME':'CNAME', 'MX':'MX', 'TXT':'TXT', 'PTR':'PTR', 'SRV':'SRV',
+                'SOA':'SOA', 'CAA':'CAA'} %}
+                {{ select('nettools_nslookup_record_type',  values=values, selected='A', required='required') }}
+            </td>
+            <td class="padding10 first-collumn">
+                {{ input('nettools_nslookup_name', title='Enter a DNS name') }}
+                {{ input('token', value=token, type='hidden') }}
+            </td>
+            <td>
+                <button type="submit" title="Run Telnet" id="nettools_nslookup" name="nettools_nslookup" value="nettools_nslookup">Check</button>
+            </td>
+        </tr>
+    </table>
+</form>
+<div id="ajax-nettools" style="padding: 20px;"></div>
+<script>
+    $("#nettools_nslookup_record_type" ).selectmenu({
+				width: 175
+			});
+    $( "#nettools_telnet_form" ).on("click", ":submit", function(e){
+        $('#ajax-nettools').html('');
+        var frm = $('#nettools_telnet_form');
+        if($('#nettools_telnet_server_from option:selected').val() == 'Choose server') {
+            toastr.warning('Choose a server From');
+            return false;
+        }
+        if($('#nettools_telnet_server_to').val() == '') {
+            toastr.warning('Choose a server To');
+            return false;
+        }
+        if($('#nettools_telnet_port_to').val() == '') {
+            toastr.warning('Enter a port To');
+            return false;
+        }
+        $.ajax({
+            url: frm.attr('action'),
+            data: frm.serialize(),
+            type: frm.attr('method'),
+            success: function( data ) {
+                data = data.replace('\n', '<br>');
+                if (data.indexOf('error: ') != '-1' || data.indexOf('Fatal') != '-1' || data.indexOf('Error(s)') != '-1') {
+                    $('#ajax-nettools').html('<div class="alert alert-warning">'+data+'</div>');
+                } else {
+                    toastr.clear();
+                    if (data.indexOf('') != '-1') {
+                        $('#ajax-nettools').html('<div class="alert alert-success"><b>Connection has been successful</b></div>');
+                    } else {
+                        $('#ajax-nettools').html('<div class="alert alert-success"><b>Connection has been successful</b>:<br /><br />'+data+'</div>');
+                    }
+                }
+            }
+        });
+        event.preventDefault();
+    });
+    $( "#nettools_nslookup_form" ).on("click", ":submit", function(e){
+        $('#ajax-nettools').html('');
+        var frm = $('#nettools_nslookup_form');
+        if($('#nettools_nslookup_server_from option:selected').val() == 'Choose server') {
+            toastr.warning('Choose a server From');
+            return false;
+        }
+        if($('#nettools_nslookup_name').val() == '') {
+            toastr.warning('Enter a DNS name');
+            return false;
+        }
+        $.ajax({
+            url: frm.attr('action'),
+            data: frm.serialize(),
+            type: frm.attr('method'),
+            success: function( data ) {
+                data = data.replace('\n', '<br>');
+                if (data.indexOf('error: ') != '-1' || data.indexOf('Fatal') != '-1' || data.indexOf('Error(s)') != '-1') {
+                    toastr.clear();
+                    toastr.error(data);
+                } else {
+                    toastr.clear();
+                    $('#ajax-nettools').html('<div class="ping_pre">'+data+'</div>');
+                }
+            }
+        });
+        event.preventDefault();
+    });
+    $( "#nettools_icmp_form" ).on("click", ":submit", function(e){
+        $('#ajax-nettools').html('');
+        var frm = $('#nettools_icmp_form');
+        if($('#nettools_icmp_server_from option:selected').val() == 'Choose server') {
+            toastr.warning('Choose a server From');
+            return false;
+        }
+        if($('#nettools_icmp_server_to').val() == '') {
+            toastr.warning('Enter a server To');
+            return false;
+        }
+        $.ajax({
+            url: frm.attr('action'),
+            data: frm.serialize() + "&nettools_action=" + $(this).val(),
+            type: frm.attr('method'),
+            success: function( data ) {
+                data = data.replace('\n', '<br>');
+                if (data.indexOf('error: ') != '-1' || data.indexOf('Fatal') != '-1' || data.indexOf('Error(s)') != '-1') {
+                    toastr.clear();
+                    toastr.error(data);
+                } else {
+                    toastr.clear();
+                    $('#ajax-nettools').html('<div class="ping_pre">'+data+'</div>');
+                }
+            }
+        });
+        event.preventDefault();
+    });
+</script>
+{% endif %}
+{% endblock %}

@@ -622,6 +622,7 @@ function viewLogs() {
 	}
 }
 $( function() {
+	NProgress.configure({showSpinner: false});
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -648,6 +649,7 @@ $( function() {
 			});
 		}
 	} );
+	NProgress.configure({showSpinner: true});
 	$('a').click(function(e) {
 		try {
 			var cur_path = window.location.pathname;

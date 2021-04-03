@@ -1115,11 +1115,9 @@ if form.getvalue('install_grafana'):
             'success: Grafana and Prometheus servers were installed. You can find Grafana on http://' + socket.gethostname() + ':3000<br>')
     else:
         for l in output:
-            if "FAILED" in l:
+            if "Traceback" in l or "FAILED" in l:
                 try:
-                    l = l.split(':')[1]
-                    l = l.split('"')[1]
-                    print(l + "<br>")
+                    print(l)
                     break
                 except Exception:
                     print(output)
@@ -2341,6 +2339,115 @@ if form.getvalue('geoip_install'):
     funct.show_installation_output(error, output, 'GeoLite2 Database')
 
     os.system("rm -f %s" % script)
+
+if form.getvalue('nettools_icmp_server_from'):
+    server_from = form.getvalue('nettools_icmp_server_from')
+    server_to = form.getvalue('nettools_icmp_server_to')
+    action = form.getvalue('nettools_action')
+    stderr = ''
+
+    if action == 'nettools_ping':
+        action_for_sending = 'ping -c 4 -W 1 -s 56 -O '
+    elif action == 'nettools_trace':
+        action_for_sending = 'tracepath -m 10 '
+
+    action_for_sending = action_for_sending + server_to
+
+    if server_from == 'localhost':
+        output, stderr = funct.subprocess_execute(action_for_sending)
+    else:
+        action_for_sending = [action_for_sending]
+        output = funct.ssh_command(server_from, action_for_sending, raw=1)
+
+    if stderr != '':
+        print('error: '+stderr)
+        sys.exit()
+    for i in output:
+        if i == ' ':
+            continue
+        i = i.strip()
+        print(i + '<br>')
+
+if form.getvalue('nettools_telnet_server_from'):
+    server_from = form.getvalue('nettools_telnet_server_from')
+    server_to = form.getvalue('nettools_telnet_server_to')
+    port_to = form.getvalue('nettools_telnet_port_to')
+    stderr = ''
+
+    if server_from == 'localhost':
+        action_for_sending = 'echo "exit"|nc ' + server_to + ' ' + port_to + ' -t -w 1s'
+        output, stderr = funct.subprocess_execute(action_for_sending)
+    else:
+        action_for_sending = ['echo "exit"|nc ' + server_to + ' ' + port_to + ' -t -w 1s']
+        output = funct.ssh_command(server_from, action_for_sending, raw=1)
+
+    if stderr != '':
+        print('error: '+stderr[5:-1])
+        sys.exit()
+    count_string = 0
+    for i in output:
+        if i == ' ':
+            continue
+        i = i.strip()
+        if i == 'Ncat: Connection timed out.':
+            print('error: ' + i[5:-1])
+            break
+        print(i + '<br>')
+        count_string += 1
+        if count_string > 1:
+            break
+
+if form.getvalue('nettools_nslookup_server_from'):
+    server_from = form.getvalue('nettools_nslookup_server_from')
+    dns_name = form.getvalue('nettools_nslookup_name')
+    record_type = form.getvalue('nettools_nslookup_record_type')
+    stderr = ''
+
+    action_for_sending = 'dig ' + dns_name + ' ' + record_type + ' |grep -e "SERVER\|' + dns_name + '"'
+
+    if server_from == 'localhost':
+        output, stderr = funct.subprocess_execute(action_for_sending)
+    else:
+        action_for_sending = [action_for_sending]
+        output = funct.ssh_command(server_from, action_for_sending, raw=1)
+
+    if stderr != '':
+        print('error: '+stderr[5:-1])
+        sys.exit()
+    count_string = 0
+    print('<b>There are the next records for ' + dns_name + ' domain:</b> <br />')
+    for i in output:
+        if 'dig: command not found.' in i:
+            print('error: Install bind-utils before using NSLookup')
+            break
+        if ';' in i and ';; SERVER:' not in i:
+            continue
+        if 'SOA' in i and record_type != 'SOA':
+            print('<b>There are not any records for this type')
+            break
+        if ';; SERVER:' in i:
+            i = i[10:-1]
+            print('<br><b>From NS server:</b><br>')
+        i = i.strip()
+        print(i + '<br>')
+        count_string += 1
+
+if form.getvalue('portscanner_history_server_id'):
+    server_id = form.getvalue('portscanner_history_server_id')
+    enabled = form.getvalue('portscanner_enabled')
+    notify = form.getvalue('portscanner_notify')
+    history = form.getvalue('portscanner_history')
+
+    servers = sql.select_servers(id=server_id)
+
+    for s in servers:
+        user_group_id = s[3]
+
+    if sql.insert_port_scanner_settings(server_id, user_group_id, enabled, notify, history):
+        print('ok')
+    else:
+        if sql.update_port_scanner_settings(server_id, user_group_id, enabled, notify, history):
+            print('ok')
 
 if form.getvalue('show_versions'):
     from jinja2 import Environment, FileSystemLoader

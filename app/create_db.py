@@ -1104,6 +1104,76 @@ def update_db_v_5_0_1(**kwargs):
 	con.close()
 
 
+def update_db_v_5_1_0_11(**kwargs):
+	con, cur = get_cur()
+	sql = """CREATE TABLE IF NOT EXISTS port_scanner_settings (
+			server_id INTEGER NOT NULL, 
+			user_group_id INTEGER NOT NULL, 
+			enabled INTEGER NOT NULL, 
+			notify INTEGER NOT NULL, 
+			history INTEGER NOT NULL, 
+			UNIQUE(server_id)
+		);  """
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: version' or e == "1060 (42S21): Duplicate column name 'version' ":
+				print('Updating... DB has been updated to version 5.1.0')
+			else:
+				print("Updating... DB has been updated to version 5.1.0")
+
+	cur.close()
+	con.close()
+
+
+def update_db_v_5_1_0_12(**kwargs):
+	con, cur = get_cur()
+	sql = """CREATE TABLE IF NOT EXISTS port_scanner_ports (
+			`serv` varchar(64), 
+			user_group_id INTEGER NOT NULL,
+			port INTEGER NOT NULL,
+			service_name varchar(64),
+			`date`  DATETIME default '0000-00-00 00:00:00'
+		); """
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: version' or e == "1060 (42S21): Duplicate column name 'version' ":
+				print('Updating... DB has been updated to version 5.1.0')
+			else:
+				print("Updating... DB has been updated to version 5.1.0")
+
+	cur.close()
+	con.close()
+
+
+def update_db_v_5_1_0_13(**kwargs):
+	con, cur = get_cur()
+	sql = """CREATE TABLE IF NOT EXISTS port_scanner_history (
+			`serv` varchar(64), 
+			port INTEGER NOT NULL,
+			status varchar(64),
+			service_name varchar(64),
+			`date`  DATETIME default '0000-00-00 00:00:00'
+		); """
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: version' or e == "1060 (42S21): Duplicate column name 'version' ":
+				print('Updating... DB has been updated to version 5.1.0')
+			else:
+				print("Updating... DB has been updated to version 5.1.0")
+
+	cur.close()
+	con.close()
+
+
 def update_db_v_5_1_0(**kwargs):
 	con, cur = get_cur()
 	sql = """
@@ -1151,7 +1221,7 @@ def update_db_v_5_1_0_1(**kwargs):
 
 def update_ver():
 	con, cur = get_cur()
-	sql = """update version set version = '5.0.2.0'; """
+	sql = """update version set version = '5.1.0.0'; """
 	try:
 		cur.execute(sql)
 		con.commit()
@@ -1187,6 +1257,9 @@ def update_all():
 	update_db_v_4_5_9()
 	update_db_v_5()
 	update_db_v_51()
+	update_db_v_5_1_0_11()
+	update_db_v_5_1_0_12()
+	update_db_v_5_1_0_13()
 	update_db_v_5_0_1()
 	update_db_v_5_1_0()
 	update_db_v_5_1_0_1()
@@ -1220,6 +1293,9 @@ def update_all_silent():
 	update_db_v_5(silent=1)
 	update_db_v_51(silent=1)
 	update_db_v_5_0_1(silent=1)
+	update_db_v_5_1_0_11(silent=1)
+	update_db_v_5_1_0_12(silent=1)
+	update_db_v_5_1_0_13(silent=1)
 	update_db_v_5_1_0(silent=1)
 	update_db_v_5_1_0_1(silent=1)
 	update_ver()

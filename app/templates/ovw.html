@@ -259,6 +259,26 @@
 				Prometheus
 		</td>
 		{% endif %}
+		<td>
+		{% if port_scanner == 'active' %}
+				<span class="serverUp server-status" title="Port scanner is started"></span>
+				<a href="/app/portscanner.py" title="Port scanner Dashboard" class="logs_link">
+					Port scanner
+				</a>
+			{% else %}
+				{% if port_scanner == 'inactive' or port_scanner== 'failed' %}
+					<span class="serverDown server-status" title="Port scanner is stopped"></span>
+					<a href="/app/users.py#services" title="Start Port scanner - HAProxy-WI service" class="logs_link">
+						Port scanner
+					</a>
+				{% else %}
+					<span title="Port scanner is not installed"><span class="serverNone server-status"></span></span>
+					<a href="https://haproxy-wi.org/services.py?service=port_scanner" title="Port scanner" target="_blank" class="logs_link">
+						Port scanner
+					</a>
+				{% endif %}
+			{% endif %}
+		</td>
 	</tr>
 </table>
 {% if role <= 2 %}

@@ -9,6 +9,7 @@ env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('ovw.html')
 
 print('Content-type: text/html\n')
+
 if create_db.check_db():
 	if create_db.create_table():
 		create_db.update_all()
@@ -79,6 +80,8 @@ try:
 	keep_alive, stderr = funct.subprocess_execute(cmd)
 	cmd = "systemctl status smon |grep Act |awk  '{print $2}'"
 	smon, stderr = funct.subprocess_execute(cmd)
+	cmd = "systemctl status portscanner |grep Act |awk  '{print $2}'"
+	port_scanner, stderr = funct.subprocess_execute(cmd)
 
 except Exception as e:
 	role = ''
@@ -102,6 +105,7 @@ except Exception as e:
 	is_metrics_worker = ''
 	token = ''
 
+
 template = template.render(h2=1,
 							autorefresh=1,
 							title="Overview",
@@ -117,6 +121,7 @@ template = template.render(h2=1,
 							checker_worker=''.join(checker_worker),
 							keep_alive=''.join(keep_alive),
 							smon=''.join(smon),
+							port_scanner=''.join(port_scanner),
 							grafana=''.join(grafana),
 							prometheus=''.join(prometheus),
 							haproxy_wi_log_id=funct.haproxy_wi_log(log_id=1, file="haproxy-wi-", with_date=1),

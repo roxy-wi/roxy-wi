@@ -97,7 +97,7 @@
 						</li>
 						{% endif %}
 							<li class="p_menu">
-								<a title="Simple monitoring network ports" class="stats">Monitoring</a>
+								<a title="Monitoring tools" class="stats">Monitoring</a>
 								<ul class="v_menu">
 									<li><a href="/app/smon.py?action=view" title="SMON Dashboard" class="overview-link head-submenu">SMON Dashboard</a></li>
 									<li><a href="/app/smon.py?action=history" title="SMON History" class="lists head-submenu">SMON History</a></li>
@@ -105,6 +105,8 @@
 									<li><a href="/app/smon.py?action=add" title="SMON admin panel" class="edit head-submenu">SMON Admin panel</a></li>
 									{% endif %}
 									<li><a href="/app/smon.py?action=checker_history" title="Checker History" class="lists head-submenu">Checker History</a></li>
+									<li><a href="/app/portscanner.py" title="Port scanner" class="port-scanner head-submenu">Port scanner</a></li>
+									<li><a href="/app/nettools.py" title="Network tools" class="net-tools head-submenu">Network tools</a></li>
 								</ul>
 							</li>
 						{% if role <= 2 %}
