@@ -116,24 +116,23 @@ $( function() {
 		} else {
 			$( "#controlgroup-listen" ).hide( "fast" );			
 		}
-	$( "#check-servers-listen" ).click( function(){
-		if ($('#check-servers-listen').is(':checked')) {
-			$( "#rise-listen" ).attr('required',true);
-			$( "#fall-listen" ).attr('required',true);
-			$( "#inter-listen" ).attr('required',true);
-			$( "#inter-listen" ).selectmenu( "option", "disabled", false );
-			$( "#fall-listen" ).selectmenu( "option", "disabled", false );
-			$( "#rise-listen" ).selectmenu( "option", "disabled", false );
-		} else {
-			$( "#rise-listen" ).attr('required',false);
-			$( "#fall-listen" ).attr('required',false);
-			$( "#inter-listen" ).attr('required',false);
-			$( "#inter-listen" ).selectmenu( "option", "disabled", true );
-			$( "#fall-listen" ).selectmenu( "option", "disabled", true );
-			$( "#rise-listen" ).selectmenu( "option", "disabled", true );
-		}
-	});
-	
+		$( "#check-servers-listen" ).click( function(){
+			if ($('#check-servers-listen').is(':checked')) {
+				$( "#rise-listen" ).attr('required',true);
+				$( "#fall-listen" ).attr('required',true);
+				$( "#inter-listen" ).attr('required',true);
+				$( "#inter-listen" ).selectmenu( "option", "disabled", false );
+				$( "#fall-listen" ).selectmenu( "option", "disabled", false );
+				$( "#rise-listen" ).selectmenu( "option", "disabled", false );
+			} else {
+				$( "#rise-listen" ).attr('required',false);
+				$( "#fall-listen" ).attr('required',false);
+				$( "#inter-listen" ).attr('required',false);
+				$( "#inter-listen" ).selectmenu( "option", "disabled", true );
+				$( "#fall-listen" ).selectmenu( "option", "disabled", true );
+				$( "#rise-listen" ).selectmenu( "option", "disabled", true );
+			}
+		});
 	});
 	$( "#controlgroup-backend-show" ).click( function(){
 		if ($('#controlgroup-backend-show').is(':checked')) {
@@ -145,6 +144,20 @@ $( function() {
 			}
 		} else {
 			$( "#controlgroup-backend" ).hide( "fast" );			
+		}
+	});
+	$( "#circuit_breaking_listen" ).click( function(){
+		if ($('#circuit_breaking_listen').is(':checked')) {
+			$( "#circuit_breaking_listen_div" ).show( "fast" );
+		} else {
+			$( "#circuit_breaking_listen_div" ).hide( "fast" );
+		}
+	});
+	$( "#circuit_breaking_backend" ).click( function(){
+		if ($('#circuit_breaking_backend').is(':checked')) {
+			$( "#circuit_breaking_backend_div" ).show( "fast" );
+		} else {
+			$( "#circuit_breaking_backend_div" ).hide( "fast" );
 		}
 	});
 	$( "#cookie" ).click( function(){
@@ -329,6 +342,50 @@ $( function() {
 					data = data.replace(/\s+/g,' ');
 					response(data.split(" "));
 				}						
+			} );
+		},
+		autoFocus: true,
+		minLength: -1
+	});
+	$( "#whitelist-hide-input" ).autocomplete({
+		source: function( request, response ) {
+			if ( request.term == "" ) {
+				request.term = 1
+			}
+			$.ajax( {
+				url: "options.py",
+				data: {
+					get_lists: request.term,
+					color: "white",
+					group: $("#group").val(),
+					token: $('#token').val()
+				},
+				success: function( data ) {
+					data = data.replace(/\s+/g,' ');
+					response(data.split(" "));
+				}
+			} );
+		},
+		autoFocus: true,
+		minLength: -1
+	});
+	$( "#whitelist-hide-input1" ).autocomplete({
+		source: function( request, response ) {
+			if ( request.term == "" ) {
+				request.term = 1
+			}
+			$.ajax( {
+				url: "options.py",
+				data: {
+					get_lists: request.term,
+					color: "white",
+					group: $("#group").val(),
+					token: $('#token').val()
+				},
+				success: function( data ) {
+					data = data.replace(/\s+/g,' ');
+					response(data.split(" "));
+				}
 			} );
 		},
 		autoFocus: true,
@@ -643,6 +700,24 @@ $( function() {
 		} else {
 			$( "#blacklist-hide1" ).hide( "fast" );
 			$( "#blacklist-hide-input1" ).prop('required',false);
+		}
+	});
+	$( "#whitelist_checkbox" ).click( function(){
+		if ($('#whitelist_checkbox').is(':checked')) {
+			$( "#whitelist-hide" ).show( "fast" );
+			$( "#whitelist-hide-input" ).attr('required',true);
+		} else {
+			$( "#whitelist-hide" ).hide( "fast" );
+			$( "#whitelist-hide-input" ).prop('required',false);
+		}
+	});
+	$( "#whitelist_checkbox1" ).click( function(){
+		if ($('#whitelist_checkbox1').is(':checked')) {
+			$( "#whitelist-hide1" ).show( "fast" );
+			$( "#whitelist-hide-input1" ).attr('required',true);
+		} else {
+			$( "#whitelist-hide1" ).hide( "fast" );
+			$( "#whitelist-hide-input1" ).prop('required',false);
 		}
 	});
 	$( ":regex(id, template)" ).click( function(){

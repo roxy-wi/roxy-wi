@@ -133,10 +133,15 @@ elif form.getvalue('mode') is not None:
 		options_split += "    option forceclose\n"
 	elif force_close == "3":
 		options_split += "    option http-pretend-keepalive\n"
-		
+
+	if form.getvalue('whitelist') is not None:
+		options_split += "    tcp-request connection accept if { src -f " + haproxy_dir + "/white/" + form.getvalue(
+			'whitelist') + " }\n"
+
 	if form.getvalue('blacklist') is not None:
-		options_split += "    tcp-request connection reject if { src -f "+haproxy_dir+"/black/"+form.getvalue('blacklist')+" }\n"
-		
+		options_split += "    tcp-request connection reject if { src -f " + haproxy_dir + "/black/" + form.getvalue(
+			'blacklist') + " }\n"
+
 	if form.getvalue('cookie'):
 		cookie = "    cookie "+form.getvalue('cookie_name')
 		if form.getvalue('cookie_domain'):
@@ -219,6 +224,13 @@ elif form.getvalue('mode') is not None:
 				acl = ''
 
 			i += 1
+
+	if form.getvalue('circuit_breaking') == "1":
+		observe = 'observe ' + form.getvalue('circuit_breaking_observe')
+		error_limit = ' error-limit ' + form.getvalue('circuit_breaking_error_limit')
+		circuit_breaking_on_error = ' on-error ' + form.getvalue('circuit_breaking_on_error')
+		default_server = '    default-server ' + observe + error_limit + circuit_breaking_on_error + '\n'
+		servers_split += default_server
 
 	if form.getvalue('servers') is not None:	
 		servers = form.getlist('servers')

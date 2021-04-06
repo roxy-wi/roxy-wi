@@ -11,6 +11,9 @@
 'option ldap-check':'Check a LDAP service', 'option mysql-check':'Check a MySql Service',
 'option pgsql-check':'Check a PgSQL Service', 'option redis-check': 'Check a Redis Service',
 'option smtpchk':'Check a SMTP service'} %}
+{% set observe = {'layer7':'layer7', 'layer4': 'layer4'} %}
+{% set on_error = {'mark-down':'mark-down', 'fastinter': 'fastinter', 'fail-check':'fail-check',
+'sudden-death':'sudden-death'} %}
 
 {% set if_values = dict() %}
 {% set if_values = {'1':'Host name starts with','2':'Host name ends with','3':'Path starts with','4':'Path ends with', '6': 'Src ip'} %}
@@ -156,13 +159,18 @@
 						<span class="controlgroup">
 							{{ checkbox('slow_atack', title='Slow attack protect', desc='Slow attack') }}
 							{{ checkbox('ddos', title='DDOS attack protect', desc='DDOS') }}
-							{{ checkbox('blacklist_checkbox', title='Use blacklist', desc='Blacklist') }}
+							{{ checkbox('whitelist_checkbox', title='Add whitelist', desc='Whitelist') }}
+							{{ checkbox('blacklist_checkbox', title='Add blacklist', desc='Blacklist') }}
 							{{ checkbox('waf', title='Web application firewall', desc='WAF', value='1') }}
 							{{ checkbox('antibot', title='Antibot Protection', desc='Antibot', value='1') }}
 						</span>
 						<div id="blacklist-hide" style="display: none;">
 							<br /><span class="tooltip tooltipTop">Enter a blacklist name, or press the "down" button:</span><br />
 							{{ input('blacklist-hide-input', size='39', name="blacklist", placeholder="blacklist.lst") }}
+						</div>
+						<div id="whitelist-hide" style="display: none;">
+							<br /><span class="tooltip tooltipTop">Enter a whitelist name, or press the "down" button::</span><br />
+							{{ input('whitelist-hide-input', size='39', name="whitelist", placeholder="whitelist.lst") }}
 						</div>
 					</td>
 				</tr>
@@ -240,6 +248,17 @@
 							{% set values = dict() %}
 							{% set values = {'4':'4','5':'5','6':'6'} %}
 							{{ select('fall-listen', name='fall', values=values, first='fall', class='force_close') }}
+						</div>
+						<div style="display: block">
+							{{ checkbox('circuit_breaking_listen', name="circuit_breaking", desc='Circuit Breaking', title='Enable Circuit Breaking', value='1') }}
+						</div>
+						<div id="circuit_breaking_listen_div" style="display: none">
+							Observe:
+							{{ select('circuit_breaking_observe', values=observe, class='force_close') }}
+							error-limit: {{ input('circuit_breaking_error_limit', type='number', value='50', style='width: 50px;') }}
+							on-error:
+							{{ select('circuit_breaking_on_error', values=on_error, class='force_close') }}
+							<div class="tooltip tooltipTop">Read more about Circuit Breaking <a href="https://haproxy-wi.org/description.py?description=circuit_breaking" title="Circuit Breaking" target="_blank">here</a></div>
 						</div>
 					</td>
 				</tr>
@@ -369,13 +388,18 @@
 					<span class="controlgroup">
 						{{ checkbox('slow_atack1', title='Slow attack protect', desc='Slow attack') }}
 						{{ checkbox('ddos1', title='DDOS attack protect', desc='DDOS') }}
-						{{ checkbox('blacklist_checkbox1', title='Use blacklist', desc='Blacklist') }}
+						{{ checkbox('whitelist_checkbox1', title='Add whitelist', desc='Whitelist') }}
+						{{ checkbox('blacklist_checkbox1', title='Add blacklist', desc='Blacklist') }}
 						{{ checkbox('waf2', name='waf', title='Web application firewall', desc='WAF', value='1') }}
 						{{ checkbox('antibot1', title='Antibot Protection', desc='Antibot', value='1') }}
 					</span>
 					<div id="blacklist-hide1" style="display: none;">
 						<br /><span class="tooltip tooltipTop">Enter a blacklist name, or press the "down" button::</span><br />
 						{{ input('blacklist-hide-input1', size='39', name="blacklist", placeholder="blacklist.lst") }}
+					</div>
+					<div id="whitelist-hide1" style="display: none;">
+						<br /><span class="tooltip tooltipTop">Enter a whitelist name, or press the "down" button::</span><br />
+						{{ input('whitelist-hide-input1', size='39', name="whitelist", placeholder="whitelist.lst") }}
 					</div>
 				</td>
 			</tr>
@@ -606,6 +630,17 @@
 						{% set values = dict() %}
 						{% set values = {'4':'4','5':'5','6':'6'} %}
 						{{ select('fall-backend', name='fall', values=values, first='fall', class='force_close') }}
+					</div>
+					<div style="display: block">
+						{{ checkbox('circuit_breaking_backend', name="circuit_breaking", desc='Circuit Breaking', title='Enable Circuit Breaking', value='1') }}
+					</div>
+					<div id="circuit_breaking_backend_div" style="display: none">
+						Observe:
+						{{ select('circuit_breaking_observe', values=observe, class='force_close') }}
+						error-limit: {{ input('circuit_breaking_error_limit', type='number', value='50', style='width: 50px;') }}
+						on-error:
+						{{ select('circuit_breaking_on_error', values=on_error, class='force_close') }}
+						<div class="tooltip tooltipTop">Read more about Circuit Breaking <a href="https://haproxy-wi.org/description.py?description=circuit_breaking" title="Circuit Breaking" target="_blank">here</a></div>
 					</div>
 				</td>
 			</tr>
