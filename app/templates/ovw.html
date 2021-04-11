@@ -259,7 +259,7 @@
 				Prometheus
 		</td>
 		{% endif %}
-		<td>
+		<td {% if role != 1 %}class="padding10 first-collumn-wi"{%endif%}>
 		{% if port_scanner == 'active' %}
 				<span class="serverUp server-status" title="Port scanner is started"></span>
 				<a href="/app/portscanner.py" title="Port scanner Dashboard" class="logs_link">
