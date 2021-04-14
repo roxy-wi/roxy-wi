@@ -100,7 +100,10 @@
 - name: test to see if selinux is running
   command: getenforce
   register: sestatus
+  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS')
   changed_when: false
+  ignore_errors: yes
+  debugger: never
 
     
 - name: Disble SELINUX in config
