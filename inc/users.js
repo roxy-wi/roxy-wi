@@ -1941,7 +1941,7 @@ function ajaxActionServies(action, service) {
 				toastr.error(data);
 			} else {
 				window.history.pushState("services", "services", cur_url[0].split("#")[0] + "#services");
-				toastr.success('The ' + service + 'has been ' + action +'ed');
+				toastr.success('The ' + service + ' has been ' + action +'ed');
 				loadServices();
 			}
 		},

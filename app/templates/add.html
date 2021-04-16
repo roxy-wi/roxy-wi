@@ -920,6 +920,29 @@
 			</tr>
 		</table>
 		</form>
+		<br />
+		<table>
+			<caption><h3>Existing UserList</h3></caption>
+			<tr>
+				<td class="addName">Select server: </td>
+				<td class="addOption">
+					<select required name="serv" id="existing_userlist_serv">
+						<option disabled selected>Choose server</option>
+						{% for select in selects %}
+							<option value="{{ select.2 }}">{{ select.1 }}</option>
+						{% endfor %}
+					</select>
+					<div class="tooltip tooltipTop"><b>Note:</b> If you reconfigure Master server, Slave will reconfigured automatically</div>
+				</td>
+				<td>
+					<a class="ui-button ui-widget ui-corner-all" title="Add Userlist" onclick="showUserlists()">Show Userlist</a>
+				</td>
+			</tr>
+			<tr id="existing_userlist_tr" style="display: none;">
+				<td class="addName">Existing Userlist:</td>
+				<td class="addOption" id="existing_userlist_ajax"></td>
+			</tr>
+		</table>
 		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
 			In this section you can create userlists. And after use them  in the "Add" sections
 		</div>

@@ -340,7 +340,7 @@ def diff_config(oldcfg, cfg):
 	except IOError:
 		print('<center><div class="alert alert-danger">Can\'t read write change to log. %s</div></center>' % stderr)
 		pass
-		
+
 		
 def get_sections(config, **kwargs):
 	return_config = list()
@@ -437,7 +437,17 @@ def rewrite_section(start_line, end_line, config, section):
 			return_config += line
 		
 	return return_config
-	
+
+
+def get_userlists(config, **kwargs):
+	return_config = ''
+	with open(config, 'r') as f:
+		for line in f:
+			if line.startswith('userlist'):
+				line = line.strip()
+				return_config += line + ','
+
+	return return_config
 	
 def get_backends_from_config(serv, backends='', **kwargs):
 	configs_dir = get_config_var('configs', 'haproxy_save_configs_dir')

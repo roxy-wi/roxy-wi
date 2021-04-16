@@ -22,7 +22,7 @@
     </td>
 </tr>
 {% for s in services %}
-    {% if s.0 == 'smon' or s.0 == 'checker_haproxy' or s.0 == 'keep_alive' or s.0 == 'metrics_haproxy' %}
+    {% if s.0 == 'smon' or s.0 == 'checker_haproxy' or s.0 == 'keep_alive' or s.0 == 'metrics_haproxy' or s.0 == 'portscanner' %}
 <tr>
     {% set is_need_update = 0 %}
     {% if s.0 == 'smon' %}
@@ -53,6 +53,13 @@
     {% if s.3|float < metrics_ver|float %}
         {% set is_need_update = 1 %}
     {% endif %}
+{% elif s.0 == 'portscanner' %}
+    {% set service_name = 'Port scanner' %}
+    {% set service_link = 'portscanner' %}
+    {% set desc_link = 'https://haproxy-wi.org/services.py?service={{service_link}}' %}
+    {% if s.3|float < portscanner_ver|float %}
+        {% set is_need_update = 1 %}
+    {% endif %}
 {% endif %}
     <td class="padding10 first-collumn">
         {{service_name}}
@@ -72,6 +79,8 @@
                 {{keep_ver}}
             {% elif s.0 == 'metrics_haproxy' %}
                 {{metrics_ver}}
+            {% elif s.0 == 'portscanner' %}
+                {{portscanner_ver}}
             {% endif %}
         </b>
     </td>

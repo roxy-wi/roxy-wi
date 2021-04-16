@@ -1727,3 +1727,31 @@ function makeid(length) {
    }
    return result;
 }
+function showUserlists() {
+	var serv = $( "#existing_userlist_serv option:selected" ).val();
+	if (serv == 'Choose server') {
+		toastr.warning('Choose a server before');
+	} else {
+		$.ajax({
+			url: "options.py",
+			data: {
+				show_userlists: 1,
+				serv: serv,
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function (data) {
+				if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
+					toastr.error(data);
+				} else {
+					$('#existing_userlist_tr').show();
+					$('#existing_userlist_ajax').text('');
+					data = data.split(",");
+					for (i = 0; i < data.length; i++) {
+						$('#existing_userlist_ajax').append('<a href="sections.py?serv='+serv+'&section='+data[i]+'" title="Edit/Delete this userlist" target="_blank">'+data[i]+'</a> ');
+					}
+				}
+			}
+		});
+	}
+}

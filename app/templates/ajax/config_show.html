@@ -87,12 +87,12 @@
 				</div><span class="param">{{- line -}}
 					{% if role %}
 					<span class="accordion-link">
-						<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+						<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit/Delete</a>
 					</span>
 					{% endif %}
 					{%- set backend = line.split(' ') -%}
 					<span class="accordion-link">
-						<a href="/app/viewsttats.py?serv={{-serv-}}#{{- backend[1]-}}" target="_blank">Stats</a>
+						<a href="/app/viewsttats.py?service=haproxy&serv={{-serv-}}#{{- backend[1]-}}" target="_blank">Stats</a>
 					</span>
 					{%- set backend = backend|join('_') -%}
 					{%- do section_name.update({i: backend}) -%}
@@ -104,7 +104,7 @@
 				</div><span class="param">{{ line }}
 					{% if role %}
 						<span class="accordion-link">
-							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit/Delete</a>
 						</span>
 					{% endif %}	
 					{% set backend = line.split(' ') %}
@@ -121,7 +121,7 @@
 				</div><span class="param">{{ line }} 
 					{% if role %}
 						<span class="accordion-link">
-							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit/Delete</a>
 						</span>
 					{% endif %}
 					{% set backend = line.split(' ') %}
@@ -135,7 +135,7 @@
 				</div><span class="param">{{ line }} 
 					{% if role %}
 						<span class="accordion-link">
-							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit/Delete</a>
 						</span>
 					{% endif %}
 				</span><div>
@@ -145,7 +145,7 @@
 				</div><span class="param">{{ line }}
 					{% if role %}
 						<span class="accordion-link">
-							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit/Delete</a>
 						</span>
 					{% endif %}
 				</span><div>
@@ -155,7 +155,7 @@
 				</div><span class="param">{{ line }}
 					{% if role %}
 						<span class="accordion-link">
-							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit/Delete</a>
 						</span>
 					{% endif %}
 				</span><div>
@@ -165,7 +165,7 @@
 				</div><span class="param">{{ line }}
 					{% if role %}
 						<span class="accordion-link">
-							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit/Delete</a>
 						</span>
 					{% endif %}
 				</span><div>
@@ -175,7 +175,7 @@
 				</div><span class="param">{{ line }}
 					{% if role %}
 						<span class="accordion-link">
-							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit/Delete</a>
 						</span>
 					{% endif %}
 				</span><div>
@@ -208,10 +208,11 @@
 				</span><br />	
 			{% endif %}
 			{%- if "bind" in line -%}
-				{%- set bind = line.split(':') -%}
+				{%- set bind = line.split(':')[1] -%}
+				{%- set bind = bind.split(' ') -%}
 				<script>
 					{% set k = i - 1 %}
-					$('#{{-section_name[k]|replace("\n", "")-}}').html('<a href="http://{{-serv-}}:{{-bind[1]|replace("\n", "")-}}" title="Open {{serv-}}:{{-bind[1]|replace("\n", "")-}}" target="_blank">Open</a>')
+					$('#{{-section_name[k]|replace("\n", "")-}}').html('<a href="http://{{-serv-}}:{{-bind[0]|replace("\n", "")-}}" title="Open {{serv-}}:{{-bind[0]|replace("\n", "")-}}" target="_blank">Open</a>')
 				</script>
 			{%- endif -%}
 		{%- endif -%}

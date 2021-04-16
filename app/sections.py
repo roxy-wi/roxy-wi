@@ -55,7 +55,10 @@ if serv is not None and form.getvalue('config') is not None:
 	start_line = form.getvalue('start_line')
 	end_line = form.getvalue('end_line')
 	aftersave = 1
-	
+
+	if save == 'delete':
+		config = ''
+
 	config = funct.rewrite_section(start_line, end_line, oldcfg, config)
 	
 	try:
