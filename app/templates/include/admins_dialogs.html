@@ -189,6 +189,42 @@
         {% endif %}
     </table>
 </div>
+<div id="slack-add-table" style="display: none;">
+    <table>
+        {% include 'include/tr_validate_tips.html' %}
+        <tr>
+            <td class="padding20">
+                <span title="Token that has given with APP registration">Token</span>
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{ input('slack-token-add', size='30') }}
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                Channel name
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{ input('slack-chanel-add') }}
+            </td>
+        </tr>
+        {% if page != "servers.py" %}
+        <tr>
+            <td class="padding20">Group</td>
+            <td>
+                <select id="new-slack-group-add" name="new-slack-group-add">
+                    <option disabled selected value="0">Choose group</option>
+                    {% for group in groups %}
+                    <option value="{{ group.0 }}">{{ group.1 }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        {% endif %}
+    </table>
+</div>
 <div id="backup-add-table" title="Add a new backup job " style="display: none;">
     <table class="overview">
         {% include 'include/tr_validate_tips.html' %}

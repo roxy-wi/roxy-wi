@@ -204,6 +204,7 @@ def create_table(**kwargs):
 			`create_date`  DATETIME default '0000-00-00 00:00:00',
 			`expire_date`  DATETIME default '0000-00-00 00:00:00'
 		);
+		CREATE TABLE IF NOT EXISTS `slack` (`id` integer primary key autoincrement, `token` VARCHAR (64), `chanel_name` INTEGER NOT NULL DEFAULT 1, `groups` INTEGER NOT NULL DEFAULT 1);
 		"""
 		try:
 			cur.executescript(sql)
@@ -1219,6 +1220,29 @@ def update_db_v_5_1_0_1(**kwargs):
 	con.close()
 
 
+def update_db_v_5_1_1(**kwargs):
+	con, cur = get_cur()
+	sql = """CREATE TABLE IF NOT EXISTS `slack` (
+				`id` integer primary key autoincrement, 
+				`token` VARCHAR (64), 
+				`chanel_name` INTEGER NOT NULL DEFAULT 1, 
+				`groups` INTEGER NOT NULL DEFAULT 1
+				);
+  """
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: version' or e == "1060 (42S21): Duplicate column name 'version' ":
+				print('Updating... DB has been updated to version 5.1.1')
+			else:
+				print("Updating... DB has been updated to version 5.1.1")
+
+	cur.close()
+	con.close()
+
+
 def update_ver():
 	con, cur = get_cur()
 	sql = """update version set version = '5.1.1.0'; """
@@ -1263,6 +1287,7 @@ def update_all():
 	update_db_v_5_0_1()
 	update_db_v_5_1_0()
 	update_db_v_5_1_0_1()
+	update_db_v_5_1_1()
 	update_ver()
 
 
@@ -1298,6 +1323,7 @@ def update_all_silent():
 	update_db_v_5_1_0_13(silent=1)
 	update_db_v_5_1_0(silent=1)
 	update_db_v_5_1_0_1(silent=1)
+	update_db_v_5_1_1(silent=1)
 	update_ver()
 
 

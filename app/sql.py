@@ -841,6 +841,45 @@ def get_telegram_by_id(id):
 	con.close()
 
 
+def get_user_slack_by_group(group):
+	con, cur = get_cur()
+	sql = """ select slack.* from slack where groups = '%s' """ % group
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		funct.out_error(e)
+	else:
+		return cur.fetchall()
+	cur.close()
+	con.close()
+
+
+def get_slack_by_ip(ip):
+	con, cur = get_cur()
+	sql = """ select slack.* from slack left join servers as serv on serv.groups = slack.groups where serv.ip = '%s' """ % ip
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		funct.out_error(e)
+	else:
+		return cur.fetchall()
+	cur.close()
+	con.close()
+
+
+def get_slack_by_id(id):
+	con, cur = get_cur()
+	sql = """ select * from slack where id = '%s' """ % id
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		funct.out_error(e)
+	else:
+		return cur.fetchall()
+	cur.close()
+	con.close()
+
+
 def get_dick_permit(**kwargs):
 	import http.cookies
 	import os
@@ -1071,21 +1110,6 @@ def check_exists_backup(server):
 	con.close()
 
 
-def insert_new_telegram(token, chanel, group):
-	con, cur = get_cur()
-	sql = """insert into telegram(`token`, `chanel_name`, `groups`) values ('%s', '%s', '%s') """ % (token, chanel, group)
-	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
-		con.rollback()
-	else:
-		return True
-	cur.close()
-	con.close()
-
-
 def delete_telegram(id):
 	con, cur = get_cur()
 	sql = """ delete from telegram where id = %s """ % (id)
@@ -1127,7 +1151,7 @@ def insert_new_telegram(token, chanel, group):
 		cur.execute(sql)
 		con.commit()
 	except sqltool.Error as e:
-		print('<span class="alert alert-danger" id="error">An error occurred: ' + e.args[0] + ' <a title="Close" id="errorMess"><b>X</b></a></span>')
+		funct.out_error(e)
 		con.rollback()
 	else:
 		return True
@@ -1138,6 +1162,72 @@ def insert_new_telegram(token, chanel, group):
 def update_telegram(token, chanel, group, id):
 	con, cur = get_cur()
 	sql = """ update telegram set 
+			`token` = '%s',
+			`chanel_name` = '%s',
+			`groups` = '%s'
+			where id = '%s' """ % (token, chanel, group, id)
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
+	cur.close()
+	con.close()
+
+
+def delete_slack(id):
+	con, cur = get_cur()
+	sql = """ delete from slack where id = %s """ % (id)
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
+	else:
+		return True
+	cur.close()
+	con.close()
+
+
+def select_slack(**kwargs):
+	con, cur = get_cur()
+	sql = """select * from slack  """
+	if kwargs.get('group'):
+		sql = """select * from slack where groups = '%s' """ % kwargs.get('group')
+	if kwargs.get('token'):
+		sql = """select * from slack where token = '%s' """ % kwargs.get('token')
+	if kwargs.get('id'):
+		sql = """select * from slack where id = '%s' """ % kwargs.get('id')
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		funct.out_error(e)
+	else:
+		return cur.fetchall()
+	cur.close()
+	con.close()
+
+
+def insert_new_slack(token, chanel, group):
+	con, cur = get_cur()
+	sql = """insert into slack(`token`, `chanel_name`, `groups`) values ('%s', '%s', '%s') """ % (token, chanel, group)
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
+	else:
+		return True
+	cur.close()
+	con.close()
+
+
+def update_slack(token, chanel, group, id):
+	con, cur = get_cur()
+	sql = """ update slack set 
 			`token` = '%s',
 			`chanel_name` = '%s',
 			`groups` = '%s'
@@ -1291,19 +1381,6 @@ def insert_mentrics(serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate):
 		con.rollback()
 	cur.close()
 	con.close()
-
-
-# def select_waf_metrics_enable(id):
-# 	con, cur = get_cur()
-# 	sql = """ select waf.metrics from waf left join servers as serv on waf.server_id = serv.id where server_id = '%s' """ % id
-# 	try:
-# 		cur.execute(sql)
-# 	except sqltool.Error as e:
-# 		funct.out_error(e)
-# 	else:
-# 		return cur.fetchall()
-# 	cur.close()
-# 	con.close()
 
 
 def select_waf_metrics_enable_server(ip):
@@ -1583,6 +1660,7 @@ def delete_mentrics():
 		con.rollback()
 	cur.close()
 	con.close()
+
 
 
 def select_metrics(serv, **kwargs):

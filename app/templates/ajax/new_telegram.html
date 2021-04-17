@@ -21,6 +21,9 @@
 			</td>	
 		{% endif %}
 		<td>
+			<button title="Send test message" onclick="checkTelegram({{telegram.0}})">Test</button>
+		</td>
+		<td>
 			<a class="add" onclick="cloneTelegram({{telegram.0}})" id="clone-{{telegram.0}}" title="Clone {{telegram.2}}" style="cursor: pointer;"></a>
 		</td>
 		<td>

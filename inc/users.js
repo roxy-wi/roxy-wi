@@ -428,6 +428,9 @@ $( function() {
 	$('#add-telegram-button').click(function() {
 		addTelegramDialog.dialog('open');
 	});
+	$('#add-slack-button').click(function() {
+		addSlackDialog.dialog('open');
+	});
 	var addTelegramDialog = $( "#telegram-add-table" ).dialog({
 		autoOpen: false,
 		resizable: false,
@@ -446,6 +449,31 @@ $( function() {
 		buttons: {
 			"Add": function () {
 				addTelegram(this);
+			},
+			Cancel: function () {
+				$(this).dialog("close");
+				clearTips();
+			}
+		}
+	});
+	var addSlackDialog = $( "#slack-add-table" ).dialog({
+		autoOpen: false,
+		resizable: false,
+		height: "auto",
+		width: 600,
+		modal: true,
+		title: "Create a new Slack channel",
+		show: {
+			effect: "fade",
+			duration: 200
+		},
+		hide: {
+			effect: "fade",
+			duration: 200
+		},
+		buttons: {
+			"Add": function () {
+				addSlack(this);
 			},
 			Cancel: function () {
 				$(this).dialog("close");
@@ -571,6 +599,14 @@ $( function() {
 	$( "#checker_table select" ).on('selectmenuchange',function() {
 		var id = $(this).attr('id').split('-');
 		updateTelegram(id[1])
+	});
+   $( "#checker_slack_table input" ).change(function() {
+		var id = $(this).attr('id').split('-');
+		updateSlack(id[2])
+	});
+	$( "#checker_slack_table select" ).on('selectmenuchange',function() {
+		var id = $(this).attr('id').split('-');
+		updateSlack(id[1])
 	});
 	$( "#ajax-backup-table input" ).change(function() {
 		var id = $(this).attr('id').split('-');
@@ -1014,6 +1050,38 @@ function addTelegram(dialog_id) {
 		} );
 	}
 }
+function addSlack(dialog_id) {
+	var valid = true;
+	toastr.clear();
+	allFields = $( [] ).add( $('#slack-token-add') ).add( $('#slack-chanel-add') )
+	allFields.removeClass( "ui-state-error" );
+	valid = valid && checkLength( $('#slack-token-add'), "token", 1 );
+	valid = valid && checkLength( $('#slack-chanel-add'), "channel name", 1 );
+	if(valid) {
+		toastr.clear();
+		$.ajax( {
+			url: "options.py",
+			data: {
+				newslack: $('#slack-token-add').val(),
+				chanel: $('#slack-chanel-add').val(),
+				slackgroup: $('#new-slack-group-add').val(),
+				page: cur_url[0].split('#')[0],
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+				if (data.indexOf('error:') != '-1') {
+					toastr.error(data);
+				} else {
+					common_ajax_action_after_success(dialog_id, 'newgroup', 'checker_slack_table', data);
+					$( "input[type=submit], button" ).button();
+					$( "input[type=checkbox]" ).checkboxradio();
+					$( "select" ).selectmenu();
+				}
+			}
+		} );
+	}
+}
 function addBackup(dialog_id) {
 	var valid = true;
 	toastr.clear();
@@ -1186,6 +1254,24 @@ function confirmDeleteTelegram(id) {
       }
     });
 }
+function confirmDeleteSlack(id) {
+	 $( "#dialog-confirm" ).dialog({
+      resizable: false,
+      height: "auto",
+      width: 400,
+      modal: true,
+	  title: "Are you sure you want to delete " +$('#slack-chanel-'+id).val() + "?",
+      buttons: {
+        "Delete": function() {
+			$( this ).dialog( "close" );
+			removeSlack(id);
+        },
+        Cancel: function() {
+			$( this ).dialog( "close" );
+        }
+      }
+    });
+}
 function confirmDeleteBackup(id) {
 	 $( "#dialog-confirm" ).dialog({
       resizable: false,
@@ -1282,6 +1368,11 @@ function cloneTelegram(id) {
 	$( "#add-telegram-button" ).trigger( "click" );
 	$('#telegram-token-add').val($('#telegram-token-'+id).val())
 	$('#telegram-chanel-add').val($('#telegram-chanel-'+id).val())
+}
+function cloneSlack(id) {
+	$( "#slack" ).trigger( "click" );
+	$('#slack').val($('#slack-token-'+id).val())
+	$('#slack').val($('#slack-chanel-'+id).val())
 }
 function cloneBackup(id) {
 	$( "#add-backup-button" ).trigger( "click" );
@@ -1395,6 +1486,25 @@ function removeTelegram(id) {
 			}
 		}					
 	} );	
+}
+function removeSlack(id) {
+	$("#slack-table-"+id).css("background-color", "#f2dede");
+	$.ajax( {
+		url: "options.py",
+		data: {
+			slackdel: id,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if(data == "Ok ") {
+				$("#slack-table-"+id).remove();
+			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
+				toastr.error(data);
+			}
+		}
+	} );
 }
 function removeBackup(id) {
 	$("#backup-table-"+id).css("background-color", "#f2dede");
@@ -1645,6 +1755,32 @@ function updateTelegram(id) {
 				$("#telegram-table-"+id).addClass( "update", 1000 );
 				setTimeout(function() {
 					$( "#telegram-table-"+id ).removeClass( "update" );
+				}, 2500 );
+			}
+		}
+	} );
+}
+function updateSlack(id) {
+	toastr.clear();
+	$.ajax( {
+		url: "options.py",
+		data: {
+			update_slack_token: $('#slack-token-'+id).val(),
+			updategchanel: $('#slack-chanel-'+id).val(),
+			updateslackgroup: $('#slackgroup-'+id).val(),
+			id: id,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
+				toastr.error(data);
+			} else {
+				toastr.clear();
+				$("#slack-table-"+id).addClass( "update", 1000 );
+				setTimeout(function() {
+					$( "#slack-table-"+id ).removeClass( "update" );
 				}, 2500 );
 			}
 		}
@@ -2251,4 +2387,21 @@ function checkTelegram(telegram_id) {
 		}
 	} );
 }
-
+function checkSlack(slack_id) {
+	$.ajax({
+		url: "options.py",
+		data: {
+			check_slack: slack_id,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {
+				toastr.error(data);
+			} else {
+				toastr.success('Test message has been sent');
+			}
+		}
+	} );
+}

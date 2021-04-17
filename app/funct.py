@@ -136,6 +136,8 @@ def telegram_send_mess(mess, **kwargs):
 		telegrams = sql.get_telegram_by_id(kwargs.get('telegram_channel_id'))
 	else:
 		telegrams = sql.get_telegram_by_ip(kwargs.get('ip'))
+		slack_send_mess(mess, ip=kwargs.get('ip'))
+
 	proxy = sql.get_setting('proxy')
 	
 	for telegram in telegrams:
@@ -157,7 +159,36 @@ def telegram_send_mess(mess, **kwargs):
 		print(str(e))
 		logging('localhost', str(e), haproxywi=1)
 
-	
+
+def slack_send_mess(mess, **kwargs):
+	import sql
+	from slack_sdk import WebClient
+	from slack_sdk.errors import SlackApiError
+
+	if kwargs.get('slack_channel_id'):
+		slacks = sql.get_slack_by_id(kwargs.get('slack_channel_id'))
+	else:
+		slacks = sql.get_slack_by_ip(kwargs.get('ip'))
+
+	proxy = sql.get_setting('proxy')
+
+	for slack in slacks:
+		slack_token = slack[1]
+		channel_name = slack[2]
+
+	if proxy is not None and proxy != '' and proxy != 'None':
+		proxies = dict(https=proxy, http=proxy)
+		client = WebClient(token=slack_token, proxies=proxies)
+	else:
+		client = WebClient(token=slack_token)
+
+	try:
+		client.chat_postMessage(channel='#'+channel_name, text=mess)
+	except SlackApiError as e:
+		print('error: ' + str(e))
+		logging('localhost', str(e), haproxywi=1)
+
+
 def check_login():
 	import sql
 	import http.cookies

@@ -255,9 +255,11 @@ pre {
 .lineDog {
 	background-color: #dbedff;
 	margin-bottom: 10px;
+	padding: 7px;
 }
-.lineDiffMinus, .lineDiffPlus, .lineDog, .lineDiff {
+.lineDiffMinus, .lineDiffPlus, .lineDiff {
 	padding-left: 15px;
+	white-space: pre;
 }
 .lineDiffMinus {
 	background-color: #ffdce0;

@@ -1,13 +1,10 @@
 {% from 'include/input_macros.html' import input %}
-<form action="diff.py#diff" method="post">
-	<center>
-		<h4>
-			<span style="padding: 20px;">Choose left</span>
-			<span style="padding: 110px;">Choose right</span>
-		</h4>
+<form action="" method="post">
+	<div style="text-align: center;margin-top: 20px;">
+		<h4>Comparing config files</h4>
 		<p>
 			<select autofocus required name="left" id="left">
-				<option disabled selected>Choose version</option>
+				<option disabled selected>Select an older</option>
 				{% for file in return_files %}
 					{% if file == left %}
 						<option value="{{ file }}" selected>{{ file.split('-', maxsplit=1)[1] }}</option>
@@ -18,7 +15,7 @@
 			</select>
 
 			<select autofocus required name="right" id="right">
-				<option disabled selected>Choose version</option>
+				<option disabled selected>Select a newer</option>
 				{% for file in return_files %}				
 					<option value="{{ file }}">{{ file.split('-', maxsplit=1)[1] }}</option>
 				{% endfor %}
@@ -27,5 +24,5 @@
 			{{ input('open', type='hidden', value='open') }}
 			<a class="ui-button ui-widget ui-corner-all" id="show" title="Compare" onclick="showCompare()">Show</a>
 		</p>
-	</center>
+	</div>
 </form>

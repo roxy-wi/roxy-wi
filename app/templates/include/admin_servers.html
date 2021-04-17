@@ -34,7 +34,7 @@
 		<tr id="server-{{server.0}}" class="{{ loop.cycle('odd', 'even') }} {% if adding %}newserver{% endif %}">
 			<td class="padding10 first-collumn">
 				{% set id = 'hostname-' + server.0|string() %}
-				{{ input(id, value=server.1, size='10') }}
+				{{ input(id, value=server.1, size='15') }}
 			</td>
 			<td>
 				<span id="ip-{{server.0}}" style="margin-right: 6px;">{{server.2}}</span>

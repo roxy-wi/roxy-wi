@@ -11,6 +11,7 @@ serv = form.getvalue("serv")
 act = form.getvalue("act")
 
 if (form.getvalue('new_metrics') or
+        form.getvalue('new_http_metrics') or
         form.getvalue('new_waf_metrics') or
         form.getvalue('metrics_hapwi_ram') or
         form.getvalue('metrics_hapwi_cpu')):
@@ -458,6 +459,30 @@ if act == "overviewHapserverBackends":
     template = template.render(backends=sections, serv=serv, service=service)
     print(template)
 
+if form.getvalue('show_userlists'):
+    configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+    format_file = 'cfg'
+
+    try:
+        sections = funct.get_userlists(configs_dir + funct.get_files(dir=configs_dir, format=format_file)[0])
+    except Exception as e:
+        funct.logging('localhost', str(e), haproxywi=1)
+        try:
+            cfg = configs_dir + serv + "-" + funct.get_data('config') + '.' + format_file
+        except Exception as e:
+            funct.logging('localhost', ' Cannot generate cfg path ' + str(e), haproxywi=1)
+        try:
+            error = funct.get_config(serv, cfg)
+        except Exception as e:
+            funct.logging('localhost', ' Cannot download config ' + str(e), haproxywi=1)
+        try:
+            sections = funct.get_userlists(cfg)
+        except Exception as e:
+            funct.logging('localhost', ' Cannot get Userlists from config file ' + str(e), haproxywi=1)
+            sections = 'error: Cannot get Userlists'
+
+    print(sections)
+
 if act == "overviewHapservers":
     if form.getvalue('service') == 'nginx':
         config_path = sql.get_setting('nginx_config_path')
@@ -881,7 +906,7 @@ if serv is not None and form.getvalue('right') is not None:
         configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
     else:
         configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
-    cmd = 'diff -ub %s%s %s%s' % (configs_dir, left, configs_dir, right)
+    cmd = 'diff -pub %s%s %s%s' % (configs_dir, left, configs_dir, right)
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
                       extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
     template = env.get_template('ajax/compare.html')
@@ -1374,6 +1399,40 @@ if form.getvalue('new_metrics'):
     metrics['chartData']['curr_con'] = curr_con
     metrics['chartData']['curr_ssl_con'] = curr_ssl_con
     metrics['chartData']['sess_rate'] = sess_rate
+    metrics['chartData']['server'] = server
+
+    import json
+
+    print(json.dumps(metrics))
+
+if form.getvalue('new_http_metrics'):
+    serv = form.getvalue('server')
+    time_range = form.getvalue('time_range')
+    metric = sql.select_metrics_http(serv, time_range=time_range)
+    metrics = {'chartData': {}}
+    metrics['chartData']['labels'] = {}
+    labels = ''
+    http_2xx = ''
+    http_3xx = ''
+    http_4xx = ''
+    http_5xx = ''
+    server = ''
+
+    for i in metric:
+        label = str(i[5])
+        label = label.split(' ')[1]
+        labels += label + ','
+        http_2xx += str(i[1]) + ','
+        http_3xx += str(i[2]) + ','
+        http_4xx += str(i[3]) + ','
+        http_5xx += str(i[4]) + ','
+        server = str(i[0])
+
+    metrics['chartData']['labels'] = labels
+    metrics['chartData']['http_2xx'] = http_2xx
+    metrics['chartData']['http_3xx'] = http_3xx
+    metrics['chartData']['http_4xx'] = http_4xx
+    metrics['chartData']['http_5xx'] = http_5xx
     metrics['chartData']['server'] = server
 
     import json
@@ -1892,6 +1951,26 @@ if form.getvalue('newtelegram'):
             print(output_from_parsed_template)
             funct.logging(channel, ' has created a new Telegram channel ', haproxywi=1, login=1)
 
+if form.getvalue('newslack'):
+    token = form.getvalue('newslack')
+    channel = form.getvalue('chanel')
+    group = form.getvalue('slackgroup')
+    page = form.getvalue('page')
+    page = page.split("#")[0]
+
+    if token is None or channel is None or group is None:
+        print(error_mess)
+    else:
+        if sql.insert_new_slack(token, channel, group):
+            from jinja2 import Environment, FileSystemLoader
+
+            env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
+            template = env.get_template('/new_slack.html')
+            output_from_parsed_template = template.render(groups=sql.select_groups(),
+                                                          slacks=sql.select_slack(token=token), page=page)
+            print(output_from_parsed_template)
+            funct.logging(channel, ' has created a new Slack channel ', haproxywi=1, login=1)
+
 if form.getvalue('telegramdel') is not None:
     telegramdel = form.getvalue('telegramdel')
     telegram = sql.select_telegram(id=telegramdel)
@@ -1900,6 +1979,15 @@ if form.getvalue('telegramdel') is not None:
     if sql.delete_telegram(telegramdel):
         print("Ok")
         funct.logging(telegram_name, ' has deleted the Telegram channel ', haproxywi=1, login=1)
+
+if form.getvalue('slackdel') is not None:
+    slackdel = form.getvalue('slackdel')
+    slack = sql.select_slack(id=slackdel)
+    for t in slack:
+        slack_name = t[1]
+    if sql.delete_slack(slackdel):
+        print("Ok")
+        funct.logging(slack_name, ' has deleted the Slack channel ', haproxywi=1, login=1)
 
 if form.getvalue('updatetoken') is not None:
     token = form.getvalue('updatetoken')
@@ -1910,7 +1998,18 @@ if form.getvalue('updatetoken') is not None:
         print(error_mess)
     else:
         sql.update_telegram(token, channel, group, user_id)
-        funct.logging('group ' + group, ' telegram token has updated channel: ' + channel, haproxywi=1, login=1)
+        funct.logging('group ' + group, ' Telegram token has updated channel: ' + channel, haproxywi=1, login=1)
+
+if form.getvalue('update_slack_token') is not None:
+    token = form.getvalue('update_slack_token')
+    channel = form.getvalue('updategchanel')
+    group = form.getvalue('updateslackgroup')
+    user_id = form.getvalue('id')
+    if token is None or channel is None or group is None:
+        print(error_mess)
+    else:
+        sql.update_slack(token, channel, group, user_id)
+        funct.logging('group ' + group, ' Slack token has updated channel: ' + channel, haproxywi=1, login=1)
 
 if form.getvalue('updatesettings') is not None:
     settings = form.getvalue('updatesettings')
@@ -3155,12 +3254,15 @@ if form.getvalue('loadchecker'):
     if page == 'servers.py':
         user_group = funct.get_user_group(id=1)
         telegrams = sql.get_user_telegram_by_group(user_group)
+        slacks = sql.get_user_slack_by_group(user_group)
     else:
         telegrams = sql.select_telegram()
+        slacks = sql.select_slack()
 
     template = template.render(services=services,
                                telegrams=telegrams,
                                groups=groups,
+                               slacks=slacks,
                                page=page)
     print(template)
 
@@ -3174,6 +3276,7 @@ if form.getvalue('load_update_hapwi'):
     smon_ver = funct.check_new_version(service='smon')
     metrics_ver = funct.check_new_version(service='metrics')
     keep_ver = funct.check_new_version(service='keep')
+    portscanner_ver = funct.check_new_version(service='portscanner')
     services = funct.get_services_status()
 
     template = template.render(services=services,
@@ -3181,6 +3284,7 @@ if form.getvalue('load_update_hapwi'):
                                checker_ver=checker_ver,
                                smon_ver=smon_ver,
                                metrics_ver=metrics_ver,
+                               portscanner_ver=portscanner_ver,
                                keep_ver=keep_ver)
     print(template)
 
@@ -3216,3 +3320,8 @@ if form.getvalue('check_telegram'):
     telegram_id = form.getvalue('check_telegram')
     mess = 'Test message from HAProxy-WI'
     funct.telegram_send_mess(mess, telegram_channel_id=telegram_id)
+
+if form.getvalue('check_slack'):
+    slack_id = form.getvalue('check_slack')
+    mess = 'Test message from HAProxy-WI'
+    funct.slack_send_mess(mess, slack_channel_id=slack_id)
