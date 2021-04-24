@@ -12,42 +12,45 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 ![alt text](https://haproxy-wi.org/inc/images/viewstat.png "HAProxy state page")
 
 # Features:
-1.  Installation and updating HAProxy, Nginx and Keepalived with HAProxy-WI
-1.  Installation and updating Grafana, Prometheus servers with HAProxy-WI
-1.  Installation and updating HAProxy and Nginx exporters with HAProxy-WI
-1.  Servers provisioning on AWS and DigitalOcean
-2.	Configure HAProxy, Nginx and Keepalived In a jiffy with HAProxy-WI
-3.	Dynamic change of Maxconn, backend's IP address and port with saving changes to the config file
-3.	View and analyse Status of all Frontend/backend server via HAProxy-WI from a single control panel.
-4.	Enable/disable servers through stats page without rebooting HAProxy
-5.	View/Analyse HAproxy, Nginx logs straight from the HAProxy-WI web interface
-6.	Create and visualise the HAProxy workflow from Web Ui.
-7.	Push Your changes to your HAProxy, Nginx and Keepalived servers with a single click through web interface
-8.	Get info on past changes, evaluate your config files and restore a previous stable config anytime with a single click straight from Web interface
-9.	Add/Edit Frontend or backend servers via web interface with a click of a button.
-10.	Edit config of HAProxy, Nginx, Keepalived and push changes to All Master/Slave server with a single click
-11.	Add Multiple server to ensure Config Sync between servers.
-12.	Auto management of ports assigned to Fronted. 
-13.	Evaluate the changes of recent configs pushed to HAProxy, Nginx and Keepalived instances straight from web ui
-14.	Multiple User Roles support for privileged based Viewing and editing of Config
-15.	Create Groups and add/remove servers to ensure proper identification for your HAProxy, Nginx Clusters
-16.	Send notifications to Telegram directly from HAProxy-WI and in web interface
-17.	HAProxy-WI supports high Availability to ensure uptime to all Master slave servers configured
-18.	SSL certificate support, Let's Encrypt support
-19.	SSH Key support for managing multiple HAProxy Servers straight from HAProxy-WI
-20. SYN flood protect
-21. Alerting about changes HAProxy backends state
-22. Alerting about HAProxy and Nginx service state
-23. Metrics incoming connections
-24. Web acceleration settings
-25. Web application firewall
-26. LDAP support
-27. Keep active HAProxy service
-28. Ability to hide parts of the config with tags for users with "guest" role:  "HideBlockStart" and "HideBlockEnd"
-29. Mobile-ready desing
-30. Simple port monitoring
-31. Backup HAProxy, Nginx and Keepalived config files through HAProxy-WI
-32. Manage OpenVPN3 as client via HAProxy-WI
+1. Installation and updating HAProxy, Nginx and Keepalived with HAProxy-WI
+2. Installation and updating Grafana, Prometheus servers with HAProxy-WI
+3. Installation and updating HAProxy and Nginx exporters with HAProxy-WI
+4. Server provisioning on AWS, DigitalOcean and G-Core Labs
+5. Downloading, updating and formatting GeoIP to the acceptable format for HAProxy with HAProxy-WI
+6. Dynamic change of Maxconn, Black/white lists and backend's IP address and port with saving changes to the config file
+7. Configuring HAProxy, Nginx and Keepalived in a jiffy with HAProxy-WI
+8. Viewing and analysing the status of all Frontend/backend servers via HAProxy-WI from a single control panel
+9. Enabling/disabling servers through stats page without rebooting HAProxy
+1. Viewing/Analysing HAProxy and Nginx logs right from the HAProxy-WI web interface
+1. Creating and visualizing the HAProxy workflow from Web Ui
+1. Pushing Your changes to your HAProxy, Nginx and Keepalived servers with a single click via the web interface
+1. Getting info on past changes, evaluating your config files and restoring the previous stable config at any time with a single click right from Web interface
+1. Adding/Editing Frontend or backend servers via the web interface with a click
+1. Editing the config of HAProxy, Nginx and Keepalived and push ingchanges to All Master/Slave servers by a single click
+1. Adding Multiple server to ensure the Config Sync between servers
+1. Managing the ports assigned to Frontend automatically
+1. Evaluating the changes of recent configs pushed to HAProxy, Nginx and Keepalived instances right from the Web UI
+1. Multiple User Roles support for privileged based Viewing and editing of Config
+1. Creating Groups and adding/removing servers to ensure the proper identification for your HAProxy and Nginx Clusters
+1. Sending notifications from HAProxy-WI via Telegram, Slack and via the web interface
+1. Supporting high Availability to ensure uptime to all Master slave servers configured
+1. Support of SSL (including Let's Encrypt)
+1. Support of SSH Key for managing multiple HAProxy and Nginx Servers straight from HAProxy-WI
+1. SYN flood protect
+1. Alerting about сhanges of the state of HAProxy backends
+1. Alerting about the state of HAProxy and Nginx service
+1. Gathering metrics for incoming connections
+1. Web acceleration settings
+1. Firewall for web application
+1. LDAP support
+1. Keep active HAProxy and Nginx services
+1. Possibility to hide parts of the config with tags for users with "guest" role: "HideBlockStart" and "HideBlockEnd"
+1. Mobile-ready design
+1. Simple port monitoring (SMON)
+1. Backup HAProxy, Nginx and Keepalived config files through HAProxy-WI
+1. Managing OpenVPN3 as a client via HAProxy-WI
+
+
 
 ![alt text](https://haproxy-wi.org/inc/images/haproxy-wi-metrics.png "Merics")
 
@@ -74,7 +77,7 @@ Default HAProxy-WI use Sqlite, if you want use MySQL enable in config, and creat
 
 ### Read instruction on the official [site](https://haproxy-wi.org/settings.py#db_settings)
 
-![alt text](https://haproxy-wi.org/inc/images/haproxy-wi_overview.png "Overview page")
+![alt text](https://haproxy-wi.org/inc/images/haproxy-wi-overview.webp "Overview page")
 
 # Settings
 
@@ -83,7 +86,7 @@ Login https://haproxy-wi-server/users.py, and add: users, groups and servers. De
 
 ### Read instruction on the official [site](https://haproxy-wi.org/settings.py)
 
-![alt text](https://haproxy-wi.org/inc/images/haproxy_overview.png "HAProxy server overview page")
+![alt text](https://haproxy-wi.org/inc/images/hapwi_overview.webp "HAProxy server overview page")
 
 
 ![alt text](https://haproxy-wi.org/inc/images/add.png "Add proxy page")

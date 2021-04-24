@@ -680,7 +680,7 @@ def update_haproxy_wi(service):
 		except Exception:
 			pass
 		service = 'haproxy-wi-'+service
-	cmd = 'sudo -S yum -y update '+service
+	cmd = 'sudo -S yum -y update ' + service +' && sudo systemctl restart ' + service
 	output, stderr = subprocess_execute(cmd)
 	print(output)
 	print(stderr)
@@ -1256,7 +1256,7 @@ def check_is_server_in_group(serv):
 
 
 def check_service(serv, service_name):
-	commands = ["systemctl status "+service_name+" |grep Active |awk '{print $1}'"]
+	commands = ["systemctl is-active "+service_name]
 	return ssh_command(serv, commands)
 
 
@@ -1271,7 +1271,7 @@ def get_services_status():
 					 'grafana-server': 'Grafana service',
 					 'fail2ban': 'Fail2ban service'}
 	for s, v in services_name.items():
-		cmd = "systemctl status %s |grep Act |awk  '{print $2}'" % s
+		cmd = "systemctl is-active %s" % s
 		status, stderr = subprocess_execute(cmd)
 		if s != 'keep_alive':
 			service_name = s.split('_')[0]

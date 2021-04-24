@@ -278,7 +278,7 @@ $( function() {
 			type: "POST",
 			success: function( data ) {	
 				data = data.replace(/^\s+|\s+$/g,'');
-				if(data == 'Active:') {				
+				if(data == 'active') {
 					$('#cur_haproxy_exp_ver').text('HAProxy expoter is installed');
 					$('#haproxy_exp_install').text('Update');
 					$('#haproxy_exp_install').attr('title', 'Update HAProxy expoter');
@@ -301,7 +301,7 @@ $( function() {
 			type: "POST",
 			success: function( data ) {	
 				data = data.replace(/^\s+|\s+$/g,'');
-				if(data == 'Active:') {				
+				if(data == 'active') {
 					$('#cur_nginx_exp_ver').text('Nginx expoter is installed');
 					$('#nginx_exp_install').text('Update');
 					$('#nginx_exp_install').attr('title', 'Update Nginx expoter');
