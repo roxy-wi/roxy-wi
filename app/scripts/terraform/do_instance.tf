@@ -1,5 +1,5 @@
 module "do_module" {
-	source = "github.com/Aidaho12/haproxy-wi-terraform-modules?ref=digitalocean"
+	source = "github.com/hap-wi/haproxy-wi-terraform-modules?ref=digitalocean"
 
 	region 	    		= var.region
 	size     	        = var.size

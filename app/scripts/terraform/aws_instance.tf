@@ -1,5 +1,5 @@
 module "aws_module" {
-	source = "github.com/Aidaho12/haproxy-wi-terraform-modules?ref=aws"
+	source = "github.com/hap-wi/haproxy-wi-terraform-modules?ref=aws"
 
 	region 					= var.region
 	instance_type 			= var.instance_type

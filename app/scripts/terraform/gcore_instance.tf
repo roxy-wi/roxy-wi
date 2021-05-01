@@ -1,5 +1,5 @@
 module "gcore_module" {
-	source = "github.com/Aidaho12/haproxy-wi-terraform-modules?ref=gcore"
+	source = "github.com/hap-wi/haproxy-wi-terraform-modules?ref=gcore"
 
 	region 					= var.region
 	instance_type 			= var.instance_type

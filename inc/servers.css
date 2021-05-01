@@ -2,6 +2,9 @@
     width: 10em;
 }
 .first-collumn {
+    width: 15%;
+}
+#ajax-servers .first-collumn {
     width: 10%;
 }
 .container {

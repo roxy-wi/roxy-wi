@@ -834,6 +834,7 @@ $( function() {
 		} );
 		$( "#add6" ).on( "click", function() {
 			$( "#tabs" ).tabs( "option", "active", 7 );
+			$( "#userlist_serv" ).selectmenu( "open" );
 		} );
 		$( "#add7" ).on( "click", function() {
 			$('.menu li ul li').each(function () {
@@ -1013,20 +1014,25 @@ $( function() {
 	});
 	
 	$( ".redirectListen" ).on( "click", function() {
-		resetProxySettings()
+		resetProxySettings();
 		$( "#tabs" ).tabs( "option", "active", 1 );
+		$( "#serv" ).selectmenu( "open" );
 	} );
 	$( ".redirectFrontend" ).on( "click", function() {
-		resetProxySettings()
-		$( "#tabs" ).tabs( "option", "active", 2 );
+		resetProxySettings();
+		var TabId = 2;
+		$( "#tabs" ).tabs( "option", "active", TabId );
+		$( "#serv"+TabId ).selectmenu( "open" );
 	} );
-	$( "#redirectBackend" ).on( "click", function() {
-		resetProxySettings()
-		$( "#tabs" ).tabs( "option", "active", 3 );
-		history.pushState('Add backend', 'Add backend', 'add.py#backend')
+	$( ".redirectBackend" ).on( "click", function() {
+		resetProxySettings();
+		var TabId = 3;
+		$( "#tabs" ).tabs( "option", "active", TabId );
+		$( "#serv"+TabId ).selectmenu( "open" );
 	} );
 	$( ".redirectSsl" ).on( "click", function() {
 		$( "#tabs" ).tabs( "option", "active", 4 );
+		$( "#serv5" ).selectmenu( "open" );
 	} );
 	
 	$( "#create-http-listen" ).on( "click", function() {
@@ -1182,6 +1188,18 @@ $( function() {
 	$("#backend_add_acl").click(function(){
 		make_actions_for_adding_acl_rule('#backend_acl');
 	});
+	$( "#serv" ).on('selectmenuchange',function() {
+		$('#name').focus();
+	});
+	$( "#serv2" ).on('selectmenuchange',function() {
+		$('#new_frontend').focus();
+	});
+	$( "#serv3" ).on('selectmenuchange',function() {
+		$('#new_backend').focus();
+	});
+	$( "#userlist_serv" ).on('selectmenuchange',function() {
+		$('#new_userlist').focus();
+	});
 });
 function resetProxySettings() {
 	$('[name=port]').val('');
@@ -1204,7 +1222,11 @@ function resetProxySettings() {
 function createHttp(TabId, proxy) {
 	$('[name=port]').val('80');
 	$('[name=server_port]').val('80');
-	$( "#tabs" ).tabs( "option", "active", TabId );	
+	$( "#tabs" ).tabs( "option", "active", TabId );
+	if (TabId == 1) {
+		TabId = '';
+	}
+	$( "#serv"+TabId ).selectmenu( "open" );
 	history.pushState('Add '+proxy, 'Add '+proxy, 'add.py#'+proxy)
 }
 function createSsl(TabId, proxy) {
@@ -1217,6 +1239,10 @@ function createSsl(TabId, proxy) {
 	$('#https-'+proxy).prop( "checked", true );
 	$('#https-'+proxy).checkboxradio("refresh");
 	$("#path-cert-"+proxy ).attr('required',true);
+	if (TabId == 1) {
+		TabId = '';
+	}
+	$( "#serv"+TabId ).selectmenu( "open" );
 	history.pushState('Add'+proxy, 'Add'+proxy, 'add.py#'+proxy)
 }
 function createHttps(TabId, proxy) {
@@ -1227,6 +1253,10 @@ function createHttps(TabId, proxy) {
 	$( "#tabs" ).tabs( "option", "active", TabId );
 	$('#'+proxy+'-mode-select').val('tcp');
 	$('#'+proxy+'-mode-select').selectmenu('refresh');
+	if (TabId == 1) {
+		TabId = '';
+	}
+	$( "#serv"+TabId ).selectmenu( "open" );
 	history.pushState('Add'+proxy, 'Add'+proxy, 'add.py#'+proxy)
 }
 function confirmDeleteOption(id) {
