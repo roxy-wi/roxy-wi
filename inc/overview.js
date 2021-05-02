@@ -198,14 +198,18 @@ function ajaxActionWafServers(action, id) {
 	} );
 }
 $( function() {
-	if ((cur_url[0] == 'hapservers.py' && cur_url[1].split('=')[0] == 'service') || cur_url[0] == 'overview.py') {
-		ChartsIntervalId = setInterval(updatingCpuRamCharts, 30000);
-		$(window).focus(function () {
+	try {
+		if ((cur_url[0] == 'hapservers.py' && cur_url[1].split('&')[1].split('=')[0] == 'serv') || cur_url[0] == 'overview.py') {
 			ChartsIntervalId = setInterval(updatingCpuRamCharts, 30000);
-		});
-		$(window).blur(function () {
-			clearInterval(ChartsIntervalId);
-		});
+			$(window).focus(function () {
+				ChartsIntervalId = setInterval(updatingCpuRamCharts, 30000);
+			});
+			$(window).blur(function () {
+				clearInterval(ChartsIntervalId);
+			});
+		}
+	} catch (e) {
+		console.log(e);
 	}
 	$( "#show-all-users" ).click( function() {
 		$( ".show-users" ).show("fast");

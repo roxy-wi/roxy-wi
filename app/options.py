@@ -918,6 +918,12 @@ if serv is not None and form.getvalue('right') is not None:
     print(stderr)
 
 if serv is not None and act == "configShow":
+    import http.cookies
+
+    cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+    user_uuid = cookie.get('uuid')
+    role_id = sql.get_user_role_by_uuid(user_uuid.value)
+
     if form.getvalue('service') == 'keepalived':
         configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
         cfg = '.conf'
@@ -940,6 +946,8 @@ if serv is not None and act == "configShow":
         conf = open(cfg, "r")
     except IOError:
         print('<div class="alert alert-danger">Can\'t read config file</div>')
+        
+    is_serv_protected = sql.is_serv_protected(serv)
 
     from jinja2 import Environment, FileSystemLoader
 
@@ -950,8 +958,9 @@ if serv is not None and act == "configShow":
     template = template.render(conf=conf,
                                serv=serv,
                                configver=form.getvalue('configver'),
-                               role=funct.is_admin(level=3),
-                               service=form.getvalue('service'))
+                               role=role_id,
+                               service=form.getvalue('service'),
+                               is_serv_protected=is_serv_protected)
     print(template)
 
     if form.getvalue('configver') is None:
@@ -1224,6 +1233,35 @@ if form.getvalue('nginx_exp_install'):
     output, error = funct.subprocess_execute(commands[0])
 
     funct.show_installation_output(error, output, 'Nginx exporter')
+
+    os.system("rm -f %s" % script)
+
+if form.getvalue('node_exp_install'):
+    serv = form.getvalue('node_exp_install')
+    script = "install_node_exporter.sh"
+    proxy = sql.get_setting('proxy')
+    ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(serv)
+
+    if ssh_enable == 0:
+        ssh_key_name = ''
+
+    servers = sql.select_servers(server=serv)
+    for server in servers:
+        ssh_port = str(server[10])
+
+    os.system("cp scripts/%s ." % script)
+
+    if proxy is not None and proxy != '' and proxy != 'None':
+        proxy_serv = proxy
+    else:
+        proxy_serv = ''
+
+    commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port + 
+                " HOST=" + serv + " USER=" + ssh_user_name + " PASS=" + ssh_user_password + " KEY=" + ssh_key_name]
+
+    output, error = funct.subprocess_execute(commands[0])
+
+    funct.show_installation_output(error, output, 'Node exporter')
 
     os.system("rm -f %s" % script)
 
@@ -1757,12 +1795,13 @@ if form.getvalue('updateserver') is not None:
     serv_id = form.getvalue('id')
     cred = form.getvalue('cred')
     port = form.getvalue('port')
+    protected = form.getvalue('protected')
     desc = form.getvalue('desc')
 
     if name is None or port is None:
         print(error_mess)
     else:
-        sql.update_server(name, group, typeip, enable, master, serv_id, cred, port, desc, haproxy, nginx, firewall)
+        sql.update_server(name, group, typeip, enable, master, serv_id, cred, port, desc, haproxy, nginx, firewall, protected)
         funct.logging('the server ' + name, ' has been updated ', haproxywi=1, login=1)
 
 if form.getvalue('serverdel') is not None:

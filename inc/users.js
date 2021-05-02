@@ -176,7 +176,7 @@ $( function() {
 				} else if (data.indexOf('success') != '-1' ){
 					toastr.clear();
 					toastr.success(data);
-					$('#cur_haproxy_exp_ver').text('HAProxy expoter is installed');
+					$('#cur_haproxy_exp_ver').text('HAProxy exporter is installed');
 					$('#haproxy_exp_install').text('Update');
 					$("#haproxy_exp_addserv").trigger( "selectmenuchange" );
 				} else if (data.indexOf('Info') != '-1' ){
@@ -207,7 +207,7 @@ $( function() {
 				} else if (data.indexOf('success') != '-1' ){
 					toastr.clear();
 					toastr.success(data);
-					$('#cur_nginx_exp_ver').text('Nginx expoter is installed');
+					$('#cur_nginx_exp_ver').text('Nginx exporter is installed');
 					$('#nginx_exp_install').text('Update');
 					$("#nginx_exp_addserv").trigger( "selectmenuchange" );
 				} else if (data.indexOf('Info') != '-1' ){
@@ -219,7 +219,38 @@ $( function() {
 				}
 			}
 		} );	
-	});	
+	});
+	$('#node_exp_install').click(function() {
+		$("#ajaxmon").html('')
+		$("#ajaxmon").html(wait_mess);
+		$.ajax( {
+			url: "options.py",
+			data: {
+				node_exp_install: $('#node_exp_addserv').val(),
+				token: $('#token').val()
+				},
+			type: "POST",
+			success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+				$("#ajaxmon").html('');
+				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1') {
+					toastr.error(data);
+				} else if (data.indexOf('success') != '-1' ){
+					toastr.clear();
+					toastr.success(data);
+					$('#cur_node_exp_ver').text('Node exporter is installed');
+					$('#node_exp_install').text('Update');
+					$("#node_exp_addserv").trigger( "selectmenuchange" );
+				} else if (data.indexOf('Info') != '-1' ){
+					toastr.clear();
+					toastr.info(data);
+				} else {
+					toastr.clear();
+					toastr.info(data);
+				}
+			}
+		} );
+	});
 	$( "#haproxyaddserv" ).on('selectmenuchange',function() {
 		$.ajax( {
 			url: "options.py",
@@ -279,13 +310,13 @@ $( function() {
 			success: function( data ) {	
 				data = data.replace(/^\s+|\s+$/g,'');
 				if(data == 'active') {
-					$('#cur_haproxy_exp_ver').text('HAProxy expoter is installed');
+					$('#cur_haproxy_exp_ver').text('HAProxy exporter is installed');
 					$('#haproxy_exp_install').text('Update');
-					$('#haproxy_exp_install').attr('title', 'Update HAProxy expoter');
+					$('#haproxy_exp_install').attr('title', 'Update HAProxy exporter');
 				} else {
-					$('#cur_haproxy_exp_ver').text('HAProxy expoter has not installed');
+					$('#cur_haproxy_exp_ver').text('HAProxy exporter has not installed');
 					$('#haproxy_exp_install').text('Install');
-					$('#haproxy_exp_install').attr('title', 'Install HAProxy expoter');
+					$('#haproxy_exp_install').attr('title', 'Install HAProxy exporter');
 				}
 			}
 		} );
@@ -302,13 +333,36 @@ $( function() {
 			success: function( data ) {	
 				data = data.replace(/^\s+|\s+$/g,'');
 				if(data == 'active') {
-					$('#cur_nginx_exp_ver').text('Nginx expoter is installed');
+					$('#cur_nginx_exp_ver').text('Nginx exporter is installed');
 					$('#nginx_exp_install').text('Update');
-					$('#nginx_exp_install').attr('title', 'Update Nginx expoter');
+					$('#nginx_exp_install').attr('title', 'Update Nginx exporter');
 				} else {
-					$('#cur_nginx_exp_ver').text('Nginx expoter has not installed');
+					$('#cur_nginx_exp_ver').text('Nginx exporter has not installed');
 					$('#nginx_exp_install').text('Install');
-					$('#nginx_exp_install').attr('title', 'Install Nginx expoter');
+					$('#nginx_exp_install').attr('title', 'Install Nginx exporter');
+				}
+			}
+		} );
+	});
+	$( "#node_exp_addserv" ).on('selectmenuchange',function() {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				get_exporter_v: 'node_exporter',
+				serv: $('#node_exp_addserv option:selected').val(),
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+				data = data.replace(/^\s+|\s+$/g,'');
+				if(data == 'active') {
+					$('#cur_node_exp_ver').text('Node exporter is installed');
+					$('#node_exp_install').text('Update');
+					$('#node_exp_install').attr('title', 'Update Node exporter');
+				} else {
+					$('#cur_node_exp_ver').text('Node exporter has not installed');
+					$('#node_exp_install').text('Install');
+					$('#node_exp_install').attr('title', 'Install Node exporter');
 				}
 			}
 		} );

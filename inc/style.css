@@ -1,5 +1,8 @@
 :root {
 	--green-color: #5ad05a;
+	--red-color: #be2424;
+	--blue-color: #5d9ceb;
+	--link-dark-blue: #23527c;
 }
 html {
   font-size: 10px;
@@ -16,11 +19,9 @@ body {
   height:100%
 }
 h2 {
-	font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol;
 	font-size: 1.5em;
-	font-style: normal;
-	background: #5D9CEB;
-	border: 1px solid #5D9CEB;
+	background: var(--blue-color);
+	border: 1px solid var(--blue-color);
 	padding: 3px 3px 3px 2%;
 	color: #fff;
 	margin-top: 0;
@@ -155,7 +156,7 @@ pre {
 	margin-right: 20px;
 }
 .footer-link, .footer-copyright {
-	color: #5d9ceb;
+	color: var(--blue-color);
 	font-size: 0.9em;
 	padding: 12px 5px 20px 20px;
 }
@@ -334,7 +335,7 @@ pre {
 .addSuc {
 	padding-left: 20px;
 	padding-top: 20px;
-	color: #23527c;
+	color: var(--blue-color);
 }
 .add-note {
 	width: 30%;
@@ -422,7 +423,7 @@ pre {
 	font-size: 13px;
 }
 .serverDown {
-	background-color: #be2424;
+	background-color: var(--red-color);
 }
 .padding10 {
 	padding: 10px 10px 10px 0;
@@ -492,7 +493,7 @@ ul{
 	background: #48505A;
 	padding: 10px 0 10px 20px;
 	color: #fff;
-	border-left: 4px solid #5D9CEB;
+	border-left: 4px solid var(--blue-color);
 }
 .menu li:first-child a, .menu li .v_menu li:first-child a{
 	border-radius: 3px 3px 0 0;
@@ -545,7 +546,7 @@ ul{
 @keyframes shadow-red {
 	from {box-shadow: 0 0 0 red inset;}
 	50% {text-shadow: 0 0 30px black;}
-	to {box-shadow: 0 -5px 5px -5px #5D9CEB inset}
+	to {box-shadow: 0 -5px 5px -5px var(--blue-color) inset}
 }
 .form-control:hover {
 	animation: shadow-red  0.3s forwards;
@@ -589,7 +590,7 @@ ul{
 }
 .ui-state-active {
 	background-color: #4A89D8 !important;
-	border: none #5D9CEB !important;
+	border: none var(--blue-color) !important;
 }
 .ui-tabs-nav {
 	border-radius: 0 !important;
@@ -606,7 +607,7 @@ ul{
 	margin-left: -2px;
 }
 .ui-widget-header {
-	background: #5d9ceb !important;
+	background: var(--blue-color) !important;
  }
 .ui-menu, .ui-menu-item {
 	background: #EBF1F1 !important;
@@ -624,7 +625,7 @@ ul{
 	border-bottom: none !important;
 }
 .need-field {
-	color: red;
+	color: var(--red-color);
 }
 a:active, a:hover {
   outline: 0;
@@ -633,12 +634,12 @@ a, a:visited {
     text-decoration: underline;
   }
 a {
-	color: #23527c;
+	color: var(--link-dark-blue);
 	text-decoration: none;
 	background-color: transparent;
 }
 a:hover, a:focus {
-  color: #23527c;
+  color: var(--link-dark-blue);
   text-decoration: underline;
 }
 a:focus {
@@ -646,8 +647,11 @@ a:focus {
   outline-offset: -2px;
 }
 .logs_link, .accordion-link, .link {
-	color: #23527c !important;
+	color: var(--blue-color) !important;
 	cursor: pointer;
+}
+.logs_link {
+	color: var(--link-dark-blue) !important;
 }
 table {
   border-spacing: 0;
@@ -684,7 +688,7 @@ td,th {
 .alert a {
 	cursor: pointer;
 	margin-bottom: 10px;
-	color: #23527c !important;
+	color: var(--blue-color) !important;
 }
 .alert-danger, .alert-info, .alert-success, .alert-warning, .added {
 	margin-left: 15px;
@@ -764,7 +768,7 @@ label {
 	border-top: 3px solid var(--green-color) !important;
 }
 .div-server-head-down {
-	border-top: 3px solid #be2424 !important;
+	border-top: 3px solid var(--red-color) !important;
 }
 .div-server-head-dis {
 	border-top: 3px solid #aaa !important;
@@ -787,7 +791,7 @@ label {
 .server-name {
 	padding-bottom: 3px;
     font-size: 1.4em;
-    color: #5d9ceb;
+    color: var(--blue-color);
     border-bottom: 1px solid #A4C7F5;
 	width: 99%;
 }
@@ -921,7 +925,7 @@ label {
 	font-size: 18px;
 	padding-top: 5px;
 	padding-bottom: 3px;
-	color: #5d9ceb;
+	color: var(--blue-color);
 	border-bottom: 1px solid #A4C7F5;
 	width: 93%;
 	margin-bottom: 5px;
@@ -947,7 +951,7 @@ label {
 	border-color: #d6e9c6;
 }
 .down {
-	color: #a94442;
+	color: var(--red-color);
 	background-color: #f2dede;
 	border-color: #ebccd1;
 	font-size: 22px;

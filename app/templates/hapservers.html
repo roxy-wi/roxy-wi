@@ -151,13 +151,16 @@
 						{{s.1}}
 					{% endif %}
 				{% if s.6|int() >= 1 %}
-					<img
+					<span
 						{% if keep_alive|int() >= 1 %}
-						src="/inc/images/shield.png" title="Auto start enabled"
+						class="shield green" title="Auto start enabled">
 						{% else %}
-						src="/inc/images/shield-red.png" title="Auto start enabled, but keep alive service does not work"
+						class="shield red" title="Auto start enabled, but keep alive service does not work">
 						{% endif %}
-						width=18 style="margin-bottom: -3px;" />
+					</span>
+				{% endif %}
+				{% if s.8.0.20 == 1 %}
+					<span class="lock" title="This server is inaccessible for editing by everyone except the admin role"></span>
 				{% endif %}
 				{% if role <= 2 %}
 				<span class="server-action">
@@ -197,7 +200,7 @@
 						Cannot get information about HAProxy 
 					{% endif %}				 
 				{% endif %}
-				<span title="Date of last configuration edit" >
+				<span title="Date of last configuration edit">
 					Last edit:
 					<span id="{{s.1}}"></span>
 				</span>			

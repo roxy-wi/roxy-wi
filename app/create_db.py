@@ -43,10 +43,11 @@ def check_db():
 			else:
 				print(err)
 			print('</div>')
+			con.close()
 			return True
 		else:
-			return False
 			con.close()
+			return False
 
 
 def get_cur():
@@ -69,12 +70,12 @@ def create_table(**kwargs):
 	if mysql_enable == '0':
 		sql = """
 		CREATE TABLE IF NOT EXISTS user (
-			`id`	INTEGER NOT NULL,
-			`username`	VARCHAR ( 64 ) UNIQUE,
+			`id` INTEGER NOT NULL,
+			`username` VARCHAR ( 64 ) UNIQUE,
 			`email`	VARCHAR ( 120 ) UNIQUE,
-			`password`	VARCHAR ( 128 ),
-			`role`	VARCHAR ( 128 ),
-			`groups`	VARCHAR ( 120 ),
+			`password` VARCHAR ( 128 ),
+			`role` VARCHAR ( 128 ),
+			`groups` VARCHAR ( 120 ),
 			ldap_user INTEGER NOT NULL DEFAULT 0,
 			activeuser INTEGER NOT NULL DEFAULT 1,
 			PRIMARY KEY(`id`) 
@@ -204,7 +205,42 @@ def create_table(**kwargs):
 			`create_date`  DATETIME default '0000-00-00 00:00:00',
 			`expire_date`  DATETIME default '0000-00-00 00:00:00'
 		);
-		CREATE TABLE IF NOT EXISTS `slack` (`id` integer primary key autoincrement, `token` VARCHAR (64), `chanel_name` INTEGER NOT NULL DEFAULT 1, `groups` INTEGER NOT NULL DEFAULT 1);
+		CREATE TABLE IF NOT EXISTS `metrics_http_status` (`serv` varchar(64), `2xx` INTEGER, `3xx` INTEGER, `4xx` INTEGER, `5xx` INTEGER,`date` timestamp default '0000-00-00 00:00:00');
+		CREATE TABLE IF NOT EXISTS `slack` (`id` INTEGER NOT NULL, `token` VARCHAR (64), `chanel_name` INTEGER NOT NULL DEFAULT 1, `groups` INTEGER NOT NULL DEFAULT 1, PRIMARY KEY(`id`));
+		CREATE TABLE IF NOT EXISTS `settings` (`param` varchar(64), value varchar(64), section varchar(64), `desc` varchar(100), `group` INTEGER NOT NULL DEFAULT 1, UNIQUE(param, `group`));
+		INSERT  INTO settings (param, value, section, `desc`) values('time_zone', 'UTC', 'main', 'Time Zone');
+		INSERT  INTO settings (param, value, section, `desc`) values('proxy', '', 'main', 'Proxy server. Use proto://ip:port');
+		INSERT  INTO settings (param, value, section, `desc`) values('session_ttl', '5', 'main', 'Time to live users sessions. In days');
+		INSERT  INTO settings (param, value, section, `desc`) values('token_ttl', '5', 'main', 'Time to live users tokens. In days');
+		INSERT  INTO settings (param, value, section, `desc`) values('tmp_config_path', '/tmp/', 'main', 'A temp folder of configs, for checking. The path must exist');
+		INSERT  INTO settings (param, value, section, `desc`) values('cert_path', '/etc/ssl/certs/', 'main', 'A path to SSL dir. The folder owner must be an user who set in the SSH settings. The path must exist');
+		INSERT  INTO settings (param, value, section, `desc`) values('ssl_local_path', 'certs', 'main', 'Path to dir for local save SSL certs. This is a relative path, begins with $HOME_HAPROXY-WI/app/');
+		INSERT  INTO settings (param, value, section, `desc`) values('lists_path', 'lists', 'main', 'Path to black/white lists. This is a relative path, begins with $HOME_HAPROXY-WI');
+		INSERT  INTO settings (param, value, section, `desc`) values('local_path_logs', '/var/log/haproxy.log', 'logs', 'Logs save locally, enabled by default');
+		INSERT  INTO settings (param, value, section, `desc`) values('syslog_server_enable', '0', 'logs', 'If exist syslog server for HAProxy logs, enable this option');
+		INSERT  INTO settings (param, value, section, `desc`) values('syslog_server', '0', 'logs', 'IP address of syslog server');
+		INSERT  INTO settings (param, value, section, `desc`) values('log_time_storage', '14', 'logs', 'Storage time for user activity logs, in days');
+		INSERT  INTO settings (param, value, section, `desc`) values('stats_user', 'admin', 'haproxy', 'Username for the HAProxy Stats web page');
+		INSERT  INTO settings (param, value, section, `desc`) values('stats_password', 'password', 'haproxy', 'Password for the HAProxy Stats web page');
+		INSERT  INTO settings (param, value, section, `desc`) values('stats_port', '8085', 'haproxy', 'Port for the HAProxy Stats web page');
+		INSERT  INTO settings (param, value, section, `desc`) values('stats_page', 'stats', 'haproxy', 'URI for the HAProxy Stats web page');
+		INSERT  INTO settings (param, value, section, `desc`) values('haproxy_dir', '/etc/haproxy/', 'haproxy', 'Path to HAProxy dir');
+		INSERT  INTO settings (param, value, section, `desc`) values('haproxy_config_path', '/etc/haproxy/haproxy.cfg', 'haproxy', 'Path to HAProxy config');
+		INSERT  INTO settings (param, value, section, `desc`) values('server_state_file', '/etc/haproxy/haproxy.state', 'haproxy', 'Path to HAProxy state file');
+		INSERT  INTO settings (param, value, section, `desc`) values('haproxy_sock', '/var/run/haproxy.sock', 'haproxy', 'Path to HAProxy sock file');
+		INSERT  INTO settings (param, value, section, `desc`) values('haproxy_sock_port', '1999', 'haproxy', 'HAProxy sock port');
+		INSERT  INTO settings (param, value, section, `desc`) values('apache_log_path', '/var/log/httpd/', 'logs', 'Path to Apache logs folder');
+		INSERT  INTO settings (param, value, section, `desc`) values('ldap_enable', '0', 'ldap', 'If 1 LDAP is enabled');
+		INSERT  INTO settings (param, value, section, `desc`) values('ldap_server', '', 'ldap', 'LDAP server IP address');
+		INSERT  INTO settings (param, value, section, `desc`) values('ldap_port', '389', 'ldap', 'Default port is 389 or 636');
+		INSERT  INTO settings (param, value, section, `desc`) values('ldap_user', '', 'ldap', 'Username to connect to the LDAP server. Enter: user@domain.com');
+		INSERT  INTO settings (param, value, section, `desc`) values('ldap_password', '', 'ldap', 'Password for connect to LDAP server');
+		INSERT  INTO settings (param, value, section, `desc`) values('ldap_base', '', 'ldap', 'Base domain. Example: dc=domain, dc=com');
+		INSERT  INTO settings (param, value, section, `desc`) values('ldap_domain', '', 'ldap', 'Domain for login, that after @, like user@domain.com, without user@');
+		INSERT  INTO settings (param, value, section, `desc`) values('ldap_class_search', 'user', 'ldap', 'Class to search user');
+		INSERT  INTO settings (param, value, section, `desc`) values('ldap_user_attribute', 'sAMAccountName', 'ldap', 'User attribute for searching');
+		INSERT  INTO settings (param, value, section, `desc`) values('ldap_search_field', 'mail', 'ldap', 'Field where user e-mails are saved');
+		CREATE TABLE IF NOT EXISTS `version` (`version` varchar(64));
 		"""
 		try:
 			cur.executescript(sql)
@@ -217,6 +253,9 @@ def create_table(**kwargs):
 			return False
 		else:
 			return True
+		finally:
+			cur.close()
+			con.close()
 	else:
 		try:
 			for line in open("haproxy-wi.db.sql"):
@@ -228,78 +267,9 @@ def create_table(**kwargs):
 			return False
 		else:
 			return True
-	cur.close() 
-	con.close()
-
-
-def update_db_v_31(**kwargs):
-	con, cur = get_cur()
-	sql = list()
-	sql.append("CREATE TABLE IF NOT EXISTS `settings` (`param` varchar(64), value varchar(64), section varchar(64), `desc` varchar(100), `group` INTEGER NOT NULL DEFAULT 1, UNIQUE(param, `group`));")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('time_zone', 'UTC', 'main', 'Time Zone');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('proxy', '', 'main', 'Proxy server. Use proto://ip:port');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('session_ttl', '5', 'main', 'Time to live users sessions. In days');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('token_ttl', '5', 'main', 'Time to live users tokens. In days');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('tmp_config_path', '/tmp/', 'main', 'Temp store configs, for check. Path must exist');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('cert_path', '/etc/ssl/certs/', 'main', 'Path to SSL dir. Folder owner must be a user which set in the SSH settings. Path must exist');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ssl_local_path', 'certs', 'main', 'Path to dir for local save SSL certs. This is a relative path, begins with $HOME_HAPROXY-WI/app/');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('lists_path', 'lists', 'main', 'Path to black/white lists. This is a relative path, begins with $HOME_HAPROXY-WI');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('local_path_logs', '/var/log/haproxy.log', 'logs', 'Logs save locally, enabled by default');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('syslog_server_enable', '0', 'logs', 'If exist syslog server for HAproxy logs, enable this option');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('syslog_server', '0', 'logs', 'IP address syslog server');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('log_time_storage', '14', 'logs', 'Time of storage of logs of user activity, in days');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('stats_user', 'admin', 'haproxy', 'Username for Stats web page HAproxy');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('stats_password', 'password', 'haproxy', 'Password for Stats web page HAproxy');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('stats_port', '8085', 'haproxy', 'Port Stats web page HAproxy');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('stats_page', 'stats', 'haproxy', 'URI Stats web page HAproxy');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('haproxy_dir', '/etc/haproxy/', 'haproxy', 'Path to HAProxy dir');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('haproxy_config_path', '/etc/haproxy/haproxy.cfg', 'haproxy', 'Path to HAProxy config');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('server_state_file', '/etc/haproxy/haproxy.state', 'haproxy', 'Path to HAProxy state file');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('haproxy_sock', '/var/run/haproxy.sock', 'haproxy', 'Path to HAProxy sock file');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('haproxy_sock_port', '1999', 'haproxy', 'HAProxy sock port');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('apache_log_path', '/var/log/httpd/', 'logs', 'Path to Apache logs');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_enable', '0', 'ldap', 'If 1 ldap enabled');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_server', '', 'ldap', 'IP address ldap server');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_port', '389', 'ldap', 'Default port is 389 or 636');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_user', '', 'ldap', 'Login for connect to LDAP server. Enter: user@domain.com');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_password', '', 'ldap', 'Password for connect to LDAP server');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_base', '', 'ldap', 'Base domain. Example: dc=domain, dc=com');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_domain', '', 'ldap', 'Domain for login, that after @, like user@domain.com, without user@');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_class_search', 'user', 'ldap', 'Class to search user');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_user_attribute', 'sAMAccountName', 'ldap', 'User attribute for searching');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('ldap_search_field', 'mail', 'ldap', 'Field where user e-mail saved');")
-	
-	for i in sql:
-		try:
-			cur.execute(i)
-			con.commit()
-		except sqltool.Error as e:
-			pass
-	else:
-		if kwargs.get('silent') != 1:
-			print('Updating... go to version 3.2')
-		return True
-	cur.close() 
-	con.close()
-
-
-def update_db_v_3_4_5_2(**kwargs):
-	con, cur = get_cur()
-	sql = """CREATE TABLE IF NOT EXISTS `version` (`version` varchar(64)); """
-	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
-		if kwargs.get('silent') != 1:
-			if e.args[0] == 'duplicate column name: version' or e == "1060 (42S21): Duplicate column name 'version' ":
-				print('Updating... go to version 3.4.7')
-			else:
-				print("DB was update to 3.4.5.3")
-			return False
-		else:
-			return True
-	cur.close() 
-	con.close()
+		finally:
+			cur.close()
+			con.close()
 
 
 def update_db_v_3_4_5_22(**kwargs):
@@ -320,8 +290,6 @@ def update_db_v_3_4_5_22(**kwargs):
 def update_db_v_4(**kwargs):
 	con, cur = get_cur()
 	sql = list()
-	sql.append("update settings set section = 'main', `desc` = 'Temp store configs, for check' where param = 'tmp_config_path';")
-	sql.append("update settings set section = 'main' where param = 'cert_path';")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('nginx_path_error_logs', '/var/log/nginx/error.log', 'nginx', 'Nginx error log');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('nginx_stats_user', 'admin', 'nginx', 'Username for Stats web page Nginx');")
 	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('nginx_stats_password', 'password', 'nginx', 'Password for Stats web page Nginx');")
@@ -443,7 +411,7 @@ def update_db_v_4_3_1(**kwargs):
 			else:
 				print("An error occurred:", e)
 	else:
-		print("DB was update to 4.3.1")
+		print("DB has been updated to 4.3.1")
 
 	cur.close()
 	con.close()
@@ -452,7 +420,7 @@ def update_db_v_4_3_1(**kwargs):
 def update_db_v_4_3_2(**kwargs):
 	con, cur = get_cur()
 	sql = """
-	INSERT  INTO settings (param, value, section, `desc`) values('ldap_type', '0', 'ldap', 'If 0 then will be used LDAP, if 1 then will be used LDAPS ');
+	INSERT  INTO settings (param, value, section, `desc`) values('ldap_type', '0', 'ldap', 'If 0 then LDAP is be used , if 1 then LDAPS');
 	"""
 	try:    
 		cur.execute(sql)
@@ -546,7 +514,7 @@ def update_db_v_4_4_2_1(**kwargs):
 			else:
 				print("An error occurred:", e)
 	else:
-		print("DB was update to 4.4.2")
+		print("DB has been updated to 4.4.2")
 
 	cur.close()
 	con.close()
@@ -634,7 +602,7 @@ def update_db_v_4_5_1(**kwargs):
 				pass
 		else:
 			if kwargs.get('silent') != 1:
-				print('DB was update to 4.5.0')
+				print('DB has been updated to 4.5.0')
 	cur.close()
 	con.close()
 
@@ -674,7 +642,7 @@ def update_db_v_4_5_7(**kwargs):
 			else:
 				print("An error occurred:", e)
 	else:
-		print("DB was update to 4.3.1")
+		print("DB has been updated to 4.3.1")
 
 	cur.close()
 	con.close()
@@ -1223,10 +1191,11 @@ def update_db_v_5_1_0_1(**kwargs):
 def update_db_v_5_1_1(**kwargs):
 	con, cur = get_cur()
 	sql = """CREATE TABLE IF NOT EXISTS `slack` (
-				`id` integer primary key autoincrement, 
+				`id` INTEGER NOT NULL, 
 				`token` VARCHAR (64), 
 				`chanel_name` INTEGER NOT NULL DEFAULT 1, 
-				`groups` INTEGER NOT NULL DEFAULT 1
+				`groups` INTEGER NOT NULL DEFAULT 1, 
+				PRIMARY KEY(`id`)
 				);
   """
 	try:
@@ -1245,7 +1214,7 @@ def update_db_v_5_1_1(**kwargs):
 
 def update_ver():
 	con, cur = get_cur()
-	sql = """update version set version = '5.1.1.0'; """
+	sql = """update version set version = '5.1.2.0'; """
 	try:
 		cur.execute(sql)
 		con.commit()
@@ -1256,8 +1225,6 @@ def update_ver():
 
 
 def update_all():	
-	update_db_v_31()
-	update_db_v_3_4_5_2()
 	if funct.check_ver() is None:
 		update_db_v_3_4_5_22()
 	update_db_v_4()
@@ -1292,8 +1259,6 @@ def update_all():
 
 
 def update_all_silent():
-	update_db_v_31(silent=1)
-	update_db_v_3_4_5_2(silent=1)
 	if funct.check_ver() is None:
 		update_db_v_3_4_5_22()
 	update_db_v_4(silent=1)
