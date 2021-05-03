@@ -159,9 +159,6 @@
 						{% endif %}
 					</span>
 				{% endif %}
-				{% if s.8.0.20 == 1 %}
-					<span class="lock" title="This server is inaccessible for editing by everyone except the admin role"></span>
-				{% endif %}
 				{% if role <= 2 %}
 				<span class="server-action">
 					{% if service == 'nginx' %}

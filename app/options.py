@@ -918,12 +918,6 @@ if serv is not None and form.getvalue('right') is not None:
     print(stderr)
 
 if serv is not None and act == "configShow":
-    import http.cookies
-
-    cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-    user_uuid = cookie.get('uuid')
-    role_id = sql.get_user_role_by_uuid(user_uuid.value)
-
     if form.getvalue('service') == 'keepalived':
         configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
         cfg = '.conf'
@@ -946,8 +940,6 @@ if serv is not None and act == "configShow":
         conf = open(cfg, "r")
     except IOError:
         print('<div class="alert alert-danger">Can\'t read config file</div>')
-        
-    is_serv_protected = sql.is_serv_protected(serv)
 
     from jinja2 import Environment, FileSystemLoader
 
@@ -958,9 +950,8 @@ if serv is not None and act == "configShow":
     template = template.render(conf=conf,
                                serv=serv,
                                configver=form.getvalue('configver'),
-                               role=role_id,
-                               service=form.getvalue('service'),
-                               is_serv_protected=is_serv_protected)
+                               role=funct.is_admin(level=3),
+                               service=form.getvalue('service'))
     print(template)
 
     if form.getvalue('configver') is None:
@@ -1795,13 +1786,12 @@ if form.getvalue('updateserver') is not None:
     serv_id = form.getvalue('id')
     cred = form.getvalue('cred')
     port = form.getvalue('port')
-    protected = form.getvalue('protected')
     desc = form.getvalue('desc')
 
     if name is None or port is None:
         print(error_mess)
     else:
-        sql.update_server(name, group, typeip, enable, master, serv_id, cred, port, desc, haproxy, nginx, firewall, protected)
+        sql.update_server(name, group, typeip, enable, master, serv_id, cred, port, desc, haproxy, nginx, firewall)
         funct.logging('the server ' + name, ' has been updated ', haproxywi=1, login=1)
 
 if form.getvalue('serverdel') is not None:
