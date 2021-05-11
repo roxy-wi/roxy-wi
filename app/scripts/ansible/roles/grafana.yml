@@ -32,6 +32,9 @@
         - dashboard_id: 11879
           revision_id: 3
           datasource: prometheus
+        - dashboard_id: 11074
+          revision_id: 9
+          datasource: prometheus
   tasks:
     - name: populate service facts
       service_facts:

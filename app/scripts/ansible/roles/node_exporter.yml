@@ -1,0 +1,38 @@
+- hosts: "{{ variable_host }}"
+  become: yes
+  become_method: sudo
+  tasks:
+  - name: Set SSH port
+    set_fact:
+      ansible_port: "{{SSH_PORT}}"
+
+
+  - name: collect facts about system services
+    service_facts:
+    register: services_state
+
+
+  - name: Open stat port for firewalld
+    firewalld:
+      port: "9100/tcp"
+      state: enabled
+      permanent: yes
+      immediate: yes
+    ignore_errors: yes
+    when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS')  and ansible_facts.services["firewalld.service"]['state'] == "running"
+
+
+  - name: Open stat port for iptables
+    iptables:
+      chain: INPUT
+      destination_port: "9100"
+      jump: ACCEPT
+      protocol: tcp
+    ignore_errors: yes
+
+
+  roles:
+  - role: cloudalchemy.node_exporter
+    environment:
+      http_proxy: "{{PROXY}}"
+      https_proxy: "{{PROXY}}"
