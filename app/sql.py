@@ -2744,6 +2744,22 @@ def insert_port_scanner_history(serv, port, port_status, service_name):
 	con.close()
 
 
+def delete_alert_history(keep_interval: int, service: str):
+	con, cur = get_cur()
+	if mysql_enable == '1':
+		sql = """ delete from alerts where date < now() - INTERVAL %s day and service = '%s'""" % (keep_interval, service)
+	else:
+		sql = """ delete from alerts where date < datetime('now', '-%s days') and service = '%s'""" % (keep_interval, service)
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
+	cur.close()
+	con.close()
+
+
 def select_port_scanner_history(serv):
 	con, cur = get_cur()
 	sql = """select * from port_scanner_history where serv =  '%s' """ % serv
