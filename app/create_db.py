@@ -1212,6 +1212,24 @@ def update_db_v_5_1_1(**kwargs):
 	con.close()
 
 
+def update_db_v_5_1_2(**kwargs):
+	con, cur = get_cur()
+	sql = list()
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('smon_keep_history_range', '14', 'monitoring', 'How many days to keep the history for the SMON service')")
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('checker_keep_history_range', '14', 'monitoring', 'How many days to keep the history for the Checker service')")
+	for i in sql:
+		try:
+			cur.execute(i)
+			con.commit()
+		except sqltool.Error as e:
+			pass
+	else:
+		if kwargs.get('silent') != 1:
+			print('Updating... DB has been updated to version 5.1.2')
+	cur.close()
+	con.close()
+
+
 def update_ver():
 	con, cur = get_cur()
 	sql = """update version set version = '5.1.2.0'; """
@@ -1255,6 +1273,7 @@ def update_all():
 	update_db_v_5_1_0()
 	update_db_v_5_1_0_1()
 	update_db_v_5_1_1()
+	update_db_v_5_1_2()
 	update_ver()
 
 
@@ -1289,6 +1308,7 @@ def update_all_silent():
 	update_db_v_5_1_0(silent=1)
 	update_db_v_5_1_0_1(silent=1)
 	update_db_v_5_1_1(silent=1)
+	update_db_v_5_1_2(silent=1)
 	update_ver()
 
 
