@@ -365,7 +365,7 @@ def update_hapwi_server(server_id, alert, metrics, active, service_name):
 	con.close()
 
 
-def update_server(hostname, group, typeip, enable, master, id, cred, port, desc, haproxy, nginx, firewall):
+def update_server(hostname, group, typeip, enable, master, id, cred, port, desc, haproxy, nginx, firewall, protected):
 	con, cur = get_cur()
 	sql = """ update servers set 
 			hostname = '%s',
@@ -378,8 +378,9 @@ def update_server(hostname, group, typeip, enable, master, id, cred, port, desc,
 			`desc` = '%s',
 			haproxy = '%s',
 			nginx = '%s',
-			firewall_enable = '%s'
-			where id = '%s'""" % (hostname, group, typeip, enable, master, cred, port, desc, haproxy, nginx, firewall, id)
+			firewall_enable = '%s',
+			protected = '%s'
+			where id = '%s'""" % (hostname, group, typeip, enable, master, cred, port, desc, haproxy, nginx, firewall, protected, id)
 	try:
 		cur.execute(sql)
 		con.commit()
@@ -1367,7 +1368,7 @@ def delete_savedserver(id):
 	con.close()
 
 
-def insert_mentrics(serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate):
+def insert_metrics(serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate):
 	con, cur = get_cur()
 	if mysql_enable == '1':
 		sql = """ insert into metrics (serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate, date) values('%s', '%s', '%s', '%s', '%s', now()) """ % (serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate)
@@ -1381,6 +1382,35 @@ def insert_mentrics(serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate):
 		con.rollback()
 	cur.close()
 	con.close()
+
+
+def insert_metrics_http(serv, http_2xx, http_3xx, http_4xx, http_5xx):
+	con, cur = get_cur()
+	if mysql_enable == '1':
+		sql = """ insert into metrics_http_status (serv, `2xx`, `3xx`, `4xx`, `5xx`, date) values('%s', '%s', '%s', '%s', '%s', now()) """ % (serv, http_2xx, http_3xx, http_4xx, http_5xx)
+	else:
+		sql = """ insert into metrics_http_status (serv, `2xx`, `3xx`, `4xx`, `5xx`, date) values('%s', '%s', '%s', '%s', '%s',  datetime('now', 'localtime')) """ % (serv, http_2xx, http_3xx, http_4xx, http_5xx)
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
+	cur.close()
+	con.close()
+
+
+# def select_waf_metrics_enable(id):
+# 	con, cur = get_cur()
+# 	sql = """ select waf.metrics from waf left join servers as serv on waf.server_id = serv.id where server_id = '%s' """ % id
+# 	try:
+# 		cur.execute(sql)
+# 	except sqltool.Error as e:
+# 		funct.out_error(e)
+# 	else:
+# 		return cur.fetchall()
+# 	cur.close()
+# 	con.close()
 
 
 def select_waf_metrics_enable_server(ip):
@@ -1601,7 +1631,7 @@ def delete_waf_server(id):
 	con.close()
 
 
-def insert_waf_mentrics(serv, conn):
+def insert_waf_metrics(serv, conn):
 	con, cur = get_cur()
 	if mysql_enable == '1':
 		sql = """ insert into waf_metrics (serv, conn, date) values('%s', '%s', now()) """ % (serv, conn)
@@ -1617,7 +1647,7 @@ def insert_waf_mentrics(serv, conn):
 	con.close()
 
 
-def delete_waf_mentrics():
+def delete_waf_metrics():
 	con, cur = get_cur()
 	if mysql_enable == '1':
 		sql = """ delete from metrics where date < now() - INTERVAL 3 day """
@@ -1646,7 +1676,7 @@ def update_waf_metrics_enable(name, enable):
 	con.close()
 
 
-def delete_mentrics():
+def delete_metrics():
 	con, cur = get_cur()
 	if mysql_enable == '1':
 		sql = """ delete from metrics where date < now() - INTERVAL 3 day """
@@ -1661,6 +1691,21 @@ def delete_mentrics():
 	cur.close()
 	con.close()
 
+
+def delete_http_metrics():
+	con, cur = get_cur()
+	if mysql_enable == '1':
+		sql = """ delete from metrics_http_status where date < now() - INTERVAL 3 day """
+	else:
+		sql = """ delete from metrics_http_status where date < datetime('now', '-3 days') """
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
+	cur.close()
+	con.close()
 
 
 def select_metrics(serv, **kwargs):
@@ -1691,6 +1736,46 @@ def select_metrics(serv, **kwargs):
 			date_from = "and date > datetime('now', '-30 minutes', 'localtime')"
 
 		sql = """ select * from (select * from metrics where serv = '{serv}' {date_from} order by `date`) order by `date` """.format(serv=serv, date_from=date_from)
+
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		funct.out_error(e)
+	else:
+		return cur.fetchall()
+
+	cur.close()
+	con.close()
+
+
+def select_metrics_http(serv, **kwargs):
+	con, cur = get_cur()
+
+	if mysql_enable == '1':
+		if kwargs.get('time_range') == '60':
+			date_from = "and date > now() - INTERVAL 60 minute and rowid % 2 = 0"
+		elif kwargs.get('time_range') == '180':
+			date_from = "and date > now() - INTERVAL 180 minute and rowid % 5 = 0"
+		elif kwargs.get('time_range') == '360':
+			date_from = "and date > now() - INTERVAL 360 minute and rowid % 7 = 0"
+		elif kwargs.get('time_range') == '720':
+			date_from = "and date > now() - INTERVAL 720 minute and rowid % 9 = 0"
+		else:
+			date_from = "and date > now() - INTERVAL 30 minute"
+		sql = """ select * from metrics_http_status where serv = '{serv}' {date_from} order by `date` desc """.format(serv=serv, date_from=date_from)
+	else:
+		if kwargs.get('time_range') == '60':
+			date_from = "and date > datetime('now', '-60 minutes', 'localtime') and rowid % 2 = 0"
+		elif kwargs.get('time_range') == '180':
+			date_from = "and date > datetime('now', '-180 minutes', 'localtime') and rowid % 5 = 0"
+		elif kwargs.get('time_range') == '360':
+			date_from = "and date > datetime('now', '-360 minutes', 'localtime') and rowid % 7 = 0"
+		elif kwargs.get('time_range') == '720':
+			date_from = "and date > datetime('now', '-720 minutes', 'localtime') and rowid % 9 = 0"
+		else:
+			date_from = "and date > datetime('now', '-30 minutes', 'localtime')"
+
+		sql = """ select * from (select * from metrics_http_status where serv = '{serv}' {date_from} order by `date`) order by `date` """.format(serv=serv, date_from=date_from)
 
 	try:
 		cur.execute(sql)
@@ -3330,6 +3415,23 @@ def update_aws_provider(new_name, new_key, new_secret, provider_id):
 	finally:
 		cur.close()
 		con.close()
+
+
+def is_serv_protected(serv):
+	con, cur = get_cur()
+	sql = """ select protected from servers where ip = '%s'""" % serv
+
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		cur.close()
+		con.close()
+		return ""
+	else:
+		for p in cur.fetchall():
+			return True if p[0] else False
+	cur.close()
+	con.close()
 
 
 form = funct.form

@@ -1230,9 +1230,30 @@ def update_db_v_5_1_2(**kwargs):
 	con.close()
 
 
+def update_db_v_5_1_3(**kwargs):
+	con, cur = get_cur()
+	sql = """
+	ALTER TABLE `servers` ADD COLUMN protected INTEGER NOT NULL DEFAULT 0;
+	"""
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: protected' or e == " 1060 (42S21): Duplicate column name 'protected' ":
+				print('Updating... DB has been updated to version 5.1.3')
+			else:
+				print("An error occurred:", e)
+	else:
+		print("DB has been updated to version 5.1.3")
+
+	cur.close()
+	con.close()
+
+
 def update_ver():
 	con, cur = get_cur()
-	sql = """update version set version = '5.1.2.0'; """
+	sql = """update version set version = '5.1.3.0'; """
 	try:
 		cur.execute(sql)
 		con.commit()
@@ -1274,6 +1295,7 @@ def update_all():
 	update_db_v_5_1_0_1()
 	update_db_v_5_1_1()
 	update_db_v_5_1_2()
+	update_db_v_5_1_3()
 	update_ver()
 
 
@@ -1309,6 +1331,7 @@ def update_all_silent():
 	update_db_v_5_1_0_1(silent=1)
 	update_db_v_5_1_1(silent=1)
 	update_db_v_5_1_2(silent=1)
+	update_db_v_5_1_3(silent=1)
 	update_ver()
 
 

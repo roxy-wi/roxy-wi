@@ -55,7 +55,7 @@ function metrics_waf(name) {
 }
 function installWaf(ip1) {
 	$("#ajax").html('')
-	$("#ajax").html('<div class="alert alert-warning">Please don\'t close and don\'t represh page. Wait until the work is completed. This may take some time </div>');
+	$("#ajax").html(wait_mess);
 	$.ajax( {
 		url: "options.py",
 		data: {

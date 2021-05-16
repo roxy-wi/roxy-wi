@@ -1669,6 +1669,7 @@ function updateServer(id) {
 	var haproxy = 0;
 	var nginx = 0;
 	var firewall = 0;
+	var protected_serv = 0;
 	if ($('#typeip-'+id).is(':checked')) {
 		typeip = '1';
 	}
@@ -1683,6 +1684,9 @@ function updateServer(id) {
 	}
 	if ($('#firewall-'+id).is(':checked')) {
 		firewall = '1';
+	}
+	if ($('#protected-'+id).is(':checked')) {
+		protected_serv = '1';
 	}
 	var servergroup = $('#servergroup-'+id+' option:selected' ).val();
 	if (cur_url[0].split('#')[0] == "servers.py") {
@@ -1703,6 +1707,7 @@ function updateServer(id) {
 			cred: $('#credentials-'+id+' option:selected').val(),
 			id: id,
 			desc: $('#desc-'+id).val(),
+			protected: protected_serv,
 			token: $('#token').val()
 		},
 		type: "POST",
@@ -2142,7 +2147,7 @@ function ajaxActionServies(action, service) {
 }
 function updateService(service) {
 	$("#ajax-update").html('')
-	$("#ajax-update").html('<div class="alert alert-warning">Please don\'t close and don\'t represh page. Wait until the work is completed. This may take some time </div>');
+	$("#ajax-update").html(wait_mess);
 	$.ajax( {
 		url: "options.py",
 		data: {

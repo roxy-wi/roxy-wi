@@ -4,7 +4,7 @@
 <script src="/inc/codemirror/codemirror.js"></script>
 <script src="/inc/codemirror/nginx.js"></script>
 <script src="/inc/codemirror/haproxy.js"></script>
-<center>
+<div style="text-align: center;">
 	<p>
 		<form action="{{ action }}" method="post">
 			<select autofocus required name="section" id="{{ select_id }}">
@@ -27,16 +27,15 @@
 		{% if role <= 3 %}
 			<div id="config">
 				<h4>You are editing "{{section}}" section from server {{ serv }}</h4>
-				</center>
 				<form action="{{ action }}" name="saveconfig" method="post">
 					<input type="hidden" value="{{ serv }}" name="serv"> 
 					<input type="hidden" value="{{ start_line }}" name="start_line"> 
 					<input type="hidden" value="{{ end_line }}" name="end_line"> 
 					<input type="hidden" value="{{ cfg }}.old" name="oldconfig">
-					<div style="margin-left: 23%;width: 60%;">
+					<div style="margin-left: 23%;width: 60%; text-align: left">
 						<textarea name="config" class="config" id="config_text_area" rows="35" cols="80" style="height: 40%">{{ config }}</textarea>
 					</div>
-					<center>
+					{% if not is_serv_protected or role <= 2 %}
 					<p>
 						<button type="submit" value="test" name="save" class="btn btn-default">Just test</button>
 						<button type="submit" value="save" name="save" class="btn btn-default">Just save</button>
@@ -46,6 +45,7 @@
 						<button type="submit" value="delete" name="save" class="btn btn-default">Delete this section</button>
 						{% endif %}
 					</p>
+					{% endif %}
 				</form>
 				<script>
 					var myCodeMirror = CodeMirror.fromTextArea(document.getElementById("config_text_area"), {mode: "haproxy", lineNumbers: true});
@@ -59,7 +59,6 @@
 				<script>
 					myCodeMirror.refresh();
 				</script>
-			</center>
 		{% endif %}
 	{% endif %}
 	{% if aftersave %}
@@ -73,5 +72,6 @@
 		{% endif %}
 		<script>window.history.pushState("Config", "Config", cur_url[0])</script>
 	{% endif %}
-	</center>
+	</div>
+</div>
 {% endblock %}

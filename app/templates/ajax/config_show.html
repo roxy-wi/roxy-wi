@@ -1,14 +1,16 @@
-	<center>
+	<div style="text-align: center;">
 		<h4>Config from {{serv}}</h4>
 		<p class="accordion-expand-holder">
-			{% if role %}
+			{% if role <= 3 %}
+				{% if not is_serv_protected or role <= 2 %}
 				<a class="ui-button ui-widget ui-corner-all" title="Edit this run config" href="config.py?service={{service}}&serv={{serv}}&open=open">Edit</a>
+				{% endif %}
 			{% endif %}
-			<a class="accordion-expand-all ui-button ui-widget ui-corner-all" href="#">Expand all</a>		
+			<a class="accordion-expand-all ui-button ui-widget ui-corner-all" href="#">Expand all</a>
 			<button id="raw">Raw</button>
 			<button id="according" style="display: none;">According</button>
 		</p>
-	</center>	
+	</div>
 
 	<div style="margin-left: 16%" class="configShow">
 	{% set i = 0 -%}
@@ -222,6 +224,8 @@
 	{% if configver %}
 	<br>
 	<center>
+		{% if role <= 3 %}
+		{% if not is_serv_protected or role <= 2 %}
 		<form action="versions.py?service={{service}}" method="post">
 			<input type="hidden" value="{{serv}}" name="serv">
 			<input type="hidden" value="{{configver}}" name="configver">
@@ -232,6 +236,8 @@
 			<button type='submit' value='reload' name='save' class='btn btn-default'>Upload and reload</button>
 			{% endif %}
 		</form>
+		{% endif %}
+		{% endif %}
 		<div class="alert alert-info"><b>Note:</b> If you reconfigure Master server, Slave will reconfigured automatically</div>
 	</center>
 	{% endif %}

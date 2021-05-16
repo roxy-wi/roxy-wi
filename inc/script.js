@@ -14,7 +14,7 @@ function escapeHtml(unsafe) {
 		.replace(/"/g, "&quot;")
 		.replace(/'/g, "&#039;");
 }
-var wait_mess = '<div class="alert alert-warning">Please don\'t close and don\'t represh page. Wait until the work is completed. This may take some time </div>'
+var wait_mess = '<div class="alert alert-warning">Please do not close or refresh the page. Wait until the job is completed. This may take some time</div>'
 $( function() {		
    $('.menu li ul li').each(function () {
        var link = $(this).find('a').attr('href');
