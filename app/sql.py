@@ -917,12 +917,12 @@ def get_dick_permit(**kwargs):
 	if kwargs.get('nginx'):
 		nginx = "and nginx = 1"
 	if kwargs.get('keepalived'):
-		nginx = "and keepalived = 1"
+		keepalived = "and keepalived = 1"
 
 	if funct.check_user_group(token=token):
 		con, cur = get_cur()
 		if grp == '1' and not only_group:
-			sql = """ select * from servers where enable = 1 %s %s %s %s order by pos""" % (disable, type_ip, nginx, ip)
+			sql = """ select * from servers where enable = 1 %s %s %s %s %s order by pos""" % (disable, type_ip, nginx, keepalived, ip)
 		else:
 			sql = """ select * from servers where groups = '{group}' and (enable = 1 {disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} order by pos
 			""".format(group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx, keepalived=keepalived)

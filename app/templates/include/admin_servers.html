@@ -25,7 +25,6 @@
 				<span title="Actions with the master config will automatically apply on the slave">Slave for</span>
 			</th>
 			<th class="cred-field">Credentials</th>
-			<th class="cred-field" style="min-width: 70px;"></th>
 			<th style="width: 100%">Description</th>
 			<th></th>
 			<th></th>
@@ -141,9 +140,6 @@
 					</select>
 					<button onclick="checkSshConnect('{{server.2}}')" title="Check SSH connect to the server {{server.1}}">check</button>
 				</div>
-			</td>
-			<td>
-				<button onclick="scanPorts('{{server.0}}')" title="Scanning open/filtered ports for the server {{server.1}}">scan</button>
 			</td>
 			<td>
 				{% set id = 'desc-' + server.0|string() %}
