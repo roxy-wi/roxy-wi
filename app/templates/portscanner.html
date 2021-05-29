@@ -39,7 +39,12 @@
 		{% include 'include/getstarted.html' %}
 	{% endif %}
 	{% for s in servers %}
-		<div id="div-server-{{s.0}}" class="div-server-hapwi">
+		<div id="div-server-{{s.0}}" class="div-server-hapwi
+			{%- if port_scanner == 'active' %}
+				div-server-head-up
+			{%- else %}
+				div-server-head-down
+			{%- endif -%}">
 			<div class="server-name">
 				<input type="hidden" id="server-name-{{s.0}}" value="{{s.1}}" />
 					{% for p in port_scanner_settings %}
@@ -140,7 +145,7 @@
 	{% endfor %}
 	</div>
 	<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px; margin-top: 45%">
-		Read about Port scanner service in this <a href="https://haproxy-wi.org/services.py?service=port_scanner" title="The Port scanner service description" target="_blank">article</a>
+		Read about Port scanner service in this <a href="https://haproxy-wi.org/services.py?service=portscanner" title="The Port scanner service description" target="_blank">article</a>
 	</div>
 {% endif %}
 <div id="dialog-confirm" style="display: none;">
