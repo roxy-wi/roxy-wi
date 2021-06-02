@@ -670,6 +670,13 @@ $( function() {
 		var id = $(this).attr('id').split('-');
 		updateBackup(id[2])
 	});
+	$( "#scan_server" ).change(function() {
+		if ($('#scan_server').is(':checked')) {
+			$('.services_for_scan').hide();
+		} else {
+			$('.services_for_scan').show();
+		}
+	});
 	$('#search_ldap_user').click(function() {
 		var valid = true;
 		toastr.clear();
@@ -948,11 +955,15 @@ function addServer(dialog_id) {
 	var newip = $('#new-ip').val();
 	var newservergroup = $('#new-server-group-add').val();
 	var cred = $('#credentials').val();
+	var scan_server = 0;
 	var typeip = 0;
 	var enable = 0;
 	var haproxy = 0;
 	var nginx = 0;
 	var firewall = 0;
+	if ($('#scan_server').is(':checked')) {
+		scan_server = '1';
+	}
 	if ($('#typeip').is(':checked')) {
 		typeip = '1';
 	}
@@ -973,6 +984,15 @@ function addServer(dialog_id) {
 	valid = valid && checkLength( $('#new-server-add'), "Hostname", 1 );
 	valid = valid && checkLength( $('#new-ip'), "IP", 1 );
 	valid = valid && checkLength( $('#new-port'), "Port", 1 );
+	console.log(cred)
+	if (cred == null) {
+		toastr.error('First select credentials');
+		return false;
+	}
+	if (newservergroup == null) {
+		toastr.error('First select a group');
+		return false;
+	}
 	if (valid) {
 		$.ajax( {
 			url: "options.py",
@@ -982,6 +1002,7 @@ function addServer(dialog_id) {
 				newip: newip,
 				newport: $('#new-port').val(),
 				newservergroup: newservergroup,
+				scan_server: scan_server,
 				typeip: typeip,
 				haproxy: haproxy,
 				nginx: nginx,
@@ -2165,22 +2186,22 @@ function updateService(service) {
 				toastr.success('Update was success!');
 			} else if (data.indexOf('Unauthorized') != '-1') {
 				toastr.clear();
-				toastr.error('It seems like Unauthorized in the HAProxy-WI repository. How to get HAProxy-WI auth you can read <b><a href="https://haproxy-wi.org/installation.py" title="How to get HAProxy-WI auth">hear</a></b>');
+				toastr.error('It seems like Unauthorized in the Roxy-WI repository. How to get Roxy-WI auth you can read <b><a href="https://haproxy-wi.org/installation.py" title="How to get Roxy-WI auth">hear</a></b>');
 			} else if (data.indexOf('but not installed') != '-1') {
 				toastr.clear();
-				toastr.error('There is settings for HAProxy-WI repository, but HAProxy-WI is installed without repository. Please reinstall with yum');
+				toastr.error('There is settings for Roxy-WI repository, but Roxy-WI is installed without repository. Please reinstall with yum');
 			} else if (data.indexOf('No Match for argument') != '-1') {
 				toastr.clear();
-				toastr.error('It seems like HAProxy-WI repository is not set. Please read docs for <b><a href="https://haproxy-wi.org/updates.py">detail</a></b>');
+				toastr.error('It seems like Roxy-WI repository is not set. Please read docs for <b><a href="https://haproxy-wi.org/updates.py">detail</a></b>');
 			} else if (data.indexOf('password for') != '-1') {
 				toastr.clear();
 				toastr.error('It seems like apache user needs to be add to sudoers. Please read docs for <b><a href="https://haproxy-wi.org/updates.py">detail</a></b>');
 			} else if (data.indexOf('No packages marked for update') != '-1') {
 				toastr.clear();
-				toastr.info('It seems like the lastest version HAProxy-WI is installed');
+				toastr.info('It seems like the lastest version Roxy-WI is installed');
 			} else if (data.indexOf('Connection timed out') != '-1') {
 				toastr.clear();
-				toastr.error('Cannot connect to HAProxy-WI repository. Connection timed out');
+				toastr.error('Cannot connect to Roxy-WI repository. Connection timed out');
 			} else if (data.indexOf('--disable') != '-1') {
 				toastr.clear();
 				toastr.error('It seems like there is a problem with repositories');

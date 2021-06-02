@@ -4,7 +4,7 @@
 {% set new_ver_without_dots = versions.3 %}
 <tr>
     <td class="padding10 first-collumn">
-        HAProxy-WI
+        Roxy-WI
     </td>
     <td>
         <b>{{current_ver}}</b>
@@ -14,7 +14,7 @@
     </td>
     <td>
         {% if new_ver_without_dots > current_ver_without_dots and new_ver != "Sorry cannot get current version" %}
-        <a class="ui-button ui-widget ui-corner-all" onclick="updateService('haproxy-wi')" title="Update HAProxy-WI">Update</a>
+        <a class="ui-button ui-widget ui-corner-all" onclick="updateService('haproxy-wi')" title="Update Roxy-WI">Update</a>
         {% endif %}
     </td>
     <td>
@@ -91,7 +91,7 @@
             {% endif %}
         {% else %}
             {{service_name}} service is not installed
-            <a href="https://haproxy-wi.org/services.py?service={{service_link}}#installation" title="{{service_name}} installation" target="_blank" style="color: #5d9ceb;">Read about installation</a>
+            <a href="https://haproxy-wi.org/services.py?service={{service_link}}#installation" title="{{service_name}} installation" target="_blank" class="link">Read about installation</a>
         {% endif %}
     </td>
     <td>

@@ -636,7 +636,7 @@ $( function() {
 				autoOpen: false,
 				width: 600,
 				modal: true,
-				title: 'There is a new version HAProxy-WI',
+				title: 'There is a new version Roxy-WI',
 				buttons: {
 					Close: function() {
 						$( this ).dialog( "close" );

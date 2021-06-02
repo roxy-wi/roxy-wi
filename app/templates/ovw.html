@@ -59,11 +59,11 @@
 	<tr class="overviewHead" style="height: 40px;">
 		<td class="padding10 first-collumn-wi" colspan="2">
 			{% if role <= 1 %}
-				<a href="/app/viewlogs.py?viewlogs={{haproxy_wi_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View HAProxy-WI logs" class="logs_link">			
-					HAProxy-WI server status
+				<a href="/app/viewlogs.py?viewlogs={{haproxy_wi_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View Roxy-WI logs" class="logs_link">			
+					Roxy-WI server status
 				</a>
 			{% else %}
-				HAProxy-WI server status
+				Roxy-WI server status
 			{% endif %}
 		</td> 
 		<td>
@@ -110,7 +110,7 @@
 				{% if metrics_master == 'inactive' or metrics_master == 'failed' %}
 					<span class="serverDown server-status" title="Metrics is stopped"></span>
 					{% if role <= 1 %}
-					<a href="/app/users.py#services" title="Start Metrics - HAProxy-WI service" class="logs_link">
+					<a href="/app/users.py#services" title="Start Metrics - Roxy-WI service" class="logs_link">
 						Metrics master
 					</a>
 					{% else %}
@@ -138,7 +138,7 @@
 				{% if checker_master == 'inactive' or checker_master == 'failed' %}
 					<span class="serverDown server-status" title="Checker is stopped"></span>
 					{% if role <= 1 %}
-						<a href="/app/users.py#services" title="Start Checker - HAProxy-WI service" class="logs_link">
+						<a href="/app/users.py#services" title="Start Checker - Roxy-WI service" class="logs_link">
 							Checker master
 						</a>
 					{% else %}
@@ -166,7 +166,7 @@
 				{% if keep_alive == 'inactive' or keep_alive == 'failed' %}
 					<span class="serverDown server-status" title="Auto start is stopped"></span>
 					{% if role <= 1 %}
-						<a href="/app/users.py#services" title="Start Auto star - HAProxy-WI service" class="logs_link">
+						<a href="/app/users.py#services" title="Start Auto star - Roxy-WI service" class="logs_link">
 							Auto start
 						</a>
 					{% else %}
@@ -227,7 +227,7 @@
 			{% else %}
 				{% if smon == 'inactive' or smon== 'failed' %}
 					<span class="serverDown server-status" title="SMON is stopped"></span>
-					<a href="/app/users.py#services" title="Start SMON - HAProxy-WI service" class="logs_link">
+					<a href="/app/users.py#services" title="Start SMON - Roxy-WI service" class="logs_link">
 						SMON
 					</a>
 				{% else %}
@@ -268,7 +268,7 @@
 			{% else %}
 				{% if port_scanner == 'inactive' or port_scanner== 'failed' %}
 					<span class="serverDown server-status" title="Port scanner is stopped"></span>
-					<a href="/app/users.py#services" title="Start Port scanner - HAProxy-WI service" class="logs_link">
+					<a href="/app/users.py#services" title="Start Port scanner - Roxy-WI service" class="logs_link">
 						Port scanner
 					</a>
 				{% else %}
@@ -401,11 +401,11 @@
 		<tr class="overviewHead">
 			<td class="padding10 first-collumn-wi">
 				{% if role == 2 %}
-				<a href="/app/viewlogs.py?type=2&viewlogs={{haproxy_wi_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View HAProxy-WI logs" class="logs_link">
+				<a href="/app/viewlogs.py?type=2&viewlogs={{haproxy_wi_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View Roxy-WI logs" class="logs_link">
 				{% else %}
-				<a href="/app/viewlogs.py?viewlogs={{haproxy_wi_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View HAProxy-WI logs" class="logs_link">
+				<a href="/app/viewlogs.py?viewlogs={{haproxy_wi_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View Roxy-WI logs" class="logs_link">
 				{% endif %}
-					Recent HAProxy-WI log
+					Recent Roxy-WI log
 				</a>
 			</td> 
 			<td>

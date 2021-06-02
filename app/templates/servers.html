@@ -9,15 +9,15 @@
 {{ input('new-telegram-group-add', type='hidden', value=group) }}
 <div id="tabs">
 	<ul>
-		<li><a href="#users" title="Servers: Manage users - HAProxy-WI">Users</a></li>
-		<li><a href="#servers" title="Servers: Manage servers - HAProxy-WI">Servers</a></li>
-		<li><a href="#ssh" title="Servers: Manage SSH credentials - HAProxy-WI">SSH credentials</a></li>
-		<li><a href="#checker" title="Servers: Manage checker - HAProxy-WI">Checker</a></li>
-		<li><a href="#settings" title="Admin area: Manage HAProxy-WI settings - HAProxy-WI">Settings</a></li>
-		<li><a href="#installproxy" title="Servers: Proxy service installation - HAProxy-WI">Proxy installation</a></li>
-		<li><a href="#installmon" title="Servers: Monitoring service installation - HAProxy-WI">Monitoring installation</a></li>
-		<li><a href="#geolite2" title="Servers: GeoLite2 - HAProxy-WI">GeoLite2</a></li>
-		<li><a href="#backup" title="Servers: Backup configs - HAProxy-WI">Backup</a></li>
+		<li><a href="#users" title="Servers: Manage users - Roxy-WI">Users</a></li>
+		<li><a href="#servers" title="Servers: Manage servers - Roxy-WI">Servers</a></li>
+		<li><a href="#ssh" title="Servers: Manage SSH credentials - Roxy-WI">SSH credentials</a></li>
+		<li><a href="#checker" title="Servers: Manage checker - Roxy-WI">Checker</a></li>
+		<li><a href="#settings" title="Admin area: Manage Roxy-WI settings - Roxy-WI">Settings</a></li>
+		<li><a href="#installproxy" title="Servers: Proxy service installation - Roxy-WI">Proxy installation</a></li>
+		<li><a href="#installmon" title="Servers: Monitoring service installation - Roxy-WI">Monitoring installation</a></li>
+		<li><a href="#geolite2" title="Servers: GeoLite2 - Roxy-WI">GeoLite2</a></li>
+		<li><a href="#backup" title="Servers: Backup configs - Roxy-WI">Backup</a></li>
 		{% include 'include/login.html' %}
 	</ul>
 	<ul id='browse_histroy'></ul>
@@ -89,7 +89,7 @@
 				<td id="cur_nginx_ver" class="padding10 first-collumn">
 				</td>
 				<td class="padding10 first-collumn" style="width: 20%;">
-					HAProxy-WI will try to install the latest Nginx version from official Nginx repository
+					Roxy-WI will try to install the latest Nginx version from official Nginx repository
 				</td>
 				<td class="padding10 first-collumn">
 					<select autofocus required name="nginxaddserv" id="nginxaddserv">
@@ -120,7 +120,7 @@
 			<tr class="overviewHead">
 				<td class="padding10 first-collumn">Server</td>
 				<td class="padding10 first-collumn" style="width: 30%;">Current installation</td>
-				<td class="" style="width: 30%;" title="GeoLite2 DB is released every Tuesday. Should HAProxy-WI update it?">Updating</td>
+				<td class="" style="width: 30%;" title="GeoLite2 DB is released every Tuesday. Should Roxy-WI update it?">Updating</td>
 				<td></td>
 				<td></td>
 			</tr>

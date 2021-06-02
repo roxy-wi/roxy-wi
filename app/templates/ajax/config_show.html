@@ -36,6 +36,14 @@
 				</span><div>
 				{% continue %}
 			{% endif %}
+			{%- if "stream {" in line -%}
+				{% if i > 1 %}
+					</div>
+				{% endif %}
+				<span class="param">{{ line }}
+				</span><div>
+				{% continue %}
+			{% endif %}
 			{% if "listen " in line or "location" in line or "server_name" in line or "}" in line  %}
 				{% if "#" not in line %}
 					<span class="numRow">

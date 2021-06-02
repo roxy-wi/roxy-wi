@@ -21,15 +21,16 @@
 <script src="/inc/add.js"></script>
 <div id="tabs">
 	<ul>
-		<li><a href="#create" title="Add proxy: Create proxy - HAProxy-WI">Create proxy</a></li>
-		<li><a href="#listen" title="Add proxy: Create Listen - HAProxy-WI">Listen</a></li>
-		<li><a href="#frontend" title="Add proxy: Create Frontend - HAProxy-WI">Frontend</a></li>
-		<li><a href="#backend" title="Add proxy: Create Backend - HAProxy-WI">Backend</a></li>
-		<li><a href="#ssl" title="Add proxy: Upload SSL certificates - HAProxy-WI">SSL certificates</a></li>
-		<li><a href="#option" title="Add proxy: Pre-saved options - HAProxy-WI">Options</a></li>
-		<li><a href="#add-servers" title="Add proxy: Pre-saved servers - HAProxy-WI">Servers</a></li>
-		<li><a href="#userlist" title="Add proxy: Create Userlists - HAProxy-WI">Userlists</a></li>
-		<li><a href="#lists" title="Add proxy: Create and upload whitelists or blacklists - HAProxy-WI">Lists</a></li>
+		<li><a href="#create" title="Add proxy: Create proxy - Roxy-WI">Create proxy</a></li>
+		<li><a href="#listen" title="Add proxy: Create Listen - Roxy-WI">Listen</a></li>
+		<li><a href="#frontend" title="Add proxy: Create Frontend - Roxy-WI">Frontend</a></li>
+		<li><a href="#backend" title="Add proxy: Create Backend - Roxy-WI">Backend</a></li>
+		<li><a href="#ssl" title="Add proxy: Upload SSL certificates - Roxy-WI">SSL certificates</a></li>
+		<li><a href="#option" title="Add proxy: Pre-saved options - Roxy-WI">Options</a></li>
+		<li><a href="#add-servers" title="Add proxy: Pre-saved servers - Roxy-WI">Servers</a></li>
+		<li><a href="#userlist" title="Add proxy: Create Userlists - Roxy-WI">Userlists</a></li>
+		<li><a href="#peers" title="Add proxy: Create peers - Roxy-WI">Peers</a></li>
+		<li><a href="#lists" title="Add proxy: Create and upload whitelists or blacklists - Roxy-WI">Lists</a></li>
 		{% include 'include/login.html' %}
 	</ul>
 	<ul id='browse_histroy'></ul>
@@ -90,7 +91,8 @@
 						<div id="https-hide-listen" style="display: none;">
 							<br /><span class="tooltip tooltipTop">Enter name of pem file, or press the "down" button:</span><br />
 							{{ input('path-cert-listen', name="cert", placeholder="some_cert.pem", size='39') }}<br />
-							<label for="ssl-check-listen" style="margin-top: 5px;">Disable ssl verify on servers?</label><input type="checkbox" id="ssl-check-listen" name="ssl-check" value="ssl-check" checked>
+							<label for="ssl-dis-check-listen" style="margin-top: 5px;">Disable SSL check</label><input type="checkbox" id="ssl-dis-check-listen" name="ssl-dis-check" value="ssl-dis-check">
+							<label for="ssl-check-listen" style="margin-top: 5px;">Disable SSL verify on servers</label><input type="checkbox" id="ssl-check-listen" name="ssl-check" value="ssl-check" checked>
 						</div>
 					</td>
 				</tr>
@@ -500,7 +502,8 @@
 						<input type="checkbox" id="https-backend" name="ssl" value="https">
 					</span>
 					<div id="https-hide-backend" style="display: none;">
-						<label for="ssl-check" style="margin-top: 5px;">Disable SSL verify on servers</label><input type="checkbox" id="ssl-check" name="ssl-check" value="ssl-check" checked>
+						<label for="ssl-dis-check-backend" style="margin-top: 5px;">Disable SSL check</label><input type="checkbox" id="ssl-dis-check-backend" name="ssl-dis-check" value="ssl-dis-check">
+						<label for="ssl-check-backend" style="margin-top: 5px;">Disable SSL verify on servers</label><input type="checkbox" id="ssl-check-backend" name="ssl-check" value="ssl-check" checked>
 					</div>
 				</td>
 			</tr>
@@ -949,6 +952,73 @@
 		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
 			How to use userlists you can read
 			<a href="https://haproxy-wi.org/description.py?description=userlist" title="How to use userlists" target="_blank">
+				<b>here</b>
+			</a>
+		</div>
+	</div>
+	<div id="peers">
+		<form name="add-userlist" id="add-peers" action="/app/add.py" method="post">
+		<table>
+			<caption><h3>Add Peers</h3></caption>
+			<tr>
+				<td class="addName">Select server: </td>
+				<td class="addOption">
+					<select required name="serv" id="peers_serv">
+						<option disabled selected>Choose server</option>
+						{% for select in selects %}
+							<option value="{{ select.2 }}">{{ select.1 }}</option>
+						{% endfor %}
+					</select>
+					<div class="tooltip tooltipTop"><b>Note:</b> If you reconfigure Master server, Slave will reconfigured automatically</div>
+				</td>
+				<td rowspan="4" class="add-note addName alert-info">
+					The peers section enables the replication of stick table data between two or more HAProxy instances.
+				</td>
+			</tr>
+			<tr>
+				<td class="addName">Peers name:</td>
+				<td class="addOption">
+					{{ input('peers-name', title="Peers name",  placeholder="peers name") }}
+				</td>
+			</tr>
+			<tr>
+				<td class="addName">Peers servers:</td>
+				<td class="addOption">
+					<span name="add_peers">
+						<input name="servers_name" required title="Peer name" size=14 placeholder="haproxy1" class="form-control">:
+						<input name="servers" required title="Peer IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">:
+						<input name="server_port" required title="Peer port" size=3 placeholder="yyy" class="form-control add_server_number" type="number">
+						<br />
+						<input name="servers_name" required title="Peer name" size=14 placeholder="haproxy2" class="form-control">:
+						<input name="servers" title="Peer IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server"><span class="second-server">:</span>
+						<input name="server_port" title="Peer port" size=3 placeholder="yyy" class="form-control second-server add_server_number" type="number">
+					</span>
+					<span>
+						<a class="link add-server backend_server" name="add-peer-input" title="Add peer server" style="cursor: pointer;"></a>
+					</span>
+				</td>
+			</tr>
+			<tr>
+				<td class="addButton">
+					<a class="ui-button ui-widget ui-corner-all" title="Add Userlist" onclick="addProxy('add-peers')">Add Peers</a>
+				</td>
+				<td class="addButton">
+					<a class="ui-button ui-widget ui-corner-all" title="Generate config and show it" onclick="generateConfig('add-peers')">Generate config</a>
+				</td>
+			</tr>
+		</table>
+		</form>
+		<div class="alert addName alert-info" style="width: inherit; margin-right: 15px;">
+			Note: If you would like to use HAProxy services as Master-Master cluster you must set local servers
+			hostnames as peers servers names. Otherwise peers will not work
+		</div>
+		<div class="alert addName alert-info" style="width: inherit; margin-right: 15px;">
+			Note: If you would like to use HAProxy services as Master-Slave cluster you must set local server
+			hostname for master server as peer server name. Otherwise peers will not work
+		</div>
+		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+			How to use peers you can read
+			<a href="https://haproxy-wi.org/howto.py?howto=peers" title="How to use peers" target="_blank">
 				<b>here</b>
 			</a>
 		</div>

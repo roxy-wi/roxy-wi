@@ -68,6 +68,14 @@
 .add::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";
+	content: "\f24d";
+}
+.add .fa-clone {
+	color: var(--green-color);
+}
+.add-proxy::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
 	content: "\f067";
 }
 .cert::before {
@@ -143,7 +151,10 @@
 .delete::before, .deleteVer::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";
-	content: "\f00d";
+	content: "\f2ed";
+}
+.delete .fa-trash-alt {
+	color: var(--red-color) !important;
 }
 .info::before {
 	display: none;
@@ -232,7 +243,7 @@
 }
 .fa-play, .fa-stop, .fa-sync-alt {
 	width: 3px;
-	color: #a0d100 !important;
+	color: var(--green-color) !important;
 	cursor: pointer;
 	margin-bottom: 3px;
 }

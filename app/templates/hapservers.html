@@ -83,6 +83,7 @@
 					{% if service == 'haproxy' %}
 						{% for s in servers %}
 							getChartData(server_ip)
+							getHttpChartData(server_ip)
 							getWafChartData(server_ip)
 						{% endfor %}
 					{% endif %}
@@ -101,6 +102,7 @@
 								(resolve, reject) => {
 									{% for s in servers %}
 									getChartData(server_ip)
+									getHttpChartData(server_ip)
 									getWafChartData(server_ip)
 									{% endfor %}
 								});
@@ -158,6 +160,9 @@
 						class="shield red" title="Auto start enabled, but keep alive service does not work">
 						{% endif %}
 					</span>
+				{% endif %}
+				{% if s.8.0.20 == 1 %}
+					<span class="lock" title="This server is inaccessible for editing by everyone except the admin role"></span>
 				{% endif %}
 				{% if role <= 2 %}
 				<span class="server-action">
@@ -279,6 +284,9 @@
 	{% for s in servers %}
 		<div id="server_metrics_div" class="chart-container" style="display: block; width: 91.3%; height: 300px;">
 			<canvas id="{{s.2}}" role="img"></canvas>
+		</div>
+		<div id="http_metrics_div" class="chart-container" style="display: block; width: 91.3%; height: 300px;">
+			<canvas id="http_{{s.2}}" role="img"></canvas>
 		</div>
 		<div id="waf_metrics_div" class="chart-container" style="display: block; width: 90%; height: 300px;">
 			<canvas id="s_{{s.2}}" role="img"></canvas>

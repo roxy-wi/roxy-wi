@@ -1,5 +1,5 @@
 :root {
-	--green-color: #5ad05a;
+	--green-color: #5CB85C;
 	--red-color: #be2424;
 	--blue-color: #5d9ceb;
 	--link-dark-blue: #23527c;
@@ -402,7 +402,7 @@ pre {
 	background-color: #ddd; 
 }
 .add-button, .add-button-wi {
-	background-color: #5CB85C; 
+	background-color: var(--green-color);
 	border-radius: 5px;
 	color: #fff;
 	padding: 5px 10px;

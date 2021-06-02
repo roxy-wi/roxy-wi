@@ -107,18 +107,18 @@
     <br /><span class="add-button" title="Add Slack channel" id="add-slack-button">+ Add</span>
     <br /><br />
     <div id="ajax-telegram"></div>
-    <div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+    <div class="add-note alert addName alert-info" style="width: inherit; margin-right: 15px;">
         You can read the description of all parameters <a href="https://haproxy-wi.org/description.py?description=checker" title="Servers description" target="_blank">here</a>,
-        How to create and use Telegram bot in this <a href="https://haproxy-wi.org/howto.py?howto=checker" title="How to create Telegram bot and use it with HAProxy-WI" target="_blank">article</a>,
-        How to create and use Slack APP in this <a href="https://haproxy-wi.org/howto.py?howto=slack" title="How to create Slack APP and use it with HAProxy-WI" target="_blank">article</a>
+        How to create and use Telegram bot in this <a href="https://haproxy-wi.org/howto.py?howto=checker" title="How to create Telegram bot and use it with Roxy-WI" target="_blank">article</a>,
+        How to create and use Slack APP in this <a href="https://haproxy-wi.org/howto.py?howto=slack" title="How to create Slack APP and use it with Roxy-WI" target="_blank">article</a>
     </div>
     {% else %}
-        <center>
+        <div style="text-align: center;">
             <br />
             <h3>You do not have installed Backends checker
             Read <a href="https://haproxy-wi.org/services.py?service=checker#installation" title="Checker installation" style="color: #5d9ceb;" target="_blank">hear</a>
             how to install Checker service</h3>
-        </center>
+        </div>
     {% endif %}
 {% endif %}
 {% endfor %}

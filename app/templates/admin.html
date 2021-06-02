@@ -6,17 +6,17 @@
 {% include 'include/del_confirm.html' %}
 <div id="tabs">
 	<ul>
-		<li><a href="#users" title="Admin area: Manage users - HAProxy-WI">Users</a></li>
-		<li><a href="#groups" title="Admin area: Manage groups - HAProxy-WI">Groups</a></li>
-		<li><a href="#servers" title="Admin area: Manage servers - HAProxy-WI">Servers</a></li>
-		<li><a href="#ssh" title="Admin area: Manage SSH credentials - HAProxy-WI">SSH credentials</a></li>
-		<li><a href="#checker" title="Admin area: Manage checker - HAProxy-WI">Checker</a></li>
-		<li><a href="#openvpn" title="Admin area: OpenVPN - HAProxy-WI">OpenVPN</a></li>
-		<li><a href="#settings" title="Admin area: Manage HAProxy-WI settings - HAProxy-WI">Settings</a></li>
-		<li><a href="#services" title="Admin area: Manage HAProxy-WI services - HAProxy-WI">Services</a></li>
-		<li><a href="#updatehapwi" title="Admin area: Update HAProxy-WI - HAProxy-WI">Update</a></li>
-		<li><a href="#backup" title="Admin area: Backup configs - HAProxy-WI">Backup</a></li>
-		<li><a href="#installmon" title="Servers: Monitoring service installation - HAProxy-WI">Monitoring installation</a></li>
+		<li><a href="#users" title="Admin area: Manage users - Roxy-WI">Users</a></li>
+		<li><a href="#groups" title="Admin area: Manage groups - Roxy-WI">Groups</a></li>
+		<li><a href="#servers" title="Admin area: Manage servers - Roxy-WI">Servers</a></li>
+		<li><a href="#ssh" title="Admin area: Manage SSH credentials - Roxy-WI">SSH credentials</a></li>
+		<li><a href="#checker" title="Admin area: Manage checker - Roxy-WI">Checker</a></li>
+		<li><a href="#openvpn" title="Admin area: OpenVPN - Roxy-WI">OpenVPN</a></li>
+		<li><a href="#settings" title="Admin area: Manage Roxy-WI settings - Roxy-WI">Settings</a></li>
+		<li><a href="#services" title="Admin area: Manage Roxy-WI services - Roxy-WI">Services</a></li>
+		<li><a href="#updatehapwi" title="Admin area: Update Roxy-WI - Roxy-WI">Update</a></li>
+		<li><a href="#backup" title="Admin area: Backup configs - Roxy-WI">Backup</a></li>
+		<li><a href="#installmon" title="Servers: Monitoring service installation - Roxy-WI">Monitoring installation</a></li>
 		{% include 'include/login.html' %}
 	</ul>
 	<ul id='browse_histroy'></ul>
@@ -63,7 +63,7 @@
 		</table>
 		<br /><span class="add-button" title="Add group" id="add-group-button">+ Add</span>
 		<br /><br />
-		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+		<div class="add-note alert addName alert-info" style="width: inherit; margin-right: 15px;">
 			 How to setup groups you can read in this <a href="https://haproxy-wi.org/howto.py?howto=setup" title="How to setup servers, group and SSH credentials" target="_blank">article</a>
 		</div>
 	</div>
@@ -98,8 +98,8 @@
 			</thead>
 			<tbody id="ajax-services-body"></tbody>
 		</table>
-		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
-			You can read about services <a href="https://haproxy-wi.org/services.py" title="HAProxy-WI services" target="_blank">here</a>
+		<div class="add-note alert addName alert-info" style="width: inherit; margin-right: 15px;">
+			You can read about services <a href="https://haproxy-wi.org/services.py" title="Roxy-WI services" target="_blank">here</a>
 		</div>
 	</div>
 	
@@ -118,11 +118,11 @@
 			</thead>
 			<tbody id="ajax-updatehapwi-body"></tbody>
 		</table>
-		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+		<div class="add-note alert addName alert-info" style="width: inherit; margin-right: 15px;">
 			<b style="font-size: 20px; display: block; padding-bottom: 10px;">Note:</b>
-			For updating you have to use HAProxy-WI RPM. How to start using repository read <a href="https://haproxy-wi.org/installation.py" title="HAProxy-WI installation" target="_blank">here</a>
+			For updating you have to use Roxy-WI RPM. How to start using repository read <a href="https://haproxy-wi.org/installation.py" title="Roxy-WI installation" target="_blank">here</a>
 			<br /><br />
-			If the HAProxy-WI server uses a proxy to connect to the Internet, add the proxy settings to yum.conf
+			If the Roxy-WI server uses a proxy to connect to the Internet, add the proxy settings to yum.conf
 			<br /><br />
 			Read more about updating in <a href="https://haproxy-wi.org/updates.py" title="Doc" target="_blank">docs</a>
 			and <a href="https://haproxy-wi.org/changelog.py" title="Changelog" target="_blank">changelog</a>

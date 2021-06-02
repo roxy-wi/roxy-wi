@@ -1353,7 +1353,7 @@ if form.getvalue('update_haproxy_wi'):
     service = form.getvalue('service')
     services = ['checker_haproxy', 'haproxy-wi', 'keep_alive', 'smon', 'metrics_haproxy']
     if service not in services:
-        print('error: ' + service + ' is not part of HAProxy-WI')
+        print('error: ' + service + ' is not part of Roxy-WI')
         sys.exit()
     funct.update_haproxy_wi(service)
 
@@ -1758,6 +1758,7 @@ if form.getvalue('newserver') is not None:
     desc = form.getvalue('desc')
 
     if sql.add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, firewall):
+
         from jinja2 import Environment, FileSystemLoader
 
         env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
@@ -3357,10 +3358,10 @@ if form.getvalue('loadopenvpn'):
 
 if form.getvalue('check_telegram'):
     telegram_id = form.getvalue('check_telegram')
-    mess = 'Test message from HAProxy-WI'
+    mess = 'Test message from Roxy-WI'
     funct.telegram_send_mess(mess, telegram_channel_id=telegram_id)
 
 if form.getvalue('check_slack'):
     slack_id = form.getvalue('check_slack')
-    mess = 'Test message from HAProxy-WI'
+    mess = 'Test message from Roxy-WI'
     funct.slack_send_mess(mess, slack_channel_id=slack_id)
