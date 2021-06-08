@@ -500,7 +500,6 @@ ul{
 }
 .menu li:last-child a, .menu li .v_menu li:last-child a{
 	border-radius: 0 0 3px 3px;
-	border-bottom: 0;
 }
 .menu li .v_menu li a{
 	border-radius: 0;
@@ -1200,7 +1199,7 @@ label {
 }
 .switcher_table_metric {
 	margin-left: 99%;
-	color: #a0d100;
+	color: var(--green-color);
 	cursor: pointer;
 }
 .geoip_country_code {
@@ -1209,4 +1208,7 @@ label {
 	font-weight: bold;
 	width: 110px;
 	height: 60px;
+}
+.help_cursor {
+	cursor: help;
 }

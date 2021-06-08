@@ -1,28 +1,27 @@
 {% extends "base.html" %}
 {% block content %}
-
 <style>
-table, th, tr, td {
-	border: 1px solid #ddd;
-	align: center;
-	text-align: center;
-}
-th, tr, td {
-	width: 6%;
-	min-width: 3%;
-	padding: 10px;
+	table, th, tr, td {
+		border: 1px solid #ddd;
+		align: center;
+		text-align: center;
+	}
+	th, tr, td {
+		width: 6%;
+		min-width: 3%;
+		padding: 10px;
 	}
 </style>
 <link href="/inc/chart.min.css" rel="stylesheet">
 <script src="/inc/metrics.js"></script>
 <script src="/inc/chart.min.js"></script>
 {% if services == '0' %}
-<center>
+<div style="text-align: center;">
 	<br />
 	<h3>You do not have installed Metrics service.
 	Read <a href="https://haproxy-wi.org/services.py?service=metrics#installation" title="Metrics installation" style="color: #5d9ceb;" target="_blank">hear</a>
 	how to install Metrics service</h3>
-</center>
+</div>
 {% else %}
 {% if servers|length == 0 %}
 	{% include 'include/getstarted.html' %}
@@ -31,8 +30,8 @@ th, tr, td {
 		<tr class="overviewHead">
 			<th colspan=13 style="background-color: #d1ecf1">
 				<span id="table_metrics_head" style="position: absolute;margin-left: 43%;">Metrics</span>
-				<span id="en_table_metric" class="add switcher_table_metric" title="Enable showing Average table"></span>
-				<span id="dis_table_metric" class="minus switcher_table_metric" title="Disable showing Average table"></span>
+				<span id="en_table_metric" class="plus switcher_table_metric" title="Enable display of the table of averages"></span>
+				<span id="dis_table_metric" class="minus switcher_table_metric" title="Disable display of the table of averages"></span>
 			</th>
 		</tr>
 	</table>
@@ -54,13 +53,18 @@ th, tr, td {
 	<div class="chart-container">
 		<canvas id="{{s.0}}" role="img"></canvas>
 	</div>
+	<div id="http_metrics_div" class="chart-container">
+		<canvas id="http_{{s.0}}" role="img"></canvas>
+	</div>
 {% endfor %}
 <script>
 	function showMetrics() {
 		let metrics = new Promise(
 			(resolve, reject) => {
+				removeData();
 				{% for s in servers %}
 					getChartData('{{s.0}}')
+					getHttpChartData('{{s.0}}')
 				{% endfor %}
 				if (localStorage.getItem('table_metrics') == 0 || localStorage.getItem('table_metrics') === null) {
 					$('#dis_table_metric').css('display', 'none');
@@ -79,6 +83,7 @@ th, tr, td {
 					(resolve, reject) => {
 						{% for s in servers %}
 						getChartData('{{s.0}}')
+						getHttpChartData('{{s.0}}')
 						{% endfor %}
 					});
 			metrics.then();

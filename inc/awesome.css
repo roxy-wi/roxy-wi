@@ -70,7 +70,7 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f24d";
 }
-.add .fa-clone {
+.add .fa-clone, .plus .fa-plus {
 	color: var(--green-color);
 }
 .add-proxy::before {
@@ -272,6 +272,11 @@
 	display: none;
 	font-family: "Font Awesome 5 Solid";
 	content: "\f068";
+}
+.plus::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f067";
 }
 .row-down::after {
 	display: none;

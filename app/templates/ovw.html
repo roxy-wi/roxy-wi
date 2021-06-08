@@ -253,10 +253,11 @@
 		<td>
 		{% if prometheus|int() >= 1 %}
 			<span class="serverUp server-status" title="running {{ prometheus }} process"></span>
+			<a href="http://{{host}}:9090" target="_blank" title="Open Prometheus" class="logs_link">Prometheus</a>
 		{% else %}
 			<span class="serverNone server-status" title="The service does not started or does not installed"></span>
+			Prometheus
 		{% endif %}
-				Prometheus
 		</td>
 		{% endif %}
 		<td {% if role != 1 %}class="padding10 first-collumn-wi"{%endif%}>
