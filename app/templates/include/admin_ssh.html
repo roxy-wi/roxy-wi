@@ -1,15 +1,15 @@
 <table id="ssh_enable_table" class="overview">
     <tr class="overviewHead" style="width: 50%;">
-        <td class="padding10 first-collumn" style="width: 15%;">
+        <td class="padding10 first-collumn" style="width: 15%;" class="help_cursor">
 					<span title="It's just name alias. This alias will be use in 'Servers' page for choose credentials">Name<span>
         </td>
-        <td class="padding10 first-collumn" style="width: 25%;">
+        <td class="padding10 first-collumn" style="width: 25%;" class="help_cursor">
             <span title="If it is enabled, the key will be used, if turned off - the password. Do not forget to download the keys to all servers or install the sudo without a password">SSH key</span>
         </td>
         {% if page != "servers.py" %}
         <td style="width: 25%;">Group</td>
         {% endif %}
-        <td style="width: 100%;">
+        <td style="width: 100%;" class="help_cursor">
             <span title="Enter SSH user name. If SSH key disabled, enter password for SSH user">Credentials</span>
         </td>
         <td></td>
@@ -63,7 +63,7 @@
 <table id="ssh_key">
     <tr class="overviewHead" style="width: 50%;">
         <td class="padding10 first-collumn" style="width: 25%;">Upload SSH Key</td>
-        <td>
+        <td class="help_cursor">
             <span title="Private key. Note: The public key must be pre-installed on all servers to which you plan to connect">Key</span>
         </td>
         <td></td>

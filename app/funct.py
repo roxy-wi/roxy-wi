@@ -383,6 +383,12 @@ def get_sections(config, **kwargs):
 					line = line.split(';')[0]
 					line = line.strip()
 					return_config.append(line)
+			elif kwargs.get('service') == 'keepalived':
+				import re
+				ip_pattern = re.compile('\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}')
+				find_ip = re.findall(ip_pattern,line)
+				if find_ip:
+					return_config.append(find_ip[0])
 			else:	
 				if ( 
 					line.startswith('listen') or 
@@ -915,7 +921,7 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 			else:
 				local_path_logs = sql.get_setting('local_path_logs')
 				commands = ["sudo cat %s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, date, date1, rows, grep_act, exgrep_act)]
-			syslog_server = serv	
+			syslog_server = serv
 		else:
 			commands = ["sudo cat /var/log/%s/syslog.log | sed '/ %s:00/,/ %s:00/! d' |tail -%s %s %s %s" % (serv, date, date1, rows, grep_act, grep, exgrep_act)]
 			syslog_server = sql.get_setting('syslog_server')
@@ -1261,22 +1267,22 @@ def check_service(serv, service_name):
 
 def get_services_status():
 	services = []
-	services_name = {'checker_haproxy': 'Checker backends master service',
-					 'keep_alive': 'Auto start service',
-					 'metrics_haproxy': 'Metrics master service',
-					 'portscanner': 'Port scanner service',
-					 'smon': 'Simple monitoring network ports',
+	services_name = {'roxy-wi-checker': 'Checker backends master service',
+					 'roxy-wi-keep_alive': 'Auto start service',
+					 'roxy-wi-metrics': 'Metrics master service',
+					 'roxy-wi-portscanner': 'Port scanner service',
+					 'roxy-wi-smon': 'Simple monitoring network ports',
 					 'prometheus': 'Prometheus service',
 					 'grafana-server': 'Grafana service',
 					 'fail2ban': 'Fail2ban service'}
 	for s, v in services_name.items():
 		cmd = "systemctl is-active %s" % s
 		status, stderr = subprocess_execute(cmd)
-		if s != 'keep_alive':
+		if s != 'roxy-wi-keep_alive':
 			service_name = s.split('_')[0]
 		else:
 			service_name = s
-		cmd = "rpm --query haproxy-wi-" + service_name + "-* |awk -F\"" + service_name + "\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
+		cmd = "rpm --query " + service_name + "-* |awk -F\"" + service_name + "\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
 		service_ver, stderr = subprocess_execute(cmd)
 
 		try:
@@ -1285,3 +1291,17 @@ def get_services_status():
 			services.append([s, status, v, ''])
 
 	return services
+
+
+def is_file_exists(serv: str, file: str):
+	cmd = ['[ -f ' + file + ' ] && echo yes || echo no']
+
+	out = ssh_command(serv, cmd)
+	return True if 'yes' in out else False
+
+
+def is_service_active(serv: str, service_name: str):
+	cmd = ['systemctl is-active ' + service_name]
+
+	out = ssh_command(serv, cmd)
+	return True if 'active' in out else False

@@ -72,15 +72,15 @@ try:
 		prometheus, stderr = funct.subprocess_execute(cmd)
 		host = os.environ.get('HTTP_HOST', '')
 
-	cmd = "systemctl is-active metrics_haproxy"
+	cmd = "systemctl is-active roxy-wi-metrics"
 	metrics_master, stderr = funct.subprocess_execute(cmd)
-	cmd = "systemctl is-active checker_haproxy"
+	cmd = "systemctl is-active roxy-wi-checker"
 	checker_master, stderr = funct.subprocess_execute(cmd)
-	cmd = "systemctl is-active keep_alive"
+	cmd = "systemctl is-active roxy-wi-keep_alive"
 	keep_alive, stderr = funct.subprocess_execute(cmd)
-	cmd = "systemctl is-active smon"
+	cmd = "systemctl is-active roxy-wi-smon"
 	smon, stderr = funct.subprocess_execute(cmd)
-	cmd = "systemctl is-active portscanner"
+	cmd = "systemctl is-active roxy-wi-portscanner"
 	port_scanner, stderr = funct.subprocess_execute(cmd)
 
 except Exception as e:

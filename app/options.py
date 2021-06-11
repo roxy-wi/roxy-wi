@@ -392,8 +392,8 @@ if form.getvalue('action_hap') is not None and serv is not None:
 
         commands = ["sudo systemctl %s %s" % (action, haproxy_service_name)]
         funct.ssh_command(serv, commands)
-        funct.logging(serv, 'HAProxy was ' + action + 'ed', haproxywi=1, login=1)
-        print("success: HAProxy was %s" % action)
+        funct.logging(serv, 'HAProxy has been ' + action + 'ed', haproxywi=1, login=1)
+        print("success: HAProxy has been %s" % action)
     else:
         print("error: Bad config, check please")
 
@@ -402,8 +402,16 @@ if form.getvalue('action_nginx') is not None and serv is not None:
 
     commands = ["sudo systemctl %s nginx" % action]
     funct.ssh_command(serv, commands)
-    funct.logging(serv, 'Nginx was ' + action + 'ed', haproxywi=1, login=1)
-    print("success: Nginx was %s" % action)
+    funct.logging(serv, 'Nginx has been ' + action + 'ed', haproxywi=1, login=1)
+    print("success: Nginx has been %s" % action)
+
+if form.getvalue('action_keepalived') is not None and serv is not None:
+    action = form.getvalue('action_keepalived')
+
+    commands = ["sudo systemctl %s keepalived" % action]
+    funct.ssh_command(serv, commands)
+    funct.logging(serv, 'Keepalived has been ' + action + 'ed', haproxywi=1, login=1)
+    print("success: Keepalived has been %s" % action)
 
 if form.getvalue('action_waf') is not None and serv is not None:
     serv = form.getvalue('serv')
@@ -429,16 +437,22 @@ if act == "overviewHapserverBackends":
     env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
     template = env.get_template('haproxyservers_backends.html')
     service = form.getvalue('service')
+
     if service == 'haproxy':
         configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
         format_file = 'cfg'
     elif service == 'nginx':
         configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
         format_file = 'conf'
+    elif service == 'keepalived':
+        configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
+        format_file = 'conf'
+
     try:
         sections = funct.get_sections(configs_dir + funct.get_files(dir=configs_dir, format=format_file)[0], service=service)
     except Exception as e:
         funct.logging('localhost', str(e), haproxywi=1)
+
         try:
             cfg = configs_dir + serv + "-" + funct.get_data('config') + '.' + format_file
         except Exception as e:
@@ -446,6 +460,8 @@ if act == "overviewHapserverBackends":
         try:
             if service == 'nginx':
                 error = funct.get_config(serv, cfg, nginx=1)
+            elif service == 'keepalived':
+                error = funct.get_config(serv, cfg, keepalived=1)
             else:
                 error = funct.get_config(serv, cfg)
         except Exception as e:
@@ -891,6 +907,8 @@ if act == "showCompareConfigs":
 
     if form.getvalue('service') == 'nginx':
         return_files = funct.get_files(funct.get_config_var('configs', 'nginx_save_configs_dir'), 'conf')
+    elif form.getvalue('service') == 'keepalived':
+        return_files = funct.get_files(funct.get_config_var('configs', 'kp_save_configs_dir'), 'conf')
     else:
         return_files = funct.get_files()
 
@@ -904,6 +922,8 @@ if serv is not None and form.getvalue('right') is not None:
     right = form.getvalue('right')
     if form.getvalue('service') == 'nginx':
         configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
+    elif form.getvalue('service') == 'keepalived':
+        configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
     else:
         configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
     cmd = 'diff -pub %s%s %s%s' % (configs_dir, left, configs_dir, right)
@@ -923,11 +943,12 @@ if serv is not None and act == "configShow":
     cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
     user_uuid = cookie.get('uuid')
     role_id = sql.get_user_role_by_uuid(user_uuid.value)
+    service = form.getvalue('service')
 
-    if form.getvalue('service') == 'keepalived':
+    if service == 'keepalived':
         configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
         cfg = '.conf'
-    elif form.getvalue('service') == 'nginx':
+    elif service == 'nginx':
         configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
         cfg = '.conf'
     else:
@@ -936,8 +957,10 @@ if serv is not None and act == "configShow":
 
     if form.getvalue('configver') is None:
         cfg = configs_dir + serv + "-" + funct.get_data('config') + cfg
-        if form.getvalue('service') == 'nginx':
+        if service == 'nginx':
             funct.get_config(serv, cfg, nginx=1)
+        elif service == 'keepalived':
+            funct.get_config(serv, cfg, keepalived=1)
         else:
             funct.get_config(serv, cfg)
     else:
@@ -959,7 +982,7 @@ if serv is not None and act == "configShow":
                                serv=serv,
                                configver=form.getvalue('configver'),
                                role=role_id,
-                               service=form.getvalue('service'),
+                               service=service,
                                is_serv_protected=is_serv_protected)
     print(template)
 
@@ -1351,7 +1374,7 @@ if form.getvalue('installwaf'):
 
 if form.getvalue('update_haproxy_wi'):
     service = form.getvalue('service')
-    services = ['checker_haproxy', 'haproxy-wi', 'keep_alive', 'smon', 'metrics_haproxy']
+    services = ['roxy-wi-checker', 'haproxy-wi', 'roxy-wi-keep_alive', 'roxy-wi-smon', 'roxy-wi-metrics']
     if service not in services:
         print('error: ' + service + ' is not part of Roxy-WI')
         sys.exit()

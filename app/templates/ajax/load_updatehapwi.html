@@ -22,38 +22,38 @@
     </td>
 </tr>
 {% for s in services %}
-    {% if s.0 == 'smon' or s.0 == 'checker_haproxy' or s.0 == 'keep_alive' or s.0 == 'metrics_haproxy' or s.0 == 'portscanner' %}
+    {% if s.0 == 'roxy-wi-smon' or s.0 == 'roxy-wi-checker' or s.0 == 'roxy-wi-keep_alive' or s.0 == 'roxy-wi-metrics' or s.0 == 'roxy-wi-portscanner' %}
 <tr>
     {% set is_need_update = 0 %}
-    {% if s.0 == 'smon' %}
+    {% if s.0 == 'roxy-wi-smon' %}
         {% set service_name = 'SMON' %}
         {% set service_link = 'smon' %}
         {% set desc_link = 'https://haproxy-wi.org/services.py?service=smon' %}
     {% if s.3|float < smon_ver|float %}
         {% set is_need_update = 1 %}
     {% endif %}
-{% elif s.0 == 'checker_haproxy' %}
+{% elif s.0 == 'roxy-wi-checker' %}
     {% set service_name = 'Checker' %}
     {% set service_link = 'checker' %}
     {% set desc_link = 'https://haproxy-wi.org/services.py?service=checker' %}
     {% if s.3|float < checker_ver|float %}
         {% set is_need_update = 1 %}
     {% endif %}
-{% elif s.0 == 'keep_alive' %}
+{% elif s.0 == 'roxy-wi-keep_alive' %}
     {% set service_name = 'Auto start' %}
     {% set service_link = 'auto_start' %}
     {% set desc_link = 'https://haproxy-wi.org/services.py?service=auto_start' %}
     {% if s.3|float < keep_ver|float %}
         {% set is_need_update = 1 %}
     {% endif %}
-{% elif s.0 == 'metrics_haproxy' %}
+{% elif s.0 == 'roxy-wi-metrics' %}
     {% set service_name = 'Metrics' %}
     {% set service_link = 'metrics' %}
     {% set desc_link = 'https://haproxy-wi.org/services.py?service=metrics' %}
     {% if s.3|float < metrics_ver|float %}
         {% set is_need_update = 1 %}
     {% endif %}
-{% elif s.0 == 'portscanner' %}
+{% elif s.0 == 'roxy-wi-portscanner' %}
     {% set service_name = 'Port scanner' %}
     {% set service_link = 'portscanner' %}
     {% set desc_link = 'https://haproxy-wi.org/services.py?service={{service_link}}' %}
@@ -71,15 +71,15 @@
     </td>
     <td class="padding10">
         <b>
-            {% if s.0 == 'smon' %}
+            {% if s.0 == 'roxy-wi-smon' %}
                 {{smon_ver}}
-            {% elif s.0 == 'checker_haproxy' %}
+            {% elif s.0 == 'roxy-wi-checker' %}
                 {{checker_ver}}
-            {% elif s.0 == 'keep_alive' %}
+            {% elif s.0 == 'roxy-wi-keep_alive' %}
                 {{keep_ver}}
-            {% elif s.0 == 'metrics_haproxy' %}
+            {% elif s.0 == 'roxy-wi-metrics' %}
                 {{metrics_ver}}
-            {% elif s.0 == 'portscanner' %}
+            {% elif s.0 == 'roxy-wi-portscanner' %}
                 {{portscanner_ver}}
             {% endif %}
         </b>
