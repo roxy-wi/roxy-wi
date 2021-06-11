@@ -43,15 +43,15 @@ else:
     else:
         servers = sql.get_dick_permit(virt=1, haproxy=1)
 
-services_name = {'checker_haproxy': 'Master backends checker service',
-                 'keep_alive': 'Auto start service',
-                 'metrics_haproxy': 'Master metrics service'}
+services_name = {'roxy-wi-checker': 'Master backends checker service',
+                 'roxy-wi-keep_alive': 'Auto start service',
+                 'roxy-wi-metrics': 'Master metrics service'}
 for s, v in services_name.items():
-    if s != 'keep_alive':
+    if s != 'roxy-wi-keep_alive':
         service_name = s.split('_')[0]
     else:
         service_name = s
-    cmd = "rpm --query haproxy-wi-" + service_name + "-* |awk -F\"" + service_name + "\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
+    cmd = "rpm --query " + service_name + "-* |awk -F\"" + service_name + "\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
     service_ver, stderr = funct.subprocess_execute(cmd)
     try:
         services.append([s, service_ver[0]])
