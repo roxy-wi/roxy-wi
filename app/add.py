@@ -14,7 +14,12 @@ print('Content-type: text/html\n')
 funct.check_login()
 funct.page_for_admin(level=3)
 
-if form.getvalue('mode') is None and form.getvalue('new_userlist') is None:
+if (
+		form.getvalue('mode') is None and
+		form.getvalue('new_userlist') is None and
+		form.getvalue('peers-name') is None and
+		form.getvalue('generateconfig') is None
+	):
 	try:
 		user, user_id, role, token, servers = funct.get_users_params()
 		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
@@ -54,7 +59,6 @@ if form.getvalue('mode') is None and form.getvalue('new_userlist') is None:
 	print(template)
 
 elif form.getvalue('mode') is not None:
-	cert_path = sql.get_setting('cert_path')
 	haproxy_dir = sql.get_setting('haproxy_dir')
 	port = form.getvalue('port')
 	bind = ""
@@ -69,7 +73,7 @@ elif form.getvalue('mode') is not None:
 	backend = ""
 	acl = ""
 	servers_split = ""
-	
+
 	if form.getvalue('balance') is not None:
 		balance = "    balance " + form.getvalue('balance') + "\n"
 
@@ -94,22 +98,25 @@ elif form.getvalue('mode') is not None:
 
 	if form.getvalue('backends') is not None:
 		backend = "    default_backend " + form.getvalue('backends') + "\n"
-		
+
 	if form.getvalue('maxconn'):
 		maxconn = "    maxconn " + form.getvalue('maxconn') + "\n"
-				
+
 	if form.getvalue('ssl') == "https" and form.getvalue('mode') != "tcp":
-		ssl = "ssl crt " + cert_path + form.getvalue('cert')
-		if form.getvalue('ssl-check') == "ssl-check":
-			ssl_check = " ssl verify none"
-		else:
-			ssl_check = " ssl verify"
-				
+		cert_path = sql.get_setting('cert_path')
+		if form.getvalue('cert') is not None:
+			ssl = "ssl crt " + cert_path + form.getvalue('cert')
+		if form.getvalue('ssl-dis-check') is None:
+			if form.getvalue('ssl-check') == "ssl-check":
+				ssl_check = " ssl verify none"
+			else:
+				ssl_check = " ssl verify"
+	
 	if not ip and port is not None:
 		bind = "    bind *:" + port + " " + ssl + "\n"
 	elif port is not None:
 		bind = "    bind " + ip + ":" + port + " " + ssl + "\n"
-		
+
 	if form.getvalue('default-check') == "1":
 		if form.getvalue('check-servers') == "1":
 			check = " check inter " + form.getvalue('inter') + " rise " + form.getvalue('rise') + " fall " + form.getvalue('fall') + ssl_check
@@ -120,13 +127,13 @@ elif form.getvalue('mode') is not None:
 			check = ""
 		else:
 			check = " check" + ssl_check
-		
+
 	if form.getvalue('option') is not None:
 		options = form.getvalue('option')
 		i = options.split("\n")
 		for j in i:	
 			options_split += "    " + j + "\n"
-		
+
 	if force_close == "1":
 		options_split += "    option http-server-close\n"
 	elif force_close == "2":
@@ -275,7 +282,7 @@ elif form.getvalue('mode') is not None:
 																						server_port[i],
 																						check)
 			i += 1
-		
+
 	compression = form.getvalue("compression")
 	cache = form.getvalue("cache")
 	compression_s = ""
@@ -289,23 +296,23 @@ elif form.getvalue('mode') is not None:
 			cache_set = "cache "+end_name+"\n    total-max-size 4\n    max-age 240\n"
 		if compression == "1":
 			compression_s = "    compression algo gzip\n    compression type text/html text/plain text/css\n"
-			
+
 	waf = ""
 	if form.getvalue('waf') is not None:
 		waf = "    filter spoe engine modsecurity config "+haproxy_dir+"/waf.conf\n"
 		waf += "    http-request deny if { var(txn.modsec.code) -m int gt 0 }\n"
-	
+
 	config_add = "\n" + name + "\n" + bind + mode + maxconn + balance + options_split + cache_s + filter_com + compression_s + waf + acl + backend + servers_split + "\n" + cache_set + "\n"
 
 if form.getvalue('new_userlist') is not None:
 	name = "userlist "+form.getvalue('new_userlist') + "\n"
-	
+
 	new_userlist_groups = ""	
 	if form.getvalue('userlist-group') is not None:	
 		groups = form.getlist('userlist-group')
 		for group in groups:
 			new_userlist_groups += "    group " + group + "\n"
-			
+
 	new_users_list = ""	
 	if form.getvalue('userlist-user') is not None:	
 		users = form.getlist('userlist-user')
@@ -322,6 +329,22 @@ if form.getvalue('new_userlist') is not None:
 			i += 1
 		
 	config_add = "\n" + name + new_userlist_groups + new_users_list
+
+if form.getvalue('peers-name') is not None:
+	name = "peers " + form.getvalue('peers-name') + "\n"
+	servers_split = ''
+
+	if form.getvalue('servers') is not None:
+		servers = form.getlist('servers')
+		server_port = form.getlist('server_port')
+		servers_name = form.getlist('servers_name')
+		i = 0
+		for server in servers:
+			servers_split += "    peer {0} {1}:{2} \n".format(servers_name[i], server, server_port[i])
+
+			i += 1
+
+		config_add = "\n" + name + servers_split
 
 if form.getvalue('generateconfig') is None:
 	try:

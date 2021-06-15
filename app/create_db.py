@@ -1251,9 +1251,26 @@ def update_db_v_5_1_3(**kwargs):
 	con.close()
 
 
+def update_db_v_5_2_0(**kwargs):
+	con, cur = get_cur()
+	sql = list()
+	sql.append("INSERT  INTO settings (param, value, section, `desc`) values('portscanner_keep_history_range', '14', 'monitoring', 'How many days to keep the history for the Port scanner service')")
+	for i in sql:
+		try:
+			cur.execute(i)
+			con.commit()
+		except sqltool.Error as e:
+			pass
+	else:
+		if kwargs.get('silent') != 1:
+			print('Updating... DB has been updated to version 5.2.0')
+	cur.close()
+	con.close()
+
+
 def update_ver():
 	con, cur = get_cur()
-	sql = """update version set version = '5.1.4.0'; """
+	sql = """update version set version = '5.2.0.0'; """
 	try:
 		cur.execute(sql)
 		con.commit()
@@ -1296,6 +1313,7 @@ def update_all():
 	update_db_v_5_1_1()
 	update_db_v_5_1_2()
 	update_db_v_5_1_3()
+	update_db_v_5_2_0()
 	update_ver()
 
 
@@ -1332,6 +1350,7 @@ def update_all_silent():
 	update_db_v_5_1_1(silent=1)
 	update_db_v_5_1_2(silent=1)
 	update_db_v_5_1_3(silent=1)
+	update_db_v_5_2_0(silent=1)
 	update_ver()
 
 

@@ -82,7 +82,29 @@ $( function() {
 		} else {
 			$( "#https-hide-backend" ).hide( "fast" );
 		}
-	});	
+	});
+	$( "#ssl-dis-check-listen" ).click( function(){
+		if ($('#ssl-dis-check-listen').is(':checked')) {
+			$( "#ssl-check-listen" ).checkboxradio( "disable" );
+			$( "#ssl-check-listen" ).prop( "checked", false );
+			$( "#ssl-check-listen" ).checkboxradio("refresh");
+		} else {
+			$( "#ssl-check-listen" ).checkboxradio( "enable" );
+			$( "#ssl-check-listen" ).prop( "checked", true );
+			$( "#ssl-check-listen" ).checkboxradio("refresh");
+		}
+	});
+	$( "#ssl-dis-check-backend" ).click( function(){
+		if ($('#ssl-dis-check-backend').is(':checked')) {
+			$( "#ssl-check-backend" ).checkboxradio( "disable" );
+			$( "#ssl-check-backend" ).prop( "checked", false );
+			$( "#ssl-check-backend" ).checkboxradio("refresh");
+		} else {
+			$( "#ssl-check-backend" ).checkboxradio( "enable" );
+			$( "#ssl-check-backend" ).prop( "checked", true );
+			$( "#ssl-check-backend" ).checkboxradio("refresh");
+		}
+	});
 	$( "#options-listen-show" ).click( function(){
 		if ($('#options-listen-show').is(':checked')) {
 			$( "#options-listen-show-div" ).show( "fast" );
@@ -967,7 +989,7 @@ $( function() {
 		}
 	});
 	var add_server_var = '<br /><input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server">: ' +
-		'<input name="server_port" required title="Backend IP" size=3 placeholder="yyy" class="form-control second-server add_server_number" type="number">' +
+		'<input name="server_port" required title="Backend port" size=3 placeholder="yyy" class="form-control second-server add_server_number" type="number">' +
 		'<input name="server_maxconn" required title="Maxconn. Default 200" size=5 value="200" class="form-control add_server_number" type="number">'
 	$('[name=add-server-input]').click(function() {
 		$("[name=add_servers]").append(add_server_var);
@@ -979,6 +1001,12 @@ $( function() {
 	var add_userlist_group_var = '<br /><input name="userlist-group" title="User`s group" placeholder="group_name" class="form-control">'
 	$('#add-userlist-group').click(function() {
 		$('#userlist-groups').append(add_userlist_group_var);		
+	});
+	var add_peer_var = '<br /><input name="servers_name" required title="Peer name" size=14 placeholder="haproxyN" class="form-control">' +
+		'<input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server">: ' +
+		'<input name="server_port" required title="Backend port" size=3 placeholder="yyy" class="form-control second-server add_server_number" type="number">'
+	$('[name=add-peer-input]').click(function() {
+		$("[name=add_peers]").append(add_peer_var);
 	});
 	$('.advance-show-button').click(function() {
 		$('.advance').fadeIn();
@@ -1206,6 +1234,7 @@ function resetProxySettings() {
 	$('[name=server_port]').val('');
 	$('input:checkbox').prop( "checked", false );
 	$('[name=ssl-check]').prop( "checked", true );
+	$('[name=ssl-dis-check]').prop( "checked", false );
 	$('[name=check-servers]').prop( "checked", true );
 	$('input:checkbox').checkboxradio("refresh");
 	$('.advance-show').fadeIn();
@@ -1237,7 +1266,10 @@ function createSsl(TabId, proxy) {
 	$( "#tabs" ).tabs( "option", "active", TabId );
 	$( "#https-hide-"+proxy).show("fast");
 	$('#https-'+proxy).prop( "checked", true );
-	$('#https-'+proxy).checkboxradio("refresh");
+	$('#ssl-dis-check-'+proxy).prop( "checked", true );
+	$('#ssl-check-'+proxy).prop( "checked", false );
+	$('#ssl-check-'+proxy).checkboxradio('disable');
+	$('input:checkbox').checkboxradio("refresh");
 	$("#path-cert-"+proxy ).attr('required',true);
 	if (TabId == 1) {
 		TabId = '';
