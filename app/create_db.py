@@ -11,7 +11,7 @@ if mysql_enable == '1':
 	mysql_port = funct.get_config_var('mysql', 'mysql_port')
 	import mysql.connector as sqltool
 else:
-	db = "haproxy-wi.db"
+	db = "roxy-wi.db"
 	import sqlite3 as sqltool
 
 
@@ -205,7 +205,7 @@ def create_table(**kwargs):
 			`create_date`  DATETIME default '0000-00-00 00:00:00',
 			`expire_date`  DATETIME default '0000-00-00 00:00:00'
 		);
-		CREATE TABLE IF NOT EXISTS `metrics_http_status` (`serv` varchar(64), `2xx` INTEGER, `3xx` INTEGER, `4xx` INTEGER, `5xx` INTEGER,`date` timestamp default '0000-00-00 00:00:00');
+		CREATE TABLE IF NOT EXISTS `metrics_http_status` (`serv` varchar(64), `2xx` INTEGER, `3xx` INTEGER, `4xx` INTEGER, `5xx` INTEGER,`date` DATETIME default '0000-00-00 00:00:00');
 		CREATE TABLE IF NOT EXISTS `slack` (`id` INTEGER NOT NULL, `token` VARCHAR (64), `chanel_name` INTEGER NOT NULL DEFAULT 1, `groups` INTEGER NOT NULL DEFAULT 1, PRIMARY KEY(`id`));
 		CREATE TABLE IF NOT EXISTS `settings` (`param` varchar(64), value varchar(64), section varchar(64), `desc` varchar(100), `group` INTEGER NOT NULL DEFAULT 1, UNIQUE(param, `group`));
 		INSERT  INTO settings (param, value, section, `desc`) values('time_zone', 'UTC', 'main', 'Time Zone');
@@ -214,8 +214,8 @@ def create_table(**kwargs):
 		INSERT  INTO settings (param, value, section, `desc`) values('token_ttl', '5', 'main', 'Time to live users tokens. In days');
 		INSERT  INTO settings (param, value, section, `desc`) values('tmp_config_path', '/tmp/', 'main', 'A temp folder of configs, for checking. The path must exist');
 		INSERT  INTO settings (param, value, section, `desc`) values('cert_path', '/etc/ssl/certs/', 'main', 'A path to SSL dir. The folder owner must be an user who set in the SSH settings. The path must exist');
-		INSERT  INTO settings (param, value, section, `desc`) values('ssl_local_path', 'certs', 'main', 'Path to dir for local save SSL certs. This is a relative path, begins with $HOME_HAPROXY-WI/app/');
-		INSERT  INTO settings (param, value, section, `desc`) values('lists_path', 'lists', 'main', 'Path to black/white lists. This is a relative path, begins with $HOME_HAPROXY-WI');
+		INSERT  INTO settings (param, value, section, `desc`) values('ssl_local_path', 'certs', 'main', 'Path to dir for local save SSL certs. This is a relative path, begins with $HOME_ROXY-WI/app/');
+		INSERT  INTO settings (param, value, section, `desc`) values('lists_path', 'lists', 'main', 'Path to black/white lists. This is a relative path, begins with $HOME_ROXY-WI');
 		INSERT  INTO settings (param, value, section, `desc`) values('local_path_logs', '/var/log/haproxy.log', 'logs', 'Logs save locally, enabled by default');
 		INSERT  INTO settings (param, value, section, `desc`) values('syslog_server_enable', '0', 'logs', 'If exist syslog server for HAProxy logs, enable this option');
 		INSERT  INTO settings (param, value, section, `desc`) values('syslog_server', '0', 'logs', 'IP address of syslog server');
@@ -258,7 +258,7 @@ def create_table(**kwargs):
 			con.close()
 	else:
 		try:
-			for line in open("haproxy-wi.db.sql"):
+			for line in open("roxy-wi.db.sql"):
 				cur.execute(line)
 		except sqltool.Error as e:
 			print('<div class="alert alert-danger">')
@@ -1251,6 +1251,25 @@ def update_db_v_5_1_3(**kwargs):
 	con.close()
 
 
+def update_db_v_5_1_3_2(**kwargs):
+	con, cur = get_cur()
+	sql = """
+	CREATE TABLE IF NOT EXISTS `metrics_http_status` (`serv` varchar(64), `2xx` INTEGER, `3xx` INTEGER, `4xx` INTEGER, `5xx` INTEGER,`date` DATETIME default '0000-00-00 00:00:00');
+	"""
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: version' or e == "1060 (42S21): Duplicate column name 'version' ":
+				print('Updating... DB has been updated to version 5.1.1')
+			else:
+				print("Updating... DB has been updated to version 5.1.1")
+
+	cur.close()
+	con.close()
+
+
 def update_db_v_5_2_0(**kwargs):
 	con, cur = get_cur()
 	sql = list()
@@ -1313,6 +1332,7 @@ def update_all():
 	update_db_v_5_1_1()
 	update_db_v_5_1_2()
 	update_db_v_5_1_3()
+	update_db_v_5_1_3_2()
 	update_db_v_5_2_0()
 	update_ver()
 
@@ -1350,6 +1370,7 @@ def update_all_silent():
 	update_db_v_5_1_1(silent=1)
 	update_db_v_5_1_2(silent=1)
 	update_db_v_5_1_3(silent=1)
+	update_db_v_5_1_3_2(silent=1)
 	update_db_v_5_2_0(silent=1)
 	update_ver()
 

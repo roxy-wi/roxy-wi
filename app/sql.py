@@ -7,7 +7,7 @@ mysql_enable = funct.get_config_var('mysql', 'enable')
 if mysql_enable == '1':
 	import mysql.connector as sqltool
 else:
-	db = "/var/www/haproxy-wi/app/haproxy-wi.db"
+	db = "/var/www/haproxy-wi/app/roxy-wi.db"
 	import sqlite3 as sqltool
 
 
@@ -522,8 +522,9 @@ def get_group_name_by_id(group_id):
 	else:
 		for name in cur.fetchone():
 			return name
-	cur.close()
-	con.close()
+	finally:
+		cur.close()
+		con.close()
 
 
 def get_group_id_by_name(group_name):
@@ -537,8 +538,57 @@ def get_group_id_by_name(group_name):
 	else:
 		for group_id in cur.fetchone():
 			return group_id
-	cur.close()
-	con.close()
+	finally:
+		cur.close()
+		con.close()
+
+
+def get_group_id_by_server_ip(server_ip):
+	con, cur = get_cur()
+	sql = """select `groups` from servers where ip = '%s' """ % server_ip
+
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		return funct.out_error(e)
+	else:
+		for group_id in cur.fetchone():
+			return group_id
+	finally:
+		cur.close()
+		con.close()
+
+
+def get_cred_id_by_server_ip(server_ip):
+	con, cur = get_cur()
+	sql = """select `cred` from servers where ip = '%s' """ % server_ip
+
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		return funct.out_error(e)
+	else:
+		for cred_id in cur.fetchone():
+			return cred_id
+	finally:
+		cur.close()
+		con.close()
+
+
+def get_hostname_by_server_ip(server_ip):
+	con, cur = get_cur()
+	sql = """select `hostname` from servers where ip = '%s' """ % server_ip
+
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		return funct.out_error(e)
+	else:
+		for hostname in cur.fetchone():
+			return hostname
+	finally:
+		cur.close()
+		con.close()
 
 
 def select_server_by_name(name):
@@ -2197,8 +2247,9 @@ def select_keealived(serv, **kwargs):
 	else:
 		for value in cur.fetchone():
 			return value
-	cur.close()
-	con.close()
+	finally:
+		cur.close()
+		con.close()
 
 
 def update_keepalived(serv):
@@ -2212,8 +2263,9 @@ def update_keepalived(serv):
 		funct.out_error(e)
 		con.rollback()
 		return False
-	cur.close()
-	con.close()
+	finally:
+		cur.close()
+		con.close()
 
 
 def select_nginx(serv, **kwargs):
@@ -2241,8 +2293,9 @@ def update_nginx(serv):
 		funct.out_error(e)
 		con.rollback()
 		return False
-	cur.close()
-	con.close()
+	finally:
+		cur.close()
+		con.close()
 
 
 def update_haproxy(serv):
@@ -2256,8 +2309,25 @@ def update_haproxy(serv):
 		funct.out_error(e)
 		con.rollback()
 		return False
-	cur.close()
-	con.close()
+	finally:
+		cur.close()
+		con.close()
+
+
+def update_firewall(serv):
+	con, cur = get_cur()
+	sql = """update `servers` set `firewall_enable` = '1' where ip = '%s' """ % serv
+	try:
+		cur.execute(sql)
+		con.commit()
+		return True
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
+		return False
+	finally:
+		cur.close()
+		con.close()
 
 
 def update_server_pos(pos, id):
@@ -2835,6 +2905,22 @@ def delete_alert_history(keep_interval: int, service: str):
 		sql = """ delete from alerts where date < now() - INTERVAL %s day and service = '%s'""" % (keep_interval, service)
 	else:
 		sql = """ delete from alerts where date < datetime('now', '-%s days') and service = '%s'""" % (keep_interval, service)
+	try:
+		cur.execute(sql)
+		con.commit()
+	except sqltool.Error as e:
+		funct.out_error(e)
+		con.rollback()
+	cur.close()
+	con.close()
+
+
+def delete_portscanner_history(keep_interval: int, service: str):
+	con, cur = get_cur()
+	if mysql_enable == '1':
+		sql = """ delete from port_scanner_history where date < now() - INTERVAL %s day and service = '%s'""" % (keep_interval, service)
+	else:
+		sql = """ delete from port_scanner_history where date < datetime('now', '-%s days') and service = '%s'""" % (keep_interval, service)
 	try:
 		cur.execute(sql)
 		con.commit()

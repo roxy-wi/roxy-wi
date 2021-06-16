@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS `uuid` (`user_id` INTEGER NOT NULL, `uuid` varchar ( 
 CREATE TABLE IF NOT EXISTS `token` (`user_id` INTEGER, `token` varchar(64), `exp` timestamp default CURRENT_TIMESTAMP);
 CREATE TABLE IF NOT EXISTS `cred` (`id` integer primary key AUTO_INCREMENT, `name` VARCHAR ( 64 ), `enable` INTEGER NOT NULL DEFAULT 1, `username` VARCHAR ( 64 ) NOT NULL, `password` VARCHAR ( 64 ) NOT NULL, `groups` INTEGER NOT NULL DEFAULT 1, UNIQUE(name,`groups`));
 CREATE TABLE IF NOT EXISTS `telegram` (`id` integer primary key auto_increment, `token` VARCHAR ( 64 ), `chanel_name` INTEGER NOT NULL DEFAULT 1, `groups` INTEGER NOT NULL DEFAULT 1);
+CREATE TABLE IF NOT EXISTS `metrics_http_status` (`serv` varchar(64), `2xx` INTEGER, `3xx` INTEGER, `4xx` INTEGER, `5xx` INTEGER,`date` DATETIME default '0000-00-00 00:00:00');
 CREATE TABLE IF NOT EXISTS `metrics` (`serv` varchar(64), curr_con INTEGER, cur_ssl_con INTEGER, sess_rate INTEGER, max_sess_rate INTEGER,`date`  DATETIME default '0000-00-00 00:00:00');
 CREATE TABLE IF NOT EXISTS `settings` (`param` varchar(64), value varchar(64), section varchar(64), `desc` varchar(100), `group` INTEGER NOT NULL DEFAULT 1, UNIQUE(param, `group`));
 CREATE TABLE IF NOT EXISTS `version` (`version` varchar(64));

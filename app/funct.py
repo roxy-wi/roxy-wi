@@ -16,12 +16,12 @@ def get_app_dir():
 def get_config_var(sec, var):
 	from configparser import ConfigParser, ExtendedInterpolation
 	try:
-		path_config = "/var/www/haproxy-wi/app/haproxy-wi.cfg"
+		path_config = "/var/www/haproxy-wi/app/roxy-wi.cfg"
 		config = ConfigParser(interpolation=ExtendedInterpolation())
 		config.read(path_config)
 	except Exception:
 		print('Content-type: text/html\n')
-		print('<center><div class="alert alert-danger">Check the config file, whether it exists and the path. Must be: app/haproxy-wi.cfg</div>')
+		print('<center><div class="alert alert-danger">Check the config file, whether it exists and the path. Must be: app/roxy-wi.cfg</div>')
 	try:
 		return config.get(sec, var)
 	except Exception:
@@ -679,13 +679,13 @@ def install_nginx(serv, **kwargs):
 
 
 def update_haproxy_wi(service):
-	if service != 'haproxy-wi':
+	if service != 'roxy-wi':
 		try:
 			if service != 'keep_alive':
 				service = service.split('_')[0]
 		except Exception:
 			pass
-		service = 'haproxy-wi-'+service
+		service = 'roxy-wi-'+service
 	cmd = 'sudo -S yum -y update ' + service +' && sudo systemctl restart ' + service
 	output, stderr = subprocess_execute(cmd)
 	print(output)
