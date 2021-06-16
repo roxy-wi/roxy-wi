@@ -685,7 +685,7 @@ def update_haproxy_wi(service):
 				service = service.split('_')[0]
 		except Exception:
 			pass
-		service = 'roxy-wi-'+service
+		# service = 'roxy-wi-'+service
 	cmd = 'sudo -S yum -y update ' + service +' && sudo systemctl restart ' + service
 	output, stderr = subprocess_execute(cmd)
 	print(output)
