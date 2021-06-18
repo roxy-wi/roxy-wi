@@ -1280,6 +1280,8 @@ def get_services_status():
 		status, stderr = subprocess_execute(cmd)
 		if s != 'roxy-wi-keep_alive':
 			service_name = s.split('_')[0]
+			if s == 'grafana-server':
+				service_name = 'grafana'
 		else:
 			service_name = s
 		cmd = "rpm --query " + service_name + "-* |awk -F\"" + service_name + "\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"

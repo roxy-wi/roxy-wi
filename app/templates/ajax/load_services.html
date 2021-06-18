@@ -24,6 +24,11 @@
         </a>
     </td>
     <td>
+        {% if s.3 != '* is not installed' %}
+        {{ s.3 }}
+        {% endif %}
+    </td>
+    <td>
         {{ s.2 }}
     </td>
 </tr>

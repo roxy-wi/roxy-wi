@@ -7,14 +7,24 @@
         Roxy-WI
     </td>
     <td>
-        <b>{{current_ver}}</b>
+        <b
+                {% if new_ver_without_dots > current_ver_without_dots and new_ver != "Sorry cannot get current version" %}
+                title="There is a newer version Roxy-WI"
+                style="color: var(--red-color)"
+                {% else %}
+                title="There is not a newer version Roxy-WI"
+                style="color: var(--green-color)"
+                {% endif %}
+        >
+            {{current_ver}}
+        </b>
     </td>
     <td class="padding10">
         <b>{{new_ver}}</b>
     </td>
     <td>
         {% if new_ver_without_dots > current_ver_without_dots and new_ver != "Sorry cannot get current version" %}
-        <a class="ui-button ui-widget ui-corner-all" onclick="updateService('haproxy-wi')" title="Update Roxy-WI">Update</a>
+        <a class="ui-button ui-widget ui-corner-all" onclick="updateService('roxy-wi')" title="Update Roxy-WI">Update</a>
         {% endif %}
     </td>
     <td>
@@ -28,35 +38,35 @@
     {% if s.0 == 'roxy-wi-smon' %}
         {% set service_name = 'SMON' %}
         {% set service_link = 'smon' %}
-        {% set desc_link = 'https://haproxy-wi.org/services.py?service=smon' %}
+        {% set desc_link = 'https://roxy-wi.org/services.py?service=smon' %}
     {% if s.3|float < smon_ver|float %}
         {% set is_need_update = 1 %}
     {% endif %}
 {% elif s.0 == 'roxy-wi-checker' %}
     {% set service_name = 'Checker' %}
     {% set service_link = 'checker' %}
-    {% set desc_link = 'https://haproxy-wi.org/services.py?service=checker' %}
+    {% set desc_link = 'https://roxy-wi.org/services.py?service=checker' %}
     {% if s.3|float < checker_ver|float %}
         {% set is_need_update = 1 %}
     {% endif %}
 {% elif s.0 == 'roxy-wi-keep_alive' %}
     {% set service_name = 'Auto start' %}
     {% set service_link = 'auto_start' %}
-    {% set desc_link = 'https://haproxy-wi.org/services.py?service=auto_start' %}
+    {% set desc_link = 'https://roxy-wi.org/services.py?service=auto_start' %}
     {% if s.3|float < keep_ver|float %}
         {% set is_need_update = 1 %}
     {% endif %}
 {% elif s.0 == 'roxy-wi-metrics' %}
     {% set service_name = 'Metrics' %}
     {% set service_link = 'metrics' %}
-    {% set desc_link = 'https://haproxy-wi.org/services.py?service=metrics' %}
+    {% set desc_link = 'https://roxy-wi.org/services.py?service=metrics' %}
     {% if s.3|float < metrics_ver|float %}
         {% set is_need_update = 1 %}
     {% endif %}
 {% elif s.0 == 'roxy-wi-portscanner' %}
     {% set service_name = 'Port scanner' %}
     {% set service_link = 'portscanner' %}
-    {% set desc_link = 'https://haproxy-wi.org/services.py?service={{service_link}}' %}
+    {% set desc_link = 'https://roxy-wi.org/services.py?service={{service_link}}' %}
     {% if s.3|float < portscanner_ver|float %}
         {% set is_need_update = 1 %}
     {% endif %}
@@ -66,7 +76,17 @@
     </td>
     <td>
         {% if s.3 != '* is not installed' %}
-        <b>{{s.3}}</b>
+        <b
+                {% if is_need_update %}
+                title="There is a newer version {{service_name}}"
+                style="color: var(--red-color)"
+                {% else %}
+                title="There is not a newer version {{service_name}}"
+                style="color: var(--green-color)"
+                {% endif %}
+        >
+            {{s.3}}
+        </b>
         {% endif %}
     </td>
     <td class="padding10">
@@ -91,7 +111,7 @@
             {% endif %}
         {% else %}
             {{service_name}} service is not installed
-            <a href="https://haproxy-wi.org/services.py?service={{service_link}}#installation" title="{{service_name}} installation" target="_blank" class="link">Read about installation</a>
+            <a href="https://roxy-wi.org/services.py?service={{service_link}}#installation" title="{{service_name}} installation" target="_blank" class="link">Read about installation</a>
         {% endif %}
     </td>
     <td>

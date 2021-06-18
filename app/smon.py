@@ -16,7 +16,7 @@ funct.check_login()
 try:
 	user, user_id, role, token, servers = funct.get_users_params()
 	user_group = funct.get_user_group(id=1)
-	cmd = "systemctl status smon |grep Active |awk '{print $2}'"
+	cmd = "systemctl is-active roxy-wi-smon"
 	smon_status, stderr = funct.subprocess_execute(cmd)
 except Exception as e:
 	pass
