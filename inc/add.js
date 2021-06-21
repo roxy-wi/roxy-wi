@@ -865,7 +865,7 @@ $( function() {
 				$(this).children("#add7").css('padding-left', '30px');
 				$(this).children("#add7").css('border-left', '4px solid #5D9CEB');
 			});
-			$( "#tabs" ).tabs( "option", "active", 8 );
+			$( "#tabs" ).tabs( "option", "active", 9 );
 		} );
 	}
 	

@@ -49,7 +49,7 @@ table.dataTable {
   table.dataTable tbody tr {
     background-color: white; }
     table.dataTable tbody tr.selected {
-      background-color: #5d9ceb; }
+      background-color: var(--blue-color); }
   table.dataTable tbody th,
   table.dataTable tbody td {
     padding: 8px 10px; }
@@ -73,7 +73,7 @@ table.dataTable {
     table.dataTable.stripe tbody tr.odd.selected, table.dataTable.display tbody tr.odd.selected {
       background-color: #5a98e5; }
   table.dataTable.hover tbody tr:hover, table.dataTable.display tbody tr:hover {
-    background-color: #e9f0f5; }
+    background-color: #d1ecf1; }
     table.dataTable.hover tbody tr:hover.selected, table.dataTable.display tbody tr:hover.selected {
       background-color: #5996e2; }
   table.dataTable.order-column tbody tr > .sorting_1,
@@ -271,17 +271,17 @@ table.dataTable td {
         color: white !important;
         border: 1px solid #bbb;
         background-color: #dceafb;
-        background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #dceafb), color-stop(100%, #5d9ceb));
+        background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #dceafb), color-stop(100%, var(--blue-color)));
         /* Chrome,Safari4+ */
-        background: -webkit-linear-gradient(top, #dceafb 0%, #5d9ceb 100%);
+        background: -webkit-linear-gradient(top, #dceafb 0%, var(--blue-color) 100%);
         /* Chrome10+,Safari5.1+ */
-        background: -moz-linear-gradient(top, #dceafb 0%, #5d9ceb 100%);
+        background: -moz-linear-gradient(top, #dceafb 0%, var(--blue-color) 100%);
         /* FF3.6+ */
-        background: -ms-linear-gradient(top, #dceafb 0%, #5d9ceb 100%);
+        background: -ms-linear-gradient(top, #dceafb 0%, var(--blue-color) 100%);
         /* IE10+ */
-        background: -o-linear-gradient(top, #dceafb 0%, #5d9ceb 100%);
+        background: -o-linear-gradient(top, #dceafb 0%, var(--blue-color) 100%);
         /* Opera 11.10+ */
-        background: #5d9ceb;
+        background: var(--blue-color);
         /* W3C */ }
       .dataTables_wrapper .dataTables_paginate .paginate_button:active {
         outline: none;

@@ -10,7 +10,7 @@ funct.check_login()
 
 try:
 	user, user_id, role, token, servers = funct.get_users_params()
-	cmd = "rpm --query haproxy-wi-metrics-* |awk -F\"metrics\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
+	cmd = "rpm --query roxy-wi-metrics-* |awk -F\"metrics\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
 	service_ver, stderr = funct.subprocess_execute(cmd)
 	services = '0'
 

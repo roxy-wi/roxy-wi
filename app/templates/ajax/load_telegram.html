@@ -1,6 +1,6 @@
 {% from 'include/input_macros.html' import input, select %}
 {% for s in services %}
-{% if s.0 == 'checker_haproxy' %}
+{% if s.0 == 'roxy-wi-checker' %}
     {% if s.3 != '* is not installed' and s.3 != '' %}
     <table id="checker_table" class="overview">
         <caption><h3>Add Telegram channel</h3></caption>

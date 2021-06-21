@@ -3,6 +3,7 @@
 	--red-color: #be2424;
 	--blue-color: #5d9ceb;
 	--link-dark-blue: #23527c;
+	--light-blue-color: #d1ecf1;
 }
 html {
   font-size: 10px;
@@ -669,6 +670,9 @@ td,th {
   padding: 0;
   text-align: left;
   min-width: 25px;
+}
+.odd:hover, .even:hover {
+    background-color: var(--light-blue-color);
 }
 .row {
   margin-right: -15px;
