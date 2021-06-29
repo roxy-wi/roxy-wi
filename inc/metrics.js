@@ -1,3 +1,108 @@
+function getHttpChartData(server) {
+    $.ajax({
+        url: "options.py",
+		data: {
+			new_http_metrics: '1',
+			server: server,
+            time_range: $( "#time-range option:selected" ).val(),
+			token: $('#token').val()
+		},
+		type: "POST",
+        success: function (result) {    
+            var data = [];
+            data.push(result.chartData.http_2xx);
+            data.push(result.chartData.http_3xx);
+            data.push(result.chartData.http_4xx);
+            data.push(result.chartData.http_5xx);
+            data.push('HTTP statuses for '+result.chartData.server);
+
+            var labels = result.chartData.labels;
+            renderHttpChart(data, labels, server);
+        }
+    });
+}
+var charts = []
+function renderHttpChart(data, labels, server) {
+    var ctx = 'http_'+server
+    var myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels.split(','),
+            datasets: [
+                {
+                    parsing: false,
+                    normalized: true,
+                    label: '2xx',
+                    data: data[0].split(','),
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                },
+                {
+                    parsing: false,
+                    normalized: true,
+                    label: '3xx',
+                    data: data[1].split(','),
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                },
+                {
+				    parsing: false,
+                    normalized: true,
+                    label: '4xx',
+                    data: data[2].split(','),
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                },
+                {
+				    parsing: false,
+                    normalized: true,
+                    label: '5xx',
+                    data: data[3].split(','),
+                    borderColor: 'rgb(255,86,86)',
+                    backgroundColor: 'rgba(255,86,86,0.2)',
+                }
+            ]
+        },
+        options: {
+            animation: false,
+			maintainAspectRatio: false,
+			title: {
+				display: true,
+				text: data[4],
+				fontSize: 20,
+				padding: 0,
+			},
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true,
+                    }
+                }],
+                xAxes: [{
+                    ticks: {
+                        major: {
+                            enabled: true,
+                            fontStyle: 'bold'
+                        },
+                        source: 'data',
+                        autoSkip: true,
+                        autoSkipPadding:45,
+                        maxRotation: 0
+                    }
+                }]
+            },
+			legend: {
+				display: true,
+				labels: {
+					fontColor: 'rgb(255, 99, 132)',
+					defaultFontSize: '10',
+					defaultFontFamily: 'BlinkMacSystemFont'
+				},
+			}
+        }
+    });
+    charts.push(myChart);
+}
 function getChartData(server) {
     $.ajax({
         url: "options.py",
@@ -8,7 +113,7 @@ function getChartData(server) {
 			token: $('#token').val()
 		},
 		type: "POST",
-        success: function (result) {    
+        success: function (result) {
             var data = [];
             data.push(result.chartData.curr_con);
             data.push(result.chartData.curr_ssl_con);
@@ -20,7 +125,6 @@ function getChartData(server) {
         }
     });
 }
-var charts = []
 function renderChart(data, labels, server) {
     var ctx = document.getElementById(server)
     var myChart = new Chart(ctx, {
@@ -377,6 +481,7 @@ function updatingCpuRamCharts() {
 		getChartDataHapWiRam(server_ip);
 		removeData();
 		getChartData(server_ip);
+		getHttpChartData(server_ip);
 		getWafChartData(server_ip);
 	}
 }
