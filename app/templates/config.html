@@ -22,23 +22,16 @@
 						{% endif %}
 					{% endfor %}
 			</select>
-			{% if service != 'keepalived' %}
 				<a class="ui-button ui-widget ui-corner-all" title="Show running config" onclick="showConfig()">Open</a>
+			{% if service != 'keepalived' %}
 				<a class="ui-button ui-widget ui-corner-all" title="View stat" onclick="openStats()">Stat</a>
 			{% endif %}
 			{% if service != 'keepalived' and service != 'nginx'%}
 				<a class="ui-button ui-widget ui-corner-all" title="Show map" onclick="showMap()">Map</a>	
 			{% endif %}
-			{% if service != 'keepalived' %}					
-				<a class="ui-button ui-widget ui-corner-all" title="Compare configs" onclick="showCompareConfigs()">Compare</a>	
-				{% if role <= 3 %}
-					<a class="ui-button ui-widget ui-corner-all" title="Show versions" onclick="openVersions()">Versions</a>	
-				{% endif %}
-			{% else %}
-				{% if role <= 3 %}
-					<button type="submit" value="open" name="open" class="btn btn-default" title="Edit running config">Edit</button>
-					<a class="ui-button ui-widget ui-corner-all" title="Show versions" onclick="openVersions()">Versions</a>
-				{% endif %}
+				<a class="ui-button ui-widget ui-corner-all" title="Compare configs" onclick="showCompareConfigs()">Compare</a>
+			{% if role <= 3 %}
+				<a class="ui-button ui-widget ui-corner-all" title="Show versions" onclick="openVersions()">Versions</a>
 			{% endif %}
 		</form>
 	</p>
@@ -61,18 +54,21 @@
 					<textarea name="config" id="config_text_area" class="config" rows="35" cols="100">{{ config }}</textarea>
 				</div>
 				<p>
-				<center>
-				{% if service == 'haproxy' %}
-					<button type="submit" value="test" name="save" class="btn btn-default">Just test</button>
-				{% endif %}
-				<button type="submit" value="save" name="save" class="btn btn-default">Just save</button>
-				<button type="submit" value="" name="" class="btn btn-default">Save and restart</button>
-				{% if service != 'keepalived' %}
-				<button type="submit" value="reload" name="save" class="btn btn-default">Save and reload</button>
-				{% endif %}
+					<center>
+						{% if service == 'haproxy' %}
+							<button type="submit" value="test" name="save" class="btn btn-default">Just test</button>
+						{% endif %}
+						<button type="submit" value="save" name="save" class="btn btn-default">Just save</button>
+						<button type="submit" value="" name="" class="btn btn-default">Save and restart</button>
+						{% if service != 'keepalived' %}
+						<button type="submit" value="reload" name="save" class="btn btn-default">Save and reload</button>
+						{% endif %}
+						{% if service != 'keepalived' %}
+						<div class="alert alert-info alert-two-rows"><b>Note:</b> When reconfiguring the master server, the slave will be reconfigured automatically</div>
+						{% endif %}
+					</center>
 				</p>
 			</form>
-			<div class="alert alert-info alert-two-rows"><b>Note:</b> When reconfiguring the master server, the slave will be reconfigured automatically</div>
 		{% endif %}
 	{% endif %}
 	</center>

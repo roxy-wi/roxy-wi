@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import funct
 import sql
 from jinja2 import Environment, FileSystemLoader
@@ -13,7 +12,6 @@ funct.check_login()
 try:
     user, user_id, role, token, servers = funct.get_users_params()
     users = sql.select_users()
-    groups = sql.select_groups()
     services = []
 except:
     pass
@@ -26,9 +24,17 @@ cmd = "ps ax |grep -e 'keep_alive.py' |grep -v grep |wc -l"
 keep_alive, stderr = funct.subprocess_execute(cmd)
 
 if service == 'nginx':
-    title = "Nginx servers overview"
+    title = 'Nginx servers overview'
     servers = sql.get_dick_permit(virt=1, nginx=1)
     service = 'nginx'
+    if serv:
+        if funct.check_is_server_in_group(serv):
+            servers = sql.select_servers(server=serv)
+            autorefresh = 1
+elif service == 'keepalived':
+    title = 'Keepalived servers overview'
+    servers = sql.get_dick_permit(virt=1, keepalived=1)
+    service = 'keepalived'
     if serv:
         if funct.check_is_server_in_group(serv):
             servers = sql.select_servers(server=serv)
@@ -69,7 +75,19 @@ for s in servers:
     servers_with_status.append(s[11])
     if service == 'nginx':
         cmd = [
-            "/usr/sbin/nginx -v && systemctl status nginx |grep -e 'Active' |awk '{print $2, $9$10$11$12$13}' && ps ax |grep nginx:|grep -v grep |wc -l"]
+            "/usr/sbin/nginx -v 2>&1|awk '{print $3}' && systemctl status nginx |grep -e 'Active' |awk '{print $2, $9$10$11$12$13}' && ps ax |grep nginx:|grep -v grep |wc -l"]
+        out = funct.ssh_command(s[2], cmd)
+        h = ()
+        out1 = []
+        for k in out.split():
+            out1.append(k)
+        h = (out1,)
+        servers_with_status.append(h)
+        servers_with_status.append(h)
+        servers_with_status.append(s[17])
+    elif service == 'keepalived':
+        cmd = [
+            "/usr/sbin/keepalived -v 2>&1|head -1|awk '{print $2}' && systemctl status keepalived |grep -e 'Active' |awk '{print $2, $9$10$11$12$13}' && ps ax |grep keepalived|grep -v grep |wc -l"]
         out = funct.ssh_command(s[2], cmd)
         h = ()
         out1 = []
@@ -102,7 +120,6 @@ template = template.render(h2=1,
                            role=role,
                            user=user,
                            users=users,
-                           groups=groups,
                            servers=servers_with_status1,
                            keep_alive=''.join(keep_alive),
                            serv=serv,

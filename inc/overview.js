@@ -16,7 +16,7 @@ function showHapserversCallBack(serv, hostnamea, service) {
 			token: $('#token').val()
 		},
 		beforeSend: function() {
-			$("#"+hostnamea).html('<img class="loading_small_haproxyservers" src="/inc/images/loading.gif" />');
+			$("#edit_date_"+hostnamea).html('<img class="loading_small_haproxyservers" src="/inc/images/loading.gif" />');
 		},
 		type: "POST",
 		success: function( data ) {
@@ -24,11 +24,11 @@ function showHapserversCallBack(serv, hostnamea, service) {
 				toastr.error(data);
 			} else {
 				if (data.indexOf('ls: cannot access') != '-1') {
-					$("#" + hostnamea).empty();
-					$("#" + hostnamea).html();
+					$("#edit_date_" + hostnamea).empty();
+					$("#edit_date_" + hostnamea).html();
 				} else {
-					$("#" + hostnamea).empty();
-					$("#" + hostnamea).html(data);
+					$("#edit_date_" + hostnamea).empty();
+					$("#edit_date_" + hostnamea).html(data);
 				}
 			}
 		}					
@@ -86,7 +86,7 @@ function showOverviewCallBack(serv, hostnamea) {
 		}					
 	} );
 }
-function showOverviewServer(name,ip,id, service) {
+function showOverviewServer(name, ip, id, service) {
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -173,6 +173,32 @@ function ajaxActionNginxServers(action, id) {
 		error: function(){
 			alert(w.data_error);
 		}					
+	} );
+}
+function ajaxActionKeepalivedServers(action, id) {
+	var bad_ans = 'Bad config, check please';
+	$.ajax( {
+		url: "options.py",
+		data: {
+			action_keepalived: action,
+			serv: id,
+			token: $('#token').val()
+		},
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if( data ==  'Bad config, check please ' ) {
+				alert(data);
+			} else {
+				if (cur_url[0] == "hapservers.py") {
+					location.reload()
+				} else {
+					setTimeout(showOverview(ip, hostnamea), 2000)
+				}
+			}
+		},
+		error: function(){
+			alert(w.data_error);
+		}
 	} );
 }
 function ajaxActionWafServers(action, id) {
@@ -295,6 +321,8 @@ function confirmAjaxAction(action, service, id) {
 					ajaxActionWafServers(action, id)
 				} else if (service == "nginx") {
 					ajaxActionNginxServers(action, id)
+				} else if (service == "keepalived") {
+					ajaxActionKeepalivedServers(action, id)
 				}
 			},
 			Cancel: function() {

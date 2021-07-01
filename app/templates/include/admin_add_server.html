@@ -27,19 +27,23 @@
 	<td>{{ checkbox('typeip') }}</td>
 </tr>
 <tr>
+	<td class="padding20 help_cursor" title="Scan the server for HAProxy, Nginx, Keepalived and Firewalld services">Scan the server</td>
+	<td>{{ checkbox('scan_server', checked='checked') }}</td>
+</tr>
+<tr class="services_for_scan" style="display: none">
 	<td class="padding20" title="Is there HAProxy?">HAProxy</td>
 	<td>{{ checkbox('haproxy') }}	</td>
 </tr>
-<tr>
+<tr class="services_for_scan" style="display: none">
 	<td class="padding20" title="Is there Nginx?">Nginx</td>
 	<td>{{ checkbox('nginx') }}</td>
 </tr>
-<tr>
+<tr class="services_for_scan" style="display: none">
 	<td class="padding20" title="Is there Firewall?">Firewall</td>
 	<td>{{ checkbox('firewall') }}</td>
 </tr>
 <tr>
-	<td class="padding20" title="Actions with master config will automatically apply on slave">Slave for</td>
+	<td class="padding20 help_cursor" title="Actions with master config will automatically apply on slave">Slave for</td>
 	<td>
 		<select id="slavefor">
 			<option value="0" selected>Not slave</option>

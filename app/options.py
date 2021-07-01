@@ -516,26 +516,39 @@ if act == "overview":
     from jinja2 import Environment, FileSystemLoader
 
     async def async_get_overview(serv1, serv2):
-        commands2 = ["ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l"]
-        cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Process_num"' % (serv2, sql.get_setting('haproxy_sock_port'))
+        haproxy = sql.select_haproxy(serv2)
         keepalived = sql.select_keealived(serv2)
+        nginx = sql.select_nginx(serv2)
+        waf = sql.select_waf_servers(serv2)
+        haproxy_process = ''
+        keepalived_process = ''
+        nginx_process = ''
+        waf_process = ''
+
+        if haproxy == 1:
+            cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Process_num"' % (serv2, sql.get_setting('haproxy_sock_port'))
+            haproxy_process = funct.server_status(funct.subprocess_execute(cmd))
+
         if keepalived == 1:
             command = ["ps ax |grep keepalived|grep -v grep|wc -l"]
             keepalived_process = funct.ssh_command(serv2, command)
-        else:
-            keepalived_process = ''
-        nginx = sql.select_nginx(serv2)
+
         if nginx == 1:
-            command = ["ps ax |grep nginx:|grep -v grep|wc -l"]
-            nginx_process = funct.ssh_command(serv2, command)
-        else:
-            nginx_process = ''
+            # command = ["ps ax |grep nginx:|grep -v grep|wc -l"]
+            # nginx_process = funct.ssh_command(serv2, command)
+            nginx_cmd = 'echo "something" |nc %s %s -w 1' % (serv2, sql.get_setting('nginx_stats_port'))
+            nginx_process = funct.server_status(funct.subprocess_execute(nginx_cmd))
+
+        if len(waf) == 1:
+            commands2 = ["ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l"]
+            waf_process = funct.ssh_command(serv2, commands2)
+
         server_status = (serv1,
                          serv2,
-                         funct.server_status(funct.subprocess_execute(cmd)),
+                         haproxy_process,
                          sql.select_servers(server=serv2, keep_alive=1),
-                         funct.ssh_command(serv2, commands2),
-                         sql.select_waf_servers(serv2),
+                         waf_process,
+                         waf,
                          keepalived,
                          keepalived_process,
                          nginx,
@@ -610,19 +623,19 @@ if act == "overviewServers":
         if service == 'haproxy':
             cmd = 'echo "show info" |nc %s %s -w 1|grep -e "node\|Nbproc\|Maxco\|MB\|Nbthread"' % (serv2, sql.get_setting('haproxy_sock_port'))
             out = funct.subprocess_execute(cmd)
-            out1 = ""
+            return_out = ""
 
             for k in out:
                 if "Ncat:" not in k:
                     for r in k:
-                        out1 += r
-                        out1 += "<br />"
+                        return_out += r
+                        return_out += "<br />"
                 else:
-                    out1 = "Cannot connect to HAProxy"
+                    return_out = "Cannot connect to HAProxy"
         else:
-            out1 = ''
+            return_out = ''
 
-        server_status = (serv1, serv2, out1)
+        server_status = (serv1, serv2, return_out)
         return server_status
 
 
@@ -647,11 +660,11 @@ if act == "overviewServers":
         print(template)
 
 
-    id = form.getvalue('id')
+    server_id = form.getvalue('id')
     name = form.getvalue('name')
     service = form.getvalue('service')
     ioloop = asyncio.get_event_loop()
-    ioloop.run_until_complete(get_runner_overviewServers(server1=name, server2=serv, id=id, service=service))
+    ioloop.run_until_complete(get_runner_overviewServers(server1=name, server2=serv, id=server_id, service=service))
     ioloop.close()
 
 if form.getvalue('action'):
@@ -995,6 +1008,9 @@ if form.getvalue('master'):
     ETH = form.getvalue('interface')
     IP = form.getvalue('vrrpip')
     syn_flood = form.getvalue('syn_flood')
+    virt_server = form.getvalue('virt_server')
+    haproxy = form.getvalue('hap')
+    nginx = form.getvalue('nginx')
     script = "install_keepalived.sh"
     fullpath = funct.get_config_var('main', 'fullpath')
     proxy = sql.get_setting('proxy')
@@ -1023,6 +1039,12 @@ if form.getvalue('master'):
     funct.show_installation_output(error, output, 'master Keepalived')
 
     sql.update_keepalived(master)
+
+    if virt_server is not None:
+        group_id = sql.get_group_id_by_server_ip(master)
+        cred_id = sql.get_cred_id_by_server_ip(master)
+        hostname = sql.get_hostname_by_server_ip(master)
+        sql.add_server(hostname+'-VIP', IP, group_id, '1', '1', '1', cred_id, ssh_port, 'VRRP IP for '+master, haproxy, nginx, '0')
 
 if form.getvalue('master_slave'):
     master = form.getvalue('master')
@@ -1768,6 +1790,7 @@ if form.getvalue('newserver') is not None:
     hostname = form.getvalue('servername')
     ip = form.getvalue('newip')
     group = form.getvalue('newservergroup')
+    scan_server = form.getvalue('scan_server')
     typeip = form.getvalue('typeip')
     haproxy = form.getvalue('haproxy')
     nginx = form.getvalue('nginx')
@@ -1781,6 +1804,30 @@ if form.getvalue('newserver') is not None:
     desc = form.getvalue('desc')
 
     if sql.add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, firewall):
+
+        try:
+            if scan_server == '1':
+                nginx_config_path = sql.get_setting('nginx_config_path')
+                haproxy_config_path = sql.get_setting('haproxy_config_path')
+                haproxy_dir = sql.get_setting('haproxy_dir')
+                keepalived_config_path = '/etc/keepalived/keepalived.conf'
+
+                if funct.is_file_exists(ip, nginx_config_path):
+                    sql.update_nginx(ip)
+
+                if funct.is_file_exists(ip, haproxy_config_path):
+                    sql.update_haproxy(ip)
+
+                if funct.is_file_exists(ip, keepalived_config_path):
+                    sql.update_keepalived(ip)
+
+                if funct.is_file_exists(ip, haproxy_dir + '/waf/bin/modsecurity'):
+                    sql.insert_waf_metrics_enable(ip, "0")
+
+                if funct.is_service_active(ip, 'firewalld'):
+                    sql.update_firewall(ip)
+        except:
+            pass
 
         from jinja2 import Environment, FileSystemLoader
 

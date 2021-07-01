@@ -70,6 +70,57 @@
 					&emsp;&emsp;{{ line }}
 				</span><br />	
 			{% endif %}
+		{% elif service == 'keepalived' %}
+			{%- if "global_defs {" in line -%}
+				{% if i > 1 %}
+					</div>
+				{% endif %}
+				<span class="param">{{ line }}
+				</span><div>
+				{% continue %}
+			{% endif %}
+			{%- if "vrrp_instance " in line -%}
+				{% if i > 1 %}
+					</div>
+				{% endif %}
+				<span class="param">{{ line }}
+				</span><div>
+				{% continue %}
+			{% endif %}
+			{%- if "vrrp_script " in line -%}
+				{% if i > 1 %}
+					</div>
+				{% endif %}
+				<span class="param">{{ line }}
+				</span><div>
+				{% continue %}
+			{% endif %}
+			{% if "state " in line or "interface" in line or "priority" in line or "}" in line  %}
+				{% if "#" not in line %}
+					<span class="numRow">
+						{{ i }}
+					</span>
+					<span class="paramInSec">
+						&emsp;&emsp;{{ line }}
+					</span><br />
+					{% continue %}
+				{% endif %}
+			{% endif %}
+			{% if "#" in line %}
+				<span class="numRow">
+					{{ i }}
+				</span>
+				<span class="comment">
+					&emsp;&emsp;{{ line }}
+				</span><br />
+				{% continue %}
+			{% endif %}
+			{% if line|length > 1 %}
+				<span class="configLine">
+					<span class="numRow">{{ i }}</span>
+					&emsp;&emsp;{{ line }}
+				</span><br />
+			{% endif %}
 		{% else %}
 			{% if line.startswith('global') %}
 				<span class="param">{{ line }}
@@ -231,7 +282,7 @@
 	</div>
 	{% if configver %}
 	<br>
-	<center>
+	<div style="text-align: center;">
 		{% if role <= 3 %}
 		{% if not is_serv_protected or role <= 2 %}
 		<form action="versions.py?service={{service}}" method="post">
@@ -247,5 +298,5 @@
 		{% endif %}
 		{% endif %}
 		<div class="alert alert-info"><b>Note:</b> If you reconfigure Master server, Slave will reconfigured automatically</div>
-	</center>
+	</div>
 	{% endif %}

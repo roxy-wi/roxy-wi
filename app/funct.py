@@ -272,7 +272,7 @@ def return_ssh_keys_path(serv, **kwargs):
 	return ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name
 
 
-def ssh_connect(serv, **kwargs):
+def ssh_connect(serv):
 	import paramiko
 	from paramiko import SSHClient
 	import sql
@@ -304,10 +304,13 @@ def ssh_connect(serv, **kwargs):
 	except paramiko.SSHException as sshException:
 		return 'error: Unable to establish SSH connection: %s ' % sshException
 	except paramiko.PasswordRequiredException as e:
+		logging('localhost', ' ' + str(e), haproxywi=1)
 		return 'error: %s ' % e
 	except paramiko.BadHostKeyException as badHostKeyException:
+		logging('localhost', ' ' + str(badHostKeyException), haproxywi=1)
 		return 'error: Unable to verify server\'s host key: %s ' % badHostKeyException
 	except Exception as e:
+		logging('localhost', ' ' + str(e), haproxywi=1)
 		if e == "No such file or directory":
 			return 'error: %s. Check ssh key' % e
 		elif e == "Invalid argument":
@@ -1015,7 +1018,10 @@ def server_status(stdout):
 	for line in stdout:
 		if "Ncat: " not in line:
 			for k in line:
-				proc_count = k.split(":")[1]
+				try:
+					proc_count = k.split(":")[1]
+				except Exception:
+					proc_count = 1
 		else:
 			proc_count = 0
 	return proc_count		

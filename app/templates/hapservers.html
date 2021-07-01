@@ -30,7 +30,7 @@
 	var hostnamea = []
 	{% for s in servers %}
 		ip.push("{{s[2]}}")
-		var host = "{{s[1]}}"
+		var host = "{{s[2]}}"
 		host = host.replace(/\./g, '\\.');
 		hostnamea.push(host)
 	{% endfor %}
@@ -90,7 +90,7 @@
 					showOverviewServer('{{s.1}}', server_ip, '{{s.0}}', '{{service}}');
 					{% if service == 'nginx' %}
 						showNginxConnections(server_ip)
-					{% else %}
+					{% elif service == 'haproxy' %}
 						showBytes(server_ip)
 					{% endif %}
 				}
@@ -115,12 +115,18 @@
 			{% set checker_desc = 'Checker monitors Nginx services. If Nginx service is down, Checker will alert via Telegram' %}
 			{% set is_auto_start_enabled = s.8.0.17 %}
 			{% set is_checker_enabled = s.8.0.19 %}
-			{% if s.5.0.3 == 'active' %}
+			{% if s.5.0.1 == 'active' %}
 				{% set additional_status_class = 'div-server-head-up' %}
 			{% else %}
 				{% set additional_status_class = 'div-server-head-down' %}
 			{% endif %}
-		{% else %}
+		{% elif service == 'keepalived' %}
+			{% if s.5.0.1 == 'active' %}
+				{% set additional_status_class = 'div-server-head-up' %}
+			{% else %}
+				{% set additional_status_class = 'div-server-head-down' %}
+			{% endif %}
+		{% elif service == 'haproxy' %}
 			{% set checker_desc = 'Checker monitors HAProxy services and its backends. If some backend or HAProxy service is down, Checker will alert via Telegram' %}
 			{% set is_auto_start_enabled = s.8.0.12 %}
 			{% set is_checker_enabled = s.8.0.8 %}
@@ -134,8 +140,8 @@
 			<div class="server-name">
 				<input type="hidden" id="server-name-{{s.0}}" value="{{s.1}}" />
 				<input type="hidden" id="service" value="{{service}}" />
-				{% if service == 'nginx' %}
-					{% if s.5.0.3 == 'active' %}
+				{% if service == 'nginx' or service == 'keepalived' %}
+					{% if s.5.0.1 == 'active' %}
 						<span class="serverUp server-status" title="Uptime: {{s.5.0.4}}"></span>
 					{% else %}
 						<span class="serverDown server-status" title="Downtime: : {{s.5.0.4}}"></span>
@@ -152,7 +158,7 @@
 					{% else %}
 						{{s.1}}
 					{% endif %}
-				{% if s.6|int() >= 1 %}
+				{% if s.6|int() >= 1  and service != 'keepalived' %}
 					<span
 						{% if keep_alive|int() >= 1 %}
 						class="shield green" title="Auto start enabled">
@@ -168,6 +174,8 @@
 				<span class="server-action">
 					{% if service == 'nginx' %}
 						{% set action_service = 'nginx' %}
+					{% elif service == 'keepalived' %}
+						{% set action_service = 'keepalived' %}
 					{% else %}
 						{% set action_service = 'hap' %}
 					{% endif %}
@@ -189,10 +197,15 @@
 			<div class="server-desc">
 				{{s.3}}
 				<br />
-				{% if service == 'nginx' %}
-					Version: {{s.5.0.2}} Process_num: {{s.5.0.5}} {% if s.5.0.3 == 'active' %}
+				{% if service == 'nginx' or service == 'keepalived' %}
+					Version: {{s.5.0.0}} Process_num: {{s.5.0.3}}
 					<br />
-					Uptime: {% else %} Downtime: {% endif %} {{s.5.0.4}}
+					{% if s.5.0.1 == 'active' %}
+						Uptime:
+					{% else %}
+						Downtime:
+					{% endif %}
+					{{s.5.0.2}}
 				{% else %}
 					{% if s.5.0 is defined %}
 						{{s.5.0.0}} {{s.5.0.1}}
@@ -204,16 +217,16 @@
 				{% endif %}
 				<span title="Date of last configuration edit">
 					Last edit:
-					<span id="{{s.1}}"></span>
+					<span id="edit_date_{{s.2}}"></span>
 				</span>			
 				<br />
-				IP: {{s.2}}
+				IP: <b>{{s.2}}</b>
 				{% if s.7.0.0 != None %}
-					Master for: {{ s.7.0.1 }}
+				Master for: <b>{{ s.7.0.1 }}</b>
 				{% endif %}
 			</div>
 			<div class="server-act-links" id="server-{{s.8.0.0|string()}}-{{service}}">
-				{% if role <= 2 %}
+				{% if role <= 2 and service != 'keepalived' %}
 					{% set id = 'alert-' + s.8.0.0|string() %}
 					{% if is_checker_enabled == 1 %}
 						{{ checkbox(id, title=checker_desc, value='1', desc='Checker', checked='checked') }}
@@ -237,15 +250,21 @@
 			{% endif %}
 			</div>
 			<div class="server-act-links">
-				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showConfig" class="ui-button ui-widget ui-corner-all" title="Open running config">Open</a>	
+			{% if service != 'keepalived' %}
+				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showConfig" class="ui-button ui-widget ui-corner-all" title="Open running config">Config</a>
+			{% else %}
+				<a href="/app/config.py?service={{service}}" class="ui-button ui-widget ui-corner-all" title="Edit running config">Config</a>
+			{% endif %}
 				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showCompare" class="ui-button ui-widget ui-corner-all" title="Compare configs">Compare</a>	
-			{% if service != 'nginx' %}
+			{% if service != 'nginx' and service != 'keepalived' %}
 				<a href="/app/config.py?serv={{s.2}}&showMap" class="ui-button ui-widget ui-corner-all" title="Show map">Map</a>
 			{% endif %}
-			<a href="/app/viewsttats.py?service={{service}}&serv={{s.2}}" class="ui-button ui-widget ui-corner-all" title="View stat">Stats</a>
-			<a href="/app/logs.py?service={{service}}&serv={{s.2}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" class="ui-button ui-widget ui-corner-all" title="View log">Log</a>
+			{% if service != 'keepalived' %}
+			<a href="/app/viewsttats.py?service={{service}}&serv={{s.2}}" class="ui-button ui-widget ui-corner-all" title="View {{service}} statistics">Stat</a>
+			<a href="/app/logs.py?service={{service}}&serv={{s.2}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" class="ui-button ui-widget ui-corner-all" title="View {{service}} log">Log</a>
+			{% endif %}
 			{% if role <= 2 %}
-				<a href="/app/versions.py?service={{service}}&serv={{s.2}}&open=open" class="ui-button ui-widget ui-corner-all">Versions</a>
+				<a href="/app/versions.py?service={{service}}&serv={{s.2}}&open=open" class="ui-button ui-widget ui-corner-all" title="View/Rollback to previous config">Versions</a>
 			{% endif %}
 			</div>
 		</div>
@@ -256,11 +275,13 @@
 				<div class="server-name backends">
 					{% if service == 'haproxy' %}
 						Backends:
+					{% elif service == 'keepalived' %}
+						VRRP addresses:
 					{% else %}
 						Virtual hosts:
 					{% endif %}
 				</div>
-				<div style="margin-top: 10px;" id="top-{{s.1}}"></div>
+				<div style="margin-top: 10px;" id="top-{{s.2}}"></div>
 			</div>
 		{% endif %}
 	{% endfor %}

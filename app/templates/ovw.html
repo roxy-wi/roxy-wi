@@ -10,8 +10,9 @@
 	var hostnamea = []
 	{% for s in servers %}
 		ip.push("{{s[2]}}")
-		var host = "{{s[1]}}"
+		var host = "{{s[2]}}"
 		host = host.replace(/\./g, '\\.');
+		host = host.replace(/ /g, '');
 		hostnamea.push(host)
 	{% endfor %}
 </script>
@@ -52,7 +53,7 @@
 		</td>
 	</tr>
 	{% for s in servers %}
-		<tr class="{{ loop.cycle('odd', 'even') }}" id="{{s[1]}}"></tr>
+		<tr class="{{ loop.cycle('odd', 'even') }}" id="{{s[2]}}"></tr>
 	{% endfor %}
 </table>
 <table class="overview-wi">
@@ -95,7 +96,7 @@
 			{% endif %}
 		</td>
 	</tr>
-	<tr>
+	<tr class="odd">
 		<td class="padding10 first-collumn-wi">
 			{% if metrics_master == 'active' %}
 				<span class="serverUp server-status" title="running {{ metrics_master }} master processes"></span>
@@ -239,7 +240,7 @@
 			{% endif %}
 		</td>		
 	</tr>
-	<tr>
+	<tr class="odd">
 		{% if role == 1 %}
 		<td class="padding10 first-collumn-wi">
 		{% if grafana|int() >= 1 %}
