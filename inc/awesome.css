@@ -360,3 +360,12 @@
 .server-name .red .fa-shield-alt {
 	color: var(--red-color);
 }
+.copyToClipboard:hover::after {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f0c5";
+}
+.copyToClipboard .fa-copy {
+	margin-left: 5px;
+	content: "\f0c5";
+}

@@ -1,4 +1,5 @@
 {% from 'include/provisioning/variables.html' import gcore_regions, do_regions, aws_regions %}
+{% from 'include/input_macros.html' import copy_to_clipboard %}
 {% for s in servers %}
 {% set region_name = [] %}
 {% if s.3 == 'do' %}
@@ -68,13 +69,16 @@
         {{region_name.0}}
     </td>
     <td style="width: 10%">
-        <span id="sever-os-{{s.0}}">{{s.9}}</span>
+        {% set id = "server-os-" + s.0|string() %}
+        {{ copy_to_clipboard(id=id, value=s.9) }}
     </td>
     <td style="width: 15%">
-        <span id="sever-ip-{{s.0}}">{{s.10}}</span>
+        {% set id = "server-ip-" + s.0|string() %}
+        {{ copy_to_clipboard(id=id, value=s.10) }}
     </td>
     <td style="width: 10%">
-        <span id="sever-size-{{s.0}}">{{s.5}}</span>
+        {% set id = "server-size-" + s.0|string() %}
+        {{ copy_to_clipboard(id=id, value=s.5) }}
     </td>
     <td style="width: 5%">
         {% if s.6 == 'Created' %}

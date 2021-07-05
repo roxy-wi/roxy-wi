@@ -1,3 +1,4 @@
+{% from 'include/input_macros.html' import copy_to_clipboard %}
 <script>
     $(document).ready(function() {
         $('#sessions_table').on( 'page.dt',   function () { $.getScript("/inc/fontawesome.min.js"); } )
@@ -38,7 +39,7 @@
                 {{session.1.split('=')[1]}}
             </td>
             <td style="width: 20%">
-                {{session.2.split('=')[1]}}
+                {{ copy_to_clipboard(value=session.2.split('=')[1]) }}
             </td>
             <td style="width: 10%">
                 {{session.3.split('=')[1]}}

@@ -206,12 +206,12 @@ if form.getvalue('table_serv_select') is not None:
 if form.getvalue('table_select') is not None:
     from jinja2 import Environment, FileSystemLoader
 
-    env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True,
+    env = Environment(loader=FileSystemLoader('templates'), autoescape=True,
                       extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'], trim_blocks=True, lstrip_blocks=True)
     table = form.getvalue('table_select')
 
     if table == 'All':
-        template = env.get_template('/stick_tables.html')
+        template = env.get_template('ajax/stick_tables.html')
         tables = funct.get_all_stick_table()
         table = []
         for t in tables.split(','):
@@ -225,7 +225,7 @@ if form.getvalue('table_select') is not None:
 
         template = template.render(table=table)
     else:
-        template = env.get_template('/stick_table.html')
+        template = env.get_template('ajax/stick_table.html')
         tables_head, table = funct.get_stick_table(table)
         template = template.render(tables_head=tables_head, table=table)
 
@@ -328,7 +328,7 @@ if form.getvalue('list_ip_for_add') is not None:
 if form.getvalue('sessions_select') is not None:
     from jinja2 import Environment, FileSystemLoader
 
-    env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True,
+    env = Environment(loader=FileSystemLoader('templates'), autoescape=True,
                       extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'], trim_blocks=True, lstrip_blocks=True)
     serv = form.getvalue('sessions_select')
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
@@ -336,7 +336,7 @@ if form.getvalue('sessions_select') is not None:
     cmd = 'echo "show sess" |nc %s %s' % (serv, haproxy_sock_port)
     output, stderr = funct.subprocess_execute(cmd)
 
-    template = env.get_template('/sessions_table.html')
+    template = env.get_template('ajax/sessions_table.html')
     template = template.render(sessions=output)
 
     print(template)

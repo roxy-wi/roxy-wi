@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}	
-{% from 'include/input_macros.html' import input, checkbox, select %}
+{% from 'include/input_macros.html' import input, checkbox, select, copy_to_clipboard %}
 <script src="/inc/overview.js"></script>
 {% if serv %}
 <style>
@@ -220,7 +220,7 @@
 					<span id="edit_date_{{s.2}}"></span>
 				</span>			
 				<br />
-				IP: <b>{{s.2}}</b>
+				IP: {{ copy_to_clipboard(value=s.2, style='font-weight: bold') }}
 				{% if s.7.0.0 != None %}
 				Master for: <b>{{ s.7.0.1 }}</b>
 				{% endif %}

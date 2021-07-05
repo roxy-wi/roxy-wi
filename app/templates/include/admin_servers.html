@@ -1,10 +1,10 @@
-{% from 'include/input_macros.html' import input, checkbox %}
+{% from 'include/input_macros.html' import input, checkbox, copy_to_clipboard %}
 {% if not adding %}
 <table class="overview" id="ajax-servers">
 	<thead>
 		<tr class="overviewHead">
 			<th class="padding10 first-collumn">Hostname</th>
-			<th class="ip-field" style="width: 5%">IP</th>
+			<th class="ip-field" style="width: 10%">IP</th>
 			<th class="checkbox-head" style="width: 5%" class="help_cursor"><span title="SSH port">Port</span></th>
 			{% if page != "servers.py" %}
 			<th style="width: 10%">Group</th>
@@ -39,7 +39,8 @@
 				{{ input(id, value=server.1, size='15') }}
 			</td>
 			<td>
-				<span id="ip-{{server.0}}" style="margin-right: 6px;">{{server.2}}</span>
+				{% set id = 'ip-' + server.0|string() %}
+				{{ copy_to_clipboard(id=id, value=server.2, style='margin-right: 6px;') }}
 			</td>
 			<td>
 				{% set id = 'port-' + server.0|string() %}

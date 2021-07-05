@@ -1,3 +1,4 @@
+{% from 'include/input_macros.html' import copy_to_clipboard %}
 {%- for t in table %}
 	{%- if t.1.0 != '' -%}
 		{% set headers = t.1.0.split(':')[1] %}
@@ -90,7 +91,7 @@
 					{% if body.0 != '' %}
 						<tr>
 							<td class="padding10" style="width: 10%; padding-left: 10px;">					
-								{{body.1.split('=')[1]}}
+								{{ copy_to_clipboard(value=body.1.split('=')[1]) }}
 							</td>
 							<td>					
 								{{body.2.split('=')[1]}}

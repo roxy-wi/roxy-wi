@@ -40,3 +40,7 @@
 		{% endfor %}
 	</select>
 {%- endmacro %}
+
+{%- macro copy_to_clipboard(id='', value='', style='', class='') -%}
+	<span id="{{id}}" style="{{style}}" class="copyToClipboard {{class}}" data-copy="{{value}}" title="Copy {{value}} to clipboard">{{value}}</span>
+{%- endmacro %}

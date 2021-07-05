@@ -1,4 +1,4 @@
-{% from 'include/input_macros.html' import input, checkbox %}
+{% from 'include/input_macros.html' import input, checkbox, copy_to_clipboard %}
 <script>
     $(document).ready(function() {
         $('#{{list_id}}').on( 'page.dt',   function () { $.getScript("/inc/fontawesome.min.js"); } )
@@ -42,7 +42,7 @@
                 {{ loop.index }}
             </td>
             <td style="width: 85%">
-                {{l.split(' ')[1]}}
+                {{ copy_to_clipboard(value=l.split(' ')[1]) }}
             </td>
             <td>
                 <a class="delete" title="Delete this IP" style="cursor: pointer;" onclick="deleteListIp(this, '{{list_id}}', '{{l.split(' ')[0]}}', '{{l.split(' ')[1]}}')"></a>

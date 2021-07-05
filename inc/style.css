@@ -1216,3 +1216,15 @@ label {
 .help_cursor {
 	cursor: help;
 }
+.copyToClipboard {
+	cursor: pointer;
+	transition: .3s;
+}
+.copyToClipboard:hover {
+	color: var(--blue-color);
+	content: "\f0c5";
+}
+.copyToClipboard:active {
+	transition: .3s;
+	color: var(--link-dark-blue);
+}

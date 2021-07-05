@@ -241,8 +241,8 @@ function setRefreshInterval(interval) {
 			$('#1').text('Auto-refresh');
 			$('.auto-refresh-pause').css('display', 'none');
 			$('.auto-refresh-resume').css('display', 'none');
-			$.getScript("/inc/fontawesome.min.js")
-			$.getScript("/inc/scripts.js")
+			$.getScript("/inc/fontawesome.min.js");
+			$.getScript("/inc/scripts.js");
 		}
 		hideAutoRefreshDiv();
 	} else {
@@ -694,7 +694,7 @@ $( function() {
 	$( "#tabs" ).tabs();
 	$( "select" ).selectmenu();
 		
-    // var tooltips = $( "[title]" ).tooltip();
+    //$( "[title]" ).tooltip();
 	$( "input[type=submit], button" ).button();
 	$( "input[type=checkbox]" ).checkboxradio();
 	$( ".controlgroup" ).controlgroup();
@@ -1026,6 +1026,21 @@ $( function() {
 			} );
 		}
 	}
+	$('.copyToClipboard').hover(function (){
+		$.getScript("/inc/fontawesome.min.js");
+	});
+	$('.copyToClipboard').click(function () {
+        let str = $(this).attr('data-copy');
+        const el = document.createElement('textarea');
+        el.value = str;
+        el.setAttribute('readonly', '');
+        el.style.position = 'absolute';
+        el.style.left = '-9999px';
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+    })
 });
 function saveUserSettings(){
 	if ($('#disable_alert_for_tab').is(':checked')) {
