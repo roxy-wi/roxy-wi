@@ -7,7 +7,7 @@
 			<td class="padding10">Period time</td>
 			<td class="padding10">Credentials</td>
 			<td class="padding10">Description</td>
-			<td></td>
+			<td style="margin-left: 5px;"></td>
 			<td></td>
 		</tr>
 		{% for b in backups %}
@@ -15,7 +15,8 @@
 		{% if b.1 in s.2 %}
 			<tr id="backup-table-{{b.0}}">
 					<td class="padding10 first-collumn">
-						<span id="backup-server-{{b.0}}">{{ b.1 }}</span>
+						{% set id = 'backup-server-' + b.0|string() %}
+						{{ copy_to_clipboard(id=id, value=b.1) }}
 					</td>
 					<td>
 						{{ input('backup-rserver-'+b.0|string(), value=b.2, size='14') }}
@@ -63,7 +64,7 @@
 		{% endfor %}
 		{% endfor %}
 	</table>
-	<br /><span class="add-button" title="Add a new backup job" id="add-backup-button">+ Add a new backup job</span>
+	<br /><span class="add-button" title="Add a new backup job" id="add-backup-button">+ Add backup</span>
 	<br /><br />
 	<div id="ajax-backup"></div>
 	<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">

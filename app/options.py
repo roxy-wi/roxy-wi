@@ -1352,11 +1352,9 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
         print('error: ' + error)
     else:
         for l in output:
-            if "msg" in l or "FAILED" in l:
+            if "Traceback" in l or "FAILED" in l:
                 try:
-                    l = l.split(':')[1]
-                    l = l.split('"')[1]
-                    print('error: ' + l + "<br>")
+                    print('error: ' + l)
                     break
                 except Exception:
                     print('error: ' + output)
@@ -1371,18 +1369,18 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
                     template = template.render(backups=sql.select_backups(server=serv, rserver=rserver),
                                                sshs=sql.select_ssh())
                     print(template)
-                    print('success: Backup job has created')
-                    funct.logging('backup ', ' has created a new backup job for server ' + serv, haproxywi=1, login=1)
+                    print('success: Backup job has been created')
+                    funct.logging('backup ', ' a new backup job for server ' + serv + ' has been created', haproxywi=1, login=1)
                 else:
                     print('error: Cannot add job into DB')
             elif deljob:
                 sql.delete_backups(deljob)
                 print('Ok')
-                funct.logging('backup ', ' has deleted a backup job for server ' + serv, haproxywi=1, login=1)
+                funct.logging('backup ', ' a backup job for server ' + serv + ' has been deleted', haproxywi=1, login=1)
             elif update:
                 sql.update_backup(serv, rserver, rpath, type, time, cred, description, update)
                 print('Ok')
-                funct.logging('backup ', ' has updated a backup job for server ' + serv, haproxywi=1, login=1)
+                funct.logging('backup ', ' a backup job for server ' + serv + ' has been updated', haproxywi=1, login=1)
 
 if form.getvalue('install_nginx'):
     funct.install_nginx(form.getvalue('install_nginx'))

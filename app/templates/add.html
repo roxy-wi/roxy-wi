@@ -73,8 +73,8 @@
 						{{ input('ip', placeholder="Any", size='15') }}<b>:</b>
 						{{ input('listen-port', name='port', type="number", title="Port for bind listen", placeholder="8080", size='5', required='required') }}
 						<div class="tooltip tooltipTop">
-							IP for bind listener, <b>if empty will be assigned on all IPs</b>.
-							Start typing IP, or press the "down" button.<br>If you are using <b>VRRP, leave the IP field blank</b>. If you assign an IP, the slave server will not start
+							The IP address for the bind listener, <b>if empty, will be assigned to all IP addresses</b>. <br />
+							Start typing IP or press down button. If you are using <b>VRRP, leave the IP field blank</b>. If you assign a VRRP IP, the slave server will not start
 						</div>
 					</td>
 				</tr>
@@ -322,8 +322,8 @@
 					<input type="text" name="ip" id="ip1" size="15" placeholder="Any" class="form-control"><b>:</b>
 					<input type="number" name="port" required title="Port for bind frontend" placeholder="8080" class="form-control">
 					<div class="tooltip tooltipTop">
-						IP for bind listener, <b>if empty will be assigned on all IPs</b>.
-						Start typing IP, or press the "down" button.<br>If you are using <b>VRRP, leave the IP field blank</b>. If you assign an IP, the slave server will not start
+						The IP address for the bind listener, <b>if empty, will be assigned to all IP addresses</b>. <br />
+						Start typing IP or press down button. If you are using <b>VRRP, leave the IP field blank</b>. If you assign a VRRP IP, the slave server will not start
 					</div>
 				</td>
 			</tr>
@@ -434,9 +434,10 @@
 			<tr>
 				<td class="addName">Default backend</td>
 				<td class="addOption">
-					<div style="font-size: 12px; padding-bottom: 10px;">Start typing backend, or press the "down" button</div>
 					{{ input('backends', name='backends', placeholder="some_backend", size='30') }}
-					<p style="font-size: 12px"><b>Note:</b> If you want to use a default backend, you must <span title="Create backend" id="redirectBackend" class="link">create a new backend</span> first.</p>
+					<div class="tooltip tooltipTop">
+						<b>Note</b>. If you want to use the default backend, <span title="Create backend" class="redirectBackend link">backend must exist</span>.
+					</div>
 				</td>
 			</tr>
 			<tr class="advance-show">
