@@ -12,7 +12,7 @@ ExecStart=/sbin/haproxy -Ws -f $CONFIG -p $PIDFILE $EXTRAOPTS
 ExecReload=/sbin/haproxy -f $CONFIG -c -q $EXTRAOPTS
 ExecReload=/bin/kill -USR2 $MAINPID
 KillMode=mixed
-Restart=always
+Restart=never
 SuccessExitStatus=143
 Type=notify
 
