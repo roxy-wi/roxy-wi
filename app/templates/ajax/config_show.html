@@ -282,7 +282,7 @@
 	</div>
 	{% if configver %}
 	<br>
-	<div style="text-align: center;">
+	<center>
 		{% if role <= 3 %}
 		{% if not is_serv_protected or role <= 2 %}
 		<form action="versions.py?service={{service}}" method="post">
@@ -298,5 +298,5 @@
 		{% endif %}
 		{% endif %}
 		<div class="alert alert-info"><b>Note:</b> If you reconfigure Master server, Slave will reconfigured automatically</div>
-	</div>
+	</center>
 	{% endif %}

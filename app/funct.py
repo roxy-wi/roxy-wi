@@ -242,8 +242,7 @@ def page_for_admin(**kwargs):
 		give_level = 1
 
 	if not is_admin(level=give_level):
-		print('<center><h3 style="color: red">How did you get here?! O_o You do not have need permissions</h>')
-		print('<meta http-equiv="refresh" content="5; url=/">')
+		print('<meta http-equiv="refresh" content="0; url=/">')
 		import sys
 		sys.exit()	
 
@@ -420,7 +419,7 @@ def get_section_from_config(config, section):
 	return_config = ""
 	with open(config, 'r') as f:
 		for index, line in enumerate(f):
-			if line.startswith(section):
+			if line.startswith(section + '\n'):
 				start_line = index
 				return_config += line
 				record = True 
