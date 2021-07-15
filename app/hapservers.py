@@ -112,6 +112,19 @@ for s in servers:
     servers_with_status.append(sql.is_master(s[2]))
     servers_with_status.append(sql.select_servers(server=s[2]))
 
+    is_keepalived = sql.select_keealived(s[2])
+
+    if is_keepalived:
+        try:
+            cmd = ['sudo kill -USR1 `cat /var/run/keepalived.pid` && grep State /tmp/keepalived.data -m 1 |awk -F"=" \'{print $2}\'|tr -d \'[:space:]\' && sudo rm -f /tmp/keepalived.data' ]
+            out = funct.ssh_command(s[2], cmd)
+            out1 = ('1', out)
+            servers_with_status.append(out1)
+        except Exception:
+            servers_with_status.append('')
+    else:
+        servers_with_status.append('')
+
     servers_with_status1.append(servers_with_status)
 
 template = template.render(h2=1,

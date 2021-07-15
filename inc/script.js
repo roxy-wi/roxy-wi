@@ -76,6 +76,15 @@ $( function() {
 			$(this).parent().find('a').css('padding-left', '20px');
 			$(this).find('a').css('padding-left', '30px');
 			$(this).find('a').css('border-left', '4px solid #5D9CEB');
+		} else if(cur_url[0] == 'hapservers.py' && cur_url[1].split('&')[0] == 'service=keepalived' && link2 == 'hapservers.py?service=keepalived'){
+			$(this).parent().css('display', 'contents');
+			$(this).parent().css('font-size', '13px');
+			$(this).parent().css('top', '0');
+			$(this).parent().css('left', '0');
+			$(this).parent().children().css('margin-left', '-20px');
+			$(this).parent().find('a').css('padding-left', '20px');
+			$(this).find('a').css('padding-left', '30px');
+			$(this).find('a').css('border-left', '4px solid #5D9CEB');
 		} else if(cur_url[0] == 'viewsttats.py' && cur_url[1].split('&')[0] == 'service=nginx' && link2 == 'viewsttats.py?service=nginx'){
 			$(this).parent().css('display', 'contents');
 			$(this).parent().css('font-size', '13px');
@@ -1184,54 +1193,6 @@ function changeCurrentGroupF(){
 		}
 	} );
 
-}
-function sort_by_status() {
-	$('<div id="err_services" style="clear: both;"></div>').appendTo('.main');
-	$('<div id="good_services" style="clear: both;"></div>').appendTo('.main');
-	$('<div id="dis_services" style="clear: both;"></div>').appendTo('.main');
-	$(".good").prependTo("#good_services");
-	$(".err").prependTo("#err_services");
-	$(".dis").prependTo("#dis_services");
-	$('.group').remove();
-	$('.group_name').detach();
-	window.history.pushState("SMON Dashboard", "SMON Dashboard", cur_url[0]+"?action=view&sort=by_status");
-}
-function showSmon(action) {
-	var sort = '';
-	var location = window.location.href;
-	var cur_url = '/app/' + location.split('/').pop();
-	cur_url = cur_url.split('?');
-	cur_url[1] = cur_url[1].split('#')[0];
-	if (action == 'refresh') {
-		try {
-			sort = cur_url[1].split('&')[1];
-			sort = sort.split('=')[1];
-		} catch (e) {
-			sort = '';
-		}
-	}
-	$.ajax( {
-		url: "options.py",
-		data: {
-			showsmon: 1,
-			sort: sort,
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function( data ) {
-			if (data.indexOf('SMON error:') != '-1') {
-				toastr.error(data);
-			} else {
-				toastr.clear();
-				$("#smon_dashboard").html(data);
-				if (action == 'not_sort') {
-					window.history.pushState("SMON Dashboard", document.title, "smon.py?action=view");
-				} else {
-					window.history.pushState("SMON Dashboard", document.title, cur_url[0] + "?" + cur_url[1]);
-				}
-			}
-		}
-	} );
 }
 function updateTips( t ) {
 	var tips = $( ".validateTips" );

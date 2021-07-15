@@ -49,7 +49,6 @@ $( function() {
 				add_master_addr(kp);
 				$.getScript("/inc/fontawesome.min.js");
 				add_slave_addr(kp);
-
 			}
 	});
 	$('#create').click(function() {
@@ -144,6 +143,10 @@ function create_master_keepalived(hap, nginx, syn_flood) {
 	} else if (hap == '1' && nginx == '1') {
 		var progress_value = '50';
 	}
+	var virt_server = 0;
+	if ($('#virt_server').is(':checked')) {
+		virt_server = '1';
+	}
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -154,6 +157,7 @@ function create_master_keepalived(hap, nginx, syn_flood) {
 			hap: hap,
 			nginx: nginx,
 			syn_flood: syn_flood,
+			virt_server: virt_server,
 			token: $('#token').val()
 		},
 		type: "POST",

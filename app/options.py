@@ -545,8 +545,8 @@ if act == "overview":
 
         server_status = (serv1,
                          serv2,
+                         haproxy,
                          haproxy_process,
-                         sql.select_servers(server=serv2, keep_alive=1),
                          waf_process,
                          waf,
                          keepalived,

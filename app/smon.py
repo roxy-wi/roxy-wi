@@ -27,7 +27,10 @@ if action == 'add':
 	title = "SMON Admin"
 	autorefresh = 0
 elif action == 'history':
-	smon = sql.alerts_history('SMON', user_group)
+	if form.getvalue('host'):
+		smon = sql.alerts_history('SMON', user_group, host=form.getvalue('host'))
+	else:
+		smon = sql.alerts_history('SMON', user_group)
 	title = "SMON History"
 	autorefresh = 0
 elif action == 'checker_history':

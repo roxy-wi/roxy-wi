@@ -224,6 +224,15 @@
 				{% if s.7.0.0 != None %}
 				Master for: <b>{{ s.7.0.1 }}</b>
 				{% endif %}
+				{% if s.9.0 == '1' %}
+					VRRP status: <b>
+					{% if s.9.1 == 'MASTER' or s.9.1 == 'BACKUP' or s.9.1 == 'INIT' or s.9.1 == 'FAULT' %}
+						{{s.9.1}}
+					{% else %}
+						<span title="Cannot get Keepalived Status" class="help_cursor">Error</span>
+					{% endif %}
+					</b>
+				{% endif %}
 			</div>
 			<div class="server-act-links" id="server-{{s.8.0.0|string()}}-{{service}}">
 				{% if role <= 2 and service != 'keepalived' %}

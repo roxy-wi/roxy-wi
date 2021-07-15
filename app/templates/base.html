@@ -77,7 +77,7 @@
 						<li class="p_menu">
 							<a title="Actions with Nginx" class="nginx-menu">Nginx</a>
 							<ul class="v_menu">
-								<li><a href="/app/hapservers.py?service=nginx" title="Overview Nginx servers" class="overview-link head-submenu">Overview</a> </li>
+								<li><a href="/app/hapservers.py?service=nginx" title="Overview Nginx servers" class="overview-link head-submenu">Overview</a></li>
 								<li><a href="/app/config.py?service=nginx" title="Working with Nginx configs" class="edit head-submenu">Configs</a></li>
 								<li><a href="/app/viewsttats.py?service=nginx" title="Nginx statistics" class="stats head-submenu">Stats</a></li>
 								{% if role <= 3 %}
@@ -90,6 +90,7 @@
 						<li class="p_menu">
 							<a title="Keepalived" class="ha">Keepalived</a>
 							<ul class="v_menu">
+								<li><a href="/app/hapservers.py?service=keepalived" title="Overview Keepalived servers" class="overview-link head-submenu">Overview</a> </li>
 								<li><a href="/app/ha.py" title="Create and configure HA cluster - Roxy-WI" class="keepalived head-submenu">HA</a></li>
 								<li><a href="/app/config.py?service=keepalived" title="Working with Keepalived configs" class="edit head-submenu">Configs</a></li>
 								<li><a href="/app/versions.py?service=keepalived" title="Working with versions Keepalived configs" class="version head-submenu keepalived_versions">Versions</a></li>

@@ -1450,19 +1450,6 @@ def insert_metrics_http(serv, http_2xx, http_3xx, http_4xx, http_5xx):
 	con.close()
 
 
-# def select_waf_metrics_enable(id):
-# 	con, cur = get_cur()
-# 	sql = """ select waf.metrics from waf left join servers as serv on waf.server_id = serv.id where server_id = '%s' """ % id
-# 	try:
-# 		cur.execute(sql)
-# 	except sqltool.Error as e:
-# 		funct.out_error(e)
-# 	else:
-# 		return cur.fetchall()
-# 	cur.close()
-# 	con.close()
-
-
 def select_waf_metrics_enable_server(ip):
 	con, cur = get_cur()
 	sql = """ select waf.metrics from waf  left join servers as serv on waf.server_id = serv.id where ip = '%s' """ % ip
@@ -2168,9 +2155,9 @@ def select_roles(**kwargs):
 
 def select_alert(**kwargs):
 	con, cur = get_cur()
-	sql = """select ip from servers where alert = 1  """
+	sql = """select ip from servers where alert = 1 and enable = 1  """
 	if kwargs.get("group") is not None:
-		sql = """select ip from servers where alert = 1 and `groups` = '%s' """ % kwargs.get("group")
+		sql = """select ip from servers where alert = 1 and `groups` = '%s' and enable = 1 """ % kwargs.get("group")
 	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
@@ -2183,9 +2170,9 @@ def select_alert(**kwargs):
 
 def select_all_alerts(**kwargs):
 	con, cur = get_cur()
-	sql = """select ip from servers where alert = 1 or nginx_alert = 1 """
+	sql = """select ip from servers where alert = 1 or nginx_alert = 1 and enable = 1 """
 	if kwargs.get("group") is not None:
-		sql = """select ip from servers where (alert = 1 or nginx_alert = 1) and `groups` = '%s' """ % kwargs.get("group")
+		sql = """select ip from servers where (alert = 1 or nginx_alert = 1) and `groups` = '%s' and enable = 1 """ % kwargs.get("group")
 	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
@@ -2198,9 +2185,9 @@ def select_all_alerts(**kwargs):
 
 def select_nginx_alert(**kwargs):
 	con, cur = get_cur()
-	sql = """select ip from servers where nginx_alert = 1 """
+	sql = """select ip from servers where nginx_alert = 1 and enable = 1 """
 	if kwargs.get("group") is not None:
-		sql = """select ip from servers where nginx_alert = 1 and `groups` = '%s' """ % kwargs.get("group")
+		sql = """select ip from servers where nginx_alert = 1 and `groups` = '%s' and enable = 1 """ % kwargs.get("group")
 	try:
 		cur.execute(sql)
 	except sqltool.Error as e:
@@ -2268,7 +2255,7 @@ def update_keepalived(serv):
 		con.close()
 
 
-def select_nginx(serv, **kwargs):
+def select_nginx(serv):
 	con, cur = get_cur()
 	sql = """select nginx from `servers` where ip='%s' """ % serv
 	try:
@@ -2296,6 +2283,20 @@ def update_nginx(serv):
 	finally:
 		cur.close()
 		con.close()
+
+
+def select_haproxy(serv):
+	con, cur = get_cur()
+	sql = """select haproxy from `servers` where ip='%s' """ % serv
+	try:
+		cur.execute(sql)
+	except sqltool.Error as e:
+		funct.out_error(e)
+	else:
+		for value in cur.fetchone():
+			return value
+	cur.close()
+	con.close()
 
 
 def update_haproxy(serv):
@@ -2330,11 +2331,11 @@ def update_firewall(serv):
 		con.close()
 
 
-def update_server_pos(pos, id):
+def update_server_pos(pos, server_id):
 	con, cur = get_cur()
 	sql = """ update servers set 
 			pos = '%s'
-			where id = '%s'""" % (pos, id)
+			where id = '%s'""" % (pos, server_id)
 	try:
 		cur.execute(sql)
 		con.commit()
@@ -2469,14 +2470,22 @@ def update_smon(id, ip, port, body, telegram, group, desc, en):
 	con.close()
 
 
-def alerts_history(service, user_group):
+def alerts_history(service, user_group, **kwargs):
 	con, cur = get_cur()
+	and_host = ''
+
+	if kwargs.get('host'):
+		and_host = "and ip = '{}'".format(kwargs.get('host'))
+
 	if user_group == 1:
 		sql_user_group = ""
 	else:
-		sql_user_group = "and user_group = '" + str(user_group) + "'"
-	sql = """ select message, level, ip, port, date from alerts 
-	where service = '%s' %s order by date desc; """ % (service, sql_user_group)
+		sql_user_group = "and user_group = '{}'".format(user_group)
+
+	sql = (f"select message, level, ip, port, date "
+		   f"from alerts "
+		   f"where service = '{service}' {sql_user_group} {and_host} " 
+		   f"order by date desc; ")
 	try:
 		cur.execute(sql)
 	except sqltool.Error as e:

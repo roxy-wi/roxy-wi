@@ -1,56 +1,57 @@
 {% extends "base.html" %}
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select %}
+<script src="/inc/smon.js"></script>
 <script src="/inc/users.js"></script>
 <script src="/inc/fontawesome.min.js"></script>
 <script src="/inc/jquery.timeago.js" type="text/javascript"></script>
 {% if smon_error != '' %}
-<center>
+<div style="text-align: center;">
 	<br />
 	<h3>You do not have installed SMON service. Read <a href="https://haproxy-wi.org/services.py?service=smon"
-	title="Simple monitoring network ports with alerting via Telegram and WEB pannel" target="_blank">here</a> how to install SMON service</h3>
-</center>
+	title="Simple monitoring network ports with alerting via Telegram and WEB panel" target="_blank">here</a> how to install SMON service</h3>
+</div>
 {% elif smon_status.0 == 'failed' %}
-<center>
+<div style="text-align: center;">
 	<br />
 	<h3>SMON service is not run. Run the SMON service <a href="users.py#services" title="Roxy-WI services" target="_blank">here</a> before use</h3>
-</center>
+</div>
 {% elif smon|length == 0 and action != 'add' and action != 'history' and action != 'checker_history' %}
-<center>
+<div style="text-align: center;">
 	<br />
 	<h3>You do not have added servers in SMON service. Create you first server <a href="smon.py?action=add" title="Roxy-WI SMON" target="_blank">here</a> before use</h3>
 	<br />
 	<iframe width="860" height="515" src="https://www.youtube.com/embed/bJtRJeHG5B0" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-</center>
+</div>
 {% elif smon|length == 0 and action != 'add' and action == 'history' %}
-<center>
+<div style="text-align: center;">
 	<br />
 	<h3>There are not any events yet. Check if there are any checks added <a href="smon.py?action=add" title="Roxy-WI SMON" target="_blank">here</a></h3>
 	<br />
-</center>
+</div>
 {% elif smon|length == 0 and action != 'add' and action == 'checker_history' %}
-<center>
+<div style="text-align: center;">
 	<br />
 	<h3>
 		There are not any events yet. Check if there are any Checker are enabled on the "<a href="hapservers.py" title="HAProxy Overview">HAProxy Overview</a>"
 		or on "<a href="hapservers.py?service=nginx" title="Nginx Overview">Nginx Overview</a>" pages
 	</h3>
 	<br />
-</center>
+</div>
 {% else %}
 {% if action == 'add' %}
 <table class="overview" id="ajax-smon">
 	<thead>
 		<tr class="overviewHead">
 			<th class="padding10 first-collumn" style="width: 150px;">IP</th>
-			<th style="width: 10px;">Port</th>
-			<th style="width: 80px;">Enabled</th>
-			<th style="width: 80px;">Protocol</th>
-			<th>URI</th>
-			<th>Body</th>
-			<th style="width: 190px;">Telegram</th>
-			<th>Group</th>
-			<th>Description</th>
+			<th style="width: 2%;">Port</th>
+			<th style="width: 5%;">Enabled</th>
+			<th style="width: 10%;">Protocol</th>
+			<th style="width: 15%;">URI</th>
+			<th style="width: 20%;">Body</th>
+			<th style="width: 15%;">Telegram</th>
+			<th style="width: 10%;">Group</th>
+			<th style="width: 100%;">Description</th>
 			<!--<th></th>-->
 			<th></th>
 		</tr>
@@ -71,13 +72,7 @@
 </div>
 <div id="smon-add-table" style="display: none;">	
 	<table class="overview">
-		<tr>
-			<td colspan="2">
-				<p class="validateTips alert alert-success">
-					Form fields tag "<span class="need-field">*</span>" are required.
-				</p>
-			</td>
-		</tr>
+		{% include 'include/tr_validate_tips.html' %}
 		<tr>
 			<td class="padding20">
 				IP
@@ -97,17 +92,13 @@
 			</td>
 		</tr>
 		<tr>
-			<td class="padding20">
-				Enable
-			</td>
+			<td class="padding20">Enable</td>
 			<td>
 				{{ checkbox('new-smon-enable', checked='checked') }}
 			</td>
 		</tr>
 		<tr>
-			<td class="padding20">
-				Protocol
-			</td>
+			<td class="padding20">Protocol</td>
 			<td>
 				{% set values = dict() %}
 				{% set values = {'':'', 'http':'http','https':'https'} %}
@@ -115,25 +106,15 @@
 			</td>
 		</tr>
 		<tr>
-			<td class="padding20">
-				URI
-			</td>
-			<td>
-				{{ input('new-smon-uri') }}
-			</td>
+			<td class="padding20">URI</td>
+			<td>{{ input('new-smon-uri') }}</td>
 		</tr>
 		<tr>
-			<td class="padding20">
-				Body
-			</td>
-			<td>
-				{{ input('new-smon-body') }}
-			</td>
+			<td class="padding20">Body</td>
+			<td>{{ input('new-smon-body') }}</td>
 		</tr>
 		<tr>
-			<td class="padding20">
-				Telegram
-			</td>
+			<td class="padding20">Telegram</td>
 			<td>
 				<select id="new-smon-telegram">
 					<option value="0">Disabled</option>
@@ -144,20 +125,12 @@
 			</td>
 		</tr>
 		<tr>
-			<td class="padding20">
-				Group
-			</td>
-			<td>
-				{{ input('new-smon-group') }}
-			</td>
+			<td class="padding20">Group</td>
+			<td>{{ input('new-smon-group') }}</td>
 		</tr>
 		<tr>
-			<td class="padding20">
-				Description
-			</td>
-			<td>
-				{{ input('new-smon-description') }}
-			</td>
+			<td class="padding20">Description</td>
+			<td>{{ input('new-smon-description') }}</td>
 		</tr>
 	</table>
 	{% include 'include/del_confirm.html' %}
