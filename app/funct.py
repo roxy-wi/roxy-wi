@@ -298,24 +298,26 @@ def ssh_connect(serv):
 		else:
 			ssh.connect(hostname=serv, port=ssh_port, username=ssh_user_name, password=ssh_user_password, timeout=11, banner_timeout=200)
 		return ssh
-	except paramiko.AuthenticationException:
-		return 'Authentication failed, please verify your credentials'
+	except paramiko.AuthenticationException as e:
+		logging('localhost', ' ' + str(e), haproxywi=1)
+		print('error: Authentication failed, please verify your credentials')
 	except paramiko.SSHException as sshException:
-		return 'error: Unable to establish SSH connection: %s ' % sshException
+		logging('localhost', ' ' + str(sshException), haproxywi=1)
+		print('error: Unable to establish SSH connection: %s ') % sshException
 	except paramiko.PasswordRequiredException as e:
 		logging('localhost', ' ' + str(e), haproxywi=1)
-		return 'error: %s ' % e
+		print('error: %s ') % e
 	except paramiko.BadHostKeyException as badHostKeyException:
 		logging('localhost', ' ' + str(badHostKeyException), haproxywi=1)
-		return 'error: Unable to verify server\'s host key: %s ' % badHostKeyException
+		print('error: Unable to verify server\'s host key: %s ') % badHostKeyException
 	except Exception as e:
 		logging('localhost', ' ' + str(e), haproxywi=1)
 		if e == "No such file or directory":
-			return 'error: %s. Check ssh key' % e
+			print('error: %s. Check SSH key') % e
 		elif e == "Invalid argument":
-			return 'error: Check the IP of the server'
+			print('error: Check the IP of the server')
 		else:
-			return str(e)
+			print(str(e))
 
 
 def get_config(serv, cfg, **kwargs):

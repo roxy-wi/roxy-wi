@@ -1844,6 +1844,8 @@ function checkSshConnect(ip) {
 		success: function( data ) {
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data)
+			} else if(data.indexOf('failed') != '-1') {
+				toastr.error(data)
 			} else {
 				toastr.clear();
 				toastr.success('Connect is accepted');

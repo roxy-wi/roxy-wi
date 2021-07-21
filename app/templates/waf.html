@@ -45,7 +45,7 @@
 		var hostnamea = []
 		{% for s in servers_all %}
 			ip.push("{{s[2]}}");
-			var host = "{{s[1]}}";
+			var host = "{{s[2]}}";
 			host = host.replace(/\./g, '\\.');
 			hostnamea.push(host);
 		{% endfor %}
@@ -56,21 +56,11 @@
 	{% else %}
 	<table class="overview">
 		<tr class="overviewHead">
-			<td class="padding10 first-collumn">
-				Server
-			</td>
-			<td class="padding10">
-				Actions
-			</td>
-			<td class="padding10">
-				WAF mode
-			</td>
-			<td>
-				Metrics
-			</td>
-			<td>
-				Manage rules
-			</td>
+			<td class="padding10 first-collumn">Server</td>
+			<td class="padding10">Actions</td>
+			<td class="padding10">WAF mode</td>
+			<td>Metrics</td>
+			<td>Manage rules</td>
 			<td>
 				<a onclick="showOverviewWaf(ip, hostnamea)" title="Refresh" style="float: right; margin-right: 25px;">
 					<span class="service-reload"></span>
@@ -78,7 +68,7 @@
 			</td>
 		</tr>
 		{% for s in servers_all %}
-			<tr class="{{ loop.cycle('odd', 'even') }}" id="{{s[1]}}"></tr>
+			<tr class="{{ loop.cycle('odd', 'even') }}" id="{{s[2]}}"></tr>
 		{% endfor %}
 	</table>
 
@@ -129,7 +119,7 @@
 		});
 	</script>
 	<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px; clear: both;">
-		You can read the description and watch a video about WAF <a href="https://haproxy-wi.org/description.py?description=waf" title="WAF" target="_blank">here</a>
+		You can read the description and watch a video about WAF <a href="https://roxy-wi.org/description.py?description=waf" title="WAF" target="_blank">here</a>
 	</div>
 	{% endif %}
 {% endif %}

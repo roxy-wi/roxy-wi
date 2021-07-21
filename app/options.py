@@ -807,7 +807,7 @@ if serv is not None and act == "showMap":
     node = ""
     line_new2 = [1, ""]
     i, k = 800, 800
-    j, m = 0, 0
+    j = 0
     for line in conf:
         if line.startswith('listen') or line.startswith('frontend'):
             if "stats" not in line:
@@ -854,9 +854,9 @@ if serv is not None and act == "showMap":
                     backend_server_port = ''
 
                 if j % 2 == 0:
-                    G.add_node(line_new[0], pos=(k + 230, i - 335), label_pos=(k + 225, i - 180))
+                    G.add_node(line_new[0], pos=(k + 250, i - 335), label_pos=(k + 215, i - 180))
                 else:
-                    G.add_node(line_new[0], pos=(k - 230, i - 0), label_pos=(k - 225, i + 180))
+                    G.add_node(line_new[0], pos=(k - 250, i - 0), label_pos=(k - 245, i + 180))
 
                 if line_new2[1] != "":
                     G.add_edge(node, line_new[0], port=backend_server_port)
@@ -1394,7 +1394,7 @@ if form.getvalue('installwaf'):
 
 if form.getvalue('update_haproxy_wi'):
     service = form.getvalue('service')
-    services = ['roxy-wi-checker', 'haproxy-wi', 'roxy-wi-keep_alive', 'roxy-wi-smon', 'roxy-wi-metrics']
+    services = ['roxy-wi-checker', 'roxy-wi', 'roxy-wi-keep_alive', 'roxy-wi-smon', 'roxy-wi-metrics']
     if service not in services:
         print('error: ' + service + ' is not part of Roxy-WI')
         sys.exit()

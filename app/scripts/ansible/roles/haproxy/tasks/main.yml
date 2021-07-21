@@ -28,7 +28,7 @@
 - name: install HAProxy {{HAPVER}} on EL{{ansible_facts['distribution_major_version']}}
   yum:
     name: 
-      - http://repo.haproxy-wi.org/haproxy-{{HAPVER}}.el{{ansible_facts['distribution_major_version']}}.x86_64.rpm
+      - http://repo.roxy-wi.org/haproxy-{{HAPVER}}.el{{ansible_facts['distribution_major_version']}}.x86_64.rpm
       - socat
       - rsyslog
     state: present
@@ -44,7 +44,7 @@
 - name: Try to install another HAProxy {{HAPVER}} on EL{{ansible_facts['distribution_major_version']}}
   yum:
     name: 
-      - http://repo1.haproxy-wi.org/haproxy-{{HAPVER}}.el{{ansible_facts['distribution_major_version']}}.x86_64.rpm
+      - http://repo1.roxy-wi.org/haproxy-{{HAPVER}}.el{{ansible_facts['distribution_major_version']}}.x86_64.rpm
       - socat
       - rsyslog
       - bind-utils
