@@ -942,9 +942,9 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 	elif service == 'apache':
 		apache_log_path = sql.get_setting('apache_log_path')
 		
-		if serv == 'haproxy-wi.access.log':
+		if serv == 'roxy-wi.access.log':
 			cmd = "cat %s| awk -F\"/|:\" '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (apache_log_path+"/"+serv, date, date1, rows, grep_act, exgrep_act)
-		elif serv == 'haproxy-wi.error.log':
+		elif serv == 'roxy-wi.error.log':
 			cmd = "cat %s| awk '$4>\"%s:00\" && $4<\"%s:00\"' |tail -%s %s %s" % (apache_log_path+"/"+serv, date, date1, rows, grep_act, exgrep_act)
 		elif serv == 'fail2ban.log':
 			cmd = "cat %s| awk -F\"/|:\" '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % ("/var/log/"+serv, date, date1, rows, grep_act, exgrep_act)

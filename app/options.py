@@ -1394,7 +1394,12 @@ if form.getvalue('installwaf'):
 
 if form.getvalue('update_haproxy_wi'):
     service = form.getvalue('service')
-    services = ['roxy-wi-checker', 'roxy-wi', 'roxy-wi-keep_alive', 'roxy-wi-smon', 'roxy-wi-metrics']
+    services = ['roxy-wi-checker',
+                'roxy-wi',
+                'roxy-wi-keep_alive',
+                'roxy-wi-smon',
+                'roxy-wi-metrics',
+                'roxy-wi-portscanner']
     if service not in services:
         print('error: ' + service + ' is not part of Roxy-WI')
         sys.exit()

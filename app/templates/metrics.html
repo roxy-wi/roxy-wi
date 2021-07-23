@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from 'include/input_macros.html' import checkbox %}
 {% block content %}
 <style>
 	table, th, tr, td {
@@ -19,7 +20,7 @@
 <div style="text-align: center;">
 	<br />
 	<h3>You do not have installed Metrics service.
-	Read <a href="https://haproxy-wi.org/services.py?service=metrics#installation" title="Metrics installation" style="color: #5d9ceb;" target="_blank">hear</a>
+	Read <a href="https://roxy-wi.org/services.py?service=metrics#installation" title="Metrics installation" style="color: #5d9ceb;" target="_blank">hear</a>
 	how to install Metrics service</h3>
 </div>
 {% else %}
@@ -45,6 +46,9 @@
 			<option value="360">6 hours</option>
 			<option value="720">12 hours</option>
 		</select>
+	</div>
+	<div style="margin-top: 6px;">
+		{{ checkbox('hide_http_metrics', desc='Hide HTTP metrics', title='Hide HTTP metrics') }}
 	</div>
 	<div id="refresh" style="text-align: right;margin-top: 20px;margin-right: 10px;" title="Refresh metrics" onclick="showMetrics()">
 		<span  class="service-reload"></span>
