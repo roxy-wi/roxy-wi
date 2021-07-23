@@ -14,6 +14,8 @@ if form.getvalue('grep') is None:
 else:
 	grep = form.getvalue('grep')
 
+exgrep = form.getvalue('exgrep') if form.getvalue('exgrep') else ''
+
 if form.getvalue('rows') is None:
 	rows = 10
 else:
@@ -65,8 +67,8 @@ except Exception:
 selects = funct.get_files(log_path, format="log")
 if form.getvalue('type') is None:
 	selects.append(['fail2ban.log', 'fail2ban.log'])
-	selects.append(['haproxy-wi.error.log', 'error.log'])
-	selects.append(['haproxy-wi.access.log', 'access.log'])
+	selects.append(['roxy-wi.error.log', 'error.log'])
+	selects.append(['roxy-wi.access.log', 'access.log'])
 
 output_from_parsed_template = template.render(h2=1,
                                               autorefresh=1,
@@ -78,6 +80,7 @@ output_from_parsed_template = template.render(h2=1,
                                               selects=selects,
                                               rows=rows,
                                               grep=grep,
+											  exgrep=exgrep,
                                               hour=hour,
                                               hour1=hour1,
                                               minut=minut,

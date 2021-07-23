@@ -586,7 +586,7 @@ function findGetParameter(parameterName) {
     return result;
 }
 function viewLogs() {
-	if($('#viewlogs').val() == 'haproxy-wi.error.log' || $('#viewlogs').val() == 'haproxy-wi.access.log' || $('#viewlogs').val() == 'fail2ban.log') {
+	if($('#viewlogs').val() == 'roxy-wi.error.log' || $('#viewlogs').val() == 'roxy-wi.access.log' || $('#viewlogs').val() == 'fail2ban.log') {
 		showApacheLog($('#viewlogs').val());
 	} else {
 		var rows = $('#rows').val()

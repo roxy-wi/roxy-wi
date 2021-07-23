@@ -113,7 +113,7 @@ def logging(serv, action, **kwargs):
 				action + " for: " + serv + "\n"
 		else:
 			mess = get_data('date_in_log') + " " + action + " from " + ip + "\n"
-		log = open(log_path + "/haproxy-wi-"+get_data('logs')+".log", "a")
+		log = open(log_path + "/roxy-wi-"+get_data('logs')+".log", "a")
 	elif kwargs.get('provisioning') == 1:
 		mess = get_data('date_in_log') + " from " + ip + " user: " + login + ", group: " + user_group + ", " + \
 				action + "\n"
@@ -1000,7 +1000,7 @@ def haproxy_wi_log(**kwargs):
 			group_grep = '|grep "group: ' + user_group + '"'
 		else:
 			group_grep = ''
-		cmd = "find "+log_path+"/haproxy-wi-* -type f -exec stat --format '%Y :%y %n' '{}' \; | sort -nr | cut -d: -f2- | head -1 |awk '{print $4}' |xargs tail"+group_grep+"|sort -r"
+		cmd = "find "+log_path+"/roxy-wi-* -type f -exec stat --format '%Y :%y %n' '{}' \; | sort -nr | cut -d: -f2- | head -1 |awk '{print $4}' |xargs tail"+group_grep+"|sort -r"
 		output, stderr = subprocess_execute(cmd)
 		return output
 			
