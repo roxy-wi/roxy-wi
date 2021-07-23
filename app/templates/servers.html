@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-{% from 'include/input_macros.html' import input, checkbox, select %}
+{% from 'include/input_macros.html' import input, checkbox, select, copy_to_clipboard %}
 <script src="/inc/users.js"></script>
 {% include 'include/del_confirm.html' %}
 <input type="hidden" id="new-group" name="new-group" value="{{ group }}">
