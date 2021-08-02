@@ -768,6 +768,9 @@ def upload_and_restart(serv, cfg, **kwargs):
 	if kwargs.get("keepalived") == 1:
 		if kwargs.get("just_save") == "save":
 			commands = ["sudo mv -f " + tmp_file + " /etc/keepalived/keepalived.conf"]
+		elif kwargs.get("just_save") == "reload":
+			commands = [
+				"sudo mv -f " + tmp_file + " /etc/keepalived/keepalived.conf && sudo systemctl reload keepalived"]
 		else:
 			commands = ["sudo mv -f " + tmp_file + " /etc/keepalived/keepalived.conf && sudo systemctl restart keepalived"]
 	elif kwargs.get("nginx"):
