@@ -2,43 +2,43 @@
 {% from 'include/input_macros.html' import copy_to_clipboard %}
 {% for s in servers %}
 {% set region_name = [] %}
-{% if s.3 == 'do' %}
+{% if s.type == 'do' %}
     {% set provider_full_name = 'DigitalOcean' %}
     {% set onclickEditAction = 'editDoServer' %}
     {% for key, value in do_regions.items() %}
-        {% if s.8|int() == key|int() %}
+        {% if s.region|int() == key|int() %}
             {% do region_name.append(value) %}
             {% endif %}
         {% endfor %}
-    {% elif s.3 == 'aws' %}
+    {% elif s.type == 'aws' %}
         {% set provider_full_name = 'AWS' %}
         {% set onclickEditAction = 'editAwsServer' %}
         {% for key, value in aws_regions.items() %}
-            {% if s.8|int() == key|int() %}
+            {% if s.region|int() == key|int() %}
                 {% do region_name.append(value) %}
             {% endif %}
         {% endfor %}
-    {% elif s.3 == 'gcore' %}
+    {% elif s.type == 'gcore' %}
         {% set provider_full_name = 'G-Core Labs' %}
         {% set onclickEditAction = 'editGcoreServer' %}
         {% for key, value in gcore_regions.items() %}
-        {% if s.8|int() == key|int() %}
+        {% if s.region|int() == key|int() %}
             {% do region_name.append(value) %}
         {% endif %}
     {% endfor %}
 {% endif %}
-<tr id="server-{{s.0}}" class="{{ loop.cycle('odd', 'even') }} {% if adding %}newserver{% endif %}">
+<tr id="server-{{s.id}}" class="{{ loop.cycle('odd', 'even') }} {% if adding %}newserver{% endif %}">
     <td class="padding10 first-collumn">
-        <span id="server-name-{{s.0}}">{{s.1}}</span>
-        {% if s.3 == 'gcore' %}
-            ({{s.12}})
+        <span id="server-name-{{s.id}}">{{s.name}}</span>
+        {% if s.type == 'gcore' and s.name_template is defined %}
+            ({{s.name_template}})
         {% endif %}
     </td>
     <td style="width: 10%">
         {% for p in providers %}
-            {% if p.0|int() == s.2|int() %}
+            {% if p.0|int() == s.provider_id|int() %}
 		        <span>{{ p.1 }}</span>
-                <span id="server-provider-{{s.0}}" style="display: none;">{{p.0}}</span>
+                <span id="server-provider-{{s.id}}" style="display: none;">{{p.0}}</span>
             {% endif %}
         {% endfor %}
      </td>
@@ -46,56 +46,56 @@
      <td style="width: 5%">
         {% for g in groups %}
             {% if adding %}
-            {% if user_group|int() == g.0|int() %}
-		        {{ g.1 }}
-		        <span id="server-group-{{s.0}}" style="display: none;">{{ g.0 }}</span>
+            {% if user_group|int() == g.group_id|int() %}
+		        {{ g.name }}
+		        <span id="server-group-{{s.id}}" style="display: none;">{{ g.group_id }}</span>
             {% endif %}
             {% else %}
-            {% if s.4|int() == g.0|int() %}
-		        {{ g.1 }}
-		        <span id="server-group-{{s.0}}" style="display: none;">{{ g.0 }}</span>
+            {% if s.group_id|int() == g.group_id|int() %}
+		        {{ g.name }}
+		        <span id="server-group-{{s.id}}" style="display: none;">{{ g.group_id }}</span>
             {% endif %}
             {% endif %}
         {% endfor %}
      </td>
      {% else %}
-        <span id="server-group-{{s.0}}" style="display: none;">{{user_group}}</span>
+        <span id="server-group-{{s.id}}" style="display: none;">{{user_group}}</span>
      {% endif %}
     <td style="width: 10%">
         {{provider_full_name}}
-        <span id="server-cloud-{{s.0}}" style="display: none;">{{s.3}}</span>
+        <span id="server-cloud-{{s.id}}" style="display: none;">{{s.type}}</span>
     </td>
     <td style="width: 10%">
         {{region_name.0}}
     </td>
     <td style="width: 10%">
-        {% set id = "server-os-" + s.0|string() %}
-        {{ copy_to_clipboard(id=id, value=s.9) }}
+        {% set id = "server-os-" + s.id|string() %}
+        {{ copy_to_clipboard(id=id, value=s.os) }}
     </td>
     <td style="width: 15%">
-        {% set id = "server-ip-" + s.0|string() %}
-        {{ copy_to_clipboard(id=id, value=s.10) }}
+        {% set id = "server-ip-" + s.id|string() %}
+        {{ copy_to_clipboard(id=id, value=s.IP) }}
     </td>
     <td style="width: 10%">
-        {% set id = "server-size-" + s.0|string() %}
-        {{ copy_to_clipboard(id=id, value=s.5) }}
+        {% set id = "server-size-" + s.id|string() %}
+        {{ copy_to_clipboard(id=id, value=s.instance_type) }}
     </td>
     <td style="width: 5%">
-        {% if s.6 == 'Created' %}
+        {% if s.status == 'Created' %}
         {% set style='color: var(--green-color);' %}
-        {% elif s.6 == 'Error ' %}
+        {% elif s.status == 'Error ' %}
         {% set style='color: red;cursor: help;' %}
         {% endif %}
-        <span id="sever-status-{{s.0}}" title="Last error: {{s.11}}" style="font-weight: bold;{{style}}">{{s.6}}</span>
+        <span id="sever-status-{{s.id}}" title="Last error: {{s.last_error}}" style="font-weight: bold;{{style}}">{{s.status}}</span>
     </td>
     <td style="width: 100%">
-        {{s.7}}
+        {{s.date}}
     </td>
     <td>
-	    <a class="edit" onclick="{{onclickEditAction}}({{s.0}})" title="Edit server {{s.1}}" style="cursor: pointer;"></a>
+	    <a class="edit" onclick="{{onclickEditAction}}({{s.id}})" title="Edit server {{s.name}}" style="cursor: pointer;"></a>
 	</td>
 	<td>
-	    <a class="delete" onclick="confirmDeleteProvisionedServer({{s.0}})" title="Delete server {{s.1}}" style="cursor: pointer;"></a>
+	    <a class="delete" onclick="confirmDeleteProvisionedServer({{s.id}})" title="Delete server {{s.name}}" style="cursor: pointer;"></a>
     </td>
 </tr>
 {% endfor %}

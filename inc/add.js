@@ -437,7 +437,7 @@ $( function() {
 	});
 	$( "#saved-options" ).autocomplete({
 		dataType: "json",
-		source: "sql.py?getoption="+$('#group').val()+'&token='+$('#token').val(),
+		source: "options.py?getoption="+$('#group').val()+'&token='+$('#token').val(),
 		autoFocus: true,
 	    minLength: 1,
 		select: function( event, ui ) {
@@ -459,7 +459,7 @@ $( function() {
 	
 	$( "#saved-options1" ).autocomplete({
 		dataType: "json",
-		source: "sql.py?getoption="+$('#group').val()+'&token='+$('#token').val(),
+		source: "options.py?getoption="+$('#group').val()+'&token='+$('#token').val(),
 		autoFocus: true,
 	    minLength: 1,
 		select: function( event, ui ) {
@@ -480,7 +480,7 @@ $( function() {
 	});
 	$( "#saved-options2" ).autocomplete({
 		dataType: "json",
-		source: "sql.py?getoption="+$('#group').val()+'&token='+$('#token').val(),
+		source: "options.py?getoption="+$('#group').val()+'&token='+$('#token').val(),
 		autoFocus: true,
 	    minLength: 1,
 		select: function( event, ui ) {
@@ -496,8 +496,7 @@ $( function() {
 	});
 	$('#add-option-new').click(function() {
 		$.ajax( {
-			
-			url: "sql.py",
+			url: "options.py",
 			data: {
 				newtoption: $('#new-option').val(),
 				newoptiongroup: $('#group').val(),
@@ -523,7 +522,7 @@ $( function() {
 
 	});
 	$( '[name=servers]' ).autocomplete({
-		source: "sql.py?getsavedserver="+$('#group').val()+'&token='+$('#token').val(),
+		source: "options.py?getsavedserver="+$('#group').val()+'&token='+$('#token').val(),
 		autoFocus: true,
 	    minLength: 1,
 		select: function( event, ui ) {
@@ -544,7 +543,7 @@ $( function() {
 	$('#add-saved-server-new').click(function() {
 		$.ajax( {
 			
-			url: "sql.py",
+			url: "options.py",
 			data: {
 				newsavedserver: $('#new-saved-servers').val(),
 				newsavedservergroup: $('#group').val(),
@@ -1312,7 +1311,7 @@ function confirmDeleteOption(id) {
 function removeOption(id) {
 	$("#option-"+id).css("background-color", "#f2dede");
 	$.ajax( {
-		url: "sql.py",
+		url: "options.py",
 		data: {
 			optiondel: id,
 			token: $('#token').val()
@@ -1329,7 +1328,7 @@ function removeOption(id) {
 function updateOptions(id) {
 	toastr.clear();
 	$.ajax( {
-		url: "sql.py",
+		url: "options.py",
 		data: {
 			updateoption: $('#option-body-'+id).val(),
 			id: id,
@@ -1370,7 +1369,7 @@ function confirmDeleteSavedServer(id) {
 function removeSavedServer(id) {
 	$("#servers-saved-"+id).css("background-color", "#f2dede");
 	$.ajax( {
-		url: "sql.py",
+		url: "options.py",
 		data: {
 			savedserverdel: id,
 			token: $('#token').val()
@@ -1378,7 +1377,7 @@ function removeSavedServer(id) {
 		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if(data == "Ok ") {
+			if(data.indexOf('Ok') != '-1') {
 				$("#servers-saved-"+id).remove();
 			}
 		}					
@@ -1387,7 +1386,7 @@ function removeSavedServer(id) {
 function updateSavedServer(id) {
 	toastr.clear();
 	$.ajax( {
-		url: "sql.py",
+		url: "options.py",
 		data: {
 			updatesavedserver: $('#servers-ip-'+id).val(),
 			description: $('#servers-desc-'+id).val(),

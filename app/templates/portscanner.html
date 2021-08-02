@@ -49,20 +49,20 @@
 				<input type="hidden" id="server-name-{{s.0}}" value="{{s.1}}" />
 					{% for p in port_scanner_settings %}
 					{% if port_scanner_settings|length > 0 %}
-						{% if p.0 == s.0 and p.2 == 1 %}
+						{% if p.server_id == s.0 and p.enabled == 1 %}
 							{% if port_scanner == 'active' %}
-								<span id="portscanner_enable_status-{{p.0}}" class="serverUp server-status" title="Port scanner is enabled and service is UP"></span>
+								<span id="portscanner_enable_status-{{p.server_id}}" class="serverUp server-status" title="Port scanner is enabled and service is UP"></span>
 							{% else %}
-								<span id="portscanner_enable_status-{{p.0}}" class="serverDown server-status" title="Port scanner is enabled, but service is DOWN"></span>
+								<span id="portscanner_enable_status-{{p.server_id}}" class="serverDown server-status" title="Port scanner is enabled, but service is DOWN"></span>
 							{% endif %}
-						{% elif p.0 == s.0 and p.2 == 0 %}
-							<span id="portscanner_enable_status-{{p.0}}" class="serverNone server-status" title="Port scanner is disabled"></span>
+						{% elif p.server_id == s.0 and p.enabled == 0 %}
+							<span id="portscanner_enable_status-{{p.server_id}}" class="serverNone server-status" title="Port scanner is disabled"></span>
 						{% endif %}
 					{% else %}
-						<span id="portscanner_enable_status-{{p.0}}" class="serverNone server-status" title="Port scanner is disabled"></span>
+						<span id="portscanner_enable_status-{{p.server_id}}" class="serverNone server-status" title="Port scanner is disabled"></span>
 					{% endif %}
 					{% endfor %}
-					{% if s.0 not in port_scanner_settings|map(attribute=0) %}
+					{% if s.0 not in port_scanner_settings|map(attribute='server_id') %}
 						<span id="portscanner_enable_status-{{s.0}}" class="serverNone server-status" title="Port scanner is disabled"></span>
 					{% endif %}
 					{% if not serv %}
@@ -105,29 +105,29 @@
 					{% set portscanner_history_id = 'portscanner_history-' + s.0|string() %}
 					{% if port_scanner_settings|length > 0 %}
 						{% for p in port_scanner_settings %}
-							{% if p.0 == s.0 %}
+							{% if p.server_id == s.0 %}
 								{% set disabled = 'false' %}
-								{% if p.2 == 0 %}
+								{% if p.enabled == 0 %}
 									{% set disabled = 'true' %}
 								{% endif %}
-								{% if p.2 == 1 %}
+								{% if p.enabled == 1 %}
 									{{ checkbox(portscanner_enable_id, title="Port scanner enabled", checked='checked', desc='Port scanner') }}
 								{% else %}
 									{{ checkbox(portscanner_enable_id, title="Port scanner disabled", desc='Port scanner') }}
 								{% endif %}
-								{% if p.3 == 1 %}
+								{% if p.notify == 1 %}
 									{{ checkbox(portscanner_notify_id, title="Notification via Telegram enabled", checked='checked', desc='Notify') }}
 								{% else %}
 									{{ checkbox(portscanner_notify_id, title="Notification via Telegram disabled", desc='Notify', disabled=disabled) }}
 								{% endif %}
-								{% if p.4 == 1 %}
+								{% if p.history == 1 %}
 									{{ checkbox(portscanner_history_id, title="Keeping history enabled", checked='checked', desc='Keep history') }}
 								{% else %}
 									{{ checkbox(portscanner_history_id, title="Keeping history disabled", desc='Keep history', disabled=disabled) }}
 								{% endif %}
 							{% endif %}
 						{% endfor %}
-						{% if s.0 not in port_scanner_settings|map(attribute=0) %}
+						{% if s.0 not in port_scanner_settings|map(attribute='server_id') %}
 							{{ checkbox(portscanner_enable_id, title="Port scanner disabled", desc='Port scanner') }}
 							{{ checkbox(portscanner_notify_id, title="Notification via Telegram disabled", desc='Notify', disabled='true') }}
 							{{ checkbox(portscanner_history_id, title="Keeping history disabled", desc='Keep history', disabled='true') }}

@@ -15,26 +15,26 @@
         <td></td>
     </tr>
     {% for ssh in sshs %}
-    <tr style="width: 50%;" id="ssh-table-{{ssh.0}}" class="{{ loop.cycle('odd', 'even') }}">
+    <tr style="width: 50%;" id="ssh-table-{{ssh.id}}" class="{{ loop.cycle('odd', 'even') }}">
         <td class="first-collumn">
-            {% set id = 'ssh_name-' + ssh.0|string() %}
-            {{ input(id, value=ssh.1, size='15') }}
+            {% set id = 'ssh_name-' + ssh.id|string() %}
+            {{ input(id, value=ssh.name, size='15') }}
         </td>
         <td class="first-collumn" valign="top" style="padding-top: 15px;">
-            {% if ssh.2 == 1 %}
-            <label for="ssh_enable-{{ssh.0}}">Enable SSH key</label><input type="checkbox" id="ssh_enable-{{ssh.0}}" checked>
+            {% if ssh.enable == 1 %}
+            <label for="ssh_enable-{{ssh.id}}">Enable SSH key</label><input type="checkbox" id="ssh_enable-{{ssh.id}}" checked>
             {% else %}
-            <label for="ssh_enable-{{ssh.0}}">Enable SSH key</label><input type="checkbox" id="ssh_enable-{{ssh.0}}">
+            <label for="ssh_enable-{{ssh.id}}">Enable SSH key</label><input type="checkbox" id="ssh_enable-{{ssh.id}}">
             {% endif %}
         </td>
         {% if page != "servers.py" %}
         <td>
-            <select id="sshgroup-{{ssh.0}}" name="sshgroup-{{ssh.0}}">
+            <select id="sshgroup-{{ssh.id}}" name="sshgroup-{{ssh.id}}">
                 {% for group in groups %}
-                {% if ssh.5 == group.0 %}
-                <option value="{{ group.0 }}" selected>{{ group.1 }}</option>
+                {% if ssh.5 == group.group_id %}
+                <option value="{{ group.group_id }}" selected>{{ group.name }}</option>
                 {% else %}
-                <option value="{{ group.0 }}">{{ group.1 }}</option>
+                <option value="{{ group.group_id }}">{{ group.name }}</option>
                 {% endif %}
                 {% endfor %}
             </select>
@@ -42,18 +42,18 @@
         {% endif %}
         <td style="padding-top: 15px;">
             <p>
-                {% set id = 'ssh_user-' + ssh.0|string() %}
-                {{ input(id, value=ssh.3, title='SSH user name') }}
+                {% set id = 'ssh_user-' + ssh.id|string() %}
+                {{ input(id, value=ssh.username, title='SSH user name') }}
             </p>
-            {% if ssh.2 == 1 %}
-            <input type="password" id="ssh_pass-{{ssh.0}}" class="form-control"  placeholder="*****" style="display: none;" autocomplete="new-password">
+            {% if ssh.enable == 1 %}
+            <input type="password" id="ssh_pass-{{ssh.id}}" class="form-control"  placeholder="*****" style="display: none;" autocomplete="new-password">
             {% else %}
-            <input type="password" id="ssh_pass-{{ssh.0}}" class="form-control" placeholder="*****" autocomplete="new-password">
+            <input type="password" id="ssh_pass-{{ssh.id}}" class="form-control" placeholder="*****" autocomplete="new-password">
             {% endif %}
             <br>
         </td>
         <td>
-            <a class="delete" onclick="confirmDeleteSsh({{ssh.0}})" title="Delete SSH credentials {{ssh.1}}" style="cursor: pointer;"></a>
+            <a class="delete" onclick="confirmDeleteSsh({{ssh.id}})" title="Delete SSH credentials {{ssh.name}}" style="cursor: pointer;"></a>
         </td>
     </tr>
     {% endfor %}
@@ -73,7 +73,7 @@
             <select id="ssh-key-name">
                 <option disabled selected>Choose credentials</option>
                 {% for ssh in sshs %}
-                <option value={{ssh.1}}>{{ssh.1}}</option>
+                <option value={{ssh.name}}>{{ssh.name}}</option>
                 {% endfor %}
             </select>
         </td>

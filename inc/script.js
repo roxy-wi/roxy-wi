@@ -889,9 +889,8 @@ $( function() {
 					showCurrentGroup(this);
 					$( this ).dialog( "close" );
 				},
-				Close: function() {
-					$( this ).dialog( "close" );
-					clearTips();
+				Logout: function() {
+					window.location.replace(window.location.origin+'/app/login.py?logout=logout');
 				}
 			}
 		});

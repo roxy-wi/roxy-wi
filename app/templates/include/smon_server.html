@@ -31,32 +31,27 @@
     </td>
     <td>
         {% set id = 'smon-body-' + s.0|string() %}
-        {% if s.5 != 'None' %}
+        {% if s.5 is not none %}
             <span id="{{id}}">{{s.5}}</span>
         {% else %}
             <span id="{{id}}"></span>
-        {% endif %} 
-        {#{% if s.5 != 'None' %}
-            {{ input(id, value=s.5, size='10') }}
-        {% else %}
-            {{ input(id, size='10') }}
-        {% endif %} #}
+        {% endif %}
     </td>
     <td>
         <select id="smon-telegram-{{s.0}}">
             <option value="0">Disabled</option>
             {% for t in telegrams %}
-                {% if s.6|int() == t.0|int() %}
-                    <option value="{{t.0}}" selected>{{t.2}}</option>
+                {% if s.6|int() == t.id|int() %}
+                    <option value="{{t.id}}" selected>{{t.chanel_name}}</option>
                 {% else %}
-                    <option value="{{t.0}}">{{t.2}}</option>
+                    <option value="{{t.id}}">{{t.chanel_name}}</option>
                 {% endif %}
             {% endfor %}
         </select>
     </td>
     <td>
         {% set id = 'smon-group-' + s.0|string() %}
-        {% if s.8 != 'None' %}
+        {% if s.8 is not none %}
             {{ input(id, value=s.8, size='15') }}
         {% else %}
             {{ input(id, size='15') }}
@@ -64,15 +59,15 @@
     </td>
     <td>
         {% set id = 'smon-desc-' + s.0|string() %}
-        {% if s.7 != 'None' %}
+        {% if s.7 is not none %}
             {{ input(id, value=s.7, size='20') }}
         {% else %}
             {{ input(id, size='20') }}
         {% endif %}
     </td>
-    <!--<td>
+    <td>
         <a class="add" onclick="cloneSmom({{s.0}})" id="clone-{{s.0}}" title="Clone {{s.1}}" style="cursor: pointer; color: #000;"></a>
-    </td>-->
+    </td>
     <td>
         <a class="delete" onclick="confirmDeleteSmon({{s.0}})" title="Delete server {{s.1}}" style="cursor: pointer; color: #000;"></a>
     </td>

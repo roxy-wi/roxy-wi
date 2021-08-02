@@ -1,612 +1,435 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import funct
+from db_model import *
 
 mysql_enable = funct.get_config_var('mysql', 'enable')
 
-if mysql_enable == '1':
-	import mysql.connector as sqltool
-else:
-	db = "/var/www/haproxy-wi/app/roxy-wi.db"
-	import sqlite3 as sqltool
-
-
-def get_cur():
-	try:
-		if mysql_enable == '0':
-			con = sqltool.connect(db, isolation_level=None)
-		else:
-			mysql_user = funct.get_config_var('mysql', 'mysql_user')
-			mysql_password = funct.get_config_var('mysql', 'mysql_password')
-			mysql_db = funct.get_config_var('mysql', 'mysql_db')
-			mysql_host = funct.get_config_var('mysql', 'mysql_host')
-			mysql_port = funct.get_config_var('mysql', 'mysql_port')
-			con = sqltool.connect(user=mysql_user, password=mysql_password,
-									host=mysql_host, port=mysql_port,
-									database=mysql_db)
-		cur = con.cursor()
-	except sqltool.Error as e:
-		funct.logging('DB ', ' '+e, haproxywi=1, login=1)
-	else:
-		return con, cur
-
 
 def add_user(user, email, password, role, activeuser, group):
-	con, cur = get_cur()
 	if password != 'aduser':
-		sql = """INSERT INTO user (username, email, password, role, activeuser, `groups`) 
-		VALUES ('%s', '%s', '%s', '%s', '%s', '%s')""" % (user, email, funct.get_hash(password), role, activeuser, group)
+		try:
+			User.insert(username=user, email=email, password=funct.get_hash(password), role=role, activeuser=activeuser,
+						groups=group).execute()
+		except Exception as e:
+			funct.out_error(e)
+			return False
+		else:
+			return True
 	else:
-		sql = """INSERT INTO user (username, email, role, ldap_user, activeuser, `groups`) 
-		VALUES ('%s', '%s', '%s', '1', '%s', '%s')""" % (user, email, role, activeuser, group)
+		try:
+			User.insert(username=user, email=email, role=role, ldap_user=ldap_user, activeuser=activeuser,
+						groups=group).execute()
+		except Exception as e:
+			funct.out_error(e)
+			return False
+		else:
+			return True
+
+
+def update_user(user, email, role, user_id, activeuser):
+	user_update = User.update(username=user, email=email, role=role, activeuser=activeuser).where(
+		User.user_id == user_id)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		user_update.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-		cur.close()
-		con.close()
 		return False
 	else:
-		cur.close()
-		con.close()
 		return True
 
 
-def update_user(user, email, role, id, activeuser):
-	con, cur = get_cur()
-	sql = """update user set username = '%s', 
-			email = '%s',
-			role = '%s',
-			activeuser = '%s'
-			where id = '%s'""" % (user, email,  role, activeuser, id)
+def update_user_groups(groups, user_group_id):
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		UserGroups.insert(user_id=user_group_id, user_group_id=groups).execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-		cur.close()
-		con.close()
 		return False
 	else:
-		cur.close()
-		con.close()
 		return True
 
 
-def update_user_groups(groups, id):
-	con, cur = get_cur()
-	sql = """insert into user_groups(user_id, user_group_id) values('%s', '%s')""" % (id, groups)
+def delete_user_groups(user_id):
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		group_for_delete = UserGroups.delete().where(UserGroups.user_id == user_id)
+		group_for_delete.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-		cur.close()
-		con.close()
 		return False
 	else:
-		cur.close()
-		con.close()
-		return True
-
-
-def delete_user_groups(id):
-	con, cur = get_cur()
-	sql = """delete from user_groups
-			where user_id = '%s'""" % (id)
-	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
-		funct.out_error(e)
-		con.rollback()
-		cur.close()
-		con.close()
-		return False
-	else:
-		cur.close()
-		con.close()
 		return True
 
 
 def update_user_current_groups(groups, user_uuid):
-	con, cur = get_cur()
 	user_id = get_user_id_by_uuid(user_uuid)
-	sql = """update user set groups = '%s' where id = '%s'""" % (groups, user_id)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		user_update = User.update(groups=groups).where(User.user_id == user_id)
+		user_update.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-		cur.close()
-		con.close()
 		return False
 	else:
-		cur.close()
-		con.close()
 		return True
 
 
-def update_user_password(password, id):
-	con, cur = get_cur()
-	sql = """update user set password = '%s'
-			where id = '%s'""" % (funct.get_hash(password), id)
+def update_user_password(password, user_id):
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		user_update = User.update(password=funct.get_hash(password)).where(User.user_id == user_id)
+		user_update.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-		cur.close()
-		con.close()
 		return False
 	else:
-		cur.close()
-		con.close()
 		return True
 
 
-def delete_user(id):
-	con, cur = get_cur()
-	sql = """delete from user where id = '%s'""" % (id)
+def delete_user(user_id):
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		user_for_delete = User.delete().where(User.user_id == user_id)
+		user_for_delete.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-		cur.close()
-		con.close()
 		return False
 	else:
-		cur.close()
-		con.close()
 		return True
 
 
 def add_group(name, description):
-	con, cur = get_cur()
-	sql = """INSERT INTO groups (name, description) VALUES ('%s', '%s')""" % (name, description)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		last_insert = Groups.insert(name=name, description=description)
+		last_insert_id = last_insert.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
 		return False
 	else:
-		sql = """select last_insert_rowid()"""
-		try:
-			cur.execute(sql)
-			con.commit()
-		except sqltool.Error as e:
-			funct.out_error(e)
-			con.rollback()
-		else:
-			for g in cur.fetchall():
-				group_id = g[0]
-			add_setting_for_new_group(group_id)
-
-		cur.close()
-		con.close()
+		add_setting_for_new_group(last_insert_id)
 		return True
 
 
 def add_setting_for_new_group(group_id):
-	con, cur = get_cur()
 	group_id = str(group_id)
-	sql = list()
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('time_zone', 'UTC', 'main', 'Time Zone','" + group_id + "');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('proxy', '', 'main', 'Proxy server. Use proto://ip:port','" + group_id + "');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('session_ttl', '5', 'main', 'Time to live users sessions. In days', '" + group_id + "')")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('token_ttl', '5', 'main', 'Time to live users tokens. In days','" + group_id + "');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('tmp_config_path', '/tmp/', 'main', 'Temp store configs, for check. Path must exist','" + group_id + "');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('cert_path', '/etc/ssl/certs/', 'main', 'Path to SSL dir. Folder owner must be a user which set in the SSH settings. Path must exist','" + group_id + "');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('local_path_logs', '/var/log/haproxy.log', 'logs', 'Logs save locally, enabled by default','" + group_id + "');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('syslog_server_enable', '0', 'logs', 'If exist syslog server for HAproxy logs, enable this option','" + group_id + "');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('syslog_server', '0', 'logs', 'IP address syslog server','" + group_id + "');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('stats_user', 'admin', 'haproxy', 'Username for Stats web page HAproxy','" + group_id + "');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('stats_password', 'password', 'haproxy', 'Password for Stats web page HAproxy','" + group_id + "');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('stats_port', '8085', 'haproxy', 'Port Stats web page HAproxy','" + group_id + "');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('stats_page', 'stats', 'haproxy', 'URI Stats web page HAproxy','" + group_id + "');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('haproxy_dir', '/etc/haproxy/', 'haproxy', 'Path to HAProxy dir','" + group_id + "');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('haproxy_config_path', '/etc/haproxy/haproxy.cfg', 'haproxy', 'Path to HAProxy config','" + group_id + "');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('server_state_file', '/etc/haproxy/haproxy.state', 'haproxy', 'Path to HAProxy state file','" + group_id + "');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('haproxy_sock', '/var/run/haproxy.sock', 'haproxy', 'Path to HAProxy sock file','" + group_id + "');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('haproxy_sock_port', '1999', 'haproxy', 'HAProxy sock port','" + group_id + "');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('nginx_path_error_logs', '/var/log/nginx/error.log', 'nginx', 'Nginx error log','" + group_id + "');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('nginx_stats_user', 'admin', 'nginx', 'Username for Stats web page Nginx','" + group_id + "');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('nginx_stats_password', 'password', 'nginx', 'Password for Stats web page Nginx','" + group_id + "');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('nginx_stats_port', '8086', 'nginx', 'Stats port for web page Nginx','" + group_id + "');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('nginx_stats_page', 'stats', 'nginx', 'URI Stats for web page Nginx','" + group_id + "');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('nginx_dir', '/etc/nginx/conf.d/', 'nginx', 'Path to Nginx dir','" + group_id + "');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('nginx_config_path', '/etc/nginx/conf.d/default.conf', 'nginx', 'Path to Nginx config','" + group_id + "');")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('ldap_enable', '0', 'ldap', 'If 1 ldap enabled', " + group_id + ");")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('ldap_server', '', 'ldap', 'IP address ldap server', " + group_id + ");")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('ldap_port', '389', 'ldap', 'Default port is 389 or 636', " + group_id + ");")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('ldap_user', '', 'ldap', 'Login for connect to LDAP server. Enter: user@domain.com',  " + group_id + ");")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('ldap_password', '', 'ldap', 'Password for connect to LDAP server', " + group_id + ");")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('ldap_base', '', 'ldap', 'Base domain. Example: dc=domain, dc=com', " + group_id + ");")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('ldap_domain', '', 'ldap', 'Domain for login, that after @, like user@domain.com, without user@', " + group_id + ");")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('ldap_class_search', 'user', 'ldap', 'Class to search user', " + group_id + ");")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('ldap_user_attribute', 'sAMAccountName', 'ldap', 'User attribute for search', " + group_id + ");")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('ldap_search_field', 'mail', 'ldap', 'Field where user e-mail saved', " + group_id + ");")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('ldap_type', '0', 'ldap', 'If 0 then will be used LDAP, if 1 then will be used LDAPS ', " + group_id + ");")
-	sql.append("INSERT  INTO settings (param, value, section, `desc`, `group`) values('haproxy_enterprise', '0', 'haproxy', 'Use this option if your HAProxy is enterprise. It change service name for rebooting/reloading', " + group_id + ");")
+	data_source = [
+		{'param': 'time_zone', 'value': 'UTC', 'section': 'main', 'desc': 'Time Zone', 'group': group_id},
+		{'param': 'proxy', 'value': '', 'section': 'main', 'desc': 'Proxy server. Use proto://ip:port',
+		 'group': group_id},
+		{'param': 'session_ttl', 'value': '5', 'section': 'main', 'desc': 'Time to live users sessions. In days',
+		 'group': group_id},
+		{'param': 'token_ttl', 'value': '5', 'section': 'main', 'desc': 'Time to live users tokens. In days',
+		 'group': group_id},
+		{'param': 'tmp_config_path', 'value': '/tmp/', 'section': 'main',
+		 'desc': 'Temp store configs, for check. Path must exist', 'group': group_id},
+		{'param': 'cert_path', 'value': '/etc/ssl/certs/', 'section': 'main',
+		 'desc': 'Path to SSL dir. Folder owner must be a user which set in the SSH settings. Path must exist',
+		 'group': group_id},
+		{'param': 'local_path_logs', 'value': '/var/log/haproxy.log', 'section': 'logs',
+		 'desc': 'Logs save locally, enabled by default', 'group': group_id},
+		{'param': 'syslog_server_enable', 'value': '0', 'section': 'logs',
+		 'desc': 'If exist syslog server for HAProxy logs, enable this option', 'group': group_id},
+		{'param': 'stats_user', 'value': 'admin', 'section': 'haproxy', 'desc': 'Username for Stats web page HAProxy',
+		 'group': group_id},
+		{'param': 'stats_password', 'value': 'password', 'section': 'haproxy',
+		 'desc': 'Password for Stats web page HAProxy', 'group': group_id},
+		{'param': 'stats_port', 'value': '8085', 'section': 'haproxy', 'desc': 'Port Stats web page HAProxy',
+		 'group': group_id},
+		{'param': 'stats_page', 'value': 'stats', 'section': 'haproxy', 'desc': 'URI Stats web page HAProxy',
+		 'group': group_id},
+		{'param': 'haproxy_dir', 'value': '/etc/haproxy', 'section': 'haproxy', 'desc': 'Path to HAProxy dir',
+		 'group': group_id},
+		{'param': 'haproxy_config_path', 'value': '/etc/haproxy/haproxy.cfg', 'section': 'haproxy', 'desc': '',
+		 'group': group_id},
+		{'param': 'server_state_file', 'value': 'stats', 'section': 'haproxy', 'desc': 'Path to HAProxy config',
+		 'group': group_id},
+		{'param': 'haproxy_sock', 'value': '/etc/haproxy/haproxy.state', 'section': 'haproxy',
+		 'desc': 'Path to HAProxy state file', 'group': group_id},
+		{'param': 'haproxy_sock_port', 'value': '1999', 'section': 'haproxy', 'desc': 'HAProxy sock port',
+		 'group': group_id},
+		{'param': 'nginx_path_error_logs', 'value': '/var/log/nginx/error.log', 'section': 'nginx',
+		 'desc': 'Nginx error log', 'group': group_id},
+		{'param': 'nginx_stats_user', 'value': 'admin', 'section': 'nginx', 'desc': 'Username for Stats web page Nginx',
+		 'group': group_id},
+		{'param': 'nginx_stats_password', 'value': 'password', 'section': 'nginx',
+		 'desc': 'Password for Stats web page Nginx', 'group': group_id},
+		{'param': 'nginx_stats_port', 'value': '8086', 'section': 'nginx', 'desc': 'Stats port for web page Nginx',
+		 'group': group_id},
+		{'param': 'nginx_stats_page', 'value': 'stats', 'section': 'nginx', 'desc': 'URI Stats for web page Nginx',
+		 'group': group_id},
+		{'param': 'nginx_dir', 'value': '/etc/nginx/conf.d/', 'section': 'nginx', 'desc': 'Path to Nginx dir',
+		 'group': group_id},
+		{'param': 'nginx_config_path', 'value': '/etc/nginx/conf.d/default.conf', 'section': 'nginx',
+		 'desc': 'Path to Nginx config', 'group': group_id},
+		{'param': 'ldap_enable', 'value': '0', 'section': 'ldap', 'desc': 'If 1 ldap enabled', 'group': group_id},
+		{'param': 'ldap_server', 'value': '', 'section': 'ldap', 'desc': 'IP address ldap server', 'group': group_id},
+		{'param': 'ldap_port', 'value': '389', 'section': 'ldap', 'desc': 'Default port: 389 or 636',
+		 'group': group_id},
+		{'param': 'ldap_user', 'value': '', 'section': 'ldap',
+		 'desc': 'Login to connect to LDAP server. Format: user@domain.com', 'group': group_id},
+		{'param': 'ldap_password', 'value': '', 'section': 'ldap', 'desc': 'Password to connect to LDAP server',
+		 'group': group_id},
+		{'param': 'ldap_base', 'value': '', 'section': 'ldap', 'desc': 'Base domain. Example: dc=domain, dc=com',
+		 'group': group_id},
+		{'param': 'ldap_domain', 'value': '', 'section': 'ldap',
+		 'desc': 'Domain for login, like user@domain.com, without user@', 'group': group_id},
+		{'param': 'ldap_class_search', 'value': 'user', 'section': 'ldap', 'desc': 'Class to search user',
+		 'group': group_id},
+		{'param': 'ldap_user_attribute', 'value': 'sAMAccountName', 'section': 'ldap',
+		 'desc': 'User attribute for searching', 'group': group_id},
+		{'param': 'ldap_search_field', 'value': 'mail', 'section': 'ldap', 'desc': 'Field where an user e-mail saved',
+		 'group': group_id},
+		{'param': 'ldap_type', 'value': '0', 'section': 'ldap',
+		 'desc': 'If 0 then will be used LDAP, if 1 then will be used LDAPS', 'group': group_id},
+		{'param': 'haproxy_enterprise', 'value': '0', 'section': 'haproxy',
+		 'desc': 'Use this option if your HAProxy is enterprise. It changes service name for rebooting/reloading',
+		 'group': group_id},
+	]
 
-	for i in sql:
-		try:
-			cur.execute(i)
-			con.commit()
-		except sqltool.Error as e:
-			funct.out_error(e)
+	try:
+		Setting.insert_many(data_source).execute()
+	except Exception as e:
+		funct.out_error(e)
 	else:
-		cur.close()
-		con.close()
 		return True
 
 
 def delete_group_settings(group_id):
-	con, cur = get_cur()
-	sql = """ delete from settings where `group` = '%s'""" % (group_id)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		group_for_delete = Setting.delete().where(Setting.group == group_id)
+		group_for_delete.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
 	else:
-		cur.close()
-		con.close()
-		return True
-	cur.close()
-	con.close()
-
-
-def delete_group(id):
-	con, cur = get_cur()
-	sql = """ delete from groups where id = '%s'""" % (id)
-	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
-		funct.out_error(e)
-		con.rollback()
-		cur.close()
-		con.close()
-		return False
-	else:
-		delete_group_settings(id)
-		cur.close()
-		con.close()
 		return True
 
 
-def update_group(name, descript, id):
-	con, cur = get_cur()
-	sql = """ update groups set 
-		name = '%s',
-		description = '%s' 
-		where id = '%s';
-		""" % (name, descript, id)
+def delete_group(group_id):
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		group_for_delete = Groups.delete().where(Groups.group_id == group_id)
+		group_for_delete.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-		cur.close()
-		con.close()
 		return False
 	else:
-		cur.close()
-		con.close()
+		delete_group_settings(group_id)
+		return True
+
+
+def update_group(name, descript, group_id):
+	try:
+		group_update = Groups.update(name=name, description=descript).where(Groups.group_id == group_id)
+		group_update.execute()
+	except Exception as e:
+		funct.out_error(e)
+		return False
+	else:
 		return True
 
 
 def add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, firewall):
-	con, cur = get_cur()
-	sql = """ INSERT INTO servers (hostname, ip, groups, type_ip, enable, master, cred, port, `desc`, haproxy, nginx, firewall_enable) 
-			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
-		""" % (hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, firewall)
 	try:
-		cur.execute(sql)
-		con.commit()
-		cur.close()
-		con.close()
+		Server.insert(hostname=hostname, ip=ip, groups=group, type_ip=typeip, enable=enable, master=master, cred=cred,
+					  port=port, desc=desc, haproxy=haproxy, nginx=nginx, firewall_enable=firewall).execute()
 		return True
-	except sqltool.Error as e:
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-		cur.close()
-		con.close()
 		return False
 
 
-def delete_server(id):
-	con, cur = get_cur()
-	sql = """ delete from servers where id = '%s'""" % (id)
+def delete_server(server_id):
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		server_for_delete = Server.delete().where(Server.server_id == server_id)
+		server_for_delete.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
 	else:
 		return True
-	cur.close()
-	con.close()
 
 
 def update_hapwi_server(server_id, alert, metrics, active, service_name):
-	con, cur = get_cur()
-	updated_service = ''
-	if service_name == 'nginx':
-		updated_service = 'nginx_'
-
-	sql = """ update servers set 
-			'%salert' = '%s',
-			metrics = '%s',
-			'%sactive' = '%s'
-			where id = '%s'""" % (updated_service, alert, metrics, updated_service, active, server_id)
-
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		if service_name == 'nginx':
+			update_hapwi = Server.update(nginx_alert=alert, metrics=metrics, nginx_active=active).where(
+				Server.server_id == server_id)
+		else:
+			update_hapwi = Server.update(alert=alert, metrics=metrics, active=active).where(
+				Server.server_id == server_id)
+		update_hapwi.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
 
 
-def update_server(hostname, group, typeip, enable, master, id, cred, port, desc, haproxy, nginx, firewall, protected):
-	con, cur = get_cur()
-	sql = """ update servers set 
-			hostname = '%s',
-			groups = '%s',
-			type_ip = '%s',
-			enable = '%s',
-			master = '%s',
-			cred = '%s',
-			port = '%s',
-			`desc` = '%s',
-			haproxy = '%s',
-			nginx = '%s',
-			firewall_enable = '%s',
-			protected = '%s'
-			where id = '%s'""" % (hostname, group, typeip, enable, master, cred, port, desc, haproxy, nginx, firewall, protected, id)
+def update_server(hostname, group, typeip, enable, master, server_id, cred, port, desc, haproxy, nginx, firewall, protected):
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		server_update = Server.update(hostname=hostname,
+									  groups=group,
+									  type_ip=typeip,
+									  enable=enable,
+									  master=master,
+									  cred=cred,
+									  port=port,
+									  desc=desc,
+									  haproxy=haproxy,
+									  nginx=nginx,
+									  firewall_enable=firewall,
+									  protected=protected).where(Server.server_id == server_id)
+		server_update.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
 
 
 def update_server_master(master, slave):
-	con, cur = get_cur()
-	sql = """ select id from servers where ip = '%s' """ % master
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		master_id = Server.get(Server.server_id == master)
+	except Exception as e:
 		funct.out_error(e)
-	for id in cur.fetchall():
-		sql = """ update servers set master = '%s' where ip = '%s' """ % (id[0], slave)
+
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		server_update = Server.update(master=master_id).where(Server.ip == slave)
+		server_update.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
 
 
 def select_users(**kwargs):
-	con, cur = get_cur()
-	sql = """select * from user ORDER BY id"""
 	if kwargs.get("user") is not None:
-		sql = """select * from user where username='%s' """ % kwargs.get("user")
-	if kwargs.get("id") is not None:
-		sql = """select * from user where id='%s' """ % kwargs.get("id")
-	if kwargs.get("group") is not None:
-		sql = """ select user.* from user left 
-		join user_groups as groups on user.id = groups.user_id where groups.user_group_id = '%s' group by id;
-		""" % kwargs.get("group")
+		query = User.select().where(User.username == kwargs.get("user"))
+	elif kwargs.get("id") is not None:
+		query = User.select().where(User.user_id == kwargs.get("id"))
+	elif kwargs.get("group") is not None:
+		query = (User.
+				 select().
+				 join(UserGroups, on=(User.user_id == UserGroups.user_id)).
+				 where(UserGroups.user_group_id == kwargs.get("group"))
+				 )
+	else:
+		query = User.select().order_by(User.user_id)
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return query_res
 
 
-def select_user_groups(id, **kwargs):
-	con, cur = get_cur()
-	sql = """select user_group_id from user_groups where user_id = '%s' """ % id
+def select_user_groups(user_id, **kwargs):
 	if kwargs.get("limit") is not None:
-		sql = """select user_group_id from user_groups where user_id = '%s' limit 1 """ % id
-
+		query = UserGroups.select().where(UserGroups.user_id == user_id).limit(1)
+	else:
+		query = UserGroups.select().where(UserGroups.user_id == user_id)
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
 		if kwargs.get("limit") is not None:
-			for g in cur.fetchall():
-				return g[0]
+			for i in query_res:
+				return i.user_group_id
 		else:
-			return cur.fetchall()
-	cur.close()
-	con.close()
+			return query_res
 
 
 def check_user_group(user_id, group_id):
-	con, cur = get_cur()
-	sql = """select * from user_groups where user_id='%s' and user_group_id = '%s' """ % (user_id, group_id)
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
-		funct.out_error(e)
-		print(str(e))
+		query_res = UserGroups.get((UserGroups.user_id == user_id) & (UserGroups.user_group_id == group_id))
+	except:
+		return False
 	else:
-		for g in cur.fetchall():
-			if g[0] != '':
-				return True
-			else:
-				return False
-
-	cur.close()
-	con.close()
-
-
-def select_user_groups_with_names(id, **kwargs):
-	con, cur = get_cur()
-	if kwargs.get("all") is not None:
-		sql = """select user_groups.user_id, groups.name from user_groups 
-			left join groups as groups on user_groups.user_group_id = groups.id """
-	else:
-		sql = """select user_groups.user_group_id, groups.name from user_groups 
-			left join groups as groups on user_groups.user_group_id = groups.id 
-			where user_groups.user_id = '%s' """ % id
-	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
-		funct.out_error(e)
-	else:
-		if kwargs.get("limit") is not None:
-			for g in cur.fetchall():
-				return g[0]
+		if query_res.user_id != '':
+			return True
 		else:
-			return cur.fetchall()
-	cur.close()
-	con.close()
+			return False
+
+
+def select_user_groups_with_names(user_id, **kwargs):
+	if kwargs.get("all") is not None:
+		query = (UserGroups
+				 .select(UserGroups.user_group_id, UserGroups.user_id, Groups.name)
+				 .join(Groups, on=(UserGroups.user_group_id == Groups.group_id))
+				 )
+	else:
+		query = (UserGroups
+				 .select(UserGroups.user_group_id, Groups.name)
+				 .join(Groups, on=(UserGroups.user_group_id == Groups.group_id))
+				 .where(UserGroups.user_id == user_id)
+				 )
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		funct.out_error(e)
+	else:
+		return query_res
 
 
 def select_groups(**kwargs):
-	con, cur = get_cur()
-	sql = """select * from groups ORDER BY id"""
 	if kwargs.get("group") is not None:
-		sql = """select * from groups where name='%s' """ % kwargs.get("group")
-	if kwargs.get("id") is not None:
-		sql = """select * from groups where id='%s' """ % kwargs.get("id")
+		query = Groups.select().where(Groups.name == kwargs.get('group'))
+	elif kwargs.get("id") is not None:
+		query = Groups.select().where(Groups.group_id == kwargs.get('id'))
+	else:
+		query = Groups.select().order_by(Groups.group_id)
 
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return query_res
 
 
 def get_group_name_by_id(group_id):
-	con, cur = get_cur()
-	sql = """select name from groups where id = '%s' """ % group_id
-
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		group_name = Groups.get(Groups.group_id == group_id)
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		for name in cur.fetchone():
-			return name
-	finally:
-		cur.close()
-		con.close()
+		return group_name.name
 
 
 def get_group_id_by_name(group_name):
-	con, cur = get_cur()
-	sql = """select id from groups where name = '%s' """ % group_name
-
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
-		return funct.out_error(e)
+		group_id = Groups.get(Groups.name == group_name)
+	except Exception as e:
+		funct.out_error(e)
 	else:
-		for group_id in cur.fetchone():
-			return group_id
-	finally:
-		cur.close()
-		con.close()
+		return group_id.group_id
 
 
 def get_group_id_by_server_ip(server_ip):
-	con, cur = get_cur()
-	sql = """select `groups` from servers where ip = '%s' """ % server_ip
-
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
-		return funct.out_error(e)
+		group_id = Server.get(Server.ip == server_ip)
+	except Exception as e:
+		funct.out_error(e)
 	else:
-		for group_id in cur.fetchone():
-			return group_id
-	finally:
-		cur.close()
-		con.close()
+		return group_id.groups
 
 
 def get_cred_id_by_server_ip(server_ip):
-	con, cur = get_cur()
-	sql = """select `cred` from servers where ip = '%s' """ % server_ip
-
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		cred = Server.get(Server.ip == server_ip)
+	except Exception as e:
 		return funct.out_error(e)
 	else:
-		for cred_id in cur.fetchone():
-			return cred_id
-	finally:
-		cur.close()
-		con.close()
+		return cred.cred
 
 
 def get_hostname_by_server_ip(server_ip):
-	con, cur = get_cur()
-	sql = """select `hostname` from servers where ip = '%s' """ % server_ip
-
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		hostname = Server.get(Server.ip == server_ip)
+	except Exception as e:
 		return funct.out_error(e)
 	else:
-		for hostname in cur.fetchone():
-			return hostname
-	finally:
-		cur.close()
-		con.close()
+		return hostname.hostname
 
 
 def select_server_by_name(name):
-	con, cur = get_cur()
-	sql = """select ip from servers where hostname='%s' """ % name
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
-		funct.out_error(e)
+		ip = Server.get(Server.hostname == name)
+	except Exception as e:
+		return funct.out_error(e)
 	else:
-		for name in cur.fetchone():
-			return name
-	cur.close()
-	con.close()
+		return ip.ip
 
 
 def select_servers(**kwargs):
-	con, cur = get_cur()
+	cursor = conn.cursor()
 	sql = """select * from servers where enable = '1' ORDER BY groups """
 
 	if kwargs.get("server") is not None:
@@ -630,64 +453,53 @@ def select_servers(**kwargs):
 	if kwargs.get("server") and kwargs.get("keep_alive"):
 		sql = """select active from servers where ip='%s' """ % kwargs.get("server")
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		cursor.execute(sql)
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return cursor.fetchall()
 
 
 def write_user_uuid(login, user_uuid):
-	con, cur = get_cur()
+	cursor = conn.cursor()
 	session_ttl = get_setting('session_ttl')
 	session_ttl = int(session_ttl)
-	sql = """ select id from user where username = '%s' """ % login
+
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		user_id = User.get(User.username == login)
+	except Exception as e:
 		funct.out_error(e)
-	for id in cur.fetchall():
-		if mysql_enable == '1':
-			sql = """ insert into uuid (user_id, uuid, exp) values('%s', '%s', now()+ INTERVAL '%s' day) """ % (id[0], user_uuid, session_ttl)
-		else:
-			sql = """ insert into uuid (user_id, uuid, exp) values('%s', '%s', datetime('now', '+%s days')) """ % (id[0], user_uuid, session_ttl)
+	if mysql_enable == '1':
+		sql = """ insert into uuid (user_id, uuid, exp) values('%s', '%s', now()+ INTERVAL '%s' day) """ % (user_id, user_uuid, session_ttl)
+	else:
+		sql = """ insert into uuid (user_id, uuid, exp) values('%s', '%s', datetime('now', '+%s days')) """ % (user_id, user_uuid, session_ttl)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		cursor.execute(sql)
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
+
 
 
 def write_user_token(login, user_token):
-	con, cur = get_cur()
+	cursor = conn.cursor()
 	token_ttl = get_setting('token_ttl')
-	sql = """ select id from user where username = '%s' """ % login
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		user_id = User.get(User.username == login)
+	except Exception as e:
 		funct.out_error(e)
-	for id in cur.fetchall():
-		if mysql_enable == '1':
-			sql = """ insert into token (user_id, token, exp) values('%s', '%s',  now()+ INTERVAL %s day) """ % (id[0], user_token, token_ttl)
-		else:
-			sql = """ insert into token (user_id, token, exp) values('%s', '%s',  datetime('now', '+%s days')) """ % (id[0], user_token, token_ttl)
+
+	if mysql_enable == '1':
+		sql = """ insert into token (user_id, token, exp) values('%s', '%s',  now()+ INTERVAL %s day) """ % (user_id, user_token, token_ttl)
+	else:
+		sql = """ insert into token (user_id, token, exp) values('%s', '%s',  datetime('now', '+%s days')) """ % (user_id, user_token, token_ttl)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		cursor.execute(sql)
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
 
 
 def write_api_token(user_token, group_id, user_role, user_name):
-	con, cur = get_cur()
+	cursor = conn.cursor()
 	token_ttl = get_setting('token_ttl')
 
 	if mysql_enable == '1':
@@ -695,71 +507,53 @@ def write_api_token(user_token, group_id, user_role, user_name):
 	else:
 		sql = """ insert into api_tokens (token, user_name, user_group_id, user_role, create_date, expire_date) values('%s', '%s', '%s', '%s', datetime('now'), datetime('now', '+%s days')) """ % (user_token, user_name, group_id, user_role, token_ttl)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
-		return str(e)
-		con.rollback()
-	cur.close()
-	con.close()
+		cursor.execute(sql)
+	except Exception as e:
+		funct.out_error(e)
 
 
 def get_api_token(token):
-	con, cur = get_cur()
-	sql = """ select token from api_tokens where token = '%s' """ % token
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		user_token = ApiToken.get(ApiToken.token == token)
+	except Exception as e:
 		return str(e)
 	else:
-		for user_token in cur.fetchall():
-			return True if token == user_token[0] else False
-	cur.close()
-	con.close()
+		return True if token == user_token.token else False
 
 
 def get_username_groupid_from_api_token(token):
-	con, cur = get_cur()
-	sql = """ select user_name, user_group_id from api_tokens where token = '%s' """ % token
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		user_name = ApiToken.get(ApiToken.token == token)
+	except Exception as e:
 		return str(e)
 	else:
-		for u in cur.fetchall():
-			return u[0], u[1]
-	cur.close()
-	con.close()
+		return user_name.user_name, user_name.user_group_id
 
 
 def get_token(uuid):
-	con, cur = get_cur()
-	sql = """ select token.token from token left join uuid as uuid on uuid.user_id = token.user_id where uuid.uuid = '%s' """ % uuid
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query = Token.select().join(UUID, on=(Token.user_id == UUID.user_id)).where(UUID.uuid == uuid).limit(1)
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		for token in cur.fetchall():
-			return token[0]
-	cur.close()
-	con.close()
+		try:
+			for i in query_res:
+				return i.token
+		except:
+			return ''
 
 
 def delete_uuid(uuid):
-	con, cur = get_cur()
-	sql = """ delete from uuid where uuid = '%s' """ % uuid
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		query = UUID.delete().where(UUID.uuid == uuid)
+		query.execute()
+	except:
 		pass
-	cur.close()
-	con.close()
 
 
 def delete_old_uuid():
-	con, cur = get_cur()
+	cursor = conn.cursor()
 	if mysql_enable == '1':
 		sql = """ delete from uuid where exp < now() or exp is NULL """
 		sql1 = """ delete from token where exp < now() or exp is NULL """
@@ -767,18 +561,14 @@ def delete_old_uuid():
 		sql = """ delete from uuid where exp < datetime('now') or exp is NULL"""
 		sql1 = """ delete from token where exp < datetime('now') or exp is NULL"""
 	try:
-		cur.execute(sql)
-		cur.execute(sql1)
-		con.commit()
-	except sqltool.Error as e:
+		cursor.execute(sql)
+		cursor.execute(sql1)
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
 
 
 def update_last_act_user(uuid):
-	con, cur = get_cur()
+	cursor = conn.cursor()
 	session_ttl = get_setting('session_ttl')
 
 	if mysql_enable == '1':
@@ -786,163 +576,125 @@ def update_last_act_user(uuid):
 	else:
 		sql = """ update uuid set exp = datetime('now', '+%s days') where uuid = '%s' """ % (session_ttl, uuid)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		cursor.execute(sql)
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
 
 
 def get_user_name_by_uuid(uuid):
-	con, cur = get_cur()
-	sql = """ select user.username from user left join uuid as uuid on user.id = uuid.user_id where uuid.uuid = '%s' """ % uuid
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query = User.select(User.username).join(UUID, on=(User.user_id == UUID.user_id)).where(UUID.uuid == uuid)
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		for user_id in cur.fetchall():
-			return user_id[0]
-	cur.close()
-	con.close()
+		for user in query_res:
+			return user.username
 
 
 def get_user_id_by_uuid(uuid):
-	con, cur = get_cur()
-	sql = """ select user.id from user left join uuid as uuid on user.id = uuid.user_id where uuid.uuid = '%s' """ % uuid
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query = User.select(User.user_id).join(UUID, on=(User.user_id == UUID.user_id)).where(UUID.uuid == uuid)
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		for user_id in cur.fetchall():
-			return user_id[0]
-	cur.close()
-	con.close()
+		for user in query_res:
+			return user.user_id
 
 
 def get_user_role_by_uuid(uuid):
-	con, cur = get_cur()
 	try:
-		if mysql_enable == '1':
-			cur.execute( """ select role.id from user left join uuid as uuid on user.id = uuid.user_id left join role on role.name = user.role where uuid.uuid = '%s' """ % uuid )
-		else:
-			cur.execute("select role.id from user left join uuid as uuid on user.id = uuid.user_id left join role on role.name = user.role where uuid.uuid = ?", (uuid,))
-	except sqltool.Error as e:
+		query = (Role.select(Role.role_id)
+				 .join(UUID, on=(User.user_id == UUID.user_id))
+				 .join(User, on=(Role.name == User.role))
+				 .where(UUID.uuid == uuid))
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		for user_id in cur.fetchall():
-			return int(user_id[0])
-	cur.close()
-	con.close()
+		for user_id in query_res:
+			return int(user_id.role_id)
 
 
 def get_role_id_by_name(name):
-	con, cur = get_cur()
-	sql = """ select id from role where name = '%s' """ % name
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		role_id = Role.get(Role.name == name)
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		for user_id in cur.fetchall():
-			return user_id[0]
-	cur.close()
-	con.close()
+		return int(role_id.role_id)
 
 
 def get_user_telegram_by_group(group):
-	con, cur = get_cur()
-	sql = """ select telegram.* from telegram where groups = '%s' """ % group
+	query = Telegram.select().where(Telegram.groups == group)
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return query_res
 
 
 def get_telegram_by_ip(ip):
-	con, cur = get_cur()
-	sql = """ select telegram.* from telegram left join servers as serv on serv.groups = telegram.groups where serv.ip = '%s' """ % ip
+	query = Telegram.select().join(Server, on=(Server.groups == Telegram.groups)).where(Server.ip == ip)
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return query_res
 
 
-def get_telegram_by_id(id):
-	con, cur = get_cur()
-	sql = """ select * from telegram where id = '%s' """ % id
+def get_telegram_by_id(telegram_id):
+	query = Telegram.select().where(Telegram.id == telegram_id)
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return query_res
 
 
 def get_user_slack_by_group(group):
-	con, cur = get_cur()
-	sql = """ select slack.* from slack where groups = '%s' """ % group
+	query = Slack.select().where(Slack.groups == group)
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return query_res
 
 
 def get_slack_by_ip(ip):
-	con, cur = get_cur()
-	sql = """ select slack.* from slack left join servers as serv on serv.groups = slack.groups where serv.ip = '%s' """ % ip
+	query = Slack.select().join(Server, on=(Server.groups == Slack.groups)).where(Server.ip == ip)
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return query_res
 
 
-def get_slack_by_id(id):
-	con, cur = get_cur()
-	sql = """ select * from slack where id = '%s' """ % id
+def get_slack_by_id(slack_id):
+	query = Slack.select().where(Slack.id == slack_id)
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return query_res
 
 
 def get_dick_permit(**kwargs):
 	import http.cookies
 	import os
 	if kwargs.get('username'):
-		# user = kwargs.get('username')
 		grp = kwargs.get('group_id')
 	else:
 		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-		# user_id = cookie.get('uuid')
 		group = cookie.get('group')
 		grp = group.value
-		# user = get_user_id_by_uuid(user_id.value)
 	if kwargs.get('token'):
 		token = kwargs.get('token')
 	else:
@@ -970,7 +722,7 @@ def get_dick_permit(**kwargs):
 		keepalived = "and keepalived = 1"
 
 	if funct.check_user_group(token=token):
-		con, cur = get_cur()
+		cursor = conn.cursor()
 		if grp == '1' and not only_group:
 			sql = """ select * from servers where enable = 1 %s %s %s %s %s order by pos""" % (disable, type_ip, nginx, keepalived, ip)
 		else:
@@ -978,557 +730,409 @@ def get_dick_permit(**kwargs):
 			""".format(group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx, keepalived=keepalived)
 
 		try:
-			cur.execute(sql)
-		except sqltool.Error as e:
+			cursor.execute(sql)
+		except Exception as e:
 			funct.out_error(e)
 		else:
-			return cur.fetchall()
+			return cursor.fetchall()
 
-		cur.close()
-		con.close()
 	else:
 		print('Atata!')
 
 
 def is_master(ip, **kwargs):
-	con, cur = get_cur()
-	sql = """ select slave.ip, slave.hostname from servers as master left join servers as slave on master.id = slave.master where master.ip = '%s' """ % ip
+	cursor = conn.cursor()
 	if kwargs.get('master_slave'):
-		sql = """ select master.hostname, master.ip, slave.hostname, slave.ip from servers as master left join servers as slave on master.id = slave.master where slave.master > 0 """
+		sql = """ select master.hostname, master.ip, slave.hostname, slave.ip 
+		from servers as master 
+		left join servers as slave on master.id = slave.master 
+		where slave.master > 0 """
+	else:
+		sql = """ select slave.ip, slave.hostname from servers as master 
+		left join servers as slave on master.id = slave.master 
+		where master.ip = '%s' """ % ip
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		cursor.execute(sql)
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return cursor.fetchall()
 
 
 def select_ssh(**kwargs):
-	con, cur = get_cur()
-	sql = """select * from cred """
 	if kwargs.get("name") is not None:
-		sql = """select * from cred where name = '%s' """ % kwargs.get("name")
-	if kwargs.get("id") is not None:
-		sql = """select * from cred where id = '%s' """ % kwargs.get("id")
-	if kwargs.get("serv") is not None:
-		sql = """select serv.cred, cred.* from servers as serv left join cred on cred.id = serv.cred where serv.ip = '%s' """ % kwargs.get("serv")
-	if kwargs.get("group") is not None:
-		sql = """select * from cred where groups = '%s' """ % kwargs.get("group")
+		query = Cred.select().where(Cred.name == kwargs.get('name'))
+	elif kwargs.get("id") is not None:
+		query = Cred.select().where(Cred.id == kwargs.get('id'))
+	elif kwargs.get("serv") is not None:
+		query = Cred.select().join(Server, on=(Cred.id == Server.cred)).where(Server.ip == kwargs.get('serv'))
+	elif kwargs.get("group") is not None:
+		query = Cred.select()
+	else:
+		query = Cred.select()
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return query_res
 
 
 def insert_new_ssh(name, enable, group, username, password):
-	con, cur = get_cur()
-	sql = """insert into cred(name, enable, groups, username, password) values ('%s', '%s', '%s', '%s', '%s') """ % (name, enable, group, username, password)
+	if password is None:
+		password = 'None'
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		Cred.insert(name=name, enable=enable, groups=group, username=username, password=password).execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	else:
-		return True
-	cur.close()
-	con.close()
-
-
-def delete_ssh(id):
-	con, cur = get_cur()
-	sql = """ delete from cred where id = %s """ % (id)
-	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
-		funct.out_error(e)
-		con.rollback()
-	else:
-		return True
-	cur.close()
-	con.close()
-
-
-def update_ssh(id, name, enable, group, username, password):
-	con, cur = get_cur()
-	sql = """ update cred set 
-			name = '%s',
-			enable = '%s',
-			groups = %s,
-			username = '%s',
-			password = '%s' where id = '%s' """ % (name, enable, group, username, password, id)
-	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
-		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
-
-
-def insert_backup_job(server, rserver, rpath, type, time, cred, description):
-	con, cur = get_cur()
-	sql = """insert into backups(server, rhost, rpath, `type`, `time`, `cred`, `description`) 
-			values ('%s', '%s', '%s', '%s', '%s', '%s', '%s') """ % (server, rserver, rpath, type, time, cred, description)
-	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
-		funct.out_error(e)
-		print('error: '+str(e))
-		con.rollback()
 		return False
 	else:
 		return True
-	cur.close()
-	con.close()
+
+
+def delete_ssh(ssh_id):
+	query = Cred.delete().where(Cred.id == ssh_id)
+	try:
+		query.execute()
+	except Exception as e:
+		funct.out_error(e)
+	else:
+		return True
+
+
+def update_ssh(cred_id, name, enable, group, username, password):
+	if password is None:
+		password = 'None'
+
+	cred_update = Cred.update(name=name, enable=enable, groups=group, username=username, password=password).where(
+		Cred.id == cred_id)
+	try:
+		cred_update.execute()
+	except Exception as e:
+		funct.out_error(e)
+
+
+def insert_backup_job(server, rserver, rpath, backup_type, time, cred, description):
+	try:
+		Backup.insert(server=server, rhost=rserver, rpath=rpath, backup_type=backup_type, time=time,
+					  cred=cred, description=description).execute()
+	except Exception as e:
+		funct.out_error(e)
+		return False
+	else:
+		return True
 
 
 def select_backups(**kwargs):
-	con, cur = get_cur()
-	sql = """select * from backups ORDER BY id"""
 	if kwargs.get("server") is not None and kwargs.get("rserver") is not None:
-		sql = """select * from backups where server='%s' and rhost = '%s' """ % (kwargs.get("server"), kwargs.get("rserver"))
+		query = Backup.select().where((Backup.server == kwargs.get("server")) & (Backup.rhost == kwargs.get("rserver")))
+	else:
+		query = Backup.select().order_by(Backup.id)
+
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return query_res
 
 
-def update_backup(server, rserver, rpath, type, time, cred, description, id):
-	con, cur = get_cur()
-	sql = """update backups set server = '%s', 
-			rhost = '%s', 
-			rpath = '%s', 
-			type = '%s', 
-			time = '%s', 
-			cred = '%s', 
-			description = '%s' where id = '%s' """ % (server, rserver, rpath, type, time, cred, description, id)
+def update_backup(server, rserver, rpath, backup_type, time, cred, description, backup_id):
+	backup_update = Backup.update(server=server, rhost=rserver, rpath=rpath, backup_type=backup_type, time=time,
+								cred=cred, description=description).where(Backup.id == backup_id)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		backup_update.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
 		return False
 	else:
 		return True
-	cur.close()
-	con.close()
 
 
-def delete_backups(id):
-	con, cur = get_cur()
-	sql = """ delete from backups where id = %s """ % (id)
+def delete_backups(backup_id):
+	query = Backup.delete().where(Backup.id == backup_id)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		query.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
+		return False
 	else:
 		return True
-	cur.close()
-	con.close()
 
 
 def check_exists_backup(server):
-	con, cur = get_cur()
-	sql = """ select id from backups where server = '%s' """ % server
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
-		funct.out_error(e)
+		backup = Backup.get(Backup.server == server)
+	except:
+		pass
 	else:
-		for s in cur.fetchall():
-			if s[0] is not None:
-				return True
-			else:
-				return False
-	cur.close()
-	con.close()
+		if backup.id is not None:
+			return True
+		else:
+			return False
 
 
-def delete_telegram(id):
-	con, cur = get_cur()
-	sql = """ delete from telegram where id = %s """ % (id)
+def delete_telegram(telegram_id):
+	query = Telegram.delete().where(Telegram.id == telegram_id)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		query.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
+		return False
 	else:
 		return True
-	cur.close()
-	con.close()
 
 
 def select_telegram(**kwargs):
-	con, cur = get_cur()
-	sql = """select * from telegram  """
-	if kwargs.get('group'):
-		sql = """select * from telegram where groups = '%s' """ % kwargs.get('group')
 	if kwargs.get('token'):
-		sql = """select * from telegram where token = '%s' """ % kwargs.get('token')
-	if kwargs.get('id'):
-		sql = """select * from telegram where id = '%s' """ % kwargs.get('id')
+		query = Telegram.select().where(Telegram.token == kwargs.get('token'))
+	elif kwargs.get('id'):
+		query = Telegram.select().where(Telegram.id == kwargs.get('id'))
+	else:
+		query = Telegram.select()
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return query_res
 
 
 def insert_new_telegram(token, chanel, group):
-	con, cur = get_cur()
-	sql = """insert into telegram(`token`, `chanel_name`, `groups`) values ('%s', '%s', '%s') """ % (token, chanel, group)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		Telegram.insert(token=token, chanel_name=chanel, groups=group).execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
+		return False
 	else:
 		return True
-	cur.close()
-	con.close()
 
 
-def update_telegram(token, chanel, group, id):
-	con, cur = get_cur()
-	sql = """ update telegram set 
-			`token` = '%s',
-			`chanel_name` = '%s',
-			`groups` = '%s'
-			where id = '%s' """ % (token, chanel, group, id)
+def update_telegram(token, chanel, group, telegram_id):
+	telegram_update = Telegram.update(token=token, chanel_name=chanel, groups=group).where(Telegram.id == telegram_id)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		telegram_update.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
-
-
-def delete_slack(id):
-	con, cur = get_cur()
-	sql = """ delete from slack where id = %s """ % (id)
-	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
-		funct.out_error(e)
-		con.rollback()
+		return False
 	else:
 		return True
-	cur.close()
-	con.close()
+
+
+def delete_slack(slack_id):
+	query = Slack.delete().where(Slack.id == slack_id)
+	try:
+		query.execute()
+	except Exception as e:
+		funct.out_error(e)
+		return False
+	else:
+		return True
 
 
 def select_slack(**kwargs):
-	con, cur = get_cur()
-	sql = """select * from slack  """
-	if kwargs.get('group'):
-		sql = """select * from slack where groups = '%s' """ % kwargs.get('group')
 	if kwargs.get('token'):
-		sql = """select * from slack where token = '%s' """ % kwargs.get('token')
-	if kwargs.get('id'):
-		sql = """select * from slack where id = '%s' """ % kwargs.get('id')
+		query = Slack.select().where(Slack.token == kwargs.get('token'))
+	elif kwargs.get('id'):
+		query = Slack.select().where(Slack.id == kwargs.get('id'))
+	else:
+		query = Slack.select()
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return query_res
 
 
 def insert_new_slack(token, chanel, group):
-	con, cur = get_cur()
-	sql = """insert into slack(`token`, `chanel_name`, `groups`) values ('%s', '%s', '%s') """ % (token, chanel, group)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		Slack.insert(token=token, chanel_name=chanel, groups=group).execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
+		return False
 	else:
 		return True
-	cur.close()
-	con.close()
 
 
-def update_slack(token, chanel, group, id):
-	con, cur = get_cur()
-	sql = """ update slack set 
-			`token` = '%s',
-			`chanel_name` = '%s',
-			`groups` = '%s'
-			where id = '%s' """ % (token, chanel, group, id)
+def update_slack(token, chanel, group, slack_id):
+	query_update = Slack.update(token=token, chanel_name=chanel, groups=group).where(Slack.id == slack_id)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		query_update.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
-
-
-def insert_new_option(option, group):
-	con, cur = get_cur()
-	sql = """insert into options(`options`, `groups`) values ('%s', '%s') """ % (option, group)
-	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
-		funct.out_error(e)
-		con.rollback()
+		return False
 	else:
 		return True
-	cur.close()
-	con.close()
+
+def insert_new_option(saved_option, group):
+	try:
+		Option.insert(options=saved_option, groups=group).execute()
+	except Exception as e:
+		funct.out_error(e)
+		return False
+	else:
+		return True
 
 
 def select_options(**kwargs):
-	con, cur = get_cur()
-	sql = """select * from options  """
 	if kwargs.get('option'):
-		sql = """select * from options where options = '%s' """ % kwargs.get('option')
-	if kwargs.get('group'):
-		sql = """select options from options where groups = '{}' and options like '{}%' """.format(kwargs.get('group'), kwargs.get('term'))
+		query = Option.select().where(Option.options == kwargs.get('option'))
+	elif kwargs.get('group'):
+		query = Option.select(Option.options).where((Option.groups == kwargs.get('group')) & (Option.options.startswith(kwargs.get('term'))))
+	else:
+		query = Option.select()
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return query_res
 
 
-def update_options(option, id):
-	con, cur = get_cur()
-	sql = """ update options set 
-			options = '%s'
-			where id = '%s' """ % (option, id)
+def update_options(option, option_id):
+	query_update = Option.update(options=option).where(Option.id == option_id)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		query_update.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
-
-
-def delete_option(id):
-	con, cur = get_cur()
-	sql = """ delete from options where id = %s """ % (id)
-	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
-		funct.out_error(e)
-		con.rollback()
+		return False
 	else:
 		return True
-	cur.close()
-	con.close()
+
+
+def delete_option(option_id):
+	query = Option.delete().where(Option.id == option_id)
+	try:
+		query.execute()
+	except Exception as e:
+		funct.out_error(e)
+		return False
+	else:
+		return True
 
 
 def insert_new_savedserver(server, description, group):
-	con, cur = get_cur()
-	sql = """insert into saved_servers(`server`, `description`, `groups`) values ('%s', '%s', '%s') """ % (server, description, group)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		SavedServer.insert(server=server, description=description, groups=group).execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
+		return False
 	else:
 		return True
-	cur.close()
-	con.close()
 
 
 def select_saved_servers(**kwargs):
-	con, cur = get_cur()
-	sql = """select * from saved_servers  """
 	if kwargs.get('server'):
-		sql = """select * from saved_servers where server = '%s' """ % kwargs.get('server')
-	if kwargs.get('group'):
-		sql = """select server,description from saved_servers where groups = '{}' and server like '{}%' """.format(kwargs.get('group'), kwargs.get('term'))
+		query = SavedServer.select().where(SavedServer.server == kwargs.get('server'))
+	elif kwargs.get('group'):
+		query = SavedServer.select(SavedServer.server, SavedServer.description).where(
+			(SavedServer.groups == kwargs.get('group')) & (SavedServer.server.startswith(kwargs.get('term'))))
+	else:
+		query = SavedServer.select()
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return query_res
 
 
-def update_savedserver(server, description, id):
-	con, cur = get_cur()
-	sql = """ update saved_servers set 
-			server = '%s',
-			description = '%s'
-			where id = '%s' """ % (server, description, id)
+def update_savedserver(server, description, saved_id):
+	query_update = SavedServer.update(server=server, description=description).where(SavedServer.id == saved_id)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		query_update.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
-
-
-def delete_savedserver(id):
-	con, cur = get_cur()
-	sql = """ delete from saved_servers where id = %s """ % (id)
-	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
-		funct.out_error(e)
-		con.rollback()
+		return False
 	else:
 		return True
-	cur.close()
-	con.close()
+
+
+def delete_savedserver(saved_id):
+	query = SavedServer.delete().where(SavedServer.id == saved_id)
+	try:
+		query.execute()
+	except Exception as e:
+		funct.out_error(e)
+		return False
+	else:
+		return True
 
 
 def insert_metrics(serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate):
-	con, cur = get_cur()
-	if mysql_enable == '1':
-		sql = """ insert into metrics (serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate, date) values('%s', '%s', '%s', '%s', '%s', now()) """ % (serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate)
-	else:
-		sql = """ insert into metrics (serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate, date) values('%s', '%s', '%s', '%s', '%s',  datetime('now', 'localtime')) """ % (serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		Metrics.insert(serv=serv, curr_con=curr_con, cur_ssl_con=cur_ssl_con, sess_rate=sess_rate,
+					   max_sess_rate=max_sess_rate, date=funct.get_data('regular')).execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
 
 
 def insert_metrics_http(serv, http_2xx, http_3xx, http_4xx, http_5xx):
-	con, cur = get_cur()
-	if mysql_enable == '1':
-		sql = """ insert into metrics_http_status (serv, `2xx`, `3xx`, `4xx`, `5xx`, date) values('%s', '%s', '%s', '%s', '%s', now()) """ % (serv, http_2xx, http_3xx, http_4xx, http_5xx)
-	else:
-		sql = """ insert into metrics_http_status (serv, `2xx`, `3xx`, `4xx`, `5xx`, date) values('%s', '%s', '%s', '%s', '%s',  datetime('now', 'localtime')) """ % (serv, http_2xx, http_3xx, http_4xx, http_5xx)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		MetricsHttpStatus.insert(serv=serv, ok_ans=http_2xx, redir_ans=http_3xx, not_found_ans=http_4xx,
+					   err_ans=http_5xx, date=funct.get_data('regular')).execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
 
 
 def select_waf_metrics_enable_server(ip):
-	con, cur = get_cur()
-	sql = """ select waf.metrics from waf  left join servers as serv on waf.server_id = serv.id where ip = '%s' """ % ip
+	query = Waf.select(Waf.metrics).join(Server, on=(Waf.server_id == Server.server_id)).where(Server.ip == ip)
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		for enable in cur.fetchall():
-			return enable[0]
-	cur.close()
-	con.close()
+		for en in query_res:
+			return en.metrics
 
 
 def select_waf_servers(serv):
-	con, cur = get_cur()
-	sql = """ select serv.ip from waf left join servers as serv on waf.server_id = serv.id where serv.ip = '%s' """ % serv
+	query = Server.select(Server.ip).join(Waf, on=(Waf.server_id == Server.server_id)).where(Server.ip == serv)
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
-
-
-def select_all_waf_servers():
-	con, cur = get_cur()
-	sql = """ select serv.ip from waf left join servers as serv on waf.server_id = serv.id """
-	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
-		funct.out_error(e)
-	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		for en in query_res:
+			return en.ip
 
 
 def select_waf_servers_metrics_for_master():
-	con, cur = get_cur()
+	cursor = conn.cursor()
 	sql = """ select servers.ip from servers left join waf as waf on waf.server_id = servers.id where servers.enable = 1 and waf.metrics = '1'  """
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		cursor.execute(sql)
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return cursor.fetchall()
 
 
-def select_waf_servers_metrics(uuid, **kwargs):
-	con, cur = get_cur()
-	sql = """ select * from user where username = '%s' """ % get_user_name_by_uuid(uuid)
+def select_waf_servers_metrics(uuid):
+	cursor = conn.cursor()
 
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
-		print("An error occurred:", e)
+		user_group = User.get(User.username == get_user_name_by_uuid(uuid))
+	except Exception as e:
+		funct.out_error(e)
 	else:
-		for group in cur:
-			if group[5] == '1':
-				sql = """ select servers.ip from servers left join waf as waf on waf.server_id = servers.id where servers.enable = 1 and waf.metrics = '1'  """
-			else:
-				sql = """ select servers.ip from servers left join waf as waf on waf.server_id = servers.id where servers.enable = 1 and waf.metrics = '1' and servers.groups like '%{group}%' """.format(group=group[5])
+		if user_group.groups == '1':
+			sql = """ select servers.ip from servers left join waf as waf on waf.server_id = servers.id 
+			where servers.enable = 1 and waf.metrics = '1'  """
+		else:
+			sql = """ select servers.ip from servers left join waf as waf on waf.server_id = servers.id 
+			where servers.enable = 1 and waf.metrics = '1' and servers.groups like '%{group}%' """.format(group=user_group.groups)
 		try:
-			cur.execute(sql)
-		except sqltool.Error as e:
+			cursor.execute(sql)
+		except Exception as e:
 			funct.out_error(e)
 		else:
-			return cur.fetchall()
-	cur.close()
-	con.close()
+			return cursor.fetchall()
 
 
 def select_waf_metrics(serv, **kwargs):
-	con, cur = get_cur()
+	cursor = conn.cursor()
 
 	if mysql_enable == '1':
 		if kwargs.get('time_range') == '60':
@@ -1556,197 +1160,173 @@ def select_waf_metrics(serv, **kwargs):
 		sql = """ select * from (select * from waf_metrics where serv = '{serv}' {date_from} order by `date`) order by `date` """.format(serv=serv, date_from=date_from)
 
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		cursor.execute(sql)
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return cursor.fetchall()
 
 
 def insert_waf_metrics_enable(serv, enable):
-	con, cur = get_cur()
-	sql = """ insert into waf (server_id, metrics) values((select id from servers where ip = '%s'), '%s') """ % (serv, enable)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		server_id = Server.get(Server.ip == serv).server_id
+		Waf.inser(server_id=server_id, metrics=enable).execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
 
 
 def insert_waf_rules(serv):
-	con, cur = get_cur()
-	sql = list()
-	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'Ignore static', 'modsecurity_crs_10_ignore_static.conf', 'This ruleset will skip all tests for media files, but will skip only the request body phase (phase 2) for text files. To skip the outbound stage for text files, add file 47 (skip_outbound_checks) to your configuration, in addition to this fileth/aws/login');" % serv)
-	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'Brute force protection', 'modsecurity_crs_11_brute_force.conf', 'Anti-Automation Rule for specific Pages (Brute Force Protection) This is a rate-limiting rule set and does not directly correlate whether the authentication attempt was successful or not');" % serv)
-	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'DOS Protections', 'modsecurity_crs_11_dos_protection.conf', 'Enforce an existing IP address block and log only 1-time/minute. We do not want to get flooded by alerts during an attack or scan so we are only triggering an alert once/minute.  You can adjust how often you want to receive status alerts by changing the expirevar setting below');" % serv)
-	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'XML enabler', 'modsecurity_crs_13_xml_enabler.conf', 'The rules in this file will trigger the XML parser upon an XML request');" % serv)
-	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'Protocol violations', 'modsecurity_crs_20_protocol_violations.conf', 'Some protocol violations are common in application layer attacks. Validating HTTP requests eliminates a large number of application layer attacks. The purpose of this rules file is to enforce HTTP RFC requirements that state how  the client is supposed to interact with the server. http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html');" % serv)
-	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'Protocol anomalies', 'modsecurity_crs_21_protocol_anomalies.conf', 'Some common HTTP usage patterns are indicative of attacks but may also be used by non-browsers for legitimate uses. Do not accept requests without common headers. All normal web browsers include Host, User-Agent and Accept headers. Implies either an attacker or a legitimate automation client');" % serv)
-	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'Detect CC#', 'modsecurity_crs_25_cc_known.conf', 'Detect CC# in input, log transaction and sanitize');" % serv)
-	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'CC traker', 'modsecurity_crs_25_cc_track_pan.conf', 'Credit Card Track 1 and 2 and PAN Leakage Checks');" % serv)
-	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'HTTP policy', 'modsecurity_crs_30_http_policy.conf', 'HTTP policy enforcement The HTTP policy enforcement rule set sets limitations on the use of HTTP by clients. Few applications require the breadth and depth of the HTTP protocol. On the other hand many attacks abuse valid but rare HTTP use patterns. Restricting  HTTP protocol usage is effective in therefore effective in blocking many  application layer attacks');" % serv)
-	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'Bad robots', 'modsecurity_crs_35_bad_robots.conf', 'Bad robots detection is based on checking elements easily controlled by the client. As such a determined attacked can bypass those checks. Therefore bad robots detection should not be viewed as a security mechanism against targeted attacks but rather as a nuisance reduction, eliminating most of the random attacks against your web site');" % serv)
-	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'OS Injection Attacks', 'modsecurity_crs_40_generic_attacks.conf', 'OS Command Injection Attacks');" % serv)
-	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'SQL injection', 'modsecurity_crs_41_sql_injection_attacks.conf', 'SQL injection protection');" % serv)
-	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'XSS Protections', 'modsecurity_crs_41_xss_attacks.conf', 'XSS attacks protection');" % serv)
-	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'Comment spam', 'modsecurity_crs_42_comment_spam.conf', 'Comment spam is an attack against blogs, guestbooks, wikis and other types of interactive web sites that accept and display hyperlinks submitted by visitors. The spammers automatically post specially crafted random comments which include links that point to the spammer\'s web site. The links artificially increas the site's search engine ranking and may make the site more noticable in search results.');" % serv)
-	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'Trojans Protections', 'modsecurity_crs_45_trojans.conf ', 'The trojan access detection rules detects access to known Trojans already installed on a server. Uploading of Trojans is part of the Anti-Virus rules  and uses external Anti Virus program when uploading files. Detection of Trojans access is especially important in a hosting environment where the actual Trojan upload may be done through valid methods and not through hacking');" % serv)
-	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'RFI Protections', 'modsecurity_crs_46_slr_et_lfi_attacks.conf', 'Remote file inclusion is an attack targeting vulnerabilities in web applications that dynamically reference external scripts. The perpetrator’s goal is to exploit the referencing function in an application to upload malware (e.g., backdoor shells) from a remote URL located within a different domain');" % serv)
-	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'RFI Protections 2', 'modsecurity_crs_46_slr_et_rfi_attacks.conf', 'Remote file inclusion is an attack targeting vulnerabilities in web applications that dynamically reference external scripts. The perpetrator’s goal is to exploit the referencing function in an application to upload malware (e.g., backdoor shells) from a remote URL located within a different domain');" % serv)
-	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'SQLi Protections', 'modsecurity_crs_46_slr_et_sqli_attacks.conf', 'SQLi injection attacks protection');" % serv)
-	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'XSS Protections 2', 'modsecurity_crs_46_slr_et_xss_attacks.conf', 'XSS attacks protection');" % serv)
-	sql.append("INSERT  INTO waf_rules (serv, rule_name, rule_file, `desc`) values('%s', 'Common exceptions', 'modsecurity_crs_47_common_exceptions.conf', 'This file is used as an exception mechanism to remove common false positives that may be encountered');" % serv)
-	for i in sql:
-		try:
-			cur.execute(i)
-			con.commit()
-		except sqltool.Error as e:
-			pass
+	data_source = [
+		{'serv': serv, 'rule_name': 'Ignore static', 'rule_file': 'modsecurity_crs_10_ignore_static.conf',
+		 'desc': 'This ruleset will skip all tests for media files, but will skip only the request body phase (phase 2) for text files. To skip the outbound stage for text files, add file 47 (skip_outbound_checks) to your configuration, in addition to this fileth/aws/login'},
+		{'serv': serv, 'rule_name': 'Brute force protection', 'rule_file': 'modsecurity_crs_11_brute_force.conf',
+		 'desc': 'Anti-Automation Rule for specific Pages (Brute Force Protection) This is a rate-limiting rule set and does not directly correlate whether the authentication attempt was successful or not'},
+		{'serv': serv, 'rule_name': 'DOS Protections', 'rule_file': 'modsecurity_crs_11_dos_protection.conf',
+		 'desc': 'Enforce an existing IP address block and log only 1-time/minute. We do not want to get flooded by alerts during an attack or scan so we are only triggering an alert once/minute.  You can adjust how often you want to receive status alerts by changing the expirevar setting below'},
+		{'serv': serv, 'rule_name': 'XML enabler', 'rule_file': 'modsecurity_crs_13_xml_enabler.conf',
+		 'desc': 'The rules in this file will trigger the XML parser upon an XML request'},
+		{'serv': serv, 'rule_name': 'Protocol violations', 'rule_file': 'modsecurity_crs_20_protocol_violations.conf',
+		 'desc': 'Some protocol violations are common in application layer attacks. Validating HTTP requests eliminates a large number of application layer attacks. The purpose of this rules file is to enforce HTTP RFC requirements that state how  the client is supposed to interact with the server. http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html'},
+		{'serv': serv, 'rule_name': 'Protocol anomalies', 'rule_file': 'modsecurity_crs_21_protocol_anomalies.conf',
+		 'desc': 'Some common HTTP usage patterns are indicative of attacks but may also be used by non-browsers for legitimate uses. Do not accept requests without common headers. All normal web browsers include Host, User-Agent and Accept headers. Implies either an attacker or a legitimate automation client'},
+		{'serv': serv, 'rule_name': 'Detect CC#', 'rule_file': 'modsecurity_crs_25_cc_known.conf',
+		 'desc': 'Detect CC# in input, log transaction and sanitize'},
+		{'serv': serv, 'rule_name': 'CC traker', 'rule_file': 'modsecurity_crs_25_cc_track_pan.conf',
+		 'desc': 'Credit Card Track 1 and 2 and PAN Leakage Checks'},
+		{'serv': serv, 'rule_name': 'HTTP policy', 'rule_file': 'modsecurity_crs_30_http_policy.conf',
+		 'desc': 'HTTP policy enforcement The HTTP policy enforcement rule set sets limitations on the use of HTTP by clients. Few applications require the breadth and depth of the HTTP protocol. On the other hand many attacks abuse valid but rare HTTP use patterns. Restricting  HTTP protocol usage is effective in therefore effective in blocking many  application layer attacks'},
+		{'serv': serv, 'rule_name': 'Bad robots', 'rule_file': 'modsecurity_crs_35_bad_robots.conf',
+		 'desc': 'Bad robots detection is based on checking elements easily controlled by the client. As such a determined attacked can bypass those checks. Therefore bad robots detection should not be viewed as a security mechanism against targeted attacks but rather as a nuisance reduction, eliminating most of the random attacks against your web site'},
+		{'serv': serv, 'rule_name': 'OS Injection Attacks', 'rule_file': 'modsecurity_crs_40_generic_attacks.conf',
+		 'desc': 'OS Command Injection Attacks'},
+		{'serv': serv, 'rule_name': 'SQL injection', 'rule_file': 'modsecurity_crs_41_sql_injection_attacks.conf',
+		 'desc': 'SQL injection protection'},
+		{'serv': serv, 'rule_name': 'XSS Protections', 'rule_file': 'modsecurity_crs_41_xss_attacks.conf',
+		 'desc': 'XSS attacks protection'},
+		{'serv': serv, 'rule_name': 'Comment spam', 'rule_file': 'modsecurity_crs_42_comment_spam.conf',
+		 'desc': 'Comment spam is an attack against blogs, guestbooks, wikis and other types of interactive web sites that accept and display hyperlinks submitted by visitors. The spammers automatically post specially crafted random comments which include links that point to the spammer\'s web site. The links artificially increas the site\'s search engine ranking and may make the site more noticable in search results.'},
+		{'serv': serv, 'rule_name': 'Trojans Protections', 'rule_file': 'modsecurity_crs_45_trojans.conf ',
+		 'desc': 'The trojan access detection rules detects access to known Trojans already installed on a server. Uploading of Trojans is part of the Anti-Virus rules  and uses external Anti Virus program when uploading files. Detection of Trojans access is especially important in a hosting environment where the actual Trojan upload may be done through valid methods and not through hacking'},
+		{'serv': serv, 'rule_name': 'RFI Protections', 'rule_file': 'modsecurity_crs_46_slr_et_lfi_attacks.conf',
+		  'desc': 'Remote file inclusion is an attack targeting vulnerabilities in web applications that dynamically reference external scripts. The perpetrator’s goal is to exploit the referencing function in an application to upload malware (e.g., backdoor shells) from a remote URL located within a different domain'},
+		{'serv': serv, 'rule_name': 'RFI Protections 2', 'rule_file': 'modsecurity_crs_46_slr_et_rfi_attacks.conf',
+		 'desc': 'Remote file inclusion is an attack targeting vulnerabilities in web applications that dynamically reference external scripts. The perpetrator’s goal is to exploit the referencing function in an application to upload malware (e.g., backdoor shells) from a remote URL located within a different domain'},
+		{'serv': serv, 'rule_name': 'SQLi Protections', 'rule_file': 'modsecurity_crs_46_slr_et_sqli_attacks.conf',
+		 'desc': 'SQLi injection attacks protection'},
+		{'serv': serv, 'rule_name': 'XSS Protections 2', 'rule_file': 'modsecurity_crs_46_slr_et_xss_attacks.conf',
+		 'desc': 'XSS attacks protection'},
+		{'serv': serv, 'rule_name': 'Common exceptions', 'rule_file': 'modsecurity_crs_47_common_exceptions.conf',
+		 'desc': 'This file is used as an exception mechanism to remove common false positives that may be encountered'},
+	]
+	try:
+		WafRules.insert_many(data_source).execute()
+	except Exception as e:
+		funct.out_error(e)
 	else:
-		if kwargs.get('silent') != 1:
-			print('Updating... one more for version 4.0.0')
 		return True
-	cur.close()
-	con.close()
 
 
 def select_waf_rules(serv):
-	con, cur = get_cur()
-	sql = """ select id, rule_name, en, `desc` from waf_rules where serv = '%s' """ % serv
+	query = WafRules.select(WafRules.id, WafRules.rule_name, WafRules.en, WafRules.desc).where(WafRules.serv == serv)
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return query_res
 
 
-def select_waf_rule_by_id(id):
-	con, cur = get_cur()
-	sql = """ select rule_file from waf_rules  where id = '%s' """ % id
+def delete_waf_rules(serv):
+	query = WafRules.delete().where(WafRules.serv == serv)
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query.execute()
+	except Exception as e:
+		funct.out_error(e)
+
+
+def select_waf_rule_by_id(rule_id):
+	try:
+		query = WafRules.get(WafRules.id == rule_id)
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		for rule_file in cur.fetchall():
-			return rule_file[0]
-	cur.close()
-	con.close()
+		return query.rule_file
 
 
-def update_enable_waf_rules(id, serv, en):
-	con, cur = get_cur()
-	sql = """ update waf_rules set `en` = '%s' where id = '%s' and serv = '%s' """ % (en, id, serv)
+def update_enable_waf_rules(rule_id, serv, en):
+	query = WafRules.update(WafRules=en).where((WafRules.id == rule_id) & (WafRules.serv == serv))
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		query.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
 
 
-def delete_waf_server(id):
-	con, cur = get_cur()
-	sql = """ delete from waf where server_id = '%s' """ % id
+def delete_waf_server(server_id):
+	query = Waf.delete().where(Waf.server_id == server_id)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		query.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
 
 
 def insert_waf_metrics(serv, conn):
-	con, cur = get_cur()
-	if mysql_enable == '1':
-		sql = """ insert into waf_metrics (serv, conn, date) values('%s', '%s', now()) """ % (serv, conn)
-	else:
-		sql = """ insert into waf_metrics (serv, conn, date) values('%s', '%s',  datetime('now', 'localtime')) """ % (serv, conn)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		WafMetrics.insert(serv=serv, conn=conn, date=funct.get_data('regular')).execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
 
 
 def delete_waf_metrics():
-	con, cur = get_cur()
+	cursor = conn.cursor()
 	if mysql_enable == '1':
 		sql = """ delete from metrics where date < now() - INTERVAL 3 day """
 	else:
 		sql = """ delete from metrics where date < datetime('now', '-3 days') """
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		cursor.execute(sql)
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
 
 
 def update_waf_metrics_enable(name, enable):
-	con, cur = get_cur()
-	sql = """ update waf set metrics = %s where server_id = (select id from servers where hostname = '%s') """ % (enable, name)
+	server_id = 0
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		server_id = Server.get(Server.hostname == name).server_id
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
+
+	try:
+		Waf.update(metrics=enable).where(Waf.server_id == server_id).execute()
+	except Exception as e:
+		funct.out_error(e)
 
 
 def delete_metrics():
-	con, cur = get_cur()
+	cursor = conn.cursor()
 	if mysql_enable == '1':
 		sql = """ delete from metrics where date < now() - INTERVAL 3 day """
 	else:
 		sql = """ delete from metrics where date < datetime('now', '-3 days') """
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		cursor.execute(sql)
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
 
 
 def delete_http_metrics():
-	con, cur = get_cur()
+	cursor = conn.cursor()
 	if mysql_enable == '1':
 		sql = """ delete from metrics_http_status where date < now() - INTERVAL 3 day """
 	else:
 		sql = """ delete from metrics_http_status where date < datetime('now', '-3 days') """
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		cursor.execute(sql)
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
 
 
 def select_metrics(serv, **kwargs):
-	con, cur = get_cur()
+	cursor = conn.cursor()
 
 	if mysql_enable == '1':
 		if kwargs.get('time_range') == '60':
@@ -1775,18 +1355,15 @@ def select_metrics(serv, **kwargs):
 		sql = """ select * from (select * from metrics where serv = '{serv}' {date_from} order by `date`) order by `date` """.format(serv=serv, date_from=date_from)
 
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		cursor.execute(sql)
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-
-	cur.close()
-	con.close()
+		return cursor.fetchall()
 
 
 def select_metrics_http(serv, **kwargs):
-	con, cur = get_cur()
+	cursor = conn.cursor()
 
 	if mysql_enable == '1':
 		if kwargs.get('time_range') == '60':
@@ -1815,67 +1392,50 @@ def select_metrics_http(serv, **kwargs):
 		sql = """ select * from (select * from metrics_http_status where serv = '{serv}' {date_from} order by `date`) order by `date` """.format(serv=serv, date_from=date_from)
 
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		cursor.execute(sql)
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-
-	cur.close()
-	con.close()
+		return cursor.fetchall()
 
 
 def select_servers_metrics_for_master(**kwargs):
-	con, cur = get_cur()
+	cursor = conn.cursor()
 	sql = """select ip from servers where metrics = 1 """
 	if kwargs.get('group') is not None:
 		sql = """select ip from servers where metrics = 1 and groups = '%s' """ % kwargs.get('group')
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		cursor.execute(sql)
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return cursor.fetchall()
 
 
-def select_servers_metrics(uuid, **kwargs):
-	con, cur = get_cur()
-	import http.cookies
-	import os
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	group = cookie.get('group')
-	group = group.value
-
+def select_servers_metrics():
+	group_id = funct.get_user_group(id=1)
 	if funct.check_user_group():
-		if group == '1':
-			sql = """ select ip from servers where enable = 1 and metrics = '1' """
+		if group_id == '1':
+			query = Server.select(Server.ip).where((Server.enable == 1) & (Server.metrics == 1))
 		else:
-			sql = """ select ip from servers where groups = '{group}' and metrics = '1'""".format(group=group)
+			query = Server.select(Server.ip).where((Server.groups == group_id) & (Server.metrics == 1))
 		try:
-			cur.execute(sql)
-		except sqltool.Error as e:
+			query_res = query.execute()
+		except Exception as e:
 			funct.out_error(e)
 		else:
-			return cur.fetchall()
-	cur.close()
-	con.close()
+			return query_res
 
 
 def select_table_metrics():
-	con, cur = get_cur()
-	import http.cookies
-	import os
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	group = cookie.get('group')
-	group = group.value
+	cursor = conn.cursor()
+	group_id = funct.get_user_group(id=1)
 
 	if funct.check_user_group():
-		if group == '1':
+		if group_id == '1':
 			groups = ""
 		else:
-			groups = "and servers.groups = '{group}' ".format(group=group)
+			groups = "and servers.groups = '{group}' ".format(group=group_id)
 	if mysql_enable == '1':
 		sql = """
                 select ip.ip, hostname, avg_sess_1h, avg_sess_24h, avg_sess_3d, max_sess_1h, max_sess_24h, max_sess_3d, avg_cur_1h, avg_cur_24h, avg_cur_3d, max_con_1h, max_con_24h, max_con_3d from
@@ -1970,8 +1530,6 @@ def select_table_metrics():
                 and ip.ip=max_con_3d.ip
 
                 group by hostname.ip """ % groups
-
-
 	else:
 		sql = """
 		select ip.ip, hostname, avg_sess_1h, avg_sess_24h, avg_sess_3d, max_sess_1h, max_sess_24h, max_sess_3d, avg_cur_1h, avg_cur_24h, avg_cur_3d, max_con_1h, max_con_24h, max_con_3d from
@@ -2068,13 +1626,11 @@ def select_table_metrics():
 		group by hostname.ip """ % groups
 
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		cursor.execute(sql)
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return cursor.fetchall()
 
 
 def get_setting(param, **kwargs):
@@ -2086,264 +1642,195 @@ def get_setting(param, **kwargs):
 	if user_group == '' or param == 'lists_path' or param == 'ssl_local_path':
 		user_group = '1'
 
-	con, cur = get_cur()
-	sql = """select value from `settings` where param='%s' and `group` = '%s'""" % (param, user_group)
 	if kwargs.get('all'):
-		sql = """select * from `settings` where `group` = '%s' order by section desc""" % user_group
+		query = Setting.select().where(Setting.group == user_group).order_by(Setting.section.desc())
+	else:
+		query = Setting.select().where((Setting.param == param) & (Setting.group == user_group))
+
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
 		if kwargs.get('all'):
-			return cur.fetchall()
+			return query_res
 		else:
-			for value in cur.fetchone():
-				return value
-	cur.close()
-	con.close()
+			for setting in query_res:
+				return setting.value
 
 
 def update_setting(param, val):
 	user_group = funct.get_user_group(id=1)
 
 	if funct.check_user_group():
-		con, cur = get_cur()
-		sql = """update `settings` set `value` = '%s' where param = '%s' and `group` = '%s' """ % (val, param, user_group)
+		query = Setting.update(value=val).where((Setting.param == param) & (Setting.group == user_group))
 		try:
-			cur.execute(sql)
-			con.commit()
-			cur.close()
-			con.close()
+			query.execute()
 			return True
-		except sqltool.Error as e:
+		except Exception as e:
 			funct.out_error(e)
-			con.rollback()
-			cur.close()
-			con.close()
 			return False
 
 
 def get_ver():
-	con, cur = get_cur()
-	sql = """ select * from version; """
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		ver = Version.get()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		for ver in cur.fetchall():
-			return ver[0]
-	cur.close()
-	con.close()
+		return ver.version
 
 
-def select_roles(**kwargs):
-	con, cur = get_cur()
-	sql = """select * from role ORDER BY id"""
-	if kwargs.get("roles") is not None:
-		sql = """select * from role where name='%s' """ % kwargs.get("roles")
+def select_roles():
+	query = Role.select()
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return query_res
 
 
 def select_alert(**kwargs):
-	con, cur = get_cur()
+	cursor = conn.cursor()
 	sql = """select ip from servers where alert = 1 and enable = 1  """
 	if kwargs.get("group") is not None:
 		sql = """select ip from servers where alert = 1 and `groups` = '%s' and enable = 1 """ % kwargs.get("group")
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		cursor.execute(sql)
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return cursor.fetchall()
 
 
 def select_all_alerts(**kwargs):
-	con, cur = get_cur()
-	sql = """select ip from servers where alert = 1 or nginx_alert = 1 and enable = 1 """
 	if kwargs.get("group") is not None:
-		sql = """select ip from servers where (alert = 1 or nginx_alert = 1) and `groups` = '%s' and enable = 1 """ % kwargs.get("group")
+		query = Server.select(Server.ip).where(
+			((Server.alert == 1) | (Server.nginx_alert == 1)) &
+			(Server.enable == 1) &
+			(Server.groups == kwargs.get('group')))
+	else:
+		query = Server.select(Server.ip).where(((Server.alert == 1) | (Server.nginx_alert == 1)) & (Server.enable == 1))
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return query_res
 
 
 def select_nginx_alert(**kwargs):
-	con, cur = get_cur()
+	cursor = conn.cursor()
 	sql = """select ip from servers where nginx_alert = 1 and enable = 1 """
 	if kwargs.get("group") is not None:
 		sql = """select ip from servers where nginx_alert = 1 and `groups` = '%s' and enable = 1 """ % kwargs.get("group")
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		cursor.execute(sql)
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return cursor.fetchall()
 
 
-def select_keep_alive(**kwargs):
-	con, cur = get_cur()
+def select_keep_alive():
+	cursor = conn.cursor()
 	sql = """select ip from servers where active = 1 """
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		cursor.execute(sql)
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return cursor.fetchall()
 
 
-def select_nginx_keep_alive(**kwargs):
-	con, cur = get_cur()
+def select_nginx_keep_alive():
+	cursor = conn.cursor()
 	sql = """select ip from servers where nginx_active = 1 """
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		cursor.execute(sql)
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return cursor.fetchall()
 
 
-def select_keealived(serv, **kwargs):
-	con, cur = get_cur()
-	sql = """select keepalived from `servers` where ip='%s' """ % serv
+def select_keepalived(serv):
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		keepalived = Server.get(Server.ip == serv).keepalived
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		for value in cur.fetchone():
-			return value
-	finally:
-		cur.close()
-		con.close()
+		return keepalived
 
 
 def update_keepalived(serv):
-	con, cur = get_cur()
-	sql = """update `servers` set `keepalived` = '1' where ip = '%s' """ % serv
+	query = Server.update(keepalived='1').where(Server.ip == serv)
 	try:
-		cur.execute(sql)
-		con.commit()
-		return True
-	except sqltool.Error as e:
+		query.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
 		return False
-	finally:
-		cur.close()
-		con.close()
+	else:
+		return True
 
 
 def select_nginx(serv):
-	con, cur = get_cur()
-	sql = """select nginx from `servers` where ip='%s' """ % serv
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = Server.get(Server.ip == serv).nginx
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		for value in cur.fetchone():
-			return value
-	cur.close()
-	con.close()
+		return query_res
 
 
 def update_nginx(serv):
-	con, cur = get_cur()
-	sql = """update `servers` set `nginx` = '1' where ip = '%s' """ % serv
+	query = Server.update(nginx=1).where(Server.ip == serv)
 	try:
-		cur.execute(sql)
-		con.commit()
+		query.execute()
 		return True
-	except sqltool.Error as e:
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
 		return False
-	finally:
-		cur.close()
-		con.close()
 
 
 def select_haproxy(serv):
-	con, cur = get_cur()
-	sql = """select haproxy from `servers` where ip='%s' """ % serv
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = Server.get(Server.ip == serv).haproxy
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		for value in cur.fetchone():
-			return value
-	cur.close()
-	con.close()
+		return query_res
 
 
 def update_haproxy(serv):
-	con, cur = get_cur()
-	sql = """update `servers` set `haproxy` = '1' where ip = '%s' """ % serv
+	query = Server.update(haproxy=1).where(Server.ip == serv)
 	try:
-		cur.execute(sql)
-		con.commit()
+		query.execute()
 		return True
-	except sqltool.Error as e:
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
 		return False
-	finally:
-		cur.close()
-		con.close()
 
 
 def update_firewall(serv):
-	con, cur = get_cur()
-	sql = """update `servers` set `firewall_enable` = '1' where ip = '%s' """ % serv
+	query = Server.update(firewall_enable=1).where(Server.ip == serv)
 	try:
-		cur.execute(sql)
-		con.commit()
+		query.execute()
 		return True
-	except sqltool.Error as e:
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
 		return False
-	finally:
-		cur.close()
-		con.close()
 
 
 def update_server_pos(pos, server_id):
-	con, cur = get_cur()
-	sql = """ update servers set 
-			pos = '%s'
-			where id = '%s'""" % (pos, server_id)
+	query = Server.update(pos=pos).where(Server.server_id == server_id)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		query.execute()
+		return True
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
+		return False
 
 
 def check_token_exists(token):
@@ -2365,6 +1852,7 @@ def check_token_exists(token):
 			funct.logging('localhost', ' Cannot check token', haproxywi=1, login=1)
 		except:
 			funct.logging('localhost', ' Cannot check token', haproxywi=1)
+		finally:
 			return False
 
 
@@ -2373,25 +1861,19 @@ def insert_smon(server, port, enable, proto, uri, body, group, desc, telegram, u
 		http = proto+':'+uri
 	except:
 		http = ''
-	con, cur = get_cur()
-	sql = """INSERT INTO smon (ip, port, en, `desc`, `group`, http, body, telegram_channel_id, user_group, `status`) 
-			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '3')
-			""" % (server, port, enable, desc, group, http, body, telegram, user_group)
+
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		SMON.insert(ip=server, port=port, en=enable, desc=desc, group=group, http=http, body=body,
+					telegram_channel_id=telegram, user_group=user_group, status='3').execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
 		return False
 	else:
 		return True
-	cur.close()
-	con.close()
 
 
 def select_smon(user_group, **kwargs):
-	con, cur = get_cur()
+	cursor = conn.cursor()
 
 	funct.check_user_group()
 
@@ -2403,6 +1885,11 @@ def select_smon(user_group, **kwargs):
 		else:
 			user_group = "where user_group='%s'" % user_group
 
+	if kwargs.get('body') is None:
+		body = ''
+	else:
+		body = kwargs.get('body')
+
 	if kwargs.get('ip'):
 		try:
 			http = kwargs.get('proto')+':'+kwargs.get('uri')
@@ -2410,68 +1897,48 @@ def select_smon(user_group, **kwargs):
 			http = ''
 		sql = """select id, ip, port, en, http, body, telegram_channel_id, `desc`, `group`, user_group from smon 
 		where ip='%s' and port='%s' and http='%s' and body='%s' %s 
-		""" % (kwargs.get('ip'), kwargs.get('port'), http, kwargs.get('body'), user_group)
+		""" % (kwargs.get('ip'), kwargs.get('port'), http, body, user_group)
 	elif kwargs.get('action') == 'add':
 		sql = """select id, ip, port, en, http, body, telegram_channel_id, `desc`, `group`, user_group from smon
 		%s order by `group`""" % user_group
 	else:
 		sql = """select * from `smon` %s """ % user_group
+	print(sql)
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		cursor.execute(sql)
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return cursor.fetchall()
 
 
-def delete_smon(id, user_group):
-	con, cur = get_cur()
-
+def delete_smon(smon_id, user_group):
 	funct.check_user_group()
 
-	sql = """delete from smon
-			where id = '%s' and user_group = '%s' """ % (id, user_group)
+	query = SMON.delete().where((SMON.id == smon_id) & (SMON.user_group == user_group))
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		query.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
 		return False
 	else:
 		return True
-	cur.close()
-	con.close()
 
 
-def update_smon(id, ip, port, body, telegram, group, desc, en):
+def update_smon(smon_id, ip, port, body, telegram, group, desc, en):
 	funct.check_user_group()
-	con, cur = get_cur()
-	sql = """ update smon set 
-			ip = '%s',
-			port = '%s',
-			body = '%s',
-			telegram_channel_id = '%s',
-			`group` = '%s',
-			`desc` = '%s',
-			en = '%s'
-			where id = '%s'""" % (ip, port, body, telegram, group, desc, en, id)
+	query = (SMON.update(ip=ip, port=port, body=body, telegram_channel_id=telegram, group=group, desc=desc, en=en)
+			 .where(SMON.id == smon_id))
 	try:
-		cur.execute(sql)
-		con.commit()
+		query.execute()
 		return True
-	except sqltool.Error as e:
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
 		return False
-	cur.close()
-	con.close()
 
 
 def alerts_history(service, user_group, **kwargs):
-	con, cur = get_cur()
+	cursor = conn.cursor()
 	and_host = ''
 
 	if kwargs.get('host'):
@@ -2487,164 +1954,146 @@ def alerts_history(service, user_group, **kwargs):
 		   f"where service = '{service}' {sql_user_group} {and_host} " 
 		   f"order by date desc; ")
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		cursor.execute(sql)
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
+		return cursor.fetchall()
 
 
 def select_en_service():
-	con, cur = get_cur()
+	cursor = conn.cursor()
 	sql = """ select ip, port, telegram_channel_id, id, user_group from smon where en = 1"""
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		cursor.execute(sql)
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
+		return cursor.fetchall()
 
 
-def select_status(id):
-	con, cur = get_cur()
-	sql = """ select status from smon where id = '%s' """ % (id)
+def select_status(smon_id):
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = SMON.get(SMON.id == smon_id).status
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		for status in cur:
-			return status[0]
+		return query_res
 
 
-def select_http_status(id):
-	con, cur = get_cur()
-	sql = """ select http_status from smon where id = '%s' """ % (id)
+def select_http_status(smon_id):
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
-		print("An error occurred:", e)
+		query_res = SMON.get(SMON.id == smon_id).http_status
+	except Exception as e:
+		funct.out_error(e)
 	else:
-		for status in cur:
-			return status[0]
+		return query_res
 
 
-def select_body_status(id):
-	con, cur = get_cur()
-	sql = """ select body_status from smon where id = '%s' """ % (id)
+def select_body_status(smon_id):
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
-		print("An error occurred:", e)
+		query_res = SMON.get(SMON.id == smon_id).body_status
+	except Exception as e:
+		funct.out_error(e)
 	else:
-		for status in cur:
-			return status[0]
+		return query_res
 
 
-def select_script(id):
-	con, cur = get_cur()
-	sql = """ select script from smon where id = '%s' """ % (id)
+def select_script(smon_id):
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
-		print("An error occurred:", e)
+		query_res = SMON.get(SMON.id == smon_id).script
+	except Exception as e:
+		funct.out_error(e)
 	else:
-		for script in cur:
-			return script[0]
+		return query_res
 
 
-def select_http(id):
-	con, cur = get_cur()
-	sql = """ select http from smon where id = '%s' """ % (id)
+def select_http(smon_id):
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
-		print("An error occurred:", e)
+		query_res = SMON.get(SMON.id == smon_id).http
+	except Exception as e:
+		funct.out_error(e)
 	else:
-		for script in cur:
-			return script[0]
+		return query_res
 
 
-def select_body(id):
-	con, cur = get_cur()
-	sql = """ select body from smon where id = '%s' """ % (id)
+def select_body(smon_id):
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
-		print("An error occurred:", e)
+		query_res = SMON.get(SMON.id == smon_id).body
+	except Exception as e:
+		funct.out_error(e)
 	else:
-		for script in cur:
-			return script[0]
+		return query_res
 
 
-def change_status(status, id):
-	con, cur = get_cur()
-	sql = """ update smon set status = '%s' where id = '%s' """ % (status, id)
+def change_status(status, smon_id):
+	query = SMON.update(status=status).where(SMON.id == smon_id)
 	try:
-		cur.executescript(sql)
-	except sqltool.Error as e:
-		print("An error occurred:", e)
-	cur.close()
-	con.close()
+		query.execute()
+	except Exception as e:
+		funct.out_error(e)
+		return False
+	else:
+		return True
 
 
-def change_http_status(status, id):
-	con, cur = get_cur()
-	sql = """ update smon set http_status = '%s' where id = '%s' """ % (status, id)
+def change_http_status(status, smon_id):
+	query = SMON.update(http_status=status).where(SMON.id == smon_id)
 	try:
-		cur.executescript(sql)
-	except sqltool.Error as e:
-		print("An error occurred:", e)
-	cur.close()
-	con.close()
+		query.execute()
+	except Exception as e:
+		funct.out_error(e)
+		return False
+	else:
+		return True
 
 
-def change_body_status(status, id):
-	con, cur = get_cur()
-	sql = """ update smon set body_status = '%s' where id = '%s' """ % (status, id)
+def change_body_status(status, smon_id):
+	query = SMON.update(body_status=status).where(SMON.id == smon_id)
 	try:
-		cur.executescript(sql)
-	except sqltool.Error as e:
-		print("An error occurred:", e)
-	cur.close()
-	con.close()
+		query.execute()
+	except Exception as e:
+		funct.out_error(e)
+		return False
+	else:
+		return True
 
 
-def add_sec_to_state_time(time, id):
-	con, cur = get_cur()
-	sql = """ update smon set time_state = '%s' where id = '%s' """ % (time, id)
+def add_sec_to_state_time(time, smon_id):
+	query = SMON.update(time_state=time).where(SMON.id == smon_id)
 	try:
-		cur.executescript(sql)
-	except sqltool.Error as e:
-		print("An error occurred:", e)
-	cur.close()
-	con.close()
+		query.execute()
+	except Exception as e:
+		funct.out_error(e)
+		return False
+	else:
+		return True
 
 
-def set_to_zero_time_state(id):
-	con, cur = get_cur()
-	sql = """ update smon set time_state = 0 where id = '%s' """ % (id)
+def set_to_zero_time_state(smon_id):
+	query = SMON.update(time_state=0).where(SMON.id == smon_id)
 	try:
-		cur.executescript(sql)
-	except sqltool.Error as e:
-		print("An error occurred:", e)
-	cur.close()
-	con.close()
+		query.execute()
+	except Exception as e:
+		funct.out_error(e)
+		return False
+	else:
+		return True
 
 
-def response_time(time, id):
-	con, cur = get_cur()
-	sql = """ update smon set response_time = '%s' where id = '%s' """ % (time, id)
+def response_time(time, smon_id):
+	query = SMON.update(response_time=time).where(SMON.id == smon_id)
 	try:
-		cur.executescript(sql)
-	except sqltool.Error as e:
-		print("An error occurred:", e)
-	cur.close()
-	con.close()
+		query.execute()
+	except Exception as e:
+		funct.out_error(e)
+		return False
+	else:
+		return True
 
 
 def smon_list(user_group):
-	con, cur = get_cur()
+	cursor = conn.cursor()
 
 	if user_group == 1:
 		user_group = ''
@@ -2654,368 +2103,251 @@ def smon_list(user_group):
 	sql = """ select ip,port,status,en,`desc`,response_time,time_state,`group`,script,http,http_status,body,body_status 
 	from smon %s order by `group` desc """ % user_group
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
-		out_error(e)
+		cursor.execute(sql)
+	except Exception as e:
+		funct.out_error(e)
 	else:
-		return cur.fetchall()
+		return cursor.fetchall()
 
 
 def insert_alerts(user_group, level, ip, port, message, service):
-	con, cur = get_cur()
-	if mysql_enable == '1':
-		sql = """ insert into alerts (user_group, message, level, ip, port, service, date) values('%s', '%s', '%s', '%s', '%s', '%s', now()) """ % (user_group, message, level, ip, port, service)
-	else:
-		sql = """ insert into alerts (user_group, message, level, ip, port, service, date) values('%s', '%s', '%s', '%s', '%s', '%s', datetime('now', 'localtime')) """ % (user_group, message, level, ip, port, service)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		Alerts.insert(user_group=user_group, message=message, level=level, ip=ip, port=port, service=service,
+					  date=funct.get_data('regular')).execute()
+		return True
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
+		return False
 
 
 def select_alerts(user_group):
-	con, cur = get_cur()
+	cursor = conn.cursor()
 	if mysql_enable == '1':
 		sql = """ select level, message, `date` from alerts where user_group = '%s' and `date` <= (now()+ INTERVAL 10 second) """ % (user_group)
 	else:
 		sql = """ select level, message, `date` from alerts where user_group = '%s' and `date` >= datetime('now', '-20 second', 'localtime') and `date` <=  datetime('now', 'localtime') ; """ % (user_group)
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
-		print("An error occurred:", e)
+		cursor.execute(sql)
+	except Exception as e:
+		funct.out_error(e)
 	else:
-		return cur.fetchall()
+		return cursor.fetchall()
 
 
 def is_cloud():
-	con, cur = get_cur()
+	cursor = conn.cursor()
 	sql = """ select * from cloud_uuid """
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
-		cur.close()
-		con.close()
+		cursor.execute(sql)
+	except:
 		return ""
 	else:
-		for cl_uuid in cur.fetchall():
-			cloud_uuid = cl_uuid[0]
-	cur.close()
-	con.close()
-	return cloud_uuid
+		for cl_uuid in cursor.fetchall():
+			return cl_uuid[0]
 
 
 def return_firewall(serv):
-	con, cur = get_cur()
-	sql = """ select firewall_enable from servers where ip = '%s' """ % serv
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
-		cur.close()
-		con.close()
+		query_res = Server.get(Server.ip == serv).firewall_enable
+	except:
 		return False
 	else:
-		for server in cur.fetchall():
-			firewall = server[0]
-
-	cur.close()
-	con.close()
-	return True if firewall == 1 else False
+		return True if query_res == 1 else False
 
 
 def select_geoip_country_codes():
-	con, cur = get_cur()
-	sql = """ select * from geoip_codes"""
+	query = GeoipCodes.select()
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
+		return query_res
 
 
 def insert_port_scanner_settings(server_id, user_group_id, enabled, notify, history):
-	con, cur = get_cur()
-	sql = """ insert into port_scanner_settings values('%s', '%s', '%s', '%s', '%s') """ % (server_id, user_group_id, enabled, notify, history)
 	try:
-		cur.execute(sql)
-		con.commit()
+		PortScannerSettings.insert(server_id=server_id, user_group_id=user_group_id, enabled=enabled,
+								   notify=notify, history=history).execute()
 		return True
-	except sqltool.Error as e:
-		con.rollback()
+	except Exception as e:
+		funct.out_error(e)
 		return False
-	finally:
-		cur.close()
-		con.close()
 
 
 def update_port_scanner_settings(server_id, user_group_id, enabled, notify, history):
-	con, cur = get_cur()
-	sql = """ update port_scanner_settings set 
-				user_group_id = '%s', 
-				enabled = '%s', 
-				notify = '%s', 
-				history = '%s'
-				where server_id = '%s' """ % (user_group_id, enabled, notify, history, server_id)
+	query = PortScannerSettings.update(user_group_id=user_group_id, enabled=enabled,
+									   notify=notify, history=history).where(PortScannerSettings.server_id == server_id)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		query.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
 
 
 def select_port_scanner_settings(user_group):
-	con, cur = get_cur()
-	sql_group = ''
 	if user_group != 1:
-		sql_group = "where user_group_id = '%s'" % str(user_group)
-
-	sql = """select * from port_scanner_settings %s """ % sql_group
+		query = PortScannerSettings.select().where(PortScannerSettings.user_group_id == str(user_group))
+	else:
+		query = PortScannerSettings.select()
 
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return query_res
 
 
 def select_port_scanner_settings_for_service():
-	con, cur = get_cur()
-	sql = """select * from port_scanner_settings """
-
+	query = PortScannerSettings.select()
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return query_res
 
 
 def delete_port_scanner_settings(server_id):
-	con, cur = get_cur()
-	sql = """ delete from port_scanner_settings where server_id = '%s' """ % server_id
-
+	query = PortScannerSettings.delete().where(PortScannerSettings.server_id == server_id)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
-		con.rollback()
-	cur.close()
-	con.close()
+		query.execute()
+	except Exception as e:
+		funct.out_error(e)
 
 
 def insert_port_scanner_port(serv, user_group_id, port, service_name):
-	con, cur = get_cur()
-	if mysql_enable == '1':
-		sql = """ insert into port_scanner_ports values('%s', '%s', '%s', '%s', now()) """ % (serv, user_group_id, port, service_name)
-	else:
-		sql = """ insert into port_scanner_ports values('%s', '%s', '%s', '%s', datetime('now', 'localtime')) """ % (serv, user_group_id, port, service_name)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		PortScannerPorts.insert(serv=serv, port=port, user_group_id=user_group_id, service_name=service_name,
+								  date=funct.get_data('regular')).execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
 
 
 def select_ports(serv):
-	con, cur = get_cur()
+	cursor = conn.cursor()
 	sql = """select port from port_scanner_ports where serv =  '%s' """ % serv
 
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		cursor.execute(sql)
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return cursor.fetchall()
 
 
 def select_port_name(serv, port):
-	con, cur = get_cur()
-	sql = """select service_name from port_scanner_ports where serv =  '%s' and port = '%s' """ % (serv, port)
-
+	query = PortScannerPorts.select(PortScannerPorts.service_name).where(
+		(PortScannerPorts.serv == serv) & (PortScannerPorts.port == port))
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		for port in cur.fetchall():
-			return port[0]
-	cur.close()
-	con.close()
+		for port in query_res:
+			return port.service_name
 
 
 def select_count_opened_ports(serv):
-	con, cur = get_cur()
-	sql = """ select date, count(port) from port_scanner_ports where serv =  '%s' """ % serv
+	query = PortScannerPorts.select(PortScannerPorts.date,
+									fn.Count(PortScannerPorts.port).alias('count')).where(PortScannerPorts.serv == serv)
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
-		cur.close()
-		con.close()
-		return ""
+		query_res = query.execute()
+	except Exception as e:
+		funct.out_error(e)
 	else:
 		port = list()
-		for ports in cur.fetchall():
-			port.append([ports[1], ports[0]])
-	cur.close()
-	con.close()
-	return port
+		for ports in query_res:
+			port.append([ports.count, ports.date])
+		return port
 
 
 def delete_ports(serv):
-	con, cur = get_cur()
-	sql = """ delete from port_scanner_ports where serv = '%s' """ % serv
-
+	query = PortScannerPorts.delete().where(PortScannerPorts.serv == serv)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		query.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
 
 
 def insert_port_scanner_history(serv, port, port_status, service_name):
-	con, cur = get_cur()
-	if mysql_enable == '1':
-		sql = """ insert into port_scanner_history values('%s', '%s', '%s', '%s', now()) """ % (serv, port, port_status, service_name)
-	else:
-		sql = """ insert into port_scanner_history values('%s', '%s', '%s', '%s', datetime('now', 'localtime')) """ % (serv, port, port_status, service_name)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		PortScannerHistory.insert(serv=serv, port=port, status=port_status, service_name=service_name,
+								  date=funct.get_data('regular')).execute()
+		cursor.execute(sql)
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
 
 
 def delete_alert_history(keep_interval: int, service: str):
-	con, cur = get_cur()
+	cursor = conn.cursor()
 	if mysql_enable == '1':
 		sql = """ delete from alerts where date < now() - INTERVAL %s day and service = '%s'""" % (keep_interval, service)
 	else:
 		sql = """ delete from alerts where date < datetime('now', '-%s days') and service = '%s'""" % (keep_interval, service)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		cursor.execute(sql)
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
 
 
 def delete_portscanner_history(keep_interval: int):
-	con, cur = get_cur()
-
+	cursor = conn.cursor()
 	if mysql_enable == '1':
 		sql = """ delete from port_scanner_history where date < now() - INTERVAL %s day""" % keep_interval
 	else:
 		sql = """ delete from port_scanner_history where date < datetime('now', '-%s days')""" % keep_interval
 
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		cursor.execute(sql)
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	finally:
-		cur.close()
-		con.close()
 
 
 def select_port_scanner_history(serv):
-	con, cur = get_cur()
-	sql = """select * from port_scanner_history where serv =  '%s' """ % serv
-
+	query = PortScannerHistory.select().where(PortScannerHistory.serv == serv)
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return query_res
 
 
 def add_provider_do(provider_name, provider_group, provider_token):
-	con, cur = get_cur()
-	if mysql_enable == '1':
-		sql = """ insert into providers_creds (name, type, `group`, key, create_date, edit_date) values ('%s', 'do', '%s', '%s', now(), now())""" % (provider_name, provider_group, provider_token)
-	else:
-		sql = """ insert into providers_creds (name, type, `group`, key, create_date, edit_date) values ('%s', 'do', '%s', '%s', datetime('now', 'localtime'), datetime('now', 'localtime'))""" % (provider_name, provider_group, provider_token)
-
 	try:
-		cur.execute(sql)
+		ProvidersCreds.insert(name=provider_name, type='do', group=provider_group, key=provider_token,
+							  create_date=funct.get_data('regular'), edit_date=funct.get_data('regular')).execute()
 		return True
-	except sqltool.Error as e:
+	except Exception as e:
 		funct.out_error(e)
 		return False
-	finally:
-		cur.close()
-		con.close()
 
 
 def add_provider_aws(provider_name, provider_group, provider_key, provider_secret):
-	con, cur = get_cur()
-
-	if mysql_enable == '1':
-		sql = """ insert into providers_creds (name, type, `group`, key, secret, create_date, edit_date) values ('%s', 'aws', '%s', '%s', '%s', now(), now())""" % (provider_name, provider_group, provider_key, provider_secret)
-	else:
-		sql = """ insert into providers_creds (name, type, `group`, key, secret, create_date, edit_date) values ('%s', 'aws', '%s', '%s', '%s', datetime('now', 'localtime'), datetime('now', 'localtime'))""" % (provider_name, provider_group, provider_key, provider_secret)
-
 	try:
-		cur.execute(sql)
+		ProvidersCreds.insert(name=provider_name, type='aws', group=provider_group, key=provider_key,
+							  secret=provider_secret, create_date=funct.get_data('regular'),
+							  edit_date=funct.get_data('regular')).execute()
 		return True
-	except sqltool.Error as e:
+	except Exception as e:
 		funct.out_error(e)
 		return False
-	finally:
-		cur.close()
-		con.close()
 
 
 def add_provider_gcore(provider_name, provider_group, provider_user, provider_pass):
-	con, cur = get_cur()
-
-	if mysql_enable == '1':
-		sql = """ insert into providers_creds (name, type, `group`, key, secret, create_date, edit_date) values ('%s', 'gcore', '%s', '%s', '%s', now(), now())""" % (provider_name, provider_group, provider_user, provider_pass)
-	else:
-		sql = """ insert into providers_creds (name, type, `group`, key, secret, create_date, edit_date) values ('%s', 'gcore', '%s', '%s', '%s', datetime('now', 'localtime'), datetime('now', 'localtime'))""" % (provider_name, provider_group, provider_user, provider_pass)
-
 	try:
-		cur.execute(sql)
+		ProvidersCreds.insert(name=provider_name, type='gcore', group=provider_group, key=provider_user,
+							  secret=provider_pass, create_date=funct.get_data('regular'),
+							  edit_date=funct.get_data('regular')).execute()
 		return True
-	except sqltool.Error as e:
+	except Exception as e:
 		funct.out_error(e)
 		return False
-	finally:
-		cur.close()
-		con.close()
 
 
 def select_providers(user_group, **kwargs):
-	con, cur = get_cur()
-
+	cursor = conn.cursor()
 	if user_group == 1:
 		user_group = ''
 		if kwargs.get('key'):
@@ -3028,635 +2360,283 @@ def select_providers(user_group, **kwargs):
 	sql = """ select * from providers_creds %s""" % user_group
 
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		cursor.execute(sql)
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	finally:
-		cur.close()
-		con.close()
+		return cursor.fetchall()
 
 
 def delete_provider(provider_id):
-	con, cur = get_cur()
-	sql = """ delete from providers_creds where id = '%s'""" % provider_id
-
+	query = ProvidersCreds.delete().where(ProvidersCreds.id == provider_id)
 	try:
-		cur.execute(sql)
+		query.execute()
 		return True
-	except sqltool.Error as e:
+	except Exception as e:
 		funct.out_error(e)
 		return False
-	finally:
-		cur.close()
-		con.close()
-		
+
 
 def add_server_aws(region, instance_type, public_ip, floating_ip, volume_size, ssh_key_name, name, os, firewall, provider_id, group_id, status, delete_on_termination, volume_type):
-	con, cur = get_cur()
-	if mysql_enable == '1':
-		sql = """ insert into provisioned_servers 
-					(region, instance_type, public_ip, floating_ip, volume_size, volume_type, ssh_key_name, name, os, firewall, provider_id, group_id, type, status, date, delete_on_termination) 
-					values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', 'aws', '%s',  now()), '%s'""" % (
-		region, instance_type, public_ip, floating_ip, volume_size, volume_type, ssh_key_name, name, os, firewall, provider_id,
-		group_id, status, delete_on_termination)
-
-	else:
-		sql = """ insert into provisioned_servers 
-			(region, instance_type, public_ip, floating_ip, volume_size, volume_type, ssh_key_name, name, os, firewall, provider_id, group_id, type, status, date, delete_on_termination) 
-			values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', 'aws', '%s', datetime('now', 'localtime'), '%s')""" % (
-			region, instance_type, public_ip, floating_ip, volume_size, volume_type, ssh_key_name, name, os, firewall, provider_id,
-			group_id, status, delete_on_termination)
-
 	try:
-		cur.execute(sql)
+		ProvisionedServers.insert(region=region, instance_type=instance_type, public_ip=public_ip,
+								  floating_ip=floating_ip, volume_size=volume_size, volume_type=volume_type,
+								  ssh_key_name=ssh_key_name, name=name, os=os, firewall=firewall,
+								  provider_id=provider_id, group_id=group_id, delete_on_termination=delete_on_termination,
+								  type='aws', status=status, date=funct.get_data('regular')).execute()
 		return True
-	except sqltool.Error as e:
+	except Exception as e:
 		funct.out_error(e)
 		return False
-	finally:
-		cur.close()
-		con.close()
 
 
-def add_server_gcore(project ,region, instance_type, network_type, network_name, volume_size, ssh_key_name, name, os, firewall, provider_id, group_id, status, delete_on_termination, volume_type):
-	con, cur = get_cur()
-	if mysql_enable == '1':
-		sql = """ insert into provisioned_servers 
-					(region, instance_type, public_ip, network_name, volume_size, volume_type, ssh_key_name, name, os, firewall, provider_id, group_id, type, status, date, delete_on_termination, project) 
-					values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', 'gcore', '%s',  now()), '%s', '%s'""" % (
-		region, instance_type, network_type, network_name, volume_size, volume_type, ssh_key_name, name, os, firewall, provider_id,
-		group_id, status, delete_on_termination, project)
-
-	else:
-		sql = """ insert into provisioned_servers 
-			(region, instance_type, public_ip, network_name, volume_size, volume_type, ssh_key_name, name, os, firewall, provider_id, group_id, type, status, date, delete_on_termination, project) 
-			values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', 'gcore', '%s', datetime('now', 'localtime'), '%s', '%s')""" % (
-			region, instance_type, network_type, network_name, volume_size, volume_type, ssh_key_name, name, os, firewall, provider_id,
-			group_id, status, delete_on_termination, project)
-
+def add_server_gcore(project ,region, instance_type, network_type, network_name, volume_size, ssh_key_name, name, os,
+					 firewall, provider_id, group_id, status, delete_on_termination, volume_type):
 	try:
-		cur.execute(sql)
+		ProvisionedServers.insert(region=region, instance_type=instance_type, public_ip=network_type, network_name=network_name,
+								  volume_size=volume_size, volume_type=volume_type, ssh_key_name=ssh_key_name, name=name,
+								  os=os, firewall=firewall, provider_id=provider_id, group_id=group_id, type='gcore',
+								  delete_on_termination=delete_on_termination, project=project, status=status,
+								  date=funct.get_data('regular')).execute()
 		return True
-	except sqltool.Error as e:
+	except Exception as e:
 		funct.out_error(e)
 		return False
-	finally:
-		cur.close()
-		con.close()
 
 
-def add_server_do(region, size, privet_net, floating_ip, ssh_ids, ssh_key_name, name, oss, firewall, monitoring, backup, provider_id, group_id, status):
-	con, cur = get_cur()
-	if mysql_enable == '1':
-		sql = """ insert into provisioned_servers 
-			(region, instance_type, private_networking, floating_ip, ssh_ids, ssh_key_name, name, os, firewall, monitoring, backup, provider_id, group_id, type, status, date) 
-			values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', 'do', '%s', now())""" % (
-			region, size, privet_net, floating_ip, ssh_ids, ssh_key_name, name, oss, firewall, monitoring, backup, provider_id,
-			group_id, status)
-
-	else:
-		sql = """ insert into provisioned_servers 
-			(region, instance_type, private_networking, floating_ip, ssh_ids, ssh_key_name, name, os, firewall, monitoring, backup, provider_id, group_id, type, status, date) 
-			values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s',  'do', '%s', datetime('now', 'localtime'))""" % (
-			region, size, privet_net, floating_ip, ssh_ids, ssh_key_name, name, oss, firewall, monitoring, backup, provider_id,
-			group_id, status)
-
+def add_server_do(region, size, privet_net, floating_ip, ssh_ids, ssh_key_name, name, oss, firewall, monitoring, backup,
+				  provider_id, group_id, status):
 	try:
-		cur.execute(sql)
+		ProvisionedServers.insert(region=region, instance_type=size, private_networking=privet_net, floating_ip=floating_ip,
+								  ssh_ids=ssh_ids, ssh_key_name=ssh_key_name, name=name, os=oss, firewall=firewall,
+								  monitoring=monitoring, backup=backup, provider_id=provider_id, group_id=group_id,
+								  type='do', status=status, date=funct.get_data('regular')).execute()
 		return True
-	except sqltool.Error as e:
+	except Exception as e:
 		funct.out_error(e)
 		return False
-	finally:
-		cur.close()
-		con.close()
 
 
 def select_aws_server(server_id):
-	con, cur = get_cur()
-	sql = """ select region, instance_type, public_ip, floating_ip, volume_size, ssh_key_name, name, os, firewall, provider_id, group_id, id, delete_on_termination, volume_type
-			from provisioned_servers where id = '%s' """ % server_id
-
+	prov_serv = ProvisionedServers.alias()
+	query = (
+		prov_serv.select(prov_serv.region, prov_serv.instance_type, prov_serv.public_ip, prov_serv.floating_ip,
+						 prov_serv.volume_size, prov_serv.ssh_key_name, prov_serv.name, prov_serv.os,
+						 prov_serv.firewall, prov_serv.provider_id, prov_serv.group_id, prov_serv.id,
+						 prov_serv.delete_on_termination, prov_serv.volume_type)
+			.where(prov_serv.id == server_id))
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	finally:
-		cur.close()
-		con.close()
+		return query_res
 
 
 def select_gcore_server(server_id):
-	con, cur = get_cur()
-	sql = """ select region, instance_type, public_ip, floating_ip, volume_size, ssh_key_name, name, os, firewall, 
-			provider_id, group_id, id, delete_on_termination, project, network_name, volume_type, name_template
-			from provisioned_servers where id = '%s' """ % server_id
-
+	prov_serv = ProvisionedServers.alias()
+	query = (
+		prov_serv.select(prov_serv.region, prov_serv.instance_type, prov_serv.public_ip, prov_serv.floating_ip,
+						 prov_serv.volume_size, prov_serv.ssh_key_name, prov_serv.name, prov_serv.os, prov_serv.firewall,
+						 prov_serv.provider_id, prov_serv.group_id, prov_serv.id, prov_serv.delete_on_termination,
+						 prov_serv.project, prov_serv.network_name, prov_serv.volume_type, prov_serv.name_template)
+		.where(prov_serv.id == server_id))
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	finally:
-		cur.close()
-		con.close()
+		return query_res
 
 
 def select_do_server(server_id):
-	con, cur = get_cur()
-	sql = """ select region, instance_type, private_networking, floating_ip, ssh_ids, ssh_key_name, name, os, firewall, backup, monitoring, provider_id, group_id, id 
-			from provisioned_servers where id = '%s' """ % server_id
-
+	prov_serv = ProvisionedServers.alias()
+	query = (prov_serv.select(prov_serv.region, prov_serv.instance_type, prov_serv.private_networking, prov_serv.floating_ip,
+							 prov_serv.ssh_ids, prov_serv.ssh_key_name, prov_serv.name, prov_serv.os, prov_serv.firewall,
+							 prov_serv.backup, prov_serv.monitoring, prov_serv.provider_id, prov_serv.group_id, prov_serv.id)
+			 .where(prov_serv.id == server_id))
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	finally:
-		cur.close()
-		con.close()
+		return query_res
 
 
 def update_provisioning_server_status(status, user_group_id, name, provider_id, **kwargs):
-	con, cur = get_cur()
-
-	sql = """ update provisioned_servers set status = '%s ' where group_id = '%s' 
-			and name = '%s' and provider_id = '%s'  """ % (status, user_group_id, name, provider_id)
-
 	if kwargs.get('update_ip'):
-		sql = """ update provisioned_servers set 
-					status = '%s',
-					IP = '%s'
-					where group_id = '%s' 
-					and name = '%s' and provider_id = '%s'  """ % (status, kwargs.get('update_ip'), user_group_id, name, provider_id)
-
+		query = ProvisionedServers.update(status=status, IP=kwargs.get('update_ip')).where(
+			(ProvisionedServers.name == name) &
+			(ProvisionedServers.group_id == user_group_id) &
+			(ProvisionedServers.provider_id == provider_id))
+	else:
+		query = ProvisionedServers.update(status=status).where(
+			(ProvisionedServers.name == name) &
+			(ProvisionedServers.group_id == user_group_id) &
+			(ProvisionedServers.provider_id == provider_id))
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		query.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
 
 
 def update_provisioning_server_gcore_name(name, template_name, user_group_id, provider_id):
-	con, cur = get_cur()
-
-	sql = """update provisioned_servers set name_template = '%s' 
-			where group_id = '%s' and name = '%s' and provider_id = '%s' """ % (template_name, user_group_id, name, provider_id)
-
+	query = ProvisionedServers.update(name_template=template_name).where(
+		(ProvisionedServers.name == name) &
+		(ProvisionedServers.group_id == user_group_id) &
+		(ProvisionedServers.provider_id == provider_id))
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		query.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
 
 
 def update_provisioning_server_error(status, user_group_id, name, provider_id):
-	con, cur = get_cur()
-
-	sql = """ update provisioned_servers set last_error = '%s ' where group_id = '%s' 
-			and name = '%s' and provider_id = '%s'  """ % (status, user_group_id, name, provider_id)
-
+	query = ProvisionedServers.update(last_error=status).where(
+		(ProvisionedServers.name == name) &
+		(ProvisionedServers.group_id == user_group_id) &
+		(ProvisionedServers.provider_id == provider_id))
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		query.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
 
 
 def update_server_aws(region, size, public_ip, floating_ip, volume_size, ssh_name, workspace, oss, firewall, provider, group, status, server_id, delete_on_termination, volume_type):
-	con, cur = get_cur()
-	sql = """ update provisioned_servers set 
-				region = '%s',
-				instance_type = '%s',
-				public_ip = '%s',
-				floating_ip = '%s',
-				volume_size = '%s',
-				ssh_key_name = '%s',
-				name = '%s',
-				os = '%s',
-				firewall = '%s',
-				provider_id = '%s',
-				group_id = '%s',
-				status = '%s',
-				delete_on_termination = '%s',
-				volume_type = '%s'
-				where id = '%s'  """ % (region, size, public_ip, floating_ip, volume_size, ssh_name, workspace, oss, firewall, provider, group, status, delete_on_termination, volume_type, server_id)
-	
+	query = ProvisionedServers.update(region=region, instance_type=size, public_ip=public_ip, floating_ip=floating_ip,
+									  volume_size=volume_size, ssh_key_name=ssh_name, name=workspace, os=oss,
+									  firewall=firewall, provider_id=provider, group_id=group, status=status,
+									  delete_on_termination=delete_on_termination,
+									  volume_type=volume_type).where(ProvisionedServers.id == server_id)
 	try:
-		cur.execute(sql)
-		con.commit()
+		query.execute()
 		return True
-	except sqltool.Error as e:
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
 		return False
-	finally:
-		cur.close()
-		con.close()
 
 
-def update_server_gcore(region, size, network_type, network_name, volume_size, ssh_name, workspace, oss, firewall, provider, group, status, server_id, delete_on_termination, volume_type, project):
-	con, cur = get_cur()
-	sql = """ update provisioned_servers set 
-				region = '%s',
-				instance_type = '%s',
-				public_ip = '%s',
-				network_name = '%s',
-				volume_size = '%s',
-				ssh_key_name = '%s',
-				name = '%s',
-				os = '%s',
-				firewall = '%s',
-				provider_id = '%s',
-				group_id = '%s',
-				status = '%s',
-				delete_on_termination = '%s',
-				volume_type = '%s',
-				project = '%s'
-				where id = '%s'  """ % (region, size, network_type, network_name, volume_size, ssh_name, workspace, oss, firewall, provider, group, status, delete_on_termination, volume_type, project, server_id)
-
+def update_server_gcore(region, size, network_type, network_name, volume_size, ssh_name, workspace, oss, firewall,
+						provider, group, status, server_id, delete_on_termination, volume_type, project):
+	query = ProvisionedServers.update(region=region, instance_type=size, public_ip=network_type, network_name=network_name,
+									  volume_size=volume_size, ssh_key_name=ssh_name, name=workspace, os=oss,
+									  firewall=firewall, provider_id=provider, group_id=group, status=status,
+									  delete_on_termination=delete_on_termination, volume_type=volume_type,
+									  project=project).where(ProvisionedServers.id == server_id)
 	try:
-		cur.execute(sql)
-		con.commit()
+		query.execute()
 		return True
-	except sqltool.Error as e:
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
 		return False
-	finally:
-		cur.close()
-		con.close()
 
 
 def update_server_do(size, privet_net, floating_ip, ssh_ids, ssh_name, oss, firewall, monitoring, backup, provider,
                          group, status, server_id):
-	con, cur = get_cur()
-	sql = """ update provisioned_servers set 
-				instance_type = '%s',
-				private_networking = '%s',
-				floating_ip = '%s',
-				ssh_ids = '%s',
-				ssh_key_name = '%s',
-				os = '%s',
-				firewall = '%s',
-				monitoring = '%s',
-				backup = '%s',
-				provider_id = '%s',
-				group_id = '%s',
-				status = '%s'
-				where id = '%s'  """ % (
-	size, privet_net, floating_ip, ssh_ids, ssh_name, oss, firewall, monitoring, backup, provider, group, status, server_id)
-
+	query = ProvisionedServers.update(instance_type=size, private_networking=privet_net,
+									  floating_ip=floating_ip, ssh_ids=ssh_ids, ssh_key_name=ssh_name,
+									  os=oss,firewall=firewall, monitoring=monitoring,  backup=backup,
+									  provider_id=provider,
+									  group_id=group, status=status).where(ProvisionedServers.id == server_id)
 	try:
-		cur.execute(sql)
-		con.commit()
+		query.execute()
 		return True
-	except sqltool.Error as e:
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
 		return False
-	finally:
-		cur.close()
-		con.close()
 
 
 def delete_provisioned_servers(server_id):
-	con, cur = get_cur()
-	sql = """ delete from provisioned_servers where id = '%s' """ % server_id
+	query = ProvisionedServers.delete().where(ProvisionedServers.id == server_id)
 	try:
-		cur.execute(sql)
-		con.commit()
-	except sqltool.Error as e:
+		query.execute()
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
-	cur.close()
-	con.close()
 
 
 def select_provisioned_servers(**kwargs):
-	con, cur = get_cur()
-	sql = """select id, name, provider_id, type, group_id, instance_type, status, date, region, os, IP, last_error, name_template from provisioned_servers"""
-
-	if kwargs.get('all'):
-		sql = """select * from provisioned_servers where id = '%s' """ % kwargs.get('all')
-
+	prov_serv = ProvisionedServers.alias()
 	if kwargs.get('new'):
-		sql = """select id, name, provider_id, type, group_id, instance_type, status, date, region, os, IP, last_error from provisioned_servers
-				where name = '%s' and group_id = '%s' and type = '%s' """ % (kwargs.get('new'), kwargs.get('group'), kwargs.get('type'))
+		query = (
+			prov_serv.select(prov_serv.id, prov_serv.name, prov_serv.provider_id, prov_serv.type,
+							 prov_serv.group_id, prov_serv.instance_type, prov_serv.status, prov_serv.date,
+							 prov_serv.region, prov_serv.os, prov_serv.IP, prov_serv.last_error, prov_serv.name_template)
+				.where((prov_serv.name == kwargs.get('new')) &
+					   (prov_serv.group_id == kwargs.get('group')) &
+					   (prov_serv.type == kwargs.get('type'))))
+	else:
+		query = prov_serv.select(prov_serv.id, prov_serv.name, prov_serv.provider_id, prov_serv.type, prov_serv.group_id,
+								 prov_serv.instance_type, prov_serv.status, prov_serv.date, prov_serv.region, prov_serv.os,
+								 prov_serv.IP, prov_serv.last_error, prov_serv.name_template)
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
+		query_res = query.execute()
+	except Exception as e:
 		funct.out_error(e)
 	else:
-		return cur.fetchall()
-	cur.close()
-	con.close()
+		return query_res
 
 
 def select_aws_provider(provider_id):
-	con, cur = get_cur()
-	sql = """ select key, secret from providers_creds where id = '%s'""" % provider_id
-	
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
-		cur.close()
-		con.close()
+		query_res = ProvidersCreds.get(ProvidersCreds.id == provider_id)
+	except:
 		return ""
 	else:
-		for p in cur.fetchall():
-			aws_key = p[0]
-			aws_secret = p[1]
-	cur.close()
-	con.close()
-	return aws_key, aws_secret
+		return query_res.key, query_res.secret
 
 
 def select_gcore_provider(provider_id):
-	con, cur = get_cur()
-	sql = """ select key, secret from providers_creds where id = '%s'""" % provider_id
-
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
-		cur.close()
-		con.close()
+		query_res = ProvidersCreds.get(ProvidersCreds.id == provider_id)
+	except:
 		return ""
 	else:
-		for p in cur.fetchall():
-			user_name = p[0]
-			password = p[1]
-	cur.close()
-	con.close()
-	return user_name, password
+		return query_res.key, query_res.secret
 
 
 def select_do_provider(provider_id):
-	con, cur = get_cur()
-	sql = """ select key from providers_creds where id = '%s'""" % provider_id
-	
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
-		cur.close()
-		con.close()
+		query_res = ProvidersCreds.get(ProvidersCreds.id == provider_id)
+	except:
 		return ""
 	else:
-		for p in cur.fetchall():
-			token = p[0]
-	cur.close()
-	con.close()
-	return token
+		return query_res.key
 
 
 def update_do_provider(new_name, new_token, provider_id):
-	con, cur = get_cur()
-
-	if mysql_enable == '1':
-		sql = """ update providers_creds set 
-					name = '%s',
-					key = '%s',
-					edit_date = now()
-					where id = '%s'  """ % (new_name, new_token, provider_id)
-	else:
-		sql = """ update providers_creds set 
-					name = '%s',
-					key = '%s',
-					edit_date = datetime('now', 'localtime')
-					where id = '%s'  """ % (new_name, new_token, provider_id)
-
 	try:
-		cur.execute(sql)
-		con.commit()
+		ProvidersCreds.update(name=new_name, key=new_token,
+							  edit_date=funct.get_data('regular')).where(ProvidersCreds.id == provider_id).execute()
 		return True
-	except sqltool.Error as e:
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
 		return False
-	finally:
-		cur.close()
-		con.close()
 
 
 def update_gcore_provider(new_name, new_user, new_pass, provider_id):
-	con, cur = get_cur()
-
-	if mysql_enable == '1':
-		sql = """ update providers_creds set 
-					name = '%s',
-					key = '%s',
-					secret = '%s',
-					edit_date = now()
-					where id = '%s'  """ % (new_name, new_user, new_pass, provider_id)
-	else:
-		sql = """ update providers_creds set 
-					name = '%s',
-					key = '%s',
-					secret = '%s',
-					edit_date = datetime('now', 'localtime')
-					where id = '%s'  """ % (new_name, new_user, new_pass, provider_id)
-
 	try:
-		cur.execute(sql)
-		con.commit()
+		ProvidersCreds.update(name=new_name, key=new_user, secret=new_pass,
+							  edit_date=funct.get_data('regular')).where(ProvidersCreds.id == provider_id).execute()
 		return True
-	except sqltool.Error as e:
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
 		return False
-	finally:
-		cur.close()
-		con.close()
 
 
 def update_aws_provider(new_name, new_key, new_secret, provider_id):
-	con, cur = get_cur()
-
-	if mysql_enable == '1':
-		sql = """ update providers_creds set 
-						name = '%s',
-						key = '%s',
-						secret = '%s',
-						edit_date = now()
-						where id = '%s'  """ % (new_name, new_key, new_secret, provider_id)
-	else:
-		sql = """ update providers_creds set 
-					name = '%s',
-					key = '%s',
-					secret = '%s',
-					edit_date = datetime('now', 'localtime')
-					where id = '%s'  """ % (new_name, new_key, new_secret, provider_id)
-
 	try:
-		cur.execute(sql)
-		con.commit()
+		ProvidersCreds.update(name=new_name, key=new_key, secret=new_secret,
+							  edit_date=funct.get_data('regular')).where(ProvidersCreds.id == provider_id).execute()
 		return True
-	except sqltool.Error as e:
+	except Exception as e:
 		funct.out_error(e)
-		con.rollback()
 		return False
-	finally:
-		cur.close()
-		con.close()
 
 
 def is_serv_protected(serv):
-	con, cur = get_cur()
-	sql = """ select protected from servers where ip = '%s'""" % serv
-
 	try:
-		cur.execute(sql)
-	except sqltool.Error as e:
-		cur.close()
-		con.close()
+		query_res = Server.get(Server.ip == serv)
+	except:
 		return ""
 	else:
-		for p in cur.fetchall():
-			return True if p[0] else False
-	cur.close()
-	con.close()
-
-
-form = funct.form
-error_mess = 'error: All fields must be completed'
-
-
-def check_token():
-	if not check_token_exists(form.getvalue('token')):
-		print('Content-type: text/html\n')
-		print("error: Your token has been expired")
-		import sys
-		sys.exit()
-
-
-def show_update_option(option):
-	from jinja2 import Environment, FileSystemLoader
-	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
-	template = env.get_template('/new_option.html')
-
-	print('Content-type: text/html\n')
-	template = template.render(options=select_options(option=option))
-	print(template)
-
-
-def show_update_savedserver(server):
-	from jinja2 import Environment, FileSystemLoader
-	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
-	template = env.get_template('/new_saved_servers.html')
-
-	print('Content-type: text/html\n')
-	template = template.render(server=select_saved_servers(server=server))
-	print(template)
-
-
-if form.getvalue('getoption'):
-	group = form.getvalue('getoption')
-	term = form.getvalue('term')
-	print('Content-type: application/json\n')
-	check_token()
-	options = select_options(group=group,term=term)
-
-	a = {}
-	v = 0
-	for i in options:
-		a[v] = i[0]
-		v = v + 1
-	import json
-	print(json.dumps(a))
-
-
-if form.getvalue('newtoption'):
-	option = form.getvalue('newtoption')
-	group = form.getvalue('newoptiongroup')
-	print('Content-type: text/html\n')
-	check_token()
-	if option is None or group is None:
-		print(error_mess)
-	else:
-		if insert_new_option(option, group):
-			show_update_option(option)
-
-
-if form.getvalue('updateoption') is not None:
-	option = form.getvalue('updateoption')
-	id = form.getvalue('id')
-	check_token()
-	if option is None or id is None:
-		print('Content-type: text/html\n')
-		print(error_mess)
-	else:
-		update_options(option, id)
-
-
-if form.getvalue('optiondel') is not None:
-	print('Content-type: text/html\n')
-	check_token()
-	if delete_option(form.getvalue('optiondel')):
-		print("Ok")
-
-
-if form.getvalue('getsavedserver'):
-	group = form.getvalue('getsavedserver')
-	term = form.getvalue('term')
-	print('Content-type: application/json\n')
-	check_token()
-	servers = select_saved_servers(group=group,term=term)
-
-	a = {}
-	v = 0
-	for i in servers:
-		a[v] = {}
-		a[v]['value'] = {}
-		a[v]['desc'] = {}
-		a[v]['value'] = i[0]
-		a[v]['desc'] = i[1]
-		v = v + 1
-	import json
-	print(json.dumps(a))
-
-
-if form.getvalue('newsavedserver'):
-	savedserver = form.getvalue('newsavedserver')
-	description = form.getvalue('newsavedserverdesc')
-	group = form.getvalue('newsavedservergroup')
-	print('Content-type: text/html\n')
-	check_token()
-	if savedserver is None or group is None:
-		print(error_mess)
-	else:
-		if insert_new_savedserver(savedserver, description, group):
-			show_update_savedserver(savedserver)
-
-
-if form.getvalue('updatesavedserver') is not None:
-	savedserver = form.getvalue('updatesavedserver')
-	description = form.getvalue('description')
-	id = form.getvalue('id')
-	print('Content-type: text/html\n')
-	check_token()
-	if savedserver is None or id is None:
-		print(error_mess)
-	else:
-		update_savedserver(savedserver, description, id)
-
-
-if form.getvalue('savedserverdel') is not None:
-	print('Content-type: text/html\n')
-	check_token()
-	if delete_savedserver(form.getvalue('savedserverdel')):
-		print("Ok")
+		return True if query_res.protected else False

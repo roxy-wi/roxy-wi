@@ -18,9 +18,9 @@ try:
 		if service_ver[0] == '* is not installed':
 			servers = ''
 		else:
-			servers = sql.select_servers_metrics(user_id.value)
+			servers = sql.select_servers_metrics()
 			services = '1'
-except Exception:
+except Exception as e:
 	pass
 
 

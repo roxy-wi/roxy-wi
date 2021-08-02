@@ -10,7 +10,7 @@
         </tr>
         <tr>
             <td id="cur_grafana_ver" class="padding10 first-collumn">
-                {% if grafana == "Active:" %}
+                {% if grafana == "active" %}
                 Grafana and Prometheus servers have already installed
                 {% else %}
                 There are no Grafana and Prometheus servers
@@ -24,7 +24,7 @@
             </td>
             <td></td>
             <td>
-                {% if grafana != "Active:" %}
+                {% if grafana != "active" %}
                 <span class="ui-button ui-widget ui-corner-all" id="grafna_install" title="Install Grafana and Prometheus server">Install</span>
                 {% endif %}
             </td>

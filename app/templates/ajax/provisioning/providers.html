@@ -19,12 +19,12 @@
     <td style="width: 10%">
         {% for g in groups %}
             {% if adding %}
-            {% if user_group|int() == g.0|int() %}
-		        <span id="provider-group-{{p.0}}">{{ g.1 }}</span>
+            {% if user_group|int() == g.group_id|int() %}
+		        <span id="provider-group-{{p.0}}">{{ g.name }}</span>
             {% endif %}
             {% else %}
-            {% if p.3|int() == g.0|int() %}
-		        <span id="provider-group-{{p.0}}">{{ g.1 }}</span>
+            {% if p.3|int() == g.group_id|int() %}
+		        <span id="provider-group-{{p.0}}">{{ g.name }}</span>
             {% endif %}
             {% endif %}
         {% endfor %}

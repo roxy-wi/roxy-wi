@@ -52,7 +52,7 @@
 			<th style="width: 15%;">Telegram</th>
 			<th style="width: 10%;">Group</th>
 			<th style="width: 100%;">Description</th>
-			<!-- <th></th> -->
+			<th></th>
 			<th></th>
 		</tr>
 	</thead>
@@ -119,7 +119,7 @@
 				<select id="new-smon-telegram">
 					<option value="0">Disabled</option>
 				{% for t in telegrams %}
-					<option value="{{t.0}}">{{t.2}}</option>
+					<option value="{{t.id}}">{{t.chanel_name}}</option>
 				{% endfor %}
 				</select>
 			</td>

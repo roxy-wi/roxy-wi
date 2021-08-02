@@ -1,13 +1,13 @@
 {% for option in options %}
-	<tr style="width: 50%;" id="option-{{option.0}}" class="newoption update">
+	<tr style="width: 50%;" id="option-{{option.id}}" class="newoption update">
 		<td class="padding10 first-collumn">
-			{{ option.0 }}
+			{{ option.id }}
 		</td>
 		<td class="first-collumn" style="width: 77%;">
-			<input type="text" id="option-body-{{option.0}}" class="form-control" value="{{option.1}}" size="60">
+			<input type="text" id="option-body-{{option.id}}" class="form-control" value="{{option.options}}" size="60">
 		</td>
 		<td>
-			<a class="delete" onclick="confirmDeleteOption({{option.0}})"  style="cursor: pointer;"></a>
+			<a class="delete" onclick="confirmDeleteOption({{option.id}})"  style="cursor: pointer;"></a>
 		</td>
 	</tr>
 {% endfor %}

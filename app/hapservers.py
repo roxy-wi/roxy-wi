@@ -11,7 +11,6 @@ funct.check_login()
 
 try:
     user, user_id, role, token, servers = funct.get_users_params()
-    users = sql.select_users()
     services = []
 except:
     pass
@@ -74,29 +73,40 @@ for s in servers:
     servers_with_status.append(s[2])
     servers_with_status.append(s[11])
     if service == 'nginx':
+        h = (['', ''],)
         cmd = [
             "/usr/sbin/nginx -v 2>&1|awk '{print $3}' && systemctl status nginx |grep -e 'Active' |awk '{print $2, $9$10$11$12$13}' && ps ax |grep nginx:|grep -v grep |wc -l"]
-        out = funct.ssh_command(s[2], cmd)
-        h = ()
-        out1 = []
-        for k in out.split():
-            out1.append(k)
-        h = (out1,)
-        servers_with_status.append(h)
-        servers_with_status.append(h)
-        servers_with_status.append(s[17])
+        try:
+            out = funct.ssh_command(s[2], cmd)
+            h = ()
+            out1 = []
+            for k in out.split():
+                out1.append(k)
+            h = (out1,)
+            servers_with_status.append(h)
+            servers_with_status.append(h)
+            servers_with_status.append(s[17])
+        except:
+            servers_with_status.append(h)
+            servers_with_status.append(h)
+            servers_with_status.append(s[17])
     elif service == 'keepalived':
+        h = (['',''],)
         cmd = [
             "/usr/sbin/keepalived -v 2>&1|head -1|awk '{print $2}' && systemctl status keepalived |grep -e 'Active' |awk '{print $2, $9$10$11$12$13}' && ps ax |grep keepalived|grep -v grep |wc -l"]
-        out = funct.ssh_command(s[2], cmd)
-        h = ()
-        out1 = []
-        for k in out.split():
-            out1.append(k)
-        h = (out1,)
-        servers_with_status.append(h)
-        servers_with_status.append(h)
-        servers_with_status.append(s[17])
+        try:
+            out = funct.ssh_command(s[2], cmd)
+            out1 = []
+            for k in out.split():
+                out1.append(k)
+            h = (out1,)
+            servers_with_status.append(h)
+            servers_with_status.append(h)
+            servers_with_status.append(s[17])
+        except:
+            servers_with_status.append(h)
+            servers_with_status.append(h)
+            servers_with_status.append(s[17])
     else:
         cmd = 'echo "show info" |nc %s %s -w 1 |grep -e "Ver\|Uptime:\|Process_num"' % (s[2], haproxy_sock_port)
         out = funct.subprocess_execute(cmd)
@@ -112,7 +122,7 @@ for s in servers:
     servers_with_status.append(sql.is_master(s[2]))
     servers_with_status.append(sql.select_servers(server=s[2]))
 
-    is_keepalived = sql.select_keealived(s[2])
+    is_keepalived = sql.select_keepalived(s[2])
 
     if is_keepalived:
         try:
@@ -132,7 +142,6 @@ template = template.render(h2=1,
                            title=title,
                            role=role,
                            user=user,
-                           users=users,
                            servers=servers_with_status1,
                            keep_alive=''.join(keep_alive),
                            serv=serv,

@@ -58,10 +58,10 @@
 		<td>
 			<select id="usergroup-{{id}}" name="usergroup-{{id}}" multiple class="select-css">
 				{% for group in groups %}
-					{% if group.0 in user_groups %}
-						<option value="{{ group.0 }}" selected>{{ group.1 }}</option>
+					{% if group.group_id in user_groups %}
+						<option value="{{ group.group_id }}" selected>{{ group.name }}</option>
 					{% else %}
-						<option value="{{ group.0 }}">{{ group.1 }}</option>
+						<option value="{{ group.group_id }}">{{ group.name }}</option>
 					{% endif %}
 				{% endfor %}
 			</select>

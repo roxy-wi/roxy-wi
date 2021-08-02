@@ -1,33 +1,33 @@
 {% for telegram in telegrams %}
-	<tr style="width: 50%;" id="telegram-table-{{telegram.0}}" class="newgroup">
+	<tr style="width: 50%;" id="telegram-table-{{telegram.id}}" class="newgroup">
 		<td class="padding10 first-collumn">
-			<input type="text" id="telegram-token-{{telegram.0}}" class="form-control" value="{{telegram.1}}">
-			<input type="hidden" id="telegramgroup-{{telegram.0}}" name="telegramgroup-{{telegram.0}}">
+			<input type="text" id="telegram-token-{{telegram.id}}" class="form-control" value="{{telegram.token}}">
+			<input type="hidden" id="telegramgroup-{{telegram.id}}" name="telegramgroup-{{telegram.id}}">
 		</td>
 		<td>
-			<input type="text" id="telegram-chanel-{{telegram.0}}" class="form-control" value="{{telegram.2}}">		
+			<input type="text" id="telegram-chanel-{{telegram.id}}" class="form-control" value="{{telegram.chanel_name}}">		
 		</td>
 		{% if page != "servers.py" %}
 			<td>
-				<select id="sshgroup-{{telegram.0}}" name="sshgroup-{{telegram.0}}">
+				<select id="sshgroup-{{telegram.id}}" name="sshgroup-{{telegram.id}}">
 					{% for group in groups %}
-						{% if telegram.3 == group.0 %}
-							<option value="{{ group.0 }}" selected>{{ group.1 }}</option>
+						{% if telegram.groups == group.group_id %}
+							<option value="{{ group.group_id }}" selected>{{ group.name }}</option>
 						{% else %}
-							<option value="{{ group.0 }}">{{ group.1 }}</option>
+							<option value="{{ group.group_id }}">{{ group.name }}</option>
 						{% endif %}
 					{% endfor %}
 				</select>
 			</td>	
 		{% endif %}
 		<td>
-			<button title="Send test message" onclick="checkTelegram({{telegram.0}})">Test</button>
+			<button title="Send test message" onclick="checkTelegram({{telegram.id}})">Test</button>
 		</td>
 		<td>
-			<a class="add" onclick="cloneTelegram({{telegram.0}})" id="clone-{{telegram.0}}" title="Clone {{telegram.2}}" style="cursor: pointer;"></a>
+			<a class="add" onclick="cloneTelegram({{telegram.id}})" id="clone-{{telegram.id}}" title="Clone {{telegram.chanel_name}}" style="cursor: pointer;"></a>
 		</td>
 		<td>
-			<a class="delete" onclick="confirmDeleteTelegram({{telegram.0}})"  style="cursor: pointer;"></a>
+			<a class="delete" onclick="confirmDeleteTelegram({{telegram.id}})"  style="cursor: pointer;"></a>
 		</td>
 	</tr>
 {% endfor %}

@@ -2,7 +2,7 @@
 {% set new_ver = versions.1 %}
 {% set current_ver_without_dots = versions.2 %}
 {% set new_ver_without_dots = versions.3 %}
-<tr>
+<tr class="odd">
     <td class="padding10 first-collumn">
         Roxy-WI
     </td>
@@ -30,10 +30,11 @@
     <td>
         The main application
     </td>
+    <td></td>
 </tr>
 {% for s in services %}
     {% if s.0 == 'roxy-wi-smon' or s.0 == 'roxy-wi-checker' or s.0 == 'roxy-wi-keep_alive' or s.0 == 'roxy-wi-metrics' or s.0 == 'roxy-wi-portscanner' %}
-<tr>
+<tr class="{{ loop.cycle('even', 'odd') }}">
     {% set is_need_update = 0 %}
     {% if s.0 == 'roxy-wi-smon' %}
         {% set service_name = 'SMON' %}
@@ -117,6 +118,7 @@
     <td>
         Read more about <a href="{{desc_link}}" title="Read more about {{service_name}}" target="_blank" class="link">{{service_name}}</a>
     </td>
+    <td></td>
 </tr>
 {% endif %}
 {% endfor %}

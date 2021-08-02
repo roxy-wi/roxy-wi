@@ -35,26 +35,26 @@
 			</tr>
 			<tbody>
 		{% for group in groups %}
-			<tr id="group-{{ group.0 }}" class="{{ loop.cycle('odd', 'even') }}"> 
-			{% if group.1 == "All" %}
-				<td class="padding10 first-collumn">{{ group.1 }}</td>
-				<td>{{ group.2 }}</td>
+			<tr id="group-{{ group.group_id }}" class="{{ loop.cycle('odd', 'even') }}">
+			{% if group.name == "All" %}
+				<td class="padding10 first-collumn">{{ group.name }}</td>
+				<td>{{ group.description }}</td>
 				<td></td>
 			{% else %}
 				<td class="padding10 first-collumn">
 					{% set id = 'name-' + group.0|string() %}
-					{{ input(id, value=group.1) }}
+					{{ input(id, value=group.name) }}
 				</td>
 				<td>
-					{% set id = 'descript-' + group.0|string() %}					
-					{% if group.2  != "None" %}
-						{{ input(id, value=group.2, size='60') }}
+					{% set id = 'descript-' + group.group_id|string() %}
+					{% if group.description is not none %}
+						{{ input(id, value=group.description, size='60') }}
 					{% else %}
 						{{ input(id, value='', size='60') }}
 					{% endif %}
 				</td>
 				<td>
-					<a class="delete" onclick="confirmDeleteGroup({{ group.0 }})" title="Delete group {{group.1}}" style="cursor: pointer;"></a>
+					<a class="delete" onclick="confirmDeleteGroup({{ group.group_id }})" title="Delete group {{group.name}}" style="cursor: pointer;"></a>
 				</td>
 			{% endif %}
 			</tr>
@@ -149,7 +149,7 @@
 <script>
 	$( function() {
 		{% for user in users %}
-			$("#role-{{user.0}}" ).selectmenu({
+			$("#role-{{user.role_id}}" ).selectmenu({
 				width: 100
 			});
 		{% endfor %}
@@ -172,13 +172,13 @@
 			}
 		{% endfor %}
 		{% for server in backups %}
-			$("#backup-time-{{ server.0}}" ).selectmenu({
+			$("#backup-time-{{ server.id}}" ).selectmenu({
 				width: 100
 			});
-			$("#backup-type-{{server.0}}" ).selectmenu({
+			$("#backup-type-{{server.id}}" ).selectmenu({
 				width: 130
 			});
-			$("#backup-credentials-{{server.0}}" ).selectmenu({
+			$("#backup-credentials-{{server.id}}" ).selectmenu({
 				width: 150
 			});
 		{% endfor %}

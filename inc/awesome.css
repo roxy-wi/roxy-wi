@@ -70,7 +70,7 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f24d";
 }
-.add .fa-clone, .plus .fa-plus {
+.add .fa-clone, .plus .fa-plus, .plus-after .fa-plus, .minus-after .fa-minus {
 	color: var(--green-color);
 }
 .add-proxy::before {
@@ -273,10 +273,24 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f068";
 }
+.minus-after::after {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f068";
+}
 .plus::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";
 	content: "\f067";
+}
+.plus-after::after {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f067";
+}
+.plus-after .fa-plus, .minus-after .fa-minus {
+	padding-left: 10px;
+    margin-bottom: -2px;
 }
 .row-down::after {
 	display: none;

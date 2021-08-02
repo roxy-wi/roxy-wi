@@ -17,37 +17,37 @@
             <td><span onclick="loadchecker()" class="service-reload" title="Reload Telegram channels"></span></td>
         </tr>
         {% for telegram in telegrams %}
-        <tr id="telegram-table-{{telegram.0}}" class="{{ loop.cycle('odd', 'even') }}">
+        <tr id="telegram-table-{{telegram.id}}" class="{{ loop.cycle('odd', 'even') }}">
             <td class="padding10 first-collumn">
-                {% set id = 'telegram-token-' + telegram.0|string() %}
-                {{ input(id, value=telegram.1, size='30') }}
+                {% set id = 'telegram-token-' + telegram.id|string() %}
+                {{ input(id, value=telegram.token, size='30') }}
             </td>
             <td>
-                {% set id = 'telegram-chanel-' + telegram.0|string() %}
-                {{ input(id, value=telegram.2, size='30') }}
+                {% set id = 'telegram-chanel-' + telegram.id|string() %}
+                {{ input(id, value=telegram.chanel_name, size='30') }}
             </td>
             {% if page != "servers.py" %}
             <td>
-                <select id="telegramgroup-{{telegram.0}}" name="telegramgroup-{{telegram.0}}">
+                <select id="telegramgroup-{{telegram.id}}" name="telegramgroup-{{telegram.id}}">
                     <option disabled selected>Choose group</option>
                     {% for group in groups %}
-                    {% if telegram.3|string() == group.0|string() %}
-                    <option value="{{ group.0 }}" selected>{{ group.1 }}</option>
+                    {% if telegram.groups|string() == group.group_id|string() %}
+                    <option value="{{ group.group_id }}" selected>{{ group.name }}</option>
                     {% else %}
-                    <option value="{{ group.0 }}">{{ group.1 }}</option>
+                    <option value="{{ group.group_id }}">{{ group.name }}</option>
                     {% endif %}
                     {% endfor %}
                 </select>
             </td>
             {% endif %}
             <td>
-                <button title="Send test message" onclick="checkTelegram({{telegram.0}})">Test</button>
+                <button title="Send test message" onclick="checkTelegram({{telegram.id}})">Test</button>
             </td>
             <td>
-                <a class="add" onclick="cloneTelegram({{telegram.0}})" id="clone-{{telegram.0}}" title="Clone {{telegram.2}}" style="cursor: pointer;"></a>
+                <a class="add" onclick="cloneTelegram({{telegram.id}})" id="clone-{{telegram.id}}" title="Clone {{telegram.chanel_name}}" style="cursor: pointer;"></a>
             </td>
             <td>
-                <a class="delete" onclick="confirmDeleteTelegram({{telegram.0}})" title="Delete channel {{telegram.2}}" style="cursor: pointer;"></a>
+                <a class="delete" onclick="confirmDeleteTelegram({{telegram.id}})" title="Delete channel {{telegram.chanel_name}}" style="cursor: pointer;"></a>
             </td>
         </tr>
         {% endfor %}
@@ -69,37 +69,37 @@
             <td><span onclick="loadchecker()" class="service-reload" title="Reload Slack channels"></span></td>
         </tr>
         {% for slack in slacks %}
-        <tr id="slack-table-{{slack.0}}" class="{{ loop.cycle('odd', 'even') }}">
+        <tr id="slack-table-{{slack.id}}" class="{{ loop.cycle('odd', 'even') }}">
             <td class="padding10 first-collumn">
-                {% set id = 'slack-token-' + slack.0|string() %}
-                {{ input(id, value=slack.1, size='30') }}
+                {% set id = 'slack-token-' + slack.id|string() %}
+                {{ input(id, value=slack.token, size='30') }}
             </td>
             <td>
-                {% set id = 'slack-chanel-' + slack.0|string() %}
-                {{ input(id, value=slack.2, size='30') }}
+                {% set id = 'slack-chanel-' + slack.id|string() %}
+                {{ input(id, value=slack.chanel_name, size='30') }}
             </td>
             {% if page != "servers.py" %}
             <td>
-                <select id="slackgroup-{{slack.0}}" name="slackgroup-{{slack.0}}">
+                <select id="slackgroup-{{slack.id}}" name="slackgroup-{{slack.id}}">
                     <option disabled selected>Choose group</option>
                     {% for group in groups %}
-                    {% if slack.3|string() == group.0|string() %}
-                    <option value="{{ group.0 }}" selected>{{ group.1 }}</option>
+                    {% if slack.groups|string() == group.group_id|string() %}
+                    <option value="{{ group.group_id }}" selected>{{ group.name }}</option>
                     {% else %}
-                    <option value="{{ group.0 }}">{{ group.1 }}</option>
+                    <option value="{{ group.group_id }}">{{ group.name }}</option>
                     {% endif %}
                     {% endfor %}
                 </select>
             </td>
             {% endif %}
             <td>
-                <button title="Send test message" onclick="checkSlack({{slack.0}})">Test</button>
+                <button title="Send test message" onclick="checkSlack({{slack.id}})">Test</button>
             </td>
             <td>
-                <a class="add" onclick="cloneSlack({{slack.0}})" id="clone-{{slack.0}}" title="Clone {{slack.2}}" style="cursor: pointer;"></a>
+                <a class="add" onclick="cloneSlack({{slack.id}})" id="clone-{{slack.id}}" title="Clone {{slack.chanel_name}}" style="cursor: pointer;"></a>
             </td>
             <td>
-                <a class="delete" onclick="confirmDeleteSlack({{slack.0}})" title="Delete channel {{slack.2}}" style="cursor: pointer;"></a>
+                <a class="delete" onclick="confirmDeleteSlack({{slack.id}})" title="Delete channel {{slack.chanel_name}}" style="cursor: pointer;"></a>
             </td>
         </tr>
         {% endfor %}

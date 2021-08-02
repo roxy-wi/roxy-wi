@@ -14,7 +14,9 @@ if (form.getvalue('new_metrics') or
         form.getvalue('new_http_metrics') or
         form.getvalue('new_waf_metrics') or
         form.getvalue('metrics_hapwi_ram') or
-        form.getvalue('metrics_hapwi_cpu')):
+        form.getvalue('metrics_hapwi_cpu') or
+        form.getvalue('getoption') or
+        form.getvalue('getsavedserver')):
     print('Content-type: application/json\n')
 else:
     print('Content-type: text/html\n')
@@ -41,7 +43,10 @@ if form.getvalue('getcerts') is not None and serv is not None:
         print('error: Cannot connect to the server: ' + e.args[0])
 
 if form.getvalue('checkSshConnect') is not None and serv is not None:
-    print(funct.ssh_command(serv, ["ls -1t"]))
+    try:
+        print(funct.ssh_command(serv, ["ls -1t"]))
+    except Exception as e:
+        print(e)
 
 if form.getvalue('getcert') is not None and serv is not None:
     cert_id = form.getvalue('getcert')
@@ -517,13 +522,18 @@ if act == "overview":
 
     async def async_get_overview(serv1, serv2):
         haproxy = sql.select_haproxy(serv2)
-        keepalived = sql.select_keealived(serv2)
+        keepalived = sql.select_keepalived(serv2)
         nginx = sql.select_nginx(serv2)
         waf = sql.select_waf_servers(serv2)
         haproxy_process = ''
         keepalived_process = ''
         nginx_process = ''
         waf_process = ''
+
+        try:
+            waf_len = len(waf)
+        except:
+            waf_len = 0
 
         if haproxy == 1:
             cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Process_num"' % (serv2, sql.get_setting('haproxy_sock_port'))
@@ -534,14 +544,12 @@ if act == "overview":
             keepalived_process = funct.ssh_command(serv2, command)
 
         if nginx == 1:
-            # command = ["ps ax |grep nginx:|grep -v grep|wc -l"]
-            # nginx_process = funct.ssh_command(serv2, command)
             nginx_cmd = 'echo "something" |nc %s %s -w 1' % (serv2, sql.get_setting('nginx_stats_port'))
             nginx_process = funct.server_status(funct.subprocess_execute(nginx_cmd))
 
-        if len(waf) == 1:
-            commands2 = ["ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l"]
-            waf_process = funct.ssh_command(serv2, commands2)
+        if waf_len >= 1:
+            command = ["ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l"]
+            waf_process = funct.ssh_command(serv2, command)
 
         server_status = (serv1,
                          serv2,
@@ -889,6 +897,7 @@ if serv is not None and act == "showMap":
 
     print('<img src="/map%s.png" alt="map">' % date)
 
+
 if form.getvalue('servaction') is not None:
     server_state_file = sql.get_setting('server_state_file')
     haproxy_sock = sql.get_setting('haproxy_sock')
@@ -1012,8 +1021,8 @@ if form.getvalue('master'):
     haproxy = form.getvalue('hap')
     nginx = form.getvalue('nginx')
     script = "install_keepalived.sh"
-    fullpath = funct.get_config_var('main', 'fullpath')
     proxy = sql.get_setting('proxy')
+    ssh_port = 22
     ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(master)
 
     if ssh_enable == 0:
@@ -1044,7 +1053,7 @@ if form.getvalue('master'):
         group_id = sql.get_group_id_by_server_ip(master)
         cred_id = sql.get_cred_id_by_server_ip(master)
         hostname = sql.get_hostname_by_server_ip(master)
-        sql.add_server(hostname+'-VIP', IP, group_id, '1', '1', '1', cred_id, ssh_port, 'VRRP IP for '+master, haproxy, nginx, '0')
+        sql.add_server(hostname+'-VIP', IP, group_id, '1', '1', '0', cred_id, ssh_port, 'VRRP IP for '+master, haproxy, nginx, '0')
 
 if form.getvalue('master_slave'):
     master = form.getvalue('master')
@@ -1053,8 +1062,8 @@ if form.getvalue('master_slave'):
     IP = form.getvalue('vrrpip')
     syn_flood = form.getvalue('syn_flood')
     script = "install_keepalived.sh"
-    fullpath = funct.get_config_var('main', 'fullpath')
     proxy = sql.get_setting('proxy')
+    ssh_port = 22
     ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(slave)
 
     if ssh_enable == 0:
@@ -1091,6 +1100,7 @@ if form.getvalue('masteradd'):
     kp = form.getvalue('kp')
     script = "install_keepalived.sh"
     proxy = sql.get_setting('proxy')
+    ssh_port = 22
     ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(master)
 
     if ssh_enable == 0:
@@ -1124,6 +1134,7 @@ if form.getvalue('masteradd_slave'):
     kp = form.getvalue('kp')
     script = "install_keepalived.sh"
     proxy = sql.get_setting('proxy')
+    ssh_port = 22
     ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(slave)
 
     if ssh_enable == 0:
@@ -1218,6 +1229,7 @@ if form.getvalue('haproxy_exp_install'):
     stats_password = sql.get_setting('stats_password')
     stat_page = sql.get_setting('stats_page')
     proxy = sql.get_setting('proxy')
+    ssh_port = 22
     ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(serv)
 
     if ssh_enable == 0:
@@ -1254,6 +1266,7 @@ if form.getvalue('nginx_exp_install'):
     stats_port = sql.get_setting('nginx_stats_port')
     stats_page = sql.get_setting('nginx_stats_page')
     proxy = sql.get_setting('proxy')
+    ssh_port = 22
     ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(serv)
 
     if ssh_enable == 0:
@@ -1285,6 +1298,7 @@ if form.getvalue('node_exp_install'):
     serv = form.getvalue('node_exp_install')
     script = "install_node_exporter.sh"
     proxy = sql.get_setting('proxy')
+    ssh_port = 22
     ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(serv)
 
     if ssh_enable == 0:
@@ -1314,19 +1328,20 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
     serv = form.getvalue('server')
     rpath = form.getvalue('rpath')
     time = form.getvalue('time')
-    type = form.getvalue('type')
+    backup_type = form.getvalue('type')
     rserver = form.getvalue('rserver')
     cred = form.getvalue('cred')
     deljob = form.getvalue('deljob')
     update = form.getvalue('backupupdate')
     description = form.getvalue('description')
-    script = "backup.sh"
+    script = 'backup.sh'
+    ssh_port = 22
     ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path('localhost', id=int(cred))
 
     if deljob:
         time = ''
         rpath = ''
-        type = ''
+        backup_type = ''
     elif update:
         deljob = ''
     else:
@@ -1341,46 +1356,42 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
 
     os.system("cp scripts/%s ." % script)
 
-    commands = ["chmod +x " + script + " &&  ./" + script + "  HOST=" + rserver + "  SERVER=" + serv + " TYPE=" + type +
-                " SSH_PORT=" + ssh_port + " TIME=" + time +
+    commands = ["chmod +x " + script + " &&  ./" + script + "  HOST=" + rserver + "  SERVER=" + serv +
+                " TYPE=" + backup_type + " SSH_PORT=" + ssh_port + " TIME=" + time +
                 " RPATH=" + rpath + " DELJOB=" + deljob + " USER=" + str(ssh_user_name) + " KEY=" + str(ssh_key_name)]
 
     output, error = funct.subprocess_execute(commands[0])
 
-    if error:
-        funct.logging('backup', error, haproxywi=1)
-        print('error: ' + error)
+    for l in output:
+        if "Traceback" in l or "FAILED" in l:
+            try:
+                print('error: ' + l)
+                break
+            except Exception:
+                print('error: ' + output)
+                break
     else:
-        for l in output:
-            if "Traceback" in l or "FAILED" in l:
-                try:
-                    print('error: ' + l)
-                    break
-                except Exception:
-                    print('error: ' + output)
-                    break
-        else:
-            if not deljob and not update:
-                if sql.insert_backup_job(serv, rserver, rpath, type, time, cred, description):
-                    from jinja2 import Environment, FileSystemLoader
+        if not deljob and not update:
+            if sql.insert_backup_job(serv, rserver, rpath, backup_type, time, cred, description):
+                from jinja2 import Environment, FileSystemLoader
 
-                    env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
-                    template = env.get_template('new_backup.html')
-                    template = template.render(backups=sql.select_backups(server=serv, rserver=rserver),
+                env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
+                template = env.get_template('new_backup.html')
+                template = template.render(backups=sql.select_backups(server=serv, rserver=rserver),
                                                sshs=sql.select_ssh())
-                    print(template)
-                    print('success: Backup job has been created')
-                    funct.logging('backup ', ' a new backup job for server ' + serv + ' has been created', haproxywi=1, login=1)
-                else:
-                    print('error: Cannot add job into DB')
-            elif deljob:
-                sql.delete_backups(deljob)
-                print('Ok')
-                funct.logging('backup ', ' a backup job for server ' + serv + ' has been deleted', haproxywi=1, login=1)
-            elif update:
-                sql.update_backup(serv, rserver, rpath, type, time, cred, description, update)
-                print('Ok')
-                funct.logging('backup ', ' a backup job for server ' + serv + ' has been updated', haproxywi=1, login=1)
+                print(template)
+                print('success: Backup job has been created')
+                funct.logging('backup ', ' a new backup job for server ' + serv + ' has been created', haproxywi=1, login=1)
+            else:
+                print('error: Cannot add job into DB')
+        elif deljob:
+            sql.delete_backups(deljob)
+            print('Ok')
+            funct.logging('backup ', ' a backup job for server ' + serv + ' has been deleted', haproxywi=1, login=1)
+        elif update:
+            sql.update_backup(serv, rserver, rpath, backup_type, time, cred, description, update)
+            print('Ok')
+            funct.logging('backup ', ' a backup job for server ' + serv + ' has been updated', haproxywi=1, login=1)
 
 if form.getvalue('install_nginx'):
     funct.install_nginx(form.getvalue('install_nginx'))
@@ -1666,7 +1677,7 @@ if form.getvalue('bwlists_delete'):
         else:
             print('success: ' + color + ' list was delete on ' + serv + ' , ')
             try:
-                funct.logging(serv, 'has deleted  ' + color + ' list ' + bwlists_save, haproxywi=1, login=1)
+                funct.logging(serv, 'has deleted  ' + color + ' list ' + bwlists_delete, haproxywi=1, login=1)
             except Exception:
                 pass
 
@@ -1734,6 +1745,7 @@ if form.getvalue('newuser') is not None:
     group = form.getvalue('newgroupuser')
     role_id = sql.get_role_id_by_name(role)
 
+
     if funct.check_user_group():
         if funct.is_admin(level=role_id):
             if sql.add_user(new_user, email, password, role, activeuser, group):
@@ -1750,14 +1762,17 @@ if form.getvalue('newuser') is not None:
                 print(template)
                 funct.logging('a new user ' + new_user, ' has created ', haproxywi=1, login=1)
         else:
+            print('error: dalsdm')
             funct.logging(new_user, ' tried to privilege escalation', haproxywi=1, login=1)
+    else:
+        print('error: dalsdm123')
 
 if form.getvalue('userdel') is not None:
     userdel = form.getvalue('userdel')
     user = sql.select_users(id=userdel)
     username = ''
     for u in user:
-        username = u[1]
+        username = u.username
     if sql.delete_user(userdel):
         sql.delete_user_groups(userdel)
         funct.logging(username, ' has deleted user ', haproxywi=1, login=1)
@@ -1767,14 +1782,14 @@ if form.getvalue('updateuser') is not None:
     email = form.getvalue('email')
     role = form.getvalue('role')
     new_user = form.getvalue('updateuser')
-    id = form.getvalue('id')
+    user_id = form.getvalue('id')
     activeuser = form.getvalue('activeuser')
     group = form.getvalue('usergroup')
     role_id = sql.get_role_id_by_name(role)
 
     if funct.check_user_group():
         if funct.is_admin(level=role_id):
-            sql.update_user(new_user, email, role, id, activeuser)
+            sql.update_user(new_user, email, role, user_id, activeuser)
             funct.logging(new_user, ' has updated user ', haproxywi=1, login=1)
         else:
             funct.logging(new_user, ' tried to privilege escalation', haproxywi=1, login=1)
@@ -1784,7 +1799,7 @@ if form.getvalue('updatepassowrd') is not None:
     user_id = form.getvalue('id')
     user = sql.select_users(id=user_id)
     for u in user:
-        username = u[1]
+        username = u.username
     sql.update_user_password(password, user_id)
     funct.logging('user ' + username, ' has changed password ', haproxywi=1, login=1)
     print("Ok")
@@ -1826,6 +1841,7 @@ if form.getvalue('newserver') is not None:
 
                 if funct.is_file_exists(ip, haproxy_dir + '/waf/bin/modsecurity'):
                     sql.insert_waf_metrics_enable(ip, "0")
+                    sql.insert_waf_rules(ip)
 
                 if funct.is_service_active(ip, 'firewalld'):
                     sql.update_firewall(ip)
@@ -1839,7 +1855,6 @@ if form.getvalue('newserver') is not None:
 
         template = template.render(groups=sql.select_groups(),
                                    servers=sql.select_servers(server=ip),
-                                   roles=sql.select_roles(),
                                    masters=sql.select_servers(get_master_servers=1),
                                    sshs=sql.select_ssh(group=group),
                                    page=page,
@@ -1890,6 +1905,7 @@ if form.getvalue('serverdel') is not None:
     if sql.delete_server(serverdel):
         sql.delete_waf_server(serverdel)
         sql.delete_port_scanner_settings(serverdel)
+        sql.delete_waf_rules(ip)
         print("Ok")
         funct.logging(hostname, ' has been deleted server with ', haproxywi=1, login=1)
 
@@ -1907,16 +1923,16 @@ if form.getvalue('newgroup') is not None:
 
             output_from_parsed_template = template.render(groups=sql.select_groups(group=newgroup))
             print(output_from_parsed_template)
-            funct.logging('a new group ' + newgroup, ' created  ', haproxywi=1, login=1)
+            funct.logging('a new group ' + newgroup, ' has been created  ', haproxywi=1, login=1)
 
 if form.getvalue('groupdel') is not None:
     groupdel = form.getvalue('groupdel')
     group = sql.select_groups(id=groupdel)
     for g in group:
-        groupname = g[1]
+        groupname = g.name
     if sql.delete_group(groupdel):
         print("Ok")
-        funct.logging(groupname, ' has deleted group ', haproxywi=1, login=1)
+        funct.logging(groupname, ' has been deleted group ', haproxywi=1, login=1)
 
 if form.getvalue('updategroup') is not None:
     name = form.getvalue('updategroup')
@@ -1960,9 +1976,9 @@ if form.getvalue('sshdel') is not None:
     sshdel = form.getvalue('sshdel')
 
     for sshs in sql.select_ssh(id=sshdel):
-        ssh_enable = sshs[2]
-        name = sshs[1]
-        ssh_key_name = fullpath + '/keys/%s.pem' % sshs[1]
+        ssh_enable = sshs.enable
+        name = sshs.name
+        ssh_key_name = fullpath + '/keys/%s.pem' % sshs.name
 
     if ssh_enable == 1:
         cmd = 'rm -f %s' % ssh_key_name
@@ -1988,8 +2004,8 @@ if form.getvalue('updatessh'):
         fullpath = funct.get_config_var('main', 'fullpath')
 
         for sshs in sql.select_ssh(id=ssh_id):
-            ssh_enable = sshs[2]
-            ssh_key_name = fullpath + '/keys/%s.pem' % sshs[1]
+            ssh_enable = sshs.enable
+            ssh_key_name = fullpath + '/keys/%s.pem' % sshs.name
             new_ssh_key_name = fullpath + '/keys/%s.pem' % name
 
         if ssh_enable == 1:
@@ -2062,7 +2078,7 @@ if form.getvalue('newtelegram'):
             output_from_parsed_template = template.render(groups=sql.select_groups(),
                                                           telegrams=sql.select_telegram(token=token), page=page)
             print(output_from_parsed_template)
-            funct.logging(channel, ' has created a new Telegram channel ', haproxywi=1, login=1)
+            funct.logging(channel, ' a new Telegram channel has been created ', haproxywi=1, login=1)
 
 if form.getvalue('newslack'):
     token = form.getvalue('newslack')
@@ -2088,7 +2104,7 @@ if form.getvalue('telegramdel') is not None:
     telegramdel = form.getvalue('telegramdel')
     telegram = sql.select_telegram(id=telegramdel)
     for t in telegram:
-        telegram_name = t[1]
+        telegram_name = t.token
     if sql.delete_telegram(telegramdel):
         print("Ok")
         funct.logging(telegram_name, ' has deleted the Telegram channel ', haproxywi=1, login=1)
@@ -2132,16 +2148,16 @@ if form.getvalue('updatesettings') is not None:
         print("Ok")
 
 if form.getvalue('getusergroups'):
-    group_id = form.getvalue('getusergroups')
+    user_id = form.getvalue('getusergroups')
     groups = []
-    u_g = sql.select_user_groups(id=group_id)
+    u_g = sql.select_user_groups(user_id)
     for g in u_g:
-        groups.append(g[0])
+        groups.append(g.user_group_id)
     from jinja2 import Environment, FileSystemLoader
 
     env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
     template = env.get_template('/show_user_groups.html')
-    template = template.render(groups=sql.select_groups(), user_groups=groups, id=group_id)
+    template = template.render(groups=sql.select_groups(), user_groups=groups, id=user_id)
     print(template)
 
 if form.getvalue('changeUserGroupId') is not None:
@@ -2152,7 +2168,7 @@ if form.getvalue('changeUserGroupId') is not None:
         for group in groups:
             if group[0] == ',':
                 continue
-            sql.update_user_groups(groups=group[0], id=group_id)
+            sql.update_user_groups(groups=group[0], user_group_id=group_id)
 
     funct.logging('localhost', ' has upgraded groups for user: ' + user, haproxywi=1, login=1)
 
@@ -2172,7 +2188,7 @@ if form.getvalue('getcurrentusergroup') is not None:
     user_id = cookie.get('uuid')
     group = cookie.get('group')
     group_id = sql.get_user_id_by_uuid(user_id.value)
-    groups = sql.select_user_groups_with_names(id=group_id)
+    groups = sql.select_user_groups_with_names(group_id)
 
     from jinja2 import Environment, FileSystemLoader
 
@@ -2265,6 +2281,7 @@ if form.getvalue('updateSmonIp') is not None:
         print('SMON error: Cannot be HTTP with 443 port')
         sys.exit()
 
+
     if sql.update_smon(smon_id, ip, port, body, telegram, group, desc, en):
         print("Ok")
         funct.logging('SMON', ' Has been update the server ' + ip + ' to SMON ', haproxywi=1, login=1)
@@ -2335,8 +2352,8 @@ if form.getvalue('waf_rule_id'):
     rule_id = form.getvalue('waf_rule_id')
     haproxy_path = sql.get_setting('haproxy_dir')
     rule_file = sql.select_waf_rule_by_id(rule_id)
-    conf_file_path = haproxy_path + 'waf/modsecurity.conf'
-    rule_file_path = 'Include ' + haproxy_path + '/waf/rules/' + rule_file
+    conf_file_path = haproxy_path + '/waf/modsecurity.conf'
+    rule_file_path = 'Include ' + haproxy_path + '//waf/rules/' + rule_file
 
     if enable == '0':
         cmd = ["sudo sed -i 's!" + rule_file_path + "!#" + rule_file_path + "!' " + conf_file_path]
@@ -3438,3 +3455,97 @@ if form.getvalue('check_slack'):
     slack_id = form.getvalue('check_slack')
     mess = 'Test message from Roxy-WI'
     funct.slack_send_mess(mess, slack_channel_id=slack_id)
+
+if form.getvalue('getoption'):
+    group = form.getvalue('getoption')
+    term = form.getvalue('term')
+    options = sql.select_options(group=group, term=term)
+
+    a = {}
+    v = 0
+
+    for i in options:
+        a[v] = i.options
+        v = v + 1
+    import json
+    print(json.dumps(a))
+
+
+if form.getvalue('newtoption'):
+    option = form.getvalue('newtoption')
+    group = form.getvalue('newoptiongroup')
+    if option is None or group is None:
+        print(error_mess)
+    else:
+        if sql.insert_new_option(option, group):
+            from jinja2 import Environment, FileSystemLoader
+
+            env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
+            template = env.get_template('/new_option.html')
+
+            template = template.render(options=sql.select_options(option=option))
+            print(template)
+
+
+if form.getvalue('updateoption') is not None:
+    option = form.getvalue('updateoption')
+    option_id = form.getvalue('id')
+    if option is None or option_id is None:
+        print(error_mess)
+    else:
+        sql.update_options(option, option_id)
+
+
+if form.getvalue('optiondel') is not None:
+    if sql.delete_option(form.getvalue('optiondel')):
+        print("Ok")
+
+
+if form.getvalue('getsavedserver'):
+    group = form.getvalue('getsavedserver')
+    term = form.getvalue('term')
+    servers = sql.select_saved_servers(group=group, term=term)
+
+    a = {}
+    v = 0
+    for i in servers:
+        a[v] = {}
+        a[v]['value'] = {}
+        a[v]['desc'] = {}
+        a[v]['value'] = i.server
+        a[v]['desc'] = i.description
+        v = v + 1
+    import json
+    print(json.dumps(a))
+
+
+if form.getvalue('newsavedserver'):
+    savedserver = form.getvalue('newsavedserver')
+    description = form.getvalue('newsavedserverdesc')
+    group = form.getvalue('newsavedservergroup')
+    if savedserver is None or group is None:
+        print(error_mess)
+    else:
+        if sql.insert_new_savedserver(savedserver, description, group):
+            from jinja2 import Environment, FileSystemLoader
+
+            env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
+            template = env.get_template('/new_saved_servers.html')
+
+            template = template.render(server=sql.select_saved_servers(server=savedserver))
+            print(template)
+
+
+if form.getvalue('updatesavedserver') is not None:
+    savedserver = form.getvalue('updatesavedserver')
+    description = form.getvalue('description')
+    savedserver_id = form.getvalue('id')
+    if savedserver is None or savedserver_id is None:
+        print(error_mess)
+    else:
+        sql.update_savedserver(savedserver, description, savedserver_id)
+
+
+if form.getvalue('savedserverdel') is not None:
+    if sql.delete_savedserver(form.getvalue('savedserverdel')):
+        print("Ok")

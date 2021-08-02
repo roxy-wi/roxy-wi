@@ -5,18 +5,22 @@
 		</a>
 	</td>
 	<td>
-		{% if service.2|int() >= 1 %}
-			<span class="serverUp server-status" title="running {{service.2 }} processes" style="margin-left: 25px !important;"></span> 
+		{% if service.2|int() == 0 %}
+			<span class="serverNone server-status" title="HAProxy is not installed" style="margin-left: 25px !important;"></span>
 		{% else %}
-			<span class="serverDown server-status" style="margin-left: 25px !important;"></span>
-		{% endif %}		
+			{% if service.3|int() >= 1 %}
+				<span class="serverUp server-status" title="running {{ service.3 }} processes" style="margin-left: 25px !important;"></span>
+			{% else %}
+				<span class="serverDown server-status" title="HAProxy is down" style="margin-left: 25px !important;"></span>
+			{% endif %}
+		{% endif %}
 	</td>
 	<td class="padding10 first-collumn">
 		{% if service.8|int() == 0 %}
 			<span class="serverNone server-status" title="Nginx is not installed" style="margin-left: 4px !important;"></span>		
 		{% else %}
 			{% if service.9|int() >= 1 %}
-				<span class="serverUp server-status" title="running {{service.9 }} processes" style="margin-left: 4px !important;"></span> 		
+				<span class="serverUp server-status" title="Nginx is running" style="margin-left: 4px !important;"></span>
 			{% else %}
 				<span class="serverDown server-status" title="Nginx is down" style="margin-left: 4px !important;"></span>
 			{% endif %}
@@ -39,7 +43,7 @@
 		{% elif service.5.0 != '' and service.4|int() == 0 %}
 			<span class="serverDown server-status" title="WAF is down" style="margin-left: 4px !important;"></span>
 		{% elif service.5.0 != '' and service.4|int() >= 1 %}
-			<span class="serverUp server-status" title="running {{service.4 }} processes" style="margin-left: 4px !important;"></span> 					
+			<span class="serverUp server-status" title="running {{ service.4 }} processes" style="margin-left: 4px !important;"></span>
 		{% endif %}
 	</td>
 	<td></td>	

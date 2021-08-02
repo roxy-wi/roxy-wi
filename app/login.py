@@ -33,17 +33,17 @@ def send_cookie(login):
 	sql.write_user_uuid(login, user_uuid)
 	sql.write_user_token(login, user_token)
 
-	id = sql.get_user_id_by_uuid(user_uuid)
+	user_id = sql.get_user_id_by_uuid(user_uuid)
 	try:
 		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 		user_group_id = cookie.get('group')
 		user_group_id = user_group_id.value
-		if sql.check_user_group(id, user_group_id):
+		if sql.check_user_group(user_id, user_group_id):
 			user_groups = user_group_id
 		else:
-			user_groups = sql.select_user_groups(id, limit=1)
-	except:
-		user_groups = sql.select_user_groups(id, limit=1)
+			user_groups = sql.select_user_groups(user_id, limit=1)
+	except Exception:
+		user_groups = sql.select_user_groups(user_id, limit=1)
 
 	c = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	c["uuid"] = user_uuid
@@ -63,13 +63,13 @@ def send_cookie(login):
 		for g in groups:
 			if g[0] == int(user_groups):
 				user_group = g[1]
-	except:
+	except Exception:
 		user_group = ''
 
 	try:
 		user_name = sql.get_user_name_by_uuid(user_uuid)
 		funct.logging('localhost', ' user: ' + user_name + ', group: ' + user_group + ' log in', haproxywi=1)
-	except:
+	except Exception:
 		pass
 	print("Content-type: text/html\n")
 	print('ok')
@@ -86,7 +86,7 @@ def ban():
 	c["ban"]["expires"] = expires.strftime("%a, %d %b %Y %H:%M:%S GMT")
 	try:
 		funct.logging('localhost', login+' failed log in', haproxywi=1, login=1)
-	except:
+	except Exception:
 		funct.logging('localhost', ' Failed log in. Wrong username', haproxywi=1)
 	print(c.output())
 	print("Content-type: text/html\n")
@@ -150,7 +150,7 @@ if form.getvalue('error'):
 try:
 	if sql.get_setting('session_ttl'):
 		session_ttl = sql.get_setting('session_ttl')
-except:
+except Exception:
 	error = '<center><div class="alert alert-danger">Cannot find "session_ttl" parameter. ' \
 			'Check it into settings, "main" section</div>'
 	pass
@@ -158,7 +158,7 @@ except:
 try:
 	role = sql.get_user_role_by_uuid(user_id.value)
 	user = sql.get_user_name_by_uuid(user_id.value)
-except:
+except Exception:
 	role = ""
 	user = ""
 	pass
@@ -167,7 +167,7 @@ except:
 if form.getvalue('logout'):
 	try:
 		sql.delete_uuid(user_id.value)
-	except:
+	except Exception:
 		pass
 	print("Set-cookie: uuid=; expires=Wed, May 18 03:33:20 2003; path=/app; httponly")
 	print("Content-type: text/html\n")
@@ -178,16 +178,16 @@ if login is not None and password is not None:
 	USERS = sql.select_users(user=login)
 
 	for users in USERS:
-		if users[7] == 0:
+		if users.activeuser == 0:
 			print("Content-type: text/html\n")
 			print('Your login is disabled')
 			sys.exit()
-		if users[6] == 1:
-			if login in users[1]:
+		if users.ldap_user == 1:
+			if login in users.username:
 				check_in_ldap(login, password)
 		else:
 			passwordHashed = funct.get_hash(password)
-			if login in users[1] and passwordHashed == users[3]:
+			if login in users.username and passwordHashed == users.password:
 				send_cookie(login)
 				break
 			else:

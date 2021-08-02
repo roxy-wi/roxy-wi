@@ -12,7 +12,7 @@
                 <select id="new-role" name="new-role">
                     <option disabled selected>Choose role</option>
                     {% for role in roles %}
-                    <option value="{{ role.1 }}">{{ role.1 }}</option>
+                    <option value="{{ role.name }}">{{ role.name }}</option>
                     {% endfor %}
                 </select>
             </td>
@@ -26,7 +26,7 @@
                 <select id="new-group" name="new-group">
                     <option disabled selected>Choose group</option>
                     {% for group in groups %}
-                    <option value="{{ group.0 }}">{{ group.1 }}</option>
+                    <option value="{{ group.group_id }}">{{ group.name }}</option>
                     {% endfor %}
                 </select>
             </td>
@@ -63,8 +63,8 @@
             <select id="new-role" name="new-role">
                 <option disabled selected>Choose role</option>
                 {% for role in roles %}
-                {% if role.1 != "superAdmin" %}
-                <option value="{{ role.1 }}">{{ role.1 }}</option>
+                {% if role.name != "superAdmin" %}
+                <option value="{{ role.name }}">{{ role.name }}</option>
                 {% endif %}
                 {% endfor %}
             </select>
@@ -101,7 +101,7 @@
                 <select id="new-server-group-add" name="new-server-group-add">
                     <option disabled selected value="0">Choose group</option>
                     {% for group in groups %}
-                    <option value="{{ group.0 }}">{{ group.1 }}</option>
+                    <option value="{{ group.group_id }}">{{ group.name }}</option>
                     {% endfor %}
                 </select>
             </td>
@@ -133,7 +133,7 @@
             <td>
                 <select id="new-sshgroup" name="new-sshgroup">
                     {% for group in groups %}
-                    <option value="{{ group.0 }}">{{ group.1 }}</option>
+                    <option value="{{ group.group_id }}">{{ group.name }}</option>
                     {% endfor %}
                 </select>
             </td>
@@ -181,7 +181,7 @@
                 <select id="new-telegram-group-add" name="new-telegram-group-add">
                     <option disabled selected value="0">Choose group</option>
                     {% for group in groups %}
-                    <option value="{{ group.0 }}">{{ group.1 }}</option>
+                    <option value="{{ group.group_id }}">{{ group.name }}</option>
                     {% endfor %}
                 </select>
             </td>
@@ -217,7 +217,7 @@
                 <select id="new-slack-group-add" name="new-slack-group-add">
                     <option disabled selected value="0">Choose group</option>
                     {% for group in groups %}
-                    <option value="{{ group.0 }}">{{ group.1 }}</option>
+                    <option value="{{ group.group_id }}">{{ group.name }}</option>
                     {% endfor %}
                 </select>
             </td>

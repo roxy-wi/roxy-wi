@@ -7,6 +7,7 @@
 <input type="hidden" id="new-server-group-add" name="new-server-group-add" value="{{ group }}" >
 <input type="hidden" id="new-sshgroup" name="new-sshgroup" value="{{ group }}" >
 {{ input('new-telegram-group-add', type='hidden', value=group) }}
+{{ input('new-slack-group-add', type='hidden', value=group) }}
 <div id="tabs">
 	<ul>
 		<li><a href="#users" title="Servers: Manage users - Roxy-WI">Users</a></li>
@@ -157,7 +158,7 @@
 		</table>
 		<div id="geoip_country_codes" style="display: none;">
 			{% for code in geoip_country_codes %}
-			<div class="geoip_country_code" id="{{code.1}}">{{code.1}} ({{code.2}})</div>
+			<div class="geoip_country_code" id="{{code.code}}">{{code.code}} ({{code.name}})</div>
 			{% endfor %}
 		</div>
 	</div>
@@ -186,6 +187,17 @@
 		{% for ssh in sshs %}
 			$("#sshgroup-{{ ssh.0}}" ).selectmenu({
 				  width: 150
+			});
+		{% endfor %}
+		{% for server in backups %}
+			$("#backup-time-{{ server.id}}" ).selectmenu({
+				width: 100
+			});
+			$("#backup-type-{{server.id}}" ).selectmenu({
+				width: 130
+			});
+			$("#backup-credentials-{{server.id}}" ).selectmenu({
+				width: 150
 			});
 		{% endfor %}
 	});

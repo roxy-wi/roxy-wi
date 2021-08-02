@@ -1,33 +1,33 @@
 {% for slack in slacks %}
-	<tr style="width: 50%;" id="slack-table-{{slack.0}}" class="newgroup">
+	<tr style="width: 50%;" id="slack-table-{{slack.id}}" class="newgroup">
 		<td class="padding10 first-collumn">
-			<input type="text" id="slack-token-{{slack.0}}" class="form-control" value="{{slack.1}}">
-			<input type="hidden" id="slackgroup-{{slack.0}}" name="slackgroup-{{slack.0}}">
+			<input type="text" id="slack-token-{{slack.id}}" class="form-control" value="{{slack.token}}" size="30">
+			<input type="hidden" id="slackgroup-{{slack.id}}" name="slackgroup-{{slack.id}}">
 		</td>
 		<td>
-			<input type="text" id="slack-chanel-{{slack.0}}" class="form-control" value="{{slack.2}}">		
+			<input type="text" id="slack-chanel-{{slack.id}}" class="form-control" value="{{slack.chanel_name}}" size="30">
 		</td>
 		{% if page != "servers.py" %}
 			<td>
-				<select id="slackgroup-{{slack.0}}" name="slackgroup-{{slack.0}}">
+				<select id="slackgroup-{{slack.id}}" name="slackgroup-{{slack.id}}">
 					{% for group in groups %}
-						{% if slack.3 == group.0 %}
-							<option value="{{ group.0 }}" selected>{{ group.1 }}</option>
+						{% if slack.groups == group.group_id %}
+							<option value="{{ group.group_id }}" selected>{{ group.name }}</option>
 						{% else %}
-							<option value="{{ group.0 }}">{{ group.1 }}</option>
+							<option value="{{ group.group_id }}">{{ group.name }}</option>
 						{% endif %}
 					{% endfor %}
 				</select>
 			</td>	
 		{% endif %}
         <td>
-            <button title="Send test message" onclick="checkSlack({{slack.0}})">Test</button>
+            <button title="Send test message" onclick="checkSlack({{slack.id}})">Test</button>
         </td>
 		<td>
-			<a class="add" onclick="cloneSlack({{slack.0}})" id="clone-{{slack.0}}" title="Clone {{slack.2}}" style="cursor: pointer;"></a>
+			<a class="add" onclick="cloneSlack({{slack.id}})" id="clone-{{slack.id}}" title="Clone {{slack.chanel_name}}" style="cursor: pointer;"></a>
 		</td>
 		<td>
-			<a class="delete" onclick="confirmDeleteSlack({{slack.0}})"  style="cursor: pointer;"></a>
+			<a class="delete" onclick="confirmDeleteSlack({{slack.id}})"  style="cursor: pointer;"></a>
 		</td>
 	</tr>
 {% endfor %}

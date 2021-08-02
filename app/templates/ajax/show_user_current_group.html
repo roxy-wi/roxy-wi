@@ -3,10 +3,10 @@
 		<td style="border: none">
 			<select id="newCurrentGroup" name="newCurrentGroup" >
 				{% for g in groups %}
-					{% if g.0|string() == group|string() %}
-						<option value="{{ g.0 }}" selected>{{ g.1 }}</option>
+					{% if g.user_group_id|string() == group|string() %}
+						<option value="{{ g.user_group_id }}" selected>{{ g.groups.name }}</option>
 					{% else %}
-						<option value="{{ g.0 }}">{{ g.1 }}</option>
+						<option value="{{ g.user_group_id }}">{{ g.groups.name }}</option>
 					{% endif %}
 				{% endfor %}
 			</select>

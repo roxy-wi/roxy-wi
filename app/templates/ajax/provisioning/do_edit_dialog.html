@@ -15,11 +15,11 @@
                 Server name
             </td>
             <td>
-                <span id="do_edit_server_name">{{s.6}}</span>
+                <span id="do_edit_server_name">{{s.name}}</span>
             </td>
         </tr>
-            {{input('do_edit_group', value=s.12, type='hidden')}}
-            {{input('do_edit_id', value=s.13, type='hidden')}}
+            {{input('do_edit_group', value=s.group_id, type='hidden')}}
+            {{input('do_edit_id', value=s.id, type='hidden')}}
         <tr>
             <td class="padding20">
                 Provider credentials
@@ -29,7 +29,7 @@
                 <select id="do_edit_id_provider">
                 {% for p in providers %}
                     {% if p.2 == 'do' %}
-                        {% if s.11|int() == p.0|int() %}
+                        {% if s.provider_id|int() == p.0|int() %}
                         <option value="{{ p.0 }}" selected>{{ p.1 }}</option>
                         {% else %}
                         <option value="{{ p.0 }}">{{ p.1 }}</option>
@@ -45,11 +45,11 @@
             </td>
             <td>
                 {% for key, value in do_regions.items() %}
-                {% if s.0|int() == key|int() %}
+                {% if s.region|int() == key|int() %}
                     {% do region_name.append(value) %}
                 {% endif %}
                 {% endfor %}
-                <span id="do_edit_regions" style="display: none;">{{s.0}}</span>
+                <span id="do_edit_regions" style="display: none;">{{s.region}}</span>
                 {{region_name.0}}
             </td>
         </tr>
@@ -63,7 +63,7 @@
                 Size
                 <span class="need-field">*</span>
             </td>
-            <td>{{input('do_edit_size', size='30', value=s.1)}}</td>
+            <td>{{input('do_edit_size', size='30', value=s.instance_type)}}</td>
         </tr>
         <tr>
             <td class="padding20">
@@ -71,7 +71,7 @@
                 <span class="need-field">*</span>
             </td>
             <td>
-                {{ select('do_edit_oss', values=do_oss, first=s.7, disabled='false') }}
+                {{ select('do_edit_oss', values=do_oss, first=s.os, disabled='false') }}
             </td>
         </tr>
         <tr>
@@ -81,12 +81,12 @@
             </td>
             <td>
                 <select id="do_edit_ssh_choose">
-                    {% if s.5 != 'None' %}
+                    {% if s.ssh_key_name is not none %}
                     <option value="ssh_name" selected>Set SSH key name</option>
                     {% else %}
                     <option value="ssh_name">Set SSH key name</option>
                     {% endif %}
-                    {% if s.4 != 'None' %}
+                    {% if s.ssh_ids is not none %}
                     <option value="ssh_ids" selected>Set SSH key ids</option>
                     {% else %}
                     <option value="ssh_ids">Set SSH key ids</option>
@@ -94,29 +94,29 @@
                 </select>
             </td>
         </tr>
-        <tr id="do_edit_ssh_ids_tr" {% if s.4 == 'None' %}style="display: none;"{% endif %}>
+        <tr id="do_edit_ssh_ids_tr" {% if s.ssh_ids is none %}style="display: none;"{% endif %}>
             <td class="padding20 padding-top20">
                 SSH key ids
                 <span class="need-field">*</span>
             </td>
             <td>
-                {{input('do_edit_ssh_ids', size='30', value=s.4)}}
+                {{input('do_edit_ssh_ids', size='30', value=s.ssh_ids)}}
                 <div class="tooltip tooltipTop tooltipTd">List comma separated. Required if SSH key name is empty</div>
             </td>
         </tr>
-        <tr id="do_edit_ssh_name_tr" {% if s.5 == 'None' %}style="display: none;"{% endif %}>
+        <tr id="do_edit_ssh_name_tr" {% if s.ssh_key_name is none %}style="display: none;"{% endif %}>
             <td class="padding20 padding-top20">
                 SSH key name
                 <span class="need-field">*</span>
             </td>
             <td>
-                {{input('do_edit_ssh_name', size='30', value=s.5)}}
+                {{input('do_edit_ssh_name', size='30', value=s.ssh_key_name)}}
                 <div class="tooltip tooltipTop tooltipTd">Required if SSH key ids is empty</div>
             </td>
         </tr>
         <tr>
             {% set checked='checked' %}
-            {% if s.10 == 'false' %}
+            {% if s.monitoring == 'false' %}
                 {% set checked='' %}
             {% endif %}
             <td class="padding20">Monitoring</td>
@@ -126,7 +126,7 @@
         </tr>
         <tr>
             {% set checked='checked' %}
-            {% if s.9 == 'false' %}
+            {% if s.backup == 'false' %}
                 {% set checked='' %}
             {% endif %}
             <td class="padding20">Backup</td>
@@ -141,7 +141,7 @@
         </tr>
         <tr>
             {% set checked='checked' %}
-            {% if s.2 == 'false' %}
+            {% if s.private_networking == 'false' %}
                 {% set checked='' %}
             {% endif %}
             <td class="padding20">Private IP</td>
@@ -151,7 +151,7 @@
         </tr>
         <tr>
             {% set checked='checked' %}
-            {% if s.3 == 'false' %}
+            {% if s.floating_ip == 'false' %}
                 {% set checked='' %}
             {% endif %}
             <td class="padding20">Floating Ip</td>
@@ -161,7 +161,7 @@
         </tr>
         <tr>
             {% set checked='checked' %}
-            {% if s.8 == 'false' %}
+            {% if s.firewall == 'false' %}
                 {% set checked='' %}
             {% endif %}
             <td class="padding20" style="padding-bottom: 25px;padding-top: 25px;">Firewall</td>

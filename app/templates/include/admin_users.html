@@ -18,54 +18,54 @@
 	<tbody>
 	{% endif %}
 	{% for user in users %}
-		<tr id="user-{{user.0}}" class="{{ loop.cycle('odd', 'even') }} {% if adding %}newuser{% endif %}">
+		<tr id="user-{{user.user_id}}" class="{{ loop.cycle('odd', 'even') }} {% if adding %}newuser{% endif %}">
 			<td class="padding10 first-collumn">
-				{% set login_id = 'login-' + user.0|string() %}
+				{% set login_id = 'login-' + user.user_id|string() %}
 				{% if user.6 == 1%}
-					{{ input(login_id, value=user.1, readonly='readonly') }}
+					{{ input(login_id, value=user.username, readonly='readonly') }}
 				{% else %}
-					{{ input(login_id, value=user.1) }}
+					{{ input(login_id, value=user.username) }}
 				{% endif %}
 			</td>
 			<td>
 				{% if user.6 != 1%}
-				<span title="Change password" style="cursor: pointer; margin-left: 15px;" class="div-pic" onclick="openChangeUserPasswordDialog('{{user.0}}')">
+				<span title="Change password" style="cursor: pointer; margin-left: 15px;" class="div-pic" onclick="openChangeUserPasswordDialog('{{user.user_id}}')">
 				</span>
 				{% endif %}
 			</td>
 			<td class="checkbox">
-				{% set activeuser_id = 'activeuser-' + user.0|string() %}
-				{% if user.7 == 1 %}
+				{% set activeuser_id = 'activeuser-' + user.user_id|string() %}
+				{% if user.activeuser == 1 %}
 					{{ checkbox(activeuser_id, checked='checked') }}
 				{% else %}
 					{{ checkbox(activeuser_id) }}
 				{% endif %}
 			</td>
 			<td>
-				{% set email_id = 'email-' + user.0|string() %}
-				{% if user.6 == 1%}
-					{{ input(email_id, value=user.2, readonly='readonly') }}
+				{% set email_id = 'email-' + user.user_id|string() %}
+				{% if user.ldap_user == 1%}
+					{{ input(email_id, value=user.email, readonly='readonly') }}
 				{% else %}
-					{{ input(email_id, value=user.2, type='email') }}
+					{{ input(email_id, value=user.email, type='email') }}
 				{% endif %}
 			</td>
 			<td>
-				<select id="role-{{user.0}}" name="role-{{user.0}}">
+				<select id="role-{{user.user_id}}" name="role-{{user.user_id}}">
 					<option disabled selected>Choose role</option>
 					{% for r in roles %}
 						{% if page == "servers.py" %}
-							{% if r.1 != "superAdmin" %}
-								{% if user.4 == r.1 %}
-								<option value="{{ r.1 }}" selected>{{ r.1 }}</option>
+							{% if r.name != "superAdmin" %}
+								{% if user.role == r.name %}
+								<option value="{{ r.name }}" selected>{{ r.name }}</option>
 								{% else %}
-								<option value="{{ r.1 }}">{{ r.1 }}</option>
+								<option value="{{ r.name }}">{{ r.name }}</option>
 								{% endif %}
 							{% endif %}
 						{% else %}
-							{% if user.4 == r.1 %}
-							<option value="{{ r.1 }}" selected>{{ r.1 }}</option>
+							{% if user.role == r.name %}
+							<option value="{{ r.name }}" selected>{{ r.name }}</option>
 							{% else %}
-							<option value="{{ r.1 }}">{{ r.1 }}</option>
+							<option value="{{ r.name }}">{{ r.name }}</option>
 							{% endif %}
 						{% endif %}
 					{% endfor %}
@@ -73,14 +73,14 @@
 			</td>
 			{% if page != "servers.py" %}
 			<td>
-				<span title="Change user groups" style="cursor: pointer; margin-left: 15px;" class="div-pic" onclick="openChangeUserGroupDialog('{{user.0}}')">
+				<span title="Change user groups" style="cursor: pointer; margin-left: 15px;" class="div-pic" onclick="openChangeUserGroupDialog('{{user.user_id}}')">
 			</td>
 			{% endif %}
 			<td>
-				<a class="add" onclick="cloneUser({{user.0}})" id="clone-{{user.0}}" title="Clone {{user.1}}" style="cursor: pointer;"></a>
+				<a class="add" onclick="cloneUser({{user.user_id}})" id="clone-{{user.user_id}}" title="Clone {{user.1}}" style="cursor: pointer;"></a>
 			</td>
 			<td>
-				<a class="delete" onclick="confirmDeleteUser({{user.0}})" title="Delete user {{user.1}}" style="cursor: pointer;"></a>
+				<a class="delete" onclick="confirmDeleteUser({{user.user_id}})" title="Delete user {{user.1}}" style="cursor: pointer;"></a>
 			</td>
 		</tr>
 	{% endfor %}

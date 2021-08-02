@@ -46,6 +46,8 @@ def get_data(log_type):
 		fmt = '%Y%m%d'
 	elif log_type == "date_in_log":
 		fmt = "%b %d %H:%M:%S"
+	elif log_type == 'regular':
+		fmt = "%Y-%m-%d %H:%M:%S"
 
 	return now_utc.strftime(fmt)
 
@@ -60,11 +62,11 @@ def get_user_group(**kwargs):
 		user_group_id1 = user_group_id.value
 		groups = sql.select_groups(id=user_group_id1)
 		for g in groups:
-			if g[0] == int(user_group_id1):
+			if g.group_id == int(user_group_id1):
 				if kwargs.get('id'):
-					user_group = g[0]
+					user_group = g.group_id
 				else:
-					user_group = g[1]
+					user_group = g.name
 	except Exception:
 		check_user_group()
 
@@ -145,8 +147,8 @@ def telegram_send_mess(mess, **kwargs):
 	proxy = sql.get_setting('proxy')
 
 	for telegram in telegrams:
-		token_bot = telegram[1]
-		channel_name = telegram[2]
+		token_bot = telegram.token
+		channel_name = telegram.chanel_name
 
 	if token_bot == '' or channel_name == '':
 		mess = " error: Can't send message. Add Telegram channel before use alerting at this servers group"
@@ -231,8 +233,9 @@ def is_admin(**kwargs):
 
 	try:
 		return True if role <= level else False
-	except Exception:
-		return False
+	except Exception as e:
+		print('error: '+str(e))
+		# return False
 
 
 def page_for_admin(**kwargs):
@@ -257,16 +260,16 @@ def return_ssh_keys_path(serv, **kwargs):
 
 	if kwargs.get('id'):	
 		for sshs in sql.select_ssh(id=kwargs.get('id')):
-			ssh_enable = sshs[2]
-			ssh_user_name = sshs[3]
-			ssh_user_password = sshs[4]
-			ssh_key_name = full_path+'/keys/%s.pem' % sshs[1]
+			ssh_enable = sshs.enable
+			ssh_user_name = sshs.username
+			ssh_user_password = sshs.password
+			ssh_key_name = full_path+'/keys/%s.pem' % sshs.name
 	else:
 		for sshs in sql.select_ssh(serv=serv):
-			ssh_enable = sshs[3]
-			ssh_user_name = sshs[4]
-			ssh_user_password = sshs[5]
-			ssh_key_name = full_path+'/keys/%s.pem' % sshs[2]
+			ssh_enable = sshs.enable
+			ssh_user_name = sshs.username
+			ssh_user_password = sshs.password
+			ssh_key_name = full_path+'/keys/%s.pem' % sshs.name
 
 	return ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name
 
@@ -1001,10 +1004,13 @@ def haproxy_wi_log(**kwargs):
 		else:
 			group_grep = ''
 		cmd = "find "+log_path+"/roxy-wi-* -type f -exec stat --format '%Y :%y %n' '{}' \; | sort -nr | cut -d: -f2- | head -1 |awk '{print $4}' |xargs tail"+group_grep+"|sort -r"
-		output, stderr = subprocess_execute(cmd)
-		return output
-			
-			
+		try:
+			output, stderr = subprocess_execute(cmd)
+			return output
+		except:
+			return ''
+
+
 def show_ip(stdout):
 	for line in stdout:
 		if "Permission denied" in line:
@@ -1203,11 +1209,8 @@ def get_hash(value):
 	return p
 	
 	
-def out_error(e):
-	if get_config_var('mysql', 'enable') == '1':
-		error = e
-	else:
-		error = e.args[0]
+def out_error(error):
+	error = str(error)
 	try:
 		logging('localhost', error, haproxywi=1, login=1)
 	except Exception:
@@ -1291,7 +1294,10 @@ def get_services_status():
 				service_name = 'grafana'
 		else:
 			service_name = s
-		cmd = "rpm --query " + service_name + "-* |awk -F\"" + service_name + "\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
+		if service_name == 'prometheus':
+			cmd = "prometheus --version 2>&1 |grep prometheus|awk '{print $3}'"
+		else:
+			cmd = "rpm --query " + service_name + "-* |awk -F\"" + service_name + "\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
 		service_ver, stderr = subprocess_execute(cmd)
 
 		try:

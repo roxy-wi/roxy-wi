@@ -1,17 +1,17 @@
 {% for group in groups %}
-	<tr id="group-{{ group.0 }}" class="newgroup"> 
+	<tr id="group-{{ group.group_id }}" class="newgroup">
 		<td class="padding10 first-collumn">
-			<input type="text" id="name-{{ group.0 }}" value="{{ group.1 }}" class="form-control">
+			<input type="text" id="name-{{ group.group_id }}" value="{{ group.name }}" class="form-control">
 		</td>
 		<td style="width: 100%;">
-			{% if group.2 != 'None' %}
-			<input type="text" id="descript-{{ group.0 }}" value="{{ group.2 }}" class="form-control" size="60">
+			{% if group.description is not none %}
+			<input type="text" id="descript-{{ group.group_id }}" value="{{ group.description }}" class="form-control" size="60">
 			{% else %}
-			<input type="text" id="descript-{{ group.0 }}" class="form-control" size="60">
+			<input type="text" id="descript-{{ group.group_id }}" class="form-control" size="60">
 			{% endif %}
 		</td>
 		<td>
-			<a class="delete" onclick="confirmDeleteGroup({{ group.0 }})"  style="cursor: pointer;"></a>
+			<a class="delete" onclick="confirmDeleteGroup({{ group.group_id }})"  style="cursor: pointer;"></a>
 		</td>
 	</tr>
 {% endfor %}

@@ -10,10 +10,7 @@ template = env.get_template('ovw.html')
 
 print('Content-type: text/html\n')
 
-if create_db.check_db():
-	if create_db.create_table():
-		create_db.update_all()
-create_db.update_all_silent()
+# create_db.update_all_silent()
 funct.check_login()
 
 try:
@@ -104,6 +101,7 @@ except Exception as e:
 	is_checker_worker = ''
 	is_metrics_worker = ''
 	token = ''
+	print(str(e))
 
 
 template = template.render(h2=1,
@@ -124,7 +122,7 @@ template = template.render(h2=1,
 							port_scanner=''.join(port_scanner),
 							grafana=''.join(grafana),
 							prometheus=''.join(prometheus),
-							haproxy_wi_log_id=funct.haproxy_wi_log(log_id=1, file="haproxy-wi-", with_date=1),
+							haproxy_wi_log_id=funct.haproxy_wi_log(log_id=1, file="roxy-wi-", with_date=1),
 							metrics_log_id=funct.haproxy_wi_log(log_id=1, file="metrics-", with_date=1),
 							checker_log_id=funct.haproxy_wi_log(log_id=1, file="checker-", with_date=1),
 							keep_alive_log_id=funct.haproxy_wi_log(log_id=1, file="keep_alive"),

@@ -14,8 +14,8 @@
 				<span title="Virtual IP, something like VRRP">Virt</span>
 			</th>
 			<th class="checkbox-head" style="width: 5%">HAProxy</th>
-			<th style="width: 5%">Nginx</th>
-			<th style="width: 10%;" class="help_cursor">
+			<th class="checkbox-head" style="min-width: 50px;">Nginx</th>
+			<th style="min-width: 100px;" class="help_cursor">
 				<span title="If the server has a firewall enabled, enable this option">Firewalld</span>
 			</th>
 			<th class="checkbox-head" style="width: 5%" class="help_cursor">
@@ -51,10 +51,10 @@
 				<select id="servergroup-{{server.0}}" name="servergroup-{{server.0}}">
 					<option disabled selected>Choose group</option>
 					{% for group in groups %}
-					{% if server.3 == group.0|string() %}
-					<option value="{{ group.0 }}" selected>{{ group.1 }}</option>
+					{% if server.3 == group.group_id|string() %}
+					<option value="{{ group.group_id }}" selected>{{ group.name }}</option>
 					{% else %}
-					<option value="{{ group.0 }}">{{ group.1 }}</option>
+					<option value="{{ group.group_id }}">{{ group.name }}</option>
 					{% endif %}
 					{% endfor %}
 				</select>
@@ -132,10 +132,10 @@
 					<select id="credentials-{{server.0}}">
 						<option disabled selected>Choose credentials</option>
 						{% for ssh in sshs %}
-							{% if ssh.0 == server.7	%}
-								<option value="{{ssh.0}}" selected>{{ssh.1}}</option>
+							{% if ssh.id == server.7 %}
+								<option value="{{ssh.id}}" selected>{{ssh.name}}</option>
 							{% else %}
-								<option value="{{ssh.0}}">{{ssh.1}}</option>
+								<option value="{{ssh.id}}">{{ssh.name}}</option>
 							{% endif %}
 						{% endfor %}
 					</select>
@@ -144,7 +144,7 @@
 			</td>
 			<td>
 				{% set id = 'desc-' + server.0|string() %}
-				{% if server.11  != "None" %}
+				{% if server.11 is not none %}
 					{{ input(id, value=server.11, size='20') }}
 				{% else %}
 					{{ input(id, size='20') }}

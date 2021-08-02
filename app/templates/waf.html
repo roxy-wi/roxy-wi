@@ -16,17 +16,17 @@
 			</td>
 		</tr>
 		{% for r in rules %}
-		<tr class="{{ loop.cycle('odd', 'even') }}" id="rule-{{r.0}}">
-			<td class="padding10 first-collumn">{{r.1}}</td>
+		<tr class="{{ loop.cycle('odd', 'even') }}" id="rule-{{r.id}}">
+			<td class="padding10 first-collumn">{{r.rule_name}}</td>
 			<td class="checkbox">
-				{% set id = 'rule_id-' + r.0|string() %}
-				{% if r.2 == 1 %}
+				{% set id = 'rule_id-' + r.id|string() %}
+				{% if r.en == 1 %}
 					{{ checkbox(id, checked='checked') }}
 				{% else %}
 					{{ checkbox(id) }}
 				{% endif %}
 			</td>
-			<td style="padding-top: 5px;padding-bottom: 10px;">{{r.3}}</td>
+			<td style="padding-top: 5px;padding-bottom: 10px;">{{r.desc}}</td>
 		</tr>
 		{% endfor %}
 	</table>

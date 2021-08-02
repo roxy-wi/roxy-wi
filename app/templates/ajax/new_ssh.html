@@ -1,23 +1,23 @@
 {% for ssh in sshs %}
-	<tr style="width: 50%;" id="ssh-table-{{ssh.0}}" class="ssh-table-{{ssh.0}}">
+	<tr style="width: 50%;" id="ssh-table-{{ssh.id}}" class="ssh-table-{{ssh.id}}">
 		<td class="first-collumn">
-			<input type="text" id="ssh_name-{{ssh.0}}" class="form-control" value="{{ssh.1}}" style="margin-bottom: 23px;">	
+			<input type="text" id="ssh_name-{{ssh.id}}" class="form-control" value="{{ssh.name}}" style="margin-bottom: 23px;">	
 		</td>
 		<td class="first-collumn" valign="top" style="padding-top: 15px;">
-			{% if ssh.2 == 1 %}
-				<label for="ssh_enable-{{ssh.0}}">Enable SSH key</label><input type="checkbox" id="ssh_enable-{{ssh.0}}" checked>
+			{% if ssh.enable == 1 %}
+				<label for="ssh_enable-{{ssh.id}}">Enable SSH key</label><input type="checkbox" id="ssh_enable-{{ssh.id}}" checked>
 			{% else %}
-				<label for="ssh_enable-{{ssh.0}}">Enable SSH key</label><input type="checkbox" id="ssh_enable-{{ssh.0}}">
+				<label for="ssh_enable-{{ssh.id}}">Enable SSH key</label><input type="checkbox" id="ssh_enable-{{ssh.id}}">
 			{% endif %}
 		</td>
 		{% if page != "servers.py" %}
 			<td>
-				<select id="sshgroup-{{ssh.0}}" name="sshgroup-{{ssh.0}}">
+				<select id="sshgroup-{{ssh.id}}" name="sshgroup-{{ssh.id}}">
 					{% for group in groups %}
-						{% if ssh.5 == group.0 %}
-							<option value="{{ group.0 }}" selected>{{ group.1 }}</option>
+						{% if ssh.5 == group.group_id %}
+							<option value="{{ group.group_id }}" selected>{{ group.name }}</option>
 						{% else %}
-							<option value="{{ group.0 }}">{{ group.1 }}</option>
+							<option value="{{ group.group_id }}">{{ group.name }}</option>
 						{% endif %}
 					{% endfor %}
 				</select>
@@ -25,17 +25,17 @@
 		{% endif %}
 		<td style="padding-top: 15px;">
 			<p>
-				<input type="text" id="ssh_user-{{ssh.0}}" class="form-control" value="{{ssh.3}}">		
+				<input type="text" id="ssh_user-{{ssh.id}}" class="form-control" value="{{ssh.username}}">
 			</p>
-			{% if ssh.2 == 1 %}
-				<input type="password" id="ssh_pass-{{ssh.0}}" class="form-control" value="{{ssh.4}}" style="display: none;">
+			{% if ssh.enable == 1 %}
+				<input type="password" id="ssh_pass-{{ssh.id}}" class="form-control" placeholder="*****" style="display: none;">
 			{% else %}
-				<input type="password" id="ssh_pass-{{ssh.0}}" class="form-control" value="{{ssh.4}}">
+				<input type="password" id="ssh_pass-{{ssh.id}}" class="form-control" placeholder="*****">
 			{% endif %}
 			<br>
 		</td>
 		<td>
-			<a class="delete" onclick="confirmDeleteSsh({{ssh.0}})"  style="cursor: pointer;"></a>
+			<a class="delete" onclick="confirmDeleteSsh({{ssh.id}})"  style="cursor: pointer;"></a>
 		</td>
 	</tr>
 {% endfor %}

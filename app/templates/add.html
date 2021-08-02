@@ -761,15 +761,15 @@
 			</tr>
 		{% for option in options %}
 			<tr id="option-{{ option.0 }}" class="{{ loop.cycle('odd', 'even') }}">
-				{% if option.2 == group or group == '1' %}
+				{% if option.groups == group or group == '1' %}
 				<td class="padding10 first-collumn">
-					{{ option.0 }}
+					{{ option.id }}
 				</td>
 				<td class="padding10 first-collumn" style="width: 77%;">
-					<input type="text" id="option-body-{{ option.0 }}" value="{{ option.1 }}" size="60" class="form-control">
+					<input type="text" id="option-body-{{ option.id }}" value="{{ option.options }}" size="60" class="form-control">
 				</td>
 				<td>
-					<a class="delete" onclick="confirmDeleteOption({{ option.0 }})" title="Delete option {{option.1}}" style="cursor: pointer;"></a>
+					<a class="delete" onclick="confirmDeleteOption({{ option.id }})" title="Delete option {{option.options}}" style="cursor: pointer;"></a>
 				</td>
 				{% endif %}
 			</tr>
@@ -815,16 +815,16 @@
 				<td></td>
 			</tr>
 		{% for s in saved_servers %}
-			<tr id="servers-saved-{{ s.0 }}" class="{{ loop.cycle('odd', 'even') }}">
-				{% if s.3 == group or group == '1' %}
+			<tr id="servers-saved-{{ s.id }}" class="{{ loop.cycle('odd', 'even') }}">
+				{% if s.groups == group or group == '1' %}
 				<td class="padding10 first-collumn">
-					<input type="text" id="servers-ip-{{ s.0 }}" value="{{ s.1 }}" size="15" class="form-control">
+					<input type="text" id="servers-ip-{{ s.id }}" value="{{ s.server }}" size="15" class="form-control">
 				</td>
 				<td class="padding10 first-collumn" style="width: 77%;">
-					<input type="text" id="servers-desc-{{ s.0 }}" value="{{ s.2 }}" size="50" class="form-control">
+					<input type="text" id="servers-desc-{{ s.id }}" value="{{ s.description }}" size="50" class="form-control">
 				</td>
 				<td>
-					<a class="delete" onclick="confirmDeleteSavedServer({{ s.0 }})" title="Delete server {{s.1}}" style="cursor: pointer;"></a>
+					<a class="delete" onclick="confirmDeleteSavedServer({{ s.id }})" title="Delete server {{s.server}}" style="cursor: pointer;"></a>
 				</td>
 				{% endif %}
 			</tr>
@@ -846,7 +846,7 @@
 					{{ input('new-saved-servers-description', size='50') }}
 				</td>
 				<td>
-					<button class="add-admin" id="add-saved-server-new" title="Add new server" style="cursor: pointer;"></button>
+					<span class="add-admin" id="add-saved-server-new" title="Add new server" style="cursor: pointer;"></span>
 				</td>
 			</tr>
 		</table>

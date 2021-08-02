@@ -1007,7 +1007,13 @@ label {
 		height: 100px;
 	}
 	.server-desc {
-		width: 300px;
+		width: 380px;
+	}
+	.add_proxy {
+    	width: 300px;
+	}
+	.chart-container {
+		width: 48.3%;
 	}
 }
 @media (max-width: 1280px) {

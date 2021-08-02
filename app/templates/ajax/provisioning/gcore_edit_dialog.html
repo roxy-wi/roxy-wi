@@ -15,11 +15,11 @@
                 Server name
             </td>
             <td>
-                <span id="gcore_edit_server_name">{{s.6}}</span>({{s.16}})
+                <span id="gcore_edit_server_name">{{s.name}}</span>({{s.name_template}})
             </td>
         </tr>
-            {{input('gcore_edit_group', value=s.10, type='hidden')}}
-            {{input('gcore_edit_id', value=s.11, type='hidden')}}
+            {{input('gcore_edit_group', value=s.group_id, type='hidden')}}
+            {{input('gcore_edit_id', value=s.id, type='hidden')}}
         <tr>
             <td class="padding20">
                 Provider credentials
@@ -29,7 +29,7 @@
                 <select id="gcore_edit_id_provider">
                 {% for p in providers %}
                     {% if p.2 == 'gcore' %}
-                        {% if s.9|int() == p.0|int() %}
+                        {% if s.provider_id|int() == p.0|int() %}
                         <option value="{{ p.0 }}" selected>{{ p.1 }}</option>
                         {% else %}
                         <option value="{{ p.0 }}">{{ p.1 }}</option>
@@ -45,11 +45,11 @@
             </td>
             <td>
                 {% for key, value in gcore_regions.items() %}
-                {% if s.0|int() == key|int() %}
+                {% if s.region|int() == key|int() %}
                     {% do region_name.append(value) %}
                 {% endif %}
                 {% endfor %}
-                <span id="gcore_edit_region" style="display: none;">{{s.0}}</span>
+                <span id="gcore_edit_region" style="display: none;">{{s.region}}</span>
                 {{region_name.0}}
             </td>
         </tr>
@@ -58,7 +58,7 @@
                 Project name
             </td>
             <td>
-                <span id="gcore_edit_project_name">{{s.13}}</span>
+                <span id="gcore_edit_project_name">{{s.project}}</span>
             </td>
         </tr>
         <tr>
@@ -72,7 +72,7 @@
                 <span class="need-field">*</span>
             </td>
             <td>
-                {{input('gcore_edit_size', size='26', value=s.1)}}
+                {{input('gcore_edit_size', size='26', value=s.instance_type)}}
             </td>
         </tr>
         <tr>
@@ -86,7 +86,7 @@
                 "fedora-coreos-32-x64": "Fedora CoreOS 32", "ubuntu-16.04-x64": "Ubuntu 16.04", "ubuntu-18.04-x64": "Ubuntu 18.04",
                 "ubuntu-20.04-x64": "Ubuntu 20.04", "ubuntu-20.10-x64": "Ubuntu 20.10", "debian-9.7-x64-qcow2": "Debian 9.7",
                 "debian-10.1-x64-qcow2": "Debian 10.1", "debian-10.3-x64-qcow2": "Debian 10.3"} %}
-                {{ select('gcore_edit_oss', values=oss, first=s.7, disabled='false') }}
+                {{ select('gcore_edit_oss', values=oss, first=s.os, disabled='false') }}
             </td>
         </tr>
         <tr>
@@ -95,7 +95,7 @@
                 <span class="need-field">*</span>
             </td>
             <td>
-                {{input('gcore_edit_ssh_name', size='26', value=s.5)}}
+                {{input('gcore_edit_ssh_name', size='26', value=s.ssh_key_name)}}
                 <div class="tooltip tooltipTop tooltipTd">SSH key must exists in region where instance edit</div>
             </td>
         </tr>
@@ -110,7 +110,7 @@
                 <span class="need-field">*</span>
             </td>
             <td>
-                {{input('gcore_edit_volume_size', size='26', value=s.4, type='number')}}Gb
+                {{input('gcore_edit_volume_size', size='26', value=s.volume_size, type='number')}}Gb
             </td>
         </tr>
         <tr>
@@ -121,7 +121,7 @@
             <td>
                 <select id="gcore_edit_volume_type">
                     {% for key, value in gcore_volume_type.items() %}
-                        {% if s.15 == key %}
+                        {% if s.volume_type == key %}
                             <option value="{{key}}" selected>{{value}}</option>
                         {% else %}
                             <option value="{{key}}">{{value}}</option>
@@ -134,7 +134,7 @@
             <td class="padding20 padding-top20">Delete on termination</td>
             <td>
                 {% set checked='checked' %}
-                {% if s.12 == 'false' %}
+                {% if s.delete_on_termination == 'false' %}
                     {% set checked='' %}
                 {% endif %}
                 {{checkbox('gcore_edit_delete_on_termination', checked=checked)}}
@@ -150,12 +150,12 @@
             <td class="padding20">Network Type</td>
             <td>
                 <select id="gcore_edit_network_type">
-                    {% if s.2 == 'external' %}
+                    {% if s.public_ip == 'external' %}
                     <option value="external" selected>External IP</option>
                     {% else %}
                     <option value="external">External IP</option>
                     {% endif %}
-                    {% if s.2 == 'any_subnet' %}
+                    {% if s.public_ip == 'any_subnet' %}
                     <option value="any_subnet" selected>Custom network</option>
                     {% set style = 'display: table-row;' %}
                     {% else %}
@@ -170,11 +170,11 @@
                 Network name
                 <span class="need-field">*</span>
             </td>
-            <td>{{input('gcore_edit_network_name', size='26', value=s.14)}}</td>
+            <td>{{input('gcore_edit_network_name', size='26', value=s.network_name)}}</td>
         </tr>
         <tr>
             {% set checked='checked' %}
-            {% if s.8 == 'false' %}
+            {% if s.firewall == 'false' %}
                 {% set checked='' %}
             {% endif %}
             <td class="padding20" style="padding-bottom: 25px;padding-top: 25px;">Firewall</td>

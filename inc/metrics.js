@@ -1,4 +1,8 @@
 function getHttpChartData(server) {
+    var hide_http_metrics = localStorage.getItem('hide_http_metrics');
+    if (hide_http_metrics == 'disabled') {
+        return false;
+    }
     $.ajax({
         url: "options.py",
 		data: {
@@ -449,6 +453,30 @@ $( function() {
         $('#en_table_metric').css('display', 'none');
         $('#dis_table_metric').css('display', 'inline');
         loadMetrics();
+    });
+
+    // Check is showing http metrics enabled
+    var hide_http_metrics = localStorage.getItem('hide_http_metrics');
+    if(hide_http_metrics === null) {
+        $('#hide_http_metrics').prop('checked', false);
+        $('#hide_http_metrics').checkboxradio('refresh');
+        $('#http_metrics_div').show();
+    } else if (hide_http_metrics === 'disabled') {
+        $('#hide_http_metrics').prop('checked', true);
+        $('#hide_http_metrics').checkboxradio('refresh');
+        $('#http_metrics_div').hide();
+    }
+    // Disable or enable showing http metrics
+    $('#hide_http_metrics').change(function() {
+        if($(this).is(':checked')) {
+            localStorage.setItem('hide_http_metrics', 'disabled');
+            $('#http_metrics_div').hide();
+            showMetrics();
+        } else {
+            localStorage.removeItem('hide_http_metrics');
+            $('#http_metrics_div').show();
+            showMetrics();
+        }
     });
 });
 function removeData() {

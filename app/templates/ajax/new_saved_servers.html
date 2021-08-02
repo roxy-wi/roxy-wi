@@ -1,13 +1,13 @@
 {% for s in server %}
-	<tr style="width: 50%;" id="servers-saved-{{s.0}}" class="newsavedserver update">
+	<tr style="width: 50%;" id="servers-saved-{{s.id}}" class="newsavedserver update">
 		<td class="padding10 first-collumn">
-			<input type="text" id="servers-ip-{{s.0}}" class="form-control" value="{{s.1}}" size="15">	
+			<input type="text" id="servers-ip-{{s.id}}" class="form-control" value="{{s.server}}" size="15">
 		</td>
 		<td class="first-collumn" style="width: 77%;">
-			<input type="text" id="servers-desc-{{s.0}}" class="form-control" value="{{s.2}}" size="50">	
+			<input type="text" id="servers-desc-{{s.id}}" class="form-control" value="{{s.description}}" size="50">
 		</td>
 		<td>
-			<a class="delete" onclick="confirmDeleteSavedServer({{s.0}})"  style="cursor: pointer;"></a>
+			<a class="delete" onclick="confirmDeleteSavedServer({{s.id}})"  style="cursor: pointer;"></a>
 		</td>
 	</tr>
 {% endfor %}

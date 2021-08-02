@@ -31,17 +31,28 @@
             </div>
         </div>
         {% endif %}
-        {% if  group.append(s.7) %} {% endif %}
+        {% if group.append(s.7) %} {% endif %}
+    {% else %}
+         <div class="smon_group">
+            <div class="group_name">
+                None
+            </div>
+        </div>
     {% endif %}
     {% if s.3 == 1 %}
         {% if s.2 == 1 and s.10 == 1 and s.12 == 1 %}
-            <div class="smon_services good div-server-head-up">
+            <div class="smon_services good div-server-head-up"
         {% else %}
-            <div class="smon_services err div-server-head-down">
+            <div class="smon_services err div-server-head-down"
         {% endif %}
     {% else %}
-        <div class="smon_services dis div-server-head-dis">
+        <div class="smon_services dis div-server-head-dis"
     {% endif %}
+       title="Enabled checks:
+Port check{% if s.9 %},
+HTTP status check: {{s.9.split(':')[0]}}://{{s.0}}:{{s.1}}{{s.9.split(':')[1]}}
+{% if s.11 and s.11 is not none %}, Body response check: {{s.11}}{% endif %}
+{% endif %}">
     <div class="ip">
         {% if s.0|string|length > 23 %}
             <span style="font-size: 11px;">
@@ -52,16 +63,12 @@
         {% else %}
             <span>
         {% endif %}
-            <span title="Enabled checks:
-Port check{% if s.9 %},
-HTTP status check: {{s.9.split(':')[0]}}://{{s.0}}:{{s.1}}{{s.9.split(':')[1]}}
-{% if s.11 and s.11 != 'None' %}, Body response check: {{s.11}}{% endif %}
-{% endif %}"> {{s.0}}:{{s.1}}
+                <a href="smon.py?action=history&host={{s.0}}" title="View history for {{s.0}} host" class="link">{{s.0}}:{{s.1}}</a>
             </span>
         </span>
     </div>
     <div class="desc">
-        {% if s.4 != 'None' %}
+        {% if s.4 is not none %}
             <b>{{s.4}}</b>
         {% else %}
             Desc: None
