@@ -460,21 +460,21 @@ $( function() {
     if(hide_http_metrics === null) {
         $('#hide_http_metrics').prop('checked', false);
         $('#hide_http_metrics').checkboxradio('refresh');
-        $('#http_metrics_div').show();
+        $('.http_metrics_div').show();
     } else if (hide_http_metrics === 'disabled') {
         $('#hide_http_metrics').prop('checked', true);
         $('#hide_http_metrics').checkboxradio('refresh');
-        $('#http_metrics_div').hide();
+        $('.http_metrics_div').hide();
     }
     // Disable or enable showing http metrics
     $('#hide_http_metrics').change(function() {
         if($(this).is(':checked')) {
             localStorage.setItem('hide_http_metrics', 'disabled');
-            $('#http_metrics_div').hide();
+            $('.http_metrics_div').hide();
             showMetrics();
         } else {
             localStorage.removeItem('hide_http_metrics');
-            $('#http_metrics_div').show();
+            $('.http_metrics_div').show();
             showMetrics();
         }
     });

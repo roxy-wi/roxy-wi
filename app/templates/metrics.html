@@ -55,10 +55,10 @@
 	</div>
 {% for s in servers %}
 	<div class="chart-container">
-		<canvas id="{{s.0}}" role="img"></canvas>
+		<canvas id="{{s.ip}}" role="img"></canvas>
 	</div>
-	<div id="http_metrics_div" class="chart-container">
-		<canvas id="http_{{s.0}}" role="img"></canvas>
+	<div class="chart-container http_metrics_div" style="display: none">
+		<canvas id="http_{{s.ip}}" role="img"></canvas>
 	</div>
 {% endfor %}
 <script>
@@ -67,8 +67,8 @@
 			(resolve, reject) => {
 				removeData();
 				{% for s in servers %}
-					getChartData('{{s.0}}')
-					getHttpChartData('{{s.0}}')
+					getChartData('{{s.ip}}')
+					getHttpChartData('{{s.ip}}')
 				{% endfor %}
 				if (localStorage.getItem('table_metrics') == 0 || localStorage.getItem('table_metrics') === null) {
 					$('#dis_table_metric').css('display', 'none');
@@ -86,8 +86,8 @@
 			let metrics = new Promise(
 					(resolve, reject) => {
 						{% for s in servers %}
-						getChartData('{{s.0}}')
-						getHttpChartData('{{s.0}}')
+						getChartData('{{s.ip}}')
+						getHttpChartData('{{s.ip}}')
 						{% endfor %}
 					});
 			metrics.then();

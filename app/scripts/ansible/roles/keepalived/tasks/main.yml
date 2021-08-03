@@ -1,4 +1,8 @@
 ---
+- name: Set SSH port
+  set_fact:
+    ansible_port: "{{SSH_PORT}}"
+    
 - name: Add installation tasks
   include: install.yml
   when: (ADD_VRRP is not defined) or (ADD_VRRP != "1")

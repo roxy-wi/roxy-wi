@@ -111,14 +111,18 @@
    src: selinux.j2
    dest: /etc/selinux/config
   ignore_errors: yes
-  when: '"Enforcing" in sestatus.stdout'
+  when:
+    - sestatus.stdout is defined
+    - '"Enforcing" in sestatus.stdout'
   
   
 - name: Disble SELINUX in env
   shell: setenforce 0 &> /dev/null
   ignore_errors: yes
   debugger: never
-  when: '"Enforcing" in sestatus.stdout'
+  when:
+    - sestatus.stdout is defined
+    - '"Enforcing" in sestatus.stdout'
   
   
 - name: Enable and start service HAProxy
