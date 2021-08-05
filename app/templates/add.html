@@ -6,7 +6,7 @@
 'rdp-cookie':'rdp-cookie', 'uri':'uri', 'uri whole':'uri whole', 'static-rr': 'static-rr',
 'url_param userid':'url_param userid'} %}
 {% set checks = dict() %}
-{% set checks = {'':'Choose custom health check','option tcp-check':'Check a TCP Port',
+{% set checks = {'':'Choose a custom health check','option tcp-check':'Check a TCP Port',
 'option ssl-hello-chk':'Check a SSL Port','option httpchk':'Check a HTTP service',
 'option ldap-check':'Check a LDAP service', 'option mysql-check':'Check a MySql Service',
 'option pgsql-check':'Check a PgSQL Service', 'option redis-check': 'Check a Redis Service',
@@ -40,15 +40,15 @@
 			<table class="add-table">
 				<caption><h3>Add listen</h3></caption>
 				<tr>
-					<td class="addName">Select server: </td>
+					<td class="addName">Select a server: </td>
 					<td class="addOption">
 						<select required name="serv" id="serv">
-							<option disabled selected>Choose server</option>
+							<option disabled selected>------</option>
 							{% for select in selects %}
 								<option value="{{ select.2 }}">{{ select.1 }}</option>
 							{% endfor %}
 						</select>
-						<div class="tooltip tooltipTop"><b>Note:</b> If you re-configure the master server, the slave server will re-configured automatically</div>
+						<div class="tooltip tooltipTop"><b>Note:</b> If you re-configure the master server, the slave server will be re-configured automatically</div>
 					</td>
 					<td rowspan="5" class="add-note addName alert-info">
 						A "listen" section defines a complete proxy with its frontend and backend parts combined in one section. It is generally useful for TCP-only traffic.
@@ -73,7 +73,7 @@
 						{{ input('ip', placeholder="Any", size='15') }}<b>:</b>
 						{{ input('listen-port', name='port', type="number", title="Port for bind listen", placeholder="8080", size='5', required='required') }}
 						<div class="tooltip tooltipTop">
-							The IP address for the bind listener, <b>if empty, will be assigned to all IP addresses</b>. <br />
+							If the IP-address for the listener is empty, it will listen on all IP addresses. <br />
 							Start typing IP or press down button. If you are using <b>VRRP, leave the IP field blank</b>. If you assign a VRRP IP, the slave server will not start
 						</div>
 					</td>
@@ -289,15 +289,15 @@
 		<table>
 			<caption><h3>Add frontend</h3></caption>
 			<tr>
-				<td class="addName">Select server: </td>
+				<td class="addName">Select a server: </td>
 				<td class="addOption">
 					<select required name="serv" id="serv2">
-						<option disabled selected>Choose server</option>
+						<option disabled selected>------</option>
 						{% for select in selects %}
 							<option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endfor %}
 					</select>
-					<div class="tooltip tooltipTop"><b>Note:</b> If you re-configure the master server, the slave server will re-configured automatically</div>
+					<div class="tooltip tooltipTop"><b>Note:</b> If you re-configure the master server, the slave server will be re-configured automatically</div>
 				</td>
 				<td rowspan="5" class="add-note addName alert-info">
 						A "frontend" section describes a set of listening sockets accepting client connections.
@@ -322,7 +322,7 @@
 					<input type="text" name="ip" id="ip1" size="15" placeholder="Any" class="form-control"><b>:</b>
 					<input type="number" name="port" required title="Port for bind frontend" placeholder="8080" class="form-control">
 					<div class="tooltip tooltipTop">
-						The IP address for the bind listener, <b>if empty, will be assigned to all IP addresses</b>. <br />
+						If the IP-address for the frontend is empty, it will listen on all IP addresses. <br />
 						Start typing IP or press down button. If you are using <b>VRRP, leave the IP field blank</b>. If you assign a VRRP IP, the slave server will not start
 					</div>
 				</td>
@@ -465,15 +465,15 @@
 		<table>
 			<caption><h3>Add backend</h3></caption>
 			<tr>
-				<td class="addName">Select server: </td>
+				<td class="addName">Select a server: </td>
 				<td class="addOption">
 					<select required name="serv" id="serv3">
-						<option disabled selected>Choose server</option>
+						<option disabled selected>------</option>
 						{% for select in selects %}
 							<option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endfor %}
 					</select>
-					<div class="tooltip tooltipTop"><b>Note:</b> If you re-configure the master server, the slave server will reconfigured automatically</div>
+					<div class="tooltip tooltipTop"><b>Note:</b> If you re-configure the master server, the slave server will be re-configured automatically</div>
 				</td>
 				<td rowspan="4" class="add-note addName alert-info">
 						A "backend" section describes a set of servers to which the proxy will connect to forward incoming connections.
@@ -678,7 +678,7 @@
 			<tr>
 				<td class="padding10 first-collumn">
 					<select required name="serv" id="serv5">
-						<option disabled selected>Choose server</option>
+						<option disabled selected>------</option>
 						{% for select in selects %}
 							<option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endfor %}
@@ -701,7 +701,7 @@
 			<tr style="width: 50%;">
 				<td class="first-collumn" valign="top" style="padding-top: 15px;">
 					<select required id="serv4">
-						<option disabled selected>Choose server</option>
+						<option disabled selected>------</option>
 						{% for select in selects %}
 							<option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endfor %}
@@ -733,7 +733,7 @@
 			<tr>
 				<td class="padding10 first-collumn">
 					<select required id="serv_for_lets">
-						<option disabled selected>Choose server</option>
+						<option disabled selected>------</option>
 						{% for select in selects %}
 						<option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endfor %}
@@ -866,15 +866,15 @@
 		<table>
 			<caption><h3>Add Userlist</h3></caption>
 			<tr>
-				<td class="addName">Select server: </td>
+				<td class="addName">Select a server: </td>
 				<td class="addOption">
 					<select required name="serv" id="userlist_serv">
-						<option disabled selected>Choose server</option>
+						<option disabled selected>------</option>
 						{% for select in selects %}
 							<option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endfor %}
 					</select>
-					<div class="tooltip tooltipTop"><b>Note:</b> If you reconfigure Master server, Slave will reconfigured automatically</div>
+					<div class="tooltip tooltipTop"><b>Note:</b> If you reconfigure Master server, Slave will be re-configured automatically</div>
 				</td>
 				<td rowspan="4" class="add-note addName alert-info">
 					It is possible to control access to frontend/backend/listen sections or to
@@ -928,15 +928,15 @@
 		<table>
 			<caption><h3>Existing UserList</h3></caption>
 			<tr>
-				<td class="addName">Select server: </td>
+				<td class="addName">Select a server: </td>
 				<td class="addOption">
 					<select required name="serv" id="existing_userlist_serv">
-						<option disabled selected>Choose server</option>
+						<option disabled selected>------</option>
 						{% for select in selects %}
 							<option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endfor %}
 					</select>
-					<div class="tooltip tooltipTop"><b>Note:</b> If you reconfigure Master server, Slave will reconfigured automatically</div>
+					<div class="tooltip tooltipTop"><b>Note:</b> If you reconfigure Master server, Slave will be re-configured automatically</div>
 				</td>
 				<td>
 					<a class="ui-button ui-widget ui-corner-all" title="Add Userlist" onclick="showUserlists()">Show Userlist</a>
@@ -965,12 +965,12 @@
 				<td class="addName">Select server: </td>
 				<td class="addOption">
 					<select required name="serv" id="peers_serv">
-						<option disabled selected>Choose server</option>
+						<option disabled selected>------</option>
 						{% for select in selects %}
 							<option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endfor %}
 					</select>
-					<div class="tooltip tooltipTop"><b>Note:</b> If you reconfigure Master server, Slave will reconfigured automatically</div>
+					<div class="tooltip tooltipTop"><b>Note:</b> If you re-configure Master server, Slave will be re-configured automatically</div>
 				</td>
 				<td rowspan="4" class="add-note addName alert-info">
 					The peers section enables the replication of stick table data between two or more HAProxy instances.
@@ -1038,7 +1038,7 @@
 				</td>
 				<td class="padding10 first-collumn">
 					<select required name="serv-black-list" id="serv-black-list">
-						<option disabled selected>Choose server</option>
+						<option disabled selected>------</option>
 						<option value="all">ALL</option>
 							{% for select in selects %}
 								<option value="{{ select.2 }}">{{ select.1 }}</option>
@@ -1067,7 +1067,7 @@
 				</td>
 				<td class="padding10 first-collumn">
 					<select required name="serv-white-list" id="serv-white-list">
-						<option disabled selected>Choose server</option>
+						<option disabled selected>------</option>
 						<option value="all">ALL</option>
 							{% for select in selects %}
 								<option value="{{ select.2 }}">{{ select.1 }}</option>

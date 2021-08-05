@@ -1,11 +1,11 @@
 		<tr>
 			<td class="padding20" style="width: 40%;">
-				Choose server for backup
+				Select a server for backup
 				<span class="need-field">*</span>
 			</td>
 			<td>
 				<select autofocus required name="backup-server" id="backup-server">
-					<option disabled>Choose server</option>
+					<option disabled>------</option>
 						{% for s in servers %}}
 							<option value="{{ s.2 }}">{{ s.1 }}</option>
 						{% endfor %}

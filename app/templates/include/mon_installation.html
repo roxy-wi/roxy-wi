@@ -48,7 +48,7 @@
             </td>
             <td class="padding10 first-collumn">
                 <select autofocus required name="haproxy_exp_addserv" id="haproxy_exp_addserv">
-                    <option disabled selected>Choose server</option>
+                    <option disabled selected>------</option>
                     {% for select in servers %}
                     <option value="{{ select.2 }}">{{ select.1 }}</option>
                     {% endfor %}
@@ -78,7 +78,7 @@
             </td>
             <td class="padding10 first-collumn">
                 <select autofocus required name="nginx_exp_addserv" id="nginx_exp_addserv">
-                    <option disabled selected>Choose server</option>
+                    <option disabled selected>------</option>
                     {% for select in servers %}
                     <option value="{{ select.2 }}">{{ select.1 }}</option>
                     {% endfor %}
@@ -108,7 +108,7 @@
             </td>
             <td class="padding10 first-collumn">
                 <select autofocus required name="node_exp_addserv" id="node_exp_addserv">
-                    <option disabled selected>Choose server</option>
+                    <option disabled selected>------</option>
                     {% for select in servers %}
                     <option value="{{ select.2 }}">{{ select.1 }}</option>
                     {% endfor %}

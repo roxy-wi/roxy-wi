@@ -50,12 +50,48 @@
       debugger: never
       when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS')  and ansible_facts.services["firewalld.service"]['state'] == "running"
       with_items:  [ "3000", "9090" ]
-      
+
     - name: Open stat port for iptables
       iptables:
         chain: INPUT
         destination_port: "{{ item }}"
         jump: ACCEPT
         protocol: tcp
-      ignore_errors: yes  
+      ignore_errors: yes
       with_items:  [ "3000", "9090" ]
+
+    - name: Ensure group "grafana" exists
+      ansible.builtin.group:
+        name: grafana
+        state: present
+
+    - name: Add the Grafana user
+        user:
+          name: grafana
+          shell: /sbin/nologin
+          groups: grafana
+          append: yes
+
+    - name: Create a directory if it does not exist
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+        owner: grafana
+      with_items:
+        - /var/lib/grafana
+        - /var/log/grafana
+        - /etc/grafana
+
+    - name: Create grafana.ini
+      file:
+        path: /etc/grafana/grafana.ini
+        owner: grafana
+        group: grafana
+        mode: '0644'
+        state: touch
+
+    - name: Restart service Grafana, in all cases
+      service:
+        name: grafana-server
+        state: restarted

@@ -31,7 +31,7 @@
         <tr>
                 <td class="padding10 first-collumn">
                     <select autofocus required name="nettools_icmp_server_from" id="nettools_icmp_server_from">
-                        <option disabled selected>Choose server</option>
+                        <option disabled selected>------</option>
                         <option value="localhost">Roxy-WI</option>
                         {% for server in servers %}
                         <option value="{{ server.2 }}">{{ server.1 }}</option>
@@ -63,7 +63,7 @@
         <tr>
             <td class="padding10 first-collumn">
                 <select autofocus required name="nettools_telnet_server_from" id="nettools_telnet_server_from">
-                    <option disabled selected>Choose server</option>
+                    <option disabled selected>------</option>
                     <option value="localhost">Roxy-WI</option>
                     {% for server in servers %}
                     <option value="{{ server.2 }}">{{ server.1 }}</option>
@@ -95,7 +95,7 @@
         <tr>
             <td class="padding10 first-collumn">
                 <select autofocus required name="nettools_nslookup_server_from" id="nettools_nslookup_server_from">
-                    <option disabled selected>Choose server</option>
+                    <option disabled selected>------</option>
                     <option value="localhost">Roxy-WI</option>
                     {% for server in servers %}
                     <option value="{{ server.2 }}">{{ server.1 }}</option>
@@ -126,7 +126,7 @@
     $( "#nettools_telnet_form" ).on("click", ":submit", function(e){
         $('#ajax-nettools').html('');
         var frm = $('#nettools_telnet_form');
-        if($('#nettools_telnet_server_from option:selected').val() == 'Choose server') {
+        if($('#nettools_telnet_server_from option:selected').val() == '------') {
             toastr.warning('Choose a server From');
             return false;
         }
@@ -161,7 +161,7 @@
     $( "#nettools_nslookup_form" ).on("click", ":submit", function(e){
         $('#ajax-nettools').html('');
         var frm = $('#nettools_nslookup_form');
-        if($('#nettools_nslookup_server_from option:selected').val() == 'Choose server') {
+        if($('#nettools_nslookup_server_from option:selected').val() == '------') {
             toastr.warning('Choose a server From');
             return false;
         }
@@ -189,7 +189,7 @@
     $( "#nettools_icmp_form" ).on("click", ":submit", function(e){
         $('#ajax-nettools').html('');
         var frm = $('#nettools_icmp_form');
-        if($('#nettools_icmp_server_from option:selected').val() == 'Choose server') {
+        if($('#nettools_icmp_server_from option:selected').val() == '------') {
             toastr.warning('Choose a server From');
             return false;
         }

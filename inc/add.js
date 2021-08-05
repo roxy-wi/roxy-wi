@@ -1001,7 +1001,7 @@ $( function() {
 	$('#add-userlist-group').click(function() {
 		$('#userlist-groups').append(add_userlist_group_var);		
 	});
-	var add_peer_var = '<br /><input name="servers_name" required title="Peer name" size=14 placeholder="haproxyN" class="form-control">' +
+	var add_peer_var = '<br /><input name="servers_name" required title="Peer name" size=14 placeholder="haproxyN" class="form-control">: ' +
 		'<input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server">: ' +
 		'<input name="server_port" required title="Backend port" size=3 placeholder="yyy" class="form-control second-server add_server_number" type="number">'
 	$('[name=add-peer-input]').click(function() {

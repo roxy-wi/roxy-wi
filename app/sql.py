@@ -553,16 +553,11 @@ def delete_uuid(uuid):
 
 
 def delete_old_uuid():
-	cursor = conn.cursor()
-	if mysql_enable == '1':
-		sql = """ delete from uuid where exp < now() or exp is NULL """
-		sql1 = """ delete from token where exp < now() or exp is NULL """
-	else:
-		sql = """ delete from uuid where exp < datetime('now') or exp is NULL"""
-		sql1 = """ delete from token where exp < datetime('now') or exp is NULL"""
+	query = UUID.delete().where((UUID.exp < funct.get_data('regular')) | (UUID.exp.is_null(True)) )
+	query1 = Token.delete().where((Token.exp < funct.get_data('regular')) | (Token.exp.is_null(True)) )
 	try:
-		cursor.execute(sql)
-		cursor.execute(sql1)
+		query.execute()
+		query1.execute()
 	except Exception as e:
 		funct.out_error(e)
 
@@ -1110,25 +1105,28 @@ def select_waf_servers_metrics_for_master():
 
 
 def select_waf_servers_metrics(uuid):
-	cursor = conn.cursor()
-
 	try:
 		user_group = User.get(User.username == get_user_name_by_uuid(uuid))
 	except Exception as e:
 		funct.out_error(e)
 	else:
 		if user_group.groups == '1':
-			sql = """ select servers.ip from servers left join waf as waf on waf.server_id = servers.id 
-			where servers.enable = 1 and waf.metrics = '1'  """
+			query = Waf.select(Server.ip).join(Server, on=(Waf.server_id == Server.server_id)).where(
+				(Server.enable == 1) &
+				(Waf.metrics == 1)
+			)
 		else:
-			sql = """ select servers.ip from servers left join waf as waf on waf.server_id = servers.id 
-			where servers.enable = 1 and waf.metrics = '1' and servers.groups like '%{group}%' """.format(group=user_group.groups)
+			query = Waf.select(Server.ip).join(Server, on=(Waf.server_id == Server.server_id)).where(
+				(Server.enable == 1) &
+				(Waf.metrics == 1) &
+				(Server.groups == user_group.groups)
+			)
 		try:
-			cursor.execute(sql)
+			query_res = query.execute()
 		except Exception as e:
 			funct.out_error(e)
 		else:
-			return cursor.fetchall()
+			return query_res
 
 
 def select_waf_metrics(serv, **kwargs):

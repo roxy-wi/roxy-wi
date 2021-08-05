@@ -866,7 +866,7 @@ def open_port_firewalld(cfg, serv, **kwargs):
 					pass
 
 	firewalld_commands += 'sudo firewall-cmd --reload -q' 
-	logging(serv, ' Next ports have been opened: ' + ports + ' has opened ')
+	logging(serv, ' Next ports have been opened: ' + ports)
 	return firewalld_commands
 
 

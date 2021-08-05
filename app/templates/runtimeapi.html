@@ -90,7 +90,7 @@
 				<td class="padding10 first-collumn" style="width: 25%;">
 					<form action="" method="post" id="maxconnform">
 						<select autofocus required name="serv" id="maxconn_select">
-							<option disabled selected>Choose server</option>
+							<option disabled selected>------</option>
 							{% for select in selects %}
 								<option value="{{ select.2 }}">{{ select.1 }}</option>
 							{% endfor %}
@@ -129,7 +129,7 @@
 				<td class="padding10 first-collumn" style="width: 25%;">
 					<form action="" method="post" id="runtimeapiip">
 						<select autofocus required name="ip_select" id="ip_select">
-							<option disabled selected>Choose server</option>
+							<option disabled selected>------</option>
 							{% for select in selects %}
 								<option value="{{ select.2 }}">{{ select.1 }}</option>
 							{% endfor %}
@@ -171,7 +171,7 @@
 				<td class="padding10 first-collumn" style="width: 25%;">
 					<form action="" method="post" id="runtimeapitable">
 						<select autofocus required name="table_serv_select" id="table_serv_select">
-							<option disabled selected>Choose server</option>
+							<option disabled selected>------</option>
 							{% for select in selects %}
 								<option value="{{ select.2 }}">{{ select.1 }}</option>
 							{% endfor %}
@@ -203,7 +203,7 @@
 				<td class="padding10 first-collumn" style="width: 25%;">
 					<form action="" method="post" id="runtimeapilist">
 						<select autofocus required name="list_serv_select" id="list_serv_select">
-							<option disabled selected>Choose server</option>
+							<option disabled selected>------</option>
 							{% for select in selects %}
 							<option value="{{ select.2 }}">{{ select.1 }}</option>
 							{% endfor %}
@@ -234,7 +234,7 @@
 				<td class="padding10 first-collumn" style="width: 25%;">
 					<form action="" method="post" id="runtimeapisessions">
 						<select autofocus required name="sessions_serv_select" id="sessions_serv_select">
-							<option disabled selected>Choose server</option>
+							<option disabled selected>------</option>
 							{% for select in selects %}
 							<option value="{{ select.2 }}">{{ select.1 }}</option>
 							{% endfor %}

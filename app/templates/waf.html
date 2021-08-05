@@ -91,7 +91,7 @@
 	</div>
 	{% for s in servers %}
 	<div class="chart-container">
-		<canvas id="s_{{s.0}}" role="img"></canvas>
+		<canvas id="s_{{s.ip}}" role="img"></canvas>
 	</div>
 	{% endfor %}
 	<div id="dialog-confirm" style="display: none;">
@@ -100,7 +100,7 @@
 	<script>
 		function showWafMetrics() {
 			{% for s in servers %}
-				getWafChartData('{{s.0}}');
+				getWafChartData('{{s.ip}}');
 			{% endfor %}
 		}
 		showWafMetrics();
@@ -111,7 +111,7 @@
 				let metrics = new Promise(
 					(resolve, reject) => {
 						{% for s in servers %}
-							getWafChartData('{{s.0}}')
+							getWafChartData('{{s.ip}}')
 						{% endfor %}
 					});
 				metrics.then();
