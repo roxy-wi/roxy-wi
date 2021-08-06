@@ -4,7 +4,13 @@
         {% for set in settings %}
         {% if section.section|string() != set.section|string() %}
         <th colspan="3" title="Show {{ set.section }} section" id="{{set.section}}-section-head" style="cursor: pointer; padding-top: 10px;">
-            <h3 class="plus-after" id="{{set.section}}-section-h3" style="font-size: 1em; padding-left: 15px;">{{ set.section[0]|upper}}{{set.section[1:] }} section</h3>
+            <h3 class="plus-after" id="{{set.section}}-section-h3" style="font-size: 1em; padding-left: 15px;">
+                {% if set.section == 'ldap' %}
+                {{ set.section|upper}}
+                {% else %}
+                {{ set.section[0]|upper}}{{set.section[1:] }}
+                {% endif %}
+            </h3>
         </th>
         <tr class="overviewHead {{set.section}}-section" style="display: none">
             <td class="padding10 first-collumn">Parameter</td>
