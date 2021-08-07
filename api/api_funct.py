@@ -1,9 +1,9 @@
 import os
 import sys
 import json
+from bottle import route, run, template, hook, response, request, post
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app/'))
 
-from bottle import route, run, template, hook, response, request, post
 import sql
 import funct
 
@@ -22,18 +22,18 @@ def get_token():
 	except Exception as e:
 		return 'error getting group: '+str(e)
 	try:
-		users = sql.select_users(username=login)
+		users = sql.select_users(user=login)
 		password = funct.get_hash(password_from_user)
 	except Exception as e:
-		return str(e)
+		return 'error one more: '+str(e)
 
 	for user in users:
-		if user[7] == 0:
+		if user.activeuser == 0:
 			return False
-		if login in user[1] and password == user[3]:
+		if login in user.username and password == user.password:
 			import uuid
 			user_token = str(uuid.uuid4())
-			sql.write_api_token(user_token, group_id, user[4], user[1])
+			sql.write_api_token(user_token, group_id, user.role, user.username)
 			return user_token
 		else:
 			return False
