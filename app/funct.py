@@ -29,16 +29,27 @@ def get_config_var(sec, var):
 		print('<center><div class="alert alert-danger">Check the config file. Presence section %s and parameter %s</div>' % (sec, var))
 					
 					
-def get_data(log_type):
-	from datetime import datetime
+def get_data(log_type, **kwargs):
+	from datetime import datetime, timedelta
 	from pytz import timezone
 	import sql
 	fmt = "%Y-%m-%d.%H:%M:%S"
 
-	try:
-		now_utc = datetime.now(timezone(sql.get_setting('time_zone')))
-	except Exception:
-		now_utc = datetime.now(timezone('UTC'))
+	if kwargs.get('timedelta'):
+		try:
+			now_utc = datetime.now(timezone(sql.get_setting('time_zone'))) + timedelta(days=kwargs.get('timedelta'))
+		except Exception:
+			now_utc = datetime.now(timezone('UTC')) + timedelta(days=kwargs.get('timedelta'))
+	elif kwargs.get('timedelta_minus'):
+		try:
+			now_utc = datetime.now(timezone(sql.get_setting('time_zone'))) - timedelta(days=kwargs.get('timedelta_minus'))
+		except Exception:
+			now_utc = datetime.now(timezone('UTC')) - timedelta(days=kwargs.get('timedelta_minus'))
+	else:
+		try:
+			now_utc = datetime.now(timezone(sql.get_setting('time_zone')))
+		except Exception:
+			now_utc = datetime.now(timezone('UTC'))
 
 	if log_type == 'config':
 		fmt = "%Y-%m-%d.%H:%M:%S"
@@ -597,8 +608,8 @@ def install_haproxy(serv, **kwargs):
 	commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv +
 				" SOCK_PORT=" + hap_sock_p + " STAT_PORT=" + stats_port + " STAT_FILE="+server_state_file +
 				" SSH_PORT=" + ssh_port + " STATS_USER=" + stats_user +
-				" STATS_PASS=" + stats_password + " HAPVER=" + haproxy_ver + " SYN_FLOOD=" + syn_flood_protect +
-				" HOST=" + serv + " USER=" + ssh_user_name + " PASS=" + ssh_user_password + " KEY=" + ssh_key_name]
+				" STATS_PASS='" + stats_password + "' HAPVER=" + haproxy_ver + " SYN_FLOOD=" + syn_flood_protect +
+				" HOST=" + serv + " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name]
 
 	output, error = subprocess_execute(commands[0])
 	if server_for_installing:
@@ -670,9 +681,9 @@ def install_nginx(serv, **kwargs):
 	syn_flood_protect = '1' if form.getvalue('syn_flood') == "1" else ''
 
 	commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " STATS_USER=" + stats_user +
-				" STATS_PASS=" + stats_password + " SSH_PORT=" + ssh_port + " CONFIG_PATH=" + config_path +
+				" STATS_PASS='" + stats_password + "' SSH_PORT=" + ssh_port + " CONFIG_PATH=" + config_path +
 				" STAT_PORT=" + stats_port + " STAT_PAGE=" + stats_page+" SYN_FLOOD=" + syn_flood_protect +
-				" HOST=" + serv + " USER=" + ssh_user_name + " PASS=" + ssh_user_password + " KEY=" + ssh_key_name]
+				" HOST=" + serv + " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name]
 
 	output, error = subprocess_execute(commands[0])
 	if server_for_installing:
@@ -692,7 +703,6 @@ def update_haproxy_wi(service):
 				service = service.split('_')[0]
 		except Exception:
 			pass
-		# service = 'roxy-wi-'+service
 	cmd = 'sudo -S yum -y update ' + service +' && sudo systemctl restart ' + service
 	output, stderr = subprocess_execute(cmd)
 	print(output)
@@ -1210,15 +1220,6 @@ def get_hash(value):
 	h = hashlib.md5(value.encode('utf-8'))
 	p = h.hexdigest()
 	return p
-	
-	
-def out_error(error):
-	error = str(error)
-	try:
-		logging('localhost', error, haproxywi=1, login=1)
-	except Exception:
-		logging('localhost', error, haproxywi=1)
-	print('error: '+error)
 	
 
 def get_users_params(**kwargs):

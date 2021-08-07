@@ -30,21 +30,22 @@
     <tbody>
     {% if port_scanner_settings != '' %}
     {% for t in port_scanner_settings %}
+    {% set date_time = t.date|string %}
     <tr>
         <td class="padding10" style="width: 10%; padding: 7px 7px 7px 10px;">
-            {% if t.2 == 'opened' %}
+            {% if t.status == 'opened' %}
                 {% set color = '#5ad05a' %}
             {% else %}
                 {% set color = '#be2424' %}
             {% endif %}
-            <span style="color: {{color}};"><b>{{t.2 |upper}}</b></span>
+            <span style="color: {{color}};"><b>{{t.status |upper}}</b></span>
         </td>
-        <td>{{t.0}}</td>
-        <td>{{t.1}}</td>
-        <td>{{t.3}}</td>
-        <td>{{t.4.split(' ')[0]}}
+        <td>{{t.serv}}</td>
+        <td>{{t.port}}</td>
+        <td>{{t.service_name}}</td>
+        <td>{{date_time.split(' ')[0]}}
         </td>
-        <td>{{t.4.split(' ')[1]}}</td>
+        <td>{{date_time.split(' ')[1]}}</td>
     </tr>
     {% endfor %}
     {% else %}

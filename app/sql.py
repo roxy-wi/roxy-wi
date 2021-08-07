@@ -6,13 +6,22 @@ from db_model import *
 mysql_enable = funct.get_config_var('mysql', 'enable')
 
 
+def out_error(error):
+	error = str(error)
+	# try:
+	# 	funct.logging('localhost', error, haproxywi=1, login=1)
+	# except Exception:
+	# 	funct.logging('localhost', error, haproxywi=1)
+	print('error: '+error)
+
+
 def add_user(user, email, password, role, activeuser, group):
 	if password != 'aduser':
 		try:
 			User.insert(username=user, email=email, password=funct.get_hash(password), role=role, activeuser=activeuser,
 						groups=group).execute()
 		except Exception as e:
-			funct.out_error(e)
+			out_error(e)
 			return False
 		else:
 			return True
@@ -21,7 +30,7 @@ def add_user(user, email, password, role, activeuser, group):
 			User.insert(username=user, email=email, role=role, ldap_user=ldap_user, activeuser=activeuser,
 						groups=group).execute()
 		except Exception as e:
-			funct.out_error(e)
+			out_error(e)
 			return False
 		else:
 			return True
@@ -33,7 +42,7 @@ def update_user(user, email, role, user_id, activeuser):
 	try:
 		user_update.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -43,7 +52,7 @@ def update_user_groups(groups, user_group_id):
 	try:
 		UserGroups.insert(user_id=user_group_id, user_group_id=groups).execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -54,7 +63,7 @@ def delete_user_groups(user_id):
 		group_for_delete = UserGroups.delete().where(UserGroups.user_id == user_id)
 		group_for_delete.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -66,7 +75,7 @@ def update_user_current_groups(groups, user_uuid):
 		user_update = User.update(groups=groups).where(User.user_id == user_id)
 		user_update.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -77,7 +86,7 @@ def update_user_password(password, user_id):
 		user_update = User.update(password=funct.get_hash(password)).where(User.user_id == user_id)
 		user_update.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -88,7 +97,7 @@ def delete_user(user_id):
 		user_for_delete = User.delete().where(User.user_id == user_id)
 		user_for_delete.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -99,7 +108,7 @@ def add_group(name, description):
 		last_insert = Groups.insert(name=name, description=description)
 		last_insert_id = last_insert.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		add_setting_for_new_group(last_insert_id)
@@ -128,23 +137,26 @@ def add_setting_for_new_group(group_id):
 		 'desc': 'Use the syslog server for HAProxy logs; (0 - no, 1 - yes)', 'group': group_id},
 		{'param': 'syslog_server', 'value': '', 'section': 'logs', 'desc': 'IP address of the syslog_server',
 		 'group': group_id},
-		{'param': 'stats_user', 'value': 'admin', 'section': 'haproxy', 'desc': 'Username for Stats web page HAProxy',
+		{'param': 'stats_user', 'value': 'admin', 'section': 'haproxy', 'desc': 'Username for accessing HAProxy stats page',
 		 'group': group_id},
 		{'param': 'stats_password', 'value': 'password', 'section': 'haproxy',
-		 'desc': 'Password for Stats web page HAProxy', 'group': group_id},
-		{'param': 'stats_port', 'value': '8085', 'section': 'haproxy', 'desc': 'Port Stats web page HAProxy',
+		 'desc': 'Password for accessing HAProxy stats page', 'group': group_id},
+		{'param': 'stats_port', 'value': '8085', 'section': 'haproxy', 'desc': 'Port for HAProxy stats page',
 		 'group': group_id},
-		{'param': 'stats_page', 'value': 'stats', 'section': 'haproxy', 'desc': 'URI Stats web page HAProxy',
+		{'param': 'stats_page', 'value': 'stats', 'section': 'haproxy', 'desc': 'URI for HAProxy stats page',
 		 'group': group_id},
-		{'param': 'haproxy_dir', 'value': '/etc/haproxy', 'section': 'haproxy', 'desc': 'Path to HAProxy dir',
+		{'param': 'haproxy_dir', 'value': '/etc/haproxy', 'section': 'haproxy', 'desc': 'Path to the HAProxy directory',
 		 'group': group_id},
-		{'param': 'haproxy_config_path', 'value': '/etc/haproxy/haproxy.cfg', 'section': 'haproxy', 'desc': '',
+		{'param': 'haproxy_config_path', 'value': '/etc/haproxy/haproxy.cfg', 'section': 'haproxy', 'desc': 'Path to the HAProxy configuration file',
 		 'group': group_id},
-		{'param': 'server_state_file', 'value': 'stats', 'section': 'haproxy', 'desc': 'Path to HAProxy config',
+		{'param': 'server_state_file', 'value': 'stats', 'section': 'haproxy', 'desc': 'Path to the HAProxy state file',
 		 'group': group_id},
 		{'param': 'haproxy_sock', 'value': '/etc/haproxy/haproxy.state', 'section': 'haproxy',
-		 'desc': 'Path to HAProxy state file', 'group': group_id},
-		{'param': 'haproxy_sock_port', 'value': '1999', 'section': 'haproxy', 'desc': 'HAProxy sock port',
+		 'desc': 'Path to the HAProxy sock file', 'group': group_id},
+		{'param': 'haproxy_sock_port', 'value': '1999', 'section': 'haproxy', 'desc': 'Socket port for HAProxy',
+		 'group': group_id},
+		{'param': 'haproxy_enterprise', 'value': '0', 'section': 'haproxy',
+		 'desc': 'If you use enterprise HAProxy, set the value of this parameter to 1. The name of the service will be changed as it is required for the commercial version',
 		 'group': group_id},
 		{'param': 'nginx_path_error_logs', 'value': '/var/log/nginx/error.log', 'section': 'nginx',
 		 'desc': 'Nginx error log', 'group': group_id},
@@ -156,10 +168,10 @@ def add_setting_for_new_group(group_id):
 		 'group': group_id},
 		{'param': 'nginx_stats_page', 'value': 'stats', 'section': 'nginx', 'desc': 'URI Stats for web page Nginx',
 		 'group': group_id},
-		{'param': 'nginx_dir', 'value': '/etc/nginx/conf.d/', 'section': 'nginx', 'desc': 'Path to Nginx dir',
+		{'param': 'nginx_dir', 'value': '/etc/nginx/conf.d/', 'section': 'nginx', 'desc': 'Path to the Nginx directory',
 		 'group': group_id},
 		{'param': 'nginx_config_path', 'value': '/etc/nginx/conf.d/default.conf', 'section': 'nginx',
-		 'desc': 'Path to Nginx config', 'group': group_id},
+		 'desc': 'Path to the Nginx configuration file', 'group': group_id},
 		{'param': 'ldap_enable', 'value': '0', 'section': 'ldap', 'desc': 'Enable LDAP (1 - yes, 0 - no)',
 		 'group': group_id},
 		{'param': 'ldap_server', 'value': '', 'section': 'ldap', 'desc': 'IP address of the LDAP server', 'group': group_id},
@@ -179,15 +191,12 @@ def add_setting_for_new_group(group_id):
 		{'param': 'ldap_search_field', 'value': 'mail', 'section': 'ldap',
 		 'desc': 'The field for saving the user\'s e-mail address', 'group': group_id},
 		{'param': 'ldap_type', 'value': '0', 'section': 'ldap', 'desc': 'Use LDAP (0) or LDAPS (1)', 'group': group_id},
-		{'param': 'haproxy_enterprise', 'value': '0', 'section': 'haproxy',
-		 'desc': 'Use this option if your HAProxy is enterprise. It changes service name for rebooting/reloading',
-		 'group': group_id},
 	]
 
 	try:
 		Setting.insert_many(data_source).execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return True
 
@@ -197,7 +206,7 @@ def delete_group_settings(group_id):
 		group_for_delete = Setting.delete().where(Setting.group == group_id)
 		group_for_delete.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return True
 
@@ -207,7 +216,7 @@ def delete_group(group_id):
 		group_for_delete = Groups.delete().where(Groups.group_id == group_id)
 		group_for_delete.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		delete_group_settings(group_id)
@@ -219,7 +228,7 @@ def update_group(name, descript, group_id):
 		group_update = Groups.update(name=name, description=descript).where(Groups.group_id == group_id)
 		group_update.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -231,7 +240,7 @@ def add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, ha
 					  port=port, desc=desc, haproxy=haproxy, nginx=nginx, firewall_enable=firewall).execute()
 		return True
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 
 
@@ -240,7 +249,7 @@ def delete_server(server_id):
 		server_for_delete = Server.delete().where(Server.server_id == server_id)
 		server_for_delete.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return True
 
@@ -255,7 +264,7 @@ def update_hapwi_server(server_id, alert, metrics, active, service_name):
 				Server.server_id == server_id)
 		update_hapwi.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def update_server(hostname, group, typeip, enable, master, server_id, cred, port, desc, haproxy, nginx, firewall, protected):
@@ -274,20 +283,20 @@ def update_server(hostname, group, typeip, enable, master, server_id, cred, port
 									  protected=protected).where(Server.server_id == server_id)
 		server_update.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def update_server_master(master, slave):
 	try:
 		master_id = Server.get(Server.server_id == master)
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 	try:
 		server_update = Server.update(master=master_id).where(Server.ip == slave)
 		server_update.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def select_users(**kwargs):
@@ -306,7 +315,7 @@ def select_users(**kwargs):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -319,7 +328,7 @@ def select_user_groups(user_id, **kwargs):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		if kwargs.get("limit") is not None:
 			for i in query_res:
@@ -355,7 +364,7 @@ def select_user_groups_with_names(user_id, **kwargs):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -371,7 +380,7 @@ def select_groups(**kwargs):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -380,7 +389,7 @@ def get_group_name_by_id(group_id):
 	try:
 		group_name = Groups.get(Groups.group_id == group_id)
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return group_name.name
 
@@ -389,7 +398,7 @@ def get_group_id_by_name(group_name):
 	try:
 		group_id = Groups.get(Groups.name == group_name)
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return group_id.group_id
 
@@ -398,7 +407,7 @@ def get_group_id_by_server_ip(server_ip):
 	try:
 		group_id = Server.get(Server.ip == server_ip)
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return group_id.groups
 
@@ -407,7 +416,7 @@ def get_cred_id_by_server_ip(server_ip):
 	try:
 		cred = Server.get(Server.ip == server_ip)
 	except Exception as e:
-		return funct.out_error(e)
+		return out_error(e)
 	else:
 		return cred.cred
 
@@ -416,7 +425,7 @@ def get_hostname_by_server_ip(server_ip):
 	try:
 		hostname = Server.get(Server.ip == server_ip)
 	except Exception as e:
-		return funct.out_error(e)
+		return out_error(e)
 	else:
 		return hostname.hostname
 
@@ -425,7 +434,7 @@ def select_server_by_name(name):
 	try:
 		ip = Server.get(Server.hostname == name)
 	except Exception as e:
-		return funct.out_error(e)
+		return out_error(e)
 	else:
 		return ip.ip
 
@@ -457,61 +466,52 @@ def select_servers(**kwargs):
 	try:
 		cursor.execute(sql)
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return cursor.fetchall()
 
 
 def write_user_uuid(login, user_uuid):
-	cursor = conn.cursor()
 	session_ttl = get_setting('session_ttl')
 	session_ttl = int(session_ttl)
 
 	try:
 		user_id = User.get(User.username == login)
 	except Exception as e:
-		funct.out_error(e)
-	if mysql_enable == '1':
-		sql = """ insert into uuid (user_id, uuid, exp) values('%s', '%s', now()+ INTERVAL '%s' day) """ % (user_id, user_uuid, session_ttl)
-	else:
-		sql = """ insert into uuid (user_id, uuid, exp) values('%s', '%s', datetime('now', '+%s days')) """ % (user_id, user_uuid, session_ttl)
+		out_error(e)
 	try:
-		cursor.execute(sql)
+		UUID.insert(user_id=user_id, uuid=user_uuid, exp=funct.get_data('regular', timedelta=session_ttl)).execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 
 def write_user_token(login, user_token):
-	cursor = conn.cursor()
-	token_ttl = get_setting('token_ttl')
+	token_ttl = int(get_setting('token_ttl'))
+
 	try:
 		user_id = User.get(User.username == login)
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
-	if mysql_enable == '1':
-		sql = """ insert into token (user_id, token, exp) values('%s', '%s',  now()+ INTERVAL %s day) """ % (user_id, user_token, token_ttl)
-	else:
-		sql = """ insert into token (user_id, token, exp) values('%s', '%s',  datetime('now', '+%s days')) """ % (user_id, user_token, token_ttl)
 	try:
-		cursor.execute(sql)
+		Token.insert(user_id=user_id, token=user_token, exp=funct.get_data('regular', timedelta=token_ttl)).execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def write_api_token(user_token, group_id, user_role, user_name):
-	cursor = conn.cursor()
-	token_ttl = get_setting('token_ttl')
+	token_ttl = int(get_setting('token_ttl'))
 
-	if mysql_enable == '1':
-		sql = """ insert into api_tokens (token, user_name, user_group_id, user_role, create_date, expire_date) values('%s', '%s', '%s', '%s', now(), now()+ INTERVAL %s day) """ % (user_token, user_name, group_id, user_role, token_ttl)
-	else:
-		sql = """ insert into api_tokens (token, user_name, user_group_id, user_role, create_date, expire_date) values('%s', '%s', '%s', '%s', datetime('now'), datetime('now', '+%s days')) """ % (user_token, user_name, group_id, user_role, token_ttl)
 	try:
-		cursor.execute(sql)
+		ApiToken.insert(token=user_token,
+						user_name=user_name,
+						user_group_id=group_id,
+						user_role=user_role,
+						create_date=funct.get_data('regular'),
+						expire_date=funct.get_data('regular', timedelta=token_ttl)).execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def get_api_token(token):
@@ -537,7 +537,7 @@ def get_token(uuid):
 		query = Token.select().join(UUID, on=(Token.user_id == UUID.user_id)).where(UUID.uuid == uuid).limit(1)
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		try:
 			for i in query_res:
@@ -561,21 +561,17 @@ def delete_old_uuid():
 		query.execute()
 		query1.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def update_last_act_user(uuid):
-	cursor = conn.cursor()
-	session_ttl = get_setting('session_ttl')
+	session_ttl = int(get_setting('session_ttl'))
 
-	if mysql_enable == '1':
-		sql = """ update uuid set exp = now()+ INTERVAL %s day where uuid = '%s' """ % (session_ttl, uuid)
-	else:
-		sql = """ update uuid set exp = datetime('now', '+%s days') where uuid = '%s' """ % (session_ttl, uuid)
+	query = UUID.update(exp=funct.get_data('regular', timedelta=session_ttl))
 	try:
-		cursor.execute(sql)
+		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def get_user_name_by_uuid(uuid):
@@ -583,7 +579,7 @@ def get_user_name_by_uuid(uuid):
 		query = User.select(User.username).join(UUID, on=(User.user_id == UUID.user_id)).where(UUID.uuid == uuid)
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		for user in query_res:
 			return user.username
@@ -594,7 +590,7 @@ def get_user_id_by_uuid(uuid):
 		query = User.select(User.user_id).join(UUID, on=(User.user_id == UUID.user_id)).where(UUID.uuid == uuid)
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		for user in query_res:
 			return user.user_id
@@ -608,7 +604,7 @@ def get_user_role_by_uuid(uuid):
 				 .where(UUID.uuid == uuid))
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		for user_id in query_res:
 			return int(user_id.role_id)
@@ -618,7 +614,7 @@ def get_role_id_by_name(name):
 	try:
 		role_id = Role.get(Role.name == name)
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return int(role_id.role_id)
 
@@ -628,7 +624,7 @@ def get_user_telegram_by_group(group):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -638,7 +634,7 @@ def get_telegram_by_ip(ip):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -648,7 +644,7 @@ def get_telegram_by_id(telegram_id):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -658,7 +654,7 @@ def get_user_slack_by_group(group):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -668,7 +664,7 @@ def get_slack_by_ip(ip):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -678,7 +674,7 @@ def get_slack_by_id(slack_id):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -729,7 +725,7 @@ def get_dick_permit(**kwargs):
 		try:
 			cursor.execute(sql)
 		except Exception as e:
-			funct.out_error(e)
+			out_error(e)
 		else:
 			return cursor.fetchall()
 
@@ -751,7 +747,7 @@ def is_master(ip, **kwargs):
 	try:
 		cursor.execute(sql)
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return cursor.fetchall()
 
@@ -770,7 +766,7 @@ def select_ssh(**kwargs):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -781,7 +777,7 @@ def insert_new_ssh(name, enable, group, username, password):
 	try:
 		Cred.insert(name=name, enable=enable, groups=group, username=username, password=password).execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -792,7 +788,7 @@ def delete_ssh(ssh_id):
 	try:
 		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return True
 
@@ -806,7 +802,7 @@ def update_ssh(cred_id, name, enable, group, username, password):
 	try:
 		cred_update.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def insert_backup_job(server, rserver, rpath, backup_type, time, cred, description):
@@ -814,7 +810,7 @@ def insert_backup_job(server, rserver, rpath, backup_type, time, cred, descripti
 		Backup.insert(server=server, rhost=rserver, rpath=rpath, backup_type=backup_type, time=time,
 					  cred=cred, description=description).execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -829,7 +825,7 @@ def select_backups(**kwargs):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -840,7 +836,7 @@ def update_backup(server, rserver, rpath, backup_type, time, cred, description, 
 	try:
 		backup_update.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -851,7 +847,7 @@ def delete_backups(backup_id):
 	try:
 		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -874,7 +870,7 @@ def delete_telegram(telegram_id):
 	try:
 		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -890,7 +886,7 @@ def select_telegram(**kwargs):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -899,7 +895,7 @@ def insert_new_telegram(token, chanel, group):
 	try:
 		Telegram.insert(token=token, chanel_name=chanel, groups=group).execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -910,7 +906,7 @@ def update_telegram(token, chanel, group, telegram_id):
 	try:
 		telegram_update.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -921,7 +917,7 @@ def delete_slack(slack_id):
 	try:
 		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -937,7 +933,7 @@ def select_slack(**kwargs):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -946,7 +942,7 @@ def insert_new_slack(token, chanel, group):
 	try:
 		Slack.insert(token=token, chanel_name=chanel, groups=group).execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -957,7 +953,7 @@ def update_slack(token, chanel, group, slack_id):
 	try:
 		query_update.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -966,7 +962,7 @@ def insert_new_option(saved_option, group):
 	try:
 		Option.insert(options=saved_option, groups=group).execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -982,7 +978,7 @@ def select_options(**kwargs):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -992,7 +988,7 @@ def update_options(option, option_id):
 	try:
 		query_update.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -1003,7 +999,7 @@ def delete_option(option_id):
 	try:
 		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -1013,7 +1009,7 @@ def insert_new_savedserver(server, description, group):
 	try:
 		SavedServer.insert(server=server, description=description, groups=group).execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -1030,7 +1026,7 @@ def select_saved_servers(**kwargs):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -1040,7 +1036,7 @@ def update_savedserver(server, description, saved_id):
 	try:
 		query_update.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -1051,7 +1047,7 @@ def delete_savedserver(saved_id):
 	try:
 		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -1062,7 +1058,7 @@ def insert_metrics(serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate):
 		Metrics.insert(serv=serv, curr_con=curr_con, cur_ssl_con=cur_ssl_con, sess_rate=sess_rate,
 					   max_sess_rate=max_sess_rate, date=funct.get_data('regular')).execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def insert_metrics_http(serv, http_2xx, http_3xx, http_4xx, http_5xx):
@@ -1070,7 +1066,7 @@ def insert_metrics_http(serv, http_2xx, http_3xx, http_4xx, http_5xx):
 		MetricsHttpStatus.insert(serv=serv, ok_ans=http_2xx, redir_ans=http_3xx, not_found_ans=http_4xx,
 					   err_ans=http_5xx, date=funct.get_data('regular')).execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def select_waf_metrics_enable_server(ip):
@@ -1078,7 +1074,7 @@ def select_waf_metrics_enable_server(ip):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		for en in query_res:
 			return en.metrics
@@ -1089,7 +1085,7 @@ def select_waf_servers(serv):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		for en in query_res:
 			return en.ip
@@ -1101,7 +1097,7 @@ def select_waf_servers_metrics_for_master():
 	try:
 		cursor.execute(sql)
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return cursor.fetchall()
 
@@ -1110,7 +1106,7 @@ def select_waf_servers_metrics(uuid):
 	try:
 		user_group = User.get(User.username == get_user_name_by_uuid(uuid))
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		if user_group.groups == '1':
 			query = Waf.select(Server.ip).join(Server, on=(Waf.server_id == Server.server_id)).where(
@@ -1126,7 +1122,7 @@ def select_waf_servers_metrics(uuid):
 		try:
 			query_res = query.execute()
 		except Exception as e:
-			funct.out_error(e)
+			out_error(e)
 		else:
 			return query_res
 
@@ -1162,7 +1158,7 @@ def select_waf_metrics(serv, **kwargs):
 	try:
 		cursor.execute(sql)
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return cursor.fetchall()
 
@@ -1172,7 +1168,7 @@ def insert_waf_metrics_enable(serv, enable):
 		server_id = Server.get(Server.ip == serv).server_id
 		Waf.inser(server_id=server_id, metrics=enable).execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def insert_waf_rules(serv):
@@ -1221,7 +1217,7 @@ def insert_waf_rules(serv):
 	try:
 		WafRules.insert_many(data_source).execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return True
 
@@ -1231,7 +1227,7 @@ def select_waf_rules(serv):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -1241,14 +1237,14 @@ def delete_waf_rules(serv):
 	try:
 		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def select_waf_rule_by_id(rule_id):
 	try:
 		query = WafRules.get(WafRules.id == rule_id)
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query.rule_file
 
@@ -1258,7 +1254,7 @@ def update_enable_waf_rules(rule_id, serv, en):
 	try:
 		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def delete_waf_server(server_id):
@@ -1266,26 +1262,22 @@ def delete_waf_server(server_id):
 	try:
 		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def insert_waf_metrics(serv, conn):
 	try:
 		WafMetrics.insert(serv=serv, conn=conn, date=funct.get_data('regular')).execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def delete_waf_metrics():
-	cursor = conn.cursor()
-	if mysql_enable == '1':
-		sql = """ delete from metrics where date < now() - INTERVAL 3 day """
-	else:
-		sql = """ delete from metrics where date < datetime('now', '-3 days') """
+	query = WafMetrics.delete().where(WafMetrics.date < funct.get_data('regular', timedelta_minus=3))
 	try:
-		cursor.execute(sql)
+		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def update_waf_metrics_enable(name, enable):
@@ -1293,36 +1285,28 @@ def update_waf_metrics_enable(name, enable):
 	try:
 		server_id = Server.get(Server.hostname == name).server_id
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 	try:
 		Waf.update(metrics=enable).where(Waf.server_id == server_id).execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def delete_metrics():
-	cursor = conn.cursor()
-	if mysql_enable == '1':
-		sql = """ delete from metrics where date < now() - INTERVAL 3 day """
-	else:
-		sql = """ delete from metrics where date < datetime('now', '-3 days') """
+	query = Metrics.delete().where(Metrics.date < funct.get_data('regular', timedelta_minus=3))
 	try:
-		cursor.execute(sql)
+		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def delete_http_metrics():
-	cursor = conn.cursor()
-	if mysql_enable == '1':
-		sql = """ delete from metrics_http_status where date < now() - INTERVAL 3 day """
-	else:
-		sql = """ delete from metrics_http_status where date < datetime('now', '-3 days') """
+	query = MetricsHttpStatus.delete().where(MetricsHttpStatus.date < funct.get_data('regular', timedelta_minus=3))
 	try:
-		cursor.execute(sql)
+		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def select_metrics(serv, **kwargs):
@@ -1357,7 +1341,7 @@ def select_metrics(serv, **kwargs):
 	try:
 		cursor.execute(sql)
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return cursor.fetchall()
 
@@ -1394,7 +1378,7 @@ def select_metrics_http(serv, **kwargs):
 	try:
 		cursor.execute(sql)
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return cursor.fetchall()
 
@@ -1407,7 +1391,7 @@ def select_servers_metrics_for_master(**kwargs):
 	try:
 		cursor.execute(sql)
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return cursor.fetchall()
 
@@ -1422,7 +1406,7 @@ def select_servers_metrics():
 		try:
 			query_res = query.execute()
 		except Exception as e:
-			funct.out_error(e)
+			out_error(e)
 		else:
 			return query_res
 
@@ -1628,7 +1612,7 @@ def select_table_metrics():
 	try:
 		cursor.execute(sql)
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return cursor.fetchall()
 
@@ -1636,7 +1620,7 @@ def select_table_metrics():
 def get_setting(param, **kwargs):
 	try:
 		user_group = funct.get_user_group(id=1)
-	except Exception as e:
+	except:
 		user_group = ''
 
 	if user_group == '' or param == 'lists_path' or param == 'ssl_local_path':
@@ -1650,7 +1634,7 @@ def get_setting(param, **kwargs):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		if kwargs.get('all'):
 			return query_res
@@ -1668,7 +1652,7 @@ def update_setting(param, val):
 			query.execute()
 			return True
 		except Exception as e:
-			funct.out_error(e)
+			out_error(e)
 			return False
 
 
@@ -1676,7 +1660,7 @@ def get_ver():
 	try:
 		ver = Version.get()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return ver.version
 
@@ -1686,7 +1670,7 @@ def select_roles():
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -1699,7 +1683,7 @@ def select_alert(**kwargs):
 	try:
 		cursor.execute(sql)
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return cursor.fetchall()
 
@@ -1715,7 +1699,7 @@ def select_all_alerts(**kwargs):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -1728,7 +1712,7 @@ def select_nginx_alert(**kwargs):
 	try:
 		cursor.execute(sql)
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return cursor.fetchall()
 
@@ -1739,7 +1723,7 @@ def select_keep_alive():
 	try:
 		cursor.execute(sql)
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return cursor.fetchall()
 
@@ -1750,7 +1734,7 @@ def select_nginx_keep_alive():
 	try:
 		cursor.execute(sql)
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return cursor.fetchall()
 
@@ -1759,7 +1743,7 @@ def select_keepalived(serv):
 	try:
 		keepalived = Server.get(Server.ip == serv).keepalived
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return keepalived
 
@@ -1769,7 +1753,7 @@ def update_keepalived(serv):
 	try:
 		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -1779,7 +1763,7 @@ def select_nginx(serv):
 	try:
 		query_res = Server.get(Server.ip == serv).nginx
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -1790,7 +1774,7 @@ def update_nginx(serv):
 		query.execute()
 		return True
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 
 
@@ -1798,7 +1782,7 @@ def select_haproxy(serv):
 	try:
 		query_res = Server.get(Server.ip == serv).haproxy
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -1809,7 +1793,7 @@ def update_haproxy(serv):
 		query.execute()
 		return True
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 
 
@@ -1819,7 +1803,7 @@ def update_firewall(serv):
 		query.execute()
 		return True
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 
 
@@ -1829,7 +1813,7 @@ def update_server_pos(pos, server_id):
 		query.execute()
 		return True
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 
 
@@ -1866,7 +1850,7 @@ def insert_smon(server, port, enable, proto, uri, body, group, desc, telegram, u
 		SMON.insert(ip=server, port=port, en=enable, desc=desc, group=group, http=http, body=body,
 					telegram_channel_id=telegram, user_group=user_group, status='3').execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -1906,7 +1890,7 @@ def select_smon(user_group, **kwargs):
 	try:
 		cursor.execute(sql)
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return cursor.fetchall()
 
@@ -1918,7 +1902,7 @@ def delete_smon(smon_id, user_group):
 	try:
 		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -1932,7 +1916,7 @@ def update_smon(smon_id, ip, port, body, telegram, group, desc, en):
 		query.execute()
 		return True
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 
 
@@ -1955,7 +1939,7 @@ def alerts_history(service, user_group, **kwargs):
 	try:
 		cursor.execute(sql)
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return cursor.fetchall()
 
@@ -1966,7 +1950,7 @@ def select_en_service():
 	try:
 		cursor.execute(sql)
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return cursor.fetchall()
 
@@ -1975,7 +1959,7 @@ def select_status(smon_id):
 	try:
 		query_res = SMON.get(SMON.id == smon_id).status
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -1984,7 +1968,7 @@ def select_http_status(smon_id):
 	try:
 		query_res = SMON.get(SMON.id == smon_id).http_status
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -1993,7 +1977,7 @@ def select_body_status(smon_id):
 	try:
 		query_res = SMON.get(SMON.id == smon_id).body_status
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -2002,7 +1986,7 @@ def select_script(smon_id):
 	try:
 		query_res = SMON.get(SMON.id == smon_id).script
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -2011,7 +1995,7 @@ def select_http(smon_id):
 	try:
 		query_res = SMON.get(SMON.id == smon_id).http
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -2020,7 +2004,7 @@ def select_body(smon_id):
 	try:
 		query_res = SMON.get(SMON.id == smon_id).body
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -2030,7 +2014,7 @@ def change_status(status, smon_id):
 	try:
 		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -2041,7 +2025,7 @@ def change_http_status(status, smon_id):
 	try:
 		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -2052,7 +2036,7 @@ def change_body_status(status, smon_id):
 	try:
 		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -2063,7 +2047,7 @@ def add_sec_to_state_time(time, smon_id):
 	try:
 		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -2074,7 +2058,7 @@ def set_to_zero_time_state(smon_id):
 	try:
 		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -2085,7 +2069,7 @@ def response_time(time, smon_id):
 	try:
 		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 	else:
 		return True
@@ -2104,7 +2088,7 @@ def smon_list(user_group):
 	try:
 		cursor.execute(sql)
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return cursor.fetchall()
 
@@ -2115,7 +2099,7 @@ def insert_alerts(user_group, level, ip, port, message, service):
 					  date=funct.get_data('regular')).execute()
 		return True
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 
 
@@ -2128,7 +2112,7 @@ def select_alerts(user_group):
 	try:
 		cursor.execute(sql)
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return cursor.fetchall()
 
@@ -2159,7 +2143,7 @@ def select_geoip_country_codes():
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -2170,7 +2154,7 @@ def insert_port_scanner_settings(server_id, user_group_id, enabled, notify, hist
 								   notify=notify, history=history).execute()
 		return True
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 
 
@@ -2180,7 +2164,7 @@ def update_port_scanner_settings(server_id, user_group_id, enabled, notify, hist
 	try:
 		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def select_port_scanner_settings(user_group):
@@ -2192,7 +2176,7 @@ def select_port_scanner_settings(user_group):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -2202,7 +2186,7 @@ def select_port_scanner_settings_for_service():
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -2212,7 +2196,7 @@ def delete_port_scanner_settings(server_id):
 	try:
 		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def insert_port_scanner_port(serv, user_group_id, port, service_name):
@@ -2220,7 +2204,7 @@ def insert_port_scanner_port(serv, user_group_id, port, service_name):
 		PortScannerPorts.insert(serv=serv, port=port, user_group_id=user_group_id, service_name=service_name,
 								  date=funct.get_data('regular')).execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def select_ports(serv):
@@ -2230,7 +2214,7 @@ def select_ports(serv):
 	try:
 		cursor.execute(sql)
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return cursor.fetchall()
 
@@ -2241,7 +2225,7 @@ def select_port_name(serv, port):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		for port in query_res:
 			return port.service_name
@@ -2253,7 +2237,7 @@ def select_count_opened_ports(serv):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		port = list()
 		for ports in query_res:
@@ -2266,7 +2250,7 @@ def delete_ports(serv):
 	try:
 		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def insert_port_scanner_history(serv, port, port_status, service_name):
@@ -2275,32 +2259,26 @@ def insert_port_scanner_history(serv, port, port_status, service_name):
 								  date=funct.get_data('regular')).execute()
 		cursor.execute(sql)
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def delete_alert_history(keep_interval: int, service: str):
-	cursor = conn.cursor()
-	if mysql_enable == '1':
-		sql = """ delete from alerts where date < now() - INTERVAL %s day and service = '%s'""" % (keep_interval, service)
-	else:
-		sql = """ delete from alerts where date < datetime('now', '-%s days') and service = '%s'""" % (keep_interval, service)
+	query = Alerts.delete().where(
+		(Alerts.date < funct.get_data('regular', timedelta_minus=keep_interval)) &
+		(Alerts.service == service))
 	try:
-		cursor.execute(sql)
+		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def delete_portscanner_history(keep_interval: int):
-	cursor = conn.cursor()
-	if mysql_enable == '1':
-		sql = """ delete from port_scanner_history where date < now() - INTERVAL %s day""" % keep_interval
-	else:
-		sql = """ delete from port_scanner_history where date < datetime('now', '-%s days')""" % keep_interval
-
+	query = PortScannerHistory.delete().where(
+		PortScannerHistory.date < funct.get_data('regular', timedelta_minus=keep_interval))
 	try:
-		cursor.execute(sql)
+		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def select_port_scanner_history(serv):
@@ -2308,7 +2286,7 @@ def select_port_scanner_history(serv):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -2319,7 +2297,7 @@ def add_provider_do(provider_name, provider_group, provider_token):
 							  create_date=funct.get_data('regular'), edit_date=funct.get_data('regular')).execute()
 		return True
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 
 
@@ -2330,7 +2308,7 @@ def add_provider_aws(provider_name, provider_group, provider_key, provider_secre
 							  edit_date=funct.get_data('regular')).execute()
 		return True
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 
 
@@ -2341,7 +2319,7 @@ def add_provider_gcore(provider_name, provider_group, provider_user, provider_pa
 							  edit_date=funct.get_data('regular')).execute()
 		return True
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 
 
@@ -2361,7 +2339,7 @@ def select_providers(user_group, **kwargs):
 	try:
 		cursor.execute(sql)
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return cursor.fetchall()
 
@@ -2372,7 +2350,7 @@ def delete_provider(provider_id):
 		query.execute()
 		return True
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 
 
@@ -2385,7 +2363,7 @@ def add_server_aws(region, instance_type, public_ip, floating_ip, volume_size, s
 								  type='aws', status=status, date=funct.get_data('regular')).execute()
 		return True
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 
 
@@ -2399,7 +2377,7 @@ def add_server_gcore(project ,region, instance_type, network_type, network_name,
 								  date=funct.get_data('regular')).execute()
 		return True
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 
 
@@ -2412,7 +2390,7 @@ def add_server_do(region, size, privet_net, floating_ip, ssh_ids, ssh_key_name, 
 								  type='do', status=status, date=funct.get_data('regular')).execute()
 		return True
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 
 
@@ -2427,7 +2405,7 @@ def select_aws_server(server_id):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -2443,7 +2421,7 @@ def select_gcore_server(server_id):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -2457,7 +2435,7 @@ def select_do_server(server_id):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -2476,7 +2454,7 @@ def update_provisioning_server_status(status, user_group_id, name, provider_id, 
 	try:
 		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def update_provisioning_server_gcore_name(name, template_name, user_group_id, provider_id):
@@ -2487,7 +2465,7 @@ def update_provisioning_server_gcore_name(name, template_name, user_group_id, pr
 	try:
 		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def update_provisioning_server_error(status, user_group_id, name, provider_id):
@@ -2498,7 +2476,7 @@ def update_provisioning_server_error(status, user_group_id, name, provider_id):
 	try:
 		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def update_server_aws(region, size, public_ip, floating_ip, volume_size, ssh_name, workspace, oss, firewall, provider, group, status, server_id, delete_on_termination, volume_type):
@@ -2511,7 +2489,7 @@ def update_server_aws(region, size, public_ip, floating_ip, volume_size, ssh_nam
 		query.execute()
 		return True
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 
 
@@ -2526,7 +2504,7 @@ def update_server_gcore(region, size, network_type, network_name, volume_size, s
 		query.execute()
 		return True
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 
 
@@ -2541,7 +2519,7 @@ def update_server_do(size, privet_net, floating_ip, ssh_ids, ssh_name, oss, fire
 		query.execute()
 		return True
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 
 
@@ -2550,7 +2528,7 @@ def delete_provisioned_servers(server_id):
 	try:
 		query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def select_provisioned_servers(**kwargs):
@@ -2570,7 +2548,7 @@ def select_provisioned_servers(**kwargs):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		return query_res
 
@@ -2608,7 +2586,7 @@ def update_do_provider(new_name, new_token, provider_id):
 							  edit_date=funct.get_data('regular')).where(ProvidersCreds.id == provider_id).execute()
 		return True
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 
 
@@ -2618,7 +2596,7 @@ def update_gcore_provider(new_name, new_user, new_pass, provider_id):
 							  edit_date=funct.get_data('regular')).where(ProvidersCreds.id == provider_id).execute()
 		return True
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 
 
@@ -2628,7 +2606,7 @@ def update_aws_provider(new_name, new_key, new_secret, provider_id):
 							  edit_date=funct.get_data('regular')).where(ProvidersCreds.id == provider_id).execute()
 		return True
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 		return False
 
 

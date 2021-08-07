@@ -12,7 +12,7 @@ if mysql_enable == '1':
     mysql_port = funct.get_config_var('mysql', 'mysql_port')
     conn = MySQLDatabase(mysql_db, user=mysql_user, password=mysql_password, host=mysql_host, port=mysql_port)
 else:
-    db = "roxy-wi.db"
+    db = "/var/www/haproxy-wi/app/roxy-wi.db"
     conn = SqliteDatabase(db)
 
 
