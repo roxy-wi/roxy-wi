@@ -265,7 +265,7 @@ $( function() {
 			$.ajax( {
 				url: "options.py",
 				data: {
-					ip: request.term,
+					show_ip: request.term,
 					serv: $("#serv").val(),
 					token: $('#token').val()
 				},

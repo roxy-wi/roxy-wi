@@ -8,7 +8,7 @@
 	p {margin: 0;}
 </style>
 <table class="overview">
-	<caption><h3>Create new HA cluster</h3></caption>
+	<caption><h3>Create a new HA cluster</h3></caption>
 	<tr class="overviewHead">
 		<td class="padding10 first-collumn">Master</td>
 		<td>Slave</td>
@@ -17,13 +17,13 @@
 		<td class="checkbox-head help_cursor"><span title="Roxy-WI will try to install HAProxy">HAProxy</span></td>
 		<td class="checkbox-head help_cursor"><span title="Roxy-WI will try to install Nginx">Nginx</span></td>
 		<td class="checkbox-head help_cursor"><span title="Roxy-WI will add VRRP address as a separated server">Add VIRT</span></td>
-		<td class="checkbox-head">SYN flood protect</td>
+		<td class="checkbox-head">SYN-flood protection</td>
 		<td></td>
 	</tr>
 	<tr>
 		<td class="padding10 first-collumn">
 			<select id="master">
-				<option disabled selected>Choose master</option>
+				<option disabled selected>------</option>
 				{% for select in selects %}
 					<option value="{{ select.2 }}">{{ select.1 }}</option>
 				{% endfor %}
@@ -31,7 +31,7 @@
 		</td>
 		<td>
 			<select id="slave">
-				<option disabled selected>Choose master</option>
+				<option disabled selected>------</option>
 				{% for select in selects %}
 					<option value="{{ select.2 }}">{{ select.1 }}</option>
 				{% endfor %}
@@ -50,7 +50,7 @@
 </table>
 		
 <table class="overview">
-	<caption><h3>Or add VRRP to exist</h3></caption>
+	<caption><h3>Add VRRP to an existing cluster</h3></caption>
 	<tr class="overviewHead">
 		<td class="padding10 first-collumn">Master</td>
 		<td>Slave</td>
@@ -66,7 +66,7 @@
 	<tr>
 		<td class="padding10 first-collumn">
 			<select id="master-add">
-				<option disabled selected>Choose master</option>
+				<option disabled selected>------</option>
 				{% for select in selects %}
 					<option value="{{ select.2 }}">{{ select.1 }}</option>
 				{% endfor %}
@@ -74,7 +74,7 @@
 		</td>
 		<td>
 			<select id="slave-add">
-				<option disabled selected>Choose master</option>
+				<option disabled selected>------</option>
 				{% for select in selects %}
 					<option value="{{ select.2 }}">{{ select.1 }}</option>
 				{% endfor %}

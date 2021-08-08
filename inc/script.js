@@ -397,7 +397,7 @@ function showLog() {
 	$.ajax( {
 		url: "options.py",
 		data: {
-			rows: rows,
+			show_log: rows,
 			serv: $("#serv").val(),
 			waf: waf,
 			grep: grep,
@@ -616,8 +616,11 @@ function viewLogs() {
 			},
 			type: "POST",
 			success: function( data ) {
-				$("#ajax").html(data);
-				window.history.pushState("View logs", "View logs", cur_url[0] + "?type="+ type +
+				if (data.indexOf('error: ') != '-1') {
+					toastr.error(data);
+				} else {
+					$("#ajax").html(data);
+					window.history.pushState("View logs", "View logs", cur_url[0] + "?type=" + type +
 						"&viewlogs=" + viewlogs +
 						'&rows=' + rows +
 						'&grep=' + grep +
@@ -626,6 +629,7 @@ function viewLogs() {
 						'&minut=' + minut +
 						'&hour1=' + hour1 +
 						'&minut1=' + minut1);
+				}
 			}					
 		} );
 	}

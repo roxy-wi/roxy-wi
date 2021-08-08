@@ -3,14 +3,25 @@ import cgi
 import os
 import sys
 
+
+def is_ip_or_dns(server_from_request: str) -> str:
+	import re
+	ip_regex = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
+	dns_regex = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
+	try:
+		if re.match(ip_regex, server_from_request):
+			return server_from_request
+		else:
+			if re.match(dns_regex, server_from_request):
+				return server_from_request
+			else:
+				return ''
+	except:
+		return ''
+
+
 form = cgi.FieldStorage()
-serv = form.getvalue('serv')
-
-
-def get_app_dir():
-	d = sys.path[0]
-	d = d.split('/')[-1]		
-	return sys.path[0] if d == "app" else os.path.dirname(sys.path[0])	
+serv = is_ip_or_dns(form.getvalue('serv'))
 
 
 def get_config_var(sec, var):
@@ -245,8 +256,8 @@ def is_admin(**kwargs):
 	try:
 		return True if role <= level else False
 	except Exception as e:
-		print('error: '+str(e))
-		# return False
+		# print('error: '+str(e))
+		return False
 
 
 def page_for_admin(**kwargs):
@@ -934,7 +945,7 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 
 	if service == 'nginx' or service == 'haproxy':
 		syslog_server_enable = sql.get_setting('syslog_server_enable')
-		if syslog_server_enable is None or syslog_server_enable == "0":
+		if syslog_server_enable is None or syslog_server_enable == 0:
 			if service == 'nginx':
 				local_path_logs = sql.get_setting('nginx_path_error_logs')
 				commands = ["sudo cat %s| awk '$2>\"%s:00\" && $2<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, date, date1, rows, grep_act, exgrep_act)]
@@ -949,7 +960,7 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 		if waf == "1":
 			local_path_logs = '/var/log/modsec_audit.log'
 			commands = ["sudo cat %s |tail -%s %s %s" % (local_path_logs, rows, grep_act, exgrep_act)]
-		
+
 		if kwargs.get('html') == 0:
 			a = ssh_command(syslog_server, commands)
 			return show_log(a, html=0, grep=grep)	
@@ -957,13 +968,13 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 			return ssh_command(syslog_server, commands, show_log='1', grep=grep)
 	elif service == 'apache':
 		apache_log_path = sql.get_setting('apache_log_path')
-		
+
 		if serv == 'roxy-wi.access.log':
-			cmd = "cat %s| awk -F\"/|:\" '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (apache_log_path+"/"+serv, date, date1, rows, grep_act, exgrep_act)
+			cmd = "cat {}| awk -F\"/|:\" '$3>\"{}:00\" && $3<\"{}:00\"' |tail -{} {} {}".format(apache_log_path+"/"+serv, date, date1, rows, grep_act, exgrep_act)
 		elif serv == 'roxy-wi.error.log':
-			cmd = "cat %s| awk '$4>\"%s:00\" && $4<\"%s:00\"' |tail -%s %s %s" % (apache_log_path+"/"+serv, date, date1, rows, grep_act, exgrep_act)
+			cmd = "cat {}| awk '$4>\"{}:00\" && $4<\"{}:00\"' |tail -{} {} {}".format(apache_log_path+"/"+serv, date, date1, rows, grep_act, exgrep_act)
 		elif serv == 'fail2ban.log':
-			cmd = "cat %s| awk -F\"/|:\" '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % ("/var/log/"+serv, date, date1, rows, grep_act, exgrep_act)
+			cmd = "cat {}| awk -F\"/|:\" '$3>\"{}:00\" && $3<\"{}:00\"' |tail -{} {} {}".format("/var/log/"+serv, date, date1, rows, grep_act, exgrep_act)
 
 		output, stderr = subprocess_execute(cmd)
 		

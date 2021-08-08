@@ -7,14 +7,14 @@
 		{% set up = [] %}
 		{% set dis = [] %}
 		{% for s in smon %}
-			{% if s.3 == 1 %}
-				{% if s.2 == 1 and s.10 == 1 and s.12 == 1 %}
+			{% if s.en == 1 %}
+				{% if s.status == 1 and s.http_status == 1 and s.body_status == 1 %}
 					{% if  up.append('1') %} {% endif %}
 				{% else %}
 					{% if  down.append('1') %} {% endif %}
 				{% endif %}
 			{% else %}
-				{% if  dis.append(s.7) %} {% endif %}
+				{% if  dis.append(s.group) %} {% endif %}
 			{% endif %}
 		{% endfor %}
 		<b>Counting state: UP: {{up|length}}, DOWN: {{down|length}}, Disabled: {{dis|length}}</b>
@@ -23,15 +23,15 @@
 {% set group = [] %}
 {% set group_prev = [] %}
 {%- for s in smon -%}
-    {% if s.7 %}
-        {% if s.7 not in group %}
+    {% if s.group %}
+        {% if s.group not in group %}
         <div class="smon_group">
             <div class="group_name">
-                {{ s.7 }}
+                {{ s.group }}
             </div>
         </div>
         {% endif %}
-        {% if group.append(s.7) %} {% endif %}
+        {% if group.append(s.group) %} {% endif %}
     {% else %}
          <div class="smon_group">
             <div class="group_name">
@@ -39,8 +39,8 @@
             </div>
         </div>
     {% endif %}
-    {% if s.3 == 1 %}
-        {% if s.2 == 1 and s.10 == 1 and s.12 == 1 %}
+    {% if s.en == 1 %}
+        {% if s.status == 1 and s.http_status == 1 and s.body_status == 1 %}
             <div class="smon_services good div-server-head-up"
         {% else %}
             <div class="smon_services err div-server-head-down"
@@ -49,37 +49,37 @@
         <div class="smon_services dis div-server-head-dis"
     {% endif %}
        title="Enabled checks:
-Port check{% if s.9 %},
-HTTP status check: {{s.9.split(':')[0]}}://{{s.0}}:{{s.1}}{{s.9.split(':')[1]}}
-{% if s.11 and s.11 is not none %}, Body response check: {{s.11}}{% endif %}
+Port check{% if s.http %},
+HTTP status check: {{s.http.split(':')[0]}}://{{s.ip}}:{{s.port}}{{s.http.split(':')[1]}}
+{% if s.body and s.body is not none %}, Body response check: {{s.body}}{% endif %}
 {% endif %}">
     <div class="ip">
-        {% if s.0|string|length > 23 %}
+        {% if s.ip|string|length > 23 %}
             <span style="font-size: 11px;">
-        {% elif s.0|string|length > 20 %}
+        {% elif s.ip|string|length > 20 %}
             <span style="font-size: 12px;">
-        {% elif s.0|string|length > 17 %}
+        {% elif s.ip|string|length > 17 %}
             <span style="font-size: 15px;">
         {% else %}
             <span>
         {% endif %}
-                <a href="smon.py?action=history&host={{s.0}}" title="View history for {{s.0}} host" class="link">{{s.0}}:{{s.1}}</a>
+                <a href="smon.py?action=history&host={{s.ip}}" title="View history for {{s.ip}} host" class="link">{{s.ip}}:{{s.port}}</a>
             </span>
         </span>
     </div>
     <div class="desc">
-        {% if s.4 is not none %}
-            <b>{{s.4}}</b>
+        {% if s.desc is not none %}
+            <b>{{s.desc}}</b>
         {% else %}
             Desc: None
         {% endif %}
     </div>
     <div class="desc">
-        {% if s.3 == 1 %}
-            {% if s.2 == 1 and s.10 == 1 and s.12 == 1 %}
-                Uptime: <time class="timeago" datetime="{{s.6}}">{{s.6}}</time>
-            {% elif s.2 == 0 or s.10 == 0 or s.12 == 0 %}
-                Downtime: <time class="timeago" datetime="{{s.6}}">{{s.6}}</time>
+        {% if s.en == 1 %}
+            {% if s.status == 1 and s.http_status == 1 and s.body_status == 1 %}
+                Uptime: <time class="timeago" datetime="{{s.time_state}}">{{s.time_state}}</time>
+            {% elif s.status == 0 or s.http_status == 0 or s.body_status == 0 %}
+                Downtime: <time class="timeago" datetime="{{s.time_state}}">{{s.time_state}}</time>
             {% else %}
                 Uptime: N/A
             {% endif %}
@@ -88,14 +88,14 @@ HTTP status check: {{s.9.split(':')[0]}}://{{s.0}}:{{s.1}}{{s.9.split(':')[1]}}
         {% endif %}
     </div>
     <div class="res_time">
-        {% if s.3 == 1 %}
-            {% if s.2 == 1 %}
+        {% if s.en == 1 %}
+            {% if s.status == 1 %}
                 Resp time:
             {% else %}
                 Last resp time:
             {% endif %}
-            {% if s.5 %}
-                <span title="{{s.5}} ms">{{s.5|truncate(9)}} ms</span>
+            {% if s.responce_time %}
+                <span title="{{s.responce_time}} ms">{{s.responce_time|truncate(9)}} ms</span>
             {% else %}
                 N/A
             {% endif %}
@@ -103,26 +103,26 @@ HTTP status check: {{s.9.split(':')[0]}}://{{s.0}}:{{s.1}}{{s.9.split(':')[1]}}
             N/A
         {% endif %}
     </div>
-    {% if s.3 == 1 %}
-         {% if s.2 == 1 and s.10 == 1 and s.12 == 1 %}
+    {% if s.en == 1 %}
+         {% if s.status == 1 and s.http_status == 1 and s.body_status == 1 %}
             <div class="up">
                 <center>
                     UP
                 </center>
             </div>
-         {% elif s.10 == 0 %}
+         {% elif s.http_status == 0 %}
             <div class="down">
                  <center style="padding-top: 7px;">
                       HTTP IS FAILURE
                  </center>
             </div>
-         {% elif s.12 == 0 %}
+         {% elif s.body_status == 0 %}
             <div class="down">
                  <center style="padding-top: 7px;">
                       BODY IS FAILURE
                  </center>
             </div>
-         {% elif s.2 == 3 %}
+         {% elif s.status == 3 %}
             <div class="unknown">
                 <center style="padding-top: 7px;">
                     UNKNOWN

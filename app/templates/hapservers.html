@@ -142,9 +142,9 @@
 				<input type="hidden" id="service" value="{{service}}" />
 				{% if service == 'nginx' or service == 'keepalived' %}
 					{% if s.5.0.1 == 'active' %}
-						<span class="serverUp server-status" title="Uptime: {{s.5.0.4}}"></span>
+						<span class="serverUp server-status" title="Started: {{s.5.0.4}}"></span>
 					{% else %}
-						<span class="serverDown server-status" title="Downtime: : {{s.5.0.4}}"></span>
+						<span class="serverDown server-status" title="Stopped: : {{s.5.0.4}}"></span>
 					{% endif %}
 				{% else %}
 					{% if s.5 != False %}
@@ -201,9 +201,9 @@
 					Version: {{s.5.0.0}} Process_num: {{s.5.0.3}}
 					<br />
 					{% if s.5.0.1 == 'active' %}
-						Uptime:
+						Started:
 					{% else %}
-						Downtime:
+						Stopped:
 					{% endif %}
 					{{s.5.0.2}}
 				{% else %}

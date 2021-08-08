@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-import funct
+from sql import out_error
 from db_model import *
+from funct import check_ver
 
 
 def default_values():
@@ -43,9 +44,9 @@ def default_values():
 		 'group': '1'},
 		{'param': 'haproxy_config_path', 'value': '/etc/haproxy/haproxy.cfg', 'section': 'haproxy', 'desc': 'Path to the HAProxy configuration file',
 		 'group': '1'},
-		{'param': 'server_state_file', 'value': 'stats', 'section': 'haproxy', 'desc': 'Path to the HAProxy state file',
+		{'param': 'server_state_file', 'value': '/etc/haproxy/haproxy.state', 'section': 'haproxy', 'desc': 'Path to the HAProxy state file',
 		 'group': '1'},
-		{'param': 'haproxy_sock', 'value': '/etc/haproxy/haproxy.state', 'section': 'haproxy',
+		{'param': 'haproxy_sock', 'value': '/var/run/haproxy.sock', 'section': 'haproxy',
 		 'desc': 'Socket port for HAProxy', 'group': '1'},
 		{'param': 'haproxy_sock_port', 'value': '1999', 'section': 'haproxy', 'desc': 'HAProxy sock port',
 		 'group': '1'},
@@ -91,7 +92,7 @@ def default_values():
 	try:
 		Setting.insert_many(data_source).on_conflict_ignore().execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 	data_source = [
 		{'username': 'admin', 'email': 'admin@localhost', 'password': '21232f297a57a5a743894a0e4a801fc3', 'role': 'superAdmin', 'groups': '1'},
@@ -102,7 +103,7 @@ def default_values():
 	try:
 		User.insert_many(data_source).on_conflict_ignore().execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 	data_source = [
 		{'name': 'admin', 'description': 'Can do everything'},
@@ -113,12 +114,12 @@ def default_values():
 	try:
 		Role.insert_many(data_source).on_conflict_ignore().execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 	try:
 		Groups.insert(name='All', description='All servers enter in this group').on_conflict_ignore().execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 
 
 def update_db_v_3_4_5_22():
@@ -236,7 +237,7 @@ def update_db_v_4_3_2_1(**kwargs):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		groups = query_res
 
@@ -265,7 +266,7 @@ def update_db_v_4_5_1(**kwargs):
 	try:
 		cursor.execute(sql)
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		role = cursor.fetchall()
 
@@ -593,7 +594,7 @@ def update_db_v_4_5_8_2(**kwargs):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		funct.out_error(e)
+		out_error(e)
 	else:
 		groups = query_res
 
@@ -717,7 +718,7 @@ def update_ver():
 	 
 
 def update_all():
-	if funct.check_ver() is None:
+	if check_ver() is None:
 		update_db_v_3_4_5_22()
 	update_db_v_4()
 	update_db_v_41()
@@ -740,7 +741,7 @@ def update_all():
 
 
 def update_all_silent():
-	if funct.check_ver() is None:
+	if check_ver() is None:
 		update_db_v_3_4_5_22()
 	update_db_v_4(silent=1)
 	update_db_v_41(silent=1)

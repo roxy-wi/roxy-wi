@@ -21,21 +21,30 @@
         {% set section.section = set.section %}
         <tr class="{{ loop.cycle('odd', 'even') }} {{set.section}}-section" style="display: none">
             <td class="addName">
-                <a href="#{{set.param}}" title="{{set.param}}" style="color: #000;">{{set.param}}</a>
+                {{set.param}}
             </td>
             <td class="addOption">
-                {% if set.param == 'ldap_password' %}
-                {% if set.value == 'None' %}
-                <input type="password" name="{{set.param}}" id="{{set.param}}" value="" title="" size="25" class="form-control" autocomplete="new-password">
+                {% if set.param == 'ldap_password' or set.param == 'stats_password' or set.param == 'nginx_stats_password' %}
+                    {% if set.value is none %}
+                        {{ input(set.param, size='25', type='password') }}
+                    {% else %}
+                        {{ input(set.param, size='25', type='password', placeholder='*****') }}
+                    {% endif %}
+                {% elif set.param == 'nginx_stats_port' or set.param == 'session_ttl' or set.param == 'token_ttl' or
+					set.param == 'stats_port' or set.param == 'haproxy_sock_port' or set.param == 'ldap_type' or
+					set.param == 'ldap_port' or set.param == 'ldap_enable' or set.param == 'log_time_storage' or
+					set.param == 'syslog_server_enable' or set.param == 'smon_check_interval' or
+					set.param == 'checker_check_interval' or set.param == 'port_scan_interval' or
+					set.param == 'smon_keep_history_range' or set.param == 'checker_keep_history_range' or
+					set.param == 'portscanner_keep_history_range' or set.param == 'haproxy_enterprise' %}
+
+                    {{ input(set.param, value=set.value, style='width: 210px;', type='number') }}
                 {% else %}
-                <input type="password" name="{{set.param}}" id="{{set.param}}" value="" placeholder="*****" title="" size="25" class="form-control" autocomplete="new-password">
-                {% endif %}
-                {% else %}
-                {% if set.value == 'None' %}
-                <input type="text" name="{{set.param}}" id="{{set.param}}" value="" title="" size="25" class="form-control">
-                {% else %}
-                <input type="text" name="{{set.param}}" id="{{set.param}}" value="{{set.value}}" title="" size="25" class="form-control">
-                {% endif %}
+                    {% if set.value is none %}
+                        {{ input(set.param, size='25') }}
+                    {% else %}
+                        {{ input(set.param, value=set.value, size='25') }}
+                    {% endif %}
                 {% endif %}
             </td>
             <td class="addOption">

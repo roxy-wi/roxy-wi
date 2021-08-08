@@ -8,10 +8,10 @@ mysql_enable = funct.get_config_var('mysql', 'enable')
 
 def out_error(error):
 	error = str(error)
-	# try:
-	# 	funct.logging('localhost', error, haproxywi=1, login=1)
-	# except Exception:
-	# 	funct.logging('localhost', error, haproxywi=1)
+	try:
+		funct.logging('localhost', error, haproxywi=1, login=1)
+	except Exception:
+		funct.logging('localhost', error, haproxywi=1)
 	print('error: '+error)
 
 
@@ -149,9 +149,9 @@ def add_setting_for_new_group(group_id):
 		 'group': group_id},
 		{'param': 'haproxy_config_path', 'value': '/etc/haproxy/haproxy.cfg', 'section': 'haproxy', 'desc': 'Path to the HAProxy configuration file',
 		 'group': group_id},
-		{'param': 'server_state_file', 'value': 'stats', 'section': 'haproxy', 'desc': 'Path to the HAProxy state file',
+		{'param': 'server_state_file', 'value': '/etc/haproxy/haproxy.state', 'section': 'haproxy', 'desc': 'Path to the HAProxy state file',
 		 'group': group_id},
-		{'param': 'haproxy_sock', 'value': '/etc/haproxy/haproxy.state', 'section': 'haproxy',
+		{'param': 'haproxy_sock', 'value': '/var/run/haproxy.sock', 'section': 'haproxy',
 		 'desc': 'Path to the HAProxy sock file', 'group': group_id},
 		{'param': 'haproxy_sock_port', 'value': '1999', 'section': 'haproxy', 'desc': 'Socket port for HAProxy',
 		 'group': group_id},
@@ -444,7 +444,7 @@ def select_servers(**kwargs):
 	sql = """select * from servers where enable = '1' ORDER BY groups """
 
 	if kwargs.get("server") is not None:
-		sql = """select * from servers where ip='%s' """ % kwargs.get("server")
+		sql = """select * from servers where ip='{}' """.format(kwargs.get("server"))
 	if kwargs.get("full") is not None:
 		sql = """select * from servers ORDER BY hostname """
 	if kwargs.get("get_master_servers") is not None:
@@ -453,16 +453,16 @@ def select_servers(**kwargs):
 		sql = """ select servers.id, servers.hostname from servers 
 			left join user as user on servers.groups = user.groups 
 			left join uuid as uuid on user.id = uuid.user_id 
-			where uuid.uuid = '%s' and servers.master = 0 and servers.type_ip = 0 and servers.enable = 1 ORDER BY servers.groups 
-			""" % kwargs.get('uuid')
+			where uuid.uuid = '{}' and servers.master = 0 and servers.type_ip = 0 and servers.enable = 1 ORDER BY servers.groups 
+			""".format(kwargs.get('uuid'))
 	if kwargs.get("id"):
-		sql = """select * from servers where id='%s' """ % kwargs.get("id")
+		sql = """select * from servers where id='{}' """.format(kwargs.get("id"))
 	if kwargs.get("hostname"):
-		sql = """select * from servers where hostname='%s' """ % kwargs.get("hostname")
+		sql = """select * from servers where hostname='{}' """.format(kwargs.get("hostname"))
 	if kwargs.get("id_hostname"):
-		sql = """select * from servers where hostname='%s' or id = '%s' or ip = '%s'""" % (kwargs.get("id_hostname"), kwargs.get("id_hostname"), kwargs.get("id_hostname"))
+		sql = """select * from servers where hostname='{}' or id = '{}' or ip = '{}'""".format(kwargs.get("id_hostname"), kwargs.get("id_hostname"), kwargs.get("id_hostname"))
 	if kwargs.get("server") and kwargs.get("keep_alive"):
-		sql = """select active from servers where ip='%s' """ % kwargs.get("server")
+		sql = """select active from servers where ip='{}' """.format(kwargs.get("server"))
 	try:
 		cursor.execute(sql)
 	except Exception as e:
@@ -567,7 +567,7 @@ def delete_old_uuid():
 def update_last_act_user(uuid):
 	session_ttl = int(get_setting('session_ttl'))
 
-	query = UUID.update(exp=funct.get_data('regular', timedelta=session_ttl))
+	query = UUID.update(exp=funct.get_data('regular', timedelta=session_ttl)).where(UUID.uuid == uuid)
 	try:
 		query.execute()
 	except Exception as e:
@@ -717,7 +717,7 @@ def get_dick_permit(**kwargs):
 	if funct.check_user_group(token=token):
 		cursor = conn.cursor()
 		if grp == '1' and not only_group:
-			sql = """ select * from servers where enable = 1 %s %s %s %s %s order by pos""" % (disable, type_ip, nginx, keepalived, ip)
+			sql = """ select * from servers where enable = 1 {} {} {} {} {} order by pos""" .format(disable, type_ip, nginx, keepalived, ip)
 		else:
 			sql = """ select * from servers where groups = '{group}' and (enable = 1 {disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} order by pos
 			""".format(group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx, keepalived=keepalived)
@@ -1640,7 +1640,18 @@ def get_setting(param, **kwargs):
 			return query_res
 		else:
 			for setting in query_res:
-				return setting.value
+				if (
+					param == 'nginx_stats_port' or param == 'session_ttl' or param == 'token_ttl' or
+					param == 'stats_port' or param == 'haproxy_sock_port' or param == 'ldap_type' or
+					param == 'ldap_port' or param == 'ldap_enable' or param == 'log_time_storage' or
+					param == 'syslog_server_enable' or param == 'smon_check_interval' or
+					param == 'checker_check_interval' or param == 'port_scan_interval' or
+					param == 'smon_keep_history_range' or param == 'checker_keep_history_range' or
+					param == 'portscanner_keep_history_range' or param == 'haproxy_enterprise'
+				):
+					return int(setting.value)
+				else:
+					return setting.value
 
 
 def update_setting(param, val):
@@ -1679,7 +1690,7 @@ def select_alert(**kwargs):
 	cursor = conn.cursor()
 	sql = """select ip from servers where alert = 1 and enable = 1  """
 	if kwargs.get("group") is not None:
-		sql = """select ip from servers where alert = 1 and `groups` = '%s' and enable = 1 """ % kwargs.get("group")
+		sql = """select ip from servers where alert = 1 and `groups` = '{}' and enable = 1 """.format(kwargs.get("group"))
 	try:
 		cursor.execute(sql)
 	except Exception as e:
@@ -1708,7 +1719,7 @@ def select_nginx_alert(**kwargs):
 	cursor = conn.cursor()
 	sql = """select ip from servers where nginx_alert = 1 and enable = 1 """
 	if kwargs.get("group") is not None:
-		sql = """select ip from servers where nginx_alert = 1 and `groups` = '%s' and enable = 1 """ % kwargs.get("group")
+		sql = """select ip from servers where nginx_alert = 1 and `groups` = '{}' and enable = 1 """.format(kwargs.get("group"))
 	try:
 		cursor.execute(sql)
 	except Exception as e:
@@ -2076,21 +2087,24 @@ def response_time(time, smon_id):
 
 
 def smon_list(user_group):
-	cursor = conn.cursor()
-
 	if user_group == 1:
-		user_group = ''
+		query = (SMON.select(SMON.ip, SMON.port,SMON.status,SMON.en,SMON.desc,SMON.response_time,SMON.time_state,
+							SMON.group,SMON.script,SMON.http,SMON.http_status,SMON.body,SMON.body_status)
+				 .order_by(SMON.group)
+				 )
 	else:
-		user_group = "where user_group='%s'" % user_group
+		query = (SMON.select(SMON.ip, SMON.port, SMON.status, SMON.en, SMON.desc, SMON.response_time, SMON.time_state,
+							 SMON.group, SMON.script, SMON.http, SMON.http_status, SMON.body, SMON.body_status)
+				 .where(SMON.user_group == user_group)
+				 .order_by(SMON.group)
+				 )
 
-	sql = """ select ip,port,status,en,`desc`,response_time,time_state,`group`,script,http,http_status,body,body_status 
-	from smon %s order by `group` desc """ % user_group
 	try:
-		cursor.execute(sql)
+		query_res = query.execute()
 	except Exception as e:
 		out_error(e)
 	else:
-		return cursor.fetchall()
+		return query_res
 
 
 def insert_alerts(user_group, level, ip, port, message, service):
@@ -2153,8 +2167,7 @@ def insert_port_scanner_settings(server_id, user_group_id, enabled, notify, hist
 		PortScannerSettings.insert(server_id=server_id, user_group_id=user_group_id, enabled=enabled,
 								   notify=notify, history=history).execute()
 		return True
-	except Exception as e:
-		out_error(e)
+	except:
 		return False
 
 
@@ -2274,7 +2287,7 @@ def delete_alert_history(keep_interval: int, service: str):
 
 def delete_portscanner_history(keep_interval: int):
 	query = PortScannerHistory.delete().where(
-		PortScannerHistory.date < funct.get_data('regular', timedelta_minus=keep_interval))
+		PortScannerHistory.date < funct.get_data('regular', timedelta_minus=int(keep_interval)))
 	try:
 		query.execute()
 	except Exception as e:

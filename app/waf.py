@@ -18,7 +18,7 @@ except Exception:
 	pass
 
 if manage_rules == '1':
-	serv = form.getvalue('serv')
+	serv = funct.is_ip_or_dns(form.getvalue('serv'))
 	funct.check_is_server_in_group(serv)
 	title = "Manage rules - Web application firewall"
 	servers_waf = ''

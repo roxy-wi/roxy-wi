@@ -7,7 +7,7 @@ import funct
 import sql
 
 form = funct.form
-serv = form.getvalue("serv")
+serv = funct.is_ip_or_dns(form.getvalue('serv'))
 act = form.getvalue("act")
 
 if (form.getvalue('new_metrics') or
@@ -108,7 +108,7 @@ if form.getvalue('ip_select') is not None:
     funct.show_backends(serv)
 
 if form.getvalue('ipbackend') is not None and form.getvalue('backend_server') is None:
-    haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+    haproxy_sock_port = int(sql.get_setting('haproxy_sock_port'))
     backend = form.getvalue('ipbackend')
     cmd = 'echo "show servers state"|nc %s %s |grep "%s" |awk \'{print $4}\'' % (serv, haproxy_sock_port, backend)
     output, stderr = funct.subprocess_execute(cmd)
@@ -119,7 +119,7 @@ if form.getvalue('ipbackend') is not None and form.getvalue('backend_server') is
         print(i + '<br>')
 
 if form.getvalue('ipbackend') is not None and form.getvalue('backend_server') is not None:
-    haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+    haproxy_sock_port = int(sql.get_setting('haproxy_sock_port'))
     backend = form.getvalue('ipbackend')
     backend_server = form.getvalue('backend_server')
     cmd = 'echo "show servers state"|nc %s %s |grep "%s" |grep "%s" |awk \'{print $5":"$19}\' |head -1' % (serv, haproxy_sock_port, backend, backend_server)
@@ -377,12 +377,12 @@ if form.getvalue("change_pos") is not None:
     pos = form.getvalue('change_pos')
     sql.update_server_pos(pos, serv)
 
-if form.getvalue('ip') is not None and serv is not None:
-    commands = ["sudo ip a |grep inet |egrep -v  '::1' |awk '{ print $2 }' |awk -F'/' '{ print $1 }'"]
+if form.getvalue('show_ip') is not None and serv is not None:
+    commands = ["sudo ip a |grep inet |egrep -v '::1' |awk '{ print $2 }' |awk -F'/' '{ print $1 }'"]
     funct.ssh_command(serv, commands, ip="1")
 
 if form.getvalue('showif'):
-    commands = ["sudo ip link|grep 'UP' |grep -v 'lo'| awk '{print $2}'  |awk -F':' '{print $1}'"]
+    commands = ["sudo ip link|grep 'UP' |grep -v 'lo'| awk '{print $2}' |awk -F':' '{print $1}'"]
     funct.ssh_command(serv, commands, ip="1")
 
 if form.getvalue('action_hap') is not None and serv is not None:
@@ -507,6 +507,8 @@ if form.getvalue('show_userlists'):
 if act == "overviewHapservers":
     if form.getvalue('service') == 'nginx':
         config_path = sql.get_setting('nginx_config_path')
+    elif form.getvalue('service') == 'keepalived':
+        config_path = '/etc/keepalived/keepalived.conf'
     else:
         config_path = sql.get_setting('haproxy_config_path')
     commands = ["ls -l %s |awk '{ print $6\" \"$7\" \"$8}'" % config_path]
@@ -749,7 +751,7 @@ if serv is not None and act == "stats":
     else:
         print(data.decode('utf-8'))
 
-if serv is not None and form.getvalue('rows') is not None:
+if serv is not None and form.getvalue('show_log') is not None:
     rows = form.getvalue('rows')
     waf = form.getvalue('waf')
     grep = form.getvalue('grep')
@@ -897,16 +899,15 @@ if serv is not None and act == "showMap":
 
     print('<img src="/map%s.png" alt="map">' % date)
 
-
 if form.getvalue('servaction') is not None:
     server_state_file = sql.get_setting('server_state_file')
     haproxy_sock = sql.get_setting('haproxy_sock')
     enable = form.getvalue('servaction')
     backend = form.getvalue('servbackend')
-    cmd = 'echo "%s %s" |sudo socat stdio %s' % (enable, backend, haproxy_sock)
+    cmd = 'echo "{} {}" |sudo socat stdio {}'.format(enable, backend, haproxy_sock)
 
     if form.getvalue('save') == "on":
-        save_command = 'echo "show servers state" | sudo socat %s stdio > %s' % (haproxy_sock, server_state_file)
+        save_command = 'echo "show servers state" | sudo socat {} stdio > {}'.format(haproxy_sock, server_state_file)
         command = [cmd + ';' + save_command]
     else:
         command = [cmd]
@@ -991,7 +992,7 @@ if serv is not None and act == "configShow":
         conf = open(cfg, "r")
     except IOError:
         print('<div class="alert alert-danger">Can\'t read config file</div>')
-        
+
     is_serv_protected = sql.is_serv_protected(serv)
 
     from jinja2 import Environment, FileSystemLoader
@@ -1315,7 +1316,7 @@ if form.getvalue('node_exp_install'):
     else:
         proxy_serv = ''
 
-    commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port + 
+    commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port +
                 " HOST=" + serv + " USER=" + ssh_user_name + " PASS=" + ssh_user_password + " KEY=" + ssh_key_name]
 
     output, error = funct.subprocess_execute(commands[0])
@@ -2290,16 +2291,16 @@ if form.getvalue('showBytes') is not None:
     serv = form.getvalue('showBytes')
     port = sql.get_setting('haproxy_sock_port')
     bin_bout = []
-    cmd = "echo 'show stat' |nc " + serv + " " + port + " |cut -d ',' -f 1-2,9|grep -E '[0-9]'|awk -F',' '{sum+=$3;}END{print sum;}'"
+    cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,9|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(serv, port)
     bin, stderr = funct.subprocess_execute(cmd)
     bin_bout.append(bin[0])
-    cmd = "echo 'show stat' |nc " + serv + " " + port + " |cut -d ',' -f 1-2,10|grep -E '[0-9]'|awk -F',' '{sum+=$3;}END{print sum;}'"
+    cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,10|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(serv, port)
     bin, stderr = funct.subprocess_execute(cmd)
     bin_bout.append(bin[0])
-    cmd = "echo 'show stat' |nc " + serv + " " + port + " |cut -d ',' -f 1-2,5|grep -E '[0-9]'|awk -F',' '{sum+=$3;}END{print sum;}'"
+    cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,5|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(serv, port)
     bin, stderr = funct.subprocess_execute(cmd)
     bin_bout.append(bin[0])
-    cmd = "echo 'show stat' |nc " + serv + " " + port + " |cut -d ',' -f 1-2,8|grep -E '[0-9]'|awk -F',' '{sum+=$3;}END{print sum;}'"
+    cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,8|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(serv, port)
     bin, stderr = funct.subprocess_execute(cmd)
     bin_bout.append(bin[0])
 
