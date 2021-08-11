@@ -597,11 +597,11 @@ def get_user_id_by_uuid(uuid):
 
 
 def get_user_role_by_uuid(uuid):
+	query = (Role.select(Role.role_id)
+			 .join(User, on=(Role.name == User.role))
+			 .join(UUID, on=(User.user_id == UUID.user_id))
+			 .where(UUID.uuid == uuid))
 	try:
-		query = (Role.select(Role.role_id)
-				 .join(UUID, on=(User.user_id == UUID.user_id))
-				 .join(User, on=(Role.name == User.role))
-				 .where(UUID.uuid == uuid))
 		query_res = query.execute()
 	except Exception as e:
 		out_error(e)

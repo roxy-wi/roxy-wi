@@ -2,7 +2,7 @@ configparser==3.5.0
 pyTelegramBotAPI==3.6.3 
 networkx==2.1
 matplotlib==2.1.2
-mysql-connector-python==8.0.11
 paramiko-ng>=2.5.0
 slack-sdk>=3.4.0
 peewee>=3.14.4
+PyMySQL>=1.0.2
