@@ -117,7 +117,7 @@ def default_values():
 		out_error(e)
 
 	try:
-		Groups.insert(name='All', description='All servers enter in this group').on_conflict_ignore().execute()
+		Groups.insert(name='All', description='All servers are included in this group by default').on_conflict_ignore().execute()
 	except Exception as e:
 		out_error(e)
 

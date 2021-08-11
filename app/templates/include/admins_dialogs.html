@@ -10,7 +10,7 @@
             </td>
             <td>
                 <select id="new-role" name="new-role">
-                    <option disabled selected>Choose role</option>
+                    <option disabled selected>Select a role</option>
                     {% for role in roles %}
                     <option value="{{ role.name }}">{{ role.name }}</option>
                     {% endfor %}
@@ -24,7 +24,7 @@
             </td>
             <td>
                 <select id="new-group" name="new-group">
-                    <option disabled selected>Choose group</option>
+                    <option disabled selected>Select a group</option>
                     {% for group in groups %}
                     <option value="{{ group.group_id }}">{{ group.name }}</option>
                     {% endfor %}
@@ -61,7 +61,7 @@
         </td>
         <td>
             <select id="new-role" name="new-role">
-                <option disabled selected>Choose role</option>
+                <option disabled selected>Select a role</option>
                 {% for role in roles %}
                 {% if role.name != "superAdmin" %}
                 <option value="{{ role.name }}">{{ role.name }}</option>
@@ -84,9 +84,9 @@
             </td>
             <td>
                 <select id="credentials" required>
-                    <option disabled selected>Choose credentials</option>
+                    <option disabled selected>Select credentials</option>
                     {% for ssh in sshs %}
-                    <option value="{{ssh.0}}">{{ssh.1}}</option>
+                    <option value="{{ssh.id}}">{{ssh.name}}</option>
                     {% endfor %}
                 </select>
             </td>
@@ -99,7 +99,7 @@
             </td>
             <td>
                 <select id="new-server-group-add" name="new-server-group-add">
-                    <option disabled selected value="0">Choose group</option>
+                    <option disabled selected value="0">Select a group</option>
                     {% for group in groups %}
                     <option value="{{ group.group_id }}">{{ group.name }}</option>
                     {% endfor %}
@@ -179,7 +179,7 @@
             <td class="padding20">Group</td>
             <td>
                 <select id="new-telegram-group-add" name="new-telegram-group-add">
-                    <option disabled selected value="0">Choose group</option>
+                    <option disabled selected value="0">Select a group</option>
                     {% for group in groups %}
                     <option value="{{ group.group_id }}">{{ group.name }}</option>
                     {% endfor %}
@@ -215,7 +215,7 @@
             <td class="padding20">Group</td>
             <td>
                 <select id="new-slack-group-add" name="new-slack-group-add">
-                    <option disabled selected value="0">Choose group</option>
+                    <option disabled selected value="0">Select a group</option>
                     {% for group in groups %}
                     <option value="{{ group.group_id }}">{{ group.name }}</option>
                     {% endfor %}
@@ -231,7 +231,7 @@
         {% include 'include/add_backup.html' %}
         <tr>
             <td class="padding20">
-                Credentials for remote server
+                Credentials for a remote server
                 <span class="need-field">*</span>
             </td>
             <td>

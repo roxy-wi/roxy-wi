@@ -1200,10 +1200,11 @@ function changeCurrentGroupF(){
 function updateTips( t ) {
 	var tips = $( ".validateTips" );
 	tips.text( t ).addClass( "alert-warning" );
+	tips.text( t ).addClass( "alert-one-row" );
 }
 function clearTips() {
 	var tips = $( ".validateTips" );
-	tips.html('Form fields tag "<span class="need-field">*</span>" are required.').removeClass( "alert-warning" );
+	tips.html('Fields marked "<span class="need-field">*</span>" are required').removeClass( "alert-warning" );
 	allFields = $( [] ).add( $('#new-server-add') ).add( $('#new-ip') ).add( $('#new-port')).add( $('#new-username') ).add( $('#new-password') )
 	allFields.removeClass( "ui-state-error" );
 }

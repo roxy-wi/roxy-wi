@@ -672,7 +672,7 @@
 			<tr class="overviewHead">
 				<td class="padding10 first-collumn" style="width: 30%;">View certificates</td>
 				<td>
-					Existing certificates
+					Uploaded certificates
 				</td>
 			</tr>
 			<tr>
@@ -695,7 +695,7 @@
 					Certificate name
 				</td>
 				<td>
-					<span title="This pem file will be used to create https connection with haproxy">Paste certificate content here(?)</span>
+					<span title="This pem file will be used to create https connection with haproxy" class="help_cursor">Paste the contents of the certificate file</span>
 				</td>
 			</tr>
 			<tr style="width: 50%;">
@@ -719,15 +719,9 @@
 		<table>
 			<caption><h3>Let's Encrypt</h3></caption>
 			<tr class="overviewHead">
-				<td class="padding10 first-collumn">
-					Server
-				</td>
-				<td>
-					Domain name
-				</td>
-				<td>
-					E-mail
-				</td>
+				<td class="padding10 first-collumn">Server</td>
+				<td>Domain name</td>
+				<td>E-mail</td>
 				<td></td>
 			</tr>
 			<tr>
@@ -746,7 +740,7 @@
 					{{ input('lets_email') }}
 				</td>
 				<td>
-					<button id="lets_button">Get certificate</button>
+					<button id="lets_button">Get a certificate</button>
 				</td>
 			</tr>
 		</table>
