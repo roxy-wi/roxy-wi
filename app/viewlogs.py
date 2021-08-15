@@ -42,7 +42,6 @@ else:
 
 log_path = funct.get_config_var('main', 'log_path')
 time_storage = sql.get_setting('log_time_storage')
-time_storage = int(time_storage)
 
 try:
 	time_storage_hours = time_storage * 24
@@ -60,7 +59,7 @@ except Exception:
 	pass
 
 try:
-	user, user_id, role, token, servers = funct.get_users_params()
+	user, user_id, role, token, servers, user_services = funct.get_users_params()
 except Exception:
 	pass
 
@@ -85,6 +84,7 @@ output_from_parsed_template = template.render(h2=1,
                                               hour1=hour1,
                                               minut=minut,
                                               minut1=minut1,
-											  page = page,
+											  page=page,
+											  user_services=user_services,
                                               token=token)
 print(output_from_parsed_template)

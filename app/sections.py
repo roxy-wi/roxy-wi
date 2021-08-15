@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 import os
+import sql
 import funct
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True, extensions=['jinja2.ext.loopcontrols'])
 template = env.get_template('sections.html')
 
 print('Content-type: text/html\n')
-funct.check_login()
+funct.check_login(service=1)
 
 form = funct.form
 serv = form.getvalue('serv')
 section = form.getvalue('section')
+is_serv_protected = sql.is_serv_protected(serv)
 sections = ""
 config_read = ""
 cfg = ""
@@ -21,7 +23,7 @@ start_line = ""
 end_line = ""
 
 try:
-	user, user_id, role, token, servers = funct.get_users_params()
+	user, user_id, role, token, servers, user_services = funct.get_users_params()
 except Exception:
 	pass
 
@@ -90,5 +92,7 @@ template = template.render(h2=1, title="Working with HAProxy configs",
 							end_line=end_line,
 							section=section,
 							sections=sections,
+							is_serv_protected=is_serv_protected,
+							user_services=user_services,
 							token=token)
 print(template)

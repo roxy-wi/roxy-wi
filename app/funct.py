@@ -219,7 +219,7 @@ def slack_send_mess(mess, **kwargs):
 		logging('localhost', str(e), haproxywi=1)
 
 
-def check_login():
+def check_login(**kwargs):
 	import sql
 	import http.cookies
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
@@ -233,6 +233,15 @@ def check_login():
 		if sql.get_user_name_by_uuid(user_uuid.value) is None:
 			print('<meta http-equiv="refresh" content="0; url=login.py?ref=%s">' % ref)
 			return False
+		if kwargs.get('service'):
+			required_service = str(kwargs.get('service'))
+			user_id = sql.get_user_id_by_uuid(user_uuid.value)
+			user_services = sql.select_user_services(user_id)
+			if required_service in user_services:
+				return True
+			else:
+				print('<meta http-equiv="refresh" content="0; url=overview.py">')
+				return False
 	else:
 		print('<meta http-equiv="refresh" content="0; url=login.py?ref=%s">' % ref)
 		return False
@@ -795,12 +804,13 @@ def upload_and_restart(serv, cfg, **kwargs):
 		else:
 			commands = ["sudo mv -f " + tmp_file + " /etc/keepalived/keepalived.conf && sudo systemctl restart keepalived"]
 	elif kwargs.get("nginx"):
+		check_and_move = "sudo mv -f " + tmp_file + " " + config_path + " && sudo nginx -t -q"
 		if kwargs.get("just_save") == "save":
-			commands = ["sudo mv -f " + tmp_file + " " + config_path + " && sudo nginx -t -q"]
+			commands = [check_and_move]
 		elif kwargs.get("just_save") == "reload":
-			commands = ["sudo mv -f " + tmp_file + " " + config_path + " && sudo nginx -t -q && sudo systemctl reload nginx"]
+			commands = [check_and_move + " && sudo systemctl reload nginx"]
 		else:
-			commands = ["sudo mv -f " + tmp_file + " " + config_path + " && sudo nginx -t -q && sudo systemctl restart nginx"]
+			commands = [check_and_move + " && sudo systemctl restart nginx"]
 		if sql.return_firewall(serv):
 			commands[0] += open_port_firewalld(cfg, serv=serv, service='nginx')
 	else:
@@ -811,14 +821,17 @@ def upload_and_restart(serv, cfg, **kwargs):
 		else:
 			haproxy_service_name = "haproxy"
 
+		check_config = "sudo " + haproxy_service_name + "  -q -c -f " + tmp_file
+		move_config = " && sudo mv -f " + tmp_file + " " + config_path
+
 		if kwargs.get("just_save") == "test":
-			commands = ["sudo "+haproxy_service_name+"  -q -c -f " + tmp_file + " && sudo rm -f " + tmp_file]
+			commands = [check_config + " && sudo rm -f " + tmp_file]
 		elif kwargs.get("just_save") == "save":
-			commands = ["sudo "+haproxy_service_name+"  -q -c -f " + tmp_file + " && sudo mv -f " + tmp_file + " " + config_path]
+			commands = [check_config + move_config]
 		elif kwargs.get("just_save") == "reload":
-			commands = ["sudo "+haproxy_service_name+"  -q -c -f " + tmp_file + " && sudo mv -f " + tmp_file + " " + config_path + " && sudo systemctl reload "+haproxy_service_name+""]
+			commands = [check_config + move_config + " && sudo systemctl reload "+haproxy_service_name+""]
 		else:
-			commands = ["sudo "+haproxy_service_name+"  -q -c -f " + tmp_file + " && sudo mv -f " + tmp_file + " " + config_path + " && sudo systemctl restart "+haproxy_service_name+""]
+			commands = [check_config + move_config + " && sudo systemctl restart "+haproxy_service_name+""]
 		if sql.return_firewall(serv):
 			commands[0] += open_port_firewalld(cfg, serv=serv)
 	error += str(upload(serv, tmp_file, cfg, dir='fullpath'))
@@ -1237,10 +1250,12 @@ def get_users_params(**kwargs):
 	import http.cookies
 	import sql
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_id = cookie.get('uuid')
-	user = sql.get_user_name_by_uuid(user_id.value)
-	role = sql.get_user_role_by_uuid(user_id.value)
-	token = sql.get_token(user_id.value)
+	user_uuid = cookie.get('uuid')
+	user = sql.get_user_name_by_uuid(user_uuid.value)
+	role = sql.get_user_role_by_uuid(user_uuid.value)
+	user_id = sql.get_user_id_by_uuid(user_uuid.value)
+	user_services = sql.select_user_services(user_id)
+	token = sql.get_token(user_uuid.value)
 	if kwargs.get('virt'):
 		servers = sql.get_dick_permit(virt=1)
 	elif kwargs.get('disable'):
@@ -1248,7 +1263,7 @@ def get_users_params(**kwargs):
 	else:
 		servers = sql.get_dick_permit()
 	
-	return user, user_id, role, token, servers
+	return user, user_uuid, role, token, servers, user_services
 
 
 def check_user_group(**kwargs):

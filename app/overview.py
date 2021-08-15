@@ -14,7 +14,7 @@ print('Content-type: text/html\n')
 funct.check_login()
 
 try:
-	user, user_id, role, token, servers = funct.get_users_params()
+	user, user_id, role, token, servers, user_services = funct.get_users_params()
 	groups = sql.select_groups()
 	user_group = funct.get_user_group(id=1)
 
@@ -80,7 +80,7 @@ try:
 	cmd = "systemctl is-active roxy-wi-portscanner"
 	port_scanner, stderr = funct.subprocess_execute(cmd)
 
-except Exception as e:
+except:
 	role = ''
 	user = ''
 	users = ''
@@ -101,7 +101,6 @@ except Exception as e:
 	is_checker_worker = ''
 	is_metrics_worker = ''
 	token = ''
-	print(str(e))
 
 
 template = template.render(h2=1,
@@ -134,5 +133,6 @@ template = template.render(h2=1,
 							is_checker_worker=is_checker_worker,
 							is_metrics_worker=is_metrics_worker,
 							host=host,
+							user_services=user_services,
 							token=token)
 print(template)

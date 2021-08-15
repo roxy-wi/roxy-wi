@@ -257,7 +257,8 @@ def delete_server(server_id):
 def update_hapwi_server(server_id, alert, metrics, active, service_name):
 	try:
 		if service_name == 'nginx':
-			update_hapwi = Server.update(nginx_alert=alert, metrics=metrics, nginx_active=active).where(
+			update_hapwi = Server.update(nginx_alert=alert, metrics=metrics, nginx_active=active,
+										 nginx_metrics=metrics).where(
 				Server.server_id == server_id)
 		else:
 			update_hapwi = Server.update(alert=alert, metrics=metrics, active=active).where(
@@ -522,6 +523,18 @@ def get_api_token(token):
 	else:
 		return True if token == user_token.token else False
 
+
+def get_user_id_by_api_token(token):
+	query = (User
+			 .select(User.user_id)
+			 .join(ApiToken, on=(ApiToken.user_name == User.username))
+			 .where(ApiToken.token == token))
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		return str(e)
+	for i in query_res:
+		return i.user_id
 
 def get_username_groupid_from_api_token(token):
 	try:
@@ -1069,6 +1082,13 @@ def insert_metrics_http(serv, http_2xx, http_3xx, http_4xx, http_5xx):
 		out_error(e)
 
 
+def insert_nginx_metrics(serv, conn):
+	try:
+		NginxMetrics.insert(serv=serv, conn=conn, date=funct.get_data('regular')).execute()
+	except Exception as e:
+		out_error(e)
+
+
 def select_waf_metrics_enable_server(ip):
 	query = Waf.select(Waf.metrics).join(Server, on=(Waf.server_id == Server.server_id)).where(Server.ip == ip)
 	try:
@@ -1092,14 +1112,14 @@ def select_waf_servers(serv):
 
 
 def select_waf_servers_metrics_for_master():
-	cursor = conn.cursor()
-	sql = """ select servers.ip from servers left join waf as waf on waf.server_id = servers.id where servers.enable = 1 and waf.metrics = '1'  """
+	query = Server.select(Server.ip).join(Waf, on=(Waf.server_id == Server.server_id)).where((Server.enable == 1) &
+																							 Waf.metrics == 1)
 	try:
-		cursor.execute(sql)
+		query_res = query.execute()
 	except Exception as e:
 		out_error(e)
 	else:
-		return cursor.fetchall()
+		return query_res
 
 
 def select_waf_servers_metrics(uuid):
@@ -1154,6 +1174,42 @@ def select_waf_metrics(serv, **kwargs):
 		else:
 			date_from = "and date > datetime('now', '-30 minutes', 'localtime')"
 		sql = """ select * from (select * from waf_metrics where serv = '{serv}' {date_from} order by `date`) order by `date` """.format(serv=serv, date_from=date_from)
+
+	try:
+		cursor.execute(sql)
+	except Exception as e:
+		out_error(e)
+	else:
+		return cursor.fetchall()
+
+
+def select_nginx_metrics(serv, **kwargs):
+	cursor = conn.cursor()
+
+	if mysql_enable == '1':
+		if kwargs.get('time_range') == '60':
+			date_from = "and date > now() - INTERVAL 60 minute and rowid % 2 = 0"
+		elif kwargs.get('time_range') == '180':
+			date_from = "and date > now() - INTERVAL 180 minute and rowid % 5 = 0"
+		elif kwargs.get('time_range') == '360':
+			date_from = "and date > now() - INTERVAL 360 minute and rowid % 7 = 0"
+		elif kwargs.get('time_range') == '720':
+			date_from = "and date > now() - INTERVAL 720 minute and rowid % 9 = 0"
+		else:
+			date_from = "and date > now() - INTERVAL 30 minute"
+		sql = """ select * from nginx_metrics where serv = '{serv}' {date_from} order by `date` desc limit 60 """.format(serv=serv, date_from=date_from)
+	else:
+		if kwargs.get('time_range') == '60':
+			date_from = "and date > datetime('now', '-60 minutes', 'localtime') and rowid % 2 = 0"
+		elif kwargs.get('time_range') == '180':
+			date_from = "and date > datetime('now', '-180 minutes', 'localtime') and rowid % 5 = 0"
+		elif kwargs.get('time_range') == '360':
+			date_from = "and date > datetime('now', '-360 minutes', 'localtime') and rowid % 7 = 0"
+		elif kwargs.get('time_range') == '720':
+			date_from = "and date > datetime('now', '-720 minutes', 'localtime') and rowid % 9 = 0"
+		else:
+			date_from = "and date > datetime('now', '-30 minutes', 'localtime')"
+		sql = """ select * from (select * from nginx_metrics where serv = '{serv}' {date_from} order by `date`) order by `date` """.format(serv=serv, date_from=date_from)
 
 	try:
 		cursor.execute(sql)
@@ -1309,6 +1365,14 @@ def delete_http_metrics():
 		out_error(e)
 
 
+def delete_nginx_metrics():
+	query = NginxMetrics.delete().where(NginxMetrics.date < funct.get_data('regular', timedelta_minus=3))
+	try:
+		query.execute()
+	except Exception as e:
+		out_error(e)
+
+
 def select_metrics(serv, **kwargs):
 	cursor = conn.cursor()
 
@@ -1384,16 +1448,26 @@ def select_metrics_http(serv, **kwargs):
 
 
 def select_servers_metrics_for_master(**kwargs):
-	cursor = conn.cursor()
-	sql = """select ip from servers where metrics = 1 """
 	if kwargs.get('group') is not None:
-		sql = """select ip from servers where metrics = 1 and groups = '%s' """ % kwargs.get('group')
+		query = Server.select(Server.ip).where((Server.metrics == 1) & (Server.groups == kwargs.get(group)))
+	else:
+		query = Server.select(Server.ip).where(Server.metrics == 1)
 	try:
-		cursor.execute(sql)
+		query_res = query.execute()
 	except Exception as e:
 		out_error(e)
 	else:
-		return cursor.fetchall()
+		return query_res
+
+
+def select_nginx_servers_metrics_for_master():
+	query = Server.select(Server.ip).where(Server.nginx_metrics == 1)
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
 
 
 def select_servers_metrics():
@@ -2630,3 +2704,23 @@ def is_serv_protected(serv):
 		return ""
 	else:
 		return True if query_res.protected else False
+
+
+def select_user_services(user_id):
+	try:
+		query_res = User.get(User.user_id == user_id).user_services
+	except Exception as e:
+		out_error(e)
+		return ""
+	else:
+		return query_res
+
+
+def update_user_services(services, user_id):
+	try:
+		User.update(user_services=services).where(User.user_id == user_id).execute()
+		return True
+	except Exception as e:
+		out_error(e)
+		return False
+

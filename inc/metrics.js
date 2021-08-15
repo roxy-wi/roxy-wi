@@ -279,6 +279,82 @@ function renderWafChart(data, labels, server) {
     });
     charts.push(myChart);
 }
+function getNginxChartData(server) {
+    $.ajax({
+        url: "options.py",
+		data: {
+			new_nginx_metrics: '1',
+			server: server,
+            time_range: $( "#time-range option:selected" ).val(),
+			token: $('#token').val()
+		},
+		type: "POST",
+        success: function (result) {
+            var data = [];
+            data.push(result.chartData.curr_con);
+            data.push(result.chartData.server);
+            var labels = result.chartData.labels;
+            renderNginxChart(data, labels, server);
+        }
+    });
+}
+function renderNginxChart(data, labels, server) {
+    var ctx = 'nginx_'+server
+    var myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels.split(','),
+            datasets: [
+                {
+                    parsing: false,
+                    normalized: true,
+                    label: 'Connections',
+                    data: data[0].split(','),
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                }
+            ]
+        },
+        options: {
+            animation: false,
+			maintainAspectRatio: false,
+			title: {
+				display: true,
+				text: "Nginx "+data[1],
+				fontSize: 20,
+				padding: 0,
+			},
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true,
+                    }
+                }],
+                xAxes: [{
+                    ticks: {
+                        major: {
+                            enabled: true,
+                            fontStyle: 'bold'
+                        },
+                        source: 'data',
+                        autoSkip: true,
+                        autoSkipPadding: 45,
+                        maxRotation: 0
+                    }
+                }]
+            },
+			legend: {
+				display: true,
+				labels: {
+					fontColor: 'rgb(255, 99, 132)',
+					defaultFontSize: '10',
+					defaultFontFamily: 'BlinkMacSystemFont'
+				},
+			}
+        }
+    });
+    charts.push(myChart);
+}
 $("#secIntervals").css("display", "none");
 
 function loadMetrics() {

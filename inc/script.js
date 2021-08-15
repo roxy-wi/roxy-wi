@@ -15,6 +15,16 @@ function escapeHtml(unsafe) {
 		.replace(/'/g, "&#039;");
 }
 var wait_mess = '<div class="alert alert-warning">Please do not close or refresh the page. Wait until the job is completed. This may take some time</div>'
+function show_current_page(id) {
+	id.parent().css('display', 'contents');
+	id.parent().css('font-size', '13px');
+	id.parent().css('top', '0');
+	id.parent().css('left', '0');
+	id.parent().children().css('margin-left', '-20px');
+	id.parent().find('a').css('padding-left', '20px');
+	id.find('a').css('padding-left', '30px');
+	id.find('a').css('border-left', '4px solid #5D9CEB');
+}
 $( function() {		
    $('.menu li ul li').each(function () {
        var link = $(this).find('a').attr('href');
@@ -23,131 +33,35 @@ $( function() {
 		cur_url[1] = 'haproxy';
 	   }
        if (cur_url[0] == link2 && cur_url[1].split('&')[0] != 'service=keepalived' && cur_url[1].split('&')[0] != 'service=nginx') {
-			$(this).parent().css('display', 'contents');
-			$(this).parent().css('font-size', '13px');
-			$(this).parent().css('top', '0');
-			$(this).parent().css('left', '0');
-			$(this).parent().children().css('margin-left', '-20px');
-			$(this).parent().find('a').css('padding-left', '20px');
-			$(this).find('a').css('padding-left', '30px');
-			$(this).find('a').css('border-left', '4px solid #5D9CEB');
+			show_current_page($(this))
 		} else if(cur_url[0] == 'versions.py' && cur_url[1].split('&')[0] == 'service=keepalived' && link2 == 'versions.py?service=keepalived'){ 
-			$(this).parent().css('display', 'contents');
-			$(this).parent().css('font-size', '13px');
-			$(this).parent().css('top', '0');
-			$(this).parent().css('left', '0');
-			$(this).parent().children().css('margin-left', '-20px');
-			$(this).parent().find('a').css('padding-left', '20px');
-			$(this).find('a').css('padding-left', '30px');
-			$(this).find('a').css('border-left', '4px solid #5D9CEB');
+			show_current_page($(this))
 		} else if(cur_url[0] == 'config.py' && cur_url[1].split('&')[0] == 'service=keepalived' && link2 == 'config.py?service=keepalived'){
-			$(this).parent().css('display', 'contents');
-			$(this).parent().css('font-size', '13px');
-			$(this).parent().css('top', '0');
-			$(this).parent().css('left', '0');
-			$(this).parent().children().css('margin-left', '-20px');
-			$(this).parent().find('a').css('padding-left', '20px');
-			$(this).find('a').css('padding-left', '30px');
-			$(this).find('a').css('border-left', '4px solid #5D9CEB');
+			show_current_page($(this))
 		} else if(cur_url[0] == 'versions.py' && cur_url[1].split('&')[0] == 'service=nginx' && link2 == 'versions.py?service=nginx'){ 
-			$(this).parent().css('display', 'contents');
-			$(this).parent().css('font-size', '13px');
-			$(this).parent().css('top', '0');
-			$(this).parent().css('left', '0');
-			$(this).parent().children().css('margin-left', '-20px');
-			$(this).parent().find('a').css('padding-left', '20px');
-			$(this).find('a').css('padding-left', '30px');
-			$(this).find('a').css('border-left', '4px solid #5D9CEB');
+			show_current_page($(this))
 		} else if(cur_url[0] == 'config.py' && cur_url[1].split('&')[0] == 'service=nginx' && link2 == 'config.py?service=nginx'){
-			$(this).parent().css('display', 'contents');
-			$(this).parent().css('font-size', '13px');
-			$(this).parent().css('top', '0');
-			$(this).parent().css('left', '0');
-			$(this).parent().children().css('margin-left', '-20px');
-			$(this).parent().find('a').css('padding-left', '20px');
-			$(this).find('a').css('padding-left', '30px');
-			$(this).find('a').css('border-left', '4px solid #5D9CEB');
+			show_current_page($(this))
 		} else if(cur_url[0] == 'hapservers.py' && cur_url[1].split('&')[0] == 'service=nginx' && link2 == 'hapservers.py?service=nginx'){
-			$(this).parent().css('display', 'contents');
-			$(this).parent().css('font-size', '13px');
-			$(this).parent().css('top', '0');
-			$(this).parent().css('left', '0');
-			$(this).parent().children().css('margin-left', '-20px');
-			$(this).parent().find('a').css('padding-left', '20px');
-			$(this).find('a').css('padding-left', '30px');
-			$(this).find('a').css('border-left', '4px solid #5D9CEB');
+			show_current_page($(this))
 		} else if(cur_url[0] == 'hapservers.py' && cur_url[1].split('&')[0] == 'service=keepalived' && link2 == 'hapservers.py?service=keepalived'){
-			$(this).parent().css('display', 'contents');
-			$(this).parent().css('font-size', '13px');
-			$(this).parent().css('top', '0');
-			$(this).parent().css('left', '0');
-			$(this).parent().children().css('margin-left', '-20px');
-			$(this).parent().find('a').css('padding-left', '20px');
-			$(this).find('a').css('padding-left', '30px');
-			$(this).find('a').css('border-left', '4px solid #5D9CEB');
+			show_current_page($(this))
 		} else if(cur_url[0] == 'viewsttats.py' && cur_url[1].split('&')[0] == 'service=nginx' && link2 == 'viewsttats.py?service=nginx'){
-			$(this).parent().css('display', 'contents');
-			$(this).parent().css('font-size', '13px');
-			$(this).parent().css('top', '0');
-			$(this).parent().css('left', '0');
-			$(this).parent().children().css('margin-left', '-20px');
-			$(this).parent().find('a').css('padding-left', '20px');
-			$(this).find('a').css('padding-left', '30px');
-			$(this).find('a').css('border-left', '4px solid #5D9CEB');
+			show_current_page($(this))
 		} else if(cur_url[0] == 'smon.py' && cur_url[1].split('&')[0] == 'action=view' && link2 == 'smon.py?action=view'){
-		   $(this).parent().css('display', 'contents');
-		   $(this).parent().css('font-size', '13px');
-		   $(this).parent().css('top', '0');
-		   $(this).parent().css('left', '0');
-		   $(this).parent().children().css('margin-left', '-20px');
-		   $(this).parent().find('a').css('padding-left', '20px');
-		   $(this).find('a').css('padding-left', '30px');
-		   $(this).find('a').css('border-left', '4px solid #5D9CEB');
+		   show_current_page($(this))
 	   	} else if(cur_url[0] == 'smon.py' && cur_url[1].split('&')[0] == 'action=add' && link2 == 'smon.py?action=add'){
-		   $(this).parent().css('display', 'contents');
-		   $(this).parent().css('font-size', '13px');
-		   $(this).parent().css('top', '0');
-		   $(this).parent().css('left', '0');
-		   $(this).parent().children().css('margin-left', '-20px');
-		   $(this).parent().find('a').css('padding-left', '20px');
-		   $(this).find('a').css('padding-left', '30px');
-		   $(this).find('a').css('border-left', '4px solid #5D9CEB');
+		   show_current_page($(this))
        } else if(cur_url[0] == 'smon.py' && cur_url[1].split('&')[0] == 'action=history' && link2 == 'smon.py?action=history'){
-		   $(this).parent().css('display', 'contents');
-		   $(this).parent().css('font-size', '13px');
-		   $(this).parent().css('top', '0');
-		   $(this).parent().css('left', '0');
-		   $(this).parent().children().css('margin-left', '-20px');
-		   $(this).parent().find('a').css('padding-left', '20px');
-		   $(this).find('a').css('padding-left', '30px');
-		   $(this).find('a').css('border-left', '4px solid #5D9CEB');
+		   show_current_page($(this))
        } else if(cur_url[0] == 'smon.py' && cur_url[1].split('&')[0] == 'action=checker_history' && link2 == 'smon.py?action=checker_history'){
-		   $(this).parent().css('display', 'contents');
-		   $(this).parent().css('font-size', '13px');
-		   $(this).parent().css('top', '0');
-		   $(this).parent().css('left', '0');
-		   $(this).parent().children().css('margin-left', '-20px');
-		   $(this).parent().find('a').css('padding-left', '20px');
-		   $(this).find('a').css('padding-left', '30px');
-		   $(this).find('a').css('border-left', '4px solid #5D9CEB');
+		   show_current_page($(this))
 	   } else if(cur_url[0] == 'add.py' && cur_url[1].split('&')[0] == 'service=nginx#ssl' && link2 == 'add.py?service=nginx#ssl'){
-		   $(this).parent().css('display', 'contents');
-		   $(this).parent().css('font-size', '13px');
-		   $(this).parent().css('top', '0');
-		   $(this).parent().css('left', '0');
-		   $(this).parent().children().css('margin-left', '-20px');
-		   $(this).parent().find('a').css('padding-left', '20px');
-		   $(this).find('a').css('padding-left', '30px');
-		   $(this).find('a').css('border-left', '4px solid #5D9CEB');
+		   show_current_page($(this))
 	   } else if(cur_url[0] == 'viewlogs.py' && cur_url[1].split('&')[0] == 'type=2' && link2 == 'viewlogs.py?type=2'){
-		   $(this).parent().css('display', 'contents');
-		   $(this).parent().css('font-size', '13px');
-		   $(this).parent().css('top', '0');
-		   $(this).parent().css('left', '0');
-		   $(this).parent().children().css('margin-left', '-20px');
-		   $(this).parent().find('a').css('padding-left', '20px');
-		   $(this).find('a').css('padding-left', '30px');
-		   $(this).find('a').css('border-left', '4px solid #5D9CEB');
+		  	show_current_page($(this))
+	   } else if(cur_url[0] == 'metrics.py' && cur_url[1].split('&')[0] == 'service=nginx' && link2 == 'metrics?service=nginx'){
+		   show_current_page($(this))
 	   }
    });
 });

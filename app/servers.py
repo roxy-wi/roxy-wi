@@ -10,7 +10,7 @@ print('Content-type: text/html\n')
 funct.check_login()
 funct.page_for_admin(level=2)
 try:
-	user, user_id, role, token, servers = funct.get_users_params()
+	user, user_id, role, token, servers, user_services = funct.get_users_params()
 	ldap_enable = sql.get_setting('ldap_enable')
 	user_group = funct.get_user_group(id=1)
 	settings = sql.get_setting('', all=1)
@@ -35,5 +35,6 @@ output_from_parsed_template = template.render(title="Servers: ",
 												backups=sql.select_backups(),
 												page="servers.py",
 												geoip_country_codes=geoip_country_codes,
+												user_services=user_services,
 												ldap_enable=ldap_enable)
 print(output_from_parsed_template)

@@ -22,31 +22,34 @@ if form.getvalue('configver'):
 	template = env.get_template('configver.html')
 
 try:
-	user, user_id, role, token, servers = funct.get_users_params(disable=1)
+	user, user_id, role, token, servers, user_services = funct.get_users_params(disable=1)
 except:
 	pass
 	
 	
 if service == 'keepalived':
-	configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
-	title = "Working with versions Keepalived configs"
-	files = funct.get_files(dir=configs_dir, format='conf')
-	action = 'versions.py?service=keepalived'	
-	format = 'conf'
-	servers = sql.get_dick_permit(keepalived=1)
+	if funct.check_login(service=3):
+		configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
+		title = "Working with versions Keepalived configs"
+		files = funct.get_files(dir=configs_dir, format='conf')
+		action = 'versions.py?service=keepalived'
+		format = 'conf'
+		servers = sql.get_dick_permit(keepalived=1)
 elif service == 'nginx':
-	configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
-	title = "Working with versions Nginx configs"
-	files = funct.get_files(dir=configs_dir, format='conf')
-	action = 'versions.py?service=nginx'	
-	format = 'conf'
-	servers = sql.get_dick_permit(nginx=1)
+	if funct.check_login(service=2):
+		configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
+		title = "Working with versions Nginx configs"
+		files = funct.get_files(dir=configs_dir, format='conf')
+		action = 'versions.py?service=nginx'
+		format = 'conf'
+		servers = sql.get_dick_permit(nginx=1)
 else:
-	title = "Working with versions HAProxy configs"
-	files = funct.get_files()
-	action = "versions.py"
-	configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
-	format = 'cfg'
+	if funct.check_login(service=1):
+		title = "Working with versions HAProxy configs"
+		files = funct.get_files()
+		action = "versions.py"
+		configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+		format = 'cfg'
 
 
 if serv is not None and form.getvalue('del') is not None:
@@ -69,10 +72,12 @@ if serv is not None and form.getvalue('config') is not None:
 	configver = configs_dir + configver
 	save = form.getvalue('save')
 	aftersave = 1
+
 	try:
-		funct.logging(serv, "configver.py upload old config %s" % configver)
+		funct.logging(serv, "versions.py upload old config %s" % configver)
 	except Exception:
 		pass
+
 	if service == 'keepalived':
 		stderr = funct.upload_and_restart(serv, configver, just_save=save, keepalived=1)
 	elif service == 'nginx':
@@ -96,5 +101,6 @@ template = template.render(h2=1, title=title,
 							file=file,
 							configver=configver,
 							service=service,
+							user_services=user_services,
 							token=token)
 print(template)

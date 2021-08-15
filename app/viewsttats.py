@@ -11,12 +11,14 @@ print('Content-type: text/html\n')
 funct.check_login()
 
 if service == 'nginx':
-	title = 'Nginx stats page'
+	if funct.check_login(service=2):
+		title = 'Nginx stats page'
 else:
-	title = 'HAProxy stats page'
+	if funct.check_login(service=1):
+		title = 'HAProxy stats page'
 
 try:
-	user, user_id, role, token, servers = funct.get_users_params(virt=1)
+	user, user_id, role, token, servers, user_services = funct.get_users_params(virt=1)
 	
 	if serv is None:
 		first_serv = servers
@@ -37,6 +39,7 @@ output_from_parsed_template = template.render(h2=1,
 												selects=servers,
 												serv=serv,
 												service=service,
+												user_services=user_services,
 												token=token)
 print(output_from_parsed_template)
 

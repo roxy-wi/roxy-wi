@@ -9,11 +9,11 @@ form = funct.form
 manage_rules = form.getvalue('manage_rules')
 
 print('Content-type: text/html\n')
-funct.check_login()
+funct.check_login(service=1)
 funct.page_for_admin(level=2)
 
 try:
-	user, user_id, role, token, servers = funct.get_users_params()
+	user, user_id, role, token, servers, user_services = funct.get_users_params()
 except Exception:
 	pass
 
@@ -40,5 +40,6 @@ template = template.render(h2=1, title=title,
 							servers_all=servers,
 							manage_rules=manage_rules,
 							rules=rules,
+							user_services=user_services,
 							token=token)
 print(template)

@@ -47,7 +47,7 @@
 				<td class="padding10 first-collumn">Current version</td>
 				<td class="padding10 first-collumn" style="width: 30%;">Available Versions</td>			
 				<td class="padding10 first-collumn" style="width: 30%;">Server</td>
-				<td>SYN flood protect</td>
+				<td>SYN-flood protection</td>
 				<td></td>
 			</tr>
 			<tr>
@@ -69,8 +69,8 @@
 						{% endfor %}
 					</select>
 				</td>
-				<td>
-					{{ checkbox('syn_flood', title="Enable SYN flood protect", checked='checked') }}
+				<td class="syn-flood-protection-field">
+					{{ checkbox('syn_flood', title="Enable SYN-flood protection", checked='checked') }}
 				</td>
 				<td>
 					<span class="ui-button ui-widget ui-corner-all" id="install" title="Install HAProxy">Install</span>
@@ -83,7 +83,7 @@
 				<td class="padding10 first-collumn">Current version</td>
 				<td class="padding10 first-collumn" style="width: 30%;">Available Versions</td>			
 				<td class="padding10 first-collumn" style="width: 30%;">Server</td>
-				<td>SYN flood protect</td>
+				<td>SYN-flood protection</td>
 				<td></td>
 			</tr>
 			<tr>
@@ -100,8 +100,8 @@
 						{% endfor %}
 					</select>
 				</td>
-				<td>
-					{{ checkbox('nginx_syn_flood', title="Enable SYN flood protect", checked='checked') }}
+				<td class="syn-flood-protection-field">
+					{{ checkbox('nginx_syn_flood', title="Enable SYN-flood protection", checked='checked') }}
 				</td>
 				<td>
 					<span class="ui-button ui-widget ui-corner-all" id="nginx_install" title="Install Nginx">Install</span>

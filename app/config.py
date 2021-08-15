@@ -19,28 +19,31 @@ error = ""
 aftersave = ""
 
 try:
-	user, user_id, role, token, servers = funct.get_users_params()
-except Exception:
-	pass
+	user, user_id, role, token, servers, user_services = funct.get_users_params()
+except Exception as e:
+	print(str(e))
 
 if service == 'keepalived':
-	title = "Working with Keepalived configuration files"
-	action = "config.py?service=keepalived"
-	configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')	
-	file_format = 'conf'
-	servers = sql.get_dick_permit(keepalived=1)
+	if funct.check_login(service=3):
+		title = "Working with Keepalived configuration files"
+		action = "config.py?service=keepalived"
+		configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
+		file_format = 'conf'
+		servers = sql.get_dick_permit(keepalived=1)
 elif service == 'nginx':
-	title = "Working with Nginx configuration files"
-	action = "config.py?service=nginx"
-	configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')	
-	file_format = 'conf'
-	servers = sql.get_dick_permit(nginx=1)
+	if funct.check_login(service=2):
+		title = "Working with Nginx configuration files"
+		action = "config.py?service=nginx"
+		configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
+		file_format = 'conf'
+		servers = sql.get_dick_permit(nginx=1)
 else:
-	title = "Working with HAProxy configuration files"
-	action = "config.py"
-	configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
-	file_format = 'cfg'
-	servers = sql.get_dick_permit()
+	if funct.check_login(service=1):
+		title = "Working with HAProxy configuration files"
+		action = "config.py"
+		configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+		file_format = 'cfg'
+		servers = sql.get_dick_permit()
 
 if serv is not None:
 	cfg = configs_dir + serv + "-" + funct.get_data('config') + "."+file_format
@@ -126,5 +129,6 @@ template = template.render(h2=1, title=title,
 							stderr=stderr,
 							error=error,
 							service=service,
+							user_services=user_services,
 							token=token)
 print(template)

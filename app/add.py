@@ -11,7 +11,7 @@ form = funct.form
 serv = form.getvalue('serv')
 
 print('Content-type: text/html\n')
-funct.check_login()
+funct.check_login(service=1)
 funct.page_for_admin(level=3)
 
 if (
@@ -21,7 +21,7 @@ if (
 		form.getvalue('generateconfig') is None
 	):
 	try:
-		user, user_id, role, token, servers = funct.get_users_params()
+		user, user_id, role, token, servers, user_services = funct.get_users_params()
 		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 		group = cookie.get('group')
 		user_group = group.value
@@ -55,6 +55,7 @@ if (
 								saved_servers=sql.select_saved_servers(),
 								white_lists=white_lists,
 								black_lists=black_lists,
+							   	user_services=user_services,
 								token=token)
 	print(template)
 

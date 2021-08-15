@@ -10,7 +10,7 @@ print('Content-type: text/html\n')
 funct.check_login()
 funct.page_for_admin(level=2)
 try:
-    user, user_id, role, token, servers = funct.get_users_params()
+    user, user_id, role, token, servers, user_services = funct.get_users_params()
     if role == 1:
         groups=sql.select_groups()
     else:
@@ -37,5 +37,6 @@ output_from_parsed_template = template.render(title="Servers provisioning",
                                                 servers=sql.select_provisioned_servers(),
                                                 providers=sql.select_providers(user_group),
                                                 is_terraform=is_terraform,
+                                                user_services=user_services,
 												token=token)
 print(output_from_parsed_template)

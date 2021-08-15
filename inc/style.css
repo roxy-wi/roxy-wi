@@ -385,6 +385,9 @@ pre {
 .cred-field {
 	min-width: 225px;
 }
+.syn-flood-protection-field {
+	padding-left: 60px;
+}
 .overviewTr {
 	margin: 0;
 	background-color: #f6f8fa;

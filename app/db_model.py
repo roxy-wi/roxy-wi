@@ -30,6 +30,7 @@ class User(BaseModel):
     groups = CharField()
     ldap_user = IntegerField(default=0)
     activeuser = IntegerField(default=1)
+    user_services = CharField(constraints=[SQL('DEFAULT "1 2 3"')])
 
     class Meta:
         table_name = 'user'
@@ -40,23 +41,24 @@ class Server(BaseModel):
     hostname = CharField()
     ip = CharField()
     groups = CharField()
-    type_ip = IntegerField(default=0)
-    enable = IntegerField(default=1)
-    master = IntegerField(default=0)
-    cred = IntegerField(default=1)
-    alert = IntegerField(default=0)
-    metrics = IntegerField(default=0)
-    port = IntegerField(default=22)
+    type_ip = IntegerField(constraints=[SQL('DEFAULT 0')])
+    enable = IntegerField(constraints=[SQL('DEFAULT 1')])
+    master = IntegerField(constraints=[SQL('DEFAULT 0')])
+    cred = IntegerField(constraints=[SQL('DEFAULT 1')])
+    alert = IntegerField(constraints=[SQL('DEFAULT 0')])
+    metrics = IntegerField(constraints=[SQL('DEFAULT 0')])
+    port = IntegerField(constraints=[SQL('DEFAULT 22')])
     desc = CharField(null=True)
-    active = IntegerField(default=0)
-    keepalived = IntegerField(default=0)
-    nginx = IntegerField(default=0)
-    haproxy = IntegerField(default=0)
-    pos = IntegerField(default=0)
-    nginx_active = IntegerField(default=0)
-    firewall_enable = IntegerField(default=0)
-    nginx_alert = IntegerField(default=0)
-    protected = IntegerField(default=0)
+    active = IntegerField(constraints=[SQL('DEFAULT 0')])
+    keepalived = IntegerField(constraints=[SQL('DEFAULT 0')])
+    nginx = IntegerField(constraints=[SQL('DEFAULT 0')])
+    haproxy = IntegerField(constraints=[SQL('DEFAULT 0')])
+    pos = IntegerField(constraints=[SQL('DEFAULT 0')])
+    nginx_active = IntegerField(constraints=[SQL('DEFAULT 0')])
+    firewall_enable = IntegerField(constraints=[SQL('DEFAULT 0')])
+    nginx_alert = IntegerField(constraints=[SQL('DEFAULT 0')])
+    protected = IntegerField(constraints=[SQL('DEFAULT 0')])
+    nginx_metrics = IntegerField(constraints=[SQL('DEFAULT 1')])
 
     class Meta:
         table_name = 'servers'
@@ -203,6 +205,16 @@ class WafMetrics(BaseModel):
 
     class Meta:
         table_name = 'waf_metrics'
+        primary_key = False
+
+
+class NginxMetrics(BaseModel):
+    serv = CharField()
+    conn = IntegerField()
+    date = DateTimeField(default=datetime.now)
+
+    class Meta:
+        table_name = 'nginx_metrics'
         primary_key = False
 
 
@@ -403,4 +415,4 @@ def create_tables():
         conn.create_tables([User, Server, Role, Telegram, Slack, UUID, Token, ApiToken, Groups, UserGroups,
                             Setting, Cred, Backup, Metrics, WafMetrics, Version, Option, SavedServer, Waf,
                             PortScannerSettings, PortScannerPorts, PortScannerHistory, ProvidersCreds,
-                            ProvisionedServers, MetricsHttpStatus, SMON, WafRules, Alerts, GeoipCodes])
+                            ProvisionedServers, MetricsHttpStatus, SMON, WafRules, Alerts, GeoipCodes, NginxMetrics])

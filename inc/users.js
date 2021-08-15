@@ -1846,6 +1846,8 @@ function checkSshConnect(ip) {
 				toastr.error(data)
 			} else if(data.indexOf('failed') != '-1') {
 				toastr.error(data)
+			} else if(data.indexOf('Errno') != '-1') {
+				toastr.error(data)
 			} else {
 				toastr.clear();
 				toastr.success('Connect is accepted');
@@ -1858,6 +1860,9 @@ function openChangeUserPasswordDialog(id) {
 }
 function openChangeUserGroupDialog(id) {
 	changeUserGroupDialog(id);
+}
+function openChangeUserServiceDialog(id) {
+	changeUserServiceDialog(id);
 }
 function changeUserPasswordDialog(id) {
 	$( "#user-change-password-table" ).dialog({
@@ -1952,6 +1957,40 @@ function changeUserGroupDialog(id) {
 		}
 	} );	
 }
+function changeUserServiceDialog(id) {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			getuserservices: id,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			if (data.indexOf('danger') != '-1') {
+				toastr.error(data);
+			} else {
+				toastr.clear();
+				$('#change-user-service-form').html(data);
+				$( "#change-user-service-dialog" ).dialog({
+					resizable: false,
+					height: "auto",
+					width: 450,
+					modal: true,
+					title: "Manage "+$('#login-'+id).val()+" services",
+					buttons: {
+						"Save": function() {
+							$( this ).dialog( "close" );
+							changeUserServices(id);
+						},
+						Cancel: function() {
+							$( this ).dialog( "close" );
+						}
+					  }
+				});
+			}
+		}
+	} );
+}
 function changeUserGroup(id) {
 	var groups = $('#usergroup-'+id).val().toString();
 	$.ajax( {
@@ -1973,6 +2012,29 @@ function changeUserGroup(id) {
 				}, 2500);
 			}
 		}			
+	} );
+}
+function changeUserServices(id) {
+	var services = $('#userservice-'+id).val().toString();
+	$.ajax( {
+		url: "options.py",
+		data: {
+			changeUserServicesId: id,
+			changeUserServices: services,
+			changeUserServicesUser: $('#login-'+id).val(),
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
+				toastr.error(data);
+			} else {
+				$("#user-" + id).addClass("update", 1000);
+				setTimeout(function () {
+					$("#user-" + id).removeClass("update");
+				}, 2500);
+			}
+		}
 	} );
 }
 function addUserGroup(id) {

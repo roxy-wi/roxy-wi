@@ -10,43 +10,46 @@ print('Content-type: text/html\n')
 funct.check_login()
 
 try:
-    user, user_id, role, token, servers = funct.get_users_params()
+    user, user_id, role, token, servers, user_services = funct.get_users_params()
     services = []
 except:
     pass
 
 form = funct.form
-serv = form.getvalue('serv')
+serv = funct.is_ip_or_dns(form.getvalue('serv'))
 service = form.getvalue('service')
 autorefresh = 0
 cmd = "ps ax |grep -e 'keep_alive.py' |grep -v grep |wc -l"
 keep_alive, stderr = funct.subprocess_execute(cmd)
 
 if service == 'nginx':
-    title = 'Nginx servers overview'
-    servers = sql.get_dick_permit(virt=1, nginx=1)
-    service = 'nginx'
-    if serv:
-        if funct.check_is_server_in_group(serv):
-            servers = sql.select_servers(server=serv)
-            autorefresh = 1
+    if funct.check_login(service=2):
+        title = 'Nginx servers overview'
+        servers = sql.get_dick_permit(virt=1, nginx=1)
+        service = 'nginx'
+        if serv:
+            if funct.check_is_server_in_group(serv):
+                servers = sql.select_servers(server=serv)
+                autorefresh = 1
 elif service == 'keepalived':
-    title = 'Keepalived servers overview'
-    servers = sql.get_dick_permit(virt=1, keepalived=1)
-    service = 'keepalived'
-    if serv:
-        if funct.check_is_server_in_group(serv):
-            servers = sql.select_servers(server=serv)
-            autorefresh = 1
+    if funct.check_login(service=3):
+        title = 'Keepalived servers overview'
+        servers = sql.get_dick_permit(virt=1, keepalived=1)
+        service = 'keepalived'
+        if serv:
+            if funct.check_is_server_in_group(serv):
+                servers = sql.select_servers(server=serv)
+                autorefresh = 1
 else:
-    title = "HAProxy servers overview"
-    service = 'haproxy'
-    if serv:
-        if funct.check_is_server_in_group(serv):
-            servers = sql.select_servers(server=serv)
-            autorefresh = 1
-    else:
-        servers = sql.get_dick_permit(virt=1, haproxy=1)
+    if funct.check_login(service=1):
+        title = "HAProxy servers overview"
+        service = 'haproxy'
+        if serv:
+            if funct.check_is_server_in_group(serv):
+                servers = sql.select_servers(server=serv)
+                autorefresh = 1
+        else:
+            servers = sql.get_dick_permit(virt=1, haproxy=1)
 
 services_name = {'roxy-wi-checker': 'Master backends checker service',
                  'roxy-wi-keep_alive': 'Auto start service',
@@ -147,5 +150,6 @@ template = template.render(h2=1,
                            serv=serv,
 						   service=service,
 						   services=services,
+                            user_services=user_services,
 						   token=token)
 print(template)

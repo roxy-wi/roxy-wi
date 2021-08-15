@@ -27,6 +27,7 @@
 {% if servers|length == 0 %}
 	{% include 'include/getstarted.html' %}
 {% else %}
+	{% if service != 'nginx' %}
 	<table style="min-width: 40%;">
 		<tr class="overviewHead">
 			<th colspan=13 style="background-color: #d1ecf1">
@@ -37,6 +38,7 @@
 		</tr>
 	</table>
 	<div id="table_metrics"></div>
+	{% endif %}
 	<div style="padding-left: 25px;float: left;margin-top: 6px;">
 		<b>Time range:</b>
 		<select title="Choose time range" id="time-range">
@@ -47,19 +49,27 @@
 			<option value="720">12 hours</option>
 		</select>
 	</div>
+	{% if service != 'nginx' %}
 	<div style="margin-top: 6px;">
 		{{ checkbox('hide_http_metrics', desc='Hide HTTP metrics', title='Hide HTTP metrics') }}
 	</div>
+	{% endif %}
 	<div id="refresh" style="text-align: right;margin-top: 20px;margin-right: 10px;" title="Refresh metrics" onclick="showMetrics()">
 		<span  class="service-reload"></span>
 	</div>
 {% for s in servers %}
+	{% if service != 'nginx' %}
 	<div class="chart-container">
 		<canvas id="{{s.ip}}" role="img"></canvas>
 	</div>
 	<div class="chart-container http_metrics_div" style="display: none">
 		<canvas id="http_{{s.ip}}" role="img"></canvas>
 	</div>
+	{% else %}
+	<div class="chart-container nginx_metrics_div" style="display: none">
+		<canvas id="nginx_{{s.ip}}" role="img"></canvas>
+	</div>
+	{% endif %}
 {% endfor %}
 <script>
 	function showMetrics() {
@@ -67,15 +77,21 @@
 			(resolve, reject) => {
 				removeData();
 				{% for s in servers %}
+					{% if service != 'nginx' %}
 					getChartData('{{s.ip}}')
 					getHttpChartData('{{s.ip}}')
+					{% else %}
+					getNginxChartData('{{s.ip}}')
+					{% endif %}
 				{% endfor %}
+				{% if service != 'nginx' %}
 				if (localStorage.getItem('table_metrics') == 0 || localStorage.getItem('table_metrics') === null) {
 					$('#dis_table_metric').css('display', 'none');
 				} else {
 					$('#en_table_metric').css('display', 'none');
 					loadMetrics();
 				}
+				{% endif %}
 			});	
 		metrics.then();
 	}
@@ -86,8 +102,12 @@
 			let metrics = new Promise(
 					(resolve, reject) => {
 						{% for s in servers %}
+						{% if service != 'nginx' %}
 						getChartData('{{s.ip}}')
 						getHttpChartData('{{s.ip}}')
+						{% else %}
+						getNginxChartData('{{s.ip}}')
+						{% endif %}
 						{% endfor %}
 					});
 			metrics.then();

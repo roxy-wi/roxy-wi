@@ -90,6 +90,7 @@
 					showOverviewServer('{{s.1}}', server_ip, '{{s.0}}', '{{service}}');
 					{% if service == 'nginx' %}
 						showNginxConnections(server_ip)
+						getNginxChartData(server_ip)
 					{% elif service == 'haproxy' %}
 						showBytes(server_ip)
 					{% endif %}
@@ -115,6 +116,7 @@
 			{% set checker_desc = 'Checker monitors Nginx services. If Nginx service is down, Checker will alert via Telegram' %}
 			{% set is_auto_start_enabled = s.8.0.17 %}
 			{% set is_checker_enabled = s.8.0.19 %}
+			{% set is_metrics_enabled = s.8.0.21 %}
 			{% if s.5.0.1 == 'active' %}
 				{% set additional_status_class = 'div-server-head-up' %}
 			{% else %}
@@ -130,6 +132,7 @@
 			{% set checker_desc = 'Checker monitors HAProxy services and its backends. If some backend or HAProxy service is down, Checker will alert via Telegram' %}
 			{% set is_auto_start_enabled = s.8.0.12 %}
 			{% set is_checker_enabled = s.8.0.8 %}
+			{% set is_metrics_enabled = s.8.0.9 %}
 			{% if s.5 != False %}
 				{% set additional_status_class = 'div-server-head-up' %}
 			{% else %}
@@ -195,7 +198,11 @@
 				{% endif %}
 			</div>
 			<div class="server-desc">
+				{% if s.3 is none %}
+				No description
+				{% else %}
 				{{s.3}}
+				{% endif %}
 				<br />
 				{% if service == 'nginx' or service == 'keepalived' %}
 					Version: {{s.5.0.0}} Process_num: {{s.5.0.3}}
@@ -242,14 +249,12 @@
 					{% else %}
 						{{ checkbox(id, title=checker_desc, value='1', desc='Checker') }}
 					{% endif %}
-				{% if service == 'haproxy' %}
 					{% set id = 'metrics-' + s.8.0.0|string() %}
-					{% if s.8.0.9 == 1 %}
+					{% if is_metrics_enabled == 1 %}
 						{{ checkbox(id, title='Collecting metrics is enabled', value='1', desc='Metrics', checked='checked') }}
 					{% else %}
 						{{ checkbox(id, title='Enable collecting metrics', value='1', desc='Metrics') }}
 					{% endif %}
-				{% endif %}
 					{% set id = 'active-' + s.8.0.0|string() %}
 					{% if is_auto_start_enabled == 1 %}
 						{{ checkbox(id, title='Auto Start is enabled', value='1', desc='Auto Start', checked='checked') }}
@@ -259,12 +264,8 @@
 			{% endif %}
 			</div>
 			<div class="server-act-links">
-			{% if service != 'keepalived' %}
 				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showConfig" class="ui-button ui-widget ui-corner-all" title="Open running config">Config</a>
-			{% else %}
-				<a href="/app/config.py?service={{service}}" class="ui-button ui-widget ui-corner-all" title="Edit running config">Config</a>
-			{% endif %}
-				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showCompare" class="ui-button ui-widget ui-corner-all" title="Compare configs">Compare</a>	
+				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showCompare" class="ui-button ui-widget ui-corner-all" title="Compare configs">Compare</a>
 			{% if service != 'nginx' and service != 'keepalived' %}
 				<a href="/app/config.py?serv={{s.2}}&showMap" class="ui-button ui-widget ui-corner-all" title="Show map">Map</a>
 			{% endif %}
@@ -295,7 +296,7 @@
 		{% endif %}
 	{% endfor %}
 </div>
-{% if serv and service == 'haproxy' %}
+	{% if serv %}
 	<div style="clear: both; width: 95%;">
 		<div style="padding-left: 25px;float: left;margin-top: -15px;">
 			<b>Time range:</b>
@@ -312,6 +313,7 @@
 		</div>
 	</div>
 	{% for s in servers %}
+		 {% if service == 'haproxy' %}
 		<div id="server_metrics_div" class="chart-container" style="display: block; width: 91.3%; height: 300px;">
 			<canvas id="{{s.2}}" role="img"></canvas>
 		</div>
@@ -320,6 +322,10 @@
 		</div>
 		<div id="waf_metrics_div" class="chart-container" style="display: block; width: 90%; height: 300px;">
 			<canvas id="s_{{s.2}}" role="img"></canvas>
+		</div>
+		{% endif %}
+		<div id="nginx_metrics_div" class="chart-container" style="display: block; width: 90%; height: 300px;">
+			<canvas id="nginx_{{s.2}}" role="img"></canvas>
 		</div>
 	{% endfor %}
 {% endif %}

@@ -709,8 +709,38 @@ def update_db_v_5_2_0(**kwargs):
 			print('Updating... DB has been updated to version 5.2.0')
 
 
+def update_db_v_5_2_4(**kwargs):
+	cursor = conn.cursor()
+	sql = """ALTER TABLE `user` ADD COLUMN user_services varchar DEFAULT '1 2 3';"""
+	try:
+		cursor.execute(sql)
+	except Exception as e:
+		if kwargs.get('silent') != 1:
+			if str(e) == 'duplicate column name: user_services':
+				print('Updating... DB has been updated to version 5.2.4')
+			else:
+				print("An error occurred:", e)
+	else:
+		print("Updating... DB has been updated to version 5.2.4")
+
+
+def update_db_v_5_2_4_1(**kwargs):
+	cursor = conn.cursor()
+	sql = """ALTER TABLE `servers` ADD COLUMN nginx_metrics integer DEFAULT 0;"""
+	try:
+		cursor.execute(sql)
+	except Exception as e:
+		if kwargs.get('silent') != 1:
+			if str(e) == 'duplicate column name: user_services':
+				print('Updating... DB has been updated to version 5.2.4')
+			else:
+				print("An error occurred:", e)
+	else:
+		print("Updating... DB has been updated to version 5.2.4")
+
+
 def update_ver():
-	query = Version.update(version = '5.2.3.0')
+	query = Version.update(version = '5.2.4.0')
 	try:
 		query.execute()
 	except:
@@ -737,6 +767,8 @@ def update_all():
 	update_db_v_5_1_2()
 	update_db_v_5_1_3()
 	update_db_v_5_2_0()
+	update_db_v_5_2_4()
+	update_db_v_5_2_4_1()
 	update_ver()
 
 
@@ -760,6 +792,8 @@ def update_all_silent():
 	update_db_v_5_1_2(silent=1)
 	update_db_v_5_1_3(silent=1)
 	update_db_v_5_2_0(silent=1)
+	update_db_v_5_2_4(silent=1)
+	update_db_v_5_2_4_1(silent=1)
 	update_ver()
 
 

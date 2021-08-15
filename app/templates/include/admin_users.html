@@ -7,10 +7,11 @@
 			<th style="width: 10%">Password</th>
 			<th style="width: 10%">Active</th>
 			<th style="width: 20%">Email</th>
-			<th style="width: {% if page == 'servers.py' %}100{% else %}10{% endif %}%">Role</th>
+			<th style="width: 10%">Role</th>
 			{% if page != "servers.py" %}
-			<th style="width: 100%">Group</th>
+			<th style="width: 10%">Group</th>
 			{% endif %}
+			<th style="width: 100%">Services</th>
 			<th></th>
 			<th></th>
 		</tr>
@@ -76,6 +77,9 @@
 				<span title="Change user groups" style="cursor: pointer; margin-left: 15px;" class="div-pic" onclick="openChangeUserGroupDialog('{{user.user_id}}')">
 			</td>
 			{% endif %}
+			<td>
+				<span title="Change user groups" style="cursor: pointer; margin-left: 15px;" class="div-pic" onclick="openChangeUserServiceDialog('{{user.user_id}}')">
+			</td>
 			<td>
 				<a class="add" onclick="cloneUser({{user.user_id}})" id="clone-{{user.user_id}}" title="Clone {{user.1}}" style="cursor: pointer;"></a>
 			</td>

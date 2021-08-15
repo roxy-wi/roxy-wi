@@ -32,14 +32,16 @@ print('Content-type: text/html\n')
 funct.check_login()
 
 try:
-	user, user_id, role, token, servers = funct.get_users_params()
+	user, user_id, role, token, servers, user_services = funct.get_users_params()
 except Exception:
 	pass
 
 if service == 'nginx':
-	title = "Nginx`s logs"
+	if funct.check_login(service=2):
+		title = "Nginx`s logs"
 else:
-	title = "HAProxy`s logs"
+	if funct.check_login(service=1):
+		title = "HAProxy`s logs"
 
 template = template.render(h2=1,
 							autorefresh=1,
@@ -58,5 +60,6 @@ template = template.render(h2=1,
 							minut1=minut1,
 							waf=waf,
 							service=service,
+							user_services=user_services,
 							token=token)
 print(template)
