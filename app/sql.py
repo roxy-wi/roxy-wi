@@ -1761,16 +1761,18 @@ def select_roles():
 
 
 def select_alert(**kwargs):
-	cursor = conn.cursor()
-	sql = """select ip from servers where alert = 1 and enable = 1  """
 	if kwargs.get("group") is not None:
-		sql = """select ip from servers where alert = 1 and `groups` = '{}' and enable = 1 """.format(kwargs.get("group"))
+		query = Server.select(Server.ip).where((Server.alert == 1) &
+											   (Server.enable == 1) &
+											   (Server.groups == kwargs.get('group')))
+	else:
+		query = Server.select(Server.ip).where((Server.alert == 1) & (Server.enable == 1))
 	try:
-		cursor.execute(sql)
+		query_res = query.execute()
 	except Exception as e:
 		out_error(e)
 	else:
-		return cursor.fetchall()
+		return query_res
 
 
 def select_all_alerts(**kwargs):
@@ -1790,16 +1792,19 @@ def select_all_alerts(**kwargs):
 
 
 def select_nginx_alert(**kwargs):
-	cursor = conn.cursor()
-	sql = """select ip from servers where nginx_alert = 1 and enable = 1 """
 	if kwargs.get("group") is not None:
-		sql = """select ip from servers where nginx_alert = 1 and `groups` = '{}' and enable = 1 """.format(kwargs.get("group"))
+		query = Server.select(Server.ip).where(
+			(Server.nginx_alert == 1) &
+			(Server.enable == 1) &
+			(Server.groups == kwargs.get('group')))
+	else:
+		query = Server.select(Server.ip).where((Server.nginx_alert == 1) & (Server.enable == 1))
 	try:
-		cursor.execute(sql)
+		query_res = query.execute()
 	except Exception as e:
 		out_error(e)
 	else:
-		return cursor.fetchall()
+		return query_res
 
 
 def select_keep_alive():
