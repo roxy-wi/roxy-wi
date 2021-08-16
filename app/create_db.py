@@ -158,7 +158,7 @@ def update_db_v_41(**kwargs):
 		cursor.execute(sql)
 	except Exception as e:
 		if kwargs.get('silent') != 1:
-			if e.args[0] == 'duplicate column name: nginx' or e == " 1060 (42S21): Duplicate column name 'nginx' ":
+			if e.args[0] == 'duplicate column name: nginx'  or str(e) == '(1060, "Duplicate column name \'nginx\'")':
 				print('Updating... one more for version 4.0.0')
 			else:
 				print("An error occurred:", e)
@@ -175,7 +175,7 @@ def update_db_v_42(**kwargs):
 		cursor.execute(sql)
 	except Exception as e:
 		if kwargs.get('silent') != 1:
-			if e.args[0] == 'duplicate column name: haproxy' or e == " 1060 (42S21): Duplicate column name 'haproxy' ":
+			if e.args[0] == 'duplicate column name: haproxy' or str(e) == '(1060, "Duplicate column name \'haproxy\'")':
 				print('Updating... go to version 4.2.3')
 			else:
 				print("An error occurred:", e)
@@ -190,7 +190,7 @@ def update_db_v_4_3_0(**kwargs):
 								fields=[UserGroups.user_id, UserGroups.user_group_id]).on_conflict_ignore().execute()
 	except Exception as e:
 		if kwargs.get('silent') != 1:
-			if e.args[0] == 'duplicate column name: haproxy' or e == " 1060 (42S21): Duplicate column name 'haproxy' ":
+			if e.args[0] == 'duplicate column name: haproxy' or str(e) == '(1060, "Duplicate column name \'haproxy\'")':
 				print('Updating... go to version 4.3.1')
 			else:
 				print("An error occurred:", e)
@@ -205,7 +205,7 @@ def update_db_v_4_3_1(**kwargs):
 		cursor.execute(sql)
 	except Exception as e:
 		if kwargs.get('silent') != 1:
-			if e.args[0] == 'duplicate column name: pos' or e == " 1060 (42S21): Duplicate column name 'pos' ":
+			if e.args[0] == 'duplicate column name: pos' or str(e) == '(1060, "Duplicate column name \'pos\'")':
 				print('Updating... go to version 4.3.2')
 			else:
 				print("An error occurred:", e)
@@ -221,7 +221,7 @@ def update_db_v_4_4_2_1(**kwargs):
 		cursor.execute(sql)
 	except Exception as e:
 		if kwargs.get('silent') != 1:
-			if e.args[0] == 'duplicate column name: group' or e == " 1060 (42S21): Duplicate column name 'group' ":
+			if e.args[0] == 'duplicate column name: group' or str(e) == '(1060, "Duplicate column name \'group\'")':
 				print('Updating... go to version 4.4.2')
 			else:
 				print("An error occurred:", e)
@@ -251,7 +251,7 @@ def update_db_v_4_3_2_1(**kwargs):
 
 		except Exception as e:
 			if kwargs.get('silent') != 1:
-				if str(e) == 'columns param, group are not unique':
+				if str(e) == 'columns param, group are not unique' or str(e) == '(1062, "Duplicate entry \'haproxy_enterprise-1\' for key \'param\'")':
 					pass
 				else:
 					print("An error occurred:", e)
@@ -314,7 +314,7 @@ def update_db_v_4_5_7(**kwargs):
 		cursor.execute(sql)
 	except Exception as e:
 		if kwargs.get('silent') != 1:
-			if e.args[0] == 'duplicate column name: nginx_alert' or e == " 1060 (42S21): Duplicate column name 'nginx_alert' ":
+			if e.args[0] == 'duplicate column name: nginx_alert' or str(e) == '(1060, "Duplicate column name \'nginx_alert\'")':
 				print('Updating... go to version 4.5.8')
 			else:
 				print("An error occurred:", e)
@@ -608,7 +608,7 @@ def update_db_v_4_5_8_2(**kwargs):
 
 		except Exception as e:
 			if kwargs.get('silent') != 1:
-				if str(e) == 'columns param, group are not unique':
+				if str(e) == 'columns param, group are not unique'  or str(e) == '(1062, "Duplicate entry \'maxmind_key-1\' for key \'param\'")':
 					pass
 				else:
 					print("An error occurred:", e)
@@ -685,7 +685,7 @@ def update_db_v_5_1_3(**kwargs):
 		cursor.execute(sql)
 	except Exception as e:
 		if kwargs.get('silent') != 1:
-			if str(e) == 'duplicate column name: protected':
+			if str(e) == 'duplicate column name: protected' or str(e) == '(1060, "Duplicate column name \'protected\'")':
 				print('Updating... DB has been updated to version 5.1.3')
 			else:
 				print("An error occurred:", e)
@@ -700,7 +700,7 @@ def update_db_v_5_2_0(**kwargs):
 					   desc='How many days to keep the history for the Port scanner service').execute()
 	except Exception as e:
 		if kwargs.get('silent') != 1:
-			if str(e) == 'columns param, group are not unique':
+			if str(e) == 'columns param, group are not unique' or str(e) == '(1062, "Duplicate entry \'portscanner_keep_history_range-1\' for key \'param\'")':
 				pass
 			else:
 				print("An error occurred:", e)
@@ -711,7 +711,7 @@ def update_db_v_5_2_0(**kwargs):
 
 def update_db_v_5_2_4(**kwargs):
 	cursor = conn.cursor()
-	sql = """ALTER TABLE `user` ADD COLUMN user_services varchar DEFAULT '1 2 3';"""
+	sql = """ALTER TABLE `user` ADD COLUMN user_services varchar(20) DEFAULT '1 2 3';"""
 	try:
 		cursor.execute(sql)
 	except Exception as e:
@@ -731,7 +731,7 @@ def update_db_v_5_2_4_1(**kwargs):
 		cursor.execute(sql)
 	except Exception as e:
 		if kwargs.get('silent') != 1:
-			if str(e) == 'duplicate column name: user_services':
+			if str(e) == 'duplicate column name: nginx_metrics'  or str(e) == '(1060, "Duplicate column name \'nginx_metrics\'")':
 				print('Updating... DB has been updated to version 5.2.4')
 			else:
 				print("An error occurred:", e)

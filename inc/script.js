@@ -60,7 +60,7 @@ $( function() {
 		   show_current_page($(this))
 	   } else if(cur_url[0] == 'viewlogs.py' && cur_url[1].split('&')[0] == 'type=2' && link2 == 'viewlogs.py?type=2'){
 		  	show_current_page($(this))
-	   } else if(cur_url[0] == 'metrics.py' && cur_url[1].split('&')[0] == 'service=nginx' && link2 == 'metrics?service=nginx'){
+	   } else if(cur_url[0] == 'metrics.py' && cur_url[1].split('&')[0] == 'service=nginx' && link2 == 'metrics.py?service=nginx'){
 		   show_current_page($(this))
 	   }
    });

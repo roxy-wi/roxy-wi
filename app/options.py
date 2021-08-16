@@ -1069,7 +1069,7 @@ if form.getvalue('master'):
         sql.add_server(hostname+'-VIP', IP, group_id, '1', '1', '0', cred_id, ssh_port, 'VRRP IP for '+master, haproxy, nginx, '0')
 
 if form.getvalue('master_slave'):
-    master = form.getvalue('master')
+    master = form.getvalue('master_slave')
     slave = form.getvalue('slave')
     ETH = form.getvalue('interface')
     IP = form.getvalue('vrrpip')

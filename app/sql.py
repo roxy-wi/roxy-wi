@@ -1473,10 +1473,10 @@ def select_nginx_servers_metrics_for_master():
 def select_servers_metrics():
 	group_id = funct.get_user_group(id=1)
 	if funct.check_user_group():
-		if group_id == '1':
+		if group_id == 1:
 			query = Server.select(Server.ip).where((Server.enable == 1) & (Server.metrics == 1))
 		else:
-			query = Server.select(Server.ip).where((Server.groups == group_id) & (Server.metrics == 1))
+			query = Server.select(Server.ip).where((Server.enable == 1) & (Server.groups == group_id) & (Server.metrics == 1))
 		try:
 			query_res = query.execute()
 		except Exception as e:
@@ -1490,7 +1490,7 @@ def select_table_metrics():
 	group_id = funct.get_user_group(id=1)
 
 	if funct.check_user_group():
-		if group_id == '1':
+		if group_id == 1:
 			groups = ""
 		else:
 			groups = "and servers.groups = '{group}' ".format(group=group_id)
@@ -1698,7 +1698,7 @@ def get_setting(param, **kwargs):
 		user_group = ''
 
 	if user_group == '' or param == 'lists_path' or param == 'ssl_local_path':
-		user_group = '1'
+		user_group = 1
 
 	if kwargs.get('all'):
 		query = Setting.select().where(Setting.group == user_group).order_by(Setting.section.desc())

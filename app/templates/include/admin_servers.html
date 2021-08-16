@@ -49,7 +49,7 @@
 			{% if page != "servers.py" %}
 			<td>
 				<select id="servergroup-{{server.0}}" name="servergroup-{{server.0}}">
-					<option disabled selected>Choose group</option>
+					<option disabled selected>------</option>
 					{% for group in groups %}
 					{% if server.3 == group.group_id|string() %}
 					<option value="{{ group.group_id }}" selected>{{ group.name }}</option>
@@ -130,7 +130,7 @@
 			<td>
 				<div class="controlgroup">
 					<select id="credentials-{{server.0}}">
-						<option disabled selected>Choose credentials</option>
+						<option disabled selected>------</option>
 						{% for ssh in sshs %}
 							{% if ssh.id == server.7 %}
 								<option value="{{ssh.id}}" selected>{{ssh.name}}</option>
