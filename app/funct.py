@@ -119,6 +119,11 @@ def logging(serv, action, **kwargs):
 	except Exception:
 		login = ''
 
+	try:
+		subprocess_execute('sudo chown apache:apache -R' + log_path)
+	except:
+		pass
+
 	if kwargs.get('alerting') == 1:
 		mess = get_data('date_in_log') + action + "\n"
 		log = open(log_path + "/checker-"+get_data('logs')+".log", "a")
@@ -146,7 +151,8 @@ def logging(serv, action, **kwargs):
 		mess = get_data('date_in_log') + " from " + ip + " user: " + login + ", group: " + user_group + ", " + \
 				action + " for: " + serv + "\n"
 		log = open(log_path + "/config_edit-"+get_data('logs')+".log", "a")
-	try:	
+
+	try:
 		log.write(mess)
 		log.close()
 	except IOError as e:
@@ -595,8 +601,8 @@ def show_installation_output(error, output, service):
 def install_haproxy(serv, **kwargs):
 	import sql
 	script = "install_haproxy.sh"
-	hap_sock_p = sql.get_setting('haproxy_sock_port')
-	stats_port = sql.get_setting('stats_port')
+	hap_sock_p = str(sql.get_setting('haproxy_sock_port'))
+	stats_port = str(sql.get_setting('stats_port'))
 	server_state_file = sql.get_setting('server_state_file')
 	stats_user = sql.get_setting('stats_user')
 	stats_password = sql.get_setting('stats_password')
@@ -677,7 +683,7 @@ def install_nginx(serv, **kwargs):
 	script = "install_nginx.sh"	
 	stats_user = sql.get_setting('nginx_stats_user')
 	stats_password = sql.get_setting('nginx_stats_password')
-	stats_port = sql.get_setting('nginx_stats_port')
+	stats_port = str(sql.get_setting('nginx_stats_port'))
 	stats_page = sql.get_setting('nginx_stats_page')
 	config_path = sql.get_setting('nginx_config_path')
 	server_for_installing = kwargs.get('server')
