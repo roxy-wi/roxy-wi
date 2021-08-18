@@ -1700,7 +1700,7 @@ function addProxy(form_name) {
 				toastr.error('error: Proxy cannot be empty');
 			} else {
 				toastr.clear();
-				toastr.success('Section: ' + data + 'has been added. Do not forget restart server');
+				toastr.success('Section: ' + data + 'has been added. Do not forget to restart the server');
 				var ip = frm.find('select[name=serv]').val();
 				localStorage.setItem('restart', ip);
 				resetProxySettings();

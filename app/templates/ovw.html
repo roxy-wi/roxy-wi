@@ -28,18 +28,20 @@
 				Server
 			{% endif %}
 		</td>
-		<td class="padding10  third-collumn-wi" style="width: 20%;">
+		<td class="padding10 third-collumn-wi" style="width: 20%;">
 			<a href="/app/hapservers.py" title="HAProxy servers overview" class="logs_link">			
 				HAProxy
 			</a>
 		</td>
-		<td class="padding10">			
+		<td class="padding10">
 			<a href="/app/hapservers.py?service=nginx" title="Nginx servers overview" class="logs_link">
 				Nginx
 			</a>
 		</td>
-		<td class="padding10">			
-			Keepalived
+		<td class="padding10">
+			<a href="/app/hapservers.py?service=keepalived" title="Nginx servers overview" class="logs_link">
+				Keepalived
+			</a>
 		</td>
 		<td class="padding10">
 			<a href="/app/waf.py" title="WAf servers overview" class="logs_link">
@@ -247,7 +249,7 @@
 			<span class="serverUp server-status" title="running {{grafana}} process"></span>
 			<a href="http://{{host}}:3000" target="_blank" title="Open Grafana" class="logs_link">Grafana</a>
 		{% else %}
-			<span class="serverNone server-status" title="The service does not started or does not installed"></span>
+			<span class="serverNone server-status" title="The service is not installed or not running"></span>
 			<span>Grafana</span>			
 		{% endif %}
 		</td>
@@ -256,7 +258,7 @@
 			<span class="serverUp server-status" title="running {{ prometheus }} process"></span>
 			<a href="http://{{host}}:9090" target="_blank" title="Open Prometheus" class="logs_link">Prometheus</a>
 		{% else %}
-			<span class="serverNone server-status" title="The service does not started or does not installed"></span>
+			<span class="serverNone server-status" title="The service is not installed or not running"></span>
 			Prometheus
 		{% endif %}
 		</td>
@@ -309,33 +311,33 @@
 				<tr class="{{ loop.cycle('odd', 'even') }}">
 					<td class="padding10 first-collumn-wi"> 
 						<a href="{{admin_uri}}#users" title="Edit user" class="logs_link div-pic">
-							{{ USER.1 }}							
+							{{ USER.username }}
 						</a>
 					</td>
 					<td class="third-collumn-wi">
 						{% for group in users_groups %}
-							{% if USER.0|string() == group.0|string() %}
-								{{ group.1 }}
+							{% if USER.user_id|string() == group.user_id|string() %}
+								{{ group.groups.name }}
 							{% endif %}
 						{% endfor %}
 					</td>
-					<td colspan="2">{{ USER.4 }}</td>
+					<td colspan="2">{{ USER.role }}</td>
 				</tr>
 			{% else %}
 				<tr style="display: none;" class="show-users {{ loop.cycle('odd', 'even') }}">
 					<td class="padding10 first-collumn-wi"> 
 						<a href="users.py#users" title="Edit user" class="logs_link div-pic">
-							{{ USER.1 }}
+							{{ USER.username }}
 						</a>
 					</td>
 					<td class="third-collumn-wi">
 						{% for group in users_groups %}
-							{% if group.0|string() == USER.0|string() %}
-								{{ group.1 }}{{ "," if not loop.last }}
+							{% if group.user_id|string() == USER.user_id|string() %}
+								{{ group.groups.name }}{{ "," if not loop.last }}
 							{% endif %}
 						{% endfor %}
 					</td>
-					<td colspan="2">{{ USER.4 }}</td>
+					<td colspan="2">{{ USER.role }}</td>
 				</tr>
 			{% endif %}
 		{% endfor %}
@@ -361,19 +363,19 @@
 			<tr class="{{ loop.cycle('odd', 'even') }}">
 				<td class="padding10 first-collumn-wi"> 
 					<a href="users.py#groups" title="Edit groups" class="logs_link div-pic">
-							{{ group.1 }}
+							{{ group.name }}
 					</a>			
 				</td>
-				<td class="third-collumn-wi" colspan="2">{{ group.2 }}</td>
+				<td class="third-collumn-wi" colspan="2">{{ group.description }}</td>
 			</tr>
 			{% else %}
 			<tr style="display: none;" class="show-groups {{ loop.cycle('odd', 'even') }}">
 				<td class="padding10 first-collumn-wi"> 
 					<a href="users.py#groups" title="Edit groups" class="logs_link div-pic">
-							{{ group.1 }}
+							{{ group.name }}
 					</a>			
 				</td>
-				<td class="third-collumn-wi" colspan="2">{{ group.2 }}</td>
+				<td class="third-collumn-wi" colspan="2">{{ group.description }}</td>
 			</tr>
 			{% endif %}
 		{% endfor %}
@@ -389,9 +391,9 @@
 		{% for role in roles %}
 			<tr class="{{ loop.cycle('odd', 'even') }}">
 				<td class="padding10 first-collumn-wi"> 
-					{{ role.1 }}				
+					{{ role.name }}
 				</td>
-				<td class="third-collumn-wi">{{ role.2 }}</td>
+				<td class="third-collumn-wi">{{ role.description }}</td>
 				<td></td>
 				<td></td>
 			</tr>
