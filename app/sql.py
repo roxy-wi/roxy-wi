@@ -289,13 +289,12 @@ def update_server(hostname, group, typeip, enable, master, server_id, cred, port
 
 def update_server_master(master, slave):
 	try:
-		master_id = Server.get(Server.server_id == master)
+		master_id = Server.get(Server.ip == master).server_id
 	except Exception as e:
 		out_error(e)
 
 	try:
-		server_update = Server.update(master=master_id).where(Server.ip == slave)
-		server_update.execute()
+		Server.update(master=master_id).where(Server.ip == slave).execute()
 	except Exception as e:
 		out_error(e)
 
