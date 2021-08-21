@@ -5,11 +5,11 @@ env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('runtimeapi.html')
 
 print('Content-type: text/html\n')
-funct.check_login()
+funct.check_login(service=1)
 form = funct.form
 
 try:
-	user, user_id, role, token, servers = funct.get_users_params(virt=1)	
+	user, user_id, role, token, servers, user_services = funct.get_users_params(virt=1)
 	servbackend = form.getvalue('servbackend')
 	serv = form.getvalue('serv')
 	if servbackend is None:
@@ -25,5 +25,6 @@ template = template.render(h2=0,
 							select_id="serv",
 							selects=servers,
 							token=token,
+							user_services=user_services,
 							servbackend=servbackend)
 print(template)

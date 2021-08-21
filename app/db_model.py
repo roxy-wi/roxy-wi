@@ -58,7 +58,7 @@ class Server(BaseModel):
     firewall_enable = IntegerField(constraints=[SQL('DEFAULT 0')])
     nginx_alert = IntegerField(constraints=[SQL('DEFAULT 0')])
     protected = IntegerField(constraints=[SQL('DEFAULT 0')])
-    nginx_metrics = IntegerField(constraints=[SQL('DEFAULT 1')])
+    nginx_metrics = IntegerField(constraints=[SQL('DEFAULT 0')])
 
     class Meta:
         table_name = 'servers'

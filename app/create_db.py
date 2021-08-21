@@ -716,7 +716,7 @@ def update_db_v_5_2_4(**kwargs):
 		cursor.execute(sql)
 	except Exception as e:
 		if kwargs.get('silent') != 1:
-			if str(e) == 'duplicate column name: user_services':
+			if str(e) == 'duplicate column name: user_services' or str(e) == '(1060, "Duplicate column name \'user_services\'")':
 				print('Updating... DB has been updated to version 5.2.4')
 			else:
 				print("An error occurred:", e)
@@ -731,7 +731,7 @@ def update_db_v_5_2_4_1(**kwargs):
 		cursor.execute(sql)
 	except Exception as e:
 		if kwargs.get('silent') != 1:
-			if str(e) == 'duplicate column name: nginx_metrics'  or str(e) == '(1060, "Duplicate column name \'nginx_metrics\'")':
+			if str(e) == 'duplicate column name: nginx_metrics' or str(e) == '(1060, "Duplicate column name \'nginx_metrics\'")':
 				print('Updating... DB has been updated to version 5.2.4')
 			else:
 				print("An error occurred:", e)

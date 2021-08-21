@@ -256,14 +256,16 @@
 			</div>
 		</div>
 		<div id="show-user-settings">
-			<table class="overview">
+			<table class="overview" id="show-user-settings-table">
 				<tr>
-					<td class="padding20" style="width: 60%">Disable alerting for this tab</td>
-					<td><label for="disable_alert_for_tab"></label><input type="checkbox" id="disable_alert_for_tab" />
-				</tr>
-				<tr class="even">
-					<td class="padding20" style="width: 60%">Disable alerting for all tabs</td>
-					<td><label for="disable_alert_for_all"></label><input type="checkbox" id="disable_alert_for_all" />
+					<td class="padding20" style="width: 70%">Alerts</td>
+					<td>
+						<select id="disable_alerting">
+							<option value="0" title="Alerts for all tabs are enabled">All alerts are enabled</option>
+							<option value="1">Disable alerting for this tab</option>
+							<option value="2">Disable alerting for all tabs</option>
+						</select>
+					</td>
 				</tr>
 			</table>
 		</div>

@@ -799,12 +799,11 @@ $( function() {
 			modal: true,
 			title: 'User settings',
 			buttons: {
-				Save: function() {
+				Apply: function() {
 					saveUserSettings();
 					$( this ).dialog( "close" );
 				},
-				"Change group": function(){
-					showCurrentGroup(this);
+				Cancel: function () {
 					$( this ).dialog( "close" );
 				},
 				Logout: function() {
@@ -815,13 +814,31 @@ $( function() {
 
 	$('#show-user-settings-button').click(function() {
 		if (sessionStorage.getItem('disabled_alert') == '1') {
-			$('#disable_alert_for_tab').prop('checked', true);
-			$( "input[type=checkbox]" ).checkboxradio('refresh');
+			$('#disable_alerting option[value="1"]').prop('selected', true);
+			$('#disable_alerting').selectmenu('refresh');
+		} else if (localStorage.getItem('disabled_alert') == '1') {
+			$('#disable_alerting option[value="2"]').prop('selected', true);
+			$('#disable_alerting').selectmenu('refresh');
+		} else {
+			$('#disable_alerting option[value="0"]').prop('selected', true);
+			$('#disable_alerting').selectmenu('refresh');
 		}
-		if (localStorage.getItem('disabled_alert') == '1') {
-			$('#disable_alert_for_all').prop('checked', true);
-			$( "input[type=checkbox]" ).checkboxradio('refresh');
-		}
+		$.ajax( {
+			url: "options.py",
+			data: {
+				getcurrentusergroup: 1,
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+				if (data.indexOf('danger') != '-1') {
+					$("#ajax").html(data);
+				} else {
+					$('#show-user-settings-table').append(data);
+					$( "select" ).selectmenu();
+				}
+			}
+		} );
 		showUserSettings.dialog('open');
 	});
 	var location = window.location.href;
@@ -969,50 +986,17 @@ $( function() {
     })
 });
 function saveUserSettings(){
-	if ($('#disable_alert_for_tab').is(':checked')) {
+	if ($('#disable_alerting').val() == '0') {
+		localStorage.removeItem('disabled_alert');
+		sessionStorage.removeItem('disabled_alert');
+	} else if ($('#disable_alerting').val() == '1') {
 		sessionStorage.setItem('disabled_alert', '1');
-	} else {
+		localStorage.removeItem('disabled_alert');
+	} else if ($('#disable_alerting').val() == '2') {
+		localStorage.setItem('disabled_alert', '1');
 		sessionStorage.removeItem('disabled_alert');
 	}
-	if ($('#disable_alert_for_all').is(':checked')) {
-		localStorage.setItem('disabled_alert', '1');
-	} else {
-		localStorage.removeItem('disabled_alert');
-	}
-}
-function showCurrentGroup(dialog_id) {
-	$.ajax( {
-			url: "options.py",
-			data: {
-				getcurrentusergroup: 1,
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function( data ) {
-				if (data.indexOf('danger') != '-1') {
-					$("#ajax").html(data);
-				} else {
-					$('.alert-danger').remove();
-					$('#current-user-groups-form').html(data);
-					$( "select" ).selectmenu();
-					$( "#current-user-groups-dialog" ).dialog({
-						width: 290,
-						modal: true,
-						title: "Change a new current group",
-						buttons: {
-							"Change": function() {
-								$( this ).dialog( "close" );
-								changeCurrentGroupF();
-							},
-							Cancel: function() {
-								$( this ).dialog( "close" );
-								$( dialog_id ).dialog("open" );
-							}
-						  }
-					});
-				}
-			}
-		} );
+	changeCurrentGroupF();
 }
 function sleep(ms) {
 	return new Promise(resolve => setTimeout(resolve, ms));
