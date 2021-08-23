@@ -710,7 +710,7 @@ if form.getvalue('action'):
         'Accept-Encoding': 'gzip, deflate'
     }
 
-    q = requests.post('http://' + serv + ':' + stats_port + '/' + stats_page,
+    q = requests.post('http://{}:{}/{}'.format(serv, stats_port, stats_page),
                       headers=headers,
                       data=postdata,
                       auth=(haproxy_user, haproxy_pass))

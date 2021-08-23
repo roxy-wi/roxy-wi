@@ -9,6 +9,8 @@ def is_ip_or_dns(server_from_request: str) -> str:
 	ip_regex = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
 	dns_regex = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
 	try:
+		if server_from_request == 'roxy-wi-keep_alive':
+			return 'roxy-wi-keep_alive'
 		if re.match(ip_regex, server_from_request):
 			return server_from_request
 		else:
@@ -1333,8 +1335,11 @@ def get_services_status():
 		if service_name == 'prometheus':
 			cmd = "prometheus --version 2>&1 |grep prometheus|awk '{print $3}'"
 		else:
-			cmd = "rpm --query " + service_name + "-* |awk -F\"" + service_name + "\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
+			cmd = "rpm -q " + service_name + "|awk -F\"" + service_name + "\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
 		service_ver, stderr = subprocess_execute(cmd)
+
+		if service_ver[0] == 'command':
+			service_ver[0] = ''
 
 		try:
 			services.append([s, status, v, service_ver[0]])

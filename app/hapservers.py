@@ -129,7 +129,7 @@ for s in servers:
 
     if is_keepalived:
         try:
-            cmd = ['sudo kill -USR1 `cat /var/run/keepalived.pid` && grep State /tmp/keepalived.data -m 1 |awk -F"=" \'{print $2}\'|tr -d \'[:space:]\' && sudo rm -f /tmp/keepalived.data' ]
+            cmd = ['sudo kill -USR1 `cat /var/run/keepalived.pid` && sudo grep State /tmp/keepalived.data -m 1 |awk -F"=" \'{print $2}\'|tr -d \'[:space:]\' && sudo rm -f /tmp/keepalived.data' ]
             out = funct.ssh_command(s[2], cmd)
             out1 = ('1', out)
             servers_with_status.append(out1)
@@ -150,6 +150,6 @@ template = template.render(h2=1,
                            serv=serv,
 						   service=service,
 						   services=services,
-                            user_services=user_services,
+                           user_services=user_services,
 						   token=token)
 print(template)
