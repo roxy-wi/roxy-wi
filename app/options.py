@@ -2279,13 +2279,13 @@ if form.getvalue('newsmon') is not None:
         print('SMON error: Cannot be HTTP with 443 port')
         sys.exit()
 
-    if sql.insert_smon(server, port, enable, http, uri, body, group, desc, telegram, user_group):
+    last_id = sql.insert_smon(server, port, enable, http, uri, body, group, desc, telegram, user_group)
+    if last_id:
         from jinja2 import Environment, FileSystemLoader
-
         env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
         template = env.get_template('ajax/show_new_smon.html')
         template = template.render(
-            smon=sql.select_smon(user_group, ip=server, port=port, proto=http, uri=uri, body=body),
+            smon=sql.select_smon_by_id(last_id),
             telegrams=sql.get_user_telegram_by_group(user_group))
         print(template)
         funct.logging('SMON', ' Has been add a new server ' + server + ' to SMON ', haproxywi=1, login=1)

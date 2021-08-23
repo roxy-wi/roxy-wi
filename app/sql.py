@@ -1936,13 +1936,13 @@ def insert_smon(server, port, enable, proto, uri, body, group, desc, telegram, u
 		http = ''
 
 	try:
-		SMON.insert(ip=server, port=port, en=enable, desc=desc, group=group, http=http, body=body,
+		last_id = SMON.insert(ip=server, port=port, en=enable, desc=desc, group=group, http=http, body=body,
 					telegram_channel_id=telegram, user_group=user_group, status='3').execute()
 	except Exception as e:
 		out_error(e)
 		return False
 	else:
-		return True
+		return last_id
 
 
 def select_smon(user_group, **kwargs):
@@ -1958,11 +1958,6 @@ def select_smon(user_group, **kwargs):
 		else:
 			user_group = "where user_group='%s'" % user_group
 
-	if kwargs.get('body') is None:
-		body = ''
-	else:
-		body = kwargs.get('body')
-
 	if kwargs.get('ip'):
 		try:
 			http = kwargs.get('proto')+':'+kwargs.get('uri')
@@ -1976,6 +1971,21 @@ def select_smon(user_group, **kwargs):
 		%s order by `group`""" % user_group
 	else:
 		sql = """select * from `smon` %s """ % user_group
+
+	try:
+		cursor.execute(sql)
+	except Exception as e:
+		out_error(e)
+	else:
+		return cursor.fetchall()
+
+
+def select_smon_by_id(last_id):
+	cursor = conn.cursor()
+
+	sql = """select id, ip, port, en, http, body, telegram_channel_id, `desc`, `group`, user_group 
+	from `smon` where id = {} """.format(last_id)
+
 	try:
 		cursor.execute(sql)
 	except Exception as e:
