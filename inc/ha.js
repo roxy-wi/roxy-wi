@@ -101,7 +101,7 @@ function add_master_addr(kp) {
 		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error:') != '-1') || data.indexOf('UNREACHABLE') != '-1') {
+			if (data.indexOf('error:') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
 				showProvisioningError(data, '#creating-master-add', '#wait-mess-add', '#creating-error-add');
 			} else if (data == '' ){
 				showProvisioningWarning('#creating-master-add', 'master Keepalived', '#creating-warning-add', '#wait_mess-add');
@@ -125,7 +125,7 @@ function add_slave_addr(kp) {
 		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error:') != '-1') || data.indexOf('UNREACHABLE') != '-1') {
+			if (data.indexOf('error:') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
 				showProvisioningError(data, '#creating-slave-add', '#wait-mess-add', '#creating-error-add');
 			} else if (data == '' ){
 				showProvisioningWarning('#creating-slave-add', 'master Keepalived', '#creating-warning-add', '#wait_mess-add');
