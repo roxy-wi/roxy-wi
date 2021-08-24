@@ -77,7 +77,7 @@ $( function() {
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
 				$("#ajax").html('')
-				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1') || data.indexOf('UNREACHABLE') != '-1') {
+				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
 					toastr.error(data);
 				} else if (data.indexOf('success') != '-1' ){
 					toastr.remove();
@@ -111,7 +111,7 @@ $( function() {
 			success: function( data ) { 
 				data = data.replace(/\s+/g,' ');
 				$("#ajax").html('')
-				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1') || data.indexOf('UNREACHABLE') != '-1') {
+				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
 					toastr.clear();
 					toastr.error(data);
 				} else if (data.indexOf('success') != '-1' ){
@@ -141,7 +141,7 @@ $( function() {
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
 				$("#ajaxmon").html('');
-				if (data.indexOf('FAILED') != '-1') || data.indexOf('UNREACHABLE') != '-1') {
+				if (data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
 					toastr.clear();
 					toastr.error(data);;
 				} else if (data.indexOf('success') != '-1' ){
@@ -170,7 +170,7 @@ $( function() {
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
 				$("#ajaxmon").html('');
-				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1') || data.indexOf('UNREACHABLE') != '-1') {
+				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
 					toastr.clear();
 					toastr.error(data);
 				} else if (data.indexOf('success') != '-1' ){
@@ -202,7 +202,7 @@ $( function() {
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
 				$("#ajaxmon").html('');
-				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1') || data.indexOf('UNREACHABLE') != '-1') {
+				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
 					toastr.error(data);
 				} else if (data.indexOf('success') != '-1' ){
 					toastr.clear();
@@ -233,7 +233,7 @@ $( function() {
 			success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 				$("#ajaxmon").html('');
-				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1') || data.indexOf('UNREACHABLE') != '-1') {
+				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
 					toastr.error(data);
 				} else if (data.indexOf('success') != '-1' ){
 					toastr.clear();

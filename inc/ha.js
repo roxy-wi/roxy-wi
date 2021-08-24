@@ -163,7 +163,7 @@ function create_master_keepalived(hap, nginx, syn_flood) {
 		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1') || data.indexOf('UNREACHABLE') != '-1') {
+			if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
 				showProvisioningError(data, '#creating-master', '#wait-mess', '#creating-error');
 			} else if (data == '' ){
 				showProvisioningWarning(step_id, 'master Keepalived', '#creating-warning', '#wait_mess');
@@ -205,7 +205,7 @@ function create_slave_keepalived(hap, nginx, syn_flood) {
 		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1') || data.indexOf('UNREACHABLE') != '-1') {
+			if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
 				showProvisioningError(data, '#creating-slave', '#wait-mess', '#creating-error');
 			} else if (data == '' ){
 				showProvisioningWarning(step_id, 'slave Keepalived', '#creating-warning', '#wait_mess');
@@ -249,7 +249,7 @@ function create_keep_alived_hap(nginx, server) {
 		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1') || data.indexOf('UNREACHABLE') != '-1') {
+			if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
 				showProvisioningError(data, step_id, '#wait-mess', '#creating-error');
 			} else if (data == '' ){
 				showProvisioningWarning(step_id, install_step, '#creating-warning', '#wait_mess');
@@ -285,7 +285,7 @@ function create_keep_alived_nginx(server) {
 		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1') || data.indexOf('UNREACHABLE') != '-1') {
+			if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
 				showProvisioningError(data, step_id, '#wait-mess', '#creating-error');
 			} else if (data == '' ){
 				showProvisioningWarning(step_id, install_step, '#creating-warning', '#wait_mess');
