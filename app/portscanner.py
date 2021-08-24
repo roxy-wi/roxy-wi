@@ -38,7 +38,7 @@ else:
             i = (s[2], count_ports_from_sql)
             count_ports.append(i)
 
-    cmd = "systemctl status portscanner |grep Act |awk  '{print $2}'"
+    cmd = "systemctl is-active roxy-wi-portscanner"
     port_scanner, port_scanner_stderr = funct.subprocess_execute(cmd)
 
 
