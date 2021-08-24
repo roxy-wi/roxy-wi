@@ -122,8 +122,8 @@ def logging(serv, action, **kwargs):
 		login = ''
 
 	try:
-		subprocess_execute('sudo chown apache:apache -R' + log_path)
-	except:
+		os.system('sudo chown apache:apache -R ' + log_path)
+	except Exception as e:
 		pass
 
 	if kwargs.get('alerting') == 1:
@@ -587,17 +587,22 @@ def show_installation_output(error, output, service):
 	if error and "WARNING" not in error:
 		logging('localhost', error, haproxywi=1)
 		print('error: '+error)
+		return False
 	else:
 		for l in output:
-			if "Traceback" in l or "FAILED" in l:
+			if "UNREACHABLE" in l:
+				print(l + '<br />')
+			if "Traceback" in l or "FAILED" in l or "error" in l:
 				try:
 					print(l)
 					break
+					return False
 				except Exception:
 					print(output)
 					break
 		else:
 			print('success: ' + service + ' has been installed')
+			return True
 
 
 def install_haproxy(serv, **kwargs):
@@ -644,10 +649,11 @@ def install_haproxy(serv, **kwargs):
 		service = server_for_installing + ' HAProxy'
 	else:
 		service = ' HAProxy'
-	show_installation_output(error, output, service)
+
+	if show_installation_output(error, output, service):
+		sql.update_haproxy(serv)
 
 	os.system("rm -f %s" % script)
-	sql.update_haproxy(serv)
 
 
 def waf_install(serv):
@@ -718,10 +724,10 @@ def install_nginx(serv, **kwargs):
 		service = server_for_installing + ' Nginx'
 	else:
 		service = ' Nginx'
-	show_installation_output(error, output, service)
+	if show_installation_output(error, output, service):
+		sql.update_nginx(serv)
 
 	os.system("rm -f %s" % script)
-	sql.update_nginx(serv)
 
 
 def update_haproxy_wi(service):

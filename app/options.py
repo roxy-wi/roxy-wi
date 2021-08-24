@@ -1058,15 +1058,14 @@ if form.getvalue('master'):
 
     output, error = funct.subprocess_execute(commands[0])
 
-    funct.show_installation_output(error, output, 'master Keepalived')
+    if funct.show_installation_output(error, output, 'master Keepalived'):
+        sql.update_keepalived(master)
 
-    sql.update_keepalived(master)
-
-    if virt_server is not None:
-        group_id = sql.get_group_id_by_server_ip(master)
-        cred_id = sql.get_cred_id_by_server_ip(master)
-        hostname = sql.get_hostname_by_server_ip(master)
-        sql.add_server(hostname+'-VIP', IP, group_id, '1', '1', '0', cred_id, ssh_port, 'VRRP IP for '+master, haproxy, nginx, '0')
+        if virt_server != '0':
+            group_id = sql.get_group_id_by_server_ip(master)
+            cred_id = sql.get_cred_id_by_server_ip(master)
+            hostname = sql.get_hostname_by_server_ip(master)
+            sql.add_server(hostname+'-VIP', IP, group_id, '1', '1', '0', cred_id, ssh_port, 'VRRP IP for '+master, haproxy, nginx, '0')
 
 if form.getvalue('master_slave'):
     master = form.getvalue('master_slave')

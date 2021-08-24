@@ -8,7 +8,7 @@
 {% if smon_error != '' %}
 <div style="text-align: center;">
 	<br />
-	<h3>You do not have installed SMON service. Read <a href="https://roxy-wi.org/services.py?service=smon"
+	<h3>You have not installed SMON service. Read <a href="https://roxy-wi.org/services.py?service=smon"
 	title="Simple monitoring network ports with alerting via Telegram and WEB panel" target="_blank">here</a> how to install SMON service</h3>
 </div>
 {% elif smon_status.0 == 'failed' %}
@@ -19,21 +19,21 @@
 {% elif smon|length == 0 and action != 'add' and action != 'history' and action != 'checker_history' %}
 <div style="text-align: center;">
 	<br />
-	<h3>You do not have added servers in SMON service. Create you first server <a href="smon.py?action=add" title="Roxy-WI SMON" target="_blank">here</a> before use</h3>
+	<h3>You do not have added servers in SMON service. Create your first server <a href="smon.py?action=add" title="Roxy-WI SMON" target="_blank">here</a> before use</h3>
 	<br />
 	<iframe width="860" height="515" src="https://www.youtube.com/embed/bJtRJeHG5B0" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 </div>
 {% elif smon|length == 0 and action != 'add' and action == 'history' %}
 <div style="text-align: center;">
 	<br />
-	<h3>There are not any events yet. Check if there are any checks added <a href="smon.py?action=add" title="Roxy-WI SMON" target="_blank">here</a></h3>
+	<h3>No events added yet. Click here <a href="smon.py?action=add" title="Roxy-WI SMON" target="_blank">here</a> to see if new check have been added</h3>
 	<br />
 </div>
 {% elif smon|length == 0 and action != 'add' and action == 'checker_history' %}
 <div style="text-align: center;">
 	<br />
 	<h3>
-		There are not any events yet. Check if there are any Checker are enabled on the "<a href="hapservers.py" title="HAProxy Overview">HAProxy Overview</a>"
+		No events added yet. Check if there are any Checker are enabled on the "<a href="hapservers.py" title="HAProxy Overview">HAProxy Overview</a>"
 		or on "<a href="hapservers.py?service=nginx" title="Nginx Overview">Nginx Overview</a>" pages
 	</h3>
 	<br />
