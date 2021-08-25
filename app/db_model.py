@@ -39,7 +39,7 @@ class User(BaseModel):
 class Server(BaseModel):
     server_id = AutoField(column_name='id')
     hostname = CharField()
-    ip = CharField()
+    ip = CharField(constraints=[SQL('UNIQUE')])
     groups = CharField()
     type_ip = IntegerField(constraints=[SQL('DEFAULT 0')])
     enable = IntegerField(constraints=[SQL('DEFAULT 1')])

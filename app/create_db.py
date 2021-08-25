@@ -129,26 +129,6 @@ def update_db_v_3_4_5_22():
 		print('Cannot insert version %s' % e)
 
 
-def update_db_v_4(**kwargs):
-	data_source = [
-		{'param': 'nginx_path_error_logs', 'value': '/var/log/nginx/error.log', 'section': 'nginx', 'desc': 'Nginx error log', 'group': '1'},
-		{'param': 'nginx_stats_user', 'value': 'admin', 'section': 'nginx', 'desc': 'Username for Stats web page Nginx', 'group': '1'},
-		{'param': 'nginx_stats_password', 'value': 'password', 'section': 'nginx', 'desc': 'Password for Stats web page Nginx', 'group': '1'},
-		{'param': 'nginx_stats_port', 'value': '8086', 'section': 'nginx', 'desc': 'Stats port for web page Nginx', 'group': '1'},
-		{'param': 'nginx_stats_page', 'value': 'stats', 'section': 'nginx', 'desc': 'URI Stats for web page Nginx', 'group': '1'},
-		{'param': 'nginx_dir', 'value': '/etc/nginx/conf.d/', 'section': 'nginx', 'desc': 'Path to Nginx dir', 'group': '1'},
-		{'param': 'nginx_config_path', 'value': '/etc/nginx/conf.d/default.conf', 'section': 'nginx', 'desc': 'Path to Nginx config', 'group': '1'},
-		]
-
-	try:
-		Setting.insert_many(data_source).on_conflict_ignore().execute()
-	except:
-		pass
-	else:
-		if kwargs.get('silent') != 1:
-			print('Updating... one more for version 4.0.0')
-
-
 def update_db_v_41(**kwargs):
 	cursor = conn.cursor()
 	sql = """
@@ -750,7 +730,6 @@ def update_ver():
 def update_all():
 	if check_ver() is None:
 		update_db_v_3_4_5_22()
-	update_db_v_4()
 	update_db_v_41()
 	update_db_v_42()
 	update_db_v_4_3_0()
@@ -775,7 +754,6 @@ def update_all():
 def update_all_silent():
 	if check_ver() is None:
 		update_db_v_3_4_5_22()
-	update_db_v_4(silent=1)
 	update_db_v_41(silent=1)
 	update_db_v_42(silent=1)
 	update_db_v_4_3_0(silent=1)
