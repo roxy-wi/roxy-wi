@@ -481,7 +481,7 @@ ul{
 	min-height: calc(100vh - 95px);
 	font-size: 1.1em;
 }
-.menu a{
+.menu a {
 	background: var(--menu-color);
 	color: #fff;
 	padding: 10px;
@@ -490,11 +490,7 @@ ul{
 	transition: 0.5s all;
 	cursor: pointer;
 }
-.sidebar{
-	width: 200px;
-	margin: 20px;
-}
-.menu a:hover{
+.menu a:hover {
 	background: #48505A;
 	padding: 10px 0 10px 20px;
 	color: #fff;
@@ -509,8 +505,8 @@ ul{
 .menu li .v_menu li a{
 	border-radius: 0;
 }
-.p_menu{position: relative;}
-.v_menu{
+.p_menu {position: relative;}
+.v_menu {
 	position: absolute;
 	width: 100%;
 	left: 180px;
@@ -1237,4 +1233,9 @@ label {
 .copyToClipboard:active {
 	transition: .3s;
 	color: var(--link-dark-blue);
+}
+.list_of_lists {
+	float: left;
+	width: 250px;
+	cursor: pointer;
 }

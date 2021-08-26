@@ -942,12 +942,24 @@ $( function() {
 					var i;
 					var new_data = "";
 					data = data.split("\n");
-					
+					var j = 1
 					for (i = 0; i < data.length; i++) {
 						data[i] = data[i].replace(/\s+/g,' ');
-						new_data += ' <a onclick="view_ssl(\''+data[i]+'\')" style="cursor: pointer;" title="View this cert">'+data[i]+'</a> '
+						if (data[i] != '') {
+							if (j % 2) {
+								if (j != 0) {
+									new_data += '</span>'
+								}
+								new_data += '<span class="list_of_lists">'
+							} else {
+								new_data += '</span><span class="list_of_lists">'
+
+							}
+							j += 1
+							new_data += ' <a onclick="view_ssl(\'' + data[i] + '\')" title="View ' + data[i] + ' cert">' + data[i] + '</a> '
+						}
 					}
-					$("#ajax-show-ssl").html("<b>"+new_data+"</b>");					
+					$("#ajax-show-ssl").html(new_data);
 				} 
 			}
 		} );

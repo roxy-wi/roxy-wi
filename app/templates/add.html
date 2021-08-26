@@ -674,6 +674,7 @@
 				<td>
 					Uploaded certificates
 				</td>
+				<td></td>
 			</tr>
 			<tr>
 				<td class="padding10 first-collumn">
@@ -685,8 +686,8 @@
 					</select>
 					<button id="ssl_key_view" title="View certificates">View</button>
 				</td>
-				<td colspan="2">
-					<span  id="ajax-show-ssl"></span>
+				<td colspan="2" style="padding: 10px 0 10px 0;">
+					<span id="ajax-show-ssl"></span>
 				</td>
 			</tr>
 			<tr class="overviewHead">
@@ -1041,9 +1042,11 @@
 							{% endfor %}
 					</select>
 				</td>
-				<td style="width: 30%;">
+				<td style="width: 30%; padding: 10px 0 10px 0;">
 					{% for list in black_lists %}
-						<a onclick="editList('{{ list }}', 'black')" style="cursor: pointer;" title="Edit list {{ list }}">{{ list }}</a>
+					<span class="list_of_lists">
+						<a onclick="editList('{{ list }}', 'black')" title="Edit the {{ list }} list">{{ list }}</a>
+					</span>
 					{% endfor %}
 				</td>
 
@@ -1070,9 +1073,11 @@
 							{% endfor %}
 					</select>
 				</td>
-				<td style="width: 30%;">
+				<td style="width: 30%; padding: 10px 0 10px 0;">
 					{% for list in white_lists %}
-						<a onclick="editList('{{ list }}', 'white')" style="cursor: pointer;" title="Edit list {{ list }}">{{ list }}</a>
+					<span class="list_of_lists">
+						<a onclick="editList('{{ list }}', 'white')" title="Edit the {{ list }} list">{{ list }}</a>
+					</span>
 					{% endfor %}
 				</td>
 			</tr>
