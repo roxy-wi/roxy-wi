@@ -1327,6 +1327,7 @@ def check_service(serv, service_name):
 
 
 def get_services_status():
+	import distro
 	services = []
 	services_name = {'roxy-wi-checker': 'Checker backends master service',
 					 'roxy-wi-keep_alive': 'Auto start service',
@@ -1343,20 +1344,25 @@ def get_services_status():
 			service_name = s.split('_')[0]
 			if s == 'grafana-server':
 				service_name = 'grafana'
+		elif s == 'roxy-wi-keep_alive' and distro.id() == 'ubuntu':
+			service_name = 'roxy-wi-keep-alive'
 		else:
 			service_name = s
+
 		if service_name == 'prometheus':
 			cmd = "prometheus --version 2>&1 |grep prometheus|awk '{print $3}'"
 		else:
-			import distro
 			if distro.id() == 'ubuntu':
 				cmd = "apt list --installed 2>&1 |grep " + service_name + "|awk '{print $2}'|sed 's/-/./'"
 			else:
 				cmd = "rpm -q " + service_name + "|awk -F\"" + service_name + "\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
 		service_ver, stderr = subprocess_execute(cmd)
 
-		if service_ver[0] == 'command':
-			service_ver[0] = ''
+		try:
+			if service_ver[0] == 'command':
+				service_ver[0] = ''
+		except Exception:
+			pass
 
 		try:
 			services.append([s, status, v, service_ver[0]])
