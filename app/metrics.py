@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import funct
 import sql
+import distro
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('metrics.html')
@@ -12,12 +13,15 @@ print('Content-type: text/html\n')
 
 try:
 	user, user_id, role, token, servers, user_services = funct.get_users_params()
-	cmd = "rpm --query roxy-wi-metrics-* |awk -F\"metrics\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
+	if distro.id() == 'ubuntu':
+		cmd = "apt list --installed 2>&1 |grep roxy-wi-metrics"
+	else:
+		cmd = "rpm -q roxy-wi-metrics-* |awk -F\"metrics\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
 	service_ver, stderr = funct.subprocess_execute(cmd)
 	services = '0'
 
 	if not stderr:
-		if service_ver[0] == '* is not installed':
+		if service_ver[0] == '* is not installed' or service_ver == '':
 			servers = ''
 		else:
 			if service == 'nginx':

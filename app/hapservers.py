@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import funct
 import sql
+import distro
 from jinja2 import Environment, FileSystemLoader
 
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
@@ -59,7 +60,10 @@ for s, v in services_name.items():
         service_name = s.split('_')[0]
     else:
         service_name = s
-    cmd = "rpm --query " + service_name + "-* |awk -F\"" + service_name + "\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
+    if distro.id() == 'ubuntu':
+        cmd = "apt list --installed 2>&1 |grep " + service_name
+    else:
+        cmd = "rpm --query " + service_name + "-* |awk -F\"" + service_name + "\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
     service_ver, stderr = funct.subprocess_execute(cmd)
     try:
         services.append([s, service_ver[0]])

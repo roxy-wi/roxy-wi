@@ -124,7 +124,10 @@ def logging(serv, action, **kwargs):
 	try:
 		os.system('sudo chown apache:apache -R ' + log_path)
 	except Exception as e:
-		pass
+		try:
+			os.system('sudo chown www-data:www-data -R ' + log_path)
+		except Exception:
+			pass
 
 	if kwargs.get('alerting') == 1:
 		mess = get_data('date_in_log') + action + "\n"
@@ -737,7 +740,11 @@ def update_haproxy_wi(service):
 				service = service.split('_')[0]
 		except Exception:
 			pass
-	cmd = 'sudo -S yum -y update ' + service +' && sudo systemctl restart ' + service
+	import distro
+	if distro.id() == 'ubuntu':
+		cmd = 'sudo apt-get update && sudo apt-get install ' + service +' && sudo systemctl restart ' + service
+	else:
+		cmd = 'sudo -S yum -y update ' + service +' && sudo systemctl restart ' + service
 	output, stderr = subprocess_execute(cmd)
 	print(output)
 	print(stderr)
@@ -1341,7 +1348,11 @@ def get_services_status():
 		if service_name == 'prometheus':
 			cmd = "prometheus --version 2>&1 |grep prometheus|awk '{print $3}'"
 		else:
-			cmd = "rpm -q " + service_name + "|awk -F\"" + service_name + "\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
+			import distro
+			if distro.id() == 'ubuntu':
+				cmd = "apt list --installed 2>&1 |grep " + service_name + "|awk '{print $2}'|sed 's/-/./'"
+			else:
+				cmd = "rpm -q " + service_name + "|awk -F\"" + service_name + "\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
 		service_ver, stderr = subprocess_execute(cmd)
 
 		if service_ver[0] == 'command':

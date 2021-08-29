@@ -10,3 +10,4 @@ jinja2>=2.10.1
 slack-sdk>=3.4.0
 peewee>=3.14.4
 PyMySQL>=1.0.2
+distro>=1.2.0
