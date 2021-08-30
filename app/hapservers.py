@@ -115,10 +115,10 @@ for s in servers:
             servers_with_status.append(h)
             servers_with_status.append(s[17])
     else:
-        cmd = 'echo "show info" |nc %s %s -w 1 |grep -e "Ver\|Uptime:\|Process_num"' % (s[2], haproxy_sock_port)
+        cmd = 'echo "show info" |nc %s %s -w 1 -v|grep -e "Ver\|Uptime:\|Process_num"' % (s[2], haproxy_sock_port)
         out = funct.subprocess_execute(cmd)
         for k in out:
-            if "Ncat:" not in k:
+            if "Connection refused" not in k:
                 out1 = out
             else:
                 out1 = False

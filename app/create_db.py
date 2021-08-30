@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
+import distro
 from sql import out_error
 from db_model import *
 from funct import check_ver
 
 
 def default_values():
+	if distro.id() == 'ubuntu':
+		apache_dir = 'apache2'
+	else:
+		apache_dir = 'httpd'
 	data_source = [
 		{'param': 'time_zone', 'value': 'UTC', 'section': 'main', 'desc': 'Time Zone', 'group': '1'},
 		{'param': 'proxy', 'value': '', 'section': 'main', 'desc': 'IP address and port of the proxy server. Use proto://ip:port', 'group': '1'},
@@ -53,7 +58,7 @@ def default_values():
 		{'param': 'haproxy_enterprise', 'value': '0', 'section': 'haproxy',
 		 'desc': 'If you use enterprise HAProxy, set the value of this parameter to 1. The name of the service will be changed as it is required for the commercial version',
 		 'group': '1'},
-		{'param': 'apache_log_path', 'value': '/var/log/httpd/', 'section': 'logs', 'desc': 'Path to Apache logs',
+		{'param': 'apache_log_path', 'value': '/var/log/'+apache_dir+'/', 'section': 'logs', 'desc': 'Path to Apache logs',
 		 'group': '1'},
 		{'param': 'nginx_path_error_logs', 'value': '/var/log/nginx/error.log', 'section': 'nginx',
 		 'desc': 'Nginx error log', 'group': '1'},

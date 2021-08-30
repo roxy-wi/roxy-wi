@@ -100,6 +100,8 @@ def get_user_group(**kwargs):
 def logging(serv, action, **kwargs):
 	import sql
 	import http.cookies
+	import distro
+
 	log_path = get_config_var('main', 'log_path')
 	try:
 		user_group = get_user_group()
@@ -122,12 +124,12 @@ def logging(serv, action, **kwargs):
 		login = ''
 
 	try:
-		os.system('sudo chown apache:apache -R ' + log_path)
-	except Exception as e:
-		try:
+		if distro.id() == 'ubuntu':
 			os.system('sudo chown www-data:www-data -R ' + log_path)
-		except Exception:
-			pass
+		else:
+			os.system('sudo chown apache:apache -R ' + log_path)
+	except Exception:
+		pass
 
 	if kwargs.get('alerting') == 1:
 		mess = get_data('date_in_log') + action + "\n"
