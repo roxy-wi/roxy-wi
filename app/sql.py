@@ -11,7 +11,10 @@ def out_error(error):
 	try:
 		funct.logging('localhost', error, haproxywi=1, login=1)
 	except Exception:
-		funct.logging('localhost', error, haproxywi=1)
+		try:
+			funct.logging('localhost', error, haproxywi=1)
+		except Exception:
+			pass
 	print('error: '+error)
 
 

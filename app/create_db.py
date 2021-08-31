@@ -111,8 +111,9 @@ def default_values():
 		out_error(e)
 
 	data_source = [
-		{'name': 'admin', 'description': 'Can do everything'},
-		{'name': 'editor', 'description': 'Can edit configs'},
+		{'name': 'superAdmin', 'description': 'Has the highest level of administrative permissions and controls the actions of all other users'},
+		{'name': 'admin', 'description': 'Has access everywhere except the Admin area'},
+		{'name': 'editor', 'description': 'Has the same rights as the admin but has no access to the Servers page'},
 		{'name': 'guest', 'description': 'Read-only access'}
 	]
 
@@ -260,7 +261,7 @@ def update_db_v_4_5_1(**kwargs):
 		sql.append("update role set name = 'superAdmin' where id = '1';")
 		sql.append("update role set name = 'admin', `description` = 'Has access everywhere except the Admin area' where id = '2';")
 		sql.append("update role set id = '4' where id = '3';")
-		sql.append("INSERT  INTO role (id, name, `description`) values('3', 'editor', 'Has the same as the admin except the Servers page');")
+		sql.append("INSERT INTO role (id, name, `description`) values('3', 'editor', 'Has the same as the admin except the Servers page');")
 		sql.append("update user set role = 'superAdmin' where role = 'admin';")
 		sql.append("update user set role = 'admin' where role = 'editor';")
 		for i in sql:

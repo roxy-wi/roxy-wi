@@ -113,13 +113,13 @@ HTTP status check: {{s.http.split(':')[0]}}://{{s.ip}}:{{s.port}}{{s.http.split(
          {% elif s.http_status == 0 %}
             <div class="down">
                  <center style="padding-top: 7px;">
-                      HTTP IS FAILURE
+                      HTTP FAILURE
                  </center>
             </div>
          {% elif s.body_status == 0 %}
             <div class="down">
                  <center style="padding-top: 7px;">
-                      BODY IS FAILURE
+                      BODY FAILURE
                  </center>
             </div>
          {% elif s.status == 3 %}
@@ -131,7 +131,7 @@ HTTP status check: {{s.http.split(':')[0]}}://{{s.ip}}:{{s.port}}{{s.http.split(
          {% else %}
             <div class="down">
                 <center style="padding-top: 7px;">
-                    PORT IS DOWN
+                    PORT DOWN
                 </center>
             </div>
          {% endif %}
