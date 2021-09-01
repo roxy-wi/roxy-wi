@@ -237,7 +237,11 @@ def update_db_v_4_3_2_1(**kwargs):
 
 		except Exception as e:
 			if kwargs.get('silent') != 1:
-				if str(e) == 'columns param, group are not unique' or str(e) == '(1062, "Duplicate entry \'haproxy_enterprise-1\' for key \'param\'")':
+				if (
+						str(e) == 'columns param, group are not unique' or
+						str(e) == '(1062, "Duplicate entry \'haproxy_enterprise-1\' for key \'param\'")' or
+						str(e) == 'UNIQUE constraint failed: settings.param, settings.group'
+				):
 					pass
 				else:
 					print("An error occurred:", e)
@@ -594,7 +598,11 @@ def update_db_v_4_5_8_2(**kwargs):
 
 		except Exception as e:
 			if kwargs.get('silent') != 1:
-				if str(e) == 'columns param, group are not unique'  or str(e) == '(1062, "Duplicate entry \'maxmind_key-1\' for key \'param\'")':
+				if (
+						str(e) == 'columns param, group are not unique' or
+						str(e) == '(1062, "Duplicate entry \'maxmind_key-1\' for key \'param\'")' or
+						str(e) == 'UNIQUE constraint failed: settings.param, settings.group'
+				):
 					pass
 				else:
 					print("An error occurred:", e)
@@ -686,7 +694,11 @@ def update_db_v_5_2_0(**kwargs):
 					   desc='How many days to keep the history for the Port scanner service').execute()
 	except Exception as e:
 		if kwargs.get('silent') != 1:
-			if str(e) == 'columns param, group are not unique' or str(e) == '(1062, "Duplicate entry \'portscanner_keep_history_range-1\' for key \'param\'")':
+			if (
+					str(e) == 'columns param, group are not unique' or
+					str(e) == '(1062, "Duplicate entry \'portscanner_keep_history_range-1\' for key \'param\'")' or
+					str(e) == 'UNIQUE constraint failed: settings.param, settings.group'
+			):
 				pass
 			else:
 				print("An error occurred:", e)

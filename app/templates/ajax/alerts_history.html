@@ -37,6 +37,7 @@
     <tbody>
     {% if smon != '' %}
     {% for t in smon %}
+    {% set date_time = t.4|string %}
     <tr>
         <td class="padding10" style="width: 10%; padding: 7px 7px 7px 10px;">
             {% if t.1 == 'info' %}
@@ -51,9 +52,9 @@
         <td>{{t.3}}</td>
         {% endif %}
         <td>{{t.0}}</td>
-        <td>{{t.4.split(' ')[0]}}
+        <td>{{date_time.split(' ')[0]}}
         </td>
-        <td>{{t.4.split(' ')[1]}}</td>
+        <td>{{date_time.split(' ')[1]}}</td>
     </tr>
     {% endfor %}
     {% else %}

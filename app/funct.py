@@ -1006,11 +1006,11 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 		apache_log_path = sql.get_setting('apache_log_path')
 
 		if serv == 'roxy-wi.access.log':
-			cmd = "cat {}| awk -F\"/|:\" '$3>\"{}:00\" && $3<\"{}:00\"' |tail -{} {} {}".format(apache_log_path+"/"+serv, date, date1, rows, grep_act, exgrep_act)
+			cmd = "sudo cat {}| awk -F\"/|:\" '$3>\"{}:00\" && $3<\"{}:00\"' |tail -{} {} {}".format(apache_log_path+"/"+serv, date, date1, rows, grep_act, exgrep_act)
 		elif serv == 'roxy-wi.error.log':
-			cmd = "cat {}| awk '$4>\"{}:00\" && $4<\"{}:00\"' |tail -{} {} {}".format(apache_log_path+"/"+serv, date, date1, rows, grep_act, exgrep_act)
+			cmd = "sudo cat {}| awk '$4>\"{}:00\" && $4<\"{}:00\"' |tail -{} {} {}".format(apache_log_path+"/"+serv, date, date1, rows, grep_act, exgrep_act)
 		elif serv == 'fail2ban.log':
-			cmd = "cat {}| awk -F\"/|:\" '$3>\"{}:00\" && $3<\"{}:00\"' |tail -{} {} {}".format("/var/log/"+serv, date, date1, rows, grep_act, exgrep_act)
+			cmd = "sudo cat {}| awk -F\"/|:\" '$3>\"{}:00\" && $3<\"{}:00\"' |tail -{} {} {}".format("/var/log/"+serv, date, date1, rows, grep_act, exgrep_act)
 
 		output, stderr = subprocess_execute(cmd)
 		
@@ -1361,7 +1361,7 @@ def get_services_status():
 		service_ver, stderr = subprocess_execute(cmd)
 
 		try:
-			if service_ver[0] == 'command':
+			if service_ver[0] == 'command' or service_ver[0] == 'prometheus:':
 				service_ver[0] = ''
 		except Exception:
 			pass

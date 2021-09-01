@@ -8,6 +8,7 @@ mysql_enable = funct.get_config_var('mysql', 'enable')
 
 def out_error(error):
 	error = str(error)
+	print('error: ' + error)
 	try:
 		funct.logging('localhost', error, haproxywi=1, login=1)
 	except Exception:
@@ -15,7 +16,6 @@ def out_error(error):
 			funct.logging('localhost', error, haproxywi=1)
 		except Exception:
 			pass
-	print('error: '+error)
 
 
 def add_user(user, email, password, role, activeuser, group):
@@ -1224,7 +1224,7 @@ def select_nginx_metrics(serv, **kwargs):
 def insert_waf_metrics_enable(serv, enable):
 	try:
 		server_id = Server.get(Server.ip == serv).server_id
-		Waf.inser(server_id=server_id, metrics=enable).execute()
+		Waf.insert(server_id=server_id, metrics=enable).execute()
 	except Exception as e:
 		out_error(e)
 
