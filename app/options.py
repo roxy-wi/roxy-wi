@@ -816,8 +816,6 @@ if serv is not None and act == "showMap":
     print('<center>')
     print("<h4>Map from %s</h4><br />" % serv)
 
-    G = nx.DiGraph()
-
     error = funct.get_config(serv, cfg)
     if error:
         print(error)
@@ -826,37 +824,36 @@ if serv is not None and act == "showMap":
     except IOError:
         print('error: Can\'t read import config file')
 
+    G = nx.DiGraph()
     node = ""
     line_new2 = [1, ""]
-    i, k = 800, 800
-    j = 0
+    sections = {'listens': dict(), 'backends': dict()}
+
     for line in conf:
         if line.startswith('listen') or line.startswith('frontend'):
             if "stats" not in line:
                 node = line
-                i = i - 750
         if line.find("backend") == 0:
             node = line
-            i = i - 700
-            G.add_node(node, pos=(k, i), label_pos=(k, i + 100))
+            node = node.split('\n')[0]
+            sections['backends'][node] = {'servers': dict()}
 
         if "bind" in line or (line.startswith('listen') and ":" in line) or (
                 line.startswith('frontend') and ":" in line):
             try:
                 bind = line.split(":")
-                if stats_port not in bind[1]:
+                if str(stats_port) not in bind[1]:
                     bind[1] = bind[1].strip(' ')
                     bind = bind[1].split("crt")
                     node = node.strip(' \t\n\r')
                     node = node + ":" + bind[0]
-                    G.add_node(node, pos=(k, i), label_pos=(k, i + 100))
-            except Exception:
+                    node = node.split('\n')[0]
+                    sections['listens'][node] = {'servers': dict()}
+            except Exception as e:
                 pass
 
         if "server " in line or "use_backend" in line or "default_backend" in line and "stats" not in line and "#" not in line:
             if "timeout" not in line and "default-server" not in line and "#" not in line and "stats" not in line:
-                i = i - 1050
-                j = j + 1
                 if "check" in line:
                     line_new = line.split("check")
                 else:
@@ -875,29 +872,133 @@ if serv is not None and act == "showMap":
                 except Exception as e:
                     backend_server_port = ''
 
-                if j % 2 == 0:
-                    G.add_node(line_new[0], pos=(k + 250, i - 335), label_pos=(k + 215, i - 180))
-                else:
-                    G.add_node(line_new[0], pos=(k - 250, i - 0), label_pos=(k - 245, i + 180))
+                try:
+                    sections['listens'][node]['servers'][line_new[0]] = {line_new[0]: backend_server_port}
+                except Exception as e:
+                    pass
 
-                if line_new2[1] != "":
-                    G.add_edge(node, line_new[0], port=backend_server_port)
-                else:
-                    G.add_edge(node, line_new[0], port='')
+                try:
+                    sections['backends'][node]['servers'][line_new[0]] = {line_new[0]: backend_server_port}
+                except Exception as e:
+                    pass
 
     os.system("/bin/rm -f " + cfg)
+
+    i, k, j = 0, 0, 0
+    backend_servers_len_dict = 1
+    backends_from_frontends = []
+    backends_servers = []
+
+    for key, val in sections.items():
+        if key == 'listens':
+            for k2, v2 in val.items():
+                i -= 750
+                G.add_node(k2, pos=(k, i), label_pos=(k, i + 250))
+
+                for k3, v3 in v2.items():
+                    for k4, v4 in v3.items():
+                        """ Add backend servers of listens or backend from frontends """
+                        i -= 300
+                        j += 1
+                        server_name = k4
+
+                        if 'default_backend' in k4 or 'use_backend' in k4:
+                            backend_name = k4.split(' ')[1]
+                            backend_name = 'backend ' + backend_name
+                            k4 = backend_name
+                            backends_from_frontends.append(k4)
+
+                        if k4 not in backends_servers:
+                            if j % 2 == 0:
+                                G.add_node(k4, pos=(k + 250, i - 100), label_pos=(k + 250, i - 420))
+                            else:
+                                G.add_node(k4, pos=(k - 250, i - 370), label_pos=(k - 245, i - 650))
+
+                        if v4[server_name] != '':
+                            G.add_edge(k2, k4, port=v4[server_name])
+                        else:
+                            G.add_edge(k2, k4, port='')
+
+                    for k4, v4 in v3.items():
+                        """ Add servers from backends  """
+                        i -= 300
+                        j -= 1
+
+                        if 'default_backend' in k4 or 'use_backend' in k4:
+                            backend_name = k4.split(' ')[1]
+                            backend_name = 'backend ' + backend_name
+                            k4 = backend_name
+                            backends_from_frontends.append(k4)
+
+                            if j % 2 == 0:
+                                if len(v3) % 2 == 0:
+                                    i += (700 * backend_servers_len_dict) + 700
+                                for k5, v5 in sections['backends'][k4]['servers'].items():
+                                    i -= 700
+                                    s = k + 400
+                                    G.add_node(k5, pos=(s + 250, i - 335), label_pos=(s + 215, i - 580))
+
+                                    if v5[k5] != '':
+                                        G.add_edge(k4, k5, port=v5[k5])
+                                    else:
+                                        G.add_edge(k4, k5, port='')
+
+                                    backends_servers.append(k5)
+                            else:
+                                for k5, v5 in sections['backends'][k4]['servers'].items():
+                                    i -= 700
+                                    s = k - 400
+                                    G.add_node(k5, pos=(s - 250, i - 0), label_pos=(s - 245, i - 270))
+
+                                    if v5[k5] != '':
+                                        G.add_edge(k4, k5, port=v5[k5])
+                                    else:
+                                        G.add_edge(k4, k5, port='')
+
+                                    backends_servers.append(k5)
+                                backend_servers_len_dict = len(sections['backends'][k4]['servers'])
+
+                        backends_servers.append(k4)
+
+        elif key == 'backends':
+            for k2, v2 in val.items():
+
+                if k2 not in backends_from_frontends:
+                    i -= 750
+                    G.add_node(k2, pos=(k, i), label_pos=(k, i + 250))
+
+                for k3, v3 in v2.items():
+                    for k4, v4 in v3.items():
+
+                        if k4 not in backends_servers:
+                            i -= 300
+                            j += 1
+
+                            if j % 2 == 0:
+                                s = k + 400
+                                G.add_node(k4, pos=(s + 250, i - 335), label_pos=(s + 215, i - 580))
+                            else:
+                                s = k - 400
+                                G.add_node(k4, pos=(s - 250, i - 0), label_pos=(s - 245, i - 270))
+
+                        if v4[k4] != '':
+                            G.add_edge(k2, k4, port=v4[k4])
+                        else:
+                            G.add_edge(k2, k4, port='')
+
+                        backends_servers.append(k4)
 
     pos = nx.get_node_attributes(G, 'pos')
     pos_label = nx.get_node_attributes(G, 'label_pos')
     edge_labels = nx.get_edge_attributes(G, 'port')
 
     try:
-        plt.figure(10, figsize=(10, 15))
+        plt.figure(10, figsize=(10, 20))
         nx.draw(G, pos, with_labels=False, font_weight='bold', width=3, alpha=0.1, linewidths=5)
-        nx.draw_networkx_nodes(G, pos, node_color="skyblue", node_size=100, alpha=0.8, node_shape="p")
-        nx.draw_networkx_labels(G, pos=pos_label, alpha=1, font_color="green", font_size=10)
-        nx.draw_networkx_edges(G, pos, width=0.5, alpha=0.5, edge_color="#5D9CEB", arrows=False)
-        nx.draw_networkx_edge_labels(G, pos, label_pos=0.5, font_color="blue", edge_labels=edge_labels, font_size=8)
+        nx.draw_networkx_nodes(G, pos, node_color="#5d9ceb", node_size=100, alpha=0.8, node_shape="h")
+        nx.draw_networkx_labels(G, pos=pos_label, alpha=1, font_color="#5CB85C", font_size=10)
+        nx.draw_networkx_edges(G, pos, width=0.3, alpha=0.7, edge_color="#5D9CEB", arrows=False)
+        nx.draw_networkx_edge_labels(G, pos, alpha=0.4, label_pos=0.5, font_color="#5d9ceb", edge_labels=edge_labels, font_size=8)
 
         plt.savefig("map.png")
         plt.show()
@@ -908,7 +1009,6 @@ if serv is not None and act == "showMap":
         os.getcwd()) + "/map" + date + ".png"
     output, stderr = funct.subprocess_execute(cmd)
     print(stderr)
-
     print('<img src="/map%s.png" alt="map">' % date)
 
 if form.getvalue('servaction') is not None:
@@ -1974,11 +2074,11 @@ if form.getvalue('updategroup') is not None:
     if name is None:
         print(error_mess)
     else:
-        group = sql.select_groups(id=group_id)
-        for g in group:
-            groupname = g[1]
-        sql.update_group(name, descript, group_id)
-        funct.logging('the group ' + groupname, ' has update  ', haproxywi=1, login=1)
+        try:
+            sql.update_group(name, descript, group_id)
+            funct.logging('the group ' + groupname, ' has been updated  ', haproxywi=1, login=1)
+        except Exception as e:
+            print('error: ' + str(e))
 
 if form.getvalue('new_ssh'):
     user_group = funct.get_user_group()
@@ -2058,7 +2158,8 @@ if form.getvalue('ssh_cert'):
     user_group = funct.get_user_group()
     name = form.getvalue('name')
     key = paramiko.pkey.load_private_key(form.getvalue('ssh_cert'))
-    ssh_keys = os.path.dirname(os.getcwd()) + '/keys/' + name + '.pem'
+    full_dir = '/var/www/haproxy-wi/keys/'
+    ssh_keys = full_dir + name + '.pem'
 
     try:
         split_name = name.split('_')[1]
@@ -2069,10 +2170,10 @@ if form.getvalue('ssh_cert'):
     if not os.path.isfile(ssh_keys) and not split_name:
         name = name + '_' + user_group
 
-    if not os.path.exists(os.getcwd() + '/keys/'):
-        os.makedirs(os.getcwd() + '/keys/')
+    if not os.path.exists(full_dir):
+        os.makedirs(full_dir)
 
-    ssh_keys = os.path.dirname(os.getcwd()) + '/keys/' + name + '.pem'
+    ssh_keys = full_dir + name + '.pem'
 
     try:
         cloud = sql.is_cloud()
@@ -2080,10 +2181,10 @@ if form.getvalue('ssh_cert'):
             key.write_private_key_file(ssh_keys, password=cloud)
         else:
             key.write_private_key_file(ssh_keys)
-    except IOError:
-        print('error: Cannot save SSH key file. Check SSH keys path in config')
+    except IOError as e:
+        print('error: Cannot save SSH key file. ', str(e))
     else:
-        print('success: SSH key has been saved into: %s </div>' % ssh_keys)
+        print('success: SSH key has been saved into: %s ' % ssh_keys)
 
     try:
         cmd = 'chmod 600 %s' % ssh_keys
@@ -3474,7 +3575,7 @@ if form.getvalue('load_update_hapwi'):
     print(template)
 
 if form.getvalue('loadopenvpn'):
-    import platform
+    import distro
     from jinja2 import Environment, FileSystemLoader
     env = Environment(loader=FileSystemLoader('templates'))
     template = env.get_template('ajax/load_openvpn.html')
@@ -3487,7 +3588,7 @@ if form.getvalue('loadopenvpn'):
     except Exception:
         os_name = ''
 
-    if os_name == 'CentOS Linux' or os_name == 'Red Hat Enterprise Linux Server':
+    if distro.id() != 'ubuntu':
         stdout, stderr = funct.subprocess_execute("rpm --query openvpn3-client")
         if stdout[0] != 'package openvpn3-client is not installed' and stderr != '/bin/sh: rpm: command not found':
             cmd = "sudo openvpn3 configs-list |grep -E 'ovpn|(^|[^0-9])[0-9]{4}($|[^0-9])' |grep -v net|awk -F\"    \" '{print $1}'|awk 'ORS=NR%2?\" \":\"\\n\"'"

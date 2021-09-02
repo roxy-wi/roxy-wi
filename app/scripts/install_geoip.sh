@@ -28,6 +28,11 @@ PWD=$(pwd)
 PWD=$PWD/scripts/ansible/
 echo "$HOST ansible_port=$SSH_PORT" > $PWD/$HOST
 
+if [[ $maxmind_key == "" ]]; then
+  echo "error: the Maxmind key cannot be empty"
+  exit 1
+fi
+
 if [[ $KEY == "" ]]; then
 	ansible-playbook $PWD/roles/geoip.yml -e "ansible_user=$USER ansible_ssh_pass=$PASS variable_host=$HOST PROXY=$PROXY UPDATE=$UPDATE haproxy_dir=$haproxy_dir maxmind_key=$maxmind_key SSH_PORT=$SSH_PORT" -i $PWD/$HOST
 else

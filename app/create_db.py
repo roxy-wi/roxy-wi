@@ -730,20 +730,54 @@ def update_db_v_5_2_4_1(**kwargs):
 	except Exception as e:
 		if kwargs.get('silent') != 1:
 			if str(e) == 'duplicate column name: nginx_metrics' or str(e) == '(1060, "Duplicate column name \'nginx_metrics\'")':
-				print('Updating... DB has been updated to version 5.2.4')
+				print('Updating... DB has been updated to version 5.2.4-1')
 			else:
 				print("An error occurred:", e)
 	else:
-		print("Updating... DB has been updated to version 5.2.4")
+		print("Updating... DB has been updated to version 5.2.4-1")
+
+
+def update_db_v_5_2_5(**kwargs):
+	query = Role.update(name='user').where(Role.name == 'editor')
+	try:
+		query.execute()
+	except Exception as e:
+		if kwargs.get('silent') != 1:
+			if str(e) == 'column name is not unique' or str(e) == '(1060, "column name is not unique")':
+				print('Updating... DB has been updated to version 5.2.5-1')
+			else:
+				print("An error occurred:", e)
+	else:
+		print("Updating... DB has been updated to version 5.2.5")
+
+
+def update_db_v_5_2_5_1():
+	query = User.update(role='user').where(User.role == 'editor')
+	try:
+		query.execute()
+	except Exception as e:
+		print("An error occurred:", e)
+	else:
+		print("Updating... DB has been updated to version 5.2.5-1")
+
+
+def update_db_v_5_2_5_2():
+	query = Role.delete().where(Role.name == 'editor')
+	try:
+		query.execute()
+	except Exception as e:
+		print("An error occurred:", e)
+	else:
+		print("Updating... DB has been updated to version 5.2.5-2")
 
 
 def update_ver():
-	query = Version.update(version = '5.2.4.0')
+	query = Version.update(version='5.2.5.0')
 	try:
 		query.execute()
 	except:
 		print('Cannot update version')
-	 
+
 
 def update_all():
 	if check_ver() is None:
@@ -766,6 +800,9 @@ def update_all():
 	update_db_v_5_2_0()
 	update_db_v_5_2_4()
 	update_db_v_5_2_4_1()
+	update_db_v_5_2_5()
+	update_db_v_5_2_5_1()
+	update_db_v_5_2_5_2()
 	update_ver()
 
 
@@ -790,6 +827,9 @@ def update_all_silent():
 	update_db_v_5_2_0(silent=1)
 	update_db_v_5_2_4(silent=1)
 	update_db_v_5_2_4_1(silent=1)
+	update_db_v_5_2_5(silent=1)
+	update_db_v_5_2_5_1(silent=1)
+	update_db_v_5_2_5_2(silent=1)
 	update_ver()
 
 
