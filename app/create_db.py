@@ -751,7 +751,7 @@ def update_db_v_5_2_5(**kwargs):
 		print("Updating... DB has been updated to version 5.2.5")
 
 
-def update_db_v_5_2_5_1():
+def update_db_v_5_2_5_1(**kwargs):
 	query = User.update(role='user').where(User.role == 'editor')
 	try:
 		query.execute()
@@ -761,7 +761,7 @@ def update_db_v_5_2_5_1():
 		print("Updating... DB has been updated to version 5.2.5-1")
 
 
-def update_db_v_5_2_5_2():
+def update_db_v_5_2_5_2(**kwargs):
 	query = Role.delete().where(Role.name == 'editor')
 	try:
 		query.execute()
