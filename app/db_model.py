@@ -31,6 +31,8 @@ class User(BaseModel):
     ldap_user = IntegerField(default=0)
     activeuser = IntegerField(default=1)
     user_services = CharField(constraints=[SQL('DEFAULT "1 2 3"')])
+    last_login_date = DateTimeField(default=datetime.now)
+    last_login_ip = CharField()
 
     class Meta:
         table_name = 'user'

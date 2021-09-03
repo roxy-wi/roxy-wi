@@ -748,7 +748,8 @@ def update_db_v_5_2_5(**kwargs):
 			else:
 				print("An error occurred:", e)
 	else:
-		print("Updating... DB has been updated to version 5.2.5")
+		if kwargs.get('silent') != 1:
+			print("Updating... DB has been updated to version 5.2.5")
 
 
 def update_db_v_5_2_5_1(**kwargs):
@@ -758,7 +759,8 @@ def update_db_v_5_2_5_1(**kwargs):
 	except Exception as e:
 		print("An error occurred:", e)
 	else:
-		print("Updating... DB has been updated to version 5.2.5-1")
+		if kwargs.get('silent') != 1:
+			print("Updating... DB has been updated to version 5.2.5-1")
 
 
 def update_db_v_5_2_5_2(**kwargs):
@@ -768,7 +770,23 @@ def update_db_v_5_2_5_2(**kwargs):
 	except Exception as e:
 		print("An error occurred:", e)
 	else:
-		print("Updating... DB has been updated to version 5.2.5-2")
+		if kwargs.get('silent') != 1:
+			print("Updating... DB has been updated to version 5.2.5-2")
+
+
+def update_db_v_5_2_5_3(**kwargs):
+	cursor = conn.cursor()
+	sql = list()
+	sql.append("alter table user add column last_login_date timestamp default '0000-00-00 00:00:00'")
+	sql.append("alter table user add column last_login_ip VARCHAR ( 64 )")
+	for i in sql:
+		try:
+			cursor.execute(i)
+		except:
+			pass
+	else:
+		if kwargs.get('silent') != 1:
+			print('Updating... DB has been updated to version 5.2.5-3')
 
 
 def update_ver():
@@ -803,6 +821,7 @@ def update_all():
 	update_db_v_5_2_5()
 	update_db_v_5_2_5_1()
 	update_db_v_5_2_5_2()
+	update_db_v_5_2_5_3()
 	update_ver()
 
 
@@ -830,6 +849,7 @@ def update_all_silent():
 	update_db_v_5_2_5(silent=1)
 	update_db_v_5_2_5_1(silent=1)
 	update_db_v_5_2_5_2(silent=1)
+	update_db_v_5_2_5_3(silent=1)
 	update_ver()
 
 

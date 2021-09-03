@@ -32,7 +32,7 @@ try:
 
 			i += 1
 
-		cmd = "ps ax |grep 'metrics_worker\|metrics_waf_worker.py'|grep -v grep|grep '%s' |wc -l" % servers_for_grep
+		cmd = "ps ax |grep 'metrics_worker\|metrics_waf_worker.py\|metrics_nginx_worker.py'|grep -v grep|grep '%s' |wc -l" % servers_for_grep
 		metrics_worker, stderr = funct.subprocess_execute(cmd)
 		cmd = "ps ax |grep 'checker_worker\|checker_nginx'|grep -v grep |grep '%s' |wc -l" % servers_for_grep
 		checker_worker, stderr = funct.subprocess_execute(cmd)
@@ -49,8 +49,8 @@ try:
 		prometheus = ''
 		host = ''
 	else:
-		users = sql.select_users()
-		cmd = "ps ax |grep 'metrics_worker\|metrics_waf_worker.py' |grep -v grep |wc -l"
+		users = sql.select_users(online=1)
+		cmd = "ps ax |grep 'metrics_worker\|metrics_waf_worker.py\|metrics_nginx_worker.py' |grep -v grep |wc -l"
 		metrics_worker, stderr = funct.subprocess_execute(cmd)
 		cmd = "ps ax |grep 'checker_worker\|checker_nginx' |grep -v grep |wc -l"
 		checker_worker, stderr = funct.subprocess_execute(cmd)
@@ -80,7 +80,7 @@ try:
 	cmd = "systemctl is-active roxy-wi-portscanner"
 	port_scanner, stderr = funct.subprocess_execute(cmd)
 
-except:
+except Exception as e:
 	role = ''
 	user = ''
 	users = ''
@@ -101,6 +101,7 @@ except:
 	is_checker_worker = ''
 	is_metrics_worker = ''
 	token = ''
+	print(str(e))
 
 
 template = template.render(h2=1,

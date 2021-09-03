@@ -286,9 +286,16 @@
 	</tr>
 </table>
 {% if role <= 2 %}
+	{% if role == 2 %}
+		{% set admin_uri = 'servers.py' %}
+	{% elif role == 1 %}
+		{% set admin_uri = 'users.py' %}
+	{% endif %}
 	<table class="overview-wi">
 		<tr class="overviewHead">
-			<td class="padding10 first-collumn-wi">Login</td>
+			<td class="padding10 first-collumn-wi">
+				<a href="{{admin_uri}}#users" title="Manage users" class="logs_link">Login</a>
+			</td>
 			<td class="second-collumn">Groups</td>
 			<td>Role</td>
 			<td>
@@ -299,20 +306,18 @@
 				</span>
 			</td>
 		</tr>
-		{% if role == 2 %}
-			{% set admin_uri = 'servers.py' %}
-		{% elif role == 1 %}
-			{% set admin_uri = 'users.py' %}
-		{% endif %}
 		{% set counter = 0 %}
 		{% for USER in users %}
 			{% set counter = counter + loop.index0 %}
 			{% if counter <= 2 %}
 				<tr class="{{ loop.cycle('odd', 'even') }}">
-					<td class="padding10 first-collumn-wi"> 
-						<a href="{{admin_uri}}#users" title="Edit user" class="logs_link div-pic">
-							{{ USER.username }}
-						</a>
+					<td class="padding10 first-collumn-wi">
+						{% if USER.last_login %}
+						<span class="serverUp" style="margin-right: 5px;" title="{{USER.username}} is online"></span>
+						{% else %}
+						<span class="serverNone" style="margin-right: 5px;" title="{{USER.username}} is offline"></span>
+						{% endif %}
+						{{ USER.username }}
 					</td>
 					<td class="third-collumn-wi">
 						{% for group in users_groups %}
@@ -326,9 +331,12 @@
 			{% else %}
 				<tr style="display: none;" class="show-users {{ loop.cycle('odd', 'even') }}">
 					<td class="padding10 first-collumn-wi"> 
-						<a href="users.py#users" title="Edit user" class="logs_link div-pic">
-							{{ USER.username }}
-						</a>
+						{% if USER.last_login %}
+						<span class="serverUp" style="margin-right: 5px;" title="{{USER.username}} is online"></span>
+						{% else %}
+						<span class="serverNone" style="margin-right: 5px;" title="{{USER.username}} is offline"></span>
+						{% endif %}
+						{{ USER.username }}
 					</td>
 					<td class="third-collumn-wi">
 						{% for group in users_groups %}
@@ -346,7 +354,9 @@
 {% if role <= 1 %}
 	<table class="overview-wi">
 		<tr class="overviewHead">
-			<td class="padding10 first-collumn-wi">Group</td> 
+			<td class="padding10 first-collumn-wi">
+				<a href="users.py#groups" title="Manage groups" class="logs_link">Group</a>
+			</td>
 			<td class="second-collumn" style="width: 40%">Description</td>
 			<td>
 			<span class="add-button-wi">
@@ -362,18 +372,14 @@
 			{% if counter <= 2 %}
 			<tr class="{{ loop.cycle('odd', 'even') }}">
 				<td class="padding10 first-collumn-wi"> 
-					<a href="users.py#groups" title="Edit groups" class="logs_link div-pic">
-							{{ group.name }}
-					</a>			
+					{{ group.name }}
 				</td>
 				<td class="third-collumn-wi" colspan="2">{{ group.description }}</td>
 			</tr>
 			{% else %}
 			<tr style="display: none;" class="show-groups {{ loop.cycle('odd', 'even') }}">
-				<td class="padding10 first-collumn-wi"> 
-					<a href="users.py#groups" title="Edit groups" class="logs_link div-pic">
-							{{ group.name }}
-					</a>			
+				<td class="padding10 first-collumn-wi">
+					{{ group.name }}
 				</td>
 				<td class="third-collumn-wi" colspan="2">{{ group.description }}</td>
 			</tr>

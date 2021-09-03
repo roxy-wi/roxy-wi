@@ -313,8 +313,18 @@ def select_users(**kwargs):
 				 join(UserGroups, on=(User.user_id == UserGroups.user_id)).
 				 where(UserGroups.user_group_id == kwargs.get("group"))
 				 )
+	elif kwargs.get('online') is not None:
+		query = (User.
+				 select(
+					User,
+					Case(0, [((
+						User.last_login_date >= funct.get_data('regular', timedelta_minutes_minus=15)
+							  ), 0)], 1).alias('last_login')
+				)
+			)
 	else:
 		query = User.select().order_by(User.user_id)
+
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -490,15 +500,13 @@ def write_user_uuid(login, user_uuid):
 
 
 def write_user_token(login, user_token):
-	token_ttl = int(get_setting('token_ttl'))
-
 	try:
 		user_id = User.get(User.username == login)
 	except Exception as e:
 		out_error(e)
 
 	try:
-		Token.insert(user_id=user_id, token=user_token, exp=funct.get_data('regular', timedelta=token_ttl)).execute()
+		Token.insert(user_id=user_id, token=user_token, exp=funct.get_data('regular')).execute()
 	except Exception as e:
 		out_error(e)
 
@@ -570,8 +578,9 @@ def delete_uuid(uuid):
 
 
 def delete_old_uuid():
+	token_ttl = int(get_setting('token_ttl'))
 	query = UUID.delete().where((UUID.exp < funct.get_data('regular')) | (UUID.exp.is_null(True)) )
-	query1 = Token.delete().where((Token.exp < funct.get_data('regular')) | (Token.exp.is_null(True)) )
+	query1 = Token.delete().where((Token.exp > funct.get_data('regular', timedelta=token_ttl)) | (Token.exp.is_null(True)) )
 	try:
 		query.execute()
 		query1.execute()
@@ -579,12 +588,25 @@ def delete_old_uuid():
 		out_error(e)
 
 
-def update_last_act_user(uuid):
+def update_last_act_user(uuid, token):
 	session_ttl = int(get_setting('session_ttl'))
+	token_ttl = int(get_setting('token_ttl'))
+	try:
+		import cgi
+		import os
+		ip = cgi.escape(os.environ["REMOTE_ADDR"])
+	except Exception:
+		ip = ''
+
+	user_id = get_user_id_by_uuid(uuid)
 
 	query = UUID.update(exp=funct.get_data('regular', timedelta=session_ttl)).where(UUID.uuid == uuid)
+	query1 = Token.update(exp=funct.get_data('regular', timedelta=token_ttl)).where(Token.token == token)
+	query2 = User.update(last_login_date=funct.get_data('regular'), last_login_ip=ip).where(User.user_id == user_id)
 	try:
 		query.execute()
+		query1.execute()
+		query2.execute()
 	except Exception as e:
 		out_error(e)
 

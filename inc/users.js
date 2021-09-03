@@ -2117,7 +2117,7 @@ function updateService(service) {
 				toastr.error(data);
 			} else if (data.indexOf('Complete!') != '-1'){
 				toastr.clear();
-				toastr.success('Update was success!');
+				toastr.success(service + ' has been updated');
 			} else if (data.indexOf('Unauthorized') != '-1') {
 				toastr.clear();
 				toastr.error('It seems like Unauthorized in the Roxy-WI repository. How to get Roxy-WI auth you can read <b><a href="https://haproxy-wi.org/installation.py" title="How to get Roxy-WI auth">hear</a></b>');

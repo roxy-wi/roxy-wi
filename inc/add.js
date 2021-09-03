@@ -1527,7 +1527,7 @@ function createList(color) {
 		},
 		type: "POST",
 		success: function( data ) {
-			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
+			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1' || data.indexOf('Errno') != '-1') {
 				toastr.error(data);
 			} else if (data.indexOf('Info') != '-1' ){
 				toastr.clear();
@@ -1591,8 +1591,8 @@ function editList(list, color) {
 }
 function saveList(action, list, color) {
 	var serv = $( "#serv-"+color+"-list option:selected" ).val();
-	if (serv == 'Choose server') {
-		toastr.warning('Choose a server before updating');
+	if (serv == '------') {
+		toastr.warning('Select a server before updating');
 	} else {
 		$.ajax({
 			url: "options.py",
@@ -1611,7 +1611,7 @@ function saveList(action, list, color) {
 
 				for (i = 0; i < data.length; i++) {
 					if (data[i]) {
-						if (data[i].indexOf('error: ') != '-1') {
+						if (data[i].indexOf('error: ') != '-1' || data[i].indexOf('Errno') != '-1') {
 							toastr.error(data[i]);
 						} else {
 							toastr.success(data[i]);
@@ -1638,7 +1638,7 @@ function deleteList(list, color) {
 			},
 			type: "POST",
 			success: function (data) {
-				if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
+				if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1' || data.indexOf('Errno') != '-1') {
 					toastr.error(data);
 				} else if (data.indexOf('Info') != '-1' ){
 					toastr.clear();

@@ -58,6 +58,16 @@ def get_data(log_type, **kwargs):
 			now_utc = datetime.now(timezone(sql.get_setting('time_zone'))) - timedelta(days=kwargs.get('timedelta_minus'))
 		except Exception:
 			now_utc = datetime.now(timezone('UTC')) - timedelta(days=kwargs.get('timedelta_minus'))
+	elif kwargs.get('timedelta_minutes'):
+		try:
+			now_utc = datetime.now(timezone(sql.get_setting('time_zone'))) + timedelta(minutes=kwargs.get('timedelta_minutes'))
+		except Exception:
+			now_utc = datetime.now(timezone('UTC')) + timedelta(minutes=kwargs.get('timedelta_minutes'))
+	elif kwargs.get('timedelta_minutes_minus'):
+		try:
+			now_utc = datetime.now(timezone(sql.get_setting('time_zone'))) - timedelta(minutes=kwargs.get('timedelta_minutes_minus'))
+		except Exception:
+			now_utc = datetime.now(timezone('UTC')) - timedelta(minutes=kwargs.get('timedelta_minutes_minus'))
 	else:
 		try:
 			now_utc = datetime.now(timezone(sql.get_setting('time_zone')))
@@ -242,7 +252,6 @@ def check_login(**kwargs):
 	sql.delete_old_uuid()
 
 	if user_uuid is not None:
-		sql.update_last_act_user(user_uuid.value)
 		if sql.get_user_name_by_uuid(user_uuid.value) is None:
 			print('<meta http-equiv="refresh" content="0; url=login.py?ref=%s">' % ref)
 			return False
@@ -255,6 +264,9 @@ def check_login(**kwargs):
 			else:
 				print('<meta http-equiv="refresh" content="0; url=overview.py">')
 				return False
+
+		user, user_uuid, role, token, servers, user_services = get_users_params()
+		sql.update_last_act_user(user_uuid.value, token)
 	else:
 		print('<meta http-equiv="refresh" content="0; url=login.py?ref=%s">' % ref)
 		return False
@@ -336,11 +348,11 @@ def ssh_connect(serv):
 
 	try:
 		if ssh_enable == 1:
-			cloud = sql.is_cloud()
-			if cloud != '':
-				k = paramiko.pkey.load_private_key_file(ssh_key_name, password=cloud)
-			else:
-				k = paramiko.pkey.load_private_key_file(ssh_key_name)
+			# cloud = sql.is_cloud()
+			# if cloud != '':
+			# 	k = paramiko.pkey.load_private_key_file(ssh_key_name, password=cloud)
+			# else:
+			k = paramiko.pkey.load_private_key_file(ssh_key_name)
 			ssh.connect(hostname=serv, port=ssh_port, username=ssh_user_name, pkey=k, timeout=11, banner_timeout=200)
 		else:
 			ssh.connect(hostname=serv, port=ssh_port, username=ssh_user_name, password=ssh_user_password, timeout=11, banner_timeout=200)
@@ -736,15 +748,14 @@ def install_nginx(serv, **kwargs):
 
 
 def update_haproxy_wi(service):
-	if service != 'roxy-wi':
-		try:
-			if service != 'keep_alive':
-				service = service.split('_')[0]
-		except Exception:
-			pass
 	import distro
 	if distro.id() == 'ubuntu':
-		cmd = 'sudo apt-get update && sudo apt-get install ' + service +' && sudo systemctl restart ' + service
+		try:
+			if service == 'roxy-wi-keep_alive':
+				service = 'roxy-wi-keep-alive'
+		except Exception:
+			pass
+		cmd = 'sudo -S apt-get update && sudo apt-get install ' + service +' && sudo systemctl restart ' + service
 	else:
 		cmd = 'sudo -S yum -y update ' + service +' && sudo systemctl restart ' + service
 	output, stderr = subprocess_execute(cmd)

@@ -281,15 +281,15 @@ if form.getvalue('list_select_id') is not None:
 if form.getvalue('list_id_for_delete') is not None:
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
     lists_path = sql.get_setting('lists_path')
-    fullpath = funct.get_config_var('main', 'fullpath')
+    full_path = funct.get_config_var('main', 'fullpath')
     ip_id = form.getvalue('list_ip_id_for_delete')
     ip = form.getvalue('list_ip_for_delete')
     list_id = form.getvalue('list_id_for_delete')
     list_name = form.getvalue('list_name')
     user_group = funct.get_user_group(id=1)
 
-    cmd = "sed -i 's!%s$!!' %s/%s/%s/%s" % (ip, fullpath, lists_path, user_group, list_name)
-    cmd1 = "sed -i '/^$/d' %s/%s/%s/%s" % (fullpath, lists_path, user_group, list_name)
+    cmd = "sed -i 's!%s$!!' %s/%s/%s/%s" % (ip, full_path, lists_path, user_group, list_name)
+    cmd1 = "sed -i '/^$/d' %s/%s/%s/%s" % (full_path, lists_path, user_group, list_name)
     output, stderr = funct.subprocess_execute(cmd)
     output1, stderr1 = funct.subprocess_execute(cmd1)
     if output:
@@ -2176,11 +2176,11 @@ if form.getvalue('ssh_cert'):
     ssh_keys = full_dir + name + '.pem'
 
     try:
-        cloud = sql.is_cloud()
-        if cloud != '':
-            key.write_private_key_file(ssh_keys, password=cloud)
-        else:
-            key.write_private_key_file(ssh_keys)
+        # cloud = sql.is_cloud()
+        # if cloud != '':
+        #     key.write_private_key_file(ssh_keys, password=cloud)
+        # else:
+        key.write_private_key_file(ssh_keys)
     except IOError as e:
         print('error: Cannot save SSH key file. ', str(e))
     else:
