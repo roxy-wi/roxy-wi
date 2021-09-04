@@ -49,7 +49,7 @@ try:
 		prometheus = ''
 		host = ''
 	else:
-		users = sql.select_users(online=1)
+		users = sql.select_users()
 		cmd = "ps ax |grep 'metrics_worker\|metrics_waf_worker.py\|metrics_nginx_worker.py' |grep -v grep |wc -l"
 		metrics_worker, stderr = funct.subprocess_execute(cmd)
 		cmd = "ps ax |grep 'checker_worker\|checker_nginx' |grep -v grep |wc -l"

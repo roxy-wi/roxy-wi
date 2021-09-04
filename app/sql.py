@@ -309,21 +309,22 @@ def select_users(**kwargs):
 		query = User.select().where(User.user_id == kwargs.get("id"))
 	elif kwargs.get("group") is not None:
 		query = (User.
-				 select().
+				 select(
+					User,
+					UserGroups,
+					Case(0, [((
+						User.last_login_date >= funct.get_data('regular', timedelta_minutes_minus=15)
+							  ), 0)], 1).alias('last_login')).
 				 join(UserGroups, on=(User.user_id == UserGroups.user_id)).
 				 where(UserGroups.user_group_id == kwargs.get("group"))
 				 )
-	elif kwargs.get('online') is not None:
-		query = (User.
-				 select(
+	else:
+		query = User.select(
 					User,
 					Case(0, [((
 						User.last_login_date >= funct.get_data('regular', timedelta_minutes_minus=15)
 							  ), 0)], 1).alias('last_login')
-				)
-			)
-	else:
-		query = User.select().order_by(User.user_id)
+				).order_by(User.user_id)
 
 	try:
 		query_res = query.execute()
@@ -500,13 +501,15 @@ def write_user_uuid(login, user_uuid):
 
 
 def write_user_token(login, user_token):
+	token_ttl = int(get_setting('token_ttl'))
+
 	try:
 		user_id = User.get(User.username == login)
 	except Exception as e:
 		out_error(e)
 
 	try:
-		Token.insert(user_id=user_id, token=user_token, exp=funct.get_data('regular')).execute()
+		Token.insert(user_id=user_id, token=user_token, exp=funct.get_data('regular', timedelta=token_ttl)).execute()
 	except Exception as e:
 		out_error(e)
 
@@ -556,8 +559,8 @@ def get_username_groupid_from_api_token(token):
 
 
 def get_token(uuid):
+	query = Token.select().join(UUID, on=(Token.user_id == UUID.user_id)).where(UUID.uuid == uuid).limit(1)
 	try:
-		query = Token.select().join(UUID, on=(Token.user_id == UUID.user_id)).where(UUID.uuid == uuid).limit(1)
 		query_res = query.execute()
 	except Exception as e:
 		out_error(e)
@@ -578,9 +581,8 @@ def delete_uuid(uuid):
 
 
 def delete_old_uuid():
-	token_ttl = int(get_setting('token_ttl'))
-	query = UUID.delete().where((UUID.exp < funct.get_data('regular')) | (UUID.exp.is_null(True)) )
-	query1 = Token.delete().where((Token.exp > funct.get_data('regular', timedelta=token_ttl)) | (Token.exp.is_null(True)) )
+	query = UUID.delete().where((UUID.exp < funct.get_data('regular')) | (UUID.exp.is_null(True)))
+	query1 = Token.delete().where((Token.exp < funct.get_data('regular')) | (Token.exp.is_null(True)))
 	try:
 		query.execute()
 		query1.execute()
@@ -1473,7 +1475,7 @@ def select_metrics_http(serv, **kwargs):
 
 def select_servers_metrics_for_master(**kwargs):
 	if kwargs.get('group') is not None:
-		query = Server.select(Server.ip).where((Server.metrics == 1) & (Server.groups == kwargs.get(group)))
+		query = Server.select(Server.ip).where((Server.metrics == 1) & (Server.groups == kwargs.get('group')))
 	else:
 		query = Server.select(Server.ip).where(Server.metrics == 1)
 	try:
