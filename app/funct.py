@@ -92,6 +92,7 @@ def get_data(log_type, **kwargs):
 def get_user_group(**kwargs):
 	import sql
 	import http.cookies
+	user_group = ''
 
 	try:
 		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
@@ -855,7 +856,7 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		else:
 			commands = [check_and_move + " && sudo systemctl restart nginx"]
 		if sql.return_firewall(server_ip):
-			commands[0] += open_port_firewalld(cfg, serv=server_ip, service='nginx')
+			commands[0] += open_port_firewalld(cfg, server_ip=server_ip, service='nginx')
 	else:
 		haproxy_enterprise = sql.get_setting('haproxy_enterprise')
 
@@ -876,7 +877,7 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		else:
 			commands = [check_config + move_config + " && sudo systemctl restart "+haproxy_service_name+""]
 		if sql.return_firewall(server_ip):
-			commands[0] += open_port_firewalld(cfg, serv=server_ip)
+			commands[0] += open_port_firewalld(cfg, server_ip=server_ip)
 	error += str(upload(server_ip, tmp_file, cfg, dir='fullpath'))
 
 	try:
@@ -989,6 +990,7 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 	exgrep = form.getvalue('exgrep')
 	date = hour+':'+minut
 	date1 = hour1+':'+minut1
+	cmd = ''
 
 	if grep is not None:
 		grep_act = '|egrep "%s"' % grep
