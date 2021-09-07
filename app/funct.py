@@ -1409,4 +1409,5 @@ def is_service_active(server_ip: str, service_name: str):
 	cmd = ['systemctl is-active ' + service_name]
 
 	out = ssh_command(server_ip, cmd)
-	return True if 'active' in out else False
+	out = out.strip()
+	return True if 'active' == out else False
