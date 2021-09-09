@@ -26,7 +26,7 @@
             <td>
                 <select id="do_create_group">
                 {% for group in groups %}
-					<option value="{{ group.0 }}">{{ group.1 }}</option>
+					<option value="{{ group.group_id }}">{{ group.name }}</option>
                 {% endfor %}
                 </select>
             </td>
@@ -207,7 +207,7 @@
             <td>
                 <select id="aws_create_group">
                 {% for group in groups %}
-					<option value="{{ group.0 }}">{{ group.1 }}</option>
+					<option value="{{ group.group_id }}">{{ group.name }}</option>
                 {% endfor %}
                 </select>
             </td>
@@ -357,7 +357,7 @@
             <td>
                 <select id="gcore_create_group">
                 {% for group in groups %}
-					<option value="{{ group.0 }}">{{ group.1 }}</option>
+					<option value="{{ group.group_id }}">{{ group.name }}</option>
                 {% endfor %}
                 </select>
             </td>
