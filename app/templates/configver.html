@@ -35,7 +35,7 @@
 		</center>
 	{% endif %}
 	{% if aftersave %}
-		<div class="alert alert-info">Was uploaded old version of config: {{ configver }} </div>
+		<div class="alert alert-info">The following version of the configuration file has been uploaded and saved as: {{ configver }} </div>
 		{% if stderr or error %}
 			{% include 'include/errors.html' %}	
 		{% else %}
