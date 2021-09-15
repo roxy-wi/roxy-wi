@@ -1,0 +1,57 @@
+{% set counter = 0 %}
+{% for USER in users %}
+	{% set counter = counter + loop.index0 %}
+	{% if counter <= 2 %}
+	    <tr class="{{ loop.cycle('odd', 'even') }}">
+            <td class="padding10 first-collumn-wi">
+                {% if USER.last_login %}
+                <span class="serverUp" style="margin-right: 5px;" title="{{USER.username}} is online"></span>
+                {% else %}
+                <span class="serverNone" style="margin-right: 5px;" title="{{USER.username}} is offline"></span>
+                {% endif %}
+                {% if USER.last_login_date == '0000-00-00 00:00:00' %}
+                    {% set last_login_date = 'Never' %}
+                {% else %}
+                    {% set last_login_date = USER.last_login_date %}
+                {% endif %}
+                <span title="Last activity: {{last_login_date}}, IP: {{USER.last_login_ip}}">{{ USER.username }}</span>
+			</td>
+			<td class="third-collumn-wi">
+			    {% for group in users_groups %}
+				    {% if USER.user_id|string() == group.user_id|string() %}
+					    {{ group.groups.name }}
+					{% endif %}
+				{% endfor %}
+			</td>
+			<td>{{ USER.role }}</td>
+            <td></td>
+            <td></td>
+		</tr>
+	{% else %}
+	    <tr style="display: none;" class="show-users {{ loop.cycle('odd', 'even') }}">
+		    <td class="padding10 first-collumn-wi">
+			    {% if USER.last_login %}
+				<span class="serverUp" style="margin-right: 5px;" title="{{USER.username}} is online"></span>
+				{% else %}
+				<span class="serverNone" style="margin-right: 5px;" title="{{USER.username}} is offline"></span>
+				{% endif %}
+				{% if USER.last_login_date == '0000-00-00 00:00:00' %}
+				    {% set last_login_date = 'Never' %}
+				{% else %}
+				    {% set last_login_date = USER.last_login_date %}
+				{% endif %}
+				<span title="Last activity: {{last_login_date}}, IP: {{USER.last_login_ip}}">{{ USER.username }}</span>
+			</td>
+			<td class="third-collumn-wi">
+			    {% for group in users_groups %}
+				    {% if group.user_id|string() == USER.user_id|string() %}
+					    {{ group.groups.name }}{{ "," if not loop.last }}
+					{% endif %}
+				{% endfor %}
+			</td>
+			<td>{{ USER.role }}</td>
+            <td></td>
+            <td></td>
+		</tr>
+	{% endif %}
+{% endfor %}

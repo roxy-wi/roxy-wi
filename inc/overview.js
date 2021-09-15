@@ -58,7 +58,8 @@ function overviewHapserverBackends(serv, hostnamea, service) {
 	} );
 }
 function showOverview(serv, hostnamea) {
-	showOverviewHapWI()
+	showOverviewHapWI();
+	showUsersOverview();
 	var i;
 	for (i = 0; i < serv.length; i++) { 
 		showOverviewCallBack(serv[i], hostnamea[i])
@@ -232,6 +233,19 @@ $( function() {
 			});
 			$(window).blur(function () {
 				clearInterval(ChartsIntervalId);
+			});
+		}
+	} catch (e) {
+		console.log(e);
+	}
+	try {
+		if (cur_url[0] == 'overview.py') {
+			UsersShowIntervalId = setInterval(showUsersOverview, 600000);
+			$(window).focus(function () {
+				UsersShowIntervalId = setInterval(showUsersOverview, 600000);
+			});
+			$(window).blur(function () {
+				clearInterval(UsersShowIntervalId);
 			});
 		}
 	} catch (e) {
@@ -427,4 +441,86 @@ function showNginxConnections(serv) {
 			}
 		}
 	} );
+}
+function showUsersOverview() {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			show_users_ovw: 1,
+			token: $('#token').val()
+		},
+		type: "POST",
+		beforeSend: function() {
+			$("#users-table").html('<img class="loading_small_bin_bout" style="padding-left: 100%;padding-top: 40px;padding-bottom: 40px;" src="/inc/images/loading.gif" />');
+		},
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if (data.indexOf('error:') != '-1') {
+				toastr.error(data);
+			} else {
+				$("#users-table").html(data);
+			}
+		}
+	} );
+}
+function serverSettings(id, name) {
+	var service = $('#service').val();
+	$.ajax({
+		url: "options.py",
+		data: {
+			serverSettings: id,
+			serverSettingsService: service,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('error:') != '-1') {
+				toastr.error(data);
+			} else {
+				$("#dialog-settings-service").html(data)
+				$( "input[type=checkbox]" ).checkboxradio();
+				$("#dialog-settings-service").dialog({
+					resizable: false,
+					height: "auto",
+					width: 400,
+					modal: true,
+					title: "Settings for " + name,
+					buttons: {
+						"Save": function () {
+							$(this).dialog("close");
+							serverSettingsSave(id, name, service, $(this));
+						},
+						Cancel: function () {
+							$(this).dialog("close");
+						}
+					}
+				});
+			}
+		}
+	});
+}
+function serverSettingsSave(id, name, service, dialog_id) {
+	var haproxy_enterprise = 0;
+	if ($('#haproxy_enterprise').is(':checked')) {
+		haproxy_enterprise = '1';
+	}
+	$.ajax({
+		url: "options.py",
+		data: {
+			serverSettingsSave: id,
+			serverSettingsService: service,
+			serverSettingsEnterprise: haproxy_enterprise,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('error:') != '-1') {
+				toastr.error(data);
+			} else {
+				dialog_id.dialog('close');
+			}
+		}
+	});
 }

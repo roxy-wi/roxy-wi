@@ -2,24 +2,11 @@
 {% block content %}	
 {% from 'include/input_macros.html' import input, checkbox, select, copy_to_clipboard %}
 <script src="/inc/overview.js"></script>
-{% if serv %}
+<link href="/inc/chart.min.css" rel="stylesheet">
+<script src="/inc/metrics.js"></script>
+<script src="/inc/chart.min.js"></script>
+{% if servers|length == 0 %} {% include 'include/getstarted.html' %} {% endif %}
 <style>
-@media (max-width: 1280px) {
-	.div-pannel {
-		height: 430px !important;
-	}
-}
-</style>
-{% endif %}
-<style>
-.alert-danger {
-	width: 250px;
-	display: inline-block;
-	height: 15px;
-	padding-top: 0px;
-	padding-bottom: 8px;
-	margin-bottom: -20px !important;
-}
 .ui-checkboxradio-label {
 	padding-bottom: 5px !important;
 	padding-top: 5px !important;
@@ -64,19 +51,9 @@
 		{% endfor %}
 	});
 </script>
-{% if serv %}
-	<div id="up-pannel">
-{% else %}
-	<div id="up-pannel" class="sortable">
-{% endif %}
-	{% if servers|length == 0 %}
-		{% include 'include/getstarted.html' %}
-	{% endif %}
+<div id="up-pannel" {%if not serv%} class="sortable"{%endif%}>
 	{% for s in servers %}
 		{% if serv %}
-			<link href="/inc/chart.min.css" rel="stylesheet">
-			<script src="/inc/metrics.js"></script>
-			<script src="/inc/chart.min.js"></script>
 			<script>
 				var server_ip = '{{s.2}}'
 				function showMetrics() {
@@ -113,26 +90,29 @@
 			</script>
 		{% endif %}
 		{% if service == 'nginx' %}
-			{% set checker_desc = 'Checker monitors Nginx services. If Nginx service is down, Checker will alert via Telegram' %}
+			{% set checker_desc = 'Checker monitors Nginx services. If Nginx service is down, Checker will alert via Telegram and/or Slack' %}
 			{% set is_auto_start_enabled = s.8.0.17 %}
 			{% set is_checker_enabled = s.8.0.19 %}
 			{% set is_metrics_enabled = s.8.0.21 %}
+			{% set action_service = 'nginx' %}
 			{% if s.5.0.1 == 'active' %}
 				{% set additional_status_class = 'div-server-head-up' %}
 			{% else %}
 				{% set additional_status_class = 'div-server-head-down' %}
 			{% endif %}
 		{% elif service == 'keepalived' %}
+			{% set action_service = 'keepalived' %}
 			{% if s.5.0.1 == 'active' %}
 				{% set additional_status_class = 'div-server-head-up' %}
 			{% else %}
 				{% set additional_status_class = 'div-server-head-down' %}
 			{% endif %}
 		{% elif service == 'haproxy' %}
-			{% set checker_desc = 'Checker monitors HAProxy services and its backends. If some backend or HAProxy service is down, Checker will alert via Telegram' %}
+			{% set checker_desc = 'Checker monitors HAProxy services, its backends and maxconn. If some backend or HAProxy service is down, Checker will alert via Telegram and/or Slack' %}
 			{% set is_auto_start_enabled = s.8.0.12 %}
 			{% set is_checker_enabled = s.8.0.8 %}
 			{% set is_metrics_enabled = s.8.0.9 %}
+			{% set action_service = 'hap' %}
 			{% if s.5 != False %}
 				{% set additional_status_class = 'div-server-head-up' %}
 			{% else %}
@@ -147,7 +127,7 @@
 					{% if s.5.0.1 == 'active' %}
 						<span class="serverUp server-status" title="Started: {{s.5.0.4}}"></span>
 					{% else %}
-						<span class="serverDown server-status" title="Stopped: : {{s.5.0.4}}"></span>
+						<span class="serverDown server-status" title="Stopped: {{s.5.0.4}}"></span>
 					{% endif %}
 				{% else %}
 					{% if s.5 != False %}
@@ -157,16 +137,16 @@
 					{% endif %}
 				{% endif %}
 				{% if not serv %}
-						<a href="/app/hapservers.py?service={{service}}&serv={{s.2}}" title="More about {{s.1}}" style="color: #5d9ceb">{{s.1}}</a>
-					{% else %}
-						{{s.1}}
-					{% endif %}
+					<a href="/app/hapservers.py?service={{service}}&serv={{s.2}}" title="More about {{s.1}}" style="color: #5d9ceb">{{s.1}}</a>
+				{% else %}
+					{{s.1}}
+				{% endif %}
 				{% if s.6|int() >= 1  and service != 'keepalived' %}
 					<span
 						{% if keep_alive|int() >= 1 %}
-						class="shield green" title="Auto start is enabled">
+						class="shield green" title="Autostart is enabled">
 						{% else %}
-						class="shield red" title="Auto start is enabled, but Keep alive service does not work">
+						class="shield red" title="Autostart is enabled, but Keep alive service is not running">
 						{% endif %}
 					</span>
 				{% endif %}
@@ -175,13 +155,6 @@
 				{% endif %}
 				{% if role <= 2 %}
 				<span class="server-action">
-					{% if service == 'nginx' %}
-						{% set action_service = 'nginx' %}
-					{% elif service == 'keepalived' %}
-						{% set action_service = 'keepalived' %}
-					{% else %}
-						{% set action_service = 'hap' %}
-					{% endif %}
 					<a id="start-{{ s.2 }}" class="start" title="Start {{service}} service">
 						<span class="service-start" onclick="confirmAjaxAction('start', '{{action_service}}', '{{s.2}}')"></span>
 					</a>
@@ -194,6 +167,9 @@
 					<a id="stop-{{ s.2 }}" class="stop" title="Stop {{service}} service">
 						<span class="service-stop" onclick="confirmAjaxAction('stop', '{{action_service}}', '{{s.2}}')"></span>
 					</a>
+					{% if service != 'nginx' and service != 'keepalived' %}
+					<span class="menu-bar" onclick="serverSettings('{{s.0}}', '{{s.1}}')" title="Edit settings for {{s.1}} service" style="margin: 0 0 0 10px;"></span>
+					{% endif %}
 				</span>
 				{% endif %}
 			</div>
@@ -229,7 +205,7 @@
 				<br />
 				IP: {{ copy_to_clipboard(value=s.2, style='font-weight: bold') }}
 				{% if s.7.0.0 != None %}
-				Master for: <b>{{ s.7.0.1 }}</b>
+					Master for: <b>{{ copy_to_clipboard(value=s.7.0.1, style='font-weight: bold') }}</b>
 				{% endif %}
 				{% if s.9.0 == '1' %}
 					VRRP status: <b>
@@ -332,6 +308,7 @@
 <div id="dialog-confirm" style="display: none;">
   <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>Are you sure?</p>
 </div>
+<div id="dialog-settings-service" style="display: none;"></div>
 <script>
 	{% if serv %}
 		overviewHapserverBackends(ip, hostnamea, '{{service}}');

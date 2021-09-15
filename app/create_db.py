@@ -55,9 +55,6 @@ def default_values():
 		 'desc': 'Socket port for HAProxy', 'group': '1'},
 		{'param': 'haproxy_sock_port', 'value': '1999', 'section': 'haproxy', 'desc': 'HAProxy sock port',
 		 'group': '1'},
-		{'param': 'haproxy_enterprise', 'value': '0', 'section': 'haproxy',
-		 'desc': 'If you use enterprise HAProxy, set the value of this parameter to 1. The name of the service will be changed as it is required for the commercial version',
-		 'group': '1'},
 		{'param': 'apache_log_path', 'value': '/var/log/'+apache_dir+'/', 'section': 'logs', 'desc': 'Path to Apache logs',
 		 'group': '1'},
 		{'param': 'nginx_path_error_logs', 'value': '/var/log/nginx/error.log', 'section': 'nginx',
@@ -213,40 +210,6 @@ def update_db_v_4_4_2_1(**kwargs):
 				print("An error occurred:", e)
 	else:
 		print("DB has been updated to 4.4.2")
-
-
-
-def update_db_v_4_3_2_1(**kwargs):
-	groups = ''
-	query = Groups.select()
-
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		groups = query_res
-
-	for g in groups:
-		try:
-			Setting.insert(param='haproxy_enterprise',
-						   value=0,
-						   section='haproxy',
-						   desc='Use this option, if your HAProxy is enterprise. It changes service name for rebooting/reloading',
-						   group=g.group_id).execute()
-
-		except Exception as e:
-			if kwargs.get('silent') != 1:
-				if (
-						str(e) == 'columns param, group are not unique' or
-						str(e) == '(1062, "Duplicate entry \'haproxy_enterprise-1\' for key \'param\'")' or
-						str(e) == 'UNIQUE constraint failed: settings.param, settings.group'
-				):
-					pass
-				else:
-					print("An error occurred:", e)
-		else:
-			print("Updating... groups")
 
 
 def update_db_v_4_5_1(**kwargs):
@@ -789,8 +752,19 @@ def update_db_v_5_2_5_3(**kwargs):
 			print('Updating... DB has been updated to version 5.2.5-3')
 
 
+def update_db_v_5_2_6(**kwargs):
+	query = Setting.delete().where(Setting.param == 'haproxy_enterprise')
+	try:
+		query.execute()
+	except Exception as e:
+		print("An error occurred:", e)
+	else:
+		if kwargs.get('silent') != 1:
+			print("Updating... DB has been updated to version 5.2.6")
+
+
 def update_ver():
-	query = Version.update(version='5.2.5.0')
+	query = Version.update(version='5.2.6.0')
 	try:
 		query.execute()
 	except:
@@ -805,7 +779,6 @@ def update_all():
 	update_db_v_4_3_0()
 	update_db_v_4_3_1()
 	update_db_v_4_4_2_1()
-	update_db_v_4_3_2_1()
 	update_db_v_4_5_1()
 	update_db_v_4_5_4()
 	update_db_v_4_5_7()
@@ -833,7 +806,6 @@ def update_all_silent():
 	update_db_v_4_3_0(silent=1)
 	update_db_v_4_3_1(silent=1)
 	update_db_v_4_4_2_1(silent=1)
-	update_db_v_4_3_2_1(silent=1)
 	update_db_v_4_5_1(silent=1)
 	update_db_v_4_5_4(silent=1)
 	update_db_v_4_5_7(silent=1)

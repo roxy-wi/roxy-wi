@@ -1,0 +1,30 @@
+{% from 'include/input_macros.html' import checkbox %}
+<table class="overview">
+    {% if service == 'haproxy' %}
+        {% if settings %}
+            {% for s in settings %}
+                {% if s.haproxy_enterprise != '' %}
+                        <tr>
+                            <td class="padding20 help_cursor" style="width: 70%" title="If you use enterprise HAProxy, check this. The name of the service will be changed as it is required for the commercial version
+">HAProxy Enterprise</td>
+                            <td>
+                                {% if s.value == '1' and s.setting == 'haproxy_enterprise' %}
+                                    {{ checkbox('haproxy_enterprise', checked='checked', title='This server uses HAProxy enterprise') }}
+                                {% else %}
+                                    {{ checkbox('haproxy_enterprise', title='This server uses HAProxy community') }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+             <tr>
+                <td class="padding20 help_cursor" style="width: 70%" title="If you use enterprise HAProxy, check this. The name of the service will be changed as it is required for the commercial version
+">HAProxy Enterprise</td>
+                <td>
+                    {{ checkbox('haproxy_enterprise', title='This server uses HAProxy community') }}
+                </td>
+            </tr>
+        {% endif %}
+    {% endif %}
+</table>

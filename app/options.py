@@ -148,8 +148,12 @@ if form.getvalue('backend_ip') is not None:
             cmd = 'echo "set server %s/%s addr %s port %s check-port %s" |nc %s %s' % (backend_backend, backend_server, backend_ip, backend_port, backend_port, master[0], haproxy_sock_port)
             output, stderr = funct.subprocess_execute(cmd)
             print(output[0])
+            funct.logging(master[0], 'IP address and port have been changed. On: {}/{} to {}:{}'.format(backend_backend, backend_server, backend_ip, backend_port),
+                          login=1, keep_history=1, service='haproxy')
 
     cmd = 'echo "set server %s/%s addr %s port %s check-port %s" |nc %s %s' % (backend_backend, backend_server, backend_ip, backend_port, backend_port, serv, haproxy_sock_port)
+    funct.logging(serv, 'IP address and port have been changed. On: {}/{} to {}:{}'.format(backend_backend, backend_server, backend_ip, backend_port),
+                  login=1, keep_history=1, service='haproxy')
     output, stderr = funct.subprocess_execute(cmd)
 
     if stderr != '':
@@ -185,11 +189,15 @@ if form.getvalue('maxconn_frontend') is not None:
             else:
                 cmd = 'echo "set maxconn frontend %s %s" |nc %s %s' % (frontend, maxconn, master[0], haproxy_sock_port)
             output, stderr = funct.subprocess_execute(cmd)
+        funct.logging(master[0], 'Maxconn has been changed. On: {} to {}'.format(frontend, maxconn), login=1, keep_history=1,
+                      service='haproxy')
 
     if frontend == 'global':
         cmd = 'echo "set maxconn %s %s" |nc %s %s' % (frontend, maxconn, serv, haproxy_sock_port)
     else:
         cmd = 'echo "set maxconn frontend %s %s" |nc %s %s' % (frontend, maxconn, serv, haproxy_sock_port)
+    funct.logging(serv, 'Maxconn has been changed. On: {} to {}'.format(frontend, maxconn), login=1, keep_history=1,
+                  service='haproxy')
     output, stderr = funct.subprocess_execute(cmd)
 
     if stderr != '':
@@ -308,21 +316,19 @@ if form.getvalue('list_id_for_delete') is not None:
     if stderr[0] != '':
         print('error: ' + stderr[0])
 
+    funct.logging(serv, '{} has been delete from list {}'.format(ip_id, list_id), login=1, keep_history=1,
+                  service='haproxy')
+
 if form.getvalue('list_ip_for_add') is not None:
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
     lists_path = sql.get_setting('lists_path')
-    fullpath = funct.get_config_var('main', 'fullpath')
+    full_path = funct.get_config_var('main', 'fullpath')
     ip = form.getvalue('list_ip_for_add')
+    ip = ip.strip()
+    ip = funct.is_ip_or_dns(ip)
     list_id = form.getvalue('list_id_for_add')
     list_name = form.getvalue('list_name')
     user_group = funct.get_user_group(id=1)
-
-    cmd = 'echo "%s" >> %s/%s/%s/%s' % (ip, fullpath, lists_path, user_group, list_name)
-    output, stderr = funct.subprocess_execute(cmd)
-    if output:
-        print('error: ' + str(output))
-    if stderr:
-        print('error: ' + str(stderr))
 
     cmd = 'echo "add acl #%s %s" |nc %s %s' % (list_id, ip, serv, haproxy_sock_port)
     output, stderr = funct.subprocess_execute(cmd)
@@ -330,6 +336,17 @@ if form.getvalue('list_ip_for_add') is not None:
         print('error: ' + output[0])
     if stderr:
         print('error: ' + stderr[0])
+
+    if 'is not a valid IPv4 or IPv6 address' not in output[0]:
+        cmd = 'echo "%s" >> %s/%s/%s/%s' % (ip, full_path, lists_path, user_group, list_name)
+        output, stderr = funct.subprocess_execute(cmd)
+        if output:
+            print('error: ' + str(output))
+        if stderr:
+            print('error: ' + str(stderr))
+
+    funct.logging(serv, '{} has been added to list {}'.format(ip, list_id), login=1, keep_history=1,
+                  service='haproxy')
 
 if form.getvalue('sessions_select') is not None:
     from jinja2 import Environment, FileSystemLoader
@@ -390,7 +407,10 @@ if form.getvalue('action_hap') is not None and serv is not None:
     action = form.getvalue('action_hap')
 
     if funct.check_haproxy_config(serv):
-        haproxy_enterprise = sql.get_setting('haproxy_enterprise')
+        servers = sql.select_servers(server=serv)
+        for server in servers:
+            server_id = server[0]
+        haproxy_enterprise = sql.select_service_setting(serv, 'haproxy', 'haproxy_enterprise')
         if haproxy_enterprise == '1':
             haproxy_service_name = "hapee-2.0-lb"
         else:
@@ -398,7 +418,7 @@ if form.getvalue('action_hap') is not None and serv is not None:
 
         commands = ["sudo systemctl %s %s" % (action, haproxy_service_name)]
         funct.ssh_command(serv, commands)
-        funct.logging(serv, 'HAProxy has been ' + action + 'ed', haproxywi=1, login=1)
+        funct.logging(serv, 'Service has been ' + action + 'ed', haproxywi=1, login=1, keep_history=1, service='haproxy')
         print("success: HAProxy has been %s" % action)
     else:
         print("error: Bad config, check please")
@@ -408,7 +428,7 @@ if form.getvalue('action_nginx') is not None and serv is not None:
 
     commands = ["sudo systemctl %s nginx" % action]
     funct.ssh_command(serv, commands)
-    funct.logging(serv, 'Nginx has been ' + action + 'ed', haproxywi=1, login=1)
+    funct.logging(serv, 'Service has been ' + action + 'ed', haproxywi=1, login=1, keep_history=1, service='nginx')
     print("success: Nginx has been %s" % action)
 
 if form.getvalue('action_keepalived') is not None and serv is not None:
@@ -416,13 +436,13 @@ if form.getvalue('action_keepalived') is not None and serv is not None:
 
     commands = ["sudo systemctl %s keepalived" % action]
     funct.ssh_command(serv, commands)
-    funct.logging(serv, 'Keepalived has been ' + action + 'ed', haproxywi=1, login=1)
+    funct.logging(serv, 'Service has been ' + action + 'ed', haproxywi=1, login=1, keep_history=1, service='keepalived')
     print("success: Keepalived has been %s" % action)
 
 if form.getvalue('action_waf') is not None and serv is not None:
     serv = form.getvalue('serv')
     action = form.getvalue('action_waf')
-    funct.logging(serv, 'WAF service has been ' + action + 'ed', haproxywi=1, login=1)
+    funct.logging(serv, 'WAF service has been ' + action + 'ed', haproxywi=1, login=1, keep_history=1, service='haproxy')
     commands = ["sudo systemctl %s waf" % action]
     funct.ssh_command(serv, commands)
 
@@ -1025,6 +1045,7 @@ if form.getvalue('servaction') is not None:
         command = [cmd]
 
     if enable != "show":
+        funct.logging(serv, 'Has been ' + enable + 'ed ' + backend, login=1, keep_history=1, service='haproxy')
         print(
             '<center><h3>You %s %s on HAProxy %s. <a href="viewsttats.py?serv=%s" title="View stat" target="_blank">Look it</a> or <a href="runtimeapi.py" title="Runtime API">Edit something else</a></h3><br />' % (enable, backend, serv, serv))
 
@@ -1769,7 +1790,8 @@ if form.getvalue('bwlists_save'):
             except Exception:
                 pass
 
-            haproxy_enterprise = sql.get_setting('haproxy_enterprise')
+            server_id = sql.select_server_id_by_ip(server=serv)
+            haproxy_enterprise = sql.select_service_setting(server_id, 'haproxy', 'haproxy_enterprise')
             if haproxy_enterprise == '1':
                 haproxy_service_name = "hapee-2.0-lb"
             else:
@@ -1940,6 +1962,7 @@ if form.getvalue('updatepassowrd') is not None:
 if form.getvalue('newserver') is not None:
     hostname = form.getvalue('servername')
     ip = form.getvalue('newip')
+    ip = funct.is_ip_or_dns(ip)
     group = form.getvalue('newservergroup')
     scan_server = form.getvalue('scan_server')
     typeip = form.getvalue('typeip')
@@ -1953,6 +1976,10 @@ if form.getvalue('newserver') is not None:
     page = page.split("#")[0]
     port = form.getvalue('newport')
     desc = form.getvalue('desc')
+
+    if ip == '':
+        print('error: IP or DNS name is not valid')
+        sys.exit()
 
     if sql.add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, firewall):
 
@@ -2027,18 +2054,19 @@ if form.getvalue('updateserver') is not None:
         funct.logging('the server ' + name, ' has been updated ', haproxywi=1, login=1)
 
 if form.getvalue('serverdel') is not None:
-    serverdel = form.getvalue('serverdel')
-    server = sql.select_servers(id=serverdel)
+    server_id = form.getvalue('serverdel')
+    server = sql.select_servers(id=server_id)
     for s in server:
         hostname = s[1]
         ip = s[2]
     if sql.check_exists_backup(ip):
         print('warning: Delete the backup first ')
         sys.exit()
-    if sql.delete_server(serverdel):
-        sql.delete_waf_server(serverdel)
-        sql.delete_port_scanner_settings(serverdel)
+    if sql.delete_server(server_id):
+        sql.delete_waf_server(server_id)
+        sql.delete_port_scanner_settings(server_id)
         sql.delete_waf_rules(ip)
+        sql.delete_action_history(server_id)
         print("Ok")
         funct.logging(hostname, ' has been deleted server with ', haproxywi=1, login=1)
 
@@ -3705,3 +3733,43 @@ if form.getvalue('updatesavedserver') is not None:
 if form.getvalue('savedserverdel') is not None:
     if sql.delete_savedserver(form.getvalue('savedserverdel')):
         print("Ok")
+
+if form.getvalue('show_users_ovw') is not None:
+    from jinja2 import Environment, FileSystemLoader
+
+    env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
+    template = env.get_template('/show_users_ovw.html')
+
+    user, user_id, role, token, servers, user_services = funct.get_users_params()
+    users_groups = sql.select_user_groups_with_names(1, all=1)
+    user_group = funct.get_user_group(id=1)
+
+    if (role == 2 or role == 3) and int(user_group) != 1:
+        users = sql.select_users(group=user_group)
+    else:
+        users = sql.select_users()
+
+    template = template.render(users=users, users_groups=users_groups)
+    print(template)
+
+
+if form.getvalue('serverSettings') is not None:
+    server_id = form.getvalue('serverSettings')
+    service = form.getvalue('serverSettingsService')
+    from jinja2 import Environment, FileSystemLoader
+
+    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
+    template = env.get_template('ajax/show_service_settings.html')
+
+    template = template.render(settings=sql.select_service_settings(server_id, service), service=service)
+    print(template)
+
+
+if form.getvalue('serverSettingsSave') is not None:
+    server_id = form.getvalue('serverSettingsSave')
+    service = form.getvalue('serverSettingsService')
+    haproxy_enterprise = form.getvalue('serverSettingsEnterprise')
+
+    if service == 'haproxy':
+        if sql.insert_or_update_service_setting(server_id, service, 'haproxy_enterprise', haproxy_enterprise):
+            print('Ok')

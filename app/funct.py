@@ -7,7 +7,7 @@ import sys
 def is_ip_or_dns(server_from_request: str) -> str:
 	import re
 	ip_regex = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
-	dns_regex = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
+	dns_regex = "^(?!-)[A-Za-z0-9-]+([\\-\\.]{1}[a-z0-9]+)*\\.[A-Za-z]{2,6}$"
 	try:
 		if server_from_request == 'roxy-wi-keep_alive':
 			return 'roxy-wi-keep_alive'
@@ -161,6 +161,8 @@ def logging(server_ip, action, **kwargs):
 		if kwargs.get('login'):
 			mess = get_data('date_in_log') + " from " + ip + " user: " + login + ", group: " + user_group + ", " + \
 				action + " for: " + server_ip + "\n"
+			if kwargs.get('keep_history'):
+				keep_action_history(kwargs.get('service'), action, server_ip, login, ip)
 		else:
 			mess = get_data('date_in_log') + " " + action + " from " + ip + "\n"
 		log = open(log_path + "/roxy-wi-"+get_data('logs')+".log", "a")
@@ -173,11 +175,22 @@ def logging(server_ip, action, **kwargs):
 				action + " for: " + server_ip + "\n"
 		log = open(log_path + "/config_edit-"+get_data('logs')+".log", "a")
 
+		if kwargs.get('keep_history'):
+			keep_action_history(kwargs.get('service'), action, server_ip, login, ip)
+
 	try:
 		log.write(mess)
 		log.close()
 	except IOError as e:
 		print('<center><div class="alert alert-danger">Can\'t write log. Please check log_path in config %e</div></center>' % e)
+		
+		
+def keep_action_history(service: str, action: str, server_ip: str, login: str, user_ip: str):
+	import sql
+	server_id = sql.select_server_id_by_ip(server_ip=server_ip)
+	user_id = sql.get_user_id_by_username(login)
+
+	sql.insert_action_history(service, action, server_id, user_id, user_ip)
 
 
 def telegram_send_mess(mess, **kwargs):
@@ -351,10 +364,6 @@ def ssh_connect(server_ip):
 
 	try:
 		if ssh_enable == 1:
-			# cloud = sql.is_cloud()
-			# if cloud != '':
-			# 	k = paramiko.pkey.load_private_key_file(ssh_key_name, password=cloud)
-			# else:
 			k = paramiko.pkey.load_private_key_file(ssh_key_name)
 			ssh.connect(hostname=server_ip, port=ssh_port, username=ssh_user_name, pkey=k, timeout=11, banner_timeout=200)
 		else:
@@ -623,6 +632,7 @@ def show_installation_output(error, output, service):
 					break
 		else:
 			print('success: ' + service + ' has been installed')
+			logging('localhost', error, haproxywi=1, keep_history=1, service=service)
 			return True
 
 
@@ -828,6 +838,22 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 	error = ""
 
 	if kwargs.get("nginx"):
+		service = 'nginx'
+	elif kwargs.get("keepalived"):
+		service = 'keepalived'
+	else:
+		service = 'haproxy'
+
+	if kwargs.get("just_save") == 'save':
+		action = 'save'
+	elif kwargs.get("just_save") == 'reload':
+		action = 'reload'
+	elif kwargs.get("just_save") == 'test':
+		action = 'test'
+	else:
+		action = 'restart'
+
+	if service == "nginx":
 		config_path = sql.get_setting('nginx_config_path')
 		tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".conf"
 	else:
@@ -839,26 +865,29 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 	except OSError:
 		return 'Please install dos2unix'
 
-	if kwargs.get("keepalived") == 1:
-		if kwargs.get("just_save") == "save":
+	if service == "keepalived":
+		if action == "save":
 			commands = ["sudo mv -f " + tmp_file + " /etc/keepalived/keepalived.conf"]
-		elif kwargs.get("just_save") == "reload":
+		elif action == "reload":
 			commands = [
 				"sudo mv -f " + tmp_file + " /etc/keepalived/keepalived.conf && sudo systemctl reload keepalived"]
 		else:
 			commands = ["sudo mv -f " + tmp_file + " /etc/keepalived/keepalived.conf && sudo systemctl restart keepalived"]
-	elif kwargs.get("nginx"):
+	elif service == "nginx":
 		check_and_move = "sudo mv -f " + tmp_file + " " + config_path + " && sudo nginx -t -q"
-		if kwargs.get("just_save") == "save":
+		if action == "test":
+			commands = [check_config + " && sudo rm -f " + tmp_file]
+		elif action == "save":
 			commands = [check_and_move]
-		elif kwargs.get("just_save") == "reload":
+		elif action == "reload":
 			commands = [check_and_move + " && sudo systemctl reload nginx"]
 		else:
 			commands = [check_and_move + " && sudo systemctl restart nginx"]
 		if sql.return_firewall(server_ip):
 			commands[0] += open_port_firewalld(cfg, server_ip=server_ip, service='nginx')
 	else:
-		haproxy_enterprise = sql.get_setting('haproxy_enterprise')
+		server_id = sql.select_server_id_by_ip(server_ip=server_ip)
+		haproxy_enterprise = sql.select_service_setting(server_id, 'haproxy', 'haproxy_enterprise')
 
 		if haproxy_enterprise == '1':
 			haproxy_service_name = "hapee-2.0-lb"
@@ -868,11 +897,11 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		check_config = "sudo " + haproxy_service_name + "  -q -c -f " + tmp_file
 		move_config = " && sudo mv -f " + tmp_file + " " + config_path
 
-		if kwargs.get("just_save") == "test":
+		if action == "test":
 			commands = [check_config + " && sudo rm -f " + tmp_file]
-		elif kwargs.get("just_save") == "save":
+		elif action == "save":
 			commands = [check_config + move_config]
-		elif kwargs.get("just_save") == "reload":
+		elif action == "reload":
 			commands = [check_config + move_config + " && sudo systemctl reload "+haproxy_service_name+""]
 		else:
 			commands = [check_config + move_config + " && sudo systemctl restart "+haproxy_service_name+""]
@@ -882,6 +911,12 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 
 	try:
 		error += ssh_command(server_ip, commands)
+		if action != 'test':
+			logging(server_ip, 'A new config file has been uploaded', login=1, keep_history=1,
+					  service=service)
+		if action == 'reload' or action == 'restart':
+			logging(server_ip, 'Service has been ' + action + 'ed', login=1, keep_history=1,
+						  service=service)
 	except Exception as e:
 		error += e
 	if error:

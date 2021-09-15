@@ -19,7 +19,6 @@ try:
 	user_group = funct.get_user_group(id=1)
 
 	if (role == 2 or role == 3) and int(user_group) != 1:
-		users = sql.select_users(group=user_group)
 		servers_for_grep = ''
 		i = 1
 		servers_len = len(servers)
@@ -49,7 +48,6 @@ try:
 		prometheus = ''
 		host = ''
 	else:
-		users = sql.select_users()
 		cmd = "ps ax |grep 'metrics_worker\|metrics_waf_worker.py\|metrics_nginx_worker.py' |grep -v grep |wc -l"
 		metrics_worker, stderr = funct.subprocess_execute(cmd)
 		cmd = "ps ax |grep 'checker_worker\|checker_nginx' |grep -v grep |wc -l"
@@ -109,9 +107,7 @@ template = template.render(h2=1,
 							title="Overview",
 							role=role,
 							user=user,
-							users=users,
 							groups=groups,
-							users_groups=sql.select_user_groups_with_names(1, all=1),
 							roles=sql.select_roles(),
 							metrics_master=''.join(metrics_master),
 							metrics_worker=''.join(metrics_worker),

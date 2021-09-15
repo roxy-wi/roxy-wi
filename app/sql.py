@@ -9,13 +9,14 @@ mysql_enable = funct.get_config_var('mysql', 'enable')
 def out_error(error):
 	error = str(error)
 	print('error: ' + error)
-	try:
-		funct.logging('localhost', error, haproxywi=1, login=1)
-	except Exception:
+	if 'database is locked' not in error:
 		try:
-			funct.logging('localhost', error, haproxywi=1)
+			funct.logging('localhost', error, haproxywi=1, login=1)
 		except Exception:
-			pass
+			try:
+				funct.logging('localhost', error, haproxywi=1)
+			except Exception:
+				pass
 
 
 def add_user(user, email, password, role, activeuser, group):
@@ -62,8 +63,8 @@ def update_user_groups(groups, user_group_id):
 
 
 def delete_user_groups(user_id):
+	group_for_delete = UserGroups.delete().where(UserGroups.user_id == user_id)
 	try:
-		group_for_delete = UserGroups.delete().where(UserGroups.user_id == user_id)
 		group_for_delete.execute()
 	except Exception as e:
 		out_error(e)
@@ -157,9 +158,6 @@ def add_setting_for_new_group(group_id):
 		{'param': 'haproxy_sock', 'value': '/var/run/haproxy.sock', 'section': 'haproxy',
 		 'desc': 'Path to the HAProxy sock file', 'group': group_id},
 		{'param': 'haproxy_sock_port', 'value': '1999', 'section': 'haproxy', 'desc': 'Socket port for HAProxy',
-		 'group': group_id},
-		{'param': 'haproxy_enterprise', 'value': '0', 'section': 'haproxy',
-		 'desc': 'If you use enterprise HAProxy, set the value of this parameter to 1. The name of the service will be changed as it is required for the commercial version',
 		 'group': group_id},
 		{'param': 'nginx_path_error_logs', 'value': '/var/log/nginx/error.log', 'section': 'nginx',
 		 'desc': 'Nginx error log', 'group': group_id},
@@ -453,12 +451,21 @@ def select_server_by_name(name):
 		return ip.ip
 
 
+def select_server_id_by_ip(server_ip):
+	try:
+		server_id = Server.get(Server.ip == server_ip).server_id
+	except Exception as e:
+		return out_error(e)
+	else:
+		return server_id
+
+
 def select_servers(**kwargs):
 	cursor = conn.cursor()
 	sql = """select * from servers where enable = '1' ORDER BY groups """
 
 	if kwargs.get("server") is not None:
-		sql = """select * from servers where ip='{}' """.format(kwargs.get("server"))
+		sql = """select * from servers where ip = '{}' """.format(kwargs.get("server"))
 	if kwargs.get("full") is not None:
 		sql = """select * from servers ORDER BY hostname """
 	if kwargs.get("get_master_servers") is not None:
@@ -488,25 +495,17 @@ def select_servers(**kwargs):
 def write_user_uuid(login, user_uuid):
 	session_ttl = get_setting('session_ttl')
 	session_ttl = int(session_ttl)
+	user_id = get_user_id_by_username(login)
 
-	try:
-		user_id = User.get(User.username == login)
-	except Exception as e:
-		out_error(e)
 	try:
 		UUID.insert(user_id=user_id, uuid=user_uuid, exp=funct.get_data('regular', timedelta=session_ttl)).execute()
 	except Exception as e:
 		out_error(e)
 
 
-
 def write_user_token(login, user_token):
 	token_ttl = int(get_setting('token_ttl'))
-
-	try:
-		user_id = User.get(User.username == login)
-	except Exception as e:
-		out_error(e)
+	user_id = get_user_id_by_username(login)
 
 	try:
 		Token.insert(user_id=user_id, token=user_token, exp=funct.get_data('regular', timedelta=token_ttl)).execute()
@@ -548,6 +547,7 @@ def get_user_id_by_api_token(token):
 		return str(e)
 	for i in query_res:
 		return i.user_id
+
 
 def get_username_groupid_from_api_token(token):
 	try:
@@ -633,6 +633,15 @@ def get_user_id_by_uuid(uuid):
 	else:
 		for user in query_res:
 			return user.user_id
+
+
+def get_user_id_by_username(username: str):
+	try:
+		query = User.get(User.username == username).user_id
+	except Exception as e:
+		out_error(e)
+	else:
+		return query
 
 
 def get_user_role_by_uuid(uuid):
@@ -1747,7 +1756,7 @@ def get_setting(param, **kwargs):
 					param == 'syslog_server_enable' or param == 'smon_check_interval' or
 					param == 'checker_check_interval' or param == 'port_scan_interval' or
 					param == 'smon_keep_history_range' or param == 'checker_keep_history_range' or
-					param == 'portscanner_keep_history_range' or param == 'haproxy_enterprise'
+					param == 'portscanner_keep_history_range'
 				):
 					return int(setting.value)
 				else:
@@ -1942,18 +1951,18 @@ def check_token_exists(token):
 		if get_token(user_id.value) == token:
 			return True
 		else:
-			try:
-				funct.logging('localhost', ' Tried do action with wrong token', haproxywi=1, login=1)
-			except:
-				funct.logging('localhost', ' An action with wrong token', haproxywi=1)
-				return False
-	except:
-		try:
-			funct.logging('localhost', ' Cannot check token', haproxywi=1, login=1)
-		except:
-			funct.logging('localhost', ' Cannot check token', haproxywi=1)
-		finally:
+			# try:
+			# 	funct.logging('localhost', ' Tried do action with wrong token', haproxywi=1, login=1)
+			# except:
+			# 	funct.logging('localhost', ' An action with wrong token', haproxywi=1)
 			return False
+	except:
+		# try:
+		# 	funct.logging('localhost', ' Cannot check token', haproxywi=1, login=1)
+		# except:
+		# 	funct.logging('localhost', ' Cannot check token', haproxywi=1)
+		# finally:
+		return False
 
 
 def insert_smon(server, port, enable, proto, uri, body, group, desc, telegram, user_group):
@@ -2765,3 +2774,57 @@ def update_user_services(services, user_id):
 		out_error(e)
 		return False
 
+
+def insert_or_update_service_setting(server_id, service, setting, value):
+	try:
+		ServiceSetting.insert(server_id=server_id, service=service, setting=setting, value=value).on_conflict('replace').execute()
+	except Exception as e:
+		out_error(e)
+		return False
+	else:
+		return True
+
+
+def select_service_settings(server_id: int, service: str) -> str:
+	query = ServiceSetting.select().where((ServiceSetting.server_id == server_id) & (ServiceSetting.service == service))
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
+	
+	
+def select_service_setting(server_id: int, service: str, setting: str) -> str:
+	try:
+		result = ServiceSetting.get(
+			(ServiceSetting.server_id == server_id) & 
+			(ServiceSetting.service == service) &
+			(ServiceSetting.setting == setting)).value
+	except Exception:
+		pass
+	else:
+		return result
+
+
+def insert_action_history(service: str, action: str, server_id: int, user_id: int, user_ip: str):
+	try:
+		ActionHistory.insert(service=service,
+							 action=action,
+							 server_id=server_id,
+							 user_id=user_id,
+							 ip=user_ip,
+							 date=funct.get_data('regular')).execute()
+	except Exception as e:
+		out_error(e)
+
+
+def delete_action_history(server_id: int):
+	query = ActionHistory.delete().where(ActionHistory.server_id == server_id)
+	try:
+		query.execute()
+	except Exception as e:
+		out_error(e)
+		return False
+	else:
+		return True

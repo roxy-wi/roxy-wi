@@ -1016,6 +1016,9 @@ label {
 	}
 }
 @media (max-width: 1280px) {
+	.div-pannel {
+		height: 430px !important;
+	}
 	.div-server {
 		margin-bottom: 30px !important;
 		height: 100px;

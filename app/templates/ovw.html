@@ -59,7 +59,7 @@
 	{% endfor %}
 </table>
 <table class="overview-wi">
-	<tr class="overviewHead" style="height: 40px;">
+	<tr class="overviewHead" style="height: 30px;">
 		<td class="padding10 first-collumn-wi" colspan="2">
 			{% if role <= 1 %}
 				<a href="/app/viewlogs.py?viewlogs={{haproxy_wi_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View Roxy-WI logs" class="logs_link">			
@@ -292,7 +292,7 @@
 		{% set admin_uri = 'users.py' %}
 	{% endif %}
 	<table class="overview-wi">
-		<tr class="overviewHead">
+		<tr class="overviewHead" style="height: 30px;">
 			<td class="padding10 first-collumn-wi">
 				<a href="{{admin_uri}}#users" title="Manage users" class="logs_link">Login</a>
 			</td>
@@ -305,50 +305,13 @@
 					</span>
 				</span>
 			</td>
+			<td style="padding-right: 10px;">
+				<a onclick="showUsersOverview()" title="Refresh" style="float: right;">
+					<span class="service-reload"></span>
+				</a>
+			</td>
 		</tr>
-		{% set counter = 0 %}
-		{% for USER in users %}
-			{% set counter = counter + loop.index0 %}
-			{% if counter <= 2 %}
-				<tr class="{{ loop.cycle('odd', 'even') }}">
-					<td class="padding10 first-collumn-wi">
-						{% if USER.last_login %}
-						<span class="serverUp" style="margin-right: 5px;" title="{{USER.username}} is online"></span>
-						{% else %}
-						<span class="serverNone" style="margin-right: 5px;" title="{{USER.username}} is offline"></span>
-						{% endif %}
-						{{ USER.username }}
-					</td>
-					<td class="third-collumn-wi">
-						{% for group in users_groups %}
-							{% if USER.user_id|string() == group.user_id|string() %}
-								{{ group.groups.name }}
-							{% endif %}
-						{% endfor %}
-					</td>
-					<td colspan="2">{{ USER.role }}</td>
-				</tr>
-			{% else %}
-				<tr style="display: none;" class="show-users {{ loop.cycle('odd', 'even') }}">
-					<td class="padding10 first-collumn-wi"> 
-						{% if USER.last_login %}
-						<span class="serverUp" style="margin-right: 5px;" title="{{USER.username}} is online"></span>
-						{% else %}
-						<span class="serverNone" style="margin-right: 5px;" title="{{USER.username}} is offline"></span>
-						{% endif %}
-						{{ USER.username }}
-					</td>
-					<td class="third-collumn-wi">
-						{% for group in users_groups %}
-							{% if group.user_id|string() == USER.user_id|string() %}
-								{{ group.groups.name }}{{ "," if not loop.last }}
-							{% endif %}
-						{% endfor %}
-					</td>
-					<td colspan="2">{{ USER.role }}</td>
-				</tr>
-			{% endif %}
-		{% endfor %}
+		<tbody id="users-table"></tbody>
 	</table>
 {% endif %}
 {% if role <= 1 %}
@@ -359,7 +322,7 @@
 			</td>
 			<td class="second-collumn" style="width: 40%">Description</td>
 			<td>
-			<span class="add-button-wi">
+				<span class="add-button-wi">
 					<span title="Show all groups" id="show-all-groups" style="color: #fff">
 						Show all
 					</span>

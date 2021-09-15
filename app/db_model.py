@@ -412,9 +412,35 @@ class GeoipCodes(BaseModel):
         primary_key = False
         constraints = [SQL('UNIQUE (code, name)')]
 
+
+class ServiceSetting(BaseModel):
+    server_id = IntegerField()
+    service = CharField()
+    setting = CharField()
+    value = CharField()
+
+    class Meta:
+        table_name = 'service_settings'
+        primary_key = False
+        constraints = [SQL('UNIQUE (server_id, service, setting)')]
+
+
+class ActionHistory(BaseModel):
+    service = CharField()
+    server_id = IntegerField()
+    user_id = IntegerField()
+    action = CharField()
+    ip = CharField()
+    date = DateTimeField(default=datetime.now)
+
+    class Meta:
+        table_name = 'action_history'
+        primary_key = False
+
+
 def create_tables():
     with conn:
         conn.create_tables([User, Server, Role, Telegram, Slack, UUID, Token, ApiToken, Groups, UserGroups,
-                            Setting, Cred, Backup, Metrics, WafMetrics, Version, Option, SavedServer, Waf,
-                            PortScannerSettings, PortScannerPorts, PortScannerHistory, ProvidersCreds,
+                            Setting, Cred, Backup, Metrics, WafMetrics, Version, Option, SavedServer, Waf, ActionHistory,
+                            PortScannerSettings, PortScannerPorts, PortScannerHistory, ProvidersCreds, ServiceSetting,
                             ProvisionedServers, MetricsHttpStatus, SMON, WafRules, Alerts, GeoipCodes, NginxMetrics])
