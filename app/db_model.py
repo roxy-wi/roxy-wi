@@ -28,11 +28,11 @@ class User(BaseModel):
     password = CharField(null=True)
     role = CharField()
     groups = CharField()
-    ldap_user = IntegerField(default=0)
-    activeuser = IntegerField(default=1)
+    ldap_user = IntegerField(constraints=[SQL('DEFAULT "0"')])
+    activeuser = IntegerField(constraints=[SQL('DEFAULT "1"')])
     user_services = CharField(constraints=[SQL('DEFAULT "1 2 3"')])
-    last_login_date = DateTimeField(default=datetime.now)
-    last_login_ip = CharField()
+    last_login_date = DateTimeField(constraints=[SQL('DEFAULT "0000-00-00 00:00:00"')])
+    last_login_ip = CharField(null=True)
 
     class Meta:
         table_name = 'user'

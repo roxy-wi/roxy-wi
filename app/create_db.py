@@ -795,6 +795,7 @@ def update_all():
 	update_db_v_5_2_5_1()
 	update_db_v_5_2_5_2()
 	update_db_v_5_2_5_3()
+	update_db_v_5_2_6()
 	update_ver()
 
 
@@ -822,6 +823,7 @@ def update_all_silent():
 	update_db_v_5_2_5_1(silent=1)
 	update_db_v_5_2_5_2(silent=1)
 	update_db_v_5_2_5_3(silent=1)
+	update_db_v_5_2_6(silent=1)
 	update_ver()
 
 
