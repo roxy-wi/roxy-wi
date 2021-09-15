@@ -1,6 +1,5 @@
 {% if user %}
-	<span id="show-user-settings-button" class="menu-bar login" title="User settings" style="margin-top: 7px;cursor: pointer;"></span>
-<!--	<a href=/app/login.py?logout=logout title="Logout, user name: {{ user }}" class="login"> Logout</a>						-->
+	<span id="show-user-settings-button" class="menu-bar login" title="User settings for user {{ user }}" style="margin-top: 7px;"></span>
 {% else %}
 	<a href=/app/login.py title="Login" class="login"> Login</a>
 {% endif %}

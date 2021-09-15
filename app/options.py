@@ -410,7 +410,7 @@ if form.getvalue('action_hap') is not None and serv is not None:
         servers = sql.select_servers(server=serv)
         for server in servers:
             server_id = server[0]
-        haproxy_enterprise = sql.select_service_setting(serv, 'haproxy', 'haproxy_enterprise')
+        haproxy_enterprise = sql.select_service_setting(server_id, 'haproxy', 'haproxy_enterprise')
         if haproxy_enterprise == '1':
             haproxy_service_name = "hapee-2.0-lb"
         else:
