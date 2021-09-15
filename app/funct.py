@@ -9,8 +9,8 @@ def is_ip_or_dns(server_from_request: str) -> str:
 	ip_regex = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
 	dns_regex = "^(?!-)[A-Za-z0-9-]+([\\-\\.]{1}[a-z0-9]+)*\\.[A-Za-z]{2,6}$"
 	try:
-		if server_from_request == 'roxy-wi-keep_alive':
-			return 'roxy-wi-keep_alive'
+		if 'roxy-wi' in server_from_request:
+			return server_from_request
 		if re.match(ip_regex, server_from_request):
 			return server_from_request
 		else:
