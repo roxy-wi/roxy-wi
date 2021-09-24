@@ -53,19 +53,19 @@ if serv is not None and form.getvalue('open') is not None:
 	if service == 'keepalived':
 		error = funct.get_config(serv, cfg, keepalived=1)
 		try:
-			funct.logging(serv, " Keepalived config has opened for ")
+			funct.logging(serv, " Keepalived config has been opened for ")
 		except Exception:
 			pass
 	elif service == 'nginx':
 		error = funct.get_config(serv, cfg, nginx=1)
 		try:
-			funct.logging(serv, " Nginx config has opened ")
+			funct.logging(serv, " Nginx config has been opened ")
 		except Exception:
 			pass
 	else:
 		error = funct.get_config(serv, cfg)
 		try:
-			funct.logging(serv, " HAProxy config has opened ")
+			funct.logging(serv, " HAProxy config has been opened ")
 		except Exception:
 			pass
 	
@@ -81,10 +81,6 @@ if serv is not None and form.getvalue('open') is not None:
 if serv is not None and form.getvalue('config') is not None:
 	import sys
 	funct.check_is_server_in_group(serv)
-	try:
-		funct.logging(serv, "config.py edited config")
-	except Exception:
-		pass
 
 	config = form.getvalue('config')
 	oldcfg = form.getvalue('oldconfig')

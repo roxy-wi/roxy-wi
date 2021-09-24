@@ -4,7 +4,7 @@
 		<h4>Comparing config files</h4>
 		<p>
 			<select autofocus required name="left" id="left">
-				<option disabled selected>Select an older</option>
+				<option disabled selected>Select an older config</option>
 				{% for file in return_files %}
 					{% if file == left %}
 						<option value="{{ file }}" selected>{{ file.split('-', maxsplit=1)[1] }}</option>
@@ -15,7 +15,7 @@
 			</select>
 
 			<select autofocus required name="right" id="right">
-				<option disabled selected>Select a newer</option>
+				<option disabled selected>Select a newer config</option>
 				{% for file in return_files %}				
 					<option value="{{ file }}">{{ file.split('-', maxsplit=1)[1] }}</option>
 				{% endfor %}
