@@ -861,7 +861,10 @@ if serv is not None and act == "showMap":
         if "bind" in line or (line.startswith('listen') and ":" in line) or (
                 line.startswith('frontend') and ":" in line):
             try:
-                bind = line.split(":")
+                if "@" not in line:
+                    bind = line.split(":")
+                else:
+                    bind = line.split("@")
                 if str(stats_port) not in bind[1]:
                     bind[1] = bind[1].strip(' ')
                     bind = bind[1].split("crt")

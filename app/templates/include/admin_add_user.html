@@ -6,7 +6,7 @@
 	</td>
 	<td>
 		{{ input('new-username') }}
-			{% if ldap_enable == '1' %}
+			{% if ldap_enable == 1 %}
 				<a href="#" title="Search user in AD" id="search_ldap_user">Search user in AD</a>
 			{% endif %}
 	</td>
