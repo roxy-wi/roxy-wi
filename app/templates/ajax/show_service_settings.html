@@ -3,28 +3,76 @@
     {% if service == 'haproxy' %}
         {% if settings %}
             {% for s in settings %}
-                {% if s.haproxy_enterprise != '' %}
+    {{s.dockerized}}
+                {% if s.haproxy_enterprise != '' and s.setting == 'haproxy_enterprise' %}
                         <tr>
-                            <td class="padding20 help_cursor" style="width: 70%" title="If you use enterprise HAProxy, check this. The name of the service will be changed as it is required for the commercial version
-">HAProxy Enterprise</td>
+                            <td class="padding20 help_cursor" style="width: 70%"
+                                title="If you use enterprise HAProxy, check this. The name of the service will be changed as it is required for the commercial version">HAProxy Enterprise</td>
                             <td>
                                 {% if s.value == '1' and s.setting == 'haproxy_enterprise' %}
                                     {{ checkbox('haproxy_enterprise', checked='checked', title='This server uses HAProxy enterprise') }}
-                                {% else %}
+                                {% elif s.setting == 'haproxy_enterprise' %}
                                     {{ checkbox('haproxy_enterprise', title='This server uses HAProxy community') }}
                                 {% endif %}
                             </td>
                         </tr>
                 {% endif %}
+                {% if s.dockerized != '' and s.setting == 'dockerized' %}
+                    <tr>
+                        <td class="padding20 help_cursor" style="width: 70%"
+                            title="If you use HAProxy inside Docker, check this. Roxy-WI is starting managing it as Docker container">HAProxy dockerized</td>
+                        <td>
+                            {% if s.value == '1' and s.setting == 'dockerized' %}
+                                {{ checkbox('haproxy_dockerized', checked='checked', title='This service is running inside a Docker container') }}
+                            {% elif s.setting == 'dockerized' %}
+                                {{ checkbox('haproxy_dockerized', title='This server will be used as Docker container') }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endif %}
             {% endfor %}
         {% else %}
              <tr>
-                <td class="padding20 help_cursor" style="width: 70%" title="If you use enterprise HAProxy, check this. The name of the service will be changed as it is required for the commercial version
-">HAProxy Enterprise</td>
+                <td class="padding20 help_cursor" style="width: 70%"
+                    title="If you use enterprise HAProxy, check this. The name of the service will be changed as it is required for the commercial version">HAProxy Enterprise</td>
                 <td>
                     {{ checkbox('haproxy_enterprise', title='This server uses HAProxy community') }}
                 </td>
             </tr>
+            <tr>
+                <td class="padding20 help_cursor" style="width: 70%"
+                    title="If you use HAProxy inside Docker, check this. Roxy-WI is starting managing it as Docker container">HAProxy dockerized</td>
+                <td>
+                    {{ checkbox('haproxy_dockerized', title='This server will be used as Docker container') }}
+                </td>
+            </tr>
+        {% endif %}
+    {% endif %}
+    {% if service == 'nginx' %}
+        {% if settings %}
+            {% for s in settings %}
+                {% if s.dockerized != '' and s.setting == 'dockerized' %}
+                    <tr>
+                        <td class="padding20 help_cursor" style="width: 70%"
+                            title="If you use Nginx inside Docker, check this. Roxy-WI is starting managing it as Docker container">Nginx dockerized</td>
+                        <td>
+                            {% if s.value == '1' and s.setting == 'dockerized' %}
+                                {{ checkbox('nginx_dockerized', checked='checked', title='This service is running inside a Docker container') }}
+                            {% else %}
+                                {{ checkbox('nginx_dockerized', title='This server will be used as Docker container') }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+        <tr>
+            <td class="padding20 help_cursor" style="width: 70%"
+                title="If you use Nginx inside Docker, check this. Roxy-WI is starting managing it as Docker container">Nginx dockerized</td>
+            <td>
+                {{ checkbox('nginx_dockerized', title='This server will be used as Docker container') }}
+            </td>
+        </tr>
         {% endif %}
     {% endif %}
 </table>

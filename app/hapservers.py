@@ -32,6 +32,10 @@ if service == 'nginx':
             if funct.check_is_server_in_group(serv):
                 servers = sql.select_servers(server=serv)
                 autorefresh = 1
+                server_id = sql.select_server_id_by_ip(serv)
+                service_settings = sql.select_docker_service_settings(server_id, service)
+        else:
+            service_settings = sql.select_docker_services_settings(service)
 elif service == 'keepalived':
     if funct.check_login(service=3):
         title = 'Keepalived servers overview'
@@ -41,6 +45,10 @@ elif service == 'keepalived':
             if funct.check_is_server_in_group(serv):
                 servers = sql.select_servers(server=serv)
                 autorefresh = 1
+                server_id = sql.select_server_id_by_ip(serv)
+                service_settings = sql.select_docker_service_settings(server_id, service)
+        else:
+            service_settings = sql.select_docker_services_settings(service)
 else:
     if funct.check_login(service=1):
         title = "HAProxy servers overview"
@@ -49,8 +57,11 @@ else:
             if funct.check_is_server_in_group(serv):
                 servers = sql.select_servers(server=serv)
                 autorefresh = 1
+                server_id = sql.select_server_id_by_ip(serv)
+                service_settings = sql.select_docker_service_settings(server_id, service)
         else:
             servers = sql.get_dick_permit(virt=1, haproxy=1)
+            service_settings = sql.select_docker_services_settings(service)
 
 services_name = {'roxy-wi-checker': 'Master backends checker service',
                  'roxy-wi-keep_alive': 'Auto start service',
@@ -155,5 +166,6 @@ template = template.render(h2=1,
 						   service=service,
 						   services=services,
                            user_services=user_services,
+                           service_settings=service_settings,
 						   token=token)
 print(template)

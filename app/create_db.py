@@ -763,8 +763,50 @@ def update_db_v_5_2_6(**kwargs):
 			print("Updating... DB has been updated to version 5.2.6")
 
 
+def update_db_v_5_3_0(**kwargs):
+	groups = ''
+	query = Groups.select()
+
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		groups = query_res
+
+	for g in groups:
+		try:
+			data_source = [
+				{'param': 'nginx_container_name', 'value': 'nginx', 'section': 'nginx',
+				 'desc': 'Docker container name for Nginx service',
+				 'group': g.group_id},
+				{'param': 'haproxy_container_name', 'value': 'haproxy', 'section': 'haproxy',
+				 'desc': 'Docker container name for HAProxy service',
+				 'group': g.group_id},
+			]
+
+			try:
+				Setting.insert_many(data_source).on_conflict_ignore().execute()
+			except Exception as e:
+				if kwargs.get('silent') != 1:
+					if str(e) == 'columns param, group are not unique':
+						pass
+					else:
+						print("An error occurred:", e)
+		except Exception as e:
+			if kwargs.get('silent') != 1:
+				if (
+						str(e) == 'columns param, group are not unique' or
+						str(e) == '(1062, "Duplicate entry \'nginx_container_name\' for key \'param\'")' or
+						str(e) == 'UNIQUE constraint failed: settings.param, settings.group'
+				):
+					pass
+				else:
+					print("An error occurred:", e)
+
+
 def update_ver():
-	query = Version.update(version='5.2.6.0')
+	query = Version.update(version='5.3.0.0')
 	try:
 		query.execute()
 	except:
@@ -796,6 +838,7 @@ def update_all():
 	update_db_v_5_2_5_2()
 	update_db_v_5_2_5_3()
 	update_db_v_5_2_6()
+	update_db_v_5_3_0()
 	update_ver()
 
 
@@ -824,6 +867,7 @@ def update_all_silent():
 	update_db_v_5_2_5_2(silent=1)
 	update_db_v_5_2_5_3(silent=1)
 	update_db_v_5_2_6(silent=1)
+	update_db_v_5_3_0(silent=1)
 	update_ver()
 
 

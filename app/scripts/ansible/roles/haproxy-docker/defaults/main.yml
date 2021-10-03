@@ -1,0 +1,1 @@
+haproxy_version: "{{HAPVER.split('-')[0]}}"

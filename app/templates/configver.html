@@ -9,7 +9,7 @@
 		</form>
 	</p>
 	{% if not aftersave %}
-		{% if stderr or error %}
+		{% if stderr %}
 			{% include 'include/errors.html' %}
 		{% endif %}
 	{% endif %}
@@ -35,8 +35,8 @@
 		</center>
 	{% endif %}
 	{% if aftersave %}
-		<div class="alert alert-info">The following version of the configuration file has been uploaded and saved as: {{ configver }} </div>
-		{% if stderr or error %}
+		<div class="alert alert-info alert-two-row">The following version of the configuration file has been uploaded and saved as: {{ configver }} </div>
+		{% if stderr %}
 			{% include 'include/errors.html' %}	
 		{% else %}
 			<div class="alert alert-success">Config is ok</div>

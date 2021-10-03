@@ -460,6 +460,15 @@ def select_server_id_by_ip(server_ip):
 		return server_id
 
 
+def select_server_ip_by_id(server_id):
+	try:
+		server_ip = Server.get(Server.server_id == server_id).ip
+	except Exception as e:
+		return out_error(e)
+	else:
+		return server_ip
+
+
 def select_servers(**kwargs):
 	cursor = conn.cursor()
 	sql = """select * from servers where enable = '1' ORDER BY groups """
@@ -2787,6 +2796,31 @@ def insert_or_update_service_setting(server_id, service, setting, value):
 
 def select_service_settings(server_id: int, service: str) -> str:
 	query = ServiceSetting.select().where((ServiceSetting.server_id == server_id) & (ServiceSetting.service == service))
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
+
+
+def select_docker_service_settings(server_id: int, service: str) -> str:
+	query = ServiceSetting.select().where(
+		(ServiceSetting.server_id == server_id) &
+		(ServiceSetting.service == service) &
+		(ServiceSetting.setting == 'dockerized'))
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
+
+
+def select_docker_services_settings(service: str) -> str:
+	query = ServiceSetting.select().where(
+		(ServiceSetting.service == service) &
+		(ServiceSetting.setting == 'dockerized'))
 	try:
 		query_res = query.execute()
 	except Exception as e:

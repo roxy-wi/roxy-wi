@@ -153,6 +153,11 @@
 				{% if s.8.0.20 == 1 %}
 					<span class="lock" title="This server is inaccessible for editing by everyone except the admin role"></span>
 				{% endif %}
+				{% for set in service_settings %}
+					{% if set.server_id == s.0 and set.setting == 'dockerized' and set.value == '1' %}
+					<span class="box" title="This server is dockerized"></span>
+					{% endif %}
+				{% endfor %}
 				{% if role <= 2 %}
 				<span class="server-action">
 					<a id="start-{{ s.2 }}" class="start" title="Start {{service}} service">
@@ -167,7 +172,7 @@
 					<a id="stop-{{ s.2 }}" class="stop" title="Stop {{service}} service">
 						<span class="service-stop" onclick="confirmAjaxAction('stop', '{{action_service}}', '{{s.2}}')"></span>
 					</a>
-					{% if service != 'nginx' and service != 'keepalived' %}
+					{% if service != 'keepalived' %}
 					<span class="menu-bar" onclick="serverSettings('{{s.0}}', '{{s.1}}')" title="Edit settings for {{s.1}} service" style="margin: 0 0 0 10px;"></span>
 					{% endif %}
 				</span>
@@ -208,7 +213,7 @@
 					Master for: <b>{{ copy_to_clipboard(value=s.7.0.1, style='font-weight: bold') }}</b>
 				{% endif %}
 				{% if s.9.0 == '1' %}
-					VRRP status: <b>
+					VRRP: <b>
 					{% if s.9.1 == 'MASTER' or s.9.1 == 'BACKUP' or s.9.1 == 'INIT' or s.9.1 == 'FAULT' %}
 						{{s.9.1}}
 					{% else %}

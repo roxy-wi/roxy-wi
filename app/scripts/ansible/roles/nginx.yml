@@ -58,6 +58,7 @@
         src: /var/www/haproxy-wi/app/scripts/ansible/roles/default.conf.j2
         dest: "{{CONFIG_PATH}}"
         mode: 0644
+        force: no
       when: "'nginx' not in ansible_facts.packages"
       ignore_errors: yes      
       
@@ -117,7 +118,31 @@
       when:
         - sestatus.stdout is defined
         - '"Enforcing" in sestatus.stdout'
-      
+
+- name: Install Nginx as a Docker
+  hosts: "{{ variable_host }}"
+  become: yes
+  become_method: sudo
+  gather_facts: yes
+  roles:
+    - role: docker
+      environment:
+        http_proxy: "{{PROXY}}"
+        https_proxy: "{{PROXY}}"
+  tasks:
+    - name: Create Nginx.
+      docker_container:
+        name: "{{ CONT_NAME }}"
+        image: "haproxytech/haproxy-alpine:{{haproxy_version}}"
+        recreate: yes
+        network_mode: host
+        volumes:
+          - "/etc/nginx/:/etc/nginx/:rw"
+          - "/tmp:/tmp:ro"
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
+  tags:
+    - docker
       
 - hosts: "{{ variable_host }}"
   become: yes
@@ -131,4 +156,6 @@
       environment:
         http_proxy: "{{PROXY}}"
         https_proxy: "{{PROXY}}"
+  tags:
+    - system
 

@@ -55,7 +55,7 @@
 				</div>
 				<p>
 					<center>
-						{% if service == 'haproxy' %}
+						{% if service != 'keepalived' %}
 							<button type="submit" value="test" name="save" class="btn btn-default" title="Check config without saving the config">Check config</button>
 						{% endif %}
 						<button type="submit" value="save" name="save" class="btn btn-default" title="Save config without reloading the service">Save</button>

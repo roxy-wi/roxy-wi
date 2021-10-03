@@ -162,7 +162,10 @@ def logging(server_ip, action, **kwargs):
 			mess = get_data('date_in_log') + " from " + ip + " user: " + login + ", group: " + user_group + ", " + \
 				action + " for: " + server_ip + "\n"
 			if kwargs.get('keep_history'):
-				keep_action_history(kwargs.get('service'), action, server_ip, login, ip)
+				try:
+					keep_action_history(kwargs.get('service'), action, server_ip, login, ip)
+				except Exception as e:
+					print(str(e))
 		else:
 			mess = get_data('date_in_log') + " " + action + " from " + ip + "\n"
 		log = open(log_path + "/roxy-wi-"+get_data('logs')+".log", "a")
@@ -187,10 +190,12 @@ def logging(server_ip, action, **kwargs):
 		
 def keep_action_history(service: str, action: str, server_ip: str, login: str, user_ip: str):
 	import sql
-	server_id = sql.select_server_id_by_ip(server_ip=server_ip)
-	user_id = sql.get_user_id_by_username(login)
-
-	sql.insert_action_history(service, action, server_id, user_id, user_ip)
+	try:
+		server_id = sql.select_server_id_by_ip(server_ip=server_ip)
+		user_id = sql.get_user_id_by_username(login)
+		sql.insert_action_history(service, action, server_id, user_id, user_ip)
+	except Exception as e:
+		print('Cannot save a history ' + srt(e))
 
 
 def telegram_send_mess(mess, **kwargs):
@@ -645,8 +650,11 @@ def install_haproxy(server_ip, **kwargs):
 	stats_user = sql.get_setting('stats_user')
 	stats_password = sql.get_setting('stats_password')
 	proxy = sql.get_setting('proxy')
+	haproxy_dir = sql.get_setting('haproxy_dir')
+	container_name = sql.get_setting('haproxy_container_name')
 	haproxy_ver = kwargs.get('hapver')
 	server_for_installing = kwargs.get('server')
+	DOCKER='1'
 	ssh_port = 22
 	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = return_ssh_keys_path(server_ip)
 
@@ -670,8 +678,8 @@ def install_haproxy(server_ip, **kwargs):
 	syn_flood_protect = '1' if kwargs.get('syn_flood') == "1" else ''
 
 	commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv +
-				" SOCK_PORT=" + hap_sock_p + " STAT_PORT=" + stats_port + " STAT_FILE="+server_state_file +
-				" SSH_PORT=" + ssh_port + " STATS_USER=" + stats_user +
+				" SOCK_PORT=" + hap_sock_p + " STAT_PORT=" + stats_port + " STAT_FILE="+server_state_file + " DOCKER=" + DOCKER +
+				" SSH_PORT=" + ssh_port + " STATS_USER=" + stats_user + " CONT_NAME=" + container_name + " HAP_DIR=" + haproxy_dir +
 				" STATS_PASS='" + stats_password + "' HAPVER=" + haproxy_ver + " SYN_FLOOD=" + syn_flood_protect +
 				" HOST=" + server_ip + " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name]
 
@@ -829,13 +837,13 @@ def upload(server_ip, path, file, **kwargs):
 		error = str(e.args)
 		logging('localhost', error, haproxywi=1)
 		print('Cannot upload '+file+' to '+full_path+' to server: '+server_ip+' error: '+ error)
-
-	return str(error)
+		return error
 
 
 def upload_and_restart(server_ip, cfg, **kwargs):
 	import sql
-	error = ""
+	error = ''
+	container_name = ''
 
 	if kwargs.get("nginx"):
 		service = 'nginx'
@@ -874,27 +882,45 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		else:
 			commands = ["sudo mv -f " + tmp_file + " /etc/keepalived/keepalived.conf && sudo systemctl restart keepalived"]
 	elif service == "nginx":
+		server_id = sql.select_server_id_by_ip(server_ip=server_ip)
+		is_docker = sql.select_service_setting(server_id, 'nginx', 'dockerized')
+		if is_docker == '1':
+			container_name = sql.get_setting('nginx_container_name')
+			check_config = "sudo docker exec -it exec " + container_name + " nginx -t -q "
+		else:
+			check_config = "sudo nginx -t -q -p " + tmp_file
 		check_and_move = "sudo mv -f " + tmp_file + " " + config_path + " && sudo nginx -t -q"
 		if action == "test":
 			commands = [check_config + " && sudo rm -f " + tmp_file]
 		elif action == "save":
 			commands = [check_and_move]
 		elif action == "reload":
-			commands = [check_and_move + " && sudo systemctl reload nginx"]
+			if is_docker == '1':
+				commands = [ check_and_move + " && sudo docker kill -s HUP  "+container_name ]
+			else:
+				commands = [ check_and_move + " && sudo systemctl reload nginx" ]
 		else:
-			commands = [check_and_move + " && sudo systemctl restart nginx"]
+			if is_docker == '1':
+				commands = [check_and_move + " && sudo docker restart " + container_name]
+			else:
+				commands = [check_and_move + " && sudo systemctl restart nginx"]
 		if sql.return_firewall(server_ip):
 			commands[0] += open_port_firewalld(cfg, server_ip=server_ip, service='nginx')
 	else:
 		server_id = sql.select_server_id_by_ip(server_ip=server_ip)
-		haproxy_enterprise = sql.select_service_setting(server_id, 'haproxy', 'haproxy_enterprise')
+		is_docker = sql.select_service_setting(server_id, 'haproxy', 'dockerized')
+		haproxy_service_name = "haproxy"
 
-		if haproxy_enterprise == '1':
-			haproxy_service_name = "hapee-2.0-lb"
+		if is_docker == '1':
+			container_name = sql.get_setting('haproxy_container_name')
+			check_config = "sudo docker exec -it " + container_name + " haproxy -q -c -f " + tmp_file
 		else:
-			haproxy_service_name = "haproxy"
+			haproxy_enterprise = sql.select_service_setting(server_id, 'haproxy', 'haproxy_enterprise')
 
-		check_config = "sudo " + haproxy_service_name + "  -q -c -f " + tmp_file
+			if haproxy_enterprise == '1':
+				haproxy_service_name = "hapee-2.0-lb"
+
+			check_config = "sudo " + haproxy_service_name + " haproxy -q -c -f " + tmp_file
 		move_config = " && sudo mv -f " + tmp_file + " " + config_path
 
 		if action == "test":
@@ -902,38 +928,54 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		elif action == "save":
 			commands = [check_config + move_config]
 		elif action == "reload":
-			commands = [check_config + move_config + " && sudo systemctl reload "+haproxy_service_name+""]
+			if is_docker == '1':
+				commands = [check_config + move_config + " && sudo docker kill -s HUP  "+container_name ]
+			else:
+				commands = [check_config + move_config + " && sudo systemctl reload "+haproxy_service_name ]
 		else:
-			commands = [check_config + move_config + " && sudo systemctl restart "+haproxy_service_name+""]
+			if is_docker == '1':
+				commands = [check_config + move_config + " && sudo docker restart "+container_name ]
+			else:
+				commands = [check_config + move_config + " && sudo systemctl restart "+haproxy_service_name ]
 		if sql.return_firewall(server_ip):
 			commands[0] += open_port_firewalld(cfg, server_ip=server_ip)
-	error += str(upload(server_ip, tmp_file, cfg, dir='fullpath'))
 
 	try:
-		error += ssh_command(server_ip, commands)
-		if action != 'test':
-			logging(server_ip, 'A new config file has been uploaded', login=1, keep_history=1,
-					  service=service)
-		if action == 'reload' or action == 'restart':
-			logging(server_ip, 'Service has been ' + action + 'ed', login=1, keep_history=1,
-						  service=service)
+		upload(server_ip, tmp_file, cfg, dir='fullpath')
+		try:
+			if action != 'test':
+				logging(server_ip, 'A new config file has been uploaded', login=1, keep_history=1,
+						service=service)
+		except Exception as e:
+			logging('localhost', str(e), haproxywi=1)
 	except Exception as e:
-		error += e
-	if error:
-		logging('localhost', error, haproxywi=1)
+		logging('localhost', str(e), haproxywi=1)
+		return error
 
-	return error
+	try:
+		error = ssh_command(server_ip, commands)
+		try:
+			if action == 'reload' or action == 'restart':
+				logging(server_ip, 'Service has been ' + action + 'ed', login=1, keep_history=1,
+						service=service)
+		except Exception as e:
+			logging('localhost', str(e), haproxywi=1)
+	except Exception as e:
+		logging('localhost', str(e), haproxywi=1)
+		return e
+
+	if error.strip() != 'haproxy' and error.strip() != 'nginx':
+		return error.strip()
 
 
 def master_slave_upload_and_restart(server_ip, cfg, just_save, **kwargs):
 	import sql
 	masters = sql.is_master(server_ip)
-	error = ""
 	for master in masters:
 		if master[0] is not None:
-			error += upload_and_restart(master[0], cfg, just_save=just_save, nginx=kwargs.get('nginx'))
+			error = upload_and_restart(master[0], cfg, just_save=just_save, nginx=kwargs.get('nginx'))
 
-	error += upload_and_restart(server_ip, cfg, just_save=just_save, nginx=kwargs.get('nginx'))
+	error = upload_and_restart(server_ip, cfg, just_save=just_save, nginx=kwargs.get('nginx'))
 
 	return error
 
@@ -986,7 +1028,29 @@ def open_port_firewalld(cfg, server_ip, **kwargs):
 
 def check_haproxy_config(server_ip):
 	import sql
-	commands = ["haproxy  -q -c -f %s" % sql.get_setting('haproxy_config_path')]
+	server_id = sql.select_server_id_by_ip(server_ip=server_ip)
+	is_docker = sql.select_service_setting(server_id, 'haproxy', 'dockerized')
+	config_path = sql.get_setting('haproxy_config_path')
+
+	if is_docker == '1':
+		container_name = sql.get_setting('haproxy_container_name')
+		commands = [ "sudo docker exec -it " + container_name + " haproxy -q -c -f " + config_path ]
+	else:
+		commands = ["haproxy  -q -c -f %s" % config_path]
+
+	ssh = ssh_connect(server_ip)
+	for command in commands:
+		stdin, stdout, stderr = ssh.exec_command(command, get_pty=True)
+		if not stderr.read():
+			return True
+		else:
+			return False
+	ssh.close()
+
+
+def check_nginx_config(server_ip):
+	import sql
+	commands = [ "nginx -q -t -p {}".format(sql.get_setting('nginx_dir')) ]
 	ssh = ssh_connect(server_ip)
 	for command in commands:
 		stdin, stdout, stderr = ssh.exec_command(command, get_pty=True)

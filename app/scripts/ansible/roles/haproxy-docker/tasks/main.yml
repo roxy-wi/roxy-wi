@@ -1,0 +1,48 @@
+---
+- name: Ensuring config directories exist.
+  file:
+    path: "{{ HAP_DIR }}"
+    state: "directory"
+    owner: "{{ansible_user}}"
+    group: "{{ansible_user}}"
+    mode: "0770"
+  become: true
+  ignore_errors: yes
+
+- name: Copying over haproxy.cfg.
+  template:
+    src: haproxy.cfg.j2
+    dest: "{{ HAP_DIR }}/haproxy.cfg"
+    mode: "0666"
+    owner: "{{ansible_user}}"
+    group: "{{ansible_user}}"
+    force: no
+  become: true
+  ignore_errors: yes
+
+- name: Setting sysctl values.
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    sysctl_set: yes
+  become: true
+  with_items:
+    - { name: "net.ipv4.ip_nonlocal_bind", value: 1}
+    - { name: "net.ipv6.ip_nonlocal_bind", value: 1}
+    - { name: "net.unix.max_dgram_qlen", value: 128}
+
+- name: Create HAProxy.
+  docker_container:
+    name: "{{ CONT_NAME }}"
+    image: "haproxytech/haproxy-alpine:{{haproxy_version}}"
+    recreate: yes
+    network_mode: host
+    volumes:
+      - "{{ HAP_DIR }}:/usr/local/etc/haproxy:rw"
+      - "/tmp:/tmp:ro"
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+
+- name: Add syn_flood tasks.
+  include: ../../haproxy/tasks/syn_flood.yml
+  when: (SYN_FLOOD is defined) and (SYN_FLOOD|length > 0)

@@ -405,18 +405,21 @@ if form.getvalue('showif'):
 
 if form.getvalue('action_hap') is not None and serv is not None:
     action = form.getvalue('action_hap')
+    haproxy_service_name = "haproxy"
 
     if funct.check_haproxy_config(serv):
-        servers = sql.select_servers(server=serv)
-        for server in servers:
-            server_id = server[0]
-        haproxy_enterprise = sql.select_service_setting(server_id, 'haproxy', 'haproxy_enterprise')
-        if haproxy_enterprise == '1':
-            haproxy_service_name = "hapee-2.0-lb"
-        else:
-            haproxy_service_name = "haproxy"
+        server_id = sql.select_server_id_by_ip(server_ip=serv)
+        is_docker = sql.select_service_setting(server_id, 'haproxy', 'dockerized')
 
-        commands = ["sudo systemctl %s %s" % (action, haproxy_service_name)]
+        if is_docker == '1':
+            container_name = sql.get_setting('haproxy_container_name')
+            commands = ["sudo docker %s %s" % (action, container_name)]
+        else:
+            haproxy_enterprise = sql.select_service_setting(server_id, 'haproxy', 'haproxy_enterprise')
+            if haproxy_enterprise == '1':
+                haproxy_service_name = "hapee-2.0-lb"
+            commands = ["sudo systemctl %s %s" % (action, haproxy_service_name)]
+
         funct.ssh_command(serv, commands)
         funct.logging(serv, 'Service has been ' + action + 'ed', haproxywi=1, login=1, keep_history=1, service='haproxy')
         print("success: HAProxy has been %s" % action)
@@ -426,10 +429,19 @@ if form.getvalue('action_hap') is not None and serv is not None:
 if form.getvalue('action_nginx') is not None and serv is not None:
     action = form.getvalue('action_nginx')
 
-    commands = ["sudo systemctl %s nginx" % action]
-    funct.ssh_command(serv, commands)
-    funct.logging(serv, 'Service has been ' + action + 'ed', haproxywi=1, login=1, keep_history=1, service='nginx')
-    print("success: Nginx has been %s" % action)
+    if funct.check_nginx_config(serv):
+        server_id = sql.select_server_id_by_ip(server_ip=serv)
+        is_docker = sql.select_service_setting(server_id, 'nginx', 'dockerized')
+        if is_docker == '1':
+            container_name = sql.get_setting('nginx_container_name')
+            commands = ["sudo docker %s %s" % (action, container_name)]
+        else:
+            commands = ["sudo systemctl %s nginx" % action]
+        funct.ssh_command(serv, commands)
+        funct.logging(serv, 'Service has been ' + action + 'ed', haproxywi=1, login=1, keep_history=1, service='nginx')
+        print("success: Nginx has been %s" % action)
+    else:
+        print("error: Bad config, check please")
 
 if form.getvalue('action_keepalived') is not None and serv is not None:
     action = form.getvalue('action_keepalived')
@@ -3772,7 +3784,34 @@ if form.getvalue('serverSettingsSave') is not None:
     server_id = form.getvalue('serverSettingsSave')
     service = form.getvalue('serverSettingsService')
     haproxy_enterprise = form.getvalue('serverSettingsEnterprise')
+    haproxy_dockerized = form.getvalue('serverSettingshaproxy_dockerized')
+    nginx_dockerized = form.getvalue('serverSettingsnginx_dockerized')
+    server_ip = sql.select_server_ip_by_id(server_id)
 
     if service == 'haproxy':
         if sql.insert_or_update_service_setting(server_id, service, 'haproxy_enterprise', haproxy_enterprise):
             print('Ok')
+            if haproxy_enterprise == '1':
+                funct.logging(server_ip, 'Service has been flagged as an Enterprise version', haproxywi=1, login=1,
+                              keep_history=1, service=service)
+            else:
+                funct.logging(server_ip, 'Service has been flagged as a community version', haproxywi=1, login=1,
+                              keep_history=1, service=service)
+        if sql.insert_or_update_service_setting(server_id, service, 'dockerized', haproxy_dockerized):
+            print('Ok')
+            if haproxy_dockerized == '1':
+                funct.logging(server_ip, 'Service has been flagged as a dockerized', haproxywi=1, login=1,
+                              keep_history=1, service=service)
+            else:
+                funct.logging(server_ip, 'Service has been flagged as a system service', haproxywi=1, login=1,
+                              keep_history=1, service=service)
+
+    if service == 'nginx':
+        if sql.insert_or_update_service_setting(server_id, service, 'dockerized', nginx_dockerized):
+            print('Ok')
+            if nginx_dockerized:
+                funct.logging(server_ip, 'Service has been flagged as a dockerized', haproxywi=1, login=1,
+                              keep_history=1, service=service)
+            else:
+                funct.logging(server_ip, 'Service has been flagged as a system service', haproxywi=1, login=1,
+                              keep_history=1, service=service)

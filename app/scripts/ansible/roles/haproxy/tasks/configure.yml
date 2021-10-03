@@ -1,0 +1,122 @@
+- name: Change wrong HAProxy service file
+  template:
+    src: haproxy.service.j2
+    dest: /usr/lib/systemd/system/haproxy.service
+    mode: 0644
+  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and haproxy_from_wi is defined
+
+
+- name: test to see if selinux is running
+  command: getenforce
+  register: sestatus
+  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS')
+  changed_when: false
+  ignore_errors: yes
+  debugger: never
+
+
+- name: Disble SELINUX in config
+  template:
+   src: selinux.j2
+   dest: /etc/selinux/config
+  ignore_errors: yes
+  when:
+    - sestatus.stdout is defined
+    - '"Enforcing" in sestatus.stdout'
+
+
+- name: Disble SELINUX in env
+  shell: setenforce 0 &> /dev/null
+  ignore_errors: yes
+  debugger: never
+  when:
+    - sestatus.stdout is defined
+    - '"Enforcing" in sestatus.stdout'
+
+- name: Installing HAProxy conf for rsyslog
+  template:
+   src: haproxy_rsyslog.conf.j2
+   dest: /etc/rsyslog.d/haproxy.conf
+  ignore_errors: yes
+
+
+- name: Installing rsyslog config
+  template:
+   src: rsyslog.conf
+   dest: /etc/rsyslog.conf
+  ignore_errors: yes
+  notify: restart rsyslog
+
+
+- name: Installing HAProxy conf for logrotate
+  template:
+    src: logrotate.conf.j2
+    dest: /etc/logrotate.d/haproxy.conf
+  ignore_errors: yes
+
+
+- name: Get HAProxy version.
+  command: haproxy -v
+  register: haproxy_version_result
+  changed_when: false
+  check_mode: false
+
+
+- name: Set HAProxy version.
+  set_fact:
+    haproxy_version: "{{ '1.5' if '1.5.' in haproxy_version_result.stdout else '1.6' }}"
+
+
+- name: Open stat port for firewalld
+  firewalld:
+    port: "{{ item }}/tcp"
+    state: enabled
+    permanent: yes
+    immediate: yes
+  ignore_errors: yes
+  no_log: True
+  debugger: never
+  when:
+    - '"firewalld" in ansible_facts.packages'
+    - ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
+    - ansible_facts.services["firewalld.service"]['state'] == "running"
+  with_items:  [ "{{ STAT_PORT }}", "{{ SOCK_PORT }}" ]
+
+
+- name: Open stat port for iptables
+  iptables:
+    chain: INPUT
+    destination_port: "{{ item }}"
+    jump: ACCEPT
+    protocol: tcp
+  ignore_errors: yes
+  with_items:  [ "{{ STAT_PORT }}", "{{ SOCK_PORT }}" ]
+
+
+- name: Copy HAProxy configuration in place.
+  template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+    mode: 0644
+    validate: haproxy -f %s -c -q
+    force: no
+  notify: restart haproxy
+
+
+- name: Creates HAProxy stats directory
+  file:
+    path: /var/lib/haproxy
+    owner: haproxy
+    group: haproxy
+    state: directory
+  ignore_errors: yes
+
+
+- name: Enable and start service HAProxy
+  systemd:
+    name: haproxy
+    daemon_reload: yes
+    state: started
+    enabled: yes
+    force: no
+  ignore_errors: yes
