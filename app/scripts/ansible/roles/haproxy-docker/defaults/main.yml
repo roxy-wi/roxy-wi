@@ -1,1 +1,2 @@
-haproxy_version: "{{HAPVER.split('-')[0]}}"
+splited_haproxy_version: "{{HAPVER.split('.')[0:2]}}"
+haproxy_version: "{{splited_haproxy_version[0]}}.{{splited_haproxy_version[1]}}"

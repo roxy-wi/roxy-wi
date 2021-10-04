@@ -139,6 +139,7 @@
         volumes:
           - "/etc/nginx/:/etc/nginx/:rw"
           - "/tmp:/tmp:ro"
+          - "/var/log:/var/log:rw"
       vars:
         ansible_python_interpreter: /usr/bin/python3
   tags:

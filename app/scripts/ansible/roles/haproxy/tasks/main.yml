@@ -10,6 +10,8 @@
 - name: populate service facts
   service_facts:
 
+- include: logs.yml
+
 - include: installation.yml
 
 - include: configure.yml

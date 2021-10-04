@@ -11,7 +11,7 @@
 
 - name: Copying over haproxy.cfg.
   template:
-    src: haproxy.cfg.j2
+    src: ../../haproxy/templates/haproxy.cfg.j2
     dest: "{{ HAP_DIR }}/haproxy.cfg"
     mode: "0666"
     owner: "{{ansible_user}}"
@@ -19,6 +19,9 @@
     force: no
   become: true
   ignore_errors: yes
+
+- name: Add logs tasks.
+  include: ../../haproxy/tasks/logs.yml
 
 - name: Setting sysctl values.
   sysctl:

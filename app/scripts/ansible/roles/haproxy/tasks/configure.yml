@@ -33,28 +33,6 @@
     - sestatus.stdout is defined
     - '"Enforcing" in sestatus.stdout'
 
-- name: Installing HAProxy conf for rsyslog
-  template:
-   src: haproxy_rsyslog.conf.j2
-   dest: /etc/rsyslog.d/haproxy.conf
-  ignore_errors: yes
-
-
-- name: Installing rsyslog config
-  template:
-   src: rsyslog.conf
-   dest: /etc/rsyslog.conf
-  ignore_errors: yes
-  notify: restart rsyslog
-
-
-- name: Installing HAProxy conf for logrotate
-  template:
-    src: logrotate.conf.j2
-    dest: /etc/logrotate.d/haproxy.conf
-  ignore_errors: yes
-
-
 - name: Get HAProxy version.
   command: haproxy -v
   register: haproxy_version_result
