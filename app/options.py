@@ -1314,21 +1314,23 @@ if form.getvalue('master_slave_hap'):
     master = form.getvalue('master_slave_hap')
     slave = form.getvalue('slave')
     server = form.getvalue('server')
+    docker = form.getvalue('docker')
 
     if server == 'master':
-        funct.install_haproxy(master, server=server)
+        funct.install_haproxy(master, server=server, docker=docker)
     elif server == 'slave':
-        funct.install_haproxy(slave, server=server)
+        funct.install_haproxy(slave, server=server, docker=docker)
 
 if form.getvalue('master_slave_nginx'):
     master = form.getvalue('master_slave_nginx')
     slave = form.getvalue('slave')
     server = form.getvalue('server')
+    docker = form.getvalue('docker')
 
     if server == 'master':
-        funct.install_nginx(master, server=server)
+        funct.install_nginx(master, server=server, docker=docker)
     elif server == 'slave':
-        funct.install_nginx(slave, server=server)
+        funct.install_nginx(slave, server=server, docker=docker)
 
 if form.getvalue('install_grafana'):
     script = "install_grafana.sh"
@@ -1542,11 +1544,11 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
             funct.logging('backup ', ' a backup job for server ' + serv + ' has been updated', haproxywi=1, login=1)
 
 if form.getvalue('install_nginx'):
-    funct.install_nginx(form.getvalue('install_nginx'))
+    funct.install_nginx(form.getvalue('install_nginx'), docker=form.getvalue('docker'))
 
 if form.getvalue('haproxyaddserv'):
     funct.install_haproxy(form.getvalue('haproxyaddserv'), syn_flood=form.getvalue('syn_flood'),
-                          hapver=form.getvalue('hapver'))
+                          hapver=form.getvalue('hapver'), docker=form.getvalue('docker'))
 
 if form.getvalue('installwaf'):
     funct.waf_install(form.getvalue('installwaf'))

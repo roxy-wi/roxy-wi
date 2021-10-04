@@ -654,7 +654,7 @@ def install_haproxy(server_ip, **kwargs):
 	container_name = sql.get_setting('haproxy_container_name')
 	haproxy_ver = kwargs.get('hapver')
 	server_for_installing = kwargs.get('server')
-	DOCKER='1'
+	docker = kwargs.get('docker')
 	ssh_port = 22
 	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = return_ssh_keys_path(server_ip)
 
@@ -678,7 +678,7 @@ def install_haproxy(server_ip, **kwargs):
 	syn_flood_protect = '1' if kwargs.get('syn_flood') == "1" else ''
 
 	commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv +
-				" SOCK_PORT=" + hap_sock_p + " STAT_PORT=" + stats_port + " STAT_FILE="+server_state_file + " DOCKER=" + DOCKER +
+				" SOCK_PORT=" + hap_sock_p + " STAT_PORT=" + stats_port + " STAT_FILE="+server_state_file + " DOCKER=" + docker +
 				" SSH_PORT=" + ssh_port + " STATS_USER=" + stats_user + " CONT_NAME=" + container_name + " HAP_DIR=" + haproxy_dir +
 				" STATS_PASS='" + stats_password + "' HAPVER=" + haproxy_ver + " SYN_FLOOD=" + syn_flood_protect +
 				" HOST=" + server_ip + " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name]
@@ -691,6 +691,10 @@ def install_haproxy(server_ip, **kwargs):
 
 	if show_installation_output(error, output, service):
 		sql.update_haproxy(server_ip)
+
+	if docker == '1':
+		server_id = sql.select_server_id_by_ip(server_ip)
+		sql.insert_or_update_service_setting(server_id, 'haproxy', 'dockerized', '1')
 
 	os.system("rm -f %s" % script)
 
@@ -737,6 +741,8 @@ def install_nginx(server_ip, **kwargs):
 	config_path = sql.get_setting('nginx_config_path')
 	server_for_installing = kwargs.get('server')
 	proxy = sql.get_setting('proxy')
+	docker = kwargs.get('docker')
+	container_name = sql.get_setting('haproxy_container_name')
 	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = return_ssh_keys_path(server_ip)
 	ssh_port = '22'
 
@@ -757,8 +763,8 @@ def install_nginx(server_ip, **kwargs):
 	syn_flood_protect = '1' if form.getvalue('syn_flood') == "1" else ''
 
 	commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " STATS_USER=" + stats_user +
-				" STATS_PASS='" + stats_password + "' SSH_PORT=" + ssh_port + " CONFIG_PATH=" + config_path +
-				" STAT_PORT=" + stats_port + " STAT_PAGE=" + stats_page+" SYN_FLOOD=" + syn_flood_protect +
+				" STATS_PASS='" + stats_password + "' SSH_PORT=" + ssh_port + " CONFIG_PATH=" + config_path + " CONT_NAME=" + container_name +
+				" STAT_PORT=" + stats_port + " STAT_PAGE=" + stats_page+" SYN_FLOOD=" + syn_flood_protect + " DOCKER=" + docker +
 				" HOST=" + server_ip + " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name]
 
 	output, error = subprocess_execute(commands[0])
@@ -768,6 +774,10 @@ def install_nginx(server_ip, **kwargs):
 		service = ' Nginx'
 	if show_installation_output(error, output, service):
 		sql.update_nginx(server_ip)
+
+	if docker == '1':
+		server_id = sql.select_server_id_by_ip(server_ip)
+		sql.insert_or_update_service_setting(server_id, 'nginx', 'dockerized', '1')
 
 	os.system("rm -f %s" % script)
 

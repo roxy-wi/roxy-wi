@@ -61,8 +61,16 @@ $( function() {
 	$('#install').click(function() {
 		$("#ajax").html('')
 		var syn_flood = 0;
+		var docker = 0;
 		if ($('#syn_flood').is(':checked')) {
 			syn_flood = '1';
+		}
+		if ($('#haproxy_docker').is(':checked')) {
+			docker = '1';
+		}
+		if ($('#haproxyaddserv').val() == '------' || $('#haproxyaddserv').val() === null) {
+			toastr.warning('Select a server');
+			return false
 		}
 		$("#ajax").html(wait_mess);
 		$.ajax( {
@@ -71,6 +79,7 @@ $( function() {
 				haproxyaddserv: $('#haproxyaddserv').val(),
 				syn_flood: syn_flood,
 				hapver: $('#hapver option:selected' ).val(),
+				docker: docker,
 				token: $('#token').val()
 				},
 			type: "POST",
@@ -96,8 +105,16 @@ $( function() {
 	$('#nginx_install').click(function() {
 		$("#ajax").html('')
 		var syn_flood = 0;
+		var docker = 0;
 		if ($('#nginx_syn_flood').is(':checked')) {
 			syn_flood = '1';
+		}
+		if ($('#nginx_docker').is(':checked')) {
+			docker = '1';
+		}
+		if ($('#nginxaddserv').val() == '------') {
+			toastr.warning('Select a server');
+			return false
 		}
 		$("#ajax").html(wait_mess);
 		$.ajax( {
@@ -105,6 +122,7 @@ $( function() {
 			data: {
 				install_nginx: $('#nginxaddserv').val(),
 				syn_flood: syn_flood,
+				docker: docker,
 				token: $('#token').val()
 				},
 			type: "POST",

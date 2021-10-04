@@ -86,6 +86,24 @@ $( function() {
 				}
 			}
 	});
+	$('#hap').click(function() {
+		if ($('#hap').is(':checked')) {
+			$('#haproxy_docker_td').show();
+			$('#haproxy_docker_td_header').show();
+		} else {
+			$('#haproxy_docker_td').hide();
+			$('#haproxy_docker_td_header').hide();
+		}
+	});
+	$('#nginx').click(function() {
+		if ($('#nginx').is(':checked')) {
+			$('#nginx_docker_td').show();
+			$('#nginx_docker_td_header').show();
+		} else {
+			$('#nginx_docker_td').hide();
+			$('#nginx_docker_td_header').hide();
+		}
+	});
 });
 function add_master_addr(kp) {
 	$.ajax( {
@@ -144,8 +162,16 @@ function create_master_keepalived(hap, nginx, syn_flood) {
 		var progress_value = '50';
 	}
 	var virt_server = 0;
+	var haproxy_docker = 0;
+	var nginx_docker = 0;
 	if ($('#virt_server').is(':checked')) {
 		virt_server = '1';
+	}
+	if ($('#hap_docker').is(':checked')) {
+		haproxy_docker = '1';
+	}
+	if ($('#nginx_docker').is(':checked')) {
+		nginx_docker = '1';
 	}
 	$.ajax( {
 		url: "options.py",
@@ -170,10 +196,10 @@ function create_master_keepalived(hap, nginx, syn_flood) {
 			} else if (data.indexOf('success') != '-1' ){
 				showProvisioningProccess('<p>'+data+'</p>', '#creating-master', progress_value, '#creating-progress', '#created-mess', '#wait-mess');
 				if (hap === '1') {
-					create_keep_alived_hap(nginx, 'master');
+					create_keep_alived_hap(nginx, 'master', haproxy_docker);
 				}
 				if (hap == '0' && nginx == '1') {
-					create_keep_alived_nginx('master');
+					create_keep_alived_nginx('master', nginx_docker);
 				}
 			} else {
 				toastr.clear();
@@ -216,15 +242,15 @@ function create_slave_keepalived(hap, nginx, syn_flood) {
 				toastr.info(data);
 			}
 			if (hap === '1') {
-				create_keep_alived_hap(nginx, 'slave');
+				create_keep_alived_hap(nginx, 'slave', docker);
 			}
 			if (hap == '0' && nginx == '1') {
-				create_keep_alived_nginx('slave');
+				create_keep_alived_nginx('slave', docker);
 			}
 		}
 	} );
 }
-function create_keep_alived_hap(nginx, server) {
+function create_keep_alived_hap(nginx, server, docker) {
 	if (nginx == '0') {
 		var progress_value = '100';
 	} else if (nginx == '1') {
@@ -244,6 +270,7 @@ function create_keep_alived_hap(nginx, server) {
 			master_slave_hap: $('#master').val(),
 			slave: $('#slave').val(),
 			server: server,
+			docker: docker,
 			token: $('#token').val()
 		},
 		type: "POST",
@@ -260,12 +287,12 @@ function create_keep_alived_hap(nginx, server) {
 				toastr.info(data);
 			}
 			if (nginx == '1') {
-				create_keep_alived_nginx(server)
+				create_keep_alived_nginx(server, docker)
 			}
 		}
 	} );
 }
-function create_keep_alived_nginx(server) {
+function create_keep_alived_nginx(server, docker) {
 	if (server === 'master') {
 		var step_id = '#creating-nginx-master';
 		var install_step = 'master Nginx';
@@ -280,6 +307,7 @@ function create_keep_alived_nginx(server) {
 			master_slave_nginx: $('#master').val(),
 			slave: $('#slave').val(),
 			server: server,
+			docker: docker,
 			token: $('#token').val()
 		},
 		type: "POST",
