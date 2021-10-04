@@ -502,8 +502,16 @@ function serverSettings(id, name) {
 }
 function serverSettingsSave(id, name, service, dialog_id) {
 	var haproxy_enterprise = 0;
+	var haproxy_dockerized = 0;
+	var nginx_dockerized = 0;
 	if ($('#haproxy_enterprise').is(':checked')) {
 		haproxy_enterprise = '1';
+	}
+	if ($('#haproxy_dockerized').is(':checked')) {
+		haproxy_dockerized = '1';
+	}
+	if ($('#nginx_dockerized').is(':checked')) {
+		nginx_dockerized = '1';
 	}
 	$.ajax({
 		url: "options.py",
@@ -511,6 +519,8 @@ function serverSettingsSave(id, name, service, dialog_id) {
 			serverSettingsSave: id,
 			serverSettingsService: service,
 			serverSettingsEnterprise: haproxy_enterprise,
+			serverSettingshaproxy_dockerized: haproxy_dockerized,
+			serverSettingsnginx_dockerized: nginx_dockerized,
 			token: $('#token').val()
 		},
 		type: "POST",

@@ -138,7 +138,7 @@ def add_setting_for_new_group(group_id):
 		{'param': 'local_path_logs', 'value': '/var/log/haproxy.log', 'section': 'logs',
 		 'desc': 'The default local path for saving logs', 'group': group_id},
 		{'param': 'syslog_server_enable', 'value': '0', 'section': 'logs',
-		 'desc': 'Use the syslog server for HAProxy logs; (0 - no, 1 - yes)', 'group': group_id},
+		 'desc': 'Enable getting logs from a syslog server; (0 - no, 1 - yes)', 'group': group_id},
 		{'param': 'syslog_server', 'value': '', 'section': 'logs', 'desc': 'IP address of the syslog_server',
 		 'group': group_id},
 		{'param': 'stats_user', 'value': 'admin', 'section': 'haproxy', 'desc': 'Username for accessing HAProxy stats page',
@@ -1350,7 +1350,7 @@ def select_waf_rule_by_id(rule_id):
 
 
 def update_enable_waf_rules(rule_id, serv, en):
-	query = WafRules.update(WafRules=en).where((WafRules.id == rule_id) & (WafRules.serv == serv))
+	query = WafRules.update(en=en).where((WafRules.id == rule_id) & (WafRules.serv == serv))
 	try:
 		query.execute()
 	except Exception as e:

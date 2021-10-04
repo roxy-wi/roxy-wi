@@ -23,6 +23,7 @@ try:
 	if not stderr:
 		if service_ver[0] == '* is not installed' or service_ver == '':
 			servers = ''
+			title = 'Metrics service'
 		else:
 			if service == 'nginx':
 				if funct.check_login(service=2):

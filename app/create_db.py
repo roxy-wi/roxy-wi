@@ -32,7 +32,7 @@ def default_values():
 		{'param': 'local_path_logs', 'value': '/var/log/haproxy.log', 'section': 'logs',
 		 'desc': 'The default local path for saving logs', 'group': '1'},
 		{'param': 'syslog_server_enable', 'value': '0', 'section': 'logs',
-		 'desc': 'Use the syslog server for HAProxy logs; (0 - no, 1 - yes)', 'group': '1'},
+		 'desc': 'Enable getting logs from a syslog server; (0 - no, 1 - yes)', 'group': '1'},
 		{'param': 'syslog_server', 'value': '', 'section': 'logs', 'desc': 'IP address of the syslog_server',
 		 'group': '1'},
 		{'param': 'log_time_storage', 'value': '14', 'section': 'logs',
