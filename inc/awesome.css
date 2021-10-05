@@ -365,12 +365,21 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f023";
 }
+.box::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f466";
+}
 .server-name .lock .fa-lock,
+.server-name .box .fa-box,
 .server-name .green .fa-shield-alt,
 .server-name .red .fa-shield-alt  {
 	color: #d2d2d2;
 	margin-bottom: -1px;
     width: 14px;
+}
+.server-name .box .fa-box {
+	margin-bottom: -2px;
 }
 .server-name .green .fa-shield-alt {
 	color: var(--green-color);

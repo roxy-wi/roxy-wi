@@ -325,7 +325,7 @@ function showLog() {
 		},
 		type: "POST",
 		success: function( data ) {
-			if (data.indexOf('error:') != '-1') {
+			if (data.indexOf('error:') != '-1' && data.indexOf('Internal error:') == '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
