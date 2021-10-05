@@ -7,6 +7,7 @@ env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('metrics.html')
 form = funct.form
 service = form.getvalue('service')
+title = 'Metrics service'
 
 funct.check_login()
 print('Content-type: text/html\n')
@@ -23,7 +24,6 @@ try:
 	if not stderr:
 		if service_ver[0] == '* is not installed' or service_ver == '':
 			servers = ''
-			title = 'Metrics service'
 		else:
 			if service == 'nginx':
 				if funct.check_login(service=2):

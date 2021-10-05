@@ -930,7 +930,7 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 			if haproxy_enterprise == '1':
 				haproxy_service_name = "hapee-2.0-lb"
 
-			check_config = "sudo " + haproxy_service_name + " haproxy -q -c -f " + tmp_file
+			check_config = "sudo " + haproxy_service_name + " -q -c -f " + tmp_file
 		move_config = " && sudo mv -f " + tmp_file + " " + config_path
 
 		if action == "test":
