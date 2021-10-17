@@ -438,9 +438,23 @@ class ActionHistory(BaseModel):
         primary_key = False
 
 
+class ConfigVersion(BaseModel):
+    id = AutoField()
+    server_id = IntegerField()
+    user_id = IntegerField()
+    service = CharField()
+    local_path = CharField()
+    remote_path = CharField()
+    diff = TextField()
+    message = CharField(null=True)
+    date = DateTimeField(default=datetime.now)
+
+    class Meta:
+        table_name = 'config_versions'
+
 def create_tables():
     with conn:
-        conn.create_tables([User, Server, Role, Telegram, Slack, UUID, Token, ApiToken, Groups, UserGroups,
+        conn.create_tables([User, Server, Role, Telegram, Slack, UUID, Token, ApiToken, Groups, UserGroups, ConfigVersion,
                             Setting, Cred, Backup, Metrics, WafMetrics, Version, Option, SavedServer, Waf, ActionHistory,
                             PortScannerSettings, PortScannerPorts, PortScannerHistory, ProvidersCreds, ServiceSetting,
                             ProvisionedServers, MetricsHttpStatus, SMON, WafRules, Alerts, GeoipCodes, NginxMetrics])

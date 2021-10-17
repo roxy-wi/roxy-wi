@@ -12,9 +12,9 @@
 
 - include: logs.yml
 
-- include: installation.yml
-
 - include: configure.yml
+
+- include: installation.yml
 
 - name: Add syn_flood tasks
   include: syn_flood.yml

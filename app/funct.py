@@ -294,6 +294,18 @@ def check_login(**kwargs):
 		return False
 
 
+def get_user_id():
+	import sql
+	import http.cookies
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_uuid = cookie.get('uuid')
+
+	if user_uuid is not None:
+		user_id = sql.get_user_id_by_uuid(user_uuid.value)
+
+		return user_id
+
+
 def is_admin(**kwargs):
 	import sql
 	import http.cookies
@@ -425,7 +437,7 @@ def get_config(server_ip, cfg, **kwargs):
 		return
 
 
-def diff_config(oldcfg, cfg):
+def diff_config(oldcfg, cfg, **kwargs):
 	import http.cookies
 	import sql
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
@@ -443,8 +455,14 @@ def diff_config(oldcfg, cfg):
 
 	output, stderr = subprocess_execute(cmd)
 
-	for line in output:
-		diff += date + " user: " + login + ", group: " + user_group + " " + line + "\n"
+	if kwargs.get('return_diff'):
+		for line in output:
+			diff +=  line + "\n"
+		return diff
+	else:
+		for line in output:
+			diff += date + " user: " + login + ", group: " + user_group + " " + line + "\n"
+
 	try:
 		log = open(log_path + "/config_edit-"+get_data('logs')+".log", "a")
 		log.write(diff)
@@ -811,7 +829,6 @@ def check_haproxy_version(server_ip):
 
 
 def upload(server_ip, path, file, **kwargs):
-	error = ""
 	full_path = path + file
 	if kwargs.get('dir') == "fullpath":
 		full_path = path
@@ -854,6 +871,7 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 	import sql
 	error = ''
 	container_name = ''
+	server_id = sql.select_server_id_by_ip(server_ip=server_ip)
 
 	if kwargs.get("nginx"):
 		service = 'nginx'
@@ -892,7 +910,6 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		else:
 			commands = ["sudo mv -f " + tmp_file + " /etc/keepalived/keepalived.conf && sudo systemctl restart keepalived"]
 	elif service == "nginx":
-		server_id = sql.select_server_id_by_ip(server_ip=server_ip)
 		is_docker = sql.select_service_setting(server_id, 'nginx', 'dockerized')
 		if is_docker == '1':
 			container_name = sql.get_setting('nginx_container_name')
@@ -917,7 +934,6 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		if sql.return_firewall(server_ip):
 			commands[0] += open_port_firewalld(cfg, server_ip=server_ip, service='nginx')
 	else:
-		server_id = sql.select_server_id_by_ip(server_ip=server_ip)
 		is_docker = sql.select_service_setting(server_id, 'haproxy', 'dockerized')
 		haproxy_service_name = "haproxy"
 
@@ -958,6 +974,18 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 						service=service)
 		except Exception as e:
 			logging('localhost', str(e), haproxywi=1)
+		# If master then save version of config in a new way
+		if not kwargs.get('slave'):
+			try:
+				diff = diff_config(kwargs.get('oldcfg'), cfg, return_diff=1)
+			except Exception as e:
+				logging('localhost', str(e), haproxywi=1)
+
+			try:
+				user_id = get_user_id()
+				sql.insert_config_version(server_id, user_id, service, cfg, config_path, diff)
+			except Exception as e:
+				logging('localhost', str(e), haproxywi=1)
 	except Exception as e:
 		logging('localhost', str(e), haproxywi=1)
 		return error
@@ -983,9 +1011,9 @@ def master_slave_upload_and_restart(server_ip, cfg, just_save, **kwargs):
 	masters = sql.is_master(server_ip)
 	for master in masters:
 		if master[0] is not None:
-			error = upload_and_restart(master[0], cfg, just_save=just_save, nginx=kwargs.get('nginx'))
+			error = upload_and_restart(master[0], cfg, just_save=just_save, nginx=kwargs.get('nginx'), slave=1)
 
-	error = upload_and_restart(server_ip, cfg, just_save=just_save, nginx=kwargs.get('nginx'))
+	error = upload_and_restart(server_ip, cfg, just_save=just_save, nginx=kwargs.get('nginx'), oldcfg=kwargs.get('oldcfg'))
 
 	return error
 

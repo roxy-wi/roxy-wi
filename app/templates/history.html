@@ -1,0 +1,51 @@
+{% from 'include/input_macros.html' import copy_to_clipboard %}
+{% extends "base.html" %}
+{% block content %}
+<link href="/inc/table.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" charset="utf8" src="/inc/dataTables.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#table_history').on('page.dt')
+            .DataTable( {
+                "pageLength": 25,
+                "order": [ 4, "desc" ],
+                stateSave: true,
+                "columnDefs": [
+                    {
+                        "searchable": false,
+                        "orderable": false
+                    }
+                ],
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
+            } );
+    } );
+</script>
+<table class="overview hover order-column display compact" id="table_history">
+    <thead>
+        <tr class="overviewHead">
+            <th class="padding10 first-collumn" style="width: 100px;">Service</th>
+            <th>User</th>
+            <th>User IP</th>
+            <th>Action</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for h in history %}
+    <tr>
+        <td>{{h.service[0].upper()}}{{h.service[1:]}}</td>
+        <td>
+            {% for u in users %}
+            {% if u.user_id == h.user_id %}
+            {{ u.username }}
+            {% endif %}
+            {% endfor %}
+        </td>
+        <td>{{ copy_to_clipboard(id=h.ip, value=h.ip) }}</td>
+        <td>{{h.action}}</td>
+        <td>{{h.date}}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

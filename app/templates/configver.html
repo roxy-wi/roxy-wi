@@ -14,25 +14,8 @@
 		{% endif %}
 	{% endif %}
 	{% if open %}
-		<center>
-			<h4>Choose old version</h4>
-			<p>
-				<select autofocus required name="configver" id="configver">
-					<option disabled selected>Choose version</option>
-						{% for file in return_files %}
-							{% if file == configver %}
-								<option value="{{file}}" selected>{{file.split('-', maxsplit=1)[1]}}</option>
-							{% else %}
-								<option value="{{file}}">{{file.split('-', maxsplit=1)[1]}}</option>
-							{% endif %}
-						{% endfor %}
-				</select>
-				<input type="hidden" value="{{serv}}" name="serv">
-				<input type="hidden" value="open" name="open">
-				<input type="hidden" value="{{service}}" name="service" id="service">
-				<a class="ui-button ui-widget ui-corner-all" id="show" title="Enter" onclick="showUploadConfig()">Select</a>
-			</p>		
-		</center>
+		<div id="config_version_div"></div>
+		<script>showListOfVersion(0)</script>
 	{% endif %}
 	{% if aftersave %}
 		<div class="alert alert-info alert-two-row">The following version of the configuration file has been uploaded and saved as: {{ configver }} </div>
@@ -44,9 +27,4 @@
 		{% endif %}
 	{% endif %}
 </center>
-{% if aftersave != 1 %}
-	<script> 
-		showUploadConfig()
-	</script> 
-{% endif %}
 {% endblock %}

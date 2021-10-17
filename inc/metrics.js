@@ -320,7 +320,7 @@ function renderNginxChart(data, labels, server) {
 			maintainAspectRatio: false,
 			title: {
 				display: true,
-				text: "Nginx "+data[1],
+				text: data[1],
 				fontSize: 20,
 				padding: 0,
 			},

@@ -396,3 +396,12 @@
 	margin-left: 5px;
 	content: "\f0c5";
 }
+.history::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f1da";
+}
+.history .fa-history {
+	margin-bottom: 3px;
+    color: #aaa;
+}

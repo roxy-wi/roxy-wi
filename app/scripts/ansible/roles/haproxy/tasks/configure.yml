@@ -33,18 +33,6 @@
     - sestatus.stdout is defined
     - '"Enforcing" in sestatus.stdout'
 
-- name: Get HAProxy version.
-  command: haproxy -v
-  register: haproxy_version_result
-  changed_when: false
-  check_mode: false
-
-
-- name: Set HAProxy version.
-  set_fact:
-    haproxy_version: "{{ '1.5' if '1.5.' in haproxy_version_result.stdout else '1.6' }}"
-
-
 - name: Open stat port for firewalld
   firewalld:
     port: "{{ item }}/tcp"
@@ -70,16 +58,36 @@
   ignore_errors: yes
   with_items:  [ "{{ STAT_PORT }}", "{{ SOCK_PORT }}" ]
 
+- name: Create the haproxy group
+  group:
+    name: haproxy
+    state: present
+    system: true
+
+- name: Create the haproxy user
+  user:
+    name: haproxy
+    groups: haproxy
+    append: true
+    shell: /usr/sbin/nologin
+    system: true
+    create_home: false
+    home: /
+
+- name: Creates HAProxy directory
+  file:
+    path: /etc/haproxy
+    owner: haproxy
+    group: haproxy
+    state: directory
+  ignore_errors: yes
 
 - name: Copy HAProxy configuration in place.
   template:
     src: haproxy.cfg.j2
     dest: /etc/haproxy/haproxy.cfg
     mode: 0644
-    validate: haproxy -f %s -c -q
     force: no
-  notify: restart haproxy
-
 
 - name: Creates HAProxy stats directory
   file:
@@ -87,14 +95,4 @@
     owner: haproxy
     group: haproxy
     state: directory
-  ignore_errors: yes
-
-
-- name: Enable and start service HAProxy
-  systemd:
-    name: haproxy
-    daemon_reload: yes
-    state: started
-    enabled: yes
-    force: no
   ignore_errors: yes

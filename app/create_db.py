@@ -806,7 +806,7 @@ def update_db_v_5_3_0(**kwargs):
 
 
 def update_ver():
-	query = Version.update(version='5.3.0.0')
+	query = Version.update(version='5.3.1.0')
 	try:
 		query.execute()
 	except:

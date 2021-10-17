@@ -393,7 +393,8 @@ if form.getvalue('session_delete_id') is not None:
 
 if form.getvalue("change_pos") is not None:
     pos = form.getvalue('change_pos')
-    sql.update_server_pos(pos, serv)
+    server_id = form.getvalue('pos_server_id')
+    sql.update_server_pos(pos, server_id)
 
 if form.getvalue('show_ip') is not None and serv is not None:
     commands = ["sudo ip a |grep inet |egrep -v '::1' |awk '{ print $2 }' |awk -F'/' '{ print $1 }'"]
@@ -1397,7 +1398,7 @@ if form.getvalue('haproxy_exp_install'):
         proxy_serv = ''
 
     commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv +
-                " STAT_PORT=" + stats_port + " STAT_FILE=" + server_state_file +
+                " STAT_PORT=" + str(stats_port) + " STAT_FILE=" + server_state_file +
                 " SSH_PORT=" + ssh_port + " STAT_PAGE=" + stat_page +
                 " STATS_USER=" + stats_user + " STATS_PASS='" + stats_password + "' HOST=" + serv +
                 " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name]
@@ -1434,7 +1435,7 @@ if form.getvalue('nginx_exp_install'):
         proxy_serv = ''
 
     commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv +
-                " STAT_PORT=" + stats_port + " SSH_PORT=" + ssh_port + " STAT_PAGE=" + stats_page +
+                " STAT_PORT=" + str(stats_port) + " SSH_PORT=" + ssh_port + " STAT_PAGE=" + stats_page +
                 " STATS_USER=" + stats_user + " STATS_PASS='" + stats_password + "' HOST=" + serv +
                 " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name]
 
@@ -3817,3 +3818,40 @@ if form.getvalue('serverSettingsSave') is not None:
             else:
                 funct.logging(server_ip, 'Service has been flagged as a system service', haproxywi=1, login=1,
                               keep_history=1, service=service)
+
+if act == 'showListOfVersion':
+    service = form.getvalue('service')
+    configver = form.getvalue('configver')
+    for_delver = form.getvalue('for_delver')
+    style = form.getvalue('style')
+    if service == 'keepalived':
+        configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
+        files = funct.get_files(dir=configs_dir, format='conf')
+        configs = sql.select_config_version(serv, service)
+        action = 'versions.py?service=keepalived'
+    elif service == 'nginx':
+        configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
+        files = funct.get_files(dir=configs_dir, format='conf')
+        configs = sql.select_config_version(serv, service)
+        action = 'versions.py?service=nginx'
+    else:
+        service = 'haproxy'
+        files = funct.get_files()
+        configs = sql.select_config_version(serv, service)
+        action = "versions.py"
+
+    from jinja2 import Environment, FileSystemLoader
+
+    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
+                      extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
+    template = env.get_template('ajax/show_list_version.html')
+
+    template = template.render(serv=serv,
+                               service=service,
+                               action=action,
+                               return_files=files,
+                               configver=configver,
+                               for_delver=for_delver,
+                               configs=configs,
+                               style=style)
+    print(template)

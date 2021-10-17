@@ -389,7 +389,7 @@ function change_pos(pos, id) {
 		url: "options.py",
 			data: {
 				change_pos: pos,
-				serv: id,
+				pos_server_id: id,
 				token: $('#token').val()
 			},
 		error: function(){

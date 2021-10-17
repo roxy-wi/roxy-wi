@@ -9,9 +9,7 @@ global
     stats socket /var/lib/haproxy/stats
     stats socket *:{{SOCK_PORT}} level admin
     stats socket /var/run/haproxy.sock mode 600 level admin
-	{% if haproxy_version == '1.6' %}
     server-state-file {{STAT_FILE}}
-	{% endif %}
 
 defaults
     mode                    http

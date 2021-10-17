@@ -123,19 +123,6 @@
 			<div class="server-name">
 				<input type="hidden" id="server-name-{{s.0}}" value="{{s.1}}" />
 				<input type="hidden" id="service" value="{{service}}" />
-				{% if service == 'nginx' or service == 'keepalived' %}
-					{% if s.5.0.1 == 'active' %}
-						<span class="serverUp server-status" title="Started: {{s.5.0.4}}"></span>
-					{% else %}
-						<span class="serverDown server-status" title="Stopped: {{s.5.0.4}}"></span>
-					{% endif %}
-				{% else %}
-					{% if s.5 != False %}
-						<span class="serverUp server-status" title="{{s.5.0.2}}"></span>
-					{% else %}
-						<span class="serverDown server-status" title="HAProxy is down"></span>
-					{% endif %}
-				{% endif %}
 				{% if not serv %}
 					<a href="/app/hapservers.py?service={{service}}&serv={{s.2}}" title="More about {{s.1}}" style="color: #5d9ceb">{{s.1}}</a>
 				{% else %}
@@ -172,8 +159,9 @@
 					<a id="stop-{{ s.2 }}" class="stop" title="Stop {{service}} service">
 						<span class="service-stop" onclick="confirmAjaxAction('stop', '{{action_service}}', '{{s.2}}')"></span>
 					</a>
+					<a href="history.py?service={{service}}&serv={{s.2}}" title="View history for this service" class="history" style="margin: 0 5px 0 10px;"></a>
 					{% if service != 'keepalived' %}
-					<span class="menu-bar" onclick="serverSettings('{{s.0}}', '{{s.1}}')" title="Edit settings for {{s.1}} service" style="margin: 0 0 0 10px;"></span>
+					<span class="menu-bar" onclick="serverSettings('{{s.0}}', '{{s.1}}')" title="Edit settings for {{s.1}} service"></span>
 					{% endif %}
 				</span>
 				{% endif %}

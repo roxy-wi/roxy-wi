@@ -1943,6 +1943,7 @@ def update_firewall(serv):
 
 def update_server_pos(pos, server_id):
 	query = Server.update(pos=pos).where(Server.server_id == server_id)
+	print(query)
 	try:
 		query.execute()
 		return True
@@ -1960,17 +1961,8 @@ def check_token_exists(token):
 		if get_token(user_id.value) == token:
 			return True
 		else:
-			# try:
-			# 	funct.logging('localhost', ' Tried do action with wrong token', haproxywi=1, login=1)
-			# except:
-			# 	funct.logging('localhost', ' An action with wrong token', haproxywi=1)
 			return False
 	except:
-		# try:
-		# 	funct.logging('localhost', ' Cannot check token', haproxywi=1, login=1)
-		# except:
-		# 	funct.logging('localhost', ' Cannot check token', haproxywi=1)
-		# finally:
 		return False
 
 
@@ -1992,7 +1984,6 @@ def insert_smon(server, port, enable, proto, uri, body, group, desc, telegram, u
 
 def select_smon(user_group, **kwargs):
 	cursor = conn.cursor()
-
 	funct.check_user_group()
 
 	if user_group == 1:
@@ -2857,6 +2848,70 @@ def delete_action_history(server_id: int):
 	query = ActionHistory.delete().where(ActionHistory.server_id == server_id)
 	try:
 		query.execute()
+	except Exception as e:
+		out_error(e)
+		return False
+	else:
+		return True
+
+
+def select_action_history_by_server_id(server_id: int):
+	query = ActionHistory.select().where(ActionHistory.server_id == server_id)
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
+
+
+def select_action_history_by_server_id_and_service(server_id: int, service: str):
+	query = ActionHistory.select().where(
+		(ActionHistory.server_id == server_id) &
+		(ActionHistory.service == service)
+	)
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
+
+
+def insert_config_version(server_id: int, user_id: int, service: str, local_path: str, remote_path: str, diff: str):
+	try:
+		ConfigVersion.insert(server_id=server_id,
+							 user_id=user_id,
+							 service=service,
+							 local_path=local_path,
+							 remote_path=remote_path,
+							 diff=diff,
+							 date=funct.get_data('regular')).execute()
+	except Exception as e:
+		out_error(e)
+
+
+def select_config_version(server_ip: str, service: str) -> str:
+	server_id = select_server_id_by_ip(server_ip)
+	query = ConfigVersion.select().where(
+		(ConfigVersion.server_id == server_id) &
+		(ConfigVersion.service == service)
+	)
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
+
+
+def delete_config_version(service: str, local_path: str):
+	query_res = ConfigVersion.delete().where(
+		(ConfigVersion.service == service) &
+		(ConfigVersion.local_path == local_path)
+	)
+	try:
+		query_res.execute()
 	except Exception as e:
 		out_error(e)
 		return False

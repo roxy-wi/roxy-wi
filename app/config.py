@@ -93,11 +93,11 @@ if serv is not None and form.getvalue('config') is not None:
 		print("error: Cannot read import config file")
 
 	if service == 'keepalived':
-		stderr = funct.upload_and_restart(serv, cfg, just_save=save, keepalived=1)
+		stderr = funct.upload_and_restart(serv, cfg, just_save=save, keepalived=1, oldcfg=oldcfg)
 	elif service == 'nginx':
-		stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save=save, nginx=1)
+		stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save=save, nginx=1, oldcfg=oldcfg)
 	else:
-		stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save=save)
+		stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save=save, oldcfg=oldcfg)
 
 	funct.diff_config(oldcfg, cfg)
 

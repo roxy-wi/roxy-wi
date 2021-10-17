@@ -4,21 +4,19 @@
 {% if selects|length == 0 %}
 	{% include 'include/getstarted.html' %}
 {% else %}
+<link href="/inc/table.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" charset="utf8" src="/inc/dataTables.min.js"></script>
 <center>
 	<p>
 		<form action="{{ action }}" method="post">
+			<input type="hidden" value="{{service}}" name="service" id="service">
 			{% include 'include/select.html' %}
-			<button type="submit" value="open" name="open" class="btn btn-default">Open</button>
+				<a class="ui-button ui-widget ui-corner-all" title="View stat" onclick="showListOfVersion(1)">Open</a>
 			{% if service != 'keepalived' %}
 				<a href="config.py" class="ui-button ui-widget ui-corner-all" title="Configs page">Configs</a>
 				<a class="ui-button ui-widget ui-corner-all" title="View stat" onclick="openStats()">Stat</a>
 			{% endif %}
 		</form>
-		{% if not aftersave and not open %}
-		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px; margin-top: 40%">
-			Here you can work with previous versions of {%if service == 'keepalived' %}Keepalived{%elif service == 'nginx' %}Nginx{%else%}HAProxy{%endif%} configs. Roll back to them, view or delete
-		</div>
-		{% endif %}
 	</p>
 	{% if aftersave %}
 		<div class="alert alert-info"><b>The following files have been deleted:</b><br /> </div>
@@ -32,26 +30,11 @@
 			</div>
 		{% endif %}
 	{% endif %}
-	{% if open %}
-		<center>
-			<h4>Select a version</h4>
-			<form action="{{action}}" method="post">
-				<label for="select_all" id="label_select_all"><b>Select all</b></label>
-				<input type="checkbox" id="select_all"><br />
-				{% for file in return_files %}
-					<label for="{{file}}"> {{file.split('-', maxsplit=1)[1]}} </label><input type="checkbox" value="{{file}}" name="{{file}}" id="{{file}}">
-					<a href="/app/versions.py?service={{service}}&serv={{serv}}&open=open&configver={{file}}" class="ui-button ui-widget ui-corner-all" title="View and upload this version of the config" style="margin-top: -6px;">
-						View/Upload
-					</a><br />
-				{% endfor %}
-				<input type="hidden" value="{{serv}}" name="serv">
-				<input type="hidden" value="open" name="open">
-				<input type="hidden" value="del" name="del">
-				<p>
-					<button type="submit" value="" name="" class="btn btn-default">Delete</button>
-				</p>
-			</form> 
-		</center>	
+	<div id="config_version_div"></div>
+	{% if not aftersave  %}
+		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px; margin-top: 40%">
+			Here you can work with previous versions of {%if service == 'keepalived' %}Keepalived{%elif service == 'nginx' %}Nginx{%else%}HAProxy{%endif%} configs. Roll back to them, view or delete
+		</div>
 	{% endif %}
 </center>
 {% endif %}
