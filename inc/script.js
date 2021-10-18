@@ -489,6 +489,46 @@ function showUploadConfig() {
 		}					
 	} );
 }
+function showListOfVersion(for_delver) {
+	var service = $('#service').val();
+	var serv = $("#serv").val();
+	var configver = findGetParameter('configver');
+	var style = 'old'
+	if (localStorage.getItem('version_style') == 'new') {
+		style = 'new'
+	}
+	$("#ajax").empty();
+	$('.alert').remove();
+	try {
+		myCodeMirror.toTextArea();
+	} catch (e) {
+		console.log(e)
+	}
+	$("#saveconfig").remove();
+	$("h4").remove();
+	$.ajax( {
+		url: "options.py",
+		data: {
+			serv: serv,
+			act: "showListOfVersion",
+			service: service,
+			configver: configver,
+			for_delver: for_delver,
+			style: style,
+			token: $('#token').val(),
+		},
+		type: "POST",
+		success: function( data ) {
+			if (data.indexOf('error:') != '-1') {
+				toastr.error(data);
+			} else {
+				toastr.clear();
+				$("#config_version_div").html(data);
+				$( "input[type=checkbox]" ).checkboxradio();
+			}
+		}
+	} );
+}
 function findGetParameter(parameterName) {
     var result = null,
         tmp = [];
@@ -747,17 +787,6 @@ $( function() {
 		$('#1').css("display", "none");			
 		$('#0').css("display", "inline");			
 	});
-			
-	$('#select_all').click(function(){
-        var checkboxes = $(this).closest('form').find(':checkbox');
-        if($(this).prop('checked')) {
-          $("form input[type='checkbox']").attr("checked",true).change();
-		  $("#label_select_all").text("Unselect all");
-        } else {
-          $("form input[type='checkbox']").attr("checked",false).change();
-		  $("#label_select_all").text("Select all");
-        }
-    });
 	$('#auth').submit(function() {
 		let searchParams = new URLSearchParams(window.location.search)
 		if(searchParams.has('ref')) {
