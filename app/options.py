@@ -2046,9 +2046,10 @@ if form.getvalue('updatehapwiserver') is not None:
     name = form.getvalue('name')
     alert = form.getvalue('alert_en')
     metrics = form.getvalue('metrics')
-    service_name = form.getvalue('service_name')
-    sql.update_hapwi_server(hapwi_id, alert, metrics, active, service_name)
-    funct.logging('the server ' + name, ' has been updated ', haproxywi=1, login=1)
+    service = form.getvalue('service_name')
+    sql.update_hapwi_server(hapwi_id, alert, metrics, active, service)
+    server_ip = sql.select_server_ip_by_id(hapwi_id)
+    funct.logging(server_ip, 'the server ' + name, ' has been updated ', haproxywi=1, login=1, keep_history=1, service=service)
 
 if form.getvalue('updateserver') is not None:
     name = form.getvalue('updateserver')

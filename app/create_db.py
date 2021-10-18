@@ -805,6 +805,24 @@ def update_db_v_5_3_0(**kwargs):
 					print("An error occurred:", e)
 
 
+
+def update_db_v_5_3_1(**kwargs):
+	cursor = conn.cursor()
+	sql = """
+	ALTER TABLE `servers` ADD COLUMN keepalived_active INTEGER NOT NULL DEFAULT 0;
+	"""
+	try:
+		cursor.execute(sql)
+	except Exception as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: keepalived_active' or str(e) == '(1060, "Duplicate column name \'keepalived_active\'")':
+				print('Updating... DB has been updated to version 5.3.1')
+			else:
+				print("An error occurred:", e)
+	else:
+		print("Updating... DB has been updated to version 5.3.1")
+
+
 def update_ver():
 	query = Version.update(version='5.3.1.0')
 	try:
@@ -839,6 +857,7 @@ def update_all():
 	update_db_v_5_2_5_3()
 	update_db_v_5_2_6()
 	update_db_v_5_3_0()
+	update_db_v_5_3_1()
 	update_ver()
 
 
@@ -868,6 +887,7 @@ def update_all_silent():
 	update_db_v_5_2_5_3(silent=1)
 	update_db_v_5_2_6(silent=1)
 	update_db_v_5_3_0(silent=1)
+	update_db_v_5_3_1(silent=1)
 	update_ver()
 
 

@@ -261,6 +261,8 @@ def update_hapwi_server(server_id, alert, metrics, active, service_name):
 			update_hapwi = Server.update(nginx_alert=alert, metrics=metrics, nginx_active=active,
 										 nginx_metrics=metrics).where(
 				Server.server_id == server_id)
+		elif service_name == 'keepalived':
+			update_hapwi = Server.update(keepalived_active=active).where(Server.server_id == server_id)
 		else:
 			update_hapwi = Server.update(alert=alert, metrics=metrics, active=active).where(
 				Server.server_id == server_id)
@@ -1852,25 +1854,33 @@ def select_nginx_alert(**kwargs):
 
 
 def select_keep_alive():
-	cursor = conn.cursor()
-	sql = """select ip from servers where active = 1 """
+	query = Server.select(Server.ip).where(Server.active == 1)
 	try:
-		cursor.execute(sql)
+		query_res = query.execute()
 	except Exception as e:
 		out_error(e)
 	else:
-		return cursor.fetchall()
+		return query_res
 
 
 def select_nginx_keep_alive():
-	cursor = conn.cursor()
-	sql = """select ip from servers where nginx_active = 1 """
+	query = Server.select(Server.ip).where(Server.nginx_active == 1)
 	try:
-		cursor.execute(sql)
+		query_res = query.execute()
 	except Exception as e:
 		out_error(e)
 	else:
-		return cursor.fetchall()
+		return query_res
+
+
+def select_keepalived_keep_alive():
+	query = Server.select(Server.ip).where(Server.keepalived_active == 1)
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
 
 
 def select_keepalived(serv):

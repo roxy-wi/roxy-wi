@@ -26,8 +26,6 @@ keep_alive, stderr = funct.subprocess_execute(cmd)
 if service == 'nginx':
     if funct.check_login(service=2):
         title = 'Nginx servers overview'
-        servers = sql.get_dick_permit(virt=1, nginx=1)
-        service = 'nginx'
         if serv:
             if funct.check_is_server_in_group(serv):
                 servers = sql.select_servers(server=serv)
@@ -35,12 +33,11 @@ if service == 'nginx':
                 server_id = sql.select_server_id_by_ip(serv)
                 service_settings = sql.select_docker_service_settings(server_id, service)
         else:
+            servers = sql.get_dick_permit(virt=1, nginx=1)
             service_settings = sql.select_docker_services_settings(service)
 elif service == 'keepalived':
     if funct.check_login(service=3):
         title = 'Keepalived servers overview'
-        servers = sql.get_dick_permit(virt=1, keepalived=1)
-        service = 'keepalived'
         if serv:
             if funct.check_is_server_in_group(serv):
                 servers = sql.select_servers(server=serv)
@@ -48,6 +45,7 @@ elif service == 'keepalived':
                 server_id = sql.select_server_id_by_ip(serv)
                 service_settings = sql.select_docker_service_settings(server_id, service)
         else:
+            servers = sql.get_dick_permit(virt=1, keepalived=1)
             service_settings = sql.select_docker_services_settings(service)
 else:
     if funct.check_login(service=1):
@@ -120,11 +118,11 @@ for s in servers:
             h = (out1,)
             servers_with_status.append(h)
             servers_with_status.append(h)
-            servers_with_status.append(s[17])
+            servers_with_status.append(s[22])
         except:
             servers_with_status.append(h)
             servers_with_status.append(h)
-            servers_with_status.append(s[17])
+            servers_with_status.append(s[22])
     else:
         cmd = 'echo "show info" |nc %s %s -w 1 -v|grep -e "Ver\|Uptime:\|Process_num"' % (s[2], haproxy_sock_port)
         out = funct.subprocess_execute(cmd)

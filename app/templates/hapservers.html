@@ -101,6 +101,7 @@
 				{% set additional_status_class = 'div-server-head-down' %}
 			{% endif %}
 		{% elif service == 'keepalived' %}
+			{% set is_auto_start_enabled = s.8.0.22 %}
 			{% set action_service = 'keepalived' %}
 			{% if s.5.0.1 == 'active' %}
 				{% set additional_status_class = 'div-server-head-up' %}
@@ -128,7 +129,7 @@
 				{% else %}
 					{{s.1}}
 				{% endif %}
-				{% if s.6|int() >= 1  and service != 'keepalived' %}
+				{% if s.6|int() >= 1 %}
 					<span
 						{% if keep_alive|int() >= 1 %}
 						class="shield green" title="Autostart is enabled">
@@ -224,13 +225,13 @@
 					{% else %}
 						{{ checkbox(id, title='Enable collecting metrics', value='1', desc='Metrics') }}
 					{% endif %}
+				{% endif %}
 					{% set id = 'active-' + s.8.0.0|string() %}
 					{% if is_auto_start_enabled == 1 %}
 						{{ checkbox(id, title='Auto Start is enabled', value='1', desc='Auto Start', checked='checked') }}
 					{% else %}
 						{{ checkbox(id, title='Enable Auto Start', value='1', desc='Auto Start') }}
 					{% endif %}
-			{% endif %}
 			</div>
 			<div class="server-act-links">
 				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showConfig" class="ui-button ui-widget ui-corner-all" title="Open running config">Config</a>
