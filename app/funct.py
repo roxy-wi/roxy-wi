@@ -192,10 +192,16 @@ def keep_action_history(service: str, action: str, server_ip: str, login: str, u
 	import sql
 	try:
 		server_id = sql.select_server_id_by_ip(server_ip=server_ip)
-		user_id = sql.get_user_id_by_username(login)
+		if login != '':
+			user_id = sql.get_user_id_by_username(login)
+		else:
+			user_id = 0
+		if user_ip == '':
+			user_ip = 'localhost'
+
 		sql.insert_action_history(service, action, server_id, user_id, user_ip)
 	except Exception as e:
-		print('Cannot save a history ' + srt(e))
+		logging('localhost', 'Cannot save a history: ' + srt(e), haproxywi=1)
 
 
 def telegram_send_mess(mess, **kwargs):
