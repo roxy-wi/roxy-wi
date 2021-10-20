@@ -281,14 +281,14 @@ $( function() {
 
 	$( "#show-all-haproxy-wi-log" ).click( function() {
 		$( ".show-haproxy-wi-log" ).show("fast");
-		$( "#show-all-haproxy-wi-log" ).text("Show less log");
-		$( "#show-all-haproxy-wi-log" ).attr("title", "Show less log");
+		$( "#show-all-haproxy-wi-log" ).text("Show less");
+		$( "#show-all-haproxy-wi-log" ).attr("title", "Show less");
 		$( "#show-all-haproxy-wi-log" ).attr("id", "hide-all-haproxy-wi-log");
 
 		$( "#hide-all-haproxy-wi-log" ).click( function() {
 			$( ".show-haproxy-wi-log" ).hide("fast");
-			$( "#hide-all-haproxy-wi-log" ).attr("title", "Show more log");
-			$( "#hide-all-haproxy-wi-log" ).text("Show more log");
+			$( "#hide-all-haproxy-wi-log" ).attr("title", "Show more");
+			$( "#hide-all-haproxy-wi-log" ).text("Show more");
 			$( "#hide-all-haproxy-wi-log" ).attr("id", "show-all-haproxy-wi-log");
 		});
 	});

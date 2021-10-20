@@ -22,12 +22,13 @@ body {
 }
 h2 {
 	font-size: 1.5em;
-	background: var(--blue-color);
-	border: 1px solid var(--blue-color);
-	padding: 3px 3px 3px 2%;
-	color: #fff;
-	margin-top: 0;
-	margin-bottom: 0;
+    background: var(--blue-color);
+    border: 1px solid var(--blue-color);
+    padding: 2px 3px 3px 10px;
+    color: #fff;
+    margin-top: 0;
+    margin-bottom: 0;
+    height: 27px;
 }
 h3 {
 	margin-top: -0;
@@ -38,7 +39,7 @@ h3 {
 	border-bottom: 1px solid #ddd;
 }
 ul#browse_histroy {
-    padding-left: 10px;
+    padding-left: 12px;
     display: block;
     margin-top: 1px;
 	list-style: none;
