@@ -135,7 +135,13 @@ def logging(server_ip, action, **kwargs):
 		user_uuid = cookie.get('uuid')
 		login = sql.get_user_name_by_uuid(user_uuid.value)
 	except Exception:
-		login = ''
+		login_name = kwargs.get('login')
+		try:
+			if len(login_name) > 1:
+				login = kwargs.get('login')
+		except:
+			login = ''
+
 
 	try:
 		if distro.id() == 'ubuntu':
@@ -895,6 +901,11 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 	else:
 		action = 'restart'
 
+	if kwargs.get('login'):
+		login = kwargs.get('login')
+	else:
+		login = 1
+
 	if service == "nginx":
 		config_path = sql.get_setting('nginx_config_path')
 		tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".conf"
@@ -976,12 +987,12 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		upload(server_ip, tmp_file, cfg, dir='fullpath')
 		try:
 			if action != 'test':
-				logging(server_ip, 'A new config file has been uploaded', login=1, keep_history=1,
-						service=service)
+				logging(server_ip, 'A new config file has been uploaded', login=login, keep_history=1, service=service)
 		except Exception as e:
 			logging('localhost', str(e), haproxywi=1)
 		# If master then save version of config in a new way
 		if not kwargs.get('slave'):
+			diff = ''
 			try:
 				diff = diff_config(kwargs.get('oldcfg'), cfg, return_diff=1)
 			except Exception as e:
@@ -1000,8 +1011,7 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		error = ssh_command(server_ip, commands)
 		try:
 			if action == 'reload' or action == 'restart':
-				logging(server_ip, 'Service has been ' + action + 'ed', login=1, keep_history=1,
-						service=service)
+				logging(server_ip, 'Service has been ' + action + 'ed', login=login, keep_history=1, service=service)
 		except Exception as e:
 			logging('localhost', str(e), haproxywi=1)
 	except Exception as e:
@@ -1019,7 +1029,12 @@ def master_slave_upload_and_restart(server_ip, cfg, just_save, **kwargs):
 		if master[0] is not None:
 			error = upload_and_restart(master[0], cfg, just_save=just_save, nginx=kwargs.get('nginx'), slave=1)
 
-	error = upload_and_restart(server_ip, cfg, just_save=just_save, nginx=kwargs.get('nginx'), oldcfg=kwargs.get('oldcfg'))
+	if kwargs.get('login'):
+		login = kwargs.get('login')
+	else:
+		login = ''
+	error = upload_and_restart(server_ip, cfg, just_save=just_save,
+							   nginx=kwargs.get('nginx'), oldcfg=kwargs.get('oldcfg'), login=login)
 
 	return error
 

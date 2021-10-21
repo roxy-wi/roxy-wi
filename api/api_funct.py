@@ -39,9 +39,22 @@ def get_token():
 			return False
 
 
-def check_login():
+def check_login(required_service=0):
 	token = request.headers.get('token')
-	return sql.get_api_token(token)
+	if sql.get_api_token(token):
+		if required_service != 0:
+			user_id = sql.get_user_id_by_api_token(token)
+			user_services = sql.select_user_services(user_id)
+
+			if str(required_service) in user_services:
+				return True
+			else:
+				return False
+
+		else:
+			return True
+	else:
+		return False
 
 
 def return_dict_from_out(server_id, out):
@@ -214,7 +227,7 @@ def get_config(server_id):
 
 
 def get_section(server_id):
-	section_name = request.headers.get('section_name')
+	section_name = request.headers.get('section-name')
 	servers = check_permit_to_server(server_id)
 	for s in servers:
 		cfg = '/tmp/' + s[2] + '.cfg'
@@ -239,6 +252,8 @@ def upload_config(server_id):
 		save = 'save'
 	elif save == 'restart':
 		save = ''
+	elif save == 'reload':
+		save = 'reload'
 
 	try:
 		servers = check_permit_to_server(server_id)
@@ -253,8 +268,10 @@ def upload_config(server_id):
 				conf.write(body)
 			return_mess = 'config has been uploaded'
 			os.system("/bin/cp %s %s" % (cfg, cfg_for_save))
-			out = funct.upload_and_restart(ip, cfg, just_save=save)
-			funct.logging('localhost', " config has been uploaded via REST API", login=login)
+			out = funct.master_slave_upload_and_restart(ip, cfg, save, login=login)
+			funct.logging('localhost', " config has been uploaded via API", login=login)
+			funct.logging(ip, 'config has been uploaded via API', haproxywi=1, login=login,
+						  keep_history=1, service='haproxy')
 
 			if out:
 				return_mess = out
@@ -354,7 +371,7 @@ def add_acl(server_id):
 	body = request.body.getvalue().decode('utf-8')
 	json_loads = json.loads(body)
 	save = json_loads['action']
-	section_name = json_loads['section_name']
+	section_name = json_loads['section-name']
 
 	acl = generate_acl(with_newline=1)
 	servers = check_permit_to_server(server_id)
@@ -398,7 +415,7 @@ def del_acl(server_id):
 	body = request.body.getvalue().decode('utf-8')
 	json_loads = json.loads(body)
 	save = json_loads['action']
-	section_name = json_loads['section_name']
+	section_name = json_loads['section-name']
 
 	acl = generate_acl()
 	servers = check_permit_to_server(server_id)
