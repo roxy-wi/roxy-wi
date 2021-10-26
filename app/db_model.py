@@ -13,7 +13,7 @@ if mysql_enable == '1':
     conn = MySQLDatabase(mysql_db, user=mysql_user, password=mysql_password, host=mysql_host, port=int(mysql_port))
 else:
     db = "/var/www/haproxy-wi/app/roxy-wi.db"
-    conn = SqliteDatabase(db)
+    conn = SqliteDatabase(db, pragmas={'timeout': 10000})
 
 
 class BaseModel(Model):

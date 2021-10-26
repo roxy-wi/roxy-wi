@@ -2038,7 +2038,9 @@ if form.getvalue('newserver') is not None:
                                    page=page,
                                    adding=1)
         print(template)
-        funct.logging('a new server ' + hostname, ' has been created  ', haproxywi=1, login=1)
+        funct.logging('a new server ' + hostname, ' has been created ', haproxywi=1, login=1)
+        funct.logging(ip, 'A new server ' + hostname + ' has been created', haproxywi=1, login=1,
+                      keep_history=1, service='server')
 
 if form.getvalue('updatehapwiserver') is not None:
     hapwi_id = form.getvalue('updatehapwiserver')
@@ -2071,6 +2073,9 @@ if form.getvalue('updateserver') is not None:
     else:
         sql.update_server(name, group, typeip, enable, master, serv_id, cred, port, desc, haproxy, nginx, firewall, protected)
         funct.logging('the server ' + name, ' has been updated ', haproxywi=1, login=1)
+        server_ip = sql.select_server_ip_by_id(serv_id)
+        funct.logging(server_ip, 'The server ' + name + ' has been update', haproxywi=1, login=1,
+                      keep_history=1, service='server')
 
 if form.getvalue('serverdel') is not None:
     server_id = form.getvalue('serverdel')
@@ -3095,7 +3100,7 @@ if form.getvalue('doworkspace'):
 
             from jinja2 import Environment, FileSystemLoader
 
-            user, user_id, role, token, servers = funct.get_users_params()
+            user, user_id, role, token, servers, user_services = funct.get_users_params()
             new_server = sql.select_provisioned_servers(new=workspace, group=group, type='do')
 
             env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
@@ -3188,7 +3193,7 @@ if form.getvalue('awsworkspace'):
 
             from jinja2 import Environment, FileSystemLoader
 
-            user, user_id, role, token, servers = funct.get_users_params()
+            user, user_id, role, token, servers, user_services = funct.get_users_params()
             new_server = sql.select_provisioned_servers(new=workspace, group=group, type='aws')
 
             env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
@@ -3454,7 +3459,7 @@ if form.getvalue('gcoreworkspace'):
 
             from jinja2 import Environment, FileSystemLoader
 
-            user, user_id, role, token, servers = funct.get_users_params()
+            user, user_id, role, token, servers, user_services = funct.get_users_params()
             new_server = sql.select_provisioned_servers(new=workspace, group=group, type='gcore')
 
             env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))

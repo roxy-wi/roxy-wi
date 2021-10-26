@@ -517,7 +517,7 @@ function awsProvisiningServer() {
 		type: "POST",
 		success: function( data ) {
             data = data.replace(/\s+/g, ' ');
-            var server_id = $('#ajax-provisioning-body tr td span:regex(id, sever-ip-)').last().attr('id').split('-')[2]
+            var server_id = $('#ajax-provisioning-body tr td span:regex(id, server-ip-)').last().attr('id').split('-')[2]
             if (data.indexOf('error:') != '-1' && data.indexOf('Last error:') == '-1') {
                 showProvisioningError(data, '#creating-server', '#creating-workspace', '#wait-mess', '#creating-error', '#creating-progress', 'aws');
                 $('#sever-status-'+server_id).text('Error');
@@ -529,7 +529,7 @@ function awsProvisiningServer() {
                 $('#created-mess').html('Server has been created. Server IPs are:' + data);
                 $('#created-mess').show();
                 $('#sever-status-'+server_id).text('Created');
-                $('#sever-ip-'+server_id).text(data);
+                $('#server-ip-'+server_id).text(data);
                 add_button_after_server_created();
             }
         }
@@ -705,7 +705,7 @@ function awsEditProvisiningServer(server_id, dialog_id) {
 	            $('#sever-os-'+server_id).text($('#aws_edit_oss').val());
 	            $('#server-'+server_id).css('background-color', '#fff');
 	            $('#sever-status-'+server_id).css('color', '#000');
-	            $('#sever-ip-'+server_id).text(data);
+	            $('#server-ip-'+server_id).text(data);
             }
         }
     } );
@@ -1552,7 +1552,7 @@ function doEditProvisiningServer(server_id) {
 	            $('#sever-size-'+server_id).text($('#aws_edit_size').val());
 	            $('#sever-os-'+server_id).text($('#aws_edit_oss').val());
 	            $('#server-'+server_id).css('background-color', '#fff');
-	            $('#sever-ip-'+server_id).text(data);
+	            $('#server-ip-'+server_id).text(data);
             }
         }
     } );
@@ -1692,7 +1692,7 @@ function doProvisiningServer() {
 		type: "POST",
 		success: function( data ) {
             data = data.replace(/\s+/g, ' ');
-            var server_id = $('#ajax-provisioning-body tr td span:regex(id, sever-ip-)').last().attr('id').split('-')[2]
+            var server_id = $('#ajax-provisioning-body tr td span:regex(id, server-ip-)').last().attr('id').split('-')[2]
             if (data.indexOf('error:') != '-1' && data.indexOf('Last error:') == '-1') {
                 showProvisioningError(data, '#creating-server', '#creating-workspace', '#wait-mess', '#creating-error', '#creating-progress', 'do');
                 $('#sever-status-'+server_id).text('Error');
@@ -1704,7 +1704,7 @@ function doProvisiningServer() {
                 $('#created-mess').html('Server has been created. Server IPs are: ' + data);
                 $('#created-mess').show();
                 $('#sever-status-'+server_id).text('Created');
-                $('#sever-ip-'+server_id).text(data);
+                $('#server-ip-'+server_id).text(data);
                 add_do_button_after_server_created();
             }
         }
@@ -1844,7 +1844,7 @@ function gcoreProvisiningServer() {
 		type: "POST",
 		success: function( data ) {
             data = data.replace(/\s+/g, ' ');
-            var server_id = $('#ajax-provisioning-body tr td span:regex(id, sever-ip-)').last().attr('id').split('-')[2]
+            var server_id = $('#ajax-provisioning-body tr td span:regex(id, server-ip-)').last().attr('id').split('-')[2]
             if (data.indexOf('error:') != '-1' && data.indexOf('Last error:') == '-1') {
                 showProvisioningError(data, '#creating-server', '#creating-workspace', '#wait-mess', '#creating-error', '#creating-progress', 'gcore');
                 $('#sever-status-'+server_id).text('Error');
@@ -1859,7 +1859,7 @@ function gcoreProvisiningServer() {
                 $('#created-mess').show();
                 $('#sever-status-'+server_id).text('Created');
                 $('#sever-status-'+server_id).css('color', 'var(--green-color)');
-                $('#sever-ip-'+server_id).text(data[0]);
+                $('#server-ip-'+server_id).text(data[0]);
                 $('#server-name-'+server_id).text(gcoreprovisining+'('+data[1]+')');
                 add_gcore_button_after_server_created();
             }
@@ -2043,7 +2043,7 @@ function gcoreEditProvisiningServer(server_id, dialog_id) {
 	            $('#sever-os-'+server_id).text($('#gcore_edit_oss').val());
 	            $('#server-'+server_id).css('background-color', '#fff');
 	            $('#sever-status-'+server_id).css('color', 'var(--green-color)');
-	            $('#sever-ip-'+server_id).text(data[0]);
+	            $('#server-ip-'+server_id).text(data[0]);
 	            $('#server-name-'+server_id).text(gcoreeditgprovisining+'('+data[1]+')');
             }
         }
