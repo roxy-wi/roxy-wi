@@ -9,7 +9,10 @@ def is_ip_or_dns(server_from_request: str) -> str:
 	ip_regex = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
 	dns_regex = "^(?!-)[A-Za-z0-9-]+([\\-\\.]{1}[a-z0-9]+)*\\.[A-Za-z]{2,6}$"
 	try:
-		if 'roxy-wi' in server_from_request:
+		if ('roxy-wi' in server_from_request or
+			'fail2ban' in server_from_request or
+			'prometheus' in server_from_request or
+			'grafana-server' in server_from_request):
 			return server_from_request
 		if re.match(ip_regex, server_from_request):
 			return server_from_request
@@ -1456,11 +1459,17 @@ def get_users_params(**kwargs):
 	import sql
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_uuid = cookie.get('uuid')
-	user = sql.get_user_name_by_uuid(user_uuid.value)
-	role = sql.get_user_role_by_uuid(user_uuid.value)
-	user_id = sql.get_user_id_by_uuid(user_uuid.value)
-	user_services = sql.select_user_services(user_id)
-	token = sql.get_token(user_uuid.value)
+	try:
+		user = sql.get_user_name_by_uuid(user_uuid.value)
+		role = sql.get_user_role_by_uuid(user_uuid.value)
+		user_id = sql.get_user_id_by_uuid(user_uuid.value)
+		user_services = sql.select_user_services(user_id)
+		token = sql.get_token(user_uuid.value)
+	except:
+		user = ''
+		role = ''
+		user_services = ''
+		token = ''
 	if kwargs.get('virt'):
 		servers = sql.get_dick_permit(virt=1)
 	elif kwargs.get('disable'):
