@@ -6,3 +6,4 @@ paramiko-ng>=2.5.0
 slack-sdk>=3.4.0
 peewee>=3.14.4
 PyMySQL>=1.0.2
+bottle>=0.12.18

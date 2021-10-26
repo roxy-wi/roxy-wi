@@ -60,12 +60,21 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 
 ### Read instruction on the official [site](https://roxy-wi.org/installation.py#rpm)
 
+## DEB
+
+### Read instruction on the official [site](https://roxy-wi.org/installation.py#deb)
+
 ## Manual install
 
 ### Read instruction on the official [site](https://roxy-wi.org/installation.py#manual)
 
 # OS support
-Roxy-Wi was tested on EL7, EL8 and all scripts too. Debian/Ubuntu OS support at 'beta' stage, may work not correct
+Roxy-WI supports the following OSes:
+1. EL7(RPM installation and manual installation). It must be "Infrastructure Server" at least. x86_64 only
+2. EL8(RPM installation and manual installation). It must be "Infrastructure Server" at least. x86_64 only
+3. Amazon Linux 2(RPM installation and manual installation). x86_64 only
+4. Ubuntu(DEB installation and manual installation). x86_64 only
+5. Other Linux distributions (manual installation only). x86_64 only
 
 ![alt text](https://roxy-wi.org/inc/images/smon_dashboard.png "SMON area")
 
@@ -75,7 +84,7 @@ Default Roxy-WI use Sqlite, if you want use MySQL enable in config, and create d
 
 ### For MySQL support:
 
-### Read instruction on the official [site](https://roxy-wi.org/settings.py#db_settings)
+### Read instruction on the official [site](https://roxy-wi.org/installation.py#database)
 
 ![alt text](https://roxy-wi.org/inc/images/roxy-wi-overview.webp "Overview page")
 
@@ -115,3 +124,5 @@ $ ./create_db.py
 and check executeble py files
 
 If you see plain text, check section "Directory" in httpd conf
+
+[Read more] (https://roxy-wi.org/troubleshooting.py)

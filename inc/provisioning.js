@@ -530,6 +530,7 @@ function awsProvisiningServer() {
                 $('#created-mess').show();
                 $('#sever-status-'+server_id).text('Created');
                 $('#server-ip-'+server_id).text(data);
+				$('#sever-status-'+server_id).css('color', 'var(--green-color)');
                 add_button_after_server_created();
             }
         }
@@ -1705,6 +1706,7 @@ function doProvisiningServer() {
                 $('#created-mess').show();
                 $('#sever-status-'+server_id).text('Created');
                 $('#server-ip-'+server_id).text(data);
+				$('#sever-status-'+server_id).css('color', 'var(--green-color)');
                 add_do_button_after_server_created();
             }
         }
