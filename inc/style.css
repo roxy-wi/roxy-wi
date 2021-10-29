@@ -790,7 +790,7 @@ label {
 	border-top: 3px solid #00b8d7;
 }
 .div-backends {
-	width: 89.3%;
+	width: 91.2%;
 }
 .server-name {
 	padding-bottom: 3px;
@@ -833,8 +833,8 @@ label {
 	float: left;
 }
 .ajax-server {
-	margin: 25px 25px 0 757px;
-	width: 794px;
+	margin: 25px 25px 0 787px;
+	width: 797px;
 	display: none;
 	height: 185px;
 	padding: 10px 0 0 15px;
@@ -884,12 +884,15 @@ label {
 	margin-bottom: -40px; 
 	padding-left: 70px;
 }
-.chart-container {
+.chart-container, .chart-container_overview {
 	position: relative;
 	height: 300px;
 	width: 48.8%;
 	float: left;
 	margin-left: 20px;
+}
+.chart-container_overview {
+	width: 93.3%;
 }
 .restart, .reload, .stop, .stop-waf, .restart-waf {
 	padding-left: 4px;
@@ -991,7 +994,7 @@ label {
 		clear: both !important;
 		margin-left: 20px !important;
 		margin-bottom: 20px !important;
-		width: 89.3% !important;
+		width: 92.3% !important;
 	}
 }
 @media (max-width: 1450px) {
@@ -999,11 +1002,14 @@ label {
 		clear: both !important;
 		margin-left: 20px !important;
 		margin-bottom: 20px !important;
-		width: 88% !important;
+		width: 91% !important;
+	}
+	.ajax-server {
+		width: 92.2% !important;
 	}
 	.div-server {
 		margin-bottom: 30px !important;
-		width: 300px;
+		width: 90.8%;
 		height: 100px;
 	}
 	.server-desc {
