@@ -752,7 +752,7 @@ def get_dick_permit(**kwargs):
 	else:
 		token = ''
 	only_group = kwargs.get('only_group')
-	disable = ''
+	disable = 'enable = 1'
 	haproxy = ''
 	nginx = ''
 	keepalived = ''
@@ -763,7 +763,7 @@ def get_dick_permit(**kwargs):
 	else:
 		type_ip = "and type_ip = 0"
 	if kwargs.get('disable') == 0:
-		disable = 'or enable = 0'
+		disable = '(enable = 1 or enable = 0)'
 	if kwargs.get('ip'):
 		ip = "and ip = '%s'" % kwargs.get('ip')
 	if kwargs.get('haproxy'):
@@ -776,11 +776,10 @@ def get_dick_permit(**kwargs):
 	if funct.check_user_group(token=token):
 		cursor = conn.cursor()
 		if grp == '1' and not only_group:
-			sql = """ select * from servers where enable = 1 {} {} {} {} {} order by pos""" .format(disable, type_ip, nginx, keepalived, ip)
+			sql = """ select * from servers where {} {} {} {} {} order by pos""" .format(disable, type_ip, nginx, keepalived, ip)
 		else:
-			sql = """ select * from servers where groups = '{group}' and (enable = 1 {disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} order by pos
+			sql = """ select * from servers where groups = '{group}' and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} order by pos
 			""".format(group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx, keepalived=keepalived)
-
 		try:
 			cursor.execute(sql)
 		except Exception as e:

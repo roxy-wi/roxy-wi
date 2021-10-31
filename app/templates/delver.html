@@ -36,6 +36,13 @@
 			Here you can work with previous versions of {%if service == 'keepalived' %}Keepalived{%elif service == 'nginx' %}Nginx{%else%}HAProxy{%endif%} configs. Roll back to them, view or delete
 		</div>
 	{% endif %}
+	{% if open %}
+	{% for select in selects %}
+		{% if select.2 == serv %}
+			<script>showListOfVersion(1)</script>
+		{% endif %}
+	{% endfor %}
+	{% endif %}
 </center>
 {% endif %}
 {% endblock %}

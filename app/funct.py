@@ -233,7 +233,7 @@ def telegram_send_mess(mess, **kwargs):
 		channel_name = telegram.chanel_name
 
 	if token_bot == '' or channel_name == '':
-		mess = " error: Can't send message. Add Telegram channel before use alerting at this servers group"
+		mess = " Can't send message. Add Telegram channel before use alerting at this servers group"
 		print(mess)
 		logging('localhost', mess, haproxywi=1)
 		sys.exit()

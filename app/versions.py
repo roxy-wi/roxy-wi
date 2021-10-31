@@ -67,7 +67,8 @@ if serv is not None and form.getvalue('del') is not None:
 					else:
 						os.remove(os.path.join(configs_dir, form.getvalue(get)))
 					file.add(form.getvalue(get) + "<br />")
-					funct.logging(serv, "versions.py were deleted configs: %s" % form.getvalue(get))
+					funct.logging(serv, "Version of config has been deleted: %s" % form.getvalue(get), login=1,
+                              keep_history=1, service=service)
 				except OSError as e:
 					stderr = "Error: %s - %s." % (e.filename,e.strerror)
 
@@ -77,7 +78,8 @@ if serv is not None and form.getvalue('config') is not None:
 	aftersave = 1
 
 	try:
-		funct.logging(serv, "versions.py upload old config %s" % configver)
+		funct.logging(serv, "Version of config has been uploaded %s" % configver, login=1,
+                              keep_history=1, service=service)
 	except Exception:
 		pass
 
