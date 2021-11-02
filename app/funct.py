@@ -119,6 +119,8 @@ def logging(server_ip, action, **kwargs):
 	import http.cookies
 	import distro
 
+	login = ''
+
 	log_path = get_config_var('main', 'log_path')
 	try:
 		user_group = get_user_group()
@@ -817,15 +819,21 @@ def install_nginx(server_ip, **kwargs):
 
 def update_haproxy_wi(service):
 	import distro
+	restart_service = ''
 	if distro.id() == 'ubuntu':
 		try:
 			if service == 'roxy-wi-keep_alive':
 				service = 'roxy-wi-keep-alive'
 		except Exception:
 			pass
-		cmd = 'sudo -S apt-get update && sudo apt-get install ' + service +' && sudo systemctl restart ' + service
+
+		if service == 'roxy-wi':
+			restart_service = ' && sudo systemctl restart ' + service
+
+		cmd = 'sudo -S apt-get update && sudo apt-get install ' + service + restart_service
 	else:
-		cmd = 'sudo -S yum -y update ' + service +' && sudo systemctl restart ' + service
+		cmd = 'sudo -S yum -y update ' + service + restart_service
+
 	output, stderr = subprocess_execute(cmd)
 	print(output)
 	print(stderr)

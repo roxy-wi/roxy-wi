@@ -12,7 +12,8 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 ![alt text](https://roxy-wi.org/inc/images/viewstat.png "HAProxy state page")
 
 # Features:
-1. Installation and updating HAProxy, Nginx and Keepalived with Roxy-WI
+1. Installation and updating HAProxy, Nginx and Keepalived with Roxy-WI as system service
+1. Installation and updating HAProxy and Nginx with Roxy-WI as Docker service
 2. Installation and updating Grafana, Prometheus servers with Roxy-WI
 3. Installation and updating HAProxy and Nginx exporters with Roxy-WI
 4. Server provisioning on AWS, DigitalOcean and G-Core Labs
@@ -125,4 +126,4 @@ and check executeble py files
 
 If you see plain text, check section "Directory" in httpd conf
 
-[Read more] (https://roxy-wi.org/troubleshooting.py)
+[Read more](https://roxy-wi.org/troubleshooting.py)

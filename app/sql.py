@@ -259,10 +259,10 @@ def update_hapwi_server(server_id, alert, metrics, active, service_name):
 	try:
 		if service_name == 'nginx':
 			update_hapwi = Server.update(nginx_alert=alert, metrics=metrics, nginx_active=active,
-										 nginx_metrics=metrics).where(
-				Server.server_id == server_id)
+										 nginx_metrics=metrics).where(Server.server_id == server_id)
 		elif service_name == 'keepalived':
-			update_hapwi = Server.update(keepalived_active=active).where(Server.server_id == server_id)
+			update_hapwi = Server.update(keepalived_alert=alert, keepalived_active=active).where(
+				Server.server_id == server_id)
 		else:
 			update_hapwi = Server.update(alert=alert, metrics=metrics, active=active).where(
 				Server.server_id == server_id)
@@ -1766,7 +1766,7 @@ def get_setting(param, **kwargs):
 					param == 'syslog_server_enable' or param == 'smon_check_interval' or
 					param == 'checker_check_interval' or param == 'port_scan_interval' or
 					param == 'smon_keep_history_range' or param == 'checker_keep_history_range' or
-					param == 'portscanner_keep_history_range'
+					param == 'portscanner_keep_history_range' or param == 'checker_maxconn_threshold'
 				):
 					return int(setting.value)
 				else:
@@ -1844,6 +1844,23 @@ def select_nginx_alert(**kwargs):
 			(Server.groups == kwargs.get('group')))
 	else:
 		query = Server.select(Server.ip).where((Server.nginx_alert == 1) & (Server.enable == 1))
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
+
+
+def select_keepalived_alert(**kwargs):
+	if kwargs.get("group") is not None:
+		query = Server.select(Server.ip).where(
+			(Server.keepalived_alert == 1) &
+			(Server.enable == 1) &
+			(Server.groups == kwargs.get('group')))
+	else:
+		query = Server.select(Server.ip).where((Server.keepalived_alert == 1) & (Server.enable == 1))
+
 	try:
 		query_res = query.execute()
 	except Exception as e:

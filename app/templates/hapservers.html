@@ -101,8 +101,10 @@
 				{% set additional_status_class = 'div-server-head-down' %}
 			{% endif %}
 		{% elif service == 'keepalived' %}
+			{% set checker_desc = 'Checker monitors Keepalived services. If Keepalived service is down, Checker will alert via Telegram and/or Slack' %}
 			{% set is_auto_start_enabled = s.8.0.22 %}
 			{% set action_service = 'keepalived' %}
+			{% set is_checker_enabled = s.8.0.23 %}
 			{% if s.5.0.1 == 'active' %}
 				{% set additional_status_class = 'div-server-head-up' %}
 			{% else %}
@@ -212,13 +214,15 @@
 				{% endif %}
 			</div>
 			<div class="server-act-links" id="server-{{s.8.0.0|string()}}-{{service}}">
-				{% if role <= 2 and service != 'keepalived' %}
+				{% if role <= 2 %}
 					{% set id = 'alert-' + s.8.0.0|string() %}
 					{% if is_checker_enabled == 1 %}
 						{{ checkbox(id, title=checker_desc, value='1', desc='Checker', checked='checked') }}
 					{% else %}
 						{{ checkbox(id, title=checker_desc, value='1', desc='Checker') }}
 					{% endif %}
+				{% endif %}
+				{% if role <= 2 and service != 'keepalived' %}
 					{% set id = 'metrics-' + s.8.0.0|string() %}
 					{% if is_metrics_enabled == 1 %}
 						{{ checkbox(id, title='Collecting metrics is enabled', value='1', desc='Metrics', checked='checked') }}
@@ -226,12 +230,14 @@
 						{{ checkbox(id, title='Enable collecting metrics', value='1', desc='Metrics') }}
 					{% endif %}
 				{% endif %}
+				{% if role <= 2 %}
 					{% set id = 'active-' + s.8.0.0|string() %}
 					{% if is_auto_start_enabled == 1 %}
 						{{ checkbox(id, title='Auto Start is enabled', value='1', desc='Auto Start', checked='checked') }}
 					{% else %}
 						{{ checkbox(id, title='Enable Auto Start', value='1', desc='Auto Start') }}
 					{% endif %}
+				{% endif %}
 			</div>
 			<div class="server-act-links">
 				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showConfig" class="ui-button ui-widget ui-corner-all" title="Open running config">Config</a>

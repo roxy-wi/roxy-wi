@@ -2051,7 +2051,7 @@ if form.getvalue('updatehapwiserver') is not None:
     service = form.getvalue('service_name')
     sql.update_hapwi_server(hapwi_id, alert, metrics, active, service)
     server_ip = sql.select_server_ip_by_id(hapwi_id)
-    funct.logging(server_ip, 'the server ' + name, ' has been updated ', haproxywi=1, login=1, keep_history=1, service=service)
+    funct.logging(server_ip, 'The server ' + name + ' has been updated ', haproxywi=1, login=1, keep_history=1, service=service)
 
 if form.getvalue('updateserver') is not None:
     name = form.getvalue('updateserver')
@@ -2780,8 +2780,13 @@ if form.getvalue('geoip_install'):
 if form.getvalue('nettools_icmp_server_from'):
     server_from = form.getvalue('nettools_icmp_server_from')
     server_to = form.getvalue('nettools_icmp_server_to')
+    server_to = funct.is_ip_or_dns(server_to)
     action = form.getvalue('nettools_action')
     stderr = ''
+
+    if server_to == '':
+        print('warning: enter a correct IP or DNS name')
+        sys.exit()
 
     if action == 'nettools_ping':
         action_for_sending = 'ping -c 4 -W 1 -s 56 -O '
@@ -2800,16 +2805,30 @@ if form.getvalue('nettools_icmp_server_from'):
         print('error: '+stderr)
         sys.exit()
     for i in output:
-        if i == ' ':
+        if i == ' ' or i == '':
             continue
         i = i.strip()
-        print(i + '<br>')
+        if 'PING' in i:
+            print('<span style="color: var(--link-dark-blue); display: block; margin-top: -20px;">')
+        elif 'no reply' in i or 'no answer yet' in i or 'Too many hops' in i or '100% packet loss' in i:
+            print('<span style="color: var(--red-color);">')
+        elif 'ms' in i and '100% packet loss' not in i:
+            print('<span style="color: var(--green-color);">')
+        else:
+            print('<span>')
+
+        print(i + '</span><br />')
 
 if form.getvalue('nettools_telnet_server_from'):
     server_from = form.getvalue('nettools_telnet_server_from')
     server_to = form.getvalue('nettools_telnet_server_to')
+    server_to = funct.is_ip_or_dns(server_to)
     port_to = form.getvalue('nettools_telnet_port_to')
     stderr = ''
+
+    if server_to == '':
+        print('warning: enter a correct IP or DNS name')
+        sys.exit()
 
     if server_from == 'localhost':
         action_for_sending = 'echo "exit"|nc ' + server_to + ' ' + port_to + ' -t -w 1s'
@@ -2819,7 +2838,7 @@ if form.getvalue('nettools_telnet_server_from'):
         output = funct.ssh_command(server_from, action_for_sending, raw=1)
 
     if stderr != '':
-        print('error: '+stderr[5:-1])
+        print('error: <b>' + stderr[5:] + '</b>')
         sys.exit()
     count_string = 0
     for i in output:
@@ -2827,7 +2846,7 @@ if form.getvalue('nettools_telnet_server_from'):
             continue
         i = i.strip()
         if i == 'Ncat: Connection timed out.':
-            print('error: ' + i[5:-1])
+            print('error: <b>' + i[5:] + '</b>')
             break
         print(i + '<br>')
         count_string += 1
@@ -2837,8 +2856,13 @@ if form.getvalue('nettools_telnet_server_from'):
 if form.getvalue('nettools_nslookup_server_from'):
     server_from = form.getvalue('nettools_nslookup_server_from')
     dns_name = form.getvalue('nettools_nslookup_name')
+    dns_name = funct.is_ip_or_dns(dns_name)
     record_type = form.getvalue('nettools_nslookup_record_type')
     stderr = ''
+
+    if dns_name == '':
+        print('warning: enter a correct DNS name')
+        sys.exit()
 
     action_for_sending = 'dig ' + dns_name + ' ' + record_type + ' |grep -e "SERVER\|' + dns_name + '"'
 
@@ -2852,7 +2876,7 @@ if form.getvalue('nettools_nslookup_server_from'):
         print('error: '+stderr[5:-1])
         sys.exit()
     count_string = 0
-    print('<b>There are the next records for ' + dns_name + ' domain:</b> <br />')
+    print('<b style="display: block; margin-top:10px;">The <i style="color: var(--blue-color)">' + dns_name + '</i> domain has the following records:</b>')
     for i in output:
         if 'dig: command not found.' in i:
             print('error: Install bind-utils before using NSLookup')
@@ -2860,13 +2884,13 @@ if form.getvalue('nettools_nslookup_server_from'):
         if ';' in i and ';; SERVER:' not in i:
             continue
         if 'SOA' in i and record_type != 'SOA':
-            print('<b>There are not any records for this type')
+            print('<b style="color: red">There are not any records for this type')
             break
         if ';; SERVER:' in i:
-            i = i[10:-1]
+            i = i[10:]
             print('<br><b>From NS server:</b><br>')
         i = i.strip()
-        print(i + '<br>')
+        print('<i>' + i + '</i><br>')
         count_string += 1
 
 if form.getvalue('portscanner_history_server_id'):

@@ -805,7 +805,6 @@ def update_db_v_5_3_0(**kwargs):
 					print("An error occurred:", e)
 
 
-
 def update_db_v_5_3_1(**kwargs):
 	cursor = conn.cursor()
 	sql = """
@@ -823,8 +822,46 @@ def update_db_v_5_3_1(**kwargs):
 		print("Updating... DB has been updated to version 5.3.1")
 
 
+
+def update_db_v_5_3_2(**kwargs):
+	try:
+		Setting.insert(param='checker_maxconn_threshold', value=90, section='monitoring',
+					   desc='Threshold value for alerting, in %').execute()
+	except Exception as e:
+		if kwargs.get('silent') != 1:
+			if (
+					str(e) == 'columns param, group are not unique' or
+					str(e) == '(1062, "Duplicate entry \'checker_maxconn_threshold-1\' for key \'param\'")' or
+					str(e) == 'UNIQUE constraint failed: settings.param, settings.group'
+			):
+				pass
+			else:
+				print("An error occurred:", e)
+	else:
+		if kwargs.get('silent') != 1:
+			print('Updating... DB has been updated to version 5.3.2')
+
+
+
+def update_db_v_5_3_2_2(**kwargs):
+	cursor = conn.cursor()
+	sql = """
+	ALTER TABLE `servers` ADD COLUMN keepalived_alert INTEGER NOT NULL DEFAULT 0;
+	"""
+	try:
+		cursor.execute(sql)
+	except Exception as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: keepalived_alert' or str(e) == '(1060, "Duplicate column name \'keepalived_alert\'")':
+				print('Updating... DB has been updated to version 5.3.2')
+			else:
+				print("An error occurred:", e)
+	else:
+		print("Updating... DB has been updated to version 5.3.2")
+
+
 def update_ver():
-	query = Version.update(version='5.3.1.0')
+	query = Version.update(version='5.3.2.0')
 	try:
 		query.execute()
 	except:
@@ -858,6 +895,8 @@ def update_all():
 	update_db_v_5_2_6()
 	update_db_v_5_3_0()
 	update_db_v_5_3_1()
+	update_db_v_5_3_2()
+	update_db_v_5_3_2_2()
 	update_ver()
 
 
@@ -888,6 +927,8 @@ def update_all_silent():
 	update_db_v_5_2_6(silent=1)
 	update_db_v_5_3_0(silent=1)
 	update_db_v_5_3_1(silent=1)
+	update_db_v_5_3_2(silent=1)
+	update_db_v_5_3_2_2(silent=1)
 	update_ver()
 
 

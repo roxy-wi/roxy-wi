@@ -1,16 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select %}
-{% if servers|length == 0 %}
-    {% include 'include/getstarted.html' %}
-{% else %}
 <style>
     .ping_pre {
         display: block;
-        padding: 9.5px;
+        padding: 10px;
         margin: 0 0 10px;
         font-family: 'Courier New', monospace;
-        font-size: 13px;
+        font-size: 14px;
         line-height: 1.42857143;
         color: #333;
         word-break: break-all;
@@ -23,8 +20,8 @@
     <table class="overview">
         <caption><h3>ICMP</h3></caption>
         <tr class="overviewHead">
-            <th class="padding10 first-collumn">From server</th>
-            <th class="padding10 first-collumn">To server</th>
+            <th class="padding10 first-collumn">From</th>
+            <th class="padding10 first-collumn">To</th>
             <th class="padding10 first-collumn"></th>
             <th></th>
         </tr>
@@ -55,8 +52,8 @@
     <table class="overview">
         <caption><h3>Check port</h3></caption>
         <tr class="overviewHead">
-            <th class="padding10 first-collumn">From server</th>
-            <th class="padding10 first-collumn">To server</th>
+            <th class="padding10 first-collumn">From</th>
+            <th class="padding10 first-collumn">To</th>
             <th class="padding10 first-collumn">Port</th>
             <th></th>
         </tr>
@@ -87,7 +84,7 @@
     <table class="overview">
         <caption><h3>NSLookup</h3></caption>
         <tr class="overviewHead">
-            <th class="padding10 first-collumn">From server</th>
+            <th class="padding10 first-collumn">From</th>
             <th class="padding10 first-collumn">Record type</th>
             <th class="padding10 first-collumn">DNS name</th>
             <th></th>
@@ -121,8 +118,8 @@
 <div id="ajax-nettools" style="padding: 20px;"></div>
 <script>
     $("#nettools_nslookup_record_type" ).selectmenu({
-				width: 175
-			});
+        width: 175
+    });
     $( "#nettools_telnet_form" ).on("click", ":submit", function(e){
         $('#ajax-nettools').html('');
         var frm = $('#nettools_telnet_form');
@@ -145,13 +142,16 @@
             success: function( data ) {
                 data = data.replace('\n', '<br>');
                 if (data.indexOf('error: ') != '-1' || data.indexOf('Fatal') != '-1' || data.indexOf('Error(s)') != '-1') {
-                    $('#ajax-nettools').html('<div class="alert alert-warning">'+data+'</div>');
+                    $('#ajax-nettools').html('<div class="ping_pre">'+data+'</div>');
+                } else if (data.indexOf('warning: ') != '-1') {
+                    toastr.clear();
+                    toastr.warning(data)
                 } else {
                     toastr.clear();
                     if (data.indexOf('') != '-1') {
-                        $('#ajax-nettools').html('<div class="alert alert-success"><b>Connection has been successful</b></div>');
+                        $('#ajax-nettools').html('<div class="ping_pre"><b>Connection has been successful</b></div>');
                     } else {
-                        $('#ajax-nettools').html('<div class="alert alert-success"><b>Connection has been successful</b>:<br /><br />'+data+'</div>');
+                        $('#ajax-nettools').html('<div class="ping_pre"><b>Connection has been successful</b>:<br /><br />'+data+'</div>');
                     }
                 }
             }
@@ -178,6 +178,9 @@
                 if (data.indexOf('error: ') != '-1' || data.indexOf('Fatal') != '-1' || data.indexOf('Error(s)') != '-1') {
                     toastr.clear();
                     toastr.error(data);
+                } else if (data.indexOf('warning: ') != '-1') {
+                    toastr.clear();
+                    toastr.warning(data)
                 } else {
                     toastr.clear();
                     $('#ajax-nettools').html('<div class="ping_pre">'+data+'</div>');
@@ -206,6 +209,9 @@
                 if (data.indexOf('error: ') != '-1' || data.indexOf('Fatal') != '-1' || data.indexOf('Error(s)') != '-1') {
                     toastr.clear();
                     toastr.error(data);
+                } else if (data.indexOf('warning: ') != '-1') {
+                    toastr.clear();
+                    toastr.warning(data)
                 } else {
                     toastr.clear();
                     $('#ajax-nettools').html('<div class="ping_pre">'+data+'</div>');
@@ -215,5 +221,4 @@
         event.preventDefault();
     });
 </script>
-{% endif %}
 {% endblock %}
