@@ -268,7 +268,7 @@
 					{{ line }}
 				</span><br />	
 			{% endif %}
-			{%- if "bind" in line and "@" not in line and "-" not int line -%}
+			{%- if "bind" in line and "@" not in line and "-" not in line -%}
 				{%- set bind = line.split(':')[1] -%}
 				{%- set bind = bind.split(' ') -%}
 				<script>
