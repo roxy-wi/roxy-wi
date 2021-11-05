@@ -1808,7 +1808,7 @@ if form.getvalue('bwlists_save'):
             except Exception:
                 pass
 
-            server_id = sql.select_server_id_by_ip(server=serv)
+            server_id = sql.select_server_id_by_ip(server_ip=serv)
             haproxy_enterprise = sql.select_service_setting(server_id, 'haproxy', 'haproxy_enterprise')
             if haproxy_enterprise == '1':
                 haproxy_service_name = "hapee-2.0-lb"
@@ -2080,16 +2080,17 @@ if form.getvalue('updateserver') is not None:
 if form.getvalue('serverdel') is not None:
     server_id = form.getvalue('serverdel')
     server = sql.select_servers(id=server_id)
+    server_ip = ''
     for s in server:
         hostname = s[1]
-        ip = s[2]
-    if sql.check_exists_backup(ip):
+        server_ip = s[2]
+    if sql.check_exists_backup(server_ip):
         print('warning: Delete the backup first ')
         sys.exit()
     if sql.delete_server(server_id):
         sql.delete_waf_server(server_id)
         sql.delete_port_scanner_settings(server_id)
-        sql.delete_waf_rules(ip)
+        sql.delete_waf_rules(server_ip)
         sql.delete_action_history(server_id)
         print("Ok")
         funct.logging(hostname, ' has been deleted server with ', haproxywi=1, login=1)
