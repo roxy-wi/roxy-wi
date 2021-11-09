@@ -10,7 +10,6 @@ template = env.get_template('ovw.html')
 
 print('Content-type: text/html\n')
 
-# create_db.update_all_silent()
 funct.check_login()
 
 try:
@@ -99,7 +98,6 @@ except Exception as e:
 	is_checker_worker = ''
 	is_metrics_worker = ''
 	token = ''
-	print(str(e))
 
 
 template = template.render(h2=1,

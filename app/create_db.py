@@ -18,7 +18,7 @@ def default_values():
 		{'param': 'token_ttl', 'value': '5', 'section': 'main', 'desc': 'TTL for a user token (in days)',
 		 'group': '1'},
 		{'param': 'tmp_config_path', 'value': '/tmp/', 'section': 'main',
-		 'desc': 'Path to the directory with SSL certificates. An existing path should be specified as the value of this parameter. The directory must be owned by the user specified in SSH settings.',
+		 'desc': 'Path to the temporary directory. A valid path should be specified as the value of this parameter. The directory must be owned by the user specified in SSH settings',
 		 'group': '1'},
 		{'param': 'cert_path', 'value': '/etc/ssl/certs/', 'section': 'main',
 		 'desc': 'Path to SSL dir. Folder owner must be a user which set in the SSH settings. Path must exist',
@@ -77,19 +77,17 @@ def default_values():
 		{'param': 'ldap_port', 'value': '389', 'section': 'ldap', 'desc': 'LDAP port (port 389 or 636 is used by default)',
 		 'group': '1'},
 		{'param': 'ldap_user', 'value': '', 'section': 'ldap',
-		 'desc': 'Loging for connecting to LDAP server. Format: user@domain.com', 'group': '1'},
-		{'param': 'ldap_password', 'value': '', 'section': 'ldap', 'desc': 'Password to connect to LDAP server',
-		 'group': '1'},
+		 'desc': 'LDAP username. Format: user@domain.com', 'group': '1'},
+		{'param': 'ldap_password', 'value': '', 'section': 'ldap', 'desc': 'LDAP password', 'group': '1'},
 		{'param': 'ldap_base', 'value': '', 'section': 'ldap', 'desc': 'Base domain. Example: dc=domain, dc=com',
 		 'group': '1'},
-		{'param': 'ldap_domain', 'value': '', 'section': 'ldap', 'desc': 'LDAP domain for the login', 'group': '1'},
+		{'param': 'ldap_domain', 'value': '', 'section': 'ldap', 'desc': 'LDAP domain for logging in', 'group': '1'},
 		{'param': 'ldap_class_search', 'value': 'user', 'section': 'ldap', 'desc': 'Class for searching the user',
 		 'group': '1'},
 		{'param': 'ldap_user_attribute', 'value': 'sAMAccountName', 'section': 'ldap',
-		 'desc': 'User attribute for search', 'group': '1'},
-		{'param': 'ldap_search_field', 'value': 'mail', 'section': 'ldap',
-		 'desc': 'The field for saving the user\'s e-mail address', 'group': '1'},
-		{'param': 'ldap_type', 'value': '0', 'section': 'ldap', 'desc': 'Use LDAP (0) or LDAPS (1)', 'group': '1'},
+		 'desc': 'Attribute to search users by', 'group': '1'},
+		{'param': 'ldap_search_field', 'value': 'mail', 'section': 'ldap', 'desc': 'User\'s email address', 'group': '1'},
+		{'param': 'ldap_type', 'value': '0', 'section': 'ldap', 'desc': 'Use LDAPS (1 - yes, 0 - no)', 'group': '1'},
 	]
 	try:
 		Setting.insert_many(data_source).on_conflict_ignore().execute()
@@ -617,9 +615,9 @@ def update_db_v_5_0_1(**kwargs):
 def update_db_v_5_1_2(**kwargs):
 	data_source = [
 		{'param': 'smon_keep_history_range', 'value': '14', 'section': 'monitoring',
-		 'desc': 'How many days to keep the history for the SMON service', 'group': '1'},
+		 'desc': 'Retention period for SMON history', 'group': '1'},
 		{'param': 'checker_keep_history_range', 'value': '14', 'section': 'monitoring',
-		 'desc': 'How many days to keep the history for the Checker service', 'group': '1'}
+		 'desc': 'Retention period for Checker history', 'group': '1'}
 	]
 
 	try:
@@ -654,7 +652,7 @@ def update_db_v_5_1_3(**kwargs):
 def update_db_v_5_2_0(**kwargs):
 	try:
 		Setting.insert(param='portscanner_keep_history_range', value=14, section='monitoring',
-					   desc='How many days to keep the history for the Port scanner service').execute()
+					   desc='Retention period for Port scanner history').execute()
 	except Exception as e:
 		if kwargs.get('silent') != 1:
 			if (

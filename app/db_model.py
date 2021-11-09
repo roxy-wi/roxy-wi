@@ -428,11 +428,11 @@ class ServiceSetting(BaseModel):
 
 
 class ActionHistory(BaseModel):
-    service = CharField()
-    server_id = IntegerField()
-    user_id = IntegerField()
-    action = CharField()
-    ip = CharField()
+    service = CharField(null=True)
+    server_id = IntegerField(null=True)
+    user_id = IntegerField(null=True)
+    action = CharField(null=True)
+    ip = CharField(null=True)
     date = DateTimeField(default=datetime.now)
 
     class Meta:
