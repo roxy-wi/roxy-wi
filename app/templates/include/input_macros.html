@@ -41,6 +41,9 @@
 	</select>
 {%- endmacro %}
 
-{%- macro copy_to_clipboard(id='', value='', style='', class='') -%}
-	<span id="{{id}}" style="{{style}}" class="copyToClipboard {{class}}" data-copy="{{value}}" title="Copy {{value}} to clipboard">{{value}}</span>
+{%- macro copy_to_clipboard(id='', value='', show='', style='', class='') -%}
+	{% if show == '' %}
+		{% set show = value %}
+	{% endif %}
+	<span id="{{id}}" style="{{style}}" class="copyToClipboard {{class}}" data-copy="{{value}}" title="Copy {{value}} to clipboard">{{show}}</span>
 {%- endmacro %}
