@@ -2419,7 +2419,6 @@ def insert_port_scanner_history(serv, port, port_status, service_name):
 	try:
 		PortScannerHistory.insert(serv=serv, port=port, status=port_status, service_name=service_name,
 								  date=funct.get_data('regular')).execute()
-		cursor.execute(sql)
 	except Exception as e:
 		out_error(e)
 

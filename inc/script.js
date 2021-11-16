@@ -529,6 +529,15 @@ function showListOfVersion(for_delver) {
 		}
 	} );
 }
+function changeVersion(){
+	if (localStorage.getItem('version_style') == 'new') {
+		localStorage.setItem('version_style', 'old');
+		showListOfVersion(1);
+	} else {
+		localStorage.setItem('version_style', 'new');
+		showListOfVersion(1);
+	}
+}
 function findGetParameter(parameterName) {
     var result = null,
         tmp = [];

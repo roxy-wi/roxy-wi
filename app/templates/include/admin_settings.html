@@ -2,6 +2,9 @@
     <tbody>
         {% set section = namespace(section='') %}
         {% for set in settings %}
+        {% if page == "servers.py" and set.section == 'monitoring' %}
+        <!-- continue -->
+        {% else %}
         {% if section.section|string() != set.section|string() %}
         <th colspan="3" title="Show {{ set.section }} section" id="{{set.section}}-section-head" style="cursor: pointer; padding-top: 10px;">
             <h3 class="plus-after" id="{{set.section}}-section-h3" style="font-size: 1em; padding-left: 15px;">
@@ -36,7 +39,8 @@
 					set.param == 'syslog_server_enable' or set.param == 'smon_check_interval' or
 					set.param == 'checker_check_interval' or set.param == 'port_scan_interval' or
 					set.param == 'smon_keep_history_range' or set.param == 'checker_keep_history_range' or
-					set.param == 'portscanner_keep_history_range' or set.param == 'haproxy_enterprise' %}
+					set.param == 'portscanner_keep_history_range' or set.param == 'haproxy_enterprise' or
+                    set.param == 'checker_maxconn_threshold' %}
 
                     {{ input(set.param, value=set.value, style='width: 210px;', type='number') }}
                 {% else %}
@@ -51,6 +55,7 @@
                 {{set.desc}}
             </td>
         </tr>
+        {% endif %}
         {% endfor %}
     </tbody>
 </table>

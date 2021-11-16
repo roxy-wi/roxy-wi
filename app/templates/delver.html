@@ -12,10 +12,11 @@
 			<input type="hidden" value="{{service}}" name="service" id="service">
 			{% include 'include/select.html' %}
 				<a class="ui-button ui-widget ui-corner-all" title="View stat" onclick="showListOfVersion(1)">Open</a>
+				<a href="config.py?service={{service}}" class="ui-button ui-widget ui-corner-all" title="Configs page">Configs</a>
 			{% if service != 'keepalived' %}
-				<a href="config.py" class="ui-button ui-widget ui-corner-all" title="Configs page">Configs</a>
 				<a class="ui-button ui-widget ui-corner-all" title="View stat" onclick="openStats()">Stat</a>
 			{% endif %}
+			<a class="ui-button ui-widget ui-corner-all" title="Change version" onclick="changeVersion()">Change version</a>
 		</form>
 	</p>
 	{% if aftersave %}
