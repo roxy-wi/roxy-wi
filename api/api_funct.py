@@ -239,6 +239,56 @@ def get_section(server_id):
 	return dict(section=data)
 
 
+def edit_section(server_id):
+	body = request.body.getvalue().decode('utf-8')
+	section_name = request.headers.get('section-name')
+	save = request.headers.get('action')
+	token = request.headers.get('token')
+	servers = check_permit_to_server(server_id)
+	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+	login, group_id = sql.get_username_groupid_from_api_token(token)
+
+	if save == '':
+		save = 'save'
+	elif save == 'restart':
+		save = ''
+	elif save == 'reload':
+		save = 'reload'
+
+	for s in servers:
+		ip = s[2]
+		cfg = '/tmp/' + ip + '.cfg'
+
+		out = funct.get_config(ip, cfg)
+		start_line, end_line, config_read = funct.get_section_from_config(cfg, section_name)
+
+		returned_config = funct.rewrite_section(start_line, end_line, cfg, body)
+
+		try:
+			cfg_for_save = hap_configs_dir + ip + "-" + funct.get_data('config') + ".cfg"
+
+			try:
+				with open(cfg, "w") as conf:
+					conf.write(returned_config)
+				return_mess = 'section has been updated'
+				os.system("/bin/cp %s %s" % (cfg, cfg_for_save))
+				out = funct.master_slave_upload_and_restart(ip, cfg, save, login=login)
+				funct.logging('localhost', " section " + section_name + " has been edited via API", login=login)
+				funct.logging(ip, 'section ' + section_name + ' has been edited via API', haproxywi=1, login=login,
+							  keep_history=1, service='haproxy')
+
+				if out:
+					return_mess = out
+			except IOError:
+				return_mess = "cannot upload config"
+
+			data = {server_id: return_mess}
+		except Exception as e:
+			data = {server_id: {"error": str(e)}}
+			return dict(error=data)
+
+		return dict(config=data)
+
 
 def upload_config(server_id):
 	data = {}
@@ -366,6 +416,7 @@ def show_log(server_id):
 	data = {server_id: out}
 
 	return dict(log=data)
+
 
 def add_acl(server_id):
 	body = request.body.getvalue().decode('utf-8')
