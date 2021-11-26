@@ -47,7 +47,7 @@
 				<td class="padding10 first-collumn">Current version</td>
 				<td class="padding10 first-collumn" style="width: 30%;">Available Versions</td>			
 				<td class="padding10 first-collumn" style="width: 20%;">Server</td>
-				<td>Install as a Docker container</td>
+				<td class="help_cursor" title="Install HAProxy service as a Docker container">Use Docker</td>
 				<td>SYN-flood protection</td>
 				<td></td>
 			</tr>
@@ -70,8 +70,8 @@
 						{% endfor %}
 					</select>
 				</td>
-				<td class="syn-flood-protection-field">
-					{{ checkbox('haproxy_docker', title="Install as a Docker container") }}
+				<td style="padding-left: 25px;">
+					{{ checkbox('haproxy_docker', title="Install HAProxy service as a Docker container") }}
 				</td>
 				<td class="syn-flood-protection-field">
 					{{ checkbox('syn_flood', title="Enable SYN-flood protection", checked='checked') }}
@@ -87,7 +87,7 @@
 				<td class="padding10 first-collumn">Current version</td>
 				<td class="padding10 first-collumn" style="width: 30%;">Available Versions</td>			
 				<td class="padding10 first-collumn" style="width: 20%;">Server</td>
-				<td>Install as a Docker container</td>
+				<td class="help_cursor" title="Install Nginx service as a Docker container" >Use Docker</td>
 				<td>SYN-flood protection</td>
 				<td></td>
 			</tr>
@@ -95,7 +95,7 @@
 				<td id="cur_nginx_ver" class="padding10 first-collumn">
 				</td>
 				<td class="padding10 first-collumn" style="width: 20%;">
-					Roxy-WI will try to install the latest Nginx version from official Nginx repository
+					Roxy-WI will try to install the latest Nginx version from an official Nginx repository
 				</td>
 				<td class="padding10 first-collumn">
 					<select autofocus required name="nginxaddserv" id="nginxaddserv">
@@ -105,8 +105,8 @@
 						{% endfor %}
 					</select>
 				</td>
-				<td class="syn-flood-protection-field">
-					{{ checkbox('nginx_docker', title="Install as a Docker container") }}
+				<td style="padding-left: 25px;">
+					{{ checkbox('nginx_docker', title="Install Nginx service as a Docker container") }}
 				</td>
 				<td class="syn-flood-protection-field">
 					{{ checkbox('nginx_syn_flood', title="Enable SYN-flood protection", checked='checked') }}
