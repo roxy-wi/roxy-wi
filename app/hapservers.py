@@ -82,6 +82,8 @@ for s, v in services_name.items():
 haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 servers_with_status1 = []
 out1 = ''
+if len(servers) == 1:
+    serv = servers[0][2]
 for s in servers:
     servers_with_status = list()
     servers_with_status.append(s[0])
