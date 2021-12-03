@@ -859,7 +859,7 @@ def update_db_v_5_3_2_2(**kwargs):
 
 
 def update_ver():
-	query = Version.update(version='5.3.3.0')
+	query = Version.update(version='5.3.4.0')
 	try:
 		query.execute()
 	except:

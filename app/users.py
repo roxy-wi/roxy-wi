@@ -19,7 +19,6 @@ try:
 	settings = sql.get_setting('', all=1)
 	ldap_enable = sql.get_setting('ldap_enable')
 	grafana, stderr = funct.subprocess_execute("systemctl is-active grafana-server")
-
 except Exception:
 	pass
 

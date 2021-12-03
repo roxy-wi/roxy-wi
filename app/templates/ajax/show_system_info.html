@@ -1,0 +1,154 @@
+{% if not system_info %}
+    <td style="padding-top: 20px;" colspan="16">
+        <a onclick="updateServerInfo('{{server_ip}}', '{{server_id}}')" title="Refresh" style="float: right; margin-bottom: 10px;">
+            <span class="service-reload"></span>
+        </a>
+    </td>
+{% else %}
+{% for s_i in system_info %}
+    <td style="padding-top: 20px;" colspan="16">
+        <table class="overview-wi">
+            <tr class="overviewHead">
+                <td class="padding10 first-collumn-wi" colspan=2>
+                    Base info
+                </td>
+            </tr>
+            <tr class="odd">
+                <td class="padding10 first-collumn-wi">Linux</td>
+                <td>{{s_i.os_info}}</td>
+            </tr>
+            {% set base_info = string_to_dict(s_i.sys_info) %}
+            <tr class="even">
+                <td class="padding10 first-collumn-wi" style="width: 20%;">
+                    Hostname
+                </td>
+                <td>{{base_info.hostname}}</td>
+            </tr>
+            <tr class="odd">
+                <td class="padding10 first-collumn-wi">
+                    Family
+                </td>
+                <td>{{base_info.family}}</td>
+            </tr>
+        </table>
+        <table class="overview-wi">
+            <tr class="overviewHead" colspan=2>
+                <td class="padding10 first-collumn-wi">
+                    RAM
+                </td>
+                <td>
+                    <a onclick="updateServerInfo('{{server_ip}}', '{{server_id}}')" title="Update System info" style="float: right; margin-right: 15px;">
+                        <span class="service-reload"></span>
+                    </a>
+                </td>
+            </tr>
+            {% set ram_info = string_to_dict(s_i.ram) %}
+            <tr class="odd">
+                <td class="padding10 first-collumn-wi" style="width: 20%;">
+                    Slots
+                </td>
+                <td>{{ram_info.slots}}</td>
+            </tr>
+            <tr class="even">
+                <td class="padding10 first-collumn-wi">
+                    Size
+                </td>
+                <td>{{ram_info.size}}Gb</td>
+            </tr>
+        </table>
+        <table class="overview-wi">
+            <tr class="overviewHead">
+                <td class="padding10 first-collumn-wi" colspan=2>
+                    CPU
+                </td>
+            </tr>
+            {% set cpu_info = string_to_dict(s_i.cpu) %}
+            <tr class="odd">
+                <td class="padding10 first-collumn-wi">Model</td>
+                <td>{{cpu_info.cpu_model}}</td>
+            </tr>
+            <tr class="even">
+                <td class="padding10 first-collumn-wi" style="width: 20%;">
+                    Cores
+                </td>
+                <td>{{cpu_info.cpu_core}}</td>
+            </tr>
+            <tr class="odd">
+                <td class="padding10 first-collumn-wi">
+                    Threads
+                </td>
+                <td>{{cpu_info.cpu_thread}}</td>
+            </tr>
+            <tr class="even">
+                <td class="padding10 first-collumn-wi">
+                    Frequency
+                </td>
+                <td>{{cpu_info.hz}}Hz</td>
+            </tr>
+        </table>
+
+        {% set disks_info = string_to_dict(s_i.disks) %}
+        {% for v,d in disks_info.items() %}
+        <table class="overview-wi">
+            <tr class="overviewHead" colspan=2>
+                <td class="padding10 first-collumn-wi" colspan=2>
+                    {{v}}
+                </td>
+            </tr>
+            <tr class="odd">
+                <td class="padding10 first-collumn-wi" style="width: 20%;">
+                    Mount point
+                </td>
+                <td>{{d.mount_point}}</td>
+            </tr>
+            <tr class="even">
+                <td class="padding10 first-collumn-wi">
+                    Size
+                </td>
+                <td>{{d.size}}</td>
+            </tr>
+            <tr class="odd">
+                <td class="padding10 first-collumn-wi" style="width: 20%;">
+                    File system
+                </td>
+                <td>{{d.fs}}</td>
+            </tr>
+            <tr class="even">
+                <td class="padding10 first-collumn-wi">
+                    State
+                </td>
+                <td>{{d.state}}</td>
+            </tr>
+        </table>
+        {% endfor %}
+        {% set network_info = string_to_dict(s_i.network) %}
+        {% for v,d in network_info.items() %}
+        <table class="overview-wi">
+            <tr class="overviewHead" colspan=2>
+                <td class="padding10 first-collumn-wi" colspan=2>
+                    {{v}}
+                </td>
+            </tr>
+            <tr class="odd">
+                <td class="padding10 first-collumn-wi" style="width: 20%;">
+                    IP
+                </td>
+                <td>{{d.ip}}</td>
+            </tr>
+            <tr class="even">
+                <td class="padding10 first-collumn-wi">
+                    MAC
+                </td>
+                <td>{{d.mac}}</td>
+            </tr>
+            <tr class="odd">
+                <td class="padding10 first-collumn-wi" style="width: 20%;">
+                    Description
+                </td>
+                <td>{{d.description}}</td>
+            </tr>
+        </table>
+        {% endfor %}
+   </td>
+{% endfor %}
+{% endif %}

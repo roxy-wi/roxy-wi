@@ -2941,3 +2941,56 @@ def delete_config_version(service: str, local_path: str):
 		return False
 	else:
 		return True
+
+
+def insert_system_info(server_id: int, os_info: str, sys_info: str, cpu: str, ram: str, network: str, disks: str) -> bool:
+	try:
+		SystemInfo.insert(server_id=server_id, os_info=os_info, sys_info=sys_info, cpu=cpu, ram=ram,
+					  network=network, disks=disks).on_conflict('replace').execute()
+	except Exception as e:
+		out_error(e)
+		return False
+	else:
+		return True
+
+
+def delete_system_info(server_id: int):
+	query = SystemInfo.delete().where(SystemInfo.server_id == server_id)
+	try:
+		query.execute()
+	except Exception as e:
+		out_error(e)
+
+
+def select_one_system_info(server_id: int):
+	query = SystemInfo.select().where(SystemInfo.server_id == server_id)
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+		return
+	else:
+		return query_res
+
+
+def select_system_info():
+	query = SystemInfo.select()
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+		return
+	else:
+		return query_res
+
+
+def is_system_info(server_id):
+	try:
+		query_res = SystemInfo.get(SystemInfo.server_id == server_id).server_id
+	except Exception:
+		return True
+	else:
+		if query_res != '':
+			return False
+		else:
+			return True

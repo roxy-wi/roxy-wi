@@ -274,7 +274,7 @@ def edit_section(server_id):
 				os.system("/bin/cp %s %s" % (cfg, cfg_for_save))
 				out = funct.master_slave_upload_and_restart(ip, cfg, save, login=login)
 				funct.logging('localhost', " section " + section_name + " has been edited via API", login=login)
-				funct.logging(ip, 'section ' + section_name + ' has been edited via API', haproxywi=1, login=login,
+				funct.logging(ip, 'Section ' + section_name + ' has been edited via API', haproxywi=1, login=login,
 							  keep_history=1, service='haproxy')
 
 				if out:
@@ -320,7 +320,7 @@ def upload_config(server_id):
 			os.system("/bin/cp %s %s" % (cfg, cfg_for_save))
 			out = funct.master_slave_upload_and_restart(ip, cfg, save, login=login)
 			funct.logging('localhost', " config has been uploaded via API", login=login)
-			funct.logging(ip, 'config has been uploaded via API', haproxywi=1, login=login,
+			funct.logging(ip, 'Config has been uploaded via API', haproxywi=1, login=login,
 						  keep_history=1, service='haproxy')
 
 			if out:

@@ -372,8 +372,6 @@ if form.getvalue('sessions_select_show') is not None:
     cmd = 'echo "show sess %s" |nc %s %s' % (sess_id, serv, haproxy_sock_port)
     output, stderr = funct.subprocess_execute(cmd)
 
-    output, stderr = funct.subprocess_execute(cmd)
-
     if stderr:
         print('error: ' + stderr[0])
     else:
@@ -476,6 +474,7 @@ if act == "overviewHapserverBackends":
     env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
     template = env.get_template('haproxyservers_backends.html')
     service = form.getvalue('service')
+    format_file = 'cfg'
 
     if service == 'haproxy':
         configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
@@ -1411,6 +1410,7 @@ if form.getvalue('haproxy_exp_install'):
 
 if form.getvalue('nginx_exp_install'):
     serv = form.getvalue('nginx_exp_install')
+    ver = form.getvalue('exporter_v')
     script = "install_nginx_exporter.sh"
     stats_user = sql.get_setting('nginx_stats_user')
     stats_password = sql.get_setting('nginx_stats_password')
@@ -2026,6 +2026,11 @@ if form.getvalue('newserver') is not None:
         except:
             pass
 
+        try:
+            funct.get_system_info(ip)
+        except Exception as e:
+            funct.logging('Cannot get information from ' + hostname, str(e), haproxywi=1, login=1)
+
         from jinja2 import Environment, FileSystemLoader
 
         env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
@@ -2038,7 +2043,6 @@ if form.getvalue('newserver') is not None:
                                    page=page,
                                    adding=1)
         print(template)
-        funct.logging('a new server ' + hostname, ' has been created ', haproxywi=1, login=1)
         funct.logging(ip, 'A new server ' + hostname + ' has been created', haproxywi=1, login=1,
                       keep_history=1, service='server')
 
@@ -2092,8 +2096,9 @@ if form.getvalue('serverdel') is not None:
         sql.delete_port_scanner_settings(server_id)
         sql.delete_waf_rules(server_ip)
         sql.delete_action_history(server_id)
+        sql.delete_system_info(server_id)
         print("Ok")
-        funct.logging(hostname, ' has been deleted server with ', haproxywi=1, login=1)
+        funct.logging(server_ip, 'The server ' + hostname + ' has been deleted', haproxywi=1, login=1)
 
 if form.getvalue('newgroup') is not None:
     newgroup = form.getvalue('groupname')
@@ -2109,7 +2114,7 @@ if form.getvalue('newgroup') is not None:
 
             output_from_parsed_template = template.render(groups=sql.select_groups(group=newgroup))
             print(output_from_parsed_template)
-            funct.logging('a new group ' + newgroup, ' has been created  ', haproxywi=1, login=1)
+            funct.logging('localhost','A new group ' + newgroup + ' has been created', haproxywi=1, login=1)
 
 if form.getvalue('groupdel') is not None:
     groupdel = form.getvalue('groupdel')
@@ -2118,7 +2123,7 @@ if form.getvalue('groupdel') is not None:
         groupname = g.name
     if sql.delete_group(groupdel):
         print("Ok")
-        funct.logging(groupname, ' has been deleted group ', haproxywi=1, login=1)
+        funct.logging('localhost', 'The ' + groupname + ' has been deleted', haproxywi=1, login=1)
 
 if form.getvalue('updategroup') is not None:
     name = form.getvalue('updategroup')
@@ -2129,7 +2134,7 @@ if form.getvalue('updategroup') is not None:
     else:
         try:
             sql.update_group(name, descript, group_id)
-            funct.logging('the group ' + groupname, ' has been updated  ', haproxywi=1, login=1)
+            funct.logging('localhost', 'The ' + name + ' has been updated', haproxywi=1, login=1)
         except Exception as e:
             print('error: ' + str(e))
 
@@ -2155,7 +2160,7 @@ if form.getvalue('new_ssh'):
             output_from_parsed_template = template.render(groups=sql.select_groups(), sshs=sql.select_ssh(name=name),
                                                           page=page)
             print(output_from_parsed_template)
-            funct.logging(name, ' has created a new SSH credentials  ', haproxywi=1, login=1)
+            funct.logging('localhost', 'A new SSH credentials ' + name +' has created', haproxywi=1, login=1)
 
 if form.getvalue('sshdel') is not None:
     fullpath = funct.get_config_var('main', 'fullpath')
@@ -2174,7 +2179,7 @@ if form.getvalue('sshdel') is not None:
             pass
     if sql.delete_ssh(sshdel):
         print("Ok")
-        funct.logging(name, ' has deleted the SSH credentials  ', haproxywi=1, login=1)
+        funct.logging('localhost', 'The SSH credentials ' + name + ' has deleted', haproxywi=1, login=1)
 
 if form.getvalue('updatessh'):
     ssh_id = form.getvalue('id')
@@ -2203,7 +2208,7 @@ if form.getvalue('updatessh'):
             except Exception:
                 pass
         sql.update_ssh(ssh_id, name, enable, group, username, password)
-        funct.logging('the SSH ' + name, ' has updated credentials ', haproxywi=1, login=1)
+        funct.logging('localhost', 'The SSH credentials ' + name + ' has been updated ', haproxywi=1, login=1)
 
 if form.getvalue('ssh_cert'):
     import paramiko
@@ -2245,7 +2250,7 @@ if form.getvalue('ssh_cert'):
     except IOError as e:
         funct.logging('localhost', e.args[0], haproxywi=1)
 
-    funct.logging("localhost", " has been uploaded a new SSH cert %s" % ssh_keys, haproxywi=1, login=1)
+    funct.logging("localhost", "A new SSH cert has been uploaded %s" % ssh_keys, haproxywi=1, login=1)
 
 if form.getvalue('newtelegram'):
     token = form.getvalue('newtelegram')
@@ -2265,7 +2270,7 @@ if form.getvalue('newtelegram'):
             output_from_parsed_template = template.render(groups=sql.select_groups(),
                                                           telegrams=sql.select_telegram(token=token), page=page)
             print(output_from_parsed_template)
-            funct.logging(channel, ' a new Telegram channel has been created ', haproxywi=1, login=1)
+            funct.logging('localhost', 'A new Telegram channel ' + channel + ' has been created ', haproxywi=1, login=1)
 
 if form.getvalue('newslack'):
     token = form.getvalue('newslack')
@@ -2285,25 +2290,27 @@ if form.getvalue('newslack'):
             output_from_parsed_template = template.render(groups=sql.select_groups(),
                                                           slacks=sql.select_slack(token=token), page=page)
             print(output_from_parsed_template)
-            funct.logging(channel, ' has created a new Slack channel ', haproxywi=1, login=1)
+            funct.logging('localhost', 'A new Slack channel ' + channel + ' has been created ', haproxywi=1, login=1)
 
 if form.getvalue('telegramdel') is not None:
     telegramdel = form.getvalue('telegramdel')
     telegram = sql.select_telegram(id=telegramdel)
+    telegram_name = ''
     for t in telegram:
         telegram_name = t.token
     if sql.delete_telegram(telegramdel):
         print("Ok")
-        funct.logging(telegram_name, ' has deleted the Telegram channel ', haproxywi=1, login=1)
+        funct.logging('localhost', 'The Telegram channel ' + telegram_name + ' has been deleted ', haproxywi=1, login=1)
 
 if form.getvalue('slackdel') is not None:
     slackdel = form.getvalue('slackdel')
     slack = sql.select_slack(id=slackdel)
+    slack_name = ''
     for t in slack:
         slack_name = t[1]
     if sql.delete_slack(slackdel):
         print("Ok")
-        funct.logging(slack_name, ' has deleted the Slack channel ', haproxywi=1, login=1)
+        funct.logging('localhost', 'The Slack channel ' + slack_name + ' has been deleted ', haproxywi=1, login=1)
 
 if form.getvalue('updatetoken') is not None:
     token = form.getvalue('updatetoken')
@@ -2314,7 +2321,7 @@ if form.getvalue('updatetoken') is not None:
         print(error_mess)
     else:
         sql.update_telegram(token, channel, group, user_id)
-        funct.logging('group ' + group, ' Telegram token has updated channel: ' + channel, haproxywi=1, login=1)
+        funct.logging('group ' + group, 'The Telegram token has been updated for channel: ' + channel, haproxywi=1, login=1)
 
 if form.getvalue('update_slack_token') is not None:
     token = form.getvalue('update_slack_token')
@@ -2325,13 +2332,13 @@ if form.getvalue('update_slack_token') is not None:
         print(error_mess)
     else:
         sql.update_slack(token, channel, group, user_id)
-        funct.logging('group ' + group, ' Slack token has updated channel: ' + channel, haproxywi=1, login=1)
+        funct.logging('group ' + group, 'The Slack token has been updated for channel: ' + channel, haproxywi=1, login=1)
 
 if form.getvalue('updatesettings') is not None:
     settings = form.getvalue('updatesettings')
     val = form.getvalue('val')
     if sql.update_setting(settings, val):
-        funct.logging('value ' + val, ' changed settings ' + settings, haproxywi=1, login=1)
+        funct.logging('localhost', 'The ' + settings +' setting has been changed to: ' + val, haproxywi=1, login=1)
         print("Ok")
 
 if form.getvalue('getuserservices'):
@@ -2370,7 +2377,7 @@ if form.getvalue('changeUserGroupId') is not None:
                 continue
             sql.update_user_groups(groups=group[0], user_group_id=group_id)
 
-    funct.logging('localhost', ' has been updated groups for user: ' + user, haproxywi=1, login=1)
+    funct.logging('localhost', 'Groups has been updated for user: ' + user, haproxywi=1, login=1)
 
 if form.getvalue('changeUserServicesId') is not None:
     user_id = form.getvalue('changeUserServicesId')
@@ -2378,7 +2385,7 @@ if form.getvalue('changeUserServicesId') is not None:
     user = form.getvalue('changeUserServicesUser')
 
     if sql.update_user_services(services=services, user_id=user_id):
-        funct.logging('localhost', ' has been updated services for user: ' + user, haproxywi=1, login=1)
+        funct.logging('localhost', 'Access to the services has been updated for user: ' + user, haproxywi=1, login=1)
 
 if form.getvalue('changeUserCurrentGroupId') is not None:
     group_id = form.getvalue('changeUserCurrentGroupId')
@@ -2588,6 +2595,7 @@ if form.getvalue('lets_domain'):
     ssl_path = sql.get_setting('cert_path')
     haproxy_dir = sql.get_setting('haproxy_dir')
     script = "letsencrypt.sh"
+    ssh_port = "22"
     ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(serv)
 
     if ssh_enable == 0:
@@ -2690,6 +2698,7 @@ if form.getvalue('actionvpn') is not None:
 if form.getvalue('scan_ports') is not None:
     serv_id = form.getvalue('scan_ports')
     server = sql.select_servers(id=serv_id)
+    ip = ''
 
     for s in server:
         ip = s[2]
@@ -2751,6 +2760,7 @@ if form.getvalue('geoip_install'):
     maxmind_key = sql.get_setting('maxmind_key')
     haproxy_dir = sql.get_setting('haproxy_dir')
     script = 'install_geoip.sh'
+    ssh_port = '22'
     ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(serv)
 
     if ssh_enable == 0:
@@ -2784,6 +2794,7 @@ if form.getvalue('nettools_icmp_server_from'):
     server_to = funct.is_ip_or_dns(server_to)
     action = form.getvalue('nettools_action')
     stderr = ''
+    action_for_sending = ''
 
     if server_to == '':
         print('warning: enter a correct IP or DNS name')
@@ -3886,3 +3897,58 @@ if act == 'showListOfVersion':
                                configs=configs,
                                style=style)
     print(template)
+
+if act == 'getSystemInfo':
+    server_ip = form.getvalue('server_ip')
+    server_ip = funct.is_ip_or_dns(server_ip)
+    server_id = form.getvalue('server_id')
+
+    if server_ip == '':
+        print('error: IP or DNS name is not valid')
+        sys.exit()
+
+    from jinja2 import Environment, FileSystemLoader
+    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
+                      extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
+    env.globals['string_to_dict'] = funct.string_to_dict
+    template = env.get_template('ajax/show_system_info.html')
+    if sql.is_system_info(server_id):
+        if funct.get_system_info(server_ip):
+            system_info = sql.select_one_system_info(server_id)
+
+            template = template.render(system_info=system_info, server_ip=server_ip, server_id=server_id)
+            print(template)
+        else:
+            print('error: Cannot update server info')
+    else:
+        system_info = sql.select_one_system_info(server_id)
+
+        template = template.render(system_info=system_info, server_ip=server_ip, server_id=server_id)
+        print(template)
+
+
+if act == 'updateSystemInfo':
+    server_ip = form.getvalue('server_ip')
+    server_ip = funct.is_ip_or_dns(server_ip)
+    server_id = form.getvalue('server_id')
+
+    if server_ip == '':
+        print('error: IP or DNS name is not valid')
+        sys.exit()
+
+    sql.delete_system_info(server_id)
+
+    from jinja2 import Environment, FileSystemLoader
+
+    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
+                      extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
+    env.globals['string_to_dict'] = funct.string_to_dict
+    template = env.get_template('ajax/show_system_info.html')
+
+    if funct.get_system_info(server_ip):
+        system_info = sql.select_one_system_info(server_id)
+
+        template = template.render(system_info=system_info, server_ip=server_ip, server_id=server_id)
+        print(template)
+    else:
+        print('error: Cannot update server info')

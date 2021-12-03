@@ -182,7 +182,6 @@ $( function() {
 					toastr.clear();
 					toastr.success(data);
 					$('#cur_haproxy_exp_ver').text('HAProxy exporter is installed');
-					$('#haproxy_exp_install').text('Update');
 					$("#haproxy_exp_addserv").trigger( "selectmenuchange" );
 				} else if (data.indexOf('Info') != '-1' ){
 					toastr.clear();
@@ -213,7 +212,6 @@ $( function() {
 					toastr.clear();
 					toastr.success(data);
 					$('#cur_nginx_exp_ver').text('Nginx exporter is installed');
-					$('#nginx_exp_install').text('Update');
 					$("#nginx_exp_addserv").trigger( "selectmenuchange" );
 				} else if (data.indexOf('Info') != '-1' ){
 					toastr.clear();
@@ -244,7 +242,6 @@ $( function() {
 					toastr.clear();
 					toastr.success(data);
 					$('#cur_node_exp_ver').text('Node exporter is installed');
-					$('#node_exp_install').text('Update');
 					$("#node_exp_addserv").trigger( "selectmenuchange" );
 				} else if (data.indexOf('Info') != '-1' ){
 					toastr.clear();
@@ -270,6 +267,7 @@ $( function() {
 				if(data != '') {				
 					data = data+'-1';
 					$('#cur_hap_ver').text(data);
+					$('#cur_hap_ver').css('font-weight', 'bold');
 					$('#install').text('Update');
 					$('#install').attr('title', 'Update HAProxy');
 				} else {
@@ -297,6 +295,7 @@ $( function() {
 					$('#nginx_install').attr('title', 'Install Nginx');				
 				} else {
 					$('#cur_nginx_ver').text(data);
+					$('#cur_nginx_ver').css('font-weight', 'bold');
 					$('#nginx_install').text('Update');
 					$('#nginx_install').attr('title', 'Update Nginx');
 				}
@@ -2423,4 +2422,55 @@ function checkSlack(slack_id) {
 			}
 		}
 	} );
+}
+function updateServerInfo(ip, id) {
+	$.ajax({
+			url: "options.py",
+			data: {
+				act: 'updateSystemInfo',
+				server_ip: ip,
+				server_id: id,
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function (data) {
+				data = data.replace(/\s+/g, ' ');
+				if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {
+					toastr.error(data);
+				} else {
+					$("#server_info-"+id).html(data);
+					$('#server_info-'+id).show();
+					$('#server_info_link-'+id).attr('title', 'Hide System info');
+					$.getScript(awesome);
+				}
+			}
+		} );
+}
+function showServerInfo(id, ip) {
+	if ($('#server_info-'+id).css('display') == 'none') {
+		$.ajax({
+			url: "options.py",
+			data: {
+				act: 'getSystemInfo',
+				server_ip: ip,
+				server_id: id,
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function (data) {
+				data = data.replace(/\s+/g, ' ');
+				if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {
+					toastr.error(data);
+				} else {
+					$("#server_info-"+id).html(data);
+					$('#server_info-'+id).show();
+					$('#server_info_link-'+id).attr('title', 'Hide System info');
+					$.getScript(awesome);
+				}
+			}
+		} );
+	} else {
+		$('#server_info-'+id).hide();
+		$('#server_info_link-'+id).attr('title', 'Show System info');
+	}
 }

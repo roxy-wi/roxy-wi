@@ -454,9 +454,24 @@ class ConfigVersion(BaseModel):
     class Meta:
         table_name = 'config_versions'
 
+
+class SystemInfo(BaseModel):
+    id = AutoField()
+    server_id = IntegerField()
+    os_info = CharField()
+    sys_info = CharField()
+    cpu = CharField()
+    ram = CharField()
+    disks = CharField()
+    network = TextField()
+
+    class Meta:
+        table_name = 'system_info'
+
 def create_tables():
     with conn:
         conn.create_tables([User, Server, Role, Telegram, Slack, UUID, Token, ApiToken, Groups, UserGroups, ConfigVersion,
                             Setting, Cred, Backup, Metrics, WafMetrics, Version, Option, SavedServer, Waf, ActionHistory,
                             PortScannerSettings, PortScannerPorts, PortScannerHistory, ProvidersCreds, ServiceSetting,
-                            ProvisionedServers, MetricsHttpStatus, SMON, WafRules, Alerts, GeoipCodes, NginxMetrics])
+                            ProvisionedServers, MetricsHttpStatus, SMON, WafRules, Alerts, GeoipCodes, NginxMetrics,
+                            SystemInfo])

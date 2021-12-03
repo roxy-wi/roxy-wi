@@ -3,7 +3,7 @@
 <table class="overview" id="ajax-servers">
 	<thead>
 		<tr class="overviewHead">
-			<th class="padding10 first-collumn">Hostname</th>
+			<th class="padding10 first-collumn">Name</th>
 			<th class="ip-field" style="width: 10%">IP</th>
 			<th class="checkbox-head" style="width: 5%" class="help_cursor"><span title="SSH port">Port</span></th>
 			{% if page != "servers.py" %}
@@ -26,6 +26,7 @@
 			</th>
 			<th class="cred-field">Credentials</th>
 			<th style="width: 100%">Description</th>
+			<th style="min-width: 17px;"></th>
 			<th></th>
 			<th></th>
 		</tr>
@@ -150,6 +151,9 @@
 					{{ input(id, size='20') }}
 				{% endif %}
 			</td>
+			<td style="min-width: 17px;">
+				<a class="info" onclick="showServerInfo('{{server.0}}', '{{server.2}}')" id="server_info_link-{{server.0}}" title="Show server info" style="cursor: pointer; color: var(--green-color)"></a>
+			</td>
 			<td>
 				<a class="add" onclick="cloneServer({{server.0}})" id="clone-{{server.0}}" title="Clone {{server.1}}" style="cursor: pointer;"></a>
 			</td>
@@ -157,6 +161,7 @@
 				<a class="delete" onclick="confirmDeleteServer({{server.0}})" title="Delete server {{server.1}}" style="cursor: pointer;"></a>
 			</td>
 		</tr>
+		<tr id="server_info-{{server.0}}" style="display: none"></tr>
 		{% endfor %}
 {% if not adding %}
 	</tbody>

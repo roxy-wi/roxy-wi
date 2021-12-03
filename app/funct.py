@@ -440,11 +440,15 @@ def get_config(server_ip, cfg, **kwargs):
 		sftp = ssh.open_sftp()
 	except Exception as e:
 		logging('localhost', str(e), haproxywi=1)
+		sftp.close()
+		ssh.close()
 		return
 	try:
 		sftp.get(config_path, cfg)
 	except Exception as e:
 		logging('localhost', str(e), haproxywi=1)
+		sftp.close()
+		ssh.close()
 		return
 	try:
 		sftp.close()
@@ -1523,8 +1527,26 @@ def check_is_server_in_group(server_ip):
 
 
 def check_service(server_ip, service_name):
+	server_ip = is_ip_or_dns(server_ip)
 	commands = ["systemctl is-active "+service_name]
 	return ssh_command(server_ip, commands)
+
+
+def get_service_version(server_ip, service_name):
+	server_ip = is_ip_or_dns(server_ip)
+	if service_name == 'haproxy_exporter':
+		commands = [ "/opt/prometheus/exporters/haproxy_exporter --version 2>&1 |head -1|awk '{print $3}'"]
+	elif service_name == 'nginx_exporter':
+		commands = ["/opt/prometheus/exporters/nginx_exporter 2>&1 |head -1 |awk -F\"=\" '{print $2}'|awk '{print $1}'"]
+	elif service_name == 'node_exporter':
+		commands = ["node_exporter --version 2>&1 |head -1|awk '{print $3}'"]
+
+	ver = ssh_command(server_ip, commands)
+
+	if ver != '':
+		return ver
+	else:
+		return 'no'
 
 
 def get_services_status():
@@ -1586,3 +1608,183 @@ def is_service_active(server_ip: str, service_name: str):
 	out = ssh_command(server_ip, cmd)
 	out = out.strip()
 	return True if 'active' == out else False
+
+
+def get_system_info(server_ip: str) -> bool:
+	import json
+	import sql
+	server_ip = is_ip_or_dns(server_ip)
+	if server_ip == '':
+		return False
+
+	server_id = sql.select_server_id_by_ip(server_ip)
+
+	command = ["sudo lshw -quiet -json"]
+	sys_info_returned = ssh_command(server_ip, command)
+	command = ['sudo hostnamectl |grep "Operating System"|awk -F":" \'{print $2}\'']
+	os_info = ssh_command(server_ip, command)
+	os_info = os_info.strip()
+	system_info = json.loads(sys_info_returned)
+
+	sys_info = {'hostname': system_info['id'], 'family': ''}
+	cpu = {'cpu_model': '', 'cpu_core': 0, 'cpu_thread': 0, 'hz': 0}
+	network = {}
+	ram = {'slots': 0, 'size': 0}
+	disks = {}
+
+	try:
+		sys_info['family'] = system_info['configuration']['family']
+	except Exception:
+		pass
+
+	for i in system_info['children']:
+		if i['class'] == 'network':
+			try:
+				ip = i['configuration']['ip']
+			except Exception:
+				ip = ''
+			network[i['logicalname']] = {'description': i['description'],
+										 'mac': i['serial'],
+										 'ip': ip}
+		for k, j in i.items():
+			if isinstance(j, list):
+				for b in j:
+					try:
+						if b['class'] == 'processor':
+							cpu['cpu_model'] = b['product']
+							cpu['cpu_core'] += 1
+							cpu['hz'] = round(int(b['capacity']) / 1000000)
+							try:
+								cpu['cpu_thread'] += int(b['configuration']['threads'])
+							except Exception:
+								cpu['cpu_thread'] = 1
+					except Exception:
+						pass
+
+					try:
+						if b['id'] == 'memory':
+							ram['size'] = round(b['size'] / 1073741824)
+							for memory in b['children']:
+								ram['slots'] += 1
+					except Exception:
+						pass
+
+					try:
+						if b['class'] == 'bridge':
+							if 'children' in b:
+								for s in b['children']:
+									if s['class'] == 'network':
+										if 'children' in s:
+											for net in s['children']:
+												network[net['logicalname']] = {'description': net['description'],
+																			   'mac': net['serial']}
+									if s['class'] == 'storage':
+										for p, pval in s.items():
+											if isinstance(pval, list):
+												for disks_info in pval:
+													if 'children' in disks_info:
+														for volume_info in disks_info['children']:
+															if isinstance(volume_info['logicalname'], dict):
+																volume_name = volume_info['logicalname'][0]
+																mount_point = volume_info['logicalname'][1]
+																size = round(volume_info['size'] / 1073741824)
+																size = str(size) + 'Gb'
+																fs = volume_info['configuration']['mount.fstype']
+																state = volume_info['configuration']['state']
+																disks[volume_name] = {'mount_point': mount_point,
+																					  'size': size,
+																					  'fs': fs,
+																					  'state': state}
+									for z, n in s.items():
+										if isinstance(n, list):
+											for y in n:
+												if y['class'] == 'network':
+													try:
+														for q in y['children']:
+															try:
+																ip = q['configuration']['ip']
+															except Exception:
+																ip = ''
+															network[q['logicalname']] = {
+																'description': q['description'],
+																'mac': q['serial'],
+																'ip': ip}
+													except Exception:
+														try:
+															network[y['logicalname']] = {
+																'description': y['description'],
+																'mac': y['serial'],
+																'ip': y['configuration']['ip']}
+														except Exception:
+															pass
+												if y['class'] == 'disk':
+													try:
+														for q in y['children']:
+															try:
+																if isinstance(q['logicalname'], list):
+																	volume_name = q['logicalname'][0]
+																	mount_point = q['logicalname'][1]
+																	size = round(q['capacity'] / 1073741824)
+																	size = str(size) + 'Gb'
+																	fs = q['configuration']['mount.fstype']
+																	state = q['configuration']['state']
+																	disks[volume_name] = {'mount_point': mount_point,
+																						  'size': size,
+																						  'fs': fs,
+																						  'state': state}
+															except Exception as e:
+																print(e)
+													except Exception:
+														pass
+												if y['class'] == 'storage' or y['class'] == 'generic':
+													try:
+														for q in y['children']:
+															for o in q['children']:
+																for w in o['children']:
+																	try:
+																		if isinstance(w['logicalname'], list):
+																			volume_name = w['logicalname'][0]
+																			mount_point = w['logicalname'][1]
+																			size = round(w['size'] / 1073741824)
+																			size = str(size) + 'Gb'
+																			fs = w['configuration']['mount.fstype']
+																			state = w['configuration']['state']
+																			disks[volume_name] = {
+																				'mount_point': mount_point,
+																				'size': size,
+																				'fs': fs,
+																				'state': state}
+																	except Exception:
+																		pass
+													except Exception:
+														pass
+													try:
+														for q, qval in y.items():
+															if isinstance(qval, list):
+																for o in qval:
+																	for w in o['children']:
+																		if isinstance(w['logicalname'], list):
+																			volume_name = w['logicalname'][0]
+																			mount_point = w['logicalname'][1]
+																			size = round(w['size'] / 1073741824)
+																			size = str(size) + 'Gb'
+																			fs = w['configuration']['mount.fstype']
+																			state = w['configuration']['state']
+																			disks[volume_name] = {
+																				'mount_point': mount_point,
+																				'size': size,
+																				'fs': fs,
+																				'state': state}
+													except Exception:
+														pass
+					except Exception:
+						pass
+
+	if sql.insert_system_info(server_id, os_info, sys_info, cpu, ram, network, disks):
+		return True
+	else:
+		return False
+
+def string_to_dict(dict_string):
+	from ast import literal_eval
+	return literal_eval(dict_string)
