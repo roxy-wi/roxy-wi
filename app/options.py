@@ -3671,19 +3671,20 @@ if form.getvalue('loadopenvpn'):
     openvpn_sess = ''
     openvpn = ''
 
-    try:
-        os_name = platform.linux_distribution()[0]
-    except Exception:
-        os_name = ''
-
-    if distro.id() != 'ubuntu':
+    if distro.id() == 'ubuntu':
+        stdout, stderr = funct.subprocess_execute("apt show openvpn3 2>&1|grep E:")
+    elif distro.id() == 'centos' or distro.id() == 'rhel':
         stdout, stderr = funct.subprocess_execute("rpm --query openvpn3-client")
-        if stdout[0] != 'package openvpn3-client is not installed' and stderr != '/bin/sh: rpm: command not found':
-            cmd = "sudo openvpn3 configs-list |grep -E 'ovpn|(^|[^0-9])[0-9]{4}($|[^0-9])' |grep -v net|awk -F\"    \" '{print $1}'|awk 'ORS=NR%2?\" \":\"\\n\"'"
-            openvpn_configs, stderr = funct.subprocess_execute(cmd)
-            cmd = "sudo openvpn3 sessions-list|grep -E 'Config|Status'|awk -F\":\" '{print $2}'|awk 'ORS=NR%2?\" \":\"\\n\"'| sed 's/^ //g'"
-            openvpn_sess, stderr = funct.subprocess_execute(cmd)
-            openvpn = stdout[0]
+
+    if (
+        (stdout[0] != 'package openvpn3-client is not installed' and stderr != '/bin/sh: rpm: command not found') and
+        stdout[0] != 'E: No packages found'
+        ):
+        cmd = "sudo openvpn3 configs-list |grep -E 'ovpn|(^|[^0-9])[0-9]{4}($|[^0-9])' |grep -v net|awk -F\"    \" '{print $1}'|awk 'ORS=NR%2?\" \":\"\\n\"'"
+        openvpn_configs, stderr = funct.subprocess_execute(cmd)
+        cmd = "sudo openvpn3 sessions-list|grep -E 'Config|Status'|awk -F\":\" '{print $2}'|awk 'ORS=NR%2?\" \":\"\\n\"'| sed 's/^ //g'"
+        openvpn_sess, stderr = funct.subprocess_execute(cmd)
+        openvpn = stdout[0]
 
     template = template.render(openvpn=openvpn,
                                openvpn_sess=openvpn_sess,
