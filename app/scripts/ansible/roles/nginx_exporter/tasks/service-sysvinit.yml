@@ -1,0 +1,11 @@
+---
+- name: sysvinit service
+  become: true
+  template:
+    src: "nginx_exporter.sysvinit.j2"
+    dest: "/etc/init.d/nginx_exporter"
+    owner: root
+    group: root
+    mode: "u=rwx,go=rx"
+  notify:
+    - restart nginx_exporter

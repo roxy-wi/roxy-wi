@@ -1,0 +1,86 @@
+---
+- name: Assert usage of systemd as an init system
+  assert:
+    that: ansible_service_mgr == 'systemd'
+    msg: "This role only works with systemd"
+
+- name: Get systemd version
+  command: systemctl --version
+  changed_when: false
+  check_mode: false
+  register: __systemd_version
+  tags:
+    - skip_ansible_lint
+
+- name: Set systemd version fact
+  set_fact:
+    node_exporter_systemd_version: "{{ __systemd_version.stdout_lines[0] | regex_replace('^systemd\\s(\\d+).*$', '\\1') }}"
+
+- name: Naive assertion of proper listen address
+  assert:
+    that:
+      - "':' in node_exporter_web_listen_address"
+
+- name: Assert collectors are not both disabled and enabled at the same time
+  assert:
+    that:
+      - "item not in node_exporter_enabled_collectors"
+  with_items: "{{ node_exporter_disabled_collectors }}"
+
+- block:
+    - name: Assert that TLS key and cert path are set
+      assert:
+        that:
+          - "node_exporter_tls_server_config.cert_file is defined"
+          - "node_exporter_tls_server_config.key_file is defined"
+
+    - name: Check existence of TLS cert file
+      stat:
+        path: "{{ node_exporter_tls_server_config.cert_file }}"
+      register: __node_exporter_cert_file
+
+    - name: Check existence of TLS key file
+      stat:
+        path: "{{ node_exporter_tls_server_config.key_file }}"
+      register: __node_exporter_key_file
+
+    - name: Assert that TLS key and cert are present
+      assert:
+        that:
+          - "{{ __node_exporter_cert_file.stat.exists }}"
+          - "{{ __node_exporter_key_file.stat.exists }}"
+  when: node_exporter_tls_server_config | length > 0
+
+- name: Check if node_exporter is installed
+  stat:
+    path: "{{ _node_exporter_binary_install_dir }}/node_exporter"
+  register: __node_exporter_is_installed
+  check_mode: false
+  tags:
+    - node_exporter_install
+
+- name: Gather currently installed node_exporter version (if any)
+  command: "{{ _node_exporter_binary_install_dir }}/node_exporter --version"
+  args:
+    warn: false
+  changed_when: false
+  register: __node_exporter_current_version_output
+  check_mode: false
+  when: __node_exporter_is_installed.stat.exists
+  tags:
+    - node_exporter_install
+    - skip_ansible_lint
+
+- block:
+    - name: Get checksum list from github
+      set_fact:
+        _checksums: "{{ lookup('url', 'https://github.com/prometheus/node_exporter/releases/download/v' + node_exporter_version + '/sha256sums.txt', wantlist=True) | list }}"
+      run_once: true
+
+    - name: "Get checksum for {{ go_arch }} architecture"
+      set_fact:
+        node_exporter_checksum: "{{ item.split(' ')[0] }}"
+      with_items: "{{ _checksums }}"
+      when:
+        - "('linux-' + go_arch + '.tar.gz') in item"
+  when: node_exporter_binary_local_dir | length == 0

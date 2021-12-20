@@ -1,0 +1,28 @@
+---
+node_exporter_version: 1.1.2
+node_exporter_binary_local_dir: ""
+node_exporter_web_listen_address: "0.0.0.0:9100"
+node_exporter_web_telemetry_path: "/metrics"
+
+node_exporter_textfile_dir: "/var/lib/node_exporter"
+
+node_exporter_tls_server_config: {}
+
+node_exporter_http_server_config: {}
+
+node_exporter_basic_auth_users: {}
+
+node_exporter_enabled_collectors:
+  - systemd
+  - textfile:
+      directory: "{{ node_exporter_textfile_dir }}"
+#  - filesystem:
+#      ignored-mount-points: "^/(sys|proc|dev)($|/)"
+#      ignored-fs-types: "^(sys|proc|auto)fs$"
+
+node_exporter_disabled_collectors: []
+
+# Internal variables.
+_node_exporter_binary_install_dir: "/usr/local/bin"
+_node_exporter_system_group: "node-exp"
+_node_exporter_system_user: "{{ _node_exporter_system_group }}"

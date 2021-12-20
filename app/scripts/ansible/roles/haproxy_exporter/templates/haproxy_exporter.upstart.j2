@@ -1,0 +1,26 @@
+description "Prometheus HAproxy Exporter"
+start on (local-filesystems and net-device-up IFACE!=lo)
+stop on runlevel [016]
+
+respawn
+
+setuid {{ haproxy_exporter_user }}
+setgid {{ haproxy_exporter_group }}
+
+env name=haproxy_exporter
+env prog={{ haproxy_exporter_program }}
+env logdir={{ haproxy_exporter_log_path }}
+env user={{ haproxy_exporter_user }}
+env group={{ haproxy_exporter_group }}
+
+script
+  if [ -f "{{ haproxy_exporter_config_file }}" ] ; then
+    . "{{ haproxy_exporter_config_file }}"
+  fi
+
+  pidfile={{ haproxy_exporter_pid_path }}/$name.pid
+  lockfile=/var/lock/subsys/$name
+
+  binary=$(readlink -f $prog)
+  exec $binary $OPTIONS >> "${logdir}/${name}.out.log" 2>> "${logdir}/${name}.err.log"
+end script

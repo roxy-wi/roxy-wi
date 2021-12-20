@@ -32,7 +32,7 @@
 
     
   roles:
-  - role: bdellegrazie.nginx_exporter
+  - role: nginx_exporter
     environment:
       http_proxy: "{{PROXY}}"
       https_proxy: "{{PROXY}}"

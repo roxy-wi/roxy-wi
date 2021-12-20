@@ -1,0 +1,39 @@
+---
+- name: Install selinux python packages [RHEL]
+  package:
+    name:
+      - "{{ ( (ansible_facts.distribution_major_version | int) < 8) | ternary('libselinux-python','python3-libselinux') }}"
+      - "{{ ( (ansible_facts.distribution_major_version | int) < 8) | ternary('policycoreutils-python','python3-policycoreutils') }}"
+    state: present
+  register: _install_selinux_packages
+  until: _install_selinux_packages is success
+  retries: 5
+  delay: 2
+  when:
+    - (ansible_distribution | lower == "redhat") or
+      (ansible_distribution | lower == "centos")
+
+- name: Install selinux python packages [Fedora]
+  package:
+    name:
+      - "{{ ( (ansible_facts.distribution_major_version | int) < 29) | ternary('libselinux-python','python3-libselinux') }}"
+      - "{{ ( (ansible_facts.distribution_major_version | int) < 29) | ternary('policycoreutils-python','python3-policycoreutils') }}"
+    state: present
+  register: _install_selinux_packages
+  until: _install_selinux_packages is success
+  retries: 5
+  delay: 2
+
+  when:
+    - ansible_distribution | lower == "fedora"
+
+- name: Install selinux python packages [clearlinux]
+  package:
+    name: sysadmin-basic
+    state: present
+  register: _install_selinux_packages
+  until: _install_selinux_packages is success
+  retries: 5
+  delay: 2
+  when:
+    - ansible_distribution | lower == "clearlinux"

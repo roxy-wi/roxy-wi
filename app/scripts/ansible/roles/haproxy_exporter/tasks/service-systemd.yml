@@ -1,0 +1,12 @@
+---
+- name: systemd service
+  become: true
+  template:
+    src: "haproxy_exporter.systemd.j2"
+    dest: "/lib/systemd/system/haproxy_exporter.service"
+    owner: root
+    group: root
+    mode: "u=rw,go=r"
+  notify:
+    - reload systemd daemon
+    - restart haproxy_exporter

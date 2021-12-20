@@ -1,0 +1,16 @@
+[Unit]
+Description=haproxy_exporter - Exporter for machine metrics.
+Documentation=https://github.com/prometheus/haproxy_exporter
+After=network.target
+
+[Service]
+User={{ haproxy_exporter_user }}
+Group={{ haproxy_exporter_group }}
+EnvironmentFile={{ haproxy_exporter_config_file }}
+ExecStart={{ haproxy_exporter_program }} $OPTIONS
+
+SyslogIdentifier=haproxy_exporter
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

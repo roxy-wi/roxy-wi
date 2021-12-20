@@ -1,0 +1,11 @@
+---
+- name: sysvinit service
+  become: true
+  template:
+    src: "haproxy_exporter.sysvinit.j2"
+    dest: "/etc/init.d/haproxy_exporter"
+    owner: root
+    group: root
+    mode: "u=rwx,go=rx"
+  notify:
+    - restart haproxy_exporter

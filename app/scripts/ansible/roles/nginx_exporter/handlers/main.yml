@@ -1,0 +1,11 @@
+---
+- name: restart nginx_exporter
+  become: true
+  become_user: root
+  service:
+    name: nginx_exporter
+    state: "{{ (nginx_exporter_service_state != 'stopped') | ternary('restarted', 'stopped') }}"
+    use: "{{ prometheus_exporter_service_mgr }}"
+  when: nginx_exporter_service_notify and (
+    _nginx_exporter_service_state is not defined or
+    not ( _nginx_exporter_service_state is changed ))

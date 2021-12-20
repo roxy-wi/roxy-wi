@@ -1,0 +1,16 @@
+[Unit]
+Description=nginx_exporter - Exporter for nginx metrics.
+Documentation=https://github.com/nginxinc/nginx-prometheus-exporter
+After=network.target
+
+[Service]
+User={{ nginx_exporter_user }}
+Group={{ nginx_exporter_group }}
+EnvironmentFile={{ nginx_exporter_config_file }}
+ExecStart={{ nginx_exporter_program }} $OPTIONS
+
+SyslogIdentifier=nginx_exporter
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

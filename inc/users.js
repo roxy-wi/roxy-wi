@@ -165,10 +165,16 @@ $( function() {
 	$('#haproxy_exp_install').click(function() {
 		$("#ajaxmon").html('')
 		$("#ajaxmon").html(wait_mess);
+		var ext_prom = 0;
+		if ($('#haproxy_ext_prom').is(':checked')) {
+			ext_prom = '1';
+		}
 		$.ajax( {
 			url: "options.py",
 			data: {
 				haproxy_exp_install: $('#haproxy_exp_addserv').val(),
+				exporter_v: $('#hapexpver').val(),
+				ext_prom: ext_prom,
 				token: $('#token').val()
 				},
 			type: "POST",
@@ -196,10 +202,16 @@ $( function() {
 	$('#nginx_exp_install').click(function() {
 		$("#ajaxmon").html('')
 		$("#ajaxmon").html(wait_mess);
+		var ext_prom = 0;
+		if ($('#haproxy_ext_prom').is(':checked')) {
+			ext_prom = '1';
+		}
 		$.ajax( {
 			url: "options.py",
 			data: {
 				nginx_exp_install: $('#nginx_exp_addserv').val(),
+				exporter_v: $('#nginxexpver').val(),
+				ext_prom: ext_prom,
 				token: $('#token').val()
 				},
 			type: "POST",
@@ -226,10 +238,16 @@ $( function() {
 	$('#node_exp_install').click(function() {
 		$("#ajaxmon").html('')
 		$("#ajaxmon").html(wait_mess);
+		var ext_prom = 0;
+		if ($('#haproxy_ext_prom').is(':checked')) {
+			ext_prom = '1';
+		}
 		$.ajax( {
 			url: "options.py",
 			data: {
 				node_exp_install: $('#node_exp_addserv').val(),
+				exporter_v: $('#nodeexpver').val(),
+				ext_prom: ext_prom,
 				token: $('#token').val()
 				},
 			type: "POST",
@@ -313,14 +331,14 @@ $( function() {
 			type: "POST",
 			success: function( data ) {	
 				data = data.replace(/^\s+|\s+$/g,'');
-				if(data == 'active') {
-					$('#cur_haproxy_exp_ver').text('HAProxy exporter is installed');
-					$('#haproxy_exp_install').text('Update');
-					$('#haproxy_exp_install').attr('title', 'Update HAProxy exporter');
+				if (data.indexOf('error:') != '-1') {
+					toastr.clear();
+					toastr.error(data);
+				} else if(data == 'no') {
+					$('#cur_haproxy_exp_ver').text('HAProxy exporter has been not installed');
 				} else {
-					$('#cur_haproxy_exp_ver').text('HAProxy exporter has not installed');
-					$('#haproxy_exp_install').text('Install');
-					$('#haproxy_exp_install').attr('title', 'Install HAProxy exporter');
+					$('#cur_haproxy_exp_ver').text(data);
+					$('#cur_haproxy_exp_ver').css('font-weight', 'bold');
 				}
 			}
 		} );
@@ -336,14 +354,14 @@ $( function() {
 			type: "POST",
 			success: function( data ) {	
 				data = data.replace(/^\s+|\s+$/g,'');
-				if(data == 'active') {
-					$('#cur_nginx_exp_ver').text('Nginx exporter is installed');
-					$('#nginx_exp_install').text('Update');
-					$('#nginx_exp_install').attr('title', 'Update Nginx exporter');
+				if (data.indexOf('error:') != '-1') {
+					toastr.clear();
+					toastr.error(data);
+				} else if(data == 'no') {
+					$('#cur_nginx_exp_ver').text('Nginx exporter has not been installed');
 				} else {
-					$('#cur_nginx_exp_ver').text('Nginx exporter has not installed');
-					$('#nginx_exp_install').text('Install');
-					$('#nginx_exp_install').attr('title', 'Install Nginx exporter');
+					$('#cur_nginx_exp_ver').text(data);
+					$('#cur_nginx_exp_ver').css('font-weight', 'bold');
 				}
 			}
 		} );
@@ -359,14 +377,14 @@ $( function() {
 			type: "POST",
 			success: function( data ) {
 				data = data.replace(/^\s+|\s+$/g,'');
-				if(data == 'active') {
-					$('#cur_node_exp_ver').text('Node exporter is installed');
-					$('#node_exp_install').text('Update');
-					$('#node_exp_install').attr('title', 'Update Node exporter');
+				if (data.indexOf('error:') != '-1') {
+					toastr.clear();
+					toastr.error(data);
+				} else if(data == 'no') {
+					$('#cur_node_exp_ver').text('Node exporter has not been installed');
 				} else {
-					$('#cur_node_exp_ver').text('Node exporter has not installed');
-					$('#node_exp_install').text('Install');
-					$('#node_exp_install').attr('title', 'Install Node exporter');
+					$('#cur_node_exp_ver').text(data);
+					$('#cur_node_exp_ver').css('font-weight', 'bold');
 				}
 			}
 		} );

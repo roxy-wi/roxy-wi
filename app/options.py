@@ -669,6 +669,7 @@ if act == "overviewwaf":
     ioloop.run_until_complete(get_runner_overviewWaf())
     ioloop.close()
 
+
 if act == "overviewServers":
     import asyncio
 
@@ -1372,6 +1373,8 @@ if form.getvalue('install_grafana'):
 
 if form.getvalue('haproxy_exp_install'):
     serv = form.getvalue('haproxy_exp_install')
+    ver = form.getvalue('exporter_v')
+    ext_prom = form.getvalue('ext_prom')
     script = "install_haproxy_exporter.sh"
     stats_port = sql.get_setting('stats_port')
     server_state_file = sql.get_setting('server_state_file')
@@ -1398,7 +1401,7 @@ if form.getvalue('haproxy_exp_install'):
 
     commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv +
                 " STAT_PORT=" + str(stats_port) + " STAT_FILE=" + server_state_file +
-                " SSH_PORT=" + ssh_port + " STAT_PAGE=" + stat_page +
+                " SSH_PORT=" + ssh_port + " STAT_PAGE=" + stat_page + " VER=" + ver + " EXP_PROM=" + ext_prom +
                 " STATS_USER=" + stats_user + " STATS_PASS='" + stats_password + "' HOST=" + serv +
                 " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name]
 
@@ -1411,6 +1414,7 @@ if form.getvalue('haproxy_exp_install'):
 if form.getvalue('nginx_exp_install'):
     serv = form.getvalue('nginx_exp_install')
     ver = form.getvalue('exporter_v')
+    ext_prom = form.getvalue('ext_prom')
     script = "install_nginx_exporter.sh"
     stats_user = sql.get_setting('nginx_stats_user')
     stats_password = sql.get_setting('nginx_stats_password')
@@ -1436,8 +1440,8 @@ if form.getvalue('nginx_exp_install'):
 
     commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv +
                 " STAT_PORT=" + str(stats_port) + " SSH_PORT=" + ssh_port + " STAT_PAGE=" + stats_page +
-                " STATS_USER=" + stats_user + " STATS_PASS='" + stats_password + "' HOST=" + serv +
-                " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name]
+                " STATS_USER=" + stats_user + " STATS_PASS='" + stats_password + "' HOST=" + serv + " VER=" + ver +
+                " EXP_PROM=" + ext_prom + " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name]
 
     output, error = funct.subprocess_execute(commands[0])
 
@@ -1447,6 +1451,8 @@ if form.getvalue('nginx_exp_install'):
 
 if form.getvalue('node_exp_install'):
     serv = form.getvalue('node_exp_install')
+    ver = form.getvalue('exporter_v')
+    ext_prom = form.getvalue('ext_prom')
     script = "install_node_exporter.sh"
     proxy = sql.get_setting('proxy')
     ssh_port = 22
@@ -1466,8 +1472,8 @@ if form.getvalue('node_exp_install'):
     else:
         proxy_serv = ''
 
-    commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port +
-                " HOST=" + serv + " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name]
+    commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port + " VER=" + ver +
+                " EXP_PROM=" + ext_prom + " HOST=" + serv + " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name]
 
     output, error = funct.subprocess_execute(commands[0])
 
@@ -1742,7 +1748,7 @@ if form.getvalue('get_nginx_v'):
     print(funct.ssh_command(serv, cmd))
 
 if form.getvalue('get_exporter_v'):
-    print(funct.check_service(serv, form.getvalue('get_exporter_v')))
+    print(funct.get_service_version(serv, form.getvalue('get_exporter_v')))
 
 if form.getvalue('bwlists'):
     list_path = os.path.dirname(os.getcwd()) + "/" + sql.get_setting('lists_path') + "/" + form.getvalue('group') + "/" + form.getvalue('color') + "/" + form.getvalue('bwlists')

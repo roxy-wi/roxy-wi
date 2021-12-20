@@ -1,0 +1,27 @@
+---
+haproxy_exporter_user: haproxy_exporter
+haproxy_exporter_user_manage: true
+haproxy_exporter_group: "{{ haproxy_exporter_user }}"
+haproxy_exporter_group_manage: true
+
+haproxy_exporter_version: "0.10.0"
+haproxy_exporter_platform_suffix: "linux-amd64"
+
+haproxy_exporter_options:
+  - '--haproxy.scrape-uri=http://admin:admin@localhost:9101/haproxy?stats;csv'
+
+haproxy_exporter_signature: "haproxy_exporter-{{ haproxy_exporter_version }}.{{ haproxy_exporter_platform_suffix }}"
+haproxy_exporter_dist_dir: "{{ prometheus_exporter_dist_dir }}/{{ haproxy_exporter_signature }}"
+haproxy_exporter_tarball_url: "https://github.com/prometheus/haproxy_exporter/releases/download/v{{ haproxy_exporter_version }}/{{ haproxy_exporter_signature }}.tar.gz"
+haproxy_exporter_program: "{{ prometheus_exporter_dir }}/haproxy_exporter"
+haproxy_exporter_home: "/var/lib/haproxy_exporter"
+haproxy_exporter_home_manage: true
+
+haproxy_exporter_config_file: /etc/default/haproxy_exporter
+haproxy_exporter_pid_path: "/var/run"
+haproxy_exporter_log_path: "/var/log/haproxy_exporter"
+
+haproxy_exporter_service_manage: true
+haproxy_exporter_service_enable: true
+haproxy_exporter_service_state: started
+haproxy_exporter_service_notify: true

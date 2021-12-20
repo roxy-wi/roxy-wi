@@ -1,0 +1,11 @@
+---
+- name: restart haproxy_exporter
+  become: true
+  become_user: root
+  service:
+    name: haproxy_exporter
+    state: "{{ (haproxy_exporter_service_state != 'stopped') | ternary('restarted', 'stopped') }}"
+    use: "{{ prometheus_exporter_service_mgr }}"
+  when: haproxy_exporter_service_notify and (
+    _haproxy_exporter_service_state is not defined or
+    not ( _haproxy_exporter_service_state is changed ))

@@ -1,0 +1,111 @@
+---
+- name: group
+  become: true
+  become_user: root
+  group:
+    name: "{{ haproxy_exporter_group }}"
+    state: present
+    system: true
+  when: haproxy_exporter_group_manage | bool
+
+- name: user
+  become: true
+  become_user: root
+  user:
+    name: "{{ haproxy_exporter_user }}"
+    group: "{{ haproxy_exporter_group }}"
+    home: "{{ haproxy_exporter_home }}"
+    createhome: false
+    shell: /sbin/nologin
+    comment: haproxy_exporter
+    state: present
+    system: true
+  when: haproxy_exporter_user_manage | bool
+
+- name: home
+  become: true
+  become_user: root
+  file:
+    path: "{{ haproxy_exporter_home }}"
+    owner: "{{ haproxy_exporter_user }}"
+    group: "{{ haproxy_exporter_group }}"
+    mode: "u=rwx,g=rx,o="
+    state: directory
+  when: haproxy_exporter_home_manage | bool
+
+- name: logs
+  become: true
+  become_user: root
+  file:
+    path: "{{ haproxy_exporter_log_path }}"
+    owner: "{{ haproxy_exporter_user }}"
+    group: "{{ haproxy_exporter_group }}"
+    mode: "u=rwx,g=rx,o="
+    state: directory
+
+- name: download tarball
+  become: true
+  become_user: root
+  get_url:
+    url: "{{ haproxy_exporter_tarball_url }}"
+    dest: "{{ prometheus_exporter_dist_dir }}/{{ haproxy_exporter_signature }}.tar.gz"
+    owner: root
+    group: root
+    mode: "u=rw,go=r"
+
+- name: untar tarball
+  become: true
+  become_user: root
+  unarchive:
+    src: "{{ prometheus_exporter_dist_dir }}/{{ haproxy_exporter_signature }}.tar.gz"
+    dest: "{{ prometheus_exporter_dist_dir }}"
+    remote_src: true
+    owner: root
+    group: root
+    mode: "u=rwx,go=rx"
+    creates: "{{ haproxy_exporter_dist_dir }}/haproxy_exporter"
+
+- name: symlink
+  become: true
+  become_user: root
+  file:
+    src: "{{ haproxy_exporter_dist_dir }}/haproxy_exporter"
+    path: "{{ prometheus_exporter_dir }}/haproxy_exporter"
+    owner: root
+    group: root
+    force: true
+    state: link
+  notify: restart haproxy_exporter
+
+- name: config
+  become: true
+  become_user: root
+  template:
+    src: "haproxy_exporter.default.conf.j2"
+    dest: "/etc/default/haproxy_exporter"
+    owner: root
+    group: root
+    mode: "u=rw,go=r"
+  notify: restart haproxy_exporter
+
+- name: install service
+  include: service-{{ prometheus_exporter_service_mgr }}.yml
+
+- name: Service Enabled
+  become: true
+  become_user: root
+  service:
+    name: haproxy_exporter
+    enabled: "{{ haproxy_exporter_service_enable }}"
+    use: "{{ prometheus_exporter_service_mgr }}"
+  when: haproxy_exporter_service_manage
+
+- name: Service State
+  become: true
+  become_user: root
+  service:
+    name: haproxy_exporter
+    state: "{{ haproxy_exporter_service_state }}"
+    use: "{{ prometheus_exporter_service_mgr }}"
+  register: _haproxy_exporter_service_state
+  when: haproxy_exporter_service_manage

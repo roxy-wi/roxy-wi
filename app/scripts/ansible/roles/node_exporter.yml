@@ -32,7 +32,7 @@
 
 
   roles:
-  - role: cloudalchemy.node_exporter
+  - role: node_exporter
     environment:
       http_proxy: "{{PROXY}}"
       https_proxy: "{{PROXY}}"

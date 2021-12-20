@@ -11,7 +11,7 @@
         <tr>
             <td id="cur_grafana_ver" class="padding10 first-collumn">
                 {% if grafana == "active" %}
-                Grafana and Prometheus servers have already installed
+                Grafana and Prometheus servers have benn installed
                 {% else %}
                 There are no Grafana and Prometheus servers
                 {% endif %}
@@ -35,17 +35,20 @@
         <caption><h3>Install HAProxy Exporter</h3></caption>
         <tr class="overviewHead">
             <td class="padding10 first-collumn">Current installation</td>
-            <td class="padding10 first-collumn" style="width: 40%;">Available Versions</td>
+            <td class="padding10 first-collumn" style="width: 30%;">Available Versions</td>
+            <td class="help_cursor" style="width: 20%;" title="This exporter will be used by an external Prometheus. Also use this checkbox if you update the Exporter">External Prometheus</td>
             <td class="padding10 first-collumn" style="width: 30%;">Server</td>
-            <td></td>
             <td></td>
         </tr>
         <tr>
-            <td id="cur_haproxy_exp_ver" class="padding10 first-collumn">
-            </td>
+            <td id="cur_haproxy_exp_ver" class="padding10 first-collumn"></td>
             <td class="padding10 first-collumn" style="width: 20%;">
-                Roxy-WI will try to install the latest HAProxy Exporter version
+                {% set values = dict() %}
+                {% set values = {'0.7.0':'0.7.0','0.7.1':'0.7.1', '0.8.0':'0.8.0', '0.9.0':'0.9.0', '0.10.0':'0.10.0',
+                '0.11.0':'0.11.0', '0.12.0':'0.12.0', '0.13.0':'0.13.0'} %}
+                {{ select('hapexpver',  values=values, selected='0.13.0') }}
             </td>
+            <td style="padding-left: 50px;">{{ checkbox('haproxy_ext_prom', title="This exporter will be used by an external Prometheus. Also use this checkbox if you update the Exporter") }}</td>
             <td class="padding10 first-collumn">
                 <select autofocus required name="haproxy_exp_addserv" id="haproxy_exp_addserv">
                     <option disabled selected>------</option>
@@ -53,8 +56,6 @@
                     <option value="{{ select.2 }}">{{ select.1 }}</option>
                     {% endfor %}
                 </select>
-            </td>
-            <td>
             </td>
             <td>
                 <span class="ui-button ui-widget ui-corner-all" id="haproxy_exp_install" title="Install HAProxy Exporter">Install</span>
@@ -65,17 +66,20 @@
         <caption><h3>Install Nginx Exporter</h3></caption>
         <tr class="overviewHead">
             <td class="padding10 first-collumn">Current installation</td>
-            <td class="padding10 first-collumn" style="width: 40%;">Available Versions</td>
+            <td class="padding10 first-collumn" style="width: 30%;">Available Versions</td>
+            <td class="help_cursor" style="width: 20%;" title="This exporter will be used by an external Prometheus. Also use this checkbox if you update the Exporter">External Prometheus</td>
             <td class="padding10 first-collumn" style="width: 30%;">Server</td>
             <td></td>
             <td></td>
         </tr>
         <tr>
-            <td id="cur_nginx_exp_ver" class="padding10 first-collumn">
-            </td>
+            <td id="cur_nginx_exp_ver" class="padding10 first-collumn"></td>
             <td class="padding10 first-collumn" style="width: 20%;">
-                Roxy-WI will try to install the latest Nginx Exporter version
+                {% set values = dict() %}
+                {% set values = {'0.5.0':'0.5.0', '0.6.0':'0.6.0', '0.7.0':'0.7.0', '0.9.0':'0.9.0'} %}
+                {{ select('nginxexpver',  values=values, selected='0.9.0') }}
             </td>
+            <td style="padding-left: 53px;">{{ checkbox('nginx_ext_prom', title="This exporter will be used by an external Prometheus. Also use this checkbox if you update the Exporter") }}</td>
             <td class="padding10 first-collumn">
                 <select autofocus required name="nginx_exp_addserv" id="nginx_exp_addserv">
                     <option disabled selected>------</option>
@@ -83,8 +87,6 @@
                     <option value="{{ select.2 }}">{{ select.1 }}</option>
                     {% endfor %}
                 </select>
-            </td>
-            <td>
             </td>
             <td>
                 <span class="ui-button ui-widget ui-corner-all" id="nginx_exp_install" title="Install Nginx Exporter">Install</span>
@@ -95,17 +97,21 @@
         <caption><h3>Install Node Exporter</h3></caption>
         <tr class="overviewHead">
             <td class="padding10 first-collumn">Current installation</td>
-            <td class="padding10 first-collumn" style="width: 40%;">Available Versions</td>
+            <td class="padding10 first-collumn" style="width: 30%;">Available Versions</td>
+            <td class="help_cursor" style="width: 20%;" title="This exporter will be used by an external Prometheus. Also use this checkbox if you update the Exporter">External Prometheus</td>
             <td class="padding10 first-collumn" style="width: 30%;">Server</td>
             <td></td>
             <td></td>
         </tr>
         <tr>
-            <td id="cur_node_exp_ver" class="padding10 first-collumn">
-            </td>
+            <td id="cur_node_exp_ver" class="padding10 first-collumn"></td>
             <td class="padding10 first-collumn" style="width: 20%;">
-                Roxy-WI will try to install the latest Node Exporter version
+                {% set values = dict() %}
+                {% set values = {'1.0.0':'1.0.0','1.1.0':'1.1.0', '1.1.1':'1.1.1', '1.1.2':'1.1.2', '1.2.0':'1.2.0',
+                '1.2.2':'1.2.2', '1.3.0':'1.3.0'} %}
+                {{ select('nodeexpver',  values=values, selected='1.3.0') }}
             </td>
+            <td style="padding-left: 53px;">{{ checkbox('node_ext_prom', title="This exporter will be used by an external Prometheus. Also use this checkbox if you update the Exporter") }}</td>
             <td class="padding10 first-collumn">
                 <select autofocus required name="node_exp_addserv" id="node_exp_addserv">
                     <option disabled selected>------</option>
@@ -115,10 +121,12 @@
                 </select>
             </td>
             <td>
-            </td>
-            <td>
                 <span class="ui-button ui-widget ui-corner-all" id="node_exp_install" title="Install Node Exporter">Install</span>
             </td>
         </tr>
     </table>
     <div id="ajaxmon"></div>
+    <div class="add-note alert addName alert-info" style="width: inherit; margin-right: 15px;">
+        Read <a href="https://roxy-wi.org/services.py?service=grafana" title="About Grafana and Prometheus servers" target="_blank">About Grafana and Prometheus servers</a>
+        and <a href="https://roxy-wi.org/howto.py?howto=exporters" title="About Exporters" target="_blank">About Exporters</a>
+    </div>

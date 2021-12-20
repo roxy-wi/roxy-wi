@@ -1,0 +1,26 @@
+description "Prometheus NGINX Exporter"
+start on (local-filesystems and net-device-up IFACE!=lo)
+stop on runlevel [016]
+
+respawn
+
+setuid {{ nginx_exporter_user }}
+setgid {{ nginx_exporter_group }}
+
+env name=nginx_exporter
+env prog={{ nginx_exporter_program }}
+env logdir={{ nginx_exporter_log_path }}
+env user={{ nginx_exporter_user }}
+env group={{ nginx_exporter_group }}
+
+script
+  if [ -f "{{ nginx_exporter_config_file }}" ] ; then
+    . "{{ nginx_exporter_config_file }}"
+  fi
+
+  pidfile={{ nginx_exporter_pid_path }}/$name.pid
+  lockfile=/var/lock/subsys/$name
+
+  binary=$(readlink -f $prog)
+  exec $binary $OPTIONS >> "${logdir}/${name}.out.log" 2>> "${logdir}/${name}.err.log"
+end script

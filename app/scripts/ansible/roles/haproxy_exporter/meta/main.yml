@@ -1,0 +1,30 @@
+---
+galaxy_info:
+  author: Brett Delle Grazie
+  description: Role to install Prometheus HAproxy Exporter
+
+  license: GPLv3
+
+  min_ansible_version: 2.0
+
+  platforms:
+    - name: EL
+      versions:
+        - 6
+        - 7
+    - name: Fedora
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - all
+    - name: Debian
+      versions:
+        - all
+
+  galaxy_tags:
+    - prometheus
+    - exporter
+
+dependencies:
+  - { role: 'bdellegrazie.ansible-role-prometheus_exporter', version: 'v1.1.3' }

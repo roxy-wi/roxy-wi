@@ -432,6 +432,8 @@ def get_config(server_ip, cfg, **kwargs):
 		config_path = "/etc/keepalived/keepalived.conf"
 	elif kwargs.get("nginx"):
 		config_path = sql.get_setting('nginx_config_path')
+	elif kwargs.get("waf"):
+		config_path = sql.get_setting('haproxy_dir') + '/waf/rules/' + kwargs.get("waf_rule_file")
 	else:
 		config_path = sql.get_setting('haproxy_config_path')
 
@@ -707,7 +709,7 @@ def install_haproxy(server_ip, **kwargs):
 	os.system("cp scripts/%s ." % script)
 
 	if haproxy_ver is None:
-		haproxy_ver = '2.3.0-1'
+		haproxy_ver = '2.4.9-1'
 
 	if proxy is not None and proxy != '' and proxy != 'None':
 		proxy_serv = proxy

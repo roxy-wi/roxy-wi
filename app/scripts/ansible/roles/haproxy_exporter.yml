@@ -34,6 +34,6 @@
       
       
   roles:
-  - role: bdellegrazie.haproxy_exporter
+  - role: haproxy_exporter
     vars:
       haproxy_exporter_options: ['--haproxy.scrape-uri=http://{{STATS_USER}}:{{STATS_PASS}}@{{variable_host}}:{{STAT_PORT}}/{{STAT_PAGE}};csv']

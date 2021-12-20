@@ -1,0 +1,38 @@
+---
+- import_tasks: preflight.yml
+  tags:
+    - node_exporter_install
+    - node_exporter_configure
+    - node_exporter_run
+
+- import_tasks: install.yml
+  become: true
+#  when:
+#    ( not __node_exporter_is_installed.stat.exists ) or
+#    ( __node_exporter_current_version_output.stderr_lines[0].split(" ")[2] != node_exporter_version ) or
+#    ( node_exporter_binary_local_dir | length > 0 )
+  tags:
+    - node_exporter_install
+
+- import_tasks: selinux.yml
+  become: true
+  when: ansible_selinux.status == "enabled"
+  tags:
+    - node_exporter_configure
+
+- import_tasks: configure.yml
+  become: true
+  tags:
+    - node_exporter_configure
+
+- name: Ensure Node Exporter is enabled on boot
+  become: true
+  systemd:
+    daemon_reload: true
+    name: node_exporter
+    enabled: true
+    state: started
+  when:
+    - not ansible_check_mode
+  tags:
+    - node_exporter_run

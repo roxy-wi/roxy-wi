@@ -48,7 +48,7 @@ PWD=$PWD/scripts/ansible/
 echo "$HOST ansible_port=$SSH_PORT" > $PWD/$HOST
 
 if [[ $KEY == "" ]]; then
-	ansible-playbook $PWD/roles/nginx.yml -e "ansible_user=$USER ansible_ssh_pass=$PASS variable_host=$HOST PROXY=$PROXY CONT_NAME=$CONT_NAME SYN_FLOOD=$SYN_FLOOD STAT_PAGE=$STAT_PAGE STAT_PORT=$STAT_PORT STATS_USER=$STATS_USER STATS_PASS=$STATS_PASS CONFIG_PATH=$CONFIG_PATH SSH_PORT=$SSH_PORT" -i $PWD/$HOST -t $tags
+	ansible-playbook $PWD/roles/nginx.yml -e "ansible_user=$USER ansible_ssh_pass='$PASS' variable_host=$HOST PROXY=$PROXY CONT_NAME=$CONT_NAME SYN_FLOOD=$SYN_FLOOD STAT_PAGE=$STAT_PAGE STAT_PORT=$STAT_PORT STATS_USER=$STATS_USER STATS_PASS=$STATS_PASS CONFIG_PATH=$CONFIG_PATH SSH_PORT=$SSH_PORT" -i $PWD/$HOST -t $tags
 else	
 	ansible-playbook $PWD/roles/nginx.yml --key-file $KEY -e "ansible_user=$USER variable_host=$HOST PROXY=$PROXY CONT_NAME=$CONT_NAME SYN_FLOOD=$SYN_FLOOD STAT_PAGE=$STAT_PAGE STAT_PORT=$STAT_PORT STATS_USER=$STATS_USER STATS_PASS=$STATS_PASS CONFIG_PATH=$CONFIG_PATH SSH_PORT=$SSH_PORT" -i $PWD/$HOST -t $tags
 fi
