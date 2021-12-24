@@ -1010,8 +1010,15 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		# If master then save version of config in a new way
 		if not kwargs.get('slave'):
 			diff = ''
+			old_cfg = kwargs.get('oldcfg')
+			if kwargs.get('oldcfg') is None:
+				old_cfg = tmp_file + '.old'
+				try:
+					get_config(server_ip, old_cfg)
+				except Exception:
+					logging('localhost', ' Cannot download config', haproxywi=1)
 			try:
-				diff = diff_config(kwargs.get('oldcfg'), cfg, return_diff=1)
+				diff = diff_config(old_cfg, cfg, return_diff=1)
 			except Exception as e:
 				logging('localhost', str(e), haproxywi=1)
 
