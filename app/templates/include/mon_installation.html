@@ -76,8 +76,8 @@
             <td id="cur_nginx_exp_ver" class="padding10 first-collumn"></td>
             <td class="padding10 first-collumn" style="width: 20%;">
                 {% set values = dict() %}
-                {% set values = {'0.5.0':'0.5.0', '0.6.0':'0.6.0', '0.7.0':'0.7.0', '0.9.0':'0.9.0'} %}
-                {{ select('nginxexpver',  values=values, selected='0.9.0') }}
+                {% set values = {'0.5.0':'0.5.0', '0.6.0':'0.6.0', '0.7.0':'0.7.0', '0.9.0':'0.9.0', '0.10.0':'0.10.0'} %}
+                {{ select('nginxexpver',  values=values, selected='0.10.0') }}
             </td>
             <td style="padding-left: 53px;">{{ checkbox('nginx_ext_prom', title="This exporter will be used by an external Prometheus. Also use this checkbox if you update the Exporter") }}</td>
             <td class="padding10 first-collumn">
@@ -108,8 +108,8 @@
             <td class="padding10 first-collumn" style="width: 20%;">
                 {% set values = dict() %}
                 {% set values = {'1.0.0':'1.0.0','1.1.0':'1.1.0', '1.1.1':'1.1.1', '1.1.2':'1.1.2', '1.2.0':'1.2.0',
-                '1.2.2':'1.2.2', '1.3.0':'1.3.0'} %}
-                {{ select('nodeexpver',  values=values, selected='1.3.0') }}
+                '1.2.2':'1.2.2', '1.3.0':'1.3.0', '1.3.1':'1.3.1'} %}
+                {{ select('nodeexpver',  values=values, selected='1.3.1') }}
             </td>
             <td style="padding-left: 53px;">{{ checkbox('node_ext_prom', title="This exporter will be used by an external Prometheus. Also use this checkbox if you update the Exporter") }}</td>
             <td class="padding10 first-collumn">

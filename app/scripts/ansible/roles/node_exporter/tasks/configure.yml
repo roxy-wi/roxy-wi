@@ -1,0 +1,51 @@
+---
+- name: Copy the node_exporter systemd service file
+  template:
+    src: node_exporter.service.j2
+    dest: /etc/systemd/system/node_exporter.service
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart node_exporter
+
+- block:
+    - name: Create node_exporter config directory
+      file:
+        path: "/etc/node_exporter"
+        state: directory
+        owner: root
+        group: root
+        mode: u+rwX,g+rwX,o=rX
+
+    - name: Copy the node_exporter config file
+      template:
+        src: config.yaml.j2
+        dest: /etc/node_exporter/config.yaml
+        owner: root
+        group: root
+        mode: 0644
+      notify: restart node_exporter
+  when:
+    ( node_exporter_tls_server_config | length > 0 ) or
+    ( node_exporter_http_server_config | length > 0 ) or
+    ( node_exporter_basic_auth_users | length > 0 )
+
+- name: Create textfile collector dir
+  file:
+    path: "{{ node_exporter_textfile_dir }}"
+    state: directory
+    owner: "{{ _node_exporter_system_user }}"
+    group: "{{ _node_exporter_system_group }}"
+    recurse: true
+    mode: u+rwX,g+rwX,o=rX
+  when: node_exporter_textfile_dir | length > 0
+
+- name: Allow node_exporter port in SELinux on RedHat OS family
+  seport:
+    ports: "{{ node_exporter_web_listen_address.split(':')[-1] }}"
+    proto: tcp
+    setype: http_port_t
+    state: present
+  when:
+    - ansible_version.full is version_compare('2.4', '>=')
+    - ansible_selinux.status == "enabled"
