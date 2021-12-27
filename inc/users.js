@@ -203,7 +203,7 @@ $( function() {
 		$("#ajaxmon").html('')
 		$("#ajaxmon").html(wait_mess);
 		var ext_prom = 0;
-		if ($('#haproxy_ext_prom').is(':checked')) {
+		if ($('#nginx_ext_prom').is(':checked')) {
 			ext_prom = '1';
 		}
 		$.ajax( {
@@ -239,7 +239,7 @@ $( function() {
 		$("#ajaxmon").html('')
 		$("#ajaxmon").html(wait_mess);
 		var ext_prom = 0;
-		if ($('#haproxy_ext_prom').is(':checked')) {
+		if ($('#node_ext_prom').is(':checked')) {
 			ext_prom = '1';
 		}
 		$.ajax( {
