@@ -1,0 +1,12 @@
+[modsecurity]
+spoe-agent modsecurity-agent
+   messages check-request
+   option var-prefix modsec
+   timeout hello      100ms
+   timeout idle       30s
+   timeout processing 15ms
+   use-backend waf
+
+spoe-message check-request
+   args unique-id method path query req.ver req.hdrs_bin req.body_size req.body
+   event on-frontend-http-request

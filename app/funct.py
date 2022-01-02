@@ -743,10 +743,15 @@ def install_haproxy(server_ip, **kwargs):
 def waf_install(server_ip):
 	import sql
 	script = "waf.sh"
-	tmp_config_path = sql.get_setting('tmp_config_path')
 	proxy = sql.get_setting('proxy')
 	haproxy_dir = sql.get_setting('haproxy_dir')
 	ver = check_haproxy_version(server_ip)
+	service = ' WAF'
+	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = return_ssh_keys_path(server_ip)
+	ssh_port = '22'
+
+	if ssh_enable == 0:
+		ssh_key_name = ''
 
 	os.system("cp scripts/%s ." % script)
 
@@ -755,21 +760,19 @@ def waf_install(server_ip):
 	else:
 		proxy_serv = ''
 
-	commands = ["sudo chmod +x " + tmp_config_path+script + " && " + tmp_config_path+script + " PROXY=" + proxy_serv +
-				" HAPROXY_PATH=" + haproxy_dir + " VERSION=" + ver]
+	commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " HAPROXY_PATH=" + haproxy_dir +
+				" VERSION='" + ver + "' SSH_PORT=" + ssh_port + " HOST=" + server_ip +
+				" USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name]
 
-	error = str(upload(server_ip, tmp_config_path, script))
+	output, error = subprocess_execute(commands[0])
 
-	if error:
-		print('error: '+error)
-		logging('localhost', error, haproxywi=1)
+	if show_installation_output(error, output, service):
+		ssh_command(server_ip, commands, print_out="1")
+
+		sql.insert_waf_metrics_enable(server_ip, "0")
+		sql.insert_waf_rules(server_ip)
 
 	os.system("rm -f %s" % script)
-
-	ssh_command(server_ip, commands, print_out="1")
-
-	sql.insert_waf_metrics_enable(server_ip, "0")
-	sql.insert_waf_rules(server_ip)
 
 
 def install_nginx(server_ip, **kwargs):

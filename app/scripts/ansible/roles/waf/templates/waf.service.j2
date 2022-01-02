@@ -1,0 +1,15 @@
+[Unit]
+Description=HAProxy WAF
+After=syslog.target network.target
+
+[Service]
+ExecStart={{HAPROXY_PATH}}/waf/bin/modsecurity -n 4 -f {{HAPROXY_PATH}}/waf/modsecurity.conf
+ExecReload=/bin/kill -USR2 $MAINPID
+KillMode=mixed
+
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=waf
+
+[Install]
+WantedBy=multi-user.target

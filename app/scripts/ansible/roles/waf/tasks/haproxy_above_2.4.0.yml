@@ -1,0 +1,12 @@
+---
+- name: Install git
+  package:
+    name: git
+    state: present
+
+- name: Git clone spoa-modsecurity
+  command: chdir=/tmp/ git clone https://github.com/haproxy/spoa-modsecurity.git
+
+- name: Set ModSec foleder
+  set_fact:
+    mod_sec_dir: /tmp/spoa-modsecurity

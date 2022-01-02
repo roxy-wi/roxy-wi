@@ -632,42 +632,61 @@ if act == "overview":
     ioloop.close()
 
 if act == "overviewwaf":
-    import asyncio
     import http.cookies
+
     from jinja2 import Environment, FileSystemLoader
+    env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True,
+                              extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
+    template = env.get_template('overivewWaf.html')
 
-    async def async_get_overviewWaf(serv1, serv2):
-        haproxy_path = sql.get_setting('haproxy_dir')
-        commands0 = ["ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l"]
-        commands1 = ["cat %s/waf/modsecurity.conf  |grep SecRuleEngine |grep -v '#' |awk '{print $2}'" % haproxy_path]
+    servers = sql.select_servers(server=serv)
+    cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+    user_id = cookie.get('uuid')
 
-        server_status = (serv1, serv2,
-                         funct.ssh_command(serv2, commands0),
-                         funct.ssh_command(serv2, commands1).strip(),
-                         sql.select_waf_metrics_enable_server(serv2))
-        return server_status
+    haproxy_path = ''
+    returned_servers = []
+    waf = ''
+    metrics_en = 0
+    waf_process = ''
+    waf_mode = ''
 
+    for server in servers:
+        haproxy = sql.select_haproxy(server[2])
+        if haproxy == 1:
+            haproxy_path = sql.get_setting('haproxy_dir')
+            waf = sql.select_waf_servers(server[2])
+            metrics_en = sql.select_waf_metrics_enable_server(server[2])
+            try:
+                waf_len = len(waf)
+            except:
+                waf_len = 0
 
-    async def get_runner_overviewWaf():
-        env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True,
-                          extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
-        template = env.get_template('overivewWaf.html')
+            if waf_len >= 1:
+                command = ["ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l"]
+                commands1 = [
+                    "cat %s/waf/modsecurity.conf |grep SecRuleEngine |grep -v '#' |awk '{print $2}'" % haproxy_path]
+                waf_process = funct.ssh_command(server[2], command)
+                waf_mode = funct.ssh_command(server[2], commands1).strip()
 
-        servers = []
-        cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-        user_id = cookie.get('uuid')
-        futures = [async_get_overviewWaf(server[1], server[2]) for server in sql.select_servers(server=serv)]
-        for i, future in enumerate(asyncio.as_completed(futures)):
-            result = await future
-            servers.append(result)
-        servers_sorted = sorted(servers, key=funct.get_key)
-        template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_id.value))
-        print(template)
+                server_status = (server[1],
+                                 server[2],
+                                 waf_process,
+                                 waf_mode,
+                                 metrics_en,
+                                 waf_len)
+            else:
+                server_status = (server[1],
+                                 server[2],
+                                 waf_process,
+                                 waf_mode,
+                                 metrics_en,
+                                 waf_len)
 
+        returned_servers.append(server_status)
 
-    ioloop = asyncio.get_event_loop()
-    ioloop.run_until_complete(get_runner_overviewWaf())
-    ioloop.close()
+    servers_sorted = sorted(returned_servers, key=funct.get_key)
+    template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_id.value))
+    print(template)
 
 
 if act == "overviewServers":

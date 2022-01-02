@@ -1,0 +1,389 @@
+---
+- name: Installing WAF
+  block:
+    - name: Set SSH port
+      set_fact:
+        ansible_port: "{{SSH_PORT}}"
+
+    - name: Check that WAF has been installed
+      stat:
+        path: "{{ HAPROXY_PATH }}/waf/modsecurity.conf"
+      register: stat_result
+
+    - name: Fail if has been installed
+      fail:
+        msg="info HAProxy WAF has already installed"
+      when: stat_result.stat.exists
+
+    - name: install the el7 RPMS for HAProxy
+      yum:
+        name:
+          - yajl-devel
+          - http://repo.haproxy-wi.org/libevent-devel-2.0.21-4.el7.x86_64.rpm
+        state: latest
+      when:
+        - ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
+        - ansible_facts['distribution_major_version'] == '7'
+      environment:
+        http_proxy: "{{PROXY}}"
+        https_proxy: "{{PROXY}}"
+
+    - name: install the el8 RPMS for HAProxy
+      yum:
+        name:
+          - http://repo.haproxy-wi.org/yajl-devel-2.1.0-10.el8.x86_64.rpm
+        state: latest
+      when:
+        - ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
+        - ansible_facts['distribution_major_version'] == '8'
+      environment:
+        http_proxy: "{{PROXY}}"
+        https_proxy: "{{PROXY}}"
+
+    - name: install the common RPMS for HAProxy
+      yum:
+        name:
+          - httpd-devel
+          - libxml2-devel
+          - gcc
+          - curl-devel
+          - pcre-devel
+          - wget
+          - automake
+          - libevent-devel
+          - libtool
+        state: latest
+      when:
+        - ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
+      environment:
+        http_proxy: "{{PROXY}}"
+        https_proxy: "{{PROXY}}"
+
+    - name: Install needed packages
+      apt:
+        name:
+          - libevent-dev
+          - apache2-dev
+          - libpcre3-dev
+          - libxml2-dev
+          - gcc
+          - libpcre3-dev
+          - wget
+          - libcurl4-nss-dev
+          - libyajl-dev
+          - libxml2
+          - automake
+        state: present
+      when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'Ubuntu'
+      environment:
+        http_proxy: "{{PROXY}}"
+        https_proxy: "{{PROXY}}"
+
+    - name: Download Modsec tarball
+      become: false
+      get_url:
+#        url: https://www.modsecurity.org/tarball/2.9.5/modsecurity-2.9.5.tar.gz
+        url: "https://github.com/SpiderLabs/ModSecurity/releases/download/v{{ modsec_ver }}/modsecurity-{{ modsec_ver }}.tar.gz"
+        dest: /tmp/modsecurity.tar.gz
+        owner: "{{ ansible_user }}"
+
+    - name: Create HAProxy directory
+      become: false
+      file:
+        path: /tmp/modsecurity
+        state: directory
+
+    - name: Untar Modsec tarball
+      become: false
+      unarchive:
+        src: /tmp/modsecurity.tar.gz
+        dest: /tmp/modsecurity/
+        remote_src: true
+
+    - name: Copy modsecurity
+      copy:
+        src: "/tmp/modsecurity/modsecurity-{{ modsec_ver }}/"
+        dest: /tmp/modsecurity/
+        remote_src: yes
+
+    - name: Set execute permision to configure
+      become: true
+      command: chdir=/tmp/modsecurity/ chmod +x configure
+      args:
+        warn: no
+
+    - name: Re configure Modsecurity
+      become: true
+      command: chdir=/tmp/modsecurity/ autoreconf -f -i
+
+    - name: Configure Modsecurity
+      become: true
+      command: chdir=/tmp/modsecurity/ ./configure --prefix=/tmp/modsecurity --enable-standalone-module --disable-mlogc --enable-pcre-study --without-lua --enable-pcre-jit
+
+    - name: Make Modsecurity
+      command: chdir=/tmp/modsecurity/ make
+
+    - name: Make Install Modsecurity
+      command: chdir=/tmp/modsecurity/ make -C standalone install
+
+    - name: Creates directory
+      file:
+        path: /tmp/modsecurity/INSTALL/include
+        state: directory
+
+    - name: Copy Modsec libs
+      copy:
+        src: /tmp/modsecurity/standalone/.libs/
+        dest: /tmp/modsecurity/INSTALL/include/
+        remote_src: yes
+
+    - name: Copy Modsec files
+      copy:
+        src: /tmp/modsecurity/standalone/
+        dest: /tmp/modsecurity/INSTALL/include/
+        remote_src: yes
+
+    - name: Copy Modsec apache files
+      copy:
+        src: /tmp/modsecurity/apache2/
+        dest: /tmp/modsecurity/INSTALL/include/
+        remote_src: yes
+
+    - name: Include task for HAProxy <= 2.3.16
+      include: haproxy_under_2.4.0.yml
+      when: VERSION is version('2.3.16', '<=')
+
+    - name: Include task for HAProxy >= 2.4.0
+      include: haproxy_above_2.4.0.yml
+      when: VERSION is version('2.4.0', '>=')
+
+    - name: Make APT Modsecurity module for HAProxy
+      command: "chdir={{ mod_sec_dir }} make MODSEC_INC=/tmp/modsecurity/INSTALL/include MODSEC_LIB=/tmp/modsecurity/INSTALL/include APACHE2_INC=/usr/include/apache2/ APR_INC=/usr/include/apr-1.0"
+      when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'Ubuntu'
+
+    - name: Make EL Modsecurity module for HAProxy
+      command: "chdir={{ mod_sec_dir }} make MODSEC_INC=/tmp/modsecurity/INSTALL/include MODSEC_LIB=/tmp/modsecurity/INSTALL/include APACHE2_INC=/usr/include/httpd/ APR_INC=/usr/include/apr-1"
+      when: ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
+
+    - name: Make WAF rules directory
+      file:
+        path: "{{ HAPROXY_PATH }}/waf/rules"
+        state: directory
+
+    - name: Make WAF bin directory
+      file:
+        path: "{{ HAPROXY_PATH }}/waf/bin"
+        state: directory
+
+    - name: Copy Modsec module to HAProxy dir
+      copy:
+        src: "{{ mod_sec_dir }}/modsecurity"
+        dest: "{{ HAPROXY_PATH }}/waf/bin"
+        mode: '0744'
+        remote_src: true
+
+    - name: Download modsecurity conf
+      get_url:
+        url: https://github.com/SpiderLabs/ModSecurity/raw/v2/master/modsecurity.conf-recommended
+        dest: "{{ HAPROXY_PATH }}/waf/modsecurity.conf"
+
+    - name: Insert Modsec rules
+      blockinfile:
+        path: "{{ HAPROXY_PATH }}/waf/modsecurity.conf"
+        block: |
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_10_ignore_static.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_10_setup.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_11_avs_traffic.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_11_brute_force.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_11_dos_protection.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_13_xml_enabler.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_16_authentication_tracking.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_16_scanner_integration.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_16_username_tracking.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_20_protocol_violations.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_21_protocol_anomalies.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_23_request_limits.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_25_cc_known.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_25_cc_track_pan.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_30_http_policy.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_35_bad_robots.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_40_generic_attacks.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_40_http_parameter_pollution.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_41_sql_injection_attacks.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_41_xss_attacks.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_42_comment_spam.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_42_tight_security.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_45_trojans.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_46_av_scanning.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_46_scanner_integration.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_46_slr_et_xss_attacks.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_46_slr_et_lfi_attacks.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_46_slr_et_sqli_attacks.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_47_common_exceptions.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_49_inbound_blocking.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_50_outbound.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_55_marketing.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_56_pvi_checks.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_59_outbound_blocking.conf
+          Include {{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_60_correlation.conf
+
+    - name: Download unicode.mapping
+      get_url:
+        url: https://github.com/SpiderLabs/ModSecurity/raw/v2/master/unicode.mapping
+        dest: "{{ HAPROXY_PATH }}/waf/unicode.mapping"
+
+    - name: Download owasp-modsecurity-crs
+      get_url:
+        url: https://github.com/SpiderLabs/owasp-modsecurity-crs/archive/2.2.9.tar.gz
+        dest: /tmp/owasp.tar.gz
+
+    - name: Create owasp directory
+      file:
+        path: /tmp/owasp-modsecurity-crs-2.2.9
+        state: directory
+
+    - name: Untar owasp-modsecurity-crs tarball
+      become: true
+      become_user: root
+      unarchive:
+        src: /tmp/owasp.tar.gz
+        dest: /tmp/owasp-modsecurity-crs-2.2.9
+        remote_src: true
+
+    - name: Copy owasp files
+      copy:
+        src: /tmp/owasp-modsecurity-crs-2.2.9/owasp-modsecurity-crs-2.2.9/
+        dest: /tmp/owasp-modsecurity-crs-2.2.9
+        remote_src: yes
+
+    - name: Copy Modsec crs conf file
+      copy:
+        src: /tmp/owasp-modsecurity-crs-2.2.9/modsecurity_crs_10_setup.conf.example
+        dest: "{{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_10_setup.conf"
+        remote_src: true
+
+    - name: Copy Modsec crs activated_rules files
+      copy:
+        src: /tmp/owasp-modsecurity-crs-2.2.9/activated_rules/
+        dest: "{{ HAPROXY_PATH }}/waf/rules/"
+        remote_src: yes
+
+    - name: Copy Modsec crs base_rules files
+      copy:
+        src: /tmp/owasp-modsecurity-crs-2.2.9/base_rules/
+        dest: "{{ HAPROXY_PATH }}/waf/rules/"
+        remote_src: yes
+
+    - name: Copy Modsec crs experimental_rules files
+      copy:
+        src: /tmp/owasp-modsecurity-crs-2.2.9/experimental_rules/
+        dest: "{{ HAPROXY_PATH }}/waf/rules/"
+        remote_src: yes
+
+    - name: Copy Modsec crs optional_rules files
+      copy:
+        src: /tmp/owasp-modsecurity-crs-2.2.9/optional_rules/
+        dest: "{{ HAPROXY_PATH }}/waf/rules/"
+        remote_src: yes
+
+    - name: Copy Modsec crs slr_rules files
+      copy:
+        src: /tmp/owasp-modsecurity-crs-2.2.9/slr_rules/
+        dest: "{{ HAPROXY_PATH }}/waf/rules/"
+        remote_src: yes
+
+    - name: Ensure ModSec engine mode on
+      ansible.builtin.lineinfile:
+        path: "{{ HAPROXY_PATH }}/waf/modsecurity.conf"
+        regexp: '^SecRuleEngine DetectionOnly'
+        line: SecRuleEngine On
+
+    - name: Change ModSec audit log
+      ansible.builtin.lineinfile:
+        path: "{{ HAPROXY_PATH }}/waf/modsecurity.conf"
+        regexp: '^SecAuditLogParts ABIJDEFHZ'
+        line: SecAuditLogParts ABIJDEH
+
+    - name: Create modsecurity_crs_10_setup
+      template:
+        src: modsecurity_crs_10_setup.conf.j2
+        dest: "{{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_10_setup.conf"
+
+    - name: Create WAF service file
+      template:
+        src: waf.service.j2
+        dest: /etc/systemd/system/waf.service
+        mode: 0644
+
+    - name: Create WAF rsyslog file
+      template:
+        src: waf_rsyslog.conf.j2
+        dest: /etc/rsyslog.d/waf.conf
+        mode: 0644
+
+    - name: Create WAF conf file
+      template:
+        src: waf.conf.j2
+        dest: "{{ HAPROXY_PATH }}/waf.conf"
+        mode: 0644
+
+    - name: Insert Modsec backend
+      blockinfile:
+        path: "{{ HAPROXY_PATH }}/haproxy.cfg"
+        block: |
+          backend waf
+              mode tcp
+              timeout connect 5s
+              timeout server  3m
+              server waf 127.0.0.1:12345 check
+
+    - name: Daemon-reload for WAF service
+      systemd:
+        daemon_reexec: yes
+
+    - name: Start and enable WAF service
+      systemd:
+        name: waf
+        state: started
+        enabled: yes
+
+  always:
+    - name: Remove modsecurity.tar.gz
+      ansible.builtin.file:
+        path: /tmp/modsecurity.tar.gz
+        state: absent
+
+    - name: Remove modsecurity-2.9.2
+      ansible.builtin.file:
+        path: /tmp/modsecurity-2.9.2
+        state: absent
+
+    - name: Remove HAProxy
+      ansible.builtin.file:
+        path: "/tmp/haproxy-{{ VERSION }}"
+        state: absent
+
+    - name: Remove modsecurity
+      ansible.builtin.file:
+        path: /tmp/modsecurity
+        state: absent
+
+    - name: Remove modsecurity.conf
+      ansible.builtin.file:
+        path: /tmp/modsecurity.conf
+        state: absent
+
+    - name: Remove owasp.tar.gz
+      ansible.builtin.file:
+        path: /tmp/owasp.tar.gz
+        state: absent
+
+    - name: Remove owasp-modsecurity-crs-2.2.9
+      ansible.builtin.file:
+        path: /tmp/owasp-modsecurity-crs-2.2.9
+        state: absent
+
+    - name: Remove spoa-modsecurity
+      ansible.builtin.file:
+        path: /tmp/spoa-modsecurity
+        state: absent

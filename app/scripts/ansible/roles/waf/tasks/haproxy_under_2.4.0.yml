@@ -1,0 +1,27 @@
+---
+- name: Download HAProxy tarball
+  get_url:
+    url: "http://www.haproxy.org/download/{{ VERSION_MAJ }}/src/haproxy-{{ VERSION }}.tar.gz"
+    dest: "/tmp/haproxy-{{ VERSION }}.tar.gz"
+
+- name: Create HAProxy directory
+  file:
+    path: "/tmp/haproxy-{{ VERSION }}"
+    state: directory
+
+- name: Untar HAProxy tarball
+  become: true
+  become_user: root
+  unarchive:
+    src: "/tmp/haproxy-{{ VERSION }}.tar.gz"
+    dest: "/tmp/haproxy-{{ VERSION }}"
+    remote_src: true
+
+- name: Copy HAProxy files
+  synchronize:
+    src: "/tmp/haproxy-{{ VERSION }}/haproxy-{{ VERSION }}/"
+    dest: "/tmp/haproxy-{{ VERSION }}"
+
+- name: Set ModSec foleder
+  set_fact:
+    mod_sec_dir: "/tmp/haproxy-{{ VERSION }}/contrib/modsecurity"

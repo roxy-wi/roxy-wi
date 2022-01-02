@@ -9,218 +9,42 @@ do
             PROXY)              PROXY=${VALUE} ;;
             VERSION)            VERSION=${VALUE} ;;
             HAPROXY_PATH)       HAPROXY_PATH=${VALUE} ;;
+            HOST)         HOST=${VALUE} ;;
+            USER)         USER=${VALUE} ;;
+            PASS)         PASS=${VALUE} ;;
+            KEY)          KEY=${VALUE} ;;
+            SSH_PORT)     SSH_PORT=${VALUE} ;;
             *)
     esac
 done
-VERSION=$(echo 2.1.3| awk -F"-" '{print $1}')
+VERSION=$(echo "$VERSION"| awk -F"-" '{print $1}')
 VERSION_MAJ=$(echo "$VERSION" | awk -F"." '{print $1"."$2}')
-
-function do_clean() {
-    sudo rm -f /tmp/modsecurity.tar.gz
-    sudo rm -rf /tmp/modsecurity
-    sudo rm -rf /tmp/haproxy-*
-    sudo rm -f /tmp/modsecurity.conf
-    sudo rm -f /tmp/owasp.tar.gz
-    sudo rm -rf /tmp/owasp-modsecurity-crs-2.2.9
-}
 
 if (( $(awk 'BEGIN {print ("'$VERSION_MAJ'" < "'1.8'")}') )); then
 	echo 'error: Need HAProxy version 1.8 or later'
 	exit 1
 fi
 
-if [[ $PROXY != "" ]]
+export ANSIBLE_HOST_KEY_CHECKING=False
+export ANSIBLE_DISPLAY_SKIPPED_HOSTS=False
+export ACTION_WARNINGS=False
+export LOCALHOST_WARNING=False
+export COMMAND_WARNINGS=False
+
+PWD=$(pwd)
+PWD=$PWD/scripts/ansible/
+echo "$HOST ansible_port=$SSH_PORT" > $PWD/$HOST
+
+if [[ $KEY == "" ]]; then
+	ansible-playbook $PWD/roles/waf.yml -e "ansible_user=$USER ansible_ssh_pass='$PASS' variable_host=$HOST PROXY=$PROXY HAPROXY_PATH=$HAPROXY_PATH VERSION=$VERSION VERSION_MAJ=$VERSION_MAJ SSH_PORT=$SSH_PORT" -i $PWD/$HOST
+else
+	ansible-playbook $PWD/roles/waf.yml --key-file $KEY -e "ansible_user=$USER variable_host=$HOST PROXY=$PROXY HAPROXY_PATH=$HAPROXY_PATH VERSION=$VERSION VERSION_MAJ=$VERSION_MAJ SSH_PORT=$SSH_PORT" -i $PWD/$HOST
+fi
+
+if [ $? -gt 0 ]
 then
-	export http_proxy="$PROXY"
-	export https_proxy="$PROXY"
-fi
-
-if [ -f "$HAPROXY_PATH"/waf/modsecurity.conf  ];then
-	echo -e 'info: Haproxy WAF has already installed.'
-	exit 0
-fi
-if hash apt-get 2>/dev/null; then
-	sudo apt install libevent-dev apache2-dev libpcre3-dev libxml2-dev gcc pcre-devel wget libxml2 -y
+  echo "error: Cannot install WAF"
 else
-  if [[ $(cat /etc/*rele* |grep VERSION_ID |awk -F"\"" '{print $2}') -eq 7 ]]; then
-	  sudo yum install -y http://rpmfind.net/linux/centos/7/os/x86_64/Packages/yajl-devel-2.0.4-4.el7.x86_64.rpm >> /dev/null
-	  sudo yum install -y http://mirror.centos.org/centos/7/os/x86_64/Packages/libevent-devel-2.0.21-4.el7.x86_64.rpm >> /dev/null
-	else
-	  sudo rpm -ivh ftp://ftp.ntua.gr/pub/linux/centos/8.3.2011/PowerTools/x86_64/kickstart/Packages/yajl-devel-2.1.0-10.el8.x86_64.rpm
-	fi
-	sudo yum install -y httpd-devel libxml2-devel gcc curl-devel pcre-devel wget libevent-devel -y >> /dev/null
+  echo "success"
 fi
-
-wget -O /tmp/modsecurity.tar.gz https://www.modsecurity.org/tarball/2.9.2/modsecurity-2.9.2.tar.gz >> /dev/null
-
-if [ $? -eq 1 ]; then
-	echo -e "Can't download WAF application. Check the Internet connection"
-	do_clean
-	exit 1
-fi
-cd /tmp || exit
-sudo tar xf modsecurity.tar.gz
-sudo mv modsecurity-2.9.2 modsecurity
-sudo bash -c 'cd /tmp/modsecurity && \
-sudo ./configure --prefix=/tmp/modsecurity --enable-standalone-module --disable-mlogc --enable-pcre-study --without-lua --enable-pcre-jit >> /dev/null && \
-sudo make >> /dev/null && \
-sudo make -C standalone install >> /dev/null'
-if [ $? -eq 1 ]; then
-	echo -e "error: Can't compile waf application"
-  do_clean
-	exit 1
-fi
-sudo mkdir -p /tmp/modsecurity/INSTALL/include
-sudo cp -R /tmp/modsecurity/standalone/.libs/ /tmp/modsecurity/INSTALL/include
-sudo cp -R /tmp/modsecurity/standalone/ /tmp/modsecurity/INSTALL/include
-sudo cp -R /tmp/modsecurity/apache2/ /tmp/modsecurity/INSTALL/include
-sudo chown -R $(whoami):$(whoami) /tmp/modsecurity/
-mv /tmp/modsecurity/INSTALL/include/.libs/* /tmp/modsecurity/INSTALL/include
-mv /tmp/modsecurity/INSTALL/include/apache2/* /tmp/modsecurity/INSTALL/include
-mv /tmp/modsecurity/INSTALL/include/standalone/* /tmp/modsecurity/INSTALL/include
-
-wget -O /tmp/haproxy-"$VERSION".tar.gz http://www.haproxy.org/download/$VERSION_MAJ/src/haproxy-"$VERSION".tar.gz
-
-if [ $? -eq 1 ]; then
-	echo -e "error: Can't download Haproxy application. Check the Internet connection"
-	do_clean
-	exit 1
-fi
-cd /tmp || exit
-sudo tar xf /tmp/haproxy-"$VERSION".tar.gz
-sudo mkdir "$HAPROXY_PATH"/waf
-sudo mkdir "$HAPROXY_PATH"/waf/bin
-sudo mkdir "$HAPROXY_PATH"/waf/rules
-cd /tmp/haproxy-"$VERSION"/contrib/modsecurity || exit
-if hash apt-get 2>/dev/null; then
-	sudo make MODSEC_INC=/tmp/modsecurity/INSTALL/include MODSEC_LIB=/tmp/modsecurity/INSTALL/include APR_INC=/usr/include/apr-1 >> /dev/null
-else
-	sudo make MODSEC_INC=/tmp/modsecurity/INSTALL/include MODSEC_LIB=/tmp/modsecurity/INSTALL/include APACHE2_INC=/usr/include/httpd/ APR_INC=/usr/include/apr-1 >> /dev/null
-fi
-if [ $? -eq 1 ]; then
-	echo -e "error: Can't compile WAF application"
-  do_clean
-	exit 1
-fi
-sudo mv /tmp/haproxy-"$VERSION"/contrib/modsecurity/modsecurity "$HAPROXY_PATH"/waf/bin
-if [ $? -eq 1 ]; then
-	echo -e "error: Can't compile WAF application"
-	do_clean
-	exit 1
-fi
-wget -O /tmp/modsecurity.conf https://github.com/SpiderLabs/ModSecurity/raw/v2/master/modsecurity.conf-recommended 
-
-sudo bash -c cat << EOF >> /tmp/modsecurity.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_10_ignore_static.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_10_setup.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_11_avs_traffic.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_11_brute_force.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_11_dos_protection.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_13_xml_enabler.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_16_authentication_tracking.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_16_scanner_integration.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_16_username_tracking.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_16_username_tracking.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_20_protocol_violations.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_21_protocol_anomalies.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_23_request_limits.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_25_cc_known.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_25_cc_track_pan.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_30_http_policy.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_35_bad_robots.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_40_generic_attacks.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_40_http_parameter_pollution.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_41_sql_injection_attacks.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_41_xss_attacks.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_42_comment_spam.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_42_tight_security.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_45_trojans.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_46_av_scanning.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_46_scanner_integration.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_46_slr_et_xss_attacks.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_46_slr_et_lfi_attacks.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_46_slr_et_sqli_attacks.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_47_common_exceptions.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_49_inbound_blocking.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_50_outbound.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_55_marketing.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_56_pvi_checks.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_59_outbound_blocking.conf
-Include $HAPROXY_PATH/waf/rules/modsecurity_crs_60_correlation.conf
-EOF
-
-sudo mv /tmp/modsecurity.conf "$HAPROXY_PATH"/waf/modsecurity.conf
-wget -O /tmp/unicode.mapping https://github.com/SpiderLabs/ModSecurity/raw/v2/master/unicode.mapping
-sudo mv /tmp/unicode.mapping "$HAPROXY_PATH"/waf/unicode.mapping
-wget -O /tmp/owasp.tar.gz https://github.com/SpiderLabs/owasp-modsecurity-crs/archive/2.2.9.tar.gz
-cd /tmp/ || exit
-sudo tar xf /tmp/owasp.tar.gz
-sudo mv /tmp/owasp-modsecurity-crs-2.2.9/modsecurity_crs_10_setup.conf.example  $HAPROXY_PATH/waf/rules/modsecurity_crs_10_setup.conf 
-sudo mv /tmp/owasp-modsecurity-crs-2.2.9/*rules/* "$HAPROXY_PATH"/waf/rules/
-sudo sed -i 's/#SecAction/SecAction/' "$HAPROXY_PATH"/waf/rules/modsecurity_crs_10_setup.conf
-sudo sed -i 's/SecRuleEngine DetectionOnly/SecRuleEngine On/' "$HAPROXY_PATH"/waf/modsecurity.conf
-sudo sed -i 's/SecAuditLogParts ABIJDEFHZ/SecAuditLogParts ABIJDEH/' "$HAPROXY_PATH"/waf/modsecurity.conf
-
-sudo bash -c cat << EOF > /tmp/waf.service 
-[Unit]
-Description=Haproxy WAF
-After=syslog.target network.target
-
-[Service]
-ExecStart=$HAPROXY_PATH/waf/bin/modsecurity -n 4 -f $HAPROXY_PATH/waf/modsecurity.conf
-ExecReload=/bin/kill -USR2 $MAINPID
-KillMode=mixed
-
-StandardOutput=syslog
-StandardError=syslog
-SyslogIdentifier=waf
-
-[Install]
-WantedBy=multi-user.target
-EOF
-sudo mv /tmp/waf.service  /etc/systemd/system/waf.service 
-sudo bash -c 'cat << EOF > /etc/rsyslog.d/waf.conf 
-if $programname startswith "waf" then /var/log/waf.log
-& stop
-EOF'
-
-sudo bash -c cat << EOF > /tmp/waf.conf
-[modsecurity]
-spoe-agent modsecurity-agent
-   messages check-request
-   option var-prefix modsec
-   timeout hello      100ms
-   timeout idle       30s
-   timeout processing 15ms
-   use-backend waf
-   
-spoe-message check-request
-   args unique-id method path query req.ver req.hdrs_bin req.body_size req.body
-   event on-frontend-http-request
-EOF
-
-sudo mv /tmp/waf.conf "$HAPROXY_PATH"/waf.conf
-if sudo grep -q "backend waf" "$HAPROXY_PATH"/haproxy.cfg; then
-	echo -e "Backend for WAF exists"
-else
-	sudo bash -c 'cat << EOF >> /etc/haproxy/haproxy.cfg
-
-backend waf
-    mode tcp
-    timeout connect 5s
-    timeout server  3m
-    server waf 127.0.0.1:12345 check
-EOF'
-fi
-
-do_clean
-
-sudo systemctl daemon-reload
-sudo systemctl enable waf
-sudo systemctl restart waf
-
-if [ $? -eq 1 ]; then
-	echo "error: Can't start Haproxy WAF service"
-  exit 1
-fi
-echo "success"
+rm -f $PWD/$HOST
