@@ -82,7 +82,6 @@
     - name: Download Modsec tarball
       become: false
       get_url:
-#        url: https://www.modsecurity.org/tarball/2.9.5/modsecurity-2.9.5.tar.gz
         url: "https://github.com/SpiderLabs/ModSecurity/releases/download/v{{ modsec_ver }}/modsecurity-{{ modsec_ver }}.tar.gz"
         dest: /tmp/modsecurity.tar.gz
         owner: "{{ ansible_user }}"
@@ -149,13 +148,17 @@
         dest: /tmp/modsecurity/INSTALL/include/
         remote_src: yes
 
-    - name: Include task for HAProxy <= 2.3.16
-      include: haproxy_under_2.4.0.yml
-      when: VERSION is version('2.3.16', '<=')
+    - name: Install git
+      package:
+        name: git
+        state: present
 
-    - name: Include task for HAProxy >= 2.4.0
-      include: haproxy_above_2.4.0.yml
-      when: VERSION is version('2.4.0', '>=')
+    - name: Git clone spoa-modsecurity
+      command: chdir=/tmp/ git clone https://github.com/haproxy/spoa-modsecurity.git
+
+    - name: Set ModSec foleder
+      set_fact:
+        mod_sec_dir: /tmp/spoa-modsecurity
 
     - name: Make APT Modsecurity module for HAProxy
       command: "chdir={{ mod_sec_dir }} make MODSEC_INC=/tmp/modsecurity/INSTALL/include MODSEC_LIB=/tmp/modsecurity/INSTALL/include APACHE2_INC=/usr/include/apache2/ APR_INC=/usr/include/apr-1.0"

@@ -65,7 +65,7 @@ function installWaf(ip1) {
 		type: "POST",
 		success: function( data ) { 
 		data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
+			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1' || data.indexOf('fatal') != '-1') {
 				toastr.error(data);
 			} else if (data.indexOf('Info') != '-1' ){
 				toastr.clear();
