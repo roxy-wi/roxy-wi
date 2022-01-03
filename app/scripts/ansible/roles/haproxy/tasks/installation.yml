@@ -80,5 +80,3 @@
     state: started
     enabled: yes
     force: no
-  ignore_errors: yes
-  when: "'haproxy' in ansible_facts.packages"
