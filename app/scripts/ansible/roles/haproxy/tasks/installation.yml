@@ -79,4 +79,5 @@
     daemon_reload: yes
     state: started
     enabled: yes
-    force: no
+    force: yes
+  ignore_errors: yes

@@ -740,16 +740,21 @@ def get_slack_by_id(slack_id):
 def get_dick_permit(**kwargs):
 	import http.cookies
 	import os
+
 	if kwargs.get('username'):
 		grp = kwargs.get('group_id')
 	else:
-		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-		group = cookie.get('group')
-		grp = group.value
+		try:
+			cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+			group = cookie.get('group')
+			grp = group.value
+		except Exception as e:
+			print('error: ' + str(e))
 	if kwargs.get('token'):
 		token = kwargs.get('token')
 	else:
 		token = ''
+
 	only_group = kwargs.get('only_group')
 	disable = 'enable = 1'
 	haproxy = ''

@@ -12,6 +12,7 @@ def is_ip_or_dns(server_from_request: str) -> str:
 		if ('roxy-wi' in server_from_request or
 			'fail2ban' in server_from_request or
 			'prometheus' in server_from_request or
+			'all' in server_from_request or
 			'grafana-server' in server_from_request):
 			return server_from_request
 		if re.match(ip_regex, server_from_request):
