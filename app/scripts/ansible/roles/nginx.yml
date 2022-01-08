@@ -130,10 +130,10 @@
         http_proxy: "{{PROXY}}"
         https_proxy: "{{PROXY}}"
   tasks:
-    - name: Create Nginx.
+    - name: Create Nginx
       docker_container:
         name: "{{ CONT_NAME }}"
-        image: "haproxytech/haproxy-alpine:{{haproxy_version}}"
+        image: "nginx"
         recreate: yes
         network_mode: host
         volumes:
@@ -159,4 +159,3 @@
         https_proxy: "{{PROXY}}"
   tags:
     - system
-
