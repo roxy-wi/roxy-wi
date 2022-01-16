@@ -240,7 +240,11 @@
 				{% endif %}
 			</div>
 			<div class="server-act-links">
+				{% if service == 'nginx' %}
+				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showConfigFiles" class="ui-button ui-widget ui-corner-all" title="Open running configs">Configs</a>
+				{% else %}
 				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showConfig" class="ui-button ui-widget ui-corner-all" title="Open running config">Config</a>
+				{% endif %}
 				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showCompare" class="ui-button ui-widget ui-corner-all" title="Compare configs">Compare</a>
 			{% if service != 'nginx' and service != 'keepalived' %}
 				<a href="/app/config.py?serv={{s.2}}&showMap" class="ui-button ui-widget ui-corner-all" title="Show map">Map</a>

@@ -1,19 +1,10 @@
 - name: Installing HAProxy conf for rsyslog
   template:
    src: /var/www/haproxy-wi/app/scripts/ansible/roles/haproxy/templates/haproxy_rsyslog.conf.j2
-   dest: /etc/rsyslog.d/haproxy.conf
-   force: no
-  ignore_errors: yes
-
-
-- name: Installing rsyslog config
-  template:
-   src: /var/www/haproxy-wi/app/scripts/ansible/roles/haproxy/templates/rsyslog.conf
-   dest: /etc/rsyslog.conf
+   dest: /etc/rsyslog.d/49-haproxy.conf
    force: no
   ignore_errors: yes
   notify: restart rsyslog
-
 
 - name: Installing HAProxy conf for logrotate
   template:

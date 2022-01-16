@@ -1,2 +1,15 @@
-if $programname startswith 'haproxy' then /var/log/haproxy.log
-& stop
+$ModLoad imudp
+$UDPServerAddress 127.0.0.1
+$UDPServerRun 514
+
+if $programname startswith 'haproxy' then {
+  if $syslogseverity == 6 then
+      action(type="omfile" file="/var/log/haproxy/access.log")
+      stop
+  if $syslogseverity <= 3 then
+      action(type="omfile" file="/var/log/haproxy/error.log")
+      stop
+  if $syslogseverity <= 5 then
+      action(type="omfile" file="/var/log/haproxy/status.log")
+      stop
+}

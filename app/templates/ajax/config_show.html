@@ -1,9 +1,9 @@
 	<div style="text-align: center;">
-		<h4>Config from {{serv}}</h4>
+		<h4>Config {% if config_file_name != 'undefined' %}{{config_file_name.replace('92', '/')}}{%endif%} from {{serv}}</h4>
 		<p class="accordion-expand-holder">
 			{% if role <= 3 %}
 				{% if not is_serv_protected or role <= 2 %}
-				<a class="ui-button ui-widget ui-corner-all" title="Edit this run config" href="config.py?service={{service}}&serv={{serv}}&open=open">Edit</a>
+				<a class="ui-button ui-widget ui-corner-all" title="Edit this run config" href="config.py?service={{service}}&serv={{serv}}&open=open&config_file_name={{config_file_name}}">Edit</a>
 				{% endif %}
 			{% endif %}
 			<a class="accordion-expand-all ui-button ui-widget ui-corner-all" href="#">Expand all</a>
@@ -28,6 +28,15 @@
 			{% endif %}
 		{% endif %}
 		{% if service == 'nginx' %}
+			{% if i == 0 and "server {" not in line %}
+				<span class="param">
+				</span><div>
+				<span class="configLine">
+					<span class="numRow">{{ i }}</span>
+					&emsp;&emsp;{{ line }}
+				</span><br />
+				{% continue %}
+			{% endif %}
 			{%- if "server {" in line -%} 
 				{% if i > 1 %}
 					</div>
@@ -44,6 +53,21 @@
 				</span><div>
 				{% continue %}
 			{% endif %}
+			{%- if "http {" in line -%}
+				{% if i > 1 %}
+					</div>
+				{% endif %}
+				<span class="param">{{ line }}
+				</span><div>
+				{% continue %}
+			{% endif %}
+			{%- if "events {" in line -%}
+				</div>
+				<span class="param">{{ line }}
+				</span><div>
+				{% continue %}
+			{% endif %}
+
 			{% if "listen " in line or "location" in line or "server_name" in line or "}" in line  %}
 				{% if "#" not in line %}
 					<span class="numRow">

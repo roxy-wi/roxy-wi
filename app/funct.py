@@ -429,11 +429,11 @@ def ssh_connect(server_ip):
 def get_config(server_ip, cfg, **kwargs):
 	import sql
 
-	if kwargs.get("keepalived"):
+	if kwargs.get("keepalived")  or kwargs.get("service") == 'keepalived':
 		config_path = "/etc/keepalived/keepalived.conf"
-	elif kwargs.get("nginx"):
-		config_path = sql.get_setting('nginx_config_path')
-	elif kwargs.get("waf"):
+	elif kwargs.get("nginx") or kwargs.get("service") == 'nginx':
+		config_path = kwargs.get('config_file_name')
+	elif kwargs.get("waf")  or kwargs.get("service") == 'waf':
 		config_path = sql.get_setting('haproxy_dir') + '/waf/rules/' + kwargs.get("waf_rule_file")
 	else:
 		config_path = sql.get_setting('haproxy_config_path')
@@ -928,8 +928,12 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		login = 1
 
 	if service == "nginx":
-		config_path = sql.get_setting('nginx_config_path')
+		# config_path = sql.get_setting('nginx_config_path')
+		config_path = kwargs.get('config_file_name')
 		tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".conf"
+	elif service == "keepalived":
+		config_path = "/etc/keepalived/keepalived.conf"
+		tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".cfg"
 	else:
 		config_path = sql.get_setting('haproxy_config_path')
 		tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".cfg"
@@ -940,13 +944,14 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		return 'Please install dos2unix'
 
 	if service == "keepalived":
+		move_config = "sudo mv -f " + tmp_file + " " + config_path
 		if action == "save":
-			commands = ["sudo mv -f " + tmp_file + " /etc/keepalived/keepalived.conf"]
+			commands = [move_config]
 		elif action == "reload":
 			commands = [
-				"sudo mv -f " + tmp_file + " /etc/keepalived/keepalived.conf && sudo systemctl reload keepalived"]
+				move_config + " && sudo systemctl reload keepalived"]
 		else:
-			commands = ["sudo mv -f " + tmp_file + " /etc/keepalived/keepalived.conf && sudo systemctl restart keepalived"]
+			commands = [move_config + " && sudo systemctl restart keepalived"]
 	elif service == "nginx":
 		is_docker = sql.select_service_setting(server_id, 'nginx', 'dockerized')
 		if is_docker == '1':
@@ -1015,10 +1020,11 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		if not kwargs.get('slave'):
 			diff = ''
 			old_cfg = kwargs.get('oldcfg')
-			if kwargs.get('oldcfg') is None:
+			if not old_cfg:
 				old_cfg = tmp_file + '.old'
+				print(old_cfg)
 				try:
-					get_config(server_ip, old_cfg)
+					get_config(server_ip, old_cfg, service=service, config_file_name=config_path)
 				except Exception:
 					logging('localhost', ' Cannot download config', haproxywi=1)
 			try:
@@ -1055,14 +1061,24 @@ def master_slave_upload_and_restart(server_ip, cfg, just_save, **kwargs):
 	masters = sql.is_master(server_ip)
 	for master in masters:
 		if master[0] is not None:
-			error = upload_and_restart(master[0], cfg, just_save=just_save, nginx=kwargs.get('nginx'), slave=1)
+			error = upload_and_restart(master[0],
+									   cfg,
+									   just_save=just_save,
+									   nginx=kwargs.get('nginx'),
+									   config_file_name=kwargs.get('config_file_name'),
+									   slave=1)
 
 	if kwargs.get('login'):
 		login = kwargs.get('login')
 	else:
 		login = ''
-	error = upload_and_restart(server_ip, cfg, just_save=just_save,
-							   nginx=kwargs.get('nginx'), oldcfg=kwargs.get('oldcfg'), login=login)
+	error = upload_and_restart(server_ip,
+							   cfg,
+							   just_save=just_save,
+							   nginx=kwargs.get('nginx'),
+							   config_file_name=kwargs.get('config_file_name'),
+							   oldcfg=kwargs.get('oldcfg'),
+							   login=login)
 
 	return error
 
@@ -1195,7 +1211,7 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 				local_path_logs = sql.get_setting('nginx_path_error_logs')
 				commands = ["sudo cat %s| awk '$2>\"%s:00\" && $2<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, date, date1, rows, grep_act, exgrep_act)]
 			else:
-				local_path_logs = sql.get_setting('local_path_logs')
+				local_path_logs = sql.get_setting('haproxy_path_logs')
 				commands = ["sudo cat %s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, date, date1, rows, grep_act, exgrep_act)]
 			syslog_server = serv
 		else:
@@ -1400,6 +1416,14 @@ def get_files(dir=get_config_var('configs', 'haproxy_save_configs_dir'), format=
 	else:
 		return file
 
+
+def get_remote_files(server_ip: str, config_dir: str, file_format: str):
+	if config_dir[-1] != '/':
+		config_dir += '/'
+	commands = ['ls ' + config_dir + '*.' + file_format]
+	config_files = ssh_command(server_ip, commands)
+
+	return config_files
 
 def get_key(item):
 	return item[0]

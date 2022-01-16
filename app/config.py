@@ -12,6 +12,10 @@ funct.check_login()
 form = funct.form
 serv = form.getvalue('serv')
 service = form.getvalue('service')
+try:
+	config_file_name = form.getvalue('config_file_name').replace('92', '/')
+except:
+	config_file_name = ''
 config_read = ""
 cfg = ""
 stderr = ""
@@ -57,7 +61,7 @@ if serv is not None and form.getvalue('open') is not None:
 		except Exception:
 			pass
 	elif service == 'nginx':
-		error = funct.get_config(serv, cfg, nginx=1)
+		error = funct.get_config(serv, cfg, nginx=1, config_file_name=config_file_name)
 		try:
 			funct.logging(serv, " Nginx config has been opened ")
 		except Exception:
@@ -74,7 +78,7 @@ if serv is not None and form.getvalue('open') is not None:
 		config_read = conf.read()
 		conf.close()
 	except IOError:
-		error += '<br />Cannot read import config file'
+		error += '<br />Cannot read imported config file'
 
 	os.system("/bin/mv %s %s.old" % (cfg, cfg))
 
@@ -90,12 +94,12 @@ if serv is not None and form.getvalue('config') is not None:
 		with open(cfg, "a") as conf:
 			conf.write(config)
 	except IOError:
-		print("error: Cannot read import config file")
+		print("error: Cannot read imported config file")
 
 	if service == 'keepalived':
 		stderr = funct.upload_and_restart(serv, cfg, just_save=save, keepalived=1, oldcfg=oldcfg)
 	elif service == 'nginx':
-		stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save=save, nginx=1, oldcfg=oldcfg)
+		stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save=save, nginx=1, oldcfg=oldcfg, config_file_name=config_file_name)
 	else:
 		stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save=save, oldcfg=oldcfg)
 
@@ -126,5 +130,6 @@ template = template.render(h2=1, title=title,
 							error=error,
 							service=service,
 							user_services=user_services,
+							config_file_name=config_file_name,
 							token=token)
 print(template)

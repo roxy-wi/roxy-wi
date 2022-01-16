@@ -688,7 +688,6 @@ if act == "overviewwaf":
     template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_id.value))
     print(template)
 
-
 if act == "overviewServers":
     import asyncio
 
@@ -1135,6 +1134,10 @@ if serv is not None and act == "configShow":
     user_uuid = cookie.get('uuid')
     role_id = sql.get_user_role_by_uuid(user_uuid.value)
     service = form.getvalue('service')
+    try:
+        config_file_name = form.getvalue('config_file_name').replace('/', '92')
+    except:
+        config_file_name = ''
 
     if service == 'keepalived':
         configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
@@ -1149,7 +1152,7 @@ if serv is not None and act == "configShow":
     if form.getvalue('configver') is None:
         cfg = configs_dir + serv + "-" + funct.get_data('config') + cfg
         if service == 'nginx':
-            funct.get_config(serv, cfg, nginx=1)
+            funct.get_config(serv, cfg, nginx=1, config_file_name=form.getvalue('config_file_name'))
         elif service == 'keepalived':
             funct.get_config(serv, cfg, keepalived=1)
         else:
@@ -1174,11 +1177,28 @@ if serv is not None and act == "configShow":
                                configver=form.getvalue('configver'),
                                role=role_id,
                                service=service,
+                               config_file_name=config_file_name,
                                is_serv_protected=is_serv_protected)
     print(template)
 
     if form.getvalue('configver') is None:
         os.system("/bin/rm -f " + cfg)
+
+if act == 'configShowFiles':
+    config_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
+    nginx_config_dir = sql.get_setting('nginx_dir')
+    try:
+        config_file_name = form.getvalue('config_file_name').replace('92', '/')
+    except:
+        config_file_name = ''
+    return_files = funct.get_remote_files(serv, nginx_config_dir, 'conf')
+    return_files += ' ' + sql.get_setting('nginx_config_path')
+    from jinja2 import Environment, FileSystemLoader
+
+    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
+    template = env.get_template('ajax/show_configs_files.html')
+    template = template.render(serv=serv, return_files=return_files, config_file_name=config_file_name)
+    print(template)
 
 if form.getvalue('master'):
     master = form.getvalue('master')

@@ -1,0 +1,24 @@
+{% from 'include/input_macros.html' import input %}
+<form action="" method="post">
+	<div style="text-align: center;margin-top: 20px;">
+		{% if config_file_name == '' %}
+		<h4>Config files from {{serv}}</h4>
+		{% endif %}
+		<p>
+			<select autofocus required name="config_file_name" id="config_file_name">
+				<option disabled selected>Select a config file</option>
+				{% for file in return_files.split() %}
+					{% if file == config_file_name %}
+					<option value="{{ file }}" selected>{{ file.split('/', maxsplit=3)[3] }}</option>
+					{% else %}
+					<option value="{{ file }}">{{ file.split('/', maxsplit=3)[3] }}</option>
+					{% endif %}
+				{% endfor %}
+			</select>
+
+			{{ input('serv', type='hidden', value=serv) }}
+			{{ input('open', type='hidden', value='open') }}
+			<a class="ui-button ui-widget ui-corner-all" id="show" title="Compare" onclick="showConfig()">Open</a>
+		</p>
+	</div>
+</form>

@@ -343,7 +343,7 @@ function showLog() {
 		}					
 	} );
 }
-function showMap() {
+function clearAllAjaxFields() {
 	$("#ajax").empty();
 	$('.alert').remove();
 	try {
@@ -355,6 +355,10 @@ function showMap() {
 	$("h4").remove();
 	$("#ajax-compare").empty();
 	$("#config").empty();
+}
+function showMap() {
+	clearAllAjaxFields();
+	$('#ajax-config_file_name').empty();
 	var unique = $.now();
 	$.ajax( {
 		url: "options.py",
@@ -397,15 +401,8 @@ function showCompare() {
 	} );
 }
 function showCompareConfigs() {
-	$("#ajax").empty();
-	$('.alert').remove();
-	try {
-		myCodeMirror.toTextArea();
-	} catch (e) {
-		console.log(e)
-	}
-	$("#saveconfig").remove();
-	$("h4").remove();
+	clearAllAjaxFields();
+	$('#ajax-config_file_name').empty();
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -431,23 +428,15 @@ function showCompareConfigs() {
 }
 function showConfig() {
 	var service = $('#service').val();
-	$("#ajax").empty();
-	$('.alert').remove();
-	try {
-		myCodeMirror.toTextArea();
-	} catch (e) {
-		console.log(e)
-	}
-	$("#saveconfig").remove();
-	$("h4").remove();
-	$("#ajax-compare").empty();
-	$("#config").empty();
+	var config_file_name = encodeURI($('#config_file_name').val());
+	clearAllAjaxFields();
 	$.ajax( {
 		url: "options.py",
 		data: {
 			serv: $("#serv").val(),
 			act: "configShow",
 			service: service,
+			config_file_name: config_file_name,
 			token: $('#token').val()
 		},
 		type: "POST",
@@ -462,6 +451,57 @@ function showConfig() {
 			}
 		}					
 	} );
+}
+function showConfigFiles() {
+	var service = $('#service').val();
+	clearAllAjaxFields();
+	$.ajax( {
+		url: "options.py",
+		data: {
+			serv: $("#serv").val(),
+			act: "configShowFiles",
+			service: service,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			if (data.indexOf('error:') != '-1') {
+				toastr.error(data);
+			} else {
+				toastr.clear();
+				$("#ajax-config_file_name").html(data);
+				$( "select" ).selectmenu();
+				window.history.pushState("Show config", "Show config", cur_url[0] + "?service=" + service + "&serv=" + $("#serv").val() + "&showConfigFiles");
+			}
+		}
+	} );
+}
+function showConfigFilesForEditing() {
+	var service = $('#service').val();
+	var config_file_name = findGetParameter('config_file_name')
+	var service = findGetParameter('service')
+	if (service == 'nginx') {
+		$.ajax({
+			url: "options.py",
+			data: {
+				serv: $("#serv").val(),
+				act: "configShowFiles",
+				service: service,
+				config_file_name: config_file_name,
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function (data) {
+				if (data.indexOf('error:') != '-1') {
+					toastr.error(data);
+				} else {
+					toastr.clear();
+					$("#ajax-config_file_name").html(data);
+					$("select").selectmenu();
+				}
+			}
+		});
+	}
 }
 function showUploadConfig() {
 	var service = $('#service').val();
@@ -493,19 +533,11 @@ function showListOfVersion(for_delver) {
 	var service = $('#service').val();
 	var serv = $("#serv").val();
 	var configver = findGetParameter('configver');
-	var style = 'old'
-	if (localStorage.getItem('version_style') == 'new') {
-		style = 'new'
+	var style = 'new'
+	if (localStorage.getItem('version_style') == 'old') {
+		style = 'old'
 	}
-	$("#ajax").empty();
-	$('.alert').remove();
-	try {
-		myCodeMirror.toTextArea();
-	} catch (e) {
-		console.log(e)
-	}
-	$("#saveconfig").remove();
-	$("h4").remove();
+	clearAllAjaxFields();
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -530,11 +562,11 @@ function showListOfVersion(for_delver) {
 	} );
 }
 function changeVersion(){
-	if (localStorage.getItem('version_style') == 'new') {
-		localStorage.setItem('version_style', 'old');
+	if (localStorage.getItem('version_style') == 'old') {
+		localStorage.setItem('version_style', 'new');
 		showListOfVersion(1);
 	} else {
-		localStorage.setItem('version_style', 'new');
+		localStorage.setItem('version_style', 'old');
 		showListOfVersion(1);
 	}
 }

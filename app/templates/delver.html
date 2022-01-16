@@ -11,7 +11,7 @@
 		<form action="{{ action }}" method="post">
 			<input type="hidden" value="{{service}}" name="service" id="service">
 			{% include 'include/select.html' %}
-				<a class="ui-button ui-widget ui-corner-all" title="View stat" onclick="showListOfVersion(1)">Open</a>
+				<a class="ui-button ui-widget ui-corner-all" title="Open versions" onclick="showListOfVersion(1)">Open</a>
 				<a href="config.py?service={{service}}" class="ui-button ui-widget ui-corner-all" title="Configs page">Configs</a>
 			{% if service != 'keepalived' %}
 				<a class="ui-button ui-widget ui-corner-all" title="View stat" onclick="openStats()">Stat</a>

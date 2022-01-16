@@ -12,17 +12,12 @@
 	<p>
 		<form action="{{ action }}" method="post">
 			<input type="hidden" id="service" value="{{service|default('haproxy', true)}}" />
-			<select autofocus required name="serv" id="{{ select_id }}">
-				<option disabled>------</option>
-					{% for select in selects %}
-						{% if select.2 == serv %}
-							<option value="{{ select.2 }}" selected>{{ select.1 }}</option>
-						{% else %}
-							<option value="{{ select.2 }}">{{ select.1 }}</option>
-						{% endif %}
-					{% endfor %}
-			</select>
-				<a class="ui-button ui-widget ui-corner-all" title="Show running config" onclick="showConfig()">Open</a>
+			{% include 'include/select.html' %}
+			{% if service == 'nginx'%}
+			<a class="ui-button ui-widget ui-corner-all" title="Show running config" onclick="showConfigFiles()">Open</a>
+			{% else %}
+			<a class="ui-button ui-widget ui-corner-all" title="Show running config" onclick="showConfig()">Open</a>
+			{% endif %}
 			{% if service != 'keepalived' %}
 				<a class="ui-button ui-widget ui-corner-all" title="View stat" onclick="openStats()">Stat</a>
 			{% endif %}
@@ -35,6 +30,7 @@
 			{% endif %}
 		</form>
 	</p>
+	<div id="ajax-config_file_name"></div>
 	{% endif %}
 
 	{% if stderr or error %}
@@ -43,18 +39,20 @@
 
 	{% if config %}
 		{% if role <= 3 %}
-			<h4>Config from {{ serv }}</h4>
+			<h4>Config {% if config_file_name != 'undefined' %}{{config_file_name.replace('92', '/')}}{%endif%} from {{ serv }}</h4>
 			</center>
 			<form action="config.py" name="saveconfig" id="saveconfig" method="post">
 				<input type="hidden" value="{{ serv }}" name="serv">
 				<input type="hidden" value="{{ cfg }}.old" name="oldconfig">
 				<input type="hidden" value="{{ token }}" name="token">
 				<input type="hidden" value="{{ service }}" name="service">
+				<input type="hidden" value="{{ config_file_name }}" name="config_file_name">
 				<div style="margin-left: 23%;width: 60%;">
 					<textarea name="config" id="config_text_area" class="config" rows="35" cols="100">{{ config }}</textarea>
 				</div>
 				<p>
 					<center>
+						<a href="config.py?service={{service}}&serv={{serv}}&showConfig" class="ui-button ui-widget ui-corner-all" title="Return to configuration view">Back</a>
 						{% if service != 'keepalived' %}
 							<button type="submit" value="test" name="save" class="btn btn-default" title="Check config without saving the config">Check config</button>
 						{% endif %}
@@ -79,7 +77,13 @@
 	}
 	if (cur_url[1].split('&')[2] == 'showConfig') {
 		showConfig();		
-	}	
+	}
+	if (cur_url[1].split('&')[2] == 'showConfigFiles') {
+		showConfigFiles();
+	}
+	if (cur_url[1].split('&')[3].split('=')[0] == 'config_file_name') {
+		showConfigFilesForEditing();
+	}
 	if (cur_url[1].split('&')[0] == 'service=haproxy' || cur_url[1].split('&')[0] == 'service=None') {
 		var myCodeMirror = CodeMirror.fromTextArea(document.getElementById("config_text_area"),
 				{mode: "haproxy", lineNumbers: true, autocapitalize: true, autocorrect: true, spellcheck: true});

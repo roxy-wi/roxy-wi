@@ -135,7 +135,7 @@ def add_setting_for_new_group(group_id):
 		{'param': 'cert_path', 'value': '/etc/ssl/certs/', 'section': 'main',
 		 'desc': 'Path to SSL dir. Folder owner must be a user which set in the SSH settings. The path must be valid',
 		 'group': group_id},
-		{'param': 'local_path_logs', 'value': '/var/log/haproxy.log', 'section': 'logs',
+		{'param': 'haproxy_path_logs', 'value': '/var/log/haproxy/access.log', 'section': 'haproxy',
 		 'desc': 'The default local path for saving logs', 'group': group_id},
 		{'param': 'syslog_server_enable', 'value': '0', 'section': 'logs',
 		 'desc': 'Enable getting logs from a syslog server; (0 - no, 1 - yes)', 'group': group_id},
@@ -169,10 +169,10 @@ def add_setting_for_new_group(group_id):
 		 'group': group_id},
 		{'param': 'nginx_stats_page', 'value': 'stats', 'section': 'nginx', 'desc': 'URI Stats for web page Nginx',
 		 'group': group_id},
-		{'param': 'nginx_dir', 'value': '/etc/nginx/conf.d/', 'section': 'nginx', 'desc': 'Path to the Nginx directory',
-		 'group': group_id},
-		{'param': 'nginx_config_path', 'value': '/etc/nginx/conf.d/default.conf', 'section': 'nginx',
-		 'desc': 'Path to the Nginx configuration file', 'group': group_id},
+		{'param': 'nginx_dir', 'value': '/etc/nginx/conf.d/', 'section': 'nginx',
+		 'desc': 'Path to the Nginx directory with config files', 'group': group_id},
+		{'param': 'nginx_config_path', 'value': '/etc/nginx/nginx.conf', 'section': 'nginx',
+		 'desc': 'Path to the main Nginx configuration file', 'group': group_id},
 		{'param': 'ldap_enable', 'value': '0', 'section': 'ldap', 'desc': 'Enable LDAP (1 - yes, 0 - no)',
 		 'group': group_id},
 		{'param': 'ldap_server', 'value': '', 'section': 'ldap', 'desc': 'IP address of the LDAP server', 'group': group_id},
@@ -2946,6 +2946,18 @@ def delete_config_version(service: str, local_path: str):
 		return False
 	else:
 		return True
+
+
+def select_remote_path_from_version(server_ip: str, service: str, local_path: str):
+	server_id = select_server_id_by_ip(server_ip)
+	try:
+		query_res = ConfigVersion.get((ConfigVersion.server_id == server_id) &
+									  (ConfigVersion.service == service) &
+									  (ConfigVersion.local_path == local_path)).remote_path
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
 
 
 def insert_system_info(server_id: int, os_info: str, sys_info: str, cpu: str, ram: str, network: str, disks: str) -> bool:
