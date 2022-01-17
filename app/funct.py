@@ -784,10 +784,11 @@ def install_nginx(server_ip, **kwargs):
 	stats_port = str(sql.get_setting('nginx_stats_port'))
 	stats_page = sql.get_setting('nginx_stats_page')
 	config_path = sql.get_setting('nginx_config_path')
+	nginx_dir = sql.get_setting('nginx_dir')
 	server_for_installing = kwargs.get('server')
 	proxy = sql.get_setting('proxy')
 	docker = kwargs.get('docker')
-	container_name = sql.get_setting('haproxy_container_name')
+	container_name = sql.get_setting('nginx_container_name')
 	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = return_ssh_keys_path(server_ip)
 	ssh_port = '22'
 
@@ -809,7 +810,7 @@ def install_nginx(server_ip, **kwargs):
 
 	commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " STATS_USER=" + stats_user +
 				" STATS_PASS='" + stats_password + "' SSH_PORT=" + ssh_port + " CONFIG_PATH=" + config_path + " CONT_NAME=" + container_name +
-				" STAT_PORT=" + stats_port + " STAT_PAGE=" + stats_page+" SYN_FLOOD=" + syn_flood_protect + " DOCKER=" + docker +
+				" STAT_PORT=" + stats_port + " STAT_PAGE=" + stats_page+" SYN_FLOOD=" + syn_flood_protect + " DOCKER=" + docker + " nginx_dir=" + nginx_dir +
 				" HOST=" + server_ip + " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name]
 
 	output, error = subprocess_execute(commands[0])

@@ -95,7 +95,7 @@
 			{% set is_checker_enabled = s.8.0.19 %}
 			{% set is_metrics_enabled = s.8.0.21 %}
 			{% set action_service = 'nginx' %}
-			{% if s.5.0.1 == 'active' %}
+			{% if s.5.0.1 == 'active' or s.5.0.1 == 'Up' %}
 				{% set additional_status_class = 'div-server-head-up' %}
 			{% else %}
 				{% set additional_status_class = 'div-server-head-down' %}
@@ -179,7 +179,7 @@
 				{% if service == 'nginx' or service == 'keepalived' %}
 					Version: {{s.5.0.0}} Process_num: {{s.5.0.3}}
 					<br />
-					{% if s.5.0.1 == 'active' %}
+					{% if s.5.0.1 == 'active' or s.5.0.1 == 'Up' %}
 						Started:
 					{% else %}
 						Stopped:

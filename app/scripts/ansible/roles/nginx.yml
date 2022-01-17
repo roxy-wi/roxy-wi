@@ -1,125 +1,20 @@
-- hosts: "{{ variable_host }}"
+---
+- name: Install common role
+  hosts: "{{ variable_host }}"
   become: yes
   become_method: sudo
-  tasks:
-    - name: Set SSH port
-      set_fact:
-        ansible_port: "{{SSH_PORT}}"
-        
-        
-    - name: check if Nginx is installed
-      package_facts:
-        manager: "auto"
-  
-    - name: populate service facts
-      service_facts:
-      
-      
-    - name: Creates directory
-      file:
-        path: /etc/nginx
-        state: directory
-      when: "'nginx' not in ansible_facts.packages"
-      
-      
-    - name: Creates directory
-      file:
-        path: /etc/nginx/conf.d
-        state: directory
-      when: "'nginx' not in ansible_facts.packages"
-
-
-    - name: Set passlib version
-      set_fact:
-        passlib_ver: "python3-passlib"
-      when: (ansible_facts['distribution_major_version'] == '8' and (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS')) or (ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'Ubuntu')
-      ignore_errors: True
-
-
-    - name: Set passlib version
-      set_fact:
-        passlib_ver: "python-passlib"
-      when: ansible_facts['distribution_major_version'] == '7'
-      ignore_errors: True
-
-
-    - name: Install passlib
-      package:
-        name: "{{passlib_ver}}"
-        state: present
-      when: "'nginx' not in ansible_facts.packages"
+  gather_facts: yes
+  roles:
+    - role: nginx_common
       environment:
         http_proxy: "{{PROXY}}"
         https_proxy: "{{PROXY}}"
-      
-      
-    - name: Copy Nginx configuration in place.
-      template:
-        src: /var/www/haproxy-wi/app/scripts/ansible/roles/default.conf.j2
-        dest: "{{CONFIG_PATH}}"
-        mode: 0644
-        force: no
-      when: "'nginx' not in ansible_facts.packages"
-      ignore_errors: yes      
-      
-      
-    - name: Open stat port for firewalld
-      firewalld:
-        port: "{{ STAT_PORT }}/tcp"
-        state: enabled
-        permanent: yes
-        immediate: yes
-      ignore_errors: yes
-      no_log: True
-      debugger: never
-      when:
-        - '"firewalld" in ansible_facts.packages'
-        - ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
-        - ansible_facts.services["firewalld.service"]['state'] == "running"
-      
-      
-    - name: Open stat port for iptables
-      iptables:
-        chain: INPUT
-        destination_port: "{{ STAT_PORT }}"
-        jump: ACCEPT
-        protocol: tcp
-      ignore_errors: yes
 
-  
-    - htpasswd:
-        path: /etc/nginx/status_page_passwdfile
-        name: "{{STATS_USER}}"
-        password: "{{STATS_PASS}}"
-      when: "'nginx' not in ansible_facts.packages"
-      
-      
-    - name: test to see if selinux is running
-      command: getenforce
-      register: sestatus
-      changed_when: false
-      when: ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
+  tags:
+    - system
+    - docker
 
-          
-    - name: Disble SELINUX in config
-      template:
-        src: /var/www/haproxy-wi/app/scripts/ansible/roles/haproxy/templates/selinux.j2
-        dest: /etc/selinux/config
-      ignore_errors: yes
-      when:
-        - sestatus.stdout is defined
-        - '"Enforcing" in sestatus.stdout'
-      
-      
-    - name: Disble SELINUX in env
-      shell: setenforce 0 
-      ignore_errors: yes
-      debugger: never
-      when:
-        - sestatus.stdout is defined
-        - '"Enforcing" in sestatus.stdout'
-
-- name: Install Nginx as a Docker
+- name: Install docker
   hosts: "{{ variable_host }}"
   become: yes
   become_method: sudo
@@ -129,29 +24,21 @@
       environment:
         http_proxy: "{{PROXY}}"
         https_proxy: "{{PROXY}}"
-  tasks:
-    - name: Create Nginx
-      docker_container:
-        name: "{{ CONT_NAME }}"
-        image: "nginx"
-        recreate: yes
-        network_mode: host
-        volumes:
-          - "/etc/nginx/:/etc/nginx/:rw"
-          - "/tmp:/tmp:ro"
-          - "/var/log:/var/log:rw"
-      vars:
-        ansible_python_interpreter: /usr/bin/python3
+    - role: nginx_docker
+      environment:
+        http_proxy: "{{PROXY}}"
+        https_proxy: "{{PROXY}}"
   tags:
     - docker
-      
-- hosts: "{{ variable_host }}"
+
+- name: Install system role
+  hosts: "{{ variable_host }}"
   become: yes
   become_method: sudo
   tasks:
-    - name: Add syn_flood tasks
-      include: haproxy/tasks/syn_flood.yml
-      when: (SYN_FLOOD is defined) and (SYN_FLOOD|length > 0)
+  - name: Add syn_flood tasks
+    include: haproxy/tasks/syn_flood.yml
+    when: (SYN_FLOOD is defined) and (SYN_FLOOD|length > 0)
   roles:
     - role: nginxinc.nginx
       environment:

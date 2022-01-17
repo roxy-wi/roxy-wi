@@ -1,7 +1,7 @@
 server {
     listen       {{STAT_PORT}} ;
     server_name  localhost;
-    
+
     location /{{STAT_PAGE}} {
         stub_status;
         auth_basic           "Resticted Area";
