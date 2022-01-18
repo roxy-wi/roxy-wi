@@ -16,8 +16,6 @@
 
 - name: Install docker
   hosts: "{{ variable_host }}"
-  become: yes
-  become_method: sudo
   gather_facts: yes
   roles:
     - role: docker

@@ -92,14 +92,15 @@ for s in servers:
     servers_with_status.append(s[11])
     if service == 'nginx':
         h = (['', ''],)
+        print(str(service_settings))
+        cmd = [
+            "/usr/sbin/nginx -v 2>&1|awk '{print $3}' && systemctl status nginx |grep -e 'Active' |awk '{print $2, $9$10$11$12$13}' && ps ax |grep nginx:|grep -v grep |wc -l"]
         for service_set in service_settings:
             if service_set.server_id == s[0] and service_set.setting == 'dockerized' and service_set.value == '1':
+                container_name = sql.get_setting('nginx_container_name')
                 cmd = [
-                    "docker exec -it nginx /usr/sbin/nginx -v 2>&1|awk '{print $3}' && docker ps |grep nginx |awk '{print $7, $8$9}' && ps ax |grep nginx:|grep -v grep |wc -l"
+                    "docker exec -it "+container_name+" /usr/sbin/nginx -v 2>&1|awk '{print $3}' && docker ps -a -f name="+container_name+" --format '{{.Status}}'|tail -1 && ps ax |grep nginx:|grep -v grep |wc -l"
                 ]
-            else:
-                cmd = [
-                    "/usr/sbin/nginx -v 2>&1|awk '{print $3}' && systemctl status nginx |grep -e 'Active' |awk '{print $2, $9$10$11$12$13}' && ps ax |grep nginx:|grep -v grep |wc -l"]
         try:
             out = funct.ssh_command(s[2], cmd)
             h = ()

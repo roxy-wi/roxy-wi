@@ -1229,7 +1229,8 @@ if form.getvalue('master'):
     os.system("cp scripts/%s ." % script)
 
     commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port +
-                " ETH=" + ETH + " IP=" + str(IP) + " MASTER=MASTER" + " SYN_FLOOD=" + syn_flood + " HOST=" + str(master) +
+                " ETH=" + ETH + " IP=" + str(IP) + " MASTER=MASTER" +
+                " SYN_FLOOD=" + syn_flood + " HOST=" + str(master) +
                 " USER=" + str(ssh_user_name) + " PASS='" + str(ssh_user_password) + "' KEY=" + str(ssh_key_name)]
 
     output, error = funct.subprocess_execute(commands[0])
@@ -1783,7 +1784,18 @@ if form.getvalue('get_hap_v'):
     print(output)
 
 if form.getvalue('get_nginx_v'):
-    cmd = ['/usr/sbin/nginx -v']
+    server_id = sql.select_server_id_by_ip(serv)
+    is_dockerized = sql.select_service_setting(server_id, 'nginx', 'dockerized')
+
+    if is_dockerized == '1':
+        container_name = sql.get_setting('nginx_container_name')
+        cmd = ["docker exec -it "+container_name+" /usr/sbin/nginx -v 2>&1|awk '{print $3}'"]
+    else:
+        cmd = ['/usr/sbin/nginx1 -v']
+    print(funct.ssh_command(serv, cmd))
+
+if form.getvalue('get_keepalived_v'):
+    cmd = ["/usr/sbin/keepalived -v 2>&1|head -1|awk '{print $2}'"]
     print(funct.ssh_command(serv, cmd))
 
 if form.getvalue('get_exporter_v'):
