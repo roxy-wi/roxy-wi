@@ -50,10 +50,10 @@
     https_proxy: "{{PROXY}}"
 
 
-- name: Copy Nginx configuration in place.
+- name: Copy Nginx configuration in place
   template:
-    src: /var/www/haproxy-wi/app/scripts/ansible/roles/default.conf.j2
-    dest: "{{CONFIG_PATH}}"
+    src: default.conf.j2
+    dest: "{{nginx_dir}}/conf.d"
     mode: 0644
     force: no
   when: "'nginx' not in ansible_facts.packages"
