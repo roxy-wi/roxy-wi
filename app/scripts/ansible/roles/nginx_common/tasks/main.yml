@@ -53,12 +53,31 @@
 - name: Copy Nginx configuration in place
   template:
     src: default.conf.j2
-    dest: "{{nginx_dir}}/conf.d"
+    dest: "{{nginx_dir}}/conf.d/default.conf"
     mode: 0644
     force: no
   when: "'nginx' not in ansible_facts.packages"
   ignore_errors: yes
 
+- name: Copying over nginx.conf
+  template:
+    src: nginx.conf.j2
+    dest: "{{ nginx_dir }}/nginx.conf"
+    mode: "0666"
+    force: no
+    remote_src: true
+  become: true
+  ignore_errors: yes
+
+- name: Copying over mime.types
+  template:
+    src: mime.types.j2
+    dest: "{{ nginx_dir }}/mime.types"
+    mode: "0666"
+    force: no
+    remote_src: true
+  become: true
+  ignore_errors: yes
 
 - name: Open stat port for firewalld
   firewalld:

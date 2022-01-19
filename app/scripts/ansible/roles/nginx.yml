@@ -45,3 +45,11 @@
         https_proxy: "{{PROXY}}"
   tags:
     - system
+
+- name: Set correct owner
+  hosts: "{{ variable_host }}"
+  become: yes
+  tasks:
+    - name: Set
+      shell: "chown nginx:nginx -R {{ nginx_dir }}"
+

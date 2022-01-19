@@ -39,28 +39,6 @@
   become: true
   ignore_errors: yes
 
-- name: Copying over nginx.conf
-  template:
-    src: nginx.conf.j2
-    dest: "{{ nginx_dir }}/nginx.conf"
-    mode: "0666"
-    owner: "{{ansible_user}}"
-    group: "{{ansible_user}}"
-    force: no
-  become: true
-  ignore_errors: yes
-
-- name: Copying over mime.types
-  template:
-    src: mime.types.j2
-    dest: "{{ nginx_dir }}/mime.types"
-    mode: "0666"
-    owner: "{{ansible_user}}"
-    group: "{{ansible_user}}"
-    force: no
-  become: true
-  ignore_errors: yes
-
 - name: Create Nginx
   docker_container:
     name: "{{ CONT_NAME }}"
