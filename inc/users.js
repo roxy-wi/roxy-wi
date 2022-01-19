@@ -307,7 +307,7 @@ $( function() {
 			type: "POST",
 			success: function( data ) {	
 				data = data.replace(/^\s+|\s+$/g,'');
-				if(data.indexOf('bash') != '-1') {			
+				if(data.indexOf('bash') != '-1' || data.indexOf('such') != '-1') {
 					$('#cur_nginx_ver').text('Nginx has not installed');
 					$('#nginx_install').text('Install');
 					$('#nginx_install').attr('title', 'Install Nginx');				
