@@ -64,6 +64,13 @@ $( function() {
 				if (data.indexOf('error: ') != '-1' || data.indexOf('Fatal') != '-1' || data.indexOf('Error') != '-1' || data.indexOf('failed ') != '-1' || data.indexOf('emerg] ') != '-1') {
 					toastr.clear();
 					toastr.error(data);
+				} else if (data.indexOf('command not found') != '-1')	{
+					try {
+						var service = findGetParameter('service');
+						toastr.error('Cannot save config. There is no ' + service);
+					} catch (err) {
+						console.log(err);
+					}
 				} else {
 					toastr.clear();
 					toastr.success(data);

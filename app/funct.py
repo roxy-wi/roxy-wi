@@ -670,7 +670,7 @@ def show_installation_output(error, output, service):
 		for l in output:
 			if "UNREACHABLE" in l:
 				print(l + '<br />')
-			if "Traceback" in l or "FAILED" in l or "error" in l:
+			if "Traceback" in l or "FAILED" in l or "error" in l or "ERROR" in l:
 				try:
 					print(l)
 					break

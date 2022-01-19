@@ -66,9 +66,12 @@ if serv is not None and form.getvalue('del') is not None:
 									pass
 					else:
 						os.remove(os.path.join(configs_dir, form.getvalue(get)))
-					file.add(form.getvalue(get) + "<br />")
-					funct.logging(serv, "Version of config has been deleted: %s" % form.getvalue(get), login=1,
-                              keep_history=1, service=service)
+					try:
+						file.add(form.getvalue(get) + "<br />")
+						funct.logging(serv, "Version of config has been deleted: %s" % form.getvalue(get), login=1,
+									  keep_history=1, service=service)
+					except Exception:
+						pass
 				except OSError as e:
 					stderr = "Error: %s - %s." % (e.filename,e.strerror)
 

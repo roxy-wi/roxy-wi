@@ -146,7 +146,7 @@ $( function() {
 			success: function( data ) { 
 			data = data.replace(/\s+/g,' ');
 				$("#ajaxmon").html('');
-				if (data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
+				if (data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1' || data.indexOf('ERROR') != '-1') {
 					toastr.clear();
 					toastr.error(data);;
 				} else if (data.indexOf('success') != '-1' ){
