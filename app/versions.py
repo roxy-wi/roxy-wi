@@ -55,10 +55,10 @@ if serv is not None and form.getvalue('del') is not None:
 		env = Environment(loader=FileSystemLoader('templates/'))
 		template = env.get_template('delver.html')
 		for get in form:
-			if conf_format in get:
+			if conf_format in get and serv in get:
 				try:
 					if form.getvalue('style') == 'new':
-						if sql.delete_config_version(form.getvalue('service'), form.getvalue(get)):
+						if sql.delete_config_version(service, form.getvalue(get)):
 							try:
 								os.remove(form.getvalue(get))
 							except OSError as e:
@@ -86,7 +86,8 @@ if serv is not None and form.getvalue('config') is not None:
 	if service == 'keepalived':
 		stderr = funct.upload_and_restart(serv, configver, just_save=save, keepalived=1)
 	elif service == 'nginx':
-		stderr = funct.master_slave_upload_and_restart(serv, configver, just_save=save, nginx=1)
+		config_file_name = sql.select_remote_path_from_version(server_ip=serv, service=service, local_path=configver)
+		stderr = funct.master_slave_upload_and_restart(serv, configver, just_save=save, nginx=1, config_file_name=config_file_name)
 	else:
 		stderr = funct.master_slave_upload_and_restart(serv, configver, just_save=save)
 		

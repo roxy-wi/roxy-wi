@@ -1229,8 +1229,7 @@ if form.getvalue('master'):
     os.system("cp scripts/%s ." % script)
 
     commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port +
-                " ETH=" + ETH + " IP=" + str(IP) + " MASTER=MASTER" +
-                " SYN_FLOOD=" + syn_flood + " HOST=" + str(master) +
+                " ETH=" + ETH + " IP=" + str(IP) + " MASTER=MASTER" + " SYN_FLOOD=" + syn_flood + " HOST=" + str(master) +
                 " USER=" + str(ssh_user_name) + " PASS='" + str(ssh_user_password) + "' KEY=" + str(ssh_key_name)]
 
     output, error = funct.subprocess_execute(commands[0])
@@ -2154,6 +2153,7 @@ if form.getvalue('serverdel') is not None:
         sql.delete_waf_rules(server_ip)
         sql.delete_action_history(server_id)
         sql.delete_system_info(server_id)
+        sql.delete_service_settings(server_id)
         print("Ok")
         funct.logging(server_ip, 'The server ' + hostname + ' has been deleted', haproxywi=1, login=1)
 

@@ -139,7 +139,7 @@ function ajaxActionServers(action, id) {
 				toastr.error(data);
 			} else {
 				if (cur_url[0] == "hapservers.py") {
-					location.reload()
+					location.reload();
 				} else {
 					setTimeout(showOverview(ip, hostnamea), 2000)					
 				}
@@ -530,6 +530,7 @@ function serverSettingsSave(id, name, service, dialog_id) {
 				toastr.error(data);
 			} else {
 				dialog_id.dialog('close');
+				location.reload();
 			}
 		}
 	});

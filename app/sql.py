@@ -2847,7 +2847,7 @@ def select_docker_services_settings(service: str) -> str:
 		out_error(e)
 	else:
 		return query_res
-	
+
 	
 def select_service_setting(server_id: int, service: str, setting: str) -> str:
 	try:
@@ -2859,6 +2859,14 @@ def select_service_setting(server_id: int, service: str, setting: str) -> str:
 		pass
 	else:
 		return result
+
+
+def delete_service_settings(server_id: int):
+	query = ServiceSetting.delete().where(ServiceSetting.server_id == server_id)
+	try:
+		query.execute()
+	except Exception as e:
+		out_error(e)
 
 
 def insert_action_history(service: str, action: str, server_id: int, user_id: int, user_ip: str):
