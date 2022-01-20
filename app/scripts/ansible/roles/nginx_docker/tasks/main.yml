@@ -1,7 +1,7 @@
 ---
-- name: Ensuring config directories exist
+- name: Ensuring nginx directories exist
   file:
-    path: "{{ nginx_dir }}"
+    path: "/etc/nginx"
     state: "directory"
     owner: "{{ansible_user}}"
     group: "{{ansible_user}}"
@@ -11,7 +11,7 @@
 
 - name: Ensuring conf.d directories exist
   file:
-    path: "{{ nginx_dir }}/conf.d"
+    path: "{{ nginx_dir }}"
     state: "directory"
     owner: "{{ansible_user}}"
     group: "{{ansible_user}}"
@@ -21,7 +21,7 @@
 
 - name: Ensuring sites-enabled directories exist
   file:
-    path: "{{ nginx_dir }}/sites-enabled"
+    path: "/etc/nginx/sites-enabled"
     state: "directory"
     owner: "{{ansible_user}}"
     group: "{{ansible_user}}"

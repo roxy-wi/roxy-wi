@@ -53,7 +53,7 @@
 - name: Copy Nginx configuration in place
   template:
     src: default.conf.j2
-    dest: "{{nginx_dir}}/conf.d/default.conf"
+    dest: "{{nginx_dir}}/default.conf"
     mode: 0644
     force: no
   when: "'nginx' not in ansible_facts.packages"
@@ -62,7 +62,7 @@
 - name: Copying over nginx.conf
   template:
     src: nginx.conf.j2
-    dest: "{{ nginx_dir }}/nginx.conf"
+    dest: "/etc/nginx/nginx.conf"
     mode: "0666"
     force: no
     remote_src: true
@@ -72,7 +72,7 @@
 - name: Copying over mime.types
   template:
     src: mime.types.j2
-    dest: "{{ nginx_dir }}/mime.types"
+    dest: "/etc/nginx/mime.types"
     mode: "0666"
     force: no
     remote_src: true
