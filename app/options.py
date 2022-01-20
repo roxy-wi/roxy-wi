@@ -1790,7 +1790,7 @@ if form.getvalue('get_nginx_v'):
         container_name = sql.get_setting('nginx_container_name')
         cmd = ["docker exec -it "+container_name+" /usr/sbin/nginx -v 2>&1|awk '{print $3}'"]
     else:
-        cmd = ['/usr/sbin/nginx1 -v']
+        cmd = ['/usr/sbin/nginx -v']
     print(funct.ssh_command(serv, cmd))
 
 if form.getvalue('get_keepalived_v'):

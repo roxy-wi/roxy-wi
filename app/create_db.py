@@ -859,7 +859,7 @@ def update_db_v_5_3_2_2(**kwargs):
 
 
 def update_db_v_5_4_0(**kwargs):
-	query = Setting.update(value='/etc/nginx/').where(Setting.param == 'nginx_dir')
+	query = Setting.update(value='/etc/nginx/conf.d').where(Setting.param == 'nginx_dir')
 	try:
 		query.execute()
 	except Exception as e:
