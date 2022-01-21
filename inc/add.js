@@ -1023,11 +1023,13 @@ $( function() {
 		$('.advance').fadeIn();
 		$('.advance-show-button').css('display', 'none');
 		$('.advance-hide-button').css('display', 'block');
+		return false;
 	});
 	$('.advance-hide-button').click(function() {
 		$('.advance').fadeOut();
 		$('.advance-show-button').css('display', 'block');
 		$('.advance-hide-button').css('display', 'none');
+		return false;
 	});
 	$('#ssl_offloading').click(function() {
 		if($('#optionsInput').val().indexOf('ssl_fc ') == '-1') {

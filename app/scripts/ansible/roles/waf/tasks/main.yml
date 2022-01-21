@@ -52,6 +52,7 @@
           - automake
           - libevent-devel
           - libtool
+          - make
         state: latest
       when:
         - ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
@@ -73,6 +74,7 @@
           - libyajl-dev
           - libxml2
           - automake
+          - make
         state: present
       when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'Ubuntu'
       environment:
@@ -336,6 +338,7 @@
         block: |
           backend waf
               mode tcp
+              fullconn   2000
               timeout connect 5s
               timeout server  3m
               server waf 127.0.0.1:12345 check
