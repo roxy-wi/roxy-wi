@@ -239,7 +239,6 @@ def telegram_send_mess(mess, **kwargs):
 		mess = " Can't send message. Add Telegram channel before use alerting at this servers group"
 		print(mess)
 		logging('localhost', mess, haproxywi=1)
-		sys.exit()
 
 	if proxy is not None and proxy != '' and proxy != 'None':
 		apihelper.proxy = {'https': proxy}
