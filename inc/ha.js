@@ -104,8 +104,108 @@ $( function() {
 			$('#nginx_docker_td_header').hide();
 		}
 	});
+	$( "#master" ).on('selectmenuchange',function() {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				get_keepalived_v: 1,
+				serv: $('#master option:selected').val(),
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+				data = data.replace(/^\s+|\s+$/g,'');
+				if(data.indexOf('keepalived:') != '-1') {
+					$('#cur_master_ver').text('Keepalived has not installed');
+					$('#create').prop('disabled', false);
+					$('#create').attr('title', 'Create HA cluster');
+				} else {
+					$('#cur_master_ver').text(data);
+					$('#cur_master_ver').css('font-weight', 'bold');
+					$('#create').prop('disabled', true);
+					$('#create').attr('title', 'Keepalived has been alredy installed. You cannot create a new HA Cluster');
+				}
+			}
+		} );
+	});
+	$( "#slave" ).on('selectmenuchange',function() {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				get_keepalived_v: 1,
+				serv: $('#slave option:selected').val(),
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+				data = data.replace(/^\s+|\s+$/g,'');
+				if(data.indexOf('keepalived:') != '-1') {
+					$('#cur_slave_ver').text('Keepalived has not installed');
+					$('#create').prop('disabled', false);
+					$('#create').attr('title', 'Create HA cluster');
+				} else {
+					$('#cur_slave_ver').text(data);
+					$('#cur_slave_ver').css('font-weight', 'bold');
+					$('#create').prop('disabled', true);
+					$('#create').attr('title', 'Keepalived has been alredy installed. You cannot create a new HA Cluster');
+				}
+			}
+		} );
+	});
+	$( "#master-add" ).on('selectmenuchange',function() {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				get_keepalived_v: 1,
+				serv: $('#master-add option:selected').val(),
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+				data = data.replace(/^\s+|\s+$/g,'');
+				if(data.indexOf('keepalived:') != '-1') {
+					$('#cur_master_ver-add').text('Keepalived has not installed');
+					$('#add-vrrp').prop('disabled', true);
+					$('#add-vrrp').attr('title', 'Add a HA configuration');
+				} else {
+					$('#cur_master_ver-add').text(data);
+					$('#cur_master_ver-add').css('font-weight', 'bold');
+					$('#add-vrrp').prop('disabled', false);
+					$('#add-vrrp').attr('title', 'Keepalived has been alredy installed. You cannot add a new HA configuration');
+				}
+			}
+		} );
+	});
+	$( "#slave-add" ).on('selectmenuchange',function() {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				get_keepalived_v: 1,
+				serv: $('#slave-add option:selected').val(),
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+				data = data.replace(/^\s+|\s+$/g,'');
+				if(data.indexOf('keepalived:') != '-1') {
+					$('#cur_slave_ver-add').text('Keepalived has not installed');
+					$('#add-vrrp').prop('disabled', true);
+					$('#add-vrrp').attr('title', 'Add a HA configuration');
+				} else {
+					$('#cur_slave_ver-add').text(data);
+					$('#cur_slave_ver-add').css('font-weight', 'bold');
+					$('#add-vrrp').prop('disabled', false);
+					$('#add-vrrp').attr('title', 'Keepalived has been alredy installed. You cannot add a new HA configuration');
+				}
+			}
+		} );
+	});
 });
 function add_master_addr(kp) {
+	return_to_master = 0
+	if ($('#add_return_to_master').is(':checked')) {
+		return_to_master = '1';
+	}
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -113,6 +213,7 @@ function add_master_addr(kp) {
 			slaveadd: $('#slave-add').val(),
 			interfaceadd: $("#interface-add").val(),
 			vrrpipadd: $('#vrrp-ip-add').val(),
+			return_to_master: return_to_master,
 			kp: kp,
 			token: $('#token').val()
 		},
@@ -164,6 +265,7 @@ function create_master_keepalived(hap, nginx, syn_flood) {
 	var virt_server = 0;
 	var haproxy_docker = 0;
 	var nginx_docker = 0;
+	var return_to_master = 0;
 	if ($('#virt_server').is(':checked')) {
 		virt_server = '1';
 	}
@@ -173,6 +275,9 @@ function create_master_keepalived(hap, nginx, syn_flood) {
 	if ($('#nginx_docker').is(':checked')) {
 		nginx_docker = '1';
 	}
+	if ($('#return_to_master').is(':checked')) {
+		return_to_master = '1';
+	}
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -180,6 +285,7 @@ function create_master_keepalived(hap, nginx, syn_flood) {
 			slave: $('#slave').val(),
 			interface: $("#interface").val(),
 			vrrpip: $('#vrrp-ip').val(),
+			return_to_master: return_to_master,
 			hap: hap,
 			nginx: nginx,
 			syn_flood: syn_flood,
@@ -195,6 +301,7 @@ function create_master_keepalived(hap, nginx, syn_flood) {
 				showProvisioningWarning(step_id, 'master Keepalived', '#creating-warning', '#wait_mess');
 			} else if (data.indexOf('success') != '-1' ){
 				showProvisioningProccess('<p>'+data+'</p>', '#creating-master', progress_value, '#creating-progress', '#created-mess', '#wait-mess');
+				$( "#master" ).trigger( "selectmenuchange" );
 				if (hap === '1') {
 					create_keep_alived_hap(nginx, 'master', haproxy_docker);
 				}
@@ -237,6 +344,7 @@ function create_slave_keepalived(hap, nginx, syn_flood) {
 				showProvisioningWarning(step_id, 'slave Keepalived', '#creating-warning', '#wait_mess');
 			} else if (data.indexOf('success') != '-1' ){
 				showProvisioningProccess('<p>'+data+'</p>', '#creating-slave', progress_value, '#creating-progress', '#created-mess', '#wait-mess');
+				$( "#slave" ).trigger( "selectmenuchange" );
 			} else {
 				toastr.clear();
 				toastr.info(data);

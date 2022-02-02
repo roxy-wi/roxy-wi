@@ -4,6 +4,11 @@
 			{% if role <= 3 %}
 				{% if not is_serv_protected or role <= 2 %}
 				<a class="ui-button ui-widget ui-corner-all" title="Edit this run config" href="config.py?service={{service}}&serv={{serv}}&open=open&config_file_name={{config_file_name}}">Edit</a>
+				{% if service == 'haproxy' %}
+				<a class="ui-button ui-widget ui-corner-all" title="Add proxy" href="add.py#proxy">Add</a>
+				{% elif service == 'keepalived' %}
+				<a class="ui-button ui-widget ui-corner-all" title="Add VRRP" href="ha.py">Add</a>
+				{% endif %}
 				{% endif %}
 			{% endif %}
 			<a class="accordion-expand-all ui-button ui-widget ui-corner-all" href="#">Expand all</a>
@@ -104,6 +109,14 @@
 				{% continue %}
 			{% endif %}
 			{%- if "vrrp_instance " in line -%}
+				{% if i > 1 %}
+					</div>
+				{% endif %}
+				<span class="param">{{ line }}
+				</span><div>
+				{% continue %}
+			{% endif %}
+			{%- if "virtual_server " in line -%}
 				{% if i > 1 %}
 					</div>
 				{% endif %}

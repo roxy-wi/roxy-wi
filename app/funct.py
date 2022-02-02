@@ -157,10 +157,7 @@ def logging(server_ip, action, **kwargs):
 	except Exception:
 		pass
 
-	if kwargs.get('alerting') == 1:
-		mess = get_data('date_in_log') + action + "\n"
-		log = open(log_path + "/checker-"+get_data('logs')+".log", "a")
-	elif kwargs.get('metrics') == 1:
+	if kwargs.get('metrics') == 1:
 		mess = get_data('date_in_log') + action + "\n"
 		log = open(log_path + "/metrics-"+get_data('logs')+".log", "a")
 	elif kwargs.get('keep_alive') == 1:
@@ -908,10 +905,32 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 
 	if kwargs.get("nginx"):
 		service = 'nginx'
+		# config_path = sql.get_setting('nginx_config_path')
+		config_path = kwargs.get('config_file_name')
+		tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".conf"
 	elif kwargs.get("keepalived"):
 		service = 'keepalived'
+		config_path = "/etc/keepalived/keepalived.conf"
+		tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".cfg"
 	else:
 		service = 'haproxy'
+		config_path = sql.get_setting('haproxy_config_path')
+		tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".cfg"
+
+	is_docker = sql.select_service_setting(server_id, service, 'dockerized')
+	if is_docker == '1':
+		service_cont_name = service + '_container_name'
+		container_name = sql.get_setting(service_cont_name)
+		reload_command = " && sudo docker kill -s HUP  " + container_name
+		restart_command = " && sudo docker restart " + container_name
+	else:
+		service_name = service
+		if service == 'haproxy':
+			haproxy_enterprise = sql.select_service_setting(server_id, 'haproxy', 'haproxy_enterprise')
+			if haproxy_enterprise == '1':
+				service_name = "hapee-2.0-lb"
+		reload_command = " && sudo systemctl reload " + service_name
+		restart_command = " && sudo systemctl restart " + service_name
 
 	if kwargs.get("just_save") == 'save':
 		action = 'save'
@@ -927,17 +946,6 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 	else:
 		login = 1
 
-	if service == "nginx":
-		# config_path = sql.get_setting('nginx_config_path')
-		config_path = kwargs.get('config_file_name')
-		tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".conf"
-	elif service == "keepalived":
-		config_path = "/etc/keepalived/keepalived.conf"
-		tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".cfg"
-	else:
-		config_path = sql.get_setting('haproxy_config_path')
-		tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".cfg"
-
 	try:
 		os.system("dos2unix "+cfg)
 	except OSError:
@@ -948,48 +956,30 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		if action == "save":
 			commands = [move_config]
 		elif action == "reload":
-			commands = [
-				move_config + " && sudo systemctl reload keepalived"]
+			commands = [move_config + reload_command]
 		else:
-			commands = [move_config + " && sudo systemctl restart keepalived"]
+			commands = [move_config + restart_command]
 	elif service == "nginx":
-		is_docker = sql.select_service_setting(server_id, 'nginx', 'dockerized')
 		if is_docker == '1':
-			container_name = sql.get_setting('nginx_container_name')
 			check_config = "sudo docker exec -it exec " + container_name + " nginx -t -q "
 		else:
 			check_config = "sudo nginx -t -q -p " + tmp_file
-		check_and_move = "sudo mv -f " + tmp_file + " " + config_path + " && sudo nginx -t -q"
+		check_and_move = "sudo mv -f " + tmp_file + " " + config_path + " && " + check_config
 		if action == "test":
 			commands = [check_config + " && sudo rm -f " + tmp_file]
 		elif action == "save":
 			commands = [check_and_move]
 		elif action == "reload":
-			if is_docker == '1':
-				commands = [ check_and_move + " && sudo docker kill -s HUP  "+container_name ]
-			else:
-				commands = [ check_and_move + " && sudo systemctl reload nginx" ]
+			commands = [ check_and_move + reload_command ]
 		else:
-			if is_docker == '1':
-				commands = [check_and_move + " && sudo docker restart " + container_name]
-			else:
-				commands = [check_and_move + " && sudo systemctl restart nginx"]
+			commands = [check_and_move + restart_command]
 		if sql.return_firewall(server_ip):
 			commands[0] += open_port_firewalld(cfg, server_ip=server_ip, service='nginx')
 	else:
-		is_docker = sql.select_service_setting(server_id, 'haproxy', 'dockerized')
-		haproxy_service_name = "haproxy"
-
 		if is_docker == '1':
-			container_name = sql.get_setting('haproxy_container_name')
 			check_config = "sudo docker exec -it " + container_name + " haproxy -q -c -f " + tmp_file
 		else:
-			haproxy_enterprise = sql.select_service_setting(server_id, 'haproxy', 'haproxy_enterprise')
-
-			if haproxy_enterprise == '1':
-				haproxy_service_name = "hapee-2.0-lb"
-
-			check_config = "sudo " + haproxy_service_name + " -q -c -f " + tmp_file
+			check_config = "sudo " + service_name + " -q -c -f " + tmp_file
 		move_config = " && sudo mv -f " + tmp_file + " " + config_path
 
 		if action == "test":
@@ -997,15 +987,9 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		elif action == "save":
 			commands = [check_config + move_config]
 		elif action == "reload":
-			if is_docker == '1':
-				commands = [check_config + move_config + " && sudo docker kill -s HUP  "+container_name ]
-			else:
-				commands = [check_config + move_config + " && sudo systemctl reload "+haproxy_service_name ]
+			commands = [check_config + move_config + reload_command ]
 		else:
-			if is_docker == '1':
-				commands = [check_config + move_config + " && sudo docker restart "+container_name ]
-			else:
-				commands = [check_config + move_config + " && sudo systemctl restart "+haproxy_service_name ]
+			commands = [check_config + move_config + restart_command ]
 		if sql.return_firewall(server_ip):
 			commands[0] += open_port_firewalld(cfg, server_ip=server_ip)
 
@@ -1533,21 +1517,25 @@ def check_user_group(**kwargs):
 	if kwargs.get('token') is not None:
 		return True
 
-	import http.cookies
-	import os
 	import sql
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_uuid = cookie.get('uuid')
-	group = cookie.get('group')
-	group_id = group.value
-	user_id = sql.get_user_id_by_uuid(user_uuid.value)
+	if kwargs.get('user_uuid'):
+		group_id = kwargs.get('user_group_id')
+		user_uuid = kwargs.get('user_uuid')
+		user_id = sql.get_user_id_by_uuid(user_uuid)
+	else:
+		import http.cookies
+		import os
+		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+		user_uuid = cookie.get('uuid')
+		group = cookie.get('group')
+		group_id = group.value
+		user_id = sql.get_user_id_by_uuid(user_uuid.value)
 
 	if sql.check_user_group(user_id, group_id):
 		return True
 	else:
 		logging('localhost', ' has tried to actions in not his group ', haproxywi=1, login=1)
 		print('Atata!')
-		sys.exit()
 
 
 def check_is_server_in_group(server_ip):

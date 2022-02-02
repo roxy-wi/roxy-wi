@@ -1207,6 +1207,7 @@ if form.getvalue('master'):
     IP = form.getvalue('vrrpip')
     syn_flood = form.getvalue('syn_flood')
     virt_server = form.getvalue('virt_server')
+    return_to_master = form.getvalue('return_to_master')
     haproxy = form.getvalue('hap')
     nginx = form.getvalue('nginx')
     script = "install_keepalived.sh"
@@ -1229,7 +1230,8 @@ if form.getvalue('master'):
     os.system("cp scripts/%s ." % script)
 
     commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port +
-                " ETH=" + ETH + " IP=" + str(IP) + " MASTER=MASTER" + " SYN_FLOOD=" + syn_flood + " HOST=" + str(master) +
+                " ETH=" + ETH + " IP=" + str(IP) + " MASTER=MASTER" + " RETURN_TO_MASTER=" + return_to_master +
+                " SYN_FLOOD=" + syn_flood + " HOST=" + str(master) +
                 " USER=" + str(ssh_user_name) + " PASS='" + str(ssh_user_password) + "' KEY=" + str(ssh_key_name)]
 
     output, error = funct.subprocess_execute(commands[0])
@@ -1286,6 +1288,7 @@ if form.getvalue('masteradd'):
     ETH = form.getvalue('interfaceadd')
     IP = form.getvalue('vrrpipadd')
     kp = form.getvalue('kp')
+    return_to_master = form.getvalue('return_to_master')
     script = "install_keepalived.sh"
     proxy = sql.get_setting('proxy')
     ssh_port = 22
@@ -1306,7 +1309,7 @@ if form.getvalue('masteradd'):
         ssh_port = str(server[10])
 
     commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv +
-                " SSH_PORT=" + ssh_port + " ETH=" + ETH +
+                " SSH_PORT=" + ssh_port + " ETH=" + ETH + " RETURN_TO_MASTER=" + return_to_master +
                 " IP=" + str(IP) + " MASTER=MASTER" + " RESTART=" + kp + " ADD_VRRP=1 HOST=" + str(master) +
                 " USER=" + str(ssh_user_name) + " PASS='" + str(ssh_user_password) + "' KEY=" + str(ssh_key_name)]
 

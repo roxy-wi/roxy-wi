@@ -670,7 +670,7 @@ def update_db_v_5_2_0(**kwargs):
 
 def update_db_v_5_2_4(**kwargs):
 	cursor = conn.cursor()
-	sql = """ALTER TABLE `user` ADD COLUMN user_services varchar(20) DEFAULT '1 2 3';"""
+	sql = """ALTER TABLE `user` ADD COLUMN user_services varchar(20) DEFAULT '1 2 3 4';"""
 	try:
 		cursor.execute(sql)
 	except Exception as e:
@@ -892,7 +892,7 @@ def update_db_v_5_4_02(**kwargs):
 
 
 def update_ver():
-	query = Version.update(version='5.4.0.0')
+	query = Version.update(version='5.4.1.0')
 	try:
 		query.execute()
 	except:
