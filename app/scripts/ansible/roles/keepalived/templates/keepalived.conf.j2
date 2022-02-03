@@ -11,7 +11,7 @@ vrrp_instance VI_1 {
     state {{MASTER}}
     interface {{ETH}}
     virtual_router_id 1
-    priority 102
+    priority {% if RETURN_TO_MASTER == '1' and MASTER == 'MASTER' %}152{% elif MASTER == 'MASTER' and RETURN_TO_MASTER == '0' %}102{% else %}101{%endif%}
 
     #check if we are still running
     track_script {

@@ -934,12 +934,14 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 
 	if kwargs.get("just_save") == 'save':
 		action = 'save'
-	elif kwargs.get("just_save") == 'reload':
-		action = 'reload'
 	elif kwargs.get("just_save") == 'test':
 		action = 'test'
+	elif kwargs.get("just_save") == 'reload':
+		action = 'reload'
+		reload_or_restart_command = reload_command
 	else:
 		action = 'restart'
+		reload_or_restart_command = restart_command
 
 	if kwargs.get('login'):
 		login = kwargs.get('login')
@@ -955,10 +957,8 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		move_config = "sudo mv -f " + tmp_file + " " + config_path
 		if action == "save":
 			commands = [move_config]
-		elif action == "reload":
-			commands = [move_config + reload_command]
 		else:
-			commands = [move_config + restart_command]
+			commands = [move_config + reload_or_restart_command]
 	elif service == "nginx":
 		if is_docker == '1':
 			check_config = "sudo docker exec -it exec " + container_name + " nginx -t -q "
@@ -969,10 +969,8 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 			commands = [check_config + " && sudo rm -f " + tmp_file]
 		elif action == "save":
 			commands = [check_and_move]
-		elif action == "reload":
-			commands = [ check_and_move + reload_command ]
 		else:
-			commands = [check_and_move + restart_command]
+			commands = [check_and_move + reload_or_restart_command]
 		if sql.return_firewall(server_ip):
 			commands[0] += open_port_firewalld(cfg, server_ip=server_ip, service='nginx')
 	else:
@@ -986,10 +984,8 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 			commands = [check_config + " && sudo rm -f " + tmp_file]
 		elif action == "save":
 			commands = [check_config + move_config]
-		elif action == "reload":
-			commands = [check_config + move_config + reload_command ]
 		else:
-			commands = [check_config + move_config + restart_command ]
+			commands = [check_config + move_config + reload_or_restart_command ]
 		if sql.return_firewall(server_ip):
 			commands[0] += open_port_firewalld(cfg, server_ip=server_ip)
 

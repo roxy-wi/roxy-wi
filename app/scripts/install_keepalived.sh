@@ -15,6 +15,7 @@ do
             KEY)    KEY=${VALUE} ;;
             SYN_FLOOD)    SYN_FLOOD=${VALUE} ;;
             RESTART)    RESTART=${VALUE} ;;
+            RETURN_TO_MASTER)    RETURN_TO_MASTER=${VALUE} ;;
             ADD_VRRP)    ADD_VRRP=${VALUE} ;;
             SSH_PORT)    SSH_PORT=${VALUE} ;;
             *)
@@ -32,9 +33,9 @@ PWD=$PWD/scripts/ansible/
 echo "$HOST ansible_port=$SSH_PORT" > $PWD/$HOST
 
 if [[ $KEY == "" ]]; then
-	ansible-playbook $PWD/roles/keepalived.yml -e "ansible_user=$USER ansible_ssh_pass='$PASS' variable_host=$HOST SYN_FLOOD=$SYN_FLOOD PROXY=$PROXY MASTER=$MASTER ETH=$ETH IP=$IP RESTART=$RESTART ADD_VRRP=$ADD_VRRP SSH_PORT=$SSH_PORT" -i $PWD/$HOST
+	ansible-playbook $PWD/roles/keepalived.yml -e "ansible_user=$USER ansible_ssh_pass='$PASS' variable_host=$HOST SYN_FLOOD=$SYN_FLOOD PROXY=$PROXY MASTER=$MASTER ETH=$ETH IP=$IP RESTART=$RESTART RETURN_TO_MASTER=$RETURN_TO_MASTER ADD_VRRP=$ADD_VRRP SSH_PORT=$SSH_PORT" -i $PWD/$HOST
 else	
-	ansible-playbook $PWD/roles/keepalived.yml --key-file $KEY -e "ansible_user=$USER variable_host=$HOST SYN_FLOOD=$SYN_FLOOD PROXY=$PROXY MASTER=$MASTER ETH=$ETH IP=$IP RESTART=$RESTART ADD_VRRP=$ADD_VRRP SSH_PORT=$SSH_PORT" -i $PWD/$HOST
+	ansible-playbook $PWD/roles/keepalived.yml --key-file $KEY -e "ansible_user=$USER variable_host=$HOST SYN_FLOOD=$SYN_FLOOD PROXY=$PROXY MASTER=$MASTER ETH=$ETH IP=$IP RESTART=$RESTART RETURN_TO_MASTER=$RETURN_TO_MASTER ADD_VRRP=$ADD_VRRP SSH_PORT=$SSH_PORT" -i $PWD/$HOST
 fi
 
 if [ $? -gt 0 ]

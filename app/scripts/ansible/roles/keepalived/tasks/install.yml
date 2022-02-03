@@ -2,46 +2,26 @@
 - name: check if Keepalived is installed
   package_facts:
     manager: "auto"
-  
-  
-- name: Keepalived has already installed
-  debug:
-    msg: "Keepalived has already installed"
-  when: "'keepalived' in ansible_facts.packages"
 
-- name: Exiting  
-  meta: end_play
-  when: "'keepalived' in ansible_facts.packages"
-  
-  
+
 - name: install EPEL Repository
   yum:
     name: epel-release
     state: latest
-  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS')
+  when:
+    - ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
+    - ansible_facts['distribution_major_version'] == '7'
   ignore_errors: yes
   environment:
     http_proxy: "{{PROXY}}"
     https_proxy: "{{PROXY}}"
-  
-  
-- name: install the latest version of Keepalived
-  yum:
-    name: 
-      - keepalived
-    state: latest
-  when: (ansible_facts['os_family'] == "RedHat") or (ansible_facts['os_family'] == 'CentOS')
-  environment:
-    http_proxy: "{{PROXY}}"
-    https_proxy: "{{PROXY}}"
 
-    
-- name: Install keepalived
-  apt:
-    name: 
-      - keepalived
+
+- name: Install the latest version of Keepalived
+  package:
+    name: keepalived
     state: present
-  when: (ansible_facts['os_family'] == 'Debian') or (ansible_facts['os_family'] == 'Ubuntu')
+  when: "'keepalived' not in ansible_facts.packages"
   environment:
     http_proxy: "{{PROXY}}"
     https_proxy: "{{PROXY}}"
@@ -76,6 +56,7 @@
   command: getenforce
   register: sestatus
   changed_when: false
+  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS')
 
   
 - name: Disble SELINUX in config
@@ -83,14 +64,18 @@
    src: ../../haproxy/templates/selinux.j2
    dest: /etc/selinux/config
   ignore_errors: yes
-  when: '"Enforcing" in sestatus.stdout'
+  when:
+    - sestatus.stdout is defined
+    - '"Enforcing" in sestatus.stdout'
   
   
 - name: Disble SELINUX in env
   shell: setenforce 0 2> /dev/null
   ignore_errors: yes
   debugger: never
-  when: '"Enforcing" in sestatus.stdout'
+  when:
+    - sestatus.stdout is defined
+    - '"Enforcing" in sestatus.stdout'
   
   
 - name: Enable and start service keepalived

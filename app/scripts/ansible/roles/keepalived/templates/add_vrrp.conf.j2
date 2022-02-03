@@ -2,7 +2,7 @@ vrrp_instance VI_{{IP}} {
 	state {{MASTER}}
 	interface {{ETH}}
 	virtual_router_id {{ range(2, 255) | random }}
-	priority 103
+	priority {% if RETURN_TO_MASTER == 1 and MASTER == 'MASTER' %}152{% elif MASTER == 'MASTER' and RETURN_TO_MASTER == 0 %}102{% else %}101{%endif%}
 
 	track_script {
 		chk_haproxy
