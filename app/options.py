@@ -1192,12 +1192,15 @@ if act == 'configShowFiles':
     except:
         config_file_name = ''
     return_files = funct.get_remote_files(serv, nginx_config_dir, 'conf')
+    if 'error: ' in return_files:
+        print(return_files)
+        sys.exit()
     return_files += ' ' + sql.get_setting('nginx_config_path')
     from jinja2 import Environment, FileSystemLoader
 
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
     template = env.get_template('ajax/show_configs_files.html')
-    template = template.render(serv=serv, return_files=return_files, config_file_name=config_file_name)
+    template = template.render(serv=serv, return_files=return_files, config_file_name=config_file_name, path_dir=nginx_config_dir)
     print(template)
 
 if form.getvalue('master'):
@@ -2028,7 +2031,10 @@ if form.getvalue('updateuser') is not None:
 
 if form.getvalue('updatepassowrd') is not None:
     password = form.getvalue('updatepassowrd')
-    user_id = form.getvalue('id')
+    if form.getvalue('uuid'):
+        user_id = sql.get_user_id_by_uuid(form.getvalue('uuid'))
+    else:
+        user_id = form.getvalue('id')
     user = sql.select_users(id=user_id)
     for u in user:
         username = u.username
@@ -2483,6 +2489,7 @@ if form.getvalue('newsmon') is not None:
     group = form.getvalue('newsmongroup')
     desc = form.getvalue('newsmondescription')
     telegram = form.getvalue('newsmontelegram')
+    slack = form.getvalue('newsmonslack')
 
     try:
         port = int(port)
@@ -2499,14 +2506,15 @@ if form.getvalue('newsmon') is not None:
         print('SMON error: Cannot be HTTP with 443 port')
         sys.exit()
 
-    last_id = sql.insert_smon(server, port, enable, http, uri, body, group, desc, telegram, user_group)
+    last_id = sql.insert_smon(server, port, enable, http, uri, body, group, desc, telegram, slack, user_group)
     if last_id:
         from jinja2 import Environment, FileSystemLoader
         env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
         template = env.get_template('ajax/show_new_smon.html')
         template = template.render(
             smon=sql.select_smon_by_id(last_id),
-            telegrams=sql.get_user_telegram_by_group(user_group))
+            telegrams=sql.get_user_telegram_by_group(user_group),
+            slacks=sql.get_user_slack_by_group(user_group))
         print(template)
         funct.logging('SMON', ' Has been add a new server ' + server + ' to SMON ', haproxywi=1, login=1)
 
@@ -2538,6 +2546,7 @@ if form.getvalue('updateSmonIp') is not None:
     http = form.getvalue('updateSmonHttp')
     body = form.getvalue('updateSmonBody')
     telegram = form.getvalue('updateSmonTelegram')
+    slack = form.getvalue('updateSmonSlack')
     group = form.getvalue('updateSmonGroup')
     desc = form.getvalue('updateSmonDesc')
 
@@ -2557,7 +2566,7 @@ if form.getvalue('updateSmonIp') is not None:
         sys.exit()
 
 
-    if sql.update_smon(smon_id, ip, port, body, telegram, group, desc, en):
+    if sql.update_smon(smon_id, ip, port, body, telegram, slack, group, desc, en):
         print("Ok")
         funct.logging('SMON', ' Has been update the server ' + ip + ' to SMON ', haproxywi=1, login=1)
 

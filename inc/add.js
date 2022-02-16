@@ -259,6 +259,7 @@ $( function() {
 			
 	$( "#ip" ).autocomplete({
 		source: function( request, response ) {
+			if(!checkIsServerFiled('#serv')) return false;
 			if ( request.term == "" ) {
 				request.term = 1
 			}
@@ -283,30 +284,32 @@ $( function() {
 	});
 	$( "#ip1" ).autocomplete({
 		source: function( request, response ) {
+			if(!checkIsServerFiled('#serv2')) return false;
 			if ( request.term == "" ) {
 				request.term = 1
 			}
 			$.ajax( {
 				url: "options.py",
 				data: {
-					ip: request.term,
+					show_ip: request.term,
 					serv: $("#serv2").val(),
 					token: $('#token').val()
 				},
 				success: function( data ) {
 					data = data.replace(/\s+/g,' ');
 					response(data.split(" "));
-					}					
+				}
 			} );
 		},
 		autoFocus: true,
 		minLength: -1,
 		select: function( event, ui ) {
-			$(this).next().next().focus();				
+			$('#frontend-port').focus();
 		}
 	});
 	$( "#backends" ).autocomplete({
 		source: function( request, response ) {
+			if(!checkIsServerFiled('#serv2')) return false;
 			if ( request.term == "" ) {
 				request.term = 1
 			}
@@ -748,6 +751,9 @@ $( function() {
 			$( ".backend_server" ).hide( "fast" );
 			$( ".send_proxy" ).hide( "fast" );
 			$( "input[name=server_maxconn]" ).hide( "fast" );
+			$( "input[name=port_check]" ).hide( "fast" );
+			$( "[name=maxconn_name]" ).hide( "fast" );
+			$( "[name=port_check_text]" ).hide( "fast" );
 			$( ".prefix" ).attr('required',true);
 		} else {
 			$( ".prefix" ).hide( "fast" );
@@ -756,6 +762,9 @@ $( function() {
 			$( ".backend_server" ).show( "fast" )
 			$( ".send_proxy" ).show( "fast" )
 			$( "input[name=server_maxconn]" ).show( "fast" );
+			$( "input[name=port_check]" ).show( "fast" );
+			$( "[name=maxconn_name]" ).show( "fast" );
+			$( "[name=port_check_text]" ).show( "fast" );
 		}
 	});
 	var location = window.location.href;
@@ -870,6 +879,7 @@ $( function() {
 	
 	$( "#path-cert-listen" ).autocomplete({
 		source: function( request, response ) {
+			if(!checkIsServerFiled('#serv2')) return false;
 			$.ajax( {
 				url: "options.py",
 				data: {
@@ -888,6 +898,7 @@ $( function() {
 	});
 	$( "#path-cert-frontend" ).autocomplete({
 		source: function( request, response ) {
+			if(!checkIsServerFiled('#serv2')) return false;
 			$.ajax( {
 				url: "options.py",
 				data: {
@@ -905,6 +916,9 @@ $( function() {
 		minLength: -1
 	});
 	$( "#ssl_key_upload" ).click(function() {
+		if(!checkIsServerFiled('#serv4')) return false;
+		if(!checkIsServerFiled('#ssl_name', 'Enter the Certificate name')) return false;
+		if(!checkIsServerFiled('#ssl_cert', 'Paste the contents of the certificate file')) return false;
 		$.ajax( {
 			url: "options.py",
 			data: {
@@ -927,6 +941,7 @@ $( function() {
 		} );
 	});
 	$('#ssl_key_view').click(function() {
+		if(!checkIsServerFiled('#serv5')) return false;
 		$.ajax( {
 			url: "options.py",
 			data: {
@@ -999,12 +1014,20 @@ $( function() {
 			toastr.error('Wrong e-mail format');
 		}
 	});
-	var add_server_var = '<br /><input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server">: ' +
+	var add_server_var = '<br /><input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server" style="margin: 2px 0 4px 0;">: ' +
 		'<input name="server_port" required title="Backend port" size=3 placeholder="yyy" class="form-control second-server add_server_number" type="number"> ' +
-		'<input name="server_maxconn" required title="Maxconn. Default 200" size=5 value="200" class="form-control add_server_number" type="number">'
+		'port check: <input name="port_check" required title="Maxconn. Default 200" size=5 value="200" class="form-control add_server_number" type="number">' +
+		' maxconn: <input name="server_maxconn" required title="Maxconn. Default 200" size=5 value="200" class="form-control add_server_number" type="number">'
 	$('[name=add-server-input]').click(function() {
 		$("[name=add_servers]").append(add_server_var);
+		changePortCheckFromServerPort();
 	});
+	$('[name=port]').on('input', function (){
+		var iNum = parseInt($('[name=port]').val());
+		$('[name=port_check]').val(iNum);
+		$('[name=server_port]').val(iNum);
+	});
+	changePortCheckFromServerPort();
 	var add_userlist_var = '<br /><input name="userlist-user" title="User name" placeholder="user_name" class="form-control"> <input name="userlist-password" required title="User password. By default it insecure-password" placeholder="password" class="form-control"> <input name="userlist-user-group" title="User`s group" placeholder="user`s group" class="form-control">'
 	$('#add-userlist-user').click(function() {
 		$('#userlist-users').append(add_userlist_var);		
@@ -1229,6 +1252,14 @@ $( function() {
 	$("#backend_add_acl").click(function(){
 		make_actions_for_adding_acl_rule('#backend_acl');
 	});
+	$("#add_bind_listener").click(function(){
+		make_actions_for_adding_bind('#listener_bind');
+		$( "#listener_bind" ).show();
+	});
+	$("#add_bind_frontend").click(function(){
+		make_actions_for_adding_bind('#frontend_bind');
+		$( "#frontend_bind" ).show();
+	});
 	$( "#serv" ).on('selectmenuchange',function() {
 		$('#name').focus();
 	});
@@ -1243,6 +1274,7 @@ $( function() {
 	});
 });
 function resetProxySettings() {
+	$('[name=ip]').val('');
 	$('[name=port]').val('');
 	$('[name=server_port]').val('');
 	$('input:checkbox').prop( "checked", false );
@@ -1422,6 +1454,7 @@ function updateSavedServer(id) {
 	} );
 }
 function view_ssl(id) {
+	if(!checkIsServerFiled('#serv5')) return false;
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -1456,6 +1489,7 @@ function view_ssl(id) {
 	} );
 }
 function deleteSsl(id) {
+	if(!checkIsServerFiled('#serv5')) return false;;
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -1658,9 +1692,37 @@ function deleteList(list, color) {
 }
 function generateConfig(form_name) {
 	var frm = $('#'+form_name);
+	if (form_name == 'add-listener') {
+		serv = '#serv'
+		name_id = '#name'
+	} else if (form_name == 'add-frontend') {
+		serv = '#serv2'
+		name_id = '#new_frontend'
+	} else if (form_name == 'add-backend') {
+		serv = '#serv3'
+		name_id = '#new_backend'
+	} else if (form_name == 'add-userlist') {
+		serv = '#userlist_serv'
+		name_id = '#new_userlist'
+	} else {
+		serv = '#peers_serv'
+		name_id = '#peers-name'
+	}
+	if(!checkIsServerFiled(serv)) return false;
+	if(!checkIsServerFiled(name_id, 'The name cannot be empty')) return false;
 	var input = $("<input>")
 		.attr("name", "generateconfig").val("1").attr("type", "hidden").attr("id", "generateconfig");
 	$('#'+form_name +' input[name=acl_then_value]').each(function(){
+		if (!$(this).val()){
+			$(this).val('IsEmptY')
+		}
+	});
+	$('#'+form_name +' input[name=ip]').each(function(){
+		if (!$(this).val()){
+			$(this).val('IsEmptY')
+		}
+	});
+	$('#'+form_name +' input[name=port]').each(function(){
 		if (!$(this).val()){
 			$(this).val('IsEmptY')
 		}
@@ -1671,19 +1733,24 @@ function generateConfig(form_name) {
 		data: frm.serialize(),
 		type: frm.attr('method'),
 		success: function (data) {
-			$('#dialog-confirm-body').text(data);
-			$( "#dialog-confirm-cert" ).dialog({
-				resizable: false,
-				height: "auto",
-				width: 650,
-				modal: true,
-				title: "Generated config",
-				buttons: {
-					Ok: function() {
-						$( this ).dialog( "close" );
+			if (data.indexOf('error: ') != '-1' || data.indexOf('Fatal') != '-1') {
+				toastr.clear();
+				toastr.error(data);
+			} else {
+				$('#dialog-confirm-body').text(data);
+				$("#dialog-confirm-cert").dialog({
+					resizable: false,
+					height: "auto",
+					width: 650,
+					modal: true,
+					title: "Generated config",
+					buttons: {
+						Ok: function () {
+							$(this).dialog("close");
+						}
 					}
-				}
-			});
+				});
+			}
 		}
 	});
 	$("#generateconfig").remove();
@@ -1692,10 +1759,48 @@ function generateConfig(form_name) {
 			$(this).val('')
 		}
 	});
+		$('#'+form_name +' input[name=ip]').each(function(){
+		if ($(this).val() == 'IsEmptY'){
+			$(this).val('')
+		}
+	});
+	$('#'+form_name +' input[name=port]').each(function(){
+		if ($(this).val() == 'IsEmptY'){
+			$(this).val('')
+		}
+	});
 }
 function addProxy(form_name) {
 	var frm = $('#'+form_name);
+	if (form_name == 'add-listener') {
+		serv = '#serv'
+		name_id = '#name'
+	} else if (form_name == 'add-frontend') {
+		serv = '#serv2'
+		name_id = '#new_frontend'
+	} else if (form_name == 'add-backend') {
+		serv = '#serv3'
+		name_id = '#new_backend'
+	} else if (form_name == 'add-userlist') {
+		serv = '#userlist_serv'
+		name_id = '#new_userlist'
+	} else {
+		serv = '#peers_serv'
+		name_id = '#peers-name'
+	}
+	if(!checkIsServerFiled(serv)) return false;
+	if(!checkIsServerFiled(name_id, 'The name cannot be empty')) return false;
 	$('#'+form_name +' input[name=acl_then_value]').each(function(){
+		if ($(this).val().length === 0){
+			$(this).val('IsEmptY')
+		}
+	});
+	$('#'+form_name +' input[name=ip]').each(function(){
+		if ($(this).val().length === 0){
+			$(this).val('IsEmptY')
+		}
+	});
+	$('#'+form_name +' input[name=port]').each(function(){
 		if ($(this).val().length === 0){
 			$(this).val('IsEmptY')
 		}
@@ -1714,7 +1819,7 @@ function addProxy(form_name) {
 				toastr.error('error: Proxy cannot be empty');
 			} else {
 				toastr.clear();
-				toastr.success('Section: ' + data + 'has been added. Do not forget to restart the server');
+				toastr.success('Section: <b>' + data + '</b> has been added. Do not forget to restart the server');
 				var ip = frm.find('select[name=serv]').val();
 				localStorage.setItem('restart', ip);
 				resetProxySettings();
@@ -1722,6 +1827,16 @@ function addProxy(form_name) {
 		}
 	});
 	$('#'+form_name +' input[name=acl_then_value]').each(function(){
+		if ($(this).val() == 'IsEmptY'){
+			$(this).val('')
+		}
+	});
+	$('#'+form_name +' input[name=ip]').each(function(){
+		if ($(this).val() == 'IsEmptY'){
+			$(this).val('')
+		}
+	});
+	$('#'+form_name +' input[name=port]').each(function(){
 		if ($(this).val() == 'IsEmptY'){
 			$(this).val('')
 		}
@@ -1752,8 +1867,14 @@ function confirmDeleting(deleting_thing, id, dialog_id, color) {
 		}
 	});
 }
-function delete_acl_rule(id) {
+function deleteId(id) {
 	$('#'+id).remove();
+	if ($('#listener_bind  > p').length == 0) {
+		$('#listener_bind').hide();
+	}
+	if ($('#frontend_bind  > p').length == 0) {
+		$('#frontend_bind').hide();
+	}
 }
 var acl_option = '<p id="new_acl_p" style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">\n' +
 		'<b class="padding10">if</b>\n' +
@@ -1784,7 +1905,7 @@ var acl_option = '<p id="new_acl_p" style="border-bottom: 1px solid #ddd; paddin
 function make_actions_for_adding_acl_rule(section_id) {
 	var random_id = makeid(3);
 	$(section_id).append(acl_option);
-	$('#new_acl_rule_minus').attr('onclick', 'delete_acl_rule(\''+random_id+'\')');
+	$('#new_acl_rule_minus').attr('onclick', 'deleteId(\''+random_id+'\')');
 	$('#new_acl_rule_minus').attr('id', '');
 	$('#new_acl_p').attr('id', random_id);
 	$('#new_acl_rule_minus').attr('id', '');
@@ -1792,6 +1913,48 @@ function make_actions_for_adding_acl_rule(section_id) {
 	$( "select" ).selectmenu();
 	$('[name=acl_if]').selectmenu({width: 180});
 	$('[name=acl_then]').selectmenu({width: 180});
+}
+var bind_option = '<p id="new_bind_p"><input type="text" name="ip" size="15" placeholder="Any" class="form-control ui-autocomplete-input" autocomplete="off">' +
+	'<b>:</b> ' +
+	'<input type="text" name="port" size="5" style="" required="" placeholder="8080" title="Port for bind listen" class="form-control" autocomplete="off"> ' +
+	'<span class="minus minus-style" id="new_bind_minus" title="Remove the IP-port pair"></span>'
+function make_actions_for_adding_bind(section_id) {
+	var random_id = makeid(3);
+	$(section_id).append(bind_option);
+	$('#new_bind_minus').attr('onclick', 'deleteId(\''+random_id+'\')');
+	$('#new_bind_minus').attr('id', '');
+	$('#new_bind_p').attr('id', random_id);
+	$('#new_bind_minus').attr('id', '');
+	$.getScript("/inc/fontawesome.min.js");
+	$( "select" ).selectmenu();
+	var serv = 'serv2'
+	if(section_id == '#listener_bind') {
+		serv = 'serv'
+	}
+	$( "#"+random_id + " > input[name=ip]").autocomplete({
+		source: function( request, response ) {
+			if ( request.term == "" ) {
+				request.term = 1
+			}
+			$.ajax( {
+				url: "options.py",
+				data: {
+					show_ip: request.term,
+					serv: $("#"+serv).val(),
+					token: $('#token').val()
+				},
+				success: function( data ) {
+					data = data.replace(/\s+/g,' ');
+					response(data.split(" "));
+				}
+			} );
+		},
+		autoFocus: true,
+		minLength: -1,
+		select: function( event, ui ) {
+			$( "#"+random_id + " > input[name=port]").focus();
+		}
+	});
 }
 function makeid(length) {
    var result           = '';
@@ -1829,4 +1992,17 @@ function showUserlists() {
 			}
 		});
 	}
+}
+function changePortCheckFromServerPort() {
+	$('[name=server_port]').on('input', function (){
+		var iNum = parseInt($($(this)).val());
+		$($(this)).next().val(iNum);
+	});
+}
+function checkIsServerFiled(select_id, message = 'Choose the server first') {
+	if ($(select_id).val() == null || $(select_id).val() == '') {
+		toastr.warning(message);
+		return false;
+	}
+	return true;
 }

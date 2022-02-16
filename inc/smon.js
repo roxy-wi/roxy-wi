@@ -88,6 +88,7 @@ function addNewSmonServer(dialog_id) {
 				newsmongroup: $('#new-smon-group').val(),
 				newsmondescription: $('#new-smon-description').val(),
 				newsmontelegram: $('#new-smon-telegram').val(),
+				newsmonslack: $('#new-smon-slack').val(),
 				token: $('#token').val()
 			},
 			type: "POST",
@@ -159,6 +160,7 @@ function updateSmon(id) {
 			updateSmonHttp: $('#smon-proto1-'+id).text(),
 			updateSmonBody: $('#smon-body-'+id).text(),
 			updateSmonTelegram: $('#smon-telegram-'+id).val(),
+			updateSmonSlack: $('#smon-slack-'+id).val(),
 			updateSmonGroup: $('#smon-group-'+id).val(),
 			updateSmonDesc: $('#smon-desc-'+id).val(),
 			id: id,
@@ -192,7 +194,8 @@ function cloneSmom(id) {
 	$('#new-smon-group').val($('#smon-group-'+id).val());
 	$('#new-smon-description').val($('#smon-desc-'+id).val())
 	$('#new-smon-telegram').val($('#smon-telegram-'+id+' option:selected').val()).change()
-	$('#new-smon-telegram').selectmenu("refresh");
+	$('#new-smon-slack').val($('#smon-slack-'+id+' option:selected').val()).change()
+	$('#new-smon-slack').selectmenu("refresh");
 }
 $( function() {
 	$('#add-smon-button').click(function() {

@@ -780,7 +780,7 @@ def get_dick_permit(**kwargs):
 	if funct.check_user_group(token=token):
 		cursor = conn.cursor()
 		if grp == '1' and not only_group:
-			sql = """ select * from servers where {} {} {} {} {} order by pos""" .format(disable, type_ip, nginx, keepalived, ip)
+			sql = """ select * from servers where {} {} {} {} {} {} order by pos""" .format(disable, type_ip, nginx, haproxy, keepalived, ip)
 		else:
 			sql = """ select * from servers where groups = '{group}' and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} order by pos
 			""".format(group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx, keepalived=keepalived)
@@ -1874,7 +1874,7 @@ def select_keepalived_alert(**kwargs):
 
 
 def select_keep_alive():
-	query = Server.select(Server.ip).where(Server.active == 1)
+	query = Server.select(Server.ip, Server.groups).where(Server.active == 1)
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -1884,7 +1884,7 @@ def select_keep_alive():
 
 
 def select_nginx_keep_alive():
-	query = Server.select(Server.ip).where(Server.nginx_active == 1)
+	query = Server.select(Server.ip, Server.groups).where(Server.nginx_active == 1)
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -1894,7 +1894,7 @@ def select_nginx_keep_alive():
 
 
 def select_keepalived_keep_alive():
-	query = Server.select(Server.ip).where(Server.keepalived_active == 1)
+	query = Server.select(Server.ip, Server.port, Server.groups).where(Server.keepalived_active == 1)
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -1973,7 +1973,6 @@ def update_firewall(serv):
 
 def update_server_pos(pos, server_id):
 	query = Server.update(pos=pos).where(Server.server_id == server_id)
-	print(query)
 	try:
 		query.execute()
 		return True
@@ -1996,7 +1995,7 @@ def check_token_exists(token):
 		return False
 
 
-def insert_smon(server, port, enable, proto, uri, body, group, desc, telegram, user_group):
+def insert_smon(server, port, enable, proto, uri, body, group, desc, telegram, slack, user_group):
 	try:
 		http = proto+':'+uri
 	except:
@@ -2004,7 +2003,7 @@ def insert_smon(server, port, enable, proto, uri, body, group, desc, telegram, u
 
 	try:
 		last_id = SMON.insert(ip=server, port=port, en=enable, desc=desc, group=group, http=http, body=body,
-					telegram_channel_id=telegram, user_group=user_group, status='3').execute()
+					telegram_channel_id=telegram, slack_channel_id=slack, user_group=user_group, status='3').execute()
 	except Exception as e:
 		out_error(e)
 		return False
@@ -2029,11 +2028,11 @@ def select_smon(user_group, **kwargs):
 			http = kwargs.get('proto')+':'+kwargs.get('uri')
 		except:
 			http = ''
-		sql = """select id, ip, port, en, http, body, telegram_channel_id, `desc`, `group`, user_group from smon 
+		sql = """select id, ip, port, en, http, body, telegram_channel_id, `desc`, `group`, user_group, slack_channel_id from smon 
 		where ip='%s' and port='%s' and http='%s' and body='%s' %s 
 		""" % (kwargs.get('ip'), kwargs.get('port'), http, body, user_group)
 	elif kwargs.get('action') == 'add':
-		sql = """select id, ip, port, en, http, body, telegram_channel_id, `desc`, `group`, user_group from smon
+		sql = """select id, ip, port, en, http, body, telegram_channel_id, `desc`, `group`, user_group, slack_channel_id from smon
 		%s order by `group`""" % user_group
 	else:
 		sql = """select * from `smon` %s """ % user_group
@@ -2048,8 +2047,7 @@ def select_smon(user_group, **kwargs):
 
 def select_smon_by_id(last_id):
 	cursor = conn.cursor()
-
-	sql = """select id, ip, port, en, http, body, telegram_channel_id, `desc`, `group`, user_group 
+	sql = """select id, ip, port, en, http, body, telegram_channel_id, `desc`, `group`, user_group, slack_channel_id
 	from `smon` where id = {} """.format(last_id)
 
 	try:
@@ -2073,9 +2071,9 @@ def delete_smon(smon_id, user_group):
 		return True
 
 
-def update_smon(smon_id, ip, port, body, telegram, group, desc, en):
+def update_smon(smon_id, ip, port, body, telegram, slack, group, desc, en):
 	funct.check_user_group()
-	query = (SMON.update(ip=ip, port=port, body=body, telegram_channel_id=telegram, group=group, desc=desc, en=en)
+	query = (SMON.update(ip=ip, port=port, body=body, telegram_channel_id=telegram, slack_channel_id=slack, group=group, desc=desc, en=en)
 			 .where(SMON.id == smon_id))
 	try:
 		query.execute()
@@ -2110,14 +2108,14 @@ def alerts_history(service, user_group, **kwargs):
 
 
 def select_en_service():
-	cursor = conn.cursor()
-	sql = """ select ip, port, telegram_channel_id, id, user_group from smon where en = 1"""
+	query = SMON.select().where(SMON.en == 1)
 	try:
-		cursor.execute(sql)
+		query_res = query.execute()
 	except Exception as e:
 		out_error(e)
 	else:
-		return cursor.fetchall()
+		return query_res
+
 
 
 def select_status(smon_id):
@@ -2277,6 +2275,20 @@ def select_alerts(user_group):
 		sql = """ select level, message, `date` from alerts where user_group = '%s' and `date` <= (now()+ INTERVAL 10 second) """ % (user_group)
 	else:
 		sql = """ select level, message, `date` from alerts where user_group = '%s' and `date` >= datetime('now', '-20 second', 'localtime') and `date` <=  datetime('now', 'localtime') ; """ % (user_group)
+	try:
+		cursor.execute(sql)
+	except Exception as e:
+		out_error(e)
+	else:
+		return cursor.fetchall()
+
+
+def select_all_alerts_for_all():
+	cursor = conn.cursor()
+	if mysql_enable == '1':
+		sql = """ select level, message, `date`, user_group from alerts where `date` <= (now()+ INTERVAL 10 second) """
+	else:
+		sql = """ select level, message, `date`, user_group from alerts where `date` >= datetime('now', '-10 second', 'localtime') and `date` <=  datetime('now', 'localtime') ; """
 	try:
 		cursor.execute(sql)
 	except Exception as e:
@@ -3019,3 +3031,13 @@ def is_system_info(server_id):
 			return False
 		else:
 			return True
+
+
+def select_os_info(server_id):
+	try:
+		query_res = SystemInfo.get(SystemInfo.server_id == server_id).os_info
+	except Exception as e:
+		out_error(e)
+		return
+	else:
+		return query_res

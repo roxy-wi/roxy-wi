@@ -325,7 +325,7 @@ function showLog() {
 		},
 		type: "POST",
 		success: function( data ) {
-			if (data.indexOf('error:') != '-1' && data.indexOf('Internal error:') == '-1') {
+			if (data.indexOf('Internal error:') == '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
@@ -611,11 +611,8 @@ function viewLogs() {
 			},
 			type: "POST",
 			success: function( data ) {
-				if (data.indexOf('error: ') != '-1') {
-					toastr.error(data);
-				} else {
-					$("#ajax").html(data);
-					window.history.pushState("View logs", "View logs", cur_url[0] + "?type=" + type +
+				$("#ajax").html(data);
+				window.history.pushState("View logs", "View logs", cur_url[0] + "?type=" + type +
 						"&viewlogs=" + viewlogs +
 						'&rows=' + rows +
 						'&grep=' + grep +
@@ -624,7 +621,6 @@ function viewLogs() {
 						'&minut=' + minut +
 						'&hour1=' + hour1 +
 						'&minut1=' + minut1);
-				}
 			}					
 		} );
 	}
@@ -873,7 +869,8 @@ $( function() {
 					saveUserSettings();
 					$( this ).dialog( "close" );
 				},
-				Cancel: function () {
+				'Change password': function() {
+					changePassword();
 					$( this ).dialog( "close" );
 				},
 				Logout: function() {
@@ -904,7 +901,7 @@ $( function() {
 				if (data.indexOf('danger') != '-1') {
 					$("#ajax").html(data);
 				} else {
-					$('#show-user-settings-table').append(data);
+					$('#show-user-settings-group').html(data);
 					$( "select" ).selectmenu();
 				}
 			}
@@ -1246,3 +1243,58 @@ async function waitConsumer() {
 	}
 }
 setInterval(waitConsumer, 20000);
+function changePassword() {
+	$( "#user-change-password-table" ).dialog({
+			autoOpen: true,
+			resizable: false,
+			height: "auto",
+			width: 600,
+			modal: true,
+			title: "Change password",
+			show: {
+				effect: "fade",
+				duration: 200
+			},
+			hide: {
+				effect: "fade",
+				duration: 200
+			},
+			buttons: {
+				"Change": function() {
+					changeUserPasswordItOwn($(this));
+				},
+				Cancel: function() {
+					$( this ).dialog( "close" );
+					$('#missmatchpass').hide();
+				}
+			}
+		});
+}
+function changeUserPasswordItOwn(d) {
+	var pass = $('#change-password').val();
+	var pass2 = $('#change2-password').val();
+	if(pass != pass2) {
+		$('#missmatchpass').show();
+	} else {
+		$('#missmatchpass').hide();
+		toastr.clear();
+		$.ajax( {
+			url: "options.py",
+			data: {
+				updatepassowrd: pass,
+				uuid: Cookies.get('uuid'),
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+				data = data.replace(/\s+/g,' ');
+				if (data.indexOf('error:') != '-1') {
+					toastr.error(data);
+				} else {
+					toastr.clear();
+					d.dialog( "close" );
+				}
+			}
+		} );
+	}
+}

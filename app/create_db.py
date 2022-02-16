@@ -858,17 +858,6 @@ def update_db_v_5_3_2_2(**kwargs):
 		print("Updating... DB has been updated to version 5.3.2")
 
 
-def update_db_v_5_4_0(**kwargs):
-	query = Setting.update(value='/etc/nginx/conf.d').where(Setting.param == 'nginx_dir')
-	try:
-		query.execute()
-	except Exception as e:
-		print("An error occurred:", e)
-	else:
-		if kwargs.get('silent') != 1:
-			print("Updating... DB has been updated to version 5.4.0")
-
-
 def update_db_v_5_4_01(**kwargs):
 	query = Setting.update(value='/etc/nginx/nginx.conf').where(Setting.param == 'nginx_config_path')
 	try:
@@ -877,7 +866,7 @@ def update_db_v_5_4_01(**kwargs):
 		print("An error occurred:", e)
 	else:
 		if kwargs.get('silent') != 1:
-			print("Updating... DB has been updated to version 5.4.0-1")
+			print("Updating... DB has been updated to version 5.4.0")
 
 
 def update_db_v_5_4_02(**kwargs):
@@ -888,11 +877,26 @@ def update_db_v_5_4_02(**kwargs):
 		print("An error occurred:", e)
 	else:
 		if kwargs.get('silent') != 1:
-			print("Updating... DB has been updated to version 5.4.0-2")
+			print("Updating... DB has been updated to version 5.4.0-1")
+
+
+def update_db_v_5_4_2(**kwargs):
+	cursor = conn.cursor()
+	sql = """ALTER TABLE `smon` ADD COLUMN slack_channel_id integer DEFAULT '0';"""
+	try:
+		cursor.execute(sql)
+	except Exception as e:
+		if kwargs.get('silent') != 1:
+			if str(e) == 'duplicate column name: slack_channel_id' or str(e) == '(1060, "Duplicate column name \'slack_channel_id\'")':
+				print('Updating... DB has been updated to version 5.4.2')
+			else:
+				print("An error occurred:", e)
+	else:
+		print("Updating... DB has been updated to version 5.4.2")
 
 
 def update_ver():
-	query = Version.update(version='5.4.1.0')
+	query = Version.update(version='5.4.2.0')
 	try:
 		query.execute()
 	except:
@@ -928,9 +932,9 @@ def update_all():
 	update_db_v_5_3_1()
 	update_db_v_5_3_2()
 	update_db_v_5_3_2_2()
-	update_db_v_5_4_0()
 	update_db_v_5_4_01()
 	update_db_v_5_4_02()
+	update_db_v_5_4_2()
 	update_ver()
 
 
@@ -963,9 +967,9 @@ def update_all_silent():
 	update_db_v_5_3_1(silent=1)
 	update_db_v_5_3_2(silent=1)
 	update_db_v_5_3_2_2(silent=1)
-	update_db_v_5_4_0(silent=1)
 	update_db_v_5_4_01(silent=1)
 	update_db_v_5_4_02(silent=1)
+	update_db_v_5_4_2(silent=1)
 	update_ver()
 
 

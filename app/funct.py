@@ -900,7 +900,9 @@ def upload(server_ip, path, file, **kwargs):
 def upload_and_restart(server_ip, cfg, **kwargs):
 	import sql
 	error = ''
+	service_name = ''
 	container_name = ''
+	reload_or_restart_command = ''
 	server_id = sql.select_server_id_by_ip(server_ip=server_ip)
 
 	if kwargs.get("nginx"):
@@ -1000,9 +1002,8 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		if not kwargs.get('slave'):
 			diff = ''
 			old_cfg = kwargs.get('oldcfg')
-			if not old_cfg:
+			if old_cfg is None:
 				old_cfg = tmp_file + '.old'
-				print(old_cfg)
 				try:
 					get_config(server_ip, old_cfg, service=service, config_file_name=config_path)
 				except Exception:
@@ -1380,7 +1381,7 @@ def get_files(dir=get_config_var('configs', 'haproxy_save_configs_dir'), format=
 		file = set()
 	return_files = set()
 	i = 0
-	for files in sorted(glob.glob(os.path.join(dir, '*.'+format))):
+	for files in sorted(glob.glob(os.path.join(dir, '*.'+format+'*'))):
 		if format == 'log':
 			file += [(i, files.split('/')[5])]
 		else:
@@ -1398,6 +1399,8 @@ def get_files(dir=get_config_var('configs', 'haproxy_save_configs_dir'), format=
 
 
 def get_remote_files(server_ip: str, config_dir: str, file_format: str):
+	if 'nginx' not in config_dir:
+		return 'error: The path must contain the name of the service. Check it in Roxy-WI settings'
 	if config_dir[-1] != '/':
 		config_dir += '/'
 	commands = ['ls ' + config_dir + '*.' + file_format]
@@ -1806,6 +1809,6 @@ def get_system_info(server_ip: str) -> bool:
 	else:
 		return False
 
-def string_to_dict(dict_string):
+def string_to_dict(dict_string) -> dict:
 	from ast import literal_eval
 	return literal_eval(dict_string)

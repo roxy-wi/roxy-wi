@@ -13,7 +13,7 @@ if mysql_enable == '1':
     conn = MySQLDatabase(mysql_db, user=mysql_user, password=mysql_password, host=mysql_host, port=int(mysql_port))
 else:
     db = "/var/www/haproxy-wi/app/roxy-wi.db"
-    conn = SqliteDatabase(db, pragmas={'timeout': 10000})
+    conn = SqliteDatabase(db, pragmas={'timeout': 1000})
 
 
 class BaseModel(Model):
@@ -30,7 +30,7 @@ class User(BaseModel):
     groups = CharField()
     ldap_user = IntegerField(constraints=[SQL('DEFAULT "0"')])
     activeuser = IntegerField(constraints=[SQL('DEFAULT "1"')])
-    user_services = CharField(constraints=[SQL('DEFAULT "1 2 3"')])
+    user_services = CharField(constraints=[SQL('DEFAULT "1 2 3 4"')])
     last_login_date = DateTimeField(constraints=[SQL('DEFAULT "0000-00-00 00:00:00"')])
     last_login_ip = CharField(null=True)
 
@@ -385,6 +385,7 @@ class SMON(BaseModel):
     body_status = IntegerField(constraints=[SQL('DEFAULT 1')])
     telegram_channel_id = IntegerField(null=True)
     user_group = IntegerField()
+    slack_channel_id = IntegerField(null=True)
 
     class Meta:
         table_name = 'smon'

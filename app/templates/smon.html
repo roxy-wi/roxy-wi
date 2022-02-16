@@ -50,6 +50,7 @@
 			<th style="width: 15%;">URI</th>
 			<th style="width: 20%;">Body</th>
 			<th style="width: 15%;">Telegram</th>
+			<th style="width: 15%;">Slack</th>
 			<th style="width: 10%;">Group</th>
 			<th style="width: 100%;">Description</th>
 			<th></th>
@@ -119,6 +120,17 @@
 				<select id="new-smon-telegram">
 					<option value="0">Disabled</option>
 				{% for t in telegrams %}
+					<option value="{{t.id}}">{{t.chanel_name}}</option>
+				{% endfor %}
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">Slack</td>
+			<td>
+				<select id="new-smon-slack">
+					<option value="0">Disabled</option>
+				{% for t in slacks %}
 					<option value="{{t.id}}">{{t.chanel_name}}</option>
 				{% endfor %}
 				</select>

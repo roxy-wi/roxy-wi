@@ -71,10 +71,13 @@
 					<td class="addName">IP and Port:</td>
 					<td class="addOption">
 						{{ input('ip', placeholder="Any", size='15') }}<b>:</b>
-						{{ input('listen-port', name='port', type="number", title="Port for bind listen", placeholder="8080", size='5', required='required') }}
+						{{ input('listen-port', name='port', title="Port for bind listen", placeholder="8080", size='5', required='required') }}
+						<div id="listener_bind" style="display: none"></div>
+						<a class="link add-server" id="add_bind_listener" title="Bind one more IP-port pair"></a>
 						<div class="tooltip tooltipTop">
-							If the IP-address for the listener is empty, it will listen on all IP addresses. <br />
-							Start typing IP or press down button. If you are using <b>VRRP, leave the IP field blank</b>. If you assign a VRRP IP, the slave server will not start
+							If the IP-address for the listener is empty, it will listen on all IP addresses.
+							Start typing IP or press down button.  Click on + to add multiple IP-port pairs. If you are using VRRP,
+							leave the IP field blank. If you assign a VRRP IP, the slave server will not start.
 						</div>
 					</td>
 				</tr>
@@ -137,7 +140,7 @@
 								{{ select('listener_acl_then', name='acl_then', values=values, first='Choose action', class='force_close', disabled=false) }}
 								<b class="padding10">value</b>
 								{{ input('listener_acl_then_value', name='acl_then_value', title="Required if \'then\' is \'Use backend\' or \'Redirect\', \'Return\', or \'Set-header\'") }}
-								<span class="minus minus-style" onclick="delete_acl_rule('listener_acl_rule')" title="Delete this rule"></span>
+								<span class="minus minus-style" onclick="deleteId('listener_acl_rule')" title="Delete this rule"></span>
 							</p>
 						</div>
 						<span>
@@ -227,14 +230,14 @@
 						{% include 'include/add_servers.html' %}
 						<br>
 						<br>
-						{{ checkbox('template-listen', name='template', title='Use server-template instead servers list', value='template', desc='Server-template') }}
+						{{ checkbox('template-listen', name='template', title='Сreate the list of servers from the template', value='template', desc='Server-template') }}
 					</td>
 				</tr>
 				<tr class="advance">
 					<td class="addName">Check:</td>
 					<td class="addOption">
 						<div>
-							<label for="controlgroup-listen-show" style="margin-top: 5px;" title="Change default check">Custom check params</label>
+							<label for="controlgroup-listen-show" style="margin-top: 5px;" title="Set custom check parameters">Custom check params</label>
 							<input type="checkbox" id="controlgroup-listen-show" name="default-check" value="1">
 							<span class="tooltip tooltipTop"> Default params: inter 2000 rise 2 fall 5</span>
 						</div>
@@ -275,7 +278,7 @@
 						<a class="ui-button ui-widget ui-corner-all" title="Add Listen" onclick="addProxy('add-listener')">Add Listen</a>
 					</td>
 					<td class="addButton">
-						<a class="ui-button ui-widget ui-corner-all" title="Generate config and show it" onclick="generateConfig('add-listener')">Generate config</a>
+						<a class="ui-button ui-widget ui-corner-all" title="Generate and display config" onclick="generateConfig('add-listener')">Generate config</a>
 					</td>
 				</tr>
 			</table>
@@ -320,10 +323,13 @@
 				<td class="addName">IP and Port:</td>
 				<td class="addOption">
 					<input type="text" name="ip" id="ip1" size="15" placeholder="Any" class="form-control"><b>:</b>
-					<input type="number" name="port" required title="Port for bind frontend" placeholder="8080" class="form-control">
+					<input type="text" name="port" size="5" required title="Port for bind frontend" placeholder="8080" class="form-control">
+					<div id="frontend_bind" style="display: none"></div>
+					<a class="link add-server" id="add_bind_frontend" title="Bind one more IP-port pair"></a>
 					<div class="tooltip tooltipTop">
-						If the IP-address for the frontend is empty, it will listen on all IP addresses. <br />
-						Start typing IP or press down button. If you are using <b>VRRP, leave the IP field blank</b>. If you assign a VRRP IP, the slave server will not start
+						If the IP-address for the listener is empty, it will listen on all IP addresses.
+						Start typing IP or press down button.  Click on + to add multiple IP-port pairs. If you are using VRRP,
+						leave the IP field blank. If you assign a VRRP IP, the slave server will not start.
 					</div>
 				</td>
 			</tr>
@@ -366,7 +372,7 @@
 							{{ select('frontend_acl_then', name='acl_then', values=values, first='Choose action', class='force_close', disabled=false) }}
 							<b class="padding10">value</b>
 							{{ input('frontend_acl_then_value', name='acl_then_value', title="Required if \'then\' is \'Use backend\' or \'Redirect\', \'Return\', or \'Set-header\'") }}
-							<span class="minus minus-style" onclick="delete_acl_rule('frontend_acl_rule')" title="Delete this rule"></span>
+							<span class="minus minus-style" onclick="deleteId('frontend_acl_rule')" title="Delete this rule"></span>
 						</p>
 					</div>
 					<span>
@@ -451,7 +457,7 @@
 					<a class="ui-button ui-widget ui-corner-all" title="Add Frontend" onclick="addProxy('add-frontend')">Add Frontend</a>
 				</td>
 				<td class="addButton">
-					<a class="ui-button ui-widget ui-corner-all" title="Generate config and show it" onclick="generateConfig('add-frontend')">Generate config</a>
+					<a class="ui-button ui-widget ui-corner-all" title="Generate and display config" onclick="generateConfig('add-frontend')">Generate config</a>
 				</td>
 			</tr>
 		</table>
@@ -542,7 +548,7 @@
 							{{ select('backend_acl_then', name='acl_then', values=values, first='Choose action', class='force_close', disabled=false) }}
 							<b class="padding10">value</b>
 							{{ input('backend_acl_then_value', name='acl_then_value', title="Required if \'then\' is \'Use backend\', \'Redirect\', \'Return\', or \'Set-header\'") }}
-							<span class="minus minus-style" onclick="delete_acl_rule('backend_acl_rule')" title="Delete this rule"></span>
+							<span class="minus minus-style" onclick="deleteId('backend_acl_rule')" title="Delete this rule"></span>
 						</p>
 					</div>
 					<span>
@@ -611,14 +617,14 @@
 					{% include 'include/add_servers.html' %}
 					<br>
 					<br>
-					{{ checkbox('template-backend', name='template', title='Use server-template instead servers list', value='template', desc='Server-template') }}
+					{{ checkbox('template-backend', name='template', title='Create the list of servers from the template', value='template', desc='Server-template') }}
 				</td>
 			</tr>
 			<tr class="advance">
 				<td class="addName">Check:</td>
 				<td class="addOption">
 					<div>
-						<label for="controlgroup-backend-show" style="margin-top: 5px;" title="Change default check">Custom check params</label>
+						<label for="controlgroup-backend-show" style="margin-top: 5px;" title="Set custom check parameters">Custom check params</label>
 						<input type="checkbox" id="controlgroup-backend-show" name="default-check">
 						<span class="tooltip tooltipTop"> Default params: inter 2000 rise 2 fall 5</span>
 					</div>
@@ -659,7 +665,7 @@
 					<a class="ui-button ui-widget ui-corner-all" title="Add Backend" onclick="addProxy('add-backend')">Add Backend</a>
 				</td>
 				<td class="addButton">
-					<a class="ui-button ui-widget ui-corner-all" title="Generate config and show it" onclick="generateConfig('add-backend')">Generate config</a>
+					<a class="ui-button ui-widget ui-corner-all" title="Generate and display config" onclick="generateConfig('add-backend')">Generate config</a>
 				</td>
 			</tr>
 		</table>
@@ -899,8 +905,8 @@
 				<td class="addName">User:</td>
 				<td class="addOption">
 					<span id="userlist-users">
-						{{ input('userlist-user', required='required', title="User name", placeholder="user_name") }}
-						{{ input('userlist-password', required='required', title="User password. By default it insecure-password", placeholder="password") }}
+						{{ input('userlist-user', required='required', title="Username", placeholder="user_name") }}
+						{{ input('userlist-password', required='required', title="User password. By default, it insecure-password", placeholder="password") }}
 						{{ input('userlist-user-group', title="User`s group",  placeholder="user`s group") }}
 					</span>
 					<span>
@@ -914,7 +920,7 @@
 					<a class="ui-button ui-widget ui-corner-all" title="Add Userlist" onclick="addProxy('add-userlist')">Add Userlist</a>
 				</td>
 				<td class="addButton">
-					<a class="ui-button ui-widget ui-corner-all" title="Generate config and show it" onclick="generateConfig('add-userlist')">Generate config</a>
+					<a class="ui-button ui-widget ui-corner-all" title="Generate and display config" onclick="generateConfig('add-userlist')">Generate config</a>
 				</td>
 			</tr>
 		</table>
@@ -954,7 +960,7 @@
 		</div>
 	</div>
 	<div id="peers">
-		<form name="add-userlist" id="add-peers" action="/app/add.py" method="post">
+		<form name="add-peers" id="add-peers" action="/app/add.py" method="post">
 		<table>
 			<caption><h3>Add Peer</h3></caption>
 			<tr>
@@ -1000,7 +1006,7 @@
 					<a class="ui-button ui-widget ui-corner-all" title="Add Userlist" onclick="addProxy('add-peers')">Add Peer</a>
 				</td>
 				<td class="addButton">
-					<a class="ui-button ui-widget ui-corner-all" title="Generate config and show it" onclick="generateConfig('add-peers')">Generate config</a>
+					<a class="ui-button ui-widget ui-corner-all" title="Generate and display config" onclick="generateConfig('add-peers')">Generate config</a>
 				</td>
 			</tr>
 		</table>
@@ -1099,7 +1105,6 @@
 	<input type="hidden" id="group" value="{{ group }}">
 </div>
 </div>
-{% include 'include/del_confirm.html' %}
 <script>
 $( function() {
 	$( ".force_close" ).selectmenu({

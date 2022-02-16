@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
+import sys
 import funct
 import sql
 import http.cookies
@@ -61,7 +62,7 @@ if (
 
 elif form.getvalue('mode') is not None:
 	haproxy_dir = sql.get_setting('haproxy_dir')
-	port = form.getvalue('port')
+	port = form.getlist('port')
 	bind = ""
 	ip = ""
 	force_close = form.getvalue('force_close')
@@ -74,6 +75,9 @@ elif form.getvalue('mode') is not None:
 	backend = ""
 	acl = ""
 	servers_split = ""
+	new_listener = form.getvalue('listener')
+	new_frontend = form.getvalue('frontend')
+	new_backend = form.getvalue('new_backend')
 
 	if form.getvalue('balance') is not None:
 		balance = "    balance " + form.getvalue('balance') + "\n"
@@ -85,17 +89,20 @@ elif form.getvalue('mode') is not None:
 		balance += "    " + health_check + "\n"
 
 	if form.getvalue('ip') is not None:
-		ip = form.getvalue('ip')
+		ip = form.getlist('ip')
 
-	if form.getvalue('listener') is not None:
-		name = "listen " + form.getvalue('listener')
-		end_name = form.getvalue('listener')
-	elif form.getvalue('frontend') is not None:
-		name = "frontend " + form.getvalue('frontend')
-		end_name = form.getvalue('frontend')
-	elif form.getvalue('new_backend') is not None: 
-		name = "backend " + form.getvalue('new_backend')
-		end_name = form.getvalue('new_backend')
+	if new_listener is not None:
+		name = "listen " + new_listener
+		end_name = new_listener
+	elif new_frontend is not None:
+		name = "frontend " + new_frontend
+		end_name = new_frontend
+	elif new_backend is not None:
+		name = "backend " + new_backend
+		end_name = new_backend
+	else:
+		print('error: The name cannot be empty')
+		sys.exit()
 
 	if form.getvalue('backends') is not None:
 		backend = "    default_backend " + form.getvalue('backends') + "\n"
@@ -112,11 +119,26 @@ elif form.getvalue('mode') is not None:
 				ssl_check = " ssl verify none"
 			else:
 				ssl_check = " ssl verify"
-	
-	if not ip and port is not None:
-		bind = "    bind *:" + port + " " + ssl + "\n"
-	elif port is not None:
-		bind = "    bind " + ip + ":" + port + " " + ssl + "\n"
+
+	if ip or port:
+		if type(port) is list:
+			i = 0
+			for p in port:
+				if ip[i] == 'IsEmptY':
+					if ip[i] == 'IsEmptY' and port[i] == 'IsEmptY':
+						i += 1
+						continue
+					else:
+						port_value = port[i]
+					bind += "    bind *:" + port_value + " " + ssl + "\n"
+				else:
+					if port[i] == 'IsEmptY':
+						print('error: IP cannot be bind without a port')
+						sys.exit()
+					else:
+						port_value = port[i]
+					bind += "    bind " + ip[i] + ":" + port_value + " " + ssl + "\n"
+				i += 1
 
 	if form.getvalue('default-check') == "1":
 		if form.getvalue('check-servers') == "1":
@@ -246,6 +268,7 @@ elif form.getvalue('mode') is not None:
 		send_proxy = form.getlist('send_proxy')
 		backup = form.getlist('backup')
 		server_maxconn = form.getlist('server_maxconn')
+		port_check = form.getvalue('port_check')
 		i = 0
 		for server in servers:
 			if form.getvalue('template') is None:
@@ -270,14 +293,20 @@ elif form.getvalue('mode') is not None:
 				except Exception:
 					maxconn_val = '200'
 
-				servers_split += "    server {0} {0}:{1} maxconn {5}{2} {3} {4} \n".format(server,
+				try:
+					port_check_val = port_check[i]
+				except Exception:
+					port_check_val = port
+
+				servers_split += "    server {0} {0}:{1}{2} port {6} maxconn {5} {3} {4} \n".format(server,
 																			server_port[i],
 																			check,
 																			send_proxy_param,
 																			backup_param,
-																			maxconn_val)
+																			maxconn_val,
+																			port_check_val)
 			else:
-				servers_split += "    server-template {0} {1}  {2}:{3} {4} \n".format(form.getvalue('prefix'),
+				servers_split += "    server-template {0} {1} {2}:{3} {4} \n".format(form.getvalue('prefix'),
 																						form.getvalue('template-number'),
 																						server,
 																						server_port[i],
