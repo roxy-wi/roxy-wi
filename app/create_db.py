@@ -858,28 +858,6 @@ def update_db_v_5_3_2_2(**kwargs):
 		print("Updating... DB has been updated to version 5.3.2")
 
 
-def update_db_v_5_4_01(**kwargs):
-	query = Setting.update(value='/etc/nginx/nginx.conf').where(Setting.param == 'nginx_config_path')
-	try:
-		query.execute()
-	except Exception as e:
-		print("An error occurred:", e)
-	else:
-		if kwargs.get('silent') != 1:
-			print("Updating... DB has been updated to version 5.4.0")
-
-
-def update_db_v_5_4_02(**kwargs):
-	query = Setting.update(value='/var/log/haproxy/access.log').where(Setting.param == 'haproxy_path_logs')
-	try:
-		query.execute()
-	except Exception as e:
-		print("An error occurred:", e)
-	else:
-		if kwargs.get('silent') != 1:
-			print("Updating... DB has been updated to version 5.4.0-1")
-
-
 def update_db_v_5_4_2(**kwargs):
 	cursor = conn.cursor()
 	sql = """ALTER TABLE `smon` ADD COLUMN slack_channel_id integer DEFAULT '0';"""
@@ -932,8 +910,6 @@ def update_all():
 	update_db_v_5_3_1()
 	update_db_v_5_3_2()
 	update_db_v_5_3_2_2()
-	update_db_v_5_4_01()
-	update_db_v_5_4_02()
 	update_db_v_5_4_2()
 	update_ver()
 
@@ -967,8 +943,6 @@ def update_all_silent():
 	update_db_v_5_3_1(silent=1)
 	update_db_v_5_3_2(silent=1)
 	update_db_v_5_3_2_2(silent=1)
-	update_db_v_5_4_01(silent=1)
-	update_db_v_5_4_02(silent=1)
 	update_db_v_5_4_2(silent=1)
 	update_ver()
 

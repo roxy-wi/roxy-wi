@@ -1796,11 +1796,11 @@ if form.getvalue('get_nginx_v'):
         container_name = sql.get_setting('nginx_container_name')
         cmd = ["docker exec -it "+container_name+" /usr/sbin/nginx -v 2>&1|awk '{print $3}'"]
     else:
-        cmd = ['/usr/sbin/nginx -v']
+        cmd = ['sudo /usr/sbin/nginx -v']
     print(funct.ssh_command(serv, cmd))
 
 if form.getvalue('get_keepalived_v'):
-    cmd = ["/usr/sbin/keepalived -v 2>&1|head -1|awk '{print $2}'"]
+    cmd = ["sudo /usr/sbin/keepalived -v 2>&1|head -1|awk '{print $2}'"]
     print(funct.ssh_command(serv, cmd))
 
 if form.getvalue('get_exporter_v'):
