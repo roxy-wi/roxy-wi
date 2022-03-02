@@ -490,19 +490,29 @@ def diff_config(oldcfg, cfg, **kwargs):
 	except IOError:
 		print('<center><div class="alert alert-danger">Can\'t read write change to log. %s</div></center>' % stderr)
 		pass
+	
+	
+def get_remote_sections(server_ip: str, service: str) -> str:
+	import sql
+	remote_dir = service+'_dir'
+	config_dir = sql.get_setting(remote_dir)
+	config_dir = return_nice_path(config_dir)
+	if service == 'nginx':
+		section_name = 'server_name'
+	elif service == 'apache':
+		section_name = 'ServerName'
+	commands = ['sudo grep {} {}* -R |grep -v \'$server_name\|#\'|awk \'{{print $1, $3}}\''.format(section_name, config_dir)]
+
+	backends = ssh_command(server_ip, commands)
+
+	return backends
 
 
 def get_sections(config, **kwargs):
 	return_config = list()
 	with open(config, 'r') as f:
 		for line in f:
-			if kwargs.get('service') == 'nginx':
-				if 'server_name' in line:
-					line = line.split('server_name')[1]
-					line = line.split(';')[0]
-					line = line.strip()
-					return_config.append(line)
-			elif kwargs.get('service') == 'keepalived':
+			if kwargs.get('service') == 'keepalived':
 				import re
 				ip_pattern = re.compile('\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}')
 				find_ip = re.findall(ip_pattern,line)
@@ -658,7 +668,7 @@ def get_stick_table(table):
 
 
 def show_installation_output(error, output, service):
-	if error and "WARNING" not in error:
+	if error and "DEPRECATION WARNING" not in error:
 		logging('localhost', error, haproxywi=1)
 		print('error: '+error)
 		return False
@@ -1168,9 +1178,35 @@ def show_log(stdout, **kwargs):
 	return out
 
 
+def show_finding_in_config(stdout: str, **kwargs) -> str:
+	i = 0
+	out = ''
+	grep = ''
+	line_class = 'line'
+
+	if kwargs.get('grep'):
+		import re
+		grep = kwargs.get('grep')
+		grep = re.sub(r'[?|$|!|^|*|\]|\[|,| |]', r'', grep)
+
+	out += '<div class="line">--</div>'
+	for line in stdout:
+		i = i + 1
+		if kwargs.get('grep'):
+			line = line.replace(grep, '<span style="color: red; font-weight: bold;">'+grep+'</span>')
+			line_class = "line" if '--' in line else "line3"
+		out += '<div class="'+line_class+'">' + line + '</div>'
+
+	out += '<div class="line">--</div>'
+
+	return out
+
+
+
 def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', hour1='24', minut1='00', service='haproxy', **kwargs):
 	import sql
 	exgrep = form.getvalue('exgrep')
+	log_file = form.getvalue('file')
 	date = hour+':'+minut
 	date1 = hour1+':'+minut1
 	cmd = ''
@@ -1189,11 +1225,11 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 		syslog_server_enable = sql.get_setting('syslog_server_enable')
 		if syslog_server_enable is None or syslog_server_enable == 0:
 			if service == 'nginx':
-				local_path_logs = sql.get_setting('nginx_path_error_logs')
-				commands = ["sudo cat %s| awk '$2>\"%s:00\" && $2<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, date, date1, rows, grep_act, exgrep_act)]
+				local_path_logs = sql.get_setting('nginx_path_logs')
+				commands = ["sudo cat %s/%s |tail -%s %s %s" % (local_path_logs, log_file, rows, grep_act, exgrep_act)]
 			else:
 				local_path_logs = sql.get_setting('haproxy_path_logs')
-				commands = ["sudo cat %s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, date, date1, rows, grep_act, exgrep_act)]
+				commands = ["sudo cat %s/%s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, log_file, date, date1, rows, grep_act, exgrep_act)]
 			syslog_server = serv
 		else:
 			commands = ["sudo cat /var/log/%s/syslog.log | sed '/ %s:00/,/ %s:00/! d' |tail -%s %s %s %s" % (serv, date, date1, rows, grep_act, grep, exgrep_act)]
@@ -1399,14 +1435,24 @@ def get_files(dir=get_config_var('configs', 'haproxy_save_configs_dir'), format=
 
 
 def get_remote_files(server_ip: str, config_dir: str, file_format: str):
-	if 'nginx' not in config_dir:
-		return 'error: The path must contain the name of the service. Check it in Roxy-WI settings'
-	if config_dir[-1] != '/':
-		config_dir += '/'
-	commands = ['ls ' + config_dir + '*.' + file_format]
+	config_dir = return_nice_path(config_dir)
+	if file_format == 'conf':
+		commands = ['ls ' + config_dir + '*/*.' + file_format]
+	else:
+		commands = ['ls ' + config_dir + '/*.' + file_format]
 	config_files = ssh_command(server_ip, commands)
 
 	return config_files
+
+
+def return_nice_path(return_path: str) -> str:
+	if 'nginx' not in return_path and 'haproxy' not in return_path:
+		return 'error: The path must contain the name of the service. Check it in Roxy-WI settings'
+	if return_path[-1] != '/':
+		return_path += '/'
+
+	return return_path
+
 
 def get_key(item):
 	return item[0]
@@ -1694,6 +1740,26 @@ def get_system_info(server_ip: str) -> bool:
 						pass
 
 					try:
+						if b['class'] == 'storage':
+							for p, pval in b.items():
+								if isinstance(pval, list):
+									for disks_info in pval:
+										for volume_info in disks_info['children']:
+											if isinstance(volume_info['logicalname'], list):
+												volume_name = volume_info['logicalname'][0]
+												mount_point = volume_info['logicalname'][1]
+												size = round(volume_info['capacity'] / 1073741824)
+												size = str(size) + 'Gb'
+												fs = volume_info['configuration']['mount.fstype']
+												state = volume_info['configuration']['state']
+												disks[volume_name] = {'mount_point': mount_point,
+																		  'size': size,
+																		  'fs': fs,
+																		  'state': state}
+					except Exception:
+						pass
+
+					try:
 						if b['class'] == 'bridge':
 							if 'children' in b:
 								for s in b['children']:
@@ -1764,6 +1830,20 @@ def get_system_info(server_ip: str) -> bool:
 													try:
 														for q in y['children']:
 															for o in q['children']:
+																try:
+																	volume_name = o['logicalname']
+																	mount_point = ''
+																	size = round(o['size'] / 1073741824)
+																	size = str(size) + 'Gb'
+																	fs = ''
+																	state = ''
+																	disks[volume_name] = {
+																		'mount_point': mount_point,
+																		'size': size,
+																		'fs': fs,
+																		'state': state}
+																except Exception:
+																	pass
 																for w in o['children']:
 																	try:
 																		if isinstance(w['logicalname'], list):

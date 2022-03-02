@@ -1,0 +1,20 @@
+<select autofocus required name="log_files" id="log_files" style="width: 200px;">
+    <option disabled selected>Select a log file</option>
+    {% for file in return_files.split() %}
+        {% if file == config_file_name %}
+        <option value="{{ file.split('/')[-1] }}" selected>{{ file.split('/')[-1] }}</option>
+        {% else %}
+        <option value="{{ file.split('/')[-1] }}">{{ file.split('/')[-1] }}</option>
+        {% endif %}
+    {% endfor %}
+</select>
+<script>
+	$(document).ready(function() {
+		$('#log_files').select2();
+	});
+</script>
+<style>
+    .select2-container .select2-selection--single {
+        height: 33px;
+    }
+</style>

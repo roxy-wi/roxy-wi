@@ -12,12 +12,14 @@
 				Server
 			{% endif %}
 		</td>
-		{% if select_id != 'viewlogs' and service != 'nginx' %}
-		<td style="width: 5%;">WAF logs</td>
+		{% if waf != '1' %}
+		<td style="width: 10%;">Log files</td>
 		{% endif %}
-		<td>Number rows</td>
-		<td class="padding10 help_cursor"><span title="Find in a log file(supports regular expressions)">Find<span></td>
-		<td class="padding10 help_cursor"><span title="Exclude from search in a log file(supports regular expressions)">Exclude<span></td>
+		{% if select_id != 'viewlogs' and service != 'nginx' %}
+		{% endif %}
+		<td style="width: 10%;">Number rows</td>
+		<td class="help_cursor" style="width: 10%;"><span title="Find in a log file(supports regular expressions)">Find<span></td>
+		<td class="padding10 help_cursor" style="width: 10%;"><span title="Exclude from search in a log file(supports regular expressions)">Exclude<span></td>
 		<td style="width: 10%;">
 			<label for="time_range_out_hour" style="padding: 0">Time range:</label>
 			{{ input('time_range_out_hour', value=hour, class='time-range', readonly='readonly') }}:{{ input('time_range_out_minut', value=minut, class='time-range', readonly='readonly') }}
@@ -49,28 +51,26 @@
 							{% endif %}
 						{% endfor %}
 					</select>
-					{% else %}
-						{% include 'include/select.html' %}
-					{% endif %}			
+				{% else %}
+					{% include 'include/select.html' %}
+				{% endif %}
 		</td>
-		{% if select_id != 'viewlogs' and service != 'nginx' %}
-		<td>
-			{{ checkbox('waf') }}
-		</td>
+		{% if waf != '1' %}
+		<td id="remote_log_files"></td>
 		{% endif %}
 		<td class="padding10" style="width: 10%;">
-			{{ input('rows', type='number', value=rows, required='required', size='5') }}
+			{{ input('rows', type='number', value=rows, required='required', style='width: 110px;') }}
 		</td> 
 		<td class="padding10" style="width: 10%;">
-			{{ input('grep', value=grep) }}
+			{{ input('grep', value=grep, style='width: 110px;') }}
 		</td>
 		<td class="padding10" style="width: 10%;">
-			{{ input('exgrep', value=exgrep) }}
+			{{ input('exgrep', value=exgrep, style='width: 110px;') }}
 		</td>
 		<td class="padding10" style="width: 10%;">
 			<div id="time-range"></div>			
 		</td>			
-		<td class="padding10 first-collumn" style="width: 10%;">
+		<td class="padding10 first-collumn" style="width: 1%;">
 			<button type="submit" name="Show log" value="Show" id="show_log_button">Show</button>
 			</form>
 		</td>
@@ -101,9 +101,20 @@
 		{% if waf == '1' %}
 			$('#waf').prop('checked', true);
 		{% endif %}
-		showLog()
+		{% if waf != '1' %}
+			showRemoteLogFiles()
+			$( "#serv" ).on('selectmenuchange',function() {
+				showRemoteLogFiles();
+			});
+		{% else %}
+			showLog()
+		{% endif %}
+
 		if (window.matchMedia('(max-width: 786px)').matches || window.matchMedia('(max-width: 1024px)').matches || window.matchMedia('(max-width: 667px)').matches) {
 			$( "#serv" ).selectmenu({
+				  width: 150
+			});
+			$( "#log_files" ).selectmenu({
 				  width: 150
 			});
 		}

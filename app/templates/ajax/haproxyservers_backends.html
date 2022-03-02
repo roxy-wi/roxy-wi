@@ -6,11 +6,20 @@
 {% if backends == 'Cannot get backends' %}
 	{{backends}}
 {% else %}
+	{% if service == 'nginx' or service == 'apache' %}
+		{% set backends = backends.split('\n') %}
+	{% endif %}
 	{% for b in backends %}
 		{% if service == 'haproxy' %}
 		<a href="/app/sections.py?serv={{ serv}}&section={{b}}" title="Edit backend {{b}}" target="_blank" style="padding-right: 10px;">
 			{{b}}
 		</a>
+		{% elif service == 'nginx' or service == 'apache' %}
+			{% set full_file = b.split(' ')[0] | replace ('/', '92') %}
+			{% set full_file = full_file.replace(':', '') %}
+			<a href="/app/config.py?service={{ service }}&serv={{serv}}&open=open&config_file_name={{full_file}}" title="Edit config {{b.split(' ')[0]}}" target="_blank" style="padding-right: 10px;">
+				{{b.split(' ')[1] | replace(';', '')}}
+			</a>
 		{% else %}
 			{{b}}
 		{% endif %}

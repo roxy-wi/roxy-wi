@@ -29,8 +29,8 @@ def default_values():
 		{'param': 'lists_path', 'value': 'lists', 'section': 'main',
 		 'desc': 'Path to the black and the wild list. The value of this paramer should be specified as a relative path beginning with $HOME_ROXY-WI',
 		 'group': '1'},
-		{'param': 'haproxy_path_logs', 'value': '/var/log/haproxy/access.log', 'section': 'haproxy',
-		 'desc': 'The default local path for saving logs', 'group': '1'},
+		{'param': 'haproxy_path_logs', 'value': '/var/log/haproxy/', 'section': 'haproxy',
+		 'desc': 'The path for HAProxy logs', 'group': '1'},
 		{'param': 'syslog_server_enable', 'value': '0', 'section': 'logs',
 		 'desc': 'Enable getting logs from a syslog server; (0 - no, 1 - yes)', 'group': '1'},
 		{'param': 'syslog_server', 'value': '', 'section': 'logs', 'desc': 'IP address of the syslog_server',
@@ -57,8 +57,8 @@ def default_values():
 		 'group': '1'},
 		{'param': 'apache_log_path', 'value': '/var/log/'+apache_dir+'/', 'section': 'logs', 'desc': 'Path to Apache logs',
 		 'group': '1'},
-		{'param': 'nginx_path_error_logs', 'value': '/var/log/nginx/error.log', 'section': 'nginx',
-		 'desc': 'Nginx error log', 'group': '1'},
+		{'param': 'nginx_path_logs', 'value': '/var/log/nginx/', 'section': 'nginx',
+		 'desc': 'The path for Nginx logs', 'group': '1'},
 		{'param': 'nginx_stats_user', 'value': 'admin', 'section': 'nginx', 'desc': 'Username for accessing Nginx stats page',
 		 'group': '1'},
 		{'param': 'nginx_stats_password', 'value': 'password', 'section': 'nginx',
@@ -873,8 +873,30 @@ def update_db_v_5_4_2(**kwargs):
 		print("Updating... DB has been updated to version 5.4.2")
 
 
+def update_db_v_5_4_3(**kwargs):
+	query = Setting.update(param='nginx_path_logs', value='/var/log/nginx/').where(Setting.param == 'nginx_path_error_logs')
+	try:
+		query.execute()
+	except Exception as e:
+		print("An error occurred:", e)
+	else:
+		if kwargs.get('silent') != 1:
+			print("Updating... DB has been updated to version 5.4.3")
+
+
+def update_db_v_5_4_3_1(**kwargs):
+	query = Setting.update( value='/etc/nginx/').where(Setting.param == 'nginx_dir')
+	try:
+		query.execute()
+	except Exception as e:
+		print("An error occurred:", e)
+	else:
+		if kwargs.get('silent') != 1:
+			print("Updating... DB has been updated to version 5.4.3-1")
+
+
 def update_ver():
-	query = Version.update(version='5.4.2.0')
+	query = Version.update(version='5.4.3.0')
 	try:
 		query.execute()
 	except:
@@ -911,6 +933,8 @@ def update_all():
 	update_db_v_5_3_2()
 	update_db_v_5_3_2_2()
 	update_db_v_5_4_2()
+	update_db_v_5_4_3()
+	update_db_v_5_4_3_1()
 	update_ver()
 
 
@@ -944,6 +968,8 @@ def update_all_silent():
 	update_db_v_5_3_2(silent=1)
 	update_db_v_5_3_2_2(silent=1)
 	update_db_v_5_4_2(silent=1)
+	update_db_v_5_4_3(silent=1)
+	update_db_v_5_4_3_1(silent=1)
 	update_ver()
 
 

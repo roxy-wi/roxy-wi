@@ -39,6 +39,9 @@ except Exception:
 if service == 'nginx':
 	if funct.check_login(service=2):
 		title = "Nginx`s logs"
+elif waf == '1':
+	if funct.check_login(service=1):
+		title = "WAF logs"
 else:
 	if funct.check_login(service=1):
 		title = "HAProxy`s logs"

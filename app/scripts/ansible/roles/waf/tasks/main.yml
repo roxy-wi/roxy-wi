@@ -40,6 +40,18 @@
         http_proxy: "{{PROXY}}"
         https_proxy: "{{PROXY}}"
 
+    - name: install the el9 RPMS for HAProxy
+      yum:
+        name:
+          - yajl-devel
+        state: latest
+      when:
+        - ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
+        - ansible_facts['distribution_major_version'] == '8'
+      environment:
+        http_proxy: "{{PROXY}}"
+        https_proxy: "{{PROXY}}"
+
     - name: install the common RPMS for HAProxy
       yum:
         name:

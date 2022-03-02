@@ -293,9 +293,11 @@ function openVersions() {
 	win.focus();
 }
 function showLog() {
-	var waf = 0;
-	if ($('#waf').is(':checked')) {
-		waf = '1';
+	var waf = findGetParameter('waf');
+	var file = $('#log_files').val();
+	if (file === null) {
+		toastr.warning('Select a log file first')
+		return false;
 	}
 	var rows = $('#rows').val()
 	var grep = $('#grep').val()
@@ -321,15 +323,60 @@ function showLog() {
 			hour1: hour1,
 			minut1: minut1,
 			service: service,
+			file: file,
 			token: $('#token').val()
 		},
 		type: "POST",
 		success: function( data ) {
-			if (data.indexOf('Internal error:') == '-1') {
+			toastr.clear();
+			$("#ajax").html(data);
+			window.history.pushState("Logs", "Logs", cur_url[0] + "?service=" + service + "&serv=" + $("#serv").val() +
+				'&rows=' + rows +
+				'&exgrep=' + exgrep +
+				'&grep=' + grep +
+				'&hour=' + hour +
+				'&minut=' + minut +
+				'&hour1=' + hour1 +
+				'&minut1=' + minut1 +
+				'&file=' + file +
+				'&waf=' + waf);
+
+		}					
+	} );
+}
+function showRemoteLogFiles() {
+	let serv = $('#serv').val();
+	if (serv === undefined || serv === null) {
+		toastr.warning('Select a server firts');
+		return false;
+	}
+	var rows = $('#rows').val()
+	var grep = $('#grep').val()
+	var exgrep = $('#exgrep').val()
+	var hour = $('#time_range_out_hour').val()
+	var minut = $('#time_range_out_minut').val()
+	var hour1 = $('#time_range_out_hour1').val()
+	var minut1 = $('#time_range_out_minut1').val()
+	var service = $('#service').val()
+	if (service == 'None') {
+		service = 'haproxy';
+	}
+	$.ajax( {
+		url: "options.py",
+		data: {
+			serv: $("#serv").val(),
+			act: "showRemoteLogFiles",
+			service: service,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			if (data.indexOf('error:') != '-1' || data.indexOf('ls: cannot access') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
-				$("#ajax").html(data);
+				$("#remote_log_files").html(data);
+				$.getScript('/inc/configshow.js');
 				window.history.pushState("Logs", "Logs", cur_url[0] + "?service=" + service + "&serv=" + $("#serv").val() +
 					'&rows=' + rows +
 					'&exgrep=' + exgrep +
@@ -338,10 +385,11 @@ function showLog() {
 					'&minut=' + minut +
 					'&hour1=' + hour1 +
 					'&minut1=' + minut1 +
-					'&waf=' + waf);
+					'&waf=0');
 			}
-		}					
+		}
 	} );
+
 }
 function clearAllAjaxFields() {
 	$("#ajax").empty();
@@ -429,6 +477,12 @@ function showCompareConfigs() {
 function showConfig() {
 	var service = $('#service').val();
 	var config_file_name = encodeURI($('#config_file_name').val());
+	if (service == 'nginx') {
+		if ($('#config_file_name').val() === undefined || $('#config_file_name').val() === null) {
+			toastr.warning('Select a config file firts');
+			return false;
+		}
+	}
 	clearAllAjaxFields();
 	$.ajax( {
 		url: "options.py",
@@ -470,7 +524,6 @@ function showConfigFiles() {
 			} else {
 				toastr.clear();
 				$("#ajax-config_file_name").html(data);
-				$( "select" ).selectmenu();
 				window.history.pushState("Show config", "Show config", cur_url[0] + "?service=" + service + "&serv=" + $("#serv").val() + "&showConfigFiles");
 			}
 		}
@@ -497,7 +550,6 @@ function showConfigFilesForEditing() {
 				} else {
 					toastr.clear();
 					$("#ajax-config_file_name").html(data);
-					$("select").selectmenu();
 				}
 			}
 		});
@@ -1297,4 +1349,26 @@ function changeUserPasswordItOwn(d) {
 			}
 		} );
 	}
+}
+function findInConfig() {
+	clearAllAjaxFields();
+		$.ajax( {
+			url: "options.py",
+			data: {
+				serv: $("#serv").val(),
+				act: "findInConfigs",
+				service: $("#service").val(),
+				words: $('#words').val(),
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+				if (data.indexOf('error:') != '-1') {
+					toastr.error(data);
+				} else {
+					toastr.clear();
+					$("#ajax").html(data);
+				}
+			}
+		} );
 }

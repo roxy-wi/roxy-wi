@@ -479,36 +479,36 @@ if act == "overviewHapserverBackends":
     if service == 'haproxy':
         configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
         format_file = 'cfg'
-    elif service == 'nginx':
-        configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
-        format_file = 'conf'
     elif service == 'keepalived':
         configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
         format_file = 'conf'
 
-    try:
-        sections = funct.get_sections(configs_dir + funct.get_files(dir=configs_dir, format=format_file)[0], service=service)
-    except Exception as e:
-        funct.logging('localhost', str(e), haproxywi=1)
+    if service != 'nginx':
+        try:
+            sections = funct.get_sections(configs_dir + funct.get_files(dir=configs_dir, format=format_file)[0], service=service)
+        except Exception as e:
+            funct.logging('localhost', str(e), haproxywi=1)
 
-        try:
-            cfg = configs_dir + serv + "-" + funct.get_data('config') + '.' + format_file
-        except Exception as e:
-            funct.logging('localhost', ' Cannot generate a cfg path ' + str(e), haproxywi=1)
-        try:
-            if service == 'nginx':
-                error = funct.get_config(serv, cfg, nginx=1)
-            elif service == 'keepalived':
-                error = funct.get_config(serv, cfg, keepalived=1)
-            else:
-                error = funct.get_config(serv, cfg)
-        except Exception as e:
-            funct.logging('localhost', ' Cannot download a config ' + str(e), haproxywi=1)
-        try:
-            sections = funct.get_sections(cfg, service=service)
-        except Exception as e:
-            funct.logging('localhost', ' Cannot get sections from config file ' + str(e), haproxywi=1)
-            sections = 'Cannot get backends'
+            try:
+                cfg = configs_dir + serv + "-" + funct.get_data('config') + '.' + format_file
+            except Exception as e:
+                funct.logging('localhost', ' Cannot generate a cfg path ' + str(e), haproxywi=1)
+            try:
+                if service == 'nginx':
+                    error = funct.get_config(serv, cfg, nginx=1)
+                elif service == 'keepalived':
+                    error = funct.get_config(serv, cfg, keepalived=1)
+                else:
+                    error = funct.get_config(serv, cfg)
+            except Exception as e:
+                funct.logging('localhost', ' Cannot download a config ' + str(e), haproxywi=1)
+            try:
+                sections = funct.get_sections(cfg, service=service)
+            except Exception as e:
+                funct.logging('localhost', ' Cannot get sections from config file ' + str(e), haproxywi=1)
+                sections = 'Cannot get backends'
+    else:
+        sections = funct.get_remote_sections(serv, service)
 
     template = template.render(backends=sections, serv=serv, service=service)
     print(template)
@@ -1201,6 +1201,20 @@ if act == 'configShowFiles':
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
     template = env.get_template('ajax/show_configs_files.html')
     template = template.render(serv=serv, return_files=return_files, config_file_name=config_file_name, path_dir=nginx_config_dir)
+    print(template)
+
+if act == 'showRemoteLogFiles':
+    service = form.getvalue('service')
+    log_path = sql.get_setting(service+'_path_logs')
+    return_files = funct.get_remote_files(serv, log_path, 'log')
+    if 'error: ' in return_files:
+        print(return_files)
+        sys.exit()
+    from jinja2 import Environment, FileSystemLoader
+
+    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
+    template = env.get_template('ajax/show_log_files.html')
+    template = template.render(serv=serv, return_files=return_files, path_dir=log_path)
     print(template)
 
 if form.getvalue('master'):
@@ -3113,7 +3127,7 @@ if form.getvalue('awsvars') or form.getvalue('awseditvars'):
         print('error: ' + stderr)
     else:
         print('ok')
-        
+
 if form.getvalue('dovars') or form.getvalue('doeditvars'):
     if form.getvalue('dovars'):
         dovars = form.getvalue('dovars')
@@ -3172,7 +3186,7 @@ if form.getvalue('dovalidate') or form.getvalue('doeditvalidate'):
         print('error: ' + stderr)
     else:
         print('ok')
-        
+
 if form.getvalue('doworkspace'):
     workspace = form.getvalue('doworkspace')
     group = form.getvalue('do_create_group')
@@ -3335,7 +3349,7 @@ if form.getvalue('awseditworkspace'):
             output, stderr = funct.subprocess_execute(cmd)
         except Exception as e:
             print('error: ' +str(e))
-            
+
         if stderr != '':
             stderr = stderr.strip()
             stderr = repr(stderr)
@@ -4022,3 +4036,19 @@ if act == 'updateSystemInfo':
         print(template)
     else:
         print('error: Cannot update server info')
+
+if act == 'findInConfigs':
+    server_ip = serv
+    server_ip = funct.is_ip_or_dns(server_ip)
+    finding_words = form.getvalue('words')
+    service = form.getvalue('service')
+    log_path = sql.get_setting(service + '_dir')
+    log_path = funct.return_nice_path(log_path)
+    commands = ['sudo grep "%s" %s* -C 2 -Rn' % (finding_words, log_path)]
+    return_find = funct.ssh_command(server_ip, commands, raw='1')
+    return_find = funct.show_finding_in_config(return_find, grep=finding_words)
+
+    if 'error: ' in return_find:
+        print(return_find)
+        sys.exit()
+    print(return_find)

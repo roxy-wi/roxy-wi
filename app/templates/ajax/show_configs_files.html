@@ -1,11 +1,12 @@
 {% from 'include/input_macros.html' import input %}
-<form action="" method="post">
-	<div style="text-align: center;margin-top: 20px;">
+<div style="text-align: center;margin-top: 20px;">
+	{% if 'cannot access' not in return_files %}
 		{% if config_file_name == '' %}
 		<h4>Config files from {{serv}}</h4>
 		{% endif %}
+		<form action="" method="post">
 		<p>
-			<select autofocus required name="config_file_name" id="config_file_name">
+			<select autofocus required name="config_file_name" id="config_file_name" style="width: 365px;">
 				<option disabled selected>Select a config file</option>
 				{% for file in return_files.split() %}
 					{% if file == config_file_name %}
@@ -18,7 +19,79 @@
 
 			{{ input('serv', type='hidden', value=serv) }}
 			{{ input('open', type='hidden', value='open') }}
-			<a class="ui-button ui-widget ui-corner-all" id="show" title="Compare" onclick="showConfig()">Open</a>
+			<a class="ui-button ui-widget ui-corner-all" id="show" title="Open config" onclick="showConfig()">Open</a>
+			<a class="ui-button ui-widget ui-corner-all" title="Create a new config file"  onclick="addNewConfig('{{serv}}')">Add</a>
+			<a class="ui-button ui-widget ui-corner-all" title="Lookup in config files" id="open_find_form">Find</a>
 		</p>
+		</form>
+	<form action="" method="post" id="finding_words_from">
+		<p id="find_p" style="display: none;">
+			{{ input('words', type='text', style='height: 32.5px;') }}
+			<button type="submit" name="find" id="find_in_configs" value="Find" title="Find in configs">Find</button>
+		</p>
+		{% else %}
+		<div class="alert alert-warning">{{return_files}}</div>
+		{% endif %}
+	</form>
 	</div>
-</form>
+
+<div id="add-new-config" style="display: none">
+	<div style="padding-top: 15px;">
+	Config file name: {{ input('new_config_name', type='text', placeholder='conf.d/config_name', title='Format: sub-directory/config_name') }}
+	{{ input('path_config_name', type='hidden', value=path_dir) }}
+	</div>
+</div>
+<script>
+	$(document).ready(function() {
+		$('#config_file_name').select2();
+		$('#finding_words_from').submit(function() {
+			if ($('#words').val() == '') {
+				toastr.warning('Enter words for seaching');
+				return false;
+			}
+			findInConfig();
+			return false;
+		});
+		$( "input[type=submit], button" ).button()
+		$('#open_find_form').on('click', function (){
+			if ($('#find_p').css('display') == 'none') {
+				$('#find_p').show();
+			} else {
+				$('#find_p').hide();
+			}
+		});
+	});
+	function addNewConfig(serv) {
+		$( "#add-new-config" ).dialog({
+				autoOpen: true,
+				resizable: false,
+				height: "auto",
+				width: 600,
+				modal: true,
+				title: "Create a new config file",
+				show: {
+					effect: "fade",
+					duration: 200
+				},
+				hide: {
+					effect: "fade",
+					duration: 200
+				},
+				buttons: {
+					"Create": function() {
+						let config_file_name = $('#new_config_name').val();
+						let path_dir = $('#path_config_name').val();
+						config_file_name = config_file_name.replaceAll('\/','92');
+						path_dir = path_dir.replaceAll('\/','92');
+						window.location.replace('config.py?service=nginx&serv='+serv+'&open=open&config_file_name='+path_dir+'92'+config_file_name+'.conf&new_config=1');
+						$( this ).dialog( "close" );
+					},
+					Cancel: function() {
+						$( this ).dialog( "close" );
+					}
+				}
+			});
+	}
+	$( "select" ).selectmenu();
+	$("#config_file_name").selectmenu("destroy");
+</script>

@@ -1,14 +1,12 @@
-<tr>
-	<td class="padding20" style="width: 70%">Current group</td>
-	<td>
-		<select id="newCurrentGroup" name="newCurrentGroup" >
-			{% for g in groups %}
-				{% if g.user_group_id|string() == group|string() %}
-					<option value="{{ g.user_group_id }}" selected>{{ g.groups.name }}</option>
-				{% else %}
-					<option value="{{ g.user_group_id }}">{{ g.groups.name }}</option>
-				{% endif %}
-			{% endfor %}
-		</select>
-	</td>
-</tr>
+<td class="padding20" style="width: 70%">Current group</td>
+<td>
+	<select id="newCurrentGroup" name="newCurrentGroup">
+		{% for g in groups %}
+			{% if g.user_group_id|string() == group|string() %}
+				<option value="{{ g.user_group_id }}" selected>{{ g.groups.name }}</option>
+			{% else %}
+				<option value="{{ g.user_group_id }}">{{ g.groups.name }}</option>
+			{% endif %}
+		{% endfor %}
+	</select>
+</td>

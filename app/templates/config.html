@@ -1,9 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
 <link rel="stylesheet" href="/inc/codemirror/codemirror.css">
+<link rel="stylesheet" href="/inc/codemirror/dialog.css">
 <script src="/inc/codemirror/codemirror.js"></script>
 <script src="/inc/codemirror/nginx.js"></script>
 <script src="/inc/codemirror/haproxy.js"></script>
+<script src="/inc/codemirror/dialog.js"></script>
+<script src="/inc/codemirror/search.js"></script>
+<script src="/inc/codemirror/searchcursor.js"></script>
+<script src="/inc/codemirror/jump-to-line.js"></script>
 <script src="/inc/configshow.js"></script>
 <center>
 	{% if selects|length == 0 %}
@@ -86,10 +91,10 @@
 	}
 	if (cur_url[1].split('&')[0] == 'service=haproxy' || cur_url[1].split('&')[0] == 'service=None') {
 		var myCodeMirror = CodeMirror.fromTextArea(document.getElementById("config_text_area"),
-				{mode: "haproxy", lineNumbers: true, autocapitalize: true, autocorrect: true, spellcheck: true});
+				{mode: "haproxy", lineNumbers: true, autocapitalize: true, autocorrect: true, spellcheck: true, autoCloseBrackets: true});
 	} else {
 		var myCodeMirror = CodeMirror.fromTextArea(document.getElementById("config_text_area"),
-				{mode: "nginx", lineNumbers: true, autocapitalize: true, autocorrect: true, spellcheck: true});
+				{mode: "nginx", lineNumbers: true, autocapitalize: true, autocorrect: true, spellcheck: true, autoCloseBrackets: true});
 	}
 </script>
 <style>

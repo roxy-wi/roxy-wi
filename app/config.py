@@ -50,9 +50,13 @@ else:
 		servers = sql.get_dick_permit()
 
 if serv is not None:
-	cfg = configs_dir + serv + "-" + funct.get_data('config') + "."+file_format
+	if service == 'nginx':
+		conf_file_name_short = config_file_name.split('/')[-1]
+		cfg = configs_dir + serv + "-" + conf_file_name_short + "-" + funct.get_data('config') + "." + file_format
+	else:
+		cfg = configs_dir + serv + "-" + funct.get_data('config') + "."+file_format
 
-if serv is not None and form.getvalue('open') is not None:
+if serv is not None and form.getvalue('open') is not None and form.getvalue('new_config') is None:
 	funct.check_is_server_in_group(serv)
 	if service == 'keepalived':
 		error = funct.get_config(serv, cfg, keepalived=1)
@@ -81,6 +85,9 @@ if serv is not None and form.getvalue('open') is not None:
 		error += '<br />Cannot read imported config file'
 
 	os.system("/bin/mv %s %s.old" % (cfg, cfg))
+
+if form.getvalue('new_config') is not None:
+	config_read = ' '
 
 if serv is not None and form.getvalue('config') is not None:
 	import sys
