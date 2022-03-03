@@ -29,7 +29,7 @@
 - name: Set passlib version
   set_fact:
     passlib_ver: "python3-passlib"
-  when: (ansible_facts['distribution_major_version'] == '8' and (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS')) or (ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'Ubuntu')
+  when: ansible_facts['distribution_major_version'] == '8'
   ignore_errors: True
 
 
@@ -44,7 +44,18 @@
   package:
     name: "{{passlib_ver}}"
     state: present
-  when: "'nginx' not in ansible_facts.packages"
+  when:
+   - "'nginx' not in ansible_facts.packages"
+   - ansible_facts['distribution_major_version'] != '9'
+  environment:
+    http_proxy: "{{PROXY}}"
+    https_proxy: "{{PROXY}}"
+
+
+- name: Install passlib for el9
+  pip:
+    name: passlib
+  when: ansible_facts['distribution_major_version'] == '9'
   environment:
     http_proxy: "{{PROXY}}"
     https_proxy: "{{PROXY}}"

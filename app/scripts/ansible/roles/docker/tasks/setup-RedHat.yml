@@ -1,4 +1,12 @@
 ---
+- name: Ensure Podman is not installed.
+  package:
+    name:
+      - runc
+      - podman
+      - podman-catatonit
+    state: absent
+
 - name: Add Docker GPG key.
   rpm_key:
     key: "{{ docker_yum_gpg_key }}"
