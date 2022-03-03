@@ -29,7 +29,7 @@
 - name: Set passlib version
   set_fact:
     passlib_ver: "python3-passlib"
-  when: ansible_facts['distribution_major_version'] == '8'
+  when: ansible_facts['distribution_major_version'] == '8' or (ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'Ubuntu')
   ignore_errors: True
 
 
