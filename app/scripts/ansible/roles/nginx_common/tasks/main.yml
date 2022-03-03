@@ -14,14 +14,14 @@
 
 - name: Creates directory
   file:
-    path: /etc/nginx
+    path: "{{nginx_dir}}"
     state: directory
   when: "'nginx' not in ansible_facts.packages"
 
 
 - name: Creates directory
   file:
-    path: /etc/nginx/conf.d
+    path: "{{nginx_dir}}/conf.d"
     state: directory
   when: "'nginx' not in ansible_facts.packages"
 
@@ -64,7 +64,7 @@
 - name: Copy Nginx configuration in place
   template:
     src: default.conf.j2
-    dest: "{{nginx_dir}}/default.conf"
+    dest: "{{nginx_dir}}/conf.d/default.conf"
     mode: 0644
     force: no
   when: "'nginx' not in ansible_facts.packages"
@@ -73,7 +73,7 @@
 - name: Copying over nginx.conf
   template:
     src: nginx.conf.j2
-    dest: "/etc/nginx/nginx.conf"
+    dest: "{{nginx_dir}}/nginx.conf"
     mode: "0666"
     force: no
     remote_src: true
@@ -83,7 +83,7 @@
 - name: Copying over mime.types
   template:
     src: mime.types.j2
-    dest: "/etc/nginx/mime.types"
+    dest: "{{nginx_dir}}/mime.types"
     mode: "0666"
     force: no
     remote_src: true
@@ -115,7 +115,7 @@
 
 
 - htpasswd:
-    path: /etc/nginx/status_page_passwdfile
+    path: "{{nginx_dir}}/status_page_passwdfile"
     name: "{{STATS_USER}}"
     password: "{{STATS_PASS}}"
   when: "'nginx' not in ansible_facts.packages"
