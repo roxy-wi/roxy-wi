@@ -96,9 +96,9 @@
     state: enabled
     permanent: yes
     immediate: yes
-    ignore_errors: yes
-    no_log: True
-    debugger: never
+  ignore_errors: yes
+  no_log: True
+  debugger: never
   when:
     - '"firewalld" in ansible_facts.packages'
     - ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
