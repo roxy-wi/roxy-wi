@@ -46,7 +46,7 @@
 		$('#config_file_name').select2();
 		$('#finding_words_from').submit(function() {
 			if ($('#words').val() == '') {
-				toastr.warning('Enter words for seaching');
+				toastr.warning('Enter words for searching');
 				return false;
 			}
 			findInConfig();

@@ -668,7 +668,7 @@ def get_stick_table(table):
 
 
 def show_installation_output(error, output, service):
-	if error and "DEPRECATION WARNING" not in error:
+	if error and "WARNING" not in error:
 		logging('localhost', error, haproxywi=1)
 		print('error: '+error)
 		return False
