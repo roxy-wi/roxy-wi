@@ -1,0 +1,9 @@
+---
+- name: restart node_exporter
+  become: true
+  systemd:
+    daemon_reload: true
+    name: node_exporter
+    state: restarted
+  when:
+    - not ansible_check_mode
