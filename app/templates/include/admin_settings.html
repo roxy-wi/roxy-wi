@@ -2,7 +2,7 @@
     <tbody>
         {% set section = namespace(section='') %}
         {% for set in settings %}
-        {% if page == "servers.py" and set.section == 'monitoring' %}
+        {% if page == "servers.py" and (set.section == 'monitoring' or set.section == 'rabbitmq') %}
         <!-- continue -->
         {% else %}
         {% if section.section|string() != set.section|string() %}

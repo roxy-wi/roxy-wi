@@ -377,7 +377,7 @@ $( function() {
 			type: "POST",
 			success: function( data ) {
 				data = data.replace(/^\s+|\s+$/g,'');
-				if (data.indexOf('error:') != '-1') {
+				if (data.indexOf('error:') != '-1' || data.indexOf('command') != '-1') {
 					toastr.clear();
 					toastr.error(data);
 				} else if(data == 'no') {
@@ -792,6 +792,9 @@ $( function() {
 	});
 	$('#logs-section-head').click(function () {
 		hideAndShowSettings('logs');
+	});
+	$('#rabbitmq-section-head').click(function () {
+		hideAndShowSettings('rabbitmq');
 	});
 } );
 function hideAndShowSettings(section) {

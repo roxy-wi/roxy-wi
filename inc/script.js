@@ -1255,46 +1255,53 @@ $(function () {
 		preload: true
 	});
 });
-async function waitConsumer() {
+let socket = new ReconnectingWebSocket("wss://" + window.location.host, null, {maxReconnectAttempts: 20, reconnectInterval: 3000});
+
+socket.onopen = function(e) {
+  console.log("[open] Connection is established with " + window.location.host);
+  getAlerts();
+};
+
+function getAlerts() {
+	socket.send("alert_group " + Cookies.get('group') + ' ' + Cookies.get('uuid'));
+}
+
+socket.onmessage = function(event) {
 	cur_url = window.location.href.split('/').pop();
 	cur_url = cur_url.split('?');
-	if (cur_url[0] != 'servers.py#installproxy' && cur_url[0] != 'servers.py#installmon' &&
-		cur_url[0] != 'users.py#installmon' && cur_url[0] != 'ha.py' && cur_url[0] != 'users.py#updatehapwi' &&
-		cur_url[0] != 'add.py?service=nginx#ssl' && cur_url[0] != 'add.py#ssl' && cur_url[0] != 'servers.py#geolite2'
-		&& cur_url[0] != 'login.py?ref=/app/overview.py' && sessionStorage.getItem('disabled_alert') === null && localStorage.getItem('disabled_alert') === null) {
-		NProgress.configure({showSpinner: false});
-		$.ajax({
-			url: "options.py",
-			data: {
-				alert_consumer: '1',
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function (data) {
-				data = data.split(";");
-				for (i = 0; i < data.length; i++) {
-					if (data[i].indexOf('error:') != '-1' || data[i].indexOf('alert') != '-1' || data[i].indexOf('FAILED') != '-1') {
-						if (data[i].indexOf('error: database is locked') == '-1') {
-							toastr.error(data[i]);
-							ion.sound.play("bell_ring");
-						}
-					} else if (data[i].indexOf('info: ') != '-1') {
-						toastr.info(data[i]);
-						ion.sound.play("glass");
-					} else if (data[i].indexOf('success: ') != '-1') {
-						toastr.success(data[i]);
-						ion.sound.play("glass");
-					} else if (data[i].indexOf('warning: ') != '-1') {
-						toastr.warning(data[i]);
-						ion.sound.play("bell_ring");
-					}
+	if (cur_url[0] != 'login.py' && sessionStorage.getItem('disabled_alert') === null && localStorage.getItem('disabled_alert') === null) {
+		data = event.data.split(";");
+		for (i = 0; i < data.length; i++) {
+			if (data[i].indexOf('error:') != '-1' || data[i].indexOf('alert') != '-1' || data[i].indexOf('FAILED') != '-1') {
+				if (data[i].indexOf('error: database is locked') == '-1') {
+					toastr.error(data[i]);
+					ion.sound.play("bell_ring");
 				}
+			} else if (data[i].indexOf('info: ') != '-1') {
+				toastr.info(data[i]);
+				ion.sound.play("glass");
+			} else if (data[i].indexOf('success: ') != '-1') {
+				toastr.success(data[i]);
+				ion.sound.play("glass");
+			} else if (data[i].indexOf('warning: ') != '-1') {
+				toastr.warning(data[i]);
+				ion.sound.play("bell_ring");
 			}
-		});
-		NProgress.configure({showSpinner: true});
+		}
 	}
-}
-setInterval(waitConsumer, 20000);
+};
+
+socket.onclose = function(event) {
+  if (event.wasClean) {
+    console.log(`[close] Соединение закрыто чисто, код=${event.code} причина=${event.reason}`);
+  } else {
+    console.log('[close] Соединение прервано');
+  }
+};
+
+socket.onerror = function(error) {
+  console.log(`[error] ${error.message}`);
+};
 function changePassword() {
 	$( "#user-change-password-table" ).dialog({
 			autoOpen: true,

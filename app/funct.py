@@ -36,9 +36,8 @@ def get_config_var(sec, var):
 		path_config = "/var/www/haproxy-wi/app/roxy-wi.cfg"
 		config = ConfigParser(interpolation=ExtendedInterpolation())
 		config.read(path_config)
-	except Exception:
-		print('Content-type: text/html\n')
-		print('<center><div class="alert alert-danger">Check the config file, whether it exists and the path. Must be: app/roxy-wi.cfg</div>')
+	except Exception as e:
+		print('error: ' + str(e))
 		return
 
 	try:
@@ -157,16 +156,7 @@ def logging(server_ip, action, **kwargs):
 	except Exception:
 		pass
 
-	if kwargs.get('metrics') == 1:
-		mess = get_data('date_in_log') + action + "\n"
-		log = open(log_path + "/metrics-"+get_data('logs')+".log", "a")
-	elif kwargs.get('keep_alive') == 1:
-		mess = get_data('date_in_log') + action + "\n"
-		log = open(log_path + "/keep_alive-"+get_data('logs')+".log", "a")
-	elif kwargs.get('port_scanner') == 1:
-		mess = get_data('date_in_log') + action + "\n"
-		log = open(log_path + "/port_scanner-"+get_data('logs')+".log", "a")
-	elif kwargs.get('haproxywi') == 1:
+	if kwargs.get('haproxywi') == 1:
 		if kwargs.get('login'):
 			mess = get_data('date_in_log') + " from " + ip + " user: " + login + ", group: " + user_group + ", " + \
 				action + " for: " + server_ip + "\n"
@@ -975,7 +965,7 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		if is_docker == '1':
 			check_config = "sudo docker exec -it exec " + container_name + " nginx -t -q "
 		else:
-			check_config = "sudo nginx -t -q -p " + tmp_file
+			check_config = "sudo nginx -t -q "
 		check_and_move = "sudo mv -f " + tmp_file + " " + config_path + " && " + check_config
 		if action == "test":
 			commands = [check_config + " && sudo rm -f " + tmp_file]
@@ -1236,7 +1226,7 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 			syslog_server = sql.get_setting('syslog_server')
 
 		if waf == "1":
-			local_path_logs = '/var/log/modsec_audit.log'
+			local_path_logs = '/var/log/waf.log'
 			commands = ["sudo cat %s |tail -%s %s %s" % (local_path_logs, rows, grep_act, exgrep_act)]
 
 		if kwargs.get('html') == 0:
@@ -1437,9 +1427,9 @@ def get_files(dir=get_config_var('configs', 'haproxy_save_configs_dir'), format=
 def get_remote_files(server_ip: str, config_dir: str, file_format: str):
 	config_dir = return_nice_path(config_dir)
 	if file_format == 'conf':
-		commands = ['ls ' + config_dir + '*/*.' + file_format]
+		commands = ['sudo ls ' + config_dir + '*/*.' + file_format]
 	else:
-		commands = ['ls ' + config_dir + '/*.' + file_format]
+		commands = ['sudo ls ' + config_dir + '/*.' + file_format]
 	config_files = ssh_command(server_ip, commands)
 
 	return config_files
@@ -1478,11 +1468,11 @@ def check_new_version(**kwargs):
 	try:
 		if proxy is not None and proxy != '' and proxy != 'None':
 			proxy_dict = {"https": proxy, "http": proxy}
-			response = requests.get('https://haproxy-wi.org/update.py?last_ver'+last_ver+'=1', timeout=1,  proxies=proxy_dict)
-			requests.get('https://haproxy-wi.org/update.py?ver_send='+current_ver, timeout=1,  proxies=proxy_dict)
+			response = requests.get('https://roxy-wi.org/update.py?last_ver'+last_ver+'=1', timeout=1,  proxies=proxy_dict)
+			requests.get('https://roxy-wi.org/update.py?ver_send='+current_ver, timeout=1,  proxies=proxy_dict)
 		else:
-			response = requests.get('https://haproxy-wi.org/update.py?last_ver'+last_ver+'=1', timeout=1)
-			requests.get('https://haproxy-wi.org/update.py?ver_send='+current_ver, timeout=1)
+			response = requests.get('https://roxy-wi.org/update.py?last_ver'+last_ver+'=1', timeout=1)
+			requests.get('https://roxy-wi.org/update.py?ver_send='+current_ver, timeout=1)
 
 		res = response.content.decode(encoding='UTF-8')
 	except requests.exceptions.RequestException as e:
@@ -1627,9 +1617,11 @@ def get_services_status():
 					 'roxy-wi-metrics': 'Metrics master service',
 					 'roxy-wi-portscanner': 'Port scanner service',
 					 'roxy-wi-smon': 'Simple monitoring network ports',
+					 'roxy-wi-socket': 'Socket service',
 					 'prometheus': 'Prometheus service',
 					 'grafana-server': 'Grafana service',
-					 'fail2ban': 'Fail2ban service'}
+					 'fail2ban': 'Fail2ban service',
+					 'rabbitmq-server': 'Message broker service'}
 	for s, v in services_name.items():
 		cmd = "systemctl is-active %s" % s
 		status, stderr = subprocess_execute(cmd)
@@ -1892,3 +1884,30 @@ def get_system_info(server_ip: str) -> bool:
 def string_to_dict(dict_string) -> dict:
 	from ast import literal_eval
 	return literal_eval(dict_string)
+
+
+def send_message_to_rabbit(message: str) -> None:
+	import pika
+	import sql
+	rabbit_user = sql.get_setting('rabbitmq_user')
+	rabbit_password = sql.get_setting('rabbitmq_password')
+	rabbit_host = sql.get_setting('rabbitmq_host')
+	rabbit_port = sql.get_setting('rabbitmq_port')
+	rabbit_vhost = sql.get_setting('rabbitmq_vhost')
+	rabbit_queue = sql.get_setting('rabbitmq_queue')
+
+	credentials = pika.PlainCredentials(rabbit_user, rabbit_password)
+	parameters = pika.ConnectionParameters(rabbit_host,
+										   rabbit_port,
+										   rabbit_vhost,
+										   credentials)
+	print(str(parameters))
+	print(str(credentials))
+	connection = pika.BlockingConnection(parameters)
+	channel = connection.channel()
+	channel.queue_declare(queue=rabbit_queue)
+	channel.basic_publish(exchange='',
+						  routing_key='roxy-wi',
+						  body=message)
+
+	connection.close()

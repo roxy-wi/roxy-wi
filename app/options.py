@@ -70,6 +70,7 @@ if form.getvalue('delcert') is not None and serv is not None:
 if serv and form.getvalue('ssl_cert'):
     cert_local_dir = os.path.dirname(os.getcwd()) + "/" + sql.get_setting('ssl_local_path')
     cert_path = sql.get_setting('cert_path')
+    name = ''
 
     if not os.path.exists(cert_local_dir):
         os.makedirs(cert_local_dir)
@@ -3734,6 +3735,7 @@ if form.getvalue('load_update_hapwi'):
     metrics_ver = funct.check_new_version(service='metrics')
     keep_ver = funct.check_new_version(service='keep')
     portscanner_ver = funct.check_new_version(service='portscanner')
+    socket_ver = funct.check_new_version(service='socket')
     services = funct.get_services_status()
 
     template = template.render(services=services,
@@ -3742,6 +3744,7 @@ if form.getvalue('load_update_hapwi'):
                                smon_ver=smon_ver,
                                metrics_ver=metrics_ver,
                                portscanner_ver=portscanner_ver,
+                               socket_ver=socket_ver,
                                keep_ver=keep_ver)
     print(template)
 
