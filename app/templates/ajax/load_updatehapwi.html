@@ -33,7 +33,7 @@
     <td></td>
 </tr>
 {% for s in services %}
-    {% if s.0 == 'roxy-wi-smon' or s.0 == 'roxy-wi-checker' or s.0 == 'roxy-wi-keep_alive' or s.0 == 'roxy-wi-metrics' or s.0 == 'roxy-wi-portscanner' %}
+    {% if s.0 == 'roxy-wi-smon' or s.0 == 'roxy-wi-checker' or s.0 == 'roxy-wi-keep_alive' or s.0 == 'roxy-wi-metrics' or s.0 == 'roxy-wi-portscanner' or s.0 == 'roxy-wi-socket' %}
 <tr class="{{ loop.cycle('even', 'odd') }}">
     {% set is_need_update = 0 %}
     {% if s.0 == 'roxy-wi-smon' %}
@@ -71,6 +71,13 @@
     {% if s.3|float < portscanner_ver|float %}
         {% set is_need_update = 1 %}
     {% endif %}
+{% elif s.0 == 'roxy-wi-socket' %}
+    {% set service_name = 'Socket service' %}
+    {% set service_link = 'socket' %}
+    {% set desc_link = 'https://roxy-wi.org/services.py?service={{service_link}}' %}
+    {% if s.3|float < socket_ver|float %}
+        {% set is_need_update = 1 %}
+    {% endif %}
 {% endif %}
     <td class="padding10 first-collumn">
         {{service_name}}
@@ -102,6 +109,8 @@
                 {{metrics_ver}}
             {% elif s.0 == 'roxy-wi-portscanner' %}
                 {{portscanner_ver}}
+            {% elif s.0 == 'roxy-wi-socket' %}
+                {{socket_ver}}
             {% endif %}
         </b>
     </td>
