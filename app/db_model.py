@@ -370,7 +370,7 @@ class MetricsHttpStatus(BaseModel):
 
 class SMON(BaseModel):
     id = AutoField()
-    ip = IntegerField(null=True)
+    ip = CharField(null=True)
     port = IntegerField(null=True)
     status = IntegerField(constraints=[SQL('DEFAULT 1')])
     en = IntegerField(constraints=[SQL('DEFAULT 1')])
