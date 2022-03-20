@@ -932,11 +932,8 @@ $( function() {
 		});
 
 	$('#show-user-settings-button').click(function() {
-		if (sessionStorage.getItem('disabled_alert') == '1') {
+		if (localStorage.getItem('disabled_alert') == '1') {
 			$('#disable_alerting option[value="1"]').prop('selected', true);
-			$('#disable_alerting').selectmenu('refresh');
-		} else if (localStorage.getItem('disabled_alert') == '1') {
-			$('#disable_alerting option[value="2"]').prop('selected', true);
 			$('#disable_alerting').selectmenu('refresh');
 		} else {
 			$('#disable_alerting option[value="0"]').prop('selected', true);
@@ -1111,9 +1108,6 @@ function saveUserSettings(){
 	} else if ($('#disable_alerting').val() == '1') {
 		sessionStorage.setItem('disabled_alert', '1');
 		localStorage.removeItem('disabled_alert');
-	} else if ($('#disable_alerting').val() == '2') {
-		localStorage.setItem('disabled_alert', '1');
-		sessionStorage.removeItem('disabled_alert');
 	}
 	changeCurrentGroupF();
 }
@@ -1269,7 +1263,7 @@ function getAlerts() {
 socket.onmessage = function(event) {
 	cur_url = window.location.href.split('/').pop();
 	cur_url = cur_url.split('?');
-	if (cur_url[0] != 'login.py' && sessionStorage.getItem('disabled_alert') === null && localStorage.getItem('disabled_alert') === null) {
+	if (cur_url[0] != 'login.py' && localStorage.getItem('disabled_alert') === null) {
 		data = event.data.split(";");
 		for (i = 0; i < data.length; i++) {
 			if (data[i].indexOf('error:') != '-1' || data[i].indexOf('alert') != '-1' || data[i].indexOf('FAILED') != '-1') {
