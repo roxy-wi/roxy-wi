@@ -90,14 +90,18 @@ def default_values():
 		{'param': 'ldap_type', 'value': '0', 'section': 'ldap', 'desc': 'Use LDAPS (1 - yes, 0 - no)', 'group': '1'},
 		{'param': 'smon_check_interval', 'value': '1', 'section': 'monitoring', 'desc': 'Check interval for SMON (in minutes)',
 		 'group': '1'},
-		{'param': 'checker_check_interval', 'value': '1', 'section': 'monitoring',
-		 'desc': 'Check interval for Checker (in minutes)', 'group': '1'},
 		{'param': 'port_scan_interval', 'value': '5', 'section': 'monitoring',
 		 'desc': 'Check interval for Port scanner (in minutes)', 'group': '1'},
+		{'param': 'portscanner_keep_history_range', 'value': '14', 'section': 'monitoring',
+		 'desc': 'Retention period for Port scanner history', 'group': '1'},
 		{'param': 'smon_keep_history_range', 'value': '14', 'section': 'monitoring',
 		 'desc': 'Retention period for SMON history', 'group': '1'},
 		{'param': 'checker_keep_history_range', 'value': '14', 'section': 'monitoring',
 		 'desc': 'Retention period for Checker history', 'group': '1'},
+		{'param': 'checker_maxconn_threshold', 'value': '90', 'section': 'monitoring',
+		 'desc': 'Threshold value for alerting, in %', 'group': '1'},
+		{'param': 'checker_check_interval', 'value': '1', 'section': 'monitoring',
+		 'desc': 'Check interval for Checker (in minutes)', 'group': '1'},
 		{'param': 'rabbitmq_host', 'value': '127.0.0.1', 'section': 'rabbitmq', 'desc': 'RabbitMQ-server host', 'group': '1'},
 		{'param': 'rabbitmq_port', 'value': '5672', 'section': 'rabbitmq', 'desc': 'RabbitMQ-server port', 'group': '1'},
 		{'param': 'rabbitmq_port', 'value': '5672', 'section': 'rabbitmq', 'desc': 'RabbitMQ-server port', 'group': '1'},
@@ -118,7 +122,8 @@ def default_values():
 	]
 
 	try:
-		User.insert_many(data_source).on_conflict_ignore().execute()
+		if Role.get(Role.name == 'superAdmin').role_id != 1:
+			User.insert_many(data_source).on_conflict_ignore().execute()
 	except Exception as e:
 		out_error(e)
 
@@ -136,6 +141,264 @@ def default_values():
 
 	try:
 		Groups.insert(name='All', description='All servers are included in this group by default').on_conflict_ignore().execute()
+	except Exception as e:
+		out_error(e)
+
+	data_source = [
+		{'code': 'RW', 'name': 'Rwanda'},
+		{'code': 'SO', 'name': 'Somalia'},
+		{'code': 'YE', 'name': 'Yemen'},
+		{'code': 'IQ', 'name': 'Iraq'},
+		{'code': 'SA', 'name': 'Saudi Arabia'},
+		{'code': 'IR', 'name': 'Iran'},
+		{'code': 'CY', 'name': 'Cyprus'},
+		{'code': 'TZ', 'name': 'Tanzania'},
+		{'code': 'SY', 'name': 'Syria'},
+		{'code': 'AM', 'name': 'Armenia'},
+		{'code': 'KE', 'name': 'Kenya'},
+		{'code': 'CD', 'name': 'DR Congo'},
+		{'code': 'DJ', 'name': 'Djibouti'},
+		{'code': 'UG', 'name': 'Uganda'},
+		{'code': 'CF', 'name': 'Central African Republic'},
+		{'code': 'SC', 'name': 'Seychelles'},
+		{'code': 'JO', 'name': 'Hashemite Kingdom of Jordan'},
+		{'code': 'LB', 'name': 'Lebanon'},
+		{'code': 'KW', 'name': 'Kuwait'},
+		{'code': 'OM', 'name': 'Oman'},
+		{'code': 'QA', 'name': 'Qatar'},
+		{'code': 'BH', 'name': 'Bahrain'},
+		{'code': 'AE', 'name': 'United Arab Emirates'},
+		{'code': 'IL', 'name': 'Israel'},
+		{'code': 'TR', 'name': 'Turkey'},
+		{'code': 'ET', 'name': 'Ethiopia'},
+		{'code': 'ER', 'name': 'Eritrea'},
+		{'code': 'EG', 'name': 'Egypt'},
+		{'code': 'SD', 'name': 'Sudan'},
+		{'code': 'GR', 'name': 'Greece'},
+		{'code': 'BI', 'name': 'Burundi'},
+		{'code': 'EE', 'name': 'Estonia'},
+		{'code': 'LV', 'name': 'Latvia'},
+		{'code': 'AZ', 'name': 'Azerbaijan'},
+		{'code': 'LT', 'name': 'Republic of Lithuania'},
+		{'code': 'SJ', 'name': 'Svalbard and Jan Mayen'},
+		{'code': 'GE', 'name': 'Georgia'},
+		{'code': 'MD', 'name': 'Republic of Moldova'},
+		{'code': 'BY', 'name': 'Belarus'},
+		{'code': 'FI', 'name': 'Finland'},
+		{'code': 'AX', 'name': 'Åland'},
+		{'code': 'UA', 'name': 'Ukraine'},
+		{'code': 'MK', 'name': 'North Macedonia'},
+		{'code': 'HU', 'name': 'Hungary'},
+		{'code': 'BG', 'name': 'Bulgaria'},
+		{'code': 'AL', 'name': 'Albania'},
+		{'code': 'PL', 'name': 'Poland'},
+		{'code': 'RO', 'name': 'Romania'},
+		{'code': 'XK', 'name': 'Kosovo'},
+		{'code': 'ZW', 'name': 'Zimbabwe'},
+		{'code': 'ZM', 'name': 'Zambia'},
+		{'code': 'KM', 'name': 'Comoros'},
+		{'code': 'MW', 'name': 'Malawi'},
+		{'code': 'LS', 'name': 'Lesotho'},
+		{'code': 'BW', 'name': 'Botswana'},
+		{'code': 'MU', 'name': 'Mauritius'},
+		{'code': 'SZ', 'name': 'Eswatini'},
+		{'code': 'RE', 'name': 'Réunion'},
+		{'code': 'ZA', 'name': 'South Africa'},
+		{'code': 'YT', 'name': 'Mayotte'},
+		{'code': 'MZ', 'name': 'Mozambique'},
+		{'code': 'MG', 'name': 'Madagascar'},
+		{'code': 'AF', 'name': 'Afghanistan'},
+		{'code': 'PK', 'name': 'Pakistan'},
+		{'code': 'BD', 'name': 'Bangladesh'},
+		{'code': 'TM', 'name': 'Turkmenistan'},
+		{'code': 'TJ', 'name': 'Tajikistan'},
+		{'code': 'LK', 'name': 'Sri Lanka'},
+		{'code': 'BT', 'name': 'Bhutan'},
+		{'code': 'IN', 'name': 'India'},
+		{'code': 'MV', 'name': 'Maldives'},
+		{'code': 'IO', 'name': 'British Indian Ocean Territory'},
+		{'code': 'NP', 'name': 'Nepal'},
+		{'code': 'MM', 'name': 'Myanmar'},
+		{'code': 'UZ', 'name': 'Uzbekistan'},
+		{'code': 'KZ', 'name': 'Kazakhstan'},
+		{'code': 'KG', 'name': 'Kyrgyzstan'},
+		{'code': 'TF', 'name': 'French Southern Territories'},
+		{'code': 'HM', 'name': 'Heard Island and McDonald Islands'},
+		{'code': 'CC', 'name': 'Cocos [Keeling] Islands'},
+		{'code': 'PW', 'name': 'Palau'},
+		{'code': 'VN', 'name': 'Vietnam'},
+		{'code': 'TH', 'name': 'Thailand'},
+		{'code': 'ID', 'name': 'Indonesia'},
+		{'code': 'LA', 'name': 'Laos'},
+		{'code': 'TW', 'name': 'Taiwan'},
+		{'code': 'PH', 'name': 'Philippines'},
+		{'code': 'MY', 'name': 'Malaysia'},
+		{'code': 'CN', 'name': 'China'},
+		{'code': 'HK', 'name': 'Hong Kong'},
+		{'code': 'BN', 'name': 'Brunei'},
+		{'code': 'MO', 'name': 'Macao'},
+		{'code': 'KH', 'name': 'Cambodia'},
+		{'code': 'KR', 'name': 'South Korea'},
+		{'code': 'JP', 'name': 'Japan'},
+		{'code': 'KP', 'name': 'North Korea'},
+		{'code': 'SG', 'name': 'Singapore'},
+		{'code': 'CK', 'name': 'Cook Islands'},
+		{'code': 'TL', 'name': 'East Timor'},
+		{'code': 'RU', 'name': 'Russia'},
+		{'code': 'MN', 'name': 'Mongolia'},
+		{'code': 'AU', 'name': 'Australia'},
+		{'code': 'CX', 'name': 'Christmas Island'},
+		{'code': 'MH', 'name': 'Marshall Islands'},
+		{'code': 'FM', 'name': 'Federated States of Micronesia'},
+		{'code': 'PG', 'name': 'Papua New Guinea'},
+		{'code': 'SB', 'name': 'Solomon Islands'},
+		{'code': 'TV', 'name': 'Tuvalu'},
+		{'code': 'NR', 'name': 'Nauru'},
+		{'code': 'VU', 'name': 'Vanuatu'},
+		{'code': 'NC', 'name': 'New Caledonia'},
+		{'code': 'NF', 'name': 'Norfolk Island'},
+		{'code': 'NZ', 'name': 'New Zealand'},
+		{'code': 'FJ', 'name': 'Fiji'},
+		{'code': 'LY', 'name': 'Libya'},
+		{'code': 'CM', 'name': 'Cameroon'},
+		{'code': 'SN', 'name': 'Senegal'},
+		{'code': 'CG', 'name': 'Congo Republic'},
+		{'code': 'PT', 'name': 'Portugal'},
+		{'code': 'LR', 'name': 'Liberia'},
+		{'code': 'CI', 'name': 'Ivory Coast'},
+		{'code': 'GH', 'name': 'Ghana'},
+		{'code': 'GQ', 'name': 'Equatorial Guinea'},
+		{'code': 'NG', 'name': 'Nigeria'},
+		{'code': 'BF', 'name': 'Burkina Faso'},
+		{'code': 'TG', 'name': 'Togo'},
+		{'code': 'GW', 'name': 'Guinea-Bissau'},
+		{'code': 'MR', 'name': 'Mauritania'},
+		{'code': 'BJ', 'name': 'Benin'},
+		{'code': 'GA', 'name': 'Gabon'},
+		{'code': 'SL', 'name': 'Sierra Leone'},
+		{'code': 'ST', 'name': 'São Tomé and Príncipe'},
+		{'code': 'GI', 'name': 'Gibraltar'},
+		{'code': 'GM', 'name': 'Gambia'},
+		{'code': 'GN', 'name': 'Guinea'},
+		{'code': 'TD', 'name': 'Chad'},
+		{'code': 'NE', 'name': 'Niger'},
+		{'code': 'ML', 'name': 'Mali'},
+		{'code': 'EH', 'name': 'Western Sahara'},
+		{'code': 'TN', 'name': 'Tunisia'},
+		{'code': 'ES', 'name': 'Spain'},
+		{'code': 'MA', 'name': 'Morocco'},
+		{'code': 'MT', 'name': 'Malta'},
+		{'code': 'DZ', 'name': 'Algeria'},
+		{'code': 'FO', 'name': 'Faroe Islands'},
+		{'code': 'DK', 'name': 'Denmark'},
+		{'code': 'IS', 'name': 'Iceland'},
+		{'code': 'GB', 'name': 'United Kingdom'},
+		{'code': 'CH', 'name': 'Switzerland'},
+		{'code': 'SE', 'name': 'Sweden'},
+		{'code': 'NL', 'name': 'Netherlands'},
+		{'code': 'AT', 'name': 'Austria'},
+		{'code': 'BE', 'name': 'Belgium'},
+		{'code': 'DE', 'name': 'Germany'},
+		{'code': 'LU', 'name': 'Luxembourg'},
+		{'code': 'IE', 'name': 'Ireland'},
+		{'code': 'MC', 'name': 'Monaco'},
+		{'code': 'FR', 'name': 'France'},
+		{'code': 'AD', 'name': 'Andorra'},
+		{'code': 'LI', 'name': 'Liechtenstein'},
+		{'code': 'JE', 'name': 'Jersey'},
+		{'code': 'IM', 'name': 'Isle of Man'},
+		{'code': 'GG', 'name': 'Guernsey'},
+		{'code': 'SK', 'name': 'Slovakia'},
+		{'code': 'CZ', 'name': 'Czechia'},
+		{'code': 'NO', 'name': 'Norway'},
+		{'code': 'VA', 'name': 'Vatican City'},
+		{'code': 'SM', 'name': 'San Marino'},
+		{'code': 'IT', 'name': 'Italy'},
+		{'code': 'SI', 'name': 'Slovenia'},
+		{'code': 'ME', 'name': 'Montenegro'},
+		{'code': 'HR', 'name': 'Croatia'},
+		{'code': 'BA', 'name': 'Bosnia and Herzegovina'},
+		{'code': 'AO', 'name': 'Angola'},
+		{'code': 'NA', 'name': 'Namibia'},
+		{'code': 'SH', 'name': 'Saint Helena'},
+		{'code': 'BV', 'name': 'Bouvet Island'},
+		{'code': 'BB', 'name': 'Barbados'},
+		{'code': 'CV', 'name': 'Cabo Verde'},
+		{'code': 'GY', 'name': 'Guyana'},
+		{'code': 'GF', 'name': 'French Guiana'},
+		{'code': 'SR', 'name': 'Suriname'},
+		{'code': 'PM', 'name': 'Saint Pierre and Miquelon'},
+		{'code': 'GL', 'name': 'Greenland'},
+		{'code': 'PY', 'name': 'Paraguay'},
+		{'code': 'UY', 'name': 'Uruguay'},
+		{'code': 'BR', 'name': 'Brazil'},
+		{'code': 'FK', 'name': 'Falkland Islands'},
+		{'code': 'GS', 'name': 'South Georgia and the South Sandwich Islands'},
+		{'code': 'JM', 'name': 'Jamaica'},
+		{'code': 'DO', 'name': 'Dominican Republic'},
+		{'code': 'CU', 'name': 'Cuba'},
+		{'code': 'MQ', 'name': 'Martinique'},
+		{'code': 'BS', 'name': 'Bahamas'},
+		{'code': 'BM', 'name': 'Bermuda'},
+		{'code': 'AI', 'name': 'Anguilla'},
+		{'code': 'TT', 'name': 'Trinidad and Tobago'},
+		{'code': 'KN', 'name': 'St Kitts and Nevis'},
+		{'code': 'DM', 'name': 'Dominica'},
+		{'code': 'AG', 'name': 'Antigua and Barbuda'},
+		{'code': 'LC', 'name': 'Saint Lucia'},
+		{'code': 'TC', 'name': 'Turks and Caicos Islands'},
+		{'code': 'AW', 'name': 'Aruba'},
+		{'code': 'VG', 'name': 'British Virgin Islands'},
+		{'code': 'VC', 'name': 'Saint Vincent and the Grenadines'},
+		{'code': 'MS', 'name': 'Montserrat'},
+		{'code': 'MF', 'name': 'Saint Martin'},
+		{'code': 'BL', 'name': 'Saint Barthélemy'},
+		{'code': 'GP', 'name': 'Guadeloupe'},
+		{'code': 'GD', 'name': 'Grenada'},
+		{'code': 'KY', 'name': 'Cayman Islands'},
+		{'code': 'BZ', 'name': 'Belize'},
+		{'code': 'SV', 'name': 'El Salvador'},
+		{'code': 'GT', 'name': 'Guatemala'},
+		{'code': 'HN', 'name': 'Honduras'},
+		{'code': 'NI', 'name': 'Nicaragua'},
+		{'code': 'CR', 'name': 'Costa Rica'},
+		{'code': 'VE', 'name': 'Venezuela'},
+		{'code': 'EC', 'name': 'Ecuador'},
+		{'code': 'CO', 'name': 'Colombia'},
+		{'code': 'PA', 'name': 'Panama'},
+		{'code': 'HT', 'name': 'Haiti'},
+		{'code': 'AR', 'name': 'Argentina'},
+		{'code': 'CL', 'name': 'Chile'},
+		{'code': 'BO', 'name': 'Bolivia'},
+		{'code': 'PE', 'name': 'Peru'},
+		{'code': 'MX', 'name': 'Mexico'},
+		{'code': 'PF', 'name': 'French Polynesia'},
+		{'code': 'PN', 'name': 'Pitcairn Islands'},
+		{'code': 'KI', 'name': 'Kiribati'},
+		{'code': 'TK', 'name': 'Tokelau'},
+		{'code': 'TO', 'name': 'Tonga'},
+		{'code': 'WF', 'name': 'Wallis and Futuna'},
+		{'code': 'WS', 'name': 'Samoa'},
+		{'code': 'NU', 'name': 'Niue'},
+		{'code': 'MP', 'name': 'Northern Mariana Islands'},
+		{'code': 'GU', 'name': 'Guam'},
+		{'code': 'PR', 'name': 'Puerto Rico'},
+		{'code': 'VI', 'name': 'U.S. Virgin Islands'},
+		{'code': 'UM', 'name': 'U.S. Minor Outlying Islands'},
+		{'code': 'AS', 'name': 'American Samoa'},
+		{'code': 'CA', 'name': 'Canada'},
+		{'code': 'US', 'name': 'United States'},
+		{'code': 'PS', 'name': 'Palestine'},
+		{'code': 'RS', 'name': 'Serbia'},
+		{'code': 'AQ', 'name': 'Antarctica'},
+		{'code': 'SX', 'name': 'Sint Maarten'},
+		{'code': 'CW', 'name': 'Curaçao'},
+		{'code': 'BQ', 'name': 'Bonaire'},
+		{'code': 'SS', 'name': 'South Sudan'}
+	]
+
+	try:
+		GeoipCodes.insert_many(data_source).on_conflict_ignore().execute()
 	except Exception as e:
 		out_error(e)
 
@@ -175,26 +438,6 @@ def update_db_v_5_1_3(**kwargs):
 		print("DB has been updated to version 5.1.3")
 
 
-
-def update_db_v_5_2_0(**kwargs):
-	try:
-		Setting.insert(param='portscanner_keep_history_range', value=14, section='monitoring',
-					   desc='Retention period for Port scanner history').execute()
-	except Exception as e:
-		if kwargs.get('silent') != 1:
-			if (
-					str(e) == 'columns param, group are not unique' or
-					str(e) == '(1062, "Duplicate entry \'portscanner_keep_history_range-1\' for key \'param\'")' or
-					str(e) == 'UNIQUE constraint failed: settings.param, settings.group'
-			):
-				pass
-			else:
-				print("An error occurred:", e)
-	else:
-		if kwargs.get('silent') != 1:
-			print('Updating... DB has been updated to version 5.2.0')
-
-
 def update_db_v_5_2_4(**kwargs):
 	cursor = conn.cursor()
 	sql = """ALTER TABLE `user` ADD COLUMN user_services varchar(20) DEFAULT '1 2 3 4';"""
@@ -223,21 +466,6 @@ def update_db_v_5_2_4_1(**kwargs):
 				print("An error occurred:", e)
 	else:
 		print("Updating... DB has been updated to version 5.2.4-1")
-
-
-def update_db_v_5_2_5(**kwargs):
-	query = Role.update(name='user').where(Role.name == 'editor')
-	try:
-		query.execute()
-	except Exception as e:
-		if kwargs.get('silent') != 1:
-			if str(e) == 'column name is not unique' or str(e) == '(1060, "column name is not unique")':
-				print('Updating... DB has been updated to version 5.2.5-1')
-			else:
-				print("An error occurred:", e)
-	else:
-		if kwargs.get('silent') != 1:
-			print("Updating... DB has been updated to version 5.2.5")
 
 
 def update_db_v_5_2_5_1(**kwargs):
@@ -348,26 +576,6 @@ def update_db_v_5_3_1(**kwargs):
 
 
 
-def update_db_v_5_3_2(**kwargs):
-	try:
-		Setting.insert(param='checker_maxconn_threshold', value=90, section='monitoring',
-					   desc='Threshold value for alerting, in %').execute()
-	except Exception as e:
-		if kwargs.get('silent') != 1:
-			if (
-					str(e) == 'columns param, group are not unique' or
-					str(e) == '(1062, "Duplicate entry \'checker_maxconn_threshold-1\' for key \'param\'")' or
-					str(e) == 'UNIQUE constraint failed: settings.param, settings.group'
-			):
-				pass
-			else:
-				print("An error occurred:", e)
-	else:
-		if kwargs.get('silent') != 1:
-			print('Updating... DB has been updated to version 5.3.2')
-
-
-
 def update_db_v_5_3_2_2(**kwargs):
 	cursor = conn.cursor()
 	sql = """
@@ -412,7 +620,7 @@ def update_db_v_5_4_3(**kwargs):
 
 
 def update_db_v_5_4_3_1(**kwargs):
-	query = Setting.update( value='/etc/nginx/').where(Setting.param == 'nginx_dir')
+	query = Setting.update(value='/etc/nginx/').where(Setting.param == 'nginx_dir')
 	try:
 		query.execute()
 	except Exception as e:
@@ -435,17 +643,14 @@ def update_all():
 		update_db_v_3_4_5_22()
 	update_db_v_4_3_0()
 	update_db_v_5_1_3()
-	update_db_v_5_2_0()
 	update_db_v_5_2_4()
 	update_db_v_5_2_4_1()
-	update_db_v_5_2_5()
 	update_db_v_5_2_5_1()
 	update_db_v_5_2_5_2()
 	update_db_v_5_2_5_3()
 	update_db_v_5_2_6()
 	update_db_v_5_3_0()
 	update_db_v_5_3_1()
-	update_db_v_5_3_2()
 	update_db_v_5_3_2_2()
 	update_db_v_5_4_2()
 	update_db_v_5_4_3()
@@ -458,17 +663,14 @@ def update_all_silent():
 		update_db_v_3_4_5_22()
 	update_db_v_4_3_0(silent=1)
 	update_db_v_5_1_3(silent=1)
-	update_db_v_5_2_0(silent=1)
 	update_db_v_5_2_4(silent=1)
 	update_db_v_5_2_4_1(silent=1)
-	update_db_v_5_2_5(silent=1)
 	update_db_v_5_2_5_1(silent=1)
 	update_db_v_5_2_5_2(silent=1)
 	update_db_v_5_2_5_3(silent=1)
 	update_db_v_5_2_6(silent=1)
 	update_db_v_5_3_0(silent=1)
 	update_db_v_5_3_1(silent=1)
-	update_db_v_5_3_2(silent=1)
 	update_db_v_5_3_2_2(silent=1)
 	update_db_v_5_4_2(silent=1)
 	update_db_v_5_4_3(silent=1)
