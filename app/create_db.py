@@ -88,6 +88,16 @@ def default_values():
 		 'desc': 'Attribute to search users by', 'group': '1'},
 		{'param': 'ldap_search_field', 'value': 'mail', 'section': 'ldap', 'desc': 'User\'s email address', 'group': '1'},
 		{'param': 'ldap_type', 'value': '0', 'section': 'ldap', 'desc': 'Use LDAPS (1 - yes, 0 - no)', 'group': '1'},
+		{'param': 'smon_check_interval', 'value': '1', 'section': 'monitoring', 'desc': 'Check interval for SMON (in minutes)',
+		 'group': '1'},
+		{'param': 'checker_check_interval', 'value': '1', 'section': 'monitoring',
+		 'desc': 'Check interval for Checker (in minutes)', 'group': '1'},
+		{'param': 'port_scan_interval', 'value': '5', 'section': 'monitoring',
+		 'desc': 'Check interval for Port scanner (in minutes)', 'group': '1'},
+		{'param': 'smon_keep_history_range', 'value': '14', 'section': 'monitoring',
+		 'desc': 'Retention period for SMON history', 'group': '1'},
+		{'param': 'checker_keep_history_range', 'value': '14', 'section': 'monitoring',
+		 'desc': 'Retention period for Checker history', 'group': '1'},
 		{'param': 'rabbitmq_host', 'value': '127.0.0.1', 'section': 'rabbitmq', 'desc': 'RabbitMQ-server host', 'group': '1'},
 		{'param': 'rabbitmq_port', 'value': '5672', 'section': 'rabbitmq', 'desc': 'RabbitMQ-server port', 'group': '1'},
 		{'param': 'rabbitmq_port', 'value': '5672', 'section': 'rabbitmq', 'desc': 'RabbitMQ-server port', 'group': '1'},
@@ -148,27 +158,6 @@ def update_db_v_4_3_0(**kwargs):
 				print('Updating... go to version 4.3.1')
 			else:
 				print("An error occurred:", e)
-
-
-def update_db_v_5_1_2(**kwargs):
-	data_source = [
-		{'param': 'smon_keep_history_range', 'value': '14', 'section': 'monitoring',
-		 'desc': 'Retention period for SMON history', 'group': '1'},
-		{'param': 'checker_keep_history_range', 'value': '14', 'section': 'monitoring',
-		 'desc': 'Retention period for Checker history', 'group': '1'}
-	]
-
-	try:
-		Setting.insert_many(data_source).on_conflict_ignore().execute()
-	except Exception as e:
-		if kwargs.get('silent') != 1:
-			if str(e) == 'columns param, group are not unique':
-				pass
-			else:
-				print("An error occurred:", e)
-	else:
-		if kwargs.get('silent') != 1:
-			print('Updating... DB has been updated to version 5.1.2')
 
 
 def update_db_v_5_1_3(**kwargs):
@@ -445,7 +434,6 @@ def update_all():
 	if check_ver() is None:
 		update_db_v_3_4_5_22()
 	update_db_v_4_3_0()
-	update_db_v_5_1_2()
 	update_db_v_5_1_3()
 	update_db_v_5_2_0()
 	update_db_v_5_2_4()
@@ -469,7 +457,6 @@ def update_all_silent():
 	if check_ver() is None:
 		update_db_v_3_4_5_22()
 	update_db_v_4_3_0(silent=1)
-	update_db_v_5_1_2(silent=1)
 	update_db_v_5_1_3(silent=1)
 	update_db_v_5_2_0(silent=1)
 	update_db_v_5_2_4(silent=1)
