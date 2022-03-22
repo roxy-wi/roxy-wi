@@ -137,6 +137,19 @@ def update_db_v_3_4_5_22():
 		print('Cannot insert version %s' % e)
 
 
+# Needs for updating user_group. Do not delete
+def update_db_v_4_3_0(**kwargs):
+	try:
+		UserGroups.insert_from(User.select(User.user_id, User.groups),
+								fields=[UserGroups.user_id, UserGroups.user_group_id]).on_conflict_ignore().execute()
+	except Exception as e:
+		if kwargs.get('silent') != 1:
+			if e.args[0] == 'duplicate column name: haproxy' or str(e) == '(1060, "Duplicate column name \'haproxy\'")':
+				print('Updating... go to version 4.3.1')
+			else:
+				print("An error occurred:", e)
+
+
 def update_db_v_5_1_2(**kwargs):
 	data_source = [
 		{'param': 'smon_keep_history_range', 'value': '14', 'section': 'monitoring',
@@ -431,6 +444,7 @@ def update_ver():
 def update_all():
 	if check_ver() is None:
 		update_db_v_3_4_5_22()
+	update_db_v_4_3_0()
 	update_db_v_5_1_2()
 	update_db_v_5_1_3()
 	update_db_v_5_2_0()
@@ -454,6 +468,7 @@ def update_all():
 def update_all_silent():
 	if check_ver() is None:
 		update_db_v_3_4_5_22()
+	update_db_v_4_3_0(silent=1)
 	update_db_v_5_1_2(silent=1)
 	update_db_v_5_1_3(silent=1)
 	update_db_v_5_2_0(silent=1)
