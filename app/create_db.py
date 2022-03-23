@@ -122,11 +122,11 @@ def default_values():
 
 	try:
 		if Role.get(Role.name == 'superAdmin').role_id == 1:
-			create_users = True
-		else:
 			create_users = False
+		else:
+			create_users = True
 	except Exception:
-		create_users = False
+		create_users = True
 
 	try:
 		if create_users:
