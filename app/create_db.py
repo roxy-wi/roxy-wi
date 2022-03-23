@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import distro
-from sql import out_error
 from db_model import *
 from funct import check_ver
 
@@ -113,7 +112,7 @@ def default_values():
 	try:
 		Setting.insert_many(data_source).on_conflict_ignore().execute()
 	except Exception as e:
-		out_error(e)
+		print(str(e))
 
 	data_source = [
 		{'username': 'admin', 'email': 'admin@localhost', 'password': '21232f297a57a5a743894a0e4a801fc3', 'role': 'superAdmin', 'groups': '1'},
@@ -122,10 +121,18 @@ def default_values():
 	]
 
 	try:
-		if Role.get(Role.name == 'superAdmin').role_id != 1:
+		if Role.get(Role.name == 'superAdmin').role_id == 1:
+			create_users = True
+		else:
+			create_users = False
+	except Exception:
+		create_users = False
+
+	try:
+		if create_users:
 			User.insert_many(data_source).on_conflict_ignore().execute()
 	except Exception as e:
-		out_error(e)
+		print(str(e))
 
 	data_source = [
 		{'name': 'superAdmin', 'description': 'Has the highest level of administrative permissions and controls the actions of all other users'},
@@ -137,12 +144,12 @@ def default_values():
 	try:
 		Role.insert_many(data_source).on_conflict_ignore().execute()
 	except Exception as e:
-		out_error(e)
+		print(str(e))
 
 	try:
 		Groups.insert(name='All', description='All servers are included in this group by default').on_conflict_ignore().execute()
 	except Exception as e:
-		out_error(e)
+		print(str(e))
 
 	data_source = [
 		{'code': 'RW', 'name': 'Rwanda'},
@@ -400,7 +407,7 @@ def default_values():
 	try:
 		GeoipCodes.insert_many(data_source).on_conflict_ignore().execute()
 	except Exception as e:
-		out_error(e)
+		print(str(e))
 
 
 def update_db_v_3_4_5_22():
@@ -523,7 +530,7 @@ def update_db_v_5_3_0(**kwargs):
 	try:
 		query_res = query.execute()
 	except Exception as e:
-		out_error(e)
+		print(str(e))
 	else:
 		groups = query_res
 
