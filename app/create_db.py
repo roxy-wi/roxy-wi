@@ -137,7 +137,7 @@ def default_values():
 	data_source = [
 		{'name': 'superAdmin', 'description': 'Has the highest level of administrative permissions and controls the actions of all other users'},
 		{'name': 'admin', 'description': 'Has access everywhere except the Admin area'},
-		{'name': 'editor', 'description': 'Has the same rights as the admin but has no access to the Servers page'},
+		{'name': 'user', 'description': 'Has the same rights as the admin but has no access to the Servers page'},
 		{'name': 'guest', 'description': 'Read-only access'}
 	]
 
