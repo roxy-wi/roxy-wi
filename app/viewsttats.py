@@ -18,7 +18,7 @@ else:
 		title = 'HAProxy stats page'
 
 try:
-	user, user_id, role, token, servers, user_services = funct.get_users_params(virt=1)
+	user, user_id, role, token, servers, user_services = funct.get_users_params(virt=1, haproxy=1)
 	
 	if serv is None:
 		first_serv = servers

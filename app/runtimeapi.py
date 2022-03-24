@@ -9,7 +9,7 @@ funct.check_login(service=1)
 form = funct.form
 
 try:
-	user, user_id, role, token, servers, user_services = funct.get_users_params(virt=1)
+	user, user_id, role, token, servers, user_services = funct.get_users_params(virt=1, haproxy=1)
 	servbackend = form.getvalue('servbackend')
 	serv = form.getvalue('serv')
 	if servbackend is None:

@@ -47,6 +47,7 @@ else:
 	if funct.check_login(service=1):
 		title = "Working with versions HAProxy configs"
 		configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+		servers = sql.get_dick_permit(haproxy=1)
 		action = "versions.py"
 
 if serv is not None and form.getvalue('del') is not None:

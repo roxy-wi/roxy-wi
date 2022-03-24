@@ -1538,10 +1538,14 @@ def get_users_params(**kwargs):
 		role = ''
 		user_services = ''
 		token = ''
-	if kwargs.get('virt'):
+	if kwargs.get('virt') and kwargs.get('haproxy'):
+		servers = sql.get_dick_permit(virt=1, haproxy=1)
+	elif kwargs.get('virt'):
 		servers = sql.get_dick_permit(virt=1)
 	elif kwargs.get('disable'):
 		servers = sql.get_dick_permit(disable=0)
+	elif kwargs.get('haproxy'):
+		servers = sql.get_dick_permit(haproxy=1)
 	else:
 		servers = sql.get_dick_permit()
 

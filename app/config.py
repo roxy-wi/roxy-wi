@@ -47,7 +47,7 @@ else:
 		action = "config.py"
 		configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 		file_format = 'cfg'
-		servers = sql.get_dick_permit()
+		servers = sql.get_dick_permit(haproxy=1)
 
 if serv is not None:
 	if service == 'nginx':

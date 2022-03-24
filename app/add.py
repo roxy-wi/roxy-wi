@@ -22,7 +22,7 @@ if (
 		form.getvalue('generateconfig') is None
 	):
 	try:
-		user, user_id, role, token, servers, user_services = funct.get_users_params()
+		user, user_id, role, token, servers, user_services = funct.get_users_params(haproxy=1)
 		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 		group = cookie.get('group')
 		user_group = group.value
