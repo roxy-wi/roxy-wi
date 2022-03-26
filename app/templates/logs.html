@@ -12,7 +12,7 @@
 				Server
 			{% endif %}
 		</td>
-		{% if waf != '1' %}
+		{% if waf != '1' and select_id != 'viewlogs' %}
 		<td style="width: 10%;">Log files</td>
 		{% endif %}
 		{% if select_id != 'viewlogs' and service != 'nginx' %}
@@ -55,7 +55,7 @@
 					{% include 'include/select.html' %}
 				{% endif %}
 		</td>
-		{% if waf != '1' %}
+		{% if waf != '1' and select_id != 'viewlogs' %}
 		<td id="remote_log_files"></td>
 		{% endif %}
 		<td class="padding10" style="width: 10%;">

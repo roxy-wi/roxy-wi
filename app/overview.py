@@ -62,8 +62,6 @@ try:
 		is_metrics_worker = i
 		cmd = "ps ax |grep grafana|grep -v grep|wc -l"
 		grafana, stderr = funct.subprocess_execute(cmd)
-		cmd = "ps ax |grep 'prometheus ' |grep -v grep|wc -l"
-		prometheus, stderr = funct.subprocess_execute(cmd)
 		host = os.environ.get('HTTP_HOST', '')
 
 	cmd = "systemctl is-active roxy-wi-metrics"
@@ -76,6 +74,8 @@ try:
 	smon, stderr = funct.subprocess_execute(cmd)
 	cmd = "systemctl is-active roxy-wi-portscanner"
 	port_scanner, stderr = funct.subprocess_execute(cmd)
+	cmd = "systemctl is-active roxy-wi-socket"
+	socket, stderr = funct.subprocess_execute(cmd)
 
 except Exception as e:
 	role = ''
@@ -90,7 +90,7 @@ except Exception as e:
 	keep_alive = ''
 	smon = ''
 	grafana = ''
-	prometheus = ''
+	socket = ''
 	versions = ''
 	haproxy_wi_log = ''
 	servers = ''
@@ -115,12 +115,12 @@ template = template.render(h2=1,
 							smon=''.join(smon),
 							port_scanner=''.join(port_scanner),
 							grafana=''.join(grafana),
-							prometheus=''.join(prometheus),
+							socket=''.join(socket),
 							haproxy_wi_log_id=funct.haproxy_wi_log(log_id=1, file="roxy-wi-", with_date=1),
-							metrics_log_id=funct.haproxy_wi_log(log_id=1, file="metrics-", with_date=1),
-							checker_log_id=funct.haproxy_wi_log(log_id=1, file="checker-", with_date=1),
+							metrics_log_id=funct.haproxy_wi_log(log_id=1, file="metrics", with_date=1),
+							checker_log_id=funct.haproxy_wi_log(log_id=1, file="checker", with_date=1),
 							keep_alive_log_id=funct.haproxy_wi_log(log_id=1, file="keep_alive"),
-							checker_error_log_id=funct.haproxy_wi_log(log_id=1, file="checker-error"),
+							socket_log_id=funct.haproxy_wi_log(log_id=1, file="socket"),
 							metrics_error_log_id=funct.haproxy_wi_log(log_id=1, file="metrics-error"),
 							error=stderr,
 							haproxy_wi_log=funct.haproxy_wi_log(),
