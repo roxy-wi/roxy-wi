@@ -135,7 +135,7 @@ def add_setting_for_new_group(group_id):
 		{'param': 'cert_path', 'value': '/etc/ssl/certs/', 'section': 'main',
 		 'desc': 'Path to SSL dir. Folder owner must be a user which set in the SSH settings. The path must be valid',
 		 'group': group_id},
-		{'param': 'haproxy_path_logs', 'value': '/var/log/haproxy/access.log', 'section': 'haproxy',
+		{'param': 'haproxy_path_logs', 'value': '/var/log/haproxy/', 'section': 'haproxy',
 		 'desc': 'The default local path for saving logs', 'group': group_id},
 		{'param': 'syslog_server_enable', 'value': '0', 'section': 'logs',
 		 'desc': 'Enable getting logs from a syslog server; (0 - no, 1 - yes)', 'group': group_id},
@@ -159,7 +159,7 @@ def add_setting_for_new_group(group_id):
 		 'desc': 'Path to the HAProxy sock file', 'group': group_id},
 		{'param': 'haproxy_sock_port', 'value': '1999', 'section': 'haproxy', 'desc': 'Socket port for HAProxy',
 		 'group': group_id},
-		{'param': 'nginx_path_error_logs', 'value': '/var/log/nginx/error.log', 'section': 'nginx',
+		{'param': 'nginx_path_logs', 'value': '/var/log/nginx/', 'section': 'nginx',
 		 'desc': 'Nginx error log', 'group': group_id},
 		{'param': 'nginx_stats_user', 'value': 'admin', 'section': 'nginx', 'desc': 'Username for accessing Nginx stats page',
 		 'group': group_id},
@@ -169,7 +169,7 @@ def add_setting_for_new_group(group_id):
 		 'group': group_id},
 		{'param': 'nginx_stats_page', 'value': 'stats', 'section': 'nginx', 'desc': 'URI Stats for web page Nginx',
 		 'group': group_id},
-		{'param': 'nginx_dir', 'value': '/etc/nginx/conf.d/', 'section': 'nginx',
+		{'param': 'nginx_dir', 'value': '/etc/nginx/', 'section': 'nginx',
 		 'desc': 'Path to the Nginx directory with config files', 'group': group_id},
 		{'param': 'nginx_config_path', 'value': '/etc/nginx/nginx.conf', 'section': 'nginx',
 		 'desc': 'Path to the main Nginx configuration file', 'group': group_id},
@@ -738,18 +738,19 @@ def get_slack_by_id(slack_id):
 
 
 def get_dick_permit(**kwargs):
-	import http.cookies
 	import os
 
 	if kwargs.get('username'):
 		grp = kwargs.get('group_id')
 	else:
 		try:
+			import http.cookies
 			cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 			group = cookie.get('group')
 			grp = group.value
 		except Exception as e:
-			print('error: ' + str(e))
+			print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
+			return 
 	if kwargs.get('token'):
 		token = kwargs.get('token')
 	else:
@@ -779,11 +780,14 @@ def get_dick_permit(**kwargs):
 
 	if funct.check_user_group(token=token):
 		cursor = conn.cursor()
-		if grp == '1' and not only_group:
-			sql = """ select * from servers where {} {} {} {} {} {} order by pos""" .format(disable, type_ip, nginx, haproxy, keepalived, ip)
-		else:
-			sql = """ select * from servers where groups = '{group}' and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} order by pos
-			""".format(group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx, keepalived=keepalived)
+		try:
+			if grp == '1' and not only_group:
+				sql = """ select * from servers where {} {} {} {} {} {} order by pos""" .format(disable, type_ip, nginx, haproxy, keepalived, ip)
+			else:
+				sql = """ select * from servers where groups = '{group}' and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} order by pos
+				""".format(group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx, keepalived=keepalived)
+		except Exception:
+			print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
 		try:
 			cursor.execute(sql)
 		except Exception as e:

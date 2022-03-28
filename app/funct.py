@@ -272,7 +272,10 @@ def check_login(**kwargs):
 	import sql
 	import http.cookies
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_uuid = cookie.get('uuid')
+	try:
+		user_uuid = cookie.get('uuid')
+	except Exception:
+		print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
 	ref = os.environ.get("REQUEST_URI")
 
 	sql.delete_old_uuid()
@@ -492,7 +495,6 @@ def get_remote_sections(server_ip: str, service: str) -> str:
 	elif service == 'apache':
 		section_name = 'ServerName'
 	commands = ['sudo grep {} {}* -R |grep -v \'$server_name\|#\'|awk \'{{print $1, $3}}\''.format(section_name, config_dir)]
-
 	backends = ssh_command(server_ip, commands)
 
 	return backends
@@ -1526,18 +1528,17 @@ def get_users_params(**kwargs):
 	import http.cookies
 	import sql
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_uuid = cookie.get('uuid')
+
 	try:
+		user_uuid = cookie.get('uuid')
 		user = sql.get_user_name_by_uuid(user_uuid.value)
 		role = sql.get_user_role_by_uuid(user_uuid.value)
 		user_id = sql.get_user_id_by_uuid(user_uuid.value)
 		user_services = sql.select_user_services(user_id)
 		token = sql.get_token(user_uuid.value)
 	except:
-		user = ''
-		role = ''
-		user_services = ''
-		token = ''
+		print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
+
 	if kwargs.get('virt') and kwargs.get('haproxy'):
 		servers = sql.get_dick_permit(virt=1, haproxy=1)
 	elif kwargs.get('virt'):

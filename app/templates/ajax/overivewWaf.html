@@ -58,10 +58,13 @@
 			<a href="/app/waf.py?manage_rules=1&serv={{service.1}}" class="ui-button ui-widget ui-corner-all">Open</a>
 		{% endif %}
 		</td>
+		<td>
+			<a href="/app/logs.py?serv={{ service.1 }}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00&waf=1" class="ui-button ui-widget ui-corner-all" title="View log">View</a>
+		</td>
 		<td></td>
 	{% else %}
 		{% if role <= 2 %}
-		<td colspan="5">
+		<td colspan="6">
 			<a title="Install WAF"><button onclick="installWaf('{{ service.1 }}')">Install</button></a>
 		</td>
 		{% endif %}	
