@@ -1336,34 +1336,34 @@ def ssh_command(server_ip, commands, **kwargs):
 			stdin, stdout, stderr = ssh.exec_command(command, get_pty=True)
 		except Exception as e:
 			logging('localhost', ' ' + str(e), haproxywi=1)
+			ssh.close()
 			return str(e)
 
-		if kwargs.get("ip") == "1":
-			show_ip(stdout)
-		elif kwargs.get("show_log") == "1":
-			return show_log(stdout, grep=kwargs.get("grep"))
-		elif kwargs.get("server_status") == "1":
-			server_status(stdout)
-		elif kwargs.get('print_out'):
-			print(stdout.read().decode(encoding='UTF-8'))
-			return stdout.read().decode(encoding='UTF-8')
-		elif kwargs.get('return_err') == 1:
-			return stderr.read().decode(encoding='UTF-8')
-		elif kwargs.get('raw'):
-			return stdout
-		else:
-			return stdout.read().decode(encoding='UTF-8')
+		try:
+			if kwargs.get("ip") == "1":
+				show_ip(stdout)
+			elif kwargs.get("show_log") == "1":
+				return show_log(stdout, grep=kwargs.get("grep"))
+			elif kwargs.get("server_status") == "1":
+				server_status(stdout)
+			elif kwargs.get('print_out'):
+				print(stdout.read().decode(encoding='UTF-8'))
+				return stdout.read().decode(encoding='UTF-8')
+			elif kwargs.get('return_err') == 1:
+				return stderr.read().decode(encoding='UTF-8')
+			elif kwargs.get('raw'):
+				return stdout
+			else:
+				return stdout.read().decode(encoding='UTF-8')
+		except Exception as e:
+			logging('localhost', str(e), haproxywi=1)
+		finally:
+			ssh.close()
 
 		for line in stderr.read().decode(encoding='UTF-8'):
 			if line:
 				print("<div class='alert alert-warning'>"+line+"</div>")
 				logging('localhost', ' '+line, haproxywi=1)
-
-	try:
-		ssh.close()
-	except Exception:
-		logging('localhost', ' '+str(ssh), haproxywi=1)
-		return "error: "+str(ssh)
 
 
 def subprocess_execute(cmd):
