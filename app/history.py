@@ -18,6 +18,7 @@ except:
 form = funct.form
 serv = funct.is_ip_or_dns(form.getvalue('serv'))
 service = form.getvalue('service')
+user_id = form.getvalue('user_id')
 
 
 if service == 'nginx':
@@ -41,6 +42,16 @@ elif service == 'haproxy':
             if funct.check_is_server_in_group(serv):
                 server_id = sql.select_server_id_by_ip(serv)
                 history = sql.select_action_history_by_server_id_and_service(server_id, service)
+elif service == 'server':
+    if serv:
+        title = serv + ' history'
+        if funct.check_is_server_in_group(serv):
+            server_id = sql.select_server_id_by_ip(serv)
+            history = sql.select_action_history_by_server_id(server_id)
+elif service == 'user':
+    if user_id:
+        title = 'User history'
+        history = sql.select_action_history_by_user_id(user_id)
 
 users = sql.select_users()
 

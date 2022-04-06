@@ -30,7 +30,11 @@ defaults
     maxconn                 3000
 
 listen stats 
-    bind *:{{STAT_PORT}} 
+    bind *:{{STAT_PORT}}
+    {% if ansible_os_family == "RedHat" and HAPVER != '2.5.1-1' %}
+    option http-use-htx
+    http-request use-service prometheus-exporter if { path /metrics }
+    {% endif %}
     stats enable
     stats uri /stats
     stats realm HAProxy-04\ Statistics

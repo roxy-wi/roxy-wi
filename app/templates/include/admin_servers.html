@@ -29,6 +29,7 @@
 			<th style="min-width: 17px;"></th>
 			<th></th>
 			<th></th>
+			<th></th>
 		</tr>
 	</thead>
 	<tbody>
@@ -150,6 +151,9 @@
 				{% else %}
 					{{ input(id, size='20') }}
 				{% endif %}
+			</td>
+			<td>
+				<a href="history.py?service=server&serv={{server.2}}" title="View history for this server" class="history"></a>
 			</td>
 			<td style="min-width: 17px;">
 				<a class="info" onclick="showServerInfo('{{server.0}}', '{{server.2}}')" id="server_info_link-{{server.0}}" title="Show server info" style="cursor: pointer; color: var(--green-color)"></a>

@@ -6,7 +6,7 @@
                 $('#table_version').on('page.dt')
                 .DataTable( {
                     "pageLength": 25,
-                    "order": [ 4, "desc" ],
+                    "order": [ 6, "desc" ],
                     stateSave: true,
                     "columnDefs": [
                         {
@@ -55,6 +55,7 @@
                         <label for="new_select_all" id="new_label_select_all"></label>
                         <input type="checkbox" id="new_select_all">
                     </th>
+                    <th>User</th>
                     <th class="padding10 first-collumn" style="width: 30%">
                         Local path
                     </th>
@@ -76,6 +77,13 @@
                     <td>
                         <label for="{{c.id}}" id="select_{{c.id}}"></label>
                         <input type="checkbox" value="{{c.local_path}}" name="{{c.local_path}}" id="{{c.id}}">
+                    </td>
+                    <td>
+                        {% for u in users %}
+                        {% if u.user_id == c.user_id %}
+                        {{ u.username }}
+                        {% endif %}
+                        {% endfor %}
                     </td>
                     <td class="padding10 first-collumn" title="{{c.local_path}}">
                         {% set show = '...'+c.local_path.split('/')[-1] %}

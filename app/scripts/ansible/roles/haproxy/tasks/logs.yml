@@ -2,7 +2,7 @@
   template:
    src: /var/www/haproxy-wi/app/scripts/ansible/roles/haproxy/templates/haproxy_rsyslog.conf.j2
    dest: /etc/rsyslog.d/49-haproxy.conf
-   force: no
+   force: yes
   ignore_errors: yes
   notify: restart rsyslog
 

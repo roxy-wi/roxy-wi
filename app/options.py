@@ -495,9 +495,7 @@ if act == "overviewHapserverBackends":
             except Exception as e:
                 funct.logging('localhost', ' Cannot generate a cfg path ' + str(e), haproxywi=1)
             try:
-                if service == 'nginx':
-                    error = funct.get_config(serv, cfg, nginx=1)
-                elif service == 'keepalived':
+                if service == 'keepalived':
                     error = funct.get_config(serv, cfg, keepalived=1)
                 else:
                     error = funct.get_config(serv, cfg)
@@ -556,7 +554,7 @@ if act == "overview":
     import http.cookies
     from jinja2 import Environment, FileSystemLoader
 
-    async def async_get_overview(serv1, serv2, user_uuid):
+    async def async_get_overview(serv1, serv2, user_uuid, server_id):
         user_id = sql.get_user_id_by_uuid(user_uuid)
         user_services = sql.select_user_services(user_id)
         if '1' in user_services:
@@ -587,7 +585,7 @@ if act == "overview":
             haproxy_process = funct.server_status(funct.subprocess_execute(cmd))
 
         if keepalived == 1:
-            command = ["ps ax |grep keepalived|grep -v grep|wc -l"]
+            command = ["ps ax |grep keepalived|grep -v grep|wc -l|tr -d '\n'"]
             keepalived_process = funct.ssh_command(serv2, command)
 
         if nginx == 1:
@@ -607,7 +605,8 @@ if act == "overview":
                          keepalived,
                          keepalived_process,
                          nginx,
-                         nginx_process)
+                         nginx_process,
+                         server_id)
         return server_status
 
 
@@ -619,7 +618,7 @@ if act == "overview":
         template = env.get_template('overview.html')
         cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
         user_uuid = cookie.get('uuid')
-        futures = [async_get_overview(server[1], server[2], user_uuid.value) for server in sql.select_servers(server=serv)]
+        futures = [async_get_overview(server[1], server[2], user_uuid.value, server[0]) for server in sql.select_servers(server=serv)]
         for i, future in enumerate(asyncio.as_completed(futures)):
             result = await future
             servers.append(result)
@@ -3953,6 +3952,8 @@ if act == 'showListOfVersion':
     configver = form.getvalue('configver')
     for_delver = form.getvalue('for_delver')
     style = form.getvalue('style')
+    users = sql.select_users()
+
     if service == 'keepalived':
         configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
         files = funct.get_files(dir=configs_dir, format='conf')
@@ -3982,6 +3983,7 @@ if act == 'showListOfVersion':
                                configver=configver,
                                for_delver=for_delver,
                                configs=configs,
+                               users=users,
                                style=style)
     print(template)
 

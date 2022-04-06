@@ -1,37 +1,39 @@
-{% for service in service_status %}	
-	<td class="padding10 first-collumn">		
-		<a href="/app/hapservers.py?serv={{ service.1 }}" title="{{service.0 }}'s overview" class="logs_link">
+{% for service in service_status %}
+	<td class="padding10 first-collumn">
+		<a href="/app/history.py?service=server&serv={{ service.1 }}" title="{{service.0 }} history" class="logs_link">
 			{{ service.0 }}
 		</a>
 	</td>
 	<td>
 		{% if service.2|int() == 0 %}
-			<span class="serverNone server-status" title="HAProxy is not installed" style="margin-left: 25px !important;"></span>
+			<span class="serverNone server-status" title="HAProxy is not installed"
 		{% else %}
 			{% if service.3|int() >= 1 %}
-				<span class="serverUp server-status" title="running {{ service.3 }} processes" style="margin-left: 25px !important;"></span>
+				<span class="serverUp server-status" title="running {{ service.3 }} processes"
 			{% else %}
-				<span class="serverDown server-status" title="HAProxy is down" style="margin-left: 25px !important;"></span>
+				<span class="serverDown server-status" title="HAProxy is down"
 			{% endif %}
 		{% endif %}
+			style="margin-left: 25px !important;" id="haproxy_{{service.10}}"></span>
 	</td>
 	<td class="padding10 first-collumn">
 		{% if service.8|int() == 0 %}
-			<span class="serverNone server-status" title="Nginx is not installed" style="margin-left: 4px !important;"></span>		
+			<span class="serverNone server-status" title="Nginx is not installed"
 		{% else %}
 			{% if service.9|int() >= 1 %}
-				<span class="serverUp server-status" title="Nginx is running" style="margin-left: 4px !important;"></span>
+				<span class="serverUp server-status" title="Nginx is running"
 			{% else %}
-				<span class="serverDown server-status" title="Nginx is down" style="margin-left: 4px !important;"></span>
+				<span class="serverDown server-status" title="Nginx is down"
 			{% endif %}
 		{% endif %}
+		style="margin-left: 4px !important;" id="nginx_{{service.10}}"></span>
 	</td>
 	<td class="padding10 first-collumn">
 		{% if service.6|int() == 0 %}
-			<span class="serverNone server-status" title="Keepalived is not installed" style="margin-left: 4px !important;"></span>		
+			<span class="serverNone server-status" title="Keepalived is not installed" style="margin-left: 4px !important;"></span>
 		{% else %}
 			{% if service.7|int() >= 1 %}
-				<span class="serverUp server-status" title="running {{service.7 }} processes" style="margin-left: 4px !important;"></span> 		
+				<span class="serverUp server-status" title="running {{service.7 }} processes" style="margin-left: 4px !important;"></span>
 			{% else %}
 				<span class="serverDown server-status" title="Keepalived is down" style="margin-left: 4px !important;"></span>
 			{% endif %}
@@ -39,12 +41,12 @@
 	</td>
 	<td class="third-collumn-wi">
 		{% if service.5.0|length() == 0 %}
-			<span class="serverNone server-status" title="WAF is not installed" style="margin-left: 4px !important;"></span>		
+			<span class="serverNone server-status" title="WAF is not installed" style="margin-left: 4px !important;"></span>
 		{% elif service.5.0 != '' and service.4|int() == 0 %}
 			<span class="serverDown server-status" title="WAF is down" style="margin-left: 4px !important;"></span>
 		{% elif service.5.0 != '' and service.4|int() >= 1 %}
 			<span class="serverUp server-status" title="running {{ service.4 }} processes" style="margin-left: 4px !important;"></span>
 		{% endif %}
 	</td>
-	<td></td>	
+	<td></td>
 {% endfor %}

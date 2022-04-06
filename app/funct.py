@@ -829,6 +829,7 @@ def install_nginx(server_ip, **kwargs):
 def update_haproxy_wi(service):
 	import distro
 	restart_service = ''
+
 	if distro.id() == 'ubuntu':
 		try:
 			if service == 'roxy-wi-keep_alive':
@@ -836,11 +837,13 @@ def update_haproxy_wi(service):
 		except Exception:
 			pass
 
-		if service == 'roxy-wi':
+		if service != 'roxy-wi':
 			restart_service = ' && sudo systemctl restart ' + service
 
 		cmd = 'sudo -S apt-get update && sudo apt-get install ' + service + restart_service
 	else:
+		if service != 'roxy-wi':
+			restart_service = ' && sudo systemctl restart ' + service
 		cmd = 'sudo -S yum -y update ' + service + restart_service
 
 	output, stderr = subprocess_execute(cmd)

@@ -14,6 +14,7 @@
 			<th style="width: 100%">Services</th>
 			<th></th>
 			<th></th>
+			<th></th>
 		</tr>
 	</thead>
 	<tbody>
@@ -78,7 +79,10 @@
 			</td>
 			{% endif %}
 			<td>
-				<span title="Change user groups" style="cursor: pointer; margin-left: 15px;" class="div-pic" onclick="openChangeUserServiceDialog('{{user.user_id}}')">
+				<span title="Change user's services" style="cursor: pointer; margin-left: 15px;" class="div-pic" onclick="openChangeUserServiceDialog('{{user.user_id}}')">
+			</td>
+			<td>
+				<a href="history.py?service=user&user_id={{user.user_id}}" title="View history for this user" class="history"></a>
 			</td>
 			<td>
 				<a class="add" onclick="cloneUser({{user.user_id}})" id="clone-{{user.user_id}}" title="Clone {{user.1}}" style="cursor: pointer;"></a>
