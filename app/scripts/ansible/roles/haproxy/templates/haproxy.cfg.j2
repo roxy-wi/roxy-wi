@@ -31,8 +31,10 @@ defaults
 
 listen stats 
     bind *:{{STAT_PORT}}
-    {% if ansible_os_family == "RedHat" and HAPVER != '2.5.1-1' %}
+    {% if ansible_os_family == "RedHat" %}
+    {% if HAPVER != '2.5.1-1' %}
     option http-use-htx
+    {% endif %}
     http-request use-service prometheus-exporter if { path /metrics }
     {% endif %}
     stats enable
