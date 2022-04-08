@@ -17,7 +17,7 @@ $( function() {
 					} else {
 						response(data.split(" "));
 					}
-				}						
+				}
 			} );
 		},
 		autoFocus: true,
@@ -39,7 +39,7 @@ $( function() {
 					} else {
 						response(data.split(" "));
 					}
-				}						
+				}
 			} );
 		},
 		autoFocus: true,
@@ -70,7 +70,7 @@ $( function() {
 				token: $('#token').val()
 				},
 			type: "POST",
-			success: function( data ) { 
+			success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 				$("#ajax").html('')
 				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
@@ -87,8 +87,8 @@ $( function() {
 					toastr.info(data);
 				}
 			}
-		} );	
-	});	
+		} );
+	});
 	$('#nginx_install').click(function() {
 		$("#ajax").html('')
 		var syn_flood = 0;
@@ -113,7 +113,7 @@ $( function() {
 				token: $('#token').val()
 				},
 			type: "POST",
-			success: function( data ) { 
+			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
 				$("#ajax").html('')
 				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
@@ -131,8 +131,8 @@ $( function() {
 					toastr.info(data);
 				}
 			}
-		} );	
-	});	
+		} );
+	});
 	$('#grafna_install').click(function() {
 		$("#ajaxmon").html('');
 		$("#ajaxmon").html(wait_mess);
@@ -143,7 +143,7 @@ $( function() {
 				token: $('#token').val()
 				},
 			type: "POST",
-			success: function( data ) { 
+			success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 				$("#ajaxmon").html('');
 				if (data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1' || data.indexOf('ERROR') != '-1') {
@@ -160,8 +160,8 @@ $( function() {
 					toastr.info(data);
 				}
 			}
-		} );	
-	});	
+		} );
+	});
 	$('#haproxy_exp_install').click(function() {
 		$("#ajaxmon").html('')
 		$("#ajaxmon").html(wait_mess);
@@ -178,7 +178,7 @@ $( function() {
 				token: $('#token').val()
 				},
 			type: "POST",
-			success: function( data ) { 
+			success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 				$("#ajaxmon").html('');
 				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
@@ -197,8 +197,8 @@ $( function() {
 					toastr.info(data);
 				}
 			}
-		} );	
-	});	
+		} );
+	});
 	$('#nginx_exp_install').click(function() {
 		$("#ajaxmon").html('')
 		$("#ajaxmon").html(wait_mess);
@@ -215,7 +215,7 @@ $( function() {
 				token: $('#token').val()
 				},
 			type: "POST",
-			success: function( data ) { 
+			success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 				$("#ajaxmon").html('');
 				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
@@ -233,7 +233,7 @@ $( function() {
 					toastr.info(data);
 				}
 			}
-		} );	
+		} );
 	});
 	$('#node_exp_install').click(function() {
 		$("#ajaxmon").html('')
@@ -280,9 +280,9 @@ $( function() {
 				token: $('#token').val()
 			},
 			type: "POST",
-			success: function( data ) {	
+			success: function( data ) {
 				data = data.replace(/^\s+|\s+$/g,'');
-				if(data != '') {				
+				if(data != '') {
 					data = data+'-1';
 					$('#cur_hap_ver').text(data);
 					$('#cur_hap_ver').css('font-weight', 'bold');
@@ -305,12 +305,12 @@ $( function() {
 				token: $('#token').val()
 			},
 			type: "POST",
-			success: function( data ) {	
+			success: function( data ) {
 				data = data.replace(/^\s+|\s+$/g,'');
 				if(data.indexOf('bash') != '-1' || data.indexOf('such') != '-1' || data.indexOf('command not found') != '-1') {
 					$('#cur_nginx_ver').text('Nginx has not installed');
 					$('#nginx_install').text('Install');
-					$('#nginx_install').attr('title', 'Install Nginx');				
+					$('#nginx_install').attr('title', 'Install Nginx');
 				} else {
 					$('#cur_nginx_ver').text(data);
 					$('#cur_nginx_ver').css('font-weight', 'bold');
@@ -329,12 +329,12 @@ $( function() {
 				token: $('#token').val()
 			},
 			type: "POST",
-			success: function( data ) {	
+			success: function( data ) {
 				data = data.replace(/^\s+|\s+$/g,'');
 				if (data.indexOf('error:') != '-1') {
 					toastr.clear();
 					toastr.error(data);
-				} else if(data == 'no') {
+				} else if(data == 'no' || data == '') {
 					$('#cur_haproxy_exp_ver').text('HAProxy exporter has been not installed');
 				} else {
 					$('#cur_haproxy_exp_ver').text(data);
@@ -352,12 +352,12 @@ $( function() {
 				token: $('#token').val()
 			},
 			type: "POST",
-			success: function( data ) {	
+			success: function( data ) {
 				data = data.replace(/^\s+|\s+$/g,'');
 				if (data.indexOf('error:') != '-1') {
 					toastr.clear();
 					toastr.error(data);
-				} else if(data == 'no') {
+				} else if(data == 'no' || data == '') {
 					$('#cur_nginx_exp_ver').text('Nginx exporter has not been installed');
 				} else {
 					$('#cur_nginx_exp_ver').text(data);
@@ -377,10 +377,10 @@ $( function() {
 			type: "POST",
 			success: function( data ) {
 				data = data.replace(/^\s+|\s+$/g,'');
-				if (data.indexOf('error:') != '-1' || data.indexOf('command') != '-1') {
+				if (data.indexOf('error:') != '-1') {
 					toastr.clear();
 					toastr.error(data);
-				} else if(data == 'no') {
+				} else if(data == 'no' || data.indexOf('command') != '-1' || data == '') {
 					$('#cur_node_exp_ver').text('Node exporter has not been installed');
 				} else {
 					$('#cur_node_exp_ver').text(data);
@@ -666,7 +666,7 @@ $( function() {
 	$('#search_ldap_user').click(function() {
 		var valid = true;
 		toastr.clear();
-		allFields = $( [] ).add( $('#new-username') ) 
+		allFields = $( [] ).add( $('#new-username') )
 		allFields.removeClass( "ui-state-error" );
 		valid = valid && checkLength( $('#new-username'), "user name", 1 );
 		user = $('#new-username').val()
@@ -683,16 +683,16 @@ $( function() {
 					if (data.indexOf('error:') != '-1') {
 						toastr.error(data);
 						$('#new-email').val('');
-						$('#new-password').attr('readonly', false);	
-						$('#new-password').val('');	
+						$('#new-password').attr('readonly', false);
+						$('#new-password').val('');
 					} else {
 						var json = $.parseJSON(data);
 						toastr.clear();
 						$('#new-email').val(json[0]);
-						$('#new-username').val(user+'@'+json[1]);					
-						$('#new-password').val('aduser');					
-						$('#new-password').attr('readonly', true);					
-					}	
+						$('#new-username').val(user+'@'+json[1]);
+						$('#new-password').val('aduser');
+						$('#new-password').attr('readonly', true);
+					}
 				}
 			} );
 			clearTips();
@@ -875,7 +875,7 @@ function addUser(dialog_id) {
 					var id = data.match(getId);
 					addUserGroup(id[0]);
 					common_ajax_action_after_success(dialog_id, 'user-'+id, 'ajax-users', data);
-				}	
+				}
 			}
 		} );
 	}
@@ -987,7 +987,7 @@ function addServer(dialog_id) {
 					$( ".controlgroup" ).controlgroup();
 					$( "select" ).selectmenu();
 				}
-			}					
+			}
 		} );
 	}
 }
@@ -1209,7 +1209,7 @@ function confirmDeleteUser(id) {
 	  title: "Are you sure you want to delete " +$('#login-'+id).val() + "?",
       buttons: {
         "Delete": function() {
-			$( this ).dialog( "close" );	
+			$( this ).dialog( "close" );
 			removeUser(id);
         },
         Cancel: function() {
@@ -1227,7 +1227,7 @@ function confirmDeleteGroup(id) {
 	  title: "Are you sure you want to delete " +$('#name-'+id).val() + "?",
       buttons: {
         "Delete": function() {
-			$( this ).dialog( "close" );	
+			$( this ).dialog( "close" );
 			removeGroup(id);
         },
         Cancel: function() {
@@ -1245,7 +1245,7 @@ function confirmDeleteServer(id) {
 	  title: "Are you sure you want to delete " +$('#hostname-'+id).val() + "?",
       buttons: {
         "Delete": function() {
-			$( this ).dialog( "close" );	
+			$( this ).dialog( "close" );
 			removeServer(id);
         },
         Cancel: function() {
@@ -1263,7 +1263,7 @@ function confirmDeleteSsh(id) {
 	  title: "Are you sure you want to delete " +$('#ssh_name-'+id).val() + "?",
       buttons: {
         "Delete": function() {
-			$( this ).dialog( "close" );	
+			$( this ).dialog( "close" );
 			removeSsh(id);
         },
         Cancel: function() {
@@ -1281,7 +1281,7 @@ function confirmDeleteTelegram(id) {
 	  title: "Are you sure you want to delete " +$('#telegram-chanel-'+id).val() + "?",
       buttons: {
         "Delete": function() {
-			$( this ).dialog( "close" );	
+			$( this ).dialog( "close" );
 			removeTelegram(id);
         },
         Cancel: function() {
@@ -1317,7 +1317,7 @@ function confirmDeleteBackup(id) {
 	  title: "Are you sure you want to delete job for" +$('#backup-server-'+id).val() + "?",
       buttons: {
         "Delete": function() {
-			$( this ).dialog( "close" );	
+			$( this ).dialog( "close" );
 			removeBackup(id);
         },
         Cancel: function() {
@@ -1419,7 +1419,7 @@ function removeUser(id) {
 			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			}
-		}					
+		}
 	} );
 }
 function removeServer(id) {
@@ -1441,8 +1441,8 @@ function removeServer(id) {
 				toastr.clear();
 				toastr.warning(data);
 			}
-		}					
-	} );	
+		}
+	} );
 }
 function removeGroup(id) {
 	$("#group-"+id).css("background-color", "#f2dede");
@@ -1462,8 +1462,8 @@ function removeGroup(id) {
 			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			}
-		}					
-	} );	
+		}
+	} );
 }
 function removeSsh(id) {
 	$("#ssh-table-"+id).css("background-color", "#f2dede");
@@ -1483,8 +1483,8 @@ function removeSsh(id) {
 			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			}
-		}					
-	} );	
+		}
+	} );
 }
 function removeTelegram(id) {
 	$("#telegram-table-"+id).css("background-color", "#f2dede");
@@ -1502,8 +1502,8 @@ function removeTelegram(id) {
 			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			}
-		}					
-	} );	
+		}
+	} );
 }
 function removeSlack(id) {
 	$("#slack-table-"+id).css("background-color", "#f2dede");
@@ -1543,8 +1543,8 @@ function removeBackup(id) {
 			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			}
-		}					
-	} );	
+		}
+	} );
 }
 function updateUser(id) {
 	toastr.remove();
@@ -1615,12 +1615,12 @@ function updateGroup(id) {
 }
 function updateServer(id) {
 	toastr.clear();
-	var typeip = 0;
-	var enable = 0;
-	var haproxy = 0;
-	var nginx = 0;
-	var firewall = 0;
-	var protected_serv = 0;
+	let typeip = 0;
+	let enable = 0;
+	let haproxy = 0;
+	let nginx = 0;
+	let firewall = 0;
+	let protected_serv = 0;
 	if ($('#typeip-'+id).is(':checked')) {
 		typeip = '1';
 	}
@@ -1860,7 +1860,7 @@ function showApacheLog(serv) {
 					'&minut=' + minut +
 					'&hour1=' + hour1 +
 					'&minut1=' + minut1);
-		}					
+		}
 	} );
 }
 function checkSshConnect(ip) {
@@ -1883,7 +1883,7 @@ function checkSshConnect(ip) {
 				toastr.clear();
 				toastr.success('Connect is accepted');
 			}
-		}					
+		}
 	} );
 }
 function openChangeUserPasswordDialog(id) {
@@ -1912,7 +1912,7 @@ function changeUserPasswordDialog(id) {
 				duration: 200
 			},
 			buttons: {
-				"Change": function() {	
+				"Change": function() {
 					changeUserPassword(id, $(this));
 				},
 				Cancel: function() {
@@ -1976,17 +1976,17 @@ function changeUserGroupDialog(id) {
 					title: "Change "+$('#login-'+id).val()+" groups",
 					buttons: {
 						"Save": function() {
-							$( this ).dialog( "close" );	
+							$( this ).dialog( "close" );
 							changeUserGroup(id);
 						},
 						Cancel: function() {
 							$( this ).dialog( "close" );
 						}
 					  }
-				});					
-			} 
+				});
+			}
 		}
-	} );	
+	} );
 }
 function changeUserServiceDialog(id) {
 	$.ajax( {
@@ -2042,7 +2042,7 @@ function changeUserGroup(id) {
 					$("#user-" + id).removeClass("update");
 				}, 2500);
 			}
-		}			
+		}
 	} );
 }
 function changeUserServices(id) {
@@ -2082,7 +2082,7 @@ function addUserGroup(id) {
 			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 				toastr.error(data);
 			}
-		}			
+		}
 	} );
 }
 function confirmAjaxServiceAction(action, service) {
@@ -2122,7 +2122,7 @@ function ajaxActionServies(action, service) {
 		},
 		error: function(){
 			alert(w.data_error);
-		}					
+		}
 	} );
 }
 function updateService(service) {

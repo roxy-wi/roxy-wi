@@ -5,22 +5,6 @@
   - name: Set SSH port
     set_fact:
       ansible_port: "{{SSH_PORT}}"
-    
-    
-  - name: collect facts about system services
-    service_facts:
-    register: services_state
-
-      
-  - name: Open stat port for firewalld
-    firewalld:
-      port: "9113/tcp"
-      state: enabled
-      permanent: yes
-      immediate: yes
-    ignore_errors: yes
-    when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS')  and ansible_facts.services["firewalld.service"]['state'] == "running"
-      
       
   - name: Open stat port for iptables
     iptables:
