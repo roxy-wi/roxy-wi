@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block content %}	
+{% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select, copy_to_clipboard %}
 <script src="/inc/overview.js"></script>
 <link href="/inc/chart.min.css" rel="stylesheet">
@@ -110,6 +110,17 @@
 			{% else %}
 				{% set additional_status_class = 'div-server-head-down' %}
 			{% endif %}
+		{% elif service == 'apache' %}
+			{% set checker_desc = 'Checker monitors Apache services. If Apache service is down, Checker will alert via Telegram and/or Slack' %}
+			{% set is_auto_start_enabled = s.8.0.25 %}
+			{% set action_service = 'apache' %}
+			{% set is_checker_enabled = s.8.0.26 %}
+			{% set is_metrics_enabled = s.8.0.27 %}
+			{% if 'Apache' in s.4.0 %}
+				{% set additional_status_class = 'div-server-head-up' %}
+			{% else %}
+				{% set additional_status_class = 'div-server-head-down' %}
+			{% endif %}
 		{% elif service == 'haproxy' %}
 			{% set checker_desc = 'Checker monitors HAProxy services, its backends and maxconn. If some backend or HAProxy service is down, Checker will alert via Telegram and/or Slack' %}
 			{% set is_auto_start_enabled = s.8.0.12 %}
@@ -148,7 +159,7 @@
 					<span class="box" title="This server is dockerized"></span>
 					{% endif %}
 				{% endfor %}
-				{% if role <= 2 %}
+				{% if role <= 3 %}
 				<span class="server-action">
 					<a id="start-{{ s.2 }}" class="start" title="Start {{service}} service">
 						<span class="service-start" onclick="confirmAjaxAction('start', '{{action_service}}', '{{s.2}}')"></span>
@@ -163,7 +174,7 @@
 						<span class="service-stop" onclick="confirmAjaxAction('stop', '{{action_service}}', '{{s.2}}')"></span>
 					</a>
 					<a href="history.py?service={{service}}&serv={{s.2}}" title="View history for this service" class="history" style="margin: 0 5px 0 10px;"></a>
-					{% if service != 'keepalived' %}
+					{% if service != 'keepalived' and service != 'apache' %}
 					<span class="menu-bar" onclick="serverSettings('{{s.0}}', '{{s.1}}')" title="Edit settings for {{s.1}} service"></span>
 					{% endif %}
 				</span>
@@ -185,19 +196,27 @@
 						Stopped:
 					{% endif %}
 					{{s.5.0.2}}
+				{% elif service == 'apache' %}
+					{% if s.4.0 is defined %}
+						{{s.4.0.split(' ')[0].split('Server')[1]}} {{s.4.0.split(' ')[1]}} {{s.4.2}}
+						<br />
+						{{s.4.1.split(' ')[0].split('Server')[1]}} {% for i in s.4.1.split(' ')[1:5] %} {{i}}{% endfor %}
+					{% else %}
+						Cannot get information about Apache
+					{% endif %}
 				{% else %}
 					{% if s.5.0 is defined %}
 						{{s.5.0.0}} {{s.5.0.1}}
 						<br />
 						{{s.5.0.2}}
 					{% else %}
-						Cannot get information about HAProxy 
-					{% endif %}				 
+						Cannot get information about HAProxy
+					{% endif %}
 				{% endif %}
 				<span title="Date of last configuration edit">
 					Last edit:
 					<span id="edit_date_{{s.2}}"></span>
-				</span>			
+				</span>
 				<br />
 				IP: {{ copy_to_clipboard(value=s.2, style='font-weight: bold') }}
 				{% if s.7.0.0 != None %}
@@ -222,7 +241,7 @@
 						{{ checkbox(id, title=checker_desc, value='1', desc='Checker') }}
 					{% endif %}
 				{% endif %}
-				{% if role <= 2 and service != 'keepalived' %}
+				{% if role <= 2 and service != 'keepalived' and service != 'apache' %}
 					{% set id = 'metrics-' + s.8.0.0|string() %}
 					{% if is_metrics_enabled == 1 %}
 						{{ checkbox(id, title='Collecting metrics is enabled', value='1', desc='Metrics', checked='checked') }}
@@ -230,7 +249,7 @@
 						{{ checkbox(id, title='Enable collecting metrics', value='1', desc='Metrics') }}
 					{% endif %}
 				{% endif %}
-				{% if role <= 2 %}
+				{% if role <= 2 and service != 'apache' %}
 					{% set id = 'active-' + s.8.0.0|string() %}
 					{% if is_auto_start_enabled == 1 %}
 						{{ checkbox(id, title='Auto Start is enabled', value='1', desc='Auto Start', checked='checked') }}
@@ -240,17 +259,19 @@
 				{% endif %}
 			</div>
 			<div class="server-act-links">
-				{% if service == 'nginx' %}
+				{% if service == 'nginx' or service == 'apache' %}
 				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showConfigFiles" class="ui-button ui-widget ui-corner-all" title="Open running configs">Configs</a>
 				{% else %}
 				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showConfig" class="ui-button ui-widget ui-corner-all" title="Open running config">Config</a>
 				{% endif %}
 				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showCompare" class="ui-button ui-widget ui-corner-all" title="Compare configs">Compare</a>
-			{% if service != 'nginx' and service != 'keepalived' %}
+			{% if service != 'nginx' and service != 'keepalived' and service != 'apache' %}
 				<a href="/app/config.py?serv={{s.2}}&showMap" class="ui-button ui-widget ui-corner-all" title="Show map">Map</a>
 			{% endif %}
-			{% if service != 'keepalived' %}
+			{% if service != 'keepalived' and service != 'apache' %}
 			<a href="/app/viewsttats.py?service={{service}}&serv={{s.2}}" class="ui-button ui-widget ui-corner-all" title="View {{service}} statistics">Stat</a>
+			{% endif %}
+			{% if service != 'keepalived' %}
 			<a href="/app/logs.py?service={{service}}&serv={{s.2}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" class="ui-button ui-widget ui-corner-all" title="View {{service}} log">Log</a>
 			{% endif %}
 			{% if role <= 2 %}
@@ -277,6 +298,7 @@
 	{% endfor %}
 </div>
 	{% if serv %}
+	{% if service == 'haproxy' or service == 'nginx' %}
 	<div style="clear: both; width: 97%;">
 		<div style="padding-left: 25px;float: left;margin-top: -15px;">
 			<b>Time range:</b>
@@ -292,6 +314,7 @@
 			<span class="service-reload"></span>
 		</div>
 	</div>
+	{% endif %}
 	{% for s in servers %}
 		 {% if service == 'haproxy' %}
 		<div id="server_metrics_div" class="chart-container_overview">

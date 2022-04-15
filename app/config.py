@@ -12,6 +12,7 @@ funct.check_login()
 form = funct.form
 serv = form.getvalue('serv')
 service = form.getvalue('service')
+is_serv_protected = False
 try:
 	config_file_name = form.getvalue('config_file_name').replace('92', '/')
 except:
@@ -41,6 +42,13 @@ elif service == 'nginx':
 		configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
 		file_format = 'conf'
 		servers = sql.get_dick_permit(nginx=1)
+elif service == 'apache':
+	if funct.check_login(service=2):
+		title = "Working with Apache configuration files"
+		action = "config.py?service=apache"
+		configs_dir = funct.get_config_var('configs', 'apache_save_configs_dir')
+		file_format = 'conf'
+		servers = sql.get_dick_permit(apache=1)
 else:
 	if funct.check_login(service=1):
 		title = "Working with HAProxy configuration files"
@@ -50,7 +58,7 @@ else:
 		servers = sql.get_dick_permit(haproxy=1)
 
 if serv is not None:
-	if service == 'nginx':
+	if service == 'nginx' or service == 'apache':
 		conf_file_name_short = config_file_name.split('/')[-1]
 		cfg = configs_dir + serv + "-" + conf_file_name_short + "-" + funct.get_data('config') + "." + file_format
 	else:
@@ -58,6 +66,8 @@ if serv is not None:
 
 if serv is not None and form.getvalue('open') is not None and form.getvalue('new_config') is None:
 	funct.check_is_server_in_group(serv)
+	is_serv_protected = sql.is_serv_protected(serv)
+
 	if service == 'keepalived':
 		error = funct.get_config(serv, cfg, keepalived=1)
 		try:
@@ -68,6 +78,12 @@ if serv is not None and form.getvalue('open') is not None and form.getvalue('new
 		error = funct.get_config(serv, cfg, nginx=1, config_file_name=config_file_name)
 		try:
 			funct.logging(serv, " Nginx config has been opened ")
+		except Exception:
+			pass
+	elif service == 'apache':
+		error = funct.get_config(serv, cfg, apache=1, config_file_name=config_file_name)
+		try:
+			funct.logging(serv, " Apache config has been opened ")
 		except Exception:
 			pass
 	else:
@@ -107,6 +123,8 @@ if serv is not None and form.getvalue('config') is not None:
 		stderr = funct.upload_and_restart(serv, cfg, just_save=save, keepalived=1, oldcfg=oldcfg)
 	elif service == 'nginx':
 		stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save=save, nginx=1, oldcfg=oldcfg, config_file_name=config_file_name)
+	elif service == 'apache':
+		stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save=save, apache=1, oldcfg=oldcfg, config_file_name=config_file_name)
 	else:
 		stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save=save, oldcfg=oldcfg)
 
@@ -138,5 +156,6 @@ template = template.render(h2=1, title=title,
 							service=service,
 							user_services=user_services,
 							config_file_name=config_file_name,
+							is_serv_protected=is_serv_protected,
 							token=token)
 print(template)

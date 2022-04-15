@@ -10,6 +10,9 @@
 <script src="/inc/codemirror/searchcursor.js"></script>
 <script src="/inc/codemirror/jump-to-line.js"></script>
 <script src="/inc/configshow.js"></script>
+{% if is_serv_protected %}
+<meta http-equiv="refresh" content="0; url=/app/hapservers.py?service={{service}}">
+{% else %}
 <center>
 	{% if selects|length == 0 %}
 		{% include 'include/getstarted.html' %}
@@ -18,15 +21,15 @@
 		<form action="{{ action }}" method="post">
 			<input type="hidden" id="service" value="{{service|default('haproxy', true)}}" />
 			{% include 'include/select.html' %}
-			{% if service == 'nginx'%}
+			{% if service == 'nginx' or service == 'apache' %}
 			<a class="ui-button ui-widget ui-corner-all" title="Show running config" onclick="showConfigFiles()">Open</a>
 			{% else %}
 			<a class="ui-button ui-widget ui-corner-all" title="Show running config" onclick="showConfig()">Open</a>
 			{% endif %}
-			{% if service != 'keepalived' %}
+			{% if service != 'keepalived' and service != 'apache' %}
 				<a class="ui-button ui-widget ui-corner-all" title="View stat" onclick="openStats()">Stat</a>
 			{% endif %}
-			{% if service != 'keepalived' and service != 'nginx'%}
+			{% if service != 'keepalived' and service != 'nginx' and service != 'apache' %}
 				<a class="ui-button ui-widget ui-corner-all" title="Show map" onclick="showMap()">Map</a>	
 			{% endif %}
 				<a class="ui-button ui-widget ui-corner-all" title="Compare configs" onclick="showCompareConfigs()">Compare</a>
@@ -106,4 +109,5 @@
 <script>
 	myCodeMirror.refresh();
 </script>
+{% endif %}
 {% endblock %}

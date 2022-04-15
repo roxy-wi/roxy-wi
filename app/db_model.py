@@ -63,6 +63,10 @@ class Server(BaseModel):
     nginx_metrics = IntegerField(constraints=[SQL('DEFAULT 0')])
     keepalived_active = IntegerField(constraints=[SQL('DEFAULT 0')])
     keepalived_alert = IntegerField(constraints=[SQL('DEFAULT 0')])
+    apache = IntegerField(constraints=[SQL('DEFAULT 0')])
+    apache_active = IntegerField(constraints=[SQL('DEFAULT 0')])
+    apache_alert = IntegerField(constraints=[SQL('DEFAULT 0')])
+    apache_metrics = IntegerField(constraints=[SQL('DEFAULT 0')])
 
     class Meta:
         table_name = 'servers'

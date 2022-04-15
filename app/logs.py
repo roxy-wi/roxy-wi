@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import funct
+import sql
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('logs.html')
@@ -39,12 +40,19 @@ except Exception:
 if service == 'nginx':
 	if funct.check_login(service=2):
 		title = "Nginx`s logs"
+		servers = sql.get_dick_permit(nginx=1)
+elif service == 'apache':
+	if funct.check_login(service=4):
+		title = "Apache's logs"
+		servers = sql.get_dick_permit(apache=1)
 elif waf == '1':
 	if funct.check_login(service=1):
 		title = "WAF logs"
+		servers = sql.get_dick_permit(haproxy=1)
 else:
 	if funct.check_login(service=1):
 		title = "HAProxy`s logs"
+		servers = sql.get_dick_permit(haproxy=1)
 
 template = template.render(h2=1,
 							autorefresh=1,

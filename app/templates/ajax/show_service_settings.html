@@ -75,4 +75,31 @@
         </tr>
         {% endif %}
     {% endif %}
+    {% if service == 'apache' %}
+        {% if settings %}
+            {% for s in settings %}
+                {% if s.dockerized != '' and s.setting == 'dockerized' %}
+                    <tr>
+                        <td class="padding20 help_cursor" style="width: 70%"
+                            title="If you use Apache inside Docker, check this. Roxy-WI is starting managing it as Docker container">Apache dockerized</td>
+                        <td>
+                            {% if s.value == '1' and s.setting == 'dockerized' %}
+                                {{ checkbox('apache_dockerized', checked='checked', title='This service is running inside a Docker container') }}
+                            {% else %}
+                                {{ checkbox('apache_dockerized', title='This server will be used as Docker container') }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+        <tr>
+            <td class="padding20 help_cursor" style="width: 70%"
+                title="If you use Apache inside Docker, check this. Roxy-WI is starting managing it as Docker container">Apache dockerized</td>
+            <td>
+                {{ checkbox('apache_dockerized', title='This server will be used as Docker container') }}
+            </td>
+        </tr>
+        {% endif %}
+    {% endif %}
 </table>

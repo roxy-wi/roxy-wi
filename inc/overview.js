@@ -2,11 +2,11 @@ var cur_url = window.location.href.split('/').pop();
 cur_url = cur_url.split('?');
 function showHapservers(serv, hostnamea, service) {
 	var i;
-	for (i = 0; i < serv.length; i++) { 
+	for (i = 0; i < serv.length; i++) {
 		showHapserversCallBack(serv[i], hostnamea[i], service)
 	}
 }
-function showHapserversCallBack(serv, hostnamea, service) {	
+function showHapserversCallBack(serv, hostnamea, service) {
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -31,10 +31,10 @@ function showHapserversCallBack(serv, hostnamea, service) {
 					$("#edit_date_" + hostnamea).html(data);
 				}
 			}
-		}					
+		}
 	} );
 }
-function overviewHapserverBackends(serv, hostnamea, service) {	
+function overviewHapserverBackends(serv, hostnamea, service) {
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -54,18 +54,18 @@ function overviewHapserverBackends(serv, hostnamea, service) {
 				$("#top-" + hostnamea).empty();
 				$("#top-" + hostnamea).html(data);
 			}
-		}					
+		}
 	} );
 }
 function showOverview(serv, hostnamea) {
 	showOverviewHapWI();
 	showUsersOverview();
 	var i;
-	for (i = 0; i < serv.length; i++) { 
+	for (i = 0; i < serv.length; i++) {
 		showOverviewCallBack(serv[i], hostnamea[i])
 	}
 }
-function showOverviewCallBack(serv, hostnamea) {	
+function showOverviewCallBack(serv, hostnamea) {
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -84,7 +84,7 @@ function showOverviewCallBack(serv, hostnamea) {
 				$("#" + hostnamea).empty();
 				$("#" + hostnamea).html(data);
 			}
-		}					
+		}
 	} );
 }
 function showOverviewServer(name, ip, id, service) {
@@ -120,9 +120,9 @@ function showOverviewServer(name, ip, id, service) {
 				getChartDataHapWiRam()
 				getChartDataHapWiCpu()
 			}
-		}					
+		}
 	} );
-	
+
 }
 function ajaxActionServers(action, id) {
 	var bad_ans = 'Bad config, check please';
@@ -138,16 +138,18 @@ function ajaxActionServers(action, id) {
 			if( data ==  'Bad config, check please ' ) {
 				toastr.error(data);
 			} else {
-				if (cur_url[0] == "hapservers.py") {
-					location.reload();
+				if (data.indexOf('error:') != '-1') {
+					toastr.error(data);
+				} else if (cur_url[0] == "hapservers.py") {
+					location.reload()
 				} else {
-					setTimeout(showOverview(ip, hostnamea), 2000)					
+					setTimeout(showOverview(ip, hostnamea), 2000)
 				}
 			}
 		},
 		error: function(){
 			alert(w.data_error);
-		}					
+		}
 	} );
 }
 function ajaxActionNginxServers(action, id) {
@@ -164,16 +166,18 @@ function ajaxActionNginxServers(action, id) {
 			if( data ==  'Bad config, check please ' ) {
 				alert(data);
 			} else {
-				if (cur_url[0] == "hapservers.py") {
+				if (data.indexOf('error:') != '-1') {
+					toastr.error(data);
+				} else if (cur_url[0] == "hapservers.py") {
 					location.reload()
 				} else {
-					setTimeout(showOverview(ip, hostnamea), 2000)					
+					setTimeout(showOverview(ip, hostnamea), 2000)
 				}
 			}
 		},
 		error: function(){
 			alert(w.data_error);
-		}					
+		}
 	} );
 }
 function ajaxActionKeepalivedServers(action, id) {
@@ -190,7 +194,37 @@ function ajaxActionKeepalivedServers(action, id) {
 			if( data ==  'Bad config, check please ' ) {
 				alert(data);
 			} else {
-				if (cur_url[0] == "hapservers.py") {
+				if (data.indexOf('error:') != '-1') {
+					toastr.error(data);
+				} else if (cur_url[0] == "hapservers.py") {
+					location.reload()
+				} else {
+					setTimeout(showOverview(ip, hostnamea), 2000)
+				}
+			}
+		},
+		error: function(){
+			alert(w.data_error);
+		}
+	} );
+}
+function ajaxActionApacheServers(action, id) {
+	var bad_ans = 'Bad config, check please';
+	$.ajax( {
+		url: "options.py",
+		data: {
+			action_apache: action,
+			serv: id,
+			token: $('#token').val()
+		},
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if( data ==  'Bad config, check please ' ) {
+				alert(data);
+			} else {
+				if (data.indexOf('error:') != '-1') {
+					toastr.error(data);
+				} else if (cur_url[0] == "hapservers.py") {
 					location.reload()
 				} else {
 					setTimeout(showOverview(ip, hostnamea), 2000)
@@ -213,15 +247,17 @@ function ajaxActionWafServers(action, id) {
 			},
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
-				if( data ==  'Bad config, check please ' ) {
+				if (data.indexOf('error:') != '-1') {
+					toastr.error(data);
+				} else if( data ==  'Bad config, check please ' ) {
 					toastr.error(data);
 				} else {
-					setTimeout(showOverviewWaf(ip, hostnamea), 2000)						
+					setTimeout(showOverviewWaf(ip, hostnamea), 2000)
 				}
 			},
 			error: function(){
 				alert(w.data_error);
-			}					
+			}
 	} );
 }
 $( function() {
@@ -254,8 +290,8 @@ $( function() {
 	$( "#show-all-users" ).click( function() {
 		$( ".show-users" ).show("fast");
 		$( "#show-all-users" ).text("Hide");
-		$( "#show-all-users" ).attr("title", "Hide all users"); 
-		$( "#show-all-users" ).attr("id", "hide-all-users"); 
+		$( "#show-all-users" ).attr("title", "Hide all users");
+		$( "#show-all-users" ).attr("id", "hide-all-users");
 
 		$("#hide-all-users").click(function() {
 			$( ".show-users" ).hide("fast");
@@ -268,7 +304,7 @@ $( function() {
 	$( "#show-all-groups" ).click( function() {
 		$( ".show-groups" ).show("fast");
 		$( "#show-all-groups" ).text("Hide");
-		$( "#show-all-groups" ).attr("title", "Hide all groups"); 
+		$( "#show-all-groups" ).attr("title", "Hide all groups");
 		$( "#show-all-groups" ).attr("id", "hide-all-groups");
 
 		$( "#hide-all-groups" ).click( function() {
@@ -337,6 +373,8 @@ function confirmAjaxAction(action, service, id) {
 					ajaxActionNginxServers(action, id)
 				} else if (service == "keepalived") {
 					ajaxActionKeepalivedServers(action, id)
+				} else if (service == "apache") {
+					ajaxActionApacheServers(action, id)
 				}
 			},
 			Cancel: function() {
@@ -394,7 +432,7 @@ function change_pos(pos, id) {
 			},
 		error: function(){
 			console.log(w.data_error);
-		}					
+		}
 	} );
 }
 function showBytes(serv) {
@@ -504,6 +542,7 @@ function serverSettingsSave(id, name, service, dialog_id) {
 	var haproxy_enterprise = 0;
 	var haproxy_dockerized = 0;
 	var nginx_dockerized = 0;
+	var apache_dockerized = 0;
 	if ($('#haproxy_enterprise').is(':checked')) {
 		haproxy_enterprise = '1';
 	}
@@ -513,6 +552,9 @@ function serverSettingsSave(id, name, service, dialog_id) {
 	if ($('#nginx_dockerized').is(':checked')) {
 		nginx_dockerized = '1';
 	}
+	if ($('#apache_dockerized').is(':checked')) {
+		apache_dockerized = '1';
+	}
 	$.ajax({
 		url: "options.py",
 		data: {
@@ -521,6 +563,7 @@ function serverSettingsSave(id, name, service, dialog_id) {
 			serverSettingsEnterprise: haproxy_enterprise,
 			serverSettingshaproxy_dockerized: haproxy_dockerized,
 			serverSettingsnginx_dockerized: nginx_dockerized,
+			serverSettingsapache_dockerized: apache_dockerized,
 			token: $('#token').val()
 		},
 		type: "POST",

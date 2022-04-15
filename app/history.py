@@ -35,6 +35,13 @@ elif service == 'keepalived':
             if funct.check_is_server_in_group(serv):
                 server_id = sql.select_server_id_by_ip(serv)
                 history = sql.select_action_history_by_server_id_and_service(server_id, service)
+elif service == 'apache':
+    if funct.check_login(service=4):
+        title = 'Apache service history'
+        if serv:
+            if funct.check_is_server_in_group(serv):
+                server_id = sql.select_server_id_by_ip(serv)
+                history = sql.select_action_history_by_server_id_and_service(server_id, service)
 elif service == 'haproxy':
     if funct.check_login(service=1):
         title = "HAProxy service history"

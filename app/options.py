@@ -90,10 +90,10 @@ if serv and form.getvalue('ssl_cert'):
     for master in MASTERS:
         if master[0] is not None:
             funct.upload(master[0], cert_path, name)
+            print('success: the SSL file has been uploaded to %s into: %s%s <br/>' % (master[0], cert_path, '/' + name))
     try:
         error = funct.upload(serv, cert_path, name)
-        if error == '':
-            print('success: the SSL file has been uploaded to %s into: %s%s' % (serv, cert_path, '/' + name))
+        print('success: the SSL file has been uploaded to %s into: %s%s' % (serv, cert_path, '/' + name))
     except Exception as e:
         funct.logging('localhost', e.args[0], haproxywi=1)
     try:
@@ -407,6 +407,8 @@ if form.getvalue('action_hap') is not None and serv is not None:
     action = form.getvalue('action_hap')
     haproxy_service_name = "haproxy"
 
+    funct.is_restarted(serv, action)
+
     if funct.check_haproxy_config(serv):
         server_id = sql.select_server_id_by_ip(server_ip=serv)
         is_docker = sql.select_service_setting(server_id, 'haproxy', 'dockerized')
@@ -429,6 +431,8 @@ if form.getvalue('action_hap') is not None and serv is not None:
 if form.getvalue('action_nginx') is not None and serv is not None:
     action = form.getvalue('action_nginx')
 
+    funct.is_restarted(serv, action)
+
     if funct.check_nginx_config(serv):
         server_id = sql.select_server_id_by_ip(server_ip=serv)
         is_docker = sql.select_service_setting(server_id, 'nginx', 'dockerized')
@@ -446,6 +450,8 @@ if form.getvalue('action_nginx') is not None and serv is not None:
 if form.getvalue('action_keepalived') is not None and serv is not None:
     action = form.getvalue('action_keepalived')
 
+    funct.is_restarted(serv, action)
+
     commands = ["sudo systemctl %s keepalived" % action]
     funct.ssh_command(serv, commands)
     funct.logging(serv, 'Service has been ' + action + 'ed', haproxywi=1, login=1, keep_history=1, service='keepalived')
@@ -454,9 +460,35 @@ if form.getvalue('action_keepalived') is not None and serv is not None:
 if form.getvalue('action_waf') is not None and serv is not None:
     serv = form.getvalue('serv')
     action = form.getvalue('action_waf')
+
+    funct.is_restarted(serv, action)
+
     funct.logging(serv, 'WAF service has been ' + action + 'ed', haproxywi=1, login=1, keep_history=1, service='haproxy')
     commands = ["sudo systemctl %s waf" % action]
     funct.ssh_command(serv, commands)
+
+if form.getvalue('action_apache') is not None and serv is not None:
+    action = form.getvalue('action_apache')
+
+    funct.is_restarted(serv, action)
+
+    server_id = sql.select_server_id_by_ip(serv)
+    is_docker = sql.select_service_setting(server_id, 'apache', 'dockerized')
+    if is_docker == '1':
+        container_name = sql.get_setting('apache_container_name')
+        commands = ["sudo docker %s %s" % (action, container_name)]
+    else:
+        os_info = sql.select_os_info(server_id)
+
+        if "CentOS" in os_info or "Redhat" in os_info:
+            service_apache_name = 'httpd'
+        else:
+            service_apache_name = 'apache2'
+    
+        commands = ["sudo systemctl %s %s" % (action, service_apache_name)]
+    funct.ssh_command(serv, commands)
+    funct.logging(serv, 'Service has been ' + action + 'ed', haproxywi=1, login=1, keep_history=1, service='apache')
+    print("success: Apache has been %s" % action)
 
 if form.getvalue('action_service') is not None:
     action = form.getvalue('action_service')
@@ -484,7 +516,7 @@ if act == "overviewHapserverBackends":
         configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
         format_file = 'conf'
 
-    if service != 'nginx':
+    if service != 'nginx' and service != 'apache':
         try:
             sections = funct.get_sections(configs_dir + funct.get_files(dir=configs_dir, format=format_file)[0], service=service)
         except Exception as e:
@@ -557,22 +589,17 @@ if act == "overview":
     async def async_get_overview(serv1, serv2, user_uuid, server_id):
         user_id = sql.get_user_id_by_uuid(user_uuid)
         user_services = sql.select_user_services(user_id)
-        if '1' in user_services:
-            haproxy = sql.select_haproxy(serv2)
-        else:
-            haproxy = 0
-        if '2' in user_services:
-            nginx = sql.select_nginx(serv2)
-        else:
-            nginx = 0
-        if '3' in user_services:
-            keepalived = sql.select_keepalived(serv2)
-        else:
-            keepalived = 0
+
+        haproxy = sql.select_haproxy(serv) if '1' in user_services else 0
+        nginx = sql.select_nginx(serv) if '2' in user_services else 0
+        keepalived = sql.select_keepalived(serv) if '3' in user_services else 0
+        apache = sql.select_apache(serv) if  '4' in user_services else 0
+
         waf = sql.select_waf_servers(serv2)
         haproxy_process = ''
         keepalived_process = ''
         nginx_process = ''
+        apache_process = ''
         waf_process = ''
 
         try:
@@ -584,13 +611,17 @@ if act == "overview":
             cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Process_num"' % (serv2, sql.get_setting('haproxy_sock_port'))
             haproxy_process = funct.server_status(funct.subprocess_execute(cmd))
 
-        if keepalived == 1:
-            command = ["ps ax |grep keepalived|grep -v grep|wc -l|tr -d '\n'"]
-            keepalived_process = funct.ssh_command(serv2, command)
-
         if nginx == 1:
             nginx_cmd = 'echo "something" |nc %s %s -w 1' % (serv2, sql.get_setting('nginx_stats_port'))
             nginx_process = funct.server_status(funct.subprocess_execute(nginx_cmd))
+
+        if apache == 1:
+            apache_cmd = 'echo "something" |nc %s %s -w 1' % (serv2, sql.get_setting('apache_stats_port'))
+            apache_process = funct.server_status(funct.subprocess_execute(apache_cmd))
+
+        if keepalived == 1:
+            command = ["ps ax |grep keepalived|grep -v grep|wc -l|tr -d '\n'"]
+            keepalived_process = funct.ssh_command(serv2, command)
 
         if waf_len >= 1:
             command = ["ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l"]
@@ -606,7 +637,9 @@ if act == "overview":
                          keepalived_process,
                          nginx,
                          nginx_process,
-                         server_id)
+                         server_id,
+                         apache,
+                         apache_process)
         return server_status
 
 
@@ -835,7 +868,7 @@ if serv is not None and form.getvalue('rows1') is not None:
     hour1 = form.getvalue('hour1')
     minut1 = form.getvalue('minut1')
     out = funct.show_haproxy_log(serv, rows=rows, waf='0', grep=grep, hour=hour, minut=minut, hour1=hour1,
-                                 minut1=minut1, service='apache')
+                                 minut1=minut1, service='apache_internal')
     print(out)
 
 if form.getvalue('viewlogs') is not None:
@@ -1094,10 +1127,13 @@ if act == "showCompareConfigs":
     template = env.get_template('ajax/show_compare_configs.html')
     left = form.getvalue('left')
     right = form.getvalue('right')
+    service = form.getvalue('service')
 
-    if form.getvalue('service') == 'nginx':
+    if service == 'nginx':
         return_files = funct.get_files(funct.get_config_var('configs', 'nginx_save_configs_dir'), 'conf')
-    elif form.getvalue('service') == 'keepalived':
+    elif service == 'apache':
+        return_files = funct.get_files(funct.get_config_var('configs', 'apache_save_configs_dir'), 'conf')
+    elif service == 'keepalived':
         return_files = funct.get_files(funct.get_config_var('configs', 'kp_save_configs_dir'), 'conf')
     else:
         return_files = funct.get_files()
@@ -1110,12 +1146,16 @@ if serv is not None and form.getvalue('right') is not None:
 
     left = form.getvalue('left')
     right = form.getvalue('right')
+
     if form.getvalue('service') == 'nginx':
         configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
+    elif form.getvalue('service') == 'apache':
+        configs_dir = funct.get_config_var('configs', 'apache_save_configs_dir')
     elif form.getvalue('service') == 'keepalived':
         configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
     else:
         configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+
     cmd = 'diff -pub %s%s %s%s' % (configs_dir, left, configs_dir, right)
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
                       extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
@@ -1145,6 +1185,9 @@ if serv is not None and act == "configShow":
     elif service == 'nginx':
         configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
         cfg = '.conf'
+    elif service == 'apache':
+        configs_dir = funct.get_config_var('configs', 'apache_save_configs_dir')
+        cfg = '.conf'
     else:
         configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
         cfg = '.cfg'
@@ -1153,6 +1196,8 @@ if serv is not None and act == "configShow":
         cfg = configs_dir + serv + "-" + funct.get_data('config') + cfg
         if service == 'nginx':
             funct.get_config(serv, cfg, nginx=1, config_file_name=form.getvalue('config_file_name'))
+        elif service == 'apache':
+            funct.get_config(serv, cfg, apache=1, config_file_name=form.getvalue('config_file_name'))
         elif service == 'keepalived':
             funct.get_config(serv, cfg, keepalived=1)
         else:
@@ -1185,22 +1230,25 @@ if serv is not None and act == "configShow":
         os.system("/bin/rm -f " + cfg)
 
 if act == 'configShowFiles':
-    config_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
-    nginx_config_dir = sql.get_setting('nginx_dir')
+    service = form.getvalue('service')
+
+    config_dir = funct.get_config_var('configs', service+'_save_configs_dir')
+    service_config_dir = sql.get_setting(service+'_dir')
     try:
         config_file_name = form.getvalue('config_file_name').replace('92', '/')
     except:
         config_file_name = ''
-    return_files = funct.get_remote_files(serv, nginx_config_dir, 'conf')
+    return_files = funct.get_remote_files(serv, service_config_dir, 'conf')
     if 'error: ' in return_files:
         print(return_files)
         sys.exit()
-    return_files += ' ' + sql.get_setting('nginx_config_path')
+    return_files += ' ' + sql.get_setting(service+'_config_path')
     from jinja2 import Environment, FileSystemLoader
 
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
     template = env.get_template('ajax/show_configs_files.html')
-    template = template.render(serv=serv, return_files=return_files, config_file_name=config_file_name, path_dir=nginx_config_dir)
+    template = template.render(serv=serv, service=service, return_files=return_files,
+                               config_file_name=config_file_name, path_dir=service_config_dir)
     print(template)
 
 if act == 'showRemoteLogFiles':
@@ -2065,6 +2113,7 @@ if form.getvalue('newserver') is not None:
     typeip = form.getvalue('typeip')
     haproxy = form.getvalue('haproxy')
     nginx = form.getvalue('nginx')
+    apache = form.getvalue('apache')
     firewall = form.getvalue('firewall')
     enable = form.getvalue('enable')
     master = form.getvalue('slave')
@@ -2078,13 +2127,14 @@ if form.getvalue('newserver') is not None:
         print('error: IP or DNS name is not valid')
         sys.exit()
 
-    if sql.add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, firewall):
+    if sql.add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, apache, firewall):
 
         try:
             if scan_server == '1':
                 nginx_config_path = sql.get_setting('nginx_config_path')
                 haproxy_config_path = sql.get_setting('haproxy_config_path')
                 haproxy_dir = sql.get_setting('haproxy_dir')
+                apache_config_path = sql.get_setting('apache_config_path')
                 keepalived_config_path = '/etc/keepalived/keepalived.conf'
 
                 if funct.is_file_exists(ip, nginx_config_path):
@@ -2095,6 +2145,9 @@ if form.getvalue('newserver') is not None:
 
                 if funct.is_file_exists(ip, keepalived_config_path):
                     sql.update_keepalived(ip)
+
+                if funct.is_file_exists(ip, apache_config_path):
+                    sql.update_apache(ip)
 
                 if funct.is_file_exists(ip, haproxy_dir + '/waf/bin/modsecurity'):
                     sql.insert_waf_metrics_enable(ip, "0")
@@ -2142,6 +2195,7 @@ if form.getvalue('updateserver') is not None:
     typeip = form.getvalue('typeip')
     haproxy = form.getvalue('haproxy')
     nginx = form.getvalue('nginx')
+    apache = form.getvalue('apache')
     firewall = form.getvalue('firewall')
     enable = form.getvalue('enable')
     master = form.getvalue('slave')
@@ -2154,7 +2208,7 @@ if form.getvalue('updateserver') is not None:
     if name is None or port is None:
         print(error_mess)
     else:
-        sql.update_server(name, group, typeip, enable, master, serv_id, cred, port, desc, haproxy, nginx, firewall, protected)
+        sql.update_server(name, group, typeip, enable, master, serv_id, cred, port, desc, haproxy, nginx, apache, firewall, protected)
         funct.logging('the server ' + name, ' has been updated ', haproxywi=1, login=1)
         server_ip = sql.select_server_ip_by_id(serv_id)
         funct.logging(server_ip, 'The server ' + name + ' has been update', haproxywi=1, login=1,
@@ -3917,6 +3971,7 @@ if form.getvalue('serverSettingsSave') is not None:
     haproxy_enterprise = form.getvalue('serverSettingsEnterprise')
     haproxy_dockerized = form.getvalue('serverSettingshaproxy_dockerized')
     nginx_dockerized = form.getvalue('serverSettingsnginx_dockerized')
+    apache_dockerized = form.getvalue('serverSettingsapache_dockerized')
     server_ip = sql.select_server_ip_by_id(server_id)
 
     if service == 'haproxy':
@@ -3947,6 +4002,16 @@ if form.getvalue('serverSettingsSave') is not None:
                 funct.logging(server_ip, 'Service has been flagged as a system service', haproxywi=1, login=1,
                               keep_history=1, service=service)
 
+    if service == 'apache':
+        if sql.insert_or_update_service_setting(server_id, service, 'dockerized', apache_dockerized):
+            print('Ok')
+            if apache_dockerized:
+                funct.logging(server_ip, 'Service has been flagged as a dockerized', haproxywi=1, login=1,
+                              keep_history=1, service=service)
+            else:
+                funct.logging(server_ip, 'Service has been flagged as a system service', haproxywi=1, login=1,
+                              keep_history=1, service=service)
+
 if act == 'showListOfVersion':
     service = form.getvalue('service')
     configver = form.getvalue('configver')
@@ -3964,6 +4029,11 @@ if act == 'showListOfVersion':
         files = funct.get_files(dir=configs_dir, format='conf')
         configs = sql.select_config_version(serv, service)
         action = 'versions.py?service=nginx'
+    elif service == 'apache':
+        configs_dir = funct.get_config_var('configs', 'apache_save_configs_dir')
+        files = funct.get_files(dir=configs_dir, format='conf')
+        configs = sql.select_config_version(serv, service)
+        action = 'versions.py?service=apache'
     else:
         service = 'haproxy'
         files = funct.get_files()
@@ -4049,7 +4119,7 @@ if act == 'findInConfigs':
     service = form.getvalue('service')
     log_path = sql.get_setting(service + '_dir')
     log_path = funct.return_nice_path(log_path)
-    commands = ['sudo grep "%s" %s* -C 2 -Rn' % (finding_words, log_path)]
+    commands = ['sudo grep "%s" %s*/*.conf -C 2 -Rn' % (finding_words, log_path)]
     return_find = funct.ssh_command(server_ip, commands, raw='1')
     return_find = funct.show_finding_in_config(return_find, grep=finding_words)
 
@@ -4057,3 +4127,41 @@ if act == 'findInConfigs':
         print(return_find)
         sys.exit()
     print(return_find)
+
+if act == 'check_service':
+    import http.cookies
+    cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+    user_uuid = cookie.get('uuid')
+    user_id = sql.get_user_id_by_uuid(user_uuid.value)
+    user_services = sql.select_user_services(user_id)
+    server_id = form.getvalue('server_id')
+    service = form.getvalue('service')
+
+    if '1' in user_services:
+        if service == 'haproxy':
+            haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+            cmd = 'echo "show info" |nc %s %s -w 1 -v|grep Name' % (serv, haproxy_sock_port)
+            out = funct.subprocess_execute(cmd)
+            for k in out[0]:
+                if "Name" in k:
+                    print('up')
+                    break
+            else:
+                print('down')
+    if '2' in user_services:
+        if service == 'nginx':
+            import socket
+            from contextlib import closing
+
+            nginx_stats_port = sql.get_setting('nginx_stats_port')
+
+            with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+                sock.settimeout(5)
+
+                try:
+                    if sock.connect_ex((serv, nginx_stats_port)) == 0:
+                        print('up')
+                    else:
+                        print('down')
+                except Exception:
+                    print('down')

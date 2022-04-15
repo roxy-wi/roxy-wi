@@ -133,6 +133,11 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f0e8";
 }
+.apache-menu::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f56b";
+}
 .version::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";

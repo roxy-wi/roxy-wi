@@ -191,6 +191,22 @@ def add_setting_for_new_group(group_id):
 		{'param': 'ldap_search_field', 'value': 'mail', 'section': 'ldap',
 		 'desc': 'User\'s email address', 'group': group_id},
 		{'param': 'ldap_type', 'value': '0', 'section': 'ldap', 'desc': 'Use LDAPS (1 - yes, 0 - no)', 'group': group_id},
+		{'param': 'apache_path_logs', 'value': '/var/log/httpd/', 'section': 'apache',
+		 'desc': 'The path for Apache logs', 'group': group_id},
+		{'param': 'apache_stats_user', 'value': 'admin', 'section': 'apache',
+		 'desc': 'Username for accessing Apache stats page', 'group': group_id},
+		{'param': 'apache_stats_password', 'value': 'password', 'section': 'apache',
+		 'desc': 'Password for Apache stats webpage', 'group': group_id},
+		{'param': 'apache_stats_port', 'value': '8087', 'section': 'apache', 'desc': 'Stats port for webpage Apache',
+		 'group': group_id},
+		{'param': 'apache_stats_page', 'value': 'stats', 'section': 'apache', 'desc': 'URI Stats for webpage Apache',
+		 'group': group_id},
+		{'param': 'apache_dir', 'value': '/etc/httpd/', 'section': 'apache',
+		 'desc': 'Path to the Apache directory with config files', 'group': group_id},
+		{'param': 'apache_config_path', 'value': '/etc/httpd/conf/httpd.conf', 'section': 'apache',
+		 'desc': 'Path to the main Nginx configuration file', 'group': group_id},
+		{'param': 'apache_container_name', 'value': 'apache', 'section': 'apache',
+		 'desc': 'Docker container name for Apache service', 'group': group_id},
 	]
 
 	try:
@@ -234,10 +250,10 @@ def update_group(name, descript, group_id):
 		return True
 
 
-def add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, firewall):
+def add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, apache, firewall):
 	try:
 		Server.insert(hostname=hostname, ip=ip, groups=group, type_ip=typeip, enable=enable, master=master, cred=cred,
-					  port=port, desc=desc, haproxy=haproxy, nginx=nginx, firewall_enable=firewall).execute()
+					  port=port, desc=desc, haproxy=haproxy, nginx=nginx, apache=apache, firewall_enable=firewall).execute()
 		return True
 	except Exception as e:
 		out_error(e)
@@ -270,7 +286,7 @@ def update_hapwi_server(server_id, alert, metrics, active, service_name):
 		out_error(e)
 
 
-def update_server(hostname, group, typeip, enable, master, server_id, cred, port, desc, haproxy, nginx, firewall, protected):
+def update_server(hostname, group, typeip, enable, master, server_id, cred, port, desc, haproxy, nginx, apache, firewall, protected):
 	try:
 		server_update = Server.update(hostname=hostname,
 									  groups=group,
@@ -282,6 +298,7 @@ def update_server(hostname, group, typeip, enable, master, server_id, cred, port
 									  desc=desc,
 									  haproxy=haproxy,
 									  nginx=nginx,
+									  apache=apache,
 									  firewall_enable=firewall,
 									  protected=protected).where(Server.server_id == server_id)
 		server_update.execute()
@@ -750,7 +767,7 @@ def get_dick_permit(**kwargs):
 			grp = group.value
 		except Exception as e:
 			print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
-			return 
+			return
 	if kwargs.get('token'):
 		token = kwargs.get('token')
 	else:
@@ -761,6 +778,7 @@ def get_dick_permit(**kwargs):
 	haproxy = ''
 	nginx = ''
 	keepalived = ''
+	apache = ''
 	ip = ''
 
 	if kwargs.get('virt'):
@@ -771,22 +789,32 @@ def get_dick_permit(**kwargs):
 		disable = '(enable = 1 or enable = 0)'
 	if kwargs.get('ip'):
 		ip = "and ip = '%s'" % kwargs.get('ip')
-	if kwargs.get('haproxy'):
+	if kwargs.get('haproxy') or kwargs.get('service') == 'haproxy':
 		haproxy = "and haproxy = 1"
-	if kwargs.get('nginx'):
+	if kwargs.get('nginx') or kwargs.get('service') == 'nginx':
 		nginx = "and nginx = 1"
-	if kwargs.get('keepalived'):
+	if kwargs.get('keepalived') or kwargs.get('service') == 'keepalived':
 		keepalived = "and keepalived = 1"
+	if kwargs.get('apache') or kwargs.get('service') == 'apache':
+		apache = "and apache = 1"
 
 	if funct.check_user_group(token=token):
 		cursor = conn.cursor()
 		try:
 			if grp == '1' and not only_group:
-				sql = """ select * from servers where {} {} {} {} {} {} order by pos""" .format(disable, type_ip, nginx, haproxy, keepalived, ip)
+				sql = """ select * from servers where {} {} {} {} {} {} {} order by pos""" .format(disable,
+																								type_ip,
+																								nginx,
+																								haproxy,
+																								keepalived,
+																								apache,
+																								ip)
 			else:
-				sql = """ select * from servers where groups = '{group}' and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} order by pos
-				""".format(group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx, keepalived=keepalived)
-		except Exception:
+				sql = """ select * from servers where groups = '{group}' and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} {apache} order by pos
+				""".format(group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx,
+						   keepalived=keepalived, apache=apache)
+		except Exception as e:
+			print(str(e))
 			print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
 		try:
 			cursor.execute(sql)
@@ -1927,6 +1955,26 @@ def update_keepalived(serv):
 		return True
 
 
+def select_apache(serv):
+	try:
+		apache = Server.get(Server.ip == serv).apache
+	except Exception as e:
+		out_error(e)
+	else:
+		return apache
+
+
+def update_apache(serv):
+	query = Server.update(apache='1').where(Server.ip == serv)
+	try:
+		query.execute()
+	except Exception as e:
+		out_error(e)
+		return False
+	else:
+		return True
+
+
 def select_nginx(serv):
 	try:
 		query_res = Server.get(Server.ip == serv).nginx
@@ -2910,6 +2958,16 @@ def delete_action_history(server_id: int):
 
 def select_action_history_by_server_id(server_id: int):
 	query = ActionHistory.select().where(ActionHistory.server_id == server_id)
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
+
+
+def select_action_history_by_user_id(user_id: int):
+	query = ActionHistory.select().where(ActionHistory.user_id == user_id)
 	try:
 		query_res = query.execute()
 	except Exception as e:

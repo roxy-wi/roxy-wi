@@ -108,6 +108,22 @@ def default_values():
 		{'param': 'rabbitmq_queue', 'value': 'roxy-wi', 'section': 'rabbitmq', 'desc': 'RabbitMQ-server queue', 'group': '1'},
 		{'param': 'rabbitmq_user', 'value': 'roxy-wi', 'section': 'rabbitmq', 'desc': 'RabbitMQ-server user', 'group': '1'},
 		{'param': 'rabbitmq_password', 'value': 'roxy-wi123', 'section': 'rabbitmq', 'desc': 'RabbitMQ-server user password', 'group': '1'},
+		{'param': 'apache_path_logs', 'value': '/var/log/httpd/', 'section': 'apache',
+		 'desc': 'The path for Apache logs', 'group': '1'},
+		{'param': 'apache_stats_user', 'value': 'admin', 'section': 'apache',
+		 'desc': 'Username for accessing Apache stats page', 'group': '1'},
+		{'param': 'apache_stats_password', 'value': 'password', 'section': 'apache',
+		 'desc': 'Password for Apache stats webpage', 'group': '1'},
+		{'param': 'apache_stats_port', 'value': '8087', 'section': 'apache', 'desc': 'Stats port for webpage Apache',
+		 'group': '1'},
+		{'param': 'apache_stats_page', 'value': 'stats', 'section': 'apache', 'desc': 'URI Stats for webpage Apache',
+		 'group': '1'},
+		{'param': 'apache_dir', 'value': '/etc/httpd/', 'section': 'apache',
+		 'desc': 'Path to the Apache directory with config files', 'group': '1'},
+		{'param': 'apache_config_path', 'value': '/etc/httpd/conf/httpd.conf', 'section': 'apache',
+		 'desc': 'Path to the main Nginx configuration file', 'group': '1'},
+		{'param': 'apache_container_name', 'value': 'apache', 'section': 'apache',
+		 'desc': 'Docker container name for Apache service', 'group': '1'},
 	]
 	try:
 		Setting.insert_many(data_source).on_conflict_ignore().execute()
@@ -637,8 +653,25 @@ def update_db_v_5_4_3_1(**kwargs):
 			print("Updating... DB has been updated to version 5.4.3-1")
 
 
+def update_db_v_6_0(**kwargs):
+	cursor = conn.cursor()
+	sql = list()
+	sql.append("alter table servers add column apache integer default 0")
+	sql.append("alter table servers add column apache_active integer default 0")
+	sql.append("alter table servers add column apache_alert integer default 0")
+	sql.append("alter table servers add column apache_metrics integer default 0")
+	for i in sql:
+		try:
+			cursor.execute(i)
+		except Exception as e:
+			pass
+	else:
+		if kwargs.get('silent') != 1:
+			print('Updating... DB has been updated to version 6.0.0.0')
+
+
 def update_ver():
-	query = Version.update(version='5.5.1.0')
+	query = Version.update(version='6.0.0.0')
 	try:
 		query.execute()
 	except:
@@ -662,6 +695,7 @@ def update_all():
 	update_db_v_5_4_2()
 	update_db_v_5_4_3()
 	update_db_v_5_4_3_1()
+	update_db_v_6_0()
 	update_ver()
 
 
@@ -682,6 +716,7 @@ def update_all_silent():
 	update_db_v_5_4_2(silent=1)
 	update_db_v_5_4_3(silent=1)
 	update_db_v_5_4_3_1(silent=1)
+	update_db_v_6_0(silent=1)
 	update_ver()
 
 

@@ -420,7 +420,8 @@ def get_config(server_ip, cfg, **kwargs):
 
 	if kwargs.get("keepalived")  or kwargs.get("service") == 'keepalived':
 		config_path = "/etc/keepalived/keepalived.conf"
-	elif kwargs.get("nginx") or kwargs.get("service") == 'nginx':
+	elif (kwargs.get("nginx") or kwargs.get("service") == 'nginx' or
+		  kwargs.get("apache") or kwargs.get("service") == 'apache'):
 		config_path = kwargs.get('config_file_name')
 	elif kwargs.get("waf")  or kwargs.get("service") == 'waf':
 		config_path = sql.get_setting('haproxy_dir') + '/waf/rules/' + kwargs.get("waf_rule_file")
@@ -492,9 +493,16 @@ def get_remote_sections(server_ip: str, service: str) -> str:
 	config_dir = return_nice_path(config_dir)
 	if service == 'nginx':
 		section_name = 'server_name'
+		commands = [
+			'sudo grep {} {}* -R |grep -v \'${}\|#\'|awk \'{{print $1, $3}}\''.format(section_name, config_dir,
+																							 section_name)]
+
 	elif service == 'apache':
 		section_name = 'ServerName'
-	commands = ['sudo grep {} {}* -R |grep -v \'$server_name\|#\'|awk \'{{print $1, $3}}\''.format(section_name, config_dir)]
+		commands = [
+			'sudo grep {} {}*/*.conf -R |grep -v \'${}\|#\'|awk \'{{print $1, $3}}\''.format(section_name, config_dir,
+																							 section_name)]
+
 	backends = ssh_command(server_ip, commands)
 
 	return backends
@@ -912,7 +920,10 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 
 	if kwargs.get("nginx"):
 		service = 'nginx'
-		# config_path = sql.get_setting('nginx_config_path')
+		config_path = kwargs.get('config_file_name')
+		tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".conf"
+	elif kwargs.get("apache"):
+		service = 'apache'
 		config_path = kwargs.get('config_file_name')
 		tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".conf"
 	elif kwargs.get("keepalived"):
@@ -936,6 +947,15 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 			haproxy_enterprise = sql.select_service_setting(server_id, 'haproxy', 'haproxy_enterprise')
 			if haproxy_enterprise == '1':
 				service_name = "hapee-2.0-lb"
+		if service == 'apache':
+			server_id = sql.select_server_id_by_ip(server_ip)
+			os_info = sql.select_os_info(server_id)
+
+			if "CentOS" in os_info or "Redhat" in os_info:
+				service_name = 'httpd'
+			else:
+				service_name = 'apache2'
+
 		reload_command = " && sudo systemctl reload " + service_name
 		restart_command = " && sudo systemctl restart " + service_name
 
@@ -980,6 +1000,20 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 			commands = [check_and_move + reload_or_restart_command]
 		if sql.return_firewall(server_ip):
 			commands[0] += open_port_firewalld(cfg, server_ip=server_ip, service='nginx')
+	elif service == "apache":
+		if is_docker == '1':
+			check_config = "sudo docker exec -it exec " + container_name + " nginx -t -q "
+		else:
+			check_config = "sudo apachectl configtest "
+		check_and_move = "sudo mv -f " + tmp_file + " " + config_path #+ " && " + check_config
+		if action == "test":
+			commands = [check_config + " && sudo rm -f " + tmp_file]
+		elif action == "save":
+			commands = [check_and_move]
+		else:
+			commands = [check_and_move + reload_or_restart_command]
+		# if sql.return_firewall(server_ip):
+		# 	commands[0] += open_port_firewalld(cfg, server_ip=server_ip, service='nginx')
 	else:
 		if is_docker == '1':
 			check_config = "sudo docker exec -it " + container_name + " haproxy -q -c -f " + tmp_file
@@ -1004,6 +1038,7 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		except Exception as e:
 			logging('localhost', str(e), haproxywi=1)
 		# If master then save version of config in a new way
+
 		if not kwargs.get('slave'):
 			diff = ''
 			old_cfg = kwargs.get('oldcfg')
@@ -1051,6 +1086,7 @@ def master_slave_upload_and_restart(server_ip, cfg, just_save, **kwargs):
 									   cfg,
 									   just_save=just_save,
 									   nginx=kwargs.get('nginx'),
+									   apache=kwargs.get('apache'),
 									   config_file_name=kwargs.get('config_file_name'),
 									   slave=1)
 
@@ -1062,6 +1098,7 @@ def master_slave_upload_and_restart(server_ip, cfg, just_save, **kwargs):
 							   cfg,
 							   just_save=just_save,
 							   nginx=kwargs.get('nginx'),
+							   apache=kwargs.get('apache'),
 							   config_file_name=kwargs.get('config_file_name'),
 							   oldcfg=kwargs.get('oldcfg'),
 							   login=login)
@@ -1197,7 +1234,6 @@ def show_finding_in_config(stdout: str, **kwargs) -> str:
 	return out
 
 
-
 def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', hour1='24', minut1='00', service='haproxy', **kwargs):
 	import sql
 	exgrep = form.getvalue('exgrep')
@@ -1216,12 +1252,15 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 	else:
 		exgrep_act = ''
 
-	if service == 'nginx' or service == 'haproxy':
+	if service == 'nginx' or service == 'haproxy' or service == 'apache':
 		syslog_server_enable = sql.get_setting('syslog_server_enable')
 		if syslog_server_enable is None or syslog_server_enable == 0:
 			if service == 'nginx':
 				local_path_logs = sql.get_setting('nginx_path_logs')
 				commands = ["sudo cat %s/%s |tail -%s %s %s" % (local_path_logs, log_file, rows, grep_act, exgrep_act)]
+			elif service == 'apache':
+				local_path_logs = sql.get_setting('apache_path_logs')
+				commands = ["sudo cat %s/%s| awk -F\"/|:\" '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, log_file, date, date1, rows, grep_act, exgrep_act)]
 			else:
 				local_path_logs = sql.get_setting('haproxy_path_logs')
 				commands = ["sudo cat %s/%s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, log_file, date, date1, rows, grep_act, exgrep_act)]
@@ -1239,7 +1278,7 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 			return show_log(a, html=0, grep=grep)
 		else:
 			return ssh_command(syslog_server, commands, show_log='1', grep=grep)
-	elif service == 'apache':
+	elif service == 'apache_internal':
 		apache_log_path = sql.get_setting('apache_log_path')
 
 		if serv == 'roxy-wi.access.log':
@@ -1342,6 +1381,8 @@ def ssh_command(server_ip, commands, **kwargs):
 			ssh.close()
 			return str(e)
 
+		if kwargs.get('raw'):
+			return stdout
 		try:
 			if kwargs.get("ip") == "1":
 				show_ip(stdout)
@@ -1354,8 +1395,6 @@ def ssh_command(server_ip, commands, **kwargs):
 				return stdout.read().decode(encoding='UTF-8')
 			elif kwargs.get('return_err') == 1:
 				return stderr.read().decode(encoding='UTF-8')
-			elif kwargs.get('raw'):
-				return stdout
 			else:
 				return stdout.read().decode(encoding='UTF-8')
 		except Exception as e:
@@ -1441,7 +1480,10 @@ def get_remote_files(server_ip: str, config_dir: str, file_format: str):
 
 
 def return_nice_path(return_path: str) -> str:
-	if 'nginx' not in return_path and 'haproxy' not in return_path:
+	if ('nginx' not in return_path and
+			'haproxy' not in return_path and
+			'apache2' not in return_path and
+			'httpd' not in return_path):
 		return 'error: The path must contain the name of the service. Check it in Roxy-WI settings'
 	if return_path[-1] != '/':
 		return_path += '/'
@@ -1919,3 +1961,16 @@ def send_message_to_rabbit(message: str) -> None:
 						  body=message)
 
 	connection.close()
+
+
+def is_restarted(server_ip, action):
+	import sql
+	import http.cookies
+
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_uuid = cookie.get('uuid')
+	user_role = sql.get_user_role_by_uuid(user_uuid.value)
+
+	if sql.is_serv_protected(server_ip) and int(user_role) > 2:
+		print('error: This server is protected. You cannot ' + action + ' it')
+		sys.exit()

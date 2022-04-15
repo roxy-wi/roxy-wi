@@ -20,7 +20,7 @@
 			{{ input('serv', type='hidden', value=serv) }}
 			{{ input('open', type='hidden', value='open') }}
 			<a class="ui-button ui-widget ui-corner-all" id="show" title="Open config" onclick="showConfig()">Open</a>
-			<a class="ui-button ui-widget ui-corner-all" title="Create a new config file"  onclick="addNewConfig('{{serv}}')">Add</a>
+			<a class="ui-button ui-widget ui-corner-all" title="Create a new config file"  onclick="addNewConfig('{{serv}}', '{{service}}')">Add</a>
 			<a class="ui-button ui-widget ui-corner-all" title="Lookup in config files" id="open_find_form">Find</a>
 		</p>
 		</form>
@@ -61,7 +61,7 @@
 			}
 		});
 	});
-	function addNewConfig(serv) {
+	function addNewConfig(serv, service) {
 		$( "#add-new-config" ).dialog({
 				autoOpen: true,
 				resizable: false,
@@ -83,7 +83,7 @@
 						let path_dir = $('#path_config_name').val();
 						config_file_name = config_file_name.replaceAll('\/','92');
 						path_dir = path_dir.replaceAll('\/','92');
-						window.location.replace('config.py?service=nginx&serv='+serv+'&open=open&config_file_name='+path_dir+'92'+config_file_name+'.conf&new_config=1');
+						window.location.replace('config.py?service='+service+'&serv='+serv+'&open=open&config_file_name='+path_dir+'92'+config_file_name+'.conf&new_config=1');
 						$( this ).dialog( "close" );
 					},
 					Cancel: function() {

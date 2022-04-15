@@ -29,6 +29,18 @@
 		style="margin-left: 4px !important;" id="nginx_{{service.10}}"></span>
 	</td>
 	<td class="padding10 first-collumn">
+		{% if service.11|int() == 0 %}
+			<span class="serverNone server-status" title="Apache is not installed"
+		{% else %}
+			{% if service.12|int() >= 1 %}
+				<span class="serverUp server-status" title="Apache is running"
+			{% else %}
+				<span class="serverDown server-status" title="Apache is down"
+			{% endif %}
+		{% endif %}
+		style="margin-left: 4px !important;" id="apache_{{service.10}}"></span>
+	</td>
+	<td class="padding10 first-collumn">
 		{% if service.6|int() == 0 %}
 			<span class="serverNone server-status" title="Keepalived is not installed" style="margin-left: 4px !important;"></span>
 		{% else %}

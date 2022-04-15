@@ -9,17 +9,15 @@ template = env.get_template('hapservers.html')
 
 print('Content-type: text/html\n')
 funct.check_login()
-
-try:
-    user, user_id, role, token, servers, user_services = funct.get_users_params()
-    services = []
-except:
-    pass
+services = []
+servers: object
+user, user_id, role, token, servers, user_services = funct.get_users_params()
 
 form = funct.form
 serv = funct.is_ip_or_dns(form.getvalue('serv'))
 service = form.getvalue('service')
 autorefresh = 0
+title = "HAProxy servers overview"
 cmd = "ps ax |grep -e 'keep_alive.py' |grep -v grep |wc -l"
 keep_alive, stderr = funct.subprocess_execute(cmd)
 
@@ -47,9 +45,20 @@ elif service == 'keepalived':
         else:
             servers = sql.get_dick_permit(virt=1, keepalived=1)
             service_settings = sql.select_docker_services_settings(service)
+elif service == 'apache':
+    if funct.check_login(service=4):
+        title = 'Apache servers overview'
+        if serv:
+            if funct.check_is_server_in_group(serv):
+                servers = sql.select_servers(server=serv)
+                autorefresh = 1
+                server_id = sql.select_server_id_by_ip(serv)
+                service_settings = sql.select_docker_service_settings(server_id, service)
+        else:
+            servers = sql.get_dick_permit(virt=1, apache=1)
+            service_settings = sql.select_docker_services_settings(service)
 else:
     if funct.check_login(service=1):
-        title = "HAProxy servers overview"
         service = 'haproxy'
         if serv:
             if funct.check_is_server_in_group(serv):
@@ -92,7 +101,6 @@ for s in servers:
     servers_with_status.append(s[11])
     if service == 'nginx':
         h = (['', ''],)
-        print(str(service_settings))
         cmd = [
             "/usr/sbin/nginx -v 2>&1|awk '{print $3}' && systemctl status nginx |grep -e 'Active' |awk '{print $2, $9$10$11$12$13}' && ps ax |grep nginx:|grep -v grep |wc -l"]
         for service_set in service_settings:
@@ -128,6 +136,23 @@ for s in servers:
             servers_with_status.append(h)
             servers_with_status.append(h)
             servers_with_status.append(s[22])
+        except:
+            servers_with_status.append(h)
+            servers_with_status.append(h)
+            servers_with_status.append(s[22])
+    elif service == 'apache':
+        h = (['',''],)
+        apache_stats_user = sql.get_setting('apache_stats_user')
+        apache_stats_password = sql.get_setting('apache_stats_password')
+        apache_stats_port = sql.get_setting('apache_stats_port')
+        apache_stats_page = sql.get_setting('apache_stats_page')
+        cmd = "curl -s -u %s:%s http://%s:%s/%s?auto |grep 'ServerVersion\|Processes\|ServerUptime:'" % (apache_stats_user, apache_stats_password, s[2], apache_stats_port, apache_stats_page)
+        try:
+            out = funct.subprocess_execute(cmd)
+            if out != '':
+                for k in out:
+                    servers_with_status.append(k)
+                servers_with_status.append(s[22])
         except:
             servers_with_status.append(h)
             servers_with_status.append(h)

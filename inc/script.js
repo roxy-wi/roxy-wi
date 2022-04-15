@@ -32,7 +32,7 @@ $( function() {
 	   if (cur_url[1] == null) {
 		cur_url[1] = 'haproxy';
 	   }
-       if (cur_url[0] == link2 && cur_url[1].split('&')[0] != 'service=keepalived' && cur_url[1].split('&')[0] != 'service=nginx') {
+       if (cur_url[0] == link2 && cur_url[1].split('&')[0] != 'service=keepalived' && cur_url[1].split('&')[0] != 'service=nginx' && cur_url[1].split('&')[0] != 'service=apache') {
 			show_current_page($(this))
 		} else if(cur_url[0] == 'versions.py' && cur_url[1].split('&')[0] == 'service=keepalived' && link2 == 'versions.py?service=keepalived'){ 
 			show_current_page($(this))
@@ -61,6 +61,14 @@ $( function() {
 	   } else if(cur_url[0] == 'viewlogs.py' && cur_url[1].split('&')[0] == 'type=2' && link2 == 'viewlogs.py?type=2'){
 		  	show_current_page($(this))
 	   } else if(cur_url[0] == 'metrics.py' && cur_url[1].split('&')[0] == 'service=nginx' && link2 == 'metrics.py?service=nginx'){
+		   show_current_page($(this))
+	   } else if(cur_url[0] == 'hapservers.py' && cur_url[1].split('&')[0] == 'service=apache' && link2 == 'hapservers.py?service=apache'){
+			show_current_page($(this))
+	   } else if(cur_url[0] == 'versions.py' && cur_url[1].split('&')[0] == 'service=apache' && link2 == 'versions.py?service=apache'){ 
+			show_current_page($(this))
+	   } else if(cur_url[0] == 'config.py' && cur_url[1].split('&')[0] == 'service=apache' && link2 == 'config.py?service=apache'){
+			show_current_page($(this))
+	   } else if(cur_url[0] == 'add.py' && cur_url[1].split('&')[0] == 'service=apache#ssl' && link2 == 'add.py?service=apache#ssl'){
 		   show_current_page($(this))
 	   }
    });
@@ -286,6 +294,8 @@ function openVersions() {
 		var url = "versions.py?service=keepalived&serv="+serv+"&open=open"
 	} else if (cur_url[1].split('&')[0] == "service=nginx") {
 		var url = "versions.py?service=nginx&serv="+serv+"&open=open"
+	} else if (cur_url[1].split('&')[0] == "service=apache") {
+		var url = "versions.py?service=apache&serv="+serv+"&open=open"
 	} else {	
 		var url = "versions.py?serv="+serv+"&open=open"
 	}
@@ -477,7 +487,7 @@ function showCompareConfigs() {
 function showConfig() {
 	var service = $('#service').val();
 	var config_file_name = encodeURI($('#config_file_name').val());
-	if (service == 'nginx') {
+	if (service == 'nginx' || service == 'apache') {
 		if ($('#config_file_name').val() === undefined || $('#config_file_name').val() === null) {
 			toastr.warning('Select a config file firts');
 			return false;
@@ -533,7 +543,7 @@ function showConfigFilesForEditing() {
 	var service = $('#service').val();
 	var config_file_name = findGetParameter('config_file_name')
 	var service = findGetParameter('service')
-	if (service == 'nginx') {
+	if (service == 'nginx' || service == 'apache') {
 		$.ajax({
 			url: "options.py",
 			data: {

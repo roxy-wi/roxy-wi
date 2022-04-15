@@ -796,6 +796,9 @@ $( function() {
 	$('#rabbitmq-section-head').click(function () {
 		hideAndShowSettings('rabbitmq');
 	});
+	$('#apache-section-head').click(function () {
+		hideAndShowSettings('apache');
+	});
 } );
 function hideAndShowSettings(section) {
 	var ElemId = $('#' + section + '-section-h3');
@@ -921,6 +924,7 @@ function addServer(dialog_id) {
 	var enable = 0;
 	var haproxy = 0;
 	var nginx = 0;
+	var apache = 0;
 	var firewall = 0;
 	if ($('#scan_server').is(':checked')) {
 		scan_server = '1';
@@ -936,6 +940,9 @@ function addServer(dialog_id) {
 	}
 	if ($('#nginx').is(':checked')) {
 		nginx = '1';
+	}
+	if ($('#apache').is(':checked')) {
+		apache = '1';
 	}
 	if ($('#firewall').is(':checked')) {
 		firewall = '1';
@@ -967,6 +974,7 @@ function addServer(dialog_id) {
 				typeip: typeip,
 				haproxy: haproxy,
 				nginx: nginx,
+				apache: apache,
 				firewall: firewall,
 				enable: enable,
 				slave: $('#slavefor' ).val(),
@@ -1619,6 +1627,7 @@ function updateServer(id) {
 	let enable = 0;
 	let haproxy = 0;
 	let nginx = 0;
+	let apache = 0;
 	let firewall = 0;
 	let protected_serv = 0;
 	if ($('#typeip-'+id).is(':checked')) {
@@ -1629,6 +1638,9 @@ function updateServer(id) {
 	}
 	if ($('#nginx-'+id).is(':checked')) {
 		nginx = '1';
+	}
+	if ($('#apache-'+id).is(':checked')) {
+		apache = '1';
 	}
 	if ($('#enable-'+id).is(':checked')) {
 		enable = '1';
@@ -1652,6 +1664,7 @@ function updateServer(id) {
 			typeip: typeip,
 			haproxy: haproxy,
 			nginx: nginx,
+			apache: apache,
 			firewall: firewall,
 			enable: enable,
 			slave: $('#slavefor-'+id+' option:selected' ).val(),
@@ -2489,7 +2502,7 @@ function showServerInfo(id, ip) {
 					$.getScript(awesome);
 				}
 			}
-		} );
+		});
 	} else {
 		$('#server_info-'+id).hide();
 		$('#server_info_link-'+id).attr('title', 'Show System info');

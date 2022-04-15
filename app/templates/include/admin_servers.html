@@ -15,6 +15,7 @@
 			</th>
 			<th class="checkbox-head" style="min-width: 75px">HAProxy</th>
 			<th class="checkbox-head" style="min-width: 65px;">Nginx</th>
+			<th class="checkbox-head" style="min-width: 65px;">Apache</th>
 			<th style="min-width: 100px;" class="help_cursor">
 				<span title="If the server has a firewall enabled, enable this option">Firewalld</span>
 			</th>
@@ -91,6 +92,14 @@
 			<td class="checkbox" style="padding-left: 5px;">
 				{% set id = 'nginx-' + server.0|string() %}
 				{% if server.14 == 1 %}
+					{{ checkbox(id, checked='checked') }}
+				{% else %}
+					{{ checkbox(id) }}
+				{% endif %}
+			</td>
+			<td class="checkbox" style="padding-left: 5px;">
+				{% set id = 'apache-' + server.0|string() %}
+				{% if server.24 == 1 %}
 					{{ checkbox(id, checked='checked') }}
 				{% else %}
 					{{ checkbox(id) }}
