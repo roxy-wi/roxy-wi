@@ -4,7 +4,7 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 # Get involved
 * [Youtube Demo video](https://www.youtube.com/channel/UCo0lCg24j-H4f0S9kMjp-_w)
 * [Twitter](https://twitter.com/roxy_wi), subscribe!
-* [Telegram Channel](https://t.me/haproxy_wi) about Roxy-WI, talks and questions are welcome
+* [Telegram Channel](https://t.me/roxy_wi_channel) about Roxy-WI, talks and questions are welcome
 
 # Demo site
 [Demo site](https://demo.roxy-wi.org) Login/password: admin/admin. Server resets every hour.
@@ -19,15 +19,15 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 4. Server provisioning on AWS, DigitalOcean and G-Core Labs
 5. Downloading, updating and formatting GeoIP to the acceptable format for HAProxy with Roxy-WI
 6. Dynamic change of Maxconn, Black/white lists and backend's IP address and port with saving changes to the config file
-7. Configuring HAProxy, Nginx and Keepalived in a jiffy with Roxy-WI
+7. Configuring HAProxy, Nginx, Apache and Keepalived in a jiffy with Roxy-WI
 8. Viewing and analysing the status of all Frontend/backend servers via Roxy-WI from a single control panel
 9. Enabling/disabling servers through stats page without rebooting HAProxy
-1. Viewing/Analysing HAProxy and Nginx logs right from the Roxy-WI web interface
+1. Viewing/Analysing HAProxy, Nginx and Apache logs right from the Roxy-WI web interface
 1. Creating and visualizing the HAProxy workflow from Web Ui
-1. Pushing Your changes to your HAProxy, Nginx and Keepalived servers with a single click via the web interface
+1. Pushing Your changes to your HAProxy, Nginx, Apache and Keepalived servers with a single click via the web interface
 1. Getting info on past changes, evaluating your config files and restoring the previous stable config at any time with a single click right from Web interface
 1. Adding/Editing Frontend or backend servers via the web interface with a click
-1. Editing the config of HAProxy, Nginx and Keepalived and push ingchanges to All Master/Slave servers by a single click
+1. Editing the config of HAProxy, Nginx, Apache and Keepalived and push ingchanges to All Master/Slave servers by a single click
 1. Adding Multiple server to ensure the Config Sync between servers
 1. Managing the ports assigned to Frontend automatically
 1. Evaluating the changes of recent configs pushed to HAProxy, Nginx and Keepalived instances right from the Web UI
@@ -36,15 +36,15 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 1. Sending notifications from Roxy-WI via Telegram, Slack and via the web interface
 1. Supporting high Availability to ensure uptime to all Master slave servers configured
 1. Support of SSL (including Let's Encrypt)
-1. Support of SSH Key for managing multiple HAProxy and Nginx Servers straight from Roxy-WI
+1. Support of SSH Key for managing multiple HAProxy, Nginx, Apache and Keepalived Servers straight from Roxy-WI
 1. SYN flood protect
-1. Alerting about сhanges of the state of HAProxy backends
-1. Alerting about the state of HAProxy and Nginx service
+1. Alerting about changes of the state of HAProxy backends
+1. Alerting about the state of HAProxy, Nginx, Apache and Keepalived service
 1. Gathering metrics for incoming connections
 1. Web acceleration settings
 1. Firewall for web application
 1. LDAP support
-1. Keep active HAProxy and Nginx services
+1. Keep active HAProxy, Nginx and Keepalived services
 1. Possibility to hide parts of the config with tags for users with "guest" role: "HideBlockStart" and "HideBlockEnd"
 1. Mobile-ready design
 1. Simple port monitoring (SMON)
