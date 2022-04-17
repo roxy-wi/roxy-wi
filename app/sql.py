@@ -278,6 +278,9 @@ def update_hapwi_server(server_id, alert, metrics, active, service_name):
 		elif service_name == 'keepalived':
 			update_hapwi = Server.update(keepalived_alert=alert, keepalived_active=active).where(
 				Server.server_id == server_id)
+		elif service_name == 'apache':
+			update_hapwi = Server.update(apache_alert=alert).where(
+				Server.server_id == server_id)
 		else:
 			update_hapwi = Server.update(alert=alert, metrics=metrics, active=active).where(
 				Server.server_id == server_id)
@@ -1880,6 +1883,22 @@ def select_nginx_alert(**kwargs):
 			(Server.groups == kwargs.get('group')))
 	else:
 		query = Server.select(Server.ip).where((Server.nginx_alert == 1) & (Server.enable == 1))
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
+
+
+def select_apache_alert(**kwargs):
+	if kwargs.get("group") is not None:
+		query = Server.select(Server.ip).where(
+			(Server.apache_alert == 1) &
+			(Server.enable == 1) &
+			(Server.groups == kwargs.get('group')))
+	else:
+		query = Server.select(Server.ip).where((Server.apache_alert == 1) & (Server.enable == 1))
 	try:
 		query_res = query.execute()
 	except Exception as e:
