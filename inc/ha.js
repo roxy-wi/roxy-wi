@@ -323,6 +323,14 @@ function create_slave_keepalived(hap, nginx, syn_flood) {
 	} else if (hap == '1' && nginx == '1') {
 		var progress_value = '50';
 	}
+	var haproxy_docker = 0;
+	var nginx_docker = 0;
+	if ($('#hap_docker').is(':checked')) {
+		haproxy_docker = '1';
+	}
+	if ($('#nginx_docker').is(':checked')) {
+		nginx_docker = '1';
+	}
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -350,10 +358,10 @@ function create_slave_keepalived(hap, nginx, syn_flood) {
 				toastr.info(data);
 			}
 			if (hap === '1') {
-				create_keep_alived_hap(nginx, 'slave', docker);
+				create_keep_alived_hap(nginx, 'slave', haproxy_docker);
 			}
 			if (hap == '0' && nginx == '1') {
-				create_keep_alived_nginx('slave', docker);
+				create_keep_alived_nginx('slave', nginx_docker);
 			}
 		}
 	} );
