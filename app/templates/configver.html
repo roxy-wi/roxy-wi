@@ -19,7 +19,7 @@
 	{% endif %}
 	{% if aftersave %}
 		<div class="alert alert-info alert-two-row">The following version of the configuration file has been uploaded and saved as: {{ configver }} </div>
-		{% if stderr %}
+		{% if 'is valid' not in stderr %}
 			{% include 'include/errors.html' %}	
 		{% else %}
 			<div class="alert alert-success">Config is ok</div>
