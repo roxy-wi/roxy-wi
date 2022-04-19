@@ -121,7 +121,7 @@ def default_values():
 		{'param': 'apache_dir', 'value': '/etc/httpd/', 'section': 'apache',
 		 'desc': 'Path to the Apache directory with config files', 'group': '1'},
 		{'param': 'apache_config_path', 'value': '/etc/httpd/conf/httpd.conf', 'section': 'apache',
-		 'desc': 'Path to the main Nginx configuration file', 'group': '1'},
+		 'desc': 'Path to the main Apache configuration file', 'group': '1'},
 		{'param': 'apache_container_name', 'value': 'apache', 'section': 'apache',
 		 'desc': 'Docker container name for Apache service', 'group': '1'},
 	]

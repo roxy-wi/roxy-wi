@@ -3,14 +3,14 @@ global_defs {
 }
 #health-check for keepalive
 vrrp_script chk_haproxy { 
-    script "/usr/bin/pgrep -f 'haproxy '"
+    script "killall -0 haproxy"
     interval 2
     weight 3 
 }
 vrrp_instance VI_1 {
     state {{MASTER}}
     interface {{ETH}}
-    virtual_router_id 1
+    virtual_router_id {{router_id}}
     priority {% if RETURN_TO_MASTER == '1' and MASTER == 'MASTER' %}152{% elif MASTER == 'MASTER' and RETURN_TO_MASTER == '0' %}102{% else %}101{%endif%}
 
     #check if we are still running
