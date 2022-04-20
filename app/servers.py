@@ -15,7 +15,7 @@ try:
 	user_group = funct.get_user_group(id=1)
 	settings = sql.get_setting('', all=1)
 	geoip_country_codes = sql.select_geoip_country_codes()
-
+	services = sql.select_services()
 except Exception as e:
 	pass
 
@@ -36,5 +36,6 @@ output_from_parsed_template = template.render(title="Servers: ",
 												page="servers.py",
 												geoip_country_codes=geoip_country_codes,
 												user_services=user_services,
-												ldap_enable=ldap_enable)
+												ldap_enable=ldap_enable,
+											  	services=services)
 print(output_from_parsed_template)
