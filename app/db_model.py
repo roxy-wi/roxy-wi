@@ -481,6 +481,7 @@ class Services(BaseModel):
     class Meta:
         table_name = 'services'
         primary_key = False
+        constraints = [SQL('UNIQUE (service_id, service)')]
 
 
 def create_tables():
