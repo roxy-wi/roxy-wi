@@ -57,19 +57,19 @@ def default_values():
 		{'param': 'apache_log_path', 'value': '/var/log/'+apache_dir+'/', 'section': 'logs', 'desc': 'Path to Apache logs',
 		 'group': '1'},
 		{'param': 'nginx_path_logs', 'value': '/var/log/nginx/', 'section': 'nginx',
-		 'desc': 'The path for Nginx logs', 'group': '1'},
-		{'param': 'nginx_stats_user', 'value': 'admin', 'section': 'nginx', 'desc': 'Username for accessing Nginx stats page',
+		 'desc': 'The path for NGINX logs', 'group': '1'},
+		{'param': 'nginx_stats_user', 'value': 'admin', 'section': 'nginx', 'desc': 'Username for accessing NGINX stats page',
 		 'group': '1'},
 		{'param': 'nginx_stats_password', 'value': 'password', 'section': 'nginx',
-		 'desc': 'Password for Stats web page Nginx', 'group': '1'},
-		{'param': 'nginx_stats_port', 'value': '8086', 'section': 'nginx', 'desc': 'Stats port for web page Nginx',
+		 'desc': 'Password for Stats web page NGINX', 'group': '1'},
+		{'param': 'nginx_stats_port', 'value': '8086', 'section': 'nginx', 'desc': 'Stats port for web page NGINX',
 		 'group': '1'},
-		{'param': 'nginx_stats_page', 'value': 'stats', 'section': 'nginx', 'desc': 'URI Stats for web page Nginx',
+		{'param': 'nginx_stats_page', 'value': 'stats', 'section': 'nginx', 'desc': 'URI Stats for web page NGINX',
 		 'group': '1'},
 		{'param': 'nginx_dir', 'value': '/etc/nginx/', 'section': 'nginx',
-		 'desc': 'Path to the Nginx directory with config files', 'group': '1'},
+		 'desc': 'Path to the NGINX directory with config files', 'group': '1'},
 		{'param': 'nginx_config_path', 'value': '/etc/nginx/nginx.conf', 'section': 'nginx',
-		 'desc': 'Path to the main Nginx configuration file', 'group': '1'},
+		 'desc': 'Path to the main NGINX configuration file', 'group': '1'},
 		{'param': 'ldap_enable', 'value': '0', 'section': 'ldap', 'desc': 'Enable LDAP (1 - yes, 0 - no)',
 		 'group': '1'},
 		{'param': 'ldap_server', 'value': '', 'section': 'ldap', 'desc': 'IP address of the LDAP server', 'group': '1'},
@@ -159,6 +159,23 @@ def default_values():
 
 	try:
 		Role.insert_many(data_source).on_conflict_ignore().execute()
+	except Exception as e:
+		print(str(e))
+
+	try:
+		Groups.insert(name='All', description='All servers are included in this group by default').on_conflict_ignore().execute()
+	except Exception as e:
+		print(str(e))
+
+	data_source = [
+		{'service_id': 1, 'service': 'HAProxy'},
+		{'service_id': 2, 'service': 'NGINX'},
+		{'service_id': 3, 'service': 'Keepalived'},
+		{'service_id': 4, 'service': 'Apache'},
+	]
+
+	try:
+		Services.insert_many(data_source).on_conflict_ignore().execute()
 	except Exception as e:
 		print(str(e))
 
@@ -554,7 +571,7 @@ def update_db_v_5_3_0(**kwargs):
 		try:
 			data_source = [
 				{'param': 'nginx_container_name', 'value': 'nginx', 'section': 'nginx',
-				 'desc': 'Docker container name for Nginx service',
+				 'desc': 'Docker container name for NGINX service',
 				 'group': g.group_id},
 				{'param': 'haproxy_container_name', 'value': 'haproxy', 'section': 'haproxy',
 				 'desc': 'Docker container name for HAProxy service',

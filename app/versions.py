@@ -38,10 +38,17 @@ if service == 'keepalived':
 elif service == 'nginx':
 	if funct.check_login(service=2):
 		configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
-		title = "Working with versions Nginx configs"
+		title = "Working with versions NGINX configs"
 		conf_format = 'conf'
 		servers = sql.get_dick_permit(nginx=1)
 		action = 'versions.py?service=nginx'
+elif service == 'apache':
+	if funct.check_login(service=4):
+		configs_dir = funct.get_config_var('configs', 'apache_save_configs_dir')
+		title = "Working with versions Apache configs"
+		conf_format = 'conf'
+		servers = sql.get_dick_permit(apache=1)
+		action = 'versions.py?service=apache'
 else:
 	service = 'haproxy'
 	if funct.check_login(service=1):
@@ -92,6 +99,9 @@ if serv is not None and form.getvalue('config') is not None:
 	elif service == 'nginx':
 		config_file_name = sql.select_remote_path_from_version(server_ip=serv, service=service, local_path=configver)
 		stderr = funct.master_slave_upload_and_restart(serv, configver, just_save=save, nginx=1, config_file_name=config_file_name)
+	elif service == 'apache':
+		config_file_name = sql.select_remote_path_from_version(server_ip=serv, service=service, local_path=configver)
+		stderr = funct.master_slave_upload_and_restart(serv, configver, just_save=save, apache=1, config_file_name=config_file_name)
 	else:
 		stderr = funct.master_slave_upload_and_restart(serv, configver, just_save=save)
 		

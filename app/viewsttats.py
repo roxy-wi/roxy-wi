@@ -12,7 +12,7 @@ funct.check_login()
 
 if service == 'nginx':
 	if funct.check_login(service=2):
-		title = 'Nginx stats page'
+		title = 'NGINX stats page'
 else:
 	if funct.check_login(service=1):
 		title = 'HAProxy stats page'

@@ -2479,13 +2479,14 @@ if form.getvalue('getuserservices'):
     user_id = form.getvalue('getuserservices')
     groups = []
     u_g = sql.select_user_groups(user_id)
+    services = sql.select_services()
     for g in u_g:
         groups.append(g.user_group_id)
     from jinja2 import Environment, FileSystemLoader
 
     env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
     template = env.get_template('/show_user_services.html')
-    template = template.render(user_services=sql.select_user_services(user_id), id=user_id)
+    template = template.render(user_services=sql.select_user_services(user_id), id=user_id, services=services)
     print(template)
 
 if form.getvalue('getusergroups'):

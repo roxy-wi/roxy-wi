@@ -23,7 +23,7 @@ keep_alive, stderr = funct.subprocess_execute(cmd)
 
 if service == 'nginx':
     if funct.check_login(service=2):
-        title = 'Nginx servers overview'
+        title = 'NGINX servers overview'
         if serv:
             if funct.check_is_server_in_group(serv):
                 servers = sql.select_servers(server=serv)

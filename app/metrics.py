@@ -27,7 +27,7 @@ try:
 		else:
 			if service == 'nginx':
 				if funct.check_login(service=2):
-					title = "Nginx`s metrics"
+					title = "NGINX`s metrics"
 					servers = sql.select_nginx_servers_metrics_for_master()
 			else:
 				if funct.check_login(service=1):

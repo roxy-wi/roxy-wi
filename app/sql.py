@@ -160,19 +160,19 @@ def add_setting_for_new_group(group_id):
 		{'param': 'haproxy_sock_port', 'value': '1999', 'section': 'haproxy', 'desc': 'Socket port for HAProxy',
 		 'group': group_id},
 		{'param': 'nginx_path_logs', 'value': '/var/log/nginx/', 'section': 'nginx',
-		 'desc': 'Nginx error log', 'group': group_id},
-		{'param': 'nginx_stats_user', 'value': 'admin', 'section': 'nginx', 'desc': 'Username for accessing Nginx stats page',
+		 'desc': 'NGINX error log', 'group': group_id},
+		{'param': 'nginx_stats_user', 'value': 'admin', 'section': 'nginx', 'desc': 'Username for accessing NGINX stats page',
 		 'group': group_id},
 		{'param': 'nginx_stats_password', 'value': 'password', 'section': 'nginx',
-		 'desc': 'Password for accessing Nginx stats page', 'group': group_id},
-		{'param': 'nginx_stats_port', 'value': '8086', 'section': 'nginx', 'desc': 'Stats port for web page Nginx',
+		 'desc': 'Password for accessing NGINX stats page', 'group': group_id},
+		{'param': 'nginx_stats_port', 'value': '8086', 'section': 'nginx', 'desc': 'Stats port for web page NGINX',
 		 'group': group_id},
-		{'param': 'nginx_stats_page', 'value': 'stats', 'section': 'nginx', 'desc': 'URI Stats for web page Nginx',
+		{'param': 'nginx_stats_page', 'value': 'stats', 'section': 'nginx', 'desc': 'URI Stats for web page NGINX',
 		 'group': group_id},
 		{'param': 'nginx_dir', 'value': '/etc/nginx/', 'section': 'nginx',
-		 'desc': 'Path to the Nginx directory with config files', 'group': group_id},
+		 'desc': 'Path to the NGINX directory with config files', 'group': group_id},
 		{'param': 'nginx_config_path', 'value': '/etc/nginx/nginx.conf', 'section': 'nginx',
-		 'desc': 'Path to the main Nginx configuration file', 'group': group_id},
+		 'desc': 'Path to the main NGINX configuration file', 'group': group_id},
 		{'param': 'ldap_enable', 'value': '0', 'section': 'ldap', 'desc': 'Enable LDAP (1 - yes, 0 - no)',
 		 'group': group_id},
 		{'param': 'ldap_server', 'value': '', 'section': 'ldap', 'desc': 'IP address of the LDAP server', 'group': group_id},
@@ -3117,6 +3117,17 @@ def is_system_info(server_id):
 def select_os_info(server_id):
 	try:
 		query_res = SystemInfo.get(SystemInfo.server_id == server_id).os_info
+	except Exception as e:
+		out_error(e)
+		return
+	else:
+		return query_res
+
+
+def select_services():
+	query = Services.select()
+	try:
+		query_res = query.execute()
 	except Exception as e:
 		out_error(e)
 		return

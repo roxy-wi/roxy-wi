@@ -39,7 +39,7 @@ except Exception:
 
 if service == 'nginx':
 	if funct.check_login(service=2):
-		title = "Nginx`s logs"
+		title = "NGINX`s logs"
 		servers = sql.get_dick_permit(nginx=1)
 elif service == 'apache':
 	if funct.check_login(service=4):

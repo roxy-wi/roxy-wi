@@ -18,12 +18,12 @@
 	</td>
 	<td class="padding10 first-collumn">
 		{% if service.8|int() == 0 %}
-			<span class="serverNone server-status" title="Nginx is not installed"
+			<span class="serverNone server-status" title="NGINX is not installed"
 		{% else %}
 			{% if service.9|int() >= 1 %}
-				<span class="serverUp server-status" title="Nginx is running"
+				<span class="serverUp server-status" title="NGINX is running"
 			{% else %}
-				<span class="serverDown server-status" title="Nginx is down"
+				<span class="serverDown server-status" title="NGINX is down"
 			{% endif %}
 		{% endif %}
 		style="margin-left: 4px !important;" id="nginx_{{service.10}}"></span>

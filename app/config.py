@@ -37,7 +37,7 @@ if service == 'keepalived':
 		servers = sql.get_dick_permit(keepalived=1)
 elif service == 'nginx':
 	if funct.check_login(service=2):
-		title = "Working with Nginx configuration files"
+		title = "Working with NGINX configuration files"
 		action = "config.py?service=nginx"
 		configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
 		file_format = 'conf'
@@ -77,7 +77,7 @@ if serv is not None and form.getvalue('open') is not None and form.getvalue('new
 	elif service == 'nginx':
 		error = funct.get_config(serv, cfg, nginx=1, config_file_name=config_file_name)
 		try:
-			funct.logging(serv, " Nginx config has been opened ")
+			funct.logging(serv, " NGINX config has been opened ")
 		except Exception:
 			pass
 	elif service == 'apache':

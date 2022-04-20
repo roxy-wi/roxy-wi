@@ -54,7 +54,7 @@
                 {% if s.dockerized != '' and s.setting == 'dockerized' %}
                     <tr>
                         <td class="padding20 help_cursor" style="width: 70%"
-                            title="If you use Nginx inside Docker, check this. Roxy-WI is starting managing it as Docker container">Nginx dockerized</td>
+                            title="If you use NGINX inside Docker, check this. Roxy-WI is starting managing it as Docker container">NGINX dockerized</td>
                         <td>
                             {% if s.value == '1' and s.setting == 'dockerized' %}
                                 {{ checkbox('nginx_dockerized', checked='checked', title='This service is running inside a Docker container') }}
@@ -68,7 +68,7 @@
         {% else %}
         <tr>
             <td class="padding20 help_cursor" style="width: 70%"
-                title="If you use Nginx inside Docker, check this. Roxy-WI is starting managing it as Docker container">Nginx dockerized</td>
+                title="If you use NGINX inside Docker, check this. Roxy-WI is starting managing it as Docker container">NGINX dockerized</td>
             <td>
                 {{ checkbox('nginx_dockerized', title='This server will be used as Docker container') }}
             </td>

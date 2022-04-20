@@ -52,17 +52,16 @@
 	border-color: #aaa;
 }
 </style>
-{% set services = {'1': 'HAProxy', '2': 'Nginx', '4': 'Apache', '3': 'Keepalived' } %}
 <table class="overview">
 	<tr style="border: none;">
 		<td class="padding20" style="width: 40%;"><b>Select one or more services</b></td>
 		<td>
 			<select id="userservice-{{id}}" name="userservice-{{id}}" multiple class="select-css">
-				{% for key, value in services.items() %}
-					{% if key in user_services %}
-						<option value="{{ key }}" selected>{{ value }}</option>
+				{% for s in services %}
+					{% if s.service_id|string() in user_services %}
+						<option value="{{ s.service_id }}" selected>{{ s.service }}</option>
 					{% else %}
-						<option value="{{ key }}">{{ value }}</option>
+						<option value="{{ s.service_id }}">{{ s.service }}</option>
 					{% endif %}
 				{% endfor %}
 			</select>

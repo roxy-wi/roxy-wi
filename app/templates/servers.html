@@ -82,12 +82,12 @@
 			</tr>
 		</table>
 		<table>
-			<caption><h3>Install Nginx</h3></caption>
+			<caption><h3>Install NGINX</h3></caption>
 			<tr class="overviewHead">
 				<td class="padding10 first-collumn">Current version</td>
 				<td class="padding10 first-collumn" style="width: 30%;">Available Versions</td>			
 				<td class="padding10 first-collumn" style="width: 20%;">Server</td>
-				<td class="help_cursor" title="Install Nginx service as a Docker container" >Use Docker</td>
+				<td class="help_cursor" title="Install NGINX service as a Docker container" >Use Docker</td>
 				<td>SYN-flood protection</td>
 				<td></td>
 			</tr>
@@ -95,7 +95,7 @@
 				<td id="cur_nginx_ver" class="padding10 first-collumn">
 				</td>
 				<td class="padding10 first-collumn" style="width: 20%;">
-					Roxy-WI will try to install the latest Nginx version from an official Nginx repository
+					Roxy-WI will try to install the latest NGINX version from an official NGINX repository
 				</td>
 				<td class="padding10 first-collumn">
 					<select autofocus required name="nginxaddserv" id="nginxaddserv">
@@ -106,13 +106,13 @@
 					</select>
 				</td>
 				<td style="padding-left: 25px;">
-					{{ checkbox('nginx_docker', title="Install Nginx service as a Docker container") }}
+					{{ checkbox('nginx_docker', title="Install NGINX service as a Docker container") }}
 				</td>
 				<td class="syn-flood-protection-field">
 					{{ checkbox('nginx_syn_flood', title="Enable SYN-flood protection", checked='checked') }}
 				</td>
 				<td>
-					<span class="ui-button ui-widget ui-corner-all" id="nginx_install" title="Install Nginx">Install</span>
+					<span class="ui-button ui-widget ui-corner-all" id="nginx_install" title="Install NGINX">Install</span>
 				</td>
 			</tr>
 		</table>

@@ -49,8 +49,8 @@
 		<td class="checkbox-head">SYN-flood protection</td>
 		<td class="checkbox-head help_cursor" style="padding: 10px 10px 10px 0;"><span title="Roxy-WI will try to install HAProxy">HAProxy</span></td>
 		<td class="checkbox-head help_cursor" style="display: none" id="haproxy_docker_td_header"><span title="Roxy-WI will install HAProxy as Docker container">Docker</span></td>
-		<td class="checkbox-head help_cursor"><span title="Roxy-WI will try to install Nginx">Nginx</span></td>
-		<td class="checkbox-head help_cursor" style="display: none" id="nginx_docker_td_header"><span title="Roxy-WI will install Nginx as Docker container">Docker</span></td>
+		<td class="checkbox-head help_cursor"><span title="Roxy-WI will try to install NGINX">NGINX</span></td>
+		<td class="checkbox-head help_cursor" style="display: none" id="nginx_docker_td_header"><span title="Roxy-WI will install NGINX as Docker container">Docker</span></td>
 		<td></td>
 		<td></td>
 	</tr>
@@ -61,8 +61,8 @@
 		<td class="syn-flood-protection-field">{{ checkbox('syn_flood') }}</td>
 		<td class="checkbox help_cursor" style="padding: 10px 10px 10px 15px;">{{ checkbox('hap', title='Roxy-WI will try to install HAProxy') }}</td>
 		<td class="checkbox help_cursor" style="display: none" id="haproxy_docker_td">{{ checkbox('hap_docker', title='Roxy-WI will install HAProxy as a Docker container') }}</td>
-		<td class="checkbox help_cursor">{{ checkbox('nginx', title='Roxy-WI will try to install Nginx') }}</td>
-		<td class="checkbox help_cursor" style="display: none" id="nginx_docker_td">{{ checkbox('nginx_docker', title='Roxy-WI will install Nginx as a Docker container') }}</td>
+		<td class="checkbox help_cursor">{{ checkbox('nginx', title='Roxy-WI will try to install NGINX') }}</td>
+		<td class="checkbox help_cursor" style="display: none" id="nginx_docker_td">{{ checkbox('nginx_docker', title='Roxy-WI will install NGINX as a Docker container') }}</td>
 		<td>
 			<button id="create" title="Create HA cluster">Create</button>
 		</td>
@@ -124,8 +124,8 @@
         	<li id="creating-haproxy-slave" class="server-creating">Installing Slave Haproxy...</li>
 		</div>
 		<div id="nginx_installing_div" style="display: none">
-        	<li id="creating-nginx-master" class="server-creating">Installing Master Nginx...</li>
-        	<li id="creating-nginx-slave" class="server-creating">Installing Slave Nginx...</li>
+        	<li id="creating-nginx-master" class="server-creating">Installing Master NGINX...</li>
+        	<li id="creating-nginx-slave" class="server-creating">Installing Slave NGINX...</li>
 		</div>
 	</ul>
     <div id="wait-mess"></div>
