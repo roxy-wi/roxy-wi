@@ -473,10 +473,20 @@ class SystemInfo(BaseModel):
     class Meta:
         table_name = 'system_info'
 
+
+class Services(BaseModel):
+    service_id = IntegerField(null=True)
+    service = CharField(null=True)
+
+    class Meta:
+        table_name = 'services'
+        primary_key = False
+
+
 def create_tables():
     with conn:
         conn.create_tables([User, Server, Role, Telegram, Slack, UUID, Token, ApiToken, Groups, UserGroups, ConfigVersion,
                             Setting, Cred, Backup, Metrics, WafMetrics, Version, Option, SavedServer, Waf, ActionHistory,
                             PortScannerSettings, PortScannerPorts, PortScannerHistory, ProvidersCreds, ServiceSetting,
                             ProvisionedServers, MetricsHttpStatus, SMON, WafRules, Alerts, GeoipCodes, NginxMetrics,
-                            SystemInfo])
+                            SystemInfo, Services])
