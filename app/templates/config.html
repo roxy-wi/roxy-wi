@@ -10,7 +10,7 @@
 <script src="/inc/codemirror/searchcursor.js"></script>
 <script src="/inc/codemirror/jump-to-line.js"></script>
 <script src="/inc/configshow.js"></script>
-{% if is_serv_protected %}
+{% if is_serv_protected and role > 2 %}
 <meta http-equiv="refresh" content="0; url=/app/hapservers.py?service={{service}}">
 {% else %}
 <center>

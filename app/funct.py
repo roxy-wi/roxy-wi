@@ -1512,16 +1512,25 @@ def check_new_version(**kwargs):
 	else:
 		last_ver = ''
 
+	user_name = sql.select_user_name()
+
 	try:
 		if proxy is not None and proxy != '' and proxy != 'None':
 			proxy_dict = {"https": proxy, "http": proxy}
 			response = requests.get('https://roxy-wi.org/update.py?last_ver'+last_ver+'=1', timeout=1,  proxies=proxy_dict)
 			requests.get('https://roxy-wi.org/update.py?ver_send='+current_ver, timeout=1,  proxies=proxy_dict)
+			response_status = requests.get('https://roxy-wi.org/update.py?user_name='+user_name, timeout=1,  proxies=proxy_dict)
 		else:
 			response = requests.get('https://roxy-wi.org/update.py?last_ver'+last_ver+'=1', timeout=1)
 			requests.get('https://roxy-wi.org/update.py?ver_send='+current_ver, timeout=1)
+			response_status = requests.get('https://roxy-wi.org/update.py?user_name=' + user_name, timeout=1)
 
 		res = response.content.decode(encoding='UTF-8')
+		try:
+			status = response_status.content.decode(encoding='UTF-8')
+			sql.update_user_status(status)
+		except:
+			pass
 	except requests.exceptions.RequestException as e:
 		logging('localhost', ' '+str(e), haproxywi=1)
 
@@ -1691,6 +1700,7 @@ def get_services_status():
 				cmd = "apt list --installed 2>&1 |grep " + service_name + "|awk '{print $2}'|sed 's/-/./'"
 			else:
 				cmd = "rpm -q " + service_name + "|awk -F\"" + service_name + "\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
+				print(cmd)
 		service_ver, stderr = subprocess_execute(cmd)
 
 		try:
@@ -1936,7 +1946,7 @@ def string_to_dict(dict_string) -> dict:
 	return literal_eval(dict_string)
 
 
-def send_message_to_rabbit(message: str) -> None:
+def send_message_to_rabbit(message: str, **kwargs) -> None:
 	import pika
 	import sql
 	rabbit_user = sql.get_setting('rabbitmq_user')
@@ -1944,7 +1954,10 @@ def send_message_to_rabbit(message: str) -> None:
 	rabbit_host = sql.get_setting('rabbitmq_host')
 	rabbit_port = sql.get_setting('rabbitmq_port')
 	rabbit_vhost = sql.get_setting('rabbitmq_vhost')
-	rabbit_queue = sql.get_setting('rabbitmq_queue')
+	if kwargs.get('rabbit_queue'):
+		rabbit_queue = kwargs.get('rabbit_queue')
+	else:
+		rabbit_queue = sql.get_setting('rabbitmq_queue')
 
 	credentials = pika.PlainCredentials(rabbit_user, rabbit_password)
 	parameters = pika.ConnectionParameters(rabbit_host,
@@ -1957,7 +1970,7 @@ def send_message_to_rabbit(message: str) -> None:
 	channel = connection.channel()
 	channel.queue_declare(queue=rabbit_queue)
 	channel.basic_publish(exchange='',
-						  routing_key='roxy-wi',
+						  routing_key=rabbit_queue,
 						  body=message)
 
 	connection.close()

@@ -9,6 +9,7 @@ import sql
 import create_db
 import datetime
 import uuid
+import distro
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('login.html')
@@ -16,9 +17,14 @@ form = funct.form
 
 cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 user_id = cookie.get('uuid')
-ref = form.getvalue('ref')
-login = form.getvalue('login')
-password = form.getvalue('pass')
+try:
+	ref = form.getvalue('ref')
+	login = form.getvalue('login')
+	password = form.getvalue('pass')
+except Exception:
+	ref = ''
+	login = ''
+	password = ''
 db_create = ""
 error_log = ""
 error = ""
@@ -73,6 +79,29 @@ def send_cookie(login):
 		pass
 	print("Content-type: text/html\n")
 	print('ok')
+
+	try:
+		if distro.id() == 'ubuntu':
+			if os.path.exists('/etc/apt/auth.conf.d/roxy-wi.conf'):
+				cmd = "grep login /etc/apt/auth.conf.d/roxy-wi.conf |awk '{print $2}'"
+				get_user_name, stderr = funct.subprocess_execute(cmd)
+				user_name = get_user_name[0]
+			else:
+				user_name = 'git'
+		else:
+			if os.path.exists('/etc/yum.repos.d/roxy-wi.repo'):
+				cmd = "grep base /etc/yum.repos.d/roxy-wi.repo |awk -F\":\" '{print $2}'|awk -F\"/\" '{print $3}'"
+				get_user_name, stderr = funct.subprocess_execute(cmd)
+				user_name = get_user_name[0]
+			else:
+				user_name = 'git'
+		if sql.select_user_name():
+			sql.update_user_name(user_name)
+		else:
+			sql.insert_user_name(user_name)
+	except Exception:
+		pass
+
 	sys.exit()
 
 

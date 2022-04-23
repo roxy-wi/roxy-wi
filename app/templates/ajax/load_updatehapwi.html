@@ -115,12 +115,11 @@
         </b>
     </td>
     <td>
-        {% if s.3 != '* is not installed' %}
+        {% if 'is not installed' not in s.3 %}
             {% if is_need_update %}
                 <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}')" title="Update {{service_name}}">Update</a>
             {% endif %}
         {% else %}
-            {{service_name}} service is not installed
             <a href="https://roxy-wi.org/services.py?service={{service_link}}#installation" title="{{service_name}} installation" target="_blank" class="link">Read about installation</a>
         {% endif %}
     </td>

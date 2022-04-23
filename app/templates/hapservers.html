@@ -39,12 +39,12 @@
 			}
 		});
 		{% for s in services %}
-			{% if s.1 == '* is not installed' or s.1 == '' %}
-				{% if s.0 == 'checker_haproxy' %}
+			{% if 'is not installed' in s.1 or s.1 == '' %}
+				{% if s.0 == 'roxy-wi-checker' %}
 					$(':regex(id, alert)').checkboxradio('disable');
-				{% elif s.0 == 'keep_alive' %}
+				{% elif s.0 == 'rpxy-wi-keep_alive' %}
 					$(':regex(id, active-)').checkboxradio('disable');
-				{% elif s.0 == 'metrics_haproxy' %}
+				{% elif s.0 == 'roxy-wi-metrics' %}
 					$(':regex(id, metrics-)').checkboxradio('disable');
 				{% endif %}
 			{% endif %}
@@ -174,7 +174,7 @@
 						<span class="service-stop" onclick="confirmAjaxAction('stop', '{{action_service}}', '{{s.2}}')"></span>
 					</a>
 					<a href="history.py?service={{service}}&serv={{s.2}}" title="View history for this service" class="history" style="margin: 0 5px 0 10px;"></a>
-					{% if service != 'keepalived' and service != 'apache' %}
+					{% if service != 'keepalived' %}
 					<span class="menu-bar" onclick="serverSettings('{{s.0}}', '{{s.1}}')" title="Edit settings for {{s.1}} service"></span>
 					{% endif %}
 				</span>

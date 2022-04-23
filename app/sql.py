@@ -273,7 +273,7 @@ def delete_server(server_id):
 def update_hapwi_server(server_id, alert, metrics, active, service_name):
 	try:
 		if service_name == 'nginx':
-			update_hapwi = Server.update(nginx_alert=alert, metrics=metrics, nginx_active=active,
+			update_hapwi = Server.update(nginx_alert=alert, nginx_active=active,
 										 nginx_metrics=metrics).where(Server.server_id == server_id)
 		elif service_name == 'keepalived':
 			update_hapwi = Server.update(keepalived_alert=alert, keepalived_active=active).where(
@@ -3131,5 +3131,57 @@ def select_services():
 	except Exception as e:
 		out_error(e)
 		return
+	else:
+		return query_res
+
+
+def insert_user_name(user_name):
+	try:
+		UserName.insert(UserName=user_name).execute()
+	except Exception as e:
+		out_error(e)
+		return False
+	else:
+		return True
+
+
+def select_user_name():
+	try:
+		query_res = UserName.get().UserName
+	except Exception as e:
+		out_error(e)
+		return False
+	else:
+		return query_res
+
+
+def update_user_name(user_name):
+	user_update = UserName.update(UserName=user_name)
+	try:
+		user_update.execute()
+	except Exception as e:
+		out_error(e)
+		return False
+	else:
+		return True
+
+
+def update_user_status(status):
+	user_update = UserName.update(Status=status)
+	try:
+		user_update.execute()
+	except Exception as e:
+		out_error(e)
+		return False
+	else:
+		return True
+
+
+def select_user_status():
+	try:
+		query_res = UserName.get().Status
+	except Exception as e:
+		out_error(e)
+		return False
 	else:
 		return query_res
