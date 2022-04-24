@@ -429,7 +429,16 @@
 		{% endfor %}
 		</tr>	
 	</table>
-	
+{% endif %}
+{% if role <= 1 %}
+	<table class="overview-wi">
+		<tr class="overviewHead" style="height: 30px;">
+			<td class="padding10 first-collumn-wi" colspan="2">
+				<a href="https://roxy-wi.org/cabinet.py" title="Personal cabinet" class="logs_link" target="_blank">Subscription</a>
+			</td>
+		</tr>
+		<tbody id="sub-table"></tbody>
+	</table>
 {% endif %}
 <div id="dialog-confirm" style="display: none;">
   <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>Are you sure?</p>

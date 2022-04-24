@@ -3148,8 +3148,7 @@ def insert_user_name(user_name):
 def select_user_name():
 	try:
 		query_res = UserName.get().UserName
-	except Exception as e:
-		out_error(e)
+	except Exception:
 		return False
 	else:
 		return query_res
@@ -3166,12 +3165,11 @@ def update_user_name(user_name):
 		return True
 
 
-def update_user_status(status):
-	user_update = UserName.update(Status=status)
+def update_user_status(status, plan, method):
+	user_update = UserName.update(Status=status, Method=method, Plan=plan)
 	try:
 		user_update.execute()
-	except Exception as e:
-		out_error(e)
+	except Exception:
 		return False
 	else:
 		return True
@@ -3180,8 +3178,16 @@ def update_user_status(status):
 def select_user_status():
 	try:
 		query_res = UserName.get().Status
-	except Exception as e:
-		out_error(e)
+	except Exception:
+		return False
+	else:
+		return query_res
+
+
+def select_user_all():
+	try:
+		query_res = UserName.select()
+	except Exception:
 		return False
 	else:
 		return query_res

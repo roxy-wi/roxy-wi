@@ -64,6 +64,7 @@ function showOverview(serv, hostnamea) {
 	for (i = 0; i < serv.length; i++) {
 		showOverviewCallBack(serv[i], hostnamea[i])
 	}
+	showSubOverview();
 }
 function showOverviewCallBack(serv, hostnamea) {
 	$.ajax( {
@@ -497,6 +498,27 @@ function showUsersOverview() {
 				toastr.error(data);
 			} else {
 				$("#users-table").html(data);
+			}
+		}
+	} );
+}
+function showSubOverview() {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			show_sub_ovw: 1,
+			token: $('#token').val()
+		},
+		type: "POST",
+		beforeSend: function() {
+			$("#sub-table").html('<img class="loading_small_bin_bout" style="padding-left: 40%;padding-top: 40px;padding-bottom: 40px;" src="/inc/images/loading.gif" />');
+		},
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if (data.indexOf('error:') != '-1') {
+				toastr.error(data);
+			} else {
+				$("#sub-table").html(data);
 			}
 		}
 	} );

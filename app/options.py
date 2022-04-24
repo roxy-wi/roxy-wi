@@ -807,6 +807,11 @@ if serv is not None and act == "stats":
         haproxy_pass = sql.get_setting('nginx_stats_password')
         stats_port = sql.get_setting('nginx_stats_port')
         stats_page = sql.get_setting('nginx_stats_page')
+    elif form.getvalue('service') == 'apache':
+        haproxy_user = sql.get_setting('apache_stats_user')
+        haproxy_pass = sql.get_setting('apache_stats_password')
+        stats_port = sql.get_setting('apache_stats_port')
+        stats_page = sql.get_setting('apache_stats_page')
     else:
         haproxy_user = sql.get_setting('stats_user')
         haproxy_pass = sql.get_setting('stats_password')
@@ -4166,3 +4171,11 @@ if act == 'check_service':
                         print('down')
                 except Exception:
                     print('down')
+
+if form.getvalue('show_sub_ovw'):
+    from jinja2 import Environment, FileSystemLoader
+
+    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
+    template = env.get_template('ajax/show_sub_ovw.html')
+    template = template.render(sub=sql.select_user_all())
+    print(template)

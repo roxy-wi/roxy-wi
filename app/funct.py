@@ -1528,7 +1528,8 @@ def check_new_version(**kwargs):
 		res = response.content.decode(encoding='UTF-8')
 		try:
 			status = response_status.content.decode(encoding='UTF-8')
-			sql.update_user_status(status)
+			status = status.split(' ')
+			sql.update_user_status(status[0], status[1].strip(), status[2].strip())
 		except:
 			pass
 	except requests.exceptions.RequestException as e:

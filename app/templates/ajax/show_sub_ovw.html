@@ -1,0 +1,42 @@
+{% for s in sub %}
+    {% if s.Plan == 'user' %}
+        {% set plan = 'Home' %}
+    {% elif s.Plan == 'company' %}
+        {% set plan = 'Enterprise' %}
+    {% elif s.Plan == 'support' %}
+        {% set plan = 'Premium' %}
+    {% else %}
+        {% set plan = 'Free' %}
+    {% endif %}
+    <tr class="odd">
+        <td class="padding10 first-collumn-wi">Subscription plan</td>
+        <td>{{plan}}</td>
+    </tr>
+    <tr class="even">
+        <td class="padding10 first-collumn-wi">Subscription status</td>
+        <td>
+            {% if plan == 'Free' %}
+                N/A
+            {% else %}
+            <span
+            {% if s.Status|int() == 1 %}
+                style="color: var(--green-color); font-weight: bold">Active
+            {% else %}
+                style="color: var(--red-color); font-weight: bold">Blocked
+             {% endif %}
+            </span>
+            {% endif %}
+        </td>
+    </tr>
+    <tr class="odd">
+        <td class="padding10 first-collumn-wi">Pay method</td>
+
+        <td>
+            {% if plan == 'Free' %}
+                N/A
+            {% else %}
+                {{s.Method}}
+            {% endif %}
+        </td>
+    </tr>
+{% endfor %}
