@@ -337,6 +337,7 @@
         src: waf_rsyslog.conf.j2
         dest: /etc/rsyslog.d/waf.conf
         mode: 0644
+      notify: restart rsyslog
 
     - name: Create WAF conf file
       template:
