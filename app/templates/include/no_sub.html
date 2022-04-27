@@ -1,0 +1,22 @@
+<style>
+    #oops_div {
+        position: absolute;
+        right: 0;
+        top: 10px;
+    }
+</style>
+<center>
+    <h4>
+    {% if user_status == 0 %}
+    You are not subscribed. Please subscribe to have access to this feature.
+        <p>
+            Read <a href="https://roxy-wi.org/pricing.py" title="Roxy-WI pricing" target="_blank">here</a> about subscriptions
+        </p>
+    {% elif user_plan == 'user' %}
+        This feature is not available for your plan.  To change the plan, follow this <a href="https://roxy-wi.org/pricing.py" title="Roxy-WI pricing" target="_blank">link</a>
+    {% endif %}
+    </h4>
+</center>
+<div id="oops_div">
+    <img src="/inc/images/oops.png" alt="Oops">
+</div>

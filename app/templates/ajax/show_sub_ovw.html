@@ -5,15 +5,17 @@
         {% set plan = 'Enterprise' %}
     {% elif s.Plan == 'support' %}
         {% set plan = 'Premium' %}
+    {% elif s.Plan == 'Trial' %}
+        {% set plan = 'Trial' %}
     {% else %}
         {% set plan = 'Free' %}
     {% endif %}
     <tr class="odd">
-        <td class="padding10 first-collumn-wi">Subscription plan</td>
+        <td class="padding10 first-collumn-wi">Plan</td>
         <td>{{plan}}</td>
     </tr>
     <tr class="even">
-        <td class="padding10 first-collumn-wi">Subscription status</td>
+        <td class="padding10 first-collumn-wi">Status</td>
         <td>
             {% if plan == 'Free' %}
                 N/A
@@ -35,7 +37,13 @@
             {% if plan == 'Free' %}
                 N/A
             {% else %}
-                {{s.Method}}
+                {% if s.Method == 'Boosty' %}
+                    <a href="https://boosty.to/roxy-wi" title="Boosty.to" class="logs_link" target="_blank">Boosty</a>
+                {% elif s.Method == 'Patreon' %}
+                    <a href="https://www.patreon.com/roxy_wi" title="Patreon.con" class="logs_link" target="_blank">Patreon</a>
+                {% else %}
+                    {{s.Method}}
+                {% endif %}
             {% endif %}
         </td>
     </tr>

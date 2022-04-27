@@ -534,7 +534,9 @@ function showConfigFiles() {
 			} else {
 				toastr.clear();
 				$("#ajax-config_file_name").html(data);
-				window.history.pushState("Show config", "Show config", cur_url[0] + "?service=" + service + "&serv=" + $("#serv").val() + "&showConfigFiles");
+				if (findGetParameter('findInConfig') === null) {
+					window.history.pushState("Show config", "Show config", cur_url[0] + "?service=" + service + "&serv=" + $("#serv").val() + "&showConfigFiles");
+				}
 			}
 		}
 	} );
@@ -809,7 +811,7 @@ $( function() {
 	if($('#time_range_out_hour').val() != '' && $('#time_range_out_hour').val() != 'None') {
 		var date1 = parseInt($('#time_range_out_hour').val(), 10) * 60 + parseInt($('#time_range_out_minut').val(), 10)
 	} else {
-		var date1 = now.getHours() * 60 - 1 * 60;
+		var date1 = now.getHours() * 60 - 3 * 60;
 	}
 	if($('#time_range_out_hour').val() != '' && $('#time_range_out_hour').val() != 'None') {
 		var date2 = parseInt($('#time_range_out_hour1').val(), 10) * 60 + parseInt($('#time_range_out_minut1').val(), 10)
@@ -1361,7 +1363,7 @@ function changeUserPasswordItOwn(d) {
 		} );
 	}
 }
-function findInConfig() {
+function findInConfig(words) {
 	clearAllAjaxFields();
 		$.ajax( {
 			url: "options.py",
@@ -1369,7 +1371,7 @@ function findInConfig() {
 				serv: $("#serv").val(),
 				act: "findInConfigs",
 				service: $("#service").val(),
-				words: $('#words').val(),
+				words: words,
 				token: $('#token').val()
 			},
 			type: "POST",
@@ -1382,4 +1384,23 @@ function findInConfig() {
 				}
 			}
 		} );
+}
+function waitForElm(selector) {
+    return new Promise(resolve => {
+        if (document.querySelector(selector)) {
+            return resolve(document.querySelector(selector));
+        }
+
+        const observer = new MutationObserver(mutations => {
+            if (document.querySelector(selector)) {
+                resolve(document.querySelector(selector));
+                observer.disconnect();
+            }
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    });
 }

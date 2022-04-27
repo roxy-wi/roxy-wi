@@ -1236,13 +1236,13 @@ def select_waf_metrics(serv, **kwargs):
 
 	if mysql_enable == '1':
 		if kwargs.get('time_range') == '60':
-			date_from = "and date > now() - INTERVAL 60 minute and rowid % 2 = 0"
+			date_from = "and date > now() - INTERVAL 60 minute group by `date` div 100"
 		elif kwargs.get('time_range') == '180':
-			date_from = "and date > now() - INTERVAL 180 minute and rowid % 5 = 0"
+			date_from = "and date > now() - INTERVAL 180 minute group by `date` div 200"
 		elif kwargs.get('time_range') == '360':
-			date_from = "and date > now() - INTERVAL 360 minute and rowid % 7 = 0"
+			date_from = "and date > now() - INTERVAL 360 minute group by `date` div 300"
 		elif kwargs.get('time_range') == '720':
-			date_from = "and date > now() - INTERVAL 720 minute and rowid % 9 = 0"
+			date_from = "and date > now() - INTERVAL 720 minute group by `date` div 500"
 		else:
 			date_from = "and date > now() - INTERVAL 30 minute"
 		sql = """ select * from waf_metrics where serv = '{serv}' {date_from} order by `date` desc limit 60 """.format(serv=serv, date_from=date_from)
@@ -1272,13 +1272,13 @@ def select_nginx_metrics(serv, **kwargs):
 
 	if mysql_enable == '1':
 		if kwargs.get('time_range') == '60':
-			date_from = "and date > now() - INTERVAL 60 minute and rowid % 2 = 0"
+			date_from = "and date > now() - INTERVAL 60 minute group by `date` div 100"
 		elif kwargs.get('time_range') == '180':
-			date_from = "and date > now() - INTERVAL 180 minute and rowid % 5 = 0"
+			date_from = "and date > now() - INTERVAL 180 minute group by `date` div 200"
 		elif kwargs.get('time_range') == '360':
-			date_from = "and date > now() - INTERVAL 360 minute and rowid % 7 = 0"
+			date_from = "and date > now() - INTERVAL 360 minute group by `date` div 400"
 		elif kwargs.get('time_range') == '720':
-			date_from = "and date > now() - INTERVAL 720 minute and rowid % 9 = 0"
+			date_from = "and date > now() - INTERVAL 720 minute group by `date` div 500"
 		else:
 			date_from = "and date > now() - INTERVAL 30 minute"
 		sql = """ select * from nginx_metrics where serv = '{serv}' {date_from} order by `date` desc limit 60 """.format(serv=serv, date_from=date_from)
@@ -1462,16 +1462,16 @@ def select_metrics(serv, **kwargs):
 
 	if mysql_enable == '1':
 		if kwargs.get('time_range') == '60':
-			date_from = "and date > now() - INTERVAL 60 minute and rowid % 2 = 0"
+			date_from = "and date > now() - INTERVAL 60 minute group by `date` div 100"
 		elif kwargs.get('time_range') == '180':
-			date_from = "and date > now() - INTERVAL 180 minute and rowid % 5 = 0"
+			date_from = "and date > now() - INTERVAL 180 minute group by `date` div 200"
 		elif kwargs.get('time_range') == '360':
-			date_from = "and date > now() - INTERVAL 360 minute and rowid % 7 = 0"
+			date_from = "and date > now() - INTERVAL 360 minute group by `date` div 300"
 		elif kwargs.get('time_range') == '720':
-			date_from = "and date > now() - INTERVAL 720 minute and rowid % 9 = 0"
+			date_from = "and date > now() - INTERVAL 720 minute group by `date` div 500"
 		else:
 			date_from = "and date > now() - INTERVAL 30 minute"
-		sql = """ select * from metrics where serv = '{serv}' {date_from} order by `date` desc """.format(serv=serv, date_from=date_from)
+		sql = """ select * from metrics where serv = '{serv}' {date_from} order by `date` asc """.format(serv=serv, date_from=date_from)
 	else:
 		if kwargs.get('time_range') == '60':
 			date_from = "and date > datetime('now', '-60 minutes', 'localtime') and rowid % 2 = 0"
@@ -1499,13 +1499,13 @@ def select_metrics_http(serv, **kwargs):
 
 	if mysql_enable == '1':
 		if kwargs.get('time_range') == '60':
-			date_from = "and date > now() - INTERVAL 60 minute and rowid % 2 = 0"
+			date_from = "and date > now() - INTERVAL 60 minute group by `date` div 100"
 		elif kwargs.get('time_range') == '180':
-			date_from = "and date > now() - INTERVAL 180 minute and rowid % 5 = 0"
+			date_from = "and date > now() - INTERVAL 180 minute group by `date` div 200"
 		elif kwargs.get('time_range') == '360':
-			date_from = "and date > now() - INTERVAL 360 minute and rowid % 7 = 0"
+			date_from = "and date > now() - INTERVAL 360 minute group by `date` div 300"
 		elif kwargs.get('time_range') == '720':
-			date_from = "and date > now() - INTERVAL 720 minute and rowid % 9 = 0"
+			date_from = "and date > now() - INTERVAL 720 minute group by `date` div 500"
 		else:
 			date_from = "and date > now() - INTERVAL 30 minute"
 		sql = """ select * from metrics_http_status where serv = '{serv}' {date_from} order by `date` desc """.format(serv=serv, date_from=date_from)
@@ -3178,6 +3178,15 @@ def update_user_status(status, plan, method):
 def select_user_status():
 	try:
 		query_res = UserName.get().Status
+	except Exception:
+		return False
+	else:
+		return query_res
+
+
+def select_user_plan():
+	try:
+		query_res = UserName.get().Plan
 	except Exception:
 		return False
 	else:

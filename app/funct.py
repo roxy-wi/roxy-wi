@@ -200,7 +200,7 @@ def keep_action_history(service: str, action: str, server_ip: str, login: str, u
 
 		sql.insert_action_history(service, action, server_id, user_id, user_ip)
 	except Exception as e:
-		logging('localhost', 'Cannot save a history: ' + srt(e), haproxywi=1)
+		logging('localhost', 'Cannot save a history: ' + str(e), haproxywi=1)
 
 
 def telegram_send_mess(mess, **kwargs):
@@ -1701,7 +1701,6 @@ def get_services_status():
 				cmd = "apt list --installed 2>&1 |grep " + service_name + "|awk '{print $2}'|sed 's/-/./'"
 			else:
 				cmd = "rpm -q " + service_name + "|awk -F\"" + service_name + "\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
-				print(cmd)
 		service_ver, stderr = subprocess_execute(cmd)
 
 		try:
@@ -1988,3 +1987,12 @@ def is_restarted(server_ip, action):
 	if sql.is_serv_protected(server_ip) and int(user_role) > 2:
 		print('error: This server is protected. You cannot ' + action + ' it')
 		sys.exit()
+
+
+def return_user_status():
+	import sql
+
+	user_status = sql.select_user_status()
+	user_plan = sql.select_user_plan()
+
+	return user_status, user_plan

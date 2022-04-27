@@ -73,6 +73,9 @@
 .add .fa-clone, .plus .fa-plus, .plus-after .fa-plus, .minus-after .fa-minus {
 	color: var(--green-color);
 }
+.plus-after > .fa-plus, .minus-after > .fa-minus {
+	color: var(--blue-color);
+}
 .add-proxy::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";
@@ -239,12 +242,15 @@
 }
 .fa-pencil-alt{
 	padding-left: 7px;
-	color: #5cb85c !important;
+	color: var(--blue-color) !important;
 }
 .service-start::after {
 	display: none;
 	font-family: "Font Awesome 5 Solid";
 	content: "\f04b";	
+}
+.refresh > .fa-sync-alt {
+	color: var(--blue-color) !important;
 }
 .fa-play, .fa-stop, .fa-sync-alt {
 	width: 3px;
@@ -263,7 +269,7 @@
 .service-restart > .fa-sync-alt {
 	color: orange !important;
 }
-.service-reload::after {
+.service-reload::after, .refresh::after {
 	display: none;
 	font-family: "Font Awesome 5 Solid";
 	content: "\f2f1";	

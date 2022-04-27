@@ -1,7 +1,7 @@
 {% if not system_info %}
     <td style="padding-top: 20px;" colspan="16">
         <a onclick="updateServerInfo('{{server_ip}}', '{{server_id}}')" title="Refresh" style="float: right; margin-bottom: 10px;">
-            <span class="service-reload"></span>
+            <span class="refresh"></span>
         </a>
     </td>
 {% else %}
@@ -38,7 +38,7 @@
                 </td>
                 <td>
                     <a onclick="updateServerInfo('{{server_ip}}', '{{server_id}}')" title="Update System info" style="float: right; margin-right: 15px;">
-                        <span class="service-reload"></span>
+                        <span class="refresh"></span>
                     </a>
                 </td>
             </tr>

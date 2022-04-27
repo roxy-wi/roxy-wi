@@ -1,4 +1,16 @@
 {% from 'include/input_macros.html' import input, checkbox, copy_to_clipboard %}
+{% if user_status == 0 or user_plan == 'user' %}
+<script>
+	$( function() {
+		$('select:regex(id, slavefor)').selectmenu("disable");
+		{% if user_status == 0 %}
+			$('#slavefor-th').attr("title", "Actions with the master config will automatically apply on the slave. You are not subscribed. Please subscribe to have access to this feature");
+		{% elif user_plan == 'user' %}
+			$('#slavefor-th').attr("title", "Actions with the master config will automatically apply on the slave. This feature is not available for your plan");
+		{% endif %}
+	});
+</script>
+{% endif %}
 {% if not adding %}
 <table class="overview" id="ajax-servers">
 	<thead>
@@ -23,7 +35,7 @@
 				<span title="If protection is enabled, then the server is inaccessible for editing by everyone except the admin role">Protected</span>
 			</th>
 			<th style="width: 10%" class="help_cursor">
-				<span title="Actions with the master config will automatically apply on the slave">Slave for</span>
+				<span  id="slavefor-th" title="Actions with the master config will automatically apply on the slave">Slave for</span>
 			</th>
 			<th class="cred-field">Credentials</th>
 			<th style="width: 100%">Description</th>

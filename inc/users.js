@@ -666,7 +666,7 @@ $( function() {
 	$('#search_ldap_user').click(function() {
 		var valid = true;
 		toastr.clear();
-		allFields = $( [] ).add( $('#new-username') )
+		allFields = $( [] ).add( $('#new-username') );
 		allFields.removeClass( "ui-state-error" );
 		valid = valid && checkLength( $('#new-username'), "user name", 1 );
 		user = $('#new-username').val()
@@ -2127,6 +2127,8 @@ function ajaxActionServies(action, service) {
 		success: function( data ) {
 			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 				toastr.error(data);
+			} else if (data.indexOf('warning: ') != '-1') {
+				toastr.warning(data);
 			} else {
 				window.history.pushState("services", "services", cur_url[0].split("#")[0] + "#services");
 				toastr.success('The ' + service + ' has been ' + action +'ed');
@@ -2502,7 +2504,7 @@ function showServerInfo(id, ip) {
 					$.getScript(awesome);
 				}
 			}
-		});
+		} );
 	} else {
 		$('#server_info-'+id).hide();
 		$('#server_info_link-'+id).attr('title', 'Show System info');

@@ -14,7 +14,7 @@
             {% endif %}
             <td style="width: 100%;"></td>
             <td></td>
-            <td><span onclick="loadchecker()" class="service-reload" title="Reload Telegram channels"></span></td>
+            <td><span onclick="loadchecker()" class="refresh" title="Reload Telegram channels"></span></td>
         </tr>
         {% for telegram in telegrams %}
         <tr id="telegram-table-{{telegram.id}}" class="{{ loop.cycle('odd', 'even') }}">
@@ -66,7 +66,7 @@
             {% endif %}
             <td style="width: 100%;"></td>
             <td></td>
-            <td><span onclick="loadchecker()" class="service-reload" title="Reload Slack channels"></span></td>
+            <td><span onclick="loadchecker()" class="refresh" title="Reload Slack channels"></span></td>
         </tr>
         {% for slack in slacks %}
         <tr id="slack-table-{{slack.id}}" class="{{ loop.cycle('odd', 'even') }}">

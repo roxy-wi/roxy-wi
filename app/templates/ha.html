@@ -7,6 +7,9 @@
 <style>
 	p {margin: 0;}
 </style>
+{% if user_status == 0 or user_plan == 'user' %}
+{% include 'include/no_sub.html' %}
+{% else %}
 <table class="overview" style="margin-bottom: 20px;">
 	<caption><h3>Create a new HA cluster</h3></caption>
 	<tr class="overviewHead">
@@ -149,4 +152,5 @@
         <div id="creating-progress-add" style="width: 0%;"></div>
     </div>
 </div>
+{% endif %}
 {% endblock %}

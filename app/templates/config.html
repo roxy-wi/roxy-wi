@@ -89,6 +89,14 @@
 	if (cur_url[1].split('&')[2] == 'showConfigFiles') {
 		showConfigFiles();
 	}
+	if (cur_url[1].split('&')[3].split('=')[0] == 'findInConfig') {
+		var words = findGetParameter('findInConfig');
+		waitForElm('#finding_words_from').then((elm) => {
+			$('#find_p').show();
+			$('#words').val(words);
+			findInConfig(words);
+		});
+	}
 	if (cur_url[1].split('&')[3].split('=')[0] == 'config_file_name') {
 		showConfigFilesForEditing();
 	}

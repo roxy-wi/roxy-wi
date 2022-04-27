@@ -1,7 +1,7 @@
 :root {
 	--green-color: #5CB85C;
 	--red-color: #be2424;
-	--blue-color: #5d9ceb;
+	--blue-color: #4a89dc;
 	--link-dark-blue: #23527c;
 	--light-blue-color: #d1ecf1;
 	--menu-color: #06212a;
@@ -50,8 +50,13 @@ ul#browse_histroy {
 ul#browse_histroy li {
 	display: inline;
 }
-ul#browse_histroy li+li:before {
+ul#browse_histroy li:before {
 	content: "/";
+	color: #767676;
+	margin: 0 5px 0px 5px;
+}
+ul#browse_histroy li+li:before {
+	content: "->";
 	color: #767676;
 	margin: 0 5px 0px 5px;
 }
@@ -408,7 +413,7 @@ pre {
 	background-color: #ddd; 
 }
 .add-button, .add-button-wi {
-	background-color: var(--green-color);
+	background-color: var(--blue-color);
 	border-radius: 5px;
 	color: #fff;
 	padding: 5px 10px;
@@ -417,10 +422,10 @@ pre {
 	cursor: pointer;
 }
 .add-button:hover, .add-button-wi:hover {
-	background-color: #5bbf5b;
+	background-color: #5094ee;
 }
 .add-button:active, .add-button-wi:active {
-	background-color: #3e863e;
+	background-color: #5499f4;
 	box-shadow: 0 1px #666;
 }
 .add-button-wi {

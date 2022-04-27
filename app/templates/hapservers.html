@@ -79,9 +79,13 @@
 						let metrics = new Promise(
 								(resolve, reject) => {
 									{% for s in servers %}
+									{% if service == 'haproxy' %}
 									getChartData(server_ip)
 									getHttpChartData(server_ip)
 									getWafChartData(server_ip)
+									{% elif service == 'nginx' %}
+									getNginxChartData(server_ip)
+									{% endif %}
 									{% endfor %}
 								});
 						metrics.then();
@@ -272,7 +276,7 @@
 			<a href="/app/viewsttats.py?service={{service}}&serv={{s.2}}" class="ui-button ui-widget ui-corner-all" title="View {{service}} statistics">Stat</a>
 			{% endif %}
 			{% if service != 'keepalived' %}
-			<a href="/app/logs.py?service={{service}}&serv={{s.2}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" class="ui-button ui-widget ui-corner-all" title="View {{service}} log">Log</a>
+			<a href="/app/logs.py?service={{service}}&serv={{s.2}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" class="ui-button ui-widget ui-corner-all" title="View {{service}} logs">Logs</a>
 			{% endif %}
 			{% if role <= 2 %}
 				<a href="/app/versions.py?service={{service}}&serv={{s.2}}&open=open" class="ui-button ui-widget ui-corner-all" title="View/Rollback to previous config">Versions</a>
@@ -311,7 +315,7 @@
 			</select>
 		</div>
 		<div id="refresh" style="text-align: right;margin-right: 3%;" title="Refresh metrics" onclick="showMetrics()">
-			<span class="service-reload"></span>
+			<span class="refresh"></span>
 		</div>
 	</div>
 	{% endif %}

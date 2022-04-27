@@ -19,6 +19,11 @@ try:
 except Exception as e:
 	pass
 
+try:
+	user_status, user_plan = funct.return_user_status()
+except Exception as e:
+	user_status, user_plan = 0, 0
+	funct.logging('localhost', 'Cannot get a user plan: ' + str(e), haproxywi=1)
 
 output_from_parsed_template = template.render(title="Servers: ",
 												role=role,
@@ -37,5 +42,7 @@ output_from_parsed_template = template.render(title="Servers: ",
 												geoip_country_codes=geoip_country_codes,
 												user_services=user_services,
 												ldap_enable=ldap_enable,
+											  	user_status=user_status,
+											  	user_plan=user_plan,
 											  	services=services)
 print(output_from_parsed_template)

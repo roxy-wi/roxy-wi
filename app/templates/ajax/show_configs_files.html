@@ -45,11 +45,13 @@
 	$(document).ready(function() {
 		$('#config_file_name').select2();
 		$('#finding_words_from').submit(function() {
-			if ($('#words').val() == '') {
+			let words = $('#words').val();
+			if (words == '') {
 				toastr.warning('Enter words for searching');
 				return false;
 			}
-			findInConfig();
+			findInConfig(words);
+			window.history.pushState("Find in config", "Find in config", cur_url[0] + '?service='+ $('#service').val()+'&serv='+$('#serv').val()+'&showConfigFiles&findInConfig='+ words);
 			return false;
 		});
 		$( "input[type=submit], button" ).button()
