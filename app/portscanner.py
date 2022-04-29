@@ -41,6 +41,12 @@ else:
     cmd = "systemctl is-active roxy-wi-portscanner"
     port_scanner, port_scanner_stderr = funct.subprocess_execute(cmd)
 
+try:
+    user_status, user_plan = funct.return_user_status()
+except Exception as e:
+    user_status, user_plan = 0, 0
+    funct.logging('localhost', 'Cannot get a user plan: ' + str(e), haproxywi=1)
+
 
 output_from_parsed_template = template.render(h2=1, autorefresh=0,
                                                 title=title,
@@ -53,5 +59,7 @@ output_from_parsed_template = template.render(h2=1, autorefresh=0,
                                                 port_scanner=''.join(port_scanner),
                                                 port_scanner_stderr=port_scanner_stderr,
                                                 user_services=user_services,
+                                                user_status=user_status,
+                                                user_plan=user_plan,
                                                 token=token)
 print(output_from_parsed_template)

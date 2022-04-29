@@ -54,6 +54,7 @@ $( function() {
 
 	$( "#saveconfig" ).on("click", ":submit", function(e){
 		var frm = $('#saveconfig');
+		var service = $('#service').val();
 		myCodeMirror.save();
 		$.ajax({
 			url: frm.attr('action'),
@@ -64,7 +65,7 @@ $( function() {
 				if (data.indexOf('error: ') != '-1' || data.indexOf('Fatal') != '-1' || data.indexOf('Error') != '-1' || data.indexOf('failed ') != '-1' || data.indexOf('emerg] ') != '-1') {
 					toastr.clear();
 					toastr.error(data);
-				} else if (data.indexOf('command not found') != '-1')	{
+				} else if (data.indexOf(service + ': command not found') != '-1')	{
 					try {
 						var service = findGetParameter('service');
 						toastr.error('Cannot save config. There is no ' + service);

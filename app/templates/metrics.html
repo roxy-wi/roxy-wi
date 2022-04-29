@@ -16,7 +16,9 @@
 <link href="/inc/chart.min.css" rel="stylesheet">
 <script src="/inc/metrics.js"></script>
 <script src="/inc/chart.min.js"></script>
-{% if services == '0' %}
+{% if user_status == 0 or user_plan == 'user' %}
+	{% include 'include/no_sub.html' %}
+{% elif services == '0' %}
 <div style="text-align: center;">
 	<br />
 	<h3>You have not installed Metrics service.

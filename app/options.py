@@ -1748,6 +1748,7 @@ if form.getvalue('metrics_hapwi_cpu'):
 
 if form.getvalue('new_metrics'):
     serv = form.getvalue('server')
+    hostname = sql.get_hostname_by_server_ip(serv)
     time_range = form.getvalue('time_range')
     metric = sql.select_metrics(serv, time_range=time_range)
     metrics = {'chartData': {}}
@@ -1771,7 +1772,7 @@ if form.getvalue('new_metrics'):
     metrics['chartData']['curr_con'] = curr_con
     metrics['chartData']['curr_ssl_con'] = curr_ssl_con
     metrics['chartData']['sess_rate'] = sess_rate
-    metrics['chartData']['server'] = server
+    metrics['chartData']['server'] = hostname + ' (' + server + ')'
 
     import json
 
@@ -1779,6 +1780,7 @@ if form.getvalue('new_metrics'):
 
 if form.getvalue('new_http_metrics'):
     serv = form.getvalue('server')
+    hostname = sql.get_hostname_by_server_ip(serv)
     time_range = form.getvalue('time_range')
     metric = sql.select_metrics_http(serv, time_range=time_range)
     metrics = {'chartData': {}}
@@ -1805,7 +1807,7 @@ if form.getvalue('new_http_metrics'):
     metrics['chartData']['http_3xx'] = http_3xx
     metrics['chartData']['http_4xx'] = http_4xx
     metrics['chartData']['http_5xx'] = http_5xx
-    metrics['chartData']['server'] = server
+    metrics['chartData']['server'] = hostname + ' (' + server + ')'
 
     import json
 
@@ -1813,6 +1815,7 @@ if form.getvalue('new_http_metrics'):
 
 if form.getvalue('new_waf_metrics'):
     serv = form.getvalue('server')
+    hostname = sql.get_hostname_by_server_ip(serv)
     time_range = form.getvalue('time_range')
     metric = sql.select_waf_metrics(serv, time_range=time_range)
     metrics = {'chartData': {}}
@@ -1828,7 +1831,7 @@ if form.getvalue('new_waf_metrics'):
 
     metrics['chartData']['labels'] = labels
     metrics['chartData']['curr_con'] = curr_con
-    metrics['chartData']['server'] = serv
+    metrics['chartData']['server'] = hostname + ' (' + serv + ')'
 
     import json
 
@@ -1836,6 +1839,7 @@ if form.getvalue('new_waf_metrics'):
 
 if form.getvalue('new_nginx_metrics'):
     serv = form.getvalue('server')
+    hostname = sql.get_hostname_by_server_ip(serv)
     time_range = form.getvalue('time_range')
     metric = sql.select_nginx_metrics(serv, time_range=time_range)
     metrics = {'chartData': {}}
@@ -1851,7 +1855,7 @@ if form.getvalue('new_nginx_metrics'):
 
     metrics['chartData']['labels'] = labels
     metrics['chartData']['curr_con'] = curr_con
-    metrics['chartData']['server'] = serv
+    metrics['chartData']['server'] = hostname + ' (' + serv + ')'
 
     import json
 
@@ -3774,18 +3778,29 @@ if form.getvalue('loadchecker'):
     services = funct.get_services_status()
     groups = sql.select_groups()
     page = form.getvalue('page')
-    if page == 'servers.py':
-        user_group = funct.get_user_group(id=1)
-        telegrams = sql.get_user_telegram_by_group(user_group)
-        slacks = sql.get_user_slack_by_group(user_group)
+    try:
+        user_status, user_plan = funct.return_user_status()
+    except Exception as e:
+        user_status, user_plan = 0, 0
+        funct.logging('localhost', 'Cannot get a user plan: ' + str(e), haproxywi=1)
+    if user_status:
+        if page == 'servers.py':
+            user_group = funct.get_user_group(id=1)
+            telegrams = sql.get_user_telegram_by_group(user_group)
+            slacks = sql.get_user_slack_by_group(user_group)
+        else:
+            telegrams = sql.select_telegram()
+            slacks = sql.select_slack()
     else:
-        telegrams = sql.select_telegram()
-        slacks = sql.select_slack()
+        telegrams = ''
+        slacks = ''
 
     template = template.render(services=services,
                                telegrams=telegrams,
                                groups=groups,
                                slacks=slacks,
+                               user_status=user_status,
+                               user_plan=user_plan,
                                page=page)
     print(template)
 

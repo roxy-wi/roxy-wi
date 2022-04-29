@@ -1,4 +1,7 @@
 {% from 'include/input_macros.html' import input, select %}
+{% if user_status == 0 or user_plan == 'user' %}
+	{% include 'include/no_sub.html' %}
+{% else %}
 {% for s in services %}
 {% if s.0 == 'roxy-wi-checker' %}
     {% if s.3 != '* is not installed' and s.3 != '' %}
@@ -122,3 +125,4 @@
     {% endif %}
 {% endif %}
 {% endfor %}
+{% endif %}

@@ -595,8 +595,8 @@ ul{
 	background-color: #EBF1F1 !important;
 }
 .ui-state-active {
-	background-color: #4A89D8 !important;
-	border: none var(--blue-color) !important;
+	background-color: #376fb6 !important;
+    border: none var(--link-dark-blue) !important;
 }
 .ui-tabs-nav {
 	border-radius: 0 !important;

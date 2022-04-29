@@ -716,7 +716,7 @@ def install_haproxy(server_ip, **kwargs):
 	os.system("cp scripts/%s ." % script)
 
 	if haproxy_ver is None:
-		haproxy_ver = '2.4.9-1'
+		haproxy_ver = '2.5.1-1'
 
 	if proxy is not None and proxy != '' and proxy != 'None':
 		proxy_serv = proxy
@@ -1473,7 +1473,7 @@ def get_remote_files(server_ip: str, config_dir: str, file_format: str):
 	if file_format == 'conf':
 		commands = ['sudo ls ' + config_dir + '*/*.' + file_format]
 	else:
-		commands = ['sudo ls ' + config_dir + '/*.' + file_format]
+		commands = ['sudo ls ' + config_dir + '|grep ' + file_format + '$']
 	config_files = ssh_command(server_ip, commands)
 
 	return config_files

@@ -25,6 +25,9 @@
 	padding-top: 5px !important;
 }
 </style>
+{% if user_status == 0 or user_plan == 'user' %}
+	{% include 'include/no_sub.html' %}
+{% else %}
 {% if history %}
 	{% include 'include/port_scan_history.html' %}
 {% elif port_scanner_stderr != '' %}
@@ -245,4 +248,5 @@
 		} );
 }
 </script>
+{% endif %}
 {% endblock %}

@@ -1,72 +1,79 @@
-	<table class="overview" id="ajax-backup-table">
-		<tr class="overviewHead">
-			<td class="padding10 first-collumn">Servers</td>
-			<td class="padding10">Remote server</td>
-			<td class="padding10">Remote folder</td>
-			<td class="padding10">Backup type</td>
-			<td class="padding10">Period time</td>
-			<td class="padding10">Credentials</td>
-			<td class="padding10">Description</td>
-			<td style="margin-left: 5px;"></td>
-			<td></td>
-		</tr>
-		{% for b in backups %}
-		{% for s in servers %}
-		{% if b.server in s.2 %}
-			<tr id="backup-table-{{b.id}}">
-					<td class="padding10 first-collumn">
-						{% set id = 'backup-server-' + b.id|string() %}
-						{{ copy_to_clipboard(id=id, value=b.server) }}
-					</td>
-					<td>
-						{{ input('backup-rserver-'+b.id|string(), value=b.rhost, size='14') }}
-					</td>
-					<td>
-						{{ input('backup-rpath-'+b.id|string(), value=b.rpath) }}
-					</td>
-					<td>
-						{% set values = {'backup':'backup','synchronization':'synchronization'} %}
-						{{ select('backup-type-'+b.id|string(), values=values, selected=b.backup_type, required='required', class='force_close') }}
-					</td>
-					<td>
-						{% set values = {'hourly':'hourly','daily':'daily','weekly':'weekly', 'monthly':'monthly'} %}
-						{{ select('backup-time-'+b.id|string(), values=values, selected=b.time, required='required', class='force_close') }}
-					</td>
-					<td>
-						<select id="backup-credentials-{{b.id}}" required>
-							<option disabled selected>Choose credentials</option>
-							{% for ssh in sshs %}
-								{% if ssh.enable == 1 %}
-									{% if ssh.id == b.cred %}
-										<option value="{{ssh.id}}" selected="selected">{{ssh.name}}</option>
-									{% else %}
-										<option value="{{ssh.id}}">{{ssh.name}}</option>
+<div id="backup_tabs">
+	{% if user_status == 0 or user_plan == 'user' %}
+		{% include 'include/no_sub.html' %}
+	{% else %}
+		<table class="overview" id="ajax-backup-table">
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn">Servers</td>
+				<td class="padding10">Remote server</td>
+				<td class="padding10">Remote folder</td>
+				<td class="padding10">Backup type</td>
+				<td class="padding10">Period</td>
+				<td class="padding10">Credentials</td>
+				<td class="padding10">Description</td>
+				<td style="margin-left: 5px;"></td>
+				<td></td>
+			</tr>
+			{% for b in backups %}
+			{% for s in servers %}
+			{% if b.server in s.2 %}
+				<tr id="backup-table-{{b.id}}">
+						<td class="padding10 first-collumn">
+							{% set id = 'backup-server-' + b.id|string() %}
+							{{ copy_to_clipboard(id=id, value=b.server) }}
+						</td>
+						<td>
+							{{ input('backup-rserver-'+b.id|string(), value=b.rhost, size='14') }}
+						</td>
+						<td>
+							{{ input('backup-rpath-'+b.id|string(), value=b.rpath) }}
+						</td>
+						<td>
+							{% set values = {'backup':'backup','synchronization':'synchronization'} %}
+							{{ select('backup-type-'+b.id|string(), values=values, selected=b.backup_type, required='required', class='force_close') }}
+						</td>
+						<td>
+							{% set values = {'hourly':'hourly','daily':'daily','weekly':'weekly', 'monthly':'monthly'} %}
+							{{ select('backup-time-'+b.id|string(), values=values, selected=b.time, required='required', class='force_close') }}
+						</td>
+						<td>
+							<select id="backup-credentials-{{b.id}}" required>
+								<option disabled selected>Choose credentials</option>
+								{% for ssh in sshs %}
+									{% if ssh.enable == 1 %}
+										{% if ssh.id == b.cred %}
+											<option value="{{ssh.id}}" selected="selected">{{ssh.name}}</option>
+										{% else %}
+											<option value="{{ssh.id}}">{{ssh.name}}</option>
+										{% endif %}
 									{% endif %}
-								{% endif %}
-							{% endfor %}
-						</select>
+								{% endfor %}
+							</select>
+						</td>
+						<td>
+							{% if b.description is not none %}
+								{{ input('backup-description-'+b.id|string(), value=b.description) }}
+							{% else %}
+								{{ input('backup-description-'+b.id|string()) }}
+							{% endif %}
+						</td>
+						<td>
+						<a class="add" onclick="cloneBackup({{b.id}})" id="clone-backup{{b.id}}" title="Clone {{b.server}}" style="cursor: pointer;"></a>
 					</td>
 					<td>
-						{% if b.description is not none %}
-							{{ input('backup-description-'+b.id|string(), value=b.description) }}
-						{% else %}
-							{{ input('backup-description-'+b.id|string()) }}
-						{% endif %}
+						<a class="delete" onclick="confirmDeleteBackup({{b.id}})" title="Delete backup {{b.server}}" style="cursor: pointer;"></a>
 					</td>
-					<td>
-					<a class="add" onclick="cloneBackup({{b.id}})" id="clone-backup{{b.id}}" title="Clone {{b.server}}" style="cursor: pointer;"></a>
-				</td> 
-				<td>
-					<a class="delete" onclick="confirmDeleteBackup({{b.id}})" title="Delete backup {{b.server}}" style="cursor: pointer;"></a>
-				</td>
-		</tr>
-		{% endif %}
-		{% endfor %}
-		{% endfor %}
-	</table>
-	<br /><span class="add-button" title="Add a new backup job" id="add-backup-button">+ Add backup</span>
-	<br /><br />
-	<div id="ajax-backup"></div>
-	<div class="add-note alert addName alert-info" style="width: inherit; margin-right: 15px;">
-		You can read the description of all parameters <a href="https://roxy-wi.org/description.py?description=backup" title="Backup description" target="_blank">here</a>
+			</tr>
+			{% endif %}
+			{% endfor %}
+			{% endfor %}
+		</table>
+		<br /><span class="add-button" title="Add a new backup job" id="add-backup-button">+ Add backup</span>
+		<br /><br />
+		<div id="ajax-backup"></div>
+		<div class="add-note alert addName alert-info" style="width: inherit; margin-right: 15px;">
+			You can read the description of all parameters <a href="https://roxy-wi.org/description.py?description=backup" title="Backup description" target="_blank">here</a>
+		</div>
 	</div>
+	{% endif %}
+</div>

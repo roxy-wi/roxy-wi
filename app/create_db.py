@@ -163,7 +163,7 @@ def default_values():
 		print(str(e))
 
 	try:
-		Groups.insert(name='All', description='All servers are included in this group by default').on_conflict_ignore().execute()
+		Groups.insert(name='Default', description='All servers are included in this group by default', group_id=1).on_conflict_ignore().execute()
 	except Exception as e:
 		print(str(e))
 
@@ -176,11 +176,6 @@ def default_values():
 
 	try:
 		Services.insert_many(data_source).on_conflict_ignore().execute()
-	except Exception as e:
-		print(str(e))
-
-	try:
-		Groups.insert(name='All', description='All servers are included in this group by default').on_conflict_ignore().execute()
 	except Exception as e:
 		print(str(e))
 
@@ -687,6 +682,17 @@ def update_db_v_6_0(**kwargs):
 			print('Updating... DB has been updated to version 6.0.0.0')
 
 
+def update_db_v_6_0_1(**kwargs):
+	query = Groups.update(name='Default').where(Groups.group_id == '1')
+	try:
+		query.execute()
+	except Exception as e:
+		print("An error occurred:", e)
+	else:
+		if kwargs.get('silent') != 1:
+			print("Updating... DB has been updated to version 6.0.0.0-1")
+
+
 def update_ver():
 	query = Version.update(version='6.0.0.0')
 	try:
@@ -713,6 +719,7 @@ def update_all():
 	update_db_v_5_4_3()
 	update_db_v_5_4_3_1()
 	update_db_v_6_0()
+	update_db_v_6_0_1()
 	update_ver()
 
 
@@ -734,6 +741,7 @@ def update_all_silent():
 	update_db_v_5_4_3(silent=1)
 	update_db_v_5_4_3_1(silent=1)
 	update_db_v_6_0(silent=1)
+	update_db_v_6_0_1(silent=1)
 	update_ver()
 
 

@@ -73,7 +73,7 @@
 .add .fa-clone, .plus .fa-plus, .plus-after .fa-plus, .minus-after .fa-minus {
 	color: var(--green-color);
 }
-.plus-after > .fa-plus, .minus-after > .fa-minus {
+.plus-after > .fa-plus, .minus-after > .fa-minus, .minus > .fa-minus, .plus > .fa-plus {
 	color: var(--blue-color);
 }
 .add-proxy::before {
