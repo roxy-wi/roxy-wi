@@ -1294,7 +1294,7 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 	elif service == 'internal':
 		user_group = get_user_group()
 
-		if user_group != '' and user_group != 'All':
+		if user_group != '' and user_group != 'Default':
 			user_grep = "|grep 'group: " + user_group + "'"
 		else:
 			user_grep = ''
