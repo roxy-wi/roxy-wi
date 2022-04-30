@@ -2,7 +2,11 @@
     #oops_div {
         position: absolute;
         right: 0;
-        top: 10px;
+    {% if page == 'servers.py' or page == 'users.py' %}
+    margin-top: 50px;
+    {% else %}
+        bottom: 50px;
+    {% endif %}
     }
 </style>
 <center>
