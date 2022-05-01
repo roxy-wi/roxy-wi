@@ -33,7 +33,7 @@
     <tbody>
     {% for h in history %}
     <tr>
-        <td>{{h.service[0].upper()}}{{h.service[1:]}}</td>
+        <td>{% if h.service is not none %} {{h.service[0].upper()}}{{h.service[1:]}}{% endif %}</td>
         <td>
             {% for u in users %}
             {% if u.user_id == h.user_id %}
