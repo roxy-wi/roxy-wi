@@ -1,5 +1,5 @@
 {% from 'include/input_macros.html' import input, select %}
-{% if user_status == 0 or user_plan == 'user' %}
+{% if user_status == 0 %}
 	{% include 'include/no_sub.html' %}
 {% else %}
 {% for s in services %}

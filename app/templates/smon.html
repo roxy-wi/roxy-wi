@@ -5,7 +5,7 @@
 <script src="/inc/users.js"></script>
 <script src="/inc/fontawesome.min.js"></script>
 <script src="/inc/jquery.timeago.js" type="text/javascript"></script>
-{% if user_status == 0 or user_plan == 'user' %}
+{% if user_status == 0 %}
 	{% include 'include/no_sub.html' %}
 {% elif smon_error != '' %}
 <div style="text-align: center;">

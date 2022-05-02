@@ -25,7 +25,7 @@
 	padding-top: 5px !important;
 }
 </style>
-{% if user_status == 0 or user_plan == 'user' %}
+{% if user_status == 0 %}
 	{% include 'include/no_sub.html' %}
 {% else %}
 {% if history %}
