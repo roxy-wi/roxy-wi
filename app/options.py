@@ -4192,6 +4192,23 @@ if act == 'check_service':
                         print('down')
                 except Exception:
                     print('down')
+    if '4' in user_services:
+        if service == 'apache':
+            import socket
+            from contextlib import closing
+
+            apache_stats_port = sql.get_setting('apache_stats_port')
+
+            with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+                sock.settimeout(5)
+
+                try:
+                    if sock.connect_ex((serv, apache_stats_port)) == 0:
+                        print('up')
+                    else:
+                        print('down')
+                except Exception as e:
+                    print('down' + str(e))
 
 if form.getvalue('show_sub_ovw'):
     from jinja2 import Environment, FileSystemLoader

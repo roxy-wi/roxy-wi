@@ -187,6 +187,12 @@ for s in servers:
 
     servers_with_status1.append(servers_with_status)
 
+try:
+    user_status, user_plan = funct.return_user_status()
+except Exception as e:
+    user_status, user_plan = 0, 0
+    funct.logging('localhost', 'Cannot get a user plan: ' + str(e), haproxywi=1)
+
 template = template.render(h2=1,
                            autorefresh=autorefresh,
                            title=title,
@@ -199,5 +205,7 @@ template = template.render(h2=1,
 						   services=services,
                            user_services=user_services,
                            service_settings=service_settings,
+                           user_status=user_status,
+                           user_plan=user_plan,
 						   token=token)
 print(template)

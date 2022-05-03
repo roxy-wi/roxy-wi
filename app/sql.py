@@ -279,7 +279,7 @@ def update_hapwi_server(server_id, alert, metrics, active, service_name):
 			update_hapwi = Server.update(keepalived_alert=alert, keepalived_active=active).where(
 				Server.server_id == server_id)
 		elif service_name == 'apache':
-			update_hapwi = Server.update(apache_alert=alert).where(
+			update_hapwi = Server.update(apache_alert=alert, apache_active=active).where(
 				Server.server_id == server_id)
 		else:
 			update_hapwi = Server.update(alert=alert, metrics=metrics, active=active).where(
@@ -1276,7 +1276,7 @@ def select_nginx_metrics(serv, **kwargs):
 		elif kwargs.get('time_range') == '180':
 			date_from = "and date > now() - INTERVAL 180 minute group by `date` div 200"
 		elif kwargs.get('time_range') == '360':
-			date_from = "and date > now() - INTERVAL 360 minute group by `date` div 400"
+			date_from = "and date > now() - INTERVAL 360 minute group by `date` div 300"
 		elif kwargs.get('time_range') == '720':
 			date_from = "and date > now() - INTERVAL 720 minute group by `date` div 500"
 		else:
@@ -1805,7 +1805,8 @@ def get_setting(param, **kwargs):
 					param == 'syslog_server_enable' or param == 'smon_check_interval' or
 					param == 'checker_check_interval' or param == 'port_scan_interval' or
 					param == 'smon_keep_history_range' or param == 'checker_keep_history_range' or
-					param == 'portscanner_keep_history_range' or param == 'checker_maxconn_threshold'
+					param == 'portscanner_keep_history_range' or param == 'checker_maxconn_threshold' or
+					param == 'apache_stats_port'
 				):
 					return int(setting.value)
 				else:
@@ -1936,6 +1937,16 @@ def select_keep_alive():
 
 def select_nginx_keep_alive():
 	query = Server.select(Server.ip, Server.groups).where(Server.nginx_active == 1)
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
+
+
+def select_apache_keep_alive():
+	query = Server.select(Server.ip, Server.groups).where(Server.apache_active == 1)
 	try:
 		query_res = query.execute()
 	except Exception as e:

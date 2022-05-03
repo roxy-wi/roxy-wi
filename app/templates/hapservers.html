@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block content %}
+{% block content %}	
 {% from 'include/input_macros.html' import input, checkbox, select, copy_to_clipboard %}
 <script src="/inc/overview.js"></script>
 <link href="/inc/chart.min.css" rel="stylesheet">
@@ -20,6 +20,9 @@
 		var host = "{{s[2]}}"
 		host = host.replace(/\./g, '\\.');
 		hostnamea.push(host)
+		var ip_for_check = "{{s.2}}";
+		ip_for_check = ip_for_check.replace(/\./g, '\\.');
+		setInterval(check_service_status, 11000, {{s.0}}, '{{s.2}}', '{{service}}');
 	{% endfor %}
 	$( function() {
 		$( ".sortable" ).sortable({
@@ -39,10 +42,10 @@
 			}
 		});
 		{% for s in services %}
-			{% if 'is not installed' in s.1 or s.1 == '' %}
+			{% if 'is not installed' in s.1 or s.1 == '' or user_status == 0 %}
 				{% if s.0 == 'roxy-wi-checker' %}
-					$(':regex(id, alert)').checkboxradio('disable');
-				{% elif s.0 == 'rpxy-wi-keep_alive' %}
+					$(':regex(id, alert-)').checkboxradio('disable');
+				{% elif s.0 == 'roxy-wi-keep_alive' or s.0 == 'roxy-wi-keep-alive' %}
 					$(':regex(id, active-)').checkboxradio('disable');
 				{% elif s.0 == 'roxy-wi-metrics' %}
 					$(':regex(id, metrics-)').checkboxradio('disable');
@@ -214,13 +217,13 @@
 						<br />
 						{{s.5.0.2}}
 					{% else %}
-						Cannot get information about HAProxy
-					{% endif %}
+						Cannot get information about HAProxy 
+					{% endif %}				 
 				{% endif %}
 				<span title="Date of last configuration edit">
 					Last edit:
 					<span id="edit_date_{{s.2}}"></span>
-				</span>
+				</span>			
 				<br />
 				IP: {{ copy_to_clipboard(value=s.2, style='font-weight: bold') }}
 				{% if s.7.0.0 != None %}
@@ -253,7 +256,7 @@
 						{{ checkbox(id, title='Enable collecting metrics', value='1', desc='Metrics') }}
 					{% endif %}
 				{% endif %}
-				{% if role <= 2 and service != 'apache' %}
+				{% if role <= 2 %}
 					{% set id = 'active-' + s.8.0.0|string() %}
 					{% if is_auto_start_enabled == 1 %}
 						{{ checkbox(id, title='Auto Start is enabled', value='1', desc='Auto Start', checked='checked') }}

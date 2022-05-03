@@ -42,10 +42,10 @@
 	</td>
 	<td class="padding10 first-collumn">
 		{% if service.6|int() == 0 %}
-			<span class="serverNone server-status" title="Keepalived is not installed" style="margin-left: 4px !important;"></span>
+			<span class="serverNone server-status" title="Keepalived is not installed" style="margin-left: 4px !important;"></span>		
 		{% else %}
 			{% if service.7|int() >= 1 %}
-				<span class="serverUp server-status" title="running {{service.7 }} processes" style="margin-left: 4px !important;"></span>
+				<span class="serverUp server-status" title="running {{service.7 }} processes" style="margin-left: 4px !important;"></span> 		
 			{% else %}
 				<span class="serverDown server-status" title="Keepalived is down" style="margin-left: 4px !important;"></span>
 			{% endif %}
@@ -53,7 +53,7 @@
 	</td>
 	<td class="third-collumn-wi">
 		{% if service.5.0|length() == 0 %}
-			<span class="serverNone server-status" title="WAF is not installed" style="margin-left: 4px !important;"></span>
+			<span class="serverNone server-status" title="WAF is not installed" style="margin-left: 4px !important;"></span>		
 		{% elif service.5.0 != '' and service.4|int() == 0 %}
 			<span class="serverDown server-status" title="WAF is down" style="margin-left: 4px !important;"></span>
 		{% elif service.5.0 != '' and service.4|int() >= 1 %}
@@ -61,4 +61,15 @@
 		{% endif %}
 	</td>
 	<td></td>
+<script>
+	{% if service.2|int() >= 1 %}
+	setInterval(check_service_status, 11000, '{{service.10}}', '{{service.1}}', 'haproxy');
+	{% endif %}
+	{% if service.8|int() >= 1 %}
+	setInterval(check_service_status, 12000, '{{service.10}}', '{{service.1}}', 'nginx');
+	{% endif %}
+	{% if service.11|int() >= 1 %}
+	setInterval(check_service_status, 13000, '{{service.10}}', '{{service.1}}', 'apache');
+	{% endif %}
+</script>
 {% endfor %}

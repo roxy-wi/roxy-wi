@@ -1996,3 +1996,14 @@ def return_user_status():
 	user_plan = sql.select_user_plan()
 
 	return user_status, user_plan
+
+
+def get_correct_apache_service_name(server_ip):
+	import sql
+	server_id = sql.select_server_id_by_ip(server_ip)
+	os_info = sql.select_os_info(server_id)
+
+	if "CentOS" in os_info or "Redhat" in os_info:
+		return 'httpd'
+	else:
+		return 'apache2'
