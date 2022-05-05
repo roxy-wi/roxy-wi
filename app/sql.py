@@ -3146,6 +3146,15 @@ def select_services():
 		return query_res
 
 
+def select_service_name_by_id(service_id):
+	try:
+		service = Services.get(Services.service_id == service_id).service
+	except Exception as e:
+		return out_error(e)
+	else:
+		return service
+
+
 def insert_user_name(user_name):
 	try:
 		UserName.insert(UserName=user_name).execute()
@@ -3211,3 +3220,38 @@ def select_user_all():
 		return False
 	else:
 		return query_res
+
+
+def insert_new_git(server_id, service_id, repo, branch, period, cred, description):
+	try:
+		GitSetting.insert(server_id=server_id, service_id=service_id, repo=repo, branch=branch, period=period, cred_id=cred,
+					  description=description).execute()
+	except Exception as e:
+		out_error(e)
+		return False
+	else:
+		return True
+
+def select_gits(**kwargs):
+	if kwargs.get("server_id") is not None and kwargs.get("service_id") is not None:
+		query = GitSetting.select().where((GitSetting.server_id == kwargs.get("server_id")) & (GitSetting.service_id == kwargs.get("service_id")))
+	else:
+		query = GitSetting.select().order_by(GitSetting.id)
+
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
+
+
+def delete_git(git_id):
+	query = GitSetting.delete().where(GitSetting.id == git_id)
+	try:
+		query.execute()
+	except Exception as e:
+		out_error(e)
+		return False
+	else:
+		return True

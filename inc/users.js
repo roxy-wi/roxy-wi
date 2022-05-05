@@ -1,6 +1,7 @@
 var awesome = "/inc/fontawesome.min.js"
 
 $( function() {
+	$( "#backup_tabs" ).tabs();
 	$( "#interface" ).autocomplete({
 		source: function( request, response ) {
 			$.ajax( {
@@ -585,6 +586,41 @@ $( function() {
 			}
 		}
 	});
+	$('#add-git-button').click(function() {
+		addGitDialog.dialog('open');
+	});
+	var addGitDialog = $( "#git-add-table" ).dialog({
+		autoOpen: false,
+		resizable: false,
+		height: "auto",
+		width: 600,
+		modal: true,
+		title: "Create a new git job",
+		show: {
+			effect: "fade",
+			duration: 200
+		},
+		hide: {
+			effect: "fade",
+			duration: 200
+		},
+		buttons: {
+			"Add": function () {
+				addGit(this);
+			},
+			Cancel: function () {
+				$(this).dialog("close");
+				clearTips();
+			}
+		}
+	});
+	$('#git-init').click(function() {
+		if ($('#git-init').is(':checked')) {
+			$('.git-init-params').show();
+		} else {
+			$('.git-init-params').hide();
+		}
+	});
 	$( "#ajax-users input" ).change(function() {
 		var id = $(this).attr('id').split('-');
 		updateUser(id[1])
@@ -994,6 +1030,14 @@ function addServer(dialog_id) {
 					$( "input[type=checkbox]" ).checkboxradio();
 					$( ".controlgroup" ).controlgroup();
 					$( "select" ).selectmenu();
+					var getId = new RegExp('server-[0-9]+');
+					var id = data.match(getId) + '';
+					id = id.split('-').pop();
+					$('select:regex(id, git-server)').append('<option value=' + id + '>' + $('#hostname-'+id).val() + '</option>').selectmenu("refresh");
+					$('select:regex(id, backup-server)').append('<option value=' + $('#ip-'+id).text() + '>' + $('#hostname-'+id).val() + '</option>').selectmenu("refresh");
+					$('select:regex(id, haproxy_exp_addserv)').append('<option value=' + $('#ip-'+id).text() + '>' + $('#hostname-'+id).val() + '</option>').selectmenu("refresh");
+					$('select:regex(id, nginx_exp_addserv)').append('<option value=' + $('#ip-'+id).text() + '>' + $('#hostname-'+id).val() + '</option>').selectmenu("refresh");
+					$('select:regex(id, node_exp_addserv)').append('<option value=' + $('#ip-'+id).text() + '>' + $('#hostname-'+id).val() + '</option>').selectmenu("refresh");
 				}
 			}
 		} );
@@ -1169,6 +1213,54 @@ function addBackup(dialog_id) {
 		} );
 	}
 }
+function addGit(dialog_id) {
+	var valid = true;
+	toastr.clear();
+	allFields = $( [] ).add( $('#git-server') ).add( $('#git-service') ).add( $('#git-time')).add( $('#git-credentials') ).add( $('#git-branch') )
+	allFields.removeClass( "ui-state-error" );
+	valid = valid && checkLength( $('#git-server'), "Server ", 1 );
+	valid = valid && checkLength( $('#git-service'), "Service", 1 );
+	valid = valid && checkLength( $('#git-credentials'), "Credentials", 1 );
+	valid = valid && checkLength( $('#git-branch'), "Branch name", 1 );
+	var git_init = 0;
+	if ($('#git-init').is(':checked')) {
+			git_init = '1';
+		}
+	if (valid) {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				git_backup: '1',
+				server: $('#git-server').val(),
+				git_service: $('#git-service').val(),
+				git_init: git_init,
+				git_repo: $('#git-repo').val(),
+				git_branch: $('#git-branch').val(),
+				time: $('#git-time').val(),
+				cred: $('#git-credentials').val(),
+				description: $('#git-description').val(),
+				git_deljob: 0,
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+				data = data.replace(/\s+/g,' ');
+				if (data.indexOf('error:') != '-1') {
+					toastr.error(data);
+				} else if (data.indexOf('success: ') != '-1') {
+					common_ajax_action_after_success(dialog_id, 'newgit', 'ajax-git-table', data);
+					$( "select" ).selectmenu();
+				} else if (data.indexOf('info: ') != '-1') {
+					toastr.clear();
+					toastr.info(data);
+				} else if (data.indexOf('warning: ') != '-1') {
+					toastr.clear();
+					toastr.warning(data);
+				}
+			}
+		} );
+	}
+}
 function updateSettings(param, val) {
 	toastr.clear();
 	$.ajax( {
@@ -1322,11 +1414,29 @@ function confirmDeleteBackup(id) {
       height: "auto",
       width: 400,
       modal: true,
-	  title: "Are you sure you want to delete job for" +$('#backup-server-'+id).val() + "?",
+	  title: "Are you sure you want to delete job for " +$('#backup-server-'+id).val() + "?",
       buttons: {
         "Delete": function() {
 			$( this ).dialog( "close" );
 			removeBackup(id);
+        },
+        Cancel: function() {
+			$( this ).dialog( "close" );
+        }
+      }
+    });
+}
+function confirmDeleteGit(id) {
+	 $( "#dialog-confirm" ).dialog({
+      resizable: false,
+      height: "auto",
+      width: 400,
+      modal: true,
+	  title: "Are you sure you want to delete job for " +$('#git-server-'+id).text() + "?",
+      buttons: {
+        "Delete": function() {
+			$( this ).dialog( "close" );
+			removeGit(id);
         },
         Cancel: function() {
 			$( this ).dialog( "close" );
@@ -1548,6 +1658,33 @@ function removeBackup(id) {
 			data = data.replace(/\s+/g,' ');
 			if(data.indexOf('Ok') != '-1') {
 				$("#backup-table-"+id).remove();
+			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
+				toastr.error(data);
+			}
+		}
+	} );
+}
+function removeGit(id) {
+	$("#git-table-"+id).css("background-color", "#f2dede");
+	$.ajax( {
+		url: "options.py",
+		data: {
+			git_backup: id,
+			git_deljob: 1,
+			git_init: 0,
+			repo: 0,
+			branch: 0,
+			time: 0,
+			cred: $('#git-credentials-id-'+id).text(),
+			server: $('#git-server-id-'+id).text(),
+			git_service: $('#git-service-id-'+id).text(),
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if(data.indexOf('Ok') != '-1') {
+				$("#git-table-"+id).remove();
 			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			}

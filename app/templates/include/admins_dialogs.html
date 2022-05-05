@@ -236,10 +236,10 @@
             </td>
             <td>
                 <select id="backup-credentials" required>
-                    <option disabled selected>Choose credentials</option>
+                    <option disabled selected>Select credentials</option>
                     {% for ssh in sshs %}
-                        {% if ssh.2 == 1 %}
-                            <option value="{{ssh.0}}">{{ssh.1}}</option>
+                         {% if ssh.enable == 1 %}
+                            <option value="{{ssh.id}}">{{ssh.name}}</option>
                         {% endif %}
                     {% endfor %}
                 </select>
@@ -251,6 +251,99 @@
             </td>
             <td>
                 {{ input('backup-description', size='30') }}
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="git-add-table" title="Add a new git job " style="display: none;">
+    <table class="overview">
+        {% include 'include/tr_validate_tips.html' %}
+        <tr>
+			<td class="padding20" style="width: 40%;">
+				Server
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				<select autofocus required name="git-server" id="git-server">
+					<option disabled>------</option>
+						{% for s in servers %}
+							<option value="{{ s.0 }}">{{ s.1 }}</option>
+						{% endfor %}
+				</select>
+			</td>
+		</tr>
+        <tr>
+			<td class="padding20" style="width: 40%;">
+				Service
+				<span class="need-field">*</span>
+			</td>
+			<td>
+                <select id="git-service" required>
+                    <option disabled selected>------</option>
+                    {% for s in services %}
+                        <option value="{{s.service_id}}">{{s.service}}</option>
+                    {% endfor %}
+                </select>
+			</td>
+		</tr>
+        <tr>
+			<td class="padding20">
+				Period
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				{% set values = {'hourly':'hourly','daily':'daily','weekly':'weekly', 'monthly':'monthly'} %}
+				{{ select('git-time', values=values, selected='hourly', required='required', class='force_close') }}
+			</td>
+		</tr>
+        <tr>
+           <td class="padding20">
+               Init a new repository
+           </td>
+            <td>
+                {{ checkbox('git-init')}}
+            </td>
+        </tr>
+        <tr style="display: none" class="git-init-params">
+			<td class="padding20">
+				Repository
+                <span class="need-field">*</span>
+			</td>
+			<td>
+				{{ input('git-repo', size='30', placeholder="git@github.com:user/haproxy_configs.git", title="Use only connect via SSH") }}
+			</td>
+		</tr>
+        <tr>
+			<td class="padding20">
+				Branch name
+                <span class="need-field">*</span>
+			</td>
+			<td>
+				{{ input('git-branch', size='30', placeholder="main") }}
+			</td>
+		</tr>
+        <tr>
+            <td class="padding20">
+                Credentials for a git user
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                <select id="git-credentials" required>
+                    <option disabled selected>------</option>
+                    {% for ssh in sshs %}
+                        {% if ssh.enable == 1 %}
+                            <option value="{{ssh.id}}">{{ssh.name}}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                Description
+            </td>
+            <td>
+                {{ input('git-description', size='30') }}
             </td>
         </tr>
     </table>

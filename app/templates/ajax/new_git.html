@@ -1,0 +1,62 @@
+{% for b in gits %}
+    {% for server in servers %}
+    {% if server.0|string() == b.server_id|string() %}
+	<tr {% if new_add %} class="newgit"{% endif %} id="git-table-{{b.id}}">
+		<td class="padding10 first-collumn">
+            <span id="git-server-id-{{b.id}}" style="display: none">{{ server.0 }}</span>
+			<span id="git-server-{{b.id}}">{{ server.1 }}</span>
+		</td>
+		<td style="width: 10%">
+            {% for s in services %}
+            {% if s.service_id == b.service_id %}
+            <span id="git-service-id-{{b.id}}" style="display: none">{{ s.service_id }}</span>
+            <span id="git-service-{{b.id}}">{{ s.service }}</span>
+            {% endif %}
+            {% endfor %}
+		</td>
+		<td style="width: 10%">
+			{% set values = {'hourly':'hourly','daily':'daily','weekly':'weekly', 'monthly':'monthly'} %}
+			{% for v, des in values|dictsort(false, 'value') %}
+				{% if v == b.period %}
+                    <span id="git-time-{{b.id}}">{{ des }}</span>
+				{% endif %}
+			{% endfor %}
+		</td>
+        <td style="width: 25%">
+            <span id="git-repo-{{b.id}}">
+                {% if b.repo %}
+                {{ b.repo }}
+                {% endif %}
+            </span>
+        </td>
+        <td style="width: 10%">
+            <span id="git-branch-{{b.id}}">
+                {% if b.branch %}
+                {{ b.branch }}
+                {% endif %}
+            </span>
+        </td>
+		<td style="width: 10%">
+            {% for ssh in sshs %}
+                {% if ssh.enable == 1 %}
+                    {% if ssh.id == b.cred_id %}
+                        <span id="git-credentials-id-{{b.id}}" style="display: none">{{ ssh.id }}</span>
+                        <span id="git-credentials-{{b.id}}">{{ ssh.name }}</span>
+                    {% endif %}
+                    {% endif %}
+            {% endfor %}
+		</td>
+		<td style="width: 100%">
+            <span type="text" id="git-description-{{b.id}}">
+			{% if b.description %}
+				{{b.description}}
+			{% endif %}
+            </span>
+		</td>
+		<td>
+			<a class="delete" onclick="confirmDeleteGit({{b.id}})" title="Delete git {{b.server}}" style="cursor: pointer;"></a>
+		</td> 
+	</tr>
+    {% endif %}
+    {% endfor %}
+{% endfor %}

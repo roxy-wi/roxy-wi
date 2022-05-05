@@ -13,7 +13,7 @@ if mysql_enable == '1':
     conn = MySQLDatabase(mysql_db, user=mysql_user, password=mysql_password, host=mysql_host, port=int(mysql_port))
 else:
     db = "/var/www/haproxy-wi/app/roxy-wi.db"
-    conn = SqliteDatabase(db, pragmas={'timeout': 1000})
+    conn = SqliteDatabase(db, pragmas={'timeout': 1000, 'foreign_keys': 1})
 
 
 class BaseModel(Model):
@@ -495,10 +495,25 @@ class UserName(BaseModel):
         primary_key = False
 
 
+class GitSetting(BaseModel):
+    id = AutoField()
+    server_id = ForeignKeyField(Server, on_delete='Cascade')
+    service_id = IntegerField()
+    period = CharField()
+    repo = CharField(null=True)
+    branch = CharField(null=True)
+    cred_id = IntegerField()
+    description = CharField(null=True)
+
+    class Meta:
+        table_name = 'git_setting'
+        constraints = [SQL('UNIQUE (server_id, service_id)')]
+
+
 def create_tables():
     with conn:
         conn.create_tables([User, Server, Role, Telegram, Slack, UUID, Token, ApiToken, Groups, UserGroups, ConfigVersion,
                             Setting, Cred, Backup, Metrics, WafMetrics, Version, Option, SavedServer, Waf, ActionHistory,
                             PortScannerSettings, PortScannerPorts, PortScannerHistory, ProvidersCreds, ServiceSetting,
                             ProvisionedServers, MetricsHttpStatus, SMON, WafRules, Alerts, GeoipCodes, NginxMetrics,
-                            SystemInfo, Services, UserName])
+                            SystemInfo, Services, UserName, GitSetting])

@@ -20,6 +20,7 @@ try:
 	ldap_enable = sql.get_setting('ldap_enable')
 	grafana, stderr = funct.subprocess_execute("systemctl is-active grafana-server")
 	services = sql.select_services()
+	gits = sql.select_gits()
 except Exception:
 	pass
 
@@ -48,5 +49,6 @@ template = template.render(title="Admin area: Manage users",
 							ldap_enable=ldap_enable,
 							user_status=user_status,
 							user_plan=user_plan,
+							gits=gits,
 						   	services=services)
 print(template)

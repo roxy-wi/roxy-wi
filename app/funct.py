@@ -948,13 +948,7 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 			if haproxy_enterprise == '1':
 				service_name = "hapee-2.0-lb"
 		if service == 'apache':
-			server_id = sql.select_server_id_by_ip(server_ip)
-			os_info = sql.select_os_info(server_id)
-
-			if "CentOS" in os_info or "Redhat" in os_info:
-				service_name = 'httpd'
-			else:
-				service_name = 'apache2'
+			get_correct_apache_service_name(server_ip)
 
 		reload_command = " && sudo systemctl reload " + service_name
 		restart_command = " && sudo systemctl restart " + service_name
@@ -1998,9 +1992,12 @@ def return_user_status():
 	return user_status, user_plan
 
 
-def get_correct_apache_service_name(server_ip):
+def get_correct_apache_service_name(server_ip=0, server_id=0):
 	import sql
-	server_id = sql.select_server_id_by_ip(server_ip)
+
+	if server_id == 0:
+		server_id = sql.select_server_id_by_ip(server_ip)
+
 	os_info = sql.select_os_info(server_id)
 
 	if "CentOS" in os_info or "Redhat" in os_info:

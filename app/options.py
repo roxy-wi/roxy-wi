@@ -478,13 +478,8 @@ if form.getvalue('action_apache') is not None and serv is not None:
         container_name = sql.get_setting('apache_container_name')
         commands = ["sudo docker %s %s" % (action, container_name)]
     else:
-        os_info = sql.select_os_info(server_id)
+        service_apache_name = funct.get_correct_apache_service_name(0, server_id)
 
-        if "CentOS" in os_info or "Redhat" in os_info:
-            service_apache_name = 'httpd'
-        else:
-            service_apache_name = 'apache2'
-    
         commands = ["sudo systemctl %s %s" % (action, service_apache_name)]
     funct.ssh_command(serv, commands)
     funct.logging(serv, 'Service has been ' + action + 'ed', haproxywi=1, login=1, keep_history=1, service='apache')
@@ -1667,6 +1662,79 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
             sql.update_backup(serv, rserver, rpath, backup_type, time, cred, description, update)
             print('Ok')
             funct.logging('backup ', ' a backup job for server ' + serv + ' has been updated', haproxywi=1, login=1)
+
+if form.getvalue('git_backup'):
+    server_id = form.getvalue('server')
+    service_id = form.getvalue('git_service')
+    git_init = form.getvalue('git_init')
+    repo = form.getvalue('git_repo')
+    branch = form.getvalue('git_branch')
+    period = form.getvalue('time')
+    cred = form.getvalue('cred')
+    deljob = form.getvalue('git_deljob')
+    description = form.getvalue('description')
+    servers = sql.get_dick_permit()
+    proxy = sql.get_setting('proxy')
+    services = sql.select_services()
+    server_ip = sql.select_server_ip_by_id(server_id)
+    service_name = sql.select_service_name_by_id(service_id).lower()
+    service_config_dir = sql.get_setting(service_name + '_dir')
+    script = 'git_backup.sh'
+    ssh_port = 22
+    ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path('localhost',
+                                                                                                id=int(cred))
+
+    os.system("cp scripts/%s ." % script)
+
+    if proxy is not None and proxy != '' and proxy != 'None':
+        proxy_serv = proxy
+    else:
+        proxy_serv = ''
+
+    servers = sql.select_servers(server=server_ip)
+    for server in servers:
+        ssh_port = str(server[10])
+
+    if repo is None or git_init == '0':
+        repo = ''
+    if branch is None:
+        branch = 'main'
+
+    commands = ["chmod +x " + script + " &&  ./" + script + " HOST=" + server_ip + " DELJOB=" + deljob +
+                    " SERVICE=" + service_name + " INIT=" + git_init + " SSH_PORT=" + ssh_port + " PERIOD=" + period +
+                    " REPO=" + repo +  " BRANCH=" + branch + " CONFIG_DIR=" + service_config_dir +
+                    " PROXY=" + proxy_serv + " USER=" + str(ssh_user_name) + " KEY=" + str(ssh_key_name)]
+
+    output, error = funct.subprocess_execute(commands[0])
+
+    for l in output:
+        if "Traceback" in l or "FAILED" in l:
+            try:
+                print('error: ' + l)
+                break
+            except Exception:
+                print('error: ' + output)
+                break
+    else:
+        if deljob == '0':
+            if sql.insert_new_git(server_id=server_id, service_id=service_id, repo=repo, branch=branch,
+                                          period=period, cred=cred, description=description):
+                from jinja2 import Environment, FileSystemLoader
+
+                gits = sql.select_gits(server_id=server_id, service_id=service_id)
+                sshs = sql.select_ssh()
+
+                env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
+                template = env.get_template('new_git.html')
+                template = template.render(gits=gits, sshs=sshs, servers=servers, services=services, new_add=1)
+                print(template)
+                print('success: Git job has been created')
+                funct.logging(server_ip, ' A new git job has been created', haproxywi=1, login=1,
+                                          keep_history=1, service=service_name)
+        else:
+            if sql.delete_git(form.getvalue('git_backup')):
+                print('Ok')
+        os.system("rm -f %s" % script)
 
 if form.getvalue('install_nginx'):
     funct.install_nginx(form.getvalue('install_nginx'), docker=form.getvalue('docker'))

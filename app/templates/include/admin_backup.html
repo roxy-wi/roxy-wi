@@ -1,6 +1,41 @@
-	{% if user_status == 0 or user_plan == 'user' %}
-		{% include 'include/no_sub.html' %}
-	{% else %}
+<div id="backup_tabs">
+	<ul>
+		<li><a href="#git_tab" title="Admin area: Upload to Git - Roxy-WI">Git</a></li>
+		<li><a href="#backup_tab" title="Admin area: Manage backup - Roxy-WI">Backup</a></li>
+	</ul>
+
+	<div id="git_tab">
+		{% if user_status == 0 or user_plan == 'user' %}
+			{% include 'include/no_sub.html' %}
+		{% else %}
+		<table class="overview" id="ajax-git-table">
+			<thead>
+				<tr class="overviewHead">
+					<th class="padding10 first-collumn">Servers</th>
+					<th>Service</th>
+					<th>Period</th>
+					<th>Repo</th>
+					<th>Branch</th>
+					<td>Credentials</td>
+					<th>Description</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				{% include 'ajax/new_git.html' %}
+			</tbody>
+		</table>
+		<br /><span class="add-button" title="Add a new git job" id="add-git-button">+ Add git job</span>
+		<br /><br />
+		<div class="add-note alert addName alert-info" style="width: inherit; margin-right: 15px;">
+			You can read the description of all parameters <a href="https://roxy-wi.org/description.py?description=git" title="Git job description" target="_blank">here</a>
+		</div>
+		{% endif %}
+	</div>
+	<div id="backup_tab">
+		{% if user_status == 0 or user_plan == 'user' %}
+			{% include 'include/no_sub.html' %}
+		{% else %}
 		<table class="overview" id="ajax-backup-table">
 			<tr class="overviewHead">
 				<td class="padding10 first-collumn">Servers</td>
@@ -73,4 +108,6 @@
 		<div class="add-note alert addName alert-info" style="width: inherit; margin-right: 15px;">
 			You can read the description of all parameters <a href="https://roxy-wi.org/description.py?description=backup" title="Backup description" target="_blank">here</a>
 		</div>
-	{% endif %}
+		{% endif %}
+	</div>
+</div>
