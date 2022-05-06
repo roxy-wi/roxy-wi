@@ -4,6 +4,16 @@
   gather_facts: no
   tasks:
 
+    - name: Check if .git exists
+      stat:
+        path: "{{ CONFIG_DIR }}/.git"
+      register: register_name
+
+    - name: Fail if has been installed
+      fail:
+        msg="Git configuration not found. Initialize git at the beginning"
+      when: not register_name.stat.exists and INIT == '0' and DELJOB == '0'
+
     - name: Install git
       package:
         name: git

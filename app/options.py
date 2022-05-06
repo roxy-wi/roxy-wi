@@ -1681,8 +1681,7 @@ if form.getvalue('git_backup'):
     service_config_dir = sql.get_setting(service_name + '_dir')
     script = 'git_backup.sh'
     ssh_port = 22
-    ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path('localhost',
-                                                                                                id=int(cred))
+    ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path('localhost', id=int(cred))
 
     os.system("cp scripts/%s ." % script)
 
@@ -1697,7 +1696,7 @@ if form.getvalue('git_backup'):
 
     if repo is None or git_init == '0':
         repo = ''
-    if branch is None:
+    if branch is None or branch == '0':
         branch = 'main'
 
     commands = ["chmod +x " + script + " &&  ./" + script + " HOST=" + server_ip + " DELJOB=" + deljob +
@@ -2246,6 +2245,12 @@ if form.getvalue('newserver') is not None:
         except Exception as e:
             funct.logging('Cannot get information from ' + hostname, str(e), haproxywi=1, login=1)
 
+        try:
+            user_status, user_plan = funct.return_user_status()
+        except Exception as e:
+            user_status, user_plan = 0, 0
+            funct.logging('localhost', 'Cannot get a user plan: ' + str(e), haproxywi=1)
+
         from jinja2 import Environment, FileSystemLoader
 
         env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
@@ -2256,6 +2261,8 @@ if form.getvalue('newserver') is not None:
                                    masters=sql.select_servers(get_master_servers=1),
                                    sshs=sql.select_ssh(group=group),
                                    page=page,
+                                   user_status=user_status,
+                                   user_plan=user_plan,
                                    adding=1)
         print(template)
         funct.logging(ip, 'A new server ' + hostname + ' has been created', haproxywi=1, login=1,
