@@ -121,9 +121,8 @@ function showOverviewServer(name, ip, id, service) {
 				getChartDataHapWiRam()
 				getChartDataHapWiCpu()
 			}
-		}
+		}					
 	} );
-
 }
 function ajaxActionServers(action, id) {
 	var bad_ans = 'Bad config, check please';
@@ -144,7 +143,7 @@ function ajaxActionServers(action, id) {
 				} else if (cur_url[0] == "hapservers.py") {
 					location.reload()
 				} else {
-					setTimeout(showOverview(ip, hostnamea), 2000)
+					setTimeout(showOverview(ip, hostnamea), 2000);
 				}
 			}
 		},
@@ -599,4 +598,44 @@ function serverSettingsSave(id, name, service, dialog_id) {
 			}
 		}
 	});
+}
+function check_service_status(id, ip, service) {
+	NProgress.configure({showSpinner: false});
+	$.ajax({
+		url: "options.py",
+		data: {
+			act: 'check_service',
+			service: service,
+			serv: ip,
+			server_id: id,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (cur_url[0] == 'hapservers.py') {
+				if (data.indexOf('up') != '-1') {
+					$('#div-server-' + id).addClass('div-server-head-up');
+					$('#div-server-' + id).removeClass('div-server-head-down');
+				} else if (data.indexOf('down') != '-1') {
+					$('#div-server-' + id).removeClass('div-server-head-up');
+					$('#div-server-' + id).addClass('div-server-head-down');
+				}
+			} else if (cur_url[0] == 'overview.py') {
+				let span_id = $('#' + service + "_" + id);
+				if (data.indexOf('up') != '-1') {
+					span_id.addClass('serverUp');
+					span_id.removeClass('serverDown');
+					if (span_id.attr('title').indexOf('Service is down') != '-1') {
+						span_id.attr('title', 'Service running')
+					}
+				} else if (data.indexOf('down') != '-1') {
+					span_id.addClass('serverDown');
+					span_id.removeClass('serverUp');
+					span_id.attr('title', 'Service is down')
+				}
+			}
+		}
+	});
+	NProgress.configure({showSpinner: true});
 }
