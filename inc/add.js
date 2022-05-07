@@ -1999,7 +1999,7 @@ function changePortCheckFromServerPort() {
 		$($(this)).next().val(iNum);
 	});
 }
-function checkIsServerFiled(select_id, message = 'Choose the server first') {
+function checkIsServerFiled(select_id, message = 'Select a server first') {
 	if ($(select_id).val() == null || $(select_id).val() == '') {
 		toastr.warning(message);
 		return false;

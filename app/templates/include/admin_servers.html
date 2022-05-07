@@ -1,15 +1,5 @@
 {% from 'include/input_macros.html' import input, checkbox, copy_to_clipboard %}
 {% if user_status == 0 or user_plan == 'user' %}
-<script>
-	$( function() {
-		$('select:regex(id, slavefor)').selectmenu("disable");
-		{% if user_status == 0 %}
-			$('#slavefor-th').attr("title", "Actions with the master config will automatically apply on the slave. You are not subscribed. Please subscribe to have access to this feature");
-		{% elif user_plan == 'user' %}
-			$('#slavefor-th').attr("title", "Actions with the master config will automatically apply on the slave. This feature is not available for your plan");
-		{% endif %}
-	});
-</script>
 {% endif %}
 {% if not adding %}
 <table class="overview" id="ajax-servers">
@@ -199,3 +189,14 @@
 	or read HowTo in this <a href="https://roxy-wi.org/howto.py?howto=setup" title="How to setup servers, group and SSH credentials" target="_blank">article</a>
 </div>
 {% endif %}
+<script>
+	$( function() {
+		$('select:regex(id, slavefor)').selectmenu();
+		$('select:regex(id, slavefor)').selectmenu("disable");
+		{% if user_status == 0 %}
+			$('#slavefor-th').attr("title", "Actions with the master config will automatically apply on the slave. You are not subscribed. Please subscribe to have access to this feature");
+		{% elif user_plan == 'user' %}
+			$('#slavefor-th').attr("title", "Actions with the master config will automatically apply on the slave. This feature is not available for your plan");
+		{% endif %}
+	});
+</script>
