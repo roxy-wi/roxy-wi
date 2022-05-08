@@ -74,14 +74,12 @@ services_name = {'roxy-wi-checker': 'Master backends checker service',
                  'roxy-wi-keep_alive': 'Auto start service',
                  'roxy-wi-metrics': 'Master metrics service'}
 for s, v in services_name.items():
-    if s != 'roxy-wi-keep_alive':
-        service_name = s.split('_')[0]
-    else:
-        service_name = s
     if distro.id() == 'ubuntu':
-        cmd = "apt list --installed 2>&1 |grep " + service_name
+        if s == 'roxy-wi-keep_alive':
+            s = 'roxy-wi-keep-alive'
+        cmd = "apt list --installed 2>&1 |grep " + s
     else:
-        cmd = "rpm --query " + service_name + "-* |awk -F\"" + service_name + "\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
+        cmd = "rpm --query " + s + "-* |awk -F\"" + s + "\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
     service_ver, stderr = funct.subprocess_execute(cmd)
     try:
         services.append([s, service_ver[0]])
