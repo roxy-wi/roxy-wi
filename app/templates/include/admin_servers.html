@@ -1,6 +1,4 @@
 {% from 'include/input_macros.html' import input, checkbox, copy_to_clipboard %}
-{% if user_status == 0 or user_plan == 'user' %}
-{% endif %}
 {% if not adding %}
 <table class="overview" id="ajax-servers">
 	<thead>
@@ -189,6 +187,7 @@
 	or read HowTo in this <a href="https://roxy-wi.org/howto.py?howto=setup" title="How to setup servers, group and SSH credentials" target="_blank">article</a>
 </div>
 {% endif %}
+{% if user_status == 0 or user_plan == 'user' %}
 <script>
 	$( function() {
 		$('select:regex(id, slavefor)').selectmenu();
@@ -200,3 +199,4 @@
 		{% endif %}
 	});
 </script>
+{% endif %}
