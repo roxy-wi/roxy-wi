@@ -501,7 +501,7 @@ if form.getvalue('action_service') is not None:
             print('warning: The service is disabled because you are not subscribed. Read <a href="https://roxy-wi.org/pricing.py" title="Roxy-WI pricing" target="_blank">here</a> about subscriptions')
             sys.exit()
     if is_in_docker:
-        cmd = "supervisorctl " + action + " " + serv
+        cmd = "sudo supervisorctl " + action + " " + serv
     output, stderr = funct.subprocess_execute(cmd)
     funct.logging('localhost', ' The service ' + serv + ' has been ' + action + 'ed', haproxywi=1, login=1)
 
