@@ -487,7 +487,7 @@ if form.getvalue('action_apache') is not None and serv is not None:
 
 if form.getvalue('action_service') is not None:
     action = form.getvalue('action_service')
-    is_in_docker = os.environ.get('IN_DOCKER', False)
+    is_in_docker = funct.is_docker()
     if action == 'stop':
         cmd = "sudo systemctl disable %s --now" % serv
     elif action == "start":

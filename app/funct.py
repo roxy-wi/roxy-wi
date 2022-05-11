@@ -1670,6 +1670,7 @@ def get_service_version(server_ip, service_name):
 def get_services_status():
 	import distro
 	services = []
+	is_in_docker = is_docker()
 	services_name = {'roxy-wi-checker': 'Checker backends master service',
 					 'roxy-wi-keep_alive': 'Auto start service',
 					 'roxy-wi-metrics': 'Metrics master service',
@@ -1681,7 +1682,10 @@ def get_services_status():
 					 'fail2ban': 'Fail2ban service',
 					 'rabbitmq-server': 'Message broker service'}
 	for s, v in services_name.items():
-		cmd = "systemctl is-active %s" % s
+		if is_in_docker:
+			cmd = "sudo supervisorctl status " + s + "|awk '{print $2}'"
+		else:
+			cmd = "systemctl is-active %s" % s
 		status, stderr = subprocess_execute(cmd)
 		if s != 'roxy-wi-keep_alive':
 			service_name = s.split('_')[0]
@@ -2007,3 +2011,15 @@ def get_correct_apache_service_name(server_ip=0, server_id=0):
 		return 'httpd'
 	else:
 		return 'apache2'
+
+
+def is_docker():
+	import os, re
+
+	path = "/proc/self/cgroup"
+	if not os.path.isfile(path): return False
+	with open(path) as f:
+		for line in f:
+			if re.match("\d+:[\w=]+:/docker(-[ce]e)?/\w+", line):
+				return True
+		return False
