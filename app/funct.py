@@ -301,8 +301,11 @@ def check_login(**kwargs):
 		return False
 
 
-def get_user_id():
+def get_user_id(**kwargs):
 	import sql
+	if kwargs.get('login'):
+		return sql.get_user_id_by_username(kwargs.get('login'))
+
 	import http.cookies
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_uuid = cookie.get('uuid')
@@ -948,7 +951,8 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 			if haproxy_enterprise == '1':
 				service_name = "hapee-2.0-lb"
 		if service == 'apache':
-			get_correct_apache_service_name(server_ip)
+			service_name = get_correct_apache_service_name(server_ip, 0)
+
 
 		reload_command = " && sudo systemctl reload " + service_name
 		restart_command = " && sudo systemctl restart " + service_name
@@ -1048,7 +1052,7 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 				logging('localhost', str(e), haproxywi=1)
 
 			try:
-				user_id = get_user_id()
+				user_id = get_user_id(login=kwargs.get('login'))
 				sql.insert_config_version(server_id, user_id, service, cfg, config_path, diff)
 			except Exception as e:
 				logging('localhost', str(e), haproxywi=1)
@@ -1958,8 +1962,7 @@ def send_message_to_rabbit(message: str, **kwargs) -> None:
 										   rabbit_port,
 										   rabbit_vhost,
 										   credentials)
-	print(str(parameters))
-	print(str(credentials))
+
 	connection = pika.BlockingConnection(parameters)
 	channel = connection.channel()
 	channel.queue_declare(queue=rabbit_queue)

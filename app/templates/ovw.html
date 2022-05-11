@@ -312,25 +312,27 @@
 		{% set admin_uri = 'users.py' %}
 	{% endif %}
 	<table class="overview-wi">
-		<tr class="overviewHead" style="height: 30px;">
-			<td class="padding10 first-collumn-wi">
-				<a href="{{admin_uri}}#users" title="Manage users" class="logs_link">Login</a>
-			</td>
-			<td class="second-collumn">Groups</td>
-			<td>Role</td>
-			<td>
-				<span class="add-button-wi">
-					<span title="Show all users" id="show-all-users" style="color: #fff">
-						Show all
+		<thead>
+			<tr class="overviewHead" style="height: 30px;">
+				<td class="padding10 first-collumn-wi">
+					<a href="{{admin_uri}}#users" title="Manage users" class="logs_link">Login</a>
+				</td>
+				<td class="second-collumn">Groups</td>
+				<td>Role</td>
+				<td>
+					<span class="add-button-wi">
+						<span title="Show all users" id="show-all-users" style="color: #fff">
+							Show all
+						</span>
 					</span>
-				</span>
-			</td>
-			<td style="padding-right: 10px;">
-				<a onclick="showUsersOverview()" title="Refresh" style="float: right;">
-					<span class="refresh"></span>
-				</a>
-			</td>
-		</tr>
+				</td>
+				<td style="padding-right: 10px;">
+					<a onclick="showUsersOverview()" title="Refresh" style="float: right;">
+						<span class="refresh"></span>
+					</a>
+				</td>
+			</tr>
+		</thead>
 		<tbody id="users-table"></tbody>
 	</table>
 {% endif %}
