@@ -1238,7 +1238,7 @@ function clearTips() {
 function checkLength( o, n, min ) {
 	if ( o.val().length < min ) {
 		o.addClass( "ui-state-error" );
-		updateTips("Filed "+n+" is required");
+		updateTips("Field "+n+" is required");
 		return false;
 	} else {
 		return true;
