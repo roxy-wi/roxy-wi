@@ -43,7 +43,7 @@ elif service == 'nginx':
 		file_format = 'conf'
 		servers = sql.get_dick_permit(nginx=1)
 elif service == 'apache':
-	if funct.check_login(service=2):
+	if funct.check_login(service=4):
 		title = "Working with Apache configuration files"
 		action = "config.py?service=apache"
 		configs_dir = funct.get_config_var('configs', 'apache_save_configs_dir')
