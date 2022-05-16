@@ -46,7 +46,7 @@ def index():
 		'login': 'get temporarily token. Must be JSON body: login, password and group for which getting token. METHOD: POST',
 		'servers':'show info about all servers. METHOD: GET',
 		'servers/status':'show status all HAProxyes. METHOD: GET',
-		'haproxy/<id,hostname,ip>':'show info about the haproxy by id or hostname or ip. METHOD: GET',
+		'haproxy/<id,hostname,ip>':'show info about the HAProxy by id or hostname or ip. METHOD: GET',
 		'haproxy/<id,hostname,ip>/status':'show HAProxy status by id or hostname or ip. METHOD: GET',
 		'haproxy/<id,hostname,ip>/runtime':'exec HAProxy runtime commands by id or hostname or ip. Must be JSON body: "command". METHOD: POST',
 		'haproxy/<id,hostname,ip>/backends':'show backends by id or hostname or ip. METHOD: GET',
@@ -54,13 +54,27 @@ def index():
 		'haproxy/<id,hostname,ip>/action/stop':'stop HAProxy service by id or hostname or ip. METHOD: GET',
 		'haproxy/<id,hostname,ip>/action/restart':'restart HAProxy service by id or hostname or ip. METHOD: GET',
 		'haproxy/<id,hostname,ip>/config':'get HAProxy config from a server by id or hostname or ip. METHOD: GET',
-		'haproxy/<id,hostname,ip>/config':'upload HAProxy config to a server by id or hostname or ip. Body must consist a whole HAProxy config. METHOD: POST',
-		'haproxy/<id,hostname,ip>/log':'show HAProxy logs by id or hostname or ip. May to have config next headers: rows(format INT) default: 10 grep, waf(if needs WAF log) default: 0, start_hour(format: 24) default: 00, start_minute, end_hour(format: 24) default: 24, end_minute. METHOD: GET',
+		'haproxy/<id,hostname,ip>/config':'upload HAProxy config to a server by id or hostname or ip. Headers: action: save/reload/restart. Body must consist a whole HAProxy config. METHOD: POST',
+		'haproxy/<id,hostname,ip>/log':'show HAProxy logs by id or hostname or ip. May to have config next Headers: rows(format INT) default: 10 grep, waf(if needs WAF log) default: 0, start_hour(format: 24) default: 00, start_minute, end_hour(format: 24) default: 24, end_minute. METHOD: GET',
 		'haproxy/<id,hostname,ip>/section':'show a certain section, headers: section-name. METHOD: GET',
 		'haproxy/<id,hostname,ip>/section/add':'add a section to the HAProxy config by id or hostname or ip. Has to have config header with section and action header for action after upload. Section header must consist type: listen, frontend, etc. Action header accepts next value: save, test, reload and restart. Can be empty for just save. METHOD: POST',
 		'haproxy/<id,hostname,ip>/section/edit':'edit a section in the HAProxy config by id or hostname or ip. Has to have config header with section, action header for action after upload and body of a new section configuration. Section header must consist type: listen, frontend, etc. Action header accepts next value: save, test, reload and restart. Can be empty for just save. METHOD: POST',
 		'haproxy/<id,hostname,ip>/acl':'add an acl to certain section. Must be JSON body: "section-name", "if", "then", "if_value", "then_value" and "action" for action after upload. Action accepts next value: "save", "test", "reload" and "restart". METHOD: POST',
-		'haproxy/<id,hostname,ip>/acl':'delete an acl to certain section. Must be JSON body: "section-name", "if", "then", "if_value", "then_value" and "action" for action after upload. Action accepts next value: "save", "test", "reload" and "restart". METHOD: DELETE'
+		'haproxy/<id,hostname,ip>/acl':'delete an acl to certain section. Must be JSON body: "section-name", "if", "then", "if_value", "then_value" and "action" for action after upload. Action accepts next value: "save", "test", "reload" and "restart". METHOD: DELETE',
+		'nginx/<id,hostname,ip>': 'show info about the NGINX by id or hostname or ip. METHOD: GET',
+		'nginx/<id,hostname,ip>/status': 'show NGINX status by id or hostname or ip. METHOD: GET',
+		'nginx/<id,hostname,ip>/action/start': 'start NGINX service by id or hostname or ip. METHOD: GET',
+		'nginx/<id,hostname,ip>/action/stop': 'stop NGINX service by id or hostname or ip. METHOD: GET',
+		'nginx/<id,hostname,ip>/action/restart': 'restart NGINX service by id or hostname or ip. METHOD: GET',
+		'nginx/<id,hostname,ip>/config': 'get NGINX config from a server by id or hostname or ip. Headers: The full path to a config file, like: /etc/nginx/conf.d/default.conf. METHOD: GET',
+		'nginx/<id,hostname,ip>/config': 'upload NGINX config to a server by id or hostname or ip. Headers: action: save/reload/restart, config-file: the full path to the config, like /etc/nginx/conf.d/example.com.conf. Body must consist a whole HAProxy config. METHOD: POST',
+		'apache/<id,hostname,ip>': 'show info about the Apache by id or hostname or ip. METHOD: GET',
+		'apache/<id,hostname,ip>/status': 'show Apache status by id or hostname or ip. METHOD: GET',
+		'apache/<id,hostname,ip>/action/start': 'start Apache service by id or hostname or ip. METHOD: GET',
+		'apache/<id,hostname,ip>/action/stop': 'stop Apache service by id or hostname or ip. METHOD: GET',
+		'apache/<id,hostname,ip>/action/restart': 'restart Apache service by id or hostname or ip. METHOD: GET',
+		'apache/<id,hostname,ip>/config': 'get Apache config from a server by id or hostname or ip. Headers: The full path to a config file, like: /etc/httpd/conf.d/default.conf. METHOD: GET',
+		'apache/<id,hostname,ip>/config': 'upload Apache config to a server by id or hostname or ip. Headers: action: save/reload/restart, config-file: the full path to the config, like /etc/httpd/conf.d/example.com.conf. Body must consist a whole HAProxy config. METHOD: POST',
 	}
 	return dict(help=data)
 
@@ -98,8 +112,8 @@ def get_servers():
 		pass
 
 	return dict(servers=data)
-	
-	
+
+
 @route('/servers/status', method=['GET'])
 def callback():
 	if not check_login():
@@ -107,62 +121,22 @@ def callback():
 	return api_funct.get_all_statuses()
 
 
-@route('/haproxy/<haproxy_id>', method=['GET'])
-@route('/haproxy/<haproxy_id:int>', method=['GET'])
-def callback(haproxy_id):
-	if not check_login(required_service=1):
-		return dict(error=_error_auth)
-	return api_funct.get_server(haproxy_id)
-	
-	
-@route('/haproxy/<haproxy_id>/status', method=['GET'])
-@route('/haproxy/<haproxy_id:int>/status', method=['GET'])
-def callback(haproxy_id):
-	if not check_login(required_service=1):
-		return dict(error=_error_auth)
-	return api_funct.get_status(haproxy_id)
-	
-	
-@route('/haproxy/<haproxy_id>/action/<action:re:[a-z]+>', method=['GET'])
-@route('/haproxy/<haproxy_id:int>/action/<action:re:[a-z]+>', method=['GET'])
-def callback(haproxy_id, action):
-	if not check_login(required_service=1):
-		return dict(error=_error_auth)
-	return api_funct.actions(haproxy_id, action)
-	
-	
 @route('/haproxy/<haproxy_id>/runtime', method=['POST'])
 @route('/haproxy/<haproxy_id:int>/runtime', method=['POST'])
 def callback(haproxy_id):
 	if not check_login(required_service=1):
 		return dict(error=_error_auth)
 	return api_funct.runtime(haproxy_id)
-	
-	
+
+
 @route('/haproxy/<haproxy_id>/backends', method=['GET'])
 @route('/haproxy/<haproxy_id:int>/backends', method=['GET'])
 def callback(haproxy_id):
 	if not check_login(required_service=1):
 		return dict(error=_error_auth)
 	return api_funct.show_backends(haproxy_id)
-	
-	
-@route('/haproxy/<haproxy_id>/config', method=['GET'])
-@route('/haproxy/<haproxy_id:int>/config', method=['GET'])
-def callback(haproxy_id):
-	if not check_login(required_service=1):
-		return dict(error=_error_auth)
-	return api_funct.get_config(haproxy_id)
 
 
-@route('/haproxy/<haproxy_id>/config', method=['POST'])
-@route('/haproxy/<haproxy_id:int>/config', method=['POST'])
-def callback(haproxy_id):
-	if not check_login(required_service=1):
-		return dict(error=_error_auth)
-	return api_funct.upload_config(haproxy_id)
-	
-	
 @route('/haproxy/<haproxy_id>/log', method=['GET'])
 @route('/haproxy/<haproxy_id:int>/log', method=['GET'])
 def callback(haproxy_id):
@@ -207,6 +181,53 @@ def add_acl(haproxy_id):
 	if not check_login(required_service=1):
 		return dict(error=_error_auth)
 	return api_funct.del_acl(haproxy_id)
+
+
+@route('/<service>/<server_id>', method=['GET'])
+@route('/<service>/<server_id:int>', method=['GET'])
+def callback(server_id, service):
+	required_service = api_funct.return_requred_serivce(service)
+	if not check_login(required_service=required_service):
+		return dict(error=_error_auth)
+	return api_funct.get_server(server_id, service)
+
+
+@route('/<service>/<server_id>/status', method=['GET'])
+@route('/<service>/<server_id:int>/status', method=['GET'])
+def callback(server_id, service):
+	required_service = api_funct.return_requred_serivce(service)
+	if not check_login(required_service=required_service):
+		return dict(error=_error_auth)
+	return api_funct.get_status(server_id, service)
+
+
+@route('/<service>/<server_id>/action/<action:re:[a-z]+>', method=['GET'])
+@route('/<service>/<server_id:int>/action/<action:re:[a-z]+>', method=['GET'])
+def callback(server_id, action, service):
+	required_service = api_funct.return_requred_serivce(service)
+	if not check_login(required_service=required_service):
+		return dict(error=_error_auth)
+	return api_funct.actions(server_id, action, service)
+
+
+@route('/<service>/<server_id>/config', method=['GET'])
+@route('/<service>/<server_id:int>/config', method=['GET'])
+def callback(server_id, service):
+	required_service = api_funct.return_requred_serivce(service)
+	if not check_login(required_service=required_service):
+		return dict(error=_error_auth)
+	config_path = request.headers.get('config-file')
+	return api_funct.get_config(server_id, service=service, config_path=config_path)
+
+
+@route('/<service>/<server_id>/config', method=['POST'])
+@route('/<service>/<server_id:int>/config', method=['POST'])
+def callback(server_id, service):
+	required_service = api_funct.return_requred_serivce(service)
+	if not check_login(required_service=required_service):
+		return dict(error=_error_auth)
+	config_path = request.headers.get('config-file')
+	return api_funct.upload_config(server_id, service=service, config_path=config_path)
 
 
 if __name__ == '__main__':

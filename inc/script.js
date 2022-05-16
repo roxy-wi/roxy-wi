@@ -1072,21 +1072,21 @@ $( function() {
 				});
 				$( "#tabs" ).tabs( "option", "active", 4 );
 			} );
-			$( ".hap" ).on( "click", function() {
+			$( ".installproxy" ).on( "click", function() {
 				$('.menu li ul li').each(function () {
 					$(this).find('a').css('padding-left', '20px')
 					$(this).find('a').css('border-left', '0px solid #5D9CEB');
-					$(this).children(".hap").css('padding-left', '30px');
-					$(this).children(".hap").css('border-left', '4px solid #5D9CEB');
+					$(this).children(".installproxy").css('padding-left', '30px');
+					$(this).children(".installproxy").css('border-left', '4px solid #5D9CEB');
 				});
 				$( "#tabs" ).tabs( "option", "active", 5 );
 			} );
-			$( ".hap1" ).on( "click", function() {
+			$( ".installmon" ).on( "click", function() {
 				$('.menu li ul li').each(function () {
 					$(this).find('a').css('padding-left', '20px')
 					$(this).find('a').css('border-left', '0px solid #5D9CEB');
-					$(this).children(".hap1").css('padding-left', '30px');
-					$(this).children(".hap1").css('border-left', '4px solid #5D9CEB');
+					$(this).children(".installmon").css('padding-left', '30px');
+					$(this).children(".installmon").css('border-left', '4px solid #5D9CEB');
 				});
 				$( "#tabs" ).tabs( "option", "active", 6 );
 			} );

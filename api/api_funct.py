@@ -10,6 +10,19 @@ import funct
 
 def get_token():
 	try:
+		user_status, user_plan = funct.return_user_status()
+	except Exception as e:
+		funct.logging('API', 'Cannot get a user plan: ' + str(e), haproxywi=1)
+		return False
+
+	if user_status == 0:
+		funct.logging('API', 'You are not subscribed. Please subscribe to have access to this feature.', haproxywi=1)
+		return False
+	elif user_plan == 'user':
+		funct.logging('API', 'This feature is not available for your plan.', haproxywi=1)
+		return False
+
+	try:
 		body = request.body.getvalue().decode('utf-8')
 		login_pass = json.loads(body)
 		login = login_pass['login']
@@ -40,6 +53,19 @@ def get_token():
 
 
 def check_login(required_service=0):
+	try:
+		user_status, user_plan = funct.return_user_status()
+	except Exception as e:
+		funct.logging('API', 'Cannot get a user plan: ' + str(e), haproxywi=1)
+		return False
+
+	if user_status == 0:
+		funct.logging('API', 'You are not subscribed. Please subscribe to have access to this feature.', haproxywi=1)
+		return False
+	elif user_plan == 'user':
+		funct.logging('API', 'This feature is not available for your plan.', haproxywi=1)
+		return False
+
 	token = request.headers.get('token')
 	if sql.get_api_token(token):
 		if required_service != 0:
@@ -69,24 +95,41 @@ def return_dict_from_out(server_id, out):
 	return data
 	
 	
-def check_permit_to_server(server_id):
+def check_permit_to_server(server_id, service='haproxy'):
 	servers = sql.select_servers(id_hostname=server_id)
 	token = request.headers.get('token')
 	login, group_id = sql.get_username_groupid_from_api_token(token)
 		
 	for s in servers:		
-		server = sql.get_dick_permit(username=login, group_id=group_id, ip=s[2], token=token)
+		server = sql.get_dick_permit(username=login, group_id=group_id, ip=s[2], token=token, service=service)
 		
 	return server
-	
 
-def get_server(server_id):
+
+def return_requred_serivce(service):
+	if service == 'haproxy':
+		required_service = 1
+	elif service == 'nginx':
+		required_service = 2
+	elif service == 'apache':
+		required_service = 4
+	elif service == 'keepalived':
+		required_service = 3
+	else:
+		required_service = 0
+
+	return required_service
+
+
+def get_server(server_id, service):
+	if service != 'apache' and service != 'nginx' and service != 'haproxy' and service != 'keepalived':
+		return dict(status='wrong service')
 	data = {}
 	try:	
-		servers = check_permit_to_server(server_id)
+		servers = check_permit_to_server(server_id, service=service)
 				
 		for s in servers:
-			data = {  
+			data = {
 				'server_id':s[0],
 				'hostname':s[1],
 				'ip':s[2],
@@ -101,16 +144,49 @@ def get_server(server_id):
 	return dict(server=data)
 	
 	
-def get_status(server_id):
+def get_status(server_id, service):
+	if service != 'apache' and service != 'nginx' and service != 'haproxy':
+		return dict(status='wrong service')
 	try:
-		servers = check_permit_to_server(server_id)
+		servers = check_permit_to_server(server_id, service=service)
 		
 		for s in servers:
-			cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|Maxco\|MB\|Uptime:"' % (s[2], sql.get_setting('haproxy_sock_port'))
-			
-		out = funct.subprocess_execute(cmd)
-		data = return_dict_from_out(server_id, out[0])
-		
+			if service == 'haproxy':
+				cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|Maxco\|MB\|Uptime:"' % (s[2], sql.get_setting('haproxy_sock_port'))
+				out = funct.subprocess_execute(cmd)
+				data = return_dict_from_out(server_id, out[0])
+			elif service == 'nginx':
+				cmd = [
+					"/usr/sbin/nginx -v 2>&1|awk '{print $3}' && systemctl status nginx |grep -e 'Active' |awk '{print $2, $9$10$11$12$13}' && ps ax |grep nginx:|grep -v grep |wc -l"]
+				try:
+					out = funct.ssh_command(s[2], cmd)
+					out1 = out.split()
+					json_for_sending = {server_id: {"Version": out1[0].split('/')[1], "Uptime": out1[2], "Process": out1[3]}}
+					data = json_for_sending
+				except Exception as e:
+					data = {server_id: {"error": "Cannot get status: " + str(e)}}
+			elif service == 'apache':
+				apache_stats_user = sql.get_setting('apache_stats_user')
+				apache_stats_password = sql.get_setting('apache_stats_password')
+				apache_stats_port = sql.get_setting('apache_stats_port')
+				apache_stats_page = sql.get_setting('apache_stats_page')
+				cmd = "curl -s -u %s:%s http://%s:%s/%s?auto |grep 'ServerVersion\|Processes\|ServerUptime:'" % (
+				apache_stats_user, apache_stats_password, s[2], apache_stats_port, apache_stats_page)
+				servers_with_status = list()
+				try:
+					out = funct.subprocess_execute(cmd)
+					if out != '':
+						for k in out:
+							servers_with_status.append(k)
+					json_for_sending = {
+						server_id: {"Version": servers_with_status[0][0].split('/')[1],
+									"Uptime": servers_with_status[0][1].split(':')[1].strip(),
+									"Process": servers_with_status[0][2].split(' ')[1]}}
+					data = json_for_sending
+				except Exception as e:
+					data = {server_id: {"error": "Cannot get status: " + str(e)}}
+
+
 	except:
 		data = {server_id: {"error": "Cannot find the server"}}
 		return dict(error=data)
@@ -141,23 +217,28 @@ def get_all_statuses():
 	return dict(status=data)
 	
 	
-def actions(server_id, action):
-	if action == 'start' or action == 'stop' or action == 'restart':
-		try:			
-			servers = check_permit_to_server(server_id)
-				
-			for s in servers:
-				cmd = [ "sudo systemctl %s haproxy" % action ]
-				error = funct.ssh_command(s[2], cmd)
-				done = error if error else 'done'
-					
-				data = {'server_id':s[0],'ip':s[2],'action':action,'hostname':s[1],'status':done}
-				
-			return dict(status=data)
-		except:
-			return dict(status='error')
-	else:
+def actions(server_id, action, service):
+	if action != 'start' and action != 'stop' and action != 'restart' and action != 'reload':
 		return dict(status='wrong action')
+	if service != 'apache' and service != 'nginx' and service != 'haproxy' and service != 'keepalived':
+		return dict(status='wrong service')
+
+	try:
+		servers = check_permit_to_server(server_id, service=service)
+
+
+		for s in servers:
+			if service == 'apache':
+				service = funct.get_correct_apache_service_name(server_ip=s[2])
+			cmd = [ "sudo systemctl %s %s" % (action, service) ]
+			error = funct.ssh_command(s[2], cmd)
+			done = error if error else 'done'
+
+			data = {'server_id':s[0],'ip':s[2],'action':action,'hostname':s[1],'status':done}
+
+		return dict(status=data)
+	except Exception as e:
+		return dict(status=str(e))
 		
 		
 	
@@ -200,14 +281,18 @@ def show_backends(server_id):
 	return dict(backends=data)		
 	
 	
-def get_config(server_id):
+def get_config(server_id, **kwargs):
+	service = kwargs.get('service')
+	if service != 'apache' and service != 'nginx' and service != 'haproxy' and service != 'keepalived':
+		return dict(status='wrong service')
+
 	data = {}
 	try:
 		servers = check_permit_to_server(server_id)
 		
 		for s in servers:
 			cfg = '/tmp/'+s[2]+'.cfg'
-			out = funct.get_config(s[2], cfg)
+			out = funct.get_config(s[2], cfg, service=service, config_file_name=kwargs.get('config_path'))
 			os.system("sed -i 's/\\n/\n/g' "+cfg)
 		try:
 			conf = open(cfg, "r")
@@ -215,12 +300,12 @@ def get_config(server_id):
 			conf.close
 			
 		except IOError:
-			conf = '<br />Can\'t read import config file'
+			conf = '<br />Cannot read import config file'
 			
 		data = {server_id: config_read}
 		
-	except:
-		data = {server_id: {"error": "Cannot find the server"}}
+	except Exception as e:
+		data = {server_id: {"error": "Cannot find the server " + str(e)}}
 		return dict(error=data)
 			
 	return dict(config=data)
@@ -290,13 +375,29 @@ def edit_section(server_id):
 		return dict(config=data)
 
 
-def upload_config(server_id):
-	data = {}
+def upload_config(server_id, **kwargs):
+	service = kwargs.get('service')
+	if service != 'apache' and service != 'nginx' and service != 'haproxy':
+		return dict(status='wrong service')
+
 	body = request.body.getvalue().decode('utf-8')
 	save = request.headers.get('action')
 	token = request.headers.get('token')
 	login, group_id = sql.get_username_groupid_from_api_token(token)
-	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+	nginx = ''
+	apache = ''
+
+	if service == 'nginx':
+		configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
+		service_name = 'Apache'
+		nginx = 1
+	elif service == 'apache':
+		configs_dir = funct.get_config_var('configs', 'apache_save_configs_dir')
+		service_name = 'NGINX'
+		apache = 1
+	else:
+		configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+		service_name = 'HAProxy'
 
 	if save == '':
 		save = 'save'
@@ -311,22 +412,29 @@ def upload_config(server_id):
 		for s in servers:
 			ip = s[2]
 		cfg = '/tmp/'+ip+'.cfg'
-		cfg_for_save = hap_configs_dir + ip + "-" + funct.get_data('config') + ".cfg"
+		cfg_for_save = configs_dir + ip + "-" + funct.get_data('config') + ".cfg"
 
 		try:
 			with open(cfg, "w") as conf:
 				conf.write(body)
 			return_mess = 'config has been uploaded'
 			os.system("/bin/cp %s %s" % (cfg, cfg_for_save))
-			out = funct.master_slave_upload_and_restart(ip, cfg, save, login=login)
+
+			if kwargs.get('service') == 'nginx':
+				out = funct.master_slave_upload_and_restart(ip, cfg, save, login=login, nginx=nginx, config_file_name=kwargs.get('config_path'))
+			elif kwargs.get('service') == 'apache':
+				out = funct.master_slave_upload_and_restart(ip, cfg, save, login=login, apache=apache, config_file_name=kwargs.get('config_path'))
+			else:
+				out = funct.master_slave_upload_and_restart(ip, cfg, save, login=login)
+
 			funct.logging('localhost', " config has been uploaded via API", login=login)
 			funct.logging(ip, 'Config has been uploaded via API', haproxywi=1, login=login,
-						  keep_history=1, service='haproxy')
+						  keep_history=1, service=service_name)
 
 			if out:
 				return_mess = out
-		except IOError:
-			return_mess = "cannot upload config"
+		except IOError as e:
+			return_mess = "cannot upload config" + str(e)
 
 		data = {server_id: return_mess}
 	except Exception as e:
