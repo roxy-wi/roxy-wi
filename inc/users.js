@@ -851,7 +851,6 @@ function hideAndShowSettings(section) {
 	}
 }
 window.onload = function() {
-	$('#tabs').tabs();
 	var activeTabIdx = $('#tabs').tabs('option','active')
 	if (cur_url[0].split('#')[0] == 'users.py') {
 		if (activeTabIdx == 7) {
