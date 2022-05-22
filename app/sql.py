@@ -386,14 +386,12 @@ def select_user_groups_with_names(user_id, **kwargs):
 	if kwargs.get("all") is not None:
 		query = (UserGroups
 				 .select(UserGroups.user_group_id, UserGroups.user_id, Groups.name)
-				 .join(Groups, on=(UserGroups.user_group_id == Groups.group_id))
-				 )
+				 .join(Groups, on=(UserGroups.user_group_id == Groups.group_id)))
 	else:
 		query = (UserGroups
 				 .select(UserGroups.user_group_id, Groups.name)
 				 .join(Groups, on=(UserGroups.user_group_id == Groups.group_id))
-				 .where(UserGroups.user_id == user_id)
-				 )
+				 .where(UserGroups.user_id == user_id))
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -501,10 +499,10 @@ def select_servers(**kwargs):
 	if kwargs.get("get_master_servers") is not None:
 		sql = """select id,hostname from servers where master = 0 and type_ip = 0 and enable = 1 ORDER BY groups """
 	if kwargs.get("get_master_servers") is not None and kwargs.get('uuid') is not None:
-		sql = """ select servers.id, servers.hostname from servers 
-			left join user as user on servers.groups = user.groups 
-			left join uuid as uuid on user.id = uuid.user_id 
-			where uuid.uuid = '{}' and servers.master = 0 and servers.type_ip = 0 and servers.enable = 1 ORDER BY servers.groups 
+		sql = """ select servers.id, servers.hostname from servers
+			left join user as user on servers.groups = user.groups
+			left join uuid as uuid on user.id = uuid.user_id
+			where uuid.uuid = '{}' and servers.master = 0 and servers.type_ip = 0 and servers.enable = 1 ORDER BY servers.groups
 			""".format(kwargs.get('uuid'))
 	if kwargs.get("id"):
 		sql = """select * from servers where id='{}' """.format(kwargs.get("id"))
@@ -833,13 +831,13 @@ def get_dick_permit(**kwargs):
 def is_master(ip, **kwargs):
 	cursor = conn.cursor()
 	if kwargs.get('master_slave'):
-		sql = """ select master.hostname, master.ip, slave.hostname, slave.ip 
-		from servers as master 
-		left join servers as slave on master.id = slave.master 
+		sql = """ select master.hostname, master.ip, slave.hostname, slave.ip
+		from servers as master
+		left join servers as slave on master.id = slave.master
 		where slave.master > 0 """
 	else:
-		sql = """ select slave.ip, slave.hostname from servers as master 
-		left join servers as slave on master.id = slave.master 
+		sql = """ select slave.ip, slave.hostname from servers as master
+		left join servers as slave on master.id = slave.master
 		where master.ip = '%s' """ % ip
 	try:
 		cursor.execute(sql)
@@ -1054,6 +1052,7 @@ def update_slack(token, chanel, group, slack_id):
 		return False
 	else:
 		return True
+
 
 def insert_new_option(saved_option, group):
 	try:
@@ -1602,7 +1601,7 @@ def select_table_metrics():
                 where servers.metrics = 1 and
                 metr.date <= now() and metr.date >= DATE_ADD(NOW(), INTERVAL -3 DAY)
                 group by servers.ip ) as avg_sess_3d,
-		
+
 		(select servers.ip,max(metr.sess_rate) as max_sess_1h from servers
                 left join metrics as metr on metr.serv = servers.ip
                 where servers.metrics = 1 and
@@ -1632,13 +1631,13 @@ def select_table_metrics():
                 where servers.metrics = 1 and
                 metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -24 HOUR)
                 group by servers.ip) as avg_cur_24h,
-				
-		(select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_3d from servers 
-			left join metrics as metr on metr.serv = servers.ip 
-			where servers.metrics = 1 and 
+
+		(select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_3d from servers
+			left join metrics as metr on metr.serv = servers.ip
+			where servers.metrics = 1 and
 			metr.date <=  now() and metr.date >= DATE_ADD(NOW(),INTERVAL -3 DAY)
 			group by servers.ip ) as avg_cur_3d,
-		
+
 		 (select servers.ip,max(metr.curr_con) as max_con_1h from servers
                 left join metrics as metr on metr.serv = servers.ip
                 where servers.metrics = 1 and
@@ -1655,8 +1654,8 @@ def select_table_metrics():
                 left join metrics as metr on metr.serv = servers.ip
                 where servers.metrics = 1 and
                 metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -3 DAY)
-                group by servers.ip ) as max_con_3d		
-		
+                group by servers.ip ) as max_con_3d
+
 		where ip.ip=hostname.ip
                 and ip.ip=avg_sess_1h.ip
                 and ip.ip=avg_sess_24h.ip
@@ -1679,77 +1678,77 @@ def select_table_metrics():
 
 		(select servers.ip, servers.hostname as hostname from servers left join metrics as metr on servers.ip = metr.serv where servers.metrics = 1 %s) as hostname,
 
-		(select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_1h from servers 
-		left join metrics as metr on metr.serv = servers.ip  
-		where servers.metrics = 1 and 
+		(select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_1h from servers
+		left join metrics as metr on metr.serv = servers.ip
+		where servers.metrics = 1 and
 		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-1 hours', 'localtime')
 		group by servers.ip)   as avg_sess_1h,
 
-		(select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_24h from servers 
-		left join metrics as metr on metr.serv = servers.ip  
-		where servers.metrics = 1 and 
+		(select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_24h from servers
+		left join metrics as metr on metr.serv = servers.ip
+		where servers.metrics = 1 and
 		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-24 hours', 'localtime')
-		group by servers.ip) as avg_sess_24h, 
+		group by servers.ip) as avg_sess_24h,
 
-		(select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_3d from servers 
-		left join metrics as metr on metr.serv = servers.ip 
-		where servers.metrics = 1 and 
-		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-3 days', 'localtime') 
+		(select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_3d from servers
+		left join metrics as metr on metr.serv = servers.ip
+		where servers.metrics = 1 and
+		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-3 days', 'localtime')
 		group by servers.ip ) as avg_sess_3d,
 
-		(select servers.ip,max(metr.sess_rate) as max_sess_1h from servers 
-		left join metrics as metr on metr.serv = servers.ip  
-		where servers.metrics = 1 and 
+		(select servers.ip,max(metr.sess_rate) as max_sess_1h from servers
+		left join metrics as metr on metr.serv = servers.ip
+		where servers.metrics = 1 and
 		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-1 hours', 'localtime')
 		group by servers.ip)   as max_sess_1h,
 
-		(select servers.ip,max(metr.sess_rate) as max_sess_24h from servers 
-		left join metrics as metr on metr.serv = servers.ip  
-		where servers.metrics = 1 and 
+		(select servers.ip,max(metr.sess_rate) as max_sess_24h from servers
+		left join metrics as metr on metr.serv = servers.ip
+		where servers.metrics = 1 and
 		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-24 hours', 'localtime')
-		group by servers.ip) as max_sess_24h, 
+		group by servers.ip) as max_sess_24h,
 
-		(select servers.ip,max(metr.sess_rate) as max_sess_3d from servers 
-		left join metrics as metr on metr.serv = servers.ip 
-		where servers.metrics = 1 and 
-		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-3 days', 'localtime') 
+		(select servers.ip,max(metr.sess_rate) as max_sess_3d from servers
+		left join metrics as metr on metr.serv = servers.ip
+		where servers.metrics = 1 and
+		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-3 days', 'localtime')
 		group by servers.ip ) as max_sess_3d,
 
-		(select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_1h from servers 
-		left join metrics as metr on metr.serv = servers.ip  
-		where servers.metrics = 1 and 
+		(select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_1h from servers
+		left join metrics as metr on metr.serv = servers.ip
+		where servers.metrics = 1 and
 		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-1 hours', 'localtime')
 		group by servers.ip)   as avg_cur_1h,
 
-		(select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_24h from servers 
-		left join metrics as metr on metr.serv = servers.ip  
-		where servers.metrics = 1 and 
+		(select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_24h from servers
+		left join metrics as metr on metr.serv = servers.ip
+		where servers.metrics = 1 and
 		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-24 hours', 'localtime')
-		group by servers.ip) as avg_cur_24h, 
+		group by servers.ip) as avg_cur_24h,
 
-		(select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_3d from servers 
-		left join metrics as metr on metr.serv = servers.ip 
-		where servers.metrics = 1 and 
-		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-3 days', 'localtime') 
+		(select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_3d from servers
+		left join metrics as metr on metr.serv = servers.ip
+		where servers.metrics = 1 and
+		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-3 days', 'localtime')
 		group by servers.ip ) as avg_cur_3d,
 
-		(select servers.ip,max(metr.curr_con) as max_con_1h from servers 
-		left join metrics as metr on metr.serv = servers.ip  
-		where servers.metrics = 1 and 
+		(select servers.ip,max(metr.curr_con) as max_con_1h from servers
+		left join metrics as metr on metr.serv = servers.ip
+		where servers.metrics = 1 and
 		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-1 hours', 'localtime')
 		group by servers.ip)   as max_con_1h,
 
-		(select servers.ip,max(metr.curr_con) as max_con_24h from servers 
-		left join metrics as metr on metr.serv = servers.ip  
-		where servers.metrics = 1 and 
+		(select servers.ip,max(metr.curr_con) as max_con_24h from servers
+		left join metrics as metr on metr.serv = servers.ip
+		where servers.metrics = 1 and
 		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-24 hours', 'localtime')
-		group by servers.ip) as max_con_24h, 
+		group by servers.ip) as max_con_24h,
 
-		(select servers.ip,max(metr.curr_con) as max_con_3d from servers 
-		left join metrics as metr on metr.serv = servers.ip 
-		where servers.metrics = 1 and 
-		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-3 days', 'localtime') 
-		group by servers.ip ) as max_con_3d 
+		(select servers.ip,max(metr.curr_con) as max_con_3d from servers
+		left join metrics as metr on metr.serv = servers.ip
+		where servers.metrics = 1 and
+		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-3 days', 'localtime')
+		group by servers.ip ) as max_con_3d
 
 		where ip.ip=hostname.ip
 		and ip.ip=avg_sess_1h.ip
@@ -2104,8 +2103,8 @@ def select_smon(user_group, **kwargs):
 			http = kwargs.get('proto')+':'+kwargs.get('uri')
 		except:
 			http = ''
-		sql = """select id, ip, port, en, http, body, telegram_channel_id, `desc`, `group`, user_group, slack_channel_id from smon 
-		where ip='%s' and port='%s' and http='%s' and body='%s' %s 
+		sql = """select id, ip, port, en, http, body, telegram_channel_id, `desc`, `group`, user_group, slack_channel_id from smon
+		where ip='%s' and port='%s' and http='%s' and body='%s' %s
 		""" % (kwargs.get('ip'), kwargs.get('port'), http, body, user_group)
 	elif kwargs.get('action') == 'add':
 		sql = """select id, ip, port, en, http, body, telegram_channel_id, `desc`, `group`, user_group, slack_channel_id from smon
@@ -2191,7 +2190,6 @@ def select_en_service():
 		out_error(e)
 	else:
 		return query_res
-
 
 
 def select_status(smon_id):
@@ -2316,16 +2314,14 @@ def response_time(time, smon_id):
 
 def smon_list(user_group):
 	if user_group == 1:
-		query = (SMON.select(SMON.ip, SMON.port,SMON.status,SMON.en,SMON.desc,SMON.response_time,SMON.time_state,
-							SMON.group,SMON.script,SMON.http,SMON.http_status,SMON.body,SMON.body_status)
-				 .order_by(SMON.group)
-				 )
+		query = (SMON.select(SMON.ip, SMON.port, SMON.status, SMON.en, SMON.desc, SMON.response_time, SMON.time_state,
+							SMON.group, SMON.script, SMON.http, SMON.http_status, SMON.body, SMON.body_status)
+				 .order_by(SMON.group))
 	else:
 		query = (SMON.select(SMON.ip, SMON.port, SMON.status, SMON.en, SMON.desc, SMON.response_time, SMON.time_state,
 							 SMON.group, SMON.script, SMON.http, SMON.http_status, SMON.body, SMON.body_status)
 				 .where(SMON.user_group == user_group)
-				 .order_by(SMON.group)
-				 )
+				 .order_by(SMON.group))
 
 	try:
 		query_res = query.execute()
@@ -2511,7 +2507,7 @@ def delete_ports(serv):
 def insert_port_scanner_history(serv, port, port_status, service_name):
 	try:
 		PortScannerHistory.insert(serv=serv, port=port, status=port_status, service_name=service_name,
-								  date=funct.get_data('regular')).execute()
+									date=funct.get_data('regular')).execute()
 	except Exception as e:
 		out_error(e)
 
@@ -2621,7 +2617,7 @@ def add_server_aws(region, instance_type, public_ip, floating_ip, volume_size, s
 		return False
 
 
-def add_server_gcore(project ,region, instance_type, network_type, network_name, volume_size, ssh_key_name, name, os,
+def add_server_gcore(project, region, instance_type, network_type, network_name, volume_size, ssh_key_name, name, os,
 					 firewall, provider_id, group_id, status, delete_on_termination, volume_type):
 	try:
 		ProvisionedServers.insert(region=region, instance_type=instance_type, public_ip=network_type, network_name=network_name,
@@ -2655,7 +2651,7 @@ def select_aws_server(server_id):
 						 prov_serv.volume_size, prov_serv.ssh_key_name, prov_serv.name, prov_serv.os,
 						 prov_serv.firewall, prov_serv.provider_id, prov_serv.group_id, prov_serv.id,
 						 prov_serv.delete_on_termination, prov_serv.volume_type)
-			.where(prov_serv.id == server_id))
+		.where(prov_serv.id == server_id))
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -2766,7 +2762,7 @@ def update_server_do(size, privet_net, floating_ip, ssh_ids, ssh_name, oss, fire
                          group, status, server_id):
 	query = ProvisionedServers.update(instance_type=size, private_networking=privet_net,
 									  floating_ip=floating_ip, ssh_ids=ssh_ids, ssh_key_name=ssh_name,
-									  os=oss,firewall=firewall, monitoring=monitoring,  backup=backup,
+									  os=oss, firewall=firewall, monitoring=monitoring,  backup=backup,
 									  provider_id=provider,
 									  group_id=group, status=status).where(ProvisionedServers.id == server_id)
 	try:
@@ -2792,9 +2788,9 @@ def select_provisioned_servers(**kwargs):
 			prov_serv.select(prov_serv.id, prov_serv.name, prov_serv.provider_id, prov_serv.type,
 							 prov_serv.group_id, prov_serv.instance_type, prov_serv.status, prov_serv.date,
 							 prov_serv.region, prov_serv.os, prov_serv.IP, prov_serv.last_error, prov_serv.name_template)
-				.where((prov_serv.name == kwargs.get('new')) &
-					   (prov_serv.group_id == kwargs.get('group')) &
-					   (prov_serv.type == kwargs.get('type'))))
+			.where((prov_serv.name == kwargs.get('new')) &
+					(prov_serv.group_id == kwargs.get('group')) &
+					(prov_serv.type == kwargs.get('type'))))
 	else:
 		query = prov_serv.select(prov_serv.id, prov_serv.name, prov_serv.provider_id, prov_serv.type, prov_serv.group_id,
 								 prov_serv.instance_type, prov_serv.status, prov_serv.date, prov_serv.region, prov_serv.os,
@@ -3225,6 +3221,7 @@ def insert_new_git(server_id, service_id, repo, branch, period, cred, descriptio
 		return False
 	else:
 		return True
+
 
 def select_gits(**kwargs):
 	if kwargs.get("server_id") is not None and kwargs.get("service_id") is not None:

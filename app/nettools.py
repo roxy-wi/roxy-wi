@@ -9,7 +9,8 @@ print('Content-type: text/html\n')
 funct.check_login()
 
 try:
-    user, user_id, role, token, servers, user_services = funct.get_users_params(virt=1)
+    user, user_id, role, token, servers, user_services \
+        = funct.get_users_params(virt=1)
 except Exception:
     pass
 

@@ -10,8 +10,8 @@ def is_ip_or_dns(server_from_request: str) -> str:
 	dns_regex = "^(?!-)[A-Za-z0-9-]+([\\-\\.]{1}[a-z0-9]+)*\\.[A-Za-z]{2,6}$"
 	try:
 		if server_from_request in ('roxy-wi-checker', 'roxy-wi-keep_alive', 'roxy-wi-keep-alive', 'roxy-wi-metrics',
-								   'roxy-wi-portscanner', 'roxy-wi-smon', 'roxy-wi-socket',
-								   'fail2ban', 'prometheus', 'all', 'grafana-server', 'rabbitmq-server'):
+									'roxy-wi-portscanner', 'roxy-wi-smon', 'roxy-wi-socket', 'fail2ban', 'prometheus',
+									'all', 'grafana-server', 'rabbitmq-server'):
 			return server_from_request
 		if re.match(ip_regex, server_from_request):
 			return server_from_request
@@ -182,8 +182,8 @@ def logging(server_ip, action, **kwargs):
 		log.close()
 	except IOError as e:
 		print('<center><div class="alert alert-danger">Cannot write log. Please check log_path in config %e</div></center>' % e)
-		
-		
+
+
 def keep_action_history(service: str, action: str, server_ip: str, login: str, user_ip: str):
 	import sql
 	try:
@@ -419,12 +419,12 @@ def ssh_connect(server_ip):
 def get_config(server_ip, cfg, **kwargs):
 	import sql
 
-	if kwargs.get("keepalived")  or kwargs.get("service") == 'keepalived':
+	if kwargs.get("keepalived") or kwargs.get("service") == 'keepalived':
 		config_path = "/etc/keepalived/keepalived.conf"
 	elif (kwargs.get("nginx") or kwargs.get("service") == 'nginx' or
-		  kwargs.get("apache") or kwargs.get("service") == 'apache'):
+			kwargs.get("apache") or kwargs.get("service") == 'apache'):
 		config_path = kwargs.get('config_file_name')
-	elif kwargs.get("waf")  or kwargs.get("service") == 'waf':
+	elif kwargs.get("waf") or kwargs.get("service") == 'waf':
 		config_path = sql.get_setting('haproxy_dir') + '/waf/rules/' + kwargs.get("waf_rule_file")
 	else:
 		config_path = sql.get_setting('haproxy_config_path')
@@ -472,7 +472,7 @@ def diff_config(oldcfg, cfg, **kwargs):
 
 	if kwargs.get('return_diff'):
 		for line in output:
-			diff +=  line + "\n"
+			diff += line + "\n"
 		return diff
 	else:
 		for line in output:
@@ -485,8 +485,8 @@ def diff_config(oldcfg, cfg, **kwargs):
 	except IOError:
 		print('<center><div class="alert alert-danger">Can\'t read write change to log. %s</div></center>' % stderr)
 		pass
-	
-	
+
+
 def get_remote_sections(server_ip: str, service: str) -> str:
 	import sql
 	remote_dir = service+'_dir'
@@ -496,13 +496,13 @@ def get_remote_sections(server_ip: str, service: str) -> str:
 		section_name = 'server_name'
 		commands = [
 			'sudo grep {} {}* -R |grep -v \'${}\|#\'|awk \'{{print $1, $3}}\''.format(section_name, config_dir,
-																							 section_name)]
+																						section_name)]
 
 	elif service == 'apache':
 		section_name = 'ServerName'
 		commands = [
 			'sudo grep {} {}*/*.conf -R |grep -v \'${}\|#\'|awk \'{{print $1, $3}}\''.format(section_name, config_dir,
-																							 section_name)]
+																							section_name)]
 
 	backends = ssh_command(server_ip, commands)
 
@@ -516,7 +516,7 @@ def get_sections(config, **kwargs):
 			if kwargs.get('service') == 'keepalived':
 				import re
 				ip_pattern = re.compile('\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}')
-				find_ip = re.findall(ip_pattern,line)
+				find_ip = re.findall(ip_pattern, line)
 				if find_ip:
 					return_config.append(find_ip[0])
 			else:
@@ -893,8 +893,8 @@ def upload(server_ip, path, file, **kwargs):
 		file = sftp.put(file, full_path)
 	except Exception as e:
 		error = str(e.args)
-		print('Cannot upload '+file+' to '+full_path+' to server: '+server_ip+' error: '+ error)
-		logging('localhost', ' Cannot upload '+file+' to '+full_path+' to server: '+server_ip+' Error: '+ error, haproxywi=1)
+		print('Cannot upload ' + file + ' to ' + full_path + ' to server: ' + server_ip + ' error: ' + error)
+		logging('localhost', ' Cannot upload ' + file + ' to ' + full_path + ' to server: ' + server_ip + ' Error: ' + error, haproxywi=1)
 		return error
 
 	try:
@@ -903,7 +903,7 @@ def upload(server_ip, path, file, **kwargs):
 	except Exception as e:
 		error = str(e.args)
 		logging('localhost', error, haproxywi=1)
-		print('Cannot upload '+file+' to '+full_path+' to server: '+server_ip+' error: '+ error)
+		print('Cannot upload ' + file + ' to ' + full_path + ' to server: ' + server_ip + ' error: ' + error)
 		return error
 
 
@@ -946,7 +946,6 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 				service_name = "hapee-2.0-lb"
 		if service == 'apache':
 			service_name = get_correct_apache_service_name(server_ip, 0)
-
 
 		reload_command = " && sudo systemctl reload " + service_name
 		restart_command = " && sudo systemctl restart " + service_name
@@ -997,7 +996,7 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 			check_config = "sudo docker exec -it exec " + container_name + " nginx -t -q "
 		else:
 			check_config = "sudo apachectl configtest "
-		check_and_move = "sudo mv -f " + tmp_file + " " + config_path #+ " && " + check_config
+		check_and_move = "sudo mv -f " + tmp_file + " " + config_path  # + " && " + check_config
 		if action == "test":
 			commands = [check_config + " && sudo rm -f " + tmp_file]
 		elif action == "save":
@@ -1018,7 +1017,7 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		elif action == "save":
 			commands = [check_config + move_config]
 		else:
-			commands = [check_config + move_config + reload_or_restart_command ]
+			commands = [check_config + move_config + reload_or_restart_command]
 		if sql.return_firewall(server_ip):
 			commands[0] += open_port_firewalld(cfg, server_ip=server_ip)
 
@@ -1075,25 +1074,25 @@ def master_slave_upload_and_restart(server_ip, cfg, just_save, **kwargs):
 	for master in masters:
 		if master[0] is not None:
 			error = upload_and_restart(master[0],
-									   cfg,
-									   just_save=just_save,
-									   nginx=kwargs.get('nginx'),
-									   apache=kwargs.get('apache'),
-									   config_file_name=kwargs.get('config_file_name'),
-									   slave=1)
+										cfg,
+										just_save=just_save,
+										nginx=kwargs.get('nginx'),
+										apache=kwargs.get('apache'),
+										config_file_name=kwargs.get('config_file_name'),
+										slave=1)
 
 	if kwargs.get('login'):
 		login = kwargs.get('login')
 	else:
 		login = ''
 	error = upload_and_restart(server_ip,
-							   cfg,
-							   just_save=just_save,
-							   nginx=kwargs.get('nginx'),
-							   apache=kwargs.get('apache'),
-							   config_file_name=kwargs.get('config_file_name'),
-							   oldcfg=kwargs.get('oldcfg'),
-							   login=login)
+								cfg,
+								just_save=just_save,
+								nginx=kwargs.get('nginx'),
+								apache=kwargs.get('apache'),
+								config_file_name=kwargs.get('config_file_name'),
+								oldcfg=kwargs.get('oldcfg'),
+								login=login)
 
 	return error
 
@@ -1152,7 +1151,7 @@ def check_haproxy_config(server_ip):
 
 	if is_docker == '1':
 		container_name = sql.get_setting('haproxy_container_name')
-		commands = [ "sudo docker exec -it " + container_name + " haproxy -q -c -f " + config_path ]
+		commands = ["sudo docker exec -it " + container_name + " haproxy -q -c -f " + config_path]
 	else:
 		commands = ["haproxy  -q -c -f %s" % config_path]
 
@@ -1168,7 +1167,7 @@ def check_haproxy_config(server_ip):
 
 def check_nginx_config(server_ip):
 	import sql
-	commands = [ "nginx -q -t -p {}".format(sql.get_setting('nginx_dir')) ]
+	commands = ["nginx -q -t -p {}".format(sql.get_setting('nginx_dir'))]
 	ssh = ssh_connect(server_ip)
 	for command in commands:
 		stdin, stdout, stderr = ssh.exec_command(command, get_pty=True)
@@ -1647,7 +1646,7 @@ def check_service(server_ip, service_name):
 def get_service_version(server_ip, service_name):
 	server_ip = is_ip_or_dns(server_ip)
 	if service_name == 'haproxy_exporter':
-		commands = [ "/opt/prometheus/exporters/haproxy_exporter --version 2>&1 |head -1|awk '{print $3}'"]
+		commands = ["/opt/prometheus/exporters/haproxy_exporter --version 2>&1 |head -1|awk '{print $3}'"]
 	elif service_name == 'nginx_exporter':
 		commands = ["/opt/prometheus/exporters/nginx_exporter 2>&1 |head -1 |awk -F\"=\" '{print $2}'|awk '{print $1}'"]
 	elif service_name == 'node_exporter':
@@ -1666,15 +1665,15 @@ def get_services_status():
 	services = []
 	is_in_docker = is_docker()
 	services_name = {'roxy-wi-checker': 'Checker backends master service',
-					 'roxy-wi-keep_alive': 'Auto start service',
-					 'roxy-wi-metrics': 'Metrics master service',
-					 'roxy-wi-portscanner': 'Port scanner service',
-					 'roxy-wi-smon': 'Simple monitoring network ports',
-					 'roxy-wi-socket': 'Socket service',
-					 'prometheus': 'Prometheus service',
-					 'grafana-server': 'Grafana service',
-					 'fail2ban': 'Fail2ban service',
-					 'rabbitmq-server': 'Message broker service'}
+						'roxy-wi-keep_alive': 'Auto start service',
+						'roxy-wi-metrics': 'Metrics master service',
+						'roxy-wi-portscanner': 'Port scanner service',
+						'roxy-wi-smon': 'Simple monitoring network ports',
+						'roxy-wi-socket': 'Socket service',
+						'prometheus': 'Prometheus service',
+						'grafana-server': 'Grafana service',
+						'fail2ban': 'Fail2ban service',
+						'rabbitmq-server': 'Message broker service'}
 	for s, v in services_name.items():
 		if is_in_docker:
 			cmd = "sudo supervisorctl status " + s + "|awk '{print $2}'"
@@ -1762,8 +1761,8 @@ def get_system_info(server_ip: str) -> bool:
 			except Exception:
 				ip = ''
 			network[i['logicalname']] = {'description': i['description'],
-										 'mac': i['serial'],
-										 'ip': ip}
+											'mac': i['serial'],
+											'ip': ip}
 		for k, j in i.items():
 			if isinstance(j, list):
 				for b in j:
@@ -1801,9 +1800,9 @@ def get_system_info(server_ip: str) -> bool:
 												fs = volume_info['configuration']['mount.fstype']
 												state = volume_info['configuration']['state']
 												disks[volume_name] = {'mount_point': mount_point,
-																		  'size': size,
-																		  'fs': fs,
-																		  'state': state}
+																		'size': size,
+																		'fs': fs,
+																		'state': state}
 					except Exception:
 						pass
 
@@ -1815,7 +1814,7 @@ def get_system_info(server_ip: str) -> bool:
 										if 'children' in s:
 											for net in s['children']:
 												network[net['logicalname']] = {'description': net['description'],
-																			   'mac': net['serial']}
+																				'mac': net['serial']}
 									if s['class'] == 'storage':
 										for p, pval in s.items():
 											if isinstance(pval, list):
@@ -1830,9 +1829,9 @@ def get_system_info(server_ip: str) -> bool:
 																fs = volume_info['configuration']['mount.fstype']
 																state = volume_info['configuration']['state']
 																disks[volume_name] = {'mount_point': mount_point,
-																					  'size': size,
-																					  'fs': fs,
-																					  'state': state}
+																						'size': size,
+																						'fs': fs,
+																						'state': state}
 									for z, n in s.items():
 										if isinstance(n, list):
 											for y in n:
@@ -1867,9 +1866,9 @@ def get_system_info(server_ip: str) -> bool:
 																	fs = q['configuration']['mount.fstype']
 																	state = q['configuration']['state']
 																	disks[volume_name] = {'mount_point': mount_point,
-																						  'size': size,
-																						  'fs': fs,
-																						  'state': state}
+																							'size': size,
+																							'fs': fs,
+																							'state': state}
 															except Exception as e:
 																print(e)
 													except Exception:
@@ -1937,6 +1936,7 @@ def get_system_info(server_ip: str) -> bool:
 	else:
 		return False
 
+
 def string_to_dict(dict_string) -> dict:
 	from ast import literal_eval
 	return literal_eval(dict_string)
@@ -1957,16 +1957,14 @@ def send_message_to_rabbit(message: str, **kwargs) -> None:
 
 	credentials = pika.PlainCredentials(rabbit_user, rabbit_password)
 	parameters = pika.ConnectionParameters(rabbit_host,
-										   rabbit_port,
-										   rabbit_vhost,
-										   credentials)
+											rabbit_port,
+											rabbit_vhost,
+											credentials)
 
 	connection = pika.BlockingConnection(parameters)
 	channel = connection.channel()
 	channel.queue_declare(queue=rabbit_queue)
-	channel.basic_publish(exchange='',
-						  routing_key=rabbit_queue,
-						  body=message)
+	channel.basic_publish(exchange='', routing_key=rabbit_queue, body=message)
 
 	connection.close()
 
@@ -2008,10 +2006,12 @@ def get_correct_apache_service_name(server_ip=0, server_id=0) -> str:
 
 
 def is_docker() -> bool:
-	import os, re
+	import os
+	import re
 
 	path = "/proc/self/cgroup"
-	if not os.path.isfile(path): return False
+	if not os.path.isfile(path):
+		return False
 	with open(path) as f:
 		for line in f:
 			if re.match("\d+:[\w=]+:/docker(-[ce]e)?/\w+", line):

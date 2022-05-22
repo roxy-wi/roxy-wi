@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
+import distro
+
 import funct
 import sql
-import distro
+
 from jinja2 import Environment, FileSystemLoader
 
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
@@ -122,7 +124,7 @@ for s in servers:
             servers_with_status.append(h)
             servers_with_status.append(s[17])
     elif service == 'keepalived':
-        h = (['',''],)
+        h = (['', ''],)
         cmd = [
             "/usr/sbin/keepalived -v 2>&1|head -1|awk '{print $2}' && systemctl status keepalived |grep -e 'Active' |awk '{print $2, $9$10$11$12$13}' && ps ax |grep keepalived|grep -v grep |wc -l"]
         try:
@@ -139,7 +141,7 @@ for s in servers:
             servers_with_status.append(h)
             servers_with_status.append(s[22])
     elif service == 'apache':
-        h = (['',''],)
+        h = (['', ''],)
         apache_stats_user = sql.get_setting('apache_stats_user')
         apache_stats_password = sql.get_setting('apache_stats_password')
         apache_stats_port = sql.get_setting('apache_stats_port')
@@ -174,7 +176,7 @@ for s in servers:
 
     if is_keepalived:
         try:
-            cmd = ['sudo kill -USR1 `cat /var/run/keepalived.pid` && sudo grep State /tmp/keepalived.data -m 1 |awk -F"=" \'{print $2}\'|tr -d \'[:space:]\' && sudo rm -f /tmp/keepalived.data' ]
+            cmd = ['sudo kill -USR1 `cat /var/run/keepalived.pid` && sudo grep State /tmp/keepalived.data -m 1 |awk -F"=" \'{print $2}\'|tr -d \'[:space:]\' && sudo rm -f /tmp/keepalived.data']
             out = funct.ssh_command(s[2], cmd)
             out1 = ('1', out)
             servers_with_status.append(out1)
@@ -192,18 +194,18 @@ except Exception as e:
     funct.logging('localhost', 'Cannot get a user plan: ' + str(e), haproxywi=1)
 
 template = template.render(h2=1,
-                           autorefresh=autorefresh,
-                           title=title,
-                           role=role,
-                           user=user,
-                           servers=servers_with_status1,
-                           keep_alive=''.join(keep_alive),
-                           serv=serv,
-						   service=service,
-						   services=services,
-                           user_services=user_services,
-                           service_settings=service_settings,
-                           user_status=user_status,
-                           user_plan=user_plan,
-						   token=token)
+                            autorefresh=autorefresh,
+                            title=title,
+                            role=role,
+                            user=user,
+                            servers=servers_with_status1,
+                            keep_alive=''.join(keep_alive),
+                            serv=serv,
+						    service=service,
+						    services=services,
+                            user_services=user_services,
+                            service_settings=service_settings,
+                            user_status=user_status,
+                            user_plan=user_plan,
+						    token=token)
 print(template)

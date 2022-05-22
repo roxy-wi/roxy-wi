@@ -597,7 +597,7 @@ if act == "overview":
         haproxy = sql.select_haproxy(serv) if '1' in user_services else 0
         nginx = sql.select_nginx(serv) if '2' in user_services else 0
         keepalived = sql.select_keepalived(serv) if '3' in user_services else 0
-        apache = sql.select_apache(serv) if  '4' in user_services else 0
+        apache = sql.select_apache(serv) if '4' in user_services else 0
 
         waf = sql.select_waf_servers(serv2)
         haproxy_process = ''
@@ -646,7 +646,6 @@ if act == "overview":
                          apache_process)
         return server_status
 
-
     async def get_runner_overview():
         env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True,
                           extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
@@ -663,7 +662,6 @@ if act == "overview":
         template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_uuid.value))
         print(template)
 
-
     ioloop = asyncio.get_event_loop()
     ioloop.run_until_complete(get_runner_overview())
     ioloop.close()
@@ -673,7 +671,7 @@ if act == "overviewwaf":
 
     from jinja2 import Environment, FileSystemLoader
     env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True,
-                              extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
+                    extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
     template = env.get_template('overivewWaf.html')
 
     servers = sql.select_servers(server=serv)
@@ -728,7 +726,6 @@ if act == "overviewwaf":
 if act == "overviewServers":
     import asyncio
 
-
     async def async_get_overviewServers(serv1, serv2, service):
         if service == 'haproxy':
             cmd = 'echo "show info" |nc %s %s -w 1|grep -e "node\|Nbproc\|Maxco\|MB\|Nbthread"' % (serv2, sql.get_setting('haproxy_sock_port'))
@@ -747,7 +744,6 @@ if act == "overviewServers":
 
         server_status = (serv1, serv2, return_out)
         return server_status
-
 
     async def get_runner_overviewServers(**kwargs):
         import http.cookies
@@ -768,7 +764,6 @@ if act == "overviewServers":
         servers_sorted = sorted(servers, key=funct.get_key)
         template = template.render(service_status=servers_sorted, role=role, id=kwargs.get('id'), service_page=service)
         print(template)
-
 
     server_id = form.getvalue('id')
     name = form.getvalue('name')
@@ -1703,9 +1698,9 @@ if form.getvalue('git_backup'):
         branch = 'main'
 
     commands = ["chmod +x " + script + " &&  ./" + script + " HOST=" + server_ip + " DELJOB=" + deljob +
-                    " SERVICE=" + service_name + " INIT=" + git_init + " SSH_PORT=" + ssh_port + " PERIOD=" + period +
-                    " REPO=" + repo +  " BRANCH=" + branch + " CONFIG_DIR=" + service_config_dir +
-                    " PROXY=" + proxy_serv + " USER=" + str(ssh_user_name) + " KEY=" + str(ssh_key_name)]
+                " SERVICE=" + service_name + " INIT=" + git_init + " SSH_PORT=" + ssh_port + " PERIOD=" + period +
+                " REPO=" + repo + " BRANCH=" + branch + " CONFIG_DIR=" + service_config_dir +
+                " PROXY=" + proxy_serv + " USER=" + str(ssh_user_name) + " KEY=" + str(ssh_key_name)]
 
     output, error = funct.subprocess_execute(commands[0])
 
@@ -2129,7 +2124,6 @@ if form.getvalue('newuser') is not None:
     group = form.getvalue('newgroupuser')
     role_id = sql.get_role_id_by_name(role)
 
-
     if funct.check_user_group():
         if funct.is_admin(level=role_id):
             if sql.add_user(new_user, email, password, role, activeuser, group):
@@ -2341,7 +2335,7 @@ if form.getvalue('newgroup') is not None:
 
             output_from_parsed_template = template.render(groups=sql.select_groups(group=newgroup))
             print(output_from_parsed_template)
-            funct.logging('localhost','A new group ' + newgroup + ' has been created', haproxywi=1, login=1)
+            funct.logging('localhost', 'A new group ' + newgroup + ' has been created', haproxywi=1, login=1)
 
 if form.getvalue('groupdel') is not None:
     groupdel = form.getvalue('groupdel')
@@ -2387,7 +2381,7 @@ if form.getvalue('new_ssh'):
             output_from_parsed_template = template.render(groups=sql.select_groups(), sshs=sql.select_ssh(name=name),
                                                           page=page)
             print(output_from_parsed_template)
-            funct.logging('localhost', 'A new SSH credentials ' + name +' has created', haproxywi=1, login=1)
+            funct.logging('localhost', 'A new SSH credentials ' + name + ' has created', haproxywi=1, login=1)
 
 if form.getvalue('sshdel') is not None:
     fullpath = funct.get_config_var('main', 'fullpath')
@@ -2565,7 +2559,7 @@ if form.getvalue('updatesettings') is not None:
     settings = form.getvalue('updatesettings')
     val = form.getvalue('val')
     if sql.update_setting(settings, val):
-        funct.logging('localhost', 'The ' + settings +' setting has been changed to: ' + val, haproxywi=1, login=1)
+        funct.logging('localhost', 'The ' + settings + ' setting has been changed to: ' + val, haproxywi=1, login=1)
         print("Ok")
 
 if form.getvalue('getuserservices'):
@@ -2726,7 +2720,6 @@ if form.getvalue('updateSmonIp') is not None:
     if port == 443 and http == 'http':
         print('SMON error: Cannot be HTTP with 443 port')
         sys.exit()
-
 
     if sql.update_smon(smon_id, ip, port, body, telegram, slack, group, desc, en):
         print("Ok")
@@ -3496,7 +3489,7 @@ if form.getvalue('awseditworkspace'):
             cmd = 'cd scripts/terraform/ && sudo terraform workspace select ' + workspace + '_' + group + '_aws'
             output, stderr = funct.subprocess_execute(cmd)
         except Exception as e:
-            print('error: ' +str(e))
+            print('error: ' + str(e))
 
         if stderr != '':
             stderr = stderr.strip()
@@ -3509,14 +3502,15 @@ if form.getvalue('awseditworkspace'):
             print('ok')
 
 if (
-        form.getvalue('awsprovisining') or
-        form.getvalue('awseditingprovisining') or
-        form.getvalue('doprovisining') or
-        form.getvalue('doeditprovisining') or
-        form.getvalue('gcoreprovisining') or
-        form.getvalue('gcoreeditgprovisining')
-    ):
+    form.getvalue('awsprovisining') or
+    form.getvalue('awseditingprovisining') or
+    form.getvalue('doprovisining') or
+    form.getvalue('doeditprovisining') or
+    form.getvalue('gcoreprovisining') or
+    form.getvalue('gcoreeditgprovisining')
+):
     funct.check_user_group()
+
     if form.getvalue('awsprovisining'):
         workspace = form.getvalue('awsprovisining')
         group = form.getvalue('aws_create_group')
@@ -3923,7 +3917,7 @@ if form.getvalue('loadopenvpn'):
     if (
         (stdout[0] != 'package openvpn3-client is not installed' and stderr != '/bin/sh: rpm: command not found') and
         stdout[0] != 'E: No packages found'
-        ):
+    ):
         cmd = "sudo openvpn3 configs-list |grep -E 'ovpn|(^|[^0-9])[0-9]{4}($|[^0-9])' |grep -v net|awk -F\"    \" '{print $1}'|awk 'ORS=NR%2?\" \":\"\\n\"'"
         openvpn_configs, stderr = funct.subprocess_execute(cmd)
         cmd = "sudo openvpn3 sessions-list|grep -E 'Config|Status'|awk -F\":\" '{print $2}'|awk 'ORS=NR%2?\" \":\"\\n\"'| sed 's/^ //g'"

@@ -16,11 +16,11 @@ funct.check_login(service=1)
 funct.page_for_admin(level=3)
 
 if (
-		form.getvalue('mode') is None and
-		form.getvalue('new_userlist') is None and
-		form.getvalue('peers-name') is None and
-		form.getvalue('generateconfig') is None
-	):
+	form.getvalue('mode') is None and
+	form.getvalue('new_userlist') is None and
+	form.getvalue('peers-name') is None and
+	form.getvalue('generateconfig') is None
+):
 	try:
 		user, user_id, role, token, servers, user_services = funct.get_users_params(haproxy=1)
 		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
@@ -154,7 +154,7 @@ elif form.getvalue('mode') is not None:
 	if form.getvalue('option') is not None:
 		options = form.getvalue('option')
 		i = options.split("\n")
-		for j in i:	
+		for j in i:
 			options_split += "    " + j + "\n"
 
 	if force_close == "1":
@@ -262,7 +262,7 @@ elif form.getvalue('mode') is not None:
 		default_server = '    default-server ' + observe + error_limit + circuit_breaking_on_error + '\n'
 		servers_split += default_server
 
-	if form.getvalue('servers') is not None:	
+	if form.getvalue('servers') is not None:
 		servers = form.getlist('servers')
 		server_port = form.getlist('server_port')
 		send_proxy = form.getlist('send_proxy')
@@ -337,27 +337,27 @@ elif form.getvalue('mode') is not None:
 if form.getvalue('new_userlist') is not None:
 	name = "userlist "+form.getvalue('new_userlist') + "\n"
 
-	new_userlist_groups = ""	
-	if form.getvalue('userlist-group') is not None:	
+	new_userlist_groups = ""
+	if form.getvalue('userlist-group') is not None:
 		groups = form.getlist('userlist-group')
 		for group in groups:
 			new_userlist_groups += "    group " + group + "\n"
 
-	new_users_list = ""	
-	if form.getvalue('userlist-user') is not None:	
+	new_users_list = ""
+	if form.getvalue('userlist-user') is not None:
 		users = form.getlist('userlist-user')
 		passwords = form.getlist('userlist-password')
 		userlist_user_group = form.getlist('userlist-user-group')
 		i = 0
 
 		for user in users:
-			try: 
+			try:
 				group = ' groups '+userlist_user_group[i]
 			except Exception:
 				group = ''
 			new_users_list += "    user "+user+" insecure-password " + passwords[i] + group + "\n"
 			i += 1
-		
+
 	config_add = "\n" + name + new_userlist_groups + new_users_list
 
 if form.getvalue('peers-name') is not None:
