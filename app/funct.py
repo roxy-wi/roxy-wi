@@ -9,7 +9,9 @@ def is_ip_or_dns(server_from_request: str) -> str:
 	ip_regex = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
 	dns_regex = "^(?!-)[A-Za-z0-9-]+([\\-\\.]{1}[a-z0-9]+)*\\.[A-Za-z]{2,6}$"
 	try:
-		if server_from_request in ('roxy-wi', 'fail2ban', 'prometheus', 'all', 'grafana-server', 'rabbitmq-server'):
+		if server_from_request in ('roxy-wi-checker', 'roxy-wi-keep_alive', 'roxy-wi-keep-alive', 'roxy-wi-metrics',
+								   'roxy-wi-portscanner', 'roxy-wi-smon', 'roxy-wi-socket',
+								   'fail2ban', 'prometheus', 'all', 'grafana-server', 'rabbitmq-server'):
 			return server_from_request
 		if re.match(ip_regex, server_from_request):
 			return server_from_request
@@ -143,7 +145,6 @@ def logging(server_ip, action, **kwargs):
 		except:
 			login = ''
 
-
 	try:
 		if distro.id() == 'ubuntu':
 			os.system('sudo chown www-data:www-data -R ' + log_path)
@@ -180,7 +181,7 @@ def logging(server_ip, action, **kwargs):
 		log.write(mess)
 		log.close()
 	except IOError as e:
-		print('<center><div class="alert alert-danger">Can\'t write log. Please check log_path in config %e</div></center>' % e)
+		print('<center><div class="alert alert-danger">Cannot write log. Please check log_path in config %e</div></center>' % e)
 		
 		
 def keep_action_history(service: str, action: str, server_ip: str, login: str, user_ip: str):
@@ -267,6 +268,7 @@ def slack_send_mess(mess, **kwargs):
 def check_login(**kwargs):
 	import sql
 	import http.cookies
+	user_uuid = None
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	try:
 		user_uuid = cookie.get('uuid')
@@ -432,9 +434,8 @@ def get_config(server_ip, cfg, **kwargs):
 		sftp = ssh.open_sftp()
 	except Exception as e:
 		logging('localhost', str(e), haproxywi=1)
-		sftp.close()
-		ssh.close()
 		return
+
 	try:
 		sftp.get(config_path, cfg)
 	except Exception as e:
@@ -442,6 +443,7 @@ def get_config(server_ip, cfg, **kwargs):
 		sftp.close()
 		ssh.close()
 		return
+
 	try:
 		sftp.close()
 		ssh.close()
@@ -1991,7 +1993,7 @@ def return_user_status():
 	return user_status, user_plan
 
 
-def get_correct_apache_service_name(server_ip=0, server_id=0):
+def get_correct_apache_service_name(server_ip=0, server_id=0) -> str:
 	import sql
 
 	if server_id == 0:
@@ -2005,7 +2007,7 @@ def get_correct_apache_service_name(server_ip=0, server_id=0):
 		return 'apache2'
 
 
-def is_docker():
+def is_docker() -> bool:
 	import os, re
 
 	path = "/proc/self/cgroup"

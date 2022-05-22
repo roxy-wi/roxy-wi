@@ -701,7 +701,7 @@ if act == "overviewwaf":
             if waf_len >= 1:
                 command = ["ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l"]
                 commands1 = [
-                    "cat %s/waf/modsecurity.conf |grep SecRuleEngine |grep -v '#' |awk '{print $2}'" % haproxy_path]
+                    "grep SecRuleEngine %s/waf/modsecurity.conf |grep -v '#' |awk '{print $2}'" % haproxy_path]
                 waf_process = funct.ssh_command(server[2], command)
                 waf_mode = funct.ssh_command(server[2], commands1).strip()
 
