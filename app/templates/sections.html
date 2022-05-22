@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
+{% if is_serv_protected and role > 2 %}
+<meta http-equiv="refresh" content="0; url=/app/hapservers.py?service={{service}}">
+{% else %}
 <link rel="stylesheet" href="/inc/codemirror/codemirror.css">
 <script src="/inc/codemirror/codemirror.js"></script>
 <script src="/inc/codemirror/nginx.js"></script>
@@ -74,4 +77,5 @@
 	{% endif %}
 	</div>
 </div>
+{% endif %}
 {% endblock %}

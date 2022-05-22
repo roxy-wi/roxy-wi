@@ -571,6 +571,22 @@ def update_db_v_5_3_0(**kwargs):
 				{'param': 'haproxy_container_name', 'value': 'haproxy', 'section': 'haproxy',
 				 'desc': 'Docker container name for HAProxy service',
 				 'group': g.group_id},
+				{'param': 'apache_path_logs', 'value': '/var/log/httpd/', 'section': 'apache',
+				 'desc': 'The path for Apache logs', 'group': g.group_id},
+				{'param': 'apache_stats_user', 'value': 'admin', 'section': 'apache',
+				 'desc': 'Username for accessing Apache stats page', 'group': g.group_id},
+				{'param': 'apache_stats_password', 'value': 'password', 'section': 'apache',
+				 'desc': 'Password for Apache stats webpage', 'group': g.group_id},
+				{'param': 'apache_stats_port', 'value': '8087', 'section': 'apache', 'desc': 'Stats port for webpage Apache',
+				 'group': g.group_id},
+				{'param': 'apache_stats_page', 'value': 'stats', 'section': 'apache', 'desc': 'URI Stats for webpage Apache',
+				 'group': g.group_id},
+				{'param': 'apache_dir', 'value': '/etc/httpd/', 'section': 'apache',
+				 'desc': 'Path to the Apache directory with config files', 'group': g.group_id},
+				{'param': 'apache_config_path', 'value': '/etc/httpd/conf/httpd.conf', 'section': 'apache',
+				 'desc': 'Path to the main Apache configuration file', 'group': g.group_id},
+				{'param': 'apache_container_name', 'value': 'apache', 'section': 'apache',
+				 'desc': 'Docker container name for Apache service', 'group': g.group_id},
 			]
 
 			try:

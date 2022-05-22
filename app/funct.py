@@ -9,11 +9,7 @@ def is_ip_or_dns(server_from_request: str) -> str:
 	ip_regex = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
 	dns_regex = "^(?!-)[A-Za-z0-9-]+([\\-\\.]{1}[a-z0-9]+)*\\.[A-Za-z]{2,6}$"
 	try:
-		if ('roxy-wi' in server_from_request or
-			'fail2ban' in server_from_request or
-			'prometheus' in server_from_request or
-			'all' in server_from_request or
-			'grafana-server' in server_from_request):
+		if server_from_request in ('roxy-wi', 'fail2ban', 'prometheus', 'all', 'grafana-server', 'rabbitmq-server'):
 			return server_from_request
 		if re.match(ip_regex, server_from_request):
 			return server_from_request
@@ -522,20 +518,18 @@ def get_sections(config, **kwargs):
 				if find_ip:
 					return_config.append(find_ip[0])
 			else:
-				if (
-					line.startswith('listen') or
-					line.startswith('frontend') or
-					line.startswith('backend') or
-					line.startswith('cache') or
-					line.startswith('defaults') or
-					line.startswith('global') or
-					line.startswith('#HideBlockEnd') or
-					line.startswith('#HideBlockStart') or
-					line.startswith('peers') or
-					line.startswith('resolvers') or
-					line.startswith('userlist') or
-					line.startswith('http-errors')
-					):
+				if line.startswith(('global',
+									'listen',
+									'frontend',
+									'backend',
+									'cache',
+									'defaults',
+									'#HideBlockStart',
+									'#HideBlockEnd',
+									'peers',
+									'resolvers',
+									'userlist',
+									'http-errors')):
 					line = line.strip()
 					return_config.append(line)
 
@@ -555,20 +549,18 @@ def get_section_from_config(config, section):
 				record = True
 				continue
 			if record:
-				if (
-					line.startswith('listen') or
-					line.startswith('frontend') or
-					line.startswith('backend') or
-					line.startswith('cache') or
-					line.startswith('defaults') or
-					line.startswith('global') or
-					line.startswith('#HideBlockEnd') or
-					line.startswith('#HideBlockStart') or
-					line.startswith('peers') or
-					line.startswith('resolvers') or
-					line.startswith('userlist') or
-					line.startswith('http-errors')
-					):
+				if line.startswith(('global',
+									'listen',
+									'frontend',
+									'backend',
+									'cache',
+									'defaults',
+									'#HideBlockStart',
+									'#HideBlockEnd',
+									'peers',
+									'resolvers',
+									'userlist',
+									'http-errors')):
 					record = False
 					end_line = index
 					end_line = end_line - 1

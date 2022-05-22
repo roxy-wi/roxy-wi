@@ -47,7 +47,7 @@ if serv is not None and section is not None:
 
 if serv is not None and form.getvalue('config') is not None:
 	try:
-		funct.logging(serv, "config.py edited config")
+		funct.logging(serv, "sections.py edited config")
 	except Exception:
 		pass
 		
@@ -69,7 +69,10 @@ if serv is not None and form.getvalue('config') is not None:
 	except IOError:
 		error = "Can't read import config file"
 	
-	stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save=save)
+	stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save=save, oldcfg=oldcfg)
+
+	if "is valid" in stderr:
+		stderr = ''
 		
 	funct.diff_config(oldcfg, cfg)
 	

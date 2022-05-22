@@ -1798,16 +1798,10 @@ def get_setting(param, **kwargs):
 			return query_res
 		else:
 			for setting in query_res:
-				if (
-					param == 'nginx_stats_port' or param == 'session_ttl' or param == 'token_ttl' or
-					param == 'stats_port' or param == 'haproxy_sock_port' or param == 'ldap_type' or
-					param == 'ldap_port' or param == 'ldap_enable' or param == 'log_time_storage' or
-					param == 'syslog_server_enable' or param == 'smon_check_interval' or
-					param == 'checker_check_interval' or param == 'port_scan_interval' or
-					param == 'smon_keep_history_range' or param == 'checker_keep_history_range' or
-					param == 'portscanner_keep_history_range' or param == 'checker_maxconn_threshold' or
-					param == 'apache_stats_port'
-				):
+				if param in ('nginx_stats_port', 'session_ttl', 'token_ttl', 'stats_port', 'haproxy_sock_port', 'ldap_type',
+					'ldap_port', 'ldap_enable', 'log_time_storage', 'syslog_server_enable', 'smon_check_interval',
+					'checker_check_interval', 'port_scan_interval', 'smon_keep_history_range', 'checker_keep_history_range',
+					'portscanner_keep_history_range', 'checker_maxconn_threshold', 'apache_stats_port'):
 					return int(setting.value)
 				else:
 					return setting.value
