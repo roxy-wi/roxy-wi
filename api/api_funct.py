@@ -1,7 +1,7 @@
 import os
 import sys
 import json
-from bottle import route, run, template, hook, response, request, post
+from bottle import route, run, hook, response, request, post
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app/'))
 
 import sql
@@ -28,17 +28,17 @@ def get_token():
 		login = login_pass['login']
 		password_from_user = login_pass['password']
 	except Exception as e:
-		return 'error getting credentials: '+str(e)
+		return 'error getting credentials: ' + str(e)
 	try:
 		group_name = login_pass['group']
 		group_id = sql.get_group_id_by_name(group_name)
 	except Exception as e:
-		return 'error getting group: '+str(e)
+		return 'error getting group: ' + str(e)
 	try:
 		users = sql.select_users(user=login)
 		password = funct.get_hash(password_from_user)
 	except Exception as e:
-		return 'error one more: '+str(e)
+		return 'error one more: ' + str(e)
 
 	for user in users:
 		if user.activeuser == 0:
@@ -179,9 +179,12 @@ def get_status(server_id, service):
 						for k in out:
 							servers_with_status.append(k)
 					json_for_sending = {
-						server_id: {"Version": servers_with_status[0][0].split('/')[1],
-									"Uptime": servers_with_status[0][1].split(':')[1].strip(),
-									"Process": servers_with_status[0][2].split(' ')[1]}}
+						server_id: {
+							"Version": servers_with_status[0][0].split('/')[1],
+							"Uptime": servers_with_status[0][1].split(':')[1].strip(),
+							"Process": servers_with_status[0][2].split(' ')[1]
+						}
+					}
 					data = json_for_sending
 				except Exception as e:
 					data = {server_id: {"error": "Cannot get status: " + str(e)}}
@@ -230,7 +233,7 @@ def actions(server_id, action, service):
 		for s in servers:
 			if service == 'apache':
 				service = funct.get_correct_apache_service_name(server_ip=s[2])
-			cmd = [ "sudo systemctl %s %s" % (action, service) ]
+			cmd = ["sudo systemctl %s %s" % (action, service)]
 			error = funct.ssh_command(s[2], cmd)
 			done = error if error else 'done'
 
@@ -250,7 +253,7 @@ def runtime(server_id):
 		action = json_loads['command']
 		haproxy_sock = sql.get_setting('haproxy_sock')
 		servers = check_permit_to_server(server_id)
-		cmd = [ 'echo "%s" |sudo socat stdio %s' % (action, haproxy_sock) ]
+		cmd = ['echo "%s" |sudo socat stdio %s' % (action, haproxy_sock)]
 		
 		for s in servers:
 			out = funct.ssh_command(s[2], cmd)
@@ -291,9 +294,9 @@ def get_config(server_id, **kwargs):
 		servers = check_permit_to_server(server_id)
 		
 		for s in servers:
-			cfg = '/tmp/'+s[2]+'.cfg'
+			cfg = '/tmp/' + s[2] + '.cfg'
 			out = funct.get_config(s[2], cfg, service=service, config_file_name=kwargs.get('config_path'))
-			os.system("sed -i 's/\\n/\n/g' "+cfg)
+			os.system("sed -i 's/\\n/\n/g' " + cfg)
 		try:
 			conf = open(cfg, "r")
 			config_read = conf.read()
@@ -360,7 +363,7 @@ def edit_section(server_id):
 				out = funct.master_slave_upload_and_restart(ip, cfg, save, login=login)
 				funct.logging('localhost', " section " + section_name + " has been edited via API", login=login)
 				funct.logging(ip, 'Section ' + section_name + ' has been edited via API', haproxywi=1, login=login,
-							  keep_history=1, service='haproxy')
+							keep_history=1, service='haproxy')
 
 				if out:
 					return_mess = out
@@ -411,7 +414,7 @@ def upload_config(server_id, **kwargs):
 
 		for s in servers:
 			ip = s[2]
-		cfg = '/tmp/'+ip+'.cfg'
+		cfg = '/tmp/' + ip + '.cfg'
 		cfg_for_save = configs_dir + ip + "-" + funct.get_data('config') + ".cfg"
 
 		try:
@@ -429,7 +432,7 @@ def upload_config(server_id, **kwargs):
 
 			funct.logging('localhost', " config has been uploaded via API", login=login)
 			funct.logging(ip, 'Config has been uploaded via API', haproxywi=1, login=login,
-						  keep_history=1, service=service_name)
+						keep_history=1, service=service_name)
 
 			if out:
 				return_mess = out
@@ -467,7 +470,7 @@ def add_to_config(server_id):
 		out = funct.get_config(ip, cfg)
 		try:
 			with open(cfg, "a") as conf:
-				conf.write('\n'+body+'\n')
+				conf.write('\n' + body + '\n')
 
 			return_mess = 'section has been added to the config'
 			os.system("/bin/cp %s %s" % (cfg, cfg_for_save))

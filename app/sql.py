@@ -123,7 +123,8 @@ def add_setting_for_new_group(group_id):
 	group_id = str(group_id)
 	data_source = [
 		{'param': 'time_zone', 'value': 'UTC', 'section': 'main', 'desc': 'Time Zone', 'group': group_id},
-		{'param': 'proxy', 'value': '', 'section': 'main', 'desc': 'IP address and port of the proxy server . Use proto://ip:port',
+		{'param': 'proxy', 'value': '', 'section': 'main',
+		 'desc': 'IP address and port of the proxy server . Use proto://ip:port',
 		 'group': group_id},
 		{'param': 'session_ttl', 'value': '5', 'section': 'main', 'desc': 'TTL for a user session (in days)',
 		 'group': group_id},
@@ -141,7 +142,8 @@ def add_setting_for_new_group(group_id):
 		 'desc': 'Enable getting logs from a syslog server; (0 - no, 1 - yes)', 'group': group_id},
 		{'param': 'syslog_server', 'value': '', 'section': 'logs', 'desc': 'IP address of the syslog_server',
 		 'group': group_id},
-		{'param': 'stats_user', 'value': 'admin', 'section': 'haproxy', 'desc': 'Username for accessing HAProxy stats page',
+		{'param': 'stats_user', 'value': 'admin', 'section': 'haproxy',
+		 'desc': 'Username for accessing HAProxy stats page',
 		 'group': group_id},
 		{'param': 'stats_password', 'value': 'password', 'section': 'haproxy',
 		 'desc': 'Password for accessing HAProxy stats page', 'group': group_id},
@@ -151,9 +153,11 @@ def add_setting_for_new_group(group_id):
 		 'group': group_id},
 		{'param': 'haproxy_dir', 'value': '/etc/haproxy', 'section': 'haproxy', 'desc': 'Path to the HAProxy directory',
 		 'group': group_id},
-		{'param': 'haproxy_config_path', 'value': '/etc/haproxy/haproxy.cfg', 'section': 'haproxy', 'desc': 'Path to the HAProxy configuration file',
+		{'param': 'haproxy_config_path', 'value': '/etc/haproxy/haproxy.cfg', 'section': 'haproxy',
+		 'desc': 'Path to the HAProxy configuration file',
 		 'group': group_id},
-		{'param': 'server_state_file', 'value': '/etc/haproxy/haproxy.state', 'section': 'haproxy', 'desc': 'Path to the HAProxy state file',
+		{'param': 'server_state_file', 'value': '/etc/haproxy/haproxy.state', 'section': 'haproxy',
+		 'desc': 'Path to the HAProxy state file',
 		 'group': group_id},
 		{'param': 'haproxy_sock', 'value': '/var/run/haproxy.sock', 'section': 'haproxy',
 		 'desc': 'Path to the HAProxy sock file', 'group': group_id},
@@ -161,7 +165,8 @@ def add_setting_for_new_group(group_id):
 		 'group': group_id},
 		{'param': 'nginx_path_logs', 'value': '/var/log/nginx/', 'section': 'nginx',
 		 'desc': 'NGINX error log', 'group': group_id},
-		{'param': 'nginx_stats_user', 'value': 'admin', 'section': 'nginx', 'desc': 'Username for accessing NGINX stats page',
+		{'param': 'nginx_stats_user', 'value': 'admin', 'section': 'nginx',
+		 'desc': 'Username for accessing NGINX stats page',
 		 'group': group_id},
 		{'param': 'nginx_stats_password', 'value': 'password', 'section': 'nginx',
 		 'desc': 'Password for accessing NGINX stats page', 'group': group_id},
@@ -175,22 +180,26 @@ def add_setting_for_new_group(group_id):
 		 'desc': 'Path to the main NGINX configuration file', 'group': group_id},
 		{'param': 'ldap_enable', 'value': '0', 'section': 'ldap', 'desc': 'Enable LDAP (1 - yes, 0 - no)',
 		 'group': group_id},
-		{'param': 'ldap_server', 'value': '', 'section': 'ldap', 'desc': 'IP address of the LDAP server', 'group': group_id},
-		{'param': 'ldap_port', 'value': '389', 'section': 'ldap', 'desc': 'LDAP port (port 389 or 636 is used by default)',
+		{'param': 'ldap_server', 'value': '', 'section': 'ldap', 'desc': 'IP address of the LDAP server',
+		 'group': group_id},
+		{'param': 'ldap_port', 'value': '389', 'section': 'ldap',
+		 'desc': 'LDAP port (port 389 or 636 is used by default)',
 		 'group': group_id},
 		{'param': 'ldap_user', 'value': '', 'section': 'ldap',
 		 'desc': 'LDAP username. Format: user@domain.com', 'group': group_id},
 		{'param': 'ldap_password', 'value': '', 'section': 'ldap', 'desc': 'LDAP password', 'group': group_id},
 		{'param': 'ldap_base', 'value': '', 'section': 'ldap', 'desc': 'Base domain. Example: dc=domain, dc=com',
 		 'group': group_id},
-		{'param': 'ldap_domain', 'value': '', 'section': 'ldap', 'desc': 'LDAP domain for logging in', 'group': group_id},
+		{'param': 'ldap_domain', 'value': '', 'section': 'ldap', 'desc': 'LDAP domain for logging in',
+		 'group': group_id},
 		{'param': 'ldap_class_search', 'value': 'user', 'section': 'ldap', 'desc': 'Class for searching the user',
 		 'group': group_id},
 		{'param': 'ldap_user_attribute', 'value': 'sAMAccountName', 'section': 'ldap',
 		 'desc': 'Attribute to search users by', 'group': group_id},
 		{'param': 'ldap_search_field', 'value': 'mail', 'section': 'ldap',
 		 'desc': 'User\'s email address', 'group': group_id},
-		{'param': 'ldap_type', 'value': '0', 'section': 'ldap', 'desc': 'Use LDAPS (1 - yes, 0 - no)', 'group': group_id},
+		{'param': 'ldap_type', 'value': '0', 'section': 'ldap', 'desc': 'Use LDAPS (1 - yes, 0 - no)',
+		 'group': group_id},
 		{'param': 'apache_path_logs', 'value': '/var/log/httpd/', 'section': 'apache',
 		 'desc': 'The path for Apache logs', 'group': group_id},
 		{'param': 'apache_stats_user', 'value': 'admin', 'section': 'apache',
@@ -253,7 +262,8 @@ def update_group(name, descript, group_id):
 def add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, apache, firewall):
 	try:
 		Server.insert(hostname=hostname, ip=ip, groups=group, type_ip=typeip, enable=enable, master=master, cred=cred,
-					  port=port, desc=desc, haproxy=haproxy, nginx=nginx, apache=apache, firewall_enable=firewall).execute()
+					  port=port, desc=desc, haproxy=haproxy, nginx=nginx, apache=apache,
+					  firewall_enable=firewall).execute()
 		return True
 	except Exception as e:
 		out_error(e)
@@ -289,7 +299,8 @@ def update_hapwi_server(server_id, alert, metrics, active, service_name):
 		out_error(e)
 
 
-def update_server(hostname, group, typeip, enable, master, server_id, cred, port, desc, haproxy, nginx, apache, firewall, protected):
+def update_server(hostname, group, typeip, enable, master, server_id, cred, port, desc, haproxy, nginx, apache,
+				  firewall, protected):
 	try:
 		server_update = Server.update(hostname=hostname,
 									  groups=group,
@@ -329,21 +340,21 @@ def select_users(**kwargs):
 	elif kwargs.get("group") is not None:
 		query = (User.
 				 select(
-					User,
-					UserGroups,
-					Case(0, [((
-						User.last_login_date >= funct.get_data('regular', timedelta_minutes_minus=15)
-							  ), 0)], 1).alias('last_login')).
+			User,
+			UserGroups,
+			Case(0, [((
+							  User.last_login_date >= funct.get_data('regular', timedelta_minutes_minus=15)
+					  ), 0)], 1).alias('last_login')).
 				 join(UserGroups, on=(User.user_id == UserGroups.user_id)).
 				 where(UserGroups.user_group_id == kwargs.get("group"))
 				 )
 	else:
 		query = User.select(
-					User,
-					Case(0, [((
-						User.last_login_date >= funct.get_data('regular', timedelta_minutes_minus=15)
-							  ), 0)], 1).alias('last_login')
-				).order_by(User.user_id)
+			User,
+			Case(0, [((
+							  User.last_login_date >= funct.get_data('regular', timedelta_minutes_minus=15)
+					  ), 0)], 1).alias('last_login')
+		).order_by(User.user_id)
 
 	try:
 		query_res = query.execute()
@@ -490,7 +501,7 @@ def select_server_ip_by_id(server_id):
 
 def select_servers(**kwargs):
 	cursor = conn.cursor()
-	
+
 	if mysql_enable == '1':
 
 		sql = """select * from `servers` where `enable` = 1 ORDER BY servers.groups """
@@ -512,7 +523,8 @@ def select_servers(**kwargs):
 		if kwargs.get("hostname"):
 			sql = """select * from `servers` where `hostname` = '{}' """.format(kwargs.get("hostname"))
 		if kwargs.get("id_hostname"):
-			sql = """select * from `servers` where `hostname` ='{}' or id = '{}' or ip = '{}'""".format(kwargs.get("id_hostname"), kwargs.get("id_hostname"), kwargs.get("id_hostname"))
+			sql = """select * from `servers` where `hostname` ='{}' or id = '{}' or ip = '{}'""".format(
+				kwargs.get("id_hostname"), kwargs.get("id_hostname"), kwargs.get("id_hostname"))
 		if kwargs.get("server") and kwargs.get("keep_alive"):
 			sql = """select active from `servers` where `ip` = '{}' """.format(kwargs.get("server"))
 	else:
@@ -535,7 +547,8 @@ def select_servers(**kwargs):
 		if kwargs.get("hostname"):
 			sql = """select * from servers where hostname = '{}' """.format(kwargs.get("hostname"))
 		if kwargs.get("id_hostname"):
-			sql = """select * from servers where hostname = '{}' or id = '{}' or ip = '{}'""".format(kwargs.get("id_hostname"), kwargs.get("id_hostname"), kwargs.get("id_hostname"))
+			sql = """select * from servers where hostname = '{}' or id = '{}' or ip = '{}'""".format(
+				kwargs.get("id_hostname"), kwargs.get("id_hostname"), kwargs.get("id_hostname"))
 		if kwargs.get("server") and kwargs.get("keep_alive"):
 			sql = """select active from servers where ip = '{}' """.format(kwargs.get("server"))
 
@@ -810,7 +823,7 @@ def get_dick_permit(**kwargs):
 	ip = ''
 
 	if kwargs.get('virt'):
-		type_ip = ""
+		type_ip = "and type_ip = 1"
 	else:
 		type_ip = "and type_ip = 0"
 	if kwargs.get('disable') == 0:
@@ -831,16 +844,30 @@ def get_dick_permit(**kwargs):
 		try:
 			if mysql_enable == '1':
 				if grp == '1' and not only_group:
-					sql = """ select * from `servers` order by `pos` desc"""
+					sql = """ select * from `servers` where {} {} {} {} {} {} {} order by `pos` desc""".format(disable,
+																								type_ip,
+																								nginx,
+																								haproxy,
+																								keepalived,
+																								apache,
+																								ip)
 				else:
 					sql = """ select * from `servers` where `groups` = {group} and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} {apache} order by `pos` desc
-							""".format(group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx, keepalived=keepalived, apache=apache)
+							""".format(group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx,
+									   keepalived=keepalived, apache=apache)
 			else:
 				if grp == '1' and not only_group:
-					sql = """ select * from servers order by pos"""
+					sql = """ select * from servers where {} {} {} {} {} {} {} order by pos""".format(disable,
+																								type_ip,
+																								nginx,
+																								haproxy,
+																								keepalived,
+																								apache,
+																								ip)
 				else:
 					sql = """ select * from servers where groups = '{group}' and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} {apache} order by pos
-							""".format(group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx, keepalived=keepalived, apache=apache)
+							""".format(group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx,
+									   keepalived=keepalived, apache=apache)
 
 		except Exception as e:
 			print(str(e))
@@ -955,7 +982,7 @@ def select_backups(**kwargs):
 
 def update_backup(server, rserver, rpath, backup_type, time, cred, description, backup_id):
 	backup_update = Backup.update(server=server, rhost=rserver, rpath=rpath, backup_type=backup_type, time=time,
-								cred=cred, description=description).where(Backup.id == backup_id)
+								  cred=cred, description=description).where(Backup.id == backup_id)
 	try:
 		backup_update.execute()
 	except Exception as e:
@@ -1081,6 +1108,7 @@ def update_slack(token, chanel, group, slack_id):
 	else:
 		return True
 
+
 def insert_new_option(saved_option, group):
 	try:
 		Option.insert(options=saved_option, groups=group).execute()
@@ -1095,7 +1123,8 @@ def select_options(**kwargs):
 	if kwargs.get('option'):
 		query = Option.select().where(Option.options == kwargs.get('option'))
 	elif kwargs.get('group'):
-		query = Option.select(Option.options).where((Option.groups == kwargs.get('group')) & (Option.options.startswith(kwargs.get('term'))))
+		query = Option.select(Option.options).where(
+			(Option.groups == kwargs.get('group')) & (Option.options.startswith(kwargs.get('term'))))
 	else:
 		query = Option.select()
 	try:
@@ -1187,7 +1216,7 @@ def insert_metrics(serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate):
 def insert_metrics_http(serv, http_2xx, http_3xx, http_4xx, http_5xx):
 	try:
 		MetricsHttpStatus.insert(serv=serv, ok_ans=http_2xx, redir_ans=http_3xx, not_found_ans=http_4xx,
-					   err_ans=http_5xx, date=funct.get_data('regular')).execute()
+								 err_ans=http_5xx, date=funct.get_data('regular')).execute()
 	except Exception as e:
 		out_error(e)
 
@@ -1271,7 +1300,8 @@ def select_waf_metrics(serv, **kwargs):
 			date_from = "and date > now() - INTERVAL 720 minute group by `date` div 500"
 		else:
 			date_from = "and date > now() - INTERVAL 30 minute"
-		sql = """ select * from waf_metrics where serv = '{serv}' {date_from} order by `date` desc limit 60 """.format(serv=serv, date_from=date_from)
+		sql = """ select * from waf_metrics where serv = '{serv}' {date_from} order by `date` desc limit 60 """.format(
+			serv=serv, date_from=date_from)
 	else:
 		if kwargs.get('time_range') == '60':
 			date_from = "and date > datetime('now', '-60 minutes', 'localtime') and rowid % 2 = 0"
@@ -1283,7 +1313,8 @@ def select_waf_metrics(serv, **kwargs):
 			date_from = "and date > datetime('now', '-720 minutes', 'localtime') and rowid % 9 = 0"
 		else:
 			date_from = "and date > datetime('now', '-30 minutes', 'localtime')"
-		sql = """ select * from (select * from waf_metrics where serv = '{serv}' {date_from} order by `date`) order by `date` """.format(serv=serv, date_from=date_from)
+		sql = """ select * from (select * from waf_metrics where serv = '{serv}' {date_from} order by `date`) order by `date` """.format(
+			serv=serv, date_from=date_from)
 
 	try:
 		cursor.execute(sql)
@@ -1307,7 +1338,8 @@ def select_nginx_metrics(serv, **kwargs):
 			date_from = "and date > now() - INTERVAL 720 minute group by `date` div 500"
 		else:
 			date_from = "and date > now() - INTERVAL 30 minute"
-		sql = """ select * from nginx_metrics where serv = '{serv}' {date_from} order by `date` desc limit 60 """.format(serv=serv, date_from=date_from)
+		sql = """ select * from nginx_metrics where serv = '{serv}' {date_from} order by `date` desc limit 60 """.format(
+			serv=serv, date_from=date_from)
 	else:
 		if kwargs.get('time_range') == '60':
 			date_from = "and date > datetime('now', '-60 minutes', 'localtime') and rowid % 2 = 0"
@@ -1319,7 +1351,8 @@ def select_nginx_metrics(serv, **kwargs):
 			date_from = "and date > datetime('now', '-720 minutes', 'localtime') and rowid % 9 = 0"
 		else:
 			date_from = "and date > datetime('now', '-30 minutes', 'localtime')"
-		sql = """ select * from (select * from nginx_metrics where serv = '{serv}' {date_from} order by `date`) order by `date` """.format(serv=serv, date_from=date_from)
+		sql = """ select * from (select * from nginx_metrics where serv = '{serv}' {date_from} order by `date`) order by `date` """.format(
+			serv=serv, date_from=date_from)
 
 	try:
 		cursor.execute(sql)
@@ -1370,7 +1403,7 @@ def insert_waf_rules(serv):
 		{'serv': serv, 'rule_name': 'Trojans Protections', 'rule_file': 'modsecurity_crs_45_trojans.conf ',
 		 'desc': 'The trojan access detection rules detects access to known Trojans already installed on a server. Uploading of Trojans is part of the Anti-Virus rules  and uses external Anti Virus program when uploading files. Detection of Trojans access is especially important in a hosting environment where the actual Trojan upload may be done through valid methods and not through hacking'},
 		{'serv': serv, 'rule_name': 'RFI Protections', 'rule_file': 'modsecurity_crs_46_slr_et_lfi_attacks.conf',
-		  'desc': 'Remote file inclusion is an attack targeting vulnerabilities in web applications that dynamically reference external scripts. The perpetrator’s goal is to exploit the referencing function in an application to upload malware (e.g., backdoor shells) from a remote URL located within a different domain'},
+		 'desc': 'Remote file inclusion is an attack targeting vulnerabilities in web applications that dynamically reference external scripts. The perpetrator’s goal is to exploit the referencing function in an application to upload malware (e.g., backdoor shells) from a remote URL located within a different domain'},
 		{'serv': serv, 'rule_name': 'RFI Protections 2', 'rule_file': 'modsecurity_crs_46_slr_et_rfi_attacks.conf',
 		 'desc': 'Remote file inclusion is an attack targeting vulnerabilities in web applications that dynamically reference external scripts. The perpetrator’s goal is to exploit the referencing function in an application to upload malware (e.g., backdoor shells) from a remote URL located within a different domain'},
 		{'serv': serv, 'rule_name': 'SQLi Protections', 'rule_file': 'modsecurity_crs_46_slr_et_sqli_attacks.conf',
@@ -1497,7 +1530,8 @@ def select_metrics(serv, **kwargs):
 			date_from = "and date > now() - INTERVAL 720 minute group by `date` div 500"
 		else:
 			date_from = "and date > now() - INTERVAL 30 minute"
-		sql = """ select * from metrics where serv = '{serv}' {date_from} order by `date` asc """.format(serv=serv, date_from=date_from)
+		sql = """ select * from metrics where serv = '{serv}' {date_from} order by `date` asc """.format(serv=serv,
+																										 date_from=date_from)
 	else:
 		if kwargs.get('time_range') == '60':
 			date_from = "and date > datetime('now', '-60 minutes', 'localtime') and rowid % 2 = 0"
@@ -1510,7 +1544,8 @@ def select_metrics(serv, **kwargs):
 		else:
 			date_from = "and date > datetime('now', '-30 minutes', 'localtime')"
 
-		sql = """ select * from (select * from metrics where serv = '{serv}' {date_from} order by `date`) order by `date` """.format(serv=serv, date_from=date_from)
+		sql = """ select * from (select * from metrics where serv = '{serv}' {date_from} order by `date`) order by `date` """.format(
+			serv=serv, date_from=date_from)
 
 	try:
 		cursor.execute(sql)
@@ -1534,7 +1569,8 @@ def select_metrics_http(serv, **kwargs):
 			date_from = "and date > now() - INTERVAL 720 minute group by `date` div 500"
 		else:
 			date_from = "and date > now() - INTERVAL 30 minute"
-		sql = """ select * from metrics_http_status where serv = '{serv}' {date_from} order by `date` desc """.format(serv=serv, date_from=date_from)
+		sql = """ select * from metrics_http_status where serv = '{serv}' {date_from} order by `date` desc """.format(
+			serv=serv, date_from=date_from)
 	else:
 		if kwargs.get('time_range') == '60':
 			date_from = "and date > datetime('now', '-60 minutes', 'localtime') and rowid % 2 = 0"
@@ -1547,7 +1583,8 @@ def select_metrics_http(serv, **kwargs):
 		else:
 			date_from = "and date > datetime('now', '-30 minutes', 'localtime')"
 
-		sql = """ select * from (select * from metrics_http_status where serv = '{serv}' {date_from} order by `date`) order by `date` """.format(serv=serv, date_from=date_from)
+		sql = """ select * from (select * from metrics_http_status where serv = '{serv}' {date_from} order by `date`) order by `date` """.format(
+			serv=serv, date_from=date_from)
 
 	try:
 		cursor.execute(sql)
@@ -1586,7 +1623,8 @@ def select_servers_metrics():
 		if group_id == 1:
 			query = Server.select(Server.ip).where((Server.enable == 1) & (Server.metrics == 1))
 		else:
-			query = Server.select(Server.ip).where((Server.enable == 1) & (Server.groups == group_id) & (Server.metrics == 1))
+			query = Server.select(Server.ip).where(
+				(Server.enable == 1) & (Server.groups == group_id) & (Server.metrics == 1))
 		try:
 			query_res = query.execute()
 		except Exception as e:
@@ -1606,58 +1644,58 @@ def select_table_metrics():
 			groups = "and servers.groups = '{group}' ".format(group=group_id)
 	if mysql_enable == '1':
 		sql = """
-                select ip.ip, hostname, avg_sess_1h, avg_sess_24h, avg_sess_3d, max_sess_1h, max_sess_24h, max_sess_3d, avg_cur_1h, avg_cur_24h, avg_cur_3d, max_con_1h, max_con_24h, max_con_3d from
-                (select servers.ip from servers where metrics = 1 ) as ip,
+				select ip.ip, hostname, avg_sess_1h, avg_sess_24h, avg_sess_3d, max_sess_1h, max_sess_24h, max_sess_3d, avg_cur_1h, avg_cur_24h, avg_cur_3d, max_con_1h, max_con_24h, max_con_3d from
+				(select servers.ip from servers where metrics = 1 ) as ip,
 
-                (select servers.ip, servers.hostname as hostname from servers left join metrics as metr on servers.ip = metr.serv where servers.metrics = 1 %s) as hostname,
+				(select servers.ip, servers.hostname as hostname from servers left join metrics as metr on servers.ip = metr.serv where servers.metrics = 1 %s) as hostname,
 
-                (select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_1h from servers
-                left join metrics as metr on metr.serv = servers.ip
-                where servers.metrics = 1 and
-                metr.date <= now() and metr.date >= DATE_ADD(NOW(), INTERVAL -1 HOUR)
-                group by servers.ip)   as avg_sess_1h,
+				(select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_1h from servers
+				left join metrics as metr on metr.serv = servers.ip
+				where servers.metrics = 1 and
+				metr.date <= now() and metr.date >= DATE_ADD(NOW(), INTERVAL -1 HOUR)
+				group by servers.ip)   as avg_sess_1h,
 
-                (select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_24h from servers
-                left join metrics as metr on metr.serv = servers.ip
-                where servers.metrics = 1 and
-                metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -24 HOUR)
-                group by servers.ip) as avg_sess_24h,
+				(select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_24h from servers
+				left join metrics as metr on metr.serv = servers.ip
+				where servers.metrics = 1 and
+				metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -24 HOUR)
+				group by servers.ip) as avg_sess_24h,
 
-                (select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_3d from servers
-                left join metrics as metr on metr.serv = servers.ip
-                where servers.metrics = 1 and
-                metr.date <= now() and metr.date >= DATE_ADD(NOW(), INTERVAL -3 DAY)
-                group by servers.ip ) as avg_sess_3d,
+				(select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_3d from servers
+				left join metrics as metr on metr.serv = servers.ip
+				where servers.metrics = 1 and
+				metr.date <= now() and metr.date >= DATE_ADD(NOW(), INTERVAL -3 DAY)
+				group by servers.ip ) as avg_sess_3d,
 
 		(select servers.ip,max(metr.sess_rate) as max_sess_1h from servers
-                left join metrics as metr on metr.serv = servers.ip
-                where servers.metrics = 1 and
-                metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -1 HOUR)
-                group by servers.ip)   as max_sess_1h,
+				left join metrics as metr on metr.serv = servers.ip
+				where servers.metrics = 1 and
+				metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -1 HOUR)
+				group by servers.ip)   as max_sess_1h,
 
-                (select servers.ip,max(metr.sess_rate) as max_sess_24h from servers
-                left join metrics as metr on metr.serv = servers.ip
-                where servers.metrics = 1 and
-                metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -24 HOUR)
-                group by servers.ip) as max_sess_24h,
+				(select servers.ip,max(metr.sess_rate) as max_sess_24h from servers
+				left join metrics as metr on metr.serv = servers.ip
+				where servers.metrics = 1 and
+				metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -24 HOUR)
+				group by servers.ip) as max_sess_24h,
 
-                (select servers.ip,max(metr.sess_rate) as max_sess_3d from servers
-                left join metrics as metr on metr.serv = servers.ip
-                where servers.metrics = 1 and
-                metr.date <=  now() and metr.date >= DATE_ADD(NOW(),INTERVAL -3 DAY)
-                group by servers.ip ) as max_sess_3d,
+				(select servers.ip,max(metr.sess_rate) as max_sess_3d from servers
+				left join metrics as metr on metr.serv = servers.ip
+				where servers.metrics = 1 and
+				metr.date <=  now() and metr.date >= DATE_ADD(NOW(),INTERVAL -3 DAY)
+				group by servers.ip ) as max_sess_3d,
 
-                (select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_1h from servers
-                left join metrics as metr on metr.serv = servers.ip
-                where servers.metrics = 1 and
-                metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -1 HOUR)
-                group by servers.ip)   as avg_cur_1h,
+				(select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_1h from servers
+				left join metrics as metr on metr.serv = servers.ip
+				where servers.metrics = 1 and
+				metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -1 HOUR)
+				group by servers.ip)   as avg_cur_1h,
 
-                (select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_24h from servers
-                left join metrics as metr on metr.serv = servers.ip
-                where servers.metrics = 1 and
-                metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -24 HOUR)
-                group by servers.ip) as avg_cur_24h,
+				(select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_24h from servers
+				left join metrics as metr on metr.serv = servers.ip
+				where servers.metrics = 1 and
+				metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -24 HOUR)
+				group by servers.ip) as avg_cur_24h,
 
 		(select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_3d from servers
 		left join metrics as metr on metr.serv = servers.ip
@@ -1666,38 +1704,38 @@ def select_table_metrics():
 		group by servers.ip ) as avg_cur_3d,
 
 		(select servers.ip,max(metr.curr_con) as max_con_1h from servers
-                left join metrics as metr on metr.serv = servers.ip
-                where servers.metrics = 1 and
-                metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -1 HOUR)
-                group by servers.ip)   as max_con_1h,
+				left join metrics as metr on metr.serv = servers.ip
+				where servers.metrics = 1 and
+				metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -1 HOUR)
+				group by servers.ip)   as max_con_1h,
 
-                (select servers.ip,max(metr.curr_con) as max_con_24h from servers
-                left join metrics as metr on metr.serv = servers.ip
-                where servers.metrics = 1 and
-                metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -24 HOUR)
-                group by servers.ip) as max_con_24h,
+				(select servers.ip,max(metr.curr_con) as max_con_24h from servers
+				left join metrics as metr on metr.serv = servers.ip
+				where servers.metrics = 1 and
+				metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -24 HOUR)
+				group by servers.ip) as max_con_24h,
 
-                (select servers.ip,max(metr.curr_con) as max_con_3d from servers
-                left join metrics as metr on metr.serv = servers.ip
-                where servers.metrics = 1 and
-                metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -3 DAY)
-                group by servers.ip ) as max_con_3d
+				(select servers.ip,max(metr.curr_con) as max_con_3d from servers
+				left join metrics as metr on metr.serv = servers.ip
+				where servers.metrics = 1 and
+				metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -3 DAY)
+				group by servers.ip ) as max_con_3d
 
 		where ip.ip=hostname.ip
-                and ip.ip=avg_sess_1h.ip
-                and ip.ip=avg_sess_24h.ip
-                and ip.ip=avg_sess_3d.ip
-                and ip.ip=max_sess_1h.ip
-                and ip.ip=max_sess_24h.ip
-                and ip.ip=max_sess_3d.ip
-                and ip.ip=avg_cur_1h.ip
-                and ip.ip=avg_cur_24h.ip
-                and ip.ip=avg_cur_3d.ip
-                and ip.ip=max_con_1h.ip
-                and ip.ip=max_con_24h.ip
-                and ip.ip=max_con_3d.ip
+				and ip.ip=avg_sess_1h.ip
+				and ip.ip=avg_sess_24h.ip
+				and ip.ip=avg_sess_3d.ip
+				and ip.ip=max_sess_1h.ip
+				and ip.ip=max_sess_24h.ip
+				and ip.ip=max_sess_3d.ip
+				and ip.ip=avg_cur_1h.ip
+				and ip.ip=avg_cur_24h.ip
+				and ip.ip=avg_cur_3d.ip
+				and ip.ip=max_con_1h.ip
+				and ip.ip=max_con_24h.ip
+				and ip.ip=max_con_3d.ip
 
-                group by hostname.ip """ % groups
+				group by hostname.ip """ % groups
 	else:
 		sql = """
 		select ip.ip, hostname, avg_sess_1h, avg_sess_24h, avg_sess_3d, max_sess_1h, max_sess_24h, max_sess_3d, avg_cur_1h, avg_cur_24h, avg_cur_3d, max_con_1h, max_con_24h, max_con_3d from
@@ -1824,10 +1862,11 @@ def get_setting(param, **kwargs):
 			return query_res
 		else:
 			for setting in query_res:
-				if param in ('nginx_stats_port', 'session_ttl', 'token_ttl', 'stats_port', 'haproxy_sock_port', 'ldap_type',
-					'ldap_port', 'ldap_enable', 'log_time_storage', 'syslog_server_enable', 'smon_check_interval',
-					'checker_check_interval', 'port_scan_interval', 'smon_keep_history_range', 'checker_keep_history_range',
-					'portscanner_keep_history_range', 'checker_maxconn_threshold', 'apache_stats_port'):
+				if param in (
+				'nginx_stats_port', 'session_ttl', 'token_ttl', 'stats_port', 'haproxy_sock_port', 'ldap_type',
+				'ldap_port', 'ldap_enable', 'log_time_storage', 'syslog_server_enable', 'smon_check_interval',
+				'checker_check_interval', 'port_scan_interval', 'smon_keep_history_range', 'checker_keep_history_range',
+				'portscanner_keep_history_range', 'checker_maxconn_threshold', 'apache_stats_port'):
 					return int(setting.value)
 				else:
 					return setting.value
@@ -2099,13 +2138,14 @@ def check_token_exists(token):
 
 def insert_smon(server, port, enable, proto, uri, body, group, desc, telegram, slack, user_group):
 	try:
-		http = proto+':'+uri
+		http = proto + ':' + uri
 	except:
 		http = ''
 
 	try:
 		last_id = SMON.insert(ip=server, port=port, en=enable, desc=desc, group=group, http=http, body=body,
-					telegram_channel_id=telegram, slack_channel_id=slack, user_group=user_group, status='3').execute()
+							  telegram_channel_id=telegram, slack_channel_id=slack, user_group=user_group,
+							  status='3').execute()
 	except Exception as e:
 		out_error(e)
 		return False
@@ -2127,7 +2167,7 @@ def select_smon(user_group, **kwargs):
 
 	if kwargs.get('ip'):
 		try:
-			http = kwargs.get('proto')+':'+kwargs.get('uri')
+			http = kwargs.get('proto') + ':' + kwargs.get('uri')
 		except:
 			http = ''
 		sql = """select id, ip, port, en, http, body, telegram_channel_id, `desc`, `group`, user_group, slack_channel_id from smon
@@ -2175,7 +2215,8 @@ def delete_smon(smon_id, user_group):
 
 def update_smon(smon_id, ip, port, body, telegram, slack, group, desc, en):
 	funct.check_user_group()
-	query = (SMON.update(ip=ip, port=port, body=body, telegram_channel_id=telegram, slack_channel_id=slack, group=group, desc=desc, en=en)
+	query = (SMON.update(ip=ip, port=port, body=body, telegram_channel_id=telegram, slack_channel_id=slack, group=group,
+						 desc=desc, en=en)
 			 .where(SMON.id == smon_id))
 	try:
 		query.execute()
@@ -2199,7 +2240,7 @@ def alerts_history(service, user_group, **kwargs):
 
 	sql = (f"select message, level, ip, port, date "
 		   f"from alerts "
-		   f"where service = '{service}' {sql_user_group} {and_host} " 
+		   f"where service = '{service}' {sql_user_group} {and_host} "
 		   f"order by date desc; ")
 	try:
 		cursor.execute(sql)
@@ -2342,7 +2383,7 @@ def response_time(time, smon_id):
 def smon_list(user_group):
 	if user_group == 1:
 		query = (SMON.select(SMON.ip, SMON.port, SMON.status, SMON.en, SMON.desc, SMON.response_time, SMON.time_state,
-							SMON.group, SMON.script, SMON.http, SMON.http_status, SMON.body, SMON.body_status)
+							 SMON.group, SMON.script, SMON.http, SMON.http_status, SMON.body, SMON.body_status)
 				 .order_by(SMON.group))
 	else:
 		query = (SMON.select(SMON.ip, SMON.port, SMON.status, SMON.en, SMON.desc, SMON.response_time, SMON.time_state,
@@ -2371,9 +2412,11 @@ def insert_alerts(user_group, level, ip, port, message, service):
 def select_alerts(user_group):
 	cursor = conn.cursor()
 	if mysql_enable == '1':
-		sql = """ select level, message, `date` from alerts where user_group = '%s' and `date` <= (now()+ INTERVAL 10 second) """ % (user_group)
+		sql = """ select level, message, `date` from alerts where user_group = '%s' and `date` <= (now()+ INTERVAL 10 second) """ % (
+			user_group)
 	else:
-		sql = """ select level, message, `date` from alerts where user_group = '%s' and `date` >= datetime('now', '-20 second', 'localtime') and `date` <=  datetime('now', 'localtime') ; """ % (user_group)
+		sql = """ select level, message, `date` from alerts where user_group = '%s' and `date` >= datetime('now', '-20 second', 'localtime') and `date` <=  datetime('now', 'localtime') ; """ % (
+			user_group)
 	try:
 		cursor.execute(sql)
 	except Exception as e:
@@ -2480,7 +2523,7 @@ def delete_port_scanner_settings(server_id):
 def insert_port_scanner_port(serv, user_group_id, port, service_name):
 	try:
 		PortScannerPorts.insert(serv=serv, port=port, user_group_id=user_group_id, service_name=service_name,
-								  date=funct.get_data('regular')).execute()
+								date=funct.get_data('regular')).execute()
 	except Exception as e:
 		out_error(e)
 
@@ -2534,7 +2577,7 @@ def delete_ports(serv):
 def insert_port_scanner_history(serv, port, port_status, service_name):
 	try:
 		PortScannerHistory.insert(serv=serv, port=port, status=port_status, service_name=service_name,
-								date=funct.get_data('regular')).execute()
+								  date=funct.get_data('regular')).execute()
 	except Exception as e:
 		out_error(e)
 
@@ -2631,12 +2674,14 @@ def delete_provider(provider_id):
 		return False
 
 
-def add_server_aws(region, instance_type, public_ip, floating_ip, volume_size, ssh_key_name, name, os, firewall, provider_id, group_id, status, delete_on_termination, volume_type):
+def add_server_aws(region, instance_type, public_ip, floating_ip, volume_size, ssh_key_name, name, os, firewall,
+				   provider_id, group_id, status, delete_on_termination, volume_type):
 	try:
 		ProvisionedServers.insert(region=region, instance_type=instance_type, public_ip=public_ip,
 								  floating_ip=floating_ip, volume_size=volume_size, volume_type=volume_type,
 								  ssh_key_name=ssh_key_name, name=name, os=os, firewall=firewall,
-								  provider_id=provider_id, group_id=group_id, delete_on_termination=delete_on_termination,
+								  provider_id=provider_id, group_id=group_id,
+								  delete_on_termination=delete_on_termination,
 								  type='aws', status=status, date=funct.get_data('regular')).execute()
 		return True
 	except Exception as e:
@@ -2647,8 +2692,10 @@ def add_server_aws(region, instance_type, public_ip, floating_ip, volume_size, s
 def add_server_gcore(project, region, instance_type, network_type, network_name, volume_size, ssh_key_name, name, os,
 					 firewall, provider_id, group_id, status, delete_on_termination, volume_type):
 	try:
-		ProvisionedServers.insert(region=region, instance_type=instance_type, public_ip=network_type, network_name=network_name,
-								  volume_size=volume_size, volume_type=volume_type, ssh_key_name=ssh_key_name, name=name,
+		ProvisionedServers.insert(region=region, instance_type=instance_type, public_ip=network_type,
+								  network_name=network_name,
+								  volume_size=volume_size, volume_type=volume_type, ssh_key_name=ssh_key_name,
+								  name=name,
 								  os=os, firewall=firewall, provider_id=provider_id, group_id=group_id, type='gcore',
 								  delete_on_termination=delete_on_termination, project=project, status=status,
 								  date=funct.get_data('regular')).execute()
@@ -2661,7 +2708,8 @@ def add_server_gcore(project, region, instance_type, network_type, network_name,
 def add_server_do(region, size, privet_net, floating_ip, ssh_ids, ssh_key_name, name, oss, firewall, monitoring, backup,
 				  provider_id, group_id, status):
 	try:
-		ProvisionedServers.insert(region=region, instance_type=size, private_networking=privet_net, floating_ip=floating_ip,
+		ProvisionedServers.insert(region=region, instance_type=size, private_networking=privet_net,
+								  floating_ip=floating_ip,
 								  ssh_ids=ssh_ids, ssh_key_name=ssh_key_name, name=name, os=oss, firewall=firewall,
 								  monitoring=monitoring, backup=backup, provider_id=provider_id, group_id=group_id,
 								  type='do', status=status, date=funct.get_data('regular')).execute()
@@ -2678,7 +2726,7 @@ def select_aws_server(server_id):
 						 prov_serv.volume_size, prov_serv.ssh_key_name, prov_serv.name, prov_serv.os,
 						 prov_serv.firewall, prov_serv.provider_id, prov_serv.group_id, prov_serv.id,
 						 prov_serv.delete_on_termination, prov_serv.volume_type)
-		.where(prov_serv.id == server_id))
+			.where(prov_serv.id == server_id))
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -2691,10 +2739,11 @@ def select_gcore_server(server_id):
 	prov_serv = ProvisionedServers.alias()
 	query = (
 		prov_serv.select(prov_serv.region, prov_serv.instance_type, prov_serv.public_ip, prov_serv.floating_ip,
-						 prov_serv.volume_size, prov_serv.ssh_key_name, prov_serv.name, prov_serv.os, prov_serv.firewall,
+						 prov_serv.volume_size, prov_serv.ssh_key_name, prov_serv.name, prov_serv.os,
+						 prov_serv.firewall,
 						 prov_serv.provider_id, prov_serv.group_id, prov_serv.id, prov_serv.delete_on_termination,
 						 prov_serv.project, prov_serv.network_name, prov_serv.volume_type, prov_serv.name_template)
-		.where(prov_serv.id == server_id))
+			.where(prov_serv.id == server_id))
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -2705,10 +2754,12 @@ def select_gcore_server(server_id):
 
 def select_do_server(server_id):
 	prov_serv = ProvisionedServers.alias()
-	query = (prov_serv.select(prov_serv.region, prov_serv.instance_type, prov_serv.private_networking, prov_serv.floating_ip,
-							 prov_serv.ssh_ids, prov_serv.ssh_key_name, prov_serv.name, prov_serv.os, prov_serv.firewall,
-							 prov_serv.backup, prov_serv.monitoring, prov_serv.provider_id, prov_serv.group_id, prov_serv.id)
-			 .where(prov_serv.id == server_id))
+	query = (
+		prov_serv.select(prov_serv.region, prov_serv.instance_type, prov_serv.private_networking, prov_serv.floating_ip,
+						 prov_serv.ssh_ids, prov_serv.ssh_key_name, prov_serv.name, prov_serv.os, prov_serv.firewall,
+						 prov_serv.backup, prov_serv.monitoring, prov_serv.provider_id, prov_serv.group_id,
+						 prov_serv.id)
+		.where(prov_serv.id == server_id))
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -2756,7 +2807,8 @@ def update_provisioning_server_error(status, user_group_id, name, provider_id):
 		out_error(e)
 
 
-def update_server_aws(region, size, public_ip, floating_ip, volume_size, ssh_name, workspace, oss, firewall, provider, group, status, server_id, delete_on_termination, volume_type):
+def update_server_aws(region, size, public_ip, floating_ip, volume_size, ssh_name, workspace, oss, firewall, provider,
+					  group, status, server_id, delete_on_termination, volume_type):
 	query = ProvisionedServers.update(region=region, instance_type=size, public_ip=public_ip, floating_ip=floating_ip,
 									  volume_size=volume_size, ssh_key_name=ssh_name, name=workspace, os=oss,
 									  firewall=firewall, provider_id=provider, group_id=group, status=status,
@@ -2772,7 +2824,8 @@ def update_server_aws(region, size, public_ip, floating_ip, volume_size, ssh_nam
 
 def update_server_gcore(region, size, network_type, network_name, volume_size, ssh_name, workspace, oss, firewall,
 						provider, group, status, server_id, delete_on_termination, volume_type, project):
-	query = ProvisionedServers.update(region=region, instance_type=size, public_ip=network_type, network_name=network_name,
+	query = ProvisionedServers.update(region=region, instance_type=size, public_ip=network_type,
+									  network_name=network_name,
 									  volume_size=volume_size, ssh_key_name=ssh_name, name=workspace, os=oss,
 									  firewall=firewall, provider_id=provider, group_id=group, status=status,
 									  delete_on_termination=delete_on_termination, volume_type=volume_type,
@@ -2786,10 +2839,10 @@ def update_server_gcore(region, size, network_type, network_name, volume_size, s
 
 
 def update_server_do(size, privet_net, floating_ip, ssh_ids, ssh_name, oss, firewall, monitoring, backup, provider,
-                         group, status, server_id):
+					 group, status, server_id):
 	query = ProvisionedServers.update(instance_type=size, private_networking=privet_net,
 									  floating_ip=floating_ip, ssh_ids=ssh_ids, ssh_key_name=ssh_name,
-									  os=oss, firewall=firewall, monitoring=monitoring,  backup=backup,
+									  os=oss, firewall=firewall, monitoring=monitoring, backup=backup,
 									  provider_id=provider,
 									  group_id=group, status=status).where(ProvisionedServers.id == server_id)
 	try:
@@ -2814,13 +2867,16 @@ def select_provisioned_servers(**kwargs):
 		query = (
 			prov_serv.select(prov_serv.id, prov_serv.name, prov_serv.provider_id, prov_serv.type,
 							 prov_serv.group_id, prov_serv.instance_type, prov_serv.status, prov_serv.date,
-							 prov_serv.region, prov_serv.os, prov_serv.IP, prov_serv.last_error, prov_serv.name_template)
-			.where((prov_serv.name == kwargs.get('new')) &
-					(prov_serv.group_id == kwargs.get('group')) &
-					(prov_serv.type == kwargs.get('type'))))
+							 prov_serv.region, prov_serv.os, prov_serv.IP, prov_serv.last_error,
+							 prov_serv.name_template)
+				.where((prov_serv.name == kwargs.get('new')) &
+					   (prov_serv.group_id == kwargs.get('group')) &
+					   (prov_serv.type == kwargs.get('type'))))
 	else:
-		query = prov_serv.select(prov_serv.id, prov_serv.name, prov_serv.provider_id, prov_serv.type, prov_serv.group_id,
-								 prov_serv.instance_type, prov_serv.status, prov_serv.date, prov_serv.region, prov_serv.os,
+		query = prov_serv.select(prov_serv.id, prov_serv.name, prov_serv.provider_id, prov_serv.type,
+								 prov_serv.group_id,
+								 prov_serv.instance_type, prov_serv.status, prov_serv.date, prov_serv.region,
+								 prov_serv.os,
 								 prov_serv.IP, prov_serv.last_error, prov_serv.name_template)
 	try:
 		query_res = query.execute()
@@ -2917,7 +2973,8 @@ def update_user_services(services, user_id):
 
 def insert_or_update_service_setting(server_id, service, setting, value):
 	try:
-		ServiceSetting.insert(server_id=server_id, service=service, setting=setting, value=value).on_conflict('replace').execute()
+		ServiceSetting.insert(server_id=server_id, service=service, setting=setting, value=value).on_conflict(
+			'replace').execute()
 	except Exception as e:
 		out_error(e)
 		return False
@@ -2959,11 +3016,11 @@ def select_docker_services_settings(service: str) -> str:
 	else:
 		return query_res
 
-	
+
 def select_service_setting(server_id: int, service: str, setting: str) -> str:
 	try:
 		result = ServiceSetting.get(
-			(ServiceSetting.server_id == server_id) & 
+			(ServiceSetting.server_id == server_id) &
 			(ServiceSetting.service == service) &
 			(ServiceSetting.setting == setting)).value
 	except Exception:
@@ -3089,10 +3146,11 @@ def select_remote_path_from_version(server_ip: str, service: str, local_path: st
 		return query_res
 
 
-def insert_system_info(server_id: int, os_info: str, sys_info: str, cpu: str, ram: str, network: str, disks: str) -> bool:
+def insert_system_info(server_id: int, os_info: str, sys_info: str, cpu: str, ram: str, network: str,
+					   disks: str) -> bool:
 	try:
 		SystemInfo.insert(server_id=server_id, os_info=os_info, sys_info=sys_info, cpu=cpu, ram=ram,
-					  network=network, disks=disks).on_conflict('replace').execute()
+						  network=network, disks=disks).on_conflict('replace').execute()
 	except Exception as e:
 		out_error(e)
 		return False
@@ -3241,8 +3299,9 @@ def select_user_all():
 
 def insert_new_git(server_id, service_id, repo, branch, period, cred, description):
 	try:
-		GitSetting.insert(server_id=server_id, service_id=service_id, repo=repo, branch=branch, period=period, cred_id=cred,
-					  description=description).execute()
+		GitSetting.insert(server_id=server_id, service_id=service_id, repo=repo, branch=branch, period=period,
+						  cred_id=cred,
+						  description=description).execute()
 	except Exception as e:
 		out_error(e)
 		return False
@@ -3252,7 +3311,8 @@ def insert_new_git(server_id, service_id, repo, branch, period, cred, descriptio
 
 def select_gits(**kwargs):
 	if kwargs.get("server_id") is not None and kwargs.get("service_id") is not None:
-		query = GitSetting.select().where((GitSetting.server_id == kwargs.get("server_id")) & (GitSetting.service_id == kwargs.get("service_id")))
+		query = GitSetting.select().where(
+			(GitSetting.server_id == kwargs.get("server_id")) & (GitSetting.service_id == kwargs.get("service_id")))
 	else:
 		query = GitSetting.select().order_by(GitSetting.id)
 

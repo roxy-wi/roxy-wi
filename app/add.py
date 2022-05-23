@@ -16,10 +16,10 @@ funct.check_login(service=1)
 funct.page_for_admin(level=3)
 
 if (
-	form.getvalue('mode') is None and
-	form.getvalue('new_userlist') is None and
-	form.getvalue('peers-name') is None and
-	form.getvalue('generateconfig') is None
+	form.getvalue('mode') is None
+	and form.getvalue('new_userlist') is None
+	and form.getvalue('peers-name') is None
+	and form.getvalue('generateconfig') is None
 ):
 	try:
 		user, user_id, role, token, servers, user_services = funct.get_users_params(haproxy=1)
@@ -29,14 +29,14 @@ if (
 	except Exception as e:
 		print(str(e))
 
-	dir = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')
-	white_dir = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')+"/"+user_group+"/white"
-	black_dir = os.path.dirname(os.getcwd())+"/"+sql.get_setting('lists_path')+"/"+user_group+"/black"
+	dir = os.path.dirname(os.getcwd())+ "/" + sql.get_setting('lists_path')
+	white_dir = os.path.dirname(os.getcwd())+ "/" + sql.get_setting('lists_path') + "/" + user_group + "/white"
+	black_dir = os.path.dirname(os.getcwd()) + "/" + sql.get_setting('lists_path') + "/" + user_group + "/black"
 
 	if not os.path.exists(dir):
 		os.makedirs(dir)
-	if not os.path.exists(dir+"/"+user_group):
-		os.makedirs(dir+"/"+user_group)
+	if not os.path.exists(dir + "/" + user_group):
+		os.makedirs(dir + "/" + user_group)
 	if not os.path.exists(white_dir):
 		os.makedirs(white_dir)
 	if not os.path.exists(black_dir):
@@ -46,18 +46,18 @@ if (
 	black_lists = funct.get_files(dir=black_dir, format="lst")
 
 	template = template.render(title="Add: ",
-								role=role,
-								user=user,
-								selects=servers,
-								add=form.getvalue('add'),
-								conf_add=form.getvalue('conf'),
-								group=user_group,
-								options=sql.select_options(),
-								saved_servers=sql.select_saved_servers(),
-								white_lists=white_lists,
-								black_lists=black_lists,
-							   	user_services=user_services,
-								token=token)
+							role=role,
+							user=user,
+							selects=servers,
+							add=form.getvalue('add'),
+							conf_add=form.getvalue('conf'),
+							group=user_group,
+							options=sql.select_options(),
+							saved_servers=sql.select_saved_servers(),
+							white_lists=white_lists,
+							black_lists=black_lists,
+							user_services=user_services,
+							token=token)
 	print(template)
 
 elif form.getvalue('mode') is not None:
@@ -173,9 +173,9 @@ elif form.getvalue('mode') is not None:
 			'blacklist') + " }\n"
 
 	if form.getvalue('cookie'):
-		cookie = "    cookie "+form.getvalue('cookie_name')
+		cookie = "    cookie " + form.getvalue('cookie_name')
 		if form.getvalue('cookie_domain'):
-			cookie += " domain "+form.getvalue('cookie_domain')
+			cookie += " domain " + form.getvalue('cookie_domain')
 		if form.getvalue('rewrite'):
 			rewrite = form.getvalue('rewrite')
 		else:
@@ -196,10 +196,10 @@ elif form.getvalue('mode') is not None:
 			dynamic = form.getvalue('dynamic')
 		else:
 			dynamic = ""
-		cookie += " "+rewrite+" "+prefix+" "+nocache+" "+postonly+" "+dynamic+"\n"
+		cookie += " " + rewrite + " " + prefix + " " + nocache + " " + postonly + " " + dynamic + "\n"
 		options_split += cookie
 		if form.getvalue('dynamic'):
-			options_split += "    dynamic-cookie-key " + form.getvalue('dynamic-cookie-key')+"\n"
+			options_split += "    dynamic-cookie-key " + form.getvalue('dynamic-cookie-key') + "\n"
 
 	if form.getvalue('acl_if'):
 		acl_if = form.getlist('acl_if')
@@ -299,18 +299,18 @@ elif form.getvalue('mode') is not None:
 					port_check_val = port
 
 				servers_split += "    server {0} {0}:{1}{2} port {6} maxconn {5} {3} {4} \n".format(server,
-																			server_port[i],
-																			check,
-																			send_proxy_param,
-																			backup_param,
-																			maxconn_val,
-																			port_check_val)
+																							server_port[i],
+																							check,
+																							send_proxy_param,
+																							backup_param,
+																							maxconn_val,
+																							port_check_val)
 			else:
 				servers_split += "    server-template {0} {1} {2}:{3} {4} \n".format(form.getvalue('prefix'),
-																						form.getvalue('template-number'),
-																						server,
-																						server_port[i],
-																						check)
+																					form.getvalue('template-number'),
+																					server,
+																					server_port[i],
+																					check)
 			i += 1
 
 	compression = form.getvalue("compression")
@@ -322,20 +322,21 @@ elif form.getvalue('mode') is not None:
 	if compression == "1" or cache == "2":
 		filter_com = "    filter compression\n"
 		if cache == "2":
-			cache_s = "    http-request cache-use "+end_name+"\n    http-response cache-store "+end_name+"\n"
-			cache_set = "cache "+end_name+"\n    total-max-size 4\n    max-age 240\n"
+			cache_s = "    http-request cache-use " + end_name + "\n    http-response cache-store " + end_name + "\n"
+			cache_set = "cache " + end_name + "\n    total-max-size 4\n    max-age 240\n"
 		if compression == "1":
 			compression_s = "    compression algo gzip\n    compression type text/html text/plain text/css\n"
 
 	waf = ""
 	if form.getvalue('waf') is not None:
-		waf = "    filter spoe engine modsecurity config "+haproxy_dir+"/waf.conf\n"
+		waf = "    filter spoe engine modsecurity config " + haproxy_dir + "/waf.conf\n"
 		waf += "    http-request deny if { var(txn.modsec.code) -m int gt 0 }\n"
 
-	config_add = "\n" + name + "\n" + bind + mode + maxconn + balance + options_split + cache_s + filter_com + compression_s + waf + acl + backend + servers_split + "\n" + cache_set + "\n"
+	config_add = "\n" + name + "\n" + bind + mode + maxconn + balance + options_split + cache_s + filter_com + \
+				compression_s + waf + acl + backend + servers_split + "\n" + cache_set + "\n"
 
 if form.getvalue('new_userlist') is not None:
-	name = "userlist "+form.getvalue('new_userlist') + "\n"
+	name = "userlist " + form.getvalue('new_userlist') + "\n"
 
 	new_userlist_groups = ""
 	if form.getvalue('userlist-group') is not None:
@@ -352,10 +353,10 @@ if form.getvalue('new_userlist') is not None:
 
 		for user in users:
 			try:
-				group = ' groups '+userlist_user_group[i]
+				group = ' groups ' + userlist_user_group[i]
 			except Exception:
 				group = ''
-			new_users_list += "    user "+user+" insecure-password " + passwords[i] + group + "\n"
+			new_users_list += "    user " + user + " insecure-password " + passwords[i] + group + "\n"
 			i += 1
 
 	config_add = "\n" + name + new_userlist_groups + new_users_list

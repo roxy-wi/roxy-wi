@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+import json
 import os
 import sys
-from bottle import route, run, template, hook, response, request, error
+from bottle import route, run, hook, response, request, error
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app/'))
 
 import api_funct
-import json
 import sql
 
 _error_auth = '403 Auth before'
@@ -44,23 +44,23 @@ def index():
 	data = {
 		'help': 'show all available endpoints',
 		'login': 'get temporarily token. Must be JSON body: login, password and group for which getting token. METHOD: POST',
-		'servers':'show info about all servers. METHOD: GET',
-		'servers/status':'show status all HAProxyes. METHOD: GET',
-		'haproxy/<id,hostname,ip>':'show info about the HAProxy by id or hostname or ip. METHOD: GET',
-		'haproxy/<id,hostname,ip>/status':'show HAProxy status by id or hostname or ip. METHOD: GET',
-		'haproxy/<id,hostname,ip>/runtime':'exec HAProxy runtime commands by id or hostname or ip. Must be JSON body: "command". METHOD: POST',
-		'haproxy/<id,hostname,ip>/backends':'show backends by id or hostname or ip. METHOD: GET',
-		'haproxy/<id,hostname,ip>/action/start':'start HAProxy service by id or hostname or ip. METHOD: GET',
-		'haproxy/<id,hostname,ip>/action/stop':'stop HAProxy service by id or hostname or ip. METHOD: GET',
-		'haproxy/<id,hostname,ip>/action/restart':'restart HAProxy service by id or hostname or ip. METHOD: GET',
-		'haproxy/<id,hostname,ip>/config':'get HAProxy config from a server by id or hostname or ip. METHOD: GET',
-		'haproxy/<id,hostname,ip>/config':'upload HAProxy config to a server by id or hostname or ip. Headers: action: save/reload/restart. Body must consist a whole HAProxy config. METHOD: POST',
-		'haproxy/<id,hostname,ip>/log':'show HAProxy logs by id or hostname or ip. May to have config next Headers: rows(format INT) default: 10 grep, waf(if needs WAF log) default: 0, start_hour(format: 24) default: 00, start_minute, end_hour(format: 24) default: 24, end_minute. METHOD: GET',
-		'haproxy/<id,hostname,ip>/section':'show a certain section, headers: section-name. METHOD: GET',
-		'haproxy/<id,hostname,ip>/section/add':'add a section to the HAProxy config by id or hostname or ip. Has to have config header with section and action header for action after upload. Section header must consist type: listen, frontend, etc. Action header accepts next value: save, test, reload and restart. Can be empty for just save. METHOD: POST',
-		'haproxy/<id,hostname,ip>/section/edit':'edit a section in the HAProxy config by id or hostname or ip. Has to have config header with section, action header for action after upload and body of a new section configuration. Section header must consist type: listen, frontend, etc. Action header accepts next value: save, test, reload and restart. Can be empty for just save. METHOD: POST',
-		'haproxy/<id,hostname,ip>/acl':'add an acl to certain section. Must be JSON body: "section-name", "if", "then", "if_value", "then_value" and "action" for action after upload. Action accepts next value: "save", "test", "reload" and "restart". METHOD: POST',
-		'haproxy/<id,hostname,ip>/acl':'delete an acl to certain section. Must be JSON body: "section-name", "if", "then", "if_value", "then_value" and "action" for action after upload. Action accepts next value: "save", "test", "reload" and "restart". METHOD: DELETE',
+		'servers': 'show info about all servers. METHOD: GET',
+		'servers/status': 'show status all HAProxyes. METHOD: GET',
+		'haproxy/<id,hostname,ip>': 'show info about the HAProxy by id or hostname or ip. METHOD: GET',
+		'haproxy/<id,hostname,ip>/status': 'show HAProxy status by id or hostname or ip. METHOD: GET',
+		'haproxy/<id,hostname,ip>/runtime': 'exec HAProxy runtime commands by id or hostname or ip. Must be JSON body: "command". METHOD: POST',
+		'haproxy/<id,hostname,ip>/backends': 'show backends by id or hostname or ip. METHOD: GET',
+		'haproxy/<id,hostname,ip>/action/start': 'start HAProxy service by id or hostname or ip. METHOD: GET',
+		'haproxy/<id,hostname,ip>/action/stop': 'stop HAProxy service by id or hostname or ip. METHOD: GET',
+		'haproxy/<id,hostname,ip>/action/restart': 'restart HAProxy service by id or hostname or ip. METHOD: GET',
+		'haproxy/<id,hostname,ip>/config': 'get HAProxy config from a server by id or hostname or ip. METHOD: GET',
+		'haproxy/<id,hostname,ip>/config': 'upload HAProxy config to a server by id or hostname or ip. Headers: action: save/reload/restart. Body must consist a whole HAProxy config. METHOD: POST',
+		'haproxy/<id,hostname,ip>/log': 'show HAProxy logs by id or hostname or ip. May to have config next Headers: rows(format INT) default: 10 grep, waf(if needs WAF log) default: 0, start_hour(format: 24) default: 00, start_minute, end_hour(format: 24) default: 24, end_minute. METHOD: GET',
+		'haproxy/<id,hostname,ip>/section': 'show a certain section, headers: section-name. METHOD: GET',
+		'haproxy/<id,hostname,ip>/section/add': 'add a section to the HAProxy config by id or hostname or ip. Has to have config header with section and action header for action after upload. Section header must consist type: listen, frontend, etc. Action header accepts next value: save, test, reload and restart. Can be empty for just save. METHOD: POST',
+		'haproxy/<id,hostname,ip>/section/edit': 'edit a section in the HAProxy config by id or hostname or ip. Has to have config header with section, action header for action after upload and body of a new section configuration. Section header must consist type: listen, frontend, etc. Action header accepts next value: save, test, reload and restart. Can be empty for just save. METHOD: POST',
+		'haproxy/<id,hostname,ip>/acl': 'add an acl to certain section. Must be JSON body: "section-name", "if", "then", "if_value", "then_value" and "action" for action after upload. Action accepts next value: "save", "test", "reload" and "restart". METHOD: POST',
+		'haproxy/<id,hostname,ip>/acl': 'delete an acl to certain section. Must be JSON body: "section-name", "if", "then", "if_value", "then_value" and "action" for action after upload. Action accepts next value: "save", "test", "reload" and "restart". METHOD: DELETE',
 		'nginx/<id,hostname,ip>': 'show info about the NGINX by id or hostname or ip. METHOD: GET',
 		'nginx/<id,hostname,ip>/status': 'show NGINX status by id or hostname or ip. METHOD: GET',
 		'nginx/<id,hostname,ip>/action/start': 'start NGINX service by id or hostname or ip. METHOD: GET',
@@ -97,18 +97,18 @@ def get_servers():
 
 		for s in servers:
 			data[s[0]] = {
-				'server_id':s[0],
-				'hostname':s[1],
-				'ip':s[2],
-				'group':s[3],
-				'virt':s[4],
-				'enable':s[5],
-				'is_master':s[6],
-				'creds':s[7],
-				'alert':s[8],
-				'metrics':s[9]
+				'server_id': s[0],
+				'hostname': s[1],
+				'ip': s[2],
+				'group': s[3],
+				'virt': s[4],
+				'enable': s[5],
+				'is_master': s[6],
+				'creds': s[7],
+				'alert': s[8],
+				'metrics': s[9]
 			}
-	except:
+	except Exception:
 		pass
 
 	return dict(servers=data)
@@ -231,6 +231,5 @@ def callback(server_id, service):
 
 
 if __name__ == '__main__':
-	print(sys.path)
 	port = int(os.environ.get('PORT', 8080))
 	run(host='0.0.0.0', port=port, debug=True)
