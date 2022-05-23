@@ -490,28 +490,55 @@ def select_server_ip_by_id(server_id):
 
 def select_servers(**kwargs):
 	cursor = conn.cursor()
-	sql = """select * from servers where enable = '1' ORDER BY groups """
+	
+	if mysql_enable == '1':
 
-	if kwargs.get("server") is not None:
-		sql = """select * from servers where ip = '{}' """.format(kwargs.get("server"))
-	if kwargs.get("full") is not None:
-		sql = """select * from servers ORDER BY hostname """
-	if kwargs.get("get_master_servers") is not None:
-		sql = """select id,hostname from servers where master = 0 and type_ip = 0 and enable = 1 ORDER BY groups """
-	if kwargs.get("get_master_servers") is not None and kwargs.get('uuid') is not None:
-		sql = """ select servers.id, servers.hostname from servers
-			left join user as user on servers.groups = user.groups
-			left join uuid as uuid on user.id = uuid.user_id
-			where uuid.uuid = '{}' and servers.master = 0 and servers.type_ip = 0 and servers.enable = 1 ORDER BY servers.groups
-			""".format(kwargs.get('uuid'))
-	if kwargs.get("id"):
-		sql = """select * from servers where id='{}' """.format(kwargs.get("id"))
-	if kwargs.get("hostname"):
-		sql = """select * from servers where hostname='{}' """.format(kwargs.get("hostname"))
-	if kwargs.get("id_hostname"):
-		sql = """select * from servers where hostname='{}' or id = '{}' or ip = '{}'""".format(kwargs.get("id_hostname"), kwargs.get("id_hostname"), kwargs.get("id_hostname"))
-	if kwargs.get("server") and kwargs.get("keep_alive"):
-		sql = """select active from servers where ip='{}' """.format(kwargs.get("server"))
+		sql = """select * from `servers` where `enable` = 1 ORDER BY servers.groups """
+
+		if kwargs.get("server") is not None:
+			sql = """select * from `servers` where `ip` = '{}' """.format(kwargs.get("server"))
+		if kwargs.get("full") is not None:
+			sql = """select * from `servers` ORDER BY hostname """
+		if kwargs.get("get_master_servers") is not None:
+			sql = """select id,hostname from `servers` where `master` = 0 and type_ip = 0 and enable = 1 ORDER BY servers.groups """
+		if kwargs.get("get_master_servers") is not None and kwargs.get('uuid') is not None:
+			sql = """ select servers.id, servers.hostname from `servers` 
+				left join user as user on servers.groups = user.groups 
+				left join uuid as uuid on user.id = uuid.user_id 
+				where uuid.uuid = '{}' and servers.master = 0 and servers.type_ip = 0 and servers.enable = 1 ORDER BY servers.groups 
+				""".format(kwargs.get('uuid'))
+		if kwargs.get("id"):
+			sql = """select * from `servers` where `id` = '{}' """.format(kwargs.get("id"))
+		if kwargs.get("hostname"):
+			sql = """select * from `servers` where `hostname` = '{}' """.format(kwargs.get("hostname"))
+		if kwargs.get("id_hostname"):
+			sql = """select * from `servers` where `hostname` ='{}' or id = '{}' or ip = '{}'""".format(kwargs.get("id_hostname"), kwargs.get("id_hostname"), kwargs.get("id_hostname"))
+		if kwargs.get("server") and kwargs.get("keep_alive"):
+			sql = """select active from `servers` where `ip` = '{}' """.format(kwargs.get("server"))
+	else:
+		sql = """select * from servers where enable = '1' ORDER BY servers.groups """
+
+		if kwargs.get("server") is not None:
+			sql = """select * from servers where ip = '{}' """.format(kwargs.get("server"))
+		if kwargs.get("full") is not None:
+			sql = """select * from servers ORDER BY hostname """
+		if kwargs.get("get_master_servers") is not None:
+			sql = """select id,hostname from servers where master = 0 and type_ip = 0 and enable = 1 ORDER BY servers.groups """
+		if kwargs.get("get_master_servers") is not None and kwargs.get('uuid') is not None:
+			sql = """ select servers.id, servers.hostname from servers 
+				left join user as user on servers.groups = user.groups 
+				left join uuid as uuid on user.id = uuid.user_id 
+				where uuid.uuid = '{}' and servers.master = 0 and servers.type_ip = 0 and servers.enable = 1 ORDER BY servers.groups 
+				""".format(kwargs.get('uuid'))
+		if kwargs.get("id"):
+			sql = """select * from servers where id = '{}' """.format(kwargs.get("id"))
+		if kwargs.get("hostname"):
+			sql = """select * from servers where hostname = '{}' """.format(kwargs.get("hostname"))
+		if kwargs.get("id_hostname"):
+			sql = """select * from servers where hostname = '{}' or id = '{}' or ip = '{}'""".format(kwargs.get("id_hostname"), kwargs.get("id_hostname"), kwargs.get("id_hostname"))
+		if kwargs.get("server") and kwargs.get("keep_alive"):
+			sql = """select active from servers where ip = '{}' """.format(kwargs.get("server"))
+
 	try:
 		cursor.execute(sql)
 	except Exception as e:
@@ -802,18 +829,19 @@ def get_dick_permit(**kwargs):
 	if funct.check_user_group(token=token):
 		cursor = conn.cursor()
 		try:
-			if grp == '1' and not only_group:
-				sql = """ select * from servers where {} {} {} {} {} {} {} order by pos""" .format(disable,
-																								type_ip,
-																								nginx,
-																								haproxy,
-																								keepalived,
-																								apache,
-																								ip)
+			if mysql_enable == '1':
+				if grp == '1' and not only_group:
+					sql = """ select * from `servers` order by `pos` desc"""
+				else:
+					sql = """ select * from `servers` where `groups` = {group} and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} {apache} order by `pos` desc
+							""".format(group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx, keepalived=keepalived, apache=apache)
 			else:
-				sql = """ select * from servers where groups = '{group}' and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} {apache} order by pos
-				""".format(group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx,
-						   keepalived=keepalived, apache=apache)
+				if grp == '1' and not only_group:
+					sql = """ select * from servers order by pos"""
+				else:
+					sql = """ select * from servers where groups = '{group}' and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} {apache} order by pos
+							""".format(group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx, keepalived=keepalived, apache=apache)
+
 		except Exception as e:
 			print(str(e))
 			print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
@@ -1052,7 +1080,6 @@ def update_slack(token, chanel, group, slack_id):
 		return False
 	else:
 		return True
-
 
 def insert_new_option(saved_option, group):
 	try:
@@ -1633,12 +1660,12 @@ def select_table_metrics():
                 group by servers.ip) as avg_cur_24h,
 
 		(select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_3d from servers
-			left join metrics as metr on metr.serv = servers.ip
-			where servers.metrics = 1 and
-			metr.date <=  now() and metr.date >= DATE_ADD(NOW(),INTERVAL -3 DAY)
-			group by servers.ip ) as avg_cur_3d,
+		left join metrics as metr on metr.serv = servers.ip
+		where servers.metrics = 1 and
+		metr.date <=  now() and metr.date >= DATE_ADD(NOW(),INTERVAL -3 DAY)
+		group by servers.ip ) as avg_cur_3d,
 
-		 (select servers.ip,max(metr.curr_con) as max_con_1h from servers
+		(select servers.ip,max(metr.curr_con) as max_con_1h from servers
                 left join metrics as metr on metr.serv = servers.ip
                 where servers.metrics = 1 and
                 metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -1 HOUR)
@@ -2507,7 +2534,7 @@ def delete_ports(serv):
 def insert_port_scanner_history(serv, port, port_status, service_name):
 	try:
 		PortScannerHistory.insert(serv=serv, port=port, status=port_status, service_name=service_name,
-									date=funct.get_data('regular')).execute()
+								date=funct.get_data('regular')).execute()
 	except Exception as e:
 		out_error(e)
 
