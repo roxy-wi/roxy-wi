@@ -15,7 +15,7 @@ service = form.getvalue('service')
 is_serv_protected = False
 try:
 	config_file_name = form.getvalue('config_file_name').replace('92', '/')
-except:
+except Exception:
 	config_file_name = ''
 config_read = ""
 cfg = ""
@@ -62,7 +62,7 @@ if serv is not None:
 		conf_file_name_short = config_file_name.split('/')[-1]
 		cfg = configs_dir + serv + "-" + conf_file_name_short + "-" + funct.get_data('config') + "." + file_format
 	else:
-		cfg = configs_dir + serv + "-" + funct.get_data('config') + "."+file_format
+		cfg = configs_dir + serv + "-" + funct.get_data('config') + "." + file_format
 
 if serv is not None and form.getvalue('open') is not None and form.getvalue('new_config') is None:
 	funct.check_is_server_in_group(serv)
@@ -92,7 +92,7 @@ if serv is not None and form.getvalue('open') is not None and form.getvalue('new
 			funct.logging(serv, " HAProxy config has been opened ")
 		except Exception:
 			pass
-	
+
 	try:
 		conf = open(cfg, "r")
 		config_read = conf.read()
@@ -141,21 +141,9 @@ if serv is not None and form.getvalue('config') is not None:
 			print('Config is ok <br /> Config has been updated')
 	sys.exit()
 
-template = template.render(h2=1, title=title,
-							role=role,
-							action=action,
-							user=user,
-							select_id="serv",
-							serv=serv,
-							aftersave=aftersave,
-							config=config_read,
-							cfg=cfg,
-							selects=servers,
-							stderr=stderr,
-							error=error,
-							service=service,
-							user_services=user_services,
-							config_file_name=config_file_name,
-							is_serv_protected=is_serv_protected,
-							token=token)
+template = template.render(
+	h2=1, title=title, role=role, action=action, user=user, select_id="serv", serv=serv, aftersave=aftersave,
+	config=config_read, cfg=cfg, selects=servers, stderr=stderr, error=error, service=service,
+	user_services=user_services, config_file_name=config_file_name, is_serv_protected=is_serv_protected, token=token
+)
 print(template)

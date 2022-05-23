@@ -45,19 +45,11 @@ if (
 	white_lists = funct.get_files(dir=white_dir, format="lst")
 	black_lists = funct.get_files(dir=black_dir, format="lst")
 
-	template = template.render(title="Add: ",
-							role=role,
-							user=user,
-							selects=servers,
-							add=form.getvalue('add'),
-							conf_add=form.getvalue('conf'),
-							group=user_group,
-							options=sql.select_options(),
-							saved_servers=sql.select_saved_servers(),
-							white_lists=white_lists,
-							black_lists=black_lists,
-							user_services=user_services,
-							token=token)
+	template = template.render(
+		title="Add: ", role=role, user=user, selects=servers, add=form.getvalue('add'), conf_add=form.getvalue('conf'),
+		group=user_group, options=sql.select_options(), saved_servers=sql.select_saved_servers(), white_lists=white_lists,
+		black_lists=black_lists, user_services=user_services, token=token
+	)
 	print(template)
 
 elif form.getvalue('mode') is not None:
@@ -298,19 +290,13 @@ elif form.getvalue('mode') is not None:
 				except Exception:
 					port_check_val = port
 
-				servers_split += "    server {0} {0}:{1}{2} port {6} maxconn {5} {3} {4} \n".format(server,
-																							server_port[i],
-																							check,
-																							send_proxy_param,
-																							backup_param,
-																							maxconn_val,
-																							port_check_val)
+				servers_split += "    server {0} {0}:{1}{2} port {6} maxconn {5} {3} {4} \n".format(
+					server, server_port[i], check, send_proxy_param, backup_param, maxconn_val, port_check_val
+				)
 			else:
-				servers_split += "    server-template {0} {1} {2}:{3} {4} \n".format(form.getvalue('prefix'),
-																					form.getvalue('template-number'),
-																					server,
-																					server_port[i],
-																					check)
+				servers_split += "    server-template {0} {1} {2}:{3} {4} \n".format(
+					form.getvalue('prefix'), form.getvalue('template-number'), server, server_port[i], check
+				)
 			i += 1
 
 	compression = form.getvalue("compression")

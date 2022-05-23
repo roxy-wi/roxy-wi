@@ -17,16 +17,18 @@ def default_values():
 		{'param': 'token_ttl', 'value': '5', 'section': 'main', 'desc': 'TTL for a user token (in days)',
 			'group': '1'},
 		{'param': 'tmp_config_path', 'value': '/tmp/', 'section': 'main',
-			'desc': 'Path to the temporary directory. A valid path should be specified as the value of this parameter. The directory must be owned by the user specified in SSH settings',
+			'desc': 'Path to the temporary directory. A valid path should be specified as the value of this parameter. '
+					'The directory must be owned by the user specified in SSH settings',
 			'group': '1'},
 		{'param': 'cert_path', 'value': '/etc/ssl/certs/', 'section': 'main',
 			'desc': 'Path to SSL dir. Folder owner must be a user which set in the SSH settings. Path must exist',
 			'group': '1'},
 		{'param': 'ssl_local_path', 'value': 'certs', 'section': 'main',
-			'desc': 'Path to the directory with the saved local SSL certificates. The value of this parameter is specified as a relative path beginning with $HOME_ROXY_WI/app/',
+			'desc': 'Path to the directory with the saved local SSL certificates. The value of this parameter is '
+					'specified as a relative path beginning with $HOME_ROXY_WI/app/',
 			'group': '1'},
 		{'param': 'lists_path', 'value': 'lists', 'section': 'main',
-			'desc': 'Path to the black and the wild list. The value of this paramer should be specified as a relative path beginning with $HOME_ROXY-WI',
+			'desc': 'Path to the black and the wild list. The value of this parameter should be specified as a relative path beginning with $HOME_ROXY-WI',
 			'group': '1'},
 		{'param': 'haproxy_path_logs', 'value': '/var/log/haproxy/', 'section': 'haproxy',
 			'desc': 'The path for HAProxy logs', 'group': '1'},
@@ -54,7 +56,7 @@ def default_values():
 			'desc': 'Socket port for HAProxy', 'group': '1'},
 		{'param': 'haproxy_sock_port', 'value': '1999', 'section': 'haproxy', 'desc': 'HAProxy sock port',
 			'group': '1'},
-		{'param': 'apache_log_path', 'value': '/var/log/'+apache_dir+'/', 'section': 'logs', 'desc': 'Path to Apache logs',
+		{'param': 'apache_log_path', 'value': '/var/log/' + apache_dir + '/', 'section': 'logs', 'desc': 'Path to Apache logs',
 			'group': '1'},
 		{'param': 'nginx_path_logs', 'value': '/var/log/nginx/', 'section': 'nginx',
 			'desc': 'The path for NGINX logs', 'group': '1'},
@@ -448,8 +450,9 @@ def update_db_v_3_4_5_22():
 # Needs for updating user_group. Do not delete
 def update_db_v_4_3_0(**kwargs):
 	try:
-		UserGroups.insert_from(User.select(User.user_id, User.groups),
-								fields=[UserGroups.user_id, UserGroups.user_group_id]).on_conflict_ignore().execute()
+		UserGroups.insert_from(
+			User.select(User.user_id, User.groups), fields=[UserGroups.user_id, UserGroups.user_group_id]
+		).on_conflict_ignore().execute()
 	except Exception as e:
 		if kwargs.get('silent') != 1:
 			if e.args[0] == 'duplicate column name: haproxy' or str(e) == '(1060, "Duplicate column name \'haproxy\'")':
@@ -533,7 +536,7 @@ def update_db_v_5_2_5_3(**kwargs):
 	for i in sql:
 		try:
 			cursor.execute(i)
-		except:
+		except Exception:
 			pass
 	else:
 		if kwargs.get('silent') != 1:
@@ -566,27 +569,25 @@ def update_db_v_5_3_0(**kwargs):
 		try:
 			data_source = [
 				{'param': 'nginx_container_name', 'value': 'nginx', 'section': 'nginx',
-				 'desc': 'Docker container name for NGINX service',
-				 'group': g.group_id},
+					'desc': 'Docker container name for NGINX service', 'group': g.group_id},
 				{'param': 'haproxy_container_name', 'value': 'haproxy', 'section': 'haproxy',
-				 'desc': 'Docker container name for HAProxy service',
-				 'group': g.group_id},
+					'desc': 'Docker container name for HAProxy service', 'group': g.group_id},
 				{'param': 'apache_path_logs', 'value': '/var/log/httpd/', 'section': 'apache',
-				 'desc': 'The path for Apache logs', 'group': g.group_id},
+					'desc': 'The path for Apache logs', 'group': g.group_id},
 				{'param': 'apache_stats_user', 'value': 'admin', 'section': 'apache',
-				 'desc': 'Username for accessing Apache stats page', 'group': g.group_id},
+					'desc': 'Username for accessing Apache stats page', 'group': g.group_id},
 				{'param': 'apache_stats_password', 'value': 'password', 'section': 'apache',
-				 'desc': 'Password for Apache stats webpage', 'group': g.group_id},
+				 	'desc': 'Password for Apache stats webpage', 'group': g.group_id},
 				{'param': 'apache_stats_port', 'value': '8087', 'section': 'apache', 'desc': 'Stats port for webpage Apache',
-				 'group': g.group_id},
+				 	'group': g.group_id},
 				{'param': 'apache_stats_page', 'value': 'stats', 'section': 'apache', 'desc': 'URI Stats for webpage Apache',
-				 'group': g.group_id},
+				 	'group': g.group_id},
 				{'param': 'apache_dir', 'value': '/etc/httpd/', 'section': 'apache',
-				 'desc': 'Path to the Apache directory with config files', 'group': g.group_id},
+				 	'desc': 'Path to the Apache directory with config files', 'group': g.group_id},
 				{'param': 'apache_config_path', 'value': '/etc/httpd/conf/httpd.conf', 'section': 'apache',
-				 'desc': 'Path to the main Apache configuration file', 'group': g.group_id},
+				 	'desc': 'Path to the main Apache configuration file', 'group': g.group_id},
 				{'param': 'apache_container_name', 'value': 'apache', 'section': 'apache',
-				 'desc': 'Docker container name for Apache service', 'group': g.group_id},
+				 	'desc': 'Docker container name for Apache service', 'group': g.group_id},
 			]
 
 			try:
@@ -600,9 +601,9 @@ def update_db_v_5_3_0(**kwargs):
 		except Exception as e:
 			if kwargs.get('silent') != 1:
 				if (
-						str(e) == 'columns param, group are not unique' or
-						str(e) == '(1062, "Duplicate entry \'nginx_container_name\' for key \'param\'")' or
-						str(e) == 'UNIQUE constraint failed: settings.param, settings.group'
+					str(e) == 'columns param, group are not unique'
+					or str(e) == '(1062, "Duplicate entry \'nginx_container_name\' for key \'param\'")'
+					or str(e) == 'UNIQUE constraint failed: settings.param, settings.group'
 				):
 					pass
 				else:
@@ -690,7 +691,7 @@ def update_db_v_6_0(**kwargs):
 	for i in sql:
 		try:
 			cursor.execute(i)
-		except Exception as e:
+		except Exception:
 			pass
 	else:
 		if kwargs.get('silent') != 1:
@@ -712,7 +713,7 @@ def update_ver():
 	query = Version.update(version='6.0.2.0')
 	try:
 		query.execute()
-	except:
+	except Exception:
 		print('Cannot update version')
 
 
