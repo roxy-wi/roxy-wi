@@ -347,9 +347,10 @@ def select_users(**kwargs):
 					where(UserGroups.user_group_id == kwargs.get("group"))
 				)
 	else:
-		query = User.select(User,Case(0, [((
-								User.last_login_date >= funct.get_data('regular', timedelta_minutes_minus=15)
-					  ), 0)], 1).alias('last_login')).order_by(User.user_id)
+		query = User.select(User,Case(0, [(
+			(
+				User.last_login_date >= funct.get_data('regular', timedelta_minutes_minus=15)
+			), 0)], 1).alias('last_login')).order_by(User.user_id)
 
 	try:
 		query_res = query.execute()
@@ -2377,14 +2378,15 @@ def response_time(time, smon_id):
 
 def smon_list(user_group):
 	if user_group == 1:
-		query = (SMON.select(SMON.ip, SMON.port, SMON.status, SMON.en, SMON.desc, SMON.response_time, SMON.time_state,
-							 SMON.group, SMON.script, SMON.http, SMON.http_status, SMON.body, SMON.body_status)
-				 .order_by(SMON.group))
+		query = (SMON.select(
+			SMON.ip, SMON.port, SMON.status, SMON.en, SMON.desc, SMON.response_time, SMON.time_state,
+			SMON.group, SMON.script, SMON.http, SMON.http_status, SMON.body, SMON.body_status
+		).order_by(SMON.group))
 	else:
-		query = (SMON.select(SMON.ip, SMON.port, SMON.status, SMON.en, SMON.desc, SMON.response_time, SMON.time_state,
-							 SMON.group, SMON.script, SMON.http, SMON.http_status, SMON.body, SMON.body_status)
-				 .where(SMON.user_group == user_group)
-				 .order_by(SMON.group))
+		query = (SMON.select(
+			SMON.ip, SMON.port, SMON.status, SMON.en, SMON.desc, SMON.response_time, SMON.time_state,
+			SMON.group, SMON.script, SMON.http, SMON.http_status, SMON.body, SMON.body_status
+		).where(SMON.user_group == user_group).order_by(SMON.group))
 
 	try:
 		query_res = query.execute()
@@ -2571,8 +2573,9 @@ def delete_ports(serv):
 
 def insert_port_scanner_history(serv, port, port_status, service_name):
 	try:
-		PortScannerHistory.insert(serv=serv, port=port, status=port_status, service_name=service_name,
-								  date=funct.get_data('regular')).execute()
+		PortScannerHistory.insert(
+			serv=serv, port=port, status=port_status, service_name=service_name,date=funct.get_data('regular')
+		).execute()
 	except Exception as e:
 		out_error(e)
 
@@ -2618,9 +2621,10 @@ def add_provider_do(provider_name, provider_group, provider_token):
 
 def add_provider_aws(provider_name, provider_group, provider_key, provider_secret):
 	try:
-		ProvidersCreds.insert(name=provider_name, type='aws', group=provider_group, key=provider_key,
-							  secret=provider_secret, create_date=funct.get_data('regular'),
-							  edit_date=funct.get_data('regular')).execute()
+		ProvidersCreds.insert(
+			name=provider_name, type='aws', group=provider_group, key=provider_key, secret=provider_secret,
+			create_date=funct.get_data('regular'),edit_date=funct.get_data('regular')
+		).execute()
 		return True
 	except Exception as e:
 		out_error(e)
@@ -2669,15 +2673,17 @@ def delete_provider(provider_id):
 		return False
 
 
-def add_server_aws(region, instance_type, public_ip, floating_ip, volume_size, ssh_key_name, name, os, firewall,
-				   provider_id, group_id, status, delete_on_termination, volume_type):
+def add_server_aws(
+		region, instance_type, public_ip, floating_ip, volume_size, ssh_key_name, name, os, firewall,
+		provider_id, group_id, status, delete_on_termination, volume_type
+):
 	try:
-		ProvisionedServers.insert(region=region, instance_type=instance_type, public_ip=public_ip,
-								  floating_ip=floating_ip, volume_size=volume_size, volume_type=volume_type,
-								  ssh_key_name=ssh_key_name, name=name, os=os, firewall=firewall,
-								  provider_id=provider_id, group_id=group_id,
-								  delete_on_termination=delete_on_termination,
-								  type='aws', status=status, date=funct.get_data('regular')).execute()
+		ProvisionedServers.insert(
+			region=region, instance_type=instance_type, public_ip=public_ip, floating_ip=floating_ip,
+			volume_size=volume_size, volume_type=volume_type, ssh_key_name=ssh_key_name, name=name, os=os,
+			firewall=firewall, provider_id=provider_id, group_id=group_id, delete_on_termination=delete_on_termination,
+			type='aws', status=status, date=funct.get_data('regular')
+		).execute()
 		return True
 	except Exception as e:
 		out_error(e)
@@ -2835,11 +2841,11 @@ def update_server_gcore(region, size, network_type, network_name, volume_size, s
 
 def update_server_do(size, privet_net, floating_ip, ssh_ids, ssh_name, oss, firewall, monitoring, backup, provider,
 					 group, status, server_id):
-	query = ProvisionedServers.update(instance_type=size, private_networking=privet_net,
-									  floating_ip=floating_ip, ssh_ids=ssh_ids, ssh_key_name=ssh_name,
-									  os=oss, firewall=firewall, monitoring=monitoring, backup=backup,
-									  provider_id=provider,
-									  group_id=group, status=status).where(ProvisionedServers.id == server_id)
+	query = ProvisionedServers.update(
+		instance_type=size, private_networking=privet_net, floating_ip=floating_ip, ssh_ids=ssh_ids,
+		ssh_key_name=ssh_name, os=oss, firewall=firewall, monitoring=monitoring, backup=backup, provider_id=provider,
+		group_id=group, status=status
+	).where(ProvisionedServers.id == server_id)
 	try:
 		query.execute()
 		return True
@@ -2860,13 +2866,16 @@ def select_provisioned_servers(**kwargs):
 	prov_serv = ProvisionedServers.alias()
 	if kwargs.get('new'):
 		query = (
-			prov_serv.select(prov_serv.id, prov_serv.name, prov_serv.provider_id, prov_serv.type,
-							 prov_serv.group_id, prov_serv.instance_type, prov_serv.status, prov_serv.date,
-							 prov_serv.region, prov_serv.os, prov_serv.IP, prov_serv.last_error,
-							 prov_serv.name_template)
-				.where((prov_serv.name == kwargs.get('new')) &
-					   (prov_serv.group_id == kwargs.get('group')) &
-					   (prov_serv.type == kwargs.get('type'))))
+			prov_serv.select(
+				prov_serv.id, prov_serv.name, prov_serv.provider_id, prov_serv.type, prov_serv.group_id,
+				prov_serv.instance_type, prov_serv.status, prov_serv.date, prov_serv.region, prov_serv.os,
+				prov_serv.IP, prov_serv.last_error, prov_serv.name_template
+			) .where(
+				(prov_serv.name == kwargs.get('new')) &
+				(prov_serv.group_id == kwargs.get('group')) &
+				(prov_serv.type == kwargs.get('type'))
+			)
+		)
 	else:
 		query = prov_serv.select(prov_serv.id, prov_serv.name, prov_serv.provider_id, prov_serv.type,
 								 prov_serv.group_id,
@@ -3034,12 +3043,14 @@ def delete_service_settings(server_id: int):
 
 def insert_action_history(service: str, action: str, server_id: int, user_id: int, user_ip: str):
 	try:
-		ActionHistory.insert(service=service,
-							 action=action,
-							 server_id=server_id,
-							 user_id=user_id,
-							 ip=user_ip,
-							 date=funct.get_data('regular')).execute()
+		ActionHistory.insert(
+			service=service,
+			action=action,
+			server_id=server_id,
+			user_id=user_id,
+			ip=user_ip,
+			date=funct.get_data('regular')
+		).execute()
 	except Exception as e:
 		out_error(e)
 
@@ -3090,13 +3101,15 @@ def select_action_history_by_server_id_and_service(server_id: int, service: str)
 
 def insert_config_version(server_id: int, user_id: int, service: str, local_path: str, remote_path: str, diff: str):
 	try:
-		ConfigVersion.insert(server_id=server_id,
-							 user_id=user_id,
-							 service=service,
-							 local_path=local_path,
-							 remote_path=remote_path,
-							 diff=diff,
-							 date=funct.get_data('regular')).execute()
+		ConfigVersion.insert(
+			server_id=server_id,
+			user_id=user_id,
+			service=service,
+			local_path=local_path,
+			remote_path=remote_path,
+			diff=diff,
+			date=funct.get_data('regular')
+		).execute()
 	except Exception as e:
 		out_error(e)
 
@@ -3132,9 +3145,11 @@ def delete_config_version(service: str, local_path: str):
 def select_remote_path_from_version(server_ip: str, service: str, local_path: str):
 	server_id = select_server_id_by_ip(server_ip)
 	try:
-		query_res = ConfigVersion.get((ConfigVersion.server_id == server_id) &
-									  (ConfigVersion.service == service) &
-									  (ConfigVersion.local_path == local_path)).remote_path
+		query_res = ConfigVersion.get(
+			(ConfigVersion.server_id == server_id) &
+			(ConfigVersion.service == service) &
+			(ConfigVersion.local_path == local_path)
+		).remote_path
 	except Exception as e:
 		out_error(e)
 	else:
@@ -3144,8 +3159,9 @@ def select_remote_path_from_version(server_ip: str, service: str, local_path: st
 def insert_system_info(server_id: int, os_info: str, sys_info: str, cpu: str, ram: str, network: str,
 					   disks: str) -> bool:
 	try:
-		SystemInfo.insert(server_id=server_id, os_info=os_info, sys_info=sys_info, cpu=cpu, ram=ram,
-						  network=network, disks=disks).on_conflict('replace').execute()
+		SystemInfo.insert(
+			server_id=server_id, os_info=os_info, sys_info=sys_info, cpu=cpu, ram=ram, network=network, disks=disks
+		).on_conflict('replace').execute()
 	except Exception as e:
 		out_error(e)
 		return False

@@ -139,7 +139,7 @@ def get_server(server_id, service):
 				'master': s[6],
 				'creds': s[7]
 			}
-	except:
+	except Exception:
 		data = ''
 	return dict(server=data)
 	
@@ -171,9 +171,9 @@ def get_status(server_id, service):
 				apache_stats_port = sql.get_setting('apache_stats_port')
 				apache_stats_page = sql.get_setting('apache_stats_page')
 				cmd = "curl -s -u %s:%s http://%s:%s/%s?auto |grep 'ServerVersion\|Processes\|ServerUptime:'" % \
-					  (
-						apache_stats_user, apache_stats_password, s[2], apache_stats_port, apache_stats_page
-					  )
+						(
+							apache_stats_user, apache_stats_password, s[2], apache_stats_port, apache_stats_page
+						)
 				servers_with_status = list()
 				try:
 					out = funct.subprocess_execute(cmd)
@@ -192,13 +192,13 @@ def get_status(server_id, service):
 					data = {server_id: {"error": "Cannot get status: " + str(e)}}
 
 
-	except:
+	except Exception:
 		data = {server_id: {"error": "Cannot find the server"}}
 		return dict(error=data)
 			
 	return dict(status=data)
-	
-	
+
+
 def get_all_statuses():
 	data = {}
 	try:
@@ -215,13 +215,13 @@ def get_all_statuses():
 			data[s[2]] = {}	
 			out = funct.subprocess_execute(cmd)
 			data[s[2]] = return_dict_from_out(s[1], out[0])
-	except:
+	except Exception:
 		data = {"error": "Cannot find the server"}
 		return dict(error=data)
 			
 	return dict(status=data)
-	
-	
+
+
 def actions(server_id, action, service):
 	if action != 'start' and action != 'stop' and action != 'restart' and action != 'reload':
 		return dict(status='wrong action')
@@ -244,9 +244,8 @@ def actions(server_id, action, service):
 		return dict(status=data)
 	except Exception as e:
 		return dict(status=str(e))
-		
-		
-	
+
+
 def runtime(server_id):
 	data = {}
 	try:
@@ -256,36 +255,36 @@ def runtime(server_id):
 		haproxy_sock = sql.get_setting('haproxy_sock')
 		servers = check_permit_to_server(server_id)
 		cmd = ['echo "%s" |sudo socat stdio %s' % (action, haproxy_sock)]
-		
+
 		for s in servers:
 			out = funct.ssh_command(s[2], cmd)
-		
+
 		data = {server_id: {}}
 		sep_data = out.split('\r\n')
 		data = {server_id: sep_data}
-		
+
 		return dict(status=data)
-	except:
+	except Exception:
 		return dict(status='error')
-		
-		
+
+
 def show_backends(server_id):
 	data = {}
 	try:
 		servers = check_permit_to_server(server_id)
-		
+
 		for s in servers:
 			out = funct.show_backends(s[2], ret=1)
-			
+
 		data = {server_id: out}
-		
-	except:
+
+	except Exception:
 		data = {server_id: {"error": "Cannot find the server"}}
 		return dict(error=data)
-			
+
 	return dict(backends=data)		
-	
-	
+
+
 def get_config(server_id, **kwargs):
 	service = kwargs.get('service')
 	if service != 'apache' and service != 'nginx' and service != 'haproxy' and service != 'keepalived':
@@ -294,7 +293,7 @@ def get_config(server_id, **kwargs):
 	data = {}
 	try:
 		servers = check_permit_to_server(server_id)
-		
+
 		for s in servers:
 			cfg = '/tmp/' + s[2] + '.cfg'
 			out = funct.get_config(s[2], cfg, service=service, config_file_name=kwargs.get('config_path'))
@@ -303,16 +302,16 @@ def get_config(server_id, **kwargs):
 			conf = open(cfg, "r")
 			config_read = conf.read()
 			conf.close
-			
+
 		except IOError:
 			conf = '<br />Cannot read import config file'
-			
+
 		data = {server_id: config_read}
-		
+
 	except Exception as e:
 		data = {server_id: {"error": "Cannot find the server " + str(e)}}
 		return dict(error=data)
-			
+
 	return dict(config=data)
 
 
@@ -447,8 +446,8 @@ def upload_config(server_id, **kwargs):
 		return dict(error=data)
 
 	return dict(config=data)
-	
-	
+
+
 def add_to_config(server_id):
 	data = {}
 	body = request.body.getvalue().decode('utf-8')
@@ -456,15 +455,15 @@ def add_to_config(server_id):
 	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
 	token = request.headers.get('token')
 	login, group_id = sql.get_username_groupid_from_api_token(token)
-	
+
 	if save == '':
 		save = 'save'
 	elif save == 'restart':
 		save = ''
-		
+
 	try:
 		servers = check_permit_to_server(server_id)
-		
+
 		for s in servers:
 			ip = s[2]
 		cfg = '/tmp/' + ip + '.cfg'
@@ -483,15 +482,15 @@ def add_to_config(server_id):
 				return_mess = out
 		except IOError:
 			return_mess = "cannot upload config"
-			
+
 		data = {server_id: return_mess}
-	except:
+	except Exception:
 		data[server_id] = {"error": "cannot find the server"}
 		return dict(error=data)
-			
+
 	return dict(config=data)	
-	
-	
+
+
 def show_log(server_id):
 	data = {}
 	rows = request.headers.get('rows')
@@ -501,7 +500,7 @@ def show_log(server_id):
 	minute = request.headers.get('start_minute')
 	hour1 = request.headers.get('end_hour')
 	minute1 = request.headers.get('end_minute')
-	
+
 	if rows is None:
 		rows = '10'
 	if waf is None:
@@ -517,14 +516,14 @@ def show_log(server_id):
 
 	try:
 		servers = check_permit_to_server(server_id)
-		
+
 		for s in servers:
 			ip = s[2]
-	except:
-		
+	except Exception:
+
 		data[server_id] = {"error": "Cannot find the server"}
 		return dict(error=data)
-		
+
 	out = funct.show_haproxy_log(ip, rows=rows, waf=str(waf), grep=grep, hour=str(hour), minut=str(minute), hour1=str(hour1), minut1=str(minute1), html=0)
 	data = {server_id: out}
 
