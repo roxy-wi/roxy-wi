@@ -17,7 +17,7 @@ try:
 	geoip_country_codes = sql.select_geoip_country_codes()
 	services = sql.select_services()
 	gits = sql.select_gits()
-except Exception as e:
+except Exception:
 	pass
 
 try:
@@ -43,8 +43,8 @@ output_from_parsed_template = template.render(title="Servers: ",
 												geoip_country_codes=geoip_country_codes,
 												user_services=user_services,
 												ldap_enable=ldap_enable,
-											  	user_status=user_status,
-											  	user_plan=user_plan,
+												user_status=user_status,
+												user_plan=user_plan,
 												gits=gits,
-											  	services=services)
+												services=services)
 print(output_from_parsed_template)

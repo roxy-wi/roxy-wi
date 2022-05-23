@@ -90,7 +90,7 @@ def return_dict_from_out(server_id, out):
 			k = k.split(':')
 			data[server_id][k[0]] = k[1].strip()
 		else:
-			data[server_id] = {"error":"Cannot connect to HAProxy"}
+			data[server_id] = {"error": "Cannot connect to HAProxy"}
 			
 	return data
 	
@@ -130,14 +130,14 @@ def get_server(server_id, service):
 				
 		for s in servers:
 			data = {
-				'server_id':s[0],
-				'hostname':s[1],
-				'ip':s[2],
-				'group':s[3],
-				'virt':s[4],
-				'enable':s[5],
-				'master':s[6],
-				'creds':s[7]
+				'server_id': s[0],
+				'hostname': s[1],
+				'ip': s[2],
+				'group': s[3],
+				'virt': s[4],
+				'enable': s[5],
+				'master': s[6],
+				'creds': s[7]
 			}
 	except:
 		data = ''
@@ -170,8 +170,10 @@ def get_status(server_id, service):
 				apache_stats_password = sql.get_setting('apache_stats_password')
 				apache_stats_port = sql.get_setting('apache_stats_port')
 				apache_stats_page = sql.get_setting('apache_stats_page')
-				cmd = "curl -s -u %s:%s http://%s:%s/%s?auto |grep 'ServerVersion\|Processes\|ServerUptime:'" % (
-				apache_stats_user, apache_stats_password, s[2], apache_stats_port, apache_stats_page)
+				cmd = "curl -s -u %s:%s http://%s:%s/%s?auto |grep 'ServerVersion\|Processes\|ServerUptime:'" % \
+					  (
+						apache_stats_user, apache_stats_password, s[2], apache_stats_port, apache_stats_page
+					  )
 				servers_with_status = list()
 				try:
 					out = funct.subprocess_execute(cmd)
@@ -214,7 +216,7 @@ def get_all_statuses():
 			out = funct.subprocess_execute(cmd)
 			data[s[2]] = return_dict_from_out(s[1], out[0])
 	except:
-		data = {"error":"Cannot find the server"}
+		data = {"error": "Cannot find the server"}
 		return dict(error=data)
 			
 	return dict(status=data)
@@ -363,7 +365,7 @@ def edit_section(server_id):
 				out = funct.master_slave_upload_and_restart(ip, cfg, save, login=login)
 				funct.logging('localhost', " section " + section_name + " has been edited via API", login=login)
 				funct.logging(ip, 'Section ' + section_name + ' has been edited via API', haproxywi=1, login=login,
-							keep_history=1, service='haproxy')
+								keep_history=1, service='haproxy')
 
 				if out:
 					return_mess = out
@@ -432,7 +434,7 @@ def upload_config(server_id, **kwargs):
 
 			funct.logging('localhost', " config has been uploaded via API", login=login)
 			funct.logging(ip, 'Config has been uploaded via API', haproxywi=1, login=login,
-						keep_history=1, service=service_name)
+							keep_history=1, service=service_name)
 
 			if out:
 				return_mess = out
@@ -484,7 +486,7 @@ def add_to_config(server_id):
 			
 		data = {server_id: return_mess}
 	except:
-		data[server_id] = {"error":"cannot find the server"}
+		data[server_id] = {"error": "cannot find the server"}
 		return dict(error=data)
 			
 	return dict(config=data)	
@@ -520,7 +522,7 @@ def show_log(server_id):
 			ip = s[2]
 	except:
 		
-		data[server_id] = {"error":"Cannot find the server"}
+		data[server_id] = {"error": "Cannot find the server"}
 		return dict(error=data)
 		
 	out = funct.show_haproxy_log(ip, rows=rows, waf=str(waf), grep=grep, hour=str(hour), minut=str(minute), hour1=str(hour1), minut1=str(minute1), html=0)

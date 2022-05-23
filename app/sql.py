@@ -124,98 +124,98 @@ def add_setting_for_new_group(group_id):
 	data_source = [
 		{'param': 'time_zone', 'value': 'UTC', 'section': 'main', 'desc': 'Time Zone', 'group': group_id},
 		{'param': 'proxy', 'value': '', 'section': 'main',
-		 'desc': 'IP address and port of the proxy server . Use proto://ip:port',
-		 'group': group_id},
+			'desc': 'IP address and port of the proxy server . Use proto://ip:port',
+			'group': group_id},
 		{'param': 'session_ttl', 'value': '5', 'section': 'main', 'desc': 'TTL for a user session (in days)',
-		 'group': group_id},
+			'group': group_id},
 		{'param': 'token_ttl', 'value': '5', 'section': 'main', 'desc': 'TTL for a user token (in days)',
-		 'group': group_id},
+			'group': group_id},
 		{'param': 'tmp_config_path', 'value': '/tmp/', 'section': 'main',
-		 'desc': 'Path to the temporary directory. A valid path should be specified as the value of this parameter. The directory must be owned by the user specified in SSH settings',
-		 'group': group_id},
+			'desc': 'Path to the temporary directory. A valid path should be specified as the value of this parameter. The directory must be owned by the user specified in SSH settings',
+			'group': group_id},
 		{'param': 'cert_path', 'value': '/etc/ssl/certs/', 'section': 'main',
-		 'desc': 'Path to SSL dir. Folder owner must be a user which set in the SSH settings. The path must be valid',
-		 'group': group_id},
+			'desc': 'Path to SSL dir. Folder owner must be a user which set in the SSH settings. The path must be valid',
+			'group': group_id},
 		{'param': 'haproxy_path_logs', 'value': '/var/log/haproxy/', 'section': 'haproxy',
-		 'desc': 'The default local path for saving logs', 'group': group_id},
+			'desc': 'The default local path for saving logs', 'group': group_id},
 		{'param': 'syslog_server_enable', 'value': '0', 'section': 'logs',
-		 'desc': 'Enable getting logs from a syslog server; (0 - no, 1 - yes)', 'group': group_id},
+			'desc': 'Enable getting logs from a syslog server; (0 - no, 1 - yes)', 'group': group_id},
 		{'param': 'syslog_server', 'value': '', 'section': 'logs', 'desc': 'IP address of the syslog_server',
-		 'group': group_id},
+			'group': group_id},
 		{'param': 'stats_user', 'value': 'admin', 'section': 'haproxy',
-		 'desc': 'Username for accessing HAProxy stats page',
-		 'group': group_id},
+			'desc': 'Username for accessing HAProxy stats page',
+			'group': group_id},
 		{'param': 'stats_password', 'value': 'password', 'section': 'haproxy',
-		 'desc': 'Password for accessing HAProxy stats page', 'group': group_id},
+			'desc': 'Password for accessing HAProxy stats page', 'group': group_id},
 		{'param': 'stats_port', 'value': '8085', 'section': 'haproxy', 'desc': 'Port for HAProxy stats page',
-		 'group': group_id},
+			'group': group_id},
 		{'param': 'stats_page', 'value': 'stats', 'section': 'haproxy', 'desc': 'URI for HAProxy stats page',
-		 'group': group_id},
+			'group': group_id},
 		{'param': 'haproxy_dir', 'value': '/etc/haproxy', 'section': 'haproxy', 'desc': 'Path to the HAProxy directory',
-		 'group': group_id},
+			'group': group_id},
 		{'param': 'haproxy_config_path', 'value': '/etc/haproxy/haproxy.cfg', 'section': 'haproxy',
-		 'desc': 'Path to the HAProxy configuration file',
-		 'group': group_id},
+			'desc': 'Path to the HAProxy configuration file',
+			'group': group_id},
 		{'param': 'server_state_file', 'value': '/etc/haproxy/haproxy.state', 'section': 'haproxy',
-		 'desc': 'Path to the HAProxy state file',
-		 'group': group_id},
+			'desc': 'Path to the HAProxy state file',
+			'group': group_id},
 		{'param': 'haproxy_sock', 'value': '/var/run/haproxy.sock', 'section': 'haproxy',
-		 'desc': 'Path to the HAProxy sock file', 'group': group_id},
+			'desc': 'Path to the HAProxy sock file', 'group': group_id},
 		{'param': 'haproxy_sock_port', 'value': '1999', 'section': 'haproxy', 'desc': 'Socket port for HAProxy',
-		 'group': group_id},
+			'group': group_id},
 		{'param': 'nginx_path_logs', 'value': '/var/log/nginx/', 'section': 'nginx',
-		 'desc': 'NGINX error log', 'group': group_id},
+			'desc': 'NGINX error log', 'group': group_id},
 		{'param': 'nginx_stats_user', 'value': 'admin', 'section': 'nginx',
-		 'desc': 'Username for accessing NGINX stats page',
-		 'group': group_id},
+			'desc': 'Username for accessing NGINX stats page',
+			'group': group_id},
 		{'param': 'nginx_stats_password', 'value': 'password', 'section': 'nginx',
-		 'desc': 'Password for accessing NGINX stats page', 'group': group_id},
+			'desc': 'Password for accessing NGINX stats page', 'group': group_id},
 		{'param': 'nginx_stats_port', 'value': '8086', 'section': 'nginx', 'desc': 'Stats port for web page NGINX',
-		 'group': group_id},
+			'group': group_id},
 		{'param': 'nginx_stats_page', 'value': 'stats', 'section': 'nginx', 'desc': 'URI Stats for web page NGINX',
-		 'group': group_id},
+			'group': group_id},
 		{'param': 'nginx_dir', 'value': '/etc/nginx/', 'section': 'nginx',
-		 'desc': 'Path to the NGINX directory with config files', 'group': group_id},
+			'desc': 'Path to the NGINX directory with config files', 'group': group_id},
 		{'param': 'nginx_config_path', 'value': '/etc/nginx/nginx.conf', 'section': 'nginx',
-		 'desc': 'Path to the main NGINX configuration file', 'group': group_id},
+			'desc': 'Path to the main NGINX configuration file', 'group': group_id},
 		{'param': 'ldap_enable', 'value': '0', 'section': 'ldap', 'desc': 'Enable LDAP (1 - yes, 0 - no)',
-		 'group': group_id},
+			'group': group_id},
 		{'param': 'ldap_server', 'value': '', 'section': 'ldap', 'desc': 'IP address of the LDAP server',
-		 'group': group_id},
+			'group': group_id},
 		{'param': 'ldap_port', 'value': '389', 'section': 'ldap',
-		 'desc': 'LDAP port (port 389 or 636 is used by default)',
-		 'group': group_id},
+			'desc': 'LDAP port (port 389 or 636 is used by default)',
+			'group': group_id},
 		{'param': 'ldap_user', 'value': '', 'section': 'ldap',
-		 'desc': 'LDAP username. Format: user@domain.com', 'group': group_id},
+			'desc': 'LDAP username. Format: user@domain.com', 'group': group_id},
 		{'param': 'ldap_password', 'value': '', 'section': 'ldap', 'desc': 'LDAP password', 'group': group_id},
 		{'param': 'ldap_base', 'value': '', 'section': 'ldap', 'desc': 'Base domain. Example: dc=domain, dc=com',
-		 'group': group_id},
+			'group': group_id},
 		{'param': 'ldap_domain', 'value': '', 'section': 'ldap', 'desc': 'LDAP domain for logging in',
-		 'group': group_id},
+			'group': group_id},
 		{'param': 'ldap_class_search', 'value': 'user', 'section': 'ldap', 'desc': 'Class for searching the user',
-		 'group': group_id},
+			'group': group_id},
 		{'param': 'ldap_user_attribute', 'value': 'sAMAccountName', 'section': 'ldap',
-		 'desc': 'Attribute to search users by', 'group': group_id},
+			'desc': 'Attribute to search users by', 'group': group_id},
 		{'param': 'ldap_search_field', 'value': 'mail', 'section': 'ldap',
-		 'desc': 'User\'s email address', 'group': group_id},
+			'desc': 'User\'s email address', 'group': group_id},
 		{'param': 'ldap_type', 'value': '0', 'section': 'ldap', 'desc': 'Use LDAPS (1 - yes, 0 - no)',
-		 'group': group_id},
+			'group': group_id},
 		{'param': 'apache_path_logs', 'value': '/var/log/httpd/', 'section': 'apache',
-		 'desc': 'The path for Apache logs', 'group': group_id},
+			'desc': 'The path for Apache logs', 'group': group_id},
 		{'param': 'apache_stats_user', 'value': 'admin', 'section': 'apache',
-		 'desc': 'Username for accessing Apache stats page', 'group': group_id},
+			'desc': 'Username for accessing Apache stats page', 'group': group_id},
 		{'param': 'apache_stats_password', 'value': 'password', 'section': 'apache',
-		 'desc': 'Password for Apache stats webpage', 'group': group_id},
+			'desc': 'Password for Apache stats webpage', 'group': group_id},
 		{'param': 'apache_stats_port', 'value': '8087', 'section': 'apache', 'desc': 'Stats port for webpage Apache',
-		 'group': group_id},
+			'group': group_id},
 		{'param': 'apache_stats_page', 'value': 'stats', 'section': 'apache', 'desc': 'URI Stats for webpage Apache',
-		 'group': group_id},
+			'group': group_id},
 		{'param': 'apache_dir', 'value': '/etc/httpd/', 'section': 'apache',
-		 'desc': 'Path to the Apache directory with config files', 'group': group_id},
+			'desc': 'Path to the Apache directory with config files', 'group': group_id},
 		{'param': 'apache_config_path', 'value': '/etc/httpd/conf/httpd.conf', 'section': 'apache',
-		 'desc': 'Path to the main Apache configuration file', 'group': group_id},
+			'desc': 'Path to the main Apache configuration file', 'group': group_id},
 		{'param': 'apache_container_name', 'value': 'apache', 'section': 'apache',
-		 'desc': 'Docker container name for Apache service', 'group': group_id},
+			'desc': 'Docker container name for Apache service', 'group': group_id},
 	]
 
 	try:
@@ -300,21 +300,21 @@ def update_hapwi_server(server_id, alert, metrics, active, service_name):
 
 
 def update_server(hostname, group, typeip, enable, master, server_id, cred, port, desc, haproxy, nginx, apache,
-				  firewall, protected):
+					firewall, protected):
 	try:
 		server_update = Server.update(hostname=hostname,
-									  groups=group,
-									  type_ip=typeip,
-									  enable=enable,
-									  master=master,
-									  cred=cred,
-									  port=port,
-									  desc=desc,
-									  haproxy=haproxy,
-									  nginx=nginx,
-									  apache=apache,
-									  firewall_enable=firewall,
-									  protected=protected).where(Server.server_id == server_id)
+										groups=group,
+										type_ip=typeip,
+										enable=enable,
+										master=master,
+										cred=cred,
+										port=port,
+										desc=desc,
+										haproxy=haproxy,
+										nginx=nginx,
+										apache=apache,
+										firewall_enable=firewall,
+										protected=protected).where(Server.server_id == server_id)
 		server_update.execute()
 	except Exception as e:
 		out_error(e)
@@ -339,22 +339,17 @@ def select_users(**kwargs):
 		query = User.select().where(User.user_id == kwargs.get("id"))
 	elif kwargs.get("group") is not None:
 		query = (User.
-				 select(
-			User,
-			UserGroups,
-			Case(0, [((
-							  User.last_login_date >= funct.get_data('regular', timedelta_minutes_minus=15)
-					  ), 0)], 1).alias('last_login')).
-				 join(UserGroups, on=(User.user_id == UserGroups.user_id)).
-				 where(UserGroups.user_group_id == kwargs.get("group"))
-				 )
+					select(User, UserGroups, Case(0, [((
+								User.last_login_date >= funct.get_data('regular', timedelta_minutes_minus=15)
+					), 0)], 1).
+					alias('last_login')).
+					join(UserGroups, on=(User.user_id == UserGroups.user_id)).
+					where(UserGroups.user_group_id == kwargs.get("group"))
+				)
 	else:
-		query = User.select(
-			User,
-			Case(0, [((
-							  User.last_login_date >= funct.get_data('regular', timedelta_minutes_minus=15)
-					  ), 0)], 1).alias('last_login')
-		).order_by(User.user_id)
+		query = User.select(User,Case(0, [((
+								User.last_login_date >= funct.get_data('regular', timedelta_minutes_minus=15)
+					  ), 0)], 1).alias('last_login')).order_by(User.user_id)
 
 	try:
 		query_res = query.execute()
@@ -396,13 +391,13 @@ def check_user_group(user_id, group_id):
 def select_user_groups_with_names(user_id, **kwargs):
 	if kwargs.get("all") is not None:
 		query = (UserGroups
-				 .select(UserGroups.user_group_id, UserGroups.user_id, Groups.name)
-				 .join(Groups, on=(UserGroups.user_group_id == Groups.group_id)))
+					.select(UserGroups.user_group_id, UserGroups.user_id, Groups.name)
+					.join(Groups, on=(UserGroups.user_group_id == Groups.group_id)))
 	else:
 		query = (UserGroups
-				 .select(UserGroups.user_group_id, Groups.name)
-				 .join(Groups, on=(UserGroups.user_group_id == Groups.group_id))
-				 .where(UserGroups.user_id == user_id))
+					.select(UserGroups.user_group_id, Groups.name)
+					.join(Groups, on=(UserGroups.user_group_id == Groups.group_id))
+					.where(UserGroups.user_id == user_id))
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -513,10 +508,10 @@ def select_servers(**kwargs):
 		if kwargs.get("get_master_servers") is not None:
 			sql = """select id,hostname from `servers` where `master` = 0 and type_ip = 0 and enable = 1 ORDER BY servers.groups """
 		if kwargs.get("get_master_servers") is not None and kwargs.get('uuid') is not None:
-			sql = """ select servers.id, servers.hostname from `servers` 
-				left join user as user on servers.groups = user.groups 
-				left join uuid as uuid on user.id = uuid.user_id 
-				where uuid.uuid = '{}' and servers.master = 0 and servers.type_ip = 0 and servers.enable = 1 ORDER BY servers.groups 
+			sql = """ select servers.id, servers.hostname from `servers`
+				left join user as user on servers.groups = user.groups
+				left join uuid as uuid on user.id = uuid.user_id
+				where uuid.uuid = '{}' and servers.master = 0 and servers.type_ip = 0 and servers.enable = 1 ORDER BY servers.groups
 				""".format(kwargs.get('uuid'))
 		if kwargs.get("id"):
 			sql = """select * from `servers` where `id` = '{}' """.format(kwargs.get("id"))
@@ -537,10 +532,10 @@ def select_servers(**kwargs):
 		if kwargs.get("get_master_servers") is not None:
 			sql = """select id,hostname from servers where master = 0 and type_ip = 0 and enable = 1 ORDER BY servers.groups """
 		if kwargs.get("get_master_servers") is not None and kwargs.get('uuid') is not None:
-			sql = """ select servers.id, servers.hostname from servers 
-				left join user as user on servers.groups = user.groups 
-				left join uuid as uuid on user.id = uuid.user_id 
-				where uuid.uuid = '{}' and servers.master = 0 and servers.type_ip = 0 and servers.enable = 1 ORDER BY servers.groups 
+			sql = """ select servers.id, servers.hostname from servers
+				left join user as user on servers.groups = user.groups
+				left join uuid as uuid on user.id = uuid.user_id
+				where uuid.uuid = '{}' and servers.master = 0 and servers.type_ip = 0 and servers.enable = 1 ORDER BY servers.groups
 				""".format(kwargs.get('uuid'))
 		if kwargs.get("id"):
 			sql = """select * from servers where id = '{}' """.format(kwargs.get("id"))
@@ -606,9 +601,9 @@ def get_api_token(token):
 
 def get_user_id_by_api_token(token):
 	query = (User
-			 .select(User.user_id)
-			 .join(ApiToken, on=(ApiToken.user_name == User.username))
-			 .where(ApiToken.token == token))
+				.select(User.user_id)
+				.join(ApiToken, on=(ApiToken.user_name == User.username))
+				.where(ApiToken.token == token))
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -714,9 +709,9 @@ def get_user_id_by_username(username: str):
 
 def get_user_role_by_uuid(uuid):
 	query = (Role.select(Role.role_id)
-			 .join(User, on=(Role.name == User.role))
-			 .join(UUID, on=(User.user_id == UUID.user_id))
-			 .where(UUID.uuid == uuid))
+				.join(User, on=(Role.name == User.role))
+				.join(UUID, on=(User.user_id == UUID.user_id))
+				.where(UUID.uuid == uuid))
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -823,7 +818,7 @@ def get_dick_permit(**kwargs):
 	ip = ''
 
 	if kwargs.get('virt'):
-		type_ip = "and type_ip = 1"
+		type_ip = ""
 	else:
 		type_ip = "and type_ip = 0"
 	if kwargs.get('disable') == 0:
@@ -958,7 +953,7 @@ def update_ssh(cred_id, name, enable, group, username, password):
 def insert_backup_job(server, rserver, rpath, backup_type, time, cred, description):
 	try:
 		Backup.insert(server=server, rhost=rserver, rpath=rpath, backup_type=backup_type, time=time,
-					  cred=cred, description=description).execute()
+						cred=cred, description=description).execute()
 	except Exception as e:
 		out_error(e)
 		return False
@@ -982,7 +977,7 @@ def select_backups(**kwargs):
 
 def update_backup(server, rserver, rpath, backup_type, time, cred, description, backup_id):
 	backup_update = Backup.update(server=server, rhost=rserver, rpath=rpath, backup_type=backup_type, time=time,
-								  cred=cred, description=description).where(Backup.id == backup_id)
+									cred=cred, description=description).where(Backup.id == backup_id)
 	try:
 		backup_update.execute()
 	except Exception as e:
@@ -1373,45 +1368,45 @@ def insert_waf_metrics_enable(serv, enable):
 def insert_waf_rules(serv):
 	data_source = [
 		{'serv': serv, 'rule_name': 'Ignore static', 'rule_file': 'modsecurity_crs_10_ignore_static.conf',
-		 'desc': 'This ruleset will skip all tests for media files, but will skip only the request body phase (phase 2) for text files. To skip the outbound stage for text files, add file 47 (skip_outbound_checks) to your configuration, in addition to this fileth/aws/login'},
+			'desc': 'This ruleset will skip all tests for media files, but will skip only the request body phase (phase 2) for text files. To skip the outbound stage for text files, add file 47 (skip_outbound_checks) to your configuration, in addition to this fileth/aws/login'},
 		{'serv': serv, 'rule_name': 'Brute force protection', 'rule_file': 'modsecurity_crs_11_brute_force.conf',
-		 'desc': 'Anti-Automation Rule for specific Pages (Brute Force Protection) This is a rate-limiting rule set and does not directly correlate whether the authentication attempt was successful or not'},
+			'desc': 'Anti-Automation Rule for specific Pages (Brute Force Protection) This is a rate-limiting rule set and does not directly correlate whether the authentication attempt was successful or not'},
 		{'serv': serv, 'rule_name': 'DOS Protections', 'rule_file': 'modsecurity_crs_11_dos_protection.conf',
-		 'desc': 'Enforce an existing IP address block and log only 1-time/minute. We do not want to get flooded by alerts during an attack or scan so we are only triggering an alert once/minute.  You can adjust how often you want to receive status alerts by changing the expirevar setting below'},
+			'desc': 'Enforce an existing IP address block and log only 1-time/minute. We do not want to get flooded by alerts during an attack or scan so we are only triggering an alert once/minute.  You can adjust how often you want to receive status alerts by changing the expirevar setting below'},
 		{'serv': serv, 'rule_name': 'XML enabler', 'rule_file': 'modsecurity_crs_13_xml_enabler.conf',
-		 'desc': 'The rules in this file will trigger the XML parser upon an XML request'},
+			'desc': 'The rules in this file will trigger the XML parser upon an XML request'},
 		{'serv': serv, 'rule_name': 'Protocol violations', 'rule_file': 'modsecurity_crs_20_protocol_violations.conf',
-		 'desc': 'Some protocol violations are common in application layer attacks. Validating HTTP requests eliminates a large number of application layer attacks. The purpose of this rules file is to enforce HTTP RFC requirements that state how  the client is supposed to interact with the server. http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html'},
+			'desc': 'Some protocol violations are common in application layer attacks. Validating HTTP requests eliminates a large number of application layer attacks. The purpose of this rules file is to enforce HTTP RFC requirements that state how  the client is supposed to interact with the server. http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html'},
 		{'serv': serv, 'rule_name': 'Protocol anomalies', 'rule_file': 'modsecurity_crs_21_protocol_anomalies.conf',
-		 'desc': 'Some common HTTP usage patterns are indicative of attacks but may also be used by non-browsers for legitimate uses. Do not accept requests without common headers. All normal web browsers include Host, User-Agent and Accept headers. Implies either an attacker or a legitimate automation client'},
+			'desc': 'Some common HTTP usage patterns are indicative of attacks but may also be used by non-browsers for legitimate uses. Do not accept requests without common headers. All normal web browsers include Host, User-Agent and Accept headers. Implies either an attacker or a legitimate automation client'},
 		{'serv': serv, 'rule_name': 'Detect CC#', 'rule_file': 'modsecurity_crs_25_cc_known.conf',
-		 'desc': 'Detect CC# in input, log transaction and sanitize'},
+			'desc': 'Detect CC# in input, log transaction and sanitize'},
 		{'serv': serv, 'rule_name': 'CC traker', 'rule_file': 'modsecurity_crs_25_cc_track_pan.conf',
-		 'desc': 'Credit Card Track 1 and 2 and PAN Leakage Checks'},
+			'desc': 'Credit Card Track 1 and 2 and PAN Leakage Checks'},
 		{'serv': serv, 'rule_name': 'HTTP policy', 'rule_file': 'modsecurity_crs_30_http_policy.conf',
-		 'desc': 'HTTP policy enforcement The HTTP policy enforcement rule set sets limitations on the use of HTTP by clients. Few applications require the breadth and depth of the HTTP protocol. On the other hand many attacks abuse valid but rare HTTP use patterns. Restricting  HTTP protocol usage is effective in therefore effective in blocking many  application layer attacks'},
+			'desc': 'HTTP policy enforcement The HTTP policy enforcement rule set sets limitations on the use of HTTP by clients. Few applications require the breadth and depth of the HTTP protocol. On the other hand many attacks abuse valid but rare HTTP use patterns. Restricting  HTTP protocol usage is effective in therefore effective in blocking many  application layer attacks'},
 		{'serv': serv, 'rule_name': 'Bad robots', 'rule_file': 'modsecurity_crs_35_bad_robots.conf',
-		 'desc': 'Bad robots detection is based on checking elements easily controlled by the client. As such a determined attacked can bypass those checks. Therefore bad robots detection should not be viewed as a security mechanism against targeted attacks but rather as a nuisance reduction, eliminating most of the random attacks against your web site'},
+			'desc': 'Bad robots detection is based on checking elements easily controlled by the client. As such a determined attacked can bypass those checks. Therefore bad robots detection should not be viewed as a security mechanism against targeted attacks but rather as a nuisance reduction, eliminating most of the random attacks against your web site'},
 		{'serv': serv, 'rule_name': 'OS Injection Attacks', 'rule_file': 'modsecurity_crs_40_generic_attacks.conf',
-		 'desc': 'OS Command Injection Attacks'},
+			'desc': 'OS Command Injection Attacks'},
 		{'serv': serv, 'rule_name': 'SQL injection', 'rule_file': 'modsecurity_crs_41_sql_injection_attacks.conf',
-		 'desc': 'SQL injection protection'},
+			'desc': 'SQL injection protection'},
 		{'serv': serv, 'rule_name': 'XSS Protections', 'rule_file': 'modsecurity_crs_41_xss_attacks.conf',
-		 'desc': 'XSS attacks protection'},
+			'desc': 'XSS attacks protection'},
 		{'serv': serv, 'rule_name': 'Comment spam', 'rule_file': 'modsecurity_crs_42_comment_spam.conf',
-		 'desc': 'Comment spam is an attack against blogs, guestbooks, wikis and other types of interactive web sites that accept and display hyperlinks submitted by visitors. The spammers automatically post specially crafted random comments which include links that point to the spammer\'s web site. The links artificially increas the site\'s search engine ranking and may make the site more noticable in search results.'},
+			'desc': 'Comment spam is an attack against blogs, guestbooks, wikis and other types of interactive web sites that accept and display hyperlinks submitted by visitors. The spammers automatically post specially crafted random comments which include links that point to the spammer\'s web site. The links artificially increas the site\'s search engine ranking and may make the site more noticable in search results.'},
 		{'serv': serv, 'rule_name': 'Trojans Protections', 'rule_file': 'modsecurity_crs_45_trojans.conf ',
-		 'desc': 'The trojan access detection rules detects access to known Trojans already installed on a server. Uploading of Trojans is part of the Anti-Virus rules  and uses external Anti Virus program when uploading files. Detection of Trojans access is especially important in a hosting environment where the actual Trojan upload may be done through valid methods and not through hacking'},
+			'desc': 'The trojan access detection rules detects access to known Trojans already installed on a server. Uploading of Trojans is part of the Anti-Virus rules  and uses external Anti Virus program when uploading files. Detection of Trojans access is especially important in a hosting environment where the actual Trojan upload may be done through valid methods and not through hacking'},
 		{'serv': serv, 'rule_name': 'RFI Protections', 'rule_file': 'modsecurity_crs_46_slr_et_lfi_attacks.conf',
-		 'desc': 'Remote file inclusion is an attack targeting vulnerabilities in web applications that dynamically reference external scripts. The perpetrator’s goal is to exploit the referencing function in an application to upload malware (e.g., backdoor shells) from a remote URL located within a different domain'},
+			'desc': 'Remote file inclusion is an attack targeting vulnerabilities in web applications that dynamically reference external scripts. The perpetrator’s goal is to exploit the referencing function in an application to upload malware (e.g., backdoor shells) from a remote URL located within a different domain'},
 		{'serv': serv, 'rule_name': 'RFI Protections 2', 'rule_file': 'modsecurity_crs_46_slr_et_rfi_attacks.conf',
-		 'desc': 'Remote file inclusion is an attack targeting vulnerabilities in web applications that dynamically reference external scripts. The perpetrator’s goal is to exploit the referencing function in an application to upload malware (e.g., backdoor shells) from a remote URL located within a different domain'},
+			'desc': 'Remote file inclusion is an attack targeting vulnerabilities in web applications that dynamically reference external scripts. The perpetrator’s goal is to exploit the referencing function in an application to upload malware (e.g., backdoor shells) from a remote URL located within a different domain'},
 		{'serv': serv, 'rule_name': 'SQLi Protections', 'rule_file': 'modsecurity_crs_46_slr_et_sqli_attacks.conf',
-		 'desc': 'SQLi injection attacks protection'},
+			'desc': 'SQLi injection attacks protection'},
 		{'serv': serv, 'rule_name': 'XSS Protections 2', 'rule_file': 'modsecurity_crs_46_slr_et_xss_attacks.conf',
-		 'desc': 'XSS attacks protection'},
+			'desc': 'XSS attacks protection'},
 		{'serv': serv, 'rule_name': 'Common exceptions', 'rule_file': 'modsecurity_crs_47_common_exceptions.conf',
-		 'desc': 'This file is used as an exception mechanism to remove common false positives that may be encountered'},
+			'desc': 'This file is used as an exception mechanism to remove common false positives that may be encountered'},
 	]
 	try:
 		WafRules.insert_many(data_source).execute()

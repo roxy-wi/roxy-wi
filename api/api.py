@@ -29,18 +29,18 @@ def enable_cors():
 	response.headers['Access-Control-Allow-Methods'] = _allow_methods
 	response.headers['Access-Control-Allow-Headers'] = _allow_headers
 
-	
+
 @error(500)
 def error_handler_500(error):
 	return json.dumps({"status": "error", "message": str(error.exception)})
-	
-	
+
+
 @route('/', method=['GET', 'POST'])
 @route('/help', method=['GET', 'POST'])
 def index():
 	if not check_login(required_service=1):
 		return dict(error=_error_auth)
-		
+
 	data = {
 		'help': 'show all available endpoints',
 		'login': 'get temporarily token. Must be JSON body: login, password and group for which getting token. METHOD: POST',
