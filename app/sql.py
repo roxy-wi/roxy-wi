@@ -3249,6 +3249,7 @@ def insert_new_git(server_id, service_id, repo, branch, period, cred, descriptio
 	else:
 		return True
 
+
 def select_gits(**kwargs):
 	if kwargs.get("server_id") is not None and kwargs.get("service_id") is not None:
 		query = GitSetting.select().where((GitSetting.server_id == kwargs.get("server_id")) & (GitSetting.service_id == kwargs.get("service_id")))
