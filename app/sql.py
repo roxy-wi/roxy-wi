@@ -386,7 +386,7 @@ def select_user_groups_with_names(user_id, **kwargs):
 	if kwargs.get("all") is not None:
 		query = (UserGroups
 				 .select(UserGroups.user_group_id, UserGroups.user_id, Groups.name)
-				 .join(Groups, on=(UserGroups.user_group_id == Groups.group_id))				 )
+				 .join(Groups, on=(UserGroups.user_group_id == Groups.group_id)))
 	else:
 		query = (UserGroups
 				 .select(UserGroups.user_group_id, Groups.name)
@@ -540,7 +540,6 @@ def select_servers(**kwargs):
 			sql = """select active from servers where ip = '{}' """.format(kwargs.get("server"))
 
 	try:
-		print(str(sql))
 		cursor.execute(sql)
 	except Exception as e:
 		out_error(e)
@@ -847,7 +846,6 @@ def get_dick_permit(**kwargs):
 			print(str(e))
 			print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
 		try:
-			print(str(sql))
 			cursor.execute(sql)
 		except Exception as e:
 			out_error(e)
