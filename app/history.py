@@ -75,17 +75,8 @@ elif service == 'user':
 
 users = sql.select_users()
 
-template = template.render(
-    h2=1,
-    autorefresh=0,
-    title=title,
-    role=role,
-    user=user,
-    users=users,
-    serv=serv,
-	service=service,
-    history=history,
-    user_services=user_services,
-	token=token
+rendered_template = template.render(
+    h2=1, autorefresh=0, title=title, role=role, user=user, users=users, serv=serv, service=service,
+    history=history, user_services=user_services, token=token
 )
-print(template)
+print(rendered_template)

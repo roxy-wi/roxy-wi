@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import os
-import funct, sql
+
+import funct
+import sql
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('delver.html')
@@ -77,11 +79,11 @@ if serv is not None and form.getvalue('del') is not None:
 					try:
 						file.add(form.getvalue(get) + "<br />")
 						funct.logging(serv, "Version of config has been deleted: %s" % form.getvalue(get), login=1,
-									  keep_history=1, service=service)
+										keep_history=1, service=service)
 					except Exception:
 						pass
 				except OSError as e:
-					stderr = "Error: %s - %s." % (e.filename,e.strerror)
+					stderr = "Error: %s - %s." % (e.filename, e.strerror)
 
 if serv is not None and form.getvalue('config') is not None:
 	configver = configs_dir + configver
@@ -89,8 +91,9 @@ if serv is not None and form.getvalue('config') is not None:
 	aftersave = 1
 
 	try:
-		funct.logging(serv, "Version of config has been uploaded %s" % configver, login=1,
-                              keep_history=1, service=service)
+		funct.logging(
+			serv, "Version of config has been uploaded %s" % configver, login=1, keep_history=1, service=service
+		)
 	except Exception:
 		pass
 
@@ -104,22 +107,11 @@ if serv is not None and form.getvalue('config') is not None:
 		stderr = funct.master_slave_upload_and_restart(serv, configver, just_save=save, apache=1, config_file_name=config_file_name)
 	else:
 		stderr = funct.master_slave_upload_and_restart(serv, configver, just_save=save)
-		
-		
-template = template.render(h2=1, title=title,
-							role=role,
-							user=user,
-							select_id="serv",
-							serv=serv,
-							aftersave=aftersave,
-							selects=servers,
-							stderr=stderr,
-							open=form.getvalue('open'),
-							Select=form.getvalue('del'),
-						   	file=file,
-							configver=configver,
-							service=service,
-							user_services=user_services,
-						   	action=action,
-							token=token)
-print(template)
+
+
+rendered_template = template.render(
+	h2=1, title=title, role=role, user=user, select_id="serv", serv=serv, aftersave=aftersave, selects=servers,
+	stderr=stderr, open=form.getvalue('open'), Select=form.getvalue('del'), file=file, configver=configver,
+	service=service, user_services=user_services, action=action, token=token
+)
+print(rendered_template)

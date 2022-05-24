@@ -148,7 +148,7 @@ def check_in_ldap(user, password):
 		attributes = [ldap_search_field]
 		result = ldap_bind.search_s(ldap_base, ldap.SCOPE_SUBTREE, criteria, attributes)
 
-		bind = l.simple_bind_s(result[0][0], password)
+		bind = ldap_bind.simple_bind_s(result[0][0], password)
 	except ldap.INVALID_CREDENTIALS:
 		print("Content-type: text/html\n")
 		print('<center><div class="alert alert-danger">Invalid credentials</div><br /><br />')

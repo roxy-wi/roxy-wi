@@ -30,25 +30,11 @@ except Exception as e:
 	user_status, user_plan = 0, 0
 	funct.logging('localhost', 'Cannot get a user plan: ' + str(e), haproxywi=1)
 
-
-template = template.render(title="Admin area: Manage users",
-							role=role,
-							user=user,
-							users=users,
-							groups=sql.select_groups(),
-							servers=sql.select_servers(full=1),
-							roles=sql.select_roles(),
-							masters=sql.select_servers(get_master_servers=1),
-							sshs=sql.select_ssh(),
-							token=token,
-							settings=settings,
-							backups=sql.select_backups(),
-							grafana=''.join(grafana),
-							page="users.py",
-							user_services=user_services,
-							ldap_enable=ldap_enable,
-							user_status=user_status,
-							user_plan=user_plan,
-							gits=gits,
-						   	services=services)
-print(template)
+rendered_template = template.render(
+	title="Admin area: Manage users", role=role, user=user, users=users, groups=sql.select_groups(),
+	servers=sql.select_servers(full=1), roles=sql.select_roles(), masters=sql.select_servers(get_master_servers=1),
+	sshs=sql.select_ssh(), token=token, settings=settings, backups=sql.select_backups(), grafana=''.join(grafana),
+	page="users.py", user_services=user_services, ldap_enable=ldap_enable, user_status=user_status,
+	user_plan=user_plan, gits=gits, services=services
+)
+print(rendered_template)

@@ -50,19 +50,9 @@ else:
 	servers_waf = sql.select_waf_servers_metrics(user_id.value)
 	autorefresh = 1
 
-template = template.render(h2=1, title=title,
-							autorefresh=autorefresh,
-							role=role,
-							user=user,
-							serv=serv,
-							servers=servers_waf,
-							servers_all=servers,
-							manage_rules=manage_rules,
-							rules=rules,
-							user_services=user_services,
-						   	waf_rule_file=waf_rule_file,
-							waf_rule_id=waf_rule_id,
-							config=config_read,
-							cfg=cfg,
-							token=token)
-print(template)
+rendered_template = template.render(
+	h2=1, title=title, autorefresh=autorefresh, role=role, user=user, serv=serv, servers=servers_waf,
+	servers_all=servers, manage_rules=manage_rules, rules=rules, user_services=user_services,
+	waf_rule_file=waf_rule_file, waf_rule_id=waf_rule_id, config=config_read, cfg=cfg, token=token
+)
+print(rendered_template)

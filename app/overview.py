@@ -78,7 +78,7 @@ try:
 	cmd = "systemctl is-active roxy-wi-socket"
 	socket, stderr = funct.subprocess_execute(cmd)
 
-except Exception as e:
+except Exception:
 	role = ''
 	user = ''
 	users = ''

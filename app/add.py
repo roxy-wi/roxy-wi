@@ -16,10 +16,10 @@ funct.check_login(service=1)
 funct.page_for_admin(level=3)
 
 if (
-	form.getvalue('mode') is None
-	and form.getvalue('new_userlist') is None
-	and form.getvalue('peers-name') is None
-	and form.getvalue('generateconfig') is None
+	form.getvalue('mode') is None and
+	form.getvalue('new_userlist') is None and
+	form.getvalue('peers-name') is None and
+	form.getvalue('generateconfig') is None
 ):
 	try:
 		user, user_id, role, token, servers, user_services = funct.get_users_params(haproxy=1)
@@ -29,8 +29,8 @@ if (
 	except Exception as e:
 		print(str(e))
 
-	dir = os.path.dirname(os.getcwd())+ "/" + sql.get_setting('lists_path')
-	white_dir = os.path.dirname(os.getcwd())+ "/" + sql.get_setting('lists_path') + "/" + user_group + "/white"
+	dir = os.path.dirname(os.getcwd()) + "/" + sql.get_setting('lists_path')
+	white_dir = os.path.dirname(os.getcwd()) + "/" + sql.get_setting('lists_path') + "/" + user_group + "/white"
 	black_dir = os.path.dirname(os.getcwd()) + "/" + sql.get_setting('lists_path') + "/" + user_group + "/black"
 
 	if not os.path.exists(dir):

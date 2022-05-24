@@ -26,25 +26,12 @@ except Exception as e:
 	user_status, user_plan = 0, 0
 	funct.logging('localhost', 'Cannot get a user plan: ' + str(e), haproxywi=1)
 
-output_from_parsed_template = template.render(title="Servers: ",
-												role=role,
-												user=user,
-												users=sql.select_users(group=user_group),
-												groups=sql.select_groups(),
-												servers=sql.get_dick_permit(virt=1, disable=0, only_group=1),
-												roles=sql.select_roles(),
-												masters=sql.select_servers(get_master_servers=1, uuid=user_id.value),
-												group=user_group,
-												sshs=sql.select_ssh(group=user_group),
-												token=token,
-												settings=settings,
-												backups=sql.select_backups(),
-												page="servers.py",
-												geoip_country_codes=geoip_country_codes,
-												user_services=user_services,
-												ldap_enable=ldap_enable,
-												user_status=user_status,
-												user_plan=user_plan,
-												gits=gits,
-												services=services)
-print(output_from_parsed_template)
+rendered_template = template.render(
+	title="Servers: ", role=role, user=user, users=sql.select_users(group=user_group), groups=sql.select_groups(),
+	servers=sql.get_dick_permit(virt=1, disable=0, only_group=1), roles=sql.select_roles(),
+	masters=sql.select_servers(get_master_servers=1, uuid=user_id.value), group=user_group,
+	sshs=sql.select_ssh(group=user_group), token=token, settings=settings, backups=sql.select_backups(),
+	page="servers.py", geoip_country_codes=geoip_country_codes, user_services=user_services, ldap_enable=ldap_enable,
+	user_status=user_status, user_plan=user_plan, gits=gits, services=services
+)
+print(rendered_template)
