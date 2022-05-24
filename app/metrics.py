@@ -34,7 +34,7 @@ try:
 					title = "HAProxy`s metrics"
 					servers = sql.select_servers_metrics()
 			services = '1'
-except Exception as e:
+except Exception:
 	pass
 
 try:
@@ -44,15 +44,8 @@ except Exception as e:
 	funct.logging('localhost', 'Cannot get a user plan: ' + str(e), haproxywi=1)
 
 
-template = template.render(h2=1, title=title,
-							autorefresh=1,
-							role=role,
-							user=user,
-							servers=servers,
-							services=services,
-							user_services=user_services,
-							service=service,
-							user_status=user_status,
-							user_plan=user_plan,
-							token=token)
+template = template.render(
+	h2=1, title=title, autorefresh=1, role=role, user=user, servers=servers, services=services,
+	user_services=user_services, service=service, user_status=user_status, user_plan=user_plan, token=token
+)
 print(template)

@@ -10,10 +10,9 @@ if form.getvalue('grep') is None:
 	grep = ""
 else:
 	grep = form.getvalue('grep')
-	
 
 exgrep = form.getvalue('exgrep') if form.getvalue('exgrep') else ''
-	
+
 if form.getvalue('rows') is None:
 	rows = 10
 else:
@@ -21,14 +20,14 @@ else:
 		rows = form.getvalue('rows1')
 	else:
 		rows = form.getvalue('rows')
-	
+
 hour = form.getvalue('hour')
 hour1 = form.getvalue('hour1')
 minut = form.getvalue('minut')
 minut1 = form.getvalue('minut1')
 waf = form.getvalue('waf')
 service = form.getvalue('service')
-	
+
 print('Content-type: text/html\n')
 funct.check_login()
 
@@ -54,23 +53,9 @@ else:
 		title = "HAProxy`s logs"
 		servers = sql.get_dick_permit(haproxy=1)
 
-template = template.render(h2=1,
-							autorefresh=1,
-							title=title,
-							role=role,
-							user=user,
-							select_id="serv",
-							selects=servers,
-							serv=form.getvalue('serv'),
-							rows=rows,
-							grep=grep,
-							exgrep=exgrep,
-							hour=hour,
-							hour1=hour1,
-							minut=minut,
-							minut1=minut1,
-							waf=waf,
-							service=service,
-							user_services=user_services,
-							token=token)
+template = template.render(
+	h2=1, autorefresh=1, title=title, role=role, user=user, select_id="serv", selects=servers,
+	serv=form.getvalue('serv'), rows=rows, grep=grep, exgrep=exgrep, hour=hour, hour1=hour1, minut=minut,
+	minut1=minut1, waf=waf, service=service, user_services=user_services, token=token
+)
 print(template)

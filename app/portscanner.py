@@ -48,18 +48,9 @@ except Exception as e:
     funct.logging('localhost', 'Cannot get a user plan: ' + str(e), haproxywi=1)
 
 
-output_from_parsed_template = template.render(h2=1, autorefresh=0,
-                                                title=title,
-                                                role=role,
-                                                user=user,
-                                                servers=servers,
-                                                port_scanner_settings=port_scanner_settings,
-                                                count_ports=count_ports,
-                                                history=history,
-                                                port_scanner=''.join(port_scanner),
-                                                port_scanner_stderr=port_scanner_stderr,
-                                                user_services=user_services,
-                                                user_status=user_status,
-                                                user_plan=user_plan,
-                                                token=token)
-print(output_from_parsed_template)
+rendered_template = template.render(
+    h2=1, autorefresh=0, title=title, role=role, user=user, servers=servers, port_scanner_settings=port_scanner_settings,
+    count_ports=count_ports, history=history, port_scanner=''.join(port_scanner), port_scanner_stderr=port_scanner_stderr,
+    user_services=user_services, user_status=user_status, user_plan=user_plan, token=token
+)
+print(rendered_template)

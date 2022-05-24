@@ -114,7 +114,7 @@ def ban():
 	c["ban"]["Secure"] = "True"
 	c["ban"]["expires"] = expires.strftime("%a, %d %b %Y %H:%M:%S GMT")
 	try:
-		funct.logging('localhost', login+' failed log in', haproxywi=1, login=1)
+		funct.logging('localhost', login + ' failed log in', haproxywi=1, login=1)
 	except Exception:
 		funct.logging('localhost', ' Failed log in. Wrong username', haproxywi=1)
 	print(c.output())
@@ -137,16 +137,16 @@ def check_in_ldap(user, password):
 
 	ldap_proto = 'ldap' if ldap_type == "0" else 'ldaps'
 
-	l = ldap.initialize('{}://{}:{}/'.format(ldap_proto, server, port))
+	ldap_bind = ldap.initialize('{}://{}:{}/'.format(ldap_proto, server, port))
 	try:
-		l.protocol_version = ldap.VERSION3
-		l.set_option(ldap.OPT_REFERRALS, 0)
+		ldap_bind.protocol_version = ldap.VERSION3
+		ldap_bind.set_option(ldap.OPT_REFERRALS, 0)
 
-		bind = l.simple_bind_s(root_user, root_password)
+		bind = ldap_bind.simple_bind_s(root_user, root_password)
 
-		criteria = "(&(objectClass="+ldap_class_search+")("+ldap_user_attribute+"="+user+"))"
+		criteria = "(&(objectClass=" + ldap_class_search + ")(" + ldap_user_attribute + "=" + user + "))"
 		attributes = [ldap_search_field]
-		result = l.search_s(ldap_base, ldap.SCOPE_SUBTREE, criteria, attributes)
+		result = ldap_bind.search_s(ldap_base, ldap.SCOPE_SUBTREE, criteria, attributes)
 
 		bind = l.simple_bind_s(result[0][0], password)
 	except ldap.INVALID_CREDENTIALS:
@@ -180,8 +180,7 @@ try:
 	if sql.get_setting('session_ttl'):
 		session_ttl = sql.get_setting('session_ttl')
 except Exception:
-	error = '<center><div class="alert alert-danger">Cannot find "session_ttl" parameter. ' \
-			'Check it into settings, "main" section</div>'
+	error = '<center><div class="alert alert-danger">Cannot find "session_ttl" parameter. Check it into settings, "main" section</div>'
 	pass
 
 try:
@@ -229,15 +228,11 @@ if login is not None and password is not None:
 
 if login is None:
 	print("Content-type: text/html\n")
-	
+
 create_db.update_all_silent()
 
-output_from_parsed_template = template.render(h2=0, title="Login page",
-													role=role,
-													user=user,
-													error_log=error_log,
-													error=error,
-													ref=ref,
-													versions=funct.versions(),
-													db_create=db_create)
+output_from_parsed_template = template.render(
+	h2=0, title="Login page", role=role, user=user, error_log=error_log, error=error, ref=ref,
+	versions=funct.versions(), db_create=db_create
+)
 print(output_from_parsed_template)

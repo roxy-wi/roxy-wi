@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import os
+
 import funct
 import sql
-import create_db
-import os
+
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('ovw.html')
@@ -24,7 +25,7 @@ try:
 
 		for s in servers:
 			if i != servers_len:
-				servers_for_grep += s[2]+'\|'
+				servers_for_grep += s[2] + '\|'
 			else:
 				servers_for_grep += s[2]
 
@@ -100,34 +101,18 @@ except Exception as e:
 	token = ''
 
 
-template = template.render(h2=1,
-							autorefresh=1,
-							title="Overview",
-							role=role,
-							user=user,
-							groups=groups,
-							roles=sql.select_roles(),
-							metrics_master=''.join(metrics_master),
-							metrics_worker=''.join(metrics_worker),
-							checker_master=''.join(checker_master),
-							checker_worker=''.join(checker_worker),
-							keep_alive=''.join(keep_alive),
-							smon=''.join(smon),
-							port_scanner=''.join(port_scanner),
-							grafana=''.join(grafana),
-							socket=''.join(socket),
-							haproxy_wi_log_id=funct.haproxy_wi_log(log_id=1, file="roxy-wi-", with_date=1),
-							metrics_log_id=funct.haproxy_wi_log(log_id=1, file="metrics", with_date=1),
-							checker_log_id=funct.haproxy_wi_log(log_id=1, file="checker", with_date=1),
-							keep_alive_log_id=funct.haproxy_wi_log(log_id=1, file="keep_alive"),
-							socket_log_id=funct.haproxy_wi_log(log_id=1, file="socket"),
-							metrics_error_log_id=funct.haproxy_wi_log(log_id=1, file="metrics-error"),
-							error=stderr,
-							haproxy_wi_log=funct.haproxy_wi_log(),
-							servers=servers,
-							is_checker_worker=is_checker_worker,
-							is_metrics_worker=is_metrics_worker,
-							host=host,
-							user_services=user_services,
-							token=token)
-print(template)
+rendered_template = template.render(
+	h2=1, autorefresh=1, title="Overview", role=role, user=user, groups=groups, roles=sql.select_roles(),
+	metrics_master=''.join(metrics_master), metrics_worker=''.join(metrics_worker), checker_master=''.join(checker_master),
+	checker_worker=''.join(checker_worker), keep_alive=''.join(keep_alive), smon=''.join(smon),
+	port_scanner=''.join(port_scanner), grafana=''.join(grafana), socket=''.join(socket),
+	haproxy_wi_log_id=funct.haproxy_wi_log(log_id=1, file="roxy-wi-", with_date=1),
+	metrics_log_id=funct.haproxy_wi_log(log_id=1, file="metrics", with_date=1),
+	checker_log_id=funct.haproxy_wi_log(log_id=1, file="checker", with_date=1),
+	keep_alive_log_id=funct.haproxy_wi_log(log_id=1, file="keep_alive"),
+	socket_log_id=funct.haproxy_wi_log(log_id=1, file="socket"),
+	metrics_error_log_id=funct.haproxy_wi_log(log_id=1, file="metrics-error"), error=stderr,
+	haproxy_wi_log=funct.haproxy_wi_log(), servers=servers, is_checker_worker=is_checker_worker,
+	is_metrics_worker=is_metrics_worker, host=host, user_services=user_services, token=token
+)
+print(rendered_template)

@@ -17,14 +17,8 @@ try:
 except Exception:
 	pass
 
-
-template = template.render(h2=0,
-							title="RunTime API",
-							role=role,
-							user=user,
-							select_id="serv",
-							selects=servers,
-							token=token,
-							user_services=user_services,
-							servbackend=servbackend)
-print(template)
+rendered_template = template.render(
+	h2=0, title="RunTime API", role=role, user=user, select_id="serv", selects=servers, token=token,
+	user_services=user_services, servbackend=servbackend
+)
+print(rendered_template)
