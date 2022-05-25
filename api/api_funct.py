@@ -1,7 +1,7 @@
 import os
 import sys
 import json
-from bottle import route, run, hook, response, request, post
+from bottle import request
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app/'))
 
 import sql
@@ -99,10 +99,10 @@ def check_permit_to_server(server_id, service='haproxy'):
 	servers = sql.select_servers(id_hostname=server_id)
 	token = request.headers.get('token')
 	login, group_id = sql.get_username_groupid_from_api_token(token)
-		
-	for s in servers:		
+
+	for s in servers:
 		server = sql.get_dick_permit(username=login, group_id=group_id, ip=s[2], token=token, service=service)
-		
+
 	return server
 
 
@@ -125,9 +125,9 @@ def get_server(server_id, service):
 	if service != 'apache' and service != 'nginx' and service != 'haproxy' and service != 'keepalived':
 		return dict(status='wrong service')
 	data = {}
-	try:	
+	try:
 		servers = check_permit_to_server(server_id, service=service)
-				
+
 		for s in servers:
 			data = {
 				'server_id': s[0],
@@ -171,9 +171,7 @@ def get_status(server_id, service):
 				apache_stats_port = sql.get_setting('apache_stats_port')
 				apache_stats_page = sql.get_setting('apache_stats_page')
 				cmd = "curl -s -u %s:%s http://%s:%s/%s?auto |grep 'ServerVersion\|Processes\|ServerUptime:'" % \
-						(
-							apache_stats_user, apache_stats_password, s[2], apache_stats_port, apache_stats_page
-						)
+					(apache_stats_user, apache_stats_password, s[2], apache_stats_port, apache_stats_page)
 				servers_with_status = list()
 				try:
 					out = funct.subprocess_execute(cmd)
@@ -191,7 +189,6 @@ def get_status(server_id, service):
 				except Exception as e:
 					data = {server_id: {"error": "Cannot get status: " + str(e)}}
 
-
 	except Exception:
 		data = {server_id: {"error": "Cannot find the server"}}
 		return dict(error=data)
@@ -206,19 +203,19 @@ def get_all_statuses():
 		token = request.headers.get('token')
 		login, group_id = sql.get_username_groupid_from_api_token(token)
 		sock_port = sql.get_setting('haproxy_sock_port')
-			
-		for s in servers:		
+
+		for s in servers:
 			servers = sql.get_dick_permit(username=login, group_id=group_id, token=token)
-			
+
 		for s in servers:
 			cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|Maxco\|MB\|Uptime:"' % (s[2], sock_port)
-			data[s[2]] = {}	
+			data[s[2]] = {}
 			out = funct.subprocess_execute(cmd)
 			data[s[2]] = return_dict_from_out(s[1], out[0])
 	except Exception:
 		data = {"error": "Cannot find the server"}
 		return dict(error=data)
-			
+
 	return dict(status=data)
 
 
@@ -231,7 +228,6 @@ def actions(server_id, action, service):
 	try:
 		servers = check_permit_to_server(server_id, service=service)
 
-
 		for s in servers:
 			if service == 'apache':
 				service = funct.get_correct_apache_service_name(server_ip=s[2])
@@ -239,7 +235,7 @@ def actions(server_id, action, service):
 			error = funct.ssh_command(s[2], cmd)
 			done = error if error else 'done'
 
-			data = {'server_id':s[0],'ip':s[2],'action':action,'hostname':s[1],'status':done}
+			data = {'server_id':s[0], 'ip':s[2], 'action':action, 'hostname':s[1], 'status':done}
 
 		return dict(status=data)
 	except Exception as e:
@@ -282,7 +278,7 @@ def show_backends(server_id):
 		data = {server_id: {"error": "Cannot find the server"}}
 		return dict(error=data)
 
-	return dict(backends=data)		
+	return dict(backends=data)
 
 
 def get_config(server_id, **kwargs):
@@ -324,7 +320,7 @@ def get_section(server_id):
 		out = funct.get_config(s[2], cfg)
 		start_line, end_line, config_read = funct.get_section_from_config(cfg, section_name)
 
-	data = {server_id: {section_name:{'start_line':start_line, 'end_line':end_line, 'config_read':config_read}}}
+	data = {server_id: {section_name:{'start_line': start_line, 'end_line': end_line, 'config_read': config_read}}}
 	return dict(section=data)
 
 
@@ -363,8 +359,10 @@ def edit_section(server_id):
 				os.system("/bin/cp %s %s" % (cfg, cfg_for_save))
 				out = funct.master_slave_upload_and_restart(ip, cfg, save, login=login)
 				funct.logging('localhost', " section " + section_name + " has been edited via API", login=login)
-				funct.logging(ip, 'Section ' + section_name + ' has been edited via API', haproxywi=1, login=login,
-								keep_history=1, service='haproxy')
+				funct.logging(
+					ip, 'Section ' + section_name + ' has been edited via API', haproxywi=1,
+					login=login, keep_history=1, service='haproxy'
+				)
 
 				if out:
 					return_mess = out
@@ -432,8 +430,9 @@ def upload_config(server_id, **kwargs):
 				out = funct.master_slave_upload_and_restart(ip, cfg, save, login=login)
 
 			funct.logging('localhost', " config has been uploaded via API", login=login)
-			funct.logging(ip, 'Config has been uploaded via API', haproxywi=1, login=login,
-							keep_history=1, service=service_name)
+			funct.logging(
+				ip, 'Config has been uploaded via API', haproxywi=1, login=login, keep_history=1, service=service_name
+			)
 
 			if out:
 				return_mess = out
@@ -488,7 +487,7 @@ def add_to_config(server_id):
 		data[server_id] = {"error": "cannot find the server"}
 		return dict(error=data)
 
-	return dict(config=data)	
+	return dict(config=data)
 
 
 def show_log(server_id):
@@ -570,7 +569,7 @@ def add_acl(server_id):
 	except Exception as e:
 		status = str(e)
 
-	data = {'acl':status}
+	data = {'acl': status}
 	return dict(data)
 
 

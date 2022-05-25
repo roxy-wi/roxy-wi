@@ -305,8 +305,7 @@ def update_hapwi_server(server_id, alert, metrics, active, service_name):
 
 
 def update_server(
-		hostname, group, typeip, enable, master, server_id, cred, port, desc, haproxy, nginx, apache,
-		firewall, protected
+	hostname, group, typeip, enable, master, server_id, cred, port, desc, haproxy, nginx, apache, firewall, protected
 ):
 	try:
 		server_update = Server.update(
@@ -597,7 +596,7 @@ def get_api_token(token):
 
 def get_user_id_by_api_token(token):
 	query = (User.select(User.user_id).join(ApiToken, on=(
-			ApiToken.user_name == User.username
+		ApiToken.user_name == User.username
 	)).where(ApiToken.token == token))
 	try:
 		query_res = query.execute()
@@ -703,9 +702,10 @@ def get_user_id_by_username(username: str):
 
 
 def get_user_role_by_uuid(uuid):
-	query = (Role.select(Role.role_id).join(User, on=(Role.name == User.role)).join(UUID, on=(
-			User.user_id == UUID.user_id
-	)).where(UUID.uuid == uuid))
+	query = (
+		Role.select(Role.role_id).join(User, on=(Role.name == User.role)).join(
+			UUID, on=(User.user_id == UUID.user_id)
+		).where(UUID.uuid == uuid))
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -2780,9 +2780,9 @@ def update_provisioning_server_status(status, user_group_id, name, provider_id, 
 		)
 	else:
 		query = ProvisionedServers.update(status=status).where(
-			(ProvisionedServers.name == name) &
-			(ProvisionedServers.group_id == user_group_id) &
-			(ProvisionedServers.provider_id == provider_id)
+			(ProvisionedServers.name == name)
+			& (ProvisionedServers.group_id == user_group_id)
+			& (ProvisionedServers.provider_id == provider_id)
 		)
 	try:
 		query.execute()
@@ -2882,9 +2882,9 @@ def select_provisioned_servers(**kwargs):
 				prov_serv.instance_type, prov_serv.status, prov_serv.date, prov_serv.region, prov_serv.os,
 				prov_serv.IP, prov_serv.last_error, prov_serv.name_template
 			).where(
-				(prov_serv.name == kwargs.get('new')) &
-				(prov_serv.group_id == kwargs.get('group')) &
-				(prov_serv.type == kwargs.get('type'))
+				(prov_serv.name == kwargs.get('new'))
+				& (prov_serv.group_id == kwargs.get('group'))
+				& (prov_serv.type == kwargs.get('type'))
 			)
 		)
 	else:

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 import os
 import sys
+
 import funct
 import sql
 
@@ -10,14 +10,16 @@ form = funct.form
 serv = funct.is_ip_or_dns(form.getvalue('serv'))
 act = form.getvalue("act")
 
-if (form.getvalue('new_metrics') or
-        form.getvalue('new_http_metrics') or
-        form.getvalue('new_waf_metrics') or
-        form.getvalue('new_nginx_metrics') or
-        form.getvalue('metrics_hapwi_ram') or
-        form.getvalue('metrics_hapwi_cpu') or
-        form.getvalue('getoption') or
-        form.getvalue('getsavedserver')):
+if (
+        form.getvalue('new_metrics')
+        or form.getvalue('new_http_metrics')
+        or form.getvalue('new_waf_metrics')
+        or form.getvalue('new_nginx_metrics')
+        or form.getvalue('metrics_hapwi_ram')
+        or form.getvalue('metrics_hapwi_cpu')
+        or form.getvalue('getoption')
+        or form.getvalue('getsavedserver')
+):
     print('Content-type: application/json\n')
 else:
     print('Content-type: text/html\n')
@@ -670,8 +672,10 @@ if act == "overviewwaf":
     import http.cookies
 
     from jinja2 import Environment, FileSystemLoader
-    env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True,
-                    extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
+    env = Environment(
+        loader=FileSystemLoader('templates/ajax'), autoescape=True,
+        extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do']
+    )
     template = env.get_template('overivewWaf.html')
 
     servers = sql.select_servers(server=serv)
@@ -1236,8 +1240,8 @@ if serv is not None and act == "configShow":
 if act == 'configShowFiles':
     service = form.getvalue('service')
 
-    config_dir = funct.get_config_var('configs', service+'_save_configs_dir')
-    service_config_dir = sql.get_setting(service+'_dir')
+    config_dir = funct.get_config_var('configs', service + '_save_configs_dir')
+    service_config_dir = sql.get_setting(service + '_dir')
     try:
         config_file_name = form.getvalue('config_file_name').replace('92', '/')
     except Exception:
@@ -1246,7 +1250,7 @@ if act == 'configShowFiles':
     if 'error: ' in return_files:
         print(return_files)
         sys.exit()
-    return_files += ' ' + sql.get_setting(service+'_config_path')
+    return_files += ' ' + sql.get_setting(service + '_config_path')
     from jinja2 import Environment, FileSystemLoader
 
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
@@ -1257,7 +1261,7 @@ if act == 'configShowFiles':
 
 if act == 'showRemoteLogFiles':
     service = form.getvalue('service')
-    log_path = sql.get_setting(service+'_path_logs')
+    log_path = sql.get_setting(service + '_path_logs')
     return_files = funct.get_remote_files(serv, log_path, 'log')
     if 'error: ' in return_files:
         print(return_files)
@@ -1312,7 +1316,7 @@ if form.getvalue('master'):
             group_id = sql.get_group_id_by_server_ip(master)
             cred_id = sql.get_cred_id_by_server_ip(master)
             hostname = sql.get_hostname_by_server_ip(master)
-            sql.add_server(hostname+'-VIP', IP, group_id, '1', '1', '0', cred_id, ssh_port, 'VRRP IP for '+master, haproxy, nginx, '0')
+            sql.add_server(hostname + '-VIP', IP, group_id, '1', '1', '0', cred_id, ssh_port, 'VRRP IP for '+master, haproxy, nginx, '0')
 
 if form.getvalue('master_slave'):
     master = form.getvalue('master_slave')
@@ -1466,10 +1470,10 @@ if form.getvalue('install_grafana'):
         print(
             'success: Grafana and Prometheus servers were installed. You can find Grafana on http://' + socket.gethostname() + ':3000<br>')
     else:
-        for l in output:
-            if "Traceback" in l or "FAILED" in l:
+        for line in output:
+            if ("Traceback", "FAILED") in line:
                 try:
-                    print(l)
+                    print(line)
                     break
                 except Exception:
                     print(output)
@@ -1639,10 +1643,10 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
 
     output, error = funct.subprocess_execute(commands[0])
 
-    for l in output:
-        if "Traceback" in l or "FAILED" in l:
+    for line in output:
+        if ("Traceback", "FAILED") in line:
             try:
-                print('error: ' + l)
+                print('error: ' + line)
                 break
             except Exception:
                 print('error: ' + output)
@@ -1716,10 +1720,10 @@ if form.getvalue('git_backup'):
 
     output, error = funct.subprocess_execute(commands[0])
 
-    for l in output:
-        if "Traceback" in l or "FAILED" in l:
+    for line in output:
+        if ("Traceback", "FAILED") in line:
             try:
-                print('error: ' + l)
+                print('error: ' + line)
                 break
             except Exception:
                 print('error: ' + output)
@@ -1740,8 +1744,10 @@ if form.getvalue('git_backup'):
                 template = template.render(gits=gits, sshs=sshs, servers=servers, services=services, new_add=1)
                 print(template)
                 print('success: Git job has been created')
-                funct.logging(server_ip, ' A new git job has been created', haproxywi=1, login=1,
-                                          keep_history=1, service=service_name)
+                funct.logging(
+                    server_ip, ' A new git job has been created', haproxywi=1, login=1,
+                    keep_history=1, service=service_name
+                )
         else:
             if sql.delete_git(form.getvalue('git_backup')):
                 print('Ok')
@@ -2077,8 +2083,8 @@ if form.getvalue('bwlists_delete'):
 if form.getvalue('get_lists'):
     list_path = os.path.dirname(os.getcwd()) + "/" + sql.get_setting('lists_path') + "/" + form.getvalue('group') + "/" + form.getvalue('color')
     lists = funct.get_files(dir=list_path, format="lst")
-    for l in lists:
-        print(l)
+    for list in lists:
+        print(list)
 
 if form.getvalue('get_ldap_email'):
     username = form.getvalue('get_ldap_email')
@@ -2860,12 +2866,12 @@ if form.getvalue('lets_domain'):
         funct.logging('localhost', error, haproxywi=1)
         print(error)
     else:
-        for l in output:
-            if "msg" in l or "FAILED" in l:
+        for line in output:
+            if "msg" in line or "FAILED" in line:
                 try:
-                    l = l.split(':')[1]
-                    l = l.split('"')[1]
-                    print(l + "<br>")
+                    line = line.split(':')[1]
+                    line = line.split('"')[1]
+                    print(line + "<br>")
                     break
                 except Exception:
                     print(output)
@@ -3052,7 +3058,7 @@ if form.getvalue('nettools_icmp_server_from'):
         output = funct.ssh_command(server_from, action_for_sending, raw=1)
 
     if stderr != '':
-        print('error: '+stderr)
+        print('error: ' + stderr)
         sys.exit()
     for i in output:
         if i == ' ' or i == '':
@@ -3123,7 +3129,7 @@ if form.getvalue('nettools_nslookup_server_from'):
         output = funct.ssh_command(server_from, action_for_sending, raw=1)
 
     if stderr != '':
-        print('error: '+stderr[5:-1])
+        print('error: ' + stderr[5:-1])
         sys.exit()
     count_string = 0
     print('<b style="display: block; margin-top:10px;">The <i style="color: var(--blue-color)">' + dns_name + '</i> domain has the following records:</b>')
@@ -3230,7 +3236,7 @@ if form.getvalue('awsinit') or form.getvalue('doinit') or form.getvalue('gcorein
     cmd = 'cd scripts/terraform/ && sudo terraform init -upgrade -no-color'
     output, stderr = funct.subprocess_execute(cmd)
     if stderr != '':
-        print('error: '+stderr)
+        print('error: ' + stderr)
     else:
         if "Terraform initialized in an empty directory" in output[0]:
             print('error: There is not need modules')
@@ -3275,9 +3281,9 @@ if form.getvalue('awsvars') or form.getvalue('awseditvars'):
           'group={} size={} os={} floating_ip={} volume_size={} server_name={} AWS_ACCESS_KEY={} ' \
           'AWS_SECRET_KEY={} firewall={} public_ip={} ssh_name={} delete_on_termination={} volume_type={} ' \
           'cloud=aws"'.format(
-        region, group, size, oss, floating_ip, volume_size, awsvars, aws_key, aws_secret,
-        firewall, public_ip, ssh_name, delete_on_termination, volume_type
-    )
+                        region, group, size, oss, floating_ip, volume_size, awsvars, aws_key, aws_secret,
+                        firewall, public_ip, ssh_name, delete_on_termination, volume_type
+                    )
 
     output, stderr = funct.subprocess_execute(cmd)
     if stderr != '':
@@ -3320,9 +3326,9 @@ if form.getvalue('dovars') or form.getvalue('doeditvars'):
     cmd = 'cd scripts/terraform/ && sudo ansible-playbook var_generator.yml -i inventory -e "region={} ' \
           'group={} size={} os={} floating_ip={} ssh_ids={} server_name={} token={} backup={} monitoring={} ' \
           'privet_net={} firewall={} floating_ip={} ssh_name={} cloud=do"'.format(
-        region, group, size, oss, floating_ip, ssh_ids, dovars, token, backup, monitoring,
-        privet_net, firewall, floating_ip, ssh_name
-    )
+                region, group, size, oss, floating_ip, ssh_ids, dovars, token, backup, monitoring,
+                privet_net, firewall, floating_ip, ssh_name
+            )
     output, stderr = funct.subprocess_execute(cmd)
     if stderr != '':
         print('error: ' + stderr)
@@ -3338,7 +3344,7 @@ if form.getvalue('dovalidate') or form.getvalue('doeditvalidate'):
         workspace = form.getvalue('doeditvalidate')
         group = form.getvalue('do_edit_group')
 
-    cmd = 'cd scripts/terraform/ && sudo terraform plan -no-color -input=false -target=module.do_module -var-file vars/' + workspace + '_'+group+'_do.tfvars'
+    cmd = 'cd scripts/terraform/ && sudo terraform plan -no-color -input=false -target=module.do_module -var-file vars/' + workspace + '_' + group + '_do.tfvars'
     output, stderr = funct.subprocess_execute(cmd)
     if stderr != '':
         print('error: ' + stderr)
@@ -3433,7 +3439,7 @@ if form.getvalue('awsvalidate') or form.getvalue('awseditvalidate'):
         workspace = form.getvalue('awseditvalidate')
         group = form.getvalue('aws_edit_group')
 
-    cmd = 'cd scripts/terraform/ && sudo terraform plan -no-color -input=false -target=module.aws_module -var-file vars/' + workspace + '_'+group+'_aws.tfvars'
+    cmd = 'cd scripts/terraform/ && sudo terraform plan -no-color -input=false -target=module.aws_module -var-file vars/' + workspace + '_' + group + '_aws.tfvars'
     output, stderr = funct.subprocess_execute(cmd)
     if stderr != '':
         print('error: ' + stderr)
@@ -3575,7 +3581,7 @@ if (
         cloud = 'gcore'
         state_name = 'gcore_instance'
 
-    tfvars = workspace + '_'+group+'_' + cloud + '.tfvars'
+    tfvars = workspace + '_' + group + '_' + cloud + '.tfvars'
     cmd = 'cd scripts/terraform/ && sudo terraform apply -auto-approve -no-color -input=false -target=module.' + cloud + '_module -var-file vars/' + tfvars
     output, stderr = funct.subprocess_execute(cmd)
 
@@ -3586,7 +3592,7 @@ if (
         stderr = stderr.replace("\'", "")
         sql.update_provisioning_server_status('Error', group, workspace, provider_id)
         sql.update_provisioning_server_error(stderr, group, workspace, provider_id)
-        print('error: '+stderr)
+        print('error: ' + stderr)
     else:
         if cloud == 'aws':
             cmd = 'cd scripts/terraform/ && sudo terraform state show module.aws_module.aws_eip.floating_ip[0]|grep -Eo "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}"'
@@ -3607,7 +3613,7 @@ if (
         if cloud == 'gcore':
             cmd = 'cd scripts/terraform/ && sudo terraform state show module.gcore_module.gcore_instance.hapwi|grep "name"|grep -v -e "_name\|name_" |head -1 |awk -F"\\\"" \'{print $2}\''
             output, stderr = funct.subprocess_execute(cmd)
-            print(':'+output[0])
+            print(':' + output[0])
             sql.update_provisioning_server_gcore_name(workspace, output[0], group, provider_id)
 
         funct.logging('localhost', 'Server ' + workspace + ' has been ' + action, provisioning=1)
@@ -3634,7 +3640,7 @@ if form.getvalue('provisiningdestroyserver'):
         sql.update_provisioning_server_error(stderr, group, workspace, provider_id)
         print('error: ' + stderr)
     else:
-        cmd = 'cd scripts/terraform/ && sudo terraform destroy -auto-approve -no-color -target=module.'+cloud_type+'_module -var-file vars/' + tf_workspace + '.tfvars'
+        cmd = 'cd scripts/terraform/ && sudo terraform destroy -auto-approve -no-color -target=module.' + cloud_type + '_module -var-file vars/' + tf_workspace + '.tfvars'
         output, stderr = funct.subprocess_execute(cmd)
 
         if stderr != '':
@@ -3701,7 +3707,7 @@ if form.getvalue('gcorevalidate') or form.getvalue('gcoreeditvalidate'):
         workspace = form.getvalue('gcoreeditvalidate')
         group = form.getvalue('gcore_edit_group')
 
-    cmd = 'cd scripts/terraform/ && sudo terraform plan -no-color -input=false -target=module.gcore_module -var-file vars/' + workspace + '_'+group+'_gcore.tfvars'
+    cmd = 'cd scripts/terraform/ && sudo terraform plan -no-color -input=false -target=module.gcore_module -var-file vars/' + workspace + '_' + group + '_gcore.tfvars'
     output, stderr = funct.subprocess_execute(cmd)
     if stderr != '':
         print('error: ' + stderr)
@@ -3736,8 +3742,10 @@ if form.getvalue('gcoreworkspace'):
         sql.update_provisioning_server_error(stderr, group, workspace, provider)
         print('error: ' + stderr)
     else:
-        if sql.add_server_gcore(project, region, size, network_type, network_name, volume_size, ssh_name, workspace, oss, firewall,
-                          provider, group, 'Creating', delete_on_termination, volume_type):
+        if sql.add_server_gcore(
+                project, region, size, network_type, network_name, volume_size, ssh_name, workspace, oss, firewall,
+                provider, group, 'Creating', delete_on_termination, volume_type
+        ):
 
             from jinja2 import Environment, FileSystemLoader
 
@@ -3771,8 +3779,10 @@ if form.getvalue('gcoreeditworkspace'):
     network_name = form.getvalue('gcore_edit_network_name')
     server_id = form.getvalue('server_id')
 
-    if sql.update_server_gcore(region, size, network_type, network_name, volume_size, ssh_name, workspace, oss, firewall,
-                             provider, group, 'Editing', server_id, delete_on_termination, volume_type, project):
+    if sql.update_server_gcore(
+            region, size, network_type, network_name, volume_size, ssh_name, workspace, oss, firewall,
+            provider, group, 'Editing', server_id, delete_on_termination, volume_type, project
+    ):
 
         try:
             cmd = 'cd scripts/terraform/ && sudo terraform workspace select ' + workspace + '_' + group + '_gcore'

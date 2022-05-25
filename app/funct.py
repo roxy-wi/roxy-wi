@@ -607,7 +607,7 @@ def get_backends_from_config(server_ip, backends=''):
 	format_cfg = 'cfg'
 
 	try:
-		cfg = configs_dir+get_files(dir=configs_dir, format=format_cfg)[0]
+		cfg = configs_dir + get_files(dir=configs_dir, format=format_cfg)[0]
 	except Exception as e:
 		logging('localhost', str(e), haproxywi=1)
 		try:
@@ -660,12 +660,12 @@ def show_installation_output(error, output, service):
 		print('error: ' + error)
 		return False
 	else:
-		for l in output:
-			if "UNREACHABLE" in l:
-				print(l + '<br />')
-			if "Traceback" in l or "FAILED" in l or "error" in l or "ERROR" in l:
+		for line in output:
+			if "UNREACHABLE" in line:
+				print(line + '<br />')
+			if ("Traceback", "FAILED", "error", "ERROR") in line:
 				try:
-					print(l)
+					print(line)
 					break
 				except Exception:
 					print(output)
