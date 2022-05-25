@@ -10,9 +10,9 @@ def is_ip_or_dns(server_from_request: str) -> str:
 	dns_regex = "^(?!-)[A-Za-z0-9-]+([\\-\\.]{1}[a-z0-9]+)*\\.[A-Za-z]{2,6}$"
 	try:
 		if server_from_request in (
-				'roxy-wi-checker', 'roxy-wi-keep_alive', 'roxy-wi-keep-alive', 'roxy-wi-metrics',
-				'roxy-wi-portscanner', 'roxy-wi-smon', 'roxy-wi-socket', 'fail2ban', 'prometheus',
-				'all', 'grafana-server', 'rabbitmq-server'
+			'roxy-wi-checker', 'roxy-wi-keep_alive', 'roxy-wi-keep-alive', 'roxy-wi-metrics',
+			'roxy-wi-portscanner', 'roxy-wi-smon', 'roxy-wi-socket', 'fail2ban', 'prometheus',
+			'all', 'grafana-server', 'rabbitmq-server'
 		):
 			return server_from_request
 		if re.match(ip_regex, server_from_request):
@@ -713,11 +713,11 @@ def install_haproxy(server_ip, **kwargs):
 	syn_flood_protect = '1' if kwargs.get('syn_flood') == "1" else ''
 
 	commands = [
-		"chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv +
-		" SOCK_PORT=" + hap_sock_p + " STAT_PORT=" + stats_port + " STAT_FILE=" + server_state_file + " DOCKER=" + docker +
-		" SSH_PORT=" + ssh_port + " STATS_USER=" + stats_user + " CONT_NAME=" + container_name + " HAP_DIR=" + haproxy_dir +
-		" STATS_PASS='" + stats_password + "' HAPVER=" + haproxy_ver + " SYN_FLOOD=" + syn_flood_protect +
-		" HOST=" + server_ip + " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name
+		"chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SOCK_PORT=" + hap_sock_p
+		+ " STAT_PORT=" + stats_port + " STAT_FILE=" + server_state_file + " DOCKER=" + docker
+		+ " SSH_PORT=" + ssh_port + " STATS_USER=" + stats_user + " CONT_NAME=" + container_name + " HAP_DIR=" + haproxy_dir
+		+ " STATS_PASS='" + stats_password + "' HAPVER=" + haproxy_ver + " SYN_FLOOD=" + syn_flood_protect
+		+ " HOST=" + server_ip + " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name
 	]
 
 	output, error = subprocess_execute(commands[0])
@@ -757,9 +757,9 @@ def waf_install(server_ip):
 		proxy_serv = ''
 
 	commands = [
-		"chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " HAPROXY_PATH=" + haproxy_dir +
-		" VERSION='" + ver + "' SSH_PORT=" + ssh_port + " HOST=" + server_ip +
-		" USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name
+		"chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " HAPROXY_PATH=" + haproxy_dir
+		+ " VERSION='" + ver + "' SSH_PORT=" + ssh_port + " HOST=" + server_ip
+		+ " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name
 	]
 
 	output, error = subprocess_execute(commands[0])
@@ -806,10 +806,10 @@ def install_nginx(server_ip, **kwargs):
 	syn_flood_protect = '1' if form.getvalue('syn_flood') == "1" else ''
 
 	commands = [
-		"chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " STATS_USER=" + stats_user +
-		" STATS_PASS='" + stats_password + "' SSH_PORT=" + ssh_port + " CONFIG_PATH=" + config_path + " CONT_NAME=" + container_name +
-		" STAT_PORT=" + stats_port + " STAT_PAGE=" + stats_page + " SYN_FLOOD=" + syn_flood_protect + " DOCKER=" + docker + " nginx_dir=" + nginx_dir +
-		" HOST=" + server_ip + " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name
+		"chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " STATS_USER=" + stats_user
+		+ " STATS_PASS='" + stats_password + "' SSH_PORT=" + ssh_port + " CONFIG_PATH=" + config_path + " CONT_NAME=" + container_name
+		+ " STAT_PORT=" + stats_port + " STAT_PAGE=" + stats_page + " SYN_FLOOD=" + syn_flood_protect + " DOCKER=" + docker
+		+ " nginx_dir=" + nginx_dir + " HOST=" + server_ip + " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name
 	]
 
 	output, error = subprocess_execute(commands[0])
@@ -1753,9 +1753,11 @@ def get_system_info(server_ip: str) -> bool:
 				ip = i['configuration']['ip']
 			except Exception:
 				ip = ''
-			network[i['logicalname']] = {'description': i['description'],
-											'mac': i['serial'],
-											'ip': ip}
+			network[i['logicalname']] = {
+				'description': i['description'],
+				'mac': i['serial'],
+				'ip': ip
+			}
 		for k, j in i.items():
 			if isinstance(j, list):
 				for b in j:

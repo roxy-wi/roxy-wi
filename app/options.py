@@ -608,7 +608,7 @@ if act == "overview":
 
         try:
             waf_len = len(waf)
-        except:
+        except Exception:
             waf_len = 0
 
         if haproxy == 1:
@@ -693,7 +693,7 @@ if act == "overviewwaf":
             metrics_en = sql.select_waf_metrics_enable_server(server[2])
             try:
                 waf_len = len(waf)
-            except:
+            except Exception:
                 waf_len = 0
 
             if waf_len >= 1:
@@ -940,7 +940,7 @@ if serv is not None and act == "showMap":
                     node = node + ":" + bind[0]
                     node = node.split('\n')[0]
                     sections['listens'][node] = {'servers': dict()}
-            except Exception as e:
+            except Exception:
                 pass
 
         if "server " in line or "use_backend" in line or "default_backend" in line and "stats" not in line and "#" not in line:
@@ -960,17 +960,17 @@ if serv is not None and act == "showMap":
                 try:
                     backend_server_port = line_new2[1].strip(' \t\n\r')
                     backend_server_port = 'port: ' + backend_server_port
-                except Exception as e:
+                except Exception:
                     backend_server_port = ''
 
                 try:
                     sections['listens'][node]['servers'][line_new[0]] = {line_new[0]: backend_server_port}
-                except Exception as e:
+                except Exception:
                     pass
 
                 try:
                     sections['backends'][node]['servers'][line_new[0]] = {line_new[0]: backend_server_port}
-                except Exception as e:
+                except Exception:
                     pass
 
     os.system("/bin/rm -f " + cfg)
@@ -1180,7 +1180,7 @@ if serv is not None and act == "configShow":
     service = form.getvalue('service')
     try:
         config_file_name = form.getvalue('config_file_name').replace('/', '92')
-    except:
+    except Exception:
         config_file_name = ''
 
     if service == 'keepalived':
@@ -1240,7 +1240,7 @@ if act == 'configShowFiles':
     service_config_dir = sql.get_setting(service+'_dir')
     try:
         config_file_name = form.getvalue('config_file_name').replace('92', '/')
-    except:
+    except Exception:
         config_file_name = ''
     return_files = funct.get_remote_files(serv, service_config_dir, 'conf')
     if 'error: ' in return_files:
@@ -1510,11 +1510,13 @@ if form.getvalue('haproxy_exp_install'):
     else:
         proxy_serv = ''
 
-    commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv +
-                " STAT_PORT=" + str(stats_port) + " STAT_FILE=" + server_state_file +
-                " SSH_PORT=" + ssh_port + " STAT_PAGE=" + stat_page + " VER=" + ver + " EXP_PROM=" + ext_prom +
-                " STATS_USER=" + stats_user + " STATS_PASS='" + stats_password + "' HOST=" + serv +
-                " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name]
+    commands = [
+        "chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv
+        + " STAT_PORT=" + str(stats_port) + " STAT_FILE=" + server_state_file
+        + " SSH_PORT=" + ssh_port + " STAT_PAGE=" + stat_page + " VER=" + ver + " EXP_PROM=" + ext_prom
+        + " STATS_USER=" + stats_user + " STATS_PASS='" + stats_password + "' HOST=" + serv
+        + " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name
+    ]
 
     output, error = funct.subprocess_execute(commands[0])
 
@@ -1549,10 +1551,12 @@ if form.getvalue('nginx_exp_install'):
     else:
         proxy_serv = ''
 
-    commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv +
-                " STAT_PORT=" + str(stats_port) + " SSH_PORT=" + ssh_port + " STAT_PAGE=" + stats_page +
-                " STATS_USER=" + stats_user + " STATS_PASS='" + stats_password + "' HOST=" + serv + " VER=" + ver +
-                " EXP_PROM=" + ext_prom + " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name]
+    commands = [
+        "chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv
+        + " STAT_PORT=" + str(stats_port) + " SSH_PORT=" + ssh_port + " STAT_PAGE=" + stats_page
+        + " STATS_USER=" + stats_user + " STATS_PASS='" + stats_password + "' HOST=" + serv + " VER=" + ver
+        + " EXP_PROM=" + ext_prom + " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name
+    ]
 
     output, error = funct.subprocess_execute(commands[0])
 
@@ -1583,8 +1587,11 @@ if form.getvalue('node_exp_install'):
     else:
         proxy_serv = ''
 
-    commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port + " VER=" + ver +
-                " EXP_PROM=" + ext_prom + " HOST=" + serv + " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name]
+    commands = [
+        "chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port
+        + " VER=" + ver + " EXP_PROM=" + ext_prom + " HOST=" + serv + " USER=" + ssh_user_name
+        + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name
+    ]
 
     output, error = funct.subprocess_execute(commands[0])
 
@@ -1624,9 +1631,11 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
 
     os.system("cp scripts/%s ." % script)
 
-    commands = ["chmod +x " + script + " &&  ./" + script + "  HOST=" + rserver + "  SERVER=" + serv +
-                " TYPE=" + backup_type + " SSH_PORT=" + ssh_port + " TIME=" + time +
-                " RPATH=" + rpath + " DELJOB=" + deljob + " USER=" + str(ssh_user_name) + " KEY=" + str(ssh_key_name)]
+    commands = [
+        "chmod +x " + script + " &&  ./" + script + "  HOST=" + rserver + "  SERVER=" + serv
+        + " TYPE=" + backup_type + " SSH_PORT=" + ssh_port + " TIME=" + time
+        + " RPATH=" + rpath + " DELJOB=" + deljob + " USER=" + str(ssh_user_name) + " KEY=" + str(ssh_key_name)
+    ]
 
     output, error = funct.subprocess_execute(commands[0])
 
@@ -1645,8 +1654,9 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
 
                 env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
                 template = env.get_template('new_backup.html')
-                template = template.render(backups=sql.select_backups(server=serv, rserver=rserver),
-                                               sshs=sql.select_ssh())
+                template = template.render(
+                    backups=sql.select_backups(server=serv, rserver=rserver), sshs=sql.select_ssh()
+                )
                 print(template)
                 print('success: Backup job has been created')
                 funct.logging('backup ', ' a new backup job for server ' + serv + ' has been created', haproxywi=1, login=1)
@@ -1697,10 +1707,12 @@ if form.getvalue('git_backup'):
     if branch is None or branch == '0':
         branch = 'main'
 
-    commands = ["chmod +x " + script + " &&  ./" + script + " HOST=" + server_ip + " DELJOB=" + deljob +
-                " SERVICE=" + service_name + " INIT=" + git_init + " SSH_PORT=" + ssh_port + " PERIOD=" + period +
-                " REPO=" + repo + " BRANCH=" + branch + " CONFIG_DIR=" + service_config_dir +
-                " PROXY=" + proxy_serv + " USER=" + str(ssh_user_name) + " KEY=" + str(ssh_key_name)]
+    commands = [
+        "chmod +x " + script + " &&  ./" + script + " HOST=" + server_ip + " DELJOB=" + deljob
+        + " SERVICE=" + service_name + " INIT=" + git_init + " SSH_PORT=" + ssh_port + " PERIOD=" + period
+        + " REPO=" + repo + " BRANCH=" + branch + " CONFIG_DIR=" + service_config_dir
+        + " PROXY=" + proxy_serv + " USER=" + str(ssh_user_name) + " KEY=" + str(ssh_key_name)
+    ]
 
     output, error = funct.subprocess_execute(commands[0])
 
@@ -1714,8 +1726,10 @@ if form.getvalue('git_backup'):
                 break
     else:
         if deljob == '0':
-            if sql.insert_new_git(server_id=server_id, service_id=service_id, repo=repo, branch=branch,
-                                          period=period, cred=cred, description=description):
+            if sql.insert_new_git(
+                server_id=server_id, service_id=service_id, repo=repo, branch=branch,
+                period=period, cred=cred, description=description
+            ):
                 from jinja2 import Environment, FileSystemLoader
 
                 gits = sql.select_gits(server_id=server_id, service_id=service_id)
@@ -2234,7 +2248,7 @@ if form.getvalue('newserver') is not None:
 
                 if funct.is_service_active(ip, 'firewalld'):
                     sql.update_firewall(ip)
-        except:
+        except Exception:
             pass
 
         try:
@@ -3260,8 +3274,10 @@ if form.getvalue('awsvars') or form.getvalue('awseditvars'):
     cmd = 'cd scripts/terraform/ && sudo ansible-playbook var_generator.yml -i inventory -e "region={} ' \
           'group={} size={} os={} floating_ip={} volume_size={} server_name={} AWS_ACCESS_KEY={} ' \
           'AWS_SECRET_KEY={} firewall={} public_ip={} ssh_name={} delete_on_termination={} volume_type={} ' \
-          'cloud=aws"'.format(region, group, size, oss, floating_ip, volume_size, awsvars, aws_key, aws_secret,
-                                firewall, public_ip, ssh_name, delete_on_termination, volume_type)
+          'cloud=aws"'.format(
+        region, group, size, oss, floating_ip, volume_size, awsvars, aws_key, aws_secret,
+        firewall, public_ip, ssh_name, delete_on_termination, volume_type
+    )
 
     output, stderr = funct.subprocess_execute(cmd)
     if stderr != '':
@@ -3303,9 +3319,10 @@ if form.getvalue('dovars') or form.getvalue('doeditvars'):
 
     cmd = 'cd scripts/terraform/ && sudo ansible-playbook var_generator.yml -i inventory -e "region={} ' \
           'group={} size={} os={} floating_ip={} ssh_ids={} server_name={} token={} backup={} monitoring={} ' \
-          'privet_net={} firewall={} floating_ip={} ssh_name={} cloud=do"'.format(region, group, size, oss, floating_ip,
-                                                                           ssh_ids, dovars, token, backup, monitoring,
-                                                                           privet_net, firewall, floating_ip, ssh_name)
+          'privet_net={} firewall={} floating_ip={} ssh_name={} cloud=do"'.format(
+        region, group, size, oss, floating_ip, ssh_ids, dovars, token, backup, monitoring,
+        privet_net, firewall, floating_ip, ssh_name
+    )
     output, stderr = funct.subprocess_execute(cmd)
     if stderr != '':
         print('error: ' + stderr)
@@ -3355,8 +3372,10 @@ if form.getvalue('doworkspace'):
         sql.update_provisioning_server_error(stderr, group, workspace, provider)
         print('error: ' + stderr)
     else:
-        if sql.add_server_do(region, size, privet_net, floating_ip, ssh_ids, ssh_name, workspace, oss, firewall, monitoring,
-                          backup, provider, group, 'Creating'):
+        if sql.add_server_do(
+                region, size, privet_net, floating_ip, ssh_ids, ssh_name, workspace, oss, firewall, monitoring,
+                backup, provider, group, 'Creating'
+        ):
 
             from jinja2 import Environment, FileSystemLoader
 
@@ -3365,12 +3384,10 @@ if form.getvalue('doworkspace'):
 
             env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
             template = env.get_template('ajax/provisioning/provisioned_servers.html')
-            template = template.render(servers=new_server,
-                                       groups=sql.select_groups(),
-                                       user_group=group,
-                                       providers=sql.select_providers(group),
-                                       role=role,
-                                       adding=1)
+            template = template.render(
+                servers=new_server, groups=sql.select_groups(), user_group=group,
+                providers=sql.select_providers(group), role=role, adding=1
+            )
             print(template)
 
 if form.getvalue('doeditworkspace'):
@@ -3388,8 +3405,10 @@ if form.getvalue('doeditworkspace'):
     monitoring = form.getvalue('do_edit_monitoring')
     firewall = form.getvalue('do_edit_firewall')
     server_id = form.getvalue('server_id')
-    if sql.update_server_do(size, privet_net, floating_ip, ssh_ids, ssh_name, oss, firewall, monitoring, backup, provider,
-                         group, 'Creating', server_id):
+    if sql.update_server_do(
+        size, privet_net, floating_ip, ssh_ids, ssh_name, oss, firewall, monitoring, backup, provider,
+        group, 'Creating', server_id
+    ):
 
         cmd = 'cd scripts/terraform/ && sudo terraform workspace select ' + workspace + '_' + group + '_do'
         output, stderr = funct.subprocess_execute(cmd)
@@ -3448,8 +3467,10 @@ if form.getvalue('awsworkspace'):
         sql.update_provisioning_server_error(stderr, group, workspace, provider)
         print('error: ' + stderr)
     else:
-        if sql.add_server_aws(region, size, public_ip, floating_ip, volume_size, ssh_name, workspace, oss, firewall,
-                          provider, group, 'Creating', delete_on_termination, volume_type):
+        if sql.add_server_aws(
+            region, size, public_ip, floating_ip, volume_size, ssh_name, workspace, oss, firewall,
+            provider, group, 'Creating', delete_on_termination, volume_type
+        ):
 
             from jinja2 import Environment, FileSystemLoader
 
@@ -3458,12 +3479,10 @@ if form.getvalue('awsworkspace'):
 
             env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
             template = env.get_template('ajax/provisioning/provisioned_servers.html')
-            template = template.render(servers=new_server,
-                                       groups=sql.select_groups(),
-                                       user_group=group,
-                                       providers=sql.select_providers(group),
-                                       role=role,
-                                       adding=1)
+            template = template.render(
+                servers=new_server, groups=sql.select_groups(), user_group=group,
+                providers=sql.select_providers(group), role=role, adding=1
+            )
             print(template)
 
 if form.getvalue('awseditworkspace'):
@@ -3482,8 +3501,10 @@ if form.getvalue('awseditworkspace'):
     public_ip = form.getvalue('aws_editing_public_ip')
     server_id = form.getvalue('server_id')
 
-    if sql.update_server_aws(region, size, public_ip, floating_ip, volume_size, ssh_name, workspace, oss, firewall,
-                             provider, group, 'Editing', server_id, delete_on_termination, volume_type):
+    if sql.update_server_aws(
+            region, size, public_ip, floating_ip, volume_size, ssh_name, workspace, oss, firewall,
+            provider, group, 'Editing', server_id, delete_on_termination, volume_type
+    ):
 
         try:
             cmd = 'cd scripts/terraform/ && sudo terraform workspace select ' + workspace + '_' + group + '_aws'

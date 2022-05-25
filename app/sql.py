@@ -2632,9 +2632,10 @@ def add_provider_aws(provider_name, provider_group, provider_key, provider_secre
 
 def add_provider_gcore(provider_name, provider_group, provider_user, provider_pass):
 	try:
-		ProvidersCreds.insert(name=provider_name, type='gcore', group=provider_group, key=provider_user,
-							  secret=provider_pass, create_date=funct.get_data('regular'),
-							  edit_date=funct.get_data('regular')).execute()
+		ProvidersCreds.insert(
+			name=provider_name, type='gcore', group=provider_group, key=provider_user,
+			secret=provider_pass, create_date=funct.get_data('regular'), edit_date=funct.get_data('regular')
+		).execute()
 		return True
 	except Exception as e:
 		out_error(e)
@@ -3172,8 +3173,9 @@ def select_remote_path_from_version(server_ip: str, service: str, local_path: st
 		return query_res
 
 
-def insert_system_info(server_id: int, os_info: str, sys_info: str, cpu: str, ram: str, network: str,
-					   disks: str) -> bool:
+def insert_system_info(
+		server_id: int, os_info: str, sys_info: str, cpu: str, ram: str, network: str, disks: str
+) -> bool:
 	try:
 		SystemInfo.insert(
 			server_id=server_id, os_info=os_info, sys_info=sys_info, cpu=cpu, ram=ram, network=network, disks=disks
@@ -3326,9 +3328,10 @@ def select_user_all():
 
 def insert_new_git(server_id, service_id, repo, branch, period, cred, description):
 	try:
-		GitSetting.insert(server_id=server_id, service_id=service_id, repo=repo, branch=branch, period=period,
-						  cred_id=cred,
-						  description=description).execute()
+		GitSetting.insert(
+			server_id=server_id, service_id=service_id, repo=repo, branch=branch, period=period,
+			cred_id=cred, description=description
+		).execute()
 	except Exception as e:
 		out_error(e)
 		return False
