@@ -942,8 +942,10 @@ def update_ssh(cred_id, name, enable, group, username, password):
 
 def insert_backup_job(server, rserver, rpath, backup_type, time, cred, description):
 	try:
-		Backup.insert(server=server, rhost=rserver, rpath=rpath, backup_type=backup_type, time=time,
-						cred=cred, description=description).execute()
+		Backup.insert(
+			server=server, rhost=rserver, rpath=rpath, backup_type=backup_type, time=time,
+			cred=cred, description=description
+		).execute()
 	except Exception as e:
 		out_error(e)
 		return False
@@ -2516,8 +2518,10 @@ def delete_port_scanner_settings(server_id):
 
 def insert_port_scanner_port(serv, user_group_id, port, service_name):
 	try:
-		PortScannerPorts.insert(serv=serv, port=port, user_group_id=user_group_id, service_name=service_name,
-								date=funct.get_data('regular')).execute()
+		PortScannerPorts.insert(
+			serv=serv, port=port, user_group_id=user_group_id, service_name=service_name,
+			date=funct.get_data('regular')
+		).execute()
 	except Exception as e:
 		out_error(e)
 
@@ -2547,8 +2551,9 @@ def select_port_name(serv, port):
 
 
 def select_count_opened_ports(serv):
-	query = PortScannerPorts.select(PortScannerPorts.date,
-									fn.Count(PortScannerPorts.port).alias('count')).where(PortScannerPorts.serv == serv)
+	query = PortScannerPorts.select(
+		PortScannerPorts.date, fn.Count(PortScannerPorts.port).alias('count')
+	).where(PortScannerPorts.serv == serv)
 	try:
 		query_res = query.execute()
 	except Exception as e:

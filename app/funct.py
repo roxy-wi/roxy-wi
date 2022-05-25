@@ -169,11 +169,11 @@ def logging(server_ip, action, **kwargs):
 		log = open(log_path + "/roxy-wi-" + get_data('logs') + ".log", "a")
 	elif kwargs.get('provisioning') == 1:
 		mess = get_data('date_in_log') + " from " + ip + " user: " + login + ", group: " + user_group + ", " + \
-				action + "\n"
+			action + "\n"
 		log = open(log_path + "/provisioning-" + get_data('logs') + ".log", "a")
 	else:
 		mess = get_data('date_in_log') + " from " + ip + " user: " + login + ", group: " + user_group + ", " + \
-				action + " for: " + server_ip + "\n"
+			action + " for: " + server_ip + "\n"
 		log = open(log_path + "/config_edit-" + get_data('logs') + ".log", "a")
 
 		if kwargs.get('keep_history'):
@@ -424,8 +424,8 @@ def get_config(server_ip, cfg, **kwargs):
 	if kwargs.get("keepalived") or kwargs.get("service") == 'keepalived':
 		config_path = "/etc/keepalived/keepalived.conf"
 	elif (
-			kwargs.get("nginx") or kwargs.get("service") == 'nginx'
-			or kwargs.get("apache") or kwargs.get("service") == 'apache'
+		kwargs.get("nginx") or kwargs.get("service") == 'nginx'
+		or kwargs.get("apache") or kwargs.get("service") == 'apache'
 	):
 		config_path = kwargs.get('config_file_name')
 	elif kwargs.get("waf") or kwargs.get("service") == 'waf':
@@ -527,8 +527,8 @@ def get_sections(config, **kwargs):
 					return_config.append(find_ip[0])
 			else:
 				if line.startswith((
-						'global', 'listen', 'frontend', 'backend', 'cache', 'defaults', '#HideBlockStart',
-						'#HideBlockEnd', 'peers', 'resolvers', 'userlist', 'http-errors'
+					'global', 'listen', 'frontend', 'backend', 'cache', 'defaults', '#HideBlockStart',
+					'#HideBlockEnd', 'peers', 'resolvers', 'userlist', 'http-errors'
 				)):
 					line = line.strip()
 					return_config.append(line)
@@ -550,8 +550,8 @@ def get_section_from_config(config, section):
 				continue
 			if record:
 				if line.startswith((
-						'global', 'listen', 'frontend', 'backend', 'cache', 'defaults', '#HideBlockStart',
-						'#HideBlockEnd', 'peers', 'resolvers', 'userlist', 'http-errors'
+					'global', 'listen', 'frontend', 'backend', 'cache', 'defaults', '#HideBlockStart',
+					'#HideBlockEnd', 'peers', 'resolvers', 'userlist', 'http-errors'
 				)):
 					record = False
 					end_line = index
@@ -663,7 +663,7 @@ def show_installation_output(error, output, service):
 		for line in output:
 			if "UNREACHABLE" in line:
 				print(line + '<br />')
-			if ("Traceback", "FAILED", "error", "ERROR") in line:
+			if any(s in line for s in ("Traceback", "FAILED", "error", "ERROR")):
 				try:
 					print(line)
 					break
@@ -1461,10 +1461,10 @@ def get_remote_files(server_ip: str, config_dir: str, file_format: str):
 
 def return_nice_path(return_path: str) -> str:
 	if (
-			'nginx' not in return_path
-			and 'haproxy' not in return_path
-			and 'apache2' not in return_path
-			and 'httpd' not in return_path
+		'nginx' not in return_path
+		and 'haproxy' not in return_path
+		and 'apache2' not in return_path
+		and 'httpd' not in return_path
 	):
 		return 'error: The path must contain the name of the service. Check it in Roxy-WI settings'
 	if return_path[-1] != '/':

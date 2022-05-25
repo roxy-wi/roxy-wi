@@ -1302,10 +1302,12 @@ if form.getvalue('master'):
 
     os.system("cp scripts/%s ." % script)
 
-    commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port +
-                " ETH=" + ETH + " IP=" + str(IP) + " MASTER=MASTER" + " RETURN_TO_MASTER=" + return_to_master +
-                " SYN_FLOOD=" + syn_flood + " HOST=" + str(master) +
-                " USER=" + str(ssh_user_name) + " PASS='" + str(ssh_user_password) + "' KEY=" + str(ssh_key_name)]
+    commands = [
+        "chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port
+        + " ETH=" + ETH + " IP=" + str(IP) + " MASTER=MASTER" + " RETURN_TO_MASTER=" + return_to_master
+        + " SYN_FLOOD=" + syn_flood + " HOST=" + str(master)
+        + " USER=" + str(ssh_user_name) + " PASS='" + str(ssh_user_password) + "' KEY=" + str(ssh_key_name)
+    ]
 
     output, error = funct.subprocess_execute(commands[0])
 
@@ -1316,7 +1318,7 @@ if form.getvalue('master'):
             group_id = sql.get_group_id_by_server_ip(master)
             cred_id = sql.get_cred_id_by_server_ip(master)
             hostname = sql.get_hostname_by_server_ip(master)
-            sql.add_server(hostname + '-VIP', IP, group_id, '1', '1', '0', cred_id, ssh_port, 'VRRP IP for '+master, haproxy, nginx, '0')
+            sql.add_server(hostname + '-VIP', IP, group_id, '1', '1', '0', cred_id, ssh_port, 'VRRP IP for ' + master, haproxy, nginx, '0')
 
 if form.getvalue('master_slave'):
     master = form.getvalue('master_slave')
@@ -1343,9 +1345,11 @@ if form.getvalue('master_slave'):
 
     os.system("cp scripts/%s ." % script)
 
-    commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port +
-                " ETH=" + ETH + " IP=" + IP + " MASTER=BACKUP" + " HOST=" + str(slave) +
-                " USER=" + str(ssh_user_name) + " PASS='" + str(ssh_user_password) + "' KEY=" + str(ssh_key_name)]
+    commands = [
+        "chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port
+        + " ETH=" + ETH + " IP=" + IP + " MASTER=BACKUP" + " HOST=" + str(slave)
+        + " USER=" + str(ssh_user_name) + " PASS='" + str(ssh_user_password) + "' KEY=" + str(ssh_key_name)
+    ]
 
     output, error = funct.subprocess_execute(commands[0])
 
@@ -1381,10 +1385,12 @@ if form.getvalue('masteradd'):
     for server in servers:
         ssh_port = str(server[10])
 
-    commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv +
-                " SSH_PORT=" + ssh_port + " ETH=" + ETH + " RETURN_TO_MASTER=" + return_to_master +
-                " IP=" + str(IP) + " MASTER=MASTER" + " RESTART=" + kp + " ADD_VRRP=1 HOST=" + str(master) +
-                " USER=" + str(ssh_user_name) + " PASS='" + str(ssh_user_password) + "' KEY=" + str(ssh_key_name)]
+    commands = [
+        "chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv
+        + " SSH_PORT=" + ssh_port + " ETH=" + ETH + " RETURN_TO_MASTER=" + return_to_master
+        + " IP=" + str(IP) + " MASTER=MASTER" + " RESTART=" + kp + " ADD_VRRP=1 HOST=" + str(master)
+        + " USER=" + str(ssh_user_name) + " PASS='" + str(ssh_user_password) + "' KEY=" + str(ssh_key_name)
+    ]
 
     output, error = funct.subprocess_execute(commands[0])
 
@@ -1415,10 +1421,12 @@ if form.getvalue('masteradd_slave'):
     for server in servers:
         ssh_port = str(server[10])
 
-    commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv +
-                " SSH_PORT=" + ssh_port + " ETH=" + ETH +
-                " IP=" + str(IP) + " MASTER=BACKUP" + " RESTART=" + kp + " ADD_VRRP=1 HOST=" + str(slave) +
-                " USER=" + str(ssh_user_name) + " PASS='" + str(ssh_user_password) + "' KEY=" + str(ssh_key_name)]
+    commands = [
+        "chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv
+        + " SSH_PORT=" + ssh_port + " ETH=" + ETH
+        + " IP=" + str(IP) + " MASTER=BACKUP" + " RESTART=" + kp + " ADD_VRRP=1 HOST=" + str(slave)
+        + " USER=" + str(ssh_user_name) + " PASS='" + str(ssh_user_password) + "' KEY=" + str(ssh_key_name)
+    ]
 
     output, error = funct.subprocess_execute(commands[0])
 
@@ -1471,7 +1479,7 @@ if form.getvalue('install_grafana'):
             'success: Grafana and Prometheus servers were installed. You can find Grafana on http://' + socket.gethostname() + ':3000<br>')
     else:
         for line in output:
-            if ("Traceback", "FAILED") in line:
+            if any(s in line for s in ("Traceback", "FAILED")):
                 try:
                     print(line)
                     break
@@ -1644,7 +1652,7 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
     output, error = funct.subprocess_execute(commands[0])
 
     for line in output:
-        if ("Traceback", "FAILED") in line:
+        if any(s in line for s in ("Traceback", "FAILED")):
             try:
                 print('error: ' + line)
                 break
@@ -1721,7 +1729,7 @@ if form.getvalue('git_backup'):
     output, error = funct.subprocess_execute(commands[0])
 
     for line in output:
-        if ("Traceback", "FAILED") in line:
+        if any(s in line for s in ("Traceback", "FAILED")):
             try:
                 print('error: ' + line)
                 break
@@ -1956,7 +1964,7 @@ if form.getvalue('get_nginx_v'):
 
     if is_dockerized == '1':
         container_name = sql.get_setting('nginx_container_name')
-        cmd = ["docker exec -it "+container_name+" /usr/sbin/nginx -v 2>&1|awk '{print $3}'"]
+        cmd = ["docker exec -it " + container_name + "  /usr/sbin/nginx -v 2>&1|awk '{print $3}'"]
     else:
         cmd = ['sudo /usr/sbin/nginx -v']
     print(funct.ssh_command(serv, cmd))
@@ -2103,17 +2111,17 @@ if form.getvalue('get_ldap_email'):
 
     ldap_proto = 'ldap' if ldap_type == "0" else 'ldaps'
 
-    l = ldap.initialize('{}://{}:{}/'.format(ldap_proto, server, port))
+    ldap_bind = ldap.initialize('{}://{}:{}/'.format(ldap_proto, server, port))
 
     try:
-        l.protocol_version = ldap.VERSION3
-        l.set_option(ldap.OPT_REFERRALS, 0)
+        ldap_bind.protocol_version = ldap.VERSION3
+        ldap_bind.set_option(ldap.OPT_REFERRALS, 0)
 
-        bind = l.simple_bind_s(user, password)
+        bind = ldap_bind.simple_bind_s(user, password)
 
         criteria = "(&(objectClass=" + ldap_class_search + ")(" + ldap_user_attribute + "=" + username + "))"
         attributes = [ldap_search_field]
-        result = l.search_s(ldap_base, ldap.SCOPE_SUBTREE, criteria, attributes)
+        result = ldap_bind.search_s(ldap_base, ldap.SCOPE_SUBTREE, criteria, attributes)
 
         results = [entry for dn, entry in result if isinstance(entry, dict)]
         try:
@@ -2867,7 +2875,7 @@ if form.getvalue('lets_domain'):
         print(error)
     else:
         for line in output:
-            if "msg" in line or "FAILED" in line:
+            if any(s in line for s in ("msg", "FAILED")):
                 try:
                     line = line.split(':')[1]
                     line = line.split('"')[1]
@@ -3278,12 +3286,12 @@ if form.getvalue('awsvars') or form.getvalue('awseditvars'):
     aws_key, aws_secret = sql.select_aws_provider(provider)
 
     cmd = 'cd scripts/terraform/ && sudo ansible-playbook var_generator.yml -i inventory -e "region={} ' \
-          'group={} size={} os={} floating_ip={} volume_size={} server_name={} AWS_ACCESS_KEY={} ' \
-          'AWS_SECRET_KEY={} firewall={} public_ip={} ssh_name={} delete_on_termination={} volume_type={} ' \
-          'cloud=aws"'.format(
-                        region, group, size, oss, floating_ip, volume_size, awsvars, aws_key, aws_secret,
-                        firewall, public_ip, ssh_name, delete_on_termination, volume_type
-                    )
+            'group={} size={} os={} floating_ip={} volume_size={} server_name={} AWS_ACCESS_KEY={} ' \
+            'AWS_SECRET_KEY={} firewall={} public_ip={} ssh_name={} delete_on_termination={} volume_type={} ' \
+            'cloud=aws"'.format(
+                region, group, size, oss, floating_ip, volume_size, awsvars, aws_key, aws_secret,
+                firewall, public_ip, ssh_name, delete_on_termination, volume_type
+            )
 
     output, stderr = funct.subprocess_execute(cmd)
     if stderr != '':
@@ -3325,7 +3333,8 @@ if form.getvalue('dovars') or form.getvalue('doeditvars'):
 
     cmd = 'cd scripts/terraform/ && sudo ansible-playbook var_generator.yml -i inventory -e "region={} ' \
           'group={} size={} os={} floating_ip={} ssh_ids={} server_name={} token={} backup={} monitoring={} ' \
-          'privet_net={} firewall={} floating_ip={} ssh_name={} cloud=do"'.format(
+          'privet_net={} firewall={} floating_ip={} ssh_name={} ' \
+          'cloud=do"'.format(
                 region, group, size, oss, floating_ip, ssh_ids, dovars, token, backup, monitoring,
                 privet_net, firewall, floating_ip, ssh_name
             )
