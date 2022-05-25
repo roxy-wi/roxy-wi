@@ -9,9 +9,11 @@ def is_ip_or_dns(server_from_request: str) -> str:
 	ip_regex = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
 	dns_regex = "^(?!-)[A-Za-z0-9-]+([\\-\\.]{1}[a-z0-9]+)*\\.[A-Za-z]{2,6}$"
 	try:
-		if server_from_request in ('roxy-wi-checker', 'roxy-wi-keep_alive', 'roxy-wi-keep-alive', 'roxy-wi-metrics',
-									'roxy-wi-portscanner', 'roxy-wi-smon', 'roxy-wi-socket', 'fail2ban', 'prometheus',
-									'all', 'grafana-server', 'rabbitmq-server'):
+		if server_from_request in (
+				'roxy-wi-checker', 'roxy-wi-keep_alive', 'roxy-wi-keep-alive', 'roxy-wi-metrics',
+				'roxy-wi-portscanner', 'roxy-wi-smon', 'roxy-wi-socket', 'fail2ban', 'prometheus',
+				'all', 'grafana-server', 'rabbitmq-server'
+		):
 			return server_from_request
 		if re.match(ip_regex, server_from_request):
 			return server_from_request
@@ -20,7 +22,7 @@ def is_ip_or_dns(server_from_request: str) -> str:
 				return server_from_request
 			else:
 				return ''
-	except:
+	except Exception:
 		return ''
 
 
@@ -122,7 +124,7 @@ def logging(server_ip, action, **kwargs):
 	log_path = get_config_var('main', 'log_path')
 	try:
 		user_group = get_user_group()
-	except:
+	except Exception:
 		user_group = ''
 
 	if not os.path.exists(log_path):
@@ -142,7 +144,7 @@ def logging(server_ip, action, **kwargs):
 		try:
 			if len(login_name) > 1:
 				login = kwargs.get('login')
-		except:
+		except Exception:
 			login = ''
 
 	try:
@@ -164,15 +166,15 @@ def logging(server_ip, action, **kwargs):
 					print(str(e))
 		else:
 			mess = get_data('date_in_log') + " " + action + " from " + ip + "\n"
-		log = open(log_path + "/roxy-wi-"+get_data('logs')+".log", "a")
+		log = open(log_path + "/roxy-wi-" + get_data('logs') + ".log", "a")
 	elif kwargs.get('provisioning') == 1:
 		mess = get_data('date_in_log') + " from " + ip + " user: " + login + ", group: " + user_group + ", " + \
 				action + "\n"
-		log = open(log_path + "/provisioning-"+get_data('logs')+".log", "a")
+		log = open(log_path + "/provisioning-" + get_data('logs') + ".log", "a")
 	else:
 		mess = get_data('date_in_log') + " from " + ip + " user: " + login + ", group: " + user_group + ", " + \
 				action + " for: " + server_ip + "\n"
-		log = open(log_path + "/config_edit-"+get_data('logs')+".log", "a")
+		log = open(log_path + "/config_edit-" + get_data('logs') + ".log", "a")
 
 		if kwargs.get('keep_history'):
 			keep_action_history(kwargs.get('service'), action, server_ip, login, ip)
@@ -259,7 +261,7 @@ def slack_send_mess(mess, **kwargs):
 		client = WebClient(token=slack_token)
 
 	try:
-		client.chat_postMessage(channel='#'+channel_name, text=mess)
+		client.chat_postMessage(channel='#' + channel_name, text=mess)
 	except SlackApiError as e:
 		print('error: ' + str(e))
 		logging('localhost', str(e), haproxywi=1)
@@ -360,13 +362,13 @@ def return_ssh_keys_path(server_ip, **kwargs):
 			ssh_enable = sshs.enable
 			ssh_user_name = sshs.username
 			ssh_user_password = sshs.password
-			ssh_key_name = full_path+'/keys/%s.pem' % sshs.name
+			ssh_key_name = full_path + '/keys/%s.pem' % sshs.name
 	else:
 		for sshs in sql.select_ssh(serv=server_ip):
 			ssh_enable = sshs.enable
 			ssh_user_name = sshs.username
 			ssh_user_password = sshs.password
-			ssh_key_name = full_path+'/keys/%s.pem' % sshs.name
+			ssh_key_name = full_path + '/keys/%s.pem' % sshs.name
 
 	return ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name
 
@@ -421,8 +423,10 @@ def get_config(server_ip, cfg, **kwargs):
 
 	if kwargs.get("keepalived") or kwargs.get("service") == 'keepalived':
 		config_path = "/etc/keepalived/keepalived.conf"
-	elif (kwargs.get("nginx") or kwargs.get("service") == 'nginx' or
-			kwargs.get("apache") or kwargs.get("service") == 'apache'):
+	elif (
+			kwargs.get("nginx") or kwargs.get("service") == 'nginx'
+			or kwargs.get("apache") or kwargs.get("service") == 'apache'
+	):
 		config_path = kwargs.get('config_file_name')
 	elif kwargs.get("waf") or kwargs.get("service") == 'waf':
 		config_path = sql.get_setting('haproxy_dir') + '/waf/rules/' + kwargs.get("waf_rule_file")
@@ -479,7 +483,7 @@ def diff_config(oldcfg, cfg, **kwargs):
 			diff += date + " user: " + login + ", group: " + user_group + " " + line + "\n"
 
 	try:
-		log = open(log_path + "/config_edit-"+get_data('logs')+".log", "a")
+		log = open(log_path + "/config_edit-" + get_data('logs') + ".log", "a")
 		log.write(diff)
 		log.close()
 	except IOError:
@@ -489,20 +493,22 @@ def diff_config(oldcfg, cfg, **kwargs):
 
 def get_remote_sections(server_ip: str, service: str) -> str:
 	import sql
-	remote_dir = service+'_dir'
+	remote_dir = service + '_dir'
 	config_dir = sql.get_setting(remote_dir)
 	config_dir = return_nice_path(config_dir)
 	if service == 'nginx':
 		section_name = 'server_name'
 		commands = [
-			'sudo grep {} {}* -R |grep -v \'${}\|#\'|awk \'{{print $1, $3}}\''.format(section_name, config_dir,
-																						section_name)]
+			'sudo grep {} {}* -R |grep -v \'${}\|#\'|awk \'{{print $1, $3}}\''.format(
+				section_name, config_dir, section_name
+			)]
 
 	elif service == 'apache':
 		section_name = 'ServerName'
 		commands = [
-			'sudo grep {} {}*/*.conf -R |grep -v \'${}\|#\'|awk \'{{print $1, $3}}\''.format(section_name, config_dir,
-																							section_name)]
+			'sudo grep {} {}*/*.conf -R |grep -v \'${}\|#\'|awk \'{{print $1, $3}}\''.format(
+				section_name, config_dir, section_name
+			)]
 
 	backends = ssh_command(server_ip, commands)
 
@@ -520,18 +526,10 @@ def get_sections(config, **kwargs):
 				if find_ip:
 					return_config.append(find_ip[0])
 			else:
-				if line.startswith(('global',
-									'listen',
-									'frontend',
-									'backend',
-									'cache',
-									'defaults',
-									'#HideBlockStart',
-									'#HideBlockEnd',
-									'peers',
-									'resolvers',
-									'userlist',
-									'http-errors')):
+				if line.startswith((
+						'global', 'listen', 'frontend', 'backend', 'cache', 'defaults', '#HideBlockStart',
+						'#HideBlockEnd', 'peers', 'resolvers', 'userlist', 'http-errors'
+				)):
 					line = line.strip()
 					return_config.append(line)
 
@@ -551,18 +549,10 @@ def get_section_from_config(config, section):
 				record = True
 				continue
 			if record:
-				if line.startswith(('global',
-									'listen',
-									'frontend',
-									'backend',
-									'cache',
-									'defaults',
-									'#HideBlockStart',
-									'#HideBlockEnd',
-									'peers',
-									'resolvers',
-									'userlist',
-									'http-errors')):
+				if line.startswith((
+						'global', 'listen', 'frontend', 'backend', 'cache', 'defaults', '#HideBlockStart',
+						'#HideBlockEnd', 'peers', 'resolvers', 'userlist', 'http-errors'
+				)):
 					record = False
 					end_line = index
 					end_line = end_line - 1
@@ -621,7 +611,7 @@ def get_backends_from_config(server_ip, backends=''):
 	except Exception as e:
 		logging('localhost', str(e), haproxywi=1)
 		try:
-			cfg = configs_dir + server_ip + "-" + get_data('config') + '.'+format_cfg
+			cfg = configs_dir + server_ip + "-" + get_data('config') + '.' + format_cfg
 		except Exception:
 			logging('localhost', ' Cannot generate cfg path', haproxywi=1)
 			return
@@ -667,7 +657,7 @@ def get_stick_table(table):
 def show_installation_output(error, output, service):
 	if error and "WARNING" not in error:
 		logging('localhost', error, haproxywi=1)
-		print('error: '+error)
+		print('error: ' + error)
 		return False
 	else:
 		for l in output:
@@ -722,11 +712,13 @@ def install_haproxy(server_ip, **kwargs):
 
 	syn_flood_protect = '1' if kwargs.get('syn_flood') == "1" else ''
 
-	commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv +
-				" SOCK_PORT=" + hap_sock_p + " STAT_PORT=" + stats_port + " STAT_FILE="+server_state_file + " DOCKER=" + docker +
-				" SSH_PORT=" + ssh_port + " STATS_USER=" + stats_user + " CONT_NAME=" + container_name + " HAP_DIR=" + haproxy_dir +
-				" STATS_PASS='" + stats_password + "' HAPVER=" + haproxy_ver + " SYN_FLOOD=" + syn_flood_protect +
-				" HOST=" + server_ip + " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name]
+	commands = [
+		"chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv +
+		" SOCK_PORT=" + hap_sock_p + " STAT_PORT=" + stats_port + " STAT_FILE=" + server_state_file + " DOCKER=" + docker +
+		" SSH_PORT=" + ssh_port + " STATS_USER=" + stats_user + " CONT_NAME=" + container_name + " HAP_DIR=" + haproxy_dir +
+		" STATS_PASS='" + stats_password + "' HAPVER=" + haproxy_ver + " SYN_FLOOD=" + syn_flood_protect +
+		" HOST=" + server_ip + " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name
+	]
 
 	output, error = subprocess_execute(commands[0])
 	if server_for_installing:
@@ -764,9 +756,11 @@ def waf_install(server_ip):
 	else:
 		proxy_serv = ''
 
-	commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " HAPROXY_PATH=" + haproxy_dir +
-				" VERSION='" + ver + "' SSH_PORT=" + ssh_port + " HOST=" + server_ip +
-				" USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name]
+	commands = [
+		"chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " HAPROXY_PATH=" + haproxy_dir +
+		" VERSION='" + ver + "' SSH_PORT=" + ssh_port + " HOST=" + server_ip +
+		" USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name
+	]
 
 	output, error = subprocess_execute(commands[0])
 
@@ -811,10 +805,12 @@ def install_nginx(server_ip, **kwargs):
 
 	syn_flood_protect = '1' if form.getvalue('syn_flood') == "1" else ''
 
-	commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " STATS_USER=" + stats_user +
-				" STATS_PASS='" + stats_password + "' SSH_PORT=" + ssh_port + " CONFIG_PATH=" + config_path + " CONT_NAME=" + container_name +
-				" STAT_PORT=" + stats_port + " STAT_PAGE=" + stats_page+" SYN_FLOOD=" + syn_flood_protect + " DOCKER=" + docker + " nginx_dir=" + nginx_dir +
-				" HOST=" + server_ip + " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name]
+	commands = [
+		"chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " STATS_USER=" + stats_user +
+		" STATS_PASS='" + stats_password + "' SSH_PORT=" + ssh_port + " CONFIG_PATH=" + config_path + " CONT_NAME=" + container_name +
+		" STAT_PORT=" + stats_port + " STAT_PAGE=" + stats_page + " SYN_FLOOD=" + syn_flood_protect + " DOCKER=" + docker + " nginx_dir=" + nginx_dir +
+		" HOST=" + server_ip + " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name
+	]
 
 	output, error = subprocess_execute(commands[0])
 	if server_for_installing:
@@ -878,7 +874,7 @@ def upload(server_ip, path, file, **kwargs):
 	except Exception as e:
 		error = str(e.args)
 		logging('localhost', error, haproxywi=1)
-		print(' Cannot upload '+file+' to '+full_path+' to server: '+server_ip+' error: ' + error)
+		print(' Cannot upload ' + file + ' to ' + full_path + ' to server: ' + server_ip + ' error: ' + error)
 		return error
 
 	try:
@@ -886,7 +882,7 @@ def upload(server_ip, path, file, **kwargs):
 	except Exception as e:
 		error = str(e.args)
 		logging('localhost', error, haproxywi=1)
-		print('Cannot upload '+file+' to '+full_path+' to server: '+server_ip+' error: ' + error)
+		print('Cannot upload ' + file + ' to ' + full_path + ' to server: ' + server_ip + ' error: ' + error)
 		return error
 
 	try:
@@ -967,7 +963,7 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		login = 1
 
 	try:
-		os.system("dos2unix "+cfg)
+		os.system("dos2unix " + cfg)
 	except OSError:
 		return 'Please install dos2unix'
 
@@ -1073,26 +1069,19 @@ def master_slave_upload_and_restart(server_ip, cfg, just_save, **kwargs):
 	masters = sql.is_master(server_ip)
 	for master in masters:
 		if master[0] is not None:
-			error = upload_and_restart(master[0],
-										cfg,
-										just_save=just_save,
-										nginx=kwargs.get('nginx'),
-										apache=kwargs.get('apache'),
-										config_file_name=kwargs.get('config_file_name'),
-										slave=1)
+			error = upload_and_restart(
+				master[0], cfg, just_save=just_save, nginx=kwargs.get('nginx'),
+				apache=kwargs.get('apache'), config_file_name=kwargs.get('config_file_name'), slave=1
+			)
 
 	if kwargs.get('login'):
 		login = kwargs.get('login')
 	else:
 		login = ''
-	error = upload_and_restart(server_ip,
-								cfg,
-								just_save=just_save,
-								nginx=kwargs.get('nginx'),
-								apache=kwargs.get('apache'),
-								config_file_name=kwargs.get('config_file_name'),
-								oldcfg=kwargs.get('oldcfg'),
-								login=login)
+	error = upload_and_restart(
+		server_ip, cfg, just_save=just_save, nginx=kwargs.get('nginx'), apache=kwargs.get('apache'),
+		config_file_name=kwargs.get('config_file_name'), oldcfg=kwargs.get('oldcfg'), login=login
+	)
 
 	return error
 
@@ -1116,7 +1105,7 @@ def open_port_firewalld(cfg, server_ip, **kwargs):
 					listen = listen.split(";")[0]
 					try:
 						listen = int(listen)
-						ports += str(listen)+' '
+						ports += str(listen) + ' '
 						firewalld_commands += ' sudo firewall-cmd --zone=public --add-port=%s/tcp --permanent -q &&' % str(listen)
 					except Exception:
 						pass
@@ -1132,7 +1121,7 @@ def open_port_firewalld(cfg, server_ip, **kwargs):
 					try:
 						bind = int(bind)
 						firewalld_commands += ' sudo firewall-cmd --zone=public --add-port=%s/tcp --permanent -q &&' % str(bind)
-						ports += str(bind)+' '
+						ports += str(bind) + ' '
 					except Exception:
 						pass
 				except Exception:
@@ -1192,9 +1181,9 @@ def show_log(stdout, **kwargs):
 		if kwargs.get("html") != 0:
 			i = i + 1
 			if kwargs.get('grep'):
-				line = line.replace(grep, '<span style="color: red; font-weight: bold;">'+grep+'</span>')
+				line = line.replace(grep, '<span style="color: red; font-weight: bold;">' + grep + '</span>')
 			line_class = "line3" if i % 2 == 0 else "line"
-			out += '<div class="'+line_class+'">' + line + '</div>'
+			out += '<div class="' + line_class + '">' + line + '</div>'
 		else:
 			out += line
 
@@ -1216,9 +1205,9 @@ def show_finding_in_config(stdout: str, **kwargs) -> str:
 	for line in stdout:
 		i = i + 1
 		if kwargs.get('grep'):
-			line = line.replace(grep, '<span style="color: red; font-weight: bold;">'+grep+'</span>')
+			line = line.replace(grep, '<span style="color: red; font-weight: bold;">' + grep + '</span>')
 			line_class = "line" if '--' in line else "line3"
-		out += '<div class="'+line_class+'">' + line + '</div>'
+		out += '<div class="' + line_class + '">' + line + '</div>'
 
 	out += '<div class="line">--</div>'
 
@@ -1229,8 +1218,8 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 	import sql
 	exgrep = form.getvalue('exgrep')
 	log_file = form.getvalue('file')
-	date = hour+':'+minut
-	date1 = hour1+':'+minut1
+	date = hour + ':' + minut
+	date1 = hour1 + ':' + minut1
 	cmd = ''
 
 	if grep is not None:
@@ -1273,11 +1262,11 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 		apache_log_path = sql.get_setting('apache_log_path')
 
 		if serv == 'roxy-wi.access.log':
-			cmd = "sudo cat {}| awk -F\"/|:\" '$3>\"{}:00\" && $3<\"{}:00\"' |tail -{} {} {}".format(apache_log_path+"/"+serv, date, date1, rows, grep_act, exgrep_act)
+			cmd = "sudo cat {}| awk -F\"/|:\" '$3>\"{}:00\" && $3<\"{}:00\"' |tail -{} {} {}".format(apache_log_path + "/" + serv, date, date1, rows, grep_act, exgrep_act)
 		elif serv == 'roxy-wi.error.log':
-			cmd = "sudo cat {}| awk '$4>\"{}:00\" && $4<\"{}:00\"' |tail -{} {} {}".format(apache_log_path+"/"+serv, date, date1, rows, grep_act, exgrep_act)
+			cmd = "sudo cat {}| awk '$4>\"{}:00\" && $4<\"{}:00\"' |tail -{} {} {}".format(apache_log_path + "/" + serv, date, date1, rows, grep_act, exgrep_act)
 		elif serv == 'fail2ban.log':
-			cmd = "sudo cat {}| awk -F\"/|:\" '$3>\"{}:00\" && $3<\"{}:00\"' |tail -{} {} {}".format("/var/log/"+serv, date, date1, rows, grep_act, exgrep_act)
+			cmd = "sudo cat {}| awk -F\"/|:\" '$3>\"{}:00\" && $3<\"{}:00\"' |tail -{} {} {}".format("/var/log/" + serv, date, date1, rows, grep_act, exgrep_act)
 
 		output, stderr = subprocess_execute(cmd)
 
@@ -1318,9 +1307,9 @@ def haproxy_wi_log(**kwargs):
 		selects = get_files(log_path, format="log")
 		for key, value in selects:
 			if kwargs.get('with_date'):
-				log_file = kwargs.get('file')+get_data('logs')+".log"
+				log_file = kwargs.get('file') + get_data('logs') + ".log"
 			else:
-				log_file = kwargs.get('file')+".log"
+				log_file = kwargs.get('file') + ".log"
 			if log_file == value:
 				return key
 	else:
@@ -1330,18 +1319,18 @@ def haproxy_wi_log(**kwargs):
 			group_grep = '|grep "group: ' + user_group + '"'
 		else:
 			group_grep = ''
-		cmd = "find "+log_path+"/roxy-wi-* -type f -exec stat --format '%Y :%y %n' '{}' \; | sort -nr | cut -d: -f2- | head -1 |awk '{print $4}' |xargs tail"+group_grep+"|sort -r"
+		cmd = "find " + log_path + "/roxy-wi-* -type f -exec stat --format '%Y :%y %n' '{}' \; | sort -nr | cut -d: -f2- | head -1 |awk '{print $4}' |xargs tail" + group_grep + "|sort -r"
 		try:
 			output, stderr = subprocess_execute(cmd)
 			return output
-		except:
+		except Exception:
 			return ''
 
 
 def show_ip(stdout):
 	for line in stdout:
 		if "Permission denied" in line:
-			print('error: '+line)
+			print('error: ' + line)
 		else:
 			print(line)
 
@@ -1395,8 +1384,8 @@ def ssh_command(server_ip, commands, **kwargs):
 
 		for line in stderr.read().decode(encoding='UTF-8'):
 			if line:
-				print("<div class='alert alert-warning'>"+line+"</div>")
-				logging('localhost', ' '+line, haproxywi=1)
+				print("<div class='alert alert-warning'>" + line + "</div>")
+				logging('localhost', ' ' + line, haproxywi=1)
 
 
 def subprocess_execute(cmd):
@@ -1415,7 +1404,7 @@ def show_backends(server_ip, **kwargs):
 	cmd = 'echo "show backend" |nc %s %s' % (server_ip, hap_sock_p)
 	output, stderr = subprocess_execute(cmd)
 	if stderr:
-		logging('localhost', ' '+stderr, haproxywi=1)
+		logging('localhost', ' ' + stderr, haproxywi=1)
 	if kwargs.get('ret'):
 		ret = list()
 	else:
@@ -1442,7 +1431,7 @@ def get_files(dir=get_config_var('configs', 'haproxy_save_configs_dir'), format=
 		file = set()
 	return_files = set()
 	i = 0
-	for files in sorted(glob.glob(os.path.join(dir, '*.'+format+'*'))):
+	for files in sorted(glob.glob(os.path.join(dir, '*.' + format + '*'))):
 		if format == 'log':
 			file += [(i, files.split('/')[5])]
 		else:
@@ -1471,10 +1460,12 @@ def get_remote_files(server_ip: str, config_dir: str, file_format: str):
 
 
 def return_nice_path(return_path: str) -> str:
-	if ('nginx' not in return_path and
-			'haproxy' not in return_path and
-			'apache2' not in return_path and
-			'httpd' not in return_path):
+	if (
+			'nginx' not in return_path
+			and 'haproxy' not in return_path
+			and 'apache2' not in return_path
+			and 'httpd' not in return_path
+	):
 		return 'error: The path must contain the name of the service. Check it in Roxy-WI settings'
 	if return_path[-1] != '/':
 		return_path += '/'
@@ -1499,7 +1490,7 @@ def check_new_version(**kwargs):
 	res = ''
 
 	if kwargs.get('service'):
-		last_ver = '_'+kwargs.get('service')
+		last_ver = '_' + kwargs.get('service')
 	else:
 		last_ver = ''
 
@@ -1508,12 +1499,12 @@ def check_new_version(**kwargs):
 	try:
 		if proxy is not None and proxy != '' and proxy != 'None':
 			proxy_dict = {"https": proxy, "http": proxy}
-			response = requests.get('https://roxy-wi.org/update.py?last_ver'+last_ver+'=1', timeout=1,  proxies=proxy_dict)
-			requests.get('https://roxy-wi.org/update.py?ver_send='+current_ver, timeout=1,  proxies=proxy_dict)
-			response_status = requests.get('https://roxy-wi.org/update.py?user_name='+user_name, timeout=1,  proxies=proxy_dict)
+			response = requests.get('https://roxy-wi.org/update.py?last_ver' + last_ver + '=1', timeout=1, proxies=proxy_dict)
+			requests.get('https://roxy-wi.org/update.py?ver_send=' + current_ver, timeout=1, proxies=proxy_dict)
+			response_status = requests.get('https://roxy-wi.org/update.py?user_name=' + user_name, timeout=1, proxies=proxy_dict)
 		else:
-			response = requests.get('https://roxy-wi.org/update.py?last_ver'+last_ver+'=1', timeout=1)
-			requests.get('https://roxy-wi.org/update.py?ver_send='+current_ver, timeout=1)
+			response = requests.get('https://roxy-wi.org/update.py?last_ver' + last_ver + '=1', timeout=1)
+			requests.get('https://roxy-wi.org/update.py?ver_send=' + current_ver, timeout=1)
 			response_status = requests.get('https://roxy-wi.org/update.py?user_name=' + user_name, timeout=1)
 
 		res = response.content.decode(encoding='UTF-8')
@@ -1521,10 +1512,10 @@ def check_new_version(**kwargs):
 			status = response_status.content.decode(encoding='UTF-8')
 			status = status.split(' ')
 			sql.update_user_status(status[0], status[1].strip(), status[2].strip())
-		except:
+		except Exception:
 			pass
 	except requests.exceptions.RequestException as e:
-		logging('localhost', ' '+str(e), haproxywi=1)
+		logging('localhost', ' ' + str(e), haproxywi=1)
 
 	return res
 
@@ -1582,7 +1573,7 @@ def get_users_params(**kwargs):
 		user_id = sql.get_user_id_by_uuid(user_uuid.value)
 		user_services = sql.select_user_services(user_id)
 		token = sql.get_token(user_uuid.value)
-	except:
+	except Exception:
 		print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
 
 	if kwargs.get('virt') and kwargs.get('haproxy'):
@@ -1639,7 +1630,7 @@ def check_is_server_in_group(server_ip):
 
 def check_service(server_ip, service_name):
 	server_ip = is_ip_or_dns(server_ip)
-	commands = ["systemctl is-active "+service_name]
+	commands = ["systemctl is-active " + service_name]
 	return ssh_command(server_ip, commands)
 
 
@@ -1664,16 +1655,18 @@ def get_services_status():
 	import distro
 	services = []
 	is_in_docker = is_docker()
-	services_name = {'roxy-wi-checker': 'Checker backends master service',
-						'roxy-wi-keep_alive': 'Auto start service',
-						'roxy-wi-metrics': 'Metrics master service',
-						'roxy-wi-portscanner': 'Port scanner service',
-						'roxy-wi-smon': 'Simple monitoring network ports',
-						'roxy-wi-socket': 'Socket service',
-						'prometheus': 'Prometheus service',
-						'grafana-server': 'Grafana service',
-						'fail2ban': 'Fail2ban service',
-						'rabbitmq-server': 'Message broker service'}
+	services_name = {
+		'roxy-wi-checker': 'Checker backends master service',
+		'roxy-wi-keep_alive': 'Auto start service',
+		'roxy-wi-metrics': 'Metrics master service',
+		'roxy-wi-portscanner': 'Port scanner service',
+		'roxy-wi-smon': 'Simple monitoring network ports',
+		'roxy-wi-socket': 'Socket service',
+		'prometheus': 'Prometheus service',
+		'grafana-server': 'Grafana service',
+		'fail2ban': 'Fail2ban service',
+		'rabbitmq-server': 'Message broker service'
+	}
 	for s, v in services_name.items():
 		if is_in_docker:
 			cmd = "sudo supervisorctl status " + s + "|awk '{print $2}'"
@@ -1799,10 +1792,12 @@ def get_system_info(server_ip: str) -> bool:
 												size = str(size) + 'Gb'
 												fs = volume_info['configuration']['mount.fstype']
 												state = volume_info['configuration']['state']
-												disks[volume_name] = {'mount_point': mount_point,
-																		'size': size,
-																		'fs': fs,
-																		'state': state}
+												disks[volume_name] = {
+													'mount_point': mount_point,
+													'size': size,
+													'fs': fs,
+													'state': state
+												}
 					except Exception:
 						pass
 
@@ -1813,8 +1808,10 @@ def get_system_info(server_ip: str) -> bool:
 									if s['class'] == 'network':
 										if 'children' in s:
 											for net in s['children']:
-												network[net['logicalname']] = {'description': net['description'],
-																				'mac': net['serial']}
+												network[net['logicalname']] = {
+													'description': net['description'],
+													'mac': net['serial']
+												}
 									if s['class'] == 'storage':
 										for p, pval in s.items():
 											if isinstance(pval, list):
@@ -1828,10 +1825,12 @@ def get_system_info(server_ip: str) -> bool:
 																size = str(size) + 'Gb'
 																fs = volume_info['configuration']['mount.fstype']
 																state = volume_info['configuration']['state']
-																disks[volume_name] = {'mount_point': mount_point,
-																						'size': size,
-																						'fs': fs,
-																						'state': state}
+																disks[volume_name] = {
+																	'mount_point': mount_point,
+																	'size': size,
+																	'fs': fs,
+																	'state': state
+																}
 									for z, n in s.items():
 										if isinstance(n, list):
 											for y in n:
@@ -1865,10 +1864,12 @@ def get_system_info(server_ip: str) -> bool:
 																	size = str(size) + 'Gb'
 																	fs = q['configuration']['mount.fstype']
 																	state = q['configuration']['state']
-																	disks[volume_name] = {'mount_point': mount_point,
-																							'size': size,
-																							'fs': fs,
-																							'state': state}
+																	disks[volume_name] = {
+																		'mount_point': mount_point,
+																		'size': size,
+																		'fs': fs,
+																		'state': state
+																	}
 															except Exception as e:
 																print(e)
 													except Exception:
@@ -1888,7 +1889,8 @@ def get_system_info(server_ip: str) -> bool:
 																		'mount_point': mount_point,
 																		'size': size,
 																		'fs': fs,
-																		'state': state}
+																		'state': state
+																	}
 																except Exception:
 																	pass
 																for w in o['children']:
@@ -1904,7 +1906,8 @@ def get_system_info(server_ip: str) -> bool:
 																				'mount_point': mount_point,
 																				'size': size,
 																				'fs': fs,
-																				'state': state}
+																				'state': state
+																			}
 																	except Exception:
 																		pass
 													except Exception:
@@ -1925,7 +1928,8 @@ def get_system_info(server_ip: str) -> bool:
 																				'mount_point': mount_point,
 																				'size': size,
 																				'fs': fs,
-																				'state': state}
+																				'state': state
+																			}
 													except Exception:
 														pass
 					except Exception:
@@ -1956,10 +1960,12 @@ def send_message_to_rabbit(message: str, **kwargs) -> None:
 		rabbit_queue = sql.get_setting('rabbitmq_queue')
 
 	credentials = pika.PlainCredentials(rabbit_user, rabbit_password)
-	parameters = pika.ConnectionParameters(rabbit_host,
-											rabbit_port,
-											rabbit_vhost,
-											credentials)
+	parameters = pika.ConnectionParameters(
+		rabbit_host,
+		rabbit_port,
+		rabbit_vhost,
+		credentials
+	)
 
 	connection = pika.BlockingConnection(parameters)
 	channel = connection.channel()

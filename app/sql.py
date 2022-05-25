@@ -22,8 +22,10 @@ def out_error(error):
 def add_user(user, email, password, role, activeuser, group):
 	if password != 'aduser':
 		try:
-			User.insert(username=user, email=email, password=funct.get_hash(password), role=role, activeuser=activeuser,
-						groups=group).execute()
+			User.insert(
+				username=user, email=email, password=funct.get_hash(password), role=role, activeuser=activeuser,
+				groups=group
+			).execute()
 		except Exception as e:
 			out_error(e)
 			return False
@@ -31,8 +33,9 @@ def add_user(user, email, password, role, activeuser, group):
 			return True
 	else:
 		try:
-			User.insert(username=user, email=email, role=role, ldap_user=ldap_user, activeuser=activeuser,
-						groups=group).execute()
+			User.insert(
+				username=user, email=email, role=role, ldap_user=ldap_user, activeuser=activeuser, groups=group
+			).execute()
 		except Exception as e:
 			out_error(e)
 			return False
@@ -301,22 +304,16 @@ def update_hapwi_server(server_id, alert, metrics, active, service_name):
 		out_error(e)
 
 
-def update_server(hostname, group, typeip, enable, master, server_id, cred, port, desc, haproxy, nginx, apache,
-					firewall, protected):
+def update_server(
+		hostname, group, typeip, enable, master, server_id, cred, port, desc, haproxy, nginx, apache,
+		firewall, protected
+):
 	try:
-		server_update = Server.update(hostname=hostname,
-										groups=group,
-										type_ip=typeip,
-										enable=enable,
-										master=master,
-										cred=cred,
-										port=port,
-										desc=desc,
-										haproxy=haproxy,
-										nginx=nginx,
-										apache=apache,
-										firewall_enable=firewall,
-										protected=protected).where(Server.server_id == server_id)
+		server_update = Server.update(
+			hostname=hostname, groups=group, type_ip=typeip, enable=enable, master=master, cred=cred,
+			port=port, desc=desc, haproxy=haproxy, nginx=nginx, apache=apache, firewall_enable=firewall,
+			protected=protected
+		).where(Server.server_id == server_id)
 		server_update.execute()
 	except Exception as e:
 		out_error(e)
@@ -340,16 +337,15 @@ def select_users(**kwargs):
 	elif kwargs.get("id") is not None:
 		query = User.select().where(User.user_id == kwargs.get("id"))
 	elif kwargs.get("group") is not None:
-		query = (User.
-					select(User, UserGroups, Case(0, [((
-								User.last_login_date >= funct.get_data('regular', timedelta_minutes_minus=15)
-					), 0)], 1).
-					alias('last_login')).
-					join(UserGroups, on=(User.user_id == UserGroups.user_id)).
-					where(UserGroups.user_group_id == kwargs.get("group"))
-				)
+		query = (User.select(
+			User, UserGroups, Case(
+			0, [((User.last_login_date >= funct.get_data('regular', timedelta_minutes_minus=15)), 0)], 1
+			).alias('last_login')
+		).join(UserGroups, on=(User.user_id == UserGroups.user_id)).where(
+			UserGroups.user_group_id == kwargs.get("group")
+		))
 	else:
-		query = User.select(User,Case(0, [(
+		query = User.select(User, Case(0, [(
 			(
 				User.last_login_date >= funct.get_data('regular', timedelta_minutes_minus=15)
 			), 0)], 1).alias('last_login')).order_by(User.user_id)
@@ -382,7 +378,7 @@ def select_user_groups(user_id, **kwargs):
 def check_user_group(user_id, group_id):
 	try:
 		query_res = UserGroups.get((UserGroups.user_id == user_id) & (UserGroups.user_group_id == group_id))
-	except:
+	except Exception:
 		return False
 	else:
 		if query_res.user_id != '':
@@ -393,14 +389,13 @@ def check_user_group(user_id, group_id):
 
 def select_user_groups_with_names(user_id, **kwargs):
 	if kwargs.get("all") is not None:
-		query = (UserGroups
-					.select(UserGroups.user_group_id, UserGroups.user_id, Groups.name)
-					.join(Groups, on=(UserGroups.user_group_id == Groups.group_id)))
+		query = (UserGroups.select(
+			UserGroups.user_group_id, UserGroups.user_id, Groups.name
+		).join(Groups, on=(UserGroups.user_group_id == Groups.group_id)))
 	else:
-		query = (UserGroups
-					.select(UserGroups.user_group_id, Groups.name)
-					.join(Groups, on=(UserGroups.user_group_id == Groups.group_id))
-					.where(UserGroups.user_id == user_id))
+		query = (UserGroups.select(
+			UserGroups.user_group_id, Groups.name
+		).join(Groups, on=(UserGroups.user_group_id == Groups.group_id)).where(UserGroups.user_id == user_id))
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -583,12 +578,10 @@ def write_api_token(user_token, group_id, user_role, user_name):
 	token_ttl = int(get_setting('token_ttl'))
 
 	try:
-		ApiToken.insert(token=user_token,
-						user_name=user_name,
-						user_group_id=group_id,
-						user_role=user_role,
-						create_date=funct.get_data('regular'),
-						expire_date=funct.get_data('regular', timedelta=token_ttl)).execute()
+		ApiToken.insert(
+			token=user_token, user_name=user_name, user_group_id=group_id, user_role=user_role,
+			create_date=funct.get_data('regular'), expire_date=funct.get_data('regular', timedelta=token_ttl)
+		).execute()
 	except Exception as e:
 		out_error(e)
 
@@ -603,10 +596,9 @@ def get_api_token(token):
 
 
 def get_user_id_by_api_token(token):
-	query = (User
-				.select(User.user_id)
-				.join(ApiToken, on=(ApiToken.user_name == User.username))
-				.where(ApiToken.token == token))
+	query = (User.select(User.user_id).join(ApiToken, on=(
+			ApiToken.user_name == User.username
+	)).where(ApiToken.token == token))
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -634,7 +626,7 @@ def get_token(uuid):
 		try:
 			for i in query_res:
 				return i.token
-		except:
+		except Exception:
 			return ''
 
 
@@ -642,7 +634,7 @@ def delete_uuid(uuid):
 	try:
 		query = UUID.delete().where(UUID.uuid == uuid)
 		query.execute()
-	except:
+	except Exception:
 		pass
 
 
@@ -711,10 +703,9 @@ def get_user_id_by_username(username: str):
 
 
 def get_user_role_by_uuid(uuid):
-	query = (Role.select(Role.role_id)
-				.join(User, on=(Role.name == User.role))
-				.join(UUID, on=(User.user_id == UUID.user_id))
-				.where(UUID.uuid == uuid))
+	query = (Role.select(Role.role_id).join(User, on=(Role.name == User.role)).join(UUID, on=(
+			User.user_id == UUID.user_id
+	)).where(UUID.uuid == uuid))
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -804,7 +795,7 @@ def get_dick_permit(**kwargs):
 			cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 			group = cookie.get('group')
 			grp = group.value
-		except Exception as e:
+		except Exception:
 			print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
 			return
 	if kwargs.get('token'):
@@ -842,13 +833,9 @@ def get_dick_permit(**kwargs):
 		try:
 			if mysql_enable == '1':
 				if grp == '1' and not only_group:
-					sql = """ select * from `servers` where {} {} {} {} {} {} {} order by `pos` asc""".format(disable,
-																								type_ip,
-																								nginx,
-																								haproxy,
-																								keepalived,
-																								apache,
-																								ip)
+					sql = """ select * from `servers` where {} {} {} {} {} {} {} order by `pos` asc""".format(
+						disable, type_ip, nginx, haproxy, keepalived, apache, ip
+					)
 				else:
 					sql = """ select * from `servers` where `groups` = {group} and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} {apache} order by `pos` asc
 							""".format(
@@ -862,8 +849,10 @@ def get_dick_permit(**kwargs):
 					)
 				else:
 					sql = """ select * from servers where groups = '{group}' and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} {apache} order by pos
-							""".format(group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx,
-									   keepalived=keepalived, apache=apache)
+							""".format(
+						group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx,
+						keepalived=keepalived, apache=apache
+					)
 
 		except Exception as e:
 			print(str(e))
@@ -977,8 +966,10 @@ def select_backups(**kwargs):
 
 
 def update_backup(server, rserver, rpath, backup_type, time, cred, description, backup_id):
-	backup_update = Backup.update(server=server, rhost=rserver, rpath=rpath, backup_type=backup_type, time=time,
-									cred=cred, description=description).where(Backup.id == backup_id)
+	backup_update = Backup.update(
+		server=server, rhost=rserver, rpath=rpath, backup_type=backup_type, time=time,
+		cred=cred, description=description
+	).where(Backup.id == backup_id)
 	try:
 		backup_update.execute()
 	except Exception as e:
@@ -1002,7 +993,7 @@ def delete_backups(backup_id):
 def check_exists_backup(server):
 	try:
 		backup = Backup.get(Backup.server == server)
-	except:
+	except Exception:
 		pass
 	else:
 		if backup.id is not None:
@@ -1270,14 +1261,11 @@ def select_waf_servers_metrics(uuid):
 	else:
 		if user_group.groups == '1':
 			query = Waf.select(Server.ip).join(Server, on=(Waf.server_id == Server.server_id)).where(
-				(Server.enable == 1) &
-				(Waf.metrics == 1)
+				(Server.enable == 1) & (Waf.metrics == 1)
 			)
 		else:
 			query = Waf.select(Server.ip).join(Server, on=(Waf.server_id == Server.server_id)).where(
-				(Server.enable == 1) &
-				(Waf.metrics == 1) &
-				(Server.groups == user_group.groups)
+				(Server.enable == 1) & (Waf.metrics == 1) & (Server.groups == user_group.groups)
 			)
 		try:
 			query_res = query.execute()
@@ -1844,7 +1832,7 @@ def select_table_metrics():
 def get_setting(param, **kwargs):
 	try:
 		user_group = funct.get_user_group(id=1)
-	except:
+	except Exception:
 		user_group = ''
 
 	if user_group == '' or param == 'lists_path' or param == 'ssl_local_path':
@@ -1909,9 +1897,7 @@ def select_roles():
 def select_alert(**kwargs):
 	if kwargs.get("group") is not None:
 		query = Server.select(Server.ip).where(
-			(Server.alert == 1) &
-			(Server.enable == 1) &
-			(Server.groups == kwargs.get('group'))
+			(Server.alert == 1) & (Server.enable == 1) & (Server.groups == kwargs.get('group'))
 		)
 	else:
 		query = Server.select(Server.ip).where((Server.alert == 1) & (Server.enable == 1))
@@ -1926,9 +1912,8 @@ def select_alert(**kwargs):
 def select_all_alerts(**kwargs):
 	if kwargs.get("group") is not None:
 		query = Server.select(Server.ip).where(
-			((Server.alert == 1) | (Server.nginx_alert == 1)) &
-			(Server.enable == 1) &
-			(Server.groups == kwargs.get('group')))
+			((Server.alert == 1) | (Server.nginx_alert == 1)) & (Server.enable == 1) & (Server.groups == kwargs.get('group'))
+		)
 	else:
 		query = Server.select(Server.ip).where(((Server.alert == 1) | (Server.nginx_alert == 1)) & (Server.enable == 1))
 	try:
@@ -1942,9 +1927,8 @@ def select_all_alerts(**kwargs):
 def select_nginx_alert(**kwargs):
 	if kwargs.get("group") is not None:
 		query = Server.select(Server.ip).where(
-			(Server.nginx_alert == 1) &
-			(Server.enable == 1) &
-			(Server.groups == kwargs.get('group')))
+			(Server.nginx_alert == 1) & (Server.enable == 1) & (Server.groups == kwargs.get('group'))
+		)
 	else:
 		query = Server.select(Server.ip).where((Server.nginx_alert == 1) & (Server.enable == 1))
 	try:
@@ -1958,9 +1942,8 @@ def select_nginx_alert(**kwargs):
 def select_apache_alert(**kwargs):
 	if kwargs.get("group") is not None:
 		query = Server.select(Server.ip).where(
-			(Server.apache_alert == 1) &
-			(Server.enable == 1) &
-			(Server.groups == kwargs.get('group')))
+			(Server.apache_alert == 1) & (Server.enable == 1) & (Server.groups == kwargs.get('group'))
+		)
 	else:
 		query = Server.select(Server.ip).where((Server.apache_alert == 1) & (Server.enable == 1))
 	try:
@@ -1974,9 +1957,8 @@ def select_apache_alert(**kwargs):
 def select_keepalived_alert(**kwargs):
 	if kwargs.get("group") is not None:
 		query = Server.select(Server.ip).where(
-			(Server.keepalived_alert == 1) &
-			(Server.enable == 1) &
-			(Server.groups == kwargs.get('group')))
+			(Server.keepalived_alert == 1) & (Server.enable == 1) & (Server.groups == kwargs.get('group'))
+		)
 	else:
 		query = Server.select(Server.ip).where((Server.keepalived_alert == 1) & (Server.enable == 1))
 
@@ -2136,14 +2118,14 @@ def check_token_exists(token):
 			return True
 		else:
 			return False
-	except:
+	except Exception:
 		return False
 
 
 def insert_smon(server, port, enable, proto, uri, body, group, desc, telegram, slack, user_group):
 	try:
 		http = proto + ':' + uri
-	except:
+	except Exception:
 		http = ''
 
 	try:
@@ -2173,7 +2155,7 @@ def select_smon(user_group, **kwargs):
 	if kwargs.get('ip'):
 		try:
 			http = kwargs.get('proto') + ':' + kwargs.get('uri')
-		except:
+		except Exception:
 			http = ''
 		sql = """select id, ip, port, en, http, body, telegram_channel_id, `desc`, `group`, user_group, slack_channel_id from smon
 		where ip='%s' and port='%s' and http='%s' and body='%s' %s
@@ -2454,7 +2436,7 @@ def is_cloud():
 	sql = """ select * from cloud_uuid """
 	try:
 		cursor.execute(sql)
-	except:
+	except Exception:
 		return ""
 	else:
 		for cl_uuid in cursor.fetchall():
@@ -2464,7 +2446,7 @@ def is_cloud():
 def return_firewall(serv):
 	try:
 		query_res = Server.get(Server.ip == serv).firewall_enable
-	except:
+	except Exception:
 		return False
 	else:
 		return True if query_res == 1 else False
@@ -2486,7 +2468,7 @@ def insert_port_scanner_settings(server_id, user_group_id, enabled, notify, hist
 			server_id=server_id, user_group_id=user_group_id, enabled=enabled, notify=notify, history=history
 		).execute()
 		return True
-	except:
+	except Exception:
 		return False
 
 
@@ -2589,7 +2571,7 @@ def delete_ports(serv):
 def insert_port_scanner_history(serv, port, port_status, service_name):
 	try:
 		PortScannerHistory.insert(
-			serv=serv, port=port, status=port_status, service_name=service_name,date=funct.get_data('regular')
+			serv=serv, port=port, status=port_status, service_name=service_name, date=funct.get_data('regular')
 		).execute()
 	except Exception as e:
 		out_error(e)
@@ -2597,8 +2579,8 @@ def insert_port_scanner_history(serv, port, port_status, service_name):
 
 def delete_alert_history(keep_interval: int, service: str):
 	query = Alerts.delete().where(
-		(Alerts.date < funct.get_data('regular', timedelta_minus=keep_interval)) &
-		(Alerts.service == service))
+		(Alerts.date < funct.get_data('regular', timedelta_minus=keep_interval)) & (Alerts.service == service)
+	)
 	try:
 		query.execute()
 	except Exception as e:
@@ -2640,7 +2622,7 @@ def add_provider_aws(provider_name, provider_group, provider_key, provider_secre
 	try:
 		ProvidersCreds.insert(
 			name=provider_name, type='aws', group=provider_group, key=provider_key, secret=provider_secret,
-			create_date=funct.get_data('regular'),edit_date=funct.get_data('regular')
+			create_date=funct.get_data('regular'), edit_date=funct.get_data('regular')
 		).execute()
 		return True
 	except Exception as e:
@@ -2793,9 +2775,7 @@ def select_do_server(server_id):
 def update_provisioning_server_status(status, user_group_id, name, provider_id, **kwargs):
 	if kwargs.get('update_ip'):
 		query = ProvisionedServers.update(status=status, IP=kwargs.get('update_ip')).where(
-			(ProvisionedServers.name == name) &
-			(ProvisionedServers.group_id == user_group_id) &
-			(ProvisionedServers.provider_id == provider_id)
+			(ProvisionedServers.name == name) & (ProvisionedServers.group_id == user_group_id) & (ProvisionedServers.provider_id == provider_id)
 		)
 	else:
 		query = ProvisionedServers.update(status=status).where(
@@ -2811,9 +2791,9 @@ def update_provisioning_server_status(status, user_group_id, name, provider_id, 
 
 def update_provisioning_server_gcore_name(name, template_name, user_group_id, provider_id):
 	query = ProvisionedServers.update(name_template=template_name).where(
-		(ProvisionedServers.name == name) &
-		(ProvisionedServers.group_id == user_group_id) &
-		(ProvisionedServers.provider_id == provider_id)
+		(ProvisionedServers.name == name)
+		& (ProvisionedServers.group_id == user_group_id)
+		& (ProvisionedServers.provider_id == provider_id)
 	)
 	try:
 		query.execute()
@@ -2823,9 +2803,9 @@ def update_provisioning_server_gcore_name(name, template_name, user_group_id, pr
 
 def update_provisioning_server_error(status, user_group_id, name, provider_id):
 	query = ProvisionedServers.update(last_error=status).where(
-		(ProvisionedServers.name == name) &
-		(ProvisionedServers.group_id == user_group_id) &
-		(ProvisionedServers.provider_id == provider_id)
+		(ProvisionedServers.name == name)
+		& (ProvisionedServers.group_id == user_group_id)
+		& (ProvisionedServers.provider_id == provider_id)
 	)
 	try:
 		query.execute()
@@ -2923,7 +2903,7 @@ def select_provisioned_servers(**kwargs):
 def select_aws_provider(provider_id):
 	try:
 		query_res = ProvidersCreds.get(ProvidersCreds.id == provider_id)
-	except:
+	except Exception:
 		return ""
 	else:
 		return query_res.key, query_res.secret
@@ -2932,7 +2912,7 @@ def select_aws_provider(provider_id):
 def select_gcore_provider(provider_id):
 	try:
 		query_res = ProvidersCreds.get(ProvidersCreds.id == provider_id)
-	except:
+	except Exception:
 		return ""
 	else:
 		return query_res.key, query_res.secret
@@ -2941,7 +2921,7 @@ def select_gcore_provider(provider_id):
 def select_do_provider(provider_id):
 	try:
 		query_res = ProvidersCreds.get(ProvidersCreds.id == provider_id)
-	except:
+	except Exception:
 		return ""
 	else:
 		return query_res.key
@@ -2983,7 +2963,7 @@ def update_aws_provider(new_name, new_key, new_secret, provider_id):
 def is_serv_protected(serv):
 	try:
 		query_res = Server.get(Server.ip == serv)
-	except:
+	except Exception:
 		return ""
 	else:
 		return True if query_res.protected else False
@@ -3031,9 +3011,10 @@ def select_service_settings(server_id: int, service: str) -> str:
 
 def select_docker_service_settings(server_id: int, service: str) -> str:
 	query = ServiceSetting.select().where(
-		(ServiceSetting.server_id == server_id) &
-		(ServiceSetting.service == service) &
-		(ServiceSetting.setting == 'dockerized'))
+		(ServiceSetting.server_id == server_id)
+		& (ServiceSetting.service == service)
+		& (ServiceSetting.setting == 'dockerized')
+	)
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -3044,8 +3025,9 @@ def select_docker_service_settings(server_id: int, service: str) -> str:
 
 def select_docker_services_settings(service: str) -> str:
 	query = ServiceSetting.select().where(
-		(ServiceSetting.service == service) &
-		(ServiceSetting.setting == 'dockerized'))
+		(ServiceSetting.service == service)
+		& (ServiceSetting.setting == 'dockerized')
+	)
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -3057,9 +3039,10 @@ def select_docker_services_settings(service: str) -> str:
 def select_service_setting(server_id: int, service: str, setting: str) -> str:
 	try:
 		result = ServiceSetting.get(
-			(ServiceSetting.server_id == server_id) &
-			(ServiceSetting.service == service) &
-			(ServiceSetting.setting == setting)).value
+			(ServiceSetting.server_id == server_id)
+			& (ServiceSetting.service == service)
+			& (ServiceSetting.setting == setting)
+		).value
 	except Exception:
 		pass
 	else:
@@ -3121,8 +3104,8 @@ def select_action_history_by_user_id(user_id: int):
 
 def select_action_history_by_server_id_and_service(server_id: int, service: str):
 	query = ActionHistory.select().where(
-		(ActionHistory.server_id == server_id) &
-		(ActionHistory.service == service)
+		(ActionHistory.server_id == server_id)
+		& (ActionHistory.service == service)
 	)
 	try:
 		query_res = query.execute()
@@ -3150,8 +3133,8 @@ def insert_config_version(server_id: int, user_id: int, service: str, local_path
 def select_config_version(server_ip: str, service: str) -> str:
 	server_id = select_server_id_by_ip(server_ip)
 	query = ConfigVersion.select().where(
-		(ConfigVersion.server_id == server_id) &
-		(ConfigVersion.service == service)
+		(ConfigVersion.server_id == server_id)
+		& (ConfigVersion.service == service)
 	)
 	try:
 		query_res = query.execute()
@@ -3163,8 +3146,8 @@ def select_config_version(server_ip: str, service: str) -> str:
 
 def delete_config_version(service: str, local_path: str):
 	query_res = ConfigVersion.delete().where(
-		(ConfigVersion.service == service) &
-		(ConfigVersion.local_path == local_path)
+		(ConfigVersion.service == service)
+		& (ConfigVersion.local_path == local_path)
 	)
 	try:
 		query_res.execute()
@@ -3179,9 +3162,9 @@ def select_remote_path_from_version(server_ip: str, service: str, local_path: st
 	server_id = select_server_id_by_ip(server_ip)
 	try:
 		query_res = ConfigVersion.get(
-			(ConfigVersion.server_id == server_id) &
-			(ConfigVersion.service == service) &
-			(ConfigVersion.local_path == local_path)
+			(ConfigVersion.server_id == server_id)
+			& (ConfigVersion.service == service)
+			& (ConfigVersion.local_path == local_path)
 		).remote_path
 	except Exception as e:
 		out_error(e)

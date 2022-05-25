@@ -27,7 +27,7 @@ if configver:
 
 try:
 	user, user_id, role, token, servers, user_services = funct.get_users_params(disable=1)
-except:
+except Exception:
 	pass
 
 if service == 'keepalived':
@@ -78,8 +78,9 @@ if serv is not None and form.getvalue('del') is not None:
 						os.remove(os.path.join(configs_dir, form.getvalue(get)))
 					try:
 						file.add(form.getvalue(get) + "<br />")
-						funct.logging(serv, "Version of config has been deleted: %s" % form.getvalue(get), login=1,
-										keep_history=1, service=service)
+						funct.logging(
+							serv, "Version of config has been deleted: %s" % form.getvalue(get), login=1, keep_history=1, service=service
+						)
 					except Exception:
 						pass
 				except OSError as e:

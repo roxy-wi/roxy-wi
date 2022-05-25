@@ -15,12 +15,10 @@ print('Content-type: text/html\n')
 funct.check_login(service=1)
 funct.page_for_admin(level=3)
 
-if (
-	form.getvalue('mode') is None and
-	form.getvalue('new_userlist') is None and
-	form.getvalue('peers-name') is None and
-	form.getvalue('generateconfig') is None
-):
+if all(v is None for v in [
+	form.getvalue('mode'), form.getvalue('new_userlist'),
+	form.getvalue('peers-name'), form.getvalue('generateconfig')
+]):
 	try:
 		user, user_id, role, token, servers, user_services = funct.get_users_params(haproxy=1)
 		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))

@@ -65,22 +65,9 @@ if form.getvalue('type') is None:
 	selects.append(['roxy-wi.error.log', 'error.log'])
 	selects.append(['roxy-wi.access.log', 'access.log'])
 
-output_from_parsed_template = template.render(h2=1,
-                                              autorefresh=1,
-                                              title="View internal logs",
-                                              role=role,
-                                              user=user,
-                                              serv=serv,
-                                              select_id="viewlogs",
-                                              selects=selects,
-                                              rows=rows,
-                                              grep=grep,
-											  exgrep=exgrep,
-                                              hour=hour,
-                                              hour1=hour1,
-                                              minut=minut,
-                                              minut1=minut1,
-											  page=page,
-											  user_services=user_services,
-                                              token=token)
-print(output_from_parsed_template)
+rendered_template = template.render(
+	h2=1, autorefresh=1, title="View internal logs", role=role, user=user, serv=serv, select_id="viewlogs",
+	selects=selects, rows=rows, grep=grep, exgrep=exgrep, hour=hour, hour1=hour1, minut=minut,
+	minut1=minut1, page=page, user_services=user_services, token=token
+)
+print(rendered_template)

@@ -109,7 +109,7 @@ for s in servers:
                 container_name = sql.get_setting('nginx_container_name')
                 cmd = [
                     "docker exec -it " + container_name + " /usr/sbin/nginx -v 2>&1|awk '{print $3}' && "
-                    "docker ps -a -f name="+container_name+" --format '{{.Status}}'|tail -1 && ps ax |grep nginx:"
+                    "docker ps -a -f name=" + container_name + " --format '{{.Status}}'|tail -1 && ps ax |grep nginx:"
                     "|grep -v grep |wc -l"
                 ]
         try:
