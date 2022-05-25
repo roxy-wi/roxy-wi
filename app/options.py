@@ -2129,7 +2129,7 @@ if form.getvalue('get_ldap_email'):
         except Exception:
             print('error: user not found')
     finally:
-        l.unbind()
+        ldap_bind.unbind()
 
 if form.getvalue('change_waf_mode'):
     waf_mode = form.getvalue('change_waf_mode')
@@ -2864,9 +2864,11 @@ if form.getvalue('lets_domain'):
     else:
         proxy_serv = ''
 
-    commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " haproxy_dir=" + haproxy_dir +
-                " DOMAIN=" + lets_domain + " EMAIL=" + lets_email + " SSH_PORT=" + ssh_port + " SSL_PATH=" + ssl_path +
-                " HOST=" + serv + " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name]
+    commands = [
+        "chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " haproxy_dir=" + haproxy_dir
+        + " DOMAIN=" + lets_domain + " EMAIL=" + lets_email + " SSH_PORT=" + ssh_port + " SSL_PATH=" + ssl_path
+        + " HOST=" + serv + " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name
+    ]
 
     output, error = funct.subprocess_execute(commands[0])
 
@@ -3029,10 +3031,12 @@ if form.getvalue('geoip_install'):
 
     os.system("cp scripts/%s ." % script)
 
-    commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port +
-                " UPDATE=" + str(geoip_update) + " maxmind_key=" + maxmind_key + " haproxy_dir=" + haproxy_dir +
-                " HOST=" + str(serv) + " USER=" + str(ssh_user_name) + " PASS=" + str(ssh_user_password) +
-                " KEY=" + str(ssh_key_name)]
+    commands = [
+        "chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port
+        + " UPDATE=" + str(geoip_update) + " maxmind_key=" + maxmind_key + " haproxy_dir=" + haproxy_dir
+        + " HOST=" + str(serv) + " USER=" + str(ssh_user_name) + " PASS=" + str(ssh_user_password)
+        + " KEY=" + str(ssh_key_name)
+    ]
 
     output, error = funct.subprocess_execute(commands[0])
 
@@ -3538,12 +3542,12 @@ if form.getvalue('awseditworkspace'):
             print('ok')
 
 if (
-    form.getvalue('awsprovisining') or
-    form.getvalue('awseditingprovisining') or
-    form.getvalue('doprovisining') or
-    form.getvalue('doeditprovisining') or
-    form.getvalue('gcoreprovisining') or
-    form.getvalue('gcoreeditgprovisining')
+    form.getvalue('awsprovisining')
+    or form.getvalue('awseditingprovisining')
+    or form.getvalue('doprovisining')
+    or form.getvalue('doeditprovisining')
+    or form.getvalue('gcoreprovisining')
+    or form.getvalue('gcoreeditgprovisining')
 ):
     funct.check_user_group()
 
@@ -3955,8 +3959,8 @@ if form.getvalue('loadopenvpn'):
         stdout, stderr = funct.subprocess_execute("rpm --query openvpn3-client")
 
     if (
-        (stdout[0] != 'package openvpn3-client is not installed' and stderr != '/bin/sh: rpm: command not found') and
-        stdout[0] != 'E: No packages found'
+        (stdout[0] != 'package openvpn3-client is not installed' and stderr != '/bin/sh: rpm: command not found')
+        and stdout[0] != 'E: No packages found'
     ):
         cmd = "sudo openvpn3 configs-list |grep -E 'ovpn|(^|[^0-9])[0-9]{4}($|[^0-9])' |grep -v net|awk -F\"    \" '{print $1}'|awk 'ORS=NR%2?\" \":\"\\n\"'"
         openvpn_configs, stderr = funct.subprocess_execute(cmd)
