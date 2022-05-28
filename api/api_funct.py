@@ -271,7 +271,7 @@ def show_backends(server_id):
 		servers = check_permit_to_server(server_id)
 
 		for s in servers:
-			funct.show_backends(s[2], ret=1)
+			out = funct.show_backends(s[2], ret=1)
 
 		data = {server_id: out}
 
@@ -318,7 +318,7 @@ def get_section(server_id):
 	for s in servers:
 		cfg = '/tmp/' + s[2] + '.cfg'
 
-		out = funct.get_config(s[2], cfg)
+		funct.get_config(s[2], cfg)
 		start_line, end_line, config_read = funct.get_section_from_config(cfg, section_name)
 
 	data = {server_id: {section_name: {'start_line': start_line, 'end_line': end_line, 'config_read': config_read}}}
