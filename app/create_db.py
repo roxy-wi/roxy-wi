@@ -52,6 +52,8 @@ def default_values():
 			'group': '1'},
 		{'param': 'server_state_file', 'value': '/etc/haproxy/haproxy.state', 'section': 'haproxy', 'desc': 'Path to the HAProxy state file',
 			'group': '1'},
+		{'param': 'maxmind_key', 'value': '', 'section': 'haproxy', 'desc': 'License key for downloading GeoIP DB. You can create it on maxmind.com',
+			'group': '1'},
 		{'param': 'haproxy_sock', 'value': '/var/run/haproxy.sock', 'section': 'haproxy',
 			'desc': 'Socket port for HAProxy', 'group': '1'},
 		{'param': 'haproxy_sock_port', 'value': '1999', 'section': 'haproxy', 'desc': 'HAProxy sock port',
@@ -126,6 +128,10 @@ def default_values():
 			'desc': 'Path to the main Apache configuration file', 'group': '1'},
 		{'param': 'apache_container_name', 'value': 'apache', 'section': 'apache',
 			'desc': 'Docker container name for Apache service', 'group': '1'},
+		{'param': 'keepalived_config_path', 'value': '/etc/keepalived/keepalived.conf', 'section': 'keepalived',
+		 'desc': 'Path to the main Keepalived configuration file', 'group': '1'},
+		{'param': 'keepalived_path_logs', 'value': '/var/log/keepalived/', 'section': 'keepalived',
+		 'desc': 'The path for Keepalived logs', 'group': '1'},
 	]
 	try:
 		Setting.insert_many(data_source).on_conflict_ignore().execute()
@@ -572,6 +578,9 @@ def update_db_v_5_3_0(**kwargs):
 					'desc': 'Docker container name for NGINX service', 'group': g.group_id},
 				{'param': 'haproxy_container_name', 'value': 'haproxy', 'section': 'haproxy',
 					'desc': 'Docker container name for HAProxy service', 'group': g.group_id},
+				{'param': 'maxmind_key', 'value': '', 'section': 'haproxy',
+				 'desc': 'License key for downloading GeoIP DB. You can create it on maxmind.com',
+				 'group': g.group_id},
 				{'param': 'apache_path_logs', 'value': '/var/log/httpd/', 'section': 'apache',
 					'desc': 'The path for Apache logs', 'group': g.group_id},
 				{'param': 'apache_stats_user', 'value': 'admin', 'section': 'apache',
@@ -588,6 +597,10 @@ def update_db_v_5_3_0(**kwargs):
 				 	'desc': 'Path to the main Apache configuration file', 'group': g.group_id},
 				{'param': 'apache_container_name', 'value': 'apache', 'section': 'apache',
 				 	'desc': 'Docker container name for Apache service', 'group': g.group_id},
+				{'param': 'keepalived_config_path', 'value': '/etc/keepalived/keepalived.conf', 'section': 'keepalived',
+					'desc': 'Path to the main Keepalived configuration file', 'group': g.group_id},
+				{'param': 'keepalived_path_logs', 'value': '/var/log/keepalived/', 'section': 'keepalived',
+					'desc': 'The path for Keepalived logs', 'group': g.group_id},
 			]
 
 			try:

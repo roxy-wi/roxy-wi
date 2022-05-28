@@ -134,7 +134,8 @@ def add_setting_for_new_group(group_id):
 		{'param': 'token_ttl', 'value': '5', 'section': 'main', 'desc': 'TTL for a user token (in days)',
 			'group': group_id},
 		{'param': 'tmp_config_path', 'value': '/tmp/', 'section': 'main',
-			'desc': 'Path to the temporary directory. A valid path should be specified as the value of this parameter. The directory must be owned by the user specified in SSH settings',
+			'desc': 'Path to the temporary directory. A valid path should be specified as the value of this parameter. '
+					'The directory must be owned by the user specified in SSH settings',
 			'group': group_id},
 		{'param': 'cert_path', 'value': '/etc/ssl/certs/', 'section': 'main',
 			'desc': 'Path to SSL dir. Folder owner must be a user which set in the SSH settings. The path must be valid',
@@ -166,6 +167,9 @@ def add_setting_for_new_group(group_id):
 			'desc': 'Path to the HAProxy sock file', 'group': group_id},
 		{'param': 'haproxy_sock_port', 'value': '1999', 'section': 'haproxy', 'desc': 'Socket port for HAProxy',
 			'group': group_id},
+		{'param': 'maxmind_key', 'value': '', 'section': 'haproxy',
+		 'desc': 'License key for downloading GeoIP DB. You can create it on maxmind.com',
+		 'group': g.group_id},
 		{'param': 'nginx_path_logs', 'value': '/var/log/nginx/', 'section': 'nginx',
 			'desc': 'NGINX error log', 'group': group_id},
 		{'param': 'nginx_stats_user', 'value': 'admin', 'section': 'nginx',
@@ -219,6 +223,10 @@ def add_setting_for_new_group(group_id):
 			'desc': 'Path to the main Apache configuration file', 'group': group_id},
 		{'param': 'apache_container_name', 'value': 'apache', 'section': 'apache',
 			'desc': 'Docker container name for Apache service', 'group': group_id},
+		{'param': 'keepalived_config_path', 'value': '/etc/keepalived/keepalived.conf', 'section': 'keepalived',
+		 	'desc': 'Path to the main Keepalived configuration file', 'group': g.group_id},
+		{'param': 'keepalived_path_logs', 'value': '/var/log/keepalived/', 'section': 'keepalived',
+		 	'desc': 'The path for Keepalived logs', 'group': g.group_id},
 	]
 
 	try:
@@ -1364,25 +1372,39 @@ def insert_waf_metrics_enable(serv, enable):
 def insert_waf_rules(serv):
 	data_source = [
 		{'serv': serv, 'rule_name': 'Ignore static', 'rule_file': 'modsecurity_crs_10_ignore_static.conf',
-			'desc': 'This ruleset will skip all tests for media files, but will skip only the request body phase (phase 2) for text files. To skip the outbound stage for text files, add file 47 (skip_outbound_checks) to your configuration, in addition to this fileth/aws/login'},
+			'desc': 'This ruleset will skip all tests for media files, but will skip only the request body phase (phase 2) '
+					'for text files. To skip the outbound stage for text files, add file 47 (skip_outbound_checks) to your configuration, in addition to this fileth/aws/login'},
 		{'serv': serv, 'rule_name': 'Brute force protection', 'rule_file': 'modsecurity_crs_11_brute_force.conf',
-			'desc': 'Anti-Automation Rule for specific Pages (Brute Force Protection) This is a rate-limiting rule set and does not directly correlate whether the authentication attempt was successful or not'},
+			'desc': 'Anti-Automation Rule for specific Pages (Brute Force Protection) This is a rate-limiting rule set and '
+					'does not directly correlate whether the authentication attempt was successful or not'},
 		{'serv': serv, 'rule_name': 'DOS Protections', 'rule_file': 'modsecurity_crs_11_dos_protection.conf',
-			'desc': 'Enforce an existing IP address block and log only 1-time/minute. We do not want to get flooded by alerts during an attack or scan so we are only triggering an alert once/minute.  You can adjust how often you want to receive status alerts by changing the expirevar setting below'},
+			'desc': 'Enforce an existing IP address block and log only 1-time/minute. We do not want to get flooded by alerts '
+					'during an attack or scan so we are only triggering an alert once/minute.  You can adjust how often you '
+					'want to receive status alerts by changing the expirevar setting below'},
 		{'serv': serv, 'rule_name': 'XML enabler', 'rule_file': 'modsecurity_crs_13_xml_enabler.conf',
 			'desc': 'The rules in this file will trigger the XML parser upon an XML request'},
 		{'serv': serv, 'rule_name': 'Protocol violations', 'rule_file': 'modsecurity_crs_20_protocol_violations.conf',
-			'desc': 'Some protocol violations are common in application layer attacks. Validating HTTP requests eliminates a large number of application layer attacks. The purpose of this rules file is to enforce HTTP RFC requirements that state how  the client is supposed to interact with the server. http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html'},
+			'desc': 'Some protocol violations are common in application layer attacks. Validating HTTP requests eliminates a '
+					'large number of application layer attacks. The purpose of this rules file is to enforce HTTP RFC requirements '
+					'that state how  the client is supposed to interact with the server. http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html'},
 		{'serv': serv, 'rule_name': 'Protocol anomalies', 'rule_file': 'modsecurity_crs_21_protocol_anomalies.conf',
-			'desc': 'Some common HTTP usage patterns are indicative of attacks but may also be used by non-browsers for legitimate uses. Do not accept requests without common headers. All normal web browsers include Host, User-Agent and Accept headers. Implies either an attacker or a legitimate automation client'},
+			'desc': 'Some common HTTP usage patterns are indicative of attacks but may also be used by non-browsers for '
+					'legitimate uses. Do not accept requests without common headers. All normal web browsers include Host, '
+					'User-Agent and Accept headers. Implies either an attacker or a legitimate automation client'},
 		{'serv': serv, 'rule_name': 'Detect CC#', 'rule_file': 'modsecurity_crs_25_cc_known.conf',
 			'desc': 'Detect CC# in input, log transaction and sanitize'},
 		{'serv': serv, 'rule_name': 'CC traker', 'rule_file': 'modsecurity_crs_25_cc_track_pan.conf',
 			'desc': 'Credit Card Track 1 and 2 and PAN Leakage Checks'},
 		{'serv': serv, 'rule_name': 'HTTP policy', 'rule_file': 'modsecurity_crs_30_http_policy.conf',
-			'desc': 'HTTP policy enforcement The HTTP policy enforcement rule set sets limitations on the use of HTTP by clients. Few applications require the breadth and depth of the HTTP protocol. On the other hand many attacks abuse valid but rare HTTP use patterns. Restricting  HTTP protocol usage is effective in therefore effective in blocking many  application layer attacks'},
+			'desc': 'HTTP policy enforcement The HTTP policy enforcement rule set sets limitations on the use of HTTP by '
+					'clients. Few applications require the breadth and depth of the HTTP protocol. On the other hand many '
+					'attacks abuse valid but rare HTTP use patterns. Restricting  HTTP protocol usage is effective in '
+					'therefore effective in blocking many  application layer attacks'},
 		{'serv': serv, 'rule_name': 'Bad robots', 'rule_file': 'modsecurity_crs_35_bad_robots.conf',
-			'desc': 'Bad robots detection is based on checking elements easily controlled by the client. As such a determined attacked can bypass those checks. Therefore bad robots detection should not be viewed as a security mechanism against targeted attacks but rather as a nuisance reduction, eliminating most of the random attacks against your web site'},
+			'desc': 'Bad robots detection is based on checking elements easily controlled by the client. As such a '
+					'determined attacked can bypass those checks. Therefore bad robots detection should not be viewed '
+					'as a security mechanism against targeted attacks but rather as a nuisance reduction, eliminating '
+					'most of the random attacks against your web site'},
 		{'serv': serv, 'rule_name': 'OS Injection Attacks', 'rule_file': 'modsecurity_crs_40_generic_attacks.conf',
 			'desc': 'OS Command Injection Attacks'},
 		{'serv': serv, 'rule_name': 'SQL injection', 'rule_file': 'modsecurity_crs_41_sql_injection_attacks.conf',
@@ -1390,13 +1412,23 @@ def insert_waf_rules(serv):
 		{'serv': serv, 'rule_name': 'XSS Protections', 'rule_file': 'modsecurity_crs_41_xss_attacks.conf',
 			'desc': 'XSS attacks protection'},
 		{'serv': serv, 'rule_name': 'Comment spam', 'rule_file': 'modsecurity_crs_42_comment_spam.conf',
-			'desc': 'Comment spam is an attack against blogs, guestbooks, wikis and other types of interactive web sites that accept and display hyperlinks submitted by visitors. The spammers automatically post specially crafted random comments which include links that point to the spammer\'s web site. The links artificially increas the site\'s search engine ranking and may make the site more noticable in search results.'},
+			'desc': 'Comment spam is an attack against blogs, guestbooks, wikis and other types of interactive web sites '
+					'that accept and display hyperlinks submitted by visitors. The spammers automatically post specially '
+					'crafted random comments which include links that point to the spammer\'s web site. The links artificially '
+					'increase the site\'s search engine ranking and may make the site more noticable in search results.'},
 		{'serv': serv, 'rule_name': 'Trojans Protections', 'rule_file': 'modsecurity_crs_45_trojans.conf ',
-			'desc': 'The trojan access detection rules detects access to known Trojans already installed on a server. Uploading of Trojans is part of the Anti-Virus rules  and uses external Anti Virus program when uploading files. Detection of Trojans access is especially important in a hosting environment where the actual Trojan upload may be done through valid methods and not through hacking'},
+			'desc': 'The trojan access detection rules detects access to known Trojans already installed on a server. '
+					'Uploading of Trojans is part of the Anti-Virus rules  and uses external Anti Virus program when uploading '
+					'files. Detection of Trojans access is especially important in a hosting environment where the actual Trojan '
+					'upload may be done through valid methods and not through hacking'},
 		{'serv': serv, 'rule_name': 'RFI Protections', 'rule_file': 'modsecurity_crs_46_slr_et_lfi_attacks.conf',
-			'desc': 'Remote file inclusion is an attack targeting vulnerabilities in web applications that dynamically reference external scripts. The perpetrator’s goal is to exploit the referencing function in an application to upload malware (e.g., backdoor shells) from a remote URL located within a different domain'},
+			'desc': 'Remote file inclusion is an attack targeting vulnerabilities in web applications that dynamically reference '
+					'external scripts. The perpetrator’s goal is to exploit the referencing function in an application to upload '
+					'malware (e.g., backdoor shells) from a remote URL located within a different domain'},
 		{'serv': serv, 'rule_name': 'RFI Protections 2', 'rule_file': 'modsecurity_crs_46_slr_et_rfi_attacks.conf',
-			'desc': 'Remote file inclusion is an attack targeting vulnerabilities in web applications that dynamically reference external scripts. The perpetrator’s goal is to exploit the referencing function in an application to upload malware (e.g., backdoor shells) from a remote URL located within a different domain'},
+			'desc': 'Remote file inclusion is an attack targeting vulnerabilities in web applications that dynamically reference '
+					'external scripts. The perpetrator’s goal is to exploit the referencing function in an application to '
+					'upload malware (e.g., backdoor shells) from a remote URL located within a different domain'},
 		{'serv': serv, 'rule_name': 'SQLi Protections', 'rule_file': 'modsecurity_crs_46_slr_et_sqli_attacks.conf',
 			'desc': 'SQLi injection attacks protection'},
 		{'serv': serv, 'rule_name': 'XSS Protections 2', 'rule_file': 'modsecurity_crs_46_slr_et_xss_attacks.conf',
@@ -1636,7 +1668,8 @@ def select_table_metrics():
 			groups = "and servers.groups = '{group}' ".format(group=group_id)
 	if mysql_enable == '1':
 		sql = """
-				select ip.ip, hostname, avg_sess_1h, avg_sess_24h, avg_sess_3d, max_sess_1h, max_sess_24h, max_sess_3d, avg_cur_1h, avg_cur_24h, avg_cur_3d, max_con_1h, max_con_24h, max_con_3d from
+				select ip.ip, hostname, avg_sess_1h, avg_sess_24h, avg_sess_3d, max_sess_1h, max_sess_24h, max_sess_3d, 
+				avg_cur_1h, avg_cur_24h, avg_cur_3d, max_con_1h, max_con_24h, max_con_3d from
 				(select servers.ip from servers where metrics = 1 ) as ip,
 
 				(select servers.ip, servers.hostname as hostname from servers left join metrics as metr on servers.ip = metr.serv where servers.metrics = 1 %s) as hostname,
@@ -1730,7 +1763,8 @@ def select_table_metrics():
 				group by hostname.ip """ % groups
 	else:
 		sql = """
-		select ip.ip, hostname, avg_sess_1h, avg_sess_24h, avg_sess_3d, max_sess_1h, max_sess_24h, max_sess_3d, avg_cur_1h, avg_cur_24h, avg_cur_3d, max_con_1h, max_con_24h, max_con_3d from
+		select ip.ip, hostname, avg_sess_1h, avg_sess_24h, avg_sess_3d, max_sess_1h, max_sess_24h, max_sess_3d, avg_cur_1h,
+			avg_cur_24h, avg_cur_3d, max_con_1h, max_con_24h, max_con_3d from
 		(select servers.ip from servers where metrics = 1 ) as ip,
 
 		(select servers.ip, servers.hostname as hostname from servers left join metrics as metr on servers.ip = metr.serv where servers.metrics = 1 %s) as hostname,
@@ -2410,7 +2444,8 @@ def select_alerts(user_group):
 		sql = """ select level, message, `date` from alerts where user_group = '%s' and `date` <= (now()+ INTERVAL 10 second) """ % (
 			user_group)
 	else:
-		sql = """ select level, message, `date` from alerts where user_group = '%s' and `date` >= datetime('now', '-20 second', 'localtime') and `date` <=  datetime('now', 'localtime') ; """ % (
+		sql = """ select level, message, `date` from alerts where user_group = '%s' and `date` >= datetime('now', '-20 second', 'localtime') 
+		and `date` <=  datetime('now', 'localtime') ; """ % (
 			user_group)
 	try:
 		cursor.execute(sql)
@@ -2425,7 +2460,8 @@ def select_all_alerts_for_all():
 	if mysql_enable == '1':
 		sql = """ select level, message, `date`, user_group from alerts where `date` <= (now()+ INTERVAL 10 second) """
 	else:
-		sql = """ select level, message, `date`, user_group from alerts where `date` >= datetime('now', '-10 second', 'localtime') and `date` <=  datetime('now', 'localtime') ; """
+		sql = """ select level, message, `date`, user_group from alerts where `date` >= datetime('now', '-10 second', 'localtime')
+		 and `date` <=  datetime('now', 'localtime') ; """
 	try:
 		cursor.execute(sql)
 	except Exception as e:
@@ -2680,8 +2716,8 @@ def delete_provider(provider_id):
 
 
 def add_server_aws(
-		region, instance_type, public_ip, floating_ip, volume_size, ssh_key_name, name, os, firewall,
-		provider_id, group_id, status, delete_on_termination, volume_type
+	region, instance_type, public_ip, floating_ip, volume_size, ssh_key_name, name, os, firewall,
+	provider_id, group_id, status, delete_on_termination, volume_type
 ):
 	try:
 		ProvisionedServers.insert(
@@ -2697,8 +2733,8 @@ def add_server_aws(
 
 
 def add_server_gcore(
-		project, region, instance_type, network_type, network_name, volume_size, ssh_key_name, name, os,
-		firewall, provider_id, group_id, status, delete_on_termination, volume_type
+	project, region, instance_type, network_type, network_name, volume_size, ssh_key_name, name, os,
+	firewall, provider_id, group_id, status, delete_on_termination, volume_type
 ):
 	try:
 		ProvisionedServers.insert(
@@ -2714,8 +2750,8 @@ def add_server_gcore(
 
 
 def add_server_do(
-		region, size, privet_net, floating_ip, ssh_ids, ssh_key_name, name, oss, firewall, monitoring, backup,
-		provider_id, group_id, status
+	region, size, privet_net, floating_ip, ssh_ids, ssh_key_name, name, oss, firewall, monitoring, backup,
+	provider_id, group_id, status
 ):
 	try:
 		ProvisionedServers.insert(
@@ -2821,8 +2857,8 @@ def update_provisioning_server_error(status, user_group_id, name, provider_id):
 
 
 def update_server_aws(
-		region, size, public_ip, floating_ip, volume_size, ssh_name, workspace, oss, firewall, provider,
-		group, status, server_id, delete_on_termination, volume_type
+	region, size, public_ip, floating_ip, volume_size, ssh_name, workspace, oss, firewall, provider,
+	group, status, server_id, delete_on_termination, volume_type
 ):
 	query = ProvisionedServers.update(
 		region=region, instance_type=size, public_ip=public_ip, floating_ip=floating_ip, volume_size=volume_size,
@@ -2838,8 +2874,8 @@ def update_server_aws(
 
 
 def update_server_gcore(
-		region, size, network_type, network_name, volume_size, ssh_name, workspace, oss, firewall,
-		provider, group, status, server_id, delete_on_termination, volume_type, project
+	region, size, network_type, network_name, volume_size, ssh_name, workspace, oss, firewall,
+	provider, group, status, server_id, delete_on_termination, volume_type, project
 ):
 	query = ProvisionedServers.update(
 		region=region, instance_type=size, public_ip=network_type, network_name=network_name, volume_size=volume_size,
@@ -2855,8 +2891,8 @@ def update_server_gcore(
 
 
 def update_server_do(
-		size, privet_net, floating_ip, ssh_ids, ssh_name, oss, firewall, monitoring, backup, provider, group,
-		status, server_id
+	size, privet_net, floating_ip, ssh_ids, ssh_name, oss, firewall, monitoring, backup, provider, group,
+	status, server_id
 ):
 	query = ProvisionedServers.update(
 		instance_type=size, private_networking=privet_net, floating_ip=floating_ip, ssh_ids=ssh_ids,
@@ -3180,7 +3216,7 @@ def select_remote_path_from_version(server_ip: str, service: str, local_path: st
 
 
 def insert_system_info(
-		server_id: int, os_info: str, sys_info: str, cpu: str, ram: str, network: str, disks: str
+	server_id: int, os_info: str, sys_info: str, cpu: str, ram: str, network: str, disks: str
 ) -> bool:
 	try:
 		SystemInfo.insert(
