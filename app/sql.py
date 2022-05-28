@@ -169,7 +169,7 @@ def add_setting_for_new_group(group_id):
 			'group': group_id},
 		{'param': 'maxmind_key', 'value': '', 'section': 'haproxy',
 			'desc': 'License key for downloading GeoIP DB. You can create it on maxmind.com',
-			'group': g.group_id},
+			'group': group_id},
 		{'param': 'nginx_path_logs', 'value': '/var/log/nginx/', 'section': 'nginx',
 			'desc': 'NGINX error log', 'group': group_id},
 		{'param': 'nginx_stats_user', 'value': 'admin', 'section': 'nginx',
@@ -346,7 +346,7 @@ def select_users(**kwargs):
 	elif kwargs.get("group") is not None:
 		query = (User.select(
 			User, UserGroups, Case(
-			0, [((User.last_login_date >= funct.get_data('regular', timedelta_minutes_minus=15)), 0)], 1
+				0, [((User.last_login_date >= funct.get_data('regular', timedelta_minutes_minus=15)), 0)], 1
 			).alias('last_login')
 		).join(UserGroups, on=(User.user_id == UserGroups.user_id)).where(
 			UserGroups.user_group_id == kwargs.get("group")
@@ -1373,7 +1373,8 @@ def insert_waf_rules(serv):
 	data_source = [
 		{'serv': serv, 'rule_name': 'Ignore static', 'rule_file': 'modsecurity_crs_10_ignore_static.conf',
 			'desc': 'This ruleset will skip all tests for media files, but will skip only the request body phase (phase 2) '
-					'for text files. To skip the outbound stage for text files, add file 47 (skip_outbound_checks) to your configuration, in addition to this fileth/aws/login'},
+					'for text files. To skip the outbound stage for text files, add file 47 (skip_outbound_checks) '
+					'to your configuration, in addition to this fileth/aws/login'},
 		{'serv': serv, 'rule_name': 'Brute force protection', 'rule_file': 'modsecurity_crs_11_brute_force.conf',
 			'desc': 'Anti-Automation Rule for specific Pages (Brute Force Protection) This is a rate-limiting rule set and '
 					'does not directly correlate whether the authentication attempt was successful or not'},
@@ -1668,7 +1669,7 @@ def select_table_metrics():
 			groups = "and servers.groups = '{group}' ".format(group=group_id)
 	if mysql_enable == '1':
 		sql = """
-				select ip.ip, hostname, avg_sess_1h, avg_sess_24h, avg_sess_3d, max_sess_1h, max_sess_24h, max_sess_3d, 
+				select ip.ip, hostname, avg_sess_1h, avg_sess_24h, avg_sess_3d, max_sess_1h, max_sess_24h, max_sess_3d,
 				avg_cur_1h, avg_cur_24h, avg_cur_3d, max_con_1h, max_con_24h, max_con_3d from
 				(select servers.ip from servers where metrics = 1 ) as ip,
 
@@ -2444,7 +2445,7 @@ def select_alerts(user_group):
 		sql = """ select level, message, `date` from alerts where user_group = '%s' and `date` <= (now()+ INTERVAL 10 second) """ % (
 			user_group)
 	else:
-		sql = """ select level, message, `date` from alerts where user_group = '%s' and `date` >= datetime('now', '-20 second', 'localtime') 
+		sql = """ select level, message, `date` from alerts where user_group = '%s' and `date` >= datetime('now', '-20 second', 'localtime')
 		and `date` <=  datetime('now', 'localtime') ; """ % (
 			user_group)
 	try:
