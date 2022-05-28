@@ -168,8 +168,8 @@ def add_setting_for_new_group(group_id):
 		{'param': 'haproxy_sock_port', 'value': '1999', 'section': 'haproxy', 'desc': 'Socket port for HAProxy',
 			'group': group_id},
 		{'param': 'maxmind_key', 'value': '', 'section': 'haproxy',
-		 'desc': 'License key for downloading GeoIP DB. You can create it on maxmind.com',
-		 'group': g.group_id},
+			'desc': 'License key for downloading GeoIP DB. You can create it on maxmind.com',
+			'group': g.group_id},
 		{'param': 'nginx_path_logs', 'value': '/var/log/nginx/', 'section': 'nginx',
 			'desc': 'NGINX error log', 'group': group_id},
 		{'param': 'nginx_stats_user', 'value': 'admin', 'section': 'nginx',
@@ -224,9 +224,9 @@ def add_setting_for_new_group(group_id):
 		{'param': 'apache_container_name', 'value': 'apache', 'section': 'apache',
 			'desc': 'Docker container name for Apache service', 'group': group_id},
 		{'param': 'keepalived_config_path', 'value': '/etc/keepalived/keepalived.conf', 'section': 'keepalived',
-		 	'desc': 'Path to the main Keepalived configuration file', 'group': g.group_id},
+			'desc': 'Path to the main Keepalived configuration file', 'group': g.group_id},
 		{'param': 'keepalived_path_logs', 'value': '/var/log/keepalived/', 'section': 'keepalived',
-		 	'desc': 'The path for Keepalived logs', 'group': g.group_id},
+			'desc': 'The path for Keepalived logs', 'group': g.group_id},
 	]
 
 	try:
@@ -2461,7 +2461,7 @@ def select_all_alerts_for_all():
 		sql = """ select level, message, `date`, user_group from alerts where `date` <= (now()+ INTERVAL 10 second) """
 	else:
 		sql = """ select level, message, `date`, user_group from alerts where `date` >= datetime('now', '-10 second', 'localtime')
-		 and `date` <=  datetime('now', 'localtime') ; """
+			and `date` <=  datetime('now', 'localtime') ; """
 	try:
 		cursor.execute(sql)
 	except Exception as e:
