@@ -224,9 +224,9 @@ def add_setting_for_new_group(group_id):
 		{'param': 'apache_container_name', 'value': 'apache', 'section': 'apache',
 			'desc': 'Docker container name for Apache service', 'group': group_id},
 		{'param': 'keepalived_config_path', 'value': '/etc/keepalived/keepalived.conf', 'section': 'keepalived',
-			'desc': 'Path to the main Keepalived configuration file', 'group': g.group_id},
+			'desc': 'Path to the main Keepalived configuration file', 'group': group_id},
 		{'param': 'keepalived_path_logs', 'value': '/var/log/keepalived/', 'section': 'keepalived',
-			'desc': 'The path for Keepalived logs', 'group': g.group_id},
+			'desc': 'The path for Keepalived logs', 'group': group_id},
 	]
 
 	try:

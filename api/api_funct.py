@@ -91,10 +91,10 @@ def return_dict_from_out(server_id, out):
 			data[server_id][k[0]] = k[1].strip()
 		else:
 			data[server_id] = {"error": "Cannot connect to HAProxy"}
-			
+
 	return data
-	
-	
+
+
 def check_permit_to_server(server_id, service='haproxy'):
 	servers = sql.select_servers(id_hostname=server_id)
 	token = request.headers.get('token')
@@ -142,14 +142,14 @@ def get_server(server_id, service):
 	except Exception:
 		data = ''
 	return dict(server=data)
-	
-	
+
+
 def get_status(server_id, service):
 	if service != 'apache' and service != 'nginx' and service != 'haproxy':
 		return dict(status='wrong service')
 	try:
 		servers = check_permit_to_server(server_id, service=service)
-		
+
 		for s in servers:
 			if service == 'haproxy':
 				cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|Maxco\|MB\|Uptime:"' % (s[2], sql.get_setting('haproxy_sock_port'))
@@ -157,7 +157,9 @@ def get_status(server_id, service):
 				data = return_dict_from_out(server_id, out[0])
 			elif service == 'nginx':
 				cmd = [
-					"/usr/sbin/nginx -v 2>&1|awk '{print $3}' && systemctl status nginx |grep -e 'Active' |awk '{print $2, $9$10$11$12$13}' && ps ax |grep nginx:|grep -v grep |wc -l"]
+					"/usr/sbin/nginx -v 2>&1|awk '{print $3}' && systemctl status nginx |grep -e 'Active' "
+					"|awk '{print $2, $9$10$11$12$13}' && ps ax |grep nginx:|grep -v grep |wc -l"
+				]
 				try:
 					out = funct.ssh_command(s[2], cmd)
 					out1 = out.split()
@@ -192,7 +194,7 @@ def get_status(server_id, service):
 	except Exception:
 		data = {server_id: {"error": "Cannot find the server"}}
 		return dict(error=data)
-			
+
 	return dict(status=data)
 
 
@@ -235,7 +237,7 @@ def actions(server_id, action, service):
 			error = funct.ssh_command(s[2], cmd)
 			done = error if error else 'done'
 
-			data = {'server_id':s[0], 'ip':s[2], 'action':action, 'hostname':s[1], 'status':done}
+			data = {'server_id': s[0], 'ip': s[2], 'action': action, 'hostname': s[1], 'status': done}
 
 		return dict(status=data)
 	except Exception as e:
@@ -265,12 +267,11 @@ def runtime(server_id):
 
 
 def show_backends(server_id):
-	data = {}
 	try:
 		servers = check_permit_to_server(server_id)
 
 		for s in servers:
-			out = funct.show_backends(s[2], ret=1)
+			funct.show_backends(s[2], ret=1)
 
 		data = {server_id: out}
 
@@ -292,7 +293,7 @@ def get_config(server_id, **kwargs):
 
 		for s in servers:
 			cfg = '/tmp/' + s[2] + '.cfg'
-			out = funct.get_config(s[2], cfg, service=service, config_file_name=kwargs.get('config_path'))
+			funct.get_config(s[2], cfg, service=service, config_file_name=kwargs.get('config_path'))
 			os.system("sed -i 's/\\n/\n/g' " + cfg)
 		try:
 			conf = open(cfg, "r")
@@ -320,7 +321,7 @@ def get_section(server_id):
 		out = funct.get_config(s[2], cfg)
 		start_line, end_line, config_read = funct.get_section_from_config(cfg, section_name)
 
-	data = {server_id: {section_name:{'start_line': start_line, 'end_line': end_line, 'config_read': config_read}}}
+	data = {server_id: {section_name: {'start_line': start_line, 'end_line': end_line, 'config_read': config_read}}}
 	return dict(section=data)
 
 
