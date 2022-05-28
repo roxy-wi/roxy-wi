@@ -16,6 +16,7 @@
   file:
     path: "{{nginx_dir}}"
     state: directory
+    mode: o=rx
   when: "'nginx' not in ansible_facts.packages"
 
 
@@ -39,6 +40,12 @@
   when: ansible_facts['distribution_major_version'] == '7'
   ignore_errors: True
 
+- name: Set passlib version
+  set_fact:
+    passlib_ver: "passlib"
+  when: ansible_facts['distribution_major_version'] == '9'
+  ignore_errors: True
+
 
 - name: Install passlib
   package:
@@ -47,15 +54,6 @@
   when:
    - "'nginx' not in ansible_facts.packages"
    - ansible_facts['distribution_major_version'] != '9'
-  environment:
-    http_proxy: "{{PROXY}}"
-    https_proxy: "{{PROXY}}"
-
-
-- name: Install passlib for el9
-  pip:
-    name: passlib
-  when: ansible_facts['distribution_major_version'] == '9'
   environment:
     http_proxy: "{{PROXY}}"
     https_proxy: "{{PROXY}}"
