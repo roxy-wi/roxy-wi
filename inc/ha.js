@@ -3,7 +3,94 @@ $( function() {
 	  width: 180
 	});
 	var ipformat = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-
+	$( "#interface" ).autocomplete({
+		source: function( request, response ) {
+			$.ajax( {
+				url: "options.py",
+				data: {
+					showif:1,
+					serv: $("#master").val(),
+					token: $('#token').val()
+				},
+				success: function( data ) {
+					data = data.replace(/\s+/g,' ');
+					if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
+						toastr.error(data);
+					} else {
+						response(data.split(" "));
+					}
+				}
+			} );
+		},
+		autoFocus: true,
+		minLength: -1
+	});
+	$( "#interface-add" ).autocomplete({
+		source: function( request, response ) {
+			$.ajax( {
+				url: "options.py",
+				data: {
+					showif:1,
+					serv: $("#master-add").val(),
+					token: $('#token').val()
+				},
+				success: function( data ) {
+					data = data.replace(/\s+/g,' ');
+					if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
+						toastr.error(data);
+					} else {
+						response(data.split(" "));
+					}
+				}
+			} );
+		},
+		autoFocus: true,
+		minLength: -1
+	});
+	$( "#slave_interface" ).autocomplete({
+		source: function( request, response ) {
+			$.ajax( {
+				url: "options.py",
+				data: {
+					showif:1,
+					serv: $("#slave").val(),
+					token: $('#token').val()
+				},
+				success: function( data ) {
+					data = data.replace(/\s+/g,' ');
+					if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
+						toastr.error(data);
+					} else {
+						response(data.split(" "));
+					}
+				}
+			} );
+		},
+		autoFocus: true,
+		minLength: -1
+	});
+	$( "#slave_interface-add" ).autocomplete({
+		source: function( request, response ) {
+			$.ajax( {
+				url: "options.py",
+				data: {
+					showif:1,
+					serv: $("#slave").val(),
+					token: $('#token').val()
+				},
+				success: function( data ) {
+					data = data.replace(/\s+/g,' ');
+					if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
+						toastr.error(data);
+					} else {
+						response(data.split(" "));
+					}
+				}
+			} );
+		},
+		autoFocus: true,
+		minLength: -1
+	});
 	var server_creating = $( "#server_creating" ).dialog({
 		autoOpen: false,
 		width: 574,
@@ -38,18 +125,26 @@ $( function() {
 			kp = '0';
 		}
 		$("#ajax").html('')
-		if( $("#master-add").val() == "" || $("#slave-add").val() == "" || $("#interface-add").val() == "" ||
-			$("#vrrp-ip-add").val() == "") {
-				toastr.warning('Please fill in all fields')
-			} else if(! $("#vrrp-ip-add").val().match(ipformat)) {
-				toastr.warning('Please enter IP in "VRRP IP" field')
-			} else {
-				$("#wait-mess-add").html(wait_mess);
-				address_add.dialog('open');
-				add_master_addr(kp);
-				$.getScript("/inc/fontawesome.min.js");
-				add_slave_addr(kp);
-			}
+		if( $("#master-add").val() == "") {
+			toastr.warning('Select a Master server');
+		} else if($("#slave-add").val() == ""){
+			toastr.warning('Select a Slave server');
+		} else if($("#interface-add").val() == "") {
+			toastr.warning('Please enter the master interface name')
+		} else if ($("#vrrp-ip-add").val() == "") {
+			toastr.warning('Please enter IP in "VRRP IP" field')
+		} else if(! $("#vrrp-ip-add").val().match(ipformat)) {
+			toastr.warning('Please enter IP in "VRRP IP" field')
+		} else if($("#slave_interface-add") == '') {
+			toastr.warning('Please enter the slave interface name')
+		} else {
+			$("#wait-mess-add").html(wait_mess);
+			address_add.dialog('open');
+			const router_id = randomIntFromInterval(1, 255);
+			add_master_addr(kp, router_id);
+			$.getScript("/inc/fontawesome.min.js");
+			add_slave_addr(kp, router_id);
+		}
 	});
 	$('#create').click(function() {
 		var hap = 0;
@@ -65,19 +160,27 @@ $( function() {
 			syn_flood = '1';
 		}
 		$("#ajax").html('')
-		if( $("#master").val() == "" || $("#slave").val() == "" || $("#interface").val() == "" ||
-			$("#vrrp-ip").val() == "") {
-				toastr.warning('Please fill in all fields');
-			} else if(! $("#vrrp-ip").val().match(ipformat)) {
-				toastr.warning('Please enter IP in "VRRP IP" field');
-			} else if ($("#master").val() == $("#slave").val() ){
-				toastr.warning('Master and slave must be diff servers');
-			} else {
+		if( $("#master").val() === null){
+			toastr.warning('Select a Master server');
+		} else if($("#slave").val() === null) {
+			toastr.warning('Select a Slave server');
+		} else if($("#interface").val() == "") {
+			toastr.warning('Please enter the master interface name');
+		} else if($("#vrrp-ip").val() == "") {
+			toastr.warning('Please enter IP in "VRRP IP" field');
+		} else if(! $("#vrrp-ip").val().match(ipformat)) {
+			toastr.warning('Please enter IP in "VRRP IP" field');
+		} else if($("#slave_interface").val() == '') {
+			toastr.warning('Please enter the slave interface name');
+		} else if ($("#master").val() == $("#slave").val() ){
+			toastr.warning('Master and slave must be diff servers');
+		} else {
 				$("#wait-mess").html(wait_mess);
 				server_creating.dialog('open');
-				create_master_keepalived(hap, nginx, syn_flood);
+				const router_id = randomIntFromInterval(1, 255);
+				create_master_keepalived(hap, nginx, syn_flood, router_id);
 				$.getScript("/inc/fontawesome.min.js");
-				create_slave_keepalived(hap, nginx, syn_flood);
+				create_slave_keepalived(hap, nginx, syn_flood, router_id);
 				if (hap == '1') {
 					$('#haproxy_installing_div').show();
 				}
@@ -201,7 +304,7 @@ $( function() {
 		} );
 	});
 });
-function add_master_addr(kp) {
+function add_master_addr(kp, router_id) {
 	return_to_master = 0
 	if ($('#add_return_to_master').is(':checked')) {
 		return_to_master = '1';
@@ -212,9 +315,11 @@ function add_master_addr(kp) {
 			masteradd: $('#master-add').val(),
 			slaveadd: $('#slave-add').val(),
 			interfaceadd: $("#interface-add").val(),
+			slave_interfaceadd: $("#slave_interface-add").val(),
 			vrrpipadd: $('#vrrp-ip-add').val(),
 			return_to_master: return_to_master,
 			kp: kp,
+			router_id: router_id,
 			token: $('#token').val()
 		},
 		type: "POST",
@@ -230,15 +335,17 @@ function add_master_addr(kp) {
 		}
 	} );
 }
-function add_slave_addr(kp) {
+function add_slave_addr(kp, router_id) {
 	$.ajax( {
 		url: "options.py",
 		data: {
 			masteradd_slave: $('#master-add').val(),
 			slaveadd: $('#slave-add').val(),
 			interfaceadd: $("#interface-add").val(),
+			slave_interfaceadd: $("#slave_interface-add").val(),
 			vrrpipadd: $('#vrrp-ip-add').val(),
 			kp: kp,
+			router_id: router_id,
 			token: $('#token').val()
 		},
 		type: "POST",
@@ -254,7 +361,7 @@ function add_slave_addr(kp) {
 		}
 	} );
 }
-function create_master_keepalived(hap, nginx, syn_flood) {
+function create_master_keepalived(hap, nginx, syn_flood, router_id) {
 	if (hap == '0' && nginx == '0') {
 		var progress_value = '50';
 	} else if (hap == '1' || nginx == '0') {
@@ -284,12 +391,14 @@ function create_master_keepalived(hap, nginx, syn_flood) {
 			master: $('#master').val(),
 			slave: $('#slave').val(),
 			interface: $("#interface").val(),
+			slave_interface: $("#slave_interface").val(),
 			vrrpip: $('#vrrp-ip').val(),
 			return_to_master: return_to_master,
 			hap: hap,
 			nginx: nginx,
 			syn_flood: syn_flood,
 			virt_server: virt_server,
+			router_id: router_id,
 			token: $('#token').val()
 		},
 		type: "POST",
@@ -315,7 +424,7 @@ function create_master_keepalived(hap, nginx, syn_flood) {
 		}
 	} );
 }
-function create_slave_keepalived(hap, nginx, syn_flood) {
+function create_slave_keepalived(hap, nginx, syn_flood, router_id) {
 	if (hap == '0' && nginx == '0') {
 		var progress_value = '100';
 	} else if (hap == '1' || nginx == '0') {
@@ -337,10 +446,12 @@ function create_slave_keepalived(hap, nginx, syn_flood) {
 			master_slave: $('#master').val(),
 			slave: $('#slave').val(),
 			interface: $("#interface").val(),
+			slave_interface: $("#slave_interface").val(),
 			vrrpip: $('#vrrp-ip').val(),
 			hap: hap,
 			nginx: nginx,
 			syn_flood: syn_flood,
+			router_id: router_id,
 			token: $('#token').val()
 		},
 		type: "POST",

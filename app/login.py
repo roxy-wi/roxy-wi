@@ -3,13 +3,15 @@
 
 import os
 import sys
-import funct
 import http.cookies
-import sql
-import create_db
 import datetime
 import uuid
 import distro
+
+import sql
+import create_db
+import funct
+
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('login.html')
@@ -74,7 +76,7 @@ def send_cookie(login):
 
 	try:
 		user_name = sql.get_user_name_by_uuid(user_uuid)
-		funct.logging('localhost', ' user: ' + user_name + ', group: ' + user_group + ' log in', haproxywi=1)
+		funct.logging('localhost', ' user: ' + user_name + ', group: ' + user_group + ' login', haproxywi=1)
 	except Exception:
 		pass
 	print("Content-type: text/html\n")

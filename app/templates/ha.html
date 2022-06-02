@@ -17,9 +17,9 @@
 		<td class="padding10 first-collumn">Master</td>
 		<td class="padding10 first-collumn">Current installation</td>
 		<td>Slave</td>
-		<td><span title="Interface for VRRP address">Interface</span></td>
+		<td><span title="Interface for VRRP address on a Master slave">Master Interface</span></td>
+		<td><span title="Interface for VRRP address on a Slave server">Slave Interface</span></td>
 		<td>VRRP IP</td>
-		<td class="checkbox-head help_cursor"><span title="Roxy-WI will add VRRP address as a separated server">Add VIRT</span></td>
 		<td></td>
 	</tr>
 	<tr>
@@ -41,13 +41,13 @@
 				{% endfor %}
 			</select>
 		</td>
-		<td>{{ input('interface', size='7', title='Interface for VRRP address') }}</td>
+		<td>{{ input('interface', size='7', title='Interface for VRRP address on a Master server') }}</td>
+		<td>{{ input('slave_interface', size='7', title='Interface for VRRP address a Slave server') }}</td>
 		<td>{{ input('vrrp-ip', size='14') }}</td>
-		<td class="checkbox help_cursor">{{ checkbox('virt_server', title='Roxy-WI will add VRRP address as a separated server', checked='checked') }}</td>
 	</tr>
 	<tr class="overviewHead">
 		<td class="padding10 first-collumn"></td>
-		<td></td>
+		<td class="checkbox-head help_cursor"><span title="Roxy-WI will add VRRP address as a separated server">Add VIRT</span></td>
 		<td class="padding10 syn-flood-protection-field help_cursor" title="If checked, Keepalived master will reclaim VRRP after recovered">Return to Master state</td>
 		<td class="checkbox-head">SYN-flood protection</td>
 		<td class="checkbox-head help_cursor" style="padding: 10px 10px 10px 0;"><span title="Roxy-WI will try to install HAProxy">HAProxy</span></td>
@@ -59,7 +59,7 @@
 	</tr>
 	<tr>
 		<td class="padding10 first-collumn"></td>
-		<td></td>
+		<td class="checkbox help_cursor">{{ checkbox('virt_server', title='Roxy-WI will add VRRP address as a separated server', checked='checked') }}</td>
 		<td class="checkbox-head syn-flood-protection-field help_cursor">{{ checkbox('return_to_master', checked='checked') }}</td>
 		<td class="syn-flood-protection-field">{{ checkbox('syn_flood') }}</td>
 		<td class="checkbox help_cursor" style="padding: 10px 10px 10px 15px;">{{ checkbox('hap', title='Roxy-WI will try to install HAProxy') }}</td>
@@ -80,11 +80,9 @@
 		<td class="padding10 first-collumn">Master</td>
 		<td class="padding10 first-collumn">Current installation</td>
 		<td>Slave</td>
-		<td><span title="Interface for VRRP address">Interface</span></td>
+		<td><span title="Interface for VRRP address on a Master Server">Master Interface</span></td>
+		<td><span title="Interface for VRRP address on a Slave Server">Slave Interface</span></td>
 		<td>VRRP IP</td>
-		<td class="checkbox-head"><span title="If checked Roxy-WI will restart Keepalived">Restart</span></td>
-		<td class="checkbox-head help_cursor" title="If checked, Keepalived master will reclaim VRRP after recovered">Return to Master state</td>
-		<td></td>
 	</tr>
 	<tr>
 		<td class="padding10 first-collumn" id="cur_master_ver-add"></td>
@@ -106,8 +104,24 @@
 			</select>
 		</td>
 		<td>{{ input('interface-add', size='7', title='Interface for VRRP address') }}</td>
+		<td>{{ input('slave_interface-add', size='7', title='Interface for VRRP address') }}</td>
 		<td>{{ input('vrrp-ip-add', size='14') }}</td>
-		<td class="checkbox help_cursor">{{ checkbox('kp', title='If checked Roxy-WI will restart Keepalived') }}</td>
+	</tr>
+	<tr class="overviewHead">
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		<td class="padding10 first-collumn checkbox-head"><span title="If checked Roxy-WI will restart Keepalived">Restart</span></td>
+		<td class="checkbox-head help_cursor" title="If checked, Keepalived master will reclaim VRRP after recovered">Return to Master state</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		<td class="padding10 first-collumn checkbox help_cursor">{{ checkbox('kp', title='If checked Roxy-WI will restart Keepalived') }}</td>
 		<td class="syn-flood-protection-field">{{ checkbox('add_return_to_master', checked='checked') }}</td>
 		<td>
 			<button id="add-vrrp" title="Add a HA configuration" style="width: 70px;">Add</button>

@@ -55,46 +55,27 @@ def index():
 		'haproxy/<id,hostname,ip>/action/stop': 'stop HAProxy service by id or hostname or ip. METHOD: GET',
 		'haproxy/<id,hostname,ip>/action/restart': 'restart HAProxy service by id or hostname or ip. METHOD: GET',
 		'haproxy/<id,hostname,ip>/config': 'get HAProxy config from a server by id or hostname or ip. METHOD: GET',
-		'haproxy/<id,hostname,ip>/config': 'upload HAProxy config to a server by id or hostname or ip. Headers: action: '
-										   'save/reload/restart. Body must consist a whole HAProxy config. METHOD: POST',
-		'haproxy/<id,hostname,ip>/log': 'show HAProxy logs by id or hostname or ip. May to have config next Headers: rows(format INT) '
-										'default: 10 grep, waf(if needs WAF log) default: 0, start_hour(format: 24) default: 00, '
-										'start_minute, end_hour(format: 24) default: 24, end_minute. METHOD: GET',
+		'haproxy/<id,hostname,ip>/config': 'upload HAProxy config to a server by id or hostname or ip. Headers: action: save/reload/restart. Body must consist a whole HAProxy config. METHOD: POST',
+		'haproxy/<id,hostname,ip>/log': 'show HAProxy logs by id or hostname or ip. May to have config next Headers: rows(format INT) default: 10 grep, waf(if needs WAF log) default: 0, start_hour(format: 24) default: 00, start_minute, end_hour(format: 24) default: 24, end_minute. METHOD: GET',
 		'haproxy/<id,hostname,ip>/section': 'show a certain section, headers: section-name. METHOD: GET',
-		'haproxy/<id,hostname,ip>/section/add': 'add a section to the HAProxy config by id or hostname or ip. Has to have '
-												'config header with section and action header for action after upload. '
-												'Section header must consist type: listen, frontend, etc. Action header '
-												'accepts next value: save, test, reload and restart. Can be empty for just save. METHOD: POST',
-		'haproxy/<id,hostname,ip>/section/edit': 'edit a section in the HAProxy config by id or hostname or ip. Has to have '
-												 'config header with section, action header for action after upload and body '
-												 'of a new section configuration. Section header must consist type: listen, '
-												 'frontend, etc. Action header accepts next value: save, test, reload and restart. Can be empty for just save. METHOD: POST',
-		'haproxy/<id,hostname,ip>/acl': 'add an acl to certain section. Must be JSON body: "section-name", "if", "then", '
-										'"if_value", "then_value" and "action" for action after upload. Action accepts next '
-										'value: "save", "test", "reload" and "restart". METHOD: POST',
-		'haproxy/<id,hostname,ip>/acl': 'delete an acl to certain section. Must be JSON body: "section-name", "if", "then", '
-										'"if_value", "then_value" and "action" for action after upload. Action accepts next '
-										'value: "save", "test", "reload" and "restart". METHOD: DELETE',
+		'haproxy/<id,hostname,ip>/section/add': 'add a section to the HAProxy config by id or hostname or ip. Has to have config header with section and action header for action after upload. Section header must consist type: listen, frontend, etc. Action header accepts next value: save, test, reload and restart. Can be empty for just save. METHOD: POST',
+		'haproxy/<id,hostname,ip>/section/edit': 'edit a section in the HAProxy config by id or hostname or ip. Has to have config header with section, action header for action after upload and body of a new section configuration. Section header must consist type: listen, frontend, etc. Action header accepts next value: save, test, reload and restart. Can be empty for just save. METHOD: POST',
+		'haproxy/<id,hostname,ip>/acl': 'add an acl to certain section. Must be JSON body: "section-name", "if", "then", "if_value", "then_value" and "action" for action after upload. Action accepts next value: "save", "test", "reload" and "restart". METHOD: POST',
+		'haproxy/<id,hostname,ip>/acl': 'delete an acl to certain section. Must be JSON body: "section-name", "if", "then", "if_value", "then_value" and "action" for action after upload. Action accepts next value: "save", "test", "reload" and "restart". METHOD: DELETE',
 		'nginx/<id,hostname,ip>': 'show info about the NGINX by id or hostname or ip. METHOD: GET',
 		'nginx/<id,hostname,ip>/status': 'show NGINX status by id or hostname or ip. METHOD: GET',
 		'nginx/<id,hostname,ip>/action/start': 'start NGINX service by id or hostname or ip. METHOD: GET',
 		'nginx/<id,hostname,ip>/action/stop': 'stop NGINX service by id or hostname or ip. METHOD: GET',
 		'nginx/<id,hostname,ip>/action/restart': 'restart NGINX service by id or hostname or ip. METHOD: GET',
-		'nginx/<id,hostname,ip>/config': 'get NGINX config from a server by id or hostname or ip. Headers: The full path to a config file, '
-										 'like: /etc/nginx/conf.d/default.conf. METHOD: GET',
-		'nginx/<id,hostname,ip>/config': 'upload NGINX config to a server by id or hostname or ip. Headers: action: save/reload/restart, '
-										 'config-file: the full path to the config, like /etc/nginx/conf.d/example.com.conf. '
-										 'Body must consist a whole HAProxy config. METHOD: POST',
+		'nginx/<id,hostname,ip>/config': 'get NGINX config from a server by id or hostname or ip. Headers: The full path to a config file, like: /etc/nginx/conf.d/default.conf. METHOD: GET',
+		'nginx/<id,hostname,ip>/config': 'upload NGINX config to a server by id or hostname or ip. Headers: action: save/reload/restart, config-file: the full path to the config, like /etc/nginx/conf.d/example.com.conf. Body must consist a whole HAProxy config. METHOD: POST',
 		'apache/<id,hostname,ip>': 'show info about the Apache by id or hostname or ip. METHOD: GET',
 		'apache/<id,hostname,ip>/status': 'show Apache status by id or hostname or ip. METHOD: GET',
 		'apache/<id,hostname,ip>/action/start': 'start Apache service by id or hostname or ip. METHOD: GET',
 		'apache/<id,hostname,ip>/action/stop': 'stop Apache service by id or hostname or ip. METHOD: GET',
 		'apache/<id,hostname,ip>/action/restart': 'restart Apache service by id or hostname or ip. METHOD: GET',
-		'apache/<id,hostname,ip>/config': 'get Apache config from a server by id or hostname or ip. Headers: The full path to a config file, '
-										  'like: /etc/httpd/conf.d/default.conf. METHOD: GET',
-		'apache/<id,hostname,ip>/config': 'upload Apache config to a server by id or hostname or ip. Headers: action: save/reload/restart, config-file: '
-										  'the full path to the config, like /etc/httpd/conf.d/example.com.conf. '
-										  'Body must consist a whole HAProxy config. METHOD: POST',
+		'apache/<id,hostname,ip>/config': 'get Apache config from a server by id or hostname or ip. Headers: The full path to a config file, like: /etc/httpd/conf.d/default.conf. METHOD: GET',
+		'apache/<id,hostname,ip>/config': 'upload Apache config to a server by id or hostname or ip. Headers: action: save/reload/restart, config-file: the full path to the config, like /etc/httpd/conf.d/example.com.conf. Body must consist a whole HAProxy config. METHOD: POST',
 	}
 	return dict(help=data)
 

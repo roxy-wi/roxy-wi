@@ -1,3 +1,6 @@
 ---
 - name: restart keepalived
   service: name=keepalived state=restarted
+
+- name: restart rsyslog
+  service: name=restart state=restarted

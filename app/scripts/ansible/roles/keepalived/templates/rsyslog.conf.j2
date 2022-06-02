@@ -1,0 +1,15 @@
+$ModLoad imudp
+$UDPServerAddress 127.0.0.1
+$UDPServerRun 514
+
+if $programname startswith 'Keepalived_vrrp' then {
+  if $syslogseverity == 6 then
+      action(type="omfile" file="{{keepalived_path_logs}}/status.log")
+      stop
+  if $syslogseverity <= 3 then
+      action(type="omfile" file="{{keepalived_path_logs}}/error.log")
+      stop
+  if $syslogseverity <= 5 then
+      action(type="omfile" file="{{keepalived_path_logs}}/status.log")
+      stop
+}

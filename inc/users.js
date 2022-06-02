@@ -2,50 +2,6 @@ var awesome = "/inc/fontawesome.min.js"
 
 $( function() {
 	$( "#backup_tabs" ).tabs();
-	$( "#interface" ).autocomplete({
-		source: function( request, response ) {
-			$.ajax( {
-				url: "options.py",
-				data: {
-					showif:1,
-					serv: $("#master").val(),
-					token: $('#token').val()
-				},
-				success: function( data ) {
-					data = data.replace(/\s+/g,' ');
-					if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
-						toastr.error(data);
-					} else {
-						response(data.split(" "));
-					}
-				}
-			} );
-		},
-		autoFocus: true,
-		minLength: -1
-	});
-	$( "#interface-add" ).autocomplete({
-		source: function( request, response ) {
-			$.ajax( {
-				url: "options.py",
-				data: {
-					showif:1,
-					serv: $("#master-add").val(),
-					token: $('#token').val()
-				},
-				success: function( data ) {
-					data = data.replace(/\s+/g,' ');
-					if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
-						toastr.error(data);
-					} else {
-						response(data.split(" "));
-					}
-				}
-			} );
-		},
-		autoFocus: true,
-		minLength: -1
-	});
 	$('#install').click(function() {
 		$("#ajax").html('')
 		var syn_flood = 0;
@@ -834,6 +790,9 @@ $( function() {
 	});
 	$('#apache-section-head').click(function () {
 		hideAndShowSettings('apache');
+	});
+	$('#keepalived-section-head').click(function () {
+		hideAndShowSettings('keepalived');
 	});
 } );
 function hideAndShowSettings(section) {

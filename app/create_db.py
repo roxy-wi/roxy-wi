@@ -723,7 +723,7 @@ def update_db_v_6_0_1(**kwargs):
 
 
 def update_ver():
-	query = Version.update(version='6.0.2.0')
+	query = Version.update(version='6.0.3.0')
 	try:
 		query.execute()
 	except Exception:

@@ -46,6 +46,8 @@ $( function() {
 			show_current_page($(this))
 		}  else if(cur_url[0] == 'logs.py' && cur_url[1].split('&')[0] == 'service=apache' && link2 == 'logs.py?service=apache'){
 			show_current_page($(this))
+		}  else if(cur_url[0] == 'logs.py' && cur_url[1].split('&')[0] == 'service=keepalived' && link2 == 'logs.py?service=keepalived'){
+			show_current_page($(this))
 		} else if(cur_url[0] == 'hapservers.py' && cur_url[1].split('&')[0] == 'service=nginx' && link2 == 'hapservers.py?service=nginx'){
 			show_current_page($(this))
 		} else if(cur_url[0] == 'hapservers.py' && cur_url[1].split('&')[0] == 'service=keepalived' && link2 == 'hapservers.py?service=keepalived'){
@@ -1407,4 +1409,7 @@ function waitForElm(selector) {
             subtree: true
         });
     });
+}
+function randomIntFromInterval(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) + min)
 }

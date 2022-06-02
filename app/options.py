@@ -148,15 +148,24 @@ if form.getvalue('backend_ip') is not None:
     MASTERS = sql.is_master(serv)
     for master in MASTERS:
         if master[0] is not None:
-            cmd = 'echo "set server %s/%s addr %s port %s check-port %s" |nc %s %s' % (backend_backend, backend_server, backend_ip, backend_port, backend_port, master[0], haproxy_sock_port)
+            cmd = 'echo "set server %s/%s addr %s port %s check-port %s" |nc %s %s' % (
+                backend_backend, backend_server, backend_ip, backend_port, backend_port, master[0], haproxy_sock_port)
             output, stderr = funct.subprocess_execute(cmd)
             print(output[0])
-            funct.logging(master[0], 'IP address and port have been changed. On: {}/{} to {}:{}'.format(backend_backend, backend_server, backend_ip, backend_port),
-                          login=1, keep_history=1, service='haproxy')
+            funct.logging(
+                master[0], 'IP address and port have been changed. On: {}/{} to {}:{}'.format(
+                    backend_backend, backend_server, backend_ip, backend_port
+                ),
+                login=1, keep_history=1, service='haproxy'
+            )
 
-    cmd = 'echo "set server %s/%s addr %s port %s check-port %s" |nc %s %s' % (backend_backend, backend_server, backend_ip, backend_port, backend_port, serv, haproxy_sock_port)
-    funct.logging(serv, 'IP address and port have been changed. On: {}/{} to {}:{}'.format(backend_backend, backend_server, backend_ip, backend_port),
-                  login=1, keep_history=1, service='haproxy')
+    cmd = 'echo "set server %s/%s addr %s port %s check-port %s" |nc %s %s' % (
+        backend_backend, backend_server, backend_ip, backend_port, backend_port, serv, haproxy_sock_port)
+    funct.logging(
+        serv,
+        'IP address and port have been changed. On: {}/{} to {}:{}'.format(backend_backend, backend_server, backend_ip, backend_port),
+        login=1, keep_history=1, service='haproxy'
+    )
     output, stderr = funct.subprocess_execute(cmd)
 
     if stderr != '':
@@ -167,7 +176,9 @@ if form.getvalue('backend_ip') is not None:
         cfg = configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
 
         error = funct.get_config(serv, cfg)
-        cmd = 'string=`grep %s %s -n -A25 |grep "server %s" |head -1|awk -F"-" \'{print $1}\'` && sed -Ei "$( echo $string)s/((1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])\.){3}(1?[0-9][0-9]?|2[0-4][0-9]|25[0-5]):[0-9]+/%s:%s/g" %s' % (backend_backend, cfg, backend_server, backend_ip, backend_port, cfg)
+        cmd = 'string=`grep %s %s -n -A25 |grep "server %s" |head -1|awk -F"-" \'{print $1}\'` ' \
+                '&& sed -Ei "$( echo $string)s/((1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])\.){3}(1?[0-9][0-9]?|2[0-4][0-9]|25[0-5]):[0-9]+/%s:%s/g" %s' % \
+              (backend_backend, cfg, backend_server, backend_ip, backend_port, cfg)
         output, stderr = funct.subprocess_execute(cmd)
         stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save='save')
 
@@ -210,7 +221,8 @@ if form.getvalue('maxconn_frontend') is not None:
         cfg = configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
 
         error = funct.get_config(serv, cfg)
-        cmd = 'string=`grep %s %s -n -A5 |grep maxcon -n |awk -F":" \'{print $2}\'|awk -F"-" \'{print $1}\'` && sed -Ei "$( echo $string)s/[0-9]+/%s/g" %s' % (frontend, cfg, maxconn, cfg)
+        cmd = 'string=`grep %s %s -n -A5 |grep maxcon -n |awk -F":" \'{print $2}\'|awk -F"-" \'{print $1}\'` ' \
+              '&& sed -Ei "$( echo $string)s/[0-9]+/%s/g" %s' % (frontend, cfg, maxconn, cfg)
         output, stderr = funct.subprocess_execute(cmd)
         stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save='save')
         print('success: Maxconn for %s has been set to %s ' % (frontend, maxconn))
@@ -495,12 +507,14 @@ if form.getvalue('action_service') is not None:
     elif action == "start":
         cmd = "sudo systemctl enable %s --now" % serv
         if not sql.select_user_status():
-            print('warning: The service is disabled because you are not subscribed. Read <a href="https://roxy-wi.org/pricing.py" title="Roxy-WI pricing" target="_blank">here</a> about subscriptions')
+            print('warning: The service is disabled because you are not subscribed. Read <a href="https://roxy-wi.org/pricing.py" '
+                    'title="Roxy-WI pricing" target="_blank">here</a> about subscriptions')
             sys.exit()
     elif action == "restart":
         cmd = "sudo systemctl restart %s --now" % serv
         if not sql.select_user_status():
-            print('warning: The service is disabled because you are not subscribed. Read <a href="https://roxy-wi.org/pricing.py" title="Roxy-WI pricing" target="_blank">here</a> about subscriptions')
+            print('warning: The service is disabled because you are not subscribed. Read <a href="https://roxy-wi.org/pricing.py" '
+                    'title="Roxy-WI pricing" target="_blank">here</a> about subscriptions')
             sys.exit()
     if is_in_docker:
         cmd = "sudo supervisorctl " + action + " " + serv
@@ -1277,14 +1291,17 @@ if form.getvalue('master'):
     master = form.getvalue('master')
     slave = form.getvalue('slave')
     ETH = form.getvalue('interface')
+    ETH_SLAVE = form.getvalue('slave_interface')
     IP = form.getvalue('vrrpip')
     syn_flood = form.getvalue('syn_flood')
     virt_server = form.getvalue('virt_server')
     return_to_master = form.getvalue('return_to_master')
     haproxy = form.getvalue('hap')
     nginx = form.getvalue('nginx')
+    router_id = form.getvalue('router_id')
     script = "install_keepalived.sh"
     proxy = sql.get_setting('proxy')
+    keepalived_path_logs = sql.get_setting('keepalived_path_logs')
     ssh_port = 22
     ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(master)
 
@@ -1303,9 +1320,9 @@ if form.getvalue('master'):
     os.system("cp scripts/%s ." % script)
 
     commands = [
-        "chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port
-        + " ETH=" + ETH + " IP=" + str(IP) + " MASTER=MASTER" + " RETURN_TO_MASTER=" + return_to_master
-        + " SYN_FLOOD=" + syn_flood + " HOST=" + str(master)
+        "chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port + " router_id=" + router_id
+        + " ETH=" + ETH + " IP=" + str(IP) + " MASTER=MASTER" + " ETH_SLAVE=" + ETH_SLAVE + " keepalived_path_logs=" + keepalived_path_logs
+        + " RETURN_TO_MASTER=" + return_to_master + " SYN_FLOOD=" + syn_flood + " HOST=" + str(master)
         + " USER=" + str(ssh_user_name) + " PASS='" + str(ssh_user_password) + "' KEY=" + str(ssh_key_name)
     ]
 
@@ -1324,10 +1341,13 @@ if form.getvalue('master_slave'):
     master = form.getvalue('master_slave')
     slave = form.getvalue('slave')
     ETH = form.getvalue('interface')
+    ETH_SLAVE = form.getvalue('slave_interface')
     IP = form.getvalue('vrrpip')
     syn_flood = form.getvalue('syn_flood')
+    router_id = form.getvalue('router_id')
     script = "install_keepalived.sh"
     proxy = sql.get_setting('proxy')
+    keepalived_path_logs = sql.get_setting('keepalived_path_logs')
     ssh_port = 22
     ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(slave)
 
@@ -1346,9 +1366,10 @@ if form.getvalue('master_slave'):
     os.system("cp scripts/%s ." % script)
 
     commands = [
-        "chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port
-        + " ETH=" + ETH + " IP=" + IP + " MASTER=BACKUP" + " HOST=" + str(slave)
-        + " USER=" + str(ssh_user_name) + " PASS='" + str(ssh_user_password) + "' KEY=" + str(ssh_key_name)
+        "chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port + " router_id=" + router_id
+        + " ETH=" + ETH + " IP=" + IP + " MASTER=BACKUP" + " ETH_SLAVE=" + ETH_SLAVE + " keepalived_path_logs=" + keepalived_path_logs
+        + " HOST=" + str(slave) + " USER=" + str(ssh_user_name) + " PASS='" + str(ssh_user_password)
+        + "' KEY=" + str(ssh_key_name)
     ]
 
     output, error = funct.subprocess_execute(commands[0])
@@ -1363,11 +1384,14 @@ if form.getvalue('masteradd'):
     master = form.getvalue('masteradd')
     slave = form.getvalue('slaveadd')
     ETH = form.getvalue('interfaceadd')
+    SLAVE_ETH = form.getvalue('slave_interfaceadd')
     IP = form.getvalue('vrrpipadd')
+    router_id = form.getvalue('router_id')
     kp = form.getvalue('kp')
     return_to_master = form.getvalue('return_to_master')
     script = "install_keepalived.sh"
     proxy = sql.get_setting('proxy')
+    keepalived_path_logs = sql.get_setting('keepalived_path_logs')
     ssh_port = 22
     ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(master)
 
@@ -1386,9 +1410,9 @@ if form.getvalue('masteradd'):
         ssh_port = str(server[10])
 
     commands = [
-        "chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv
-        + " SSH_PORT=" + ssh_port + " ETH=" + ETH + " RETURN_TO_MASTER=" + return_to_master
-        + " IP=" + str(IP) + " MASTER=MASTER" + " RESTART=" + kp + " ADD_VRRP=1 HOST=" + str(master)
+        "chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port + " ETH=" + ETH
+        + " SLAVE_ETH=" + SLAVE_ETH + " keepalived_path_logs=" + keepalived_path_logs + " RETURN_TO_MASTER=" + return_to_master
+        + " IP=" + str(IP) + " MASTER=MASTER" + " RESTART=" + kp + " ADD_VRRP=1 HOST=" + str(master) + " router_id=" + router_id
         + " USER=" + str(ssh_user_name) + " PASS='" + str(ssh_user_password) + "' KEY=" + str(ssh_key_name)
     ]
 
@@ -1400,10 +1424,13 @@ if form.getvalue('masteradd_slave'):
     master = form.getvalue('masteradd_slave')
     slave = form.getvalue('slaveadd')
     ETH = form.getvalue('interfaceadd')
+    SLAVE_ETH = form.getvalue('slave_interfaceadd')
     IP = form.getvalue('vrrpipadd')
+    router_id = form.getvalue('router_id')
     kp = form.getvalue('kp')
     script = "install_keepalived.sh"
     proxy = sql.get_setting('proxy')
+    keepalived_path_logs = sql.get_setting('keepalived_path_logs')
     ssh_port = 22
     ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(slave)
 
@@ -1423,8 +1450,8 @@ if form.getvalue('masteradd_slave'):
 
     commands = [
         "chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv
-        + " SSH_PORT=" + ssh_port + " ETH=" + ETH
-        + " IP=" + str(IP) + " MASTER=BACKUP" + " RESTART=" + kp + " ADD_VRRP=1 HOST=" + str(slave)
+        + " SSH_PORT=" + ssh_port + " ETH=" + ETH + " SLAVE_ETH=" + SLAVE_ETH + " keepalived_path_logs=" + keepalived_path_logs
+        + " IP=" + str(IP) + " MASTER=BACKUP" + " RESTART=" + kp + " ADD_VRRP=1 HOST=" + str(slave) + " router_id=" + router_id
         + " USER=" + str(ssh_user_name) + " PASS='" + str(ssh_user_password) + "' KEY=" + str(ssh_key_name)
     ]
 
@@ -2556,7 +2583,7 @@ if form.getvalue('slackdel') is not None:
     slack = sql.select_slack(id=slackdel)
     slack_name = ''
     for t in slack:
-        slack_name = t[1]
+        slack_name = t.chanel_name
     if sql.delete_slack(slackdel):
         print("Ok")
         funct.logging('localhost', 'The Slack channel ' + slack_name + ' has been deleted ', haproxywi=1, login=1)
@@ -3889,7 +3916,7 @@ if form.getvalue('loadservices'):
 
 if form.getvalue('loadchecker'):
     from jinja2 import Environment, FileSystemLoader
-    env = Environment(loader=FileSystemLoader('templates'))
+    env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
     template = env.get_template('ajax/load_telegram.html')
     services = funct.get_services_status()
     groups = sql.select_groups()

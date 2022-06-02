@@ -278,9 +278,7 @@
 			{% if service != 'keepalived' and service != 'apache' %}
 			<a href="/app/viewsttats.py?service={{service}}&serv={{s.2}}" class="ui-button ui-widget ui-corner-all" title="View {{service}} statistics">Stat</a>
 			{% endif %}
-			{% if service != 'keepalived' %}
 			<a href="/app/logs.py?service={{service}}&serv={{s.2}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" class="ui-button ui-widget ui-corner-all" title="View {{service}} logs">Logs</a>
-			{% endif %}
 			{% if role <= 2 %}
 				<a href="/app/versions.py?service={{service}}&serv={{s.2}}&open=open" class="ui-button ui-widget ui-corner-all" title="View/Rollback to previous config">Versions</a>
 			{% endif %}

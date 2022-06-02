@@ -1038,9 +1038,9 @@ def select_telegram(**kwargs):
 		return query_res
 
 
-def insert_new_telegram(token, chanel, group):
+def insert_new_telegram(token, channel, group):
 	try:
-		Telegram.insert(token=token, chanel_name=chanel, groups=group).execute()
+		Telegram.insert(token=token, chanel_name=channel, groups=group).execute()
 	except Exception as e:
 		out_error(e)
 		return False
@@ -1048,8 +1048,8 @@ def insert_new_telegram(token, chanel, group):
 		return True
 
 
-def update_telegram(token, chanel, group, telegram_id):
-	telegram_update = Telegram.update(token=token, chanel_name=chanel, groups=group).where(Telegram.id == telegram_id)
+def update_telegram(token, channel, group, telegram_id):
+	telegram_update = Telegram.update(token=token, chanel_name=channel, groups=group).where(Telegram.id == telegram_id)
 	try:
 		telegram_update.execute()
 	except Exception as e:

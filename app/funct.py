@@ -251,8 +251,8 @@ def slack_send_mess(mess, **kwargs):
 	proxy = sql.get_setting('proxy')
 
 	for slack in slacks:
-		slack_token = slack[1]
-		channel_name = slack[2]
+		slack_token = slack.token
+		channel_name = slack.chanel_name
 
 	if proxy is not None and proxy != '' and proxy != 'None':
 		proxies = dict(https=proxy, http=proxy)
@@ -422,7 +422,7 @@ def get_config(server_ip, cfg, **kwargs):
 	import sql
 
 	if kwargs.get("keepalived") or kwargs.get("service") == 'keepalived':
-		config_path = "/etc/keepalived/keepalived.conf"
+		config_path = sql.get_setting('keepalived_config_path')
 	elif (
 		kwargs.get("nginx") or kwargs.get("service") == 'nginx'
 		or kwargs.get("apache") or kwargs.get("service") == 'apache'
@@ -921,7 +921,7 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".conf"
 	elif kwargs.get("keepalived"):
 		service = 'keepalived'
-		config_path = "/etc/keepalived/keepalived.conf"
+		config_path = sql.get_setting('keepalived_config_path')
 		tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".cfg"
 	else:
 		service = 'haproxy'
@@ -1232,7 +1232,7 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 	else:
 		exgrep_act = ''
 
-	if service == 'nginx' or service == 'haproxy' or service == 'apache':
+	if service in ('nginx', 'haproxy', 'apache', 'keepalived'):
 		syslog_server_enable = sql.get_setting('syslog_server_enable')
 		if syslog_server_enable is None or syslog_server_enable == 0:
 			if service == 'nginx':
@@ -1240,7 +1240,15 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 				commands = ["sudo cat %s/%s |tail -%s %s %s" % (local_path_logs, log_file, rows, grep_act, exgrep_act)]
 			elif service == 'apache':
 				local_path_logs = sql.get_setting('apache_path_logs')
-				commands = ["sudo cat %s/%s| awk -F\"/|:\" '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, log_file, date, date1, rows, grep_act, exgrep_act)]
+				commands = [
+					"sudo cat %s/%s| awk -F\"/|:\" '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, log_file, date, date1, rows, grep_act, exgrep_act)
+				]
+			elif service == 'keepalived':
+				local_path_logs = sql.get_setting('keepalived_path_logs')
+				commands = [
+					"sudo cat %s/%s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (
+						local_path_logs, log_file, date, date1, rows, grep_act, exgrep_act)
+				]
 			else:
 				local_path_logs = sql.get_setting('haproxy_path_logs')
 				commands = ["sudo cat %s/%s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, log_file, date, date1, rows, grep_act, exgrep_act)]
@@ -1262,7 +1270,7 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 		apache_log_path = sql.get_setting('apache_log_path')
 
 		if serv == 'roxy-wi.access.log':
-			cmd = "sudo cat {}| awk -F\"/|:\" '$3>\"{}:00\" && $3<\"{}:00\"' |tail -{} {} {}".format(apache_log_path + "/" + serv, date, date1, rows, grep_act, exgrep_act)
+			cmd = 'sudo cat {}| awk -F"/|:" \'$3>"{}:00" && $3<"{}:00"\' |tail -{} {} {}'.format(apache_log_path + "/" + serv, date, date1, rows, grep_act, exgrep_act)
 		elif serv == 'roxy-wi.error.log':
 			cmd = "sudo cat {}| awk '$4>\"{}:00\" && $4<\"{}:00\"' |tail -{} {} {}".format(apache_log_path + "/" + serv, date, date1, rows, grep_act, exgrep_act)
 		elif serv == 'fail2ban.log':
@@ -1319,7 +1327,8 @@ def haproxy_wi_log(**kwargs):
 			group_grep = '|grep "group: ' + user_group + '"'
 		else:
 			group_grep = ''
-		cmd = "find " + log_path + "/roxy-wi-* -type f -exec stat --format '%Y :%y %n' '{}' \; | sort -nr | cut -d: -f2- | head -1 |awk '{print $4}' |xargs tail" + group_grep + "|sort -r"
+		cmd = "find " + log_path + "/roxy-wi-* -type f -exec stat --format '%Y :%y %n' '{}' \; | sort -nr | cut -d: -f2- " \
+				"| head -1 |awk '{print $4}' |xargs tail" + group_grep + "|sort -r"
 		try:
 			output, stderr = subprocess_execute(cmd)
 			return output
@@ -1465,6 +1474,7 @@ def return_nice_path(return_path: str) -> str:
 		and 'haproxy' not in return_path
 		and 'apache2' not in return_path
 		and 'httpd' not in return_path
+		and 'keepalived' not in return_path
 	):
 		return 'error: The path must contain the name of the service. Check it in Roxy-WI settings'
 	if return_path[-1] != '/':

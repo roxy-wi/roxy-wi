@@ -9,7 +9,8 @@ vrrp_script chk_haproxy {
 }
 vrrp_instance VI_1 {
     state {{MASTER}}
-    interface {{ETH}}
+    interface {% if MASTER == 'MASTER' %}{{ETH}} {% else %} {{ETH_SLAVE}} {% endif %}
+
     virtual_router_id {{router_id}}
     priority {% if RETURN_TO_MASTER == '1' and MASTER == 'MASTER' %}152{% elif MASTER == 'MASTER' and RETURN_TO_MASTER == '0' %}102{% else %}101{%endif%}
 

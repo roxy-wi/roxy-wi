@@ -3,7 +3,6 @@
   package_facts:
     manager: "auto"
 
-
 - name: install EPEL Repository
   yum:
     name: epel-release
@@ -16,10 +15,23 @@
     http_proxy: "{{PROXY}}"
     https_proxy: "{{PROXY}}"
 
+- name: Creates log directory
+  file:
+    path: "{{keepalived_path_logs}}"
+    state: directory
+
+- name: Copy keepalived configuration for rsyslog.
+  template:
+    src: rsyslog.conf.j2
+    dest: /etc/rsyslog.d/50-keepalived.conf
+    mode: 0644
+  notify: restart rsyslog
 
 - name: Install the latest version of Keepalived
   package:
-    name: keepalived
+    name:
+      - keepalived
+      - psmisc
     state: present
   when: "'keepalived' not in ansible_facts.packages"
   environment:
