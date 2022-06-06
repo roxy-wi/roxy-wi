@@ -9,6 +9,10 @@ def is_ip_or_dns(server_from_request: str) -> str:
 	ip_regex = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
 	dns_regex = "^(?!-)[A-Za-z0-9-]+([\\-\\.]{1}[a-z0-9]+)*\\.[A-Za-z]{2,6}$"
 	try:
+		server_from_request = server_from_request.strip()
+	except Exception:
+		pass
+	try:
 		if server_from_request in (
 			'roxy-wi-checker', 'roxy-wi-keep_alive', 'roxy-wi-keep-alive', 'roxy-wi-metrics',
 			'roxy-wi-portscanner', 'roxy-wi-smon', 'roxy-wi-socket', 'fail2ban', 'prometheus',
@@ -209,11 +213,13 @@ def telegram_send_mess(mess, **kwargs):
 	token_bot = ''
 	channel_name = ''
 
+	if kwargs.get('telegram_channel_id') == 0:
+		return
+
 	if kwargs.get('telegram_channel_id'):
 		telegrams = sql.get_telegram_by_id(kwargs.get('telegram_channel_id'))
 	else:
 		telegrams = sql.get_telegram_by_ip(kwargs.get('ip'))
-		slack_send_mess(mess, ip=kwargs.get('ip'))
 
 	proxy = sql.get_setting('proxy')
 
@@ -242,6 +248,9 @@ def slack_send_mess(mess, **kwargs):
 	from slack_sdk.errors import SlackApiError
 	slack_token = ''
 	channel_name = ''
+
+	if kwargs.get('slack_channel_id') == 0:
+		return
 
 	if kwargs.get('slack_channel_id'):
 		slacks = sql.get_slack_by_id(kwargs.get('slack_channel_id'))
@@ -827,7 +836,7 @@ def install_nginx(server_ip, **kwargs):
 	os.system("rm -f %s" % script)
 
 
-def update_haproxy_wi(service):
+def update_roxy_wi(service):
 	import distro
 	restart_service = ''
 
@@ -845,7 +854,7 @@ def update_haproxy_wi(service):
 	else:
 		if service != 'roxy-wi':
 			restart_service = ' && sudo systemctl restart ' + service
-		cmd = 'sudo -S yum -y update ' + service + restart_service
+		cmd = 'sudo -S yum -y install ' + service + restart_service
 
 	output, stderr = subprocess_execute(cmd)
 	print(output)
@@ -1067,12 +1076,14 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 def master_slave_upload_and_restart(server_ip, cfg, just_save, **kwargs):
 	import sql
 	masters = sql.is_master(server_ip)
+	slave_error = ''
 	for master in masters:
 		if master[0] is not None:
-			error = upload_and_restart(
+			slave_error = upload_and_restart(
 				master[0], cfg, just_save=just_save, nginx=kwargs.get('nginx'),
 				apache=kwargs.get('apache'), config_file_name=kwargs.get('config_file_name'), slave=1
 			)
+			slave_error = master[0] + ': ' + slave_error
 
 	if kwargs.get('login'):
 		login = kwargs.get('login')
@@ -1082,7 +1093,9 @@ def master_slave_upload_and_restart(server_ip, cfg, just_save, **kwargs):
 		server_ip, cfg, just_save=just_save, nginx=kwargs.get('nginx'), apache=kwargs.get('apache'),
 		config_file_name=kwargs.get('config_file_name'), oldcfg=kwargs.get('oldcfg'), login=login
 	)
+	error = server_ip + ': ' + error
 
+	error = error + slave_error
 	return error
 
 
