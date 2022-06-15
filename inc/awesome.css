@@ -416,3 +416,8 @@
 	margin-bottom: 3px;
     color: #aaa;
 }
+.checker::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f0f3";
+}
