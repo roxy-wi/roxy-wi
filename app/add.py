@@ -362,6 +362,12 @@ if form.getvalue('peers-name') is not None:
 		config_add = "\n" + name + servers_split
 
 if form.getvalue('generateconfig') is None:
+	slave_output = ''
+	try:
+		server_name = sql.get_hostname_by_server_ip(serv)
+	except Exception:
+		server_name = serv
+
 	try:
 		funct.check_is_server_in_group(serv)
 		if config_add:
@@ -380,11 +386,16 @@ if form.getvalue('generateconfig') is None:
 			MASTERS = sql.is_master(serv)
 			for master in MASTERS:
 				if master[0] is not None:
-					funct.upload_and_restart(master[0], cfg)
+					slave_output = funct.upload_and_restart(master[0], cfg)
 
-			stderr = funct.upload_and_restart(serv, cfg, just_save="save")
-			if stderr:
-				print(stderr)
+					slave_output = '<br>' + master[1] + ':\n' + slave_output
+
+			output = funct.upload_and_restart(serv, cfg, just_save="save")
+
+			output = '<br>' + server_name + ':\n' + output
+			output = output + slave_output
+			if output:
+				print(output)
 			else:
 				print(name)
 

@@ -22,6 +22,7 @@ error = ""
 aftersave = ""
 start_line = ""
 end_line = ""
+warning = ''
 
 try:
 	user, user_id, role, token, servers, user_services = funct.get_users_params()
@@ -73,6 +74,7 @@ if serv is not None and form.getvalue('config') is not None:
 	stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save=save, oldcfg=oldcfg)
 
 	if "is valid" in stderr:
+		warning = stderr
 		stderr = ''
 
 	funct.diff_config(oldcfg, cfg)
@@ -84,6 +86,6 @@ rendered_template = template.render(
 	h2=1, title="Working with HAProxy config sections", role=role, action="sections.py", user=user, select_id="serv",
 	serv=serv, aftersave=aftersave, config=config_read, cfg=cfg, selects=servers, stderr=stderr, error=error,
 	start_line=start_line, end_line=end_line, section=section, sections=sections, is_serv_protected=is_serv_protected,
-	user_services=user_services, token=token
+	user_services=user_services, token=token, warning=warning
 )
 print(rendered_template)

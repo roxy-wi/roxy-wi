@@ -10,7 +10,7 @@
         <td style="width: 25%;">Group</td>
         {% endif %}
         <td style="width: 100%;" class="help_cursor">
-            <span title="Enter SSH user name. If SSH key disabled, enter password for SSH user">Credentials</span>
+            <span title="Enter SSH user name. If SSH key disabled, enter password for SSH user">User name</span>
         </td>
         <td></td>
     </tr>
@@ -46,9 +46,9 @@
                 {{ input(id, value=ssh.username, title='SSH user name') }}
             </p>
             {% if ssh.enable == 1 %}
-            <input type="password" id="ssh_pass-{{ssh.id}}" class="form-control"  placeholder="*****" style="display: none;" autocomplete="new-password">
+            <input type="password" id="ssh_pass-{{ssh.id}}" class="form-control" title="User password, if SSH key is disabled" placeholder="*****" style="display: none;" autocomplete="new-password">
             {% else %}
-            <input type="password" id="ssh_pass-{{ssh.id}}" class="form-control" placeholder="*****" autocomplete="new-password">
+            <input type="password" id="ssh_pass-{{ssh.id}}" class="form-control" title="User password, if SSH key is disabled" placeholder="*****" autocomplete="new-password">
             {% endif %}
             <br>
         </td>

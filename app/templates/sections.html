@@ -70,6 +70,9 @@
 			{% include 'include/errors.html' %}
 		{% else %}
 			<div class="alert alert-success">Config is ok</div>
+			{% if warning %}
+			<div class="alert alert-warning">{{warning}}</div>
+			{% endif %}
 			<a href="config.py?serv={{ serv }}" title="Working with HAProxy config">Config</a> |
 			<a href="viewsttats.py?serv={{ serv }}" target="_blank" title="View stats">Go to stats</a>
 		{% endif %}

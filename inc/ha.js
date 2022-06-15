@@ -220,13 +220,10 @@ $( function() {
 				data = data.replace(/^\s+|\s+$/g,'');
 				if(data.indexOf('keepalived:') != '-1') {
 					$('#cur_master_ver').text('Keepalived has not installed');
-					$('#create').prop('disabled', false);
 					$('#create').attr('title', 'Create HA cluster');
 				} else {
 					$('#cur_master_ver').text(data);
 					$('#cur_master_ver').css('font-weight', 'bold');
-					$('#create').prop('disabled', true);
-					$('#create').attr('title', 'Keepalived has been alredy installed. You cannot create a new HA Cluster');
 				}
 			}
 		} );
@@ -244,13 +241,10 @@ $( function() {
 				data = data.replace(/^\s+|\s+$/g,'');
 				if(data.indexOf('keepalived:') != '-1') {
 					$('#cur_slave_ver').text('Keepalived has not installed');
-					$('#create').prop('disabled', false);
 					$('#create').attr('title', 'Create HA cluster');
 				} else {
 					$('#cur_slave_ver').text(data);
 					$('#cur_slave_ver').css('font-weight', 'bold');
-					$('#create').prop('disabled', true);
-					$('#create').attr('title', 'Keepalived has been alredy installed. You cannot create a new HA Cluster');
 				}
 			}
 		} );
@@ -268,13 +262,10 @@ $( function() {
 				data = data.replace(/^\s+|\s+$/g,'');
 				if(data.indexOf('keepalived:') != '-1') {
 					$('#cur_master_ver-add').text('Keepalived has not installed');
-					$('#add-vrrp').prop('disabled', true);
 					$('#add-vrrp').attr('title', 'Add a HA configuration');
 				} else {
 					$('#cur_master_ver-add').text(data);
 					$('#cur_master_ver-add').css('font-weight', 'bold');
-					$('#add-vrrp').prop('disabled', false);
-					$('#add-vrrp').attr('title', 'Keepalived has been alredy installed. You cannot add a new HA configuration');
 				}
 			}
 		} );
@@ -292,13 +283,10 @@ $( function() {
 				data = data.replace(/^\s+|\s+$/g,'');
 				if(data.indexOf('keepalived:') != '-1') {
 					$('#cur_slave_ver-add').text('Keepalived has not installed');
-					$('#add-vrrp').prop('disabled', true);
 					$('#add-vrrp').attr('title', 'Add a HA configuration');
 				} else {
 					$('#cur_slave_ver-add').text(data);
 					$('#cur_slave_ver-add').css('font-weight', 'bold');
-					$('#add-vrrp').prop('disabled', false);
-					$('#add-vrrp').attr('title', 'Keepalived has been alredy installed. You cannot add a new HA configuration');
 				}
 			}
 		} );

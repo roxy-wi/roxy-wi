@@ -102,7 +102,7 @@ def send_cookie(login):
 		else:
 			sql.insert_user_name(user_name)
 	except Exception:
-		pass
+		funct.logging('Cannot update sbscription ', str(e), haproxywi=1)
 
 	sys.exit()
 

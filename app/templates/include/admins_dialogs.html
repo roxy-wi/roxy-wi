@@ -141,14 +141,14 @@
         {% endif %}
         <tr>
             <td class="padding20">
-                Credentials
+                User name
                 <span class="need-field">*</span>
             </td>
             <td>
                 <p style="width: 100px;">
-                    {{ input('ssh_user', value=ssh_user, title='SSH user name') }}
+                    {{ input('ssh_user', value=ssh_user, title='SSH username') }}
                 </p>
-                {{ input('ssh_pass', type='password', style="display: none;", title='SSH password') }}
+                {{ input('ssh_pass', type='password', style="display: none;", title="User password, if SSH key is disabled") }}
             </td>
         </tr>
     </table>

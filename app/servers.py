@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import pytz
+
 import funct
 import sql
 from jinja2 import Environment, FileSystemLoader
@@ -32,6 +34,6 @@ rendered_template = template.render(
 	masters=sql.select_servers(get_master_servers=1, uuid=user_id.value), group=user_group,
 	sshs=sql.select_ssh(group=user_group), token=token, settings=settings, backups=sql.select_backups(),
 	page="servers.py", geoip_country_codes=geoip_country_codes, user_services=user_services, ldap_enable=ldap_enable,
-	user_status=user_status, user_plan=user_plan, gits=gits, services=services
+	user_status=user_status, user_plan=user_plan, gits=gits, services=services, timezones=pytz.all_timezones
 )
 print(rendered_template)

@@ -33,7 +33,7 @@
     <td></td>
 </tr>
 {% for s in services %}
-    {% if s.0 == 'roxy-wi-smon' or s.0 == 'roxy-wi-checker' or s.0 == 'roxy-wi-keep_alive' or s.0 == 'roxy-wi-metrics' or s.0 == 'roxy-wi-portscanner' or s.0 == 'roxy-wi-socket' %}
+    {% if s.0 in ('roxy-wi-smon', 'roxy-wi-checker', 'roxy-wi-keep_alive', 'roxy-wi-metrics', 'roxy-wi-portscanner', 'roxy-wi-socket') %}
 <tr class="{{ loop.cycle('even', 'odd') }}">
     {% set is_need_update = 0 %}
     {% if s.0 == 'roxy-wi-smon' %}
@@ -43,6 +43,7 @@
     {% if s.3|float < smon_ver|float %}
         {% set is_need_update = 1 %}
     {% endif %}
+    {% set description = 'SMON stands for <b>S</b>imple <b>MON</b>itoring' %}
 {% elif s.0 == 'roxy-wi-checker' %}
     {% set service_name = 'Checker' %}
     {% set service_link = 'checker' %}
@@ -50,6 +51,7 @@
     {% if s.3|float < checker_ver|float %}
         {% set is_need_update = 1 %}
     {% endif %}
+    {% set description = 'Checker is designed for monitoring HAProxy, Nginx, Apache and Keepalived services as well as HAProxy backends' %}
 {% elif s.0 == 'roxy-wi-keep_alive' %}
     {% set service_name = 'Auto start' %}
     {% set service_link = 'auto_start' %}
@@ -57,6 +59,7 @@
     {% if s.3|float < keep_ver|float %}
         {% set is_need_update = 1 %}
     {% endif %}
+    {% set description = 'The Auto Start service allows to restart the HAProxy, NGINX, Apache and Keepalived services if they are down' %}
 {% elif s.0 == 'roxy-wi-metrics' %}
     {% set service_name = 'Metrics' %}
     {% set service_link = 'metrics' %}
@@ -64,23 +67,26 @@
     {% if s.3|float < metrics_ver|float %}
         {% set is_need_update = 1 %}
     {% endif %}
+    {% set description = 'Collects number of connections for HAProxy, NGINX and WAF services' %}
 {% elif s.0 == 'roxy-wi-portscanner' %}
     {% set service_name = 'Port scanner' %}
     {% set service_link = 'portscanner' %}
-    {% set desc_link = 'https://roxy-wi.org/services.py?service={{service_link}}' %}
+    {% set desc_link = 'https://roxy-wi.org/services.py?service=' + service_link %}
     {% if s.3|float < portscanner_ver|float %}
         {% set is_need_update = 1 %}
     {% endif %}
+    {% set description = 'Probes and saves a server or host for open ports' %}
 {% elif s.0 == 'roxy-wi-socket' %}
     {% set service_name = 'Socket service' %}
     {% set service_link = 'socket' %}
-    {% set desc_link = 'https://roxy-wi.org/services.py?service={{service_link}}' %}
+    {% set desc_link = 'https://roxy-wi.org/services.py?service=' + service_link %}
     {% if s.3|float < socket_ver|float %}
         {% set is_need_update = 1 %}
     {% endif %}
+    {% set description = 'Socket is a service for sending alerts and notifications' %}
 {% endif %}
     <td class="padding10 first-collumn">
-        {{service_name}}
+        <a href="{{desc_link}}" title="Read more about {{service_name}}" target="_blank" class="link">{{service_name}}</a>
     </td>
     <td>
         {% if s.3 != '* is not installed' %}
@@ -120,13 +126,12 @@
                 <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}')" title="Update {{service_name}}">Update</a>
             {% endif %}
         {% else %}
-            <a href="https://roxy-wi.org/services.py?service={{service_link}}#installation" title="{{service_name}} installation" target="_blank" class="link">Read about installation</a>
+            <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}')" title="Install {{service_name}}">Install</a>
         {% endif %}
     </td>
-    <td>
-        Read more about <a href="{{desc_link}}" title="Read more about {{service_name}}" target="_blank" class="link">{{service_name}}</a>
+    <td colspan="2">
+        {{description}}
     </td>
-    <td></td>
 </tr>
 {% endif %}
 {% endfor %}

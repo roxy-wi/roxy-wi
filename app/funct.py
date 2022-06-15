@@ -984,9 +984,9 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 			commands = [move_config + reload_or_restart_command]
 	elif service == "nginx":
 		if is_docker == '1':
-			check_config = "sudo docker exec -it exec " + container_name + " nginx -t -q "
+			check_config = "sudo docker exec -it exec " + container_name + " nginx -t "
 		else:
-			check_config = "sudo nginx -t -q "
+			check_config = "sudo nginx -t "
 		check_and_move = "sudo mv -f " + tmp_file + " " + config_path + " && " + check_config
 		if action == "test":
 			commands = [check_config + " && sudo rm -f " + tmp_file]
@@ -998,10 +998,10 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 			commands[0] += open_port_firewalld(cfg, server_ip=server_ip, service='nginx')
 	elif service == "apache":
 		if is_docker == '1':
-			check_config = "sudo docker exec -it exec " + container_name + " nginx -t -q "
+			check_config = "sudo docker exec -it exec " + container_name + " sudo apachectl configtest "
 		else:
 			check_config = "sudo apachectl configtest "
-		check_and_move = "sudo mv -f " + tmp_file + " " + config_path  # + " && " + check_config
+		check_and_move = "sudo mv -f " + tmp_file + " " + config_path + " && " + check_config
 		if action == "test":
 			commands = [check_config + " && sudo rm -f " + tmp_file]
 		elif action == "save":
@@ -1012,7 +1012,7 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		# 	commands[0] += open_port_firewalld(cfg, server_ip=server_ip, service='nginx')
 	else:
 		if is_docker == '1':
-			check_config = "sudo docker exec -it " + container_name + " haproxy -q -c -f " + tmp_file
+			check_config = "sudo docker exec -it " + container_name + " haproxy -c -f " + tmp_file
 		else:
 			check_config = "sudo " + service_name + " -c -f " + tmp_file
 		move_config = " && sudo mv -f " + tmp_file + " " + config_path
@@ -1075,28 +1075,37 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 
 def master_slave_upload_and_restart(server_ip, cfg, just_save, **kwargs):
 	import sql
+
 	masters = sql.is_master(server_ip)
-	slave_error = ''
-	for master in masters:
-		if master[0] is not None:
-			slave_error = upload_and_restart(
-				master[0], cfg, just_save=just_save, nginx=kwargs.get('nginx'),
-				apache=kwargs.get('apache'), config_file_name=kwargs.get('config_file_name'), slave=1
-			)
-			slave_error = master[0] + ': ' + slave_error
+	slave_output = ''
+
+	try:
+		server_name = sql.get_hostname_by_server_ip(server_ip)
+	except Exception:
+		server_name = serv
 
 	if kwargs.get('login'):
 		login = kwargs.get('login')
 	else:
 		login = ''
-	error = upload_and_restart(
+
+	for master in masters:
+		if master[0] is not None:
+			slv_output = upload_and_restart(
+				master[0], cfg, just_save=just_save, nginx=kwargs.get('nginx'),
+				apache=kwargs.get('apache'), config_file_name=kwargs.get('config_file_name'), slave=1
+			)
+			slave_output += '<br>' + master[1] + ':\n' + slv_output
+
+	output = upload_and_restart(
 		server_ip, cfg, just_save=just_save, nginx=kwargs.get('nginx'), apache=kwargs.get('apache'),
 		config_file_name=kwargs.get('config_file_name'), oldcfg=kwargs.get('oldcfg'), login=login
 	)
-	error = server_ip + ': ' + error
 
-	error = error + slave_error
-	return error
+	output = server_name + ':\n' + output
+
+	output = output + slave_output
+	return output
 
 
 def open_port_firewalld(cfg, server_ip, **kwargs):
@@ -2048,3 +2057,88 @@ def is_docker() -> bool:
 			if re.match("\d+:[\w=]+:/docker(-[ce]e)?/\w+", line):
 				return True
 		return False
+
+
+def send_email(email_to: str, subject: str, message: str) -> None:
+	import sql
+
+	mail_ssl = sql.get_setting('mail_ssl')
+	mail_from = sql.get_setting('mail_from')
+	mail_smtp_host = sql.get_setting('mail_smtp_host')
+	mail_smtp_port = sql.get_setting('mail_smtp_port')
+	mail_smtp_user = sql.get_setting('mail_smtp_user')
+	mail_smtp_password = sql.get_setting('mail_smtp_password')
+
+	from smtplib import SMTP
+
+	try:
+		from email.MIMEText import MIMEText
+	except Exception:
+		from email.mime.text import MIMEText
+
+	from email.message import EmailMessage
+
+	msg = MIMEText(message)
+	msg['Subject'] = 'Roxy-WI: ' + subject
+	msg['From'] = 'Roxy-WI <' + mail_from + '>'
+	msg['To'] = email_to
+
+	try:
+		smtpObj = SMTP(mail_smtp_host, mail_smtp_port)
+		if mail_ssl:
+			smtpObj.starttls()
+		smtpObj.login(mail_smtp_user, mail_smtp_password)
+		smtpObj.send_message(msg)
+		logging('localhost', 'An email has been sent to ' + email_to , haproxywi=1)
+	except Exception as e:
+		logging('localhost', 'error: unable to send email: ' + str(e), haproxywi=1)
+
+
+def send_email_to_server_group(subject: str, mes: str, group_id: int) -> None:
+	import sql
+
+	try:
+		users_email = sql.select_users_emails_by_group_id(group_id)
+
+		for user_email in users_email:
+			send_email(user_email.email, subject, mes)
+	except Exception as e:
+		logging('localhost', 'error: unable to send email: ' + str(e), haproxywi=1)
+
+
+def alert_routing(
+	server_ip: str, service_id: int, group_id: int, level: str, mes: str, alert_type: str) -> None:
+	import json
+	import sql
+
+	subject: str = level + ': ' + mes
+	server_id: int = sql.select_server_id_by_ip(server_ip)
+	checker_settings = sql.select_checker_settings_for_server(service_id, server_id)
+
+	try:
+		json_for_sending = {"user_group": group_id, "message": subject}
+		send_message_to_rabbit(json.dumps(json_for_sending))
+	except Exception as e:
+		logging('localhost', 'error: unable to send message: ' + str(e), haproxywi=1)
+
+	for setting in checker_settings:
+		if alert_type == 'service' and setting.service_alert:
+			telegram_send_mess(mes, telegram_channel_id=setting.telegram_id)
+			slack_send_mess(mes, slack_channel_id=setting.slack_id)
+
+			if setting.email:
+				send_email_to_server_group(subject, mes, group_id)
+
+		if alert_type == 'backend' and setting.backend_alert:
+			telegram_send_mess(mes, telegram_channel_id=setting.telegram_id)
+			slack_send_mess(mes, slack_channel_id=setting.slack_id)
+
+			if setting.email:
+				send_email_to_server_group(subject, mes, group_id)
+
+		if alert_type == 'maxconn' and setting.maxconn_alert:
+			telegram_send_mess(mes, telegram_channel_id=setting.telegram_id)
+			slack_send_mess(mes, slack_channel_id=setting.slack_id)
+
+			if setting.email:
+				send_email_to_server_group(subject, mes, group_id)

@@ -185,28 +185,23 @@ def add_setting_for_new_group(group_id):
 			'desc': 'Path to the NGINX directory with config files', 'group': group_id},
 		{'param': 'nginx_config_path', 'value': '/etc/nginx/nginx.conf', 'section': 'nginx',
 			'desc': 'Path to the main NGINX configuration file', 'group': group_id},
-		{'param': 'ldap_enable', 'value': '0', 'section': 'ldap', 'desc': 'Enable LDAP (1 - yes, 0 - no)',
-			'group': group_id},
-		{'param': 'ldap_server', 'value': '', 'section': 'ldap', 'desc': 'IP address of the LDAP server',
-			'group': group_id},
+		{'param': 'ldap_enable', 'value': '0', 'section': 'ldap', 'desc': 'Enable LDAP', 'group': group_id},
+		{'param': 'ldap_server', 'value': '', 'section': 'ldap', 'desc': 'IP address of the LDAP server', 'group': group_id},
 		{'param': 'ldap_port', 'value': '389', 'section': 'ldap',
-			'desc': 'LDAP port (port 389 or 636 is used by default)',
-			'group': group_id},
+			'desc': 'LDAP port (port 389 or 636 is used by default)', 'group': group_id},
 		{'param': 'ldap_user', 'value': '', 'section': 'ldap',
 			'desc': 'LDAP username. Format: user@domain.com', 'group': group_id},
 		{'param': 'ldap_password', 'value': '', 'section': 'ldap', 'desc': 'LDAP password', 'group': group_id},
 		{'param': 'ldap_base', 'value': '', 'section': 'ldap', 'desc': 'Base domain. Example: dc=domain, dc=com',
 			'group': group_id},
-		{'param': 'ldap_domain', 'value': '', 'section': 'ldap', 'desc': 'LDAP domain for logging in',
-			'group': group_id},
+		{'param': 'ldap_domain', 'value': '', 'section': 'ldap', 'desc': 'LDAP domain for logging in', 'group': group_id},
 		{'param': 'ldap_class_search', 'value': 'user', 'section': 'ldap', 'desc': 'Class for searching the user',
 			'group': group_id},
 		{'param': 'ldap_user_attribute', 'value': 'sAMAccountName', 'section': 'ldap',
 			'desc': 'Attribute to search users by', 'group': group_id},
 		{'param': 'ldap_search_field', 'value': 'mail', 'section': 'ldap',
 			'desc': 'User\'s email address', 'group': group_id},
-		{'param': 'ldap_type', 'value': '0', 'section': 'ldap', 'desc': 'Use LDAPS (1 - yes, 0 - no)',
-			'group': group_id},
+		{'param': 'ldap_type', 'value': '0', 'section': 'ldap', 'desc': 'Use LDAPS', 'group': group_id},
 		{'param': 'apache_path_logs', 'value': '/var/log/httpd/', 'section': 'apache',
 			'desc': 'The path for Apache logs', 'group': group_id},
 		{'param': 'apache_stats_user', 'value': 'admin', 'section': 'apache',
@@ -488,6 +483,15 @@ def select_server_id_by_ip(server_ip):
 		return out_error(e)
 	else:
 		return server_id
+
+
+def select_server_group_by_ip(server_ip):
+	try:
+		groups = Server.get(Server.ip == server_ip).groups
+	except Exception as e:
+		return out_error(e)
+	else:
+		return groups
 
 
 def select_server_ip_by_id(server_id):
@@ -3403,6 +3407,111 @@ def delete_git(git_id):
 		query.execute()
 	except Exception as e:
 		out_error(e)
+		return False
+	else:
+		return True
+
+
+def select_users_emails_by_group_id(group_id: int):
+	query = User.select(User.email).where((User.groups == group_id) & (User.role != 'guest'))
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+		return
+	else:
+		return query_res
+
+
+def select_user_email_by_uuid(uuid: str) -> str:
+	user_id = get_user_id_by_uuid(uuid)
+	try:
+		query_res = User.get(User.user_id == user_id).email
+	except Exception as e:
+		out_error(e)
+		return ""
+	else:
+		return query_res
+
+
+def select_checker_settings(service_id: int):
+	query = CheckerSetting.select().where(CheckerSetting.service_id == service_id)
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+		return
+	else:
+		return query_res
+
+
+def select_checker_settings_for_server(service_id: int, server_id: int):
+	query = CheckerSetting.select().where(
+		(CheckerSetting.service_id == service_id)
+		& (CheckerSetting.server_id == server_id)
+	)
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+		return
+	else:
+		return query_res
+
+
+def insert_new_checker_setting_for_server(server_ip: str) -> None:
+	try:
+		server_id = Server.get(Server.ip == server_ip).server_id
+	except Exception as e:
+		out_error(e)
+
+	for service_id in range(1, 5):
+		CheckerSetting.insert(
+			server_id=server_id, service_id=service_id
+		).on_conflict_ignore().execute()
+
+
+def update_haproxy_checker_settings(
+	email: int, telegram_id: int, slack_id: int, service_alert: int, backend_alert: int,
+	maxconn_alert: int, setting_id: int
+) -> bool:
+	settings_update = CheckerSetting.update(
+		email=email, telegram_id=telegram_id, slack_id=slack_id, service_alert=service_alert,
+		backend_alert=backend_alert, maxconn_alert=maxconn_alert
+	).where(CheckerSetting.id == setting_id)
+	try:
+		settings_update.execute()
+	except Exception:
+		return False
+	else:
+		return True
+
+
+def update_keepalived_checker_settings(
+	email: int, telegram_id: int, slack_id: int, service_alert: int, backend_alert: int,
+	setting_id: int
+) -> bool:
+	settings_update = CheckerSetting.update(
+		email=email, telegram_id=telegram_id, slack_id=slack_id,
+		service_alert=service_alert, backend_alert=backend_alert
+	).where(CheckerSetting.id == setting_id)
+	try:
+		settings_update.execute()
+	except Exception:
+		return False
+	else:
+		return True
+
+
+def update_service_checker_settings(
+	email: int, telegram_id: int, slack_id: int, service_alert: int, setting_id: int
+) -> bool:
+	settings_update = CheckerSetting.update(
+		email=email, telegram_id=telegram_id, slack_id=slack_id, service_alert=service_alert
+	).where(CheckerSetting.id == setting_id)
+	try:
+		settings_update.execute()
+	except Exception:
 		return False
 	else:
 		return True

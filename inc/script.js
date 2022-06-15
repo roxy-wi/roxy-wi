@@ -23,7 +23,7 @@ function show_current_page(id) {
 	id.parent().children().css('margin-left', '-20px');
 	id.parent().find('a').css('padding-left', '20px');
 	id.find('a').css('padding-left', '30px');
-	id.find('a').css('border-left', '4px solid #5D9CEB');
+	id.find('a').css('border-left', '4px solid var(--right-menu-blue-rolor)');
 }
 $( function() {		
    $('.menu li ul li').each(function () {
@@ -983,9 +983,9 @@ $( function() {
 		$( ".users" ).on( "click", function() {
 			$('.menu li ul li').each(function () {
 				$(this).find('a').css('padding-left', '20px')
-				$(this).find('a').css('border-left', '0px solid #5D9CEB');
+				$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
 				$(this).children(".users").css('padding-left', '30px');
-				$(this).children(".users").css('border-left', '4px solid #5D9CEB');
+				$(this).children(".users").css('border-left', '4px solid var(--right-menu-blue-rolor)');
 			});
 			$( "#tabs" ).tabs( "option", "active", 0 );
 		} );
@@ -993,55 +993,65 @@ $( function() {
 			$( ".group" ).on( "click", function() {
 				$('.menu li ul li').each(function () {
 					$(this).find('a').css('padding-left', '20px')
-					$(this).find('a').css('border-left', '0px solid #5D9CEB');
+					$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
 					$(this).children(".group").css('padding-left', '30px');
-					$(this).children(".group").css('border-left', '4px solid #5D9CEB');
+					$(this).children(".group").css('border-left', '4px solid var(--right-menu-blue-rolor)');
 				});
 				$( "#tabs" ).tabs( "option", "active", 1 );
 			} );
 			$( ".runtime" ).on( "click", function() {
 				$('.menu li ul li').each(function () {
-					$(this).find('a').css('border-left', '0px solid #5D9CEB');
+					$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
 					$(this).find('a').css('padding-left', '20px')
 					$(this).children(".runtime").css('padding-left', '30px');
-					$(this).children(".runtime").css('border-left', '4px solid #5D9CEB');
+					$(this).children(".runtime").css('border-left', '4px solid var(--right-menu-blue-rolor)');
 				});
 				$( "#tabs" ).tabs( "option", "active", 2 );
 			} );
 			$( ".admin" ).on( "click", function() {
 				$('.menu li ul li').each(function () {
 					$(this).find('a').css('padding-left', '20px')
-					$(this).find('a').css('border-left', '0px solid #5D9CEB');
+					$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
 					$(this).children(".admin").css('padding-left', '30px');
-					$(this).children(".admin").css('border-left', '4px solid #5D9CEB');
+					$(this).children(".admin").css('border-left', '4px solid var(--right-menu-blue-rolor)');
 				});
 				$( "#tabs" ).tabs( "option", "active", 3 );
 			} );
+			$( ".checker" ).on( "click", function() {
+				$('.menu li ul li').each(function () {
+					$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
+					$(this).find('a').css('padding-left', '20px')
+					$(this).children(".checker").css('padding-left', '30px');
+					$(this).children(".checker").css('border-left', '4px solid var(--right-menu-blue-rolor)');
+				});
+				loadchecker();
+				$( "#tabs" ).tabs( "option", "active", 4 );
+			} );
 			$( ".settings" ).on( "click", function() {
 				$('.menu li ul li').each(function () {
-					$(this).find('a').css('border-left', '0px solid #5D9CEB');
+					$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
 					$(this).find('a').css('padding-left', '20px')
 					$(this).children(".settings").css('padding-left', '30px');
-					$(this).children(".settings").css('border-left', '4px solid #5D9CEB');
+					$(this).children(".settings").css('border-left', '4px solid var(--right-menu-blue-rolor)');
 				});
 				$( "#tabs" ).tabs( "option", "active", 6 );
 			} );
 			$( ".services" ).on( "click", function() {
 				$('.menu li ul li').each(function () {
-					$(this).find('a').css('border-left', '0px solid #5D9CEB');
+					$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
 					$(this).find('a').css('padding-left', '20px')
 					$(this).children(".services").css('padding-left', '30px');
-					$(this).children(".services").css('border-left', '4px solid #5D9CEB');
+					$(this).children(".services").css('border-left', '4px solid var(--right-menu-blue-rolor)');
 				});
 				loadServices();
 				$( "#tabs" ).tabs( "option", "active", 7 );
 			} );
 			$( ".updatehapwi" ).on( "click", function() {
 				$('.menu li ul li').each(function () {
-					$(this).find('a').css('border-left', '0px solid #5D9CEB');
+					$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
 					$(this).find('a').css('padding-left', '20px')
 					$(this).children(".updatehapwi").css('padding-left', '30px');
-					$(this).children(".updatehapwi").css('border-left', '4px solid #5D9CEB');
+					$(this).children(".updatehapwi").css('border-left', '4px solid var(--right-menu-blue-rolor)');
 				});
 				$( "#tabs" ).tabs( "option", "active", 8 );
 				loadupdatehapwi();
@@ -1050,54 +1060,64 @@ $( function() {
 			$( ".runtime" ).on( "click", function() {
 				$('.menu li ul li').each(function () {
 					$(this).find('a').css('padding-left', '20px')
-					$(this).find('a').css('border-left', '0px solid #5D9CEB');
+					$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
 					$(this).children(".runtime").css('padding-left', '30px');
-					$(this).children(".runtime").css('border-left', '4px solid #5D9CEB');
+					$(this).children(".runtime").css('border-left', '4px solid var(--right-menu-blue-rolor)');
 				});
 				$( "#tabs" ).tabs( "option", "active", 1 );
 			} );					
 			$( ".admin" ).on( "click", function() {
 				$('.menu li ul li').each(function () {
-					$(this).find('a').css('border-left', '0px solid #5D9CEB');
+					$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
 					$(this).find('a').css('padding-left', '20px')
 					$(this).children(".admin").css('padding-left', '30px');
-					$(this).children(".admin").css('border-left', '4px solid #5D9CEB');
+					$(this).children(".admin").css('border-left', '4px solid var(--right-menu-blue-rolor)');
 				});
 				$( "#tabs" ).tabs( "option", "active", 2 );
 			} );
+			$( ".checker" ).on( "click", function() {
+				$('.menu li ul li').each(function () {
+					$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
+					$(this).find('a').css('padding-left', '20px')
+					$(this).children(".checker").css('padding-left', '30px');
+					$(this).children(".checker").css('border-left', '4px solid var(--right-menu-blue-rolor)');
+				});
+				loadchecker();
+				$( "#tabs" ).tabs( "option", "active", 3 );
+			} );
 			$( ".settings" ).on( "click", function() {
 				$('.menu li ul li').each(function () {
-					$(this).find('a').css('border-left', '0px solid #5D9CEB');
+					$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
 					$(this).find('a').css('padding-left', '20px')
 					$(this).children(".settings").css('padding-left', '30px');
-					$(this).children(".settings").css('border-left', '4px solid #5D9CEB');
+					$(this).children(".settings").css('border-left', '4px solid var(--right-menu-blue-rolor)');
 				});
 				$( "#tabs" ).tabs( "option", "active", 4 );
 			} );
 			$( ".installproxy" ).on( "click", function() {
 				$('.menu li ul li').each(function () {
 					$(this).find('a').css('padding-left', '20px')
-					$(this).find('a').css('border-left', '0px solid #5D9CEB');
+					$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
 					$(this).children(".installproxy").css('padding-left', '30px');
-					$(this).children(".installproxy").css('border-left', '4px solid #5D9CEB');
+					$(this).children(".installproxy").css('border-left', '4px solid var(--right-menu-blue-rolor)');
 				});
 				$( "#tabs" ).tabs( "option", "active", 5 );
 			} );
 			$( ".installmon" ).on( "click", function() {
 				$('.menu li ul li').each(function () {
 					$(this).find('a').css('padding-left', '20px')
-					$(this).find('a').css('border-left', '0px solid #5D9CEB');
+					$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
 					$(this).children(".installmon").css('padding-left', '30px');
-					$(this).children(".installmon").css('border-left', '4px solid #5D9CEB');
+					$(this).children(".installmon").css('border-left', '4px solid var(--right-menu-blue-rolor)');
 				});
 				$( "#tabs" ).tabs( "option", "active", 6 );
 			} );
 			$( ".backup" ).on( "click", function() {
 				$('.menu li ul li').each(function () {
 					$(this).find('a').css('padding-left', '20px')
-					$(this).find('a').css('border-left', '0px solid #5D9CEB');
+					$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
 					$(this).children(".backup").css('padding-left', '30px');
-					$(this).children(".backup").css('border-left', '4px solid #5D9CEB');
+					$(this).children(".backup").css('border-left', '4px solid var(--right-menu-blue-rolor)');
 				});
 				$( "#tabs" ).tabs( "option", "active", 7 );
 			} );
@@ -1412,4 +1432,44 @@ function waitForElm(selector) {
 }
 function randomIntFromInterval(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min)
+}
+const removeEmptyLines = str => str.split(/\r?\n/).filter(line => line.trim() !== '').join('\n');
+function returnNiceCheckingConfig(data) {
+	if (data.indexOf('sudo: firewall-cmd: command not found') != '-1') {
+		data = data.replaceAll('sudo: firewall-cmd: command not found\n', '');
+		data = data.replaceAll('sudo: firewall-cmd: command not found', '');
+		toastr.warning('The Firewalld service is not enabled. You should disable this setting for this server or enable the firewalld service on the server.')
+	}
+	data = data.replaceAll('Configuration file is valid', '');
+	data = data.replaceAll('Warnings were found.', '');
+	data = data.replaceAll('nginx: the configuration file /etc/nginx/nginx.conf syntax is ok', '');
+	data = data.replaceAll('nginx: configuration file /etc/nginx/nginx.conf test is successful', '');
+	data = data.replaceAll('Syntax OK', '');
+	output = data.split('<br>')
+	var alerts = []
+	alerts.push(output[0] + '\n' + output[1]);
+	try {
+		for (var i = 0; i < output.length; i++) {
+			if (i > 1) {
+				if (output[i] !== undefined) {
+					alerts.push(output[i])
+				}
+			}
+		}
+	} catch (err) {
+		console.log(err);
+	}
+	alerts.forEach((element) => {
+		if (element.indexOf('error: ') != '-1' || element.indexOf('Fatal') != '-1' || element.indexOf('Error') != '-1' || element.indexOf('failed ') != '-1' || element.indexOf('emerg] ') != '-1' || element.indexOf('Syntax error ') != '-1') {
+			toastr.error('<pre style="padding: 0; margin: 0;">' + element + '</pre>');
+			toastr.info('Config not applied');
+			return
+		} else {
+			toastr.success('<b>Configuration file is valid</b>');
+		}
+		if (element.indexOf('[WARNING]') != '-1' || element.indexOf('[ALER]') != '-1' || element.indexOf('[warn]') != '-1') {
+			element = removeEmptyLines(element);
+			toastr.warning('<pre style="padding: 0; margin: 0;">' + element + '</pre>')
+		}
+	})
 }

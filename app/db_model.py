@@ -510,10 +510,26 @@ class GitSetting(BaseModel):
         constraints = [SQL('UNIQUE (server_id, service_id)')]
 
 
+class CheckerSetting(BaseModel):
+    id = AutoField()
+    server_id = ForeignKeyField(Server, on_delete='Cascade')
+    service_id = IntegerField()
+    email = IntegerField(constraints=[SQL('DEFAULT 1')])
+    telegram_id = IntegerField(constraints=[SQL('DEFAULT 0')])
+    slack_id = IntegerField(constraints=[SQL('DEFAULT 0')])
+    service_alert = IntegerField(constraints=[SQL('DEFAULT 1')])
+    backend_alert = IntegerField(constraints=[SQL('DEFAULT 1')])
+    maxconn_alert = IntegerField(constraints=[SQL('DEFAULT 1')])
+
+    class Meta:
+        table_name = 'checker_setting'
+        constraints = [SQL('UNIQUE (server_id, service_id)')]
+
+
 def create_tables():
     with conn:
         conn.create_tables([User, Server, Role, Telegram, Slack, UUID, Token, ApiToken, Groups, UserGroups, ConfigVersion,
                             Setting, Cred, Backup, Metrics, WafMetrics, Version, Option, SavedServer, Waf, ActionHistory,
                             PortScannerSettings, PortScannerPorts, PortScannerHistory, ProvidersCreds, ServiceSetting,
                             ProvisionedServers, MetricsHttpStatus, SMON, WafRules, Alerts, GeoipCodes, NginxMetrics,
-                            SystemInfo, Services, UserName, GitSetting])
+                            SystemInfo, Services, UserName, GitSetting, CheckerSetting])

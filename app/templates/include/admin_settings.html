@@ -2,7 +2,7 @@
     <tbody>
         {% set section = namespace(section='') %}
         {% for set in settings %}
-        {% if page == "servers.py" and (set.section == 'monitoring' or set.section == 'rabbitmq') %}
+        {% if page == "servers.py" and (set.section in ('monitoring', 'rabbitmq', 'mail')) %}
         <!-- continue -->
         {% else %}
         {% if section.section|string() != set.section|string() %}
@@ -27,18 +27,33 @@
                 {{set.param}}
             </td>
             <td class="addOption">
-                {% if set.param in ('ldap_password', 'stats_password', 'nginx_stats_password', 'apache_stats_password', 'rabbitmq_password') %}
+                {% if set.param in ('ldap_password', 'stats_password', 'nginx_stats_password', 'apache_stats_password', 'rabbitmq_password', 'mail_smtp_password') %}
                     {% if set.value is none %}
                         {{ input(set.param, size='25', type='password') }}
                     {% else %}
-                        {{ input(set.param, size='25', type='password', placeholder='*****') }}
+                        {{ input(set.param, size='25', type='password', placeholder='******') }}
                     {% endif %}
                 {% elif set.param in ('nginx_stats_port', 'session_ttl', 'token_ttl', 'stats_port', 'haproxy_sock_port',
-                    'ldap_type', 'ldap_port', 'ldap_enable', 'log_time_storage', 'syslog_server_enable', 'smon_check_interval',
-                    'checker_check_interval', 'port_scan_interval', 'smon_keep_history_range', 'checker_keep_history_range',
-					'portscanner_keep_history_range', 'haproxy_enterprise', 'checker_maxconn_threshold', 'apache_stats_port') %}
-
+                    'ldap_port', 'log_time_storage', 'smon_check_interval', 'checker_check_interval', 'port_scan_interval',
+                    'smon_keep_history_range', 'checker_keep_history_range', 'portscanner_keep_history_range',
+                    'checker_maxconn_threshold', 'apache_stats_port', 'mail_smtp_port', 'rabbitmq_port') %}
                     {{ input(set.param, value=set.value, style='width: 210px;', type='number') }}
+                {% elif set.param == 'time_zone' %}
+                    <select name="{{set.param}}" id="{{set.param}}" style="width: 215px;">
+                        {% for zone in timezones %}
+                        {% if set.value == zone %}
+                        <option value="{{zone}}" selected>{{zone}}</option>
+                        {% else %}
+                        <option value="{{zone}}">{{zone}}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                {% elif set.param in ('ldap_type', 'ldap_enable', 'syslog_server_enable', 'mail_ssl') %}
+                    {% if set.value|int() == 1 %}
+                        {{ checkbox(set.param, checked='checked', style='margin: 0') }}
+                    {% else %}
+                        {{ checkbox(set.param, style='margin: 0') }}
+                    {% endif %}
                 {% else %}
                     {% if set.value is none %}
                         {{ input(set.param, size='25') }}
@@ -55,3 +70,9 @@
         {% endfor %}
     </tbody>
 </table>
+<script>
+	$(document).ready(function() {
+        $("#time_zone").selectmenu("destroy");
+		$('#time_zone').select2();
+	});
+</script>

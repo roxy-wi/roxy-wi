@@ -1,11 +1,11 @@
 {% for telegram in telegrams %}
 	<tr style="width: 50%;" id="telegram-table-{{telegram.id}}" class="newgroup">
 		<td class="padding10 first-collumn">
-			<input type="text" id="telegram-token-{{telegram.id}}" class="form-control" value="{{telegram.token}}">
+			<input type="text" id="telegram-token-{{telegram.id}}" class="form-control" value="{{telegram.token}}" size="30">
 			<input type="hidden" id="telegramgroup-{{telegram.id}}" name="telegramgroup-{{telegram.id}}">
 		</td>
 		<td>
-			<input type="text" id="telegram-chanel-{{telegram.id}}" class="form-control" value="{{telegram.chanel_name}}">		
+			<input type="text" id="telegram-chanel-{{telegram.id}}" class="form-control" value="{{telegram.chanel_name}}" size="30">
 		</td>
 		{% if page != "servers.py" %}
 			<td>
@@ -21,7 +21,7 @@
 			</td>	
 		{% endif %}
 		<td>
-			<button title="Send test message" onclick="checkTelegram({{telegram.id}})">Test</button>
+			<button title="Send a test message" onclick="checkTelegram({{telegram.id}})">Test</button>
 		</td>
 		<td>
 			<a class="add" onclick="cloneTelegram({{telegram.id}})" id="clone-{{telegram.id}}" title="Clone {{telegram.chanel_name}}" style="cursor: pointer;"></a>

@@ -58,8 +58,8 @@ def default_values():
 			'desc': 'Socket port for HAProxy', 'group': '1'},
 		{'param': 'haproxy_sock_port', 'value': '1999', 'section': 'haproxy', 'desc': 'HAProxy sock port',
 			'group': '1'},
-		{'param': 'apache_log_path', 'value': '/var/log/' + apache_dir + '/', 'section': 'logs', 'desc': 'Path to Apache logs',
-			'group': '1'},
+		{'param': 'apache_log_path', 'value': '/var/log/' + apache_dir + '/', 'section': 'logs',
+		 	'desc': 'Path to Apache logs. Apache service for Roxy-WI', 'group': '1'},
 		{'param': 'nginx_path_logs', 'value': '/var/log/nginx/', 'section': 'nginx',
 			'desc': 'The path for NGINX logs', 'group': '1'},
 		{'param': 'nginx_stats_user', 'value': 'admin', 'section': 'nginx', 'desc': 'Username for accessing NGINX stats page',
@@ -74,8 +74,7 @@ def default_values():
 			'desc': 'Path to the NGINX directory with config files', 'group': '1'},
 		{'param': 'nginx_config_path', 'value': '/etc/nginx/nginx.conf', 'section': 'nginx',
 			'desc': 'Path to the main NGINX configuration file', 'group': '1'},
-		{'param': 'ldap_enable', 'value': '0', 'section': 'ldap', 'desc': 'Enable LDAP (1 - yes, 0 - no)',
-			'group': '1'},
+		{'param': 'ldap_enable', 'value': '0', 'section': 'ldap', 'desc': 'Enable LDAP', 'group': '1'},
 		{'param': 'ldap_server', 'value': '', 'section': 'ldap', 'desc': 'IP address of the LDAP server', 'group': '1'},
 		{'param': 'ldap_port', 'value': '389', 'section': 'ldap', 'desc': 'LDAP port (port 389 or 636 is used by default)',
 			'group': '1'},
@@ -90,7 +89,7 @@ def default_values():
 		{'param': 'ldap_user_attribute', 'value': 'sAMAccountName', 'section': 'ldap',
 			'desc': 'Attribute to search users by', 'group': '1'},
 		{'param': 'ldap_search_field', 'value': 'mail', 'section': 'ldap', 'desc': 'User\'s email address', 'group': '1'},
-		{'param': 'ldap_type', 'value': '0', 'section': 'ldap', 'desc': 'Use LDAPS (1 - yes, 0 - no)', 'group': '1'},
+		{'param': 'ldap_type', 'value': '0', 'section': 'ldap', 'desc': 'Use LDAPS', 'group': '1'},
 		{'param': 'smon_check_interval', 'value': '1', 'section': 'monitoring', 'desc': 'Check interval for SMON (in minutes)',
 			'group': '1'},
 		{'param': 'port_scan_interval', 'value': '5', 'section': 'monitoring',
@@ -132,6 +131,12 @@ def default_values():
 			'desc': 'Path to the main Keepalived configuration file', 'group': '1'},
 		{'param': 'keepalived_path_logs', 'value': '/var/log/keepalived/', 'section': 'keepalived',
 			'desc': 'The path for Keepalived logs', 'group': '1'},
+		{'param': 'mail_ssl', 'value': '0', 'section': 'mail', 'desc': 'Enable TLS', 'group': '1'},
+		{'param': 'mail_from', 'value': '', 'section': 'mail', 'desc': 'Address of sender', 'group': '1'},
+		{'param': 'mail_smtp_host', 'value': '', 'section': 'mail', 'desc': 'SMTP server address', 'group': '1'},
+		{'param': 'mail_smtp_port', 'value': '25', 'section': 'mail', 'desc': 'SMTP server port', 'group': '1'},
+		{'param': 'mail_smtp_user', 'value': '', 'section': 'mail', 'desc': 'User for auth', 'group': '1'},
+		{'param': 'mail_smtp_password', 'value': '', 'section': 'mail', 'desc': 'Password for auth', 'group': '1'},
 	]
 	try:
 		Setting.insert_many(data_source).on_conflict_ignore().execute()
@@ -722,8 +727,24 @@ def update_db_v_6_0_1(**kwargs):
 			print("Updating... DB has been updated to version 6.0.0.0-1")
 
 
+def update_db_v_6_1_0(**kwargs):
+	for service_id in range(1, 5):
+		try:
+			servers_id = Server.select(Server.server_id).where(Server.type_ip == 0).execute()
+			for server_id in servers_id:
+				CheckerSetting.insert(
+					server_id=server_id, service_id=service_id
+				).on_conflict_ignore().execute()
+		except Exception as e:
+			if kwargs.get('silent') != 1:
+				if e.args[0] == 'duplicate column name: haproxy' or str(e) == '(1060, "Duplicate column name \'haproxy\'")':
+					print('Updating... go to version 6.1.0')
+				else:
+					print("An error occurred:", e)
+
+
 def update_ver():
-	query = Version.update(version='6.0.3.0')
+	query = Version.update(version='6.1.0.0')
 	try:
 		query.execute()
 	except Exception:
@@ -749,6 +770,7 @@ def update_all():
 	update_db_v_5_4_3_1()
 	update_db_v_6_0()
 	update_db_v_6_0_1()
+	update_db_v_6_1_0()
 	update_ver()
 
 

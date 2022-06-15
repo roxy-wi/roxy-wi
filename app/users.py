@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import pytz
+
 import funct
 import sql
 from jinja2 import Environment, FileSystemLoader
@@ -18,7 +20,6 @@ try:
 	users = sql.select_users()
 	settings = sql.get_setting('', all=1)
 	ldap_enable = sql.get_setting('ldap_enable')
-	grafana, stderr = funct.subprocess_execute("systemctl is-active grafana-server")
 	services = sql.select_services()
 	gits = sql.select_gits()
 except Exception:
@@ -33,8 +34,8 @@ except Exception as e:
 rendered_template = template.render(
 	title="Admin area: Manage users", role=role, user=user, users=users, groups=sql.select_groups(),
 	servers=sql.select_servers(full=1), roles=sql.select_roles(), masters=sql.select_servers(get_master_servers=1),
-	sshs=sql.select_ssh(), token=token, settings=settings, backups=sql.select_backups(), grafana=''.join(grafana),
+	sshs=sql.select_ssh(), token=token, settings=settings, backups=sql.select_backups(),
 	page="users.py", user_services=user_services, ldap_enable=ldap_enable, user_status=user_status,
-	user_plan=user_plan, gits=gits, services=services
+	user_plan=user_plan, gits=gits, services=services, timezones=pytz.all_timezones
 )
 print(rendered_template)

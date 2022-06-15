@@ -1660,7 +1660,7 @@ function saveList(action, list, color) {
 }
 function deleteList(list, color) {
 	var serv = $( "#serv-"+color+"-list option:selected" ).val();
-	if (serv == 'Choose server') {
+	if (serv == '------') {
 		toastr.warning('Choose a server before deleting');
 	} else {
 		$.ajax({
@@ -1810,16 +1810,15 @@ function addProxy(form_name) {
 		data: frm.serialize(),
 		type: frm.attr('method'),
 		success: function( data ) {
-			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error: ') != '-1' || data.indexOf('Fatal') != '-1') {
-				toastr.clear();
-				toastr.error(data);
+				returnNiceCheckingConfig(data);
 			} else if (data == '') {
 				toastr.clear();
 				toastr.error('error: Proxy cannot be empty');
 			} else {
 				toastr.clear();
-				toastr.success('Section: <b>' + data + '</b> has been added. Do not forget to restart the server');
+				returnNiceCheckingConfig(data);
+				toastr.info('Section has been added. Do not forget to restart the server');
 				var ip = frm.find('select[name=serv]').val();
 				localStorage.setItem('restart', ip);
 				resetProxySettings();

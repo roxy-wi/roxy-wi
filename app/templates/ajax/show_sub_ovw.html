@@ -3,6 +3,8 @@
         {% set plan = 'Home' %}
     {% elif s.Plan == 'company' %}
         {% set plan = 'Enterprise' %}
+    {% elif s.Plan == 'cloud' %}
+        {% set plan = 'Cloud' %}
     {% elif s.Plan == 'support' %}
         {% set plan = 'Premium' %}
     {% elif s.Plan == 'Trial' %}
@@ -32,7 +34,6 @@
     </tr>
     <tr class="odd">
         <td class="padding10 first-collumn-wi">Pay method</td>
-
         <td>
             {% if plan == 'Free' %}
                 N/A

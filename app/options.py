@@ -1798,7 +1798,7 @@ if form.getvalue('haproxyaddserv'):
 if form.getvalue('installwaf'):
     funct.waf_install(form.getvalue('installwaf'))
 
-if form.getvalue('update_haproxy_wi'):
+if form.getvalue('update_roxy_wi'):
     service = form.getvalue('service')
     services = ['roxy-wi-checker',
                 'roxy-wi',
@@ -1809,7 +1809,7 @@ if form.getvalue('update_haproxy_wi'):
     if service not in services:
         print('error: ' + service + ' is not part of Roxy-WI')
         sys.exit()
-    funct.update_haproxy_wi(service)
+    funct.update_roxy_wi(service)
 
 if form.getvalue('metrics_waf'):
     sql.update_waf_metrics_enable(form.getvalue('metrics_waf'), form.getvalue('enable'))
@@ -2269,7 +2269,7 @@ if form.getvalue('newserver') is not None:
                 haproxy_config_path = sql.get_setting('haproxy_config_path')
                 haproxy_dir = sql.get_setting('haproxy_dir')
                 apache_config_path = sql.get_setting('apache_config_path')
-                keepalived_config_path = '/etc/keepalived/keepalived.conf'
+                keepalived_config_path = sql.get_setting('keepalived_config_path')
 
                 if funct.is_file_exists(ip, nginx_config_path):
                     sql.update_nginx(ip)
@@ -2289,8 +2289,13 @@ if form.getvalue('newserver') is not None:
 
                 if funct.is_service_active(ip, 'firewalld'):
                     sql.update_firewall(ip)
-        except Exception:
-            pass
+        except Exception as e:
+            funct.logging('Cannot scan a new server ' + hostname, str(e), haproxywi=1)
+            
+        try:
+            sql.insert_new_checker_setting_for_server(ip)
+        except Exception as e:
+            funct.logging('Cannot insert Checker settings for ' + hostname, str(e), haproxywi=1)
 
         try:
             funct.get_system_info(ip)
@@ -2491,7 +2496,11 @@ if form.getvalue('ssh_cert'):
 
     user_group = funct.get_user_group()
     name = form.getvalue('name')
-    key = paramiko.pkey.load_private_key(form.getvalue('ssh_cert'))
+    try:
+        key = paramiko.pkey.load_private_key(form.getvalue('ssh_cert'))
+    except Exception as e:
+        print('error: Cannot save SSH key file: ', str(e))
+
     full_dir = '/var/www/haproxy-wi/keys/'
     ssh_keys = full_dir + name + '.pem'
 
@@ -2515,8 +2524,8 @@ if form.getvalue('ssh_cert'):
         #     key.write_private_key_file(ssh_keys, password=cloud)
         # else:
         key.write_private_key_file(ssh_keys)
-    except IOError as e:
-        print('error: Cannot save SSH key file. ', str(e))
+    except Exception as e:
+        print('error: Cannot save SSH key file: ', str(e))
     else:
         print('success: SSH key has been saved into: %s ' % ssh_keys)
 
@@ -2614,7 +2623,7 @@ if form.getvalue('updatesettings') is not None:
     settings = form.getvalue('updatesettings')
     val = form.getvalue('val')
     if sql.update_setting(settings, val):
-        funct.logging('localhost', 'The ' + settings + ' setting has been changed to: ' + val, haproxywi=1, login=1)
+        funct.logging('localhost', 'The ' + settings + ' setting has been changed to: ' + str(val), haproxywi=1, login=1)
         print("Ok")
 
 if form.getvalue('getuserservices'):
@@ -3921,19 +3930,32 @@ if form.getvalue('loadchecker'):
     services = funct.get_services_status()
     groups = sql.select_groups()
     page = form.getvalue('page')
+
     try:
         user_status, user_plan = funct.return_user_status()
     except Exception as e:
         user_status, user_plan = 0, 0
         funct.logging('localhost', 'Cannot get a user plan: ' + str(e), haproxywi=1)
     if user_status:
+        haproxy_settings = sql.select_checker_settings(1)
+        nginx_settings = sql.select_checker_settings(2)
+        keepalived_settings = sql.select_checker_settings(3)
+        apache_settings = sql.select_checker_settings(4)
         if page == 'servers.py':
             user_group = funct.get_user_group(id=1)
             telegrams = sql.get_user_telegram_by_group(user_group)
             slacks = sql.get_user_slack_by_group(user_group)
+            haproxy_servers = sql.get_dick_permit(haproxy=1, only_group=1)
+            nginx_servers = sql.get_dick_permit(nginx=1, only_group=1)
+            apache_servers = sql.get_dick_permit(apache=1, only_group=1)
+            keepalived_servers = sql.get_dick_permit(keepalived=1, only_group=1)
         else:
             telegrams = sql.select_telegram()
             slacks = sql.select_slack()
+            haproxy_servers = sql.get_dick_permit(haproxy=1)
+            nginx_servers = sql.get_dick_permit(nginx=1)
+            apache_servers = sql.get_dick_permit(apache=1)
+            keepalived_servers = sql.get_dick_permit(keepalived=1)
     else:
         telegrams = ''
         slacks = ''
@@ -3944,6 +3966,14 @@ if form.getvalue('loadchecker'):
                                slacks=slacks,
                                user_status=user_status,
                                user_plan=user_plan,
+                               haproxy_servers=haproxy_servers,
+                               nginx_servers=nginx_servers,
+                               apache_servers=apache_servers,
+                               keepalived_servers=keepalived_servers,
+                               haproxy_settings=haproxy_settings,
+                               nginx_settings=nginx_settings,
+                               keepalived_settings=keepalived_settings,
+                               apache_settings=apache_settings,
                                page=page)
     print(template)
 
@@ -4009,6 +4039,50 @@ if form.getvalue('check_slack'):
     slack_id = form.getvalue('check_slack')
     mess = 'Test message from Roxy-WI'
     funct.slack_send_mess(mess, slack_channel_id=slack_id)
+
+if form.getvalue('check_rabbitmq_alert'):
+    import json
+    import http.cookies
+
+    try:
+        cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+        user_group_id = cookie.get('group')
+        user_group_id1 = user_group_id.value
+    except Exception as e:
+        error = str(e)
+        print(f'error: Cannot send a message {error}')
+
+    try:
+        json_for_sending = {"user_group": user_group_id1, "message": 'info: Test message'}
+        funct.send_message_to_rabbit(json.dumps(json_for_sending))
+    except Exception as e:
+        error = str(e)
+        print(f'error: Cannot send a message {error}')
+
+if form.getvalue('check_email_alert'):
+    import http.cookies
+    subject = 'test message'
+    message = 'Test message from Roxy-WI'
+
+    try:
+        cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+        user_uuid = cookie.get('uuid')
+        user_uuid_value = user_uuid.value
+    except Exception as e:
+        error = str(e)
+        print(f'error: Cannot send a message {error}')
+
+    try:
+        user_email = sql.select_user_email_by_uuid(user_uuid_value)
+    except Exception as e:
+        error = str(e)
+        print(f'error: Cannot get a user email: {error}')
+
+    try:
+        funct.send_email(user_email, subject, message)
+    except Exception as e:
+        error = str(e)
+        print(f'error: Cannot send a message {error}')
 
 if form.getvalue('getoption'):
     group = form.getvalue('getoption')
@@ -4360,3 +4434,45 @@ if form.getvalue('show_sub_ovw'):
     template = env.get_template('ajax/show_sub_ovw.html')
     template = template.render(sub=sql.select_user_all())
     print(template)
+
+
+if form.getvalue('updateHaproxyCheckerSettings'):
+    setting_id = form.getvalue('updateHaproxyCheckerSettings')
+    email = form.getvalue('email')
+    service_alert = form.getvalue('server')
+    backend_alert = form.getvalue('backend')
+    maxconn_alert = form.getvalue('maxconn')
+    telegram_id = form.getvalue('telegram_id')
+    slack_id = form.getvalue('slack_id')
+
+    if sql.update_haproxy_checker_settings(email, telegram_id, slack_id, service_alert, backend_alert,
+	    maxconn_alert, setting_id
+    ):
+        print('ok')
+    else:
+        print('error: Cannot update Checker settings')
+
+if form.getvalue('updateKeepalivedCheckerSettings'):
+    setting_id = form.getvalue('updateKeepalivedCheckerSettings')
+    email = form.getvalue('email')
+    service_alert = form.getvalue('server')
+    backend_alert = form.getvalue('backend')
+    telegram_id = form.getvalue('telegram_id')
+    slack_id = form.getvalue('slack_id')
+
+    if sql.update_keepalived_checker_settings(email, telegram_id, slack_id, service_alert, backend_alert, setting_id):
+        print('ok')
+    else:
+        print('error: Cannot update Checker settings')
+
+if form.getvalue('updateServiceCheckerSettings'):
+    setting_id = form.getvalue('updateServiceCheckerSettings')
+    email = form.getvalue('email')
+    service_alert = form.getvalue('server')
+    telegram_id = form.getvalue('telegram_id')
+    slack_id = form.getvalue('slack_id')
+
+    if sql.update_service_checker_settings(email, telegram_id, slack_id, service_alert, setting_id):
+        print('ok')
+    else:
+        print('error: Cannot update Checker settings')

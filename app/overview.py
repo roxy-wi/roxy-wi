@@ -31,9 +31,9 @@ try:
 
 			i += 1
 
-		cmd = "ps ax |grep 'metrics_worker\|metrics_waf_worker.py\|metrics_nginx_worker.py'|grep -v grep|grep '%s' |wc -l" % servers_for_grep
+		cmd = "ps ax |grep '[m]etrics_worker\|[m]etrics_waf_worker.py\|[m]etrics_nginx_worker.py'|grep '%s' |wc -l" % servers_for_grep
 		metrics_worker, stderr = funct.subprocess_execute(cmd)
-		cmd = "ps ax |grep 'checker_worker\|checker_nginx'|grep -v grep |grep '%s' |wc -l" % servers_for_grep
+		cmd = "ps ax |grep '[c]hecker_worker\|[c]hecker_nginx\|[c]hecker_apache\|[c]hecker_keepalived'|grep -v grep |grep '%s' |wc -l" % servers_for_grep
 		checker_worker, stderr = funct.subprocess_execute(cmd)
 		i = 0
 		for s in sql.select_all_alerts(group=user_group):
@@ -48,9 +48,9 @@ try:
 		prometheus = ''
 		host = ''
 	else:
-		cmd = "ps ax |grep 'metrics_worker\|metrics_waf_worker.py\|metrics_nginx_worker.py' |grep -v grep |wc -l"
+		cmd = "ps ax |grep '[m]etrics_worker\|[m]etrics_waf_worker.py\|[m]etrics_nginx_worker.py' |wc -l"
 		metrics_worker, stderr = funct.subprocess_execute(cmd)
-		cmd = "ps ax |grep 'checker_worker\|checker_nginx' |grep -v grep |wc -l"
+		cmd = "ps ax |grep '[c]hecker_worker\|[c]hecker_nginx\|[c]hecker_apache\|[c]hecker_keepalived' |wc -l"
 		checker_worker, stderr = funct.subprocess_execute(cmd)
 		i = 0
 		for s in sql.select_all_alerts():
@@ -61,7 +61,7 @@ try:
 		for s in is_metrics_workers:
 			i += 1
 		is_metrics_worker = i
-		cmd = "ps ax |grep grafana|grep -v grep|wc -l"
+		cmd = "ps ax |egrep [g]rafana|wc -l"
 		grafana, stderr = funct.subprocess_execute(cmd)
 		host = os.environ.get('HTTP_HOST', '')
 

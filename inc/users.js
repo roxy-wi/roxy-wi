@@ -607,9 +607,22 @@ $( function() {
 		updateSSH(id[1])
 		sshKeyEnableShow(id[1])
 	});
+	$( "#settings select" ).on('select2:select',function() {
+		var id = $(this).attr('id');
+		var val = $(this).val();
+		updateSettings(id, val);
+		updateSettings(id[1])
+	});
 	$( "#settings input" ).change(function() {
 		var id = $(this).attr('id');
 		var val = $(this).val();
+		if($('#'+id).is(':checkbox')) {
+			if ($('#'+id).is(':checked')){
+				val = 1;
+			} else {
+				val = 0;
+			}
+		}
 		updateSettings(id, val);
 	});
 	$('#new-ssh_enable').click(function() {
@@ -654,6 +667,38 @@ $( function() {
 		} else {
 			$('.services_for_scan').show();
 		}
+	});
+	$( "#checker_haproxy_table select" ).on('selectmenuchange',function() {
+		var id = $(this).attr('id').split('-');
+		updateHaproxyCheckerSettings(id[1])
+	});
+	$( "#checker_haproxy_table input" ).change(function() {
+		var id = $(this).attr('id').split('-');
+		updateHaproxyCheckerSettings(id[1])
+	});
+	$( "#checker_nginx_table select" ).on('selectmenuchange',function() {
+		var id = $(this).attr('id').split('-');
+		updateServiceCheckerSettings(id[1], 'nginx')
+	});
+	$( "#checker_nginx_table input" ).change(function() {
+		var id = $(this).attr('id').split('-');
+		updateServiceCheckerSettings(id[1], 'nginx')
+	});
+	$( "#checker_apache_table select" ).on('selectmenuchange',function() {
+		var id = $(this).attr('id').split('-');
+		updateServiceCheckerSettings(id[1], 'apache')
+	});
+	$( "#checker_apache_table input" ).change(function() {
+		var id = $(this).attr('id').split('-');
+		updateServiceCheckerSettings(id[1], 'apache')
+	});
+	$( "#checker_keepalived_table select" ).on('selectmenuchange',function() {
+		var id = $(this).attr('id').split('-');
+		updateKeepalivedCheckerSettings(id[1])
+	});
+	$( "#checker_keepalived_table input" ).change(function() {
+		var id = $(this).attr('id').split('-');
+		updateKeepalivedCheckerSettings(id[1])
 	});
 	$('#search_ldap_user').click(function() {
 		var valid = true;
@@ -756,16 +801,39 @@ $( function() {
 	});
 	$("#tabs ul li").click(function() {
 		var activeTab = $(this).find("a").attr("href");
-
+		var activeTabClass = activeTab.replace('#', '');
+		$('.menu li ul li').each(function () {
+			$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
+			$(this).find('a').css('padding-left', '20px')
+			$(this).children("."+activeTabClass).css('padding-left', '30px');
+			$(this).children("."+activeTabClass).css('border-left', '4px solid var(--right-menu-blue-rolor)');
+		});
 		if (activeTab == '#services') {
 			loadServices();
 		} else if (activeTab == '#updatehapwi') {
 			loadupdatehapwi();
 		} else if (activeTab == '#checker'){
+
 			loadchecker();
 		} else if (activeTab == '#openvpn'){
 			loadopenvpn();
 		}
+	});
+	$("#checker_tabs ul li").click(function() {
+		$('.menu li ul li').each(function () {
+			$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
+			$(this).find('a').css('padding-left', '20px')
+			$(this).children(".checker").css('padding-left', '30px');
+			$(this).children(".checker").css('border-left', '4px solid var(--right-menu-blue-rolor)');
+		});
+	});
+	$("#backup_tabs ul li").click(function() {
+		$('.menu li ul li').each(function () {
+			$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
+			$(this).find('a').css('padding-left', '20px')
+			$(this).children(".backup").css('padding-left', '30px');
+			$(this).children(".backup").css('border-left', '4px solid var(--right-menu-blue-rolor)');
+		});
 	});
 	$('#nginx-section-head').click(function () {
 		hideAndShowSettings('nginx');
@@ -793,6 +861,9 @@ $( function() {
 	});
 	$('#keepalived-section-head').click(function () {
 		hideAndShowSettings('keepalived');
+	});
+	$('#mail-section-head').click(function () {
+		hideAndShowSettings('mail');
 	});
 } );
 function hideAndShowSettings(section) {
@@ -1089,6 +1160,10 @@ function addTelegram(dialog_id) {
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
+					var getId = new RegExp('telegram-table-[0-9]+');
+					var id = data.match(getId) + '';
+					id = id.split('-').pop();
+					$('select:regex(id, telegram_channel)').append('<option value=' + id + '>' + $('#telegram-chanel-add').val() + '</option>').selectmenu("refresh");
 					common_ajax_action_after_success(dialog_id, 'newgroup', 'checker_table', data);
 					$( "input[type=submit], button" ).button();
 					$( "input[type=checkbox]" ).checkboxradio();
@@ -1121,6 +1196,10 @@ function addSlack(dialog_id) {
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
+					var getId = new RegExp('slack-table-[0-9]+');
+					var id = data.match(getId) + '';
+					id = id.split('-').pop();
+					$('select:regex(id, slack_channel)').append('<option value=' + id + '>' + $('#slack-chanel-add').val() + '</option>').selectmenu("refresh");
 					common_ajax_action_after_success(dialog_id, 'newgroup', 'checker_slack_table', data);
 					$( "input[type=submit], button" ).button();
 					$( "input[type=checkbox]" ).checkboxradio();
@@ -2243,7 +2322,7 @@ function updateService(service) {
 	$.ajax( {
 		url: "options.py",
 		data: {
-			update_haproxy_wi: 1,
+			update_roxy_wi: 1,
 			service: service,
 			token: $('#token').val()
 		},
@@ -2257,16 +2336,16 @@ function updateService(service) {
 				toastr.success(service + ' has been updated');
 			} else if (data.indexOf('Unauthorized') != '-1') {
 				toastr.clear();
-				toastr.error('It seems like Unauthorized in the Roxy-WI repository. How to get Roxy-WI auth you can read <b><a href="https://haproxy-wi.org/installation.py" title="How to get Roxy-WI auth">hear</a></b>');
+				toastr.error('It seems like Unauthorized in the Roxy-WI repository. How to get Roxy-WI auth you can read <b><a href="https://roxy-wi.org/installation.py" title="How to get Roxy-WI auth">hear</a></b>');
 			} else if (data.indexOf('but not installed') != '-1') {
 				toastr.clear();
 				toastr.error('There is settings for Roxy-WI repository, but Roxy-WI is installed without repository. Please reinstall with yum');
 			} else if (data.indexOf('No Match for argument') != '-1') {
 				toastr.clear();
-				toastr.error('It seems like Roxy-WI repository is not set. Please read docs for <b><a href="https://haproxy-wi.org/updates.py">detail</a></b>');
+				toastr.error('It seems like Roxy-WI repository is not set. Please read docs for <b><a href="https://roxy-wi.org/updates.py">detail</a></b>');
 			} else if (data.indexOf('password for') != '-1') {
 				toastr.clear();
-				toastr.error('It seems like apache user needs to be add to sudoers. Please read docs for <b><a href="https://haproxy-wi.org/updates.py">detail</a></b>');
+				toastr.error('It seems like apache user needs to be add to sudoers. Please read docs for <b><a href="https://roxy-wi.org/updates.py">detail</a></b>');
 			} else if (data.indexOf('No packages marked for update') != '-1') {
 				toastr.clear();
 				toastr.info('It seems like the lastest version Roxy-WI is installed');
@@ -2478,7 +2557,7 @@ function loadupdatehapwi() {
 		}
 	} );
 }
-function loadchecker() {
+function loadchecker(tab = 0) {
 	$.ajax({
 		url: "options.py",
 		data: {
@@ -2495,8 +2574,10 @@ function loadchecker() {
 				$('#checker').html(data);
 				$( "select" ).selectmenu();
 				$("button").button();
+				$( "input[type=checkbox]" ).checkboxradio();
 				$.getScript('/inc/users.js');
 				$.getScript(awesome);
+				$( "#checker_tabs" ).tabs( "option", "active", tab );
 			}
 		}
 	} );
@@ -2606,4 +2687,161 @@ function showServerInfo(id, ip) {
 		$('#server_info-'+id).hide();
 		$('#server_info_link-'+id).attr('title', 'Show System info');
 	}
+}
+function updateHaproxyCheckerSettings(id) {
+	toastr.clear();
+	let email = 0;
+	let server = 0;
+	let backend = 0;
+	let maxconn = 0;
+	if ($('#haproxy_server_email-'+id).is(':checked')) {
+		email = '1';
+	}
+	if ($('#haproxy_server_status-'+id).is(':checked')) {
+		server = '1';
+	}
+	if ($('#haproxy_server_backend-'+id).is(':checked')) {
+		backend = '1';
+	}
+	if ($('#haproxy_server_maxconn-'+id).is(':checked')) {
+		maxconn = '1';
+	}
+	$.ajax( {
+		url: "options.py",
+		data: {
+			updateHaproxyCheckerSettings: id,
+			email: email,
+			server: server,
+			backend: backend,
+			maxconn: maxconn,
+			telegram_id: $('#haproxy_server_telegram_channel-'+id+' option:selected' ).val(),
+			slack_id: $('#haproxy_server_slack_channel-'+id+' option:selected').val(),
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
+				toastr.error(data);
+			} else if (data.indexOf('ok') != '-1') {
+				toastr.clear();
+				$("#haproxy_server_tr_id-"+id).addClass( "update", 1000 );
+				setTimeout(function() {
+					$( "#haproxy_server_tr_id-"+id ).removeClass( "update" );
+				}, 2500 );
+			}
+		}
+	} );
+}
+function updateKeepalivedCheckerSettings(id) {
+	toastr.clear();
+	let email = 0;
+	let server = 0;
+	let backend = 0;
+	if ($('#keepalived_server_email-'+id).is(':checked')) {
+		email = '1';
+	}
+	if ($('#keepalived_server_status-'+id).is(':checked')) {
+		server = '1';
+	}
+	if ($('#keepalived_server_backend-'+id).is(':checked')) {
+		backend = '1';
+	}
+
+	$.ajax( {
+		url: "options.py",
+		data: {
+			updateKeepalivedCheckerSettings: id,
+			email: email,
+			server: server,
+			backend: backend,
+			telegram_id: $('#keepalived_server_telegram_channel-'+id+' option:selected' ).val(),
+			slack_id: $('#keepalived_server_slack_channel-'+id+' option:selected').val(),
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
+				toastr.error(data);
+			} else if (data.indexOf('ok') != '-1') {
+				toastr.clear();
+				$("#keepalived_server_tr_id-"+id).addClass( "update", 1000 );
+				setTimeout(function() {
+					$( "#keepalived_server_tr_id-"+id ).removeClass( "update" );
+				}, 2500 );
+			}
+		}
+	} );
+}
+function updateServiceCheckerSettings(id, service_name) {
+	toastr.clear();
+	let email = 0;
+	let server = 0;
+	if ($('#'+service_name+'_server_email-'+id).is(':checked')) {
+		email = '1';
+	}
+	if ($('#'+service_name+'_server_status-'+id).is(':checked')) {
+		server = '1';
+	}
+	$.ajax( {
+		url: "options.py",
+		data: {
+			updateServiceCheckerSettings: id,
+			email: email,
+			server: server,
+			telegram_id: $('#'+service_name+'_server_telegram_channel-'+id+' option:selected' ).val(),
+			slack_id: $('#'+service_name+'_server_slack_channel-'+id+' option:selected').val(),
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
+				toastr.error(data);
+			} else if (data.indexOf('ok') != '-1') {
+				toastr.clear();
+				$('#'+service_name+'_server_tr_id-'+id).addClass( "update", 1000 );
+				setTimeout(function() {
+					$('#'+service_name+'_server_tr_id-'+id ).removeClass( "update" );
+				}, 2500 );
+			}
+		}
+	} );
+}
+function checkWebPanel() {
+	$.ajax({
+	  url: "options.py",
+	  data: {
+		  check_rabbitmq_alert: 1,
+		  token: $('#token').val()
+	  },
+	  type: "POST",
+	  success: function (data) {
+		  data = data.replace(/\s+/g, ' ');
+		  if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {
+			  toastr.error(data);
+		  } else {
+			  toastr.success('Test message has been sent');
+		  }
+	  }
+	});
+}
+function checkEmail() {
+	$.ajax({
+	  url: "options.py",
+	  data: {
+		  check_email_alert: 1,
+		  token: $('#token').val()
+	  },
+	  type: "POST",
+	  success: function (data) {
+		  data = data.replace(/\s+/g, ' ');
+		  if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {
+			  toastr.error(data);
+		  } else {
+			  toastr.success('Test message has been sent');
+		  }
+	  }
+	});
 }

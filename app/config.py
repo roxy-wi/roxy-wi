@@ -130,15 +130,14 @@ if serv is not None and form.getvalue('config') is not None:
 
 	funct.diff_config(oldcfg, cfg)
 
-	os.system("/bin/rm -f " + configs_dir + "*.old")
+	try:
+		os.system("/bin/rm -f " + configs_dir + "*.old")
+	except Exception as e:
+		print('error: ' + str(e))
 
 	if stderr:
 		print(stderr)
-	else:
-		if save == 'test':
-			print('Config is ok')
-		else:
-			print('Config is ok <br /> Config has been updated')
+
 	sys.exit()
 
 template = template.render(
