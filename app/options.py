@@ -1830,23 +1830,14 @@ if form.getvalue('metrics_hapwi_ram'):
     rams = ''
 
     if ip == '1':
-        # cmd = "free -m |grep Mem |awk '{print $2,$3,$4,$5,$6,$7}'"
-        # metric, error = funct.subprocess_execute(cmd)
-        import psutil
-
-        rams_list = psutil.virtual_memory()
-        rams += str(round(rams_list.total/1048576, 2)) + ' '
-        rams += str(round(rams_list.used/1048576, 2)) + ' '
-        rams += str(round(rams_list.free/1048576, 2)) + ' '
-        rams += str(round(rams_list.shared/1048576, 2)) + ' '
-        rams += str(round(rams_list.cached/1048576, 2)) + ' '
-        rams += str(round(rams_list.available/1048576, 2)) + ' '
+        cmd = "free -m |grep Mem |awk '{print $2,$3,$4,$5,$6,$7}'"
+        metric, error = funct.subprocess_execute(cmd)
     else:
         commands = ["free -m |grep Mem |awk '{print $2,$3,$4,$5,$6,$7}'"]
         metric, error = funct.subprocess_execute(commands[0])
 
-        for i in metric:
-            rams = i
+    for i in metric:
+        rams = i
 
     metrics['chartData']['rams'] = rams
 
@@ -1860,26 +1851,15 @@ if form.getvalue('metrics_hapwi_cpu'):
     cpus = ''
 
     if ip == '1':
-        # cmd = "top -b -n 1 |grep Cpu |awk -F':' '{print $2}'|awk  -F' ' 'BEGIN{ORS=\" \";} { for (i=1;i<=NF;i+=2) print $i}'"
-        # metric, error = funct.subprocess_execute(cmd)
-        import psutil
-
-        cpus_list = psutil.cpu_times_percent(interval=1, percpu=False)
-        cpus += str(cpus_list.user) + ' '
-        cpus += str(cpus_list.system) + ' '
-        cpus += str(cpus_list.nice) + ' '
-        cpus += str(cpus_list.idle) + ' '
-        cpus += str(cpus_list.iowait) + ' '
-        cpus += str(cpus_list.irq) + ' '
-        cpus += str(cpus_list.softirq) + ' '
-        cpus += str(cpus_list.steal) + ' '
+        cmd = "top -b -n 1 |grep Cpu |awk -F':' '{print $2}'|awk  -F' ' 'BEGIN{ORS=\" \";} { for (i=1;i<=NF;i+=2) print $i}'"
+        metric, error = funct.subprocess_execute(cmd)
     else:
         commands = [
             "top -b -n 1 |grep Cpu |awk -F':' '{print $2}'|awk  -F' ' 'BEGIN{ORS=\" \";} { for (i=1;i<=NF;i+=2) print $i}'"]
         metric, error = funct.subprocess_execute(commands[0])
 
-        for i in metric:
-            cpus = i
+    for i in metric:
+        cpus = i
 
     metrics['chartData']['cpus'] = cpus
 
