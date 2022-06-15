@@ -1830,14 +1830,23 @@ if form.getvalue('metrics_hapwi_ram'):
     rams = ''
 
     if ip == '1':
-        cmd = "free -m |grep Mem |awk '{print $2,$3,$4,$5,$6,$7}'"
-        metric, error = funct.subprocess_execute(cmd)
+        # cmd = "free -m |grep Mem |awk '{print $2,$3,$4,$5,$6,$7}'"
+        # metric, error = funct.subprocess_execute(cmd)
+        import psutil
+
+        rams_list = psutil.virtual_memory()
+        rams += str(round(rams_list.total/1048576, 2)) + ' '
+        rams += str(round(rams_list.used/1048576, 2)) + ' '
+        rams += str(round(rams_list.free/1048576, 2)) + ' '
+        rams += str(round(rams_list.shared/1048576, 2)) + ' '
+        rams += str(round(rams_list.cached/1048576, 2)) + ' '
+        rams += str(round(rams_list.available/1048576, 2)) + ' '
     else:
         commands = ["free -m |grep Mem |awk '{print $2,$3,$4,$5,$6,$7}'"]
         metric, error = funct.subprocess_execute(commands[0])
 
-    for i in metric:
-        rams = i
+        for i in metric:
+            rams = i
 
     metrics['chartData']['rams'] = rams
 
@@ -1851,15 +1860,26 @@ if form.getvalue('metrics_hapwi_cpu'):
     cpus = ''
 
     if ip == '1':
-        cmd = "top -b -n 1 |grep Cpu |awk -F':' '{print $2}'|awk  -F' ' 'BEGIN{ORS=\" \";} { for (i=1;i<=NF;i+=2) print $i}'"
-        metric, error = funct.subprocess_execute(cmd)
+        # cmd = "top -b -n 1 |grep Cpu |awk -F':' '{print $2}'|awk  -F' ' 'BEGIN{ORS=\" \";} { for (i=1;i<=NF;i+=2) print $i}'"
+        # metric, error = funct.subprocess_execute(cmd)
+        import psutil
+
+        cpus_list = psutil.cpu_times_percent(interval=1, percpu=False)
+        cpus += str(cpus_list.user) + ' '
+        cpus += str(cpus_list.system) + ' '
+        cpus += str(cpus_list.nice) + ' '
+        cpus += str(cpus_list.idle) + ' '
+        cpus += str(cpus_list.iowait) + ' '
+        cpus += str(cpus_list.irq) + ' '
+        cpus += str(cpus_list.softirq) + ' '
+        cpus += str(cpus_list.steal) + ' '
     else:
         commands = [
             "top -b -n 1 |grep Cpu |awk -F':' '{print $2}'|awk  -F' ' 'BEGIN{ORS=\" \";} { for (i=1;i<=NF;i+=2) print $i}'"]
         metric, error = funct.subprocess_execute(commands[0])
 
-    for i in metric:
-        cpus = i
+        for i in metric:
+            cpus = i
 
     metrics['chartData']['cpus'] = cpus
 
@@ -2292,7 +2312,7 @@ if form.getvalue('newserver') is not None:
                     sql.update_firewall(ip)
         except Exception as e:
             funct.logging('Cannot scan a new server ' + hostname, str(e), haproxywi=1)
-            
+
         try:
             sql.insert_new_checker_setting_for_server(ip)
         except Exception as e:
@@ -4447,8 +4467,7 @@ if form.getvalue('updateHaproxyCheckerSettings'):
     slack_id = form.getvalue('slack_id')
 
     if sql.update_haproxy_checker_settings(email, telegram_id, slack_id, service_alert, backend_alert,
-	    maxconn_alert, setting_id
-    ):
+                                           maxconn_alert, setting_id):
         print('ok')
     else:
         print('error: Cannot update Checker settings')

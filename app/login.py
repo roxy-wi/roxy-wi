@@ -101,8 +101,8 @@ def send_cookie(login):
 			sql.update_user_name(user_name)
 		else:
 			sql.insert_user_name(user_name)
-	except Exception:
-		funct.logging('Cannot update sbscription ', str(e), haproxywi=1)
+	except Exception as e:
+		funct.logging('Cannot update subscription: ', str(e), haproxywi=1)
 
 	sys.exit()
 

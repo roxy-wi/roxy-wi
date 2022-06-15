@@ -1441,7 +1441,7 @@ def show_backends(server_ip, **kwargs):
 	else:
 		ret = ""
 	for line in output:
-		if "#" in line or "stats" in line or "MASTER" in line:
+		if any(s in line for s in ('#', 'stats', 'MASTER', '<')):
 			continue
 		if len(line) > 1:
 			back = json.dumps(line).split("\"")
@@ -2061,14 +2061,6 @@ def is_docker() -> bool:
 
 def send_email(email_to: str, subject: str, message: str) -> None:
 	import sql
-
-	mail_ssl = sql.get_setting('mail_ssl')
-	mail_from = sql.get_setting('mail_from')
-	mail_smtp_host = sql.get_setting('mail_smtp_host')
-	mail_smtp_port = sql.get_setting('mail_smtp_port')
-	mail_smtp_user = sql.get_setting('mail_smtp_user')
-	mail_smtp_password = sql.get_setting('mail_smtp_password')
-
 	from smtplib import SMTP
 
 	try:
@@ -2076,7 +2068,12 @@ def send_email(email_to: str, subject: str, message: str) -> None:
 	except Exception:
 		from email.mime.text import MIMEText
 
-	from email.message import EmailMessage
+	mail_ssl = sql.get_setting('mail_ssl')
+	mail_from = sql.get_setting('mail_from')
+	mail_smtp_host = sql.get_setting('mail_smtp_host')
+	mail_smtp_port = sql.get_setting('mail_smtp_port')
+	mail_smtp_user = sql.get_setting('mail_smtp_user')
+	mail_smtp_password = sql.get_setting('mail_smtp_password')
 
 	msg = MIMEText(message)
 	msg['Subject'] = 'Roxy-WI: ' + subject
@@ -2089,7 +2086,7 @@ def send_email(email_to: str, subject: str, message: str) -> None:
 			smtpObj.starttls()
 		smtpObj.login(mail_smtp_user, mail_smtp_password)
 		smtpObj.send_message(msg)
-		logging('localhost', 'An email has been sent to ' + email_to , haproxywi=1)
+		logging('localhost', 'An email has been sent to ' + email_to, haproxywi=1)
 	except Exception as e:
 		logging('localhost', 'error: unable to send email: ' + str(e), haproxywi=1)
 
