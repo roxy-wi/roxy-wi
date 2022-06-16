@@ -68,14 +68,21 @@ def index():
 		'nginx/<id,hostname,ip>/action/stop': 'stop NGINX service by id or hostname or ip. METHOD: GET',
 		'nginx/<id,hostname,ip>/action/restart': 'restart NGINX service by id or hostname or ip. METHOD: GET',
 		'nginx/<id,hostname,ip>/config': 'get NGINX config from a server by id or hostname or ip. Headers: The full path to a config file, like: /etc/nginx/conf.d/default.conf. METHOD: GET',
-		'nginx/<id,hostname,ip>/config': 'upload NGINX config to a server by id or hostname or ip. Headers: action: save/reload/restart, config-file: the full path to the config, like /etc/nginx/conf.d/example.com.conf. Body must consist a whole HAProxy config. METHOD: POST',
+		'nginx/<id,hostname,ip>/config': 'upload NGINX config to a server by id or hostname or ip. Headers: action: save/reload/restart, config-file: the full path to the config, like /etc/nginx/conf.d/example.com.conf. Body must consist a whole NGINX config. METHOD: POST',
 		'apache/<id,hostname,ip>': 'show info about the Apache by id or hostname or ip. METHOD: GET',
 		'apache/<id,hostname,ip>/status': 'show Apache status by id or hostname or ip. METHOD: GET',
 		'apache/<id,hostname,ip>/action/start': 'start Apache service by id or hostname or ip. METHOD: GET',
 		'apache/<id,hostname,ip>/action/stop': 'stop Apache service by id or hostname or ip. METHOD: GET',
 		'apache/<id,hostname,ip>/action/restart': 'restart Apache service by id or hostname or ip. METHOD: GET',
 		'apache/<id,hostname,ip>/config': 'get Apache config from a server by id or hostname or ip. Headers: The full path to a config file, like: /etc/httpd/conf.d/default.conf. METHOD: GET',
-		'apache/<id,hostname,ip>/config': 'upload Apache config to a server by id or hostname or ip. Headers: action: save/reload/restart, config-file: the full path to the config, like /etc/httpd/conf.d/example.com.conf. Body must consist a whole HAProxy config. METHOD: POST',
+		'apache/<id,hostname,ip>/config': 'upload Apache config to a server by id or hostname or ip. Headers: action: save/reload/restart, config-file: the full path to the config, like /etc/httpd/conf.d/example.com.conf. Body must consist a whole Apache config. METHOD: POST',
+		'keepalived/<id,hostname,ip>': 'show info about the Keepalived by id or hostname or ip. METHOD: GET',
+		'keepalived/<id,hostname,ip>/status': 'show Keepalived status by id or hostname or ip. METHOD: GET',
+		'keepalived/<id,hostname,ip>/action/start': 'start Keepalived service by id or hostname or ip. METHOD: GET',
+		'keepalived/<id,hostname,ip>/action/stop': 'stop Keepalived service by id or hostname or ip. METHOD: GET',
+		'keepalived/<id,hostname,ip>/action/restart': 'restart Keepalived service by id or hostname or ip. METHOD: GET',
+		'keepalived/<id,hostname,ip>/config': 'get Keepalived config from a server by id or hostname or ip. METHOD: GET',
+		'keepalived/<id,hostname,ip>/config': 'upload Keepalived config to a server by id or hostname or ip. Headers: action: save/reload/restart. Body must consist a whole Keepalived config. METHOD: POST',
 	}
 	return dict(help=data)
 

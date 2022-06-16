@@ -2331,7 +2331,7 @@ function updateService(service, action='update') {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 				toastr.error(data);
-			} else if (data.indexOf('Complete!') != '-1' || data.indexOf('Unpacking!') != '-1'){
+			} else if (data.indexOf('Complete!') != '-1' || data.indexOf('Unpacking') != '-1'){
 				toastr.clear();
 				toastr.success(service + ' has been '+action+'ed');
 			} else if (data.indexOf('Unauthorized') != '-1') {
