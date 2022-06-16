@@ -2316,7 +2316,7 @@ function ajaxActionServies(action, service) {
 		}
 	} );
 }
-function updateService(service) {
+function updateService(service, action='update') {
 	$("#ajax-update").html('')
 	$("#ajax-update").html(wait_mess);
 	$.ajax( {
@@ -2331,15 +2331,15 @@ function updateService(service) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 				toastr.error(data);
-			} else if (data.indexOf('Complete!') != '-1'){
+			} else if (data.indexOf('Complete!') != '-1' || data.indexOf('Unpacking!') != '-1'){
 				toastr.clear();
-				toastr.success(service + ' has been updated');
+				toastr.success(service + ' has been '+action+'ed');
 			} else if (data.indexOf('Unauthorized') != '-1') {
 				toastr.clear();
 				toastr.error('It seems like Unauthorized in the Roxy-WI repository. How to get Roxy-WI auth you can read <b><a href="https://roxy-wi.org/installation.py" title="How to get Roxy-WI auth">hear</a></b>');
 			} else if (data.indexOf('but not installed') != '-1') {
 				toastr.clear();
-				toastr.error('There is settings for Roxy-WI repository, but Roxy-WI is installed without repository. Please reinstall with yum');
+				toastr.error('There is setting for Roxy-WI repository, but Roxy-WI is installed without repository. Please reinstall with package manager');
 			} else if (data.indexOf('No Match for argument') != '-1') {
 				toastr.clear();
 				toastr.error('It seems like Roxy-WI repository is not set. Please read docs for <b><a href="https://roxy-wi.org/updates.py">detail</a></b>');
