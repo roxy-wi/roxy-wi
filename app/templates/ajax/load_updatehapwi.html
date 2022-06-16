@@ -89,8 +89,8 @@
         <a href="{{desc_link}}" title="Read more about {{service_name}}" target="_blank" class="link">{{service_name}}</a>
     </td>
     <td>
-        {% if s.3 != '* is not installed' %}
-        <b
+        {% if s.3 != '* is not installed' and s.3 != '' %}
+        <b id="current-version-{{s.0}}"
                 {% if is_need_update %}
                 title="There is a newer version {{service_name}}"
                 style="color: var(--red-color)"
@@ -121,7 +121,7 @@
         </b>
     </td>
     <td>
-        {% if 'is not installed' not in s.3 %}
+        {% if 'is not installed' not in s.3 and s.3 != '' %}
             {% if is_need_update %}
                 <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}')" title="Update {{service_name}}">Update</a>
             {% endif %}
