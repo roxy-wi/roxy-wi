@@ -14,7 +14,7 @@
     </td>
     <td class="padding10 first-collumn">
         {% if 'is not installed' in s.3 %}
-            <a href="https://roxy-wi.org/services.py?service={{s.0.split('-')[2]}}#installation" title="{{s.0.split('-')[2]}} installation" target="_blank" class="link">Read about installation</a>
+            <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}', 'install')" title="Install {{service_name}}">Install</a>
         {% else %}
         <a id="start-{{ s.0 }}" class="start" title="Start and enable {{s.0}} service">
             <span class="service-start" onclick="confirmAjaxServiceAction('start', '{{s.0}}')"></span>

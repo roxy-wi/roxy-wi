@@ -123,10 +123,10 @@
     <td>
         {% if 'is not installed' not in s.3 and s.3 != '' %}
             {% if is_need_update %}
-                <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}', 'install')" title="Update {{service_name}}">Update</a>
+                <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}')" title="Update {{service_name}}">Update</a>
             {% endif %}
         {% else %}
-            <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}')" title="Install {{service_name}}">Install</a>
+            <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}', 'install')" title="Install {{service_name}}">Install</a>
         {% endif %}
     </td>
     <td colspan="2">

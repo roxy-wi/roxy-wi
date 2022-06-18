@@ -2329,18 +2329,16 @@ function updateService(service, action='update') {
 		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
-				toastr.error(data);
-			} else if (data.indexOf('Complete!') != '-1' || data.indexOf('Unpacking') != '-1'){
+			if (data.indexOf('Complete!') != '-1' || data.indexOf('Unpacking') != '-1'){
 				toastr.clear();
 				toastr.success(service + ' has been '+action+'ed');
-			} else if (data.indexOf('Unauthorized') != '-1') {
+			} else if (data.indexOf('Unauthorized') != '-1' || data.indexOf('Status code: 401') != '-1') {
 				toastr.clear();
-				toastr.error('It seems like Unauthorized in the Roxy-WI repository. How to get Roxy-WI auth you can read <b><a href="https://roxy-wi.org/installation.py" title="How to get Roxy-WI auth">hear</a></b>');
+				toastr.error('It looks like there is no authorization in the Roxy-WI repository. Your subscription may have expired or there is no subscription. How to get the <b><a href="https://roxy-wi.org/pricing.py" title="Pricing" target="_blank">subscription</a></b>');
 			} else if (data.indexOf('but not installed') != '-1') {
 				toastr.clear();
 				toastr.error('There is setting for Roxy-WI repository, but Roxy-WI is installed without repository. Please reinstall with package manager');
-			} else if (data.indexOf('No Match for argument') != '-1') {
+			} else if (data.indexOf('No Match for argument') != '-1' || data.indexOf('Unable to find a match') != '-1') {
 				toastr.clear();
 				toastr.error('It seems like Roxy-WI repository is not set. Please read docs for <b><a href="https://roxy-wi.org/updates.py">detail</a></b>');
 			} else if (data.indexOf('password for') != '-1') {
@@ -2360,6 +2358,8 @@ function updateService(service, action='update') {
 				toastr.error(data);
 			} else if (data.indexOf('conflicts with file from') != '-1') {
 				toastr.clear();
+				toastr.error(data);
+			} else if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 				toastr.error(data);
 			}
 			$("#ajax-update").html('');
