@@ -1,6 +1,9 @@
 {% from 'include/input_macros.html' import copy_to_clipboard %}
 {% extends "base.html" %}
 {% block content %}
+{% if user_status == 0 or user_plan == 'user' %}
+	{% include 'include/no_sub.html' %}
+{% else %}
 <link href="/inc/table.css" rel="stylesheet" type="text/css">
 <script type="text/javascript" charset="utf8" src="/inc/dataTables.min.js"></script>
 <script>
@@ -48,4 +51,5 @@
     {% endfor %}
     </tbody>
 </table>
+{% endif %}
 {% endblock %}
