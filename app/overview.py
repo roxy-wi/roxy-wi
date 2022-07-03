@@ -106,13 +106,13 @@ rendered_template = template.render(
 	metrics_master=''.join(metrics_master), metrics_worker=''.join(metrics_worker), checker_master=''.join(checker_master),
 	checker_worker=''.join(checker_worker), keep_alive=''.join(keep_alive), smon=''.join(smon),
 	port_scanner=''.join(port_scanner), grafana=''.join(grafana), socket=''.join(socket),
-	roxy_wi_log_id=funct.haproxy_wi_log(log_id=1, file="roxy-wi-", with_date=1),
-	metrics_log_id=funct.haproxy_wi_log(log_id=1, file="metrics", with_date=1),
-	checker_log_id=funct.haproxy_wi_log(log_id=1, file="checker", with_date=1),
-	keep_alive_log_id=funct.haproxy_wi_log(log_id=1, file="keep_alive"),
-	socket_log_id=funct.haproxy_wi_log(log_id=1, file="socket"),
-	metrics_error_log_id=funct.haproxy_wi_log(log_id=1, file="metrics-error"), error=stderr,
-	haproxy_wi_log=funct.haproxy_wi_log(), servers=servers, is_checker_worker=is_checker_worker,
+	roxy_wi_log_id=funct.roxy_wi_log(log_id=1, file="roxy-wi-", with_date=1),
+	metrics_log_id=funct.roxy_wi_log(log_id=1, file="metrics", with_date=1),
+	checker_log_id=funct.roxy_wi_log(log_id=1, file="checker", with_date=1),
+	keep_alive_log_id=funct.roxy_wi_log(log_id=1, file="keep_alive"),
+	socket_log_id=funct.roxy_wi_log(log_id=1, file="socket"),
+	metrics_error_log_id=funct.roxy_wi_log(log_id=1, file="metrics-error"), error=stderr,
+	haproxy_wi_log=funct.roxy_wi_log(), servers=servers, is_checker_worker=is_checker_worker,
 	is_metrics_worker=is_metrics_worker, host=host, user_services=user_services, token=token
 )
 print(rendered_template)
