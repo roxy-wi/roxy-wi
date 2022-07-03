@@ -29,7 +29,7 @@
 {% if servers|length == 0 %}
 	{% include 'include/getstarted.html' %}
 {% else %}
-	{% if service != 'nginx' %}
+	{% if service == 'haproxy' %}
 	<table style="min-width: 40%;">
 		<tr class="overviewHead">
 			<th colspan=13 style="background-color: #d1ecf1">
@@ -51,7 +51,7 @@
 			<option value="720">12 hours</option>
 		</select>
 	</div>
-	{% if service != 'nginx' %}
+	{% if service == 'haproxy' %}
 	<div style="margin-top: 6px;">
 		{{ checkbox('hide_http_metrics', desc='Hide HTTP metrics', title='Hide HTTP metrics') }}
 	</div>
@@ -60,12 +60,16 @@
 		<span  class="refresh"></span>
 	</div>
 {% for s in servers %}
-	{% if service != 'nginx' %}
+	{% if service == 'haproxy' %}
 	<div class="chart-container">
 		<canvas id="{{s.ip}}" role="img"></canvas>
 	</div>
 	<div class="chart-container http_metrics_div" style="display: none">
 		<canvas id="http_{{s.ip}}" role="img"></canvas>
+	</div>
+	{% elif service == 'apache' %}
+	<div class="chart-container">
+		<canvas id="apache_{{s.ip}}" role="img"></canvas>
 	</div>
 	{% else %}
 	<div class="chart-container">
@@ -79,14 +83,16 @@
 			(resolve, reject) => {
 				removeData();
 				{% for s in servers %}
-					{% if service != 'nginx' %}
-					getChartData('{{s.ip}}')
-					getHttpChartData('{{s.ip}}')
+					{% if service == 'haproxy' %}
+						getChartData('{{s.ip}}')
+						getHttpChartData('{{s.ip}}')
+					{% elif service == 'apache' %}
+						getApacheChartData('{{s.ip}}')
 					{% else %}
-					getNginxChartData('{{s.ip}}')
+						getNginxChartData('{{s.ip}}')
 					{% endif %}
 				{% endfor %}
-				{% if service != 'nginx' %}
+				{% if service == 'haproxy' %}
 				if (localStorage.getItem('table_metrics') == 0 || localStorage.getItem('table_metrics') === null) {
 					$('#dis_table_metric').css('display', 'none');
 				} else {
@@ -104,12 +110,14 @@
 			let metrics = new Promise(
 					(resolve, reject) => {
 						{% for s in servers %}
-						{% if service != 'nginx' %}
-						getChartData('{{s.ip}}')
-						getHttpChartData('{{s.ip}}')
-						{% else %}
-						getNginxChartData('{{s.ip}}')
-						{% endif %}
+							{% if service == 'haproxy' %}
+								getChartData('{{s.ip}}')
+								getHttpChartData('{{s.ip}}')
+							{% elif service == 'apache' %}
+								getApacheChartData('{{s.ip}}')
+							{% else %}
+								getNginxChartData('{{s.ip}}')
+							{% endif %}
 						{% endfor %}
 					});
 			metrics.then();

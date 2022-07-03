@@ -297,7 +297,7 @@ def update_hapwi_server(server_id, alert, metrics, active, service_name):
 			update_hapwi = Server.update(keepalived_alert=alert, keepalived_active=active).where(
 				Server.server_id == server_id)
 		elif service_name == 'apache':
-			update_hapwi = Server.update(apache_alert=alert, apache_active=active).where(
+			update_hapwi = Server.update(apache_alert=alert, apache_active=active, apache_metrics=metrics).where(
 				Server.server_id == server_id)
 		else:
 			update_hapwi = Server.update(alert=alert, metrics=metrics, active=active).where(
@@ -872,7 +872,8 @@ def get_dick_permit(**kwargs):
 		try:
 			cursor.execute(sql)
 		except Exception as e:
-			out_error(e)
+			# out_error(e)
+			pass
 		else:
 			return cursor.fetchall()
 
@@ -1233,6 +1234,13 @@ def insert_nginx_metrics(serv, conn):
 		out_error(e)
 
 
+def insert_apache_metrics(serv, conn):
+	try:
+		ApacheMetrics.insert(serv=serv, conn=conn, date=funct.get_data('regular')).execute()
+	except Exception as e:
+		out_error(e)
+
+
 def select_waf_metrics_enable_server(ip):
 	query = Waf.select(Waf.metrics).join(Server, on=(Waf.server_id == Server.server_id)).where(Server.ip == ip)
 	try:
@@ -1355,6 +1363,44 @@ def select_nginx_metrics(serv, **kwargs):
 		else:
 			date_from = "and date > datetime('now', '-30 minutes', 'localtime')"
 		sql = """ select * from (select * from nginx_metrics where serv = '{serv}' {date_from} order by `date`) order by `date` """.format(
+			serv=serv, date_from=date_from)
+
+	try:
+		cursor.execute(sql)
+	except Exception as e:
+		out_error(e)
+	else:
+		return cursor.fetchall()
+
+
+def select_apache_metrics(serv, **kwargs):
+	cursor = conn.cursor()
+
+	if mysql_enable == '1':
+		if kwargs.get('time_range') == '60':
+			date_from = "and date > now() - INTERVAL 60 minute group by `date` div 100"
+		elif kwargs.get('time_range') == '180':
+			date_from = "and date > now() - INTERVAL 180 minute group by `date` div 200"
+		elif kwargs.get('time_range') == '360':
+			date_from = "and date > now() - INTERVAL 360 minute group by `date` div 300"
+		elif kwargs.get('time_range') == '720':
+			date_from = "and date > now() - INTERVAL 720 minute group by `date` div 500"
+		else:
+			date_from = "and date > now() - INTERVAL 30 minute"
+		sql = """ select * from apache_metrics where serv = '{serv}' {date_from} order by `date` desc limit 60 """.format(
+			serv=serv, date_from=date_from)
+	else:
+		if kwargs.get('time_range') == '60':
+			date_from = "and date > datetime('now', '-60 minutes', 'localtime') and rowid % 2 = 0"
+		elif kwargs.get('time_range') == '180':
+			date_from = "and date > datetime('now', '-180 minutes', 'localtime') and rowid % 5 = 0"
+		elif kwargs.get('time_range') == '360':
+			date_from = "and date > datetime('now', '-360 minutes', 'localtime') and rowid % 7 = 0"
+		elif kwargs.get('time_range') == '720':
+			date_from = "and date > datetime('now', '-720 minutes', 'localtime') and rowid % 9 = 0"
+		else:
+			date_from = "and date > datetime('now', '-30 minutes', 'localtime')"
+		sql = """ select * from (select * from apache_metrics where serv = '{serv}' {date_from} order by `date`) order by `date` """.format(
 			serv=serv, date_from=date_from)
 
 	try:
@@ -1544,6 +1590,14 @@ def delete_nginx_metrics():
 		out_error(e)
 
 
+def delete_apache_metrics():
+	query = ApacheMetrics.delete().where(ApacheMetrics.date < funct.get_data('regular', timedelta_minus=3))
+	try:
+		query.execute()
+	except Exception as e:
+		out_error(e)
+
+
 def select_metrics(serv, **kwargs):
 	cursor = conn.cursor()
 
@@ -1624,10 +1678,28 @@ def select_metrics_http(serv, **kwargs):
 
 
 def select_servers_metrics_for_master(**kwargs):
-	if kwargs.get('group') is not None:
-		query = Server.select(Server.ip).where((Server.metrics == 1) & (Server.groups == kwargs.get('group')))
+	if kwargs.get('group') != 1:
+		query = Server.select(Server.ip).where(
+			((Server.metrics == 1) | (Server.nginx_metrics == 1) | (Server.apache_metrics == 1))
+			& (Server.groups == kwargs.get('group'))
+		)
 	else:
-		query = Server.select(Server.ip).where(Server.metrics == 1)
+		query = Server.select(Server.ip).where(
+			(Server.metrics == 1)
+			| (Server.nginx_metrics == 1)
+			| (Server.apache_metrics == 1)
+		)
+
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
+
+
+def select_haproxy_servers_metrics_for_master():
+	query = Server.select(Server.ip).where(Server.metrics == 1)
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -1638,6 +1710,16 @@ def select_servers_metrics_for_master(**kwargs):
 
 def select_nginx_servers_metrics_for_master():
 	query = Server.select(Server.ip).where(Server.nginx_metrics == 1)
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
+
+
+def select_apache_servers_metrics_for_master():
+	query = Server.select(Server.ip).where(Server.apache_metrics == 1)
 	try:
 		query_res = query.execute()
 	except Exception as e:

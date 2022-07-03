@@ -55,3 +55,8 @@
 		</tr>
 	{% endif %}
 {% endfor %}
+{% if users|length > 3 %}
+<script>
+	$('#show_all_users').show();
+</script>
+{% endif %}

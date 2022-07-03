@@ -29,10 +29,15 @@ try:
 				if funct.check_login(service=2):
 					title = "NGINX`s metrics"
 					servers = sql.select_nginx_servers_metrics_for_master()
+			elif service == 'apache':
+				if funct.check_login(service=4):
+					title = "Apache`s metrics"
+					servers = sql.select_apache_servers_metrics_for_master()
 			else:
 				if funct.check_login(service=1):
 					title = "HAProxy`s metrics"
 					servers = sql.select_servers_metrics()
+					service = 'haproxy'
 			services = '1'
 except Exception:
 	pass

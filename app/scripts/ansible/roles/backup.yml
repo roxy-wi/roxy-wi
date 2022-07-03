@@ -9,7 +9,7 @@
       
   - name: Creates directory
     file:
-      path: "{{ RPATH }}/haproxy-wi-configs-backup/configs"
+      path: "{{ RPATH }}/roxy-wi-configs-backup/configs"
       state: directory
       owner: "{{ ansible_user }}"
     when: DELJOB|length == 0
@@ -22,21 +22,23 @@
                     
   - name: Creates backup jobs
     cron:
-      name: "Backup HAProxy configs for user {{ SERVER }} {{ item }}"
+      name: "Roxy-WI Backup configs for server {{ SERVER }} {{ item }}"
       special_time: "{{ TIME }}"
-      job: "rsync -arv {{ TYPE }} /var/www/haproxy-wi/configs/{{ item }}/{{ SERVER }}* {{ ansible_user }}@{{ HOST }}:{{ RPATH }}/haproxy-wi-configs-backup/configs/{{ item }} -e 'ssh -i {{ KEY }} -o StrictHostKeyChecking=no' --log-file=/var/www/haproxy-wi/log/backup.log"
+      job: "rsync -arv {{ TYPE }} /var/www/haproxy-wi/configs/{{ item }}/{{ SERVER }}* {{ ansible_user }}@{{ HOST }}:{{ RPATH }}/roxy-wi-configs-backup/configs/{{ item }} -e 'ssh -i {{ KEY }} -o StrictHostKeyChecking=no' --log-file=/var/www/haproxy-wi/log/backup.log"
     when: DELJOB|length == 0
     with_items: 
       - kp_config
       - hap_config
       - nginx_config
+      - apache_config
      
   - name: Removes backup jobs
     cron:
-      name: "Backup HAProxy configs for user {{ SERVER }} {{ item }}"
+      name: "Roxy-WI Backup configs for server {{ SERVER }} {{ item }}"
       state: absent
     when: DELJOB|length > 0
     with_items: 
       - kp_config
       - hap_config
       - nginx_config
+      - apache_config

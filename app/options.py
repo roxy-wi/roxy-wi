@@ -15,6 +15,7 @@ if (
         or form.getvalue('new_http_metrics')
         or form.getvalue('new_waf_metrics')
         or form.getvalue('new_nginx_metrics')
+        or form.getvalue('new_apache_metrics')
         or form.getvalue('metrics_hapwi_ram')
         or form.getvalue('metrics_hapwi_cpu')
         or form.getvalue('getoption')
@@ -1335,7 +1336,10 @@ if form.getvalue('master'):
             group_id = sql.get_group_id_by_server_ip(master)
             cred_id = sql.get_cred_id_by_server_ip(master)
             hostname = sql.get_hostname_by_server_ip(master)
-            sql.add_server(hostname + '-VIP', IP, group_id, '1', '1', '0', cred_id, ssh_port, 'VRRP IP for ' + master, haproxy, nginx, '0')
+            firewall = 1 if funct.is_service_active(master, 'firewalld') else 0
+            sql.add_server(
+                hostname + '-VIP', IP, group_id, '1', '1', '0', cred_id, ssh_port, 'VRRP IP for ' + master, haproxy, nginx, '0', firewall
+            )
 
 if form.getvalue('master_slave'):
     master = form.getvalue('master_slave')
@@ -1934,35 +1938,16 @@ if form.getvalue('new_http_metrics'):
 
     print(json.dumps(metrics))
 
-if form.getvalue('new_waf_metrics'):
+if any((form.getvalue('new_nginx_metrics'), form.getvalue('new_apache_metrics'), form.getvalue('new_waf_metrics'))):
     serv = form.getvalue('server')
     hostname = sql.get_hostname_by_server_ip(serv)
     time_range = form.getvalue('time_range')
-    metric = sql.select_waf_metrics(serv, time_range=time_range)
-    metrics = {'chartData': {}}
-    metrics['chartData']['labels'] = {}
-    labels = ''
-    curr_con = ''
-
-    for i in metric:
-        label = str(i[2])
-        label = label.split(' ')[1]
-        labels += label + ','
-        curr_con += str(i[1]) + ','
-
-    metrics['chartData']['labels'] = labels
-    metrics['chartData']['curr_con'] = curr_con
-    metrics['chartData']['server'] = hostname + ' (' + serv + ')'
-
-    import json
-
-    print(json.dumps(metrics))
-
-if form.getvalue('new_nginx_metrics'):
-    serv = form.getvalue('server')
-    hostname = sql.get_hostname_by_server_ip(serv)
-    time_range = form.getvalue('time_range')
-    metric = sql.select_nginx_metrics(serv, time_range=time_range)
+    if form.getvalue('new_nginx_metrics'):
+        metric = sql.select_nginx_metrics(serv, time_range=time_range)
+    elif form.getvalue('new_apache_metrics'):
+        metric = sql.select_apache_metrics(serv, time_range=time_range)
+    elif form.getvalue('new_waf_metrics'):
+        metric = sql.select_waf_metrics(serv, time_range=time_range)
     metrics = {'chartData': {}}
     metrics['chartData']['labels'] = {}
     labels = ''

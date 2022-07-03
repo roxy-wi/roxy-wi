@@ -33,7 +33,7 @@ def default_values():
 		{'param': 'haproxy_path_logs', 'value': '/var/log/haproxy/', 'section': 'haproxy',
 			'desc': 'The path for HAProxy logs', 'group': '1'},
 		{'param': 'syslog_server_enable', 'value': '0', 'section': 'logs',
-			'desc': 'Enable getting logs from a syslog server; (0 - no, 1 - yes)', 'group': '1'},
+			'desc': 'Enable getting logs from a syslog server', 'group': '1'},
 		{'param': 'syslog_server', 'value': '', 'section': 'logs', 'desc': 'IP address of the syslog_server',
 			'group': '1'},
 		{'param': 'log_time_storage', 'value': '14', 'section': 'logs',
@@ -59,7 +59,7 @@ def default_values():
 		{'param': 'haproxy_sock_port', 'value': '1999', 'section': 'haproxy', 'desc': 'HAProxy sock port',
 			'group': '1'},
 		{'param': 'apache_log_path', 'value': '/var/log/' + apache_dir + '/', 'section': 'logs',
-		 	'desc': 'Path to Apache logs. Apache service for Roxy-WI', 'group': '1'},
+			'desc': 'Path to Apache logs. Apache service for Roxy-WI', 'group': '1'},
 		{'param': 'nginx_path_logs', 'value': '/var/log/nginx/', 'section': 'nginx',
 			'desc': 'The path for NGINX logs', 'group': '1'},
 		{'param': 'nginx_stats_user', 'value': 'admin', 'section': 'nginx', 'desc': 'Username for accessing NGINX stats page',
@@ -744,7 +744,7 @@ def update_db_v_6_1_0(**kwargs):
 
 
 def update_ver():
-	query = Version.update(version='6.1.0.0')
+	query = Version.update(version='6.1.1.0')
 	try:
 		query.execute()
 	except Exception:

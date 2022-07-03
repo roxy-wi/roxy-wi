@@ -71,6 +71,8 @@
 					{% if service == 'nginx' %}
 						showNginxConnections(server_ip)
 						getNginxChartData(server_ip)
+					{% elif service == 'apache' %}
+						getApacheChartData(server_ip)
 					{% elif service == 'haproxy' %}
 						showBytes(server_ip)
 					{% endif %}
@@ -82,13 +84,15 @@
 						let metrics = new Promise(
 								(resolve, reject) => {
 									{% for s in servers %}
-									{% if service == 'haproxy' %}
-									getChartData(server_ip)
-									getHttpChartData(server_ip)
-									getWafChartData(server_ip)
-									{% elif service == 'nginx' %}
-									getNginxChartData(server_ip)
-									{% endif %}
+										{% if service == 'haproxy' %}
+											getChartData(server_ip)
+											getHttpChartData(server_ip)
+											getWafChartData(server_ip)
+										{% elif service == 'nginx' %}
+											getNginxChartData(server_ip)
+										{% elif service == 'apache' %}
+											getApacheChartData(server_ip)
+										{% endif %}
 									{% endfor %}
 								});
 						metrics.then();
@@ -248,7 +252,7 @@
 						{{ checkbox(id, title=checker_desc, value='1', desc='Checker') }}
 					{% endif %}
 				{% endif %}
-				{% if role <= 2 and service != 'keepalived' and service != 'apache' %}
+				{% if role <= 2 and service != 'keepalived' %}
 					{% set id = 'metrics-' + s.8.0.0|string() %}
 					{% if is_metrics_enabled == 1 %}
 						{{ checkbox(id, title='Collecting metrics is enabled', value='1', desc='Metrics', checked='checked') }}
@@ -303,7 +307,7 @@
 	{% endfor %}
 </div>
 	{% if serv %}
-	{% if service == 'haproxy' or service == 'nginx' %}
+	{% if service in ('haproxy', 'nginx', 'apache') %}
 	<div style="clear: both; width: 97%;">
 		<div style="padding-left: 25px;float: left;margin-top: -15px;">
 			<b>Time range:</b>
@@ -331,10 +335,15 @@
 		<div id="waf_metrics_div" class="chart-container_overview">
 			<canvas id="s_{{s.2}}" role="img"></canvas>
 		</div>
-		{% endif %}
+		{% elif service == 'nginx' %}
 		<div id="nginx_metrics_div" class="chart-container" style="display: block; width: 90%; height: 300px;">
 			<canvas id="nginx_{{s.2}}" role="img"></canvas>
 		</div>
+		{% elif service == 'apache' %}
+		<div id="apache_metrics_div" class="chart-container" style="display: block; width: 90%; height: 300px;">
+			<canvas id="apache_{{s.2}}" role="img"></canvas>
+		</div>
+		{% endif %}
 	{% endfor %}
 {% endif %}
 <div id="dialog-confirm" style="display: none;">

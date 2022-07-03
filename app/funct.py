@@ -712,7 +712,7 @@ def install_haproxy(server_ip, **kwargs):
 	os.system("cp scripts/%s ." % script)
 
 	if haproxy_ver is None:
-		haproxy_ver = '2.5.1-1'
+		haproxy_ver = '2.6.0-1'
 
 	if proxy is not None and proxy != '' and proxy != 'None':
 		proxy_serv = proxy
@@ -1330,16 +1330,13 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 		return show_log(output, grep=grep)
 
 
-def haproxy_wi_log(**kwargs):
+def roxy_wi_log(**kwargs):
 	log_path = get_config_var('main', 'log_path')
 
 	if kwargs.get('log_id'):
 		selects = get_files(log_path, format="log")
 		for key, value in selects:
-			if kwargs.get('with_date'):
-				log_file = kwargs.get('file') + get_data('logs') + ".log"
-			else:
-				log_file = kwargs.get('file') + ".log"
+			log_file = kwargs.get('file') + ".log"
 			if log_file == value:
 				return key
 	else:

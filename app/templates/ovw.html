@@ -320,7 +320,7 @@
 				<td class="second-collumn">Groups</td>
 				<td>Role</td>
 				<td>
-					<span class="add-button-wi">
+					<span class="add-button-wi" id="show_all_users" style="display: none;">
 						<span title="Show all users" id="show-all-users" style="color: #fff">
 							Show all
 						</span>
@@ -344,11 +344,13 @@
 			</td>
 			<td class="second-collumn" style="width: 40%">Description</td>
 			<td>
+				{% if groups|length > 3 %}
 				<span class="add-button-wi">
 					<span title="Show all groups" id="show-all-groups" style="color: #fff">
 						Show all
 					</span>
 				</span>
+				{% endif %}
 			</td>
 		</tr>		
 		{% set counter = 0 -%}
@@ -404,11 +406,13 @@
 				</a>
 			</td> 
 			<td>
+				{% if haproxy_wi_log|length > 3 %}
 				<span class="add-button-wi">
 					<span title="Show more log" id="show-all-haproxy-wi-log" style="color: #fff">
 						Show more log
 					</span>
 				</span>
+				{% endif %}
 			</td>
 		</tr>		
 		<tr>
@@ -418,13 +422,13 @@
 			{% if counter <= 2 %}
 			<tr class="{{ loop.cycle('odd', 'even') }}">
 				<td class="padding10 first-collumn-wi" style="font-size: 12.5px;" colspan="2"> 
-					{{log }}				
+					{{ log }}
 				</td>
 			</tr>
 			{% else %}
-			<tr style="display: none;" class="show-haproxy-wi-log" class="{{ loop.cycle('odd', 'even') }}">
+			<tr style="display: none;" class="show-haproxy-wi-log {{ loop.cycle('odd', 'even') }}">
 				<td class="padding10 first-collumn-wi" style="font-size: 12.5px" colspan="2"> 
-					{{log }}				
+					{{ log }}
 				</td>
 			</tr>
 			{% endif %}
@@ -448,5 +452,4 @@
 <script>
 	showOverview(ip, hostnamea)
 </script>
-
 {% endblock %}

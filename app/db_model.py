@@ -226,6 +226,16 @@ class NginxMetrics(BaseModel):
         primary_key = False
 
 
+class ApacheMetrics(BaseModel):
+    serv = CharField()
+    conn = IntegerField()
+    date = DateTimeField(default=datetime.now)
+
+    class Meta:
+        table_name = 'apache_metrics'
+        primary_key = False
+
+
 class Version(BaseModel):
     version = CharField()
 
@@ -268,7 +278,7 @@ class WafRules(BaseModel):
     serv = CharField()
     rule_name = CharField()
     rule_file = CharField()
-    desc = CharField(null=True)
+    desc = TextField(null=True)
     en = IntegerField(constraints=[SQL('DEFAULT 1')])
 
     class Meta:
@@ -532,4 +542,4 @@ def create_tables():
                             Setting, Cred, Backup, Metrics, WafMetrics, Version, Option, SavedServer, Waf, ActionHistory,
                             PortScannerSettings, PortScannerPorts, PortScannerHistory, ProvidersCreds, ServiceSetting,
                             ProvisionedServers, MetricsHttpStatus, SMON, WafRules, Alerts, GeoipCodes, NginxMetrics,
-                            SystemInfo, Services, UserName, GitSetting, CheckerSetting])
+                            SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics])

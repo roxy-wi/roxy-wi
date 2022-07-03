@@ -54,6 +54,8 @@ $( function() {
 			show_current_page($(this))
 		} else if(cur_url[0] == 'viewsttats.py' && cur_url[1].split('&')[0] == 'service=nginx' && link2 == 'viewsttats.py?service=nginx'){
 			show_current_page($(this))
+		} else if(cur_url[0] == 'viewsttats.py' && cur_url[1].split('&')[0] == 'service=apache' && link2 == 'viewsttats.py?service=apache'){
+			show_current_page($(this))
 		} else if(cur_url[0] == 'smon.py' && cur_url[1].split('&')[0] == 'action=view' && link2 == 'smon.py?action=view'){
 		   show_current_page($(this))
 	   	} else if(cur_url[0] == 'smon.py' && cur_url[1].split('&')[0] == 'action=add' && link2 == 'smon.py?action=add'){
@@ -67,6 +69,8 @@ $( function() {
 	   } else if(cur_url[0] == 'viewlogs.py' && cur_url[1].split('&')[0] == 'type=2' && link2 == 'viewlogs.py?type=2'){
 		  	show_current_page($(this))
 	   } else if(cur_url[0] == 'metrics.py' && cur_url[1].split('&')[0] == 'service=nginx' && link2 == 'metrics.py?service=nginx'){
+		   show_current_page($(this))
+	   } else if(cur_url[0] == 'metrics.py' && cur_url[1].split('&')[0] == 'service=apache' && link2 == 'metrics.py?service=apache'){
 		   show_current_page($(this))
 	   } else if(cur_url[0] == 'hapservers.py' && cur_url[1].split('&')[0] == 'service=apache' && link2 == 'hapservers.py?service=apache'){
 			show_current_page($(this))
