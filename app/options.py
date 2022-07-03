@@ -305,15 +305,15 @@ if form.getvalue('list_select_id') is not None:
 if form.getvalue('list_id_for_delete') is not None:
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
     lists_path = sql.get_setting('lists_path')
-    full_path = funct.get_config_var('main', 'fullpath')
+    lib_path = funct.get_config_var('main', 'lib_path')
     ip_id = form.getvalue('list_ip_id_for_delete')
     ip = form.getvalue('list_ip_for_delete')
     list_id = form.getvalue('list_id_for_delete')
     list_name = form.getvalue('list_name')
     user_group = funct.get_user_group(id=1)
 
-    cmd = "sed -i 's!%s$!!' %s/%s/%s/%s" % (ip, full_path, lists_path, user_group, list_name)
-    cmd1 = "sed -i '/^$/d' %s/%s/%s/%s" % (full_path, lists_path, user_group, list_name)
+    cmd = "sed -i 's!%s$!!' %s/%s/%s/%s" % (ip, lib_path, lists_path, user_group, list_name)
+    cmd1 = "sed -i '/^$/d' %s/%s/%s/%s" % (lib_path, lists_path, user_group, list_name)
     output, stderr = funct.subprocess_execute(cmd)
     output1, stderr1 = funct.subprocess_execute(cmd1)
     if output:
@@ -338,7 +338,7 @@ if form.getvalue('list_id_for_delete') is not None:
 if form.getvalue('list_ip_for_add') is not None:
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
     lists_path = sql.get_setting('lists_path')
-    full_path = funct.get_config_var('main', 'fullpath')
+    lib_path = funct.get_config_var('main', 'lib_path')
     ip = form.getvalue('list_ip_for_add')
     ip = ip.strip()
     ip = funct.is_ip_or_dns(ip)
@@ -354,7 +354,7 @@ if form.getvalue('list_ip_for_add') is not None:
         print('error: ' + stderr[0])
 
     if 'is not a valid IPv4 or IPv6 address' not in output[0]:
-        cmd = 'echo "%s" >> %s/%s/%s/%s' % (ip, full_path, lists_path, user_group, list_name)
+        cmd = 'echo "%s" >> %s/%s/%s/%s' % (ip, lib_path, lists_path, user_group, list_name)
         output, stderr = funct.subprocess_execute(cmd)
         if output:
             print('error: ' + str(output))
@@ -1990,7 +1990,8 @@ if form.getvalue('get_exporter_v'):
     print(funct.get_service_version(serv, form.getvalue('get_exporter_v')))
 
 if form.getvalue('bwlists'):
-    list_path = os.path.dirname(os.getcwd()) + "/" + sql.get_setting('lists_path') + "/" + form.getvalue('group') + "/" + form.getvalue('color') + "/" + form.getvalue('bwlists')
+    lib_path = funct.get_config_var('main', 'lib_path')
+    list_path = lib_path + "/" + sql.get_setting('lists_path') + "/" + form.getvalue('group') + "/" + form.getvalue('color') + "/" + form.getvalue('bwlists')
     try:
         file = open(list_path, "r")
         file_read = file.read()
@@ -2002,8 +2003,9 @@ if form.getvalue('bwlists'):
 if form.getvalue('bwlists_create'):
     color = form.getvalue('color')
     list_name = form.getvalue('bwlists_create').split('.')[0]
+    lib_path = funct.get_config_var('main', 'lib_path')
     list_name += '.lst'
-    list_path = os.path.dirname(os.getcwd()) + "/" + sql.get_setting('lists_path') + "/" + form.getvalue('group') + "/" + color + "/" + list_name
+    list_path = lib_path + "/" + sql.get_setting('lists_path') + "/" + form.getvalue('group') + "/" + color + "/" + list_name
     try:
         open(list_path, 'a').close()
         print('success: ')
@@ -2017,7 +2019,8 @@ if form.getvalue('bwlists_create'):
 if form.getvalue('bwlists_save'):
     color = form.getvalue('color')
     bwlists_save = form.getvalue('bwlists_save')
-    list_path = os.path.dirname(os.getcwd()) + "/" + sql.get_setting('lists_path') + "/" + form.getvalue('group') + "/" + color + "/" + bwlists_save
+    lib_path = funct.get_config_var('main', 'lib_path')
+    list_path = lib_path + "/" + sql.get_setting('lists_path') + "/" + form.getvalue('group') + "/" + color + "/" + bwlists_save
     try:
         with open(list_path, "w") as file:
             file.write(form.getvalue('bwlists_content'))
@@ -2068,7 +2071,8 @@ if form.getvalue('bwlists_save'):
 if form.getvalue('bwlists_delete'):
     color = form.getvalue('color')
     bwlists_delete = form.getvalue('bwlists_delete')
-    list_path = os.path.dirname(os.getcwd()) + "/" + sql.get_setting('lists_path') + "/" + form.getvalue('group') + "/" + color + "/" + bwlists_delete
+    lib_path = funct.get_config_var('main', 'lib_path')
+    list_path = lib_path + "/" + sql.get_setting('lists_path') + "/" + form.getvalue('group') + "/" + color + "/" + bwlists_delete
     try:
         os.remove(list_path)
     except IOError as e:
@@ -2102,7 +2106,8 @@ if form.getvalue('bwlists_delete'):
                 pass
 
 if form.getvalue('get_lists'):
-    list_path = os.path.dirname(os.getcwd()) + "/" + sql.get_setting('lists_path') + "/" + form.getvalue('group') + "/" + form.getvalue('color')
+    lib_path = funct.get_config_var('main', 'lib_path')
+    list_path = lib_path + "/" + sql.get_setting('lists_path') + "/" + form.getvalue('group') + "/" + form.getvalue('color')
     lists = funct.get_files(dir=list_path, format="lst")
     for list in lists:
         print(list)
@@ -2430,13 +2435,13 @@ if form.getvalue('new_ssh'):
             funct.logging('localhost', 'A new SSH credentials ' + name + ' has created', haproxywi=1, login=1)
 
 if form.getvalue('sshdel') is not None:
-    fullpath = funct.get_config_var('main', 'fullpath')
+    lib_path = funct.get_config_var('main', 'lib_path')
     sshdel = form.getvalue('sshdel')
 
     for sshs in sql.select_ssh(id=sshdel):
         ssh_enable = sshs.enable
         name = sshs.name
-        ssh_key_name = fullpath + '/keys/%s.pem' % sshs.name
+        ssh_key_name = lib_path + '/keys/%s.pem' % sshs.name
 
     if ssh_enable == 1:
         cmd = 'rm -f %s' % ssh_key_name
@@ -2459,12 +2464,12 @@ if form.getvalue('updatessh'):
     if username is None:
         print(error_mess)
     else:
-        fullpath = funct.get_config_var('main', 'fullpath')
+        lib_path = funct.get_config_var('main', 'lib_path')
 
         for sshs in sql.select_ssh(id=ssh_id):
             ssh_enable = sshs.enable
-            ssh_key_name = fullpath + '/keys/%s.pem' % sshs.name
-            new_ssh_key_name = fullpath + '/keys/%s.pem' % name
+            ssh_key_name = lib_path + '/keys/%s.pem' % sshs.name
+            new_ssh_key_name = lib_path + '/keys/%s.pem' % name
 
         if ssh_enable == 1:
             cmd = 'mv %s %s' % (ssh_key_name, new_ssh_key_name)
@@ -2487,8 +2492,9 @@ if form.getvalue('ssh_cert'):
     except Exception as e:
         print('error: Cannot save SSH key file: ', str(e))
 
-    full_dir = '/var/www/haproxy-wi/keys/'
-    ssh_keys = full_dir + name + '.pem'
+    lib_path = funct.get_config_var('main', 'lib_path')
+    full_dir = lib_path + '/keys/'
+    ssh_keys = name + '.pem'
 
     try:
         split_name = name.split('_')[1]

@@ -27,9 +27,10 @@ if all(v is None for v in [
 	except Exception as e:
 		print(str(e))
 
-	dir = os.path.dirname(os.getcwd()) + "/" + sql.get_setting('lists_path')
-	white_dir = os.path.dirname(os.getcwd()) + "/" + sql.get_setting('lists_path') + "/" + user_group + "/white"
-	black_dir = os.path.dirname(os.getcwd()) + "/" + sql.get_setting('lists_path') + "/" + user_group + "/black"
+	lib_path = funct.get_config_var('main', 'lib_path')
+	dir = lib_path + "/" + sql.get_setting('lists_path')
+	white_dir = lib_path + "/" + sql.get_setting('lists_path') + "/" + user_group + "/white"
+	black_dir = lib_path + "/" + sql.get_setting('lists_path') + "/" + user_group + "/black"
 
 	if not os.path.exists(dir):
 		os.makedirs(dir)

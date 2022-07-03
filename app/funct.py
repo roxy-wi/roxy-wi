@@ -360,7 +360,7 @@ def page_for_admin(**kwargs):
 
 def return_ssh_keys_path(server_ip, **kwargs):
 	import sql
-	full_path = get_config_var('main', 'fullpath')
+	lib_path = get_config_var('main', 'lib_path')
 	ssh_enable = ''
 	ssh_user_name = ''
 	ssh_user_password = ''
@@ -371,13 +371,13 @@ def return_ssh_keys_path(server_ip, **kwargs):
 			ssh_enable = sshs.enable
 			ssh_user_name = sshs.username
 			ssh_user_password = sshs.password
-			ssh_key_name = full_path + '/keys/%s.pem' % sshs.name
+			ssh_key_name = lib_path + '/keys/%s.pem' % sshs.name
 	else:
 		for sshs in sql.select_ssh(serv=server_ip):
 			ssh_enable = sshs.enable
 			ssh_user_name = sshs.username
 			ssh_user_password = sshs.password
-			ssh_key_name = full_path + '/keys/%s.pem' % sshs.name
+			ssh_key_name = lib_path + '/keys/%s.pem' % sshs.name
 
 	return ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name
 

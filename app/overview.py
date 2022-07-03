@@ -106,7 +106,7 @@ rendered_template = template.render(
 	metrics_master=''.join(metrics_master), metrics_worker=''.join(metrics_worker), checker_master=''.join(checker_master),
 	checker_worker=''.join(checker_worker), keep_alive=''.join(keep_alive), smon=''.join(smon),
 	port_scanner=''.join(port_scanner), grafana=''.join(grafana), socket=''.join(socket),
-	haproxy_wi_log_id=funct.haproxy_wi_log(log_id=1, file="roxy-wi-", with_date=1),
+	roxy_wi_log_id=funct.haproxy_wi_log(log_id=1, file="roxy-wi-", with_date=1),
 	metrics_log_id=funct.haproxy_wi_log(log_id=1, file="metrics", with_date=1),
 	checker_log_id=funct.haproxy_wi_log(log_id=1, file="checker", with_date=1),
 	keep_alive_log_id=funct.haproxy_wi_log(log_id=1, file="keep_alive"),
