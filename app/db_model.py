@@ -12,7 +12,7 @@ if mysql_enable == '1':
     mysql_port = get_config_var('mysql', 'mysql_port')
     conn = MySQLDatabase(mysql_db, user=mysql_user, password=mysql_password, host=mysql_host, port=int(mysql_port))
 else:
-    db = "/var/lib/roxy-wi/app/roxy-wi.db"
+    db = "/var/lib/roxy-wi/roxy-wi.db"
     conn = SqliteDatabase(db, pragmas={'timeout': 1000, 'foreign_keys': 1})
 
 
