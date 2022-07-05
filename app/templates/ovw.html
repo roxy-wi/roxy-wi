@@ -67,7 +67,7 @@
 	<tr class="overviewHead" style="height: 30px;">
 		<td class="padding10 first-collumn-wi" colspan="2">
 			{% if role <= 1 %}
-				<a href="/app/viewlogs.py?viewlogs={{haproxy_wi_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View Roxy-WI logs" class="logs_link">			
+				<a href="/app/viewlogs.py?viewlogs={{roxy_wi_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View Roxy-WI logs" class="logs_link">			
 					Roxy-WI server status
 				</a>
 			{% else %}
@@ -398,15 +398,15 @@
 		<tr class="overviewHead">
 			<td class="padding10 first-collumn-wi">
 				{% if role == 2 %}
-				<a href="/app/viewlogs.py?type=2&viewlogs={{haproxy_wi_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View Roxy-WI logs" class="logs_link">
+				<a href="/app/viewlogs.py?type=2&viewlogs={{roxy_wi_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View Roxy-WI logs" class="logs_link">
 				{% else %}
-				<a href="/app/viewlogs.py?viewlogs={{haproxy_wi_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View Roxy-WI logs" class="logs_link">
+				<a href="/app/viewlogs.py?viewlogs={{roxy_wi_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View Roxy-WI logs" class="logs_link">
 				{% endif %}
 					Recent Roxy-WI log
 				</a>
 			</td> 
 			<td>
-				{% if haproxy_wi_log|length > 3 %}
+				{% if roxy_wi_log|length > 3 %}
 				<span class="add-button-wi">
 					<span title="Show more log" id="show-all-haproxy-wi-log" style="color: #fff">
 						Show more log
@@ -417,7 +417,7 @@
 		</tr>		
 		<tr>
 		{% set counter = 0 -%}	
-		{% for log in haproxy_wi_log %}
+		{% for log in roxy_wi_log %}
 			{% set counter = counter + loop.index0 %}
 			{% if counter <= 2 %}
 			<tr class="{{ loop.cycle('odd', 'even') }}">

@@ -33,13 +33,21 @@ if act == "checkrestart":
             sys.exit()
     sys.exit()
 
-if form.getvalue('alert_consumer') is None:
-    if not sql.check_token_exists(form.getvalue("token")):
-        print('error: Your token has been expired')
-        sys.exit()
+from uuid import UUID
+token = form.getvalue("token")
+
+try:
+    uuid_obj = UUID(token, version=4)
+except ValueError:
+    print('error: Your token is not valid')
+    sys.exit()
+
+if not sql.check_token_exists(token):
+    print('error: Your token has been expired')
+    sys.exit()
 
 if form.getvalue('getcerts') is not None and serv is not None:
-    cert_path = sql.get_setting('cert_path')
+    cert_path = sql.get_setting('cert_path').replace(';', '').replace('&', '')
     commands = ["sudo ls -1t " + cert_path + " |grep -E 'pem|crt|key'"]
     try:
         funct.ssh_command(serv, commands, ip="1")
@@ -53,7 +61,7 @@ if form.getvalue('checkSshConnect') is not None and serv is not None:
         print(e)
 
 if form.getvalue('getcert') is not None and serv is not None:
-    cert_id = form.getvalue('getcert')
+    cert_id = form.getvalue('getcert').replace(';', '').replace('&', '')
     cert_path = sql.get_setting('cert_path')
     commands = ["openssl x509 -in " + cert_path + "/" + cert_id + " -text"]
     try:
@@ -62,7 +70,7 @@ if form.getvalue('getcert') is not None and serv is not None:
         print('error: Cannot connect to the server ' + e.args[0])
 
 if form.getvalue('delcert') is not None and serv is not None:
-    cert_id = form.getvalue('delcert')
+    cert_id = form.getvalue('delcert').replace(';', '').replace('&', '')
     cert_path = sql.get_setting('cert_path')
     commands = ["sudo rm -f " + cert_path + "/" + cert_id]
     try:
@@ -114,7 +122,7 @@ if form.getvalue('ip_select') is not None:
 
 if form.getvalue('ipbackend') is not None and form.getvalue('backend_server') is None:
     haproxy_sock_port = int(sql.get_setting('haproxy_sock_port'))
-    backend = form.getvalue('ipbackend')
+    backend = form.getvalue('ipbackend').replace(';', '').replace('&', '')
     cmd = 'echo "show servers state"|nc %s %s |grep "%s" |awk \'{print $4}\'' % (serv, haproxy_sock_port, backend)
     output, stderr = funct.subprocess_execute(cmd)
     for i in output:
@@ -125,17 +133,17 @@ if form.getvalue('ipbackend') is not None and form.getvalue('backend_server') is
 
 if form.getvalue('ipbackend') is not None and form.getvalue('backend_server') is not None:
     haproxy_sock_port = int(sql.get_setting('haproxy_sock_port'))
-    backend = form.getvalue('ipbackend')
+    backend = form.getvalue('ipbackend').replace(';', '').replace('&', '')
     backend_server = form.getvalue('backend_server')
     cmd = 'echo "show servers state"|nc %s %s |grep "%s" |grep "%s" |awk \'{print $5":"$19}\' |head -1' % (serv, haproxy_sock_port, backend, backend_server)
     output, stderr = funct.subprocess_execute(cmd)
     print(output[0])
 
 if form.getvalue('backend_ip') is not None:
-    backend_backend = form.getvalue('backend_backend')
-    backend_server = form.getvalue('backend_server')
-    backend_ip = form.getvalue('backend_ip')
-    backend_port = form.getvalue('backend_port')
+    backend_backend = form.getvalue('backend_backend').replace(';', '').replace('&', '')
+    backend_server = form.getvalue('backend_server').replace(';', '').replace('&', '')
+    backend_ip = form.getvalue('backend_ip').replace(';', '').replace('&', '')
+    backend_port = form.getvalue('backend_port').replace(';', '').replace('&', '')
     if form.getvalue('backend_ip') is None:
         print('error: Backend IP must be IP and not 0')
         sys.exit()
@@ -184,12 +192,12 @@ if form.getvalue('backend_ip') is not None:
         stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save='save')
 
 if form.getvalue('maxconn_select') is not None:
-    serv = form.getvalue('maxconn_select')
+    serv = form.getvalue('maxconn_select').replace(';', '').replace('&', '')
     funct.get_backends_from_config(serv, backends='frontend')
 
 if form.getvalue('maxconn_frontend') is not None:
-    frontend = form.getvalue('maxconn_frontend')
-    maxconn = form.getvalue('maxconn_int')
+    frontend = form.getvalue('maxconn_frontend').replace(';', '').replace('&', '')
+    maxconn = form.getvalue('maxconn_int').replace(';', '').replace('&', '')
     if form.getvalue('maxconn_int') is None:
         print('error: Maxconn must be integer and not 0')
         sys.exit()
@@ -263,8 +271,8 @@ if form.getvalue('table_select') is not None:
 
 if form.getvalue('ip_for_delete') is not None:
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-    ip = form.getvalue('ip_for_delete')
-    table = form.getvalue('table_for_delete')
+    ip = form.getvalue('ip_for_delete').replace(';', '').replace('&', '')
+    table = form.getvalue('table_for_delete').replace(';', '').replace('&', '')
 
     cmd = 'echo "clear table %s key %s" |nc %s %s' % (table, ip, serv, haproxy_sock_port)
     output, stderr = funct.subprocess_execute(cmd)
@@ -273,7 +281,7 @@ if form.getvalue('ip_for_delete') is not None:
 
 if form.getvalue('table_for_clear') is not None:
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-    table = form.getvalue('table_for_clear')
+    table = form.getvalue('table_for_clear').replace(';', '').replace('&', '')
 
     cmd = 'echo "clear table %s " |nc %s %s' % (table, serv, haproxy_sock_port)
     output, stderr = funct.subprocess_execute(cmd)
@@ -292,8 +300,8 @@ if form.getvalue('list_select_id') is not None:
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
                       extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'], trim_blocks=True, lstrip_blocks=True)
     template = env.get_template('ajax/list.html')
-    list_id = form.getvalue('list_select_id')
-    list_name = form.getvalue('list_select_name')
+    list_id = form.getvalue('list_select_id').replace(';', '').replace('&', '')
+    list_name = form.getvalue('list_select_name').replace(';', '').replace('&', '')
 
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
     cmd = 'echo "show acl #%s"|nc %s %s' % (list_id, serv, haproxy_sock_port)
@@ -306,10 +314,10 @@ if form.getvalue('list_id_for_delete') is not None:
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
     lists_path = sql.get_setting('lists_path')
     lib_path = funct.get_config_var('main', 'lib_path')
-    ip_id = form.getvalue('list_ip_id_for_delete')
-    ip = form.getvalue('list_ip_for_delete')
-    list_id = form.getvalue('list_id_for_delete')
-    list_name = form.getvalue('list_name')
+    ip_id = form.getvalue('list_ip_id_for_delete').replace(';', '').replace('&', '')
+    ip = form.getvalue('list_ip_for_delete').replace(';', '').replace('&', '')
+    list_id = form.getvalue('list_id_for_delete').replace(';', '').replace('&', '')
+    list_name = form.getvalue('list_name').replace(';', '').replace('&', '')
     user_group = funct.get_user_group(id=1)
 
     cmd = "sed -i 's!%s$!!' %s/%s/%s/%s" % (ip, lib_path, lists_path, user_group, list_name)
@@ -337,13 +345,13 @@ if form.getvalue('list_id_for_delete') is not None:
 
 if form.getvalue('list_ip_for_add') is not None:
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-    lists_path = sql.get_setting('lists_path')
+    lists_path = sql.get_setting('lists_path').replace(';', '').replace('&', '')
     lib_path = funct.get_config_var('main', 'lib_path')
     ip = form.getvalue('list_ip_for_add')
     ip = ip.strip()
     ip = funct.is_ip_or_dns(ip)
-    list_id = form.getvalue('list_id_for_add')
-    list_name = form.getvalue('list_name')
+    list_id = form.getvalue('list_id_for_add').replace(';', '').replace('&', '')
+    list_name = form.getvalue('list_name').replace(';', '').replace('&', '')
     user_group = funct.get_user_group(id=1)
 
     cmd = 'echo "add acl #%s %s" |nc %s %s' % (list_id, ip, serv, haproxy_sock_port)
@@ -369,7 +377,7 @@ if form.getvalue('sessions_select') is not None:
 
     env = Environment(loader=FileSystemLoader('templates'), autoescape=True,
                       extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'], trim_blocks=True, lstrip_blocks=True)
-    serv = form.getvalue('sessions_select')
+    serv = form.getvalue('sessions_select').replace(';', '').replace('&', '')
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 
     cmd = 'echo "show sess" |nc %s %s' % (serv, haproxy_sock_port)
@@ -381,8 +389,8 @@ if form.getvalue('sessions_select') is not None:
     print(template)
 
 if form.getvalue('sessions_select_show') is not None:
-    serv = form.getvalue('sessions_select_show')
-    sess_id = form.getvalue('sessions_select_id')
+    serv = form.getvalue('sessions_select_show').replace(';', '').replace('&', '')
+    sess_id = form.getvalue('sessions_select_id').replace(';', '').replace('&', '')
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 
     cmd = 'echo "show sess %s" |nc %s %s' % (sess_id, serv, haproxy_sock_port)
@@ -396,7 +404,7 @@ if form.getvalue('sessions_select_show') is not None:
 
 if form.getvalue('session_delete_id') is not None:
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-    sess_id = form.getvalue('session_delete_id')
+    sess_id = form.getvalue('session_delete_id').replace(';', '').replace('&', '')
 
     cmd = 'echo "shutdown session %s" |nc %s %s' % (sess_id, serv, haproxy_sock_port)
     output, stderr = funct.subprocess_execute(cmd)
@@ -422,6 +430,10 @@ if form.getvalue('action_hap') is not None and serv is not None:
     action = form.getvalue('action_hap')
     haproxy_service_name = "haproxy"
 
+    if action not in ('start', 'stop', 'reload', 'restart'):
+        print('error: wrong action')
+        sys.exit()
+
     funct.is_restarted(serv, action)
 
     if funct.check_haproxy_config(serv):
@@ -446,6 +458,10 @@ if form.getvalue('action_hap') is not None and serv is not None:
 if form.getvalue('action_nginx') is not None and serv is not None:
     action = form.getvalue('action_nginx')
 
+    if action not in ('start', 'stop', 'reload', 'restart'):
+        print('error: wrong action')
+        sys.exit()
+
     funct.is_restarted(serv, action)
 
     if funct.check_nginx_config(serv):
@@ -465,6 +481,10 @@ if form.getvalue('action_nginx') is not None and serv is not None:
 if form.getvalue('action_keepalived') is not None and serv is not None:
     action = form.getvalue('action_keepalived')
 
+    if action not in ('start', 'stop', 'reload', 'restart'):
+        print('error: wrong action')
+        sys.exit()
+
     funct.is_restarted(serv, action)
 
     commands = ["sudo systemctl %s keepalived" % action]
@@ -476,6 +496,10 @@ if form.getvalue('action_waf') is not None and serv is not None:
     serv = form.getvalue('serv')
     action = form.getvalue('action_waf')
 
+    if action not in ('start', 'stop', 'reload', 'restart'):
+        print('error: wrong action')
+        sys.exit()
+
     funct.is_restarted(serv, action)
 
     funct.logging(serv, 'WAF service has been ' + action + 'ed', haproxywi=1, login=1, keep_history=1, service='haproxy')
@@ -484,6 +508,10 @@ if form.getvalue('action_waf') is not None and serv is not None:
 
 if form.getvalue('action_apache') is not None and serv is not None:
     action = form.getvalue('action_apache')
+
+    if action not in ('start', 'stop', 'reload', 'restart'):
+        print('error: wrong action')
+        sys.exit()
 
     funct.is_restarted(serv, action)
 
@@ -501,7 +529,12 @@ if form.getvalue('action_apache') is not None and serv is not None:
     print("success: Apache has been %s" % action)
 
 if form.getvalue('action_service') is not None:
-    action = form.getvalue('action_service')
+    action = form.getvalue('action_service').replace(';', '').replace('&', '')
+
+    if action not in ('start', 'stop', 'restart'):
+        print('error: wrong action')
+        sys.exit()
+
     is_in_docker = funct.is_docker()
     if action == 'stop':
         cmd = "sudo systemctl disable %s --now" % serv
@@ -1124,8 +1157,8 @@ if serv is not None and act == "showMap":
 if form.getvalue('servaction') is not None:
     server_state_file = sql.get_setting('server_state_file')
     haproxy_sock = sql.get_setting('haproxy_sock')
-    enable = form.getvalue('servaction')
-    backend = form.getvalue('servbackend')
+    enable = form.getvalue('servaction').replace(';', '').replace('&', '')
+    backend = form.getvalue('servbackend').replace(';', '').replace('&', '')
     cmd = 'echo "{} {}" |sudo socat stdio {}'.format(enable, backend, haproxy_sock)
 
     if form.getvalue('save') == "on":
@@ -1167,8 +1200,8 @@ if act == "showCompareConfigs":
 if serv is not None and form.getvalue('right') is not None:
     from jinja2 import Environment, FileSystemLoader
 
-    left = form.getvalue('left')
-    right = form.getvalue('right')
+    left = form.getvalue('left').replace(';', '').replace('&', '')
+    right = form.getvalue('right').replace(';', '').replace('&', '')
 
     if form.getvalue('service') == 'nginx':
         configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
@@ -2002,8 +2035,8 @@ if form.getvalue('bwlists'):
 
 if form.getvalue('bwlists_create'):
     color = form.getvalue('color')
-    list_name = form.getvalue('bwlists_create').split('.')[0]
     lib_path = funct.get_config_var('main', 'lib_path')
+    list_name = form.getvalue('bwlists_create').split('.')[0]
     list_name += '.lst'
     list_path = lib_path + "/" + sql.get_setting('lists_path') + "/" + form.getvalue('group') + "/" + color + "/" + list_name
     try:
@@ -2436,7 +2469,7 @@ if form.getvalue('new_ssh'):
 
 if form.getvalue('sshdel') is not None:
     lib_path = funct.get_config_var('main', 'lib_path')
-    sshdel = form.getvalue('sshdel')
+    sshdel = form.getvalue('sshdel').replace(';', '').replace('&', '')
 
     for sshs in sql.select_ssh(id=sshdel):
         ssh_enable = sshs.enable
@@ -2486,7 +2519,7 @@ if form.getvalue('ssh_cert'):
     import paramiko
 
     user_group = funct.get_user_group()
-    name = form.getvalue('name')
+    name = form.getvalue('name').replace(';', '').replace('&', '')
     try:
         key = paramiko.pkey.load_private_key(form.getvalue('ssh_cert'))
     except Exception as e:
@@ -2782,7 +2815,7 @@ if form.getvalue('updateSmonIp') is not None:
         funct.logging('SMON', ' Has been update the server ' + ip + ' to SMON ', haproxywi=1, login=1)
 
 if form.getvalue('showBytes') is not None:
-    serv = form.getvalue('showBytes')
+    serv = form.getvalue('showBytes').replace(';', '').replace('&', '')
     port = sql.get_setting('haproxy_sock_port')
     bin_bout = []
     cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,9|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(serv, port)
@@ -2833,19 +2866,9 @@ if form.getvalue('nginxConnections'):
     else:
         print('error: cannot connect to Nginx stat page')
 
-if form.getvalue('alert_consumer'):
-    try:
-        user_group = funct.get_user_group(id=1)
-        if funct.check_user_group():
-            message = sql.select_alerts(user_group)
-            for m in message:
-                print(m[0] + ': ' + m[1] + ' date: ' + m[2] + ';')
-    except Exception:
-        pass
-
 if form.getvalue('waf_rule_id'):
-    enable = form.getvalue('waf_en')
-    rule_id = form.getvalue('waf_rule_id')
+    enable = form.getvalue('waf_en').replace(';', '').replace('&', '')
+    rule_id = form.getvalue('waf_rule_id').replace(';', '').replace('&', '')
     haproxy_path = sql.get_setting('haproxy_dir')
     rule_file = sql.select_waf_rule_by_id(rule_id)
     conf_file_path = haproxy_path + '/waf/modsecurity.conf'
@@ -2920,7 +2943,7 @@ if form.getvalue('lets_domain'):
     os.system("rm -f %s" % script)
 
 if form.getvalue('uploadovpn'):
-    name = form.getvalue('ovpnname')
+    name = form.getvalue('ovpnname').replace(';', '').replace('&', '')
 
     ovpn_file = os.path.dirname('/tmp/') + "/" + name + '.ovpn'
 
@@ -2948,7 +2971,7 @@ if form.getvalue('uploadovpn'):
     funct.logging("localhost", " has been uploaded a new ovpn file %s" % ovpn_file, haproxywi=1, login=1)
 
 if form.getvalue('openvpndel') is not None:
-    openvpndel = form.getvalue('openvpndel')
+    openvpndel = form.getvalue('openvpndel').replace(';', '').replace('&', '')
 
     cmd = 'sudo openvpn3 config-remove --config /tmp/%s.ovpn --force' % openvpndel
     try:
@@ -2960,8 +2983,8 @@ if form.getvalue('openvpndel') is not None:
         funct.logging('localhost', e.args[0], haproxywi=1)
 
 if form.getvalue('actionvpn') is not None:
-    openvpn = form.getvalue('openvpnprofile')
-    action = form.getvalue('actionvpn')
+    openvpn = form.getvalue('openvpnprofile').replace(';', '').replace('&', '')
+    action = form.getvalue('actionvpn').replace(';', '').replace('&', '')
 
     if action == 'start':
         cmd = 'sudo openvpn3 session-start --config /tmp/%s.ovpn' % openvpn
@@ -2978,7 +3001,7 @@ if form.getvalue('actionvpn') is not None:
         funct.logging('localhost', e.args[0], haproxywi=1)
 
 if form.getvalue('scan_ports') is not None:
-    serv_id = form.getvalue('scan_ports')
+    serv_id = form.getvalue('scan_ports').replace(';', '').replace('&', '')
     server = sql.select_servers(id=serv_id)
     ip = ''
 
@@ -3002,7 +3025,7 @@ if form.getvalue('scan_ports') is not None:
         print(template)
 
 if form.getvalue('viewFirewallRules') is not None:
-    serv = form.getvalue('viewFirewallRules')
+    serv = form.getvalue('viewFirewallRules').replace(';', '').replace('&', '')
 
     cmd = ["sudo iptables -L INPUT -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"]
     cmd1 = ["sudo iptables -L IN_public_allow -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"]
@@ -3029,7 +3052,7 @@ if form.getvalue('viewFirewallRules') is not None:
     print(template)
 
 if form.getvalue('geoipserv') is not None:
-    serv = form.getvalue('geoipserv')
+    serv = form.getvalue('geoipserv').replace(';', '').replace('&', '')
     haproxy_dir = sql.get_setting('haproxy_dir')
 
     cmd = ["ls " + haproxy_dir + "/geoip/"]
@@ -4106,7 +4129,6 @@ if form.getvalue('newtoption'):
             template = template.render(options=sql.select_options(option=option))
             print(template)
 
-
 if form.getvalue('updateoption') is not None:
     option = form.getvalue('updateoption')
     option_id = form.getvalue('id')
@@ -4115,11 +4137,9 @@ if form.getvalue('updateoption') is not None:
     else:
         sql.update_options(option, option_id)
 
-
 if form.getvalue('optiondel') is not None:
     if sql.delete_option(form.getvalue('optiondel')):
         print("Ok")
-
 
 if form.getvalue('getsavedserver'):
     group = form.getvalue('getsavedserver')
@@ -4137,7 +4157,6 @@ if form.getvalue('getsavedserver'):
         v = v + 1
     import json
     print(json.dumps(a))
-
 
 if form.getvalue('newsavedserver'):
     savedserver = form.getvalue('newsavedserver')
@@ -4370,8 +4389,8 @@ if act == 'check_service':
     user_uuid = cookie.get('uuid')
     user_id = sql.get_user_id_by_uuid(user_uuid.value)
     user_services = sql.select_user_services(user_id)
-    server_id = form.getvalue('server_id')
-    service = form.getvalue('service')
+    server_id = form.getvalue('server_id').replace(';', '').replace('&', '')
+    service = form.getvalue('service').replace(';', '').replace('&', '')
 
     if '1' in user_services:
         if service == 'haproxy':
