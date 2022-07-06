@@ -665,6 +665,8 @@ $( function() {
 		}	
 	});
 	$('#ddos1').click(function() {
+		ddos_var = escapeHtml(ddos_var);
+		table_name = escapeHtml(table_name);
 		if($('#new_frontend').val() == "") {
 			$("#optionsInput1").append(ddos_var)
 		}
@@ -1987,6 +1989,7 @@ function showUserlists() {
 					for (i = 0; i < data.length; i++) {
 						var existing_userlist_ajax = $.find("#existing_userlist_ajax");
 						existing_userlist_ajax = existing_userlist_ajax[0].id;
+						data[i] = escapeHtml(data[i]);
 						$('#'+existing_userlist_ajax).append('<a href="sections.py?serv='+serv+'&section='+data[i]+'" title="Edit/Delete this userlist" target="_blank">'+data[i]+'</a> ');
 					}
 				}

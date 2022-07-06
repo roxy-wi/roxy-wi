@@ -131,6 +131,7 @@ if(localStorage.getItem('restart')) {
 				apply_div = apply_div[0].id;
 				$("#apply").css('display', 'block');
 				$('#'+apply_div).css('width', '850px');
+				ip_for_restart = escapeHtml(ip_for_restart);
 				if (cur_url[0] == "hapservers.py") {
 					$('#'+apply_div).css('width', '650px');
 					$('#'+apply_div).addClass("alert-one-row");

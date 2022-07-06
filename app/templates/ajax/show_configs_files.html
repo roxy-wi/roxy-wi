@@ -85,6 +85,10 @@
 						let path_dir = $('#path_config_name').val();
 						config_file_name = config_file_name.replaceAll('\/','92');
 						path_dir = path_dir.replaceAll('\/','92');
+						service = escapeHtml(service);
+						serv = escapeHtml(serv);
+						path_dir = escapeHtml(path_dir);
+						config_file_name = escapeHtml(config_file_name);
 						window.location.replace('config.py?service='+service+'&serv='+serv+'&open=open&config_file_name='+path_dir+'92'+config_file_name+'.conf&new_config=1');
 						$( this ).dialog( "close" );
 					},
