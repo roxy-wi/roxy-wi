@@ -140,7 +140,7 @@
             data: frm.serialize(),
             type: frm.attr('method'),
             success: function( data ) {
-                data = data.replace('\n', '<br>');
+                data = data.replace(/\n/g, "<br>");
                 if (data.indexOf('error: ') != '-1' || data.indexOf('Fatal') != '-1' || data.indexOf('Error(s)') != '-1') {
                     $('#ajax-nettools').html('<div class="ping_pre">'+data+'</div>');
                 } else if (data.indexOf('warning: ') != '-1') {
@@ -174,7 +174,7 @@
             data: frm.serialize(),
             type: frm.attr('method'),
             success: function( data ) {
-                data = data.replace('\n', '<br>');
+                data = data.replace(/\n/g, "<br>");
                 if (data.indexOf('error: ') != '-1' || data.indexOf('Fatal') != '-1' || data.indexOf('Error(s)') != '-1') {
                     toastr.clear();
                     toastr.error(data);
@@ -205,7 +205,7 @@
             data: frm.serialize() + "&nettools_action=" + $(this).val(),
             type: frm.attr('method'),
             success: function( data ) {
-                data = data.replace('\n', '<br>');
+                data = data.replace(/\n/g, "<br>");
                 if (data.indexOf('error: ') != '-1' || data.indexOf('Fatal') != '-1' || data.indexOf('Error(s)') != '-1') {
                     toastr.clear();
                     toastr.error(data);

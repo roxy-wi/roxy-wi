@@ -1985,7 +1985,9 @@ function showUserlists() {
 					$('#existing_userlist_ajax').text('');
 					data = data.split(",");
 					for (i = 0; i < data.length; i++) {
-						$('#existing_userlist_ajax').append('<a href="sections.py?serv='+serv+'&section='+data[i]+'" title="Edit/Delete this userlist" target="_blank">'+data[i]+'</a> ');
+						var existing_userlist_ajax = $.find("#existing_userlist_ajax");
+						existing_userlist_ajax = existing_userlist_ajax[0].id;
+						$('#'+existing_userlist_ajax).append('<a href="sections.py?serv='+serv+'&section='+data[i]+'" title="Edit/Delete this userlist" target="_blank">'+data[i]+'</a> ');
 					}
 				}
 			}

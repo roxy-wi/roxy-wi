@@ -127,14 +127,16 @@ if(localStorage.getItem('restart')) {
 		type: "POST",
 		success: function( data ) {
 			if(data.indexOf('ok') != '-1') {
+				var apply_div = $.find("#apply_div");
+				apply_div = apply_div[0].id;
 				$("#apply").css('display', 'block');
-				$("#apply_div").css('width', '850px');
+				$('#'+apply_div).css('width', '850px');
 				if (cur_url[0] == "hapservers.py") {
-					$("#apply_div").css('width', '650px');
-					$("#apply_div").addClass("alert-one-row");
-					$("#apply_div").html("You have made changes to the server: "+ip_for_restart+". Changes will take effect only after<a id='"+ip_for_restart+"' class='restart' title='Restart HAproxy service' onclick=\"confirmAjaxAction('restart', 'hap', '"+ip_for_restart+"')\">restart</a><a href='#' title='close' id='apply_close' style='float: right'><b>X</b></a>");
+					$('#'+apply_div).css('width', '650px');
+					$('#'+apply_div).addClass("alert-one-row");
+					$('#'+apply_div).html("You have made changes to the server: "+ip_for_restart+". Changes will take effect only after<a id='"+ip_for_restart+"' class='restart' title='Restart HAproxy service' onclick=\"confirmAjaxAction('restart', 'hap', '"+ip_for_restart+"')\">restart</a><a href='#' title='close' id='apply_close' style='float: right'><b>X</b></a>");
 				} else {
-					$("#apply_div").html("You have made changes to the server: "+ip_for_restart+". Changes will take effect only after restart. <a href='hapservers.py' title='Overview'>Go to the HAProxy Overview page and restart</a><a href='#' title='close' id='apply_close' style='float: right'><b>X</b></a>");
+					$('#'+apply_div).html("You have made changes to the server: "+ip_for_restart+". Changes will take effect only after restart. <a href='hapservers.py' title='Overview'>Go to the HAProxy Overview page and restart</a><a href='#' title='close' id='apply_close' style='float: right'><b>X</b></a>");
 				}
 				$.getScript('/inc/overview.js');
 			}
@@ -901,7 +903,7 @@ $( function() {
 	$('#auth').submit(function() {
 		let searchParams = new URLSearchParams(window.location.search)
 		if(searchParams.has('ref')) {
-			var ref = searchParams.get('ref');
+			window.location = /.*ref=([^&]*).*/.exec(document.location.href)[1];
 		} else {
 			var ref = "overview.py";
 		}

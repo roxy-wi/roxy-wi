@@ -252,7 +252,7 @@
 		<td class="padding10 first-collumn-wi">
 		{% if grafana|int() >= 1 %}
 			<span class="serverUp server-status" title="running {{grafana}} process"></span>
-			<a href="http://{{host}}:3000" target="_blank" title="Open Grafana" class="logs_link">Grafana</a>
+			<a href="http://{{host}}:3000" target="_blank" title="Open Grafana" class="logs_link" rel="noopener noreferrer">Grafana</a>
 		{% else %}
 			<span class="serverNone server-status" title="The service is not installed or not running"></span>
 			<span>Grafana</span>			

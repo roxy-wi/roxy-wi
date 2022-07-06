@@ -86,7 +86,7 @@
     {% set description = 'Socket is a service for sending alerts and notifications' %}
 {% endif %}
     <td class="padding10 first-collumn">
-        <a href="{{desc_link}}" title="Read more about {{service_name}}" target="_blank" class="link">{{service_name}}</a>
+        <a href="{{desc_link}}" title="Read more about {{service_name}}" target="_blank" class="link" rel="noopener noreferrer">{{service_name}}</a>
     </td>
     <td>
         {% if s.3 != '* is not installed' and s.3 != '' %}

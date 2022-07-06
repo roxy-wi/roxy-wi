@@ -89,7 +89,7 @@ if serv and form.getvalue('ssl_cert'):
     if form.getvalue('ssl_name') is None:
         print('error: Please enter a desired name')
     else:
-        name = form.getvalue('ssl_name')
+        name = form.getvalue('ssl_name').replace(';', '').replace('&', '')
 
     try:
         with open(name, "w") as ssl_cert:
