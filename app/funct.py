@@ -2,10 +2,10 @@
 import cgi
 import os
 import sys
+import re
 
 
 def is_ip_or_dns(server_from_request: str) -> str:
-	import re
 	ip_regex = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
 	dns_regex = "^(?!-)[A-Za-z0-9-]+([\\-\\.]{1}[a-z0-9]+)*\\.[A-Za-z]{2,6}$"
 	try:
@@ -28,6 +28,14 @@ def is_ip_or_dns(server_from_request: str) -> str:
 				return ''
 	except Exception:
 		return ''
+
+
+def checkAjaxInput(ajax_input: str) -> bool:
+	pattern = re.compile('[&;|$`]')
+	if pattern.search(ajax_input):
+		return True
+	else:
+		return False
 
 
 form = cgi.FieldStorage()
@@ -529,7 +537,6 @@ def get_sections(config, **kwargs):
 	with open(config, 'r') as f:
 		for line in f:
 			if kwargs.get('service') == 'keepalived':
-				import re
 				ip_pattern = re.compile('\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}')
 				find_ip = re.findall(ip_pattern, line)
 				if find_ip:
@@ -1195,7 +1202,6 @@ def show_log(stdout, **kwargs):
 	grep = ''
 
 	if kwargs.get('grep'):
-		import re
 		grep = kwargs.get('grep')
 		grep = re.sub(r'[?|$|.|!|^|*|\]|\[|,| |]', r'', grep)
 
@@ -1219,7 +1225,6 @@ def show_finding_in_config(stdout: str, **kwargs) -> str:
 	line_class = 'line'
 
 	if kwargs.get('grep'):
-		import re
 		grep = kwargs.get('grep')
 		grep = re.sub(r'[?|$|!|^|*|\]|\[|,| |]', r'', grep)
 
@@ -1379,10 +1384,12 @@ def server_status(stdout):
 
 
 def ssh_command(server_ip, commands, **kwargs):
+	from shlex import quote
 	ssh = ssh_connect(server_ip)
 
 	for command in commands:
 		try:
+			command = quote(command)
 			stdin, stdout, stderr = ssh.exec_command(command, get_pty=True)
 		except Exception as e:
 			logging('localhost', ' ' + str(e), haproxywi=1)
@@ -2043,9 +2050,6 @@ def get_correct_apache_service_name(server_ip=0, server_id=0) -> str:
 
 
 def is_docker() -> bool:
-	import os
-	import re
-
 	path = "/proc/self/cgroup"
 	if not os.path.isfile(path):
 		return False

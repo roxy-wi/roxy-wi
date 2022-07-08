@@ -47,7 +47,9 @@ if not sql.check_token_exists(token):
     sys.exit()
 
 if form.getvalue('getcerts') is not None and serv is not None:
-    cert_path = sql.get_setting('cert_path').replace(';', '').replace('&', '')
+    if funct.checkAjaxInput(getcerts):
+        print('error: Nice try')
+    cert_path = sql.get_setting('cert_path')
     commands = ["sudo ls -1t " + cert_path + " |grep -E 'pem|crt|key'"]
     try:
         funct.ssh_command(serv, commands, ip="1")
@@ -61,7 +63,10 @@ if form.getvalue('checkSshConnect') is not None and serv is not None:
         print(e)
 
 if form.getvalue('getcert') is not None and serv is not None:
-    cert_id = form.getvalue('getcert').replace(';', '').replace('&', '')
+    cert_id = form.getvalue('getcert')
+    if funct.checkAjaxInput(cert_id):
+        print('error: Nice try')
+
     cert_path = sql.get_setting('cert_path')
     commands = ["openssl x509 -in " + cert_path + "/" + cert_id + " -text"]
     try:
@@ -70,7 +75,9 @@ if form.getvalue('getcert') is not None and serv is not None:
         print('error: Cannot connect to the server ' + e.args[0])
 
 if form.getvalue('delcert') is not None and serv is not None:
-    cert_id = form.getvalue('delcert').replace(';', '').replace('&', '')
+    if funct.checkAjaxInput(cert_id):
+        print('error: Nice try')
+
     cert_path = sql.get_setting('cert_path')
     commands = ["sudo rm -f " + cert_path + "/" + cert_id]
     try:
@@ -89,7 +96,10 @@ if serv and form.getvalue('ssl_cert'):
     if form.getvalue('ssl_name') is None:
         print('error: Please enter a desired name')
     else:
-        name = form.getvalue('ssl_name').replace(';', '').replace('&', '')
+        name = form.getvalue('ssl_name')
+        if funct.checkAjaxInput(name):
+            print('error: Nice try')
+            sys.exit()
 
     try:
         with open(name, "w") as ssl_cert:
@@ -122,7 +132,10 @@ if form.getvalue('ip_select') is not None:
 
 if form.getvalue('ipbackend') is not None and form.getvalue('backend_server') is None:
     haproxy_sock_port = int(sql.get_setting('haproxy_sock_port'))
-    backend = form.getvalue('ipbackend').replace(';', '').replace('&', '')
+    backend = form.getvalue('ipbackend')
+    if funct.checkAjaxInput(backend):
+        print('error: Nice try')
+        sys.exit()
     cmd = 'echo "show servers state"|nc %s %s |grep "%s" |awk \'{print $4}\'' % (serv, haproxy_sock_port, backend)
     output, stderr = funct.subprocess_execute(cmd)
     for i in output:
@@ -133,17 +146,23 @@ if form.getvalue('ipbackend') is not None and form.getvalue('backend_server') is
 
 if form.getvalue('ipbackend') is not None and form.getvalue('backend_server') is not None:
     haproxy_sock_port = int(sql.get_setting('haproxy_sock_port'))
-    backend = form.getvalue('ipbackend').replace(';', '').replace('&', '')
+    backend = form.getvalue('ipbackend')
     backend_server = form.getvalue('backend_server')
+    if funct.checkAjaxInput(backend) or funct.checkAjaxInput(backend_server):
+        print('error: Nice try')
+        sys.exit()
     cmd = 'echo "show servers state"|nc %s %s |grep "%s" |grep "%s" |awk \'{print $5":"$19}\' |head -1' % (serv, haproxy_sock_port, backend, backend_server)
     output, stderr = funct.subprocess_execute(cmd)
     print(output[0])
 
 if form.getvalue('backend_ip') is not None:
-    backend_backend = form.getvalue('backend_backend').replace(';', '').replace('&', '')
-    backend_server = form.getvalue('backend_server').replace(';', '').replace('&', '')
-    backend_ip = form.getvalue('backend_ip').replace(';', '').replace('&', '')
-    backend_port = form.getvalue('backend_port').replace(';', '').replace('&', '')
+    backend_backend = form.getvalue('backend_backend')
+    backend_server = form.getvalue('backend_server')
+    backend_ip = form.getvalue('backend_ip')
+    backend_port = form.getvalue('backend_port')
+    if any((funct.checkAjaxInput(backend_backend), funct.checkAjaxInput(backend_server), funct.checkAjaxInput(backend_ip), funct.checkAjaxInput(backend_port))):
+        print('error: Nice try')
+        sys.exit()
     if form.getvalue('backend_ip') is None:
         print('error: Backend IP must be IP and not 0')
         sys.exit()
@@ -192,12 +211,19 @@ if form.getvalue('backend_ip') is not None:
         stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save='save')
 
 if form.getvalue('maxconn_select') is not None:
-    serv = form.getvalue('maxconn_select').replace(';', '').replace('&', '')
+    serv = form.getvalue('maxconn_select')
+    if funct.checkAjaxInput(serv):
+        print('error: Nice try')
+        sys.exit()
     funct.get_backends_from_config(serv, backends='frontend')
 
 if form.getvalue('maxconn_frontend') is not None:
-    frontend = form.getvalue('maxconn_frontend').replace(';', '').replace('&', '')
-    maxconn = form.getvalue('maxconn_int').replace(';', '').replace('&', '')
+    frontend = form.getvalue('maxconn_frontend')
+    maxconn = form.getvalue('maxconn_int')
+
+    if funct.checkAjaxInput(frontend) or funct.checkAjaxInput(maxconn):
+        print('error: Nice try')
+        sys.exit()
     if form.getvalue('maxconn_int') is None:
         print('error: Maxconn must be integer and not 0')
         sys.exit()
@@ -271,8 +297,12 @@ if form.getvalue('table_select') is not None:
 
 if form.getvalue('ip_for_delete') is not None:
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-    ip = form.getvalue('ip_for_delete').replace(';', '').replace('&', '')
-    table = form.getvalue('table_for_delete').replace(';', '').replace('&', '')
+    ip = form.getvalue('ip_for_delete')
+    table = form.getvalue('table_for_delete')
+
+    if funct.checkAjaxInput(ip) or funct.checkAjaxInput(table):
+        print('error: Nice try')
+        sys.exit()
 
     cmd = 'echo "clear table %s key %s" |nc %s %s' % (table, ip, serv, haproxy_sock_port)
     output, stderr = funct.subprocess_execute(cmd)
@@ -281,7 +311,11 @@ if form.getvalue('ip_for_delete') is not None:
 
 if form.getvalue('table_for_clear') is not None:
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-    table = form.getvalue('table_for_clear').replace(';', '').replace('&', '')
+    table = form.getvalue('table_for_clear')
+
+    if funct.checkAjaxInput(table):
+        print('error: Nice try')
+        sys.exit()
 
     cmd = 'echo "clear table %s " |nc %s %s' % (table, serv, haproxy_sock_port)
     output, stderr = funct.subprocess_execute(cmd)
@@ -300,8 +334,12 @@ if form.getvalue('list_select_id') is not None:
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
                       extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'], trim_blocks=True, lstrip_blocks=True)
     template = env.get_template('ajax/list.html')
-    list_id = form.getvalue('list_select_id').replace(';', '').replace('&', '')
-    list_name = form.getvalue('list_select_name').replace(';', '').replace('&', '')
+    list_id = form.getvalue('list_select_id')
+    list_name = form.getvalue('list_select_name')
+
+    if funct.checkAjaxInput(list_id) or funct.checkAjaxInput(list_name):
+        print('error: Nice try')
+        sys.exit()
 
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
     cmd = 'echo "show acl #%s"|nc %s %s' % (list_id, serv, haproxy_sock_port)
@@ -314,11 +352,15 @@ if form.getvalue('list_id_for_delete') is not None:
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
     lists_path = sql.get_setting('lists_path')
     lib_path = funct.get_config_var('main', 'lib_path')
-    ip_id = form.getvalue('list_ip_id_for_delete').replace(';', '').replace('&', '')
-    ip = form.getvalue('list_ip_for_delete').replace(';', '').replace('&', '')
-    list_id = form.getvalue('list_id_for_delete').replace(';', '').replace('&', '')
-    list_name = form.getvalue('list_name').replace(';', '').replace('&', '')
+    ip_id = form.getvalue('list_ip_id_for_delete')
+    ip = form.getvalue('list_ip_for_delete')
+    list_id = form.getvalue('list_id_for_delete')
+    list_name = form.getvalue('list_name')
     user_group = funct.get_user_group(id=1)
+
+    if any((funct.checkAjaxInput(ip_id), funct.checkAjaxInput(ip), funct.checkAjaxInput(list_id), funct.checkAjaxInput(list_name))):
+        print('error: Nice try')
+        sys.exit()
 
     cmd = "sed -i 's!%s$!!' %s/%s/%s/%s" % (ip, lib_path, lists_path, user_group, list_name)
     cmd1 = "sed -i '/^$/d' %s/%s/%s/%s" % (lib_path, lists_path, user_group, list_name)
@@ -345,14 +387,18 @@ if form.getvalue('list_id_for_delete') is not None:
 
 if form.getvalue('list_ip_for_add') is not None:
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-    lists_path = sql.get_setting('lists_path').replace(';', '').replace('&', '')
+    lists_path = sql.get_setting('lists_path')
     lib_path = funct.get_config_var('main', 'lib_path')
     ip = form.getvalue('list_ip_for_add')
     ip = ip.strip()
     ip = funct.is_ip_or_dns(ip)
-    list_id = form.getvalue('list_id_for_add').replace(';', '').replace('&', '')
-    list_name = form.getvalue('list_name').replace(';', '').replace('&', '')
+    list_id = form.getvalue('list_id_for_add')
+    list_name = form.getvalue('list_name')
     user_group = funct.get_user_group(id=1)
+
+    if any((funct.checkAjaxInput(lists_path), funct.checkAjaxInput(list_id), funct.checkAjaxInput(list_name))):
+        print('error: Nice try')
+        sys.exit()
 
     cmd = 'echo "add acl #%s %s" |nc %s %s' % (list_id, ip, serv, haproxy_sock_port)
     output, stderr = funct.subprocess_execute(cmd)
@@ -377,7 +423,16 @@ if form.getvalue('sessions_select') is not None:
 
     env = Environment(loader=FileSystemLoader('templates'), autoescape=True,
                       extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'], trim_blocks=True, lstrip_blocks=True)
-    serv = form.getvalue('sessions_select').replace(';', '').replace('&', '')
+    serv = form.getvalue('sessions_select')
+
+    if funct.checkAjaxInput(serv):
+        print('error: Nice try')
+        sys.exit()
+
+    if funct.checkAjaxInput(serv):
+        print('error: Nice try')
+        sys.exit()
+
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 
     cmd = 'echo "show sess" |nc %s %s' % (serv, haproxy_sock_port)
@@ -389,8 +444,13 @@ if form.getvalue('sessions_select') is not None:
     print(template)
 
 if form.getvalue('sessions_select_show') is not None:
-    serv = form.getvalue('sessions_select_show').replace(';', '').replace('&', '')
-    sess_id = form.getvalue('sessions_select_id').replace(';', '').replace('&', '')
+    serv = form.getvalue('sessions_select_show')
+    sess_id = form.getvalue('sessions_select_id')
+
+    if funct.checkAjaxInput(serv) or funct.checkAjaxInput(sess_id):
+        print('error: Nice try')
+        sys.exit()
+
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 
     cmd = 'echo "show sess %s" |nc %s %s' % (sess_id, serv, haproxy_sock_port)
@@ -404,7 +464,15 @@ if form.getvalue('sessions_select_show') is not None:
 
 if form.getvalue('session_delete_id') is not None:
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-    sess_id = form.getvalue('session_delete_id').replace(';', '').replace('&', '')
+    sess_id = form.getvalue('session_delete_id')
+
+    if funct.checkAjaxInput(sess_id):
+        print('error: Nice try')
+        sys.exit()
+
+    if funct.checkAjaxInput(sess_id):
+        print('error: Nice try')
+        sys.exit()
 
     cmd = 'echo "shutdown session %s" |nc %s %s' % (sess_id, serv, haproxy_sock_port)
     output, stderr = funct.subprocess_execute(cmd)
@@ -529,7 +597,15 @@ if form.getvalue('action_apache') is not None and serv is not None:
     print("success: Apache has been %s" % action)
 
 if form.getvalue('action_service') is not None:
-    action = form.getvalue('action_service').replace(';', '').replace('&', '')
+    action = form.getvalue('action_service')
+
+    if funct.checkAjaxInput(action):
+        print('error: Nice try')
+        sys.exit()
+
+    if funct.checkAjaxInput(action):
+        print('error: Nice try')
+        sys.exit()
 
     if action not in ('start', 'stop', 'restart'):
         print('error: wrong action')
@@ -1157,8 +1233,13 @@ if serv is not None and act == "showMap":
 if form.getvalue('servaction') is not None:
     server_state_file = sql.get_setting('server_state_file')
     haproxy_sock = sql.get_setting('haproxy_sock')
-    enable = form.getvalue('servaction').replace(';', '').replace('&', '')
-    backend = form.getvalue('servbackend').replace(';', '').replace('&', '')
+    enable = form.getvalue('servaction')
+    backend = form.getvalue('servbackend')
+
+    if funct.checkAjaxInput(enable) or funct.checkAjaxInput(backend):
+        print('error: Nice try')
+        sys.exit()
+
     cmd = 'echo "{} {}" |sudo socat stdio {}'.format(enable, backend, haproxy_sock)
 
     if form.getvalue('save') == "on":
@@ -1200,8 +1281,12 @@ if act == "showCompareConfigs":
 if serv is not None and form.getvalue('right') is not None:
     from jinja2 import Environment, FileSystemLoader
 
-    left = form.getvalue('left').replace(';', '').replace('&', '')
-    right = form.getvalue('right').replace(';', '').replace('&', '')
+    left = form.getvalue('left')
+    right = form.getvalue('right')
+
+    if funct.checkAjaxInput(left) or funct.checkAjaxInput(right):
+        print('error: Nice try')
+        sys.exit()
 
     if form.getvalue('service') == 'nginx':
         configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
@@ -2469,7 +2554,15 @@ if form.getvalue('new_ssh'):
 
 if form.getvalue('sshdel') is not None:
     lib_path = funct.get_config_var('main', 'lib_path')
-    sshdel = form.getvalue('sshdel').replace(';', '').replace('&', '')
+    sshdel = form.getvalue('sshdel')
+
+    if funct.checkAjaxInput(sshdel):
+        print('error: Nice try')
+        sys.exit()
+
+    if funct.checkAjaxInput(sshdel):
+        print('error: Nice try')
+        sys.exit()
 
     for sshs in sql.select_ssh(id=sshdel):
         ssh_enable = sshs.enable
@@ -2519,7 +2612,12 @@ if form.getvalue('ssh_cert'):
     import paramiko
 
     user_group = funct.get_user_group()
-    name = form.getvalue('name').replace(';', '').replace('&', '')
+    name = form.getvalue('name')
+
+    if funct.checkAjaxInput(name):
+        print('error: Nice try')
+        sys.exit()
+
     try:
         key = paramiko.pkey.load_private_key(form.getvalue('ssh_cert'))
     except Exception as e:
@@ -2815,7 +2913,12 @@ if form.getvalue('updateSmonIp') is not None:
         funct.logging('SMON', ' Has been update the server ' + ip + ' to SMON ', haproxywi=1, login=1)
 
 if form.getvalue('showBytes') is not None:
-    serv = form.getvalue('showBytes').replace(';', '').replace('&', '')
+    serv = form.getvalue('showBytes')
+
+    if funct.checkAjaxInput(serv):
+        print('error: Nice try')
+        sys.exit()
+
     port = sql.get_setting('haproxy_sock_port')
     bin_bout = []
     cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,9|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(serv, port)
@@ -2867,8 +2970,13 @@ if form.getvalue('nginxConnections'):
         print('error: cannot connect to Nginx stat page')
 
 if form.getvalue('waf_rule_id'):
-    enable = form.getvalue('waf_en').replace(';', '').replace('&', '')
-    rule_id = form.getvalue('waf_rule_id').replace(';', '').replace('&', '')
+    enable = form.getvalue('waf_en')
+    rule_id = form.getvalue('waf_rule_id')
+
+    if funct.checkAjaxInput(enable) or funct.checkAjaxInput(rule_id):
+        print('error: Nice try')
+        sys.exit()
+
     haproxy_path = sql.get_setting('haproxy_dir')
     rule_file = sql.select_waf_rule_by_id(rule_id)
     conf_file_path = haproxy_path + '/waf/modsecurity.conf'
@@ -2943,7 +3051,15 @@ if form.getvalue('lets_domain'):
     os.system("rm -f %s" % script)
 
 if form.getvalue('uploadovpn'):
-    name = form.getvalue('ovpnname').replace(';', '').replace('&', '')
+    name = form.getvalue('ovpnname')
+
+    if funct.checkAjaxInput(name):
+        print('error: Nice try')
+        sys.exit()
+
+    if funct.checkAjaxInput(name):
+        print('error: Nice try')
+        sys.exit()
 
     ovpn_file = os.path.dirname('/tmp/') + "/" + name + '.ovpn'
 
@@ -2971,7 +3087,11 @@ if form.getvalue('uploadovpn'):
     funct.logging("localhost", " has been uploaded a new ovpn file %s" % ovpn_file, haproxywi=1, login=1)
 
 if form.getvalue('openvpndel') is not None:
-    openvpndel = form.getvalue('openvpndel').replace(';', '').replace('&', '')
+    openvpndel = form.getvalue('openvpndel')
+
+    if funct.checkAjaxInput(openvpndel):
+        print('error: Nice try')
+        sys.exit()
 
     cmd = 'sudo openvpn3 config-remove --config /tmp/%s.ovpn --force' % openvpndel
     try:
@@ -2983,8 +3103,12 @@ if form.getvalue('openvpndel') is not None:
         funct.logging('localhost', e.args[0], haproxywi=1)
 
 if form.getvalue('actionvpn') is not None:
-    openvpn = form.getvalue('openvpnprofile').replace(';', '').replace('&', '')
-    action = form.getvalue('actionvpn').replace(';', '').replace('&', '')
+    openvpn = form.getvalue('openvpnprofile')
+    action = form.getvalue('actionvpn')
+
+    if funct.checkAjaxInput(openvpn) or funct.checkAjaxInput(action):
+        print('error: Nice try')
+        sys.exit()
 
     if action == 'start':
         cmd = 'sudo openvpn3 session-start --config /tmp/%s.ovpn' % openvpn
@@ -3001,7 +3125,12 @@ if form.getvalue('actionvpn') is not None:
         funct.logging('localhost', e.args[0], haproxywi=1)
 
 if form.getvalue('scan_ports') is not None:
-    serv_id = form.getvalue('scan_ports').replace(';', '').replace('&', '')
+    serv_id = form.getvalue('scan_ports')
+
+    if funct.checkAjaxInput(serv_id):
+        print('error: Nice try')
+        sys.exit()
+
     server = sql.select_servers(id=serv_id)
     ip = ''
 
@@ -3025,7 +3154,11 @@ if form.getvalue('scan_ports') is not None:
         print(template)
 
 if form.getvalue('viewFirewallRules') is not None:
-    serv = form.getvalue('viewFirewallRules').replace(';', '').replace('&', '')
+    serv = form.getvalue('viewFirewallRules')
+
+    if funct.checkAjaxInput(serv):
+        print('error: Nice try')
+        sys.exit()
 
     cmd = ["sudo iptables -L INPUT -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"]
     cmd1 = ["sudo iptables -L IN_public_allow -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"]
@@ -3052,7 +3185,12 @@ if form.getvalue('viewFirewallRules') is not None:
     print(template)
 
 if form.getvalue('geoipserv') is not None:
-    serv = form.getvalue('geoipserv').replace(';', '').replace('&', '')
+    serv = form.getvalue('geoipserv')
+
+    if funct.checkAjaxInput(serv):
+        print('error: Nice try')
+        sys.exit()
+
     haproxy_dir = sql.get_setting('haproxy_dir')
 
     cmd = ["ls " + haproxy_dir + "/geoip/"]
@@ -4129,6 +4267,7 @@ if form.getvalue('newtoption'):
             template = template.render(options=sql.select_options(option=option))
             print(template)
 
+
 if form.getvalue('updateoption') is not None:
     option = form.getvalue('updateoption')
     option_id = form.getvalue('id')
@@ -4137,9 +4276,11 @@ if form.getvalue('updateoption') is not None:
     else:
         sql.update_options(option, option_id)
 
+
 if form.getvalue('optiondel') is not None:
     if sql.delete_option(form.getvalue('optiondel')):
         print("Ok")
+
 
 if form.getvalue('getsavedserver'):
     group = form.getvalue('getsavedserver')
@@ -4157,6 +4298,7 @@ if form.getvalue('getsavedserver'):
         v = v + 1
     import json
     print(json.dumps(a))
+
 
 if form.getvalue('newsavedserver'):
     savedserver = form.getvalue('newsavedserver')
@@ -4389,8 +4531,12 @@ if act == 'check_service':
     user_uuid = cookie.get('uuid')
     user_id = sql.get_user_id_by_uuid(user_uuid.value)
     user_services = sql.select_user_services(user_id)
-    server_id = form.getvalue('server_id').replace(';', '').replace('&', '')
-    service = form.getvalue('service').replace(';', '').replace('&', '')
+    server_id = form.getvalue('server_id')
+    service = form.getvalue('service')
+
+    if funct.checkAjaxInput(server_id) or funct.checkAjaxInput(service):
+        print('error: Nice try')
+        sys.exit()
 
     if '1' in user_services:
         if service == 'haproxy':
