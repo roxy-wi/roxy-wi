@@ -904,7 +904,7 @@ $( function() {
 	$('#auth').submit(function() {
 		let searchParams = new URLSearchParams(window.location.search)
 		if(searchParams.has('ref')) {
-			window.location = /.*ref=([^&]*).*/.exec(document.location.href)[1];
+			var ref = /.*ref=([^&]*).*/.exec(document.location.href)[1];
 		} else {
 			var ref = "overview.py";
 		}

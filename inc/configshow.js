@@ -61,7 +61,7 @@ $( function() {
 			data: frm.serialize() + "&save=" + $(this).val(),
 			type: frm.attr('method'),
 			success: function( data ) {
-				data = data.replaceAll('\n', '<br>');
+				data = data.replace(/\n/g, "<br>");
 				if (data.indexOf(service + ': command not found') != '-1')	{
 					try {
 						var service = findGetParameter('service');
