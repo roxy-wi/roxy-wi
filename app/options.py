@@ -47,8 +47,6 @@ if not sql.check_token_exists(token):
     sys.exit()
 
 if form.getvalue('getcerts') is not None and serv is not None:
-    if funct.checkAjaxInput(getcerts):
-        print('error: Nice try')
     cert_path = sql.get_setting('cert_path')
     commands = ["sudo ls -1t " + cert_path + " |grep -E 'pem|crt|key'"]
     try:
@@ -66,6 +64,7 @@ if form.getvalue('getcert') is not None and serv is not None:
     cert_id = form.getvalue('getcert')
     if funct.checkAjaxInput(cert_id):
         print('error: Nice try')
+        sys.exit()
 
     cert_path = sql.get_setting('cert_path')
     commands = ["openssl x509 -in " + cert_path + "/" + cert_id + " -text"]
@@ -77,6 +76,7 @@ if form.getvalue('getcert') is not None and serv is not None:
 if form.getvalue('delcert') is not None and serv is not None:
     if funct.checkAjaxInput(cert_id):
         print('error: Nice try')
+        sys.exit()
 
     cert_path = sql.get_setting('cert_path')
     commands = ["sudo rm -f " + cert_path + "/" + cert_id]
