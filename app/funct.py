@@ -1386,12 +1386,10 @@ def server_status(stdout):
 
 
 def ssh_command(server_ip, commands, **kwargs):
-	from shlex import quote
 	ssh = ssh_connect(server_ip)
 
 	for command in commands:
 		try:
-			command = quote(command)
 			stdin, stdout, stderr = ssh.exec_command(command, get_pty=True)
 		except Exception as e:
 			logging('localhost', ' ' + str(e), haproxywi=1)

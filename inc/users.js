@@ -291,7 +291,7 @@ $( function() {
 				if (data.indexOf('error:') != '-1') {
 					toastr.clear();
 					toastr.error(data);
-				} else if(data == 'no' || data == '') {
+				} else if(data == 'no' || data == '' || data.indexOf('No') != '-1') {
 					$('#cur_haproxy_exp_ver').text('HAProxy exporter has been not installed');
 				} else {
 					$('#cur_haproxy_exp_ver').text(data);
