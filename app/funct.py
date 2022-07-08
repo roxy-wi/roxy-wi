@@ -30,12 +30,14 @@ def is_ip_or_dns(server_from_request: str) -> str:
 		return ''
 
 
-def checkAjaxInput(ajax_input: str) -> bool:
+def checkAjaxInput(ajax_input: str) -> str:
 	pattern = re.compile('[&;|$`]')
 	if pattern.search(ajax_input):
-		return True
+		print('error: nice try')
+		sys.exit()
 	else:
-		return False
+		from shlex import quote
+		return quote(ajax_input)
 
 
 form = cgi.FieldStorage()
