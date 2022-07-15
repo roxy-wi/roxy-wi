@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import traceback
 import sys
+import os
 
 import funct
 from db_model import *
@@ -2640,7 +2641,7 @@ def select_providers(user_group, **kwargs):
 		if kwargs.get('key'):
 			query = ProvidersCreds.select().where(
 				(ProvidersCreds.key == kwargs.get('key'))
-				& (ProvidersCreds.group ==  user_group)
+				& (ProvidersCreds.group == user_group)
 			)
 		else:
 			query = ProvidersCreds.select().where(ProvidersCreds.group == user_group)
