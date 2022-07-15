@@ -19,6 +19,8 @@
 			<h3>You have not installed Terraform. Read <a href="https://www.terraform.io/downloads.html"
 			title="Download Terraform" target="_blank">here</a> how to install Terraform</h3>
 		</center>
+		{% elif servers|length == 0 %}
+			{% include 'include/getstarted.html' %}
 		{% else %}
         <table class="overview" id="ajax-provisioning">
 			<thead>

@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import traceback
+import sys
+
 import funct
 from db_model import *
 
@@ -8,6 +11,11 @@ mysql_enable = funct.get_config_var('mysql', 'enable')
 
 def out_error(error):
 	error = str(error)
+	exc_type, exc_obj, exc_tb = sys.exc_info()
+	file_name = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+	stk = traceback.extract_tb(exc_tb, 1)
+	function_name = stk[0][2]
+	error = error + ' in function: ' + function_name + ' in file: ' + file_name
 	print('error: ' + error)
 	if 'database is locked' not in error:
 		try:
@@ -351,7 +359,6 @@ def select_users(**kwargs):
 			(
 				User.last_login_date >= funct.get_data('regular', timedelta_minutes_minus=15)
 			), 0)], 1).alias('last_login')).order_by(User.user_id)
-
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -463,6 +470,7 @@ def get_hostname_by_server_ip(server_ip):
 		hostname = Server.get(Server.ip == server_ip)
 	except Exception as e:
 		return out_error(e)
+		# pass
 	else:
 		return hostname.hostname
 
@@ -1297,120 +1305,6 @@ def select_waf_servers_metrics(uuid):
 			return query_res
 
 
-def select_waf_metrics(serv, **kwargs):
-	cursor = conn.cursor()
-
-	if mysql_enable == '1':
-		if kwargs.get('time_range') == '60':
-			date_from = "and date > now() - INTERVAL 60 minute group by `date` div 100"
-		elif kwargs.get('time_range') == '180':
-			date_from = "and date > now() - INTERVAL 180 minute group by `date` div 200"
-		elif kwargs.get('time_range') == '360':
-			date_from = "and date > now() - INTERVAL 360 minute group by `date` div 300"
-		elif kwargs.get('time_range') == '720':
-			date_from = "and date > now() - INTERVAL 720 minute group by `date` div 500"
-		else:
-			date_from = "and date > now() - INTERVAL 30 minute"
-		sql = """ select * from waf_metrics where serv = '{serv}' {date_from} order by `date` desc limit 60 """.format(
-			serv=serv, date_from=date_from)
-	else:
-		if kwargs.get('time_range') == '60':
-			date_from = "and date > datetime('now', '-60 minutes', 'localtime') and rowid % 2 = 0"
-		elif kwargs.get('time_range') == '180':
-			date_from = "and date > datetime('now', '-180 minutes', 'localtime') and rowid % 5 = 0"
-		elif kwargs.get('time_range') == '360':
-			date_from = "and date > datetime('now', '-360 minutes', 'localtime') and rowid % 7 = 0"
-		elif kwargs.get('time_range') == '720':
-			date_from = "and date > datetime('now', '-720 minutes', 'localtime') and rowid % 9 = 0"
-		else:
-			date_from = "and date > datetime('now', '-30 minutes', 'localtime')"
-		sql = """ select * from (select * from waf_metrics where serv = '{serv}' {date_from} order by `date`) order by `date` """.format(
-			serv=serv, date_from=date_from)
-
-	try:
-		cursor.execute(sql)
-	except Exception as e:
-		out_error(e)
-	else:
-		return cursor.fetchall()
-
-
-def select_nginx_metrics(serv, **kwargs):
-	cursor = conn.cursor()
-
-	if mysql_enable == '1':
-		if kwargs.get('time_range') == '60':
-			date_from = "and date > now() - INTERVAL 60 minute group by `date` div 100"
-		elif kwargs.get('time_range') == '180':
-			date_from = "and date > now() - INTERVAL 180 minute group by `date` div 200"
-		elif kwargs.get('time_range') == '360':
-			date_from = "and date > now() - INTERVAL 360 minute group by `date` div 300"
-		elif kwargs.get('time_range') == '720':
-			date_from = "and date > now() - INTERVAL 720 minute group by `date` div 500"
-		else:
-			date_from = "and date > now() - INTERVAL 30 minute"
-		sql = """ select * from nginx_metrics where serv = '{serv}' {date_from} order by `date` desc limit 60 """.format(
-			serv=serv, date_from=date_from)
-	else:
-		if kwargs.get('time_range') == '60':
-			date_from = "and date > datetime('now', '-60 minutes', 'localtime') and rowid % 2 = 0"
-		elif kwargs.get('time_range') == '180':
-			date_from = "and date > datetime('now', '-180 minutes', 'localtime') and rowid % 5 = 0"
-		elif kwargs.get('time_range') == '360':
-			date_from = "and date > datetime('now', '-360 minutes', 'localtime') and rowid % 7 = 0"
-		elif kwargs.get('time_range') == '720':
-			date_from = "and date > datetime('now', '-720 minutes', 'localtime') and rowid % 9 = 0"
-		else:
-			date_from = "and date > datetime('now', '-30 minutes', 'localtime')"
-		sql = """ select * from (select * from nginx_metrics where serv = '{serv}' {date_from} order by `date`) order by `date` """.format(
-			serv=serv, date_from=date_from)
-
-	try:
-		cursor.execute(sql)
-	except Exception as e:
-		out_error(e)
-	else:
-		return cursor.fetchall()
-
-
-def select_apache_metrics(serv, **kwargs):
-	cursor = conn.cursor()
-
-	if mysql_enable == '1':
-		if kwargs.get('time_range') == '60':
-			date_from = "and date > now() - INTERVAL 60 minute group by `date` div 100"
-		elif kwargs.get('time_range') == '180':
-			date_from = "and date > now() - INTERVAL 180 minute group by `date` div 200"
-		elif kwargs.get('time_range') == '360':
-			date_from = "and date > now() - INTERVAL 360 minute group by `date` div 300"
-		elif kwargs.get('time_range') == '720':
-			date_from = "and date > now() - INTERVAL 720 minute group by `date` div 500"
-		else:
-			date_from = "and date > now() - INTERVAL 30 minute"
-		sql = """ select * from apache_metrics where serv = '{serv}' {date_from} order by `date` desc limit 60 """.format(
-			serv=serv, date_from=date_from)
-	else:
-		if kwargs.get('time_range') == '60':
-			date_from = "and date > datetime('now', '-60 minutes', 'localtime') and rowid % 2 = 0"
-		elif kwargs.get('time_range') == '180':
-			date_from = "and date > datetime('now', '-180 minutes', 'localtime') and rowid % 5 = 0"
-		elif kwargs.get('time_range') == '360':
-			date_from = "and date > datetime('now', '-360 minutes', 'localtime') and rowid % 7 = 0"
-		elif kwargs.get('time_range') == '720':
-			date_from = "and date > datetime('now', '-720 minutes', 'localtime') and rowid % 9 = 0"
-		else:
-			date_from = "and date > datetime('now', '-30 minutes', 'localtime')"
-		sql = """ select * from (select * from apache_metrics where serv = '{serv}' {date_from} order by `date`) order by `date` """.format(
-			serv=serv, date_from=date_from)
-
-	try:
-		cursor.execute(sql)
-	except Exception as e:
-		out_error(e)
-	else:
-		return cursor.fetchall()
-
-
 def insert_waf_metrics_enable(serv, enable):
 	try:
 		server_id = Server.get(Server.ip == serv).server_id
@@ -1598,8 +1492,15 @@ def delete_apache_metrics():
 		out_error(e)
 
 
-def select_metrics(serv, **kwargs):
+def select_metrics(serv, service, **kwargs):
 	cursor = conn.cursor()
+
+	if service in ('nginx', 'apache', 'waf'):
+		metrics_table = '{}_metrics'.format(service)
+	elif service == 'http_metrics':
+		metrics_table = 'metrics_http_status'
+	else:
+		metrics_table = 'metrics'
 
 	if mysql_enable == '1':
 		if kwargs.get('time_range') == '60':
@@ -1612,8 +1513,8 @@ def select_metrics(serv, **kwargs):
 			date_from = "and date > now() - INTERVAL 720 minute group by `date` div 500"
 		else:
 			date_from = "and date > now() - INTERVAL 30 minute"
-		sql = """ select * from metrics where serv = '{serv}' {date_from} order by `date` asc """.format(
-			serv=serv, date_from=date_from
+		sql = """ select * from {metrics_table} where serv = '{serv}' {date_from} order by `date` asc """.format(
+			metrics_table=metrics_table, serv=serv, date_from=date_from
 		)
 	else:
 		if kwargs.get('time_range') == '60':
@@ -1627,47 +1528,8 @@ def select_metrics(serv, **kwargs):
 		else:
 			date_from = "and date > datetime('now', '-30 minutes', 'localtime')"
 
-		sql = """ select * from (select * from metrics where serv = '{serv}' {date_from} order by `date`) order by `date` """.format(
-			serv=serv, date_from=date_from)
-
-	try:
-		cursor.execute(sql)
-	except Exception as e:
-		out_error(e)
-	else:
-		return cursor.fetchall()
-
-
-def select_metrics_http(serv, **kwargs):
-	cursor = conn.cursor()
-
-	if mysql_enable == '1':
-		if kwargs.get('time_range') == '60':
-			date_from = "and date > now() - INTERVAL 60 minute group by `date` div 100"
-		elif kwargs.get('time_range') == '180':
-			date_from = "and date > now() - INTERVAL 180 minute group by `date` div 200"
-		elif kwargs.get('time_range') == '360':
-			date_from = "and date > now() - INTERVAL 360 minute group by `date` div 300"
-		elif kwargs.get('time_range') == '720':
-			date_from = "and date > now() - INTERVAL 720 minute group by `date` div 500"
-		else:
-			date_from = "and date > now() - INTERVAL 30 minute"
-		sql = """ select * from metrics_http_status where serv = '{serv}' {date_from} order by `date` desc """.format(
-			serv=serv, date_from=date_from)
-	else:
-		if kwargs.get('time_range') == '60':
-			date_from = "and date > datetime('now', '-60 minutes', 'localtime') and rowid % 2 = 0"
-		elif kwargs.get('time_range') == '180':
-			date_from = "and date > datetime('now', '-180 minutes', 'localtime') and rowid % 5 = 0"
-		elif kwargs.get('time_range') == '360':
-			date_from = "and date > datetime('now', '-360 minutes', 'localtime') and rowid % 7 = 0"
-		elif kwargs.get('time_range') == '720':
-			date_from = "and date > datetime('now', '-720 minutes', 'localtime') and rowid % 9 = 0"
-		else:
-			date_from = "and date > datetime('now', '-30 minutes', 'localtime')"
-
-		sql = """ select * from (select * from metrics_http_status where serv = '{serv}' {date_from} order by `date`) order by `date` """.format(
-			serv=serv, date_from=date_from)
+		sql = """ select * from (select * from {metrics_table} where serv = '{serv}' {date_from} order by `date`) order by `date` """.format(
+			metrics_table=metrics_table, serv=serv, date_from=date_from)
 
 	try:
 		cursor.execute(sql)
@@ -2652,7 +2514,7 @@ def insert_port_scanner_port(serv, user_group_id, port, service_name):
 
 def select_ports(serv):
 	cursor = conn.cursor()
-	sql = """select port from port_scanner_ports where serv =  '%s' """ % serv
+	sql = """select port from port_scanner_ports where serv = '%s' """ % serv
 
 	try:
 		cursor.execute(sql)
@@ -2772,24 +2634,22 @@ def add_provider_gcore(provider_name, provider_group, provider_user, provider_pa
 
 
 def select_providers(user_group, **kwargs):
-	cursor = conn.cursor()
 	if user_group == 1:
-		user_group = ''
-		if kwargs.get('key'):
-			user_group += " where key = '%s' " % kwargs.get('key')
+		query = ProvidersCreds.select()
 	else:
-		user_group = "where `group` = '%s'" % user_group
 		if kwargs.get('key'):
-			user_group += " and key = '%s' " % kwargs.get('key')
-
-	sql = """ select * from providers_creds %s""" % user_group
-
+			query = ProvidersCreds.select().where(
+				(ProvidersCreds.key == kwargs.get('key'))
+				& (ProvidersCreds.group ==  user_group)
+			)
+		else:
+			query = ProvidersCreds.select().where(ProvidersCreds.group == user_group)
 	try:
-		cursor.execute(sql)
+		query_res = query.execute()
 	except Exception as e:
 		out_error(e)
 	else:
-		return cursor.fetchall()
+		return query_res
 
 
 def delete_provider(provider_id):
@@ -3542,6 +3402,7 @@ def select_checker_settings_for_server(service_id: int, server_id: int):
 
 
 def insert_new_checker_setting_for_server(server_ip: str) -> None:
+	server_id = ()
 	try:
 		server_id = Server.get(Server.ip == server_ip).server_id
 	except Exception as e:
@@ -3597,3 +3458,15 @@ def update_service_checker_settings(
 		return False
 	else:
 		return True
+
+
+def select_provisioning_params():
+	query = ProvisionParam.select()
+
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+		return
+	else:
+		return query_res

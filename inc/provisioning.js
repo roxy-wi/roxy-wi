@@ -21,41 +21,6 @@ $( function() {
     		$('#gcore_any_subnet').hide();
 		}
 	});
-    $('#gcore_create_regions').on('selectmenuchange', function (){
-    	if ($('#gcore_create_regions option:selected').val() == '6' || $('#gcore_create_regions option:selected').val() == '14') {
-    		var newOptions = {
-    		    "centos-7-gcore": "Centos 7"
-    		};
-		} else if ($('#gcore_create_regions option:selected').val() == '10') {
-    		var newOptions = {
-    		    "centos-7-gcore": "Centos 7",
-                "sles15-SP2": "SLES 15-SP2"
-    		};
-		} else if ($('#gcore_create_regions option:selected').val() == '18' || $('#gcore_create_regions option:selected').val() == '22') {
-    		var newOptions = {
-    		    "centos-7-1811-x64-qcow2": "Centos 7",
-    		    "centos8-1911-x64": "Centos 8",
-                "sles15-SP2": "SLES 15-SP2",
-                "fedora-32-x64-qcow2": "Fedora 32",
-                "fedora-33-x64-qcow2": "Fedora 33",
-                "fedora-coreos-32-x64": "Fedora CoreOS 32",
-                "ubuntu-16.04-x64": "Ubuntu 16.04",
-                "ubuntu-18.04-x64": "Ubuntu 18.04",
-                "ubuntu-20.04-x64": "Ubuntu 20.04",
-                "ubuntu-20.10-x64": "Ubuntu 20.10",
-                "debian-9.7-x64-qcow2": "Debian 9.7",
-                "debian-10.1-x64-qcow2": "Debian 10.1",
-                "debian-10.3-x64-qcow2": "Debian 10.3"
-    		};
-		}
-    	var $el = $("#gcore_create_oss");
-        $el.empty();
-        $.each(newOptions, function(key,value) {
-            $el.append($("<option></option>")
-             .attr("value", key).text(value));
-        });
-        $el.selectmenu("refresh");
-	});
     $('#gcore-instance-enter').on('click', function() {
 		$('#gcore_create_size').css('display', 'none');
 		$('#gcore-instance-enter').css('display', 'none');
@@ -459,20 +424,20 @@ function awsValidateServer() {
     } );
 }
 function awsWorkspaceServer() {
-    var aws_create_floating_net = 'false';
-    var aws_create_firewall = 'false';
-    var aws_create_public_ip = 'false';
-    var aws_create_delete_on_termination = 'false';
+    var aws_create_floating_net = 0;
+    var aws_create_firewall = 0;
+    var aws_create_public_ip = 0;
+    var aws_create_delete_on_termination = 0;
     if ($('#aws_create_firewall').is(':checked')) {
-		aws_create_firewall = 'true';
+		aws_create_firewall = 1;
 	}
     if ($('#aws_create_delete_on_termination').is(':checked')) {
-		aws_create_delete_on_termination = 'true';
+		aws_create_delete_on_termination = 1;
 	}
 	if ($('#aws_create_public_ip option:selected').val() == 'public') {
-		aws_create_public_ip = 'true';
+		aws_create_public_ip = 1;
 	} else if ($('#aws_create_public_ip option:selected').val() == 'elastic') {
-    	aws_create_floating_net = 'true';
+    	aws_create_floating_net = 1;
 	}
     $.ajax( {
 	    url: "options.py",
@@ -630,20 +595,20 @@ function awsEditValidateServer(server_id) {
     } );
 }
 function awsEditWorkspaceServer(server_id) {
-    var aws_edit_floating_net = 'false';
-    var aws_editing_firewall = 'false';
-    var aws_edit_public_ip = 'false';
-    var aws_edit_delete_on_termination = 'false';
+    var aws_edit_floating_net = 0;
+    var aws_editing_firewall = 0;
+    var aws_edit_public_ip = 0;
+    var aws_edit_delete_on_termination = 0;
     if ($('#aws_edit_firewall').is(':checked')) {
-		aws_editing_firewall = 'true';
+		aws_editing_firewall = 1;
 	}
     if ($('#aws_edit_delete_on_termination').is(':checked')) {
-		aws_edit_delete_on_termination = 'true';
+		aws_edit_delete_on_termination = 1;
 	}
     if ($('#aws_edit_public_ip option:selected').val() == 'public') {
-		aws_edit_public_ip = 'true';
+		aws_edit_public_ip = 1;
 	} else if ($('#aws_edit_public_ip option:selected').val() == 'elastic') {
-    	aws_edit_floating_net = 'true';
+    	aws_edit_floating_net = 1;
 	}
     $.ajax( {
 	    url: "options.py",
@@ -1473,25 +1438,25 @@ function doEditValidateServer(server_id) {
     } );
 }
 function doEditWorkspaceServer(server_id) {
-    var do_edit_private_net = 'false';
-	var do_edit_floating_net = 'false';
-	var do_edit_monitoring = 'false';
-	var do_edit_backup = 'false';
-	var do_edit_firewall = 'false';
+    var do_edit_private_net = 0;
+	var do_edit_floating_net = 0;
+	var do_edit_monitoring = 0;
+	var do_edit_backup = 0;
+	var do_edit_firewall = 0;
 	if ($('#do_edit_private_networking').is(':checked')) {
-		do_edit_private_net = 'true';
+		do_edit_private_net = 1;
 	}
 	if ($('#do_edit_floating_ip').is(':checked')) {
-		do_edit_floating_net = 'true';
+		do_edit_floating_net = 1;
 	}
 	if ($('#do_edit_monitoring').is(':checked')) {
-		do_edit_monitoring = 'true';
+		do_edit_monitoring = 1;
 	}
 	if ($('#do_edit_backup').is(':checked')) {
-		do_edit_backup = 'true';
+		do_edit_backup = 1;
 	}
 	if ($('#do_edit_firewall').is(':checked')) {
-		do_edit_firewall = 'true';
+		do_edit_firewall = 1;
 	}
 	$.ajax({
 		url: "options.py",
@@ -1550,9 +1515,10 @@ function doEditProvisiningServer(server_id) {
                 $('#edited-mess').html('Server has been changed. IPs are: ' + data);
                 $('#edited-mess').show();
                 $('#sever-status-'+server_id).text('Created');
-	            $('#sever-size-'+server_id).text($('#aws_edit_size').val());
-	            $('#sever-os-'+server_id).text($('#aws_edit_oss').val());
+	            $('#sever-size-'+server_id).text($('#do_edit_size').val());
+	            $('#sever-os-'+server_id).text($('#do_edit_oss').val());
 	            $('#server-'+server_id).css('background-color', '#fff');
+				$('#sever-status-'+server_id).css('color', 'var(--green-color)');
 	            $('#server-ip-'+server_id).text(data);
             }
         }
@@ -1630,25 +1596,25 @@ function doValidateServer() {
     } );
 }
 function doWorkspaceServer() {
-    var do_create_private_net = 'false';
-	var do_create_floating_net = 'false';
-	var do_create_monitoring = 'false';
-	var do_create_backup = 'false';
-	var do_create_firewall = 'false';
+    var do_create_private_net = 0;
+	var do_create_floating_net = 0;
+	var do_create_monitoring = 0;
+	var do_create_backup = 0;
+	var do_create_firewall = 0;
 	if ($('#do_create_private_net').is(':checked')) {
-		do_create_private_net = 'true';
+		do_create_private_net = 1;
 	}
 	if ($('#do_create_floating_net').is(':checked')) {
-		do_create_floating_net = 'true';
+		do_create_floating_net = 1;
 	}
 	if ($('#do_create_monitoring').is(':checked')) {
-		do_create_monitoring = 'true';
+		do_create_monitoring = 1;
 	}
 	if ($('#do_create_backup').is(':checked')) {
-		do_create_backup = 'true';
+		do_create_backup = 1;
 	}
 	if ($('#do_create_backup').is(':checked')) {
-		do_create_firewall = 'true';
+		do_create_firewall = 1;
 	}
 	$.ajax({
 		url: "options.py",
@@ -1793,13 +1759,13 @@ function gcoreValidateServer() {
     } );
 }
 function gcoreWorkspaceServer() {
-    var gcore_create_firewall = 'false';
-    var gcore_create_delete_on_termination = 'false';
+    var gcore_create_firewall = 0;
+    var gcore_create_delete_on_termination = 0;
     if ($('#gcore_create_firewall').is(':checked')) {
-		gcore_create_firewall = 'true';
+		gcore_create_firewall = 1;
 	}
     if ($('#gcore_create_delete_on_termination').is(':checked')) {
-		gcore_create_delete_on_termination = 'true';
+		gcore_create_delete_on_termination = 1;
 	}
     $.ajax( {
 	    url: "options.py",
@@ -1862,7 +1828,7 @@ function gcoreProvisiningServer() {
                 $('#sever-status-'+server_id).text('Created');
                 $('#sever-status-'+server_id).css('color', 'var(--green-color)');
                 $('#server-ip-'+server_id).text(data[0]);
-                $('#server-name-'+server_id).text(gcoreprovisining+'('+data[1]+')');
+                // $('#server-name-'+server_id).text(gcoreprovisining+'('+data[1]+')');
                 add_gcore_button_after_server_created();
             }
         }
@@ -1925,7 +1891,7 @@ function gcoreEditingVarsServer(server_id, dialog_id) {
 	        gcore_edit_regions: $('#gcore_edit_region').text(),
 	        gcore_edit_project: $('#gcore_edit_project_name').text(),
 	        gcore_edit_size: $('#gcore_edit_size').val(),
-	        gcore_edit_oss: $('#gcore_edit_oss').val(),
+	        gcore_edit_oss: $('#gcore_edit_oss').text(),
 	        gcore_edit_ssh_name: $('#gcore_edit_ssh_name').val(),
 	        gcore_edit_volume_size: $('#gcore_edit_volume_size').val(),
 	        gcore_edit_volume_type: $('#gcore_edit_volume_type').val(),
@@ -1972,13 +1938,13 @@ function gcoreEditValidateServer(server_id) {
     } );
 }
 function gcoreEditWorkspaceServer(server_id) {
-    var gcore_edit_firewall = 'false';
-    var gcore_edit_delete_on_termination = 'false';
+    var gcore_edit_firewall = 0;
+    var gcore_edit_delete_on_termination = 0;
     if ($('#gcore_edit_firewall').is(':checked')) {
-		gcore_edit_firewall = 'true';
+		gcore_edit_firewall = 1;
 	}
     if ($('#gcore_edit_delete_on_termination').is(':checked')) {
-		gcore_edit_delete_on_termination = 'true';
+		gcore_edit_delete_on_termination = 1;
 	}
     $.ajax( {
 	    url: "options.py",
@@ -1989,7 +1955,7 @@ function gcoreEditWorkspaceServer(server_id) {
 	        gcore_edit_regions: $('#gcore_edit_region').text(),
 	        gcore_edit_project: $('#gcore_edit_project_name').text(),
 	        gcore_edit_size: $('#gcore_edit_size').val(),
-	        gcore_edit_oss: $('#gcore_edit_oss').val(),
+	        gcore_edit_oss: $('#gcore_edit_oss').text(),
 	        gcore_edit_ssh_name: $('#gcore_edit_ssh_name').val(),
 	        gcore_edit_volume_size: $('#gcore_edit_volume_size').val(),
 	        gcore_edit_volume_type: $('#gcore_edit_volume_type').val(),
@@ -2042,11 +2008,11 @@ function gcoreEditProvisiningServer(server_id, dialog_id) {
                 $('#edited-mess').show();
                 $('#sever-status-'+server_id).text('Created');
 	            $('#sever-size-'+server_id).text($('#gcore_edit_size').val());
-	            $('#sever-os-'+server_id).text($('#gcore_edit_oss').val());
+	            $('#sever-os-'+server_id).text($('#gcore_edit_oss').text());
 	            $('#server-'+server_id).css('background-color', '#fff');
 	            $('#sever-status-'+server_id).css('color', 'var(--green-color)');
 	            $('#server-ip-'+server_id).text(data[0]);
-	            $('#server-name-'+server_id).text(gcoreeditgprovisining+'('+data[1]+')');
+	            // $('#server-name-'+server_id).text(gcoreeditgprovisining+'('+data[1]+')');
             }
         }
     } );

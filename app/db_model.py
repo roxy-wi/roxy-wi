@@ -337,6 +337,20 @@ class ProvidersCreds(BaseModel):
         table_name = 'providers_creds'
 
 
+class ProvisionParam(BaseModel):
+    id = AutoField()
+    param = CharField()
+    name = CharField()
+    optgroup = CharField()
+    section = CharField()
+    provider = CharField()
+    image = CharField(null=True)
+
+    class Meta:
+        table_name = 'provision_param'
+        constraints = [SQL('UNIQUE (param, section, provider)')]
+
+
 class ProvisionedServers(BaseModel):
     id = AutoField()
     region = CharField()
@@ -542,4 +556,4 @@ def create_tables():
                             Setting, Cred, Backup, Metrics, WafMetrics, Version, Option, SavedServer, Waf, ActionHistory,
                             PortScannerSettings, PortScannerPorts, PortScannerHistory, ProvidersCreds, ServiceSetting,
                             ProvisionedServers, MetricsHttpStatus, SMON, WafRules, Alerts, GeoipCodes, NginxMetrics,
-                            SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics])
+                            SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, ProvisionParam])

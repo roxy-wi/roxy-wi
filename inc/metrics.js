@@ -218,12 +218,16 @@ function getWafChartData(server) {
             data.push(result.chartData.curr_con);
             data.push(result.chartData.server);
             var labels = result.chartData.labels;
-            renderWafChart(data, labels, server);
+            renderServiceChart(data, labels, server, 'waf');
         }
     });
 }
-function renderWafChart(data, labels, server) {
-    var ctx = 's_'+server
+function renderServiceChart(data, labels, server, service) {
+    var ctx = service + '_' + server;
+    var addinional_title = '';
+    if (service == 'waf') {
+        addinional_title = 'WAF '
+    }
     var myChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -244,7 +248,7 @@ function renderWafChart(data, labels, server) {
 			maintainAspectRatio: false,
 			title: {
 				display: true,
-				text: "WAF "+data[1],
+				text: addinional_title + data[1],
 				fontSize: 20,
 				padding: 0,
 			},
@@ -294,66 +298,9 @@ function getNginxChartData(server) {
             data.push(result.chartData.curr_con);
             data.push(result.chartData.server);
             var labels = result.chartData.labels;
-            renderNginxChart(data, labels, server);
+            renderServiceChart(data, labels, server, 'nginx');
         }
     });
-}
-function renderNginxChart(data, labels, server) {
-    var ctx = 'nginx_'+server
-    var myChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels.split(','),
-            datasets: [
-                {
-                    parsing: false,
-                    normalized: true,
-                    label: 'Connections',
-                    data: data[0].split(','),
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                }
-            ]
-        },
-        options: {
-            animation: false,
-			maintainAspectRatio: false,
-			title: {
-				display: true,
-				text: data[1],
-				fontSize: 20,
-				padding: 0,
-			},
-            scales: {
-                yAxes: [{
-                    ticks: {
-                        beginAtZero: true,
-                    }
-                }],
-                xAxes: [{
-                    ticks: {
-                        major: {
-                            enabled: true,
-                            fontStyle: 'bold'
-                        },
-                        source: 'data',
-                        autoSkip: true,
-                        autoSkipPadding: 45,
-                        maxRotation: 0
-                    }
-                }]
-            },
-			legend: {
-				display: true,
-				labels: {
-					fontColor: 'rgb(255, 99, 132)',
-					defaultFontSize: '10',
-					defaultFontFamily: 'BlinkMacSystemFont'
-				},
-			}
-        }
-    });
-    charts.push(myChart);
 }
 function getApacheChartData(server) {
     $.ajax({
@@ -370,69 +317,10 @@ function getApacheChartData(server) {
             data.push(result.chartData.curr_con);
             data.push(result.chartData.server);
             var labels = result.chartData.labels;
-            renderApacheChart(data, labels, server);
+            renderServiceChart(data, labels, server, 'apache');
         }
     });
 }
-function renderApacheChart(data, labels, server) {
-    var ctx = 'apache_'+server
-    var myChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels.split(','),
-            datasets: [
-                {
-                    parsing: false,
-                    normalized: true,
-                    label: 'Connections',
-                    data: data[0].split(','),
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                }
-            ]
-        },
-        options: {
-            animation: false,
-			maintainAspectRatio: false,
-			title: {
-				display: true,
-				text: data[1],
-				fontSize: 20,
-				padding: 0,
-			},
-            scales: {
-                yAxes: [{
-                    ticks: {
-                        beginAtZero: true,
-                    }
-                }],
-                xAxes: [{
-                    ticks: {
-                        major: {
-                            enabled: true,
-                            fontStyle: 'bold'
-                        },
-                        source: 'data',
-                        autoSkip: true,
-                        autoSkipPadding: 45,
-                        maxRotation: 0
-                    }
-                }]
-            },
-			legend: {
-				display: true,
-				labels: {
-					fontColor: 'rgb(255, 99, 132)',
-					defaultFontSize: '10',
-					defaultFontFamily: 'BlinkMacSystemFont'
-				},
-			}
-        }
-    });
-    charts.push(myChart);
-}
-$("#secIntervals").css("display", "none");
-
 function loadMetrics() {
 	 $.ajax({
         url: "options.py",

@@ -19,8 +19,9 @@
 					<option value="{{ select.2 }}">{{ select.1 }}</option>
 				{% endif %}
 			{% endfor %}
-	</select>		
+	</select>
 	<a class="ui-button ui-widget ui-corner-all" id="show" title="Show stats" onclick="{{ onclick }}">Show</a>
+	{% if service != 'nginx' and service != 'apache' %}
 	<div id="stats_filter">
 		<div id="stats_filter_text">Filter:</div>
 		{{ checkbox('stats_active', title='Show active servers', desc='Active', checked='checked') }}
@@ -32,13 +33,12 @@
 		{{ checkbox('stats_frontends', title='Show frontends servers', desc='Frontends', checked='checked') }}
 		{{ checkbox('stats_backends', title='Show backends servers', desc='Backends', checked='checked') }}
 	</div>
+	{% elif service == 'nginx' %}
+	<br /><br />
+	{% endif %}
 </form>
 
 <div id="ajax" style="margin-left: 5px; margin-right: 5px;"></div>
-	<div id="notice" style="padding-left: 15px; font-size: 25px;">
-		Select a server
-		<br />
-	</div>
 <script> 
 	if (cur_url[1]) {
 		showStats();		
@@ -60,16 +60,18 @@
 		$('table.tbl th.pxname').css('width', '100%');
 		$('a.px:link').css('color', '#fff');
 		$('td').css('font-size', '11');
-		$('h1').css('display', 'none');
 		$('td').css('border-color', '#ddd');
 		$('td').css('padding', '3px');
 		$('th').css('padding-top', '4px');
 		$('th').css('padding-bottom', '4px');
-		$('th').css('border-color', '#ddd');
-		$('h1').next().css('display', 'none');	  
-		$('h1').next().next().css('display', 'none');	  
-		$('h1').next().next().next().css('display', 'none');	  
-		$('h1').next().next().next().next().css('display', 'none');	  
+		if ($('#service').val() != 'apache') {
+			$('h1').css('display', 'none');
+			$('th').css('border-color', '#ddd');
+			$('h1').next().css('display', 'none');
+			$('h1').next().next().css('display', 'none');
+			$('h1').next().next().next().css('display', 'none');
+			$('h1').next().next().next().next().css('display', 'none');
+		}
 		$('body').css('font-family', '-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol');
 		$( "select" ).selectmenu();
 		$('#stats_filter').show();

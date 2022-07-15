@@ -30,6 +30,10 @@ def is_ip_or_dns(server_from_request: str) -> str:
 		return ''
 
 
+form = cgi.FieldStorage()
+serv = is_ip_or_dns(form.getvalue('serv'))
+
+
 def checkAjaxInput(ajax_input: str) -> str:
 	pattern = re.compile('[&;|$`]')
 	if pattern.search(ajax_input):
@@ -38,10 +42,6 @@ def checkAjaxInput(ajax_input: str) -> str:
 	else:
 		from shlex import quote
 		return quote(ajax_input)
-
-
-form = cgi.FieldStorage()
-serv = is_ip_or_dns(form.getvalue('serv'))
 
 
 def get_config_var(sec, var):
@@ -1042,12 +1042,16 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 				logging(server_ip, 'A new config file has been uploaded', login=login, keep_history=1, service=service)
 		except Exception as e:
 			logging('localhost', str(e), haproxywi=1)
-		# If master then save version of config in a new way
 
+		# If master then save version of config in a new way
 		if not kwargs.get('slave'):
+			from pathlib import Path
+
 			diff = ''
 			old_cfg = kwargs.get('oldcfg')
-			if old_cfg is None:
+			path = Path(old_cfg)
+
+			if not path.is_file():
 				old_cfg = tmp_file + '.old'
 				try:
 					get_config(server_ip, old_cfg, service=service, config_file_name=config_path)

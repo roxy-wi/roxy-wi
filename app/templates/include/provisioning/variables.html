@@ -1,21 +1,98 @@
-{% set gcore_regions = {'6':'Luxembourg','10':'Moscow','14':'Manassas', '18':'Singapore','22':'Khabarovsk'} %}
-{% set aws_regions = {'us-east-1':'US East (N. Virginia)','us-east-2':'US East (Ohio)','us-west-1':'US West (N. California)',
-                    'us-west-2':'US West (Oregon)','af-south-1':'Africa (Cape Town)','ap-east-1':'Asia Pacific (Hong Kong)',
-                    'ap-south-1':'Asia Pacific (Mumbai)','ap-northeast-2':'Asia Pacific (Seoul)','ap-southeast-1':'Asia Pacific (Singapore)',
-                    'ap-southeast-2':'Asia Pacific (Sydney)','ap-northeast-1':'Asia Pacific (Tokyo)','ca-central-1':'Canada (Central)',
-                    'eu-central-1':'Europe (Frankfurt)', 'eu-west-1':'Europe (Ireland)', 'eu-west-2':'Europe (London)',
-                    'eu-south-1':'Europe (Milan)', 'eu-west-3':'Europe (Paris)', 'eu-north-1':'Europe (Stockholm)',
-                    'me-south-1':'Middle East (Bahrain)', 'sa-east-1':'South America (São Paulo)'} %}
-{% set do_regions = {'nyc1':'New York 1','nyc2':'New York 2','nyc3':'New York 3', 'ams1':'Amsterdam 1','ams2':'Amsterdam 2',
-                    'ams3':'Amsterdam 3', 'sfo1':'San Francisco 1','sfo2':'San Francisco 2','sfo3':'San Francisco 3',
-                    'sgp1':'Singapore 1','lon1':'London 1','fra1':'Frankfurt 1','tor1':'Toronto 1', 'blr1':'Bangalore 1'} %}
+{% from 'include/input_macros.html' import copy_to_clipboard %}
 
-{% set aws_oss = {'centos-7':'Centos 7 x64','ubuntu-18.04':'Ubuntu 18.04 x64','ubuntu-18.10':'Ubuntu 18.10 x64',
-                    'debian-10':'Debian 10 x86','debian-9':'Debian 9 x86','rhel-7':'RHEL 7 x86','rhel-8':'RHEL 8 x86',
-                    'amazon-2_lts':'Amazon Linux 2 x86'} %}
-{% set do_oss = {'centos-7-x64':'Centos 7 x64', 'centos-8-x64':'Centos 8 x64','ubuntu-18-04-x64':'Ubuntu 18.04 x64',
-                'ubuntu-20-04-x64':'Ubuntu 20.04 x64', 'ubuntu-20-10-x64':'Ubuntu 20.10 x64','debian-10-x64':'Debian 10 x86',
-                'debian-9-x64':'Debian 9 x86'} %}
+{%- macro generate_opt_options(id, provider, param_section, params, name='', required='', first='', class='', selected='', disabled='true', optgroup=true) -%}
+	{% if name == '' %}
+		{% set name = id %}
+	{% endif %}
+	{% if disabled == 'true' %}
+		{% set disabled = 'disabled' %}
+	{% else %}
+		{% set disabled = '' %}
+	{% endif %}
+    {% set section = namespace(section='') %}
+    <select id="{{id}}" name="{{name}}" {{required}}>
+    {% for p in params %}
+        {% if (p.provider == provider and p.section == param_section) or (provider == 'all' and p.section == param_section) %}
+            {% if optgroup %}
+                {% if section.section|string() != p.optgroup|string() %}
+                    <optgroup label="{{p.optgroup}}">
+                {% endif %}
+            {% endif %}
+            {% set section.section = p.optgroup %}
+            {% if first == value %}
+                <option value="{{p.param}}" selected data-class="avatar" data-style="background-image: url(&apos;{{p.image}}&apos;)">{{p.name}}</option>
+            {% else %}
+                <option value="{{p.param}}" data-class="avatar" data-style="background-image: url(&apos;{{p.image}}&apos;)">{{p.name}}</option>
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+    </select>
+    <script>
+        $( function() {
+            $('#{{id}}').selectmenu('destroy');
+            $.widget( "custom.iconselectmenu", $.ui.selectmenu, {
+                _renderItem: function( ul, item ) {
+                    var li = $( "<li>" ),
+                    wrapper = $( "<div>", { text: item.label } );
 
-{% set aws_volume_type = {'gp2':'gp2', 'gp3':'gp3', 'standard':'standard', 'io1':'io1', 'io2':'io2', 'sc1':'sc1', 'st1':'st1'} %}
-{% set gcore_volume_type = {'standard':'standard', 'ssd_hiiops':'ssd_hiiops', 'cold':'cold', 'ultra':'ultra'} %}
+                    if ( item.disabled ) {
+                        li.addClass( "ui-state-disabled" );
+                    }
+                    $( "<span>", {
+                        style: item.element.attr( "data-style" ),
+                        "class": "ui-icon " + item.element.attr( "data-class" )
+                    }).appendTo( wrapper );
+
+                    return li.append( wrapper ).appendTo( ul );
+                }
+            });
+            $( "#{{id}}" )
+                .iconselectmenu()
+                .iconselectmenu( "menuWidget")
+                .addClass( "ui-menu-icons avatar" );
+        } );
+  </script>
+  <style>
+      /* select with custom icons */
+      .ui-selectmenu-menu .ui-menu.customicons .ui-menu-item-wrapper {
+          padding: 0.5em 0 0.5em 3em;
+      }
+      /* select with CSS avatar icons */
+      option.avatar {
+          background-repeat: no-repeat !important;
+          padding-left: 20px;
+      }
+      .avatar .ui-icon {
+          background-position: left top;
+          height: 15px;
+          width: 23px;
+          top: -0.1em;
+      }
+  </style>
+{%- endmacro %}
+
+{%- macro get_nice_name(id, value, provider, section, params) -%}
+    {% for p in params %}
+        {% if p.section == section and p.provider == provider and p.param == value %}
+            <span style="background-image: url('{{p.image}}')" class="avatar ui-icon"></span>
+            {{ copy_to_clipboard(id=id, value=p.param, show=p.name) }}
+        {% endif %}
+    {% endfor %}
+    <style>
+      /* select with custom icons */
+      .ui-selectmenu-menu .ui-menu.customicons .ui-menu-item-wrapper {
+          padding: 0.5em 0 0.5em 3em;
+      }
+      /* select with CSS avatar icons */
+      option.avatar {
+          background-repeat: no-repeat !important;
+          padding-left: 20px;
+      }
+      .avatar .ui-icon {
+          background-position: left top;
+          height: 15px;
+          width: 23px;
+          top: -0.1em;
+      }
+  </style>
+{%- endmacro %}

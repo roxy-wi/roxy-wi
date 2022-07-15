@@ -19,6 +19,7 @@ form = funct.form
 serv = funct.is_ip_or_dns(form.getvalue('serv'))
 service = form.getvalue('service')
 autorefresh = 0
+servers_waf = ()
 title = "HAProxy servers overview"
 cmd = "ps ax |grep -e 'keep_alive.py' |grep -v grep |wc -l"
 keep_alive, stderr = funct.subprocess_execute(cmd)
@@ -67,6 +68,7 @@ else:
                 servers = sql.select_servers(server=serv)
                 autorefresh = 1
                 server_id = sql.select_server_id_by_ip(serv)
+                servers_waf = sql.select_waf_servers_metrics(user_id.value)
                 service_settings = sql.select_docker_service_settings(server_id, service)
         else:
             servers = sql.get_dick_permit(virt=1, haproxy=1)
@@ -204,6 +206,7 @@ except Exception as e:
 template = template.render(
     h2=1, autorefresh=autorefresh, title=title, role=role, user=user, servers=servers_with_status1,
     keep_alive=''.join(keep_alive), serv=serv, service=service, services=services, user_services=user_services,
-    service_settings=service_settings, user_status=user_status, user_plan=user_plan, token=token
+    service_settings=service_settings, user_status=user_status, user_plan=user_plan, servers_waf=servers_waf,
+    token=token
 )
 print(template)

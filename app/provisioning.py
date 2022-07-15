@@ -25,12 +25,13 @@ try:
     else:
         is_terraform = True
 
+    params = sql.select_provisioning_params()
 except Exception as e:
     print(str(e))
 
 rendered_template = template.render(
     title="Servers provisioning", role=role, user=user, groups=groups, user_group=user_group,
     servers=sql.select_provisioned_servers(), providers=sql.select_providers(user_group),
-    is_terraform=is_terraform, user_services=user_services, token=token
+    is_terraform=is_terraform, user_services=user_services, token=token, params=params
 )
 print(rendered_template)

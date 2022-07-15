@@ -1,5 +1,5 @@
 {% from 'include/input_macros.html' import input, select, checkbox %}
-{% from 'include/provisioning/variables.html' import do_regions, do_oss  %}
+{% from 'include/provisioning/variables.html' import get_nice_name, generate_opt_options  %}
 {% for s in server %}
 {% set region_name = [] %}
 <div id="do_edit" style="display: none; padding: 0 2px 0 0; margin-left: 1px; margin-right: -4px;">
@@ -28,11 +28,11 @@
             <td>
                 <select id="do_edit_id_provider">
                 {% for p in providers %}
-                    {% if p.2 == 'do' %}
-                        {% if s.provider_id|int() == p.0|int() %}
-                        <option value="{{ p.0 }}" selected>{{ p.1 }}</option>
+                    {% if p.type == 'do' %}
+                        {% if s.provider_id|int() == p.id|int() %}
+                        <option value="{{ p.id }}" selected>{{ p.name }}</option>
                         {% else %}
-                        <option value="{{ p.0 }}">{{ p.1 }}</option>
+                        <option value="{{ p.id }}">{{ p.name }}</option>
                         {% endif %}
                     {% endif %}
                 {% endfor %}
@@ -44,13 +44,9 @@
                 Region
             </td>
             <td>
-                {% for key, value in do_regions.items() %}
-                {% if s.region|int() == key|int() %}
-                    {% do region_name.append(value) %}
-                {% endif %}
-                {% endfor %}
+                {% set id = 'do_edit_regions-' + id|string() %}
+                {{ get_nice_name(id, 'do', 'region', params) }}
                 <span id="do_edit_regions" style="display: none;">{{s.region}}</span>
-                {{region_name.0}}
             </td>
         </tr>
         <tr>
@@ -63,7 +59,7 @@
                 Size
                 <span class="need-field">*</span>
             </td>
-            <td>{{input('do_edit_size', size='30', value=s.instance_type)}}</td>
+            <td>{{ generate_opt_options('do_edit_size', 'do', 'size', params, first=s.instance_type) }}</td>
         </tr>
         <tr>
             <td class="padding20">
@@ -71,7 +67,7 @@
                 <span class="need-field">*</span>
             </td>
             <td>
-                {{ select('do_edit_oss', values=do_oss, first=s.os, disabled='false') }}
+                {{ generate_opt_options('do_edit_oss', 'do', 'image', params, first=s.os) }}
             </td>
         </tr>
         <tr>
@@ -81,12 +77,12 @@
             </td>
             <td>
                 <select id="do_edit_ssh_choose">
-                    {% if s.ssh_key_name is not none %}
+                    {% if s.ssh_key_name != none %}
                     <option value="ssh_name" selected>Set SSH key name</option>
                     {% else %}
                     <option value="ssh_name">Set SSH key name</option>
                     {% endif %}
-                    {% if s.ssh_ids is not none %}
+                    {% if s.ssh_ids != none %}
                     <option value="ssh_ids" selected>Set SSH key ids</option>
                     {% else %}
                     <option value="ssh_ids">Set SSH key ids</option>
@@ -94,7 +90,7 @@
                 </select>
             </td>
         </tr>
-        <tr id="do_edit_ssh_ids_tr" {% if s.ssh_ids is none %}style="display: none;"{% endif %}>
+        <tr id="do_edit_ssh_ids_tr" {% if s.ssh_ids == none %}style="display: none;"{% endif %}>
             <td class="padding20 padding-top20">
                 SSH key ids
                 <span class="need-field">*</span>
@@ -116,7 +112,7 @@
         </tr>
         <tr>
             {% set checked='checked' %}
-            {% if s.monitoring == 'false' %}
+            {% if s.monitoring == 0 %}
                 {% set checked='' %}
             {% endif %}
             <td class="padding20">Monitoring</td>
@@ -126,7 +122,7 @@
         </tr>
         <tr>
             {% set checked='checked' %}
-            {% if s.backup == 'false' %}
+            {% if s.backup == 0 %}
                 {% set checked='' %}
             {% endif %}
             <td class="padding20">Backup</td>
@@ -141,7 +137,7 @@
         </tr>
         <tr>
             {% set checked='checked' %}
-            {% if s.private_networking == 'false' %}
+            {% if s.private_networking == 0 %}
                 {% set checked='' %}
             {% endif %}
             <td class="padding20">Private IP</td>
@@ -151,7 +147,7 @@
         </tr>
         <tr>
             {% set checked='checked' %}
-            {% if s.floating_ip == 'false' %}
+            {% if s.floating_ip == 0 %}
                 {% set checked='' %}
             {% endif %}
             <td class="padding20">Floating Ip</td>
@@ -161,7 +157,7 @@
         </tr>
         <tr>
             {% set checked='checked' %}
-            {% if s.firewall == 'false' %}
+            {% if s.firewall == 0 %}
                 {% set checked='' %}
             {% endif %}
             <td class="padding20" style="padding-bottom: 25px;padding-top: 25px;">Firewall</td>

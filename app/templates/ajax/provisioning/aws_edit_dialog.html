@@ -1,7 +1,6 @@
 {% from 'include/input_macros.html' import input, select, checkbox %}
-{% from 'include/provisioning/variables.html' import aws_regions, aws_oss, aws_volume_type  %}
+{% from 'include/provisioning/variables.html' import generate_opt_options, get_nice_name  %}
 {% for s in server %}
-{% set region_name = [] %}
 <div id="aws_edit" style="display: none; padding: 0 2px 0 0; margin-left: 1px; margin-right: -4px;">
     <table class="overview provisioning_table">
         {% include 'include/tr_validate_tips.html' %}
@@ -29,10 +28,10 @@
                 <select id="aws_edit_id_provider">
                 {% for p in providers %}
                     {% if p.2 == 'aws' %}
-                        {% if s.provider_id|int() == p.0|int() %}
-                        <option value="{{ p.0 }}" selected>{{ p.1 }}</option>
+                        {% if s.provider_id|int() == p.id|int() %}
+                        <option value="{{ p.id }}" selected>{{ p.name }}</option>
                         {% else %}
-                        <option value="{{ p.0 }}">{{ p.1 }}</option>
+                        <option value="{{ p.id }}">{{ p.name }}</option>
                         {% endif %}
                     {% endif %}
                 {% endfor %}
@@ -44,13 +43,9 @@
                 Region
             </td>
             <td>
-                {% for key, value in aws_regions.items() %}
-                {% if s.region|int() == key|int() %}
-                    {% do region_name.append(value) %}
-                {% endif %}
-                {% endfor %}
                 <span id="aws_edit_region" style="display: none;">{{s.region}}</span>
-                {{region_name.0}}
+                {% set id = 'aws_edit_region-'+s.id|string() %}
+                {{get_nice_name(id, s.region, 'aws', 'region', params)}}
             </td>
         </tr>
         <tr>
@@ -76,7 +71,7 @@
                 <span class="need-field">*</span>
             </td>
             <td>
-                {{ select('aws_edit_oss', values=aws_oss, first=s.os, disabled='false') }}
+                {{ generate_opt_options('aws_edit_oss', 'aws', 'image', params, first=s.os) }}
             </td>
         </tr>
         <tr>
@@ -86,7 +81,7 @@
             </td>
             <td>
                 {{input('aws_edit_ssh_name', size='26', value=s.ssh_key_name)}}
-                <div class="tooltip tooltipTop tooltipTd">SSH key must exists in region where instance create</div>
+                <div class="tooltip tooltipTop tooltipTd">The SSH key must exist in the region where the instance is being edited</div>
             </td>
         </tr>
         <tr>
@@ -109,15 +104,7 @@
                 <span class="need-field">*</span>
             </td>
             <td>
-                <select id="aws_edit_volume_type">
-                    {% for key, value in aws_volume_type.items() %}
-                        {% if s.volume_type == key %}
-                            <option value="{{key}}" selected>{{value}}</option>
-                        {% else %}
-                            <option value="{{key}}">{{value}}</option>
-                        {% endif %}
-                    {% endfor %}
-                </select>
+                {{ generate_opt_options('aws_edit_volume_type', 'aws', 'volume_type', params, first=s.volume_type) }}
             </td>
         </tr>
         <tr>
@@ -166,7 +153,7 @@
             <td class="padding20" style="padding-bottom: 25px;padding-top: 25px;">Firewall</td>
             <td>
                 {{checkbox('aws_edit_firewall', checked=checked)}}
-                <div class="tooltip tooltipTop tooltipTd">Roxy-WI will create Security group and open 22, 443, 1999, 8085, 8086 ports. Otherwise all ports will be closed</div>
+                <div class="tooltip tooltipTop tooltipTd">Roxy-WI will create Security group and open 22, 443, 1999, 8085, 8086 ports. Otherwise, all ports will be closed</div>
             </td>
         </tr>
         <tr>

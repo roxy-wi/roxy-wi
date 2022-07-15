@@ -62,17 +62,23 @@
 				function showMetrics() {
 					{% if service == 'haproxy' %}
 						{% for s in servers %}
+						{% if s.8.0.9 %}
 							getChartData(server_ip)
 							getHttpChartData(server_ip)
 							getWafChartData(server_ip)
+						{% endif %}
 						{% endfor %}
 					{% endif %}
 					showOverviewServer('{{s.1}}', server_ip, '{{s.0}}', '{{service}}');
 					{% if service == 'nginx' %}
 						showNginxConnections(server_ip)
-						getNginxChartData(server_ip)
+						{% if s.8.0.21 %}
+							getNginxChartData(server_ip)
+						{% endif %}
 					{% elif service == 'apache' %}
-						getApacheChartData(server_ip)
+						{% if s.8.0.27 %}
+							getApacheChartData(server_ip)
+						{% endif %}
 					{% elif service == 'haproxy' %}
 						showBytes(server_ip)
 					{% endif %}
@@ -307,39 +313,47 @@
 	{% endfor %}
 </div>
 	{% if serv %}
-	{% if service in ('haproxy', 'nginx', 'apache') %}
-	<div style="clear: both; width: 97%;">
-		<div style="padding-left: 25px;float: left;margin-top: -15px;">
-			<b>Time range:</b>
-			<select title="Choose time range" id="time-range">
-				<option value="30">30 minutes</option>
-				<option value="60">1 hour</option>
-				<option value="180">3 hours</option>
-				<option value="360">6 hours</option>
-				<option value="720">12 hours</option>
-			</select>
-		</div>
-		<div id="refresh" style="text-align: right;margin-right: 3%;" title="Refresh metrics" onclick="showMetrics()">
-			<span class="refresh"></span>
-		</div>
-	</div>
-	{% endif %}
 	{% for s in servers %}
-		 {% if service == 'haproxy' %}
+	{% if service in ('haproxy', 'nginx', 'apache') %}
+		{% if (service == 'haproxy' and s.8.0.9)
+			or (service == 'nginx' and s.8.0.21)
+			or (service == 'apache' and s.8.0.27)  %}
+		<div style="clear: both; width: 97%;">
+			<div style="padding-left: 25px;float: left;margin-top: -15px;">
+				<b>Time range:</b>
+				<select title="Choose time range" id="time-range">
+					<option value="30">30 minutes</option>
+					<option value="60">1 hour</option>
+					<option value="180">3 hours</option>
+					<option value="360">6 hours</option>
+					<option value="720">12 hours</option>
+				</select>
+			</div>
+			<div id="refresh" style="text-align: right;margin-right: 3%;" title="Refresh metrics" onclick="showMetrics()">
+				<span class="refresh"></span>
+			</div>
+		</div>
+		{% endif %}
+	{% endif %}
+		 {% if service == 'haproxy' and s.8.0.9 %}
 		<div id="server_metrics_div" class="chart-container_overview">
 			<canvas id="{{s.2}}" role="img"></canvas>
 		</div>
 		<div class="chart-container_overview http_metrics_div">
 			<canvas id="http_{{s.2}}" role="img"></canvas>
 		</div>
+		{% for waf_server in servers_waf %}
+		{% if waf_server.server.ip == s.2 %}
 		<div id="waf_metrics_div" class="chart-container_overview">
-			<canvas id="s_{{s.2}}" role="img"></canvas>
+			<canvas id="waf_{{s.2}}" role="img"></canvas>
 		</div>
-		{% elif service == 'nginx' %}
+		{% endif %}
+		{% endfor %}
+		{% elif service == 'nginx' and s.8.0.21 %}
 		<div id="nginx_metrics_div" class="chart-container" style="display: block; width: 90%; height: 300px;">
 			<canvas id="nginx_{{s.2}}" role="img"></canvas>
 		</div>
-		{% elif service == 'apache' %}
+		{% elif service == 'apache' and s.8.0.27 %}
 		<div id="apache_metrics_div" class="chart-container" style="display: block; width: 90%; height: 300px;">
 			<canvas id="apache_{{s.2}}" role="img"></canvas>
 		</div>

@@ -1,6 +1,11 @@
 <!DOCTYPE HTML>
 <html>
 	<head>
+		<script>
+			window.onload = function() {
+			  $('#cover').hide('fast');
+			};
+		</script>
 		<meta charset="utf-8">
 		<title>Roxy-WI</title>
 		<link href="/inc/images/favicon/favicon.ico" rel="icon" type="image/png" />
@@ -29,7 +34,6 @@
 		<script src="/inc/jquery-3.6.0.min.js"></script>
 		<script src="/inc/jquery-ui.min.js"></script>
 		<script src="/inc/nprogress.js"></script>
-		<script src="/inc/script.js"></script>
 		<script defer src="/inc/fa-solid.min.js"></script>
 		<script defer src="/inc/fontawesome.min.js"></script>
 		<link href="/inc/awesome.css" rel="stylesheet">
@@ -46,12 +50,29 @@
 		<script src="/inc/provisioning.js"></script>
 		<link href="/inc/select2.css" rel="stylesheet" />
 		<script src="/inc/select2.js"></script>
+		<script src="/inc/reconnecting-websocket.js"></script>
+		<link href="/inc/table.css" rel="stylesheet" type="text/css">
+		<script type="text/javascript" charset="utf8" src="/inc/dataTables.min.js"></script>
+		<script src="/inc/js.cookie.min.js"></script>
+		<script src="/inc/script.js"></script>
 		<meta http-equiv="refresh" content="0; url=/app/overview.py" />
 	</head>
 	<body style="background-color: #239dee;">
+		<style>
+			#cover {
+				position: absolute;
+				display: none;
+				top:0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background: rgba(0,0,0,.1);
+				z-index: 500;
+			}
+		</style>
 		<script>
 			$( function() {
-				NProgress.start();
+				NProgress.start({showSpinner: true});
 				$('#cover').fadeIn('fast');
 			});
 		</script>

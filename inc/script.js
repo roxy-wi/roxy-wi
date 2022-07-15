@@ -1453,7 +1453,9 @@ function returnNiceCheckingConfig(data) {
 	data = data.replaceAll('nginx: configuration file /etc/nginx/nginx.conf test is successful', '');
 	data = data.replaceAll('Syntax OK', '');
 	output = data.split('<br>')
-	var alerts = []
+	var alerts = [];
+	var alert_warning = '';
+	var alert_error = '';
 	alerts.push(output[0] + '\n' + output[1]);
 	try {
 		for (var i = 0; i < output.length; i++) {
@@ -1468,15 +1470,19 @@ function returnNiceCheckingConfig(data) {
 	}
 	alerts.forEach((element) => {
 		if (element.indexOf('error: ') != '-1' || element.indexOf('Fatal') != '-1' || element.indexOf('Error') != '-1' || element.indexOf('failed ') != '-1' || element.indexOf('emerg] ') != '-1' || element.indexOf('Syntax error ') != '-1') {
-			toastr.error('<pre style="padding: 0; margin: 0;">' + element + '</pre>');
-			toastr.info('Config not applied');
+			alert_error = alert_error + element
 			return
-		} else {
-			toastr.success('<b>Configuration file is valid</b>');
 		}
 		if (element.indexOf('[WARNING]') != '-1' || element.indexOf('[ALER]') != '-1' || element.indexOf('[warn]') != '-1') {
 			element = removeEmptyLines(element);
-			toastr.warning('<pre style="padding: 0; margin: 0;">' + element + '</pre>')
+			alert_warning = alert_warning + element;
 		}
 	})
+	if (alert_error != '') {
+		toastr.error('<pre style="padding: 0; margin: 0;">' + alert_error + '</pre>');
+		toastr.info('Config not applied');
+	} else if (alert_warning != '') {
+		toastr.warning('<pre style="padding: 0; margin: 0;">' + alert_warning + '</pre>');
+		toastr.success('<b>Configuration file is valid</b>');
+	}
 }

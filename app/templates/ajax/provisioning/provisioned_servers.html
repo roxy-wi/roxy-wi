@@ -1,32 +1,13 @@
-{% from 'include/provisioning/variables.html' import gcore_regions, do_regions, aws_regions %}
+{% from 'include/provisioning/variables.html' import get_nice_name %}
 {% from 'include/input_macros.html' import copy_to_clipboard %}
 {% for s in servers %}
-{% set region_name = [] %}
-{% if s.type == 'do' %}
-    {% set provider_full_name = 'DigitalOcean' %}
-    {% set onclickEditAction = 'editDoServer' %}
-    {% for key, value in do_regions.items() %}
-        {% if s.region|int() == key|int() %}
-            {% do region_name.append(value) %}
-            {% endif %}
-        {% endfor %}
+    {% if s.type == 'do' %}
+        {% set onclickEditAction = 'editDoServer' %}
     {% elif s.type == 'aws' %}
-        {% set provider_full_name = 'AWS' %}
         {% set onclickEditAction = 'editAwsServer' %}
-        {% for key, value in aws_regions.items() %}
-            {% if s.region|int() == key|int() %}
-                {% do region_name.append(value) %}
-            {% endif %}
-        {% endfor %}
     {% elif s.type == 'gcore' %}
-        {% set provider_full_name = 'G-Core Labs' %}
         {% set onclickEditAction = 'editGcoreServer' %}
-        {% for key, value in gcore_regions.items() %}
-        {% if s.region|int() == key|int() %}
-            {% do region_name.append(value) %}
-        {% endif %}
-    {% endfor %}
-{% endif %}
+    {% endif %}
 <tr id="server-{{s.id}}" class="{{ loop.cycle('odd', 'even') }} {% if adding %}newserver{% endif %}">
     <td class="padding10 first-collumn">
         <span id="server-name-{{s.id}}">{{s.name}}</span>
@@ -36,9 +17,9 @@
     </td>
     <td style="width: 10%">
         {% for p in providers %}
-            {% if p.0|int() == s.provider_id|int() %}
-		        <span>{{ p.1 }}</span>
-                <span id="server-provider-{{s.id}}" style="display: none;">{{p.0}}</span>
+            {% if p.id|int() == s.provider_id|int() %}
+		        <span>{{ p.name }}</span>
+                <span id="server-provider-{{s.id}}" style="display: none;">{{p.id}}</span>
             {% endif %}
         {% endfor %}
      </td>
@@ -46,31 +27,33 @@
      <td style="width: 5%">
         {% for g in groups %}
             {% if adding %}
-            {% if user_group|int() == g.group_id|int() %}
-		        {{ g.name }}
-		        <span id="server-group-{{s.id}}" style="display: none;">{{ g.group_id }}</span>
-            {% endif %}
+                {% if user_group|int() == g.group_id|int() %}
+                    {{ g.name }}
+                    <span id="server-group-{{s.id}}" style="display: none;">{{ g.group_id }}</span>
+                {% endif %}
             {% else %}
-            {% if s.group_id|int() == g.group_id|int() %}
-		        {{ g.name }}
-		        <span id="server-group-{{s.id}}" style="display: none;">{{ g.group_id }}</span>
-            {% endif %}
+                {% if s.group_id|int() == g.group_id|int() %}
+                    {{ g.name }}
+                    <span id="server-group-{{s.id}}" style="display: none;">{{ g.group_id }}</span>
+                {% endif %}
             {% endif %}
         {% endfor %}
      </td>
-     {% else %}
-        <span id="server-group-{{s.id}}" style="display: none;">{{user_group}}</span>
      {% endif %}
     <td style="width: 10%">
-        {{provider_full_name}}
+        {% if role != 1 %}
+        <span id="server-group-{{s.id}}" style="display: none;">{{user_group}}</span>
+        {% endif %}
+        {{get_nice_name(id, s.type, s.type, 'provider', params)}}
         <span id="server-cloud-{{s.id}}" style="display: none;">{{s.type}}</span>
     </td>
     <td style="width: 10%">
-        {{region_name.0}}
+        {% set id = "server-region-" + s.id|string() %}
+        {{get_nice_name(id, s.region, s.type, 'region', params)}}
     </td>
     <td style="width: 10%">
         {% set id = "server-os-" + s.id|string() %}
-        {{ copy_to_clipboard(id=id, value=s.os) }}
+        {{get_nice_name(id, s.os, s.type, 'image', params)}}
     </td>
     <td style="width: 15%">
         {% set id = "server-ip-" + s.id|string() %}

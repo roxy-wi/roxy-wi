@@ -1,10 +1,9 @@
-{% set providers_for_choose = dict() %}
-{% set providers_for_choose = {'aws':'AWS','do':'DigitalOcean', 'gcore':'G-Core Labs'} %}
+{% from 'include/provisioning/variables.html' import generate_opt_options %}
 <div id="add_providers_choosing" style="display: none;">
-    {{ select('add_select_providers', values=providers_for_choose) }}
+    {{ generate_opt_options('add_select_providers', 'all', 'provider', params, optgroup=false) }}
 </div>
 <div id="create_providers_choosing" style="display: none;">
-    {{ select('create_select_providers', values=providers_for_choose) }}
+    {{ generate_opt_options('create_select_providers', 'all', 'provider', params, optgroup=false) }}
 </div>
 <div id="aws_provider" style="display: none; padding: 0 2px 0 0; margin-left: 1px; margin-right: -4px;">
     <table class="overview">
