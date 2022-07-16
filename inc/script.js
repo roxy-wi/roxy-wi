@@ -1455,8 +1455,12 @@ function returnNiceCheckingConfig(data) {
 	output = data.split('<br>')
 	var alerts = [];
 	var alert_warning = '';
+	var alert_warning2 = '';
 	var alert_error = '';
+	var second_alert = false;
 	alerts.push(output[0] + '\n' + output[1]);
+	var server_name = output[0];
+	var server_name2 = '';
 	try {
 		for (var i = 0; i < output.length; i++) {
 			if (i > 1) {
@@ -1475,14 +1479,38 @@ function returnNiceCheckingConfig(data) {
 		}
 		if (element.indexOf('[WARNING]') != '-1' || element.indexOf('[ALER]') != '-1' || element.indexOf('[warn]') != '-1') {
 			element = removeEmptyLines(element);
-			alert_warning = alert_warning + element;
+			console.log(element);
+			if (second_alert == false) {
+				alert_warning = alert_warning + element;
+			} else {
+				alert_warning2 = alert_warning2 + element;
+				server_name = 'Master server:'
+				server_name2 = 'Slave server:'
+			}
 		}
+		if (second_alert && output.length > 4 && output[1].indexOf('[NOTICE]') == '-1') {
+			server_name = 'Master server:'
+			server_name2 = 'Slave server:'
+		}
+		if (element.length === 0) {
+			second_alert = true;
+		}
+
 	})
-	if (alert_error != '') {
-		toastr.error('<pre style="padding: 0; margin: 0;">' + alert_error + '</pre>');
+	if (alert_error) {
+		toastr.error(server_name + '<pre style="padding: 0; margin: 0;">' + alert_error + '</pre>');
 		toastr.info('Config not applied');
-	} else if (alert_warning != '') {
-		toastr.warning('<pre style="padding: 0; margin: 0;">' + alert_warning + '</pre>');
-		toastr.success('<b>Configuration file is valid</b>');
+	} else if (alert_warning) {
+		toastr.warning(server_name + '<pre style="padding: 0; margin: 0;">' + alert_warning + '</pre>');
+		toastr.success('<b>' + server_name + ' Configuration file is valid</b>');
+	} else {
+		toastr.success('<b>' + server_name + ' Configuration file is valid</b>');
+	}
+
+	if (alert_warning2) {
+		toastr.warning(server_name2 + '<pre style="padding: 0; margin: 0;">' + alert_warning2 + '</pre>');
+		toastr.success('<b>' + server_name2 + ' Configuration file is valid</b>');
+	} else if (server_name2) {
+		toastr.success('<b>' + server_name2 + ' Configuration file is valid</b>');
 	}
 }

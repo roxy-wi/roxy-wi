@@ -1048,8 +1048,12 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 			from pathlib import Path
 
 			diff = ''
-			old_cfg = kwargs.get('oldcfg')
-			path = Path(old_cfg)
+			try:
+				old_cfg = kwargs.get('oldcfg')
+				path = Path(old_cfg)
+			except Exception:
+				old_cfg = ''
+				path = Path(old_cfg)
 
 			if not path.is_file():
 				old_cfg = tmp_file + '.old'
