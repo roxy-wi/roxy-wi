@@ -1656,7 +1656,13 @@ def check_user_group(**kwargs):
 		return True
 	else:
 		logging('localhost', ' has tried to actions in not his group ', haproxywi=1, login=1)
-		print('Atata!')
+		try:
+			ref = os.environ.get("REQUEST_URI").split('&')[0]
+		except Exception:
+			ref = os.environ.get("REQUEST_URI")
+		ref = checkAjaxInput(ref)
+		print(f'<meta http-equiv="refresh" content="0; url={ref}">')
+		sys.exit()
 
 
 def check_is_server_in_group(server_ip):
@@ -1668,7 +1674,12 @@ def check_is_server_in_group(server_ip):
 			return True
 		else:
 			logging('localhost', ' has tried to actions in not his group server ', haproxywi=1, login=1)
-			print('Atata!')
+			try:
+				ref = os.environ.get("REQUEST_URI").split('&')[0]
+			except Exception:
+				ref = os.environ.get("REQUEST_URI")
+			ref = checkAjaxInput(ref)
+			print(f'<meta http-equiv="refresh" content="0; url={ref}">')
 			sys.exit()
 
 

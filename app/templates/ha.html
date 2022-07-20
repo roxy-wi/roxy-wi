@@ -48,7 +48,7 @@
 	<tr class="overviewHead">
 		<td class="padding10 first-collumn"></td>
 		<td class="checkbox-head help_cursor"><span title="Roxy-WI will add VRRP address as a separated server">Add VIRT</span></td>
-		<td class="padding10 syn-flood-protection-field help_cursor" title="If checked, Keepalived master will reclaim VRRP after recovered">Return to Master state</td>
+		<td class="checkbox-head help_cursor" style="padding-left: 20px;" title="If checked, the Keepalived master will not release VRRP if the service is down">Stay as Master</td>
 		<td class="checkbox-head">SYN-flood protection</td>
 		<td class="checkbox-head help_cursor" style="padding: 10px 10px 10px 0;"><span title="Roxy-WI will try to install HAProxy">HAProxy</span></td>
 		<td class="checkbox-head help_cursor" style="display: none" id="haproxy_docker_td_header"><span title="Roxy-WI will install HAProxy as Docker container">Docker</span></td>
@@ -60,7 +60,7 @@
 	<tr>
 		<td class="padding10 first-collumn"></td>
 		<td class="checkbox help_cursor">{{ checkbox('virt_server', title='Roxy-WI will add VRRP address as a separated server', checked='checked') }}</td>
-		<td class="checkbox-head syn-flood-protection-field help_cursor">{{ checkbox('return_to_master', checked='checked') }}</td>
+		<td class="syn-flood-protection-field help_cursor">{{ checkbox('return_to_master', title='If checked, the Keepalived master will not release VRRP if the service is down') }}</td>
 		<td class="syn-flood-protection-field">{{ checkbox('syn_flood') }}</td>
 		<td class="checkbox help_cursor" style="padding: 10px 10px 10px 15px;">{{ checkbox('hap', title='Roxy-WI will try to install HAProxy') }}</td>
 		<td class="checkbox help_cursor" style="display: none" id="haproxy_docker_td">{{ checkbox('hap_docker', title='Roxy-WI will install HAProxy as a Docker container') }}</td>
