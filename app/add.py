@@ -362,7 +362,7 @@ if form.getvalue('peers-name') is not None:
 
 		config_add = "\n" + name + servers_split
 
-if form.getvalue('generateconfig') is None:
+if form.getvalue('generateconfig') is None and serv is not None:
 	slave_output = ''
 	try:
 		server_name = sql.get_hostname_by_server_ip(serv)

@@ -6,6 +6,7 @@
 	--light-blue-color: #d1ecf1;
 	--menu-color: #06212a;
 	--right-menu-blue-rolor: #5D9CEB;
+	--border-radius: 3px;
 }
 html {
   font-size: 10px;
@@ -626,7 +627,7 @@ ul{
 	z-index: 1010 !important;
 }
 .ui-corner-all {
-	border-radius: 0 !important;
+	border-radius: 3px !important;
 }
 #tabs.ui-widget.ui-widget-content {
 	border-bottom: none !important;
@@ -661,10 +662,11 @@ a:focus {
 	color: var(--link-dark-blue) !important;
 }
 table {
-  border-spacing: 0;
-  border-collapse: collapse;
-  background-color: transparent;
-  width: 100%;
+  	border-spacing: 0;
+  	border-collapse: collapse;
+  	background-color: transparent;
+	border-radius: var(--border-radius);
+  	width: 100%;
 }
 caption {
   color: #777;
@@ -764,6 +766,7 @@ label {
 .div-server, .div-server-hapwi, .bin_bout {
 	background-color: #fbfbfb;
 	border: 1px solid #A4C7F5;
+	border-radius: var(--border-radius);
 	height: 165px;
 	width: 400px;
 	padding: 10px 15px 20px;
@@ -839,6 +842,7 @@ label {
 	float: left;
 }
 .ajax-server {
+	border-radius: var(--border-radius);
 	margin: 25px 25px 0 787px;
 	width: 797px;
 	display: none;

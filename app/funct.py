@@ -41,7 +41,7 @@ def checkAjaxInput(ajax_input: str) -> str:
 		sys.exit()
 	else:
 		from shlex import quote
-		return quote(ajax_input)
+		return quote(ajax_input.rstrip())
 
 
 def get_config_var(sec, var):

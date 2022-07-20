@@ -1812,6 +1812,7 @@ function addProxy(form_name) {
 		data: frm.serialize(),
 		type: frm.attr('method'),
 		success: function( data ) {
+			data = data.replace(/\n/g, "<br>");
 			if (data.indexOf('error: ') != '-1' || data.indexOf('Fatal') != '-1') {
 				returnNiceCheckingConfig(data);
 			} else if (data == '') {
