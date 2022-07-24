@@ -3,7 +3,7 @@ global_defs {
 }
 #health-check for keepalive
 vrrp_script chk_haproxy { 
-    script "/usr/bin/killall -0 haproxy"
+    script "systemctl is-active --quiet haproxy"
     interval 2
     weight 3 
 }

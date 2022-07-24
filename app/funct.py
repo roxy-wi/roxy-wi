@@ -941,6 +941,10 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		service = 'keepalived'
 		config_path = sql.get_setting('keepalived_config_path')
 		tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".cfg"
+	elif kwargs.get('waf'):
+		service = 'waf'
+		config_path = kwargs.get('config_file_name')
+		tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".conf"
 	else:
 		service = 'haproxy'
 		config_path = sql.get_setting('haproxy_config_path')
@@ -1019,6 +1023,12 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 			commands = [check_and_move + reload_or_restart_command]
 		# if sql.return_firewall(server_ip):
 		# 	commands[0] += open_port_firewalld(cfg, server_ip=server_ip, service='nginx')
+	elif service == 'waf':
+		check_and_move = "sudo mv -f " + tmp_file + " " + config_path
+		if action == "save":
+			commands = [check_and_move]
+		else:
+			commands = [check_and_move + reload_or_restart_command]
 	else:
 		if is_docker == '1':
 			check_config = "sudo docker exec -it " + container_name + " haproxy -c -f " + tmp_file
@@ -1044,7 +1054,7 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 			logging('localhost', str(e), haproxywi=1)
 
 		# If master then save version of config in a new way
-		if not kwargs.get('slave'):
+		if not kwargs.get('slave') and service != 'waf':
 			from pathlib import Path
 
 			diff = ''
@@ -1109,14 +1119,15 @@ def master_slave_upload_and_restart(server_ip, cfg, just_save, **kwargs):
 	for master in masters:
 		if master[0] is not None:
 			slv_output = upload_and_restart(
-				master[0], cfg, just_save=just_save, nginx=kwargs.get('nginx'),
+				master[0], cfg, just_save=just_save, nginx=kwargs.get('nginx'), waf=kwargs.get('waf'),
 				apache=kwargs.get('apache'), config_file_name=kwargs.get('config_file_name'), slave=1
 			)
 			slave_output += '<br>' + master[1] + ':\n' + slv_output
 
 	output = upload_and_restart(
-		server_ip, cfg, just_save=just_save, nginx=kwargs.get('nginx'), apache=kwargs.get('apache'),
-		config_file_name=kwargs.get('config_file_name'), oldcfg=kwargs.get('oldcfg'), login=login
+		server_ip, cfg, just_save=just_save, nginx=kwargs.get('nginx'), waf=kwargs.get('waf'),
+		apache=kwargs.get('apache'), config_file_name=kwargs.get('config_file_name'),
+		oldcfg=kwargs.get('oldcfg'), login=login
 	)
 
 	output = server_name + ':\n' + output
@@ -1253,10 +1264,13 @@ def show_finding_in_config(stdout: str, **kwargs) -> str:
 
 def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', hour1='24', minut1='00', service='haproxy', **kwargs):
 	import sql
-	exgrep = form.getvalue('exgrep')
-	log_file = form.getvalue('file')
-	date = hour + ':' + minut
-	date1 = hour1 + ':' + minut1
+	exgrep = checkAjaxInput(form.getvalue('exgrep'))
+	log_file = checkAjaxInput(form.getvalue('file'))
+	date = checkAjaxInput(hour) + ':' + checkAjaxInput(minut)
+	date1 = checkAjaxInput(hour1) + ':' + checkAjaxInput(minut1)
+	grep = checkAjaxInput(grep)
+	rows = checkAjaxInput(rows)
+	waf = checkAjaxInput(waf)
 	cmd = ''
 
 	if grep is not None:

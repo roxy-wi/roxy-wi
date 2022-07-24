@@ -1,6 +1,8 @@
 $ModLoad imudp
 $UDPServerAddress 127.0.0.1
 $UDPServerRun 514
+module(load="builtin:omfile")
+
 
 if $programname startswith 'haproxy' then {
   if $syslogseverity == 6 then

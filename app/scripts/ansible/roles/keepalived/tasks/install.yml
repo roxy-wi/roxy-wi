@@ -61,8 +61,6 @@
     src: keepalived.conf.j2
     dest: /etc/keepalived/keepalived.conf
     mode: 0644
-  notify: restart keepalived
-
 
 - name: test to see if selinux is running
   command: getenforce

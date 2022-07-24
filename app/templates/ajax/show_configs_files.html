@@ -36,9 +36,14 @@
 	</div>
 
 <div id="add-new-config" style="display: none">
-	<div style="padding-top: 15px;">
-	Config file name: {{ input('new_config_name', type='text', placeholder='conf.d/config_name', title='Format: sub-directory/config_name') }}
-	{{ input('path_config_name', type='hidden', value=path_dir) }}
+	<table class="overview">
+			{% include 'include/tr_validate_tips.html' %}
+			<tr>
+				<td class="padding20">Config file name:</td>
+				<td>{{ input('new_config_name', type='text', placeholder='conf.d/config_name', title='Format: sub-directory/config_name') }}</td>
+			</tr>
+			{{ input('path_config_name', type='hidden', value=path_dir) }}
+	</table>
 	</div>
 </div>
 <script>
