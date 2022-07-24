@@ -1264,22 +1264,21 @@ def show_finding_in_config(stdout: str, **kwargs) -> str:
 
 def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', hour1='24', minut1='00', service='haproxy', **kwargs):
 	import sql
-	exgrep = checkAjaxInput(form.getvalue('exgrep'))
+	exgrep = form.getvalue('exgrep')
 	log_file = checkAjaxInput(form.getvalue('file'))
 	date = checkAjaxInput(hour) + ':' + checkAjaxInput(minut)
 	date1 = checkAjaxInput(hour1) + ':' + checkAjaxInput(minut1)
-	grep = checkAjaxInput(grep)
 	rows = checkAjaxInput(rows)
 	waf = checkAjaxInput(waf)
 	cmd = ''
 
 	if grep is not None:
-		grep_act = '|egrep "%s"' % grep
+		grep_act = '|egrep "%s"' % checkAjaxInput(grep)
 	else:
 		grep_act = ''
 
 	if exgrep is not None:
-		exgrep_act = '|egrep -v "%s"' % exgrep
+		exgrep_act = '|egrep -v "%s"' % checkAjaxInput(exgrep)
 	else:
 		exgrep_act = ''
 
