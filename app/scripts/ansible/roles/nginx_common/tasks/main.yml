@@ -3,6 +3,10 @@
   set_fact:
     ansible_port: "{{SSH_PORT}}"
 
+- name: Add NGINX
+  ansible.builtin.user:
+    name: nginx
+    group: nginx
 
 - name: check if Nginx is installed
   package_facts:
@@ -17,6 +21,8 @@
     path: "{{nginx_dir}}"
     state: directory
     mode: o=rx
+    owner: nginx
+    group: nginx
   when: "'nginx' not in ansible_facts.packages"
 
 

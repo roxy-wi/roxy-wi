@@ -1911,7 +1911,7 @@ if form.getvalue('new_metrics'):
     serv = form.getvalue('server')
     hostname = sql.get_hostname_by_server_ip(serv)
     time_range = form.getvalue('time_range')
-    metric = sql.select_metrics(serv, time_range=time_range)
+    metric = sql.select_metrics(serv, 'haproxy', time_range=time_range)
     metrics = {'chartData': {}}
     metrics['chartData']['labels'] = {}
     labels = ''
