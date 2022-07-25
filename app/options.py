@@ -1943,7 +1943,7 @@ if form.getvalue('new_http_metrics'):
     serv = form.getvalue('server')
     hostname = sql.get_hostname_by_server_ip(serv)
     time_range = form.getvalue('time_range')
-    metric = sql.select_metrics_http(serv, time_range=time_range)
+    metric = sql.select_metrics(serv, 'http_metrics', time_range=time_range)
     metrics = {'chartData': {}}
     metrics['chartData']['labels'] = {}
     labels = ''
@@ -1978,12 +1978,17 @@ if any((form.getvalue('new_nginx_metrics'), form.getvalue('new_apache_metrics'),
     serv = form.getvalue('server')
     hostname = sql.get_hostname_by_server_ip(serv)
     time_range = form.getvalue('time_range')
+    service = ''
+
     if form.getvalue('new_nginx_metrics'):
-        metric = sql.select_nginx_metrics(serv, time_range=time_range)
+        service = 'nginx'
     elif form.getvalue('new_apache_metrics'):
-        metric = sql.select_apache_metrics(serv, time_range=time_range)
+        service = 'apache'
     elif form.getvalue('new_waf_metrics'):
-        metric = sql.select_waf_metrics(serv, time_range=time_range)
+        service = 'waf'
+
+    metric = sql.select_metrics(serv, service, time_range=time_range)
+
     metrics = {'chartData': {}}
     metrics['chartData']['labels'] = {}
     labels = ''
