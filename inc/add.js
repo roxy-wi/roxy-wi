@@ -881,7 +881,7 @@ $( function() {
 	
 	$( "#path-cert-listen" ).autocomplete({
 		source: function( request, response ) {
-			if(!checkIsServerFiled('#serv2')) return false;
+			if(!checkIsServerFiled('#serv')) return false;
 			$.ajax( {
 				url: "options.py",
 				data: {

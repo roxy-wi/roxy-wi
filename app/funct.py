@@ -1265,7 +1265,7 @@ def show_finding_in_config(stdout: str, **kwargs) -> str:
 def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', hour1='24', minut1='00', service='haproxy', **kwargs):
 	import sql
 	exgrep = form.getvalue('exgrep')
-	log_file = checkAjaxInput(form.getvalue('file'))
+	log_file = form.getvalue('file')
 	date = checkAjaxInput(hour) + ':' + checkAjaxInput(minut)
 	date1 = checkAjaxInput(hour1) + ':' + checkAjaxInput(minut1)
 	rows = checkAjaxInput(rows)
@@ -1281,6 +1281,8 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 		exgrep_act = '|egrep -v "%s"' % checkAjaxInput(exgrep)
 	else:
 		exgrep_act = ''
+
+	log_file = checkAjaxInput(log_file) if log_file is not None else log_file
 
 	if service in ('nginx', 'haproxy', 'apache', 'keepalived'):
 		syslog_server_enable = sql.get_setting('syslog_server_enable')
