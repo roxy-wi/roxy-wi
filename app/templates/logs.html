@@ -87,14 +87,14 @@
 		}
 	</script>
 	<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
-		You can read the descriptions about all logs <a href="https://roxy-wi.org/description.py?description=logs" title="Servers description" target="_blank" class="link">here</a>
+		You can read the descriptions about all logs <a href="https://roxy-wi.org/description/logs" title="Servers description" target="_blank" class="link">here</a>
 	</div>
 {% elif serv == 'roxy-wi.error.log' or serv == 'roxy-wi.access.log' %}
 	<script>
 		showApacheLog('{{serv}}');
 	</script>
 	<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
-		You can read the description about all logs file <a href="https://roxy-wi.org/description.py?description=logs" title="Servers description" target="_blank" class="link">here</a>
+		You can read the description about all logs file <a href="https://roxy-wi.org/description/logs" title="Servers description" target="_blank" class="link">here</a>
 	</div>
 {% else %}
 	<script>
@@ -102,10 +102,14 @@
 			$('#waf').prop('checked', true);
 		{% endif %}
 		{% if waf != '1' %}
-			showRemoteLogFiles()
-			$( "#serv" ).on('selectmenuchange',function() {
-				showRemoteLogFiles();
-			});
+			{% if remote_file %}
+				showLog()
+			{% else %}
+				showRemoteLogFiles()
+				$( "#serv" ).on('selectmenuchange',function() {
+					showRemoteLogFiles();
+				});
+			{% endif %}
 		{% else %}
 			showLog()
 		{% endif %}

@@ -22,14 +22,13 @@
 <div style="text-align: center;">
 	<br />
 	<h3>You have not installed Metrics service.
-	Read <a href="https://roxy-wi.org/services.py?service=metrics#installation" title="Metrics installation" style="color: #5d9ceb;" target="_blank">hear</a>
+	Read <a href="https://roxy-wi.org/services/metrics#installation" title="Metrics installation" style="color: #5d9ceb;" target="_blank">hear</a>
 	how to install Metrics service</h3>
 </div>
 {% else %}
 {% if servers|length == 0 %}
 	{% include 'include/getstarted.html' %}
 {% else %}
-	{% if service == 'haproxy' %}
 	<table style="min-width: 40%;">
 		<tr class="overviewHead">
 			<th colspan=13 style="background-color: #d1ecf1">
@@ -40,7 +39,6 @@
 		</tr>
 	</table>
 	<div id="table_metrics"></div>
-	{% endif %}
 	<div style="padding-left: 25px;float: left;margin-top: 6px;">
 		<b>Time range:</b>
 		<select title="Choose time range" id="time-range">
@@ -92,15 +90,13 @@
 						getNginxChartData('{{s.ip}}')
 					{% endif %}
 				{% endfor %}
-				{% if service == 'haproxy' %}
 				if (localStorage.getItem('table_metrics') == 0 || localStorage.getItem('table_metrics') === null) {
 					$('#dis_table_metric').css('display', 'none');
 				} else {
 					$('#en_table_metric').css('display', 'none');
 					loadMetrics();
 				}
-				{% endif %}
-			});	
+			});
 		metrics.then();
 	}
 	showMetrics()
