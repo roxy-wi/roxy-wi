@@ -280,10 +280,11 @@ class WafRules(BaseModel):
     rule_file = CharField()
     desc = TextField(null=True)
     en = IntegerField(constraints=[SQL('DEFAULT 1')])
+    service = CharField(constraints=[SQL('haproxy')])
 
     class Meta:
         table_name = 'waf_rules'
-        constraints = [SQL('UNIQUE (serv, rule_name)')]
+        constraints = [SQL('UNIQUE (serv, rule_name, service)')]
 
 
 class PortScannerSettings(BaseModel):
@@ -550,10 +551,20 @@ class CheckerSetting(BaseModel):
         constraints = [SQL('UNIQUE (server_id, service_id)')]
 
 
+class WafNginx(BaseModel):
+    id = AutoField()
+    server_id = ForeignKeyField(Server, on_delete='Cascade')
+
+    class Meta:
+        table_name = 'waf_nginx'
+        constraints = [SQL('UNIQUE (server_id)')]
+
+
 def create_tables():
     with conn:
         conn.create_tables([User, Server, Role, Telegram, Slack, UUID, Token, ApiToken, Groups, UserGroups, ConfigVersion,
                             Setting, Cred, Backup, Metrics, WafMetrics, Version, Option, SavedServer, Waf, ActionHistory,
                             PortScannerSettings, PortScannerPorts, PortScannerHistory, ProvidersCreds, ServiceSetting,
                             ProvisionedServers, MetricsHttpStatus, SMON, WafRules, Alerts, GeoipCodes, NginxMetrics,
-                            SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, ProvisionParam])
+                            SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, ProvisionParam,
+                            WafNginx])

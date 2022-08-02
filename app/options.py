@@ -41,6 +41,9 @@ try:
 except ValueError:
     print('error: Your token is not valid')
     sys.exit()
+except Exception:
+    print('error: There is no token')
+    sys.exit()
 
 if not sql.check_token_exists(token):
     print('error: Your token has been expired')
@@ -504,8 +507,27 @@ if form.getvalue('action_waf') is not None and serv is not None:
 
     funct.is_restarted(serv, action)
 
-    funct.logging(serv, 'WAF service has been ' + action + 'ed', haproxywi=1, login=1, keep_history=1, service='haproxy')
+    funct.logging(serv, 'HAProxy WAF service has been ' + action + 'ed', haproxywi=1, login=1, keep_history=1, service='haproxy')
     commands = ["sudo systemctl %s waf" % action]
+    funct.ssh_command(serv, commands)
+
+if form.getvalue('action_waf_nginx') is not None and serv is not None:
+    serv = form.getvalue('serv')
+    action = form.getvalue('action_waf_nginx')
+    config_dir = funct.return_nice_path(sql.get_setting('nginx_dir'))
+
+    if action not in ('start', 'stop'):
+        print('error: wrong action')
+        sys.exit()
+
+    funct.is_restarted(serv, action)
+
+    waf_new_state = 'on' if action == 'start' else 'off'
+    waf_old_state = 'off' if action == 'start' else 'on'
+
+    funct.logging(serv, 'NGINX WAF service has been ' + action + 'ed', haproxywi=1, login=1, keep_history=1, service='nginx')
+    commands = [ f"sudo sed -i 's/modsecurity {waf_old_state}/modsecurity {waf_new_state}/g' {config_dir}nginx.conf"
+                f" && sudo systemctl reload nginx" ]
     funct.ssh_command(serv, commands)
 
 if form.getvalue('action_apache') is not None and serv is not None:
@@ -728,32 +750,44 @@ if act == "overviewwaf":
     )
     template = env.get_template('overivewWaf.html')
 
+    waf_service = form.getvalue('service')
     servers = sql.select_servers(server=serv)
     cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
     user_id = cookie.get('uuid')
 
-    haproxy_path = ''
+    config_path = ''
     returned_servers = []
     waf = ''
     metrics_en = 0
     waf_process = ''
     waf_mode = ''
+    is_waf_on_server = 0
 
     for server in servers:
-        haproxy = sql.select_haproxy(server[2])
-        if haproxy == 1:
-            haproxy_path = sql.get_setting('haproxy_dir')
-            waf = sql.select_waf_servers(server[2])
-            metrics_en = sql.select_waf_metrics_enable_server(server[2])
+        if waf_service == 'haproxy':
+            is_waf_on_server = sql.select_haproxy(server[2])
+        elif waf_service == 'nginx':
+            is_waf_on_server = sql.select_nginx(server[2])
+
+        if is_waf_on_server == 1:
+            config_path = sql.get_setting(waf_service + '_dir')
+            if waf_service == 'haproxy':
+                waf = sql.select_waf_servers(server[2])
+                metrics_en = sql.select_waf_metrics_enable_server(server[2])
+            elif waf_service == 'nginx':
+                waf = sql.select_waf_nginx_servers(server[2])
             try:
                 waf_len = len(waf)
             except Exception:
                 waf_len = 0
 
             if waf_len >= 1:
-                command = ["ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l"]
+                if waf_service == 'haproxy':
+                    command = ["ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l"]
+                elif waf_service == 'nginx':
+                    command = ["grep 'modsecurity on' %s* --exclude-dir=waf -Rs |wc -l" % funct.return_nice_path(config_path)]
                 commands1 = [
-                    "grep SecRuleEngine %s/waf/modsecurity.conf |grep -v '#' |awk '{print $2}'" % haproxy_path]
+                    "grep SecRuleEngine %s/waf/modsecurity.conf |grep -v '#' |awk '{print $2}'" % config_path]
                 waf_process = funct.ssh_command(server[2], command)
                 waf_mode = funct.ssh_command(server[2], commands1).strip()
 
@@ -774,7 +808,7 @@ if act == "overviewwaf":
         returned_servers.append(server_status)
 
     servers_sorted = sorted(returned_servers, key=funct.get_key)
-    template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_id.value))
+    template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_id.value), waf_service=waf_service)
     print(template)
 
 if act == "overviewServers":
@@ -1836,7 +1870,11 @@ if form.getvalue('haproxyaddserv'):
                           hapver=form.getvalue('hapver'), docker=form.getvalue('docker'))
 
 if form.getvalue('installwaf'):
-    funct.waf_install(form.getvalue('installwaf'))
+    service = form.getvalue('service')
+    if service == 'haproxy':
+        funct.waf_install(form.getvalue('installwaf'))
+    else:
+        funct.waf_nginx_install(form.getvalue('installwaf'))
 
 if form.getvalue('update_roxy_wi'):
     service = form.getvalue('service')
@@ -2150,8 +2188,8 @@ if form.getvalue('get_lists'):
     lib_path = funct.get_config_var('main', 'lib_path')
     list_path = lib_path + "/" + sql.get_setting('lists_path') + "/" + form.getvalue('group') + "/" + form.getvalue('color')
     lists = funct.get_files(dir=list_path, format="lst")
-    for list in lists:
-        print(list)
+    for l in lists:
+        print(l)
 
 if form.getvalue('get_ldap_email'):
     username = form.getvalue('get_ldap_email')
@@ -2191,11 +2229,17 @@ if form.getvalue('get_ldap_email'):
         ldap_bind.unbind()
 
 if form.getvalue('change_waf_mode'):
-    waf_mode = form.getvalue('change_waf_mode')
+    waf_mode = funct.checkAjaxInput(form.getvalue('change_waf_mode'))
     server_hostname = form.getvalue('server_hostname')
-    haproxy_dir = sql.get_setting('haproxy_dir')
+    service = funct.checkAjaxInput(form.getvalue('service'))
     serv = sql.select_server_by_name(server_hostname)
-    commands = ["sudo sed -i 's/^SecRuleEngine.*/SecRuleEngine %s/' %s/waf/modsecurity.conf " % (waf_mode, haproxy_dir)]
+
+    if service == 'haproxy':
+        config_dir = sql.get_setting('haproxy_dir')
+    elif service == 'nginx':
+        config_dir = sql.get_setting('nginx_dir')
+
+    commands = ["sudo sed -i 's/^SecRuleEngine.*/SecRuleEngine %s/' %s/waf/modsecurity.conf " % (waf_mode, config_dir)]
     funct.ssh_command(serv, commands)
     funct.logging(serv, 'Has been changed WAF mod to ' + waf_mode, haproxywi=1, login=1)
 
@@ -2259,6 +2303,8 @@ if form.getvalue('updateuser') is not None:
 
 if form.getvalue('updatepassowrd') is not None:
     password = form.getvalue('updatepassowrd')
+    username = ''
+
     if form.getvalue('uuid'):
         user_id = sql.get_user_id_by_uuid(form.getvalue('uuid'))
     else:
@@ -2478,6 +2524,9 @@ if form.getvalue('new_ssh'):
 if form.getvalue('sshdel') is not None:
     lib_path = funct.get_config_var('main', 'lib_path')
     sshdel = funct.checkAjaxInput(form.getvalue('sshdel'))
+    name = ''
+    ssh_enable = 0
+    ssh_key_name = ''
 
     for sshs in sql.select_ssh(id=sshdel):
         ssh_enable = sshs.enable
@@ -2501,6 +2550,7 @@ if form.getvalue('updatessh'):
     group = form.getvalue('group')
     username = form.getvalue('ssh_user')
     password = form.getvalue('ssh_pass')
+    new_ssh_key_name = ''
 
     if username is None:
         print(error_mess)
@@ -2553,10 +2603,6 @@ if form.getvalue('ssh_cert'):
     ssh_keys = full_dir + name + '.pem'
 
     try:
-        # cloud = sql.is_cloud()
-        # if cloud != '':
-        #     key.write_private_key_file(ssh_keys, password=cloud)
-        # else:
         key.write_private_key_file(ssh_keys)
     except Exception as e:
         print('error: Cannot save SSH key file: ', str(e))
@@ -2829,17 +2875,17 @@ if form.getvalue('showBytes') is not None:
     port = sql.get_setting('haproxy_sock_port')
     bin_bout = []
     cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,9|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(serv, port)
-    bin, stderr = funct.subprocess_execute(cmd)
-    bin_bout.append(bin[0])
+    bit_in, stderr = funct.subprocess_execute(cmd)
+    bin_bout.append(bit_in[0])
     cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,10|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(serv, port)
-    bin, stderr = funct.subprocess_execute(cmd)
-    bin_bout.append(bin[0])
+    bout, stderr = funct.subprocess_execute(cmd)
+    bin_bout.append(bout[0])
     cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,5|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(serv, port)
-    bin, stderr = funct.subprocess_execute(cmd)
-    bin_bout.append(bin[0])
+    cin, stderr = funct.subprocess_execute(cmd)
+    bin_bout.append(cin[0])
     cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,8|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(serv, port)
-    bin, stderr = funct.subprocess_execute(cmd)
-    bin_bout.append(bin[0])
+    cout, stderr = funct.subprocess_execute(cmd)
+    bin_bout.append(cout[0])
 
     from jinja2 import Environment, FileSystemLoader
 
@@ -2883,7 +2929,8 @@ if form.getvalue('waf_rule_id'):
     haproxy_path = sql.get_setting('haproxy_dir')
     rule_file = sql.select_waf_rule_by_id(rule_id)
     conf_file_path = haproxy_path + '/waf/modsecurity.conf'
-    rule_file_path = 'Include ' + haproxy_path + '//waf/rules/' + rule_file
+    rule_file_path = 'Include ' + haproxy_path + '/waf/rules/' + rule_file
+    print(rule_file_path)
 
     if enable == '0':
         cmd = ["sudo sed -i 's!" + rule_file_path + "!#" + rule_file_path + "!' " + conf_file_path]
@@ -2900,6 +2947,32 @@ if form.getvalue('waf_rule_id'):
 
     print(funct.ssh_command(serv, cmd))
     sql.update_enable_waf_rules(rule_id, serv, enable)
+
+if form.getvalue('new_waf_rule'):
+    service = form.getvalue('service')
+    new_waf_rule = form.getvalue('new_waf_rule')
+    new_rule_desc = form.getvalue('new_rule_description')
+    rule_file = form.getvalue('new_rule_file')
+    rule_file = rule_file + '.conf'
+    waf_path = ''
+
+    if service == 'haproxy':
+        waf_path = funct.return_nice_path(sql.get_setting('haproxy_dir'))
+    elif service == 'nginx':
+        waf_path = funct.return_nice_path(sql.get_setting('nginx_dir'))
+
+    conf_file_path = waf_path + 'waf/modsecurity.conf'
+    rule_file_path = waf_path + 'waf/rules/' + rule_file
+        
+    cmd = [f"sudo echo Include {rule_file_path} >> {conf_file_path} && sudo touch {rule_file_path}"]
+    print(funct.ssh_command(serv, cmd))
+    print(sql.insert_new_waf_rule(new_waf_rule, rule_file, new_rule_desc, service, serv))
+
+    try:
+        funct.logging('WAF', ' A new rule has been created ' + rule_file + ' on the server ' + serv,
+                      haproxywi=1, login=1)
+    except Exception:
+        pass
 
 if form.getvalue('lets_domain'):
     serv = form.getvalue('serv')
@@ -3251,7 +3324,7 @@ if form.getvalue('show_versions'):
 if form.getvalue('get_group_name_by_id'):
     print(sql.get_group_name_by_id(form.getvalue('get_group_name_by_id')))
 
-if form.getvalue('do_new_name') or form.getvalue('aws_new_name') or form.getvalue('gcore_new_name'):
+if any((form.getvalue('do_new_name'), form.getvalue('aws_new_name'), form.getvalue('gcore_new_name'))):
     funct.check_user_group()
     is_add = False
     if form.getvalue('do_new_name'):
@@ -3288,6 +3361,8 @@ if form.getvalue('do_new_name') or form.getvalue('aws_new_name') or form.getvalu
         cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
         user_uuid = cookie.get('uuid')
         role_id = sql.get_user_role_by_uuid(user_uuid.value)
+        params = sql.select_provisioning_params()
+        providers = sql.select_providers(provider_group, key=provider_token)
 
         if role_id == 1:
             groups = sql.select_groups()
@@ -3296,7 +3371,7 @@ if form.getvalue('do_new_name') or form.getvalue('aws_new_name') or form.getvalu
 
         env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
         template = env.get_template('ajax/provisioning/providers.html')
-        template = template.render(providers=sql.select_providers(provider_group, key=provider_token), role=role_id, groups=groups, user_group=provider_group, adding=1)
+        template = template.render(providers=providers, role=role_id, groups=groups, user_group=provider_group, adding=1, params=params)
         print(template)
 
 if form.getvalue('providerdel'):
@@ -3462,12 +3537,13 @@ if form.getvalue('doworkspace'):
 
             user, user_id, role, token, servers, user_services = funct.get_users_params()
             new_server = sql.select_provisioned_servers(new=workspace, group=group, type='do')
+            params = sql.select_provisioning_params()
 
             env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
             template = env.get_template('ajax/provisioning/provisioned_servers.html')
             template = template.render(
                 servers=new_server, groups=sql.select_groups(), user_group=group,
-                providers=sql.select_providers(group), role=role, adding=1
+                providers=sql.select_providers(group), role=role, adding=1, params=params
             )
             print(template)
 
@@ -3557,12 +3633,13 @@ if form.getvalue('awsworkspace'):
 
             user, user_id, role, token, servers, user_services = funct.get_users_params()
             new_server = sql.select_provisioned_servers(new=workspace, group=group, type='aws')
+            params = sql.select_provisioning_params()
 
             env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
             template = env.get_template('ajax/provisioning/provisioned_servers.html')
             template = template.render(
                 servers=new_server, groups=sql.select_groups(), user_group=group,
-                providers=sql.select_providers(group), role=role, adding=1
+                providers=sql.select_providers(group), role=role, adding=1, params=params
             )
             print(template)
 
@@ -3682,6 +3759,10 @@ if (
         for ip in output:
             ips += ip
             ips += ' '
+
+        if cloud == 'gcore':
+            ips = ips.split(' ')[0]
+
         print(ips)
         sql.update_provisioning_server_status('Created', group, workspace, provider_id, update_ip=ips)
 
@@ -3826,6 +3907,7 @@ if form.getvalue('gcoreworkspace'):
 
             user, user_id, role, token, servers, user_services = funct.get_users_params()
             new_server = sql.select_provisioned_servers(new=workspace, group=group, type='gcore')
+            params = sql.select_provisioning_params()
 
             env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
             template = env.get_template('ajax/provisioning/provisioned_servers.html')
@@ -3834,7 +3916,8 @@ if form.getvalue('gcoreworkspace'):
                                        user_group=group,
                                        providers=sql.select_providers(group),
                                        role=role,
-                                       adding=1)
+                                       adding=1,
+                                       params=params)
             print(template)
 
 if form.getvalue('gcoreeditworkspace'):
@@ -3879,33 +3962,42 @@ if form.getvalue('editAwsServer'):
     funct.check_user_group()
     server_id = form.getvalue('editAwsServer')
     user_group = form.getvalue('editAwsGroup')
+    params = sql.select_provisioning_params()
+    providers = sql.select_providers(int(user_group))
+    server = sql.select_gcore_server(server_id=server_id)
     from jinja2 import Environment, FileSystemLoader
 
     env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
     template = env.get_template('ajax/provisioning/aws_edit_dialog.html')
-    template = template.render(server=sql.select_aws_server(server_id=server_id), providers=sql.select_providers(int(user_group)))
+    template = template.render(server=server, providers=providers, params=params)
     print(template)
 
 if form.getvalue('editGcoreServer'):
     funct.check_user_group()
     server_id = form.getvalue('editGcoreServer')
     user_group = form.getvalue('editGcoreGroup')
+    params = sql.select_provisioning_params()
+    providers = sql.select_providers(int(user_group))
+    server = sql.select_gcore_server(server_id=server_id)
     from jinja2 import Environment, FileSystemLoader
 
     env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
     template = env.get_template('ajax/provisioning/gcore_edit_dialog.html')
-    template = template.render(server=sql.select_gcore_server(server_id=server_id), providers=sql.select_providers(int(user_group)))
+    template = template.render(server=server, providers=providers, params=params)
     print(template)
 
 if form.getvalue('editDoServer'):
     funct.check_user_group()
     server_id = form.getvalue('editDoServer')
     user_group = form.getvalue('editDoGroup')
+    params = sql.select_provisioning_params()
+    providers = sql.select_providers(int(user_group))
+    server = sql.select_do_server(server_id=server_id)
     from jinja2 import Environment, FileSystemLoader
 
     env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
     template = env.get_template('ajax/provisioning/do_edit_dialog.html')
-    template = template.render(server=sql.select_do_server(server_id=server_id), providers=sql.select_providers(int(user_group)))
+    template = template.render(server=server, providers=providers, params=params)
     print(template)
 
 if form.getvalue('edit_do_provider'):
@@ -4009,12 +4101,12 @@ if form.getvalue('load_update_hapwi'):
     template = env.get_template('ajax/load_updatehapwi.html')
 
     versions = funct.versions()
-    checker_ver = funct.check_new_version(service='checker')
-    smon_ver = funct.check_new_version(service='smon')
-    metrics_ver = funct.check_new_version(service='metrics')
-    keep_ver = funct.check_new_version(service='keep')
-    portscanner_ver = funct.check_new_version(service='portscanner')
-    socket_ver = funct.check_new_version(service='socket')
+    checker_ver = funct.check_new_version('checker')
+    smon_ver = funct.check_new_version('smon')
+    metrics_ver = funct.check_new_version('metrics')
+    keep_ver = funct.check_new_version('keep_alive')
+    portscanner_ver = funct.check_new_version('portscanner')
+    socket_ver = funct.check_new_version('socket')
     services = funct.get_services_status()
 
     template = template.render(services=services,

@@ -1,7 +1,10 @@
 var awesome = "/inc/fontawesome.min.js"
 function showOverviewWaf(serv, hostnamea) {
-	$.getScript('/inc/chart.min.js');
-	showWafMetrics();
+	var service = findGetParameter('service');
+	if (service == 'haproxy') {
+		$.getScript('/inc/chart.min.js');
+		showWafMetrics();
+	}
 	var i;
 	for (i = 0; i < serv.length; i++) { 
 		showOverviewWafCallBack(serv[i], hostnamea[i])
@@ -10,11 +13,13 @@ function showOverviewWaf(serv, hostnamea) {
 	$.getScript('/inc/waf.js');
 }
 function showOverviewWafCallBack(serv, hostnamea) {
+	var service = findGetParameter('service');
 	$.ajax( {
 		url: "options.py",
 		data: {
 			act: "overviewwaf",
 			serv: serv,
+			service: service,
 			token: $('#token').val()
 		},
 		beforeSend: function() {
@@ -56,10 +61,12 @@ function metrics_waf(name) {
 function installWaf(ip1) {
 	$("#ajax").html('')
 	$("#ajax").html(wait_mess);
+	var service = findGetParameter('service');
 	$.ajax( {
 		url: "options.py",
 		data: {
 			installwaf: ip1,
+			service: service,
 			token: $('#token').val()
 		},
 		type: "POST",
@@ -72,7 +79,7 @@ function installWaf(ip1) {
 				toastr.info(data);
 			} else if (data.indexOf('success') != '-1' ){
 				toastr.clear();
-				toastr.success('WAF service has installed');
+				toastr.success('WAF service has been installed');
 				showOverviewWaf(ip, hostnamea)
 			}	
 		}
@@ -80,13 +87,14 @@ function installWaf(ip1) {
 }
 function changeWafMode(id) {
 	var waf_mode = $('#'+id+' option:selected').val();
-	console.log('1')
 	var server_hostname = id.split('_')[0];
+	var service = findGetParameter('service');
 	 $.ajax( {
 		url: "options.py",
 		data: {
 			change_waf_mode: waf_mode,
 			server_hostname: server_hostname,
+			service: service,
 			token: $('#token').val()
 		},
 		type: "POST",
@@ -106,7 +114,6 @@ $( function() {
 	});
 });
 function waf_rules_en(id) {
-	console.log('1')
 	var enable = 0;
 	if ($('#rule_id-'+id).is(':checked')) {
 		enable = '1';
@@ -133,4 +140,68 @@ function waf_rules_en(id) {
 			}
 		}
 	} );
+}
+function addNewConfig() {
+	$( "#add-new-config" ).dialog({
+		autoOpen: true,
+		resizable: false,
+		height: "auto",
+		width: 600,
+		modal: true,
+		title: "Create a new rule",
+		show: {
+			effect: "fade",
+			duration: 200
+		},
+		hide: {
+			effect: "fade",
+			duration: 200
+		},
+		buttons: {
+			"Create": function() {
+				var valid = true;
+				allFields = $( [] ).add( $('#new_rule_name') ).add( $('#new_rule_description') )
+				allFields.removeClass( "ui-state-error" );
+				valid = valid && checkLength( $('#new_rule_name'), "New rule name", 1 );
+				valid = valid && checkLength( $('#new_rule_description'), "New rule description", 1 );
+				if(valid) {
+					let new_rule_name = $('#new_rule_name').val();
+					let new_rule_description = $('#new_rule_description').val();
+					let new_rule_file = new_rule_name.replaceAll(' ','_');
+					var service = findGetParameter('service');
+					var serv = findGetParameter('serv');
+					service = escapeHtml(service);
+					new_rule_name = escapeHtml(new_rule_name);
+					new_rule_description = escapeHtml(new_rule_description);
+					new_rule_file = escapeHtml(new_rule_file);
+					serv = escapeHtml(serv);
+					$.ajax({
+						url: "options.py",
+						data: {
+							new_waf_rule: new_rule_name,
+							new_rule_description: new_rule_description,
+							new_rule_file: new_rule_file,
+							service: service,
+							serv: serv,
+							token: $('#token').val()
+						},
+						type: "POST",
+						success: function (data) {
+							if (data.indexOf('error:') != '-1') {
+								toastr.error(data);
+							} else {
+								var getId = new RegExp('[0-9]+');
+								var id = data.match(getId) + '';
+								window.location.replace('waf.py?service=' + service + '&waf_rule_id=' + id + '&serv=' + serv);
+							}
+						}
+					});
+					$( this ).dialog( "close" );
+				}
+			},
+			Cancel: function() {
+				$( this ).dialog( "close" );
+			}
+		}
+	});
 }

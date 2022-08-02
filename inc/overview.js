@@ -170,6 +170,8 @@ function ajaxActionNginxServers(action, id) {
 					toastr.error(data);
 				} else if (cur_url[0] == "hapservers.py") {
 					location.reload()
+				} else if (cur_url[0] == "waf.py") {
+					setTimeout(showOverviewWaf(ip, hostnamea), 2000)
 				} else {
 					setTimeout(showOverview(ip, hostnamea), 2000)
 				}
@@ -237,11 +239,33 @@ function ajaxActionApacheServers(action, id) {
 	} );
 }
 function ajaxActionWafServers(action, id) {
-	var bad_ans = 'Bad config, check please';
 	$.ajax( {
 		url: "options.py",
 			data: {
 				action_waf: action,
+				serv: id,
+				token: $('#token').val()
+			},
+			success: function( data ) {
+				data = data.replace(/\s+/g,' ');
+				if (data.indexOf('error:') != '-1') {
+					toastr.error(data);
+				} else if( data ==  'Bad config, check please ' ) {
+					toastr.error(data);
+				} else {
+					setTimeout(showOverviewWaf(ip, hostnamea), 2000)
+				}
+			},
+			error: function(){
+				alert(w.data_error);
+			}
+	} );
+}
+function ajaxActionWafNginxServers(action, id) {
+	$.ajax( {
+		url: "options.py",
+			data: {
+				action_waf_nginx: action,
 				serv: id,
 				token: $('#token').val()
 			},
@@ -375,6 +399,8 @@ function confirmAjaxAction(action, service, id) {
 					ajaxActionKeepalivedServers(action, id)
 				} else if (service == "apache") {
 					ajaxActionApacheServers(action, id)
+				} else if (service == "waf_nginx") {
+					ajaxActionWafNginxServers(action, id)
 				}
 			},
 			Cancel: function() {

@@ -2,6 +2,11 @@
 {% do waf_modes.append("On") %}
 {% do waf_modes.append("Off") %}
 {% do waf_modes.append("DetectionOnly") %}
+{% if waf_service == 'haproxy' %}
+{% set service_name = 'waf' %}
+{% else %}
+{% set service_name = 'waf_nginx' %}
+{% endif %}
 {% for service in service_status %}
 	<td class="padding10 first-collumn-wi">
 	{% if service.5|int() >= 1 %}
@@ -17,18 +22,25 @@
 		<span class="serverNone server-status" title="WAF is not installed"></span> <span title="WAF is not installed">{{ service.0 }}</span>
 	{% endif %}
 	</td>
+{{service.3}}
 	{% if service.3 == "On" or service.3 == "Off" or service.3 == "DetectionOnly" %}
 		<td>
 		{% if role <= 2 %}
 			<a id="{{ service.1 }}" class="start-waf" title="Start WAF service">
-				<span class="service-start" onclick="confirmAjaxAction('start', 'waf', '{{service.1}}')"></span>
+				<span class="service-start" onclick="confirmAjaxAction('start', '{{service_name}}', '{{service.1}}')"></span>
 			</a>
 			<a id="{{ service.1 }}" class="stop-waf" title="Stop WAF service">
-				<span class="service-stop" onclick="confirmAjaxAction('stop', 'waf', '{{service.1}}')"></span>
+				<span class="service-stop" onclick="confirmAjaxAction('stop', '{{service_name}}', '{{service.1}}')"></span>
 			</a>
+			{% if waf_service == 'haproxy' %}
 			<a id="{{ service.1 }}" class="restart-waf" title="Restart WAF service">
 				<span class="service-reload" onclick="confirmAjaxAction('restart', 'waf', '{{service.1}}')"></span>
 			</a>
+			{% else %}
+			<a id="{{ service.1 }}" class="reload-waf" title="Reload WAF service">
+				<span class="service-reload" onclick="confirmAjaxAction('reload', 'nginx', '{{service.1}}')"></span>
+			</a>
+			{% endif %}
 		{% endif %}
 		</td>
 		<td>
@@ -46,6 +58,7 @@
 			{{ service.3 }}
 		{% endif %}
 		</td>
+		{% if waf_service == 'haproxy' %}
 		<td style="padding-top: 2px;" class="ajaxwafstatus">
 		{% if service.4|int() == 1 %}
 			<label for="metrics{{ service.0 }}"></label><input type="checkbox" id="metrics{{ service.0 }}" checked />
@@ -53,13 +66,18 @@
 			<label for="metrics{{ service.0 }}"></label><input type="checkbox" id="metrics{{ service.0 }}" />
 		{% endif %}
 		</td>
+		{% endif %}
 		<td>
 		{% if role <= 2 %}
-			<a href="/app/waf.py?manage_rules=1&serv={{service.1}}" class="ui-button ui-widget ui-corner-all">Open</a>
+			<a href="/app/waf.py?service={{waf_service}}&manage_rules=1&serv={{service.1}}" class="ui-button ui-widget ui-corner-all">Open</a>
 		{% endif %}
 		</td>
 		<td>
+			{% if waf_service == 'haproxy' %}
 			<a href="/app/logs.py?serv={{ service.1 }}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00&waf=1" class="ui-button ui-widget ui-corner-all" title="View log">View</a>
+			{% elif waf_service == 'nginx' %}
+			<a href="/app/logs.py?service={{waf_service}}&serv={{ service.1 }}&rows=10&grep=ModSecurity&hour=00&minut=00&hour1=24&minut1=00&file=error.log&waf=0" class="ui-button ui-widget ui-corner-all" title="View log">View</a>
+			{% endif %}
 		</td>
 		<td></td>
 	{% else %}

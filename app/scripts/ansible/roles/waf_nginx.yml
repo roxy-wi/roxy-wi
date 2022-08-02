@@ -1,0 +1,11 @@
+---
+- name: Install WAF
+  hosts: "{{ variable_host }}"
+  become: yes
+  become_method: sudo
+  gather_facts: yes
+  roles:
+    - role: waf_nginx
+      environment:
+        http_proxy: "{{PROXY}}"
+        https_proxy: "{{PROXY}}"

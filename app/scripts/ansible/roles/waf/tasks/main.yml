@@ -15,6 +15,18 @@
         msg="info HAProxy WAF has already installed"
       when: stat_result.stat.exists
 
+    - name: erase the RPMS for HAProxy
+      yum:
+        name:
+          - ssdeep
+          - ssdeep-devel
+        state: absent
+      when:
+        - ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
+      environment:
+        http_proxy: "{{PROXY}}"
+        https_proxy: "{{PROXY}}"
+
     - name: install the el7 RPMS for HAProxy
       yum:
         name:
@@ -65,6 +77,7 @@
           - libevent-devel
           - libtool
           - make
+          - gcc-c++
         state: latest
       when:
         - ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
@@ -86,6 +99,7 @@
           - libyajl-dev
           - libxml2
           - automake
+          - g++
           - make
         state: present
       when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'Ubuntu'
@@ -110,57 +124,41 @@
       become: false
       unarchive:
         src: /tmp/modsecurity.tar.gz
-        dest: /tmp/modsecurity/
+        dest: /tmp/modsecurity
         remote_src: true
 
-    - name: Copy modsecurity
-      copy:
-        src: "/tmp/modsecurity/modsecurity-{{ modsec_ver }}/"
-        dest: /tmp/modsecurity/
-        remote_src: yes
-
-    - name: Set execute permision to configure
-      become: true
-      command: chdir=/tmp/modsecurity/ chmod +x configure
-      args:
-        warn: no
+    - name: Set ModSec src foleder
+      set_fact:
+        mod_sec_src: /tmp/modsecurity-{{ modsec_ver }}
 
     - name: Re configure Modsecurity
       become: true
-      command: chdir=/tmp/modsecurity/ autoreconf -f -i
+      command: "chdir={{ mod_sec_src }} autoreconf -f -i"
 
     - name: Configure Modsecurity
       become: true
-      command: chdir=/tmp/modsecurity/ ./configure --prefix=/tmp/modsecurity --enable-standalone-module --disable-mlogc --enable-pcre-study --without-lua --enable-pcre-jit
+      command: "chdir={{ mod_sec_src }} ./configure --prefix=/tmp/modsecurity --enable-standalone-module --disable-mlogc --enable-pcre-study --without-lua --enable-pcre-jit"
 
     - name: Make Modsecurity
-      command: chdir=/tmp/modsecurity/ make
+      command: "chdir={{ mod_sec_src }} make"
 
     - name: Make Install Modsecurity
-      command: chdir=/tmp/modsecurity/ make -C standalone install
+      command: "chdir={{ mod_sec_src }} make -C standalone install"
 
     - name: Creates directory
       file:
-        path: /tmp/modsecurity/INSTALL/include
+        path: "{{ mod_sec_src }}INSTALL/include"
         state: directory
 
     - name: Copy Modsec libs
       copy:
-        src: /tmp/modsecurity/standalone/.libs/
-        dest: /tmp/modsecurity/INSTALL/include/
+        src: "{{ mod_sec_src }}/{{ item }}"
+        dest: "{{ mod_sec_src }}/INSTALL/include/"
         remote_src: yes
-
-    - name: Copy Modsec files
-      copy:
-        src: /tmp/modsecurity/standalone/
-        dest: /tmp/modsecurity/INSTALL/include/
-        remote_src: yes
-
-    - name: Copy Modsec apache files
-      copy:
-        src: /tmp/modsecurity/apache2/
-        dest: /tmp/modsecurity/INSTALL/include/
-        remote_src: yes
+      with_items:
+        - standalone/.libs/
+        - standalone/
+        - apache2/
 
     - name: Install git
       package:
@@ -175,22 +173,20 @@
         mod_sec_dir: /tmp/spoa-modsecurity
 
     - name: Make APT Modsecurity module for HAProxy
-      command: "chdir={{ mod_sec_dir }} make MODSEC_INC=/tmp/modsecurity/INSTALL/include MODSEC_LIB=/tmp/modsecurity/INSTALL/include APACHE2_INC=/usr/include/apache2/ APR_INC=/usr/include/apr-1.0"
+      command: "chdir={{ mod_sec_dir }} make MODSEC_INC={{ mod_sec_src }}/INSTALL/include MODSEC_LIB={{ mod_sec_src }}/INSTALL/include APACHE2_INC=/usr/include/apache2/ APR_INC=/usr/include/apr-1.0"
       when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'Ubuntu'
 
     - name: Make EL Modsecurity module for HAProxy
-      command: "chdir={{ mod_sec_dir }} make MODSEC_INC=/tmp/modsecurity/INSTALL/include MODSEC_LIB=/tmp/modsecurity/INSTALL/include APACHE2_INC=/usr/include/httpd/ APR_INC=/usr/include/apr-1"
+      command: "chdir={{ mod_sec_dir }} make MODSEC_INC={{ mod_sec_src }}/INSTALL/include MODSEC_LIB={{ mod_sec_src }}/INSTALL/include APACHE2_INC=/usr/include/httpd/ APR_INC=/usr/include/apr-1"
       when: ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
 
     - name: Make WAF rules directory
       file:
-        path: "{{ HAPROXY_PATH }}/waf/rules"
+        path: "{{ HAPROXY_PATH }}/waf/{{ item }}"
         state: directory
-
-    - name: Make WAF bin directory
-      file:
-        path: "{{ HAPROXY_PATH }}/waf/bin"
-        state: directory
+      with_items:
+        - rules
+        - bin
 
     - name: Copy Modsec module to HAProxy dir
       copy:
@@ -269,45 +265,22 @@
 
     - name: Copy owasp files
       copy:
-        src: /tmp/owasp-modsecurity-crs-2.2.9/owasp-modsecurity-crs-2.2.9/
+        src: "/tmp/owasp-modsecurity-crs-2.2.9/{{ item }}"
         dest: /tmp/owasp-modsecurity-crs-2.2.9
         remote_src: yes
+      with_items:
+        - owasp-modsecurity-crs-2.2.9/
+        - activated_rules/
+        - base_rules/
+        - experimental_rules/
+        - optional_rules/
+        - slr_rules/
 
     - name: Copy Modsec crs conf file
       copy:
         src: /tmp/owasp-modsecurity-crs-2.2.9/modsecurity_crs_10_setup.conf.example
         dest: "{{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_10_setup.conf"
         remote_src: true
-
-    - name: Copy Modsec crs activated_rules files
-      copy:
-        src: /tmp/owasp-modsecurity-crs-2.2.9/activated_rules/
-        dest: "{{ HAPROXY_PATH }}/waf/rules/"
-        remote_src: yes
-
-    - name: Copy Modsec crs base_rules files
-      copy:
-        src: /tmp/owasp-modsecurity-crs-2.2.9/base_rules/
-        dest: "{{ HAPROXY_PATH }}/waf/rules/"
-        remote_src: yes
-
-    - name: Copy Modsec crs experimental_rules files
-      copy:
-        src: /tmp/owasp-modsecurity-crs-2.2.9/experimental_rules/
-        dest: "{{ HAPROXY_PATH }}/waf/rules/"
-        remote_src: yes
-
-    - name: Copy Modsec crs optional_rules files
-      copy:
-        src: /tmp/owasp-modsecurity-crs-2.2.9/optional_rules/
-        dest: "{{ HAPROXY_PATH }}/waf/rules/"
-        remote_src: yes
-
-    - name: Copy Modsec crs slr_rules files
-      copy:
-        src: /tmp/owasp-modsecurity-crs-2.2.9/slr_rules/
-        dest: "{{ HAPROXY_PATH }}/waf/rules/"
-        remote_src: yes
 
     - name: Ensure ModSec engine mode on
       ansible.builtin.lineinfile:
@@ -367,42 +340,14 @@
         enabled: yes
 
   always:
-    - name: Remove modsecurity.tar.gz
+    - name: Clean up
       ansible.builtin.file:
-        path: /tmp/modsecurity.tar.gz
+        path: "{{ item }}"
         state: absent
-
-    - name: Remove modsecurity-2.9.2
-      ansible.builtin.file:
-        path: /tmp/modsecurity-2.9.2
-        state: absent
-
-    - name: Remove HAProxy
-      ansible.builtin.file:
-        path: "/tmp/haproxy-{{ VERSION }}"
-        state: absent
-
-    - name: Remove modsecurity
-      ansible.builtin.file:
-        path: /tmp/modsecurity
-        state: absent
-
-    - name: Remove modsecurity.conf
-      ansible.builtin.file:
-        path: /tmp/modsecurity.conf
-        state: absent
-
-    - name: Remove owasp.tar.gz
-      ansible.builtin.file:
-        path: /tmp/owasp.tar.gz
-        state: absent
-
-    - name: Remove owasp-modsecurity-crs-2.2.9
-      ansible.builtin.file:
-        path: /tmp/owasp-modsecurity-crs-2.2.9
-        state: absent
-
-    - name: Remove spoa-modsecurity
-      ansible.builtin.file:
-        path: /tmp/spoa-modsecurity
-        state: absent
+      with_items:
+        - /tmp/modsecurity.tar.gz
+        - "/tmp/modsecurity-{{ modsec_ver }}"
+        - "/tmp/haproxy-{{ VERSION }}"
+        - /tmp/owasp.tar.gz
+        - /tmp/owasp-modsecurity-crs-2.2.9
+        - /tmp/spoa-modsecurity

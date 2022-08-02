@@ -80,6 +80,10 @@ $( function() {
 			show_current_page($(this))
 	   } else if(cur_url[0] == 'add.py' && cur_url[1].split('&')[0] == 'service=apache#ssl' && link2 == 'add.py?service=apache#ssl'){
 		   show_current_page($(this))
+	   } else if(cur_url[0] == 'waf.py' && cur_url[1].split('&')[0] == 'service=haproxy' && link2 == 'waf.py?service=haproxy'){
+		   show_current_page($(this))
+	   } else if(cur_url[0] == 'waf.py' && cur_url[1].split('&')[0] == 'service=nginx' && link2 == 'waf.py?service=nginx'){
+		   show_current_page($(this))
 	   }
    });
 });
@@ -318,9 +322,14 @@ function openVersions() {
 function showLog() {
 	var waf = findGetParameter('waf');
 	var file = $('#log_files').val();
-	if (file === null) {
-		toastr.warning('Select a log file first')
-		return false;
+	if ((file === undefined || file === null) && waf != '1') {
+		var file_from_get = findGetParameter('file');
+		if (file_from_get === undefined || file_from_get === null) {
+			toastr.warning('Select a log file first')
+			return false;
+		} else {
+			file = file_from_get;
+		}
 	}
 	var rows = $('#rows').val()
 	var grep = $('#grep').val()

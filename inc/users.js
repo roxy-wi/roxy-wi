@@ -1176,7 +1176,7 @@ function addTelegram(dialog_id) {
 function addSlack(dialog_id) {
 	var valid = true;
 	toastr.clear();
-	allFields = $( [] ).add( $('#slack-token-add') ).add( $('#slack-chanel-add') )
+	allFields = $( [] ).add( $('#slack-token-add') ).add( $('#slack-chanel-add') );
 	allFields.removeClass( "ui-state-error" );
 	valid = valid && checkLength( $('#slack-token-add'), "token", 1 );
 	valid = valid && checkLength( $('#slack-chanel-add'), "channel name", 1 );

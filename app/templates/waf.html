@@ -25,14 +25,29 @@
 			</td>
 			<td style="padding-top: 5px;padding-bottom: 10px;">{{r.desc}}</td>
 			<td style="padding: 0 10px 0 10px;">
-				<a href="waf.py?waf_rule_id={{r.id}}&serv={{serv}}" class="ui-button ui-widget ui-corner-all" title="View this rule versions">View</a>
+				<a href="waf.py?service={{service}}&waf_rule_id={{r.id}}&serv={{serv}}" class="ui-button ui-widget ui-corner-all" title="View this rule versions">View/Edit</a>
 			</td>
 		</tr>
 		{% endfor %}
 	</table>
+	<p><span class="add-button" title="Add a new WAF rule" onclick="addNewConfig()" style="margin-right: 20px;">+ Add</span></p><br><br>
+	<div id="add-new-config" style="display: none">
+		<table class="overview">
+			{% include 'include/tr_validate_tips.html' %}
+			<tr>
+				<td class="padding20">Rule name:<span class="need-field">*</span></td>
+				<td>{{ input('new_rule_name', type='text', placeholder='New protected rule', title='New protected rule') }}</td>
+			</tr>
+			<tr>
+				<td class="padding20">Rule description:<span class="need-field">*</span></td>
+				<td>{{ input('new_rule_description', type='text', placeholder='This rule protects again attacks', title='This rule protects again attacks') }}</td>
+			</tr>
+		</table>
+	</div>
 {% elif waf_rule_file %}
 	<center>
 		<link rel="stylesheet" href="/inc/codemirror/codemirror.css">
+		<script src="/inc/configshow.js"></script>
 		<script src="/inc/codemirror/codemirror.js"></script>
 		<script src="/inc/codemirror/modsec.js"></script>
 			<h4>Config {{waf_rule_file}} from {{ serv }}</h4>
@@ -41,13 +56,22 @@
 				<input type="hidden" value="{{ serv }}" name="serv">
 				<input type="hidden" value="{{ cfg }}.old" name="oldconfig">
 				<input type="hidden" value="{{ token }}" name="token">
-				<input type="hidden" value="{{ service }}" name="service">
+				<input type="hidden" value="waf_{{ service }}" name="service">
+				<input type="hidden" value="{{ config_file_name }}" name="config_file_name">
 				<div style="margin-left: 20%;width: 60%;">
 					<textarea name="config" id="config_text_area" class="config" rows="35" cols="100">{{ config }}</textarea>
 				</div>
 				<p>
 					<center>
 						<a href="waf.py?manage_rules=1&serv={{serv}}" class="ui-button ui-widget ui-corner-all" title="Return to rules management">Back</a>
+						{% if role <= 3 %}
+						<button type="submit" value="save" name="save" class="btn btn-default" title="Save config without reloading the service">Save</button>
+						{% if service == 'haproxy' %}
+						<button type="submit" value="" name="" class="btn btn-default">Save and restart</button>
+						{% elif service == 'nginx' %}
+						<button type="submit" value="" name="reload" class="btn btn-default">Save and reload</button>
+						{% endif %}
+						{% endif %}
 					</center>
 				</p>
 			</form>
@@ -59,7 +83,7 @@
 		</style>
 		<script>
 			var myCodeMirror = CodeMirror.fromTextArea(document.getElementById("config_text_area"),
-				{mode: "modsec", lineNumbers: true, autocapitalize: true, autocorrect: true, spellcheck: true, readOnly: true});
+				{mode: "modsec", lineNumbers: true, autocapitalize: true, autocorrect: true, spellcheck: true});
 			myCodeMirror.refresh();
 		</script>
 {% else %}
@@ -93,7 +117,9 @@
 			<td class="padding10 first-collumn">Server</td>
 			<td class="padding10">Actions</td>
 			<td class="padding10">WAF mode</td>
+			{% if service == 'haproxy' %}
 			<td>Metrics</td>
+			{% endif %}
 			<td>Manage rules</td>
 			<td>Log</td>
 			<td>
@@ -106,11 +132,12 @@
 			<tr class="{{ loop.cycle('odd', 'even') }}" id="{{s[2]}}"></tr>
 		{% endfor %}
 	</table>
-
+	{% if service == 'haproxy' %}
 	<link href="/inc/chart.min.css" rel="stylesheet">
 	<script src="/inc/overview.js"></script>
 	<script src="/inc/metrics.js"></script>
 	<script src="/inc/chart.min.js"></script>
+	<div id="table_metrics"></div>
 	<div style="padding-left: 25px;float: left;margin-top: 3px;">
 		<b>Time range:</b>
 		<select title="Choose time range" id="time-range">
@@ -129,28 +156,31 @@
 		<canvas id="waf_{{s.server.ip}}" role="img"></canvas>
 	</div>
 	{% endfor %}
+	{% endif %}
 	<div id="dialog-confirm" style="display: none;">
 		<p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>Are you sure?</p>
 	</div>
 	{% for s in servers %}
-				{{s.ip}}
-			{% endfor %}
+		{{s.ip}}
+	{% endfor %}
 	<script>
+		{%- if service == 'haproxy' %}
 		function showWafMetrics() {
-			{% for s in servers %}
+			{%- for s in servers %}
 				getWafChartData('{{s.server.ip}}');
-			{% endfor %}
+			{%- endfor %}
 		}
 		showWafMetrics();
+		{%- endif %}
 		showOverviewWaf(ip, hostnamea);
 		$( function() {
 			$("#time-range").on('selectmenuchange', function () {
 				removeData()
 				let metrics = new Promise(
 					(resolve, reject) => {
-						{% for s in servers %}
+						{%- for s in servers %}
 							getWafChartData('{{s.server.ip}}')
-						{% endfor %}
+						{%- endfor %}
 					});
 				metrics.then();
 			});

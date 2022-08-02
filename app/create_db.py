@@ -943,8 +943,24 @@ def update_db_v_6_1_0(**kwargs):
 					print("An error occurred:", e)
 
 
+def update_db_v_6_1_3(**kwargs):
+	cursor = conn.cursor()
+	sql = list()
+	sql.append("ALTER TABLE `waf_rules` ADD COLUMN service VARCHAR ( 64 ) DEFAULT 'haproxy'")
+	sql.append("ALTER TABLE `waf_rules` drop CONSTRAINT serv")
+	sql.append("ALTER TABLE `waf_rules` ADD CONSTRAINT UNIQUE (serv, rule_name, service)")
+	for i in sql:
+		try:
+			cursor.execute(i)
+		except Exception:
+			pass
+	else:
+		if kwargs.get('silent') != 1:
+			print('Updating... DB has been updated to version 6.1.3.0')
+
+
 def update_ver():
-	query = Version.update(version='6.1.2.0')
+	query = Version.update(version='6.1.3.0')
 	try:
 		query.execute()
 	except Exception:
@@ -971,6 +987,7 @@ def update_all():
 	update_db_v_6_0()
 	update_db_v_6_0_1()
 	update_db_v_6_1_0()
+	update_db_v_6_1_3()
 	update_ver()
 
 
@@ -993,6 +1010,7 @@ def update_all_silent():
 	update_db_v_5_4_3_1(silent=1)
 	update_db_v_6_0(silent=1)
 	update_db_v_6_0_1(silent=1)
+	update_db_v_6_1_3(silent=1)
 	update_ver()
 
 

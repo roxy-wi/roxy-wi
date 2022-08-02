@@ -448,7 +448,10 @@ def get_config(server_ip, cfg, **kwargs):
 	):
 		config_path = kwargs.get('config_file_name')
 	elif kwargs.get("waf") or kwargs.get("service") == 'waf':
-		config_path = sql.get_setting('haproxy_dir') + '/waf/rules/' + kwargs.get("waf_rule_file")
+		if kwargs.get("waf") == 'haproxy':
+			config_path = sql.get_setting('haproxy_dir') + '/waf/rules/' + kwargs.get("waf_rule_file")
+		elif kwargs.get("waf") == 'nginx':
+			config_path = sql.get_setting('nginx_dir') + '/waf/rules/' + kwargs.get("waf_rule_file")
 	else:
 		config_path = sql.get_setting('haproxy_config_path')
 
@@ -783,10 +786,42 @@ def waf_install(server_ip):
 	output, error = subprocess_execute(commands[0])
 
 	if show_installation_output(error, output, service):
-		ssh_command(server_ip, commands, print_out="1")
-
 		sql.insert_waf_metrics_enable(server_ip, "0")
 		sql.insert_waf_rules(server_ip)
+
+	os.system("rm -f %s" % script)
+
+
+def waf_nginx_install(server_ip):
+	import sql
+	script = "waf_nginx.sh"
+	proxy = sql.get_setting('proxy')
+	nginx_dir = sql.get_setting('nginx_dir')
+	service = ' WAF'
+	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = return_ssh_keys_path(server_ip)
+	ssh_port = '22'
+
+	if ssh_enable == 0:
+		ssh_key_name = ''
+
+	os.system("cp scripts/%s ." % script)
+
+	if proxy is not None and proxy != '' and proxy != 'None':
+		proxy_serv = proxy
+	else:
+		proxy_serv = ''
+
+	commands = [
+		"chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " NGINX_PATH=" + nginx_dir
+		+ " SSH_PORT=" + ssh_port + " HOST=" + server_ip
+		+ " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name
+	]
+
+	output, error = subprocess_execute(commands[0])
+
+	if show_installation_output(error, output, service):
+		sql.insert_nginx_waf_rules(server_ip)
+		sql.insert_waf_nginx_server(server_ip)
 
 	os.system("rm -f %s" % script)
 
@@ -1541,30 +1576,25 @@ def check_ver():
 	return sql.get_ver()
 
 
-def check_new_version(**kwargs):
+def check_new_version(service):
 	import requests
 	import sql
 	current_ver = check_ver()
 	proxy = sql.get_setting('proxy')
 	res = ''
 
-	if kwargs.get('service'):
-		last_ver = '_' + kwargs.get('service')
-	else:
-		last_ver = ''
-
 	user_name = sql.select_user_name()
 
 	try:
 		if proxy is not None and proxy != '' and proxy != 'None':
 			proxy_dict = {"https": proxy, "http": proxy}
-			response = requests.get('https://roxy-wi.org/update.py?last_ver' + last_ver + '=1', timeout=1, proxies=proxy_dict)
-			requests.get('https://roxy-wi.org/update.py?ver_send=' + current_ver, timeout=1, proxies=proxy_dict)
-			response_status = requests.get('https://roxy-wi.org/update.py?user_name=' + user_name, timeout=1, proxies=proxy_dict)
+			response = requests.get(f'https://roxy-wi.org/version/get/{service}', timeout=1, proxies=proxy_dict)
+			requests.get(f'https://roxy-wi.org/version/send/{current_ver}', timeout=1, proxies=proxy_dict)
+			response_status = requests.get(f'https://roxy-wi.org/user-name/{user_name}', timeout=1, proxies=proxy_dict)
 		else:
-			response = requests.get('https://roxy-wi.org/update.py?last_ver' + last_ver + '=1', timeout=1)
-			requests.get('https://roxy-wi.org/update.py?ver_send=' + current_ver, timeout=1)
-			response_status = requests.get('https://roxy-wi.org/update.py?user_name=' + user_name, timeout=1)
+			response = requests.get(f'https://roxy-wi.org/version/get/{service}', timeout=1)
+			requests.get(f'https://roxy-wi.org/version/send/{current_ver}', timeout=1)
+			response_status = requests.get(f'https://roxy-wi.org/user-name/{user_name}', timeout=1)
 
 		res = response.content.decode(encoding='UTF-8')
 		try:
@@ -1595,7 +1625,7 @@ def versions():
 		current_ver_without_dots = 0
 
 	try:
-		new_ver = check_new_version()
+		new_ver = check_new_version('roxy-wi')
 		new_ver_without_dots = new_ver.split('.')
 		new_ver_without_dots = ''.join(new_ver_without_dots)
 		new_ver_without_dots = new_ver_without_dots.replace('\n', '')
