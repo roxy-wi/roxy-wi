@@ -78,6 +78,7 @@
           - libtool
           - make
           - gcc-c++
+          - git
         state: latest
       when:
         - ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
@@ -101,6 +102,7 @@
           - automake
           - g++
           - make
+          - git
         state: present
       when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'Ubuntu'
       environment:
@@ -129,7 +131,7 @@
 
     - name: Set ModSec src foleder
       set_fact:
-        mod_sec_src: /tmp/modsecurity-{{ modsec_ver }}
+        mod_sec_src: /tmp/modsecurity/modsecurity-{{ modsec_ver }}
 
     - name: Re configure Modsecurity
       become: true
@@ -159,11 +161,6 @@
         - standalone/.libs/
         - standalone/
         - apache2/
-
-    - name: Install git
-      package:
-        name: git
-        state: present
 
     - name: Git clone spoa-modsecurity
       command: chdir=/tmp/ git clone https://github.com/haproxy/spoa-modsecurity.git
@@ -265,12 +262,10 @@
 
     - name: Copy owasp files
       copy:
-        src: "/tmp/owasp-modsecurity-crs-2.2.9/{{ item }}"
-        dest: /tmp/owasp-modsecurity-crs-2.2.9
+        src: "/tmp/owasp-modsecurity-crs-2.2.9/owasp-modsecurity-crs-2.2.9/{{ item }}"
+        dest: "{{ HAPROXY_PATH }}/waf/rules"
         remote_src: yes
       with_items:
-        - owasp-modsecurity-crs-2.2.9/
-        - activated_rules/
         - base_rules/
         - experimental_rules/
         - optional_rules/
@@ -278,7 +273,7 @@
 
     - name: Copy Modsec crs conf file
       copy:
-        src: /tmp/owasp-modsecurity-crs-2.2.9/modsecurity_crs_10_setup.conf.example
+        src: /tmp/owasp-modsecurity-crs-2.2.9/owasp-modsecurity-crs-2.2.9/modsecurity_crs_10_setup.conf.example
         dest: "{{ HAPROXY_PATH }}/waf/rules/modsecurity_crs_10_setup.conf"
         remote_src: true
 
@@ -346,7 +341,7 @@
         state: absent
       with_items:
         - /tmp/modsecurity.tar.gz
-        - "/tmp/modsecurity-{{ modsec_ver }}"
+        - "{{ mod_sec_dir }}"
         - "/tmp/haproxy-{{ VERSION }}"
         - /tmp/owasp.tar.gz
         - /tmp/owasp-modsecurity-crs-2.2.9

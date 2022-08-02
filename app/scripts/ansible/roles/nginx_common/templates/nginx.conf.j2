@@ -4,7 +4,10 @@ worker_processes  1;
 error_log  /var/log/nginx/error.log warn;
 pid        /var/run/nginx.pid;
 
-
+{% if ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS' %}
+# Load dynamic modules. See /usr/share/doc/nginx/README.dynamic.
+include /usr/share/nginx/modules/*.conf;
+{% endif %}
 events {
     worker_connections  1021;
 }

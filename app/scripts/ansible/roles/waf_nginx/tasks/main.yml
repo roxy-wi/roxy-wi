@@ -5,8 +5,6 @@
       set_fact:
         ansible_port: "{{SSH_PORT}}"
 
-#    - debug: msg="{{ ansible_facts }}"
-
     - name: Check that WAF has been installed
       stat:
         path: "{{ NGINX_PATH }}/waf/modsecurity.conf"
@@ -53,6 +51,7 @@
           - libevent-dev
           - libpcre3-dev
           - libxml2-dev
+          - libssl-dev
           - gcc
           - libpcre3-dev
           - libcurl4-nss-dev
@@ -62,11 +61,8 @@
           - autoconf
           - g++
           - make
-          - openssl-dev
           - libxslt-dev
-          - gd-dev
           - perl-modules
-          - libmodsecurity3
           - libgeoip-dev
           - libfuzzy2
         state: present
@@ -79,8 +75,6 @@
       ansible.builtin.get_url:
         url: "http://repo.roxy-wi.org/modsec/modsecv3.0.7-{{ ansible_facts.distribution | lower }}{{ ansible_facts.distribution_major_version }}.tar.gz"
         dest: /usr/local/modsecv3.tar.gz
-      when:
-        - ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
 
     - name: Untar ModSec
       unarchive:
@@ -221,4 +215,4 @@
         - /tmp/nginx-connector
         - /tmp/OWASP.tar.gz
         - /usr/local/modsecv3.tar.gz
-#        - "/tmp/coreruleset-{{ coreruleset_ver }}"
+        - "/tmp/coreruleset-{{ coreruleset_ver }}"
