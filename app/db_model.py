@@ -280,7 +280,7 @@ class WafRules(BaseModel):
     rule_file = CharField()
     desc = TextField(null=True)
     en = IntegerField(constraints=[SQL('DEFAULT 1')])
-    service = CharField(constraints=[SQL('haproxy')])
+    service = CharField(constraints=[SQL('DEFAULT "haproxy"')])
 
     class Meta:
         table_name = 'waf_rules'
