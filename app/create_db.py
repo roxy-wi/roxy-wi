@@ -944,19 +944,22 @@ def update_db_v_6_1_0(**kwargs):
 
 
 def update_db_v_6_1_3(**kwargs):
-	cursor = conn.cursor()
-	sql = list()
-	sql.append("ALTER TABLE `waf_rules` ADD COLUMN service VARCHAR ( 64 ) DEFAULT 'haproxy'")
-	sql.append("ALTER TABLE `waf_rules` drop CONSTRAINT serv")
-	sql.append("ALTER TABLE `waf_rules` ADD CONSTRAINT UNIQUE (serv, rule_name, service)")
-	for i in sql:
-		try:
-			cursor.execute(i)
-		except Exception:
-			pass
+	if mysql_enable == '1':
+		cursor = conn.cursor()
+		sql = list()
+		sql.append("ALTER TABLE `waf_rules` ADD COLUMN service VARCHAR ( 64 ) DEFAULT 'haproxy'")
+		sql.append("ALTER TABLE `waf_rules` drop CONSTRAINT serv")
+		sql.append("ALTER TABLE `waf_rules` ADD CONSTRAINT UNIQUE (serv, rule_name, service)")
+		for i in sql:
+			try:
+				cursor.execute(i)
+			except Exception:
+				pass
+		else:
+			if kwargs.get('silent') != 1:
+				print('Updating... DB has been updated to version 6.1.3.0')
 	else:
-		if kwargs.get('silent') != 1:
-			print('Updating... DB has been updated to version 6.1.3.0')
+		pass
 
 
 def update_ver():
