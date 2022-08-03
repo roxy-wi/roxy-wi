@@ -22,13 +22,17 @@ rules = ''
 cfg = ''
 
 print('Content-type: text/html\n')
-funct.check_login(service=1)
 funct.page_for_admin(level=2)
 
 try:
 	user, user_id, role, token, servers, user_services = funct.get_users_params(haproxy=1)
 except Exception:
 	pass
+
+if service == 'nginx':
+	funct.check_login(service=2)
+else:
+	funct.check_login(service=1)
 
 if manage_rules == '1':
 	serv = funct.is_ip_or_dns(form.getvalue('serv'))
@@ -37,7 +41,6 @@ if manage_rules == '1':
 	rules = sql.select_waf_rules(serv, service)
 elif waf_rule_id and form.getvalue('config') is None:
 	serv = funct.is_ip_or_dns(form.getvalue('serv'))
-	service = form.getvalue('service')
 	funct.check_is_server_in_group(serv)
 	title = 'Edit a WAF rule'
 	waf_rule_file = sql.select_waf_rule_by_id(waf_rule_id)

@@ -123,7 +123,7 @@
 
     - name: Copy module for CentOS
       become: true
-      command: "chdir=/tmp/nginx_src/nginx-{{ nginx_version.stderr.split('/')[1] }} cp objs/ngx_http_modsecurity_module.so /usr/share/nginx/modules/"
+      command: "chdir=/tmp/nginx_src/nginx-{{ nginx_version.stderr.split('/')[1] }} cp objs/ngx_http_modsecurity_module.so /usr/lib64/nginx/modules/"
       when:
         - ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
 
