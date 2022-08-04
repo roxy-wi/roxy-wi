@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block content %}	
+{% block content %}
 {% from 'include/input_macros.html' import input %}
 <style>
 body, .container {
@@ -14,9 +14,9 @@ body, .container {
 	max-width: 100% !important;
 }
 #enter {
-	width: 220px !important; 
-	padding: 10px !important; 
-	background-color: #ededee !important; 
+	width: 220px !important;
+	padding: 10px !important;
+	background-color: #ededee !important;
 	font-weight: bold !important;
 }
 #main_div {
@@ -43,7 +43,7 @@ body, .container {
 			{{ input('ref', type='hidden', value=ref) }}
 			<button type="submit" name="Login" value="Enter" id="enter">Login</button>
 		</form>
-		<div class="alert alert-danger wrong-login">
+		<div class="alert alert-danger wrong-login alert-one-row" id="wrong-login">
 			Your login or password is incorrect
 			<br />
 			<span id="ban_10">

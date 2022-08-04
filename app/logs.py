@@ -27,6 +27,7 @@ minut = form.getvalue('minut')
 minut1 = form.getvalue('minut1')
 waf = form.getvalue('waf')
 service = form.getvalue('service')
+remote_file = form.getvalue('file')
 
 print('Content-type: text/html\n')
 funct.check_login()
@@ -56,6 +57,6 @@ else:
 template = template.render(
 	h2=1, autorefresh=1, title=title, role=role, user=user, select_id="serv", selects=servers,
 	serv=form.getvalue('serv'), rows=rows, grep=grep, exgrep=exgrep, hour=hour, hour1=hour1, minut=minut,
-	minut1=minut1, waf=waf, service=service, user_services=user_services, token=token
+	minut1=minut1, waf=waf, service=service, user_services=user_services, token=token, remote_file=remote_file
 )
 print(template)

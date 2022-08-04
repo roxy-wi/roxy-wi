@@ -46,7 +46,7 @@
     <div class="LogoText">
                     <span id="logo_text">
                         <a href="https://roxy-wi.org" title="Roxy-WI site" target="_blank">
-                            <img src="/inc/images/logo_menu.png" alt="logo" width="170" />
+                            <img src="/inc/images/logo_menu.png" alt="logo" width="110" />
                         </a>
                     </span>
     </div>
@@ -63,13 +63,22 @@
     <h2>
         500 - Internal error
     </h2>
+    <style>
+        #oops_div {
+            position: absolute;
+            right: 0;
+            margin-top: 50px;
+            bottom: 50px;
+        }
+        </style>
     <center>
-        <img src="/inc/images/500.png" alt="500 error" style="width: 65%">
-
         <h4>Sorry, but something went wrong..... Check httpd error log and
             <a href="https://github.com/Aidaho12/haproxy-wi/issues" title="GitHub issues">create issue on GitHub</a>
             or write <a href="https://t.me/haproxy_wi" title="Roxy-WI chat">to the chat</a>
         </h4>
+        <div id="oops_div">
+            <img src="/inc/images/oops.png" alt="Oops">
+        </div>
     </center>
 </div>
 <div class="footer">
