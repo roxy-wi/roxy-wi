@@ -3,7 +3,7 @@ import funct
 import sql
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
-template = env.get_template('viewstats.html')
+template = env.get_template('statsview.html')
 form = funct.form
 serv = form.getvalue('serv')
 service = form.getvalue('service')
@@ -22,17 +22,13 @@ try:
 except Exception:
 	pass
 
-if service == 'nginx':
-	if funct.check_login(service=2):
-		title = 'NGINX stats page'
-		servers = sql.get_dick_permit(nginx=1)
-elif service == 'apache':
-	if funct.check_login(service=4):
-		title = 'Apache stats page'
-		servers = sql.get_dick_permit(apache=1)
+if service in ('haproxy', 'nginx', 'apache'):
+	service_desc = sql.select_service(service)
+	if funct.check_login(service=service_desc.service_id):
+		title = f'{service_desc.service} stats page'
+		sql.get_dick_permit(service=service_desc.slug)
 else:
-	if funct.check_login(service=1):
-		title = 'HAProxy stats page'
+	print('<meta http-equiv="refresh" content="0; url=/app/overview.py">')
 
 rendered_template = template.render(
 	h2=1, autorefresh=1, title=title, role=role, user=user, onclick="showStats()", select_id="serv",

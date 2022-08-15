@@ -502,6 +502,7 @@ class SystemInfo(BaseModel):
 class Services(BaseModel):
     service_id = IntegerField(null=True)
     service = CharField(null=True)
+    slug = CharField(null=True)
 
     class Meta:
         table_name = 'services'

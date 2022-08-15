@@ -753,6 +753,7 @@ def install_haproxy(server_ip, **kwargs):
 	if docker == '1':
 		server_id = sql.select_server_id_by_ip(server_ip)
 		sql.insert_or_update_service_setting(server_id, 'haproxy', 'dockerized', '1')
+		sql.insert_or_update_service_setting(server_id, 'haproxy', 'restart', '1')
 
 	os.system("rm -f %s" % script)
 
@@ -876,6 +877,7 @@ def install_nginx(server_ip, **kwargs):
 	if docker == '1':
 		server_id = sql.select_server_id_by_ip(server_ip)
 		sql.insert_or_update_service_setting(server_id, 'nginx', 'dockerized', '1')
+		sql.insert_or_update_service_setting(server_id, 'nginx', 'restart', '1')
 
 	os.system("rm -f %s" % script)
 
@@ -986,6 +988,7 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".cfg"
 
 	is_docker = sql.select_service_setting(server_id, service, 'dockerized')
+
 	if is_docker == '1':
 		service_cont_name = service + '_container_name'
 		container_name = sql.get_setting(service_cont_name)
@@ -1011,6 +1014,7 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		action = 'reload'
 		reload_or_restart_command = reload_command
 	else:
+		is_not_allowed_to_restart(server_id, service)
 		action = 'restart'
 		reload_or_restart_command = restart_command
 
@@ -2087,6 +2091,15 @@ def is_restarted(server_ip, action):
 
 	if sql.is_serv_protected(server_ip) and int(user_role) > 2:
 		print('error: This server is protected. You cannot ' + action + ' it')
+		sys.exit()
+
+
+def is_not_allowed_to_restart(server_id: int, service: str) -> bool:
+	import sql
+	is_restart = sql.select_service_setting(server_id, service, 'restart')
+
+	if int(is_restart) == 1:
+		print('warning: this service is not allowed to be restarted')
 		sys.exit()
 
 

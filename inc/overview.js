@@ -169,7 +169,11 @@ function ajaxActionNginxServers(action, id) {
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else if (cur_url[0] == "hapservers.py") {
-					location.reload()
+					if (data.indexOf('warning: ') != '-1') {
+						toastr.warning(data)
+					} else {
+						location.reload()
+					}
 				} else if (cur_url[0] == "waf.py") {
 					setTimeout(showOverviewWaf(ip, hostnamea), 2000)
 				} else {
@@ -590,6 +594,9 @@ function serverSettingsSave(id, name, service, dialog_id) {
 	var haproxy_dockerized = 0;
 	var nginx_dockerized = 0;
 	var apache_dockerized = 0;
+	var haproxy_restart = 0;
+	var nginx_restart = 0;
+	var apache_restart = 0;
 	if ($('#haproxy_enterprise').is(':checked')) {
 		haproxy_enterprise = '1';
 	}
@@ -602,6 +609,15 @@ function serverSettingsSave(id, name, service, dialog_id) {
 	if ($('#apache_dockerized').is(':checked')) {
 		apache_dockerized = '1';
 	}
+	if ($('#haproxy_restart').is(':checked')) {
+		haproxy_restart = '1';
+	}
+	if ($('#nginx_restart').is(':checked')) {
+		nginx_restart = '1';
+	}
+	if ($('#apache_restart').is(':checked')) {
+		apache_restart = '1';
+	}
 	$.ajax({
 		url: "options.py",
 		data: {
@@ -611,6 +627,9 @@ function serverSettingsSave(id, name, service, dialog_id) {
 			serverSettingshaproxy_dockerized: haproxy_dockerized,
 			serverSettingsnginx_dockerized: nginx_dockerized,
 			serverSettingsapache_dockerized: apache_dockerized,
+			serverSettingsHaproxyrestart: haproxy_restart,
+			serverSettingsNginxrestart: nginx_restart,
+			serverSettingsApache_restart: apache_restart,
 			token: $('#token').val()
 		},
 		type: "POST",

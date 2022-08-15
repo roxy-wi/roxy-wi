@@ -443,6 +443,10 @@ if form.getvalue('action_hap') is not None and serv is not None:
 
     if funct.check_haproxy_config(serv):
         server_id = sql.select_server_id_by_ip(server_ip=serv)
+
+        if action == 'restart':
+            funct.is_not_allowed_to_restart(server_id, 'haproxy')
+
         is_docker = sql.select_service_setting(server_id, 'haproxy', 'dockerized')
 
         if is_docker == '1':
@@ -471,7 +475,11 @@ if form.getvalue('action_nginx') is not None and serv is not None:
 
     if funct.check_nginx_config(serv):
         server_id = sql.select_server_id_by_ip(server_ip=serv)
+
+        if action == 'restart':
+            funct.is_not_allowed_to_restart(server_id, 'nginx')
         is_docker = sql.select_service_setting(server_id, 'nginx', 'dockerized')
+
         if is_docker == '1':
             container_name = sql.get_setting('nginx_container_name')
             commands = ["sudo docker %s %s" % (action, container_name)]
@@ -540,6 +548,10 @@ if form.getvalue('action_apache') is not None and serv is not None:
     funct.is_restarted(serv, action)
 
     server_id = sql.select_server_id_by_ip(serv)
+
+    if action == 'restart':
+        funct.is_not_allowed_to_restart(server_id, 'apache')
+
     is_docker = sql.select_service_setting(server_id, 'apache', 'dockerized')
     if is_docker == '1':
         container_name = sql.get_setting('apache_container_name')
@@ -1207,7 +1219,7 @@ if form.getvalue('servaction') is not None:
     if enable != "show":
         funct.logging(serv, 'Has been ' + enable + 'ed ' + backend, login=1, keep_history=1, service='haproxy')
         print(
-            '<center><h3>You %s %s on HAProxy %s. <a href="viewsttats.py?serv=%s" title="View stat" target="_blank">Look it</a> or <a href="runtimeapi.py" title="Runtime API">Edit something else</a></h3><br />' % (enable, backend, serv, serv))
+            '<center><h3>You %s %s on HAProxy %s. <a href="statsview.py?serv=%s" title="View stat" target="_blank">Look it</a> or <a href="runtimeapi.py" title="Runtime API">Edit something else</a></h3><br />' % (enable, backend, serv, serv))
 
     print(funct.ssh_command(serv, command, show_log="1"))
     action = 'runtimeapi.py ' + enable + ' ' + backend
@@ -1894,32 +1906,44 @@ if form.getvalue('metrics_waf'):
     sql.update_waf_metrics_enable(form.getvalue('metrics_waf'), form.getvalue('enable'))
 
 if form.getvalue('table_metrics'):
+    service = form.getvalue('service')
+    if service in ('nginx', 'apache'):
+        metrics = sql.select_service_table_metrics(service)
+    else:
+        metrics = sql.select_table_metrics()
     from jinja2 import Environment, FileSystemLoader
 
     env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
     template = env.get_template('table_metrics.html')
 
-    template = template.render(table_stat=sql.select_table_metrics())
+    template = template.render(table_stat=metrics, service=service)
     print(template)
 
 if form.getvalue('metrics_hapwi_ram'):
+    import json
+
     ip = form.getvalue('ip')
     metrics = {'chartData': {}}
     rams = ''
 
     if ip == '1':
-        cmd = "free -m |grep Mem |awk '{print $2,$3,$4,$5,$6,$7}'"
-        metric, error = funct.subprocess_execute(cmd)
+        import psutil
+
+        rams_list = psutil.virtual_memory()
+        rams += str(round(rams_list.total/1048576, 2)) + ' '
+        rams += str(round(rams_list.used/1048576, 2)) + ' '
+        rams += str(round(rams_list.free/1048576, 2)) + ' '
+        rams += str(round(rams_list.shared/1048576, 2)) + ' '
+        rams += str(round(rams_list.cached/1048576, 2)) + ' '
+        rams += str(round(rams_list.available/1048576, 2)) + ' '
     else:
         commands = ["free -m |grep Mem |awk '{print $2,$3,$4,$5,$6,$7}'"]
         metric, error = funct.subprocess_execute(commands[0])
 
-    for i in metric:
-        rams = i
+        for i in metric:
+            rams = i
 
     metrics['chartData']['rams'] = rams
-
-    import json
 
     print(json.dumps(metrics))
 
@@ -1929,15 +1953,26 @@ if form.getvalue('metrics_hapwi_cpu'):
     cpus = ''
 
     if ip == '1':
-        cmd = "top -b -n 1 |grep Cpu |awk -F':' '{print $2}'|awk  -F' ' 'BEGIN{ORS=\" \";} { for (i=1;i<=NF;i+=2) print $i}'"
-        metric, error = funct.subprocess_execute(cmd)
+        # cmd = "top -b -n 1 |grep Cpu |awk -F':' '{print $2}'|awk  -F' ' 'BEGIN{ORS=\" \";} { for (i=1;i<=NF;i+=2) print $i}'"
+        # metric, error = funct.subprocess_execute(cmd)
+        import psutil
+
+        cpus_list = psutil.cpu_times_percent(interval=1, percpu=False)
+        cpus += str(cpus_list.user) + ' '
+        cpus += str(cpus_list.system) + ' '
+        cpus += str(cpus_list.nice) + ' '
+        cpus += str(cpus_list.idle) + ' '
+        cpus += str(cpus_list.iowait) + ' '
+        cpus += str(cpus_list.irq) + ' '
+        cpus += str(cpus_list.softirq) + ' '
+        cpus += str(cpus_list.steal) + ' '
     else:
         commands = [
             "top -b -n 1 |grep Cpu |awk -F':' '{print $2}'|awk  -F' ' 'BEGIN{ORS=\" \";} { for (i=1;i<=NF;i+=2) print $i}'"]
         metric, error = funct.subprocess_execute(commands[0])
 
-    for i in metric:
-        cpus = i
+        for i in metric:
+            cpus = i
 
     metrics['chartData']['cpus'] = cpus
 
@@ -4334,6 +4369,9 @@ if form.getvalue('serverSettingsSave') is not None:
     haproxy_dockerized = form.getvalue('serverSettingshaproxy_dockerized')
     nginx_dockerized = form.getvalue('serverSettingsnginx_dockerized')
     apache_dockerized = form.getvalue('serverSettingsapache_dockerized')
+    haproxy_restart = form.getvalue('serverSettingsHaproxyrestart')
+    nginx_restart = form.getvalue('serverSettingsNginxrestart')
+    apache_restart = form.getvalue('serverSettingsApache_restart')
     server_ip = sql.select_server_ip_by_id(server_id)
 
     if service == 'haproxy':
@@ -4353,6 +4391,14 @@ if form.getvalue('serverSettingsSave') is not None:
             else:
                 funct.logging(server_ip, 'Service has been flagged as a system service', haproxywi=1, login=1,
                               keep_history=1, service=service)
+        if sql.insert_or_update_service_setting(server_id, service, 'restart', haproxy_restart):
+            print('Ok')
+            if haproxy_restart == '1':
+                funct.logging(server_ip, 'Restart option is disabled for this service', haproxywi=1, login=1,
+                              keep_history=1, service=service)
+            else:
+                funct.logging(server_ip, 'Restart option is disabled for this service', haproxywi=1, login=1,
+                              keep_history=1, service=service)
 
     if service == 'nginx':
         if sql.insert_or_update_service_setting(server_id, service, 'dockerized', nginx_dockerized):
@@ -4362,6 +4408,14 @@ if form.getvalue('serverSettingsSave') is not None:
                               keep_history=1, service=service)
             else:
                 funct.logging(server_ip, 'Service has been flagged as a system service', haproxywi=1, login=1,
+                              keep_history=1, service=service)
+        if sql.insert_or_update_service_setting(server_id, service, 'restart', nginx_dockerized):
+            print('Ok')
+            if nginx_restart == '1':
+                funct.logging(server_ip, 'Restart option is disabled for this service', haproxywi=1, login=1,
+                              keep_history=1, service=service)
+            else:
+                funct.logging(server_ip, 'Restart option is disabled for this service', haproxywi=1, login=1,
                               keep_history=1, service=service)
 
     if service == 'apache':
@@ -4373,6 +4427,14 @@ if form.getvalue('serverSettingsSave') is not None:
             else:
                 funct.logging(server_ip, 'Service has been flagged as a system service', haproxywi=1, login=1,
                               keep_history=1, service=service)
+            if sql.insert_or_update_service_setting(server_id, service, 'restart', nginx_dockerized):
+                print('Ok')
+                if apache_restart == '1':
+                    funct.logging(server_ip, 'Restart option is disabled for this service', haproxywi=1, login=1,
+                                  keep_history=1, service=service)
+                else:
+                    funct.logging(server_ip, 'Restart option is disabled for this service', haproxywi=1, login=1,
+                                  keep_history=1, service=service)
 
 if act == 'showListOfVersion':
     service = form.getvalue('service')
@@ -4380,27 +4442,21 @@ if act == 'showListOfVersion':
     for_delver = form.getvalue('for_delver')
     style = form.getvalue('style')
     users = sql.select_users()
+    service_desc = sql.select_service(service)
 
-    if service == 'keepalived':
-        configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
-        files = funct.get_files(dir=configs_dir, format='conf')
-        configs = sql.select_config_version(serv, service)
-        action = 'versions.py?service=keepalived'
-    elif service == 'nginx':
-        configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
-        files = funct.get_files(dir=configs_dir, format='conf')
-        configs = sql.select_config_version(serv, service)
-        action = 'versions.py?service=nginx'
-    elif service == 'apache':
-        configs_dir = funct.get_config_var('configs', 'apache_save_configs_dir')
-        files = funct.get_files(dir=configs_dir, format='conf')
-        configs = sql.select_config_version(serv, service)
-        action = 'versions.py?service=apache'
-    else:
-        service = 'haproxy'
-        files = funct.get_files()
-        configs = sql.select_config_version(serv, service)
-        action = "versions.py"
+    if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
+        configs = sql.select_config_version(serv, service_desc.service)
+        action = f'versions.py?service={service_desc.slug}'
+
+        if service in ('haproxy', 'nginx', 'apache'):
+            configs_dir = funct.get_config_var('configs', f'{service_desc.service}_save_configs_dir')
+        else:
+            configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
+
+        if service == 'haproxy':
+            files = funct.get_files()
+        else:
+            files = funct.get_files(dir=configs_dir, format='conf')
 
     from jinja2 import Environment, FileSystemLoader
 

@@ -30,20 +30,21 @@
 		<script defer src="/inc/fontawesome.min.js"></script>
 		<script>FontAwesomeConfig = { searchPseudoElements: true, observeMutations: false };</script>
 		<script defer src="/inc/ion.sound.min.js"></script>
-		<link href="/inc/awesome.css" rel="stylesheet">
-		<link href="/inc/style.css" rel="stylesheet">
-		<link href="/inc/nprogress.css" rel="stylesheet">
-		<link href="/inc/jquery-ui.min.css" rel="stylesheet">
-		<link href="/inc/jquery-ui.structure.min.css" rel="stylesheet">
+		<link href="/inc/css/awesome.css" rel="stylesheet">
+		<link href="/inc/css/style.css" rel="stylesheet">
+		<link href="/inc/css/nprogress.css" rel="stylesheet">
+		<link href="/inc/css/jquery-ui.min.css" rel="stylesheet">
+		<link href="/inc/css/jquery-ui.structure.min.css" rel="stylesheet">
 		<script src="/inc/jquery-3.6.0.min.js"></script>
 		<script src="/inc/jquery-ui.min.js"></script>
 		<script src="/inc/js.cookie.min.js"></script>
 		<script src="/inc/reconnecting-websocket.js"></script>
-		<link href="/inc/select2.css" rel="stylesheet" />
+		<script src="/inc/hotkeys.js"></script>
+		<link href="/inc/css/select2.css" rel="stylesheet" />
 		<script src="/inc/select2.js"></script>
 		<script src="/inc/script.js"></script>
 		<script src="/inc/nprogress.js"></script>
-		<link href="/inc/toastr.css" rel="stylesheet"/>
+		<link href="/inc/css/toastr.css" rel="stylesheet"/>
 		<script src="/inc/toastr.js"></script>
 	</head>
 	<body>
@@ -65,15 +66,15 @@
 						<li class="p_menu">
 							<a href="/app/hapservers.py" title="HAProxy servers overview" class="config-show">Haproxy</a>
 							<ul class="v_menu">
-								<li><a href="/app/hapservers.py" title="HAProxy servers overview" class="overview-link head-submenu">Overview</a> </li>
-								<li><a href="/app/config.py" title="Working with HAProxy configs" class="edit head-submenu">Configs</a></li>
-								<li><a href="/app/viewsttats.py" title="HAProxy statistics " class="stats head-submenu">Stats</a></li>
-								<li><a href="/app/logs.py" title="HAProxy logs " class="logs head-submenu">Logs</a></li>
+								<li><a href="/app/hapservers.py?service=haproxy" title="HAProxy servers overview" class="overview-link head-submenu">Overview</a> </li>
+								<li><a href="/app/config.py?service=haproxy" title="Working with HAProxy configs" class="edit head-submenu">Configs</a></li>
+								<li><a href="/app/statsview.py?service=haproxy" title="HAProxy statistics " class="stats head-submenu">Stats</a></li>
+								<li><a href="/app/logs.py?service=haproxy" title="HAProxy logs " class="logs head-submenu">Logs</a></li>
 								<li><a href="/app/runtimeapi.py" title="Runtime API - Roxy-WI" class="runtime head-submenu">Runtime API</a></li>
-								<li><a href="/app/metrics.py" title="HAProxy's metrics" class="metrics head-submenu">Metrics</a></li>
+								<li><a href="/app/metrics.py?service=haproxy" title="HAProxy's metrics" class="metrics head-submenu">Metrics</a></li>
 							{% if role <= 3 %}
 								<li><a href="/app/add.py#proxy" title="Add proxy: Create proxy - Roxy-WI" class="add-proxy head-submenu" id="add1">Add proxy</a></li>
-								<li><a href="/app/versions.py" title="Working with versions HAProxy configs" class="version head-submenu">Versions</a></li>
+								<li><a href="/app/versions.py?service=haproxy" title="Working with versions HAProxy configs" class="version head-submenu">Versions</a></li>
 								<li><a href="/app/add.py#ssl" title="Add proxy: Upload SSL certificates - Roxy-WI" class="cert head-submenu" id="add3">SSL</a></li>
 								<li><a href="/app/add.py#lists" title="Add proxy: Create and upload whitelists or blacklists - Roxy-WI" class="lists head-submenu" id="add7">Lists</a></li>
 								<li><a href="/app/waf.py?service=haproxy" title="Web application firewall" class="waf-menu head-submenu">WAF</a> </li>
@@ -87,7 +88,7 @@
 							<ul class="v_menu">
 								<li><a href="/app/hapservers.py?service=nginx" title="Overview NGINX servers" class="overview-link head-submenu">Overview</a></li>
 								<li><a href="/app/config.py?service=nginx" title="Working with NGINX configs" class="edit head-submenu">Configs</a></li>
-								<li><a href="/app/viewsttats.py?service=nginx" title="NGINX statistics" class="stats head-submenu">Stats</a></li>
+								<li><a href="/app/statsview.py?service=nginx" title="NGINX statistics" class="stats head-submenu">Stats</a></li>
 								<li><a href="/app/logs.py?service=nginx" title="NGINX logs " class="logs head-submenu">Logs</a></li>
 								<li><a href="/app/metrics.py?service=nginx" title="NGINX's metrics" class="metrics head-submenu">Metrics</a></li>
 								{% if role <= 3 %}
@@ -104,7 +105,7 @@
 							<ul class="v_menu">
 								<li><a href="/app/hapservers.py?service=apache" title="Overview Apache servers" class="overview-link head-submenu">Overview</a></li>
 								<li><a href="/app/config.py?service=apache" title="Working with Apache configs" class="edit head-submenu">Configs</a></li>
-								<li><a href="/app/viewsttats.py?service=apache" title="Apache statistics" class="stats head-submenu">Stats</a></li>
+								<li><a href="/app/statsview.py?service=apache" title="Apache statistics" class="stats head-submenu">Stats</a></li>
 								<li><a href="/app/logs.py?service=apache" title="Apache logs " class="logs head-submenu">Logs</a></li>
 								<li><a href="/app/metrics.py?service=apache" title="Apache's metrics" class="metrics head-submenu">Metrics</a></li>
 								{% if role <= 3 %}

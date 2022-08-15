@@ -1,14 +1,27 @@
 {% extends "base.html" %}
 {% block content %}
-<link rel="stylesheet" href="/inc/codemirror/codemirror.css">
-<link rel="stylesheet" href="/inc/codemirror/dialog.css">
-<script src="/inc/codemirror/codemirror.js"></script>
-<script src="/inc/codemirror/nginx.js"></script>
-<script src="/inc/codemirror/haproxy.js"></script>
-<script src="/inc/codemirror/dialog.js"></script>
-<script src="/inc/codemirror/search.js"></script>
-<script src="/inc/codemirror/searchcursor.js"></script>
-<script src="/inc/codemirror/jump-to-line.js"></script>
+<link rel="stylesheet" href="/inc/codemirror/lib/codemirror.css">
+<link rel="stylesheet" href="/inc/codemirror/addon/dialog/dialog.css">
+<link rel="stylesheet" href="/inc/codemirror/addon/fold/foldgutter.css">
+<script src="/inc/codemirror/lib/codemirror.js"></script>
+<script src="/inc/codemirror/addon/search/search.js"></script>
+<script src="/inc/codemirror/addon/search/searchcursor.js"></script>
+<script src="/inc/codemirror/addon/search/jump-to-line.js"></script>
+<script src="/inc/codemirror/addon/search/matchesonscrollbar.js"></script>
+<script src="/inc/codemirror/addon/search/match-highlighter.js"></script>
+<script src="/inc/codemirror/addon/dialog/dialog.js"></script>
+<script src="/inc/codemirror/addon/edit/matchbrackets.js"></script>
+<script src="/inc/codemirror/addon/edit/closebrackets.js"></script>
+<script src="/inc/codemirror/addon/comment/comment.js"></script>
+<script src="/inc/codemirror/addon/wrap/hardwrap.js"></script>
+<script src="/inc/codemirror/addon/fold/foldcode.js"></script>
+<script src="/inc/codemirror/addon/fold/foldgutter.js"></script>
+<script src="/inc/codemirror/addon/fold/brace-fold.js"></script>
+<script src="/inc/codemirror/addon/fold/comment-fold.js"></script>
+<script src="/inc/codemirror/addon/scroll/annotatescrollbar.js"></script>
+<script src="/inc/codemirror/mode/nginx.js"></script>
+<script src="/inc/codemirror/mode/haproxy.js"></script>
+<script src="/inc/codemirror/keymap/sublime.js"></script>
 <script src="/inc/configshow.js"></script>
 {% if is_serv_protected and role > 2 %}
 <meta http-equiv="refresh" content="0; url=/app/hapservers.py?service={{service}}">
@@ -65,7 +78,9 @@
 							<button type="submit" value="test" name="save" class="btn btn-default" title="Check config without saving the config">Check config</button>
 						{% endif %}
 						<button type="submit" value="save" name="save" class="btn btn-default" title="Save config without reloading the service">Save</button>
+						{% if is_restart|int == 0 %}
 						<button type="submit" value="" name="" class="btn btn-default">Save and restart</button>
+						{% endif %}
 						<button type="submit" value="reload" name="save" class="btn btn-default">Save and reload</button>
 						{% if service != 'keepalived' %}
 						<div class="alert alert-info alert-two-rows"><b>Note:</b> When reconfiguring the master server, the slave will be reconfigured automatically</div>
@@ -102,10 +117,49 @@
 	}
 	if (cur_url[1].split('&')[0] == 'service=haproxy' || cur_url[1].split('&')[0] == 'service=None') {
 		var myCodeMirror = CodeMirror.fromTextArea(document.getElementById("config_text_area"),
-				{mode: "haproxy", lineNumbers: true, autocapitalize: true, autocorrect: true, spellcheck: true, autoCloseBrackets: true});
+				{
+					mode: "haproxy",
+					lineNumbers: true,
+					lineWrapping: true,
+					autocapitalize: true,
+					autocorrect: true,
+					spellcheck: true,
+					autoCloseBrackets: true,
+					keyMap: "sublime",
+					matchBrackets: true,
+					foldGutter: true,
+					showCursorWhenSelecting: true,
+    				gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter", "breakpoints"],
+					highlightSelectionMatches: {showToken: /\w/, annotateScrollbar: true}
+				});
 	} else {
 		var myCodeMirror = CodeMirror.fromTextArea(document.getElementById("config_text_area"),
-				{mode: "nginx", lineNumbers: true, autocapitalize: true, autocorrect: true, spellcheck: true, autoCloseBrackets: true});
+				{
+					mode: "nginx",
+					lineNumbers: true,
+					lineWrapping: true,
+					autocapitalize: true,
+					autocorrect: true,
+					spellcheck: true,
+					autoCloseBrackets: true,
+					keyMap: "sublime",
+					matchBrackets: true,
+					foldGutter: true,
+					showCursorWhenSelecting: true,
+    				gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter", "breakpoints"],
+					highlightSelectionMatches: {showToken: /\w/, annotateScrollbar: true}
+				});
+	}
+	myCodeMirror.on("gutterClick", function(cm, n) {
+		var info = cm.lineInfo(n);
+		cm.setGutterMarker(n, "breakpoints", info.gutterMarkers ? null : makeMarker());
+	});
+
+	function makeMarker() {
+		var marker = document.createElement("div");
+		marker.style.color = "#822";
+		marker.innerHTML = "●";
+		return marker;
 	}
 </script>
 <style>

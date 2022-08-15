@@ -10,8 +10,8 @@ print('Content-type: text/html\n')
 funct.check_login()
 
 form = funct.form
-serv = form.getvalue('serv')
-service = form.getvalue('service')
+serv = funct.is_ip_or_dns(form.getvalue('serv'))
+service = funct.checkAjaxInput(form.getvalue('service'))
 is_serv_protected = False
 try:
 	config_file_name = form.getvalue('config_file_name').replace('92', '/')
@@ -22,40 +22,31 @@ cfg = ""
 stderr = ""
 error = ""
 aftersave = ""
+is_restart = ''
 
 try:
 	user, user_id, role, token, servers, user_services = funct.get_users_params()
 except Exception as e:
 	print(str(e))
 
-if service == 'keepalived':
-	if funct.check_login(service=3):
-		title = "Working with Keepalived configuration files"
-		action = "config.py?service=keepalived"
+if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
+	service_desc = sql.select_service(service)
+	if funct.check_login(service=service_desc.service_id):
+		title = f"Working with {service_desc.service} configuration files"
+		action = f"config.py?service={service_desc.slug}"
 		configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
 		file_format = 'conf'
-		servers = sql.get_dick_permit(keepalived=1)
-elif service == 'nginx':
-	if funct.check_login(service=2):
-		title = "Working with NGINX configuration files"
-		action = "config.py?service=nginx"
-		configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
-		file_format = 'conf'
-		servers = sql.get_dick_permit(nginx=1)
-elif service == 'apache':
-	if funct.check_login(service=4):
-		title = "Working with Apache configuration files"
-		action = "config.py?service=apache"
-		configs_dir = funct.get_config_var('configs', 'apache_save_configs_dir')
-		file_format = 'conf'
-		servers = sql.get_dick_permit(apache=1)
+		servers = sql.get_dick_permit(serivce=service_desc.service)
+
+		if service in ('haproxy', 'nginx', 'apache'):
+			configs_dir = funct.get_config_var('configs', f'{service_desc.service}_save_configs_dir')
+		else:
+			configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
+
+		if service == 'haproxy':
+			file_format = 'cfg'
 else:
-	if funct.check_login(service=1):
-		title = "Working with HAProxy configuration files"
-		action = "config.py"
-		configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
-		file_format = 'cfg'
-		servers = sql.get_dick_permit(haproxy=1)
+	print('<meta http-equiv="refresh" content="0; url=/app/overview.py">')
 
 if serv is not None:
 	if service == 'nginx' or service == 'apache':
@@ -67,6 +58,8 @@ if serv is not None:
 if serv is not None and form.getvalue('open') is not None and form.getvalue('new_config') is None:
 	funct.check_is_server_in_group(serv)
 	is_serv_protected = sql.is_serv_protected(serv)
+	server_id = sql.select_server_id_by_ip(serv)
+	is_restart = sql.select_service_setting(server_id, service, 'restart')
 
 	if service == 'keepalived':
 		error = funct.get_config(serv, cfg, keepalived=1)
@@ -142,7 +135,7 @@ if serv is not None and form.getvalue('config') is not None:
 
 template = template.render(
 	h2=1, title=title, role=role, action=action, user=user, select_id="serv", serv=serv, aftersave=aftersave,
-	config=config_read, cfg=cfg, selects=servers, stderr=stderr, error=error, service=service,
+	config=config_read, cfg=cfg, selects=servers, stderr=stderr, error=error, service=service, is_restart=is_restart,
 	user_services=user_services, config_file_name=config_file_name, is_serv_protected=is_serv_protected, token=token
 )
 print(template)

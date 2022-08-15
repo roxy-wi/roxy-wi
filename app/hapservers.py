@@ -17,62 +17,32 @@ user, user_id, role, token, servers, user_services = funct.get_users_params()
 
 form = funct.form
 serv = funct.is_ip_or_dns(form.getvalue('serv'))
-service = form.getvalue('service')
+service = funct.checkAjaxInput(form.getvalue('service'))
 autorefresh = 0
 servers_waf = ()
 title = "HAProxy servers overview"
 cmd = "ps ax |grep -e 'keep_alive.py' |grep -v grep |wc -l"
 keep_alive, stderr = funct.subprocess_execute(cmd)
+is_restart = ''
+restart_settings = ''
 
-if service == 'nginx':
-    if funct.check_login(service=2):
-        title = 'NGINX servers overview'
+if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
+    service_desc = sql.select_service(service)
+    if funct.check_login(service=service_desc.service_id):
+        title = f'{service_desc.service} servers overview'
         if serv:
             if funct.check_is_server_in_group(serv):
                 servers = sql.select_servers(server=serv)
                 autorefresh = 1
                 server_id = sql.select_server_id_by_ip(serv)
-                service_settings = sql.select_docker_service_settings(server_id, service)
+                docker_settings = sql.select_docker_service_settings(server_id, service_desc.service)
+                restart_settings = sql.select_restart_service_settings(server_id, service_desc.service)
         else:
-            servers = sql.get_dick_permit(virt=1, nginx=1)
-            service_settings = sql.select_docker_services_settings(service)
-elif service == 'keepalived':
-    if funct.check_login(service=3):
-        title = 'Keepalived servers overview'
-        if serv:
-            if funct.check_is_server_in_group(serv):
-                servers = sql.select_servers(server=serv)
-                autorefresh = 1
-                server_id = sql.select_server_id_by_ip(serv)
-                service_settings = sql.select_docker_service_settings(server_id, service)
-        else:
-            servers = sql.get_dick_permit(virt=1, keepalived=1)
-            service_settings = sql.select_docker_services_settings(service)
-elif service == 'apache':
-    if funct.check_login(service=4):
-        title = 'Apache servers overview'
-        if serv:
-            if funct.check_is_server_in_group(serv):
-                servers = sql.select_servers(server=serv)
-                autorefresh = 1
-                server_id = sql.select_server_id_by_ip(serv)
-                service_settings = sql.select_docker_service_settings(server_id, service)
-        else:
-            servers = sql.get_dick_permit(virt=1, apache=1)
-            service_settings = sql.select_docker_services_settings(service)
+            servers = sql.get_dick_permit(virt=1, service=service_desc.slug)
+            docker_settings = sql.select_docker_services_settings(service_desc.service)
+            restart_settings = sql.select_restart_services_settings(service_desc.service)
 else:
-    if funct.check_login(service=1):
-        service = 'haproxy'
-        if serv:
-            if funct.check_is_server_in_group(serv):
-                servers = sql.select_servers(server=serv)
-                autorefresh = 1
-                server_id = sql.select_server_id_by_ip(serv)
-                servers_waf = sql.select_waf_servers_metrics(user_id.value)
-                service_settings = sql.select_docker_service_settings(server_id, service)
-        else:
-            servers = sql.get_dick_permit(virt=1, haproxy=1)
-            service_settings = sql.select_docker_services_settings(service)
+    print('<meta http-equiv="refresh" content="0; url=/app/overview.py">')
 
 services_name = {'roxy-wi-checker': 'Master backends checker service',
                  'roxy-wi-keep_alive': 'Auto start service',
@@ -106,7 +76,7 @@ for s in servers:
         cmd = [
             "/usr/sbin/nginx -v 2>&1|awk '{print $3}' && systemctl status nginx |grep -e 'Active' |awk "
             "'{print $2, $9$10$11$12$13}' && ps ax |grep nginx:|grep -v grep |wc -l"]
-        for service_set in service_settings:
+        for service_set in docker_settings:
             if service_set.server_id == s[0] and service_set.setting == 'dockerized' and service_set.value == '1':
                 container_name = sql.get_setting('nginx_container_name')
                 cmd = [
@@ -206,7 +176,7 @@ except Exception as e:
 template = template.render(
     h2=1, autorefresh=autorefresh, title=title, role=role, user=user, servers=servers_with_status1,
     keep_alive=''.join(keep_alive), serv=serv, service=service, services=services, user_services=user_services,
-    service_settings=service_settings, user_status=user_status, user_plan=user_plan, servers_waf=servers_waf,
-    token=token
+    docker_settings=docker_settings, user_status=user_status, user_plan=user_plan, servers_waf=servers_waf,
+    restart_settings=restart_settings, token=token
 )
 print(template)

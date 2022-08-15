@@ -46,10 +46,29 @@
 	</div>
 {% elif waf_rule_file %}
 	<center>
-		<link rel="stylesheet" href="/inc/codemirror/codemirror.css">
+		<link rel="stylesheet" href="/inc/codemirror/lib/codemirror.css">
+		<link rel="stylesheet" href="/inc/codemirror/addon/dialog/dialog.css">
+		<link rel="stylesheet" href="/inc/codemirror/addon/fold/foldgutter.css">
+		<script src="/inc/codemirror/lib/codemirror.js"></script>
+		<script src="/inc/codemirror/addon/search/search.js"></script>
+		<script src="/inc/codemirror/addon/search/searchcursor.js"></script>
+		<script src="/inc/codemirror/addon/search/jump-to-line.js"></script>
+		<script src="/inc/codemirror/addon/search/matchesonscrollbar.js"></script>
+		<script src="/inc/codemirror/addon/search/match-highlighter.js"></script>
+		<script src="/inc/codemirror/addon/dialog/dialog.js"></script>
+		<script src="/inc/codemirror/addon/edit/matchbrackets.js"></script>
+		<script src="/inc/codemirror/addon/edit/closebrackets.js"></script>
+		<script src="/inc/codemirror/addon/comment/comment.js"></script>
+		<script src="/inc/codemirror/addon/wrap/hardwrap.js"></script>
+		<script src="/inc/codemirror/addon/fold/foldcode.js"></script>
+		<script src="/inc/codemirror/addon/fold/foldgutter.js"></script>
+		<script src="/inc/codemirror/addon/fold/brace-fold.js"></script>
+		<script src="/inc/codemirror/addon/fold/comment-fold.js"></script>
+		<script src="/inc/codemirror/addon/scroll/annotatescrollbar.js"></script>
+		<script src="/inc/codemirror/mode/nginx.js"></script>
+		<script src="/inc/codemirror/mode/haproxy.js"></script>
+		<script src="/inc/codemirror/keymap/sublime.js"></script>
 		<script src="/inc/configshow.js"></script>
-		<script src="/inc/codemirror/codemirror.js"></script>
-		<script src="/inc/codemirror/modsec.js"></script>
 			<h4>Config {{waf_rule_file}} from {{ serv }}</h4>
 			</center>
 			<form action="waf.py" name="saveconfig" id="saveconfig" method="post">
@@ -83,7 +102,21 @@
 		</style>
 		<script>
 			var myCodeMirror = CodeMirror.fromTextArea(document.getElementById("config_text_area"),
-				{mode: "modsec", lineNumbers: true, autocapitalize: true, autocorrect: true, spellcheck: true});
+				{
+					mode: "modsec",
+					lineNumbers: true,
+					lineWrapping: true,
+					autocapitalize: true,
+					autocorrect: true,
+					spellcheck: true,
+					autoCloseBrackets: true,
+					keyMap: "sublime",
+					matchBrackets: true,
+					foldGutter: true,
+					showCursorWhenSelecting: true,
+    				gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter", "breakpoints"],
+					highlightSelectionMatches: {showToken: /\w/, annotateScrollbar: true}
+				});
 			myCodeMirror.refresh();
 		</script>
 {% else %}
@@ -187,7 +220,7 @@
 		});
 	</script>
 	<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px; clear: both;">
-		Read the description and watch a video about WAF <a href="https://roxy-wi.org/description.py?description=waf" class="link" title="WAF" target="_blank">here</a>
+		Read the description and watch a video about WAF <a href="https://roxy-wi.org/description/waf" class="link" title="WAF" target="_blank">here</a>
 	</div>
 	{% endif %}
 {% endif %}

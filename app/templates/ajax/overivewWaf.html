@@ -74,7 +74,7 @@
 		</td>
 		<td>
 			{% if waf_service == 'haproxy' %}
-			<a href="/app/logs.py?serv={{ service.1 }}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00&waf=1" class="ui-button ui-widget ui-corner-all" title="View log">View</a>
+			<a href="/app/logs.py?service={{waf_service}}&serv={{ service.1 }}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00&waf=1" class="ui-button ui-widget ui-corner-all" title="View log">View</a>
 			{% elif waf_service == 'nginx' %}
 			<a href="/app/logs.py?service={{waf_service}}&serv={{ service.1 }}&rows=10&grep=ModSecurity&hour=00&minut=00&hour1=24&minut1=00&file=error.log&waf=0" class="ui-button ui-widget ui-corner-all" title="View log">View</a>
 			{% endif %}

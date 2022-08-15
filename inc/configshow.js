@@ -62,7 +62,7 @@ $( function() {
 			type: frm.attr('method'),
 			success: function( data ) {
 				data = data.replace(/\n/g, "<br>");
-				if (data.indexOf(service + ': command not found') != '-1')	{
+				if (data.indexOf(service + ': command not found') != '-1') {
 					try {
 						var service = findGetParameter('service');
 						toastr.error('Cannot save config. There is no ' + service);
@@ -72,6 +72,9 @@ $( function() {
 				} else {
 					toastr.clear();
 					returnNiceCheckingConfig(data);
+				}
+				if (data.indexOf('warning: ') != '-1') {
+					toastr.warning(data)
 				}
 			}
 		});

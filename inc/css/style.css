@@ -890,7 +890,8 @@ label {
 	height: 270px;
 }
 #logo_span img {
-	margin: auto 40px auto auto;
+	margin: auto 40px auto 100px;
+	width: 330px;
 }
 .chart-container, .chart-container_overview {
 	position: relative;
@@ -994,10 +995,14 @@ label {
 		margin-left: 15%;
 		}
 	.wrong-login {
-		margin-right: -150px;
+		margin-left: 44%;
 	}
 }
 @media (max-width: 1600px) {
+	#logo_span img {
+		width: 300px;
+		margin: 25px 50px auto 85px;
+	}
 	.ajax-server {
 		clear: both !important;
 		margin-left: 20px !important;
@@ -1006,6 +1011,10 @@ label {
 	}
 }
 @media (max-width: 1450px) {
+	#logo_span img {
+		width: 250px;
+		margin: 35px 30px auto 120px;
+	}
 	.ajax-server, .div-backends {
 		clear: both !important;
 		margin-left: 20px !important;
@@ -1031,6 +1040,10 @@ label {
 	}
 }
 @media (max-width: 1280px) {
+	#logo_span img {
+		width: 250px;
+		margin: 30px 60px auto 70px;
+	}
 	.div-pannel {
 		height: 430px !important;
 	}
@@ -1052,6 +1065,10 @@ label {
 	#logo_span {
 		margin-left: -5%;
 	}
+	#logo_span img {
+		width: 250px;
+		margin: 35px 0px auto 120px;
+	}
 	.wrong-login {
 		margin-right: -150px;
 	}
@@ -1072,7 +1089,11 @@ label {
 @media (max-width: 1080px) {
 	#logo_span {
 		margin-left: -5%;
-		}
+	}
+	#logo_span img {
+		width: 250px;
+		margin: 35px 60px auto 120px;
+	}
 	.chart-container {
 		position: relative;
 		height: 410px;
@@ -1097,9 +1118,13 @@ label {
 	}
 }
 @media (max-width: 768px) {
-  #logo_span {
-	margin-left: -12%;
-	border: none;
+  	#logo_span {
+		margin-left: -12%;
+		border: none;
+	}
+	#logo_span img {
+		width: 250px;
+		margin: 35px 0 auto 120px;
 	}
 	.wrong-login {
 		margin-right: -260px;
@@ -1128,9 +1153,13 @@ label {
 	}
 }
 @media (max-width: 667px) {
-  #logo_span {
-	margin-left: -12%;
-	border: none;
+  	#logo_span {
+		margin-left: -12%;
+		border: none;
+	}
+	#logo_span img {
+		width: 250px;
+		margin: 35px 0 auto 120px;
 	}
 	.wrong-login {
 		margin-right: -210px;

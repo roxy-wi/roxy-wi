@@ -3,10 +3,28 @@
 {% if is_serv_protected and role > 2 %}
 <meta http-equiv="refresh" content="0; url=/app/hapservers.py?service={{service}}">
 {% else %}
-<link rel="stylesheet" href="/inc/codemirror/codemirror.css">
-<script src="/inc/codemirror/codemirror.js"></script>
-<script src="/inc/codemirror/nginx.js"></script>
-<script src="/inc/codemirror/haproxy.js"></script>
+<link rel="stylesheet" href="/inc/codemirror/lib/codemirror.css">
+<link rel="stylesheet" href="/inc/codemirror/addon/dialog/dialog.css">
+<link rel="stylesheet" href="/inc/codemirror/addon/fold/foldgutter.css">
+<script src="/inc/codemirror/lib/codemirror.js"></script>
+<script src="/inc/codemirror/addon/search/search.js"></script>
+<script src="/inc/codemirror/addon/search/searchcursor.js"></script>
+<script src="/inc/codemirror/addon/search/jump-to-line.js"></script>
+<script src="/inc/codemirror/addon/search/matchesonscrollbar.js"></script>
+<script src="/inc/codemirror/addon/search/match-highlighter.js"></script>
+<script src="/inc/codemirror/addon/dialog/dialog.js"></script>
+<script src="/inc/codemirror/addon/edit/matchbrackets.js"></script>
+<script src="/inc/codemirror/addon/edit/closebrackets.js"></script>
+<script src="/inc/codemirror/addon/comment/comment.js"></script>
+<script src="/inc/codemirror/addon/wrap/hardwrap.js"></script>
+<script src="/inc/codemirror/addon/fold/foldcode.js"></script>
+<script src="/inc/codemirror/addon/fold/foldgutter.js"></script>
+<script src="/inc/codemirror/addon/fold/brace-fold.js"></script>
+<script src="/inc/codemirror/addon/fold/comment-fold.js"></script>
+<script src="/inc/codemirror/addon/scroll/annotatescrollbar.js"></script>
+<script src="/inc/codemirror/mode/nginx.js"></script>
+<script src="/inc/codemirror/mode/haproxy.js"></script>
+<script src="/inc/codemirror/keymap/sublime.js"></script>
 <center>
 	<p>
 		<form action="{{ action }}" method="post">
@@ -20,7 +38,7 @@
 						{% endif %}
 					{% endfor %}
 			</select>
-			<input type="hidden" value="{{ serv }}" name="serv"> 
+			<input type="hidden" value="{{ serv }}" name="serv">
 			{% if role <= 3 %}
 				<button type="submit" value="open" name="open" class="btn btn-default" title="Edit running config">Edit</button>
 			{% endif %}
@@ -31,8 +49,8 @@
 			<div id="config">
 				<h4>You are editing "{{section}}" section from server {{ serv }}</h4>
 				<form action="{{ action }}" name="saveconfig" method="post">
-					<input type="hidden" value="{{ serv }}" name="serv"> 
-					<input type="hidden" value="{{ start_line }}" name="start_line"> 
+					<input type="hidden" value="{{ serv }}" name="serv">
+					<input type="hidden" value="{{ start_line }}" name="start_line">
 					<input type="hidden" value="{{ end_line }}" name="end_line"> 
 					<input type="hidden" value="{{ cfg }}.old" name="oldconfig">
 					<div style="margin-left: 23%;width: 60%; text-align: left">
@@ -74,7 +92,7 @@
 			<div class="alert alert-warning">{{warning}}</div>
 			{% endif %}
 			<a href="config.py?serv={{ serv }}" title="Working with HAProxy config">Config</a> |
-			<a href="viewsttats.py?serv={{ serv }}" target="_blank" title="View stats">Go to stats</a>
+			<a href="statsview.py?serv={{ serv }}" target="_blank" title="View stats">Go to stats</a>
 		{% endif %}
 		<script>window.history.pushState("Config", "Config", cur_url[0])</script>
 	{% endif %}

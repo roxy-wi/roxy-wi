@@ -26,7 +26,7 @@ hour1 = form.getvalue('hour1')
 minut = form.getvalue('minut')
 minut1 = form.getvalue('minut1')
 waf = form.getvalue('waf')
-service = form.getvalue('service')
+service = funct.checkAjaxInput(form.getvalue('service'))
 remote_file = form.getvalue('file')
 
 print('Content-type: text/html\n')
@@ -37,22 +37,17 @@ try:
 except Exception:
 	pass
 
-if service == 'nginx':
-	if funct.check_login(service=2):
-		title = "NGINX`s logs"
-		servers = sql.get_dick_permit(nginx=1)
-elif service == 'apache':
-	if funct.check_login(service=4):
-		title = "Apache's logs"
-		servers = sql.get_dick_permit(apache=1)
+if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
+	service_desc = sql.select_service(service)
+	if funct.check_login(service=service_desc.service_id):
+		title = f"{service_desc.service}`s logs"
+		servers = sql.get_dick_permit(service=service_desc.slug)
 elif waf == '1':
 	if funct.check_login(service=1):
 		title = "WAF logs"
 		servers = sql.get_dick_permit(haproxy=1)
 else:
-	if funct.check_login(service=1):
-		title = "HAProxy`s logs"
-		servers = sql.get_dick_permit(haproxy=1)
+	print('<meta http-equiv="refresh" content="0; url=/app/overview.py">')
 
 template = template.render(
 	h2=1, autorefresh=1, title=title, role=role, user=user, select_id="serv", selects=servers,

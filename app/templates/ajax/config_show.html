@@ -234,7 +234,7 @@
 					{% endif %}
 					{%- set backend = line.split(' ') -%}
 					<span class="accordion-link">
-						<a href="/app/viewsttats.py?service=haproxy&serv={{-serv-}}#{{- backend[1]-}}" target="_blank">Stats</a>
+						<a href="/app/statsview.py?service=haproxy&serv={{-serv-}}#{{- backend[1]-}}" target="_blank">Stats</a>
 					</span>
 					{%- set backend = backend|join('_') -%}
 					{%- do section_name.update({i: backend}) -%}
@@ -251,7 +251,7 @@
 					{% endif %}	
 					{% set backend = line.split(' ') %}
 					<span class="accordion-link">
-						<a href="/app/viewsttats.py?serv={{serv}}#{{ backend[1]}}" target="_blank">Stats</a>
+						<a href="/app/statsview.py?serv={{serv}}#{{ backend[1]}}" target="_blank">Stats</a>
 					</span>	
 					{% set backend = backend|join('_') %}
 					{% do section_name.update({i: backend}) %}
@@ -268,7 +268,7 @@
 					{% endif %}
 					{% set backend = line.split(' ') %}
 					<span class="accordion-link">
-						<a href="/app/viewsttats.py?serv={{serv}}#{{ backend[1]}}" target="_blank">Stats</a>
+						<a href="/app/statsview.py?serv={{serv}}#{{ backend[1]}}" target="_blank">Stats</a>
 					</span>
 					</span><div>
 				{% continue %}

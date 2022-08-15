@@ -1947,6 +1947,131 @@ def select_table_metrics():
 		return cursor.fetchall()
 
 
+def select_service_table_metrics(service):
+	cursor = conn.cursor()
+	group_id = funct.get_user_group(id=1)
+
+	if service in ('nginx', 'apache'):
+		metrics_table = '{}_metrics'.format(service)
+
+	if funct.check_user_group():
+		if group_id == 1:
+			groups = ""
+		else:
+			groups = "and servers.groups = '{group}' ".format(group=group_id)
+	if mysql_enable == '1':
+		sql = """
+				select ip.ip, hostname, avg_cur_1h, avg_cur_24h, avg_cur_3d, max_con_1h, max_con_24h, max_con_3d from
+				(select servers.ip from servers where {metrics} = 1 ) as ip,
+
+				(select servers.ip, servers.hostname as hostname from servers left join {metrics} as metr on servers.ip = metr.serv where servers.{metrics} = 1 {groups}) as hostname,
+
+				(select servers.ip,round(avg(metr.conn), 1) as avg_cur_1h from servers
+				left join {metrics} as metr on metr.serv = servers.ip
+				where servers.{metrics} = 1 and
+				metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -1 HOUR)
+				group by servers.ip)   as avg_cur_1h,
+
+				(select servers.ip,round(avg(metr.conn), 1) as avg_cur_24h from servers
+				left join {metrics} as metr on metr.serv = servers.ip
+				where servers.{metrics} = 1 and
+				metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -24 HOUR)
+				group by servers.ip) as avg_cur_24h,
+
+		(select servers.ip,round(avg(metr.conn), 1) as avg_cur_3d from servers
+		left join {metrics} as metr on metr.serv = servers.ip
+		where servers.{metrics} = 1 and
+		metr.date <=  now() and metr.date >= DATE_ADD(NOW(),INTERVAL -3 DAY)
+		group by servers.ip ) as avg_cur_3d,
+
+		(select servers.ip,max(metr.conn) as max_con_1h from servers
+				left join {metrics} as metr on metr.serv = servers.ip
+				where servers.{metrics} = 1 and
+				metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -1 HOUR)
+				group by servers.ip)   as max_con_1h,
+
+				(select servers.ip,max(metr.conn) as max_con_24h from servers
+				left join {metrics} as metr on metr.serv = servers.ip
+				where servers.{metrics} = 1 and
+				metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -24 HOUR)
+				group by servers.ip) as max_con_24h,
+
+				(select servers.ip,max(metr.conn) as max_con_3d from servers
+				left join {metrics} as metr on metr.serv = servers.ip
+				where servers.{metrics} = 1 and
+				metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -3 DAY)
+				group by servers.ip ) as max_con_3d
+
+		where ip.ip=hostname.ip
+				and ip.ip=avg_cur_1h.ip
+				and ip.ip=avg_cur_24h.ip
+				and ip.ip=avg_cur_3d.ip
+				and ip.ip=max_con_1h.ip
+				and ip.ip=max_con_24h.ip
+				and ip.ip=max_con_3d.ip
+
+				group by hostname.ip """.format(metrics=metrics_table, groups=groups)
+	else:
+		sql = """
+		select ip.ip, hostname, avg_cur_1h, avg_cur_24h, avg_cur_3d, max_con_1h, max_con_24h, max_con_3d from
+		(select servers.ip from servers where {metrics} = 1 ) as ip,
+
+		(select servers.ip, servers.hostname as hostname from servers left join {metrics} as metr on servers.ip = metr.serv where servers.{metrics} = 1 {groups}) as hostname,
+
+		(select servers.ip,round(avg(metr.conn), 1) as avg_cur_1h from servers
+		left join {metrics} as metr on metr.serv = servers.ip
+		where servers.{metrics} = 1 and
+		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-1 hours', 'localtime')
+		group by servers.ip)   as avg_cur_1h,
+
+		(select servers.ip,round(avg(metr.conn), 1) as avg_cur_24h from servers
+		left join {metrics} as metr on metr.serv = servers.ip
+		where servers.{metrics} = 1 and
+		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-24 hours', 'localtime')
+		group by servers.ip) as avg_cur_24h,
+
+		(select servers.ip,round(avg(metr.conn), 1) as avg_cur_3d from servers
+		left join {metrics} as metr on metr.serv = servers.ip
+		where servers.{metrics} = 1 and
+		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-3 days', 'localtime')
+		group by servers.ip ) as avg_cur_3d,
+
+		(select servers.ip,max(metr.conn) as max_con_1h from servers
+		left join {metrics} as metr on metr.serv = servers.ip
+		where servers.{metrics} = 1 and
+		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-1 hours', 'localtime')
+		group by servers.ip)   as max_con_1h,
+
+		(select servers.ip,max(metr.conn) as max_con_24h from servers
+		left join {metrics} as metr on metr.serv = servers.ip
+		where servers.{metrics} = 1 and
+		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-24 hours', 'localtime')
+		group by servers.ip) as max_con_24h,
+
+		(select servers.ip,max(metr.conn) as max_con_3d from servers
+		left join {metrics} as metr on metr.serv = servers.ip
+		where servers.{metrics} = 1 and
+		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-3 days', 'localtime')
+		group by servers.ip ) as max_con_3d
+
+		where ip.ip=hostname.ip
+		and ip.ip=avg_cur_1h.ip
+		and ip.ip=avg_cur_24h.ip
+		and ip.ip=avg_cur_3d.ip
+		and ip.ip=max_con_1h.ip
+		and ip.ip=max_con_24h.ip
+		and ip.ip=max_con_3d.ip
+
+		group by hostname.ip """.format(metrics=metrics_table, groups=groups)
+
+	try:
+		cursor.execute(sql)
+	except Exception as e:
+		out_error(e)
+	else:
+		return cursor.fetchall()
+
+
 def get_setting(param, **kwargs):
 	try:
 		user_group = funct.get_user_group(id=1)
@@ -3159,6 +3284,33 @@ def select_docker_services_settings(service: str) -> str:
 		return query_res
 
 
+def select_restart_service_settings(server_id: int, service: str) -> str:
+	query = ServiceSetting.select().where(
+		(ServiceSetting.server_id == server_id)
+		& (ServiceSetting.service == service)
+		& (ServiceSetting.setting == 'restart')
+	)
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
+
+
+def select_restart_services_settings(service: str) -> str:
+	query = ServiceSetting.select().where(
+		(ServiceSetting.service == service)
+		& (ServiceSetting.setting == 'restart')
+	)
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
+
+
 def select_service_setting(server_id: int, service: str, setting: str) -> str:
 	try:
 		result = ServiceSetting.get(
@@ -3601,5 +3753,15 @@ def select_provisioning_params():
 	except Exception as e:
 		out_error(e)
 		return
+	else:
+		return query_res
+
+
+def select_service(slug: str) -> str:
+	try:
+		query_res = Services.get(Services.slug == slug)
+	except Exception as e:
+		out_error(e)
+		return 'there is no service'
 	else:
 		return query_res

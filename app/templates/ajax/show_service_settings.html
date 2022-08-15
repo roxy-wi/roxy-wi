@@ -3,7 +3,6 @@
     {% if service == 'haproxy' %}
         {% if settings %}
             {% for s in settings %}
-    {{s.dockerized}}
                 {% if s.haproxy_enterprise != '' and s.setting == 'haproxy_enterprise' %}
                         <tr>
                             <td class="padding20 help_cursor" style="width: 70%"
@@ -30,6 +29,18 @@
                         </td>
                     </tr>
                 {% endif %}
+                {% if s.restart != '' and s.setting == 'restart' %}
+                    <tr>
+                        <td class="padding20 help_cursor" style="width: 70%" title="If enabled, the restart button disabled">Disable restart</td>
+                        <td>
+                            {% if s.value == '1' and s.setting == 'restart' %}
+                                {{ checkbox('haproxy_restart', checked='checked', title='Restart option is disabled for this server') }}
+                            {% elif s.setting == 'restart' %}
+                                {{ checkbox('haproxy_restart', title='Only the reload button will be active') }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endif %}
             {% endfor %}
         {% else %}
              <tr>
@@ -44,6 +55,13 @@
                     title="If you use HAProxy inside Docker, check this. Roxy-WI is starting managing it as Docker container">HAProxy dockerized</td>
                 <td>
                     {{ checkbox('haproxy_dockerized', title='This server will be used as Docker container') }}
+                </td>
+            </tr>
+            <tr>
+                <td class="padding20 help_cursor" style="width: 70%"
+                    title="If enabled, the restart button disabled">Disable restart</td>
+                <td>
+                    {{ checkbox('haproxy_restart', title='Only the reload button will be active') }}
                 </td>
             </tr>
         {% endif %}
@@ -64,6 +82,18 @@
                         </td>
                     </tr>
                 {% endif %}
+                {% if s.restart != '' and s.setting == 'restart' %}
+                    <tr>
+                        <td class="padding20 help_cursor" style="width: 70%" title="If enabled, the restart button disabled">Disable restart</td>
+                        <td>
+                            {% if s.value == '1' and s.setting == 'restart' %}
+                                {{ checkbox('nginx_restart', checked='checked', title='Restart option is disabled for this server') }}
+                            {% elif s.setting == 'restart' %}
+                                {{ checkbox('nginx_restart', title='Only the reload button will be active') }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endif %}
             {% endfor %}
         {% else %}
         <tr>
@@ -71,6 +101,12 @@
                 title="If you use NGINX inside Docker, check this. Roxy-WI is starting managing it as Docker container">NGINX dockerized</td>
             <td>
                 {{ checkbox('nginx_dockerized', title='This server will be used as Docker container') }}
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20 help_cursor" style="width: 70%" title="If enabled, the restart button disabled">Disable restart</td>
+            <td>
+                {{ checkbox('nginx_restart', title='Only the reload button will be active') }}
             </td>
         </tr>
         {% endif %}
@@ -91,6 +127,18 @@
                         </td>
                     </tr>
                 {% endif %}
+                {% if s.restart != '' and s.setting == 'restart' %}
+                    <tr>
+                        <td class="padding20 help_cursor" style="width: 70%" title="If enabled, the restart button disabled">Disable restart</td>
+                        <td>
+                            {% if s.value == '1' and s.setting == 'restart' %}
+                                {{ checkbox('apache_restart', checked='checked', title='Restart option is disabled for this server') }}
+                            {% elif s.setting == 'restart' %}
+                                {{ checkbox('apache_restart', title='Only the reload button will be active') }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endif %}
             {% endfor %}
         {% else %}
         <tr>
@@ -98,6 +146,12 @@
                 title="If you use Apache inside Docker, check this. Roxy-WI is starting managing it as Docker container">Apache dockerized</td>
             <td>
                 {{ checkbox('apache_dockerized', title='This server will be used as Docker container') }}
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20 help_cursor" style="width: 70%" title="If enabled, the restart button disabled">Disable restart</td>
+            <td>
+                {{ checkbox('apache_restart', title='Only the reload button will be active') }}
             </td>
         </tr>
         {% endif %}

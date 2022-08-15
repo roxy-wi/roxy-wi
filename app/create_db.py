@@ -181,16 +181,21 @@ def default_values():
 		print(str(e))
 
 	data_source = [
-		{'service_id': 1, 'service': 'HAProxy'},
-		{'service_id': 2, 'service': 'NGINX'},
-		{'service_id': 3, 'service': 'Keepalived'},
-		{'service_id': 4, 'service': 'Apache'},
+		{'service_id': 1, 'service': 'HAProxy', 'slug': 'haproxy'},
+		{'service_id': 2, 'service': 'NGINX', 'slug': 'nginx'},
+		{'service_id': 3, 'service': 'Keepalived', 'slug': 'keepalived'},
+		{'service_id': 4, 'service': 'Apache', 'slug': 'apache'},
 	]
 
 	try:
 		Services.insert_many(data_source).on_conflict_ignore().execute()
-	except Exception as e:
-		print(str(e))
+	except Exception:
+		Services.drop_table()
+		Services.create_table()
+		try:
+			Services.insert_many(data_source).on_conflict_ignore().execute()
+		except Exception as e:
+			print(str(e))
 
 	data_source = [
 		{'param': 'aws', 'name': 'AWS', 'optgroup': 'aws', 'section': 'provider', 'provider': 'aws', 'image': '/inc/images/provisioning/providers/aws.svg'},
@@ -962,8 +967,25 @@ def update_db_v_6_1_3(**kwargs):
 		pass
 
 
+def update_db_v_6_1_4():
+	servers = Server.select()
+	services = Services.select()
+	for server in servers:
+		for service in services:
+			service_name = service.service.lower()
+			setting = 'restart'
+			if service_name == 'keepalived':
+				continue
+			try:
+				ServiceSetting.insert(
+					server_id=server.server_id, service=service_name, setting=setting, value=1
+				).on_conflict_ignore().execute()
+			except Exception:
+				pass
+
+
 def update_ver():
-	query = Version.update(version='6.1.3.0')
+	query = Version.update(version='6.1.4.0')
 	try:
 		query.execute()
 	except Exception:
@@ -991,6 +1013,7 @@ def update_all():
 	update_db_v_6_0_1()
 	update_db_v_6_1_0()
 	update_db_v_6_1_3()
+	update_db_v_6_1_4()
 	update_ver()
 
 
@@ -1014,6 +1037,7 @@ def update_all_silent():
 	update_db_v_6_0(silent=1)
 	update_db_v_6_0_1(silent=1)
 	update_db_v_6_1_3(silent=1)
+	update_db_v_6_1_4()
 	update_ver()
 
 

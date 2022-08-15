@@ -1,30 +1,30 @@
 // CodeMirror, copyright (c) by Marijn Haverbeke and others
 // Distributed under an MIT license: https://codemirror.net/LICENSE
-// Modified for Modsec by Roxy-WI
+// Modified for HAProxy by Roxy-WI
 (function(mod) {
   if (typeof exports == "object" && typeof module == "object") // CommonJS
-    mod(require("../../lib/codemirror"));
+    mod(require("../lib/codemirror"));
   else if (typeof define == "function" && define.amd) // AMD
-    define(["../../lib/codemirror"], mod);
+    define(["../lib/codemirror"], mod);
   else // Plain browser env
     mod(CodeMirror);
 })(function(CodeMirror) {
 "use strict";
-CodeMirror.defineMode("modsec", function(config) {
+CodeMirror.defineMode("haproxy", function(config) {
   function words(str) {
     var obj = {}, words = str.split(" ");
     for (var i = 0; i < words.length; ++i) obj[words[i]] = true;
     return obj;
   }
   var keywords = words(
-    /* hapDirectiveControl */ "SecRule" +
-    /* hapDirective */ " SecMarker SecAction"
+    /* hapDirectiveControl */ "abuse" +
+    /* hapDirective */ " log chroot maxconn user group pidfile stats mode option bind retries stats total max balance acl tcp http filter stick tcp timeout daemon table request"
     );
   var keywords_block = words(
-    /* hapDirectiveBlock */ "REQUEST_FILENAME REQUEST_HEADERS REQUEST_PROTOCOL REQUEST_BASENAME REQUEST_HEADERS_NAMES HEADER_NAME ARGS_NAMES ARGS REQUEST_LINE QUERY_STRING REQUEST_BODY"
+    /* hapDirectiveBlock */ "server default_backend use_backend if geo map check ! http roundrobin leastconect queue connect client server forwardfor deny accept socket httplog except redispatch gt ge or and eq ln reject dontlognull admin auth"
     );
   var keywords_important = words(
-    /*hapDirectiveImportant */ "User-Agent TX tx msg setvar anomaly_score none warning_anomaly_score severity GET HEAD POST PROPFIND OPTIONS phase"
+    /*hapDirectiveImportant */ "listen backend frontend peers cache global defaults userlist"
     );
   var indentUnit = config.indentUnit, type;
   function ret(style, tp) {type = tp; return style;}
@@ -148,8 +148,9 @@ CodeMirror.defineMode("modsec", function(config) {
       return state.baseIndent + n * indentUnit;
     },
 
-    electricChars: "}"
+    electricChars: "}",
+    lineComment: "#"
   };
 });
-CodeMirror.defineMIME("text/x-modsec-conf", "modsec");
+CodeMirror.defineMIME("text/x-haproxy-conf", "haproxy");
 });

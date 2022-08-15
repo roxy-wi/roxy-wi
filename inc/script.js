@@ -34,27 +34,43 @@ $( function() {
 	   }
        if (cur_url[0] == link2 && cur_url[1].split('&')[0] != 'service=keepalived' && cur_url[1].split('&')[0] != 'service=nginx' && cur_url[1].split('&')[0] != 'service=apache') {
 			show_current_page($(this))
-		} else if(cur_url[0] == 'versions.py' && cur_url[1].split('&')[0] == 'service=keepalived' && link2 == 'versions.py?service=keepalived'){ 
-			show_current_page($(this))
 		} else if(cur_url[0] == 'config.py' && cur_url[1].split('&')[0] == 'service=keepalived' && link2 == 'config.py?service=keepalived'){
 			show_current_page($(this))
-		} else if(cur_url[0] == 'versions.py' && cur_url[1].split('&')[0] == 'service=nginx' && link2 == 'versions.py?service=nginx'){ 
+		} else if(cur_url[0] == 'config.py' && cur_url[1].split('&')[0] == 'service=haproxy' && link2 == 'config.py?service=haproxy'){
 			show_current_page($(this))
 		} else if(cur_url[0] == 'config.py' && cur_url[1].split('&')[0] == 'service=nginx' && link2 == 'config.py?service=nginx'){
 			show_current_page($(this))
-		} else if(cur_url[0] == 'logs.py' && cur_url[1].split('&')[0] == 'service=nginx' && link2 == 'logs.py?service=nginx'){
+		} else if(cur_url[0] == 'config.py' && cur_url[1].split('&')[0] == 'service=apache' && link2 == 'config.py?service=apache'){
 			show_current_page($(this))
-		}  else if(cur_url[0] == 'logs.py' && cur_url[1].split('&')[0] == 'service=apache' && link2 == 'logs.py?service=apache'){
+	   	} else if(cur_url[0] == 'versions.py' && cur_url[1].split('&')[0] == 'service=nginx' && link2 == 'versions.py?service=nginx'){
 			show_current_page($(this))
-		}  else if(cur_url[0] == 'logs.py' && cur_url[1].split('&')[0] == 'service=keepalived' && link2 == 'logs.py?service=keepalived'){
+		} else if(cur_url[0] == 'versions.py' && cur_url[1].split('&')[0] == 'service=haproxy' && link2 == 'versions.py?service=haproxy'){
+			show_current_page($(this))
+		} else if(cur_url[0] == 'versions.py' && cur_url[1].split('&')[0] == 'service=keepalived' && link2 == 'versions.py?service=keepalived'){
+			show_current_page($(this))
+		} else if(cur_url[0] == 'versions.py' && cur_url[1].split('&')[0] == 'service=apache' && link2 == 'versions.py?service=apache'){
+			show_current_page($(this))
+	   	} else if(cur_url[0] == 'logs.py' && cur_url[1].split('&')[0] == 'service=haproxy' && link2 == 'logs.py?service=haproxy'){
+			show_current_page($(this))
+	   	} else if(cur_url[0] == 'logs.py' && cur_url[1].split('&')[0] == 'service=nginx' && link2 == 'logs.py?service=nginx'){
+			show_current_page($(this))
+		} else if(cur_url[0] == 'logs.py' && cur_url[1].split('&')[0] == 'service=apache' && link2 == 'logs.py?service=apache'){
+			show_current_page($(this))
+		} else if(cur_url[0] == 'logs.py' && cur_url[1].split('&')[0] == 'service=keepalived' && link2 == 'logs.py?service=keepalived'){
+			show_current_page($(this))
+		} else if(cur_url[0] == 'hapservers.py' && cur_url[1].split('&')[0] == 'service=haproxy' && link2 == 'hapservers.py?service=haproxy'){
 			show_current_page($(this))
 		} else if(cur_url[0] == 'hapservers.py' && cur_url[1].split('&')[0] == 'service=nginx' && link2 == 'hapservers.py?service=nginx'){
 			show_current_page($(this))
 		} else if(cur_url[0] == 'hapservers.py' && cur_url[1].split('&')[0] == 'service=keepalived' && link2 == 'hapservers.py?service=keepalived'){
 			show_current_page($(this))
-		} else if(cur_url[0] == 'viewsttats.py' && cur_url[1].split('&')[0] == 'service=nginx' && link2 == 'viewsttats.py?service=nginx'){
+		} else if(cur_url[0] == 'hapservers.py' && cur_url[1].split('&')[0] == 'service=apache' && link2 == 'hapservers.py?service=apache'){
 			show_current_page($(this))
-		} else if(cur_url[0] == 'viewsttats.py' && cur_url[1].split('&')[0] == 'service=apache' && link2 == 'viewsttats.py?service=apache'){
+	   	} else if(cur_url[0] == 'statsview.py' && cur_url[1].split('&')[0] == 'service=haproxy' && link2 == 'statsview.py?service=haproxy'){
+			show_current_page($(this))
+	   	} else if(cur_url[0] == 'statsview.py' && cur_url[1].split('&')[0] == 'service=nginx' && link2 == 'statsview.py?service=nginx'){
+			show_current_page($(this))
+		} else if(cur_url[0] == 'statsview.py' && cur_url[1].split('&')[0] == 'service=apache' && link2 == 'statsview.py?service=apache'){
 			show_current_page($(this))
 		} else if(cur_url[0] == 'smon.py' && cur_url[1].split('&')[0] == 'action=view' && link2 == 'smon.py?action=view'){
 		   show_current_page($(this))
@@ -68,16 +84,12 @@ $( function() {
 		   show_current_page($(this))
 	   } else if(cur_url[0] == 'viewlogs.py' && cur_url[1].split('&')[0] == 'type=2' && link2 == 'viewlogs.py?type=2'){
 		  	show_current_page($(this))
+	   } else if(cur_url[0] == 'metrics.py' && cur_url[1].split('&')[0] == 'service=haproxy' && link2 == 'metrics.py?service=haproxy'){
+		   show_current_page($(this))
 	   } else if(cur_url[0] == 'metrics.py' && cur_url[1].split('&')[0] == 'service=nginx' && link2 == 'metrics.py?service=nginx'){
 		   show_current_page($(this))
 	   } else if(cur_url[0] == 'metrics.py' && cur_url[1].split('&')[0] == 'service=apache' && link2 == 'metrics.py?service=apache'){
 		   show_current_page($(this))
-	   } else if(cur_url[0] == 'hapservers.py' && cur_url[1].split('&')[0] == 'service=apache' && link2 == 'hapservers.py?service=apache'){
-			show_current_page($(this))
-	   } else if(cur_url[0] == 'versions.py' && cur_url[1].split('&')[0] == 'service=apache' && link2 == 'versions.py?service=apache'){ 
-			show_current_page($(this))
-	   } else if(cur_url[0] == 'config.py' && cur_url[1].split('&')[0] == 'service=apache' && link2 == 'config.py?service=apache'){
-			show_current_page($(this))
 	   } else if(cur_url[0] == 'add.py' && cur_url[1].split('&')[0] == 'service=apache#ssl' && link2 == 'add.py?service=apache#ssl'){
 		   show_current_page($(this))
 	   } else if(cur_url[0] == 'waf.py' && cur_url[1].split('&')[0] == 'service=haproxy' && link2 == 'waf.py?service=haproxy'){
@@ -105,7 +117,7 @@ window.onblur= function() {
 		if(sessionStorage.getItem('auto-refresh-pause') == "0" && sessionStorage.getItem('auto-refresh') > 5000) {
 			if (cur_url[0] == "logs.py") {
 				showLog();
-			} else if (cur_url[0] == "viewsttats.py") {
+			} else if (cur_url[0] == "statsview.py") {
 				showStats()
 			} else if (cur_url[0] == "overview.py") {
 				showOverview(); 
@@ -207,7 +219,7 @@ function startSetInterval(interval) {
 		if (cur_url[0] == "logs.py") {
 			intervalId = setInterval('showLog()', interval);
 			showLog();
-		} else if (cur_url[0] == "viewsttats.py") {
+		} else if (cur_url[0] == "statsview.py") {
 			intervalId = setInterval('showStats()', interval);
 			showStats()
 		} else if (cur_url[0] == "overview.py") {
@@ -298,9 +310,9 @@ function showStats() {
 function openStats() {
 	var serv = $("#serv").val();
 	if (cur_url[1].split('&')[0] == "service=nginx") {
-		var url = "viewsttats.py?service=nginx&serv="+serv+"&open=open"
+		var url = "statsview.py?service=nginx&serv="+serv+"&open=open"
 	} else {	
-		var url = "viewsttats.py?serv="+serv+"&open=open"
+		var url = "statsview.py?serv="+serv+"&open=open"
 	}
 	var win = window.open(url, '_blank');
 	win.focus();

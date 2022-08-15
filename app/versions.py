@@ -12,10 +12,10 @@ funct.check_login()
 funct.page_for_admin(level=3)
 
 form = funct.form
-serv = form.getvalue('serv')
+serv = funct.is_ip_or_dns(form.getvalue('serv'))
+service = funct.checkAjaxInput(form.getvalue('service'))
 Select = form.getvalue('del')
 configver = form.getvalue('configver')
-service = form.getvalue('service')
 conf_format = 'cfg'
 configs_dir = ''
 stderr = ""
@@ -30,34 +30,23 @@ try:
 except Exception:
 	pass
 
-if service == 'keepalived':
-	if funct.check_login(service=3):
-		configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
-		title = "Working with versions Keepalived configs"
+if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
+	service_desc = sql.select_service(service)
+	if funct.check_login(service=service_desc.service_id):
+		title = f"Working with versions {service_desc.service} configs"
+		servers = sql.get_dick_permit(service=service_desc.slug)
+		action = f'versions.py?service={service_desc.slug}'
 		conf_format = 'conf'
-		servers = sql.get_dick_permit(keepalived=1)
-		action = 'versions.py?service=keepalived'
-elif service == 'nginx':
-	if funct.check_login(service=2):
-		configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
-		title = "Working with versions NGINX configs"
-		conf_format = 'conf'
-		servers = sql.get_dick_permit(nginx=1)
-		action = 'versions.py?service=nginx'
-elif service == 'apache':
-	if funct.check_login(service=4):
-		configs_dir = funct.get_config_var('configs', 'apache_save_configs_dir')
-		title = "Working with versions Apache configs"
-		conf_format = 'conf'
-		servers = sql.get_dick_permit(apache=1)
-		action = 'versions.py?service=apache'
+
+		if service in ('haproxy', 'nginx', 'apache'):
+			configs_dir = funct.get_config_var('configs', f'{service_desc.service}_save_configs_dir')
+		else:
+			configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
+
+		if service == 'haproxy':
+			conf_format = 'cfg'
 else:
-	service = 'haproxy'
-	if funct.check_login(service=1):
-		title = "Working with versions HAProxy configs"
-		configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
-		servers = sql.get_dick_permit(haproxy=1)
-		action = "versions.py"
+	print('<meta http-equiv="refresh" content="0; url=/app/overview.py">')
 
 if serv is not None and form.getvalue('del') is not None:
 	if Select is not None:

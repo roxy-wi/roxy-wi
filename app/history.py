@@ -21,47 +21,15 @@ serv = funct.is_ip_or_dns(form.getvalue('serv'))
 service = form.getvalue('service')
 user_id = form.getvalue('user_id')
 
-
-if service == 'nginx':
-    if funct.check_login(service=2):
-        title = 'Nginx service history'
-        if serv:
-            if funct.check_is_server_in_group(serv):
-                server_id = sql.select_server_id_by_ip(serv)
-                history = sql.select_action_history_by_server_id_and_service(
-                    server_id,
-                    service
-                )
-elif service == 'keepalived':
-    if funct.check_login(service=3):
-        title = 'Keepalived service history'
-        if serv:
-            if funct.check_is_server_in_group(serv):
-                server_id = sql.select_server_id_by_ip(serv)
-                history = sql.select_action_history_by_server_id_and_service(
-                    server_id,
-                    service
-                )
-elif service == 'apache':
-    if funct.check_login(service=4):
-        title = 'Apache service history'
-        if serv:
-            if funct.check_is_server_in_group(serv):
-                server_id = sql.select_server_id_by_ip(serv)
-                history = sql.select_action_history_by_server_id_and_service(
-                    server_id,
-                    service
-                )
-elif service == 'haproxy':
-    if funct.check_login(service=1):
-        title = "HAProxy service history"
-        if serv:
-            if funct.check_is_server_in_group(serv):
-                server_id = sql.select_server_id_by_ip(serv)
-                history = sql.select_action_history_by_server_id_and_service(
-                    server_id,
-                    service
-                )
+if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
+    service_desc = sql.select_service(service)
+    if funct.check_login(service=service_desc.service_id):
+        title = f'{service_desc.service} service history'
+        server_id = sql.select_server_id_by_ip(serv)
+        history = sql.select_action_history_by_server_id_and_service(
+            server_id,
+            service_desc.service
+        )
 elif service == 'server':
     if serv:
         title = serv + ' history'
