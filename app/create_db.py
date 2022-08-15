@@ -972,16 +972,18 @@ def update_db_v_6_1_4():
 	services = Services.select()
 	for server in servers:
 		for service in services:
-			service_name = service.service.lower()
-			setting = 'restart'
-			if service_name == 'keepalived':
-				continue
-			try:
-				ServiceSetting.insert(
-					server_id=server.server_id, service=service_name, setting=setting, value=1
-				).on_conflict_ignore().execute()
-			except Exception:
-				pass
+			settings = ('restart', 'dockerized', 'haproxy_enterprise')
+			for setting in settings:
+				if service.slug == 'keepalived':
+					continue
+				if service.slug != 'haproxy' and setting == 'haproxy_enterprise':
+					continue
+				try:
+					ServiceSetting.insert(
+						server_id=server.server_id, service=service.slug, setting=setting, value=1
+					).on_conflict_ignore().execute()
+				except Exception:
+					pass
 
 
 def update_ver():
