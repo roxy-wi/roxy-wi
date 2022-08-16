@@ -141,7 +141,11 @@ function ajaxActionServers(action, id) {
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else if (cur_url[0] == "hapservers.py") {
-					location.reload()
+					if (data.indexOf('warning: ') != '-1') {
+						toastr.warning(data)
+					} else {
+						location.reload()
+					}
 				} else {
 					setTimeout(showOverview(ip, hostnamea), 2000);
 				}
@@ -231,7 +235,11 @@ function ajaxActionApacheServers(action, id) {
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else if (cur_url[0] == "hapservers.py") {
-					location.reload()
+					if (data.indexOf('warning: ') != '-1') {
+						toastr.warning(data)
+					} else {
+						location.reload()
+					}
 				} else {
 					setTimeout(showOverview(ip, hostnamea), 2000)
 				}
