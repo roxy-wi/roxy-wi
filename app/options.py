@@ -1315,6 +1315,8 @@ if serv is not None and act == "configShow":
         print('<div class="alert alert-danger">Can\'t read config file</div>')
 
     is_serv_protected = sql.is_serv_protected(serv)
+    server_id = sql.select_server_id_by_ip(serv)
+    is_restart = sql.select_service_setting(server_id, service, 'restart')
 
     from jinja2 import Environment, FileSystemLoader
 
@@ -1328,7 +1330,8 @@ if serv is not None and act == "configShow":
                                role=role_id,
                                service=service,
                                config_file_name=config_file_name,
-                               is_serv_protected=is_serv_protected)
+                               is_serv_protected=is_serv_protected,
+                               is_restart=is_restart)
     print(template)
 
     if form.getvalue('configver') is None:

@@ -371,7 +371,9 @@
 			<input type="hidden" value="{{configver}}" name="configver">
 			<input type="hidden" value="1" name="config">
 			<button type='submit' value='save' name='save' class='btn btn-default' title="Save config without reloading the service">Save</button>
+			{% if is_restart|int == 0 %}
 			<button type='submit' value='' name='' class='btn btn-default'>Upload and restart</button>
+			{% endif %}
 			{% if service != 'keepalived' %}
 			<button type='submit' value='reload' name='save' class='btn btn-default'>Upload and reload</button>
 			{% endif %}
