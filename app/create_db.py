@@ -978,10 +978,7 @@ def update_db_v_6_1_4():
 					continue
 				if service.slug != 'haproxy' and setting == 'haproxy_enterprise':
 					continue
-				if setting == 'restart':
-					set_value = 1
-				else:
-					set_value = 0
+				set_value = 0
 				try:
 					ServiceSetting.insert(
 						server_id=server.server_id, service=service.slug, setting=setting, value=set_value

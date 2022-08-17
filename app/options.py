@@ -4409,7 +4409,7 @@ if form.getvalue('serverSettingsSave') is not None:
             else:
                 funct.logging(server_ip, 'Service has been flagged as a system service', haproxywi=1, login=1,
                               keep_history=1, service=service)
-        if sql.insert_or_update_service_setting(server_id, service, 'restart', nginx_dockerized):
+        if sql.insert_or_update_service_setting(server_id, service, 'restart', nginx_restart):
             print('Ok')
             if nginx_restart == '1':
                 funct.logging(server_ip, 'Restart option is disabled for this service', haproxywi=1, login=1,
@@ -4427,7 +4427,7 @@ if form.getvalue('serverSettingsSave') is not None:
             else:
                 funct.logging(server_ip, 'Service has been flagged as a system service', haproxywi=1, login=1,
                               keep_history=1, service=service)
-            if sql.insert_or_update_service_setting(server_id, service, 'restart', nginx_dockerized):
+            if sql.insert_or_update_service_setting(server_id, service, 'restart', apache_restart):
                 print('Ok')
                 if apache_restart == '1':
                     funct.logging(server_ip, 'Restart option is disabled for this service', haproxywi=1, login=1,
