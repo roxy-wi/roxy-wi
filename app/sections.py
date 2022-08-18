@@ -44,6 +44,8 @@ if serv is not None and section is not None:
 		pass
 
 	start_line, end_line, config_read = funct.get_section_from_config(cfg, section)
+	server_id = sql.select_server_id_by_ip(serv)
+	is_restart = sql.select_service_setting(server_id, 'haproxy', 'restart')
 
 	os.system("/bin/mv %s %s.old" % (cfg, cfg))
 
@@ -86,6 +88,6 @@ rendered_template = template.render(
 	h2=1, title="Working with HAProxy config sections", role=role, action="sections.py", user=user, select_id="serv",
 	serv=serv, aftersave=aftersave, config=config_read, cfg=cfg, selects=servers, stderr=stderr, error=error,
 	start_line=start_line, end_line=end_line, section=section, sections=sections, is_serv_protected=is_serv_protected,
-	user_services=user_services, token=token, warning=warning
+	user_services=user_services, token=token, warning=warning, is_restart=is_restart
 )
 print(rendered_template)

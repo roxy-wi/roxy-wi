@@ -53,14 +53,16 @@
 					<input type="hidden" value="{{ start_line }}" name="start_line">
 					<input type="hidden" value="{{ end_line }}" name="end_line"> 
 					<input type="hidden" value="{{ cfg }}.old" name="oldconfig">
-					<div style="margin-left: 23%;width: 60%; text-align: left">
-						<textarea name="config" class="config" id="config_text_area" rows="35" cols="80" style="height: 40%">{{ config }}</textarea>
+					<div style="margin-left: 2%;width: 60%; text-align: left">
+						<textarea name="config" class="config" id="config_text_area" rows="35" cols="100" style="height: 40%">{{ config }}</textarea>
 					</div>
 					{% if not is_serv_protected or role <= 2 %}
 					<p>
 						<button type="submit" value="test" name="save" class="btn btn-default" title="Check config without saving the config">Check config</button>
 						<button type="submit" value="save" name="save" class="btn btn-default" title="Save config without reloading the service">Save</button>
+						{% if is_restart|int == 0 %}
 						<button type="submit" value="" name="" class="btn btn-default">Save and restart</button>
+						{% endif %}
 						<button type="submit" value="reload" name="save" class="btn btn-default">Save and reload</button>
 						{% if section != 'globals' and section != 'defaults' %}
 						<button type="submit" value="delete" name="save" class="btn btn-default">Delete this section</button>
@@ -69,7 +71,22 @@
 					{% endif %}
 				</form>
 				<script>
-					var myCodeMirror = CodeMirror.fromTextArea(document.getElementById("config_text_area"), {mode: "haproxy", lineNumbers: true});
+					var myCodeMirror = CodeMirror.fromTextArea(document.getElementById("config_text_area"),
+					{
+						mode: "haproxy",
+						lineNumbers: true,
+						lineWrapping: true,
+						autocapitalize: true,
+						autocorrect: true,
+						spellcheck: true,
+						autoCloseBrackets: true,
+						keyMap: "sublime",
+						matchBrackets: true,
+						foldGutter: true,
+						showCursorWhenSelecting: true,
+						gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter", "breakpoints"],
+						highlightSelectionMatches: {showToken: /\w/, annotateScrollbar: true}
+					});
 				</script>
 				<style>
 					.CodeMirror {
@@ -99,4 +116,5 @@
 	</div>
 </div>
 {% endif %}
+</center>
 {% endblock %}
