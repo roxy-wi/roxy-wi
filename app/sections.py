@@ -23,6 +23,7 @@ aftersave = ""
 start_line = ""
 end_line = ""
 warning = ''
+is_restart = ''
 
 try:
 	user, user_id, role, token, servers, user_services = funct.get_users_params()
