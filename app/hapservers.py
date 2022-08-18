@@ -35,12 +35,12 @@ if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
                 servers = sql.select_servers(server=serv)
                 autorefresh = 1
                 server_id = sql.select_server_id_by_ip(serv)
-                docker_settings = sql.select_docker_service_settings(server_id, service_desc.service)
-                restart_settings = sql.select_restart_service_settings(server_id, service_desc.service)
+                docker_settings = sql.select_docker_service_settings(server_id, service_desc.slug)
+                restart_settings = sql.select_restart_service_settings(server_id, service_desc.slug)
         else:
             servers = sql.get_dick_permit(virt=1, service=service_desc.slug)
-            docker_settings = sql.select_docker_services_settings(service_desc.service)
-            restart_settings = sql.select_restart_services_settings(service_desc.service)
+            docker_settings = sql.select_docker_services_settings(service_desc.slug)
+            restart_settings = sql.select_restart_services_settings(service_desc.slug)
 else:
     print('<meta http-equiv="refresh" content="0; url=/app/overview.py">')
 
