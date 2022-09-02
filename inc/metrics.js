@@ -322,10 +322,15 @@ function getApacheChartData(server) {
     });
 }
 function loadMetrics() {
+    var service = findGetParameter('service');
+    if (!service) {
+        service = 'haproxy';
+    }
 	 $.ajax({
         url: "options.py",
 		data: {
 			table_metrics: '1',
+            service: service,
 			token: $('#token').val()
 		},
 		beforeSend: function() {

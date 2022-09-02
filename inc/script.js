@@ -466,7 +466,7 @@ function showMap() {
 			} else {
 				toastr.clear();
 				$("#ajax").html(data);
-				window.history.pushState("Show map", "Show map", cur_url[0] + '?serv=' + $("#serv").val() + '&showMap');
+				window.history.pushState("Show map", "Show map", cur_url[0] + '?service=haproxy&serv=' + $("#serv").val() + '&showMap');
 			}
 		}					
 	} );
@@ -724,34 +724,6 @@ function viewLogs() {
 	}
 }
 $( function() {
-	NProgress.configure({showSpinner: false});
-	$.ajax( {
-		url: "options.py",
-		data: {
-			show_versions: 1,
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function( data ) {
-			$('#version').html(data);
-			var showUpdates = $( "#show-updates" ).dialog({
-				autoOpen: false,
-				width: 600,
-				modal: true,
-				title: 'There is a new version Roxy-WI',
-				buttons: {
-					Close: function() {
-						$( this ).dialog( "close" );
-						clearTips();
-					}
-				}
-			});
-			$('#show-updates-button').click(function() {
-				showUpdates.dialog('open');
-			});
-		}
-	} );
-	NProgress.configure({showSpinner: true});
 	$('a').click(function(e) {
 		try {
 			var cur_path = window.location.pathname;
@@ -1534,4 +1506,34 @@ function returnNiceCheckingConfig(data) {
 	} else if (server_name2) {
 		toastr.success('<b>' + server_name2 + ' Configuration file is valid</b>');
 	}
+}
+function show_version() {
+	NProgress.configure({showSpinner: false});
+	$.ajax( {
+		url: "options.py",
+		data: {
+			show_versions: 1,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			$('#version').html(data);
+			var showUpdates = $( "#show-updates" ).dialog({
+				autoOpen: false,
+				width: 600,
+				modal: true,
+				title: 'There is a new Roxy-WI version',
+				buttons: {
+					Close: function() {
+						$( this ).dialog( "close" );
+						clearTips();
+					}
+				}
+			});
+			$('#show-updates-button').click(function() {
+				showUpdates.dialog('open');
+			});
+		}
+	} );
+	NProgress.configure({showSpinner: true});
 }

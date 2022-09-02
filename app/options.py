@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
+import json
+import http.cookies
+
+from jinja2 import Environment, FileSystemLoader
 
 import funct
 import sql
@@ -249,8 +253,6 @@ if form.getvalue('table_serv_select') is not None:
     print(funct.get_all_stick_table())
 
 if form.getvalue('table_select') is not None:
-    from jinja2 import Environment, FileSystemLoader
-
     env = Environment(loader=FileSystemLoader('templates'), autoescape=True,
                       extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'], trim_blocks=True, lstrip_blocks=True)
     table = form.getvalue('table_select')
@@ -302,8 +304,6 @@ if form.getvalue('list_serv_select') is not None:
     print(output)
 
 if form.getvalue('list_select_id') is not None:
-    from jinja2 import Environment, FileSystemLoader
-
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
                       extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'], trim_blocks=True, lstrip_blocks=True)
     template = env.get_template('ajax/list.html')
@@ -378,8 +378,6 @@ if form.getvalue('list_ip_for_add') is not None:
                   service='haproxy')
 
 if form.getvalue('sessions_select') is not None:
-    from jinja2 import Environment, FileSystemLoader
-
     env = Environment(loader=FileSystemLoader('templates'), autoescape=True,
                       extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'], trim_blocks=True, lstrip_blocks=True)
     serv = funct.checkAjaxInput(form.getvalue('sessions_select'))
@@ -592,8 +590,6 @@ if form.getvalue('action_service') is not None:
     funct.logging('localhost', ' The service ' + serv + ' has been ' + action + 'ed', haproxywi=1, login=1)
 
 if act == "overviewHapserverBackends":
-    from jinja2 import Environment, FileSystemLoader
-
     env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
     template = env.get_template('haproxyservers_backends.html')
     service = form.getvalue('service')
@@ -608,7 +604,7 @@ if act == "overviewHapserverBackends":
 
     if service != 'nginx' and service != 'apache':
         try:
-            sections = funct.get_sections(configs_dir + funct.get_files(dir=configs_dir, format=format_file)[0], service=service)
+            sections = funct.get_sections(configs_dir + funct.get_files(configs_dir, format_file)[0], service=service)
         except Exception as e:
             funct.logging('localhost', str(e), haproxywi=1)
 
@@ -639,7 +635,7 @@ if form.getvalue('show_userlists'):
     format_file = 'cfg'
 
     try:
-        sections = funct.get_userlists(configs_dir + funct.get_files(dir=configs_dir, format=format_file)[0])
+        sections = funct.get_userlists(configs_dir + funct.get_files(configs_dir, format_file)[0])
     except Exception as e:
         funct.logging('localhost', str(e), haproxywi=1)
         try:
@@ -673,8 +669,6 @@ if act == "overviewHapservers":
 
 if act == "overview":
     import asyncio
-    import http.cookies
-    from jinja2 import Environment, FileSystemLoader
 
     async def async_get_overview(serv1, serv2, user_uuid, server_id):
         user_id = sql.get_user_id_by_uuid(user_uuid)
@@ -753,9 +747,6 @@ if act == "overview":
     ioloop.close()
 
 if act == "overviewwaf":
-    import http.cookies
-
-    from jinja2 import Environment, FileSystemLoader
     env = Environment(
         loader=FileSystemLoader('templates/ajax'), autoescape=True,
         extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do']
@@ -846,8 +837,6 @@ if act == "overviewServers":
         return server_status
 
     async def get_runner_overviewServers(**kwargs):
-        import http.cookies
-        from jinja2 import Environment, FileSystemLoader
         env = Environment(loader=FileSystemLoader('templates/ajax'),
                           extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
         template = env.get_template('overviewServers.html')
@@ -933,8 +922,6 @@ if serv is not None and act == "stats":
 
     data = response.content
     if form.getvalue('service') == 'nginx':
-        from jinja2 import Environment, FileSystemLoader
-
         env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
         template = env.get_template('ajax/nginx_stats.html')
 
@@ -1226,8 +1213,6 @@ if form.getvalue('servaction') is not None:
     funct.logging(serv, action)
 
 if act == "showCompareConfigs":
-    from jinja2 import Environment, FileSystemLoader
-
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
     template = env.get_template('ajax/show_compare_configs.html')
     left = form.getvalue('left')
@@ -1247,8 +1232,6 @@ if act == "showCompareConfigs":
     print(template)
 
 if serv is not None and form.getvalue('right') is not None:
-    from jinja2 import Environment, FileSystemLoader
-
     left = funct.checkAjaxInput(form.getvalue('left'))
     right = funct.checkAjaxInput(form.getvalue('right'))
 
@@ -1273,8 +1256,6 @@ if serv is not None and form.getvalue('right') is not None:
     print(stderr)
 
 if serv is not None and act == "configShow":
-    import http.cookies
-
     cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
     user_uuid = cookie.get('uuid')
     role_id = sql.get_user_role_by_uuid(user_uuid.value)
@@ -1317,9 +1298,6 @@ if serv is not None and act == "configShow":
     is_serv_protected = sql.is_serv_protected(serv)
     server_id = sql.select_server_id_by_ip(serv)
     is_restart = sql.select_service_setting(server_id, service, 'restart')
-
-    from jinja2 import Environment, FileSystemLoader
-
     env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True, trim_blocks=True, lstrip_blocks=True,
                       extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
     template = env.get_template('config_show.html')
@@ -1351,8 +1329,6 @@ if act == 'configShowFiles':
         print(return_files)
         sys.exit()
     return_files += ' ' + sql.get_setting(service + '_config_path')
-    from jinja2 import Environment, FileSystemLoader
-
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
     template = env.get_template('ajax/show_configs_files.html')
     template = template.render(serv=serv, service=service, return_files=return_files,
@@ -1366,7 +1342,6 @@ if act == 'showRemoteLogFiles':
     if 'error: ' in return_files:
         print(return_files)
         sys.exit()
-    from jinja2 import Environment, FileSystemLoader
 
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
     template = env.get_template('ajax/show_log_files.html')
@@ -1408,8 +1383,8 @@ if form.getvalue('master'):
     commands = [
         "chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port + " router_id=" + router_id
         + " ETH=" + ETH + " IP=" + str(IP) + " MASTER=MASTER" + " ETH_SLAVE=" + ETH_SLAVE + " keepalived_path_logs=" + keepalived_path_logs
-        + " RETURN_TO_MASTER=" + return_to_master + " SYN_FLOOD=" + syn_flood + " HOST=" + str(master)
-        + " USER=" + str(ssh_user_name) + " PASS='" + str(ssh_user_password) + "' KEY=" + str(ssh_key_name)
+        + " RETURN_TO_MASTER=" + return_to_master + " SYN_FLOOD=" + syn_flood + " HOST=" + str(master) + " HAPROXY=" + haproxy
+        + " NGINX=" + nginx + " USER=" + str(ssh_user_name) + " PASS='" + str(ssh_user_password) + "' KEY=" + str(ssh_key_name)
     ]
 
     output, error = funct.subprocess_execute(commands[0])
@@ -1433,6 +1408,8 @@ if form.getvalue('master_slave'):
     ETH_SLAVE = form.getvalue('slave_interface')
     IP = form.getvalue('vrrpip')
     syn_flood = form.getvalue('syn_flood')
+    haproxy = form.getvalue('hap')
+    nginx = form.getvalue('nginx')
     router_id = form.getvalue('router_id')
     script = "install_keepalived.sh"
     proxy = sql.get_setting('proxy')
@@ -1457,7 +1434,7 @@ if form.getvalue('master_slave'):
     commands = [
         "chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port + " router_id=" + router_id
         + " ETH=" + ETH + " IP=" + IP + " MASTER=BACKUP" + " ETH_SLAVE=" + ETH_SLAVE + " keepalived_path_logs=" + keepalived_path_logs
-        + " HOST=" + str(slave) + " USER=" + str(ssh_user_name) + " PASS='" + str(ssh_user_password)
+        + " HAPROXY=" + HAPROXY + " NGINX=" + nginx + " HOST=" + str(slave) + " USER=" + str(ssh_user_name) + " PASS='" + str(ssh_user_password)
         + "' KEY=" + str(ssh_key_name)
     ]
 
@@ -1575,6 +1552,7 @@ if form.getvalue('master_slave_nginx'):
 if form.getvalue('install_grafana'):
     script = "install_grafana.sh"
     proxy = sql.get_setting('proxy')
+    host = os.environ.get('HTTP_HOST', '')
 
     os.system("cp scripts/%s ." % script)
 
@@ -1589,10 +1567,9 @@ if form.getvalue('install_grafana'):
 
     if error:
         funct.logging('localhost', error, haproxywi=1)
-        import socket
 
         print(
-            'success: Grafana and Prometheus servers were installed. You can find Grafana on http://' + socket.gethostname() + ':3000<br>')
+            f'success: Grafana and Prometheus servers were installed. You can find Grafana on http://{host}:3000<br>')
     else:
         for line in output:
             if any(s in line for s in ("Traceback", "FAILED")):
@@ -1603,10 +1580,8 @@ if form.getvalue('install_grafana'):
                     print(output)
                     break
         else:
-            import socket
-
             print(
-                'success: Grafana and Prometheus servers were installed. You can find Grafana on http://' + socket.gethostname() + ':3000<br>')
+                f'success: Grafana and Prometheus servers were installed. You can find Grafana on http://{host}:3000<br>')
 
     os.system("rm -f %s" % script)
 
@@ -1778,8 +1753,6 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
     else:
         if not deljob and not update:
             if sql.insert_backup_job(serv, rserver, rpath, backup_type, time, cred, description):
-                from jinja2 import Environment, FileSystemLoader
-
                 env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
                 template = env.get_template('new_backup.html')
                 template = template.render(
@@ -1858,8 +1831,6 @@ if form.getvalue('git_backup'):
                 server_id=server_id, service_id=service_id, repo=repo, branch=branch,
                 period=period, cred=cred, description=description
             ):
-                from jinja2 import Environment, FileSystemLoader
-
                 gits = sql.select_gits(server_id=server_id, service_id=service_id)
                 sshs = sql.select_ssh()
 
@@ -1914,7 +1885,6 @@ if form.getvalue('table_metrics'):
         metrics = sql.select_service_table_metrics(service)
     else:
         metrics = sql.select_table_metrics()
-    from jinja2 import Environment, FileSystemLoader
 
     env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
     template = env.get_template('table_metrics.html')
@@ -1923,8 +1893,6 @@ if form.getvalue('table_metrics'):
     print(template)
 
 if form.getvalue('metrics_hapwi_ram'):
-    import json
-
     ip = form.getvalue('ip')
     metrics = {'chartData': {}}
     rams = ''
@@ -1956,8 +1924,6 @@ if form.getvalue('metrics_hapwi_cpu'):
     cpus = ''
 
     if ip == '1':
-        # cmd = "top -b -n 1 |grep Cpu |awk -F':' '{print $2}'|awk  -F' ' 'BEGIN{ORS=\" \";} { for (i=1;i<=NF;i+=2) print $i}'"
-        # metric, error = funct.subprocess_execute(cmd)
         import psutil
 
         cpus_list = psutil.cpu_times_percent(interval=1, percpu=False)
@@ -1978,8 +1944,6 @@ if form.getvalue('metrics_hapwi_cpu'):
             cpus = i
 
     metrics['chartData']['cpus'] = cpus
-
-    import json
 
     print(json.dumps(metrics))
 
@@ -2010,8 +1974,6 @@ if form.getvalue('new_metrics'):
     metrics['chartData']['curr_ssl_con'] = curr_ssl_con
     metrics['chartData']['sess_rate'] = sess_rate
     metrics['chartData']['server'] = hostname + ' (' + server + ')'
-
-    import json
 
     print(json.dumps(metrics))
 
@@ -2046,8 +2008,6 @@ if form.getvalue('new_http_metrics'):
     metrics['chartData']['http_5xx'] = http_5xx
     metrics['chartData']['server'] = hostname + ' (' + server + ')'
 
-    import json
-
     print(json.dumps(metrics))
 
 if any((form.getvalue('new_nginx_metrics'), form.getvalue('new_apache_metrics'), form.getvalue('new_waf_metrics'))):
@@ -2079,8 +2039,6 @@ if any((form.getvalue('new_nginx_metrics'), form.getvalue('new_apache_metrics'),
     metrics['chartData']['labels'] = labels
     metrics['chartData']['curr_con'] = curr_con
     metrics['chartData']['server'] = hostname + ' (' + serv + ')'
-
-    import json
 
     print(json.dumps(metrics))
 
@@ -2225,7 +2183,7 @@ if form.getvalue('bwlists_delete'):
 if form.getvalue('get_lists'):
     lib_path = funct.get_config_var('main', 'lib_path')
     list_path = lib_path + "/" + sql.get_setting('lists_path') + "/" + form.getvalue('group') + "/" + form.getvalue('color')
-    lists = funct.get_files(dir=list_path, format="lst")
+    lists = funct.get_files(list_path, "lst")
     for l in lists:
         print(l)
 
@@ -2296,8 +2254,6 @@ if form.getvalue('newuser') is not None:
     if funct.check_user_group():
         if funct.is_admin(level=role_id):
             if sql.add_user(new_user, email, password, role, activeuser, group):
-                from jinja2 import Environment, FileSystemLoader
-
                 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
                 template = env.get_template('ajax/new_user.html')
 
@@ -2424,8 +2380,6 @@ if form.getvalue('newserver') is not None:
             user_status, user_plan = 0, 0
             funct.logging('localhost', 'Cannot get a user plan: ' + str(e), haproxywi=1)
 
-        from jinja2 import Environment, FileSystemLoader
-
         env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
         template = env.get_template('ajax/new_server.html')
 
@@ -2504,8 +2458,6 @@ if form.getvalue('newgroup') is not None:
         print(error_mess)
     else:
         if sql.add_group(newgroup, desc):
-            from jinja2 import Environment, FileSystemLoader
-
             env = Environment(loader=FileSystemLoader('templates/ajax/'), autoescape=True)
             template = env.get_template('/new_group.html')
 
@@ -2550,8 +2502,6 @@ if form.getvalue('new_ssh'):
         print(error_mess)
     else:
         if sql.insert_new_ssh(name, enable, group, username, password):
-            from jinja2 import Environment, FileSystemLoader
-
             env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
             template = env.get_template('/new_ssh.html')
             output_from_parsed_template = template.render(groups=sql.select_groups(), sshs=sql.select_ssh(name=name),
@@ -2621,13 +2571,14 @@ if form.getvalue('ssh_cert'):
         key = paramiko.pkey.load_private_key(form.getvalue('ssh_cert'))
     except Exception as e:
         print('error: Cannot save SSH key file: ', str(e))
+        sys.exit()
 
     lib_path = funct.get_config_var('main', 'lib_path')
     full_dir = lib_path + '/keys/'
     ssh_keys = name + '.pem'
 
     try:
-        split_name = name.split('_')[1]
+        check_split = name.split('_')[1]
         split_name = True
     except Exception:
         split_name = False
@@ -2644,6 +2595,7 @@ if form.getvalue('ssh_cert'):
         key.write_private_key_file(ssh_keys)
     except Exception as e:
         print('error: Cannot save SSH key file: ', str(e))
+        sys.exit()
     else:
         print('success: SSH key has been saved into: %s ' % ssh_keys)
 
@@ -2666,8 +2618,6 @@ if form.getvalue('newtelegram'):
         print(error_mess)
     else:
         if sql.insert_new_telegram(token, channel, group):
-            from jinja2 import Environment, FileSystemLoader
-
             env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
             template = env.get_template('/new_telegram.html')
             output_from_parsed_template = template.render(groups=sql.select_groups(),
@@ -2686,8 +2636,6 @@ if form.getvalue('newslack'):
         print(error_mess)
     else:
         if sql.insert_new_slack(token, channel, group):
-            from jinja2 import Environment, FileSystemLoader
-
             env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
             template = env.get_template('/new_slack.html')
             output_from_parsed_template = template.render(groups=sql.select_groups(),
@@ -2751,7 +2699,6 @@ if form.getvalue('getuserservices'):
     services = sql.select_services()
     for g in u_g:
         groups.append(g.user_group_id)
-    from jinja2 import Environment, FileSystemLoader
 
     env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
     template = env.get_template('/show_user_services.html')
@@ -2764,7 +2711,6 @@ if form.getvalue('getusergroups'):
     u_g = sql.select_user_groups(user_id)
     for g in u_g:
         groups.append(g.user_group_id)
-    from jinja2 import Environment, FileSystemLoader
 
     env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
     template = env.get_template('/show_user_groups.html')
@@ -2801,16 +2747,11 @@ if form.getvalue('changeUserCurrentGroupId') is not None:
         print('error: Cannot change group')
 
 if form.getvalue('getcurrentusergroup') is not None:
-    import http.cookies
-
     cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
     user_id = cookie.get('uuid')
     group = cookie.get('group')
     group_id = sql.get_user_id_by_uuid(user_id.value)
     groups = sql.select_user_groups_with_names(group_id)
-
-    from jinja2 import Environment, FileSystemLoader
-
     env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
     template = env.get_template('/show_user_current_group.html')
     template = template.render(groups=groups, group=group.value, id=group_id)
@@ -2846,7 +2787,6 @@ if form.getvalue('newsmon') is not None:
 
     last_id = sql.insert_smon(server, port, enable, http, uri, body, group, desc, telegram, slack, user_group)
     if last_id:
-        from jinja2 import Environment, FileSystemLoader
         env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
         template = env.get_template('ajax/show_new_smon.html')
         template = template.render(
@@ -2868,9 +2808,6 @@ if form.getvalue('smondel') is not None:
 if form.getvalue('showsmon') is not None:
     user_group = funct.get_user_group(id=1)
     sort = form.getvalue('sort')
-
-    from jinja2 import Environment, FileSystemLoader
-
     env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
     template = env.get_template('ajax/smon_dashboard.html')
     template = template.render(smon=sql.smon_list(user_group), sort=sort)
@@ -2916,17 +2853,14 @@ if form.getvalue('showBytes') is not None:
     bit_in, stderr = funct.subprocess_execute(cmd)
     bin_bout.append(bit_in[0])
     cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,10|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(serv, port)
-    bout, stderr = funct.subprocess_execute(cmd)
+    bout, stderr1 = funct.subprocess_execute(cmd)
     bin_bout.append(bout[0])
     cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,5|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(serv, port)
-    cin, stderr = funct.subprocess_execute(cmd)
+    cin, stderr2 = funct.subprocess_execute(cmd)
     bin_bout.append(cin[0])
     cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,8|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(serv, port)
-    cout, stderr = funct.subprocess_execute(cmd)
+    cout, stderr3 = funct.subprocess_execute(cmd)
     bin_bout.append(cout[0])
-
-    from jinja2 import Environment, FileSystemLoader
-
     env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
     template = env.get_template('ajax/bin_bout.html')
     template = template.render(bin_bout=bin_bout, serv=serv)
@@ -2950,8 +2884,6 @@ if form.getvalue('nginxConnections'):
                 bin_bout.append(line.split(' ')[2])
             if num == 2:
                 bin_bout.append(line.split(' ')[3])
-
-        from jinja2 import Environment, FileSystemLoader
 
         env = Environment(loader=FileSystemLoader('templates'))
         template = env.get_template('ajax/bin_bout.html')
@@ -3139,8 +3071,6 @@ if form.getvalue('scan_ports') is not None:
     if stderr != '':
         print(stderr)
     else:
-        from jinja2 import Environment, FileSystemLoader
-
         env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
         template = env.get_template('ajax/scan_ports.html')
         template = template.render(ports=stdout, info=stdout1)
@@ -3165,9 +3095,6 @@ if form.getvalue('viewFirewallRules') is not None:
 
     IN_public_allow = funct.ssh_command(serv, cmd1, raw=1)
     output_chain = funct.ssh_command(serv, cmd2, raw=1)
-
-    from jinja2 import Environment, FileSystemLoader
-
     env = Environment(loader=FileSystemLoader('templates'))
     template = env.get_template('ajax/firewall_rules.html')
     template = template.render(input=input_chain2, IN_public_allow=IN_public_allow, output=output_chain)
@@ -3352,8 +3279,6 @@ if form.getvalue('portscanner_history_server_id'):
             print('ok')
 
 if form.getvalue('show_versions'):
-    from jinja2 import Environment, FileSystemLoader
-
     env = Environment(loader=FileSystemLoader('templates'))
     template = env.get_template('ajax/check_version.html')
     template = template.render(versions=funct.versions())
@@ -3392,10 +3317,6 @@ if any((form.getvalue('do_new_name'), form.getvalue('aws_new_name'), form.getval
             is_add = True
 
     if is_add:
-        from jinja2 import Environment, FileSystemLoader
-        import http.cookies
-        import os
-
         cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
         user_uuid = cookie.get('uuid')
         role_id = sql.get_user_role_by_uuid(user_uuid.value)
@@ -3570,9 +3491,6 @@ if form.getvalue('doworkspace'):
                 region, size, privet_net, floating_ip, ssh_ids, ssh_name, workspace, oss, firewall, monitoring,
                 backup, provider, group, 'Creating'
         ):
-
-            from jinja2 import Environment, FileSystemLoader
-
             user, user_id, role, token, servers, user_services = funct.get_users_params()
             new_server = sql.select_provisioned_servers(new=workspace, group=group, type='do')
             params = sql.select_provisioning_params()
@@ -3666,9 +3584,6 @@ if form.getvalue('awsworkspace'):
             region, size, public_ip, floating_ip, volume_size, ssh_name, workspace, oss, firewall,
             provider, group, 'Creating', delete_on_termination, volume_type
         ):
-
-            from jinja2 import Environment, FileSystemLoader
-
             user, user_id, role, token, servers, user_services = funct.get_users_params()
             new_server = sql.select_provisioned_servers(new=workspace, group=group, type='aws')
             params = sql.select_provisioning_params()
@@ -3940,9 +3855,6 @@ if form.getvalue('gcoreworkspace'):
                 project, region, size, network_type, network_name, volume_size, ssh_name, workspace, oss, firewall,
                 provider, group, 'Creating', delete_on_termination, volume_type
         ):
-
-            from jinja2 import Environment, FileSystemLoader
-
             user, user_id, role, token, servers, user_services = funct.get_users_params()
             new_server = sql.select_provisioned_servers(new=workspace, group=group, type='gcore')
             params = sql.select_provisioning_params()
@@ -4003,8 +3915,6 @@ if form.getvalue('editAwsServer'):
     params = sql.select_provisioning_params()
     providers = sql.select_providers(int(user_group))
     server = sql.select_gcore_server(server_id=server_id)
-    from jinja2 import Environment, FileSystemLoader
-
     env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
     template = env.get_template('ajax/provisioning/aws_edit_dialog.html')
     template = template.render(server=server, providers=providers, params=params)
@@ -4017,8 +3927,6 @@ if form.getvalue('editGcoreServer'):
     params = sql.select_provisioning_params()
     providers = sql.select_providers(int(user_group))
     server = sql.select_gcore_server(server_id=server_id)
-    from jinja2 import Environment, FileSystemLoader
-
     env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
     template = env.get_template('ajax/provisioning/gcore_edit_dialog.html')
     template = template.render(server=server, providers=providers, params=params)
@@ -4031,8 +3939,6 @@ if form.getvalue('editDoServer'):
     params = sql.select_provisioning_params()
     providers = sql.select_providers(int(user_group))
     server = sql.select_do_server(server_id=server_id)
-    from jinja2 import Environment, FileSystemLoader
-
     env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
     template = env.get_template('ajax/provisioning/do_edit_dialog.html')
     template = template.render(server=server, providers=providers, params=params)
@@ -4071,7 +3977,6 @@ if form.getvalue('edit_aws_provider'):
         funct.logging('localhost', 'Provider has been renamed. New name is ' + new_name, provisioning=1)
 
 if form.getvalue('loadservices'):
-    from jinja2 import Environment, FileSystemLoader
     env = Environment(loader=FileSystemLoader('templates'))
     template = env.get_template('ajax/load_services.html')
     services = funct.get_services_status()
@@ -4080,7 +3985,6 @@ if form.getvalue('loadservices'):
     print(template)
 
 if form.getvalue('loadchecker'):
-    from jinja2 import Environment, FileSystemLoader
     env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
     template = env.get_template('ajax/load_telegram.html')
     services = funct.get_services_status()
@@ -4134,7 +4038,6 @@ if form.getvalue('loadchecker'):
     print(template)
 
 if form.getvalue('load_update_hapwi'):
-    from jinja2 import Environment, FileSystemLoader
     env = Environment(loader=FileSystemLoader('templates'))
     template = env.get_template('ajax/load_updatehapwi.html')
 
@@ -4159,7 +4062,6 @@ if form.getvalue('load_update_hapwi'):
 
 if form.getvalue('loadopenvpn'):
     import distro
-    from jinja2 import Environment, FileSystemLoader
     env = Environment(loader=FileSystemLoader('templates'))
     template = env.get_template('ajax/load_openvpn.html')
     openvpn_configs = ''
@@ -4197,9 +4099,6 @@ if form.getvalue('check_slack'):
     funct.slack_send_mess(mess, slack_channel_id=slack_id)
 
 if form.getvalue('check_rabbitmq_alert'):
-    import json
-    import http.cookies
-
     try:
         cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
         user_group_id = cookie.get('group')
@@ -4216,7 +4115,6 @@ if form.getvalue('check_rabbitmq_alert'):
         print(f'error: Cannot send a message {error}')
 
 if form.getvalue('check_email_alert'):
-    import http.cookies
     subject = 'test message'
     message = 'Test message from Roxy-WI'
 
@@ -4251,7 +4149,7 @@ if form.getvalue('getoption'):
     for i in options:
         a[v] = i.options
         v = v + 1
-    import json
+
     print(json.dumps(a))
 
 
@@ -4262,8 +4160,6 @@ if form.getvalue('newtoption'):
         print(error_mess)
     else:
         if sql.insert_new_option(option, group):
-            from jinja2 import Environment, FileSystemLoader
-
             env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
             template = env.get_template('/new_option.html')
 
@@ -4299,7 +4195,7 @@ if form.getvalue('getsavedserver'):
         a[v]['value'] = i.server
         a[v]['desc'] = i.description
         v = v + 1
-    import json
+
     print(json.dumps(a))
 
 
@@ -4311,8 +4207,6 @@ if form.getvalue('newsavedserver'):
         print(error_mess)
     else:
         if sql.insert_new_savedserver(savedserver, description, group):
-            from jinja2 import Environment, FileSystemLoader
-
             env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
             template = env.get_template('/new_saved_servers.html')
 
@@ -4335,8 +4229,6 @@ if form.getvalue('savedserverdel') is not None:
         print("Ok")
 
 if form.getvalue('show_users_ovw') is not None:
-    from jinja2 import Environment, FileSystemLoader
-
     env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
     template = env.get_template('/show_users_ovw.html')
 
@@ -4356,8 +4248,6 @@ if form.getvalue('show_users_ovw') is not None:
 if form.getvalue('serverSettings') is not None:
     server_id = form.getvalue('serverSettings')
     service = form.getvalue('serverSettingsService')
-    from jinja2 import Environment, FileSystemLoader
-
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
     template = env.get_template('ajax/show_service_settings.html')
 
@@ -4459,9 +4349,7 @@ if act == 'showListOfVersion':
         if service == 'haproxy':
             files = funct.get_files()
         else:
-            files = funct.get_files(dir=configs_dir, format='conf')
-
-    from jinja2 import Environment, FileSystemLoader
+            files = funct.get_files(configs_dir, 'conf')
 
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
                       extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
@@ -4487,7 +4375,6 @@ if act == 'getSystemInfo':
         print('error: IP or DNS name is not valid')
         sys.exit()
 
-    from jinja2 import Environment, FileSystemLoader
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
                       extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
     env.globals['string_to_dict'] = funct.string_to_dict
@@ -4517,8 +4404,6 @@ if act == 'updateSystemInfo':
         sys.exit()
 
     sql.delete_system_info(server_id)
-
-    from jinja2 import Environment, FileSystemLoader
 
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
                       extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
@@ -4550,7 +4435,9 @@ if act == 'findInConfigs':
     print(return_find)
 
 if act == 'check_service':
-    import http.cookies
+    import socket
+    from contextlib import closing
+
     cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
     user_uuid = cookie.get('uuid')
     user_id = sql.get_user_id_by_uuid(user_uuid.value)
@@ -4571,9 +4458,6 @@ if act == 'check_service':
                 print('down')
     if '2' in user_services:
         if service == 'nginx':
-            import socket
-            from contextlib import closing
-
             nginx_stats_port = sql.get_setting('nginx_stats_port')
 
             with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
@@ -4588,9 +4472,6 @@ if act == 'check_service':
                     print('down')
     if '4' in user_services:
         if service == 'apache':
-            import socket
-            from contextlib import closing
-
             apache_stats_port = sql.get_setting('apache_stats_port')
 
             with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
@@ -4605,8 +4486,6 @@ if act == 'check_service':
                     print('down' + str(e))
 
 if form.getvalue('show_sub_ovw'):
-    from jinja2 import Environment, FileSystemLoader
-
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
     template = env.get_template('ajax/show_sub_ovw.html')
     template = template.render(sub=sql.select_user_all())

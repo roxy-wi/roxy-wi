@@ -1,9 +1,14 @@
 global_defs {
    router_id LVS_DEVEL
 }
+{%- if NGINX == '1' %}
+{% set check_service = 'nginx' %}
+{% else %}
+{% set check_service = 'haproxy' %}
+{% endif %}
 #health-check for keepalive
-vrrp_script chk_haproxy { 
-    script "systemctl is-active --quiet haproxy"
+vrrp_script chk_service {
+    script "systemctl is-active --quiet {{ check_service }}"
     interval 2
     weight 3 
 }
@@ -16,7 +21,7 @@ vrrp_instance VI_1 {
 
     #check if we are still running
     track_script {
-        chk_haproxy
+        chk_service
     }
 
     advert_int 1

@@ -1554,7 +1554,7 @@ def insert_new_waf_rule(rule_name: str, rule_file: str, rule_description: str, s
 		out_error(e)
 	else:
 		return last_id
-		
+
 
 
 def delete_waf_server(server_id):
@@ -3765,3 +3765,27 @@ def select_service(slug: str) -> str:
 		return 'there is no service'
 	else:
 		return query_res
+
+
+def select_checker_service_status(server_id: int, service_id: int, service_check: str) -> int:
+	try:
+		service_check_status = ServiceStatus.get(
+			(ServiceStatus.server_id == server_id)
+			& (ServiceStatus.service_id == service_id)
+			& (ServiceStatus.service_check == service_check)
+		).status
+	except Exception as e:
+		return out_error(e)
+	else:
+		return service_check_status
+
+
+def inset_or_update_service_status(
+		server_id: int, service_id: int, service_check: str, status: int
+) -> None:
+	try:
+		ServiceStatus.insert(
+			server_id=server_id, service_id=service_id, service_check=service_check, status=status
+		).on_conflict('replace').execute()
+	except Exception as e:
+		out_error(e)

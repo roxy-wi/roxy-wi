@@ -561,6 +561,17 @@ class WafNginx(BaseModel):
         constraints = [SQL('UNIQUE (server_id)')]
 
 
+class ServiceStatus(BaseModel):
+    server_id = ForeignKeyField(Server, on_delete='Cascade')
+    service_id = IntegerField()
+    service_check = CharField()
+    status = IntegerField(constraints=[SQL('DEFAULT 1')])
+
+    class Meta:
+        table_name = 'services_statuses'
+        constraints = [SQL('UNIQUE (server_id, service_id, service_check)')]
+
+
 def create_tables():
     with conn:
         conn.create_tables([User, Server, Role, Telegram, Slack, UUID, Token, ApiToken, Groups, UserGroups, ConfigVersion,
@@ -568,4 +579,4 @@ def create_tables():
                             PortScannerSettings, PortScannerPorts, PortScannerHistory, ProvidersCreds, ServiceSetting,
                             ProvisionedServers, MetricsHttpStatus, SMON, WafRules, Alerts, GeoipCodes, NginxMetrics,
                             SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, ProvisionParam,
-                            WafNginx])
+                            WafNginx, ServiceStatus])

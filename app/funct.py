@@ -3,6 +3,8 @@ import cgi
 import os
 import sys
 import re
+import json
+import http.cookies
 
 
 def is_ip_or_dns(server_from_request: str) -> str:
@@ -58,7 +60,7 @@ def get_config_var(sec, var):
 		return config.get(sec, var)
 	except Exception:
 		print('Content-type: text/html\n')
-		print('<center><div class="alert alert-danger">Check the config file. Presence section %s and parameter %s</div>' % (sec, var))
+		print(f'<center><div class="alert alert-danger">Check the config file. Presence section {sec} and parameter {var}</div>')
 		return
 
 
@@ -108,7 +110,6 @@ def get_data(log_type, **kwargs):
 
 def get_user_group(**kwargs):
 	import sql
-	import http.cookies
 	user_group = ''
 
 	try:
@@ -130,7 +131,6 @@ def get_user_group(**kwargs):
 
 def logging(server_ip, action, **kwargs):
 	import sql
-	import http.cookies
 	import distro
 
 	login = ''
@@ -288,7 +288,6 @@ def slack_send_mess(mess, **kwargs):
 
 def check_login(**kwargs):
 	import sql
-	import http.cookies
 	user_uuid = None
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	try:
@@ -325,7 +324,6 @@ def get_user_id(**kwargs):
 	if kwargs.get('login'):
 		return sql.get_user_id_by_username(kwargs.get('login'))
 
-	import http.cookies
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_uuid = cookie.get('uuid')
 
@@ -337,7 +335,6 @@ def get_user_id(**kwargs):
 
 def is_admin(**kwargs):
 	import sql
-	import http.cookies
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_id = cookie.get('uuid')
 	try:
@@ -364,8 +361,7 @@ def page_for_admin(**kwargs):
 
 	if not is_admin(level=give_level):
 		print('<meta http-equiv="refresh" content="0; url=/">')
-		import sys
-		sys.exit()
+		return
 
 
 def return_ssh_keys_path(server_ip, **kwargs):
@@ -439,6 +435,7 @@ def ssh_connect(server_ip):
 
 def get_config(server_ip, cfg, **kwargs):
 	import sql
+	config_path = ''
 
 	if kwargs.get("keepalived") or kwargs.get("service") == 'keepalived':
 		config_path = sql.get_setting('keepalived_config_path')
@@ -479,7 +476,6 @@ def get_config(server_ip, cfg, **kwargs):
 
 
 def diff_config(oldcfg, cfg, **kwargs):
-	import http.cookies
 	import sql
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	log_path = get_config_var('main', 'log_path')
@@ -628,7 +624,7 @@ def get_backends_from_config(server_ip, backends=''):
 	format_cfg = 'cfg'
 
 	try:
-		cfg = configs_dir + get_files(dir=configs_dir, format=format_cfg)[0]
+		cfg = configs_dir + get_files(configs_dir, format_cfg)[0]
 	except Exception as e:
 		logging('localhost', str(e), haproxywi=1)
 		try:
@@ -987,9 +983,9 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		config_path = sql.get_setting('haproxy_config_path')
 		tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".cfg"
 
-	is_docker = sql.select_service_setting(server_id, service, 'dockerized')
+	is_dockerized = sql.select_service_setting(server_id, service, 'dockerized')
 
-	if is_docker == '1':
+	if is_dockerized == '1':
 		service_cont_name = service + '_container_name'
 		container_name = sql.get_setting(service_cont_name)
 		reload_command = " && sudo docker kill -s HUP  " + container_name
@@ -1035,7 +1031,7 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		else:
 			commands = [move_config + reload_or_restart_command]
 	elif service == "nginx":
-		if is_docker == '1':
+		if is_dockerized == '1':
 			check_config = "sudo docker exec -it exec " + container_name + " nginx -t "
 		else:
 			check_config = "sudo nginx -t "
@@ -1049,7 +1045,7 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		if sql.return_firewall(server_ip):
 			commands[0] += open_port_firewalld(cfg, server_ip=server_ip, service='nginx')
 	elif service == "apache":
-		if is_docker == '1':
+		if is_dockerized == '1':
 			check_config = "sudo docker exec -it exec " + container_name + " sudo apachectl configtest "
 		else:
 			check_config = "sudo apachectl configtest "
@@ -1069,7 +1065,7 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		else:
 			commands = [check_and_move + reload_or_restart_command]
 	else:
-		if is_docker == '1':
+		if is_dockerized == '1':
 			check_config = "sudo docker exec -it " + container_name + " haproxy -c -f " + tmp_file
 		else:
 			check_config = "sudo " + service_name + " -c -f " + tmp_file
@@ -1224,10 +1220,10 @@ def open_port_firewalld(cfg, server_ip, **kwargs):
 def check_haproxy_config(server_ip):
 	import sql
 	server_id = sql.select_server_id_by_ip(server_ip=server_ip)
-	is_docker = sql.select_service_setting(server_id, 'haproxy', 'dockerized')
+	is_dockerized = sql.select_service_setting(server_id, 'haproxy', 'dockerized')
 	config_path = sql.get_setting('haproxy_config_path')
 
-	if is_docker == '1':
+	if is_dockerized == '1':
 		container_name = sql.get_setting('haproxy_container_name')
 		commands = ["sudo docker exec -it " + container_name + " haproxy -q -c -f " + config_path]
 	else:
@@ -1301,7 +1297,10 @@ def show_finding_in_config(stdout: str, **kwargs) -> str:
 	return out
 
 
-def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', hour1='24', minut1='00', service='haproxy', **kwargs):
+def show_haproxy_log(
+		serv, rows='10', waf='0', grep=None, hour='00',
+		minut='00', hour1='24', minut1='00', service='haproxy', **kwargs
+) -> str:
 	import sql
 	exgrep = form.getvalue('exgrep')
 	log_file = form.getvalue('file')
@@ -1379,7 +1378,7 @@ def show_haproxy_log(serv, rows=10, waf='0', grep=None, hour='00', minut='00', h
 			user_grep = ''
 
 		log_path = get_config_var('main', 'log_path')
-		logs_files = get_files(log_path, format="log")
+		logs_files = get_files(log_path, "log")
 
 		for key, value in logs_files:
 			if int(serv) == key:
@@ -1403,7 +1402,7 @@ def roxy_wi_log(**kwargs):
 	log_path = get_config_var('main', 'log_path')
 
 	if kwargs.get('log_id'):
-		selects = get_files(log_path, format="log")
+		selects = get_files(log_path, "log")
 		for key, value in selects:
 			log_file = kwargs.get('file') + ".log"
 			if log_file == value:
@@ -1495,7 +1494,6 @@ def subprocess_execute(cmd):
 
 
 def show_backends(server_ip, **kwargs):
-	import json
 	import sql
 	hap_sock_p = sql.get_setting('haproxy_sock_port')
 	cmd = 'echo "show backend" |nc %s %s' % (server_ip, hap_sock_p)
@@ -1520,22 +1518,22 @@ def show_backends(server_ip, **kwargs):
 		return ret
 
 
-def get_files(dir=get_config_var('configs', 'haproxy_save_configs_dir'), format='cfg'):
+def get_files(folder=get_config_var('configs', 'haproxy_save_configs_dir'), file_format='cfg'):
 	import glob
-	if format == 'log':
+	if file_format == 'log':
 		file = []
 	else:
 		file = set()
 	return_files = set()
 	i = 0
-	for files in sorted(glob.glob(os.path.join(dir, '*.' + format + '*'))):
-		if format == 'log':
+	for files in sorted(glob.glob(os.path.join(folder, '*.' + file_format + '*'))):
+		if file_format == 'log':
 			file += [(i, files.split('/')[5])]
 		else:
 			file.add(files.split('/')[-1])
 		i += 1
 	files = file
-	if format == 'cfg' or format == 'conf':
+	if file_format == 'cfg' or file_format == 'conf':
 		for file in files:
 			ip = file.split("-")
 			if serv == ip[0]:
@@ -1593,20 +1591,23 @@ def check_new_version(service):
 		if proxy is not None and proxy != '' and proxy != 'None':
 			proxy_dict = {"https": proxy, "http": proxy}
 			response = requests.get(f'https://roxy-wi.org/version/get/{service}', timeout=1, proxies=proxy_dict)
-			requests.get(f'https://roxy-wi.org/version/send/{current_ver}', timeout=1, proxies=proxy_dict)
-			response_status = requests.get(f'https://roxy-wi.org/user-name/{user_name}', timeout=1, proxies=proxy_dict)
+			if service == 'roxy-wi':
+				requests.get(f'https://roxy-wi.org/version/send/{current_ver}', timeout=1, proxies=proxy_dict)
+				response_status = requests.get(f'https://roxy-wi.org/user-name/{user_name}', timeout=1, proxies=proxy_dict)
 		else:
 			response = requests.get(f'https://roxy-wi.org/version/get/{service}', timeout=1)
-			requests.get(f'https://roxy-wi.org/version/send/{current_ver}', timeout=1)
-			response_status = requests.get(f'https://roxy-wi.org/user-name/{user_name}', timeout=1)
+			if service == 'roxy-wi':
+				requests.get(f'https://roxy-wi.org/version/send/{current_ver}', timeout=1)
+				response_status = requests.get(f'https://roxy-wi.org/user-name/{user_name}', timeout=1)
 
 		res = response.content.decode(encoding='UTF-8')
-		try:
-			status = response_status.content.decode(encoding='UTF-8')
-			status = status.split(' ')
-			sql.update_user_status(status[0], status[1].strip(), status[2].strip())
-		except Exception:
-			pass
+		if service == 'roxy-wi':
+			try:
+				status = response_status.content.decode(encoding='UTF-8')
+				status = status.split(' ')
+				sql.update_user_status(status[0], status[1].strip(), status[2].strip())
+			except Exception:
+				pass
 	except requests.exceptions.RequestException as e:
 		logging('localhost', ' ' + str(e), haproxywi=1)
 
@@ -1655,7 +1656,6 @@ def get_hash(value):
 
 
 def get_users_params(**kwargs):
-	import http.cookies
 	import sql
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 
@@ -1667,6 +1667,11 @@ def get_users_params(**kwargs):
 		user_services = sql.select_user_services(user_id)
 		token = sql.get_token(user_uuid.value)
 	except Exception:
+		user = ''
+		role = ''
+		user_uuid = ''
+		user_services = ''
+		token = ''
 		print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
 
 	if kwargs.get('virt') and kwargs.get('haproxy'):
@@ -1693,8 +1698,6 @@ def check_user_group(**kwargs):
 		user_uuid = kwargs.get('user_uuid')
 		user_id = sql.get_user_id_by_uuid(user_uuid)
 	else:
-		import http.cookies
-		import os
 		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 		user_uuid = cookie.get('uuid')
 		group = cookie.get('group')
@@ -1825,7 +1828,6 @@ def is_service_active(server_ip: str, service_name: str):
 
 
 def get_system_info(server_ip: str) -> bool:
-	import json
 	import sql
 	server_ip = is_ip_or_dns(server_ip)
 	if server_ip == '':
@@ -2083,7 +2085,6 @@ def send_message_to_rabbit(message: str, **kwargs) -> None:
 
 def is_restarted(server_ip, action):
 	import sql
-	import http.cookies
 
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_uuid = cookie.get('uuid')
@@ -2094,7 +2095,7 @@ def is_restarted(server_ip, action):
 		sys.exit()
 
 
-def is_not_allowed_to_restart(server_id: int, service: str) -> bool:
+def is_not_allowed_to_restart(server_id: int, service: str) -> None:
 	import sql
 	is_restart = sql.select_service_setting(server_id, service, 'restart')
 
@@ -2159,11 +2160,11 @@ def send_email(email_to: str, subject: str, message: str) -> None:
 	msg['To'] = email_to
 
 	try:
-		smtpObj = SMTP(mail_smtp_host, mail_smtp_port)
+		smtp_obj = SMTP(mail_smtp_host, mail_smtp_port)
 		if mail_ssl:
-			smtpObj.starttls()
-		smtpObj.login(mail_smtp_user, mail_smtp_password)
-		smtpObj.send_message(msg)
+			smtp_obj.starttls()
+		smtp_obj.login(mail_smtp_user, mail_smtp_password)
+		smtp_obj.send_message(msg)
 		logging('localhost', 'An email has been sent to ' + email_to, haproxywi=1)
 	except Exception as e:
 		logging('localhost', 'error: unable to send email: ' + str(e), haproxywi=1)
@@ -2182,8 +2183,8 @@ def send_email_to_server_group(subject: str, mes: str, group_id: int) -> None:
 
 
 def alert_routing(
-	server_ip: str, service_id: int, group_id: int, level: str, mes: str, alert_type: str) -> None:
-	import json
+	server_ip: str, service_id: int, group_id: int, level: str, mes: str, alert_type: str
+) -> None:
 	import sql
 
 	subject: str = level + ': ' + mes

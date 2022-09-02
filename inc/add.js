@@ -1491,7 +1491,7 @@ function view_ssl(id) {
 	} );
 }
 function deleteSsl(id) {
-	if(!checkIsServerFiled('#serv5')) return false;;
+	if(!checkIsServerFiled('#serv5')) return false;
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -1629,68 +1629,59 @@ function editList(list, color) {
 }
 function saveList(action, list, color) {
 	var serv = $( "#serv-"+color+"-list option:selected" ).val();
-	if (serv == '------') {
-		toastr.warning('Select a server before updating');
-	} else {
-		$.ajax({
-			url: "options.py",
-			data: {
-				bwlists_save: list,
-				serv: serv,
-				bwlists_content: $('#edit_lists').val(),
-				color: color,
-				group: $('#group').val(),
-				bwlists_restart: action,
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function (data) {
-				data = data.split(" , ");
-
-				for (i = 0; i < data.length; i++) {
-					if (data[i]) {
-						if (data[i].indexOf('error: ') != '-1' || data[i].indexOf('Errno') != '-1') {
-							toastr.error(data[i]);
-						} else {
-							toastr.success(data[i]);
-						}
+	if(!checkIsServerFiled(serv)) return false;
+	$.ajax({
+		url: "options.py",
+		data: {
+			bwlists_save: list,
+			serv: serv,
+			bwlists_content: $('#edit_lists').val(),
+			color: color,
+			group: $('#group').val(),
+			bwlists_restart: action,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			data = data.split(" , ");
+			for (i = 0; i < data.length; i++) {
+				if (data[i]) {
+					if (data[i].indexOf('error: ') != '-1' || data[i].indexOf('Errno') != '-1') {
+						toastr.error(data[i]);
+					} else {
+						toastr.success(data[i]);
 					}
 				}
 			}
-		});
-	}
+		}
+	});
 }
 function deleteList(list, color) {
 	var serv = $( "#serv-"+color+"-list option:selected" ).val();
-	if (serv == '------') {
-		toastr.warning('Choose a server before deleting');
-	} else {
-		$.ajax({
-			url: "options.py",
-			data: {
-				bwlists_delete: list,
-				serv: serv,
-				color: color,
-				group: $('#group').val(),
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function (data) {
-				if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1' || data.indexOf('Errno') != '-1') {
-					toastr.error(data);
-				} else if (data.indexOf('Info') != '-1' ){
-					toastr.clear();
-					toastr.info(data);
-				} else if (data.indexOf('success') != '-1' ) {
-					toastr.clear();
-					toastr.success('List has been deleted');
-					setTimeout(function () {
-						location.reload();
-					}, 2500);
-				}
+	if(!checkIsServerFiled(serv)) return false;
+	$.ajax({
+		url: "options.py",
+		data: {
+			bwlists_delete: list,
+			serv: serv,
+			color: color,
+			group: $('#group').val(),
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1' || data.indexOf('Errno') != '-1') {
+				toastr.error(data);
+			} else if (data.indexOf('Info') != '-1' ){
+				toastr.clear();
+				toastr.info(data);
+			} else if (data.indexOf('success') != '-1' ) {
+				toastr.clear();
+				toastr.success('List has been deleted');
+				setTimeout(function () {location.reload();}, 2500);
 			}
-		});
-	}
+		}
+	});
 }
 function generateConfig(form_name) {
 	var frm = $('#'+form_name);
@@ -1901,7 +1892,7 @@ var acl_option = '<p id="new_acl_p" style="border-bottom: 1px solid #ddd; paddin
 		'\t<option value="7">Set-header</option>\n' +
 		'</select>\n' +
 		'<b class="padding10">value</b>\n' +
-		'<input type="text" name="acl_then_value" class="form-control" value="" title="Required if \"then\" is \"Use backend\" or \"Redirect\"">\n' +
+		'<input type="text" name="acl_then_value" class="form-control" value="" title="Required if\" then\" is \"Use backend\" or \"Redirect\"">\n' +
 		'<span class="minus minus-style" id="new_acl_rule_minus" title="Delete this ACL"></span>' +
 		'</p>'
 function make_actions_for_adding_acl_rule(section_id) {
@@ -1969,34 +1960,31 @@ function makeid(length) {
 }
 function showUserlists() {
 	var serv = $( "#existing_userlist_serv option:selected" ).val();
-	if (serv == 'Choose server') {
-		toastr.warning('Choose a server before');
-	} else {
-		$.ajax({
-			url: "options.py",
-			data: {
-				show_userlists: 1,
-				serv: serv,
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function (data) {
-				if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
-					toastr.error(data);
-				} else {
-					$('#existing_userlist_tr').show();
-					$('#existing_userlist_ajax').text('');
-					data = data.split(",");
-					for (i = 0; i < data.length; i++) {
-						var existing_userlist_ajax = $.find("#existing_userlist_ajax");
-						existing_userlist_ajax = existing_userlist_ajax[0].id;
-						data[i] = escapeHtml(data[i]);
-						$('#'+existing_userlist_ajax).append('<a href="sections.py?serv='+serv+'&section='+data[i]+'" title="Edit/Delete this userlist" target="_blank">'+data[i]+'</a> ');
-					}
+	if(!checkIsServerFiled(serv)) return false;
+	$.ajax({
+		url: "options.py",
+		data: {
+			show_userlists: 1,
+			serv: serv,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
+				toastr.error(data);
+			} else {
+				$('#existing_userlist_tr').show();
+				$('#existing_userlist_ajax').text('');
+				data = data.split(",");
+				for (i = 0; i < data.length; i++) {
+					var existing_userlist_ajax = $.find("#existing_userlist_ajax");
+					existing_userlist_ajax = existing_userlist_ajax[0].id;
+					data[i] = escapeHtml(data[i]);
+					$('#'+existing_userlist_ajax).append('<a href="sections.py?serv='+serv+'&section='+data[i]+'" title="Edit/Delete this userlist" target="_blank">'+data[i]+'</a> ');
 				}
 			}
-		});
-	}
+		}
+	});
 }
 function changePortCheckFromServerPort() {
 	$('[name=server_port]').on('input', function (){

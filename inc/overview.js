@@ -395,7 +395,7 @@ function confirmAjaxAction(action, service, id) {
 		buttons: {
 			"Sure": function() {
 				$( this ).dialog( "close" );
-				if(service == "hap") {
+				if(service == "haproxy") {
 					ajaxActionServers(action, id);
 					if(action == "restart" || action == "reload") {
 						if(localStorage.getItem('restart')) {

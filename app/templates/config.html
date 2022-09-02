@@ -92,7 +92,7 @@
 	{% endif %}
 	</center>
 <script> 
-	if (cur_url[1].split('&')[1] == 'showMap') {
+	if (cur_url[1].split('&')[2] == 'showMap') {
 		showMap();		
 	}
 	if (cur_url[1].split('&')[1] == 'showCompare' || cur_url[1].split('&')[2] == 'showCompare') {
@@ -170,6 +170,20 @@
 </style>
 <script>
 	myCodeMirror.refresh();
+	$(document).bind('keydown', 'ctrl+s', function (){
+		$("[type='submit'][value='save']").click();
+	});
+	$(document).bind('keydown', 'ctrl+d', function (){
+		$("[type='submit'][value='test']").click();
+	});
+	$(document).bind('keydown', 'ctrl+e', function (){
+		$("[type='submit'][value='reload']").click();
+	});
+	{% if is_restart|int == 0 %}
+	$(document).bind('keydown', 'ctrl+r', function (){
+		$("[type='submit'][value='restart']").click();
+	});
+	{% endif %}
 </script>
 {% endif %}
 {% endblock %}

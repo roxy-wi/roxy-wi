@@ -3,7 +3,7 @@
 		<p class="accordion-expand-holder">
 			{% if role <= 3 %}
 				{% if not is_serv_protected or role <= 2 %}
-				<a class="ui-button ui-widget ui-corner-all" title="Edit this run config" href="config.py?service={{service}}&serv={{serv}}&open=open&config_file_name={{config_file_name}}">Edit</a>
+				<a class="ui-button ui-widget ui-corner-all" title="Edit this run config" id="edit_link" href="config.py?service={{service}}&serv={{serv}}&open=open&config_file_name={{config_file_name}}">Edit</a>
 				{% if service == 'haproxy' %}
 				<a class="ui-button ui-widget ui-corner-all" title="Add proxy" href="add.py#proxy">Add</a>
 				{% elif service == 'keepalived' %}
@@ -11,7 +11,7 @@
 				{% endif %}
 				{% endif %}
 			{% endif %}
-			<a class="accordion-expand-all ui-button ui-widget ui-corner-all" href="#">Expand all</a>
+			<a class="accordion-expand-all ui-button ui-widget ui-corner-all" id="expand_link" href="#">Expand all</a>
 			<button id="raw">Raw</button>
 			<button id="according" style="display: none;">According</button>
 		</p>
@@ -383,3 +383,25 @@
 		<div class="alert alert-info"><b>Note:</b> If you reconfigure Master server, Slave will be reconfigured automatically</div>
 	</center>
 	{% endif %}
+	<script>
+		{% if role <= 3 %}
+			{% if not is_serv_protected or role <= 2 %}
+			$(document).bind('keydown', 'e', function (){
+				window.location = document.getElementById('edit_link').href;
+			});
+			{% endif %}
+		{% endif %}
+		$(document).on('keydown', null, 'r', raw_button);
+		function raw_button(event) {
+			$("#raw").trigger("click");
+		}
+		$(document).on('keydown', null, 'a', according_button);
+		function according_button(event) {
+			$("#according").click();
+		}
+		$(document).on('keydown', null, 'x', expand_button);
+		function expand_button(event) {
+			$("#expand_link").click();
+		}
+
+	</script>

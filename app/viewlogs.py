@@ -54,12 +54,9 @@ try:
 except Exception:
 	pass
 
-try:
-	user, user_id, role, token, servers, user_services = funct.get_users_params()
-except Exception:
-	pass
+user, user_id, role, token, servers, user_services = funct.get_users_params()
 
-selects = funct.get_files(log_path, format="log")
+selects = funct.get_files(log_path, "log")
 if form.getvalue('type') is None:
 	selects.append(['fail2ban.log', 'fail2ban.log'])
 	selects.append(['roxy-wi.error.log', 'error.log'])

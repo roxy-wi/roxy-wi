@@ -55,14 +55,20 @@
 	});
 </script>
 <div id="up-pannel" {%if not serv%} class="sortable"{%endif%}>
-	{% for s in servers %}
-		{% if serv %}
+	{%- for s in servers %}
+		{%- if serv %}
+			{% set config_id = 'id=config_link' %}
+			{% set compare_id = 'id=compare_link' %}
+			{% set map_id = 'id=map_link' %}
+			{% set stats_id = 'id=stats_link' %}
+			{% set logs_id = 'id=logs_link' %}
+			{% set versions_id = 'id=versions_link' %}
 			<script>
 				var server_ip = '{{s.2}}'
 				function showMetrics() {
-					{% if service == 'haproxy' %}
-						{% for s in servers %}
-						{% if s.8.0.9 %}
+					{%- if service == 'haproxy' %}
+						{%- for s in servers %}
+						{%- if s.8.0.9 %}
 							getChartData(server_ip)
 							getHttpChartData(server_ip)
 							getWafChartData(server_ip)
@@ -70,16 +76,16 @@
 						{% endfor %}
 					{% endif %}
 					showOverviewServer('{{s.1}}', server_ip, '{{s.0}}', '{{service}}');
-					{% if service == 'nginx' %}
+					{%- if service == 'nginx' %}
 						showNginxConnections(server_ip)
 						{% if s.8.0.21 %}
 							getNginxChartData(server_ip)
 						{% endif %}
-					{% elif service == 'apache' %}
+					{%- elif service == 'apache' %}
 						{% if s.8.0.27 %}
 							getApacheChartData(server_ip)
 						{% endif %}
-					{% elif service == 'haproxy' %}
+					{%- elif service == 'haproxy' %}
 						showBytes(server_ip)
 					{% endif %}
 				}
@@ -104,23 +110,62 @@
 						metrics.then();
 					});
 				});
+				$(document).on('keydown', null, 'a', start_button);
+				function start_button(event) {
+					confirmAjaxAction('start', '{{service}}', '{{s.2}}');
+				}
+				$(document).on('keydown', null, 's', stop_button);
+				function stop_button(event) {
+					confirmAjaxAction('stop', '{{service}}', '{{s.2}}');
+				}
+				$(document).on('keydown', null, 'e', reload_button);
+				function reload_button(event) {
+					confirmAjaxAction('reload', '{{service}}', '{{s.2}}');
+				}
+				{% for set in restart_settings %}
+					{% if set.server_id == s.0 and set.setting == 'restart' and set.value|int == 0 %}
+					$(document).on('keydown', null, 'r', restart_button);
+					function restart_button(event) {
+						confirmAjaxAction('restart', '{{service}}', '{{s.2}}', '{{s.1}}');
+					}
+					{% endif %}
+				{% endfor %}
+				$(document).on('keydown', null, 'k', metrics_button);
+				function metrics_button(event) {
+					showMetrics();
+				}
+				$(document).bind('keydown', 'o', function (){
+					window.location = document.getElementById('compare_link').href;
+				});
+				$(document).bind('keydown', 'c', function (){
+					window.location = document.getElementById('config_link').href;
+				});
+				$(document).bind('keydown', 'm', function (){
+					window.location = document.getElementById('map_link').href;
+				});
+				$(document).bind('keydown', 't', function (){
+					window.location = document.getElementById('stats_link').href;
+				});
+				$(document).bind('keydown', 'l', function (){
+					window.location = document.getElementById('logs_link').href;
+				});
+				$(document).bind('keydown', 'v', function (){
+					window.location = document.getElementById('versions_link').href;
+				});
 			</script>
 		{% endif %}
+		{% set checker_desc = "Checker monitors " +service_desc.service + " services. If " + service_desc.service + " service changes its status, Checker will alert via Telegram, Slack, Email, Web" %}
 		{% if service == 'nginx' %}
-			{% set checker_desc = 'Checker monitors Nginx services. If Nginx service is down, Checker will alert via Telegram and/or Slack' %}
 			{% set is_auto_start_enabled = s.8.0.17 %}
 			{% set is_checker_enabled = s.8.0.19 %}
 			{% set is_metrics_enabled = s.8.0.21 %}
-			{% set action_service = 'nginx' %}
 			{% if s.5.0.1 == 'active' or s.5.0.1 == 'Up' %}
 				{% set additional_status_class = 'div-server-head-up' %}
 			{% else %}
 				{% set additional_status_class = 'div-server-head-down' %}
 			{% endif %}
 		{% elif service == 'keepalived' %}
-			{% set checker_desc = 'Checker monitors Keepalived services. If Keepalived service is down, Checker will alert via Telegram and/or Slack' %}
 			{% set is_auto_start_enabled = s.8.0.22 %}
-			{% set action_service = 'keepalived' %}
 			{% set is_checker_enabled = s.8.0.23 %}
 			{% if s.5.0.1 == 'active' %}
 				{% set additional_status_class = 'div-server-head-up' %}
@@ -128,9 +173,7 @@
 				{% set additional_status_class = 'div-server-head-down' %}
 			{% endif %}
 		{% elif service == 'apache' %}
-			{% set checker_desc = 'Checker monitors Apache services. If Apache service is down, Checker will alert via Telegram and/or Slack' %}
 			{% set is_auto_start_enabled = s.8.0.25 %}
-			{% set action_service = 'apache' %}
 			{% set is_checker_enabled = s.8.0.26 %}
 			{% set is_metrics_enabled = s.8.0.27 %}
 			{% if 'Apache' in s.4.0 %}
@@ -139,11 +182,9 @@
 				{% set additional_status_class = 'div-server-head-down' %}
 			{% endif %}
 		{% elif service == 'haproxy' %}
-			{% set checker_desc = 'Checker monitors HAProxy services, its backends and maxconn. If some backend or HAProxy service is down, Checker will alert via Telegram and/or Slack' %}
 			{% set is_auto_start_enabled = s.8.0.12 %}
 			{% set is_checker_enabled = s.8.0.8 %}
 			{% set is_metrics_enabled = s.8.0.9 %}
-			{% set action_service = 'hap' %}
 			{% if s.5 != False %}
 				{% set additional_status_class = 'div-server-head-up' %}
 			{% else %}
@@ -179,27 +220,27 @@
 				{% if role <= 3 %}
 				<span class="server-action">
 					<a id="start-{{ s.2 }}" class="start" title="Start {{service}} service">
-						<span class="service-start" onclick="confirmAjaxAction('start', '{{action_service}}', '{{s.2}}')"></span>
+						<span class="service-start" onclick="confirmAjaxAction('start', '{{service}}', '{{s.2}}')"></span>
 					</a>
 					{% if service != 'keepalived' %}
 					<a id="reload-{{ s.2 }}" class="reload" title="Reload {{service}} service">
-						<span class="service-reload" onclick="confirmAjaxAction('reload', '{{action_service}}', '{{s.2}}', '{{s.1}}')"></span>
+						<span class="service-reload" onclick="confirmAjaxAction('reload', '{{service}}', '{{s.2}}', '{{s.1}}')"></span>
 					</a>
 					{% endif %}
 					{% for set in restart_settings %}
 						{% if set.server_id == s.0 and set.setting == 'restart' and set.value|int == 0 %}
 						<a id="restart-{{ s.2 }}" class="restart" title="Restart {{service}} service">
-							<span class="service-reload service-restart" onclick="confirmAjaxAction('restart', '{{action_service}}', '{{s.2}}')"></span>
+							<span class="service-reload service-restart" onclick="confirmAjaxAction('restart', '{{service}}', '{{s.2}}')"></span>
 						</a>
 						{% endif %}
 					{% endfor %}
 					{% if restart_settings|length == 0 %}
 						<a id="restart-{{ s.2 }}" class="restart" title="Restart {{service}} service">
-							<span class="service-reload service-restart" onclick="confirmAjaxAction('restart', '{{action_service}}', '{{s.2}}')"></span>
+							<span class="service-reload service-restart" onclick="confirmAjaxAction('restart', '{{service}}', '{{s.2}}')"></span>
 						</a>
 					{% endif %}
 					<a id="stop-{{ s.2 }}" class="stop" title="Stop {{service}} service">
-						<span class="service-stop" onclick="confirmAjaxAction('stop', '{{action_service}}', '{{s.2}}')"></span>
+						<span class="service-stop" onclick="confirmAjaxAction('stop', '{{service}}', '{{s.2}}')"></span>
 					</a>
 					<a href="history.py?service={{service}}&serv={{s.2}}" title="View history for this service" class="history" style="margin: 0 5px 0 10px;"></a>
 					{% if service != 'keepalived' %}
@@ -288,20 +329,20 @@
 			</div>
 			<div class="server-act-links">
 				{% if service == 'nginx' or service == 'apache' %}
-				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showConfigFiles" class="ui-button ui-widget ui-corner-all" title="Open running configs">Configs</a>
+				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showConfigFiles" {{config_id}} class="ui-button ui-widget ui-corner-all" title="Open running configs">Configs</a>
 				{% else %}
-				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showConfig" class="ui-button ui-widget ui-corner-all" title="Open running config">Config</a>
+				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showConfig" {{config_id}} class="ui-button ui-widget ui-corner-all" title="Open running config">Config</a>
 				{% endif %}
-				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showCompare" class="ui-button ui-widget ui-corner-all" title="Compare configs">Compare</a>
-			{% if service != 'nginx' and service != 'keepalived' and service != 'apache' %}
-				<a href="/app/config.py?serv={{s.2}}&showMap" class="ui-button ui-widget ui-corner-all" title="Show map">Map</a>
+				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showCompare" {{compare_id}} class="ui-button ui-widget ui-corner-all" title="Compare configs">Compare</a>
+			{% if service == 'haproxy' %}
+				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showMap" class="ui-button ui-widget ui-corner-all" {{map_id}} title="Show map">Map</a>
 			{% endif %}
 			{% if service != 'keepalived' %}
-			<a href="/app/statsview.py?service={{service}}&serv={{s.2}}" class="ui-button ui-widget ui-corner-all" title="View {{service}} statistics">Stats</a>
+			<a href="/app/statsview.py?service={{service}}&serv={{s.2}}" class="ui-button ui-widget ui-corner-all" {{stats_id}} title="View {{service}} statistics">Stats</a>
 			{% endif %}
-			<a href="/app/logs.py?service={{service}}&serv={{s.2}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" class="ui-button ui-widget ui-corner-all" title="View {{service}} logs">Logs</a>
+			<a href="/app/logs.py?service={{service}}&serv={{s.2}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" {{logs_id}} class="ui-button ui-widget ui-corner-all" title="View {{service}} logs">Logs</a>
 			{% if role <= 2 %}
-				<a href="/app/versions.py?service={{service}}&serv={{s.2}}&open=open" class="ui-button ui-widget ui-corner-all" title="View/Rollback to previous config">Versions</a>
+				<a href="/app/versions.py?service={{service}}&serv={{s.2}}&open=open" class="ui-button ui-widget ui-corner-all" {{versions_id}} title="View/Rollback to previous config">Versions</a>
 			{% endif %}
 			</div>
 		</div>

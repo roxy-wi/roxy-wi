@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
+import psutil
 
 import funct
 import sql
@@ -13,57 +14,50 @@ print('Content-type: text/html\n')
 
 funct.check_login()
 
+grafana = 0
+metrics_worker = 0
+checker_worker = 0
+is_checker_worker = 0
+is_metrics_worker = 0
+servers_group = []
+host = os.environ.get('HTTP_HOST', '')
+
 try:
 	user, user_id, role, token, servers, user_services = funct.get_users_params()
 	groups = sql.select_groups()
 	user_group = funct.get_user_group(id=1)
 
 	if (role == 2 or role == 3) and int(user_group) != 1:
-		servers_for_grep = ''
-		i = 1
-		servers_len = len(servers)
-
 		for s in servers:
-			if i != servers_len:
-				servers_for_grep += s[2] + '\|'
-			else:
-				servers_for_grep += s[2]
+			servers_group.append(s[2])
 
-			i += 1
+	is_checker_worker = len(sql.select_all_alerts(group=user_group))
+	is_metrics_worker = len(sql.select_servers_metrics_for_master(group=user_group))
 
-		cmd = "ps ax |grep '[m]etrics_worker\|[m]etrics_waf_worker.py\|[m]etrics_nginx_worker.py'|grep '%s' |wc -l" % servers_for_grep
-		metrics_worker, stderr = funct.subprocess_execute(cmd)
-		cmd = "ps ax |grep '[c]hecker_worker\|[c]hecker_nginx\|[c]hecker_apache\|[c]hecker_keepalived'|grep -v grep |grep '%s' |wc -l" % servers_for_grep
-		checker_worker, stderr = funct.subprocess_execute(cmd)
-		i = 0
-		for s in sql.select_all_alerts(group=user_group):
-			i += 1
-		is_checker_worker = i
-		is_metrics_workers = sql.select_servers_metrics_for_master(group=user_group)
-		i = 0
-		for s in is_metrics_workers:
-			i += 1
-		is_metrics_worker = i
-		grafana = ''
-		prometheus = ''
-		host = ''
-	else:
-		cmd = "ps ax |grep '[m]etrics_worker\|[m]etrics_waf_worker.py\|[m]etrics_nginx_worker.py' |wc -l"
-		metrics_worker, stderr = funct.subprocess_execute(cmd)
-		cmd = "ps ax |grep '[c]hecker_worker\|[c]hecker_nginx\|[c]hecker_apache\|[c]hecker_keepalived' |wc -l"
-		checker_worker, stderr = funct.subprocess_execute(cmd)
-		i = 0
-		for s in sql.select_all_alerts():
-			i += 1
-		is_checker_worker = i
-		is_metrics_workers = sql.select_servers_metrics_for_master()
-		i = 0
-		for s in is_metrics_workers:
-			i += 1
-		is_metrics_worker = i
-		cmd = "ps ax |egrep [g]rafana|wc -l"
-		grafana, stderr = funct.subprocess_execute(cmd)
-		host = os.environ.get('HTTP_HOST', '')
+	for pids in psutil.pids():
+		if pids < 300:
+			continue
+		try:
+			pid = psutil.Process(pids)
+			cmdline_out = pid.cmdline()
+			if len(cmdline_out) > 2:
+				if 'checker_' in cmdline_out[1]:
+					if len(servers_group) > 0:
+						if cmdline_out[2] in servers_group:
+							checker_worker += 1
+					else:
+						checker_worker += 1
+				elif 'metrics_' in cmdline_out[1]:
+					if len(servers_group) > 0:
+						if cmdline_out[2] in servers_group:
+							metrics_worker += 1
+					else:
+						metrics_worker += 1
+				if len(servers_group) == 0:
+					if 'grafana' in cmdline_out[1]:
+						grafana += 1
+		except psutil.NoSuchProcess:
+			pass
 
 	cmd = "systemctl is-active roxy-wi-metrics"
 	metrics_master, stderr = funct.subprocess_execute(cmd)
@@ -78,41 +72,32 @@ try:
 	cmd = "systemctl is-active roxy-wi-socket"
 	socket, stderr = funct.subprocess_execute(cmd)
 
-except Exception:
+except Exception as e:
 	role = ''
 	user = ''
-	users = ''
 	groups = ''
 	roles = ''
 	metrics_master = ''
-	metrics_worker = ''
 	checker_master = ''
-	checker_worker = ''
 	keep_alive = ''
 	smon = ''
-	grafana = ''
 	socket = ''
-	versions = ''
-	haproxy_wi_log = ''
 	servers = ''
 	stderr = ''
-	is_checker_worker = ''
-	is_metrics_worker = ''
 	token = ''
-
+	print(str(e))
 
 rendered_template = template.render(
 	h2=1, autorefresh=1, title="Overview", role=role, user=user, groups=groups, roles=sql.select_roles(),
-	metrics_master=''.join(metrics_master), metrics_worker=''.join(metrics_worker), checker_master=''.join(checker_master),
-	checker_worker=''.join(checker_worker), keep_alive=''.join(keep_alive), smon=''.join(smon),
-	port_scanner=''.join(port_scanner), grafana=''.join(grafana), socket=''.join(socket),
-	roxy_wi_log_id=funct.roxy_wi_log(log_id=1, file="roxy-wi-", with_date=1),
-	metrics_log_id=funct.roxy_wi_log(log_id=1, file="metrics", with_date=1),
-	checker_log_id=funct.roxy_wi_log(log_id=1, file="checker", with_date=1),
+	metrics_master=''.join(metrics_master), metrics_worker=metrics_worker, checker_master=''.join(checker_master),
+	checker_worker=checker_worker, keep_alive=''.join(keep_alive), smon=''.join(smon),
+	port_scanner=''.join(port_scanner), grafana=grafana, socket=''.join(socket),
+	roxy_wi_log_id=funct.roxy_wi_log(log_id=1, file="roxy-wi-"),
+	metrics_log_id=funct.roxy_wi_log(log_id=1, file="metrics"),
+	checker_log_id=funct.roxy_wi_log(log_id=1, file="checker"),
 	keep_alive_log_id=funct.roxy_wi_log(log_id=1, file="keep_alive"),
-	socket_log_id=funct.roxy_wi_log(log_id=1, file="socket"),
-	metrics_error_log_id=funct.roxy_wi_log(log_id=1, file="metrics-error"), error=stderr,
-	haproxy_wi_log=funct.roxy_wi_log(), servers=servers, is_checker_worker=is_checker_worker,
+	socket_log_id=funct.roxy_wi_log(log_id=1, file="socket"), error=stderr,
+	roxy_wi_log=funct.roxy_wi_log(), servers=servers, is_checker_worker=is_checker_worker,
 	is_metrics_worker=is_metrics_worker, host=host, user_services=user_services, token=token
 )
 print(rendered_template)

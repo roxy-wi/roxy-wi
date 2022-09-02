@@ -20,10 +20,11 @@ serv = funct.is_ip_or_dns(form.getvalue('serv'))
 service = funct.checkAjaxInput(form.getvalue('service'))
 autorefresh = 0
 servers_waf = ()
-title = "HAProxy servers overview"
+title = ''
 cmd = "ps ax |grep -e 'keep_alive.py' |grep -v grep |wc -l"
 keep_alive, stderr = funct.subprocess_execute(cmd)
 is_restart = ''
+service_desc = ''
 restart_settings = ''
 
 if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
@@ -177,6 +178,6 @@ template = template.render(
     h2=1, autorefresh=autorefresh, title=title, role=role, user=user, servers=servers_with_status1,
     keep_alive=''.join(keep_alive), serv=serv, service=service, services=services, user_services=user_services,
     docker_settings=docker_settings, user_status=user_status, user_plan=user_plan, servers_waf=servers_waf,
-    restart_settings=restart_settings, token=token
+    restart_settings=restart_settings, service_desc=service_desc, token=token
 )
 print(template)
