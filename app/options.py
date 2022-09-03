@@ -4338,7 +4338,7 @@ if act == 'showListOfVersion':
     service_desc = sql.select_service(service)
 
     if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
-        configs = sql.select_config_version(serv, service_desc.service)
+        configs = sql.select_config_version(serv, service_desc.slug)
         action = f'versions.py?service={service_desc.slug}'
 
         if service in ('haproxy', 'nginx', 'apache'):

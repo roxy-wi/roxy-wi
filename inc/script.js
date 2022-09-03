@@ -309,25 +309,15 @@ function showStats() {
 }
 function openStats() {
 	var serv = $("#serv").val();
-	if (cur_url[1].split('&')[0] == "service=nginx") {
-		var url = "statsview.py?service=nginx&serv="+serv+"&open=open"
-	} else {	
-		var url = "statsview.py?serv="+serv+"&open=open"
-	}
+	var service_url = cur_url[1].split('&')[0];
+	var url = "statsview.py?"+service_url+"&serv="+serv+"&open=open"
 	var win = window.open(url, '_blank');
 	win.focus();
 }
 function openVersions() {
 	var serv = $("#serv").val();
-	if (cur_url[1].split('&')[0] == "service=keepalived") {
-		var url = "versions.py?service=keepalived&serv="+serv+"&open=open"
-	} else if (cur_url[1].split('&')[0] == "service=nginx") {
-		var url = "versions.py?service=nginx&serv="+serv+"&open=open"
-	} else if (cur_url[1].split('&')[0] == "service=apache") {
-		var url = "versions.py?service=apache&serv="+serv+"&open=open"
-	} else {	
-		var url = "versions.py?serv="+serv+"&open=open"
-	}
+	var service_url = cur_url[1].split('&')[0];
+	var url = "versions.py?"+service_url+"&serv="+serv+"&open=open"
 	var win = window.open(url,"_self");
 	win.focus();
 }
