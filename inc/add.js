@@ -1629,7 +1629,7 @@ function editList(list, color) {
 }
 function saveList(action, list, color) {
 	var serv = $( "#serv-"+color+"-list option:selected" ).val();
-	if(!checkIsServerFiled(serv)) return false;
+	if(!checkIsServerFiled($("#serv-"+color+"-list"))) return false;
 	$.ajax({
 		url: "options.py",
 		data: {
@@ -1658,7 +1658,7 @@ function saveList(action, list, color) {
 }
 function deleteList(list, color) {
 	var serv = $( "#serv-"+color+"-list option:selected" ).val();
-	if(!checkIsServerFiled(serv)) return false;
+	if(!checkIsServerFiled($("#serv-"+color+"-list"))) return false;
 	$.ajax({
 		url: "options.py",
 		data: {

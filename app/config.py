@@ -36,7 +36,7 @@ if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
 		action = f"config.py?service={service_desc.slug}"
 		configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
 		file_format = 'conf'
-		servers = sql.get_dick_permit(service=service_desc.service)
+		servers = sql.get_dick_permit(service=service_desc.slug)
 
 		if service in ('haproxy', 'nginx', 'apache'):
 			configs_dir = funct.get_config_var('configs', f'{service_desc.service}_save_configs_dir')
