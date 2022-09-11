@@ -1554,7 +1554,7 @@ def insert_new_waf_rule(rule_name: str, rule_file: str, rule_description: str, s
 		out_error(e)
 	else:
 		return last_id
-
+		
 
 
 def delete_waf_server(server_id):
@@ -1704,7 +1704,7 @@ def select_haproxy_servers_metrics_for_master():
 
 
 def select_nginx_servers_metrics_for_master():
-	query = Server.select(Server.ip).where(Server.nginx_metrics == 1)
+	query = Server.select(Server.ip).where((Server.nginx_metrics == 1) & (Server.nginx == 1))
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -1714,7 +1714,10 @@ def select_nginx_servers_metrics_for_master():
 
 
 def select_apache_servers_metrics_for_master():
-	query = Server.select(Server.ip).where(Server.apache_metrics == 1)
+	query = Server.select(Server.ip).where(
+		(Server.apache_metrics == 1)
+		& (Server.apache == 1)
+	)
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -2171,10 +2174,17 @@ def select_all_alerts(**kwargs):
 def select_nginx_alert(**kwargs):
 	if kwargs.get("group") is not None:
 		query = Server.select(Server.ip).where(
-			(Server.nginx_alert == 1) & (Server.enable == 1) & (Server.groups == kwargs.get('group'))
+			(Server.nginx_alert == 1)
+			& (Server.enable == 1)
+			& (Server.groups == kwargs.get('group'))
+			& (Server.nginx == 1)
 		)
 	else:
-		query = Server.select(Server.ip).where((Server.nginx_alert == 1) & (Server.enable == 1))
+		query = Server.select(Server.ip).where(
+			(Server.nginx_alert == 1)
+			& (Server.enable == 1)
+			& (Server.nginx == 1)
+		)
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -2186,10 +2196,13 @@ def select_nginx_alert(**kwargs):
 def select_apache_alert(**kwargs):
 	if kwargs.get("group") is not None:
 		query = Server.select(Server.ip).where(
-			(Server.apache_alert == 1) & (Server.enable == 1) & (Server.groups == kwargs.get('group'))
+			(Server.apache_alert == 1)
+			& (Server.enable == 1)
+			& (Server.groups == kwargs.get('group'))
+			& (Server.apache == 1)
 		)
 	else:
-		query = Server.select(Server.ip).where((Server.apache_alert == 1) & (Server.enable == 1))
+		query = Server.select(Server.ip).where((Server.apache_alert == 1) & (Server.enable == 1) & (Server.apache == 1))
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -2201,11 +2214,17 @@ def select_apache_alert(**kwargs):
 def select_keepalived_alert(**kwargs):
 	if kwargs.get("group") is not None:
 		query = Server.select(Server.ip).where(
-			(Server.keepalived_alert == 1) & (Server.enable == 1) & (Server.groups == kwargs.get('group'))
+			(Server.keepalived_alert == 1)
+			& (Server.enable == 1)
+			& (Server.groups == kwargs.get('group'))
+			& (Server.keepalived == 1)
 		)
 	else:
-		query = Server.select(Server.ip).where((Server.keepalived_alert == 1) & (Server.enable == 1))
-
+		query = Server.select(Server.ip).where(
+			(Server.keepalived_alert == 1)
+			& (Server.enable == 1)
+			& (Server.keepalived == 1)
+		)
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -3524,9 +3543,18 @@ def select_services():
 		return query_res
 
 
-def select_service_name_by_id(service_id):
+def select_service_name_by_id(service_id: int) -> str:
 	try:
 		service = Services.get(Services.service_id == service_id).service
+	except Exception as e:
+		return out_error(e)
+	else:
+		return service
+
+
+def select_service_id_by_slug(service_slug: str) -> int:
+	try:
+		service = Services.get(Services.slug == service_slug).service_id
 	except Exception as e:
 		return out_error(e)
 	else:
@@ -3767,6 +3795,24 @@ def select_service(slug: str) -> str:
 		return query_res
 
 
+def select_count_services(service: str) -> int:
+	try:
+		if service == 'haproxy':
+			query_res = Server.select().where(Server.haproxy == 1).count()
+		elif service == 'nginx':
+			query_res = Server.select().where(Server.nginx == 1).count()
+		elif service == 'keepalived':
+			query_res = Server.select().where(Server.keepalived == 1).count()
+		elif service == 'apache':
+			query_res = Server.select().where(Server.apache == 1).count()
+		else:
+			query_res = Server.select().where().count()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
+
+
 def select_checker_service_status(server_id: int, service_id: int, service_check: str) -> int:
 	try:
 		service_check_status = ServiceStatus.get(
@@ -3780,12 +3826,22 @@ def select_checker_service_status(server_id: int, service_id: int, service_check
 		return service_check_status
 
 
+def select_checker_services_status() -> tuple:
+	try:
+		services_check_status = ServiceStatus.select().execute()
+	except Exception as e:
+		return out_error(e)
+	else:
+		return services_check_status
+
+
 def inset_or_update_service_status(
 		server_id: int, service_id: int, service_check: str, status: int
 ) -> None:
+	query = ServiceStatus.insert(
+		server_id=server_id, service_id=service_id, service_check=service_check, status=status
+	).on_conflict('replace')
 	try:
-		ServiceStatus.insert(
-			server_id=server_id, service_id=service_id, service_check=service_check, status=status
-		).on_conflict('replace').execute()
+		query.execute()
 	except Exception as e:
 		out_error(e)

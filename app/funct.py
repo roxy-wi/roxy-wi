@@ -333,7 +333,7 @@ def get_user_id(**kwargs):
 		return user_id
 
 
-def is_admin(**kwargs):
+def is_admin(level=1):
 	import sql
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_id = cookie.get('uuid')
@@ -342,10 +342,6 @@ def is_admin(**kwargs):
 	except Exception:
 		role = 4
 		pass
-	level = kwargs.get("level")
-
-	if level is None:
-		level = 1
 
 	try:
 		return True if role <= level else False
@@ -353,18 +349,13 @@ def is_admin(**kwargs):
 		return False
 
 
-def page_for_admin(**kwargs):
-	if kwargs.get("level"):
-		give_level = kwargs.get("level")
-	else:
-		give_level = 1
-
-	if not is_admin(level=give_level):
+def page_for_admin(given_level=1) -> None:
+	if not is_admin(level=given_level):
 		print('<meta http-equiv="refresh" content="0; url=/">')
 		return
 
 
-def return_ssh_keys_path(server_ip, **kwargs):
+def return_ssh_keys_path(server_ip: str, **kwargs):
 	import sql
 	lib_path = get_config_var('main', 'lib_path')
 	ssh_enable = ''
@@ -373,17 +364,15 @@ def return_ssh_keys_path(server_ip, **kwargs):
 	ssh_key_name = ''
 
 	if kwargs.get('id'):
-		for sshs in sql.select_ssh(id=kwargs.get('id')):
-			ssh_enable = sshs.enable
-			ssh_user_name = sshs.username
-			ssh_user_password = sshs.password
-			ssh_key_name = lib_path + '/keys/%s.pem' % sshs.name
+		sshs = sql.select_ssh(id=kwargs.get('id'))
 	else:
-		for sshs in sql.select_ssh(serv=server_ip):
-			ssh_enable = sshs.enable
-			ssh_user_name = sshs.username
-			ssh_user_password = sshs.password
-			ssh_key_name = lib_path + '/keys/%s.pem' % sshs.name
+		sshs = sql.select_ssh(serv=server_ip)
+
+	for ssh in sshs:
+		ssh_enable = ssh.enable
+		ssh_user_name = ssh.username
+		ssh_user_password = ssh.password
+		ssh_key_name = f'{lib_path}/keys/{ssh.name}.pem'
 
 	return ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name
 
@@ -514,19 +503,15 @@ def get_remote_sections(server_ip: str, service: str) -> str:
 	remote_dir = service + '_dir'
 	config_dir = sql.get_setting(remote_dir)
 	config_dir = return_nice_path(config_dir)
-	if service == 'nginx':
-		section_name = 'server_name'
-		commands = [
-			'sudo grep {} {}* -R |grep -v \'${}\|#\'|awk \'{{print $1, $3}}\''.format(
-				section_name, config_dir, section_name
-			)]
+	section_name = 'server_name'
 
-	elif service == 'apache':
+	if service == 'apache':
 		section_name = 'ServerName'
-		commands = [
-			'sudo grep {} {}*/*.conf -R |grep -v \'${}\|#\'|awk \'{{print $1, $3}}\''.format(
-				section_name, config_dir, section_name
-			)]
+
+	commands = [
+		"sudo grep {} {}*/*.conf -R |grep -v '${{}}\|#'|awk '{{print $1, $3}}'".format(
+			section_name, config_dir
+		)]
 
 	backends = ssh_command(server_ip, commands)
 
