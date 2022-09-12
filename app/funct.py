@@ -349,8 +349,8 @@ def is_admin(level=1):
 		return False
 
 
-def page_for_admin(given_level=1) -> None:
-	if not is_admin(level=given_level):
+def page_for_admin(level=1) -> None:
+	if not is_admin(level=level):
 		print('<meta http-equiv="refresh" content="0; url=/">')
 		return
 
