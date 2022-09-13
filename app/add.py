@@ -41,8 +41,8 @@ if all(v is None for v in [
 	if not os.path.exists(black_dir):
 		os.makedirs(black_dir)
 
-	white_lists = funct.get_files(white_dir, "lst")
-	black_lists = funct.get_files(black_dir, "lst")
+	white_lists = funct.get_files(folder=white_dir, file_format="lst")
+	black_lists = funct.get_files(folder=black_dir, file_format="lst")
 
 	template = template.render(
 		title="Add: ", role=role, user=user, selects=servers, add=form.getvalue('add'), conf_add=form.getvalue('conf'),
