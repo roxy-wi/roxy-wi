@@ -1900,7 +1900,8 @@ if form.getvalue('update_roxy_wi'):
                 'roxy-wi-smon',
                 'roxy-wi-metrics',
                 'roxy-wi-portscanner',
-                'roxy-wi-socket']
+                'roxy-wi-socket',
+                'roxy-wi-prometheus-exporter']
     if service not in services:
         print('error: ' + service + ' is not part of Roxy-WI')
         sys.exit()
