@@ -33,7 +33,7 @@
     <td></td>
 </tr>
 {% for s in services %}
-    {% if s.0 in ('roxy-wi-smon', 'roxy-wi-checker', 'roxy-wi-keep_alive', 'roxy-wi-metrics', 'roxy-wi-portscanner', 'roxy-wi-socket') %}
+    {% if s.0 in ('roxy-wi-smon', 'roxy-wi-checker', 'roxy-wi-keep_alive', 'roxy-wi-metrics', 'roxy-wi-portscanner', 'roxy-wi-socket', 'roxy-wi-prometheus-exporter') %}
 <tr class="{{ loop.cycle('even', 'odd') }}">
     {% set is_need_update = 0 %}
     {% if s.0 == 'roxy-wi-smon' %}
@@ -84,6 +84,14 @@
         {% set is_need_update = 1 %}
     {% endif %}
     {% set description = 'Socket is a service for sending alerts and notifications' %}
+{% elif s.0 == 'roxy-wi-prometheus-exporter' %}
+    {% set service_name = 'Prometheus exporter' %}
+    {% set service_link = 'prometheus-exporter' %}
+    {% set desc_link = 'https://roxy-wi.org/services/' + service_link %}
+    {% if s.3|float < prometheus_exp_ver|float %}
+        {% set is_need_update = 1 %}
+    {% endif %}
+    {% set description = 'Prometheus exporter' %}
 {% endif %}
     <td class="padding10 first-collumn">
         <a href="{{desc_link}}" title="Read more about {{service_name}}" target="_blank" class="link" rel="noopener noreferrer">{{service_name}}</a>
@@ -117,6 +125,8 @@
                 {{portscanner_ver}}
             {% elif s.0 == 'roxy-wi-socket' %}
                 {{socket_ver}}
+            {% elif s.0 == 'roxy-wi-prometheus-exporter' %}
+                {{prometheus_exp_ver}}
             {% endif %}
         </b>
     </td>
