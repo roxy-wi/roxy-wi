@@ -4095,6 +4095,7 @@ if form.getvalue('load_update_hapwi'):
     keep_ver = funct.check_new_version('keep_alive')
     portscanner_ver = funct.check_new_version('portscanner')
     socket_ver = funct.check_new_version('socket')
+    prometheus_exp_ver = funct.check_new_version('prometheus-exporter')
     services = funct.get_services_status()
 
     template = template.render(services=services,
@@ -4104,6 +4105,7 @@ if form.getvalue('load_update_hapwi'):
                                metrics_ver=metrics_ver,
                                portscanner_ver=portscanner_ver,
                                socket_ver=socket_ver,
+                               prometheus_exp_ver=prometheus_exp_ver,
                                keep_ver=keep_ver)
     print(template)
 

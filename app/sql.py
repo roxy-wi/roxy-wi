@@ -3610,6 +3610,15 @@ def select_user_status():
 		return query_res
 
 
+def check_user_status():
+	try:
+		UserName.get().Status
+	except Exception as e:
+		raise Exception(str(e))
+	else:
+		return True
+
+
 def select_user_plan():
 	try:
 		query_res = UserName.get().Plan

@@ -17,8 +17,8 @@ def is_ip_or_dns(server_from_request: str) -> str:
 	try:
 		if server_from_request in (
 			'roxy-wi-checker', 'roxy-wi-keep_alive', 'roxy-wi-keep-alive', 'roxy-wi-metrics',
-			'roxy-wi-portscanner', 'roxy-wi-smon', 'roxy-wi-socket', 'fail2ban', 'prometheus',
-			'all', 'grafana-server', 'rabbitmq-server'
+			'roxy-wi-portscanner', 'roxy-wi-smon', 'roxy-wi-socket', 'roxy-wi-prometheus-exporter',
+			'prometheus', 'fail2ban', 'all', 'grafana-server', 'rabbitmq-server'
 		):
 			return server_from_request
 		if re.match(ip_regex, server_from_request):
@@ -378,9 +378,8 @@ def return_ssh_keys_path(server_ip: str, **kwargs):
 
 
 def ssh_connect(server_ip):
-	import paramiko
-	from paramiko import SSHClient
 	import sql
+	from modules import ssh_connection
 
 	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = return_ssh_keys_path(server_ip)
 	servers = sql.select_servers(server=server_ip)
@@ -389,37 +388,9 @@ def ssh_connect(server_ip):
 	for server in servers:
 		ssh_port = server[10]
 
-	ssh = SSHClient()
-	ssh.load_system_host_keys()
-	ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+	ssh = ssh_connection.SshConnection(server_ip, ssh_port, ssh_user_name, ssh_user_password, ssh_enable, ssh_key_name)
 
-	try:
-		if ssh_enable == 1:
-			k = paramiko.pkey.load_private_key_file(ssh_key_name)
-			ssh.connect(hostname=server_ip, port=ssh_port, username=ssh_user_name, pkey=k, timeout=11, banner_timeout=200)
-		else:
-			ssh.connect(hostname=server_ip, port=ssh_port, username=ssh_user_name, password=ssh_user_password, timeout=11, banner_timeout=200)
-		return ssh
-	except paramiko.AuthenticationException as e:
-		logging('localhost', ' ' + str(e), haproxywi=1)
-		print('error: Authentication failed, please verify your credentials')
-	except paramiko.SSHException as sshException:
-		logging('localhost', ' ' + str(sshException), haproxywi=1)
-		print('error: Unable to establish SSH connection: %s ') % sshException
-	except paramiko.PasswordRequiredException as e:
-		logging('localhost', ' ' + str(e), haproxywi=1)
-		print('error: %s ') % e
-	except paramiko.BadHostKeyException as badHostKeyException:
-		logging('localhost', ' ' + str(badHostKeyException), haproxywi=1)
-		print('error: Unable to verify server\'s host key: %s ') % badHostKeyException
-	except Exception as e:
-		logging('localhost', ' ' + str(e), haproxywi=1)
-		if e == "No such file or directory":
-			print('error: %s. Check SSH key') % e
-		elif e == "Invalid argument":
-			print('error: Check the IP of the server')
-		else:
-			print(str(e))
+	return ssh
 
 
 def get_config(server_ip, cfg, **kwargs):
@@ -441,25 +412,12 @@ def get_config(server_ip, cfg, **kwargs):
 	else:
 		config_path = sql.get_setting('haproxy_config_path')
 
-	ssh = ssh_connect(server_ip)
-	try:
-		sftp = ssh.open_sftp()
-	except Exception as e:
-		logging('localhost', str(e), haproxywi=1)
-		return
 
 	try:
-		sftp.get(config_path, cfg)
+		with ssh_connect(server_ip) as ssh:
+			ssh.get_sftp(config_path, cfg)
 	except Exception as e:
-		logging('localhost', str(e), haproxywi=1)
-		sftp.close()
-		ssh.close()
-		return
-
-	try:
-		sftp.close()
-		ssh.close()
-	except Exception as e:
+		print('error: cannot get config')
 		logging('localhost', str(e), haproxywi=1)
 		return
 
@@ -906,36 +864,12 @@ def upload(server_ip, path, file, **kwargs):
 		full_path = path
 
 	try:
-		ssh = ssh_connect(server_ip)
+		with ssh_connect(server_ip) as ssh:
+			ssh.put_sftp(file, full_path)
 	except Exception as e:
 		error = str(e.args)
 		logging('localhost', error, haproxywi=1)
 		print(' Cannot upload ' + file + ' to ' + full_path + ' to server: ' + server_ip + ' error: ' + error)
-		return error
-
-	try:
-		sftp = ssh.open_sftp()
-	except Exception as e:
-		error = str(e.args)
-		logging('localhost', error, haproxywi=1)
-		print('Cannot upload ' + file + ' to ' + full_path + ' to server: ' + server_ip + ' error: ' + error)
-		return error
-
-	try:
-		file = sftp.put(file, full_path)
-	except Exception as e:
-		error = str(e.args)
-		print('Cannot upload ' + file + ' to ' + full_path + ' to server: ' + server_ip + ' error: ' + error)
-		logging('localhost', ' Cannot upload ' + file + ' to ' + full_path + ' to server: ' + server_ip + ' Error: ' + error, haproxywi=1)
-		return error
-
-	try:
-		sftp.close()
-		ssh.close()
-	except Exception as e:
-		error = str(e.args)
-		logging('localhost', error, haproxywi=1)
-		print('Cannot upload ' + file + ' to ' + full_path + ' to server: ' + server_ip + ' error: ' + error)
 		return error
 
 
@@ -1214,27 +1148,26 @@ def check_haproxy_config(server_ip):
 	else:
 		commands = ["haproxy  -q -c -f %s" % config_path]
 
-	ssh = ssh_connect(server_ip)
-	for command in commands:
-		stdin, stdout, stderr = ssh.exec_command(command, get_pty=True)
-		if not stderr.read():
-			return True
-		else:
-			return False
-	ssh.close()
+	with ssh_connect(server_ip) as ssh:
+		for command in commands:
+			stdin, stdout, stderr = ssh.run_command(command)
+			if not stderr.read():
+				return True
+			else:
+				return False
 
 
 def check_nginx_config(server_ip):
 	import sql
 	commands = ["nginx -q -t -p {}".format(sql.get_setting('nginx_dir'))]
-	ssh = ssh_connect(server_ip)
-	for command in commands:
-		stdin, stdout, stderr = ssh.exec_command(command, get_pty=True)
-		if not stderr.read():
-			return True
-		else:
-			return False
-	ssh.close()
+
+	with ssh_connect(server_ip) as ssh:
+		for command in commands:
+			stdin, stdout, stderr = ssh.run_command(command)
+			if not stderr.read():
+				return True
+			else:
+				return False
 
 
 def show_log(stdout, **kwargs):
@@ -1432,41 +1365,37 @@ def server_status(stdout):
 
 
 def ssh_command(server_ip, commands, **kwargs):
-	ssh = ssh_connect(server_ip)
+	with ssh_connect(server_ip) as ssh:
+		for command in commands:
+			try:
+				stdin, stdout, stderr = ssh.run_command(command)
+			except Exception as e:
+				logging('localhost', ' ' + str(e), haproxywi=1)
+				return str(e)
 
-	for command in commands:
-		try:
-			stdin, stdout, stderr = ssh.exec_command(command, get_pty=True)
-		except Exception as e:
-			logging('localhost', ' ' + str(e), haproxywi=1)
-			ssh.close()
-			return str(e)
+			if kwargs.get('raw'):
+				return stdout
+			try:
+				if kwargs.get("ip") == "1":
+					show_ip(stdout)
+				elif kwargs.get("show_log") == "1":
+					return show_log(stdout, grep=kwargs.get("grep"))
+				elif kwargs.get("server_status") == "1":
+					server_status(stdout)
+				elif kwargs.get('print_out'):
+					print(stdout.read().decode(encoding='UTF-8'))
+					return stdout.read().decode(encoding='UTF-8')
+				elif kwargs.get('return_err') == 1:
+					return stderr.read().decode(encoding='UTF-8')
+				else:
+					return stdout.read().decode(encoding='UTF-8')
+			except Exception as e:
+				logging('localhost', str(e), haproxywi=1)
 
-		if kwargs.get('raw'):
-			return stdout
-		try:
-			if kwargs.get("ip") == "1":
-				show_ip(stdout)
-			elif kwargs.get("show_log") == "1":
-				return show_log(stdout, grep=kwargs.get("grep"))
-			elif kwargs.get("server_status") == "1":
-				server_status(stdout)
-			elif kwargs.get('print_out'):
-				print(stdout.read().decode(encoding='UTF-8'))
-				return stdout.read().decode(encoding='UTF-8')
-			elif kwargs.get('return_err') == 1:
-				return stderr.read().decode(encoding='UTF-8')
-			else:
-				return stdout.read().decode(encoding='UTF-8')
-		except Exception as e:
-			logging('localhost', str(e), haproxywi=1)
-		finally:
-			ssh.close()
-
-		for line in stderr.read().decode(encoding='UTF-8'):
-			if line:
-				print("<div class='alert alert-warning'>" + line + "</div>")
-				logging('localhost', ' ' + line, haproxywi=1)
+			for line in stderr.read().decode(encoding='UTF-8'):
+				if line:
+					print("<div class='alert alert-warning'>" + line + "</div>")
+					logging('localhost', ' ' + line, haproxywi=1)
 
 
 def subprocess_execute(cmd):
@@ -1565,12 +1494,22 @@ def check_ver():
 
 def check_new_version(service):
 	import requests
+	from requests.adapters import HTTPAdapter
+	from requests.packages.urllib3.util.retry import Retry
 	import sql
 	current_ver = check_ver()
 	proxy = sql.get_setting('proxy')
 	res = ''
 
 	user_name = sql.select_user_name()
+	retry_strategy = Retry(
+		total=3,
+		status_forcelist=[429, 500, 502, 503, 504],
+		method_whitelist=["HEAD", "GET", "OPTIONS"]
+	)
+	adapter = HTTPAdapter(max_retries=retry_strategy)
+	roxy_wi_get_plan = requests.Session()
+	roxy_wi_get_plan.mount("https://", adapter)
 
 	try:
 		if proxy is not None and proxy != '' and proxy != 'None':
@@ -1578,17 +1517,17 @@ def check_new_version(service):
 			response = requests.get(f'https://roxy-wi.org/version/get/{service}', timeout=1, proxies=proxy_dict)
 			if service == 'roxy-wi':
 				requests.get(f'https://roxy-wi.org/version/send/{current_ver}', timeout=1, proxies=proxy_dict)
-				response_status = requests.get(f'https://roxy-wi.org/user-name/{user_name}', timeout=1, proxies=proxy_dict)
+				roxy_wi_get_plan = requests.get(f'https://roxy-wi.org/user-name/{user_name}', timeout=1, proxies=proxy_dict)
 		else:
 			response = requests.get(f'https://roxy-wi.org/version/get/{service}', timeout=1)
 			if service == 'roxy-wi':
 				requests.get(f'https://roxy-wi.org/version/send/{current_ver}', timeout=1)
-				response_status = requests.get(f'https://roxy-wi.org/user-name/{user_name}', timeout=1)
+				roxy_wi_get_plan = requests.get(f'https://roxy-wi.org/user-name/{user_name}', timeout=1)
 
 		res = response.content.decode(encoding='UTF-8')
 		if service == 'roxy-wi':
 			try:
-				status = response_status.content.decode(encoding='UTF-8')
+				status = roxy_wi_get_plan.content.decode(encoding='UTF-8')
 				status = status.split(' ')
 				sql.update_user_status(status[0], status[1].strip(), status[2].strip())
 			except Exception:
@@ -1624,9 +1563,10 @@ def versions():
 		if len(new_ver_without_dots) == 3:
 			new_ver_without_dots += '0'
 		new_ver_without_dots = int(new_ver_without_dots)
-	except Exception:
+	except Exception as e:
 		new_ver = "Cannot get a new version"
 		new_ver_without_dots = 0
+		logging('localhost', ' ' + str(e), haproxywi=1)
 
 	return current_ver, new_ver, current_ver_without_dots, new_ver_without_dots
 
@@ -1754,6 +1694,7 @@ def get_services_status():
 		'roxy-wi-portscanner': 'Port scanner service',
 		'roxy-wi-smon': 'Simple monitoring network ports',
 		'roxy-wi-socket': 'Socket service',
+		'roxy-wi-prometheus-exporter': 'Prometheus exporter',
 		'prometheus': 'Prometheus service',
 		'grafana-server': 'Grafana service',
 		'fail2ban': 'Fail2ban service',

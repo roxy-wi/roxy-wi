@@ -988,7 +988,7 @@ def update_db_v_6_1_4():
 
 
 def update_ver():
-	query = Version.update(version='6.1.5.0')
+	query = Version.update(version='6.2.0.0')
 	try:
 		query.execute()
 	except Exception:
