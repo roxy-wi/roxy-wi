@@ -1,6 +1,7 @@
 import paramiko
 from paramiko import SSHClient
 
+
 class SshConnection:
     def __init__(self, server_ip, ssh_port, ssh_user_name, ssh_user_password, ssh_enable, ssh_key_name=None):
         self.ssh = SSHClient()
@@ -13,16 +14,26 @@ class SshConnection:
         self.ssh_enable = ssh_enable
         self.ssh_key_name = ssh_key_name
 
-
     def __enter__(self):
         try:
             if self.ssh_enable == 1:
                 k = paramiko.pkey.load_private_key_file(self.ssh_key_name)
-                self.ssh.connect(hostname=self.server_ip, port=self.ssh_port, username=self.ssh_user_name, pkey=k,
-                            timeout=11, banner_timeout=200)
+                self.ssh.connect(
+                    hostname=self.server_ip,
+                    port=self.ssh_port,
+                    username=self.ssh_user_name, pkey=k,
+                    timeout=11,
+                    banner_timeout=200
+                )
             else:
-                self.ssh.connect(hostname=self.server_ip, port=self.ssh_port, username=self.ssh_user_name,
-                            password=self.ssh_user_password, timeout=11, banner_timeout=200)
+                self.ssh.connect(
+                    hostname=self.server_ip,
+                    port=self.ssh_port,
+                    username=self.ssh_user_name,
+                    password=self.ssh_user_password,
+                    timeout=11,
+                    banner_timeout=200
+                )
         except paramiko.AuthenticationException:
             raise paramiko.SSHException('error: Authentication failed, please verify your credentials')
         except paramiko.SSHException as sshException:
@@ -40,10 +51,8 @@ class SshConnection:
                 raise paramiko.SSHException(str(e))
         return self
 
-
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.ssh.close()
-
 
     def run_command(self, command):
         try:
@@ -52,7 +61,6 @@ class SshConnection:
             raise paramiko.SSHException(str(e))
 
         return stdin, stdout, stderr
-
 
     def get_sftp(self, config_path, cfg):
         try:
@@ -70,7 +78,6 @@ class SshConnection:
             sftp.close()
         except Exception as e:
             raise paramiko.SSHException(str(e))
-
 
     def put_sftp(self, file, full_path):
         try:

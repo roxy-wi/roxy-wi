@@ -3,6 +3,7 @@ import distro
 
 from modules.db_model import *
 
+from funct import check_ver
 
 def default_values():
 	if distro.id() == 'ubuntu':
@@ -655,6 +656,13 @@ def default_values():
 	except Exception as e:
 		print(str(e))
 
+# Needs for insert version in first time
+def update_db_v_3_4_5_22():
+	try:
+		Version.insert(version='3.4.5.2').execute()
+	except Exception as e:
+		print('Cannot insert version %s' % e)
+
 
 # Needs for updating user_group. Do not delete
 def update_db_v_4_3_0():
@@ -955,6 +963,8 @@ def update_ver():
 
 
 def update_all():
+	if check_ver() is None:
+		update_db_v_3_4_5_22()
 	update_db_v_4_3_0()
 	update_db_v_5_2_4()
 	update_db_v_5_2_4_1()
