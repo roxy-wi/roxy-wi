@@ -581,6 +581,11 @@ ul{
 	padding-left: 10px !important;
 	padding-right: 10px !important;
 }
+.overflow_div {
+	overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 @media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm) {
 	.ui-checkboxradio-label {
 		padding-bottom: 0.4em !important;
@@ -733,7 +738,7 @@ td,th {
 	margin-right: 50px;
 	width: 300px;
 	text-align: center;
-    margin-left: 40%;
+    margin-left: 44%;
 }
 .validateTips {
 	width: 540px;

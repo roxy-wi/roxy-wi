@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 import os
 import sys
 import http.cookies
+
 import datetime
 import uuid
 import distro
 
 import sql
-import create_db
 import funct
 
 from jinja2 import Environment, FileSystemLoader
@@ -27,15 +26,14 @@ except Exception:
 	ref = ''
 	login = ''
 	password = ''
-db_create = ""
 error_log = ""
 error = ""
 
 
 def send_cookie(login):
-	session_ttl = sql.get_setting('session_ttl')
-	session_ttl = int(session_ttl)
+	session_ttl = int(sql.get_setting('session_ttl'))
 	expires = datetime.datetime.utcnow() + datetime.timedelta(days=session_ttl)
+	user_group = ''
 	user_uuid = str(uuid.uuid4())
 	user_token = str(uuid.uuid4())
 	sql.write_user_uuid(login, user_uuid)
@@ -76,7 +74,7 @@ def send_cookie(login):
 
 	try:
 		user_name = sql.get_user_name_by_uuid(user_uuid)
-		funct.logging('localhost', ' user: ' + user_name + ', group: ' + user_group + ' login', haproxywi=1)
+		funct.logging('localhost', f' user: {user_name}, group: {user_group} login', haproxywi=1)
 	except Exception:
 		pass
 	print("Content-type: text/html\n")
@@ -116,12 +114,13 @@ def ban():
 	c["ban"]["Secure"] = "True"
 	c["ban"]["expires"] = expires.strftime("%a, %d %b %Y %H:%M:%S GMT")
 	try:
-		funct.logging('localhost', login + ' failed log in', haproxywi=1, login=1)
+		funct.logging('localhost', f'{login} failed log in', haproxywi=1, login=1)
 	except Exception:
 		funct.logging('localhost', ' Failed log in. Wrong username', haproxywi=1)
 	print(c.output())
 	print("Content-type: text/html\n")
 	print('ban')
+	sys.exit()
 
 
 def check_in_ldap(user, password):
@@ -168,8 +167,8 @@ def check_in_ldap(user, password):
 			print("Content-type: text/html\n")
 			print('<center><div class="alert alert-danger">Other LDAP error: %s</div><br /><br />' % e)
 			sys.exit()
-
-	send_cookie(user)
+	else:
+		send_cookie(user)
 
 
 if ref is None:
@@ -191,7 +190,6 @@ try:
 except Exception:
 	role = ""
 	user = ""
-	pass
 
 
 if form.getvalue('logout'):
@@ -222,19 +220,15 @@ if login is not None and password is not None:
 				break
 			else:
 				ban()
-				sys.exit()
 	else:
 		ban()
-		sys.exit()
 	print("Content-type: text/html\n")
 
 if login is None:
 	print("Content-type: text/html\n")
 
-create_db.update_all_silent()
-
 output_from_parsed_template = template.render(
 	h2=0, title="Login page", role=role, user=user, error_log=error_log, error=error, ref=ref,
-	versions=funct.versions(), db_create=db_create
+	versions=funct.versions()
 )
 print(output_from_parsed_template)

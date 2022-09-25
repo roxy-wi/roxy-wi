@@ -524,7 +524,7 @@ def show_log(server_id):
 		data[server_id] = {"error": "Cannot find the server"}
 		return dict(error=data)
 
-	out = funct.show_haproxy_log(ip, rows=rows, waf=str(waf), grep=grep, hour=str(hour), minut=str(minute), hour1=str(hour1), minut1=str(minute1), html=0)
+	out = funct.show_roxy_log(ip, rows=rows, waf=str(waf), grep=grep, hour=str(hour), minut=str(minute), hour1=str(hour1), minut1=str(minute1), html=0)
 	data = {server_id: out}
 
 	return dict(log=data)

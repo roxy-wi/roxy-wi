@@ -32,7 +32,7 @@ except Exception as e:
 if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
 	service_desc = sql.select_service(service)
 	if funct.check_login(service=service_desc.service_id):
-		title = f"{service_desc.service} config view page"
+		title = f"Working with {service_desc.service} configuration files"
 		action = f"config.py?service={service_desc.slug}"
 		configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
 		file_format = 'conf'
@@ -60,8 +60,6 @@ if serv is not None and form.getvalue('open') is not None and form.getvalue('new
 	is_serv_protected = sql.is_serv_protected(serv)
 	server_id = sql.select_server_id_by_ip(serv)
 	is_restart = sql.select_service_setting(server_id, service, 'restart')
-	service_desc = sql.select_service(service)
-	title = f'{service_desc.service} config edit page'
 
 	if service == 'keepalived':
 		error = funct.get_config(serv, cfg, keepalived=1)

@@ -32,7 +32,7 @@ if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
         )
 elif service == 'server':
     if serv:
-        title = serv + ' history'
+        title = f'{serv} history'
         if funct.check_is_server_in_group(serv):
             server_id = sql.select_server_id_by_ip(serv)
             history = sql.select_action_history_by_server_id(server_id)

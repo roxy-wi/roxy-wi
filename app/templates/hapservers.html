@@ -279,14 +279,14 @@
 						<br />
 						{{s.5.0.2}}
 					{% else %}
-						Cannot get information about HAProxy 
-					{% endif %}				 
+						Cannot get information about HAProxy
+					{% endif %}
 				{% endif %}
 				<span title="Date of last configuration edit">
 					Last edit:
 					<span id="edit_date_{{s.2}}"></span>
-				</span>			
-				<br />
+				</span>
+				<div class="overflow_div">
 				IP: {{ copy_to_clipboard(value=s.2, style='font-weight: bold') }}
 				{% if s.7.0.0 != None %}
 					Master for: <b>{{ copy_to_clipboard(value=s.7.0.1, style='font-weight: bold') }}</b>
@@ -300,6 +300,7 @@
 					{% endif %}
 					</b>
 				{% endif %}
+				</div>
 			</div>
 			<div class="server-act-links" id="server-{{s.8.0.0|string()}}-{{service}}">
 				{% if role <= 2 %}

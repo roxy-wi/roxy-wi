@@ -5,9 +5,7 @@ import sys
 import os
 
 import funct
-from db_model import *
-
-mysql_enable = funct.get_config_var('mysql', 'enable')
+from modules.db_model import *
 
 
 def out_error(error):

@@ -967,7 +967,7 @@ if serv is not None and form.getvalue('show_log') is not None:
     hour1 = form.getvalue('hour1')
     minut1 = form.getvalue('minut1')
     service = form.getvalue('service')
-    out = funct.show_haproxy_log(serv, rows=rows, waf=waf, grep=grep, hour=hour, minut=minut, hour1=hour1,
+    out = funct.show_roxy_log(serv, rows=rows, waf=waf, grep=grep, hour=hour, minut=minut, hour1=hour1,
                                  minut1=minut1, service=service)
     print(out)
 
@@ -978,7 +978,7 @@ if serv is not None and form.getvalue('rows1') is not None:
     minut = form.getvalue('minut')
     hour1 = form.getvalue('hour1')
     minut1 = form.getvalue('minut1')
-    out = funct.show_haproxy_log(serv, rows=rows, waf='0', grep=grep, hour=hour, minut=minut, hour1=hour1,
+    out = funct.show_roxy_log(serv, rows=rows, waf='0', grep=grep, hour=hour, minut=minut, hour1=hour1,
                                  minut1=minut1, service='apache_internal')
     print(out)
 
@@ -991,7 +991,7 @@ if form.getvalue('viewlogs') is not None:
     hour1 = form.getvalue('hour1')
     minut1 = form.getvalue('minut1')
     if funct.check_user_group():
-        out = funct.show_haproxy_log(serv=viewlog, rows=rows, waf='0', grep=grep, hour=hour, minut=minut, hour1=hour1,
+        out = funct.show_roxy_log(serv=viewlog, rows=rows, waf='0', grep=grep, hour=hour, minut=minut, hour1=hour1,
                                      minut1=minut1, service='internal')
     print(out)
 
@@ -4466,8 +4466,8 @@ if act == 'findInConfigs':
     service = form.getvalue('service')
     log_path = sql.get_setting(service + '_dir')
     log_path = funct.return_nice_path(log_path)
-    commands = ['sudo grep "%s" %s*/*.conf -C 2 -Rn' % (finding_words, log_path)]
-    return_find = funct.ssh_command(server_ip, commands, raw='1')
+    commands = [f'sudo grep "{finding_words}" {log_path}*/*.conf -C 2 -Rn']
+    return_find = funct.ssh_command(server_ip, commands, raw=1)
     return_find = funct.show_finding_in_config(return_find, grep=finding_words)
 
     if 'error: ' in return_find:

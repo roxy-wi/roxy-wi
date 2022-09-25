@@ -1,6 +1,24 @@
 from peewee import *
 from datetime import datetime
-from funct import get_config_var
+from configparser import ConfigParser, ExtendedInterpolation
+
+
+def get_config_var(sec, var):
+    try:
+        path_config = "/etc/roxy-wi/roxy-wi.cfg"
+        config = ConfigParser(interpolation=ExtendedInterpolation())
+        config.read(path_config)
+    except Exception as e:
+        print('error: ' + str(e))
+        return
+
+    try:
+        return config.get(sec, var)
+    except Exception:
+        print('Content-type: text/html\n')
+        print(f'<center><div class="alert alert-danger">Check the config file. Presence section {sec} and parameter {var}</div>')
+        return
+
 
 mysql_enable = get_config_var('mysql', 'enable')
 

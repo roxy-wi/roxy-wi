@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import sys
+
 import distro
 
 import funct
@@ -44,6 +46,7 @@ if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
             restart_settings = sql.select_restart_services_settings(service_desc.slug)
 else:
     print('<meta http-equiv="refresh" content="0; url=/app/overview.py">')
+    sys.exit()
 
 services_name = {'roxy-wi-checker': 'Master backends checker service',
                  'roxy-wi-keep_alive': 'Auto start service',

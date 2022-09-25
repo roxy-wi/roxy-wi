@@ -108,7 +108,7 @@ def get_data(log_type, **kwargs):
 	return now_utc.strftime(fmt)
 
 
-def get_user_group(**kwargs):
+def get_user_group(**kwargs) -> str:
 	import sql
 	user_group = ''
 
@@ -129,20 +129,22 @@ def get_user_group(**kwargs):
 	return user_group
 
 
-def logging(server_ip, action, **kwargs):
+def logging(server_ip: str, action: str, **kwargs) -> None:
 	import sql
 	import distro
 
 	login = ''
-
+	cur_date = get_data('logs')
+	cur_date_in_log = get_data('date_in_log')
 	log_path = get_config_var('main', 'log_path')
+
+	if not os.path.exists(log_path):
+		os.makedirs(log_path)
+
 	try:
 		user_group = get_user_group()
 	except Exception:
 		user_group = ''
-
-	if not os.path.exists(log_path):
-		os.makedirs(log_path)
 
 	try:
 		ip = cgi.escape(os.environ["REMOTE_ADDR"])
@@ -171,33 +173,30 @@ def logging(server_ip, action, **kwargs):
 
 	if kwargs.get('haproxywi') == 1:
 		if kwargs.get('login'):
-			mess = get_data('date_in_log') + " from " + ip + " user: " + login + ", group: " + user_group + ", " + \
-				action + " for: " + server_ip + "\n"
+			mess = f"{cur_date_in_log} from {ip} user: {login}, group: {user_group}, {action} for: {server_ip}\n"
 			if kwargs.get('keep_history'):
 				try:
 					keep_action_history(kwargs.get('service'), action, server_ip, login, ip)
 				except Exception as e:
 					print(str(e))
 		else:
-			mess = get_data('date_in_log') + " " + action + " from " + ip + "\n"
-		log = open(log_path + "/roxy-wi-" + get_data('logs') + ".log", "a")
+			mess = f"{cur_date_in_log} {action} from {ip}\n"
+		log_file = f"{log_path}/roxy-wi-{cur_date}.log"
 	elif kwargs.get('provisioning') == 1:
-		mess = get_data('date_in_log') + " from " + ip + " user: " + login + ", group: " + user_group + ", " + \
-			action + "\n"
-		log = open(log_path + "/provisioning-" + get_data('logs') + ".log", "a")
+		mess = f"{cur_date_in_log} from {ip} user: {login}, group: {user_group}, {action}\n"
+		log_file = f"{log_path}/provisioning-{cur_date}.log"
 	else:
-		mess = get_data('date_in_log') + " from " + ip + " user: " + login + ", group: " + user_group + ", " + \
-			action + " for: " + server_ip + "\n"
-		log = open(log_path + "/config_edit-" + get_data('logs') + ".log", "a")
+		mess = f"{cur_date_in_log} from {ip} user: {login}, group: {user_group}, {action} for: {server_ip}\n"
+		log_file = f"{log_path}/config_edit-{cur_date}.log"
 
 		if kwargs.get('keep_history'):
 			keep_action_history(kwargs.get('service'), action, server_ip, login, ip)
 
 	try:
-		log.write(mess)
-		log.close()
+		with open(log_file, 'a') as log:
+			log.write(mess)
 	except IOError as e:
-		print('<center><div class="alert alert-danger">Cannot write log. Please check log_path in config %e</div></center>' % e)
+		print(f'<center><div class="alert alert-danger">Cannot write log. Please check log_path in config {str(e)}</div></center>')
 
 
 def keep_action_history(service: str, action: str, server_ip: str, login: str, user_ip: str):
@@ -213,7 +212,7 @@ def keep_action_history(service: str, action: str, server_ip: str, login: str, u
 
 		sql.insert_action_history(service, action, server_id, user_id, user_ip)
 	except Exception as e:
-		logging('localhost', 'Cannot save a history: ' + str(e), haproxywi=1)
+		logging('localhost', f'Cannot save a history: {str(e)}', haproxywi=1)
 
 
 def telegram_send_mess(mess, **kwargs):
@@ -239,7 +238,6 @@ def telegram_send_mess(mess, **kwargs):
 
 	if token_bot == '' or channel_name == '':
 		mess = " Can't send message. Add Telegram channel before use alerting at this servers group"
-		print(mess)
 		logging('localhost', mess, haproxywi=1)
 
 	if proxy is not None and proxy != '' and proxy != 'None':
@@ -248,7 +246,6 @@ def telegram_send_mess(mess, **kwargs):
 		bot = telebot.TeleBot(token=token_bot)
 		bot.send_message(chat_id=channel_name, text=mess)
 	except Exception as e:
-		print(str(e))
 		logging('localhost', str(e), haproxywi=1)
 
 
@@ -282,7 +279,6 @@ def slack_send_mess(mess, **kwargs):
 	try:
 		client.chat_postMessage(channel='#' + channel_name, text=mess)
 	except SlackApiError as e:
-		print('error: ' + str(e))
 		logging('localhost', str(e), haproxywi=1)
 
 
@@ -1178,44 +1174,36 @@ def show_log(stdout, **kwargs):
 	if kwargs.get('grep'):
 		grep = kwargs.get('grep')
 		grep = re.sub(r'[?|$|.|!|^|*|\]|\[|,| |]', r'', grep)
-
 	for line in stdout:
-		if kwargs.get("html") != 0:
-			i = i + 1
-			if kwargs.get('grep'):
-				line = line.replace(grep, '<span style="color: red; font-weight: bold;">' + grep + '</span>')
-			line_class = "line3" if i % 2 == 0 else "line"
-			out += '<div class="' + line_class + '">' + line + '</div>'
-		else:
-			out += line
+		i = i + 1
+		if kwargs.get('grep'):
+			line = line.replace(grep, f'<span style="color: red; font-weight: bold;">{grep}</span>')
+		line_class = "line3" if i % 2 == 0 else "line"
+		out += f'<div class="{line_class}">{line}</div>'
 
 	return out
 
 
 def show_finding_in_config(stdout: str, **kwargs) -> str:
-	i = 0
-	out = ''
 	grep = ''
-	line_class = 'line'
+	out = '<div class="line">--</div>'
 
 	if kwargs.get('grep'):
 		grep = kwargs.get('grep')
 		grep = re.sub(r'[?|$|!|^|*|\]|\[|,| |]', r'', grep)
 
-	out += '<div class="line">--</div>'
 	for line in stdout:
-		i = i + 1
 		if kwargs.get('grep'):
-			line = line.replace(grep, '<span style="color: red; font-weight: bold;">' + grep + '</span>')
-			line_class = "line" if '--' in line else "line3"
-		out += '<div class="' + line_class + '">' + line + '</div>'
+			line = line.replace(grep, f'<span style="color: red; font-weight: bold;">{grep}</span>')
+		line_class = "line" if '--' in line else "line3"
+		out += f'<div class="{line_class}">{line}</div>'
 
 	out += '<div class="line">--</div>'
 
 	return out
 
 
-def show_haproxy_log(
+def show_roxy_log(
 		serv, rows='10', waf='0', grep=None, hour='00',
 		minut='00', hour1='24', minut1='00', service='haproxy', **kwargs
 ) -> str:
@@ -1227,6 +1215,7 @@ def show_haproxy_log(
 	rows = checkAjaxInput(rows)
 	waf = checkAjaxInput(waf)
 	cmd = ''
+	awk_column = 3
 
 	if grep is not None:
 		grep_act = '|egrep "%s"' % checkAjaxInput(grep)
@@ -1282,21 +1271,19 @@ def show_haproxy_log(
 		elif serv == 'roxy-wi.error.log':
 			cmd = "sudo cat {}| awk '$4>\"{}:00\" && $4<\"{}:00\"' |tail -{} {} {}".format(apache_log_path + "/" + serv, date, date1, rows, grep_act, exgrep_act)
 		elif serv == 'fail2ban.log':
-			cmd = "sudo cat {}| awk -F\"/|:\" '$3>\"{}:00\" && $3<\"{}:00\"' |tail -{} {} {}".format("/var/log/" + serv, date, date1, rows, grep_act, exgrep_act)
+			cmd = 'sudo cat {}| awk -F"/|:" \'$3>"{}:00" && $3<"{}:00\' |tail -{} {} {}'.format("/var/log/" + serv, date, date1, rows, grep_act, exgrep_act)
 
 		output, stderr = subprocess_execute(cmd)
 
 		return show_log(output, grep=grep)
 	elif service == 'internal':
+		log_path = get_config_var('main', 'log_path')
+		logs_files = get_files(log_path, "log")
 		user_group = get_user_group()
+		user_grep = ''
 
 		if user_group != '' and user_group != 'Default':
 			user_grep = "|grep 'group: " + user_group + "'"
-		else:
-			user_grep = ''
-
-		log_path = get_config_var('main', 'log_path')
-		logs_files = get_files(log_path, "log")
 
 		for key, value in logs_files:
 			if int(serv) == key:
@@ -1307,16 +1294,16 @@ def show_haproxy_log(
 			sys.exit()
 
 		if serv == 'backup.log':
-			cmd = "cat %s| awk '$2>\"%s:00\" && $2<\"%s:00\"' %s %s %s |tail -%s" % (log_path + serv, date, date1, user_grep, grep_act, exgrep_act, rows)
-		else:
-			cmd = "cat %s| awk '$3>\"%s:00\" && $3<\"%s:00\"' %s %s %s |tail -%s" % (log_path + serv, date, date1, user_grep, grep_act, exgrep_act, rows)
+			awk_column = 2
+
+		cmd = f"cat {log_path}/{serv}| awk '${awk_column}>\"{date}:00\" && ${awk_column}<\"{date1}:00\"' {user_grep} {grep_act} {exgrep_act} |tail -{rows}"
 
 		output, stderr = subprocess_execute(cmd)
 
 		return show_log(output, grep=grep)
 
 
-def roxy_wi_log(**kwargs):
+def roxy_wi_log(**kwargs) -> str:
 	log_path = get_config_var('main', 'log_path')
 
 	if kwargs.get('log_id'):
@@ -1364,27 +1351,22 @@ def server_status(stdout):
 	return proc_count
 
 
-def ssh_command(server_ip, commands, **kwargs):
+def ssh_command(server_ip: str, commands: list, **kwargs):
 	with ssh_connect(server_ip) as ssh:
 		for command in commands:
 			try:
 				stdin, stdout, stderr = ssh.run_command(command)
 			except Exception as e:
-				logging('localhost', ' ' + str(e), haproxywi=1)
+				logging('localhost', f' {str(e)}', haproxywi=1)
 				return str(e)
 
-			if kwargs.get('raw'):
-				return stdout
 			try:
+				if kwargs.get('raw'):
+					return stdout.readlines()
 				if kwargs.get("ip") == "1":
 					show_ip(stdout)
 				elif kwargs.get("show_log") == "1":
 					return show_log(stdout, grep=kwargs.get("grep"))
-				elif kwargs.get("server_status") == "1":
-					server_status(stdout)
-				elif kwargs.get('print_out'):
-					print(stdout.read().decode(encoding='UTF-8'))
-					return stdout.read().decode(encoding='UTF-8')
 				elif kwargs.get('return_err') == 1:
 					return stderr.read().decode(encoding='UTF-8')
 				else:
@@ -1392,10 +1374,10 @@ def ssh_command(server_ip, commands, **kwargs):
 			except Exception as e:
 				logging('localhost', str(e), haproxywi=1)
 
-			for line in stderr.read().decode(encoding='UTF-8'):
+			for line in stderr.readlines():
 				if line:
-					print("<div class='alert alert-warning'>" + line + "</div>")
-					logging('localhost', ' ' + line, haproxywi=1)
+					print(f'error: {line}')
+					logging('localhost', f' {line}', haproxywi=1)
 
 
 def subprocess_execute(cmd):
@@ -1432,7 +1414,7 @@ def show_backends(server_ip, **kwargs):
 		return ret
 
 
-def get_files(folder=get_config_var('configs', 'haproxy_save_configs_dir'), file_format='cfg'):
+def get_files(folder=get_config_var('configs', 'haproxy_save_configs_dir'), file_format='cfg') -> list:
 	import glob
 	if file_format == 'log':
 		file = []
@@ -1442,7 +1424,10 @@ def get_files(folder=get_config_var('configs', 'haproxy_save_configs_dir'), file
 	i = 0
 	for files in sorted(glob.glob(os.path.join(folder, '*.' + file_format + '*'))):
 		if file_format == 'log':
-			file += [(i, files.split('/')[5])]
+			try:
+				file += [(i, files.split('/')[4])]
+			except Exception as e:
+				print(e)
 		else:
 			file.add(files.split('/')[-1])
 		i += 1
@@ -1496,11 +1481,12 @@ def check_new_version(service):
 	import requests
 	from requests.adapters import HTTPAdapter
 	from requests.packages.urllib3.util.retry import Retry
+
 	import sql
+
 	current_ver = check_ver()
 	proxy = sql.get_setting('proxy')
 	res = ''
-
 	user_name = sql.select_user_name()
 	retry_strategy = Retry(
 		total=3,
@@ -1614,10 +1600,11 @@ def get_users_params(**kwargs):
 
 
 def check_user_group(**kwargs):
+	import sql
+
 	if kwargs.get('token') is not None:
 		return True
 
-	import sql
 	if kwargs.get('user_uuid'):
 		group_id = kwargs.get('user_group_id')
 		user_uuid = kwargs.get('user_uuid')
@@ -1738,15 +1725,15 @@ def get_services_status():
 	return services
 
 
-def is_file_exists(server_ip: str, file: str):
-	cmd = ['[ -f ' + file + ' ] && echo yes || echo no']
+def is_file_exists(server_ip: str, file: str) -> bool:
+	cmd = [f'[ -f {file} ] && echo yes || echo no']
 
 	out = ssh_command(server_ip, cmd)
 	return True if 'yes' in out else False
 
 
-def is_service_active(server_ip: str, service_name: str):
-	cmd = ['systemctl is-active ' + service_name]
+def is_service_active(server_ip: str, service_name: str) -> bool:
+	cmd = [f'systemctl is-active {service_name}']
 
 	out = ssh_command(server_ip, cmd)
 	out = out.strip()
@@ -2009,7 +1996,7 @@ def send_message_to_rabbit(message: str, **kwargs) -> None:
 	connection.close()
 
 
-def is_restarted(server_ip, action):
+def is_restarted(server_ip: str, action: str) -> None:
 	import sql
 
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
@@ -2017,7 +2004,7 @@ def is_restarted(server_ip, action):
 	user_role = sql.get_user_role_by_uuid(user_uuid.value)
 
 	if sql.is_serv_protected(server_ip) and int(user_role) > 2:
-		print('error: This server is protected. You cannot ' + action + ' it')
+		print(f'error: This server is protected. You cannot {action} it')
 		sys.exit()
 
 
@@ -2045,7 +2032,10 @@ def get_correct_apache_service_name(server_ip=0, server_id=0) -> str:
 	if server_id == 0:
 		server_id = sql.select_server_id_by_ip(server_ip)
 
-	os_info = sql.select_os_info(server_id)
+	try:
+		os_info = sql.select_os_info(server_id)
+	except Exception:
+		return 'error: cannot get server info'
 
 	if "CentOS" in os_info or "Redhat" in os_info:
 		return 'httpd'

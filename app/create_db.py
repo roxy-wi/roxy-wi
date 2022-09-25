@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import distro
-from db_model import *
-from funct import check_ver
+
+from modules.db_model import *
 
 
 def default_values():
@@ -58,7 +58,7 @@ def default_values():
 			'desc': 'Socket port for HAProxy', 'group': '1'},
 		{'param': 'haproxy_sock_port', 'value': '1999', 'section': 'haproxy', 'desc': 'HAProxy sock port',
 			'group': '1'},
-		{'param': 'apache_log_path', 'value': '/var/log/' + apache_dir + '/', 'section': 'logs',
+		{'param': 'apache_log_path', 'value': f'/var/log/{apache_dir}/', 'section': 'logs',
 			'desc': 'Path to Apache logs. Apache service for Roxy-WI', 'group': '1'},
 		{'param': 'nginx_path_logs', 'value': '/var/log/nginx/', 'section': 'nginx',
 			'desc': 'The path for NGINX logs', 'group': '1'},
@@ -656,95 +656,68 @@ def default_values():
 		print(str(e))
 
 
-def update_db_v_3_4_5_22():
-	try:
-		Version.insert(version='3.4.5.2').execute()
-	except Exception as e:
-		print('Cannot insert version %s' % e)
-
-
 # Needs for updating user_group. Do not delete
-def update_db_v_4_3_0(**kwargs):
+def update_db_v_4_3_0():
 	try:
 		UserGroups.insert_from(
 			User.select(User.user_id, User.groups), fields=[UserGroups.user_id, UserGroups.user_group_id]
 		).on_conflict_ignore().execute()
 	except Exception as e:
-		if kwargs.get('silent') != 1:
-			if e.args[0] == 'duplicate column name: haproxy' or str(e) == '(1060, "Duplicate column name \'haproxy\'")':
-				print('Updating... go to version 4.3.1')
-			else:
-				print("An error occurred:", e)
+		if e.args[0] == 'duplicate column name: haproxy' or str(e) == '(1060, "Duplicate column name \'haproxy\'")':
+			print('Updating... go to version 4.3.1')
+		else:
+			print("An error occurred:", e)
 
 
-def update_db_v_5_1_3(**kwargs):
-	cursor = conn.cursor()
-	sql = """ALTER TABLE `servers` ADD COLUMN protected INTEGER NOT NULL DEFAULT 0;"""
-	try:
-		cursor.execute(sql)
-	except Exception as e:
-		if kwargs.get('silent') != 1:
-			if str(e) == 'duplicate column name: protected' or str(e) == '(1060, "Duplicate column name \'protected\'")':
-				print('Updating... DB has been updated to version 5.1.3')
-			else:
-				print("An error occurred:", e)
-	else:
-		print("DB has been updated to version 5.1.3")
-
-
-def update_db_v_5_2_4(**kwargs):
+def update_db_v_5_2_4():
 	cursor = conn.cursor()
 	sql = """ALTER TABLE `user` ADD COLUMN user_services varchar(20) DEFAULT '1 2 3 4';"""
 	try:
 		cursor.execute(sql)
 	except Exception as e:
-		if kwargs.get('silent') != 1:
-			if str(e) == 'duplicate column name: user_services' or str(e) == '(1060, "Duplicate column name \'user_services\'")':
-				print('Updating... DB has been updated to version 5.2.4')
-			else:
-				print("An error occurred:", e)
+		if str(e) == 'duplicate column name: user_services' or str(e) == '(1060, "Duplicate column name \'user_services\'")':
+			print('Updating... DB has been updated to version 5.2.4')
+		else:
+			print("An error occurred:", e)
 	else:
 		print("Updating... DB has been updated to version 5.2.4")
 
 
-def update_db_v_5_2_4_1(**kwargs):
+def update_db_v_5_2_4_1():
 	cursor = conn.cursor()
 	sql = """ALTER TABLE `servers` ADD COLUMN nginx_metrics integer DEFAULT 0;"""
 	try:
 		cursor.execute(sql)
 	except Exception as e:
-		if kwargs.get('silent') != 1:
-			if str(e) == 'duplicate column name: nginx_metrics' or str(e) == '(1060, "Duplicate column name \'nginx_metrics\'")':
-				print('Updating... DB has been updated to version 5.2.4-1')
-			else:
-				print("An error occurred:", e)
+		if str(e) == 'duplicate column name: nginx_metrics' or str(e) == '(1060, "Duplicate column name \'nginx_metrics\'")':
+			print('Updating... DB has been updated to version 5.2.4-1')
+		else:
+			print("An error occurred:", e)
 	else:
 		print("Updating... DB has been updated to version 5.2.4-1")
 
 
-def update_db_v_5_2_5_1(**kwargs):
+def update_db_v_5_2_5_1():
 	query = User.update(role='user').where(User.role == 'editor')
 	try:
 		query.execute()
 	except Exception as e:
 		print("An error occurred:", e)
 	else:
-		if kwargs.get('silent') != 1:
-			print("Updating... DB has been updated to version 5.2.5-1")
+		print("Updating... DB has been updated to version 5.2.5-1")
 
 
-def update_db_v_5_2_5_2(**kwargs):
+def update_db_v_5_2_5_2():
 	query = Role.delete().where(Role.name == 'editor')
 	try:
 		query.execute()
 	except Exception as e:
 		print("An error occurred:", e)
 	else:
-		if kwargs.get('silent') != 1:
-			print("Updating... DB has been updated to version 5.2.5-2")
+		print("Updating... DB has been updated to version 5.2.5-2")
 
 
-def update_db_v_5_2_5_3(**kwargs):
+def update_db_v_5_2_5_3():
 	cursor = conn.cursor()
 	sql = list()
 	sql.append("alter table user add column last_login_date timestamp default '0000-00-00 00:00:00'")
@@ -755,22 +728,20 @@ def update_db_v_5_2_5_3(**kwargs):
 		except Exception:
 			pass
 	else:
-		if kwargs.get('silent') != 1:
-			print('Updating... DB has been updated to version 5.2.5-3')
+		print('Updating... DB has been updated to version 5.2.5-3')
 
 
-def update_db_v_5_2_6(**kwargs):
+def update_db_v_5_2_6():
 	query = Setting.delete().where(Setting.param == 'haproxy_enterprise')
 	try:
 		query.execute()
 	except Exception as e:
 		print("An error occurred:", e)
 	else:
-		if kwargs.get('silent') != 1:
-			print("Updating... DB has been updated to version 5.2.6")
+		print("Updating... DB has been updated to version 5.2.6")
 
 
-def update_db_v_5_3_0(**kwargs):
+def update_db_v_5_3_0():
 	groups = ''
 	query = Groups.select()
 
@@ -816,24 +787,22 @@ def update_db_v_5_3_0(**kwargs):
 			try:
 				Setting.insert_many(data_source).on_conflict_ignore().execute()
 			except Exception as e:
-				if kwargs.get('silent') != 1:
-					if str(e) == 'columns param, group are not unique':
-						pass
-					else:
-						print("An error occurred:", e)
-		except Exception as e:
-			if kwargs.get('silent') != 1:
-				if (
-					str(e) == 'columns param, group are not unique'
-					or str(e) == '(1062, "Duplicate entry \'nginx_container_name\' for key \'param\'")'
-					or str(e) == 'UNIQUE constraint failed: settings.param, settings.group'
-				):
+				if str(e) == 'columns param, group are not unique':
 					pass
 				else:
 					print("An error occurred:", e)
+		except Exception as e:
+			if (
+				str(e) == 'columns param, group are not unique'
+				or str(e) == '(1062, "Duplicate entry \'nginx_container_name\' for key \'param\'")'
+				or str(e) == 'UNIQUE constraint failed: settings.param, settings.group'
+			):
+				pass
+			else:
+				print("An error occurred:", e)
 
 
-def update_db_v_5_3_1(**kwargs):
+def update_db_v_5_3_1():
 	cursor = conn.cursor()
 	sql = """
 	ALTER TABLE `servers` ADD COLUMN keepalived_active INTEGER NOT NULL DEFAULT 0;
@@ -841,16 +810,15 @@ def update_db_v_5_3_1(**kwargs):
 	try:
 		cursor.execute(sql)
 	except Exception as e:
-		if kwargs.get('silent') != 1:
-			if e.args[0] == 'duplicate column name: keepalived_active' or str(e) == '(1060, "Duplicate column name \'keepalived_active\'")':
-				print('Updating... DB has been updated to version 5.3.1')
-			else:
-				print("An error occurred:", e)
+		if e.args[0] == 'duplicate column name: keepalived_active' or str(e) == '(1060, "Duplicate column name \'keepalived_active\'")':
+			print('Updating... DB has been updated to version 5.3.1')
+		else:
+			print("An error occurred:", e)
 	else:
 		print("Updating... DB has been updated to version 5.3.1")
 
 
-def update_db_v_5_3_2_2(**kwargs):
+def update_db_v_5_3_2_2():
 	cursor = conn.cursor()
 	sql = """
 	ALTER TABLE `servers` ADD COLUMN keepalived_alert INTEGER NOT NULL DEFAULT 0;
@@ -858,53 +826,49 @@ def update_db_v_5_3_2_2(**kwargs):
 	try:
 		cursor.execute(sql)
 	except Exception as e:
-		if kwargs.get('silent') != 1:
-			if e.args[0] == 'duplicate column name: keepalived_alert' or str(e) == '(1060, "Duplicate column name \'keepalived_alert\'")':
-				print('Updating... DB has been updated to version 5.3.2')
-			else:
-				print("An error occurred:", e)
+		if e.args[0] == 'duplicate column name: keepalived_alert' or str(e) == '(1060, "Duplicate column name \'keepalived_alert\'")':
+			print('Updating... DB has been updated to version 5.3.2')
+		else:
+			print("An error occurred:", e)
 	else:
 		print("Updating... DB has been updated to version 5.3.2")
 
 
-def update_db_v_5_4_2(**kwargs):
+def update_db_v_5_4_2():
 	cursor = conn.cursor()
 	sql = """ALTER TABLE `smon` ADD COLUMN slack_channel_id integer DEFAULT '0';"""
 	try:
 		cursor.execute(sql)
 	except Exception as e:
-		if kwargs.get('silent') != 1:
-			if str(e) == 'duplicate column name: slack_channel_id' or str(e) == '(1060, "Duplicate column name \'slack_channel_id\'")':
-				print('Updating... DB has been updated to version 5.4.2')
-			else:
-				print("An error occurred:", e)
+		if str(e) == 'duplicate column name: slack_channel_id' or str(e) == '(1060, "Duplicate column name \'slack_channel_id\'")':
+			print('Updating... DB has been updated to version 5.4.2')
+		else:
+			print("An error occurred:", e)
 	else:
 		print("Updating... DB has been updated to version 5.4.2")
 
 
-def update_db_v_5_4_3(**kwargs):
+def update_db_v_5_4_3():
 	query = Setting.update(param='nginx_path_logs', value='/var/log/nginx/').where(Setting.param == 'nginx_path_error_logs')
 	try:
 		query.execute()
 	except Exception as e:
 		print("An error occurred:", e)
 	else:
-		if kwargs.get('silent') != 1:
-			print("Updating... DB has been updated to version 5.4.3")
+		print("Updating... DB has been updated to version 5.4.3")
 
 
-def update_db_v_5_4_3_1(**kwargs):
+def update_db_v_5_4_3_1():
 	query = Setting.update(value='/etc/nginx/').where(Setting.param == 'nginx_dir')
 	try:
 		query.execute()
 	except Exception as e:
 		print("An error occurred:", e)
 	else:
-		if kwargs.get('silent') != 1:
-			print("Updating... DB has been updated to version 5.4.3-1")
+		print("Updating... DB has been updated to version 5.4.3-1")
 
 
-def update_db_v_6_0(**kwargs):
+def update_db_v_6_0():
 	cursor = conn.cursor()
 	sql = list()
 	sql.append("alter table servers add column apache integer default 0")
@@ -917,22 +881,20 @@ def update_db_v_6_0(**kwargs):
 		except Exception:
 			pass
 	else:
-		if kwargs.get('silent') != 1:
-			print('Updating... DB has been updated to version 6.0.0.0')
+		print('Updating... DB has been updated to version 6.0.0.0')
 
 
-def update_db_v_6_0_1(**kwargs):
+def update_db_v_6_0_1():
 	query = Groups.update(name='Default').where(Groups.group_id == '1')
 	try:
 		query.execute()
 	except Exception as e:
 		print("An error occurred:", e)
 	else:
-		if kwargs.get('silent') != 1:
-			print("Updating... DB has been updated to version 6.0.0.0-1")
+		print("Updating... DB has been updated to version 6.0.0.0-1")
 
 
-def update_db_v_6_1_0(**kwargs):
+def update_db_v_6_1_0():
 	for service_id in range(1, 5):
 		try:
 			servers_id = Server.select(Server.server_id).where(Server.type_ip == 0).execute()
@@ -941,14 +903,13 @@ def update_db_v_6_1_0(**kwargs):
 					server_id=server_id, service_id=service_id
 				).on_conflict_ignore().execute()
 		except Exception as e:
-			if kwargs.get('silent') != 1:
-				if e.args[0] == 'duplicate column name: haproxy' or str(e) == '(1060, "Duplicate column name \'haproxy\'")':
-					print('Updating... go to version 6.1.0')
-				else:
-					print("An error occurred:", e)
+			if e.args[0] == 'duplicate column name: haproxy' or str(e) == '(1060, "Duplicate column name \'haproxy\'")':
+				print('Updating... go to version 6.1.0')
+			else:
+				print("An error occurred:", e)
 
 
-def update_db_v_6_1_3(**kwargs):
+def update_db_v_6_1_3():
 	if mysql_enable == '1':
 		cursor = conn.cursor()
 		sql = list()
@@ -961,8 +922,7 @@ def update_db_v_6_1_3(**kwargs):
 			except Exception:
 				pass
 		else:
-			if kwargs.get('silent') != 1:
-				print('Updating... DB has been updated to version 6.1.3.0')
+			print('Updating... DB has been updated to version 6.1.3.0')
 	else:
 		pass
 
@@ -988,18 +948,14 @@ def update_db_v_6_1_4():
 
 
 def update_ver():
-	query = Version.update(version='6.2.0.0')
 	try:
-		query.execute()
+		Version.update(version='6.2.0.0').execute()
 	except Exception:
 		print('Cannot update version')
 
 
 def update_all():
-	if check_ver() is None:
-		update_db_v_3_4_5_22()
 	update_db_v_4_3_0()
-	update_db_v_5_1_3()
 	update_db_v_5_2_4()
 	update_db_v_5_2_4_1()
 	update_db_v_5_2_5_1()
@@ -1016,30 +972,6 @@ def update_all():
 	update_db_v_6_0_1()
 	update_db_v_6_1_0()
 	update_db_v_6_1_3()
-	update_db_v_6_1_4()
-	update_ver()
-
-
-def update_all_silent():
-	if check_ver() is None:
-		update_db_v_3_4_5_22()
-	update_db_v_4_3_0(silent=1)
-	update_db_v_5_1_3(silent=1)
-	update_db_v_5_2_4(silent=1)
-	update_db_v_5_2_4_1(silent=1)
-	update_db_v_5_2_5_1(silent=1)
-	update_db_v_5_2_5_2(silent=1)
-	update_db_v_5_2_5_3(silent=1)
-	update_db_v_5_2_6(silent=1)
-	update_db_v_5_3_0(silent=1)
-	update_db_v_5_3_1(silent=1)
-	update_db_v_5_3_2_2(silent=1)
-	update_db_v_5_4_2(silent=1)
-	update_db_v_5_4_3(silent=1)
-	update_db_v_5_4_3_1(silent=1)
-	update_db_v_6_0(silent=1)
-	update_db_v_6_0_1(silent=1)
-	update_db_v_6_1_3(silent=1)
 	update_db_v_6_1_4()
 	update_ver()
 
