@@ -1,5 +1,6 @@
 from configparser import ConfigParser, ExtendedInterpolation
 
+
 class GetConfigVar:
     def __init__(self):
         self.path_config = "/etc/roxy-wi/roxy-wi.cfg"

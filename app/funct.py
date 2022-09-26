@@ -122,7 +122,7 @@ def logging(server_ip: str, action: str, **kwargs) -> None:
 	login = ''
 	cur_date = get_data('logs')
 	cur_date_in_log = get_data('date_in_log')
-	log_path = ('main', 'log_path')
+	log_path = get_config_var.get_config_var('main', 'log_path')
 
 	if not os.path.exists(log_path):
 		os.makedirs(log_path)
@@ -344,7 +344,7 @@ def page_for_admin(level=1) -> None:
 
 def return_ssh_keys_path(server_ip: str, **kwargs):
 	import sql
-	lib_path= get_config_var.get_config_var('main', 'lib_path')
+	lib_path = get_config_var.get_config_var('main', 'lib_path')
 	ssh_enable = ''
 	ssh_user_name = ''
 	ssh_user_password = ''
@@ -412,7 +412,7 @@ def get_config(server_ip, cfg, **kwargs):
 def diff_config(oldcfg, cfg, **kwargs):
 	import sql
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	log_path= get_config_var.get_config_var('main', 'log_path')
+	log_path = get_config_var.get_config_var('main', 'log_path')
 	user_group = get_user_group()
 	diff = ""
 	date = get_data('date_in_log')
@@ -550,7 +550,7 @@ def get_userlists(config):
 
 
 def get_backends_from_config(server_ip, backends=''):
-	configs_dir= get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
+	configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
 	format_cfg = 'cfg'
 
 	try:
@@ -1268,7 +1268,7 @@ def show_roxy_log(
 
 		return show_log(output, grep=grep)
 	elif service == 'internal':
-		log_path= get_config_var.get_config_var('main', 'log_path')
+		log_path = get_config_var.get_config_var('main', 'log_path')
 		logs_files = get_files(log_path, "log")
 		user_group = get_user_group()
 		user_grep = ''
