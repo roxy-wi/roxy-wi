@@ -1,33 +1,17 @@
 from peewee import *
 from datetime import datetime
-from configparser import ConfigParser, ExtendedInterpolation
 
+import modules.roxy_wi_tools as roxy_wi_tools
 
-def get_config_var(sec, var):
-    try:
-        path_config = "/etc/roxy-wi/roxy-wi.cfg"
-        config = ConfigParser(interpolation=ExtendedInterpolation())
-        config.read(path_config)
-    except Exception as e:
-        print('error: ' + str(e))
-        return
-
-    try:
-        return config.get(sec, var)
-    except Exception:
-        print('Content-type: text/html\n')
-        print(f'<center><div class="alert alert-danger">Check the config file. Presence section {sec} and parameter {var}</div>')
-        return
-
-
-mysql_enable = get_config_var('mysql', 'enable')
+get_config = roxy_wi_tools.GetConfigVar()
+mysql_enable = get_config.get_config_var('mysql', 'enable')
 
 if mysql_enable == '1':
-    mysql_user = get_config_var('mysql', 'mysql_user')
-    mysql_password = get_config_var('mysql', 'mysql_password')
-    mysql_db = get_config_var('mysql', 'mysql_db')
-    mysql_host = get_config_var('mysql', 'mysql_host')
-    mysql_port = get_config_var('mysql', 'mysql_port')
+    mysql_user = get_config.get_config_var('mysql', 'mysql_user')
+    mysql_password = get_config.get_config_var('mysql', 'mysql_password')
+    mysql_db = get_config.get_config_var('mysql', 'mysql_db')
+    mysql_host = get_config.get_config_var('mysql', 'mysql_host')
+    mysql_port = get_config.get_config_var('mysql', 'mysql_port')
     conn = MySQLDatabase(mysql_db, user=mysql_user, password=mysql_password, host=mysql_host, port=int(mysql_port))
 else:
     db = "/var/lib/roxy-wi/roxy-wi.db"

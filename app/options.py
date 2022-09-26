@@ -9,6 +9,9 @@ from jinja2 import Environment, FileSystemLoader
 
 import funct
 import sql
+import modules.roxy_wi_tools as roxy_wi_tools
+
+get_config = roxy_wi_tools.GetConfigVar()
 
 form = funct.form
 serv = funct.is_ip_or_dns(form.getvalue('serv'))
@@ -194,7 +197,7 @@ if form.getvalue('backend_ip') is not None:
         print('error: ' + stderr[0])
     else:
         print(output[0])
-        configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+        configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
         cfg = configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
 
         error = funct.get_config(serv, cfg)
@@ -241,7 +244,7 @@ if form.getvalue('maxconn_frontend') is not None:
     if stderr != '':
         print(stderr[0])
     elif output[0] == '':
-        configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+        configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
         cfg = configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
 
         error = funct.get_config(serv, cfg)
@@ -324,7 +327,7 @@ if form.getvalue('list_select_id') is not None:
 if form.getvalue('list_id_for_delete') is not None:
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
     lists_path = sql.get_setting('lists_path')
-    lib_path = funct.checkAjaxInput(funct.get_config_var('main', 'lib_path'))
+    lib_path = funct.checkAjaxInput(get_config.get_config_var('main', 'lib_path'))
     ip_id = funct.checkAjaxInput(form.getvalue('list_ip_id_for_delete'))
     ip = funct.checkAjaxInput(form.getvalue('list_ip_for_delete'))
     list_id = funct.checkAjaxInput(form.getvalue('list_id_for_delete'))
@@ -356,7 +359,7 @@ if form.getvalue('list_id_for_delete') is not None:
 if form.getvalue('list_ip_for_add') is not None:
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
     lists_path = sql.get_setting('lists_path')
-    lib_path = funct.get_config_var('main', 'lib_path')
+    lib_path = get_config.get_config_var('main', 'lib_path')
     ip = form.getvalue('list_ip_for_add')
     ip = ip.strip()
     ip = funct.is_ip_or_dns(ip)
@@ -605,10 +608,10 @@ if act == "overviewHapserverBackends":
     format_file = 'cfg'
 
     if service == 'haproxy':
-        configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+        configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
         format_file = 'cfg'
     elif service == 'keepalived':
-        configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
+        configs_dir = get_config.get_config_var('configs', 'kp_save_configs_dir')
         format_file = 'conf'
 
     if service != 'nginx' and service != 'apache':
@@ -640,7 +643,7 @@ if act == "overviewHapserverBackends":
     print(template)
 
 if form.getvalue('show_userlists'):
-    configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+    configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
     format_file = 'cfg'
 
     try:
@@ -1004,7 +1007,7 @@ if serv is not None and act == "showMap":
 
     stats_port = sql.get_setting('stats_port')
     haproxy_config_path = sql.get_setting('haproxy_config_path')
-    hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+    hap_configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
     date = funct.get_data('config')
     cfg = hap_configs_dir + serv + "-" + date + ".cfg"
 
@@ -1242,11 +1245,11 @@ if act == "showCompareConfigs":
     service = form.getvalue('service')
 
     if service == 'nginx':
-        return_files = funct.get_files(funct.get_config_var('configs', 'nginx_save_configs_dir'), 'conf')
+        return_files = funct.get_files(get_config.get_config_var('configs', 'nginx_save_configs_dir'), 'conf')
     elif service == 'apache':
-        return_files = funct.get_files(funct.get_config_var('configs', 'apache_save_configs_dir'), 'conf')
+        return_files = funct.get_files(get_config.get_config_var('configs', 'apache_save_configs_dir'), 'conf')
     elif service == 'keepalived':
-        return_files = funct.get_files(funct.get_config_var('configs', 'kp_save_configs_dir'), 'conf')
+        return_files = funct.get_files(get_config.get_config_var('configs', 'kp_save_configs_dir'), 'conf')
     else:
         return_files = funct.get_files()
 
@@ -1258,13 +1261,13 @@ if serv is not None and form.getvalue('right') is not None:
     right = funct.checkAjaxInput(form.getvalue('right'))
 
     if form.getvalue('service') == 'nginx':
-        configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
+        configs_dir = get_config.get_config_var('configs', 'nginx_save_configs_dir')
     elif form.getvalue('service') == 'apache':
-        configs_dir = funct.get_config_var('configs', 'apache_save_configs_dir')
+        configs_dir = get_config.get_config_var('configs', 'apache_save_configs_dir')
     elif form.getvalue('service') == 'keepalived':
-        configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
+        configs_dir = get_config.get_config_var('configs', 'kp_save_configs_dir')
     else:
-        configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+        configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
 
     cmd = 'diff -pub %s%s %s%s' % (configs_dir, left, configs_dir, right)
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
@@ -1288,16 +1291,16 @@ if serv is not None and act == "configShow":
         config_file_name = ''
 
     if service == 'keepalived':
-        configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
+        configs_dir = get_config.get_config_var('configs', 'kp_save_configs_dir')
         cfg = '.conf'
     elif service == 'nginx':
-        configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
+        configs_dir = get_config.get_config_var('configs', 'nginx_save_configs_dir')
         cfg = '.conf'
     elif service == 'apache':
-        configs_dir = funct.get_config_var('configs', 'apache_save_configs_dir')
+        configs_dir = get_config.get_config_var('configs', 'apache_save_configs_dir')
         cfg = '.conf'
     else:
-        configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+        configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
         cfg = '.cfg'
 
     if form.getvalue('configver') is None:
@@ -1340,7 +1343,7 @@ if serv is not None and act == "configShow":
 if act == 'configShowFiles':
     service = form.getvalue('service')
 
-    config_dir = funct.get_config_var('configs', service + '_save_configs_dir')
+    config_dir = get_config.get_config_var('configs', service + '_save_configs_dir')
     service_config_dir = sql.get_setting(service + '_dir')
     try:
         config_file_name = form.getvalue('config_file_name').replace('92', '/')
@@ -2096,7 +2099,7 @@ if form.getvalue('get_exporter_v'):
     print(funct.get_service_version(serv, form.getvalue('get_exporter_v')))
 
 if form.getvalue('bwlists'):
-    lib_path = funct.get_config_var('main', 'lib_path')
+    lib_path = get_config.get_config_var('main', 'lib_path')
     list_path = lib_path + "/" + sql.get_setting('lists_path') + "/" + form.getvalue('group') + "/" + form.getvalue(
         'color') + "/" + form.getvalue('bwlists')
     try:
@@ -2109,7 +2112,7 @@ if form.getvalue('bwlists'):
 
 if form.getvalue('bwlists_create'):
     color = form.getvalue('color')
-    lib_path = funct.get_config_var('main', 'lib_path')
+    lib_path = get_config.get_config_var('main', 'lib_path')
     list_name = form.getvalue('bwlists_create').split('.')[0]
     list_name += '.lst'
     list_path = lib_path + "/" + sql.get_setting('lists_path') + "/" + form.getvalue(
@@ -2127,7 +2130,7 @@ if form.getvalue('bwlists_create'):
 if form.getvalue('bwlists_save'):
     color = form.getvalue('color')
     bwlists_save = form.getvalue('bwlists_save')
-    lib_path = funct.get_config_var('main', 'lib_path')
+    lib_path = get_config.get_config_var('main', 'lib_path')
     list_path = lib_path + "/" + sql.get_setting('lists_path') + "/" + form.getvalue(
         'group') + "/" + color + "/" + bwlists_save
     try:
@@ -2180,7 +2183,7 @@ if form.getvalue('bwlists_save'):
 if form.getvalue('bwlists_delete'):
     color = form.getvalue('color')
     bwlists_delete = form.getvalue('bwlists_delete')
-    lib_path = funct.get_config_var('main', 'lib_path')
+    lib_path = get_config.get_config_var('main', 'lib_path')
     list_path = lib_path + "/" + sql.get_setting('lists_path') + "/" + form.getvalue(
         'group') + "/" + color + "/" + bwlists_delete
     try:
@@ -2216,7 +2219,7 @@ if form.getvalue('bwlists_delete'):
                 pass
 
 if form.getvalue('get_lists'):
-    lib_path = funct.get_config_var('main', 'lib_path')
+    lib_path = get_config.get_config_var('main', 'lib_path')
     list_path = lib_path + "/" + sql.get_setting('lists_path') + "/" + form.getvalue('group') + "/" + form.getvalue(
         'color')
     lists = funct.get_files(list_path, "lst")
@@ -2548,7 +2551,7 @@ if form.getvalue('new_ssh'):
             funct.logging('localhost', 'A new SSH credentials ' + name + ' has created', haproxywi=1, login=1)
 
 if form.getvalue('sshdel') is not None:
-    lib_path = funct.get_config_var('main', 'lib_path')
+    lib_path = get_config.get_config_var('main', 'lib_path')
     sshdel = funct.checkAjaxInput(form.getvalue('sshdel'))
     name = ''
     ssh_enable = 0
@@ -2581,7 +2584,7 @@ if form.getvalue('updatessh'):
     if username is None:
         print(error_mess)
     else:
-        lib_path = funct.get_config_var('main', 'lib_path')
+        lib_path = get_config.get_config_var('main', 'lib_path')
 
         for sshs in sql.select_ssh(id=ssh_id):
             ssh_enable = sshs.enable
@@ -2611,7 +2614,7 @@ if form.getvalue('ssh_cert'):
         print('error: Cannot save SSH key file: ', str(e))
         sys.exit()
 
-    lib_path = funct.get_config_var('main', 'lib_path')
+    lib_path = get_config.get_config_var('main', 'lib_path')
     full_dir = lib_path + '/keys/'
     ssh_keys = name + '.pem'
 
@@ -4384,9 +4387,9 @@ if act == 'showListOfVersion':
         action = f'versions.py?service={service_desc.slug}'
 
         if service in ('haproxy', 'nginx', 'apache'):
-            configs_dir = funct.get_config_var('configs', f'{service_desc.service}_save_configs_dir')
+            configs_dir = get_config.get_config_var('configs', f'{service_desc.service}_save_configs_dir')
         else:
-            configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
+            configs_dir = get_config.get_config_var('configs', 'kp_save_configs_dir')
 
         if service == 'haproxy':
             files = funct.get_files()

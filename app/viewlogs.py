@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 import os
 import datetime
-import funct
-import sql
+
 from jinja2 import Environment, FileSystemLoader
 
+import funct
+import sql
+import modules.roxy_wi_tools as roxy_wi_tools
+
+get_config_var = roxy_wi_tools.GetConfigVar()
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('logs.html')
 form = funct.form
@@ -40,7 +44,7 @@ else:
 	funct.page_for_admin()
 	page = ''
 
-log_path = funct.get_config_var('main', 'log_path')
+log_path = get_config_var.get_config_var('main', 'log_path')
 time_storage = sql.get_setting('log_time_storage')
 
 try:

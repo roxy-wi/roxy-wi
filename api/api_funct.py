@@ -6,6 +6,9 @@ sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app/'))
 
 import sql
 import funct
+import modules.roxy_wi_tools as roxy_wi_tools
+
+get_config_var = roxy_wi_tools.GetConfigVar()
 
 
 def get_token():
@@ -331,7 +334,7 @@ def edit_section(server_id):
 	save = request.headers.get('action')
 	token = request.headers.get('token')
 	servers = check_permit_to_server(server_id)
-	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+	hap_configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
 	login, group_id = sql.get_username_groupid_from_api_token(token)
 
 	if save == '':
@@ -391,15 +394,15 @@ def upload_config(server_id, **kwargs):
 	apache = ''
 
 	if service == 'nginx':
-		configs_dir = funct.get_config_var('configs', 'nginx_save_configs_dir')
+		configs_dir = get_config_var.get_config_var('configs', 'nginx_save_configs_dir')
 		service_name = 'Apache'
 		nginx = 1
 	elif service == 'apache':
-		configs_dir = funct.get_config_var('configs', 'apache_save_configs_dir')
+		configs_dir = get_config_var.get_config_var('configs', 'apache_save_configs_dir')
 		service_name = 'NGINX'
 		apache = 1
 	else:
-		configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+		configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
 		service_name = 'HAProxy'
 
 	if save == '':
@@ -452,7 +455,7 @@ def add_to_config(server_id):
 	data = {}
 	body = request.body.getvalue().decode('utf-8')
 	save = request.headers.get('action')
-	hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+	hap_configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
 	token = request.headers.get('token')
 	login, group_id = sql.get_username_groupid_from_api_token(token)
 

@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 import os
 
+from jinja2 import Environment, FileSystemLoader
+
 import sql
 import funct
-from jinja2 import Environment, FileSystemLoader
+import modules.roxy_wi_tools as roxy_wi_tools
+
+get_config_var = roxy_wi_tools.GetConfigVar()
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True, extensions=['jinja2.ext.loopcontrols'])
 template = env.get_template('sections.html')
 
@@ -30,7 +34,7 @@ try:
 except Exception:
 	pass
 
-hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+hap_configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
 
 if serv is not None and open is not None:
 	cfg = hap_configs_dir + serv + "-" + funct.get_data('config') + ".cfg"

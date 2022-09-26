@@ -6,6 +6,9 @@ import re
 import json
 import http.cookies
 
+import modules.roxy_wi_tools as roxy_wi_tools
+
+get_config_var = roxy_wi_tools.GetConfigVar()
 
 def is_ip_or_dns(server_from_request: str) -> str:
 	ip_regex = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
@@ -44,24 +47,6 @@ def checkAjaxInput(ajax_input: str) -> str:
 	else:
 		from shlex import quote
 		return quote(ajax_input.rstrip())
-
-
-def get_config_var(sec, var):
-	from configparser import ConfigParser, ExtendedInterpolation
-	try:
-		path_config = "/etc/roxy-wi/roxy-wi.cfg"
-		config = ConfigParser(interpolation=ExtendedInterpolation())
-		config.read(path_config)
-	except Exception as e:
-		print('error: ' + str(e))
-		return
-
-	try:
-		return config.get(sec, var)
-	except Exception:
-		print('Content-type: text/html\n')
-		print(f'<center><div class="alert alert-danger">Check the config file. Presence section {sec} and parameter {var}</div>')
-		return
 
 
 def get_data(log_type, **kwargs):
@@ -132,11 +117,12 @@ def get_user_group(**kwargs) -> str:
 def logging(server_ip: str, action: str, **kwargs) -> None:
 	import sql
 	import distro
+	import logging
 
 	login = ''
 	cur_date = get_data('logs')
 	cur_date_in_log = get_data('date_in_log')
-	log_path = get_config_var('main', 'log_path')
+	log_path = ('main', 'log_path')
 
 	if not os.path.exists(log_path):
 		os.makedirs(log_path)
@@ -191,6 +177,11 @@ def logging(server_ip: str, action: str, **kwargs) -> None:
 
 		if kwargs.get('keep_history'):
 			keep_action_history(kwargs.get('service'), action, server_ip, login, ip)
+
+	# logging.basicConfig(filename=log_file,
+	# 					filemode='a',
+	# 					format='%(levelname)s: %(message)s',
+	# 					level=logging.INFO)
 
 	try:
 		with open(log_file, 'a') as log:
@@ -353,7 +344,7 @@ def page_for_admin(level=1) -> None:
 
 def return_ssh_keys_path(server_ip: str, **kwargs):
 	import sql
-	lib_path = get_config_var('main', 'lib_path')
+	lib_path= get_config_var.get_config_var('main', 'lib_path')
 	ssh_enable = ''
 	ssh_user_name = ''
 	ssh_user_password = ''
@@ -421,7 +412,7 @@ def get_config(server_ip, cfg, **kwargs):
 def diff_config(oldcfg, cfg, **kwargs):
 	import sql
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	log_path = get_config_var('main', 'log_path')
+	log_path= get_config_var.get_config_var('main', 'log_path')
 	user_group = get_user_group()
 	diff = ""
 	date = get_data('date_in_log')
@@ -559,7 +550,7 @@ def get_userlists(config):
 
 
 def get_backends_from_config(server_ip, backends=''):
-	configs_dir = get_config_var('configs', 'haproxy_save_configs_dir')
+	configs_dir= get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
 	format_cfg = 'cfg'
 
 	try:
@@ -1277,7 +1268,7 @@ def show_roxy_log(
 
 		return show_log(output, grep=grep)
 	elif service == 'internal':
-		log_path = get_config_var('main', 'log_path')
+		log_path= get_config_var.get_config_var('main', 'log_path')
 		logs_files = get_files(log_path, "log")
 		user_group = get_user_group()
 		user_grep = ''
@@ -1304,7 +1295,7 @@ def show_roxy_log(
 
 
 def roxy_wi_log(**kwargs) -> str:
-	log_path = get_config_var('main', 'log_path')
+	log_path = get_config_var.get_config_var('main', 'log_path')
 
 	if kwargs.get('log_id'):
 		selects = get_files(log_path, "log")
@@ -1414,8 +1405,10 @@ def show_backends(server_ip, **kwargs):
 		return ret
 
 
-def get_files(folder=get_config_var('configs', 'haproxy_save_configs_dir'), file_format='cfg') -> list:
+def get_files(folder=None, file_format='cfg') -> list:
 	import glob
+	if folder is None:
+		folder = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
 	if file_format == 'log':
 		file = []
 	else:
@@ -1919,8 +1912,11 @@ def get_system_info(server_ip: str) -> bool:
 																		if isinstance(w['logicalname'], list):
 																			volume_name = w['logicalname'][0]
 																			mount_point = w['logicalname'][1]
-																			size = round(w['size'] / 1073741824)
-																			size = str(size) + 'Gb'
+																			try:
+																				size = round(w['size'] / 1073741824)
+																				size = str(size) + 'Gb'
+																			except Exception:
+																				size = ''
 																			fs = w['configuration']['mount.fstype']
 																			state = w['configuration']['state']
 																			disks[volume_name] = {

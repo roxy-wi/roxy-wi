@@ -2,10 +2,15 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
+import http.cookies
+
+from jinja2 import Environment, FileSystemLoader
+
 import funct
 import sql
-import http.cookies
-from jinja2 import Environment, FileSystemLoader
+import modules.roxy_wi_tools as roxy_wi_tools
+
+get_config_var = roxy_wi_tools.GetConfigVar()
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('add.html')
 form = funct.form
@@ -27,7 +32,7 @@ if all(v is None for v in [
 	except Exception as e:
 		print(str(e))
 
-	lib_path = funct.get_config_var('main', 'lib_path')
+	lib_path = get_config_var.get_config_var('main', 'lib_path')
 	dir = lib_path + "/" + sql.get_setting('lists_path')
 	white_dir = lib_path + "/" + sql.get_setting('lists_path') + "/" + user_group + "/white"
 	black_dir = lib_path + "/" + sql.get_setting('lists_path') + "/" + user_group + "/black"
@@ -372,7 +377,7 @@ if form.getvalue('generateconfig') is None and serv is not None:
 	try:
 		funct.check_is_server_in_group(serv)
 		if config_add:
-			hap_configs_dir = funct.get_config_var('configs', 'haproxy_save_configs_dir')
+			hap_configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
 			cfg = hap_configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
 
 			funct.get_config(serv, cfg)

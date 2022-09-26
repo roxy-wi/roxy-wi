@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 import os
 
+from jinja2 import Environment, FileSystemLoader
+
 import funct
 import sql
-from jinja2 import Environment, FileSystemLoader
+import modules.roxy_wi_tools as roxy_wi_tools
+
+get_config_var = roxy_wi_tools.GetConfigVar()
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('delver.html')
 
@@ -39,9 +43,9 @@ if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
 		conf_format = 'conf'
 
 		if service in ('haproxy', 'nginx', 'apache'):
-			configs_dir = funct.get_config_var('configs', f'{service_desc.service}_save_configs_dir')
+			configs_dir = get_config_var.get_config_var('configs', f'{service_desc.service}_save_configs_dir')
 		else:
-			configs_dir = funct.get_config_var('configs', 'kp_save_configs_dir')
+			configs_dir = get_config_var.get_config_var('configs', 'kp_save_configs_dir')
 
 		if service == 'haproxy':
 			conf_format = 'cfg'
