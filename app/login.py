@@ -180,8 +180,8 @@ if form.getvalue('error'):
 try:
 	if sql.get_setting('session_ttl'):
 		session_ttl = sql.get_setting('session_ttl')
-except Exception:
-	error = '<center><div class="alert alert-danger">Cannot find "session_ttl" parameter. Check it into settings, "main" section</div>'
+except Exception as e:
+	error = f'error: {e}'
 	pass
 
 try:

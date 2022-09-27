@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import sys
+
 import funct
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)

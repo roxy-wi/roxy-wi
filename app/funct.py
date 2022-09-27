@@ -1560,17 +1560,21 @@ def get_users_params(**kwargs):
 	try:
 		user_uuid = cookie.get('uuid')
 		user = sql.get_user_name_by_uuid(user_uuid.value)
+	except Exception as e:
+		print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
+		return
+	try:
 		role = sql.get_user_role_by_uuid(user_uuid.value)
+	except Exception as e:
+		print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
+		return
+	try:
 		user_id = sql.get_user_id_by_uuid(user_uuid.value)
 		user_services = sql.select_user_services(user_id)
 		token = sql.get_token(user_uuid.value)
-	except Exception:
-		user = ''
-		role = ''
-		user_uuid = ''
-		user_services = ''
-		token = ''
+	except Exception as e:
 		print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
+		return
 
 	if kwargs.get('virt') and kwargs.get('haproxy'):
 		servers = sql.get_dick_permit(virt=1, haproxy=1)

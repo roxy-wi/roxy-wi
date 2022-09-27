@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
+import sys
+
+import distro
+
 import funct
 import sql
-import distro
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('metrics.html')

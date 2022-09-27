@@ -5,6 +5,7 @@ import sys
 import os
 
 import funct
+
 from modules.db_model import *
 
 
@@ -15,15 +16,7 @@ def out_error(error):
 	stk = traceback.extract_tb(exc_tb, 1)
 	function_name = stk[0][2]
 	error = error + ' in function: ' + function_name + ' in file: ' + file_name
-	print('error: ' + error)
-	if 'database is locked' not in error:
-		try:
-			funct.logging('localhost', error, haproxywi=1, login=1)
-		except Exception:
-			try:
-				funct.logging('localhost', error, haproxywi=1)
-			except Exception:
-				pass
+	raise Exception('error: ' + error)
 
 
 def add_user(user, email, password, role, activeuser, group):

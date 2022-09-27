@@ -8,6 +8,19 @@ from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('waf.html')
 
+print('Content-type: text/html\n')
+
+try:
+	user, user_id, role, token, servers, user_services = funct.get_users_params(haproxy=1)
+except Exception:
+	pass
+
+try:
+	funct.check_login(user_id, token, service=1)
+except Exception as e:
+	print(f'error {e}')
+	sys.exit()
+
 form = funct.form
 manage_rules = form.getvalue('manage_rules')
 waf_rule_id = form.getvalue('waf_rule_id')
@@ -21,13 +34,8 @@ config_read = ''
 rules = ''
 cfg = ''
 
-print('Content-type: text/html\n')
-funct.page_for_admin(level=2)
 
-try:
-	user, user_id, role, token, servers, user_services = funct.get_users_params(haproxy=1)
-except Exception:
-	pass
+funct.page_for_admin(level=2)
 
 if service == 'nginx':
 	funct.check_login(service=2)
