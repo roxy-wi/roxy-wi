@@ -9,11 +9,11 @@ form = funct.form
 service = form.getvalue('service')
 title = 'Metrics service'
 
-funct.check_login()
 print('Content-type: text/html\n')
 
+user, user_id, role, token, servers, user_services = funct.get_users_params()
+
 try:
-	user, user_id, role, token, servers, user_services = funct.get_users_params()
 	if distro.id() == 'ubuntu':
 		cmd = "apt list --installed 2>&1 |grep roxy-wi-metrics"
 	else:
@@ -26,15 +26,15 @@ try:
 			servers = ''
 		else:
 			if service == 'nginx':
-				if funct.check_login(service=2):
+				if funct.check_login(user_id, token, service=2):
 					title = "NGINX`s metrics"
 					servers = sql.select_nginx_servers_metrics_for_master()
 			elif service == 'apache':
-				if funct.check_login(service=4):
+				if funct.check_login(user_id, token, service=4):
 					title = "Apache`s metrics"
 					servers = sql.select_apache_servers_metrics_for_master()
 			else:
-				if funct.check_login(service=1):
+				if funct.check_login(user_id, token, service=1):
 					title = "HAProxy`s metrics"
 					servers = sql.select_servers_metrics()
 					service = 'haproxy'

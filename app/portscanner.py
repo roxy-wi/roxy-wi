@@ -9,12 +9,17 @@ form = funct.form
 serv = form.getvalue('history')
 
 print('Content-type: text/html\n')
-funct.check_login()
 
 try:
     user, user_id, role, token, servers, user_services = funct.get_users_params(virt=1)
 except Exception as e:
     print(str(e))
+
+try:
+    funct.check_login(user_id, token)
+except Exception as e:
+    print(f'error {e}')
+    sys.exit()
 
 if serv:
     title = 'Port scanner history for ' + serv

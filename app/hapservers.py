@@ -12,11 +12,11 @@ env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('hapservers.html')
 
 print('Content-type: text/html\n')
-funct.check_login()
-services = []
-servers: object
+
 user, user_id, role, token, servers, user_services = funct.get_users_params()
 
+services = []
+servers: object
 form = funct.form
 serv = funct.is_ip_or_dns(form.getvalue('serv'))
 service = funct.checkAjaxInput(form.getvalue('service'))
@@ -31,7 +31,7 @@ restart_settings = ''
 
 if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
     service_desc = sql.select_service(service)
-    if funct.check_login(service=service_desc.service_id):
+    if funct.check_login(user_id, token, service=service_desc.service_id):
         title = f'{service_desc.service} servers overview'
         if serv:
             if funct.check_is_server_in_group(serv):

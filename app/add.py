@@ -17,7 +17,15 @@ form = funct.form
 serv = form.getvalue('serv')
 
 print('Content-type: text/html\n')
-funct.check_login(service=1)
+
+user, user_id, role, token, servers, user_services = funct.get_users_params(haproxy=1)
+
+try:
+	funct.check_login(user_id, token, service=1)
+except Exception as e:
+	print(f'error {e}')
+	sys.exit()
+
 funct.page_for_admin(level=3)
 
 if all(v is None for v in [
@@ -25,7 +33,6 @@ if all(v is None for v in [
 	form.getvalue('peers-name'), form.getvalue('generateconfig')
 ]):
 	try:
-		user, user_id, role, token, servers, user_services = funct.get_users_params(haproxy=1)
 		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 		group = cookie.get('group')
 		user_group = group.value

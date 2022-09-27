@@ -7,7 +7,6 @@ env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('history.html')
 
 print('Content-type: text/html\n')
-funct.check_login()
 
 try:
     user, user_id, role, token, servers, user_services \
@@ -19,11 +18,11 @@ except Exception:
 form = funct.form
 serv = funct.is_ip_or_dns(form.getvalue('serv'))
 service = form.getvalue('service')
-user_id = form.getvalue('user_id')
+user_id_history = form.getvalue('user_id')
 
 if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
     service_desc = sql.select_service(service)
-    if funct.check_login(service=service_desc.service_id):
+    if funct.check_login(user_id, token, service=service_desc.service_id):
         title = f'{service_desc.service} service history'
         server_id = sql.select_server_id_by_ip(serv)
         history = sql.select_action_history_by_server_id_and_service(
@@ -37,9 +36,9 @@ elif service == 'server':
             server_id = sql.select_server_id_by_ip(serv)
             history = sql.select_action_history_by_server_id(server_id)
 elif service == 'user':
-    if user_id:
+    if user_id_history:
         title = 'User history'
-        history = sql.select_action_history_by_user_id(user_id)
+        history = sql.select_action_history_by_user_id(user_id_history)
 
 users = sql.select_users()
 

@@ -117,7 +117,6 @@ def get_user_group(**kwargs) -> str:
 def logging(server_ip: str, action: str, **kwargs) -> None:
 	import sql
 	import distro
-	import logging
 
 	login = ''
 	cur_date = get_data('logs')
@@ -177,11 +176,6 @@ def logging(server_ip: str, action: str, **kwargs) -> None:
 
 		if kwargs.get('keep_history'):
 			keep_action_history(kwargs.get('service'), action, server_ip, login, ip)
-
-	# logging.basicConfig(filename=log_file,
-	# 					filemode='a',
-	# 					format='%(levelname)s: %(message)s',
-	# 					level=logging.INFO)
 
 	try:
 		with open(log_file, 'a') as log:
@@ -273,17 +267,18 @@ def slack_send_mess(mess, **kwargs):
 		logging('localhost', str(e), haproxywi=1)
 
 
-def check_login(**kwargs):
+def check_login(user_uuid, token, **kwargs):
 	import sql
-	user_uuid = None
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	try:
-		user_uuid = cookie.get('uuid')
-	except Exception:
+
+	if user_uuid is None:
 		print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
+
 	ref = os.environ.get("REQUEST_URI")
 
-	sql.delete_old_uuid()
+	try:
+		sql.delete_old_uuid()
+	except Exception as e:
+		raise Exception(f'error: cannot connect to DB {e}')
 
 	if user_uuid is not None:
 		if sql.get_user_name_by_uuid(user_uuid.value) is None:
@@ -299,7 +294,6 @@ def check_login(**kwargs):
 				print('<meta http-equiv="refresh" content="0; url=overview.py">')
 				return False
 
-		user, user_uuid, role, token, servers, user_services = get_users_params()
 		sql.update_last_act_user(user_uuid.value, token)
 	else:
 		print('<meta http-equiv="refresh" content="0; url=login.py?ref=%s">' % ref)
@@ -434,12 +428,12 @@ def diff_config(oldcfg, cfg, **kwargs):
 		for line in output:
 			diff += date + " user: " + login + ", group: " + user_group + " " + line + "\n"
 
+	log_file = f"{log_path}/config_edit-{get_data('logs')}"
 	try:
-		log = open(log_path + "/config_edit-" + get_data('logs') + ".log", "a")
-		log.write(diff)
-		log.close()
+		with open(log_file, 'a') as log:
+			log.write(mess)
 	except IOError:
-		print('<center><div class="alert alert-danger">Can\'t read write change to log. %s</div></center>' % stderr)
+		print(f'<center><div class="alert alert-danger">Can\'t read write change to log. {stderr}</div></center>')
 		pass
 
 

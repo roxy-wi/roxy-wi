@@ -12,7 +12,17 @@ env = Environment(loader=FileSystemLoader('templates/'), autoescape=True, extens
 template = env.get_template('sections.html')
 
 print('Content-type: text/html\n')
-funct.check_login(service=1)
+
+try:
+	user, user_id, role, token, servers, user_services = funct.get_users_params()
+except Exception:
+	pass
+
+try:
+	funct.check_login(user_id, token, service=1)
+except Exception as e:
+	print(f'error {e}')
+	sys.exit()
 
 form = funct.form
 serv = form.getvalue('serv')
@@ -28,11 +38,6 @@ start_line = ""
 end_line = ""
 warning = ''
 is_restart = ''
-
-try:
-	user, user_id, role, token, servers, user_services = funct.get_users_params()
-except Exception:
-	pass
 
 hap_configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
 

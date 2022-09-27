@@ -6,7 +6,6 @@ template = env.get_template('nettools.html')
 form = funct.form
 
 print('Content-type: text/html\n')
-funct.check_login()
 
 try:
     user, user_id, role, token, servers, user_services \
@@ -14,6 +13,11 @@ try:
 except Exception:
     pass
 
+try:
+    funct.check_login(user_id, token)
+except Exception as e:
+    print(f'error {e}')
+    sys.exit()
 
 output_from_parsed_template = template.render(h2=1, autorefresh=0,
                                               title="Network tools",

@@ -4,16 +4,15 @@ import sql
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('statsview.html')
+print('Content-type: text/html\n')
+
+user, user_id, role, token, servers, user_services = funct.get_users_params(virt=1, haproxy=1)
+
 form = funct.form
 serv = form.getvalue('serv')
 service = form.getvalue('service')
 
-print('Content-type: text/html\n')
-funct.check_login()
-
 try:
-	user, user_id, role, token, servers, user_services = funct.get_users_params(virt=1, haproxy=1)
-
 	if serv is None:
 		first_serv = servers
 		for i in first_serv:
@@ -24,7 +23,7 @@ except Exception:
 
 if service in ('haproxy', 'nginx', 'apache'):
 	service_desc = sql.select_service(service)
-	if funct.check_login(service=service_desc.service_id):
+	if funct.check_login(user_id, token, service=service_desc.service_id):
 		title = f'{service_desc.service} stats page'
 		sql.get_dick_permit(service=service_desc.slug)
 else:

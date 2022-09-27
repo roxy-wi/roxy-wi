@@ -5,8 +5,6 @@ env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('ha.html')
 
 print('Content-type: text/html\n')
-funct.check_login(service=3)
-funct.page_for_admin(level=2)
 
 form = funct.form
 serv = form.getvalue('serv')
@@ -15,6 +13,14 @@ try:
 	user, user_id, role, token, servers, user_services = funct.get_users_params()
 except Exception:
 	pass
+
+try:
+	funct.check_login(user_id, token, service=3)
+except Exception as e:
+	print(f'error {e}')
+	sys.exit()
+
+funct.page_for_admin(level=2)
 
 try:
 	user_status, user_plan = funct.return_user_status()

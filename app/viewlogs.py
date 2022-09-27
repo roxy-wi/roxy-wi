@@ -12,6 +12,15 @@ get_config_var = roxy_wi_tools.GetConfigVar()
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('logs.html')
 form = funct.form
+print('Content-type: text/html\n')
+
+user, user_id, role, token, servers, user_services = funct.get_users_params()
+
+try:
+	funct.check_login(user_id, token)
+except Exception as e:
+	print(f'error {e}')
+	sys.exit()
 
 if form.getvalue('grep') is None:
 	grep = ""
@@ -35,8 +44,6 @@ hour1 = form.getvalue('hour1')
 minut = form.getvalue('minut')
 minut1 = form.getvalue('minut1')
 
-print('Content-type: text/html\n')
-funct.check_login()
 if form.getvalue('type') == '2':
 	funct.page_for_admin(level=2)
 	page = 'for_editor'
@@ -55,11 +62,6 @@ try:
 			file_modified = datetime.datetime.fromtimestamp(os.path.getmtime(curpath))
 			if datetime.datetime.now() - file_modified > datetime.timedelta(hours=time_storage_hours):
 				os.remove(curpath)
-except Exception:
-	pass
-
-try:
-	user, user_id, role, token, servers, user_services = funct.get_users_params()
 except Exception:
 	pass
 

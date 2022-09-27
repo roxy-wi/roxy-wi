@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import sys
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -12,11 +13,14 @@ env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('config.html')
 
 print('Content-type: text/html\n')
-funct.check_login()
 
 form = funct.form
 serv = funct.is_ip_or_dns(form.getvalue('serv'))
-service = funct.checkAjaxInput(form.getvalue('service'))
+try:
+	service = funct.checkAjaxInput(form.getvalue('service'))
+except Exception:
+	print('<meta http-equiv="refresh" content="0; url=/app/">')
+
 is_serv_protected = False
 try:
 	config_file_name = form.getvalue('config_file_name').replace('92', '/')
@@ -29,14 +33,11 @@ error = ""
 aftersave = ""
 is_restart = ''
 
-try:
-	user, user_id, role, token, servers, user_services = funct.get_users_params()
-except Exception as e:
-	print(str(e))
+user, user_id, role, token, servers, user_services = funct.get_users_params()
 
 if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
 	service_desc = sql.select_service(service)
-	if funct.check_login(service=service_desc.service_id):
+	if funct.check_login(user_id, token, service=service_desc.service_id):
 		title = f"Working with {service_desc.service} configuration files"
 		action = f"config.py?service={service_desc.slug}"
 		configs_dir = get_config_var.get_config_var('configs', 'kp_save_configs_dir')

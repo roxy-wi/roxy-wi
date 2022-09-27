@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
+import sys
 import psutil
 
 import funct
@@ -12,8 +13,6 @@ template = env.get_template('ovw.html')
 
 print('Content-type: text/html\n')
 
-funct.check_login()
-
 grafana = 0
 metrics_worker = 0
 checker_worker = 0
@@ -24,6 +23,17 @@ host = os.environ.get('HTTP_HOST', '')
 
 try:
 	user, user_id, role, token, servers, user_services = funct.get_users_params()
+except Exception as e:
+	print(f'error {e}')
+	sys.exit()
+
+try:
+	funct.check_login(user_id, token)
+except Exception as e:
+	print(f'error {e}')
+	sys.exit()
+
+try:
 	groups = sql.select_groups()
 	user_group = funct.get_user_group(id=1)
 
@@ -85,7 +95,7 @@ except Exception as e:
 	servers = ''
 	stderr = ''
 	token = ''
-	print(str(e))
+	# print(str(e))
 
 rendered_template = template.render(
 	h2=1, autorefresh=1, title="Overview", role=role, user=user, groups=groups, roles=sql.select_roles(),

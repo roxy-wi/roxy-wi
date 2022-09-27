@@ -9,10 +9,16 @@ template = env.get_template('servers.html')
 form = funct.form
 
 print('Content-type: text/html\n')
-funct.check_login()
+user, user_id, role, token, servers, user_services = funct.get_users_params()
+
+try:
+	funct.check_login(user_id, token)
+except Exception as e:
+	print(f'error {e}')
+	sys.exit()
+
 funct.page_for_admin(level=2)
 try:
-	user, user_id, role, token, servers, user_services = funct.get_users_params()
 	ldap_enable = sql.get_setting('ldap_enable')
 	user_group = funct.get_user_group(id=1)
 	settings = sql.get_setting('', all=1)

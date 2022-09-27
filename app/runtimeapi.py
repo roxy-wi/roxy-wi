@@ -5,11 +5,18 @@ env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('runtimeapi.html')
 
 print('Content-type: text/html\n')
-funct.check_login(service=1)
+
+user, user_id, role, token, servers, user_services = funct.get_users_params(virt=1, haproxy=1)
+
+try:
+	funct.check_login(user_id, token, service=1)
+except Exception as e:
+	print(f'error {e}')
+	sys.exit()
+
 form = funct.form
 
 try:
-	user, user_id, role, token, servers, user_services = funct.get_users_params(virt=1, haproxy=1)
 	servbackend = form.getvalue('servbackend')
 	serv = form.getvalue('serv')
 	if servbackend is None:

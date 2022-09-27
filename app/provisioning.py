@@ -7,10 +7,17 @@ template = env.get_template('provisioning.html')
 form = funct.form
 
 print('Content-type: text/html\n')
-funct.check_login()
+
+user, user_id, role, token, servers, user_services = funct.get_users_params()
+
+try:
+    funct.check_login(user_id, token)
+except Exception as e:
+    print(f'error {e}')
+    sys.exit()
+
 funct.page_for_admin(level=2)
 try:
-    user, user_id, role, token, servers, user_services = funct.get_users_params()
     if role == 1:
         groups = sql.select_groups()
     else:
