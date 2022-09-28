@@ -375,7 +375,7 @@ function showLog() {
 				'&file=' + file +
 				'&waf=' + waf);
 
-		}					
+		}
 	} );
 }
 function showRemoteLogFiles() {
@@ -458,7 +458,7 @@ function showMap() {
 				$("#ajax").html(data);
 				window.history.pushState("Show map", "Show map", cur_url[0] + '?service=haproxy&serv=' + $("#serv").val() + '&showMap');
 			}
-		}					
+		}
 	} );
 }
 function showCompare() {
@@ -479,7 +479,7 @@ function showCompare() {
 				toastr.clear();
 				$("#ajax").html(data);
 			}
-		}					
+		}
 	} );
 }
 function showCompareConfigs() {
@@ -537,7 +537,7 @@ function showConfig() {
 				$.getScript('/inc/configshow.js');
 				window.history.pushState("Show config", "Show config", cur_url[0] + "?service=" + service + "&serv=" + $("#serv").val() + "&showConfig");
 			}
-		}					
+		}
 	} );
 }
 function showConfigFiles() {
@@ -614,7 +614,7 @@ function showUploadConfig() {
 				window.history.pushState("Show config", "Show config", cur_url[0] + "?service=" + service + "&serv=" + serv + "&open=open&configver=" + configver);
 				$.getScript('/inc/configshow.js');
 			}
-		}					
+		}
 	} );
 }
 function showListOfVersion(for_delver) {
@@ -683,7 +683,7 @@ function viewLogs() {
 		var type = findGetParameter('type')
 		if (viewlogs == null){
 			viewlogs = findGetParameter('viewlogs')
-		}	
+		}
 		$.ajax( {
 			url: "options.py",
 			data: {
@@ -695,7 +695,7 @@ function viewLogs() {
 				minut: minut,
 				hour1: hour1,
 				minut1: minut1,
-				token: $('#token').val(),				
+				token: $('#token').val(),
 			},
 			type: "POST",
 			success: function( data ) {
@@ -709,7 +709,7 @@ function viewLogs() {
 						'&minut=' + minut +
 						'&hour1=' + hour1 +
 						'&minut1=' + minut1);
-			}					
+			}
 		} );
 	}
 }
@@ -745,10 +745,10 @@ $( function() {
 		$("#show").css("pointer-events", "none");
 		$("#show").css("cursor", "not-allowed");
 	}
-	
+
 	var pause = '<a onclick="pauseAutoRefresh()" title="Pause auto-refresh" class="auto-refresh-pause"></a>'
 	var autoRefresh = sessionStorage.getItem('auto-refresh');
-	
+
 	if ($('.auto-refresh')) {
 		if(autoRefresh) {
 			startSetInterval(autoRefresh);
@@ -757,12 +757,12 @@ $( function() {
 	}
 	$( "#tabs" ).tabs();
 	$( "select" ).selectmenu();
-		
+
     //$( "[title]" ).tooltip();
 	$( "input[type=submit], button" ).button();
 	$( "input[type=checkbox]" ).checkboxradio();
 	$( ".controlgroup" ).controlgroup();
-	
+
 	$( "#hide_menu" ).click(function() {
 		$(".top-menu").hide( "drop", "fast" );
 		$(".container").css("max-width", "100%");
@@ -801,8 +801,8 @@ $( function() {
 		$(".footer").css("max-width", "97%");
 		$(".show_menu").show();
 		$("#hide_menu").hide();
-	}	
-	
+	}
+
 	var now = new Date(Date.now());
 	if($('#time_range_out_hour').val() != '' && $('#time_range_out_hour').val() != 'None') {
 		var date1 = parseInt($('#time_range_out_hour').val(), 10) * 60 + parseInt($('#time_range_out_minut').val(), 10)
@@ -814,7 +814,7 @@ $( function() {
 	} else {
 		var date2 = now.getHours() * 60 + now.getMinutes();
 	}
-	$("#time-range").slider({	
+	$("#time-range").slider({
 		range: true,
 		min: 0,
 		max: 1440,
@@ -826,7 +826,7 @@ $( function() {
 
 			if(hours.toString().length == 1) hours = '0' + hours;
 			if(minutes.toString().length == 1) minutes = '0' + minutes;
-			
+
 			var hours1 = Math.floor(ui.values[1] / 60);
 			var minutes1 = ui.values[1] - (hours1 * 60);
 
@@ -872,17 +872,17 @@ $( function() {
 	} else {
 		$('#time_range_out_minut1').val(date2_minute);
 	}
-		
+
 	$('#0').click(function() {
 		$('.auto-refresh-div').show("blind", "fast");
-		$('#0').css("display", "none");		
+		$('#0').css("display", "none");
 		$('#1').css("display", "inline");
 		});
-		
-	$('#1').click(function() {	
+
+	$('#1').click(function() {
 		$('.auto-refresh-div').hide("blind", "fast");
-		$('#1').css("display", "none");			
-		$('#0').css("display", "inline");			
+		$('#1').css("display", "none");
+		$('#0').css("display", "inline");
 	});
 	$('#auth').submit(function() {
 		let searchParams = new URLSearchParams(window.location.search)
@@ -905,8 +905,8 @@ $( function() {
 					$('.alert').show();
 					$('.alert').html(data);
 				} else if (data.indexOf('ban') != '-1') {
-					ban();				
-				} 
+					ban();
+				}
 			}
 		} );
 		return false;
@@ -1055,7 +1055,7 @@ $( function() {
 					$(this).children(".runtime").css('border-left', '4px solid var(--right-menu-blue-rolor)');
 				});
 				$( "#tabs" ).tabs( "option", "active", 1 );
-			} );					
+			} );
 			$( ".admin" ).on( "click", function() {
 				$('.menu li ul li').each(function () {
 					$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
@@ -1149,19 +1149,19 @@ async function ban() {
 	$('.alert').show();
 	$('#ban_10').show();
 	$( '#ban_timer').text(10);
-	
+
 	let i = 10;
 	while (i > 0) {
 		i--;
 		await sleep(1000);
 		$( '#ban_timer').text(i);
 		}
-		
+
 	$( '#login').removeAttr('disabled');
 	$( '#pass').removeAttr('disabled');
 	$( "input[type=submit], button" ).button('enable');
 	$('#ban_10').hide();
-} 
+}
 function replace_text(id_textarea, text_var) {
 	var str = $(id_textarea).val();
 	var len = str.length;
@@ -1177,7 +1177,7 @@ function createHistroy() {
 		localStorage.setItem('history', JSON.stringify(get_history_array));
 	}
 }
-function listHistroy() {	
+function listHistroy() {
 	var browse_history = JSON.parse(localStorage.getItem('history'));
 	var history_link = '';
 	var title = []

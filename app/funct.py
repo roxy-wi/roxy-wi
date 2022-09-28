@@ -429,7 +429,7 @@ def diff_config(oldcfg, cfg, **kwargs):
 	log_file = f"{log_path}/config_edit-{get_data('logs')}"
 	try:
 		with open(log_file, 'a') as log:
-			log.write(mess)
+			log.write(diff)
 	except IOError:
 		print(f'<center><div class="alert alert-danger">Can\'t read write change to log. {stderr}</div></center>')
 		pass
