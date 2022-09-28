@@ -7,6 +7,7 @@ from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('smon.html')
 
+print('Content-type: text/html\n')
 user, user_id, role, token, servers, user_services = funct.get_users_params()
 
 try:
@@ -19,9 +20,6 @@ form = funct.form
 action = form.getvalue('action')
 sort = form.getvalue('sort')
 autorefresh = 0
-
-print('Content-type: text/html\n')
-funct.check_login()
 
 user_group = funct.get_user_group(id=1)
 cmd = "systemctl is-active roxy-wi-smon"

@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-import sys
-
 import funct
 import sql
 from jinja2 import Environment, FileSystemLoader

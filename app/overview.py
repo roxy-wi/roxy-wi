@@ -82,7 +82,7 @@ try:
 	cmd = "systemctl is-active roxy-wi-socket"
 	socket, stderr = funct.subprocess_execute(cmd)
 
-except Exception as e:
+except Exception:
 	role = ''
 	user = ''
 	groups = ''
@@ -95,7 +95,6 @@ except Exception as e:
 	servers = ''
 	stderr = ''
 	token = ''
-	# print(str(e))
 
 rendered_template = template.render(
 	h2=1, autorefresh=1, title="Overview", role=role, user=user, groups=groups, roles=sql.select_roles(),
