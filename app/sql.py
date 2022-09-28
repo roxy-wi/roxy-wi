@@ -15,8 +15,8 @@ def out_error(error):
 	file_name = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 	stk = traceback.extract_tb(exc_tb, 1)
 	function_name = stk[0][2]
-	error = error + ' in function: ' + function_name + ' in file: ' + file_name
-	raise Exception('error: ' + error)
+	error = f'{error} in function: {function_name} in file: {file_name}'
+	raise Exception(f'error: {error}')
 
 
 def add_user(user, email, password, role, activeuser, group):

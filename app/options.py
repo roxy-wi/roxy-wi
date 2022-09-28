@@ -2292,17 +2292,20 @@ if form.getvalue('newuser') is not None:
 
     if funct.check_user_group():
         if funct.is_admin(level=role_id):
-            if sql.add_user(new_user, email, password, role, activeuser, group):
-                env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
-                template = env.get_template('ajax/new_user.html')
+            try:
+                if sql.add_user(new_user, email, password, role, activeuser, group):
+                    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
+                    template = env.get_template('ajax/new_user.html')
 
-                template = template.render(users=sql.select_users(user=new_user),
-                                           groups=sql.select_groups(),
-                                           page=page,
-                                           roles=sql.select_roles(),
-                                           adding=1)
-                print(template)
-                funct.logging('a new user ' + new_user, ' has been created ', haproxywi=1, login=1)
+                    template = template.render(users=sql.select_users(user=new_user),
+                                               groups=sql.select_groups(),
+                                               page=page,
+                                               roles=sql.select_roles(),
+                                               adding=1)
+                    print(template)
+                    funct.logging('a new user ' + new_user, ' has been created ', haproxywi=1, login=1)
+            except Exception as e:
+                print(e)
         else:
             print('error: dalsdm')
             funct.logging(new_user, ' tried to privilege escalation', haproxywi=1, login=1)
@@ -2371,68 +2374,70 @@ if form.getvalue('newserver') is not None:
     if ip == '':
         print('error: IP or DNS name is not valid')
         sys.exit()
+    try:
+        if sql.add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, apache, firewall):
 
-    if sql.add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, apache, firewall):
+            try:
+                if scan_server == '1':
+                    nginx_config_path = sql.get_setting('nginx_config_path')
+                    haproxy_config_path = sql.get_setting('haproxy_config_path')
+                    haproxy_dir = sql.get_setting('haproxy_dir')
+                    apache_config_path = sql.get_setting('apache_config_path')
+                    keepalived_config_path = sql.get_setting('keepalived_config_path')
 
-        try:
-            if scan_server == '1':
-                nginx_config_path = sql.get_setting('nginx_config_path')
-                haproxy_config_path = sql.get_setting('haproxy_config_path')
-                haproxy_dir = sql.get_setting('haproxy_dir')
-                apache_config_path = sql.get_setting('apache_config_path')
-                keepalived_config_path = sql.get_setting('keepalived_config_path')
+                    if funct.is_file_exists(ip, nginx_config_path):
+                        sql.update_nginx(ip)
 
-                if funct.is_file_exists(ip, nginx_config_path):
-                    sql.update_nginx(ip)
+                    if funct.is_file_exists(ip, haproxy_config_path):
+                        sql.update_haproxy(ip)
 
-                if funct.is_file_exists(ip, haproxy_config_path):
-                    sql.update_haproxy(ip)
+                    if funct.is_file_exists(ip, keepalived_config_path):
+                        sql.update_keepalived(ip)
 
-                if funct.is_file_exists(ip, keepalived_config_path):
-                    sql.update_keepalived(ip)
+                    if funct.is_file_exists(ip, apache_config_path):
+                        sql.update_apache(ip)
 
-                if funct.is_file_exists(ip, apache_config_path):
-                    sql.update_apache(ip)
+                    if funct.is_file_exists(ip, haproxy_dir + '/waf/bin/modsecurity'):
+                        sql.insert_waf_metrics_enable(ip, "0")
+                        sql.insert_waf_rules(ip)
 
-                if funct.is_file_exists(ip, haproxy_dir + '/waf/bin/modsecurity'):
-                    sql.insert_waf_metrics_enable(ip, "0")
-                    sql.insert_waf_rules(ip)
+                    if funct.is_service_active(ip, 'firewalld'):
+                        sql.update_firewall(ip)
+            except Exception as e:
+                funct.logging('Cannot scan a new server ' + hostname, str(e), haproxywi=1)
 
-                if funct.is_service_active(ip, 'firewalld'):
-                    sql.update_firewall(ip)
-        except Exception as e:
-            funct.logging('Cannot scan a new server ' + hostname, str(e), haproxywi=1)
+            try:
+                sql.insert_new_checker_setting_for_server(ip)
+            except Exception as e:
+                funct.logging('Cannot insert Checker settings for ' + hostname, str(e), haproxywi=1)
 
-        try:
-            sql.insert_new_checker_setting_for_server(ip)
-        except Exception as e:
-            funct.logging('Cannot insert Checker settings for ' + hostname, str(e), haproxywi=1)
+            try:
+                funct.get_system_info(ip)
+            except Exception as e:
+                funct.logging('Cannot get information from ' + hostname, str(e), haproxywi=1, login=1)
 
-        try:
-            funct.get_system_info(ip)
-        except Exception as e:
-            funct.logging('Cannot get information from ' + hostname, str(e), haproxywi=1, login=1)
+            try:
+                user_status, user_plan = funct.return_user_status()
+            except Exception as e:
+                user_status, user_plan = 0, 0
+                funct.logging('localhost', 'Cannot get a user plan: ' + str(e), haproxywi=1)
 
-        try:
-            user_status, user_plan = funct.return_user_status()
-        except Exception as e:
-            user_status, user_plan = 0, 0
-            funct.logging('localhost', 'Cannot get a user plan: ' + str(e), haproxywi=1)
+            env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
+            template = env.get_template('ajax/new_server.html')
 
-        env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
-        template = env.get_template('ajax/new_server.html')
-
-        template = template.render(groups=sql.select_groups(),
-                                   servers=sql.select_servers(server=ip),
-                                   masters=sql.select_servers(get_master_servers=1),
-                                   sshs=sql.select_ssh(group=group),
-                                   page=page,
-                                   user_status=user_status,
-                                   user_plan=user_plan,
-                                   adding=1)
-        print(template)
-        funct.logging(ip, 'A new server ' + hostname + ' has been created', haproxywi=1, login=1,
-                      keep_history=1, service='server')
+            template = template.render(groups=sql.select_groups(),
+                                       servers=sql.select_servers(server=ip),
+                                       masters=sql.select_servers(get_master_servers=1),
+                                       sshs=sql.select_ssh(group=group),
+                                       page=page,
+                                       user_status=user_status,
+                                       user_plan=user_plan,
+                                       adding=1)
+            print(template)
+            funct.logging(ip, 'A new server ' + hostname + ' has been created', haproxywi=1, login=1,
+                          keep_history=1, service='server')
+    except Exception as e:
+        print(e)
 
 if form.getvalue('updatehapwiserver') is not None:
     hapwi_id = form.getvalue('updatehapwiserver')
@@ -2769,7 +2774,10 @@ if form.getvalue('changeUserGroupId') is not None:
         for group in groups:
             if group[0] == ',':
                 continue
-            sql.update_user_groups(groups=group[0], user_group_id=group_id)
+            try:
+                sql.update_user_groups(groups=group[0], user_group_id=group_id)
+            except Exception as e:
+                print(e)
 
     funct.logging('localhost', 'Groups has been updated for user: ' + user, haproxywi=1, login=1)
 
@@ -2778,17 +2786,23 @@ if form.getvalue('changeUserServicesId') is not None:
     services = form.getvalue('changeUserServices')
     user = form.getvalue('changeUserServicesUser')
 
-    if sql.update_user_services(services=services, user_id=user_id):
-        funct.logging('localhost', 'Access to the services has been updated for user: ' + user, haproxywi=1, login=1)
+    try:
+        if sql.update_user_services(services=services, user_id=user_id):
+            funct.logging('localhost', 'Access to the services has been updated for user: ' + user, haproxywi=1, login=1)
+    except Exception as e:
+        print(e)
 
 if form.getvalue('changeUserCurrentGroupId') is not None:
     group_id = form.getvalue('changeUserCurrentGroupId')
     user_uuid = form.getvalue('changeUserGroupsUser')
 
-    if sql.update_user_current_groups(group_id, user_uuid):
-        print('Ok')
-    else:
-        print('error: Cannot change group')
+    try:
+        if sql.update_user_current_groups(group_id, user_uuid):
+            print('Ok')
+        else:
+            print('error: Cannot change group')
+    except Exception as e:
+        print(e)
 
 if form.getvalue('getcurrentusergroup') is not None:
     cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
@@ -2845,9 +2859,12 @@ if form.getvalue('smondel') is not None:
     smon_id = form.getvalue('smondel')
 
     if funct.check_user_group():
-        if sql.delete_smon(smon_id, user_group):
-            print('Ok')
-            funct.logging('SMON', ' Has been delete server from SMON ', haproxywi=1, login=1)
+        try:
+            if sql.delete_smon(smon_id, user_group):
+                print('Ok')
+                funct.logging('SMON', ' Has been delete server from SMON ', haproxywi=1, login=1)
+        except Exception as e:
+            print(e)
 
 if form.getvalue('showsmon') is not None:
     user_group = funct.get_user_group(id=1)
@@ -2884,9 +2901,12 @@ if form.getvalue('updateSmonIp') is not None:
         print('SMON error: Cannot be HTTP with 443 port')
         sys.exit()
 
-    if sql.update_smon(smon_id, ip, port, body, telegram, slack, group, desc, en):
-        print("Ok")
-        funct.logging('SMON', ' Has been update the server ' + ip + ' to SMON ', haproxywi=1, login=1)
+    try:
+        if sql.update_smon(smon_id, ip, port, body, telegram, slack, group, desc, en):
+            print("Ok")
+            funct.logging('SMON', ' Has been update the server ' + ip + ' to SMON ', haproxywi=1, login=1)
+    except Exception as e:
+        print(e)
 
 if form.getvalue('showBytes') is not None:
     serv = funct.checkAjaxInput(form.getvalue('showBytes'))
@@ -3322,11 +3342,14 @@ if form.getvalue('portscanner_history_server_id'):
     for s in servers:
         user_group_id = s[3]
 
-    if sql.insert_port_scanner_settings(server_id, user_group_id, enabled, notify, history):
-        print('ok')
-    else:
-        if sql.update_port_scanner_settings(server_id, user_group_id, enabled, notify, history):
+    try:
+        if sql.insert_port_scanner_settings(server_id, user_group_id, enabled, notify, history):
             print('ok')
+        else:
+            if sql.update_port_scanner_settings(server_id, user_group_id, enabled, notify, history):
+                print('ok')
+    except Exception as e:
+        print(e)
 
 if form.getvalue('show_versions'):
     env = Environment(loader=FileSystemLoader('templates'))
@@ -3386,9 +3409,12 @@ if any((form.getvalue('do_new_name'), form.getvalue('aws_new_name'), form.getval
 
 if form.getvalue('providerdel'):
     funct.check_user_group()
-    if sql.delete_provider(form.getvalue('providerdel')):
-        print('Ok')
-        funct.logging('localhost', 'Provider has been deleted', provisioning=1)
+    try:
+        if sql.delete_provider(form.getvalue('providerdel')):
+            print('Ok')
+            funct.logging('localhost', 'Provider has been deleted', provisioning=1)
+    except Exception as e:
+        print(e)
 
 if form.getvalue('awsinit') or form.getvalue('doinit') or form.getvalue('gcoreinitserver'):
     funct.check_user_group()
@@ -3569,25 +3595,28 @@ if form.getvalue('doeditworkspace'):
     monitoring = form.getvalue('do_edit_monitoring')
     firewall = form.getvalue('do_edit_firewall')
     server_id = form.getvalue('server_id')
-    if sql.update_server_do(
-            size, privet_net, floating_ip, ssh_ids, ssh_name, oss, firewall, monitoring, backup, provider,
-            group, 'Creating', server_id
-    ):
+    try:
+        if sql.update_server_do(
+                size, privet_net, floating_ip, ssh_ids, ssh_name, oss, firewall, monitoring, backup, provider,
+                group, 'Creating', server_id
+        ):
 
-        cmd = 'cd scripts/terraform/ && sudo terraform workspace select ' + workspace + '_' + group + '_do'
-        output, stderr = funct.subprocess_execute(cmd)
+            cmd = 'cd scripts/terraform/ && sudo terraform workspace select ' + workspace + '_' + group + '_do'
+            output, stderr = funct.subprocess_execute(cmd)
 
-        if stderr != '':
-            stderr = stderr.strip()
-            stderr = repr(stderr)
-            stderr = stderr.replace("'", "")
-            stderr = stderr.replace("\'", "")
-            sql.update_provisioning_server_status('Error', group, workspace, provider)
-            sql.update_provisioning_server_error(stderr, group, workspace, provider)
-            print('error: ' + stderr)
-        else:
-            print(cmd)
-            print(output)
+            if stderr != '':
+                stderr = stderr.strip()
+                stderr = repr(stderr)
+                stderr = stderr.replace("'", "")
+                stderr = stderr.replace("\'", "")
+                sql.update_provisioning_server_status('Error', group, workspace, provider)
+                sql.update_provisioning_server_error(stderr, group, workspace, provider)
+                print('error: ' + stderr)
+            else:
+                print(cmd)
+                print(output)
+    except Exception as e:
+        print(e)
 
 if form.getvalue('awsvalidate') or form.getvalue('awseditvalidate'):
     if form.getvalue('awsvalidate'):
@@ -3631,21 +3660,24 @@ if form.getvalue('awsworkspace'):
         sql.update_provisioning_server_error(stderr, group, workspace, provider)
         print('error: ' + stderr)
     else:
-        if sql.add_server_aws(
-                region, size, public_ip, floating_ip, volume_size, ssh_name, workspace, oss, firewall,
-                provider, group, 'Creating', delete_on_termination, volume_type
-        ):
-            user, user_id, role, token, servers, user_services = funct.get_users_params()
-            new_server = sql.select_provisioned_servers(new=workspace, group=group, type='aws')
-            params = sql.select_provisioning_params()
+        try:
+            if sql.add_server_aws(
+                    region, size, public_ip, floating_ip, volume_size, ssh_name, workspace, oss, firewall,
+                    provider, group, 'Creating', delete_on_termination, volume_type
+            ):
+                user, user_id, role, token, servers, user_services = funct.get_users_params()
+                new_server = sql.select_provisioned_servers(new=workspace, group=group, type='aws')
+                params = sql.select_provisioning_params()
 
-            env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
-            template = env.get_template('ajax/provisioning/provisioned_servers.html')
-            template = template.render(
-                servers=new_server, groups=sql.select_groups(), user_group=group,
-                providers=sql.select_providers(group), role=role, adding=1, params=params
-            )
-            print(template)
+                env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
+                template = env.get_template('ajax/provisioning/provisioned_servers.html')
+                template = template.render(
+                    servers=new_server, groups=sql.select_groups(), user_group=group,
+                    providers=sql.select_providers(group), role=role, adding=1, params=params
+                )
+                print(template)
+        except Exception as e:
+            print(e)
 
 if form.getvalue('awseditworkspace'):
     workspace = form.getvalue('awseditworkspace')
@@ -3663,26 +3695,29 @@ if form.getvalue('awseditworkspace'):
     public_ip = form.getvalue('aws_editing_public_ip')
     server_id = form.getvalue('server_id')
 
-    if sql.update_server_aws(
-            region, size, public_ip, floating_ip, volume_size, ssh_name, workspace, oss, firewall,
-            provider, group, 'Editing', server_id, delete_on_termination, volume_type
-    ):
+    try:
+        if sql.update_server_aws(
+                region, size, public_ip, floating_ip, volume_size, ssh_name, workspace, oss, firewall,
+                provider, group, 'Editing', server_id, delete_on_termination, volume_type
+        ):
 
-        try:
-            cmd = 'cd scripts/terraform/ && sudo terraform workspace select ' + workspace + '_' + group + '_aws'
-            output, stderr = funct.subprocess_execute(cmd)
-        except Exception as e:
-            print('error: ' + str(e))
+            try:
+                cmd = 'cd scripts/terraform/ && sudo terraform workspace select ' + workspace + '_' + group + '_aws'
+                output, stderr = funct.subprocess_execute(cmd)
+            except Exception as e:
+                print('error: ' + str(e))
 
-        if stderr != '':
-            stderr = stderr.strip()
-            stderr = repr(stderr)
-            stderr = stderr.replace("'", "")
-            stderr = stderr.replace("\'", "")
-            sql.update_provisioning_server_error(stderr, group, workspace, provider)
-            print('error: ' + stderr)
-        else:
-            print('ok')
+            if stderr != '':
+                stderr = stderr.strip()
+                stderr = repr(stderr)
+                stderr = stderr.replace("'", "")
+                stderr = stderr.replace("\'", "")
+                sql.update_provisioning_server_error(stderr, group, workspace, provider)
+                print('error: ' + stderr)
+            else:
+                print('ok')
+    except Exception as e:
+        print(e)
 
 if (
         form.getvalue('awsprovisining')
@@ -3768,13 +3803,19 @@ if (
             ips = ips.split(' ')[0]
 
         print(ips)
-        sql.update_provisioning_server_status('Created', group, workspace, provider_id, update_ip=ips)
+        try:
+            sql.update_provisioning_server_status('Created', group, workspace, provider_id, update_ip=ips)
+        except Exception as e:
+            print(e)
 
         if cloud == 'gcore':
             cmd = 'cd scripts/terraform/ && sudo terraform state show module.gcore_module.gcore_instance.hapwi|grep "name"|grep -v -e "_name\|name_" |head -1 |awk -F"\\\"" \'{print $2}\''
             output, stderr = funct.subprocess_execute(cmd)
             print(':' + output[0])
-            sql.update_provisioning_server_gcore_name(workspace, output[0], group, provider_id)
+            try:
+                sql.update_provisioning_server_gcore_name(workspace, output[0], group, provider_id)
+            except Exception as e:
+                print(e)
 
         funct.logging('localhost', 'Server ' + workspace + ' has been ' + action, provisioning=1)
 
@@ -3811,7 +3852,10 @@ if form.getvalue('provisiningdestroyserver'):
 
             print('ok')
             funct.logging('localhost', 'Server has been destroyed', provisioning=1)
-            sql.delete_provisioned_servers(server_id)
+            try:
+                sql.delete_provisioned_servers(server_id)
+            except Exception as e:
+                print(e)
 
 if form.getvalue('gcorevars') or form.getvalue('gcoreeditvars'):
     if form.getvalue('gcorevars'):
@@ -3845,7 +3889,10 @@ if form.getvalue('gcorevars') or form.getvalue('gcoreeditvars'):
         firewall = form.getvalue('gcore_edit_firewall')
         network_type = form.getvalue('gcore_edit_network_type')
 
-    gcore_user, gcore_pass = sql.select_gcore_provider(provider)
+    try:
+        gcore_user, gcore_pass = sql.select_gcore_provider(provider)
+    except Exception as e:
+        print(e)
 
     cmd = 'cd scripts/terraform/ && sudo ansible-playbook var_generator.yml -i inventory -e "region={} ' \
           'group={} size={} os={} network_name={} volume_size={} server_name={} username={} ' \
@@ -3902,24 +3949,27 @@ if form.getvalue('gcoreworkspace'):
         sql.update_provisioning_server_error(stderr, group, workspace, provider)
         print('error: ' + stderr)
     else:
-        if sql.add_server_gcore(
-                project, region, size, network_type, network_name, volume_size, ssh_name, workspace, oss, firewall,
-                provider, group, 'Creating', delete_on_termination, volume_type
-        ):
-            user, user_id, role, token, servers, user_services = funct.get_users_params()
-            new_server = sql.select_provisioned_servers(new=workspace, group=group, type='gcore')
-            params = sql.select_provisioning_params()
+        try:
+            if sql.add_server_gcore(
+                    project, region, size, network_type, network_name, volume_size, ssh_name, workspace, oss, firewall,
+                    provider, group, 'Creating', delete_on_termination, volume_type
+            ):
+                user, user_id, role, token, servers, user_services = funct.get_users_params()
+                new_server = sql.select_provisioned_servers(new=workspace, group=group, type='gcore')
+                params = sql.select_provisioning_params()
 
-            env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
-            template = env.get_template('ajax/provisioning/provisioned_servers.html')
-            template = template.render(servers=new_server,
-                                       groups=sql.select_groups(),
-                                       user_group=group,
-                                       providers=sql.select_providers(group),
-                                       role=role,
-                                       adding=1,
-                                       params=params)
-            print(template)
+                env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
+                template = env.get_template('ajax/provisioning/provisioned_servers.html')
+                template = template.render(servers=new_server,
+                                           groups=sql.select_groups(),
+                                           user_group=group,
+                                           providers=sql.select_providers(group),
+                                           role=role,
+                                           adding=1,
+                                           params=params)
+                print(template)
+        except Exception as e:
+            print(e)
 
 if form.getvalue('gcoreeditworkspace'):
     workspace = form.getvalue('gcoreeditworkspace')
@@ -3938,26 +3988,29 @@ if form.getvalue('gcoreeditworkspace'):
     network_name = form.getvalue('gcore_edit_network_name')
     server_id = form.getvalue('server_id')
 
-    if sql.update_server_gcore(
-            region, size, network_type, network_name, volume_size, ssh_name, workspace, oss, firewall,
-            provider, group, 'Editing', server_id, delete_on_termination, volume_type, project
-    ):
+    try:
+        if sql.update_server_gcore(
+                region, size, network_type, network_name, volume_size, ssh_name, workspace, oss, firewall,
+                provider, group, 'Editing', server_id, delete_on_termination, volume_type, project
+        ):
 
-        try:
-            cmd = 'cd scripts/terraform/ && sudo terraform workspace select ' + workspace + '_' + group + '_gcore'
-            output, stderr = funct.subprocess_execute(cmd)
-        except Exception as e:
-            print('error: ' + str(e))
+            try:
+                cmd = 'cd scripts/terraform/ && sudo terraform workspace select ' + workspace + '_' + group + '_gcore'
+                output, stderr = funct.subprocess_execute(cmd)
+            except Exception as e:
+                print('error: ' + str(e))
 
-        if stderr != '':
-            stderr = stderr.strip()
-            stderr = repr(stderr)
-            stderr = stderr.replace("'", "")
-            stderr = stderr.replace("\'", "")
-            sql.update_provisioning_server_error(stderr, group, workspace, provider)
-            print('error: ' + stderr)
-        else:
-            print('ok')
+            if stderr != '':
+                stderr = stderr.strip()
+                stderr = repr(stderr)
+                stderr = stderr.replace("'", "")
+                stderr = stderr.replace("\'", "")
+                sql.update_provisioning_server_error(stderr, group, workspace, provider)
+                print('error: ' + stderr)
+            else:
+                print('ok')
+    except Exception as e:
+        print(e)
 
 if form.getvalue('editAwsServer'):
     funct.check_user_group()
@@ -4001,9 +4054,12 @@ if form.getvalue('edit_do_provider'):
     new_name = form.getvalue('edit_do_provider_name')
     new_token = form.getvalue('edit_do_provider_token')
 
-    if sql.update_do_provider(new_name, new_token, provider_id):
-        print('ok')
-        funct.logging('localhost', 'Provider has been renamed. New name is ' + new_name, provisioning=1)
+    try:
+        if sql.update_do_provider(new_name, new_token, provider_id):
+            print('ok')
+            funct.logging('localhost', 'Provider has been renamed. New name is ' + new_name, provisioning=1)
+    except Exception as e:
+        print(e)
 
 if form.getvalue('edit_gcore_provider'):
     funct.check_user_group()
@@ -4012,9 +4068,12 @@ if form.getvalue('edit_gcore_provider'):
     new_user = form.getvalue('edit_gcore_provider_user')
     new_pass = form.getvalue('edit_gcore_provider_pass')
 
-    if sql.update_gcore_provider(new_name, new_user, new_pass, provider_id):
-        print('ok')
-        funct.logging('localhost', 'Provider has been renamed. New name is ' + new_name, provisioning=1)
+    try:
+        if sql.update_gcore_provider(new_name, new_user, new_pass, provider_id):
+            print('ok')
+            funct.logging('localhost', 'Provider has been renamed. New name is ' + new_name, provisioning=1)
+    except Exception as e:
+        print(e)
 
 if form.getvalue('edit_aws_provider'):
     funct.check_user_group()
@@ -4023,14 +4082,20 @@ if form.getvalue('edit_aws_provider'):
     new_key = form.getvalue('edit_aws_provider_key')
     new_secret = form.getvalue('edit_aws_provider_secret')
 
-    if sql.update_aws_provider(new_name, new_key, new_secret, provider_id):
-        print('ok')
-        funct.logging('localhost', 'Provider has been renamed. New name is ' + new_name, provisioning=1)
+    try:
+        if sql.update_aws_provider(new_name, new_key, new_secret, provider_id):
+            print('ok')
+            funct.logging('localhost', 'Provider has been renamed. New name is ' + new_name, provisioning=1)
+    except Exception as e:
+        print(e)
 
 if form.getvalue('loadservices'):
     env = Environment(loader=FileSystemLoader('templates'))
     template = env.get_template('ajax/load_services.html')
-    services = funct.get_services_status()
+    try:
+        services = funct.get_services_status()
+    except Exception as e:
+        print(e)
 
     template = template.render(services=services)
     print(template)

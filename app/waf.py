@@ -15,12 +15,6 @@ try:
 except Exception:
 	pass
 
-try:
-	funct.check_login(user_id, token, service=1)
-except Exception as e:
-	print(f'error {e}')
-	sys.exit()
-
 form = funct.form
 manage_rules = form.getvalue('manage_rules')
 waf_rule_id = form.getvalue('waf_rule_id')
@@ -38,9 +32,9 @@ cfg = ''
 funct.page_for_admin(level=2)
 
 if service == 'nginx':
-	funct.check_login(service=2)
+	funct.check_login(user_id, token, service=2)
 else:
-	funct.check_login(service=1)
+	funct.check_login(user_id, token, service=1)
 
 if manage_rules == '1':
 	serv = funct.is_ip_or_dns(form.getvalue('serv'))

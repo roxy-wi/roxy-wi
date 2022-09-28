@@ -12,7 +12,7 @@ import sql
 import funct
 
 from jinja2 import Environment, FileSystemLoader
-env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
+env = Environment(loader=FileSystemLoader('templates/'))
 template = env.get_template('login.html')
 form = funct.form
 

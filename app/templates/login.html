@@ -30,8 +30,6 @@ body, .container {
 }
 </style>
 <div id="main_div">
-	{{error_log}}
-		{{error}}
 	<div id="login-form" style="padding-top: 40px; padding-bottom: 50px; height: 250px; color: #000;">
 		<span id="logo_span">
 			<img src="/inc/images/logo_login.png">
@@ -43,6 +41,12 @@ body, .container {
 			{{ input('ref', type='hidden', value=ref) }}
 			<button type="submit" name="Login" value="Enter" id="enter">Login</button>
 		</form>
+		{% if error_log or error %}
+		<div class="alert alert-danger wrong-login alert-one-row" style="display: block">
+			{{error_log}}
+			{{error}}
+		</div>
+		{% endif %}
 		<div class="alert alert-danger wrong-login alert-one-row" id="wrong-login">
 			Your login or password is incorrect
 			<br />

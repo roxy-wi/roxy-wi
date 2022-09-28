@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import cgi
 import os
-import sys
 import re
 import json
 import http.cookies
@@ -39,11 +38,11 @@ form = cgi.FieldStorage()
 serv = is_ip_or_dns(form.getvalue('serv'))
 
 
-def checkAjaxInput(ajax_input: str) -> str:
+def checkAjaxInput(ajax_input: str):
 	pattern = re.compile('[&;|$`]')
 	if pattern.search(ajax_input):
 		print('error: nice try')
-		sys.exit()
+		return
 	else:
 		from shlex import quote
 		return quote(ajax_input.rstrip())
@@ -393,7 +392,6 @@ def get_config(server_ip, cfg, **kwargs):
 	else:
 		config_path = sql.get_setting('haproxy_config_path')
 
-
 	try:
 		with ssh_connect(server_ip) as ssh:
 			ssh.get_sftp(config_path, cfg)
@@ -561,7 +559,7 @@ def get_backends_from_config(server_ip, backends=''):
 		except Exception:
 			logging('localhost', ' Cannot download config', haproxywi=1)
 			print('error: Cannot get backends')
-			sys.exit()
+			return
 
 	with open(cfg, 'r') as f:
 		for line in f:
@@ -1276,7 +1274,7 @@ def show_roxy_log(
 				break
 		else:
 			print('Haha')
-			sys.exit()
+			return
 
 		if serv == 'backup.log':
 			awk_column = 2
@@ -1617,10 +1615,10 @@ def check_user_group(**kwargs):
 			ref = os.environ.get("REQUEST_URI")
 		ref = checkAjaxInput(ref)
 		print(f'<meta http-equiv="refresh" content="0; url={ref}">')
-		sys.exit()
+		return
 
 
-def check_is_server_in_group(server_ip):
+def check_is_server_in_group(server_ip: str) -> bool:
 	import sql
 	group_id = get_user_group(id=1)
 	servers = sql.select_servers(server=server_ip)
@@ -1635,7 +1633,7 @@ def check_is_server_in_group(server_ip):
 				ref = os.environ.get("REQUEST_URI")
 			ref = checkAjaxInput(ref)
 			print(f'<meta http-equiv="refresh" content="0; url={ref}">')
-			sys.exit()
+			return False
 
 
 def check_service(server_ip, service_name):
@@ -1999,7 +1997,7 @@ def is_restarted(server_ip: str, action: str) -> None:
 
 	if sql.is_serv_protected(server_ip) and int(user_role) > 2:
 		print(f'error: This server is protected. You cannot {action} it')
-		sys.exit()
+		return
 
 
 def is_not_allowed_to_restart(server_id: int, service: str) -> None:
@@ -2008,7 +2006,7 @@ def is_not_allowed_to_restart(server_id: int, service: str) -> None:
 
 	if int(is_restart) == 1:
 		print('warning: this service is not allowed to be restarted')
-		sys.exit()
+		return
 
 
 def return_user_status():
