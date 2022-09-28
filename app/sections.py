@@ -75,6 +75,7 @@ if serv is not None and form.getvalue('config') is not None:
 
 	if save == 'delete':
 		config = ''
+		save = 'reload'
 
 	config = funct.rewrite_section(start_line, end_line, oldcfg, config)
 

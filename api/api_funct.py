@@ -55,7 +55,7 @@ def get_token():
 			return False
 
 
-def check_login(required_service=0):
+def check_login(required_service=0) -> bool:
 	try:
 		user_status, user_plan = funct.return_user_status()
 	except Exception as e:
@@ -73,7 +73,10 @@ def check_login(required_service=0):
 	if sql.get_api_token(token):
 		if required_service != 0:
 			user_id = sql.get_user_id_by_api_token(token)
-			user_services = sql.select_user_services(user_id)
+			try:
+				user_services = sql.select_user_services(user_id)
+			except Exception:
+				return False
 
 			if str(required_service) in user_services:
 				return True
