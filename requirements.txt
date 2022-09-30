@@ -1,5 +1,5 @@
 configparser>=3.5.0
-paramiko>=2.4.3
+paramiko-ng>=2.5.0
 pytz>=2017.3
 requests>=2.22.0
 pyTelegramBotAPI>=3.6.3 
