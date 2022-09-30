@@ -16,7 +16,7 @@ class SshConnection:
     def __enter__(self):
         try:
             if self.ssh_enable == 1:
-                k = paramiko.RSAKey.from_private_key_file(self.ssh_key_name)
+                k = paramiko.pkey.Pkey.from_private_key_file(self.ssh_key_name)
                 self.ssh.connect(
                     hostname=self.server_ip,
                     port=self.ssh_port,
