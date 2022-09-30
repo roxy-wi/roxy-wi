@@ -5,7 +5,6 @@ from paramiko import SSHClient
 class SshConnection:
     def __init__(self, server_ip, ssh_port, ssh_user_name, ssh_user_password, ssh_enable, ssh_key_name=None):
         self.ssh = SSHClient()
-        self.ssh.load_system_host_keys()
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.server_ip = server_ip
         self.ssh_port = ssh_port
@@ -17,7 +16,7 @@ class SshConnection:
     def __enter__(self):
         try:
             if self.ssh_enable == 1:
-                k = paramiko.pkey.load_private_key_file(self.ssh_key_name)
+                k = paramiko.RSAKey.from_private_key_file(self.ssh_key_name)
                 self.ssh.connect(
                     hostname=self.server_ip,
                     port=self.ssh_port,

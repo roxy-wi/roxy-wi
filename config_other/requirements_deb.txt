@@ -1,5 +1,4 @@
 configparser>=3.5.0
-paramiko-ng>=2.5.0
 pytz>=2017.3
 pyTelegramBotAPI>=3.6.3 
 slack-sdk>=3.4.0
