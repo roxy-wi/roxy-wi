@@ -908,7 +908,7 @@ def select_ssh(**kwargs):
 	elif kwargs.get("serv") is not None:
 		query = Cred.select().join(Server, on=(Cred.id == Server.cred)).where(Server.ip == kwargs.get('serv'))
 	elif kwargs.get("group") is not None:
-		query = Cred.select()
+		query = Cred.select().where(Cred.groups == kwargs.get("group"))
 	else:
 		query = Cred.select()
 	try:

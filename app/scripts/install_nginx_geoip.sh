@@ -8,7 +8,7 @@ do
             PROXY)        PROXY=${VALUE} ;;
             UPDATE)       UPDATE=${VALUE} ;;
             maxmind_key)  maxmind_key=${VALUE} ;;
-            haproxy_dir)  haproxy_dir=${VALUE} ;;
+            service_dir)  service_dir=${VALUE} ;;
             HOST)         HOST=${VALUE} ;;
             USER)         USER=${VALUE} ;;
             PASS)         PASS=${VALUE} ;;
@@ -34,9 +34,9 @@ if [[ $maxmind_key == "" ]]; then
 fi
 
 if [[ $KEY == "" ]]; then
-	ansible-playbook $PWD/roles/geoip.yml -e "ansible_user=$USER ansible_ssh_pass='$PASS' variable_host=$HOST PROXY=$PROXY UPDATE=$UPDATE haproxy_dir=$haproxy_dir maxmind_key=$maxmind_key SSH_PORT=$SSH_PORT" -i $PWD/$HOST
+	ansible-playbook $PWD/roles/nginx_geoip.yml -e "ansible_user=$USER ansible_ssh_pass='$PASS' variable_host=$HOST PROXY=$PROXY UPDATE=$UPDATE nginx_dir=$service_dir maxmind_key=$maxmind_key SSH_PORT=$SSH_PORT" -i $PWD/$HOST
 else
-	ansible-playbook $PWD/roles/geoip.yml --key-file $KEY -e "ansible_user=$USER variable_host=$HOST PROXY=$PROXY UPDATE=$UPDATE haproxy_dir=$haproxy_dir maxmind_key=$maxmind_key SSH_PORT=$SSH_PORT" -i $PWD/$HOST
+	ansible-playbook $PWD/roles/nginx_geoip.yml --key-file $KEY -e "ansible_user=$USER variable_host=$HOST PROXY=$PROXY UPDATE=$UPDATE nginx_dir=$service_dir maxmind_key=$maxmind_key SSH_PORT=$SSH_PORT" -i $PWD/$HOST
 fi
 
 if [ $? -gt 0 ]

@@ -1,0 +1,11 @@
+---
+- name: Install NGINX GeoIP
+  hosts: "{{ variable_host }}"
+  become: yes
+  become_method: sudo
+  gather_facts: yes
+  roles:
+    - role: nginx_geoip
+      environment:
+        http_proxy: "{{PROXY}}"
+        https_proxy: "{{PROXY}}"

@@ -128,6 +128,7 @@
 			<caption><h3>Install GeoLite2</h3></caption>
 			<tr class="overviewHead">
 				<td class="padding10 first-collumn">Server</td>
+				<td class="padding10 first-collumn">Service</td>
 				<td class="padding10 first-collumn" style="width: 30%;">Current installation</td>
 				<td class="" style="width: 30%;" title="GeoLite2 DB is released every Tuesday. Should Roxy-WI update it?">Updating</td>
 				<td></td>
@@ -140,6 +141,13 @@
 						{% for select in servers %}
 						<option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endfor %}
+					</select>
+				</td>
+				<td class="padding10 first-collumn">
+					<select autofocus required name="geoip_service" id="geoip_service">
+						<option disabled selected>------</option>
+						<option value="haproxy">HAProxy</option>
+						<option value="nginx">NGINX</option>
 					</select>
 				</td>
 				<td id="cur_geoip" class="padding10"></td>

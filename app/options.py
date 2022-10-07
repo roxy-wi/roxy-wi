@@ -677,7 +677,7 @@ if act == "overviewHapservers":
     try:
         print(funct.ssh_command(serv, commands))
     except Exception as e:
-        print('error: Cannot get last date ' + str(e))
+        print(f'error: Cannot get last date {e} for server {serv}')
 
 if act == "overview":
     import asyncio
@@ -719,11 +719,19 @@ if act == "overview":
 
         if keepalived == 1:
             command = ["ps ax |grep keepalived|grep -v grep|wc -l|tr -d '\n'"]
-            keepalived_process = funct.ssh_command(serv2, command)
+            try:
+                keepalived_process = funct.ssh_command(serv2, command)
+            except Exception as e:
+                print(f'{e} for server {serv2}')
+                sys.exit()
 
         if waf_len >= 1:
             command = ["ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l"]
-            waf_process = funct.ssh_command(serv2, command)
+            try:
+                waf_process = funct.ssh_command(serv2, command)
+            except Exception as e:
+                print(f'{e} for server {serv2}')
+                sys.exit()
 
         server_status = (serv1,
                          serv2,
@@ -3171,40 +3179,45 @@ if form.getvalue('viewFirewallRules') is not None:
 
 if form.getvalue('geoipserv') is not None:
     serv = form.getvalue('geoipserv')
-    haproxy_dir = sql.get_setting('haproxy_dir')
+    service = form.getvalue('geoip_service')
+    if service in ('haproxy', 'nginx'):
+        service_dir = funct.return_nice_path(sql.get_setting(f'{service}_dir'))
 
-    cmd = ["ls " + haproxy_dir + "/geoip/"]
-    print(funct.ssh_command(serv, cmd))
+        cmd = ["ls " + service_dir + "geoip/"]
+        print(funct.ssh_command(serv, cmd))
+    else:
+        print('warning: select a server and service first')
 
 if form.getvalue('geoip_install'):
-    serv = form.getvalue('geoip_install')
-    geoip_update = form.getvalue('geoip_update')
+    serv = funct.is_ip_or_dns(form.getvalue('geoip_install'))
+    geoip_update = funct.checkAjaxInput(form.getvalue('geoip_update'))
+    service = form.getvalue('geoip_service')
     proxy = sql.get_setting('proxy')
     maxmind_key = sql.get_setting('maxmind_key')
-    haproxy_dir = sql.get_setting('haproxy_dir')
-    script = 'install_geoip.sh'
-    ssh_port = '22'
     ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(serv)
+
+    if service in ('haproxy', 'nginx'):
+        service_dir = funct.return_nice_path(sql.get_setting(f'{service}_dir'))
+        script = f'install_{service}_geoip.sh'
+    else:
+        print('warning: select a server and service first')
+        sys.exit()
 
     if ssh_enable == 0:
         ssh_key_name = ''
 
-    servers = sql.select_servers(server=serv)
-    for server in servers:
-        ssh_port = str(server[10])
+    ssh_port = [ str(server[10]) for server in sql.select_servers(server=serv) ]
 
     if proxy is not None and proxy != '' and proxy != 'None':
         proxy_serv = proxy
     else:
         proxy_serv = ''
 
-    os.system("cp scripts/%s ." % script)
+    os.system(f"cp scripts/{script} .")
 
     commands = [
-        "chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port
-        + " UPDATE=" + str(geoip_update) + " maxmind_key=" + maxmind_key + " haproxy_dir=" + haproxy_dir
-        + " HOST=" + str(serv) + " USER=" + str(ssh_user_name) + " PASS=" + str(ssh_user_password)
-        + " KEY=" + str(ssh_key_name)
+        f"chmod +x  {script} &&  ./{script} PROXY={proxy_serv} SSH_PORT={ssh_port[0]} UPDATE={geoip_update} maxmind_key={maxmind_key} " 
+        f"service_dir={service_dir} HOST={serv} USER={ssh_user_name} PASS={ssh_user_password} KEY={ssh_key_name}"
     ]
 
     output, error = funct.subprocess_execute(commands[0])

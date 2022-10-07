@@ -746,24 +746,15 @@ $( function() {
 		$('#hide_country_codes').hide();
 	});
 	$( "#geoipserv" ).on('selectmenuchange',function() {
-		$.ajax( {
-			url: "options.py",
-			data: {
-				geoipserv: $('#geoipserv option:selected').val(),
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function( data ) {
-				data = data.replace(/^\s+|\s+$/g,'');
-				if(data.indexOf('No such file or directory') != '-1') {
-					$('#cur_geoip').text('GeoLite2 has not installed');
-					$('#geoip_install').show();
-				} else {
-					$('#cur_geoip').text('GeoLite2 has already installed');
-					$('#geoip_install').hide();
-				}
-			}
-		} );
+		if($('#geoip_service option:selected').val() != '------') {
+			checkGeoipInstallation();
+		}
+
+	});
+	$( "#geoip_service" ).on('selectmenuchange',function() {
+		if($('#geoipserv option:selected').val() != '------') {
+			checkGeoipInstallation();
+		}
 	});
 	$( "#geoip_install" ).click(function() {
 		var updating_geoip = 0;
@@ -775,6 +766,7 @@ $( function() {
 			url: "options.py",
 			data: {
 				geoip_install: $('#geoipserv option:selected').val(),
+				geoip_service: $('#geoip_service option:selected').val(),
 				geoip_update: updating_geoip,
 				token: $('#token').val()
 			},
@@ -2844,4 +2836,25 @@ function checkEmail() {
 		  }
 	  }
 	});
+}
+function checkGeoipInstallation() {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			geoipserv: $('#geoipserv option:selected').val(),
+			geoip_service: $('#geoip_service option:selected').val(),
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			data = data.replace(/^\s+|\s+$/g,'');
+			if(data.indexOf('No such file or directory') != '-1') {
+				$('#cur_geoip').text('GeoLite2 has not installed');
+				$('#geoip_install').show();
+			} else {
+				$('#cur_geoip').text('GeoLite2 has already installed');
+				$('#geoip_install').hide();
+			}
+		}
+	} );
 }
