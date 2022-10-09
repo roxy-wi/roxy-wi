@@ -780,7 +780,7 @@ $( function() {
 				} else if (data.indexOf('success:') != '-1' ){
 					toastr.clear();
 					toastr.success(data);
-					$( "#geoipserv" ).trigger( "selectmenuchange" );
+					$( "#geoip_service" ).trigger( "selectmenuchange" );
 				} else if (data.indexOf('Info') != '-1' ){
 					toastr.clear();
 					toastr.info(data);
@@ -2849,10 +2849,10 @@ function checkGeoipInstallation() {
 		success: function( data ) {
 			data = data.replace(/^\s+|\s+$/g,'');
 			if(data.indexOf('No such file or directory') != '-1') {
-				$('#cur_geoip').text('GeoLite2 has not installed');
+				$('#cur_geoip').text('<b style="color: var(--green-color)">Not installed</b>');
 				$('#geoip_install').show();
 			} else {
-				$('#cur_geoip').text('GeoLite2 has already installed');
+				$('#cur_geoip').text('<b style="color: var(--red-color)">Installed<b>');
 				$('#geoip_install').hide();
 			}
 		}

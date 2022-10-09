@@ -1,0 +1,24 @@
+<style>
+	.send_proxy_label {
+		padding: 3px !important;
+	}
+</style>
+<span name="add_servers">
+	<input name="servers" required title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">:
+	<input name="server_port" required title="Backend port" size=8 placeholder="yyy" class="form-control add_server_number" type="number">
+	<span name="max_fails">max_fails:</span> <input name="max_fails" required title="By default, the number of unsuccessful attempts is set to 1" size=8 class="form-control add_server_number" value="1" type="number">
+	<span name="fail_timeout">fail_timeout:</span>  <input name="fail_timeout" required title="By default, the number of unsuccessful attempts is set to 1s" size=8 value="1" class="form-control add_server_number" type="number">s
+	<br />
+	<input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server"><span class="second-server">:</span>
+	<input name="server_port" title="Backend port" size=8 placeholder="yyy" class="form-control second-server add_server_number" type="number">
+	<span name="max_fails">max_fails:</span> <input name="max_fails" required title="By default, the number of unsuccessful attempts is set to 1" size=8 class="form-control add_server_number" value="1" type="number">
+	<span name="fail_timeout">fail_timeout:</span>  <input name="fail_timeout" required title="By default, the number of unsuccessful attempts is set to 1" size=8 value="1" class="form-control add_server_number" type="number">s
+	<br />
+	<input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server"><span class="second-server">:</span>
+	<input name="server_port" title="Backend port" size=3 placeholder="yyy" class="form-control second-server add_server_number" type="number">
+	<span name="max_fails">max_fails:</span> <input name="max_fails" required title="By default, the number of unsuccessful attempts is set to 1" size=8 class="form-control add_server_number" value="1" type="number">
+	<span name="fail_timeout">fail_timeout:</span>  <input name="fail_timeout" required title="By default, the number of unsuccessful attempts is set to 1" size=8 value="1" class="form-control add_server_number" type="number">s
+</span>
+<span>
+	<a class="link add-server backend_server" name="add-server-input" title="Add upstream" style="cursor: pointer;"></a>
+</span>
