@@ -1,0 +1,32 @@
+{% if add %}
+	<div class="alert alert-success" style="position: absolute;top: 45px;left: 5px;">
+		<div id="close">
+			<span title="Close" style="cursor: pointer; float: right;">X</span>
+		</div>
+		<h3>{{ add }} was success added</h3>
+		{{ conf_add }}
+	</div>
+	<script>
+		$('#close').click(function(){
+			$('.alert-success').remove();
+		});
+	</script>
+{% endif %}
+<div id="create" style="margin-top: 20px;">
+	<div id="left-collumn">
+		<div class="div-pannel">
+			<div class="div-server add-proxy-listen-head">
+				<div class="server-name">
+					<span title="Create Upstream" class="redirectUpstream span-link">Create Upstream</span>
+				</div>
+				<div class="server-desc add_proxy">
+					The upstream module is used to define groups of servers.
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="middle-collumn">
+	</div>
+	<div id="right-collumn">
+	</div>
+</div>

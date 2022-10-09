@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block content %}
+{% from 'include/input_macros.html' import input, checkbox, select %}
+{% set balance_params = dict() %}
+{% set balance_params = {'ip_hash':'ip_hash','least_conn':'least_conn','random':'random'} %}
+<script src="/inc/add_nginx.js"></script>
+<div id="tabs">
+	<ul>
+		<li><a href="#create" title="Add proxy: Create proxy - Roxy-WI">Create proxy</a></li>
+		<li><a href="#upstream" title="Add proxy: Create Upstream - Roxy-WI">Upstream</a></li>
+		{% include 'include/login.html' %}
+	</ul>
+	<ul id='browse_histroy'></ul>
+	{% include 'include/add_nginx_proxy.html' %}
+    <div id="upstream">
+        <form name="add-upstream" id="add-upstream" action="/app/add_nginx.py" method="post">
+			<table class="add-table">
+				<caption><h3>Add upstream</h3></caption>
+				<tr>
+					<td class="addName">Select a server: </td>
+					<td class="addOption">
+						<select required name="serv" id="serv">
+							<option disabled selected>------</option>
+							{% for select in selects %}
+								<option value="{{ select.2 }}">{{ select.1 }}</option>
+							{% endfor %}
+						</select>
+						<div class="tooltip tooltipTop"><b>Note:</b> If you re-configure the master server, the slave server will be re-configured automatically</div>
+					</td>
+					<td rowspan="5" class="add-note addName alert-info">
+						The upstream module is used to define groups of servers.
+						<br /><br />
+						Defines a group of servers. Servers can listen on different ports. In addition, servers listening on TCP and UNIX-domain sockets can be mixed..
+						<br /><br />
+						By default, requests are distributed between the servers using a weighted round-robin balancing method.
+					</td>
+				</tr>
+                <tr>
+					<td class="addName">Name:</td>
+					<td class="addOption">
+						{{ input('name', name='upstream', title="Name upstream", placeholder="backend_servers", required='required') }}
+					</td>
+				</tr>
+				<tr class="advance">
+					<td class="addName">Balance: </td>
+						<td class="addOption">
+							{{ select('balance', values=balance_params, selected='least_conn', required='required', class='force_close') }}
+						</td>
+				</tr>
+				<tr class="advance">
+					<td class="addName"><span title="Activates the cache for connections to upstream servers.">Keepalive:</span></td>
+					<td class="addOption">
+						{{ input('name', name='keepalive', title="Activates the cache for connections to upstream servers.", placeholder="32") }}
+					</td>
+				</tr>
+				<tr>
+					<td class="addName">Servers:</td>
+					<td class="addOption">
+						{% include 'include/add_nginx_servers.html' %}
+					</td>
+				</tr>
+				<tr class="advance-show">
+					<td class="addOption" colspan="2">
+						<button title="Show full list of settings" class="row-down advance-show-button">Show Advanced settings</button>
+						<button title="Hide full list of settings" class="row-up advance-hide-button" style="display: none">Hide Advanced settings</button>
+					</td>
+				</tr>
+				<tr>
+					<td class="addButton">
+						<a class="ui-button ui-widget ui-corner-all" title="Add Backend" onclick="addProxy('add-upstream')">Add Upstream</a>
+					</td>
+					<td class="addButton">
+						<a class="ui-button ui-widget ui-corner-all" title="Generate and display config" onclick="generateConfig('add-upstream')">Generate config</a>
+					</td>
+				</tr>
+            </table>
+        </form>
+    </div>
+	<div id="dialog-confirm-cert-edit" title="View certificate " style="display: none;">
+		<span><b>Note:</b> Each new address must be specified from a new line</span>
+		<textarea id="edit_lists" style="width: 100%" rows=20></textarea>
+	</div>
+	<div id="dialog-confirm-cert" title="View certificate " style="display: none;">
+		<pre id="dialog-confirm-body"></pre>
+	</div>
+	<input type="hidden" id="group" value="{{ group }}">
+</div>
+<script>
+$( function() {
+	if (window.matchMedia('(max-width: 1280px)').matches || window.matchMedia('(max-width: 1024px)').matches || window.matchMedia('(max-width: 667px)').matches) {
+		$( "select" ).selectmenu({
+			  width: 150
+		});
+	}
+});
+</script>
+{% endblock %}

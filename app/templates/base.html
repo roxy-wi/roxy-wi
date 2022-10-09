@@ -1,7 +1,7 @@
 <html lang="en">
 	<head>
 		<title>{{title}}</title>
-		<meta charset="UTF-8">	
+		<meta charset="UTF-8">
 		<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 		<meta http-equiv="Pragma" content="no-cache" />
 		<meta http-equiv="Expires" content="0" />
@@ -56,12 +56,12 @@
 					<a href="https://roxy-wi.org" title="Roxy-WI site" target="_blank">
 						<img src="/inc/images/logo_menu.png" alt="logo" width="110" />
 					</a>
-				</span>			
-			</div>	
+				</span>
+			</div>
 			<div id="top-link" class="top-link">
 				<nav id="menu">
 					<ul class="menu">
-						{% if user %}	
+						{% if user %}
 						<li><a href="/app/overview.py" title="Server and service status" class="overview-link">Overview</a></li>
 						{% if '1' in user_services %}
 						<li class="p_menu">
@@ -93,8 +93,9 @@
 								<li><a href="/app/logs.py?service=nginx" title="NGINX logs " class="logs head-submenu">Logs</a></li>
 								<li><a href="/app/metrics.py?service=nginx" title="NGINX's metrics" class="metrics head-submenu">Metrics</a></li>
 								{% if role <= 3 %}
+								<li><a href="/app/add_nginx.py#proxy" title="Add proxy: Create proxy" class="add-proxy head-submenu">Add proxy</a></li>
 								<li><a href="/app/versions.py?service=nginx" title="Working with versions NGINX configs" class="version head-submenu">Versions</a></li>
-								<li><a href="/app/add.py?service=nginx#ssl" title="Add proxy: Upload SSL certificates" class="cert head-submenu" id="add3">SSL</a></li>
+								<li><a href="/app/add.py?service=nginx#ssl" title="Add proxy: Upload SSL certificates" class="cert head-submenu">SSL</a></li>
 								<li><a href="/app/waf.py?service=nginx" title="Web application firewall" class="waf-menu head-submenu">WAF</a> </li>
 								{% endif %}
 							</ul>
