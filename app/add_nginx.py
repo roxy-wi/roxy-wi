@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import os
 import sys
-import http.cookies
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -26,7 +24,7 @@ except Exception as e:
 
 funct.page_for_admin(level=3)
 
-if all(v is None for v in [ form.getvalue('upstream'), form.getvalue('generateconfig') ]):
+if all(v is None for v in [form.getvalue('upstream'), form.getvalue('generateconfig')]):
 	env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 	template = env.get_template('add_nginx.html')
 	template = template.render(
