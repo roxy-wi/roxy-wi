@@ -2849,10 +2849,10 @@ function checkGeoipInstallation() {
 		success: function( data ) {
 			data = data.replace(/^\s+|\s+$/g,'');
 			if(data.indexOf('No such file or directory') != '-1') {
-				$('#cur_geoip').text('<b style="color: var(--green-color)">Not installed</b>');
+				$('#cur_geoip').html('<b style="color: var(--red-color)">GeoIPLite is installed</b>');
 				$('#geoip_install').show();
 			} else {
-				$('#cur_geoip').text('<b style="color: var(--red-color)">Installed<b>');
+				$('#cur_geoip').html('<b style="color: var(--green-color)">GeoIPLite is not installed<b>');
 				$('#geoip_install').hide();
 			}
 		}
