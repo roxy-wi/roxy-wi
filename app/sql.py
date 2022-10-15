@@ -34,7 +34,7 @@ def add_user(user, email, password, role, activeuser, group):
 	else:
 		try:
 			User.insert(
-				username=user, email=email, role=role, ldap_user=ldap_user, activeuser=activeuser, groups=group
+				username=user, email=email, role=role, ldap_user=1, activeuser=activeuser, groups=group
 			).execute()
 		except Exception as e:
 			out_error(e)
