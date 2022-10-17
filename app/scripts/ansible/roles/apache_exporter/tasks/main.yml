@@ -53,14 +53,14 @@
   become: true
   copy:
     src: "/tmp/apache_exporter-{{ apache_exporter_version }}.linux-{{ go_arch_map[ansible_architecture] | default(ansible_architecture) }}/apache_exporter"
-    dest: "/opt/prometheus/exporters/apache_exporter"
+    dest: "{{prometheus_exporter_dir}}/apache_exporter"
     mode: 0755
     owner: root
     group: root
   notify:
     - restart apache exporter
-
   when: not ansible_check_mode
+
 - name: Copy the apache_exporter systemd service file
   become: true
   template:

@@ -329,7 +329,7 @@ $( function() {
 				if (data.indexOf('error:') != '-1') {
 					toastr.clear();
 					toastr.error(data);
-				} else if(data == 'no' || data == '' || data.indexOf('No') != '-1') {
+				} else if(data == 'no' || data == '' || data.indexOf('No') != '-1' || data.indexOf('No such file or directory') != '-1') {
 					$('#cur_haproxy_exp_ver').text('HAProxy exporter has been not installed');
 				} else {
 					$('#cur_haproxy_exp_ver').text(data);
@@ -352,7 +352,7 @@ $( function() {
 				if (data.indexOf('error:') != '-1') {
 					toastr.clear();
 					toastr.error(data);
-				} else if(data == 'no' || data == '') {
+				} else if(data == 'no' || data == '' || data.indexOf('No such file or directory') != '-1') {
 					$('#cur_nginx_exp_ver').text('NGINX exporter has not been installed');
 				} else {
 					$('#cur_nginx_exp_ver').text(data);
@@ -375,7 +375,7 @@ $( function() {
 				if (data.indexOf('error:') != '-1') {
 					toastr.clear();
 					toastr.error(data);
-				} else if(data == 'no' || data == '') {
+				} else if(data == 'no' || data == '' || data.indexOf('No such file or directory') != '-1') {
 					$('#cur_apache_exp_ver').text('Apache exporter has not been installed');
 				} else {
 					$('#cur_apache_exp_ver').text(data);
