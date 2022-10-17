@@ -1,0 +1,81 @@
+---
+- include: preflight.yml
+
+- name: Create the Apache Exporter group
+  become: true
+  group:
+    name: "{{ __apache_exporter_group }}"
+    state: present
+    system: true
+
+- name: Create the Apache Exporter user
+  become: true
+  user:
+    name: "{{ __apache_exporter_user }}"
+    groups: "{{ __apache_exporter_group }}"
+    append: true
+    shell: /usr/sbin/nologin
+    system: true
+    createhome: false
+    home: /
+
+- name: Distribution Directory
+  become: true
+  become_user: root
+  file:
+    path: "{{ prometheus_exporter_dir }}"
+    owner: root
+    group: root
+    mode: "u=rwx,go=rx"
+    state: directory
+
+- name: Download apache_exporter binary to local folder
+  get_url:
+    url: "https://github.com/Lusitaniae/apache_exporter/releases/download/v{{ apache_exporter_version }}/apache_exporter-{{ apache_exporter_version }}.linux-{{ go_arch_map[ansible_architecture] | default(ansible_architecture) }}.tar.gz"
+    dest: "/tmp/apache_exporter-{{ apache_exporter_version }}.linux-{{ go_arch_map[ansible_architecture] | default(ansible_architecture) }}.tar.gz"
+    checksum: "sha256:{{ __apache_exporter_checksum }}"
+  register: _download_binary
+  until: _download_binary is succeeded
+  retries: 5
+  delay: 2
+  delegate_to: localhost
+  check_mode: false
+
+- name: Unpack apache_exporter binary
+  unarchive:
+    src: "/tmp/apache_exporter-{{ apache_exporter_version }}.linux-{{ go_arch_map[ansible_architecture] | default(ansible_architecture) }}.tar.gz"
+    dest: "/tmp"
+    creates: "/tmp/apache_exporter-{{ apache_exporter_version }}.linux-{{ go_arch_map[ansible_architecture] | default(ansible_architecture) }}/apache_exporter"
+  delegate_to: localhost
+  check_mode: false
+
+- name: Propagate apache_exporter binaries
+  become: true
+  copy:
+    src: "/tmp/apache_exporter-{{ apache_exporter_version }}.linux-{{ go_arch_map[ansible_architecture] | default(ansible_architecture) }}/apache_exporter"
+    dest: "/opt/prometheus/exporters/apache_exporter"
+    mode: 0755
+    owner: root
+    group: root
+  notify:
+    - restart apache exporter
+
+  when: not ansible_check_mode
+- name: Copy the apache_exporter systemd service file
+  become: true
+  template:
+    src: apache_exporter.service.j2
+    dest: /etc/systemd/system/apache_exporter.service
+    owner: root
+    group: root
+    mode: 0644
+  no_log: true
+  notify:
+    - restart apache exporter
+
+- name: Ensure apache_exporter is enabled on boot
+  become: true
+  systemd:
+    name: apache_exporter
+    state: started
+    enabled: true

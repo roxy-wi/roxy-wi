@@ -68,11 +68,11 @@
 				function showMetrics() {
 					{%- if service == 'haproxy' %}
 						{%- for s in servers %}
-						{%- if s.8.0.9 %}
-							getChartData(server_ip)
-							getHttpChartData(server_ip)
-							getWafChartData(server_ip)
-						{% endif %}
+							{%- if s.8.0.9 %}
+								getChartData(server_ip)
+								getHttpChartData(server_ip)
+								getWafChartData(server_ip)
+							{% endif %}
 						{% endfor %}
 					{% endif %}
 					showOverviewServer('{{s.1}}', server_ip, '{{s.0}}', '{{service}}');
@@ -82,6 +82,7 @@
 							getNginxChartData(server_ip)
 						{% endif %}
 					{%- elif service == 'apache' %}
+						showApachekBytes(server_ip)
 						{% if s.8.0.27 %}
 							getApacheChartData(server_ip)
 						{% endif %}

@@ -166,7 +166,8 @@ $( function() {
 		$.ajax( {
 			url: "options.py",
 			data: {
-				nginx_exp_install: $('#nginx_exp_addserv').val(),
+				nginx_exp_install: 1,
+				serv: $('#nginx_exp_addserv').val(),
 				exporter_v: $('#nginxexpver').val(),
 				ext_prom: ext_prom,
 				token: $('#token').val()
@@ -180,8 +181,45 @@ $( function() {
 				} else if (data.indexOf('success') != '-1' ){
 					toastr.clear();
 					toastr.success(data);
-					$('#cur_nginx_exp_ver').text('Nginx exporter is installed');
+					$('#cur_nginx_exp_ver').text('NGINX exporter is installed');
 					$("#nginx_exp_addserv").trigger( "selectmenuchange" );
+				} else if (data.indexOf('Info') != '-1' ){
+					toastr.clear();
+					toastr.info(data);
+				} else {
+					toastr.clear();
+					toastr.info(data);
+				}
+			}
+		} );
+	});
+	$('#apache_exp_install').click(function() {
+		$("#ajaxmon").html('')
+		$("#ajaxmon").html(wait_mess);
+		var ext_prom = 0;
+		if ($('#apache_ext_prom').is(':checked')) {
+			ext_prom = '1';
+		}
+		$.ajax( {
+			url: "options.py",
+			data: {
+				apache_exp_install: 1,
+				serv: $('#apache_exp_addserv').val(),
+				exporter_v: $('#apacheexpver').val(),
+				ext_prom: ext_prom,
+				token: $('#token').val()
+				},
+			type: "POST",
+			success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+				$("#ajaxmon").html('');
+				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
+					toastr.error(data);
+				} else if (data.indexOf('success') != '-1' ){
+					toastr.clear();
+					toastr.success(data);
+					$('#cur_apache_exp_ver').text('Apache exporter is installed');
+					$("#apache_exp_addserv").trigger( "selectmenuchange" );
 				} else if (data.indexOf('Info') != '-1' ){
 					toastr.clear();
 					toastr.info(data);
@@ -315,10 +353,33 @@ $( function() {
 					toastr.clear();
 					toastr.error(data);
 				} else if(data == 'no' || data == '') {
-					$('#cur_nginx_exp_ver').text('Nginx exporter has not been installed');
+					$('#cur_nginx_exp_ver').text('NGINX exporter has not been installed');
 				} else {
 					$('#cur_nginx_exp_ver').text(data);
 					$('#cur_nginx_exp_ver').css('font-weight', 'bold');
+				}
+			}
+		} );
+	});
+	$( "#apache_exp_addserv" ).on('selectmenuchange',function() {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				get_exporter_v: 'apache_exporter',
+				serv: $('#apache_exp_addserv option:selected').val(),
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+				data = data.replace(/^\s+|\s+$/g,'');
+				if (data.indexOf('error:') != '-1') {
+					toastr.clear();
+					toastr.error(data);
+				} else if(data == 'no' || data == '') {
+					$('#cur_apache_exp_ver').text('Apache exporter has not been installed');
+				} else {
+					$('#cur_apache_exp_ver').text(data);
+					$('#cur_apache_exp_ver').css('font-weight', 'bold');
 				}
 			}
 		} );
@@ -1060,6 +1121,7 @@ function addServer(dialog_id) {
 					$('select:regex(id, backup-server)').append('<option value=' + $('#ip-'+id).text() + '>' + $('#hostname-'+id).val() + '</option>').selectmenu("refresh");
 					$('select:regex(id, haproxy_exp_addserv)').append('<option value=' + $('#ip-'+id).text() + '>' + $('#hostname-'+id).val() + '</option>').selectmenu("refresh");
 					$('select:regex(id, nginx_exp_addserv)').append('<option value=' + $('#ip-'+id).text() + '>' + $('#hostname-'+id).val() + '</option>').selectmenu("refresh");
+					$('select:regex(id, apache_exp_addserv)').append('<option value=' + $('#ip-'+id).text() + '>' + $('#hostname-'+id).val() + '</option>').selectmenu("refresh");
 					$('select:regex(id, node_exp_addserv)').append('<option value=' + $('#ip-'+id).text() + '>' + $('#hostname-'+id).val() + '</option>').selectmenu("refresh");
 				}
 			}

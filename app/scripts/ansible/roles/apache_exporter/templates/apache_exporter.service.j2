@@ -1,0 +1,20 @@
+{{ ansible_managed | comment }}
+
+[Unit]
+Description=Prometheus Apache Exporter
+After=network.target
+
+[Service]
+Type=simple
+User={{ __apache_exporter_user }}
+Group={{ __apache_exporter_group }}
+ExecStart={{ prometheus_exporter_dir }}/apache_exporter \
+    --telemetry.address {{ apache_exporter_telemetry_address|default("0.0.0.0:9117") }} \
+    --scrape_uri {{ apache_exporter_scrape_uri|default("http://localhost/server-status/?auto") }} \
+    --telemetry.endpoint {{ apache_exporter_telemetry_endpoint|default("/metrics") }} \
+
+SyslogIdentifier=apache_exporter
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

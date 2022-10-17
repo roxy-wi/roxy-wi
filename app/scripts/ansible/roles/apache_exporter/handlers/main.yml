@@ -1,0 +1,7 @@
+---
+- name: restart apache exporter
+  become: true
+  systemd:
+    daemon_reload: true
+    name: apache_exporter
+    state: restarted

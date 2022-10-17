@@ -5,6 +5,7 @@ import sys
 import json
 import http.cookies
 
+import requests
 from jinja2 import Environment, FileSystemLoader
 
 import funct
@@ -121,7 +122,7 @@ if serv and form.getvalue('ssl_cert'):
     except Exception as e:
         funct.logging('localhost', e.args[0], haproxywi=1)
     try:
-        os.system("mv %s %s" % (name, cert_local_dir))
+        os.rename(name, cert_local_dir)
     except OSError as e:
         funct.logging('localhost', e.args[0], haproxywi=1)
 
@@ -456,17 +457,17 @@ if form.getvalue('action_hap') is not None and serv is not None:
 
         if is_docker == '1':
             container_name = sql.get_setting('haproxy_container_name')
-            commands = ["sudo docker %s %s" % (action, container_name)]
+            commands = [f"sudo docker {action} {container_name}"]
         else:
             haproxy_enterprise = sql.select_service_setting(server_id, 'haproxy', 'haproxy_enterprise')
             if haproxy_enterprise == '1':
                 haproxy_service_name = "hapee-2.0-lb"
-            commands = ["sudo systemctl %s %s" % (action, haproxy_service_name)]
+            commands = [f"sudo systemctl {action} {haproxy_service_name}"]
 
         funct.ssh_command(serv, commands)
-        funct.logging(serv, 'Service has been ' + action + 'ed', haproxywi=1, login=1, keep_history=1,
+        funct.logging(serv, f'Service has been {action}ed', haproxywi=1, login=1, keep_history=1,
                       service='haproxy')
-        print("success: HAProxy has been %s" % action)
+        print(f"success: HAProxy has been {action}")
     else:
         print("error: Bad config, check please")
 
@@ -651,17 +652,17 @@ if form.getvalue('show_userlists'):
     except Exception as e:
         funct.logging('localhost', str(e), haproxywi=1)
         try:
-            cfg = configs_dir + serv + "-" + funct.get_data('config') + '.' + format_file
+            cfg = f'{configs_dir}{serv}-{funct.get_data("config")}.{format_file}'
         except Exception as e:
-            funct.logging('localhost', ' Cannot generate a cfg path ' + str(e), haproxywi=1)
+            funct.logging('localhost', f' Cannot generate a cfg path {e}', haproxywi=1)
         try:
             error = funct.get_config(serv, cfg)
         except Exception as e:
-            funct.logging('localhost', ' Cannot download a config ' + str(e), haproxywi=1)
+            funct.logging('localhost', f' Cannot download a config {e}', haproxywi=1)
         try:
             sections = funct.get_userlists(cfg)
         except Exception as e:
-            funct.logging('localhost', ' Cannot get Userlists from the config file ' + str(e), haproxywi=1)
+            funct.logging('localhost', f' Cannot get Userlists from the config file {e}', haproxywi=1)
             sections = 'error: Cannot get Userlists'
 
     print(sections)
@@ -704,20 +705,19 @@ if act == "overview":
         except Exception:
             waf_len = 0
 
-        if haproxy == 1:
-            cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Process_num"' % (
-            serv2, sql.get_setting('haproxy_sock_port'))
+        if haproxy:
+            cmd = f'echo "show info" |nc {serv2} {sql.get_setting("haproxy_sock_port")} -w 1|grep -e "Process_num"'
             haproxy_process = funct.server_status(funct.subprocess_execute(cmd))
 
-        if nginx == 1:
-            nginx_cmd = 'echo "something" |nc %s %s -w 1' % (serv2, sql.get_setting('nginx_stats_port'))
+        if nginx:
+            nginx_cmd = f'echo "something" |nc {serv2} {sql.get_setting("nginx_stats_port")} -w 1'
             nginx_process = funct.server_status(funct.subprocess_execute(nginx_cmd))
 
-        if apache == 1:
-            apache_cmd = 'echo "something" |nc %s %s -w 1' % (serv2, sql.get_setting('apache_stats_port'))
+        if apache:
+            apache_cmd = f'echo "something" |nc {serv2} {sql.get_setting("apache_stats_port")} -w 1'
             apache_process = funct.server_status(funct.subprocess_execute(apache_cmd))
 
-        if keepalived == 1:
+        if keepalived:
             command = ["ps ax |grep keepalived|grep -v grep|wc -l|tr -d '\n'"]
             try:
                 keepalived_process = funct.ssh_command(serv2, command)
@@ -893,8 +893,6 @@ if act == "overviewServers":
     ioloop.close()
 
 if form.getvalue('action'):
-    import requests
-
     haproxy_user = sql.get_setting('stats_user')
     haproxy_pass = sql.get_setting('stats_password')
     stats_port = sql.get_setting('stats_port')
@@ -919,8 +917,6 @@ if form.getvalue('action'):
                       auth=(haproxy_user, haproxy_pass))
 
 if serv is not None and act == "stats":
-    import requests
-
     if form.getvalue('service') == 'nginx':
         haproxy_user = sql.get_setting('nginx_stats_user')
         haproxy_pass = sql.get_setting('nginx_stats_password')
@@ -1004,7 +1000,7 @@ if form.getvalue('viewlogs') is not None:
     if funct.check_user_group():
         out = funct.show_roxy_log(serv=viewlog, rows=rows, waf='0', grep=grep, hour=hour, minut=minut, hour1=hour1,
                                      minut1=minut1, service='internal')
-    print(out)
+        print(out)
 
 if serv is not None and act == "showMap":
     import networkx as nx
@@ -1017,10 +1013,9 @@ if serv is not None and act == "showMap":
     haproxy_config_path = sql.get_setting('haproxy_config_path')
     hap_configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
     date = funct.get_data('config')
-    cfg = hap_configs_dir + serv + "-" + date + ".cfg"
+    cfg = f'{hap_configs_dir}{serv}-{date}.cfg'
 
-    print('<center>')
-    print("<h4>Map from %s</h4><br />" % serv)
+    print(f'<center><h4 style="margin-bottom: 0;">Map from {serv}</h4>')
 
     error = funct.get_config(serv, cfg)
     if error:
@@ -1028,7 +1023,8 @@ if serv is not None and act == "showMap":
     try:
         conf = open(cfg, "r")
     except IOError:
-        print('error: Can\'t read import config file')
+        print('error: Cannot read import config file')
+        sys.exit()
 
     G = nx.DiGraph()
     node = ""
@@ -1090,8 +1086,8 @@ if serv is not None and act == "showMap":
                     sections['backends'][node]['servers'][line_new[0]] = {line_new[0]: backend_server_port}
                 except Exception:
                     pass
-
-    os.system("/bin/rm -f " + cfg)
+    conf.close()
+    os.remove(cfg)
 
     i, k, j = 0, 0, 0
     backend_servers_len_dict = 1
@@ -1215,11 +1211,8 @@ if serv is not None and act == "showMap":
     except Exception as e:
         print(str(e))
 
-    cmd = "rm -f " + os.path.dirname(os.getcwd()) + "/map*.png && mv map.png " + os.path.dirname(
-        os.getcwd()) + "/map" + date + ".png"
-    output, stderr = funct.subprocess_execute(cmd)
-    print(stderr)
-    print('<img src="/map%s.png" alt="map">' % date)
+    os.system(f"rm -f {os.path.dirname(os.getcwd())}/map*.png && mv map.png {os.path.dirname(os.getcwd())}/map{date}.png")
+    print(f'<img src="/map{date}.png" alt="map"></center>')
 
 if form.getvalue('servaction') is not None:
     server_state_file = sql.get_setting('server_state_file')
@@ -1227,22 +1220,23 @@ if form.getvalue('servaction') is not None:
     enable = funct.checkAjaxInput(form.getvalue('servaction'))
     backend = funct.checkAjaxInput(form.getvalue('servbackend'))
 
-    cmd = 'echo "{} {}" |sudo socat stdio {}'.format(enable, backend, haproxy_sock)
+    cmd = f'echo "{enable} {backend}" |sudo socat stdio {haproxy_sock}'
 
     if form.getvalue('save') == "on":
-        save_command = 'echo "show servers state" | sudo socat {} stdio > {}'.format(haproxy_sock, server_state_file)
+        save_command = f'echo "show servers state" | sudo socat {haproxy_sock} stdio > {server_state_file}'
         command = [cmd + ';' + save_command]
     else:
         command = [cmd]
 
     if enable != "show":
-        funct.logging(serv, 'Has been ' + enable + 'ed ' + backend, login=1, keep_history=1, service='haproxy')
+        funct.logging(serv, f'Has been {enable}ed {backend}', login=1, keep_history=1, service='haproxy')
         print(
-            '<center><h3>You %s %s on HAProxy %s. <a href="statsview.py?serv=%s" title="View stat" target="_blank">Look it</a> or <a href="runtimeapi.py" title="Runtime API">Edit something else</a></h3><br />' % (
-            enable, backend, serv, serv))
+            f'<center><h3>You {enable} {backend} on HAProxy {serv}. <a href="statsview.py?serv={serv}" '
+            f'title="View stat" target="_blank">Look it</a> or <a href="runtimeapi.py" '
+            f'title="Runtime API">Edit something else</a></h3><br />')
 
     print(funct.ssh_command(serv, command, show_log="1"))
-    action = 'runtimeapi.py ' + enable + ' ' + backend
+    action = f'runtimeapi.py {enable} {backend}'
     funct.logging(serv, action)
 
 if act == "showCompareConfigs":
@@ -1344,9 +1338,10 @@ if serv is not None and act == "configShow":
                                is_serv_protected=is_serv_protected,
                                is_restart=is_restart)
     print(template)
+    conf.close()
 
     if form.getvalue('configver') is None:
-        os.system("/bin/rm -f " + cfg)
+        os.remove(cfg)
 
 if act == 'configShowFiles':
     service = form.getvalue('service')
@@ -1396,31 +1391,19 @@ if form.getvalue('master'):
     script = "install_keepalived.sh"
     proxy = sql.get_setting('proxy')
     keepalived_path_logs = sql.get_setting('keepalived_path_logs')
-    ssh_port = 22
-    ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(master)
-
-    if ssh_enable == 0:
-        ssh_key_name = ''
-
-    servers = sql.select_servers(server=master)
-    for server in servers:
-        ssh_port = str(server[10])
+    proxy_serv = ''
+    ssh_settings = funct.return_ssh_keys_path(master)
 
     if proxy is not None and proxy != '' and proxy != 'None':
         proxy_serv = proxy
-    else:
-        proxy_serv = ''
 
-    os.system("cp scripts/%s ." % script)
+    os.system(f"cp scripts/{script} .")
 
     commands = [
-        "chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port + " router_id=" + router_id
-        + " ETH=" + ETH + " IP=" + str(
-            IP) + " MASTER=MASTER" + " ETH_SLAVE=" + ETH_SLAVE + " keepalived_path_logs=" + keepalived_path_logs
-        + " RETURN_TO_MASTER=" + return_to_master + " SYN_FLOOD=" + syn_flood + " HOST=" + str(
-            master) + " HAPROXY=" + haproxy
-        + " NGINX=" + nginx + " USER=" + str(ssh_user_name) + " PASS='" + str(ssh_user_password) + "' KEY=" + str(
-            ssh_key_name)
+        f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} router_id={router_id} "
+        f"ETH={ETH} IP={IP} MASTER=MASTER ETH_SLAVE={ETH_SLAVE} keepalived_path_logs={keepalived_path_logs} "
+        f"RETURN_TO_MASTER={return_to_master} SYN_FLOOD={syn_flood} HOST={master} HAPROXY={haproxy} NGINX={nginx} "
+        f"USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
     ]
 
     output, error = funct.subprocess_execute(commands[0])
@@ -1437,6 +1420,7 @@ if form.getvalue('master'):
                 hostname + '-VIP', IP, group_id, '1', '1', '0', cred_id, ssh_port, 'VRRP IP for ' + master, haproxy,
                 nginx, '0', firewall
             )
+    os.remove(script)
 
 if form.getvalue('master_slave'):
     master = form.getvalue('master_slave')
@@ -1451,36 +1435,25 @@ if form.getvalue('master_slave'):
     script = "install_keepalived.sh"
     proxy = sql.get_setting('proxy')
     keepalived_path_logs = sql.get_setting('keepalived_path_logs')
-    ssh_port = 22
-    ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(slave)
-
-    if ssh_enable == 0:
-        ssh_key_name = ''
-
-    servers = sql.select_servers(server=slave)
-    for server in servers:
-        ssh_port = str(server[10])
+    proxy_serv = ''
+    ssh_settings = funct.return_ssh_keys_path(slave)
 
     if proxy is not None and proxy != '' and proxy != 'None':
         proxy_serv = proxy
-    else:
-        proxy_serv = ''
 
-    os.system("cp scripts/%s ." % script)
+    os.system(f"cp scripts/{script} .")
 
     commands = [
-        "chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port + " router_id=" + router_id
-        + " ETH=" + ETH + " IP=" + IP + " MASTER=BACKUP" + " ETH_SLAVE=" + ETH_SLAVE + " keepalived_path_logs=" + keepalived_path_logs
-        + " HAPROXY=" + HAPROXY + " NGINX=" + nginx + " HOST=" + str(slave) + " USER=" + str(
-            ssh_user_name) + " PASS='" + str(ssh_user_password)
-        + "' KEY=" + str(ssh_key_name)
+        f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} router_id={router_id} ETH={ETH} "
+        f"IP={IP} MASTER=BACKUP ETH_SLAVE={ETH_SLAVE} keepalived_path_logs={keepalived_path_logs} HAPROXY={HAPROXY} "
+        f"NGINX={nginx} HOST={slave} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
     ]
 
     output, error = funct.subprocess_execute(commands[0])
 
     funct.show_installation_output(error, output, 'slave Keepalived')
 
-    os.system("rm -f %s" % script)
+    os.remove(script)
     sql.update_server_master(master, slave)
     sql.update_keepalived(slave)
 
@@ -1496,34 +1469,25 @@ if form.getvalue('masteradd'):
     script = "install_keepalived.sh"
     proxy = sql.get_setting('proxy')
     keepalived_path_logs = sql.get_setting('keepalived_path_logs')
-    ssh_port = 22
-    ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(master)
-
-    if ssh_enable == 0:
-        ssh_key_name = ''
+    proxy_serv = ''
+    ssh_settings = funct.return_ssh_keys_path(master)
 
     if proxy is not None and proxy != '' and proxy != 'None':
         proxy_serv = proxy
-    else:
-        proxy_serv = ''
 
-    os.system("cp scripts/%s ." % script)
-
-    servers = sql.select_servers(server=master)
-    for server in servers:
-        ssh_port = str(server[10])
+    os.system(f"cp scripts/{script} .")
 
     commands = [
-        "chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port + " ETH=" + ETH
-        + " SLAVE_ETH=" + SLAVE_ETH + " keepalived_path_logs=" + keepalived_path_logs + " RETURN_TO_MASTER=" + return_to_master
-        + " IP=" + str(IP) + " MASTER=MASTER" + " RESTART=" + kp + " ADD_VRRP=1 HOST=" + str(
-            master) + " router_id=" + router_id
-        + " USER=" + str(ssh_user_name) + " PASS='" + str(ssh_user_password) + "' KEY=" + str(ssh_key_name)
+        f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} ETH={ETH} SLAVE_ETH={SLAVE_ETH} "
+        f"keepalived_path_logs={keepalived_path_logs} RETURN_TO_MASTER={return_to_master} IP={IP} MASTER=MASTER "
+        f"RESTART={kp} ADD_VRRP=1 HOST={master} router_id={router_id} USER={ssh_settings['user']} "
+        f"PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
     ]
 
     output, error = funct.subprocess_execute(commands[0])
 
     funct.show_installation_output(error, output, 'master VRRP address')
+    os.remove(script)
 
 if form.getvalue('masteradd_slave'):
     master = form.getvalue('masteradd_slave')
@@ -1536,36 +1500,25 @@ if form.getvalue('masteradd_slave'):
     script = "install_keepalived.sh"
     proxy = sql.get_setting('proxy')
     keepalived_path_logs = sql.get_setting('keepalived_path_logs')
-    ssh_port = 22
-    ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(slave)
-
-    if ssh_enable == 0:
-        ssh_key_name = ''
+    proxy_serv = ''
+    ssh_settings = funct.return_ssh_keys_path(slave)
 
     if proxy is not None and proxy != '' and proxy != 'None':
         proxy_serv = proxy
-    else:
-        proxy_serv = ''
 
-    os.system("cp scripts/%s ." % script)
-
-    servers = sql.select_servers(server=slave)
-    for server in servers:
-        ssh_port = str(server[10])
+    os.system(f"cp scripts/{script} .")
 
     commands = [
-        "chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv
-        + " SSH_PORT=" + ssh_port + " ETH=" + ETH + " SLAVE_ETH=" + SLAVE_ETH + " keepalived_path_logs=" + keepalived_path_logs
-        + " IP=" + str(IP) + " MASTER=BACKUP" + " RESTART=" + kp + " ADD_VRRP=1 HOST=" + str(
-            slave) + " router_id=" + router_id
-        + " USER=" + str(ssh_user_name) + " PASS='" + str(ssh_user_password) + "' KEY=" + str(ssh_key_name)
+        f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} ETH={ETH} SLAVE_ETH={SLAVE_ETH} "
+        f"keepalived_path_logs={keepalived_path_logs} IP={IP} MASTER=BACKUP RESTART={kp} ADD_VRRP=1 HOST={slave} "
+        f"router_id={router_id} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
     ]
 
     output, error = funct.subprocess_execute(commands[0])
 
     funct.show_installation_output(error, output, 'slave VRRP address')
 
-    os.system("rm -f %s" % script)
+    os.remove(script)
 
 if form.getvalue('master_slave_hap'):
     master = form.getvalue('master_slave_hap')
@@ -1592,16 +1545,15 @@ if form.getvalue('master_slave_nginx'):
 if form.getvalue('install_grafana'):
     script = "install_grafana.sh"
     proxy = sql.get_setting('proxy')
+    proxy_serv = ''
     host = os.environ.get('HTTP_HOST', '')
 
-    os.system("cp scripts/%s ." % script)
+    os.system(f"cp scripts/{script} .")
 
     if proxy is not None and proxy != '' and proxy != 'None':
         proxy_serv = proxy
-    else:
-        proxy_serv = ''
 
-    commands = ["chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv]
+    commands = [f"chmod +x {script} &&  ./{script} PROXY={proxy_serv}"]
 
     output, error = funct.subprocess_execute(commands[0])
 
@@ -1623,7 +1575,7 @@ if form.getvalue('install_grafana'):
             print(
                 f'success: Grafana and Prometheus servers were installed. You can find Grafana on http://{host}:3000<br>')
 
-    os.system("rm -f %s" % script)
+    os.remove(script)
 
 if form.getvalue('haproxy_exp_install'):
     serv = form.getvalue('haproxy_exp_install')
@@ -1636,17 +1588,9 @@ if form.getvalue('haproxy_exp_install'):
     stats_password = sql.get_setting('stats_password')
     stat_page = sql.get_setting('stats_page')
     proxy = sql.get_setting('proxy')
-    ssh_port = 22
-    ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(serv)
+    ssh_settings = funct.return_ssh_keys_path(serv)
 
-    if ssh_enable == 0:
-        ssh_key_name = ''
-
-    servers = sql.select_servers(server=serv)
-    for server in servers:
-        ssh_port = str(server[10])
-
-    os.system("cp scripts/%s ." % script)
+    os.system(f"cp scripts/{script} .")
 
     if proxy is not None and proxy != '' and proxy != 'None':
         proxy_serv = proxy
@@ -1654,93 +1598,76 @@ if form.getvalue('haproxy_exp_install'):
         proxy_serv = ''
 
     commands = [
-        "chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv
-        + " STAT_PORT=" + str(stats_port) + " STAT_FILE=" + server_state_file
-        + " SSH_PORT=" + ssh_port + " STAT_PAGE=" + stat_page + " VER=" + ver + " EXP_PROM=" + ext_prom
-        + " STATS_USER=" + stats_user + " STATS_PASS='" + stats_password + "' HOST=" + serv
-        + " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name
+        f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} STAT_PORT={stats_port} STAT_FILE={server_state_file}"
+        f" SSH_PORT={ssh_settings['port']} STAT_PAGE={stat_page} VER={ver} EXP_PROM={ext_prom} STATS_USER={stats_user}"
+        f" STATS_PASS='{stats_password}' HOST={serv} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
     ]
 
     output, error = funct.subprocess_execute(commands[0])
 
     funct.show_installation_output(error, output, 'HAProxy exporter')
 
-    os.system("rm -f %s" % script)
+    os.remove(script)
 
-if form.getvalue('nginx_exp_install'):
-    serv = form.getvalue('nginx_exp_install')
-    ver = form.getvalue('exporter_v')
-    ext_prom = form.getvalue('ext_prom')
-    script = "install_nginx_exporter.sh"
-    stats_user = sql.get_setting('nginx_stats_user')
-    stats_password = sql.get_setting('nginx_stats_password')
-    stats_port = sql.get_setting('nginx_stats_port')
-    stats_page = sql.get_setting('nginx_stats_page')
+if form.getvalue('nginx_exp_install') or form.getvalue('apache_exp_install'):
+    if form.getvalue('nginx_exp_install'):
+        service = 'nginx'
+    elif form.getvalue('apache_exp_install'):
+        service = 'apache'
+
+    serv = funct.is_ip_or_dns(form.getvalue('serv'))
+    ver = funct.checkAjaxInput(form.getvalue('exporter_v'))
+    ext_prom = funct.checkAjaxInput(form.getvalue('ext_prom'))
+    script = f"install_{service}_exporter.sh"
+    stats_user = sql.get_setting(f'{service}_stats_user')
+    stats_password = sql.get_setting(f'{service}_stats_password')
+    stats_port = sql.get_setting(f'{service}_stats_port')
+    stats_page = sql.get_setting(f'{service}_stats_page')
     proxy = sql.get_setting('proxy')
-    ssh_port = 22
-    ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(serv)
+    proxy_serv = ''
+    ssh_settings = funct.return_ssh_keys_path(serv)
 
-    if ssh_enable == 0:
-        ssh_key_name = ''
-
-    servers = sql.select_servers(server=serv)
-    for server in servers:
-        ssh_port = str(server[10])
-
-    os.system("cp scripts/%s ." % script)
+    os.system(f"cp scripts/{script} .")
 
     if proxy is not None and proxy != '' and proxy != 'None':
         proxy_serv = proxy
-    else:
-        proxy_serv = ''
 
     commands = [
-        "chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv
-        + " STAT_PORT=" + str(stats_port) + " SSH_PORT=" + ssh_port + " STAT_PAGE=" + stats_page
-        + " STATS_USER=" + stats_user + " STATS_PASS='" + stats_password + "' HOST=" + serv + " VER=" + ver
-        + " EXP_PROM=" + ext_prom + " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name
+        f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} STAT_PORT={stats_port} SSH_PORT={ssh_settings['port']} STAT_PAGE={stats_page}" 
+        f" STATS_USER={stats_user} STATS_PASS='{stats_password}' HOST={serv} VER={ver} EXP_PROM={ext_prom} USER={ssh_settings['user']} "
+        f" PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
     ]
 
     output, error = funct.subprocess_execute(commands[0])
 
-    funct.show_installation_output(error, output, 'Nginx exporter')
+    funct.show_installation_output(error, output, f'{service.title()} exporter')
 
-    os.system("rm -f %s" % script)
+    os.remove(script)
 
 if form.getvalue('node_exp_install'):
-    serv = form.getvalue('node_exp_install')
-    ver = form.getvalue('exporter_v')
-    ext_prom = form.getvalue('ext_prom')
+    serv = funct.is_ip_or_dns(form.getvalue('node_exp_install'))
+    ver = funct.checkAjaxInput(form.getvalue('exporter_v'))
+    ext_prom = funct.checkAjaxInput(form.getvalue('ext_prom'))
     script = "install_node_exporter.sh"
     proxy = sql.get_setting('proxy')
-    ssh_port = 22
-    ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(serv)
+    proxy_serv = ''
+    ssh_settings = funct.return_ssh_keys_path(serv)
 
-    if ssh_enable == 0:
-        ssh_key_name = ''
-
-    servers = sql.select_servers(server=serv)
-    for server in servers:
-        ssh_port = str(server[10])
-
-    os.system("cp scripts/%s ." % script)
+    os.system(f"cp scripts/{script} .")
 
     if proxy is not None and proxy != '' and proxy != 'None':
         proxy_serv = proxy
-    else:
-        proxy_serv = ''
 
     commands = [
-        "chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SSH_PORT=" + ssh_port
-        + " VER=" + ver + " EXP_PROM=" + ext_prom + " HOST=" + serv + " USER=" + ssh_user_name
-        + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name
+        f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} VER={ver} EXP_PROM={ext_prom} "
+        f"HOST={serv} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
     ]
 
     output, error = funct.subprocess_execute(commands[0])
 
     funct.show_installation_output(error, output, 'Node exporter')
 
-    os.system("rm -f %s" % script)
+    os.remove(script)
 
 if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupupdate'):
     serv = form.getvalue('server')
@@ -1753,8 +1680,7 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
     update = form.getvalue('backupupdate')
     description = form.getvalue('description')
     script = 'backup.sh'
-    ssh_port = 22
-    ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path('localhost', id=int(cred))
+    ssh_settings = funct.return_ssh_keys_path('localhost', id=int(cred))
 
     if deljob:
         time = ''
@@ -1768,16 +1694,11 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
             print('warning: Backup job for %s already exists' % serv)
             sys.exit()
 
-    servers = sql.select_servers(server=serv)
-    for server in servers:
-        ssh_port = str(server[10])
-
-    os.system("cp scripts/%s ." % script)
+    os.system(f"cp scripts/{script} .")
 
     commands = [
-        "chmod +x " + script + " &&  ./" + script + "  HOST=" + rserver + "  SERVER=" + serv
-        + " TYPE=" + backup_type + " SSH_PORT=" + ssh_port + " TIME=" + time
-        + " RPATH=" + rpath + " DELJOB=" + deljob + " USER=" + str(ssh_user_name) + " KEY=" + str(ssh_key_name)
+        f"chmod +x {script} &&  ./{script}  HOST={rserver}  SERVER={serv} TYPE={backup_type} SSH_PORT={ssh_settings['port']} "
+        f"TIME={time} RPATH={rpath} DELJOB={deljob} USER={ssh_settings['user']} KEY={ssh_settings['key']}"
     ]
 
     output, error = funct.subprocess_execute(commands[0])
@@ -1813,6 +1734,8 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
             print('Ok')
             funct.logging('backup ', ' a backup job for server ' + serv + ' has been updated', haproxywi=1, login=1)
 
+    os.remove(script)
+
 if form.getvalue('git_backup'):
     server_id = form.getvalue('server')
     service_id = form.getvalue('git_service')
@@ -1830,19 +1753,13 @@ if form.getvalue('git_backup'):
     service_name = sql.select_service_name_by_id(service_id).lower()
     service_config_dir = sql.get_setting(service_name + '_dir')
     script = 'git_backup.sh'
-    ssh_port = 22
-    ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path('localhost', id=int(cred))
+    proxy_serv = ''
+    ssh_settings = funct.return_ssh_keys_path('localhost', id=int(cred))
 
-    os.system("cp scripts/%s ." % script)
+    os.system(f"cp scripts/{script} .")
 
     if proxy is not None and proxy != '' and proxy != 'None':
         proxy_serv = proxy
-    else:
-        proxy_serv = ''
-
-    servers = sql.select_servers(server=server_ip)
-    for server in servers:
-        ssh_port = str(server[10])
 
     if repo is None or git_init == '0':
         repo = ''
@@ -1850,10 +1767,9 @@ if form.getvalue('git_backup'):
         branch = 'main'
 
     commands = [
-        "chmod +x " + script + " &&  ./" + script + " HOST=" + server_ip + " DELJOB=" + deljob
-        + " SERVICE=" + service_name + " INIT=" + git_init + " SSH_PORT=" + ssh_port + " PERIOD=" + period
-        + " REPO=" + repo + " BRANCH=" + branch + " CONFIG_DIR=" + service_config_dir
-        + " PROXY=" + proxy_serv + " USER=" + str(ssh_user_name) + " KEY=" + str(ssh_key_name)
+        f"chmod +x {script} &&  ./{script} HOST={server_ip} DELJOB={deljob} SERVICE={service_name} INIT={git_init} "
+        f"SSH_PORT={ssh_settings['port']} PERIOD={period} REPO={repo} BRANCH={branch} CONFIG_DIR={service_config_dir} "
+        f"PROXY={proxy_serv} USER={ssh_settings['user']} KEY={ssh_settings['key']}"
     ]
 
     output, error = funct.subprocess_execute(commands[0])
@@ -1887,7 +1803,7 @@ if form.getvalue('git_backup'):
         else:
             if sql.delete_git(form.getvalue('git_backup')):
                 print('Ok')
-        os.system("rm -f %s" % script)
+    os.remove(script)
 
 if form.getvalue('install_nginx'):
     funct.install_nginx(form.getvalue('install_nginx'), docker=form.getvalue('docker'))
@@ -1914,7 +1830,7 @@ if form.getvalue('update_roxy_wi'):
                 'roxy-wi-socket',
                 'roxy-wi-prometheus-exporter']
     if service not in services:
-        print('error: ' + service + ' is not part of Roxy-WI')
+        print(f'error: {service} is not part of Roxy-WI')
         sys.exit()
     funct.update_roxy_wi(service)
 
@@ -2094,7 +2010,7 @@ if form.getvalue('get_nginx_v'):
 
     if is_dockerized == '1':
         container_name = sql.get_setting('nginx_container_name')
-        cmd = ["docker exec -it " + container_name + "  /usr/sbin/nginx -v 2>&1|awk '{print $3}'"]
+        cmd = [f"docker exec -it {container_name}  /usr/sbin/nginx -v 2>&1|awk '{{print $3}}'"]
     else:
         cmd = ['sudo /usr/sbin/nginx -v']
     print(funct.ssh_command(serv, cmd))
@@ -2108,44 +2024,45 @@ if form.getvalue('get_exporter_v'):
 
 if form.getvalue('bwlists'):
     lib_path = get_config.get_config_var('main', 'lib_path')
-    list_path = lib_path + "/" + sql.get_setting('lists_path') + "/" + form.getvalue('group') + "/" + form.getvalue(
-        'color') + "/" + form.getvalue('bwlists')
+    color = funct.checkAjaxInput(form.getvalue('color'))
+    group = funct.checkAjaxInput(form.getvalue('group'))
+    bwlists = funct.checkAjaxInput(form.getvalue('bwlists'))
+    list_path = f"{lib_path}/{sql.get_setting('lists_path')}/{group}/{color}/{bwlist}"
+
     try:
         file = open(list_path, "r")
         file_read = file.read()
         file.close()
         print(file_read)
     except IOError:
-        print('error: Cat\'n read ' + form.getvalue('color') + ' list , ')
+        print(f"error: Cannot read {color} list")
 
 if form.getvalue('bwlists_create'):
-    color = form.getvalue('color')
+    color = funct.checkAjaxInput(form.getvalue('color'))
     lib_path = get_config.get_config_var('main', 'lib_path')
-    list_name = form.getvalue('bwlists_create').split('.')[0]
-    list_name += '.lst'
-    list_path = lib_path + "/" + sql.get_setting('lists_path') + "/" + form.getvalue(
-        'group') + "/" + color + "/" + list_name
+    list_name = f"{form.getvalue('bwlists_create').split('.')[0]}.lst"
+    list_path = f"{lib_path}/{sql.get_setting('lists_path')}/{form.getvalue('group')}/{color}/{list_name}"
     try:
         open(list_path, 'a').close()
         print('success: ')
         try:
-            funct.logging(serv, 'has been created  ' + color + ' list ' + list_name, haproxywi=1, login=1)
+            funct.logging(serv, f'A new list {color} {list_name} has been created', haproxywi=1, login=1)
         except Exception:
             pass
     except IOError as e:
-        print('error: Cannot create new ' + color + ' list. %s , ' % e)
+        print(f'error: Cannot create a new {color} list. {e}, ')
 
 if form.getvalue('bwlists_save'):
-    color = form.getvalue('color')
-    bwlists_save = form.getvalue('bwlists_save')
+    color = funct.checkAjaxInput(form.getvalue('color'))
+    group = funct.checkAjaxInput(form.getvalue('group'))
+    bwlists_save = funct.checkAjaxInput(form.getvalue('bwlists_save'))
     lib_path = get_config.get_config_var('main', 'lib_path')
-    list_path = lib_path + "/" + sql.get_setting('lists_path') + "/" + form.getvalue(
-        'group') + "/" + color + "/" + bwlists_save
+    list_path = f"{lib_path}/{sql.get_setting('lists_path')}/{group}/{color}/{bwlists_save}"
     try:
         with open(list_path, "w") as file:
             file.write(form.getvalue('bwlists_content'))
     except IOError as e:
-        print('error: Cannot save ' + color + ' list. %s , ' % e)
+        print(f'error: Cannot save {color} list. {e}')
 
     path = sql.get_setting('haproxy_dir') + "/" + color
     servers = []
@@ -2163,8 +2080,8 @@ if form.getvalue('bwlists_save'):
             servers.append(s[2])
 
     for serv in servers:
-        funct.ssh_command(serv, ["sudo mkdir " + path])
-        funct.ssh_command(serv, ["sudo chown $(whoami) " + path])
+        funct.ssh_command(serv, [f"sudo mkdir {path}"])
+        funct.ssh_command(serv, [f"sudo chown $(whoami) {path}"])
         error = funct.upload(serv, path + "/" + bwlists_save, list_path, dir='fullpath')
 
         if error:
@@ -2172,7 +2089,7 @@ if form.getvalue('bwlists_save'):
         else:
             print('success: Edited ' + color + ' list was uploaded to ' + serv + ' , ')
             try:
-                funct.logging(serv, 'has been edited the ' + color + ' list ' + bwlists_save, haproxywi=1, login=1)
+                funct.logging(serv, f'Has been edited the {color} list {bwlists_save}', haproxywi=1, login=1)
             except Exception:
                 pass
 
@@ -2184,9 +2101,9 @@ if form.getvalue('bwlists_save'):
                 haproxy_service_name = "haproxy"
 
             if form.getvalue('bwlists_restart') == 'restart':
-                funct.ssh_command(serv, ["sudo systemctl restart " + haproxy_service_name])
+                funct.ssh_command(serv, [f"sudo systemctl restart {haproxy_service_name}"])
             elif form.getvalue('bwlists_restart') == 'reload':
-                funct.ssh_command(serv, ["sudo systemctl reload " + haproxy_service_name])
+                funct.ssh_command(serv, [f"sudo systemctl reload {haproxy_service_name}"])
 
 if form.getvalue('bwlists_delete'):
     color = form.getvalue('color')
@@ -2939,13 +2856,11 @@ if form.getvalue('showBytes') is not None:
     bin_bout.append(cout[0])
     env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
     template = env.get_template('ajax/bin_bout.html')
-    template = template.render(bin_bout=bin_bout, serv=serv)
+    template = template.render(bin_bout=bin_bout, serv=serv, service='haproxy')
     print(template)
 
 if form.getvalue('nginxConnections'):
-    import requests
-
-    serv = form.getvalue('nginxConnections')
+    serv = funct.is_ip_or_dns(form.getvalue('nginxConnections'))
     port = sql.get_setting('nginx_stats_port')
     user = sql.get_setting('nginx_stats_user')
     password = sql.get_setting('nginx_stats_password')
@@ -2967,7 +2882,30 @@ if form.getvalue('nginxConnections'):
         template = template.render(bin_bout=bin_bout, serv=serv, service='nginx')
         print(template)
     else:
-        print('error: cannot connect to Nginx stat page')
+        print('error: cannot connect to NGINX stat page')
+
+if form.getvalue('apachekBytes'):
+    serv = funct.is_ip_or_dns(form.getvalue('apachekBytes'))
+    port = sql.get_setting('apache_stats_port')
+    user = sql.get_setting('apache_stats_user')
+    password = sql.get_setting('apache_stats_password')
+    page = sql.get_setting('apache_stats_page')
+    bin_bout = []
+    url = f'http://{serv}:{port}/{page}?auto'
+
+    r = requests.get(url, auth=(user, password))
+
+    if r.status_code == 200:
+        for line in r.text.split('\n'):
+            if 'ReqPerSec' in line or 'BytesPerSec' in line:
+                bin_bout.append(line.split(' ')[1])
+
+        env = Environment(loader=FileSystemLoader('templates'))
+        template = env.get_template('ajax/bin_bout.html')
+        template = template.render(bin_bout=bin_bout, serv=serv, service='apache')
+        print(template)
+    else:
+        print('error: cannot connect to Apache stat page')
 
 if form.getvalue('waf_rule_id'):
     enable = funct.checkAjaxInput(form.getvalue('waf_en'))
@@ -3029,27 +2967,18 @@ if form.getvalue('lets_domain'):
     ssl_path = sql.get_setting('cert_path')
     haproxy_dir = sql.get_setting('haproxy_dir')
     script = "letsencrypt.sh"
-    ssh_port = "22"
-    ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(serv)
+    proxy_serv = ''
+    ssh_settings = funct.return_ssh_keys_path(serv)
 
-    if ssh_enable == 0:
-        ssh_key_name = ''
-
-    servers = sql.select_servers(server=serv)
-    for server in servers:
-        ssh_port = str(server[10])
-
-    os.system("cp scripts/%s ." % script)
+    os.system(f"cp scripts/{script} .")
 
     if proxy is not None and proxy != '' and proxy != 'None':
         proxy_serv = proxy
-    else:
-        proxy_serv = ''
 
     commands = [
-        "chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " haproxy_dir=" + haproxy_dir
-        + " DOMAIN=" + lets_domain + " EMAIL=" + lets_email + " SSH_PORT=" + ssh_port + " SSL_PATH=" + ssl_path
-        + " HOST=" + serv + " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name
+        f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} haproxy_dir={haproxy_dir} DOMAIN={lets_domain} "
+        f"EMAIL={lets_email} SSH_PORT={ssh_settings['port']} SSL_PATH={ssl_path} HOST={serv} USER={ ssh_settings['user']} "
+        f"PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
     ]
 
     output, error = funct.subprocess_execute(commands[0])
@@ -3071,7 +3000,7 @@ if form.getvalue('lets_domain'):
         else:
             print('success: Certificate has been created')
 
-    os.system("rm -f %s" % script)
+    os.remove(script)
 
 if form.getvalue('uploadovpn'):
     name = funct.checkAjaxInput(form.getvalue('ovpnname'))
@@ -3194,7 +3123,8 @@ if form.getvalue('geoip_install'):
     service = form.getvalue('geoip_service')
     proxy = sql.get_setting('proxy')
     maxmind_key = sql.get_setting('maxmind_key')
-    ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = funct.return_ssh_keys_path(serv)
+    proxy_serv = ''
+    ssh_settings = funct.return_ssh_keys_path(serv)
 
     if service in ('haproxy', 'nginx'):
         service_dir = funct.return_nice_path(sql.get_setting(f'{service}_dir'))
@@ -3203,28 +3133,22 @@ if form.getvalue('geoip_install'):
         print('warning: select a server and service first')
         sys.exit()
 
-    if ssh_enable == 0:
-        ssh_key_name = ''
-
-    ssh_port = [ str(server[10]) for server in sql.select_servers(server=serv) ]
-
     if proxy is not None and proxy != '' and proxy != 'None':
         proxy_serv = proxy
-    else:
-        proxy_serv = ''
 
     os.system(f"cp scripts/{script} .")
 
     commands = [
-        f"chmod +x  {script} &&  ./{script} PROXY={proxy_serv} SSH_PORT={ssh_port[0]} UPDATE={geoip_update} maxmind_key={maxmind_key} " 
-        f"service_dir={service_dir} HOST={serv} USER={ssh_user_name} PASS={ssh_user_password} KEY={ssh_key_name}"
+        f"chmod +x  {script} &&  ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} UPDATE={geoip_update} "
+        f"maxmind_key={maxmind_key} service_dir={service_dir} HOST={serv} USER={ssh_settings['user']} "
+        f"PASS={ssh_settings['password']} KEY={ssh_settings['key']}"
     ]
 
     output, error = funct.subprocess_execute(commands[0])
 
     funct.show_installation_output(error, output, 'GeoLite2 Database')
 
-    os.system("rm -f %s" % script)
+    os.remove(script)
 
 if form.getvalue('nettools_icmp_server_from'):
     server_from = form.getvalue('nettools_icmp_server_from')

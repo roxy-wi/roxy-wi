@@ -1,0 +1,24 @@
+- hosts: "{{ variable_host }}"
+  become: yes
+  become_method: sudo
+  tasks:
+  - name: Set SSH port
+    set_fact:
+      ansible_port: "{{SSH_PORT}}"
+
+  - name: Open stat port for iptables
+    iptables:
+      chain: INPUT
+      destination_port: "9117"
+      jump: ACCEPT
+      protocol: tcp
+    ignore_errors: yes
+
+
+  roles:
+  - role: apache_exporter
+    environment:
+      http_proxy: "{{PROXY}}"
+      https_proxy: "{{PROXY}}"
+    vars:
+      apache_exporter_scrape_uri: 'http://{{STATS_USER}}:{{STATS_PASS}}@{{variable_host}}:{{STAT_PORT}}/{{STAT_PAGE}}'

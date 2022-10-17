@@ -5,6 +5,8 @@ import re
 import json
 import http.cookies
 
+import distro
+
 import modules.roxy_wi_tools as roxy_wi_tools
 
 get_config_var = roxy_wi_tools.GetConfigVar()
@@ -115,7 +117,6 @@ def get_user_group(**kwargs) -> str:
 
 def logging(server_ip: str, action: str, **kwargs) -> None:
 	import sql
-	import distro
 
 	login = ''
 	cur_date = get_data('logs')
@@ -335,13 +336,10 @@ def page_for_admin(level=1) -> None:
 		return
 
 
-def return_ssh_keys_path(server_ip: str, **kwargs):
+def return_ssh_keys_path(server_ip: str, **kwargs) -> dict:
 	import sql
 	lib_path = get_config_var.get_config_var('main', 'lib_path')
-	ssh_enable = ''
-	ssh_user_name = ''
-	ssh_user_password = ''
-	ssh_key_name = ''
+	ssh_settings = {}
 
 	if kwargs.get('id'):
 		sshs = sql.select_ssh(id=kwargs.get('id'))
@@ -349,26 +347,24 @@ def return_ssh_keys_path(server_ip: str, **kwargs):
 		sshs = sql.select_ssh(serv=server_ip)
 
 	for ssh in sshs:
-		ssh_enable = ssh.enable
-		ssh_user_name = ssh.username
-		ssh_user_password = ssh.password
-		ssh_key_name = f'{lib_path}/keys/{ssh.name}.pem'
+		ssh_settings.setdefault('enabled', ssh.enable)
+		ssh_settings.setdefault('user', ssh.username)
+		ssh_settings.setdefault('password', ssh.password)
+		ssh_settings.setdefault('key', f'{lib_path}/keys/{ssh.name}.pem')
 
-	return ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name
+	ssh_port = [str(server[10]) for server in sql.select_servers(server=server_ip)]
+	ssh_settings.setdefault('port', ssh_port[0])
+
+	return ssh_settings
 
 
 def ssh_connect(server_ip):
-	import sql
 	from modules import ssh_connection
 
-	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = return_ssh_keys_path(server_ip)
-	servers = sql.select_servers(server=server_ip)
-	ssh_port = 22
+	ssh_settings = return_ssh_keys_path(server_ip)
 
-	for server in servers:
-		ssh_port = server[10]
-
-	ssh = ssh_connection.SshConnection(server_ip, ssh_port, ssh_user_name, ssh_user_password, ssh_enable, ssh_key_name)
+	ssh = ssh_connection.SshConnection(server_ip, ssh_settings['port'], ssh_settings['user'],
+										ssh_settings['password'], ssh_settings['enabled'], ssh_settings['key'])
 
 	return ssh
 
@@ -629,15 +625,8 @@ def install_haproxy(server_ip, **kwargs):
 	haproxy_ver = kwargs.get('hapver')
 	server_for_installing = kwargs.get('server')
 	docker = kwargs.get('docker')
-	ssh_port = 22
-	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = return_ssh_keys_path(server_ip)
-
-	if ssh_enable == 0:
-		ssh_key_name = ''
-
-	servers = sql.select_servers(server=server_ip)
-	for server in servers:
-		ssh_port = str(server[10])
+	proxy_serv = ''
+	ssh_settings = return_ssh_keys_path(server_ip)
 
 	os.system("cp scripts/%s ." % script)
 
@@ -646,17 +635,15 @@ def install_haproxy(server_ip, **kwargs):
 
 	if proxy is not None and proxy != '' and proxy != 'None':
 		proxy_serv = proxy
-	else:
-		proxy_serv = ''
 
 	syn_flood_protect = '1' if kwargs.get('syn_flood') == "1" else ''
 
 	commands = [
-		"chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " SOCK_PORT=" + hap_sock_p
-		+ " STAT_PORT=" + stats_port + " STAT_FILE=" + server_state_file + " DOCKER=" + docker
-		+ " SSH_PORT=" + ssh_port + " STATS_USER=" + stats_user + " CONT_NAME=" + container_name + " HAP_DIR=" + haproxy_dir
-		+ " STATS_PASS='" + stats_password + "' HAPVER=" + haproxy_ver + " SYN_FLOOD=" + syn_flood_protect
-		+ " HOST=" + server_ip + " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name
+		f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} SOCK_PORT={hap_sock_p} STAT_PORT={stats_port} "
+		f"STAT_FILE={server_state_file} DOCKER={docker} SSH_PORT={ssh_settings['port']} STATS_USER={stats_user} "
+		f"CONT_NAME={container_name} HAP_DIR={haproxy_dir} STATS_PASS='{stats_password}' HAPVER={haproxy_ver} "
+		f"SYN_FLOOD={syn_flood_protect} HOST={server_ip} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' "
+		f"KEY={ssh_settings['key']}"
 	]
 
 	output, error = subprocess_execute(commands[0])
@@ -673,7 +660,7 @@ def install_haproxy(server_ip, **kwargs):
 		sql.insert_or_update_service_setting(server_id, 'haproxy', 'dockerized', '1')
 		sql.insert_or_update_service_setting(server_id, 'haproxy', 'restart', '1')
 
-	os.system("rm -f %s" % script)
+	os.remove(script)
 
 
 def waf_install(server_ip):
@@ -683,23 +670,18 @@ def waf_install(server_ip):
 	haproxy_dir = sql.get_setting('haproxy_dir')
 	ver = check_haproxy_version(server_ip)
 	service = ' WAF'
-	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = return_ssh_keys_path(server_ip)
-	ssh_port = '22'
-
-	if ssh_enable == 0:
-		ssh_key_name = ''
+	proxy_serv = ''
+	ssh_settings = return_ssh_keys_path(server_ip)
 
 	os.system("cp scripts/%s ." % script)
 
 	if proxy is not None and proxy != '' and proxy != 'None':
 		proxy_serv = proxy
-	else:
-		proxy_serv = ''
 
 	commands = [
-		"chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " HAPROXY_PATH=" + haproxy_dir
-		+ " VERSION='" + ver + "' SSH_PORT=" + ssh_port + " HOST=" + server_ip
-		+ " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name
+		f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} HAPROXY_PATH={haproxy_dir} VERSION='{ver}' "
+		f"SSH_PORT={ssh_settings['port']} HOST={server_ip} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' "
+		f"KEY={ssh_settings['key']}"
 	]
 
 	output, error = subprocess_execute(commands[0])
@@ -708,7 +690,7 @@ def waf_install(server_ip):
 		sql.insert_waf_metrics_enable(server_ip, "0")
 		sql.insert_waf_rules(server_ip)
 
-	os.system("rm -f %s" % script)
+	os.remove(script)
 
 
 def waf_nginx_install(server_ip):
@@ -717,23 +699,17 @@ def waf_nginx_install(server_ip):
 	proxy = sql.get_setting('proxy')
 	nginx_dir = sql.get_setting('nginx_dir')
 	service = ' WAF'
-	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = return_ssh_keys_path(server_ip)
-	ssh_port = '22'
-
-	if ssh_enable == 0:
-		ssh_key_name = ''
+	proxy_serv = ''
+	ssh_settings = return_ssh_keys_path(server_ip)
 
 	os.system("cp scripts/%s ." % script)
 
 	if proxy is not None and proxy != '' and proxy != 'None':
 		proxy_serv = proxy
-	else:
-		proxy_serv = ''
 
 	commands = [
-		"chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " NGINX_PATH=" + nginx_dir
-		+ " SSH_PORT=" + ssh_port + " HOST=" + server_ip
-		+ " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name
+		f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} NGINX_PATH={nginx_dir} SSH_PORT={ssh_settings['port']} "
+		f"HOST={server_ip} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
 	]
 
 	output, error = subprocess_execute(commands[0])
@@ -742,7 +718,7 @@ def waf_nginx_install(server_ip):
 		sql.insert_nginx_waf_rules(server_ip)
 		sql.insert_waf_nginx_server(server_ip)
 
-	os.system("rm -f %s" % script)
+	os.remove(script)
 
 
 def install_nginx(server_ip, **kwargs):
@@ -758,30 +734,21 @@ def install_nginx(server_ip, **kwargs):
 	proxy = sql.get_setting('proxy')
 	docker = kwargs.get('docker')
 	container_name = sql.get_setting('nginx_container_name')
-	ssh_enable, ssh_user_name, ssh_user_password, ssh_key_name = return_ssh_keys_path(server_ip)
-	ssh_port = '22'
-
-	if ssh_enable == 0:
-		ssh_key_name = ''
+	proxy_serv = ''
+	ssh_settings = return_ssh_keys_path(server_ip)
 
 	os.system("cp scripts/%s ." % script)
 
 	if proxy is not None and proxy != '' and proxy != 'None':
 		proxy_serv = proxy
-	else:
-		proxy_serv = ''
-
-	servers = sql.select_servers(server=server_ip)
-	for server in servers:
-		ssh_port = str(server[10])
 
 	syn_flood_protect = '1' if form.getvalue('syn_flood') == "1" else ''
 
 	commands = [
-		"chmod +x " + script + " &&  ./" + script + " PROXY=" + proxy_serv + " STATS_USER=" + stats_user
-		+ " STATS_PASS='" + stats_password + "' SSH_PORT=" + ssh_port + " CONFIG_PATH=" + config_path + " CONT_NAME=" + container_name
-		+ " STAT_PORT=" + stats_port + " STAT_PAGE=" + stats_page + " SYN_FLOOD=" + syn_flood_protect + " DOCKER=" + docker
-		+ " nginx_dir=" + nginx_dir + " HOST=" + server_ip + " USER=" + ssh_user_name + " PASS='" + ssh_user_password + "' KEY=" + ssh_key_name
+		f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} STATS_USER={stats_user} STATS_PASS='{stats_password}' "
+		f"SSH_PORT={ssh_settings['port']} CONFIG_PATH={config_path} CONT_NAME={container_name} STAT_PORT={stats_port} "
+		f"STAT_PAGE={stats_page} SYN_FLOOD={syn_flood_protect} DOCKER={docker} nginx_dir={nginx_dir} HOST={server_ip} "
+		f"USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
 	]
 
 	output, error = subprocess_execute(commands[0])
@@ -797,11 +764,10 @@ def install_nginx(server_ip, **kwargs):
 		sql.insert_or_update_service_setting(server_id, 'nginx', 'dockerized', '1')
 		sql.insert_or_update_service_setting(server_id, 'nginx', 'restart', '1')
 
-	os.system("rm -f %s" % script)
+	os.remove(script)
 
 
 def update_roxy_wi(service):
-	import distro
 	restart_service = ''
 
 	if distro.id() == 'ubuntu':
@@ -1273,8 +1239,7 @@ def show_roxy_log(
 				serv = value
 				break
 		else:
-			print('Haha')
-			return
+			return 'Haha'
 
 		if serv == 'backup.log':
 			awk_column = 2
@@ -1286,35 +1251,35 @@ def show_roxy_log(
 		return show_log(output, grep=grep)
 
 
-def roxy_wi_log(**kwargs) -> str:
+def roxy_wi_log(**kwargs) -> list:
 	log_path = get_config_var.get_config_var('main', 'log_path')
 
 	if kwargs.get('log_id'):
 		selects = get_files(log_path, "log")
 		for key, value in selects:
-			log_file = kwargs.get('file') + ".log"
+			log_file = f"{kwargs.get('file')}.log"
 			if log_file == value:
 				return key
 	else:
 		user_group_id = get_user_group(id=1)
 		if user_group_id != 1:
 			user_group = get_user_group()
-			group_grep = '|grep "group: ' + user_group + '"'
+			group_grep = f'|grep "group: {user_group}"'
 		else:
 			group_grep = ''
-		cmd = "find " + log_path + "/roxy-wi-* -type f -exec stat --format '%Y :%y %n' '{}' \; | sort -nr | cut -d: -f2- " \
-				"| head -1 |awk '{print $4}' |xargs tail" + group_grep + "|sort -r"
+		cmd = f"find {log_path}/roxy-wi-* -type f -exec stat --format '%Y :%y %n' '{{}}' \; | sort -nr | cut -d: -f2- " \
+				f"| head -1 |awk '{{print $4}}' |xargs tail {group_grep}|sort -r"
 		try:
 			output, stderr = subprocess_execute(cmd)
 			return output
 		except Exception:
-			return ''
+			return ['']
 
 
 def show_ip(stdout):
 	for line in stdout:
 		if "Permission denied" in line:
-			print('error: ' + line)
+			print(f'error: {line}')
 		else:
 			print(line)
 
@@ -1447,6 +1412,7 @@ def return_nice_path(return_path: str) -> str:
 		and 'keepalived' not in return_path
 	):
 		return 'error: The path must contain the name of the service. Check it in Roxy-WI settings'
+
 	if return_path[-1] != '/':
 		return_path += '/'
 
@@ -1582,6 +1548,8 @@ def get_users_params(**kwargs):
 		servers = sql.get_dick_permit(disable=0)
 	elif kwargs.get('haproxy'):
 		servers = sql.get_dick_permit(haproxy=1)
+	elif kwargs.get('service'):
+		servers = sql.get_dick_permit(service=kwargs.get('service'))
 	else:
 		servers = sql.get_dick_permit()
 
@@ -1642,7 +1610,7 @@ def check_service(server_ip, service_name):
 	return ssh_command(server_ip, commands)
 
 
-def get_service_version(server_ip, service_name):
+def get_service_version(server_ip: str, service_name: str) -> str:
 	server_ip = is_ip_or_dns(server_ip)
 	if service_name == 'haproxy_exporter':
 		commands = ["/opt/prometheus/exporters/haproxy_exporter --version 2>&1 |head -1|awk '{print $3}'"]
@@ -1650,6 +1618,8 @@ def get_service_version(server_ip, service_name):
 		commands = ["/opt/prometheus/exporters/nginx_exporter 2>&1 |head -1 |awk -F\"=\" '{print $2}'|awk '{print $1}'"]
 	elif service_name == 'node_exporter':
 		commands = ["node_exporter --version 2>&1 |head -1|awk '{print $3}'"]
+	elif service_name == 'apache_exporter':
+		commands = ["/opt/prometheus/exporters/apache_exporter --version 2>&1 |head -1|awk '{print $3}'"]
 
 	ver = ssh_command(server_ip, commands)
 
@@ -1660,7 +1630,6 @@ def get_service_version(server_ip, service_name):
 
 
 def get_services_status():
-	import distro
 	services = []
 	is_in_docker = is_docker()
 	services_name = {
@@ -1678,10 +1647,12 @@ def get_services_status():
 	}
 	for s, v in services_name.items():
 		if is_in_docker:
-			cmd = "sudo supervisorctl status " + s + "|awk '{print $2}'"
+			cmd = f"sudo supervisorctl status {s}|awk '{{print $2}}'"
 		else:
-			cmd = "systemctl is-active %s" % s
+			cmd = f"systemctl is-active {s}"
+
 		status, stderr = subprocess_execute(cmd)
+
 		if s != 'roxy-wi-keep_alive':
 			service_name = s.split('_')[0]
 			if s == 'grafana-server':
@@ -1695,9 +1666,9 @@ def get_services_status():
 			cmd = "prometheus --version 2>&1 |grep prometheus|awk '{print $3}'"
 		else:
 			if distro.id() == 'ubuntu':
-				cmd = "apt list --installed 2>&1 |grep " + service_name + "|awk '{print $2}'|sed 's/-/./'"
+				cmd = f"apt list --installed 2>&1 |grep {service_name}|awk '{{print $2}}'|sed 's/-/./'"
 			else:
-				cmd = "rpm -q " + service_name + "|awk -F\"" + service_name + "\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
+				cmd = f"rpm -q {service_name}|awk -F\"{service_name}\" '{{print $2}}' |awk -F\".noa\" '{{print $1}}' |sed 's/-//1' |sed 's/-/./'"
 		service_ver, stderr = subprocess_execute(cmd)
 
 		try:
@@ -2073,9 +2044,9 @@ def send_email(email_to: str, subject: str, message: str) -> None:
 			smtp_obj.starttls()
 		smtp_obj.login(mail_smtp_user, mail_smtp_password)
 		smtp_obj.send_message(msg)
-		logging('localhost', 'An email has been sent to ' + email_to, haproxywi=1)
+		logging('localhost', f'An email has been sent to {email_to}', haproxywi=1)
 	except Exception as e:
-		logging('localhost', 'error: unable to send email: ' + str(e), haproxywi=1)
+		logging('localhost', f'error: unable to send email: {e}', haproxywi=1)
 
 
 def send_email_to_server_group(subject: str, mes: str, group_id: int) -> None:
@@ -2087,7 +2058,7 @@ def send_email_to_server_group(subject: str, mes: str, group_id: int) -> None:
 		for user_email in users_email:
 			send_email(user_email.email, subject, mes)
 	except Exception as e:
-		logging('localhost', 'error: unable to send email: ' + str(e), haproxywi=1)
+		logging('localhost', f'error: unable to send email: {e}', haproxywi=1)
 
 
 def alert_routing(

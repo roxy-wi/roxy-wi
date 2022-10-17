@@ -1,0 +1,7 @@
+---
+- name: "Get checksum for {{ go_arch_map[ansible_architecture] | default(ansible_architecture) }} architecture"
+  set_fact:
+    __apache_exporter_checksum: "{{ item.split(' ')[0] }}"
+  with_items:
+    - "{{ lookup('url', 'https://github.com/Lusitaniae/apache_exporter/releases/download/v' + apache_exporter_version + '/sha256sums.txt', wantlist=True) | list }}"
+  when: "('linux-' + (go_arch_map[ansible_architecture] | default(ansible_architecture)) + '.tar.gz') in item"

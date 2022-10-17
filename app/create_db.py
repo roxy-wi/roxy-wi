@@ -961,7 +961,7 @@ def update_db_v_6_2_1():
 	except Exception as e:
 		print("An error occurred:", e)
 	else:
-		print("Updating... DB has been updated to version 6.2.1.0")
+		print("Updating... DB has been updated to version 6.2.2.0")
 
 
 def update_ver():

@@ -1,0 +1,8 @@
+---
+apache_exporter_version: 0.6.0
+apache_exporter_telemetry_address: "0.0.0.0:9117"
+apache_exporter_telemetry_endpoint: "/metrics"
+apache_exporter_incecure: "false"
+stats_page: "stats"
+apache_exporter_scrape_uri: "http://{{host}}/{{stats_page}}?auto"
+prometheus_exporter_dir: "/opt/prometheus/exporters"
