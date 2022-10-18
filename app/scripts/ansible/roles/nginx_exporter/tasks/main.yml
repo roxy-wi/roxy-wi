@@ -52,11 +52,11 @@
     dest: "{{ prometheus_exporter_dist_dir }}/{{ nginx_exporter_signature }}.tar.gz"
     owner: root
     group: root
-    register: _download_binary
-    until: _download_binary is succeeded
-    retries: 5
-    delay: 2
-    mode: "u=rwx,go=rx"
+    mode: "u=rw,go=r"
+  register: _download_binary
+  until: _download_binary is succeeded
+  retries: 5
+  delay: 2
   when: nginx_exporter_version is version('0.9.0', '>=')
 
 - name: download tarball alt

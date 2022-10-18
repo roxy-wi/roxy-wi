@@ -26,7 +26,7 @@ if [ ! -d "/var/www/haproxy-wi/app/scripts/ansible/roles/bdellegrazie.ansible-ro
 		export https_proxy="$PROXY"
 		export http_proxy="$PROXY"
 	fi
-	ansible-galaxy install bdellegrazie.ansible-role-prometheus_exporter --roles-path /var/www/haproxy-wi/app/scripts/ansible/roles/
+	ansible-galaxy install bdellegrazie.ansible-role-prometheus_exporter --roles-path /var/www/haproxy-wi/app/scripts/ansible/roles/ -f
 	bash -c cat << EOF >> /var/www/haproxy-wi/app/scripts/ansible/roles/bdellegrazie.ansible-role-prometheus_exporter/vars/vars-family-redhat-8.yml
 ---
 prometheus_exporter_ansible_packages:

@@ -38,11 +38,11 @@
     dest: "{{ prometheus_exporter_dist_dir }}/{{ apache_exporter_signature }}.tar.gz"
     owner: root
     group: root
-    register: _download_binary
-    until: _download_binary is succeeded
-    retries: 5
-    delay: 2
     mode: "u=rwx,go=rx"
+  register: _download_binary
+  until: _download_binary is succeeded
+  retries: 5
+  delay: 2
 
 - name: make distribution directory
   become: true

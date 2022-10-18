@@ -51,11 +51,11 @@
     dest: "{{ prometheus_exporter_dist_dir }}/{{ haproxy_exporter_signature }}.tar.gz"
     owner: root
     group: root
-    register: _download_binary
-    until: _download_binary is succeeded
-    retries: 5
-    delay: 2
     mode: "u=rw,go=r"
+  register: _download_binary
+  until: _download_binary is succeeded
+  retries: 5
+  delay: 2
 
 - name: untar tarball
   become: true
