@@ -52,6 +52,10 @@
     dest: "{{ prometheus_exporter_dist_dir }}/{{ nginx_exporter_signature }}.tar.gz"
     owner: root
     group: root
+    register: _download_binary
+    until: _download_binary is succeeded
+    retries: 5
+    delay: 2
     mode: "u=rwx,go=rx"
   when: nginx_exporter_version is version('0.9.0', '>=')
 
@@ -64,6 +68,10 @@
     dest: "{{ prometheus_exporter_dist_dir }}/{{ nginx_exporter_signature }}.tar.gz"
     owner: root
     group: root
+    register: _download_binary
+    until: _download_binary is succeeded
+    retries: 5
+    delay: 2
     mode: "u=rwx,go=rx"
   when: nginx_exporter_version is version('0.8.0', '<=')
 
@@ -100,20 +108,6 @@
     group: root
     mode: "u=rwx,go=rx"
     creates: "{{ nginx_exporter_dist_dir }}/nginx-prometheus-exporter"
-#  when: nginx_exporter_version is version('0.9.0', '>=')
-#
-#- name: untar tarball alt
-#  become: true
-#  become_user: root
-#  unarchive:
-#    src: "{{ prometheus_exporter_dist_dir }}/{{ nginx_exporter_signature_alt }}.tar.gz"
-#    dest: "{{ nginx_exporter_dist_dir }}"
-#    remote_src: true
-#    owner: root
-#    group: root
-#    mode: "u=rwx,go=rx"
-#    creates: "{{ nginx_exporter_dist_dir }}/nginx-prometheus-exporter"
-#  when: nginx_exporter_version is version('0.8.0', '<=')
 
 - name: symlink
   become: true
