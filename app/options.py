@@ -307,7 +307,7 @@ if form.getvalue('table_for_clear') is not None:
 
 if form.getvalue('list_serv_select') is not None:
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-    cmd = 'echo "show acl"|nc %s %s |grep "loaded from" |awk \'{print $1,$2}\'' % (serv, haproxy_sock_port)
+    cmd = f'echo "show acl"|nc {serv} {haproxy_sock_port} |grep "loaded from" |awk \'{{print $1,$2}}\''
     output, stderr = funct.subprocess_execute(cmd)
     print(output)
 
@@ -319,7 +319,7 @@ if form.getvalue('list_select_id') is not None:
     list_name = funct.checkAjaxInput(form.getvalue('list_select_name'))
 
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-    cmd = 'echo "show acl #%s"|nc %s %s' % (list_id, serv, haproxy_sock_port)
+    cmd = f'echo "show acl #{list_id}"|nc {serv} {haproxy_sock_port}'
     output, stderr = funct.subprocess_execute(cmd)
 
     template = template.render(list=output, list_id=list_id, list_name=list_name)
@@ -328,33 +328,33 @@ if form.getvalue('list_select_id') is not None:
 if form.getvalue('list_id_for_delete') is not None:
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
     lists_path = sql.get_setting('lists_path')
-    lib_path = funct.checkAjaxInput(get_config.get_config_var('main', 'lib_path'))
+    lib_path = get_config.get_config_var('main', 'lib_path')
     ip_id = funct.checkAjaxInput(form.getvalue('list_ip_id_for_delete'))
-    ip = funct.checkAjaxInput(form.getvalue('list_ip_for_delete'))
+    ip = funct.is_ip_or_dns(form.getvalue('list_ip_for_delete'))
     list_id = funct.checkAjaxInput(form.getvalue('list_id_for_delete'))
     list_name = funct.checkAjaxInput(form.getvalue('list_name'))
-    user_group = funct.checkAjaxInput(funct.get_user_group(id=1))
-    cmd = "sed -i 's!%s$!!' %s/%s/%s/%s" % (ip, lib_path, lists_path, user_group, list_name)
-    cmd1 = "sed -i '/^$/d' %s/%s/%s/%s" % (lib_path, lists_path, user_group, list_name)
+    user_group = funct.get_user_group(id=1)
+    cmd = f"sed -i 's!{ip}$!!' {lib_path}/{lists_path}/{user_group}/{list_name}"
+    cmd1 = f"sed -i '/^$/d' {lib_path}/{lists_path}/{user_group}/{list_name}"
     output, stderr = funct.subprocess_execute(cmd)
     output1, stderr1 = funct.subprocess_execute(cmd1)
     if output:
-        print('error: ' + str(output))
+        print(f'error: {output}')
     if stderr:
-        print('error: ' + str(stderr))
+        print(f'error: {stderr}')
     if output1:
-        print('error: ' + str(output1))
+        print(f'error: {output1}')
     if stderr1:
-        print('error: ' + str(stderr1))
+        print(f'error: {stderr}')
 
-    cmd = 'echo "del acl #%s #%s" |nc %s %s' % (list_id, ip_id, serv, haproxy_sock_port)
+    cmd = f'echo "del acl #{list_id} #{ip_id}" |nc {serv} {haproxy_sock_port}'
     output, stderr = funct.subprocess_execute(cmd)
     if output[0] != '':
-        print('error: ' + output[0])
-    if stderr[0] != '':
-        print('error: ' + stderr[0])
+        print(f'error: {output[0]}')
+    if stderr != '':
+        print(f'error: {stderr[0]}')
 
-    funct.logging(serv, '{} has been delete from list {}'.format(ip_id, list_id), login=1, keep_history=1,
+    funct.logging(serv, f'{ip_id} has been delete from list {list_id}', login=1, keep_history=1,
                   service='haproxy')
 
 if form.getvalue('list_ip_for_add') is not None:
@@ -366,23 +366,23 @@ if form.getvalue('list_ip_for_add') is not None:
     ip = funct.is_ip_or_dns(ip)
     list_id = funct.checkAjaxInput(form.getvalue('list_id_for_add'))
     list_name = funct.checkAjaxInput(form.getvalue('list_name'))
-    user_group = funct.checkAjaxInput(funct.get_user_group(id=1))
-    cmd = 'echo "add acl #%s %s" |nc %s %s' % (list_id, ip, serv, haproxy_sock_port)
+    user_group = funct.get_user_group(id=1)
+    cmd = f'echo "add acl #{list_id} {ip}" |nc {serv} {haproxy_sock_port}'
     output, stderr = funct.subprocess_execute(cmd)
     if output[0]:
-        print('error: ' + output[0])
+        print(f'error: {output[0]}')
     if stderr:
-        print('error: ' + stderr[0])
+        print(f'error: {stderr[0]}')
 
     if 'is not a valid IPv4 or IPv6 address' not in output[0]:
-        cmd = 'echo "%s" >> %s/%s/%s/%s' % (ip, lib_path, lists_path, user_group, list_name)
+        cmd = f'echo "{ip}" >> {lib_path}/{lists_path}/{user_group}/{list_name}'
         output, stderr = funct.subprocess_execute(cmd)
         if output:
-            print('error: ' + str(output))
+            print(f'error: {output}')
         if stderr:
-            print('error: ' + str(stderr))
+            print(f'error: {stderr}')
 
-    funct.logging(serv, '{} has been added to list {}'.format(ip, list_id), login=1, keep_history=1,
+    funct.logging(serv, f'{ip} has been added to list {list_id}', login=1, keep_history=1,
                   service='haproxy')
 
 if form.getvalue('sessions_select') is not None:
@@ -392,7 +392,7 @@ if form.getvalue('sessions_select') is not None:
 
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 
-    cmd = 'echo "show sess" |nc %s %s' % (serv, haproxy_sock_port)
+    cmd = f'echo "show sess" |nc {serv} {haproxy_sock_port}'
     output, stderr = funct.subprocess_execute(cmd)
 
     template = env.get_template('ajax/sessions_table.html')
@@ -2027,7 +2027,7 @@ if form.getvalue('bwlists'):
     color = funct.checkAjaxInput(form.getvalue('color'))
     group = funct.checkAjaxInput(form.getvalue('group'))
     bwlists = funct.checkAjaxInput(form.getvalue('bwlists'))
-    list_path = f"{lib_path}/{sql.get_setting('lists_path')}/{group}/{color}/{bwlist}"
+    list_path = f"{lib_path}/{sql.get_setting('lists_path')}/{group}/{color}/{bwlists}"
 
     try:
         file = open(list_path, "r")
