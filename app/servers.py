@@ -34,7 +34,7 @@ try:
 	user_status, user_plan = funct.return_user_status()
 except Exception as e:
 	user_status, user_plan = 0, 0
-	funct.logging('localhost', 'Cannot get a user plan: ' + str(e), haproxywi=1)
+	funct.logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
 
 rendered_template = template.render(
 	title="Servers: ", role=role, user=user, users=sql.select_users(group=user_group), groups=sql.select_groups(),

@@ -156,9 +156,9 @@ def logging(server_ip: str, action: str, **kwargs) -> None:
 	except Exception:
 		pass
 
-	if kwargs.get('haproxywi') == 1:
+	if kwargs.get('haproxywi') == 1 or kwargs.get('roxywi') == 1:
 		if kwargs.get('login'):
-			mess = f"{cur_date_in_log} from {ip} user: {login}, group: {user_group}, {action} for: {server_ip}\n"
+			mess = f"{cur_date_in_log} from {ip} user: {login}, group: {user_group}, {action} on: {server_ip}\n"
 			if kwargs.get('keep_history'):
 				try:
 					keep_action_history(kwargs.get('service'), action, server_ip, login, ip)
@@ -171,7 +171,7 @@ def logging(server_ip: str, action: str, **kwargs) -> None:
 		mess = f"{cur_date_in_log} from {ip} user: {login}, group: {user_group}, {action}\n"
 		log_file = f"{log_path}/provisioning-{cur_date}.log"
 	else:
-		mess = f"{cur_date_in_log} from {ip} user: {login}, group: {user_group}, {action} for: {server_ip}\n"
+		mess = f"{cur_date_in_log} from {ip} user: {login}, group: {user_group}, {action} on: {server_ip}\n"
 		log_file = f"{log_path}/config_edit-{cur_date}.log"
 
 		if kwargs.get('keep_history'):
@@ -197,7 +197,7 @@ def keep_action_history(service: str, action: str, server_ip: str, login: str, u
 
 		sql.insert_action_history(service, action, server_id, user_id, user_ip)
 	except Exception as e:
-		logging('localhost', f'Cannot save a history: {str(e)}', haproxywi=1)
+		logging('Roxy-WI server', f'Cannot save a history: {str(e)}', roxywi=1)
 
 
 def telegram_send_mess(mess, **kwargs):
@@ -223,7 +223,7 @@ def telegram_send_mess(mess, **kwargs):
 
 	if token_bot == '' or channel_name == '':
 		mess = " Can't send message. Add Telegram channel before use alerting at this servers group"
-		logging('localhost', mess, haproxywi=1)
+		logging('Roxy-WI server', mess, roxywi=1)
 
 	if proxy is not None and proxy != '' and proxy != 'None':
 		apihelper.proxy = {'https': proxy}
@@ -231,7 +231,7 @@ def telegram_send_mess(mess, **kwargs):
 		bot = telebot.TeleBot(token=token_bot)
 		bot.send_message(chat_id=channel_name, text=mess)
 	except Exception as e:
-		logging('localhost', str(e), haproxywi=1)
+		logging('Roxy-WI server', str(e), roxywi=1)
 
 
 def slack_send_mess(mess, **kwargs):
@@ -264,7 +264,7 @@ def slack_send_mess(mess, **kwargs):
 	try:
 		client.chat_postMessage(channel='#' + channel_name, text=mess)
 	except SlackApiError as e:
-		logging('localhost', str(e), haproxywi=1)
+		logging('Roxy-WI server', str(e), roxywi=1)
 
 
 def check_login(user_uuid, token, **kwargs):
@@ -393,7 +393,7 @@ def get_config(server_ip, cfg, **kwargs):
 			ssh.get_sftp(config_path, cfg)
 	except Exception as e:
 		print('error: cannot get config')
-		logging('localhost', str(e), haproxywi=1)
+		logging('Roxy-WI server', str(e), roxywi=1)
 		return
 
 
@@ -544,16 +544,16 @@ def get_backends_from_config(server_ip, backends=''):
 	try:
 		cfg = configs_dir + get_files(configs_dir, format_cfg)[0]
 	except Exception as e:
-		logging('localhost', str(e), haproxywi=1)
+		logging('Roxy-WI server', str(e), roxywi=1)
 		try:
 			cfg = configs_dir + server_ip + "-" + get_data('config') + '.' + format_cfg
 		except Exception:
-			logging('localhost', ' Cannot generate cfg path', haproxywi=1)
+			logging('Roxy-WI server', ' Cannot generate cfg path', roxywi=1)
 			return
 		try:
 			get_config(server_ip, cfg)
 		except Exception:
-			logging('localhost', ' Cannot download config', haproxywi=1)
+			logging('Roxy-WI server', ' Cannot download config', roxywi=1)
 			print('error: Cannot get backends')
 			return
 
@@ -591,7 +591,7 @@ def get_stick_table(table):
 
 def show_installation_output(error, output, service):
 	if error and "WARNING" not in error:
-		logging('localhost', error, haproxywi=1)
+		logging('Roxy-WI server', error, roxywi=1)
 		print('error: ' + error)
 		return False
 	else:
@@ -607,7 +607,7 @@ def show_installation_output(error, output, service):
 					break
 		else:
 			print('success: ' + service + ' has been installed')
-			logging('localhost', error, haproxywi=1, keep_history=1, service=service)
+			logging('Roxy-WI server', error, roxywi=1, keep_history=1, service=service)
 			return True
 
 
@@ -813,7 +813,7 @@ def upload(server_ip, path, file, **kwargs):
 			ssh.put_sftp(file, full_path)
 	except Exception as e:
 		error = str(e.args)
-		logging('localhost', error, haproxywi=1)
+		logging('Roxy-WI server', error, roxywi=1)
 		print(' Cannot upload ' + file + ' to ' + full_path + ' to server: ' + server_ip + ' error: ' + error)
 		return error
 
@@ -950,7 +950,7 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 			if action != 'test':
 				logging(server_ip, 'A new config file has been uploaded', login=login, keep_history=1, service=service)
 		except Exception as e:
-			logging('localhost', str(e), haproxywi=1)
+			logging('Roxy-WI server', str(e), roxywi=1)
 
 		# If master then save version of config in a new way
 		if not kwargs.get('slave') and service != 'waf':
@@ -969,19 +969,19 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 				try:
 					get_config(server_ip, old_cfg, service=service, config_file_name=config_path)
 				except Exception:
-					logging('localhost', ' Cannot download config', haproxywi=1)
+					logging('Roxy-WI server', ' Cannot download config', roxywi=1)
 			try:
 				diff = diff_config(old_cfg, cfg, return_diff=1)
 			except Exception as e:
-				logging('localhost', str(e), haproxywi=1)
+				logging('Roxy-WI server', str(e), roxywi=1)
 
 			try:
 				user_id = get_user_id(login=kwargs.get('login'))
 				sql.insert_config_version(server_id, user_id, service, cfg, config_path, diff)
 			except Exception as e:
-				logging('localhost', str(e), haproxywi=1)
+				logging('Roxy-WI server', str(e), roxywi=1)
 	except Exception as e:
-		logging('localhost', str(e), haproxywi=1)
+		logging('Roxy-WI server', str(e), roxywi=1)
 		return error
 
 	try:
@@ -990,9 +990,9 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 			if action == 'reload' or action == 'restart':
 				logging(server_ip, 'Service has been ' + action + 'ed', login=login, keep_history=1, service=service)
 		except Exception as e:
-			logging('localhost', str(e), haproxywi=1)
+			logging('Roxy-WI server', str(e), roxywi=1)
 	except Exception as e:
-		logging('localhost', str(e), haproxywi=1)
+		logging('Roxy-WI server', str(e), roxywi=1)
 		return e
 
 	if error.strip() != 'haproxy' and error.strip() != 'nginx':
@@ -1305,7 +1305,7 @@ def ssh_command(server_ip: str, commands: list, **kwargs):
 			try:
 				stdin, stdout, stderr = ssh.run_command(command)
 			except Exception as e:
-				logging('localhost', f' {str(e)}', haproxywi=1)
+				logging('Roxy-WI server', f' Something wrong with SSH connection. Probably sudo with password {e}', roxywi=1)
 				return str(e)
 
 			try:
@@ -1320,12 +1320,12 @@ def ssh_command(server_ip: str, commands: list, **kwargs):
 				else:
 					return stdout.read().decode(encoding='UTF-8')
 			except Exception as e:
-				logging('localhost', str(e), haproxywi=1)
+				logging('Roxy-WI server', f' Something wrong with SSH connection. Probably sudo with password {e}', roxywi=1)
 
 			for line in stderr.readlines():
 				if line:
 					print(f'error: {line}')
-					logging('localhost', f' {line}', haproxywi=1)
+					logging('Roxy-WI server', f' {line}', roxywi=1)
 
 
 def subprocess_execute(cmd):
@@ -1343,7 +1343,7 @@ def show_backends(server_ip, **kwargs):
 	cmd = 'echo "show backend" |nc %s %s' % (server_ip, hap_sock_p)
 	output, stderr = subprocess_execute(cmd)
 	if stderr:
-		logging('localhost', ' ' + stderr, haproxywi=1)
+		logging('Roxy-WI server', ' ' + stderr, roxywi=1)
 	if kwargs.get('ret'):
 		ret = list()
 	else:
@@ -1470,7 +1470,7 @@ def check_new_version(service):
 			except Exception:
 				pass
 	except requests.exceptions.RequestException as e:
-		logging('localhost', ' ' + str(e), haproxywi=1)
+		logging('Roxy-WI server', ' ' + str(e), roxywi=1)
 
 	return res
 
@@ -1503,7 +1503,7 @@ def versions():
 	except Exception as e:
 		new_ver = "Cannot get a new version"
 		new_ver_without_dots = 0
-		logging('localhost', ' ' + str(e), haproxywi=1)
+		logging('Roxy-WI server', ' ' + str(e), roxywi=1)
 
 	return current_ver, new_ver, current_ver_without_dots, new_ver_without_dots
 
@@ -1576,7 +1576,7 @@ def check_user_group(**kwargs):
 	if sql.check_user_group(user_id, group_id):
 		return True
 	else:
-		logging('localhost', ' has tried to actions in not his group ', haproxywi=1, login=1)
+		logging('Roxy-WI server', ' has tried to actions in not his group ', roxywi=1, login=1)
 		try:
 			ref = os.environ.get("REQUEST_URI").split('&')[0]
 		except Exception:
@@ -1594,7 +1594,7 @@ def check_is_server_in_group(server_ip: str) -> bool:
 		if (s[2] == server_ip and int(s[3]) == int(group_id)) or group_id == 1:
 			return True
 		else:
-			logging('localhost', ' has tried to actions in not his group server ', haproxywi=1, login=1)
+			logging('Roxy-WI server', ' has tried to actions in not his group server ', roxywi=1, login=1)
 			try:
 				ref = os.environ.get("REQUEST_URI").split('&')[0]
 			except Exception:
@@ -1700,18 +1700,24 @@ def is_service_active(server_ip: str, service_name: str) -> bool:
 	return True if 'active' == out else False
 
 
-def get_system_info(server_ip: str) -> bool:
+def get_system_info(server_ip: str) -> str:
 	import sql
 	server_ip = is_ip_or_dns(server_ip)
 	if server_ip == '':
-		return False
+		return 'error: IP cannot be empty'
 
 	server_id = sql.select_server_id_by_ip(server_ip)
 
 	command = ["sudo lshw -quiet -json"]
-	sys_info_returned = ssh_command(server_ip, command)
+	try:
+		sys_info_returned = ssh_command(server_ip, command)
+	except Exception as e:
+		raise e
 	command = ['sudo hostnamectl |grep "Operating System"|awk -F":" \'{print $2}\'']
-	os_info = ssh_command(server_ip, command)
+	try:
+		os_info = ssh_command(server_ip, command)
+	except Exception as e:
+		raise e
 	os_info = os_info.strip()
 	system_info = json.loads(sys_info_returned)
 
@@ -1919,10 +1925,10 @@ def get_system_info(server_ip: str) -> bool:
 					except Exception:
 						pass
 
-	if sql.insert_system_info(server_id, os_info, sys_info, cpu, ram, network, disks):
-		return True
-	else:
-		return False
+	try:
+		sql.insert_system_info(server_id, os_info, sys_info, cpu, ram, network, disks)
+	except Exception as e:
+		raise e
 
 
 def string_to_dict(dict_string) -> dict:
@@ -2044,9 +2050,9 @@ def send_email(email_to: str, subject: str, message: str) -> None:
 			smtp_obj.starttls()
 		smtp_obj.login(mail_smtp_user, mail_smtp_password)
 		smtp_obj.send_message(msg)
-		logging('localhost', f'An email has been sent to {email_to}', haproxywi=1)
+		logging('Roxy-WI server', f'An email has been sent to {email_to}', roxywi=1)
 	except Exception as e:
-		logging('localhost', f'error: unable to send email: {e}', haproxywi=1)
+		logging('Roxy-WI server', f'error: unable to send email: {e}', roxywi=1)
 
 
 def send_email_to_server_group(subject: str, mes: str, group_id: int) -> None:
@@ -2058,7 +2064,7 @@ def send_email_to_server_group(subject: str, mes: str, group_id: int) -> None:
 		for user_email in users_email:
 			send_email(user_email.email, subject, mes)
 	except Exception as e:
-		logging('localhost', f'error: unable to send email: {e}', haproxywi=1)
+		logging('Roxy-WI server', f'error: unable to send email: {e}', roxywi=1)
 
 
 def alert_routing(
@@ -2074,7 +2080,7 @@ def alert_routing(
 		json_for_sending = {"user_group": group_id, "message": subject}
 		send_message_to_rabbit(json.dumps(json_for_sending))
 	except Exception as e:
-		logging('localhost', 'error: unable to send message: ' + str(e), haproxywi=1)
+		logging('Roxy-WI server', 'error: unable to send message: ' + str(e), roxywi=1)
 
 	for setting in checker_settings:
 		if alert_type == 'service' and setting.service_alert:

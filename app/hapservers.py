@@ -164,8 +164,8 @@ for s in servers:
             out = funct.ssh_command(s[2], cmd)
             out1 = ('1', out)
             servers_with_status.append(out1)
-        except Exception:
-            servers_with_status.append('')
+        except Exception as e:
+            servers_with_status.append(str(e))
     else:
         servers_with_status.append('')
 
@@ -175,7 +175,7 @@ try:
     user_status, user_plan = funct.return_user_status()
 except Exception as e:
     user_status, user_plan = 0, 0
-    funct.logging('localhost', 'Cannot get a user plan: ' + str(e), haproxywi=1)
+    funct.logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
 
 template = template.render(
     h2=1, autorefresh=autorefresh, title=title, role=role, user=user, servers=servers_with_status1,

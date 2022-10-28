@@ -12,7 +12,7 @@ import sql
 import funct
 
 from jinja2 import Environment, FileSystemLoader
-env = Environment(loader=FileSystemLoader('templates/'))
+env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('login.html')
 form = funct.form
 
@@ -74,7 +74,7 @@ def send_cookie(login):
 
 	try:
 		user_name = sql.get_user_name_by_uuid(user_uuid)
-		funct.logging('localhost', f' user: {user_name}, group: {user_group} login', haproxywi=1)
+		funct.logging('Roxy-WI server', f' user: {user_name}, group: {user_group} login', roxywi=1)
 	except Exception:
 		pass
 	print("Content-type: text/html\n")
@@ -100,7 +100,7 @@ def send_cookie(login):
 		else:
 			sql.insert_user_name(user_name)
 	except Exception as e:
-		funct.logging('Cannot update subscription: ', str(e), haproxywi=1)
+		funct.logging('Cannot update subscription: ', str(e), roxywi=1)
 
 	sys.exit()
 
@@ -114,9 +114,9 @@ def ban():
 	c["ban"]["Secure"] = "True"
 	c["ban"]["expires"] = expires.strftime("%a, %d %b %Y %H:%M:%S GMT")
 	try:
-		funct.logging('localhost', f'{login} failed log in', haproxywi=1, login=1)
+		funct.logging('Roxy-WI server', f'{login} failed log in', roxywi=1, login=1)
 	except Exception:
-		funct.logging('localhost', ' Failed log in. Wrong username', haproxywi=1)
+		funct.logging('Roxy-WI server', ' Failed log in. Wrong username', roxywi=1)
 	print(c.output())
 	print("Content-type: text/html\n")
 	print('ban')
@@ -175,7 +175,7 @@ if ref is None:
 	ref = "/index.html"
 
 if form.getvalue('error'):
-	error_log = '<div class="alert alert-danger">Something wrong. Try again</div><br /><br />'
+	error_log = 'Something wrong. Try again'
 
 try:
 	if sql.get_setting('session_ttl'):

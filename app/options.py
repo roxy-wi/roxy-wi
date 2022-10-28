@@ -60,11 +60,11 @@ if not sql.check_token_exists(token):
 
 if form.getvalue('getcerts') is not None and serv is not None:
     cert_path = sql.get_setting('cert_path')
-    commands = ["sudo ls -1t " + cert_path + " |grep -E 'pem|crt|key'"]
+    commands = [f"sudo ls -1t {cert_path} |grep -E 'pem|crt|key'"]
     try:
         funct.ssh_command(serv, commands, ip="1")
     except Exception as e:
-        print('error: Cannot connect to the server: ' + e.args[0])
+        print(f'error: Cannot connect to the server: {e.args[0]}')
 
 if form.getvalue('checkSshConnect') is not None and serv is not None:
     try:
@@ -76,21 +76,21 @@ if form.getvalue('getcert') is not None and serv is not None:
     cert_id = funct.checkAjaxInput(form.getvalue('getcert'))
 
     cert_path = sql.get_setting('cert_path')
-    commands = ["openssl x509 -in " + cert_path + "/" + cert_id + " -text"]
+    commands = [f"openssl x509 -in {cert_path}/{cert_id} -text"]
     try:
         funct.ssh_command(serv, commands, ip="1")
     except Exception as e:
-        print('error: Cannot connect to the server ' + e.args[0])
+        print(f'error: Cannot connect to the server {e.args[0]}')
 
 if form.getvalue('delcert') is not None and serv is not None:
     cert_id = form.getvalue('delcert')
     cert_id = funct.checkAjaxInput(cert_id)
     cert_path = sql.get_setting('cert_path')
-    commands = ["sudo rm -f " + cert_path + "/" + cert_id]
+    commands = [f"sudo rm -f {cert_path}/{cert_id}"]
     try:
         funct.ssh_command(serv, commands, ip="1")
     except Exception as e:
-        print('error: Cannot delete the certificate ' + e.args[0])
+        print(f'error: Cannot delete the certificate {e.args[0]}')
 
 if serv and form.getvalue('ssl_cert'):
     cert_local_dir = os.path.dirname(os.getcwd()) + "/" + sql.get_setting('ssl_local_path')
@@ -109,7 +109,7 @@ if serv and form.getvalue('ssl_cert'):
         with open(name, "w") as ssl_cert:
             ssl_cert.write(form.getvalue('ssl_cert'))
     except IOError as e:
-        print('error: Cannot save the SSL key file. Check a SSH key path in config ' + e.args[0])
+        print(f'error: Cannot save the SSL key file. Check a SSH key path in config {e.args[0]}')
 
     MASTERS = sql.is_master(serv)
     for master in MASTERS:
@@ -120,13 +120,13 @@ if serv and form.getvalue('ssl_cert'):
         error = funct.upload(serv, cert_path, name)
         print('success: the SSL file has been uploaded to %s into: %s%s' % (serv, cert_path, '/' + name))
     except Exception as e:
-        funct.logging('localhost', e.args[0], haproxywi=1)
+        funct.logging('localhost', e.args[0], roxywi=1)
     try:
         os.rename(name, cert_local_dir)
     except OSError as e:
-        funct.logging('localhost', e.args[0], haproxywi=1)
+        funct.logging('localhost', e.args[0], roxywi=1)
 
-    funct.logging(serv, "add.py#ssl uploaded a new SSL cert %s" % name, haproxywi=1, login=1)
+    funct.logging(serv, "add.py#ssl uploaded a new SSL cert %s" % name, roxywi=1, login=1)
 
 if form.getvalue('backend') is not None:
     funct.show_backends(serv)
@@ -465,7 +465,7 @@ if form.getvalue('action_hap') is not None and serv is not None:
             commands = [f"sudo systemctl {action} {haproxy_service_name}"]
 
         funct.ssh_command(serv, commands)
-        funct.logging(serv, f'Service has been {action}ed', haproxywi=1, login=1, keep_history=1,
+        funct.logging(serv, f'Service has been {action}ed', roxywi=1, login=1, keep_history=1,
                       service='haproxy')
         print(f"success: HAProxy has been {action}")
     else:
@@ -493,7 +493,7 @@ if form.getvalue('action_nginx') is not None and serv is not None:
         else:
             commands = ["sudo systemctl %s nginx" % action]
         funct.ssh_command(serv, commands)
-        funct.logging(serv, 'Service has been ' + action + 'ed', haproxywi=1, login=1, keep_history=1, service='nginx')
+        funct.logging(serv, 'Service has been ' + action + 'ed', roxywi=1, login=1, keep_history=1, service='nginx')
         print("success: Nginx has been %s" % action)
     else:
         print("error: Bad config, check please")
@@ -509,7 +509,7 @@ if form.getvalue('action_keepalived') is not None and serv is not None:
 
     commands = ["sudo systemctl %s keepalived" % action]
     funct.ssh_command(serv, commands)
-    funct.logging(serv, 'Service has been ' + action + 'ed', haproxywi=1, login=1, keep_history=1, service='keepalived')
+    funct.logging(serv, 'Service has been ' + action + 'ed', roxywi=1, login=1, keep_history=1, service='keepalived')
     print("success: Keepalived has been %s" % action)
 
 if form.getvalue('action_waf') is not None and serv is not None:
@@ -522,7 +522,7 @@ if form.getvalue('action_waf') is not None and serv is not None:
 
     funct.is_restarted(serv, action)
 
-    funct.logging(serv, 'HAProxy WAF service has been ' + action + 'ed', haproxywi=1, login=1, keep_history=1,
+    funct.logging(serv, 'HAProxy WAF service has been ' + action + 'ed', roxywi=1, login=1, keep_history=1,
                   service='haproxy')
     commands = ["sudo systemctl %s waf" % action]
     funct.ssh_command(serv, commands)
@@ -541,7 +541,7 @@ if form.getvalue('action_waf_nginx') is not None and serv is not None:
     waf_new_state = 'on' if action == 'start' else 'off'
     waf_old_state = 'off' if action == 'start' else 'on'
 
-    funct.logging(serv, 'NGINX WAF service has been ' + action + 'ed', haproxywi=1, login=1, keep_history=1,
+    funct.logging(serv, 'NGINX WAF service has been ' + action + 'ed', roxywi=1, login=1, keep_history=1,
                   service='nginx')
     commands = [f"sudo sed -i 's/modsecurity {waf_old_state}/modsecurity {waf_new_state}/g' {config_dir}nginx.conf"
                 f" && sudo systemctl reload nginx"]
@@ -570,7 +570,7 @@ if form.getvalue('action_apache') is not None and serv is not None:
 
         commands = ["sudo systemctl %s %s" % (action, service_apache_name)]
     funct.ssh_command(serv, commands)
-    funct.logging(serv, 'Service has been ' + action + 'ed', haproxywi=1, login=1, keep_history=1, service='apache')
+    funct.logging(serv, 'Service has been ' + action + 'ed', roxywi=1, login=1, keep_history=1, service='apache')
     print("success: Apache has been %s" % action)
 
 if form.getvalue('action_service') is not None:
@@ -600,7 +600,7 @@ if form.getvalue('action_service') is not None:
     if is_in_docker:
         cmd = "sudo supervisorctl " + action + " " + serv
     output, stderr = funct.subprocess_execute(cmd)
-    funct.logging('localhost', ' The service ' + serv + ' has been ' + action + 'ed', haproxywi=1, login=1)
+    funct.logging('localhost', ' The service ' + serv + ' has been ' + action + 'ed', roxywi=1, login=1)
 
 if act == "overviewHapserverBackends":
     env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
@@ -619,23 +619,23 @@ if act == "overviewHapserverBackends":
         try:
             sections = funct.get_sections(configs_dir + funct.get_files(configs_dir, format_file)[0], service=service)
         except Exception as e:
-            funct.logging('localhost', str(e), haproxywi=1)
+            funct.logging('localhost', str(e), roxywi=1)
 
             try:
                 cfg = configs_dir + serv + "-" + funct.get_data('config') + '.' + format_file
             except Exception as e:
-                funct.logging('localhost', ' Cannot generate a cfg path ' + str(e), haproxywi=1)
+                funct.logging('localhost', ' Cannot generate a cfg path ' + str(e), roxywi=1)
             try:
                 if service == 'keepalived':
                     error = funct.get_config(serv, cfg, keepalived=1)
                 else:
                     error = funct.get_config(serv, cfg)
             except Exception as e:
-                funct.logging('localhost', ' Cannot download a config ' + str(e), haproxywi=1)
+                funct.logging('localhost', ' Cannot download a config ' + str(e), roxywi=1)
             try:
                 sections = funct.get_sections(cfg, service=service)
             except Exception as e:
-                funct.logging('localhost', ' Cannot get sections from config file ' + str(e), haproxywi=1)
+                funct.logging('localhost', ' Cannot get sections from config file ' + str(e), roxywi=1)
                 sections = 'Cannot get backends'
     else:
         sections = funct.get_remote_sections(serv, service)
@@ -650,19 +650,19 @@ if form.getvalue('show_userlists'):
     try:
         sections = funct.get_userlists(configs_dir + funct.get_files(configs_dir, format_file)[0])
     except Exception as e:
-        funct.logging('localhost', str(e), haproxywi=1)
+        funct.logging('localhost', str(e), roxywi=1)
         try:
             cfg = f'{configs_dir}{serv}-{funct.get_data("config")}.{format_file}'
         except Exception as e:
-            funct.logging('localhost', f' Cannot generate a cfg path {e}', haproxywi=1)
+            funct.logging('localhost', f' Cannot generate a cfg path {e}', roxywi=1)
         try:
             error = funct.get_config(serv, cfg)
         except Exception as e:
-            funct.logging('localhost', f' Cannot download a config {e}', haproxywi=1)
+            funct.logging('localhost', f' Cannot download a config {e}', roxywi=1)
         try:
             sections = funct.get_userlists(cfg)
         except Exception as e:
-            funct.logging('localhost', f' Cannot get Userlists from the config file {e}', haproxywi=1)
+            funct.logging('localhost', f' Cannot get Userlists from the config file {e}', roxywi=1)
             sections = 'error: Cannot get Userlists'
 
     print(sections)
@@ -1558,7 +1558,7 @@ if form.getvalue('install_grafana'):
     output, error = funct.subprocess_execute(commands[0])
 
     if error:
-        funct.logging('localhost', error, haproxywi=1)
+        funct.logging('localhost', error, roxywi=1)
 
         print(
             f'success: Grafana and Prometheus servers were installed. You can find Grafana on http://{host}:3000<br>')
@@ -1721,18 +1721,18 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
                 )
                 print(template)
                 print('success: Backup job has been created')
-                funct.logging('backup ', ' a new backup job for server ' + serv + ' has been created', haproxywi=1,
+                funct.logging('backup ', ' a new backup job for server ' + serv + ' has been created', roxywi=1,
                               login=1)
             else:
                 print('error: Cannot add the job into DB')
         elif deljob:
             sql.delete_backups(deljob)
             print('Ok')
-            funct.logging('backup ', ' a backup job for server ' + serv + ' has been deleted', haproxywi=1, login=1)
+            funct.logging('backup ', ' a backup job for server ' + serv + ' has been deleted', roxywi=1, login=1)
         elif update:
             sql.update_backup(serv, rserver, rpath, backup_type, time, cred, description, update)
             print('Ok')
-            funct.logging('backup ', ' a backup job for server ' + serv + ' has been updated', haproxywi=1, login=1)
+            funct.logging('backup ', ' a backup job for server ' + serv + ' has been updated', roxywi=1, login=1)
 
     os.remove(script)
 
@@ -1797,7 +1797,7 @@ if form.getvalue('git_backup'):
                 print(template)
                 print('success: Git job has been created')
                 funct.logging(
-                    server_ip, ' A new git job has been created', haproxywi=1, login=1,
+                    server_ip, ' A new git job has been created', roxywi=1, login=1,
                     keep_history=1, service=service_name
                 )
         else:
@@ -2046,7 +2046,7 @@ if form.getvalue('bwlists_create'):
         open(list_path, 'a').close()
         print('success: ')
         try:
-            funct.logging(serv, f'A new list {color} {list_name} has been created', haproxywi=1, login=1)
+            funct.logging(serv, f'A new list {color} {list_name} has been created', roxywi=1, login=1)
         except Exception:
             pass
     except IOError as e:
@@ -2089,7 +2089,7 @@ if form.getvalue('bwlists_save'):
         else:
             print('success: Edited ' + color + ' list was uploaded to ' + serv + ' , ')
             try:
-                funct.logging(serv, f'Has been edited the {color} list {bwlists_save}', haproxywi=1, login=1)
+                funct.logging(serv, f'Has been edited the {color} list {bwlists_save}', roxywi=1, login=1)
             except Exception:
                 pass
 
@@ -2139,7 +2139,7 @@ if form.getvalue('bwlists_delete'):
         else:
             print('success: the ' + color + ' list has been deleted on ' + serv + ' , ')
             try:
-                funct.logging(serv, 'has been deleted the ' + color + ' list ' + bwlists_delete, haproxywi=1, login=1)
+                funct.logging(serv, 'has been deleted the ' + color + ' list ' + bwlists_delete, roxywi=1, login=1)
             except Exception:
                 pass
 
@@ -2199,9 +2199,9 @@ if form.getvalue('change_waf_mode'):
     elif service == 'nginx':
         config_dir = sql.get_setting('nginx_dir')
 
-    commands = ["sudo sed -i 's/^SecRuleEngine.*/SecRuleEngine %s/' %s/waf/modsecurity.conf " % (waf_mode, config_dir)]
+    commands = [f"sudo sed -i 's/^SecRuleEngine.*/SecRuleEngine {waf_mode}/' {config_dir}/waf/modsecurity.conf"]
     funct.ssh_command(serv, commands)
-    funct.logging(serv, 'Has been changed WAF mod to ' + waf_mode, haproxywi=1, login=1)
+    funct.logging(serv, f'Has been changed WAF mod to {waf_mode}', roxywi=1, login=1)
 
 error_mess = 'error: All fields must be completed'
 
@@ -2218,22 +2218,23 @@ if form.getvalue('newuser') is not None:
     if funct.check_user_group():
         if funct.is_admin(level=role_id):
             try:
-                if sql.add_user(new_user, email, password, role, activeuser, group):
-                    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
-                    template = env.get_template('ajax/new_user.html')
+                sql.add_user(new_user, email, password, role, activeuser, group)
+                env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
+                template = env.get_template('ajax/new_user.html')
 
-                    template = template.render(users=sql.select_users(user=new_user),
-                                               groups=sql.select_groups(),
-                                               page=page,
-                                               roles=sql.select_roles(),
-                                               adding=1)
-                    print(template)
-                    funct.logging('a new user ' + new_user, ' has been created ', haproxywi=1, login=1)
+                template = template.render(users=sql.select_users(user=new_user),
+                                           groups=sql.select_groups(),
+                                           page=page,
+                                           roles=sql.select_roles(),
+                                           adding=1)
+                print(template)
+                funct.logging(f'a new user {new_user}', ' has been created ', roxywi=1, login=1)
             except Exception as e:
                 print(e)
+                funct.logging('Cannot create a new user', e, roxywi=1, login=1)
         else:
             print('error: dalsdm')
-            funct.logging(new_user, ' tried to privilege escalation', haproxywi=1, login=1)
+            funct.logging(new_user, ' tried to privilege escalation', roxywi=1, login=1)
 
 if form.getvalue('userdel') is not None:
     userdel = form.getvalue('userdel')
@@ -2243,7 +2244,7 @@ if form.getvalue('userdel') is not None:
         username = u.username
     if sql.delete_user(userdel):
         sql.delete_user_groups(userdel)
-        funct.logging(username, ' has been deleted user ', haproxywi=1, login=1)
+        funct.logging(username, ' has been deleted user ', roxywi=1, login=1)
         print("Ok")
 
 if form.getvalue('updateuser') is not None:
@@ -2258,9 +2259,9 @@ if form.getvalue('updateuser') is not None:
     if funct.check_user_group():
         if funct.is_admin(level=role_id):
             sql.update_user(new_user, email, role, user_id, activeuser)
-            funct.logging(new_user, ' has been updated user ', haproxywi=1, login=1)
+            funct.logging(new_user, ' has been updated user ', roxywi=1, login=1)
         else:
-            funct.logging(new_user, ' tried to privilege escalation', haproxywi=1, login=1)
+            funct.logging(new_user, ' tried to privilege escalation', roxywi=1, login=1)
 
 if form.getvalue('updatepassowrd') is not None:
     password = form.getvalue('updatepassowrd')
@@ -2274,7 +2275,7 @@ if form.getvalue('updatepassowrd') is not None:
     for u in user:
         username = u.username
     sql.update_user_password(password, user_id)
-    funct.logging('user ' + username, ' has changed password ', haproxywi=1, login=1)
+    funct.logging('user ' + username, ' has changed password ', roxywi=1, login=1)
     print("Ok")
 
 if form.getvalue('newserver') is not None:
@@ -2329,23 +2330,23 @@ if form.getvalue('newserver') is not None:
                     if funct.is_service_active(ip, 'firewalld'):
                         sql.update_firewall(ip)
             except Exception as e:
-                funct.logging('Cannot scan a new server ' + hostname, str(e), haproxywi=1)
+                funct.logging('Cannot scan a new server ' + hostname, str(e), roxywi=1)
 
             try:
                 sql.insert_new_checker_setting_for_server(ip)
             except Exception as e:
-                funct.logging('Cannot insert Checker settings for ' + hostname, str(e), haproxywi=1)
+                funct.logging('Cannot insert Checker settings for ' + hostname, str(e), roxywi=1)
 
             try:
                 funct.get_system_info(ip)
             except Exception as e:
-                funct.logging('Cannot get information from ' + hostname, str(e), haproxywi=1, login=1)
+                funct.logging('Cannot get information from ' + hostname, str(e), roxywi=1, login=1)
 
             try:
                 user_status, user_plan = funct.return_user_status()
             except Exception as e:
                 user_status, user_plan = 0, 0
-                funct.logging('localhost', 'Cannot get a user plan: ' + str(e), haproxywi=1)
+                funct.logging('localhost', 'Cannot get a user plan: ' + str(e), roxywi=1)
 
             env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
             template = env.get_template('ajax/new_server.html')
@@ -2359,7 +2360,7 @@ if form.getvalue('newserver') is not None:
                                        user_plan=user_plan,
                                        adding=1)
             print(template)
-            funct.logging(ip, 'A new server ' + hostname + ' has been created', haproxywi=1, login=1,
+            funct.logging(ip, f'A new server {hostname} has been created', roxywi=1, login=1,
                           keep_history=1, service='server')
     except Exception as e:
         print(e)
@@ -2373,7 +2374,7 @@ if form.getvalue('updatehapwiserver') is not None:
     service = form.getvalue('service_name')
     sql.update_hapwi_server(hapwi_id, alert, metrics, active, service)
     server_ip = sql.select_server_ip_by_id(hapwi_id)
-    funct.logging(server_ip, 'The server ' + name + ' has been updated ', haproxywi=1, login=1, keep_history=1,
+    funct.logging(server_ip, 'The server ' + name + ' has been updated ', roxywi=1, login=1, keep_history=1,
                   service=service)
 
 if form.getvalue('updateserver') is not None:
@@ -2397,9 +2398,9 @@ if form.getvalue('updateserver') is not None:
     else:
         sql.update_server(name, group, typeip, enable, master, serv_id, cred, port, desc, haproxy, nginx, apache,
                           firewall, protected)
-        funct.logging('the server ' + name, ' has been updated ', haproxywi=1, login=1)
+        funct.logging('the server ' + name, ' has been updated ', roxywi=1, login=1)
         server_ip = sql.select_server_ip_by_id(serv_id)
-        funct.logging(server_ip, 'The server ' + name + ' has been update', haproxywi=1, login=1,
+        funct.logging(server_ip, 'The server ' + name + ' has been update', roxywi=1, login=1,
                       keep_history=1, service='server')
 
 if form.getvalue('serverdel') is not None:
@@ -2420,7 +2421,7 @@ if form.getvalue('serverdel') is not None:
         sql.delete_system_info(server_id)
         sql.delete_service_settings(server_id)
         print("Ok")
-        funct.logging(server_ip, 'The server ' + hostname + ' has been deleted', haproxywi=1, login=1)
+        funct.logging(server_ip, 'The server ' + hostname + ' has been deleted', roxywi=1, login=1)
 
 if form.getvalue('newgroup') is not None:
     newgroup = form.getvalue('groupname')
@@ -2434,7 +2435,7 @@ if form.getvalue('newgroup') is not None:
 
             output_from_parsed_template = template.render(groups=sql.select_groups(group=newgroup))
             print(output_from_parsed_template)
-            funct.logging('localhost', 'A new group ' + newgroup + ' has been created', haproxywi=1, login=1)
+            funct.logging('localhost', 'A new group ' + newgroup + ' has been created', roxywi=1, login=1)
 
 if form.getvalue('groupdel') is not None:
     groupdel = form.getvalue('groupdel')
@@ -2443,7 +2444,7 @@ if form.getvalue('groupdel') is not None:
         groupname = g.name
     if sql.delete_group(groupdel):
         print("Ok")
-        funct.logging('localhost', 'The ' + groupname + ' has been deleted', haproxywi=1, login=1)
+        funct.logging('localhost', 'The ' + groupname + ' has been deleted', roxywi=1, login=1)
 
 if form.getvalue('updategroup') is not None:
     name = form.getvalue('updategroup')
@@ -2454,7 +2455,7 @@ if form.getvalue('updategroup') is not None:
     else:
         try:
             sql.update_group(name, descript, group_id)
-            funct.logging('localhost', 'The ' + name + ' has been updated', haproxywi=1, login=1)
+            funct.logging('localhost', 'The ' + name + ' has been updated', roxywi=1, login=1)
         except Exception as e:
             print('error: ' + str(e))
 
@@ -2478,7 +2479,7 @@ if form.getvalue('new_ssh'):
             output_from_parsed_template = template.render(groups=sql.select_groups(), sshs=sql.select_ssh(name=name),
                                                           page=page)
             print(output_from_parsed_template)
-            funct.logging('localhost', 'A new SSH credentials ' + name + ' has created', haproxywi=1, login=1)
+            funct.logging('localhost', 'A new SSH credentials ' + name + ' has created', roxywi=1, login=1)
 
 if form.getvalue('sshdel') is not None:
     lib_path = get_config.get_config_var('main', 'lib_path')
@@ -2500,7 +2501,7 @@ if form.getvalue('sshdel') is not None:
             pass
     if sql.delete_ssh(sshdel):
         print("Ok")
-        funct.logging('localhost', 'The SSH credentials ' + name + ' has deleted', haproxywi=1, login=1)
+        funct.logging('localhost', 'The SSH credentials ' + name + ' has deleted', roxywi=1, login=1)
 
 if form.getvalue('updatessh'):
     ssh_id = form.getvalue('id')
@@ -2530,7 +2531,7 @@ if form.getvalue('updatessh'):
             except Exception:
                 pass
         sql.update_ssh(ssh_id, name, enable, group, username, password)
-        funct.logging('localhost', 'The SSH credentials ' + name + ' has been updated ', haproxywi=1, login=1)
+        funct.logging('localhost', 'The SSH credentials ' + name + ' has been updated ', roxywi=1, login=1)
 
 if form.getvalue('ssh_cert'):
     import paramiko
@@ -2574,9 +2575,9 @@ if form.getvalue('ssh_cert'):
         cmd = 'chmod 600 %s' % ssh_keys
         funct.subprocess_execute(cmd)
     except IOError as e:
-        funct.logging('localhost', e.args[0], haproxywi=1)
+        funct.logging('localhost', e.args[0], roxywi=1)
 
-    funct.logging("localhost", "A new SSH cert has been uploaded %s" % ssh_keys, haproxywi=1, login=1)
+    funct.logging("localhost", "A new SSH cert has been uploaded %s" % ssh_keys, roxywi=1, login=1)
 
 if form.getvalue('newtelegram'):
     token = form.getvalue('newtelegram')
@@ -2594,7 +2595,7 @@ if form.getvalue('newtelegram'):
             output_from_parsed_template = template.render(groups=sql.select_groups(),
                                                           telegrams=sql.select_telegram(token=token), page=page)
             print(output_from_parsed_template)
-            funct.logging('localhost', 'A new Telegram channel ' + channel + ' has been created ', haproxywi=1, login=1)
+            funct.logging('localhost', 'A new Telegram channel ' + channel + ' has been created ', roxywi=1, login=1)
 
 if form.getvalue('newslack'):
     token = form.getvalue('newslack')
@@ -2612,7 +2613,7 @@ if form.getvalue('newslack'):
             output_from_parsed_template = template.render(groups=sql.select_groups(),
                                                           slacks=sql.select_slack(token=token), page=page)
             print(output_from_parsed_template)
-            funct.logging('localhost', 'A new Slack channel ' + channel + ' has been created ', haproxywi=1, login=1)
+            funct.logging('localhost', 'A new Slack channel ' + channel + ' has been created ', roxywi=1, login=1)
 
 if form.getvalue('telegramdel') is not None:
     telegramdel = form.getvalue('telegramdel')
@@ -2622,7 +2623,7 @@ if form.getvalue('telegramdel') is not None:
         telegram_name = t.token
     if sql.delete_telegram(telegramdel):
         print("Ok")
-        funct.logging('localhost', 'The Telegram channel ' + telegram_name + ' has been deleted ', haproxywi=1, login=1)
+        funct.logging('localhost', 'The Telegram channel ' + telegram_name + ' has been deleted ', roxywi=1, login=1)
 
 if form.getvalue('slackdel') is not None:
     slackdel = form.getvalue('slackdel')
@@ -2632,7 +2633,7 @@ if form.getvalue('slackdel') is not None:
         slack_name = t.chanel_name
     if sql.delete_slack(slackdel):
         print("Ok")
-        funct.logging('localhost', 'The Slack channel ' + slack_name + ' has been deleted ', haproxywi=1, login=1)
+        funct.logging('localhost', 'The Slack channel ' + slack_name + ' has been deleted ', roxywi=1, login=1)
 
 if form.getvalue('updatetoken') is not None:
     token = form.getvalue('updatetoken')
@@ -2643,7 +2644,7 @@ if form.getvalue('updatetoken') is not None:
         print(error_mess)
     else:
         sql.update_telegram(token, channel, group, user_id)
-        funct.logging('group ' + group, 'The Telegram token has been updated for channel: ' + channel, haproxywi=1,
+        funct.logging('group ' + group, 'The Telegram token has been updated for channel: ' + channel, roxywi=1,
                       login=1)
 
 if form.getvalue('update_slack_token') is not None:
@@ -2655,14 +2656,14 @@ if form.getvalue('update_slack_token') is not None:
         print(error_mess)
     else:
         sql.update_slack(token, channel, group, user_id)
-        funct.logging('group ' + group, 'The Slack token has been updated for channel: ' + channel, haproxywi=1,
+        funct.logging('group ' + group, 'The Slack token has been updated for channel: ' + channel, roxywi=1,
                       login=1)
 
 if form.getvalue('updatesettings') is not None:
     settings = form.getvalue('updatesettings')
     val = form.getvalue('val')
     if sql.update_setting(settings, val):
-        funct.logging('localhost', 'The ' + settings + ' setting has been changed to: ' + str(val), haproxywi=1,
+        funct.logging('localhost', 'The ' + settings + ' setting has been changed to: ' + str(val), roxywi=1,
                       login=1)
         print("Ok")
 
@@ -2704,7 +2705,7 @@ if form.getvalue('changeUserGroupId') is not None:
             except Exception as e:
                 print(e)
 
-    funct.logging('localhost', 'Groups has been updated for user: ' + user, haproxywi=1, login=1)
+    funct.logging('localhost', 'Groups has been updated for user: ' + user, roxywi=1, login=1)
 
 if form.getvalue('changeUserServicesId') is not None:
     user_id = form.getvalue('changeUserServicesId')
@@ -2713,7 +2714,7 @@ if form.getvalue('changeUserServicesId') is not None:
 
     try:
         if sql.update_user_services(services=services, user_id=user_id):
-            funct.logging('localhost', 'Access to the services has been updated for user: ' + user, haproxywi=1, login=1)
+            funct.logging('localhost', 'Access to the services has been updated for user: ' + user, roxywi=1, login=1)
     except Exception as e:
         print(e)
 
@@ -2777,7 +2778,7 @@ if form.getvalue('newsmon') is not None:
             telegrams=sql.get_user_telegram_by_group(user_group),
             slacks=sql.get_user_slack_by_group(user_group))
         print(template)
-        funct.logging('SMON', ' Has been add a new server ' + server + ' to SMON ', haproxywi=1, login=1)
+        funct.logging('SMON', ' Has been add a new server ' + server + ' to SMON ', roxywi=1, login=1)
 
 if form.getvalue('smondel') is not None:
     user_group = funct.get_user_group(id=1)
@@ -2787,7 +2788,7 @@ if form.getvalue('smondel') is not None:
         try:
             if sql.delete_smon(smon_id, user_group):
                 print('Ok')
-                funct.logging('SMON', ' Has been delete server from SMON ', haproxywi=1, login=1)
+                funct.logging('SMON', ' Has been delete server from SMON ', roxywi=1, login=1)
         except Exception as e:
             print(e)
 
@@ -2829,7 +2830,7 @@ if form.getvalue('updateSmonIp') is not None:
     try:
         if sql.update_smon(smon_id, ip, port, body, telegram, slack, group, desc, en):
             print("Ok")
-            funct.logging('SMON', ' Has been update the server ' + ip + ' to SMON ', haproxywi=1, login=1)
+            funct.logging('SMON', ' Has been update the server ' + ip + ' to SMON ', roxywi=1, login=1)
     except Exception as e:
         print(e)
 
@@ -2926,7 +2927,7 @@ if form.getvalue('waf_rule_id'):
 
     try:
         funct.logging('WAF', ' Has been ' + en_for_log + ' WAF rule: ' + rule_file + ' for the server ' + serv,
-                      haproxywi=1, login=1)
+                      roxywi=1, login=1)
     except Exception:
         pass
 
@@ -2955,7 +2956,7 @@ if form.getvalue('new_waf_rule'):
 
     try:
         funct.logging('WAF', ' A new rule has been created ' + rule_file + ' on the server ' + serv,
-                      haproxywi=1, login=1)
+                      roxywi=1, login=1)
     except Exception:
         pass
 
@@ -2984,7 +2985,7 @@ if form.getvalue('lets_domain'):
     output, error = funct.subprocess_execute(commands[0])
 
     if error:
-        funct.logging('localhost', error, haproxywi=1)
+        funct.logging('localhost', error, roxywi=1)
         print(error)
     else:
         for line in output:
@@ -3020,15 +3021,15 @@ if form.getvalue('uploadovpn'):
         cmd = 'sudo openvpn3 config-import --config %s --persistent' % ovpn_file
         funct.subprocess_execute(cmd)
     except IOError as e:
-        funct.logging('localhost', e.args[0], haproxywi=1)
+        funct.logging('localhost', e.args[0], roxywi=1)
 
     try:
         cmd = 'sudo cp %s /etc/openvpn3/%s.conf' % (ovpn_file, name)
         funct.subprocess_execute(cmd)
     except IOError as e:
-        funct.logging('localhost', e.args[0], haproxywi=1)
+        funct.logging('localhost', e.args[0], roxywi=1)
 
-    funct.logging("localhost", " has been uploaded a new ovpn file %s" % ovpn_file, haproxywi=1, login=1)
+    funct.logging("localhost", " has been uploaded a new ovpn file %s" % ovpn_file, roxywi=1, login=1)
 
 if form.getvalue('openvpndel') is not None:
     openvpndel = funct.checkAjaxInput(form.getvalue('openvpndel'))
@@ -3037,10 +3038,10 @@ if form.getvalue('openvpndel') is not None:
     try:
         funct.subprocess_execute(cmd)
         print("Ok")
-        funct.logging(openvpndel, ' has deleted the ovpn file ', haproxywi=1, login=1)
+        funct.logging(openvpndel, ' has deleted the ovpn file ', roxywi=1, login=1)
     except IOError as e:
         print(e.args[0])
-        funct.logging('localhost', e.args[0], haproxywi=1)
+        funct.logging('localhost', e.args[0], roxywi=1)
 
 if form.getvalue('actionvpn') is not None:
     openvpn = funct.checkAjaxInput(form.getvalue('openvpnprofile'))
@@ -3055,10 +3056,10 @@ if form.getvalue('actionvpn') is not None:
     try:
         funct.subprocess_execute(cmd)
         print("success: The " + openvpn + " has been " + action + "ed")
-        funct.logging(openvpn, ' has ' + action + ' the ovpn session ', haproxywi=1, login=1)
+        funct.logging(openvpn, ' has ' + action + ' the ovpn session ', roxywi=1, login=1)
     except IOError as e:
         print(e.args[0])
-        funct.logging('localhost', e.args[0], haproxywi=1)
+        funct.logging('localhost', e.args[0], roxywi=1)
 
 if form.getvalue('scan_ports') is not None:
     serv_id = funct.checkAjaxInput(form.getvalue('scan_ports'))
@@ -4048,7 +4049,7 @@ if form.getvalue('loadchecker'):
         user_status, user_plan = funct.return_user_status()
     except Exception as e:
         user_status, user_plan = 0, 0
-        funct.logging('localhost', 'Cannot get a user plan: ' + str(e), haproxywi=1)
+        funct.logging('localhost', 'Cannot get a user plan: ' + str(e), roxywi=1)
     if user_status:
         haproxy_settings = sql.select_checker_settings(1)
         nginx_settings = sql.select_checker_settings(2)
@@ -4318,62 +4319,62 @@ if form.getvalue('serverSettingsSave') is not None:
         if sql.insert_or_update_service_setting(server_id, service, 'haproxy_enterprise', haproxy_enterprise):
             print('Ok')
             if haproxy_enterprise == '1':
-                funct.logging(server_ip, 'Service has been flagged as an Enterprise version', haproxywi=1, login=1,
+                funct.logging(server_ip, 'Service has been flagged as an Enterprise version', roxywi=1, login=1,
                               keep_history=1, service=service)
             else:
-                funct.logging(server_ip, 'Service has been flagged as a community version', haproxywi=1, login=1,
+                funct.logging(server_ip, 'Service has been flagged as a community version', roxywi=1, login=1,
                               keep_history=1, service=service)
         if sql.insert_or_update_service_setting(server_id, service, 'dockerized', haproxy_dockerized):
             print('Ok')
             if haproxy_dockerized == '1':
-                funct.logging(server_ip, 'Service has been flagged as a dockerized', haproxywi=1, login=1,
+                funct.logging(server_ip, 'Service has been flagged as a dockerized', roxywi=1, login=1,
                               keep_history=1, service=service)
             else:
-                funct.logging(server_ip, 'Service has been flagged as a system service', haproxywi=1, login=1,
+                funct.logging(server_ip, 'Service has been flagged as a system service', roxywi=1, login=1,
                               keep_history=1, service=service)
         if sql.insert_or_update_service_setting(server_id, service, 'restart', haproxy_restart):
             print('Ok')
             if haproxy_restart == '1':
-                funct.logging(server_ip, 'Restart option is disabled for this service', haproxywi=1, login=1,
+                funct.logging(server_ip, 'Restart option is disabled for this service', roxywi=1, login=1,
                               keep_history=1, service=service)
             else:
-                funct.logging(server_ip, 'Restart option is disabled for this service', haproxywi=1, login=1,
+                funct.logging(server_ip, 'Restart option is disabled for this service', roxywi=1, login=1,
                               keep_history=1, service=service)
 
     if service == 'nginx':
         if sql.insert_or_update_service_setting(server_id, service, 'dockerized', nginx_dockerized):
             print('Ok')
             if nginx_dockerized:
-                funct.logging(server_ip, 'Service has been flagged as a dockerized', haproxywi=1, login=1,
+                funct.logging(server_ip, 'Service has been flagged as a dockerized', roxywi=1, login=1,
                               keep_history=1, service=service)
             else:
-                funct.logging(server_ip, 'Service has been flagged as a system service', haproxywi=1, login=1,
+                funct.logging(server_ip, 'Service has been flagged as a system service', roxywi=1, login=1,
                               keep_history=1, service=service)
         if sql.insert_or_update_service_setting(server_id, service, 'restart', nginx_restart):
             print('Ok')
             if nginx_restart == '1':
-                funct.logging(server_ip, 'Restart option is disabled for this service', haproxywi=1, login=1,
+                funct.logging(server_ip, 'Restart option is disabled for this service', roxywi=1, login=1,
                               keep_history=1, service=service)
             else:
-                funct.logging(server_ip, 'Restart option is disabled for this service', haproxywi=1, login=1,
+                funct.logging(server_ip, 'Restart option is disabled for this service', roxywi=1, login=1,
                               keep_history=1, service=service)
 
     if service == 'apache':
         if sql.insert_or_update_service_setting(server_id, service, 'dockerized', apache_dockerized):
             print('Ok')
             if apache_dockerized:
-                funct.logging(server_ip, 'Service has been flagged as a dockerized', haproxywi=1, login=1,
+                funct.logging(server_ip, 'Service has been flagged as a dockerized', roxywi=1, login=1,
                               keep_history=1, service=service)
             else:
-                funct.logging(server_ip, 'Service has been flagged as a system service', haproxywi=1, login=1,
+                funct.logging(server_ip, 'Service has been flagged as a system service', roxywi=1, login=1,
                               keep_history=1, service=service)
             if sql.insert_or_update_service_setting(server_id, service, 'restart', apache_restart):
                 print('Ok')
                 if apache_restart == '1':
-                    funct.logging(server_ip, 'Restart option is disabled for this service', haproxywi=1, login=1,
+                    funct.logging(server_ip, 'Restart option is disabled for this service', roxywi=1, login=1,
                                   keep_history=1, service=service)
                 else:
-                    funct.logging(server_ip, 'Restart option is disabled for this service', haproxywi=1, login=1,
+                    funct.logging(server_ip, 'Restart option is disabled for this service', roxywi=1, login=1,
                                   keep_history=1, service=service)
 
 if act == 'showListOfVersion':
@@ -4427,13 +4428,14 @@ if act == 'getSystemInfo':
     env.globals['string_to_dict'] = funct.string_to_dict
     template = env.get_template('ajax/show_system_info.html')
     if sql.is_system_info(server_id):
-        if funct.get_system_info(server_ip):
+        try:
+            funct.get_system_info(server_ip)
             system_info = sql.select_one_system_info(server_id)
 
             template = template.render(system_info=system_info, server_ip=server_ip, server_id=server_id)
             print(template)
-        else:
-            print('error: Cannot update server info')
+        except Exception as e:
+            print(f'Cannot update server info: {e}')
     else:
         system_info = sql.select_one_system_info(server_id)
 
