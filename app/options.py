@@ -566,7 +566,7 @@ if form.getvalue('action_apache') is not None and serv is not None:
         container_name = sql.get_setting('apache_container_name')
         commands = ["sudo docker %s %s" % (action, container_name)]
     else:
-        service_apache_name = funct.get_correct_apache_service_name(0, server_id)
+        service_apache_name = funct.get_correct_apache_service_name(None, server_id)
 
         commands = ["sudo systemctl %s %s" % (action, service_apache_name)]
     funct.ssh_command(serv, commands)

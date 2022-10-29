@@ -181,7 +181,7 @@ def logging(server_ip: str, action: str, **kwargs) -> None:
 		with open(log_file, 'a') as log:
 			log.write(mess)
 	except IOError as e:
-		print(f'<center><div class="alert alert-danger">Cannot write log. Please check log_path in config {str(e)}</div></center>')
+		print(f'<center><div class="alert alert-danger">Cannot write log. Please check log_path in config {e}</div></center>')
 
 
 def keep_action_history(service: str, action: str, server_ip: str, login: str, user_ip: str):
@@ -197,7 +197,7 @@ def keep_action_history(service: str, action: str, server_ip: str, login: str, u
 
 		sql.insert_action_history(service, action, server_id, user_id, user_ip)
 	except Exception as e:
-		logging('Roxy-WI server', f'Cannot save a history: {str(e)}', roxywi=1)
+		logging('Roxy-WI server', f'Cannot save a history: {e}', roxywi=1)
 
 
 def telegram_send_mess(mess, **kwargs):
@@ -282,7 +282,7 @@ def check_login(user_uuid, token, **kwargs):
 
 	if user_uuid is not None:
 		if sql.get_user_name_by_uuid(user_uuid.value) is None:
-			print('<meta http-equiv="refresh" content="0; url=login.py?ref=%s">' % ref)
+			print(f'<meta http-equiv="refresh" content="0; url=login.py?ref={ref}">')
 			return False
 		if kwargs.get('service'):
 			required_service = str(kwargs.get('service'))
@@ -296,7 +296,7 @@ def check_login(user_uuid, token, **kwargs):
 
 		sql.update_last_act_user(user_uuid.value, token)
 	else:
-		print('<meta http-equiv="refresh" content="0; url=login.py?ref=%s">' % ref)
+		print(f'<meta http-equiv="refresh" content="0; url=login.py?ref={ref}">')
 		return False
 
 
@@ -350,7 +350,8 @@ def return_ssh_keys_path(server_ip: str, **kwargs) -> dict:
 		ssh_settings.setdefault('enabled', ssh.enable)
 		ssh_settings.setdefault('user', ssh.username)
 		ssh_settings.setdefault('password', ssh.password)
-		ssh_settings.setdefault('key', f'{lib_path}/keys/{ssh.name}.pem')
+		ssh_key = f'{lib_path}/keys/{ssh.name}.pem' if ssh.enable == '1' else ''
+		ssh_settings.setdefault('key', ssh_key)
 
 	ssh_port = [str(server[10]) for server in sql.select_servers(server=server_ip)]
 	ssh_settings.setdefault('port', ssh_port[0])
@@ -420,7 +421,7 @@ def diff_config(oldcfg, cfg, **kwargs):
 		return diff
 	else:
 		for line in output:
-			diff += date + " user: " + login + ", group: " + user_group + " " + line + "\n"
+			diff += f"{date} user: {login}, group: {user_group} {line}\n"
 
 	log_file = f"{log_path}/config_edit-{get_data('logs')}"
 	try:
@@ -441,10 +442,7 @@ def get_remote_sections(server_ip: str, service: str) -> str:
 	if service == 'apache':
 		section_name = 'ServerName'
 
-	commands = [
-		"sudo grep {} {}*/*.conf -R |grep -v '${{}}\|#'|awk '{{print $1, $3}}'".format(
-			section_name, config_dir
-		)]
+	commands = [f"sudo grep {section_name} {config_dir}*/*.conf -R |grep -v '${{}}\|#'|awk '{{print $1, $3}}'"]
 
 	backends = ssh_command(server_ip, commands)
 
@@ -596,9 +594,7 @@ def show_installation_output(error, output, service):
 		return False
 	else:
 		for line in output:
-			if "UNREACHABLE" in line:
-				print(line + '<br />')
-			if any(s in line for s in ("Traceback", "FAILED", "error", "ERROR")):
+			if any(s in line for s in ("Traceback", "FAILED", "error", "ERROR", "UNREACHABLE")):
 				try:
 					print(line)
 					break
@@ -606,7 +602,7 @@ def show_installation_output(error, output, service):
 					print(output)
 					break
 		else:
-			print('success: ' + service + ' has been installed')
+			print(f'success: {service} has been installed')
 			logging('Roxy-WI server', error, roxywi=1, keep_history=1, service=service)
 			return True
 
@@ -673,7 +669,7 @@ def waf_install(server_ip):
 	proxy_serv = ''
 	ssh_settings = return_ssh_keys_path(server_ip)
 
-	os.system("cp scripts/%s ." % script)
+	os.system(f"cp scripts/{script} .")
 
 	if proxy is not None and proxy != '' and proxy != 'None':
 		proxy_serv = proxy
@@ -702,7 +698,7 @@ def waf_nginx_install(server_ip):
 	proxy_serv = ''
 	ssh_settings = return_ssh_keys_path(server_ip)
 
-	os.system("cp scripts/%s ." % script)
+	os.system(f"cp scripts/{script} .")
 
 	if proxy is not None and proxy != '' and proxy != 'None':
 		proxy_serv = proxy
@@ -737,7 +733,7 @@ def install_nginx(server_ip, **kwargs):
 	proxy_serv = ''
 	ssh_settings = return_ssh_keys_path(server_ip)
 
-	os.system("cp scripts/%s ." % script)
+	os.system(f"cp scripts/{script} .")
 
 	if proxy is not None and proxy != '' and proxy != 'None':
 		proxy_serv = proxy
@@ -795,7 +791,7 @@ def check_haproxy_version(server_ip):
 	import sql
 	hap_sock_p = sql.get_setting('haproxy_sock_port')
 	ver = ""
-	cmd = "echo 'show info' |nc %s %s |grep Version |awk '{print $2}'" % (server_ip, hap_sock_p)
+	cmd = f"echo 'show info' |nc {server_ip} {hap_sock_p} |grep Version |awk '{{print $2}}'"
 	output, stderr = subprocess_execute(cmd)
 	for line in output:
 		ver = line
@@ -814,46 +810,43 @@ def upload(server_ip, path, file, **kwargs):
 	except Exception as e:
 		error = str(e.args)
 		logging('Roxy-WI server', error, roxywi=1)
-		print(' Cannot upload ' + file + ' to ' + full_path + ' to server: ' + server_ip + ' error: ' + error)
+		print(f' Cannot upload {file} to {full_path} to server: {server_ip} error: {error}')
 		return error
 
 
-def upload_and_restart(server_ip, cfg, **kwargs):
+def upload_and_restart(server_ip: str, cfg: str, **kwargs):
 	import sql
 	error = ''
 	service_name = ''
 	container_name = ''
 	reload_or_restart_command = ''
+	file_format = 'conf'
+	config_path = kwargs.get('config_file_name')
 	server_id = sql.select_server_id_by_ip(server_ip=server_ip)
 
 	if kwargs.get("nginx"):
 		service = 'nginx'
-		config_path = kwargs.get('config_file_name')
-		tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".conf"
 	elif kwargs.get("apache"):
 		service = 'apache'
-		config_path = kwargs.get('config_file_name')
-		tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".conf"
 	elif kwargs.get("keepalived"):
 		service = 'keepalived'
 		config_path = sql.get_setting('keepalived_config_path')
-		tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".cfg"
+		file_format = 'cfg'
 	elif kwargs.get('waf'):
 		service = 'waf'
-		config_path = kwargs.get('config_file_name')
-		tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".conf"
 	else:
 		service = 'haproxy'
 		config_path = sql.get_setting('haproxy_config_path')
-		tmp_file = sql.get_setting('tmp_config_path') + "/" + get_data('config') + ".cfg"
+		file_format = 'cfg'
 
+	tmp_file = f"{sql.get_setting('tmp_config_path')}/{get_data('config')}.{file_format}"
 	is_dockerized = sql.select_service_setting(server_id, service, 'dockerized')
 
 	if is_dockerized == '1':
-		service_cont_name = service + '_container_name'
+		service_cont_name = f'{service}_container_name'
 		container_name = sql.get_setting(service_cont_name)
-		reload_command = " && sudo docker kill -s HUP  " + container_name
-		restart_command = " && sudo docker restart " + container_name
+		reload_command = f" && sudo docker kill -s HUP {container_name}"
+		restart_command = f" && sudo docker restart {container_name}"
 	else:
 		service_name = service
 		if service == 'haproxy':
@@ -863,8 +856,8 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		if service == 'apache':
 			service_name = get_correct_apache_service_name(server_ip, 0)
 
-		reload_command = " && sudo systemctl reload " + service_name
-		restart_command = " && sudo systemctl restart " + service_name
+		reload_command = f" && sudo systemctl reload {service_name}"
+		restart_command = f" && sudo systemctl restart {service_name}"
 
 	if kwargs.get("just_save") == 'save':
 		action = 'save'
@@ -884,24 +877,24 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		login = 1
 
 	try:
-		os.system("dos2unix " + cfg)
+		os.system(f"dos2unix {cfg}")
 	except OSError:
 		return 'Please install dos2unix'
 
 	if service == "keepalived":
-		move_config = "sudo mv -f " + tmp_file + " " + config_path
+		move_config = f"sudo mv -f {tmp_file} {config_path}"
 		if action == "save":
 			commands = [move_config]
 		else:
 			commands = [move_config + reload_or_restart_command]
 	elif service == "nginx":
 		if is_dockerized == '1':
-			check_config = "sudo docker exec -it exec " + container_name + " nginx -t "
+			check_config = f"sudo docker exec -it exec {container_name} nginx -t "
 		else:
 			check_config = "sudo nginx -t "
-		check_and_move = "sudo mv -f " + tmp_file + " " + config_path + " && " + check_config
+		check_and_move = f"sudo mv -f {tmp_file} {config_path} && {check_config}"
 		if action == "test":
-			commands = [check_config + " && sudo rm -f " + tmp_file]
+			commands = [f"{check_config} && sudo rm -f {tmp_file}"]
 		elif action == "save":
 			commands = [check_and_move]
 		else:
@@ -910,12 +903,12 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 			commands[0] += open_port_firewalld(cfg, server_ip=server_ip, service='nginx')
 	elif service == "apache":
 		if is_dockerized == '1':
-			check_config = "sudo docker exec -it exec " + container_name + " sudo apachectl configtest "
+			check_config = f"sudo docker exec -it exec {container_name} sudo apachectl configtest "
 		else:
 			check_config = "sudo apachectl configtest "
-		check_and_move = "sudo mv -f " + tmp_file + " " + config_path + " && " + check_config
+		check_and_move = f"sudo mv -f {tmp_file} {config_path} && {check_config}"
 		if action == "test":
-			commands = [check_config + " && sudo rm -f " + tmp_file]
+			commands = [f"{check_config} && sudo rm -f {tmp_file}"]
 		elif action == "save":
 			commands = [check_and_move]
 		else:
@@ -923,20 +916,20 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		# if sql.return_firewall(server_ip):
 		# 	commands[0] += open_port_firewalld(cfg, server_ip=server_ip, service='nginx')
 	elif service == 'waf':
-		check_and_move = "sudo mv -f " + tmp_file + " " + config_path
+		check_and_move = f"sudo mv -f {tmp_file} {config_path}"
 		if action == "save":
 			commands = [check_and_move]
 		else:
 			commands = [check_and_move + reload_or_restart_command]
 	else:
 		if is_dockerized == '1':
-			check_config = "sudo docker exec -it " + container_name + " haproxy -c -f " + tmp_file
+			check_config = f"sudo docker exec -it {container_name} haproxy -c -f {tmp_file}"
 		else:
-			check_config = "sudo " + service_name + " -c -f " + tmp_file
-		move_config = " && sudo mv -f " + tmp_file + " " + config_path
+			check_config = f"sudo {service_name} -c -f {tmp_file}"
+		move_config = f" && sudo mv -f {tmp_file} {config_path}"
 
 		if action == "test":
-			commands = [check_config + " && sudo rm -f " + tmp_file]
+			commands = [f"{check_config} && sudo rm -f {tmp_file}"]
 		elif action == "save":
 			commands = [check_config + move_config]
 		else:
@@ -965,7 +958,7 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 				path = Path(old_cfg)
 
 			if not path.is_file():
-				old_cfg = tmp_file + '.old'
+				old_cfg = f'{tmp_file}.old'
 				try:
 					get_config(server_ip, old_cfg, service=service, config_file_name=config_path)
 				except Exception:
@@ -988,7 +981,7 @@ def upload_and_restart(server_ip, cfg, **kwargs):
 		error = ssh_command(server_ip, commands)
 		try:
 			if action == 'reload' or action == 'restart':
-				logging(server_ip, 'Service has been ' + action + 'ed', login=login, keep_history=1, service=service)
+				logging(server_ip, f'Service has been {action}ed', login=login, keep_history=1, service=service)
 		except Exception as e:
 			logging('Roxy-WI server', str(e), roxywi=1)
 	except Exception as e:
@@ -1021,7 +1014,7 @@ def master_slave_upload_and_restart(server_ip, cfg, just_save, **kwargs):
 				master[0], cfg, just_save=just_save, nginx=kwargs.get('nginx'), waf=kwargs.get('waf'),
 				apache=kwargs.get('apache'), config_file_name=kwargs.get('config_file_name'), slave=1
 			)
-			slave_output += '<br>' + master[1] + ':\n' + slv_output
+			slave_output += f'<br>{master[1]}:\n{slv_output}'
 
 	output = upload_and_restart(
 		server_ip, cfg, just_save=just_save, nginx=kwargs.get('nginx'), waf=kwargs.get('waf'),
@@ -1055,7 +1048,7 @@ def open_port_firewalld(cfg, server_ip, **kwargs):
 					try:
 						listen = int(listen)
 						ports += str(listen) + ' '
-						firewalld_commands += ' sudo firewall-cmd --zone=public --add-port=%s/tcp --permanent -q &&' % str(listen)
+						firewalld_commands += f' sudo firewall-cmd --zone=public --add-port={listen}/tcp --permanent -q &&'
 					except Exception:
 						pass
 				except Exception:
@@ -1069,7 +1062,7 @@ def open_port_firewalld(cfg, server_ip, **kwargs):
 					bind = bind[0].strip(' \t\n\r')
 					try:
 						bind = int(bind)
-						firewalld_commands += ' sudo firewall-cmd --zone=public --add-port=%s/tcp --permanent -q &&' % str(bind)
+						firewalld_commands += f' sudo firewall-cmd --zone=public --add-port={bind}/tcp --permanent -q &&'
 						ports += str(bind) + ' '
 					except Exception:
 						pass
@@ -1077,7 +1070,7 @@ def open_port_firewalld(cfg, server_ip, **kwargs):
 					pass
 
 	firewalld_commands += 'sudo firewall-cmd --reload -q'
-	logging(server_ip, ' Next ports have been opened: ' + ports)
+	logging(server_ip, f' Next ports have been opened: {ports}')
 	return firewalld_commands
 
 
@@ -1089,9 +1082,9 @@ def check_haproxy_config(server_ip):
 
 	if is_dockerized == '1':
 		container_name = sql.get_setting('haproxy_container_name')
-		commands = ["sudo docker exec -it " + container_name + " haproxy -q -c -f " + config_path]
+		commands = [f"sudo docker exec -it {container_name} haproxy -q -c -f {config_path}"]
 	else:
-		commands = ["haproxy  -q -c -f %s" % config_path]
+		commands = [f"haproxy  -q -c -f {config_path}"]
 
 	with ssh_connect(server_ip) as ssh:
 		for command in commands:
@@ -1104,7 +1097,7 @@ def check_haproxy_config(server_ip):
 
 def check_nginx_config(server_ip):
 	import sql
-	commands = ["nginx -q -t -p {}".format(sql.get_setting('nginx_dir'))]
+	commands = [f"nginx -q -t -p {sql.get_setting('nginx_dir')}"]
 
 	with ssh_connect(server_ip) as ssh:
 		for command in commands:
@@ -1340,7 +1333,7 @@ def subprocess_execute(cmd):
 def show_backends(server_ip, **kwargs):
 	import sql
 	hap_sock_p = sql.get_setting('haproxy_sock_port')
-	cmd = 'echo "show backend" |nc %s %s' % (server_ip, hap_sock_p)
+	cmd = f'echo "show backend" |nc {server_ip} {hap_sock_p}'
 	output, stderr = subprocess_execute(cmd)
 	if stderr:
 		logging('Roxy-WI server', ' ' + stderr, roxywi=1)
@@ -1372,7 +1365,7 @@ def get_files(folder=None, file_format='cfg') -> list:
 		file = set()
 	return_files = set()
 	i = 0
-	for files in sorted(glob.glob(os.path.join(folder, '*.' + file_format + '*'))):
+	for files in sorted(glob.glob(os.path.join(folder, f'*.{file_format}*'))):
 		if file_format == 'log':
 			try:
 				file += [(i, files.split('/')[4])]
@@ -1395,9 +1388,9 @@ def get_files(folder=None, file_format='cfg') -> list:
 def get_remote_files(server_ip: str, config_dir: str, file_format: str):
 	config_dir = return_nice_path(config_dir)
 	if file_format == 'conf':
-		commands = ['sudo ls ' + config_dir + '*/*.' + file_format]
+		commands = [f'sudo ls {config_dir}*/*.{file_format}']
 	else:
-		commands = ['sudo ls ' + config_dir + '|grep ' + file_format + '$']
+		commands = [f'sudo ls {config_dir}|grep {file_format}$']
 	config_files = ssh_command(server_ip, commands)
 
 	return config_files
@@ -1524,19 +1517,19 @@ def get_users_params(**kwargs):
 	try:
 		user_uuid = cookie.get('uuid')
 		user = sql.get_user_name_by_uuid(user_uuid.value)
-	except Exception as e:
+	except Exception:
 		print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
 		return
 	try:
 		role = sql.get_user_role_by_uuid(user_uuid.value)
-	except Exception as e:
+	except Exception:
 		print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
 		return
 	try:
 		user_id = sql.get_user_id_by_uuid(user_uuid.value)
 		user_services = sql.select_user_services(user_id)
 		token = sql.get_token(user_uuid.value)
-	except Exception as e:
+	except Exception:
 		print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
 		return
 
@@ -1995,10 +1988,10 @@ def return_user_status():
 	return user_status, user_plan
 
 
-def get_correct_apache_service_name(server_ip=0, server_id=0) -> str:
+def get_correct_apache_service_name(server_ip=None, server_id=0) -> str:
 	import sql
 
-	if server_id == 0:
+	if server_id is None:
 		server_id = sql.select_server_id_by_ip(server_ip)
 
 	try:
