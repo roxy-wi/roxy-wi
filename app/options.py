@@ -150,7 +150,7 @@ if form.getvalue('ipbackend') is not None and form.getvalue('backend_server') is
     backend = funct.checkAjaxInput(form.getvalue('ipbackend'))
     backend_server = funct.checkAjaxInput(form.getvalue('backend_server'))
     cmd = 'echo "show servers state"|nc %s %s |grep "%s" |grep "%s" |awk \'{print $5":"$19}\' |head -1' % (
-    serv, haproxy_sock_port, backend, backend_server)
+        serv, haproxy_sock_port, backend, backend_server)
     output, stderr = funct.subprocess_execute(cmd)
     print(output[0])
 
@@ -848,7 +848,7 @@ if act == "overviewServers":
     async def async_get_overviewServers(serv1, serv2, service):
         if service == 'haproxy':
             cmd = 'echo "show info" |nc %s %s -w 1|grep -e "node\|Nbproc\|Maxco\|MB\|Nbthread"' % (
-            serv2, sql.get_setting('haproxy_sock_port'))
+                serv2, sql.get_setting('haproxy_sock_port'))
             out = funct.subprocess_execute(cmd)
             return_out = ""
 

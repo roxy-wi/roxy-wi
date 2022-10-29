@@ -350,7 +350,7 @@ def return_ssh_keys_path(server_ip: str, **kwargs) -> dict:
 		ssh_settings.setdefault('enabled', ssh.enable)
 		ssh_settings.setdefault('user', ssh.username)
 		ssh_settings.setdefault('password', ssh.password)
-		ssh_key = f'{lib_path}/keys/{ssh.name}.pem' if ssh.enable == '1' else ''
+		ssh_key = f'{lib_path}/keys/{ssh.name}.pem' if ssh.enable == 1 else ''
 		ssh_settings.setdefault('key', ssh_key)
 
 	ssh_port = [str(server[10]) for server in sql.select_servers(server=server_ip)]
