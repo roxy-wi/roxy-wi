@@ -4,6 +4,7 @@ import os
 import sys
 import json
 import http.cookies
+from uuid import UUID
 
 import requests
 from jinja2 import Environment, FileSystemLoader
@@ -17,6 +18,7 @@ get_config = roxy_wi_tools.GetConfigVar()
 form = funct.form
 serv = funct.is_ip_or_dns(form.getvalue('serv'))
 act = form.getvalue("act")
+token = form.getvalue("token")
 
 if (
         form.getvalue('new_metrics')
@@ -40,10 +42,6 @@ if act == "checkrestart":
             print("ok")
             sys.exit()
     sys.exit()
-
-from uuid import UUID
-
-token = form.getvalue("token")
 
 try:
     uuid_obj = UUID(token, version=4)
@@ -683,7 +681,6 @@ if act == "overviewHapservers":
 if act == "overview":
     import asyncio
 
-
     async def async_get_overview(serv1, serv2, user_uuid, server_id):
         user_id = sql.get_user_id_by_uuid(user_uuid)
         user_services = sql.select_user_services(user_id)
@@ -748,7 +745,6 @@ if act == "overview":
                          apache_process)
         return server_status
 
-
     async def get_runner_overview():
         env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True,
                           extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
@@ -765,7 +761,6 @@ if act == "overview":
         servers_sorted = sorted(servers, key=funct.get_key)
         template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_uuid.value))
         print(template)
-
 
     ioloop = asyncio.get_event_loop()
     ioloop.run_until_complete(get_runner_overview())
@@ -844,7 +839,6 @@ if act == "overviewwaf":
 if act == "overviewServers":
     import asyncio
 
-
     async def async_get_overviewServers(serv1, serv2, service):
         if service == 'haproxy':
             cmd = 'echo "show info" |nc %s %s -w 1|grep -e "node\|Nbproc\|Maxco\|MB\|Nbthread"' % (
@@ -865,7 +859,6 @@ if act == "overviewServers":
         server_status = (serv1, serv2, return_out)
         return server_status
 
-
     async def get_runner_overviewServers(**kwargs):
         env = Environment(loader=FileSystemLoader('templates/ajax'),
                           extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
@@ -883,7 +876,6 @@ if act == "overviewServers":
         servers_sorted = sorted(servers, key=funct.get_key)
         template = template.render(service_status=servers_sorted, role=role, id=kwargs.get('id'), service_page=service)
         print(template)
-
 
     server_id = form.getvalue('id')
     name = form.getvalue('name')
@@ -911,7 +903,7 @@ if form.getvalue('action'):
         'Accept-Encoding': 'gzip, deflate'
     }
 
-    q = requests.post('http://{}:{}/{}'.format(serv, stats_port, stats_page),
+    q = requests.post(f'http://{serv}:{stats_port}/{stats_page}',
                       headers=headers,
                       data=postdata,
                       auth=(haproxy_user, haproxy_pass))
@@ -933,7 +925,7 @@ if serv is not None and act == "stats":
         stats_port = sql.get_setting('stats_port')
         stats_page = sql.get_setting('stats_page')
     try:
-        response = requests.get('http://%s:%s/%s' % (serv, stats_port, stats_page), auth=(haproxy_user, haproxy_pass))
+        response = requests.get(f'http://{serv}:{stats_port}/{stats_page}', auth=(haproxy_user, haproxy_pass))
     except requests.exceptions.ConnectTimeout:
         print('error: Oops. Connection timeout occurred!')
     except requests.exceptions.ReadTimeout:
@@ -1271,7 +1263,7 @@ if serv is not None and form.getvalue('right') is not None:
     else:
         configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
 
-    cmd = 'diff -pub %s%s %s%s' % (configs_dir, left, configs_dir, right)
+    cmd = f'diff -pub {configs_dir}{left} {configs_dir}{right}'
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
                       extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
     template = env.get_template('ajax/compare.html')
@@ -1320,7 +1312,7 @@ if serv is not None and act == "configShow":
     try:
         conf = open(cfg, "r")
     except IOError:
-        print('<div class="alert alert-danger">Can\'t read config file</div>')
+        print('<div class="alert alert-danger">Cannot read config file</div>')
 
     is_serv_protected = sql.is_serv_protected(serv)
     server_id = sql.select_server_id_by_ip(serv)
@@ -1417,8 +1409,8 @@ if form.getvalue('master'):
             hostname = sql.get_hostname_by_server_ip(master)
             firewall = 1 if funct.is_service_active(master, 'firewalld') else 0
             sql.add_server(
-                hostname + '-VIP', IP, group_id, '1', '1', '0', cred_id, ssh_port, 'VRRP IP for ' + master, haproxy,
-                nginx, '0', firewall
+                hostname + '-VIP', IP, group_id, '1', '1', '0', cred_id, ssh_settings['port'], f'VRRP IP for {master}',
+                haproxy, nginx, '0', firewall
             )
     os.remove(script)
 
@@ -1445,7 +1437,7 @@ if form.getvalue('master_slave'):
 
     commands = [
         f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} router_id={router_id} ETH={ETH} "
-        f"IP={IP} MASTER=BACKUP ETH_SLAVE={ETH_SLAVE} keepalived_path_logs={keepalived_path_logs} HAPROXY={HAPROXY} "
+        f"IP={IP} MASTER=BACKUP ETH_SLAVE={ETH_SLAVE} keepalived_path_logs={keepalived_path_logs} HAPROXY={haproxy} "
         f"NGINX={nginx} HOST={slave} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
     ]
 
@@ -1633,7 +1625,7 @@ if form.getvalue('nginx_exp_install') or form.getvalue('apache_exp_install'):
         proxy_serv = proxy
 
     commands = [
-        f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} STAT_PORT={stats_port} SSH_PORT={ssh_settings['port']} STAT_PAGE={stats_page}" 
+        f"chmod +x {script} && ./{script} PROXY={proxy_serv} STAT_PORT={stats_port} SSH_PORT={ssh_settings['port']} STAT_PAGE={stats_page}" 
         f" STATS_USER={stats_user} STATS_PASS='{stats_password}' HOST={serv} VER={ver} EXP_PROM={ext_prom} USER={ssh_settings['user']} "
         f" PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
     ]
@@ -2145,11 +2137,12 @@ if form.getvalue('bwlists_delete'):
 
 if form.getvalue('get_lists'):
     lib_path = get_config.get_config_var('main', 'lib_path')
-    list_path = lib_path + "/" + sql.get_setting('lists_path') + "/" + form.getvalue('group') + "/" + form.getvalue(
-        'color')
+    group = funct.checkAjaxInput(form.getvalue('group'))
+    color = funct.checkAjaxInput(form.getvalue('color'))
+    list_path = f"{lib_path}/{sql.get_setting('lists_path')}/{group}/{color}"
     lists = funct.get_files(list_path, "lst")
-    for l in lists:
-        print(l)
+    for line in lists:
+        print(line)
 
 if form.getvalue('get_ldap_email'):
     username = form.getvalue('get_ldap_email')
@@ -3400,13 +3393,10 @@ if form.getvalue('awsvars') or form.getvalue('awseditvars'):
 
     aws_key, aws_secret = sql.select_aws_provider(provider)
 
-    cmd = 'cd scripts/terraform/ && sudo ansible-playbook var_generator.yml -i inventory -e "region={} ' \
-          'group={} size={} os={} floating_ip={} volume_size={} server_name={} AWS_ACCESS_KEY={} ' \
-          'AWS_SECRET_KEY={} firewall={} public_ip={} ssh_name={} delete_on_termination={} volume_type={} ' \
-          'cloud=aws"'.format(
-        region, group, size, oss, floating_ip, volume_size, awsvars, aws_key, aws_secret,
-        firewall, public_ip, ssh_name, delete_on_termination, volume_type
-    )
+    cmd = f'cd scripts/terraform/ && sudo ansible-playbook var_generator.yml -i inventory -e "region={region} ' \
+          f'group={group} size={size} os={oss} floating_ip={floating_ip} volume_size={volume_size} server_name={awsvars} ' \
+          f'AWS_ACCESS_KEY={aws_key} AWS_SECRET_KEY={aws_secret} firewall={firewall} public_ip={public_ip} ' \
+          f'ssh_name={ssh_name} delete_on_termination={delete_on_termination} volume_type={volume_type} cloud=aws"'
 
     output, stderr = funct.subprocess_execute(cmd)
     if stderr != '':
@@ -3446,16 +3436,13 @@ if form.getvalue('dovars') or form.getvalue('doeditvars'):
 
     token = sql.select_do_provider(provider)
 
-    cmd = 'cd scripts/terraform/ && sudo ansible-playbook var_generator.yml -i inventory -e "region={} ' \
-          'group={} size={} os={} floating_ip={} ssh_ids={} server_name={} token={} backup={} monitoring={} ' \
-          'privet_net={} firewall={} floating_ip={} ssh_name={} ' \
-          'cloud=do"'.format(
-        region, group, size, oss, floating_ip, ssh_ids, dovars, token, backup, monitoring,
-        privet_net, firewall, floating_ip, ssh_name
-    )
+    cmd = f'cd scripts/terraform/ && sudo ansible-playbook var_generator.yml -i inventory -e "region={region} ' \
+          f'group={group} size={size} os={oss} floating_ip={floating_ip} ssh_ids={ssh_ids} server_name={dovars} ' \
+          f'token={token} backup={backup} monitoring={monitoring} privet_net={privet_net} firewall={firewall} ' \
+          f'floating_ip={floating_ip} ssh_name={ssh_name} cloud=do"'
     output, stderr = funct.subprocess_execute(cmd)
     if stderr != '':
-        print('error: ' + stderr)
+        print(f'error: {stderr}')
     else:
         print(cmd)
         print(output)
@@ -3468,10 +3455,10 @@ if form.getvalue('dovalidate') or form.getvalue('doeditvalidate'):
         workspace = form.getvalue('doeditvalidate')
         group = form.getvalue('do_edit_group')
 
-    cmd = 'cd scripts/terraform/ && sudo terraform plan -no-color -input=false -target=module.do_module -var-file vars/' + workspace + '_' + group + '_do.tfvars'
+    cmd = f'cd scripts/terraform/ && sudo terraform plan -no-color -input=false -target=module.do_module -var-file vars/{workspace}_{group}_do.tfvars'
     output, stderr = funct.subprocess_execute(cmd)
     if stderr != '':
-        print('error: ' + stderr)
+        print(f'error: {stderr}')
     else:
         print('ok')
 
