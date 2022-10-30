@@ -118,11 +118,11 @@ if serv and form.getvalue('ssl_cert'):
         error = funct.upload(serv, cert_path, name)
         print('success: the SSL file has been uploaded to %s into: %s%s' % (serv, cert_path, '/' + name))
     except Exception as e:
-        funct.logging('localhost', e.args[0], roxywi=1)
+        funct.logging('Roxy-WI server', e.args[0], roxywi=1)
     try:
         os.rename(name, cert_local_dir)
     except OSError as e:
-        funct.logging('localhost', e.args[0], roxywi=1)
+        funct.logging('Roxy-WI server', e.args[0], roxywi=1)
 
     funct.logging(serv, "add.py#ssl uploaded a new SSL cert %s" % name, roxywi=1, login=1)
 
@@ -598,7 +598,7 @@ if form.getvalue('action_service') is not None:
     if is_in_docker:
         cmd = "sudo supervisorctl " + action + " " + serv
     output, stderr = funct.subprocess_execute(cmd)
-    funct.logging('localhost', ' The service ' + serv + ' has been ' + action + 'ed', roxywi=1, login=1)
+    funct.logging('Roxy-WI server', ' The service ' + serv + ' has been ' + action + 'ed', roxywi=1, login=1)
 
 if act == "overviewHapserverBackends":
     env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
@@ -617,23 +617,23 @@ if act == "overviewHapserverBackends":
         try:
             sections = funct.get_sections(configs_dir + funct.get_files(configs_dir, format_file)[0], service=service)
         except Exception as e:
-            funct.logging('localhost', str(e), roxywi=1)
+            funct.logging('Roxy-WI server', str(e), roxywi=1)
 
             try:
                 cfg = configs_dir + serv + "-" + funct.get_data('config') + '.' + format_file
             except Exception as e:
-                funct.logging('localhost', ' Cannot generate a cfg path ' + str(e), roxywi=1)
+                funct.logging('Roxy-WI server', ' Cannot generate a cfg path ' + str(e), roxywi=1)
             try:
                 if service == 'keepalived':
                     error = funct.get_config(serv, cfg, keepalived=1)
                 else:
                     error = funct.get_config(serv, cfg)
             except Exception as e:
-                funct.logging('localhost', ' Cannot download a config ' + str(e), roxywi=1)
+                funct.logging('Roxy-WI server', ' Cannot download a config ' + str(e), roxywi=1)
             try:
                 sections = funct.get_sections(cfg, service=service)
             except Exception as e:
-                funct.logging('localhost', ' Cannot get sections from config file ' + str(e), roxywi=1)
+                funct.logging('Roxy-WI server', ' Cannot get sections from config file ' + str(e), roxywi=1)
                 sections = 'Cannot get backends'
     else:
         sections = funct.get_remote_sections(serv, service)
@@ -648,19 +648,19 @@ if form.getvalue('show_userlists'):
     try:
         sections = funct.get_userlists(configs_dir + funct.get_files(configs_dir, format_file)[0])
     except Exception as e:
-        funct.logging('localhost', str(e), roxywi=1)
+        funct.logging('Roxy-WI server', str(e), roxywi=1)
         try:
             cfg = f'{configs_dir}{serv}-{funct.get_data("config")}.{format_file}'
         except Exception as e:
-            funct.logging('localhost', f' Cannot generate a cfg path {e}', roxywi=1)
+            funct.logging('Roxy-WI server', f' Cannot generate a cfg path {e}', roxywi=1)
         try:
             error = funct.get_config(serv, cfg)
         except Exception as e:
-            funct.logging('localhost', f' Cannot download a config {e}', roxywi=1)
+            funct.logging('Roxy-WI server', f' Cannot download a config {e}', roxywi=1)
         try:
             sections = funct.get_userlists(cfg)
         except Exception as e:
-            funct.logging('localhost', f' Cannot get Userlists from the config file {e}', roxywi=1)
+            funct.logging('Roxy-WI server', f' Cannot get Userlists from the config file {e}', roxywi=1)
             sections = 'error: Cannot get Userlists'
 
     print(sections)
@@ -1550,7 +1550,7 @@ if form.getvalue('install_grafana'):
     output, error = funct.subprocess_execute(commands[0])
 
     if error:
-        funct.logging('localhost', error, roxywi=1)
+        funct.logging('Roxy-WI server', error, roxywi=1)
 
         print(
             f'success: Grafana and Prometheus servers were installed. You can find Grafana on http://{host}:3000<br>')
@@ -2339,7 +2339,7 @@ if form.getvalue('newserver') is not None:
                 user_status, user_plan = funct.return_user_status()
             except Exception as e:
                 user_status, user_plan = 0, 0
-                funct.logging('localhost', 'Cannot get a user plan: ' + str(e), roxywi=1)
+                funct.logging('Roxy-WI server', 'Cannot get a user plan: ' + str(e), roxywi=1)
 
             env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
             template = env.get_template('ajax/new_server.html')
@@ -2428,7 +2428,7 @@ if form.getvalue('newgroup') is not None:
 
             output_from_parsed_template = template.render(groups=sql.select_groups(group=newgroup))
             print(output_from_parsed_template)
-            funct.logging('localhost', 'A new group ' + newgroup + ' has been created', roxywi=1, login=1)
+            funct.logging('Roxy-WI server', 'A new group ' + newgroup + ' has been created', roxywi=1, login=1)
 
 if form.getvalue('groupdel') is not None:
     groupdel = form.getvalue('groupdel')
@@ -2437,7 +2437,7 @@ if form.getvalue('groupdel') is not None:
         groupname = g.name
     if sql.delete_group(groupdel):
         print("Ok")
-        funct.logging('localhost', 'The ' + groupname + ' has been deleted', roxywi=1, login=1)
+        funct.logging('Roxy-WI server', 'The ' + groupname + ' has been deleted', roxywi=1, login=1)
 
 if form.getvalue('updategroup') is not None:
     name = form.getvalue('updategroup')
@@ -2448,7 +2448,7 @@ if form.getvalue('updategroup') is not None:
     else:
         try:
             sql.update_group(name, descript, group_id)
-            funct.logging('localhost', 'The ' + name + ' has been updated', roxywi=1, login=1)
+            funct.logging('Roxy-WI server', 'The ' + name + ' has been updated', roxywi=1, login=1)
         except Exception as e:
             print('error: ' + str(e))
 
@@ -2472,7 +2472,7 @@ if form.getvalue('new_ssh'):
             output_from_parsed_template = template.render(groups=sql.select_groups(), sshs=sql.select_ssh(name=name),
                                                           page=page)
             print(output_from_parsed_template)
-            funct.logging('localhost', 'A new SSH credentials ' + name + ' has created', roxywi=1, login=1)
+            funct.logging('Roxy-WI server', 'A new SSH credentials ' + name + ' has created', roxywi=1, login=1)
 
 if form.getvalue('sshdel') is not None:
     lib_path = get_config.get_config_var('main', 'lib_path')
@@ -2484,17 +2484,17 @@ if form.getvalue('sshdel') is not None:
     for sshs in sql.select_ssh(id=sshdel):
         ssh_enable = sshs.enable
         name = sshs.name
-        ssh_key_name = lib_path + '/keys/%s.pem' % sshs.name
+        ssh_key_name = f'{lib_path}/keys/{sshs.name}.pem'
 
     if ssh_enable == 1:
-        cmd = 'rm -f %s' % ssh_key_name
+        cmd = f'rm -f {ssh_key_name}'
         try:
             funct.subprocess_execute(cmd)
         except Exception:
             pass
     if sql.delete_ssh(sshdel):
         print("Ok")
-        funct.logging('localhost', 'The SSH credentials ' + name + ' has deleted', roxywi=1, login=1)
+        funct.logging('Roxy-WI server', f'The SSH credentials {name} has deleted', roxywi=1, login=1)
 
 if form.getvalue('updatessh'):
     ssh_id = form.getvalue('id')
@@ -2512,19 +2512,19 @@ if form.getvalue('updatessh'):
 
         for sshs in sql.select_ssh(id=ssh_id):
             ssh_enable = sshs.enable
-            ssh_key_name = lib_path + '/keys/%s.pem' % sshs.name
-            new_ssh_key_name = lib_path + '/keys/%s.pem' % name
+            ssh_key_name = f'{lib_path}/keys/{sshs.name}.pem'
+            new_ssh_key_name = f'{lib_path}/keys/{name}.pem'
 
         if ssh_enable == 1:
-            cmd = 'mv %s %s' % (ssh_key_name, new_ssh_key_name)
-            cmd1 = 'chmod 600 %s' % new_ssh_key_name
+            cmd = f'mv {ssh_key_name} {new_ssh_key_name}'
+            cmd1 = f'chmod 600 {new_ssh_key_name}'
             try:
                 funct.subprocess_execute(cmd)
                 funct.subprocess_execute(cmd1)
             except Exception:
                 pass
         sql.update_ssh(ssh_id, name, enable, group, username, password)
-        funct.logging('localhost', 'The SSH credentials ' + name + ' has been updated ', roxywi=1, login=1)
+        funct.logging('Roxy-WI server', f'The SSH credentials {name} has been updated ', roxywi=1, login=1)
 
 if form.getvalue('ssh_cert'):
     import paramiko
@@ -2535,12 +2535,12 @@ if form.getvalue('ssh_cert'):
     try:
         key = paramiko.pkey.load_private_key(form.getvalue('ssh_cert'))
     except Exception as e:
-        print('error: Cannot save SSH key file: ', str(e))
+        print(f'error: Cannot save SSH key file: {e}')
         sys.exit()
 
     lib_path = get_config.get_config_var('main', 'lib_path')
-    full_dir = lib_path + '/keys/'
-    ssh_keys = name + '.pem'
+    full_dir = f'{lib_path}/keys/'
+    ssh_keys = f'{name}.pem'
 
     try:
         check_split = name.split('_')[1]
@@ -2549,28 +2549,28 @@ if form.getvalue('ssh_cert'):
         split_name = False
 
     if not os.path.isfile(ssh_keys) and not split_name:
-        name = name + '_' + user_group
+        name = f'{name}_{user_group}'
 
     if not os.path.exists(full_dir):
         os.makedirs(full_dir)
 
-    ssh_keys = full_dir + name + '.pem'
+    ssh_keys = f'{full_dir}{name}.pem'
 
     try:
         key.write_private_key_file(ssh_keys)
     except Exception as e:
-        print('error: Cannot save SSH key file: ', str(e))
+        print(f'error: Cannot save SSH key file: {e}')
         sys.exit()
     else:
-        print('success: SSH key has been saved into: %s ' % ssh_keys)
+        print(f'success: SSH key has been saved into: {ssh_keys}')
 
     try:
-        cmd = 'chmod 600 %s' % ssh_keys
+        cmd = f'chmod 600 {ssh_keys}'
         funct.subprocess_execute(cmd)
     except IOError as e:
-        funct.logging('localhost', e.args[0], roxywi=1)
+        funct.logging('Roxy-WI server', e.args[0], roxywi=1)
 
-    funct.logging("localhost", "A new SSH cert has been uploaded %s" % ssh_keys, roxywi=1, login=1)
+    funct.logging("Roxy-WI server", f"A new SSH cert has been uploaded {ssh_keys}", roxywi=1, login=1)
 
 if form.getvalue('newtelegram'):
     token = form.getvalue('newtelegram')
@@ -2588,7 +2588,7 @@ if form.getvalue('newtelegram'):
             output_from_parsed_template = template.render(groups=sql.select_groups(),
                                                           telegrams=sql.select_telegram(token=token), page=page)
             print(output_from_parsed_template)
-            funct.logging('localhost', 'A new Telegram channel ' + channel + ' has been created ', roxywi=1, login=1)
+            funct.logging('Roxy-WI server', f'A new Telegram channel {channel} has been created ', roxywi=1, login=1)
 
 if form.getvalue('newslack'):
     token = form.getvalue('newslack')
@@ -2606,7 +2606,7 @@ if form.getvalue('newslack'):
             output_from_parsed_template = template.render(groups=sql.select_groups(),
                                                           slacks=sql.select_slack(token=token), page=page)
             print(output_from_parsed_template)
-            funct.logging('localhost', 'A new Slack channel ' + channel + ' has been created ', roxywi=1, login=1)
+            funct.logging('Roxy-WI server', 'A new Slack channel ' + channel + ' has been created ', roxywi=1, login=1)
 
 if form.getvalue('telegramdel') is not None:
     telegramdel = form.getvalue('telegramdel')
@@ -2616,7 +2616,7 @@ if form.getvalue('telegramdel') is not None:
         telegram_name = t.token
     if sql.delete_telegram(telegramdel):
         print("Ok")
-        funct.logging('localhost', 'The Telegram channel ' + telegram_name + ' has been deleted ', roxywi=1, login=1)
+        funct.logging('Roxy-WI server', 'The Telegram channel ' + telegram_name + ' has been deleted ', roxywi=1, login=1)
 
 if form.getvalue('slackdel') is not None:
     slackdel = form.getvalue('slackdel')
@@ -2626,7 +2626,7 @@ if form.getvalue('slackdel') is not None:
         slack_name = t.chanel_name
     if sql.delete_slack(slackdel):
         print("Ok")
-        funct.logging('localhost', 'The Slack channel ' + slack_name + ' has been deleted ', roxywi=1, login=1)
+        funct.logging('Roxy-WI server', 'The Slack channel ' + slack_name + ' has been deleted ', roxywi=1, login=1)
 
 if form.getvalue('updatetoken') is not None:
     token = form.getvalue('updatetoken')
@@ -2656,7 +2656,7 @@ if form.getvalue('updatesettings') is not None:
     settings = form.getvalue('updatesettings')
     val = form.getvalue('val')
     if sql.update_setting(settings, val):
-        funct.logging('localhost', 'The ' + settings + ' setting has been changed to: ' + str(val), roxywi=1,
+        funct.logging('Roxy-WI server', 'The ' + settings + ' setting has been changed to: ' + str(val), roxywi=1,
                       login=1)
         print("Ok")
 
@@ -2698,7 +2698,7 @@ if form.getvalue('changeUserGroupId') is not None:
             except Exception as e:
                 print(e)
 
-    funct.logging('localhost', 'Groups has been updated for user: ' + user, roxywi=1, login=1)
+    funct.logging('Roxy-WI server', 'Groups has been updated for user: ' + user, roxywi=1, login=1)
 
 if form.getvalue('changeUserServicesId') is not None:
     user_id = form.getvalue('changeUserServicesId')
@@ -2707,7 +2707,7 @@ if form.getvalue('changeUserServicesId') is not None:
 
     try:
         if sql.update_user_services(services=services, user_id=user_id):
-            funct.logging('localhost', 'Access to the services has been updated for user: ' + user, roxywi=1, login=1)
+            funct.logging('Roxy-WI server', 'Access to the services has been updated for user: ' + user, roxywi=1, login=1)
     except Exception as e:
         print(e)
 
@@ -2978,7 +2978,7 @@ if form.getvalue('lets_domain'):
     output, error = funct.subprocess_execute(commands[0])
 
     if error:
-        funct.logging('localhost', error, roxywi=1)
+        funct.logging('Roxy-WI server', error, roxywi=1)
         print(error)
     else:
         for line in output:
@@ -3014,15 +3014,15 @@ if form.getvalue('uploadovpn'):
         cmd = 'sudo openvpn3 config-import --config %s --persistent' % ovpn_file
         funct.subprocess_execute(cmd)
     except IOError as e:
-        funct.logging('localhost', e.args[0], roxywi=1)
+        funct.logging('Roxy-WI server', e.args[0], roxywi=1)
 
     try:
         cmd = 'sudo cp %s /etc/openvpn3/%s.conf' % (ovpn_file, name)
         funct.subprocess_execute(cmd)
     except IOError as e:
-        funct.logging('localhost', e.args[0], roxywi=1)
+        funct.logging('Roxy-WI server', e.args[0], roxywi=1)
 
-    funct.logging("localhost", " has been uploaded a new ovpn file %s" % ovpn_file, roxywi=1, login=1)
+    funct.logging("Roxy-WI server", " has been uploaded a new ovpn file %s" % ovpn_file, roxywi=1, login=1)
 
 if form.getvalue('openvpndel') is not None:
     openvpndel = funct.checkAjaxInput(form.getvalue('openvpndel'))
@@ -3034,7 +3034,7 @@ if form.getvalue('openvpndel') is not None:
         funct.logging(openvpndel, ' has deleted the ovpn file ', roxywi=1, login=1)
     except IOError as e:
         print(e.args[0])
-        funct.logging('localhost', e.args[0], roxywi=1)
+        funct.logging('Roxy-WI server', e.args[0], roxywi=1)
 
 if form.getvalue('actionvpn') is not None:
     openvpn = funct.checkAjaxInput(form.getvalue('openvpnprofile'))
@@ -3052,7 +3052,7 @@ if form.getvalue('actionvpn') is not None:
         funct.logging(openvpn, ' has ' + action + ' the ovpn session ', roxywi=1, login=1)
     except IOError as e:
         print(e.args[0])
-        funct.logging('localhost', e.args[0], roxywi=1)
+        funct.logging('Roxy-WI server', e.args[0], roxywi=1)
 
 if form.getvalue('scan_ports') is not None:
     serv_id = funct.checkAjaxInput(form.getvalue('scan_ports'))
@@ -3170,7 +3170,7 @@ if form.getvalue('nettools_icmp_server_from'):
         output = funct.ssh_command(server_from, action_for_sending, raw=1)
 
     if stderr != '':
-        print('error: ' + stderr)
+        print(f'error: {stderr}')
         sys.exit()
     for i in output:
         if i == ' ' or i == '':
@@ -3199,14 +3199,14 @@ if form.getvalue('nettools_telnet_server_from'):
         sys.exit()
 
     if server_from == 'localhost':
-        action_for_sending = 'echo "exit"|nc ' + server_to + ' ' + port_to + ' -t -w 1s'
+        action_for_sending = f'echo "exit"|nc {server_to} {port_to} -t -w 1s'
         output, stderr = funct.subprocess_execute(action_for_sending)
     else:
-        action_for_sending = ['echo "exit"|nc ' + server_to + ' ' + port_to + ' -t -w 1s']
+        action_for_sending = [f'echo "exit"|nc {server_to} {port_to} -t -w 1s']
         output = funct.ssh_command(server_from, action_for_sending, raw=1)
 
     if stderr != '':
-        print('error: <b>' + stderr[5:] + '</b>')
+        print(f'error: <b>{stderr[5:]}</b>')
         sys.exit()
     count_string = 0
     for i in output:
@@ -3214,7 +3214,7 @@ if form.getvalue('nettools_telnet_server_from'):
             continue
         i = i.strip()
         if i == 'Ncat: Connection timed out.':
-            print('error: <b>' + i[5:] + '</b>')
+            print(f'error: <b>{i[5:]}</b>')
             break
         print(i + '<br>')
         count_string += 1
@@ -3232,7 +3232,7 @@ if form.getvalue('nettools_nslookup_server_from'):
         print('warning: enter a correct DNS name')
         sys.exit()
 
-    action_for_sending = 'dig ' + dns_name + ' ' + record_type + ' |grep -e "SERVER\|' + dns_name + '"'
+    action_for_sending = f'dig {dns_name} {record_type} |grep -e "SERVER\|{dns_name}"'
 
     if server_from == 'localhost':
         output, stderr = funct.subprocess_execute(action_for_sending)
@@ -3245,7 +3245,7 @@ if form.getvalue('nettools_nslookup_server_from'):
         sys.exit()
     count_string = 0
     print(
-        '<b style="display: block; margin-top:10px;">The <i style="color: var(--blue-color)">' + dns_name + '</i> domain has the following records:</b>')
+        f'<b style="display: block; margin-top:10px;">The <i style="color: var(--blue-color)">{dns_name}</i> domain has the following records:</b>')
     for i in output:
         if 'dig: command not found.' in i:
             print('error: Install bind-utils before using NSLookup')
@@ -3267,11 +3267,7 @@ if form.getvalue('portscanner_history_server_id'):
     enabled = form.getvalue('portscanner_enabled')
     notify = form.getvalue('portscanner_notify')
     history = form.getvalue('portscanner_history')
-
-    servers = sql.select_servers(id=server_id)
-
-    for s in servers:
-        user_group_id = s[3]
+    user_group_id = [server[3] for server in sql.select_servers(id=server_id)]
 
     try:
         if sql.insert_port_scanner_settings(server_id, user_group_id, enabled, notify, history):
@@ -3343,7 +3339,7 @@ if form.getvalue('providerdel'):
     try:
         if sql.delete_provider(form.getvalue('providerdel')):
             print('Ok')
-            funct.logging('localhost', 'Provider has been deleted', provisioning=1)
+            funct.logging('Roxy-WI server', 'Provider has been deleted', provisioning=1)
     except Exception as e:
         print(e)
 
@@ -3697,8 +3693,8 @@ if (
         cloud = 'gcore'
         state_name = 'gcore_instance'
 
-    tfvars = workspace + '_' + group + '_' + cloud + '.tfvars'
-    cmd = 'cd scripts/terraform/ && sudo terraform apply -auto-approve -no-color -input=false -target=module.' + cloud + '_module -var-file vars/' + tfvars
+    tfvars = f'{workspace}_{group}_{cloud}.tfvars'
+    cmd = f'cd scripts/terraform/ && sudo terraform apply -auto-approve -no-color -input=false -target=module.{cloud}_module -var-file vars/{tfvars}'
     output, stderr = funct.subprocess_execute(cmd)
 
     if stderr != '':
@@ -3742,7 +3738,7 @@ if (
             except Exception as e:
                 print(e)
 
-        funct.logging('localhost', 'Server ' + workspace + ' has been ' + action, provisioning=1)
+        funct.logging('Roxy-WI server', f'Server {workspace} has been {action}', provisioning=1)
 
 if form.getvalue('provisiningdestroyserver'):
     funct.check_user_group()
@@ -3752,9 +3748,9 @@ if form.getvalue('provisiningdestroyserver'):
     cloud_type = form.getvalue('type')
     provider_id = form.getvalue('provider_id')
 
-    tf_workspace = workspace + '_' + group + '_' + cloud_type
+    tf_workspace = f'{workspace}_{group}_{cloud_type}
 
-    cmd = 'cd scripts/terraform/ && sudo terraform init -upgrade -no-color && sudo terraform workspace select ' + tf_workspace
+    cmd = f'cd scripts/terraform/ && sudo terraform init -upgrade -no-color && sudo terraform workspace select {tf_workspace}'
     output, stderr = funct.subprocess_execute(cmd)
 
     if stderr != '':
@@ -3766,17 +3762,17 @@ if form.getvalue('provisiningdestroyserver'):
         sql.update_provisioning_server_error(stderr, group, workspace, provider_id)
         print('error: ' + stderr)
     else:
-        cmd = 'cd scripts/terraform/ && sudo terraform destroy -auto-approve -no-color -target=module.' + cloud_type + '_module -var-file vars/' + tf_workspace + '.tfvars'
+        cmd = f'cd scripts/terraform/ && sudo terraform destroy -auto-approve -no-color -target=module.{cloud_type}_module -var-file vars/{tf_workspace}.tfvars'
         output, stderr = funct.subprocess_execute(cmd)
 
         if stderr != '':
-            print('error: ' + stderr)
+            print(f'error: {stderr}')
         else:
-            cmd = 'cd scripts/terraform/ && sudo terraform workspace select default && sudo terraform workspace delete -force ' + tf_workspace
+            cmd = f'cd scripts/terraform/ && sudo terraform workspace select default && sudo terraform workspace delete -force {tf_workspace}'
             output, stderr = funct.subprocess_execute(cmd)
 
             print('ok')
-            funct.logging('localhost', 'Server has been destroyed', provisioning=1)
+            funct.logging('Roxy-WI server', 'Server has been destroyed', provisioning=1)
             try:
                 sql.delete_provisioned_servers(server_id)
             except Exception as e:
@@ -3827,7 +3823,7 @@ if form.getvalue('gcorevars') or form.getvalue('gcoreeditvars'):
 
     output, stderr = funct.subprocess_execute(cmd)
     if stderr != '':
-        print('error: ' + stderr)
+        print(f'error: {stderr}')
     else:
         print('ok')
 
@@ -3839,10 +3835,10 @@ if form.getvalue('gcorevalidate') or form.getvalue('gcoreeditvalidate'):
         workspace = form.getvalue('gcoreeditvalidate')
         group = form.getvalue('gcore_edit_group')
 
-    cmd = 'cd scripts/terraform/ && sudo terraform plan -no-color -input=false -target=module.gcore_module -var-file vars/' + workspace + '_' + group + '_gcore.tfvars'
+    cmd = f'cd scripts/terraform/ && sudo terraform plan -no-color -input=false -target=module.gcore_module -var-file vars/{workspace}_{group}_gcore.tfvars'
     output, stderr = funct.subprocess_execute(cmd)
     if stderr != '':
-        print('error: ' + stderr)
+        print(f'error: {stderr}')
     else:
         print('ok')
 
@@ -3982,7 +3978,7 @@ if form.getvalue('edit_do_provider'):
     try:
         if sql.update_do_provider(new_name, new_token, provider_id):
             print('ok')
-            funct.logging('localhost', 'Provider has been renamed. New name is ' + new_name, provisioning=1)
+            funct.logging('Roxy-WI server', 'Provider has been renamed. New name is ' + new_name, provisioning=1)
     except Exception as e:
         print(e)
 
@@ -3996,7 +3992,7 @@ if form.getvalue('edit_gcore_provider'):
     try:
         if sql.update_gcore_provider(new_name, new_user, new_pass, provider_id):
             print('ok')
-            funct.logging('localhost', 'Provider has been renamed. New name is ' + new_name, provisioning=1)
+            funct.logging('Roxy-WI server', 'Provider has been renamed. New name is ' + new_name, provisioning=1)
     except Exception as e:
         print(e)
 
@@ -4010,7 +4006,7 @@ if form.getvalue('edit_aws_provider'):
     try:
         if sql.update_aws_provider(new_name, new_key, new_secret, provider_id):
             print('ok')
-            funct.logging('localhost', 'Provider has been renamed. New name is ' + new_name, provisioning=1)
+            funct.logging('Roxy-WI server', 'Provider has been renamed. New name is ' + new_name, provisioning=1)
     except Exception as e:
         print(e)
 
@@ -4036,7 +4032,7 @@ if form.getvalue('loadchecker'):
         user_status, user_plan = funct.return_user_status()
     except Exception as e:
         user_status, user_plan = 0, 0
-        funct.logging('localhost', 'Cannot get a user plan: ' + str(e), roxywi=1)
+        funct.logging('Roxy-WI server', 'Cannot get a user plan: ' + str(e), roxywi=1)
     if user_status:
         haproxy_settings = sql.select_checker_settings(1)
         nginx_settings = sql.select_checker_settings(2)
