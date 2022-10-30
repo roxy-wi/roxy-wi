@@ -1457,23 +1457,22 @@ function returnNiceCheckingConfig(data) {
 	}
 	alerts.forEach((element) => {
 		if (element.indexOf('error: ') != '-1' || element.indexOf('Fatal') != '-1' || element.indexOf('Error') != '-1' || element.indexOf('failed ') != '-1' || element.indexOf('emerg] ') != '-1' || element.indexOf('Syntax error ') != '-1') {
-			alert_error = alert_error + element
+			alert_error = alert_error + element;
 			return
 		}
 		if (element.indexOf('[WARNING]') != '-1' || element.indexOf('[ALER]') != '-1' || element.indexOf('[warn]') != '-1') {
 			element = removeEmptyLines(element);
-			console.log(element);
 			if (second_alert == false) {
 				alert_warning = alert_warning + element;
 			} else {
 				alert_warning2 = alert_warning2 + element;
-				server_name = 'Master server:'
-				server_name2 = 'Slave server:'
+				server_name = 'Master server:';
+				server_name2 = 'Slave server:';
 			}
 		}
 		if (second_alert && output.length > 4 && output[1].indexOf('[NOTICE]') == '-1') {
-			server_name = 'Master server:'
-			server_name2 = 'Slave server:'
+			server_name = 'Master server:';
+			server_name2 = 'Slave server:';
 		}
 		if (element.length === 0) {
 			second_alert = true;

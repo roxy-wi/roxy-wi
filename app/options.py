@@ -3547,7 +3547,7 @@ if form.getvalue('awsvalidate') or form.getvalue('awseditvalidate'):
         workspace = form.getvalue('awseditvalidate')
         group = form.getvalue('aws_edit_group')
 
-    cmd = 'cd scripts/terraform/ && sudo terraform plan -no-color -input=false -target=module.aws_module -var-file vars/' + workspace + '_' + group + '_aws.tfvars'
+    cmd = f'cd scripts/terraform/ && sudo terraform plan -no-color -input=false -target=module.aws_module -var-file vars/{workspace}_{group}_aws.tfvars'
     output, stderr = funct.subprocess_execute(cmd)
     if stderr != '':
         print('error: ' + stderr)
@@ -3569,7 +3569,7 @@ if form.getvalue('awsworkspace'):
     firewall = form.getvalue('aws_create_firewall')
     public_ip = form.getvalue('aws_create_public_ip')
 
-    cmd = 'cd scripts/terraform/ && sudo terraform workspace new ' + workspace + '_' + group + '_aws'
+    cmd = f'cd scripts/terraform/ && sudo terraform workspace new {workspace}_{group}_aws'
     output, stderr = funct.subprocess_execute(cmd)
 
     if stderr != '':
@@ -3623,7 +3623,7 @@ if form.getvalue('awseditworkspace'):
         ):
 
             try:
-                cmd = 'cd scripts/terraform/ && sudo terraform workspace select ' + workspace + '_' + group + '_aws'
+                cmd = f'cd scripts/terraform/ && sudo terraform workspace select {workspace}_{group}_aws'
                 output, stderr = funct.subprocess_execute(cmd)
             except Exception as e:
                 print('error: ' + str(e))

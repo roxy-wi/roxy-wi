@@ -393,9 +393,7 @@ def get_config(server_ip, cfg, **kwargs):
 		with ssh_connect(server_ip) as ssh:
 			ssh.get_sftp(config_path, cfg)
 	except Exception as e:
-		print('error: cannot get config')
-		logging('Roxy-WI server', str(e), roxywi=1)
-		return
+		logging('Roxy-WI server', f'error: cannot get config: {e}', roxywi=1)
 
 
 def diff_config(oldcfg, cfg, **kwargs):
@@ -962,7 +960,7 @@ def upload_and_restart(server_ip: str, cfg: str, **kwargs):
 				try:
 					get_config(server_ip, old_cfg, service=service, config_file_name=config_path)
 				except Exception:
-					logging('Roxy-WI server', ' Cannot download config', roxywi=1)
+					logging('Roxy-WI server', 'Cannot download config for diff', roxywi=1)
 			try:
 				diff = diff_config(old_cfg, cfg, return_diff=1)
 			except Exception as e:
@@ -995,7 +993,6 @@ def upload_and_restart(server_ip: str, cfg: str, **kwargs):
 def master_slave_upload_and_restart(server_ip, cfg, just_save, **kwargs):
 	import sql
 
-	masters = sql.is_master(server_ip)
 	slave_output = ''
 
 	try:
@@ -1008,13 +1005,13 @@ def master_slave_upload_and_restart(server_ip, cfg, just_save, **kwargs):
 	else:
 		login = ''
 
-	for master in masters:
-		if master[0] is not None:
-			slv_output = upload_and_restart(
-				master[0], cfg, just_save=just_save, nginx=kwargs.get('nginx'), waf=kwargs.get('waf'),
-				apache=kwargs.get('apache'), config_file_name=kwargs.get('config_file_name'), slave=1
-			)
-			slave_output += f'<br>{master[1]}:\n{slv_output}'
+	is_master = [masters[0] for masters in sql.is_master(server_ip)]
+	if is_master[0] is not None:
+		slv_output = upload_and_restart(
+			is_master[0], cfg, just_save=just_save, nginx=kwargs.get('nginx'), waf=kwargs.get('waf'),
+			apache=kwargs.get('apache'), config_file_name=kwargs.get('config_file_name'), slave=1
+		)
+		slave_output += f'<br>slave_server:\n{slv_output}'
 
 	output = upload_and_restart(
 		server_ip, cfg, just_save=just_save, nginx=kwargs.get('nginx'), waf=kwargs.get('waf'),

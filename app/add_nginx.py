@@ -96,17 +96,8 @@ if form.getvalue('generateconfig') is None and serv is not None:
 
 			funct.logging(serv, "add_nginx.py add new %s" % config_name)
 
-			MASTERS = sql.is_master(serv)
-			for master in MASTERS:
-				if master[0] is not None:
-					slave_output = funct.upload_and_restart(master[0], cfg, nginx=1, config_file_name=config_file_name)
+			output = funct.master_slave_upload_and_restart(serv, cfg, just_save="save", nginx=1, config_file_name=config_file_name)
 
-					slave_output = '<br>' + master[1] + ':\n' + slave_output
-
-			output = funct.upload_and_restart(serv, cfg, just_save="save", nginx=1, config_file_name=config_file_name)
-
-			output = '<br>' + server_name + ':\n' + output
-			output = output + slave_output
 			if output:
 				print(output)
 			else:

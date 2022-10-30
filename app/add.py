@@ -396,17 +396,7 @@ if form.getvalue('generateconfig') is None and serv is not None:
 
 			funct.logging(serv, "add.py add new %s" % name)
 
-			MASTERS = sql.is_master(serv)
-			for master in MASTERS:
-				if master[0] is not None:
-					slave_output = funct.upload_and_restart(master[0], cfg)
-
-					slave_output = '<br>' + master[1] + ':\n' + slave_output
-
-			output = funct.upload_and_restart(serv, cfg, just_save="save")
-
-			output = '<br>' + server_name + ':\n' + output
-			output = output + slave_output
+			output = funct.master_slave_upload_and_restart(serv, cfg, just_save="save")
 			if output:
 				print(output)
 			else:
