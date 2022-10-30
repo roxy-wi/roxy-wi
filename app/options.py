@@ -793,7 +793,7 @@ if act == "overviewwaf":
             is_waf_on_server = sql.select_nginx(server[2])
 
         if is_waf_on_server == 1:
-            config_path = sql.get_setting(waf_service + '_dir')
+            config_path = sql.get_setting(f'{waf_service}_dir')
             if waf_service == 'haproxy':
                 waf = sql.select_waf_servers(server[2])
                 metrics_en = sql.select_waf_metrics_enable_server(server[2])
@@ -809,9 +809,9 @@ if act == "overviewwaf":
                     command = ["ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l"]
                 elif waf_service == 'nginx':
                     command = [
-                        "grep 'modsecurity on' %s* --exclude-dir=waf -Rs |wc -l" % funct.return_nice_path(config_path)]
+                        f"grep 'modsecurity on' {funct.return_nice_path(config_path)}* --exclude-dir=waf -Rs |wc -l"]
                 commands1 = [
-                    "grep SecRuleEngine %s/waf/modsecurity.conf |grep -v '#' |awk '{print $2}'" % config_path]
+                    f"grep SecRuleEngine {config_path}/waf/modsecurity.conf |grep -v '#' |awk '{{print $2}}'"]
                 waf_process = funct.ssh_command(server[2], command)
                 waf_mode = funct.ssh_command(server[2], commands1).strip()
 
@@ -1338,8 +1338,8 @@ if serv is not None and act == "configShow":
 if act == 'configShowFiles':
     service = form.getvalue('service')
 
-    config_dir = get_config.get_config_var('configs', service + '_save_configs_dir')
-    service_config_dir = sql.get_setting(service + '_dir')
+    config_dir = get_config.get_config_var('configs', f'{service}_save_configs_dir')
+    service_config_dir = sql.get_setting(f'{service}_dir')
     try:
         config_file_name = form.getvalue('config_file_name').replace('92', '/')
     except Exception:
@@ -1348,7 +1348,7 @@ if act == 'configShowFiles':
     if 'error: ' in return_files:
         print(return_files)
         sys.exit()
-    return_files += ' ' + sql.get_setting(service + '_config_path')
+    return_files += ' ' + sql.get_setting(f'{service}_config_path')
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
     template = env.get_template('ajax/show_configs_files.html')
     template = template.render(serv=serv, service=service, return_files=return_files,
@@ -1357,7 +1357,7 @@ if act == 'configShowFiles':
 
 if act == 'showRemoteLogFiles':
     service = form.getvalue('service')
-    log_path = sql.get_setting(service + '_path_logs')
+    log_path = sql.get_setting(f'{service}_path_logs')
     return_files = funct.get_remote_files(serv, log_path, 'log')
     if 'error: ' in return_files:
         print(return_files)
@@ -1956,7 +1956,7 @@ if form.getvalue('new_http_metrics'):
     metrics['chartData']['http_3xx'] = http_3xx
     metrics['chartData']['http_4xx'] = http_4xx
     metrics['chartData']['http_5xx'] = http_5xx
-    metrics['chartData']['server'] = hostname + ' (' + server + ')'
+    metrics['chartData']['server'] = f'{hostname} ({server})'
 
     print(json.dumps(metrics))
 
@@ -1988,7 +1988,7 @@ if any((form.getvalue('new_nginx_metrics'), form.getvalue('new_apache_metrics'),
 
     metrics['chartData']['labels'] = labels
     metrics['chartData']['curr_con'] = curr_con
-    metrics['chartData']['server'] = hostname + ' (' + serv + ')'
+    metrics['chartData']['server'] = f'{hostname} ({serv})'
 
     print(json.dumps(metrics))
 
@@ -3748,7 +3748,7 @@ if form.getvalue('provisiningdestroyserver'):
     cloud_type = form.getvalue('type')
     provider_id = form.getvalue('provider_id')
 
-    tf_workspace = f'{workspace}_{group}_{cloud_type}
+    tf_workspace = f'{workspace}_{group}_{cloud_type}'
 
     cmd = f'cd scripts/terraform/ && sudo terraform init -upgrade -no-color && sudo terraform workspace select {tf_workspace}'
     output, stderr = funct.subprocess_execute(cmd)
@@ -3978,7 +3978,7 @@ if form.getvalue('edit_do_provider'):
     try:
         if sql.update_do_provider(new_name, new_token, provider_id):
             print('ok')
-            funct.logging('Roxy-WI server', 'Provider has been renamed. New name is ' + new_name, provisioning=1)
+            funct.logging('Roxy-WI server', f'Provider has been renamed. New name is {new_name}', provisioning=1)
     except Exception as e:
         print(e)
 
@@ -3992,7 +3992,7 @@ if form.getvalue('edit_gcore_provider'):
     try:
         if sql.update_gcore_provider(new_name, new_user, new_pass, provider_id):
             print('ok')
-            funct.logging('Roxy-WI server', 'Provider has been renamed. New name is ' + new_name, provisioning=1)
+            funct.logging('Roxy-WI server', f'Provider has been renamed. New name is {new_name}', provisioning=1)
     except Exception as e:
         print(e)
 
@@ -4006,7 +4006,7 @@ if form.getvalue('edit_aws_provider'):
     try:
         if sql.update_aws_provider(new_name, new_key, new_secret, provider_id):
             print('ok')
-            funct.logging('Roxy-WI server', 'Provider has been renamed. New name is ' + new_name, provisioning=1)
+            funct.logging('Roxy-WI server', f'Provider has been renamed. New name is {new_name}', provisioning=1)
     except Exception as e:
         print(e)
 
@@ -4032,7 +4032,7 @@ if form.getvalue('loadchecker'):
         user_status, user_plan = funct.return_user_status()
     except Exception as e:
         user_status, user_plan = 0, 0
-        funct.logging('Roxy-WI server', 'Cannot get a user plan: ' + str(e), roxywi=1)
+        funct.logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
     if user_status:
         haproxy_settings = sql.select_checker_settings(1)
         nginx_settings = sql.select_checker_settings(2)
