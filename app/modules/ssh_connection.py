@@ -56,7 +56,7 @@ class SshConnection:
 
     def run_command(self, command):
         try:
-            stdin, stdout, stderr = self.ssh.exec_command(command, get_pty=True)
+            stdin, stdout, stderr = self.ssh.exec_command(command, get_pty=True, timeout=2)
         except Exception as e:
             raise paramiko.SSHException(str(e))
 

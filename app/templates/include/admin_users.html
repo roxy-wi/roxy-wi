@@ -20,6 +20,9 @@
 	<tbody>
 	{% endif %}
 	{% for user in users %}
+	{% if user.role == 'superAdmin' and page == "servers.py" %}
+	{% set disable_superAdmin = "disabled" %}
+	{% endif %}
 		<tr id="user-{{user.user_id}}" class="{{ loop.cycle('odd', 'even') }} {% if adding %}newuser{% endif %}">
 			<td class="padding10 first-collumn">
 				{% set login_id = 'login-' + user.user_id|string() %}
@@ -38,9 +41,9 @@
 			<td class="checkbox">
 				{% set activeuser_id = 'activeuser-' + user.user_id|string() %}
 				{% if user.activeuser == 1 %}
-					{{ checkbox(activeuser_id, checked='checked') }}
+					{{ checkbox(activeuser_id, checked='checked', disabled=disable_superAdmin) }}
 				{% else %}
-					{{ checkbox(activeuser_id) }}
+					{{ checkbox(activeuser_id, disable_superAdmin) }}
 				{% endif %}
 			</td>
 			<td>
@@ -52,7 +55,7 @@
 				{% endif %}
 			</td>
 			<td>
-				<select id="role-{{user.user_id}}" name="role-{{user.user_id}}">
+				<select id="role-{{user.user_id}}" name="role-{{user.user_id}}" {{disable_superAdmin}}>
 					<option disabled selected>Select a role</option>
 					{% for r in roles %}
 						{% if page == "servers.py" %}

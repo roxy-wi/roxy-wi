@@ -2139,6 +2139,10 @@ function openChangeUserServiceDialog(id) {
 	changeUserServiceDialog(id);
 }
 function changeUserPasswordDialog(id) {
+	if ($('#role-'+id + ' option:selected' ).val() == 'Select a role') {
+		toastr.warning('You cannot edit password for superAdmin role.');
+		return false;
+	}
 	$( "#user-change-password-table" ).dialog({
 			autoOpen: true,
 			resizable: false,
@@ -2232,6 +2236,10 @@ function changeUserGroupDialog(id) {
 	} );
 }
 function changeUserServiceDialog(id) {
+	if ($('#role-'+id + ' option:selected' ).val() == 'Select a role') {
+		toastr.warning('You cannot edit services for superAdmin role.');
+		return false;
+	}
 	$.ajax( {
 		url: "options.py",
 		data: {
