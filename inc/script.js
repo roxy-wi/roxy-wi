@@ -1527,12 +1527,13 @@ function show_version() {
 	NProgress.configure({showSpinner: true});
 }
 function statAgriment() {
-	if (localStorage.getItem('statistic') == null) {
+	var cur_url = window.location.href.split('/').pop();
+	if (localStorage.getItem('statistic') == null && cur_url.split('?')[0] != 'login.py') {
 		var titles = new Map()
 		var body = new Map()
 		var yes_ans = new Map()
 		var no_ans = new Map()
-		var ver_question = randomIntFromInterval(1, 3);
+		var ver_question = randomIntFromInterval(1, 2);
 		titles.set(1, 'Help us improve Roxy-WI');
 		titles.set(2, 'Data collection agreement');
 		body.set(1, 'We want to improve the user experience by collecting anonymous statistics. No marketing.');
@@ -1580,14 +1581,13 @@ function statAgriment() {
 		$("#statistic-body").html(body.get(ver_question));
 	}
 	if (localStorage.getItem('statistic') == 1) {
-		var cur_url = btoa(window.location.href.split('/').pop());
+		cur_url = btoa(cur_url);
 		sendGet('/page/send/'+cur_url);
 	}
 }
 window.onload = statAgriment;
 function sendGet(page) {
 	var xmlHttp = new XMLHttpRequest();
-	var cur_url = btoa(window.location.href.split('/').pop());
 	var theUrl = 'https://roxy-wi.org/' + page;
 	xmlHttp.open("GET", theUrl, true); // true for asynchronous
 	xmlHttp.send(null);
