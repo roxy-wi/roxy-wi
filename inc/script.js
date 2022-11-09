@@ -1325,31 +1325,31 @@ socket.onerror = function(error) {
   console.log(`[error] ${error.message}`);
 };
 function changePassword() {
-	$( "#user-change-password-table" ).dialog({
-			autoOpen: true,
-			resizable: false,
-			height: "auto",
-			width: 600,
-			modal: true,
-			title: "Change password",
-			show: {
-				effect: "fade",
-				duration: 200
+	$("#user-change-password-table").dialog({
+		autoOpen: true,
+		resizable: false,
+		height: "auto",
+		width: 600,
+		modal: true,
+		title: "Change password",
+		show: {
+			effect: "fade",
+			duration: 200
+		},
+		hide: {
+			effect: "fade",
+			duration: 200
+		},
+		buttons: {
+			"Change": function () {
+				changeUserPasswordItOwn($(this));
 			},
-			hide: {
-				effect: "fade",
-				duration: 200
-			},
-			buttons: {
-				"Change": function() {
-					changeUserPasswordItOwn($(this));
-				},
-				Cancel: function() {
-					$( this ).dialog( "close" );
-					$('#missmatchpass').hide();
-				}
+			Cancel: function () {
+				$(this).dialog("close");
+				$('#missmatchpass').hide();
 			}
-		});
+		}
+	});
 }
 function changeUserPasswordItOwn(d) {
 	var pass = $('#change-password').val();
@@ -1526,3 +1526,42 @@ function show_version() {
 	} );
 	NProgress.configure({showSpinner: true});
 }
+function httpGetAsync() {
+	if (localStorage.getItem('statistic') == null) {
+		 $("#statistic").dialog({
+			 autoOpen: true,
+			 resizable: false,
+			 height: "auto",
+			 width: 600,
+			 modal: true,
+			 title: "Help us to improve Roxy-WI",
+			 show: {
+				 effect: "fade",
+				 duration: 200
+			 },
+			 hide: {
+				 effect: "fade",
+				 duration: 200
+			 },
+			 buttons: {
+				 "Yes": function () {
+					 localStorage.setItem('statistic', '1');
+					 $(this).dialog("close");
+					 httpGetAsync();
+				 },
+				 "No": function () {
+					 localStorage.setItem('statistic', '0');
+					 $(this).dialog("close");
+				 }
+			 }
+		 });
+	}
+	if (localStorage.getItem('statistic') == 1) {
+		var xmlHttp = new XMLHttpRequest();
+		var cur_url = btoa(window.location.href.split('/').pop());
+		var theUrl = 'https://roxy-wi.org/page/send/' + cur_url;
+		xmlHttp.open("GET", theUrl, true); // true for asynchronous
+		xmlHttp.send(null);
+	}
+}
+window.onload = httpGetAsync;
