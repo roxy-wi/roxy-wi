@@ -1547,7 +1547,7 @@ function statAgriment() {
 			height: "auto",
 			width: 600,
 			modal: true,
-			title: titles.get(second_ver_question),
+			title: titles.get(ver_question),
 			show: {
 				effect: "fade",
 				duration: 200
