@@ -7,6 +7,7 @@ import os
 from modules.db_model import *
 import modules.roxy_wi_tools as roxy_wi_tools
 
+
 def get_setting(param, **kwargs):
 	import funct
 	try:
@@ -45,6 +46,7 @@ def get_setting(param, **kwargs):
 time_zone = get_setting('time_zone')
 get_date = roxy_wi_tools.GetDate(time_zone)
 
+
 def out_error(error):
 	error = str(error)
 	exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -56,12 +58,11 @@ def out_error(error):
 
 
 def add_user(user, email, password, role, activeuser, group):
-	import funct
 	if password != 'aduser':
 		try:
+			hashed_pass = roxy_wi_tools.Tools.get_hash(password)
 			User.insert(
-				username=user, email=email, password=funct.get_hash(password), role=role, activeuser=activeuser,
-				groups=group
+				username=user, email=email, password=hashed_pass, role=role, activeuser=activeuser, groups=group
 			).execute()
 		except Exception as e:
 			out_error(e)
@@ -120,9 +121,9 @@ def update_user_current_groups(groups, user_uuid):
 
 
 def update_user_password(password, user_id):
-	import funct
 	try:
-		user_update = User.update(password=funct.get_hash(password)).where(User.user_id == user_id)
+		hashed_pass = roxy_wi_tools.Tools.get_hash(password)
+		user_update = User.update(password=hashed_pass).where(User.user_id == user_id)
 		user_update.execute()
 	except Exception as e:
 		out_error(e)
@@ -1999,7 +2000,7 @@ def select_service_table_metrics(service):
 	group_id = funct.get_user_group(id=1)
 
 	if service in ('nginx', 'apache'):
-		metrics_table = '{}_metrics'.format(service)
+		metrics_table = f'{service}_metrics'
 
 	if funct.check_user_group():
 		if group_id == 1:
@@ -2424,9 +2425,9 @@ def select_smon(user_group, **kwargs):
 		user_group = ''
 	else:
 		if kwargs.get('ip'):
-			user_group = "and user_group = '%s'" % user_group
+			user_group = f"and user_group = '{user_group}'"
 		else:
-			user_group = "where user_group='%s'" % user_group
+			user_group = f"where user_group = '{user_group}'"
 
 	if kwargs.get('ip'):
 		try:

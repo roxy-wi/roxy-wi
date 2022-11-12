@@ -14,6 +14,7 @@ time_zone = sql.get_setting('time_zone')
 get_date = roxy_wi_tools.GetDate(time_zone)
 get_config_var = roxy_wi_tools.GetConfigVar()
 
+
 def is_ip_or_dns(server_from_request: str) -> str:
 	ip_regex = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
 	dns_regex = "^(?!-)[A-Za-z0-9-]+([\\-\\.]{1}[a-z0-9]+)*\\.[A-Za-z]{2,6}$"
@@ -112,7 +113,7 @@ def logging(server_ip: str, action: str, **kwargs) -> None:
 	except Exception:
 		pass
 
-	if kwargs.get('haproxywi') == 1 or kwargs.get('roxywi') == 1:
+	if kwargs.get('roxywi') == 1:
 		if kwargs.get('login'):
 			mess = f"{cur_date_in_log} from {ip} user: {login}, group: {user_group}, {action} on: {server_ip}\n"
 			if kwargs.get('keep_history'):
@@ -1425,18 +1426,9 @@ def versions():
 	except Exception as e:
 		new_ver = "Cannot get a new version"
 		new_ver_without_dots = 0
-		logging('Roxy-WI server', ' ' + str(e), roxywi=1)
+		logging('Roxy-WI server', f' {e}', roxywi=1)
 
 	return current_ver, new_ver, current_ver_without_dots, new_ver_without_dots
-
-
-def get_hash(value):
-	if value is None:
-		return value
-	import hashlib
-	h = hashlib.md5(value.encode('utf-8'))
-	p = h.hexdigest()
-	return p
 
 
 def get_users_params(**kwargs):

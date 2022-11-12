@@ -15,14 +15,14 @@ def get_token():
 	try:
 		user_status, user_plan = funct.return_user_status()
 	except Exception as e:
-		funct.logging('API', 'Cannot get a user plan: ' + str(e), haproxywi=1)
+		funct.logging('API', f'Cannot get a user plan: {e}', roxywi=1)
 		return False
 
 	if user_status == 0:
-		funct.logging('API', 'You are not subscribed. Please subscribe to have access to this feature.', haproxywi=1)
+		funct.logging('API', 'You are not subscribed. Please subscribe to have access to this feature.', roxywi=1)
 		return False
 	elif user_plan == 'user':
-		funct.logging('API', 'This feature is not available for your plan.', haproxywi=1)
+		funct.logging('API', 'This feature is not available for your plan.', roxywi=1)
 		return False
 
 	try:
@@ -31,17 +31,17 @@ def get_token():
 		login = login_pass['login']
 		password_from_user = login_pass['password']
 	except Exception as e:
-		return 'error getting credentials: ' + str(e)
+		return f'error getting credentials: {e}'
 	try:
 		group_name = login_pass['group']
 		group_id = sql.get_group_id_by_name(group_name)
 	except Exception as e:
-		return 'error getting group: ' + str(e)
+		return f'error getting group: {e}'
 	try:
 		users = sql.select_users(user=login)
-		password = funct.get_hash(password_from_user)
+		password = roxy_wi_tools.Tools.get_hash(password_from_user)
 	except Exception as e:
-		return 'error one more: ' + str(e)
+		return f'error one more: {e}'
 
 	for user in users:
 		if user.activeuser == 0:
@@ -59,14 +59,14 @@ def check_login(required_service=0) -> bool:
 	try:
 		user_status, user_plan = funct.return_user_status()
 	except Exception as e:
-		funct.logging('API', 'Cannot get a user plan: ' + str(e), haproxywi=1)
+		funct.logging('API', f'Cannot get a user plan: {e}', roxywi=1)
 		return False
 
 	if user_status == 0:
-		funct.logging('API', 'You are not subscribed. Please subscribe to have access to this feature.', haproxywi=1)
+		funct.logging('API', 'You are not subscribed. Please subscribe to have access to this feature.', roxywi=1)
 		return False
 	elif user_plan == 'user':
-		funct.logging('API', 'This feature is not available for your plan.', haproxywi=1)
+		funct.logging('API', 'This feature is not available for your plan.', roxywi=1)
 		return False
 
 	token = request.headers.get('token')
@@ -349,25 +349,27 @@ def edit_section(server_id):
 
 	for s in servers:
 		ip = s[2]
-		cfg = '/tmp/' + ip + '.cfg'
+		cfg = f'/tmp/{ip}.cfg'
 
 		out = funct.get_config(ip, cfg)
 		start_line, end_line, config_read = funct.get_section_from_config(cfg, section_name)
-
 		returned_config = funct.rewrite_section(start_line, end_line, cfg, body)
+		time_zone = sql.get_setting('time_zone')
+		get_date = roxy_wi_tools.GetDate(time_zone)
+		cur_date = get_date.return_date('config')
 
 		try:
-			cfg_for_save = hap_configs_dir + ip + "-" + funct.get_data('config') + ".cfg"
+			cfg_for_save = f'{hap_configs_dir}{ip}-{cur_date}.cfg'
 
 			try:
 				with open(cfg, "w") as conf:
 					conf.write(returned_config)
 				return_mess = 'section has been updated'
-				os.system("/bin/cp %s %s" % (cfg, cfg_for_save))
+				os.system(f"/bin/cp {cfg} {cfg_for_save}")
 				out = funct.master_slave_upload_and_restart(ip, cfg, save, login=login)
-				funct.logging('localhost', " section " + section_name + " has been edited via API", login=login)
+				funct.logging('localhost', f" section {section_name} has been edited via API", login=login)
 				funct.logging(
-					ip, 'Section ' + section_name + ' has been edited via API', haproxywi=1,
+					ip, f'Section {section_name} has been edited via API', roxywi=1,
 					login=login, keep_history=1, service='haproxy'
 				)
 
@@ -420,8 +422,11 @@ def upload_config(server_id, **kwargs):
 
 		for s in servers:
 			ip = s[2]
-		cfg = '/tmp/' + ip + '.cfg'
-		cfg_for_save = configs_dir + ip + "-" + funct.get_data('config') + ".cfg"
+		cfg = f'/tmp/{ip}.cfg'
+		time_zone = sql.get_setting('time_zone')
+		get_date = roxy_wi_tools.GetDate(time_zone)
+		cur_date = get_date.return_date('config')
+		cfg_for_save = f'{configs_dir}{ip}-{cur_date}.cfg'
 
 		try:
 			with open(cfg, "w") as conf:
@@ -438,13 +443,13 @@ def upload_config(server_id, **kwargs):
 
 			funct.logging('localhost', " config has been uploaded via API", login=login)
 			funct.logging(
-				ip, 'Config has been uploaded via API', haproxywi=1, login=login, keep_history=1, service=service_name
+				ip, 'Config has been uploaded via API', roxywi=1, login=login, keep_history=1, service=service_name
 			)
 
 			if out:
 				return_mess = out
 		except IOError as e:
-			return_mess = "cannot upload config" + str(e)
+			return_mess = f"cannot upload config {e}"
 
 		data = {server_id: return_mess}
 	except Exception as e:
@@ -461,6 +466,8 @@ def add_to_config(server_id):
 	hap_configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
 	token = request.headers.get('token')
 	login, group_id = sql.get_username_groupid_from_api_token(token)
+	time_zone = sql.get_setting('time_zone')
+	get_date = roxy_wi_tools.GetDate(time_zone)
 
 	if save == '':
 		save = 'save'
@@ -472,15 +479,16 @@ def add_to_config(server_id):
 
 		for s in servers:
 			ip = s[2]
-		cfg = '/tmp/' + ip + '.cfg'
-		cfg_for_save = hap_configs_dir + ip + "-" + funct.get_data('config') + ".cfg"
+		cfg = f'/tmp/{ip}.cfg'
+		cur_date = get_date.return_date('config')
+		cfg_for_save = f'{hap_configs_dir}{ip}-{cur_date}.cfg'
 		out = funct.get_config(ip, cfg)
 		try:
 			with open(cfg, "a") as conf:
 				conf.write('\n' + body + '\n')
 
 			return_mess = 'section has been added to the config'
-			os.system("/bin/cp %s %s" % (cfg, cfg_for_save))
+			os.system(f"/bin/cp {cfg} {cfg_for_save}")
 			funct.logging('localhost', " section has been added via REST API", login=login)
 			out = funct.upload_and_restart(ip, cfg, just_save=save)
 

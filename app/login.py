@@ -10,6 +10,7 @@ import distro
 
 import sql
 import funct
+import modules.roxy_wi_tools as roxy_wi_tools
 
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
@@ -182,7 +183,6 @@ try:
 		session_ttl = sql.get_setting('session_ttl')
 except Exception as e:
 	error = f'error: {e}'
-	pass
 
 try:
 	role = sql.get_user_role_by_uuid(user_id.value)
@@ -214,7 +214,7 @@ if login is not None and password is not None:
 			if login in users.username:
 				check_in_ldap(login, password)
 		else:
-			passwordHashed = funct.get_hash(password)
+			passwordHashed = roxy_wi_tools.Tools.get_hash(password)
 			if login in users.username and passwordHashed == users.password:
 				send_cookie(login)
 				break
@@ -227,8 +227,7 @@ if login is not None and password is not None:
 if login is None:
 	print("Content-type: text/html\n")
 
-output_from_parsed_template = template.render(
-	h2=0, title="Login page", role=role, user=user, error_log=error_log, error=error, ref=ref,
-	versions=funct.versions()
+parsed_template = template.render(
+	h2=0, title="Login page", role=role, user=user, error_log=error_log, error=error, ref=ref
 )
-print(output_from_parsed_template)
+print(parsed_template)
