@@ -11,5 +11,5 @@ slack-sdk>=3.4.0
 peewee>=3.14.10
 PyMySQL>=1.0.2
 distro>=1.2.0
-bottle>=0.12.18
+bottle>=0.12.20
 psutil>=5.9.1
