@@ -302,7 +302,7 @@ $( function() {
 			type: "POST",
 			success: function( data ) {
 				data = data.replace(/^\s+|\s+$/g,'');
-				if(data.indexOf('bash') != '-1' || data.indexOf('such') != '-1' || data.indexOf('command not found') != '-1') {
+				if(data.indexOf('bash') != '-1' || data.indexOf('such') != '-1' || data.indexOf('command not found') != '-1' || data.indexOf('from') != '-1') {
 					$('#cur_nginx_ver').text('Nginx has not installed');
 					$('#nginx_install').text('Install');
 					$('#nginx_install').attr('title', 'Install Nginx');
@@ -333,7 +333,6 @@ $( function() {
 					$('#cur_haproxy_exp_ver').text('HAProxy exporter has been not installed');
 				} else {
 					$('#cur_haproxy_exp_ver').text(data);
-					$('#cur_haproxy_exp_ver').css('font-weight', 'bold');
 				}
 			}
 		} );
@@ -356,7 +355,6 @@ $( function() {
 					$('#cur_nginx_exp_ver').text('NGINX exporter has not been installed');
 				} else {
 					$('#cur_nginx_exp_ver').text(data);
-					$('#cur_nginx_exp_ver').css('font-weight', 'bold');
 				}
 			}
 		} );
@@ -379,7 +377,6 @@ $( function() {
 					$('#cur_apache_exp_ver').text('Apache exporter has not been installed');
 				} else {
 					$('#cur_apache_exp_ver').text(data);
-					$('#cur_apache_exp_ver').css('font-weight', 'bold');
 				}
 			}
 		} );
@@ -402,7 +399,6 @@ $( function() {
 					$('#cur_node_exp_ver').text('Node exporter has not been installed');
 				} else {
 					$('#cur_node_exp_ver').text(data);
-					$('#cur_node_exp_ver').css('font-weight', 'bold');
 				}
 			}
 		} );

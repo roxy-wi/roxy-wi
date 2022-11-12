@@ -34,21 +34,20 @@
     <table>
         <caption><h3>Install HAProxy Exporter</h3></caption>
         <tr class="overviewHead">
-            <td class="padding10 first-collumn">Current installation</td>
+            <td class="padding10 first-collumn" style="width: 20%;">Current installation</td>
             <td class="padding10 first-collumn" style="width: 30%;">Available Versions</td>
-            <td class="help_cursor" style="width: 20%;" title="This exporter will be used by an external Prometheus. Also use this checkbox if you update the Exporter">External Prometheus</td>
             <td class="padding10 first-collumn" style="width: 30%;">Server</td>
+            <td class="help_cursor" style="width: 20%;" title="This exporter will be used by an external Prometheus. Also use this checkbox if you update the Exporter">External Prometheus</td>
+            <td></td>
             <td></td>
         </tr>
         <tr>
             <td id="cur_haproxy_exp_ver" class="padding10 first-collumn"></td>
             <td class="padding10 first-collumn" style="width: 20%;">
                 {% set values = dict() %}
-                {% set values = {'0.7.0':'0.7.0','0.7.1':'0.7.1', '0.8.0':'0.8.0', '0.9.0':'0.9.0', '0.10.0':'0.10.0',
-                '0.11.0':'0.11.0', '0.12.0':'0.12.0', '0.13.0':'0.13.0'} %}
+                {% set values = {'0.7.0':'0.7.0','0.7.1':'0.7.1', '0.8.0':'0.8.0', '0.9.0':'0.9.0', '0.10.0':'0.10.0', '0.11.0':'0.11.0', '0.12.0':'0.12.0', '0.13.0':'0.13.0'} %}
                 {{ select('hapexpver',  values=values, selected='0.13.0') }}
             </td>
-            <td style="padding-left: 50px;">{{ checkbox('haproxy_ext_prom', title="This exporter will be used by an external Prometheus. Also use this checkbox if you update the Exporter") }}</td>
             <td class="padding10 first-collumn">
                 <select autofocus required name="haproxy_exp_addserv" id="haproxy_exp_addserv">
                     <option disabled selected>------</option>
@@ -57,6 +56,7 @@
                     {% endfor %}
                 </select>
             </td>
+            <td style="padding-left: 50px;">{{ checkbox('haproxy_ext_prom', title="This exporter will be used by an external Prometheus. Also use this checkbox if you update the Exporter") }}</td>
             <td>
                 <span class="ui-button ui-widget ui-corner-all" id="haproxy_exp_install" title="Install HAProxy Exporter">Install</span>
             </td>
@@ -65,10 +65,10 @@
     <table>
         <caption><h3>Install NGINX Exporter</h3></caption>
         <tr class="overviewHead">
-            <td class="padding10 first-collumn">Current installation</td>
+            <td class="padding10 first-collumn" style="width: 20%;">Current installation</td>
             <td class="padding10 first-collumn" style="width: 30%;">Available Versions</td>
-            <td class="help_cursor" style="width: 20%;" title="This exporter will be used by an external Prometheus. Also use this checkbox if you update the Exporter">External Prometheus</td>
             <td class="padding10 first-collumn" style="width: 30%;">Server</td>
+            <td class="help_cursor" style="width: 20%;" title="This exporter will be used by an external Prometheus. Also use this checkbox if you update the Exporter">External Prometheus</td>
             <td></td>
             <td></td>
         </tr>
@@ -79,7 +79,6 @@
                 {% set values = {'0.5.0':'0.5.0', '0.6.0':'0.6.0', '0.7.0':'0.7.0', '0.9.0':'0.9.0', '0.10.0':'0.10.0'} %}
                 {{ select('nginxexpver',  values=values, selected='0.10.0') }}
             </td>
-            <td style="padding-left: 53px;">{{ checkbox('nginx_ext_prom', title="This exporter will be used by an external Prometheus. Also use this checkbox if you update the Exporter") }}</td>
             <td class="padding10 first-collumn">
                 <select autofocus required name="nginx_exp_addserv" id="nginx_exp_addserv">
                     <option disabled selected>------</option>
@@ -88,6 +87,7 @@
                     {% endfor %}
                 </select>
             </td>
+            <td style="padding-left: 50px;">{{ checkbox('nginx_ext_prom', title="This exporter will be used by an external Prometheus. Also use this checkbox if you update the Exporter") }}</td>
             <td>
                 <span class="ui-button ui-widget ui-corner-all" id="nginx_exp_install" title="Install NGINX Exporter">Install</span>
             </td>
@@ -96,10 +96,10 @@
     <table>
         <caption><h3>Install Apache Exporter</h3></caption>
         <tr class="overviewHead">
-            <td class="padding10 first-collumn">Current installation</td>
+            <td class="padding10 first-collumn" style="width: 20%;">Current installation</td>
             <td class="padding10 first-collumn" style="width: 30%;">Available Versions</td>
-            <td class="help_cursor" style="width: 20%;" title="This exporter will be used by an external Prometheus. Also use this checkbox if you update the Exporter">External Prometheus</td>
             <td class="padding10 first-collumn" style="width: 30%;">Server</td>
+            <td class="help_cursor" style="width: 20%;" title="This exporter will be used by an external Prometheus. Also use this checkbox if you update the Exporter">External Prometheus</td>
             <td></td>
             <td></td>
         </tr>
@@ -110,7 +110,6 @@
                 {% set values = {'0.7.0':'0.7.0', '0.8.0':'0.8.0', '0.9.0':'0.9.0', '0.10.0':'0.10.0'} %}
                 {{ select('apacheexpver',  values=values, selected='0.10.0') }}
             </td>
-            <td style="padding-left: 53px;">{{ checkbox('apache_ext_prom', title="This exporter will be used by an external Prometheus. Also use this checkbox if you update the Exporter") }}</td>
             <td class="padding10 first-collumn">
                 <select autofocus required name="apache_exp_addserv" id="apache_exp_addserv">
                     <option disabled selected>------</option>
@@ -119,6 +118,7 @@
                     {% endfor %}
                 </select>
             </td>
+            <td style="padding-left: 50px;">{{ checkbox('apache_ext_prom', title="This exporter will be used by an external Prometheus. Also use this checkbox if you update the Exporter") }}</td>
             <td>
                 <span class="ui-button ui-widget ui-corner-all" id="apache_exp_install" title="Install Apache Exporter">Install</span>
             </td>
@@ -127,10 +127,10 @@
     <table style="margin-top: 20px">
         <caption><h3>Install Node Exporter</h3></caption>
         <tr class="overviewHead">
-            <td class="padding10 first-collumn">Current installation</td>
+            <td class="padding10 first-collumn" style="width: 20%;">Current installation</td>
             <td class="padding10 first-collumn" style="width: 30%;">Available Versions</td>
-            <td class="help_cursor" style="width: 20%;" title="This exporter will be used by an external Prometheus. Also use this checkbox if you update the Exporter">External Prometheus</td>
             <td class="padding10 first-collumn" style="width: 30%;">Server</td>
+            <td class="help_cursor" style="width: 20%;" title="This exporter will be used by an external Prometheus. Also use this checkbox if you update the Exporter">External Prometheus</td>
             <td></td>
             <td></td>
         </tr>
@@ -142,7 +142,6 @@
                 '1.2.2':'1.2.2', '1.3.0':'1.3.0', '1.3.1':'1.3.1'} %}
                 {{ select('nodeexpver',  values=values, selected='1.3.1') }}
             </td>
-            <td style="padding-left: 53px;">{{ checkbox('node_ext_prom', title="This exporter will be used by an external Prometheus. Also use this checkbox if you update the Exporter") }}</td>
             <td class="padding10 first-collumn">
                 <select autofocus required name="node_exp_addserv" id="node_exp_addserv">
                     <option disabled selected>------</option>
@@ -151,6 +150,7 @@
                     {% endfor %}
                 </select>
             </td>
+            <td style="padding-left: 50px;">{{ checkbox('node_ext_prom', title="This exporter will be used by an external Prometheus. Also use this checkbox if you update the Exporter") }}</td>
             <td>
                 <span class="ui-button ui-widget ui-corner-all" id="node_exp_install" title="Install Node Exporter">Install</span>
             </td>

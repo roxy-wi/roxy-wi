@@ -4,10 +4,46 @@ import traceback
 import sys
 import os
 
-import funct
-
 from modules.db_model import *
+import modules.roxy_wi_tools as roxy_wi_tools
 
+def get_setting(param, **kwargs):
+	import funct
+	try:
+		user_group = funct.get_user_group(id=1)
+	except Exception:
+		user_group = ''
+
+	if user_group == '' or param == 'lists_path' or param == 'ssl_local_path':
+		user_group = 1
+
+	if kwargs.get('all'):
+		query = Setting.select().where(Setting.group == user_group).order_by(Setting.section.desc())
+	else:
+		query = Setting.select().where((Setting.param == param) & (Setting.group == user_group))
+
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		if kwargs.get('all'):
+			return query_res
+		else:
+			for setting in query_res:
+				if param in (
+					'nginx_stats_port', 'session_ttl', 'token_ttl', 'stats_port', 'haproxy_sock_port', 'ldap_type',
+					'ldap_port', 'ldap_enable', 'log_time_storage', 'syslog_server_enable', 'smon_check_interval',
+					'checker_check_interval', 'port_scan_interval', 'smon_keep_history_range', 'checker_keep_history_range',
+					'portscanner_keep_history_range', 'checker_maxconn_threshold', 'apache_stats_port'
+				):
+					return int(setting.value)
+				else:
+					return setting.value
+
+
+time_zone = get_setting('time_zone')
+get_date = roxy_wi_tools.GetDate(time_zone)
 
 def out_error(error):
 	error = str(error)
@@ -20,6 +56,7 @@ def out_error(error):
 
 
 def add_user(user, email, password, role, activeuser, group):
+	import funct
 	if password != 'aduser':
 		try:
 			User.insert(
@@ -28,9 +65,6 @@ def add_user(user, email, password, role, activeuser, group):
 			).execute()
 		except Exception as e:
 			out_error(e)
-			return False
-		else:
-			return True
 	else:
 		try:
 			User.insert(
@@ -38,9 +72,6 @@ def add_user(user, email, password, role, activeuser, group):
 			).execute()
 		except Exception as e:
 			out_error(e)
-			return False
-		else:
-			return True
 
 
 def update_user(user, email, role, user_id, activeuser):
@@ -89,6 +120,7 @@ def update_user_current_groups(groups, user_uuid):
 
 
 def update_user_password(password, user_id):
+	import funct
 	try:
 		user_update = User.update(password=funct.get_hash(password)).where(User.user_id == user_id)
 		user_update.execute()
@@ -339,18 +371,18 @@ def select_users(**kwargs):
 	elif kwargs.get("id") is not None:
 		query = User.select().where(User.user_id == kwargs.get("id"))
 	elif kwargs.get("group") is not None:
+		cur_date = get_date.return_date('regular', timedelta_minutes_minus=15)
 		query = (User.select(
 			User, UserGroups, Case(
-				0, [((User.last_login_date >= funct.get_data('regular', timedelta_minutes_minus=15)), 0)], 1
+				0, [((User.last_login_date >= cur_date), 0)], 1
 			).alias('last_login')
 		).join(UserGroups, on=(User.user_id == UserGroups.user_id)).where(
 			UserGroups.user_group_id == kwargs.get("group")
 		))
 	else:
+		cur_date = get_date.return_date('regular', timedelta_minutes_minus=15)
 		query = User.select(User, Case(0, [(
-			(
-				User.last_login_date >= funct.get_data('regular', timedelta_minutes_minus=15)
-			), 0)], 1).alias('last_login')).order_by(User.user_id)
+			(User.last_login_date >= cur_date), 0)], 1).alias('last_login')).order_by(User.user_id)
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -568,9 +600,10 @@ def write_user_uuid(login, user_uuid):
 	session_ttl = get_setting('session_ttl')
 	session_ttl = int(session_ttl)
 	user_id = get_user_id_by_username(login)
+	cur_date = get_date.return_date('regular', timedelta=session_ttl)
 
 	try:
-		UUID.insert(user_id=user_id, uuid=user_uuid, exp=funct.get_data('regular', timedelta=session_ttl)).execute()
+		UUID.insert(user_id=user_id, uuid=user_uuid, exp=cur_date).execute()
 	except Exception as e:
 		out_error(e)
 
@@ -578,21 +611,23 @@ def write_user_uuid(login, user_uuid):
 def write_user_token(login, user_token):
 	token_ttl = int(get_setting('token_ttl'))
 	user_id = get_user_id_by_username(login)
+	cur_date = get_date.return_date('regular', timedelta=token_ttl)
 
 	try:
-		Token.insert(user_id=user_id, token=user_token, exp=funct.get_data('regular', timedelta=token_ttl)).execute()
+		Token.insert(user_id=user_id, token=user_token, exp=cur_date).execute()
 	except Exception as e:
 		out_error(e)
 
 
 def write_api_token(user_token, group_id, user_role, user_name):
 	token_ttl = int(get_setting('token_ttl'))
+	cur_date = get_date.return_date('regular', timedelta=token_ttl)
+	cur_date_token_ttl = get_date.return_date('regular', timedelta=token_ttl)
 
 	try:
 		ApiToken.insert(
 			token=user_token, user_name=user_name, user_group_id=group_id, user_role=user_role,
-			create_date=funct.get_data('regular'), expire_date=funct.get_data('regular', timedelta=token_ttl)
-		).execute()
+			create_date=cur_date, expire_date=cur_date_token_ttl).execute()
 	except Exception as e:
 		out_error(e)
 
@@ -650,8 +685,9 @@ def delete_uuid(uuid):
 
 
 def delete_old_uuid():
-	query = UUID.delete().where((UUID.exp < funct.get_data('regular')) | (UUID.exp.is_null(True)))
-	query1 = Token.delete().where((Token.exp < funct.get_data('regular')) | (Token.exp.is_null(True)))
+	cur_date = get_date.return_date('regular')
+	query = UUID.delete().where((UUID.exp < cur_date) | (UUID.exp.is_null(True)))
+	query1 = Token.delete().where((Token.exp < cur_date) | (Token.exp.is_null(True)))
 	try:
 		query.execute()
 		query1.execute()
@@ -662,6 +698,11 @@ def delete_old_uuid():
 def update_last_act_user(uuid, token):
 	session_ttl = int(get_setting('session_ttl'))
 	token_ttl = int(get_setting('token_ttl'))
+	cur_date_session = get_date.return_date('regular', timedelta=session_ttl)
+	cur_date_token = get_date.return_date('regular', timedelta=token_ttl)
+	cur_date = get_date.return_date('regular')
+	user_id = get_user_id_by_uuid(uuid)
+
 	try:
 		import cgi
 		import os
@@ -669,11 +710,9 @@ def update_last_act_user(uuid, token):
 	except Exception:
 		ip = ''
 
-	user_id = get_user_id_by_uuid(uuid)
-
-	query = UUID.update(exp=funct.get_data('regular', timedelta=session_ttl)).where(UUID.uuid == uuid)
-	query1 = Token.update(exp=funct.get_data('regular', timedelta=token_ttl)).where(Token.token == token)
-	query2 = User.update(last_login_date=funct.get_data('regular'), last_login_ip=ip).where(User.user_id == user_id)
+	query = UUID.update(exp=cur_date_session).where(UUID.uuid == uuid)
+	query1 = Token.update(exp=cur_date_token).where(Token.token == token)
+	query2 = User.update(last_login_date=cur_date, last_login_ip=ip).where(User.user_id == user_id)
 	try:
 		query.execute()
 		query1.execute()
@@ -798,6 +837,7 @@ def get_slack_by_id(slack_id):
 
 def get_dick_permit(**kwargs):
 	import os
+	import funct
 
 	if kwargs.get('username'):
 		grp = kwargs.get('group_id')
@@ -1208,35 +1248,39 @@ def delete_savedserver(saved_id):
 
 
 def insert_metrics(serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate):
+	cur_date = get_date.return_date('regular')
 	try:
 		Metrics.insert(
 			serv=serv, curr_con=curr_con, cur_ssl_con=cur_ssl_con, sess_rate=sess_rate, max_sess_rate=max_sess_rate,
-			date=funct.get_data('regular')
+			date=cur_date
 		).execute()
 	except Exception as e:
 		out_error(e)
 
 
 def insert_metrics_http(serv, http_2xx, http_3xx, http_4xx, http_5xx):
+	cur_date = get_date.return_date('regular')
 	try:
 		MetricsHttpStatus.insert(
 			serv=serv, ok_ans=http_2xx, redir_ans=http_3xx, not_found_ans=http_4xx, err_ans=http_5xx,
-			date=funct.get_data('regular')
+			date=cur_date
 		).execute()
 	except Exception as e:
 		out_error(e)
 
 
 def insert_nginx_metrics(serv, conn):
+	cur_date = get_date.return_date('regular')
 	try:
-		NginxMetrics.insert(serv=serv, conn=conn, date=funct.get_data('regular')).execute()
+		NginxMetrics.insert(serv=serv, conn=conn, date=cur_date).execute()
 	except Exception as e:
 		out_error(e)
 
 
 def insert_apache_metrics(serv, conn):
+	cur_date = get_date.return_date('regular')
 	try:
-		ApacheMetrics.insert(serv=serv, conn=conn, date=funct.get_data('regular')).execute()
+		ApacheMetrics.insert(serv=serv, conn=conn, date=cur_date).execute()
 	except Exception as e:
 		out_error(e)
 
@@ -1557,14 +1601,16 @@ def delete_waf_server(server_id):
 
 
 def insert_waf_metrics(serv, conn):
+	cur_date = get_date.return_date('regular')
 	try:
-		WafMetrics.insert(serv=serv, conn=conn, date=funct.get_data('regular')).execute()
+		WafMetrics.insert(serv=serv, conn=conn, date=cur_date).execute()
 	except Exception as e:
 		out_error(e)
 
 
 def delete_waf_metrics():
-	query = WafMetrics.delete().where(WafMetrics.date < funct.get_data('regular', timedelta_minus=3))
+	cur_date = get_date.return_date('regular', timedelta_minus=3)
+	query = WafMetrics.delete().where(WafMetrics.date < cur_date)
 	try:
 		query.execute()
 	except Exception as e:
@@ -1585,7 +1631,8 @@ def update_waf_metrics_enable(name, enable):
 
 
 def delete_metrics():
-	query = Metrics.delete().where(Metrics.date < funct.get_data('regular', timedelta_minus=3))
+	cur_date = get_date.return_date('regular', timedelta_minus=3)
+	query = Metrics.delete().where(Metrics.date < cur_date)
 	try:
 		query.execute()
 	except Exception as e:
@@ -1593,7 +1640,8 @@ def delete_metrics():
 
 
 def delete_http_metrics():
-	query = MetricsHttpStatus.delete().where(MetricsHttpStatus.date < funct.get_data('regular', timedelta_minus=3))
+	cur_date = get_date.return_date('regular', timedelta_minus=3)
+	query = MetricsHttpStatus.delete().where(MetricsHttpStatus.date < cur_date)
 	try:
 		query.execute()
 	except Exception as e:
@@ -1601,7 +1649,8 @@ def delete_http_metrics():
 
 
 def delete_nginx_metrics():
-	query = NginxMetrics.delete().where(NginxMetrics.date < funct.get_data('regular', timedelta_minus=3))
+	cur_date = get_date.return_date('regular', timedelta_minus=3)
+	query = NginxMetrics.delete().where(NginxMetrics.date < cur_date)
 	try:
 		query.execute()
 	except Exception as e:
@@ -1609,7 +1658,8 @@ def delete_nginx_metrics():
 
 
 def delete_apache_metrics():
-	query = ApacheMetrics.delete().where(ApacheMetrics.date < funct.get_data('regular', timedelta_minus=3))
+	cur_date = get_date.return_date('regular', timedelta_minus=3)
+	query = ApacheMetrics.delete().where(ApacheMetrics.date < cur_date)
 	try:
 		query.execute()
 	except Exception as e:
@@ -1718,6 +1768,7 @@ def select_apache_servers_metrics_for_master():
 
 
 def select_servers_metrics():
+	import funct
 	group_id = funct.get_user_group(id=1)
 	if funct.check_user_group():
 		if group_id == 1:
@@ -1734,6 +1785,7 @@ def select_servers_metrics():
 
 
 def select_table_metrics():
+	import funct
 	cursor = conn.cursor()
 	group_id = funct.get_user_group(id=1)
 
@@ -1942,6 +1994,7 @@ def select_table_metrics():
 
 
 def select_service_table_metrics(service):
+	import funct
 	cursor = conn.cursor()
 	group_id = funct.get_user_group(id=1)
 
@@ -2066,41 +2119,8 @@ def select_service_table_metrics(service):
 		return cursor.fetchall()
 
 
-def get_setting(param, **kwargs):
-	try:
-		user_group = funct.get_user_group(id=1)
-	except Exception:
-		user_group = ''
-
-	if user_group == '' or param == 'lists_path' or param == 'ssl_local_path':
-		user_group = 1
-
-	if kwargs.get('all'):
-		query = Setting.select().where(Setting.group == user_group).order_by(Setting.section.desc())
-	else:
-		query = Setting.select().where((Setting.param == param) & (Setting.group == user_group))
-
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		if kwargs.get('all'):
-			return query_res
-		else:
-			for setting in query_res:
-				if param in (
-					'nginx_stats_port', 'session_ttl', 'token_ttl', 'stats_port', 'haproxy_sock_port', 'ldap_type',
-					'ldap_port', 'ldap_enable', 'log_time_storage', 'syslog_server_enable', 'smon_check_interval',
-					'checker_check_interval', 'port_scan_interval', 'smon_keep_history_range', 'checker_keep_history_range',
-					'portscanner_keep_history_range', 'checker_maxconn_threshold', 'apache_stats_port'
-				):
-					return int(setting.value)
-				else:
-					return setting.value
-
-
 def update_setting(param, val):
+	import funct
 	user_group = funct.get_user_group(id=1)
 
 	if funct.check_user_group():
@@ -2395,6 +2415,8 @@ def insert_smon(server, port, enable, proto, uri, body, group, desc, telegram, s
 
 
 def select_smon(user_group, **kwargs):
+	import funct
+
 	cursor = conn.cursor()
 	funct.check_user_group()
 
@@ -2442,6 +2464,8 @@ def select_smon_by_id(last_id):
 
 
 def delete_smon(smon_id, user_group):
+	import funct
+
 	funct.check_user_group()
 
 	query = SMON.delete().where((SMON.id == smon_id) & (SMON.user_group == user_group))
@@ -2455,6 +2479,8 @@ def delete_smon(smon_id, user_group):
 
 
 def update_smon(smon_id, ip, port, body, telegram, slack, group, desc, en):
+	import funct
+
 	funct.check_user_group()
 	query = (SMON.update(
 		ip=ip, port=port, body=body, telegram_channel_id=telegram, slack_channel_id=slack, group=group, desc=desc, en=en
@@ -2644,10 +2670,11 @@ def smon_list(user_group):
 
 
 def insert_alerts(user_group, level, ip, port, message, service):
+	cur_date = get_date.return_date('regular')
 	try:
 		Alerts.insert(
 			user_group=user_group, message=message, level=level, ip=ip, port=port, service=service,
-			date=funct.get_data('regular')
+			date=cur_date
 		).execute()
 		return True
 	except Exception as e:
@@ -2771,10 +2798,11 @@ def delete_port_scanner_settings(server_id):
 
 
 def insert_port_scanner_port(serv, user_group_id, port, service_name):
+	cur_date = get_date.return_date('regular')
 	try:
 		PortScannerPorts.insert(
 			serv=serv, port=port, user_group_id=user_group_id, service_name=service_name,
-			date=funct.get_data('regular')
+			date=cur_date
 		).execute()
 	except Exception as e:
 		out_error(e)
@@ -2828,17 +2856,19 @@ def delete_ports(serv):
 
 
 def insert_port_scanner_history(serv, port, port_status, service_name):
+	cur_date = get_date.return_date('regular')
 	try:
 		PortScannerHistory.insert(
-			serv=serv, port=port, status=port_status, service_name=service_name, date=funct.get_data('regular')
+			serv=serv, port=port, status=port_status, service_name=service_name, date=cur_date
 		).execute()
 	except Exception as e:
 		out_error(e)
 
 
 def delete_alert_history(keep_interval: int, service: str):
+	cur_date = get_date.return_date('regular', timedelta_minus=keep_interval)
 	query = Alerts.delete().where(
-		(Alerts.date < funct.get_data('regular', timedelta_minus=keep_interval)) & (Alerts.service == service)
+		(Alerts.date < cur_date) & (Alerts.service == service)
 	)
 	try:
 		query.execute()
@@ -2847,8 +2877,9 @@ def delete_alert_history(keep_interval: int, service: str):
 
 
 def delete_portscanner_history(keep_interval: int):
+	cur_date = get_date.return_date('regular', timedelta_minus=keep_interval)
 	query = PortScannerHistory.delete().where(
-		PortScannerHistory.date < funct.get_data('regular', timedelta_minus=int(keep_interval)))
+		PortScannerHistory.date < cur_date)
 	try:
 		query.execute()
 	except Exception as e:
@@ -2866,10 +2897,11 @@ def select_port_scanner_history(serv):
 
 
 def add_provider_do(provider_name, provider_group, provider_token):
+	cur_date = get_date.return_date('regular')
 	try:
 		ProvidersCreds.insert(
 			name=provider_name, type='do', group=provider_group, key=provider_token,
-			create_date=funct.get_data('regular'), edit_date=funct.get_data('regular')
+			create_date=cur_date, edit_date=cur_date
 		).execute()
 		return True
 	except Exception as e:
@@ -2878,10 +2910,11 @@ def add_provider_do(provider_name, provider_group, provider_token):
 
 
 def add_provider_aws(provider_name, provider_group, provider_key, provider_secret):
+	cur_date = get_date.return_date('regular')
 	try:
 		ProvidersCreds.insert(
 			name=provider_name, type='aws', group=provider_group, key=provider_key, secret=provider_secret,
-			create_date=funct.get_data('regular'), edit_date=funct.get_data('regular')
+			create_date=cur_date, edit_date=cur_date
 		).execute()
 		return True
 	except Exception as e:
@@ -2890,10 +2923,11 @@ def add_provider_aws(provider_name, provider_group, provider_key, provider_secre
 
 
 def add_provider_gcore(provider_name, provider_group, provider_user, provider_pass):
+	cur_date = get_date.return_date('regular')
 	try:
 		ProvidersCreds.insert(
 			name=provider_name, type='gcore', group=provider_group, key=provider_user,
-			secret=provider_pass, create_date=funct.get_data('regular'), edit_date=funct.get_data('regular')
+			secret=provider_pass, create_date=cur_date, edit_date=cur_date
 		).execute()
 		return True
 	except Exception as e:
@@ -2934,12 +2968,13 @@ def add_server_aws(
 	region, instance_type, public_ip, floating_ip, volume_size, ssh_key_name, name, os, firewall,
 	provider_id, group_id, status, delete_on_termination, volume_type
 ):
+	cur_date = get_date.return_date('regular')
 	try:
 		ProvisionedServers.insert(
 			region=region, instance_type=instance_type, public_ip=public_ip, floating_ip=floating_ip,
 			volume_size=volume_size, volume_type=volume_type, ssh_key_name=ssh_key_name, name=name, os=os,
 			firewall=firewall, provider_id=provider_id, group_id=group_id, delete_on_termination=delete_on_termination,
-			type='aws', status=status, date=funct.get_data('regular')
+			type='aws', status=status, date=cur_date
 		).execute()
 		return True
 	except Exception as e:
@@ -2951,12 +2986,13 @@ def add_server_gcore(
 	project, region, instance_type, network_type, network_name, volume_size, ssh_key_name, name, os,
 	firewall, provider_id, group_id, status, delete_on_termination, volume_type
 ):
+	cur_date = get_date.return_date('regular')
 	try:
 		ProvisionedServers.insert(
 			region=region, instance_type=instance_type, public_ip=network_type, network_name=network_name,
 			volume_size=volume_size, volume_type=volume_type, ssh_key_name=ssh_key_name, name=name,
 			os=os, firewall=firewall, provider_id=provider_id, group_id=group_id, type='gcore',
-			delete_on_termination=delete_on_termination, project=project, status=status, date=funct.get_data('regular')
+			delete_on_termination=delete_on_termination, project=project, status=status, date=cur_date
 		).execute()
 		return True
 	except Exception as e:
@@ -2968,12 +3004,13 @@ def add_server_do(
 	region, size, privet_net, floating_ip, ssh_ids, ssh_key_name, name, oss, firewall, monitoring, backup,
 	provider_id, group_id, status
 ):
+	cur_date = get_date.return_date('regular')
 	try:
 		ProvisionedServers.insert(
 			region=region, instance_type=size, private_networking=privet_net, floating_ip=floating_ip,
 			ssh_ids=ssh_ids, ssh_key_name=ssh_key_name, name=name, os=oss, firewall=firewall,
 			monitoring=monitoring, backup=backup, provider_id=provider_id, group_id=group_id,
-			type='do', status=status, date=funct.get_data('regular')
+			type='do', status=status, date=cur_date
 		).execute()
 		return True
 	except Exception as e:
@@ -3186,9 +3223,10 @@ def select_do_provider(provider_id):
 
 
 def update_do_provider(new_name, new_token, provider_id):
+	cur_date = get_date.return_date('regular')
 	try:
 		ProvidersCreds.update(
-			name=new_name, key=new_token, edit_date=funct.get_data('regular')
+			name=new_name, key=new_token, edit_date=cur_date
 		).where(ProvidersCreds.id == provider_id).execute()
 		return True
 	except Exception as e:
@@ -3197,9 +3235,10 @@ def update_do_provider(new_name, new_token, provider_id):
 
 
 def update_gcore_provider(new_name, new_user, new_pass, provider_id):
+	cur_date = get_date.return_date('regular')
 	try:
 		ProvidersCreds.update(
-			name=new_name, key=new_user, secret=new_pass, edit_date=funct.get_data('regular')
+			name=new_name, key=new_user, secret=new_pass, edit_date=cur_date
 		).where(ProvidersCreds.id == provider_id).execute()
 		return True
 	except Exception as e:
@@ -3208,9 +3247,10 @@ def update_gcore_provider(new_name, new_user, new_pass, provider_id):
 
 
 def update_aws_provider(new_name, new_key, new_secret, provider_id):
+	cur_date = get_date.return_date('regular')
 	try:
 		ProvidersCreds.update(
-			name=new_name, key=new_key, secret=new_secret, edit_date=funct.get_data('regular')
+			name=new_name, key=new_key, secret=new_secret, edit_date=cur_date
 		).where(ProvidersCreds.id == provider_id).execute()
 		return True
 	except Exception as e:
@@ -3343,6 +3383,7 @@ def delete_service_settings(server_id: int):
 
 
 def insert_action_history(service: str, action: str, server_id: int, user_id: int, user_ip: str):
+	cur_date = get_date.return_date('regular')
 	try:
 		ActionHistory.insert(
 			service=service,
@@ -3350,7 +3391,7 @@ def insert_action_history(service: str, action: str, server_id: int, user_id: in
 			server_id=server_id,
 			user_id=user_id,
 			ip=user_ip,
-			date=funct.get_data('regular')
+			date=cur_date
 		).execute()
 	except Exception as e:
 		out_error(e)
@@ -3401,6 +3442,7 @@ def select_action_history_by_server_id_and_service(server_id: int, service: str)
 
 
 def insert_config_version(server_id: int, user_id: int, service: str, local_path: str, remote_path: str, diff: str):
+	cur_date = get_date.return_date('regular')
 	try:
 		ConfigVersion.insert(
 			server_id=server_id,
@@ -3409,7 +3451,7 @@ def insert_config_version(server_id: int, user_id: int, service: str, local_path
 			local_path=local_path,
 			remote_path=remote_path,
 			diff=diff,
-			date=funct.get_data('regular')
+			date=cur_date
 		).execute()
 	except Exception as e:
 		out_error(e)
@@ -3459,16 +3501,13 @@ def select_remote_path_from_version(server_ip: str, service: str, local_path: st
 
 def insert_system_info(
 	server_id: int, os_info: str, sys_info: str, cpu: str, ram: str, network: str, disks: str
-) -> bool:
+):
 	try:
 		SystemInfo.insert(
 			server_id=server_id, os_info=os_info, sys_info=sys_info, cpu=cpu, ram=ram, network=network, disks=disks
 		).on_conflict('replace').execute()
 	except Exception as e:
 		out_error(e)
-		return False
-	else:
-		return True
 
 
 def delete_system_info(server_id: int):

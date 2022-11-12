@@ -7,8 +7,11 @@ import http.cookies
 
 import distro
 
+import sql
 import modules.roxy_wi_tools as roxy_wi_tools
 
+time_zone = sql.get_setting('time_zone')
+get_date = roxy_wi_tools.GetDate(time_zone)
 get_config_var = roxy_wi_tools.GetConfigVar()
 
 def is_ip_or_dns(server_from_request: str) -> str:
@@ -50,52 +53,7 @@ def checkAjaxInput(ajax_input: str):
 		return quote(ajax_input.rstrip())
 
 
-def get_data(log_type, **kwargs):
-	from datetime import datetime, timedelta
-	from pytz import timezone
-	import sql
-	fmt = "%Y-%m-%d.%H:%M:%S"
-
-	if kwargs.get('timedelta'):
-		try:
-			now_utc = datetime.now(timezone(sql.get_setting('time_zone'))) + timedelta(days=kwargs.get('timedelta'))
-		except Exception:
-			now_utc = datetime.now(timezone('UTC')) + timedelta(days=kwargs.get('timedelta'))
-	elif kwargs.get('timedelta_minus'):
-		try:
-			now_utc = datetime.now(timezone(sql.get_setting('time_zone'))) - timedelta(days=kwargs.get('timedelta_minus'))
-		except Exception:
-			now_utc = datetime.now(timezone('UTC')) - timedelta(days=kwargs.get('timedelta_minus'))
-	elif kwargs.get('timedelta_minutes'):
-		try:
-			now_utc = datetime.now(timezone(sql.get_setting('time_zone'))) + timedelta(minutes=kwargs.get('timedelta_minutes'))
-		except Exception:
-			now_utc = datetime.now(timezone('UTC')) + timedelta(minutes=kwargs.get('timedelta_minutes'))
-	elif kwargs.get('timedelta_minutes_minus'):
-		try:
-			now_utc = datetime.now(timezone(sql.get_setting('time_zone'))) - timedelta(minutes=kwargs.get('timedelta_minutes_minus'))
-		except Exception:
-			now_utc = datetime.now(timezone('UTC')) - timedelta(minutes=kwargs.get('timedelta_minutes_minus'))
-	else:
-		try:
-			now_utc = datetime.now(timezone(sql.get_setting('time_zone')))
-		except Exception:
-			now_utc = datetime.now(timezone('UTC'))
-
-	if log_type == 'config':
-		fmt = "%Y-%m-%d.%H:%M:%S"
-	elif log_type == 'logs':
-		fmt = '%Y%m%d'
-	elif log_type == "date_in_log":
-		fmt = "%b %d %H:%M:%S"
-	elif log_type == 'regular':
-		fmt = "%Y-%m-%d %H:%M:%S"
-
-	return now_utc.strftime(fmt)
-
-
 def get_user_group(**kwargs) -> str:
-	import sql
 	user_group = ''
 
 	try:
@@ -116,11 +74,9 @@ def get_user_group(**kwargs) -> str:
 
 
 def logging(server_ip: str, action: str, **kwargs) -> None:
-	import sql
-
 	login = ''
-	cur_date = get_data('logs')
-	cur_date_in_log = get_data('date_in_log')
+	cur_date = get_date.return_date('logs')
+	cur_date_in_log = get_date.return_date('date_in_log')
 	log_path = get_config_var.get_config_var('main', 'log_path')
 
 	if not os.path.exists(log_path):
@@ -185,7 +141,6 @@ def logging(server_ip: str, action: str, **kwargs) -> None:
 
 
 def keep_action_history(service: str, action: str, server_ip: str, login: str, user_ip: str):
-	import sql
 	try:
 		server_id = sql.select_server_id_by_ip(server_ip=server_ip)
 		if login != '':
@@ -203,7 +158,6 @@ def keep_action_history(service: str, action: str, server_ip: str, login: str, u
 def telegram_send_mess(mess, **kwargs):
 	import telebot
 	from telebot import apihelper
-	import sql
 	token_bot = ''
 	channel_name = ''
 
@@ -235,7 +189,6 @@ def telegram_send_mess(mess, **kwargs):
 
 
 def slack_send_mess(mess, **kwargs):
-	import sql
 	from slack_sdk import WebClient
 	from slack_sdk.errors import SlackApiError
 	slack_token = ''
@@ -268,8 +221,6 @@ def slack_send_mess(mess, **kwargs):
 
 
 def check_login(user_uuid, token, **kwargs):
-	import sql
-
 	if user_uuid is None:
 		print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
 
@@ -301,7 +252,6 @@ def check_login(user_uuid, token, **kwargs):
 
 
 def get_user_id(**kwargs):
-	import sql
 	if kwargs.get('login'):
 		return sql.get_user_id_by_username(kwargs.get('login'))
 
@@ -315,7 +265,6 @@ def get_user_id(**kwargs):
 
 
 def is_admin(level=1):
-	import sql
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_id = cookie.get('uuid')
 	try:
@@ -337,7 +286,6 @@ def page_for_admin(level=1) -> None:
 
 
 def return_ssh_keys_path(server_ip: str, **kwargs) -> dict:
-	import sql
 	lib_path = get_config_var.get_config_var('main', 'lib_path')
 	ssh_settings = {}
 
@@ -371,7 +319,6 @@ def ssh_connect(server_ip):
 
 
 def get_config(server_ip, cfg, **kwargs):
-	import sql
 	config_path = ''
 
 	if kwargs.get("keepalived") or kwargs.get("service") == 'keepalived':
@@ -397,12 +344,12 @@ def get_config(server_ip, cfg, **kwargs):
 
 
 def diff_config(oldcfg, cfg, **kwargs):
-	import sql
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	log_path = get_config_var.get_config_var('main', 'log_path')
 	user_group = get_user_group()
 	diff = ""
-	date = get_data('date_in_log')
+	date = get_date.return_date('date_in_log')
+	log_date = get_date.return_date('logs')
 	cmd = "/bin/diff -ub %s %s" % (oldcfg, cfg)
 
 	try:
@@ -421,7 +368,7 @@ def diff_config(oldcfg, cfg, **kwargs):
 		for line in output:
 			diff += f"{date} user: {login}, group: {user_group} {line}\n"
 
-	log_file = f"{log_path}/config_edit-{get_data('logs')}"
+	log_file = f"{log_path}/config_edit-{log_date}"
 	try:
 		with open(log_file, 'a') as log:
 			log.write(diff)
@@ -431,7 +378,6 @@ def diff_config(oldcfg, cfg, **kwargs):
 
 
 def get_remote_sections(server_ip: str, service: str) -> str:
-	import sql
 	remote_dir = service + '_dir'
 	config_dir = sql.get_setting(remote_dir)
 	config_dir = return_nice_path(config_dir)
@@ -534,6 +480,7 @@ def get_userlists(config):
 
 
 def get_backends_from_config(server_ip, backends=''):
+	config_date = get_date.return_date('config')
 	configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
 	format_cfg = 'cfg'
 
@@ -542,7 +489,7 @@ def get_backends_from_config(server_ip, backends=''):
 	except Exception as e:
 		logging('Roxy-WI server', str(e), roxywi=1)
 		try:
-			cfg = configs_dir + server_ip + "-" + get_data('config') + '.' + format_cfg
+			cfg = f'{configs_dir}{server_ip}-{config_date}.{format_cfg}'
 		except Exception:
 			logging('Roxy-WI server', ' Cannot generate cfg path', roxywi=1)
 			return
@@ -562,7 +509,6 @@ def get_backends_from_config(server_ip, backends=''):
 
 
 def get_all_stick_table():
-	import sql
 	hap_sock_p = sql.get_setting('haproxy_sock_port')
 	cmd = 'echo "show table"|nc %s %s |awk \'{print $3}\' | tr -d \'\n\' | tr -d \'[:space:]\'' % (serv, hap_sock_p)
 	output, stderr = subprocess_execute(cmd)
@@ -570,7 +516,6 @@ def get_all_stick_table():
 
 
 def get_stick_table(table):
-	import sql
 	hap_sock_p = sql.get_setting('haproxy_sock_port')
 	cmd = 'echo "show table %s"|nc %s %s |awk -F"#" \'{print $2}\' |head -1 | tr -d \'\n\'' % (table, serv, hap_sock_p)
 	output, stderr = subprocess_execute(cmd)
@@ -606,7 +551,6 @@ def show_installation_output(error, output, service):
 
 
 def install_haproxy(server_ip, **kwargs):
-	import sql
 	script = "install_haproxy.sh"
 	hap_sock_p = str(sql.get_setting('haproxy_sock_port'))
 	stats_port = str(sql.get_setting('stats_port'))
@@ -658,7 +602,6 @@ def install_haproxy(server_ip, **kwargs):
 
 
 def waf_install(server_ip):
-	import sql
 	script = "waf.sh"
 	proxy = sql.get_setting('proxy')
 	haproxy_dir = sql.get_setting('haproxy_dir')
@@ -688,7 +631,6 @@ def waf_install(server_ip):
 
 
 def waf_nginx_install(server_ip):
-	import sql
 	script = "waf_nginx.sh"
 	proxy = sql.get_setting('proxy')
 	nginx_dir = sql.get_setting('nginx_dir')
@@ -716,7 +658,6 @@ def waf_nginx_install(server_ip):
 
 
 def install_nginx(server_ip, **kwargs):
-	import sql
 	script = "install_nginx.sh"
 	stats_user = sql.get_setting('nginx_stats_user')
 	stats_password = sql.get_setting('nginx_stats_password')
@@ -786,7 +727,6 @@ def update_roxy_wi(service):
 
 
 def check_haproxy_version(server_ip):
-	import sql
 	hap_sock_p = sql.get_setting('haproxy_sock_port')
 	ver = ""
 	cmd = f"echo 'show info' |nc {server_ip} {hap_sock_p} |grep Version |awk '{{print $2}}'"
@@ -813,13 +753,13 @@ def upload(server_ip, path, file, **kwargs):
 
 
 def upload_and_restart(server_ip: str, cfg: str, **kwargs):
-	import sql
 	error = ''
 	service_name = ''
 	container_name = ''
 	reload_or_restart_command = ''
 	file_format = 'conf'
 	config_path = kwargs.get('config_file_name')
+	config_date = get_date.return_date('config')
 	server_id = sql.select_server_id_by_ip(server_ip=server_ip)
 
 	if kwargs.get("nginx"):
@@ -837,7 +777,7 @@ def upload_and_restart(server_ip: str, cfg: str, **kwargs):
 		config_path = sql.get_setting('haproxy_config_path')
 		file_format = 'cfg'
 
-	tmp_file = f"{sql.get_setting('tmp_config_path')}/{get_data('config')}.{file_format}"
+	tmp_file = f"{sql.get_setting('tmp_config_path')}/{config_date}.{file_format}"
 	is_dockerized = sql.select_service_setting(server_id, service, 'dockerized')
 
 	if is_dockerized == '1':
@@ -991,8 +931,6 @@ def upload_and_restart(server_ip: str, cfg: str, **kwargs):
 
 
 def master_slave_upload_and_restart(server_ip, cfg, just_save, **kwargs):
-	import sql
-
 	slave_output = ''
 
 	try:
@@ -1072,7 +1010,6 @@ def open_port_firewalld(cfg, server_ip, **kwargs):
 
 
 def check_haproxy_config(server_ip):
-	import sql
 	server_id = sql.select_server_id_by_ip(server_ip=server_ip)
 	is_dockerized = sql.select_service_setting(server_id, 'haproxy', 'dockerized')
 	config_path = sql.get_setting('haproxy_config_path')
@@ -1093,7 +1030,6 @@ def check_haproxy_config(server_ip):
 
 
 def check_nginx_config(server_ip):
-	import sql
 	commands = [f"nginx -q -t -p {sql.get_setting('nginx_dir')}"]
 
 	with ssh_connect(server_ip) as ssh:
@@ -1146,7 +1082,6 @@ def show_roxy_log(
 		serv, rows='10', waf='0', grep=None, hour='00',
 		minut='00', hour1='24', minut1='00', service='haproxy', **kwargs
 ) -> str:
-	import sql
 	exgrep = form.getvalue('exgrep')
 	log_file = form.getvalue('file')
 	date = checkAjaxInput(hour) + ':' + checkAjaxInput(minut)
@@ -1196,7 +1131,6 @@ def show_roxy_log(
 		if waf == "1":
 			local_path_logs = '/var/log/waf.log'
 			commands = ["sudo cat %s |tail -%s %s %s" % (local_path_logs, rows, grep_act, exgrep_act)]
-
 		if kwargs.get('html') == 0:
 			a = ssh_command(syslog_server, commands)
 			return show_log(a, html=0, grep=grep)
@@ -1290,6 +1224,8 @@ def server_status(stdout):
 
 
 def ssh_command(server_ip: str, commands: list, **kwargs):
+	if server_ip == '':
+		return 'error: IP cannot be empty'
 	with ssh_connect(server_ip) as ssh:
 		for command in commands:
 			try:
@@ -1328,7 +1264,6 @@ def subprocess_execute(cmd):
 
 
 def show_backends(server_ip, **kwargs):
-	import sql
 	hap_sock_p = sql.get_setting('haproxy_sock_port')
 	cmd = f'echo "show backend" |nc {server_ip} {hap_sock_p}'
 	output, stderr = subprocess_execute(cmd)
@@ -1414,7 +1349,6 @@ def get_key(item):
 
 
 def check_ver():
-	import sql
 	return sql.get_ver()
 
 
@@ -1422,8 +1356,6 @@ def check_new_version(service):
 	import requests
 	from requests.adapters import HTTPAdapter
 	from requests.packages.urllib3.util.retry import Retry
-
-	import sql
 
 	current_ver = check_ver()
 	proxy = sql.get_setting('proxy')
@@ -1508,7 +1440,6 @@ def get_hash(value):
 
 
 def get_users_params(**kwargs):
-	import sql
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 
 	try:
@@ -1547,8 +1478,6 @@ def get_users_params(**kwargs):
 
 
 def check_user_group(**kwargs):
-	import sql
-
 	if kwargs.get('token') is not None:
 		return True
 
@@ -1577,7 +1506,6 @@ def check_user_group(**kwargs):
 
 
 def check_is_server_in_group(server_ip: str) -> bool:
-	import sql
 	group_id = get_user_group(id=1)
 	servers = sql.select_servers(server=server_ip)
 	for s in servers:
@@ -1691,7 +1619,6 @@ def is_service_active(server_ip: str, service_name: str) -> bool:
 
 
 def get_system_info(server_ip: str) -> str:
-	import sql
 	server_ip = is_ip_or_dns(server_ip)
 	if server_ip == '':
 		return 'error: IP cannot be empty'
@@ -1928,7 +1855,6 @@ def string_to_dict(dict_string) -> dict:
 
 def send_message_to_rabbit(message: str, **kwargs) -> None:
 	import pika
-	import sql
 	rabbit_user = sql.get_setting('rabbitmq_user')
 	rabbit_password = sql.get_setting('rabbitmq_password')
 	rabbit_host = sql.get_setting('rabbitmq_host')
@@ -1956,8 +1882,6 @@ def send_message_to_rabbit(message: str, **kwargs) -> None:
 
 
 def is_restarted(server_ip: str, action: str) -> None:
-	import sql
-
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_uuid = cookie.get('uuid')
 	user_role = sql.get_user_role_by_uuid(user_uuid.value)
@@ -1968,7 +1892,6 @@ def is_restarted(server_ip: str, action: str) -> None:
 
 
 def is_not_allowed_to_restart(server_id: int, service: str) -> None:
-	import sql
 	is_restart = sql.select_service_setting(server_id, service, 'restart')
 
 	if int(is_restart) == 1:
@@ -1977,8 +1900,6 @@ def is_not_allowed_to_restart(server_id: int, service: str) -> None:
 
 
 def return_user_status():
-	import sql
-
 	user_status = sql.select_user_status()
 	user_plan = sql.select_user_plan()
 
@@ -1986,8 +1907,6 @@ def return_user_status():
 
 
 def get_correct_apache_service_name(server_ip=None, server_id=0) -> str:
-	import sql
-
 	if server_id is None:
 		server_id = sql.select_server_id_by_ip(server_ip)
 
@@ -2014,7 +1933,6 @@ def is_docker() -> bool:
 
 
 def send_email(email_to: str, subject: str, message: str) -> None:
-	import sql
 	from smtplib import SMTP
 
 	try:
@@ -2046,8 +1964,6 @@ def send_email(email_to: str, subject: str, message: str) -> None:
 
 
 def send_email_to_server_group(subject: str, mes: str, group_id: int) -> None:
-	import sql
-
 	try:
 		users_email = sql.select_users_emails_by_group_id(group_id)
 
@@ -2060,8 +1976,6 @@ def send_email_to_server_group(subject: str, mes: str, group_id: int) -> None:
 def alert_routing(
 	server_ip: str, service_id: int, group_id: int, level: str, mes: str, alert_type: str
 ) -> None:
-	import sql
-
 	subject: str = level + ': ' + mes
 	server_id: int = sql.select_server_id_by_ip(server_ip)
 	checker_settings = sql.select_checker_settings_for_server(service_id, server_id)
@@ -2093,3 +2007,7 @@ def alert_routing(
 
 			if setting.email:
 				send_email_to_server_group(subject, mes, group_id)
+
+
+def get_data(log_type, **kwargs):
+	return get_date.return_date(log_type, **kwargs)
