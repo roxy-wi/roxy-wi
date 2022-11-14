@@ -51,7 +51,7 @@
     {% if s.3|float < checker_ver|float %}
         {% set is_need_update = 1 %}
     {% endif %}
-    {% set description = 'Checker is designed for monitoring HAProxy, Nginx, Apache and Keepalived services as well as HAProxy backends' %}
+    {% set description = 'Checker is designed for monitoring HAProxy, Nginx, Apache and Keepalived services as well as HAProxy backends and maxconn' %}
 {% elif s.0 == 'roxy-wi-keep_alive' %}
     {% set service_name = 'Auto start' %}
     {% set service_link = 'auto_start' %}
@@ -67,7 +67,7 @@
     {% if s.3|float < metrics_ver|float %}
         {% set is_need_update = 1 %}
     {% endif %}
-    {% set description = 'Collects number of connections for HAProxy, NGINX and WAF services' %}
+    {% set description = 'Collects number of connections for HAProxy, NGINX, Apache and HAProxy WAF services' %}
 {% elif s.0 == 'roxy-wi-portscanner' %}
     {% set service_name = 'Port scanner' %}
     {% set service_link = 'portscanner' %}

@@ -567,7 +567,7 @@ def install_haproxy(server_ip, **kwargs):
 	proxy_serv = ''
 	ssh_settings = return_ssh_keys_path(server_ip)
 
-	os.system("cp scripts/%s ." % script)
+	os.system(f"cp scripts/{script} .")
 
 	if haproxy_ver is None:
 		haproxy_ver = '2.6.0-1'
@@ -714,13 +714,13 @@ def update_roxy_wi(service):
 			pass
 
 		if service != 'roxy-wi':
-			restart_service = ' && sudo systemctl restart ' + service
+			restart_service = f'&& sudo systemctl restart {service}'
 
-		cmd = 'sudo -S apt-get update && sudo apt-get install ' + service + restart_service
+		cmd = f'sudo -S apt-get update && sudo apt-get install {service} {restart_service}'
 	else:
 		if service != 'roxy-wi':
-			restart_service = ' && sudo systemctl restart ' + service
-		cmd = 'sudo -S yum -y install ' + service + restart_service
+			restart_service = f'&& sudo systemctl restart {service}'
+		cmd = f'sudo -S yum -y install {service} {restart_service}'
 
 	output, stderr = subprocess_execute(cmd)
 	print(output)
@@ -818,7 +818,7 @@ def upload_and_restart(server_ip: str, cfg: str, **kwargs):
 	try:
 		os.system(f"dos2unix {cfg}")
 	except OSError:
-		return 'Please install dos2unix'
+		return 'error: there is no dos2unix'
 
 	if service == "keepalived":
 		move_config = f"sudo mv -f {tmp_file} {config_path}"
@@ -853,7 +853,7 @@ def upload_and_restart(server_ip: str, cfg: str, **kwargs):
 		else:
 			commands = [check_and_move + reload_or_restart_command]
 		# if sql.return_firewall(server_ip):
-		# 	commands[0] += open_port_firewalld(cfg, server_ip=server_ip, service='nginx')
+		# 	commands[0] += open_port_firewalld(cfg, server_ip=server_ip, service='apache')
 	elif service == 'waf':
 		check_and_move = f"sudo mv -f {tmp_file} {config_path}"
 		if action == "save":
@@ -1157,7 +1157,7 @@ def show_roxy_log(
 		user_grep = ''
 
 		if user_group != '' and user_group != 'Default':
-			user_grep = "|grep 'group: " + user_group + "'"
+			user_grep = f"|grep 'group: {user_group}'"
 
 		for key, value in logs_files:
 			if int(serv) == key:
@@ -1393,7 +1393,7 @@ def check_new_version(service):
 			except Exception:
 				pass
 	except requests.exceptions.RequestException as e:
-		logging('Roxy-WI server', ' ' + str(e), roxywi=1)
+		logging('Roxy-WI server', f' {e}', roxywi=1)
 
 	return res
 
@@ -1543,12 +1543,12 @@ def get_services_status():
 	services = []
 	is_in_docker = is_docker()
 	services_name = {
-		'roxy-wi-checker': 'Checker backends master service',
-		'roxy-wi-keep_alive': 'Auto start service',
-		'roxy-wi-metrics': 'Metrics master service',
-		'roxy-wi-portscanner': 'Port scanner service',
-		'roxy-wi-smon': 'Simple monitoring network ports',
-		'roxy-wi-socket': 'Socket service',
+		'roxy-wi-checker': 'Checker is designed for monitoring HAProxy, NGINX, Apache and Keepalived services as well as HAProxy backends and maxconn',
+		'roxy-wi-keep_alive': '	The Auto Start service allows to restart the HAProxy, NGINX, Apache and Keepalived services if they are down',
+		'roxy-wi-metrics': 'Collects number of connections for HAProxy, NGINX, Apache and HAProxy WAF services',
+		'roxy-wi-portscanner': 'Probes and saves a server or host for open ports',
+		'roxy-wi-smon': 'SMON stands for <b>S</b>imple <b>MON</b>itoring',
+		'roxy-wi-socket': 'Socket is a service for sending alerts and notifications',
 		'roxy-wi-prometheus-exporter': 'Prometheus exporter',
 		'prometheus': 'Prometheus service',
 		'grafana-server': 'Grafana service',
