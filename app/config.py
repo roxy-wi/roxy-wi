@@ -77,25 +77,25 @@ if serv is not None and form.getvalue('open') is not None and form.getvalue('new
 	if service == 'keepalived':
 		error = config_mod.get_config(serv, cfg, keepalived=1)
 		try:
-			roxywi_roxywi_common.logging(serv, " Keepalived config has been opened for ")
+			roxywi_common.logging(serv, " Keepalived config has been opened for ")
 		except Exception:
 			pass
 	elif service == 'nginx':
 		error = config_mod.get_config(serv, cfg, nginx=1, config_file_name=config_file_name)
 		try:
-			roxywi_roxywi_common.logging(serv, " NGINX config has been opened ")
+			roxywi_common.logging(serv, " NGINX config has been opened ")
 		except Exception:
 			pass
 	elif service == 'apache':
 		error = config_mod.get_config(serv, cfg, apache=1, config_file_name=config_file_name)
 		try:
-			roxywi_roxywi_common.logging(serv, " Apache config has been opened ")
+			roxywi_common.logging(serv, " Apache config has been opened ")
 		except Exception:
 			pass
 	else:
 		error = config_mod.get_config(serv, cfg)
 		try:
-			roxywi_roxywi_common.logging(serv, " HAProxy config has been opened ")
+			roxywi_common.logging(serv, " HAProxy config has been opened ")
 		except Exception:
 			pass
 

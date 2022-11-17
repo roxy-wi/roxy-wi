@@ -1,4 +1,5 @@
 import os
+import cgi
 import glob
 import http.cookies
 
@@ -13,6 +14,7 @@ get_date = roxy_wi_tools.GetDate(time_zone)
 get_config_var = roxy_wi_tools.GetConfigVar()
 form = common.form
 serv = common.is_ip_or_dns(form.getvalue('serv'))
+
 
 def get_user_group(**kwargs) -> str:
 	user_group = ''

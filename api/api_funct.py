@@ -9,8 +9,10 @@ import modules.common.common as common
 import modules.server.server as server_mod
 import modules.config.section as section_mod
 import modules.config.config as config_mod
+import modules.config.runtime as runtime_mod
 import modules.roxy_wi_tools as roxy_wi_tools
 import modules.roxywi.logs as roxywi_logs
+import modules.roxywi.common as roxywi_common
 import modules.service.common as service_common
 
 get_config_var = roxy_wi_tools.GetConfigVar()
@@ -112,7 +114,7 @@ def check_permit_to_server(server_id, service='haproxy'):
 	login, group_id = sql.get_username_groupid_from_api_token(token)
 
 	for s in servers:
-		server = sql.get_dick_permit(username=login, group_id=group_id, ip=s[2], token=token, service=service)
+		server = roxywi_common.get_dick_permit(username=login, group_id=group_id, ip=s[2], token=token, service=service)
 
 	return server
 
@@ -218,7 +220,7 @@ def get_all_statuses():
 		sock_port = sql.get_setting('haproxy_sock_port')
 
 		for s in servers:
-			servers = sql.get_dick_permit(username=login, group_id=group_id, token=token)
+			servers = roxywi_common.get_dick_permit(username=login, group_id=group_id, token=token)
 
 		for s in servers:
 			cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|Maxco\|MB\|Uptime:"' % (s[2], sock_port)
@@ -282,7 +284,7 @@ def show_backends(server_id):
 		servers = check_permit_to_server(server_id)
 
 		for s in servers:
-			out = funct.show_backends(s[2], ret=1)
+			out = runtime_mod.show_backends(s[2], ret=1)
 
 		data = {server_id: out}
 
@@ -358,7 +360,7 @@ def edit_section(server_id):
 
 		out = config_mod.get_config(ip, cfg)
 		start_line, end_line, config_read = section_mod.get_section_from_config(cfg, section_name)
-		returned_config = funct.section_mod(start_line, end_line, cfg, body)
+		returned_config = section_mod.rewrite_section(start_line, end_line, cfg, body)
 		time_zone = sql.get_setting('time_zone')
 		get_date = roxy_wi_tools.GetDate(time_zone)
 		cur_date = get_date.return_date('config')
@@ -495,7 +497,7 @@ def add_to_config(server_id):
 			return_mess = 'section has been added to the config'
 			os.system(f"/bin/cp {cfg} {cfg_for_save}")
 			common.logging('localhost', " section has been added via REST API", login=login)
-			out = funct.upload_and_restart(ip, cfg, just_save=save)
+			out = config_mod.upload_and_restart(ip, cfg, just_save=save)
 
 			if out:
 				return_mess = out
@@ -571,7 +573,7 @@ def add_acl(server_id):
 
 	try:
 		config_read += acl
-		config = funct.section_mod(start_line, end_line, cfg, config_read)
+		config = section_mod.rewrite_section(start_line, end_line, cfg, config_read)
 		try:
 			with open(cfg, "w") as conf:
 				conf.write(config)
@@ -622,7 +624,7 @@ def del_acl(server_id):
 		status = 'Cannot delete ACL: ' + str(e)
 
 	try:
-		config = funct.section_mod(start_line, end_line, cfg, config_new_read)
+		config = config_mod.master_slave_upload_and_restart(start_line, end_line, cfg, config_new_read)
 		try:
 			with open(cfg, "w") as conf:
 				conf.write(config)

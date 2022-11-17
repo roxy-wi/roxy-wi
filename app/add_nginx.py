@@ -86,7 +86,7 @@ if form.getvalue('generateconfig') is None and serv is not None:
 
 			service_configs_dir = get_config_var.get_config_var('configs', 'nginx_save_configs_dir')
 			cfg = f'{service_configs_dir}{serv}-{config_name}.conf'
-			nginx_dir = comon.return_nice_path(sql.get_setting('nginx_dir'))
+			nginx_dir = common.return_nice_path(sql.get_setting('nginx_dir'))
 
 			config_file_name = f'{nginx_dir}{sub_folder}/{config_name}.conf'
 

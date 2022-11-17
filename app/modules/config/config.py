@@ -1,12 +1,12 @@
 import os
+import re
 import http.cookies
 
 import modules.db.sql as sql
-import modules.common.common as common
 import modules.server.server as server_mod
 import modules.roxywi.common as roxywi_common
 import modules.roxy_wi_tools as roxy_wi_tools
-from modules.service.common import is_not_allowed_to_restart
+from modules.service.common import is_not_allowed_to_restart, get_correct_apache_service_name
 
 time_zone = sql.get_setting('time_zone')
 get_date = roxy_wi_tools.GetDate(time_zone)

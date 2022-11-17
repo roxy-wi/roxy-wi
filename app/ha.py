@@ -8,7 +8,7 @@ import modules.roxywi.common as roxywi_common
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('ha.html')
-title="Create and configure HA cluster"
+title = "Create and configure HA cluster"
 
 print('Content-type: text/html\n')
 

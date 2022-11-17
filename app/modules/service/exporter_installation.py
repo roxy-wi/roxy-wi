@@ -3,12 +3,11 @@ import os
 import modules.db.sql as sql
 import modules.common.common as common
 import modules.server.server as server_mod
-import modules.roxywi.common as roxywi_common
-import modules.service.common as service_common
 from modules.service.installation import show_installation_output
 from modules.server.server import return_ssh_keys_path
 
 form = common.form
+
 
 def haproxy_exp_installation():
     serv = form.getvalue('haproxy_exp_install')

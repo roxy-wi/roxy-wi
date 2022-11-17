@@ -9,6 +9,7 @@ from modules.server.server import return_ssh_keys_path
 
 form = common.form
 
+
 def show_installation_output(error: str, output: str, service: str) -> bool:
 	if error and "WARNING" not in error:
 		roxywi_common.logging('Roxy-WI server', error, roxywi=1)
