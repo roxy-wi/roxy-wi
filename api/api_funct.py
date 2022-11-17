@@ -4,25 +4,30 @@ import json
 from bottle import request
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app/'))
 
-import sql
-import funct
+import modules.db.sql as sql
+import modules.common.common as common
+import modules.server.server as server_mod
+import modules.config.section as section_mod
+import modules.config.config as config_mod
 import modules.roxy_wi_tools as roxy_wi_tools
+import modules.roxywi.logs as roxywi_logs
+import modules.service.common as service_common
 
 get_config_var = roxy_wi_tools.GetConfigVar()
 
 
 def get_token():
 	try:
-		user_status, user_plan = funct.return_user_status()
+		user_subscription = roxywi_common.return_user_status()
 	except Exception as e:
-		funct.logging('API', f'Cannot get a user plan: {e}', roxywi=1)
-		return False
+		user_subscription = roxywi_common.return_unsubscribed_user_status()
+		common.logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
 
-	if user_status == 0:
-		funct.logging('API', 'You are not subscribed. Please subscribe to have access to this feature.', roxywi=1)
+	if user_subscription['user_status'] == 0:
+		common.logging('API', 'You are not subscribed. Please subscribe to have access to this feature.', roxywi=1)
 		return False
-	elif user_plan == 'user':
-		funct.logging('API', 'This feature is not available for your plan.', roxywi=1)
+	elif user_subscription['user_plan'] == 'user':
+		common.logging('API', 'This feature is not available for your plan.', roxywi=1)
 		return False
 
 	try:
@@ -57,16 +62,16 @@ def get_token():
 
 def check_login(required_service=0) -> bool:
 	try:
-		user_status, user_plan = funct.return_user_status()
+		user_subscription = roxywi_common.return_user_status()
 	except Exception as e:
-		funct.logging('API', f'Cannot get a user plan: {e}', roxywi=1)
-		return False
+		user_subscription = roxywi_common.return_unsubscribed_user_status()
+		common.logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
 
-	if user_status == 0:
-		funct.logging('API', 'You are not subscribed. Please subscribe to have access to this feature.', roxywi=1)
+	if user_subscription['user_status'] == 0:
+		common.logging('API', 'You are not subscribed. Please subscribe to have access to this feature.', roxywi=1)
 		return False
-	elif user_plan == 'user':
-		funct.logging('API', 'This feature is not available for your plan.', roxywi=1)
+	elif user_subscription['user_plan'] == 'user':
+		common.logging('API', 'This feature is not available for your plan.', roxywi=1)
 		return False
 
 	token = request.headers.get('token')
@@ -159,7 +164,7 @@ def get_status(server_id, service):
 		for s in servers:
 			if service == 'haproxy':
 				cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|Maxco\|MB\|Uptime:"' % (s[2], sql.get_setting('haproxy_sock_port'))
-				out = funct.subprocess_execute(cmd)
+				out = server_mod.subprocess_execute(cmd)
 				data = return_dict_from_out(server_id, out[0])
 			elif service == 'nginx':
 				cmd = [
@@ -167,7 +172,7 @@ def get_status(server_id, service):
 					"|awk '{print $2, $9$10$11$12$13}' && ps ax |grep nginx:|grep -v grep |wc -l"
 				]
 				try:
-					out = funct.ssh_command(s[2], cmd)
+					out = server_mod.ssh_command(s[2], cmd)
 					out1 = out.split()
 					json_for_sending = {server_id: {"Version": out1[0].split('/')[1], "Uptime": out1[2], "Process": out1[3]}}
 					data = json_for_sending
@@ -182,7 +187,7 @@ def get_status(server_id, service):
 					(apache_stats_user, apache_stats_password, s[2], apache_stats_port, apache_stats_page)
 				servers_with_status = list()
 				try:
-					out = funct.subprocess_execute(cmd)
+					out = server_mod.subprocess_execute(cmd)
 					if out != '':
 						for k in out:
 							servers_with_status.append(k)
@@ -218,7 +223,7 @@ def get_all_statuses():
 		for s in servers:
 			cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|Maxco\|MB\|Uptime:"' % (s[2], sock_port)
 			data[s[2]] = {}
-			out = funct.subprocess_execute(cmd)
+			out = server_mod.subprocess_execute(cmd)
 			data[s[2]] = return_dict_from_out(s[1], out[0])
 	except Exception:
 		data = {"error": "Cannot find the server"}
@@ -238,9 +243,9 @@ def actions(server_id, action, service):
 
 		for s in servers:
 			if service == 'apache':
-				service = funct.get_correct_apache_service_name(server_ip=s[2])
+				service = service_common.get_correct_apache_service_name(server_ip=s[2])
 			cmd = ["sudo systemctl %s %s" % (action, service)]
-			error = funct.ssh_command(s[2], cmd)
+			error = server_mod.ssh_command(s[2], cmd)
 			done = error if error else 'done'
 
 			data = {'server_id': s[0], 'ip': s[2], 'action': action, 'hostname': s[1], 'status': done}
@@ -261,7 +266,7 @@ def runtime(server_id):
 		cmd = ['echo "%s" |sudo socat stdio %s' % (action, haproxy_sock)]
 
 		for s in servers:
-			out = funct.ssh_command(s[2], cmd)
+			out = server_mod.ssh_command(s[2], cmd)
 
 		data = {server_id: {}}
 		sep_data = out.split('\r\n')
@@ -299,7 +304,7 @@ def get_config(server_id, **kwargs):
 
 		for s in servers:
 			cfg = '/tmp/' + s[2] + '.cfg'
-			funct.get_config(s[2], cfg, service=service, config_file_name=kwargs.get('config_path'))
+			config_mod.get_config(s[2], cfg, service=service, config_file_name=kwargs.get('config_path'))
 			os.system("sed -i 's/\\n/\n/g' " + cfg)
 		try:
 			conf = open(cfg, "r")
@@ -324,8 +329,8 @@ def get_section(server_id):
 	for s in servers:
 		cfg = '/tmp/' + s[2] + '.cfg'
 
-		funct.get_config(s[2], cfg)
-		start_line, end_line, config_read = funct.get_section_from_config(cfg, section_name)
+		config_mod.get_config(s[2], cfg)
+		start_line, end_line, config_read = section_mod.get_section_from_config(cfg, section_name)
 
 	data = {server_id: {section_name: {'start_line': start_line, 'end_line': end_line, 'config_read': config_read}}}
 	return dict(section=data)
@@ -351,9 +356,9 @@ def edit_section(server_id):
 		ip = s[2]
 		cfg = f'/tmp/{ip}.cfg'
 
-		out = funct.get_config(ip, cfg)
-		start_line, end_line, config_read = funct.get_section_from_config(cfg, section_name)
-		returned_config = funct.rewrite_section(start_line, end_line, cfg, body)
+		out = config_mod.get_config(ip, cfg)
+		start_line, end_line, config_read = section_mod.get_section_from_config(cfg, section_name)
+		returned_config = funct.section_mod(start_line, end_line, cfg, body)
 		time_zone = sql.get_setting('time_zone')
 		get_date = roxy_wi_tools.GetDate(time_zone)
 		cur_date = get_date.return_date('config')
@@ -366,9 +371,9 @@ def edit_section(server_id):
 					conf.write(returned_config)
 				return_mess = 'section has been updated'
 				os.system(f"/bin/cp {cfg} {cfg_for_save}")
-				out = funct.master_slave_upload_and_restart(ip, cfg, save, login=login)
-				funct.logging('localhost', f" section {section_name} has been edited via API", login=login)
-				funct.logging(
+				out = config_mod.master_slave_upload_and_restart(ip, cfg, save, login=login)
+				common.logging('localhost', f" section {section_name} has been edited via API", login=login)
+				common.logging(
 					ip, f'Section {section_name} has been edited via API', roxywi=1,
 					login=login, keep_history=1, service='haproxy'
 				)
@@ -435,14 +440,14 @@ def upload_config(server_id, **kwargs):
 			os.system("/bin/cp %s %s" % (cfg, cfg_for_save))
 
 			if kwargs.get('service') == 'nginx':
-				out = funct.master_slave_upload_and_restart(ip, cfg, save, login=login, nginx=nginx, config_file_name=kwargs.get('config_path'))
+				out = config_mod.master_slave_upload_and_restart(ip, cfg, save, login=login, nginx=nginx, config_file_name=kwargs.get('config_path'))
 			elif kwargs.get('service') == 'apache':
-				out = funct.master_slave_upload_and_restart(ip, cfg, save, login=login, apache=apache, config_file_name=kwargs.get('config_path'))
+				out = config_mod.master_slave_upload_and_restart(ip, cfg, save, login=login, apache=apache, config_file_name=kwargs.get('config_path'))
 			else:
-				out = funct.master_slave_upload_and_restart(ip, cfg, save, login=login)
+				out = config_mod.master_slave_upload_and_restart(ip, cfg, save, login=login)
 
-			funct.logging('localhost', " config has been uploaded via API", login=login)
-			funct.logging(
+			common.logging('localhost', " config has been uploaded via API", login=login)
+			common.logging(
 				ip, 'Config has been uploaded via API', roxywi=1, login=login, keep_history=1, service=service_name
 			)
 
@@ -482,14 +487,14 @@ def add_to_config(server_id):
 		cfg = f'/tmp/{ip}.cfg'
 		cur_date = get_date.return_date('config')
 		cfg_for_save = f'{hap_configs_dir}{ip}-{cur_date}.cfg'
-		out = funct.get_config(ip, cfg)
+		out = config_mod.get_config(ip, cfg)
 		try:
 			with open(cfg, "a") as conf:
 				conf.write('\n' + body + '\n')
 
 			return_mess = 'section has been added to the config'
 			os.system(f"/bin/cp {cfg} {cfg_for_save}")
-			funct.logging('localhost', " section has been added via REST API", login=login)
+			common.logging('localhost', " section has been added via REST API", login=login)
 			out = funct.upload_and_restart(ip, cfg, just_save=save)
 
 			if out:
@@ -538,7 +543,7 @@ def show_log(server_id):
 		data[server_id] = {"error": "Cannot find the server"}
 		return dict(error=data)
 
-	out = funct.show_roxy_log(ip, rows=rows, waf=str(waf), grep=grep, hour=str(hour), minut=str(minute), hour1=str(hour1), minut1=str(minute1), html=0)
+	out = roxywi_logs.show_roxy_log(ip, rows=rows, waf=str(waf), grep=grep, hour=str(hour), minut=str(minute), hour1=str(hour1), minut1=str(minute1), html=0)
 	data = {server_id: out}
 
 	return dict(log=data)
@@ -559,14 +564,14 @@ def add_acl(server_id):
 		server_ip = s[2]
 
 	try:
-		out = funct.get_config(server_ip, cfg)
-		start_line, end_line, config_read = funct.get_section_from_config(cfg, section_name)
+		out = config_mod.get_config(server_ip, cfg)
+		start_line, end_line, config_read = section_mod.get_section_from_config(cfg, section_name)
 	except Exception as e:
 		status = "Cannot read section: " + str(e)
 
 	try:
 		config_read += acl
-		config = funct.rewrite_section(start_line, end_line, cfg, config_read)
+		config = funct.section_mod(start_line, end_line, cfg, config_read)
 		try:
 			with open(cfg, "w") as conf:
 				conf.write(config)
@@ -576,7 +581,7 @@ def add_acl(server_id):
 		status = str(e)
 
 	try:
-		out = funct.master_slave_upload_and_restart(server_ip, cfg, just_save=save)
+		out = config_mod.master_slave_upload_and_restart(server_ip, cfg, just_save=save)
 		if out != '':
 			status = out
 		else:
@@ -602,8 +607,8 @@ def del_acl(server_id):
 		cfg = '/tmp/' + s[2] + '.cfg'
 		server_ip = s[2]
 	try:
-		out = funct.get_config(server_ip, cfg)
-		start_line, end_line, config_read = funct.get_section_from_config(cfg, section_name)
+		out = config_mod.get_config(server_ip, cfg)
+		start_line, end_line, config_read = section_mod.get_section_from_config(cfg, section_name)
 	except Exception as e:
 		status = str(e)
 
@@ -617,7 +622,7 @@ def del_acl(server_id):
 		status = 'Cannot delete ACL: ' + str(e)
 
 	try:
-		config = funct.rewrite_section(start_line, end_line, cfg, config_new_read)
+		config = funct.section_mod(start_line, end_line, cfg, config_new_read)
 		try:
 			with open(cfg, "w") as conf:
 				conf.write(config)
@@ -627,7 +632,7 @@ def del_acl(server_id):
 		status = 'Cannot delete ACL: ' + str(e)
 
 	try:
-		out = funct.master_slave_upload_and_restart(server_ip, cfg, just_save=save)
+		out = config_mod.master_slave_upload_and_restart(server_ip, cfg, just_save=save)
 		if out != '':
 			status = out
 		else:

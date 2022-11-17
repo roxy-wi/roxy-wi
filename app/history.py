@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
-import funct
-import sql
+import modules.db.sql as sql
+import modules.common.common as common
+import modules.roxywi.auth as roxywi_auth
+import modules.roxywi.common as roxywi_common
+
 from jinja2 import Environment, FileSystemLoader
 
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
@@ -8,48 +11,44 @@ template = env.get_template('history.html')
 
 print('Content-type: text/html\n')
 
-try:
-    user, user_id, role, token, servers, user_services \
-        = funct.get_users_params()
-    services = []
-except Exception:
-    pass
+user_params = roxywi_common.get_users_params(service='keepalived')
 
-form = funct.form
-serv = funct.is_ip_or_dns(form.getvalue('serv'))
+form = common.form
+serv = common.is_ip_or_dns(form.getvalue('serv'))
 service = form.getvalue('service')
 user_id_history = form.getvalue('user_id')
 
 if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
-    service_desc = sql.select_service(service)
-    if funct.check_login(user_id, token, service=service_desc.service_id):
-        title = f'{service_desc.service} service history'
-        server_id = sql.select_server_id_by_ip(serv)
-        history = sql.select_action_history_by_server_id_and_service(
-            server_id,
-            service_desc.service
-        )
+	service_desc = sql.select_service(service)
+	if roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=service_desc.service_id):
+		title = f'{service_desc.service} service history'
+		server_id = sql.select_server_id_by_ip(serv)
+		history = sql.select_action_history_by_server_id_and_service(
+			server_id,
+			service_desc.service
+		)
 elif service == 'server':
-    if serv:
-        title = f'{serv} history'
-        if funct.check_is_server_in_group(serv):
-            server_id = sql.select_server_id_by_ip(serv)
-            history = sql.select_action_history_by_server_id(server_id)
+	if serv:
+		title = f'{serv} history'
+		if roxywi_common.check_is_server_in_group(serv):
+			server_id = sql.select_server_id_by_ip(serv)
+			history = sql.select_action_history_by_server_id(server_id)
 elif service == 'user':
-    if user_id_history:
-        title = 'User history'
-        history = sql.select_action_history_by_user_id(user_id_history)
+	if user_id_history:
+		title = 'User history'
+		history = sql.select_action_history_by_user_id(user_id_history)
 
 users = sql.select_users()
 
 try:
-    user_status, user_plan = funct.return_user_status()
+	user_subscription = roxywi_common.return_user_status()
 except Exception as e:
-    user_status, user_plan = 0, 0
-    funct.logging('Roxy-WI server', 'Cannot get a user plan: ' + str(e), roxywi=1)
+	user_subscription = roxywi_common.return_unsubscribed_user_status()
+	roxywi_common.logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
 
 rendered_template = template.render(
-    h2=1, autorefresh=0, title=title, role=role, user=user, users=users, serv=serv, service=service,
-    history=history, user_services=user_services, token=token, user_status=user_status, user_plan=user_plan
+	h2=1, autorefresh=0, title=title, role=user_params['role'], user=user_params['user'], users=users, serv=serv,
+	service=service, history=history, user_services=user_params['user_services'], token=user_params['token'],
+	user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan']
 )
 print(rendered_template)

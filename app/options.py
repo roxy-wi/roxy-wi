@@ -9,14 +9,22 @@ from uuid import UUID
 import requests
 from jinja2 import Environment, FileSystemLoader
 
-import funct
-import sql
+import modules.db.sql as sql
+import modules.common.common as common
+import modules.config.config as config_mod
+import modules.roxywi.auth as roxywi_auth
+import modules.roxywi.common as roxywi_common
 import modules.roxy_wi_tools as roxy_wi_tools
+import modules.server.server as server_mod
+import modules.service.common as service_common
+import modules.service.installation as service_mod
 
 get_config = roxy_wi_tools.GetConfigVar()
+time_zone = sql.get_setting('time_zone')
+get_date = roxy_wi_tools.GetDate(time_zone)
 
-form = funct.form
-serv = funct.is_ip_or_dns(form.getvalue('serv'))
+form = common.form
+serv = common.is_ip_or_dns(form.getvalue('serv'))
 act = form.getvalue("act")
 token = form.getvalue("token")
 
@@ -36,7 +44,7 @@ else:
     print('Content-type: text/html\n')
 
 if act == "checkrestart":
-    servers = sql.get_dick_permit(ip=serv)
+    servers = roxywi_common.get_dick_permit(ip=serv)
     for server in servers:
         if server != "":
             print("ok")
@@ -60,33 +68,33 @@ if form.getvalue('getcerts') is not None and serv is not None:
     cert_path = sql.get_setting('cert_path')
     commands = [f"sudo ls -1t {cert_path} |grep -E 'pem|crt|key'"]
     try:
-        funct.ssh_command(serv, commands, ip="1")
+        server_mod.ssh_command(serv, commands, ip="1")
     except Exception as e:
         print(f'error: Cannot connect to the server: {e.args[0]}')
 
 if form.getvalue('checkSshConnect') is not None and serv is not None:
     try:
-        print(funct.ssh_command(serv, ["ls -1t"]))
+        print(server_mod.ssh_command(serv, ["ls -1t"]))
     except Exception as e:
         print(e)
 
 if form.getvalue('getcert') is not None and serv is not None:
-    cert_id = funct.checkAjaxInput(form.getvalue('getcert'))
+    cert_id = common.checkAjaxInput(form.getvalue('getcert'))
 
     cert_path = sql.get_setting('cert_path')
     commands = [f"openssl x509 -in {cert_path}/{cert_id} -text"]
     try:
-        funct.ssh_command(serv, commands, ip="1")
+        server_mod.ssh_command(serv, commands, ip="1")
     except Exception as e:
         print(f'error: Cannot connect to the server {e.args[0]}')
 
 if form.getvalue('delcert') is not None and serv is not None:
     cert_id = form.getvalue('delcert')
-    cert_id = funct.checkAjaxInput(cert_id)
+    cert_id = common.checkAjaxInput(cert_id)
     cert_path = sql.get_setting('cert_path')
     commands = [f"sudo rm -f {cert_path}/{cert_id}"]
     try:
-        funct.ssh_command(serv, commands, ip="1")
+        server_mod.ssh_command(serv, commands, ip="1")
     except Exception as e:
         print(f'error: Cannot delete the certificate {e.args[0]}')
 
@@ -101,7 +109,7 @@ if serv and form.getvalue('ssl_cert'):
     if form.getvalue('ssl_name') is None:
         print('error: Please enter a desired name')
     else:
-        name = funct.checkAjaxInput(form.getvalue('ssl_name'))
+        name = common.checkAjaxInput(form.getvalue('ssl_name'))
 
     try:
         with open(name, "w") as ssl_cert:
@@ -112,31 +120,33 @@ if serv and form.getvalue('ssl_cert'):
     MASTERS = sql.is_master(serv)
     for master in MASTERS:
         if master[0] is not None:
-            funct.upload(master[0], cert_path, name)
+            config_mod.upload(master[0], cert_path, name)
             print('success: the SSL file has been uploaded to %s into: %s%s <br/>' % (master[0], cert_path, '/' + name))
     try:
-        error = funct.upload(serv, cert_path, name)
+        error = config_mod.upload(serv, cert_path, name)
         print('success: the SSL file has been uploaded to %s into: %s%s' % (serv, cert_path, '/' + name))
     except Exception as e:
-        funct.logging('Roxy-WI server', e.args[0], roxywi=1)
+        roxywi_common.logging('Roxy-WI server', e.args[0], roxywi=1)
     try:
         os.rename(name, cert_local_dir)
     except OSError as e:
-        funct.logging('Roxy-WI server', e.args[0], roxywi=1)
+        roxywi_common.logging('Roxy-WI server', e.args[0], roxywi=1)
 
-    funct.logging(serv, "add.py#ssl uploaded a new SSL cert %s" % name, roxywi=1, login=1)
+    roxywi_common.logging(serv, "add.py#ssl uploaded a new SSL cert %s" % name, roxywi=1, login=1)
 
 if form.getvalue('backend') is not None:
-    funct.show_backends(serv)
+    import modules.config.runtime as runtime
+    runtime.show_backends(serv)
 
 if form.getvalue('ip_select') is not None:
-    funct.show_backends(serv)
+    import modules.config.runtime as runtime
+    runtime.show_backends(serv)
 
 if form.getvalue('ipbackend') is not None and form.getvalue('backend_server') is None:
     haproxy_sock_port = int(sql.get_setting('haproxy_sock_port'))
-    backend = funct.checkAjaxInput(form.getvalue('ipbackend'))
+    backend = common.checkAjaxInput(form.getvalue('ipbackend'))
     cmd = 'echo "show servers state"|nc %s %s |grep "%s" |awk \'{print $4}\'' % (serv, haproxy_sock_port, backend)
-    output, stderr = funct.subprocess_execute(cmd)
+    output, stderr = server_mod.subprocess_execute(cmd)
     for i in output:
         if i == ' ':
             continue
@@ -145,180 +155,72 @@ if form.getvalue('ipbackend') is not None and form.getvalue('backend_server') is
 
 if form.getvalue('ipbackend') is not None and form.getvalue('backend_server') is not None:
     haproxy_sock_port = int(sql.get_setting('haproxy_sock_port'))
-    backend = funct.checkAjaxInput(form.getvalue('ipbackend'))
-    backend_server = funct.checkAjaxInput(form.getvalue('backend_server'))
+    backend = common.checkAjaxInput(form.getvalue('ipbackend'))
+    backend_server = common.checkAjaxInput(form.getvalue('backend_server'))
     cmd = 'echo "show servers state"|nc %s %s |grep "%s" |grep "%s" |awk \'{print $5":"$19}\' |head -1' % (
         serv, haproxy_sock_port, backend, backend_server)
-    output, stderr = funct.subprocess_execute(cmd)
+    output, stderr = server_mod.subprocess_execute(cmd)
     print(output[0])
 
 if form.getvalue('backend_ip') is not None:
-    backend_backend = funct.checkAjaxInput(form.getvalue('backend_backend'))
-    backend_server = funct.checkAjaxInput(form.getvalue('backend_server'))
-    backend_ip = funct.checkAjaxInput(form.getvalue('backend_ip'))
-    backend_port = funct.checkAjaxInput(form.getvalue('backend_port'))
+    import modules.config.runtime as runtime
 
-    if form.getvalue('backend_ip') is None:
-        print('error: Backend IP must be IP and not 0')
-        sys.exit()
-
-    if form.getvalue('backend_port') is None:
-        print('error: The backend port must be integer and not 0')
-        sys.exit()
-
-    haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-
-    MASTERS = sql.is_master(serv)
-    for master in MASTERS:
-        if master[0] is not None:
-            cmd = 'echo "set server %s/%s addr %s port %s check-port %s" |nc %s %s' % (
-                backend_backend, backend_server, backend_ip, backend_port, backend_port, master[0], haproxy_sock_port)
-            output, stderr = funct.subprocess_execute(cmd)
-            print(output[0])
-            funct.logging(
-                master[0], 'IP address and port have been changed. On: {}/{} to {}:{}'.format(
-                    backend_backend, backend_server, backend_ip, backend_port
-                ),
-                login=1, keep_history=1, service='haproxy'
-            )
-
-    cmd = 'echo "set server %s/%s addr %s port %s check-port %s" |nc %s %s' % (
-        backend_backend, backend_server, backend_ip, backend_port, backend_port, serv, haproxy_sock_port)
-    funct.logging(
-        serv,
-        'IP address and port have been changed. On: {}/{} to {}:{}'.format(backend_backend, backend_server, backend_ip,
-                                                                           backend_port),
-        login=1, keep_history=1, service='haproxy'
-    )
-    output, stderr = funct.subprocess_execute(cmd)
-
-    if stderr != '':
-        print('error: ' + stderr[0])
-    else:
-        print(output[0])
-        configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
-        cfg = configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
-
-        error = funct.get_config(serv, cfg)
-        cmd = 'string=`grep %s %s -n -A25 |grep "server %s" |head -1|awk -F"-" \'{print $1}\'` ' \
-              '&& sed -Ei "$( echo $string)s/((1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])\.){3}(1?[0-9][0-9]?|2[0-4][0-9]|25[0-5]):[0-9]+/%s:%s/g" %s' % \
-              (backend_backend, cfg, backend_server, backend_ip, backend_port, cfg)
-        output, stderr = funct.subprocess_execute(cmd)
-        stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save='save')
+    runtime.change_ip_and_port()
 
 if form.getvalue('maxconn_select') is not None:
-    serv = funct.checkAjaxInput(form.getvalue('maxconn_select'))
-    funct.get_backends_from_config(serv, backends='frontend')
+    import modules.config.runtime as runtime
+    serv = common.checkAjaxInput(form.getvalue('maxconn_select'))
+    runtime.get_backends_from_config(serv, backends='frontend')
 
 if form.getvalue('maxconn_frontend') is not None:
-    frontend = funct.checkAjaxInput(form.getvalue('maxconn_frontend'))
-    maxconn = funct.checkAjaxInput(form.getvalue('maxconn_int'))
+    import modules.config.runtime as runtime
 
-    if form.getvalue('maxconn_int') is None:
-        print('error: Maxconn must be integer and not 0')
-        sys.exit()
-
-    haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-
-    MASTERS = sql.is_master(serv)
-    for master in MASTERS:
-        if master[0] is not None:
-            if frontend == 'global':
-                cmd = 'echo "set maxconn %s %s" |nc %s %s' % (frontend, maxconn, master[0], haproxy_sock_port)
-            else:
-                cmd = 'echo "set maxconn frontend %s %s" |nc %s %s' % (frontend, maxconn, master[0], haproxy_sock_port)
-            output, stderr = funct.subprocess_execute(cmd)
-        funct.logging(master[0], 'Maxconn has been changed. On: {} to {}'.format(frontend, maxconn), login=1,
-                      keep_history=1,
-                      service='haproxy')
-
-    if frontend == 'global':
-        cmd = 'echo "set maxconn %s %s" |nc %s %s' % (frontend, maxconn, serv, haproxy_sock_port)
-    else:
-        cmd = 'echo "set maxconn frontend %s %s" |nc %s %s' % (frontend, maxconn, serv, haproxy_sock_port)
-    funct.logging(serv, 'Maxconn has been changed. On: {} to {}'.format(frontend, maxconn), login=1, keep_history=1,
-                  service='haproxy')
-    output, stderr = funct.subprocess_execute(cmd)
-
-    if stderr != '':
-        print(stderr[0])
-    elif output[0] == '':
-        configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
-        cfg = configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
-
-        error = funct.get_config(serv, cfg)
-        cmd = 'string=`grep %s %s -n -A5 |grep maxcon -n |awk -F":" \'{print $2}\'|awk -F"-" \'{print $1}\'` ' \
-              '&& sed -Ei "$( echo $string)s/[0-9]+/%s/g" %s' % (frontend, cfg, maxconn, cfg)
-        output, stderr = funct.subprocess_execute(cmd)
-        stderr = funct.master_slave_upload_and_restart(serv, cfg, just_save='save')
-        print('success: Maxconn for %s has been set to %s ' % (frontend, maxconn))
-    else:
-        print('error: ' + output[0])
+    runtime.change_maxconn()
 
 if form.getvalue('table_serv_select') is not None:
-    print(funct.get_all_stick_table())
+    import modules.config.runtime as runtime
+    print(runtime.get_all_stick_table())
 
 if form.getvalue('table_select') is not None:
-    env = Environment(loader=FileSystemLoader('templates'), autoescape=True,
-                      extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'], trim_blocks=True, lstrip_blocks=True)
-    table = form.getvalue('table_select')
+    import modules.config.runtime as runtime
 
-    if table == 'All':
-        template = env.get_template('ajax/stick_tables.html')
-        tables = funct.get_all_stick_table()
-        table = []
-        for t in tables.split(','):
-            if t != '':
-                table_id = []
-                tables_head = []
-                tables_head1, table1 = funct.get_stick_table(t)
-                table_id.append(tables_head1)
-                table_id.append(table1)
-                table.append(table_id)
-
-        template = template.render(table=table)
-    else:
-        template = env.get_template('ajax/stick_table.html')
-        tables_head, table = funct.get_stick_table(table)
-        template = template.render(tables_head=tables_head, table=table)
-
-    print(template)
+    runtime.table_select()
 
 if form.getvalue('ip_for_delete') is not None:
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-    ip = funct.checkAjaxInput(form.getvalue('ip_for_delete'))
-    table = funct.checkAjaxInput(form.getvalue('table_for_delete'))
+    ip = common.checkAjaxInput(form.getvalue('ip_for_delete'))
+    table = common.checkAjaxInput(form.getvalue('table_for_delete'))
 
     cmd = 'echo "clear table %s key %s" |nc %s %s' % (table, ip, serv, haproxy_sock_port)
-    output, stderr = funct.subprocess_execute(cmd)
+    output, stderr = server_mod.subprocess_execute(cmd)
     if stderr[0] != '':
         print('error: ' + stderr[0])
 
 if form.getvalue('table_for_clear') is not None:
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-    table = funct.checkAjaxInput(form.getvalue('table_for_clear'))
+    table = common.checkAjaxInput(form.getvalue('table_for_clear'))
 
     cmd = 'echo "clear table %s " |nc %s %s' % (table, serv, haproxy_sock_port)
-    output, stderr = funct.subprocess_execute(cmd)
+    output, stderr = server_mod.subprocess_execute(cmd)
     if stderr[0] != '':
         print('error: ' + stderr[0])
 
 if form.getvalue('list_serv_select') is not None:
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
     cmd = f'echo "show acl"|nc {serv} {haproxy_sock_port} |grep "loaded from" |awk \'{{print $1,$2}}\''
-    output, stderr = funct.subprocess_execute(cmd)
+    output, stderr = server_mod.subprocess_execute(cmd)
     print(output)
 
 if form.getvalue('list_select_id') is not None:
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
                       extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'], trim_blocks=True, lstrip_blocks=True)
     template = env.get_template('ajax/list.html')
-    list_id = funct.checkAjaxInput(form.getvalue('list_select_id'))
-    list_name = funct.checkAjaxInput(form.getvalue('list_select_name'))
+    list_id = common.checkAjaxInput(form.getvalue('list_select_id'))
+    list_name = common.checkAjaxInput(form.getvalue('list_select_name'))
 
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
     cmd = f'echo "show acl #{list_id}"|nc {serv} {haproxy_sock_port}'
-    output, stderr = funct.subprocess_execute(cmd)
+    output, stderr = server_mod.subprocess_execute(cmd)
 
     template = template.render(list=output, list_id=list_id, list_name=list_name)
     print(template)
@@ -327,15 +229,15 @@ if form.getvalue('list_id_for_delete') is not None:
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
     lists_path = sql.get_setting('lists_path')
     lib_path = get_config.get_config_var('main', 'lib_path')
-    ip_id = funct.checkAjaxInput(form.getvalue('list_ip_id_for_delete'))
-    ip = funct.is_ip_or_dns(form.getvalue('list_ip_for_delete'))
-    list_id = funct.checkAjaxInput(form.getvalue('list_id_for_delete'))
-    list_name = funct.checkAjaxInput(form.getvalue('list_name'))
-    user_group = funct.get_user_group(id=1)
+    ip_id = common.checkAjaxInput(form.getvalue('list_ip_id_for_delete'))
+    ip = common.is_ip_or_dns(form.getvalue('list_ip_for_delete'))
+    list_id = common.checkAjaxInput(form.getvalue('list_id_for_delete'))
+    list_name = common.checkAjaxInput(form.getvalue('list_name'))
+    user_group = roxywi_common.get_user_group(id=1)
     cmd = f"sed -i 's!{ip}$!!' {lib_path}/{lists_path}/{user_group}/{list_name}"
     cmd1 = f"sed -i '/^$/d' {lib_path}/{lists_path}/{user_group}/{list_name}"
-    output, stderr = funct.subprocess_execute(cmd)
-    output1, stderr1 = funct.subprocess_execute(cmd1)
+    output, stderr = server_mod.subprocess_execute(cmd)
+    output1, stderr1 = server_mod.subprocess_execute(cmd1)
     if output:
         print(f'error: {output}')
     if stderr:
@@ -346,13 +248,13 @@ if form.getvalue('list_id_for_delete') is not None:
         print(f'error: {stderr}')
 
     cmd = f'echo "del acl #{list_id} #{ip_id}" |nc {serv} {haproxy_sock_port}'
-    output, stderr = funct.subprocess_execute(cmd)
+    output, stderr = server_mod.subprocess_execute(cmd)
     if output[0] != '':
         print(f'error: {output[0]}')
     if stderr != '':
         print(f'error: {stderr[0]}')
 
-    funct.logging(serv, f'{ip_id} has been delete from list {list_id}', login=1, keep_history=1,
+    roxywi_common.logging(serv, f'{ip_id} has been delete from list {list_id}', login=1, keep_history=1,
                   service='haproxy')
 
 if form.getvalue('list_ip_for_add') is not None:
@@ -361,12 +263,12 @@ if form.getvalue('list_ip_for_add') is not None:
     lib_path = get_config.get_config_var('main', 'lib_path')
     ip = form.getvalue('list_ip_for_add')
     ip = ip.strip()
-    ip = funct.is_ip_or_dns(ip)
-    list_id = funct.checkAjaxInput(form.getvalue('list_id_for_add'))
-    list_name = funct.checkAjaxInput(form.getvalue('list_name'))
-    user_group = funct.get_user_group(id=1)
+    ip = common.is_ip_or_dns(ip)
+    list_id = common.checkAjaxInput(form.getvalue('list_id_for_add'))
+    list_name = common.checkAjaxInput(form.getvalue('list_name'))
+    user_group = roxywi_common.get_user_group(id=1)
     cmd = f'echo "add acl #{list_id} {ip}" |nc {serv} {haproxy_sock_port}'
-    output, stderr = funct.subprocess_execute(cmd)
+    output, stderr = server_mod.subprocess_execute(cmd)
     if output[0]:
         print(f'error: {output[0]}')
     if stderr:
@@ -374,24 +276,24 @@ if form.getvalue('list_ip_for_add') is not None:
 
     if 'is not a valid IPv4 or IPv6 address' not in output[0]:
         cmd = f'echo "{ip}" >> {lib_path}/{lists_path}/{user_group}/{list_name}'
-        output, stderr = funct.subprocess_execute(cmd)
+        output, stderr = server_mod.subprocess_execute(cmd)
         if output:
             print(f'error: {output}')
         if stderr:
             print(f'error: {stderr}')
 
-    funct.logging(serv, f'{ip} has been added to list {list_id}', login=1, keep_history=1,
+    roxywi_common.logging(serv, f'{ip} has been added to list {list_id}', login=1, keep_history=1,
                   service='haproxy')
 
 if form.getvalue('sessions_select') is not None:
     env = Environment(loader=FileSystemLoader('templates'), autoescape=True,
                       extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'], trim_blocks=True, lstrip_blocks=True)
-    serv = funct.checkAjaxInput(form.getvalue('sessions_select'))
+    serv = common.checkAjaxInput(form.getvalue('sessions_select'))
 
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 
     cmd = f'echo "show sess" |nc {serv} {haproxy_sock_port}'
-    output, stderr = funct.subprocess_execute(cmd)
+    output, stderr = server_mod.subprocess_execute(cmd)
 
     template = env.get_template('ajax/sessions_table.html')
     template = template.render(sessions=output)
@@ -399,12 +301,12 @@ if form.getvalue('sessions_select') is not None:
     print(template)
 
 if form.getvalue('sessions_select_show') is not None:
-    serv = funct.checkAjaxInput(form.getvalue('sessions_select_show'))
-    sess_id = funct.checkAjaxInput(form.getvalue('sessions_select_id'))
+    serv = common.checkAjaxInput(form.getvalue('sessions_select_show'))
+    sess_id = common.checkAjaxInput(form.getvalue('sessions_select_id'))
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
     cmd = 'echo "show sess %s" |nc %s %s' % (sess_id, serv, haproxy_sock_port)
 
-    output, stderr = funct.subprocess_execute(cmd)
+    output, stderr = server_mod.subprocess_execute(cmd)
 
     if stderr:
         print('error: ' + stderr[0])
@@ -414,9 +316,9 @@ if form.getvalue('sessions_select_show') is not None:
 
 if form.getvalue('session_delete_id') is not None:
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-    sess_id = funct.checkAjaxInput(form.getvalue('session_delete_id'))
+    sess_id = common.checkAjaxInput(form.getvalue('session_delete_id'))
     cmd = 'echo "shutdown session %s" |nc %s %s' % (sess_id, serv, haproxy_sock_port)
-    output, stderr = funct.subprocess_execute(cmd)
+    output, stderr = server_mod.subprocess_execute(cmd)
     if output[0] != '':
         print('error: ' + output[0])
     if stderr[0] != '':
@@ -429,11 +331,11 @@ if form.getvalue("change_pos") is not None:
 
 if form.getvalue('show_ip') is not None and serv is not None:
     commands = ["sudo ip a |grep inet |egrep -v '::1' |awk '{ print $2 }' |awk -F'/' '{ print $1 }'"]
-    funct.ssh_command(serv, commands, ip="1")
+    server_mod.ssh_command(serv, commands, ip="1")
 
 if form.getvalue('showif'):
     commands = ["sudo ip link|grep 'UP' |grep -v 'lo'| awk '{print $2}' |awk -F':' '{print $1}'"]
-    funct.ssh_command(serv, commands, ip="1")
+    server_mod.ssh_command(serv, commands, ip="1")
 
 if form.getvalue('action_hap') is not None and serv is not None:
     action = form.getvalue('action_hap')
@@ -443,13 +345,13 @@ if form.getvalue('action_hap') is not None and serv is not None:
         print('error: wrong action')
         sys.exit()
 
-    funct.is_restarted(serv, action)
+    service_common.is_restarted(serv, action)
 
-    if funct.check_haproxy_config(serv):
+    if service_common.check_haproxy_config(serv):
         server_id = sql.select_server_id_by_ip(server_ip=serv)
 
         if action == 'restart':
-            funct.is_not_allowed_to_restart(server_id, 'haproxy')
+            service_common.is_not_allowed_to_restart(server_id, 'haproxy')
 
         is_docker = sql.select_service_setting(server_id, 'haproxy', 'dockerized')
 
@@ -462,8 +364,8 @@ if form.getvalue('action_hap') is not None and serv is not None:
                 haproxy_service_name = "hapee-2.0-lb"
             commands = [f"sudo systemctl {action} {haproxy_service_name}"]
 
-        funct.ssh_command(serv, commands)
-        funct.logging(serv, f'Service has been {action}ed', roxywi=1, login=1, keep_history=1,
+        server_mod.ssh_command(serv, commands)
+        roxywi_common.logging(serv, f'Service has been {action}ed', roxywi=1, login=1, keep_history=1,
                       service='haproxy')
         print(f"success: HAProxy has been {action}")
     else:
@@ -476,13 +378,13 @@ if form.getvalue('action_nginx') is not None and serv is not None:
         print('error: wrong action')
         sys.exit()
 
-    funct.is_restarted(serv, action)
+    service_common.is_restarted(serv, action)
 
-    if funct.check_nginx_config(serv):
+    if service_common.check_nginx_config(serv):
         server_id = sql.select_server_id_by_ip(server_ip=serv)
 
         if action == 'restart':
-            funct.is_not_allowed_to_restart(server_id, 'nginx')
+            service_common.is_not_allowed_to_restart(server_id, 'nginx')
         is_docker = sql.select_service_setting(server_id, 'nginx', 'dockerized')
 
         if is_docker == '1':
@@ -490,8 +392,8 @@ if form.getvalue('action_nginx') is not None and serv is not None:
             commands = ["sudo docker %s %s" % (action, container_name)]
         else:
             commands = ["sudo systemctl %s nginx" % action]
-        funct.ssh_command(serv, commands)
-        funct.logging(serv, 'Service has been ' + action + 'ed', roxywi=1, login=1, keep_history=1, service='nginx')
+        server_mod.ssh_command(serv, commands)
+        roxywi_common.logging(serv, 'Service has been ' + action + 'ed', roxywi=1, login=1, keep_history=1, service='nginx')
         print("success: Nginx has been %s" % action)
     else:
         print("error: Bad config, check please")
@@ -503,11 +405,11 @@ if form.getvalue('action_keepalived') is not None and serv is not None:
         print('error: wrong action')
         sys.exit()
 
-    funct.is_restarted(serv, action)
+    service_common.is_restarted(serv, action)
 
     commands = ["sudo systemctl %s keepalived" % action]
-    funct.ssh_command(serv, commands)
-    funct.logging(serv, 'Service has been ' + action + 'ed', roxywi=1, login=1, keep_history=1, service='keepalived')
+    server_mod.ssh_command(serv, commands)
+    roxywi_common.logging(serv, 'Service has been ' + action + 'ed', roxywi=1, login=1, keep_history=1, service='keepalived')
     print("success: Keepalived has been %s" % action)
 
 if form.getvalue('action_waf') is not None and serv is not None:
@@ -518,32 +420,32 @@ if form.getvalue('action_waf') is not None and serv is not None:
         print('error: wrong action')
         sys.exit()
 
-    funct.is_restarted(serv, action)
+    service_common.is_restarted(serv, action)
 
-    funct.logging(serv, 'HAProxy WAF service has been ' + action + 'ed', roxywi=1, login=1, keep_history=1,
+    roxywi_common.logging(serv, 'HAProxy WAF service has been ' + action + 'ed', roxywi=1, login=1, keep_history=1,
                   service='haproxy')
     commands = ["sudo systemctl %s waf" % action]
-    funct.ssh_command(serv, commands)
+    server_mod.ssh_command(serv, commands)
 
 if form.getvalue('action_waf_nginx') is not None and serv is not None:
     serv = form.getvalue('serv')
     action = form.getvalue('action_waf_nginx')
-    config_dir = funct.return_nice_path(sql.get_setting('nginx_dir'))
+    config_dir = common.return_nice_path(sql.get_setting('nginx_dir'))
 
     if action not in ('start', 'stop'):
         print('error: wrong action')
         sys.exit()
 
-    funct.is_restarted(serv, action)
+    service_common.is_restarted(serv, action)
 
     waf_new_state = 'on' if action == 'start' else 'off'
     waf_old_state = 'off' if action == 'start' else 'on'
 
-    funct.logging(serv, 'NGINX WAF service has been ' + action + 'ed', roxywi=1, login=1, keep_history=1,
+    roxywi_common.logging(serv, 'NGINX WAF service has been ' + action + 'ed', roxywi=1, login=1, keep_history=1,
                   service='nginx')
     commands = [f"sudo sed -i 's/modsecurity {waf_old_state}/modsecurity {waf_new_state}/g' {config_dir}nginx.conf"
                 f" && sudo systemctl reload nginx"]
-    funct.ssh_command(serv, commands)
+    server_mod.ssh_command(serv, commands)
 
 if form.getvalue('action_apache') is not None and serv is not None:
     action = form.getvalue('action_apache')
@@ -552,33 +454,34 @@ if form.getvalue('action_apache') is not None and serv is not None:
         print('error: wrong action')
         sys.exit()
 
-    funct.is_restarted(serv, action)
+    service_common.is_restarted(serv, action)
 
     server_id = sql.select_server_id_by_ip(serv)
 
     if action == 'restart':
-        funct.is_not_allowed_to_restart(server_id, 'apache')
+        service_common.is_not_allowed_to_restart(server_id, 'apache')
 
     is_docker = sql.select_service_setting(server_id, 'apache', 'dockerized')
     if is_docker == '1':
         container_name = sql.get_setting('apache_container_name')
         commands = ["sudo docker %s %s" % (action, container_name)]
     else:
-        service_apache_name = funct.get_correct_apache_service_name(None, server_id)
+        service_apache_name = service_common.get_correct_apache_service_name(None, server_id)
 
         commands = ["sudo systemctl %s %s" % (action, service_apache_name)]
-    funct.ssh_command(serv, commands)
-    funct.logging(serv, 'Service has been ' + action + 'ed', roxywi=1, login=1, keep_history=1, service='apache')
+    server_mod.ssh_command(serv, commands)
+    roxywi_common.logging(serv, 'Service has been ' + action + 'ed', roxywi=1, login=1, keep_history=1, service='apache')
     print("success: Apache has been %s" % action)
 
 if form.getvalue('action_service') is not None:
-    action = funct.checkAjaxInput(form.getvalue('action_service'))
+    import modules.roxywi.roxy as roxy
+    action = common.checkAjaxInput(form.getvalue('action_service'))
 
     if action not in ('start', 'stop', 'restart'):
         print('error: wrong action')
         sys.exit()
 
-    is_in_docker = funct.is_docker()
+    is_in_docker = roxy.is_docker()
     if action == 'stop':
         cmd = "sudo systemctl disable %s --now" % serv
     elif action == "start":
@@ -597,10 +500,12 @@ if form.getvalue('action_service') is not None:
             sys.exit()
     if is_in_docker:
         cmd = "sudo supervisorctl " + action + " " + serv
-    output, stderr = funct.subprocess_execute(cmd)
-    funct.logging('Roxy-WI server', ' The service ' + serv + ' has been ' + action + 'ed', roxywi=1, login=1)
+    output, stderr = server_mod.subprocess_execute(cmd)
+    roxywi_common.logging('Roxy-WI server', ' The service ' + serv + ' has been ' + action + 'ed', roxywi=1, login=1)
 
 if act == "overviewHapserverBackends":
+    import modules.config.section as section_mod
+
     env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
     template = env.get_template('haproxyservers_backends.html')
     service = form.getvalue('service')
@@ -615,28 +520,28 @@ if act == "overviewHapserverBackends":
 
     if service != 'nginx' and service != 'apache':
         try:
-            sections = funct.get_sections(configs_dir + funct.get_files(configs_dir, format_file)[0], service=service)
+            sections = section_mod.get_sections(configs_dir + roxywi_common.get_files(configs_dir, format_file)[0], service=service)
         except Exception as e:
-            funct.logging('Roxy-WI server', str(e), roxywi=1)
+            roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
 
             try:
-                cfg = configs_dir + serv + "-" + funct.get_data('config') + '.' + format_file
+                cfg = configs_dir + serv + "-" + get_date.return_date('config') + '.' + format_file
             except Exception as e:
-                funct.logging('Roxy-WI server', ' Cannot generate a cfg path ' + str(e), roxywi=1)
+                roxywi_common.logging('Roxy-WI server', ' Cannot generate a cfg path ' + str(e), roxywi=1)
             try:
                 if service == 'keepalived':
-                    error = funct.get_config(serv, cfg, keepalived=1)
+                    error = config_mod.get_config(serv, cfg, keepalived=1)
                 else:
-                    error = funct.get_config(serv, cfg)
+                    error = config_mod.get_config(serv, cfg)
             except Exception as e:
-                funct.logging('Roxy-WI server', ' Cannot download a config ' + str(e), roxywi=1)
+                roxywi_common.logging('Roxy-WI server', ' Cannot download a config ' + str(e), roxywi=1)
             try:
-                sections = funct.get_sections(cfg, service=service)
+                sections = section_mod.get_sections(cfg, service=service)
             except Exception as e:
-                funct.logging('Roxy-WI server', ' Cannot get sections from config file ' + str(e), roxywi=1)
+                roxywi_common.logging('Roxy-WI server', ' Cannot get sections from config file ' + str(e), roxywi=1)
                 sections = 'Cannot get backends'
     else:
-        sections = funct.get_remote_sections(serv, service)
+        sections = section_mod.get_remote_sections(serv, service)
 
     template = template.render(backends=sections, serv=serv, service=service)
     print(template)
@@ -646,21 +551,21 @@ if form.getvalue('show_userlists'):
     format_file = 'cfg'
 
     try:
-        sections = funct.get_userlists(configs_dir + funct.get_files(configs_dir, format_file)[0])
+        sections = config_mod.get_userlists(configs_dir + roxywi_common.get_files(configs_dir, format_file)[0])
     except Exception as e:
-        funct.logging('Roxy-WI server', str(e), roxywi=1)
+        roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
         try:
-            cfg = f'{configs_dir}{serv}-{funct.get_data("config")}.{format_file}'
+            cfg = f'{configs_dir}{serv}-{get_date.return_date("config")}.{format_file}'
         except Exception as e:
-            funct.logging('Roxy-WI server', f' Cannot generate a cfg path {e}', roxywi=1)
+            roxywi_common.logging('Roxy-WI server', f' Cannot generate a cfg path {e}', roxywi=1)
         try:
-            error = funct.get_config(serv, cfg)
+            error = config_mod.get_config(serv, cfg)
         except Exception as e:
-            funct.logging('Roxy-WI server', f' Cannot download a config {e}', roxywi=1)
+            roxywi_common.logging('Roxy-WI server', f' Cannot download a config {e}', roxywi=1)
         try:
-            sections = funct.get_userlists(cfg)
+            sections = config_mod.get_userlists(cfg)
         except Exception as e:
-            funct.logging('Roxy-WI server', f' Cannot get Userlists from the config file {e}', roxywi=1)
+            roxywi_common.logging('Roxy-WI server', f' Cannot get Userlists from the config file {e}', roxywi=1)
             sections = 'error: Cannot get Userlists'
 
     print(sections)
@@ -674,7 +579,7 @@ if act == "overviewHapservers":
         config_path = sql.get_setting('haproxy_config_path')
     commands = ["ls -l %s |awk '{ print $6\" \"$7\" \"$8}'" % config_path]
     try:
-        print(funct.ssh_command(serv, commands))
+        print(server_mod.ssh_command(serv, commands))
     except Exception as e:
         print(f'error: Cannot get last date {e} for server {serv}')
 
@@ -704,20 +609,20 @@ if act == "overview":
 
         if haproxy:
             cmd = f'echo "show info" |nc {serv2} {sql.get_setting("haproxy_sock_port")} -w 1|grep -e "Process_num"'
-            haproxy_process = funct.server_status(funct.subprocess_execute(cmd))
+            haproxy_process = service_common.server_status(server_mod.subprocess_execute(cmd))
 
         if nginx:
             nginx_cmd = f'echo "something" |nc {serv2} {sql.get_setting("nginx_stats_port")} -w 1'
-            nginx_process = funct.server_status(funct.subprocess_execute(nginx_cmd))
+            nginx_process = service_common.server_status(server_mod.subprocess_execute(nginx_cmd))
 
         if apache:
             apache_cmd = f'echo "something" |nc {serv2} {sql.get_setting("apache_stats_port")} -w 1'
-            apache_process = funct.server_status(funct.subprocess_execute(apache_cmd))
+            apache_process = service_common.server_status(server_mod.subprocess_execute(apache_cmd))
 
         if keepalived:
             command = ["ps ax |grep keepalived|grep -v grep|wc -l|tr -d '\n'"]
             try:
-                keepalived_process = funct.ssh_command(serv2, command)
+                keepalived_process = server_mod.ssh_command(serv2, command)
             except Exception as e:
                 print(f'{e} for server {serv2}')
                 sys.exit()
@@ -725,7 +630,7 @@ if act == "overview":
         if waf_len >= 1:
             command = ["ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l"]
             try:
-                waf_process = funct.ssh_command(serv2, command)
+                waf_process = server_mod.ssh_command(serv2, command)
             except Exception as e:
                 print(f'{e} for server {serv2}')
                 sys.exit()
@@ -758,7 +663,7 @@ if act == "overview":
         for i, future in enumerate(asyncio.as_completed(futures)):
             result = await future
             servers.append(result)
-        servers_sorted = sorted(servers, key=funct.get_key)
+        servers_sorted = sorted(servers, key=common.get_key)
         template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_uuid.value))
         print(template)
 
@@ -809,11 +714,11 @@ if act == "overviewwaf":
                     command = ["ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l"]
                 elif waf_service == 'nginx':
                     command = [
-                        f"grep 'modsecurity on' {funct.return_nice_path(config_path)}* --exclude-dir=waf -Rs |wc -l"]
+                        f"grep 'modsecurity on' {common.return_nice_path(config_path)}* --exclude-dir=waf -Rs |wc -l"]
                 commands1 = [
                     f"grep SecRuleEngine {config_path}/waf/modsecurity.conf |grep -v '#' |awk '{{print $2}}'"]
-                waf_process = funct.ssh_command(server[2], command)
-                waf_mode = funct.ssh_command(server[2], commands1).strip()
+                waf_process = server_mod.ssh_command(server[2], command)
+                waf_mode = server_mod.ssh_command(server[2], commands1).strip()
 
                 server_status = (server[1],
                                  server[2],
@@ -831,7 +736,7 @@ if act == "overviewwaf":
 
         returned_servers.append(server_status)
 
-    servers_sorted = sorted(returned_servers, key=funct.get_key)
+    servers_sorted = sorted(returned_servers, key=common.get_key)
     template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_id.value),
                                waf_service=waf_service)
     print(template)
@@ -843,7 +748,7 @@ if act == "overviewServers":
         if service == 'haproxy':
             cmd = 'echo "show info" |nc %s %s -w 1|grep -e "node\|Nbproc\|Maxco\|MB\|Nbthread"' % (
                 serv2, sql.get_setting('haproxy_sock_port'))
-            out = funct.subprocess_execute(cmd)
+            out = server_mod.subprocess_execute(cmd)
             return_out = ""
 
             for k in out:
@@ -873,7 +778,7 @@ if act == "overviewServers":
         for i, future in enumerate(asyncio.as_completed(futures)):
             result = await future
             servers.append(result)
-        servers_sorted = sorted(servers, key=funct.get_key)
+        servers_sorted = sorted(servers, key=common.get_key)
         template = template.render(service_status=servers_sorted, role=role, id=kwargs.get('id'), service_page=service)
         print(template)
 
@@ -958,6 +863,8 @@ if serv is not None and act == "stats":
         print(data.decode('utf-8'))
 
 if serv is not None and form.getvalue('show_log') is not None:
+    import modules.roxywi.logs as roxywi_logs
+
     rows = form.getvalue('show_log')
     waf = form.getvalue('waf')
     grep = form.getvalue('grep')
@@ -966,22 +873,26 @@ if serv is not None and form.getvalue('show_log') is not None:
     hour1 = form.getvalue('hour1')
     minut1 = form.getvalue('minut1')
     service = form.getvalue('service')
-    out = funct.show_roxy_log(serv, rows=rows, waf=waf, grep=grep, hour=hour, minut=minut, hour1=hour1,
+    out = roxywi_logs.show_roxy_log(serv, rows=rows, waf=waf, grep=grep, hour=hour, minut=minut, hour1=hour1,
                                  minut1=minut1, service=service)
     print(out)
 
 if serv is not None and form.getvalue('rows1') is not None:
+    import modules.roxywi.logs as roxywi_logs
+
     rows = form.getvalue('rows1')
     grep = form.getvalue('grep')
     hour = form.getvalue('hour')
     minut = form.getvalue('minut')
     hour1 = form.getvalue('hour1')
     minut1 = form.getvalue('minut1')
-    out = funct.show_roxy_log(serv, rows=rows, waf='0', grep=grep, hour=hour, minut=minut, hour1=hour1,
+    out = roxywi_logs.show_roxy_log(serv, rows=rows, waf='0', grep=grep, hour=hour, minut=minut, hour1=hour1,
                                  minut1=minut1, service='apache_internal')
     print(out)
 
 if form.getvalue('viewlogs') is not None:
+    import modules.roxywi.logs as roxywi_logs
+
     viewlog = form.getvalue('viewlogs')
     rows = form.getvalue('rows')
     grep = form.getvalue('grep')
@@ -989,8 +900,8 @@ if form.getvalue('viewlogs') is not None:
     minut = form.getvalue('minut')
     hour1 = form.getvalue('hour1')
     minut1 = form.getvalue('minut1')
-    if funct.check_user_group():
-        out = funct.show_roxy_log(serv=viewlog, rows=rows, waf='0', grep=grep, hour=hour, minut=minut, hour1=hour1,
+    if roxywi_common.check_user_group():
+        out = roxywi_logs.show_roxy_log(serv=viewlog, rows=rows, waf='0', grep=grep, hour=hour, minut=minut, hour1=hour1,
                                      minut1=minut1, service='internal')
         print(out)
 
@@ -1004,12 +915,12 @@ if serv is not None and act == "showMap":
     stats_port = sql.get_setting('stats_port')
     haproxy_config_path = sql.get_setting('haproxy_config_path')
     hap_configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
-    date = funct.get_data('config')
+    date = get_date.return_date('config')
     cfg = f'{hap_configs_dir}{serv}-{date}.cfg'
 
     print(f'<center><h4 style="margin-bottom: 0;">Map from {serv}</h4>')
 
-    error = funct.get_config(serv, cfg)
+    error = config_mod.get_config(serv, cfg)
     if error:
         print(error)
     try:
@@ -1209,8 +1120,8 @@ if serv is not None and act == "showMap":
 if form.getvalue('servaction') is not None:
     server_state_file = sql.get_setting('server_state_file')
     haproxy_sock = sql.get_setting('haproxy_sock')
-    enable = funct.checkAjaxInput(form.getvalue('servaction'))
-    backend = funct.checkAjaxInput(form.getvalue('servbackend'))
+    enable = common.checkAjaxInput(form.getvalue('servaction'))
+    backend = common.checkAjaxInput(form.getvalue('servbackend'))
 
     cmd = f'echo "{enable} {backend}" |sudo socat stdio {haproxy_sock}'
 
@@ -1221,15 +1132,15 @@ if form.getvalue('servaction') is not None:
         command = [cmd]
 
     if enable != "show":
-        funct.logging(serv, f'Has been {enable}ed {backend}', login=1, keep_history=1, service='haproxy')
+        roxywi_common.logging(serv, f'Has been {enable}ed {backend}', login=1, keep_history=1, service='haproxy')
         print(
             f'<center><h3>You {enable} {backend} on HAProxy {serv}. <a href="statsview.py?serv={serv}" '
             f'title="View stat" target="_blank">Look it</a> or <a href="runtimeapi.py" '
             f'title="Runtime API">Edit something else</a></h3><br />')
 
-    print(funct.ssh_command(serv, command, show_log="1"))
+    print(server_mod.ssh_command(serv, command, show_log="1"))
     action = f'runtimeapi.py {enable} {backend}'
-    funct.logging(serv, action)
+    roxywi_common.logging(serv, action)
 
 if act == "showCompareConfigs":
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
@@ -1239,20 +1150,20 @@ if act == "showCompareConfigs":
     service = form.getvalue('service')
 
     if service == 'nginx':
-        return_files = funct.get_files(get_config.get_config_var('configs', 'nginx_save_configs_dir'), 'conf')
+        return_files = roxywi_common.get_files(get_config.get_config_var('configs', 'nginx_save_configs_dir'), 'conf')
     elif service == 'apache':
-        return_files = funct.get_files(get_config.get_config_var('configs', 'apache_save_configs_dir'), 'conf')
+        return_files = roxywi_common.get_files(get_config.get_config_var('configs', 'apache_save_configs_dir'), 'conf')
     elif service == 'keepalived':
-        return_files = funct.get_files(get_config.get_config_var('configs', 'kp_save_configs_dir'), 'conf')
+        return_files = roxywi_common.get_files(get_config.get_config_var('configs', 'kp_save_configs_dir'), 'conf')
     else:
-        return_files = funct.get_files()
+        return_files = roxywi_common.get_files()
 
     template = template.render(serv=serv, right=right, left=left, return_files=return_files)
     print(template)
 
 if serv is not None and form.getvalue('right') is not None:
-    left = funct.checkAjaxInput(form.getvalue('left'))
-    right = funct.checkAjaxInput(form.getvalue('right'))
+    left = common.checkAjaxInput(form.getvalue('left'))
+    right = common.checkAjaxInput(form.getvalue('right'))
 
     if form.getvalue('service') == 'nginx':
         configs_dir = get_config.get_config_var('configs', 'nginx_save_configs_dir')
@@ -1268,7 +1179,7 @@ if serv is not None and form.getvalue('right') is not None:
                       extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
     template = env.get_template('ajax/compare.html')
 
-    output, stderr = funct.subprocess_execute(cmd)
+    output, stderr = server_mod.subprocess_execute(cmd)
     template = template.render(stdout=output)
 
     print(template)
@@ -1298,15 +1209,15 @@ if serv is not None and act == "configShow":
         cfg = '.cfg'
 
     if form.getvalue('configver') is None:
-        cfg = configs_dir + serv + "-" + funct.get_data('config') + cfg
+        cfg = configs_dir + serv + "-" + get_date.return_date('config') + cfg
         if service == 'nginx':
-            funct.get_config(serv, cfg, nginx=1, config_file_name=form.getvalue('config_file_name'))
+            config_mod.get_config(serv, cfg, nginx=1, config_file_name=form.getvalue('config_file_name'))
         elif service == 'apache':
-            funct.get_config(serv, cfg, apache=1, config_file_name=form.getvalue('config_file_name'))
+            config_mod.get_config(serv, cfg, apache=1, config_file_name=form.getvalue('config_file_name'))
         elif service == 'keepalived':
-            funct.get_config(serv, cfg, keepalived=1)
+            config_mod.get_config(serv, cfg, keepalived=1)
         else:
-            funct.get_config(serv, cfg)
+            config_mod.get_config(serv, cfg)
     else:
         cfg = configs_dir + form.getvalue('configver')
     try:
@@ -1336,6 +1247,8 @@ if serv is not None and act == "configShow":
         os.remove(cfg)
 
 if act == 'configShowFiles':
+    import modules.server.server as server_mod
+
     service = form.getvalue('service')
 
     config_dir = get_config.get_config_var('configs', f'{service}_save_configs_dir')
@@ -1344,7 +1257,7 @@ if act == 'configShowFiles':
         config_file_name = form.getvalue('config_file_name').replace('92', '/')
     except Exception:
         config_file_name = ''
-    return_files = funct.get_remote_files(serv, service_config_dir, 'conf')
+    return_files = server_mod.get_remote_files(serv, service_config_dir, 'conf')
     if 'error: ' in return_files:
         print(return_files)
         sys.exit()
@@ -1356,9 +1269,11 @@ if act == 'configShowFiles':
     print(template)
 
 if act == 'showRemoteLogFiles':
+    import modules.server.server as server_mod
+
     service = form.getvalue('service')
     log_path = sql.get_setting(f'{service}_path_logs')
-    return_files = funct.get_remote_files(serv, log_path, 'log')
+    return_files = server_mod.get_remote_files(serv, log_path, 'log')
     if 'error: ' in return_files:
         print(return_files)
         sys.exit()
@@ -1369,148 +1284,16 @@ if act == 'showRemoteLogFiles':
     print(template)
 
 if form.getvalue('master'):
-    master = form.getvalue('master')
-    slave = form.getvalue('slave')
-    ETH = form.getvalue('interface')
-    ETH_SLAVE = form.getvalue('slave_interface')
-    IP = form.getvalue('vrrpip')
-    syn_flood = form.getvalue('syn_flood')
-    virt_server = form.getvalue('virt_server')
-    return_to_master = form.getvalue('return_to_master')
-    haproxy = form.getvalue('hap')
-    nginx = form.getvalue('nginx')
-    router_id = form.getvalue('router_id')
-    script = "install_keepalived.sh"
-    proxy = sql.get_setting('proxy')
-    keepalived_path_logs = sql.get_setting('keepalived_path_logs')
-    proxy_serv = ''
-    ssh_settings = funct.return_ssh_keys_path(master)
-
-    if proxy is not None and proxy != '' and proxy != 'None':
-        proxy_serv = proxy
-
-    os.system(f"cp scripts/{script} .")
-
-    commands = [
-        f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} router_id={router_id} "
-        f"ETH={ETH} IP={IP} MASTER=MASTER ETH_SLAVE={ETH_SLAVE} keepalived_path_logs={keepalived_path_logs} "
-        f"RETURN_TO_MASTER={return_to_master} SYN_FLOOD={syn_flood} HOST={master} HAPROXY={haproxy} NGINX={nginx} "
-        f"USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
-    ]
-
-    output, error = funct.subprocess_execute(commands[0])
-
-    if funct.show_installation_output(error, output, 'master Keepalived'):
-        sql.update_keepalived(master)
-
-        if virt_server != '0':
-            group_id = sql.get_group_id_by_server_ip(master)
-            cred_id = sql.get_cred_id_by_server_ip(master)
-            hostname = sql.get_hostname_by_server_ip(master)
-            firewall = 1 if funct.is_service_active(master, 'firewalld') else 0
-            sql.add_server(
-                hostname + '-VIP', IP, group_id, '1', '1', '0', cred_id, ssh_settings['port'], f'VRRP IP for {master}',
-                haproxy, nginx, '0', firewall
-            )
-    os.remove(script)
+    service_mod.keepalived_master_install()
 
 if form.getvalue('master_slave'):
-    master = form.getvalue('master_slave')
-    slave = form.getvalue('slave')
-    ETH = form.getvalue('interface')
-    ETH_SLAVE = form.getvalue('slave_interface')
-    IP = form.getvalue('vrrpip')
-    syn_flood = form.getvalue('syn_flood')
-    haproxy = form.getvalue('hap')
-    nginx = form.getvalue('nginx')
-    router_id = form.getvalue('router_id')
-    script = "install_keepalived.sh"
-    proxy = sql.get_setting('proxy')
-    keepalived_path_logs = sql.get_setting('keepalived_path_logs')
-    proxy_serv = ''
-    ssh_settings = funct.return_ssh_keys_path(slave)
-
-    if proxy is not None and proxy != '' and proxy != 'None':
-        proxy_serv = proxy
-
-    os.system(f"cp scripts/{script} .")
-
-    commands = [
-        f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} router_id={router_id} ETH={ETH} "
-        f"IP={IP} MASTER=BACKUP ETH_SLAVE={ETH_SLAVE} keepalived_path_logs={keepalived_path_logs} HAPROXY={haproxy} "
-        f"NGINX={nginx} HOST={slave} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
-    ]
-
-    output, error = funct.subprocess_execute(commands[0])
-
-    funct.show_installation_output(error, output, 'slave Keepalived')
-
-    os.remove(script)
-    sql.update_server_master(master, slave)
-    sql.update_keepalived(slave)
+    service_mod.keepalived_slave_install()
 
 if form.getvalue('masteradd'):
-    master = form.getvalue('masteradd')
-    slave = form.getvalue('slaveadd')
-    ETH = form.getvalue('interfaceadd')
-    SLAVE_ETH = form.getvalue('slave_interfaceadd')
-    IP = form.getvalue('vrrpipadd')
-    router_id = form.getvalue('router_id')
-    kp = form.getvalue('kp')
-    return_to_master = form.getvalue('return_to_master')
-    script = "install_keepalived.sh"
-    proxy = sql.get_setting('proxy')
-    keepalived_path_logs = sql.get_setting('keepalived_path_logs')
-    proxy_serv = ''
-    ssh_settings = funct.return_ssh_keys_path(master)
-
-    if proxy is not None and proxy != '' and proxy != 'None':
-        proxy_serv = proxy
-
-    os.system(f"cp scripts/{script} .")
-
-    commands = [
-        f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} ETH={ETH} SLAVE_ETH={SLAVE_ETH} "
-        f"keepalived_path_logs={keepalived_path_logs} RETURN_TO_MASTER={return_to_master} IP={IP} MASTER=MASTER "
-        f"RESTART={kp} ADD_VRRP=1 HOST={master} router_id={router_id} USER={ssh_settings['user']} "
-        f"PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
-    ]
-
-    output, error = funct.subprocess_execute(commands[0])
-
-    funct.show_installation_output(error, output, 'master VRRP address')
-    os.remove(script)
+    service_mod.keepalived_masteradd()
 
 if form.getvalue('masteradd_slave'):
-    master = form.getvalue('masteradd_slave')
-    slave = form.getvalue('slaveadd')
-    ETH = form.getvalue('interfaceadd')
-    SLAVE_ETH = form.getvalue('slave_interfaceadd')
-    IP = form.getvalue('vrrpipadd')
-    router_id = form.getvalue('router_id')
-    kp = form.getvalue('kp')
-    script = "install_keepalived.sh"
-    proxy = sql.get_setting('proxy')
-    keepalived_path_logs = sql.get_setting('keepalived_path_logs')
-    proxy_serv = ''
-    ssh_settings = funct.return_ssh_keys_path(slave)
-
-    if proxy is not None and proxy != '' and proxy != 'None':
-        proxy_serv = proxy
-
-    os.system(f"cp scripts/{script} .")
-
-    commands = [
-        f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} ETH={ETH} SLAVE_ETH={SLAVE_ETH} "
-        f"keepalived_path_logs={keepalived_path_logs} IP={IP} MASTER=BACKUP RESTART={kp} ADD_VRRP=1 HOST={slave} "
-        f"router_id={router_id} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
-    ]
-
-    output, error = funct.subprocess_execute(commands[0])
-
-    funct.show_installation_output(error, output, 'slave VRRP address')
-
-    os.remove(script)
+    service_mod.keepalived_slaveadd()
 
 if form.getvalue('master_slave_hap'):
     master = form.getvalue('master_slave_hap')
@@ -1519,9 +1302,9 @@ if form.getvalue('master_slave_hap'):
     docker = form.getvalue('docker')
 
     if server == 'master':
-        funct.install_haproxy(master, server=server, docker=docker)
+        service_mod.install_haproxy(master, server=server, docker=docker)
     elif server == 'slave':
-        funct.install_haproxy(slave, server=server, docker=docker)
+        service_mod.install_haproxy(slave, server=server, docker=docker)
 
 if form.getvalue('master_slave_nginx'):
     master = form.getvalue('master_slave_nginx')
@@ -1530,136 +1313,27 @@ if form.getvalue('master_slave_nginx'):
     docker = form.getvalue('docker')
 
     if server == 'master':
-        funct.install_nginx(master, server=server, docker=docker)
+        service_mod.install_nginx(master, server=server, docker=docker)
     elif server == 'slave':
-        funct.install_nginx(slave, server=server, docker=docker)
+        service_mod.install_nginx(slave, server=server, docker=docker)
 
 if form.getvalue('install_grafana'):
-    script = "install_grafana.sh"
-    proxy = sql.get_setting('proxy')
-    proxy_serv = ''
-    host = os.environ.get('HTTP_HOST', '')
-
-    os.system(f"cp scripts/{script} .")
-
-    if proxy is not None and proxy != '' and proxy != 'None':
-        proxy_serv = proxy
-
-    commands = [f"chmod +x {script} &&  ./{script} PROXY={proxy_serv}"]
-
-    output, error = funct.subprocess_execute(commands[0])
-
-    if error:
-        funct.logging('Roxy-WI server', error, roxywi=1)
-
-        print(
-            f'success: Grafana and Prometheus servers were installed. You can find Grafana on http://{host}:3000<br>')
-    else:
-        for line in output:
-            if any(s in line for s in ("Traceback", "FAILED")):
-                try:
-                    print(line)
-                    break
-                except Exception:
-                    print(output)
-                    break
-        else:
-            print(
-                f'success: Grafana and Prometheus servers were installed. You can find Grafana on http://{host}:3000<br>')
-
-    os.remove(script)
+    service_mod.grafana_install()
 
 if form.getvalue('haproxy_exp_install'):
-    serv = form.getvalue('haproxy_exp_install')
-    ver = form.getvalue('exporter_v')
-    ext_prom = form.getvalue('ext_prom')
-    script = "install_haproxy_exporter.sh"
-    stats_port = sql.get_setting('stats_port')
-    server_state_file = sql.get_setting('server_state_file')
-    stats_user = sql.get_setting('stats_user')
-    stats_password = sql.get_setting('stats_password')
-    stat_page = sql.get_setting('stats_page')
-    proxy = sql.get_setting('proxy')
-    ssh_settings = funct.return_ssh_keys_path(serv)
+    import modules.service.exporter.installation as exp_installation
 
-    os.system(f"cp scripts/{script} .")
-
-    if proxy is not None and proxy != '' and proxy != 'None':
-        proxy_serv = proxy
-    else:
-        proxy_serv = ''
-
-    commands = [
-        f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} STAT_PORT={stats_port} STAT_FILE={server_state_file}"
-        f" SSH_PORT={ssh_settings['port']} STAT_PAGE={stat_page} VER={ver} EXP_PROM={ext_prom} STATS_USER={stats_user}"
-        f" STATS_PASS='{stats_password}' HOST={serv} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
-    ]
-
-    output, error = funct.subprocess_execute(commands[0])
-
-    funct.show_installation_output(error, output, 'HAProxy exporter')
-
-    os.remove(script)
+    exp_installtion.haproxy_exp_installation()
 
 if form.getvalue('nginx_exp_install') or form.getvalue('apache_exp_install'):
-    if form.getvalue('nginx_exp_install'):
-        service = 'nginx'
-    elif form.getvalue('apache_exp_install'):
-        service = 'apache'
+    import modules.service.exporter.installation as exp_installation
 
-    serv = funct.is_ip_or_dns(form.getvalue('serv'))
-    ver = funct.checkAjaxInput(form.getvalue('exporter_v'))
-    ext_prom = funct.checkAjaxInput(form.getvalue('ext_prom'))
-    script = f"install_{service}_exporter.sh"
-    stats_user = sql.get_setting(f'{service}_stats_user')
-    stats_password = sql.get_setting(f'{service}_stats_password')
-    stats_port = sql.get_setting(f'{service}_stats_port')
-    stats_page = sql.get_setting(f'{service}_stats_page')
-    proxy = sql.get_setting('proxy')
-    proxy_serv = ''
-    ssh_settings = funct.return_ssh_keys_path(serv)
-
-    os.system(f"cp scripts/{script} .")
-
-    if proxy is not None and proxy != '' and proxy != 'None':
-        proxy_serv = proxy
-
-    commands = [
-        f"chmod +x {script} && ./{script} PROXY={proxy_serv} STAT_PORT={stats_port} SSH_PORT={ssh_settings['port']} STAT_PAGE={stats_page}" 
-        f" STATS_USER={stats_user} STATS_PASS='{stats_password}' HOST={serv} VER={ver} EXP_PROM={ext_prom} USER={ssh_settings['user']} "
-        f" PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
-    ]
-
-    output, error = funct.subprocess_execute(commands[0])
-
-    funct.show_installation_output(error, output, f'{service.title()} exporter')
-
-    os.remove(script)
+    exp_installation.nginx_apache_exp_installation()
 
 if form.getvalue('node_exp_install'):
-    serv = funct.is_ip_or_dns(form.getvalue('node_exp_install'))
-    ver = funct.checkAjaxInput(form.getvalue('exporter_v'))
-    ext_prom = funct.checkAjaxInput(form.getvalue('ext_prom'))
-    script = "install_node_exporter.sh"
-    proxy = sql.get_setting('proxy')
-    proxy_serv = ''
-    ssh_settings = funct.return_ssh_keys_path(serv)
+    import modules.service.exporter.installation as exp_installation
 
-    os.system(f"cp scripts/{script} .")
-
-    if proxy is not None and proxy != '' and proxy != 'None':
-        proxy_serv = proxy
-
-    commands = [
-        f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} VER={ver} EXP_PROM={ext_prom} "
-        f"HOST={serv} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
-    ]
-
-    output, error = funct.subprocess_execute(commands[0])
-
-    funct.show_installation_output(error, output, 'Node exporter')
-
-    os.remove(script)
+    exp_installation.node_exp_installation()
 
 if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupupdate'):
     serv = form.getvalue('server')
@@ -1672,7 +1346,7 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
     update = form.getvalue('backupupdate')
     description = form.getvalue('description')
     script = 'backup.sh'
-    ssh_settings = funct.return_ssh_keys_path('localhost', id=int(cred))
+    ssh_settings = server_mod.return_ssh_keys_path('localhost', id=int(cred))
 
     if deljob:
         time = ''
@@ -1693,7 +1367,7 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
         f"TIME={time} RPATH={rpath} DELJOB={deljob} USER={ssh_settings['user']} KEY={ssh_settings['key']}"
     ]
 
-    output, error = funct.subprocess_execute(commands[0])
+    output, error = server_mod.subprocess_execute(commands[0])
 
     for line in output:
         if any(s in line for s in ("Traceback", "FAILED")):
@@ -1713,18 +1387,18 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
                 )
                 print(template)
                 print('success: Backup job has been created')
-                funct.logging('backup ', ' a new backup job for server ' + serv + ' has been created', roxywi=1,
+                roxywi_common.logging('backup ', ' a new backup job for server ' + serv + ' has been created', roxywi=1,
                               login=1)
             else:
                 print('error: Cannot add the job into DB')
         elif deljob:
             sql.delete_backups(deljob)
             print('Ok')
-            funct.logging('backup ', ' a backup job for server ' + serv + ' has been deleted', roxywi=1, login=1)
+            roxywi_common.logging('backup ', ' a backup job for server ' + serv + ' has been deleted', roxywi=1, login=1)
         elif update:
             sql.update_backup(serv, rserver, rpath, backup_type, time, cred, description, update)
             print('Ok')
-            funct.logging('backup ', ' a backup job for server ' + serv + ' has been updated', roxywi=1, login=1)
+            roxywi_common.logging('backup ', ' a backup job for server ' + serv + ' has been updated', roxywi=1, login=1)
 
     os.remove(script)
 
@@ -1738,7 +1412,7 @@ if form.getvalue('git_backup'):
     cred = form.getvalue('cred')
     deljob = form.getvalue('git_deljob')
     description = form.getvalue('description')
-    servers = sql.get_dick_permit()
+    servers = roxywi_common.get_dick_permit()
     proxy = sql.get_setting('proxy')
     services = sql.select_services()
     server_ip = sql.select_server_ip_by_id(server_id)
@@ -1746,7 +1420,7 @@ if form.getvalue('git_backup'):
     service_config_dir = sql.get_setting(service_name + '_dir')
     script = 'git_backup.sh'
     proxy_serv = ''
-    ssh_settings = funct.return_ssh_keys_path('localhost', id=int(cred))
+    ssh_settings = server_mod.return_ssh_keys_path('localhost', id=int(cred))
 
     os.system(f"cp scripts/{script} .")
 
@@ -1764,7 +1438,7 @@ if form.getvalue('git_backup'):
         f"PROXY={proxy_serv} USER={ssh_settings['user']} KEY={ssh_settings['key']}"
     ]
 
-    output, error = funct.subprocess_execute(commands[0])
+    output, error = server_mod.subprocess_execute(commands[0])
 
     for line in output:
         if any(s in line for s in ("Traceback", "FAILED")):
@@ -1788,7 +1462,7 @@ if form.getvalue('git_backup'):
                 template = template.render(gits=gits, sshs=sshs, servers=servers, services=services, new_add=1)
                 print(template)
                 print('success: Git job has been created')
-                funct.logging(
+                roxywi_common.logging(
                     server_ip, ' A new git job has been created', roxywi=1, login=1,
                     keep_history=1, service=service_name
                 )
@@ -1798,20 +1472,25 @@ if form.getvalue('git_backup'):
     os.remove(script)
 
 if form.getvalue('install_nginx'):
-    funct.install_nginx(form.getvalue('install_nginx'), docker=form.getvalue('docker'))
+    service_mod.install_nginx(form.getvalue('install_nginx'), docker=form.getvalue('docker'))
 
 if form.getvalue('haproxyaddserv'):
-    funct.install_haproxy(form.getvalue('haproxyaddserv'), syn_flood=form.getvalue('syn_flood'),
+    service_mod.install_haproxy(form.getvalue('haproxyaddserv'), syn_flood=form.getvalue('syn_flood'),
                           hapver=form.getvalue('hapver'), docker=form.getvalue('docker'))
 
 if form.getvalue('installwaf'):
     service = form.getvalue('service')
     if service == 'haproxy':
-        funct.waf_install(form.getvalue('installwaf'))
+        service_mod.waf_install(form.getvalue('installwaf'))
     else:
-        funct.waf_nginx_install(form.getvalue('installwaf'))
+        service_mod.waf_nginx_install(form.getvalue('installwaf'))
+
+if form.getvalue('geoip_install'):
+    service_mod.geoip_installation()
 
 if form.getvalue('update_roxy_wi'):
+    import modules.roxywi.roxy as roxy
+
     service = form.getvalue('service')
     services = ['roxy-wi-checker',
                 'roxy-wi',
@@ -1824,17 +1503,19 @@ if form.getvalue('update_roxy_wi'):
     if service not in services:
         print(f'error: {service} is not part of Roxy-WI')
         sys.exit()
-    funct.update_roxy_wi(service)
+    roxy.update_roxy_wi(service)
 
 if form.getvalue('metrics_waf'):
     sql.update_waf_metrics_enable(form.getvalue('metrics_waf'), form.getvalue('enable'))
 
 if form.getvalue('table_metrics'):
     service = form.getvalue('service')
+    roxywi_common.check_user_group()
+    group_id = roxywi_common.get_user_group(id=1)
     if service in ('nginx', 'apache'):
-        metrics = sql.select_service_table_metrics(service)
+        metrics = sql.select_service_table_metrics(service, group_id)
     else:
-        metrics = sql.select_table_metrics()
+        metrics = sql.select_table_metrics(group_id)
 
     env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
     template = env.get_template('table_metrics.html')
@@ -1859,7 +1540,7 @@ if form.getvalue('metrics_hapwi_ram'):
         rams += str(round(rams_list.available / 1048576, 2)) + ' '
     else:
         commands = ["free -m |grep Mem |awk '{print $2,$3,$4,$5,$6,$7}'"]
-        metric, error = funct.subprocess_execute(commands[0])
+        metric, error = server_mod.subprocess_execute(commands[0])
 
         for i in metric:
             rams = i
@@ -1888,7 +1569,7 @@ if form.getvalue('metrics_hapwi_cpu'):
     else:
         commands = [
             "top -b -n 1 |grep Cpu |awk -F':' '{print $2}'|awk  -F' ' 'BEGIN{ORS=\" \";} { for (i=1;i<=NF;i+=2) print $i}'"]
-        metric, error = funct.subprocess_execute(commands[0])
+        metric, error = server_mod.subprocess_execute(commands[0])
 
         for i in metric:
             cpus = i
@@ -1993,7 +1674,9 @@ if any((form.getvalue('new_nginx_metrics'), form.getvalue('new_apache_metrics'),
     print(json.dumps(metrics))
 
 if form.getvalue('get_hap_v'):
-    output = funct.check_haproxy_version(serv)
+    import modules.service.common as service_common
+
+    output = service_common.check_haproxy_version(serv)
     print(output)
 
 if form.getvalue('get_nginx_v'):
@@ -2005,20 +1688,20 @@ if form.getvalue('get_nginx_v'):
         cmd = [f"docker exec -it {container_name}  /usr/sbin/nginx -v 2>&1|awk '{{print $3}}'"]
     else:
         cmd = ['sudo /usr/sbin/nginx -v']
-    print(funct.ssh_command(serv, cmd))
+    print(server_mod.ssh_command(serv, cmd))
 
 if form.getvalue('get_keepalived_v'):
     cmd = ["sudo /usr/sbin/keepalived -v 2>&1|head -1|awk '{print $2}'"]
-    print(funct.ssh_command(serv, cmd))
+    print(server_mod.ssh_command(serv, cmd))
 
 if form.getvalue('get_exporter_v'):
-    print(funct.get_service_version(serv, form.getvalue('get_exporter_v')))
+    print(service_common.get_exp_version(serv, form.getvalue('get_exporter_v')))
 
 if form.getvalue('bwlists'):
     lib_path = get_config.get_config_var('main', 'lib_path')
-    color = funct.checkAjaxInput(form.getvalue('color'))
-    group = funct.checkAjaxInput(form.getvalue('group'))
-    bwlists = funct.checkAjaxInput(form.getvalue('bwlists'))
+    color = common.checkAjaxInput(form.getvalue('color'))
+    group = common.checkAjaxInput(form.getvalue('group'))
+    bwlists = common.checkAjaxInput(form.getvalue('bwlists'))
     list_path = f"{lib_path}/{sql.get_setting('lists_path')}/{group}/{color}/{bwlists}"
 
     try:
@@ -2030,7 +1713,7 @@ if form.getvalue('bwlists'):
         print(f"error: Cannot read {color} list")
 
 if form.getvalue('bwlists_create'):
-    color = funct.checkAjaxInput(form.getvalue('color'))
+    color = common.checkAjaxInput(form.getvalue('color'))
     lib_path = get_config.get_config_var('main', 'lib_path')
     list_name = f"{form.getvalue('bwlists_create').split('.')[0]}.lst"
     list_path = f"{lib_path}/{sql.get_setting('lists_path')}/{form.getvalue('group')}/{color}/{list_name}"
@@ -2038,16 +1721,16 @@ if form.getvalue('bwlists_create'):
         open(list_path, 'a').close()
         print('success: ')
         try:
-            funct.logging(serv, f'A new list {color} {list_name} has been created', roxywi=1, login=1)
+            roxywi_common.logging(serv, f'A new list {color} {list_name} has been created', roxywi=1, login=1)
         except Exception:
             pass
     except IOError as e:
         print(f'error: Cannot create a new {color} list. {e}, ')
 
 if form.getvalue('bwlists_save'):
-    color = funct.checkAjaxInput(form.getvalue('color'))
-    group = funct.checkAjaxInput(form.getvalue('group'))
-    bwlists_save = funct.checkAjaxInput(form.getvalue('bwlists_save'))
+    color = common.checkAjaxInput(form.getvalue('color'))
+    group = common.checkAjaxInput(form.getvalue('group'))
+    bwlists_save = common.checkAjaxInput(form.getvalue('bwlists_save'))
     lib_path = get_config.get_config_var('main', 'lib_path')
     list_path = f"{lib_path}/{sql.get_setting('lists_path')}/{group}/{color}/{bwlists_save}"
     try:
@@ -2067,21 +1750,21 @@ if form.getvalue('bwlists_save'):
             if master[0] is not None:
                 servers.append(master[0])
     else:
-        server = sql.get_dick_permit()
+        server = roxywi_common.get_dick_permit()
         for s in server:
             servers.append(s[2])
 
     for serv in servers:
-        funct.ssh_command(serv, [f"sudo mkdir {path}"])
-        funct.ssh_command(serv, [f"sudo chown $(whoami) {path}"])
-        error = funct.upload(serv, path + "/" + bwlists_save, list_path, dir='fullpath')
+        server_mod.ssh_command(serv, [f"sudo mkdir {path}"])
+        server_mod.ssh_command(serv, [f"sudo chown $(whoami) {path}"])
+        error = config_mod.upload(serv, path + "/" + bwlists_save, list_path, dir='fullpath')
 
         if error:
             print('error: Upload fail: %s , ' % error)
         else:
             print('success: Edited ' + color + ' list was uploaded to ' + serv + ' , ')
             try:
-                funct.logging(serv, f'Has been edited the {color} list {bwlists_save}', roxywi=1, login=1)
+                roxywi_common.logging(serv, f'Has been edited the {color} list {bwlists_save}', roxywi=1, login=1)
             except Exception:
                 pass
 
@@ -2093,9 +1776,9 @@ if form.getvalue('bwlists_save'):
                 haproxy_service_name = "haproxy"
 
             if form.getvalue('bwlists_restart') == 'restart':
-                funct.ssh_command(serv, [f"sudo systemctl restart {haproxy_service_name}"])
+                server_mod.ssh_command(serv, [f"sudo systemctl restart {haproxy_service_name}"])
             elif form.getvalue('bwlists_restart') == 'reload':
-                funct.ssh_command(serv, [f"sudo systemctl reload {haproxy_service_name}"])
+                server_mod.ssh_command(serv, [f"sudo systemctl reload {haproxy_service_name}"])
 
 if form.getvalue('bwlists_delete'):
     color = form.getvalue('color')
@@ -2119,28 +1802,28 @@ if form.getvalue('bwlists_delete'):
             if master[0] is not None:
                 servers.append(master[0])
     else:
-        server = sql.get_dick_permit()
+        server = roxywi_common.get_dick_permit()
         for s in server:
             servers.append(s[2])
 
     for serv in servers:
-        error = funct.ssh_command(serv, ["sudo rm " + path + "/" + bwlists_delete], return_err=1)
+        error = server_mod.ssh_command(serv, ["sudo rm " + path + "/" + bwlists_delete], return_err=1)
 
         if error:
             print('error: Deleting fail: %s , ' % error)
         else:
             print('success: the ' + color + ' list has been deleted on ' + serv + ' , ')
             try:
-                funct.logging(serv, 'has been deleted the ' + color + ' list ' + bwlists_delete, roxywi=1, login=1)
+                roxywi_common.logging(serv, 'has been deleted the ' + color + ' list ' + bwlists_delete, roxywi=1, login=1)
             except Exception:
                 pass
 
 if form.getvalue('get_lists'):
     lib_path = get_config.get_config_var('main', 'lib_path')
-    group = funct.checkAjaxInput(form.getvalue('group'))
-    color = funct.checkAjaxInput(form.getvalue('color'))
+    group = common.checkAjaxInput(form.getvalue('group'))
+    color = common.checkAjaxInput(form.getvalue('color'))
     list_path = f"{lib_path}/{sql.get_setting('lists_path')}/{group}/{color}"
-    lists = funct.get_files(list_path, "lst")
+    lists = roxywi_common.get_files(list_path, "lst")
     for line in lists:
         print(line)
 
@@ -2182,9 +1865,9 @@ if form.getvalue('get_ldap_email'):
         ldap_bind.unbind()
 
 if form.getvalue('change_waf_mode'):
-    waf_mode = funct.checkAjaxInput(form.getvalue('change_waf_mode'))
+    waf_mode = common.checkAjaxInput(form.getvalue('change_waf_mode'))
     server_hostname = form.getvalue('server_hostname')
-    service = funct.checkAjaxInput(form.getvalue('service'))
+    service = common.checkAjaxInput(form.getvalue('service'))
     serv = sql.select_server_by_name(server_hostname)
 
     if service == 'haproxy':
@@ -2193,8 +1876,8 @@ if form.getvalue('change_waf_mode'):
         config_dir = sql.get_setting('nginx_dir')
 
     commands = [f"sudo sed -i 's/^SecRuleEngine.*/SecRuleEngine {waf_mode}/' {config_dir}/waf/modsecurity.conf"]
-    funct.ssh_command(serv, commands)
-    funct.logging(serv, f'Has been changed WAF mod to {waf_mode}', roxywi=1, login=1)
+    server_mod.ssh_command(serv, commands)
+    roxywi_common.logging(serv, f'Has been changed WAF mod to {waf_mode}', roxywi=1, login=1)
 
 error_mess = 'error: All fields must be completed'
 
@@ -2208,8 +1891,8 @@ if form.getvalue('newuser') is not None:
     group = form.getvalue('newgroupuser')
     role_id = sql.get_role_id_by_name(role)
 
-    if funct.check_user_group():
-        if funct.is_admin(level=role_id):
+    if roxywi_common.check_user_group():
+        if roxywi_auth.is_admin(level=role_id):
             try:
                 sql.add_user(new_user, email, password, role, activeuser, group)
                 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
@@ -2221,13 +1904,13 @@ if form.getvalue('newuser') is not None:
                                            roles=sql.select_roles(),
                                            adding=1)
                 print(template)
-                funct.logging(f'a new user {new_user}', ' has been created ', roxywi=1, login=1)
+                roxywi_common.logging(f'a new user {new_user}', ' has been created ', roxywi=1, login=1)
             except Exception as e:
                 print(e)
-                funct.logging('Cannot create a new user', e, roxywi=1, login=1)
+                roxywi_common.logging('Cannot create a new user', e, roxywi=1, login=1)
         else:
             print('error: dalsdm')
-            funct.logging(new_user, ' tried to privilege escalation', roxywi=1, login=1)
+            roxywi_common.logging(new_user, ' tried to privilege escalation', roxywi=1, login=1)
 
 if form.getvalue('userdel') is not None:
     userdel = form.getvalue('userdel')
@@ -2237,7 +1920,7 @@ if form.getvalue('userdel') is not None:
         username = u.username
     if sql.delete_user(userdel):
         sql.delete_user_groups(userdel)
-        funct.logging(username, ' has been deleted user ', roxywi=1, login=1)
+        roxywi_common.logging(username, ' has been deleted user ', roxywi=1, login=1)
         print("Ok")
 
 if form.getvalue('updateuser') is not None:
@@ -2249,12 +1932,12 @@ if form.getvalue('updateuser') is not None:
     group = form.getvalue('usergroup')
     role_id = sql.get_role_id_by_name(role)
 
-    if funct.check_user_group():
-        if funct.is_admin(level=role_id):
+    if roxywi_common.check_user_group():
+        if roxywi_auth.is_admin(level=role_id):
             sql.update_user(new_user, email, role, user_id, activeuser)
-            funct.logging(new_user, ' has been updated user ', roxywi=1, login=1)
+            roxywi_common.logging(new_user, ' has been updated user ', roxywi=1, login=1)
         else:
-            funct.logging(new_user, ' tried to privilege escalation', roxywi=1, login=1)
+            roxywi_common.logging(new_user, ' tried to privilege escalation', roxywi=1, login=1)
 
 if form.getvalue('updatepassowrd') is not None:
     password = form.getvalue('updatepassowrd')
@@ -2268,13 +1951,15 @@ if form.getvalue('updatepassowrd') is not None:
     for u in user:
         username = u.username
     sql.update_user_password(password, user_id)
-    funct.logging('user ' + username, ' has changed password ', roxywi=1, login=1)
+    roxywi_common.logging('user ' + username, ' has changed password ', roxywi=1, login=1)
     print("Ok")
 
 if form.getvalue('newserver') is not None:
+    import modules.server.server as server_mod
+
     hostname = form.getvalue('servername')
     ip = form.getvalue('newip')
-    ip = funct.is_ip_or_dns(ip)
+    ip = common.is_ip_or_dns(ip)
     group = form.getvalue('newservergroup')
     scan_server = form.getvalue('scan_server')
     typeip = form.getvalue('typeip')
@@ -2304,42 +1989,42 @@ if form.getvalue('newserver') is not None:
                     apache_config_path = sql.get_setting('apache_config_path')
                     keepalived_config_path = sql.get_setting('keepalived_config_path')
 
-                    if funct.is_file_exists(ip, nginx_config_path):
+                    if server_mod.is_file_exists(ip, nginx_config_path):
                         sql.update_nginx(ip)
 
-                    if funct.is_file_exists(ip, haproxy_config_path):
+                    if server_mod.is_file_exists(ip, haproxy_config_path):
                         sql.update_haproxy(ip)
 
-                    if funct.is_file_exists(ip, keepalived_config_path):
+                    if server_mod.is_file_exists(ip, keepalived_config_path):
                         sql.update_keepalived(ip)
 
-                    if funct.is_file_exists(ip, apache_config_path):
+                    if server_mod.is_file_exists(ip, apache_config_path):
                         sql.update_apache(ip)
 
-                    if funct.is_file_exists(ip, haproxy_dir + '/waf/bin/modsecurity'):
+                    if server_mod.is_file_exists(ip, haproxy_dir + '/waf/bin/modsecurity'):
                         sql.insert_waf_metrics_enable(ip, "0")
                         sql.insert_waf_rules(ip)
 
-                    if funct.is_service_active(ip, 'firewalld'):
+                    if server_mod.is_service_active(ip, 'firewalld'):
                         sql.update_firewall(ip)
             except Exception as e:
-                funct.logging('Cannot scan a new server ' + hostname, str(e), roxywi=1)
+                roxywi_common.logging('Cannot scan a new server ' + hostname, str(e), roxywi=1)
 
             try:
                 sql.insert_new_checker_setting_for_server(ip)
             except Exception as e:
-                funct.logging('Cannot insert Checker settings for ' + hostname, str(e), roxywi=1)
+                roxywi_common.logging('Cannot insert Checker settings for ' + hostname, str(e), roxywi=1)
 
             try:
-                funct.get_system_info(ip)
+                server_mod.get_system_info(ip)
             except Exception as e:
-                funct.logging('Cannot get information from ' + hostname, str(e), roxywi=1, login=1)
+                roxywi_common.logging('Cannot get information from ' + hostname, str(e), roxywi=1, login=1)
 
             try:
-                user_status, user_plan = funct.return_user_status()
+                user_subscription = roxywi_common.return_user_status()
             except Exception as e:
-                user_status, user_plan = 0, 0
-                funct.logging('Roxy-WI server', 'Cannot get a user plan: ' + str(e), roxywi=1)
+                user_subscription = roxywi_common.return_unsubscribed_user_status()
+                roxywi_common.logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
 
             env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
             template = env.get_template('ajax/new_server.html')
@@ -2349,11 +2034,11 @@ if form.getvalue('newserver') is not None:
                                        masters=sql.select_servers(get_master_servers=1),
                                        sshs=sql.select_ssh(group=group),
                                        page=page,
-                                       user_status=user_status,
-                                       user_plan=user_plan,
+                                       user_status=user_subscription['user_status'],
+                                       user_plan=user_subscription['user_plan'],
                                        adding=1)
             print(template)
-            funct.logging(ip, f'A new server {hostname} has been created', roxywi=1, login=1,
+            roxywi_common.logging(ip, f'A new server {hostname} has been created', roxywi=1, login=1,
                           keep_history=1, service='server')
     except Exception as e:
         print(e)
@@ -2367,7 +2052,7 @@ if form.getvalue('updatehapwiserver') is not None:
     service = form.getvalue('service_name')
     sql.update_hapwi_server(hapwi_id, alert, metrics, active, service)
     server_ip = sql.select_server_ip_by_id(hapwi_id)
-    funct.logging(server_ip, 'The server ' + name + ' has been updated ', roxywi=1, login=1, keep_history=1,
+    roxywi_common.logging(server_ip, 'The server ' + name + ' has been updated ', roxywi=1, login=1, keep_history=1,
                   service=service)
 
 if form.getvalue('updateserver') is not None:
@@ -2391,9 +2076,9 @@ if form.getvalue('updateserver') is not None:
     else:
         sql.update_server(name, group, typeip, enable, master, serv_id, cred, port, desc, haproxy, nginx, apache,
                           firewall, protected)
-        funct.logging('the server ' + name, ' has been updated ', roxywi=1, login=1)
+        roxywi_common.logging('the server ' + name, ' has been updated ', roxywi=1, login=1)
         server_ip = sql.select_server_ip_by_id(serv_id)
-        funct.logging(server_ip, 'The server ' + name + ' has been update', roxywi=1, login=1,
+        roxywi_common.logging(server_ip, 'The server ' + name + ' has been update', roxywi=1, login=1,
                       keep_history=1, service='server')
 
 if form.getvalue('serverdel') is not None:
@@ -2414,7 +2099,7 @@ if form.getvalue('serverdel') is not None:
         sql.delete_system_info(server_id)
         sql.delete_service_settings(server_id)
         print("Ok")
-        funct.logging(server_ip, 'The server ' + hostname + ' has been deleted', roxywi=1, login=1)
+        roxywi_common.logging(server_ip, 'The server ' + hostname + ' has been deleted', roxywi=1, login=1)
 
 if form.getvalue('newgroup') is not None:
     newgroup = form.getvalue('groupname')
@@ -2428,7 +2113,7 @@ if form.getvalue('newgroup') is not None:
 
             output_from_parsed_template = template.render(groups=sql.select_groups(group=newgroup))
             print(output_from_parsed_template)
-            funct.logging('Roxy-WI server', 'A new group ' + newgroup + ' has been created', roxywi=1, login=1)
+            roxywi_common.logging('Roxy-WI server', 'A new group ' + newgroup + ' has been created', roxywi=1, login=1)
 
 if form.getvalue('groupdel') is not None:
     groupdel = form.getvalue('groupdel')
@@ -2437,7 +2122,7 @@ if form.getvalue('groupdel') is not None:
         groupname = g.name
     if sql.delete_group(groupdel):
         print("Ok")
-        funct.logging('Roxy-WI server', 'The ' + groupname + ' has been deleted', roxywi=1, login=1)
+        roxywi_common.logging('Roxy-WI server', 'The ' + groupname + ' has been deleted', roxywi=1, login=1)
 
 if form.getvalue('updategroup') is not None:
     name = form.getvalue('updategroup')
@@ -2448,12 +2133,12 @@ if form.getvalue('updategroup') is not None:
     else:
         try:
             sql.update_group(name, descript, group_id)
-            funct.logging('Roxy-WI server', 'The ' + name + ' has been updated', roxywi=1, login=1)
+            roxywi_common.logging('Roxy-WI server', 'The ' + name + ' has been updated', roxywi=1, login=1)
         except Exception as e:
             print('error: ' + str(e))
 
 if form.getvalue('new_ssh'):
-    user_group = funct.get_user_group()
+    user_group = roxywi_common.get_user_group()
     name = form.getvalue('new_ssh')
     name = name + '_' + user_group
     enable = form.getvalue('ssh_enable')
@@ -2472,11 +2157,11 @@ if form.getvalue('new_ssh'):
             output_from_parsed_template = template.render(groups=sql.select_groups(), sshs=sql.select_ssh(name=name),
                                                           page=page)
             print(output_from_parsed_template)
-            funct.logging('Roxy-WI server', 'A new SSH credentials ' + name + ' has created', roxywi=1, login=1)
+            roxywi_common.logging('Roxy-WI server', 'A new SSH credentials ' + name + ' has created', roxywi=1, login=1)
 
 if form.getvalue('sshdel') is not None:
     lib_path = get_config.get_config_var('main', 'lib_path')
-    sshdel = funct.checkAjaxInput(form.getvalue('sshdel'))
+    sshdel = common.checkAjaxInput(form.getvalue('sshdel'))
     name = ''
     ssh_enable = 0
     ssh_key_name = ''
@@ -2489,12 +2174,12 @@ if form.getvalue('sshdel') is not None:
     if ssh_enable == 1:
         cmd = f'rm -f {ssh_key_name}'
         try:
-            funct.subprocess_execute(cmd)
+            server_mod.subprocess_execute(cmd)
         except Exception:
             pass
     if sql.delete_ssh(sshdel):
         print("Ok")
-        funct.logging('Roxy-WI server', f'The SSH credentials {name} has deleted', roxywi=1, login=1)
+        roxywi_common.logging('Roxy-WI server', f'The SSH credentials {name} has deleted', roxywi=1, login=1)
 
 if form.getvalue('updatessh'):
     ssh_id = form.getvalue('id')
@@ -2519,18 +2204,18 @@ if form.getvalue('updatessh'):
             cmd = f'mv {ssh_key_name} {new_ssh_key_name}'
             cmd1 = f'chmod 600 {new_ssh_key_name}'
             try:
-                funct.subprocess_execute(cmd)
-                funct.subprocess_execute(cmd1)
+                server_mod.subprocess_execute(cmd)
+                server_mod.subprocess_execute(cmd1)
             except Exception:
                 pass
         sql.update_ssh(ssh_id, name, enable, group, username, password)
-        funct.logging('Roxy-WI server', f'The SSH credentials {name} has been updated ', roxywi=1, login=1)
+        roxywi_common.logging('Roxy-WI server', f'The SSH credentials {name} has been updated ', roxywi=1, login=1)
 
 if form.getvalue('ssh_cert'):
     import paramiko
 
-    user_group = funct.get_user_group()
-    name = funct.checkAjaxInput(form.getvalue('name'))
+    user_group = roxywi_common.get_user_group()
+    name = common.checkAjaxInput(form.getvalue('name'))
 
     try:
         key = paramiko.pkey.load_private_key(form.getvalue('ssh_cert'))
@@ -2566,11 +2251,11 @@ if form.getvalue('ssh_cert'):
 
     try:
         cmd = f'chmod 600 {ssh_keys}'
-        funct.subprocess_execute(cmd)
+        server_mod.subprocess_execute(cmd)
     except IOError as e:
-        funct.logging('Roxy-WI server', e.args[0], roxywi=1)
+        roxywi_common.logging('Roxy-WI server', e.args[0], roxywi=1)
 
-    funct.logging("Roxy-WI server", f"A new SSH cert has been uploaded {ssh_keys}", roxywi=1, login=1)
+    roxywi_common.logging("Roxy-WI server", f"A new SSH cert has been uploaded {ssh_keys}", roxywi=1, login=1)
 
 if form.getvalue('newtelegram'):
     token = form.getvalue('newtelegram')
@@ -2588,7 +2273,7 @@ if form.getvalue('newtelegram'):
             output_from_parsed_template = template.render(groups=sql.select_groups(),
                                                           telegrams=sql.select_telegram(token=token), page=page)
             print(output_from_parsed_template)
-            funct.logging('Roxy-WI server', f'A new Telegram channel {channel} has been created ', roxywi=1, login=1)
+            roxywi_common.logging('Roxy-WI server', f'A new Telegram channel {channel} has been created ', roxywi=1, login=1)
 
 if form.getvalue('newslack'):
     token = form.getvalue('newslack')
@@ -2606,7 +2291,7 @@ if form.getvalue('newslack'):
             output_from_parsed_template = template.render(groups=sql.select_groups(),
                                                           slacks=sql.select_slack(token=token), page=page)
             print(output_from_parsed_template)
-            funct.logging('Roxy-WI server', 'A new Slack channel ' + channel + ' has been created ', roxywi=1, login=1)
+            roxywi_common.logging('Roxy-WI server', 'A new Slack channel ' + channel + ' has been created ', roxywi=1, login=1)
 
 if form.getvalue('telegramdel') is not None:
     telegramdel = form.getvalue('telegramdel')
@@ -2616,7 +2301,7 @@ if form.getvalue('telegramdel') is not None:
         telegram_name = t.token
     if sql.delete_telegram(telegramdel):
         print("Ok")
-        funct.logging('Roxy-WI server', 'The Telegram channel ' + telegram_name + ' has been deleted ', roxywi=1, login=1)
+        roxywi_common.logging('Roxy-WI server', 'The Telegram channel ' + telegram_name + ' has been deleted ', roxywi=1, login=1)
 
 if form.getvalue('slackdel') is not None:
     slackdel = form.getvalue('slackdel')
@@ -2626,7 +2311,7 @@ if form.getvalue('slackdel') is not None:
         slack_name = t.chanel_name
     if sql.delete_slack(slackdel):
         print("Ok")
-        funct.logging('Roxy-WI server', 'The Slack channel ' + slack_name + ' has been deleted ', roxywi=1, login=1)
+        roxywi_common.logging('Roxy-WI server', 'The Slack channel ' + slack_name + ' has been deleted ', roxywi=1, login=1)
 
 if form.getvalue('updatetoken') is not None:
     token = form.getvalue('updatetoken')
@@ -2637,7 +2322,7 @@ if form.getvalue('updatetoken') is not None:
         print(error_mess)
     else:
         sql.update_telegram(token, channel, group, user_id)
-        funct.logging('group ' + group, 'The Telegram token has been updated for channel: ' + channel, roxywi=1,
+        roxywi_common.logging('group ' + group, 'The Telegram token has been updated for channel: ' + channel, roxywi=1,
                       login=1)
 
 if form.getvalue('update_slack_token') is not None:
@@ -2649,14 +2334,15 @@ if form.getvalue('update_slack_token') is not None:
         print(error_mess)
     else:
         sql.update_slack(token, channel, group, user_id)
-        funct.logging('group ' + group, 'The Slack token has been updated for channel: ' + channel, roxywi=1,
+        roxywi_common.logging('group ' + group, 'The Slack token has been updated for channel: ' + channel, roxywi=1,
                       login=1)
 
 if form.getvalue('updatesettings') is not None:
     settings = form.getvalue('updatesettings')
     val = form.getvalue('val')
-    if sql.update_setting(settings, val):
-        funct.logging('Roxy-WI server', 'The ' + settings + ' setting has been changed to: ' + str(val), roxywi=1,
+    user_group = roxywi_common.get_user_group(id=1)
+    if sql.update_setting(settings, val, user_group):
+        roxywi_common.logging('Roxy-WI server', f'The {settings} setting has been changed to: {val}', roxywi=1,
                       login=1)
         print("Ok")
 
@@ -2698,7 +2384,7 @@ if form.getvalue('changeUserGroupId') is not None:
             except Exception as e:
                 print(e)
 
-    funct.logging('Roxy-WI server', 'Groups has been updated for user: ' + user, roxywi=1, login=1)
+    roxywi_common.logging('Roxy-WI server', 'Groups has been updated for user: ' + user, roxywi=1, login=1)
 
 if form.getvalue('changeUserServicesId') is not None:
     user_id = form.getvalue('changeUserServicesId')
@@ -2707,7 +2393,7 @@ if form.getvalue('changeUserServicesId') is not None:
 
     try:
         if sql.update_user_services(services=services, user_id=user_id):
-            funct.logging('Roxy-WI server', 'Access to the services has been updated for user: ' + user, roxywi=1, login=1)
+            roxywi_common.logging('Roxy-WI server', 'Access to the services has been updated for user: ' + user, roxywi=1, login=1)
     except Exception as e:
         print(e)
 
@@ -2735,7 +2421,7 @@ if form.getvalue('getcurrentusergroup') is not None:
     print(template)
 
 if form.getvalue('newsmon') is not None:
-    user_group = funct.get_user_group(id=1)
+    user_group = roxywi_common.get_user_group(id=1)
     server = form.getvalue('newsmon')
     port = form.getvalue('newsmonport')
     enable = form.getvalue('newsmonenable')
@@ -2771,22 +2457,22 @@ if form.getvalue('newsmon') is not None:
             telegrams=sql.get_user_telegram_by_group(user_group),
             slacks=sql.get_user_slack_by_group(user_group))
         print(template)
-        funct.logging('SMON', ' Has been add a new server ' + server + ' to SMON ', roxywi=1, login=1)
+        roxywi_common.logging('SMON', ' Has been add a new server ' + server + ' to SMON ', roxywi=1, login=1)
 
 if form.getvalue('smondel') is not None:
-    user_group = funct.get_user_group(id=1)
+    user_group = roxywi_common.get_user_group(id=1)
     smon_id = form.getvalue('smondel')
 
-    if funct.check_user_group():
+    if roxywi_common.check_user_group():
         try:
             if sql.delete_smon(smon_id, user_group):
                 print('Ok')
-                funct.logging('SMON', ' Has been delete server from SMON ', roxywi=1, login=1)
+                roxywi_common.logging('SMON', ' Has been delete server from SMON ', roxywi=1, login=1)
         except Exception as e:
             print(e)
 
 if form.getvalue('showsmon') is not None:
-    user_group = funct.get_user_group(id=1)
+    user_group = roxywi_common.get_user_group(id=1)
     sort = form.getvalue('sort')
     env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
     template = env.get_template('ajax/smon_dashboard.html')
@@ -2820,33 +2506,34 @@ if form.getvalue('updateSmonIp') is not None:
         print('SMON error: Cannot be HTTP with 443 port')
         sys.exit()
 
+    roxywi_common.check_user_group()
     try:
         if sql.update_smon(smon_id, ip, port, body, telegram, slack, group, desc, en):
             print("Ok")
-            funct.logging('SMON', ' Has been update the server ' + ip + ' to SMON ', roxywi=1, login=1)
+            roxywi_common.logging('SMON', ' Has been update the server ' + ip + ' to SMON ', roxywi=1, login=1)
     except Exception as e:
         print(e)
 
 if form.getvalue('showBytes') is not None:
-    serv = funct.checkAjaxInput(form.getvalue('showBytes'))
+    serv = common.checkAjaxInput(form.getvalue('showBytes'))
 
     port = sql.get_setting('haproxy_sock_port')
     bin_bout = []
     cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,9|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(
         serv, port)
-    bit_in, stderr = funct.subprocess_execute(cmd)
+    bit_in, stderr = server_mod.subprocess_execute(cmd)
     bin_bout.append(bit_in[0])
     cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,10|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(
         serv, port)
-    bout, stderr1 = funct.subprocess_execute(cmd)
+    bout, stderr1 = server_mod.subprocess_execute(cmd)
     bin_bout.append(bout[0])
     cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,5|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(
         serv, port)
-    cin, stderr2 = funct.subprocess_execute(cmd)
+    cin, stderr2 = server_mod.subprocess_execute(cmd)
     bin_bout.append(cin[0])
     cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,8|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(
         serv, port)
-    cout, stderr3 = funct.subprocess_execute(cmd)
+    cout, stderr3 = server_mod.subprocess_execute(cmd)
     bin_bout.append(cout[0])
     env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
     template = env.get_template('ajax/bin_bout.html')
@@ -2854,7 +2541,7 @@ if form.getvalue('showBytes') is not None:
     print(template)
 
 if form.getvalue('nginxConnections'):
-    serv = funct.is_ip_or_dns(form.getvalue('nginxConnections'))
+    serv = common.is_ip_or_dns(form.getvalue('nginxConnections'))
     port = sql.get_setting('nginx_stats_port')
     user = sql.get_setting('nginx_stats_user')
     password = sql.get_setting('nginx_stats_password')
@@ -2879,7 +2566,7 @@ if form.getvalue('nginxConnections'):
         print('error: cannot connect to NGINX stat page')
 
 if form.getvalue('apachekBytes'):
-    serv = funct.is_ip_or_dns(form.getvalue('apachekBytes'))
+    serv = common.is_ip_or_dns(form.getvalue('apachekBytes'))
     port = sql.get_setting('apache_stats_port')
     user = sql.get_setting('apache_stats_user')
     password = sql.get_setting('apache_stats_password')
@@ -2902,8 +2589,8 @@ if form.getvalue('apachekBytes'):
         print('error: cannot connect to Apache stat page')
 
 if form.getvalue('waf_rule_id'):
-    enable = funct.checkAjaxInput(form.getvalue('waf_en'))
-    rule_id = funct.checkAjaxInput(form.getvalue('waf_rule_id'))
+    enable = common.checkAjaxInput(form.getvalue('waf_en'))
+    rule_id = common.checkAjaxInput(form.getvalue('waf_rule_id'))
 
     haproxy_path = sql.get_setting('haproxy_dir')
     rule_file = sql.select_waf_rule_by_id(rule_id)
@@ -2919,12 +2606,12 @@ if form.getvalue('waf_rule_id'):
         en_for_log = 'enable'
 
     try:
-        funct.logging('WAF', ' Has been ' + en_for_log + ' WAF rule: ' + rule_file + ' for the server ' + serv,
+        roxywi_common.logging('WAF', ' Has been ' + en_for_log + ' WAF rule: ' + rule_file + ' for the server ' + serv,
                       roxywi=1, login=1)
     except Exception:
         pass
 
-    print(funct.ssh_command(serv, cmd))
+    print(server_mod.ssh_command(serv, cmd))
     sql.update_enable_waf_rules(rule_id, serv, enable)
 
 if form.getvalue('new_waf_rule'):
@@ -2936,19 +2623,19 @@ if form.getvalue('new_waf_rule'):
     waf_path = ''
 
     if service == 'haproxy':
-        waf_path = funct.return_nice_path(sql.get_setting('haproxy_dir'))
+        waf_path = common.return_nice_path(sql.get_setting('haproxy_dir'))
     elif service == 'nginx':
-        waf_path = funct.return_nice_path(sql.get_setting('nginx_dir'))
+        waf_path = common.return_nice_path(sql.get_setting('nginx_dir'))
 
     conf_file_path = waf_path + 'waf/modsecurity.conf'
     rule_file_path = waf_path + 'waf/rules/' + rule_file
 
     cmd = [f"sudo echo Include {rule_file_path} >> {conf_file_path} && sudo touch {rule_file_path}"]
-    print(funct.ssh_command(serv, cmd))
+    print(server_mod.ssh_command(serv, cmd))
     print(sql.insert_new_waf_rule(new_waf_rule, rule_file, new_rule_desc, service, serv))
 
     try:
-        funct.logging('WAF', ' A new rule has been created ' + rule_file + ' on the server ' + serv,
+        roxywi_common.logging('WAF', ' A new rule has been created ' + rule_file + ' on the server ' + serv,
                       roxywi=1, login=1)
     except Exception:
         pass
@@ -2962,7 +2649,7 @@ if form.getvalue('lets_domain'):
     haproxy_dir = sql.get_setting('haproxy_dir')
     script = "letsencrypt.sh"
     proxy_serv = ''
-    ssh_settings = funct.return_ssh_keys_path(serv)
+    ssh_settings = server_mod.return_ssh_keys_path(serv)
 
     os.system(f"cp scripts/{script} .")
 
@@ -2975,10 +2662,10 @@ if form.getvalue('lets_domain'):
         f"PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
     ]
 
-    output, error = funct.subprocess_execute(commands[0])
+    output, error = server_mod.subprocess_execute(commands[0])
 
     if error:
-        funct.logging('Roxy-WI server', error, roxywi=1)
+        roxywi_common.logging('Roxy-WI server', error, roxywi=1)
         print(error)
     else:
         for line in output:
@@ -2997,7 +2684,7 @@ if form.getvalue('lets_domain'):
     os.remove(script)
 
 if form.getvalue('uploadovpn'):
-    name = funct.checkAjaxInput(form.getvalue('ovpnname'))
+    name = common.checkAjaxInput(form.getvalue('ovpnname'))
 
     ovpn_file = os.path.dirname('/tmp/') + "/" + name + '.ovpn'
 
@@ -3012,33 +2699,33 @@ if form.getvalue('uploadovpn'):
 
     try:
         cmd = 'sudo openvpn3 config-import --config %s --persistent' % ovpn_file
-        funct.subprocess_execute(cmd)
+        server_mod.subprocess_execute(cmd)
     except IOError as e:
-        funct.logging('Roxy-WI server', e.args[0], roxywi=1)
+        roxywi_common.logging('Roxy-WI server', e.args[0], roxywi=1)
 
     try:
         cmd = 'sudo cp %s /etc/openvpn3/%s.conf' % (ovpn_file, name)
-        funct.subprocess_execute(cmd)
+        server_mod.subprocess_execute(cmd)
     except IOError as e:
-        funct.logging('Roxy-WI server', e.args[0], roxywi=1)
+        roxywi_common.logging('Roxy-WI server', e.args[0], roxywi=1)
 
-    funct.logging("Roxy-WI server", " has been uploaded a new ovpn file %s" % ovpn_file, roxywi=1, login=1)
+    roxywi_common.logging("Roxy-WI server", " has been uploaded a new ovpn file %s" % ovpn_file, roxywi=1, login=1)
 
 if form.getvalue('openvpndel') is not None:
-    openvpndel = funct.checkAjaxInput(form.getvalue('openvpndel'))
+    openvpndel = common.checkAjaxInput(form.getvalue('openvpndel'))
 
     cmd = 'sudo openvpn3 config-remove --config /tmp/%s.ovpn --force' % openvpndel
     try:
-        funct.subprocess_execute(cmd)
+        server_mod.subprocess_execute(cmd)
         print("Ok")
-        funct.logging(openvpndel, ' has deleted the ovpn file ', roxywi=1, login=1)
+        roxywi_common.logging(openvpndel, ' has deleted the ovpn file ', roxywi=1, login=1)
     except IOError as e:
         print(e.args[0])
-        funct.logging('Roxy-WI server', e.args[0], roxywi=1)
+        roxywi_common.logging('Roxy-WI server', e.args[0], roxywi=1)
 
 if form.getvalue('actionvpn') is not None:
-    openvpn = funct.checkAjaxInput(form.getvalue('openvpnprofile'))
-    action = funct.checkAjaxInput(form.getvalue('actionvpn'))
+    openvpn = common.checkAjaxInput(form.getvalue('openvpnprofile'))
+    action = common.checkAjaxInput(form.getvalue('actionvpn'))
 
     if action == 'start':
         cmd = 'sudo openvpn3 session-start --config /tmp/%s.ovpn' % openvpn
@@ -3047,15 +2734,15 @@ if form.getvalue('actionvpn') is not None:
     elif action == 'disconnect':
         cmd = 'sudo openvpn3 session-manage --config /tmp/%s.ovpn --disconnect' % openvpn
     try:
-        funct.subprocess_execute(cmd)
+        server_mod.subprocess_execute(cmd)
         print("success: The " + openvpn + " has been " + action + "ed")
-        funct.logging(openvpn, ' has ' + action + ' the ovpn session ', roxywi=1, login=1)
+        roxywi_common.logging(openvpn, ' has ' + action + ' the ovpn session ', roxywi=1, login=1)
     except IOError as e:
         print(e.args[0])
-        funct.logging('Roxy-WI server', e.args[0], roxywi=1)
+        roxywi_common.logging('Roxy-WI server', e.args[0], roxywi=1)
 
 if form.getvalue('scan_ports') is not None:
-    serv_id = funct.checkAjaxInput(form.getvalue('scan_ports'))
+    serv_id = common.checkAjaxInput(form.getvalue('scan_ports'))
     server = sql.select_servers(id=serv_id)
     ip = ''
 
@@ -3065,8 +2752,8 @@ if form.getvalue('scan_ports') is not None:
     cmd = "sudo nmap -sS %s |grep -E '^[[:digit:]]'|sed 's/  */ /g'" % ip
     cmd1 = "sudo nmap -sS %s |head -5|tail -2" % ip
 
-    stdout, stderr = funct.subprocess_execute(cmd)
-    stdout1, stderr1 = funct.subprocess_execute(cmd1)
+    stdout, stderr = server_mod.subprocess_execute(cmd)
+    stdout1, stderr1 = server_mod.subprocess_execute(cmd1)
 
     if stderr != '':
         print(stderr)
@@ -3077,13 +2764,13 @@ if form.getvalue('scan_ports') is not None:
         print(template)
 
 if form.getvalue('viewFirewallRules') is not None:
-    serv = funct.checkAjaxInput(form.getvalue('viewFirewallRules'))
+    serv = common.checkAjaxInput(form.getvalue('viewFirewallRules'))
 
     cmd = ["sudo iptables -L INPUT -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"]
     cmd1 = ["sudo iptables -L IN_public_allow -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"]
     cmd2 = ["sudo iptables -L OUTPUT -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"]
 
-    input_chain = funct.ssh_command(serv, cmd, raw=1)
+    input_chain = server_mod.ssh_command(serv, cmd, raw=1)
 
     input_chain2 = []
     for each_line in input_chain:
@@ -3093,8 +2780,8 @@ if form.getvalue('viewFirewallRules') is not None:
         print(input_chain)
         sys.exit()
 
-    IN_public_allow = funct.ssh_command(serv, cmd1, raw=1)
-    output_chain = funct.ssh_command(serv, cmd2, raw=1)
+    IN_public_allow = server_mod.ssh_command(serv, cmd1, raw=1)
+    output_chain = server_mod.ssh_command(serv, cmd2, raw=1)
     env = Environment(loader=FileSystemLoader('templates'))
     template = env.get_template('ajax/firewall_rules.html')
     template = template.render(input=input_chain2, IN_public_allow=IN_public_allow, output=output_chain)
@@ -3104,50 +2791,17 @@ if form.getvalue('geoipserv') is not None:
     serv = form.getvalue('geoipserv')
     service = form.getvalue('geoip_service')
     if service in ('haproxy', 'nginx'):
-        service_dir = funct.return_nice_path(sql.get_setting(f'{service}_dir'))
+        service_dir = common.return_nice_path(sql.get_setting(f'{service}_dir'))
 
         cmd = ["ls " + service_dir + "geoip/"]
-        print(funct.ssh_command(serv, cmd))
+        print(server_mod.ssh_command(serv, cmd))
     else:
         print('warning: select a server and service first')
-
-if form.getvalue('geoip_install'):
-    serv = funct.is_ip_or_dns(form.getvalue('geoip_install'))
-    geoip_update = funct.checkAjaxInput(form.getvalue('geoip_update'))
-    service = form.getvalue('geoip_service')
-    proxy = sql.get_setting('proxy')
-    maxmind_key = sql.get_setting('maxmind_key')
-    proxy_serv = ''
-    ssh_settings = funct.return_ssh_keys_path(serv)
-
-    if service in ('haproxy', 'nginx'):
-        service_dir = funct.return_nice_path(sql.get_setting(f'{service}_dir'))
-        script = f'install_{service}_geoip.sh'
-    else:
-        print('warning: select a server and service first')
-        sys.exit()
-
-    if proxy is not None and proxy != '' and proxy != 'None':
-        proxy_serv = proxy
-
-    os.system(f"cp scripts/{script} .")
-
-    commands = [
-        f"chmod +x  {script} &&  ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} UPDATE={geoip_update} "
-        f"maxmind_key={maxmind_key} service_dir={service_dir} HOST={serv} USER={ssh_settings['user']} "
-        f"PASS={ssh_settings['password']} KEY={ssh_settings['key']}"
-    ]
-
-    output, error = funct.subprocess_execute(commands[0])
-
-    funct.show_installation_output(error, output, 'GeoLite2 Database')
-
-    os.remove(script)
 
 if form.getvalue('nettools_icmp_server_from'):
     server_from = form.getvalue('nettools_icmp_server_from')
     server_to = form.getvalue('nettools_icmp_server_to')
-    server_to = funct.is_ip_or_dns(server_to)
+    server_to = common.is_ip_or_dns(server_to)
     action = form.getvalue('nettools_action')
     stderr = ''
     action_for_sending = ''
@@ -3164,10 +2818,10 @@ if form.getvalue('nettools_icmp_server_from'):
     action_for_sending = action_for_sending + server_to
 
     if server_from == 'localhost':
-        output, stderr = funct.subprocess_execute(action_for_sending)
+        output, stderr = server_mod.subprocess_execute(action_for_sending)
     else:
         action_for_sending = [action_for_sending]
-        output = funct.ssh_command(server_from, action_for_sending, raw=1)
+        output = server_mod.ssh_command(server_from, action_for_sending, raw=1)
 
     if stderr != '':
         print(f'error: {stderr}')
@@ -3190,7 +2844,7 @@ if form.getvalue('nettools_icmp_server_from'):
 if form.getvalue('nettools_telnet_server_from'):
     server_from = form.getvalue('nettools_telnet_server_from')
     server_to = form.getvalue('nettools_telnet_server_to')
-    server_to = funct.is_ip_or_dns(server_to)
+    server_to = common.is_ip_or_dns(server_to)
     port_to = form.getvalue('nettools_telnet_port_to')
     stderr = ''
 
@@ -3200,10 +2854,10 @@ if form.getvalue('nettools_telnet_server_from'):
 
     if server_from == 'localhost':
         action_for_sending = f'echo "exit"|nc {server_to} {port_to} -t -w 1s'
-        output, stderr = funct.subprocess_execute(action_for_sending)
+        output, stderr = server_mod.subprocess_execute(action_for_sending)
     else:
         action_for_sending = [f'echo "exit"|nc {server_to} {port_to} -t -w 1s']
-        output = funct.ssh_command(server_from, action_for_sending, raw=1)
+        output = server_mod.ssh_command(server_from, action_for_sending, raw=1)
 
     if stderr != '':
         print(f'error: <b>{stderr[5:]}</b>')
@@ -3224,7 +2878,7 @@ if form.getvalue('nettools_telnet_server_from'):
 if form.getvalue('nettools_nslookup_server_from'):
     server_from = form.getvalue('nettools_nslookup_server_from')
     dns_name = form.getvalue('nettools_nslookup_name')
-    dns_name = funct.is_ip_or_dns(dns_name)
+    dns_name = common.is_ip_or_dns(dns_name)
     record_type = form.getvalue('nettools_nslookup_record_type')
     stderr = ''
 
@@ -3235,10 +2889,10 @@ if form.getvalue('nettools_nslookup_server_from'):
     action_for_sending = f'dig {dns_name} {record_type} |grep -e "SERVER\|{dns_name}"'
 
     if server_from == 'localhost':
-        output, stderr = funct.subprocess_execute(action_for_sending)
+        output, stderr = server_mod.subprocess_execute(action_for_sending)
     else:
         action_for_sending = [action_for_sending]
-        output = funct.ssh_command(server_from, action_for_sending, raw=1)
+        output = server_mod.ssh_command(server_from, action_for_sending, raw=1)
 
     if stderr != '':
         print('error: ' + stderr[5:-1])
@@ -3270,25 +2924,26 @@ if form.getvalue('portscanner_history_server_id'):
     user_group_id = [server[3] for server in sql.select_servers(id=server_id)]
 
     try:
-        if sql.insert_port_scanner_settings(server_id, user_group_id, enabled, notify, history):
+        if sql.insert_port_scanner_settings(server_id, user_group_id[0], enabled, notify, history):
             print('ok')
         else:
-            if sql.update_port_scanner_settings(server_id, user_group_id, enabled, notify, history):
+            if sql.update_port_scanner_settings(server_id, user_group_id[0], enabled, notify, history):
                 print('ok')
     except Exception as e:
         print(e)
 
 if form.getvalue('show_versions'):
+    import modules.roxywi.roxy as roxy
     env = Environment(loader=FileSystemLoader('templates'))
     template = env.get_template('ajax/check_version.html')
-    template = template.render(versions=funct.versions())
+    template = template.render(versions=roxy.versions())
     print(template)
 
 if form.getvalue('get_group_name_by_id'):
     print(sql.get_group_name_by_id(form.getvalue('get_group_name_by_id')))
 
 if any((form.getvalue('do_new_name'), form.getvalue('aws_new_name'), form.getvalue('gcore_new_name'))):
-    funct.check_user_group()
+    roxywi_common.check_user_group()
     is_add = False
     if form.getvalue('do_new_name'):
         provider_name = form.getvalue('do_new_name')
@@ -3335,18 +2990,18 @@ if any((form.getvalue('do_new_name'), form.getvalue('aws_new_name'), form.getval
         print(template)
 
 if form.getvalue('providerdel'):
-    funct.check_user_group()
+    roxywi_common.check_user_group()
     try:
         if sql.delete_provider(form.getvalue('providerdel')):
             print('Ok')
-            funct.logging('Roxy-WI server', 'Provider has been deleted', provisioning=1)
+            roxywi_common.logging('Roxy-WI server', 'Provider has been deleted', provisioning=1)
     except Exception as e:
         print(e)
 
 if form.getvalue('awsinit') or form.getvalue('doinit') or form.getvalue('gcoreinitserver'):
-    funct.check_user_group()
+    roxywi_common.check_user_group()
     cmd = 'cd scripts/terraform/ && sudo terraform init -upgrade -no-color'
-    output, stderr = funct.subprocess_execute(cmd)
+    output, stderr = server_mod.subprocess_execute(cmd)
     if stderr != '':
         print('error: ' + stderr)
     else:
@@ -3394,7 +3049,7 @@ if form.getvalue('awsvars') or form.getvalue('awseditvars'):
           f'AWS_ACCESS_KEY={aws_key} AWS_SECRET_KEY={aws_secret} firewall={firewall} public_ip={public_ip} ' \
           f'ssh_name={ssh_name} delete_on_termination={delete_on_termination} volume_type={volume_type} cloud=aws"'
 
-    output, stderr = funct.subprocess_execute(cmd)
+    output, stderr = server_mod.subprocess_execute(cmd)
     if stderr != '':
         print('error: ' + stderr)
     else:
@@ -3436,7 +3091,7 @@ if form.getvalue('dovars') or form.getvalue('doeditvars'):
           f'group={group} size={size} os={oss} floating_ip={floating_ip} ssh_ids={ssh_ids} server_name={dovars} ' \
           f'token={token} backup={backup} monitoring={monitoring} privet_net={privet_net} firewall={firewall} ' \
           f'floating_ip={floating_ip} ssh_name={ssh_name} cloud=do"'
-    output, stderr = funct.subprocess_execute(cmd)
+    output, stderr = server_mod.subprocess_execute(cmd)
     if stderr != '':
         print(f'error: {stderr}')
     else:
@@ -3452,7 +3107,7 @@ if form.getvalue('dovalidate') or form.getvalue('doeditvalidate'):
         group = form.getvalue('do_edit_group')
 
     cmd = f'cd scripts/terraform/ && sudo terraform plan -no-color -input=false -target=module.do_module -var-file vars/{workspace}_{group}_do.tfvars'
-    output, stderr = funct.subprocess_execute(cmd)
+    output, stderr = server_mod.subprocess_execute(cmd)
     if stderr != '':
         print(f'error: {stderr}')
     else:
@@ -3474,7 +3129,7 @@ if form.getvalue('doworkspace'):
     firewall = form.getvalue('do_create_firewall')
 
     cmd = 'cd scripts/terraform/ && sudo terraform workspace new ' + workspace + '_' + group + '_do'
-    output, stderr = funct.subprocess_execute(cmd)
+    output, stderr = server_mod.subprocess_execute(cmd)
 
     if stderr != '':
         stderr = stderr.strip()
@@ -3489,7 +3144,7 @@ if form.getvalue('doworkspace'):
                 region, size, privet_net, floating_ip, ssh_ids, ssh_name, workspace, oss, firewall, monitoring,
                 backup, provider, group, 'Creating'
         ):
-            user, user_id, role, token, servers, user_services = funct.get_users_params()
+            user_params = roxywi_common.get_users_params()
             new_server = sql.select_provisioned_servers(new=workspace, group=group, type='do')
             params = sql.select_provisioning_params()
 
@@ -3497,7 +3152,7 @@ if form.getvalue('doworkspace'):
             template = env.get_template('ajax/provisioning/provisioned_servers.html')
             template = template.render(
                 servers=new_server, groups=sql.select_groups(), user_group=group,
-                providers=sql.select_providers(group), role=role, adding=1, params=params
+                providers=sql.select_providers(group), role=user_params['role'], adding=1, params=params
             )
             print(template)
 
@@ -3523,7 +3178,7 @@ if form.getvalue('doeditworkspace'):
         ):
 
             cmd = 'cd scripts/terraform/ && sudo terraform workspace select ' + workspace + '_' + group + '_do'
-            output, stderr = funct.subprocess_execute(cmd)
+            output, stderr = server_mod.subprocess_execute(cmd)
 
             if stderr != '':
                 stderr = stderr.strip()
@@ -3548,7 +3203,7 @@ if form.getvalue('awsvalidate') or form.getvalue('awseditvalidate'):
         group = form.getvalue('aws_edit_group')
 
     cmd = f'cd scripts/terraform/ && sudo terraform plan -no-color -input=false -target=module.aws_module -var-file vars/{workspace}_{group}_aws.tfvars'
-    output, stderr = funct.subprocess_execute(cmd)
+    output, stderr = server_mod.subprocess_execute(cmd)
     if stderr != '':
         print('error: ' + stderr)
     else:
@@ -3570,7 +3225,7 @@ if form.getvalue('awsworkspace'):
     public_ip = form.getvalue('aws_create_public_ip')
 
     cmd = f'cd scripts/terraform/ && sudo terraform workspace new {workspace}_{group}_aws'
-    output, stderr = funct.subprocess_execute(cmd)
+    output, stderr = server_mod.subprocess_execute(cmd)
 
     if stderr != '':
         stderr = stderr.strip()
@@ -3586,7 +3241,7 @@ if form.getvalue('awsworkspace'):
                     region, size, public_ip, floating_ip, volume_size, ssh_name, workspace, oss, firewall,
                     provider, group, 'Creating', delete_on_termination, volume_type
             ):
-                user, user_id, role, token, servers, user_services = funct.get_users_params()
+                user_params = roxywi_common.get_users_params()
                 new_server = sql.select_provisioned_servers(new=workspace, group=group, type='aws')
                 params = sql.select_provisioning_params()
 
@@ -3594,7 +3249,7 @@ if form.getvalue('awsworkspace'):
                 template = env.get_template('ajax/provisioning/provisioned_servers.html')
                 template = template.render(
                     servers=new_server, groups=sql.select_groups(), user_group=group,
-                    providers=sql.select_providers(group), role=role, adding=1, params=params
+                    providers=sql.select_providers(group), role=user_params['role'], adding=1, params=params
                 )
                 print(template)
         except Exception as e:
@@ -3624,7 +3279,7 @@ if form.getvalue('awseditworkspace'):
 
             try:
                 cmd = f'cd scripts/terraform/ && sudo terraform workspace select {workspace}_{group}_aws'
-                output, stderr = funct.subprocess_execute(cmd)
+                output, stderr = server_mod.subprocess_execute(cmd)
             except Exception as e:
                 print('error: ' + str(e))
 
@@ -3648,7 +3303,7 @@ if (
         or form.getvalue('gcoreprovisining')
         or form.getvalue('gcoreeditgprovisining')
 ):
-    funct.check_user_group()
+    roxywi_common.check_user_group()
 
     if form.getvalue('awsprovisining'):
         workspace = form.getvalue('awsprovisining')
@@ -3695,7 +3350,7 @@ if (
 
     tfvars = f'{workspace}_{group}_{cloud}.tfvars'
     cmd = f'cd scripts/terraform/ && sudo terraform apply -auto-approve -no-color -input=false -target=module.{cloud}_module -var-file vars/{tfvars}'
-    output, stderr = funct.subprocess_execute(cmd)
+    output, stderr = server_mod.subprocess_execute(cmd)
 
     if stderr != '':
         stderr = stderr.strip()
@@ -3708,13 +3363,13 @@ if (
     else:
         if cloud == 'aws':
             cmd = 'cd scripts/terraform/ && sudo terraform state show module.aws_module.aws_eip.floating_ip[0]|grep -Eo "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}"'
-            output, stderr = funct.subprocess_execute(cmd)
+            output, stderr = server_mod.subprocess_execute(cmd)
             if stderr != '':
                 cmd = 'cd scripts/terraform/ && sudo terraform state show module.' + cloud + '_module.' + state_name + '.hapwi|grep -Eo "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}"'
         else:
             cmd = 'cd scripts/terraform/ && sudo terraform state show module.' + cloud + '_module.' + state_name + '.hapwi|grep -Eo "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}"'
 
-        output, stderr = funct.subprocess_execute(cmd)
+        output, stderr = server_mod.subprocess_execute(cmd)
         ips = ''
         for ip in output:
             ips += ip
@@ -3731,17 +3386,17 @@ if (
 
         if cloud == 'gcore':
             cmd = 'cd scripts/terraform/ && sudo terraform state show module.gcore_module.gcore_instance.hapwi|grep "name"|grep -v -e "_name\|name_" |head -1 |awk -F"\\\"" \'{print $2}\''
-            output, stderr = funct.subprocess_execute(cmd)
+            output, stderr = server_mod.subprocess_execute(cmd)
             print(':' + output[0])
             try:
                 sql.update_provisioning_server_gcore_name(workspace, output[0], group, provider_id)
             except Exception as e:
                 print(e)
 
-        funct.logging('Roxy-WI server', f'Server {workspace} has been {action}', provisioning=1)
+        roxywi_common.logging('Roxy-WI server', f'Server {workspace} has been {action}', provisioning=1)
 
 if form.getvalue('provisiningdestroyserver'):
-    funct.check_user_group()
+    roxywi_common.check_user_group()
     server_id = form.getvalue('provisiningdestroyserver')
     workspace = form.getvalue('servername')
     group = form.getvalue('group')
@@ -3751,7 +3406,7 @@ if form.getvalue('provisiningdestroyserver'):
     tf_workspace = f'{workspace}_{group}_{cloud_type}'
 
     cmd = f'cd scripts/terraform/ && sudo terraform init -upgrade -no-color && sudo terraform workspace select {tf_workspace}'
-    output, stderr = funct.subprocess_execute(cmd)
+    output, stderr = server_mod.subprocess_execute(cmd)
 
     if stderr != '':
         stderr = stderr.strip()
@@ -3763,16 +3418,16 @@ if form.getvalue('provisiningdestroyserver'):
         print('error: ' + stderr)
     else:
         cmd = f'cd scripts/terraform/ && sudo terraform destroy -auto-approve -no-color -target=module.{cloud_type}_module -var-file vars/{tf_workspace}.tfvars'
-        output, stderr = funct.subprocess_execute(cmd)
+        output, stderr = server_mod.subprocess_execute(cmd)
 
         if stderr != '':
             print(f'error: {stderr}')
         else:
             cmd = f'cd scripts/terraform/ && sudo terraform workspace select default && sudo terraform workspace delete -force {tf_workspace}'
-            output, stderr = funct.subprocess_execute(cmd)
+            output, stderr = server_mod.subprocess_execute(cmd)
 
             print('ok')
-            funct.logging('Roxy-WI server', 'Server has been destroyed', provisioning=1)
+            roxywi_common.logging('Roxy-WI server', 'Server has been destroyed', provisioning=1)
             try:
                 sql.delete_provisioned_servers(server_id)
             except Exception as e:
@@ -3821,7 +3476,7 @@ if form.getvalue('gcorevars') or form.getvalue('gcoreeditvars'):
           'cloud=gcore"'.format(region, group, size, oss, network_name, volume_size, gcorevars, gcore_user, gcore_pass,
                                 firewall, network_type, ssh_name, delete_on_termination, project, volume_type)
 
-    output, stderr = funct.subprocess_execute(cmd)
+    output, stderr = server_mod.subprocess_execute(cmd)
     if stderr != '':
         print(f'error: {stderr}')
     else:
@@ -3836,7 +3491,7 @@ if form.getvalue('gcorevalidate') or form.getvalue('gcoreeditvalidate'):
         group = form.getvalue('gcore_edit_group')
 
     cmd = f'cd scripts/terraform/ && sudo terraform plan -no-color -input=false -target=module.gcore_module -var-file vars/{workspace}_{group}_gcore.tfvars'
-    output, stderr = funct.subprocess_execute(cmd)
+    output, stderr = server_mod.subprocess_execute(cmd)
     if stderr != '':
         print(f'error: {stderr}')
     else:
@@ -3859,7 +3514,7 @@ if form.getvalue('gcoreworkspace'):
     network_name = form.getvalue('gcore_create_network_name')
 
     cmd = 'cd scripts/terraform/ && sudo terraform workspace new ' + workspace + '_' + group + '_gcore'
-    output, stderr = funct.subprocess_execute(cmd)
+    output, stderr = server_mod.subprocess_execute(cmd)
 
     if stderr != '':
         stderr = stderr.strip()
@@ -3875,7 +3530,7 @@ if form.getvalue('gcoreworkspace'):
                     project, region, size, network_type, network_name, volume_size, ssh_name, workspace, oss, firewall,
                     provider, group, 'Creating', delete_on_termination, volume_type
             ):
-                user, user_id, role, token, servers, user_services = funct.get_users_params()
+                user_params = roxywi_common.get_users_params()
                 new_server = sql.select_provisioned_servers(new=workspace, group=group, type='gcore')
                 params = sql.select_provisioning_params()
 
@@ -3885,7 +3540,7 @@ if form.getvalue('gcoreworkspace'):
                                            groups=sql.select_groups(),
                                            user_group=group,
                                            providers=sql.select_providers(group),
-                                           role=role,
+                                           role=user_params['role'],
                                            adding=1,
                                            params=params)
                 print(template)
@@ -3917,7 +3572,7 @@ if form.getvalue('gcoreeditworkspace'):
 
             try:
                 cmd = 'cd scripts/terraform/ && sudo terraform workspace select ' + workspace + '_' + group + '_gcore'
-                output, stderr = funct.subprocess_execute(cmd)
+                output, stderr = server_mod.subprocess_execute(cmd)
             except Exception as e:
                 print('error: ' + str(e))
 
@@ -3934,7 +3589,7 @@ if form.getvalue('gcoreeditworkspace'):
         print(e)
 
 if form.getvalue('editAwsServer'):
-    funct.check_user_group()
+    roxywi_common.check_user_group()
     server_id = form.getvalue('editAwsServer')
     user_group = form.getvalue('editAwsGroup')
     params = sql.select_provisioning_params()
@@ -3946,7 +3601,7 @@ if form.getvalue('editAwsServer'):
     print(template)
 
 if form.getvalue('editGcoreServer'):
-    funct.check_user_group()
+    roxywi_common.check_user_group()
     server_id = form.getvalue('editGcoreServer')
     user_group = form.getvalue('editGcoreGroup')
     params = sql.select_provisioning_params()
@@ -3958,7 +3613,7 @@ if form.getvalue('editGcoreServer'):
     print(template)
 
 if form.getvalue('editDoServer'):
-    funct.check_user_group()
+    roxywi_common.check_user_group()
     server_id = form.getvalue('editDoServer')
     user_group = form.getvalue('editDoGroup')
     params = sql.select_provisioning_params()
@@ -3970,7 +3625,7 @@ if form.getvalue('editDoServer'):
     print(template)
 
 if form.getvalue('edit_do_provider'):
-    funct.check_user_group()
+    roxywi_common.check_user_group()
     provider_id = form.getvalue('edit_do_provider')
     new_name = form.getvalue('edit_do_provider_name')
     new_token = form.getvalue('edit_do_provider_token')
@@ -3978,12 +3633,12 @@ if form.getvalue('edit_do_provider'):
     try:
         if sql.update_do_provider(new_name, new_token, provider_id):
             print('ok')
-            funct.logging('Roxy-WI server', f'Provider has been renamed. New name is {new_name}', provisioning=1)
+            roxywi_common.logging('Roxy-WI server', f'Provider has been renamed. New name is {new_name}', provisioning=1)
     except Exception as e:
         print(e)
 
 if form.getvalue('edit_gcore_provider'):
-    funct.check_user_group()
+    roxywi_common.check_user_group()
     provider_id = form.getvalue('edit_gcore_provider')
     new_name = form.getvalue('edit_gcore_provider_name')
     new_user = form.getvalue('edit_gcore_provider_user')
@@ -3992,12 +3647,12 @@ if form.getvalue('edit_gcore_provider'):
     try:
         if sql.update_gcore_provider(new_name, new_user, new_pass, provider_id):
             print('ok')
-            funct.logging('Roxy-WI server', f'Provider has been renamed. New name is {new_name}', provisioning=1)
+            roxywi_common.logging('Roxy-WI server', f'Provider has been renamed. New name is {new_name}', provisioning=1)
     except Exception as e:
         print(e)
 
 if form.getvalue('edit_aws_provider'):
-    funct.check_user_group()
+    roxywi_common.check_user_group()
     provider_id = form.getvalue('edit_aws_provider')
     new_name = form.getvalue('edit_aws_provider_name')
     new_key = form.getvalue('edit_aws_provider_key')
@@ -4006,15 +3661,17 @@ if form.getvalue('edit_aws_provider'):
     try:
         if sql.update_aws_provider(new_name, new_key, new_secret, provider_id):
             print('ok')
-            funct.logging('Roxy-WI server', f'Provider has been renamed. New name is {new_name}', provisioning=1)
+            roxywi_common.logging('Roxy-WI server', f'Provider has been renamed. New name is {new_name}', provisioning=1)
     except Exception as e:
         print(e)
 
 if form.getvalue('loadservices'):
+    from modules.roxywi.roxy import get_services_status
+
     env = Environment(loader=FileSystemLoader('templates'))
     template = env.get_template('ajax/load_services.html')
     try:
-        services = funct.get_services_status()
+        services = get_services_status()
     except Exception as e:
         print(e)
 
@@ -4022,37 +3679,40 @@ if form.getvalue('loadservices'):
     print(template)
 
 if form.getvalue('loadchecker'):
+    from modules.roxywi.roxy import get_services_status
+
     env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
     template = env.get_template('ajax/load_telegram.html')
-    services = funct.get_services_status()
+    services = get_services_status()
     groups = sql.select_groups()
     page = form.getvalue('page')
 
     try:
-        user_status, user_plan = funct.return_user_status()
+        user_subscription = roxywi_common.return_user_status()
     except Exception as e:
-        user_status, user_plan = 0, 0
-        funct.logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
-    if user_status:
+        user_subscription = roxywi_common.return_unsubscribed_user_status()
+        roxywi_common.logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
+
+    if user_subscription['user_status']:
         haproxy_settings = sql.select_checker_settings(1)
         nginx_settings = sql.select_checker_settings(2)
         keepalived_settings = sql.select_checker_settings(3)
         apache_settings = sql.select_checker_settings(4)
         if page == 'servers.py':
-            user_group = funct.get_user_group(id=1)
+            user_group = roxywi_common.get_user_group(id=1)
             telegrams = sql.get_user_telegram_by_group(user_group)
             slacks = sql.get_user_slack_by_group(user_group)
-            haproxy_servers = sql.get_dick_permit(haproxy=1, only_group=1)
-            nginx_servers = sql.get_dick_permit(nginx=1, only_group=1)
-            apache_servers = sql.get_dick_permit(apache=1, only_group=1)
-            keepalived_servers = sql.get_dick_permit(keepalived=1, only_group=1)
+            haproxy_servers = roxywi_common.get_dick_permit(haproxy=1, only_group=1)
+            nginx_servers = roxywi_common.get_dick_permit(nginx=1, only_group=1)
+            apache_servers = roxywi_common.get_dick_permit(apache=1, only_group=1)
+            keepalived_servers = roxywi_common.get_dick_permit(keepalived=1, only_group=1)
         else:
             telegrams = sql.select_telegram()
             slacks = sql.select_slack()
-            haproxy_servers = sql.get_dick_permit(haproxy=1)
-            nginx_servers = sql.get_dick_permit(nginx=1)
-            apache_servers = sql.get_dick_permit(apache=1)
-            keepalived_servers = sql.get_dick_permit(keepalived=1)
+            haproxy_servers = roxywi_common.get_dick_permit(haproxy=1)
+            nginx_servers = roxywi_common.get_dick_permit(nginx=1)
+            apache_servers = roxywi_common.get_dick_permit(apache=1)
+            keepalived_servers = roxywi_common.get_dick_permit(keepalived=1)
     else:
         telegrams = ''
         slacks = ''
@@ -4075,18 +3735,20 @@ if form.getvalue('loadchecker'):
     print(template)
 
 if form.getvalue('load_update_hapwi'):
+    import modules.roxywi.roxy as roxy
+
     env = Environment(loader=FileSystemLoader('templates'))
     template = env.get_template('ajax/load_updatehapwi.html')
 
-    versions = funct.versions()
-    checker_ver = funct.check_new_version('checker')
-    smon_ver = funct.check_new_version('smon')
-    metrics_ver = funct.check_new_version('metrics')
-    keep_ver = funct.check_new_version('keep_alive')
-    portscanner_ver = funct.check_new_version('portscanner')
-    socket_ver = funct.check_new_version('socket')
-    prometheus_exp_ver = funct.check_new_version('prometheus-exporter')
-    services = funct.get_services_status()
+    versions = roxy.versions()
+    checker_ver = roxy.check_new_version('checker')
+    smon_ver = roxy.check_new_version('smon')
+    metrics_ver = roxy.check_new_version('metrics')
+    keep_ver = roxy.check_new_version('keep_alive')
+    portscanner_ver = roxy.check_new_version('portscanner')
+    socket_ver = roxy.check_new_version('socket')
+    prometheus_exp_ver = roxy.check_new_version('prometheus-exporter')
+    services = roxy.get_services_status()
 
     template = template.render(services=services,
                                versions=versions,
@@ -4109,18 +3771,18 @@ if form.getvalue('loadopenvpn'):
     openvpn = ''
 
     if distro.id() == 'ubuntu':
-        stdout, stderr = funct.subprocess_execute("apt show openvpn3 2>&1|grep E:")
+        stdout, stderr = server_mod.subprocess_execute("apt show openvpn3 2>&1|grep E:")
     elif distro.id() == 'centos' or distro.id() == 'rhel':
-        stdout, stderr = funct.subprocess_execute("rpm --query openvpn3-client")
+        stdout, stderr = server_mod.subprocess_execute("rpm --query openvpn3-client")
 
     if (
             (stdout[0] != 'package openvpn3-client is not installed' and stderr != '/bin/sh: rpm: command not found')
             and stdout[0] != 'E: No packages found'
     ):
         cmd = "sudo openvpn3 configs-list |grep -E 'ovpn|(^|[^0-9])[0-9]{4}($|[^0-9])' |grep -v net|awk -F\"    \" '{print $1}'|awk 'ORS=NR%2?\" \":\"\\n\"'"
-        openvpn_configs, stderr = funct.subprocess_execute(cmd)
+        openvpn_configs, stderr = server_mod.subprocess_execute(cmd)
         cmd = "sudo openvpn3 sessions-list|grep -E 'Config|Status'|awk -F\":\" '{print $2}'|awk 'ORS=NR%2?\" \":\"\\n\"'| sed 's/^ //g'"
-        openvpn_sess, stderr = funct.subprocess_execute(cmd)
+        openvpn_sess, stderr = server_mod.subprocess_execute(cmd)
         openvpn = stdout[0]
 
     template = template.render(openvpn=openvpn,
@@ -4129,32 +3791,38 @@ if form.getvalue('loadopenvpn'):
     print(template)
 
 if form.getvalue('check_telegram'):
+    import modules.alerting.alerting as alerting
+
     telegram_id = form.getvalue('check_telegram')
     mess = 'Test message from Roxy-WI'
-    funct.telegram_send_mess(mess, telegram_channel_id=telegram_id)
+    alerting.telegram_send_mess(mess, telegram_channel_id=telegram_id)
 
 if form.getvalue('check_slack'):
+    import modules.alerting.alerting as alerting
+
     slack_id = form.getvalue('check_slack')
     mess = 'Test message from Roxy-WI'
-    funct.slack_send_mess(mess, slack_channel_id=slack_id)
+    alerting.slack_send_mess(mess, slack_channel_id=slack_id)
 
 if form.getvalue('check_rabbitmq_alert'):
+    import modules.alerting.alerting as alerting
+
     try:
         cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
         user_group_id = cookie.get('group')
         user_group_id1 = user_group_id.value
     except Exception as e:
-        error = str(e)
-        print(f'error: Cannot send a message {error}')
+        print(f'error: Cannot send a message {e}')
 
     try:
         json_for_sending = {"user_group": user_group_id1, "message": 'info: Test message'}
-        funct.send_message_to_rabbit(json.dumps(json_for_sending))
+        alerting.send_message_to_rabbit(json.dumps(json_for_sending))
     except Exception as e:
-        error = str(e)
-        print(f'error: Cannot send a message {error}')
+        print(f'error: Cannot send a message {e}')
 
 if form.getvalue('check_email_alert'):
+    import modules.alerting.alerting as alerting
+
     subject = 'test message'
     message = 'Test message from Roxy-WI'
 
@@ -4163,20 +3831,17 @@ if form.getvalue('check_email_alert'):
         user_uuid = cookie.get('uuid')
         user_uuid_value = user_uuid.value
     except Exception as e:
-        error = str(e)
-        print(f'error: Cannot send a message {error}')
+        print(f'error: Cannot send a message {e}')
 
     try:
         user_email = sql.select_user_email_by_uuid(user_uuid_value)
     except Exception as e:
-        error = str(e)
-        print(f'error: Cannot get a user email: {error}')
+        print(f'error: Cannot get a user email: {e}')
 
     try:
-        funct.send_email(user_email, subject, message)
+        alerting.send_email(user_email, subject, message)
     except Exception as e:
-        error = str(e)
-        print(f'error: Cannot send a message {error}')
+        print(f'error: Cannot send a message {e}')
 
 if form.getvalue('getoption'):
     group = form.getvalue('getoption')
@@ -4265,11 +3930,11 @@ if form.getvalue('show_users_ovw') is not None:
     env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
     template = env.get_template('/show_users_ovw.html')
 
-    user, user_id, role, token, servers, user_services = funct.get_users_params()
+    user_params = roxywi_common.get_users_params()
     users_groups = sql.select_user_groups_with_names(1, all=1)
-    user_group = funct.get_user_group(id=1)
+    user_group = roxywi_common.get_user_group(id=1)
 
-    if (role == 2 or role == 3) and int(user_group) != 1:
+    if (user_params['role'] == 2 or user_params['role'] == 3) and int(user_group) != 1:
         users = sql.select_users(group=user_group)
     else:
         users = sql.select_users()
@@ -4302,62 +3967,62 @@ if form.getvalue('serverSettingsSave') is not None:
         if sql.insert_or_update_service_setting(server_id, service, 'haproxy_enterprise', haproxy_enterprise):
             print('Ok')
             if haproxy_enterprise == '1':
-                funct.logging(server_ip, 'Service has been flagged as an Enterprise version', roxywi=1, login=1,
+                roxywi_common.logging(server_ip, 'Service has been flagged as an Enterprise version', roxywi=1, login=1,
                               keep_history=1, service=service)
             else:
-                funct.logging(server_ip, 'Service has been flagged as a community version', roxywi=1, login=1,
+                roxywi_common.logging(server_ip, 'Service has been flagged as a community version', roxywi=1, login=1,
                               keep_history=1, service=service)
         if sql.insert_or_update_service_setting(server_id, service, 'dockerized', haproxy_dockerized):
             print('Ok')
             if haproxy_dockerized == '1':
-                funct.logging(server_ip, 'Service has been flagged as a dockerized', roxywi=1, login=1,
+                roxywi_common.logging(server_ip, 'Service has been flagged as a dockerized', roxywi=1, login=1,
                               keep_history=1, service=service)
             else:
-                funct.logging(server_ip, 'Service has been flagged as a system service', roxywi=1, login=1,
+                roxywi_common.logging(server_ip, 'Service has been flagged as a system service', roxywi=1, login=1,
                               keep_history=1, service=service)
         if sql.insert_or_update_service_setting(server_id, service, 'restart', haproxy_restart):
             print('Ok')
             if haproxy_restart == '1':
-                funct.logging(server_ip, 'Restart option is disabled for this service', roxywi=1, login=1,
+                roxywi_common.logging(server_ip, 'Restart option is disabled for this service', roxywi=1, login=1,
                               keep_history=1, service=service)
             else:
-                funct.logging(server_ip, 'Restart option is disabled for this service', roxywi=1, login=1,
+                roxywi_common.logging(server_ip, 'Restart option is disabled for this service', roxywi=1, login=1,
                               keep_history=1, service=service)
 
     if service == 'nginx':
         if sql.insert_or_update_service_setting(server_id, service, 'dockerized', nginx_dockerized):
             print('Ok')
             if nginx_dockerized:
-                funct.logging(server_ip, 'Service has been flagged as a dockerized', roxywi=1, login=1,
+                roxywi_common.logging(server_ip, 'Service has been flagged as a dockerized', roxywi=1, login=1,
                               keep_history=1, service=service)
             else:
-                funct.logging(server_ip, 'Service has been flagged as a system service', roxywi=1, login=1,
+                roxywi_common.logging(server_ip, 'Service has been flagged as a system service', roxywi=1, login=1,
                               keep_history=1, service=service)
         if sql.insert_or_update_service_setting(server_id, service, 'restart', nginx_restart):
             print('Ok')
             if nginx_restart == '1':
-                funct.logging(server_ip, 'Restart option is disabled for this service', roxywi=1, login=1,
+                roxywi_common.logging(server_ip, 'Restart option is disabled for this service', roxywi=1, login=1,
                               keep_history=1, service=service)
             else:
-                funct.logging(server_ip, 'Restart option is disabled for this service', roxywi=1, login=1,
+                roxywi_common.logging(server_ip, 'Restart option is disabled for this service', roxywi=1, login=1,
                               keep_history=1, service=service)
 
     if service == 'apache':
         if sql.insert_or_update_service_setting(server_id, service, 'dockerized', apache_dockerized):
             print('Ok')
             if apache_dockerized:
-                funct.logging(server_ip, 'Service has been flagged as a dockerized', roxywi=1, login=1,
+                roxywi_common.logging(server_ip, 'Service has been flagged as a dockerized', roxywi=1, login=1,
                               keep_history=1, service=service)
             else:
-                funct.logging(server_ip, 'Service has been flagged as a system service', roxywi=1, login=1,
+                roxywi_common.logging(server_ip, 'Service has been flagged as a system service', roxywi=1, login=1,
                               keep_history=1, service=service)
             if sql.insert_or_update_service_setting(server_id, service, 'restart', apache_restart):
                 print('Ok')
                 if apache_restart == '1':
-                    funct.logging(server_ip, 'Restart option is disabled for this service', roxywi=1, login=1,
+                    roxywi_common.logging(server_ip, 'Restart option is disabled for this service', roxywi=1, login=1,
                                   keep_history=1, service=service)
                 else:
-                    funct.logging(server_ip, 'Restart option is disabled for this service', roxywi=1, login=1,
+                    roxywi_common.logging(server_ip, 'Restart option is disabled for this service', roxywi=1, login=1,
                                   keep_history=1, service=service)
 
 if act == 'showListOfVersion':
@@ -4378,9 +4043,9 @@ if act == 'showListOfVersion':
             configs_dir = get_config.get_config_var('configs', 'kp_save_configs_dir')
 
         if service == 'haproxy':
-            files = funct.get_files()
+            files = roxywi_common.get_files()
         else:
-            files = funct.get_files(configs_dir, 'conf')
+            files = roxywi_common.get_files(configs_dir, 'conf')
 
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
                       extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
@@ -4398,8 +4063,10 @@ if act == 'showListOfVersion':
     print(template)
 
 if act == 'getSystemInfo':
+    import modules.server.server as server_mod
+
     server_ip = form.getvalue('server_ip')
-    server_ip = funct.is_ip_or_dns(server_ip)
+    server_ip = common.is_ip_or_dns(server_ip)
     server_id = form.getvalue('server_id')
 
     if server_ip == '':
@@ -4408,11 +4075,11 @@ if act == 'getSystemInfo':
 
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
                       extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
-    env.globals['string_to_dict'] = funct.string_to_dict
+    env.globals['string_to_dict'] = common.string_to_dict
     template = env.get_template('ajax/show_system_info.html')
     if sql.is_system_info(server_id):
         try:
-            funct.get_system_info(server_ip)
+            server_mod.get_system_info(server_ip)
             system_info = sql.select_one_system_info(server_id)
 
             template = template.render(system_info=system_info, server_ip=server_ip, server_id=server_id)
@@ -4426,8 +4093,10 @@ if act == 'getSystemInfo':
         print(template)
 
 if act == 'updateSystemInfo':
+    import modules.server.server as server_mod
+
     server_ip = form.getvalue('server_ip')
-    server_ip = funct.is_ip_or_dns(server_ip)
+    server_ip = common.is_ip_or_dns(server_ip)
     server_id = form.getvalue('server_id')
 
     if server_ip == '':
@@ -4438,10 +4107,10 @@ if act == 'updateSystemInfo':
 
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
                       extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
-    env.globals['string_to_dict'] = funct.string_to_dict
+    env.globals['string_to_dict'] = common.string_to_dict
     template = env.get_template('ajax/show_system_info.html')
 
-    if funct.get_system_info(server_ip):
+    if server_mod.get_system_info(server_ip):
         system_info = sql.select_one_system_info(server_id)
 
         template = template.render(system_info=system_info, server_ip=server_ip, server_id=server_id)
@@ -4451,14 +4120,14 @@ if act == 'updateSystemInfo':
 
 if act == 'findInConfigs':
     server_ip = serv
-    server_ip = funct.is_ip_or_dns(server_ip)
+    server_ip = common.is_ip_or_dns(server_ip)
     finding_words = form.getvalue('words')
     service = form.getvalue('service')
     log_path = sql.get_setting(service + '_dir')
-    log_path = funct.return_nice_path(log_path)
+    log_path = common.return_nice_path(log_path)
     commands = [f'sudo grep "{finding_words}" {log_path}*/*.conf -C 2 -Rn']
-    return_find = funct.ssh_command(server_ip, commands, raw=1)
-    return_find = funct.show_finding_in_config(return_find, grep=finding_words)
+    return_find = server_mod.ssh_command(server_ip, commands, raw=1)
+    return_find = config_mod.show_finding_in_config(return_find, grep=finding_words)
 
     if 'error: ' in return_find:
         print(return_find)
@@ -4473,14 +4142,14 @@ if act == 'check_service':
     user_uuid = cookie.get('uuid')
     user_id = sql.get_user_id_by_uuid(user_uuid.value)
     user_services = sql.select_user_services(user_id)
-    server_id = funct.checkAjaxInput(form.getvalue('server_id'))
-    service = funct.checkAjaxInput(form.getvalue('service'))
+    server_id = common.checkAjaxInput(form.getvalue('server_id'))
+    service = common.checkAjaxInput(form.getvalue('service'))
 
     if '1' in user_services:
         if service == 'haproxy':
             haproxy_sock_port = sql.get_setting('haproxy_sock_port')
             cmd = 'echo "show info" |nc %s %s -w 1 -v|grep Name' % (serv, haproxy_sock_port)
-            out = funct.subprocess_execute(cmd)
+            out = server_mod.subprocess_execute(cmd)
             for k in out[0]:
                 if "Name" in k:
                     print('up')

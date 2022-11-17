@@ -6,27 +6,32 @@ import http.cookies
 
 from jinja2 import Environment, FileSystemLoader
 
-import funct
-import sql
+import modules.db.sql as sql
+import modules.common.common as common
+import modules.config.config as config_mod
 import modules.roxy_wi_tools as roxy_wi_tools
+import modules.roxywi.common as roxywi_common
+import modules.roxywi.auth as roxywi_auth
 
+time_zone = sql.get_setting('time_zone')
+get_date = roxy_wi_tools.GetDate(time_zone)
 get_config_var = roxy_wi_tools.GetConfigVar()
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('add.html')
-form = funct.form
+form = common.form
 serv = form.getvalue('serv')
 
 print('Content-type: text/html\n')
 
-user, user_id, role, token, servers, user_services = funct.get_users_params(haproxy=1)
+user_params = roxywi_common.get_users_params(haproxy=1)
 
 try:
-	funct.check_login(user_id, token, service=1)
+	roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=1)
 except Exception as e:
 	print(f'error {e}')
 	sys.exit()
 
-funct.page_for_admin(level=3)
+roxywi_auth.page_for_admin(level=3)
 
 if all(v is None for v in [
 	form.getvalue('mode'), form.getvalue('new_userlist'),
@@ -53,13 +58,13 @@ if all(v is None for v in [
 	if not os.path.exists(black_dir):
 		os.makedirs(black_dir)
 
-	white_lists = funct.get_files(folder=white_dir, file_format="lst")
-	black_lists = funct.get_files(folder=black_dir, file_format="lst")
+	white_lists = roxywi_common.get_files(folder=white_dir, file_format="lst")
+	black_lists = roxywi_common.get_files(folder=black_dir, file_format="lst")
 
 	template = template.render(
-		title="Add: ", role=role, user=user, selects=servers, add=form.getvalue('add'), conf_add=form.getvalue('conf'),
+		title="Add: ", role=user_params['role'], user=user_params['user'], selects=user_params['servers'], add=form.getvalue('add'), conf_add=form.getvalue('conf'),
 		group=user_group, options=sql.select_options(), saved_servers=sql.select_saved_servers(), white_lists=white_lists,
-		black_lists=black_lists, user_services=user_services, token=token
+		black_lists=black_lists, user_services=user_params['user_services'], token=user_params['token']
 	)
 	print(template)
 
@@ -382,21 +387,21 @@ if form.getvalue('generateconfig') is None and serv is not None:
 		server_name = serv
 
 	try:
-		funct.check_is_server_in_group(serv)
+		roxywi_common.check_is_server_in_group(serv)
 		if config_add:
 			hap_configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
-			cfg = hap_configs_dir + serv + "-" + funct.get_data('config') + ".cfg"
+			cfg = hap_configs_dir + serv + "-" + get_date.return_date('config') + ".cfg"
 
-			funct.get_config(serv, cfg)
+			config_mod.get_config(serv, cfg)
 			try:
 				with open(cfg, "a") as conf:
 					conf.write(config_add)
 			except IOError:
 				print("error: Can't read import config file")
 
-			funct.logging(serv, "add.py add new %s" % name)
+			roxywi_common.logging(serv, "add.py add new %s" % name)
 
-			output = funct.master_slave_upload_and_restart(serv, cfg, just_save="save")
+			output = config_mod.master_slave_upload_and_restart(serv, cfg, just_save="save")
 			if output:
 				print(output)
 			else:

@@ -3,8 +3,11 @@ import os
 
 from jinja2 import Environment, FileSystemLoader
 
-import funct
-import sql
+import modules.db.sql as sql
+import modules.common.common as common
+import modules.roxywi.auth as roxywi_auth
+import modules.roxywi.common as roxywi_common
+import modules.config.config as config_mod
 import modules.roxy_wi_tools as roxy_wi_tools
 
 get_config_var = roxy_wi_tools.GetConfigVar()
@@ -13,16 +16,13 @@ template = env.get_template('delver.html')
 
 print('Content-type: text/html\n')
 
-try:
-	user, user_id, role, token, servers, user_services = funct.get_users_params(disable=1)
-except Exception:
-	pass
+user_params = roxywi_common.get_users_params(disable=1)
 
-funct.page_for_admin(level=3)
+roxywi_auth.page_for_admin(level=3)
 
-form = funct.form
-serv = funct.is_ip_or_dns(form.getvalue('serv'))
-service = funct.checkAjaxInput(form.getvalue('service'))
+form = common.form
+serv = common.is_ip_or_dns(form.getvalue('serv'))
+service = common.checkAjaxInput(form.getvalue('service'))
 Select = form.getvalue('del')
 configver = form.getvalue('configver')
 conf_format = 'cfg'
@@ -36,9 +36,9 @@ if configver:
 
 if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
 	service_desc = sql.select_service(service)
-	if funct.check_login(user_id, token, service=service_desc.service_id):
+	if roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=service_desc.service_id):
 		title = f"Working with versions {service_desc.service} configs"
-		servers = sql.get_dick_permit(service=service_desc.slug)
+		servers = roxywi_common.get_dick_permit(service=service_desc.slug)
 		action = f'versions.py?service={service_desc.slug}'
 		conf_format = 'conf'
 
@@ -71,7 +71,7 @@ if serv is not None and form.getvalue('del') is not None:
 						os.remove(os.path.join(configs_dir, form.getvalue(get)))
 					try:
 						file.add(form.getvalue(get) + "<br />")
-						funct.logging(
+						roxywi_common.logging(
 							serv, "Version of config has been deleted: %s" % form.getvalue(get), login=1, keep_history=1, service=service
 						)
 					except Exception:
@@ -85,27 +85,27 @@ if serv is not None and form.getvalue('config') is not None:
 	aftersave = 1
 
 	try:
-		funct.logging(
+		roxywi_common.logging(
 			serv, "Version of config has been uploaded %s" % configver, login=1, keep_history=1, service=service
 		)
 	except Exception:
 		pass
 
 	if service == 'keepalived':
-		stderr = funct.upload_and_restart(serv, configver, just_save=save, keepalived=1)
+		stderr = config_mod.upload_and_restart(serv, configver, just_save=save, keepalived=1)
 	elif service == 'nginx':
 		config_file_name = sql.select_remote_path_from_version(server_ip=serv, service=service, local_path=configver)
-		stderr = funct.master_slave_upload_and_restart(serv, configver, just_save=save, nginx=1, config_file_name=config_file_name)
+		stderr = config_mod.master_slave_upload_and_restart(serv, configver, just_save=save, nginx=1, config_file_name=config_file_name)
 	elif service == 'apache':
 		config_file_name = sql.select_remote_path_from_version(server_ip=serv, service=service, local_path=configver)
-		stderr = funct.master_slave_upload_and_restart(serv, configver, just_save=save, apache=1, config_file_name=config_file_name)
+		stderr = config_mod.master_slave_upload_and_restart(serv, configver, just_save=save, apache=1, config_file_name=config_file_name)
 	else:
-		stderr = funct.master_slave_upload_and_restart(serv, configver, just_save=save)
+		stderr = config_mod.master_slave_upload_and_restart(serv, configver, just_save=save)
 
 
 rendered_template = template.render(
-	h2=1, title=title, role=role, user=user, select_id="serv", serv=serv, aftersave=aftersave, selects=servers,
-	stderr=stderr, open=form.getvalue('open'), Select=form.getvalue('del'), file=file, configver=configver,
-	service=service, user_services=user_services, action=action, token=token
+	h2=1, title=title, role=user_params['role'], user=user_params['user'], select_id="serv", serv=serv, aftersave=aftersave,
+	selects=user_params['servers'], stderr=stderr, open=form.getvalue('open'), Select=form.getvalue('del'), file=file,
+	configver=configver, service=service, user_services=user_params['user_services'], action=action, token=user_params['token']
 )
 print(rendered_template)

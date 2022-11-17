@@ -1,33 +1,38 @@
 #!/usr/bin/env python3
 import sys
 
-import funct
-import sql
 from jinja2 import Environment, FileSystemLoader
+
+import modules.db.sql as sql
+import modules.common.common as common
+import modules.roxywi.auth as roxywi_auth
+import modules.roxywi.common as roxywi_common
+import modules.server.server as server_mod
+
 env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('provisioning.html')
-form = funct.form
+form = common.form
 
 print('Content-type: text/html\n')
 
-user, user_id, role, token, servers, user_services = funct.get_users_params()
+user_params = roxywi_common.get_users_params()
 
 try:
-    funct.check_login(user_id, token)
+    roxywi_auth.check_login(user_params['user_uuid'], user_params['token'])
 except Exception as e:
     print(f'error {e}')
     sys.exit()
 
-funct.page_for_admin(level=2)
+roxywi_auth.page_for_admin(level=2)
 try:
-    if role == 1:
+    if user_params['role'] == 1:
         groups = sql.select_groups()
     else:
-        groups = funct.get_user_group(id=1)
-    user_group = funct.get_user_group(id=1)
+        groups = roxywi_common.get_user_group(id=1)
+    user_group = roxywi_common.get_user_group(id=1)
 
     cmd = 'which terraform'
-    output, stderr = funct.subprocess_execute(cmd)
+    output, stderr = server_mod.subprocess_execute(cmd)
 
     if stderr != '':
         is_terraform = False
@@ -39,8 +44,8 @@ except Exception as e:
     print(str(e))
 
 rendered_template = template.render(
-    title="Servers provisioning", role=role, user=user, groups=groups, user_group=user_group,
-    servers=sql.select_provisioned_servers(), providers=sql.select_providers(user_group),
-    is_terraform=is_terraform, user_services=user_services, token=token, params=params
+    title="Servers provisioning", role=user_params['role'], user=user_params['user'], groups=groups,
+    user_group=user_group, servers=sql.select_provisioned_servers(), providers=sql.select_providers(user_group),
+    is_terraform=is_terraform, user_services=user_params['user_services'], token=user_params['token'], params=params
 )
 print(rendered_template)

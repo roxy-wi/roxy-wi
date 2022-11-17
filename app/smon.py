@@ -1,38 +1,44 @@
 #!/usr/bin/env python3
 import sys
 
-import funct
-import sql
 from jinja2 import Environment, FileSystemLoader
+
+import modules.db.sql as sql
+import modules.common.common as common
+import modules.roxywi.auth as roxywi_auth
+import modules.roxywi.common as roxywi_common
+import modules.server.server as server_mod
+
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('smon.html')
 
 print('Content-type: text/html\n')
-user, user_id, role, token, servers, user_services = funct.get_users_params()
+user_params = roxywi_common.get_users_params()
 
 try:
-	funct.check_login(user_id, token)
+	roxywi_auth.check_login(user_params['user_uuid'], user_params['token'])
 except Exception as e:
 	print(f'error {e}')
 	sys.exit()
 
-form = funct.form
+roxywi_common.check_user_group()
+form = common.form
 action = form.getvalue('action')
 sort = form.getvalue('sort')
 autorefresh = 0
 
-user_group = funct.get_user_group(id=1)
+user_group = roxywi_common.get_user_group(id=1)
 cmd = "systemctl is-active roxy-wi-smon"
-smon_status, stderr = funct.subprocess_execute(cmd)
+smon_status, stderr = server_mod.subprocess_execute(cmd)
 
 
 if action == 'add':
 	smon = sql.select_smon(user_group, action='add')
-	funct.page_for_admin(level=3)
+	roxywi_auth.page_for_admin(level=3)
 	title = "SMON Admin"
 elif action == 'history':
 	if form.getvalue('host'):
-		needed_host = funct.is_ip_or_dns(form.getvalue('host'))
+		needed_host = common.is_ip_or_dns(form.getvalue('host'))
 		smon = sql.alerts_history('SMON', user_group, host=needed_host)
 	else:
 		smon = sql.alerts_history('SMON', user_group)
@@ -46,15 +52,15 @@ else:
 	autorefresh = 1
 
 try:
-	user_status, user_plan = funct.return_user_status()
+	user_subscription = roxywi_common.return_user_status()
 except Exception as e:
-	user_status, user_plan = 0, 0
-	funct.logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
+	user_subscription = roxywi_common.return_unsubscribed_user_status()
+	roxywi_common.logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
 
 rendered_template = template.render(
-	h2=1, title=title, autorefresh=autorefresh, role=role, user=user, group=user_group,
+	h2=1, title=title, autorefresh=autorefresh, role=user_params['role'], user=user_params['user'], group=user_group,
 	telegrams=sql.get_user_telegram_by_group(user_group), slacks=sql.get_user_slack_by_group(user_group),
-	smon=smon, smon_status=smon_status, smon_error=stderr, action=action, sort=sort, user_services=user_services,
-	user_status=user_status, user_plan=user_plan, token=token
+	smon=smon, smon_status=smon_status, smon_error=stderr, action=action, sort=sort, user_services=user_params['user_services'],
+	user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'], token=user_params['token']
 )
 print(rendered_template)

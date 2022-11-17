@@ -2,12 +2,16 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
+
 import psutil
-
-import funct
-import sql
-
 from jinja2 import Environment, FileSystemLoader
+
+import modules.db.sql as sql
+import modules.roxywi.logs as roxy_logs
+import modules.roxywi.auth as roxywi_auth
+import modules.roxywi.common as roxywi_common
+import modules.server.server as server_mod
+
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('ovw.html')
 
@@ -21,24 +25,20 @@ is_metrics_worker = 0
 servers_group = []
 host = os.environ.get('HTTP_HOST', '')
 
-try:
-	user, user_id, role, token, servers, user_services = funct.get_users_params()
-except Exception as e:
-	print(f'error {e}')
-	sys.exit()
+user_params = roxywi_common.get_users_params()
 
 try:
-	funct.check_login(user_id, token)
+	roxywi_auth.check_login(user_params['user_uuid'], user_params['token'])
 except Exception as e:
 	print(f'error {e}')
 	sys.exit()
 
 try:
 	groups = sql.select_groups()
-	user_group = funct.get_user_group(id=1)
+	user_group = roxywi_common.get_user_group(id=1)
 
-	if (role == 2 or role == 3) and int(user_group) != 1:
-		for s in servers:
+	if (user_params['role'] == 2 or user_params['role'] == 3) and int(user_group) != 1:
+		for s in user_params['servers']:
 			servers_group.append(s[2])
 
 	is_checker_worker = len(sql.select_all_alerts(group=user_group))
@@ -70,21 +70,19 @@ try:
 			pass
 
 	cmd = "systemctl is-active roxy-wi-metrics"
-	metrics_master, stderr = funct.subprocess_execute(cmd)
+	metrics_master, stderr = server_mod.subprocess_execute(cmd)
 	cmd = "systemctl is-active roxy-wi-checker"
-	checker_master, stderr = funct.subprocess_execute(cmd)
+	checker_master, stderr = server_mod.subprocess_execute(cmd)
 	cmd = "systemctl is-active roxy-wi-keep_alive"
-	keep_alive, stderr = funct.subprocess_execute(cmd)
+	keep_alive, stderr = server_mod.subprocess_execute(cmd)
 	cmd = "systemctl is-active roxy-wi-smon"
-	smon, stderr = funct.subprocess_execute(cmd)
+	smon, stderr = server_mod.subprocess_execute(cmd)
 	cmd = "systemctl is-active roxy-wi-portscanner"
-	port_scanner, stderr = funct.subprocess_execute(cmd)
+	port_scanner, stderr = server_mod.subprocess_execute(cmd)
 	cmd = "systemctl is-active roxy-wi-socket"
-	socket, stderr = funct.subprocess_execute(cmd)
+	socket, stderr = server_mod.subprocess_execute(cmd)
 
-except Exception:
-	role = ''
-	user = ''
+except Exception as e:
 	groups = ''
 	roles = ''
 	metrics_master = ''
@@ -92,21 +90,21 @@ except Exception:
 	keep_alive = ''
 	smon = ''
 	socket = ''
-	servers = ''
 	stderr = ''
-	token = ''
+	print(e)
 
 rendered_template = template.render(
-	h2=1, autorefresh=1, title="Overview", role=role, user=user, groups=groups, roles=sql.select_roles(),
-	metrics_master=''.join(metrics_master), metrics_worker=metrics_worker, checker_master=''.join(checker_master),
-	checker_worker=checker_worker, keep_alive=''.join(keep_alive), smon=''.join(smon),
-	port_scanner=''.join(port_scanner), grafana=grafana, socket=''.join(socket),
-	roxy_wi_log_id=funct.roxy_wi_log(log_id=1, file="roxy-wi-"),
-	metrics_log_id=funct.roxy_wi_log(log_id=1, file="metrics"),
-	checker_log_id=funct.roxy_wi_log(log_id=1, file="checker"),
-	keep_alive_log_id=funct.roxy_wi_log(log_id=1, file="keep_alive"),
-	socket_log_id=funct.roxy_wi_log(log_id=1, file="socket"), error=stderr,
-	roxy_wi_log=funct.roxy_wi_log(), servers=servers, is_checker_worker=is_checker_worker,
-	is_metrics_worker=is_metrics_worker, host=host, user_services=user_services, token=token
+	h2=1, autorefresh=1, title="Overview", role=user_params['role'], user=user_params['user'], groups=groups,
+	roles=sql.select_roles(), metrics_master=''.join(metrics_master), metrics_worker=metrics_worker,
+	checker_master=''.join(checker_master), checker_worker=checker_worker, keep_alive=''.join(keep_alive),
+	smon=''.join(smon), port_scanner=''.join(port_scanner), grafana=grafana, socket=''.join(socket),
+	roxy_wi_log_id=roxy_logs.roxy_wi_log(log_id=1, file="roxy-wi-"),
+	metrics_log_id=roxy_logs.roxy_wi_log(log_id=1, file="metrics"),
+	checker_log_id=roxy_logs.roxy_wi_log(log_id=1, file="checker"),
+	keep_alive_log_id=roxy_logs.roxy_wi_log(log_id=1, file="keep_alive"),
+	socket_log_id=roxy_logs.roxy_wi_log(log_id=1, file="socket"), error=stderr,
+	roxy_wi_log=roxy_logs.roxy_wi_log(), servers=user_params['servers'], is_checker_worker=is_checker_worker,
+	is_metrics_worker=is_metrics_worker, host=host, user_services=user_params['user_services'],
+	token=user_params['token']
 )
 print(rendered_template)

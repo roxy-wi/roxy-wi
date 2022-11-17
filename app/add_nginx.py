@@ -4,32 +4,34 @@ import sys
 
 from jinja2 import Environment, FileSystemLoader
 
-import funct
-import sql
+import modules.db.sql as sql
+import modules.common.common as common
 import modules.roxy_wi_tools as roxy_wi_tools
+import modules.roxywi.auth as roxywi_auth
+import modules.roxywi.common as roxywi_common
 
 get_config_var = roxy_wi_tools.GetConfigVar()
-form = funct.form
+form = common.form
 serv = form.getvalue('serv')
 
 print('Content-type: text/html\n')
 
-user, user_id, role, token, servers, user_services = funct.get_users_params(service='nginx')
+user_params = roxywi_common.get_users_params(service='nginx')
 
 try:
-	funct.check_login(user_id, token, service=2)
+	roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=2)
 except Exception as e:
 	print(f'error {e}')
 	sys.exit()
 
-funct.page_for_admin(level=3)
+roxywi_auth.page_for_admin(level=3)
 
 if all(v is None for v in [form.getvalue('upstream'), form.getvalue('generateconfig')]):
 	env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 	template = env.get_template('add_nginx.html')
 	template = template.render(
-		title="Add: ", role=role, user=user, selects=servers, add=form.getvalue('add'), conf_add=form.getvalue('conf'),
-		user_services=user_services, token=token
+		title="Add: ", role=user_params['role'], user=user_params['user'], selects=user_params['servers'], add=form.getvalue('add'), conf_add=form.getvalue('conf'),
+		user_services=user_params['user_services'], token=user_params['token']
 	)
 	print(template)
 elif form.getvalue('upstream') is not None:
@@ -78,13 +80,13 @@ if form.getvalue('generateconfig') is None and serv is not None:
 		server_name = serv
 
 	try:
-		funct.check_is_server_in_group(serv)
+		roxywi_common.check_is_server_in_group(serv)
 		if config_add:
 			sub_folder = 'conf.d' if 'upstream' in config_name else 'sites-enabled'
 
 			service_configs_dir = get_config_var.get_config_var('configs', 'nginx_save_configs_dir')
 			cfg = f'{service_configs_dir}{serv}-{config_name}.conf'
-			nginx_dir = funct.return_nice_path(sql.get_setting('nginx_dir'))
+			nginx_dir = comon.return_nice_path(sql.get_setting('nginx_dir'))
 
 			config_file_name = f'{nginx_dir}{sub_folder}/{config_name}.conf'
 
@@ -94,9 +96,9 @@ if form.getvalue('generateconfig') is None and serv is not None:
 			except IOError:
 				print("error: Cannot save a new config")
 
-			funct.logging(serv, "add_nginx.py add new %s" % config_name)
+			roxywi_common.logging(serv, "add_nginx.py add new %s" % config_name)
 
-			output = funct.master_slave_upload_and_restart(serv, cfg, just_save="save", nginx=1, config_file_name=config_file_name)
+			output = config_mod.master_slave_upload_and_restart(serv, cfg, just_save="save", nginx=1, config_file_name=config_file_name)
 
 			if output:
 				print(output)

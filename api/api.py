@@ -11,7 +11,8 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app/'))
 
-import sql
+import modules.db.sql as sql
+import modules.config.config as config_mod
 
 _error_auth = '403 Auth before'
 _allow_origin = '*'
@@ -101,7 +102,7 @@ def get_servers():
 	try:
 		token = request.headers.get('token')
 		login, group_id = sql.get_username_groupid_from_api_token(token)
-		servers = sql.get_dick_permit(username=login, group_id=group_id, token=token)
+		servers = funct.get_dick_permit(username=login, group_id=group_id, token=token)
 
 		for s in servers:
 			data[s[0]] = {
@@ -225,7 +226,7 @@ def service_config_show(server_id, service):
 	if not check_login(required_service=required_service):
 		return dict(error=_error_auth)
 	config_path = request.headers.get('config-file')
-	return api_funct.get_config(server_id, service=service, config_path=config_path)
+	return api_config_mod.get_config((server_id, service=service, config_path=config_path)
 
 
 @route('/<service>/<server_id>/config', method=['POST'])

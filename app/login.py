@@ -8,14 +8,16 @@ import datetime
 import uuid
 import distro
 
-import sql
-import funct
+import modules.db.sql as sql
+import modules.common.common as common
+import modules.server.server as server_mod
 import modules.roxy_wi_tools as roxy_wi_tools
+import modules.roxywi.common as roxywi_common
 
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('login.html')
-form = funct.form
+form = common.form
 
 cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 user_id = cookie.get('uuid')
@@ -75,7 +77,7 @@ def send_cookie(login):
 
 	try:
 		user_name = sql.get_user_name_by_uuid(user_uuid)
-		funct.logging('Roxy-WI server', f' user: {user_name}, group: {user_group} login', roxywi=1)
+		roxywi_roxywi_common.logging('Roxy-WI server', f' user: {user_name}, group: {user_group} login', roxywi=1)
 	except Exception:
 		pass
 	print("Content-type: text/html\n")
@@ -85,14 +87,14 @@ def send_cookie(login):
 		if distro.id() == 'ubuntu':
 			if os.path.exists('/etc/apt/auth.conf.d/roxy-wi.conf'):
 				cmd = "grep login /etc/apt/auth.conf.d/roxy-wi.conf |awk '{print $2}'"
-				get_user_name, stderr = funct.subprocess_execute(cmd)
+				get_user_name, stderr = server_mod.subprocess_execute(cmd)
 				user_name = get_user_name[0]
 			else:
 				user_name = 'git'
 		else:
 			if os.path.exists('/etc/yum.repos.d/roxy-wi.repo'):
 				cmd = "grep base /etc/yum.repos.d/roxy-wi.repo |awk -F\":\" '{print $2}'|awk -F\"/\" '{print $3}'"
-				get_user_name, stderr = funct.subprocess_execute(cmd)
+				get_user_name, stderr = server_mod.subprocess_execute(cmd)
 				user_name = get_user_name[0]
 			else:
 				user_name = 'git'
@@ -101,7 +103,7 @@ def send_cookie(login):
 		else:
 			sql.insert_user_name(user_name)
 	except Exception as e:
-		funct.logging('Cannot update subscription: ', str(e), roxywi=1)
+		roxywi_roxywi_common.logging('Cannot update subscription: ', str(e), roxywi=1)
 
 	sys.exit()
 
@@ -115,9 +117,9 @@ def ban():
 	c["ban"]["Secure"] = "True"
 	c["ban"]["expires"] = expires.strftime("%a, %d %b %Y %H:%M:%S GMT")
 	try:
-		funct.logging('Roxy-WI server', f'{login} failed log in', roxywi=1, login=1)
+		roxywi_roxywi_common.logging('Roxy-WI server', f'{login} failed log in', roxywi=1, login=1)
 	except Exception:
-		funct.logging('Roxy-WI server', ' Failed log in. Wrong username', roxywi=1)
+		roxywi_roxywi_common.logging('Roxy-WI server', ' Failed log in. Wrong username', roxywi=1)
 	print(c.output())
 	print("Content-type: text/html\n")
 	print('ban')

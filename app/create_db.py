@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import distro
 
-from modules.db_model import *
+from modules.db.db_model import *
 
 
 def default_values():
@@ -966,7 +966,7 @@ def update_db_v_6_2_1():
 
 def update_ver():
 	try:
-		Version.update(version='6.2.3.0').execute()
+		Version.update(version='6.3.0.0').execute()
 	except Exception:
 		print('Cannot update version')
 

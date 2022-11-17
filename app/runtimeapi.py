@@ -1,22 +1,25 @@
 #!/usr/bin/env python3
 import sys
 
-import funct
+import modules.common.common as common
+import modules.roxywi.auth as roxywi_auth
+import modules.roxywi.common as roxywi_common
+
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('runtimeapi.html')
 
 print('Content-type: text/html\n')
 
-user, user_id, role, token, servers, user_services = funct.get_users_params(virt=1, haproxy=1)
+user_params = roxywi_common.get_users_params(virt=1, haproxy=1)
 
 try:
-	funct.check_login(user_id, token, service=1)
+	roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=1)
 except Exception as e:
 	print(f'error {e}')
 	sys.exit()
 
-form = funct.form
+form = common.form
 
 try:
 	servbackend = form.getvalue('servbackend')
@@ -27,7 +30,7 @@ except Exception:
 	pass
 
 rendered_template = template.render(
-	h2=0, title="RunTime API", role=role, user=user, select_id="serv", selects=servers, token=token,
-	user_services=user_services, servbackend=servbackend
+	h2=0, title="RunTime API", role=user_params['role'], user=user_params['user'], select_id="serv",
+	selects=user_params['servers'], token=user_params['token'], user_services=user_params['user_services'], servbackend=servbackend
 )
 print(rendered_template)

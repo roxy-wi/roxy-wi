@@ -4,16 +4,27 @@ import traceback
 import sys
 import os
 
-from modules.db_model import *
+from modules.db.db_model import *
 import modules.roxy_wi_tools as roxy_wi_tools
 
 
 def get_setting(param, **kwargs):
-	import funct
+	import http.cookies
+
+	user_group = ''
 	try:
-		user_group = funct.get_user_group(id=1)
+		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+		user_group_id = cookie.get('group')
+		user_group_id1 = user_group_id.value
+		groups = sql.select_groups(id=user_group_id1)
+		for g in groups:
+			if g.group_id == int(user_group_id1):
+				if kwargs.get('id'):
+					user_group = g.group_id
+				else:
+					user_group = g.name
 	except Exception:
-		user_group = ''
+		pass
 
 	if user_group == '' or param == 'lists_path' or param == 'ssl_local_path':
 		user_group = 1
@@ -837,9 +848,6 @@ def get_slack_by_id(slack_id):
 
 
 def get_dick_permit(**kwargs):
-	import os
-	import funct
-
 	if kwargs.get('username'):
 		grp = kwargs.get('group_id')
 	else:
@@ -851,10 +859,6 @@ def get_dick_permit(**kwargs):
 		except Exception:
 			print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
 			return
-	if kwargs.get('token'):
-		token = kwargs.get('token')
-	else:
-		token = ''
 
 	only_group = kwargs.get('only_group')
 	disable = 'enable = 1'
@@ -881,45 +885,35 @@ def get_dick_permit(**kwargs):
 	if kwargs.get('apache') or kwargs.get('service') == 'apache':
 		apache = "and apache = 1"
 
-	if funct.check_user_group(token=token):
-		cursor = conn.cursor()
-		try:
-			if mysql_enable == '1':
-				if grp == '1' and not only_group:
-					sql = """ select * from `servers` where {} {} {} {} {} {} {} order by `pos` asc""".format(
-						disable, type_ip, nginx, haproxy, keepalived, apache, ip
-					)
-				else:
-					sql = """ select * from `servers` where `groups` = {group} and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} {apache} order by `pos` asc
-							""".format(
-						group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx,
-						keepalived=keepalived, apache=apache
-					)
+	cursor = conn.cursor()
+	try:
+		if mysql_enable == '1':
+			if grp == '1' and not only_group:
+				sql = """ select * from `servers` where {} {} {} {} {} {} {} order by `pos` asc""".format(
+					disable, type_ip, nginx, haproxy, keepalived, apache, ip
+				)
 			else:
-				if grp == '1' and not only_group:
-					sql = """ select * from servers where {} {} {} {} {} {} {} order by pos""".format(
-						disable, type_ip, nginx, haproxy, keepalived, apache, ip
-					)
-				else:
-					sql = """ select * from servers where groups = '{group}' and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} {apache} order by pos
-							""".format(
-						group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx,
-						keepalived=keepalived, apache=apache
-					)
-
-		except Exception as e:
-			print(str(e))
-			print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
-		try:
-			cursor.execute(sql)
-		except Exception as e:
-			# out_error(e)
-			pass
+				sql = """ select * from `servers` where `groups` = {group} and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} {apache} order by `pos` asc
+				""".format(
+					group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx, keepalived=keepalived, apache=apache
+				)
 		else:
-			return cursor.fetchall()
+			if grp == '1' and not only_group:
+				sql = """ select * from servers where {} {} {} {} {} {} {} order by pos""".format(disable, type_ip, nginx, haproxy, keepalived, apache, ip)
+			else:
+				sql = """ select * from servers where groups = '{group}' and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} {apache} order by pos
+				""".format(group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx, keepalived=keepalived, apache=apache)
 
+	except Exception as e:
+		print(str(e))
+		print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
+	try:
+		cursor.execute(sql)
+	except Exception as e:
+		# out_error(e)
+		pass
 	else:
-		print('Atata!')
+		return cursor.fetchall()
 
 
 def is_master(ip, **kwargs):
@@ -1768,33 +1762,27 @@ def select_apache_servers_metrics_for_master():
 		return query_res
 
 
-def select_servers_metrics():
-	import funct
-	group_id = funct.get_user_group(id=1)
-	if funct.check_user_group():
-		if group_id == 1:
-			query = Server.select(Server.ip).where((Server.enable == 1) & (Server.metrics == 1))
-		else:
-			query = Server.select(Server.ip).where(
-				(Server.enable == 1) & (Server.groups == group_id) & (Server.metrics == 1))
-		try:
-			query_res = query.execute()
-		except Exception as e:
-			out_error(e)
-		else:
-			return query_res
+def select_servers_metrics(group_id):
+	if group_id == 1:
+		query = Server.select(Server.ip).where((Server.enable == 1) & (Server.metrics == 1))
+	else:
+		query = Server.select(Server.ip).where(
+			(Server.enable == 1) & (Server.groups == group_id) & (Server.metrics == 1))
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
 
 
-def select_table_metrics():
-	import funct
+def select_table_metrics(group_id):
 	cursor = conn.cursor()
-	group_id = funct.get_user_group(id=1)
 
-	if funct.check_user_group():
-		if group_id == 1:
-			groups = ""
-		else:
-			groups = "and servers.groups = '{group}' ".format(group=group_id)
+	if group_id == 1:
+		groups = ""
+	else:
+		groups = "and servers.groups = '{group}' ".format(group=group_id)
 	if mysql_enable == '1':
 		sql = """
 				select ip.ip, hostname, avg_sess_1h, avg_sess_24h, avg_sess_3d, max_sess_1h, max_sess_24h, max_sess_3d,
@@ -1994,19 +1982,16 @@ def select_table_metrics():
 		return cursor.fetchall()
 
 
-def select_service_table_metrics(service):
-	import funct
+def select_service_table_metrics(service: str, group_id: int):
 	cursor = conn.cursor()
-	group_id = funct.get_user_group(id=1)
 
 	if service in ('nginx', 'apache'):
 		metrics_table = f'{service}_metrics'
 
-	if funct.check_user_group():
-		if group_id == 1:
-			groups = ""
-		else:
-			groups = "and servers.groups = '{group}' ".format(group=group_id)
+	if group_id == 1:
+		groups = ""
+	else:
+		groups = "and servers.groups = '{group}' ".format(group=group_id)
 	if mysql_enable == '1':
 		sql = """
 				select ip.ip, hostname, avg_cur_1h, avg_cur_24h, avg_cur_3d, max_con_1h, max_con_24h, max_con_3d from
@@ -2120,18 +2105,14 @@ def select_service_table_metrics(service):
 		return cursor.fetchall()
 
 
-def update_setting(param, val):
-	import funct
-	user_group = funct.get_user_group(id=1)
-
-	if funct.check_user_group():
-		query = Setting.update(value=val).where((Setting.param == param) & (Setting.group == user_group))
-		try:
-			query.execute()
-			return True
-		except Exception as e:
-			out_error(e)
-			return False
+def update_setting(param: str, val: str, user_group: int) -> bool:
+	query = Setting.update(value=val).where((Setting.param == param) & (Setting.group == user_group))
+	try:
+		query.execute()
+		return True
+	except Exception as e:
+		out_error(e)
+		return False
 
 
 def get_ver():
@@ -2416,10 +2397,7 @@ def insert_smon(server, port, enable, proto, uri, body, group, desc, telegram, s
 
 
 def select_smon(user_group, **kwargs):
-	import funct
-
 	cursor = conn.cursor()
-	funct.check_user_group()
 
 	if user_group == 1:
 		user_group = ''
@@ -2465,10 +2443,6 @@ def select_smon_by_id(last_id):
 
 
 def delete_smon(smon_id, user_group):
-	import funct
-
-	funct.check_user_group()
-
 	query = SMON.delete().where((SMON.id == smon_id) & (SMON.user_group == user_group))
 	try:
 		query.execute()
@@ -2480,9 +2454,6 @@ def delete_smon(smon_id, user_group):
 
 
 def update_smon(smon_id, ip, port, body, telegram, slack, group, desc, en):
-	import funct
-
-	funct.check_user_group()
 	query = (SMON.update(
 		ip=ip, port=port, body=body, telegram_channel_id=telegram, slack_channel_id=slack, group=group, desc=desc, en=en
 	).where(SMON.id == smon_id))

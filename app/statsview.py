@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
-import funct
-import sql
+import modules.db.sql as sql
+import modules.common.common as common
+import modules.roxywi.auth as roxywi_auth
+import modules.roxywi.common as roxywi_common
+
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('statsview.html')
 print('Content-type: text/html\n')
 
-user, user_id, role, token, servers, user_services = funct.get_users_params(virt=1, haproxy=1)
+user_params = roxywi_common.get_users_params(virt=1, haproxy=1)
 
-form = funct.form
+form = common.form
 serv = form.getvalue('serv')
 service = form.getvalue('service')
 
@@ -23,14 +26,15 @@ except Exception:
 
 if service in ('haproxy', 'nginx', 'apache'):
 	service_desc = sql.select_service(service)
-	if funct.check_login(user_id, token, service=service_desc.service_id):
+	if roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=service_desc.service_id):
 		title = f'{service_desc.service} stats page'
-		sql.get_dick_permit(service=service_desc.slug)
+		roxywi_common.get_dick_permit(service=service_desc.slug)
 else:
 	print('<meta http-equiv="refresh" content="0; url=/app/overview.py">')
 
 rendered_template = template.render(
-	h2=1, autorefresh=1, title=title, role=role, user=user, onclick="showStats()", select_id="serv",
-	selects=servers, serv=serv, service=service, user_services=user_services, token=token
+	h2=1, autorefresh=1, title=title, role=user_params['role'], user=user_params['user'], onclick="showStats()",
+	selects=user_params['servers'], serv=serv, service=service, user_services=user_params['user_services'],
+	token=user_params['token'], select_id="serv"
 )
 print(rendered_template)

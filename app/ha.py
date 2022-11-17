@@ -1,38 +1,39 @@
 #!/usr/bin/env python3
 import sys
 
-import funct
+import modules.common.common as common
+import modules.roxywi.auth as roxywi_auth
+import modules.roxywi.common as roxywi_common
+
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('ha.html')
+title="Create and configure HA cluster"
 
 print('Content-type: text/html\n')
 
-form = funct.form
+form = common.form
 serv = form.getvalue('serv')
 
-try:
-	user, user_id, role, token, servers, user_services = funct.get_users_params()
-except Exception:
-	pass
+user_params = roxywi_common.get_users_params(service='keepalived')
 
 try:
-	funct.check_login(user_id, token, service=3)
+	roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=3)
 except Exception as e:
 	print(f'error {e}')
 	sys.exit()
 
-funct.page_for_admin(level=2)
+roxywi_auth.page_for_admin(level=2)
 
 try:
-	user_status, user_plan = funct.return_user_status()
+	user_subscription = roxywi_common.return_user_status()
 except Exception as e:
-	user_status, user_plan = 0, 0
-	funct.logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
+	user_subscription = roxywi_common.return_unsubscribed_user_status()
+	roxywi_common.logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
 
-
-output_from_parsed_template = template.render(
-	h2=1, title="Create and configure HA cluster", role=role, user=user, serv=serv, selects=servers,
-	user_services=user_services, user_status=user_status, user_plan=user_plan, token=token
+parsed_template = template.render(
+	h2=1, title=title, role=user_params['role'], user=user_params['user'], serv=serv, selects=user_params['servers'],
+	user_services=user_params['user_services'], user_status=user_subscription['user_status'],
+	user_plan=user_subscription['user_plan'], token=user_params['token']
 )
-print(output_from_parsed_template)
+print(parsed_template)
