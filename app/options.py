@@ -1321,17 +1321,17 @@ if form.getvalue('install_grafana'):
     service_mod.grafana_install()
 
 if form.getvalue('haproxy_exp_install'):
-    import modules.service.exporter.installation as exp_installation
+    import modules.service.exporter_installation as exp_installation
 
     exp_installation.haproxy_exp_installation()
 
 if form.getvalue('nginx_exp_install') or form.getvalue('apache_exp_install'):
-    import modules.service.exporter.installation as exp_installation
+    import modules.service.exporter_installation as exp_installation
 
     exp_installation.nginx_apache_exp_installation()
 
 if form.getvalue('node_exp_install'):
-    import modules.service.exporter.installation as exp_installation
+    import modules.service.exporter_installation as exp_installation
 
     exp_installation.node_exp_installation()
 

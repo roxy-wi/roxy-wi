@@ -35,7 +35,7 @@ cfg = ''
 
 
 roxywi_auth.page_for_admin(level=2)
-print(service)
+
 if service == 'nginx':
 	roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=2)
 	servers = roxywi_common.get_dick_permit(nginx=1)

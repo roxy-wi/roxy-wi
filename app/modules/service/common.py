@@ -11,7 +11,7 @@ def check_haproxy_version(server_ip):
 	hap_sock_p = sql.get_setting('haproxy_sock_port')
 	ver = ""
 	cmd = f"echo 'show info' |nc {server_ip} {hap_sock_p} |grep Version |awk '{{print $2}}'"
-	output, stderr = roxywi_common.logging(cmd)
+	output, stderr = server_mod.subprocess_execute(cmd)
 	for line in output:
 		ver = line
 
