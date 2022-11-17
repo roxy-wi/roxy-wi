@@ -77,7 +77,7 @@ def send_cookie(login):
 
 	try:
 		user_name = sql.get_user_name_by_uuid(user_uuid)
-		roxywi_roxywi_common.logging('Roxy-WI server', f' user: {user_name}, group: {user_group} login', roxywi=1)
+		roxywi_common.logging('Roxy-WI server', f' user: {user_name}, group: {user_group} login', roxywi=1)
 	except Exception:
 		pass
 	print("Content-type: text/html\n")
@@ -103,7 +103,7 @@ def send_cookie(login):
 		else:
 			sql.insert_user_name(user_name)
 	except Exception as e:
-		roxywi_roxywi_common.logging('Cannot update subscription: ', str(e), roxywi=1)
+		roxywi_common.logging('Cannot update subscription: ', str(e), roxywi=1)
 
 	sys.exit()
 
@@ -117,9 +117,9 @@ def ban():
 	c["ban"]["Secure"] = "True"
 	c["ban"]["expires"] = expires.strftime("%a, %d %b %Y %H:%M:%S GMT")
 	try:
-		roxywi_roxywi_common.logging('Roxy-WI server', f'{login} failed log in', roxywi=1, login=1)
+		roxywi_common.logging('Roxy-WI server', f'{login} failed log in', roxywi=1, login=1)
 	except Exception:
-		roxywi_roxywi_common.logging('Roxy-WI server', ' Failed log in. Wrong username', roxywi=1)
+		roxywi_common.logging('Roxy-WI server', ' Failed log in. Wrong username', roxywi=1)
 	print(c.output())
 	print("Content-type: text/html\n")
 	print('ban')

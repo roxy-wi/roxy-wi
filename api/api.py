@@ -12,7 +12,6 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app/'))
 
 import modules.db.sql as sql
-import modules.config.config as config_mod
 import modules.roxywi.common as roxywi_common
 
 _error_auth = '403 Auth before'
@@ -186,13 +185,6 @@ def add_acl(haproxy_id):
 	return api_funct.add_acl(haproxy_id)
 
 
-@route('/haproxy/<haproxy_id>/acl', method=['DELETE'])
-def add_acl(haproxy_id):
-	if not check_login(required_service=1):
-		return dict(error=_error_auth)
-	return api_funct.del_acl(haproxy_id)
-
-
 @route('/<service>/<server_id>', method=['GET'])
 @route('/<service>/<server_id:int>', method=['GET'])
 def callback(server_id, service):
@@ -227,7 +219,7 @@ def service_config_show(server_id, service):
 	if not check_login(required_service=required_service):
 		return dict(error=_error_auth)
 	config_path = request.headers.get('config-file')
-	return api_config_mod.get_config(server_id, service=service, config_path=config_path)
+	return api_funct.get_config(server_id, service=service, config_path=config_path)
 
 
 @route('/<service>/<server_id>/config', method=['POST'])

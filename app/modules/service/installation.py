@@ -290,7 +290,7 @@ def keepalived_master_install():
 			hostname = sql.get_hostname_by_server_ip(master)
 			firewall = 1 if server_mod.is_service_active(master, 'firewalld') else 0
 			sql.add_server(
-				hostname + '-VIP', IP, group_id, '1', '1', '0', cred_id, ssh_settings['port'], f'VRRP IP for {master}',
+				hostname + '-VIP', vrrp_ip, group_id, '1', '1', '0', cred_id, ssh_settings['port'], f'VRRP IP for {master}',
 				haproxy, nginx, '0', firewall
 			)
 	os.remove(script)

@@ -2,14 +2,12 @@
 import sys
 
 import distro
+from jinja2 import Environment, FileSystemLoader
 
 import modules.db.sql as sql
 import modules.common.common as common
 import modules.server.server as server_mod
 import modules.roxywi.auth as roxywi_auth
-import modules.roxywi.common as roxywi_common
-
-from jinja2 import Environment, FileSystemLoader
 import modules.roxywi.common as roxywi_common
 
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)

@@ -6,6 +6,7 @@ from jinja2 import Environment, FileSystemLoader
 
 import modules.db.sql as sql
 import modules.common.common as common
+import modules.config.config as config_mod
 import modules.roxy_wi_tools as roxy_wi_tools
 import modules.roxywi.auth as roxywi_auth
 import modules.roxywi.common as roxywi_common
