@@ -1323,7 +1323,7 @@ if form.getvalue('install_grafana'):
 if form.getvalue('haproxy_exp_install'):
     import modules.service.exporter.installation as exp_installation
 
-    exp_installtion.haproxy_exp_installation()
+    exp_installation.haproxy_exp_installation()
 
 if form.getvalue('nginx_exp_install') or form.getvalue('apache_exp_install'):
     import modules.service.exporter.installation as exp_installation
@@ -3721,8 +3721,8 @@ if form.getvalue('loadchecker'):
                                telegrams=telegrams,
                                groups=groups,
                                slacks=slacks,
-                               user_status=user_status,
-                               user_plan=user_plan,
+                               user_status=user_subscription['user_status'],
+                               user_plan=user_subscription['user_plan'],
                                haproxy_servers=haproxy_servers,
                                nginx_servers=nginx_servers,
                                apache_servers=apache_servers,

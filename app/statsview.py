@@ -17,7 +17,7 @@ service = form.getvalue('service')
 
 try:
 	if serv is None:
-		first_serv = servers
+		first_serv = user_params['servers']
 		for i in first_serv:
 			serv = i[2]
 			break

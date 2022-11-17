@@ -66,7 +66,7 @@ def get_backends_from_config(server_ip: str, backends='') -> None:
 	format_cfg = 'cfg'
 
 	try:
-		cfg = configs_dir + roxywi_comon.get_files(configs_dir, format_cfg)[0]
+		cfg = configs_dir + roxywi_common.get_files(configs_dir, format_cfg)[0]
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
 		try:
@@ -89,7 +89,7 @@ def get_backends_from_config(server_ip: str, backends='') -> None:
 					print(line.split(' ')[1], end="<br>")
 
 
-def change_ip_and_port():
+def change_ip_and_port() -> None:
 	backend_backend = common.checkAjaxInput(form.getvalue('backend_backend'))
 	backend_server = common.checkAjaxInput(form.getvalue('backend_server'))
 	backend_ip = common.checkAjaxInput(form.getvalue('backend_ip'))
@@ -97,11 +97,11 @@ def change_ip_and_port():
 
 	if form.getvalue('backend_ip') is None:
 		print('error: Backend IP must be IP and not 0')
-		sys.exit()
+		return
 
 	if form.getvalue('backend_port') is None:
 		print('error: The backend port must be integer and not 0')
-		sys.exit()
+		return
 
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 
@@ -144,13 +144,13 @@ def change_ip_and_port():
 		config_mod.master_slave_upload_and_restart(serv, cfg, just_save='save')
 
 
-def change_maxconn():
+def change_maxconn() -> None:
 	frontend = common.checkAjaxInput(form.getvalue('maxconn_frontend'))
 	maxconn = common.checkAjaxInput(form.getvalue('maxconn_int'))
 
 	if form.getvalue('maxconn_int') is None:
 		print('error: Maxconn must be integer and not 0')
-		sys.exit()
+		return
 
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 

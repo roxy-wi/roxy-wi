@@ -910,8 +910,7 @@ def get_dick_permit(**kwargs):
 	try:
 		cursor.execute(sql)
 	except Exception as e:
-		# out_error(e)
-		pass
+		out_error(e)
 	else:
 		return cursor.fetchall()
 
@@ -1584,7 +1583,6 @@ def insert_new_waf_rule(rule_name: str, rule_file: str, rule_description: str, s
 		out_error(e)
 	else:
 		return last_id
-		
 
 
 def delete_waf_server(server_id):

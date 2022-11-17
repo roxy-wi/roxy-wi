@@ -61,7 +61,7 @@ elif waf_rule_id and form.getvalue('config') is None:
 	elif service == 'nginx':
 		config_path = sql.get_setting('nginx_dir')
 
-	config_file_name = comon.return_nice_path(config_path) + 'waf/rules/' + waf_rule_file
+	config_file_name = common.return_nice_path(config_path) + 'waf/rules/' + waf_rule_file
 	try:
 		conf = open(cfg, "r")
 		config_read = conf.read()
