@@ -4,7 +4,6 @@ import http.cookies
 import modules.db.sql as sql
 import modules.common.common as common
 import modules.server.server as server_mod
-import modules.roxywi.common as roxywi_common
 
 
 def check_haproxy_version(server_ip):

@@ -5,7 +5,6 @@ from bottle import request
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app/'))
 
 import modules.db.sql as sql
-import modules.common.common as common
 import modules.server.server as server_mod
 import modules.config.section as section_mod
 import modules.config.config as config_mod
@@ -23,13 +22,13 @@ def get_token():
 		user_subscription = roxywi_common.return_user_status()
 	except Exception as e:
 		user_subscription = roxywi_common.return_unsubscribed_user_status()
-		common.logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
+		roxywi_common.logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
 
 	if user_subscription['user_status'] == 0:
-		common.logging('API', 'You are not subscribed. Please subscribe to have access to this feature.', roxywi=1)
+		roxywi_common.logging('API', 'You are not subscribed. Please subscribe to have access to this feature.', roxywi=1)
 		return False
 	elif user_subscription['user_plan'] == 'user':
-		common.logging('API', 'This feature is not available for your plan.', roxywi=1)
+		roxywi_common.logging('API', 'This feature is not available for your plan.', roxywi=1)
 		return False
 
 	try:
@@ -67,13 +66,13 @@ def check_login(required_service=0) -> bool:
 		user_subscription = roxywi_common.return_user_status()
 	except Exception as e:
 		user_subscription = roxywi_common.return_unsubscribed_user_status()
-		common.logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
+		roxywi_common.logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
 
 	if user_subscription['user_status'] == 0:
-		common.logging('API', 'You are not subscribed. Please subscribe to have access to this feature.', roxywi=1)
+		roxywi_common.logging('API', 'You are not subscribed. Please subscribe to have access to this feature.', roxywi=1)
 		return False
 	elif user_subscription['user_plan'] == 'user':
-		common.logging('API', 'This feature is not available for your plan.', roxywi=1)
+		roxywi_common.logging('API', 'This feature is not available for your plan.', roxywi=1)
 		return False
 
 	token = request.headers.get('token')
@@ -374,8 +373,8 @@ def edit_section(server_id):
 				return_mess = 'section has been updated'
 				os.system(f"/bin/cp {cfg} {cfg_for_save}")
 				out = config_mod.master_slave_upload_and_restart(ip, cfg, save, login=login)
-				common.logging('localhost', f" section {section_name} has been edited via API", login=login)
-				common.logging(
+				roxywi_common.logging('localhost', f" section {section_name} has been edited via API", login=login)
+				roxywi_common.logging(
 					ip, f'Section {section_name} has been edited via API', roxywi=1,
 					login=login, keep_history=1, service='haproxy'
 				)
@@ -448,8 +447,8 @@ def upload_config(server_id, **kwargs):
 			else:
 				out = config_mod.master_slave_upload_and_restart(ip, cfg, save, login=login)
 
-			common.logging('localhost', " config has been uploaded via API", login=login)
-			common.logging(
+			roxywi_common.logging('localhost', " config has been uploaded via API", login=login)
+			roxywi_common.logging(
 				ip, 'Config has been uploaded via API', roxywi=1, login=login, keep_history=1, service=service_name
 			)
 
@@ -496,7 +495,7 @@ def add_to_config(server_id):
 
 			return_mess = 'section has been added to the config'
 			os.system(f"/bin/cp {cfg} {cfg_for_save}")
-			common.logging('localhost', " section has been added via REST API", login=login)
+			roxywi_common.logging('localhost', " section has been added via REST API", login=login)
 			out = config_mod.upload_and_restart(ip, cfg, just_save=save)
 
 			if out:

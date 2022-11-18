@@ -15,7 +15,7 @@ print('Content-type: text/html\n')
 form = common.form
 serv = form.getvalue('serv')
 
-user_params = roxywi_common.get_users_params(service='keepalived')
+user_params = roxywi_common.get_users_params()
 
 try:
 	roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=3)
