@@ -1,5 +1,4 @@
 var awesome = "/inc/fontawesome.min.js"
-
 $( function() {
 	$( "#backup_tabs" ).tabs();
 	$('#install').click(function() {
@@ -31,7 +30,8 @@ $( function() {
 			data = data.replace(/\s+/g,' ');
 				$("#ajax").html('')
 				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
-					toastr.error(data);
+					var p_err = show_pretty_ansible_error(data);
+					toastr.error(p_err);
 				} else if (data.indexOf('success') != '-1' ){
 					toastr.remove();
 					toastr.success(data);
@@ -75,7 +75,8 @@ $( function() {
 				$("#ajax").html('')
 				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
 					toastr.clear();
-					toastr.error(data);
+					var p_err = show_pretty_ansible_error(data);
+					toastr.error(p_err);
 				} else if (data.indexOf('success') != '-1' ){
 					toastr.clear();
 					toastr.success(data);
@@ -105,7 +106,8 @@ $( function() {
 				$("#ajaxmon").html('');
 				if (data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1' || data.indexOf('ERROR') != '-1') {
 					toastr.clear();
-					toastr.error(data);;
+					var p_err = show_pretty_ansible_error(data);
+					toastr.error(p_err);
 				} else if (data.indexOf('success') != '-1' ){
 					toastr.clear();
 					toastr.success(data);
@@ -140,7 +142,8 @@ $( function() {
 				$("#ajaxmon").html('');
 				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
 					toastr.clear();
-					toastr.error(data);
+					var p_err = show_pretty_ansible_error(data);
+					toastr.error(p_err);
 				} else if (data.indexOf('success') != '-1' ){
 					toastr.clear();
 					toastr.success(data);
@@ -177,10 +180,12 @@ $( function() {
 			data = data.replace(/\s+/g,' ');
 				$("#ajaxmon").html('');
 				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
-					toastr.error(data);
+					var p_err = show_pretty_ansible_error(data);
+					toastr.error(p_err);
 				} else if (data.indexOf('success') != '-1' ){
 					toastr.clear();
-					toastr.success(data);
+					var p_err = show_pretty_ansible_error(data);
+					toastr.error(p_err);
 					$('#cur_nginx_exp_ver').text('NGINX exporter is installed');
 					$("#nginx_exp_addserv").trigger( "selectmenuchange" );
 				} else if (data.indexOf('Info') != '-1' ){
@@ -214,7 +219,8 @@ $( function() {
 			data = data.replace(/\s+/g,' ');
 				$("#ajaxmon").html('');
 				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
-					toastr.error(data);
+					var p_err = show_pretty_ansible_error(data);
+					toastr.error(p_err);
 				} else if (data.indexOf('success') != '-1' ){
 					toastr.clear();
 					toastr.success(data);
@@ -250,7 +256,8 @@ $( function() {
 			data = data.replace(/\s+/g,' ');
 				$("#ajaxmon").html('');
 				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
-					toastr.error(data);
+					var p_err = show_pretty_ansible_error(data);
+					toastr.error(p_err);
 				} else if (data.indexOf('success') != '-1' ){
 					toastr.clear();
 					toastr.success(data);
@@ -833,7 +840,8 @@ $( function() {
 				$("#ajax-geoip").html('')
 				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1') {
 					toastr.clear();
-					toastr.error(data);
+					var p_err = show_pretty_ansible_error(data);
+					toastr.error(p_err);
 				} else if (data.indexOf('success:') != '-1' ){
 					toastr.clear();
 					toastr.success(data);

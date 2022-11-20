@@ -37,7 +37,8 @@ $( function() {
 				success: function( data ) {
 					data = data.replace(/\s+/g,' ');
 					if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
-						toastr.error(data);
+						var p_err = show_pretty_ansible_error(data);
+						toastr.error(p_err);
 					} else {
 						response(data.split(" "));
 					}
@@ -59,7 +60,8 @@ $( function() {
 				success: function( data ) {
 					data = data.replace(/\s+/g,' ');
 					if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
-						toastr.error(data);
+						var p_err = show_pretty_ansible_error(data);
+						toastr.error(p_err);
 					} else {
 						response(data.split(" "));
 					}
@@ -218,7 +220,10 @@ $( function() {
 			type: "POST",
 			success: function( data ) {
 				data = data.replace(/^\s+|\s+$/g,'');
-				if(data.indexOf('keepalived:') != '-1') {
+				if (data.indexOf('error:') != '-1') {
+					var p_err = show_pretty_ansible_error(data);
+					toastr.error(p_err);
+				} else if(data.indexOf('keepalived:') != '-1') {
 					$('#cur_master_ver').text('Keepalived has not installed');
 					$('#create').attr('title', 'Create HA cluster');
 				} else {
@@ -239,7 +244,10 @@ $( function() {
 			type: "POST",
 			success: function( data ) {
 				data = data.replace(/^\s+|\s+$/g,'');
-				if(data.indexOf('keepalived:') != '-1') {
+				if (data.indexOf('error:') != '-1') {
+					var p_err = show_pretty_ansible_error(data);
+					toastr.error(p_err);
+				} else if(data.indexOf('keepalived:') != '-1') {
 					$('#cur_slave_ver').text('Keepalived has not installed');
 					$('#create').attr('title', 'Create HA cluster');
 				} else {
@@ -260,7 +268,10 @@ $( function() {
 			type: "POST",
 			success: function( data ) {
 				data = data.replace(/^\s+|\s+$/g,'');
-				if(data.indexOf('keepalived:') != '-1') {
+				if (data.indexOf('error:') != '-1') {
+					var p_err = show_pretty_ansible_error(data);
+					toastr.error(p_err);
+				} else if(data.indexOf('keepalived:') != '-1') {
 					$('#cur_master_ver-add').text('Keepalived has not installed');
 					$('#add-vrrp').attr('title', 'Add a HA configuration');
 				} else {
@@ -281,7 +292,10 @@ $( function() {
 			type: "POST",
 			success: function( data ) {
 				data = data.replace(/^\s+|\s+$/g,'');
-				if(data.indexOf('keepalived:') != '-1') {
+				if (data.indexOf('error:') != '-1') {
+					var p_err = show_pretty_ansible_error(data);
+					toastr.error(p_err);
+				} else if(data.indexOf('keepalived:') != '-1') {
 					$('#cur_slave_ver-add').text('Keepalived has not installed');
 					$('#add-vrrp').attr('title', 'Add a HA configuration');
 				} else {
@@ -314,7 +328,8 @@ function add_master_addr(kp, router_id) {
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('UNREACHABLE') != '-1' || data.indexOf('FAILED') != '-1') {
-				showProvisioningError(data, '#creating-master-add', '#wait-mess-add', '#creating-error-add');
+				var p_err = show_pretty_ansible_error(data);
+				showProvisioningError(p_err + '<br><br>', '#creating-master-add', '#wait-mess-add', '#creating-error-add');
 			} else if (data == '' ){
 				showProvisioningWarning('#creating-master-add', 'master Keepalived', '#creating-warning-add', '#wait_mess-add');
 			} else if (data.indexOf('success') != '-1' ){
@@ -340,7 +355,8 @@ function add_slave_addr(kp, router_id) {
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('UNREACHABLE') != '-1' || data.indexOf('FAILED') != '-1') {
-				showProvisioningError(data, '#creating-slave-add', '#wait-mess-add', '#creating-error-add');
+				var p_err = show_pretty_ansible_error(data);
+				showProvisioningError(p_err + '<br><br>', '#creating-slave-add', '#wait-mess-add', '#creating-error-add');
 			} else if (data == '' ){
 				showProvisioningWarning('#creating-slave-add', 'master Keepalived', '#creating-warning-add', '#wait_mess-add');
 			} else if (data.indexOf('success') != '-1' ){
@@ -393,7 +409,8 @@ function create_master_keepalived(hap, nginx, syn_flood, router_id) {
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
-				showProvisioningError(data, '#creating-master', '#wait-mess', '#creating-error');
+				var p_err = show_pretty_ansible_error(data);
+				showProvisioningError(p_err + '<br><br>', '#creating-master', '#wait-mess', '#creating-error');
 			} else if (data == '' ){
 				showProvisioningWarning(step_id, 'master Keepalived', '#creating-warning', '#wait_mess');
 			} else if (data.indexOf('success') != '-1' ){
@@ -446,7 +463,8 @@ function create_slave_keepalived(hap, nginx, syn_flood, router_id) {
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
-				showProvisioningError(data, '#creating-slave', '#wait-mess', '#creating-error');
+				var p_err = show_pretty_ansible_error(data);
+				showProvisioningError(p_err + '<br><br>', '#creating-slave', '#wait-mess', '#creating-error');
 			} else if (data == '' ){
 				showProvisioningWarning(step_id, 'slave Keepalived', '#creating-warning', '#wait_mess');
 			} else if (data.indexOf('success') != '-1' ){
@@ -492,7 +510,8 @@ function create_keep_alived_hap(nginx, server, docker) {
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
-				showProvisioningError(data, step_id, '#wait-mess', '#creating-error');
+				var p_err = show_pretty_ansible_error(data);
+				showProvisioningError(p_err + '<br><br>', step_id, '#wait-mess', '#creating-error');
 			} else if (data == '' ){
 				showProvisioningWarning(step_id, install_step, '#creating-warning', '#wait_mess');
 			} else if (data.indexOf('success') != '-1' ){
@@ -529,7 +548,8 @@ function create_keep_alived_nginx(server, docker) {
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
-				showProvisioningError(data, step_id, '#wait-mess', '#creating-error');
+				var p_err = show_pretty_ansible_error(data);
+				showProvisioningError(p_err + '<br><br>', step_id, '#wait-mess', '#creating-error');
 			} else if (data == '' ){
 				showProvisioningWarning(step_id, install_step, '#creating-warning', '#wait_mess');
 			} else if (data.indexOf('success') != '-1' ){

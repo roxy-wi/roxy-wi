@@ -49,6 +49,9 @@
 			{% if role <= 3 %}
 				<a class="ui-button ui-widget ui-corner-all" title="Show versions" onclick="openVersions()">Versions</a>
 			{% endif %}
+			{% if role <= 2 %}
+				<a href="/app/servers.py#backup" class="ui-button ui-widget ui-corner-all" title="Git">Git</a>
+			{% endif %}
 		</form>
 	</p>
 	<div id="ajax-config_file_name"></div>
@@ -93,13 +96,13 @@
 	</center>
 <script> 
 	if (cur_url[1].split('&')[2] == 'showMap') {
-		showMap();		
+		showMap();
 	}
 	if (cur_url[1].split('&')[1] == 'showCompare' || cur_url[1].split('&')[2] == 'showCompare') {
-		showCompareConfigs();		
+		showCompareConfigs();
 	}
 	if (cur_url[1].split('&')[2] == 'showConfig') {
-		showConfig();		
+		showConfig();
 	}
 	if (cur_url[1].split('&')[2] == 'showConfigFiles') {
 		showConfigFiles();

@@ -42,34 +42,42 @@ def ssh_connect(server_ip):
 def ssh_command(server_ip: str, commands: list, **kwargs):
 	if server_ip == '':
 		return 'error: IP cannot be empty'
-	with ssh_connect(server_ip) as ssh:
-		for command in commands:
-			try:
-				stdin, stdout, stderr = ssh.run_command(command)
-			except Exception as e:
-				roxywi_common.logging('Roxy-WI server', f' Something wrong with SSH connection. Probably sudo with password {e}', roxywi=1)
-				return str(e)
+	try:
+		with ssh_connect(server_ip) as ssh:
+			for command in commands:
+				try:
+					stdin, stdout, stderr = ssh.run_command(command)
+				except Exception as e:
+					print(f'error: {e}')
+					roxywi_common.logging('Roxy-WI server', f' Something wrong with SSH connection. Probably sudo with password {e}', roxywi=1)
+					return str(e)
 
-			try:
-				if kwargs.get('raw'):
-					return stdout.readlines()
-				if kwargs.get("ip") == "1":
-					show_ip(stdout)
-				elif kwargs.get("show_log") == "1":
-					import modules.roxywi.logs as roxywi_logs
+				if stderr:
+					for line in stderr.readlines():
+						if line:
+							print(f'error: {line}')
+							roxywi_common.logging('Roxy-WI server', f' {line}', roxywi=1)
 
-					return roxywi_logs.show_log(stdout, grep=kwargs.get("grep"))
-				elif kwargs.get('return_err') == 1:
-					return stderr.read().decode(encoding='UTF-8')
-				else:
-					return stdout.read().decode(encoding='UTF-8')
-			except Exception as e:
-				roxywi_common.logging('Roxy-WI server', f' Something wrong with SSH connection. Probably sudo with password {e}', roxywi=1)
+				try:
+					if kwargs.get('raw'):
+						return stdout.readlines()
+					if kwargs.get("ip") == "1":
+						show_ip(stdout)
+					elif kwargs.get("show_log") == "1":
+						import modules.roxywi.logs as roxywi_logs
 
-			for line in stderr.readlines():
-				if line:
-					print(f'error: {line}')
-					roxywi_common.logging('Roxy-WI server', f' {line}', roxywi=1)
+						return roxywi_logs.show_log(stdout, grep=kwargs.get("grep"))
+					elif kwargs.get('return_err') == 1:
+						return stderr.read().decode(encoding='UTF-8')
+					else:
+						return stdout.read().decode(encoding='UTF-8')
+				except Exception as e:
+					roxywi_common.logging('Roxy-WI server', f' Something wrong with SSH connection. Probably sudo with password {e}', roxywi=1)
+	except Exception as e:
+		print(e)
+		roxywi_common.logging('Roxy-WI server',
+							  f' Something wrong with SSH connection. Probably sudo with password {e}', roxywi=1)
+		return str(e)
 
 
 def subprocess_execute(cmd):

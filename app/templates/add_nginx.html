@@ -48,9 +48,9 @@
 						</td>
 				</tr>
 				<tr class="advance">
-					<td class="addName"><span title="Activates the cache for connections to upstream servers.">Keepalive:</span></td>
+					<td class="addName"><span title="Activates the cache for connections to upstream servers." data-help="The connections parameter sets the maximum number of idle keepalive connections to upstream servers that are preserved in the cache of each worker process. When this number is exceeded, the least recently used connections are closed.">Keepalive:</span></td>
 					<td class="addOption">
-						{{ input('name', name='keepalive', title="Activates the cache for connections to upstream servers.", placeholder="32") }}
+						{{ input('name', name='keepalive', title="The connections parameter sets the maximum number of idle keepalive connections to upstream servers that are preserved in the cache of each worker process. When this number is exceeded, the least recently used connections are closed.", placeholder="32") }}
 					</td>
 				</tr>
 				<tr>

@@ -758,7 +758,11 @@ $( function() {
 	$( "#tabs" ).tabs();
 	$( "select" ).selectmenu();
 
-    //$( "[title]" ).tooltip();
+    $( "[title]" ).tooltip({
+		"content": function(){
+			return $(this).attr("data-help");
+		}
+	});
 	$( "input[type=submit], button" ).button();
 	$( "input[type=checkbox]" ).checkboxradio();
 	$( ".controlgroup" ).controlgroup();
@@ -1591,4 +1595,13 @@ function sendGet(page) {
 	var theUrl = 'https://roxy-wi.org/' + page;
 	xmlHttp.open("GET", theUrl, true); // true for asynchronous
 	xmlHttp.send(null);
+}
+function show_pretty_ansible_error(data) {
+	try {
+		data = data.split('error: ');
+		var p_err = JSON.parse(data[1]);
+		return p_err['msg'];
+	} catch (e) {
+		return data;
+	}
 }

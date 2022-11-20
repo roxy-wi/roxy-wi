@@ -19,7 +19,8 @@ def show_installation_output(error: str, output: str, service: str) -> bool:
 		for line in output:
 			if any(s in line for s in ("Traceback", "FAILED", "error", "ERROR", "UNREACHABLE")):
 				try:
-					print(line)
+					correct_out = line.split('=>')
+					print(f'error: {correct_out[1]}')
 					break
 				except Exception:
 					print(output)

@@ -88,7 +88,7 @@
 						{% set values = {'http':'http','tcp':'tcp'} %}
 						{{ select('listen-mode-select', name='mode', values=values, selected='http', required='required', class='force_close') }}
 						<span id="https-listen-span">
-							<label for="https-listen" style="margin-top: 5px;" title="Enable SSL Offloading">SSL Offloading</label>
+							<label for="https-listen" style="margin-top: 5px;" title="Enable SSL Offloading" data-help="The term SSL termination means that you are performing all encryption and decryption at the edge of your network, such as at the load balancer.">SSL Offloading</label>
 							<input type="checkbox" id="https-listen" name="ssl" value="https" >
 						</span>
 						<div id="https-hide-listen" style="display: none;">
@@ -149,25 +149,28 @@
 					</td>
 				</tr>
 				<tr class="advance">
-					<td class="addName"><span title="Cache support start 1.8 and latter">Web acceleration(?):</span></td>
+					<td class="addName"><span title="Cache support start 1.8 and latter" class="help_cursor">Web acceleration:</span></td>
 					<td class="addOption">
 						<span class="controlgroup">
-							{{ checkbox('compression', title='Enable Compression', value='1', desc='Compression') }}
+							{{ checkbox('compression', title='HTTP compression allows you to shrink the body of a response before it is relayed to a client, which results in using less network bandwidth per request. From a client\'s perspective, this reduces latency.',
+							value='1', desc='Compression') }}
 							{{ checkbox('cache', title='Enable cache', value='2', desc='Cache') }}
-							{{ checkbox('ssl_offloading', title='Enable redirect from HTTP to HTTPS', desc='HTTP->HTTPS') }}
+							{{ checkbox('ssl_offloading', title='Enable redirection from HTTP scheme to HTTPS scheme', desc='HTTP->HTTPS') }}
 						</span>
 					</td>
 				</tr>
 				<tr class="advance">
-					<td class="addName"><span title="Web application firewall">WAF(?):</span></td>
+					<td class="addName"><span title="Web application firewall" class="help_cursor">WAF:</span></td>
 					<td class="addOption">
 						<span class="controlgroup">
-							{{ checkbox('slow_atack', title='Slow attack protect', desc='Slow attack') }}
+							{{ checkbox('slow_atack', title='In a Slow POST attack, an attacker begins by sending a legitimate HTTP POST header to a Web server, exactly as they would under normal circumstances. The header specifies the exact size of the message body that will then follow. However, that message body is then sent at an alarmingly low rate – sometimes as slow as 1 byte per approximately two minutes.',
+							desc='Slow attack') }}
 							{{ checkbox('ddos', title='DDOS attack protect', desc='DDOS') }}
 							{{ checkbox('whitelist_checkbox', title='Add whitelist', desc='Whitelist') }}
 							{{ checkbox('blacklist_checkbox', title='Add blacklist', desc='Blacklist') }}
 							{{ checkbox('waf', title='Web application firewall', desc='WAF', value='1') }}
-							{{ checkbox('antibot', title='Antibot Protection', desc='Antibot', value='1') }}
+							{{ checkbox('antibot', title='Unfortunately, a large portion of bots are used for malicious reasons. Their intentions include web scraping, spamming, request flooding, brute forcing, and vulnerability scanning. For example, bots may scrape your price lists so that competitors can consistently undercut you or build a competitive solution using your data. Or they may try to locate forums and comment sections where they can post spam. At other times, they’re scanning your site looking for security weaknesses.',
+							desc='Antibot', value='1') }}
 						</span>
 						<div id="blacklist-hide" style="display: none;">
 							<br /><span class="tooltip tooltipTop">Enter a blacklist name, or press the "down" button:</span><br />
@@ -183,12 +186,30 @@
 					<td class="addName">Options:</td>
 					<td class="addOption">
 						<span class="controlgroup">
-							{{ checkbox('forward_for', title='Option Forward for if none', desc='Forward for') }}
-							{{ checkbox('redispatch', title='Enable Redispatch', desc='Redispatch') }}
+							{{ checkbox('forward_for', title='When HAProxy Enterprise proxies a TCP connection, it overwrites the client\'s source IP address with its own when communicating with the backend server. However, when relaying HTTP messages, it can store the client\'s address in the HTTP header X-Forwarded-For. The backend server can then be configured to read the value from that header to retrieve the client\'s IP address.',
+							desc='Forward for') }}
+							{{ checkbox('redispatch', title='In HTTP mode, if a server designated by a cookie is down, clients may
+							definitely stick to it because they cannot flush the cookie, so they will not
+							be able to access the service anymore.
+							Specifying "option redispatch" will allow the proxy to break their
+							persistence and redistribute them to a working server.
+							It also allows to retry connections to another server in case of multiple
+							connection failures. Of course, it requires having "retries" set to a nonzero
+							value.', desc='Redispatch') }}
 							{% set values = dict() %}
 							{% set values = {'Off':'Off','Server only':'Server only','Force close':'Force close','Pretend keep alive':'Pretend keep alive'} %}
-							{{ select('force_close', values=values, first='Force HTTP close', class='force_close') }}
-							{{ checkbox('cookie', title='Set cookie', desc='Set cookie', value='1') }}
+							{{ select('force_close', values=values, first='Force HTTP close', title='Since HAProxy works in reverse-proxy mode, the servers see its IP address as
+their client address. This is sometimes annoying when the client\'s IP address
+is expected in server logs. To solve this problem, the well-known HTTP header
+"X-Forwarded-For" may be added by HAProxy to all requests sent to the server.
+This header contains a value representing the client\'s IP address. Since this
+header is always appended at the end of the existing header list, the server
+must be configured to always use the last occurrence of this header only. See
+the server\'s manual to find how to enable use of this standard header. Note
+that only the last occurrence of the header must be used, since it is really
+possible that the client has already brought one.', class='force_close') }}
+							{{ checkbox('cookie', title='To send a client to the same server where they were sent previously in order to reuse a session on that server, you can enable cookie-based session persistence. Add a cookie directive to the backend section and set the cookie parameter to a unique value on each server line.',
+							desc='Set cookie', value='1') }}
 							{{ checkbox('options-listen-show', title='Set options manually', desc='Set options') }}
 						</span>
 						<br>
@@ -255,7 +276,8 @@
 							{{ select('fall-listen', name='fall', values=values, first='fall', class='force_close') }}
 						</div>
 						<div style="display: block">
-							{{ checkbox('circuit_breaking_listen', name="circuit_breaking", desc='Circuit Breaking', title='Enable Circuit Breaking', value='1') }}
+							{{ checkbox('circuit_breaking_listen', name="circuit_breaking", desc='Circuit Breaking', title='Circuit breaker is a design pattern which is used to detect failures and encapsulates the logic of preventing a failure from constantly recurring. The circuit breaker design pattern works much like an electrical circuit breaker which is intended to “trip” or open the circuit when failure is detected.',
+							value='1') }}
 						</div>
 						<div id="circuit_breaking_listen_div" style="display: none">
 							Observe:
@@ -263,7 +285,7 @@
 							error-limit: {{ input('circuit_breaking_error_limit', type='number', value='50', style='width: 50px;') }}
 							on-error:
 							{{ select('circuit_breaking_on_error', values=on_error, class='force_close') }}
-							<div class="tooltip tooltipTop">Read more about Circuit Breaking <a href="https://roxy-wi.org/description.py?description=circuit_breaking" title="Circuit Breaking" target="_blank">here</a></div>
+							<div class="tooltip tooltipTop">Read more about Circuit Breaking <a href="https://roxy-wi.org/description/circuit-breaking" title="Circuit Breaking" target="_blank">here</a></div>
 						</div>
 					</td>
 				</tr>
@@ -340,8 +362,8 @@
 					{% set values = {'http':'http','tcp':'tcp'} %}
 					{{ select('frontend-mode-select', name='mode', values=values, selected='http', required='required', class='force_close') }}
 					<span id="https-frontend-span">
-						<label for="https-frontend" style="margin-top: 5px;" title="Enable SSL Offloading">SSL Offloading</label>
-						<input type="checkbox" id="https-frontend" name="ssl" value="https">
+						{{ checkbox('https-frontend', title='The term SSL termination means that you are performing all encryption and decryption at the edge of your network, such as at the load balancer.', desc='SSL Offloading') }}
+
 					</span>
 					<div id="https-hide-frontend" style="display: none;">
 						<br /><span class="tooltip tooltipTop">Enter a name of pem file, or press the "down" button:</span><br />
@@ -381,25 +403,28 @@
 				</td>
 			</tr>
 			<tr class="advance">
-				<td class="addName"><span title="Cache support start 1.8 and latter">Web acceleration(?):</span></td>
+				<td class="addName"><span title="Cache support start 1.8 and latter" class="help_cursor">Web acceleration:</span></td>
 				<td class="addOption">
 					<span class="controlgroup">
-						{{ checkbox('compression2', name="compression", title='Enable Compression', value='1', desc='Compression') }}
+						{{ checkbox('compression2', name="compression", title='HTTP compression allows you to shrink the body of a response before it is relayed to a client, which results in using less network bandwidth per request. From a client\'s perspective, this reduces latency.',
+						value='1', desc='Compression') }}
 						{{ checkbox('cache2', name="cache", title='Enable cache', value='2', desc='Cache') }}
-						{{ checkbox('ssl_offloading1', title='Enable redirect from HTTP to HTTPS', desc='HTTP->HTTPS') }}
+						{{ checkbox('ssl_offloading1', title='Enable redirection from HTTP scheme to HTTPS scheme', desc='HTTP->HTTPS') }}
 					</span>
 				</td>
 			</tr>
 			<tr class="advance">
-				<td class="addName"><span title="Web application firewall">WAF(?):</span></td>
+				<td class="addName"><span title="Web application firewall" class="help_cursor">WAF:</span></td>
 				<td class="addOption">
 					<span class="controlgroup">
-						{{ checkbox('slow_atack1', title='Slow attack protect', desc='Slow attack') }}
+						{{ checkbox('slow_atack1', title='In a Slow POST attack, an attacker begins by sending a legitimate HTTP POST header to a Web server, exactly as they would under normal circumstances. The header specifies the exact size of the message body that will then follow. However, that message body is then sent at an alarmingly low rate – sometimes as slow as 1 byte per approximately two minutes.',
+						desc='Slow attack') }}
 						{{ checkbox('ddos1', title='DDOS attack protect', desc='DDOS') }}
 						{{ checkbox('whitelist_checkbox1', title='Add whitelist', desc='Whitelist') }}
 						{{ checkbox('blacklist_checkbox1', title='Add blacklist', desc='Blacklist') }}
 						{{ checkbox('waf2', name='waf', title='Web application firewall', desc='WAF', value='1') }}
-						{{ checkbox('antibot1', title='Antibot Protection', desc='Antibot', value='1') }}
+						{{ checkbox('antibot1', title='Unfortunately, a large portion of bots are used for malicious reasons. Their intentions include web scraping, spamming, request flooding, brute forcing, and vulnerability scanning. For example, bots may scrape your price lists so that competitors can consistently undercut you or build a competitive solution using your data. Or they may try to locate forums and comment sections where they can post spam. At other times, they’re scanning your site looking for security weaknesses.',
+						desc='Antibot', value='1') }}
 					</span>
 					<div id="blacklist-hide1" style="display: none;">
 						<br /><span class="tooltip tooltipTop">Enter a blacklist name, or press the "down" button::</span><br />
@@ -415,10 +440,20 @@
 				<td class="addName">Options:</td>
 				<td class="addOption">
 					<span class="controlgroup">
-						{{ checkbox('forward_for1', title='Option Forward for if none', desc='Forward for') }}
+						{{ checkbox('forward_for1', title='When HAProxy Enterprise proxies a TCP connection, it overwrites the client\'s source IP address with its own when communicating with the backend server. However, when relaying HTTP messages, it can store the client\'s address in the HTTP header X-Forwarded-For. The backend server can then be configured to read the value from that header to retrieve the client\'s IP address.',
+						desc='Forward for') }}
 						{% set values = dict() %}
 						{% set values = {'Off':'Off','Server only':'Server only','Force close':'Force close','Pretend keep alive':'Pretend keep alive'} %}
-						{{ select('force_close', values=values, first='Force HTTP close', class='force_close') }}
+						{{ select('force_close', values=values, first='Force HTTP close', title='Since HAProxy works in reverse-proxy mode, the servers see its IP address as
+their client address. This is sometimes annoying when the client\'s IP address
+is expected in server logs. To solve this problem, the well-known HTTP header
+"X-Forwarded-For" may be added by HAProxy to all requests sent to the server.
+This header contains a value representing the client\'s IP address. Since this
+header is always appended at the end of the existing header list, the server
+must be configured to always use the last occurrence of this header only. See
+the server\'s manual to find how to enable use of this standard header. Note
+that only the last occurrence of the header must be used, since it is really
+possible that the client has already brought one.', class='force_close') }}
 						{{ checkbox('options-frontend-show', title='Set options manually', desc='Set options') }}
 					</span>
 					<div id="options-frontend-show-div" style="display: none;">
@@ -440,7 +475,7 @@
 			<tr>
 				<td class="addName">Default backend</td>
 				<td class="addOption">
-					{{ input('backends', name='backends', placeholder="some_backend", size='30') }}
+					{{ input('backends', name='backends', placeholder="some_backend", size='30', title='If no condition is valid, the backend defined with "default_backend" will be used. If no default backend is defined, either the servers in the same section are used (in case of a "listen" section) or, in case of a frontend, no server is used and a 503 service unavailable response is returned.') }}
 					<div class="tooltip tooltipTop">
 						<b>Note</b>. If you want to use the default backend, <span title="Create backend" class="redirectBackend link">backend must exist</span>.
 					</div>
@@ -557,12 +592,13 @@
 				</td>
 			</tr>
 			<tr class="advance">
-				<td class="addName"><span title="Cache support start 1.8 and latter">Web acceleration(?):</span></td>
+				<td class="addName"><span title="Cache support start 1.8 and latter" class="help_cursor">Web acceleration:</span></td>
 				<td class="addOption">
 					<span class="controlgroup">
-						{{ checkbox('compression3', name="compression", title='Enable Compression', value='1', desc='Compression') }}
+						{{ checkbox('compression3', name="compression", title='HTTP compression allows you to shrink the body of a response before it is relayed to a client, which results in using less network bandwidth per request. From a client\'s perspective, this reduces latency.',
+						value='1', desc='Compression') }}
 						{{ checkbox('cache3', name="cache", title='Enable cache', value='2', desc='Cache') }}
-						{{ checkbox('ssl_offloading2', title='Enable SSL Offloading', desc='SSL Offloading') }}
+						{{ checkbox('ssl_offloading2', title='The term SSL termination means that you are performing all encryption and decryption at the edge of your network, such as at the load balancer.', desc='SSL Offloading') }}
 					</span>
 				</td>
 			</tr>
@@ -570,12 +606,21 @@
 				<td class="addName">Options:</td>
 				<td class="addOption">
 					<span class="controlgroup">
-						{{ checkbox('forward_for2', title='Option Forward for if none', desc='Forward for') }}
-						{{ checkbox('redispatch2', title='Enable Redispatch', desc='Redispatch') }}
+						{{ checkbox('forward_for2', title='When HAProxy Enterprise proxies a TCP connection, it overwrites the client\'s source IP address with its own when communicating with the backend server. However, when relaying HTTP messages, it can store the client\'s address in the HTTP header X-Forwarded-For. The backend server can then be configured to read the value from that header to retrieve the client\'s IP address.', 
+						desc='Forward for') }}
+						{{ checkbox('redispatch2', title='In HTTP mode, if a server designated by a cookie is down, clients may
+						definitely stick to it because they cannot flush the cookie, so they will not
+						be able to access the service anymore.
+						Specifying "option redispatch" will allow the proxy to break their
+						persistence and redistribute them to a working server.
+						It also allows to retry connections to another server in case of multiple
+						connection failures. Of course, it requires having "retries" set to a nonzero
+						value.', desc='Redispatch') }}
 						{% set values = dict() %}
 						{% set values = {'Off':'Off','Server only':'Server only','Force close':'Force close','Pretend keep alive':'Pretend keep alive'} %}
-						{{ select('force_close', values=values, first='Force HTTP close', class='force_close') }}
-						{{ checkbox('cookie2', title='Set cookie', desc='Set cookie', value='1') }}
+						{{ select('force_close', values=values, first='Force HTTP close', title='123', class='force_close') }}
+						{{ checkbox('cookie2', title='To send a client to the same server where they were sent previously in order to reuse a session on that server, you can enable cookie-based session persistence. Add a cookie directive to the backend section and set the cookie parameter to a unique value on each server line.',
+						desc='Set cookie', value='1') }}
 						{{ checkbox('options-backend-show', title='Set options manually', desc='Set options') }}
 					</span>
 					<br>
@@ -642,7 +687,8 @@
 						{{ select('fall-backend', name='fall', values=values, first='fall', class='force_close') }}
 					</div>
 					<div style="display: block">
-						{{ checkbox('circuit_breaking_backend', name="circuit_breaking", desc='Circuit Breaking', title='Enable Circuit Breaking', value='1') }}
+						{{ checkbox('circuit_breaking_backend', name="circuit_breaking", desc='Circuit Breaking', title='Circuit breaker is a design pattern which is used to detect failures and encapsulates the logic of preventing a failure from constantly recurring. The circuit breaker design pattern works much like an electrical circuit breaker which is intended to “trip” or open the circuit when failure is detected.',
+						value='1') }}
 					</div>
 					<div id="circuit_breaking_backend_div" style="display: none">
 						Observe:
@@ -650,7 +696,7 @@
 						error-limit: {{ input('circuit_breaking_error_limit', type='number', value='50', style='width: 50px;') }}
 						on-error:
 						{{ select('circuit_breaking_on_error', values=on_error, class='force_close') }}
-						<div class="tooltip tooltipTop">Read more about Circuit Breaking <a href="https://roxy-wi.org/description.py?description=circuit_breaking" title="Circuit Breaking" target="_blank">here</a></div>
+						<div class="tooltip tooltipTop">Read more about Circuit Breaking <a href="https://roxy-wi.org/description/circuit-breaking" title="Circuit Breaking" target="_blank">here</a></div>
 					</div>
 				</td>
 			</tr>
@@ -1120,9 +1166,10 @@ var serv_ports = $('.send_proxy');
 
 for (var i = 0; i <= serv_ports.length; i++) {
 	var uniqId = makeid(3);
-	$(serv_ports[i]).append('<label for="' + uniqId + '" class="send_proxy_label" title="Set send-proxy for this server">send-proxy</label><input type="checkbox" name="send_proxy" value="1" id="' + uniqId + '">');
+	$(serv_ports[i]).append('<label for="' + uniqId + '" class="send_proxy_label" title="Set send-proxy for this server" data-help="The Send-proxy parameter enforces the use of the PROXY protocol over any connection established to this server. The PROXY protocol informs the other end about the layer 3/4 addresses of the incoming connection so that it can know the client\'s address or the public address it accessed to, whatever the upper-layer protocol.">send-proxy</label><input type="checkbox" name="send_proxy" value="1" id="' + uniqId + '">');
 	var uniqId = makeid(3);
-	$(serv_ports[i]).append('<label for="' + uniqId + '" class="send_proxy_label" title="Set this server as backup server">backup</label><input type="checkbox" name="backup" value="1" id="' + uniqId + '">');
+	$(serv_ports[i]).append('<label for="' + uniqId + '" class="send_proxy_label" title="Set this server as backup server" data-help="When all servers in a farm are down, we want to redirect traffic to a backup server which delivers either sorry pages or a degraded mode of the application.\n' +
+			'This can be done easily in HAProxy by adding the keyword backup on the server line. If multiple backup servers are configured, only the first active one is used.">backup</label><input type="checkbox" name="backup" value="1" id="' + uniqId + '">');
 }
 </script>
 {% endblock %}
