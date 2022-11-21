@@ -184,8 +184,7 @@ $( function() {
 					toastr.error(p_err);
 				} else if (data.indexOf('success') != '-1' ){
 					toastr.clear();
-					var p_err = show_pretty_ansible_error(data);
-					toastr.error(p_err);
+					toastr.success(data);
 					$('#cur_nginx_exp_ver').text('NGINX exporter is installed');
 					$("#nginx_exp_addserv").trigger( "selectmenuchange" );
 				} else if (data.indexOf('Info') != '-1' ){
