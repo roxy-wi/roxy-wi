@@ -3,13 +3,13 @@
         <td class="padding10 first-collumn" style="width: 15%;" class="help_cursor">
 					<span title="It's just name alias. This alias will be use in 'Servers' page for choose credentials">Name<span>
         </td>
-        <td class="padding10 first-collumn" style="width: 25%;" class="help_cursor">
+        <td class="padding10 first-collumn" style="width: 25%;" class="help_cursor" id="ssh-key-enabled-td">
             <span title="If it is enabled, the key will be used, if turned off - the password. Do not forget to download the keys to all servers or install the sudo without a password">SSH key</span>
         </td>
         {% if page != "servers.py" %}
         <td style="width: 25%;">Group</td>
         {% endif %}
-        <td style="width: 100%;" class="help_cursor">
+        <td style="width: 100%;" class="help_cursor" id="ssh-user-name-td">
             <span title="Enter SSH user name. If SSH key disabled, enter password for SSH user">User name</span>
         </td>
         <td></td>

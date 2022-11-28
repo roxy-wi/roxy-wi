@@ -1,0 +1,96 @@
+<script>
+    function Intro() {
+		var intro = introJs();
+		intro.setOptions({
+			steps: [
+				{
+					element: document.querySelector('#admin-area'),
+					intro: "Only the user with superAdmin role can access the Admin area section",
+                    position: 'right'
+				},
+				{
+					element: document.querySelector('#admin-area-users'),
+					intro: "Create, edit, lock/unlock users’ profiles, grant roles, add new users to groups",
+                    position: 'right'
+				},
+				{
+					element: document.querySelector('#add-user-button'),
+					intro: " Add new objects clicking by this button",
+                    position: 'left'
+				},
+				{
+					element: document.querySelector('#admin-area-groups'),
+					intro: " Add new groups or edit existing ones",
+                    position: 'right'
+				},
+				{
+					element: document.querySelector('#admin-area-servers'),
+					intro: "Choose servers to display on the Overview page, manage their settings and restrict access to configuration files",
+                    position: 'right'
+				},
+				{
+					element: document.querySelector('#servers-help-link'),
+					intro: "Note that some pages have more extended guides for them",
+				},
+				{
+					element: document.querySelector('#admin-area-ssh'),
+					intro: "Configure a key-based authentication and restrict access to a server for some users",
+                    position: 'right'
+				},
+				{
+					element: document.querySelector('#admin-area-checker'),
+					intro: "Set up notifications and the way you’ll get them",
+                    position: 'right'
+				},
+				{
+					element: document.querySelector('#checker-tabs-head'),
+					intro: "Note that notification channels and settings are in the different tabs",
+				},
+				{
+					element: document.querySelector('#admin-area-settings'),
+					intro: "Tap a service name to expand its settings",
+                    position: 'right'
+				},
+				{
+					element: document.querySelector('#admin-area-services'),
+					intro: "Run, stop and restart services by pressing buttons and read their short descriptions",
+                    position: 'right'
+				},
+				{
+					element: document.querySelector('#admin-area-logs'),
+					intro: "Select one of all internal logs and click the Show button",
+                    position: 'right'
+				},
+				{
+					element: document.querySelector('#admin-area-update'),
+					intro: "Update services by pressing buttons and check their versions",
+                    position: 'right'
+				},
+				{
+					element: document.querySelector('#admin-tabs'),
+					intro: "Navigate through Admin area by clicking tabs above as wel",
+				},
+                {
+                    element: document.querySelector('#admin-tabs-vpn'),
+                    intro: " You can access some subsections like OpenVPN..."
+                },
+				{
+					element: document.querySelector('#admin-tabs-backup'),
+					intro: "Git and Backup...",
+				},
+				{
+					element: document.querySelector('#admin-tabs-mon'),
+					intro: "and Monitoring installation this way",
+				},
+				{
+					element: document.querySelector('.guid_me'),
+					intro: "Phew...I’m a bit tired of chatting. Would you like to take a break before we continue\n" +
+                        "with another section of Roxy?",
+				}
+			]
+		});
+		return intro;
+	}
+
+	setTimeout(() => { var intro_temp = Intro(); startIntro(intro_temp); }, 3000);
+</script>

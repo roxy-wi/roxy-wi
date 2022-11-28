@@ -16,9 +16,9 @@
 		<li><a href="#checker" title="Servers: Manage checker - Roxy-WI">Checker</a></li>
 		<li><a href="#settings" title="Admin area: Manage Roxy-WI settings - Roxy-WI">Settings</a></li>
 		<li><a href="#installproxy" title="Servers: Proxy service installation - Roxy-WI">Proxy installation</a></li>
+		<li><a href="#backup" title="Servers: Backup configs - Roxy-WI">Backup</a></li>
 		<li><a href="#installmon" title="Servers: Monitoring service installation - Roxy-WI">Monitoring installation</a></li>
 		<li><a href="#geolite2" title="Servers: GeoLite2 - Roxy-WI">GeoLite2</a></li>
-		<li><a href="#backup" title="Servers: Backup configs - Roxy-WI">Backup</a></li>
 		{% include 'include/login.html' %}
 	</ul>
 	<ul id='browse_histroy'></ul>
@@ -118,7 +118,9 @@
 		</table>
 		<div id="ajax"></div>
 	</div>
-
+	<div id="backup">
+		{% include 'include/admin_backup.html' %}
+	</div>
 	<div id="installmon">
 		{% include 'include/mon_installation.html' %}
 	</div>
@@ -178,10 +180,6 @@
 			{% endfor %}
 		</div>
 	</div>
-
-	<div id="backup">
-		{% include 'include/admin_backup.html' %}
-	</div>
 </div>
 {% include 'include/admins_dialogs.html' %}
 {% include 'include/change_pass_form.html' %}
@@ -219,4 +217,5 @@
 	});
 </script>
 <link href="/inc/css/servers.css" rel="stylesheet"/>
+{% include 'include/intro/servers.html' %}
 {% endblock %}

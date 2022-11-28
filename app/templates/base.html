@@ -30,6 +30,9 @@
 		<script defer src="/inc/fontawesome.min.js"></script>
 		<script>FontAwesomeConfig = { searchPseudoElements: true, observeMutations: false };</script>
 		<script defer src="/inc/ion.sound.min.js"></script>
+		<script defer src="/inc/intro/introjs.min.js"></script>
+		<link href="/inc/intro/introjs.min.css" rel="stylesheet">
+		<link href="/inc/intro/introjs-modern.css" rel="stylesheet">
 		<link href="/inc/css/awesome.css" rel="stylesheet">
 		<link href="/inc/css/style.css" rel="stylesheet">
 		<link href="/inc/css/nprogress.css" rel="stylesheet">
@@ -62,7 +65,7 @@
 				<nav id="menu">
 					<ul class="menu">
 						{% if user %}
-						<li><a href="/app/overview.py" title="Server and service status" class="overview-link">Overview</a></li>
+						<li><a href="/app/overview.py" title="Server and service status" class="overview-link ">Overview</a></li>
 						{% if '1' in user_services %}
 						<li class="p_menu">
 							<a href="/app/hapservers.py?service=haproxy" title="HAProxy servers overview" class="config-show">HAProxy</a>
@@ -162,18 +165,18 @@
 							</li>
 						{% endif %}
 						{% if role <= 1 %}
-							<li class="p_menu">
+							<li class="p_menu" id="admin-area">
 								<a href="/app/users.py#users" title="Admin area" class="admin">Admin area</a>
 								<ul class="v_menu">
-									<li><a href="/app/users.py#users" title="Admin area: Manage users" class="users head-submenu">Users</a></li>
-									<li><a href="/app/users.py#groups" title="Admin area: Manage groups" class="group groups head-submenu">Groups</a></li>
-									<li><a href="/app/users.py#servers" title="Admin area: Manage servers" class="runtime servers head-submenu">Servers</a></li>
-									<li><a href="/app/users.py#ssh" title="Admin area: Manage SSH credentials" class="admin ssh head-submenu">SSH credentials</a></li>
-									<li><a href="/app/users.py#checker" title="Admin area: Checker" class="checker head-submenu">Checker</a></li>
-									<li><a href="/app/users.py#settings" title="Admin area: Manage Roxy-WI settings" class="settings head-submenu">Settings</a></li>
-									<li><a href="/app/users.py#services" title="Admin area: Manage Roxy-WI services" class="services head-submenu">Services</a></li>
-									<li><a href="/app/viewlogs.py" title="Admin area: View internal logs" class="logs head-submenu">Internal logs</a></li>
-									<li><a href="/app/users.py#updatehapwi" title="Admin area: Update Roxy-WI" class="upload updatehapwi head-submenu">Update</a></li>
+									<li><a href="/app/users.py#users" title="Admin area: Manage users" class="users head-submenu" id="admin-area-users">Users</a></li>
+									<li><a href="/app/users.py#groups" title="Admin area: Manage groups" class="group groups head-submenu" id="admin-area-groups">Groups</a></li>
+									<li><a href="/app/users.py#servers" title="Admin area: Manage servers" class="runtime servers head-submenu" id="admin-area-servers">Servers</a></li>
+									<li><a href="/app/users.py#ssh" title="Admin area: Manage SSH credentials" class="admin ssh head-submenu" id="admin-area-ssh">SSH credentials</a></li>
+									<li><a href="/app/users.py#checker" title="Admin area: Checker" class="checker head-submenu" id="admin-area-checker">Checker</a></li>
+									<li><a href="/app/users.py#settings" title="Admin area: Manage Roxy-WI settings" class="settings head-submenu" id="admin-area-settings">Settings</a></li>
+									<li><a href="/app/users.py#services" title="Admin area: Manage Roxy-WI services" class="services head-submenu" id="admin-area-services">Services</a></li>
+									<li><a href="/app/viewlogs.py" title="Admin area: View internal logs" class="logs head-submenu" id="admin-area-logs">Internal logs</a></li>
+									<li><a href="/app/users.py#updatehapwi" title="Admin area: Update Roxy-WI" class="upload updatehapwi head-submenu" id="admin-area-update">Update</a></li>
 								</ul>
 							</li>
 						{% endif %}	
@@ -276,12 +279,14 @@
 				</a>
 			</div>
 			<div class="footer-div">
-				<a href="https://roxy-wi.org" class="footer-link" target="_blank" title="About Roxy-WI">About</a>
-				<a href="https://github.com/hap-wi/roxy-wi/issues" class="footer-link" target="_blank" title="Community help">Help</a>
-				<a href="https://sd.roxy-wi.org" class="footer-link" target="_blank" title="Service Desk">SD</a>
-				<a href="https://roxy-wi.org/contacts" class="footer-link" target="_blank">Contacts</a>
-				<a href="https://roxy-wi.org/cabinet" class="footer-link" target="_blank" title="Private cabinet">Cabinet</a>
-				<a href="https://roxy-wi.org/legal" class="footer-link" target="_blank" title="Legal Note">Legal</a>
+				<div id="useful-links">
+					<a href="https://roxy-wi.org" class="footer-link" target="_blank" title="About Roxy-WI">About</a>
+					<a href="https://github.com/hap-wi/roxy-wi/issues" class="footer-link" target="_blank" title="Community help">Help</a>
+					<a href="https://sd.roxy-wi.org" class="footer-link" target="_blank" title="Service Desk">SD</a>
+					<a href="https://roxy-wi.org/contacts" class="footer-link" target="_blank">Contacts</a>
+					<a href="https://roxy-wi.org/cabinet" class="footer-link" target="_blank" title="Private cabinet">Cabinet</a>
+					<a href="https://roxy-wi.org/legal" class="footer-link" target="_blank" title="Legal Note">Legal</a>
+				</div>
 			</div>
 		</div>
 		<div id="show-user-settings">

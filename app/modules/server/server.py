@@ -42,11 +42,15 @@ def ssh_connect(server_ip):
 def ssh_command(server_ip: str, commands: list, **kwargs):
 	if server_ip == '':
 		return 'error: IP cannot be empty'
+	if kwargs.get('timeout'):
+		timeout = kwargs.get('timeout')
+	else:
+		timeout = 1
 	try:
 		with ssh_connect(server_ip) as ssh:
 			for command in commands:
 				try:
-					stdin, stdout, stderr = ssh.run_command(command)
+					stdin, stdout, stderr = ssh.run_command(command, timeout=timeout)
 				except Exception as e:
 					print(f'error: {e}')
 					roxywi_common.logging('Roxy-WI server', f' Something wrong with SSH connection. Probably sudo with password {e}', roxywi=1)
@@ -74,10 +78,9 @@ def ssh_command(server_ip: str, commands: list, **kwargs):
 				except Exception as e:
 					roxywi_common.logging('Roxy-WI server', f' Something wrong with SSH connection. Probably sudo with password {e}', roxywi=1)
 	except Exception as e:
-		print(e)
 		roxywi_common.logging('Roxy-WI server',
-							  f' Something wrong with SSH connection. Probably sudo with password {e}', roxywi=1)
-		return str(e)
+							  f' Something wrong with SSH connection: {e}', roxywi=1)
+		return str(f'error: {e}')
 
 
 def subprocess_execute(cmd):

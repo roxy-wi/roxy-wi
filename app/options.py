@@ -2821,7 +2821,7 @@ if form.getvalue('nettools_icmp_server_from'):
         output, stderr = server_mod.subprocess_execute(action_for_sending)
     else:
         action_for_sending = [action_for_sending]
-        output = server_mod.ssh_command(server_from, action_for_sending, raw=1)
+        output = server_mod.ssh_command(server_from, action_for_sending, raw=1, timeout=15)
 
     if stderr != '':
         print(f'error: {stderr}')
@@ -4110,13 +4110,14 @@ if act == 'updateSystemInfo':
     env.globals['string_to_dict'] = common.string_to_dict
     template = env.get_template('ajax/show_system_info.html')
 
-    if server_mod.get_system_info(server_ip):
+    try:
+        server_mod.get_system_info(server_ip)
         system_info = sql.select_one_system_info(server_id)
 
         template = template.render(system_info=system_info, server_ip=server_ip, server_id=server_id)
         print(template)
-    else:
-        print('error: Cannot update server info')
+    except Exception as e:
+        print(f'error: Cannot update server info: {e}')
 
 if act == 'findInConfigs':
     server_ip = serv

@@ -19,7 +19,7 @@
 <style>
 	.fa-sync-alt { margin-bottom: -1px; }
 </style>
-<table class="overview-wi">
+<table class="overview-wi" id="overview-roxy-wi">
 	<tr class="overviewHead">
 		<td class="padding10 first-collumn-wi">
 			{% if role <= 2 %}
@@ -63,7 +63,7 @@
 		<tr class="{{ loop.cycle('odd', 'even') }}" id="{{s[2]}}"></tr>
 	{% endfor %}
 </table>
-<table class="overview-wi">
+<table class="overview-wi" id="overview-load">
 	<tr class="overviewHead" style="height: 30px;">
 		<td class="padding10 first-collumn-wi" colspan="2">
 			{% if role <= 1 %}
@@ -91,15 +91,15 @@
 		</td>
 	</tr>
 </table>
-<table class="overview-wi">
+<table class="overview-wi" id="overview-services">
 	<tr class="overviewHead">
 		<td class="padding10 first-collumn-wi" colspan=4>
 			{% if role <= 1 %}
 				<a href="/app/users.py#services" title="View services status" class="logs_link">
-					Services status
+					Roxy-WI services status
 				</a>
 			{% else %}
-				Services status
+				Roxy-WI services status
 			{% endif %}
 		</td>
 	</tr>
@@ -311,7 +311,7 @@
 	{% elif role == 1 %}
 		{% set admin_uri = 'users.py' %}
 	{% endif %}
-	<table class="overview-wi">
+	<table class="overview-wi" id="overview-users">
 		<thead>
 			<tr class="overviewHead" style="height: 30px;">
 				<td class="padding10 first-collumn-wi">
@@ -337,7 +337,7 @@
 	</table>
 {% endif %}
 {% if role <= 1 %}
-	<table class="overview-wi">
+	<table class="overview-wi" id="overview-groups">
 		<tr class="overviewHead">
 			<td class="padding10 first-collumn-wi">
 				<a href="users.py#groups" title="Manage groups" class="logs_link">Group</a>
@@ -394,7 +394,7 @@
 	</table>
 {% endif %}
 {% if role <= 2 %}
-	<table class="overview-wi">
+	<table class="overview-wi" id="overview-logs">
 		<tr class="overviewHead">
 			<td class="padding10 first-collumn-wi">
 				{% if role == 2 %}
@@ -437,7 +437,7 @@
 	</table>
 {% endif %}
 {% if role <= 1 %}
-	<table class="overview-wi">
+	<table class="overview-wi" id="overview-subs">
 		<tr class="overviewHead" style="height: 30px;">
 			<td class="padding10 first-collumn-wi" colspan="2">
 				<a href="https://roxy-wi.org/cabinet" title="Personal cabinet" class="logs_link" target="_blank">Subscription</a>
@@ -450,6 +450,7 @@
   <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>Are you sure?</p>
 </div>
 <script>
-	showOverview(ip, hostnamea)
+	showOverview(ip, hostnamea);
 </script>
+{% include 'include/intro/ovw.html' %}
 {% endblock %}

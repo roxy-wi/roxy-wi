@@ -1,0 +1,104 @@
+<script>
+    function Intro() {
+		var intro = introJs();
+		intro.setOptions({
+			steps: [
+				{
+					element: document.querySelector('#ajax-users'),
+					intro: "Welcome to Admin Area! On this tab you can manage users!",
+				},
+				{
+					element: document.querySelector('#user-login-th'),
+					intro: "Login is a name. Quite obvious",
+				},
+				{
+					element: document.querySelector('#user-active-th'),
+					intro: "Is anyone suspicious? Disable him!",
+				},
+				{
+					element: document.querySelector('#user-role-th'),
+					intro: "Or change the role, you can make it read only, for example",
+				},
+				{
+					element: document.querySelector('#user-services-th'),
+					intro: "And if someone does not need access to all services, you can solve it here",
+				},
+				{
+					element: document.querySelector('#server-name-th'),
+					intro: "A name of servers",
+				},
+				{
+					element: document.querySelector('#server-ip-th'),
+					intro: "IP or DNS name",
+				},
+				{
+					element: document.querySelector('#server-haproxy-th'),
+					intro: "Is there HAProxy? If yes press here",
+				},
+				{
+					element: document.querySelector('#server-nginx-th'),
+					intro: "Same for Nginx",
+				},
+				{
+					element: document.querySelector('#server-apache-th'),
+					intro: "And for Apache",
+				},
+				{
+					element: document.querySelector('#server-firewalld-th'),
+					intro: "If there is Firewalld service and you would like to Roxy-WI manage it enable this checkbox",
+				},
+				{
+					element: document.querySelector('#server-protected-th'),
+					intro: "This checkbox should be enabled if only admin can edit configs",
+				},
+				{
+					element: document.querySelector('#server-slave-th'),
+					intro: "Is a server secondary in a cluster? Check a Master server for Slave and configs will be automatically synced after editing on Master server",
+				},
+				{
+					element: document.querySelector('#ssh-key-enabled-td'),
+					intro: "If it is enabled, the key will be used, if turned off - the password. Do not forget to download the keys to all servers or install the sudo without a password",
+				},
+                {
+                    element: document.querySelector('#ssh-user-name-td'),
+                    intro: "A user name on remote server"
+                },
+				{
+					element: document.querySelector('#ssh_cert'),
+					intro: "Do not forget upload a SSH key, if you enable it",
+				},
+				{
+					element: document.querySelector('#backup-git-li'),
+					intro: "Would you like to keep configs in Git? This place for it!",
+				},
+				{
+					element: document.querySelector('#backup-backup-li'),
+					intro: "Or backup versions of config to a remote server",
+				},
+				{
+					element: document.querySelector('#haproxy-table'),
+					intro: "Need detailed statistics from HAProxy? You can install an exporter and watch graphs in Grafana",
+				},
+				{
+					element: document.querySelector('#nginx-table'),
+					intro: "Same for NGINX",
+				},
+				{
+					element: document.querySelector('#apache-table'),
+					intro: "And Apache",
+				},
+				{
+					element: document.querySelector('#node-table'),
+					intro: "This exporter provides detailed information about servers. Quite useful",
+				},
+				{
+					element: document.querySelector('.guid_me'),
+					intro: "Guide mode button",
+				}
+			]
+		});
+		return intro;
+	}
+
+	setTimeout(() => { var intro_temp = Intro(); startIntro(intro_temp); }, 3000);
+</script>

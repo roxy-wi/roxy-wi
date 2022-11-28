@@ -3,7 +3,12 @@
   set_fact:
     ansible_port: "{{SSH_PORT}}"
 
-- name: Add NGINX
+- name: Ensure group "nginx" exists
+  ansible.builtin.group:
+    name: nginx
+    state: present
+
+- name: Add NGINX User
   ansible.builtin.user:
     name: nginx
     group: nginx

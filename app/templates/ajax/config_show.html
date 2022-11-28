@@ -25,11 +25,11 @@
 		{% if not role %}
 			{% if line.startswith('#HideBlockStart') %}
 				<!--{{line}}
-				{% continue %}	
+				{% continue %}
 			{% endif %}
 			{% if line.startswith('#HideBlockEnd') %}
 				{{line}}-->
-				{% continue %}	
+				{% continue %}
 			{% endif %}
 		{% endif %}
 		{% if service == 'nginx' %}
@@ -42,7 +42,7 @@
 				</span><br />
 				{% continue %}
 			{% endif %}
-			{%- if "server {" in line -%} 
+			{%- if "server {" in line -%}
 				{% if i > 1 %}
 					</div>
 				{% endif %}
@@ -77,9 +77,9 @@
 				{% if "#" not in line %}
 					<span class="numRow">
 						{{ i }}
-					</span> 
+					</span>
 					<span class="paramInSec">
-						&emsp;{{ line }} 
+						&emsp;{{ line }}
 					</span><br />
 					{% continue %}
 				{% endif %}
@@ -91,13 +91,13 @@
 				<span class="comment">
 					&emsp;{{ line }}
 				</span><br />
-				{% continue %}	
+				{% continue %}
 			{% endif %}
 			{% if line|length > 1 %}
 				<span class="configLine">
-					<span class="numRow">{{ i }}</span> 
+					<span class="numRow">{{ i }}</span>
 					&emsp;&emsp;{{ line }}
-				</span><br />	
+				</span><br />
 			{% endif %}
 		{% elif service == 'apache' %}
 			{% if i == 0 and "<VirtualHost" not in line %}
@@ -229,7 +229,7 @@
 				</div><span class="param">{{- line -}}
 					{% if role %}
 					<span class="accordion-link">
-						<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit/Delete</a>
+						<a href="/app/sections.py?serv={{serv}}&section={{ line }}" target="_blank">Edit/Delete</a>
 					</span>
 					{% endif %}
 					{%- set backend = line.split(' ') -%}
@@ -238,8 +238,8 @@
 					</span>
 					{%- set backend = backend|join('_') -%}
 					{%- do section_name.update({i: backend}) -%}
-					<span id="{{-section_name[i]|replace('\n', '')-}}" class="accordion-link"></span>				
-					</span><div>	
+					<span id="{{-section_name[i]|replace('\n', '')-}}" class="accordion-link" target="_blank"></span>
+					</span><div>
 					{% continue %}
 			{%- endif -%}
 			{%- if line.startswith('frontend') -%}
@@ -248,19 +248,19 @@
 						<span class="accordion-link">
 							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit/Delete</a>
 						</span>
-					{% endif %}	
+					{% endif %}
 					{% set backend = line.split(' ') %}
 					<span class="accordion-link">
 						<a href="/app/statsview.py?serv={{serv}}#{{ backend[1]}}" target="_blank">Stats</a>
-					</span>	
+					</span>
 					{% set backend = backend|join('_') %}
 					{% do section_name.update({i: backend}) %}
-					<span id="{{section_name[i]|replace('\n', '')}}" class="accordion-link"></span>			
-					</span><div>	
+					<span id="{{section_name[i]|replace('\n', '')}}" class="accordion-link"></span>
+					</span><div>
 					{% continue %}
 			{%- endif -%}
 			{% if line.startswith('backend') %}
-				</div><span class="param">{{ line }} 
+				</div><span class="param">{{ line }}
 					{% if role %}
 						<span class="accordion-link">
 							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit/Delete</a>
@@ -274,7 +274,7 @@
 				{% continue %}
 			{% endif %}
 			{% if line.startswith('cache') %}
-				</div><span class="param">{{ line }} 
+				</div><span class="param">{{ line }}
 					{% if role %}
 						<span class="accordion-link">
 							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit/Delete</a>
@@ -327,9 +327,9 @@
 				{% if "timeout" not in line and "default-server" not in line and "#use_backend" not in line and "#" not in line%}
 					<span class="numRow">
 						{{ i }}
-					</span> 
+					</span>
 					<span class="paramInSec">
-						{{ line }} 
+						{{ line }}
 					</span><br />
 					{% continue %}
 				{% endif %}
@@ -341,13 +341,13 @@
 				<span class="comment">
 					{{ line }}
 				</span><br />
-				{% continue %}	
+				{% continue %}
 			{% endif %}
 			{% if line|length > 1 %}
 				<span class="configLine">
-					<span class="numRow">{{ i }}</span> 
+					<span class="numRow">{{ i }}</span>
 					{{ line }}
-				</span><br />	
+				</span><br />
 			{% endif %}
 			{%- if "bind" in line and "@" not in line and "-" not in line -%}
 				{%- set bind = line.split(':')[1] -%}

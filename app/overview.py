@@ -105,6 +105,6 @@ rendered_template = template.render(
 	socket_log_id=roxy_logs.roxy_wi_log(log_id=1, file="socket"), error=stderr,
 	roxy_wi_log=roxy_logs.roxy_wi_log(), servers=user_params['servers'], is_checker_worker=is_checker_worker,
 	is_metrics_worker=is_metrics_worker, host=host, user_services=user_params['user_services'],
-	token=user_params['token']
+	token=user_params['token'], guide_me=1
 )
 print(rendered_template)

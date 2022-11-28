@@ -48,15 +48,19 @@ class SshConnection:
             elif e == "Invalid argument":
                 raise paramiko.SSHException('error: Check the IP of the server')
             else:
-                raise paramiko.SSHException(str(e))
+                raise paramiko.SSHException(f'error: {e}')
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.ssh.close()
 
-    def run_command(self, command):
+    def run_command(self, command, **kwargs):
+        if kwargs.get('timeout'):
+            timeout = kwargs.get('timeout')
+        else:
+            timeout = 1
         try:
-            stdin, stdout, stderr = self.ssh.exec_command(command, get_pty=True, timeout=2)
+            stdin, stdout, stderr = self.ssh.exec_command(command, get_pty=True, timeout=timeout)
         except Exception as e:
             raise paramiko.SSHException(str(e))
 

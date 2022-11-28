@@ -1589,7 +1589,78 @@ function statAgriment() {
 		sendGet('/page/send/'+cur_url);
 	}
 }
-window.onload = statAgriment;
+function startIntroAgain() {
+	var intro_url = cur_url[0].split('#')[0];
+	var intro_history = {};
+	if (intro_url.split('#')[0] == 'users.py' || intro_url.split('#')[0] == 'servers.py') {
+		$("#tabs").tabs("option", "active", 0);
+	}
+	if(localStorage.getItem('intro') === null) {
+		startIntro();
+	} else {
+		intro_history = JSON.parse(localStorage.getItem('intro'));
+		delete intro_history[intro_url];
+		localStorage.setItem('intro', JSON.stringify(intro_history));
+		startIntro();
+	}
+}
+function startIntro(intro) {
+	intro = intro.setOptions({'exitOnOverlayClick': false});
+	var intro_url = cur_url[0].split('#')[0];
+	var intro_history = {};
+	intro.onbeforechange(function (targetElement) {
+		if (intro_url == 'users.py' && this._currentStep == 5) {
+			$("#tabs").tabs("option", "active", 2);
+		} else if (intro_url == 'users.py' && this._currentStep == 13) {
+			$("#tabs").tabs("option", "active", 3);
+		} else if (intro_url == 'users.py' && this._currentStep == 16) {
+			$("#tabs").tabs("option", "active", 9);
+		} else if (intro_url == 'users.py' && this._currentStep == 18) {
+			$("#tabs").tabs("option", "active", 10);
+		}
+		if (intro_url == 'servers.py' && this._currentStep == 5) {
+			$("#tabs").tabs("option", "active", 1);
+		} else if (intro_url == 'servers.py' && this._currentStep == 13) {
+			$("#tabs").tabs("option", "active", 2);
+		} else if (intro_url == 'servers.py' && this._currentStep == 16) {
+			$("#tabs").tabs("option", "active", 6);
+		} else if (intro_url == 'servers.py' && this._currentStep == 18) {
+			$("#tabs").tabs("option", "active", 7);
+		}
+	});
+	intro.onbeforeexit(function () {
+		if(localStorage.getItem('intro') === null) {
+			intro_history[intro_url] = '1';
+			localStorage.setItem('intro', JSON.stringify(intro_history));
+		} else {
+			intro_history = localStorage.getItem('intro');
+			intro_history = JSON.parse(intro_history);
+			intro_history[intro_url] = '1';
+			localStorage.setItem('intro', JSON.stringify(intro_history));
+		}
+	});
+	intro.onexit(function() {
+		sendGet('intro/' + intro_url + '/' + this._currentStep);
+	});
+	if(localStorage.getItem('intro') === null) {
+		if (intro_url.split('#')[0] == 'users.py' || intro_url.split('#')[0] == 'servers.py') {
+			$( "#tabs" ).tabs( "option", "active", 0 );
+		}
+		intro.start();
+	} else {
+		intro_history = localStorage.getItem('intro');
+		intro_history = JSON.parse(intro_history);
+		if (intro_history[intro_url] != '1') {
+			if (intro_url.split('#')[0] == 'users.py' || intro_url.split('#')[0] == 'servers.py') {
+				$( "#tabs" ).tabs( "option", "active", 0 );
+			}
+			intro.start();
+		}
+	}
+}
+document.addEventListener("DOMContentLoaded", function(event){
+	statAgriment();
+});
 function sendGet(page) {
 	var xmlHttp = new XMLHttpRequest();
 	var theUrl = 'https://roxy-wi.org/' + page;

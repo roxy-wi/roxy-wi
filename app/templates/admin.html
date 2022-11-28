@@ -5,18 +5,18 @@
 <script src="/inc/fontawesome.min.js"></script>
 {% include 'include/del_confirm.html' %}
 <div id="tabs">
-	<ul>
+	<ul id="admin-tabs">
 		<li><a href="#users" title="Admin area: Manage users - Roxy-WI">Users</a></li>
 		<li><a href="#groups" title="Admin area: Manage groups - Roxy-WI">Groups</a></li>
 		<li><a href="#servers" title="Admin area: Manage servers - Roxy-WI">Servers</a></li>
 		<li><a href="#ssh" title="Admin area: Manage SSH credentials - Roxy-WI">SSH credentials</a></li>
 		<li><a href="#checker" title="Admin area: Manage checker - Roxy-WI">Checker</a></li>
-		<li><a href="#openvpn" title="Admin area: OpenVPN - Roxy-WI">OpenVPN</a></li>
+		<li><a href="#openvpn" title="Admin area: OpenVPN - Roxy-WI" id="admin-tabs-vpn">OpenVPN</a></li>
 		<li><a href="#settings" title="Admin area: Manage Roxy-WI settings - Roxy-WI">Settings</a></li>
 		<li><a href="#services" title="Admin area: Manage Roxy-WI services - Roxy-WI">Services</a></li>
 		<li><a href="#updatehapwi" title="Admin area: Update Roxy-WI - Roxy-WI">Update</a></li>
-		<li><a href="#backup" title="Admin area: Backup configs - Roxy-WI">Backup</a></li>
-		<li><a href="#installmon" title="Servers: Monitoring service installation - Roxy-WI">Monitoring installation</a></li>
+		<li><a href="#backup" title="Admin area: Backup configs - Roxy-WI" id="admin-tabs-backup">Backup</a></li>
+		<li><a href="#installmon" title="Servers: Monitoring service installation - Roxy-WI" id="admin-tabs-mon">Monitoring installation</a></li>
 		{% include 'include/login.html' %}
 	</ul>
 	<ul id='browse_histroy'></ul>
@@ -184,4 +184,5 @@
 	});
 </script>
 <link href="/inc/css/servers.css" rel="stylesheet"/>
+{% include 'include/intro/admin.html' %}
 {% endblock %}
