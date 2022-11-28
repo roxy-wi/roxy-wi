@@ -1609,14 +1609,20 @@ function startIntro(intro) {
 	var intro_url = cur_url[0].split('#')[0];
 	var intro_history = {};
 	intro.onbeforechange(function (targetElement) {
-		if (intro_url == 'users.py' && this._currentStep == 5) {
+		if (intro_url == 'users.py' && this._currentStep == 3) {
+			$("#tabs").tabs("option", "active", 1);
+		} else if (intro_url == 'users.py' && this._currentStep == 4) {
 			$("#tabs").tabs("option", "active", 2);
-		} else if (intro_url == 'users.py' && this._currentStep == 13) {
+		} else if (intro_url == 'users.py' && this._currentStep == 6) {
 			$("#tabs").tabs("option", "active", 3);
-		} else if (intro_url == 'users.py' && this._currentStep == 16) {
-			$("#tabs").tabs("option", "active", 9);
-		} else if (intro_url == 'users.py' && this._currentStep == 18) {
-			$("#tabs").tabs("option", "active", 10);
+		} else if (intro_url == 'users.py' && this._currentStep == 7) {
+			$("#tabs").tabs("option", "active", 4);
+		} else if (intro_url == 'users.py' && this._currentStep == 9) {
+			$("#tabs").tabs("option", "active", 6);
+		} else if (intro_url == 'users.py' && this._currentStep == 10) {
+			$("#tabs").tabs("option", "active", 7);
+		} else if (intro_url == 'users.py' && this._currentStep == 12) {
+			$("#tabs").tabs("option", "active", 8);
 		}
 		if (intro_url == 'servers.py' && this._currentStep == 5) {
 			$("#tabs").tabs("option", "active", 1);
