@@ -5,7 +5,7 @@
 	</ul>
 
 	<div id="git_tab">
-		{% if user_status == 0 or user_plan == 'user' %}
+		{% if user_status == 0 or user_plan != 'support' %}
 			{% include 'include/no_sub.html' %}
 		{% else %}
 		<table class="overview" id="ajax-git-table">

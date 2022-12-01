@@ -14,10 +14,10 @@
     {% if user_status == 0 %}
     You are not subscribed. Please subscribe to have access to this feature.
         <p>
-            Read <a href="https://roxy-wi.org/pricing.py" title="Roxy-WI pricing" target="_blank">here</a> about subscriptions
+            Read <a href="https://roxy-wi.org/pricing" title="Roxy-WI pricing" target="_blank" class="link">here</a> about subscriptions
         </p>
-    {% elif user_plan == 'user' %}
-        This feature is not available for your plan.  To change the plan, follow this <a href="https://roxy-wi.org/pricing.py" title="Roxy-WI pricing" target="_blank">link</a>
+    {% elif user_plan == 'user' or user_plan != 'support' %}
+        This feature is not available for your plan. To change the plan, follow this <a href="https://roxy-wi.org/pricing" title="Roxy-WI pricing" target="_blank" class="link">link</a>
     {% endif %}
     </h4>
 </center>

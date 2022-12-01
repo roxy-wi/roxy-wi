@@ -6,6 +6,7 @@ import modules.roxywi.common as roxywi_common
 from modules.server import ssh_connection
 import modules.roxy_wi_tools as roxy_wi_tools
 
+form = common.form
 get_config_var = roxy_wi_tools.GetConfigVar()
 
 
@@ -354,3 +355,62 @@ def get_system_info(server_ip: str) -> str:
 		sql.insert_system_info(server_id, os_info, sys_info, cpu, ram, network, disks)
 	except Exception as e:
 		raise e
+
+
+def show_system_info() -> None:
+	from jinja2 import Environment, FileSystemLoader
+
+	server_ip = form.getvalue('server_ip')
+	server_ip = common.is_ip_or_dns(server_ip)
+	server_id = form.getvalue('server_id')
+
+	if server_ip == '':
+		print('error: IP or DNS name is not valid')
+		return
+
+	env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
+					  extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
+	env.globals['string_to_dict'] = common.string_to_dict
+	template = env.get_template('ajax/show_system_info.html')
+	if sql.is_system_info(server_id):
+		try:
+			get_system_info(server_ip)
+			system_info = sql.select_one_system_info(server_id)
+
+			template = template.render(system_info=system_info, server_ip=server_ip, server_id=server_id)
+			print(template)
+		except Exception as e:
+			print(f'Cannot update server info: {e}')
+	else:
+		system_info = sql.select_one_system_info(server_id)
+
+		template = template.render(system_info=system_info, server_ip=server_ip, server_id=server_id)
+		print(template)
+
+
+def update_system_info() -> None:
+	from jinja2 import Environment, FileSystemLoader
+
+	server_ip = form.getvalue('server_ip')
+	server_ip = common.is_ip_or_dns(server_ip)
+	server_id = form.getvalue('server_id')
+
+	if server_ip == '':
+		print('error: IP or DNS name is not valid')
+		return
+
+	sql.delete_system_info(server_id)
+
+	env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
+					  extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
+	env.globals['string_to_dict'] = common.string_to_dict
+	template = env.get_template('ajax/show_system_info.html')
+
+	try:
+		get_system_info(server_ip)
+		system_info = sql.select_one_system_info(server_id)
+
+		template = template.render(system_info=system_info, server_ip=server_ip, server_id=server_id)
+		print(template)
+	except Exception as e:
+		print(f'error: Cannot update server info: {e}')

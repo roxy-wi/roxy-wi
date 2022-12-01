@@ -4064,60 +4064,11 @@ if act == 'showListOfVersion':
 
 if act == 'getSystemInfo':
     import modules.server.server as server_mod
-
-    server_ip = form.getvalue('server_ip')
-    server_ip = common.is_ip_or_dns(server_ip)
-    server_id = form.getvalue('server_id')
-
-    if server_ip == '':
-        print('error: IP or DNS name is not valid')
-        sys.exit()
-
-    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
-                      extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
-    env.globals['string_to_dict'] = common.string_to_dict
-    template = env.get_template('ajax/show_system_info.html')
-    if sql.is_system_info(server_id):
-        try:
-            server_mod.get_system_info(server_ip)
-            system_info = sql.select_one_system_info(server_id)
-
-            template = template.render(system_info=system_info, server_ip=server_ip, server_id=server_id)
-            print(template)
-        except Exception as e:
-            print(f'Cannot update server info: {e}')
-    else:
-        system_info = sql.select_one_system_info(server_id)
-
-        template = template.render(system_info=system_info, server_ip=server_ip, server_id=server_id)
-        print(template)
+    server_mod.show_system_info()
 
 if act == 'updateSystemInfo':
     import modules.server.server as server_mod
-
-    server_ip = form.getvalue('server_ip')
-    server_ip = common.is_ip_or_dns(server_ip)
-    server_id = form.getvalue('server_id')
-
-    if server_ip == '':
-        print('error: IP or DNS name is not valid')
-        sys.exit()
-
-    sql.delete_system_info(server_id)
-
-    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
-                      extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
-    env.globals['string_to_dict'] = common.string_to_dict
-    template = env.get_template('ajax/show_system_info.html')
-
-    try:
-        server_mod.get_system_info(server_ip)
-        system_info = sql.select_one_system_info(server_id)
-
-        template = template.render(system_info=system_info, server_ip=server_ip, server_id=server_id)
-        print(template)
-    except Exception as e:
-        print(f'error: Cannot update server info: {e}')
+    server_mod.update_system_info()
 
 if act == 'findInConfigs':
     server_ip = serv
