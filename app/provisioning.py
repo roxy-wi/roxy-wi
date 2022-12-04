@@ -7,7 +7,6 @@ import modules.db.sql as sql
 import modules.common.common as common
 import modules.roxywi.auth as roxywi_auth
 import modules.roxywi.common as roxywi_common
-import modules.server.server as server_mod
 
 env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('provisioning.html')
@@ -31,13 +30,7 @@ try:
         groups = roxywi_common.get_user_group(id=1)
     user_group = roxywi_common.get_user_group(id=1)
 
-    cmd = 'which terraform'
-    output, stderr = server_mod.subprocess_execute(cmd)
-
-    if stderr != '':
-        is_terraform = False
-    else:
-        is_terraform = True
+    is_needed_tool = common.is_tool('terraform')
 
     params = sql.select_provisioning_params()
 except Exception as e:
@@ -46,6 +39,6 @@ except Exception as e:
 rendered_template = template.render(
     title="Servers provisioning", role=user_params['role'], user=user_params['user'], groups=groups,
     user_group=user_group, servers=sql.select_provisioned_servers(), providers=sql.select_providers(user_group),
-    is_terraform=is_terraform, user_services=user_params['user_services'], token=user_params['token'], params=params
+    is_needed_tool=is_needed_tool, user_services=user_params['user_services'], token=user_params['token'], params=params
 )
 print(rendered_template)

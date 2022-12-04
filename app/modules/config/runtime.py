@@ -218,3 +218,152 @@ def table_select():
 		template = template.render(tables_head=tables_head, table=table)
 
 	print(template)
+
+
+def delete_ip_from_stick_table() -> None:
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+	ip = common.checkAjaxInput(form.getvalue('ip_for_delete'))
+	table = common.checkAjaxInput(form.getvalue('table_for_delete'))
+
+	cmd = f'echo "clear table {table} key {ip}" |nc {serv} {haproxy_sock_port}'
+	output, stderr = server_mod.subprocess_execute(cmd)
+	if stderr[0] != '':
+		print('error: ' + stderr[0])
+
+
+def clear_stick_table() -> None:
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+	table = common.checkAjaxInput(form.getvalue('table_for_clear'))
+
+	cmd = f'echo "clear table {table} " |nc {serv} {haproxy_sock_port}'
+	output, stderr = server_mod.subprocess_execute(cmd)
+	if stderr[0] != '':
+		print('error: ' + stderr[0])
+
+
+def list_of_lists() -> None:
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+	cmd = f'echo "show acl"|nc {serv} {haproxy_sock_port} |grep "loaded from" |awk \'{{print $1,$2}}\''
+	output, stderr = server_mod.subprocess_execute(cmd)
+	print(output)
+
+
+def show_lists() -> None:
+	from jinja2 import Environment, FileSystemLoader
+	env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
+					  extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'], trim_blocks=True, lstrip_blocks=True)
+	template = env.get_template('ajax/list.html')
+	list_id = common.checkAjaxInput(form.getvalue('list_select_id'))
+	list_name = common.checkAjaxInput(form.getvalue('list_select_name'))
+
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+	cmd = f'echo "show acl #{list_id}"|nc {serv} {haproxy_sock_port}'
+	output, stderr = server_mod.subprocess_execute(cmd)
+
+	template = template.render(list=output, list_id=list_id, list_name=list_name)
+	print(template)
+
+
+def delete_ip_from_list() -> None:
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+	lists_path = sql.get_setting('lists_path')
+	lib_path = get_config.get_config_var('main', 'lib_path')
+	ip_id = common.checkAjaxInput(form.getvalue('list_ip_id_for_delete'))
+	ip = common.is_ip_or_dns(form.getvalue('list_ip_for_delete'))
+	list_id = common.checkAjaxInput(form.getvalue('list_id_for_delete'))
+	list_name = common.checkAjaxInput(form.getvalue('list_name'))
+	user_group = roxywi_common.get_user_group(id=1)
+	cmd = f"sed -i 's!{ip}$!!' {lib_path}/{lists_path}/{user_group}/{list_name}"
+	cmd1 = f"sed -i '/^$/d' {lib_path}/{lists_path}/{user_group}/{list_name}"
+	output, stderr = server_mod.subprocess_execute(cmd)
+	output1, stderr1 = server_mod.subprocess_execute(cmd1)
+	if output:
+		print(f'error: {output}')
+	if stderr:
+		print(f'error: {stderr}')
+	if output1:
+		print(f'error: {output1}')
+	if stderr1:
+		print(f'error: {stderr}')
+
+	cmd = f'echo "del acl #{list_id} #{ip_id}" |nc {serv} {haproxy_sock_port}'
+	output, stderr = server_mod.subprocess_execute(cmd)
+	if output[0] != '':
+		print(f'error: {output[0]}')
+	if stderr != '':
+		print(f'error: {stderr[0]}')
+
+	roxywi_common.logging(serv, f'{ip_id} has been delete from list {list_id}', login=1, keep_history=1,
+						  service='haproxy')
+
+
+def add_ip_to_list() -> None:
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+	lists_path = sql.get_setting('lists_path')
+	lib_path = get_config.get_config_var('main', 'lib_path')
+	ip = form.getvalue('list_ip_for_add')
+	ip = ip.strip()
+	ip = common.is_ip_or_dns(ip)
+	list_id = common.checkAjaxInput(form.getvalue('list_id_for_add'))
+	list_name = common.checkAjaxInput(form.getvalue('list_name'))
+	user_group = roxywi_common.get_user_group(id=1)
+	cmd = f'echo "add acl #{list_id} {ip}" |nc {serv} {haproxy_sock_port}'
+	output, stderr = server_mod.subprocess_execute(cmd)
+	if output[0]:
+		print(f'error: {output[0]}')
+	if stderr:
+		print(f'error: {stderr[0]}')
+
+	if 'is not a valid IPv4 or IPv6 address' not in output[0]:
+		cmd = f'echo "{ip}" >> {lib_path}/{lists_path}/{user_group}/{list_name}'
+		output, stderr = server_mod.subprocess_execute(cmd)
+		if output:
+			print(f'error: {output}')
+		if stderr:
+			print(f'error: {stderr}')
+
+	roxywi_common.logging(serv, f'{ip} has been added to list {list_id}', login=1, keep_history=1,
+						  service='haproxy')
+
+
+def select_session() -> None:
+	from jinja2 import Environment, FileSystemLoader
+	env = Environment(loader=FileSystemLoader('templates'), autoescape=True,
+					  extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'], trim_blocks=True, lstrip_blocks=True)
+	serv = common.checkAjaxInput(form.getvalue('sessions_select'))
+
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+
+	cmd = f'echo "show sess" |nc {serv} {haproxy_sock_port}'
+	output, stderr = server_mod.subprocess_execute(cmd)
+
+	template = env.get_template('ajax/sessions_table.html')
+	template = template.render(sessions=output)
+
+	print(template)
+
+
+def show_session() -> None:
+	serv = common.checkAjaxInput(form.getvalue('sessions_select_show'))
+	sess_id = common.checkAjaxInput(form.getvalue('sessions_select_id'))
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+	cmd = f'echo "show sess {sess_id}" |nc {serv} {haproxy_sock_port}'
+
+	output, stderr = server_mod.subprocess_execute(cmd)
+
+	if stderr:
+		print('error: ' + stderr[0])
+	else:
+		for o in output:
+			print(f'{o}<br />')
+
+
+def delete_session() -> None:
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+	sess_id = common.checkAjaxInput(form.getvalue('session_delete_id'))
+	cmd = 'echo "shutdown session %s" |nc %s %s' % (sess_id, serv, haproxy_sock_port)
+	output, stderr = server_mod.subprocess_execute(cmd)
+	if output[0] != '':
+		print('error: ' + output[0])
+	if stderr[0] != '':
+		print('error: ' + stderr[0])

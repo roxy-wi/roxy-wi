@@ -24,6 +24,7 @@ except Exception as e:
 	sys.exit()
 
 roxywi_auth.page_for_admin(level=2)
+is_needed_tool = common.is_tool('ansible')
 
 try:
 	user_subscription = roxywi_common.return_user_status()
@@ -34,6 +35,6 @@ except Exception as e:
 parsed_template = template.render(
 	h2=1, title=title, role=user_params['role'], user=user_params['user'], serv=serv, selects=user_params['servers'],
 	user_services=user_params['user_services'], user_status=user_subscription['user_status'],
-	user_plan=user_subscription['user_plan'], token=user_params['token']
+	user_plan=user_subscription['user_plan'], is_needed_tool=is_needed_tool, token=user_params['token']
 )
 print(parsed_template)

@@ -62,3 +62,10 @@ def string_to_dict(dict_string) -> dict:
 
 def get_key(item):
 	return item[0]
+
+
+def is_tool(name):
+	from shutil import which
+	is_tool_installed = which(name)
+
+	return True if is_tool_installed is not None else False

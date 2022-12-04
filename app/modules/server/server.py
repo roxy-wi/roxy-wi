@@ -81,7 +81,7 @@ def ssh_command(server_ip: str, commands: list, **kwargs):
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server',
 							  f' Something wrong with SSH connection: {e}', roxywi=1)
-		return str(f'error: {e}')
+		raise Exception(f'error: {e}')
 
 
 def subprocess_execute(cmd):

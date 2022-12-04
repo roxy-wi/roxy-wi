@@ -65,12 +65,7 @@ if not sql.check_token_exists(token):
     sys.exit()
 
 if form.getvalue('getcerts') is not None and serv is not None:
-    cert_path = sql.get_setting('cert_path')
-    commands = [f"sudo ls -1t {cert_path} |grep -E 'pem|crt|key'"]
-    try:
-        server_mod.ssh_command(serv, commands, ip="1")
-    except Exception as e:
-        print(f'error: Cannot connect to the server: {e.args[0]}')
+    config_mod.get_ssl_certs(serv)
 
 if form.getvalue('checkSshConnect') is not None and serv is not None:
     try:
@@ -79,60 +74,13 @@ if form.getvalue('checkSshConnect') is not None and serv is not None:
         print(e)
 
 if form.getvalue('getcert') is not None and serv is not None:
-    cert_id = common.checkAjaxInput(form.getvalue('getcert'))
-
-    cert_path = sql.get_setting('cert_path')
-    commands = [f"openssl x509 -in {cert_path}/{cert_id} -text"]
-    try:
-        server_mod.ssh_command(serv, commands, ip="1")
-    except Exception as e:
-        print(f'error: Cannot connect to the server {e.args[0]}')
+    config_mod.get_ssl_cert(serv)
 
 if form.getvalue('delcert') is not None and serv is not None:
-    cert_id = form.getvalue('delcert')
-    cert_id = common.checkAjaxInput(cert_id)
-    cert_path = sql.get_setting('cert_path')
-    commands = [f"sudo rm -f {cert_path}/{cert_id}"]
-    try:
-        server_mod.ssh_command(serv, commands, ip="1")
-    except Exception as e:
-        print(f'error: Cannot delete the certificate {e.args[0]}')
+    config_mod.del_ssl_cert(serv)
 
 if serv and form.getvalue('ssl_cert'):
-    cert_local_dir = os.path.dirname(os.getcwd()) + "/" + sql.get_setting('ssl_local_path')
-    cert_path = sql.get_setting('cert_path')
-    name = ''
-
-    if not os.path.exists(cert_local_dir):
-        os.makedirs(cert_local_dir)
-
-    if form.getvalue('ssl_name') is None:
-        print('error: Please enter a desired name')
-    else:
-        name = common.checkAjaxInput(form.getvalue('ssl_name'))
-
-    try:
-        with open(name, "w") as ssl_cert:
-            ssl_cert.write(form.getvalue('ssl_cert'))
-    except IOError as e:
-        print(f'error: Cannot save the SSL key file. Check a SSH key path in config {e.args[0]}')
-
-    MASTERS = sql.is_master(serv)
-    for master in MASTERS:
-        if master[0] is not None:
-            config_mod.upload(master[0], cert_path, name)
-            print('success: the SSL file has been uploaded to %s into: %s%s <br/>' % (master[0], cert_path, '/' + name))
-    try:
-        error = config_mod.upload(serv, cert_path, name)
-        print('success: the SSL file has been uploaded to %s into: %s%s' % (serv, cert_path, '/' + name))
-    except Exception as e:
-        roxywi_common.logging('Roxy-WI server', e.args[0], roxywi=1)
-    try:
-        os.rename(name, cert_local_dir)
-    except OSError as e:
-        roxywi_common.logging('Roxy-WI server', e.args[0], roxywi=1)
-
-    roxywi_common.logging(serv, "add.py#ssl uploaded a new SSL cert %s" % name, roxywi=1, login=1)
+    config_mod.upload_ssl_cert(serv)
 
 if form.getvalue('backend') is not None:
     import modules.config.runtime as runtime
@@ -187,142 +135,49 @@ if form.getvalue('table_select') is not None:
     runtime.table_select()
 
 if form.getvalue('ip_for_delete') is not None:
-    haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-    ip = common.checkAjaxInput(form.getvalue('ip_for_delete'))
-    table = common.checkAjaxInput(form.getvalue('table_for_delete'))
+    import modules.config.runtime as runtime
 
-    cmd = 'echo "clear table %s key %s" |nc %s %s' % (table, ip, serv, haproxy_sock_port)
-    output, stderr = server_mod.subprocess_execute(cmd)
-    if stderr[0] != '':
-        print('error: ' + stderr[0])
+    runtime.delete_ip_from_stick_table()
 
 if form.getvalue('table_for_clear') is not None:
-    haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-    table = common.checkAjaxInput(form.getvalue('table_for_clear'))
+    import modules.config.runtime as runtime
 
-    cmd = 'echo "clear table %s " |nc %s %s' % (table, serv, haproxy_sock_port)
-    output, stderr = server_mod.subprocess_execute(cmd)
-    if stderr[0] != '':
-        print('error: ' + stderr[0])
+    runtime.clear_stick_table()
 
 if form.getvalue('list_serv_select') is not None:
-    haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-    cmd = f'echo "show acl"|nc {serv} {haproxy_sock_port} |grep "loaded from" |awk \'{{print $1,$2}}\''
-    output, stderr = server_mod.subprocess_execute(cmd)
-    print(output)
+    import modules.config.runtime as runtime
+
+    runtime.list_of_lists()
 
 if form.getvalue('list_select_id') is not None:
-    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
-                      extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'], trim_blocks=True, lstrip_blocks=True)
-    template = env.get_template('ajax/list.html')
-    list_id = common.checkAjaxInput(form.getvalue('list_select_id'))
-    list_name = common.checkAjaxInput(form.getvalue('list_select_name'))
+    import modules.config.runtime as runtime
 
-    haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-    cmd = f'echo "show acl #{list_id}"|nc {serv} {haproxy_sock_port}'
-    output, stderr = server_mod.subprocess_execute(cmd)
-
-    template = template.render(list=output, list_id=list_id, list_name=list_name)
-    print(template)
+    runtime.show_lists()
 
 if form.getvalue('list_id_for_delete') is not None:
-    haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-    lists_path = sql.get_setting('lists_path')
-    lib_path = get_config.get_config_var('main', 'lib_path')
-    ip_id = common.checkAjaxInput(form.getvalue('list_ip_id_for_delete'))
-    ip = common.is_ip_or_dns(form.getvalue('list_ip_for_delete'))
-    list_id = common.checkAjaxInput(form.getvalue('list_id_for_delete'))
-    list_name = common.checkAjaxInput(form.getvalue('list_name'))
-    user_group = roxywi_common.get_user_group(id=1)
-    cmd = f"sed -i 's!{ip}$!!' {lib_path}/{lists_path}/{user_group}/{list_name}"
-    cmd1 = f"sed -i '/^$/d' {lib_path}/{lists_path}/{user_group}/{list_name}"
-    output, stderr = server_mod.subprocess_execute(cmd)
-    output1, stderr1 = server_mod.subprocess_execute(cmd1)
-    if output:
-        print(f'error: {output}')
-    if stderr:
-        print(f'error: {stderr}')
-    if output1:
-        print(f'error: {output1}')
-    if stderr1:
-        print(f'error: {stderr}')
+    import modules.config.runtime as runtime
 
-    cmd = f'echo "del acl #{list_id} #{ip_id}" |nc {serv} {haproxy_sock_port}'
-    output, stderr = server_mod.subprocess_execute(cmd)
-    if output[0] != '':
-        print(f'error: {output[0]}')
-    if stderr != '':
-        print(f'error: {stderr[0]}')
-
-    roxywi_common.logging(serv, f'{ip_id} has been delete from list {list_id}', login=1, keep_history=1,
-                  service='haproxy')
+    runtime.delete_ip_from_list()
 
 if form.getvalue('list_ip_for_add') is not None:
-    haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-    lists_path = sql.get_setting('lists_path')
-    lib_path = get_config.get_config_var('main', 'lib_path')
-    ip = form.getvalue('list_ip_for_add')
-    ip = ip.strip()
-    ip = common.is_ip_or_dns(ip)
-    list_id = common.checkAjaxInput(form.getvalue('list_id_for_add'))
-    list_name = common.checkAjaxInput(form.getvalue('list_name'))
-    user_group = roxywi_common.get_user_group(id=1)
-    cmd = f'echo "add acl #{list_id} {ip}" |nc {serv} {haproxy_sock_port}'
-    output, stderr = server_mod.subprocess_execute(cmd)
-    if output[0]:
-        print(f'error: {output[0]}')
-    if stderr:
-        print(f'error: {stderr[0]}')
+    import modules.config.runtime as runtime
 
-    if 'is not a valid IPv4 or IPv6 address' not in output[0]:
-        cmd = f'echo "{ip}" >> {lib_path}/{lists_path}/{user_group}/{list_name}'
-        output, stderr = server_mod.subprocess_execute(cmd)
-        if output:
-            print(f'error: {output}')
-        if stderr:
-            print(f'error: {stderr}')
-
-    roxywi_common.logging(serv, f'{ip} has been added to list {list_id}', login=1, keep_history=1,
-                  service='haproxy')
+    runtime.add_ip_to_list()
 
 if form.getvalue('sessions_select') is not None:
-    env = Environment(loader=FileSystemLoader('templates'), autoescape=True,
-                      extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'], trim_blocks=True, lstrip_blocks=True)
-    serv = common.checkAjaxInput(form.getvalue('sessions_select'))
+    import modules.config.runtime as runtime
 
-    haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-
-    cmd = f'echo "show sess" |nc {serv} {haproxy_sock_port}'
-    output, stderr = server_mod.subprocess_execute(cmd)
-
-    template = env.get_template('ajax/sessions_table.html')
-    template = template.render(sessions=output)
-
-    print(template)
+    runtime.select_session()
 
 if form.getvalue('sessions_select_show') is not None:
-    serv = common.checkAjaxInput(form.getvalue('sessions_select_show'))
-    sess_id = common.checkAjaxInput(form.getvalue('sessions_select_id'))
-    haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-    cmd = 'echo "show sess %s" |nc %s %s' % (sess_id, serv, haproxy_sock_port)
+    import modules.config.runtime as runtime
 
-    output, stderr = server_mod.subprocess_execute(cmd)
-
-    if stderr:
-        print('error: ' + stderr[0])
-    else:
-        for o in output:
-            print(o + '<br />')
+    runtime.show_session()
 
 if form.getvalue('session_delete_id') is not None:
-    haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-    sess_id = common.checkAjaxInput(form.getvalue('session_delete_id'))
-    cmd = 'echo "shutdown session %s" |nc %s %s' % (sess_id, serv, haproxy_sock_port)
-    output, stderr = server_mod.subprocess_execute(cmd)
-    if output[0] != '':
-        print('error: ' + output[0])
-    if stderr[0] != '':
-        print('error: ' + stderr[0])
+    import modules.config.runtime as runtime
+
+    runtime.delete_session()
 
 if form.getvalue("change_pos") is not None:
     pos = form.getvalue('change_pos')
@@ -338,170 +193,46 @@ if form.getvalue('showif'):
     server_mod.ssh_command(serv, commands, ip="1")
 
 if form.getvalue('action_hap') is not None and serv is not None:
+    import modules.service.action as service_action
+
     action = form.getvalue('action_hap')
-    haproxy_service_name = "haproxy"
-
-    if action not in ('start', 'stop', 'reload', 'restart'):
-        print('error: wrong action')
-        sys.exit()
-
-    service_common.is_restarted(serv, action)
-
-    if service_common.check_haproxy_config(serv):
-        server_id = sql.select_server_id_by_ip(server_ip=serv)
-
-        if action == 'restart':
-            service_common.is_not_allowed_to_restart(server_id, 'haproxy')
-
-        is_docker = sql.select_service_setting(server_id, 'haproxy', 'dockerized')
-
-        if is_docker == '1':
-            container_name = sql.get_setting('haproxy_container_name')
-            commands = [f"sudo docker {action} {container_name}"]
-        else:
-            haproxy_enterprise = sql.select_service_setting(server_id, 'haproxy', 'haproxy_enterprise')
-            if haproxy_enterprise == '1':
-                haproxy_service_name = "hapee-2.0-lb"
-            commands = [f"sudo systemctl {action} {haproxy_service_name}"]
-
-        server_mod.ssh_command(serv, commands)
-        roxywi_common.logging(serv, f'Service has been {action}ed', roxywi=1, login=1, keep_history=1,
-                      service='haproxy')
-        print(f"success: HAProxy has been {action}")
-    else:
-        print("error: Bad config, check please")
+    service_action.action_haproxy(serv, action)
 
 if form.getvalue('action_nginx') is not None and serv is not None:
+    import modules.service.action as service_action
+
     action = form.getvalue('action_nginx')
-
-    if action not in ('start', 'stop', 'reload', 'restart'):
-        print('error: wrong action')
-        sys.exit()
-
-    service_common.is_restarted(serv, action)
-
-    if service_common.check_nginx_config(serv):
-        server_id = sql.select_server_id_by_ip(server_ip=serv)
-
-        if action == 'restart':
-            service_common.is_not_allowed_to_restart(server_id, 'nginx')
-        is_docker = sql.select_service_setting(server_id, 'nginx', 'dockerized')
-
-        if is_docker == '1':
-            container_name = sql.get_setting('nginx_container_name')
-            commands = ["sudo docker %s %s" % (action, container_name)]
-        else:
-            commands = ["sudo systemctl %s nginx" % action]
-        server_mod.ssh_command(serv, commands)
-        roxywi_common.logging(serv, 'Service has been ' + action + 'ed', roxywi=1, login=1, keep_history=1, service='nginx')
-        print("success: Nginx has been %s" % action)
-    else:
-        print("error: Bad config, check please")
+    service_action.action_nginx(serv, action)
 
 if form.getvalue('action_keepalived') is not None and serv is not None:
+    import modules.service.action as service_action
+
     action = form.getvalue('action_keepalived')
-
-    if action not in ('start', 'stop', 'reload', 'restart'):
-        print('error: wrong action')
-        sys.exit()
-
-    service_common.is_restarted(serv, action)
-
-    commands = ["sudo systemctl %s keepalived" % action]
-    server_mod.ssh_command(serv, commands)
-    roxywi_common.logging(serv, 'Service has been ' + action + 'ed', roxywi=1, login=1, keep_history=1, service='keepalived')
-    print("success: Keepalived has been %s" % action)
+    service_action.action_keepalived(serv, action)
 
 if form.getvalue('action_waf') is not None and serv is not None:
-    serv = form.getvalue('serv')
+    import modules.service.action as service_action
+
     action = form.getvalue('action_waf')
-
-    if action not in ('start', 'stop', 'reload', 'restart'):
-        print('error: wrong action')
-        sys.exit()
-
-    service_common.is_restarted(serv, action)
-
-    roxywi_common.logging(serv, 'HAProxy WAF service has been ' + action + 'ed', roxywi=1, login=1, keep_history=1,
-                  service='haproxy')
-    commands = ["sudo systemctl %s waf" % action]
-    server_mod.ssh_command(serv, commands)
+    service_action.action_haproxy_waf(serv, action)
 
 if form.getvalue('action_waf_nginx') is not None and serv is not None:
-    serv = form.getvalue('serv')
+    import modules.service.action as service_action
+
     action = form.getvalue('action_waf_nginx')
-    config_dir = common.return_nice_path(sql.get_setting('nginx_dir'))
-
-    if action not in ('start', 'stop'):
-        print('error: wrong action')
-        sys.exit()
-
-    service_common.is_restarted(serv, action)
-
-    waf_new_state = 'on' if action == 'start' else 'off'
-    waf_old_state = 'off' if action == 'start' else 'on'
-
-    roxywi_common.logging(serv, 'NGINX WAF service has been ' + action + 'ed', roxywi=1, login=1, keep_history=1,
-                  service='nginx')
-    commands = [f"sudo sed -i 's/modsecurity {waf_old_state}/modsecurity {waf_new_state}/g' {config_dir}nginx.conf"
-                f" && sudo systemctl reload nginx"]
-    server_mod.ssh_command(serv, commands)
+    service_action.action_nginx_waf(serv, action)
 
 if form.getvalue('action_apache') is not None and serv is not None:
+    import modules.service.action as service_action
+
     action = form.getvalue('action_apache')
-
-    if action not in ('start', 'stop', 'reload', 'restart'):
-        print('error: wrong action')
-        sys.exit()
-
-    service_common.is_restarted(serv, action)
-
-    server_id = sql.select_server_id_by_ip(serv)
-
-    if action == 'restart':
-        service_common.is_not_allowed_to_restart(server_id, 'apache')
-
-    is_docker = sql.select_service_setting(server_id, 'apache', 'dockerized')
-    if is_docker == '1':
-        container_name = sql.get_setting('apache_container_name')
-        commands = ["sudo docker %s %s" % (action, container_name)]
-    else:
-        service_apache_name = service_common.get_correct_apache_service_name(None, server_id)
-
-        commands = ["sudo systemctl %s %s" % (action, service_apache_name)]
-    server_mod.ssh_command(serv, commands)
-    roxywi_common.logging(serv, 'Service has been ' + action + 'ed', roxywi=1, login=1, keep_history=1, service='apache')
-    print("success: Apache has been %s" % action)
+    service_action.action_apache(serv, action)
 
 if form.getvalue('action_service') is not None:
     import modules.roxywi.roxy as roxy
+
     action = common.checkAjaxInput(form.getvalue('action_service'))
-
-    if action not in ('start', 'stop', 'restart'):
-        print('error: wrong action')
-        sys.exit()
-
-    is_in_docker = roxy.is_docker()
-    if action == 'stop':
-        cmd = "sudo systemctl disable %s --now" % serv
-    elif action == "start":
-        cmd = "sudo systemctl enable %s --now" % serv
-        if not sql.select_user_status():
-            print(
-                'warning: The service is disabled because you are not subscribed. Read <a href="https://roxy-wi.org/pricing.py" '
-                'title="Roxy-WI pricing" target="_blank">here</a> about subscriptions')
-            sys.exit()
-    elif action == "restart":
-        cmd = "sudo systemctl restart %s --now" % serv
-        if not sql.select_user_status():
-            print(
-                'warning: The service is disabled because you are not subscribed. Read <a href="https://roxy-wi.org/pricing.py" '
-                'title="Roxy-WI pricing" target="_blank">here</a> about subscriptions')
-            sys.exit()
-    if is_in_docker:
-        cmd = "sudo supervisorctl " + action + " " + serv
-    output, stderr = server_mod.subprocess_execute(cmd)
-    roxywi_common.logging('Roxy-WI server', ' The service ' + serv + ' has been ' + action + 'ed', roxywi=1, login=1)
+    roxy.action_service(action, serv)
 
 if act == "overviewHapserverBackends":
     import modules.config.section as section_mod
@@ -1882,77 +1613,24 @@ if form.getvalue('change_waf_mode'):
 error_mess = 'error: All fields must be completed'
 
 if form.getvalue('newuser') is not None:
-    email = form.getvalue('newemail')
-    password = form.getvalue('newpassword')
-    role = form.getvalue('newrole')
-    new_user = form.getvalue('newusername')
-    page = form.getvalue('page')
-    activeuser = form.getvalue('activeuser')
-    group = form.getvalue('newgroupuser')
-    role_id = sql.get_role_id_by_name(role)
+    import modules.roxywi.user as roxywi_user
 
-    if roxywi_common.check_user_group():
-        if roxywi_auth.is_admin(level=role_id):
-            try:
-                sql.add_user(new_user, email, password, role, activeuser, group)
-                env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
-                template = env.get_template('ajax/new_user.html')
-
-                template = template.render(users=sql.select_users(user=new_user),
-                                           groups=sql.select_groups(),
-                                           page=page,
-                                           roles=sql.select_roles(),
-                                           adding=1)
-                print(template)
-                roxywi_common.logging(f'a new user {new_user}', ' has been created ', roxywi=1, login=1)
-            except Exception as e:
-                print(e)
-                roxywi_common.logging('Cannot create a new user', e, roxywi=1, login=1)
-        else:
-            print('error: dalsdm')
-            roxywi_common.logging(new_user, ' tried to privilege escalation', roxywi=1, login=1)
+    roxywi_user.create_user()
 
 if form.getvalue('userdel') is not None:
-    userdel = form.getvalue('userdel')
-    user = sql.select_users(id=userdel)
-    username = ''
-    for u in user:
-        username = u.username
-    if sql.delete_user(userdel):
-        sql.delete_user_groups(userdel)
-        roxywi_common.logging(username, ' has been deleted user ', roxywi=1, login=1)
-        print("Ok")
+    import modules.roxywi.user as roxywi_user
+
+    roxywi_user.delete_user()
 
 if form.getvalue('updateuser') is not None:
-    email = form.getvalue('email')
-    role = form.getvalue('role')
-    new_user = form.getvalue('updateuser')
-    user_id = form.getvalue('id')
-    activeuser = form.getvalue('activeuser')
-    group = form.getvalue('usergroup')
-    role_id = sql.get_role_id_by_name(role)
+    import modules.roxywi.user as roxywi_user
 
-    if roxywi_common.check_user_group():
-        if roxywi_auth.is_admin(level=role_id):
-            sql.update_user(new_user, email, role, user_id, activeuser)
-            roxywi_common.logging(new_user, ' has been updated user ', roxywi=1, login=1)
-        else:
-            roxywi_common.logging(new_user, ' tried to privilege escalation', roxywi=1, login=1)
+    roxywi_user.update_user()
 
 if form.getvalue('updatepassowrd') is not None:
-    password = form.getvalue('updatepassowrd')
-    username = ''
+    import modules.roxywi.user as roxywi_user
 
-    if form.getvalue('uuid'):
-        user_id = sql.get_user_id_by_uuid(form.getvalue('uuid'))
-    else:
-        user_id = form.getvalue('id')
-    user = sql.select_users(id=user_id)
-    for u in user:
-        username = u.username
-    sql.update_user_password(password, user_id)
-    roxywi_common.logging('user ' + username, ' has changed password ', roxywi=1, login=1)
-    print("Ok")
+    roxywi_user.update_user_password()
 
 if form.getvalue('newserver') is not None:
     import modules.server.server as server_mod
@@ -2645,7 +2323,7 @@ if form.getvalue('lets_domain'):
     lets_domain = form.getvalue('lets_domain')
     lets_email = form.getvalue('lets_email')
     proxy = sql.get_setting('proxy')
-    ssl_path = sql.get_setting('cert_path')
+    ssl_path = common.return_nice_path(sql.get_setting('cert_path'))
     haproxy_dir = sql.get_setting('haproxy_dir')
     script = "letsencrypt.sh"
     proxy_serv = ''

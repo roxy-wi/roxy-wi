@@ -21,6 +21,9 @@
   when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and HAPVER|length > 0
   ignore_errors: yes
   register: install_result
+  retries: 5
+  until: install_result.rc == 0
+  delay: 5
   environment:
     http_proxy: "{{PROXY}}"
     https_proxy: "{{PROXY}}"
@@ -34,9 +37,12 @@
       - rsyslog
       - bind-utils
     state: present
-  register: install_result1
   when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and ("'timed out' in install_result.stderr")
   ignore_errors: yes
+  register: install_result1
+  retries: 5
+  until: install_result1.rc == 0
+  delay: 5
   environment:
     http_proxy: "{{PROXY}}"
     https_proxy: "{{PROXY}}"
@@ -56,6 +62,10 @@
       - rsyslog
     state: latest
   when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and ("'FAILED' in install_result1.stderr")
+  register: install_result
+  retries: 5
+  until: install_result.rc == 0
+  delay: 5
   environment:
     http_proxy: "{{PROXY}}"
     https_proxy: "{{PROXY}}"
@@ -69,6 +79,10 @@
       - rsyslog
     state: present
   when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'Ubuntu'
+  register: install_result
+  retries: 5
+  until: install_result.rc == 0
+  delay: 5
   environment:
     http_proxy: "{{PROXY}}"
     https_proxy: "{{PROXY}}"

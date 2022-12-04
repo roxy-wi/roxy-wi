@@ -33,6 +33,7 @@ ldap_enable = sql.get_setting('ldap_enable')
 services = sql.select_services()
 gits = sql.select_gits()
 masters = sql.select_servers(get_master_servers=1)
+is_needed_tool = common.is_tool('ansible')
 
 try:
 	user_subscription = roxywi_common.return_user_status()
@@ -45,6 +46,7 @@ rendered_template = template.render(
 	servers=sql.select_servers(full=1), roles=sql.select_roles(), masters=masters, sshs=sql.select_ssh(),
 	settings=settings, backups=sql.select_backups(), services=services, timezones=pytz.all_timezones,
 	page="users.py", user_services=user_params['user_services'], ldap_enable=ldap_enable, gits=gits, guide_me=1,
-	user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'], token=user_params['token']
+	user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'], token=user_params['token'],
+	is_needed_tool=is_needed_tool
 )
 print(rendered_template)

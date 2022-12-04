@@ -4,6 +4,7 @@ import re
 import distro
 
 import modules.db.sql as sql
+import modules.common.common as common
 import modules.server.server as server_mod
 import modules.roxywi.common as roxywi_common
 
@@ -179,3 +180,24 @@ def check_new_version(service):
 		roxywi_common.logging('Roxy-WI server', f' {e}', roxywi=1)
 
 	return res
+
+
+def action_service(action: str, service: str) -> None:
+	if action not in ('start', 'stop', 'restart'):
+		print('error: wrong action')
+		return
+
+	is_in_docker = is_docker()
+	if action == 'stop':
+		cmd = f"sudo systemctl disable {service} --now"
+	elif action in ("start", "restart"):
+		cmd = f"sudo systemctl {action} {service} --now"
+		if not sql.select_user_status():
+			print(
+				'warning: The service is disabled because you are not subscribed. Read <a href="https://roxy-wi.org/pricing" '
+				'title="Roxy-WI pricing" target="_blank">here</a> about subscriptions')
+			sys.exit()
+	if is_in_docker:
+		cmd = f"sudo supervisorctl {action} {service}"
+	os.system(cmd)
+	roxywi_common.logging('Roxy-WI server', f' The service {service} has been {action}ed', roxywi=1, login=1)

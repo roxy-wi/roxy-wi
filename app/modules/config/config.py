@@ -3,11 +3,13 @@ import re
 import http.cookies
 
 import modules.db.sql as sql
+import modules.common.common as common
 import modules.server.server as server_mod
 import modules.roxywi.common as roxywi_common
 import modules.roxy_wi_tools as roxy_wi_tools
 from modules.service.common import is_not_allowed_to_restart, get_correct_apache_service_name
 
+form = common.form
 time_zone = sql.get_setting('time_zone')
 get_date = roxy_wi_tools.GetDate(time_zone)
 get_config_var = roxy_wi_tools.GetConfigVar()
@@ -372,3 +374,74 @@ def get_userlists(config):
 				return_config += line + ','
 
 	return return_config
+
+
+def get_ssl_cert(server_ip: str) -> None:
+	cert_id = common.checkAjaxInput(form.getvalue('getcert'))
+
+	cert_path = sql.get_setting('cert_path')
+	commands = [f"openssl x509 -in {cert_path}/{cert_id} -text"]
+	try:
+		server_mod.ssh_command(server_ip, commands, ip="1")
+	except Exception as e:
+		print(f'error: Cannot connect to the server {e.args[0]}')
+
+
+def get_ssl_certs(server_ip: str) -> None:
+	cert_path = sql.get_setting('cert_path')
+	commands = [f"sudo ls -1t {cert_path} |grep -E 'pem|crt|key'"]
+	try:
+		server_mod.ssh_command(server_ip, commands, ip="1")
+	except Exception as e:
+		print(f'error: Cannot connect to the server: {e.args[0]}')
+
+
+def del_ssl_cert(server_ip: str) -> None:
+	cert_id = form.getvalue('delcert')
+	cert_id = common.checkAjaxInput(cert_id)
+	cert_path = sql.get_setting('cert_path')
+	commands = [f"sudo rm -f {cert_path}/{cert_id}"]
+	try:
+		server_mod.ssh_command(server_ip, commands, ip="1")
+	except Exception as e:
+		print(f'error: Cannot delete the certificate {e.args[0]}')
+
+
+def upload_ssl_cert(server_ip: str) -> None:
+	cert_local_dir = f"{os.path.dirname(os.getcwd())}/{sql.get_setting('ssl_local_path')}"
+	cert_path = sql.get_setting('cert_path')
+	name = ''
+
+	if not os.path.exists(cert_local_dir):
+		os.makedirs(cert_local_dir)
+
+	if form.getvalue('ssl_name') is None:
+		print('error: Please enter a desired name')
+	else:
+		name = f"{common.checkAjaxInput(form.getvalue('ssl_name'))}.pem"
+
+	try:
+		with open(name, "w") as ssl_cert:
+			ssl_cert.write(form.getvalue('ssl_cert'))
+	except IOError as e:
+		print(f'error: Cannot save the SSL key file: {e.args[0]}')
+		sys.exit()
+
+	masters = sql.is_master(server_ip)
+	for master in masters:
+		if master[0] is not None:
+			error = upload(master[0], cert_path, name)
+			if not error:
+				print(f'success: the SSL file has been uploaded to {master[0]} into: {cert_path}/{name} <br/>')
+	try:
+		error = upload(server_ip, cert_path, name)
+		if not error:
+			print(f'success: the SSL file has been uploaded to {server_ip} into: {cert_path}/{name}')
+	except Exception as e:
+		roxywi_common.logging('Roxy-WI server', e.args[0], roxywi=1)
+	try:
+		os.rename(name, cert_local_dir)
+	except OSError as e:
+		roxywi_common.logging('Roxy-WI server', e.args[0], roxywi=1)
+
+	roxywi_common.logging(server_ip, f"add.py#ssl uploaded a new SSL cert {name}", roxywi=1, login=1)
