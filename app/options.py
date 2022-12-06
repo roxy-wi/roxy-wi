@@ -319,74 +319,11 @@ if act == "overview":
     roxy_overview.show_overview(serv)
 
 if act == "overviewwaf":
-    env = Environment(
-        loader=FileSystemLoader('templates/ajax'), autoescape=True,
-        extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do']
-    )
-    template = env.get_template('overivewWaf.html')
+    import modules.roxywi.waf as roxy_waf
 
-    waf_service = form.getvalue('service')
-    servers = sql.select_servers(server=serv)
-    cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-    user_id = cookie.get('uuid')
-
-    config_path = ''
-    returned_servers = []
-    waf = ''
-    metrics_en = 0
-    waf_process = ''
-    waf_mode = ''
-    is_waf_on_server = 0
-
-    for server in servers:
-        if waf_service == 'haproxy':
-            is_waf_on_server = sql.select_haproxy(server[2])
-        elif waf_service == 'nginx':
-            is_waf_on_server = sql.select_nginx(server[2])
-
-        if is_waf_on_server == 1:
-            config_path = sql.get_setting(f'{waf_service}_dir')
-            if waf_service == 'haproxy':
-                waf = sql.select_waf_servers(server[2])
-                metrics_en = sql.select_waf_metrics_enable_server(server[2])
-            elif waf_service == 'nginx':
-                waf = sql.select_waf_nginx_servers(server[2])
-            try:
-                waf_len = len(waf)
-            except Exception:
-                waf_len = 0
-
-            if waf_len >= 1:
-                if waf_service == 'haproxy':
-                    command = ["ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l"]
-                elif waf_service == 'nginx':
-                    command = [
-                        f"grep 'modsecurity on' {common.return_nice_path(config_path)}* --exclude-dir=waf -Rs |wc -l"]
-                commands1 = [
-                    f"grep SecRuleEngine {config_path}/waf/modsecurity.conf |grep -v '#' |awk '{{print $2}}'"]
-                waf_process = server_mod.ssh_command(server[2], command)
-                waf_mode = server_mod.ssh_command(server[2], commands1).strip()
-
-                server_status = (server[1],
-                                 server[2],
-                                 waf_process,
-                                 waf_mode,
-                                 metrics_en,
-                                 waf_len)
-            else:
-                server_status = (server[1],
-                                 server[2],
-                                 waf_process,
-                                 waf_mode,
-                                 metrics_en,
-                                 waf_len)
-
-        returned_servers.append(server_status)
-
-    servers_sorted = sorted(returned_servers, key=common.get_key)
-    template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_id.value),
-                               waf_service=waf_service)
-    print(template)
+    waf_service = common.checkAjaxInput(form.getvalue('service'))
+    serv = common.checkAjaxInput(serv)
+    roxy_waf.waf_overview(serv, waf_service)
 
 if act == "overviewServers":
     import asyncio
@@ -1153,7 +1090,8 @@ if form.getvalue('update_roxy_wi'):
     roxy.update_roxy_wi(service)
 
 if form.getvalue('metrics_waf'):
-    sql.update_waf_metrics_enable(form.getvalue('metrics_waf'), form.getvalue('enable'))
+    metrics_waf = common.checkAjaxInput(form.getvalue('metrics_waf'))
+    sql.update_waf_metrics_enable(metrics_waf, form.getvalue('enable'))
 
 if form.getvalue('table_metrics'):
     service = form.getvalue('service')
@@ -1509,19 +1447,9 @@ if form.getvalue('get_ldap_email'):
         ldap_bind.unbind()
 
 if form.getvalue('change_waf_mode'):
-    waf_mode = common.checkAjaxInput(form.getvalue('change_waf_mode'))
-    server_hostname = form.getvalue('server_hostname')
-    service = common.checkAjaxInput(form.getvalue('service'))
-    serv = sql.select_server_by_name(server_hostname)
+    import modules.roxywi.waf as roxy_waf
 
-    if service == 'haproxy':
-        config_dir = sql.get_setting('haproxy_dir')
-    elif service == 'nginx':
-        config_dir = sql.get_setting('nginx_dir')
-
-    commands = [f"sudo sed -i 's/^SecRuleEngine.*/SecRuleEngine {waf_mode}/' {config_dir}/waf/modsecurity.conf"]
-    server_mod.ssh_command(serv, commands)
-    roxywi_common.logging(serv, f'Has been changed WAF mod to {waf_mode}', roxywi=1, login=1)
+    roxy_waf. change_waf_mode()
 
 error_mess = 'error: All fields must be completed'
 
@@ -1548,23 +1476,23 @@ if form.getvalue('updatepassowrd') is not None:
 if form.getvalue('newserver') is not None:
     import modules.server.server as server_mod
 
-    hostname = form.getvalue('servername')
+    hostname = common.checkAjaxInput(form.getvalue('servername'))
     ip = form.getvalue('newip')
     ip = common.is_ip_or_dns(ip)
-    group = form.getvalue('newservergroup')
-    scan_server = form.getvalue('scan_server')
-    typeip = form.getvalue('typeip')
-    haproxy = form.getvalue('haproxy')
-    nginx = form.getvalue('nginx')
-    apache = form.getvalue('apache')
-    firewall = form.getvalue('firewall')
-    enable = form.getvalue('enable')
-    master = form.getvalue('slave')
-    cred = form.getvalue('cred')
-    page = form.getvalue('page')
+    group = common.checkAjaxInput(form.getvalue('newservergroup'))
+    scan_server = common.checkAjaxInput(form.getvalue('scan_server'))
+    typeip = common.checkAjaxInput(form.getvalue('typeip'))
+    haproxy = common.checkAjaxInput(form.getvalue('haproxy'))
+    nginx = common.checkAjaxInput(form.getvalue('nginx'))
+    apache = common.checkAjaxInput(form.getvalue('apache'))
+    firewall = common.checkAjaxInput(form.getvalue('firewall'))
+    enable = common.checkAjaxInput(form.getvalue('enable'))
+    master = common.checkAjaxInput(form.getvalue('slave'))
+    cred = common.checkAjaxInput(form.getvalue('cred'))
+    page = common.checkAjaxInput(form.getvalue('page'))
     page = page.split("#")[0]
-    port = form.getvalue('newport')
-    desc = form.getvalue('desc')
+    port = common.checkAjaxInput(form.getvalue('newport'))
+    desc = common.checkAjaxInput(form.getvalue('desc'))
 
     if ip == '':
         print('error: IP or DNS name is not valid')
@@ -2180,56 +2108,14 @@ if form.getvalue('apachekBytes'):
         print('error: cannot connect to Apache stat page')
 
 if form.getvalue('waf_rule_id'):
-    enable = common.checkAjaxInput(form.getvalue('waf_en'))
-    rule_id = common.checkAjaxInput(form.getvalue('waf_rule_id'))
+    import modules.roxywi.waf as roxy_waf
 
-    haproxy_path = sql.get_setting('haproxy_dir')
-    rule_file = sql.select_waf_rule_by_id(rule_id)
-    conf_file_path = haproxy_path + '/waf/modsecurity.conf'
-    rule_file_path = 'Include ' + haproxy_path + '/waf/rules/' + rule_file
-    print(rule_file_path)
-
-    if enable == '0':
-        cmd = ["sudo sed -i 's!" + rule_file_path + "!#" + rule_file_path + "!' " + conf_file_path]
-        en_for_log = 'disable'
-    else:
-        cmd = ["sudo sed -i 's!#" + rule_file_path + "!" + rule_file_path + "!' " + conf_file_path]
-        en_for_log = 'enable'
-
-    try:
-        roxywi_common.logging('WAF', ' Has been ' + en_for_log + ' WAF rule: ' + rule_file + ' for the server ' + serv,
-                      roxywi=1, login=1)
-    except Exception:
-        pass
-
-    print(server_mod.ssh_command(serv, cmd))
-    sql.update_enable_waf_rules(rule_id, serv, enable)
+    roxy_waf.switch_waf_rule(serv)
 
 if form.getvalue('new_waf_rule'):
-    service = common.checkAjaxInput(form.getvalue('service'))
-    new_waf_rule = common.checkAjaxInput(form.getvalue('new_waf_rule'))
-    new_rule_desc = common.checkAjaxInput(form.getvalue('new_rule_description'))
-    rule_file = common.checkAjaxInput(form.getvalue('new_rule_file'))
-    rule_file = f'{rule_file}.conf'
-    waf_path = ''
+    import modules.roxywi.waf as roxy_waf
 
-    if service == 'haproxy':
-        waf_path = common.return_nice_path(sql.get_setting('haproxy_dir'))
-    elif service == 'nginx':
-        waf_path = common.return_nice_path(sql.get_setting('nginx_dir'))
-
-    conf_file_path = waf_path + 'waf/modsecurity.conf'
-    rule_file_path = waf_path + 'waf/rules/' + rule_file
-
-    cmd = [f"sudo echo Include {rule_file_path} >> {conf_file_path} && sudo touch {rule_file_path}"]
-    print(server_mod.ssh_command(serv, cmd))
-    print(sql.insert_new_waf_rule(new_waf_rule, rule_file, new_rule_desc, service, serv))
-
-    try:
-        roxywi_common.logging('WAF', ' A new rule has been created ' + rule_file + ' on the server ' + serv,
-                      roxywi=1, login=1)
-    except Exception:
-        pass
+    roxy_waf.create_waf_rule(serv)
 
 if form.getvalue('lets_domain'):
     serv = common.checkAjaxInput(form.getvalue('serv'))
@@ -2583,7 +2469,7 @@ if any((form.getvalue('do_new_name'), form.getvalue('aws_new_name'), form.getval
 if form.getvalue('providerdel'):
     roxywi_common.check_user_group()
     try:
-        if sql.delete_provider(form.getvalue('providerdel')):
+        if sql.delete_provider(common.checkAjaxInput(form.getvalue('providerdel'))):
             print('Ok')
             roxywi_common.logging('Roxy-WI server', 'Provider has been deleted', provisioning=1)
     except Exception as e:
@@ -3523,8 +3409,8 @@ if form.getvalue('show_users_ovw') is not None:
     roxywi_overview.user_ovw()
 
 if form.getvalue('serverSettings') is not None:
-    server_id = form.getvalue('serverSettings')
-    service = form.getvalue('serverSettingsService')
+    server_id = common.checkAjaxInput(form.getvalue('serverSettings'))
+    service = common.checkAjaxInput(form.getvalue('serverSettingsService'))
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
     template = env.get_template('ajax/show_service_settings.html')
 
@@ -3532,15 +3418,15 @@ if form.getvalue('serverSettings') is not None:
     print(template)
 
 if form.getvalue('serverSettingsSave') is not None:
-    server_id = form.getvalue('serverSettingsSave')
-    service = form.getvalue('serverSettingsService')
-    haproxy_enterprise = form.getvalue('serverSettingsEnterprise')
-    haproxy_dockerized = form.getvalue('serverSettingshaproxy_dockerized')
-    nginx_dockerized = form.getvalue('serverSettingsnginx_dockerized')
-    apache_dockerized = form.getvalue('serverSettingsapache_dockerized')
-    haproxy_restart = form.getvalue('serverSettingsHaproxyrestart')
-    nginx_restart = form.getvalue('serverSettingsNginxrestart')
-    apache_restart = form.getvalue('serverSettingsApache_restart')
+    server_id = common.checkAjaxInput(form.getvalue('serverSettingsSave'))
+    service = common.checkAjaxInput(form.getvalue('serverSettingsService'))
+    haproxy_enterprise = common.checkAjaxInput(form.getvalue('serverSettingsEnterprise'))
+    haproxy_dockerized = common.checkAjaxInput(form.getvalue('serverSettingshaproxy_dockerized'))
+    nginx_dockerized = common.checkAjaxInput(form.getvalue('serverSettingsnginx_dockerized'))
+    apache_dockerized = common.checkAjaxInput(form.getvalue('serverSettingsapache_dockerized'))
+    haproxy_restart = common.checkAjaxInput(form.getvalue('serverSettingsHaproxyrestart'))
+    nginx_restart = common.checkAjaxInput(form.getvalue('serverSettingsNginxrestart'))
+    apache_restart = common.checkAjaxInput(form.getvalue('serverSettingsApache_restart'))
     server_ip = sql.select_server_ip_by_id(server_id)
 
     if service == 'haproxy':

@@ -30,6 +30,7 @@ def is_ip_or_dns(server_from_request: str) -> str:
 
 
 def checkAjaxInput(ajax_input: str):
+	if not ajax_input: return ''
 	pattern = re.compile('[&;|$`]')
 	if pattern.search(ajax_input):
 		print('error: nice try')

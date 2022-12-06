@@ -41,7 +41,7 @@ if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
 		title = f"{service_desc.service}`s logs"
 		servers = roxywi_common.get_dick_permit(service=service_desc.slug)
 elif waf == '1':
-	if roxywi_auth.check_login(service=1):
+	if roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=1):
 		title = "WAF logs"
 		servers = roxywi_common.get_dick_permit(haproxy=1)
 else:

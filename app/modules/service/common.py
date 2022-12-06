@@ -28,7 +28,10 @@ def is_restarted(server_ip: str, action: str) -> None:
 
 
 def is_not_allowed_to_restart(server_id: int, service: str) -> None:
-	is_restart = sql.select_service_setting(server_id, service, 'restart')
+	if service != 'waf':
+		is_restart = sql.select_service_setting(server_id, service, 'restart')
+	else:
+		is_restart = 0
 
 	if int(is_restart) == 1:
 		print('warning: this service is not allowed to be restarted')
@@ -60,8 +63,8 @@ def get_correct_apache_service_name(server_ip=None, server_id=0) -> str:
 
 	try:
 		os_info = sql.select_os_info(server_id)
-	except Exception:
-		return 'error: cannot get server info'
+	except Exception as e:
+		raise Exception(f'error: cannot get server info: {e}')
 
 	if "CentOS" in os_info or "Redhat" in os_info:
 		return 'httpd'
