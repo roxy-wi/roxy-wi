@@ -314,92 +314,9 @@ if act == "overviewHapservers":
         print(f'error: Cannot get last date {e} for server {serv}')
 
 if act == "overview":
-    import asyncio
+    import modules.roxywi.overview as roxy_overview
 
-    async def async_get_overview(serv1, serv2, user_uuid, server_id):
-        user_id = sql.get_user_id_by_uuid(user_uuid)
-        user_services = sql.select_user_services(user_id)
-
-        haproxy = sql.select_haproxy(serv) if '1' in user_services else 0
-        nginx = sql.select_nginx(serv) if '2' in user_services else 0
-        keepalived = sql.select_keepalived(serv) if '3' in user_services else 0
-        apache = sql.select_apache(serv) if '4' in user_services else 0
-
-        waf = sql.select_waf_servers(serv2)
-        haproxy_process = ''
-        keepalived_process = ''
-        nginx_process = ''
-        apache_process = ''
-        waf_process = ''
-
-        try:
-            waf_len = len(waf)
-        except Exception:
-            waf_len = 0
-
-        if haproxy:
-            cmd = f'echo "show info" |nc {serv2} {sql.get_setting("haproxy_sock_port")} -w 1|grep -e "Process_num"'
-            haproxy_process = service_common.server_status(server_mod.subprocess_execute(cmd))
-
-        if nginx:
-            nginx_cmd = f'echo "something" |nc {serv2} {sql.get_setting("nginx_stats_port")} -w 1'
-            nginx_process = service_common.server_status(server_mod.subprocess_execute(nginx_cmd))
-
-        if apache:
-            apache_cmd = f'echo "something" |nc {serv2} {sql.get_setting("apache_stats_port")} -w 1'
-            apache_process = service_common.server_status(server_mod.subprocess_execute(apache_cmd))
-
-        if keepalived:
-            command = ["ps ax |grep keepalived|grep -v grep|wc -l|tr -d '\n'"]
-            try:
-                keepalived_process = server_mod.ssh_command(serv2, command)
-            except Exception as e:
-                print(f'error: {e} for server {serv2}')
-                sys.exit()
-
-        if waf_len >= 1:
-            command = ["ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l"]
-            try:
-                waf_process = server_mod.ssh_command(serv2, command)
-            except Exception as e:
-                print(f'error: {e} for server {serv2}')
-                sys.exit()
-
-        server_status = (serv1,
-                         serv2,
-                         haproxy,
-                         haproxy_process,
-                         waf_process,
-                         waf,
-                         keepalived,
-                         keepalived_process,
-                         nginx,
-                         nginx_process,
-                         server_id,
-                         apache,
-                         apache_process)
-        return server_status
-
-    async def get_runner_overview():
-        env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True,
-                          extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
-
-        servers = []
-        template = env.get_template('overview.html')
-        cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-        user_uuid = cookie.get('uuid')
-        futures = [async_get_overview(server[1], server[2], user_uuid.value, server[0]) for server in
-                   sql.select_servers(server=serv)]
-        for i, future in enumerate(asyncio.as_completed(futures)):
-            result = await future
-            servers.append(result)
-        servers_sorted = sorted(servers, key=common.get_key)
-        template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_uuid.value))
-        print(template)
-
-    ioloop = asyncio.get_event_loop()
-    ioloop.run_until_complete(get_runner_overview())
-    ioloop.close()
+    roxy_overview.show_overview(serv)
 
 if act == "overviewwaf":
     env = Environment(
@@ -1756,7 +1673,7 @@ if form.getvalue('updateserver') is not None:
                       keep_history=1, service='server')
 
 if form.getvalue('serverdel') is not None:
-    server_id = form.getvalue('serverdel')
+    server_id = common.checkAjaxInput(form.getvalue('serverdel'))
     server = sql.select_servers(id=server_id)
     server_ip = ''
     for s in server:
@@ -1773,11 +1690,11 @@ if form.getvalue('serverdel') is not None:
         sql.delete_system_info(server_id)
         sql.delete_service_settings(server_id)
         print("Ok")
-        roxywi_common.logging(server_ip, 'The server ' + hostname + ' has been deleted', roxywi=1, login=1)
+        roxywi_common.logging(server_ip, f'The server {hostname} has been deleted', roxywi=1, login=1)
 
 if form.getvalue('newgroup') is not None:
-    newgroup = form.getvalue('groupname')
-    desc = form.getvalue('newdesc')
+    newgroup = common.checkAjaxInput(form.getvalue('groupname'))
+    desc = common.checkAjaxInput(form.getvalue('newdesc'))
     if newgroup is None:
         print(error_mess)
     else:
@@ -1790,7 +1707,7 @@ if form.getvalue('newgroup') is not None:
             roxywi_common.logging('Roxy-WI server', f'A new group {newgroup} has been created', roxywi=1, login=1)
 
 if form.getvalue('groupdel') is not None:
-    groupdel = form.getvalue('groupdel')
+    groupdel = common.checkAjaxInput(form.getvalue('groupdel'))
     group = sql.select_groups(id=groupdel)
     for g in group:
         groupname = g.name
@@ -1799,9 +1716,9 @@ if form.getvalue('groupdel') is not None:
         roxywi_common.logging('Roxy-WI server', f'The {groupname} has been deleted', roxywi=1, login=1)
 
 if form.getvalue('updategroup') is not None:
-    name = form.getvalue('updategroup')
-    descript = form.getvalue('descript')
-    group_id = form.getvalue('id')
+    name = common.checkAjaxInput(form.getvalue('updategroup'))
+    descript = common.checkAjaxInput(form.getvalue('descript'))
+    group_id = common.checkAjaxInput(form.getvalue('id'))
     if name is None:
         print(error_mess)
     else:
@@ -1813,13 +1730,13 @@ if form.getvalue('updategroup') is not None:
 
 if form.getvalue('new_ssh'):
     user_group = roxywi_common.get_user_group()
-    name = form.getvalue('new_ssh')
-    name = name + '_' + user_group
-    enable = form.getvalue('ssh_enable')
-    group = form.getvalue('new_group')
-    username = form.getvalue('ssh_user')
-    password = form.getvalue('ssh_pass')
-    page = form.getvalue('page')
+    name = common.checkAjaxInput(form.getvalue('new_ssh'))
+    name = f'{name}{_user_group}'
+    enable = common.checkAjaxInput(form.getvalue('ssh_enable'))
+    group = common.checkAjaxInput(form.getvalue('new_group'))
+    username = common.checkAjaxInput(form.getvalue('ssh_user'))
+    password = common.checkAjaxInput(form.getvalue('ssh_pass'))
+    page = common.checkAjaxInput(form.getvalue('page'))
     page = page.split("#")[0]
 
     if username is None or name is None:
@@ -1856,12 +1773,12 @@ if form.getvalue('sshdel') is not None:
         roxywi_common.logging('Roxy-WI server', f'The SSH credentials {name} has deleted', roxywi=1, login=1)
 
 if form.getvalue('updatessh'):
-    ssh_id = form.getvalue('id')
-    name = form.getvalue('name')
-    enable = form.getvalue('ssh_enable')
-    group = form.getvalue('group')
-    username = form.getvalue('ssh_user')
-    password = form.getvalue('ssh_pass')
+    ssh_id = common.checkAjaxInput(form.getvalue('id'))
+    name = common.checkAjaxInput(form.getvalue('name'))
+    enable = common.checkAjaxInput(form.getvalue('ssh_enable'))
+    group = common.checkAjaxInput(form.getvalue('group'))
+    username = common.checkAjaxInput(form.getvalue('ssh_user'))
+    password = common.checkAjaxInput(form.getvalue('ssh_pass'))
     new_ssh_key_name = ''
 
     if username is None:
@@ -1932,10 +1849,10 @@ if form.getvalue('ssh_cert'):
     roxywi_common.logging("Roxy-WI server", f"A new SSH cert has been uploaded {ssh_keys}", roxywi=1, login=1)
 
 if form.getvalue('newtelegram'):
-    token = form.getvalue('newtelegram')
-    channel = form.getvalue('chanel')
-    group = form.getvalue('telegramgroup')
-    page = form.getvalue('page')
+    token = common.checkAjaxInput(form.getvalue('newtelegram'))
+    channel = common.checkAjaxInput(form.getvalue('chanel'))
+    group = common.checkAjaxInput(form.getvalue('telegramgroup'))
+    page = common.checkAjaxInput(form.getvalue('page'))
     page = page.split("#")[0]
 
     if token is None or channel is None or group is None:
@@ -1950,10 +1867,10 @@ if form.getvalue('newtelegram'):
             roxywi_common.logging('Roxy-WI server', f'A new Telegram channel {channel} has been created ', roxywi=1, login=1)
 
 if form.getvalue('newslack'):
-    token = form.getvalue('newslack')
-    channel = form.getvalue('chanel')
-    group = form.getvalue('slackgroup')
-    page = form.getvalue('page')
+    token = common.checkAjaxInput(form.getvalue('newslack'))
+    channel = common.checkAjaxInput(form.getvalue('chanel'))
+    group = common.checkAjaxInput(form.getvalue('slackgroup'))
+    page = common.checkAjaxInput(form.getvalue('page'))
     page = page.split("#")[0]
 
     if token is None or channel is None or group is None:
@@ -1968,7 +1885,7 @@ if form.getvalue('newslack'):
             roxywi_common.logging('Roxy-WI server', 'A new Slack channel ' + channel + ' has been created ', roxywi=1, login=1)
 
 if form.getvalue('telegramdel') is not None:
-    telegramdel = form.getvalue('telegramdel')
+    telegramdel = common.checkAjaxInput(form.getvalue('telegramdel'))
     telegram = sql.select_telegram(id=telegramdel)
     telegram_name = ''
     for t in telegram:
@@ -1978,7 +1895,7 @@ if form.getvalue('telegramdel') is not None:
         roxywi_common.logging('Roxy-WI server', 'The Telegram channel ' + telegram_name + ' has been deleted ', roxywi=1, login=1)
 
 if form.getvalue('slackdel') is not None:
-    slackdel = form.getvalue('slackdel')
+    slackdel = common.checkAjaxInput(form.getvalue('slackdel'))
     slack = sql.select_slack(id=slackdel)
     slack_name = ''
     for t in slack:
@@ -1988,10 +1905,10 @@ if form.getvalue('slackdel') is not None:
         roxywi_common.logging('Roxy-WI server', 'The Slack channel ' + slack_name + ' has been deleted ', roxywi=1, login=1)
 
 if form.getvalue('updatetoken') is not None:
-    token = form.getvalue('updatetoken')
-    channel = form.getvalue('updategchanel')
-    group = form.getvalue('updatetelegramgroup')
-    user_id = form.getvalue('id')
+    token = common.checkAjaxInput(form.getvalue('updatetoken'))
+    channel = common.checkAjaxInput(form.getvalue('updategchanel'))
+    group = common.checkAjaxInput(form.getvalue('updatetelegramgroup'))
+    user_id = common.checkAjaxInput(form.getvalue('id'))
     if token is None or channel is None or group is None:
         print(error_mess)
     else:
@@ -2000,10 +1917,10 @@ if form.getvalue('updatetoken') is not None:
                       login=1)
 
 if form.getvalue('update_slack_token') is not None:
-    token = form.getvalue('update_slack_token')
-    channel = form.getvalue('updategchanel')
-    group = form.getvalue('updateslackgroup')
-    user_id = form.getvalue('id')
+    token = common.checkAjaxInput(form.getvalue('update_slack_token'))
+    channel = common.checkAjaxInput(form.getvalue('updategchanel'))
+    group = common.checkAjaxInput(form.getvalue('updateslackgroup'))
+    user_id = common.checkAjaxInput(form.getvalue('id'))
     if token is None or channel is None or group is None:
         print(error_mess)
     else:
@@ -2012,8 +1929,8 @@ if form.getvalue('update_slack_token') is not None:
                       login=1)
 
 if form.getvalue('updatesettings') is not None:
-    settings = form.getvalue('updatesettings')
-    val = form.getvalue('val')
+    settings = common.checkAjaxInput(form.getvalue('updatesettings'))
+    val = common.checkAjaxInput(form.getvalue('val'))
     user_group = roxywi_common.get_user_group(id=1)
     if sql.update_setting(settings, val, user_group):
         roxywi_common.logging('Roxy-WI server', f'The {settings} setting has been changed to: {val}', roxywi=1,
@@ -2021,7 +1938,7 @@ if form.getvalue('updatesettings') is not None:
         print("Ok")
 
 if form.getvalue('getuserservices'):
-    user_id = form.getvalue('getuserservices')
+    user_id = common.checkAjaxInput(form.getvalue('getuserservices'))
     groups = []
     u_g = sql.select_user_groups(user_id)
     services = sql.select_services()
@@ -2034,7 +1951,7 @@ if form.getvalue('getuserservices'):
     print(template)
 
 if form.getvalue('getusergroups'):
-    user_id = form.getvalue('getusergroups')
+    user_id = common.checkAjaxInput(form.getvalue('getusergroups'))
     groups = []
     u_g = sql.select_user_groups(user_id)
     for g in u_g:
@@ -2046,9 +1963,9 @@ if form.getvalue('getusergroups'):
     print(template)
 
 if form.getvalue('changeUserGroupId') is not None:
-    group_id = form.getvalue('changeUserGroupId')
-    groups = form.getvalue('changeUserGroups')
-    user = form.getvalue('changeUserGroupsUser')
+    group_id = common.checkAjaxInput(form.getvalue('changeUserGroupId'))
+    groups = common.checkAjaxInput(form.getvalue('changeUserGroups'))
+    user = common.checkAjaxInput(form.getvalue('changeUserGroupsUser'))
     if sql.delete_user_groups(group_id):
         for group in groups:
             if group[0] == ',':
@@ -2061,19 +1978,19 @@ if form.getvalue('changeUserGroupId') is not None:
     roxywi_common.logging('Roxy-WI server', 'Groups has been updated for user: ' + user, roxywi=1, login=1)
 
 if form.getvalue('changeUserServicesId') is not None:
-    user_id = form.getvalue('changeUserServicesId')
-    services = form.getvalue('changeUserServices')
-    user = form.getvalue('changeUserServicesUser')
+    user_id = common.checkAjaxInput(form.getvalue('changeUserServicesId'))
+    services = common.checkAjaxInput(form.getvalue('changeUserServices'))
+    user = common.checkAjaxInput(form.getvalue('changeUserServicesUser'))
 
     try:
         if sql.update_user_services(services=services, user_id=user_id):
-            roxywi_common.logging('Roxy-WI server', 'Access to the services has been updated for user: ' + user, roxywi=1, login=1)
+            roxywi_common.logging('Roxy-WI server', f'Access to the services has been updated for user: {user}', roxywi=1, login=1)
     except Exception as e:
         print(e)
 
 if form.getvalue('changeUserCurrentGroupId') is not None:
-    group_id = form.getvalue('changeUserCurrentGroupId')
-    user_uuid = form.getvalue('changeUserGroupsUser')
+    group_id = common.checkAjaxInput(form.getvalue('changeUserCurrentGroupId'))
+    user_uuid = common.checkAjaxInput(form.getvalue('changeUserGroupsUser'))
 
     try:
         if sql.update_user_current_groups(group_id, user_uuid):
@@ -2096,16 +2013,16 @@ if form.getvalue('getcurrentusergroup') is not None:
 
 if form.getvalue('newsmon') is not None:
     user_group = roxywi_common.get_user_group(id=1)
-    server = form.getvalue('newsmon')
-    port = form.getvalue('newsmonport')
-    enable = form.getvalue('newsmonenable')
-    http = form.getvalue('newsmonproto')
-    uri = form.getvalue('newsmonuri')
-    body = form.getvalue('newsmonbody')
-    group = form.getvalue('newsmongroup')
-    desc = form.getvalue('newsmondescription')
-    telegram = form.getvalue('newsmontelegram')
-    slack = form.getvalue('newsmonslack')
+    server = common.checkAjaxInput(form.getvalue('newsmon'))
+    port = common.checkAjaxInput(form.getvalue('newsmonport'))
+    enable = common.checkAjaxInput(form.getvalue('newsmonenable'))
+    http = common.checkAjaxInput(form.getvalue('newsmonproto'))
+    uri = common.checkAjaxInput(form.getvalue('newsmonuri'))
+    body = common.checkAjaxInput(form.getvalue('newsmonbody'))
+    group = common.checkAjaxInput(form.getvalue('newsmongroup'))
+    desc = common.checkAjaxInput(form.getvalue('newsmondescription'))
+    telegram = common.checkAjaxInput(form.getvalue('newsmontelegram'))
+    slack = common.checkAjaxInput(form.getvalue('newsmonslack'))
 
     try:
         port = int(port)
@@ -2135,7 +2052,7 @@ if form.getvalue('newsmon') is not None:
 
 if form.getvalue('smondel') is not None:
     user_group = roxywi_common.get_user_group(id=1)
-    smon_id = form.getvalue('smondel')
+    smon_id = common.checkAjaxInput(form.getvalue('smondel'))
 
     if roxywi_common.check_user_group():
         try:
@@ -2147,23 +2064,23 @@ if form.getvalue('smondel') is not None:
 
 if form.getvalue('showsmon') is not None:
     user_group = roxywi_common.get_user_group(id=1)
-    sort = form.getvalue('sort')
+    sort = common.checkAjaxInput(form.getvalue('sort'))
     env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
     template = env.get_template('ajax/smon_dashboard.html')
     template = template.render(smon=sql.smon_list(user_group), sort=sort)
     print(template)
 
 if form.getvalue('updateSmonIp') is not None:
-    smon_id = form.getvalue('id')
-    ip = form.getvalue('updateSmonIp')
-    port = form.getvalue('updateSmonPort')
-    en = form.getvalue('updateSmonEn')
-    http = form.getvalue('updateSmonHttp')
-    body = form.getvalue('updateSmonBody')
-    telegram = form.getvalue('updateSmonTelegram')
-    slack = form.getvalue('updateSmonSlack')
-    group = form.getvalue('updateSmonGroup')
-    desc = form.getvalue('updateSmonDesc')
+    smon_id = common.checkAjaxInput(form.getvalue('id'))
+    ip = common.checkAjaxInput(form.getvalue('updateSmonIp'))
+    port = common.checkAjaxInput(form.getvalue('updateSmonPort'))
+    en = common.checkAjaxInput(form.getvalue('updateSmonEn'))
+    http = common.checkAjaxInput(form.getvalue('updateSmonHttp'))
+    body = common.checkAjaxInput(form.getvalue('updateSmonBody'))
+    telegram = common.checkAjaxInput(form.getvalue('updateSmonTelegram'))
+    slack = common.checkAjaxInput(form.getvalue('updateSmonSlack'))
+    group = common.checkAjaxInput(form.getvalue('updateSmonGroup'))
+    desc = common.checkAjaxInput(form.getvalue('updateSmonDesc'))
 
     try:
         port = int(port)
@@ -2289,11 +2206,11 @@ if form.getvalue('waf_rule_id'):
     sql.update_enable_waf_rules(rule_id, serv, enable)
 
 if form.getvalue('new_waf_rule'):
-    service = form.getvalue('service')
-    new_waf_rule = form.getvalue('new_waf_rule')
-    new_rule_desc = form.getvalue('new_rule_description')
-    rule_file = form.getvalue('new_rule_file')
-    rule_file = rule_file + '.conf'
+    service = common.checkAjaxInput(form.getvalue('service'))
+    new_waf_rule = common.checkAjaxInput(form.getvalue('new_waf_rule'))
+    new_rule_desc = common.checkAjaxInput(form.getvalue('new_rule_description'))
+    rule_file = common.checkAjaxInput(form.getvalue('new_rule_file'))
+    rule_file = f'{rule_file}.conf'
     waf_path = ''
 
     if service == 'haproxy':
@@ -2315,9 +2232,9 @@ if form.getvalue('new_waf_rule'):
         pass
 
 if form.getvalue('lets_domain'):
-    serv = form.getvalue('serv')
-    lets_domain = form.getvalue('lets_domain')
-    lets_email = form.getvalue('lets_email')
+    serv = common.checkAjaxInput(form.getvalue('serv'))
+    lets_domain = common.checkAjaxInput(form.getvalue('lets_domain'))
+    lets_email = common.checkAjaxInput(form.getvalue('lets_email'))
     proxy = sql.get_setting('proxy')
     ssl_path = common.return_nice_path(sql.get_setting('cert_path'))
     haproxy_dir = sql.get_setting('haproxy_dir')
@@ -2360,7 +2277,7 @@ if form.getvalue('lets_domain'):
 if form.getvalue('uploadovpn'):
     name = common.checkAjaxInput(form.getvalue('ovpnname'))
 
-    ovpn_file = os.path.dirname('/tmp/') + "/" + name + '.ovpn'
+    ovpn_file = f"{os.path.dirname('/tmp/')}/{name}.ovpn"
 
     try:
         with open(ovpn_file, "w") as conf:
@@ -2388,7 +2305,7 @@ if form.getvalue('uploadovpn'):
 if form.getvalue('openvpndel') is not None:
     openvpndel = common.checkAjaxInput(form.getvalue('openvpndel'))
 
-    cmd = 'sudo openvpn3 config-remove --config /tmp/%s.ovpn --force' % openvpndel
+    cmd = f'sudo openvpn3 config-remove --config /tmp/{openvpndel}.ovpn --force'
     try:
         server_mod.subprocess_execute(cmd)
         print("Ok")
@@ -2462,21 +2379,21 @@ if form.getvalue('viewFirewallRules') is not None:
     print(template)
 
 if form.getvalue('geoipserv') is not None:
-    serv = form.getvalue('geoipserv')
-    service = form.getvalue('geoip_service')
+    serv = common.checkAjaxInput(form.getvalue('geoipserv'))
+    service = common.checkAjaxInput(form.getvalue('geoip_service'))
     if service in ('haproxy', 'nginx'):
         service_dir = common.return_nice_path(sql.get_setting(f'{service}_dir'))
 
-        cmd = ["ls " + service_dir + "geoip/"]
+        cmd = [f"ls {service_dir} geoip/"]
         print(server_mod.ssh_command(serv, cmd))
     else:
         print('warning: select a server and service first')
 
 if form.getvalue('nettools_icmp_server_from'):
-    server_from = form.getvalue('nettools_icmp_server_from')
-    server_to = form.getvalue('nettools_icmp_server_to')
+    server_from = common.checkAjaxInput(form.getvalue('nettools_icmp_server_from'))
+    server_to = common.checkAjaxInput(form.getvalue('nettools_icmp_server_to'))
     server_to = common.is_ip_or_dns(server_to)
-    action = form.getvalue('nettools_action')
+    action = common.checkAjaxInput(form.getvalue('nettools_action'))
     stderr = ''
     action_for_sending = ''
 
@@ -2516,10 +2433,10 @@ if form.getvalue('nettools_icmp_server_from'):
         print(i + '</span><br />')
 
 if form.getvalue('nettools_telnet_server_from'):
-    server_from = form.getvalue('nettools_telnet_server_from')
-    server_to = form.getvalue('nettools_telnet_server_to')
+    server_from = common.checkAjaxInput(form.getvalue('nettools_telnet_server_from'))
+    server_to = common.checkAjaxInput(form.getvalue('nettools_telnet_server_to'))
     server_to = common.is_ip_or_dns(server_to)
-    port_to = form.getvalue('nettools_telnet_port_to')
+    port_to = common.checkAjaxInput(form.getvalue('nettools_telnet_port_to'))
     stderr = ''
 
     if server_to == '':
@@ -2550,10 +2467,10 @@ if form.getvalue('nettools_telnet_server_from'):
             break
 
 if form.getvalue('nettools_nslookup_server_from'):
-    server_from = form.getvalue('nettools_nslookup_server_from')
-    dns_name = form.getvalue('nettools_nslookup_name')
+    server_from = common.checkAjaxInput(form.getvalue('nettools_nslookup_server_from'))
+    dns_name = common.checkAjaxInput(form.getvalue('nettools_nslookup_name'))
     dns_name = common.is_ip_or_dns(dns_name)
-    record_type = form.getvalue('nettools_nslookup_record_type')
+    record_type = common.checkAjaxInput(form.getvalue('nettools_nslookup_record_type'))
     stderr = ''
 
     if dns_name == '':
@@ -2591,10 +2508,10 @@ if form.getvalue('nettools_nslookup_server_from'):
         count_string += 1
 
 if form.getvalue('portscanner_history_server_id'):
-    server_id = form.getvalue('portscanner_history_server_id')
-    enabled = form.getvalue('portscanner_enabled')
-    notify = form.getvalue('portscanner_notify')
-    history = form.getvalue('portscanner_history')
+    server_id = common.checkAjaxInput(form.getvalue('portscanner_history_server_id'))
+    enabled = common.checkAjaxInput(form.getvalue('portscanner_enabled'))
+    notify = common.checkAjaxInput(form.getvalue('portscanner_notify'))
+    history = common.checkAjaxInput(form.getvalue('portscanner_history'))
     user_group_id = [server[3] for server in sql.select_servers(id=server_id)]
 
     try:
@@ -2620,27 +2537,27 @@ if any((form.getvalue('do_new_name'), form.getvalue('aws_new_name'), form.getval
     roxywi_common.check_user_group()
     is_add = False
     if form.getvalue('do_new_name'):
-        provider_name = form.getvalue('do_new_name')
-        provider_group = form.getvalue('do_new_group')
-        provider_token = form.getvalue('do_new_token')
+        provider_name = common.checkAjaxInput(form.getvalue('do_new_name'))
+        provider_group = common.checkAjaxInput(form.getvalue('do_new_group'))
+        provider_token = common.checkAjaxInput(form.getvalue('do_new_token'))
 
         if sql.add_provider_do(provider_name, provider_group, provider_token):
             is_add = True
 
     elif form.getvalue('aws_new_name'):
-        provider_name = form.getvalue('aws_new_name')
-        provider_group = form.getvalue('aws_new_group')
-        provider_token = form.getvalue('aws_new_key')
-        provider_secret = form.getvalue('aws_new_secret')
+        provider_name = common.checkAjaxInput(form.getvalue('aws_new_name'))
+        provider_group = common.checkAjaxInput(form.getvalue('aws_new_group'))
+        provider_token = common.checkAjaxInput(form.getvalue('aws_new_key'))
+        provider_secret = common.checkAjaxInput(form.getvalue('aws_new_secret'))
 
         if sql.add_provider_aws(provider_name, provider_group, provider_token, provider_secret):
             is_add = True
 
     elif form.getvalue('gcore_new_name'):
-        provider_name = form.getvalue('gcore_new_name')
-        provider_group = form.getvalue('gcore_new_group')
-        provider_token = form.getvalue('gcore_new_user')
-        provider_pass = form.getvalue('gcore_new_pass')
+        provider_name = common.checkAjaxInput(form.getvalue('gcore_new_name'))
+        provider_group = common.checkAjaxInput(form.getvalue('gcore_new_group'))
+        provider_token = common.checkAjaxInput(form.getvalue('gcore_new_user'))
+        provider_pass = common.checkAjaxInput(form.getvalue('gcore_new_pass'))
 
         if sql.add_provider_gcore(provider_name, provider_group, provider_token, provider_pass):
             is_add = True
@@ -2688,33 +2605,33 @@ if form.getvalue('awsinit') or form.getvalue('doinit') or form.getvalue('gcorein
 
 if form.getvalue('awsvars') or form.getvalue('awseditvars'):
     if form.getvalue('awsvars'):
-        awsvars = form.getvalue('awsvars')
-        group = form.getvalue('aws_create_group')
-        provider = form.getvalue('aws_create_provider')
-        region = form.getvalue('aws_create_regions')
-        size = form.getvalue('aws_create_size')
-        oss = form.getvalue('aws_create_oss')
-        ssh_name = form.getvalue('aws_create_ssh_name')
-        volume_size = form.getvalue('aws_create_volume_size')
-        volume_type = form.getvalue('aws_create_volume_type')
-        delete_on_termination = form.getvalue('aws_create_delete_on_termination')
-        floating_ip = form.getvalue('aws_create_floating_net')
-        firewall = form.getvalue('aws_create_firewall')
-        public_ip = form.getvalue('aws_create_public_ip')
+        awsvars = common.checkAjaxInput(form.getvalue('awsvars'))
+        group = common.checkAjaxInput(form.getvalue('aws_create_group'))
+        provider = common.checkAjaxInput(form.getvalue('aws_create_provider'))
+        region = common.checkAjaxInput(form.getvalue('aws_create_regions'))
+        size = common.checkAjaxInput(form.getvalue('aws_create_size'))
+        oss = common.checkAjaxInput(form.getvalue('aws_create_oss'))
+        ssh_name = common.checkAjaxInput(form.getvalue('aws_create_ssh_name'))
+        volume_size = common.checkAjaxInput(form.getvalue('aws_create_volume_size'))
+        volume_type = common.checkAjaxInput(form.getvalue('aws_create_volume_type'))
+        delete_on_termination = common.checkAjaxInput(form.getvalue('aws_create_delete_on_termination'))
+        floating_ip = common.checkAjaxInput(form.getvalue('aws_create_floating_net'))
+        firewall = common.checkAjaxInput(form.getvalue('aws_create_firewall'))
+        public_ip = common.checkAjaxInput(form.getvalue('aws_create_public_ip'))
     elif form.getvalue('awseditvars'):
-        awsvars = form.getvalue('awseditvars')
-        group = form.getvalue('aws_editing_group')
-        provider = form.getvalue('aws_editing_provider')
-        region = form.getvalue('aws_editing_regions')
-        size = form.getvalue('aws_editing_size')
-        oss = form.getvalue('aws_editing_oss')
-        ssh_name = form.getvalue('aws_editing_ssh_name')
-        volume_size = form.getvalue('aws_editing_volume_size')
-        volume_type = form.getvalue('aws_editing_volume_type')
-        delete_on_termination = form.getvalue('aws_editing_delete_on_termination')
-        floating_ip = form.getvalue('aws_editing_floating_net')
-        firewall = form.getvalue('aws_editing_firewall')
-        public_ip = form.getvalue('aws_editing_public_ip')
+        awsvars = common.checkAjaxInput(form.getvalue('awseditvars'))
+        group = common.checkAjaxInput(form.getvalue('aws_editing_group'))
+        provider = common.checkAjaxInput(form.getvalue('aws_editing_provider'))
+        region = common.checkAjaxInput(form.getvalue('aws_editing_regions'))
+        size = common.checkAjaxInput(form.getvalue('aws_editing_size'))
+        oss = common.checkAjaxInput(form.getvalue('aws_editing_oss'))
+        ssh_name = common.checkAjaxInput(form.getvalue('aws_editing_ssh_name'))
+        volume_size = common.checkAjaxInput(form.getvalue('aws_editing_volume_size'))
+        volume_type = common.checkAjaxInput(form.getvalue('aws_editing_volume_type'))
+        delete_on_termination = common.checkAjaxInput(form.getvalue('aws_editing_delete_on_termination'))
+        floating_ip = common.checkAjaxInput(form.getvalue('aws_editing_floating_net'))
+        firewall = common.checkAjaxInput(form.getvalue('aws_editing_firewall'))
+        public_ip = common.checkAjaxInput(form.getvalue('aws_editing_public_ip'))
 
     aws_key, aws_secret = sql.select_aws_provider(provider)
 
@@ -3597,24 +3514,13 @@ if form.getvalue('updatesavedserver') is not None:
         sql.update_savedserver(savedserver, description, savedserver_id)
 
 if form.getvalue('savedserverdel') is not None:
-    if sql.delete_savedserver(form.getvalue('savedserverdel')):
+    if sql.delete_savedserver(common.checkAjaxInput(form.getvalue('savedserverdel'))):
         print("Ok")
 
 if form.getvalue('show_users_ovw') is not None:
-    env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
-    template = env.get_template('/show_users_ovw.html')
+    import modules.roxywi.overview as roxywi_overview
 
-    user_params = roxywi_common.get_users_params()
-    users_groups = sql.select_user_groups_with_names(1, all=1)
-    user_group = roxywi_common.get_user_group(id=1)
-
-    if (user_params['role'] == 2 or user_params['role'] == 3) and int(user_group) != 1:
-        users = sql.select_users(group=user_group)
-    else:
-        users = sql.select_users()
-
-    template = template.render(users=users, users_groups=users_groups)
-    print(template)
+    roxywi_overview.user_ovw()
 
 if form.getvalue('serverSettings') is not None:
     server_id = form.getvalue('serverSettings')
@@ -3700,10 +3606,10 @@ if form.getvalue('serverSettingsSave') is not None:
                                   keep_history=1, service=service)
 
 if act == 'showListOfVersion':
-    service = form.getvalue('service')
-    configver = form.getvalue('configver')
-    for_delver = form.getvalue('for_delver')
-    style = form.getvalue('style')
+    service = common.checkAjaxInput(form.getvalue('service'))
+    configver = common.checkAjaxInput(form.getvalue('configver'))
+    for_delver = common.checkAjaxInput(form.getvalue('for_delver'))
+    style = common.checkAjaxInput(form.getvalue('style'))
     users = sql.select_users()
     service_desc = sql.select_service(service)
 
@@ -3812,10 +3718,9 @@ if act == 'check_service':
                     print('down' + str(e))
 
 if form.getvalue('show_sub_ovw'):
-    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
-    template = env.get_template('ajax/show_sub_ovw.html')
-    template = template.render(sub=sql.select_user_all())
-    print(template)
+    import modules.roxywi.overview as roxywi_overview
+
+    roxywi_overview.show_sub_ovw()
 
 if form.getvalue('updateHaproxyCheckerSettings'):
     setting_id = form.getvalue('updateHaproxyCheckerSettings')

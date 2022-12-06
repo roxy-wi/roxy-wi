@@ -79,10 +79,6 @@
       - rsyslog
     state: present
   when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'Ubuntu'
-  register: install_result
-  retries: 5
-  until: install_result.rc == 0
-  delay: 5
   environment:
     http_proxy: "{{PROXY}}"
     https_proxy: "{{PROXY}}"

@@ -1589,21 +1589,6 @@ function statAgriment() {
 		sendGet('/page/send/'+cur_url);
 	}
 }
-function startIntroAgain() {
-	var intro_url = cur_url[0].split('#')[0];
-	var intro_history = {};
-	if (intro_url.split('#')[0] == 'users.py' || intro_url.split('#')[0] == 'servers.py') {
-		$("#tabs").tabs("option", "active", 0);
-	}
-	if(localStorage.getItem('intro') === null) {
-		startIntro();
-	} else {
-		intro_history = JSON.parse(localStorage.getItem('intro'));
-		delete intro_history[intro_url];
-		localStorage.setItem('intro', JSON.stringify(intro_history));
-		startIntro();
-	}
-}
 function startIntro(intro) {
 	intro = intro.setOptions({'exitOnOverlayClick': false});
 	var intro_url = cur_url[0].split('#')[0];

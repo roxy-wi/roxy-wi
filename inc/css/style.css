@@ -161,9 +161,12 @@ pre {
 }
 .footer-div {
 	display: block;
-	padding-top: 12px;
-	text-align: right;
-	margin-right: 20px;
+    padding-top: 11px;
+    text-align: right;
+    margin-right: 20px;
+    width: 368px;
+    float: left;
+    margin-left: 26%;
 }
 .footer-link, .footer-copyright {
 	color: var(--blue-color);
@@ -179,7 +182,7 @@ pre {
 	float: right;
 	margin-top: 3px;
 	margin-left: 14px;
-	margin-right: 20px;
+	margin-right: 30px;
 	color: #fff !important;
 	font-size: 15px;
 }
@@ -360,7 +363,7 @@ pre {
 }
 .overview-wi {
 	width: 46%;
-	min-width: 566px	;
+	min-width: 566px;
     max-width: 50%;
 	min-height: 160px;
 	float: left;
