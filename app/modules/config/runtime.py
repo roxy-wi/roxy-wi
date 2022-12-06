@@ -251,7 +251,7 @@ def list_of_lists() -> None:
 def show_lists() -> None:
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
-					  extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'], trim_blocks=True, lstrip_blocks=True)
+						extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'], trim_blocks=True, lstrip_blocks=True)
 	template = env.get_template('ajax/list.html')
 	list_id = common.checkAjaxInput(form.getvalue('list_select_id'))
 	list_name = common.checkAjaxInput(form.getvalue('list_select_name'))
@@ -293,8 +293,7 @@ def delete_ip_from_list() -> None:
 	if stderr != '':
 		print(f'error: {stderr[0]}')
 
-	roxywi_common.logging(serv, f'{ip_id} has been delete from list {list_id}', login=1, keep_history=1,
-						  service='haproxy')
+	roxywi_common.logging(serv, f'{ip_id} has been delete from list {list_id}', login=1, keep_history=1, service='haproxy')
 
 
 def add_ip_to_list() -> None:
@@ -322,14 +321,13 @@ def add_ip_to_list() -> None:
 		if stderr:
 			print(f'error: {stderr}')
 
-	roxywi_common.logging(serv, f'{ip} has been added to list {list_id}', login=1, keep_history=1,
-						  service='haproxy')
+	roxywi_common.logging(serv, f'{ip} has been added to list {list_id}', login=1, keep_history=1, service='haproxy')
 
 
 def select_session() -> None:
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates'), autoescape=True,
-					  extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'], trim_blocks=True, lstrip_blocks=True)
+						extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'], trim_blocks=True, lstrip_blocks=True)
 	serv = common.checkAjaxInput(form.getvalue('sessions_select'))
 
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')

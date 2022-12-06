@@ -1,4 +1,5 @@
 import modules.db.sql as sql
+import modules.common.common as common
 import modules.server.server as server_mod
 import modules.roxywi.common as roxywi_common
 import modules.service.common as service_common
@@ -127,7 +128,7 @@ def action_nginx_waf(server_ip: str, action: str) -> None:
     waf_new_state = 'on' if action == 'start' else 'off'
     waf_old_state = 'off' if action == 'start' else 'on'
 
-    roxywi_common.logging(serv, f'NGINX WAF service has been {action}ed', roxywi=1, login=1, keep_history=1,
+    roxywi_common.logging(server_ip, f'NGINX WAF service has been {action}ed', roxywi=1, login=1, keep_history=1,
                           service='nginx')
     commands = [f"sudo sed -i 's/modsecurity {waf_old_state}/modsecurity {waf_new_state}/g' {config_dir}nginx.conf"
                 f" && sudo systemctl reload nginx"]

@@ -12,7 +12,6 @@ from jinja2 import Environment, FileSystemLoader
 import modules.db.sql as sql
 import modules.common.common as common
 import modules.config.config as config_mod
-import modules.roxywi.auth as roxywi_auth
 import modules.roxywi.common as roxywi_common
 import modules.roxy_wi_tools as roxy_wi_tools
 import modules.server.server as server_mod
@@ -355,7 +354,7 @@ if act == "overview":
             try:
                 keepalived_process = server_mod.ssh_command(serv2, command)
             except Exception as e:
-                print(f'{e} for server {serv2}')
+                print(f'error: {e} for server {serv2}')
                 sys.exit()
 
         if waf_len >= 1:
@@ -363,7 +362,7 @@ if act == "overview":
             try:
                 waf_process = server_mod.ssh_command(serv2, command)
             except Exception as e:
-                print(f'{e} for server {serv2}')
+                print(f'error: {e} for server {serv2}')
                 sys.exit()
 
         server_status = (serv1,
@@ -1212,9 +1211,9 @@ if form.getvalue('haproxyaddserv'):
 if form.getvalue('installwaf'):
     service = form.getvalue('service')
     if service == 'haproxy':
-        service_mod.waf_install(form.getvalue('installwaf'))
+        service_mod.waf_install(common.checkAjaxInput(form.getvalue('installwaf')))
     else:
-        service_mod.waf_nginx_install(form.getvalue('installwaf'))
+        service_mod.waf_nginx_install(common.checkAjaxInput(form.getvalue('installwaf')))
 
 if form.getvalue('geoip_install'):
     service_mod.geoip_installation()
@@ -1342,7 +1341,7 @@ if form.getvalue('new_metrics'):
 if form.getvalue('new_http_metrics'):
     serv = form.getvalue('server')
     hostname = sql.get_hostname_by_server_ip(serv)
-    time_range = form.getvalue('time_range')
+    time_range = common.checkAjaxInput(form.getvalue('time_range'))
     metric = sql.select_metrics(serv, 'http_metrics', time_range=time_range)
     metrics = {'chartData': {}}
     metrics['chartData']['labels'] = {}
@@ -1375,7 +1374,7 @@ if form.getvalue('new_http_metrics'):
 if any((form.getvalue('new_nginx_metrics'), form.getvalue('new_apache_metrics'), form.getvalue('new_waf_metrics'))):
     serv = form.getvalue('server')
     hostname = sql.get_hostname_by_server_ip(serv)
-    time_range = form.getvalue('time_range')
+    time_range = common.checkAjaxInput(form.getvalue('time_range'))
     service = ''
 
     if form.getvalue('new_nginx_metrics'):
@@ -1405,10 +1404,7 @@ if any((form.getvalue('new_nginx_metrics'), form.getvalue('new_apache_metrics'),
     print(json.dumps(metrics))
 
 if form.getvalue('get_hap_v'):
-    import modules.service.common as service_common
-
-    output = service_common.check_haproxy_version(serv)
-    print(output)
+    print(service_common.check_haproxy_version(serv))
 
 if form.getvalue('get_nginx_v'):
     server_id = sql.select_server_id_by_ip(serv)
@@ -1512,15 +1508,15 @@ if form.getvalue('bwlists_save'):
                 server_mod.ssh_command(serv, [f"sudo systemctl reload {haproxy_service_name}"])
 
 if form.getvalue('bwlists_delete'):
-    color = form.getvalue('color')
-    bwlists_delete = form.getvalue('bwlists_delete')
+    color = common.checkAjaxInput(form.getvalue('color'))
+    bwlists_delete = common.checkAjaxInput(form.getvalue('bwlists_delete'))
     lib_path = get_config.get_config_var('main', 'lib_path')
-    list_path = lib_path + "/" + sql.get_setting('lists_path') + "/" + form.getvalue(
-        'group') + "/" + color + "/" + bwlists_delete
+    group = common.checkAjaxInput( form.getvalue('group'))
+    list_path = f"{lib_path}/{sql.get_setting('lists_path')}/{group}/{color}/{bwlists_delete}"
     try:
         os.remove(list_path)
     except IOError as e:
-        print('error: Cannot delete ' + color + ' list. %s , ' % e)
+        print(f'error: Cannot delete {color} list. {e} , ')
 
     path = sql.get_setting('haproxy_dir') + "/" + color
     servers = []
@@ -1538,14 +1534,14 @@ if form.getvalue('bwlists_delete'):
             servers.append(s[2])
 
     for serv in servers:
-        error = server_mod.ssh_command(serv, ["sudo rm " + path + "/" + bwlists_delete], return_err=1)
+        error = server_mod.ssh_command(serv, [f"sudo rm {path}/{bwlists_delete}"], return_err=1)
 
         if error:
-            print('error: Deleting fail: %s , ' % error)
+            print(f'error: Deleting fail: {error} , ')
         else:
-            print('success: the ' + color + ' list has been deleted on ' + serv + ' , ')
+            print(f'success: the {color} list has been deleted on {serv} , ')
             try:
-                roxywi_common.logging(serv, 'has been deleted the ' + color + ' list ' + bwlists_delete, roxywi=1, login=1)
+                roxywi_common.logging(serv, f'has been deleted the {color} list {bwlists_delete}', roxywi=1, login=1)
             except Exception:
                 pass
 
@@ -1791,7 +1787,7 @@ if form.getvalue('newgroup') is not None:
 
             output_from_parsed_template = template.render(groups=sql.select_groups(group=newgroup))
             print(output_from_parsed_template)
-            roxywi_common.logging('Roxy-WI server', 'A new group ' + newgroup + ' has been created', roxywi=1, login=1)
+            roxywi_common.logging('Roxy-WI server', f'A new group {newgroup} has been created', roxywi=1, login=1)
 
 if form.getvalue('groupdel') is not None:
     groupdel = form.getvalue('groupdel')
@@ -1800,7 +1796,7 @@ if form.getvalue('groupdel') is not None:
         groupname = g.name
     if sql.delete_group(groupdel):
         print("Ok")
-        roxywi_common.logging('Roxy-WI server', 'The ' + groupname + ' has been deleted', roxywi=1, login=1)
+        roxywi_common.logging('Roxy-WI server', f'The {groupname} has been deleted', roxywi=1, login=1)
 
 if form.getvalue('updategroup') is not None:
     name = form.getvalue('updategroup')
@@ -1811,7 +1807,7 @@ if form.getvalue('updategroup') is not None:
     else:
         try:
             sql.update_group(name, descript, group_id)
-            roxywi_common.logging('Roxy-WI server', 'The ' + name + ' has been updated', roxywi=1, login=1)
+            roxywi_common.logging(f'Roxy-WI server', f'The {name} has been updated', roxywi=1, login=1)
         except Exception as e:
             print('error: ' + str(e))
 

@@ -247,9 +247,9 @@ def master_slave_upload_and_restart(server_ip, cfg, just_save, **kwargs):
 		login = ''
 
 	is_master = [masters[0] for masters in sql.is_master(server_ip)]
-	if is_master[0] is not None:
+	for master in is_master:
 		slv_output = upload_and_restart(
-			is_master[0], cfg, just_save=just_save, nginx=kwargs.get('nginx'), waf=kwargs.get('waf'),
+			master, cfg, just_save=just_save, nginx=kwargs.get('nginx'), waf=kwargs.get('waf'),
 			apache=kwargs.get('apache'), config_file_name=kwargs.get('config_file_name'), slave=1
 		)
 		slave_output += f'<br>slave_server:\n{slv_output}'
@@ -425,7 +425,7 @@ def upload_ssl_cert(server_ip: str) -> None:
 			ssl_cert.write(form.getvalue('ssl_cert'))
 	except IOError as e:
 		print(f'error: Cannot save the SSL key file: {e.args[0]}')
-		sys.exit()
+		return 
 
 	masters = sql.is_master(server_ip)
 	for master in masters:

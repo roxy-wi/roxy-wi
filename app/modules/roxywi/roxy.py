@@ -4,7 +4,6 @@ import re
 import distro
 
 import modules.db.sql as sql
-import modules.common.common as common
 import modules.server.server as server_mod
 import modules.roxywi.common as roxywi_common
 
@@ -196,7 +195,7 @@ def action_service(action: str, service: str) -> None:
 			print(
 				'warning: The service is disabled because you are not subscribed. Read <a href="https://roxy-wi.org/pricing" '
 				'title="Roxy-WI pricing" target="_blank">here</a> about subscriptions')
-			sys.exit()
+			return 
 	if is_in_docker:
 		cmd = f"sudo supervisorctl {action} {service}"
 	os.system(cmd)
