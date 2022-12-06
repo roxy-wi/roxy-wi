@@ -1777,7 +1777,7 @@ if form.getvalue('ssh_cert'):
     roxywi_common.logging("Roxy-WI server", f"A new SSH cert has been uploaded {ssh_keys}", roxywi=1, login=1)
 
 if form.getvalue('newtelegram'):
-    import modules.alerting.alerting as alertin
+    import modules.alerting.alerting as alerting
 
     token = common.checkAjaxInput(form.getvalue('newtelegram'))
     channel = common.checkAjaxInput(form.getvalue('chanel'))
@@ -1810,7 +1810,7 @@ if form.getvalue('slackdel') is not None:
     import modules.alerting.alerting as alerting
 
     channel_id = common.checkAjaxInput(form.getvalue('slackdel'))
-    slack = sql.select_slack(id=slackdel)
+    slack = sql.select_slack(id=channel_id)
 
     alerting.delete_slack_channel(telegram, channel_id)
 

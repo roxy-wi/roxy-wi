@@ -3,6 +3,7 @@ import json
 import http.cookies
 
 import pika
+from jinja2 import Environment, FileSystemLoader
 
 import modules.db.sql as sql
 import modules.roxywi.common as roxywi_common
@@ -212,6 +213,9 @@ def check_email_alert() -> None:
 		send_email(user_email, subject, message)
 	except Exception as e:
 		print(f'error: Cannot send a message {e}')
+
+
+error_mess = 'error: All fields must be completed'
 
 
 def add_telegram_channel(token: str, channel: str, group: str, page: str) -> None:
