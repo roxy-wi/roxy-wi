@@ -1,4 +1,6 @@
+import os
 import json
+import http.cookies
 
 import pika
 
@@ -95,8 +97,8 @@ def send_email(email_to: str, subject: str, message: str) -> None:
 	mail_smtp_password = sql.get_setting('mail_smtp_password')
 
 	msg = MIMEText(message)
-	msg['Subject'] = 'Roxy-WI: ' + subject
-	msg['From'] = 'Roxy-WI <' + mail_from + '>'
+	msg['Subject'] = f'Roxy-WI: {subject}'
+	msg['From'] = f'Roxy-WI <{mail_from}>'
 	msg['To'] = email_to
 
 	try:
@@ -170,6 +172,88 @@ def slack_send_mess(mess, **kwargs):
 		client = WebClient(token=slack_token)
 
 	try:
-		client.chat_postMessage(channel='#' + channel_name, text=mess)
+		client.chat_postMessage(channel=f'#{channel_name}', text=mess)
 	except SlackApiError as e:
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
+
+
+def check_rabbit_alert() -> None:
+	try:
+		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+		user_group_id = cookie.get('group')
+		user_group_id1 = user_group_id.value
+	except Exception as e:
+		print(f'error: Cannot send a message {e}')
+
+	try:
+		json_for_sending = {"user_group": user_group_id1, "message": 'info: Test message'}
+		send_message_to_rabbit(json.dumps(json_for_sending))
+	except Exception as e:
+		print(f'error: Cannot send a message {e}')
+
+
+def check_email_alert() -> None:
+	subject = 'test message'
+	message = 'Test message from Roxy-WI'
+
+	try:
+		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+		user_uuid = cookie.get('uuid')
+		user_uuid_value = user_uuid.value
+	except Exception as e:
+		print(f'error: Cannot send a message {e}')
+
+	try:
+		user_email = sql.select_user_email_by_uuid(user_uuid_value)
+	except Exception as e:
+		print(f'error: Cannot get a user email: {e}')
+
+	try:
+		send_email(user_email, subject, message)
+	except Exception as e:
+		print(f'error: Cannot send a message {e}')
+
+
+def add_telegram_channel(token: str, channel: str, group: str, page: str) -> None:
+	if token is None or channel is None or group is None:
+		print(error_mess)
+	else:
+		if sql.insert_new_telegram(token, channel, group):
+			env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
+			template = env.get_template('/new_telegram.html')
+			output_from_parsed_template = template.render(groups=sql.select_groups(),
+														  telegrams=sql.select_telegram(token=token), page=page)
+			print(output_from_parsed_template)
+			roxywi_common.logging('Roxy-WI server', f'A new Telegram channel {channel} has been created ', roxywi=1,
+								  login=1)
+
+
+def add_slack_channel(token: str, channel: str, group: str, page: str) -> None:
+	if token is None or channel is None or group is None:
+		print(error_mess)
+	else:
+		if sql.insert_new_slack(token, channel, group):
+			env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
+			template = env.get_template('/new_slack.html')
+			output_from_parsed_template = template.render(groups=sql.select_groups(),
+														  slacks=sql.select_slack(token=token), page=page)
+			print(output_from_parsed_template)
+			roxywi_common.logging('Roxy-WI server', 'A new Slack channel ' + channel + ' has been created ', roxywi=1,
+								  login=1)
+
+
+def delete_telegram_channel(telegram, channel_id) -> None:
+	for t in telegram:
+		telegram_name = t.token
+	if sql.delete_telegram(channel_id):
+		print("Ok")
+		roxywi_common.logging('Roxy-WI server', f'The Telegram channel {telegram_name} has been deleted ', roxywi=1,
+							  login=1)
+
+
+def delete_slack_channel(slack, channel_id) -> None:
+	for t in slack:
+		slack_name = t.chanel_name
+	if sql.delete_slack(channel_id):
+		print("Ok")
+		roxywi_common.logging('Roxy-WI server', f'The Slack channel {slack_name} has been deleted ', roxywi=1, login=1)

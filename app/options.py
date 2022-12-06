@@ -1659,7 +1659,7 @@ if form.getvalue('updategroup') is not None:
 if form.getvalue('new_ssh'):
     user_group = roxywi_common.get_user_group()
     name = common.checkAjaxInput(form.getvalue('new_ssh'))
-    name = f'{name}{_user_group}'
+    name = f'{name}{user_group}'
     enable = common.checkAjaxInput(form.getvalue('ssh_enable'))
     group = common.checkAjaxInput(form.getvalue('new_group'))
     username = common.checkAjaxInput(form.getvalue('ssh_user'))
@@ -1777,60 +1777,42 @@ if form.getvalue('ssh_cert'):
     roxywi_common.logging("Roxy-WI server", f"A new SSH cert has been uploaded {ssh_keys}", roxywi=1, login=1)
 
 if form.getvalue('newtelegram'):
+    import modules.alerting.alerting as alertin
+
     token = common.checkAjaxInput(form.getvalue('newtelegram'))
     channel = common.checkAjaxInput(form.getvalue('chanel'))
     group = common.checkAjaxInput(form.getvalue('telegramgroup'))
     page = common.checkAjaxInput(form.getvalue('page'))
     page = page.split("#")[0]
 
-    if token is None or channel is None or group is None:
-        print(error_mess)
-    else:
-        if sql.insert_new_telegram(token, channel, group):
-            env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
-            template = env.get_template('/new_telegram.html')
-            output_from_parsed_template = template.render(groups=sql.select_groups(),
-                                                          telegrams=sql.select_telegram(token=token), page=page)
-            print(output_from_parsed_template)
-            roxywi_common.logging('Roxy-WI server', f'A new Telegram channel {channel} has been created ', roxywi=1, login=1)
+    alerting.add_telegram_channel(token, channel, group, page)
 
 if form.getvalue('newslack'):
+    import modules.alerting.alerting as alerting
+
     token = common.checkAjaxInput(form.getvalue('newslack'))
     channel = common.checkAjaxInput(form.getvalue('chanel'))
     group = common.checkAjaxInput(form.getvalue('slackgroup'))
     page = common.checkAjaxInput(form.getvalue('page'))
     page = page.split("#")[0]
 
-    if token is None or channel is None or group is None:
-        print(error_mess)
-    else:
-        if sql.insert_new_slack(token, channel, group):
-            env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
-            template = env.get_template('/new_slack.html')
-            output_from_parsed_template = template.render(groups=sql.select_groups(),
-                                                          slacks=sql.select_slack(token=token), page=page)
-            print(output_from_parsed_template)
-            roxywi_common.logging('Roxy-WI server', 'A new Slack channel ' + channel + ' has been created ', roxywi=1, login=1)
+    alerting.add_slack_channel(token, channel, group, page)
 
 if form.getvalue('telegramdel') is not None:
-    telegramdel = common.checkAjaxInput(form.getvalue('telegramdel'))
+    import modules.alerting.alerting as alerting
+
+    channel_id = common.checkAjaxInput(form.getvalue('telegramdel'))
     telegram = sql.select_telegram(id=telegramdel)
-    telegram_name = ''
-    for t in telegram:
-        telegram_name = t.token
-    if sql.delete_telegram(telegramdel):
-        print("Ok")
-        roxywi_common.logging('Roxy-WI server', 'The Telegram channel ' + telegram_name + ' has been deleted ', roxywi=1, login=1)
+
+    alerting.delete_telegram_channel(telegram, channel_id)
 
 if form.getvalue('slackdel') is not None:
-    slackdel = common.checkAjaxInput(form.getvalue('slackdel'))
+    import modules.alerting.alerting as alerting
+
+    channel_id = common.checkAjaxInput(form.getvalue('slackdel'))
     slack = sql.select_slack(id=slackdel)
-    slack_name = ''
-    for t in slack:
-        slack_name = t.chanel_name
-    if sql.delete_slack(slackdel):
-        print("Ok")
-        roxywi_common.logging('Roxy-WI server', 'The Slack channel ' + slack_name + ' has been deleted ', roxywi=1, login=1)
+
+    alerting.delete_slack_channel(telegram, channel_id)
 
 if form.getvalue('updatetoken') is not None:
     token = common.checkAjaxInput(form.getvalue('updatetoken'))
@@ -1841,7 +1823,7 @@ if form.getvalue('updatetoken') is not None:
         print(error_mess)
     else:
         sql.update_telegram(token, channel, group, user_id)
-        roxywi_common.logging('group ' + group, 'The Telegram token has been updated for channel: ' + channel, roxywi=1,
+        roxywi_common.logging('group ' + group, f'The Telegram token has been updated for channel: {channel}', roxywi=1,
                       login=1)
 
 if form.getvalue('update_slack_token') is not None:
@@ -1853,7 +1835,7 @@ if form.getvalue('update_slack_token') is not None:
         print(error_mess)
     else:
         sql.update_slack(token, channel, group, user_id)
-        roxywi_common.logging('group ' + group, 'The Slack token has been updated for channel: ' + channel, roxywi=1,
+        roxywi_common.logging(f'group {group}', f'The Slack token has been updated for channel: {channel}', roxywi=1,
                       login=1)
 
 if form.getvalue('updatesettings') is not None:
@@ -1903,7 +1885,7 @@ if form.getvalue('changeUserGroupId') is not None:
             except Exception as e:
                 print(e)
 
-    roxywi_common.logging('Roxy-WI server', 'Groups has been updated for user: ' + user, roxywi=1, login=1)
+    roxywi_common.logging('Roxy-WI server', f'Groups has been updated for user: {user}', roxywi=1, login=1)
 
 if form.getvalue('changeUserServicesId') is not None:
     user_id = common.checkAjaxInput(form.getvalue('changeUserServicesId'))
@@ -3284,41 +3266,12 @@ if form.getvalue('check_slack'):
 if form.getvalue('check_rabbitmq_alert'):
     import modules.alerting.alerting as alerting
 
-    try:
-        cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-        user_group_id = cookie.get('group')
-        user_group_id1 = user_group_id.value
-    except Exception as e:
-        print(f'error: Cannot send a message {e}')
-
-    try:
-        json_for_sending = {"user_group": user_group_id1, "message": 'info: Test message'}
-        alerting.send_message_to_rabbit(json.dumps(json_for_sending))
-    except Exception as e:
-        print(f'error: Cannot send a message {e}')
+    alerting.check_rabbit_alert()
 
 if form.getvalue('check_email_alert'):
     import modules.alerting.alerting as alerting
 
-    subject = 'test message'
-    message = 'Test message from Roxy-WI'
-
-    try:
-        cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-        user_uuid = cookie.get('uuid')
-        user_uuid_value = user_uuid.value
-    except Exception as e:
-        print(f'error: Cannot send a message {e}')
-
-    try:
-        user_email = sql.select_user_email_by_uuid(user_uuid_value)
-    except Exception as e:
-        print(f'error: Cannot get a user email: {e}')
-
-    try:
-        alerting.send_email(user_email, subject, message)
-    except Exception as e:
-        print(f'error: Cannot send a message {e}')
+    alerting.check_email_alert()
 
 if form.getvalue('getoption'):
     group = form.getvalue('getoption')
