@@ -235,47 +235,9 @@ if form.getvalue('action_service') is not None:
     roxy.action_service(action, serv)
 
 if act == "overviewHapserverBackends":
-    import modules.config.section as section_mod
+    service = common.checkAjaxInput(form.getvalue('service'))
 
-    env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
-    template = env.get_template('haproxyservers_backends.html')
-    service = form.getvalue('service')
-    format_file = 'cfg'
-
-    if service == 'haproxy':
-        configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
-        format_file = 'cfg'
-    elif service == 'keepalived':
-        configs_dir = get_config.get_config_var('configs', 'kp_save_configs_dir')
-        format_file = 'conf'
-
-    if service != 'nginx' and service != 'apache':
-        try:
-            sections = section_mod.get_sections(configs_dir + roxywi_common.get_files(configs_dir, format_file)[0], service=service)
-        except Exception as e:
-            roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
-
-            try:
-                cfg = configs_dir + serv + "-" + get_date.return_date('config') + '.' + format_file
-            except Exception as e:
-                roxywi_common.logging('Roxy-WI server', ' Cannot generate a cfg path ' + str(e), roxywi=1)
-            try:
-                if service == 'keepalived':
-                    error = config_mod.get_config(serv, cfg, keepalived=1)
-                else:
-                    error = config_mod.get_config(serv, cfg)
-            except Exception as e:
-                roxywi_common.logging('Roxy-WI server', ' Cannot download a config ' + str(e), roxywi=1)
-            try:
-                sections = section_mod.get_sections(cfg, service=service)
-            except Exception as e:
-                roxywi_common.logging('Roxy-WI server', ' Cannot get sections from config file ' + str(e), roxywi=1)
-                sections = 'Cannot get backends'
-    else:
-        sections = section_mod.get_remote_sections(serv, service)
-
-    template = template.render(backends=sections, serv=serv, service=service)
-    print(template)
+    service_common.overview_backends(serv, service)
 
 if form.getvalue('show_userlists'):
     configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
@@ -302,17 +264,9 @@ if form.getvalue('show_userlists'):
     print(sections)
 
 if act == "overviewHapservers":
-    if form.getvalue('service') == 'nginx':
-        config_path = sql.get_setting('nginx_config_path')
-    elif form.getvalue('service') == 'keepalived':
-        config_path = '/etc/keepalived/keepalived.conf'
-    else:
-        config_path = sql.get_setting('haproxy_config_path')
-    commands = ["ls -l %s |awk '{ print $6\" \"$7\" \"$8}'" % config_path]
-    try:
-        print(server_mod.ssh_command(serv, commands))
-    except Exception as e:
-        print(f'error: Cannot get last date {e} for server {serv}')
+    service = common.checkAjaxInput(form.getvalue('service'))
+
+    service_common.get_overview_last_edit(serv, service)
 
 if act == "overview":
     import modules.roxywi.overview as roxy_overview
@@ -327,52 +281,11 @@ if act == "overviewwaf":
     roxy_waf.waf_overview(serv, waf_service)
 
 if act == "overviewServers":
-    import asyncio
+    server_id = common.checkAjaxInput(form.getvalue('id'))
+    name = common.checkAjaxInput(form.getvalue('name'))
+    service = common.checkAjaxInput(form.getvalue('service'))
 
-    async def async_get_overviewServers(serv1, serv2, service):
-        if service == 'haproxy':
-            cmd = 'echo "show info" |nc %s %s -w 1|grep -e "node\|Nbproc\|Maxco\|MB\|Nbthread"' % (
-                serv2, sql.get_setting('haproxy_sock_port'))
-            out = server_mod.subprocess_execute(cmd)
-            return_out = ""
-
-            for k in out:
-                if "Ncat:" not in k:
-                    for r in k:
-                        return_out += r
-                        return_out += "<br />"
-                else:
-                    return_out = "Cannot connect to HAProxy"
-        else:
-            return_out = ''
-
-        server_status = (serv1, serv2, return_out)
-        return server_status
-
-    async def get_runner_overviewServers(**kwargs):
-        env = Environment(loader=FileSystemLoader('templates/ajax'),
-                          extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
-        template = env.get_template('overviewServers.html')
-
-        servers = []
-        cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-        user_id = cookie.get('uuid')
-        role = sql.get_user_role_by_uuid(user_id.value)
-        futures = [async_get_overviewServers(kwargs.get('server1'), kwargs.get('server2'), kwargs.get('service'))]
-
-        for i, future in enumerate(asyncio.as_completed(futures)):
-            result = await future
-            servers.append(result)
-        servers_sorted = sorted(servers, key=common.get_key)
-        template = template.render(service_status=servers_sorted, role=role, id=kwargs.get('id'), service_page=service)
-        print(template)
-
-    server_id = form.getvalue('id')
-    name = form.getvalue('name')
-    service = form.getvalue('service')
-    ioloop = asyncio.get_event_loop()
-    ioloop.run_until_complete(get_runner_overviewServers(server1=name, server2=serv, id=server_id, service=service))
-    ioloop.close()
+    service_common.overview_service(server_id, name, service)
 
 if form.getvalue('action'):
     haproxy_user = sql.get_setting('stats_user')
