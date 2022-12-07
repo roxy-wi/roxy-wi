@@ -5,7 +5,7 @@ import modules.service.common as service_common
 import modules.common.common as common
 import modules.server.server as server_mod
 import modules.roxywi.common as roxywi_common
-from modules.server.server import return_ssh_keys_path
+from modules.server.ssh import return_ssh_keys_path
 
 form = common.form
 

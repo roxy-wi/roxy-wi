@@ -4,7 +4,7 @@ import modules.db.sql as sql
 import modules.common.common as common
 import modules.server.server as server_mod
 from modules.service.installation import show_installation_output
-from modules.server.server import return_ssh_keys_path
+from modules.server.ssh import return_ssh_keys_path
 
 form = common.form
 

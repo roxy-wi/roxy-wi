@@ -1,43 +1,11 @@
 import json
 
 import modules.db.sql as sql
+import modules.server.ssh as mod_ssh
 import modules.common.common as common
 import modules.roxywi.common as roxywi_common
-from modules.server import ssh_connection
-import modules.roxy_wi_tools as roxy_wi_tools
 
 form = common.form
-get_config_var = roxy_wi_tools.GetConfigVar()
-
-
-def return_ssh_keys_path(server_ip: str, **kwargs) -> dict:
-	lib_path = get_config_var.get_config_var('main', 'lib_path')
-	ssh_settings = {}
-
-	if kwargs.get('id'):
-		sshs = sql.select_ssh(id=kwargs.get('id'))
-	else:
-		sshs = sql.select_ssh(serv=server_ip)
-
-	for ssh in sshs:
-		ssh_settings.setdefault('enabled', ssh.enable)
-		ssh_settings.setdefault('user', ssh.username)
-		ssh_settings.setdefault('password', ssh.password)
-		ssh_key = f'{lib_path}/keys/{ssh.name}.pem' if ssh.enable == 1 else ''
-		ssh_settings.setdefault('key', ssh_key)
-
-	ssh_port = [str(server[10]) for server in sql.select_servers(server=server_ip)]
-	ssh_settings.setdefault('port', ssh_port[0])
-
-	return ssh_settings
-
-
-def ssh_connect(server_ip):
-	ssh_settings = return_ssh_keys_path(server_ip)
-	ssh = ssh_connection.SshConnection(server_ip, ssh_settings['port'], ssh_settings['user'],
-										ssh_settings['password'], ssh_settings['enabled'], ssh_settings['key'])
-
-	return ssh
 
 
 def ssh_command(server_ip: str, commands: list, **kwargs):
@@ -48,7 +16,7 @@ def ssh_command(server_ip: str, commands: list, **kwargs):
 	else:
 		timeout = 1
 	try:
-		with ssh_connect(server_ip) as ssh:
+		with mod_ssh.ssh_connect(server_ip) as ssh:
 			for command in commands:
 				try:
 					stdin, stdout, stderr = ssh.run_command(command, timeout=timeout)

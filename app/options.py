@@ -10,6 +10,7 @@ import requests
 from jinja2 import Environment, FileSystemLoader
 
 import modules.db.sql as sql
+import modules.server.ssh as ssh_mod
 import modules.common.common as common
 import modules.config.config as config_mod
 import modules.roxywi.common as roxywi_common
@@ -831,8 +832,6 @@ if serv is not None and act == "configShow":
         os.remove(cfg)
 
 if act == 'configShowFiles':
-    import modules.server.server as server_mod
-
     service = form.getvalue('service')
 
     config_dir = get_config.get_config_var('configs', f'{service}_save_configs_dir')
@@ -853,8 +852,6 @@ if act == 'configShowFiles':
     print(template)
 
 if act == 'showRemoteLogFiles':
-    import modules.server.server as server_mod
-
     service = form.getvalue('service')
     log_path = sql.get_setting(f'{service}_path_logs')
     return_files = server_mod.get_remote_files(serv, log_path, 'log')
@@ -930,7 +927,7 @@ if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupup
     update = form.getvalue('backupupdate')
     description = form.getvalue('description')
     script = 'backup.sh'
-    ssh_settings = server_mod.return_ssh_keys_path('localhost', id=int(cred))
+    ssh_settings = ssh_mod.return_ssh_keys_path('localhost', id=int(cred))
 
     if deljob:
         time = ''
@@ -1004,7 +1001,7 @@ if form.getvalue('git_backup'):
     service_config_dir = sql.get_setting(service_name + '_dir')
     script = 'git_backup.sh'
     proxy_serv = ''
-    ssh_settings = server_mod.return_ssh_keys_path('localhost', id=int(cred))
+    ssh_settings = ssh_mod.return_ssh_keys_path('localhost', id=int(cred))
 
     os.system(f"cp scripts/{script} .")
 
@@ -1474,8 +1471,6 @@ if form.getvalue('updatepassowrd') is not None:
     roxywi_user.update_user_password()
 
 if form.getvalue('newserver') is not None:
-    import modules.server.server as server_mod
-
     hostname = common.checkAjaxInput(form.getvalue('servername'))
     ip = form.getvalue('newip')
     ip = common.is_ip_or_dns(ip)
@@ -1657,23 +1652,15 @@ if form.getvalue('updategroup') is not None:
             print('error: ' + str(e))
 
 if form.getvalue('new_ssh'):
-    import modules.server.ssh as ssh_mod
-
     ssh_mod.create_ssh_cred()
 
 if form.getvalue('sshdel') is not None:
-    import modules.server.ssh as ssh_mod
-
     ssh_mod.delete_ssh_key()
 
 if form.getvalue('updatessh'):
-    import modules.server.ssh as ssh_mod
-
     ssh_mod.update_ssh_key()
 
 if form.getvalue('ssh_cert'):
-    import modules.server.ssh as ssh_mod
-
     ssh_mod.upload_ssh_key()
 
 if form.getvalue('newtelegram'):
@@ -2008,7 +1995,7 @@ if form.getvalue('lets_domain'):
     haproxy_dir = sql.get_setting('haproxy_dir')
     script = "letsencrypt.sh"
     proxy_serv = ''
-    ssh_settings = server_mod.return_ssh_keys_path(serv)
+    ssh_settings = ssh_mod.return_ssh_keys_path(serv)
 
     os.system(f"cp scripts/{script} .")
 
@@ -3382,11 +3369,9 @@ if act == 'showListOfVersion':
     print(template)
 
 if act == 'getSystemInfo':
-    import modules.server.server as server_mod
     server_mod.show_system_info()
 
 if act == 'updateSystemInfo':
-    import modules.server.server as server_mod
     server_mod.update_system_info()
 
 if act == 'findInConfigs':
