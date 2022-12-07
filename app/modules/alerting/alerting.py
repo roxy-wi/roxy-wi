@@ -6,7 +6,10 @@ import pika
 from jinja2 import Environment, FileSystemLoader
 
 import modules.db.sql as sql
+import modules.common.common as common
 import modules.roxywi.common as roxywi_common
+
+error_mess = common.error_mess
 
 
 def send_message_to_rabbit(message: str, **kwargs) -> None:
@@ -213,9 +216,6 @@ def check_email_alert() -> None:
 		send_email(user_email, subject, message)
 	except Exception as e:
 		print(f'error: Cannot send a message {e}')
-
-
-error_mess = 'error: All fields must be completed'
 
 
 def add_telegram_channel(token: str, channel: str, group: str, page: str) -> None:

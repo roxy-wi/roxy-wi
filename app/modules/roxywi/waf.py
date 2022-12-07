@@ -10,6 +10,7 @@ import modules.roxywi.common as roxywi_common
 
 form = common.form
 
+
 def waf_overview(serv, waf_service) -> None:
     env = Environment(
         loader=FileSystemLoader('templates/ajax'), autoescape=True,

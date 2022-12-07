@@ -2,7 +2,7 @@ import re
 import cgi
 
 form = cgi.FieldStorage()
-
+error_mess = 'error: All fields must be completed'
 
 def is_ip_or_dns(server_from_request: str) -> str:
 	ip_regex = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"

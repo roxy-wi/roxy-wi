@@ -79,8 +79,7 @@ def ssh_command(server_ip: str, commands: list, **kwargs):
 				except Exception as e:
 					roxywi_common.logging('Roxy-WI server', f' Something wrong with SSH connection. Probably sudo with password {e}', roxywi=1)
 	except Exception as e:
-		roxywi_common.logging('Roxy-WI server',
-							  f' Something wrong with SSH connection: {e}', roxywi=1)
+		roxywi_common.logging('Roxy-WI server', f' Something wrong with SSH connection: {e}', roxywi=1)
 		raise Exception(f'error: {e}')
 
 
