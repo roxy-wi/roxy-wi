@@ -10,11 +10,11 @@ import modules.roxy_wi_tools as roxy_wi_tools
 
 form = common.form
 error_mess = common.error_mess
-get_config_var = roxy_wi_tools.GetConfigVar()
+get_config = roxy_wi_tools.GetConfigVar()
 
 
 def return_ssh_keys_path(server_ip: str, **kwargs) -> dict:
-	lib_path = get_config_var.get_config_var('main', 'lib_path')
+	lib_path = get_config.get_config_var('main', 'lib_path')
 	ssh_settings = {}
 
 	if kwargs.get('id'):
@@ -62,8 +62,7 @@ def create_ssh_cred() -> None:
 		if sql.insert_new_ssh(name, enable, group, username, password):
 			env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
 			template = env.get_template('/new_ssh.html')
-			output_from_parsed_template = template.render(groups=sql.select_groups(), sshs=sql.select_ssh(name=name),
-														  page=page)
+			output_from_parsed_template = template.render(groups=sql.select_groups(), sshs=sql.select_ssh(name=name), page=page)
 			print(output_from_parsed_template)
 			roxywi_common.logging('Roxy-WI server', f'A new SSH credentials {name} has created', roxywi=1, login=1)
 
@@ -83,7 +82,7 @@ def upload_ssh_key() -> None:
 	ssh_keys = f'{name}.pem'
 
 	try:
-		check_split = name.split('_')[1]
+		_check_split = name.split('_')[1]
 		split_name = True
 	except Exception:
 		split_name = False
