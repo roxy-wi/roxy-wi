@@ -7,7 +7,7 @@ import modules.server.ssh as mod_ssh
 import modules.common.common as common
 import modules.roxywi.common as roxywi_common
 import modules.roxy_wi_tools as roxy_wi_tools
-from modules.service.common import is_not_allowed_to_restart, get_correct_apache_service_name
+import modules.service.common as service_common
 
 form = common.form
 time_zone = sql.get_setting('time_zone')
@@ -95,7 +95,7 @@ def upload_and_restart(server_ip: str, cfg: str, **kwargs):
 			if haproxy_enterprise == '1':
 				service_name = "hapee-2.0-lb"
 		if service == 'apache':
-			service_name = get_correct_apache_service_name(server_ip, 0)
+			service_name = service_common.get_correct_apache_service_name(server_ip, 0)
 
 		reload_command = f" && sudo systemctl reload {service_name}"
 		restart_command = f" && sudo systemctl restart {service_name}"
@@ -108,7 +108,7 @@ def upload_and_restart(server_ip: str, cfg: str, **kwargs):
 		action = 'reload'
 		reload_or_restart_command = reload_command
 	else:
-		is_not_allowed_to_restart(server_id, service)
+		service_common.is_not_allowed_to_restart(server_id, service)
 		action = 'restart'
 		reload_or_restart_command = restart_command
 

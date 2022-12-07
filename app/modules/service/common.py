@@ -4,7 +4,6 @@ import http.cookies
 import modules.db.sql as sql
 import modules.server.ssh as mod_ssh
 import modules.common.common as common
-import modules.config.config as config_mod
 import modules.server.server as server_mod
 import modules.roxy_wi_tools as roxy_wi_tools
 
@@ -129,6 +128,7 @@ def check_nginx_config(server_ip):
 def overview_backends(server_ip: str, service: str) -> None:
 	from jinja2 import Environment, FileSystemLoader
 
+	import modules.config.config as config_mod
 	import modules.config.section as section_mod
 	import modules.roxywi.common as roxywi_common
 
