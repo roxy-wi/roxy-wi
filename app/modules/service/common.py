@@ -4,9 +4,12 @@ import http.cookies
 import modules.db.sql as sql
 import modules.server.ssh as mod_ssh
 import modules.common.common as common
+import modules.config.config as config_mod
 import modules.server.server as server_mod
 import modules.roxy_wi_tools as roxy_wi_tools
 
+time_zone = sql.get_setting('time_zone')
+get_date = roxy_wi_tools.GetDate(time_zone)
 get_config = roxy_wi_tools.GetConfigVar()
 
 
@@ -181,10 +184,10 @@ def get_overview_last_edit(server_ip: str, service: str) -> None:
 	try:
 		print(server_mod.ssh_command(server_ip, commands))
 	except Exception as e:
-		print(f'error: Cannot get last date {e} for server {serv}')
+		print(f'error: Cannot get last date {e} for server {server_ip}')
 
 
-def overview_service(server_id: int, name: str, service: str) -> None:
+def overview_service(server_ip: str, server_id: int, name: str, service: str) -> None:
 	import asyncio
 	from jinja2 import Environment, FileSystemLoader
 
@@ -209,8 +212,7 @@ def overview_service(server_id: int, name: str, service: str) -> None:
 		return server_status
 
 	async def get_runner_overviewServers(**kwargs):
-		env = Environment(loader=FileSystemLoader('templates/ajax'),
-						  extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
+		env = Environment(loader=FileSystemLoader('templates/ajax'), extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
 		template = env.get_template('overviewServers.html')
 
 		servers = []
@@ -227,5 +229,53 @@ def overview_service(server_id: int, name: str, service: str) -> None:
 		print(template)
 
 	ioloop = asyncio.get_event_loop()
-	ioloop.run_until_complete(get_runner_overviewServers(server1=name, server2=serv, id=server_id, service=service))
+	ioloop.run_until_complete(get_runner_overviewServers(server1=name, server2=server_ip, id=server_id, service=service))
 	ioloop.close()
+
+
+def get_stat_page(server_ip: str, service: str) -> None:
+	import requests
+	from jinja2 import Environment, FileSystemLoader
+
+	if service in ('nginx', 'apache'):
+		stats_user = sql.get_setting(f'{service}_stats_user')
+		stats_pass = sql.get_setting(f'{service}_stats_password')
+		stats_port = sql.get_setting(f'{service}_stats_port')
+		stats_page = sql.get_setting(f'{service}_stats_page')
+	else:
+		stats_user = sql.get_setting('stats_user')
+		stats_pass = sql.get_setting('stats_password')
+		stats_port = sql.get_setting('stats_port')
+		stats_page = sql.get_setting('stats_page')
+	try:
+		response = requests.get(f'http://{server_ip}:{stats_port}/{stats_page}', auth=(stats_user, stats_pass))
+	except requests.exceptions.ConnectTimeout:
+		print('error: Oops. Connection timeout occurred!')
+	except requests.exceptions.ReadTimeout:
+		print('error: Oops. Read timeout occurred')
+	except requests.exceptions.HTTPError as errh:
+		print("error: Http Error:", errh)
+	except requests.exceptions.ConnectionError as errc:
+		print('error: Error Connecting: %s' % errc)
+	except requests.exceptions.Timeout as errt:
+		print("error: Timeout Error:", errt)
+	except requests.exceptions.RequestException as err:
+		print("error: OOps: Something Else", err)
+
+	data = response.content
+	if service == 'nginx':
+		env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
+		template = env.get_template('ajax/nginx_stats.html')
+
+		servers_with_status = list()
+		h = ()
+		out1 = []
+		for k in data.decode('utf-8').split():
+			out1.append(k)
+		h = (out1,)
+		servers_with_status.append(h)
+
+		template = template.render(out=servers_with_status)
+		print(template)
+	else:
+		print(data.decode('utf-8'))

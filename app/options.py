@@ -285,7 +285,7 @@ if act == "overviewServers":
     name = common.checkAjaxInput(form.getvalue('name'))
     service = common.checkAjaxInput(form.getvalue('service'))
 
-    service_common.overview_service(server_id, name, service)
+    service_common.overview_service(serv, server_id, name, service)
 
 if form.getvalue('action'):
     haproxy_user = sql.get_setting('stats_user')
@@ -312,53 +312,9 @@ if form.getvalue('action'):
                       auth=(haproxy_user, haproxy_pass))
 
 if serv is not None and act == "stats":
-    if form.getvalue('service') == 'nginx':
-        haproxy_user = sql.get_setting('nginx_stats_user')
-        haproxy_pass = sql.get_setting('nginx_stats_password')
-        stats_port = sql.get_setting('nginx_stats_port')
-        stats_page = sql.get_setting('nginx_stats_page')
-    elif form.getvalue('service') == 'apache':
-        haproxy_user = sql.get_setting('apache_stats_user')
-        haproxy_pass = sql.get_setting('apache_stats_password')
-        stats_port = sql.get_setting('apache_stats_port')
-        stats_page = sql.get_setting('apache_stats_page')
-    else:
-        haproxy_user = sql.get_setting('stats_user')
-        haproxy_pass = sql.get_setting('stats_password')
-        stats_port = sql.get_setting('stats_port')
-        stats_page = sql.get_setting('stats_page')
-    try:
-        response = requests.get(f'http://{serv}:{stats_port}/{stats_page}', auth=(haproxy_user, haproxy_pass))
-    except requests.exceptions.ConnectTimeout:
-        print('error: Oops. Connection timeout occurred!')
-    except requests.exceptions.ReadTimeout:
-        print('error: Oops. Read timeout occurred')
-    except requests.exceptions.HTTPError as errh:
-        print("error: Http Error:", errh)
-    except requests.exceptions.ConnectionError as errc:
-        print('error: Error Connecting: %s' % errc)
-    except requests.exceptions.Timeout as errt:
-        print("error: Timeout Error:", errt)
-    except requests.exceptions.RequestException as err:
-        print("error: OOps: Something Else", err)
+    service = common.checkAjaxInput(form.getvalue('service'))
 
-    data = response.content
-    if form.getvalue('service') == 'nginx':
-        env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
-        template = env.get_template('ajax/nginx_stats.html')
-
-        servers_with_status = list()
-        h = ()
-        out1 = []
-        for k in data.decode('utf-8').split():
-            out1.append(k)
-        h = (out1,)
-        servers_with_status.append(h)
-
-        template = template.render(out=servers_with_status)
-        print(template)
-    else:
-        print(data.decode('utf-8'))
+    service_common.get_stat_page(serv, service)
 
 if serv is not None and form.getvalue('show_log') is not None:
     import modules.roxywi.logs as roxywi_logs
