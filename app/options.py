@@ -1558,7 +1558,7 @@ if form.getvalue('telegramdel') is not None:
     import modules.alerting.alerting as alerting
 
     channel_id = common.checkAjaxInput(form.getvalue('telegramdel'))
-    telegram = sql.select_telegram(id=telegramdel)
+    telegram = sql.select_telegram(id=channel_id)
 
     alerting.delete_telegram_channel(telegram, channel_id)
 
@@ -1568,7 +1568,7 @@ if form.getvalue('slackdel') is not None:
     channel_id = common.checkAjaxInput(form.getvalue('slackdel'))
     slack = sql.select_slack(id=channel_id)
 
-    alerting.delete_slack_channel(telegram, channel_id)
+    alerting.delete_slack_channel(slack, channel_id)
 
 if form.getvalue('updatetoken') is not None:
     token = common.checkAjaxInput(form.getvalue('updatetoken'))
@@ -1979,28 +1979,7 @@ if form.getvalue('scan_ports') is not None:
         print(template)
 
 if form.getvalue('viewFirewallRules') is not None:
-    serv = common.checkAjaxInput(form.getvalue('viewFirewallRules'))
-
-    cmd = ["sudo iptables -L INPUT -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"]
-    cmd1 = ["sudo iptables -L IN_public_allow -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"]
-    cmd2 = ["sudo iptables -L OUTPUT -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"]
-
-    input_chain = server_mod.ssh_command(serv, cmd, raw=1)
-
-    input_chain2 = []
-    for each_line in input_chain:
-        input_chain2.append(each_line.strip('\n'))
-
-    if 'error:' in input_chain:
-        print(input_chain)
-        sys.exit()
-
-    IN_public_allow = server_mod.ssh_command(serv, cmd1, raw=1)
-    output_chain = server_mod.ssh_command(serv, cmd2, raw=1)
-    env = Environment(loader=FileSystemLoader('templates'))
-    template = env.get_template('ajax/firewall_rules.html')
-    template = template.render(input=input_chain2, IN_public_allow=IN_public_allow, output=output_chain)
-    print(template)
+    server_mod.show_firewalld_rules()
 
 if form.getvalue('geoipserv') is not None:
     serv = common.checkAjaxInput(form.getvalue('geoipserv'))
@@ -2008,7 +1987,7 @@ if form.getvalue('geoipserv') is not None:
     if service in ('haproxy', 'nginx'):
         service_dir = common.return_nice_path(sql.get_setting(f'{service}_dir'))
 
-        cmd = [f"ls {service_dir} geoip/"]
+        cmd = [f"ls {service_dir}geoip/"]
         print(server_mod.ssh_command(serv, cmd))
     else:
         print('warning: select a server and service first')

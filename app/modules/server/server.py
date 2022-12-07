@@ -381,3 +381,30 @@ def update_system_info() -> None:
 		print(template)
 	except Exception as e:
 		print(f'error: Cannot update server info: {e}')
+
+
+def show_firewalld_rules() -> None:
+	from jinja2 import Environment, FileSystemLoader
+
+	serv = common.checkAjaxInput(form.getvalue('viewFirewallRules'))
+
+	cmd = ["sudo iptables -L INPUT -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"]
+	cmd1 = ["sudo iptables -L IN_public_allow -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"]
+	cmd2 = ["sudo iptables -L OUTPUT -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"]
+
+	input_chain = ssh_command(serv, cmd, raw=1)
+
+	input_chain2 = []
+	for each_line in input_chain:
+		input_chain2.append(each_line.strip('\n'))
+
+	if 'error:' in input_chain:
+		print(input_chain)
+		return
+
+	in_public_allow = ssh_command(serv, cmd1, raw=1)
+	output_chain = ssh_command(serv, cmd2, raw=1)
+	env = Environment(loader=FileSystemLoader('templates'))
+	template = env.get_template('ajax/firewall_rules.html')
+	template = template.render(input=input_chain2, IN_public_allow=in_public_allow, output=output_chain)
+	print(template)

@@ -4,6 +4,7 @@ import http.cookies
 
 import modules.db.sql as sql
 import modules.server.ssh as mod_ssh
+import modules.server.server as mod_server
 import modules.common.common as common
 import modules.roxywi.common as roxywi_common
 import modules.roxy_wi_tools as roxy_wi_tools
@@ -219,7 +220,7 @@ def upload_and_restart(server_ip: str, cfg: str, **kwargs):
 		return error
 
 	try:
-		error = mod_ssh.ssh_command(server_ip, commands)
+		error = mod_server.ssh_command(server_ip, commands)
 		try:
 			if action == 'reload' or action == 'restart':
 				roxywi_common.logging(server_ip, f'Service has been {action}ed', login=login, keep_history=1, service=service)
@@ -327,7 +328,7 @@ def diff_config(oldcfg, cfg, **kwargs):
 	except Exception:
 		login = ''
 
-	output, stderr = mod_ssh.subprocess_execute(cmd)
+	output, stderr = mod_server.subprocess_execute(cmd)
 
 	if kwargs.get('return_diff'):
 		for line in output:
@@ -382,7 +383,7 @@ def get_ssl_cert(server_ip: str) -> None:
 	cert_path = sql.get_setting('cert_path')
 	commands = [f"openssl x509 -in {cert_path}/{cert_id} -text"]
 	try:
-		mod_ssh.ssh_command(server_ip, commands, ip="1")
+		mod_server.ssh_command(server_ip, commands, ip="1")
 	except Exception as e:
 		print(f'error: Cannot connect to the server {e.args[0]}')
 
@@ -391,7 +392,7 @@ def get_ssl_certs(server_ip: str) -> None:
 	cert_path = sql.get_setting('cert_path')
 	commands = [f"sudo ls -1t {cert_path} |grep -E 'pem|crt|key'"]
 	try:
-		mod_ssh.ssh_command(server_ip, commands, ip="1")
+		mod_server.ssh_command(server_ip, commands, ip="1")
 	except Exception as e:
 		print(f'error: Cannot connect to the server: {e.args[0]}')
 
@@ -402,7 +403,7 @@ def del_ssl_cert(server_ip: str) -> None:
 	cert_path = sql.get_setting('cert_path')
 	commands = [f"sudo rm -f {cert_path}/{cert_id}"]
 	try:
-		mod_ssh.ssh_command(server_ip, commands, ip="1")
+		mod_server.ssh_command(server_ip, commands, ip="1")
 	except Exception as e:
 		print(f'error: Cannot delete the certificate {e.args[0]}')
 

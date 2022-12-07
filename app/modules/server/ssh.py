@@ -151,7 +151,10 @@ def delete_ssh_key() -> None:
 		ssh_key_name = f'{lib_path}/keys/{sshs.name}.pem'
 
 	if ssh_enable == 1:
-		os.remove(ssh_key_name)
+		try:
+			os.remove(ssh_key_name)
+		except Exception:
+			pass
 	if sql.delete_ssh(sshdel):
 		print("Ok")
 		roxywi_common.logging('Roxy-WI server', f'The SSH credentials {name} has deleted', roxywi=1, login=1)
