@@ -1367,10 +1367,10 @@ function removeOption(id) {
 		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if(data == "Ok ") {
+			if(data.indexOf('Ok') != '-1') {
 				$("#option-"+id).remove();
 			}
-		}					
+		}
 	} );
 }
 function updateOptions(id) {
@@ -1405,7 +1405,7 @@ function confirmDeleteSavedServer(id) {
 	  title: "Are you sure you want to delete " +$('#servers-saved-'+id).val() + "?",
       buttons: {
         "Delete": function() {
-			$( this ).dialog( "close" );	
+			$( this ).dialog( "close" );
 			removeSavedServer(id);
         },
         Cancel: function() {
@@ -1428,7 +1428,7 @@ function removeSavedServer(id) {
 			if(data.indexOf('Ok') != '-1') {
 				$("#servers-saved-"+id).remove();
 			}
-		}					
+		}
 	} );
 }
 function updateSavedServer(id) {
@@ -1485,8 +1485,8 @@ function view_ssl(id) {
 							confirmDeleting("SSL cert", id, $( this ), "");
 						}
 					  }
-				});					
-			} 
+				});
+			}
 		}
 	} );
 }
@@ -1539,8 +1539,8 @@ function change_select_waf(id) {
 			token: $('#token').val()
 		},
 		type: "POST",
-		success: function( data ) {	
-			if(parseFloat(data) < parseFloat('1.8')) {	
+		success: function( data ) {
+			if(parseFloat(data) < parseFloat('1.8')) {
 				$("#waf"+id).checkboxradio( "disable" );
 			} else {
 				$("#waf"+id).checkboxradio( "enable" );
@@ -1550,7 +1550,7 @@ function change_select_waf(id) {
 }
 function createList(color) {
 	if(color == 'white') {
-		list = $('#new_whitelist_name').val() 
+		list = $('#new_whitelist_name').val()
 	} else {
 		list = $('#new_blacklist_name').val()
 	}
@@ -1578,7 +1578,7 @@ function createList(color) {
 				}, 2500);
 			}
 		}
-	} );	
+	} );
 }
 function editList(list, color) {
 	$.ajax( {
@@ -1607,25 +1607,25 @@ function editList(list, color) {
 							confirmDeleting('list', list, $( this ), color);
 						},
 						"Just save": function() {
-							$( this ).dialog( "close" );	
+							$( this ).dialog( "close" );
 							saveList('save', list, color);
 						},
 						"Save and reload": function() {
-							$( this ).dialog( "close" );	
+							$( this ).dialog( "close" );
 							saveList('reload', list, color);
 						},
 						"Save and restart": function() {
-							$( this ).dialog( "close" );	
+							$( this ).dialog( "close" );
 							saveList('restart', list, color);
 						},
 						Cancel: function() {
 							$( this ).dialog( "close" );
 						}
 					  }
-				});					
-			} 
+				});
+			}
 		}
-	} );	
+	} );
 }
 function saveList(action, list, color) {
 	var serv = $( "#serv-"+color+"-list option:selected" ).val();

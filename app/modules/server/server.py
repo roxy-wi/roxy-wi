@@ -103,7 +103,7 @@ def get_system_info(server_ip: str) -> str:
 
 	command = ["sudo lshw -quiet -json"]
 	try:
-		sys_info_returned = ssh_command(server_ip, command)
+		sys_info_returned = ssh_command(server_ip, command, timeout=5)
 	except Exception as e:
 		raise e
 	command = ['sudo hostnamectl |grep "Operating System"|awk -F":" \'{print $2}\'']
