@@ -19,7 +19,7 @@ get_config_var = roxy_wi_tools.GetConfigVar()
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('add.html')
 form = common.form
-serv = form.getvalue('serv')
+serv = common.is_ip_or_dns(form.getvalue('serv'))
 
 print('Content-type: text/html\n')
 
@@ -75,7 +75,7 @@ elif form.getvalue('mode') is not None:
 	ip = ""
 	force_close = form.getvalue('force_close')
 	balance = ""
-	mode = "    mode " + form.getvalue('mode') + "\n"
+	mode = f"    mode {form.getvalue('mode')}\n"
 	maxconn = ""
 	options_split = ""
 	ssl = ""
@@ -94,34 +94,34 @@ elif form.getvalue('mode') is not None:
 		health_check = form.getvalue('health_check')
 		if health_check == 'option httpchk' and form.getvalue('checks_http_domain') is not None:
 			health_check = health_check + ' GET ' + form.getvalue('checks_http_path') + ' "HTTP/1.0\\r\\nHost: ' + form.getvalue('checks_http_domain') + '"'
-		balance += "    " + health_check + "\n"
+		balance += f"    {health_check}\n"
 
 	if form.getvalue('ip') is not None:
 		ip = form.getlist('ip')
 
 	if new_listener is not None:
-		name = "listen " + new_listener
+		name = f"listen {new_listener}"
 		end_name = new_listener
 	elif new_frontend is not None:
-		name = "frontend " + new_frontend
+		name = f"frontend {new_frontend}"
 		end_name = new_frontend
 	elif new_backend is not None:
-		name = "backend " + new_backend
+		name = f"backend {new_backend}"
 		end_name = new_backend
 	else:
 		print('error: The name cannot be empty')
 		sys.exit()
 
 	if form.getvalue('backends') is not None:
-		backend = "    default_backend " + form.getvalue('backends') + "\n"
+		backend = f"    default_backend { form.getvalue('backends')}\n"
 
 	if form.getvalue('maxconn'):
-		maxconn = "    maxconn " + form.getvalue('maxconn') + "\n"
+		maxconn = f"    maxconn {form.getvalue('maxconn')}\n"
 
 	if form.getvalue('ssl') == "https" and form.getvalue('mode') != "tcp":
 		cert_path = sql.get_setting('cert_path')
 		if form.getvalue('cert') is not None:
-			ssl = "ssl crt " + cert_path + form.getvalue('cert')
+			ssl = f"ssl crt {cert_path}{form.getvalue('cert')}"
 		if form.getvalue('ssl-dis-check') is None:
 			if form.getvalue('ssl-check') == "ssl-check":
 				ssl_check = " ssl verify none"
@@ -138,32 +138,32 @@ elif form.getvalue('mode') is not None:
 						continue
 					else:
 						port_value = port[i]
-					bind += "    bind *:" + port_value + " " + ssl + "\n"
+					bind += f"    bind *:{port_value} {ssl}\n"
 				else:
 					if port[i] == 'IsEmptY':
 						print('error: IP cannot be bind without a port')
 						sys.exit()
 					else:
 						port_value = port[i]
-					bind += "    bind " + ip[i] + ":" + port_value + " " + ssl + "\n"
+					bind += f"    bind {ip[i]}:{port_value} {ssl}\n"
 				i += 1
 
 	if form.getvalue('default-check') == "1":
 		if form.getvalue('check-servers') == "1":
-			check = " check inter " + form.getvalue('inter') + " rise " + form.getvalue('rise') + " fall " + form.getvalue('fall') + ssl_check
+			check = f" check inter {form.getvalue('inter')} rise {form.getvalue('rise')} fall {form.getvalue('fall')}{ssl_check}"
 		else:
 			check = ""
 	else:
 		if form.getvalue('check-servers') != "1":
 			check = ""
 		else:
-			check = " check" + ssl_check
+			check = f" check{ssl_check}"
 
 	if form.getvalue('option') is not None:
 		options = form.getvalue('option')
 		i = options.split("\n")
 		for j in i:
-			options_split += "    " + j + "\n"
+			options_split += f"    {j}\n"
 
 	if force_close == "1":
 		options_split += "    option http-server-close\n"
@@ -181,9 +181,9 @@ elif form.getvalue('mode') is not None:
 			'blacklist') + " }\n"
 
 	if form.getvalue('cookie'):
-		cookie = "    cookie " + form.getvalue('cookie_name')
+		cookie = f"    cookie {form.getvalue('cookie_name')}"
 		if form.getvalue('cookie_domain'):
-			cookie += " domain " + form.getvalue('cookie_domain')
+			cookie += f" domain {form.getvalue('cookie_domain')}"
 		if form.getvalue('rewrite'):
 			rewrite = form.getvalue('rewrite')
 		else:
@@ -204,10 +204,10 @@ elif form.getvalue('mode') is not None:
 			dynamic = form.getvalue('dynamic')
 		else:
 			dynamic = ""
-		cookie += " " + rewrite + " " + prefix + " " + nocache + " " + postonly + " " + dynamic + "\n"
+		cookie += f" {rewrite} {prefix} {nocache} {postonly} {dynamic}\n"
 		options_split += cookie
 		if form.getvalue('dynamic'):
-			options_split += "    dynamic-cookie-key " + form.getvalue('dynamic-cookie-key') + "\n"
+			options_split += f"    dynamic-cookie-key {form.getvalue('dynamic-cookie-key')}\n"
 
 	if form.getvalue('acl_if'):
 		acl_if = form.getlist('acl_if')
@@ -324,27 +324,27 @@ elif form.getvalue('mode') is not None:
 	if compression == "1" or cache == "2":
 		filter_com = "    filter compression\n"
 		if cache == "2":
-			cache_s = "    http-request cache-use " + end_name + "\n    http-response cache-store " + end_name + "\n"
-			cache_set = "cache " + end_name + "\n    total-max-size 4\n    max-age 240\n"
+			cache_s = f"    http-request cache-use {end_name}\n    http-response cache-store {end_name}\n"
+			cache_set = f"cache {end_name}\n    total-max-size 4\n    max-age 240\n"
 		if compression == "1":
 			compression_s = "    compression algo gzip\n    compression type text/html text/plain text/css\n"
 
 	waf = ""
 	if form.getvalue('waf') is not None:
-		waf = "    filter spoe engine modsecurity config " + haproxy_dir + "/waf.conf\n"
+		waf = f"    filter spoe engine modsecurity config {haproxy_dir}/waf.conf\n"
 		waf += "    http-request deny if { var(txn.modsec.code) -m int gt 0 }\n"
 
-	config_add = "\n" + name + "\n" + bind + mode + maxconn + balance + options_split + cache_s + filter_com + \
-				compression_s + waf + acl + backend + servers_split + "\n" + cache_set + "\n"
+	config_add = f"\n{name}\n{bind}{mode}{maxconn}{balance}{options_split}{cache_s}{filter_com}{compression_s}" \
+				 f"{waf}{acl}{backend}{servers_split}\n{cache_set}\n"
 
 if form.getvalue('new_userlist') is not None:
-	name = "userlist " + form.getvalue('new_userlist') + "\n"
+	name = f"userlist {form.getvalue('new_userlist')}\n"
 
 	new_userlist_groups = ""
 	if form.getvalue('userlist-group') is not None:
 		groups = form.getlist('userlist-group')
 		for group in groups:
-			new_userlist_groups += "    group " + group + "\n"
+			new_userlist_groups += f"    group {group}\n"
 
 	new_users_list = ""
 	if form.getvalue('userlist-user') is not None:
@@ -355,10 +355,10 @@ if form.getvalue('new_userlist') is not None:
 
 		for user in users:
 			try:
-				group = ' groups ' + userlist_user_group[i]
+				group = f' groups {userlist_user_group[i]}'
 			except Exception:
 				group = ''
-			new_users_list += "    user " + user + " insecure-password " + passwords[i] + group + "\n"
+			new_users_list += f"    user {user} insecure-password { passwords[i]} {group}\n"
 			i += 1
 
 	config_add = "\n" + name + new_userlist_groups + new_users_list
@@ -396,18 +396,22 @@ if form.getvalue('generateconfig') is None and serv is not None:
 			try:
 				with open(cfg, "a") as conf:
 					conf.write(config_add)
-			except IOError:
-				print("error: Can't read import config file")
-
-			roxywi_common.logging(serv, "add.py add new %s" % name)
+			except IOError as e:
+				print(f"error: Can't read import config file {e}")
 
 			output = config_mod.master_slave_upload_and_restart(serv, cfg, just_save="save")
+
+			try:
+				roxywi_common.logging(serv, f"add.py add new {name}")
+			except Exception:
+				pass
+
 			if output:
 				print(output)
 			else:
 				print(name)
 
-	except Exception:
-		pass
+	except Exception as e:
+		print(e)
 else:
 	print(config_add)

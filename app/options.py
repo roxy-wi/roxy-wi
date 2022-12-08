@@ -91,24 +91,14 @@ if form.getvalue('ip_select') is not None:
     runtime.show_backends(serv)
 
 if form.getvalue('ipbackend') is not None and form.getvalue('backend_server') is None:
-    haproxy_sock_port = int(sql.get_setting('haproxy_sock_port'))
-    backend = common.checkAjaxInput(form.getvalue('ipbackend'))
-    cmd = 'echo "show servers state"|nc %s %s |grep "%s" |awk \'{print $4}\'' % (serv, haproxy_sock_port, backend)
-    output, stderr = server_mod.subprocess_execute(cmd)
-    for i in output:
-        if i == ' ':
-            continue
-        i = i.strip()
-        print(i + '<br>')
+    import modules.config.runtime as runtime
+
+    runtime.show_frontend_backend()
 
 if form.getvalue('ipbackend') is not None and form.getvalue('backend_server') is not None:
-    haproxy_sock_port = int(sql.get_setting('haproxy_sock_port'))
-    backend = common.checkAjaxInput(form.getvalue('ipbackend'))
-    backend_server = common.checkAjaxInput(form.getvalue('backend_server'))
-    cmd = 'echo "show servers state"|nc %s %s |grep "%s" |grep "%s" |awk \'{print $5":"$19}\' |head -1' % (
-        serv, haproxy_sock_port, backend, backend_server)
-    output, stderr = server_mod.subprocess_execute(cmd)
-    print(output[0])
+    import modules.config.runtime as runtime
+
+    runtime.show_server()
 
 if form.getvalue('backend_ip') is not None:
     import modules.config.runtime as runtime
@@ -180,8 +170,8 @@ if form.getvalue('session_delete_id') is not None:
     runtime.delete_session()
 
 if form.getvalue("change_pos") is not None:
-    pos = form.getvalue('change_pos')
-    server_id = form.getvalue('pos_server_id')
+    pos = common.checkAjaxInput(form.getvalue('change_pos'))
+    server_id = common.checkAjaxInput(form.getvalue('pos_server_id'))
     sql.update_server_pos(pos, server_id)
 
 if form.getvalue('show_ip') is not None and serv is not None:
@@ -1558,17 +1548,15 @@ if form.getvalue('telegramdel') is not None:
     import modules.alerting.alerting as alerting
 
     channel_id = common.checkAjaxInput(form.getvalue('telegramdel'))
-    telegram = sql.select_telegram(id=channel_id)
 
-    alerting.delete_telegram_channel(telegram, channel_id)
+    alerting.delete_telegram_channel(channel_id)
 
 if form.getvalue('slackdel') is not None:
     import modules.alerting.alerting as alerting
 
     channel_id = common.checkAjaxInput(form.getvalue('slackdel'))
-    slack = sql.select_slack(id=channel_id)
 
-    alerting.delete_slack_channel(slack, channel_id)
+    alerting.delete_slack_channel(channel_id)
 
 if form.getvalue('updatetoken') is not None:
     token = common.checkAjaxInput(form.getvalue('updatetoken'))

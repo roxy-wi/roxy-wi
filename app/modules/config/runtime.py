@@ -14,6 +14,28 @@ get_date = roxy_wi_tools.GetDate(time_zone)
 get_config_var = roxy_wi_tools.GetConfigVar()
 
 
+def show_frontend_backend() -> None:
+	haproxy_sock_port = int(sql.get_setting('haproxy_sock_port'))
+	backend = common.checkAjaxInput(form.getvalue('ipbackend'))
+	cmd = 'echo "show servers state"|nc %s %s |grep "%s" |awk \'{print $4}\'' % (serv, haproxy_sock_port, backend)
+	output, stderr = server_mod.subprocess_execute(cmd)
+	for i in output:
+		if i == ' ':
+			continue
+		i = i.strip()
+		print(i + '<br>')
+
+
+def show_server() -> None:
+	haproxy_sock_port = int(sql.get_setting('haproxy_sock_port'))
+	backend = common.checkAjaxInput(form.getvalue('ipbackend'))
+	backend_server = common.checkAjaxInput(form.getvalue('backend_server'))
+	cmd = 'echo "show servers state"|nc %s %s |grep "%s" |grep "%s" |awk \'{print $5":"$19}\' |head -1' % (
+		serv, haproxy_sock_port, backend, backend_server)
+	output, stderr = server_mod.subprocess_execute(cmd)
+	print(output[0])
+
+
 def get_all_stick_table():
 	hap_sock_p = sql.get_setting('haproxy_sock_port')
 	cmd = 'echo "show table"|nc %s %s |awk \'{print $3}\' | tr -d \'\n\' | tr -d \'[:space:]\'' % (serv, hap_sock_p)

@@ -246,16 +246,17 @@ def add_slack_channel(token: str, channel: str, group: str, page: str) -> None:
 								  login=1)
 
 
-def delete_telegram_channel(telegram, channel_id) -> None:
+def delete_telegram_channel(channel_id) -> None:
+	telegram = sql.select_telegram(id=channel_id)
 	for t in telegram:
 		telegram_name = t.token
 	if sql.delete_telegram(channel_id):
 		print("Ok")
-		roxywi_common.logging('Roxy-WI server', f'The Telegram channel {telegram_name} has been deleted ', roxywi=1,
-							  login=1)
+		roxywi_common.logging('Roxy-WI server', f'The Telegram channel {telegram_name} has been deleted ', roxywi=1, login=1)
 
 
-def delete_slack_channel(slack, channel_id) -> None:
+def delete_slack_channel(channel_id) -> None:
+	slack = sql.select_slack(id=channel_id)
 	for t in slack:
 		slack_name = t.chanel_name
 	if sql.delete_slack(channel_id):
