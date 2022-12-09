@@ -401,17 +401,16 @@ if form.getvalue('generateconfig') is None and serv is not None:
 
 			output = config_mod.master_slave_upload_and_restart(serv, cfg, just_save="save")
 
-			try:
-				roxywi_common.logging(serv, f"add.py add new {name}")
-			except Exception:
-				pass
-
 			if output:
 				print(output)
 			else:
 				print(name)
 
+			try:
+				roxywi_common.logging(serv, f"add.py add new {name}")
+			except Exception:
+				pass
 	except Exception as e:
-		print(e)
+		pass
 else:
 	print(config_add)

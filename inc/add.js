@@ -1367,7 +1367,9 @@ function removeOption(id) {
 		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if(data.indexOf('Ok') != '-1') {
+			if (data.indexOf('error:') != '-1') {
+				toastr.error(data);
+			} else {
 				$("#option-"+id).remove();
 			}
 		}
