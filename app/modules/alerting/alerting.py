@@ -262,3 +262,13 @@ def delete_slack_channel(channel_id) -> None:
 	if sql.delete_slack(channel_id):
 		print("Ok")
 		roxywi_common.logging('Roxy-WI server', f'The Slack channel {slack_name} has been deleted ', roxywi=1, login=1)
+
+
+def update_telegram(token: str, channel: str, group: str, user_id: int) -> None:
+	sql.update_telegram(token, channel, group, user_id)
+	roxywi_common.logging('group ' + group, f'The Telegram token has been updated for channel: {channel}', roxywi=1, login=1)
+
+
+def update_slack(token: str, channel: str, group: str, user_id: int) -> None:
+	sql.update_slack(token, channel, group, user_id)
+	roxywi_common.logging(f'group {group}', f'The Slack token has been updated for channel: {channel}', roxywi=1, login=1)

@@ -181,7 +181,10 @@ def logging(server_ip: str, action: str, **kwargs) -> None:
 		log_file = f"{log_path}/config_edit-{cur_date}.log"
 
 		if kwargs.get('keep_history'):
-			keep_action_history(kwargs.get('service'), action, server_ip, login, ip)
+			try:
+				keep_action_history(kwargs.get('service'), action, server_ip, login, ip)
+			except Exception:
+				pass
 
 	try:
 		with open(log_file, 'a') as log:

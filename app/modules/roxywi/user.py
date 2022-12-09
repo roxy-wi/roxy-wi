@@ -94,3 +94,82 @@ def update_user_password():
     sql.update_user_password(password, user_id)
     roxywi_common.logging('user ' + username, ' has changed password ', roxywi=1, login=1)
     print("Ok")
+
+
+def get_user_services() -> None:
+    user_id = common.checkAjaxInput(form.getvalue('getuserservices'))
+    groups = []
+    u_g = sql.select_user_groups(user_id)
+    services = sql.select_services()
+    for g in u_g:
+        groups.append(g.user_group_id)
+
+    env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
+    template = env.get_template('/show_user_services.html')
+    template = template.render(user_services=sql.select_user_services(user_id), id=user_id, services=services)
+    print(template)
+
+
+def change_user_services() -> None:
+    user_id = common.checkAjaxInput(form.getvalue('changeUserServicesId'))
+    services = common.checkAjaxInput(form.getvalue('changeUserServices'))
+    user = common.checkAjaxInput(form.getvalue('changeUserServicesUser'))
+
+    try:
+        if sql.update_user_services(services=services, user_id=user_id):
+            roxywi_common.logging('Roxy-WI server', f'Access to the services has been updated for user: {user}',
+                                  roxywi=1, login=1)
+    except Exception as e:
+        print(e)
+
+
+
+def get_user_groups() -> None:
+    user_id = common.checkAjaxInput(form.getvalue('getusergroups'))
+    groups = []
+    u_g = sql.select_user_groups(user_id)
+    for g in u_g:
+        groups.append(g.user_group_id)
+
+    env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
+    template = env.get_template('/show_user_groups.html')
+    template = template.render(groups=sql.select_groups(), user_groups=groups, id=user_id)
+    print(template)
+
+
+def change_user_group() -> None:
+    group_id = common.checkAjaxInput(form.getvalue('changeUserGroupId'))
+    groups = common.checkAjaxInput(form.getvalue('changeUserGroups'))
+    user = common.checkAjaxInput(form.getvalue('changeUserGroupsUser'))
+    if sql.delete_user_groups(group_id):
+        for group in groups:
+            if group[0] == ',':
+                continue
+            try:
+                sql.update_user_groups(groups=group[0], user_group_id=group_id)
+            except Exception as e:
+                print(e)
+
+    roxywi_common.logging('Roxy-WI server', f'Groups has been updated for user: {user}', roxywi=1, login=1)
+
+
+def change_user_active_group() -> None:
+    group_id = common.checkAjaxInput(form.getvalue('changeUserCurrentGroupId'))
+    user_uuid = common.checkAjaxInput(form.getvalue('changeUserGroupsUser'))
+
+    try:
+        if sql.update_user_current_groups(group_id, user_uuid):
+            print('Ok')
+        else:
+            print('error: Cannot change group')
+    except Exception as e:
+        print(e)
+
+
+def get_user_active_group(user_id: str, group: str) -> None:
+    group_id = sql.get_user_id_by_uuid(user_id.value)
+    groups = sql.select_user_groups_with_names(group_id)
+    env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
+    template = env.get_template('/show_user_current_group.html')
+    template = template.render(groups=groups, group=group.value, id=group_id)
+    print(template)
