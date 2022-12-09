@@ -341,128 +341,16 @@ if form.getvalue('servaction') is not None:
     service_haproxy.runtime_command(serv)
 
 if act == "showCompareConfigs":
-    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
-    template = env.get_template('ajax/show_compare_configs.html')
-    left = form.getvalue('left')
-    right = form.getvalue('right')
-    service = form.getvalue('service')
-
-    if service == 'nginx':
-        return_files = roxywi_common.get_files(get_config.get_config_var('configs', 'nginx_save_configs_dir'), 'conf')
-    elif service == 'apache':
-        return_files = roxywi_common.get_files(get_config.get_config_var('configs', 'apache_save_configs_dir'), 'conf')
-    elif service == 'keepalived':
-        return_files = roxywi_common.get_files(get_config.get_config_var('configs', 'kp_save_configs_dir'), 'conf')
-    else:
-        return_files = roxywi_common.get_files()
-
-    template = template.render(serv=serv, right=right, left=left, return_files=return_files)
-    print(template)
+    config_mod.show_compare_config(serv)
 
 if serv is not None and form.getvalue('right') is not None:
-    left = common.checkAjaxInput(form.getvalue('left'))
-    right = common.checkAjaxInput(form.getvalue('right'))
-
-    if form.getvalue('service') == 'nginx':
-        configs_dir = get_config.get_config_var('configs', 'nginx_save_configs_dir')
-    elif form.getvalue('service') == 'apache':
-        configs_dir = get_config.get_config_var('configs', 'apache_save_configs_dir')
-    elif form.getvalue('service') == 'keepalived':
-        configs_dir = get_config.get_config_var('configs', 'kp_save_configs_dir')
-    else:
-        configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
-
-    cmd = f'diff -pub {configs_dir}{left} {configs_dir}{right}'
-    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
-                      extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
-    template = env.get_template('ajax/compare.html')
-
-    output, stderr = server_mod.subprocess_execute(cmd)
-    template = template.render(stdout=output)
-
-    print(template)
-    print(stderr)
+    config_mod.compare_config()
 
 if serv is not None and act == "configShow":
-    cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-    user_uuid = cookie.get('uuid')
-    role_id = sql.get_user_role_by_uuid(user_uuid.value)
-    service = form.getvalue('service')
-    try:
-        config_file_name = form.getvalue('config_file_name').replace('/', '92')
-    except Exception:
-        config_file_name = ''
-
-    if service == 'keepalived':
-        configs_dir = get_config.get_config_var('configs', 'kp_save_configs_dir')
-        cfg = '.conf'
-    elif service == 'nginx':
-        configs_dir = get_config.get_config_var('configs', 'nginx_save_configs_dir')
-        cfg = '.conf'
-    elif service == 'apache':
-        configs_dir = get_config.get_config_var('configs', 'apache_save_configs_dir')
-        cfg = '.conf'
-    else:
-        configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
-        cfg = '.cfg'
-
-    if form.getvalue('configver') is None:
-        cfg = configs_dir + serv + "-" + get_date.return_date('config') + cfg
-        if service == 'nginx':
-            config_mod.get_config(serv, cfg, nginx=1, config_file_name=form.getvalue('config_file_name'))
-        elif service == 'apache':
-            config_mod.get_config(serv, cfg, apache=1, config_file_name=form.getvalue('config_file_name'))
-        elif service == 'keepalived':
-            config_mod.get_config(serv, cfg, keepalived=1)
-        else:
-            config_mod.get_config(serv, cfg)
-    else:
-        cfg = configs_dir + form.getvalue('configver')
-    try:
-        conf = open(cfg, "r")
-    except IOError:
-        print('<div class="alert alert-danger">Cannot read config file</div>')
-
-    is_serv_protected = sql.is_serv_protected(serv)
-    server_id = sql.select_server_id_by_ip(serv)
-    is_restart = sql.select_service_setting(server_id, service, 'restart')
-    env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True, trim_blocks=True, lstrip_blocks=True,
-                      extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
-    template = env.get_template('config_show.html')
-
-    template = template.render(conf=conf,
-                               serv=serv,
-                               configver=form.getvalue('configver'),
-                               role=role_id,
-                               service=service,
-                               config_file_name=config_file_name,
-                               is_serv_protected=is_serv_protected,
-                               is_restart=is_restart)
-    print(template)
-    conf.close()
-
-    if form.getvalue('configver') is None:
-        os.remove(cfg)
+    config_mod.show_config(serv)
 
 if act == 'configShowFiles':
-    service = form.getvalue('service')
-
-    config_dir = get_config.get_config_var('configs', f'{service}_save_configs_dir')
-    service_config_dir = sql.get_setting(f'{service}_dir')
-    try:
-        config_file_name = form.getvalue('config_file_name').replace('92', '/')
-    except Exception:
-        config_file_name = ''
-    return_files = server_mod.get_remote_files(serv, service_config_dir, 'conf')
-    if 'error: ' in return_files:
-        print(return_files)
-        sys.exit()
-    return_files += ' ' + sql.get_setting(f'{service}_config_path')
-    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
-    template = env.get_template('ajax/show_configs_files.html')
-    template = template.render(serv=serv, service=service, return_files=return_files,
-                               config_file_name=config_file_name, path_dir=service_config_dir)
-    print(template)
+    config_mod.show_config_files(serv)
 
 if act == 'showRemoteLogFiles':
     service = form.getvalue('service')

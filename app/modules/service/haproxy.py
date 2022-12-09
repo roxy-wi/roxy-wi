@@ -33,10 +33,7 @@ def stat_page_action(serv: str) -> None:
         'Accept-Encoding': 'gzip, deflate'
     }
 
-    q = requests.post(f'http://{serv}:{stats_port}/{stats_page}',
-                      headers=headers,
-                      data=postdata,
-                      auth=(haproxy_user, haproxy_pass))
+    requests.post(f'http://{serv}:{stats_port}/{stats_page}', headers=headers, data=postdata, auth=(haproxy_user, haproxy_pass))
 
 
 def show_map(serv: str) -> None:

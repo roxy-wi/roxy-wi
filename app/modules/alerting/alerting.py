@@ -228,8 +228,7 @@ def add_telegram_channel(token: str, channel: str, group: str, page: str) -> Non
 			output_from_parsed_template = template.render(groups=sql.select_groups(),
 														  telegrams=sql.select_telegram(token=token), page=page)
 			print(output_from_parsed_template)
-			roxywi_common.logging('Roxy-WI server', f'A new Telegram channel {channel} has been created ', roxywi=1,
-								  login=1)
+			roxywi_common.logging('Roxy-WI server', f'A new Telegram channel {channel} has been created ', roxywi=1, login=1)
 
 
 def add_slack_channel(token: str, channel: str, group: str, page: str) -> None:
@@ -242,8 +241,7 @@ def add_slack_channel(token: str, channel: str, group: str, page: str) -> None:
 			output_from_parsed_template = template.render(groups=sql.select_groups(),
 														  slacks=sql.select_slack(token=token), page=page)
 			print(output_from_parsed_template)
-			roxywi_common.logging('Roxy-WI server', 'A new Slack channel ' + channel + ' has been created ', roxywi=1,
-								  login=1)
+			roxywi_common.logging('Roxy-WI server', 'A new Slack channel ' + channel + ' has been created ', roxywi=1, login=1)
 
 
 def delete_telegram_channel(channel_id) -> None:

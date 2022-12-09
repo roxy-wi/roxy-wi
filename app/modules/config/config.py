@@ -4,7 +4,7 @@ import http.cookies
 
 import modules.db.sql as sql
 import modules.server.ssh as mod_ssh
-import modules.server.server as mod_server
+import modules.server.server as server_mod
 import modules.common.common as common
 import modules.roxywi.common as roxywi_common
 import modules.roxy_wi_tools as roxy_wi_tools
@@ -64,6 +64,7 @@ def upload_and_restart(server_ip: str, cfg: str, **kwargs):
 	file_format = 'conf'
 	config_path = kwargs.get('config_file_name')
 	config_date = get_date.return_date('config')
+	print(server_ip)
 	server_id = sql.select_server_id_by_ip(server_ip=server_ip)
 
 	if kwargs.get("nginx"):
@@ -220,7 +221,7 @@ def upload_and_restart(server_ip: str, cfg: str, **kwargs):
 		return error
 
 	try:
-		error = mod_server.ssh_command(server_ip, commands)
+		error = server_mod.ssh_command(server_ip, commands)
 		try:
 			if action == 'reload' or action == 'restart':
 				roxywi_common.logging(server_ip, f'Service has been {action}ed', login=login, keep_history=1, service=service)
@@ -247,13 +248,15 @@ def master_slave_upload_and_restart(server_ip, cfg, just_save, **kwargs):
 	else:
 		login = ''
 
-	is_master = [masters[0] for masters in sql.is_master(server_ip)]
-	for master in is_master:
-		slv_output = upload_and_restart(
-			master, cfg, just_save=just_save, nginx=kwargs.get('nginx'), waf=kwargs.get('waf'),
-			apache=kwargs.get('apache'), config_file_name=kwargs.get('config_file_name'), slave=1
-		)
-		slave_output += f'<br>slave_server:\n{slv_output}'
+	masters = sql.is_master(server_ip)
+
+	for master in masters:
+		if master[0] is not None:
+			slv_output = upload_and_restart(
+				master[0], cfg, just_save=just_save, nginx=kwargs.get('nginx'),
+				apache=kwargs.get('apache'), config_file_name=kwargs.get('config_file_name'), slave=1
+			)
+			slave_output += f'<br>slave_server:\n{slv_output}'
 
 	output = upload_and_restart(
 		server_ip, cfg, just_save=just_save, nginx=kwargs.get('nginx'), waf=kwargs.get('waf'),
@@ -328,7 +331,7 @@ def diff_config(oldcfg, cfg, **kwargs):
 	except Exception:
 		login = ''
 
-	output, stderr = mod_server.subprocess_execute(cmd)
+	output, stderr = server_mod.subprocess_execute(cmd)
 
 	if kwargs.get('return_diff'):
 		for line in output:
@@ -383,7 +386,7 @@ def get_ssl_cert(server_ip: str) -> None:
 	cert_path = sql.get_setting('cert_path')
 	commands = [f"openssl x509 -in {cert_path}/{cert_id} -text"]
 	try:
-		mod_server.ssh_command(server_ip, commands, ip="1")
+		server_mod.ssh_command(server_ip, commands, ip="1")
 	except Exception as e:
 		print(f'error: Cannot connect to the server {e.args[0]}')
 
@@ -392,7 +395,7 @@ def get_ssl_certs(server_ip: str) -> None:
 	cert_path = sql.get_setting('cert_path')
 	commands = [f"sudo ls -1t {cert_path} |grep -E 'pem|crt|key'"]
 	try:
-		mod_server.ssh_command(server_ip, commands, ip="1")
+		server_mod.ssh_command(server_ip, commands, ip="1")
 	except Exception as e:
 		print(f'error: Cannot connect to the server: {e.args[0]}')
 
@@ -403,7 +406,7 @@ def del_ssl_cert(server_ip: str) -> None:
 	cert_path = sql.get_setting('cert_path')
 	commands = [f"sudo rm -f {cert_path}/{cert_id}"]
 	try:
-		mod_server.ssh_command(server_ip, commands, ip="1")
+		server_mod.ssh_command(server_ip, commands, ip="1")
 	except Exception as e:
 		print(f'error: Cannot delete the certificate {e.args[0]}')
 
@@ -446,3 +449,140 @@ def upload_ssl_cert(server_ip: str) -> None:
 		roxywi_common.logging('Roxy-WI server', e.args[0], roxywi=1)
 
 	roxywi_common.logging(server_ip, f"add.py#ssl uploaded a new SSL cert {name}", roxywi=1, login=1)
+
+
+def show_compare_config(server_ip: str) -> None:
+	from jinja2 import Environment, FileSystemLoader
+
+	env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
+	template = env.get_template('ajax/show_compare_configs.html')
+	left = form.getvalue('left')
+	right = form.getvalue('right')
+	service = form.getvalue('service')
+
+	if service == 'nginx':
+		return_files = roxywi_common.get_files(get_config_var.get_config_var('configs', 'nginx_save_configs_dir'), 'conf')
+	elif service == 'apache':
+		return_files = roxywi_common.get_files(get_config_var.get_config_var('configs', 'apache_save_configs_dir'), 'conf')
+	elif service == 'keepalived':
+		return_files = roxywi_common.get_files(get_config_var.get_config_var('configs', 'kp_save_configs_dir'), 'conf')
+	else:
+		return_files = roxywi_common.get_files()
+
+	template = template.render(serv=server_ip, right=right, left=left, return_files=return_files)
+	print(template)
+
+
+def compare_config() -> None:
+	from jinja2 import Environment, FileSystemLoader
+
+	left = common.checkAjaxInput(form.getvalue('left'))
+	right = common.checkAjaxInput(form.getvalue('right'))
+
+	if form.getvalue('service') == 'nginx':
+		configs_dir = get_config_var.get_config_var('configs', 'nginx_save_configs_dir')
+	elif form.getvalue('service') == 'apache':
+		configs_dir = get_config_var.get_config_var('configs', 'apache_save_configs_dir')
+	elif form.getvalue('service') == 'keepalived':
+		configs_dir = get_config_var.get_config_var('configs', 'kp_save_configs_dir')
+	else:
+		configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
+
+	cmd = f'diff -pub {configs_dir}{left} {configs_dir}{right}'
+	env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
+					  extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
+	template = env.get_template('ajax/compare.html')
+
+	output, stderr = server_mod.subprocess_execute(cmd)
+	template = template.render(stdout=output)
+
+	print(template)
+	print(stderr)
+
+
+def show_config(server_ip: str) -> None:
+	from jinja2 import Environment, FileSystemLoader
+
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+	user_uuid = cookie.get('uuid')
+	role_id = sql.get_user_role_by_uuid(user_uuid.value)
+	service = form.getvalue('service')
+	try:
+		config_file_name = form.getvalue('config_file_name').replace('/', '92')
+	except Exception:
+		config_file_name = ''
+
+	if service == 'keepalived':
+		configs_dir = get_config_var.get_config_var('configs', 'kp_save_configs_dir')
+		cfg = '.conf'
+	elif service == 'nginx':
+		configs_dir = get_config_var.get_config_var('configs', 'nginx_save_configs_dir')
+		cfg = '.conf'
+	elif service == 'apache':
+		configs_dir = get_config_var.get_config_var('configs', 'apache_save_configs_dir')
+		cfg = '.conf'
+	else:
+		configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
+		cfg = '.cfg'
+
+	if form.getvalue('configver') is None:
+		cfg = f"{configs_dir}{server_ip}-{get_date.return_date('config')}{cfg}"
+		if service == 'nginx':
+			get_config(server_ip, cfg, nginx=1, config_file_name=form.getvalue('config_file_name'))
+		elif service == 'apache':
+			get_config(server_ip, cfg, apache=1, config_file_name=form.getvalue('config_file_name'))
+		elif service == 'keepalived':
+			get_config(server_ip, cfg, keepalived=1)
+		else:
+			get_config(server_ip, cfg)
+	else:
+		cfg = configs_dir + form.getvalue('configver')
+	try:
+		conf = open(cfg, "r")
+	except IOError:
+		print('<div class="alert alert-danger">Cannot read config file</div>')
+
+	is_serv_protected = sql.is_serv_protected(server_ip)
+	server_id = sql.select_server_id_by_ip(server_ip)
+	is_restart = sql.select_service_setting(server_id, service, 'restart')
+	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True, trim_blocks=True, lstrip_blocks=True,
+					  extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
+	template = env.get_template('config_show.html')
+
+	template = template.render(conf=conf,
+							   serv=server_ip,
+							   configver=form.getvalue('configver'),
+							   role=role_id,
+							   service=service,
+							   config_file_name=config_file_name,
+							   is_serv_protected=is_serv_protected,
+							   is_restart=is_restart)
+	print(template)
+	conf.close()
+
+	if form.getvalue('configver') is None:
+		os.remove(cfg)
+
+
+def show_config_files(server_ip: str) -> None:
+	from jinja2 import Environment, FileSystemLoader
+
+	service = form.getvalue('service')
+	service_config_dir = sql.get_setting(f'{service}_dir')
+	return_files = server_mod.get_remote_files(server_ip, service_config_dir, 'conf')
+
+	if 'error: ' in return_files:
+		print(return_files)
+		return
+
+	try:
+		config_file_name = form.getvalue('config_file_name').replace('92', '/')
+	except Exception:
+		config_file_name = ''
+
+	return_files += ' ' + sql.get_setting(f'{service}_config_path')
+	env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
+	template = env.get_template('ajax/show_configs_files.html')
+	template = template.render(serv=server_ip, service=service, return_files=return_files,
+							   config_file_name=config_file_name, path_dir=service_config_dir)
+	print(template)

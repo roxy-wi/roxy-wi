@@ -145,8 +145,7 @@ def change_ip_and_port() -> None:
 		backend_backend, backend_server, backend_ip, backend_port, backend_port, serv, haproxy_sock_port)
 	roxywi_common.logging(
 		serv,
-		'IP address and port have been changed. On: {}/{} to {}:{}'.format(backend_backend, backend_server, backend_ip,
-																		   backend_port),
+		f'IP address and port have been changed. On: {backend_backend}/{backend_server} to {backend_ip}:{backend_port}',
 		login=1, keep_history=1, service='haproxy'
 	)
 	output, stderr = server_mod.subprocess_execute(cmd)
@@ -156,7 +155,7 @@ def change_ip_and_port() -> None:
 	else:
 		print(output[0])
 		configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
-		cfg = configs_dir + serv + "-" + get_date.return_date('config') + ".cfg"
+		cfg = f"{configs_dir}{serv}-{get_date.return_date('config')}.cfg"
 
 		config_mod.get_config(serv, cfg)
 		cmd = 'string=`grep %s %s -n -A25 |grep "server %s" |head -1|awk -F"-" \'{print $1}\'` ' \
@@ -176,42 +175,38 @@ def change_maxconn() -> None:
 
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 
-	MASTERS = sql.is_master(serv)
-	for master in MASTERS:
+	masters = sql.is_master(serv)
+	for master in masters:
 		if master[0] is not None:
 			if frontend == 'global':
 				cmd = 'echo "set maxconn %s %s" |nc %s %s' % (frontend, maxconn, master[0], haproxy_sock_port)
 			else:
 				cmd = 'echo "set maxconn frontend %s %s" |nc %s %s' % (frontend, maxconn, master[0], haproxy_sock_port)
 			output, stderr = server_mod.subprocess_execute(cmd)
-		roxywi_common.logging(master[0], 'Maxconn has been changed. On: {} to {}'.format(frontend, maxconn), login=1,
-							  keep_history=1,
-							  service='haproxy')
+		roxywi_common.logging(master[0], f'Maxconn has been changed. On: {frontend} to {maxconn}', login=1, keep_history=1, service='haproxy')
 
 	if frontend == 'global':
 		cmd = 'echo "set maxconn %s %s" |nc %s %s' % (frontend, maxconn, serv, haproxy_sock_port)
 	else:
 		cmd = 'echo "set maxconn frontend %s %s" |nc %s %s' % (frontend, maxconn, serv, haproxy_sock_port)
 	print(cmd)
-	roxywi_common.logging(serv, 'Maxconn has been changed. On: {} to {}'.format(frontend, maxconn), login=1,
-						  keep_history=1,
-						  service='haproxy')
+	roxywi_common.logging(serv, f'Maxconn has been changed. On: {frontend} to {maxconn}', login=1, keep_history=1, service='haproxy')
 	output, stderr = server_mod.subprocess_execute(cmd)
 
 	if stderr != '':
 		print(stderr[0])
 	elif output[0] == '':
 		configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
-		cfg = configs_dir + serv + "-" + get_date.return_date('config') + ".cfg"
+		cfg = f"{configs_dir}{serv}-{get_date.return_date('config')}.cfg"
 
 		config_mod.get_config(serv, cfg)
 		cmd = 'string=`grep %s %s -n -A5 |grep maxcon -n |awk -F":" \'{print $2}\'|awk -F"-" \'{print $1}\'` ' \
 			  '&& sed -Ei "$( echo $string)s/[0-9]+/%s/g" %s' % (frontend, cfg, maxconn, cfg)
 		server_mod.subprocess_execute(cmd)
 		config_mod.master_slave_upload_and_restart(serv, cfg, just_save='save')
-		print('success: Maxconn for %s has been set to %s ' % (frontend, maxconn))
+		print(f'success: Maxconn for {frontend} has been set to {maxconn} ')
 	else:
-		print('error: ' + output[0])
+		print(f'error: {output[0]}')
 
 
 def table_select():
@@ -227,7 +222,6 @@ def table_select():
 		for t in tables.split(','):
 			if t != '':
 				table_id = []
-				tables_head = []
 				tables_head1, table1 = get_stick_table(t)
 				table_id.append(tables_head1)
 				table_id.append(table1)
@@ -289,7 +283,7 @@ def show_lists() -> None:
 def delete_ip_from_list() -> None:
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 	lists_path = sql.get_setting('lists_path')
-	lib_path = get_config.get_config_var('main', 'lib_path')
+	lib_path = get_config_var.get_config_var('main', 'lib_path')
 	ip_id = common.checkAjaxInput(form.getvalue('list_ip_id_for_delete'))
 	ip = common.is_ip_or_dns(form.getvalue('list_ip_for_delete'))
 	list_id = common.checkAjaxInput(form.getvalue('list_id_for_delete'))
@@ -321,7 +315,7 @@ def delete_ip_from_list() -> None:
 def add_ip_to_list() -> None:
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 	lists_path = sql.get_setting('lists_path')
-	lib_path = get_config.get_config_var('main', 'lib_path')
+	lib_path = get_config_var.get_config_var('main', 'lib_path')
 	ip = form.getvalue('list_ip_for_add')
 	ip = ip.strip()
 	ip = common.is_ip_or_dns(ip)

@@ -410,7 +410,7 @@ if form.getvalue('generateconfig') is None and serv is not None:
 				roxywi_common.logging(serv, f"add.py add new {name}")
 			except Exception:
 				pass
-	except Exception as e:
+	except Exception:
 		pass
 else:
 	print(config_add)

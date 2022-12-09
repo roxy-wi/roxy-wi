@@ -37,8 +37,13 @@ def return_ssh_keys_path(server_ip: str, **kwargs) -> dict:
 
 def ssh_connect(server_ip):
 	ssh_settings = return_ssh_keys_path(server_ip)
-	ssh = ssh_connection.SshConnection(server_ip, ssh_settings['port'], ssh_settings['user'],
-										ssh_settings['password'], ssh_settings['enabled'], ssh_settings['key'])
+	ssh = ssh_connection.SshConnection(
+		server_ip, ssh_settings['port'],
+		ssh_settings['user'],
+		ssh_settings['password'],
+		ssh_settings['enabled'],
+		ssh_settings['key']
+	)
 
 	return ssh
 

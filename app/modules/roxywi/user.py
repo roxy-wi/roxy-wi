@@ -123,7 +123,6 @@ def change_user_services() -> None:
         print(e)
 
 
-
 def get_user_groups() -> None:
     user_id = common.checkAjaxInput(form.getvalue('getusergroups'))
     groups = []
