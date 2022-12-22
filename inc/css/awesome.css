@@ -421,3 +421,12 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f0f3";
 }
+.user-circle::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f2bd";
+}
+.user-circle > .fa-user-circle {
+	cursor: pointer;
+	padding-right: 5px;
+}

@@ -69,18 +69,32 @@ def create_ssh_cred() -> None:
 			template = env.get_template('/new_ssh.html')
 			output_from_parsed_template = template.render(groups=sql.select_groups(), sshs=sql.select_ssh(name=name), page=page)
 			print(output_from_parsed_template)
-			roxywi_common.logging('Roxy-WI server', f'A new SSH credentials {name} has created', roxywi=1, login=1)
+			roxywi_common.logging('Roxy-WI server', f'New SSH credentials {name} has been created', roxywi=1, login=1)
 
 
-def upload_ssh_key() -> None:
-	user_group = roxywi_common.get_user_group()
-	name = common.checkAjaxInput(form.getvalue('name'))
+def create_ssh_cread_api(name: str, enable: str, group: str, username: str, password: str) -> bool:
+	groups = sql.select_groups(id=group)
+	for group in groups:
+		user_group = group.name
+	name = common.checkAjaxInput(name)
+	name = f'{name}_{user_group}'
+	enable = common.checkAjaxInput(enable)
+	username = common.checkAjaxInput(username)
+	password = common.checkAjaxInput(password)
 
+	if username is None or name is None:
+		return False
+	else:
+		if sql.insert_new_ssh(name, enable, group, username, password):
+			return True
+
+
+def upload_ssh_key(name: str, user_group: str, key: str) -> bool:
 	try:
-		key = paramiko.pkey.load_private_key(form.getvalue('ssh_cert'))
+		key = paramiko.pkey.load_private_key(key)
 	except Exception as e:
 		print(f'error: Cannot save SSH key file: {e}')
-		return
+		return False
 
 	lib_path = get_config.get_config_var('main', 'lib_path')
 	full_dir = f'{lib_path}/keys/'
@@ -104,7 +118,7 @@ def upload_ssh_key() -> None:
 		key.write_private_key_file(ssh_keys)
 	except Exception as e:
 		print(f'error: Cannot save SSH key file: {e}')
-		return
+		return False
 	else:
 		print(f'success: SSH key has been saved into: {ssh_keys}')
 
@@ -112,8 +126,10 @@ def upload_ssh_key() -> None:
 		os.chmod(ssh_keys, 0o600)
 	except IOError as e:
 		roxywi_common.logging('Roxy-WI server', e.args[0], roxywi=1)
+		return False
 
 	roxywi_common.logging("Roxy-WI server", f"A new SSH cert has been uploaded {ssh_keys}", roxywi=1, login=1)
+	return True
 
 
 def update_ssh_key() -> None:

@@ -185,6 +185,7 @@ pre {
 	margin-right: 30px;
 	color: #fff !important;
 	font-size: 15px;
+	cursor: pointer;
 }
 .auto-refresh {
 	margin-left: auto;

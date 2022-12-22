@@ -35,20 +35,20 @@ class SshConnection:
                     banner_timeout=200
                 )
         except paramiko.AuthenticationException:
-            raise paramiko.SSHException('error: Authentication failed, please verify your credentials')
+            raise paramiko.SSHException(f'{self.server_ip} Authentication failed, please verify your credentials')
         except paramiko.SSHException as sshException:
-            raise paramiko.SSHException(f'error: Unable to establish SSH connection: {sshException}')
+            raise paramiko.SSHException(f'{self.server_ip} Unable to establish SSH connection: {sshException}')
         except paramiko.PasswordRequiredException as e:
-            raise paramiko.SSHException(f'error: {e}')
+            raise paramiko.SSHException(f'{self.server_ip} {e}')
         except paramiko.BadHostKeyException as badHostKeyException:
-            raise paramiko.SSHException(f'error: Unable to verify server\'s host key: {badHostKeyException}')
+            raise paramiko.SSHException(f'{self.server_ip} Unable to verify server\'s host key: {badHostKeyException}')
         except Exception as e:
             if e == "No such file or directory":
-                raise paramiko.SSHException(f'error: {e}. Check SSH key')
+                raise paramiko.SSHException(f'{self.server_ip} {e}. Check SSH key')
             elif e == "Invalid argument":
-                raise paramiko.SSHException('error: Check the IP of the server')
+                raise paramiko.SSHException(f'{self.server_ip} Check the IP of the server')
             else:
-                raise paramiko.SSHException(f'error: {e}')
+                raise paramiko.SSHException(f'{self.server_ip} {e}')
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):

@@ -175,7 +175,7 @@ if form.getvalue("change_pos") is not None:
     sql.update_server_pos(pos, server_id)
 
 if form.getvalue('show_ip') is not None and serv is not None:
-    commands = ["sudo ip a |grep inet |egrep -v '::1' |awk '{ print $2 }' |awk -F'/' '{ print $1 }'"]
+    commands = ['sudo hostname -i | tr " " "\n"|grep -v "%"']
     server_mod.ssh_command(serv, commands, ip="1")
 
 if form.getvalue('showif'):
@@ -954,7 +954,24 @@ error_mess = 'error: All fields must be completed'
 if form.getvalue('newuser') is not None:
     import modules.roxywi.user as roxywi_user
 
-    roxywi_user.create_user()
+    email = common.checkAjaxInput(form.getvalue('newemail'))
+    password = common.checkAjaxInput(form.getvalue('newpassword'))
+    role = common.checkAjaxInput(form.getvalue('newrole'))
+    new_user = common.checkAjaxInput(form.getvalue('newusername'))
+    page = common.checkAjaxInput(form.getvalue('page'))
+    activeuser = common.checkAjaxInput(form.getvalue('activeuser'))
+    group = common.checkAjaxInput(form.getvalue('newgroupuser'))
+
+    if roxywi_user.create_user(new_user, email, password, role, activeuser, group):
+        env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
+        template = env.get_template('ajax/new_user.html')
+
+        template = template.render(users=sql.select_users(user=new_user),
+                                   groups=sql.select_groups(),
+                                   page=page,
+                                   roles=sql.select_roles(),
+                                   adding=1)
+        print(template)
 
 if form.getvalue('userdel') is not None:
     import modules.roxywi.user as roxywi_user
@@ -994,47 +1011,7 @@ if form.getvalue('newserver') is not None:
         print('error: IP or DNS name is not valid')
         sys.exit()
     try:
-        if sql.add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, apache, firewall):
-
-            try:
-                if scan_server == '1':
-                    nginx_config_path = sql.get_setting('nginx_config_path')
-                    haproxy_config_path = sql.get_setting('haproxy_config_path')
-                    haproxy_dir = sql.get_setting('haproxy_dir')
-                    apache_config_path = sql.get_setting('apache_config_path')
-                    keepalived_config_path = sql.get_setting('keepalived_config_path')
-
-                    if server_mod.is_file_exists(ip, nginx_config_path):
-                        sql.update_nginx(ip)
-
-                    if server_mod.is_file_exists(ip, haproxy_config_path):
-                        sql.update_haproxy(ip)
-
-                    if server_mod.is_file_exists(ip, keepalived_config_path):
-                        sql.update_keepalived(ip)
-
-                    if server_mod.is_file_exists(ip, apache_config_path):
-                        sql.update_apache(ip)
-
-                    if server_mod.is_file_exists(ip, haproxy_dir + '/waf/bin/modsecurity'):
-                        sql.insert_waf_metrics_enable(ip, "0")
-                        sql.insert_waf_rules(ip)
-
-                    if server_mod.is_service_active(ip, 'firewalld'):
-                        sql.update_firewall(ip)
-            except Exception as e:
-                roxywi_common.logging('Cannot scan a new server ' + hostname, str(e), roxywi=1)
-
-            try:
-                sql.insert_new_checker_setting_for_server(ip)
-            except Exception as e:
-                roxywi_common.logging('Cannot insert Checker settings for ' + hostname, str(e), roxywi=1)
-
-            try:
-                server_mod.get_system_info(ip)
-            except Exception as e:
-                roxywi_common.logging('Cannot get information from ' + hostname, str(e), roxywi=1, login=1)
-
+        if server_mod.create_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, apache, firewall, scan_server):
             try:
                 user_subscription = roxywi_common.return_user_status()
             except Exception as e:
@@ -1162,7 +1139,11 @@ if form.getvalue('updatessh'):
     ssh_mod.update_ssh_key()
 
 if form.getvalue('ssh_cert'):
-    ssh_mod.upload_ssh_key()
+    user_group = roxywi_common.get_user_group()
+    name = common.checkAjaxInput(form.getvalue('name'))
+    key = form.getvalue('ssh_cert')
+
+    ssh_mod.upload_ssh_key(user_group, name, key)
 
 if form.getvalue('newtelegram'):
     import modules.alerting.alerting as alerting

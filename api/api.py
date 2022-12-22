@@ -46,7 +46,13 @@ def index():
 	data = {
 		'help': 'show all available endpoints',
 		'login': 'get temporarily token. Must be JSON body: login, password and group for which getting token. METHOD: POST',
-		'servers': 'show info about all servers. METHOD: GET',
+		'user': 'show info about all users inside a group. METHOD: GET',
+		'user': 'create a new user inside a group. Must be JSON body: username, email, password, role. METHOD: POST',
+		'server': 'show info about all servers. METHOD: GET',
+		'server': 'create a new server inside a group. Must be JSON body: hostname, ip, port, virt: enter 0 if is not Virtual IP, group_id, master_id: enter 0 if is not slave, cred_id, description. METHOD: POST',
+		'server/ssh': 'show info about all SSH credentials inside a group. METHOD: GET',
+		'server/ssh': 'create a new SSH credentials inside a group. Must be JSON body: name, key_enabled, username, password. METHOD: POST',
+		'server/ssh/key': 'upload a new SSH key inside a group. Must be JSON body: name, key. Name it is credentials name, in key new lines must be replaced with "\n" METHOD: POST',
 		'servers/status': 'show status all HAProxyes. METHOD: GET',
 		'haproxy/<id,hostname,ip>': 'show info about the HAProxy by id or hostname or ip. METHOD: GET',
 		'haproxy/<id,hostname,ip>/status': 'show HAProxy status by id or hostname or ip. METHOD: GET',
@@ -94,14 +100,14 @@ def get_token():
 	return dict(token=token)
 
 
-@route('/servers', method=['GET'])
+@route('/server', method=['GET'])
 def get_servers():
 	if not check_login():
 		return dict(error=_error_auth)
 	data = {}
 	try:
 		token = request.headers.get('token')
-		login, group_id = sql.get_username_groupid_from_api_token(token)
+		login, group_id, role_id = sql.get_username_groupid_from_api_token(token)
 		servers = roxywi_common.get_dick_permit(username=login, group_id=group_id, token=token)
 
 		for s in servers:
@@ -117,10 +123,52 @@ def get_servers():
 				'alert': s[8],
 				'metrics': s[9]
 			}
-	except Exception:
-		pass
+	except Exception as e:
+		data = {'error': e}
 
 	return dict(servers=data)
+
+
+@route('/server', method=['POST'])
+def show_users():
+	if not check_login():
+		return dict(error=_error_auth)
+	return api_funct.create_server()
+
+
+@route('/user', method=['GET'])
+def show_users():
+	if not check_login():
+		return dict(error=_error_auth)
+	return api_funct.user_list()
+
+
+@route('/user', method=['POST'])
+def create_user():
+	if not check_login():
+		return dict(error=_error_auth)
+	return api_funct.create_user()
+
+
+@route('/server/ssh', method=['GET'])
+def show_ssh():
+	if not check_login():
+		return dict(error=_error_auth)
+	return api_funct.ssh_list()
+
+
+@route('/server/ssh', method=['POST'])
+def create_ssh():
+	if not check_login():
+		return dict(error=_error_auth)
+	return api_funct.create_ssh()
+
+
+@route('/server/ssh/key', method=['POST'])
+def upload_ssh_key():
+	if not check_login():
+		return dict(error=_error_auth)
+	return api_funct.upload_ssh_key()
 
 
 @route('/servers/status', method=['GET'])

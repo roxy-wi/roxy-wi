@@ -11,29 +11,12 @@ import modules.alerting.alerting as alerting
 form = common.form
 
 
-def create_user():
-    email = form.getvalue('newemail')
-    password = form.getvalue('newpassword')
-    role = form.getvalue('newrole')
-    new_user = form.getvalue('newusername')
-    page = form.getvalue('page')
-    activeuser = form.getvalue('activeuser')
-    group = form.getvalue('newgroupuser')
-    role_id = sql.get_role_id_by_name(role)
+def create_user(new_user: str, email: str, password: str, role: str, activeuser: int, group: int, **kwargs) -> bool:
+    if roxywi_common.check_user_group(token=kwargs.get('token')):
 
-    if roxywi_common.check_user_group():
-        if roxywi_auth.is_admin(level=role_id):
+        if roxywi_auth.is_admin(level=2, role_id=kwargs.get('role_id')):
             try:
                 sql.add_user(new_user, email, password, role, activeuser, group)
-                env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
-                template = env.get_template('ajax/new_user.html')
-
-                template = template.render(users=sql.select_users(user=new_user),
-                                           groups=sql.select_groups(),
-                                           page=page,
-                                           roles=sql.select_roles(),
-                                           adding=1)
-                print(template)
                 roxywi_common.logging(f'a new user {new_user}', ' has been created ', roxywi=1, login=1)
                 try:
                     message = f"A user has been created for you on Roxy-WI portal!\n\n" \
@@ -47,10 +30,13 @@ def create_user():
             except Exception as e:
                 print(f'error: Cannot create a new user: {e}')
                 roxywi_common.logging('error: Cannot create a new user', e, roxywi=1, login=1)
+                return False
         else:
             print('error: dalsdm')
             roxywi_common.logging(new_user, ' tried to privilege escalation', roxywi=1, login=1)
+            return False
 
+    return True
 
 def delete_user():
     userdel = form.getvalue('userdel')

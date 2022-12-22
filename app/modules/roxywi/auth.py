@@ -35,14 +35,19 @@ def check_login(user_uuid, token, **kwargs):
 		return False
 
 
-def is_admin(level=1):
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_id = cookie.get('uuid')
-	try:
-		role = sql.get_user_role_by_uuid(user_id.value)
-	except Exception:
-		role = 4
-		pass
+def is_admin(level=1, **kwargs):
+	if kwargs.get('role_id'):
+		role = kwargs.get('role_id')
+	else:
+		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+		user_id = cookie.get('uuid')
+		user_id = user_id.value
+
+		try:
+			role = sql.get_user_role_by_uuid(user_id)
+		except Exception:
+			role = 4
+			pass
 
 	try:
 		return True if role <= level else False

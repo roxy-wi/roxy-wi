@@ -391,6 +391,8 @@ def select_users(**kwargs):
 		).join(UserGroups, on=(User.user_id == UserGroups.user_id)).where(
 			UserGroups.user_group_id == kwargs.get("group")
 		))
+	elif kwargs.get('by_group_id'):
+		query = User.select().where(User.groups == kwargs.get("by_group_id"))
 	else:
 		cur_date = get_date.return_date('regular', timedelta_minutes_minus=15)
 		query = User.select(User, Case(0, [(
@@ -400,7 +402,7 @@ def select_users(**kwargs):
 	except Exception as e:
 		out_error(e)
 	else:
-		return query_res
+		return query
 
 
 def select_user_groups(user_id, **kwargs):
@@ -671,7 +673,7 @@ def get_username_groupid_from_api_token(token):
 	except Exception as e:
 		return str(e)
 	else:
-		return user_name.user_name, user_name.user_group_id
+		return user_name.user_name, user_name.user_group_id, user_name.user_role
 
 
 def get_token(uuid):
