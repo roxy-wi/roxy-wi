@@ -38,6 +38,7 @@ def create_user(new_user: str, email: str, password: str, role: str, activeuser:
 
     return True
 
+
 def delete_user():
     userdel = form.getvalue('userdel')
     user = sql.select_users(id=userdel)

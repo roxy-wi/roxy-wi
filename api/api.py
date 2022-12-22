@@ -130,7 +130,7 @@ def get_servers():
 
 
 @route('/server', method=['POST'])
-def show_users():
+def show_servers():
 	if not check_login():
 		return dict(error=_error_auth)
 	return api_funct.create_server()

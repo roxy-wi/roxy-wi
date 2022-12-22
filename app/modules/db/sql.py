@@ -402,7 +402,7 @@ def select_users(**kwargs):
 	except Exception as e:
 		out_error(e)
 	else:
-		return query
+		return query_res
 
 
 def select_user_groups(user_id, **kwargs):
