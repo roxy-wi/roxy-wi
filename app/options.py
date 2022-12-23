@@ -1143,7 +1143,7 @@ if form.getvalue('ssh_cert'):
     name = common.checkAjaxInput(form.getvalue('name'))
     key = form.getvalue('ssh_cert')
 
-    ssh_mod.upload_ssh_key(user_group, name, key)
+    ssh_mod.upload_ssh_key(name, user_group, key)
 
 if form.getvalue('newtelegram'):
     import modules.alerting.alerting as alerting
