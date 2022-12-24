@@ -187,9 +187,8 @@ def action_service(action: str, service: str) -> None:
 		return
 
 	is_in_docker = is_docker()
-	if action == 'stop':
-		cmd = f"sudo systemctl disable {service} --now"
-	elif action in ("start", "restart"):
+	cmd = f"sudo systemctl disable {service} --now"
+	if action in ("start", "restart"):
 		cmd = f"sudo systemctl {action} {service} --now"
 		if not sql.select_user_status():
 			print(

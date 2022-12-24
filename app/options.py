@@ -1125,7 +1125,7 @@ if form.getvalue('updategroup') is not None:
     else:
         try:
             sql.update_group(name, descript, group_id)
-            roxywi_common.logging(f'Roxy-WI server', f'The {name} has been updated', roxywi=1, login=1)
+            roxywi_common.logging('Roxy-WI server', f'The {name} has been updated', roxywi=1, login=1)
         except Exception as e:
             print('error: ' + str(e))
 
@@ -2501,7 +2501,7 @@ if form.getvalue('load_update_hapwi'):
     import modules.roxywi.roxy as roxy
 
     env = Environment(loader=FileSystemLoader('templates'))
-    template = env.get_template('ajax/load_updatehapwi.html')
+    template = env.get_template('ajax/load_updateroxywi.html')
 
     versions = roxy.versions()
     checker_ver = roxy.check_new_version('checker')

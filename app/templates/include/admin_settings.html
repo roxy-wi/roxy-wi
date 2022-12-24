@@ -22,6 +22,9 @@
         </tr>
         {% endif %}
         {% set section.section = set.section %}
+        {% if page == "servers.py" and (set.param == 'proxy') %}
+        <!-- continue -->
+        {% else %}
         <tr class="{{ loop.cycle('odd', 'even') }} {{set.section}}-section" style="display: none">
             <td class="addName">
                 {{set.param}}
@@ -66,6 +69,7 @@
                 {{set.desc}}
             </td>
         </tr>
+        {% endif %}
         {% endif %}
         {% endfor %}
     </tbody>

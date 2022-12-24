@@ -13,8 +13,14 @@
         {{s.0[0]|upper}}{{s.0[1:]}}
     </td>
     <td class="padding10 first-collumn">
-        {% if 'is not installed' in s.3 %}
-            <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}', 'install')" title="Install {{service_name}}">Install</a>
+        {% if 'is not installed' in s.3 or not s.3 %}
+            {% if s.0 in ('prometheus', 'grafana-server') %}
+                <a class="ui-button ui-widget ui-corner-all" onclick="openTab(10)" title="Install {{service_name}}">Install</a>
+            {% elif s.0 in ('rabbitmq-server', 'fail2ban') %}
+                <a class="ui-button ui-widget ui-corner-all" href="https://roxy-wi/services/{{s.0.split('-')[0]}}" title="Install {{s.0|title()}}" target="_blank">Install</a>
+            {% else %}
+                <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}', 'install')" title="Install {{service_name}}">Install</a>
+            {% endif %}
         {% else %}
         <a id="start-{{ s.0 }}" class="start" title="Start and enable {{s.0}} service">
             <span class="service-start" onclick="confirmAjaxServiceAction('start', '{{s.0}}')"></span>

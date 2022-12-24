@@ -1667,3 +1667,6 @@ function show_pretty_ansible_error(data) {
 		return data;
 	}
 }
+function openTab(tabId) {
+	$( "#tabs" ).tabs( "option", "active", tabId );
+}

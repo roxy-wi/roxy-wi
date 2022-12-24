@@ -136,7 +136,13 @@
                 <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}')" title="Update {{service_name}}">Update</a>
             {% endif %}
         {% else %}
-            <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}', 'install')" title="Install {{service_name}}">Install</a>
+             {% if s.0 in ('prometheus', 'grafana-server') %}
+                <a class="ui-button ui-widget ui-corner-all" onclick="openTab(10)" title="Install {{service_name}}">Install</a>
+            {% elif s.0 in ('rabbitmq-server', 'fail2ban') %}
+                <a class="ui-button ui-widget ui-corner-all" href="https://roxy-wi/services/{{s.0.split('-')[0]}}" title="Install {{s.0|title()}}" target="_blank">Install</a>
+            {% else %}
+                <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}', 'install')" title="Install {{service_name}}">Install</a>
+            {% endif %}
         {% endif %}
     </td>
     <td colspan="2">
