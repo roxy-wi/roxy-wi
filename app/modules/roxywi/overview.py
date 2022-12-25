@@ -1,6 +1,7 @@
 import os
 import http.cookies
 
+import requests
 from jinja2 import Environment, FileSystemLoader
 
 import modules.db.sql as sql
@@ -121,3 +122,76 @@ def show_overview(serv) -> None:
     ioloop = asyncio.get_event_loop()
     ioloop.run_until_complete(get_runner_overview())
     ioloop.close()
+
+
+def show_haproxy_binout(server_ip: str) -> None:
+    port = sql.get_setting('haproxy_sock_port')
+    bin_bout = []
+    cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,9|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(
+        server_ip, port)
+    bit_in, stderr = server_mod.subprocess_execute(cmd)
+    bin_bout.append(bit_in[0])
+    cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,10|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(
+        server_ip, port)
+    bout, stderr1 = server_mod.subprocess_execute(cmd)
+    bin_bout.append(bout[0])
+    cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,5|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(
+        server_ip, port)
+    cin, stderr2 = server_mod.subprocess_execute(cmd)
+    bin_bout.append(cin[0])
+    cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,8|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(
+        server_ip, port)
+    cout, stderr3 = server_mod.subprocess_execute(cmd)
+    bin_bout.append(cout[0])
+    env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
+    template = env.get_template('ajax/bin_bout.html')
+    template = template.render(bin_bout=bin_bout, serv=server_ip, service='haproxy')
+    print(template)
+
+
+def show_nginx_connections(server_ip: str) -> None:
+    port = sql.get_setting('nginx_stats_port')
+    user = sql.get_setting('nginx_stats_user')
+    password = sql.get_setting('nginx_stats_password')
+    page = sql.get_setting('nginx_stats_page')
+    url = f'http://{server_ip}:{port}/{page}'
+
+    r = requests.get(url, auth=(user, password))
+
+    if r.status_code == 200:
+        bin_bout = [0, 0]
+        for num, line in enumerate(r.text.split('\n')):
+            if num == 0:
+                bin_bout.append(line.split(' ')[2])
+            if num == 2:
+                bin_bout.append(line.split(' ')[3])
+
+        env = Environment(loader=FileSystemLoader('templates'))
+        template = env.get_template('ajax/bin_bout.html')
+        template = template.render(bin_bout=bin_bout, serv=server_ip, service='nginx')
+        print(template)
+    else:
+        print('error: cannot connect to NGINX stat page')
+
+
+def show_apache_bytes(server_ip: str) -> None:
+    port = sql.get_setting('apache_stats_port')
+    user = sql.get_setting('apache_stats_user')
+    password = sql.get_setting('apache_stats_password')
+    page = sql.get_setting('apache_stats_page')
+    bin_bout = []
+    url = f'http://{server_ip}:{port}/{page}?auto'
+
+    r = requests.get(url, auth=(user, password))
+
+    if r.status_code == 200:
+        for line in r.text.split('\n'):
+            if 'ReqPerSec' in line or 'BytesPerSec' in line:
+                bin_bout.append(line.split(' ')[1])
+
+        env = Environment(loader=FileSystemLoader('templates'))
+        template = env.get_template('ajax/bin_bout.html')
+        template = template.render(bin_bout=bin_bout, serv=server_ip, service='apache')
+        print(template)
+    else:
+        print('error: cannot connect to Apache stat page')

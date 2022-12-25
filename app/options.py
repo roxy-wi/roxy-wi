@@ -6,7 +6,6 @@ import json
 import http.cookies
 from uuid import UUID
 
-import requests
 from jinja2 import Environment, FileSystemLoader
 
 import modules.db.sql as sql
@@ -1341,78 +1340,22 @@ if form.getvalue('updateSmonIp') is not None:
         print(e)
 
 if form.getvalue('showBytes') is not None:
-    serv = common.checkAjaxInput(form.getvalue('showBytes'))
+    import modules.roxywi.overview as roxywi_overview
 
-    port = sql.get_setting('haproxy_sock_port')
-    bin_bout = []
-    cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,9|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(
-        serv, port)
-    bit_in, stderr = server_mod.subprocess_execute(cmd)
-    bin_bout.append(bit_in[0])
-    cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,10|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(
-        serv, port)
-    bout, stderr1 = server_mod.subprocess_execute(cmd)
-    bin_bout.append(bout[0])
-    cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,5|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(
-        serv, port)
-    cin, stderr2 = server_mod.subprocess_execute(cmd)
-    bin_bout.append(cin[0])
-    cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,8|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(
-        serv, port)
-    cout, stderr3 = server_mod.subprocess_execute(cmd)
-    bin_bout.append(cout[0])
-    env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
-    template = env.get_template('ajax/bin_bout.html')
-    template = template.render(bin_bout=bin_bout, serv=serv, service='haproxy')
-    print(template)
+    server_ip = common.is_ip_or_dns(form.getvalue('showBytes'))
+    roxywi_overview.show_haproxy_binout(server_ip)
 
 if form.getvalue('nginxConnections'):
-    serv = common.is_ip_or_dns(form.getvalue('nginxConnections'))
-    port = sql.get_setting('nginx_stats_port')
-    user = sql.get_setting('nginx_stats_user')
-    password = sql.get_setting('nginx_stats_password')
-    page = sql.get_setting('nginx_stats_page')
-    url = 'http://{}:{}/{}'.format(serv, port, page)
+    import modules.roxywi.overview as roxywi_overview
 
-    r = requests.get(url, auth=(user, password))
-
-    if r.status_code == 200:
-        bin_bout = [0, 0]
-        for num, line in enumerate(r.text.split('\n')):
-            if num == 0:
-                bin_bout.append(line.split(' ')[2])
-            if num == 2:
-                bin_bout.append(line.split(' ')[3])
-
-        env = Environment(loader=FileSystemLoader('templates'))
-        template = env.get_template('ajax/bin_bout.html')
-        template = template.render(bin_bout=bin_bout, serv=serv, service='nginx')
-        print(template)
-    else:
-        print('error: cannot connect to NGINX stat page')
+    server_ip = common.is_ip_or_dns(form.getvalue('nginxConnections'))
+    roxywi_overview.show_nginx_connections(server_ip)
 
 if form.getvalue('apachekBytes'):
-    serv = common.is_ip_or_dns(form.getvalue('apachekBytes'))
-    port = sql.get_setting('apache_stats_port')
-    user = sql.get_setting('apache_stats_user')
-    password = sql.get_setting('apache_stats_password')
-    page = sql.get_setting('apache_stats_page')
-    bin_bout = []
-    url = f'http://{serv}:{port}/{page}?auto'
+    import modules.roxywi.overview as roxywi_overview
 
-    r = requests.get(url, auth=(user, password))
-
-    if r.status_code == 200:
-        for line in r.text.split('\n'):
-            if 'ReqPerSec' in line or 'BytesPerSec' in line:
-                bin_bout.append(line.split(' ')[1])
-
-        env = Environment(loader=FileSystemLoader('templates'))
-        template = env.get_template('ajax/bin_bout.html')
-        template = template.render(bin_bout=bin_bout, serv=serv, service='apache')
-        print(template)
-    else:
-        print('error: cannot connect to Apache stat page')
+    server_ip = common.is_ip_or_dns(form.getvalue('apachekBytes'))
+    roxywi_overview.show_apache_bytes(server_ip)
 
 if form.getvalue('waf_rule_id'):
     import modules.roxywi.waf as roxy_waf

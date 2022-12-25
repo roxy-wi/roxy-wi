@@ -98,7 +98,7 @@ def send_email(email_to: str, subject: str, message: str) -> None:
 	mail_smtp_host = sql.get_setting('mail_smtp_host')
 	mail_smtp_port = sql.get_setting('mail_smtp_port')
 	mail_smtp_user = sql.get_setting('mail_smtp_user')
-	mail_smtp_password = sql.get_setting('mail_smtp_password')
+	mail_smtp_password = sql.get_setting('mail_smtp_password').replace("'", "")
 
 	msg = MIMEText(message)
 	msg['Subject'] = f'Roxy-WI: {subject}'
