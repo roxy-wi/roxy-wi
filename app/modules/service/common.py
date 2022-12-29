@@ -39,9 +39,12 @@ def is_not_allowed_to_restart(server_id: int, service: str) -> None:
 	else:
 		is_restart = 0
 
-	if int(is_restart) == 1:
-		print('warning: this service is not allowed to be restarted')
-		return
+	try:
+		if int(is_restart) == 1:
+			print('warning: this service is not allowed to be restarted')
+			return
+	except Exception:
+		pass
 
 
 def get_exp_version(server_ip: str, service_name: str) -> str:

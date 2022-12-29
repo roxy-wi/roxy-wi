@@ -64,7 +64,6 @@ def upload_and_restart(server_ip: str, cfg: str, **kwargs):
 	file_format = 'conf'
 	config_path = kwargs.get('config_file_name')
 	config_date = get_date.return_date('config')
-	print(server_ip)
 	server_id = sql.select_server_id_by_ip(server_ip=server_ip)
 
 	if kwargs.get("nginx"):
