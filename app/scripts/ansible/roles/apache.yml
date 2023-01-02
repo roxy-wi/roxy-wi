@@ -28,8 +28,8 @@
         http_proxy: "{{PROXY}}"
         https_proxy: "{{PROXY}}"
       vars:
-        image_name: nginx
-        cont_etc_dir: "/etc/nginx"
+        image_name: httpd
+        cont_etc_dir: "/usr/local/apache2"
   tags:
     - docker
 
@@ -41,26 +41,10 @@
   - name: Add syn_flood tasks
     include: haproxy/tasks/syn_flood.yml
     when: (SYN_FLOOD is defined) and (SYN_FLOOD|length > 0)
-  - name: Install nginx for Centos Stream 9
-    package:
-      name: nginx
-      state: present
-    when: ansible_facts['distribution_major_version'] == '9'
-    tags:
-      - system
   roles:
-    - role: nginxinc.nginx
+    - role: apache
       environment:
         http_proxy: "{{PROXY}}"
         https_proxy: "{{PROXY}}"
-      when: ansible_facts['distribution_major_version'] != '9'
   tags:
     - system
-
-- name: Set correct owner
-  hosts: "{{ variable_host }}"
-  become: yes
-  tasks:
-    - name: Set
-      shell: "chown nginx:nginx -R {{ service_dir }}"
-

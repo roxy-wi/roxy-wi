@@ -6,6 +6,7 @@ from jinja2 import Environment, FileSystemLoader
 
 import modules.db.sql as sql
 import modules.common.common as common
+import modules.roxywi.logs as roxy_logs
 import modules.roxywi.common as roxywi_common
 import modules.server.server as server_mod
 import modules.service.common as service_common
@@ -195,3 +196,76 @@ def show_apache_bytes(server_ip: str) -> None:
         print(template)
     else:
         print('error: cannot connect to Apache stat page')
+
+
+def show_services_overview() -> None:
+    import psutil
+    from jinja2 import Environment, FileSystemLoader
+
+    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
+    template = env.get_template('ajax/show_services_ovw.html')
+    user_params = roxywi_common.get_users_params()
+    grafana = 0
+    metrics_worker = 0
+    checker_worker = 0
+    servers_group = []
+    host = os.environ.get('HTTP_HOST', '')
+    user_group = roxywi_common.get_user_group(id=1)
+
+    if (user_params['role'] == 2 or user_params['role'] == 3) and int(user_group) != 1:
+        for s in user_params['servers']:
+            servers_group.append(s[2])
+
+    is_checker_worker = len(sql.select_all_alerts(group=user_group))
+    is_metrics_worker = len(sql.select_servers_metrics_for_master(group=user_group))
+
+    for pids in psutil.pids():
+        if pids < 300:
+            continue
+        try:
+            pid = psutil.Process(pids)
+            cmdline_out = pid.cmdline()
+            if len(cmdline_out) > 2:
+                if 'checker_' in cmdline_out[1]:
+                    if len(servers_group) > 0:
+                        if cmdline_out[2] in servers_group:
+                            checker_worker += 1
+                    else:
+                        checker_worker += 1
+                elif 'metrics_' in cmdline_out[1]:
+                    if len(servers_group) > 0:
+                        if cmdline_out[2] in servers_group:
+                            metrics_worker += 1
+                    else:
+                        metrics_worker += 1
+                if len(servers_group) == 0:
+                    if 'grafana' in cmdline_out[1]:
+                        grafana += 1
+        except psutil.NoSuchProcess:
+            pass
+
+    cmd = "systemctl is-active roxy-wi-metrics"
+    metrics_master, stderr = server_mod.subprocess_execute(cmd)
+    cmd = "systemctl is-active roxy-wi-checker"
+    checker_master, stderr = server_mod.subprocess_execute(cmd)
+    cmd = "systemctl is-active roxy-wi-keep_alive"
+    keep_alive, stderr = server_mod.subprocess_execute(cmd)
+    cmd = "systemctl is-active roxy-wi-smon"
+    smon, stderr = server_mod.subprocess_execute(cmd)
+    cmd = "systemctl is-active roxy-wi-portscanner"
+    port_scanner, stderr = server_mod.subprocess_execute(cmd)
+    cmd = "systemctl is-active roxy-wi-socket"
+    socket, stderr = server_mod.subprocess_execute(cmd)
+
+    rendered_template = template.render(
+        role=user_params['role'], metrics_master=''.join(metrics_master), metrics_worker=metrics_worker,
+        checker_master=''.join(checker_master), checker_worker=checker_worker, keep_alive=''.join(keep_alive),
+        smon=''.join(smon), port_scanner=''.join(port_scanner), grafana=grafana, socket=''.join(socket),
+        is_checker_worker=is_checker_worker, is_metrics_worker=is_metrics_worker, host=host,
+        roxy_wi_log_id=roxy_logs.roxy_wi_log(log_id=1, file="roxy-wi-"),
+        metrics_log_id=roxy_logs.roxy_wi_log(log_id=1, file="metrics"),
+        checker_log_id=roxy_logs.roxy_wi_log(log_id=1, file="checker"),
+        keep_alive_log_id=roxy_logs.roxy_wi_log(log_id=1, file="keep_alive"),
+        socket_log_id=roxy_logs.roxy_wi_log(log_id=1, file="socket"), error=stderr
+    )
+    print(rendered_template)

@@ -1,0 +1,28 @@
+---
+- name: Creates directorys
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    mode: "0770"
+    owner: "{{ service_user }}"
+    group: "{{ service_group }}"
+  become: true
+  ignore_errors: yes
+  with_items:
+    - { path: "{{ service_dir }}"}
+    - { path: "{{ service_dir }}/conf.d"}
+    - { path: "{{ service_dir }}/sites-enabled"}
+    - { path: "/var/log/{{ service }}/"}
+
+- name: "Create {{ service }}"
+  docker_container:
+    name: "{{ CONT_NAME }}"
+    image: "{{ image_name }}"
+    recreate: yes
+    network_mode: host
+    volumes:
+      - "/etc/{{ service }}/:{{ cont_etc_dir }}/:rw"
+      - "/tmp:/tmp:ro"
+      - "/var/log:/var/log:rw"
+  vars:
+    ansible_python_interpreter: /usr/bin/python3

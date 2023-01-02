@@ -63,7 +63,7 @@
 				<td></td>
 			</tr>
 			<tr>
-				<td id="cur_hap_ver" class="padding10 first-collumn">
+				<td id="cur_haproxy_ver" class="padding10 first-collumn">
 				</td>
 				<td class="padding10 first-collumn" style="width: 20%;">
 					{% set values = dict() %}
@@ -122,6 +122,41 @@
 				</td>
 				<td>
 					<span class="ui-button ui-widget ui-corner-all" id="nginx_install" title="Install NGINX">Install</span>
+				</td>
+			</tr>
+		</table>
+		<table>
+			<caption><h3>Install Apache</h3></caption>
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn">Current version</td>
+				<td class="padding10 first-collumn" style="width: 30%;">Available Versions</td>
+				<td class="padding10 first-collumn" style="width: 20%;">Server</td>
+				<td class="help_cursor" title="Install Apache service as a Docker container" >Use Docker</td>
+				<td>SYN-flood protection</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td id="cur_apache_ver" class="padding10 first-collumn">
+				</td>
+				<td class="padding10 first-collumn" style="width: 20%;">
+					Roxy-WI will try to install the latest Apache version from an official Apache repository
+				</td>
+				<td class="padding10 first-collumn">
+					<select autofocus required name="apacheaddserv" id="apacheaddserv">
+						<option disabled selected>------</option>
+						{% for select in servers %}
+								<option value="{{ select.2 }}">{{ select.1 }}</option>
+						{% endfor %}
+					</select>
+				</td>
+				<td style="padding-left: 25px;">
+					{{ checkbox('apache_docker', title="Install Apache service as a Docker container") }}
+				</td>
+				<td class="syn-flood-protection-field">
+					{{ checkbox('apache_syn_flood', title="Enable SYN-flood protection", checked='checked') }}
+				</td>
+				<td>
+					<span class="ui-button ui-widget ui-corner-all" id="apache_install" title="Install Apache">Install</span>
 				</td>
 			</tr>
 		</table>

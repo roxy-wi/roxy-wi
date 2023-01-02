@@ -92,218 +92,25 @@
 	</tr>
 </table>
 <table class="overview-wi" id="overview-services">
-	<tr class="overviewHead">
-		<td class="padding10 first-collumn-wi" colspan=4>
-			{% if role <= 1 %}
-				<a href="/app/users.py#services" title="View services status" class="logs_link">
+	<thead>
+		<tr class="overviewHead">
+			<td class="padding10 first-collumn-wi" colspan=2>
+				{% if role <= 1 %}
+					<a href="/app/users.py#services" title="View services status" class="logs_link">
+						Roxy-WI services status
+					</a>
+				{% else %}
 					Roxy-WI services status
+				{% endif %}
+			</td>
+			<td>
+				<a onclick="showServicesOverview()" title="Refresh" style="float: right; margin-right: 15px;">
+					<span class="refresh"></span>
 				</a>
-			{% else %}
-				Roxy-WI services status
-			{% endif %}
-		</td>
-	</tr>
-	<tr class="odd">
-		<td class="padding10 first-collumn-wi">
-			{% if metrics_master == 'active' %}
-				<span class="serverUp server-status" title="running {{ metrics_master }} master processes"></span>
-				{% if role <= 1 %}
-					<a href="/app/viewlogs.py?viewlogs={{metrics_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View metrics master's logs" class="logs_link">
-						Metrics master
-					</a>
-				{% else %}
-					Metrics master
-				{% endif %}
-			{% else %}
-				{% if metrics_master == 'inactive' or metrics_master == 'failed' %}
-					<span class="serverDown server-status" title="Metrics is stopped"></span>
-					{% if role <= 1 %}
-					<a href="/app/users.py#services" title="Start Metrics - Roxy-WI service" class="logs_link">
-						Metrics master
-					</a>
-					{% else %}
-						Metrics master
-					{% endif %}
-				{% else %}
-					<span class="serverNone server-status" title="Metrics is not installed"></span>
-					<a href="https://roxy-wi.org/services.py?service=metrics#installation" title="Metrics installation" target="_blank" class="logs_link">
-						Metrics master
-					</a>
-				{% endif %}
-			{% endif %}
-		</td>
-		<td class="third-collumn-wi">
-			{% if checker_master == 'active' %}
-				<span class="serverUp server-status" title="running {{ checker_master }} master processes"></span>
-				{% if role <= 1 %}
-				<a href="/app/viewlogs.py?viewlogs={{checker_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View checker master's logs" class="logs_link">
-					Checker master
-				</a>
-				{% else %}
-					Checker master
-				{% endif %}
-			{% else %}
-				{% if checker_master == 'inactive' or checker_master == 'failed' %}
-					<span class="serverDown server-status" title="Checker is stopped"></span>
-					{% if role <= 1 %}
-						<a href="/app/users.py#services" title="Start Checker - Roxy-WI service" class="logs_link">
-							Checker master
-						</a>
-					{% else %}
-						Checker master
-					{% endif %}
-				{% else %}
-					<span class="serverNone server-status" title="Backends checker is not installed"></span>
-					<a href="https://roxy-wi.org/services.py?service=checker#installation" title="Backends checker installation" target="_blank" class="logs_link">
-						Checker master
-					</a>
-				{% endif %}
-			{% endif %}
-		</td>
-		<td class="third-collumn-wi">
-			{% if keep_alive == 'active' %}
-				<span class="serverUp server-status" title="running {{ keep_alive }} processe"></span>
-				{% if role <= 1 %}
-					<a href="/app/viewlogs.py?viewlogs={{keep_alive_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View Auto start logs" class="logs_link">
-						Auto start
-					</a>
-				{% else %}
-					Auto star
-				{% endif %}
-			{% else %}
-				{% if keep_alive == 'inactive' or keep_alive == 'failed' %}
-					<span class="serverDown server-status" title="Auto start is stopped"></span>
-					{% if role <= 1 %}
-						<a href="/app/users.py#services" title="Start Auto star - Roxy-WI service" class="logs_link">
-							Auto start
-						</a>
-					{% else %}
-						Auto start
-					{% endif %}
-				{% else %}
-					<span class="serverNone server-status" title="Auto start is not installed"></span>
-					<a href="https://roxy-wi.org/services.py?service=auto_start#installation" title="Auto start installation" target="_blank" class="logs_link">
-						Auto start
-					</a>
-				{% endif %}
-			{% endif %}
-		</td>
-	</tr>
-	<tr class="even">
-		<td class="padding10 first-collumn-wi">
-		{% if metrics_worker|int() >= 1 %}
-			<span class="serverUp server-status" title="running {{metrics_worker}} worker processes"></span>
-		{% else %}
-			{% if is_metrics_worker|int() == 0 %}
-			<span class="serverNone server-status" title="There is not job for metrics"></span>
-			{% else %}
-			<span class="serverDown server-status" title="running {{is_checker_worker}} worker processes"></span>
-			{% endif %}
-		{% endif %}
-		{% if role <= 1 %}
-			<a href="/app/viewlogs.py?viewlogs={{metrics_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View worker's logs" class="logs_link">
-				Metrics workers
-			</a>
-		{% else %}
-			Metrics workers
-		{% endif %}
-		</td>
-		<td>
-		{% if checker_worker|int() >= 1 %}
-			<span class="serverUp server-status" title="running {{ checker_worker }} worker processes"></span>
-		{% else %}
-			{% if is_checker_worker|int() == 0 %}
-			<span class="serverNone server-status" title="There is not job for checker"></span>
-			{% else %}
-			<span class="serverDown server-status" title="running {{ checker_worker }} worker processes"></span>
-			{% endif %}
-		{% endif %}
-		{% if role <= 1 %}
-			<a href="/app/viewlogs.py?viewlogs={{checker_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View checker's logs" class="logs_link">
-				Checker workers
-			</a>
-		{% else %}
-				Checker workers
-		{% endif %}
-		</td>
-		<td>
-			{% if smon == 'active' %}
-				<span class="serverUp server-status" title="SMON is started"></span>
-				<a href="/app/smon.py?action=view" title="SMON Dashboard" class="logs_link">
-					SMON
-				</a>
-			{% else %}
-				{% if smon == 'inactive' or smon == 'failed' %}
-					<span class="serverDown server-status" title="SMON is stopped"></span>
-					<a href="/app/users.py#services" title="Start SMON - Roxy-WI service" class="logs_link">
-						SMON
-					</a>
-				{% else %}
-					<span title="SMON is not installed"><span class="serverNone server-status"></span></span>
-					<a href="https://roxy-wi.org/services.py?service=smon" title="Simple monitoring ports installation" target="_blank" class="logs_link">
-						SMON
-					</a>
-				{% endif %}
-			{% endif %}
-		</td>		
-	</tr>
-	<tr class="odd">
-		{% if role == 1 %}
-		<td class="padding10 first-collumn-wi">
-		{% if grafana|int() >= 1 %}
-			<span class="serverUp server-status" title="running {{grafana}} process"></span>
-			<a href="http://{{host}}:3000" target="_blank" title="Open Grafana" class="logs_link" rel="noopener noreferrer">Grafana</a>
-		{% else %}
-			<span class="serverNone server-status" title="The service is not installed or not running"></span>
-			<span>Grafana</span>			
-		{% endif %}
-		{% endif %}
-		</td>
-		<td {% if role != 1 %}class="padding10 first-collumn-wi"{%endif%}>
-			{% if socket == 'active' %}
-				<span class="serverUp server-status" title="Socket service is started"></span>
-				{% if role <= 1 %}
-					<a href="/app/viewlogs.py?viewlogs={{socket_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View Socket's logs" class="logs_link">
-						Socket service
-					</a>
-				{% else %}
-						Socket service
-				{% endif %}
-			{% else %}
-				{% if socket == 'inactive' or socket == 'failed' %}
-					<span class="serverDown server-status" title="Socket service scanner is stopped"></span>
-					<a href="/app/users.py#services" title="Socket service - Roxy-WI service" class="logs_link">
-						Socket service
-					</a>
-				{% else %}
-					<span title="Socket service is not installed"><span class="serverNone server-status"></span></span>
-					<a href="https://roxy-wi.org/services.py?service=socket" title="Socket service" target="_blank" class="logs_link">
-						Socket service
-					</a>
-				{% endif %}
-			{% endif %}
-		</td>
-		<td>
-		{% if port_scanner == 'active' %}
-				<span class="serverUp server-status" title="Port scanner is started"></span>
-				<a href="/app/portscanner.py" title="Port scanner Dashboard" class="logs_link">
-					Port scanner
-				</a>
-			{% else %}
-				{% if port_scanner == 'inactive' or port_scanner == 'failed' %}
-					<span class="serverDown server-status" title="Port scanner is stopped"></span>
-					<a href="/app/users.py#services" title="Start Port scanner - Roxy-WI service" class="logs_link">
-						Port scanner
-					</a>
-				{% else %}
-					<span title="Port scanner is not installed"><span class="serverNone server-status"></span></span>
-					<a href="https://roxy-wi.org/services.py?service=port_scanner" title="Port scanner" target="_blank" class="logs_link">
-						Port scanner
-					</a>
-				{% endif %}
-			{% endif %}
-		</td>
-	</tr>
+			</td>
+		</tr>
+	</thead>
+	<tbody id="services_ovw"></tbody>
 </table>
 {% if role <= 2 %}
 	{% if role == 2 %}

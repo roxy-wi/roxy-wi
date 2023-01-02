@@ -47,49 +47,10 @@ $( function() {
 		} );
 	});
 	$('#nginx_install').click(function() {
-		$("#ajax").html('')
-		var syn_flood = 0;
-		var docker = 0;
-		if ($('#nginx_syn_flood').is(':checked')) {
-			syn_flood = '1';
-		}
-		if ($('#nginx_docker').is(':checked')) {
-			docker = '1';
-		}
-		if ($('#nginxaddserv').val() == '------') {
-			toastr.warning('Select a server');
-			return false
-		}
-		$("#ajax").html(wait_mess);
-		$.ajax( {
-			url: "options.py",
-			data: {
-				install_nginx: $('#nginxaddserv').val(),
-				syn_flood: syn_flood,
-				docker: docker,
-				token: $('#token').val()
-				},
-			type: "POST",
-			success: function( data ) {
-				data = data.replace(/\s+/g,' ');
-				$("#ajax").html('')
-				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
-					toastr.clear();
-					var p_err = show_pretty_ansible_error(data);
-					toastr.error(p_err);
-				} else if (data.indexOf('success') != '-1' ){
-					toastr.clear();
-					toastr.success(data);
-					$("#nginxaddserv").trigger( "selectmenuchange" );
-				} else if (data.indexOf('Info') != '-1' ){
-					toastr.clear();
-					toastr.info(data);
-				} else {
-					toastr.clear();
-					toastr.info(data);
-				}
-			}
-		} );
+		installService('apache');
+	});
+	$('#apache_install').click(function() {
+		installService('apache');
 	});
 	$('#grafna_install').click(function() {
 		$("#ajaxmon").html('');
@@ -273,53 +234,13 @@ $( function() {
 		} );
 	});
 	$( "#haproxyaddserv" ).on('selectmenuchange',function() {
-		$.ajax( {
-			url: "options.py",
-			data: {
-				get_hap_v: 1,
-				serv: $('#haproxyaddserv option:selected').val(),
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function( data ) {
-				data = data.replace(/^\s+|\s+$/g,'');
-				if(data != '') {
-					data = data+'-1';
-					$('#cur_hap_ver').text(data);
-					$('#cur_hap_ver').css('font-weight', 'bold');
-					$('#install').text('Update');
-					$('#install').attr('title', 'Update HAProxy');
-				} else {
-					$('#cur_hap_ver').text('HAProxy has not installed');
-					$('#install').text('Install');
-					$('#install').attr('title', 'Install HAProxy');
-				}
-			}
-		} );
+		showServiceVersion('haproxy');
 	});
 	$( "#nginxaddserv" ).on('selectmenuchange',function() {
-		$.ajax( {
-			url: "options.py",
-			data: {
-				get_nginx_v: 1,
-				serv: $('#nginxaddserv option:selected').val(),
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function( data ) {
-				data = data.replace(/^\s+|\s+$/g,'');
-				if(data.indexOf('bash') != '-1' || data.indexOf('such') != '-1' || data.indexOf('command not found') != '-1' || data.indexOf('from') != '-1') {
-					$('#cur_nginx_ver').text('Nginx has not installed');
-					$('#nginx_install').text('Install');
-					$('#nginx_install').attr('title', 'Install Nginx');
-				} else {
-					$('#cur_nginx_ver').text(data);
-					$('#cur_nginx_ver').css('font-weight', 'bold');
-					$('#nginx_install').text('Update');
-					$('#nginx_install').attr('title', 'Update Nginx');
-				}
-			}
-		} );
+		showServiceVersion('nginx');
+	});
+	$( "#apacheaddserv" ).on('selectmenuchange',function() {
+		showServiceVersion('apache');
 	});
 	$( "#haproxy_exp_addserv" ).on('selectmenuchange',function() {
 		$.ajax( {
@@ -2927,6 +2848,77 @@ function checkGeoipInstallation() {
 			} else {
 				$('#cur_geoip').html('<b style="color: var(--green-color)">GeoIPLite is installed<b>');
 				$('#geoip_install').hide();
+			}
+		}
+	} );
+}
+function installService(service){
+	$("#ajax").html('')
+	var syn_flood = 0;
+	var docker = 0;
+	if ($('#'+service+'_syn_flood').is(':checked')) {
+		syn_flood = '1';
+	}
+	if ($('#'+service+'_docker').is(':checked')) {
+		docker = '1';
+	}
+	if ($('#'+service+'addserv').val() == '------') {
+		toastr.warning('Select a server');
+		return false
+	}
+	$("#ajax").html(wait_mess);
+	$.ajax( {
+		url: "options.py",
+		data: {
+			install_service: $('#' + service + 'ddserv').val(),
+			syn_flood: syn_flood,
+			docker: docker,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			$("#ajax").html('')
+			if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
+				toastr.clear();
+				var p_err = show_pretty_ansible_error(data);
+				toastr.error(p_err);
+			} else if (data.indexOf('success') != '-1' ){
+				toastr.clear();
+				toastr.success(data);
+				$('#'+service+'addserv').trigger( "selectmenuchange" );
+			} else if (data.indexOf('Info') != '-1' ){
+				toastr.clear();
+				toastr.info(data);
+			} else {
+				toastr.clear();
+				toastr.info(data);
+			}
+		}
+	} );
+}
+function showServiceVersion(service) {
+	$.ajax({
+		url: "options.py",
+		data: {
+			get_service_v: service,
+			serv: $('#'+service+'addserv option:selected').val(),
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			data = data.replace(/^\s+|\s+$/g, '');
+			if (data.indexOf('bash') != '-1' || data.indexOf('such') != '-1' || data.indexOf('command not found') != '-1' || data.indexOf('from') != '-1') {
+				$('#cur_'+service+'_ver').text(service+' has not installed');
+				$('#'+service+'_install').text('Install');
+				$('#'+service+'_install').attr('title', 'Install');
+			} else if (data.indexOf('warning: ') != '-1') {
+				toastr.warning(data);
+			} else {
+				$('#cur_'+service+'_ver').text(data);
+				$('#cur_'+service+'_ver').css('font-weight', 'bold');
+				$('#'+service+'_install').text('Update');
+				$('#'+service+'_install').attr('title', 'Update');
 			}
 		}
 	} );

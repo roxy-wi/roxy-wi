@@ -276,6 +276,11 @@ if act == "overviewServers":
 
     service_common.overview_service(serv, server_id, name, service)
 
+if act == "overviewServices":
+    import modules.roxywi.overview as roxy_overview
+
+    roxy_overview.show_services_overview()
+
 if form.getvalue('action'):
     import modules.service.haproxy as service_haproxy
 
@@ -552,8 +557,15 @@ if form.getvalue('git_backup'):
                 print('Ok')
     os.remove(script)
 
-if form.getvalue('install_nginx'):
-    service_mod.install_nginx(form.getvalue('install_nginx'), docker=form.getvalue('docker'))
+if form.getvalue('install_service'):
+    server_ip = common.is_ip_or_dns(form.getvalue('install_service'))
+    service = common.checkAjaxInput(form.getvalue('service'))
+    docker = common.checkAjaxInput(form.getvalue('docker'))
+
+    if service in ('nginx', 'apache'):
+        service_mod.install_service(server_ip, service, docker)
+    else:
+        print('warning: wrong service')
 
 if form.getvalue('haproxyaddserv'):
     service_mod.install_haproxy(form.getvalue('haproxyaddserv'), syn_flood=form.getvalue('syn_flood'),
@@ -758,16 +770,11 @@ if any((form.getvalue('new_nginx_metrics'), form.getvalue('new_apache_metrics'),
 if form.getvalue('get_hap_v'):
     print(service_common.check_haproxy_version(serv))
 
-if form.getvalue('get_nginx_v'):
-    server_id = sql.select_server_id_by_ip(serv)
-    is_dockerized = sql.select_service_setting(server_id, 'nginx', 'dockerized')
+if form.getvalue('get_service_v'):
+    service = common.checkAjaxInput(form.getvalue('get_service_v'))
+    server_ip = common.is_ip_or_dns(serv)
 
-    if is_dockerized == '1':
-        container_name = sql.get_setting('nginx_container_name')
-        cmd = [f"docker exec -it {container_name}  /usr/sbin/nginx -v 2>&1|awk '{{print $3}}'"]
-    else:
-        cmd = ['sudo /usr/sbin/nginx -v']
-    print(server_mod.ssh_command(serv, cmd))
+    service_common.show_service_version(server_ip, service)
 
 if form.getvalue('get_keepalived_v'):
     cmd = ["sudo /usr/sbin/keepalived -v 2>&1|head -1|awk '{print $2}'"]

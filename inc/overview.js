@@ -65,6 +65,7 @@ function showOverview(serv, hostnamea) {
 		showOverviewCallBack(serv[i], hostnamea[i])
 	}
 	showSubOverview();
+	showServicesOverview();
 }
 function showOverviewCallBack(serv, hostnamea) {
 	$.ajax( {
@@ -84,6 +85,28 @@ function showOverviewCallBack(serv, hostnamea) {
 			} else {
 				$("#" + hostnamea).empty();
 				$("#" + hostnamea).html(data);
+			}
+		}
+	} );
+}
+function showServicesOverview() {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			act: "overviewServices",
+			token: $('#token').val()
+		},
+		beforeSend: function() {
+			$("#services_ovw").html('<img class="loading_small_bin_bout" style="padding-left: 100%;padding-top: 40px;padding-bottom: 40px;" src="/inc/images/loading.gif" />');
+
+		},
+		type: "POST",
+		success: function( data ) {
+			if (data.indexOf('error:') != '-1') {
+				toastr.error(data);
+			} else {
+				$("#services_ovw").empty();
+				$("#services_ovw").html(data);
 			}
 		}
 	} );

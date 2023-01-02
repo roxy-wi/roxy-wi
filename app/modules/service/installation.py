@@ -138,18 +138,17 @@ def waf_nginx_install(server_ip: str):
 	os.remove(script)
 
 
-def install_nginx(server_ip: str, **kwargs):
-	script = "install_nginx.sh"
-	stats_user = sql.get_setting('nginx_stats_user')
-	stats_password = sql.get_setting('nginx_stats_password')
-	stats_port = str(sql.get_setting('nginx_stats_port'))
-	stats_page = sql.get_setting('nginx_stats_page')
-	config_path = sql.get_setting('nginx_config_path')
-	nginx_dir = sql.get_setting('nginx_dir')
+def install_service(server_ip: str, service: str, docker: str, **kwargs) -> None:
+	script = f"install_{service}.sh"
+	stats_user = sql.get_setting(f'{service}_stats_user')
+	stats_password = sql.get_setting(f'{service}_stats_password')
+	stats_port = str(sql.get_setting(f'{service}_stats_port'))
+	stats_page = sql.get_setting(f'{service}_stats_page')
+	config_path = sql.get_setting(f'{service}_config_path')
+	service_dir = sql.get_setting(f'{service}_dir')
 	server_for_installing = kwargs.get('server')
 	proxy = sql.get_setting('proxy')
-	docker = kwargs.get('docker')
-	container_name = sql.get_setting('nginx_container_name')
+	container_name = sql.get_setting(f'{service}_container_name')
 	proxy_serv = ''
 	ssh_settings = return_ssh_keys_path(server_ip)
 
@@ -163,22 +162,27 @@ def install_nginx(server_ip: str, **kwargs):
 	commands = [
 		f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} STATS_USER={stats_user} STATS_PASS='{stats_password}' "
 		f"SSH_PORT={ssh_settings['port']} CONFIG_PATH={config_path} CONT_NAME={container_name} STAT_PORT={stats_port} "
-		f"STAT_PAGE={stats_page} SYN_FLOOD={syn_flood_protect} DOCKER={docker} nginx_dir={nginx_dir} HOST={server_ip} "
+		f"STAT_PAGE={stats_page} SYN_FLOOD={syn_flood_protect} DOCKER={docker} service_dir={service_dir} HOST={server_ip} "
 		f"USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
 	]
 
 	output, error = server_mod.subprocess_execute(commands[0])
+
 	if server_for_installing:
-		service = server_for_installing + ' Nginx'
+		service_name = f'{server_for_installing} {service.title()}'
 	else:
-		service = ' Nginx'
-	if show_installation_output(error, output, service):
-		sql.update_nginx(server_ip)
+		service_name = service.title
+
+	if show_installation_output(error, output, service_name):
+		if service == 'nginx':
+			sql.update_nginx(server_ip)
+		elif service == 'apache':
+			sql.update_apache(server_ip)
 
 	if docker == '1':
 		server_id = sql.select_server_id_by_ip(server_ip)
-		sql.insert_or_update_service_setting(server_id, 'nginx', 'dockerized', '1')
-		sql.insert_or_update_service_setting(server_id, 'nginx', 'restart', '1')
+		sql.insert_or_update_service_setting(server_id, service, 'dockerized', '1')
+		sql.insert_or_update_service_setting(server_id, service, 'restart', '1')
 
 	os.remove(script)
 

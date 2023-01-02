@@ -2106,6 +2106,7 @@ def select_service_table_metrics(service: str, group_id: int):
 
 
 def update_setting(param: str, val: str, user_group: int) -> bool:
+	print(val)
 	query = Setting.update(value=val).where((Setting.param == param) & (Setting.group == user_group))
 	try:
 		query.execute()
@@ -2315,8 +2316,18 @@ def select_nginx(serv):
 		return query_res
 
 
-def update_nginx(serv):
+def update_nginx(serv: str) -> bool:
 	query = Server.update(nginx=1).where(Server.ip == serv)
+	try:
+		query.execute()
+		return True
+	except Exception as e:
+		out_error(e)
+		return False
+
+
+def update_apache(serv: str) -> bool:
+	query = Server.update(apache=1).where(Server.ip == serv)
 	try:
 		query.execute()
 		return True

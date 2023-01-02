@@ -282,3 +282,30 @@ def get_stat_page(server_ip: str, service: str) -> None:
 		print(template)
 	else:
 		print(data.decode('utf-8'))
+
+
+def show_service_version(server_ip: str, service: str) -> None:
+	if service not in ('nginx', 'apache', 'haproxy'):
+		print('warning: wrong service')
+		return None
+
+	if service == 'haproxy':
+		print(check_haproxy_version(server_ip))
+		return None
+
+	server_id = sql.select_server_id_by_ip(server_ip)
+	service_name = service
+	is_dockerized = sql.select_service_setting(server_id, service, 'dockerized')
+
+	if service == 'apache':
+		service_name = get_correct_apache_service_name(None, server_id)
+
+	if is_dockerized == '1':
+		container_name = sql.get_setting(f'{service}_container_name')
+		if service == 'apache':
+			cmd = [f'docker exec -it {container_name}  /usr/local/apache2/bin/httpd -v 2>&1|head -1|awk -F":" \'{{print $2}}\'']
+		else:
+			cmd = [f'docker exec -it {container_name}  /usr/sbin/{service_name} -v 2>&1|head -1|awk -F":" \'{{print $2}}\'']
+	else:
+		cmd = [f'sudo /usr/sbin/{service_name} -v|head -1|awk -F":" \'{{print $2}}\'']
+	print(server_mod.ssh_command(server_ip, cmd))

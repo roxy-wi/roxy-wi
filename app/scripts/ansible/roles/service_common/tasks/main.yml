@@ -1,19 +1,22 @@
 ---
+- name: Include Service-OS-specific variables.
+  include_vars: "{{ service }}-{{ ansible_os_family }}.yml"
+
 - name: Set SSH port
   set_fact:
     ansible_port: "{{SSH_PORT}}"
 
-- name: Ensure group "nginx" exists
+- name: "Ensure group {{ service_group }} exists"
   ansible.builtin.group:
-    name: nginx
+    name: "{{ service_group }}"
     state: present
 
-- name: Add NGINX User
+- name: Add {{ service_group }} User
   ansible.builtin.user:
-    name: nginx
-    group: nginx
+    name: "{{ service_user }}"
+    group: "{{ service_group }}"
 
-- name: check if Nginx is installed
+- name: "check if {{ service_group }} is installed"
   package_facts:
     manager: "auto"
 
@@ -21,21 +24,17 @@
   service_facts:
 
 
-- name: Creates directory
+- name: Creates directorys
   file:
-    path: "{{nginx_dir}}"
+    path: "{{ item.path }}"
     state: directory
     mode: o=rx
-    owner: nginx
-    group: nginx
-  when: "'nginx' not in ansible_facts.packages"
-
-
-- name: Creates directory
-  file:
-    path: "{{nginx_dir}}/conf.d"
-    state: directory
-  when: "'nginx' not in ansible_facts.packages"
+    owner: "{{ service_user }}"
+    group: "{{ service_group }}"
+  with_items:
+    - { path: "{{ service_dir }}"}
+    - { path: "{{ service_dir }}/conf.d"}
+  when: service not in ansible_facts.packages
 
 
 - name: Set passlib version
@@ -63,40 +62,30 @@
     name: "{{passlib_ver}}"
     state: present
   when:
-   - "'nginx' not in ansible_facts.packages"
+   - service not in ansible_facts.packages
    - ansible_facts['distribution_major_version'] != '9'
   environment:
     http_proxy: "{{PROXY}}"
     https_proxy: "{{PROXY}}"
 
+- name: Copying over nginx.conf
+  template: src={{item.src}} dest={{item.dest}} mode="0666" force="no"
+  with_items:
+    - { src: 'mime.types.j2', dest: '{{ service_dir }}/mime.types' }
+    - { src: 'nginx.conf.j2', dest: '{{CONFIG_PATH}}' }
+    - { src: '{{ service }}_default.conf.j2', dest: '{{ service_dir }}/conf.d/default.conf' }
+  become: true
+  ignore_errors: yes
+  when: service == "nginx"
 
-- name: Copy Nginx configuration in place
+- name: Copy status page configuration in place
   template:
-    src: default.conf.j2
-    dest: "{{nginx_dir}}/conf.d/default.conf"
+    src: "{{ service }}_status.conf.j2"
+    dest: "{{ service_dir }}/conf.d/status_page.conf"
     mode: 0644
     force: no
-  when: "'nginx' not in ansible_facts.packages"
-  ignore_errors: yes
-
-- name: Copying over nginx.conf
-  template:
-    src: nginx.conf.j2
-    dest: "{{nginx_dir}}/nginx.conf"
-    mode: "0666"
-    force: no
-    remote_src: true
-  become: true
-  ignore_errors: yes
-
-- name: Copying over mime.types
-  template:
-    src: mime.types.j2
-    dest: "{{nginx_dir}}/mime.types"
-    mode: "0666"
-    force: no
-    remote_src: true
-  become: true
+  when:
+   - service not in ansible_facts.packages
   ignore_errors: yes
 
 - name: Open stat port for firewalld
@@ -124,10 +113,9 @@
 
 
 - htpasswd:
-    path: "{{nginx_dir}}/status_page_passwdfile"
+    path: "{{ service_dir }}/status_page_passwdfile"
     name: "{{STATS_USER}}"
     password: "{{STATS_PASS}}"
-  when: "'nginx' not in ansible_facts.packages"
 
 
 - name: test to see if selinux is running

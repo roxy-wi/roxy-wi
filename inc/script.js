@@ -1104,7 +1104,7 @@ $( function() {
 					$(this).children(".installmon").css('padding-left', '30px');
 					$(this).children(".installmon").css('border-left', '4px solid var(--right-menu-blue-rolor)');
 				});
-				$( "#tabs" ).tabs( "option", "active", 6 );
+				$( "#tabs" ).tabs( "option", "active", 7 );
 			} );
 			$( ".backup" ).on( "click", function() {
 				$('.menu li ul li').each(function () {
@@ -1113,7 +1113,7 @@ $( function() {
 					$(this).children(".backup").css('padding-left', '30px');
 					$(this).children(".backup").css('border-left', '4px solid var(--right-menu-blue-rolor)');
 				});
-				$( "#tabs" ).tabs( "option", "active", 7 );
+				$( "#tabs" ).tabs( "option", "active", 6 );
 			} );
 		}
 	}

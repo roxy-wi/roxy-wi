@@ -1,0 +1,10 @@
+Listen {{ STAT_PORT }}
+<VirtualHost *:{{ STAT_PORT }}>
+   <Location /{{ STAT_PAGE }}>
+	SetHandler server-status
+	AuthType basic
+	AuthName "Apache status"
+	AuthUserFile {{ service_dir }}/status_page_passwdfile
+	Require valid-user
+   </Location>
+</VirtualHost>
