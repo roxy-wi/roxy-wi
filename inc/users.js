@@ -47,7 +47,7 @@ $( function() {
 		} );
 	});
 	$('#nginx_install').click(function() {
-		installService('apache');
+		installService('nginx');
 	});
 	$('#apache_install').click(function() {
 		installService('apache');
@@ -519,6 +519,34 @@ $( function() {
 		buttons: {
 			"Add": function () {
 				addBackup(this);
+			},
+			Cancel: function () {
+				$(this).dialog("close");
+				clearTips();
+			}
+		}
+	});
+	$('#add-backup-s3-button').click(function() {
+		addBackupDialog.dialog('open');
+	});
+	var addS3BackupDialog = $( "#s3-backup-add-table" ).dialog({
+		autoOpen: false,
+		resizable: false,
+		height: "auto",
+		width: 600,
+		modal: true,
+		title: "Create a new S3 backup job",
+		show: {
+			effect: "fade",
+			duration: 200
+		},
+		hide: {
+			effect: "fade",
+			duration: 200
+		},
+		buttons: {
+			"Add": function () {
+				addS3Backup(this);
 			},
 			Cancel: function () {
 				$(this).dialog("close");
@@ -2870,7 +2898,8 @@ function installService(service){
 	$.ajax( {
 		url: "options.py",
 		data: {
-			install_service: $('#' + service + 'ddserv').val(),
+			install_service: $('#' + service + 'addserv').val(),
+			service: service,
 			syn_flood: syn_flood,
 			docker: docker,
 			token: $('#token').val()

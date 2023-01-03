@@ -1030,7 +1030,7 @@ def update_backup(server, rserver, rpath, backup_type, time, cred, description, 
 		return True
 
 
-def delete_backups(backup_id):
+def delete_backups(backup_id: int) -> bool:
 	query = Backup.delete().where(Backup.id == backup_id)
 	try:
 		query.execute()
@@ -1041,9 +1041,21 @@ def delete_backups(backup_id):
 		return True
 
 
-def check_exists_backup(server):
+def check_exists_backup(server: str) -> bool:
 	try:
 		backup = Backup.get(Backup.server == server)
+	except Exception:
+		pass
+	else:
+		if backup.id is not None:
+			return True
+		else:
+			return False
+
+
+def check_exists_s3_backup(server_id: int) -> bool:
+	try:
+		backup = S3Backup.get(S3Backup.server_id == server_id)
 	except Exception:
 		pass
 	else:
@@ -2296,7 +2308,7 @@ def select_apache(serv):
 		return apache
 
 
-def update_apache(serv):
+def update_apache(serv: str) -> bool:
 	query = Server.update(apache='1').where(Server.ip == serv)
 	try:
 		query.execute()
@@ -2318,16 +2330,6 @@ def select_nginx(serv):
 
 def update_nginx(serv: str) -> bool:
 	query = Server.update(nginx=1).where(Server.ip == serv)
-	try:
-		query.execute()
-		return True
-	except Exception as e:
-		out_error(e)
-		return False
-
-
-def update_apache(serv: str) -> bool:
-	query = Server.update(apache=1).where(Server.ip == serv)
 	try:
 		query.execute()
 		return True
