@@ -62,5 +62,5 @@
   become: yes
   tasks:
     - name: Set
-      shell: "chown nginx:nginx -R {{ service_dir }}"
+      shell: "chown {{ ansible_user }}:{{ ansible_user }} -R {{ service_dir }}"
 
