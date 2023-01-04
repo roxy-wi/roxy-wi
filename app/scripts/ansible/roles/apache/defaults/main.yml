@@ -1,5 +1,61 @@
 ---
-- name: restart apache
-  service:
-    name: "{{ apache_service }}"
-    state: "{{ apache_restart_state }}"
+apache_enablerepo: ""
+
+apache_listen_ip: "*"
+apache_listen_port: 80
+apache_listen_port_ssl: 443
+
+apache_create_vhosts: true
+apache_vhosts_filename: "vhosts.conf"
+apache_vhosts_template: "vhosts.conf.j2"
+
+# On Debian/Ubuntu, a default virtualhost is included in Apache's configuration.
+# Set this to `true` to remove that default.
+apache_remove_default_vhost: false
+
+apache_global_vhost_settings: |
+  DirectoryIndex index.php index.html
+
+apache_vhosts:
+  # Additional properties:
+  # 'serveradmin, serveralias, allow_override, options, extra_parameters'.
+  - servername: "local.dev"
+    documentroot: "/var/www/html"
+
+apache_allow_override: "All"
+apache_options: "-Indexes +FollowSymLinks"
+
+apache_vhosts_ssl: []
+# Additional properties:
+# 'serveradmin, serveralias, allow_override, options, extra_parameters'.
+# - servername: "local.dev",
+#   documentroot: "/var/www/html",
+#   certificate_file: "/path/to/certificate.crt",
+#   certificate_key_file: "/path/to/certificate.key",
+#   # Optional.
+#   certificate_chain_file: "/path/to/certificate_chain.crt"
+
+apache_ignore_missing_ssl_certificate: true
+
+apache_ssl_protocol: "All -SSLv2 -SSLv3"
+apache_ssl_cipher_suite: "AES256+EECDH:AES256+EDH"
+
+# Only used on Debian/Ubuntu/Redhat.
+apache_mods_enabled:
+  - rewrite
+  - ssl
+apache_mods_disabled: []
+
+# Set initial apache state. Recommended values: `started` or `stopped`
+apache_state: started
+
+# Set initial apache service status. Recommended values: `yes` or `no`
+apache_enabled: yes
+
+# Set apache state when configuration changes are made. Recommended values:
+# `restarted` or `reloaded`
+apache_restart_state: restarted
+
+# Apache package state; use `present` to make sure it's installed, or `latest`
+# if you want to upgrade or switch versions using a new repo.
+apache_packages_state: present
