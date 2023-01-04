@@ -39,7 +39,7 @@
   become_method: sudo
   tasks:
   - name: Add syn_flood tasks
-    include: haproxy/tasks/syn_flood.yml
+    include_tasks: haproxy/tasks/syn_flood.yml
     when: (SYN_FLOOD is defined) and (SYN_FLOOD|length > 0)
   roles:
     - role: apache
@@ -48,3 +48,22 @@
         https_proxy: "{{PROXY}}"
   tags:
     - system
+
+- name: "Set {{ ansible_user }} owner to {{ service_dir }}"
+  hosts: "{{ variable_host }}"
+  become: yes
+  gather_facts: no
+  tasks:
+    - name: Set SSH port
+      set_fact:
+        ansible_port: "{{SSH_PORT}}"
+    - name: "Set {{ ansible_user }} owner to {{ service_dir }}"
+      file:
+        path: "{{ service_dir }}"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        state: directory
+        recurse: yes
+  tags:
+    - system
+    - docker

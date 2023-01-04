@@ -5,11 +5,11 @@ do
     VALUE=$(echo $ARGUMENT | cut -f2 -d=)
 
     case "$KEY" in
-            PROXY)              PROXY=${VALUE} ;;
-            HOST)    HOST=${VALUE} ;;
-            USER)    USER=${VALUE} ;;
-            PASS)    PASS=${VALUE} ;;
-            KEY)     KEY=${VALUE} ;;
+            PROXY)        PROXY=${VALUE} ;;
+            HOST)         HOST=${VALUE} ;;
+            USER)         USER=${VALUE} ;;
+            PASS)         PASS=${VALUE} ;;
+            KEY)          KEY=${VALUE} ;;
             SYN_FLOOD)    SYN_FLOOD=${VALUE} ;;
             STAT_PORT)    STAT_PORT=${VALUE} ;;
             STAT_PAGE)    STAT_PAGE=${VALUE} ;;

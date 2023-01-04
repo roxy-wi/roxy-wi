@@ -39,7 +39,7 @@
   become_method: sudo
   tasks:
   - name: Add syn_flood tasks
-    include: haproxy/tasks/syn_flood.yml
+    include_tasks: haproxy/tasks/syn_flood.yml
     when: (SYN_FLOOD is defined) and (SYN_FLOOD|length > 0)
   - name: Install nginx for Centos Stream 9
     package:
@@ -57,10 +57,14 @@
   tags:
     - system
 
-- name: Set correct owner
+- name: "Set {{ ansible_user }} owner to {{ service_dir }}"
   hosts: "{{ variable_host }}"
   become: yes
   tasks:
-    - name: Set
-      shell: "chown {{ ansible_user }}:{{ ansible_user }} -R {{ service_dir }}"
-
+  - name: Set
+    file:
+      path: "{{ service_dir }}"
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+      state: directory
+      recurse: yes

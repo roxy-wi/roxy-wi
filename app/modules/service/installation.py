@@ -58,7 +58,7 @@ def install_haproxy(server_ip: str, **kwargs):
 	syn_flood_protect = '1' if kwargs.get('syn_flood') == "1" else ''
 
 	commands = [
-		f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} SOCK_PORT={hap_sock_p} STAT_PORT={stats_port} "
+		f"chmod +x {script} && ./{script} PROXY={proxy_serv} SOCK_PORT={hap_sock_p} STAT_PORT={stats_port} "
 		f"STAT_FILE={server_state_file} DOCKER={docker} SSH_PORT={ssh_settings['port']} STATS_USER={stats_user} "
 		f"CONT_NAME={container_name} HAP_DIR={haproxy_dir} STATS_PASS='{stats_password}' HAPVER={haproxy_ver} "
 		f"SYN_FLOOD={syn_flood_protect} HOST={server_ip} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' "
@@ -97,7 +97,7 @@ def waf_install(server_ip: str):
 		proxy_serv = proxy
 
 	commands = [
-		f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} HAPROXY_PATH={haproxy_dir} VERSION='{ver}' "
+		f"chmod +x {script} && ./{script} PROXY={proxy_serv} HAPROXY_PATH={haproxy_dir} VERSION='{ver}' "
 		f"SSH_PORT={ssh_settings['port']} HOST={server_ip} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' "
 		f"KEY={ssh_settings['key']}"
 	]
@@ -125,7 +125,7 @@ def waf_nginx_install(server_ip: str):
 		proxy_serv = proxy
 
 	commands = [
-		f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} NGINX_PATH={nginx_dir} SSH_PORT={ssh_settings['port']} "
+		f"chmod +x {script} && ./{script} PROXY={proxy_serv} NGINX_PATH={nginx_dir} SSH_PORT={ssh_settings['port']} "
 		f"HOST={server_ip} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
 	]
 
@@ -159,8 +159,15 @@ def install_service(server_ip: str, service: str, docker: str, **kwargs) -> None
 
 	syn_flood_protect = '1' if form.getvalue('syn_flood') == "1" else ''
 
+	if service == 'apache':
+		correct_service_name = service_common.get_correct_apache_service_name(server_ip=server_ip)
+		if service_dir == '/etc/httpd' and correct_service_name == 'apache2':
+			service_dir = '/etc/apache2'
+		elif service_dir == '/etc/apache2' and correct_service_name == 'httpd':
+			service_dir = '/etc/httpd'
+
 	commands = [
-		f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} STATS_USER={stats_user} STATS_PASS='{stats_password}' "
+		f"chmod +x {script} && ./{script} PROXY={proxy_serv} STATS_USER={stats_user} STATS_PASS='{stats_password}' "
 		f"SSH_PORT={ssh_settings['port']} CONFIG_PATH={config_path} CONT_NAME={container_name} STAT_PORT={stats_port} "
 		f"STAT_PAGE={stats_page} SYN_FLOOD={syn_flood_protect} DOCKER={docker} service_dir={service_dir} HOST={server_ip} "
 		f"USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
@@ -209,7 +216,7 @@ def geoip_installation():
 	os.system(f"cp scripts/{script} .")
 
 	commands = [
-		f"chmod +x  {script} &&  ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} UPDATE={geoip_update} "
+		f"chmod +x {script} && ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} UPDATE={geoip_update} "
 		f"maxmind_key={maxmind_key} service_dir={service_dir} HOST={serv} USER={ssh_settings['user']} "
 		f"PASS={ssh_settings['password']} KEY={ssh_settings['key']}"
 	]
@@ -232,7 +239,7 @@ def grafana_install():
 	if proxy is not None and proxy != '' and proxy != 'None':
 		proxy_serv = proxy
 
-	cmd = f"chmod +x {script} &&  ./{script} PROXY={proxy_serv}"
+	cmd = f"chmod +x {script} && ./{script} PROXY={proxy_serv}"
 	output, error = server_mod.subprocess_execute(cmd)
 
 	if error:
@@ -278,7 +285,7 @@ def keepalived_master_install():
 	os.system(f"cp scripts/{script} .")
 
 	commands = [
-		f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} router_id={router_id} "
+		f"chmod +x {script} && ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} router_id={router_id} "
 		f"ETH={eth} IP={vrrp_ip} MASTER=MASTER ETH_SLAVE={eth_slave} keepalived_path_logs={keepalived_path_logs} "
 		f"RETURN_TO_MASTER={return_to_master} SYN_FLOOD={syn_flood} HOST={master} HAPROXY={haproxy} NGINX={nginx} "
 		f"USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
@@ -323,7 +330,7 @@ def keepalived_slave_install():
 	os.system(f"cp scripts/{script} .")
 
 	commands = [
-		f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} router_id={router_id} ETH={eth} "
+		f"chmod +x {script} && ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} router_id={router_id} ETH={eth} "
 		f"IP={vrrp_ip} MASTER=BACKUP ETH_SLAVE={eth_slave} SYN_FLOOD={syn_flood} keepalived_path_logs={keepalived_path_logs} HAPROXY={haproxy} "
 		f"NGINX={nginx} HOST={slave} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
 	]
@@ -357,7 +364,7 @@ def keepalived_masteradd():
 	os.system(f"cp scripts/{script} .")
 
 	commands = [
-		f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} ETH={eth} SLAVE_ETH={slave_eth} "
+		f"chmod +x {script} && ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} ETH={eth} SLAVE_ETH={slave_eth} "
 		f"keepalived_path_logs={keepalived_path_logs} RETURN_TO_MASTER={return_to_master} IP={vrrp_ip} MASTER=MASTER "
 		f"RESTART={kp} ADD_VRRP=1 HOST={master} router_id={router_id} USER={ssh_settings['user']} "
 		f"PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
@@ -388,7 +395,7 @@ def keepalived_slaveadd():
 	os.system(f"cp scripts/{script} .")
 
 	commands = [
-		f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} ETH={eth} SLAVE_ETH={slave_eth} "
+		f"chmod +x {script} && ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} ETH={eth} SLAVE_ETH={slave_eth} "
 		f"keepalived_path_logs={keepalived_path_logs} IP={vrrp_ip} MASTER=BACKUP RESTART={kp} ADD_VRRP=1 HOST={slave} "
 		f"router_id={router_id} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
 	]
