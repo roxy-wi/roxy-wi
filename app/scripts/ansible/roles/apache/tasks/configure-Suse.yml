@@ -1,0 +1,25 @@
+---
+- name: Configure Apache.
+  lineinfile:
+    dest: "{{ apache_server_root }}/listen.conf"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+    mode: 0644
+  with_items: "{{ apache_ports_configuration_items }}"
+  notify: restart apache
+
+- name: Check whether certificates defined in vhosts exist.
+  stat: path={{ item.certificate_file }}
+  register: apache_ssl_certificates
+  with_items: "{{ apache_vhosts_ssl }}"
+
+- name: Add apache vhosts configuration.
+  template:
+    src: "{{ apache_vhosts_template }}"
+    dest: "{{ apache_conf_path }}/{{ apache_vhosts_filename }}"
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart apache
+  when: apache_create_vhosts | bool

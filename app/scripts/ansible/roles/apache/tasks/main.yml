@@ -1,0 +1,47 @@
+---
+# Include variables and define needed variables.
+- name: Include OS-specific variables.
+  include_vars: "{{ ansible_os_family }}.yml"
+
+- name: Include variables for Amazon Linux.
+  include_vars: "AmazonLinux.yml"
+  when:
+    - ansible_distribution == "Amazon"
+    - ansible_distribution_major_version == "NA"
+
+- name: Define apache_packages.
+  set_fact:
+    apache_packages: "{{ __apache_packages | list }}"
+  when: apache_packages is not defined
+
+# Setup/install tasks.
+- include_tasks: "setup-{{ ansible_os_family }}.yml"
+
+# Figure out what version of Apache is installed.
+- name: Get installed version of Apache.
+  command: "{{ apache_daemon_path }}{{ apache_daemon }} -v"
+  changed_when: false
+  check_mode: false
+  register: _apache_version
+
+- name: Create apache_version variable.
+  set_fact:
+    apache_version: "{{ _apache_version.stdout.split()[2].split('/')[1] }}"
+
+- name: Include Apache 2.2 variables.
+  include_vars: apache-22.yml
+  when: "apache_version.split('.')[1] == '2'"
+
+- name: Include Apache 2.4 variables.
+  include_vars: apache-24.yml
+  when: "apache_version.split('.')[1] == '4'"
+
+# Configure Apache.
+- name: Configure Apache.
+  include_tasks: "configure-{{ ansible_os_family }}.yml"
+
+- name: Ensure Apache has selected state and enabled on boot.
+  service:
+    name: "{{ apache_service }}"
+    state: "{{ apache_state }}"
+    enabled: "{{ apache_enabled }}"

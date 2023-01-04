@@ -399,9 +399,9 @@ if form.getvalue('master_slave_nginx'):
     docker = form.getvalue('docker')
 
     if server == 'master':
-        service_mod.install_nginx(master, server=server, docker=docker)
+        service_mod.install_service(master, 'nginx', docker, server=server)
     elif server == 'slave':
-        service_mod.install_nginx(slave, server=server, docker=docker)
+        service_mod.install_service(slave, 'nginx', docker, server=server)
 
 if form.getvalue('install_grafana'):
     service_mod.grafana_install()
@@ -422,71 +422,20 @@ if form.getvalue('node_exp_install'):
     exp_installation.node_exp_installation()
 
 if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupupdate'):
-    serv = form.getvalue('server')
-    rpath = form.getvalue('rpath')
-    time = form.getvalue('time')
-    backup_type = form.getvalue('type')
-    rserver = form.getvalue('rserver')
-    cred = form.getvalue('cred')
-    deljob = form.getvalue('deljob')
-    update = form.getvalue('backupupdate')
-    description = form.getvalue('description')
-    script = 'backup.sh'
-    ssh_settings = ssh_mod.return_ssh_keys_path('localhost', id=int(cred))
+    import modules.service.backup as backup_mod
 
-    if deljob:
-        time = ''
-        rpath = ''
-        backup_type = ''
-    elif update:
-        deljob = ''
-    else:
-        deljob = ''
-        if sql.check_exists_backup(serv):
-            print('warning: Backup job for %s already exists' % serv)
-            sys.exit()
+    serv = common.is_ip_or_dns(form.getvalue('server'))
+    rpath = common.checkAjaxInput(form.getvalue('rpath'))
+    time = common.checkAjaxInput(form.getvalue('time'))
+    backup_type = common.checkAjaxInput(form.getvalue('type'))
+    rserver = common.checkAjaxInput(form.getvalue('rserver'))
+    cred = int(form.getvalue('cred'))
+    deljob = common.checkAjaxInput(form.getvalue('deljob'))
+    update = common.checkAjaxInput(form.getvalue('backupupdate'))
+    description = common.checkAjaxInput(form.getvalue('description'))
 
-    os.system(f"cp scripts/{script} .")
+    backup_mod.backup(serv, rpath, time, backup_type, rserver, cred, deljob, update, description)
 
-    commands = [
-        f"chmod +x {script} &&  ./{script}  HOST={rserver}  SERVER={serv} TYPE={backup_type} SSH_PORT={ssh_settings['port']} "
-        f"TIME={time} RPATH={rpath} DELJOB={deljob} USER={ssh_settings['user']} KEY={ssh_settings['key']}"
-    ]
-
-    output, error = server_mod.subprocess_execute(commands[0])
-
-    for line in output:
-        if any(s in line for s in ("Traceback", "FAILED")):
-            try:
-                print('error: ' + line)
-                break
-            except Exception:
-                print('error: ' + output)
-                break
-    else:
-        if not deljob and not update:
-            if sql.insert_backup_job(serv, rserver, rpath, backup_type, time, cred, description):
-                env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
-                template = env.get_template('new_backup.html')
-                template = template.render(
-                    backups=sql.select_backups(server=serv, rserver=rserver), sshs=sql.select_ssh()
-                )
-                print(template)
-                print('success: Backup job has been created')
-                roxywi_common.logging('backup ', ' a new backup job for server ' + serv + ' has been created', roxywi=1,
-                              login=1)
-            else:
-                print('error: Cannot add the job into DB')
-        elif deljob:
-            sql.delete_backups(deljob)
-            print('Ok')
-            roxywi_common.logging('backup ', ' a backup job for server ' + serv + ' has been deleted', roxywi=1, login=1)
-        elif update:
-            sql.update_backup(serv, rserver, rpath, backup_type, time, cred, description, update)
-            print('Ok')
-            roxywi_common.logging('backup ', ' a backup job for server ' + serv + ' has been updated', roxywi=1, login=1)
-
-    os.remove(script)
 
 if form.getvalue('git_backup'):
     server_id = form.getvalue('server')
@@ -519,7 +468,7 @@ if form.getvalue('git_backup'):
         branch = 'main'
 
     commands = [
-        f"chmod +x {script} &&  ./{script} HOST={server_ip} DELJOB={deljob} SERVICE={service_name} INIT={git_init} "
+        f"chmod +x {script} && ./{script} HOST={server_ip} DELJOB={deljob} SERVICE={service_name} INIT={git_init} "
         f"SSH_PORT={ssh_settings['port']} PERIOD={period} REPO={repo} BRANCH={branch} CONFIG_DIR={service_config_dir} "
         f"PROXY={proxy_serv} USER={ssh_settings['user']} KEY={ssh_settings['key']}"
     ]
@@ -1088,6 +1037,9 @@ if form.getvalue('serverdel') is not None:
         server_ip = s[2]
     if sql.check_exists_backup(server_ip):
         print('warning: Delete the backup first ')
+        sys.exit()
+    if sql.check_exists_s3_backup(server_id):
+        print('warning: Delete the S3 backup first ')
         sys.exit()
     if sql.delete_server(server_id):
         sql.delete_waf_server(server_id)

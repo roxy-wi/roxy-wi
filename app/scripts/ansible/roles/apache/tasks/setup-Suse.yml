@@ -1,0 +1,5 @@
+---
+- name: Ensure Apache is installed on Suse.
+  zypper:
+    name: "{{ apache_packages }}"
+    state: "{{ apache_packages_state }}"

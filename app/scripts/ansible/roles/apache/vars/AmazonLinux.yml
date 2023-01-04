@@ -1,0 +1,18 @@
+---
+apache_service: httpd
+apache_daemon: httpd
+apache_daemon_path: /usr/sbin/
+apache_server_root: /etc/httpd
+apache_conf_path: /etc/httpd/conf.d
+
+apache_vhosts_version: "2.4"
+
+__apache_packages:
+  - httpd24
+  - httpd24-devel
+  - mod24_ssl
+  - openssh
+
+apache_ports_configuration_items:
+  - regexp: "^Listen "
+    line: "Listen {{ apache_listen_port }}"

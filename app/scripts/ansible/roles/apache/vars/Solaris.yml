@@ -1,0 +1,19 @@
+---
+apache_service: apache24
+apache_daemon: httpd
+apache_daemon_path: /usr/apache2/2.4/bin/
+apache_server_root: /etc/apache2/2.4/
+apache_conf_path: /etc/apache2/2.4/conf.d
+
+apache_vhosts_version: "2.2"
+
+__apache_packages:
+  - web/server/apache-24
+  - web/server/apache-24/module/apache-ssl
+  - web/server/apache-24/module/apache-security
+
+apache_ports_configuration_items:
+  - regexp: "^Listen "
+    line: "Listen {{ apache_listen_port }}"
+  - regexp: "^#?NameVirtualHost "
+    line: "NameVirtualHost {{ apache_listen_ip }}:{{ apache_listen_port }}"
