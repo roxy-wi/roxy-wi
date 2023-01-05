@@ -1,3 +1,4 @@
 ---
 service_user: nginx
 service_group: nginx
+conf_folder: conf.d

@@ -1,3 +1,4 @@
 ---
 service_user: httpd
 service_group: httpd
+conf_folder: conf.d

@@ -81,7 +81,7 @@
 - name: Copy status page configuration in place
   template:
     src: "{{ service }}_status.conf.j2"
-    dest: "{{ service_dir }}/conf.d/status_page.conf"
+    dest: "{{ service_dir }}/{{ conf_folder }}/status_page.conf"
     mode: 0644
     force: no
   when:

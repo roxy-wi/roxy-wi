@@ -160,7 +160,7 @@ def install_service(server_ip: str, service: str, docker: str, **kwargs) -> None
 	syn_flood_protect = '1' if form.getvalue('syn_flood') == "1" else ''
 
 	if service == 'apache':
-		correct_service_name = service_common.get_correct_apache_service_name(server_ip=server_ip)
+		correct_service_name = service_common.get_correct_apache_service_name(server_ip=server_ip, server_id=None)
 		if service_dir == '/etc/httpd' and correct_service_name == 'apache2':
 			service_dir = '/etc/apache2'
 		elif service_dir == '/etc/apache2' and correct_service_name == 'httpd':

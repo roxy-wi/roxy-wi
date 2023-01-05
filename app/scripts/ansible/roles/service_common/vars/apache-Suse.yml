@@ -1,3 +1,4 @@
 ---
 service_user: apache2
 service_group: apache2
+conf_folder: sites-available
