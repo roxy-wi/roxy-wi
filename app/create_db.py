@@ -104,6 +104,10 @@ def default_values():
 			'desc': 'Threshold value for alerting, in %', 'group': '1'},
 		{'param': 'checker_check_interval', 'value': '1', 'section': 'monitoring',
 			'desc': 'Check interval for Checker (in minutes)', 'group': '1'},
+		{'param': 'smon_ssl_expire_warning_alert', 'value': '14', 'section': 'monitoring',
+			'desc': 'Warning alert about a SSL certificate expiration (in days)', 'group': '1'},
+		{'param': 'smon_ssl_expire_critical_alert', 'value': '7', 'section': 'monitoring',
+			'desc': 'Critical alert about a SSL certificate expiration (in days)', 'group': '1'},
 		{'param': 'rabbitmq_host', 'value': '127.0.0.1', 'section': 'rabbitmq', 'desc': 'RabbitMQ-server host', 'group': '1'},
 		{'param': 'rabbitmq_port', 'value': '5672', 'section': 'rabbitmq', 'desc': 'RabbitMQ-server port', 'group': '1'},
 		{'param': 'rabbitmq_port', 'value': '5672', 'section': 'rabbitmq', 'desc': 'RabbitMQ-server port', 'group': '1'},
@@ -964,9 +968,23 @@ def update_db_v_6_2_1():
 		print("Updating... DB has been updated to version 6.2.2.0")
 
 
+def update_db_v_6_3_4():
+	cursor = conn.cursor()
+	sql = list()
+	sql.append("alter table smon add column ssl_expire_warning_alert integer default 0")
+	sql.append("alter table smon add column ssl_expire_critical_alert integer default 0")
+	for i in sql:
+		try:
+			cursor.execute(i)
+		except Exception as e:
+			pass
+	else:
+		print('Updating... DB has been updated to version 6.3.4.0')
+
+
 def update_ver():
 	try:
-		Version.update(version='6.3.3.0').execute()
+		Version.update(version='6.3.4.0').execute()
 	except Exception:
 		print('Cannot update version')
 
@@ -1002,6 +1020,7 @@ def update_all():
 	update_db_v_6_1_3()
 	update_db_v_6_1_4()
 	update_db_v_6_2_1()
+	update_db_v_6_3_4()
 	update_ver()
 
 

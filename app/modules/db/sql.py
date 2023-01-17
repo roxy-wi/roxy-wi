@@ -47,7 +47,8 @@ def get_setting(param, **kwargs):
 					'nginx_stats_port', 'session_ttl', 'token_ttl', 'stats_port', 'haproxy_sock_port', 'ldap_type',
 					'ldap_port', 'ldap_enable', 'log_time_storage', 'syslog_server_enable', 'smon_check_interval',
 					'checker_check_interval', 'port_scan_interval', 'smon_keep_history_range', 'checker_keep_history_range',
-					'portscanner_keep_history_range', 'checker_maxconn_threshold', 'apache_stats_port'
+					'portscanner_keep_history_range', 'checker_maxconn_threshold', 'apache_stats_port', 'smon_ssl_expire_warning_alert',
+					'smon_ssl_expire_critical_alert'
 				):
 					return int(setting.value)
 				else:
@@ -3869,3 +3870,27 @@ def inset_or_update_service_status(
 		query.execute()
 	except Exception as e:
 		out_error(e)
+
+
+def update_smon_alert_status(service_ip: str, alert_value: int, alert: str) -> None:
+	if alert == 'ssl_expire_warning_alert':
+		SMON_update = SMON.update(ssl_expire_warning_alert=alert_value).where(SMON.ip == service_ip)
+	else:
+		SMON_update = SMON.update(ssl_expire_critical_alert=alert_value).where(SMON.ip == service_ip)
+	print(SMON_update)
+	try:
+		SMON_update.execute()
+	except Exception as e:
+		out_error(e)
+
+
+def get_smon_alert_status(service_ip: str, alert: str) -> int:
+	try:
+		if alert == 'ssl_expire_warning_alert':
+			alert_value = SMON.get(SMON.ip == service_ip).ssl_expire_warning_alert
+		else:
+			alert_value = SMON.get(SMON.ip == service_ip).ssl_expire_critical_alert
+	except Exception as e:
+		out_error(e)
+	else:
+		return alert_value

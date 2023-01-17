@@ -1312,6 +1312,9 @@ socket.onmessage = function(event) {
 			} else if (data[i].indexOf('warning: ') != '-1') {
 				toastr.warning(data[i]);
 				ion.sound.play("bell_ring");
+			} else if (data[i].indexOf('critical: ') != '-1') {
+				toastr.error(data[i]);
+				ion.sound.play("bell_ring");
 			}
 		}
 	}

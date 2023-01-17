@@ -269,3 +269,12 @@ def show_services_overview() -> None:
         socket_log_id=roxy_logs.roxy_wi_log(log_id=1, file="socket"), error=stderr
     )
     print(rendered_template)
+
+
+def keepalived_became_master(server_ip) -> None:
+    commands = ["sudo kill -USR2 $(cat /var/run/keepalived.pid) && sudo grep 'Became master' /tmp/keepalived.stats |awk '{print $3}'"]
+    became_master = server_mod.ssh_command(server_ip, commands)
+    env = Environment(loader=FileSystemLoader('templates'))
+    template = env.get_template('ajax/bin_bout.html')
+    template = template.render(bin_bout=became_master, serv=server_ip, service='keepalived')
+    print(template)

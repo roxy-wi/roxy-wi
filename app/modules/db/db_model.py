@@ -417,6 +417,8 @@ class SMON(BaseModel):
     telegram_channel_id = IntegerField(null=True)
     user_group = IntegerField()
     slack_channel_id = IntegerField(null=True)
+    ssl_expire_warning_alert = IntegerField(constraints=[SQL('DEFAULT 0')])
+    ssl_expire_critical_alert = IntegerField(constraints=[SQL('DEFAULT 0')])
 
     class Meta:
         table_name = 'smon'

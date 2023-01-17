@@ -1316,6 +1316,12 @@ if form.getvalue('apachekBytes'):
     server_ip = common.is_ip_or_dns(form.getvalue('apachekBytes'))
     roxywi_overview.show_apache_bytes(server_ip)
 
+if form.getvalue('keepalivedBecameMaster'):
+    import modules.roxywi.overview as roxywi_overview
+
+    server_ip = common.is_ip_or_dns(form.getvalue('keepalivedBecameMaster'))
+    roxywi_overview.keepalived_became_master(server_ip)
+
 if form.getvalue('waf_rule_id'):
     import modules.roxywi.waf as roxy_waf
 

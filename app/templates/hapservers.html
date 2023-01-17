@@ -88,6 +88,8 @@
 						{% endif %}
 					{%- elif service == 'haproxy' %}
 						showBytes(server_ip)
+					{%- elif service == 'keepalived' %}
+						keepalivedBecameMaster(server_ip)
 					{% endif %}
 				}
 				showMetrics();

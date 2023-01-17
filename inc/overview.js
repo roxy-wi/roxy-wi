@@ -563,6 +563,28 @@ function showApachekBytes(serv) {
 		}
 	} );
 }
+function keepalivedBecameMaster(serv) {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			keepalivedBecameMaster: serv,
+			token: $('#token').val()
+		},
+		type: "POST",
+		beforeSend: function() {
+			$("#bin_bout").html('<img class="loading_small_bin_bout" src="/inc/images/loading.gif" />');
+		},
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if (data.indexOf('error:') != '-1') {
+				toastr.error(data);
+			} else {
+				$("#bin_bout").html(data);
+				$.getScript("/inc/fontawesome.min.js")
+			}
+		}
+	} );
+}
 function showUsersOverview() {
 	$.ajax( {
 		url: "options.py",
