@@ -133,6 +133,37 @@
             </td>
         </tr>
     </table>
+    <table id="keepalived-table">
+        <caption><h3>Install Keepalived Exporter</h3></caption>
+        <tr class="overviewHead">
+            <td class="padding10 first-collumn" style="width: 20%;">Current installation</td>
+            <td class="padding10 first-collumn" style="width: 30%;">Available Versions</td>
+            <td class="padding10 first-collumn" style="width: 30%;">Server</td>
+            <td class="help_cursor" style="width: 20%;" title="This exporter will be used by an external Prometheus. Also use this checkbox if you update the Exporter">External Prometheus</td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td id="cur_keepalived_exp_ver" class="padding10 first-collumn"></td>
+            <td class="padding10 first-collumn" style="width: 20%;">
+                {% set values = dict() %}
+                {% set values = {'0.1.0':'0.1.0', '0.2.0':'0.2.0', '0.3.0':'0.3.0', '0.4.0':'0.4.0', '0.5.0':'0.5.0'} %}
+                {{ select('keepalivedexpver',  values=values, selected='0.5.0') }}
+            </td>
+            <td class="padding10 first-collumn">
+                <select autofocus required name="keepalived_exp_addserv" id="keepalived_exp_addserv">
+                    <option disabled selected>------</option>
+                    {% for select in servers %}
+                    <option value="{{ select.2 }}">{{ select.1 }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td style="padding-left: 50px;">{{ checkbox('keepalived_ext_prom', title="This exporter will be used by an external Prometheus. Also use this checkbox if you update the Exporter") }}</td>
+            <td>
+                <span class="ui-button ui-widget ui-corner-all" id="keepalived_exp_install" title="Install Keepalived Exporter">Install</span>
+            </td>
+        </tr>
+    </table>
     <table style="margin-top: 20px" id="node-table">
         <caption><h3>Install Node Exporter</h3></caption>
         <tr class="overviewHead">

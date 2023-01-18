@@ -1,0 +1,33 @@
+---
+- import_tasks: preflight.yml
+  tags:
+    - keepalived_exporter_install
+    - keepalived_exporter_configure
+    - keepalived_exporter_run
+
+- import_tasks: install.yml
+  become: true
+  when: (not __keepalived_exporter_is_installed.stat.exists) or (__keepalived_exporter_current_version_output.stderr_lines[0].split(" ")[2] != keepalived_exporter_version)
+  tags:
+    - keepalived_exporter_install
+
+- import_tasks: selinux.yml
+  become: true
+  when: ansible_selinux.status == "enabled"
+  tags:
+    - keepalived_exporter_configure
+
+- import_tasks: configure.yml
+  become: true
+  tags:
+    - keepalived_exporter_configure
+
+- name: Ensure Keepalived Exporter is enabled on boot
+  become: true
+  systemd:
+    daemon_reload: true
+    name: keepalived_exporter
+    enabled: true
+    state: started
+  tags:
+    - keepalived_exporter_run

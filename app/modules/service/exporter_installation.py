@@ -78,11 +78,11 @@ def nginx_apache_exp_installation():
     os.remove(script)
 
 
-def node_exp_installation():
-    serv = common.is_ip_or_dns(form.getvalue('node_exp_install'))
+def node_keepalived_exp_installation(service: str) -> None:
+    serv = common.is_ip_or_dns(form.getvalue(f'{service}_exp_install'))
     ver = common.checkAjaxInput(form.getvalue('exporter_v'))
     ext_prom = common.checkAjaxInput(form.getvalue('ext_prom'))
-    script = "install_node_exporter.sh"
+    script = f"install_{service}_exporter.sh"
     proxy = sql.get_setting('proxy')
     proxy_serv = ''
     ssh_settings = return_ssh_keys_path(serv)
@@ -93,7 +93,7 @@ def node_exp_installation():
         proxy_serv = proxy
 
     commands = [
-        f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} VER={ver} EXP_PROM={ext_prom} "
+        f"chmod +x {script} && ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} VER={ver} EXP_PROM={ext_prom} "
         f"HOST={serv} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
     ]
 

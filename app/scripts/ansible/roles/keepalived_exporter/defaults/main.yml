@@ -1,0 +1,12 @@
+---
+keepalived_exporter_version: 0.3.0
+keepalived_exporter_binary_local_dir: ""
+keepalived_exporter_web_listen_address: "0.0.0.0:9650"
+
+keepalived_exporter_enabled_collectors: []
+keepalived_exporter_disabled_collectors: []
+
+keepalived_exporter_binary_install_dir: "/usr/local/bin"
+keepalived_exporter_system_group: "keepalived-exp"
+keepalived_exporter_system_user: "{{ keepalived_exporter_system_group }}"
+keepalived_exporter_create_usergroup: true

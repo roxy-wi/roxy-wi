@@ -1,0 +1,7 @@
+---
+- name: restart keepalived_exporter
+  become: true
+  systemd:
+    daemon_reload: true
+    name: keepalived_exporter
+    state: restarted

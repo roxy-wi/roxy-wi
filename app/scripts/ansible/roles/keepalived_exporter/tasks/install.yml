@@ -1,0 +1,69 @@
+---
+- name: Create the keepalived_exporter group
+  group:
+    name: "{{ keepalived_exporter_system_group }}"
+    state: present
+    system: true
+  when:
+    - keepalived_exporter_system_group != "root"
+    - keepalived_exporter_create_usergroup
+
+- name: Create the keepalived_exporter user
+  user:
+    name: "{{ keepalived_exporter_system_user }}"
+    groups: "{{ keepalived_exporter_system_group }}"
+    append: true
+    shell: /usr/sbin/nologin
+    system: true
+    create_home: false
+    home: /
+  when:
+    - keepalived_exporter_system_user != "root"
+    - keepalived_exporter_create_usergroup
+
+- name: Download keepalived_exporter from localhost
+  block:
+    - name: Download keepalived_exporter binary to local folder
+      become: false
+      get_url:
+        url: "https://github.com/gen2brain/keepalived_exporter/releases/download/{{ keepalived_exporter_version }}/keepalived_exporter-{{ keepalived_exporter_version }}-{{ go_arch }}.tar.gz"
+        dest: "/tmp/keepalived_exporter-{{ keepalived_exporter_version }}-{{ go_arch }}.tar.gz"
+        #checksum: "sha256:{{ keepalived_exporter_checksum }}"
+      register: _download_binary
+      until: _download_binary is succeeded
+      retries: 5
+      delay: 2
+      delegate_to: localhost
+      check_mode: false
+
+    - name: Unpack keepalived_exporter binary
+      become: false
+      unarchive:
+        src: "/tmp/keepalived_exporter-{{ keepalived_exporter_version }}-{{ go_arch }}.tar.gz"
+        dest: "/tmp"
+        creates: "/tmp/keepalived_exporter-{{ keepalived_exporter_version }}-{{ go_arch }}/keepalived_exporter"
+        remote_src: true
+      delegate_to: localhost
+      check_mode: false
+
+    - name: Propagate keepalived_exporter binaries
+      copy:
+        src: "/tmp/keepalived_exporter-{{ keepalived_exporter_version }}-{{ go_arch }}/keepalived_exporter"
+        dest: "{{ keepalived_exporter_binary_install_dir }}/keepalived_exporter"
+        mode: 0755
+        owner: root
+        group: root
+        remote_src: true
+      notify: restart keepalived_exporter
+      when: not ansible_check_mode
+  when: keepalived_exporter_binary_local_dir | length == 0
+
+- name: propagate locally distributed keepalived_exporter binary
+  copy:
+    src: "{{ keepalived_exporter_binary_local_dir }}/keepalived_exporter"
+    dest: "{{ keepalived_exporter_binary_install_dir }}/keepalived_exporter"
+    mode: 0755
+    owner: root
+    group: root
+  when: keepalived_exporter_binary_local_dir | length > 0
+  notify: restart keepalived_exporter

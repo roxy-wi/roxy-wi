@@ -976,7 +976,7 @@ def update_db_v_6_3_4():
 	for i in sql:
 		try:
 			cursor.execute(i)
-		except Exception as e:
+		except Exception:
 			pass
 	else:
 		print('Updating... DB has been updated to version 6.3.4.0')

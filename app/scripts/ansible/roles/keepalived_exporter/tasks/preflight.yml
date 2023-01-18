@@ -1,0 +1,88 @@
+---
+- name: Assert usage of systemd as an init system
+  assert:
+    that: ansible_service_mgr == 'systemd'
+    msg: "This role only works with systemd"
+
+- name: Get systemd version
+  command: systemctl --version
+  changed_when: false
+  check_mode: false
+  register: __systemd_version
+  tags:
+    - skip_ansible_lint
+
+- name: Set systemd version fact
+  set_fact:
+    keepalived_exporter_systemd_version: "{{ __systemd_version.stdout_lines[0] | regex_replace('^systemd\\s(\\d+).*$', '\\1') }}"
+
+- name: Naive assertion of proper listen address
+  assert:
+    that:
+      - "':' in keepalived_exporter_web_listen_address"
+
+- name: Assert collectors are not both disabled and enabled at the same time
+  assert:
+    that:
+      - "item not in keepalived_exporter_enabled_collectors"
+  with_items: "{{ keepalived_exporter_disabled_collectors }}"
+
+- name: Check if keepalived_exporter is installed
+  stat:
+    path: "{{ keepalived_exporter_binary_install_dir }}/keepalived_exporter"
+  register: __keepalived_exporter_is_installed
+  check_mode: false
+  tags:
+    - keepalived_exporter_install
+
+- name: Gather currently installed keepalived_exporter version (if any)
+  command: "{{ keepalived_exporter_binary_install_dir }}/keepalived_exporter --version"
+  args:
+    warn: false
+  changed_when: false
+  register: __keepalived_exporter_current_version_output
+  check_mode: false
+  when: __keepalived_exporter_is_installed.stat.exists
+  tags:
+    - keepalived_exporter_install
+    - skip_ansible_lint
+
+- name: Get latest release version
+  block:
+    - name: Get latest release
+      uri:
+        url: "https://api.github.com/repos/gen2brain/keepalived_exporter/releases/latest"
+        method: GET
+        return_content: true
+        status_code: 200
+        body_format: json
+        validate_certs: false
+        user: "{{ lookup('env', 'GH_USER') | default(omit) }}"
+        password: "{{ lookup('env', 'GH_TOKEN') | default(omit) }}"
+      no_log: "{{ not lookup('env', 'MOLECULE_DEBUG') | bool }}"
+      register: _latest_release
+      until: _latest_release.status == 200
+      retries: 5
+
+    - name: "Set keepalived_exporter version to {{ _latest_release.json.tag_name[1:] }}"
+      set_fact:
+        keepalived_exporter_version: "{{ _latest_release.json.tag_name[1:] }}"
+  when:
+    - keepalived_exporter_version == "latest"
+    - keepalived_exporter_binary_local_dir | length == 0
+  delegate_to: localhost
+  run_once: true
+#- name: Get checksum list from github according to version
+#  block:
+#    - name: Get checksum list from github
+#      set_fact:
+#        _checksums: "{{ lookup('url', 'https://github.com/gen2brain/keepalived_exporter/releases/download/v' + keepalived_exporter_version + '/keepalived_exporter_0.3.0_checksums.txt', wantlist=True) | list }}"
+#      run_once: true
+#
+#    - name: "Get checksum for {{ go_arch }} architecture"
+#      set_fact:
+#        keepalived_exporter_checksum: "{{ item.split(' ')[0] }}"
+#      with_items: "{{ _checksums }}"
+#      when:
+#        - "('linux-' + go_arch + '.tar.gz') in item"
+#  when: keepalived_exporter_binary_local_dir | length == 0

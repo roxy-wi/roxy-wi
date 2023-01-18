@@ -1,0 +1,5 @@
+---
+go_arch_map:
+  x86_64: "amd64"
+
+go_arch: "{{ go_arch_map[ansible_architecture] | default(ansible_architecture) }}"

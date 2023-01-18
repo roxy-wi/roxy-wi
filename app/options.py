@@ -419,7 +419,14 @@ if form.getvalue('nginx_exp_install') or form.getvalue('apache_exp_install'):
 if form.getvalue('node_exp_install'):
     import modules.service.exporter_installation as exp_installation
 
-    exp_installation.node_exp_installation()
+    service = 'node'
+    exp_installation.node_keepalived_exp_installation(service)
+
+if form.getvalue('keepalived_exp_install'):
+    import modules.service.exporter_installation as exp_installation
+
+    service = 'keepalived'
+    exp_installation.node_keepalived_exp_installation(service)
 
 if form.getvalue('backup') or form.getvalue('deljob') or form.getvalue('backupupdate'):
     import modules.service.backup as backup_mod

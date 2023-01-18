@@ -22,7 +22,7 @@ def backup(serv, rpath, time, backup_type, rserver, cred, deljob, update, descri
         deljob = ''
         if sql.check_exists_backup(serv):
             print(f'warning: Backup job for {serv} already exists')
-            sys.exit()
+            return None
 
     os.system(f"cp scripts/{script} .")
 

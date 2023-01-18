@@ -1,0 +1,51 @@
+{{ ansible_managed | comment }}
+
+[Unit]
+Description=Prometheus Keepalived Exporter
+After=network-online.target
+#StartLimitInterval=0
+
+[Service]
+Type=simple
+#User={{ keepalived_exporter_system_user }}
+#Group={{ keepalived_exporter_system_group }}
+ExecStart={{ keepalived_exporter_binary_install_dir }}/keepalived_exporter \
+{% for collector in keepalived_exporter_enabled_collectors -%}
+{%   if not collector is mapping %}
+    --collector.{{ collector }} \
+{%   else -%}
+{%     set name, options = (collector.items()|list)[0] -%}
+    --collector.{{ name }} \
+{%     for k,v in options|dictsort %}
+    --collector.{{ name }}.{{ k }}={{ v }} \
+{%     endfor -%}
+{%   endif -%}
+{% endfor -%}
+{% for collector in keepalived_exporter_disabled_collectors %}
+    --no-collector.{{ collector }} \
+{% endfor %}
+    --web.listen-address={{ keepalived_exporter_web_listen_address }}
+
+SyslogIdentifier=keepalived_exporter
+Restart=always
+RestartSec=1
+
+#PrivateTmp=yes
+{% for m in ansible_mounts if m.mount == '/home' %}
+#ProtectHome=read-only
+{% else %}
+#ProtectHome=yes
+{% endfor %}
+#NoNewPrivileges=yes
+
+{% if keepalived_exporter_systemd_version | int >= 232 %}
+ProtectSystem=strict
+ProtectControlGroups=true
+ProtectKernelModules=true
+ProtectKernelTunables=yes
+{% else %}
+ProtectSystem=full
+{% endif %}
+
+[Install]
+WantedBy=multi-user.target

@@ -196,6 +196,43 @@ $( function() {
 			}
 		} );
 	});
+	$('#keepalived_exp_install').click(function() {
+		$("#ajaxmon").html('')
+		$("#ajaxmon").html(wait_mess);
+		var ext_prom = 0;
+		if ($('#keepalived_ext_prom').is(':checked')) {
+			ext_prom = '1';
+		}
+		$.ajax( {
+			url: "options.py",
+			data: {
+				keepalived_exp_install: $('#keepalived_exp_addserv').val(),
+				exporter_v: $('#keepalivedexpver').val(),
+				ext_prom: ext_prom,
+				token: $('#token').val()
+				},
+			type: "POST",
+			success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+				$("#ajaxmon").html('');
+				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
+					var p_err = show_pretty_ansible_error(data);
+					toastr.error(p_err);
+				} else if (data.indexOf('success') != '-1' ){
+					toastr.clear();
+					toastr.success(data);
+					$('#cur_keepalived_exp_ver').text('Keepalived exporter is installed');
+					$("#keepalived_exp_addserv").trigger( "selectmenuchange" );
+				} else if (data.indexOf('Info') != '-1' ){
+					toastr.clear();
+					toastr.info(data);
+				} else {
+					toastr.clear();
+					toastr.info(data);
+				}
+			}
+		} );
+	});
 	$('#node_exp_install').click(function() {
 		$("#ajaxmon").html('')
 		$("#ajaxmon").html(wait_mess);
@@ -304,6 +341,30 @@ $( function() {
 					$('#cur_apache_exp_ver').text('Apache exporter has not been installed');
 				} else {
 					$('#cur_apache_exp_ver').text(data);
+				}
+			}
+		} );
+	});
+	$( "#keepalived_exp_addserv" ).on('selectmenuchange',function() {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				get_exporter_v: 'keepalived_exporter',
+				serv: $('#keepalived_exp_addserv option:selected').val(),
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+				data = data.replace(/^\s+|\s+$/g,'');
+				if (data.indexOf('error:') != '-1') {
+					toastr.clear();
+					toastr.error(data);
+				} else if (data.indexOf('keepalived_exporter.service') != '-1') {
+					$('#cur_keepalived_exp_ver').text('Keepalived exporter has been installed');
+				} else if(data == 'no' || data == '' || data.indexOf('No') != '-1') {
+					$('#cur_keepalived_exp_ver').text('Keepalived exporter has not been installed');
+				} else {
+					$('#cur_keepalived_exp_ver').text(data);
 				}
 			}
 		} );

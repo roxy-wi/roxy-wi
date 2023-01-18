@@ -57,6 +57,8 @@ def get_exp_version(server_ip: str, service_name: str) -> str:
 		commands = ["node_exporter --version 2>&1 |head -1|awk '{print $3}'"]
 	elif service_name == 'apache_exporter':
 		commands = ["/opt/prometheus/exporters/apache_exporter --version 2>&1 |head -1|awk '{print $3}'"]
+	elif service_name == 'keepalived_exporter':
+		commands = ["systemctl list-units --full -all |grep keepalived_exporter"]
 
 	ver = server_mod.ssh_command(server_ip, commands)
 
