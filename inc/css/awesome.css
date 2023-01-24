@@ -421,6 +421,26 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f0f3";
 }
+.cpu::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f2db";
+}
+.hdd::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f0a0";
+}
+.ram::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f538";
+}
+.ethernet::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f796";
+}
 .user-circle::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";

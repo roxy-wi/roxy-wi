@@ -468,6 +468,8 @@ class ActionHistory(BaseModel):
     action = CharField(null=True)
     ip = CharField(null=True)
     date = DateTimeField(default=datetime.now)
+    server_ip = CharField(null=True)
+    hostname = CharField(null=True)
 
     class Meta:
         table_name = 'action_history'

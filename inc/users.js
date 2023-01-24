@@ -1119,7 +1119,10 @@ function addServer(dialog_id) {
 			type: "POST",
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
-				if (data.indexOf('error:') != '-1') {
+				if (data.indexOf('You should install lshw on the server') != '-1') {
+					toastr.error(data);
+					$( dialog_id ).dialog("close");
+				} else if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
 					common_ajax_action_after_success(dialog_id, 'newserver', 'ajax-servers', data);
@@ -2737,32 +2740,37 @@ function updateServerInfo(ip, id) {
 		} );
 }
 function showServerInfo(id, ip) {
-	if ($('#server_info-'+id).css('display') == 'none') {
-		$.ajax({
-			url: "options.py",
-			data: {
-				act: 'getSystemInfo',
-				server_ip: ip,
-				server_id: id,
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function (data) {
-				data = data.replace(/\s+/g, ' ');
-				if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {
-					toastr.error(data);
-				} else {
-					$("#server_info-"+id).html(data);
-					$('#server_info-'+id).show();
-					$('#server_info_link-'+id).attr('title', 'Hide System info');
-					$.getScript(awesome);
-				}
+	$.ajax({
+		url: "options.py",
+		data: {
+			act: 'getSystemInfo',
+			server_ip: ip,
+			server_id: id,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {
+				toastr.error(data);
+			} else {
+				$("#server-info").html(data);
+				$("#dialog-server-info").dialog({
+					resizable: false,
+					height: "auto",
+					width: 1250,
+					modal: true,
+					title: "Server info (" + ip + ")",
+					buttons: {
+						Close: function () {
+							$(this).dialog("close");
+						}
+					}
+				});
+				$.getScript(awesome);
 			}
-		} );
-	} else {
-		$('#server_info-'+id).hide();
-		$('#server_info_link-'+id).attr('title', 'Show System info');
-	}
+		}
+	} );
 }
 function updateHaproxyCheckerSettings(id) {
 	toastr.clear();

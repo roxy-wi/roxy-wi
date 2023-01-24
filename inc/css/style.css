@@ -825,6 +825,13 @@ label {
 	margin-left: 2px;
 	margin-bottom: -2px;
 }
+.server-status-small {
+	border-radius: 50% 50%;
+	width: 5px;
+	height: 5px;
+	display: inline-block;
+	margin-bottom: 0px;
+}
 .server-action {
 	float: right;
 	margin-top: 6px;

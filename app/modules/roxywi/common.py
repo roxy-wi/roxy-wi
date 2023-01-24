@@ -196,6 +196,7 @@ def logging(server_ip: str, action: str, **kwargs) -> None:
 def keep_action_history(service: str, action: str, server_ip: str, login: str, user_ip: str):
 	try:
 		server_id = sql.select_server_id_by_ip(server_ip=server_ip)
+		hostname = sql.get_hostname_by_server_ip(server_ip)
 		if login != '':
 			user_id = sql.get_user_id_by_username(login)
 		else:
@@ -203,7 +204,7 @@ def keep_action_history(service: str, action: str, server_ip: str, login: str, u
 		if user_ip == '':
 			user_ip = 'localhost'
 
-		sql.insert_action_history(service, action, server_id, user_id, user_ip)
+		sql.insert_action_history(service, action, server_id, user_id, user_ip, server_ip, hostname)
 	except Exception as e:
 		logging('Roxy-WI server', f'Cannot save a history: {e}', roxywi=1)
 
@@ -228,7 +229,7 @@ def get_users_params(**kwargs):
 		user = sql.get_user_name_by_uuid(user_uuid.value)
 	except Exception:
 		print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
-		return
+		return 
 	try:
 		role = sql.get_user_role_by_uuid(user_uuid.value)
 	except Exception:

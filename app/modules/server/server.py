@@ -31,6 +31,7 @@ def ssh_command(server_ip: str, commands: list, **kwargs):
 						if line:
 							print(f'error: {line}')
 							roxywi_common.logging('Roxy-WI server', f' {line}', roxywi=1)
+							raise Exception(f'error: {line}')
 
 				try:
 					if kwargs.get('raw'):
@@ -101,17 +102,22 @@ def get_system_info(server_ip: str) -> str:
 		return 'error: IP cannot be empty'
 
 	server_id = sql.select_server_id_by_ip(server_ip)
-
 	command = ["sudo lshw -quiet -json"]
+	command1 = ['sudo hostnamectl |grep "Operating System"|awk -F":" \'{print $2}\'']
+
 	try:
 		sys_info_returned = ssh_command(server_ip, command, timeout=5)
 	except Exception as e:
 		raise e
-	command = ['sudo hostnamectl |grep "Operating System"|awk -F":" \'{print $2}\'']
+
+	if 'command not found' in sys_info_returned:
+		raise Exception(f' You should install lshw on the server {server_ip}. Update System info after installation.')
+
 	try:
-		os_info = ssh_command(server_ip, command)
+		os_info = ssh_command(server_ip, command1)
 	except Exception as e:
 		raise e
+
 	os_info = os_info.strip()
 	system_info = json.loads(sys_info_returned)
 

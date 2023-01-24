@@ -574,126 +574,41 @@ if form.getvalue('table_metrics'):
     print(template)
 
 if form.getvalue('metrics_hapwi_ram'):
-    ip = form.getvalue('ip')
-    metrics = {'chartData': {}}
-    rams = ''
+    import modules.roxywi.metrics as metric
+    metrics_type = common.checkAjaxInput(form.getvalue('ip'))
 
-    if ip == '1':
-        import psutil
-
-        rams_list = psutil.virtual_memory()
-        rams += str(round(rams_list.total / 1048576, 2)) + ' '
-        rams += str(round(rams_list.used / 1048576, 2)) + ' '
-        rams += str(round(rams_list.free / 1048576, 2)) + ' '
-        rams += str(round(rams_list.shared / 1048576, 2)) + ' '
-        rams += str(round(rams_list.cached / 1048576, 2)) + ' '
-        rams += str(round(rams_list.available / 1048576, 2)) + ' '
-    else:
-        commands = ["free -m |grep Mem |awk '{print $2,$3,$4,$5,$6,$7}'"]
-        metric, error = server_mod.subprocess_execute(commands[0])
-
-        for i in metric:
-            rams = i
-
-    metrics['chartData']['rams'] = rams
-
-    print(json.dumps(metrics))
+    metric.show_ram_metrics(metrics_type)
 
 if form.getvalue('metrics_hapwi_cpu'):
-    ip = form.getvalue('ip')
-    metrics = {'chartData': {}}
-    cpus = ''
+    import modules.roxywi.metrics as metric
 
-    if ip == '1':
-        import psutil
+    metrics_type = common.checkAjaxInput(form.getvalue('ip'))
 
-        cpus_list = psutil.cpu_times_percent(interval=1, percpu=False)
-        cpus += str(cpus_list.user) + ' '
-        cpus += str(cpus_list.system) + ' '
-        cpus += str(cpus_list.nice) + ' '
-        cpus += str(cpus_list.idle) + ' '
-        cpus += str(cpus_list.iowait) + ' '
-        cpus += str(cpus_list.irq) + ' '
-        cpus += str(cpus_list.softirq) + ' '
-        cpus += str(cpus_list.steal) + ' '
-    else:
-        commands = [
-            "top -b -n 1 |grep Cpu |awk -F':' '{print $2}'|awk  -F' ' 'BEGIN{ORS=\" \";} { for (i=1;i<=NF;i+=2) print $i}'"]
-        metric, error = server_mod.subprocess_execute(commands[0])
-
-        for i in metric:
-            cpus = i
-
-    metrics['chartData']['cpus'] = cpus
-
-    print(json.dumps(metrics))
+    metric.show_cpu_metrics(metrics_type)
 
 if form.getvalue('new_metrics'):
-    serv = form.getvalue('server')
-    hostname = sql.get_hostname_by_server_ip(serv)
-    time_range = form.getvalue('time_range')
-    metric = sql.select_metrics(serv, 'haproxy', time_range=time_range)
-    metrics = {'chartData': {}}
-    metrics['chartData']['labels'] = {}
-    labels = ''
-    curr_con = ''
-    curr_ssl_con = ''
-    sess_rate = ''
-    server = ''
+    import modules.roxywi.metrics as metric
 
-    for i in metric:
-        label = str(i[5])
-        label = label.split(' ')[1]
-        labels += label + ','
-        curr_con += str(i[1]) + ','
-        curr_ssl_con += str(i[2]) + ','
-        sess_rate += str(i[3]) + ','
-        server = str(i[0])
+    server_ip = common.is_ip_or_dns(form.getvalue('server'))
+    hostname = sql.get_hostname_by_server_ip(server_ip)
+    time_range = common.checkAjaxInput(form.getvalue('time_range'))
 
-    metrics['chartData']['labels'] = labels
-    metrics['chartData']['curr_con'] = curr_con
-    metrics['chartData']['curr_ssl_con'] = curr_ssl_con
-    metrics['chartData']['sess_rate'] = sess_rate
-    metrics['chartData']['server'] = hostname + ' (' + server + ')'
-
-    print(json.dumps(metrics))
+    metric.haproxy_metrics(server_ip, hostname, time_range)
 
 if form.getvalue('new_http_metrics'):
-    serv = form.getvalue('server')
-    hostname = sql.get_hostname_by_server_ip(serv)
+    import modules.roxywi.metrics as metric
+
+    server_ip = common.is_ip_or_dns(form.getvalue('server'))
+    hostname = sql.get_hostname_by_server_ip(server_ip)
     time_range = common.checkAjaxInput(form.getvalue('time_range'))
-    metric = sql.select_metrics(serv, 'http_metrics', time_range=time_range)
-    metrics = {'chartData': {}}
-    metrics['chartData']['labels'] = {}
-    labels = ''
-    http_2xx = ''
-    http_3xx = ''
-    http_4xx = ''
-    http_5xx = ''
-    server = ''
 
-    for i in metric:
-        label = str(i[5])
-        label = label.split(' ')[1]
-        labels += label + ','
-        http_2xx += str(i[1]) + ','
-        http_3xx += str(i[2]) + ','
-        http_4xx += str(i[3]) + ','
-        http_5xx += str(i[4]) + ','
-        server = str(i[0])
-
-    metrics['chartData']['labels'] = labels
-    metrics['chartData']['http_2xx'] = http_2xx
-    metrics['chartData']['http_3xx'] = http_3xx
-    metrics['chartData']['http_4xx'] = http_4xx
-    metrics['chartData']['http_5xx'] = http_5xx
-    metrics['chartData']['server'] = f'{hostname} ({server})'
-
-    print(json.dumps(metrics))
+    metric.haproxy_http_metrics(server_ip, hostname, time_range)
 
 if any((form.getvalue('new_nginx_metrics'), form.getvalue('new_apache_metrics'), form.getvalue('new_waf_metrics'))):
-    serv = form.getvalue('server')
-    hostname = sql.get_hostname_by_server_ip(serv)
+    import modules.roxywi.metrics as metric
+
+    server_ip = common.is_ip_or_dns(form.getvalue('server'))
+    hostname = sql.get_hostname_by_server_ip(server_ip)
     time_range = common.checkAjaxInput(form.getvalue('time_range'))
     service = ''
 
@@ -704,24 +619,7 @@ if any((form.getvalue('new_nginx_metrics'), form.getvalue('new_apache_metrics'),
     elif form.getvalue('new_waf_metrics'):
         service = 'waf'
 
-    metric = sql.select_metrics(serv, service, time_range=time_range)
-
-    metrics = {'chartData': {}}
-    metrics['chartData']['labels'] = {}
-    labels = ''
-    curr_con = ''
-
-    for i in metric:
-        label = str(i[2])
-        label = label.split(' ')[1]
-        labels += label + ','
-        curr_con += str(i[1]) + ','
-
-    metrics['chartData']['labels'] = labels
-    metrics['chartData']['curr_con'] = curr_con
-    metrics['chartData']['server'] = f'{hostname} ({serv})'
-
-    print(json.dumps(metrics))
+    metric.service_metrics(server_ip, hostname, service, time_range)
 
 if form.getvalue('get_hap_v'):
     print(service_common.check_haproxy_version(serv))
@@ -952,8 +850,7 @@ if form.getvalue('updatepassowrd') is not None:
 
 if form.getvalue('newserver') is not None:
     hostname = common.checkAjaxInput(form.getvalue('servername'))
-    ip = form.getvalue('newip')
-    ip = common.is_ip_or_dns(ip)
+    ip = common.is_ip_or_dns(form.getvalue('newip'))
     group = common.checkAjaxInput(form.getvalue('newservergroup'))
     scan_server = common.checkAjaxInput(form.getvalue('scan_server'))
     typeip = common.checkAjaxInput(form.getvalue('typeip'))
@@ -1006,7 +903,7 @@ if form.getvalue('updatehapwiserver') is not None:
     service = form.getvalue('service_name')
     sql.update_hapwi_server(hapwi_id, alert, metrics, active, service)
     server_ip = sql.select_server_ip_by_id(hapwi_id)
-    roxywi_common.logging(server_ip, 'The server ' + name + ' has been updated ', roxywi=1, login=1, keep_history=1,
+    roxywi_common.logging(server_ip, f'The server {name} has been updated ', roxywi=1, login=1, keep_history=1,
                   service=service)
 
 if form.getvalue('updateserver') is not None:
@@ -1030,9 +927,9 @@ if form.getvalue('updateserver') is not None:
     else:
         sql.update_server(name, group, typeip, enable, master, serv_id, cred, port, desc, haproxy, nginx, apache,
                           firewall, protected)
-        roxywi_common.logging('the server ' + name, ' has been updated ', roxywi=1, login=1)
+        roxywi_common.logging(f'the server {name}', ' has been updated ', roxywi=1, login=1)
         server_ip = sql.select_server_ip_by_id(serv_id)
-        roxywi_common.logging(server_ip, 'The server ' + name + ' has been update', roxywi=1, login=1,
+        roxywi_common.logging(server_ip, f'The server {name} has been update', roxywi=1, login=1,
                       keep_history=1, service='server')
 
 if form.getvalue('serverdel') is not None:
@@ -2705,6 +2602,11 @@ if act == 'getSystemInfo':
 
 if act == 'updateSystemInfo':
     server_mod.update_system_info()
+
+if act == 'server_is_up':
+    server_ip = common.is_ip_or_dns(form.getvalue('server_is_up'))
+
+    server_mod.server_is_up(server_ip)
 
 if act == 'findInConfigs':
     server_ip = serv

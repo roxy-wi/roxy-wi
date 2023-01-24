@@ -22,7 +22,7 @@ user_params = roxywi_common.get_users_params()
 try:
 	roxywi_auth.check_login(user_params['user_uuid'], user_params['token'])
 except Exception as e:
-	print(f'error {e}')
+	print('error: your session is expired')
 	sys.exit()
 
 if form.getvalue('grep') is None:

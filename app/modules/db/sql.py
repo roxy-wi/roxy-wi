@@ -2004,7 +2004,8 @@ def select_service_table_metrics(service: str, group_id: int):
 	if group_id == 1:
 		groups = ""
 	else:
-		groups = "and servers.groups = '{group}' ".format(group=group_id)
+		groups = f"and servers.groups = '{group_id}' "
+
 	if mysql_enable == '1':
 		sql = """
 				select ip.ip, hostname, avg_cur_1h, avg_cur_24h, avg_cur_3d, max_con_1h, max_con_24h, max_con_3d from
@@ -3368,7 +3369,7 @@ def delete_service_settings(server_id: int):
 		out_error(e)
 
 
-def insert_action_history(service: str, action: str, server_id: int, user_id: int, user_ip: str):
+def insert_action_history(service: str, action: str, server_id: int, user_id: int, user_ip: str, server_ip: str, hostname: str):
 	cur_date = get_date.return_date('regular')
 	try:
 		ActionHistory.insert(
@@ -3377,7 +3378,9 @@ def insert_action_history(service: str, action: str, server_id: int, user_id: in
 			server_id=server_id,
 			user_id=user_id,
 			ip=user_ip,
-			date=cur_date
+			date=cur_date,
+			server_ip=server_ip,
+			hostname=hostname
 		).execute()
 	except Exception as e:
 		out_error(e)

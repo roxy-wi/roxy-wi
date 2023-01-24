@@ -982,6 +982,22 @@ def update_db_v_6_3_4():
 		print('Updating... DB has been updated to version 6.3.4.0')
 
 
+
+
+def update_db_v_6_3_5():
+	cursor = conn.cursor()
+	sql = list()
+	sql.append("ALTER TABLE `action_history` ADD COLUMN server_ip varchar(64);")
+	sql.append("ALTER TABLE `action_history` ADD COLUMN hostname varchar(64);")
+	for i in sql:
+		try:
+			cursor.execute(i)
+		except Exception:
+			pass
+	else:
+		print("Updating... DB has been updated to version 6.3.5.0")
+
+
 def update_ver():
 	try:
 		Version.update(version='6.3.4.0').execute()
@@ -1021,6 +1037,7 @@ def update_all():
 	update_db_v_6_1_4()
 	update_db_v_6_2_1()
 	update_db_v_6_3_4()
+	update_db_v_6_3_5()
 	update_ver()
 
 
