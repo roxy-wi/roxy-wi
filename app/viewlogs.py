@@ -21,7 +21,7 @@ user_params = roxywi_common.get_users_params()
 
 try:
 	roxywi_auth.check_login(user_params['user_uuid'], user_params['token'])
-except Exception as e:
+except Exception:
 	print('error: your session is expired')
 	sys.exit()
 
@@ -74,9 +74,14 @@ if form.getvalue('type') is None:
 	selects.append(['roxy-wi.error.log', 'error.log'])
 	selects.append(['roxy-wi.access.log', 'access.log'])
 
+if user_params['lang'] == 'ru':
+	title = 'Просмотр внутренних логов'
+else:
+	title = 'View internal logs'
+
 rendered_template = template.render(
-	h2=1, autorefresh=1, title="View internal logs", role=user_params['role'], user=user_params['user'], serv=serv,
+	h2=1, autorefresh=1, title=title, role=user_params['role'], user=user_params['user'], serv=serv,
 	select_id="viewlogs", selects=selects, rows=rows, grep=grep, exgrep=exgrep, hour=hour, hour1=hour1, minut=minut,
-	minut1=minut1, page=page, user_services=user_params['user_services'], token=user_params['token']
+	minut1=minut1, page=page, user_services=user_params['user_services'], token=user_params['token'], lang=user_params['lang']
 )
 print(rendered_template)

@@ -26,6 +26,7 @@ form = common.form
 action = form.getvalue('action')
 sort = form.getvalue('sort')
 autorefresh = 0
+lang = user_params['lang']
 
 user_group = roxywi_common.get_user_group(id=1)
 cmd = "systemctl is-active roxy-wi-smon"
@@ -35,20 +36,32 @@ smon_status, stderr = server_mod.subprocess_execute(cmd)
 if action == 'add':
 	smon = sql.select_smon(user_group, action='add')
 	roxywi_auth.page_for_admin(level=3)
-	title = "SMON Admin"
+	if lang == 'ru':
+		title = "SMON: Админка"
+	else:
+		title = "SMON: Admin"
 elif action == 'history':
 	if form.getvalue('host'):
 		needed_host = common.is_ip_or_dns(form.getvalue('host'))
 		smon = sql.alerts_history('SMON', user_group, host=needed_host)
 	else:
 		smon = sql.alerts_history('SMON', user_group)
-	title = "SMON History"
+	if lang == 'ru':
+		title = "SMON: История"
+	else:
+		title = "SMON: History"
 elif action == 'checker_history':
 	smon = sql.alerts_history('Checker', user_group)
-	title = "Checker History"
+	if lang == 'ru':
+		title = "Checker: История"
+	else:
+		title = "Checker: History"
 else:
 	smon = sql.smon_list(user_group)
-	title = "SMON Dashboard"
+	if lang == 'ru':
+		title = "SMON: Дашборд"
+	else:
+		title = "SMON: Dashboard"
 	autorefresh = 1
 
 try:
@@ -59,7 +72,7 @@ except Exception as e:
 
 rendered_template = template.render(
 	h2=1, title=title, autorefresh=autorefresh, role=user_params['role'], user=user_params['user'], group=user_group,
-	telegrams=sql.get_user_telegram_by_group(user_group), slacks=sql.get_user_slack_by_group(user_group),
+	telegrams=sql.get_user_telegram_by_group(user_group), slacks=sql.get_user_slack_by_group(user_group), lang=lang,
 	smon=smon, smon_status=smon_status, smon_error=stderr, action=action, sort=sort, user_services=user_params['user_services'],
 	user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'], token=user_params['token']
 )

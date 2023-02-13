@@ -110,7 +110,7 @@ def show_roxy_log(
 			a = server_mod.ssh_command(syslog_server, commands)
 			return show_log(a, html=0, grep=grep)
 		else:
-			return server_mod.ssh_command(syslog_server, commands, show_log='1', grep=grep)
+			return server_mod.ssh_command(syslog_server, commands, show_log='1', grep=grep, timeout=10)
 	elif service == 'apache_internal':
 		apache_log_path = sql.get_setting('apache_log_path')
 

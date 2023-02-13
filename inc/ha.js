@@ -570,7 +570,9 @@ function showProvisioningError(data, step_id, wait_mess, error_id) {
 	$.getScript("/inc/fontawesome.min.js");
 }
 function showProvisioningWarning(step_id, install_step, warning_id, wait_id) {
-    $(warning_id).append('<p>Something went wrong with installation on ' + install_step + ', check logs</p>');
+	var something_wrong = $('#translate').attr('data-something_wrong');
+	var check_logs = $('#translate').attr('data-check_logs');
+    $(warning_id).append('<p>' +something_wrong+ ' ' + install_step + ', ' + check_logs +'</p>');
     $(warning_id).show();
     $(step_id).removeClass('proccessing');
     $(step_id).addClass('processing_warning');

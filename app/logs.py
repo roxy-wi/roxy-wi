@@ -34,23 +34,24 @@ minut1 = form.getvalue('minut1')
 waf = form.getvalue('waf')
 service = common.checkAjaxInput(form.getvalue('service'))
 remote_file = form.getvalue('file')
+service_name = ''
 
-if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
+if service in ('haproxy', 'nginx', 'keepalived', 'apache') and waf != '1':
 	service_desc = sql.select_service(service)
+	service_name = service_desc.service
 	if roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=service_desc.service_id):
-		title = f"{service_desc.service}`s logs"
 		servers = roxywi_common.get_dick_permit(service=service_desc.slug)
 elif waf == '1':
+	service_name = 'WAF'
 	if roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=1):
-		title = "WAF logs"
 		servers = roxywi_common.get_dick_permit(haproxy=1)
 else:
 	print('<meta http-equiv="refresh" content="0; url=/app/overview.py">')
 
 template = template.render(
-	h2=1, autorefresh=1, title=title, role=user_params['role'], user=user_params['user'], select_id="serv",
+	h2=1, autorefresh=1, role=user_params['role'], user=user_params['user'], select_id="serv",
 	selects=servers, serv=form.getvalue('serv'), rows=rows, grep=grep, exgrep=exgrep, hour=hour, hour1=hour1,
 	minut=minut, minut1=minut1, waf=waf, service=service, user_services=user_params['user_services'],
-	token=user_params['token'], remote_file=remote_file
+	token=user_params['token'], remote_file=remote_file, lang=user_params['lang'], service_name=service_name
 )
 print(template)

@@ -39,7 +39,7 @@
     </td>
     <td>
         <select id="smon-telegram-{{s.0}}">
-            <option value="0">Disabled</option>
+            <option value="0">{{lang.words.disabled|title()}}</option>
             {% for t in telegrams %}
                 {% if s.6|int() == t.id|int() %}
                     <option value="{{t.id}}" selected>{{t.chanel_name}}</option>
@@ -51,7 +51,7 @@
     </td>
     <td>
         <select id="smon-slack-{{s.0}}">
-            <option value="0">Disabled</option>
+            <option value="0">{{lang.words.disabled|title()}}</option>
             {% for t in slacks %}
                 {% if s.10|int() == t.id|int() %}
                     <option value="{{t.id}}" selected>{{t.chanel_name}}</option>
@@ -78,10 +78,10 @@
         {% endif %}
     </td>
     <td>
-        <a class="add" onclick="cloneSmom({{s.0}})" id="clone-{{s.0}}" title="Clone {{s.1}}" style="cursor: pointer; color: #000;"></a>
+        <a class="add" onclick="cloneSmom({{s.0}})" id="clone-{{s.0}}" title="{{lang.words.clone|title()}} {{s.1}}" style="cursor: pointer; color: #000;"></a>
     </td>
     <td>
-        <a class="delete" onclick="confirmDeleteSmon({{s.0}})" title="Delete server {{s.1}}" style="cursor: pointer; color: #000;"></a>
+        <a class="delete" onclick="confirmDeleteSmon({{s.0}})" title="{{lang.words.delete|title()}} {{s.1}}" style="cursor: pointer; color: #000;"></a>
     </td>
 </tr>
 <script>

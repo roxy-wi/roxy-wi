@@ -1,16 +1,16 @@
 <table id="ssh_enable_table" class="overview">
     <tr class="overviewHead" style="width: 50%;">
         <td class="padding10 first-collumn" style="width: 15%;" class="help_cursor">
-					<span title="It's just name alias. This alias will be use in 'Servers' page for choose credentials">Name<span>
+					<span title="It's just name alias. This alias will be use in 'Servers' page for choose credentials">{{lang.words.name|title()}}<span>
         </td>
         <td class="padding10 first-collumn" style="width: 25%;" class="help_cursor" id="ssh-key-enabled-td">
-            <span title="If it is enabled, the key will be used, if turned off - the password. Do not forget to download the keys to all servers or install the sudo without a password">SSH key</span>
+            <span title="If it is enabled, the key will be used, if turned off - the password. Do not forget to download the keys to all servers or install the sudo without a password">SSH {{lang.words.key}}</span>
         </td>
         {% if page != "servers.py" %}
-        <td style="width: 25%;">Group</td>
+        <td style="width: 25%;">{{lang.words.group|title()}}</td>
         {% endif %}
         <td style="width: 100%;" class="help_cursor" id="ssh-user-name-td">
-            <span title="Enter SSH user name. If SSH key disabled, enter password for SSH user">User name</span>
+            <span title="Enter SSH user name. If SSH key disabled, enter password for SSH user">{{lang.words.username|title()}}</span>
         </td>
         <td></td>
     </tr>
@@ -22,9 +22,9 @@
         </td>
         <td class="first-collumn" valign="top" style="padding-top: 15px;">
             {% if ssh.enable == 1 %}
-            <label for="ssh_enable-{{ssh.id}}">Enable SSH key</label><input type="checkbox" id="ssh_enable-{{ssh.id}}" checked>
+            <label for="ssh_enable-{{ssh.id}}">{{lang.words.enable|title()}} SSH {{lang.words.key}}</label><input type="checkbox" id="ssh_enable-{{ssh.id}}" checked>
             {% else %}
-            <label for="ssh_enable-{{ssh.id}}">Enable SSH key</label><input type="checkbox" id="ssh_enable-{{ssh.id}}">
+            <label for="ssh_enable-{{ssh.id}}">{{lang.words.enable|title()}} SSH {{lang.words.key}}</label><input type="checkbox" id="ssh_enable-{{ssh.id}}">
             {% endif %}
         </td>
         {% if page != "servers.py" %}
@@ -53,25 +53,25 @@
             <br>
         </td>
         <td>
-            <a class="delete" onclick="confirmDeleteSsh({{ssh.id}})" title="Delete SSH credentials {{ssh.name}}" style="cursor: pointer;"></a>
+            <a class="delete" onclick="confirmDeleteSsh({{ssh.id}})" title="{{lang.words.delete|title()}} SSH {{lang.words.creds}} {{ssh.name}}" style="cursor: pointer;"></a>
         </td>
     </tr>
     {% endfor %}
 </table>
-<br /><span class="add-button" title="Add ssh" id="add-ssh-button">+ Add</span>
+<br /><span class="add-button" title="{{lang.words.add|title()}} SSH" id="add-ssh-button">+ {{lang.words.add|title()}}</span>
 <br /><br />
 <table id="ssh_key">
     <tr class="overviewHead" style="width: 50%;">
-        <td class="padding10 first-collumn" style="width: 25%;">Upload SSH Key</td>
+        <td class="padding10 first-collumn" style="width: 25%;">{{lang.words.upload|title()}} SSH {{lang.words.key}}</td>
         <td class="help_cursor">
-            <span title="Private key. Note: The public key must be pre-installed on all servers to which you plan to connect">Key</span>
+            <span title="{{lang.phrases.private_key_note}}">{{lang.words.key|title()}}</span>
         </td>
         <td></td>
     </tr>
     <tr style="width: 50%;">
         <td class="first-collumn" valign="top" style="padding-top: 15px;">
             <select id="ssh-key-name">
-                <option disabled selected>Choose credentials</option>
+                <option disabled selected>------</option>
                 {% for ssh in sshs %}
                 <option value={{ssh.name}}>{{ssh.name}}</option>
                 {% endfor %}
@@ -79,13 +79,13 @@
         </td>
         <td style="padding-top: 15px;">
             <textarea id="ssh_cert" cols="50" rows="5"></textarea><br /><br />
-            <a class="ui-button ui-widget ui-corner-all" id="ssh_key_upload" title="Upload ssh key" onclick="uploadSsh()">Upload</a>
+            <a class="ui-button ui-widget ui-corner-all" id="ssh_key_upload" title="{{lang.words.upload|title()}} SSH {{lang.words.key}}" onclick="uploadSsh()">{{lang.words.upload|title()}}</a>
         </td>
         <td></td>
     </tr>
 </table>
 <div id="ajax-ssh"></div>
 <div class="add-note alert addName alert-info" style="width: inherit; margin-right: 15px;">
-    You can read the description of all parameters <a href="https://roxy-wi.org/description/creds" title="Servers description" target="_blank">here</a>
-    or read HOWTO <a href="https://roxy-wi.org/howto/setup" title="How to setup servers, group and SSH credentials" target="_blank">here</a>
+    {{lang.phrases.read_about_parameters}} <a href="https://roxy-wi.org/description/creds" title="Servers description" target="_blank">{{lang.words.here}}</a>.
+    {{lang.phrases.read_howto}} <a href="https://roxy-wi.org/howto/setup" title="How to setup servers, group and SSH credentials" target="_blank">{{lang.words.article}}</a>
 </div>

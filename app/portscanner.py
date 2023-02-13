@@ -17,6 +17,7 @@ serv = form.getvalue('history')
 print('Content-type: text/html\n')
 
 user_params = roxywi_common.get_users_params(virt=1)
+lang = user_params['lang']
 
 try:
 	roxywi_auth.check_login(user_params['user_uuid'], user_params['token'])
@@ -25,7 +26,10 @@ except Exception as e:
 	sys.exit()
 
 if serv:
-	title = f'Port scanner history for {serv}'
+	if lang == 'ru':
+		title = f'История Port scanner для {serv}'
+	else:
+		title = f'Port scanner history for {serv}'
 	port_scanner_settings = sql.select_port_scanner_history(serv)
 	history = '1'
 	port_scanner = ''
@@ -33,7 +37,10 @@ if serv:
 	count_ports = ''
 else:
 	history = ''
-	title = 'Port scanner dashboard'
+	if lang == 'ru':
+		title = 'Дашборд Port scanner'
+	else:
+		title = 'Port scanner dashboard'
 	user_group = roxywi_common.get_user_group(id=1)
 	port_scanner_settings = sql.select_port_scanner_settings(user_group)
 	if not port_scanner_settings:
@@ -59,6 +66,6 @@ rendered_template = template.render(
 	h2=1, autorefresh=0, title=title, role=user_params['role'], user=user_params['user'], servers=user_params['servers'],
 	port_scanner_settings=port_scanner_settings, count_ports=count_ports, history=history, port_scanner=''.join(port_scanner),
 	port_scanner_stderr=port_scanner_stderr, user_services=user_params['user_services'], user_status=user_subscription['user_status'],
-	user_plan=user_subscription['user_plan'], token=user_params['token']
+	user_plan=user_subscription['user_plan'], token=user_params['token'], lang=lang
 )
 print(rendered_template)

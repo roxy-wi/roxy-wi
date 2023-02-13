@@ -364,9 +364,10 @@ if act == 'showRemoteLogFiles':
         print(return_files)
         sys.exit()
 
+    lang = roxywi_common.get_user_lang()
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
     template = env.get_template('ajax/show_log_files.html')
-    template = template.render(serv=serv, return_files=return_files, path_dir=log_path)
+    template = template.render(serv=serv, return_files=return_files, path_dir=log_path, lang=lang)
     print(template)
 
 if form.getvalue('master'):
@@ -499,9 +500,10 @@ if form.getvalue('git_backup'):
                 gits = sql.select_gits(server_id=server_id, service_id=service_id)
                 sshs = sql.select_ssh()
 
+                lang = roxywi_common.get_user_lang()
                 env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
                 template = env.get_template('new_git.html')
-                template = template.render(gits=gits, sshs=sshs, servers=servers, services=services, new_add=1)
+                template = template.render(gits=gits, sshs=sshs, servers=servers, services=services, new_add=1, lang=lang)
                 print(template)
                 print('success: Git job has been created')
                 roxywi_common.logging(
@@ -561,16 +563,17 @@ if form.getvalue('metrics_waf'):
 if form.getvalue('table_metrics'):
     service = form.getvalue('service')
     roxywi_common.check_user_group()
+    lang = roxywi_common.get_user_lang()
     group_id = roxywi_common.get_user_group(id=1)
     if service in ('nginx', 'apache'):
         metrics = sql.select_service_table_metrics(service, group_id)
     else:
         metrics = sql.select_table_metrics(group_id)
 
-    env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
-    template = env.get_template('table_metrics.html')
+    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
+    template = env.get_template('ajax/table_metrics.html')
 
-    template = template.render(table_stat=metrics, service=service)
+    template = template.render(table_stat=metrics, service=service, lang=lang)
     print(template)
 
 if form.getvalue('metrics_hapwi_ram'):
@@ -1138,14 +1141,17 @@ if form.getvalue('newsmon') is not None:
 
     last_id = sql.insert_smon(server, port, enable, http, uri, body, group, desc, telegram, slack, user_group)
     if last_id:
+        lang = roxywi_common.get_user_lang()
         env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
         template = env.get_template('ajax/show_new_smon.html')
         template = template.render(
             smon=sql.select_smon_by_id(last_id),
             telegrams=sql.get_user_telegram_by_group(user_group),
-            slacks=sql.get_user_slack_by_group(user_group))
+            slacks=sql.get_user_slack_by_group(user_group),
+            lang=lang
+        )
         print(template)
-        roxywi_common.logging('SMON', ' Has been add a new server ' + server + ' to SMON ', roxywi=1, login=1)
+        roxywi_common.logging('SMON', f' Has been add a new server {server} to SMON ', roxywi=1, login=1)
 
 if form.getvalue('smondel') is not None:
     user_group = roxywi_common.get_user_group(id=1)
@@ -1161,10 +1167,11 @@ if form.getvalue('smondel') is not None:
 
 if form.getvalue('showsmon') is not None:
     user_group = roxywi_common.get_user_group(id=1)
+    lang = roxywi_common.get_user_lang()
     sort = common.checkAjaxInput(form.getvalue('sort'))
     env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
     template = env.get_template('ajax/smon_dashboard.html')
-    template = template.render(smon=sql.smon_list(user_group), sort=sort)
+    template = template.render(smon=sql.smon_list(user_group), sort=sort, lang=lang, update=1)
     print(template)
 
 if form.getvalue('updateSmonIp') is not None:
@@ -1198,7 +1205,7 @@ if form.getvalue('updateSmonIp') is not None:
     try:
         if sql.update_smon(smon_id, ip, port, body, telegram, slack, group, desc, en):
             print("Ok")
-            roxywi_common.logging('SMON', ' Has been update the server ' + ip + ' to SMON ', roxywi=1, login=1)
+            roxywi_common.logging('SMON', f' Has been update the server {ip} to SMON ', roxywi=1, login=1)
     except Exception as e:
         print(e)
 
@@ -1354,9 +1361,10 @@ if form.getvalue('scan_ports') is not None:
     if stderr != '':
         print(stderr)
     else:
+        lang = roxywi_common.get_user_lang()
         env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
         template = env.get_template('ajax/scan_ports.html')
-        template = template.render(ports=stdout, info=stdout1)
+        template = template.render(ports=stdout, info=stdout1, lang=lang)
         print(template)
 
 if form.getvalue('viewFirewallRules') is not None:
@@ -1558,10 +1566,11 @@ if any((form.getvalue('do_new_name'), form.getvalue('aws_new_name'), form.getval
         else:
             groups = ''
 
+        lang = roxywi_common.get_user_lang()
         env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
         template = env.get_template('ajax/provisioning/providers.html')
         template = template.render(providers=providers, role=role_id, groups=groups, user_group=provider_group,
-                                   adding=1, params=params)
+                                   adding=1, params=params, lang=lang)
         print(template)
 
 if form.getvalue('providerdel'):
@@ -1722,11 +1731,12 @@ if form.getvalue('doworkspace'):
             user_params = roxywi_common.get_users_params()
             new_server = sql.select_provisioned_servers(new=workspace, group=group, type='do')
             params = sql.select_provisioning_params()
+            lang = roxywi_common.get_user_lang()
 
             env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
             template = env.get_template('ajax/provisioning/provisioned_servers.html')
             template = template.render(
-                servers=new_server, groups=sql.select_groups(), user_group=group,
+                servers=new_server, groups=sql.select_groups(), user_group=group, lang=lang,
                 providers=sql.select_providers(group), role=user_params['role'], adding=1, params=params
             )
             print(template)
@@ -1819,11 +1829,12 @@ if form.getvalue('awsworkspace'):
                 user_params = roxywi_common.get_users_params()
                 new_server = sql.select_provisioned_servers(new=workspace, group=group, type='aws')
                 params = sql.select_provisioning_params()
+                lang = roxywi_common.get_user_lang()
 
                 env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
                 template = env.get_template('ajax/provisioning/provisioned_servers.html')
                 template = template.render(
-                    servers=new_server, groups=sql.select_groups(), user_group=group,
+                    servers=new_server, groups=sql.select_groups(), user_group=group, lang=lang,
                     providers=sql.select_providers(group), role=user_params['role'], adding=1, params=params
                 )
                 print(template)
@@ -2108,6 +2119,7 @@ if form.getvalue('gcoreworkspace'):
                 user_params = roxywi_common.get_users_params()
                 new_server = sql.select_provisioned_servers(new=workspace, group=group, type='gcore')
                 params = sql.select_provisioning_params()
+                lang = roxywi_common.get_user_lang()
 
                 env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
                 template = env.get_template('ajax/provisioning/provisioned_servers.html')
@@ -2117,7 +2129,8 @@ if form.getvalue('gcoreworkspace'):
                                            providers=sql.select_providers(group),
                                            role=user_params['role'],
                                            adding=1,
-                                           params=params)
+                                           params=params,
+                                           lang=lang)
                 print(template)
         except Exception as e:
             print(e)
@@ -2170,9 +2183,10 @@ if form.getvalue('editAwsServer'):
     params = sql.select_provisioning_params()
     providers = sql.select_providers(int(user_group))
     server = sql.select_gcore_server(server_id=server_id)
+    lang = roxywi_common.get_user_lang()
     env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
     template = env.get_template('ajax/provisioning/aws_edit_dialog.html')
-    template = template.render(server=server, providers=providers, params=params)
+    template = template.render(server=server, providers=providers, params=params, lang=lang)
     print(template)
 
 if form.getvalue('editGcoreServer'):
@@ -2182,9 +2196,10 @@ if form.getvalue('editGcoreServer'):
     params = sql.select_provisioning_params()
     providers = sql.select_providers(int(user_group))
     server = sql.select_gcore_server(server_id=server_id)
+    lang = roxywi_common.get_user_lang()
     env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
     template = env.get_template('ajax/provisioning/gcore_edit_dialog.html')
-    template = template.render(server=server, providers=providers, params=params)
+    template = template.render(server=server, providers=providers, params=params, lang=lang)
     print(template)
 
 if form.getvalue('editDoServer'):
@@ -2194,9 +2209,10 @@ if form.getvalue('editDoServer'):
     params = sql.select_provisioning_params()
     providers = sql.select_providers(int(user_group))
     server = sql.select_do_server(server_id=server_id)
+    lang = roxywi_common.get_user_lang()
     env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
     template = env.get_template('ajax/provisioning/do_edit_dialog.html')
-    template = template.render(server=server, providers=providers, params=params)
+    template = template.render(server=server, providers=providers, params=params, lang=lang)
     print(template)
 
 if form.getvalue('edit_do_provider'):
@@ -2243,6 +2259,7 @@ if form.getvalue('edit_aws_provider'):
 if form.getvalue('loadservices'):
     from modules.roxywi.roxy import get_services_status
 
+    lang = roxywi_common.get_user_lang()
     env = Environment(loader=FileSystemLoader('templates'))
     template = env.get_template('ajax/load_services.html')
     try:
@@ -2250,12 +2267,13 @@ if form.getvalue('loadservices'):
     except Exception as e:
         print(e)
 
-    template = template.render(services=services)
+    template = template.render(services=services, lang=lang)
     print(template)
 
 if form.getvalue('loadchecker'):
     from modules.roxywi.roxy import get_services_status
 
+    lang = roxywi_common.get_user_lang()
     env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
     template = env.get_template('ajax/load_telegram.html')
     services = get_services_status()
@@ -2306,7 +2324,8 @@ if form.getvalue('loadchecker'):
                                nginx_settings=nginx_settings,
                                keepalived_settings=keepalived_settings,
                                apache_settings=apache_settings,
-                               page=page)
+                               page=page,
+                               lang=lang)
     print(template)
 
 if form.getvalue('load_update_hapwi'):
@@ -2324,6 +2343,7 @@ if form.getvalue('load_update_hapwi'):
     socket_ver = roxy.check_new_version('socket')
     prometheus_exp_ver = roxy.check_new_version('prometheus-exporter')
     services = roxy.get_services_status()
+    lang = roxywi_common.get_user_lang()
 
     template = template.render(services=services,
                                versions=versions,
@@ -2333,7 +2353,8 @@ if form.getvalue('load_update_hapwi'):
                                portscanner_ver=portscanner_ver,
                                socket_ver=socket_ver,
                                prometheus_exp_ver=prometheus_exp_ver,
-                               keep_ver=keep_ver)
+                               keep_ver=keep_ver,
+                               lang=lang)
     print(template)
 
 if form.getvalue('loadopenvpn'):
@@ -2567,6 +2588,7 @@ if act == 'showListOfVersion':
     style = common.checkAjaxInput(form.getvalue('style'))
     users = sql.select_users()
     service_desc = sql.select_service(service)
+    lang = roxywi_common.get_user_lang()
 
     if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
         configs = sql.select_config_version(serv, service_desc.slug)
@@ -2594,7 +2616,8 @@ if act == 'showListOfVersion':
                                for_delver=for_delver,
                                configs=configs,
                                users=users,
-                               style=style)
+                               style=style,
+                               lang=lang)
     print(template)
 
 if act == 'getSystemInfo':

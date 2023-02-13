@@ -1,10 +1,11 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% for s in services %}
 <tr class="{{ loop.cycle('odd', 'even') }}" id="{{s.0}}">
     <td class="padding10 first-collumn">
         {% if s.1.0 == 'active' or s.1.0 == 'RUNNING' %}
             <span title="{{s.0}} is started"><span class="serverUp server-status"></span></span>
         {% else %}
-            {% if (s.1.0 == 'inactive' or s.1.0 == 'failed' or s.1.0 == 'activating' or s.1.0 == 'STOPPED')  and 'is not installed' not in s.3 %}
+            {% if (s.1.0 == 'inactive' or s.1.0 == 'failed' or s.1.0 == 'activating' or s.1.0 == 'STOPPED') and 'is not installed' not in s.3 %}
                 <span title="{{s.0}} is stopped"><span class="serverDown server-status"></span></span>
             {% else %}
                 <span title="{{s.0}} is not installed"><span class="serverNone server-status"></span></span>
@@ -15,20 +16,20 @@
     <td class="padding10 first-collumn">
         {% if 'is not installed' in s.3 or not s.3 %}
             {% if s.0 in ('prometheus', 'grafana-server') %}
-                <a class="ui-button ui-widget ui-corner-all" onclick="openTab(10)" title="Install {{service_name}}">Install</a>
+                <a class="ui-button ui-widget ui-corner-all" onclick="openTab(10)" title="{{lang.words.install|title()}} {{service_name}}">{{lang.words.install|title()}}</a>
             {% elif s.0 in ('rabbitmq-server', 'fail2ban') %}
-                <a class="ui-button ui-widget ui-corner-all" href="https://roxy-wi/services/{{s.0.split('-')[0]}}" title="Install {{s.0|title()}}" target="_blank">Install</a>
+                <a class="ui-button ui-widget ui-corner-all" href="https://roxy-wi/services/{{s.0.split('-')[0]}}" title="{{lang.words.install|title()}} {{s.0|title()}}" target="_blank">{{lang.words.install|title()}}</a>
             {% else %}
-                <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}', 'install')" title="Install {{service_name}}">Install</a>
+                <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}', 'install')" title="{{lang.words.install|title()}} {{service_name}}">{{lang.words.install|title()}}</a>
             {% endif %}
         {% else %}
-        <a id="start-{{ s.0 }}" class="start" title="Start and enable {{s.0}} service">
+        <a id="start-{{ s.0 }}" class="start" title="{{lang.words.start|title()}} {{lang.words.and}} {{lang.words.enable}} {{s.0}} {{lang.words.service}}">
             <span class="service-start" onclick="confirmAjaxServiceAction('start', '{{s.0}}')"></span>
         </a>
-        <a id="restart-{{ s.2 }}" class="restart" title="Restart {{s.0}} service">
+        <a id="restart-{{ s.2 }}" class="restart" title="{{lang.words.restart|title()}} {{s.0}} {{lang.words.service}}">
             <span class="service-reload service-restart" onclick="confirmAjaxServiceAction('restart', '{{s.0}}')"></span>
         </a>
-        <a id="stop-{{ s.0 }}" class="stop" title="Stop and disable {{s.0}} service">
+        <a id="stop-{{ s.0 }}" class="stop" title="{{lang.words.stop|title()}} {{lang.words.and}} {{lang.words.disable}} {{s.0}} {{lang.words.service}}">
             <span class="service-stop" onclick="confirmAjaxServiceAction('stop', '{{s.0}}')"></span>
         </a>
         {% endif %}
@@ -39,7 +40,24 @@
         {% endif %}
     </td>
     <td>
-        {{ s.2 }}
+        {% if s.0 == 'roxy-wi-smon' %}
+            {% set description = lang.admin_page.desc.smon_desc %}
+        {% elif s.0 == 'roxy-wi-checker' %}
+            {% set description = lang.admin_page.desc.checker_desc %}
+        {% elif s.0 == 'roxy-wi-keep_alive' %}
+            {% set description = lang.admin_page.desc.auto_start_desc %}
+        {% elif s.0 == 'roxy-wi-metrics' %}
+            {% set description = lang.admin_page.desc.metrics_desc %}
+        {% elif s.0 == 'roxy-wi-portscanner' %}
+            {% set description = lang.admin_page.desc.p_s_desc %}
+        {% elif s.0 == 'roxy-wi-socket' %}
+            {% set description = lang.admin_page.desc.socket_desc %}
+        {% elif s.0 == 'roxy-wi-prometheus-exporter' %}
+            {% set description = 'Prometheus exporter' %}
+        {% else %}
+            {% set description = s.2 %}
+        {% endif %}
+        {{ description }}
     </td>
     <td></td>
 </tr>

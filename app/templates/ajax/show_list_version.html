@@ -1,3 +1,4 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% from 'include/input_macros.html' import copy_to_clipboard %}
 {% if style == 'new' %}
     {% if for_delver == '1' %}
@@ -55,18 +56,18 @@
                         <label for="new_select_all" id="new_label_select_all"></label>
                         <input type="checkbox" id="new_select_all">
                     </th>
-                    <th>User</th>
+                    <th>{{lang.words.user|title()}}</th>
                     <th class="padding10 first-collumn" style="width: 30%">
-                        Local path
+                        {{lang.words.local|title()}} {{lang.words.path}}
                     </th>
                     <th class="padding10 first-collumn" style="width: 10%">
-                        Remote path
+                        {{lang.words.remote|title()}} {{lang.words.path}}
                     </th>
                     <th class="padding10 first-collumn" style="width: 35%">
-                        Diff
+                        {{lang.words.diff|title()}}
                     </th>
                     <th style="width: 10%">
-                        Created
+                        {{lang.words.created|title()}}
                     </th>
                     <th></th>
                 </tr>
@@ -92,9 +93,9 @@
                     <td>{{ copy_to_clipboard(id=c.remote_path, value=c.remote_path) }}</td>
                     <td>
                         {% if c.diff == '' %}
-                            No diff
+                            {{lang.words.no|title()}} {{lang.words.diff3}}
                             {% else %}
-                            <a id="link_show_diff_{{c.id}}" onclick="show_diff('{{c.id}}')" title="Show a difference between this config and previous one" class="link">Show diff</a>
+                            <a id="link_show_diff_{{c.id}}" onclick="show_diff('{{c.id}}')" title="Show a difference between this config and previous one" class="link">{{lang.words.show|title()}} {{lang.words.diff2}}</a>
                             <div id="show_diff_{{c.id}}" style="display: none;">
                                 {% set stdout = c.diff.split('\n') %}
                                 {% include 'ajax/compare.html' %}
@@ -104,8 +105,8 @@
                     <td>{{c.date}}</td>
                     <td style="padding-top: 10px;">
                         <a href="/app/versions.py?service={{service}}&serv={{serv}}&open=open&configver={{c.local_path.split('/')[-1]}}"
-                           class="ui-button ui-widget ui-corner-all" title="View and upload this version of the config" style="margin-top: -6px;">
-                            View/Upload
+                           class="ui-button ui-widget ui-corner-all" title="{{lang.phrases.view_and_upload}}" style="margin-top: -6px;">
+                            {{lang.words.view|title()}}/{{lang.words.upload|title()}}
                         </a>
                     </td>
                 </tr>
@@ -117,7 +118,7 @@
             <input type="hidden" value="del" name="del">
             <input type="hidden" value="{{style}}" name="style">
             <p>
-                <button type="submit" value="" name="" class="btn btn-default">Delete</button>
+                <button type="submit" value="" name="" class="btn btn-default">{{lang.words.delete|title()}}</button>
             </p>
         </form>
     {% else %}
@@ -137,7 +138,7 @@
             <input type="hidden" value="{{serv}}" name="serv">
             <input type="hidden" value="open" name="open">
             <input type="hidden" value="{{service}}" name="service" id="service">
-            <a class="ui-button ui-widget ui-corner-all" id="show" title="Enter" onclick="showUploadConfig()">Select</a>
+            <a class="ui-button ui-widget ui-corner-all" id="show" title="{{lang.words.enter|title()}}" onclick="showUploadConfig()">{{lang.words.select2|title()}}</a>
         </p>
         <script>
             $( "select" ).selectmenu();
@@ -156,14 +157,14 @@
             <label for="{{file}}"> {{file.split('-', maxsplit=1)[1]}} </label><input type="checkbox" value="{{file}}" name="{{file}}" id="{{file}}">
             <a href="/app/versions.py?service={{service}}&serv={{serv}}&open=open&configver={{file}}"
                class="ui-button ui-widget ui-corner-all" title="View and upload this version of the config" style="margin-top: -6px;">
-                View/Upload
+                {{lang.words.view|title()}}/{{lang.words.upload|title()}}
             </a><br />
             {% endfor %}
             <input type="hidden" value="{{serv}}" name="serv">
             <input type="hidden" value="open" name="open">
             <input type="hidden" value="del" name="del">
             <p>
-                <button type="submit" value="" name="" class="btn btn-default">Delete</button>
+                <button type="submit" value="" name="" class="btn btn-default">{{lang.words.delete|title()}}</button>
             </p>
         </form>
         </center>
@@ -183,7 +184,7 @@
             </select>
             <input type="hidden" value="{{serv}}" name="serv">
             <input type="hidden" value="open" name="open">
-            <a class="ui-button ui-widget ui-corner-all" id="show" title="Enter" onclick="showUploadConfig()">Select</a>
+            <a class="ui-button ui-widget ui-corner-all" id="show" title="Enter" onclick="showUploadConfig()">{{lang.words.select2|title()}}</a>
         </p>
         <script>
             $( "select" ).selectmenu();

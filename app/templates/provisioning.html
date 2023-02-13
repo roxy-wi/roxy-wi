@@ -27,18 +27,18 @@
         <table class="overview" id="ajax-provisioning">
 			<thead>
 				<tr class="overviewHead">
-					<th class="padding10 first-collumn">Name</th>
-					<th>Provider</th>
+					<th class="padding10 first-collumn">{{lang.words.name|title()}}</th>
+					<th>{{lang.words.provider|title()}}</th>
 					{% if role == 1 %}
-					<th>Group</th>
+					<th>{{lang.words.group|title()}}</th>
 					{% endif %}
-					<th>Cloud</th>
-					<th>Region</th>
-					<th>OS</th>
+					<th>{{lang.words.cloud|title()}}</th>
+					<th>{{lang.words.region|title()}}</th>
+					<th>{{lang.words.OS}}</th>
 					<th>IP</th>
-					<th>Instance type</th>
-					<th>Status</th>
-					<th>Created at</th>
+					<th>{{lang.words.instance_type}}</th>
+					<th>{{lang.words.status|title()}}</th>
+					<th>{{lang.words.created_at}}</th>
 					<th></th>
 					<th></th>
 				</tr>
@@ -47,20 +47,20 @@
                 {% include 'ajax/provisioning/provisioned_servers.html' %}
             </tbody>
         </table>
-        <br /><span class="add-button" title="Create a new server" id="create-provider-button">+ Add</span>
+        <br /><span class="add-button" title="{{lang.words.create|title()}} {{lang.words.w_a}} {{lang.words.new}} {{lang.words.server}}" id="create-provider-button">+ {{lang.words.add|title()}}</span>
 		{% endif %}
 	</div>
 	<div id="providers">
         <table class="overview" id="ajax-providers">
 			<thead>
 				<tr class="overviewHead">
-					<th class="padding10 first-collumn">Name</th>
-					<th>Cloud</th>
+					<th class="padding10 first-collumn">{{lang.words.name|title()}}</th>
+					<th>{{lang.words.cloud|title()}}</th>
 					{% if role == 1 %}
-					<th>Group</th>
+					<th>{{lang.words.group|title()}}</th>
 					{% endif %}
-					<th>Created at</th>
-					<th>Edited at</th>
+					<th>{{lang.words.created_at}}</th>
+					<th>{{lang.words.edited_at}}</th>
 					<th></th>
 					<th></th>
 				</tr>
@@ -69,7 +69,7 @@
                 {% include 'ajax/provisioning/providers.html' %}
             </tbody>
         </table>
-        <br /><span class="add-button" title="Add a new provider" id="add-provider-button">+ Add</span>
+        <br /><span class="add-button" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new}} {{lang.words.provider}}" id="add-provider-button">+ {{lang.words.add|title()}}</span>
 	</div>
 </div>
 {% include 'include/provisioning/creating_dialogs.html' %}

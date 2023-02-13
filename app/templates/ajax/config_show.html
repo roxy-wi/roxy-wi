@@ -1,18 +1,19 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
 	<div style="text-align: center;">
-		<h4>Config {% if config_file_name != 'undefined' %}{{config_file_name.replace('92', '/')}}{%endif%} from {{serv}}</h4>
+		<h4>{{lang.words.config|title()}} {% if config_file_name != 'undefined' %}{{config_file_name.replace('92', '/')}}{%endif%} {{lang.words.from}} {{serv}} ({{hostname}})</h4>
 		<p class="accordion-expand-holder">
 			{% if role <= 3 %}
 				{% if not is_serv_protected or role <= 2 %}
-				<a class="ui-button ui-widget ui-corner-all" title="Edit this run config" id="edit_link" href="config.py?service={{service}}&serv={{serv}}&open=open&config_file_name={{config_file_name}}">Edit</a>
+				<a class="ui-button ui-widget ui-corner-all" title="Edit this run config" id="edit_link" href="config.py?service={{service}}&serv={{serv}}&open=open&config_file_name={{config_file_name}}">{{lang.words.edit|title()}}</a>
 				{% if service == 'haproxy' %}
-				<a class="ui-button ui-widget ui-corner-all" title="Add proxy" href="add.py#proxy">Add</a>
+				<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.add|title()}} {{lang.words.proxy}}" href="add.py#proxy">{{lang.words.add|title()}}</a>
 				{% elif service == 'keepalived' %}
-				<a class="ui-button ui-widget ui-corner-all" title="Add VRRP" href="ha.py">Add</a>
+				<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.add|title()}} VRRP" href="ha.py">{{lang.words.add|title()}}</a>
 				{% endif %}
 				{% endif %}
 			{% endif %}
-			<a class="accordion-expand-all ui-button ui-widget ui-corner-all" id="expand_link" href="#">Expand all</a>
-			<button id="raw">Raw</button>
+			<a class="accordion-expand-all ui-button ui-widget ui-corner-all" id="expand_link" href="#">{{lang.words.expand_all|title()}}</a>
+			<button id="raw">{{lang.words.raw|title()}}</button>
 			<button id="according" style="display: none;">According</button>
 		</p>
 	</div>
@@ -208,7 +209,7 @@
 					{% if role %}
 						{% if service != 'keepalived' %}
 						<span class="accordion-link">
-							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">{{lang.words.edit|title()}}</a>
 						</span>
 						{% endif %}
 					{% endif %}
@@ -219,7 +220,7 @@
 				</div><span class="param">{{ line }}
 					{% if role %}
 						<span class="accordion-link">
-						<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit</a>
+						<a href="/app/sections.py?serv={{serv}}&section={{ line }}">{{lang.words.edit|title()}}</a>
 						</span>
 					{% endif %}
 					</span><div>
@@ -229,12 +230,12 @@
 				</div><span class="param">{{- line -}}
 					{% if role %}
 					<span class="accordion-link">
-						<a href="/app/sections.py?serv={{serv}}&section={{ line }}" target="_blank">Edit/Delete</a>
+						<a href="/app/sections.py?serv={{serv}}&section={{ line }}" target="_blank">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
 					</span>
 					{% endif %}
 					{%- set backend = line.split(' ') -%}
 					<span class="accordion-link">
-						<a href="/app/statsview.py?service=haproxy&serv={{-serv-}}#{{- backend[1]-}}" target="_blank">Stats</a>
+						<a href="/app/statsview.py?service=haproxy&serv={{-serv-}}#{{- backend[1]-}}" target="_blank">{{lang.words.stats|title()}}</a>
 					</span>
 					{%- set backend = backend|join('_') -%}
 					{%- do section_name.update({i: backend}) -%}
@@ -246,12 +247,12 @@
 				</div><span class="param">{{ line }}
 					{% if role %}
 						<span class="accordion-link">
-							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit/Delete</a>
+							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
 						</span>
 					{% endif %}
 					{% set backend = line.split(' ') %}
 					<span class="accordion-link">
-						<a href="/app/statsview.py?serv={{serv}}#{{ backend[1]}}" target="_blank">Stats</a>
+						<a href="/app/statsview.py?serv={{serv}}#{{ backend[1]}}" target="_blank">{{lang.words.stats|title()}}</a>
 					</span>
 					{% set backend = backend|join('_') %}
 					{% do section_name.update({i: backend}) %}
@@ -263,12 +264,12 @@
 				</div><span class="param">{{ line }}
 					{% if role %}
 						<span class="accordion-link">
-							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit/Delete</a>
+							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
 						</span>
 					{% endif %}
 					{% set backend = line.split(' ') %}
 					<span class="accordion-link">
-						<a href="/app/statsview.py?serv={{serv}}#{{ backend[1]}}" target="_blank">Stats</a>
+						<a href="/app/statsview.py?serv={{serv}}#{{ backend[1]}}" target="_blank">{{lang.words.stats|title()}}</a>
 					</span>
 					</span><div>
 				{% continue %}
@@ -277,7 +278,7 @@
 				</div><span class="param">{{ line }}
 					{% if role %}
 						<span class="accordion-link">
-							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit/Delete</a>
+							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
 						</span>
 					{% endif %}
 				</span><div>
@@ -287,7 +288,7 @@
 				</div><span class="param">{{ line }}
 					{% if role %}
 						<span class="accordion-link">
-							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit/Delete</a>
+							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
 						</span>
 					{% endif %}
 				</span><div>
@@ -297,7 +298,7 @@
 				</div><span class="param">{{ line }}
 					{% if role %}
 						<span class="accordion-link">
-							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit/Delete</a>
+							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
 						</span>
 					{% endif %}
 				</span><div>
@@ -307,7 +308,7 @@
 				</div><span class="param">{{ line }}
 					{% if role %}
 						<span class="accordion-link">
-							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit/Delete</a>
+							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
 						</span>
 					{% endif %}
 				</span><div>
@@ -317,7 +318,7 @@
 				</div><span class="param">{{ line }}
 					{% if role %}
 						<span class="accordion-link">
-							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">Edit/Delete</a>
+							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
 						</span>
 					{% endif %}
 				</span><div>
@@ -354,7 +355,7 @@
 				{%- set bind = bind.split(' ') -%}
 				<script>
 					{% set k = i - 1 %}
-					$('#{{-section_name[k]|replace("\n", "")-}}').html('<a href="http://{{-serv-}}:{{-bind[0]|replace("\n", "")-}}" title="Open {{serv-}}:{{-bind[0]|replace("\n", "")-}}" target="_blank">Open</a>')
+					$('#{{-section_name[k]|replace("\n", "")-}}').html('<a href="http://{{-serv-}}:{{-bind[0]|replace("\n", "")-}}" title="Open {{serv-}}:{{-bind[0]|replace("\n", "")-}}" target="_blank">{{lang.words.open|title()}}</a>')
 				</script>
 			{%- endif -%}
 		{%- endif -%}
@@ -370,17 +371,17 @@
 			<input type="hidden" value="{{serv}}" name="serv">
 			<input type="hidden" value="{{configver}}" name="configver">
 			<input type="hidden" value="1" name="config">
-			<button type='submit' value='save' name='save' class='btn btn-default' title="Save config without reloading the service">Save</button>
+			<button type='submit' value='save' name='save' class='btn btn-default' title="{{lang.words.save|title()}} {{lang.words.config}} {{lang.words.without}} {{lang.words.reloading}} {{lang.words.the}} {{lang.words.service2}}">{{lang.words.save|title()}}</button>
 			{% if is_restart|int == 0 %}
-			<button type='submit' value='' name='' class='btn btn-default'>Upload and restart</button>
+			<button type='submit' value='' name='' class='btn btn-default'>{{lang.phrases.upload_and_restart|title()}}</button>
 			{% endif %}
 			{% if service != 'keepalived' %}
-			<button type='submit' value='reload' name='save' class='btn btn-default'>Upload and reload</button>
+			<button type='submit' value='reload' name='save' class='btn btn-default'>{{lang.phrases.upload_and_reload|title()}}</button>
 			{% endif %}
 		</form>
 		{% endif %}
 		{% endif %}
-		<div class="alert alert-info"><b>Note:</b> If you reconfigure Master server, Slave will be reconfigured automatically</div>
+		<div class="alert alert-info"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave|title()}}</div>
 	</center>
 	{% endif %}
 	<script>

@@ -3,15 +3,15 @@
 <table class="overview" id="ajax-users">
 	<thead>
 		<tr class="overviewHead">
-			<th class="padding10 first-collumn" id="user-login-th">Login</th>
-			<th style="width: 10%">Password</th>
-			<th style="width: 10%" id="user-active-th">Active</th>
-			<th style="width: 20%">Email</th>
-			<th style="width: 10%" id="user-role-th">Role</th>
+			<th class="padding10 first-collumn" id="user-login-th">{{lang.words.login|title()}}</th>
+			<th style="width: 10%">{{lang.words.password|title()}}</th>
+			<th style="width: 10%" id="user-active-th">{{lang.words.active|title()}}</th>
+			<th style="width: 20%">{{lang.words.email|title()}}</th>
+			<th style="width: 10%" id="user-role-th">{{lang.words.role|title()}}</th>
 			{% if page != "servers.py" %}
-			<th style="width: 10%">Group</th>
+			<th style="width: 10%">{{lang.words.groups|title()}}</th>
 			{% endif %}
-			<th style="width: 100%" id="user-services-th">Services</th>
+			<th style="width: 100%" id="user-services-th">{{lang.words.services|title()}}</th>
 			<th></th>
 			<th></th>
 			<th></th>
@@ -34,7 +34,7 @@
 			</td>
 			<td>
 				{% if user.6 != 1%}
-				<span title="Change password" style="cursor: pointer; margin-left: 15px;" class="div-pic" onclick="openChangeUserPasswordDialog('{{user.user_id}}')">
+				<span title="{{lang.words.change|title()}} {{lang.words.password}}" style="cursor: pointer; margin-left: 15px;" class="div-pic" onclick="openChangeUserPasswordDialog('{{user.user_id}}')">
 				</span>
 				{% endif %}
 			</td>
@@ -78,26 +78,26 @@
 			</td>
 			{% if page != "servers.py" %}
 			<td>
-				<span title="Change user groups" style="cursor: pointer; margin-left: 15px;" class="div-pic" onclick="openChangeUserGroupDialog('{{user.user_id}}')">
+				<span title="{{lang.words.change2|title()}} {{lang.words.user3}} {{lang.words.groups}}" style="cursor: pointer; margin-left: 15px;" class="div-pic" onclick="openChangeUserGroupDialog('{{user.user_id}}')">
 			</td>
 			{% endif %}
 			<td>
-				<span title="Change user's services" style="cursor: pointer; margin-left: 15px;" class="div-pic" onclick="openChangeUserServiceDialog('{{user.user_id}}')">
+				<span title="{{lang.words.change2|title()}} {{lang.words.user3}} {{lang.words.services}}" style="cursor: pointer; margin-left: 15px;" class="div-pic" onclick="openChangeUserServiceDialog('{{user.user_id}}')">
 			</td>
 			<td>
-				<a href="history.py?service=user&user_id={{user.user_id}}" title="View history for this user" class="history"></a>
+				<a href="history.py?service=user&user_id={{user.user_id}}" title="{{lang.words.view|title()}} {{lang.words.history}} {{lang.words.for}} {{lang.words.user2}}" class="history"></a>
 			</td>
 			<td>
-				<a class="add" onclick="cloneUser({{user.user_id}})" id="clone-{{user.user_id}}" title="Copy the settings from {{user.1}}" style="cursor: pointer;"></a>
+				<a class="add" onclick="cloneUser({{user.user_id}})" id="clone-{{user.user_id}}" title="{{lang.words.w_copy|title()}} {{lang.words.the}} {{lang.words.settings}} {{lang.words.from}} {{user.username}}" style="cursor: pointer;"></a>
 			</td>
 			<td>
-				<a class="delete" onclick="confirmDeleteUser({{user.user_id}})" title="Delete user {{user.1}}" style="cursor: pointer;"></a>
+				<a class="delete" onclick="confirmDeleteUser({{user.user_id}})" title="{{lang.words.delete|title()}} {{user.username}}" style="cursor: pointer;"></a>
 			</td>
 		</tr>
 	{% endfor %}
 	{% if not adding %}
 	<tbody>
 </table>
-<br /><span class="add-button" title="Add user" id="add-user-button">+ Add</span>
+<br /><span class="add-button" title="{{lang.words.add|title()}} {{lang.words.new}} {{lang.words.user2}}" id="add-user-button">+ {{lang.words.add|title()}}</span>
 <br /><br />
 {% endif %}

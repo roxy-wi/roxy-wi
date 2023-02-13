@@ -1,3 +1,4 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% from 'include/input_macros.html' import copy_to_clipboard %}
 <script>
     $(document).ready(function() {
@@ -19,13 +20,13 @@
 <table class="overview hover order-column display compact" id="sessions_table">
     <thead>
         <tr class="overviewHead">
-            <th class="padding10" style="padding-left: 15px;">Protocol</th>
-            <th>Source</th>
-            <th>Frontend</th>
-            <th>Backend</th>
-            <th>Age</th>
-            <th>Rate</th>
-            <th>Expire</th>
+            <th class="padding10" style="padding-left: 15px;">{{lang.words.protocol|title()}}</th>
+            <th>{{lang.words.source|title()}}</th>
+            <th>{{lang.words.frontend|title()}}</th>
+            <th>{{lang.words.backend|title()}}</th>
+            <th>{{lang.words.age|title()}}</th>
+            <th>{{lang.words.rate|title()}}</th>
+            <th>{{lang.words.expire|title()}}</th>
             <th></th>
             <th></th>
         </tr>
@@ -59,10 +60,10 @@
                 {% endif %}
             </td>
             <td>
-                <a class="info" title="Get more info about this session" style="cursor: pointer;" onclick="getSessionInfo('{{s.strip().split(':')[0]}}')"></a>
+                <a class="info" title="{{lang.words.w_get|title()}} {{lang.words.more}} {{lang.words.info}}" style="cursor: pointer;" onclick="getSessionInfo('{{s.strip().split(':')[0]}}')"></a>
             </td>
             <td>
-                <a class="delete" title="Delete this session" style="cursor: pointer;" onclick="deleteSession(this, '{{s.strip().split(':')[0]}}')"></a>
+                <a class="delete" title="{{lang.words.delete|title()}}" style="cursor: pointer;" onclick="deleteSession(this, '{{s.strip().split(':')[0]}}')"></a>
             </td>
         </tr>
         {% endif %}

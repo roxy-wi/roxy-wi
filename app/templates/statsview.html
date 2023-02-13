@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% block title %}{{lang.menu_links.stats.h2}} {{service_desc.service}}{% endblock %}
+{% block h2 %}{{lang.menu_links.stats.h2}} {{service_desc.service}}{% endblock %}
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select %}
 <br />
@@ -20,18 +22,18 @@
 				{% endif %}
 			{% endfor %}
 	</select>
-	<a class="ui-button ui-widget ui-corner-all" id="show" title="Show stats" onclick="{{ onclick }}">Show</a>
+	<a class="ui-button ui-widget ui-corner-all" id="show" title="{{lang.words.show|title()}} {{lang.words.stats}}" onclick="{{ onclick }}">{{lang.words.open|title()}}</a>
 	{% if service != 'nginx' and service != 'apache' %}
 	<div id="stats_filter">
-		<div id="stats_filter_text">Filter:</div>
-		{{ checkbox('stats_active', title='Show active servers', desc='Active', checked='checked') }}
-		{{ checkbox('stats_drain', title='Show drain servers', desc='Drain', checked='checked') }}
-		{{ checkbox('stats_maintain', title='Show maintain servers', desc='Maintain', checked='checked') }}
+		<div id="stats_filter_text">{{lang.words.filter|title()}}:</div>
+		{{ checkbox('stats_active', title=lang.words.show|title()+' ' + lang.words.active + ' ' + lang.words.servers, desc=lang.words.active|title(), checked='checked') }}
+		{{ checkbox('stats_drain', title=lang.words.show|title()+' ' + lang.words.active + ' ' + lang.words.servers, desc=lang.words.drain|title(), checked='checked') }}
+		{{ checkbox('stats_maintain', title=lang.words.show|title()+' ' + lang.words.maintain + ' ' + lang.words.servers, desc=lang.words.maintain|title(), checked='checked') }}
 		{{ checkbox('stats_down', title='Show DOWN servers', desc='DOWN', checked='checked') }}
 		{{ checkbox('stats_not_checked', title='Show not checked servers', desc='Not checked', checked='checked') }}
-		{{ checkbox('stats_backup', title='Show backup servers', desc='Backup', checked='checked') }}
-		{{ checkbox('stats_frontends', title='Show frontends servers', desc='Frontends', checked='checked') }}
-		{{ checkbox('stats_backends', title='Show backends servers', desc='Backends', checked='checked') }}
+		{{ checkbox('stats_backup', title=lang.words.show|title()+' ' + lang.words.backup + ' ' + lang.words.servers, desc=lang.words.backup|title(), checked='checked') }}
+		{{ checkbox('stats_frontends', title=lang.words.show|title()+' ' + lang.words.frontends, desc=lang.words.frontends|title(), checked='checked') }}
+		{{ checkbox('stats_backends', title=lang.words.show|title()+' ' + lang.words.backends , desc=lang.words.backends|title(), checked='checked') }}
 	</div>
 	{% elif service == 'nginx' %}
 	<br /><br />

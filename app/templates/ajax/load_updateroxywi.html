@@ -1,3 +1,4 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% set current_ver = versions.0 %}
 {% set new_ver = versions.1 %}
 {% set current_ver_without_dots = versions.2 %}
@@ -9,10 +10,10 @@
     <td>
         <b
                 {% if new_ver_without_dots > current_ver_without_dots and new_ver != "Sorry cannot get current version" %}
-                title="There is a newer version Roxy-WI"
+                title=lang.admin_page.desc.a_new_version+" Roxy-WI"
                 style="color: var(--red-color)"
                 {% else %}
-                title="There is not a newer version Roxy-WI"
+                title=lang.admin_page.desc.no_new_version+" Roxy-WI"
                 style="color: var(--green-color)"
                 {% endif %}
         >
@@ -24,11 +25,11 @@
     </td>
     <td>
         {% if new_ver_without_dots > current_ver_without_dots and new_ver != "Sorry cannot get current version" %}
-        <a class="ui-button ui-widget ui-corner-all" onclick="updateService('roxy-wi')" title="Update Roxy-WI">Update</a>
+        <a class="ui-button ui-widget ui-corner-all" onclick="updateService('roxy-wi')" title="{{lang.words.w_update|title()}} Roxy-WI">{{lang.words.w_update|title()}}</a>
         {% endif %}
     </td>
     <td>
-        The main application
+        {{lang.admin_page.desc.main_app}}
     </td>
     <td></td>
 </tr>
@@ -43,7 +44,7 @@
     {% if s.3|float < smon_ver|float %}
         {% set is_need_update = 1 %}
     {% endif %}
-    {% set description = 'SMON stands for <b>S</b>imple <b>MON</b>itoring' %}
+    {% set description = lang.admin_page.desc.smon_desc %}
 {% elif s.0 == 'roxy-wi-checker' %}
     {% set service_name = 'Checker' %}
     {% set service_link = 'checker' %}
@@ -51,7 +52,7 @@
     {% if s.3|float < checker_ver|float %}
         {% set is_need_update = 1 %}
     {% endif %}
-    {% set description = 'Checker is designed for monitoring HAProxy, Nginx, Apache and Keepalived services as well as HAProxy backends and maxconn' %}
+    {% set description = lang.admin_page.desc.checker_desc %}
 {% elif s.0 == 'roxy-wi-keep_alive' %}
     {% set service_name = 'Auto start' %}
     {% set service_link = 'auto_start' %}
@@ -59,7 +60,7 @@
     {% if s.3|float < keep_ver|float %}
         {% set is_need_update = 1 %}
     {% endif %}
-    {% set description = 'The Auto Start service allows to restart the HAProxy, NGINX, Apache and Keepalived services if they are down' %}
+    {% set description = lang.admin_page.desc.auto_start_desc %}
 {% elif s.0 == 'roxy-wi-metrics' %}
     {% set service_name = 'Metrics' %}
     {% set service_link = 'metrics' %}
@@ -67,7 +68,7 @@
     {% if s.3|float < metrics_ver|float %}
         {% set is_need_update = 1 %}
     {% endif %}
-    {% set description = 'Collects number of connections for HAProxy, NGINX, Apache and HAProxy WAF services' %}
+    {% set description = lang.admin_page.desc.metrics_desc %}
 {% elif s.0 == 'roxy-wi-portscanner' %}
     {% set service_name = 'Port scanner' %}
     {% set service_link = 'portscanner' %}
@@ -75,7 +76,7 @@
     {% if s.3|float < portscanner_ver|float %}
         {% set is_need_update = 1 %}
     {% endif %}
-    {% set description = 'Probes and saves a server or host for open ports' %}
+    {% set description = lang.admin_page.desc.p_s_desc %}
 {% elif s.0 == 'roxy-wi-socket' %}
     {% set service_name = 'Socket service' %}
     {% set service_link = 'socket' %}
@@ -83,7 +84,7 @@
     {% if s.3|float < socket_ver|float %}
         {% set is_need_update = 1 %}
     {% endif %}
-    {% set description = 'Socket is a service for sending alerts and notifications' %}
+    {% set description = lang.admin_page.desc.socket_desc %}
 {% elif s.0 == 'roxy-wi-prometheus-exporter' %}
     {% set service_name = 'Prometheus exporter' %}
     {% set service_link = 'prometheus-exporter' %}
@@ -94,16 +95,16 @@
     {% set description = 'Prometheus exporter' %}
 {% endif %}
     <td class="padding10 first-collumn">
-        <a href="{{desc_link}}" title="Read more about {{service_name}}" target="_blank" class="link" rel="noopener noreferrer">{{service_name}}</a>
+        <a href="{{desc_link}}" title="{{lang.words.read|title()}} {{lang.words.more}} {{lang.words.about}} {{service_name}}" target="_blank" class="link" rel="noopener noreferrer">{{service_name}}</a>
     </td>
     <td>
         {% if s.3 != '* is not installed' and s.3 != '' %}
         <b id="current-version-{{s.0}}"
                 {% if is_need_update %}
-                title="There is a newer version {{service_name}}"
+                title="{{lang.admin_page.desc.a_new_version}} {{service_name}}"
                 style="color: var(--red-color)"
                 {% else %}
-                title="There is not a newer version {{service_name}}"
+                title="{{lang.admin_page.desc.no_new_version}} {{service_name}}"
                 style="color: var(--green-color)"
                 {% endif %}
         >
@@ -133,15 +134,15 @@
     <td>
         {% if 'is not installed' not in s.3 and s.3 != '' %}
             {% if is_need_update %}
-                <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}')" title="Update {{service_name}}">Update</a>
+                <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}')" title="{{lang.words.w_update|title()}} {{service_name}}">{{lang.words.w_update|title()}}</a>
             {% endif %}
         {% else %}
              {% if s.0 in ('prometheus', 'grafana-server') %}
-                <a class="ui-button ui-widget ui-corner-all" onclick="openTab(10)" title="Install {{service_name}}">Install</a>
+                <a class="ui-button ui-widget ui-corner-all" onclick="openTab(10)" title="{{lang.words.install|title()}} {{service_name}}">{{lang.words.install|title()}}</a>
             {% elif s.0 in ('rabbitmq-server', 'fail2ban') %}
-                <a class="ui-button ui-widget ui-corner-all" href="https://roxy-wi/services/{{s.0.split('-')[0]}}" title="Install {{s.0|title()}}" target="_blank">Install</a>
+                <a class="ui-button ui-widget ui-corner-all" href="https://roxy-wi/services/{{s.0.split('-')[0]}}" title="{{lang.words.install|title()}} {{s.0|title()}}" target="_blank">{{lang.words.install|title()}}</a>
             {% else %}
-                <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}', 'install')" title="Install {{service_name}}">Install</a>
+                <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}', 'install')" title="{{lang.words.install|title()}} {{service_name}}">{{lang.words.install|title()}}</a>
             {% endif %}
         {% endif %}
     </td>

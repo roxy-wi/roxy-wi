@@ -24,14 +24,14 @@
 <table class="overview hover order-column display compact" id="alerts_table">
     <thead>
         <tr class="overviewHead">
-            <th class="padding10" style="width: 10%; padding-left: 10px;">Level</th>
-            <th>Host</th>
+            <th class="padding10" style="width: 10%; padding-left: 10px;">{{lang.words.level|title()}}</th>
+            <th>{{lang.words.host|title()}}</th>
             {% if action != "checker_history" %}
-            <th>Port</th>
+            <th>{{lang.words.port|title()}}</th>
             {% endif %}
-            <th>Alert</th>
-            <th>Date</th>
-            <th>Time</th>
+            <th>{{lang.words.alert|title()}}</th>
+            <th>{{lang.words.date|title()}}</th>
+            <th>{{lang.words.time|title()}}</th>
         </tr>
     </thead>
     <tbody>
@@ -47,7 +47,7 @@
             {% endif %}
             <span style="color: {{color}};"><b>{{t.1 |upper}}</b></span>
         </td>
-        <td><a href="/app/smon.py?action=history&host={{t.2}}" title="Open history for {{t.2}} host">{{t.2}}</a></td>
+        <td><a href="/app/smon.py?action=history&host={{t.2}}" title="{{lang.words.open|title()}} {{lang.words.history}} {{lang.words.for}} {{t.2}} {{lang.words.host}}">{{t.2}}</a></td>
         {% if action != "checker_history" %}
         <td>{{t.3}}</td>
         {% endif %}
@@ -58,7 +58,7 @@
     </tr>
     {% endfor %}
     {% else %}
-    <span class="alert alert-warning" style="margin-bottom: 0px;">Table is empty</span>
+    <span class="alert alert-warning" style="margin-bottom: 0px;">{{lang.words.table|title()}} {{lang.words.is}} {{lang.words.empty}}</span>
     {% endif %}
     </tbody>
 </table>

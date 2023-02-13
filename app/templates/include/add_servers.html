@@ -6,25 +6,25 @@
 <span name="add_servers">
 	<input name="prefix" class="prefix form-control" title="servers prefix" size="3" placeholder="web" style="display: none;">
 	<input name="template-number" class="prefix form-control" title="servers num" value="3" type="number" style="width: 35px; display: none;">
-	<input name="servers" required title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">:
-	<input name="server_port" required title="Backend port" size=8 placeholder="yyy" class="form-control add_server_number" type="number">
-	<span name="port_check_text">port check:</span> <input name="port_check" required title="Port for checking" data-help="A basic TCP-layer health check tries to connect to the server's TCP port. The check is valid when the server answers with a SYN/ACK packet." size=8 class="form-control add_server_number" type="number">
-	<span name="maxconn_name">maxconn:</span>  <input name="server_maxconn" required title="Maxconn. Default 200" data-help="The total number of connections allowed, process-wide. This stops the process from accepting too many connections at once, which safeguards it from running out of memory." size=8 value="200" class="form-control add_server_number" type="number">
+	<input name="servers" required title="{{lang.words.backend|title()}} IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">:
+	<input name="server_port" required title="{{lang.words.backend|title()}} {{lang.words.port}}" size=8 placeholder="yyy" class="form-control add_server_number" type="number">
+	<span name="port_check_text">{{lang.phrases.port_check}}:</span> <input name="port_check" required title="{{lang.words.port|title()}} {{lang.words.for}} {{lang.words.checking}}" data-help="{{lang.add_page.desc.port_check}}" size=8 class="form-control add_server_number" type="number">
+	<span name="maxconn_name">maxconn:</span>  <input name="server_maxconn" required title="Maxconn. Default 200" data-help="{{lang.add_page.desc.maxconn}}" size=8 value="200" class="form-control add_server_number" type="number">
+	<span class="send_proxy"></span>
+	<br />
+	<input name="servers" title="{{lang.words.backend|title()}} IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server"><span class="second-server">:</span>
+	<input name="server_port" title="{{lang.words.backend|title()}} {{lang.words.port}}" size=8 placeholder="yyy" class="form-control second-server add_server_number" type="number">
+	<span name="port_check_text">{{lang.phrases.port_check}}:</span> <input name="port_check" required title="{{lang.words.port|title()}} {{lang.words.for}} {{lang.words.checking}}" data-help="{{lang.add_page.desc.port_check}}" size=8 class="form-control add_server_number" type="number">
+	<span name="maxconn_name">maxconn:</span>  <input name="server_maxconn" required title="Maxconn. Default 200" data-help="{{lang.add_page.desc.maxconn}}" size=8 value="200" class="form-control add_server_number" type="number">
 	<span class="send_proxy"></span>
 	<br />
 	<input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server"><span class="second-server">:</span>
-	<input name="server_port" title="Backend port" size=8 placeholder="yyy" class="form-control second-server add_server_number" type="number">
-	<span name="port_check_text">port check:</span> <input name="port_check" required title="Port for checking" data-help="A basic TCP-layer health check tries to connect to the server's TCP port. The check is valid when the server answers with a SYN/ACK packet." size=8 class="form-control add_server_number" type="number">
-	<span name="maxconn_name">maxconn:</span>  <input name="server_maxconn" required title="Maxconn. Default 200" data-help="The total number of connections allowed, process-wide. This stops the process from accepting too many connections at once, which safeguards it from running out of memory." size=8 value="200" class="form-control add_server_number" type="number">
-	<span class="send_proxy"></span>
-	<br />
-	<input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server"><span class="second-server">:</span>
-	<input name="server_port" title="Backend port" size=3 placeholder="yyy" class="form-control second-server add_server_number" type="number">
-	<span name="port_check_text">port check:</span> <input name="port_check" required title="Port for checking" data-help="A basic TCP-layer health check tries to connect to the server's TCP port. The check is valid when the server answers with a SYN/ACK packet." size=8 class="form-control add_server_number" type="number">
-	<span name="maxconn_name">maxconn:</span> <input name="server_maxconn" required title="Maxconn. Default 200" data-help="The total number of connections allowed, process-wide. This stops the process from accepting too many connections at once, which safeguards it from running out of memory." size=8 value="200" class="form-control add_server_number" type="number">
+	<input name="server_port" title="{{lang.words.backend|title()}} {{lang.words.port}}" size=3 placeholder="yyy" class="form-control second-server add_server_number" type="number">
+	<span name="port_check_text">{{lang.phrases.port_check}}:</span> <input name="port_check" required title="{{lang.words.port|title()}} {{lang.words.for}} {{lang.words.checking}}" data-help="{{lang.add_page.desc.port_check}}" size=8 class="form-control add_server_number" type="number">
+	<span name="maxconn_name">maxconn:</span> <input name="server_maxconn" required title="Maxconn. Default 200" data-help="{{lang.add_page.desc.maxconn}}" size=8 value="200" class="form-control add_server_number" type="number">
 	<span class="send_proxy"></span>
 </span>
 <span>
-	<a class="link add-server backend_server" name="add-server-input" title="Add backend server" style="cursor: pointer;"></a>
+	<a class="link add-server backend_server" name="add-server-input" title="{{lang.words.add|title()}} {{lang.words.backend}} {{lang.words.server}}" style="cursor: pointer;"></a>
 </span>
-<a href="https://cbonte.github.io/haproxy-dconv/1.8/configuration.html#4.2-server-template" title="Read about Server-template" target="_blank" class="prefix" style="display: none; font-size: 13px; color: #23527c;">Read about Server-template</a>
+<a href="https://cbonte.github.io/haproxy-dconv/1.8/configuration.html#4.2-server-template" title="{{lang.words.read|title()}} {{lang.words.about}} {{lang.words.server_template}}" target="_blank" class="prefix" style="display: none; font-size: 13px; color: #23527c;">{{lang.words.read|title()}} {{lang.words.about}} {{lang.words.server_template}}</a>

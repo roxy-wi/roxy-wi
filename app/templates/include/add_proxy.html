@@ -3,7 +3,7 @@
 		<div id="close">
 			<span title="Close" style="cursor: pointer; float: right;">X</span>
 		</div>
-		<h3>{{ add }} was success added</h3>
+		<h3>{{ add }} {{lang.add_page.desc.was_success_added}}</h3>
 		{{ conf_add }}
 	</div>
 	<script>
@@ -17,51 +17,50 @@
 			<div class="div-pannel">
 				<div class="div-server add-proxy-listen-head">
 					<div class="server-name">
-						<span title="Create Listener" class="redirectListen span-link">Create Listener</span>
+						<span title="{{lang.words.create|title()}} {{lang.words.listener|title()}}" class="redirectListen span-link">{{lang.words.create|title()}} {{lang.words.listener|title()}}</span>
 					</div>
 					<div class="server-desc add_proxy">
-							A "listen" section defines a complete proxy with its frontend and backend parts combined in one section. It is generally useful for TCP-only traffic.
+						{{lang.add_page.desc.listener_desc1}}
 					</div>					
 				</div>
 			</div>
 			<div class="div-pannel">
 				<div class="div-server add-proxy-listen-head">
 					<div class="server-name">
-						<span title="Create HTTP Listener" class="redirectListen span-link" id="create-http-listen">Create HTTP Listener</span>
+						<span title="{{lang.words.create|title()}} HTTP {{lang.words.listener|title()}}" class="redirectListen span-link" id="create-http-listen">{{lang.words.create|title()}} HTTP {{lang.words.listener|title()}}</span>
 					</div>
 					<div class="server-desc">
-							Create HTTP proxy
+							{{lang.words.create|title()}} HTTP {{lang.words.proxy}}
 					</div>				
 				</div>
 			</div>
 			<div class="div-pannel">
 				<div class="div-server add-proxy-listen-head">
 					<div class="server-name">
-						<span title="Create SSL Listener" class="redirectListen span-link" id="create-ssl-listen">Create SSL Listener</span>
+						<span title="{{lang.words.create|title()}} SSL {{lang.words.listener|title()}}" class="redirectListen span-link" id="create-ssl-listen">{{lang.words.create|title()}} SSL {{lang.words.listener|title()}}</span>
 					</div>
 					<div class="server-desc add_proxy">
-							Create HTTPS Proxy with the SSL termination on HAProxy and SSL offload. 
-							HAProxy will send to backends HTTP traffic. You need have <span title="Upload SSL" class="redirectSsl span-link" style="color: #5d9ceb">uploaded a PEM certificat</span>
+						{{lang.add_page.desc.create_ssl_proxy}} <span title="Upload SSL" class="redirectSsl span-link" style="color: #5d9ceb">{{lang.words.uploaded}} {{lang.words.w_a}} PEM {{lang.words.cert}}</span>
 					</div>				
 				</div>
 			</div>
 			<div class="div-pannel">
 				<div class="div-server add-proxy-listen-head">
 					<div class="server-name">
-						<span title="Create SSL Listener" class="redirectListen span-link" id="create-https-listen">Create HTTPS Listener</span>
+						<span title="{{lang.words.create|title()}} HTTPS {{lang.words.listener|title()}}" class="redirectListen span-link" id="create-https-listen">{{lang.words.create|title()}} HTTPS {{lang.words.listener|title()}}</span>
 					</div>
 					<div class="server-desc add_proxy">
-							Create HTTPS Proxy without the SSL termination on HAProxy and SSL offload. HAProxy will send to backends HTTPS traffic
+						{{lang.add_page.desc.create_https_proxy}}
 					</div>				
 				</div>
 			</div>
 			<div class="div-pannel">
 				<div class="div-server add-proxy-listen-head">
 					<div class="server-name">
-						<span title="Create an option template" class="span-link" id="add4">Create an option template</span>
+						<span title="{{lang.words.create|title()}} {{lang.words.an}} {{lang.words.option}} {{lang.words.template}}" class="span-link" id="add4">{{lang.words.create|title()}} {{lang.words.an}} {{lang.words.option}} {{lang.words.template}}</span>
 					</div>
 					<div class="server-desc add_proxy">
-						Create, edit and delete options with given parameters. And after use them as autocomplete in the "Add" sections
+						{{lang.add_page.desc.option_temp}}
 					</div>				
 				</div>
 			</div>
@@ -70,50 +69,48 @@
 			<div class="div-pannel">
 				<div class="div-server add-proxy-frontend-head">
 					<div class="server-name">
-						<span title="Create Frontend" class="redirectFrontend span-link">Create Frontend</span>
+						<span title="{{lang.words.create|title()}} {{lang.words.frontend|title()}}" class="redirectFrontend span-link">{{lang.words.create|title()}} {{lang.words.frontend|title()}}</span>
 					</div>
 					<div class="server-desc add_proxy">
-						A "frontend" section describes a set of listening sockets accepting client connections.
-						And forwards them to backend
-						<br />
-					</div>			
+						{{lang.add_page.desc.front_desc1}}
+					</div>
 				</div>
 			</div>
 			<div class="div-server add-proxy-frontend-head">
 				<div class="server-name">
-					<span title="Create HTTP Frontend" class="redirectListen span-link" id="create-http-frontend">Create HTTP Frontend</span>
+					<span title="{{lang.words.create|title()}} HTTP {{lang.words.frontend|title()}}" class="redirectListen span-link" id="create-http-frontend">{{lang.words.create|title()}} HTTP {{lang.words.frontend|title()}}</span>
 				</div>
 				<div class="server-desc">
-						Create HTTP Frontend
+					{{lang.words.create|title()}} HTTP {{lang.words.frontend}}
 				</div>				
 			</div>
 			<div class="div-pannel">
 				<div class="div-server add-proxy-frontend-head">
 					<div class="server-name">
-						<span title="Create SSL Frontend" class="redirectListen span-link" id="create-ssl-frontend">Create SSL Frontend</span>
+						<span title="{{lang.words.create|title()}} SSL {{lang.words.frontend|title()}}" class="redirectListen span-link" id="create-ssl-frontend">{{lang.words.create|title()}} SSL {{lang.words.frontend|title()}}</span>
 					</div>
 					<div class="server-desc add_proxy">
-							Create HTTPS Frontend with the SSL termination on HAProxy and SSL offload. HAProxy will send to backends HTTP traffic. You need have <span title="Upload SSL" class="redirectSsl span-link" style="color: #5d9ceb">uploaded a PEM certificat</span>
+						{{lang.add_page.desc.create_ssl_front}} <span title="{{lang.words.upload|title()}} SSL" class="redirectSsl span-link" style="color: #5d9ceb">{{lang.words.uploaded}} {{lang.words.w_a}} PEM {{lang.words.cert}}</span>
 					</div>				
 				</div>
 			</div>
 			<div class="div-pannel">
 				<div class="div-server add-proxy-frontend-head">
 					<div class="server-name">
-						<span title="Create HTTPS Frontend" class="redirectListen span-link" id="create-https-frontend">Create HTTPS Frontend</span>
+						<span title="{{lang.words.create|title()}} HTTPS {{lang.words.frontend|title()}}" class="redirectListen span-link" id="create-https-frontend">{{lang.words.create|title()}} HTTPS {{lang.words.frontend|title()}}</span>
 					</div>
 					<div class="server-desc add_proxy">
-							Create HTTPS Frontend without the SSL termination on HAProxy and SSL offload. HAProxy will send to backends HTTPS traffic
+						{{lang.add_page.desc.create_https_front}}
 					</div>				
 				</div>
 			</div>
 			<div class="div-pannel">
 				<div class="div-server add-proxy-frontend-head">
 					<div class="server-name">
-						<span title="Create a server template" class="span-link" id="add5">Create a server template</span>
+						<span title="{{lang.words.create|title()}} {{lang.words.w_a}} {{lang.words.server}} {{lang.words.template}}" class="span-link" id="add5">{{lang.words.create|title()}} {{lang.words.w_a}} {{lang.words.server}} {{lang.words.template}}</span>
 					</div>
 					<div class="server-desc add_proxy">
-						Create, edit and delete servers. And after use them as autocomplete in the "Add" sections 
+						{{lang.add_page.desc.server_temp}}
 					</div>				
 				</div>
 			</div>
@@ -122,50 +119,48 @@
 			<div class="div-pannel">
 				<div class="div-server add-proxy-backend-head">
 					<div class="server-name">
-						<span title="Create Backend" class="redirectBackend span-link">Create Backend</span>
+						<span title="{{lang.words.create|title()}} {{lang.words.backend|title()}}" class="redirectBackend span-link">{{lang.words.create|title()}} {{lang.words.backend|title()}}</span>
 					</div>
 					<div class="server-desc add_proxy">
-						A "backend" section describes a set of servers to which the proxy will connect to forward incoming connections. 
-						<br />
-						<br />
+						{{lang.add_page.desc.back_des1}}
 					</div>			
 				</div>
 			</div>
 			<div class="div-server add-proxy-backend-head">
 				<div class="server-name">
-					<span title="Create SSL Backend" class="redirectListen span-link" id="create-http-backend">Create HTTP Backend</span>
+					<span title="{{lang.words.create|title()}} HTTP {{lang.words.backend|title()}}" class="redirectListen span-link" id="create-http-backend">{{lang.words.create|title()}} HTTP {{lang.words.backend|title()}}</span>
 				</div>
 				<div class="server-desc add_proxy">
-						Create HTTP Backend
+					{{lang.words.create|title()}} HTTP {{lang.words.backend}}
 				</div>				
 			</div>
 			<div class="div-pannel">
 				<div class="div-server add-proxy-backend-head">
 					<div class="server-name">
-						<span title="Create HTTPS Backend" class="redirectListen span-link" id="create-ssl-backend">Create SSL Backend</span>
+						<span title="{{lang.words.create|title()}} SSL {{lang.words.backend|title()}}" class="redirectListen span-link" id="create-ssl-backend">{{lang.words.create|title()}} SSL {{lang.words.backend|title()}}</span>
 					</div>
 					<div class="server-desc add_proxy">
-							Create HTTPS Backend with the SSL termination on HAProxy and SSL offload. HAProxy will send to backends HTTP traffic. You need have <span title="Upload SSL" class="redirectSsl span-link" style="color: #5d9ceb">uploaded a PEM certificat</span>
+						{{lang.add_page.desc.create_ssl_backend}} <span title="{{lang.words.upload|title()}} SSL" class="redirectSsl span-link" style="color: #5d9ceb">{{lang.words.uploaded}} {{lang.words.w_a}} PEM {{lang.words.cert}}</span>
 					</div>				
 				</div>
 			</div>
 			<div class="div-pannel">
 				<div class="div-server add-proxy-backend-head">
 					<div class="server-name">
-						<span title="Create SSL Backend" class="redirectListen span-link" id="create-https-backend">Create HTTPS Backend</span>
+						<span title="{{lang.words.create|title()}} HTTPS {{lang.words.backend|title()}}" class="redirectListen span-link" id="create-https-backend">{{lang.words.create|title()}} HTTPS {{lang.words.backend|title()}}</span>
 					</div>
 					<div class="server-desc add_proxy">
-							Create HTTPS Backend without the SSL termination on HAProxy and SSL offload. HAProxy will send to backends HTTPS traffic
+						{{lang.add_page.desc.create_https_backend}}
 					</div>				
 				</div>
 			</div>
 			<div class="div-pannel">
 				<div class="div-server add-proxy-backend-head">
 					<div class="server-name">
-						<span title="Create userlists" class="span-link" id="add6">Create userlists</span>
+						<span title="{{lang.words.create|title()}} {{lang.words.userlist}}" class="span-link" id="add6">{{lang.words.create|title()}} {{lang.words.userlists}}</span>
 					</div>
 					<div class="server-desc add_proxy">
-							Create userlists. And use it in the "Add" sections 
+						{{lang.words.create|title()}} {{lang.words.userlists}}. {{lang.add_page.desc.use_add}}
 					</div>				
 				</div>
 			</div>

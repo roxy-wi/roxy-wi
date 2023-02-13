@@ -1,3 +1,4 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% from 'include/input_macros.html' import input, select, checkbox %}
 {% from 'include/provisioning/variables.html' import generate_opt_options, get_nice_name  %}
 {% for s in server %}

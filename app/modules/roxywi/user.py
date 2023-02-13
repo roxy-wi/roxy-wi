@@ -19,6 +19,8 @@ def create_user(new_user: str, email: str, password: str, role: str, activeuser:
                 sql.add_user(new_user, email, password, role, activeuser, group)
                 roxywi_common.logging(f'a new user {new_user}', ' has been created ', roxywi=1, login=1)
                 try:
+                    if password == 'aduser':
+                        password = 'your domain password'
                     message = f"A user has been created for you on Roxy-WI portal!\n\n" \
                               f"Now you can login to https://{os.environ.get('HTTP_HOST', '')}\n\n" \
                               f"Your credentials are:\n" \
@@ -85,15 +87,16 @@ def update_user_password():
 
 def get_user_services() -> None:
     user_id = common.checkAjaxInput(form.getvalue('getuserservices'))
+    lang = roxywi_common.get_user_lang()
     groups = []
     u_g = sql.select_user_groups(user_id)
     services = sql.select_services()
     for g in u_g:
         groups.append(g.user_group_id)
 
-    env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
-    template = env.get_template('/show_user_services.html')
-    template = template.render(user_services=sql.select_user_services(user_id), id=user_id, services=services)
+    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
+    template = env.get_template('ajax/show_user_services.html')
+    template = template.render(user_services=sql.select_user_services(user_id), id=user_id, services=services, lang=lang)
     print(template)
 
 
@@ -112,14 +115,15 @@ def change_user_services() -> None:
 
 def get_user_groups() -> None:
     user_id = common.checkAjaxInput(form.getvalue('getusergroups'))
+    lang = roxywi_common.get_user_lang()
     groups = []
     u_g = sql.select_user_groups(user_id)
     for g in u_g:
         groups.append(g.user_group_id)
 
-    env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
-    template = env.get_template('/show_user_groups.html')
-    template = template.render(groups=sql.select_groups(), user_groups=groups, id=user_id)
+    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
+    template = env.get_template('ajax/show_user_groups.html')
+    template = template.render(groups=sql.select_groups(), user_groups=groups, id=user_id, lang=lang)
     print(template)
 
 

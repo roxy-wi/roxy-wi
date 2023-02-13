@@ -36,8 +36,13 @@ try:
 except Exception as e:
     print(str(e))
 
+if user_params['lang'] == 'ru':
+    title = 'Предоставление серверов'
+else:
+    title = 'Servers provisioning'
+
 rendered_template = template.render(
-    title="Servers provisioning", role=user_params['role'], user=user_params['user'], groups=groups,
+    title=title, role=user_params['role'], user=user_params['user'], groups=groups, lang=user_params['lang'],
     user_group=user_group, servers=sql.select_provisioned_servers(), providers=sql.select_providers(user_group),
     is_needed_tool=is_needed_tool, user_services=user_params['user_services'], token=user_params['token'], params=params
 )

@@ -86,7 +86,7 @@ def default_values():
 		{'param': 'ldap_domain', 'value': '', 'section': 'ldap', 'desc': 'LDAP domain for logging in', 'group': '1'},
 		{'param': 'ldap_class_search', 'value': 'user', 'section': 'ldap', 'desc': 'Class for searching the user',
 			'group': '1'},
-		{'param': 'ldap_user_attribute', 'value': 'sAMAccountName', 'section': 'ldap',
+		{'param': 'ldap_user_attribute', 'value': 'userPrincipalName', 'section': 'ldap',
 			'desc': 'Attribute to search users by', 'group': '1'},
 		{'param': 'ldap_search_field', 'value': 'mail', 'section': 'ldap', 'desc': 'User\'s email address', 'group': '1'},
 		{'param': 'ldap_type', 'value': '0', 'section': 'ldap', 'desc': 'Use LDAPS', 'group': '1'},
@@ -982,8 +982,6 @@ def update_db_v_6_3_4():
 		print('Updating... DB has been updated to version 6.3.4.0')
 
 
-
-
 def update_db_v_6_3_5():
 	cursor = conn.cursor()
 	sql = list()
@@ -1000,7 +998,7 @@ def update_db_v_6_3_5():
 
 def update_ver():
 	try:
-		Version.update(version='6.3.4.0').execute()
+		Version.update(version='6.3.5.0').execute()
 	except Exception:
 		print('Cannot update version')
 

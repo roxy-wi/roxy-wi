@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% block title %}{{ lang.menu_links.ha.title }} {% endblock %}
+{% block h2 %}{{ lang.menu_links.ha.title }} {% endblock %}
 {% block content %}	
 {% from 'include/input_macros.html' import input, checkbox %}
 <script src="/inc/users.js"></script>
@@ -14,19 +16,19 @@
 		<h3>You have not installed Ansible</h3>.
 		<img src="/inc/images/no_servers.png" alt="There is no server">
 		<h4>
-			Read <a href="https://roxy-wi.org/installation#ansible" title="Installing Ansible" target="_blank">here</a> how to install Ansible.
+			Read <a href="https://roxy-wi.org/installation#ansible" title="{{lang.words.installing|title()}} Ansible" target="_blank">here</a> how to install Ansible.
 		</h4>
 	</div>
 {% else %}
 <table class="overview" style="margin-bottom: 20px;">
-	<caption><h3>Create a new HA cluster</h3></caption>
+	<caption><h3>{{lang.words.create|title()}} {{lang.words.w_a}} {{lang.words.new}} HA {{lang.words.cluster}}</h3></caption>
 	<tr class="overviewHead">
-		<td class="padding10 first-collumn">Current installation</td>
-		<td class="padding10 first-collumn">Master</td>
-		<td class="padding10 first-collumn">Current installation</td>
-		<td>Slave</td>
-		<td><span title="Interface for VRRP address on a Master slave">Master Interface</span></td>
-		<td><span title="Interface for VRRP address on a Slave server">Slave Interface</span></td>
+		<td class="padding10 first-collumn">{{lang.words.current2|title()}} {{lang.words.installation}}</td>
+		<td class="padding10 first-collumn">{{lang.words.current2|title()}}</td>
+		<td class="padding10 first-collumn">{{lang.words.current2|title()}} {{lang.words.installation}}</td>
+		<td>{{lang.words.slave|title()}}</td>
+		<td><span title="{{lang.phrases.int_vrrp}}">{{lang.words.master|title()}} {{lang.words.interface|title()}}</span></td>
+		<td><span title="{{lang.phrases.int_vrrp}}">{{lang.words.slave|title()}} {{lang.words.interface|title()}}</span></td>
 		<td>VRRP IP</td>
 		<td></td>
 	</tr>
@@ -49,15 +51,15 @@
 				{% endfor %}
 			</select>
 		</td>
-		<td>{{ input('interface', size='7', title='Interface for VRRP address on a Master server') }}</td>
-		<td>{{ input('slave_interface', size='7', title='Interface for VRRP address a Slave server') }}</td>
+		<td>{{ input('interface', size='7', title=lang.phrases.int_vrrp) }}</td>
+		<td>{{ input('slave_interface', size='7', title=lang.phrases.int_vrrp) }}</td>
 		<td>{{ input('vrrp-ip', size='14') }}</td>
 	</tr>
 	<tr class="overviewHead">
 		<td class="padding10 first-collumn"></td>
-		<td class="checkbox-head help_cursor"><span title="Roxy-WI will add VRRP address as a separated server">Add VIRT</span></td>
-		<td class="checkbox-head help_cursor" style="padding-left: 20px;" title="If checked, the Keepalived master will not release VRRP if the service is down">Stay as Master</td>
-		<td class="checkbox-head">SYN-flood protection</td>
+		<td class="checkbox-head help_cursor"><span title="Roxy-WI will add VRRP address as a separated server">{{lang.words.add|title()}} VIRT</span></td>
+		<td class="checkbox-head help_cursor" style="padding-left: 20px;" title="If checked, the Keepalived master will not release VRRP if the service is down">{{lang.words.stay|title()}} {{lang.words.as}} {{lang.words.master|title()}}</td>
+		<td class="checkbox-head">SYN-flood {{lang.words.protection}}</td>
 		<td class="checkbox-head help_cursor" style="padding: 10px 10px 10px 0;"><span title="Roxy-WI will try to install HAProxy">HAProxy</span></td>
 		<td class="checkbox-head help_cursor" style="display: none" id="haproxy_docker_td_header"><span title="Roxy-WI will install HAProxy as Docker container">Docker</span></td>
 		<td class="checkbox-head help_cursor"><span title="Roxy-WI will try to install NGINX">NGINX</span></td>
@@ -75,21 +77,21 @@
 		<td class="checkbox help_cursor">{{ checkbox('nginx', title='Roxy-WI will try to install NGINX') }}</td>
 		<td class="checkbox help_cursor" style="display: none" id="nginx_docker_td">{{ checkbox('nginx_docker', title='Roxy-WI will install NGINX as a Docker container') }}</td>
 		<td>
-			<button id="create" title="Create HA cluster">Create</button>
+			<button id="create" title="Create HA cluster">{{lang.words.create|title()}}</button>
 		</td>
 		<td></td>
 	</tr>
 </table>
 		
 <table class="overview">
-	<caption><h3>Add VRRP to an existing cluster</h3></caption>
+	<caption><h3>{{lang.words.add|title()}} VRRP {{lang.words.to}} {{lang.words.an}} {{lang.words.existing2}} {{lang.words.cluster}}</h3></caption>
 	<tr class="overviewHead">
-		<td class="padding10 first-collumn">Current installation</td>
-		<td class="padding10 first-collumn">Master</td>
-		<td class="padding10 first-collumn">Current installation</td>
-		<td>Slave</td>
-		<td><span title="Interface for VRRP address on a Master Server">Master Interface</span></td>
-		<td><span title="Interface for VRRP address on a Slave Server">Slave Interface</span></td>
+		<td class="padding10 first-collumn">{{lang.words.current2|title()}} {{lang.words.installation}}</td>
+		<td class="padding10 first-collumn">{{lang.words.master|title()}}</td>
+		<td class="padding10 first-collumn">{{lang.words.current2|title()}} {{lang.words.installation}}</td>
+		<td>{{lang.words.slave|title()}}</td>
+		<td><span title="{{lang.phrases.int_vrrp}}">{{lang.words.master|title()}} {{lang.words.interface|title()}}</span></td>
+		<td><span title="{{lang.phrases.int_vrrp}}">{{lang.words.slave|title()}} {{lang.words.interface|title()}}</span></td>
 		<td>VRRP IP</td>
 	</tr>
 	<tr>
@@ -111,8 +113,8 @@
 				{% endfor %}
 			</select>
 		</td>
-		<td>{{ input('interface-add', size='7', title='Interface for VRRP address') }}</td>
-		<td>{{ input('slave_interface-add', size='7', title='Interface for VRRP address') }}</td>
+		<td>{{ input('interface-add', size='7', title=lang.phrases.int_vrrp) }}</td>
+		<td>{{ input('slave_interface-add', size='7', title=lang.phrases.int_vrrp) }}</td>
 		<td>{{ input('vrrp-ip-add', size='14') }}</td>
 	</tr>
 	<tr class="overviewHead">
@@ -120,8 +122,8 @@
 		<td></td>
 		<td></td>
 		<td></td>
-		<td class="padding10 first-collumn checkbox-head"><span title="If checked Roxy-WI will restart Keepalived">Restart</span></td>
-		<td class="checkbox-head help_cursor" title="If checked, Keepalived master will reclaim VRRP after recovered">Return to Master state</td>
+		<td class="padding10 first-collumn checkbox-head"><span title="If checked Roxy-WI will restart Keepalived">{{lang.words.restart|title()}}</span></td>
+		<td class="checkbox-head help_cursor" title="If checked, Keepalived master will reclaim VRRP after recovered">{{lang.words.return|title()}} {{lang.words.to}} {{lang.words.master|title()}} state</td>
 		<td></td>
 	</tr>
 	<tr>
@@ -132,25 +134,25 @@
 		<td class="padding10 first-collumn checkbox help_cursor">{{ checkbox('kp', title='If checked Roxy-WI will restart Keepalived') }}</td>
 		<td class="syn-flood-protection-field">{{ checkbox('add_return_to_master', checked='checked') }}</td>
 		<td>
-			<button id="add-vrrp" title="Add a HA configuration" style="width: 70px;">Add</button>
+			<button id="add-vrrp" title="Add a HA configuration" style="width: 70px;">{{lang.words.add|title()}}</button>
 		</td>
 	</tr>
 </table>
 <div id="ajax"></div>
 <div class="add-note alert addName alert-info" style="width: inherit; margin-right: 15px;">
-	Read <a href="https://roxy-wi.org/howto.py/ha_cluster" title="How to create high available cluster" target="_blank">How to create high available cluster</a>
+	{{lang.words.read|title()}} <a href="https://roxy-wi.org/howto.py/ha_cluster" title="How to create high available cluster" target="_blank">{{lang.phrases.howto_ha}}</a>
 </div>
 <div id="server_creating" style="display: none;">
     <ul style="padding: 20px 20px 0px 20px;font-size: 15px;">
-        <li id="creating-master" class="server-creating proccessing">Installing Master Keepalived...</li>
-        <li id="creating-slave" class="server-creating proccessing">Installing Slave Keepalived...</li>
+        <li id="creating-master" class="server-creating proccessing">{{lang.words.installing|title()}} {{lang.words.master|title()}} Keepalived...</li>
+        <li id="creating-slave" class="server-creating proccessing">{{lang.words.installing|title()}} {{lang.words.slave|title()}} Keepalived...</li>
     	<div id="haproxy_installing_div" style="display: none">
-        	<li id="creating-haproxy-master" class="server-creating">Installing Master Haproxy...</li>
-        	<li id="creating-haproxy-slave" class="server-creating">Installing Slave Haproxy...</li>
+        	<li id="creating-haproxy-master" class="server-creating">{{lang.words.installing|title()}} {{lang.words.master|title()}} Haproxy...</li>
+        	<li id="creating-haproxy-slave" class="server-creating">{{lang.words.installing|title()}} {{lang.words.slave|title()}} Haproxy...</li>
 		</div>
 		<div id="nginx_installing_div" style="display: none">
-        	<li id="creating-nginx-master" class="server-creating">Installing Master NGINX...</li>
-        	<li id="creating-nginx-slave" class="server-creating">Installing Slave NGINX...</li>
+        	<li id="creating-nginx-master" class="server-creating">{{lang.words.installing|title()}} {{lang.words.master|title()}} NGINX...</li>
+        	<li id="creating-nginx-slave" class="server-creating">{{lang.words.installing|title()}} {{lang.words.slave|title()}} NGINX...</li>
 		</div>
 	</ul>
     <div id="wait-mess"></div>
@@ -163,8 +165,8 @@
 </div>
 <div id="address_creating" style="display: none;">
     <ul style="padding: 20px 20px 0px 20px;font-size: 15px;">
-        <li id="creating-master-add" class="server-creating proccessing">Creating a new address on Master Keepalived...</li>
-        <li id="creating-slave-add" class="server-creating proccessing">Creating a new address on Slave Keepalived...</li>
+        <li id="creating-master-add" class="server-creating proccessing">{{lang.words.creating|title()}} {{lang.words.a}} {{lang.words.new}} {{lang.words.address}} {{lang.words.on}} {{lang.words.master|title()}} Keepalived...</li>
+        <li id="creating-slave-add" class="server-creating proccessing">{{lang.words.creating|title()}} {{lang.words.a}} {{lang.words.new}} {{lang.words.address}} {{lang.words.on}} {{lang.words.slave|title()}} Keepalived...</li>
 	</ul>
     <div id="wait-mess-add"></div>
     <div id="created-mess-add" class="alert alert-success" style="display:none;"></div>

@@ -98,12 +98,16 @@ if serv is not None and form.getvalue('config') is not None:
 
 	os.system(f"/bin/rm -f {hap_configs_dir}*.old")
 
+if user_params['lang'] == 'ru':
+	title = 'Работа с секциями HAProxy'
+else:
+	title = 'Working with HAProxy config sections'
 
 rendered_template = template.render(
-	h2=1, title="Working with HAProxy config sections", role=user_params['role'], action="sections.py", user=user_params['user'],
+	h2=1, title=title, role=user_params['role'], action="sections.py", user=user_params['user'],
 	select_id="serv", serv=serv, aftersave=aftersave, config=config_read, cfg=cfg, selects=user_params['servers'],
 	stderr=stderr, error=error, start_line=start_line, end_line=end_line, section=section, sections=sections,
 	is_serv_protected=is_serv_protected, user_services=user_params['user_services'], token=user_params['token'],
-	warning=warning, is_restart=is_restart
+	warning=warning, is_restart=is_restart, lang=user_params['lang']
 )
 print(rendered_template)

@@ -1,13 +1,15 @@
 {% extends "base.html" %}
+{% block title %}{{lang.menu_links.add_proxy.title}}{% endblock %}
+{% block h2 %}{{lang.menu_links.add_proxy.title}}{% endblock %}
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select %}
 {% set balance_params = dict() %}
-{% set balance_params = {'ip_hash':'ip_hash','least_conn':'least_conn','random':'random'} %}
+{% set balance_params = {'ip_hash':'ip_hash','least_conn':'least_conn','random':'random', 'round-robin': 'round-robin'} %}
 <script src="/inc/add_nginx.js"></script>
 <div id="tabs">
 	<ul>
-		<li><a href="#create" title="Add proxy: Create proxy - Roxy-WI">Create proxy</a></li>
-		<li><a href="#upstream" title="Add proxy: Create Upstream - Roxy-WI">Upstream</a></li>
+		<li><a href="#create" title="{{lang.words.add|title()}} {{lang.words.proxy}}: {{lang.words.add|title()}} {{lang.words.proxy}} - Roxy-WI">{{lang.words.add|title()}} {{lang.words.proxy}}</a></li>
+		<li><a href="#upstream" title="{{lang.words.add|title()}} {{lang.words.proxy}}: {{lang.words.create|title()}} {{lang.words.upstream|title()}} - Roxy-WI">{{lang.words.upstream|title()}}</a></li>
 		{% include 'include/login.html' %}
 	</ul>
 	<ul id='browse_histroy'></ul>
@@ -15,9 +17,9 @@
     <div id="upstream">
         <form name="add-upstream" id="add-upstream" action="/app/add_nginx.py" method="post">
 			<table class="add-table">
-				<caption><h3>Add upstream</h3></caption>
+				<caption><h3>{{lang.words.add|title()}} upstream</h3></caption>
 				<tr>
-					<td class="addName">Select a server: </td>
+					<td class="addName">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.server}}: </td>
 					<td class="addOption">
 						<select required name="serv" id="serv">
 							<option disabled selected>------</option>
@@ -25,52 +27,52 @@
 								<option value="{{ select.2 }}">{{ select.1 }}</option>
 							{% endfor %}
 						</select>
-						<div class="tooltip tooltipTop"><b>Note:</b> If you re-configure the master server, the slave server will be re-configured automatically</div>
+						<div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
 					</td>
 					<td rowspan="5" class="add-note addName alert-info">
-						The upstream module is used to define groups of servers.
+						{{lang.add_nginx_page.desc.upstream_desc1}}
 						<br /><br />
-						Defines a group of servers. Servers can listen on different ports. In addition, servers listening on TCP and UNIX-domain sockets can be mixed..
+						{{lang.add_nginx_page.desc.upstream_desc2}}
 						<br /><br />
-						By default, requests are distributed between the servers using a weighted round-robin balancing method.
+						{{lang.add_nginx_page.desc.upstream_desc3}}
 					</td>
 				</tr>
                 <tr>
-					<td class="addName">Name:</td>
+					<td class="addName">{{lang.words.name|title()}}:</td>
 					<td class="addOption">
 						{{ input('name', name='upstream', title="Name upstream", placeholder="backend_servers", required='required') }}
 					</td>
 				</tr>
 				<tr class="advance">
-					<td class="addName">Balance: </td>
+					<td class="addName">{{lang.words.balance|title()}}: </td>
 						<td class="addOption">
-							{{ select('balance', values=balance_params, selected='least_conn', required='required', class='force_close') }}
+							{{ select('balance', values=balance_params, selected='round-robin', required='required', class='force_close') }}
 						</td>
 				</tr>
 				<tr class="advance">
-					<td class="addName"><span title="Activates the cache for connections to upstream servers." data-help="The connections parameter sets the maximum number of idle keepalive connections to upstream servers that are preserved in the cache of each worker process. When this number is exceeded, the least recently used connections are closed.">Keepalive:</span></td>
+					<td class="addName"><span title="{{lang.add_nginx_page.desc.keepalive}}" data-help="{{lang.add_nginx_page.desc.keepalive}}">Keepalive:</span></td>
 					<td class="addOption">
-						{{ input('name', name='keepalive', title="The connections parameter sets the maximum number of idle keepalive connections to upstream servers that are preserved in the cache of each worker process. When this number is exceeded, the least recently used connections are closed.", placeholder="32") }}
+						{{ input('name', name='keepalive', title=lang.add_nginx_page.desc.keepalive, placeholder="32") }}
 					</td>
 				</tr>
 				<tr>
-					<td class="addName">Servers:</td>
+					<td class="addName">{{lang.words.servers|title()}}:</td>
 					<td class="addOption">
 						{% include 'include/add_nginx_servers.html' %}
 					</td>
 				</tr>
 				<tr class="advance-show">
 					<td class="addOption" colspan="2">
-						<button title="Show full list of settings" class="row-down advance-show-button">Show Advanced settings</button>
-						<button title="Hide full list of settings" class="row-up advance-hide-button" style="display: none">Hide Advanced settings</button>
+						<button title="{{lang.add_page.buttons.show_full_settings}}" class="row-down advance-show-button">{{lang.words.show|title()}} {{lang.words.advanced}} {{lang.words.settings}}</button>
+						<button title="{{lang.add_page.buttons.hide_full_settings}}" class="row-up advance-hide-button" style="display: none">{{lang.words.hide|title()}} {{lang.words.advanced}} {{lang.words.settings}}</button>
 					</td>
 				</tr>
 				<tr>
 					<td class="addButton">
-						<a class="ui-button ui-widget ui-corner-all" title="Add Backend" onclick="addProxy('add-upstream')">Add Upstream</a>
+						<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.add|title()}} {{lang.words.upstream|title()}}" onclick="addProxy('add-upstream')">{{lang.words.add|title()}}</a>
 					</td>
 					<td class="addButton">
-						<a class="ui-button ui-widget ui-corner-all" title="Generate and display config" onclick="generateConfig('add-upstream')">Generate config</a>
+						<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.generate|title()}} {{lang.words.and}} {{lang.words.display}} {{lang.words.config}}" onclick="generateConfig('add-upstream')">{{lang.words.generate|title()}} {{lang.words.config}}</a>
 					</td>
 				</tr>
             </table>

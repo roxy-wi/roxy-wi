@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% block title %}{{lang.menu_links.overview.title}}{% endblock %}
+{% block h2 %}{{lang.menu_links.overview.h2}}{% endblock %}
 {% block content %}
 <link href="/inc/css/chart.min.css" rel="stylesheet">
 <script src="/inc/metrics.js"></script>
@@ -23,38 +25,38 @@
 	<tr class="overviewHead">
 		<td class="padding10 first-collumn-wi">
 			{% if role <= 2 %}
-				<a href="servers.py#servers" title="Manage servers">Servers</a>
+				<a href="servers.py#servers" title="{{lang.words.manage|title()}} {{lang.words.servers}}">{{lang.words.servers|title()}}</a>
 			{% else %}
-				Server
+				{{lang.words.servers|title()}}
 			{% endif %}
 		</td>
 		<td class="padding10 third-collumn-wi" style="width: 20%;">
-			<a href="/app/hapservers.py?service=haproxy" title="HAProxy servers overview" class="logs_link">
+			<a href="/app/hapservers.py?service=haproxy" title="HAProxy {{lang.words.servers}} {{lang.words.overview}}" class="logs_link">
 				HAProxy
 			</a>
 		</td>
 		<td class="padding10">
-			<a href="/app/hapservers.py?service=nginx" title="NGINX servers overview" class="logs_link">
+			<a href="/app/hapservers.py?service=nginx" title="NGINX {{lang.words.servers}} {{lang.words.overview}}" class="logs_link">
 				NGINX
 			</a>
 		</td>
 		<td class="padding10">
-			<a href="/app/hapservers.py?service=apache" title="Apache servers overview" class="logs_link">
+			<a href="/app/hapservers.py?service=apache" title="Apache {{lang.words.servers}} {{lang.words.overview}}" class="logs_link">
 				Apache
 			</a>
 		</td>
 		<td class="padding10">
-			<a href="/app/hapservers.py?service=keepalived" title="Keepalived servers overview" class="logs_link">
+			<a href="/app/hapservers.py?service=keepalived" title="Keepalived {{lang.words.servers}} {{lang.words.overview}}" class="logs_link">
 				Keepalived
 			</a>
 		</td>
 		<td class="padding10">
-			<a href="/app/waf.py?service=haproxy" title="HAProxy WAF servers overview" class="logs_link">
+			<a href="/app/waf.py?service=haproxy" title="HAProxy WAF {{lang.words.servers}} {{lang.words.overview}}" class="logs_link">
 				WAF
 			</a>
 		</td>
 		<td class="padding10">
-			<a onclick="showOverview(ip, hostnamea)" title="Refresh" style="float: right;">
+			<a onclick="showOverview(ip, hostnamea)" title="{{lang.words.refresh|title()}}" style="float: right;">
 				<span class="refresh"></span>
 			</a>
 		</td>
@@ -67,15 +69,15 @@
 	<tr class="overviewHead" style="height: 30px;">
 		<td class="padding10 first-collumn-wi" colspan="2">
 			{% if role <= 1 %}
-				<a href="/app/viewlogs.py?viewlogs={{roxy_wi_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View Roxy-WI logs" class="logs_link">			
-					Roxy-WI server status
+				<a href="/app/viewlogs.py?viewlogs={{roxy_wi_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="{{lang.words.view|title()}} Roxy-WI {{lang.words.logs}}" class="logs_link">
+					Roxy-WI {{lang.words.server_status}}
 				</a>
 			{% else %}
-				Roxy-WI server status
+				Roxy-WI {{lang.words.server_status}}
 			{% endif %}
 		</td> 
 		<td>
-			<a onclick="showOverviewHapWI()" title="Refresh" style="float: right; margin-right: 15px;">
+			<a onclick="showOverviewHapWI()" title="{{lang.words.refresh|title()}}" style="float: right; margin-right: 15px;">
 				<span class="refresh"></span>
 			</a>
 		</td>
@@ -96,15 +98,15 @@
 		<tr class="overviewHead">
 			<td class="padding10 first-collumn-wi" colspan=2>
 				{% if role <= 1 %}
-					<a href="/app/users.py#services" title="View services status" class="logs_link">
-						Roxy-WI services status
+					<a href="/app/users.py#services" title="{{lang.words.view|title()}} {{lang.words.services}} {{lang.words.status}}" class="logs_link">
+						Roxy-WI {{lang.words.services_status}}
 					</a>
 				{% else %}
-					Roxy-WI services status
+					Roxy-WI {{lang.words.services_status}}
 				{% endif %}
 			</td>
 			<td>
-				<a onclick="showServicesOverview()" title="Refresh" style="float: right; margin-right: 15px;">
+				<a onclick="showServicesOverview()" title="{{lang.words.refresh|title()}}" style="float: right; margin-right: 15px;">
 					<span class="refresh"></span>
 				</a>
 			</td>
@@ -122,19 +124,19 @@
 		<thead>
 			<tr class="overviewHead" style="height: 30px;">
 				<td class="padding10 first-collumn-wi">
-					<a href="{{admin_uri}}#users" title="Manage users" class="logs_link">Login</a>
+					<a href="{{admin_uri}}#users" title="{{lang.words.manage|title()}} {{lang.words.users2}}" class="logs_link">{{lang.words.login|title()}}</a>
 				</td>
-				<td class="second-collumn">Groups</td>
-				<td>Role</td>
+				<td class="second-collumn">{{lang.words.groups|title()}}</td>
+				<td>{{lang.words.role|title()}}</td>
 				<td>
 					<span class="add-button-wi" id="show_all_users" style="display: none;">
-						<span title="Show all users" id="show-all-users" style="color: #fff">
-							Show all
+						<span title="{{lang.words.show_all|title()}} {{lang.words.users}}" id="show-all-users" style="color: #fff">
+							{{lang.words.show_all|title()}}
 						</span>
 					</span>
 				</td>
 				<td style="padding-right: 10px;">
-					<a onclick="showUsersOverview()" title="Refresh" style="float: right;">
+					<a onclick="showUsersOverview()" title="{{lang.words.refresh|title()}}" style="float: right;">
 						<span class="refresh"></span>
 					</a>
 				</td>
@@ -147,14 +149,14 @@
 	<table class="overview-wi" id="overview-groups">
 		<tr class="overviewHead">
 			<td class="padding10 first-collumn-wi">
-				<a href="users.py#groups" title="Manage groups" class="logs_link">Group</a>
+				<a href="users.py#groups" title="Manage groups" class="logs_link">{{lang.words.groups|title()}}</a>
 			</td>
-			<td class="second-collumn" style="width: 40%">Description</td>
+			<td class="second-collumn" style="width: 40%">{{lang.words.desc|title()}}</td>
 			<td>
 				{% if groups|length > 3 %}
 				<span class="add-button-wi">
-					<span title="Show all groups" id="show-all-groups" style="color: #fff">
-						Show all
+					<span title="{{lang.words.show_all|title()}} {{lang.words.groups}}" id="show-all-groups" style="color: #fff">
+						{{lang.words.show_all|title()}}
 					</span>
 				</span>
 				{% endif %}
@@ -183,8 +185,8 @@
 	
 	<table class="overview-wi">
 		<tr class="overviewHead">
-			<td class="padding10 first-collumn-wi">Role</td> 
-			<td class="second-collumn" style="width: 50%">Description</td>
+			<td class="padding10 first-collumn-wi">{{lang.words.role|title()}}</td>
+			<td class="second-collumn" style="width: 50%">{{lang.words.desc|title()}}</td>
 			<td></td>
 			<td></td>
 		</tr>		
@@ -193,7 +195,7 @@
 				<td class="padding10 first-collumn-wi"> 
 					{{ role.name }}
 				</td>
-				<td class="third-collumn-wi">{{ role.description }}</td>
+				<td class="third-collumn-wi">{{ lang.roles[role.name] }}</td>
 				<td></td>
 				<td></td>
 			</tr>
@@ -205,18 +207,18 @@
 		<tr class="overviewHead">
 			<td class="padding10 first-collumn-wi">
 				{% if role == 2 %}
-				<a href="/app/viewlogs.py?type=2&viewlogs={{roxy_wi_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View Roxy-WI logs" class="logs_link">
+				<a href="/app/viewlogs.py?type=2&viewlogs={{roxy_wi_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="{{lang.words.view|title()}} Roxy-WI {{lang.words.logs}}" class="logs_link">
 				{% else %}
-				<a href="/app/viewlogs.py?viewlogs={{roxy_wi_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="View Roxy-WI logs" class="logs_link">
+				<a href="/app/viewlogs.py?viewlogs={{roxy_wi_log_id}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" title="{{lang.words.view|title()}} Roxy-WI {{lang.words.logs}}" class="logs_link">
 				{% endif %}
-					Recent Roxy-WI log
+					Recent Roxy-WI {{lang.words.logs}}
 				</a>
 			</td> 
 			<td>
 				{% if roxy_wi_log|length > 3 %}
 				<span class="add-button-wi">
-					<span title="Show more log" id="show-all-haproxy-wi-log" style="color: #fff">
-						Show more log
+					<span title="{{lang.words.show|title()}} {{lang.words.more}}" id="show-all-haproxy-wi-log" style="color: #fff">
+						{{lang.words.show_all|title()}}
 					</span>
 				</span>
 				{% endif %}
@@ -247,7 +249,7 @@
 	<table class="overview-wi" id="overview-subs">
 		<tr class="overviewHead" style="height: 30px;">
 			<td class="padding10 first-collumn-wi" colspan="2">
-				<a href="https://roxy-wi.org/cabinet" title="Personal cabinet" class="logs_link" target="_blank">Subscription</a>
+				<a href="https://roxy-wi.org/cabinet" title="{{lang.words.personal|title()}} {{lang.words.cabinet}}" class="logs_link" target="_blank">{{lang.words.subs|title()}}</a>
 			</td>
 		</tr>
 		<tbody id="sub-table"></tbody>

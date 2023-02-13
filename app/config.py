@@ -5,11 +5,11 @@ import sys
 from jinja2 import Environment, FileSystemLoader
 
 import modules.db.sql as sql
+import modules.common.common as common
+import modules.roxywi.auth as roxywi_auth
 import modules.config.config as config_mod
 import modules.roxy_wi_tools as roxy_wi_tools
-import modules.roxywi.auth as roxywi_auth
 import modules.roxywi.common as roxywi_common
-import modules.common.common as common
 
 time_zone = sql.get_setting('time_zone')
 get_date = roxy_wi_tools.GetDate(time_zone)
@@ -39,13 +39,17 @@ stderr = ""
 error = ""
 aftersave = ""
 is_restart = ''
+service_desc = ''
 
 user_params = roxywi_common.get_users_params(service='nginx')
 
 if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
 	service_desc = sql.select_service(service)
 	if roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=service_desc.service_id):
-		title = f"Working with {service_desc.service} configuration files"
+		if user_params['lang'] == 'ru':
+			title = f"Работа с конфигурационным файлом {service_desc.service}"
+		else:
+			title = f"Working with {service_desc.service} configuration files"
 		action = f"config.py?service={service_desc.slug}"
 		configs_dir = get_config_var.get_config_var('configs', 'kp_save_configs_dir')
 		file_format = 'conf'
@@ -146,9 +150,9 @@ if serv is not None and form.getvalue('config') is not None:
 	sys.exit()
 
 template = template.render(
-	h2=1, title=title, role=user_params['role'], action=action, user=user_params['user'], select_id="serv", serv=serv, aftersave=aftersave,
+	h2=1, role=user_params['role'], action=action, user=user_params['user'], select_id="serv", serv=serv, aftersave=aftersave,
 	config=config_read, cfg=cfg, selects=servers, stderr=stderr, error=error, service=service, is_restart=is_restart,
 	user_services=user_params['user_services'], config_file_name=config_file_name, is_serv_protected=is_serv_protected,
-	token=user_params['token']
+	token=user_params['token'], lang=user_params['lang'], service_desc=service_desc
 )
 print(template)

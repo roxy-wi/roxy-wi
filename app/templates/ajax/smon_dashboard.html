@@ -1,7 +1,10 @@
+{% if update %}
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
+{% endif %}
 <div class="sort_menu">
-    <a href="#" title="Do not sort by status" onclick="showSmon('not_sort')">Do not sort</a> |
-    <a href="#" id="sort_by_status" title="Sort by status" onclick="sort_by_status()">Sort by status</a> |
-    <a href="#" title="SMOM Dashboard - Roxy-WI" onclick="showSmon('refresh');">Refresh</a>
+    <a href="#" title="{{lang.smon_page.desc.do_not_sort_by_status}}" onclick="showSmon('not_sort')">{{lang.smon_page.desc.do_not_sort}}</a> |
+    <a href="#" id="sort_by_status" title="{{lang.smon_page.desc.sort_status}}" onclick="sort_by_status()">{{lang.smon_page.desc.sort_status}}</a> |
+    <a href="#" title="SMOM: {{lang.words.dashboard|title()}} - Roxy-WI" onclick="showSmon('refresh');">{{lang.words.refresh|title()}}</a>
     <span style="padding-left: 20px;">
 		{% set down = [] %}
 		{% set up = [] %}
@@ -17,7 +20,7 @@
 				{% if  dis.append(s.group) %} {% endif %}
 			{% endif %}
 		{% endfor %}
-		<b>Status summary: UP: {{up|length}}, DOWN: {{down|length}}, Disabled: {{dis|length}}</b>
+		<b>{{lang.smon_page.desc.status_summary}}: {{lang.smon_page.desc.UP}}: {{up|length}}, {{lang.smon_page.desc.DOWN}}: {{down|length}}, {{lang.words.disabled|title()}}: {{dis|length}}</b>
 	<span>
 </div>
 {% set group = [] %}
@@ -48,10 +51,10 @@
     {% else %}
         <div class="smon_services dis div-server-head-dis"
     {% endif %}
-       title="Enabled checks:
-Port check{% if s.http %},
-HTTP status check: {{s.http.split(':')[0]}}://{{s.ip}}:{{s.port}}{{s.http.split(':')[1]}}
-{% if s.body and s.body is not none %}, Body response check: {{s.body}}{% endif %}
+       title="{{lang.smon_page.desc.enabled_checks}}:
+{{lang.phrases.port_check|title()}}{% if s.http %},
+{{lang.smon_page.desc.http_status_check}}: {{s.http.split(':')[0]}}://{{s.ip}}:{{s.port}}{{s.http.split(':')[1]}}
+{% if s.body and s.body is not none %}, {{lang.smon_page.desc.body_status_check}}: {{s.body}}{% endif %}
 {% endif %}">
     <div class="ip">
         {% if s.ip|string|length > 23 %}
@@ -63,7 +66,7 @@ HTTP status check: {{s.http.split(':')[0]}}://{{s.ip}}:{{s.port}}{{s.http.split(
         {% else %}
             <span>
         {% endif %}
-                <a href="smon.py?action=history&host={{s.ip}}" title="View history for {{s.ip}} host" class="link">{{s.ip}}:{{s.port}}</a>
+                <a href="smon.py?action=history&host={{s.ip}}" title="{{lang.words.view|title()}} {{lang.words.history}} {{lang.words.for}} {{s.ip}} {{lang.words.host}}" class="link">{{s.ip}}:{{s.port}}</a>
             </span>
         </span>
     </div>
@@ -71,28 +74,28 @@ HTTP status check: {{s.http.split(':')[0]}}://{{s.ip}}:{{s.port}}{{s.http.split(
         {% if s.desc is not none %}
             <b>{{s.desc}}</b>
         {% else %}
-            Desc: None
+            {{lang.words.desc|title()}}: None
         {% endif %}
     </div>
     <div class="desc">
         {% if s.en == 1 %}
             {% if s.status == 1 and s.http_status == 1 and s.body_status == 1 %}
-                Uptime: <time class="timeago" datetime="{{s.time_state}}">{{s.time_state}}</time>
+                {{lang.words.uptime}}: <time class="timeago" datetime="{{s.time_state}}">{{s.time_state}}</time>
             {% elif s.status == 0 or s.http_status == 0 or s.body_status == 0 %}
-                Downtime: <time class="timeago" datetime="{{s.time_state}}">{{s.time_state}}</time>
+                {{lang.words.downtime}}: <time class="timeago" datetime="{{s.time_state}}">{{s.time_state}}</time>
             {% else %}
-                Uptime: N/A
+                {{lang.words.uptime}}: N/A
             {% endif %}
         {% else %}
-            Uptime: N/A
+            {{lang.words.uptime}}: N/A
         {% endif %}
     </div>
     <div class="res_time">
         {% if s.en == 1 %}
             {% if s.status == 1 %}
-                Resp time:
+                {{lang.smon_page.desc.resp_time}}:
             {% else %}
-                Last resp time:
+                {{lang.smon_page.desc.last_resp_time}}:
             {% endif %}
             {% if s.responce_time %}
                 <span title="{{s.responce_time}} ms">{{s.responce_time|truncate(9)}} ms</span>
@@ -107,38 +110,38 @@ HTTP status check: {{s.http.split(':')[0]}}://{{s.ip}}:{{s.port}}{{s.http.split(
          {% if s.status == 1 and s.http_status == 1 and s.body_status == 1 %}
             <div class="up">
                 <center>
-                    UP
+                    {{lang.smon_page.desc.UP}}
                 </center>
             </div>
          {% elif s.http_status == 0 %}
             <div class="down">
                  <center style="padding-top: 7px;">
-                      HTTP FAILURE
+                      {{lang.smon_page.desc.HTTP_FAILURE}}
                  </center>
             </div>
          {% elif s.body_status == 0 %}
             <div class="down">
                  <center style="padding-top: 7px;">
-                      BODY FAILURE
+                      {{lang.smon_page.desc.BODY_FAILURE}}
                  </center>
             </div>
          {% elif s.status == 3 %}
             <div class="unknown">
                 <center style="padding-top: 7px;">
-                    UNKNOWN
+                    {{lang.smon_page.desc.UNKNOWN}}
                 </center>
             </div>
          {% else %}
             <div class="down">
                 <center style="padding-top: 7px;">
-                    PORT DOWN
+                    {{lang.smon_page.desc.PORT_DOWN}}
                 </center>
             </div>
          {% endif %}
     {% else %}
         <div class="disable">
             <center>
-                Disabled
+                {{lang.words.disabled|title()}}
             </center>
         </div>
     {% endif %}

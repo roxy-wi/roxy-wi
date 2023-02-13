@@ -13,7 +13,7 @@ html {
 }
 body {
   font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol;
-  font-size: 1.3em;
+  font-size: 1.2em;
   line-height: 1.42857143;
   color: #000;
   background-color: #fff;
@@ -171,7 +171,7 @@ pre {
 .footer-link, .footer-copyright {
 	color: var(--blue-color);
 	font-size: 0.9em;
-	padding: 12px 5px 20px 20px;
+	padding: 12px 5px 20px 15px;
 }
 .footer-copyright {
 	color: #586069 ;
@@ -571,7 +571,7 @@ ul{
     background-size: 0 100%,100% 100%;
     border: 0;
     transition: background 1s ease-out;
-	font-size: 15px;
+	font-size: 0.9em;
 }
 .form-login {
 	text-align: center;
@@ -676,6 +676,7 @@ table {
   	background-color: transparent;
 	border-radius: var(--border-radius);
   	width: 100%;
+	font-size: 1.2em;
 }
 caption {
   color: #777;
@@ -849,7 +850,7 @@ label {
 	margin-left: -2px;
 }
 .server-act-links a {
-	margin-right: 2.3px !important
+	margin-right: 2px !important
 }
 .server-act-links a:last-child {
 	margin-right: 0 !important;
@@ -1301,4 +1302,9 @@ label {
 	float: left;
 	width: 250px;
 	cursor: pointer;
+}
+.overflow {
+	overflow: hidden !important;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }

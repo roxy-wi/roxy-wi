@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% block title %}{{lang.menu_links.logs.h2}} {{service_name}}{% endblock %}
+{% block h2 %}{{lang.menu_links.logs.h2}} {{service_name}}{% endblock %}
 {% block content %}	
 {% from 'include/input_macros.html' import input, checkbox %}
 <script src="/inc/users.js"></script>
@@ -7,21 +9,21 @@
 	<tr class="overviewHead">
 		<td class="padding10 first-collumn" style="width: 10%;">
 			{% if select_id == 'viewlogs' %}
-				Log
+				{{lang.words.log|title()}}
 			{% else %}
-				Server
+				{{lang.words.server|title()}}
 			{% endif %}
 		</td>
 		{% if waf != '1' and select_id != 'viewlogs' %}
-		<td style="width: 10%;">Log files</td>
+		<td style="width: 10%;">{{lang.words.log|title()}} {{lang.words.files|title()}}</td>
 		{% endif %}
 		{% if select_id != 'viewlogs' and service != 'nginx' %}
 		{% endif %}
-		<td style="width: 10%;">Number rows</td>
-		<td class="help_cursor" style="width: 10%;"><span title="Find in a log file(supports regular expressions)">Find<span></td>
-		<td class="padding10 help_cursor" style="width: 10%;"><span title="Exclude from search in a log file(supports regular expressions)">Exclude<span></td>
+		<td style="width: 10%;">{{lang.words.number|title()}} {{lang.words.rows}}</td>
+		<td class="help_cursor" style="width: 10%;"><span title="Find in a log file(supports regular expressions)">{{lang.words.find|title()}}<span></td>
+		<td class="padding10 help_cursor" style="width: 10%;"><span title="Exclude from search in a log file(supports regular expressions)">{{lang.words.exclude|title()}}<span></td>
 		<td style="width: 10%;">
-			<label for="time_range_out_hour" style="padding: 0">Time range:</label>
+			<label for="time_range_out_hour" style="padding: 0">{{lang.words.time_range|title()}}:</label>
 			{{ input('time_range_out_hour', value=hour, class='time-range', readonly='readonly') }}:{{ input('time_range_out_minut', value=minut, class='time-range', readonly='readonly') }}
 			{{ input('time_range_out_hour1', value=hour1, class='time-range', readonly='readonly') }}:{{ input('time_range_out_minut1', value=minut1, class='time-range', readonly='readonly') }}	
 		</td>
@@ -71,7 +73,7 @@
 			<div id="time-range"></div>			
 		</td>			
 		<td class="padding10 first-collumn" style="width: 1%;">
-			<button type="submit" name="Show log" value="Show" id="show_log_button">Show</button>
+			<button type="submit" name="Show log" value="Show" id="show_log_button">{{lang.words.show|title()}}</button>
 			</form>
 		</td>
 	</tr>
@@ -87,14 +89,14 @@
 		}
 	</script>
 	<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
-		You can read the descriptions about all logs <a href="https://roxy-wi.org/description/logs" title="Servers description" target="_blank" class="link">here</a>
+		{{lang.phrases.read_about_files}} <a href="https://roxy-wi.org/description/logs" title="{{lang.words.servers|title()}} {{lang.words.desc}}" target="_blank" class="link">{{lang.words.here}}</a>
 	</div>
 {% elif serv == 'roxy-wi.error.log' or serv == 'roxy-wi.access.log' %}
 	<script>
 		showApacheLog('{{serv}}');
 	</script>
 	<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
-		You can read the description about all logs file <a href="https://roxy-wi.org/description/logs" title="Servers description" target="_blank" class="link">here</a>
+		{{lang.phrases.read_about_files}} <a href="https://roxy-wi.org/description/logs" title="{{lang.words.servers|title()}} {{lang.words.desc}}" target="_blank" class="link">{{lang.words.here}}</a>
 	</div>
 {% else %}
 	<script>

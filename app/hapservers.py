@@ -34,7 +34,6 @@ restart_settings = ''
 if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
 	service_desc = sql.select_service(service)
 	if roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=service_desc.service_id):
-		title = f'{service_desc.service} servers overview'
 		if serv:
 			if roxywi_common.check_is_server_in_group(serv):
 				servers = sql.select_servers(server=serv)
@@ -180,9 +179,10 @@ except Exception as e:
 	roxywi_common.logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
 
 template = template.render(
-	h2=1, autorefresh=autorefresh, title=title, role=user_params['role'], user=user_params['user'], servers=servers_with_status1,
+	h2=1, autorefresh=autorefresh, role=user_params['role'], user=user_params['user'], servers=servers_with_status1,
 	keep_alive=''.join(keep_alive), serv=serv, service=service, services=services, user_services=user_params['user_services'],
 	docker_settings=docker_settings, user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'],
-    servers_waf=servers_waf, restart_settings=restart_settings, service_desc=service_desc, token=user_params['token']
+    servers_waf=servers_waf, restart_settings=restart_settings, service_desc=service_desc, token=user_params['token'],
+	lang=user_params['lang']
 )
 print(template)

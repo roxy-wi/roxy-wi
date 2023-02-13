@@ -8,7 +8,6 @@ import modules.roxywi.common as roxywi_common
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('ha.html')
-title = "Create and configure HA cluster"
 
 print('Content-type: text/html\n')
 
@@ -33,8 +32,8 @@ except Exception as e:
 	roxywi_common.logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
 
 parsed_template = template.render(
-	h2=1, title=title, role=user_params['role'], user=user_params['user'], serv=serv, selects=user_params['servers'],
-	user_services=user_params['user_services'], user_status=user_subscription['user_status'],
+	h2=1, role=user_params['role'], user=user_params['user'], serv=serv, selects=user_params['servers'],
+	user_services=user_params['user_services'], user_status=user_subscription['user_status'], lang=user_params['lang'],
 	user_plan=user_subscription['user_plan'], is_needed_tool=is_needed_tool, token=user_params['token']
 )
 print(parsed_template)

@@ -10,7 +10,7 @@
         {% include 'include/tr_validate_tips.html' %}
         <tr>
             <td class="padding20">
-                Provider name
+                {{lang.words.provider|title()}} {{lang.words.name}}
                 <span class="need-field">*</span>
             </td>
             <td>{{input('aws_new_name', required='required', size='30')}}</td>
@@ -18,7 +18,7 @@
         {% if role == 1 %}
         <tr>
             <td class="padding20">
-                Group
+                {{lang.words.group|title()}}
                 <span class="need-field">*</span>
             </td>
             <td>
@@ -56,7 +56,7 @@
         {% include 'include/tr_validate_tips.html' %}
         <tr>
             <td class="padding20">
-                Provider name
+                {{lang.words.provider|title()}} {{lang.words.name}}
                 <span class="need-field">*</span>
             </td>
             <td>{{input('do_new_name', required='required', size='30')}}</td>
@@ -64,7 +64,7 @@
         {% if role == 1 %}
         <tr>
             <td class="padding20">
-                Group
+                {{lang.words.group|title()}}
                 <span class="need-field">*</span>
             </td>
             <td>
@@ -95,7 +95,7 @@
         {% include 'include/tr_validate_tips.html' %}
         <tr>
             <td class="padding20">
-                Provider name
+                {{lang.words.provider|title()}} {{lang.words.name}}
                 <span class="need-field">*</span>
             </td>
             <td>{{input('gcore_new_name', required='required', size='30')}}</td>
@@ -103,7 +103,7 @@
         {% if role == 1 %}
         <tr>
             <td class="padding20">
-                Group
+                {{lang.words.group|title()}}
                 <span class="need-field">*</span>
             </td>
             <td>
@@ -119,14 +119,14 @@
         {% endif %}
         <tr>
             <td class="padding20">
-                User name
+                {{lang.words.username|title()}}
                 <span class="need-field">*</span>
             </td>
             <td>{{input('gcore_new_user', required='required', size='30')}}</td>
         </tr>
         <tr>
             <td class="padding20">
-                Password
+                {{lang.words.password|title()}}
                 <span class="need-field">*</span>
             </td>
             <td>{{input('gcore_new_pass', required='required', type='password', size='30')}}</td>
@@ -138,7 +138,7 @@
         {% include 'include/tr_validate_tips.html' %}
         <tr>
             <td class="padding20">
-                Provider name
+                {{lang.words.provider|title()}} {{lang.words.name}}
                 <span class="need-field">*</span>
             </td>
             <td>{{input('aws_edit_provider_name', required='required', size='30')}}</td>
@@ -166,7 +166,7 @@
         {% include 'include/tr_validate_tips.html' %}
         <tr>
             <td class="padding20">
-                Provider name
+                {{lang.words.provider|title()}} {{lang.words.name}}
                 <span class="need-field">*</span>
             </td>
             <td>{{input('do_edit_provider_name', required='required', size='30')}}</td>
@@ -187,7 +187,7 @@
         {% include 'include/tr_validate_tips.html' %}
         <tr>
             <td class="padding20">
-                Provider name
+                {{lang.words.provider|title()}} {{lang.words.name}}
                 <span class="need-field">*</span>
             </td>
             <td>{{input('gcore_edit_provider_name', required='required', size='30')}}</td>
@@ -196,14 +196,14 @@
         {{input('gcore_edit_provider_id', type='hidden')}}
         <tr>
             <td class="padding20">
-                User name
+                {{lang.words.username|title()}}
                 <span class="need-field">*</span>
             </td>
             <td>{{input('gcore_edit_provider_user', required='required', size='30')}}</td>
         </tr>
         <tr>
             <td class="padding20">
-                Password
+                {{lang.words.password|title()}}
                 <span class="need-field">*</span>
             </td>
             <td>{{input('gcore_edit_provider_password', required='required', type='password', size='30')}}</td>

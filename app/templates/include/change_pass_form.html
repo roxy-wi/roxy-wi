@@ -3,20 +3,20 @@
 	<table class="overview">
 		<tr>
 			<td colspan="2">
-				  <p class="validateTips alert alert-success">Enter a password and confirm</p>
+				  <p class="validateTips alert alert-success">{{lang.words.enter2|title()}} {{lang.words.w_a}} {{lang.words.password}} {{lang.words.and}} {{lang.words.confirmation}}</p>
 			</td>
 		</tr>
 		<tr>
-			<td class="padding20">Password</td>
+			<td class="padding20">{{lang.words.password|title()}}</td>
 			<td>{{ input('change-password', type='password') }}</td>
 		</tr>
 		<tr>
-			<td class="padding20">Confirm password</td>
+			<td class="padding20">{{lang.words.confirm|title()}} {{lang.words.password}}</td>
 			<td>{{ input('change2-password', type='password') }}</td>
 		</tr>
 		<tr id="missmatchpass" style="display: none;">
 			<td colspan="2">
-				  <p class="validateTips alert alert-danger" style="margin-top: 10px;">The passwords are mismatched</p>
+				  <p class="validateTips alert alert-danger" style="margin-top: 10px;">{{lang.phrases.pass_mismatched}}</p>
 			</td>
 		</tr>
 	</table>

@@ -22,11 +22,11 @@ except Exception as e:
     sys.exit()
 
 output_from_parsed_template = template.render(h2=1, autorefresh=0,
-                                              title="Network tools",
                                               role=user_params['role'],
                                               user=user_params['user'],
                                               servers=user_params['servers'],
                                               versions=roxywi_mod.versions(),
                                               user_services=user_params['user_services'],
-                                              token=user_params['token'])
+                                              token=user_params['token'],
+                                              lang=user_params['lang'])
 print(output_from_parsed_template)

@@ -1,7 +1,7 @@
 {% from 'include/input_macros.html' import input, checkbox %}
 <tr>
 	<td class="padding20">
-		New hostname
+		{{lang.words.name|title()}}
 		<span class="need-field">*</span>
 	</td>
 	<td>{{ input('new-server-add') }}</td>
@@ -13,44 +13,44 @@
 	<td>{{ input('new-ip') }}</td>
 <tr>
 	<td class="padding20" title="SSH port">
-		Port
+		{{lang.words.port|title()}}
 		<span class="need-field">*</span>
 	</td>
 	<td>{{ input('new-port', value='22', type='number') }}</td>
 </tr>
 <tr>
-	<td class="padding20">Enable</td>
+	<td class="padding20">{{lang.words.enable|title()}}</td>
 	<td>{{ checkbox('enable', checked='checked') }}</td>
 </tr>
 <tr>
-	<td class="padding20" title="Virtual IP(VRRP)">Virt</td>
+	<td class="padding20" title="{{lang.words.virtual|title()}} IP(VRRP)">{{lang.words.virt|title()}}</td>
 	<td>{{ checkbox('typeip') }}</td>
 </tr>
 <tr>
-	<td class="padding20 help_cursor" title="Scan the server for HAProxy, NGINX, Keepalived and Firewalld services">Scan the server</td>
+	<td class="padding20 help_cursor" title="{{lang.phrases.scan_title}}">{{lang.words.scan|title()}} {{lang.words.the}} {{lang.words.server}}</td>
 	<td>{{ checkbox('scan_server', checked='checked') }}</td>
 </tr>
 <tr class="services_for_scan" style="display: none">
-	<td class="padding20" title="Is there HAProxy?">HAProxy</td>
+	<td class="padding20" title="{{lang.words.is_there}} HAProxy?">HAProxy</td>
 	<td>{{ checkbox('haproxy') }}	</td>
 </tr>
 <tr class="services_for_scan" style="display: none">
-	<td class="padding20" title="Is there NGINX?">NGINX</td>
+	<td class="padding20" title="{{lang.words.is_there}} NGINX?">NGINX</td>
 	<td>{{ checkbox('nginx') }}</td>
 </tr>
 <tr class="services_for_scan" style="display: none">
-	<td class="padding20" title="Is there Apache?">Apache</td>
+	<td class="padding20" title="{{lang.words.is_there}} Apache?">Apache</td>
 	<td>{{ checkbox('apache') }}</td>
 </tr>
 <tr class="services_for_scan" style="display: none">
-	<td class="padding20" title="Is there Firewall?">Firewall</td>
+	<td class="padding20" title="{{lang.words.is_there}} Firewall?">Firewall</td>
 	<td>{{ checkbox('firewall') }}</td>
 </tr>
 <tr>
-	<td class="padding20 help_cursor" title="Actions with master config will automatically apply on slave">Slave for</td>
+	<td class="padding20 help_cursor" title="{{lang.phrases.slave_for_title}}">{{lang.words.slave_for}}</td>
 	<td>
 		<select id="slavefor">
-			<option value="0" selected>Not slave</option>
+			<option value="0" selected>------</option>
 			{% for master in masters %}
 				<option value="{{master.0}}">{{master.1}}</option>
 			{% endfor %}
@@ -58,6 +58,6 @@
 	</td>
 </tr>
 <tr>
-	<td class="padding20">Description</td>
+	<td class="padding20">{{lang.words.desc|title()}}</td>
 	<td>{{ input('desc', size='30') }}</td>
 </tr>

@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block h2 %}{{ title }}{% endblock %}
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select %}
 <script src="/inc/overview.js"></script>
@@ -33,8 +35,8 @@
 {% elif port_scanner_stderr != '' %}
 <div style="text-align: center;">
 	<br />
-	<h3>You have not installed Port scanner service. Read <a href="https://roxy-wi.org/services.py/portscanner"
-	title="Port scanner" target="_blank">here</a> how to install Port scanner service</h3>
+	<h3>{{lang.admin_page.desc.no_ansible}} Port scanner {{lang.words.service}}. {{lang.words.read|title()}} <a href="https://roxy-wi.org/services.py/portscanner"
+	title="Port scanner" target="_blank">{{lang.words.here}}</a> {{lang.phrases.how_to_install}} Port scanner {{lang.words.service}}</h3>
 </div>
 {% else %}
 	<div id="up-pannel">
@@ -54,22 +56,22 @@
 					{% if port_scanner_settings|length > 0 %}
 						{% if p.server_id == s.0 and p.enabled == 1 %}
 							{% if port_scanner == 'active' %}
-								<span id="portscanner_enable_status-{{p.server_id}}" class="serverUp server-status" title="Port scanner is enabled and service is UP"></span>
+								<span id="portscanner_enable_status-{{p.server_id}}" class="serverUp server-status" title="{{lang.p_s_page.desc.is_enabled_and_up}}"></span>
 							{% else %}
-								<span id="portscanner_enable_status-{{p.server_id}}" class="serverDown server-status" title="Port scanner is enabled, but service is DOWN"></span>
+								<span id="portscanner_enable_status-{{p.server_id}}" class="serverDown server-status" title="{{lang.p_s_page.desc.is_enabled_and_down}}"></span>
 							{% endif %}
 						{% elif p.server_id == s.0 and p.enabled == 0 %}
-							<span id="portscanner_enable_status-{{p.server_id}}" class="serverNone server-status" title="Port scanner is disabled"></span>
+							<span id="portscanner_enable_status-{{p.server_id}}" class="serverNone server-status" title="Port scanner {{lang.words.is}} {{lang.words.disabled}}"></span>
 						{% endif %}
 					{% else %}
-						<span id="portscanner_enable_status-{{p.server_id}}" class="serverNone server-status" title="Port scanner is disabled"></span>
+						<span id="portscanner_enable_status-{{p.server_id}}" class="serverNone server-status" title="Port scanner {{lang.words.is}} {{lang.words.disabled}}"></span>
 					{% endif %}
 					{% endfor %}
 					{% if s.0 not in port_scanner_settings|map(attribute='server_id') %}
-						<span id="portscanner_enable_status-{{s.0}}" class="serverNone server-status" title="Port scanner is disabled"></span>
+						<span id="portscanner_enable_status-{{s.0}}" class="serverNone server-status" title="Port scanner {{lang.words.is}} {{lang.words.disabled}}"></span>
 					{% endif %}
 					{% if not serv %}
-						<a href="/app/portscanner.py?history={{s.2}}" title="View Port scanner history for {{s.1}}" style="color: #5d9ceb">{{s.1}}</a>
+						<a href="/app/portscanner.py?history={{s.2}}" title="{{lang.words.view|title()}} Port scanner {{lang.words.history2}} {{lang.words.for}} {{s.1}}" style="color: #5d9ceb">{{s.1}}</a>
 					{% else %}
 						{{s.1}}
 					{% endif %}
@@ -82,7 +84,7 @@
 				<br />
 				IP: {{s.2}}
 				<br />
-				Last scan:
+				{{lang.words.last|title()}} {{lang.words.scan}}:
 				{% if count_ports is defined %}
 				{% for c in count_ports %}
 					{% if c.0 == s.2 %}
@@ -91,7 +93,7 @@
 				{% endfor %}
 				{% endif %}
 				<br />
-				Total opened ports:
+				{{lang.p_s_page.desc.total_open_ports}}:
 				{% if count_ports is defined %}
 				{% for c in count_ports %}
 					{% if c.0 == s.2 %}
@@ -114,46 +116,43 @@
 									{% set disabled = 'true' %}
 								{% endif %}
 								{% if p.enabled == 1 %}
-									{{ checkbox(portscanner_enable_id, title="Port scanner enabled", checked='checked', desc='Port scanner') }}
+									{{ checkbox(portscanner_enable_id, title="Port scanner "+lang.words.enabled, checked='checked', desc='Port scanner') }}
 								{% else %}
-									{{ checkbox(portscanner_enable_id, title="Port scanner disabled", desc='Port scanner') }}
+									{{ checkbox(portscanner_enable_id, title="Port scanner "+lang.words.disabled, desc='Port scanner') }}
 								{% endif %}
 								{% if p.notify == 1 %}
-									{{ checkbox(portscanner_notify_id, title="Notification via Telegram enabled", checked='checked', desc='Notify') }}
+									{{ checkbox(portscanner_notify_id, title=lang.words.notification|title()+" "+ lang.words.via +" Telegram/Slack "+lang.words.enabled, checked='checked', desc=lang.words.notify|title()) }}
 								{% else %}
-									{{ checkbox(portscanner_notify_id, title="Notification via Telegram disabled", desc='Notify', disabled=disabled) }}
+									{{ checkbox(portscanner_notify_id, title=lang.words.notification|title()+" "+ lang.words.via +" Telegram/Slack "+lang.words.disabled, desc=lang.words.notify|title(), disabled=disabled) }}
 								{% endif %}
 								{% if p.history == 1 %}
-									{{ checkbox(portscanner_history_id, title="Keeping history enabled", checked='checked', desc='Keep history') }}
+									{{ checkbox(portscanner_history_id, title=lang.words.keeping|title()+" "+ lang.words.history3 + " "+lang.words.enabled, checked='checked', desc=lang.words.keep|title()+' '+lang.words.history2) }}
 								{% else %}
-									{{ checkbox(portscanner_history_id, title="Keeping history disabled", desc='Keep history', disabled=disabled) }}
+									{{ checkbox(portscanner_history_id, title=lang.words.keeping|title()+" "+ lang.words.history3 + " "+lang.words.disabled, desc=lang.words.keep|title()+' '+lang.words.history2, disabled=disabled) }}
 								{% endif %}
 							{% endif %}
 						{% endfor %}
 						{% if s.0 not in port_scanner_settings|map(attribute='server_id') %}
-							{{ checkbox(portscanner_enable_id, title="Port scanner disabled", desc='Port scanner') }}
-							{{ checkbox(portscanner_notify_id, title="Notification via Telegram disabled", desc='Notify', disabled='true') }}
-							{{ checkbox(portscanner_history_id, title="Keeping history disabled", desc='Keep history', disabled='true') }}
+							{{ checkbox(portscanner_enable_id, title="Port scanner "+lang.words.disabled, desc='Port scanner') }}
+							{{ checkbox(portscanner_notify_id, title=lang.words.notification|title()+" "+ lang.words.via +" Telegram/Slack "+lang.words.disabled, desc=lang.words.notify|title(), disabled='true') }}
+							{{ checkbox(portscanner_history_id, title=lang.words.keeping|title()+" "+ lang.words.history3 + " "+lang.words.disabled, desc=lang.words.keep|title()+' '+lang.words.history2, disabled='true') }}
 						{% endif %}
 					{% else %}
-						{{ checkbox(portscanner_enable_id, title="Port scanner disabled", desc='Port scanner') }}
-						{{ checkbox(portscanner_notify_id, title="Notification via Telegram disabled", desc='Notify', disabled='true') }}
-						{{ checkbox(portscanner_history_id, title="Keeping history disabled", desc='Keep history', disabled='true') }}
+						{{ checkbox(portscanner_enable_id, title="Port scanner "+lang.words.disabled, desc='Port scanner') }}
+						{{ checkbox(portscanner_notify_id, title=lang.words.notification|title()+" "+ lang.words.via +""+lang.words.disabled, desc=lang.words.notify|title(), disabled='true') }}
+						{{ checkbox(portscanner_history_id, title=lang.words.keeping|title()+" "+ lang.words.history3 + " "+lang.words.disabled, desc=lang.words.keep|title()+' '+lang.words.history2, disabled='true') }}
 					{% endif %}
 				{% endif %}
 				<br />
-				<button onclick="scanPorts('{{s.0}}')" title="Scanning open/filtered ports for the server {{s.1}}">Run scan</button>
+				<button onclick="scanPorts('{{s.0}}')" title="{{lang.p_s_page.desc.scanning_ports}} {{s.1}}">{{lang.words.run|title()}} {{lang.words.scan}}</button>
 			</div>
 		</div>
 	{% endfor %}
 	</div>
 	<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px; margin-top: 45%">
-		Read about Port scanner service in this <a href="https://roxy-wi.org/services/portscanner" title="The Port scanner service description" target="_blank">article</a>
+		{{lang.words.read|title()}} {{lang.words.about}} Port scanner {{lang.words.service}} {{lang.words.in}} {{lang.words.this2}} <a href="https://roxy-wi.org/services/portscanner" title="The Port scanner service description" target="_blank">{{lang.words.article}}</a>
 	</div>
 {% endif %}
-<div id="dialog-confirm" style="display: none;">
-  <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>Are you sure?</p>
-</div>
 <div id="show_scans_ports" style="display: none; padding: 0;">
     <div id="show_scans_ports_body"></div>
 </div>
@@ -173,18 +172,20 @@
 				} else {
 					toastr.clear();
 					$("#show_scans_ports_body").html(data);
+					var close_word = $('#translate').attr('data-close');
 					$("#show_scans_ports" ).dialog({
 						resizable: false,
 						height: "auto",
 						width: 360,
 						modal: true,
-						title: "Opened ports",
-						buttons: {
-							Close: function() {
+						title: "{{lang.words.opened|title()}} {{lang.words.ports}}",
+						buttons: [{
+							text: close_word,
+							click: function() {
 								$( this ).dialog( "close" );
 								$("#show_scans_ports_body").html('');
 							}
-						}
+						}]
 					});
 				}
 			}

@@ -1,5 +1,7 @@
 {% extends "base.html" %}
-{% block content %}	
+{% block title %}{{ lang.menu_links.hapservers.h2 }} {{ service_desc.service }}{% endblock %}
+{% block h2 %}{{ lang.menu_links.hapservers.h2 }} {{ service_desc.service }}{% endblock %}
+{% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select, copy_to_clipboard %}
 <script src="/inc/overview.js"></script>
 <link href="/inc/css/chart.min.css" rel="stylesheet">
@@ -157,7 +159,7 @@
 				});
 			</script>
 		{% endif %}
-		{% set checker_desc = "Checker monitors " +service_desc.service + " services. If " + service_desc.service + " service changes its status, Checker will alert via Telegram, Slack, Email, Web" %}
+		{% set checker_desc = lang.services.hapservers_desc %}
 		{% if service == 'nginx' %}
 			{% set is_auto_start_enabled = s.8.0.17 %}
 			{% set is_checker_enabled = s.8.0.19 %}
@@ -222,27 +224,27 @@
 				{% endfor %}
 				{% if role <= 3 %}
 				<span class="server-action">
-					<a id="start-{{ s.2 }}" class="start" title="Start {{service}} service">
+					<a id="start-{{ s.2 }}" class="start" title="{{lang.words.start|title()}} {{service}} {{lang.words.service}}">
 						<span class="service-start" onclick="confirmAjaxAction('start', '{{service}}', '{{s.2}}')"></span>
 					</a>
 					{% if service != 'keepalived' %}
-					<a id="reload-{{ s.2 }}" class="reload" title="Reload {{service}} service">
+					<a id="reload-{{ s.2 }}" class="reload" title="{{lang.words.reload|title()}} {{service}} {{lang.words.service}}">
 						<span class="service-reload" onclick="confirmAjaxAction('reload', '{{service}}', '{{s.2}}', '{{s.1}}')"></span>
 					</a>
 					{% endif %}
 					{% for set in restart_settings %}
 						{% if set.server_id == s.0 and set.setting == 'restart' and set.value|int == 0 %}
-						<a id="restart-{{ s.2 }}" class="restart" title="Restart {{service}} service">
+						<a id="restart-{{ s.2 }}" class="restart" title="{{lang.words.restart|title()}} {{service}} {{lang.words.service}}">
 							<span class="service-reload service-restart" onclick="confirmAjaxAction('restart', '{{service}}', '{{s.2}}')"></span>
 						</a>
 						{% endif %}
 					{% endfor %}
 					{% if restart_settings|length == 0 %}
-						<a id="restart-{{ s.2 }}" class="restart" title="Restart {{service}} service">
+						<a id="restart-{{ s.2 }}" class="restart" title="{{lang.words.restart|title()}} {{service}} {{lang.words.service}}">
 							<span class="service-reload service-restart" onclick="confirmAjaxAction('restart', '{{service}}', '{{s.2}}')"></span>
 						</a>
 					{% endif %}
-					<a id="stop-{{ s.2 }}" class="stop" title="Stop {{service}} service">
+					<a id="stop-{{ s.2 }}" class="stop" title="{{lang.words.stop|title()}} {{service}} {{lang.words.service}}">
 						<span class="service-stop" onclick="confirmAjaxAction('stop', '{{service}}', '{{s.2}}')"></span>
 					</a>
 					<a href="history.py?service={{service}}&serv={{s.2}}" title="View history for this service" class="history" style="margin: 0 5px 0 10px;"></a>
@@ -254,18 +256,18 @@
 			</div>
 			<div class="server-desc">
 				{% if s.3 is none %}
-				No description
+				{{lang.words.no_desc|title()}}
 				{% else %}
 				{{s.3}}
 				{% endif %}
 				<br />
 				{% if service == 'nginx' or service == 'keepalived' %}
-					Version: {{s.5.0.0}} Process_num: {{s.5.0.3}}
+					{{lang.words.version|title()}}: {{s.5.0.0}} {{lang.words.process_num|title()}}: {{s.5.0.3}}
 					<br />
 					{% if s.5.0.1 == 'active' or s.5.0.1 == 'Up' %}
-						Started:
+						{{lang.words.started|title()}}:
 					{% else %}
-						Stopped:
+						{{lang.words.stopped|title()}}:
 					{% endif %}
 					{{s.5.0.2}}
 				{% elif service == 'apache' %}
@@ -274,7 +276,7 @@
 						<br />
 						{{s.4.1.split(' ')[0].split('Server')[1]}} {% for i in s.4.1.split(' ')[1:5] %} {{i}}{% endfor %}
 					{% else %}
-						Cannot get information about Apache
+						{{lang.errors.cannot_get_info}} Apache
 					{% endif %}
 				{% else %}
 					{% if s.5.0 is defined %}
@@ -282,11 +284,11 @@
 						<br />
 						{{s.5.0.2}}
 					{% else %}
-						Cannot get information about HAProxy
+						{{lang.errors.cannot_get_info}} HAProxy
 					{% endif %}
 				{% endif %}
 				<span title="Date of last configuration edit">
-					Last edit:
+					{{lang.services.last_edit}}:
 					<span id="edit_date_{{s.2}}"></span>
 				</span>
 				<div class="overflow_div">
@@ -299,7 +301,7 @@
 					{% if s.9.1 == 'MASTER' or s.9.1 == 'BACKUP' or s.9.1 == 'INIT' or s.9.1 == 'FAULT' %}
 						{{s.9.1}}
 					{% else %}
-						<span title="Cannot get Keepalived Status" class="help_cursor">Error</span>
+						<span title="{{lang.errors.cannot_get_info}} Keepalived" class="help_cursor">{{lang.words.error|title()}}</span>
 					{% endif %}
 					</b>
 				{% endif %}
@@ -333,20 +335,20 @@
 			</div>
 			<div class="server-act-links">
 				{% if service == 'nginx' or service == 'apache' %}
-				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showConfigFiles" {{config_id}} class="ui-button ui-widget ui-corner-all" title="Open running configs">Configs</a>
+				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showConfigFiles" {{config_id}} class="ui-button ui-widget ui-corner-all" title="{{lang.words.open|title()}} {{lang.words.running}} {{lang.words.configs}}">{{lang.menu_links.config.link}}</a>
 				{% else %}
-				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showConfig" {{config_id}} class="ui-button ui-widget ui-corner-all" title="Open running config">Config</a>
+				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showConfig" {{config_id}} class="ui-button ui-widget ui-corner-all" title="{{lang.words.open|title()}} {{lang.words.running}} {{lang.words.config}}">{{lang.menu_links.config.link}}</a>
 				{% endif %}
-				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showCompare" {{compare_id}} class="ui-button ui-widget ui-corner-all" title="Compare configs">Compare</a>
+				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showCompare" {{compare_id}} class="ui-button ui-widget ui-corner-all" title="{{lang.words.compare|title()}} {{lang.words.configs}}">{{lang.words.compare|title()}}</a>
 			{% if service == 'haproxy' %}
-				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showMap" class="ui-button ui-widget ui-corner-all" {{map_id}} title="Show map">Map</a>
+				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showMap" class="ui-button ui-widget ui-corner-all" {{map_id}} title="{{lang.words.show|title()}} {{lang.words.map}}">{{lang.words.map|title()}}</a>
 			{% endif %}
 			{% if service != 'keepalived' %}
-			<a href="/app/statsview.py?service={{service}}&serv={{s.2}}" class="ui-button ui-widget ui-corner-all" {{stats_id}} title="View {{service}} statistics">Stats</a>
+			<a href="/app/statsview.py?service={{service}}&serv={{s.2}}" class="ui-button ui-widget ui-corner-all" {{stats_id}} title="{{lang.words.view|title()}} {{service}} {{lang.words.statistics}}">{{lang.menu_links.stats.link}}</a>
 			{% endif %}
-			<a href="/app/logs.py?service={{service}}&serv={{s.2}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" {{logs_id}} class="ui-button ui-widget ui-corner-all" title="View {{service}} logs">Logs</a>
+			<a href="/app/logs.py?service={{service}}&serv={{s.2}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" {{logs_id}} class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{service}} {{lang.words.logs}}">{{lang.menu_links.logs.link}}</a>
 			{% if role <= 2 %}
-				<a href="/app/versions.py?service={{service}}&serv={{s.2}}&open=open" class="ui-button ui-widget ui-corner-all" {{versions_id}} title="View/Rollback to previous config">Versions</a>
+				<a href="/app/versions.py?service={{service}}&serv={{s.2}}&open=open" class="ui-button ui-widget ui-corner-all" {{versions_id}} title="{{lang.words.view|title()}}/{{lang.words.rollback|title()}} {{lang.words.to}} {{lang.words.previous}} {{lang.words.config}}">{{lang.menu_links.versions.link}}</a>
 			{% endif %}
 			</div>
 		</div>
@@ -356,11 +358,11 @@
 			<div class="div-server div-backends">
 				<div class="server-name backends">
 					{% if service == 'haproxy' %}
-						Backends:
+						{{lang.words.backends|title()}}:
 					{% elif service == 'keepalived' %}
-						VRRP addresses:
+						VRRP {{lang.words.addresses|title()}}:
 					{% else %}
-						Virtual hosts:
+						{{lang.words.virtual|title()}} {{lang.words.hosts}}:
 					{% endif %}
 				</div>
 				<div style="margin-top: 10px;" id="top-{{s.2}}"></div>
@@ -376,7 +378,7 @@
 			or (service == 'apache' and s.8.0.27)  %}
 		<div style="clear: both; width: 97%;">
 			<div style="padding-left: 25px;float: left;margin-top: -15px;">
-				<b>Time range:</b>
+				<b>{{lang.words.time_range|title()}}:</b>
 				<select title="Choose time range" id="time-range">
 					<option value="30">30 minutes</option>
 					<option value="60">1 hour</option>

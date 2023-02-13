@@ -15,7 +15,7 @@ def ssh_command(server_ip: str, commands: list, **kwargs):
 	if kwargs.get('timeout'):
 		timeout = kwargs.get('timeout')
 	else:
-		timeout = 1
+		timeout = 2
 	try:
 		with mod_ssh.ssh_connect(server_ip) as ssh:
 			for command in commands:
@@ -411,9 +411,10 @@ def show_firewalld_rules() -> None:
 
 	in_public_allow = ssh_command(serv, cmd1, raw=1)
 	output_chain = ssh_command(serv, cmd2, raw=1)
+	lang = roxywi_common.get_user_lang()
 	env = Environment(loader=FileSystemLoader('templates'))
 	template = env.get_template('ajax/firewall_rules.html')
-	template = template.render(input=input_chain2, IN_public_allow=in_public_allow, output=output_chain)
+	template = template.render(input_chain=input_chain2, IN_public_allow=in_public_allow, output_chain=output_chain, lang=lang)
 	print(template)
 
 
@@ -468,3 +469,9 @@ def create_server(hostname, ip, group, typeip, enable, master, cred, port, desc,
 		return True
 	else:
 		return False
+
+
+def server_is_up(server_ip: str) -> None:
+	cmd = [f'if ping -c 1 -W 1 {server_ip} >> /dev/null; then echo up; else echo down; fi']
+	server_status, stderr = subprocess_execute(cmd)
+	print(server_status)

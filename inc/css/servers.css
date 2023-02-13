@@ -4,20 +4,17 @@
 .first-collumn {
     width: 15%;
 }
-#ajax-servers .first-collumn {
-    width: 10%;
-}
 .container {
     margin-right: 0;
 }
 @media screen and (-webkit-min-device-pixel-ratio:0) and (min-resolution:.001dpcm) {
     .ui-checkboxradio-label {
-        padding-bottom: 0.6em !important;
-        padding-top: 0.6em !important;
+        padding-bottom: 0.5em !important;
+        padding-top: 0.5em !important;
     }
     .ui-checkboxradio-checked {
-        padding-bottom: 0.6em !important;
-        padding-top: 0.7em !important;
+        padding-bottom: 0.5em !important;
+        padding-top: 0.6em !important;
     }
 }
 @-moz-document url-prefix() {

@@ -1596,34 +1596,49 @@ function editList(list, color) {
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
+				var cancel_word = $('#translate').attr('data-cancel');
+				var save_word = $('#translate').attr('data-just_save');
+				var delete_word = $('#translate').attr('data-delete');
+				var upload_and_reload = $('#translate').attr('data-upload_and_reload');
+				var upload_and_restart = $('#translate').attr('data-upload_and_restart');
+				var edit_word = $('#translate').attr('data-edit');
 				$('#edit_lists').text(data);
 				$( "#dialog-confirm-cert-edit" ).dialog({
 					resizable: false,
 					height: "auto",
 					width: 650,
 					modal: true,
-					title: "Edit "+color+" list "+list,
-					buttons: {
-						"Delete": function() {
-							$( this ).dialog( "close" );
-							confirmDeleting('list', list, $( this ), color);
-						},
-						"Just save": function() {
-							$( this ).dialog( "close" );
-							saveList('save', list, color);
-						},
-						"Save and reload": function() {
-							$( this ).dialog( "close" );
-							saveList('reload', list, color);
-						},
-						"Save and restart": function() {
-							$( this ).dialog( "close" );
-							saveList('restart', list, color);
-						},
-						Cancel: function() {
-							$( this ).dialog( "close" );
+					title: edit_word + " "+list,
+					buttons: [{
+						text: delete_word,
+						click: function () {
+							$(this).dialog("close");
+							confirmDeleting('list', list, $(this), color);
 						}
-					  }
+					}, {
+						text: save_word,
+						click: function () {
+							$(this).dialog("close");
+							saveList('save', list, color);
+						}
+					}, {
+						text: upload_and_reload,
+						click: function () {
+							$(this).dialog("close");
+							saveList('reload', list, color);
+						}
+					}, {
+						text: upload_and_restart,
+						click: function () {
+							$(this).dialog("close");
+							saveList('restart', list, color);
+						}
+					}, {
+						text: cancel_word,
+						click: function () {
+							$(this).dialog("close");
+						}
+					}]
 				});
 			}
 		}
@@ -1704,7 +1719,9 @@ function generateConfig(form_name) {
 		name_id = '#peers-name'
 	}
 	if(!checkIsServerFiled(serv)) return false;
-	if(!checkIsServerFiled(name_id, 'The name cannot be empty')) return false;
+	var empty_name = $('#translate').attr('data-empty_name');
+	var generated_title = $('#translate').attr('data-generated_config');
+	if(!checkIsServerFiled(name_id, empty_name)) return false;
 	var input = $("<input>")
 		.attr("name", "generateconfig").val("1").attr("type", "hidden").attr("id", "generateconfig");
 	$('#'+form_name +' input[name=acl_then_value]').each(function(){
@@ -1738,7 +1755,7 @@ function generateConfig(form_name) {
 					height: "auto",
 					width: 650,
 					modal: true,
-					title: "Generated config",
+					title: generated_title,
 					buttons: {
 						Ok: function () {
 							$(this).dialog("close");
@@ -1838,28 +1855,33 @@ function addProxy(form_name) {
 	});
 }
 function confirmDeleting(deleting_thing, id, dialog_id, color) {
+	var cancel_word = $('#translate').attr('data-cancel');
+	var delete_word = $('#translate').attr('data-delete');
 	$( "#dialog-confirm" ).dialog({
 		resizable: false,
 		height: "auto",
 		width: 400,
 		modal: true,
-		title: "Are you sure you want to delete this " + deleting_thing + " " +id + "?",
-		buttons: {
-			"Delete": function() {
+		title: delete_word + " " + deleting_thing + " " +id + "?",
+		buttons: [{
+			text: delete_word,
+			click: function () {
 				if (deleting_thing == "SSL cert") {
 					deleteSsl(id);
-					$(dialog_id).dialog( "close" );
+					$(dialog_id).dialog("close");
 				} else if (deleting_thing == "list") {
 					deleteList(id, color);
-					$(dialog_id).dialog( "close" );
+					$(dialog_id).dialog("close");
 				}
-				$( this ).dialog( "close" );
-			},
-			Cancel: function() {
+				$(this).dialog("close");
+			}
+		}, {
+			text: cancel_word,
+			click: function() {
 				$( this ).dialog( "close" );
 				$(dialog_id).dialog( "open" );
 			}
-		}
+		}]
 	});
 }
 function deleteId(id) {
@@ -1962,7 +1984,8 @@ function makeid(length) {
 }
 function showUserlists() {
 	var serv = $( "#existing_userlist_serv option:selected" ).val();
-	if(!checkIsServerFiled(serv)) return false;
+	var select_id = $( "#existing_userlist_serv" );
+	if(!checkIsServerFiled(select_id)) return false;
 	$.ajax({
 		url: "options.py",
 		data: {
@@ -1994,7 +2017,8 @@ function changePortCheckFromServerPort() {
 		$($(this)).next().val(iNum);
 	});
 }
-function checkIsServerFiled(select_id, message = 'Select a server first') {
+var select_server = $('#translate').attr('data-select_server');
+function checkIsServerFiled(select_id, message = select_server) {
 	if ($(select_id).val() == null || $(select_id).val() == '') {
 		toastr.warning(message);
 		return false;

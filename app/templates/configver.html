@@ -1,11 +1,13 @@
 {% extends "base.html" %}
+{% block title %}{{ lang.menu_links.versions.h2 }} {{ lang.words[service] }}{% endblock %}
+{% block h2 %}{{ lang.menu_links.versions.h2 }} {{ lang.words[service] }}{% endblock %}
 {% block content %}
 <center>
 	<p>	
 		<form action="{{ action }}" method="post">
 			<input type="hidden" id="service" value="{{service}}">
 			{% include 'include/select.html' %}
-			<button type="submit" value="open" name="open" class="btn btn-default">Open</button>
+			<button type="submit" value="open" name="open" class="btn btn-default">{{lang.words.open|title()}}</button>
 		</form>
 	</p>
 	{% if not aftersave %}
@@ -18,12 +20,11 @@
 		<script>showListOfVersion(0)</script>
 	{% endif %}
 	{% if aftersave %}
-		<div class="alert alert-info alert-two-row">The following version of the configuration file has been uploaded and saved as: {{ configver }} </div>
+		<div class="alert alert-info alert-two-row">{{lang.phrases.version_has_been_uploaded}}: {{ configver }} </div>
 		{% if 'is valid' not in stderr %}
 			{% include 'include/errors.html' %}	
 		{% else %}
-			<div class="alert alert-success">Config is ok</div>
-			<a href="statsview.py?serv={{ serv }}" target="_blank" title="View stats">Go to view stats</a>
+			<div class="alert alert-success">{{lang.words.config|title()}} {{lang.words.is}} {{lang.words.valid}}</div>
 		{% endif %}
 	{% endif %}
 </center>

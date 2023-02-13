@@ -108,21 +108,26 @@ function addNewSmonServer(dialog_id) {
 	}
 }
 function confirmDeleteSmon(id) {
+	var delete_word = $('#translate').attr('data-delete');
+	var cancel_word = $('#translate').attr('data-cancel');
 	$( "#dialog-confirm" ).dialog({
 		resizable: false,
 		height: "auto",
 		width: 400,
 		modal: true,
-		title: "Are you sure you want to delete server " +$('#smon-ip-'+id).val() + "?",
-		buttons: {
-			"Delete": function() {
-				$( this ).dialog( "close" );
+		title: delete_word+" " +$('#smon-ip-'+id).val() + "?",
+		buttons: [{
+			text: delete_word,
+			click: function () {
+				$(this).dialog("close");
 				removeSmon(id);
-			},
-			Cancel: function() {
+			}
+		}, {
+			text: cancel_word,
+			click: function() {
 				$( this ).dialog( "close" );
 			}
-		}
+		}]
 	});
 }
 function removeSmon(id) {
@@ -209,13 +214,16 @@ $( function() {
 		var id = $(this).attr('id').split('-');
 		updateSmon(id[2])
 	});
+	var add_word = $('#translate').attr('data-add');
+	var cancel_word = $('#translate').attr('data-cancel_word');
+	var smon_add_tabel_title = $( "#smon-add-table-overview" ).attr('title');
 	var addSmonServer = $( "#smon-add-table" ).dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
 		width: 600,
 		modal: true,
-		title: "Create a new server for monitoring",
+		title: smon_add_tabel_title,
 		show: {
 			effect: "fade",
 			duration: 200
@@ -224,14 +232,17 @@ $( function() {
 			effect: "fade",
 			duration: 200
 		},
-		buttons: {
-			"Add": function () {
+		buttons: [{
+			text: add_word,
+			click: function () {
 				addNewSmonServer(this);
-			},
-			Cancel: function () {
+			}
+		}, {
+			text: cancel_word,
+			click: function () {
 				$(this).dialog("close");
 				clearTips();
 			}
-		}
+		}]
 	});
 });

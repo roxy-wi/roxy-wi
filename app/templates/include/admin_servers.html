@@ -3,15 +3,15 @@
 <table class="overview" id="ajax-servers">
 	<thead>
 		<tr class="overviewHead">
-			<th class="padding10 first-collumn" id="server-name-th">Name</th>
+			<th class="padding10 first-collumn" id="server-name-th">{{lang.words.name|title()}}</th>
 			<th class="ip-field" style="width: 10% " id="server-ip-th">IP</th>
-			<th class="checkbox-head" style="width: 5%" class="help_cursor"><span title="SSH port">Port</span></th>
+			<th class="checkbox-head" style="width: 5%" class="help_cursor"><span title="SSH port">{{lang.words.port|title()}}</span></th>
 			{% if page != "servers.py" %}
-			<th style="width: 10%">Group</th>
+			<th style="width: 10%">{{lang.words.group|title()}}</th>
 			{% endif %}
-			<th class="checkbox-head" style="min-width: 70px;">Enabled</th>
+			<th class="checkbox-head" style="min-width: 70px;">{{lang.words.enabled|title()}}</th>
 			<th style="min-width: 50px; padding-left: 5px;" class="help_cursor">
-				<span title="Virtual IP, something like VRRP">Virt</span>
+				<span title="{{lang.words.virtual|title()}} IP, something like VRRP">{{lang.words.virt|title()}}</span>
 			</th>
 			<th class="checkbox-head" style="min-width: 75px" id="server-haproxy-th">HAProxy</th>
 			<th class="checkbox-head" style="min-width: 65px;" id="server-nginx-th">Nginx</th>
@@ -19,14 +19,14 @@
 			<th style="min-width: 100px;" class="help_cursor" id="server-firewalld-th">
 				<span title="If the server has a firewall enabled, enable this option">Firewalld</span>
 			</th>
-			<th class="checkbox-head" style="min-width: 80px;" class="help_cursor" id="server-protected-th">
-				<span title="If protection is enabled, then the server is inaccessible for editing by everyone except the admin role">Protected</span>
+			<th class="checkbox-head help_cursor" style="min-width: 80px;" class="help_cursor" id="server-protected-th">
+				<span title="{{lang.phrases.protected_title}}">{{lang.words.protected|title()}}</span>
 			</th>
 			<th style="width: 10%" class="help_cursor" id="server-slave-th">
-				<span  id="slavefor-th" title="Actions with the master config will automatically apply on the slave">Slave for</span>
+				<span  id="slavefor-th" title="{{lang.phrases.slave_for_title}}">{{lang.words.slave_for}}</span>
 			</th>
-			<th class="cred-field">Credentials</th>
-			<th style="width: 100%">Description</th>
+			<th class="cred-field">{{lang.words.creds|title()}}</th>
+			<th style="width: 100%">{{lang.words.desc|title()}}</th>
 			<th style="min-width: 17px;"></th>
 			<th></th>
 			<th></th>
@@ -38,6 +38,7 @@
 		{% for server in servers %}
 		<tr id="server-{{server.0}}" class="{{ loop.cycle('odd', 'even') }} {% if adding %}newserver{% endif %}">
 			<td class="padding10 first-collumn">
+				<span class="serverNone server-status-small" title="{{lang.phrases.server_unknown}}" style="margin-left: -10px" id="server_status-{{server.0}}"></span>
 				{% set id = 'hostname-' + server.0|string() %}
 				{{ input(id, value=server.1, size='15') }}
 			</td>
@@ -113,7 +114,7 @@
 					{% else %}
 					{{ checkbox(id) }}
 					{% endif %}
-					<button onclick="viewFirewallRules('{{server.2}}')" title="View firewall rules on server {{server.1}}">view</button>
+					<button onclick="viewFirewallRules('{{server.2}}')" title="{{lang.words.view|title()}} firewall {{lang.words.rules2}} {{lang.words.on}} {{lang.words.server2}} {{server.1}}" class="overflow" style="width: 60px;height: 28px;">{{lang.words.view}}</button>
 				</div>
 			</td>
 			<td class="checkbox" style="padding-left: 15px;">
@@ -150,7 +151,7 @@
 							{% endif %}
 						{% endfor %}
 					</select>
-					<button onclick="checkSshConnect('{{server.2}}')" title="Check SSH connect to the server {{server.1}}">check</button>
+					<button onclick="checkSshConnect('{{server.2}}')" title="Check SSH connect to the server {{server.1}}" class="overflow" style="width: 70px;height: 28px;">{{lang.words.check}}</button>
 				</div>
 			</td>
 			<td>
@@ -162,28 +163,27 @@
 				{% endif %}
 			</td>
 			<td>
-				<a href="history.py?service=server&serv={{server.2}}" title="View history for this server" class="history"></a>
+				<a href="history.py?service=server&serv={{server.2}}" title="{{lang.words.view|title}} {{lang.words.history}} {{lang.words.for}} {{lang.words.this}} {{lang.words.server}}" class="history"></a>
 			</td>
 			<td style="min-width: 17px;">
-				<a class="info" onclick="showServerInfo('{{server.0}}', '{{server.2}}')" id="server_info_link-{{server.0}}" title="Show server info" style="cursor: pointer; color: var(--green-color)"></a>
+				<a class="info" onclick="showServerInfo('{{server.0}}', '{{server.2}}')" id="server_info_link-{{server.0}}" title="{{lang.words.show|title()}} {{lang.words.server}} {{lang.words.info}}" style="cursor: pointer; color: var(--green-color)"></a>
 			</td>
 			<td>
-				<a class="add" onclick="cloneServer({{server.0}})" id="clone-{{server.0}}" title="Copy the settings from {{server.1}}" style="cursor: pointer;"></a>
+				<a class="add" onclick="cloneServer({{server.0}})" id="clone-{{server.0}}" title="{{lang.words.copy|title()}} {{lang.words.settings}} {{server.1}}" style="cursor: pointer;"></a>
 			</td>
 			<td>
-				<a class="delete" onclick="confirmDeleteServer({{server.0}})" title="Delete server {{server.1}}" style="cursor: pointer;"></a>
+				<a class="delete" onclick="confirmDeleteServer({{server.0}})" title="{{lang.words.delete|title()}} {{lang.words.server}} {{server.1}}" style="cursor: pointer;"></a>
 			</td>
 		</tr>
 		{% endfor %}
 {% if not adding %}
 	</tbody>
 </table>
-<br /><span class="add-button" title="Add server" id="add-server-button">+ Add</span>
+<br /><span class="add-button" title="{{lang.words.add|title()}} {{lang.words.server}}" id="add-server-button">+ {{lang.words.add|title()}}</span>
 <br /><br />
 <div id="checkSshConnect"></div>
 <div class="add-note addName alert alert-info" style="width: inherit; margin-right: 15px;" id="servers-help-link">
-	You can read the description of all parameters <a href="https://roxy-wi.org/description/servers" title="Servers description" target="_blank">here</a>
-	or read HowTo in this <a href="https://roxy-wi.org/howto/setup" title="How to setup servers, group and SSH credentials" target="_blank">article</a>
+	{{lang.phrases.read_about_parameters}} <a href="https://roxy-wi.org/description/servers" title="{{lang.words.servers|title()}} {{lang.words.desc}}" target="_blank">{{lang.words.here}}</a>, {{lang.phrases.read_howto}} <a href="https://roxy-wi.org/howto/setup" title="How to setup servers, group and SSH credentials" target="_blank">{{lang.words.article}}</a>
 </div>
 {% endif %}
 {% if user_status == 0 or user_plan == 'user' %}
@@ -192,10 +192,16 @@
 		$('select:regex(id, slavefor)').selectmenu();
 		$('select:regex(id, slavefor)').selectmenu("disable");
 		{% if user_status == 0 %}
-			$('#slavefor-th').attr("title", "Actions with the master config will automatically apply on the slave. You are not subscribed. Please subscribe to have access to this feature");
+			$('#slavefor-th').attr("title", "{{lang.phrases.slave_for_title}}. {{lang.phrases.no_sub}}. {{lang.phrases.pls_sub}}.");
 		{% elif user_plan == 'user' %}
-			$('#slavefor-th').attr("title", "Actions with the master config will automatically apply on the slave. This feature is not available for your plan");
+			$('#slavefor-th').attr("title", "{{lang.phrases.slave_for_title}}. {{lang.phrases.no_av_feat}}");
 		{% endif %}
 	});
 </script>
 {% endif %}
+<script>
+	{%- for server in servers %}
+		setInterval(serverIsUp, 18000, '{{server.2}}', '{{server.0}}');
+		serverIsUp('{{server.2}}', '{{server.0}}');
+	{%- endfor %}
+</script>

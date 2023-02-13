@@ -1,3 +1,4 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% set waf_modes = [] %}
 {% do waf_modes.append("On") %}
 {% do waf_modes.append("Off") %}
@@ -13,31 +14,31 @@
 		{% if service.2|int() >= 1 %}
 			<span class="serverUp server-status" title="running {{service.2 }} processes"></span>
 		{% else %}
-		<span class="serverDown server-status" title="WAF is stopped"></span>
+		<span class="serverDown server-status" title="WAF {{lang.words.is}} {{lang.words.stopped}} "></span>
 		{% endif %}
-		<a href="/app/logs.py?serv={{ service.1 }}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00&waf=1" title="View {{service.0 }}'s WAF logs" class="logs_link">
+		<a href="/app/logs.py?serv={{ service.1 }}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00&waf=1" title="{{lang.words.view|title()}} {{service.0 }}'s WAF {{lang.words.logs}}" class="logs_link">
 			{{ service.0 }}
 		</a>
 	{% else %}
-		<span class="serverNone server-status" title="WAF is not installed"></span> <span title="WAF is not installed">{{ service.0 }}</span>
+		<span class="serverNone server-status" title="WAF {{lang.words.is}} {{lang.words.not}} {{lang.words.installed}}"></span> <span title="WAF {{lang.words.is}} {{lang.words.not}} {{lang.words.installed}}">{{ service.0 }}</span>
 	{% endif %}
 	</td>
 {{service.3}}
 	{% if service.3 == "On" or service.3 == "Off" or service.3 == "DetectionOnly" %}
 		<td>
 		{% if role <= 2 %}
-			<a id="{{ service.1 }}" class="start-waf" title="Start WAF service">
+			<a id="{{ service.1 }}" class="start-waf" title="{{lang.words.start|title()}} WAF {{lang.words.service}}">
 				<span class="service-start" onclick="confirmAjaxAction('start', '{{service_name}}', '{{service.1}}')"></span>
 			</a>
-			<a id="{{ service.1 }}" class="stop-waf" title="Stop WAF service">
+			<a id="{{ service.1 }}" class="stop-waf" title="{{lang.words.stop|title()}} WAF {{lang.words.service}}">
 				<span class="service-stop" onclick="confirmAjaxAction('stop', '{{service_name}}', '{{service.1}}')"></span>
 			</a>
 			{% if waf_service == 'haproxy' %}
-			<a id="{{ service.1 }}" class="restart-waf" title="Restart WAF service">
+			<a id="{{ service.1 }}" class="restart-waf" title="{{lang.words.restart|title()}} WAF {{lang.words.service}}">
 				<span class="service-reload" onclick="confirmAjaxAction('restart', 'waf', '{{service.1}}')"></span>
 			</a>
 			{% else %}
-			<a id="{{ service.1 }}" class="reload-waf" title="Reload WAF service">
+			<a id="{{ service.1 }}" class="reload-waf" title="{{lang.words.reload|title()}} WAF {{lang.words.service}}">
 				<span class="service-reload" onclick="confirmAjaxAction('reload', 'nginx', '{{service.1}}')"></span>
 			</a>
 			{% endif %}
@@ -69,21 +70,21 @@
 		{% endif %}
 		<td>
 		{% if role <= 2 %}
-			<a href="/app/waf.py?service={{waf_service}}&manage_rules=1&serv={{service.1}}" class="ui-button ui-widget ui-corner-all">Open</a>
+			<a href="/app/waf.py?service={{waf_service}}&manage_rules=1&serv={{service.1}}" class="ui-button ui-widget ui-corner-all">{{lang.words.open|title()}}</a>
 		{% endif %}
 		</td>
 		<td>
 			{% if waf_service == 'haproxy' %}
-			<a href="/app/logs.py?service={{waf_service}}&serv={{ service.1 }}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00&waf=1" class="ui-button ui-widget ui-corner-all" title="View log">View</a>
+			<a href="/app/logs.py?service={{waf_service}}&serv={{ service.1 }}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00&waf=1" class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{lang.words.log}}">{{lang.words.view|title()}}</a>
 			{% elif waf_service == 'nginx' %}
-			<a href="/app/logs.py?service={{waf_service}}&serv={{ service.1 }}&rows=10&grep=ModSecurity&hour=00&minut=00&hour1=24&minut1=00&file=error.log&waf=0" class="ui-button ui-widget ui-corner-all" title="View log">View</a>
+			<a href="/app/logs.py?service={{waf_service}}&serv={{ service.1 }}&rows=10&grep=ModSecurity&hour=00&minut=00&hour1=24&minut1=00&file=error.log&waf=0" class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{lang.words.log}}">{{lang.words.view|title()}}</a>
 			{% endif %}
 		</td>
 		<td></td>
 	{% else %}
 		{% if role <= 2 %}
 		<td colspan="6">
-			<a title="Install WAF"><button onclick="installWaf('{{ service.1 }}')">Install</button></a>
+			<a title="{{lang.words.install|title()}} WAF"><button onclick="installWaf('{{ service.1 }}')">{{lang.words.install|title()}}</button></a>
 		</td>
 		{% endif %}	
 	{% endif %}

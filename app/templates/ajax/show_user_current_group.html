@@ -1,4 +1,5 @@
-<td class="padding20" style="width: 70%">Current group</td>
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
+<td class="padding20" style="width: 70%">{{lang.words.current2|title()}} {{lang.words.group}}</td>
 <td>
 	<select id="newCurrentGroup" name="newCurrentGroup">
 		{% for g in groups %}

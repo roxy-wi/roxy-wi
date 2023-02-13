@@ -1,3 +1,4 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
 <style>
 .select-css {
 	display: block;
@@ -54,7 +55,7 @@
 </style>
 <table class="overview">
 	<tr style="border: none;">
-		<td class="padding20" style="width: 40%;"><b>Select one or more services</b></td>
+		<td class="padding20" style="width: 40%;"><b>{{lang.words.select|title()}} {{lang.words.one2}} {{lang.words.or}} {{lang.words.more}} {{lang.words.services2}}</b></td>
 		<td>
 			<select id="userservice-{{id}}" name="userservice-{{id}}" multiple class="select-css">
 				{% for s in services %}

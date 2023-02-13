@@ -154,21 +154,19 @@ def check_in_ldap(user, password):
 
 		bind = ldap_bind.simple_bind_s(result[0][0], password)
 	except ldap.INVALID_CREDENTIALS:
-		print("Content-type: text/html\n")
-		print('<center><div class="alert alert-danger">Invalid credentials</div><br /><br />')
-		sys.exit()
+		ban()
 	except ldap.SERVER_DOWN:
 		print("Content-type: text/html\n")
-		print('<center><div class="alert alert-danger">Server down</div><br /><br />')
+		print('error: LDAP server is down')
 		sys.exit()
 	except ldap.LDAPError as e:
 		if type(e.message) == dict and 'desc' in e.message:
 			print("Content-type: text/html\n")
-			print('<center><div class="alert alert-danger">Other LDAP error: %s</div><br /><br />' % e.message['desc'])
+			print(f'error: {e.message["desc"]}')
 			sys.exit()
 		else:
 			print("Content-type: text/html\n")
-			print('<center><div class="alert alert-danger">Other LDAP error: %s</div><br /><br />' % e)
+			print(f'error: {e}')
 			sys.exit()
 	else:
 		send_cookie(user)
@@ -229,7 +227,12 @@ if login is not None and password is not None:
 if login is None:
 	print("Content-type: text/html\n")
 
+try:
+	lang = roxywi_common.get_user_lang()
+except Exception:
+	lang = 'en'
+
 parsed_template = template.render(
-	h2=0, title="Login page", role=role, user=user, error_log=error_log, error=error, ref=ref
+	h2=0, title="Login page", role=role, user=user, error_log=error_log, error=error, ref=ref, lang=lang
 )
 print(parsed_template)

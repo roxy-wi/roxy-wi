@@ -1,5 +1,8 @@
 var awesome = "/inc/fontawesome.min.js"
 $( function() {
+	var add_word = $('#translate').attr('data-add');
+	var delete_word = $('#translate').attr('data-delete');
+	var cancel_word = $('#translate').attr('data-cancel');
 	$( "#backup_tabs" ).tabs();
 	$('#install').click(function() {
 		$("#ajax").html('')
@@ -394,13 +397,14 @@ $( function() {
 	$('#add-group-button').click(function() {
 		addGroupDialog.dialog('open');
 	});
+	var group_tabel_title = $( "#group-add-table-overview" ).attr('title');
 	var addGroupDialog = $( "#group-add-table" ).dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
 		width: 600,
 		modal: true,
-		title: "Add a new group",
+		title: group_tabel_title,
 		show: {
 			effect: "fade",
 			duration: 200
@@ -422,13 +426,16 @@ $( function() {
 	$('#add-user-button').click(function() {
 		addUserDialog.dialog('open');
 	});
+	var user_tabel_title = $( "#user-add-table-overview" ).attr('title');
+	var add_word = $('#translate').attr('data-add');
+	var canerl_word = $('#translate').attr('data-cancel');
 	var addUserDialog = $( "#user-add-table" ).dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
 		width: 600,
 		modal: true,
-		title: "Add a new user",
+		title: user_tabel_title,
 		show: {
 			effect: "fade",
 			duration: 200
@@ -437,26 +444,30 @@ $( function() {
 			effect: "fade",
 			duration: 200
 		},
-		buttons: {
-			"Add": function () {
+		buttons: [{
+			text: add_word,
+			click: function () {
 				addUser(this);
-			},
-			Cancel: function () {
+			}
+		}, {
+			text: cancel_word,
+			click: function () {
 				$(this).dialog("close");
 				clearTips();
 			}
-		}
+		}]
 	});
 	$('#add-server-button').click(function() {
 		addServerDialog.dialog('open');
 	});
+	var server_tabel_title = $( "#server-add-table-overview" ).attr('title');
 	var addServerDialog = $( "#server-add-table" ).dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
 		width: 600,
 		modal: true,
-		title: "Add a new server",
+		title: server_tabel_title,
 		show: {
 			effect: "fade",
 			duration: 200
@@ -465,26 +476,30 @@ $( function() {
 			effect: "fade",
 			duration: 200
 		},
-		buttons: {
-			"Add": function () {
+		buttons: [{
+			text: add_word,
+			click: function () {
 				addServer(this);
-			},
-			Cancel: function () {
+			}
+		}, {
+			text: cancel_word,
+			click: function () {
 				$(this).dialog("close");
 				clearTips();
 			}
-		}
+		}]
 	});
 	$('#add-ssh-button').click(function() {
 		addCredsDialog.dialog('open');
 	});
+	var ssh_tabel_title = $( "#ssh-add-table-overview" ).attr('title');
 	var addCredsDialog = $( "#ssh-add-table" ).dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
 		width: 600,
 		modal: true,
-		title: "Add a new SSH credentials",
+		title: ssh_tabel_title,
 		show: {
 			effect: "fade",
 			duration: 200
@@ -493,15 +508,18 @@ $( function() {
 			effect: "fade",
 			duration: 200
 		},
-		buttons: {
-			"Add": function () {
+		buttons: [{
+			text: add_word,
+			click: function () {
 				addCreds(this);
-			},
-			Cancel: function () {
+			}
+		}, {
+			text: cancel_word,
+			click: function () {
 				$(this).dialog("close");
 				clearTips();
 			}
-		}
+		}]
 	});
 	$('#add-telegram-button').click(function() {
 		addTelegramDialog.dialog('open');
@@ -509,13 +527,14 @@ $( function() {
 	$('#add-slack-button').click(function() {
 		addSlackDialog.dialog('open');
 	});
+	var telegram_tabel_title = $( "#telegram-add-table-overview" ).attr('title');
 	var addTelegramDialog = $( "#telegram-add-table" ).dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
 		width: 600,
 		modal: true,
-		title: "Create a new Telegram channel",
+		title: telegram_tabel_title,
 		show: {
 			effect: "fade",
 			duration: 200
@@ -524,23 +543,27 @@ $( function() {
 			effect: "fade",
 			duration: 200
 		},
-		buttons: {
-			"Add": function () {
+		buttons: [{
+			text: add_word,
+			click: function () {
 				addTelegram(this);
-			},
-			Cancel: function () {
+			}
+		}, {
+			text: cancel_word,
+			click: function () {
 				$(this).dialog("close");
 				clearTips();
 			}
-		}
+		}]
 	});
+	var slack_tabel_title = $( "#slack-add-table-overview" ).attr('title');
 	var addSlackDialog = $( "#slack-add-table" ).dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
 		width: 600,
 		modal: true,
-		title: "Create a new Slack channel",
+		title: slack_tabel_title,
 		show: {
 			effect: "fade",
 			duration: 200
@@ -549,26 +572,30 @@ $( function() {
 			effect: "fade",
 			duration: 200
 		},
-		buttons: {
-			"Add": function () {
+		buttons: [{
+			text: add_word,
+			click: function () {
 				addSlack(this);
-			},
-			Cancel: function () {
+			}
+		}, {
+			text: cancel_word,
+			click: function () {
 				$(this).dialog("close");
 				clearTips();
 			}
-		}
+		}]
 	});
 	$('#add-backup-button').click(function() {
 		addBackupDialog.dialog('open');
 	});
+	var backup_tabel_title = $( "#backup-add-table-overview" ).attr('title');
 	var addBackupDialog = $( "#backup-add-table" ).dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
 		width: 600,
 		modal: true,
-		title: "Create a new backup job",
+		title: backup_tabel_title,
 		show: {
 			effect: "fade",
 			duration: 200
@@ -590,13 +617,14 @@ $( function() {
 	$('#add-backup-s3-button').click(function() {
 		addBackupDialog.dialog('open');
 	});
+	var s3_backup_tabel_title = $( "#s3-backup-add-table-overview" ).attr('title');
 	var addS3BackupDialog = $( "#s3-backup-add-table" ).dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
 		width: 600,
 		modal: true,
-		title: "Create a new S3 backup job",
+		title: s3_backup_tabel_title,
 		show: {
 			effect: "fade",
 			duration: 200
@@ -618,13 +646,14 @@ $( function() {
 	$('#add-git-button').click(function() {
 		addGitDialog.dialog('open');
 	});
+	var git_tabel_title = $( "#git-add-table-overview" ).attr('title');
 	var addGitDialog = $( "#git-add-table" ).dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
 		width: 600,
 		modal: true,
-		title: "Create a new git job",
+		title: git_tabel_title,
 		show: {
 			effect: "fade",
 			duration: 200
@@ -798,8 +827,10 @@ $( function() {
 					} else {
 						var json = $.parseJSON(data);
 						toastr.clear();
+						if (!$('#new-username').val().includes('@')) {
+							$('#new-username').val(user + '@' + json[1]);
+						}
 						$('#new-email').val(json[0]);
-						$('#new-username').val(user+'@'+json[1]);
 						$('#new-password').val('aduser');
 						$('#new-password').attr('readonly', true);
 					}
@@ -1411,6 +1442,8 @@ function sshKeyEnableShow(id) {
 }
 
 function confirmDeleteUser(id) {
+	var delete_word = $('#translate').attr('data-delete');
+	var cancel_word = $('#translate').attr('data-cancel');
 	 $( "#dialog-confirm" ).dialog({
       resizable: false,
       height: "auto",
@@ -1429,6 +1462,8 @@ function confirmDeleteUser(id) {
     });
 }
 function confirmDeleteGroup(id) {
+	var delete_word = $('#translate').attr('data-delete');
+	var cancel_word = $('#translate').attr('data-cancel');
 	 $( "#dialog-confirm" ).dialog({
       resizable: false,
       height: "auto",
@@ -1447,42 +1482,54 @@ function confirmDeleteGroup(id) {
     });
 }
 function confirmDeleteServer(id) {
-	 $( "#dialog-confirm" ).dialog({
-      resizable: false,
-      height: "auto",
-      width: 400,
-      modal: true,
-	  title: "Are you sure you want to delete " +$('#hostname-'+id).val() + "?",
-      buttons: {
-        "Delete": function() {
-			$( this ).dialog( "close" );
-			removeServer(id);
-        },
-        Cancel: function() {
-			$( this ).dialog( "close" );
-        }
-      }
-    });
+	var delete_word = $('#translate').attr('data-delete');
+	var cancel_word = $('#translate').attr('data-cancel');
+	$( "#dialog-confirm" ).dialog({
+		resizable: false,
+		height: "auto",
+		width: 400,
+		modal: true,
+		title: delete_word + " " + $('#hostname-' + id).val() + "?",
+		buttons: [{
+			text: delete_word,
+			click: function () {
+				$(this).dialog("close");
+				removeServer(id);
+			}
+		},{
+			text: cancel_word,
+			click: function () {
+				$(this).dialog("close");
+			}
+		}]
+	});
 }
 function confirmDeleteSsh(id) {
-	 $( "#dialog-confirm" ).dialog({
-      resizable: false,
-      height: "auto",
-      width: 400,
-      modal: true,
-	  title: "Are you sure you want to delete " +$('#ssh_name-'+id).val() + "?",
-      buttons: {
-        "Delete": function() {
-			$( this ).dialog( "close" );
-			removeSsh(id);
-        },
-        Cancel: function() {
-			$( this ).dialog( "close" );
-        }
-      }
-    });
+	var delete_word = $('#translate').attr('data-delete');
+	var cancel_word = $('#translate').attr('data-cancel');
+	$( "#dialog-confirm" ).dialog({
+		resizable: false,
+		height: "auto",
+		width: 400,
+		modal: true,
+		title: delete_word +" " + $('#ssh_name-' + id).val() + "?",
+		buttons: [{
+			text: delete_word,
+			click: function () {
+				$(this).dialog("close");
+				removeSsh(id);
+			}
+		},{
+			text: cancel_word,
+			click: function () {
+				$(this).dialog("close");
+			}
+		}]
+	});
 }
 function confirmDeleteTelegram(id) {
+	var delete_word = $('#translate').attr('data-delete');
+	var cancel_word = $('#translate').attr('data-cancel');
 	 $( "#dialog-confirm" ).dialog({
       resizable: false,
       height: "auto",
@@ -1501,6 +1548,8 @@ function confirmDeleteTelegram(id) {
     });
 }
 function confirmDeleteSlack(id) {
+	var delete_word = $('#translate').attr('data-delete');
+	var cancel_word = $('#translate').attr('data-cancel');
 	 $( "#dialog-confirm" ).dialog({
       resizable: false,
       height: "auto",
@@ -1519,6 +1568,8 @@ function confirmDeleteSlack(id) {
     });
 }
 function confirmDeleteBackup(id) {
+	var delete_word = $('#translate').attr('data-delete');
+	var cancel_word = $('#translate').attr('data-cancel');
 	 $( "#dialog-confirm" ).dialog({
       resizable: false,
       height: "auto",
@@ -1537,6 +1588,8 @@ function confirmDeleteBackup(id) {
     });
 }
 function confirmDeleteGit(id) {
+	var delete_word = $('#translate').attr('data-delete');
+	var cancel_word = $('#translate').attr('data-cancel');
 	 $( "#dialog-confirm" ).dialog({
       resizable: false,
       height: "auto",
@@ -2156,8 +2209,12 @@ function openChangeUserServiceDialog(id) {
 	changeUserServiceDialog(id);
 }
 function changeUserPasswordDialog(id) {
+	var cancel_word = $('#translate').attr('data-cancel');
+	var superAdmin_pass = $('#translate').attr('data-superAdmin_pass');
+	var change_word = $('#translate').attr('data-change2');
+	var password_word = $('#translate').attr('data-password');
 	if ($('#role-'+id + ' option:selected' ).val() == 'Select a role') {
-		toastr.warning('You cannot edit password for superAdmin role.');
+		toastr.warning(superAdmin_pass);
 		return false;
 	}
 	$( "#user-change-password-table" ).dialog({
@@ -2166,7 +2223,7 @@ function changeUserPasswordDialog(id) {
 			height: "auto",
 			width: 600,
 			modal: true,
-			title: "Change "+$('#login-'+id).val()+" password",
+			title: change_word+ " "+$('#login-'+id).val()+" " +password_word,
 			show: {
 				effect: "fade",
 				duration: 200
@@ -2175,15 +2232,18 @@ function changeUserPasswordDialog(id) {
 				effect: "fade",
 				duration: 200
 			},
-			buttons: {
-				"Change": function() {
+			buttons: [{
+				text: change_word,
+				click: function () {
 					changeUserPassword(id, $(this));
-				},
-				Cancel: function() {
-					$( this ).dialog( "close" );
+				}
+			}, {
+				text: cancel_word,
+				click: function() {
+					$(this).dialog("close");
 					$('#missmatchpass').hide();
 				}
-			}
+			}]
 		});
 }
 function changeUserPassword(id, d) {
@@ -2219,6 +2279,10 @@ function changeUserPassword(id, d) {
 	}
 }
 function changeUserGroupDialog(id) {
+	var cancel_word = $('#translate').attr('data-cancel');
+	var groups_word = $('#translate').attr('data-groups');
+	var save_word = $('#translate').attr('data-save');
+	var change_word = $('#translate').attr('data-change');
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -2237,24 +2301,32 @@ function changeUserGroupDialog(id) {
 					height: "auto",
 					width: 450,
 					modal: true,
-					title: "Change "+$('#login-'+id).val()+" groups",
-					buttons: {
-						"Save": function() {
-							$( this ).dialog( "close" );
+					title: change_word+" "+$('#login-'+id).val()+" "+groups_word,
+					buttons: [{
+						text: save_word,
+						click: function () {
+							$(this).dialog("close");
 							changeUserGroup(id);
-						},
-						Cancel: function() {
-							$( this ).dialog( "close" );
 						}
-					  }
+					}, {
+						text: cancel_word,
+						click: function () {
+							$(this).dialog("close");
+						}
+					}]
 				});
 			}
 		}
 	} );
 }
 function changeUserServiceDialog(id) {
+	var cancel_word = $('#translate').attr('data-cancel');
+	var manage_word = $('#translate').attr('data-manage');
+	var services_word = $('#translate').attr('data-services3');
+	var save_word = $('#translate').attr('data-save');
+	var superAdmin_services = $('#translate').attr('data-superAdmin_services');
 	if ($('#role-'+id + ' option:selected' ).val() == 'Select a role') {
-		toastr.warning('You cannot edit services for superAdmin role.');
+		toastr.warning(superAdmin_services);
 		return false;
 	}
 	$.ajax( {
@@ -2275,16 +2347,19 @@ function changeUserServiceDialog(id) {
 					height: "auto",
 					width: 450,
 					modal: true,
-					title: "Manage "+$('#login-'+id).val()+" services",
-					buttons: {
-						"Save": function() {
-							$( this ).dialog( "close" );
+					title: manage_word+" "+$('#login-'+id).val()+" "+services_word,
+					buttons: [{
+						text: save_word,
+						click: function () {
+							$(this).dialog("close");
 							changeUserServices(id);
-						},
-						Cancel: function() {
-							$( this ).dialog( "close" );
 						}
-					  }
+					}, {
+						text: cancel_word,
+						click: function () {
+							$(this).dialog("close");
+						}
+					}]
 				});
 			}
 		}
@@ -3021,4 +3096,34 @@ function showServiceVersion(service) {
 			}
 		}
 	} );
+}
+function serverIsUp(server_ip, server_id) {
+	$.ajax({
+		url: "options.py",
+		data: {
+			act: 'server_is_up',
+			server_is_up: server_ip,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			data = data.replace(/^\s+|\s+$/g, '');
+			if (data.indexOf('up') != '-1') {
+				$('#server_status-'+server_id).removeClass('serverNone');
+				$('#server_status-'+server_id).removeClass('serverDown');
+				$('#server_status-'+server_id).addClass('serverUp');
+				$('#server_status-'+server_id).attr('title', 'Server is reachable');
+			} else if (data.indexOf('down') != '-1') {
+				$('#server_status-'+server_id).removeClass('serverNone');
+				$('#server_status-'+server_id).removeClass('serverUp');
+				$('#server_status-'+server_id).addClass('serverDown');
+				$('#server_status-'+server_id).attr('title', 'Server is unreachable');
+			} else {
+				$('#server_status-'+server_id).removeClass('serverDown');
+				$('#server_status-'+server_id).removeClass('serverUp');
+				$('#server_status-'+server_id).addClass('serverNone');
+				$('#server_status-'+server_id).attr('title', 'Cannot get server status');
+			}
+		}
+	});
 }

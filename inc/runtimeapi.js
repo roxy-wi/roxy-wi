@@ -91,7 +91,7 @@ $( function() {
 				} else {
 					var value = data.split('<br>')
 					$('#ipbackend').find('option').remove();
-					$('#ipbackend').append($("<option></option>").attr("value","disabled").text("Choose Backend"));
+					$('#ipbackend').append($("<option></option>").attr("value","disabled").text("------"));
 					$('#backend_server').find('option').remove();
 					$('#backend_port').val('');
 					$('#backend_ip').val('');
@@ -124,7 +124,7 @@ $( function() {
 				} else {
 					var value = data.split('<br>')
 					$('#backend_server').find('option').remove();
-					$('#backend_server').append($("<option></option>").attr("value","disabled").text("Choose Server"));
+					$('#backend_server').append($("<option></option>").attr("value","disabled").text("------"));
 					$('#backend_port').val('');
 					$('#backend_ip').val('');			
 					for(let i = 0; i < data.split('<br>').length; i++){

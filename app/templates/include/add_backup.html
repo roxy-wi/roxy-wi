@@ -1,6 +1,6 @@
 		<tr>
 			<td class="padding20" style="width: 40%;">
-				Select a server for backup
+				{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.server}} {{lang.words.for}} {{lang.words.backup2}}
 				<span class="need-field">*</span>
 			</td>
 			<td>
@@ -14,7 +14,7 @@
 		</tr>
 		<tr>
 			<td class="padding20">
-				Enter backup server
+				{{lang.words.enter2|title()}} {{lang.words.backup}} {{lang.words.server}}
 				<span class="need-field">*</span>
 			</td>
 			<td>
@@ -23,7 +23,7 @@
 		</tr>
 		<tr>
 			<td class="padding20">
-				Enter remote folder
+				{{lang.words.enter2|title()}} {{lang.words.remote}} {{lang.words.folder}}
 				<span class="need-field">*</span>
 			</td>
 			<td>
@@ -32,7 +32,7 @@
 		</tr>
 		<tr>
 			<td class="padding20">
-				Backup type
+				{{lang.words.backup|title()}} {{lang.words.type}}
 				<span class="need-field">*</span>
 			</td>
 			<td>
@@ -42,7 +42,7 @@
 		</tr>
 		<tr>
 			<td class="padding20">
-				Period time
+				{{lang.words.period|title()}} {{lang.words.time}}
 				<span class="need-field">*</span>
 			</td>
 			<td>
@@ -50,4 +50,3 @@
 				{{ select('backup-time', values=values, selected='weekly', required='required', class='force_close') }}
 			</td>
 		</tr>
-		

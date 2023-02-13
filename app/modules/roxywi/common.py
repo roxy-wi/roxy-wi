@@ -229,7 +229,7 @@ def get_users_params(**kwargs):
 		user = sql.get_user_name_by_uuid(user_uuid.value)
 	except Exception:
 		print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
-		return 
+		return
 	try:
 		role = sql.get_user_role_by_uuid(user_uuid.value)
 	except Exception:
@@ -256,17 +256,31 @@ def get_users_params(**kwargs):
 	else:
 		servers = get_dick_permit()
 
+	user_lang = get_user_lang()
+
 	user_params = {
 		'user': user,
 		'user_uuid': user_uuid,
 		'role': role,
 		'token': token,
 		'servers': servers,
-		'user_services': user_services
+		'user_services': user_services,
+		'lang': user_lang
 	}
 
 	return user_params
 
+
+def get_user_lang() -> str:
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+
+	try:
+		user_lang = cookie.get('lang')
+		user_lang = user_lang.value
+	except Exception:
+		return 'en'
+
+	return user_lang
 
 def return_user_status() -> dict:
 	user_subscription = {}

@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% block title %}{{lang.menu_links.config.h2}} {{service_desc.service}}{% endblock %}
+{% block h2 %}{{lang.menu_links.config.h2}} {{service_desc.service}}{% endblock %}
 {% block content %}
 <link rel="stylesheet" href="/inc/codemirror/lib/codemirror.css">
 <link rel="stylesheet" href="/inc/codemirror/addon/dialog/dialog.css">
@@ -35,19 +37,19 @@
 			<input type="hidden" id="service" value="{{service|default('haproxy', true)}}" />
 			{% include 'include/select.html' %}
 			{% if service == 'nginx' or service == 'apache' %}
-			<a class="ui-button ui-widget ui-corner-all" title="Show running config" onclick="showConfigFiles()">Open</a>
+			<a class="ui-button ui-widget ui-corner-all" title="Show running config" onclick="showConfigFiles()">{{lang.words.open|title()}}</a>
 			{% else %}
-			<a class="ui-button ui-widget ui-corner-all" title="Show running config" onclick="showConfig()">Open</a>
+			<a class="ui-button ui-widget ui-corner-all" title="Show running config" onclick="showConfig()">{{lang.words.open|title()}}</a>
 			{% endif %}
 			{% if service != 'keepalived' and service != 'apache' %}
-				<a class="ui-button ui-widget ui-corner-all" title="View stat" onclick="openStats()">Stat</a>
+				<a class="ui-button ui-widget ui-corner-all" title="View stat" onclick="openStats()">{{lang.menu_links.stats.link}}</a>
 			{% endif %}
 			{% if service != 'keepalived' and service != 'nginx' and service != 'apache' %}
-				<a class="ui-button ui-widget ui-corner-all" title="Show map" onclick="showMap()">Map</a>	
+				<a class="ui-button ui-widget ui-corner-all" title="Show map" onclick="showMap()">{{lang.words.map|title()}}</a>
 			{% endif %}
-				<a class="ui-button ui-widget ui-corner-all" title="Compare configs" onclick="showCompareConfigs()">Compare</a>
+				<a class="ui-button ui-widget ui-corner-all" title="Compare configs" onclick="showCompareConfigs()">{{lang.words.compare|title()}}</a>
 			{% if role <= 3 %}
-				<a class="ui-button ui-widget ui-corner-all" title="Show versions" onclick="openVersions()">Versions</a>
+				<a class="ui-button ui-widget ui-corner-all" title="Show versions" onclick="openVersions()">{{lang.menu_links.versions.link}}</a>
 			{% endif %}
 			{% if role <= 2 %}
 				<a href="/app/servers.py#backup" class="ui-button ui-widget ui-corner-all" title="Git">Git</a>
@@ -63,7 +65,7 @@
 
 	{% if config %}
 		{% if role <= 3 %}
-			<h4>Config {% if config_file_name != 'undefined' %}{{config_file_name.replace('92', '/')}}{%endif%} from {{ serv }}</h4>
+			<h4>{{lang.words.config|title()}} {% if config_file_name != 'undefined' %}{{config_file_name.replace('92', '/')}}{%endif%} {{lang.words.from}} {{ serv }}</h4>
 			</center>
 			<form action="config.py" name="saveconfig" id="saveconfig" method="post">
 				<input type="hidden" value="{{ serv }}" name="serv">
@@ -76,17 +78,17 @@
 				</div>
 				<p>
 					<center>
-						<a href="config.py?service={{service}}&serv={{serv}}&showConfig" class="ui-button ui-widget ui-corner-all" title="Return to configuration view">Back</a>
+						<a href="config.py?service={{service}}&serv={{serv}}&showConfig" class="ui-button ui-widget ui-corner-all" title="{{lang.phrases.return_to_config}}">{{lang.words.back|title()}}</a>
 						{% if service != 'keepalived' %}
-							<button type="submit" value="test" name="save" class="btn btn-default" title="Check config without saving the config">Check config</button>
+							<button type="submit" value="test" name="save" class="btn btn-default" title="{{lang.words.check|title()}} {{lang.words.config}} {{lang.words.without}} {{lang.words.saving}}">{{lang.phrases.check_config}}</button>
 						{% endif %}
-						<button type="submit" value="save" name="save" class="btn btn-default" title="Save config without reloading the service">Save</button>
+						<button type="submit" value="save" name="save" class="btn btn-default" title="{{lang.phrases.save_title}}">{{lang.words.save|title()}}</button>
 						{% if is_restart|int == 0 %}
-						<button type="submit" value="" name="" class="btn btn-default">Save and restart</button>
+						<button type="submit" value="" name="" class="btn btn-default">{{lang.phrases.save_and_restart}}</button>
 						{% endif %}
-						<button type="submit" value="reload" name="save" class="btn btn-default">Save and reload</button>
+						<button type="submit" value="reload" name="save" class="btn btn-default">{{lang.phrases.save_and_reload}}</button>
 						{% if service != 'keepalived' %}
-						<div class="alert alert-info alert-two-rows"><b>Note:</b> When reconfiguring the master server, the slave will be reconfigured automatically</div>
+						<div class="alert alert-info alert-two-rows"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
 						{% endif %}
 					</center>
 				</p>

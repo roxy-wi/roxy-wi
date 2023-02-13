@@ -37,7 +37,6 @@ if configver:
 if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
 	service_desc = sql.select_service(service)
 	if roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=service_desc.service_id):
-		title = f"Working with versions {service_desc.service} configs"
 		servers = roxywi_common.get_dick_permit(service=service_desc.slug)
 		action = f'versions.py?service={service_desc.slug}'
 		conf_format = 'conf'
@@ -104,8 +103,9 @@ if serv is not None and form.getvalue('config') is not None:
 
 
 rendered_template = template.render(
-	h2=1, title=title, role=user_params['role'], user=user_params['user'], select_id="serv", serv=serv, aftersave=aftersave,
+	h2=1, role=user_params['role'], user=user_params['user'], select_id="serv", serv=serv, aftersave=aftersave,
 	selects=user_params['servers'], stderr=stderr, open=form.getvalue('open'), Select=form.getvalue('del'), file=file,
-	configver=configver, service=service, user_services=user_params['user_services'], action=action, token=user_params['token']
+	configver=configver, service=service, user_services=user_params['user_services'], action=action, token=user_params['token'],
+	lang=user_params['lang']
 )
 print(rendered_template)

@@ -27,7 +27,7 @@ user_params = roxywi_common.get_users_params(haproxy=1)
 
 try:
 	roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=1)
-except Exception as e:
+except Exception:
 	print('error: your session is expired')
 	sys.exit()
 
@@ -62,9 +62,9 @@ if all(v is None for v in [
 	black_lists = roxywi_common.get_files(folder=black_dir, file_format="lst")
 
 	template = template.render(
-		title="Add: ", role=user_params['role'], user=user_params['user'], selects=user_params['servers'], add=form.getvalue('add'), conf_add=form.getvalue('conf'),
+		role=user_params['role'], user=user_params['user'], selects=user_params['servers'], add=form.getvalue('add'), conf_add=form.getvalue('conf'),
 		group=user_group, options=sql.select_options(), saved_servers=sql.select_saved_servers(), white_lists=white_lists,
-		black_lists=black_lists, user_services=user_params['user_services'], token=user_params['token']
+		black_lists=black_lists, user_services=user_params['user_services'], token=user_params['token'], lang=user_params['lang']
 	)
 	print(template)
 

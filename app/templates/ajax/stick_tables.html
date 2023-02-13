@@ -1,3 +1,4 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% from 'include/input_macros.html' import copy_to_clipboard %}
 {%- for t in table %}
 	{%- if t.1.0 != '' -%}
@@ -23,19 +24,19 @@
 	<table class="overview">
 		<tr class="overviewHead">
 			<td class="padding10 first-collumn">
-				Table name:{{t.0.0}}
+				{{lang.words.table|title()}} {{lang.words.name}}:{{t.0.0}}
 			</td>
 			<td class="padding10 first-collumn">
-				Type: {{t.0.1}}
+				{{lang.words.type|title()}}: {{t.0.1}}
 			</td>
 			<td class="padding10 first-collumn">
-				Size: {{t.0.2|int() / 1024 / 1024}} Mb
+				{{lang.words.size|title()}}: {{t.0.2|int() / 1024 / 1024}} Mb
 			</td>
 			<td class="padding10 first-collumn">
-				Used: {{t.0.3}}
+				{{lang.words.used|title()}}: {{t.0.3}}
 			</td>
 			 <td>
-				 <button title="Clear table {{t.0.0}}" onclick="clearTable('{{t.0.0}}')">Clear table</button>
+				 <button title="{{lang.words.w_clear|title()}} {{lang.words.table}} {{t.0.0}}" onclick="clearTable('{{t.0.0}}')">{{lang.words.w_clear|title()}} {{lang.words.table}}</button>
 			 </td>
 		</tr>
 	</table>
@@ -135,7 +136,7 @@
 							</td>
 							{% endif %}
 							<td>
-								<a class="delete" title="Delete this entry" style="cursor: pointer;" onclick="deleteTableEntry(this, '{{t.0.0.strip()}}', '{{body.1.split('=')[1]}}')"></a>
+								<a class="delete" title="{{lang.words.delete|title()}} {{lang.words.this}} {{lang.words.entry}}" style="cursor: pointer;" onclick="deleteTableEntry(this, '{{t.0.0.strip()}}', '{{body.1.split('=')[1]}}')"></a>
 							</td>
 						</tr>
 					{% endif %}
@@ -143,7 +144,7 @@
 			</tbody>
 		</table>
 	{% else %}
-		<span class="alert alert-warning" style="margin-bottom: 0px;">Table is empty</span>
+		<span class="alert alert-warning" style="margin-bottom: 0px;">{{lang.words.table|title()}} {{lang.words.is}} {{lang.words.w_empty}}</span>
 	{% endif %}
 	<br />
 	<br />

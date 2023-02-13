@@ -13,9 +13,10 @@ import modules.service.common as service_common
 
 
 def user_ovw() -> None:
-    env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
-    template = env.get_template('/show_users_ovw.html')
+    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
+    template = env.get_template('ajax/show_users_ovw.html')
 
+    lang = roxywi_common.get_user_lang()
     user_params = roxywi_common.get_users_params()
     users_groups = sql.select_user_groups_with_names(1, all=1)
     user_group = roxywi_common.get_user_group(id=1)
@@ -25,14 +26,15 @@ def user_ovw() -> None:
     else:
         users = sql.select_users()
 
-    template = template.render(users=users, users_groups=users_groups)
+    template = template.render(users=users, users_groups=users_groups, lang=lang)
     print(template)
 
 
 def show_sub_ovw() -> None:
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
+    lang = roxywi_common.get_user_lang()
     template = env.get_template('ajax/show_sub_ovw.html')
-    template = template.render(sub=sql.select_user_all())
+    template = template.render(sub=sql.select_user_all(), lang=lang)
     print(template)
 
 

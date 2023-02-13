@@ -214,6 +214,7 @@ def table_select():
 	env = Environment(loader=FileSystemLoader('templates'), autoescape=True,
 					  extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'], trim_blocks=True, lstrip_blocks=True)
 	table = form.getvalue('table_select')
+	lang = roxywi_common.get_user_lang()
 
 	if table == 'All':
 		template = env.get_template('ajax/stick_tables.html')
@@ -227,11 +228,11 @@ def table_select():
 				table_id.append(table1)
 				table.append(table_id)
 
-		template = template.render(table=table)
+		template = template.render(table=table, lang=lang)
 	else:
 		template = env.get_template('ajax/stick_table.html')
 		tables_head, table = get_stick_table(table)
-		template = template.render(tables_head=tables_head, table=table)
+		template = template.render(tables_head=tables_head, table=table, lang=lang)
 
 	print(template)
 
@@ -345,14 +346,14 @@ def select_session() -> None:
 	env = Environment(loader=FileSystemLoader('templates'), autoescape=True,
 						extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'], trim_blocks=True, lstrip_blocks=True)
 	serv = common.checkAjaxInput(form.getvalue('sessions_select'))
-
+	lang = roxywi_common.get_user_lang()
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 
 	cmd = f'echo "show sess" |nc {serv} {haproxy_sock_port}'
 	output, stderr = server_mod.subprocess_execute(cmd)
 
 	template = env.get_template('ajax/sessions_table.html')
-	template = template.render(sessions=output)
+	template = template.render(sessions=output, lang=lang)
 
 	print(template)
 

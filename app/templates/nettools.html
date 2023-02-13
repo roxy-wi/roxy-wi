@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% block title %}{{ lang.menu_links.monitoring.net_tools }}{% endblock %}
+{% block h2 %}{{ lang.menu_links.monitoring.net_tools }}{% endblock %}
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select %}
 <style>
@@ -20,31 +22,31 @@
     <table class="overview">
         <caption><h3>ICMP</h3></caption>
         <tr class="overviewHead">
-            <th class="padding10 first-collumn">From</th>
-            <th class="padding10 first-collumn">To</th>
+            <th class="padding10 first-collumn">{{lang.words.from|title()}}</th>
+            <th class="padding10 first-collumn">{{lang.words.to|title()}}</th>
             <th class="padding10 first-collumn"></th>
             <th></th>
         </tr>
         <tr>
-                <td class="padding10 first-collumn">
-                    <select autofocus required name="nettools_icmp_server_from" id="nettools_icmp_server_from">
-                        <option disabled selected>------</option>
-                        <option value="localhost">Roxy-WI</option>
-                        {% for server in servers %}
-                        <option value="{{ server.2 }}">{{ server.1 }}</option>
+            <td class="padding10 first-collumn">
+                <select autofocus required name="nettools_icmp_server_from" id="nettools_icmp_server_from">
+                    <option disabled selected>------</option>
+                    <option value="localhost">Roxy-WI</option>
+                    {% for server in servers %}
+                    <option value="{{ server.2 }}">{{ server.1 }}</option>
                         {% endfor %}
                     </select>
-                </td>
-                <td class="padding10 first-collumn">
-                    {{ input('nettools_icmp_server_to', title='Enter IP or Name') }}
-                    {{ input('token', value=token, type='hidden') }}
-                </td>
-                <td class="padding10 first-collumn">
-                    <button type="submit" title="Run Ping" id="nettools_ping" name="nettools_ping" value="nettools_ping">Ping</button>
-                </td>
-                <td>
-                    <button type="submit" title="Run Traceroute" id="nettools_trace" name="nettools_trace" value="nettools_trace">Traceroute</button>
-                </td>
+            </td>
+            <td class="padding10 first-collumn">
+                {{ input('nettools_icmp_server_to', title='Enter IP or Name') }}
+                {{ input('token', value=token, type='hidden') }}
+            </td>
+            <td class="padding10 first-collumn">
+                <button type="submit" title="Run Ping" id="nettools_ping" name="nettools_ping" value="nettools_ping">Ping</button>
+            </td>
+            <td>
+                <button type="submit" title="Run Traceroute" id="nettools_trace" name="nettools_trace" value="nettools_trace">Traceroute</button>
+            </td>
         </tr>
     </table>
 </form>
@@ -52,9 +54,9 @@
     <table class="overview">
         <caption><h3>Check port</h3></caption>
         <tr class="overviewHead">
-            <th class="padding10 first-collumn">From</th>
-            <th class="padding10 first-collumn">To</th>
-            <th class="padding10 first-collumn">Port</th>
+            <th class="padding10 first-collumn">{{lang.words.from|title()}}</th>
+            <th class="padding10 first-collumn">{{lang.words.to|title()}}</th>
+            <th class="padding10 first-collumn">{{lang.words.port|title()}}</th>
             <th></th>
         </tr>
         <tr>
@@ -75,7 +77,7 @@
                 {{ input('nettools_telnet_port_to', title='Enter port', type='number', style='width: 60px;') }}
             </td>
             <td>
-                <button type="submit" title="Run Telnet" id="nettools_telnet" name="nettools_telnet" value="nettools_telnet">Connect</button>
+                <button type="submit" title="{{lang.words.run|title()}} Telnet" id="nettools_telnet" name="nettools_telnet" value="nettools_telnet">{{lang.words.connect|title()}}</button>
             </td>
         </tr>
     </table>
@@ -84,9 +86,9 @@
     <table class="overview">
         <caption><h3>NSLookup</h3></caption>
         <tr class="overviewHead">
-            <th class="padding10 first-collumn">From</th>
-            <th class="padding10 first-collumn">Record type</th>
-            <th class="padding10 first-collumn">DNS name</th>
+            <th class="padding10 first-collumn">{{lang.words.from|title()}}</th>
+            <th class="padding10 first-collumn">{{lang.words.record_type}} </th>
+            <th class="padding10 first-collumn">DNS {{lang.words.name}}</th>
             <th></th>
         </tr>
         <tr>
@@ -110,7 +112,7 @@
                 {{ input('token', value=token, type='hidden') }}
             </td>
             <td>
-                <button type="submit" title="Run Telnet" id="nettools_nslookup" name="nettools_nslookup" value="nettools_nslookup">Check</button>
+                <button type="submit" title="{{lang.words.run|title()}} Telnet" id="nettools_nslookup" name="nettools_nslookup" value="nettools_nslookup">{{lang.words.check|title()}}</button>
             </td>
         </tr>
     </table>

@@ -1,3 +1,4 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% from 'include/input_macros.html' import input, checkbox %}
 {% for s in smon %}
     <tr class="newserver" id="smon-{{s.0}}">

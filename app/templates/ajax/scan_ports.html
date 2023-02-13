@@ -1,9 +1,10 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
 <table class="overview">
     <thead>
     <tr class="overviewHead">
-        <th class="padding10 first-collumn">Port</th>
-        <th>State</th>
-        <th>Service</th>
+        <th class="padding10 first-collumn">{{lang.words.port|title()}}</th>
+        <th>{{lang.words.state|title()}}</th>
+        <th>{{lang.words.service|title()}}</th>
     </tr>
     </thead>
     <tbody>

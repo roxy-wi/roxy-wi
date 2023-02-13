@@ -1,3 +1,4 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% for s in sub %}
     {% if s.Plan == 'user' %}
         {% set plan = 'Home' %}
@@ -13,18 +14,18 @@
         {% set plan = 'Free' %}
     {% endif %}
     <tr class="odd">
-        <td class="padding10 first-collumn-wi">Plan</td>
+        <td class="padding10 first-collumn-wi">{{lang.words.plan|title()}}</td>
         <td>{{plan}}</td>
     </tr>
     <tr class="even">
-        <td class="padding10 first-collumn-wi">Status</td>
+        <td class="padding10 first-collumn-wi">{{lang.words.status|title()}}</td>
         <td>
             {% if plan == 'Free' %}
                 N/A
             {% else %}
             <span
             {% if s.Status|int() == 1 %}
-                style="color: var(--green-color); font-weight: bold">Active
+                style="color: var(--green-color); font-weight: bold">{{lang.words.active|title()}}
             {% else %}
                 style="color: var(--red-color); font-weight: bold">Blocked
              {% endif %}
@@ -33,7 +34,7 @@
         </td>
     </tr>
     <tr class="odd">
-        <td class="padding10 first-collumn-wi">Pay method</td>
+        <td class="padding10 first-collumn-wi">{{lang.words.pay_method|title()}}</td>
         <td>
             {% if plan == 'Free' %}
                 N/A

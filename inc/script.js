@@ -14,7 +14,8 @@ function escapeHtml(unsafe) {
 		.replace(/"/g, "&quot;")
 		.replace(/'/g, "&#039;");
 }
-var wait_mess = '<div class="alert alert-warning">Please do not close or refresh the page. Wait until the job is completed. This may take some time</div>'
+var wait_mess_word = $('#translate').attr('data-wait_mess');
+var wait_mess = '<div class="alert alert-warning">'+wait_mess_word+'</div>'
 function show_current_page(id) {
 	id.parent().css('display', 'contents');
 	id.parent().css('font-size', '13px');
@@ -910,6 +911,8 @@ $( function() {
 					$('.alert').html(data);
 				} else if (data.indexOf('ban') != '-1') {
 					ban();
+				} else if (data.indexOf('error') != '-1') {
+					toastr.error(data);
 				}
 			}
 		} );
@@ -923,24 +926,41 @@ $( function() {
 		}
 		return false;
 	});
+	var user_settings_tabel_title = $( "#show-user-settings-table" ).attr('title');
+	var cancel_word = $('#translate').attr('data-cancel');
+	var save_word = $('#translate').attr('data-save');
+	var change_word = $('#translate').attr('data-change');
+	var password_word = $('#translate').attr('data-password');
+	var logout_word = $('#translate').attr('data-logout');
+	var change_pass_word = change_word + ' ' + password_word
 	var showUserSettings = $( "#show-user-settings" ).dialog({
 			autoOpen: false,
 			width: 600,
 			modal: true,
-			title: 'User settings',
-			buttons: {
-				Apply: function() {
+			title: user_settings_tabel_title,
+			buttons: [{
+				text: save_word,
+				click: function () {
 					saveUserSettings();
-					$( this ).dialog( "close" );
-				},
-				'Change password': function() {
+					$(this).dialog("close");
+				}
+			}, {
+				text: change_pass_word,
+				click: function () {
 					changePassword();
-					$( this ).dialog( "close" );
-				},
-				Logout: function() {
+					$(this).dialog("close");
+				}
+			}, {
+				text: logout_word,
+				click: function() {
 					window.location.replace(window.location.origin+'/app/login.py?logout=logout');
 				}
-			}
+			}, {
+				text: cancel_word,
+				click: function () {
+					$(this).dialog("close");
+				}
+			}]
 		});
 
 	$('#show-user-settings-button').click(function() {
@@ -1142,6 +1162,7 @@ function saveUserSettings(){
 		localStorage.removeItem('disabled_alert');
 	}
 	changeCurrentGroupF();
+	Cookies.set('lang', $('#lang_select').val(), { expires: 365, path: '/app', samesite: 'strict', secure: 'true' });
 }
 function sleep(ms) {
 	return new Promise(resolve => setTimeout(resolve, ms));

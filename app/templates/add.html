@@ -21,16 +21,16 @@
 <script src="/inc/add.js"></script>
 <div id="tabs">
 	<ul>
-		<li><a href="#create" title="Add proxy: Create proxy - Roxy-WI">Create proxy</a></li>
-		<li><a href="#listen" title="Add proxy: Create Listen - Roxy-WI">Listen</a></li>
-		<li><a href="#frontend" title="Add proxy: Create Frontend - Roxy-WI">Frontend</a></li>
-		<li><a href="#backend" title="Add proxy: Create Backend - Roxy-WI">Backend</a></li>
-		<li><a href="#ssl" title="Add proxy: Upload SSL certificates - Roxy-WI">SSL certificates</a></li>
-		<li><a href="#option" title="Add proxy: Options templates - Roxy-WI">Options</a></li>
-		<li><a href="#add-servers" title="Add proxy: Servers templates - Roxy-WI">Servers</a></li>
-		<li><a href="#userlist" title="Add proxy: Create Userlists - Roxy-WI">Userlists</a></li>
-		<li><a href="#peers" title="Add proxy: Create peers - Roxy-WI">Peers</a></li>
-		<li><a href="#lists" title="Add proxy: Create and upload whitelists or blacklists - Roxy-WI">Lists</a></li>
+		<li><a href="#create" title="{{lang.words.add|title()}} {{lang.words.proxy}}: {{lang.words.create|title()}} {{lang.words.proxy}} - Roxy-WI">{{lang.words.create|title()}} {{lang.words.proxy}}</a></li>
+		<li><a href="#listen" title="{{lang.words.add|title()}} {{lang.words.proxy}}: {{lang.words.create|title()}} {{lang.words.listener|title()}} - Roxy-WI">{{lang.words.listener|title()}}</a></li>
+		<li><a href="#frontend" title="{{lang.words.add|title()}} {{lang.words.proxy}}: {{lang.words.create|title()}} {{lang.words.frontend|title()}} - Roxy-WI">{{lang.words.frontend|title()}}</a></li>
+		<li><a href="#backend" title="{{lang.words.add|title()}} {{lang.words.proxy}}: {{lang.words.create|title()}} {{lang.words.backend|title()}} - Roxy-WI">{{lang.words.backend|title()}}</a></li>
+		<li><a href="#ssl" title="{{lang.words.add|title()}} {{lang.words.proxy}}: {{lang.words.upload|title()}} SSL {{lang.words.certs}} - Roxy-WI">SSL {{lang.words.certs}}</a></li>
+		<li><a href="#option" title="{{lang.words.add|title()}} {{lang.words.proxy}}: {{lang.words.params|title()}} {{lang.words.templates}} - Roxy-WI">{{lang.words.params|title()}}</a></li>
+		<li><a href="#add-servers" title="{{lang.words.add|title()}} {{lang.words.proxy}}: {{lang.words.servers|title()}} {{lang.words.templates}} - Roxy-WI">{{lang.words.servers|title()}}</a></li>
+		<li><a href="#userlist" title="{{lang.words.add|title()}} {{lang.words.proxy}}: {{lang.words.create|title()}} {{lang.words.userlists|title()}} - Roxy-WI">{{lang.words.userlists|title()}}</a></li>
+		<li><a href="#peers" title="{{lang.words.add|title()}} {{lang.words.proxy}}: {{lang.words.create|title()}} peers - Roxy-WI">Peers</a></li>
+		<li><a href="#lists" title="{{lang.words.add|title()}} {{lang.words.proxy}}: {{lang.words.create|title()}} {{lang.words.and}} {{lang.words.upload}} {{lang.words.whitelists}} {{lang.words.or}} {{lang.words.blacklists}} - Roxy-WI">{{lang.words.lists|title()}}</a></li>
 		{% include 'include/login.html' %}
 	</ul>
 	<ul id='browse_histroy'></ul>
@@ -38,9 +38,9 @@
 	<div id="listen">
 		<form name="add-listener" id="add-listener" action="/app/add.py" method="post">
 			<table class="add-table">
-				<caption><h3>Add listen</h3></caption>
+				<caption><h3>{{lang.words.add|title()}} {{lang.words.listener}}</h3></caption>
 				<tr>
-					<td class="addName">Select a server: </td>
+					<td class="addName">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.server}}: </td>
 					<td class="addOption">
 						<select required name="serv" id="serv">
 							<option disabled selected>------</option>
@@ -48,72 +48,67 @@
 								<option value="{{ select.2 }}">{{ select.1 }}</option>
 							{% endfor %}
 						</select>
-						<div class="tooltip tooltipTop"><b>Note:</b> If you re-configure the master server, the slave server will be re-configured automatically</div>
+						<div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
 					</td>
 					<td rowspan="5" class="add-note addName alert-info">
-						A "listen" section defines a complete proxy with its frontend and backend parts combined in one section. It is generally useful for TCP-only traffic.
+						{{lang.add_page.desc.listener_desc1}}
 						<br /><br />
-						All proxy names must be formed from upper and lower case letters, digits, '-' (dash), '_' (underscore) , '.' (dot) and ':' (colon). ACL names are
-						case-sensitive, which means that "www" and "WWW" are two different proxies.
+						{{lang.add_page.desc.listener_desc2}}
 						<br /><br />
-						Historically, all proxy names could overlap, it just caused troubles in the logs. Since the introduction of content switching, it is mandatory that two
-						proxies with overlapping capabilities (frontend/backend) have different names. However, it is still permitted that a frontend and a backend share the same
-						name, as this configuration seems to be commonly encountered.
+						{{lang.add_page.desc.listener_desc3}}
 					</td>
 				</tr>
 				<tr>
-					<td class="addName">Name:</td>
+					<td class="addName">{{lang.words.name|title()}}:</td>
 					<td class="addOption">
-						{{ input('name', name='listener', title="Name Listener", placeholder="web_80", required='required') }}
+						{{ input('name', name='listener', title=lang.words.name|title() + ' ' +lang.words.listener, placeholder="web_80", required='required') }}
 					</td>
 				</tr>
 				<tr>
-					<td class="addName">IP and Port:</td>
+					<td class="addName">IP and {{lang.words.port|title()}}:</td>
 					<td class="addOption">
 						{{ input('ip', placeholder="Any", size='15') }}<b>:</b>
-						{{ input('listen-port', name='port', title="Port for bind listen", placeholder="8080", size='5', required='required') }}
+						{{ input('listen-port', name='port', title=lang.add_page.desc.port_for_bind + ' ' + lang.words.listener, placeholder="8080", size='5', required='required') }}
 						<div id="listener_bind" style="display: none"></div>
-						<a class="link add-server" id="add_bind_listener" title="Bind one more IP-port pair"></a>
+						<a class="link add-server" id="add_bind_listener" title="{{lang.add_page.desc.bind_ip_pair}}"></a>
 						<div class="tooltip tooltipTop">
-							If the IP-address for the listener is empty, it will listen on all IP addresses.
-							Start typing IP or press down button.  Click on + to add multiple IP-port pairs. If you are using VRRP,
-							leave the IP field blank. If you assign a VRRP IP, the slave server will not start.
+							{{lang.add_page.desc.ip_port}}
 						</div>
 					</td>
 				</tr>
 				<tr class="advance">
-					<td class="addName">Mode: </td>
+					<td class="addName">{{lang.words.mode|title()}}: </td>
 					<td class="addOption">
 						{% set values = dict() %}
 						{% set values = {'http':'http','tcp':'tcp'} %}
 						{{ select('listen-mode-select', name='mode', values=values, selected='http', required='required', class='force_close') }}
 						<span id="https-listen-span">
-							<label for="https-listen" style="margin-top: 5px;" title="Enable SSL Offloading" data-help="The term SSL termination means that you are performing all encryption and decryption at the edge of your network, such as at the load balancer.">SSL Offloading</label>
+							<label for="https-listen" style="margin-top: 5px;" title="{{lang.words.enable|title()}} SSL Offloading" data-help="{{lang.add_page.desc.ssl_offloading}}">SSL Offloading</label>
 							<input type="checkbox" id="https-listen" name="ssl" value="https" >
 						</span>
 						<div id="https-hide-listen" style="display: none;">
-							<br /><span class="tooltip tooltipTop">Enter name of pem file, or press the "down" button:</span><br />
+							<br /><span class="tooltip tooltipTop">{{lang.words.enter2|title()}} {{lang.words.name}} {{lang.words.of}} pem {{lang.words.file2}}, {{lang.add_page.desc.press_down}}:</span><br />
 							{{ input('path-cert-listen', name="cert", placeholder="some_cert.pem", size='39') }}<br />
-							<label for="ssl-dis-check-listen" style="margin-top: 5px;">Disable SSL check</label><input type="checkbox" id="ssl-dis-check-listen" name="ssl-dis-check" value="ssl-dis-check">
-							<label for="ssl-check-listen" style="margin-top: 5px;">Disable SSL verify on servers</label><input type="checkbox" id="ssl-check-listen" name="ssl-check" value="ssl-check" checked>
+							<label for="ssl-dis-check-listen" style="margin-top: 5px;">{{lang.add_page.buttons.disable_ssl_check}}</label><input type="checkbox" id="ssl-dis-check-listen" name="ssl-dis-check" value="ssl-dis-check">
+							<label for="ssl-check-listen" style="margin-top: 5px;">{{lang.add_page.buttons.disable_ssl_verify}}</label><input type="checkbox" id="ssl-check-listen" name="ssl-check" value="ssl-check" checked>
 						</div>
 					</td>
 				</tr>
 				<tr class="advance">
 					<td class="addName">Maxconn: </td>
 					<td class="addOption">
-						{{ input('maxconn', value='2000', type="number", title="Fix the maximum number of concurrent connections on a frontend", size='5', required='required') }}
-						<div class="tooltip tooltipTop">This value should not exceed the global maxconn. Default global maxconn value: 2000</div>
+						{{ input('maxconn', value='2000', type="number", title=lang.add_page.desc.maxconn_fix, size='5', required='required') }}
+						<div class="tooltip tooltipTop">{{lang.add_page.desc.maxconn_desc}}: 2000</div>
 					</td>
 				</tr>
 				<tr class="advance">
-					<td class="addName">Balance: </td>
+					<td class="addName">{{lang.words.balance|title()}}: </td>
 						<td class="addOption">
 							{{ select('balance', values=balance_params, selected='roundrobin', required='required', class='force_close') }}
 						</td>
 				</tr>
 				<tr class="advance">
-					<td class="addName">Health check: </td>
+					<td class="addName">{{lang.words.health|title()}} {{lang.words.check}}: </td>
 					<td class="addOption">
 						{{ select('listener_checks', name='health_check', values=checks, selected='', class='force_close') }}
 						<span id="listener_checks_note" class="tooltip tooltipTop"></span>
@@ -144,18 +139,17 @@
 							</p>
 						</div>
 						<span>
-							<a class="link add-server" id="listener_add_acl" title="Add ACL" style="cursor: pointer; display: none;"></a>
+							<a class="link add-server" id="listener_add_acl" title="{{lang.words.add|title()}} ACL" style="cursor: pointer; display: none;"></a>
 						</span>
 					</td>
 				</tr>
 				<tr class="advance">
-					<td class="addName"><span title="Cache support start 1.8 and latter" class="help_cursor">Web acceleration:</span></td>
+					<td class="addName"><span title="Cache support start 1.8 and latter" class="help_cursor">Web {{lang.words.acceleration}}:</span></td>
 					<td class="addOption">
 						<span class="controlgroup">
-							{{ checkbox('compression', title='HTTP compression allows you to shrink the body of a response before it is relayed to a client, which results in using less network bandwidth per request. From a client\'s perspective, this reduces latency.',
-							value='1', desc='Compression') }}
-							{{ checkbox('cache', title='Enable cache', value='2', desc='Cache') }}
-							{{ checkbox('ssl_offloading', title='Enable redirection from HTTP scheme to HTTPS scheme', desc='HTTP->HTTPS') }}
+							{{ checkbox('compression', title=lang.add_page.desc.http_compression, value='1', desc=lang.words.compression|title()) }}
+							{{ checkbox('cache', title=lang.words.enable|title()+' '+lang.words.cache, value='2', desc=lang.words.cache|title()) }}
+							{{ checkbox('ssl_offloading', title=lang.add_page.desc.http_https, desc='HTTP->HTTPS') }}
 						</span>
 					</td>
 				</tr>
@@ -163,54 +157,35 @@
 					<td class="addName"><span title="Web application firewall" class="help_cursor">WAF:</span></td>
 					<td class="addOption">
 						<span class="controlgroup">
-							{{ checkbox('slow_atack', title='In a Slow POST attack, an attacker begins by sending a legitimate HTTP POST header to a Web server, exactly as they would under normal circumstances. The header specifies the exact size of the message body that will then follow. However, that message body is then sent at an alarmingly low rate – sometimes as slow as 1 byte per approximately two minutes.',
+							{{ checkbox('slow_atack', title=lang.add_page.desc.slow_attack,
 							desc='Slow attack') }}
 							{{ checkbox('ddos', title='DDOS attack protect', desc='DDOS') }}
-							{{ checkbox('whitelist_checkbox', title='Add whitelist', desc='Whitelist') }}
-							{{ checkbox('blacklist_checkbox', title='Add blacklist', desc='Blacklist') }}
+							{{ checkbox('whitelist_checkbox', title=lang.words.enable|title()+' '+ lang.words.whitelist, desc=lang.words.whitelist|title()) }}
+							{{ checkbox('blacklist_checkbox', title=lang.words.enable|title()+' '+ lang.words.blacklist, desc=lang.words.blacklist|title()) }}
 							{{ checkbox('waf', title='Web application firewall', desc='WAF', value='1') }}
-							{{ checkbox('antibot', title='Unfortunately, a large portion of bots are used for malicious reasons. Their intentions include web scraping, spamming, request flooding, brute forcing, and vulnerability scanning. For example, bots may scrape your price lists so that competitors can consistently undercut you or build a competitive solution using your data. Or they may try to locate forums and comment sections where they can post spam. At other times, they’re scanning your site looking for security weaknesses.',
-							desc='Antibot', value='1') }}
+							{{ checkbox('antibot', title=lang.add_page.desc.antibot, desc='Antibot', value='1') }}
 						</span>
 						<div id="blacklist-hide" style="display: none;">
-							<br /><span class="tooltip tooltipTop">Enter a blacklist name, or press the "down" button:</span><br />
+							<br /><span class="tooltip tooltipTop">{{lang.words.enter2|title()}} {{lang.words.w_a}} {{lang.words.blacklist}} {{lang.words.name}}, {{lang.add_page.desc.press_down}}:</span><br />
 							{{ input('blacklist-hide-input', size='39', name="blacklist", placeholder="blacklist.lst") }}
 						</div>
 						<div id="whitelist-hide" style="display: none;">
-							<br /><span class="tooltip tooltipTop">Enter a whitelist name, or press the "down" button::</span><br />
+							<br /><span class="tooltip tooltipTop">{{lang.words.enter2|title()}} {{lang.words.w_a}} {{lang.words.whitelist}} {{lang.words.name}}, {{lang.add_page.desc.press_down}}:</span><br />
 							{{ input('whitelist-hide-input', size='39', name="whitelist", placeholder="whitelist.lst") }}
 						</div>
 					</td>
 				</tr>
 				<tr class="advance">
-					<td class="addName">Options:</td>
+					<td class="addName">{{lang.words.options|title()}}:</td>
 					<td class="addOption">
 						<span class="controlgroup">
-							{{ checkbox('forward_for', title='When HAProxy Enterprise proxies a TCP connection, it overwrites the client\'s source IP address with its own when communicating with the backend server. However, when relaying HTTP messages, it can store the client\'s address in the HTTP header X-Forwarded-For. The backend server can then be configured to read the value from that header to retrieve the client\'s IP address.',
-							desc='Forward for') }}
-							{{ checkbox('redispatch', title='In HTTP mode, if a server designated by a cookie is down, clients may
-							definitely stick to it because they cannot flush the cookie, so they will not
-							be able to access the service anymore.
-							Specifying "option redispatch" will allow the proxy to break their
-							persistence and redistribute them to a working server.
-							It also allows to retry connections to another server in case of multiple
-							connection failures. Of course, it requires having "retries" set to a nonzero
-							value.', desc='Redispatch') }}
+							{{ checkbox('forward_for', title=lang.add_page.desc.forward_for, desc='Forward for') }}
+							{{ checkbox('redispatch', title=lang.add_page.desc.redispatch, desc='Redispatch') }}
 							{% set values = dict() %}
 							{% set values = {'Off':'Off','Server only':'Server only','Force close':'Force close','Pretend keep alive':'Pretend keep alive'} %}
-							{{ select('force_close', values=values, first='Force HTTP close', title='Since HAProxy works in reverse-proxy mode, the servers see its IP address as
-their client address. This is sometimes annoying when the client\'s IP address
-is expected in server logs. To solve this problem, the well-known HTTP header
-"X-Forwarded-For" may be added by HAProxy to all requests sent to the server.
-This header contains a value representing the client\'s IP address. Since this
-header is always appended at the end of the existing header list, the server
-must be configured to always use the last occurrence of this header only. See
-the server\'s manual to find how to enable use of this standard header. Note
-that only the last occurrence of the header must be used, since it is really
-possible that the client has already brought one.', class='force_close') }}
-							{{ checkbox('cookie', title='To send a client to the same server where they were sent previously in order to reuse a session on that server, you can enable cookie-based session persistence. Add a cookie directive to the backend section and set the cookie parameter to a unique value on each server line.',
-							desc='Set cookie', value='1') }}
-							{{ checkbox('options-listen-show', title='Set options manually', desc='Set options') }}
+							{{ select('force_close', values=values, first='Force HTTP close', title=lang.add_page.desc.force_close, class='force_close') }}
+							{{ checkbox('cookie', title=lang.add_page.desc.cookie, desc=lang.words.set|title()+' cookie', value='1') }}
+							{{ checkbox('options-listen-show', title=lang.add_page.buttons.set_options_m, desc=lang.add_page.buttons.set_options) }}
 						</span>
 						<br>
 						<span id="cookie_div" style="display: none;">
@@ -220,10 +195,10 @@ possible that the client has already brought one.', class='force_close') }}
 								{% set values = dict() %}
 								{% set values = {'None':'None','rewrite':'rewrite','indirect':'indirect','insert':'insert'} %}
 								{{ select('rewrite', values=values, first='rewrite/indirect/insert', class='force_close') }}
-								{{ checkbox('prefix', title='This keyword indicates that instead of relying on a dedicated cookie for the persistence, an existing one will be completed', desc='prefix', value='prefix') }}
-								{{ checkbox('nocache', title='This option is recommended in conjunction with the insert mode when there is a cache between the client and HAProxy', desc='nocache', value='nocache') }}
-								{{ checkbox('postonly', title='This option ensures that cookie insertion will only be performed on responses to POST requests', desc='postonly', value='postonly') }}
-								{{ checkbox('dynamic', title='Activate dynamic cookies. When used, a session cookie is dynamically created for each server', desc='dynamic', value='dynamic') }}
+								{{ checkbox('prefix', title=lang.add_page.desc.c_prefix, desc='prefix', value='prefix') }}
+								{{ checkbox('nocache', title=lang.add_page.desc.c_nocache, desc='nocache', value='nocache') }}
+								{{ checkbox('postonly', title=lang.add_page.desc.c_postonly, desc='postonly', value='postonly') }}
+								{{ checkbox('dynamic', title=lang.add_page.desc.c_dynamic, desc='dynamic', value='dynamic') }}
 								<span id="dynamic_div" style="display: none;">
 									dynamic-cookie-key: {{ input('dynamic-cookie-key', placeholder="your-custom-key") }}
 								</span>
@@ -231,39 +206,39 @@ possible that the client has already brought one.', class='force_close') }}
 						</span>
 						<div id="options-listen-show-div" style="display: none;">
 							<div class="tooltip">
-								<span style="padding-right: 10px;">Start typing options: </span>
+								<span style="padding-right: 10px;">{{lang.words.start2|title()}} {{lang.words.typing}} {{lang.words.options}}: </span>
 								{{ input('options') }}
 								<span style="padding-left: 10px;">
-									or press the "down" button. <a href="http://cbonte.github.io/haproxy-dconv/1.7/configuration.html" target="_blanck" style="color: #23527c" title="HAproxy docs">Read more about options</a>
+									{{lang.add_page.desc.press_down}}. <a href="http://cbonte.github.io/haproxy-dconv/1.7/configuration.html" target="_blanck" style="color: #23527c" title="HAProxy docs">{{lang.words.read|title()}} {{lang.words.more}} {{lang.words.about}} {{lang.words.options}}</a>
 								</span>
 								<br />
-								<span style="padding-right: 10px;">Start typing saved options: </span>
+								<span style="padding-right: 10px;">{{lang.words.start2|title()}} {{lang.words.typing}} {{lang.words.saved}} {{lang.words.options}}: </span>
 								{{ input('saved-options') }}
-									These are the options that you saved in the "Options" tab
+									{{lang.add_page.desc.saved_options}}
 							</div>
 							<textarea name="option" title="Options thru" id="optionsInput" cols=80 rows=5 placeholder="acl test hdr_beg(host) -i some_host"></textarea>
 						</div>
 					</td>
 				</tr>
 				<tr>
-					<td class="addName">Servers:</td>
+					<td class="addName">{{lang.words.servers|title()}}:</td>
 					<td class="addOption">
 						{% include 'include/add_servers.html' %}
 						<br>
 						<br>
-						{{ checkbox('template-listen', name='template', title='Сreate the list of servers from the template', value='template', desc='Server-template') }}
+						{{ checkbox('template-listen', name='template', title=lang.add_page.desc.server_template, value='template', desc=lang.add_page.desc.server_template) }}
 					</td>
 				</tr>
 				<tr class="advance">
-					<td class="addName">Check:</td>
+					<td class="addName">{{lang.words.check|title()}}:</td>
 					<td class="addOption">
 						<div>
-							<label for="controlgroup-listen-show" style="margin-top: 5px;" title="Set custom check parameters">Custom check params</label>
+							<label for="controlgroup-listen-show" style="margin-top: 5px;" title="Set custom check parameters">{{lang.words.custom|title()}} {{lang.words.check}} {{lang.words.params}}</label>
 							<input type="checkbox" id="controlgroup-listen-show" name="default-check" value="1">
-							<span class="tooltip tooltipTop"> Default params: inter 2000 rise 2 fall 5</span>
+							<span class="tooltip tooltipTop">{{lang.add_page.desc.def_check}}: inter 2000 rise 2 fall 5</span>
 						</div>
 						<div class="controlgroup" id="controlgroup-listen" style="display: none;">
-							<label for="check-servers-listen" title="Ebable servers check">Check</label>
+							<label for="check-servers-listen" title="Ebable servers check">{{lang.words.check|title()}}</label>
 							<input type="checkbox" id="check-servers-listen" name="check-servers" checked value="1">
 							{% set values = dict() %}
 							{% set values = {'1000':'1000','2000':'2000','3000':'3000'} %}
@@ -276,8 +251,7 @@ possible that the client has already brought one.', class='force_close') }}
 							{{ select('fall-listen', name='fall', values=values, first='fall', class='force_close') }}
 						</div>
 						<div style="display: block">
-							{{ checkbox('circuit_breaking_listen', name="circuit_breaking", desc='Circuit Breaking', title='Circuit breaker is a design pattern which is used to detect failures and encapsulates the logic of preventing a failure from constantly recurring. The circuit breaker design pattern works much like an electrical circuit breaker which is intended to “trip” or open the circuit when failure is detected.',
-							value='1') }}
+							{{ checkbox('circuit_breaking_listen', name="circuit_breaking", desc='Circuit Breaking', title=lang.add_page.desc.circuit_breaking,  value='1') }}
 						</div>
 						<div id="circuit_breaking_listen_div" style="display: none">
 							Observe:
@@ -285,22 +259,22 @@ possible that the client has already brought one.', class='force_close') }}
 							error-limit: {{ input('circuit_breaking_error_limit', type='number', value='50', style='width: 50px;') }}
 							on-error:
 							{{ select('circuit_breaking_on_error', values=on_error, class='force_close') }}
-							<div class="tooltip tooltipTop">Read more about Circuit Breaking <a href="https://roxy-wi.org/description/circuit-breaking" title="Circuit Breaking" target="_blank">here</a></div>
+							<div class="tooltip tooltipTop">{{lang.words.read|title()}} {{lang.words.more}} {{lang.words.about}} Circuit Breaking <a href="https://roxy-wi.org/description/circuit-breaking" title="Circuit Breaking" target="_blank">{{lang.words.here}}</a></div>
 						</div>
 					</td>
 				</tr>
 				<tr class="advance-show">
 					<td class="addOption" colspan="2">
-						<button title="Show full list of settings" class="row-down advance-show-button">Show Advanced settings</button>
-						<button title="Hide full list of settings" class="row-up advance-hide-button" style="display: none">Hide Advanced settings</button>
+						<button title="{{lang.add_page.buttons.show_full_settings}}" class="row-down advance-show-button">{{lang.words.show|title()}} {{lang.words.advanced}} {{lang.words.settings}}</button>
+						<button title="{{lang.add_page.buttons.hide_full_settings}}" class="row-up advance-hide-button" style="display: none">{{lang.words.hide|title()}} {{lang.words.advanced}} {{lang.words.settings}}</button>
 					</td>
 				</tr>
 				<tr>
 					<td class="addButton">
-						<a class="ui-button ui-widget ui-corner-all" title="Add Listen" onclick="addProxy('add-listener')">Add Listen</a>
+						<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.add|title()}} {{lang.words.listener|title()}}" onclick="addProxy('add-listener')">{{lang.words.add|title()}} {{lang.words.linstener|title()}}</a>
 					</td>
 					<td class="addButton">
-						<a class="ui-button ui-widget ui-corner-all" title="Generate and display config" onclick="generateConfig('add-listener')">Generate config</a>
+						<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.generate|title()}} {{lang.words.and}} {{lang.words.display}} {{lang.words.config}}" onclick="generateConfig('add-listener')">{{lang.words.generate|title()}} {{lang.words.config}}</a>
 					</td>
 				</tr>
 			</table>
@@ -312,9 +286,9 @@ possible that the client has already brought one.', class='force_close') }}
 	<div id="frontend">
 		<form name="add-frontend" id="add-frontend" action="/app/add.py" method="post">
 		<table>
-			<caption><h3>Add frontend</h3></caption>
+			<caption><h3>{{lang.words.add|title()}} {{lang.words.frontend}}</h3></caption>
 			<tr>
-				<td class="addName">Select a server: </td>
+				<td class="addName">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.server}}: </td>
 				<td class="addOption">
 					<select required name="serv" id="serv2">
 						<option disabled selected>------</option>
@@ -322,51 +296,46 @@ possible that the client has already brought one.', class='force_close') }}
 							<option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endfor %}
 					</select>
-					<div class="tooltip tooltipTop"><b>Note:</b> If you re-configure the master server, the slave server will be re-configured automatically</div>
+					<div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
 				</td>
 				<td rowspan="5" class="add-note addName alert-info">
-						A "frontend" section describes a set of listening sockets accepting client connections.
+						{{lang.add_page.desc.front_desc1}}
 						<br /><br />
-						All proxy names must be formed from upper and lower case letters, digits, '-' (dash), '_' (underscore) , '.' (dot) and ':' (colon). ACL names are
-						case-sensitive, which means that "www" and "WWW" are two different proxies.
+						{{lang.add_page.desc.listener_desc2}}
 						<br /><br />
-						Historically, all proxy names could overlap, it just caused troubles in the logs. Since the introduction of content switching, it is mandatory that two
-						proxies with overlapping capabilities (frontend/backend) have different names. However, it is still permitted that a frontend and a backend share the same
-						name, as this configuration seems to be commonly encountered.
+						{{lang.add_page.desc.listener_desc1}}
 				</td>
 			</tr>
 			<tr>
-				<td class="addName">Name:</td>
+				<td class="addName">{{lang.words.name|title()}}:</td>
 				<td class="addOption">
-					<input type="text" name="frontend" id="new_frontend" required title="Name frontend"  placeholder="web_80" class="form-control">
+					<input type="text" name="frontend" id="new_frontend" required title="{{lang.words.name|title()}} {{lang.words.frontend}}"  placeholder="web_80" class="form-control">
 				</td>
 			</tr>
 			<tr>
-				<td class="addName">IP and Port:</td>
+				<td class="addName">IP and {{lang.words.port|title()}}:</td>
 				<td class="addOption">
 					<input type="text" name="ip" id="ip1" size="15" placeholder="Any" class="form-control"><b>:</b>
-					<input type="text" name="port" size="5" required title="Port for bind frontend" placeholder="8080" class="form-control">
+					<input type="text" name="port" size="5" required title="{{lang.add_page.desc.port_for_bind}} {{lang.words.frontend}}" placeholder="8080" class="form-control">
 					<div id="frontend_bind" style="display: none"></div>
-					<a class="link add-server" id="add_bind_frontend" title="Bind one more IP-port pair"></a>
+					<a class="link add-server" id="add_bind_frontend" title="{{lang.add_page.desc.bind_ip_pair}}"></a>
 					<div class="tooltip tooltipTop">
-						If the IP-address for the listener is empty, it will listen on all IP addresses.
-						Start typing IP or press down button.  Click on + to add multiple IP-port pairs. If you are using VRRP,
-						leave the IP field blank. If you assign a VRRP IP, the slave server will not start.
+						{{lang.add_page.desc.ip_port}}
 					</div>
 				</td>
 			</tr>
 			<tr class="advance">
-				<td class="addName">Mode: </td>
+				<td class="addName">{{lang.words.mode|title()}}: </td>
 				<td class="addOption">
 					{% set values = dict() %}
 					{% set values = {'http':'http','tcp':'tcp'} %}
 					{{ select('frontend-mode-select', name='mode', values=values, selected='http', required='required', class='force_close') }}
 					<span id="https-frontend-span">
-						{{ checkbox('https-frontend', title='The term SSL termination means that you are performing all encryption and decryption at the edge of your network, such as at the load balancer.', desc='SSL Offloading') }}
+						{{ checkbox('https-frontend', title=lang.add_page.desc.ssl_offloading, desc='SSL Offloading') }}
 
 					</span>
 					<div id="https-hide-frontend" style="display: none;">
-						<br /><span class="tooltip tooltipTop">Enter a name of pem file, or press the "down" button:</span><br />
+						<br /><span class="tooltip tooltipTop">{{lang.words.enter2|title()}} {{lang.words.name}} {{lang.words.of}} pem {{lang.words.file2}}, {{lang.add_page.desc.press_down}}:</span><br />
 						{{ input('path-cert-frontend', name="cert", placeholder="some_cert.pem", size='39') }}
 					</div>
 				</td>
@@ -374,8 +343,8 @@ possible that the client has already brought one.', class='force_close') }}
 			<tr class="advance">
 				<td class="addName">Maxconn: </td>
 				<td class="addOption">
-					{{ input('maxconn', value='2000', type="number", title="Fix the maximum number of concurrent connections on a frontend", size='5', required='required') }}
-					<div class="tooltip tooltipTop">This value should not exceed the global maxconn. Default global maxconn value: 2000</div>
+					{{ input('maxconn', value='2000', type="number", title=lang.add_page.desc.maxconn_fix, size='5', required='required') }}
+					<div class="tooltip tooltipTop">{{lang.add_page.desc.maxconn_desc}}: 2000</div>
 				</td>
 			</tr>
 			<tr class="advance">
@@ -403,13 +372,12 @@ possible that the client has already brought one.', class='force_close') }}
 				</td>
 			</tr>
 			<tr class="advance">
-				<td class="addName"><span title="Cache support start 1.8 and latter" class="help_cursor">Web acceleration:</span></td>
+				<td class="addName"><span title="Cache support start 1.8 and latter" class="help_cursor">Web {{lang.words.acceleration}}:</span></td>
 				<td class="addOption">
 					<span class="controlgroup">
-						{{ checkbox('compression2', name="compression", title='HTTP compression allows you to shrink the body of a response before it is relayed to a client, which results in using less network bandwidth per request. From a client\'s perspective, this reduces latency.',
-						value='1', desc='Compression') }}
-						{{ checkbox('cache2', name="cache", title='Enable cache', value='2', desc='Cache') }}
-						{{ checkbox('ssl_offloading1', title='Enable redirection from HTTP scheme to HTTPS scheme', desc='HTTP->HTTPS') }}
+						{{ checkbox('compression2', name="compression", title=lang.add_page.desc.http_compression, value='1', desc=lang.words.compression|title()) }}
+						{{ checkbox('cache2', name="cache", title=lang.words.enable|title()+' '+lang.words.cache, value='2', desc=lang.words.cache|title()) }}
+						{{ checkbox('ssl_offloading1', title=lang.add_page.desc.http_https, desc='HTTP->HTTPS') }}
 					</span>
 				</td>
 			</tr>
@@ -417,74 +385,64 @@ possible that the client has already brought one.', class='force_close') }}
 				<td class="addName"><span title="Web application firewall" class="help_cursor">WAF:</span></td>
 				<td class="addOption">
 					<span class="controlgroup">
-						{{ checkbox('slow_atack1', title='In a Slow POST attack, an attacker begins by sending a legitimate HTTP POST header to a Web server, exactly as they would under normal circumstances. The header specifies the exact size of the message body that will then follow. However, that message body is then sent at an alarmingly low rate – sometimes as slow as 1 byte per approximately two minutes.',
+						{{ checkbox('slow_atack1', title=lang.add_page.desc.slow_attack,
 						desc='Slow attack') }}
 						{{ checkbox('ddos1', title='DDOS attack protect', desc='DDOS') }}
-						{{ checkbox('whitelist_checkbox1', title='Add whitelist', desc='Whitelist') }}
-						{{ checkbox('blacklist_checkbox1', title='Add blacklist', desc='Blacklist') }}
+						{{ checkbox('whitelist_checkbox1', title=lang.words.enable|title()+' '+ lang.words.whitelist, desc=lang.words.whitelist|title())  }}
+						{{ checkbox('blacklist_checkbox1', title=lang.words.enable|title()+' '+ lang.words.blacklist, desc=lang.words.blacklist|title()) }}
 						{{ checkbox('waf2', name='waf', title='Web application firewall', desc='WAF', value='1') }}
-						{{ checkbox('antibot1', title='Unfortunately, a large portion of bots are used for malicious reasons. Their intentions include web scraping, spamming, request flooding, brute forcing, and vulnerability scanning. For example, bots may scrape your price lists so that competitors can consistently undercut you or build a competitive solution using your data. Or they may try to locate forums and comment sections where they can post spam. At other times, they’re scanning your site looking for security weaknesses.',
-						desc='Antibot', value='1') }}
+						{{ checkbox('antibot1', title=lang.add_page.desc.antibot, desc='Antibot', value='1') }}
 					</span>
 					<div id="blacklist-hide1" style="display: none;">
-						<br /><span class="tooltip tooltipTop">Enter a blacklist name, or press the "down" button::</span><br />
+						<br /><span class="tooltip tooltipTop">{{lang.words.enter2|title()}} {{lang.words.w_a}} {{lang.words.blacklist}} {{lang.words.name}}, {{lang.add_page.desc.press_down}}:</span><br />
 						{{ input('blacklist-hide-input1', size='39', name="blacklist", placeholder="blacklist.lst") }}
 					</div>
 					<div id="whitelist-hide1" style="display: none;">
-						<br /><span class="tooltip tooltipTop">Enter a whitelist name, or press the "down" button::</span><br />
+						<br /><span class="tooltip tooltipTop">{{lang.words.enter2|title()}} {{lang.words.w_a}} {{lang.words.whitelist}} {{lang.words.name}}, {{lang.add_page.desc.press_down}}:</span><br />
 						{{ input('whitelist-hide-input1', size='39', name="whitelist", placeholder="whitelist.lst") }}
 					</div>
 				</td>
 			</tr>
 			<tr class="advance">
-				<td class="addName">Options:</td>
+				<td class="addName">{{lang.words.options|title()}}:</td>
 				<td class="addOption">
 					<span class="controlgroup">
-						{{ checkbox('forward_for1', title='When HAProxy Enterprise proxies a TCP connection, it overwrites the client\'s source IP address with its own when communicating with the backend server. However, when relaying HTTP messages, it can store the client\'s address in the HTTP header X-Forwarded-For. The backend server can then be configured to read the value from that header to retrieve the client\'s IP address.',
+						{{ checkbox('forward_for1', title=lang.add_page.desc.forward_for,
 						desc='Forward for') }}
 						{% set values = dict() %}
 						{% set values = {'Off':'Off','Server only':'Server only','Force close':'Force close','Pretend keep alive':'Pretend keep alive'} %}
-						{{ select('force_close', values=values, first='Force HTTP close', title='Since HAProxy works in reverse-proxy mode, the servers see its IP address as
-their client address. This is sometimes annoying when the client\'s IP address
-is expected in server logs. To solve this problem, the well-known HTTP header
-"X-Forwarded-For" may be added by HAProxy to all requests sent to the server.
-This header contains a value representing the client\'s IP address. Since this
-header is always appended at the end of the existing header list, the server
-must be configured to always use the last occurrence of this header only. See
-the server\'s manual to find how to enable use of this standard header. Note
-that only the last occurrence of the header must be used, since it is really
-possible that the client has already brought one.', class='force_close') }}
-						{{ checkbox('options-frontend-show', title='Set options manually', desc='Set options') }}
+						{{ select('force_close', values=values, first='Force HTTP close', title=lang.add_page.desc.force_close, class='force_close') }}
+						{{ checkbox('options-frontend-show', title=lang.add_page.buttons.set_options_m, desc=lang.add_page.buttons.set_options) }}
 					</span>
 					<div id="options-frontend-show-div" style="display: none;">
 						<div style="font-size: 12px; padding-bottom: 10px;">
-							<span style="padding-right: 10px;">Start typing options: </span>
+							<span style="padding-right: 10px;">{{lang.words.start2|title()}} {{lang.words.typing}} {{lang.words.options}}: </span>
 							{{ input('options1') }}
 							<span style="padding-left: 10px;">
-								or press the "down" button:. <a href="http://cbonte.github.io/haproxy-dconv/1.7/configuration.html" target="_blanck"  style="color: #23527c" title="HAproxy docs">Read more about options</a>
+									{{lang.add_page.desc.press_down}}. <a href="http://cbonte.github.io/haproxy-dconv/1.7/configuration.html" target="_blanck" style="color: #23527c" title="HAProxy docs">{{lang.words.read|title()}} {{lang.words.more}} {{lang.words.about}} {{lang.words.options}}</a>
 							</span>
 							<br />
-							<span style="padding-right: 10px;">Start typing saved options: </span>
+							<span style="padding-right: 10px;">{{lang.words.start2|title()}} {{lang.words.typing}} {{lang.words.saved}} {{lang.words.options}}:</span>
 							{{ input('saved-options1') }}
-								These are the options that you saved in the "Options" tab
+								{{lang.add_page.desc.saved_options}}
 						</div>
 						<textarea name="option" title="Options thru" cols=80 rows=5 id="optionsInput1" placeholder="acl test hdr_beg(host) -i some_host"></textarea>
 					</div>
 				</td>
 			</tr>
 			<tr>
-				<td class="addName">Default backend</td>
+				<td class="addName">{{lang.words.default_backend}}</td>
 				<td class="addOption">
-					{{ input('backends', name='backends', placeholder="some_backend", size='30', title='If no condition is valid, the backend defined with "default_backend" will be used. If no default backend is defined, either the servers in the same section are used (in case of a "listen" section) or, in case of a frontend, no server is used and a 503 service unavailable response is returned.') }}
+					{{ input('backends', name='backends', placeholder="some_backend", size='30', title=lang.add_page.desc.no_def_backend) }}
 					<div class="tooltip tooltipTop">
-						<b>Note</b>. If you want to use the default backend, <span title="Create backend" class="redirectBackend link">backend must exist</span>.
+						<b>{{lang.words.note|title()}}</b>: {{lang.add_page.desc.def_backend}}, <span title="{{lang.words.create|title()}} {{lang.words.backend}}" class="redirectBackend link">{{lang.add_page.desc.def_backend_exit}}</span>.
 					</div>
 				</td>
 			</tr>
 			<tr class="advance-show">
 				<td class="addOption" colspan="2">
-					<button title="Show full list of settings" class="row-down advance-show-button">Show Advanced settings</button>
-					<button title="Hide full list of settings" class="row-up advance-hide-button" style="display: none">Hide Advanced settings</button>
+					<button title="{{lang.add_page.buttons.show_full_settings}}" class="row-down advance-show-button">{{lang.words.show|title()}} {{lang.words.advanced}} {{lang.words.settings}}</button>
+					<button title="{{lang.add_page.buttons.hide_full_settings}}" class="row-up advance-hide-button" style="display: none">{{lang.words.hide|title()}} {{lang.words.advanced}} {{lang.words.settings}}</button>
 				</td>
 			</tr>
 			<tr>
@@ -492,7 +450,7 @@ possible that the client has already brought one.', class='force_close') }}
 					<a class="ui-button ui-widget ui-corner-all" title="Add Frontend" onclick="addProxy('add-frontend')">Add Frontend</a>
 				</td>
 				<td class="addButton">
-					<a class="ui-button ui-widget ui-corner-all" title="Generate and display config" onclick="generateConfig('add-frontend')">Generate config</a>
+					<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.generate|title()}} {{lang.words.and}} {{lang.words.display}} {{lang.words.config}}" onclick="generateConfig('add-frontend')">{{lang.words.generate|title()}} {{lang.words.config}}</a>
 				</td>
 			</tr>
 		</table>
@@ -504,9 +462,9 @@ possible that the client has already brought one.', class='force_close') }}
 	<div id="backend">
 		<form name="add-backend" id="add-backend" action="/app/add.py" method="post">
 		<table>
-			<caption><h3>Add backend</h3></caption>
+			<caption><h3>{{lang.words.add|title()}} {{lang.words.backend}}</h3></caption>
 			<tr>
-				<td class="addName">Select a server: </td>
+				<td class="addName">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.server}}: </td>
 				<td class="addOption">
 					<select required name="serv" id="serv3">
 						<option disabled selected>------</option>
@@ -514,27 +472,24 @@ possible that the client has already brought one.', class='force_close') }}
 							<option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endfor %}
 					</select>
-					<div class="tooltip tooltipTop"><b>Note:</b> If you re-configure the master server, the slave server will be re-configured automatically</div>
+					<div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
 				</td>
 				<td rowspan="4" class="add-note addName alert-info">
-						A "backend" section describes a set of servers to which the proxy will connect to forward incoming connections.
+						{{lang.add_page.desc.back_des1}}
 						<br /><br />
-						All proxy names must be formed from upper and lower case letters, digits, '-' (dash), '_' (underscore) , '.' (dot) and ':' (colon). ACL names are
-						case-sensitive, which means that "www" and "WWW" are two different proxies.
+						{{lang.add_page.desc.listener_desc2}}
 						<br /><br />
-						Historically, all proxy names could overlap, it just caused troubles in the logs. Since the introduction of content switching, it is mandatory that two
-						proxies with overlapping capabilities (frontend/backend) have different names. However, it is still permitted that a frontend and a backend share the same
-						name, as this configuration seems to be commonly encountered.
+						{{lang.add_page.desc.listener_desc3}}
 				</td>
 			</tr>
 			<tr>
-				<td class="addName">Name:</td>
+				<td class="addName">{{lang.words.name|title()}}:</td>
 				<td class="addOption">
-					{{ input('new_backend', title="Name backend", placeholder="web_80", required='required') }}
+					{{ input('new_backend', title=lang.words.name|title() + ' ' +lang.words.backend, placeholder="web_80", required='required') }}
 				</td>
 			</tr>
 			<tr class="advance">
-				<td class="addName">Mode: </td>
+				<td class="addName">{{lang.words.mode|title()}}: </td>
 				<td class="addOption">
 					{% set values = dict() %}
 					{% set values = {'http':'http','tcp':'tcp'} %}
@@ -544,19 +499,19 @@ possible that the client has already brought one.', class='force_close') }}
 						<input type="checkbox" id="https-backend" name="ssl" value="https">
 					</span>
 					<div id="https-hide-backend" style="display: none;">
-						<label for="ssl-dis-check-backend" style="margin-top: 5px;">Disable SSL check</label><input type="checkbox" id="ssl-dis-check-backend" name="ssl-dis-check" value="ssl-dis-check">
-						<label for="ssl-check-backend" style="margin-top: 5px;">Disable SSL verify on servers</label><input type="checkbox" id="ssl-check-backend" name="ssl-check" value="ssl-check" checked>
+						<label for="ssl-dis-check-backend" style="margin-top: 5px;">{{lang.add_page.buttons.disable_ssl_check}}</label><input type="checkbox" id="ssl-dis-check-backend" name="ssl-dis-check" value="ssl-dis-check">
+						<label for="ssl-check-backend" style="margin-top: 5px;">{{lang.add_page.buttons.disable_ssl_verify}}</label><input type="checkbox" id="ssl-check-backend" name="ssl-check" value="ssl-check" checked>
 					</div>
 				</td>
 			</tr>
 			<tr class="advance">
-				<td class="addName">Balance: </td>
+				<td class="addName">{{lang.words.balance|title()}}: </td>
 					<td class="addOption">
 						{{ select('balance', values=balance_params, selected='roundrobin', required='required', class='force_close') }}
 					</td>
 			</tr>
 			<tr class="advance">
-				<td class="addName">Health check: </td>
+				<td class="addName">{{lang.words.health|title()}} {{lang.words.check}}: </td>
 				<td class="addOption">
 					{{ select('backend_checks', name='health_check', values=checks, selected='', class='force_close') }}
 					<span id="backend_checks_note" class="tooltip tooltipTop"></span>
@@ -583,7 +538,7 @@ possible that the client has already brought one.', class='force_close') }}
 							{{ select('backend_acl_then', name='acl_then', values=values, first='Choose action', class='force_close', disabled=false) }}
 							<b class="padding10">value</b>
 							{{ input('backend_acl_then_value', name='acl_then_value', title="Required if \'then\' is \'Use backend\', \'Redirect\', \'Return\', or \'Set-header\'") }}
-							<span class="minus minus-style" onclick="deleteId('backend_acl_rule')" title="Delete this rule"></span>
+							<span class="minus minus-style" onclick="deleteId('backend_acl_rule')" title="{{lang.words.delete|title()}} {{lang.words.this}} {{lang.words.rule}}"></span>
 						</p>
 					</div>
 					<span>
@@ -592,36 +547,26 @@ possible that the client has already brought one.', class='force_close') }}
 				</td>
 			</tr>
 			<tr class="advance">
-				<td class="addName"><span title="Cache support start 1.8 and latter" class="help_cursor">Web acceleration:</span></td>
+				<td class="addName"><span title="Cache support start 1.8 and latter" class="help_cursor">Web {{lang.words.acceleration}}:</span></td>
 				<td class="addOption">
 					<span class="controlgroup">
-						{{ checkbox('compression3', name="compression", title='HTTP compression allows you to shrink the body of a response before it is relayed to a client, which results in using less network bandwidth per request. From a client\'s perspective, this reduces latency.',
-						value='1', desc='Compression') }}
-						{{ checkbox('cache3', name="cache", title='Enable cache', value='2', desc='Cache') }}
-						{{ checkbox('ssl_offloading2', title='The term SSL termination means that you are performing all encryption and decryption at the edge of your network, such as at the load balancer.', desc='SSL Offloading') }}
+						{{ checkbox('compression3', name="compression", title=lang.add_page.desc.http_compression, value='1', desc=lang.words.compression|title()) }}
+						{{ checkbox('cache3', name="cache", title=lang.words.enable|title()+' '+lang.words.cache, value='2', desc=lang.words.cache|title()) }}
+						{{ checkbox('ssl_offloading2', title=lang.add_page.desc.http_https, desc='SSL Offloading') }}
 					</span>
 				</td>
 			</tr>
 			<tr class="advance">
-				<td class="addName">Options:</td>
+				<td class="addName">{{lang.words.options|title()}}:</td>
 				<td class="addOption">
 					<span class="controlgroup">
-						{{ checkbox('forward_for2', title='When HAProxy Enterprise proxies a TCP connection, it overwrites the client\'s source IP address with its own when communicating with the backend server. However, when relaying HTTP messages, it can store the client\'s address in the HTTP header X-Forwarded-For. The backend server can then be configured to read the value from that header to retrieve the client\'s IP address.', 
-						desc='Forward for') }}
-						{{ checkbox('redispatch2', title='In HTTP mode, if a server designated by a cookie is down, clients may
-						definitely stick to it because they cannot flush the cookie, so they will not
-						be able to access the service anymore.
-						Specifying "option redispatch" will allow the proxy to break their
-						persistence and redistribute them to a working server.
-						It also allows to retry connections to another server in case of multiple
-						connection failures. Of course, it requires having "retries" set to a nonzero
-						value.', desc='Redispatch') }}
+						{{ checkbox('forward_for2', title=lang.add_page.desc.forward_for, desc='Forward for') }}
+						{{ checkbox('redispatch2', title=lang.add_page.desc.redispatch, desc='Redispatch') }}
 						{% set values = dict() %}
 						{% set values = {'Off':'Off','Server only':'Server only','Force close':'Force close','Pretend keep alive':'Pretend keep alive'} %}
-						{{ select('force_close', values=values, first='Force HTTP close', title='123', class='force_close') }}
-						{{ checkbox('cookie2', title='To send a client to the same server where they were sent previously in order to reuse a session on that server, you can enable cookie-based session persistence. Add a cookie directive to the backend section and set the cookie parameter to a unique value on each server line.',
-						desc='Set cookie', value='1') }}
-						{{ checkbox('options-backend-show', title='Set options manually', desc='Set options') }}
+						{{ select('force_close', values=values, first='Force HTTP close', title=lang.add_page.desc.force_close, class='force_close') }}
+						{{ checkbox('cookie2', title=lang.add_page.desc.cookie, desc=lang.words.set|title()+' cookie', value='1') }}
+						{{ checkbox('options-backend-show', title=lang.add_page.buttons.set_options_m, desc=lang.add_page.buttons.set_options) }}
 					</span>
 					<br>
 					<span id="cookie_div2" style="display: none;">
@@ -631,10 +576,10 @@ possible that the client has already brought one.', class='force_close') }}
 							{% set values = dict() %}
 							{% set values = {'None':'None','rewrite':'rewrite','indirect':'indirect','insert':'insert'} %}
 							{{ select('rewrite2', values=values, first='rewrite/indirect/insert', class='force_close') }}
-							{{ checkbox('prefix2', name='prefix', title='This keyword indicates that instead of relying on a dedicated cookie for the persistence, an existing one will be completed', desc='prefix', value='prefix') }}
-							{{ checkbox('nocache2', name='nocache', title='This option is recommended in conjunction with the insert mode when there is a cache between the client and HAProxy', desc='nocache', value='nocache') }}
-							{{ checkbox('postonly2', name='postonly', title='This option ensures that cookie insertion will only be performed on responses to POST requests', desc='postonly', value='postonly') }}
-							{{ checkbox('dynamic2', name='dynamic', title='Activate dynamic cookies. When used, a session cookie is dynamically created for each server', desc='dynamic', value='dynamic') }}
+							{{ checkbox('prefix2', name='prefix', title=lang.add_page.desc.c_prefix, desc='prefix', value='prefix') }}
+							{{ checkbox('nocache2', name='nocache', title=lang.add_page.desc.c_nocache, desc='nocache', value='nocache') }}
+							{{ checkbox('postonly2', name='postonly', title=lang.add_page.desc.c_postonly, desc='postonly', value='postonly') }}
+							{{ checkbox('dynamic2', name='dynamic', title=lang.add_page.desc.c_dynamic, desc='dynamic', value='dynamic') }}
 							<span id="dynamic_div2" style="display: none;">
 								dynamic-cookie-key: {{ input('dynamic-cookie-key2', name='dynamic-cookie-key', placeholder="your-custom-key") }}
 							</span>
@@ -642,39 +587,39 @@ possible that the client has already brought one.', class='force_close') }}
 					</span>
 					<div id="options-backend-show-div" style="display: none;">
 						<div style="font-size: 12px; padding-bottom: 10px;">
-							<span style="padding-right: 10px;">Start typing options: </span>
+							<span style="padding-right: 10px;">{{lang.words.start2|title()}} {{lang.words.typing}} {{lang.words.options}}: </span>
 							{{ input('options2') }}
 							<span style="padding-left: 10px;">
-								or press the "down" button. <a href="http://cbonte.github.io/haproxy-dconv/1.7/configuration.html" target="_blanck" style="color: #23527c" title="HAproxy docs">Read more about options</a>
+								{{lang.add_page.desc.press_down}}. <a href="http://cbonte.github.io/haproxy-dconv/1.7/configuration.html" target="_blanck" style="color: #23527c" title="HAproxy docs">{{lang.words.read|title()}} {{lang.words.more}} {{lang.words.about}} {{lang.words.options}}</a>
 							</span>
 							<br />
-							<span style="padding-right: 10px;">Start typing saved options: </span>
+							<span style="padding-right: 10px;">{{lang.words.start2|title()}} {{lang.words.typing}} {{lang.words.saved}} {{lang.words.options}}: </span>
 							<input type="text" id="saved-options2" class="form-control">
-								These are the options that you saved in the "Options" tab
+								{{lang.add_page.desc.saved_options}}
 						</div>
 						<textarea name="option" title="Options thru" cols=80 rows=5 id="optionsInput2" placeholder="acl test hdr_beg(host) -i some_host"></textarea>
 					</div>
 				</td>
 			</tr>
 			<tr>
-				<td class="addName">Servers:</td>
+				<td class="addName">{{lang.words.servers|title()}}:</td>
 				<td class="addOption">
 					{% include 'include/add_servers.html' %}
 					<br>
 					<br>
-					{{ checkbox('template-backend', name='template', title='Create the list of servers from the template', value='template', desc='Server-template') }}
+					{{ checkbox('template-backend', name='template', title=lang.add_page.desc.server_template, value='template', desc=lang.add_page.desc.server_template) }}
 				</td>
 			</tr>
 			<tr class="advance">
-				<td class="addName">Check:</td>
+				<td class="addName">{{lang.words.check|title()}}:</td>
 				<td class="addOption">
 					<div>
-						<label for="controlgroup-backend-show" style="margin-top: 5px;" title="Set custom check parameters">Custom check params</label>
+						<label for="controlgroup-backend-show" style="margin-top: 5px;" title="Set custom check parameters">{{lang.words.custom|title()}} {{lang.words.check}} {{lang.words.params}}</label>
 						<input type="checkbox" id="controlgroup-backend-show" name="default-check">
-						<span class="tooltip tooltipTop"> Default params: inter 2000 rise 2 fall 5</span>
+						<span class="tooltip tooltipTop">{{lang.add_page.desc.def_check}}: inter 2000 rise 2 fall 5</span>
 					</div>
 					<div class="controlgroup" id="controlgroup-backend" style="display: none;">
-						<label for="check-servers-backend" title="Ebable servers check">Check</label>
+						<label for="check-servers-backend" title="Ebable servers check">{{lang.words.check|title()}}</label>
 						<input type="checkbox" id="check-servers-backend" name="check-servers" checked value="1">
 						{% set values = dict() %}
 						{% set values = {'1000':'1000','2000':'2000','3000':'3000'} %}
@@ -687,8 +632,7 @@ possible that the client has already brought one.', class='force_close') }}
 						{{ select('fall-backend', name='fall', values=values, first='fall', class='force_close') }}
 					</div>
 					<div style="display: block">
-						{{ checkbox('circuit_breaking_backend', name="circuit_breaking", desc='Circuit Breaking', title='Circuit breaker is a design pattern which is used to detect failures and encapsulates the logic of preventing a failure from constantly recurring. The circuit breaker design pattern works much like an electrical circuit breaker which is intended to “trip” or open the circuit when failure is detected.',
-						value='1') }}
+						{{ checkbox('circuit_breaking_backend', name="circuit_breaking", desc='Circuit Breaking', title=lang.add_page.desc.circuit_breaking, value='1') }}
 					</div>
 					<div id="circuit_breaking_backend_div" style="display: none">
 						Observe:
@@ -696,22 +640,22 @@ possible that the client has already brought one.', class='force_close') }}
 						error-limit: {{ input('circuit_breaking_error_limit', type='number', value='50', style='width: 50px;') }}
 						on-error:
 						{{ select('circuit_breaking_on_error', values=on_error, class='force_close') }}
-						<div class="tooltip tooltipTop">Read more about Circuit Breaking <a href="https://roxy-wi.org/description/circuit-breaking" title="Circuit Breaking" target="_blank">here</a></div>
+						<div class="tooltip tooltipTop">{{lang.words.read|title()}} {{lang.words.more}} {{lang.words.about}} Circuit Breaking <a href="https://roxy-wi.org/description/circuit-breaking" title="Circuit Breaking" target="_blank">{{lang.words.here}}</a></div>
 					</div>
 				</td>
 			</tr>
 			<tr class="advance-show">
 				<td class="addOption" colspan="2">
-					<button title="Show full list of settings" class="row-down advance-show-button">Show Advanced settings</button>
-					<button title="Hide full list of settings" class="row-up advance-hide-button" style="display: none">Hide Advanced settings</button>
+					<button title="{{lang.add_page.buttons.show_full_settings}}" class="row-down advance-show-button">{{lang.words.show|title()}} {{lang.words.advanced}} {{lang.words.settings}}</button>
+					<button title="{{lang.add_page.buttons.hide_full_settings}}" class="row-up advance-hide-button" style="display: none">{{lang.words.hide|title()}} {{lang.words.advanced}} {{lang.words.settings}}</button>
 				</td>
 			</tr>
 			<tr>
 				<td class="addButton">
-					<a class="ui-button ui-widget ui-corner-all" title="Add Backend" onclick="addProxy('add-backend')">Add Backend</a>
+					<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.add|title()}} {{lang.words.backend|title()}}" onclick="addProxy('add-backend')">{{lang.words.add|title()}} {{lang.words.backend|title()}}</a>
 				</td>
 				<td class="addButton">
-					<a class="ui-button ui-widget ui-corner-all" title="Generate and display config" onclick="generateConfig('add-backend')">Generate config</a>
+					<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.generate|title()}} {{lang.words.and}} {{lang.words.display}} {{lang.words.config}}" onclick="generateConfig('add-backend')">{{lang.words.generate|title()}} {{lang.words.config}}</a>
 				</td>
 			</tr>
 		</table>
@@ -722,9 +666,9 @@ possible that the client has already brought one.', class='force_close') }}
 		<table>
 			<caption><h3>SSL</h3></caption>
 			<tr class="overviewHead">
-				<td class="padding10 first-collumn" style="width: 30%;">View certificates</td>
+				<td class="padding10 first-collumn" style="width: 30%;">{{lang.words.view|title()}} {{lang.words.cert2}}</td>
 				<td>
-					Uploaded certificates
+					{{lang.words.upload|title()}} {{lang.words.certs}}
 				</td>
 				<td></td>
 			</tr>
@@ -736,19 +680,19 @@ possible that the client has already brought one.', class='force_close') }}
 							<option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endfor %}
 					</select>
-					<button id="ssl_key_view" title="View certificates">View</button>
+					<button id="ssl_key_view" title="{{lang.words.view|title()}} {{lang.words.certs}}">{{lang.words.view|title()}}</button>
 				</td>
 				<td colspan="2" style="padding: 10px 0 10px 0;">
 					<span id="ajax-show-ssl"></span>
 				</td>
 			</tr>
 			<tr class="overviewHead">
-				<td class="padding10 first-collumn" style="width: 30%;">Upload SSL certificates</td>
+				<td class="padding10 first-collumn" style="width: 30%;">{{lang.words.upload|title()}} SSL {{lang.words.certs}}</td>
 				<td>
-					Certificate name
+					{{lang.words.cert_name|title()}}
 				</td>
 				<td>
-					<span title="This pem file will be used to create https connection with haproxy" class="help_cursor">Paste the contents of the certificate file</span>
+					<span title="{{lang.add_page.paste_cert_desc}}" class="help_cursor">{{lang.add_page.desc.paste_cert}}</span>
 				</td>
 			</tr>
 			<tr style="width: 50%;">
@@ -765,16 +709,16 @@ possible that the client has already brought one.', class='force_close') }}
 				</td>
 				<td style="padding-top: 15px; padding-bottom: 15px;">
 					<textarea id="ssl_cert" cols="50" rows="5"></textarea><br /><br />
-					<button id="ssl_key_upload" title="Upload ssl certificates">Upload</button>
+					<button id="ssl_key_upload" title="{{lang.words.upload|title()}} SSL {{lang.words.cert}}">{{lang.words.upload|title()}}</button>
 				</td>
 			</tr>
 		</table>
 		<table>
 			<caption><h3>Let's Encrypt</h3></caption>
 			<tr class="overviewHead">
-				<td class="padding10 first-collumn">Server</td>
-				<td>Domain name</td>
-				<td>E-mail</td>
+				<td class="padding10 first-collumn">{{lang.words.server|title()}}</td>
+				<td>{{lang.words.domain|title()}}</td>
+				<td>{{lang.words.email|title()}}</td>
 				<td></td>
 			</tr>
 			<tr>
@@ -793,7 +737,7 @@ possible that the client has already brought one.', class='force_close') }}
 					{{ input('lets_email') }}
 				</td>
 				<td>
-					<button id="lets_button">Get a certificate</button>
+					<button id="lets_button">{{lang.words.w_get|title()}} {{lang.words.w_a}} {{lang.words.cert}}</button>
 				</td>
 			</tr>
 		</table>
@@ -803,7 +747,7 @@ possible that the client has already brought one.', class='force_close') }}
 		<table class="overview" id="option_table">
 			<tr class="overviewHead">
 				<td class="padding10 first-collumn">Id</td>
-				<td class="padding10 first-collumn">Options</td>
+				<td class="padding10 first-collumn">{{lang.words.params|title()}}</td>
 				<td></td>
 			</tr>
 		{% for option in options %}
@@ -816,49 +760,43 @@ possible that the client has already brought one.', class='force_close') }}
 					<input type="text" id="option-body-{{ option.id }}" value="{{ option.options }}" size="60" class="form-control">
 				</td>
 				<td>
-					<a class="delete" onclick="confirmDeleteOption({{ option.id }})" title="Delete option {{option.options}}" style="cursor: pointer;"></a>
+					<a class="delete" onclick="confirmDeleteOption({{ option.id }})" title="{{lang.words.delete|title()}} {{lang.words.param}} {{option.options}}" style="cursor: pointer;"></a>
 				</td>
 				{% endif %}
 			</tr>
 		{% endfor %}
 		</table>
-		<br /><span class="add-button" title="Add option" id="add-option-button">+ Add</span>
+		<br /><span class="add-button" title="{{lang.words.add|title()}} {{lang.words.param}}" id="add-option-button">+ {{lang.words.add|title()}}</span>
 		<br /><br />
 		<table class="overview" id="option-add-table" style="display: none;">
 			<tr class="overviewHead">
 				<td class="padding10 first-collumn">&nbsp;</td>
-				<td>Option</td>
+				<td>{{lang.words.param|title()}}</td>
 				<td></td>
 			</tr>
 			<tr>
 				<td class="padding10 first-collumn">
-					Enter an option:
+					{{lang.words.enter|title()}} {{lang.words.w_an}} {{lang.words.param}}:
 				</td>
 				<td style="width: 77%;">
 					{{ input('new-option', size='60') }}
 				</td>
 				<td>
-					<span class="add-admin" id="add-option-new" title="Add new option" style="cursor: pointer;"></span>
+					<span class="add-admin" id="add-option-new" title="{{lang.words.add|title()}} {{lang.words.new}} {{lang.words.param}}" style="cursor: pointer;"></span>
 				</td>
 			</tr>
 		</table>
 		<div id="ajax-option"></div>
 		<div class="add-note alert addName alert-info" style="width: inherit; margin-right: 15px;">
-			In this section you can create, edit and delete options with given parameters. And after use them as autocomplete in the "Add" sections
-		</div>
-		<div class="add-note alert addName alert-info" style="width: inherit; margin-right: 15px;">
-			How to use predefined option you can see in
-			<a href="https://roxy-wi.org/description.py?description=saved" title="How to use pre saved options" target="_blank">
-				<b>this video</b>
-			</a>
+			{{lang.add_page.desc.options}}
 		</div>
 	</div>
 
 	<div id="add-servers">
 		<table class="overview" id="servers_table">
 			<tr class="overviewHead">
-				<td class="padding10 first-collumn">Server</td>
-				<td class="padding10 first-collumn">Description</td>
+				<td class="padding10 first-collumn">{{lang.words.server|title()}}</td>
+				<td class="padding10 first-collumn">{{lang.words.desc|title()}}</td>
 				<td></td>
 			</tr>
 		{% for s in saved_servers %}
@@ -871,18 +809,18 @@ possible that the client has already brought one.', class='force_close') }}
 					<input type="text" id="servers-desc-{{ s.id }}" value="{{ s.description }}" size="50" class="form-control">
 				</td>
 				<td>
-					<a class="delete" onclick="confirmDeleteSavedServer({{ s.id }})" title="Delete server {{s.server}}" style="cursor: pointer;"></a>
+					<a class="delete" onclick="confirmDeleteSavedServer({{ s.id }})" title="{{lang.words.delete|title()}} {{lang.words.server}} {{s.server}}" style="cursor: pointer;"></a>
 				</td>
 				{% endif %}
 			</tr>
 		{% endfor %}
 		</table>
-		<br /><span class="add-button" title="Add server" id="add-saved-server-button">+ Add</span>
+		<br /><span class="add-button" title="{{lang.words.add|title()}} {{lang.words.server}}" id="add-saved-server-button">+ {{lang.words.add|title()}}</span>
 		<br /><br />
 		<table class="overview" id="saved-server-add-table" style="display: none;">
 			<tr class="overviewHead">
-				<td class="padding10 first-collumn">Server</td>
-				<td>Description</td>
+				<td class="padding10 first-collumn">{{lang.words.server|title()}}</td>
+				<td>{{lang.words.desc|title()}}</td>
 				<td></td>
 			</tr>
 			<tr>
@@ -893,27 +831,21 @@ possible that the client has already brought one.', class='force_close') }}
 					{{ input('new-saved-servers-description', size='50') }}
 				</td>
 				<td>
-					<span class="add-admin" id="add-saved-server-new" title="Add new server" style="cursor: pointer;"></span>
+					<span class="add-admin" id="add-saved-server-new" title="{{lang.words.add|title()}} {{lang.words.new|title()}} {{lang.words.server|title()}}" style="cursor: pointer;"></span>
 				</td>
 			</tr>
 		</table>
 		<div id="ajax-servers"></div>
 		<div class="add-note alert addName alert-info" style="width: inherit; margin-right: 15px;">
-			In this section you can create, edit and delete servers. And after use them as autocomplete in the "Add" sections
-		</div>
-		<div class="add-note alert addName alert-info" style="width: inherit; margin-right: 15px;">
-			How to use predefined servers you can see in
-			<a href="https://roxy-wi.org/description.py?description=saved" title="How to use predefined servers" target="_blank">
-				<b>this video</b>
-			</a>
+			{{lang.add_page.desc.servers}}
 		</div>
 	</div>
 	<div id="userlist">
 		<form name="add-userlist" id="add-userlist" action="/app/add.py" method="post">
 		<table>
-			<caption><h3>Add Userlist</h3></caption>
+			<caption><h3>{{lang.words.add|title()}} {{lang.words.userlists}}</h3></caption>
 			<tr>
-				<td class="addName">Select a server: </td>
+				<td class="addName">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.server}}: </td>
 				<td class="addOption">
 					<select required name="serv" id="userlist_serv">
 						<option disabled selected>------</option>
@@ -921,61 +853,57 @@ possible that the client has already brought one.', class='force_close') }}
 							<option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endfor %}
 					</select>
-					<div class="tooltip tooltipTop"><b>Note:</b> If you reconfigure Master server, Slave will be re-configured automatically</div>
+					<div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
 				</td>
-				<td rowspan="4" class="add-note addName alert-info">
-					It is possible to control access to frontend/backend/listen sections or to
-					http stats by allowing only authenticated and authorized users. To do this,
-					it is required to create at least one userlist and to define users.
-				</td>
+				<td rowspan="4" class="add-note addName alert-info">{{lang.add_page.desc.userlist_desc}}</td>
 			</tr>
 			<tr>
-				<td class="addName">Userlist name:</td>
+				<td class="addName">{{lang.words.name|title()}}:</td>
 				<td class="addOption">
-					{{ input('new_userlist', required='required', title="Userlist name", placeholder="basic-auth-list") }}
+					{{ input('new_userlist', required='required', title=lang.add_page.desc.userlist_name, placeholder="basic-auth-list") }}
 				</td>
 			</tr>
 			<tr>
-				<td class="addName">Groups:</td>
+				<td class="addName">{{lang.words.groups|title()}}:</td>
 				<td class="addOption">
 					<span id="userlist-groups">
-						{{ input('userlist-group', title="User`s group", placeholder="group_name") }}
+						{{ input('userlist-group', title=lang.add_page.desc.userlist_user_grp, placeholder="group_name") }}
 					</span>
 					<span>
 						<span class="add-server" id="add-userlist-group" title="Add extra group" style="cursor: pointer;"></span>
 					</span>
-					<div class="tooltip tooltipTop">It is also possible to attach users to this group by using a comma separated list of names preceded by "users" keyword.</div>
+					<div class="tooltip tooltipTop">{{lang.add_page.desc.userlist_group}}</div>
 				</td>
 			</tr>
 			<tr>
-				<td class="addName">User:</td>
+				<td class="addName">{{lang.words.user|title()}}:</td>
 				<td class="addOption">
 					<span id="userlist-users">
-						{{ input('userlist-user', required='required', title="Username", placeholder="user_name") }}
-						{{ input('userlist-password', required='required', title="User password. By default, it insecure-password", placeholder="password") }}
-						{{ input('userlist-user-group', title="User`s group",  placeholder="user`s group") }}
+						{{ input('userlist-user', required='required', title=lang.words.username|title(), placeholder="user_name") }}
+						{{ input('userlist-password', required='required', title=lang.add_page.desc.userlist_pass, placeholder="password") }}
+						{{ input('userlist-user-group', title=lang.add_page.desc.userlist_user_grp,  placeholder="group") }}
 					</span>
 					<span>
 						<span class="add-server" id="add-userlist-user" title="Add extra user" style="cursor: pointer;"></span>
 					</span>
-					<div class="tooltip tooltipTop">It is also possible to attach groups to this user by using a comma separated list of groups.</div>
+					<div class="tooltip tooltipTop">{{lang.add_page.desc.userlist_user}}</div>
 				</td>
 			</tr>
 			<tr>
 				<td class="addButton">
-					<a class="ui-button ui-widget ui-corner-all" title="Add Userlist" onclick="addProxy('add-userlist')">Add Userlist</a>
+					<a class="ui-button ui-widget ui-corner-all" title="Add Userlist" onclick="addProxy('add-userlist')">{{lang.words.add|title()}} {{lang.words.userlist|title()}}</a>
 				</td>
 				<td class="addButton">
-					<a class="ui-button ui-widget ui-corner-all" title="Generate and display config" onclick="generateConfig('add-userlist')">Generate config</a>
+					<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.generate|title()}} {{lang.words.and}} {{lang.words.display}} {{lang.words.config}}" onclick="generateConfig('add-userlist')">{{lang.words.generate|title()}} {{lang.words.config}}</a>
 				</td>
 			</tr>
 		</table>
 		</form>
 		<br />
 		<table>
-			<caption><h3>Existing UserList</h3></caption>
+			<caption><h3>{{lang.words.existing|title()}} {{lang.words.userlists}}</h3></caption>
 			<tr>
-				<td class="addName">Select a server: </td>
+				<td class="addName">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.server}}: </td>
 				<td class="addOption">
 					<select required name="serv" id="existing_userlist_serv">
 						<option disabled selected>------</option>
@@ -983,34 +911,34 @@ possible that the client has already brought one.', class='force_close') }}
 							<option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endfor %}
 					</select>
-					<div class="tooltip tooltipTop"><b>Note:</b> If you reconfigure Master server, Slave will be re-configured automatically</div>
+					<div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
 				</td>
 				<td>
-					<a class="ui-button ui-widget ui-corner-all" title="Add Userlist" onclick="showUserlists()">Show Userlist</a>
+					<a class="ui-button ui-widget ui-corner-all" title="Add Userlist" onclick="showUserlists()">{{lang.words.show|title()}} {{lang.words.userlists}}</a>
 				</td>
 			</tr>
 			<tr id="existing_userlist_tr" style="display: none;">
-				<td class="addName">Existing Userlist:</td>
+				<td class="addName">{{lang.words.existing|title()}} {{lang.words.userlists}}:</td>
 				<td class="addOption" id="existing_userlist_ajax"></td>
 			</tr>
 		</table>
 		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
-			In this section you can create userlists. And after use them  in the "Add" sections
+			{{lang.add_page.desc.userlist}}
 		</div>
 		<div class="add-note alert addName alert-info" style="width: inherit; margin-right: 15px;">
-			Read
-			<a href="https://roxy-wi.org/description.py?description=userlist" title="How to use userlists" target="_blank">
-				<b>here</b>
+			{{lang.words.read|title()}}
+			<a href="https://roxy-wi.org/description/userlist" title="How to use userlists" target="_blank">
+				<b>{{lang.words.here}}</b>
 			</a>
-			How to use userlists
+			{{lang.phrases.howto_user}} {{lang.words.userlists}}
 		</div>
 	</div>
 	<div id="peers">
 		<form name="add-peers" id="add-peers" action="/app/add.py" method="post">
 		<table>
-			<caption><h3>Add Peer</h3></caption>
+			<caption><h3>{{lang.words.add|title()}} Peer</h3></caption>
 			<tr>
-				<td class="addName">Select server: </td>
+				<td class="addName">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.server}}: </td>
 				<td class="addOption">
 					<select required name="serv" id="peers_serv">
 						<option disabled selected>------</option>
@@ -1018,77 +946,75 @@ possible that the client has already brought one.', class='force_close') }}
 							<option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endfor %}
 					</select>
-					<div class="tooltip tooltipTop"><b>Note:</b> If you re-configure Master server, Slave will be re-configured automatically</div>
+					<div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
 				</td>
 				<td rowspan="4" class="add-note addName alert-info">
-					The peers section enables the replication of stick table data between two or more HAProxy instances.
+					{{lang.add_page.desc.peers}}
 				</td>
 			</tr>
 			<tr>
-				<td class="addName">Peers name:</td>
+				<td class="addName">Peers {{lang.words.name}}:</td>
 				<td class="addOption">
-					{{ input('peers-name', title="Peers name",  placeholder="peers name") }}
+					{{ input('peers-name', title="Peers "+lang.words.name,  placeholder="peers name") }}
 				</td>
 			</tr>
 			<tr>
-				<td class="addName">Peers servers:</td>
+				<td class="addName">Peers {{lang.words.servers}}:</td>
 				<td class="addOption">
 					<span name="add_peers">
-						<input name="servers_name" required title="Peer name" size=14 placeholder="haproxy1" class="form-control">:
+						<input name="servers_name" required title="Peer {{lang.words.name}}" size=14 placeholder="haproxy1" class="form-control">:
 						<input name="servers" required title="Peer IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">:
-						<input name="server_port" required title="Peer port" size=3 placeholder="yyy" class="form-control add_server_number" type="number">
+						<input name="server_port" required title="Peer {{lang.words.port}}" size=3 placeholder="yyy" class="form-control add_server_number" type="number">
 						<br />
-						<input name="servers_name" required title="Peer name" size=14 placeholder="haproxy2" class="form-control">:
+						<input name="servers_name" required title="Peer {{lang.words.name}}" size=14 placeholder="haproxy2" class="form-control">:
 						<input name="servers" title="Peer IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server"><span class="second-server">:</span>
-						<input name="server_port" title="Peer port" size=3 placeholder="yyy" class="form-control second-server add_server_number" type="number">
+						<input name="server_port" title="Peer {{lang.words.port}}" size=3 placeholder="yyy" class="form-control second-server add_server_number" type="number">
 					</span>
 					<span>
-						<a class="link add-server backend_server" name="add-peer-input" title="Add peer server" style="cursor: pointer;"></a>
+						<a class="link add-server backend_server" name="add-peer-input" title="{{lang.words.add|title()}} peer {{lang.words.server}}" style="cursor: pointer;"></a>
 					</span>
 				</td>
 			</tr>
 			<tr>
 				<td class="addButton">
-					<a class="ui-button ui-widget ui-corner-all" title="Add Userlist" onclick="addProxy('add-peers')">Add Peer</a>
+					<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.add|title()}} peer" onclick="addProxy('add-peers')">{{lang.words.add}} Peer</a>
 				</td>
 				<td class="addButton">
-					<a class="ui-button ui-widget ui-corner-all" title="Generate and display config" onclick="generateConfig('add-peers')">Generate config</a>
+					<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.generate|title()}} {{lang.words.and}} {{lang.words.display}} {{lang.words.config}}" onclick="generateConfig('add-peers')">{{lang.words.generate|title()}} {{lang.words.config}}</a>
 				</td>
 			</tr>
 		</table>
 		</form>
 		<div class="alert addName alert-info" style="width: inherit; margin-right: 15px;">
-			Note: If you would like to use HAProxy services as Master-Master cluster you must set local servers
-			hostnames as peers servers names. Otherwise, peers will not work
+			{{lang.add_page.desc.peers_master}}
 		</div>
 		<div class="alert addName alert-info" style="width: inherit; margin-right: 15px;">
-			Note: If you would like to use HAProxy services as Master-Slave cluster you must set local server
-			hostname for master server as peer server name. Otherwise, peers will not work
+			{{lang.add_page.desc.peers_slave}}
 		</div>
 		<div class="add-note alert addName alert-info" style="width: inherit; margin-right: 15px;">
-			Read
-			<a href="https://roxy-wi.org/howto.py?howto=peers" title="How to use peers" target="_blank">
-				<b>here</b>
+			{{lang.words.read|title()}}
+			<a href="https://roxy-wi.org/howto/peers" title="How to use peers" target="_blank">
+				<b>{{lang.words.here}}</b>
 			</a>
-			How to use peers
+			{{lang.phrases.howto_user}} peers
 		</div>
 	</div>
 	<div id="lists">
 		<table class="overview">
 			<tr class="overviewHead">
-				<th class="padding10 first-collumn">New blacklist</th>
-				<th>Server for uploading</th>
-				<th>Existing blacklists</th>
+				<th class="padding10 first-collumn">{{lang.words.new|title()}} {{lang.words.blacklist}}</th>
+				<th>{{lang.words.server|title()}} {{lang.words.for}} {{lang.words.uploading}}</th>
+				<th>{{lang.words.existing|title()}} {{lang.words.blacklists}}</th>
 			</tr>
 			<tr>
 				<td class="padding10 first-collumn" style="width: 25%;">
-					Name: {{ input('new_blacklist_name') }}
-					<button onclick="createList('black')">Create</button>
+					{{lang.words.name|title()}}: {{ input('new_blacklist_name') }}
+					<button onclick="createList('black')">{{lang.words.create|title()}}</button>
 				</td>
 				<td class="padding10 first-collumn">
 					<select required name="serv-black-list" id="serv-black-list">
 						<option disabled selected>------</option>
-						<option value="all">ALL</option>
+						<option value="all">{{lang.words.all|title()}}</option>
 							{% for select in selects %}
 								<option value="{{ select.2 }}">{{ select.1 }}</option>
 							{% endfor %}
@@ -1097,7 +1023,7 @@ possible that the client has already brought one.', class='force_close') }}
 				<td style="width: 30%; padding: 10px 0 10px 0;">
 					{% for list in black_lists %}
 					<span class="list_of_lists">
-						<a onclick="editList('{{ list }}', 'black')" title="Edit the {{ list }} list">{{ list }}</a>
+						<a onclick="editList('{{ list }}', 'black')" title="{{lang.words.edit|title()}} {{lang.words.the}} {{ list }} list">{{ list }}</a>
 					</span>
 					{% endfor %}
 				</td>
@@ -1107,19 +1033,19 @@ possible that the client has already brought one.', class='force_close') }}
 		</table>
 		<table>
 			<tr class="overviewHead">
-				<th class="padding10 first-collumn">New whitelist</th>
-				<th>Server for uploading</th>
-				<th>Existing whitelists</th>
+				<th class="padding10 first-collumn">{{lang.words.new|title()}} {{lang.words.whitelist}}</th>
+				<th>{{lang.words.server|title()}} {{lang.words.for}} {{lang.words.uploading}}</th>
+				<th>{{lang.words.existing|title()}} {{lang.words.whitelists}}</th>
 			</tr>
 			<tr>
 				<td class="padding10 first-collumn" style="width: 25%;">
-					Name: {{ input('new_whitelist_name') }}
-					<button onclick="createList('white')">Create</button>
+					{{lang.words.name|title()}}: {{ input('new_whitelist_name') }}
+					<button onclick="createList('white')">{{lang.words.create|title()}}</button>
 				</td>
 				<td class="padding10 first-collumn">
 					<select required name="serv-white-list" id="serv-white-list">
 						<option disabled selected>------</option>
-						<option value="all">ALL</option>
+						<option value="all">{{lang.words.all|title()}}</option>
 							{% for select in selects %}
 								<option value="{{ select.2 }}">{{ select.1 }}</option>
 							{% endfor %}
@@ -1128,7 +1054,7 @@ possible that the client has already brought one.', class='force_close') }}
 				<td style="width: 30%; padding: 10px 0 10px 0;">
 					{% for list in white_lists %}
 					<span class="list_of_lists">
-						<a onclick="editList('{{ list }}', 'white')" title="Edit the {{ list }} list">{{ list }}</a>
+						<a onclick="editList('{{ list }}', 'white')" title="{{lang.words.edit|title()}} {{lang.words.the}} {{ list }} {{lang.words.list}}">{{ list }}</a>
 					</span>
 					{% endfor %}
 				</td>
@@ -1136,11 +1062,11 @@ possible that the client has already brought one.', class='force_close') }}
 		</table>
 		<div id="ajax"></div>
 		<div class="add-note alert addName alert-info" style="width: inherit; margin-right: 15px;">
-			In this section you can create and edit black and white lists. And after use them in the HAProxy configs or in the "Add proxy" pages. Read how to use it in this
-			<a href="https://roxy-wi.org/howto.py?howto=blacklist" title="How to create and manage blacklist" target="_blank">article</a>
+			{{lang.add_page.desc.lists_howto}}
+			<a href="https://roxy-wi.org/howto/blacklist" title="How to create and manage blacklist" target="_blank">{{lang.words.article}}</a>
 		</div>
 		<div id="dialog-confirm-cert-edit" title="View certificate " style="display: none;">
-			<span><b>Note:</b> Each new address must be specified from a new line</span>
+			<span><b>{{lang.words.note|title()}}:</b> {{lang.add_page.desc.lists_new_line}}</span>
 			<textarea id="edit_lists" style="width: 100%" rows=20></textarea>
 		</div>
 	</div>

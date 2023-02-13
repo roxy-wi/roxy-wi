@@ -84,12 +84,12 @@ def get_services_status():
 	services = []
 	is_in_docker = is_docker()
 	services_name = {
-		'roxy-wi-checker': 'Checker is designed for monitoring HAProxy, NGINX, Apache and Keepalived services as well as HAProxy backends and maxconn',
-		'roxy-wi-keep_alive': '	The Auto Start service allows to restart the HAProxy, NGINX, Apache and Keepalived services if they are down',
-		'roxy-wi-metrics': 'Collects number of connections for HAProxy, NGINX, Apache and HAProxy WAF services',
-		'roxy-wi-portscanner': 'Probes and saves a server or host for open ports',
-		'roxy-wi-smon': 'SMON stands for <b>S</b>imple <b>MON</b>itoring',
-		'roxy-wi-socket': 'Socket is a service for sending alerts and notifications',
+		'roxy-wi-checker': '',
+		'roxy-wi-keep_alive': '',
+		'roxy-wi-metrics': '',
+		'roxy-wi-portscanner': '',
+		'roxy-wi-smon': '',
+		'roxy-wi-socket': '',
 		'roxy-wi-prometheus-exporter': 'Prometheus exporter',
 		'prometheus': 'Prometheus service',
 		'grafana-server': 'Grafana service',

@@ -1,16 +1,16 @@
 {% if page != "servers.py" %}
 <div id="user-add-table" style="display: none;">
-    <table class="overview">
+    <table class="overview" id="user-add-table-overview" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new2}} {{lang.words.user2}}">
         {% include 'include/tr_validate_tips.html' %}
         {% include 'include/admin_add_user.html' %}
         <tr>
             <td class="padding20">
-                Role
+                {{lang.words.role|title()}}
                 <span class="need-field">*</span>
             </td>
             <td>
                 <select id="new-role" name="new-role">
-                    <option disabled selected>Select a role</option>
+                    <option disabled selected>{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.role}}</option>
                     {% for role in roles %}
                     <option value="{{ role.name }}">{{ role.name }}</option>
                     {% endfor %}
@@ -19,12 +19,12 @@
         </tr>
         <tr>
             <td class="padding20">
-                Group
+                {{lang.words.group|title()}}
                 <span class="need-field">*</span>
             </td>
             <td>
                 <select id="new-group" name="new-group">
-                    <option disabled selected>Select a group</option>
+                    <option disabled selected>{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.group2}}</option>
                     {% for group in groups %}
                     <option value="{{ group.group_id }}">{{ group.name }}</option>
                     {% endfor %}
@@ -34,34 +34,34 @@
     </table>
 </div>
 <div id="group-add-table" style="display: none;">
-    <table class="overview">
+    <table class="overview" id="group-add-table-overview" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new3}} {{lang.words.group2}}">
         {% include 'include/tr_validate_tips.html' %}
         <tr>
             <td class="padding20">
-                New group name
+                {{lang.words.name|title()}}
                 <span class="need-field">*</span>
             </td>
             <td>
                 {{ input('new-group-add', autofocus='autofocus') }}
             </td>
         </tr>
-        <td class="padding20">Description</td>
+        <td class="padding20">{{lang.words.desc|title()}}</td>
         <td>{{ input('new-desc', size="40") }}</td>
         </tr>
     </table>
 </div>
 {% else %}
 <div id="user-add-table" style="display: none;">
-    <table class="overview">
+    <table class="overview" id="user-add-table-overview" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new2}} {{lang.words.user2}}">
         {% include 'include/tr_validate_tips.html' %}
         {% include 'include/admin_add_user.html' %}
         <td class="padding20">
-            Role
+            {{lang.words.role|title()}}
             <span class="need-field">*</span>
         </td>
         <td>
             <select id="new-role" name="new-role">
-                <option disabled selected>Select a role</option>
+                <option disabled selected>{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.role}}</option>
                 {% for role in roles %}
                 {% if role.name != "superAdmin" %}
                 <option value="{{ role.name }}">{{ role.name }}</option>
@@ -73,18 +73,18 @@
     </table>
 </div>
 {% endif %}
-<div id="server-add-table" title="Add a new server " style="display: none;">
-    <table class="overview">
+<div id="server-add-table" style="display: none;">
+    <table class="overview" id="server-add-table-overview" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new}} {{lang.words.server}}">
         {% include 'include/tr_validate_tips.html' %}
         {% include 'include/admin_add_server.html' %}
         <tr>
             <td class="padding20">
-                Credentials
+                {{lang.words.creds|title()}}
                 <span class="need-field">*</span>
             </td>
             <td>
                 <select id="credentials" required>
-                    <option disabled selected>Select credentials</option>
+                    <option disabled selected>{{lang.words.select|title()}} {{lang.words.creds}}</option>
                     {% for ssh in sshs %}
                     <option value="{{ssh.id}}">{{ssh.name}}</option>
                     {% endfor %}
@@ -94,12 +94,12 @@
         {% if page != "servers.py" %}
         <tr>
             <td class="padding20">
-                Group
+                {{lang.words.group|title()}}
                 <span class="need-field">*</span>
             </td>
             <td>
                 <select id="new-server-group-add" name="new-server-group-add">
-                    <option disabled selected value="0">Select a group</option>
+                    <option disabled selected value="0">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.group2}}</option>
                     {% for group in groups %}
                     <option value="{{ group.group_id }}">{{ group.name }}</option>
                     {% endfor %}
@@ -110,11 +110,11 @@
     </table>
 </div>
 <div id="ssh-add-table" style="display: none;">
-    <table>
+    <table class="overview" id="ssh-add-table-overview" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new4}} SSH {{lang.words.creds}}">
         {% include 'include/tr_validate_tips.html' %}
         <tr>
             <td class="padding20">
-                Name
+                {{lang.words.name|title()}}
                 <span class="need-field">*</span>
             </td>
             <td>
@@ -122,14 +122,14 @@
             </td>
         </tr>
         <tr>
-            <td class="padding20">SSH key</td>
+            <td class="padding20">SSH {{lang.words.key}}</td>
             <td>
-                <label for="new-ssh_enable">Enabled SSH key</label><input type="checkbox" id="new-ssh_enable" checked>
+                <label for="new-ssh_enable">{{lang.words.enabled|title()}} SSH {{lang.words.key}}</label><input type="checkbox" id="new-ssh_enable" checked>
             </td>
         </tr>
         {% if page != "servers.py" %}
         <tr>
-            <td class="padding20">Group</td>
+            <td class="padding20">{{lang.words.group|title()}}</td>
             <td>
                 <select id="new-sshgroup" name="new-sshgroup">
                     {% for group in groups %}
@@ -141,12 +141,12 @@
         {% endif %}
         <tr>
             <td class="padding20">
-                User name
+                {{lang.words.username|title()}}
                 <span class="need-field">*</span>
             </td>
             <td>
                 <p style="width: 100px;">
-                    {{ input('ssh_user', value=ssh_user, title='SSH username') }}
+                    {{ input('ssh_user', value=ssh_user, title='SSH {{lang.words.username|title()}}') }}
                 </p>
                 {{ input('ssh_pass', type='password', style="display: none;", title="User password, if SSH key is disabled") }}
             </td>
@@ -154,11 +154,11 @@
     </table>
 </div>
 <div id="telegram-add-table" style="display: none;">
-    <table>
+    <table class="overview" id="telegram-add-table-overview" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new}} Telegram {{lang.words.channel}}">
         {% include 'include/tr_validate_tips.html' %}
         <tr>
             <td class="padding20">
-                <span title="Token that gave you @father_bot">Token</span>
+                <span title="Token that gave you @father_bot">{{lang.words.token|title()}}</span>
                 <span class="need-field">*</span>
             </td>
             <td>
@@ -167,7 +167,7 @@
         </tr>
         <tr>
             <td class="padding20">
-                Channel name
+                {{lang.words.channel|title()}}
                 <span class="need-field">*</span>
             </td>
             <td>
@@ -176,10 +176,10 @@
         </tr>
         {% if page != "servers.py" %}
         <tr>
-            <td class="padding20">Group</td>
+            <td class="padding20">{{lang.words.group|title()}}</td>
             <td>
                 <select id="new-telegram-group-add" name="new-telegram-group-add">
-                    <option disabled selected value="0">Select a group</option>
+                    <option disabled selected value="0">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.group2}}</option>
                     {% for group in groups %}
                     <option value="{{ group.group_id }}">{{ group.name }}</option>
                     {% endfor %}
@@ -190,11 +190,11 @@
     </table>
 </div>
 <div id="slack-add-table" style="display: none;">
-    <table>
+    <table class="overview" id="slack-add-table-overview" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new}} Slack {{lang.words.channel}}">
         {% include 'include/tr_validate_tips.html' %}
         <tr>
             <td class="padding20">
-                <span title="Token that has given with APP registration">Token</span>
+                <span title="Token that has given with APP registration">{{lang.words.token|title()}}</span>
                 <span class="need-field">*</span>
             </td>
             <td>
@@ -203,7 +203,7 @@
         </tr>
         <tr>
             <td class="padding20">
-                Channel name
+                {{lang.words.channel|title()}}
                 <span class="need-field">*</span>
             </td>
             <td>
@@ -212,10 +212,10 @@
         </tr>
         {% if page != "servers.py" %}
         <tr>
-            <td class="padding20">Group</td>
+            <td class="padding20">{{lang.words.group|title()}}</td>
             <td>
                 <select id="new-slack-group-add" name="new-slack-group-add">
-                    <option disabled selected value="0">Select a group</option>
+                    <option disabled selected value="0">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.group2}}</option>
                     {% for group in groups %}
                     <option value="{{ group.group_id }}">{{ group.name }}</option>
                     {% endfor %}
@@ -226,17 +226,17 @@
     </table>
 </div>
 <div id="backup-add-table" title="Add a new backup job " style="display: none;">
-    <table class="overview">
+    <table class="overview" id="backup-add-table-overview" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new}} {{lang.words.backup}}">
         {% include 'include/tr_validate_tips.html' %}
         {% include 'include/add_backup.html' %}
         <tr>
             <td class="padding20">
-                Credentials for a remote server
+                {{lang.words.creds|title()}} {{lang.words.for}} {{lang.words.w_a}} {{lang.words.remote}} {{lang.words.server}}
                 <span class="need-field">*</span>
             </td>
             <td>
                 <select id="backup-credentials" required>
-                    <option disabled selected>Select credentials</option>
+                    <option disabled selected>{{lang.words.select|title()}} {{lang.words.creds}}</option>
                     {% for ssh in sshs %}
                          {% if ssh.enable == 1 %}
                             <option value="{{ssh.id}}">{{ssh.name}}</option>
@@ -247,7 +247,7 @@
         </tr>
         <tr>
             <td class="padding20">
-                Description
+                {{lang.words.desc|title()}}
             </td>
             <td>
                 {{ input('backup-description', size='30') }}
@@ -255,12 +255,18 @@
         </tr>
     </table>
 </div>
-<div id="git-add-table" title="Add a new git job " style="display: none;">
-    <table class="overview">
+<div id="s3-backup-add-table" style="display: none;">
+    <table class="overview" id="s3-backup-add-table-overview" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new}} S3 {{lang.words.backup}}">
+        {% include 'include/tr_validate_tips.html' %}
+        {% include 'include/add_s3_backup.html' %}
+    </table>
+</div>
+<div id="git-add-table" style="display: none;">
+    <table class="overview" id="git-add-table-overview" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new}} git {{lang.words.job}}">
         {% include 'include/tr_validate_tips.html' %}
         <tr>
 			<td class="padding20" style="width: 40%;">
-				Server
+				{{lang.words.server|title()}}
 				<span class="need-field">*</span>
 			</td>
 			<td>
@@ -274,7 +280,7 @@
 		</tr>
         <tr>
 			<td class="padding20" style="width: 40%;">
-				Service
+				{{lang.words.service|title()}}
 				<span class="need-field">*</span>
 			</td>
 			<td>
@@ -288,7 +294,7 @@
 		</tr>
         <tr>
 			<td class="padding20">
-				Period
+				{{lang.words.period|title()}}
 				<span class="need-field">*</span>
 			</td>
 			<td>
@@ -298,7 +304,7 @@
 		</tr>
         <tr>
            <td class="padding20">
-               Init a new repository
+               {{lang.words.init|title()}} {{lang.words.w_a}} {{lang.words.new}} {{lang.words.repository}}
            </td>
             <td>
                 {{ checkbox('git-init')}}
@@ -306,7 +312,7 @@
         </tr>
         <tr style="display: none" class="git-init-params">
 			<td class="padding20">
-				Repository
+				{{lang.words.repository|title()}}
                 <span class="need-field">*</span>
 			</td>
 			<td>
@@ -315,7 +321,7 @@
 		</tr>
         <tr>
 			<td class="padding20">
-				Branch name
+				Branch {{lang.words.name}}
                 <span class="need-field">*</span>
 			</td>
 			<td>
@@ -324,7 +330,7 @@
 		</tr>
         <tr>
             <td class="padding20">
-                Credentials for a git user
+                {{lang.words.creds|title()}} {{lang.words.for}} {{lang.words.w_a}} git {{lang.words.user}}
                 <span class="need-field">*</span>
             </td>
             <td>
@@ -340,7 +346,7 @@
         </tr>
         <tr>
             <td class="padding20">
-                Description
+                {{lang.words.desc|title()}}
             </td>
             <td>
                 {{ input('git-description', size='30') }}
@@ -349,7 +355,7 @@
     </table>
 </div>
 <div id="dialog-confirm-services" style="display: none;">
-    <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>Are you sure?</p>
+    <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>{{lang.phrases.are_you_sure}}</p>
 </div>
 <div id="firewall_rules" style="display: none; padding: 0 2px 0 0; margin-left: 1px; margin-right: -4px;">
     <div id="firewall_rules_body"></div>

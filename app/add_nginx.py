@@ -31,8 +31,8 @@ if all(v is None for v in [form.getvalue('upstream'), form.getvalue('generatecon
 	env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 	template = env.get_template('add_nginx.html')
 	template = template.render(
-		title="Add: ", role=user_params['role'], user=user_params['user'], selects=user_params['servers'], add=form.getvalue('add'), conf_add=form.getvalue('conf'),
-		user_services=user_params['user_services'], token=user_params['token']
+		role=user_params['role'], user=user_params['user'], selects=user_params['servers'], add=form.getvalue('add'), conf_add=form.getvalue('conf'),
+		user_services=user_params['user_services'], token=user_params['token'], lang=user_params['lang']
 	)
 	print(template)
 elif form.getvalue('upstream') is not None:

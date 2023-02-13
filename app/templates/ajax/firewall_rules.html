@@ -1,24 +1,26 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
+{% from 'include/input_macros.html' import input, checkbox, copy_to_clipboard %}
 {% set thead = ' <thead>
 <tr class="overviewHead">
-    <th class="padding10" style="padding-left: 10px; width: 50px;">Number</th>
-    <th>Target</th>
-    <th>Protocol</th>
-    <th>Source</th>
-    <th>Destination</th>
-    <th>Port</th>
+    <th class="padding10" style="padding-left: 10px; width: 50px;">'+lang.words.number|title()+'</th>
+    <th>'+lang.words.target|title()+'</th>
+    <th>'+lang.words.protocol|title()+'</th>
+    <th>'+lang.words.source|title()+'</th>
+    <th>'+lang.words.dest|title()+'</th>
+    <th>'+lang.words.port|title()+'</th>
 </tr>
 </thead>' %}
 <div id="firewall_tabs">
     <ul>
-        <li><a href="#input" title="Input firewall rules">Input</a></li>
+        <li><a href="#input" title="Input firewall rules">{{lang.words.w_input|title()}}</a></li>
         <li><a href="#IN_public_allow" title="IN_public_allow firewall rules">IN_public_allow</a></li>
-        <li><a href="#output" title="Output firewall rules">Output</a></li>
+        <li><a href="#output" title="Output firewall rules">{{lang.words.output|title()}}</a></li>
     </ul>
     <div id="input">
         <table class="overview">
            {{thead}}
             <tbody>
-            {% for p in input %}
+            {% for p in input_chain %}
             <tr class="{{ loop.cycle('odd', 'even') }}">
                 <td class="padding10" style="padding-left: 10px;">
                     {{p.split(' ')[0]}}
@@ -76,7 +78,7 @@
         <table class="overview">
             {{thead}}
             <tbody>
-            {% for p in output %}
+            {% for p in output_chain %}
             <tr class="{{ loop.cycle('odd', 'even') }}">
                 <td class="padding10" style="padding-left: 10px;">
                     {{p.split(' ')[0]}}
@@ -102,9 +104,7 @@
         </table>
     </div>
 </div>
-<div class="alert alert-warning">
-    There are rules only from INPUT, IN_public_allow and OUTPUT chains
-</div>
+<div class="alert alert-warning">{{lang.phrases.fwd_warn}}</div>
 <script>
     $( function() {
         $("#firewall_tabs").tabs();

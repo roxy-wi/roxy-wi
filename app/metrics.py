@@ -12,7 +12,7 @@ env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 template = env.get_template('metrics.html')
 form = common.form
 service = form.getvalue('service')
-title = 'Metrics service'
+service_desc = ''
 
 print('Content-type: text/html\n')
 
@@ -32,17 +32,16 @@ try:
 		if service_ver[0] == ' is not installed' or service_ver == '':
 			servers = ''
 		else:
+			service_desc = sql.select_service(service)
+
 			if service == 'nginx':
 				if roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=2):
-					title = "NGINX`s metrics"
 					user_params['servers'] = sql.select_nginx_servers_metrics_for_master()
 			elif service == 'apache':
 				if roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=4):
-					title = "Apache`s metrics"
 					user_params['servers'] = sql.select_apache_servers_metrics_for_master()
 			else:
 				if roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=1):
-					title = "HAProxy`s metrics"
 					group_id = roxywi_common.get_user_group(id=1)
 					user_params['servers'] = sql.select_servers_metrics(group_id)
 					service = 'haproxy'
@@ -57,8 +56,8 @@ except Exception as e:
 	roxywi_common.logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
 
 template = template.render(
-	h2=1, title=title, autorefresh=1, role=user_params['role'], user=user_params['user'], servers=user_params['servers'],
+	h2=1, autorefresh=1, role=user_params['role'], user=user_params['user'], servers=user_params['servers'],
 	services=services, user_services=user_params['user_services'], service=service, user_status=user_subscription['user_status'],
-	user_plan=user_subscription['user_plan'], token=user_params['token']
+	user_plan=user_subscription['user_plan'], token=user_params['token'], lang=user_params['lang'], service_desc=service_desc
 )
 print(template)

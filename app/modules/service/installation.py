@@ -26,7 +26,12 @@ def show_installation_output(error: str, output: str, service: str) -> bool:
 					print(output)
 					break
 		else:
-			print(f'success: {service} has been installed')
+			from jinja2 import Environment, FileSystemLoader
+			env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
+			template = env.get_template('include/show_success_installation.html')
+			lang = roxywi_common.get_user_lang()
+			rendered_template = template.render(service=service, lang=lang)
+			print(rendered_template)
 			roxywi_common.logging('Roxy-WI server', error, roxywi=1, keep_history=1, service=service)
 			return True
 
