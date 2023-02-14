@@ -282,6 +282,7 @@ def get_user_lang() -> str:
 
 	return user_lang
 
+
 def return_user_status() -> dict:
 	user_subscription = {}
 	user_subscription.setdefault('user_status', sql.select_user_status())
