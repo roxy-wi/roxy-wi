@@ -159,7 +159,8 @@ def change_user_active_group() -> None:
 def get_user_active_group(user_id: str, group: str) -> None:
     group_id = sql.get_user_id_by_uuid(user_id.value)
     groups = sql.select_user_groups_with_names(group_id)
-    env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
-    template = env.get_template('/show_user_current_group.html')
-    template = template.render(groups=groups, group=group.value, id=group_id)
+    lang = roxywi_common.get_user_lang()
+    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
+    template = env.get_template('ajax/show_user_current_group.html')
+    template = template.render(groups=groups, group=group.value, id=group_id, lang=lang)
     print(template)
