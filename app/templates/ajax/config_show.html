@@ -371,12 +371,12 @@
 			<input type="hidden" value="{{serv}}" name="serv">
 			<input type="hidden" value="{{configver}}" name="configver">
 			<input type="hidden" value="1" name="config">
-			<button type='submit' value='save' name='save' class='btn btn-default' title="{{lang.words.save|title()}} {{lang.words.config}} {{lang.words.without}} {{lang.words.reloading}} {{lang.words.the}} {{lang.words.service2}}">{{lang.words.save|title()}}</button>
+			<button type='submit' value='save' name='save' class='btn btn-default' title="{{lang.phrases.save_title}}">{{lang.words.save|title()}}</button>
 			{% if is_restart|int == 0 %}
-			<button type='submit' value='' name='' class='btn btn-default'>{{lang.phrases.upload_and_restart|title()}}</button>
+			<button type='submit' value='' name='' class='btn btn-default'>{{lang.phrases.upload_and_restart}}</button>
 			{% endif %}
 			{% if service != 'keepalived' %}
-			<button type='submit' value='reload' name='save' class='btn btn-default'>{{lang.phrases.upload_and_reload|title()}}</button>
+			<button type='submit' value='reload' name='save' class='btn btn-default'>{{lang.phrases.upload_and_reload}}</button>
 			{% endif %}
 		</form>
 		{% endif %}

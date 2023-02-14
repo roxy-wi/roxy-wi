@@ -543,10 +543,12 @@ def show_config(server_ip: str) -> None:
 
 	is_serv_protected = sql.is_serv_protected(server_ip)
 	server_id = sql.select_server_id_by_ip(server_ip)
+	hostname = sql.get_hostname_by_server_ip(server_ip)
 	is_restart = sql.select_service_setting(server_id, service, 'restart')
-	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True, trim_blocks=True, lstrip_blocks=True,
+	lang = roxywi_common.get_user_lang()
+	env = Environment(loader=FileSystemLoader('templates/'), autoescape=True, trim_blocks=True, lstrip_blocks=True,
 					  extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
-	template = env.get_template('config_show.html')
+	template = env.get_template('ajax/config_show.html')
 
 	template = template.render(conf=conf,
 							   serv=server_ip,
@@ -555,7 +557,9 @@ def show_config(server_ip: str) -> None:
 							   service=service,
 							   config_file_name=config_file_name,
 							   is_serv_protected=is_serv_protected,
-							   is_restart=is_restart)
+							   is_restart=is_restart,
+							   lang=lang,
+							   hostname=hostname)
 	print(template)
 	conf.close()
 
@@ -580,8 +584,9 @@ def show_config_files(server_ip: str) -> None:
 		config_file_name = ''
 
 	return_files += ' ' + sql.get_setting(f'{service}_config_path')
+	lang = roxywi_common.get_user_lang()
 	env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 	template = env.get_template('ajax/show_configs_files.html')
-	template = template.render(serv=server_ip, service=service, return_files=return_files,
+	template = template.render(serv=server_ip, service=service, return_files=return_files, lang=lang,
 							   config_file_name=config_file_name, path_dir=service_config_dir)
 	print(template)

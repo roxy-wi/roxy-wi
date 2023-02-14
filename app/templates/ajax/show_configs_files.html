@@ -1,3 +1,4 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% from 'include/input_macros.html' import input %}
 <div style="text-align: center;margin-top: 20px;">
 	{% if 'cannot access' not in return_files %}
@@ -7,7 +8,7 @@
 		<form action="" method="post">
 		<p>
 			<select autofocus required name="config_file_name" id="config_file_name" style="width: 365px;">
-				<option disabled selected>Select a config file</option>
+				<option disabled selected>{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.config}} {{lang.words.file}}</option>
 				{% for file in return_files.split() %}
 					{% if file == config_file_name %}
 					<option value="{{ file }}" selected>{{ file.split('/', maxsplit=3)[3] }}</option>
@@ -19,15 +20,15 @@
 
 			{{ input('serv', type='hidden', value=serv) }}
 			{{ input('open', type='hidden', value='open') }}
-			<a class="ui-button ui-widget ui-corner-all" id="show" title="Open config" onclick="showConfig()">Open</a>
-			<a class="ui-button ui-widget ui-corner-all" title="Create a new config file"  onclick="addNewConfig('{{serv}}', '{{service}}')">Add</a>
-			<a class="ui-button ui-widget ui-corner-all" title="Lookup in config files" id="open_find_form">Find</a>
+			<a class="ui-button ui-widget ui-corner-all" id="show" title="{{lang.words.open|title()}} {{lang.words.config}}" onclick="showConfig()">{{lang.words.open|title()}}</a>
+			<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.create|title()}} {{lang.words.w_a}} {{lang.words.new}} {{lang.words.config}} {{lang.words.file}}"  onclick="addNewConfig('{{serv}}', '{{service}}')">{{lang.words.add|title()}}</a>
+			<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.find|title()}} {{lang.words.in}} {{lang.words.config}} {{lang.words.files}}" id="open_find_form">{{lang.words.find|title()}}</a>
 		</p>
 		</form>
 	<form action="" method="post" id="finding_words_from">
 		<p id="find_p" style="display: none;">
 			{{ input('words', type='text', style='height: 32.5px;') }}
-			<button type="submit" name="find" id="find_in_configs" value="Find" title="Find in configs">Find</button>
+			<button type="submit" name="find" id="find_in_configs" value="Find" title="Find in configs">{{lang.words.find|title()}}</button>
 		</p>
 		{% else %}
 		<div class="alert alert-warning">{{return_files}}</div>
@@ -39,7 +40,7 @@
 	<table class="overview">
 			{% include 'include/tr_validate_tips.html' %}
 			<tr>
-				<td class="padding20">Config file name:</td>
+				<td class="padding20">{{lang.phrases.config_file_name}}:</td>
 				<td>{{ input('new_config_name', type='text', placeholder='conf.d/config_name', title='Format: sub-directory/config_name') }}</td>
 			</tr>
 			{{ input('path_config_name', type='hidden', value=path_dir) }}
@@ -75,7 +76,7 @@
 				height: "auto",
 				width: 600,
 				modal: true,
-				title: "Create a new config file",
+				title: "{{lang.words.create|title()}} {{lang.words.w_a}} {{lang.words.new}} {{lang.words.config}} {{lang.words.file}}",
 				show: {
 					effect: "fade",
 					duration: 200
@@ -84,23 +85,26 @@
 					effect: "fade",
 					duration: 200
 				},
-				buttons: {
-					"Create": function() {
+				buttons: [{
+					text: "{{lang.words.create|title()}}",
+					click: function () {
 						let config_file_name = $('#new_config_name').val();
 						let path_dir = $('#path_config_name').val();
-						config_file_name = config_file_name.replaceAll('\/','92');
-						path_dir = path_dir.replaceAll('\/','92');
+						config_file_name = config_file_name.replaceAll('\/', '92');
+						path_dir = path_dir.replaceAll('\/', '92');
 						service = escapeHtml(service);
 						serv = escapeHtml(serv);
 						path_dir = escapeHtml(path_dir);
 						config_file_name = escapeHtml(config_file_name);
-						window.location.replace('config.py?service='+service+'&serv='+serv+'&open=open&config_file_name='+path_dir+'92'+config_file_name+'.conf&new_config=1');
-						$( this ).dialog( "close" );
-					},
-					Cancel: function() {
+						window.location.replace('config.py?service=' + service + '&serv=' + serv + '&open=open&config_file_name=' + path_dir + '92' + config_file_name + '.conf&new_config=1');
+						$(this).dialog("close");
+					}
+				}, {
+					text: "{{lang.words.cancel|title()}}",
+					click: function() {
 						$( this ).dialog( "close" );
 					}
-				}
+				}]
 			});
 	}
 	$( "select" ).selectmenu();
