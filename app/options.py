@@ -824,6 +824,7 @@ if form.getvalue('newuser') is not None:
     page = common.checkAjaxInput(form.getvalue('page'))
     activeuser = common.checkAjaxInput(form.getvalue('activeuser'))
     group = common.checkAjaxInput(form.getvalue('newgroupuser'))
+    lang = roxywi_common.get_user_lang()
 
     if roxywi_user.create_user(new_user, email, password, role, activeuser, group):
         env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
@@ -833,7 +834,8 @@ if form.getvalue('newuser') is not None:
                                    groups=sql.select_groups(),
                                    page=page,
                                    roles=sql.select_roles(),
-                                   adding=1)
+                                   adding=1,
+                                   lang=lang)
         print(template)
 
 if form.getvalue('userdel') is not None:
@@ -868,6 +870,7 @@ if form.getvalue('newserver') is not None:
     page = page.split("#")[0]
     port = common.checkAjaxInput(form.getvalue('newport'))
     desc = common.checkAjaxInput(form.getvalue('desc'))
+    lang = roxywi_common.get_user_lang()
 
     if ip == '':
         print('error: IP or DNS name is not valid')
@@ -890,7 +893,8 @@ if form.getvalue('newserver') is not None:
                                        page=page,
                                        user_status=user_subscription['user_status'],
                                        user_plan=user_subscription['user_plan'],
-                                       adding=1)
+                                       adding=1,
+                                       lang=lang)
             print(template)
             roxywi_common.logging(ip, f'A new server {hostname} has been created', roxywi=1, login=1,
                           keep_history=1, service='server')

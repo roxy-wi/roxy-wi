@@ -1,3 +1,4 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% for telegram in telegrams %}
 	<tr style="width: 50%;" id="telegram-table-{{telegram.id}}" class="newgroup">
 		<td class="padding10 first-collumn">
@@ -21,10 +22,10 @@
 			</td>	
 		{% endif %}
 		<td>
-			<button title="Send a test message" onclick="checkTelegram({{telegram.id}})">Test</button>
+			<button title="{{lang.phrases.send_test_mes}}" onclick="checkTelegram({{telegram.id}})">{{lang.words.test|title()}}</button>
 		</td>
 		<td>
-			<a class="add" onclick="cloneTelegram({{telegram.id}})" id="clone-{{telegram.id}}" title="Clone {{telegram.chanel_name}}" style="cursor: pointer;"></a>
+			<a class="add" onclick="cloneTelegram({{telegram.id}})" id="clone-{{telegram.id}}" title="{{lang.words.clone|title()}} {{telegram.chanel_name}}" style="cursor: pointer;"></a>
 		</td>
 		<td>
 			<a class="delete" onclick="confirmDeleteTelegram({{telegram.id}})"  style="cursor: pointer;"></a>

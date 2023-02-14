@@ -1,3 +1,4 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% for slack in slacks %}
 	<tr style="width: 50%;" id="slack-table-{{slack.id}}" class="newgroup">
 		<td class="padding10 first-collumn">
@@ -21,10 +22,10 @@
 			</td>	
 		{% endif %}
         <td>
-            <button title="Send test message" onclick="checkSlack({{slack.id}})">Test</button>
+            <button title="{{lang.phrases.send_test_mes}}" onclick="checkSlack({{slack.id}})">{{lang.words.test|title()}}</button>
         </td>
 		<td>
-			<a class="add" onclick="cloneSlack({{slack.id}})" id="clone-{{slack.id}}" title="Copy the settings from {{slack.chanel_name}}" style="cursor: pointer;"></a>
+			<a class="add" onclick="cloneSlack({{slack.id}})" id="clone-{{slack.id}}" title="{{lang.words.clone|title()}} {{slack.chanel_name}}" style="cursor: pointer;"></a>
 		</td>
 		<td>
 			<a class="delete" onclick="confirmDeleteSlack({{slack.id}})"  style="cursor: pointer;"></a>

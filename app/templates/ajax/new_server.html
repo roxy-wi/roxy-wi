@@ -1,3 +1,4 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% for server in servers %}
 	{% include 'include/admin_servers.html' %}
 	<script>

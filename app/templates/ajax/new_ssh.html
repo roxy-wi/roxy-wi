@@ -1,3 +1,4 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% for ssh in sshs %}
 	<tr style="width: 50%;" id="ssh-table-{{ssh.id}}" class="ssh-table-{{ssh.id}}">
 		<td class="first-collumn">
@@ -5,9 +6,9 @@
 		</td>
 		<td class="first-collumn" valign="top" style="padding-top: 15px;">
 			{% if ssh.enable == 1 %}
-				<label for="ssh_enable-{{ssh.id}}">Enable SSH key</label><input type="checkbox" id="ssh_enable-{{ssh.id}}" checked>
+				<label for="ssh_enable-{{ssh.id}}">{{lang.words.enable|title()}} SSH {{lang.words.key}}</label><input type="checkbox" id="ssh_enable-{{ssh.id}}" checked>
 			{% else %}
-				<label for="ssh_enable-{{ssh.id}}">Enable SSH key</label><input type="checkbox" id="ssh_enable-{{ssh.id}}">
+				<label for="ssh_enable-{{ssh.id}}">{{lang.words.enable|title()}} SSH {{lang.words.key}}</label><input type="checkbox" id="ssh_enable-{{ssh.id}}">
 			{% endif %}
 		</td>
 		{% if page != "servers.py" %}
@@ -35,7 +36,7 @@
 			<br>
 		</td>
 		<td>
-			<a class="delete" onclick="confirmDeleteSsh({{ssh.id}})"  style="cursor: pointer;"></a>
+			<a class="delete" onclick="confirmDeleteSsh({{ssh.id}})" title="{{lang.words.delete|title()}} {{ssh.name}}"  style="cursor: pointer;"></a>
 		</td>
 	</tr>
 {% endfor %}

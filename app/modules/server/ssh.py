@@ -60,14 +60,15 @@ def create_ssh_cred() -> None:
 	password = common.checkAjaxInput(form.getvalue('ssh_pass'))
 	page = common.checkAjaxInput(form.getvalue('page'))
 	page = page.split("#")[0]
+	lang = roxywi_common.get_user_lang()
 
 	if username is None or name is None:
 		print(error_mess)
 	else:
 		if sql.insert_new_ssh(name, enable, group, username, password):
-			env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
-			template = env.get_template('/new_ssh.html')
-			output_from_parsed_template = template.render(groups=sql.select_groups(), sshs=sql.select_ssh(name=name), page=page)
+			env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
+			template = env.get_template('ajax/new_ssh.html')
+			output_from_parsed_template = template.render(groups=sql.select_groups(), sshs=sql.select_ssh(name=name), page=page, lang=lang)
 			print(output_from_parsed_template)
 			roxywi_common.logging('Roxy-WI server', f'New SSH credentials {name} has been created', roxywi=1, login=1)
 

@@ -1,3 +1,4 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% for user in users %}
 	{% include 'include/admin_users.html' %}
 	<script>

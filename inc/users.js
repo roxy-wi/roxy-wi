@@ -1449,16 +1449,19 @@ function confirmDeleteUser(id) {
       height: "auto",
       width: 400,
       modal: true,
-	  title: "Are you sure you want to delete " +$('#login-'+id).val() + "?",
-      buttons: {
-        "Delete": function() {
-			$( this ).dialog( "close" );
-			removeUser(id);
-        },
-        Cancel: function() {
-			$( this ).dialog( "close" );
-        }
-      }
+	  title: delete_word + " " +$('#login-'+id).val() + "?",
+      buttons: [{
+		  text: delete_word,
+		  click: function () {
+			  $(this).dialog("close");
+			  removeUser(id);
+		  }
+	  }, {
+		  text: cancel_word,
+		  click: function () {
+			  $(this).dialog("close");
+		  }
+	  }]
     });
 }
 function confirmDeleteGroup(id) {
@@ -1469,16 +1472,19 @@ function confirmDeleteGroup(id) {
       height: "auto",
       width: 400,
       modal: true,
-	  title: "Are you sure you want to delete " +$('#name-'+id).val() + "?",
-      buttons: {
-        "Delete": function() {
-			$( this ).dialog( "close" );
-			removeGroup(id);
-        },
-        Cancel: function() {
-			$( this ).dialog( "close" );
-        }
-      }
+	  title: delete_word+ " " +$('#name-'+id).val() + "?",
+      buttons:  [{
+		  text: delete_word,
+		  click: function() {
+			  $(this).dialog("close");
+			  removeGroup(id);
+		  }
+        }, {
+		  text: cancel_word,
+		  click: function () {
+			  $(this).dialog("close");
+		  }
+	  }]
     });
 }
 function confirmDeleteServer(id) {
@@ -1535,16 +1541,19 @@ function confirmDeleteTelegram(id) {
       height: "auto",
       width: 400,
       modal: true,
-	  title: "Are you sure you want to delete " +$('#telegram-chanel-'+id).val() + "?",
-      buttons: {
-        "Delete": function() {
-			$( this ).dialog( "close" );
-			removeTelegram(id);
-        },
-        Cancel: function() {
-			$( this ).dialog( "close" );
-        }
-      }
+	  title: delete_word + " " +$('#telegram-chanel-'+id).val() + "?",
+      buttons: [{
+			text: delete_word,
+			click: function() {
+				$(this).dialog("close");
+				removeTelegram(id);
+			}
+        }, {
+		  text: cancel_word,
+		  click: function () {
+			  $(this).dialog("close");
+		  }
+	  }]
     });
 }
 function confirmDeleteSlack(id) {
@@ -1555,16 +1564,19 @@ function confirmDeleteSlack(id) {
       height: "auto",
       width: 400,
       modal: true,
-	  title: "Are you sure you want to delete " +$('#slack-chanel-'+id).val() + "?",
-      buttons: {
-        "Delete": function() {
-			$( this ).dialog( "close" );
-			removeSlack(id);
-        },
-        Cancel: function() {
-			$( this ).dialog( "close" );
-        }
-      }
+	  title: delete_word + " " +$('#slack-chanel-'+id).val() + "?",
+      buttons: [{
+		  text: delete_word,
+		  click: function () {
+			  $(this).dialog("close");
+			  removeSlack(id);
+		  }
+	  }, {
+		  text: cancel_word,
+		  click: function () {
+			  $(this).dialog("close");
+		  }
+	  }]
     });
 }
 function confirmDeleteBackup(id) {
@@ -1575,16 +1587,19 @@ function confirmDeleteBackup(id) {
       height: "auto",
       width: 400,
       modal: true,
-	  title: "Are you sure you want to delete job for " +$('#backup-server-'+id).val() + "?",
-      buttons: {
-        "Delete": function() {
-			$( this ).dialog( "close" );
-			removeBackup(id);
-        },
-        Cancel: function() {
-			$( this ).dialog( "close" );
-        }
-      }
+	  title: delete_word + " " +$('#backup-server-'+id).val() + "?",
+      buttons: [{
+		  text: delete_word,
+		  click: function () {
+			  $(this).dialog("close");
+			  removeBackup(id);
+		  }
+	  }, {
+		  text: cancel_word,
+		  click: function () {
+			  $(this).dialog("close");
+		  }
+	  }]
     });
 }
 function confirmDeleteGit(id) {
@@ -1595,16 +1610,19 @@ function confirmDeleteGit(id) {
       height: "auto",
       width: 400,
       modal: true,
-	  title: "Are you sure you want to delete job for " +$('#git-server-'+id).text() + "?",
-      buttons: {
-        "Delete": function() {
-			$( this ).dialog( "close" );
-			removeGit(id);
-        },
-        Cancel: function() {
-			$( this ).dialog( "close" );
-        }
-      }
+	  title: delete_word + " " +$('#git-server-'+id).text() + "?",
+      buttons: [{
+		  text: delete_word,
+		  click: function () {
+			  $(this).dialog("close");
+			  removeGit(id);
+		  }
+	  },{
+		  text: cancel_word,
+		  click: function () {
+			  $(this).dialog("close");
+		  }
+	  }]
     });
 }
 function cloneServer(id) {

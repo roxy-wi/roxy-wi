@@ -13,10 +13,10 @@ form = common.form
 
 def waf_overview(serv, waf_service) -> None:
     env = Environment(
-        loader=FileSystemLoader('templates/ajax'), autoescape=True,
+        loader=FileSystemLoader('templates/'), autoescape=True,
         extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do']
     )
-    template = env.get_template('overivewWaf.html')
+    template = env.get_template('ajax/overivewWaf.html')
 
     servers = sql.select_servers(server=serv)
     cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
@@ -75,9 +75,10 @@ def waf_overview(serv, waf_service) -> None:
 
         returned_servers.append(server_status)
 
+    lang = roxywi_common.get_user_lang()
     servers_sorted = sorted(returned_servers, key=common.get_key)
     template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_id.value),
-                               waf_service=waf_service)
+                               waf_service=waf_service, lang=lang)
     print(template)
 
 
