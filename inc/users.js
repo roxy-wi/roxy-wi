@@ -2833,6 +2833,8 @@ function updateServerInfo(ip, id) {
 		} );
 }
 function showServerInfo(id, ip) {
+	var close_word = $('#translate').attr('data-close');
+	var server_info = $('#translate').attr('data-server_info');
 	$.ajax({
 		url: "options.py",
 		data: {
@@ -2851,14 +2853,15 @@ function showServerInfo(id, ip) {
 				$("#dialog-server-info").dialog({
 					resizable: false,
 					height: "auto",
-					width: 1250,
+					width: 1000,
 					modal: true,
-					title: "Server info (" + ip + ")",
-					buttons: {
-						Close: function () {
+					title: server_info + " (" + ip + ")",
+					buttons: [{
+						text: close_word,
+						click: function () {
 							$(this).dialog("close");
 						}
-					}
+					}]
 				});
 				$.getScript(awesome);
 			}

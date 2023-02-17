@@ -1,5 +1,6 @@
 global
-    log         127.0.0.1 local2
+    log         127.0.0.2 local0
+    log         127.0.0.1 local1 notice
     chroot      /var/lib/haproxy
     pidfile     /var/run/haproxy.pid
     maxconn     4000
@@ -31,9 +32,7 @@ defaults
 
 listen stats 
     bind *:{{STAT_PORT}}
-    {% if ansible_os_family == "RedHat" %}
     http-request use-service prometheus-exporter if { path /metrics }
-    {% endif %}
     stats enable
     stats uri /stats
     stats realm HAProxy-04\ Statistics

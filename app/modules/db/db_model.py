@@ -578,6 +578,16 @@ class ServiceStatus(BaseModel):
         constraints = [SQL('UNIQUE (server_id, service_id, service_check)')]
 
 
+class KeepaliveRestart(BaseModel):
+    server_id = ForeignKeyField(Server, on_delete='Cascade')
+    service = CharField()
+    restarted = IntegerField(constraints=[SQL('DEFAULT 1')])
+
+    class Meta:
+        table_name = 'keepaplive_restarted'
+        constraints = [SQL('UNIQUE (server_id, service)')]
+
+
 def create_tables():
     with conn:
         conn.create_tables([User, Server, Role, Telegram, Slack, UUID, Token, ApiToken, Groups, UserGroups, ConfigVersion,
@@ -585,4 +595,4 @@ def create_tables():
                             PortScannerSettings, PortScannerPorts, PortScannerHistory, ProvidersCreds, ServiceSetting,
                             ProvisionedServers, MetricsHttpStatus, SMON, WafRules, Alerts, GeoipCodes, NginxMetrics,
                             SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, ProvisionParam,
-                            WafNginx, ServiceStatus])
+                            WafNginx, ServiceStatus, KeepaliveRestart])
