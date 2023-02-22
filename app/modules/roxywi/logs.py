@@ -78,6 +78,8 @@ def show_roxy_log(
 
 	log_file = checkAjaxInput(log_file) if log_file is not None else log_file
 
+	if '..' in log_file: return 'error: nice try'
+
 	if service in ('nginx', 'haproxy', 'apache', 'keepalived'):
 		syslog_server_enable = sql.get_setting('syslog_server_enable')
 		if syslog_server_enable is None or syslog_server_enable == 0:

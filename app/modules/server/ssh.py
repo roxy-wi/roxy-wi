@@ -51,16 +51,16 @@ def ssh_connect(server_ip):
 def create_ssh_cred() -> None:
 	from jinja2 import Environment, FileSystemLoader
 
-	user_group = roxywi_common.get_user_group()
 	name = common.checkAjaxInput(form.getvalue('new_ssh'))
-	name = f'{name}_{user_group}'
 	enable = common.checkAjaxInput(form.getvalue('ssh_enable'))
 	group = common.checkAjaxInput(form.getvalue('new_group'))
+	group_name = sql.get_group_name_by_id(group)
 	username = common.checkAjaxInput(form.getvalue('ssh_user'))
 	password = common.checkAjaxInput(form.getvalue('ssh_pass'))
 	page = common.checkAjaxInput(form.getvalue('page'))
 	page = page.split("#")[0]
 	lang = roxywi_common.get_user_lang()
+	name = f'{name}_{group_name}'
 
 	if username is None or name is None:
 		print(error_mess)
@@ -91,6 +91,10 @@ def create_ssh_cread_api(name: str, enable: str, group: str, username: str, pass
 
 
 def upload_ssh_key(name: str, user_group: str, key: str) -> bool:
+	if '..' in name:
+		print('error: nice try')
+		return False
+
 	try:
 		key = paramiko.pkey.load_private_key(key)
 	except Exception as e:

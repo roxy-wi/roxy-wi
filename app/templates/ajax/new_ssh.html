@@ -15,7 +15,7 @@
 			<td>
 				<select id="sshgroup-{{ssh.id}}" name="sshgroup-{{ssh.id}}">
 					{% for group in groups %}
-						{% if ssh.5 == group.group_id %}
+						{% if ssh.groups == group.group_id %}
 							<option value="{{ group.group_id }}" selected>{{ group.name }}</option>
 						{% else %}
 							<option value="{{ group.group_id }}">{{ group.name }}</option>

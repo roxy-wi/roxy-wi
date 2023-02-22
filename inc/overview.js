@@ -409,19 +409,22 @@ $( function() {
 	});
 });
 function confirmAjaxAction(action, service, id) {
+	var cancel_word = $('#translate').attr('data-cancel');
+	var action_word = $('#translate').attr('data-'+action);
 	$( "#dialog-confirm" ).dialog({
 		resizable: false,
 		height: "auto",
 		width: 400,
 		modal: true,
-		title: "Are you sure you want to "+ action + " " + id + "?",
-		buttons: {
-			"Sure": function() {
-				$( this ).dialog( "close" );
-				if(service == "haproxy") {
+		title: action_word + " " + id + "?",
+		buttons: [{
+			text: action_word,
+			click: function () {
+				$(this).dialog("close");
+				if (service == "haproxy") {
 					ajaxActionServers(action, id);
-					if(action == "restart" || action == "reload") {
-						if(localStorage.getItem('restart')) {
+					if (action == "restart" || action == "reload") {
+						if (localStorage.getItem('restart')) {
 							localStorage.removeItem('restart');
 							$("#apply").css('display', 'none');
 						}
@@ -437,11 +440,13 @@ function confirmAjaxAction(action, service, id) {
 				} else if (service == "waf_nginx") {
 					ajaxActionWafNginxServers(action, id)
 				}
-			},
-			Cancel: function() {
+			}
+		}, {
+			text: cancel_word,
+			click: function() {
 				$( this ).dialog( "close" );
 			}
-		}
+		}]
 	});
 }
 function updateHapWIServer(id, service_name) {
@@ -628,6 +633,10 @@ function showSubOverview() {
 	} );
 }
 function serverSettings(id, name) {
+	var cancel_word = $('#translate').attr('data-cancel');
+	var save_word = $('#translate').attr('data-save');
+	var settings_word = $('#translate').attr('data-settings');
+	var for_word = $('#translate').attr('data-for');
 	var service = $('#service').val();
 	$.ajax({
 		url: "options.py",
@@ -649,16 +658,19 @@ function serverSettings(id, name) {
 					height: "auto",
 					width: 400,
 					modal: true,
-					title: "Settings for " + name,
-					buttons: {
-						"Save": function () {
+					title: settings_word + " "+for_word+" " + name,
+					buttons: [{
+						text: save_word,
+						click: function () {
 							$(this).dialog("close");
 							serverSettingsSave(id, name, service, $(this));
-						},
-						Cancel: function () {
+						}
+					}, {
+						text: cancel_word,
+						click: function () {
 							$(this).dialog("close");
 						}
-					}
+					}]
 				});
 			}
 		}
