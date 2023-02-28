@@ -1,7 +1,7 @@
 {% from 'include/input_macros.html' import copy_to_clipboard %}
 {% extends "base.html" %}
-{% block title %}{{ lang.menu_links.history|title() }} {{ lang.words[service] }}{% endblock %}
-{% block h2 %}{{ lang.menu_links.history|title() }} {{ lang.words[service] }}{% endblock %}
+{% block title %}{{ lang.menu_links.history.title }} {{ lang.words[service] }}{% endblock %}
+{% block h2 %}{{ lang.menu_links.history.title }} {{ lang.words[service] }}{% endblock %}
 {% block content %}
 {% if user_status == 0 or user_plan == 'user' %}
 	{% include 'include/no_sub.html' %}
