@@ -424,6 +424,12 @@ def create_server(hostname, ip, group, typeip, enable, master, cred, port, desc,
 
 	if sql.add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, apache, firewall):
 		try:
+			try:
+				sql.insert_new_checker_setting_for_server(ip)
+			except Exception as e:
+				roxywi_common.logging(f'Cannot insert Checker settings for {hostname}', str(e), roxywi=1)
+				raise Exception(f'error: Cannot insert Checker settings for {hostname} {e}')
+
 			if scan_server == '1':
 				nginx_config_path = sql.get_setting('nginx_config_path')
 				haproxy_config_path = sql.get_setting('haproxy_config_path')
@@ -453,12 +459,6 @@ def create_server(hostname, ip, group, typeip, enable, master, cred, port, desc,
 		except Exception as e:
 			roxywi_common.logging(f'Cannot scan a new server {hostname}', str(e), roxywi=1)
 			raise Exception(f'error: Cannot scan a new server {hostname} {e}')
-
-		try:
-			sql.insert_new_checker_setting_for_server(ip)
-		except Exception as e:
-			roxywi_common.logging(f'Cannot insert Checker settings for {hostname}', str(e), roxywi=1)
-			raise Exception(f'error: Cannot insert Checker settings for {hostname} {e}')
 
 		try:
 			get_system_info(ip)
