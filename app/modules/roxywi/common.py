@@ -230,8 +230,16 @@ def get_users_params(**kwargs):
 	except Exception:
 		print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
 		return
+
 	try:
-		role = sql.get_user_role_by_uuid(user_uuid.value)
+		group_id = cookie.get('group')
+		group_id = int(group_id.value)
+	except Exception:
+		print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
+		return
+
+	try:
+		role = sql.get_user_role_by_uuid(user_uuid.value, group_id)
 	except Exception:
 		print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
 		return

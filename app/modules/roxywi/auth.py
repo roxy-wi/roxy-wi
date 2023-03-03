@@ -42,9 +42,11 @@ def is_admin(level=1, **kwargs):
 		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 		user_id = cookie.get('uuid')
 		user_id = user_id.value
+		group_id = cookie.get('group')
+		group_id = int(group_id.value)
 
 		try:
-			role = sql.get_user_role_by_uuid(user_id)
+			role = sql.get_user_role_by_uuid(user_id, group_id)
 		except Exception:
 			role = 4
 			pass

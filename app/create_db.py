@@ -148,9 +148,9 @@ def default_values():
 		print(str(e))
 
 	data_source = [
-		{'username': 'admin', 'email': 'admin@localhost', 'password': '21232f297a57a5a743894a0e4a801fc3', 'role': 'superAdmin', 'groups': '1'},
-		{'username': 'editor', 'email': 'editor@localhost', 'password': '5aee9dbd2a188839105073571bee1b1f', 'role': 'admin', 'groups': '1'},
-		{'username': 'guest', 'email': 'guest@localhost', 'password': '084e0343a0486ff05530df6c705c8bb4', 'role': 'guest', 'groups': '1'}
+		{'username': 'admin', 'email': 'admin@localhost', 'password': '21232f297a57a5a743894a0e4a801fc3', 'role': '1', 'groups': '1'},
+		{'username': 'editor', 'email': 'editor@localhost', 'password': '5aee9dbd2a188839105073571bee1b1f', 'role': '2', 'groups': '1'},
+		{'username': 'guest', 'email': 'guest@localhost', 'password': '084e0343a0486ff05530df6c705c8bb4', 'role': '4', 'groups': '1'}
 	]
 
 	try:
@@ -681,78 +681,6 @@ def update_db_v_4_3_0():
 			print("An error occurred:", e)
 
 
-def update_db_v_5_2_4():
-	cursor = conn.cursor()
-	sql = """ALTER TABLE `user` ADD COLUMN user_services varchar(20) DEFAULT '1 2 3 4';"""
-	try:
-		cursor.execute(sql)
-	except Exception as e:
-		if str(e) == 'duplicate column name: user_services' or str(e) == '(1060, "Duplicate column name \'user_services\'")':
-			print('Updating... DB has been updated to version 5.2.4')
-		else:
-			print("An error occurred:", e)
-	else:
-		print("Updating... DB has been updated to version 5.2.4")
-
-
-def update_db_v_5_2_4_1():
-	cursor = conn.cursor()
-	sql = """ALTER TABLE `servers` ADD COLUMN nginx_metrics integer DEFAULT 0;"""
-	try:
-		cursor.execute(sql)
-	except Exception as e:
-		if str(e) == 'duplicate column name: nginx_metrics' or str(e) == '(1060, "Duplicate column name \'nginx_metrics\'")':
-			print('Updating... DB has been updated to version 5.2.4-1')
-		else:
-			print("An error occurred:", e)
-	else:
-		print("Updating... DB has been updated to version 5.2.4-1")
-
-
-def update_db_v_5_2_5_1():
-	query = User.update(role='user').where(User.role == 'editor')
-	try:
-		query.execute()
-	except Exception as e:
-		print("An error occurred:", e)
-	else:
-		print("Updating... DB has been updated to version 5.2.5-1")
-
-
-def update_db_v_5_2_5_2():
-	query = Role.delete().where(Role.name == 'editor')
-	try:
-		query.execute()
-	except Exception as e:
-		print("An error occurred:", e)
-	else:
-		print("Updating... DB has been updated to version 5.2.5-2")
-
-
-def update_db_v_5_2_5_3():
-	cursor = conn.cursor()
-	sql = list()
-	sql.append("alter table user add column last_login_date timestamp default '0000-00-00 00:00:00'")
-	sql.append("alter table user add column last_login_ip VARCHAR ( 64 )")
-	for i in sql:
-		try:
-			cursor.execute(i)
-		except Exception:
-			pass
-	else:
-		print('Updating... DB has been updated to version 5.2.5-3')
-
-
-def update_db_v_5_2_6():
-	query = Setting.delete().where(Setting.param == 'haproxy_enterprise')
-	try:
-		query.execute()
-	except Exception as e:
-		print("An error occurred:", e)
-	else:
-		print("Updating... DB has been updated to version 5.2.6")
-
-
 def update_db_v_5_3_0():
 	groups = ''
 	query = Groups.select()
@@ -996,9 +924,28 @@ def update_db_v_6_3_5():
 		print("Updating... DB has been updated to version 6.3.5.0")
 
 
+def update_db_v_6_3_6():
+	cursor = conn.cursor()
+	sql = list()
+	sql.append("ALTER TABLE `user_groups` ADD COLUMN user_role_id integer;")
+	if mysql_enable == '1':
+		sql.append("update user_groups u_g  inner join user as u on u_g.user_id = u.id inner join role as r on r.name = u.role set user_role_id = r.id where u_g.user_role_id is NULL;")
+		sql.append("update user u inner join role as r on r.name = u.role set u.role = r.id;")
+	else:
+		sql.append("update user_groups as u_g set user_role_id = (select r.id from role as r inner join user as u on u.role = r.name where u_g.user_id = u.id) where user_role_id is null;")
+		sql.append("update user as u set role = (select r.id from role as r where r.name = u.role);")
+	for i in sql:
+		try:
+			cursor.execute(i)
+		except Exception:
+			pass
+	else:
+		print("Updating... DB has been updated to version 6.3.6.0")
+
+
 def update_ver():
 	try:
-		Version.update(version='6.3.6.0').execute()
+		Version.update(version='6.3.7.0').execute()
 	except Exception:
 		print('Cannot update version')
 
@@ -1016,12 +963,6 @@ def update_all():
 	if check_ver() is None:
 		update_db_v_3_4_5_22()
 	update_db_v_4_3_0()
-	update_db_v_5_2_4()
-	update_db_v_5_2_4_1()
-	update_db_v_5_2_5_1()
-	update_db_v_5_2_5_2()
-	update_db_v_5_2_5_3()
-	update_db_v_5_2_6()
 	update_db_v_5_3_0()
 	update_db_v_5_3_1()
 	update_db_v_5_3_2_2()
@@ -1036,6 +977,7 @@ def update_all():
 	update_db_v_6_2_1()
 	update_db_v_6_3_4()
 	update_db_v_6_3_5()
+	update_db_v_6_3_6()
 	update_ver()
 
 

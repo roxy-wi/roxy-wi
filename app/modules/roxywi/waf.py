@@ -21,6 +21,8 @@ def waf_overview(serv, waf_service) -> None:
     servers = sql.select_servers(server=serv)
     cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
     user_id = cookie.get('uuid')
+    group_id = cookie.get('group')
+    group_id = int(group_id.value)
 
     config_path = ''
     returned_servers = []
@@ -77,7 +79,7 @@ def waf_overview(serv, waf_service) -> None:
 
     lang = roxywi_common.get_user_lang()
     servers_sorted = sorted(returned_servers, key=common.get_key)
-    template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_id.value),
+    template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_id.value, group_id),
                                waf_service=waf_service, lang=lang)
     print(template)
 

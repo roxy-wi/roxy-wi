@@ -17,6 +17,7 @@ def user_ovw() -> None:
     template = env.get_template('ajax/show_users_ovw.html')
 
     lang = roxywi_common.get_user_lang()
+    roles = sql.select_roles()
     user_params = roxywi_common.get_users_params()
     users_groups = sql.select_user_groups_with_names(1, all=1)
     user_group = roxywi_common.get_user_group(id=1)
@@ -26,7 +27,7 @@ def user_ovw() -> None:
     else:
         users = sql.select_users()
 
-    template = template.render(users=users, users_groups=users_groups, lang=lang)
+    template = template.render(users=users, users_groups=users_groups, lang=lang, roles=roles)
     print(template)
 
 
@@ -113,13 +114,15 @@ def show_overview(serv) -> None:
         template = env.get_template('overview.html')
         cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
         user_uuid = cookie.get('uuid')
+        group_id = cookie.get('group')
+        group_id = int(group_id.value)
         futures = [async_get_overview(server[1], server[2], user_uuid.value, server[0]) for server in
                    sql.select_servers(server=serv)]
         for i, future in enumerate(asyncio.as_completed(futures)):
             result = await future
             servers.append(result)
         servers_sorted = sorted(servers, key=common.get_key)
-        template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_uuid.value))
+        template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_uuid.value, group_id))
         print(template)
 
     ioloop = asyncio.get_event_loop()

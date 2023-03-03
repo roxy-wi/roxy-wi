@@ -66,7 +66,8 @@ def index():
 		'haproxy/<id,hostname,ip>/log': 'show HAProxy logs by id or hostname or ip. May to have config next Headers: rows(format INT) default: 10 grep, waf(if needs WAF log) default: 0, start_hour(format: 24) default: 00, start_minute, end_hour(format: 24) default: 24, end_minute. METHOD: GET',
 		'haproxy/<id,hostname,ip>/section': 'show a certain section, headers: section-name. METHOD: GET',
 		'haproxy/<id,hostname,ip>/section/add': 'add a section to the HAProxy config by id or hostname or ip. Has to have config header with section and action header for action after upload. Section header must consist type: listen, frontend, etc. Action header accepts next value: save, test, reload and restart. Can be empty for just save. METHOD: POST',
-		'haproxy/<id,hostname,ip>/section/edit': 'edit a section in the HAProxy config by id or hostname or ip. Has to have config header with section, action header for action after upload and body of a new section configuration. Section header must consist type: listen, frontend, etc. Action header accepts next value: save, test, reload and restart. Can be empty for just save. METHOD: POST',
+		'haproxy/<id,hostname,ip>/section/edit': 'edit a section in the HAProxy config by id or hostname or ip. Has to have config header section-name, action header for action after upload and body of a new section configuration. Section header must consist type: listen, frontend, etc. Action header accepts next value: save, test, reload and restart. Can be empty for just save. METHOD: POST',
+		'haproxy/<id,hostname,ip>/section/delete': 'delete a section in the HAProxy config by id or hostname or ip. Has to have config header section-name, action header for action after upload and body of a new section configuration. Section header must consist type: listen, frontend, etc. Action header accepts next value: save, test, reload and restart. Can be empty for just save. METHOD: POST',
 		'haproxy/<id,hostname,ip>/acl': 'add an acl to certain section. Must be JSON body: "section-name", "if", "then", "if_value", "then_value" and "action" for action after upload. Action accepts next value: "save", "test", "reload" and "restart". METHOD: POST',
 		'haproxy/<id,hostname,ip>/acl': 'delete an acl to certain section. Must be JSON body: "section-name", "if", "then", "if_value", "then_value" and "action" for action after upload. Action accepts next value: "save", "test", "reload" and "restart". METHOD: DELETE',
 		'nginx/<id,hostname,ip>': 'show info about the NGINX by id or hostname or ip. METHOD: GET',
@@ -216,6 +217,14 @@ def haproxy_section_add(haproxy_id):
 	if not check_login(required_service=1):
 		return dict(error=_error_auth)
 	return api_funct.add_to_config(haproxy_id)
+
+
+@route('/haproxy/<haproxy_id>/section/delete', method=['POST'])
+@route('/haproxy/<haproxy_id:int>/section/delete', method=['POST'])
+def haproxy_section_add(haproxy_id):
+	if not check_login(required_service=1):
+		return dict(error=_error_auth)
+	return api_funct.edit_section(haproxy_id, delete=1)
 
 
 @route('/haproxy/<haproxy_id>/section/edit', method=['POST'])

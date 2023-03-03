@@ -161,6 +161,7 @@ class Groups(BaseModel):
 class UserGroups(BaseModel):
     user_id = IntegerField()
     user_group_id = IntegerField()
+    user_role_id = IntegerField()
 
     class Meta:
         table_name = 'user_groups'

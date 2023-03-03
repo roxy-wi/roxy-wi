@@ -274,7 +274,7 @@
 		</div>	
 		<div id="show-updates" style="display: none;">	
 			<div>
-				{{lang.phrases.new_version}} <a href="/app/users.py#updatehapwi" class="link">{{lang.words.update|title()}}</a>
+				{{lang.phrases.new_version}} <a href="/app/users.py#updatehapwi" class="link">{{lang.words.w_update|title()}}</a>
 			</div>
 		</div>	
 		<div class="footer">
@@ -325,9 +325,15 @@
 							{% if lang.lang_short == 'ru' %}
 							<option value="en" title="English">English</option>
 							<option value="ru" title="Русский" selected>Русский</option>
+							<option value="fr" title="Français">Français</option>
+							{% elif lang.lang_short == 'fr' %}
+							<option value="en" title="English">English</option>
+							<option value="ru" title="Русский">Русский</option>
+							<option value="fr" title="Français" selected>Français</option>
 							{% else %}
 							<option value="en" title="English" selected>English</option>
 							<option value="ru" title="Русский">Русский</option>
+							<option value="fr" title="Français">Français</option>
 							{% endif %}
 						</select>
 					</td>

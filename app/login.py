@@ -185,7 +185,7 @@ except Exception as e:
 	error = f'error: {e}'
 
 try:
-	role = sql.get_user_role_by_uuid(user_id.value)
+	role = sql.get_user_role_by_uuid(user_id.value, user_group_id)
 	user = sql.get_user_name_by_uuid(user_id.value)
 except Exception:
 	role = ""

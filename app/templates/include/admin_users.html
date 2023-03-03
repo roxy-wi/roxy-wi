@@ -7,9 +7,10 @@
 			<th style="width: 10%">{{lang.words.password|title()}}</th>
 			<th style="width: 10%" id="user-active-th">{{lang.words.active|title()}}</th>
 			<th style="width: 20%">{{lang.words.email|title()}}</th>
+			{% if page == "servers.py" %}
 			<th style="width: 10%" id="user-role-th">{{lang.words.role|title()}}</th>
-			{% if page != "servers.py" %}
-			<th style="width: 10%">{{lang.words.groups|title()}}</th>
+			{% else %}
+			<th style="width: 10%" id="user-group-role-th">{{lang.words.groups|title()}} {{lang.words.and}} {{lang.words.roles|title()}}</th>
 			{% endif %}
 			<th style="width: 100%" id="user-services-th">{{lang.words.services|title()}}</th>
 			<th></th>
@@ -55,32 +56,25 @@
 				{% endif %}
 			</td>
 			<td>
+				{% if page == "servers.py" %}
 				<select id="role-{{user.user_id}}" name="role-{{user.user_id}}" {{disable_superAdmin}}>
 					<option disabled selected>Select a role</option>
 					{% for r in roles %}
-						{% if page == "servers.py" %}
-							{% if r.name != "superAdmin" %}
-								{% if user.role == r.name %}
-								<option value="{{ r.name }}" selected>{{ r.name }}</option>
+						{% for user_role in user_roles %}
+							{% if r.role_id|int() != 1 and user.user_id == user_role.user_id %}
+								{% if user_role.user_role_id == r.role_id %}
+								<option value="{{ r.role_id }}" selected>{{ r.name }}</option>
 								{% else %}
-								<option value="{{ r.name }}">{{ r.name }}</option>
+								<option value="{{ r.role_id }}">{{ r.name }}</option>
 								{% endif %}
 							{% endif %}
-						{% else %}
-							{% if user.role == r.name %}
-							<option value="{{ r.name }}" selected>{{ r.name }}</option>
-							{% else %}
-							<option value="{{ r.name }}">{{ r.name }}</option>
-							{% endif %}
-						{% endif %}
+						{% endfor %}
 					{% endfor %}
 				</select>
+				{% else %}
+					<span title="{{lang.words.change2|title()}} {{lang.words.user3}} {{lang.words.groups}} {{lang.words.and}} {{lang.words.roles}}" style="cursor: pointer; margin-left: 40px;" class="div-pic" onclick="confirmChangeGroupsAndRoles('{{user.user_id}}')">
+				{% endif %}
 			</td>
-			{% if page != "servers.py" %}
-			<td>
-				<span title="{{lang.words.change2|title()}} {{lang.words.user3}} {{lang.words.groups}}" style="cursor: pointer; margin-left: 15px;" class="div-pic" onclick="openChangeUserGroupDialog('{{user.user_id}}')">
-			</td>
-			{% endif %}
 			<td>
 				<span title="{{lang.words.change2|title()}} {{lang.words.user3}} {{lang.words.services}}" style="cursor: pointer; margin-left: 15px;" class="div-pic" onclick="openChangeUserServiceDialog('{{user.user_id}}')">
 			</td>

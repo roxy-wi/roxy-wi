@@ -2220,9 +2220,6 @@ function checkSshConnect(ip) {
 function openChangeUserPasswordDialog(id) {
 	changeUserPasswordDialog(id);
 }
-function openChangeUserGroupDialog(id) {
-	changeUserGroupDialog(id);
-}
 function openChangeUserServiceDialog(id) {
 	changeUserServiceDialog(id);
 }
@@ -2296,47 +2293,6 @@ function changeUserPassword(id, d) {
 		} );
 	}
 }
-function changeUserGroupDialog(id) {
-	var cancel_word = $('#translate').attr('data-cancel');
-	var groups_word = $('#translate').attr('data-groups');
-	var save_word = $('#translate').attr('data-save');
-	var change_word = $('#translate').attr('data-change');
-	$.ajax( {
-		url: "options.py",
-		data: {
-			getusergroups: id,
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function( data ) {
-			if (data.indexOf('danger') != '-1') {
-				toastr.error(data);
-			} else {
-				toastr.clear();
-				$('#change-user-groups-form').html(data);
-				$( "#change-user-groups-dialog" ).dialog({
-					resizable: false,
-					height: "auto",
-					width: 450,
-					modal: true,
-					title: change_word+" "+$('#login-'+id).val()+" "+groups_word,
-					buttons: [{
-						text: save_word,
-						click: function () {
-							$(this).dialog("close");
-							changeUserGroup(id);
-						}
-					}, {
-						text: cancel_word,
-						click: function () {
-							$(this).dialog("close");
-						}
-					}]
-				});
-			}
-		}
-	} );
-}
 function changeUserServiceDialog(id) {
 	var cancel_word = $('#translate').attr('data-cancel');
 	var manage_word = $('#translate').attr('data-manage');
@@ -2383,29 +2339,6 @@ function changeUserServiceDialog(id) {
 		}
 	} );
 }
-function changeUserGroup(id) {
-	var groups = $('#usergroup-'+id).val().toString();
-	$.ajax( {
-		url: "options.py",
-		data: {
-			changeUserGroupId: id,
-			changeUserGroups: groups,
-			changeUserGroupsUser: $('#login-'+id).val(),
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function( data ) {
-			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
-				toastr.error(data);
-			} else {
-				$("#user-" + id).addClass("update", 1000);
-				setTimeout(function () {
-					$("#user-" + id).removeClass("update");
-				}, 2500);
-			}
-		}
-	} );
-}
 function changeUserServices(id) {
 	var services = $('#userservice-'+id).val().toString();
 	$.ajax( {
@@ -2447,21 +2380,26 @@ function addUserGroup(id) {
 	} );
 }
 function confirmAjaxServiceAction(action, service) {
+	var cancel_word = $('#translate').attr('data-cancel');
+	var action_word = $('#translate').attr('data-'+action);
 	$( "#dialog-confirm-services" ).dialog({
 		resizable: false,
 		height: "auto",
 		width: 400,
 		modal: true,
-		title: "Are you sure you want to "+ action + " " + service+"?",
-		buttons: {
-			"Sure": function() {
-				$( this ).dialog( "close" );
+		title: action_word + " " + service+"?",
+		buttons: [{
+			text: action_word,
+			click: function () {
+				$(this).dialog("close");
 				ajaxActionServies(action, service)
-			},
-			Cancel: function() {
+			}
+		}, {
+			text: cancel_word,
+			click: function() {
 				$( this ).dialog( "close" );
 			}
-		}
+		}]
 	});
 }
 function ajaxActionServies(action, service) {
@@ -3144,6 +3082,108 @@ function serverIsUp(server_ip, server_id) {
 				$('#server_status-'+server_id).removeClass('serverUp');
 				$('#server_status-'+server_id).addClass('serverNone');
 				$('#server_status-'+server_id).attr('title', 'Cannot get server status');
+			}
+		}
+	});
+}
+function confirmChangeGroupsAndRoles(user_id) {
+	var cancel_word = $('#translate').attr('data-cancel');
+	var action_word = $('#translate').attr('data-save');
+	var user_groups_word = $('#translate').attr('data-user_groups');
+	$.ajax({
+		url: "options.py",
+		data: {
+			act: 'show_user_group_and_role',
+			user_id: user_id,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			$("#groups-roles").html(data);
+			$("#groups-roles").dialog({
+				resizable: false,
+				height: "auto",
+				width: 700,
+				modal: true,
+				title: user_groups_word,
+				buttons: [{
+					text: action_word,
+					click: function () {
+						saveGroupsAndRoles(user_id);
+						$(this).dialog("close");
+					}
+				}, {
+					text: cancel_word,
+					click: function () {
+						$(this).dialog("close");
+					}
+				}]
+			});
+		}
+	});
+}
+function addGroupToUser(group_id) {
+	var group_name = $('#add_group-'+group_id).attr('data-group_name');
+	$.ajax({
+		url: "options.py",
+		data: {
+			act: 'add_user_group_and_role',
+			group_id: group_id,
+			group_name: group_name,
+			length_tr: $('#checked_groups tbody tr').length,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			$('#add_group-'+group_id).remove();
+			$("#checked_groups tbody").append(data);
+		}
+	});
+}
+function removeGroupFromUser(group_id) {
+	var group_name = $('#remove_group-'+group_id).attr('data-group_name');
+	$.ajax({
+		url: "options.py",
+		data: {
+			act: 'remove_user_group_and_role',
+			group_id: group_id,
+			group_name: group_name,
+			length_tr: $('#all_groups tbody tr').length,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			$('#remove_group-'+group_id).remove();
+			$("#all_groups tbody").append(data);
+		}
+	});
+}
+function saveGroupsAndRoles(user_id) {
+	var length_tr = $('#checked_groups tbody tr').length;
+	var jsonData = {};
+	jsonData[user_id] = {};
+	$('#checked_groups tbody tr').each(function () {
+		var this_id = $(this).attr('id').split('-')[1];
+		var role_id = $('#add_role-'+this_id).val();
+		jsonData[user_id][this_id] = {'role_id': role_id};
+	});
+	console.log(jsonData);
+	$.ajax({
+		url: "options.py",
+		data: {
+			act: 'save_user_group_and_role',
+			jsonDatas: JSON.stringify(jsonData),
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			if (data.indexOf('error: ') != '-1') {
+				toastr.warning(data);
+			} else {
+				$("#user-"+user_id).addClass( "update", 1000 );
+				setTimeout(function() {
+					$( "#user-"+user_id ).removeClass( "update" );
+				}, 2500 );
 			}
 		}
 	});

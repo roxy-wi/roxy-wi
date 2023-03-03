@@ -12,7 +12,7 @@
                 <select id="new-role" name="new-role">
                     <option disabled selected>{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.role}}</option>
                     {% for role in roles %}
-                    <option value="{{ role.name }}">{{ role.name }}</option>
+                    <option value="{{ role.role_id }}">{{ role.name }}</option>
                     {% endfor %}
                 </select>
             </td>
@@ -358,7 +358,8 @@
 	<div id="change-user-service-form"></div>
 </div>
 <div id="dialog-server-info" style="display: none;">
-	<table class="overview">
+	<table class="overview" style="font-size: 1em;">
         <tr id="server-info"></tr>
     </table>
 </div>
+<div id="groups-roles"></div>

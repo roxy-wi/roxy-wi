@@ -73,18 +73,22 @@ def add_user(user, email, password, role, activeuser, group):
 	if password != 'aduser':
 		try:
 			hashed_pass = roxy_wi_tools.Tools.get_hash(password)
-			User.insert(
+			last_id = User.insert(
 				username=user, email=email, password=hashed_pass, role=role, activeuser=activeuser, groups=group
 			).execute()
 		except Exception as e:
 			out_error(e)
+		else:
+			return last_id
 	else:
 		try:
-			User.insert(
+			last_id = User.insert(
 				username=user, email=email, role=role, ldap_user=1, activeuser=activeuser, groups=group
 			).execute()
 		except Exception as e:
 			out_error(e)
+		else:
+			return last_id
 
 
 def update_user(user, email, role, user_id, activeuser):
@@ -92,16 +96,6 @@ def update_user(user, email, role, user_id, activeuser):
 		User.user_id == user_id)
 	try:
 		user_update.execute()
-	except Exception as e:
-		out_error(e)
-		return False
-	else:
-		return True
-
-
-def update_user_groups(groups, user_group_id):
-	try:
-		UserGroups.insert(user_id=user_group_id, user_group_id=groups).execute()
 	except Exception as e:
 		out_error(e)
 		return False
@@ -440,9 +434,16 @@ def select_user_groups_with_names(user_id, **kwargs):
 		query = (UserGroups.select(
 			UserGroups.user_group_id, UserGroups.user_id, Groups.name
 		).join(Groups, on=(UserGroups.user_group_id == Groups.group_id)))
+	elif kwargs.get("user_not_in_group") is not None:
+		query = (Groups.select(
+			Groups.group_id, Groups.name
+		).join(UserGroups, on=(
+			(UserGroups.user_group_id == Groups.group_id) &
+			(UserGroups.user_id == user_id)
+		), join_type=JOIN.LEFT_OUTER).group_by(Groups.name).where(UserGroups.user_id.is_null(True)))
 	else:
 		query = (UserGroups.select(
-			UserGroups.user_group_id, Groups.name
+			UserGroups.user_group_id, UserGroups.user_role_id, Groups.name, Groups.group_id
 		).join(Groups, on=(UserGroups.user_group_id == Groups.group_id)).where(UserGroups.user_id == user_id))
 	try:
 		query_res = query.execute()
@@ -767,27 +768,21 @@ def get_user_id_by_username(username: str):
 		return query
 
 
-def get_user_role_by_uuid(uuid):
+def get_user_role_by_uuid(uuid, group_id):
 	query = (
-		Role.select(Role.role_id).join(User, on=(Role.name == User.role)).join(
-			UUID, on=(User.user_id == UUID.user_id)
-		).where(UUID.uuid == uuid))
+		UserGroups.select(UserGroups.user_role_id).join(UUID, on=(UserGroups.user_id == UUID.user_id)
+		).where(
+			(UUID.uuid == uuid) &
+			(UserGroups.user_group_id == group_id)
+		)
+	)
 	try:
 		query_res = query.execute()
 	except Exception as e:
 		out_error(e)
 	else:
 		for user_id in query_res:
-			return int(user_id.role_id)
-
-
-def get_role_id_by_name(name):
-	try:
-		role_id = Role.get(Role.name == name)
-	except Exception as e:
-		out_error(e)
-	else:
-		return int(role_id.role_id)
+			return int(user_id.user_role_id)
 
 
 def get_user_telegram_by_group(group):
@@ -3917,3 +3912,19 @@ def get_smon_alert_status(service_ip: str, alert: str) -> int:
 		out_error(e)
 	else:
 		return alert_value
+
+
+def update_user_role(user_id: int, group_id: int, role_id: int) -> None:
+	try:
+		UserGroups.insert(user_id=user_id, user_group_id=group_id, user_role_id=role_id).on_conflict('replace').execute()
+	except Exception as e:
+		out_error(e)
+
+
+def get_role_id(user_id: int, group_id: int) -> int:
+	try:
+		role_id = UserGroups.get((UserGroups.user_id == user_id) & (UserGroups.user_group_id == group_id))
+	except Exception as e:
+		out_error(e)
+	else:
+		return int(role_id.user_role_id)

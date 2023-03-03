@@ -33,6 +33,7 @@ try:
 	servers = roxywi_common.get_dick_permit(virt=1, disable=0, only_group=1)
 	masters = sql.select_servers(get_master_servers=1, uuid=user_params['user_uuid'].value)
 	is_needed_tool = common.is_tool('ansible')
+	user_roles = sql.select_user_roles_by_group(user_group)
 except Exception:
 	pass
 
@@ -54,6 +55,6 @@ rendered_template = template.render(
 	token=user_params['token'], settings=settings, backups=sql.select_backups(), page="servers.py",
 	geoip_country_codes=geoip_country_codes, user_services=user_params['user_services'], ldap_enable=ldap_enable,
 	user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'], gits=gits,
-	is_needed_tool=is_needed_tool, lang=user_params['lang']
+	is_needed_tool=is_needed_tool, lang=user_params['lang'], user_roles=user_roles
 )
 print(rendered_template)

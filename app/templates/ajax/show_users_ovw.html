@@ -24,7 +24,13 @@
 					{% endif %}
 				{% endfor %}
 			</td>
-			<td>{{ USER.role }}</td>
+			<td>
+				{% for r in roles %}
+					{% if r.role_id == USER.role|int() %}
+						{{ r.name }}
+					{% endif %}
+				{% endfor %}
+			</td>
             <td></td>
             <td></td>
 		</tr>
@@ -50,7 +56,13 @@
 					{% endif %}
 				{% endfor %}
 			</td>
-			<td>{{ USER.role }}</td>
+			<td>
+				{% for r in roles %}
+					{% if r.role_id == USER.role|int() %}
+						{{ r.name }}
+					{% endif %}
+				{% endfor %}
+			</td>
             <td></td>
             <td></td>
 		</tr>

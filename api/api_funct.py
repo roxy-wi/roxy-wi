@@ -57,7 +57,7 @@ def get_token():
 		if login in user.username and password == user.password:
 			import uuid
 			user_token = str(uuid.uuid4())
-			role_id = sql.get_role_id_by_name(user.role)
+			role_id = sql.get_role_id(user.user_id, group_id)
 			sql.write_api_token(user_token, group_id, role_id, user.username)
 			return user_token
 		else:
@@ -340,7 +340,7 @@ def get_section(server_id):
 	return dict(section=data)
 
 
-def edit_section(server_id):
+def edit_section(server_id, delete=0):
 	body = request.body.getvalue().decode('utf-8')
 	section_name = request.headers.get('section-name')
 	save = request.headers.get('action')
@@ -355,6 +355,12 @@ def edit_section(server_id):
 		save = ''
 	elif save == 'reload':
 		save = 'reload'
+
+	if delete == 1:
+		body = ''
+		action = 'deleted'
+	else:
+		action = 'edited'
 
 	for s in servers:
 		ip = s[2]
@@ -376,9 +382,9 @@ def edit_section(server_id):
 				return_mess = 'section has been updated'
 				os.system(f"/bin/cp {cfg} {cfg_for_save}")
 				out = config_mod.master_slave_upload_and_restart(ip, cfg, save, login=login)
-				roxywi_common.logging('localhost', f" section {section_name} has been edited via API", login=login)
+				roxywi_common.logging('localhost', f" section {section_name} has been {action} via API", login=login)
 				roxywi_common.logging(
-					ip, f'Section {section_name} has been edited via API', roxywi=1,
+					ip, f'Section {section_name} has been {action} via API', roxywi=1,
 					login=login, keep_history=1, service='haproxy'
 				)
 

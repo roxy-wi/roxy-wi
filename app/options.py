@@ -1085,21 +1085,40 @@ if form.getvalue('getuserservices'):
 
     roxy_user.get_user_services()
 
-
-if form.getvalue('getusergroups'):
+if act == 'show_user_group_and_role':
     import modules.roxywi.user as roxy_user
 
-    roxy_user.get_user_groups()
+    roxy_user.show_user_groups_and_roles()
 
-if form.getvalue('changeUserGroupId') is not None:
+if act == 'add_user_group_and_role':
     import modules.roxywi.user as roxy_user
 
-    roxy_user.change_user_group()
+    roxy_user.add_user_group_and_role()
+
+if act == 'remove_user_group_and_role':
+    import modules.roxywi.user as roxy_user
+
+    roxy_user.remove_user_group_and_role()
+
+if act == 'save_user_group_and_role':
+    import modules.roxywi.user as roxy_user
+
+    roxy_user.save_user_group_and_role()
 
 if form.getvalue('changeUserServicesId') is not None:
     import modules.roxywi.user as roxy_user
 
     roxy_user.change_user_services()
+
+if act == 'add_user_service':
+    import modules.roxywi.user as roxy_user
+
+    roxy_user.move_user_service('add')
+
+if act == 'remove_user_service':
+    import modules.roxywi.user as roxy_user
+
+    roxy_user.move_user_service('remove')
 
 if form.getvalue('changeUserCurrentGroupId') is not None:
     import modules.roxywi.user as roxy_user
@@ -1561,7 +1580,9 @@ if any((form.getvalue('do_new_name'), form.getvalue('aws_new_name'), form.getval
     if is_add:
         cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
         user_uuid = cookie.get('uuid')
-        role_id = sql.get_user_role_by_uuid(user_uuid.value)
+        group_id = cookie.get('group')
+        group_id = int(group_id.value)
+        role_id = sql.get_user_role_by_uuid(user_uuid.value, group_id)
         params = sql.select_provisioning_params()
         providers = sql.select_providers(provider_group, key=provider_token)
 

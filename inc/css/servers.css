@@ -32,3 +32,20 @@
     clear: both;
     height: 60px;
 }
+.user_group_caption {
+    text-align: center;
+    font-size: 1.3em;
+    padding-bottom: 5px;
+    margin-bottom: 5px;
+    border-bottom: 1px solid #ddd;
+}
+.add_user_group, .remove_user_group {
+    background: var(--right-menu-blue-rolor);
+    border-radius: 4px;
+    color: #fff;
+    cursor: pointer;
+    padding: 10px 14px 10px 13px;
+}
+.remove_user_group {
+    padding: 10px 14px 10px 15px;
+}

@@ -1,0 +1,34 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
+<table id="all_groups" style="width: 300px;float: left;margin-right: 50px;">
+    <caption class="user_group_caption">{{lang.words.all|title()}} {{lang.words.groups}}</caption>
+    <tbody>
+    {% for group in groups %}
+    <tr class="{{ loop.cycle('odd', 'even') }}" id="add_group-{{group.group_id}}" data-group_name="{{group.name}}">
+        <td class="padding20" style="width: 100%">{{group.name}}</td>
+        <td><span class="add_user_group" title="{{lang.words.add|title()}} {{lang.words.group2}}" onclick="addGroupToUser({{group.group_id}})">+</span></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<table id="checked_groups" style="width: 300px;">
+    <caption class="user_group_caption">{{lang.phrases.user_groups}}</caption>
+    <tbody>
+    {% for u_g in user_groups %}
+    <tr class="{{ loop.cycle('odd', 'even') }}" id="remove_group-{{u_g.groups.group_id}}" data-group_name="{{u_g.groups.name}}">
+        <td class="padding20" style="width: 50%;">{{u_g.groups.name}}</td>
+        <td style="width: 50%;">
+            <select id="add_role-{{u_g.groups.group_id}}">
+                {% for r in roles %}
+                    {% if r.role_id == u_g.user_role_id %}
+                        <option value="{{r.role_id}}" selected>{{r.name}}</option>
+                    {% else %}
+                        <option value="{{r.role_id}}">{{r.name}}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </td>
+        <td><span class="remove_user_group" onclick="removeGroupFromUser({{u_g.groups.group_id}})" title="{{lang.words.delete|title()}} {{lang.words.group2}}">-</span></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>

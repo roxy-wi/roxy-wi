@@ -5,6 +5,7 @@ import modules.db.sql as sql
 import modules.server.ssh as mod_ssh
 import modules.common.common as common
 import modules.server.server as server_mod
+import modules.roxywi.common as roxywi_common
 import modules.roxy_wi_tools as roxy_wi_tools
 
 time_zone = sql.get_setting('time_zone')
@@ -26,7 +27,9 @@ def check_haproxy_version(server_ip):
 def is_restarted(server_ip: str, action: str) -> None:
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_uuid = cookie.get('uuid')
-	user_role = sql.get_user_role_by_uuid(user_uuid.value)
+	group_id = cookie.get('group')
+	group_id = int(group_id.value)
+	user_role = sql.get_user_role_by_uuid(user_uuid.value, group_id)
 
 	if sql.is_serv_protected(server_ip) and int(user_role) > 2:
 		print(f'error: This server is protected. You cannot {action} it')
@@ -137,8 +140,8 @@ def overview_backends(server_ip: str, service: str) -> None:
 	import modules.config.section as section_mod
 	import modules.roxywi.common as roxywi_common
 
-	env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
-	template = env.get_template('haproxyservers_backends.html')
+	env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
+	template = env.get_template('ajax/haproxyservers_backends.html')
 	format_file = 'cfg'
 
 	if service == 'haproxy':
@@ -196,6 +199,8 @@ def overview_service(server_ip: str, server_id: int, name: str, service: str) ->
 	import asyncio
 	from jinja2 import Environment, FileSystemLoader
 
+	user_params = roxywi_common.get_users_params()
+
 	async def async_get_overviewServers(serv1, serv2, service):
 		if service == 'haproxy':
 			cmd = 'echo "show info" |nc %s %s -w 1|grep -e "node\|Nbproc\|Maxco\|MB\|Nbthread"' % (
@@ -217,20 +222,22 @@ def overview_service(server_ip: str, server_id: int, name: str, service: str) ->
 		return server_status
 
 	async def get_runner_overviewServers(**kwargs):
-		env = Environment(loader=FileSystemLoader('templates/ajax'), extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
-		template = env.get_template('overviewServers.html')
+		env = Environment(loader=FileSystemLoader('templates/'), extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
+		template = env.get_template('ajax/overviewServers.html')
 
 		servers = []
 		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 		user_id = cookie.get('uuid')
-		role = sql.get_user_role_by_uuid(user_id.value)
+		group_id = cookie.get('group')
+		group_id = int(group_id.value)
+		role = sql.get_user_role_by_uuid(user_id.value, group_id)
 		futures = [async_get_overviewServers(kwargs.get('server1'), kwargs.get('server2'), kwargs.get('service'))]
 
 		for i, future in enumerate(asyncio.as_completed(futures)):
 			result = await future
 			servers.append(result)
 		servers_sorted = sorted(servers, key=common.get_key)
-		template = template.render(service_status=servers_sorted, role=role, id=kwargs.get('id'), service_page=service)
+		template = template.render(service_status=servers_sorted, role=role, id=kwargs.get('id'), service_page=service, lang=user_params['lang'])
 		print(template)
 
 	ioloop = asyncio.get_event_loop()

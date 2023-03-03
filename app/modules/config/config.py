@@ -25,7 +25,7 @@ def get_config(server_ip, cfg, **kwargs):
 		kwargs.get("nginx") or kwargs.get("service") == 'nginx'
 		or kwargs.get("apache") or kwargs.get("service") == 'apache'
 	):
-		config_path = kwargs.get('config_file_name')
+		config_path = common.checkAjaxInput(kwargs.get('config_file_name'))
 	elif kwargs.get("waf") or kwargs.get("service") == 'waf':
 		if kwargs.get("waf") == 'haproxy':
 			config_path = f'{sql.get_setting("haproxy_dir")}/waf/rules/{kwargs.get("waf_rule_file")}'
@@ -33,6 +33,9 @@ def get_config(server_ip, cfg, **kwargs):
 			config_path = f'{sql.get_setting("nginx_dir")}/waf/rules/{kwargs.get("waf_rule_file")}'
 	else:
 		config_path = sql.get_setting('haproxy_config_path')
+
+	if '..' in config_path:
+		return 'error: nice try'
 
 	try:
 		with mod_ssh.ssh_connect(server_ip) as ssh:
@@ -119,7 +122,7 @@ def upload_and_restart(server_ip: str, cfg: str, **kwargs):
 		login = 1
 
 	try:
-		os.system(f"dos2unix {cfg}")
+		os.system(f"dos2unix -q {cfg}")
 	except OSError:
 		return 'error: there is no dos2unix'
 
@@ -504,7 +507,9 @@ def show_config(server_ip: str) -> None:
 
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_uuid = cookie.get('uuid')
-	role_id = sql.get_user_role_by_uuid(user_uuid.value)
+	group_id = cookie.get('group')
+	group_id = int(group_id.value)
+	role_id = sql.get_user_role_by_uuid(user_uuid.value, group_id)
 	service = form.getvalue('service')
 	try:
 		config_file_name = form.getvalue('config_file_name').replace('/', '92')

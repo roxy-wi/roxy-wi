@@ -16,8 +16,13 @@ def create_user(new_user: str, email: str, password: str, role: str, activeuser:
 
         if roxywi_auth.is_admin(level=2, role_id=kwargs.get('role_id')):
             try:
-                sql.add_user(new_user, email, password, role, activeuser, group)
+                user_id = sql.add_user(new_user, email, password, role, activeuser, group)
+                sql.update_user_role(user_id, group, role)
                 roxywi_common.logging(f'a new user {new_user}', ' has been created ', roxywi=1, login=1)
+                try:
+                    sql.update_user_role(user_id, group_id, role_id)
+                except Exception as e:
+                    print(str(e))
                 try:
                     if password == 'aduser':
                         password = 'your domain password'
@@ -55,15 +60,16 @@ def delete_user():
 
 def update_user():
     email = form.getvalue('email')
-    role = form.getvalue('role')
+    role_id = int(form.getvalue('role'))
     new_user = form.getvalue('updateuser')
     user_id = form.getvalue('id')
     activeuser = form.getvalue('activeuser')
-    role_id = sql.get_role_id_by_name(role)
+    group_id = int(form.getvalue('usergroup'))
 
     if roxywi_common.check_user_group():
         if roxywi_auth.is_admin(level=role_id):
-            sql.update_user(new_user, email, role, user_id, activeuser)
+            sql.update_user(new_user, email, role_id, user_id, activeuser)
+            sql.update_user_role(user_id, group_id, role_id)
             roxywi_common.logging(new_user, ' has been updated user ', roxywi=1, login=1)
         else:
             roxywi_common.logging(new_user, ' tried to privilege escalation', roxywi=1, login=1)
@@ -88,11 +94,7 @@ def update_user_password():
 def get_user_services() -> None:
     user_id = common.checkAjaxInput(form.getvalue('getuserservices'))
     lang = roxywi_common.get_user_lang()
-    groups = []
-    u_g = sql.select_user_groups(user_id)
     services = sql.select_services()
-    for g in u_g:
-        groups.append(g.user_group_id)
 
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
     template = env.get_template('ajax/show_user_services.html')
@@ -101,46 +103,34 @@ def get_user_services() -> None:
 
 
 def change_user_services() -> None:
+    import json
+
     user_id = common.checkAjaxInput(form.getvalue('changeUserServicesId'))
-    services = common.checkAjaxInput(form.getvalue('changeUserServices'))
     user = common.checkAjaxInput(form.getvalue('changeUserServicesUser'))
+    services = ''
+    user_services = json.loads(form.getvalue('jsonDatas'))
+
+    for k, v in user_services.items():
+        for k2, v2 in v.items():
+            services += ' ' + k2
 
     try:
         if sql.update_user_services(services=services, user_id=user_id):
-            roxywi_common.logging('Roxy-WI server', f'Access to the services has been updated for user: {user}',
-                                  roxywi=1, login=1)
+            roxywi_common.logging('Roxy-WI server', f'Access to the services has been updated for user: {user}', roxywi=1, login=1)
     except Exception as e:
         print(e)
 
 
-def get_user_groups() -> None:
-    user_id = common.checkAjaxInput(form.getvalue('getusergroups'))
+def move_user_service(action) -> None:
+    service_id = common.checkAjaxInput(form.getvalue('service_id'))
+    service_name = common.checkAjaxInput(form.getvalue('service_name'))
+    length_tr = common.checkAjaxInput(form.getvalue('length_tr'))
     lang = roxywi_common.get_user_lang()
-    groups = []
-    u_g = sql.select_user_groups(user_id)
-    for g in u_g:
-        groups.append(g.user_group_id)
-
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
-    template = env.get_template('ajax/show_user_groups.html')
-    template = template.render(groups=sql.select_groups(), user_groups=groups, id=user_id, lang=lang)
+    template = env.get_template('ajax/move_user_service.html')
+    template = template.render(lang=lang, service_id=service_id, service_name=service_name, length_tr=length_tr, action=action)
     print(template)
 
-
-def change_user_group() -> None:
-    group_id = common.checkAjaxInput(form.getvalue('changeUserGroupId'))
-    groups = common.checkAjaxInput(form.getvalue('changeUserGroups'))
-    user = common.checkAjaxInput(form.getvalue('changeUserGroupsUser'))
-    if sql.delete_user_groups(group_id):
-        for group in groups:
-            if group[0] == ',':
-                continue
-            try:
-                sql.update_user_groups(groups=group[0], user_group_id=group_id)
-            except Exception as e:
-                print(e)
-
-    roxywi_common.logging('Roxy-WI server', f'Groups has been updated for user: {user}', roxywi=1, login=1)
 
 
 def change_user_active_group() -> None:
@@ -164,3 +154,61 @@ def get_user_active_group(user_id: str, group: str) -> None:
     template = env.get_template('ajax/show_user_current_group.html')
     template = template.render(groups=groups, group=group.value, id=group_id, lang=lang)
     print(template)
+
+
+def show_user_groups_and_roles() -> None:
+    user_id = common.checkAjaxInput(form.getvalue('user_id'))
+    groups = sql.select_user_groups_with_names(user_id, user_not_in_group=1)
+    roles = sql.select_roles()
+    lang = roxywi_common.get_user_lang()
+    user_groups = sql.select_user_groups_with_names(user_id)
+    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
+    template = env.get_template('ajax/show_user_groups_and_roles.html')
+    template = template.render(groups=groups, user_groups=user_groups, roles=roles, lang=lang)
+    print(template)
+
+
+def add_user_group_and_role() -> None:
+    group_id = common.checkAjaxInput(form.getvalue('group_id'))
+    group_name = common.checkAjaxInput(form.getvalue('group_name'))
+    length_tr = common.checkAjaxInput(form.getvalue('length_tr'))
+    roles = sql.select_roles()
+    lang = roxywi_common.get_user_lang()
+    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
+    template = env.get_template('ajax/add_user_group_and_role.html')
+    template = template.render(roles=roles, lang=lang, group_id=group_id, group_name=group_name, length_tr=length_tr)
+    print(template)
+
+
+def remove_user_group_and_role() -> None:
+    group_id = common.checkAjaxInput(form.getvalue('group_id'))
+    group_name = common.checkAjaxInput(form.getvalue('group_name'))
+    length_tr = common.checkAjaxInput(form.getvalue('length_tr'))
+    lang = roxywi_common.get_user_lang()
+    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
+    template = env.get_template('ajax/remove_user_group_and_role.html')
+    template = template.render(lang=lang, group_id=group_id, group_name=group_name, length_tr=length_tr)
+    print(template)
+
+
+def save_user_group_and_role() -> None:
+    import json
+
+    user = common.checkAjaxInput(form.getvalue('changeUserGroupsUser'))
+    groups_and_roles = json.loads(form.getvalue('jsonDatas'))
+
+    for k, v in groups_and_roles.items():
+        user_id = int(k)
+        if not sql.delete_user_groups(user_id):
+            print('error: cannot delete old groups')
+        for k2, v2 in v.items():
+            group_id = int(k2)
+            role_id = int(v2['role_id'])
+            try:
+                sql.update_user_role(user_id, group_id, role_id)
+            except Exception as e:
+                print(e)
+                break
+        else:
+            roxywi_common.logging('Roxy-WI server', f'Groups and roles have been updated for user: {user}', roxywi=1, login=1)
+            print('ok')

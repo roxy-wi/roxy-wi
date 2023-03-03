@@ -1,0 +1,15 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
+{% if length_tr|int() % 2 == 1 %}
+{% set class = 'even' %}
+{% endif %}
+    <tr class="{{class}}" id="remove_group-{{group_id}}" data-group_name="{{group_name}}">
+        <td class="padding20" style="width: 50%;">{{group_name}}</td>
+        <td style="width: 50%;">
+            <select id="add_role-{{group_id}}">
+                {% for r in roles %}
+                <option value="{{r.role_id}}">{{r.name}}</option>
+                {% endfor %}
+            </select>
+        </td>
+        <td><span class="remove_user_group" onclick="removeGroupFromUser({{group_id}})" title="{{lang.words.delete|title()}} {{lang.words.group2}}">-</span></td>
+    </tr>
