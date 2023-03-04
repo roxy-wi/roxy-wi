@@ -21,7 +21,7 @@
 	<tbody>
 	{% endif %}
 	{% for user in users %}
-	{% if user.role == 'superAdmin' and page == "servers.py" %}
+	{% if user.role == '1' and page == "servers.py" %}
 	{% set disable_superAdmin = "disabled" %}
 	{% endif %}
 		<tr id="user-{{user.user_id}}" class="{{ loop.cycle('odd', 'even') }} {% if adding %}newuser{% endif %}">
