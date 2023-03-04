@@ -43,7 +43,7 @@ except Exception as e:
 
 rendered_template = template.render(
 	role=user_params['role'], user=user_params['user'], users=users, groups=sql.select_groups(),
-	servers=sql.select_servers(full=1), masters=masters, sshs=sql.select_ssh(),
+	servers=sql.select_servers(full=1), masters=masters, sshs=sql.select_ssh(), roles=sql.select_roles(),
 	settings=settings, backups=sql.select_backups(), services=services, timezones=pytz.all_timezones,
 	page="users.py", user_services=user_params['user_services'], ldap_enable=ldap_enable, gits=gits, guide_me=1,
 	user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'], token=user_params['token'],

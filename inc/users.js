@@ -2377,7 +2377,7 @@ function addServiceToUser(service_id) {
 	}
 	var html_tag = '<tr class="'+tr_class+'" id="remove_service-'+service_id+'" data-service_name="'+service_name+'">' +
 		'<td class="padding20" style="width: 100%;">'+service_name+'</td>' +
-		'<td><span class="add_user_group" onclick="removeServiceFromUser('+service_id+')" title="'+delete_word+' '+service_word+'">+</span></td></tr>';
+		'<td><span class="add_user_group" onclick="removeServiceFromUser('+service_id+')" title="'+delete_word+' '+service_word+'">-</span></td></tr>';
 	$('#add_service-'+service_id).remove();
 	$("#checked_services tbody").append(html_tag);
 }
@@ -3142,21 +3142,25 @@ function confirmChangeGroupsAndRoles(user_id) {
 }
 function addGroupToUser(group_id) {
 	var group_name = $('#add_group-'+group_id).attr('data-group_name');
-	$.ajax({
-		url: "options.py",
-		data: {
-			act: 'add_user_group_and_role',
-			group_id: group_id,
-			group_name: group_name,
-			length_tr: $('#checked_groups tbody tr').length,
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function (data) {
-			$('#add_group-'+group_id).remove();
-			$("#checked_groups tbody").append(data);
-		}
-	});
+	var delete_word = $('#translate').attr('data-delete');
+	var group2_word = $('#translate').attr('data-group2');
+	var length_tr = $('#all_groups tbody tr').length;
+	const roles = {1: 'superAdmin', 2: 'amdin', 3: 'user', 4: 'guest'};
+	var options_roles = '';
+	for (const [role_id, role_name] of Object.entries(roles)) {
+		options_roles += '<option value="'+role_id+'">'+role_name+'</option>';
+	}
+	var tr_class = 'odd';
+	if (length_tr % 2 != 0) {
+		tr_class = 'even';
+	}
+	var html_tag = '<tr class="'+tr_class+'" id="remove_group-'+group_id+'" data-group_name="'+group_name+'">\n' +
+		'        <td class="padding20" style="width: 50%;">'+group_name+'</td>\n' +
+		'        <td style="width: 50%;">\n' +
+		'            <select id="add_role-'+group_id+'">'+options_roles+'</select></td>\n' +
+		'        <td><span class="remove_user_group" onclick="removeGroupFromUser('+group_id+')" title="'+delete_word+' '+group2_word+'">-</span></td></tr>'
+	$('#add_group-'+group_id).remove();
+	$("#checked_groups tbody").append(html_tag);
 }
 function removeGroupFromUser(group_id) {
 	var group_name = $('#remove_group-'+group_id).attr('data-group_name');
@@ -3169,8 +3173,7 @@ function removeGroupFromUser(group_id) {
 	}
 	var html_tag = '<tr class="'+tr_class+'" id="add_group-'+group_id+'" data-group_name='+group_name+'>\n' +
 		'    <td class="padding20" style="width: 100%">'+group_name+'</td>\n' +
-		'    <td><span class="add_user_group" title="'+add_word+' '+group2_word+'" onclick="addGroupToUser('+group_id+')">+</span></td>\n' +
-		'</tr>'
+		'    <td><span class="add_user_group" title="'+add_word+' '+group2_word+'" onclick="addGroupToUser('+group_id+')">+</span></td></tr>'
 	$('#remove_group-'+group_id).remove();
 	$("#all_groups tbody").append(html_tag);
 }

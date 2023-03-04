@@ -453,6 +453,15 @@ def select_user_groups_with_names(user_id, **kwargs):
 		return query_res
 
 
+def select_user_roles_by_group(group_id: int):
+	try:
+		query_res = UserGroups.select().where(UserGroups.user_group_id == group_id).execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
+
+
 def select_groups(**kwargs):
 	if kwargs.get("group") is not None:
 		query = Groups.select().where(Groups.name == kwargs.get('group'))

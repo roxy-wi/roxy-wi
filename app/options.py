@@ -1090,11 +1090,6 @@ if act == 'show_user_group_and_role':
 
     roxy_user.show_user_groups_and_roles()
 
-if act == 'add_user_group_and_role':
-    import modules.roxywi.user as roxy_user
-
-    roxy_user.add_user_group_and_role()
-
 if act == 'save_user_group_and_role':
     import modules.roxywi.user as roxy_user
 

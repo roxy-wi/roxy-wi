@@ -156,18 +156,6 @@ def show_user_groups_and_roles() -> None:
     print(template)
 
 
-def add_user_group_and_role() -> None:
-    group_id = common.checkAjaxInput(form.getvalue('group_id'))
-    group_name = common.checkAjaxInput(form.getvalue('group_name'))
-    length_tr = common.checkAjaxInput(form.getvalue('length_tr'))
-    roles = sql.select_roles()
-    lang = roxywi_common.get_user_lang()
-    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
-    template = env.get_template('ajax/add_user_group_and_role.html')
-    template = template.render(roles=roles, lang=lang, group_id=group_id, group_name=group_name, length_tr=length_tr)
-    print(template)
-
-
 def save_user_group_and_role() -> None:
     import json
 
