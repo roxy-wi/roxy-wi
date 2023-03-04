@@ -20,9 +20,9 @@ def create_user(new_user: str, email: str, password: str, role: str, activeuser:
                 sql.update_user_role(user_id, group, role)
                 roxywi_common.logging(f'a new user {new_user}', ' has been created ', roxywi=1, login=1)
                 try:
-                    sql.update_user_role(user_id, group_id, role_id)
+                    sql.update_user_role(user_id, group, role)
                 except Exception as e:
-                    print(str(e))
+                    print(f'error: cannot update user role {e}')
                 try:
                     if password == 'aduser':
                         password = 'your domain password'
@@ -121,18 +121,6 @@ def change_user_services() -> None:
         print(e)
 
 
-def move_user_service(action) -> None:
-    service_id = common.checkAjaxInput(form.getvalue('service_id'))
-    service_name = common.checkAjaxInput(form.getvalue('service_name'))
-    length_tr = common.checkAjaxInput(form.getvalue('length_tr'))
-    lang = roxywi_common.get_user_lang()
-    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
-    template = env.get_template('ajax/move_user_service.html')
-    template = template.render(lang=lang, service_id=service_id, service_name=service_name, length_tr=length_tr, action=action)
-    print(template)
-
-
-
 def change_user_active_group() -> None:
     group_id = common.checkAjaxInput(form.getvalue('changeUserCurrentGroupId'))
     user_uuid = common.checkAjaxInput(form.getvalue('changeUserGroupsUser'))
@@ -177,17 +165,6 @@ def add_user_group_and_role() -> None:
     env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
     template = env.get_template('ajax/add_user_group_and_role.html')
     template = template.render(roles=roles, lang=lang, group_id=group_id, group_name=group_name, length_tr=length_tr)
-    print(template)
-
-
-def remove_user_group_and_role() -> None:
-    group_id = common.checkAjaxInput(form.getvalue('group_id'))
-    group_name = common.checkAjaxInput(form.getvalue('group_name'))
-    length_tr = common.checkAjaxInput(form.getvalue('length_tr'))
-    lang = roxywi_common.get_user_lang()
-    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
-    template = env.get_template('ajax/remove_user_group_and_role.html')
-    template = template.render(lang=lang, group_id=group_id, group_name=group_name, length_tr=length_tr)
     print(template)
 
 

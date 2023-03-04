@@ -168,6 +168,18 @@ def default_values():
 		print(str(e))
 
 	data_source = [
+		{'user_id': '1', 'user_group_id': '2', 'user_role_id': '1'},
+		{'user_id': '2', 'user_group_id': '2', 'user_role_id': '2'},
+		{'user_id': '3', 'user_group_id': '2', 'user_role_id': '4'}
+	]
+
+	try:
+		if create_users:
+			UserGroups.insert_many(data_source).on_conflict_ignore().execute()
+	except Exception as e:
+		print(str(e))
+
+	data_source = [
 		{'name': 'superAdmin', 'description': 'Has the highest level of administrative permissions and controls the actions of all other users'},
 		{'name': 'admin', 'description': 'Has access everywhere except the Admin area'},
 		{'name': 'user', 'description': 'Has the same rights as the admin but has no access to the Servers page'},

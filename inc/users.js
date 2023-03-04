@@ -1040,7 +1040,6 @@ function addUser(dialog_id) {
 				} else {
 					var getId = new RegExp('[0-9]+');
 					var id = data.match(getId);
-					addUserGroup(id[0]);
 					common_ajax_action_after_success(dialog_id, 'user-'+id, 'ajax-users', data);
 				}
 			}
@@ -2319,7 +2318,7 @@ function changeUserServiceDialog(id) {
 				$( "#change-user-service-dialog" ).dialog({
 					resizable: false,
 					height: "auto",
-					width: 450,
+					width: 700,
 					modal: true,
 					title: manage_word+" "+$('#login-'+id).val()+" "+services_word,
 					buttons: [{
@@ -2339,14 +2338,19 @@ function changeUserServiceDialog(id) {
 		}
 	} );
 }
-function changeUserServices(id) {
-	var services = $('#userservice-'+id).val().toString();
+function changeUserServices(user_id) {
+	var jsonData = {};
+	jsonData[user_id] = {};
+	$('#checked_services tbody tr').each(function () {
+		var this_id = $(this).attr('id').split('-')[1];
+		jsonData[user_id][this_id] = {}
+	});
 	$.ajax( {
 		url: "options.py",
 		data: {
-			changeUserServicesId: id,
-			changeUserServices: services,
-			changeUserServicesUser: $('#login-'+id).val(),
+			changeUserServicesId: user_id,
+			jsonDatas: JSON.stringify(jsonData),
+			changeUserServicesUser: $('#login-'+user_id).val(),
 			token: $('#token').val()
 		},
 		type: "POST",
@@ -2354,30 +2358,43 @@ function changeUserServices(id) {
 			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 				toastr.error(data);
 			} else {
-				$("#user-" + id).addClass("update", 1000);
+				$("#user-" + user_id).addClass("update", 1000);
 				setTimeout(function () {
-					$("#user-" + id).removeClass("update");
+					$("#user-" + user_id).removeClass("update");
 				}, 2500);
 			}
 		}
 	} );
 }
-function addUserGroup(id) {
-	$.ajax( {
-		url: "options.py",
-		data: {
-			changeUserGroupId: id,
-			changeUserGroups: $('#new-group').val(),
-			changeUserGroupsUser: 'new',
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function( data ) {
-			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
-				toastr.error(data);
-			}
-		}
-	} );
+function addServiceToUser(service_id) {
+	var service_name = $('#add_service-'+service_id).attr('data-service_name');
+	var delete_word = $('#translate').attr('data-delete');
+	var service_word = $('#translate').attr('data-service');
+	var length_tr = $('#checked_services tbody tr').length;
+	var tr_class = 'odd';
+	if (length_tr % 2 != 0) {
+		tr_class = 'even';
+	}
+	var html_tag = '<tr class="'+tr_class+'" id="remove_service-'+service_id+'" data-service_name="'+service_name+'">' +
+		'<td class="padding20" style="width: 100%;">'+service_name+'</td>' +
+		'<td><span class="add_user_group" onclick="removeServiceFromUser('+service_id+')" title="'+delete_word+' '+service_word+'">+</span></td></tr>';
+	$('#add_service-'+service_id).remove();
+	$("#checked_services tbody").append(html_tag);
+}
+function removeServiceFromUser(service_id) {
+	var service_name = $('#remove_service-'+service_id).attr('data-service_name');
+	var add_word = $('#translate').attr('data-add');
+	var service_word = $('#translate').attr('data-service');
+	var length_tr = $('#all_services tbody tr').length;
+	var tr_class = 'odd';
+	if (length_tr % 2 != 0) {
+		tr_class = 'even';
+	}
+	var html_tag = '<tr class="'+tr_class+'" id="add_service-'+service_id+'" data-service_name="'+service_name+'">' +
+		'<td class="padding20" style="width: 100%;">'+service_name+'</td>' +
+		'<td><span class="add_user_group" onclick="addServiceToUser('+service_id+')" title="'+add_word+' '+service_word+'">+</span></td></tr>';
+	$('#remove_service-'+service_id).remove();
+	$("#all_services tbody").append(html_tag);
 }
 function confirmAjaxServiceAction(action, service) {
 	var cancel_word = $('#translate').attr('data-cancel');
@@ -3090,6 +3107,7 @@ function confirmChangeGroupsAndRoles(user_id) {
 	var cancel_word = $('#translate').attr('data-cancel');
 	var action_word = $('#translate').attr('data-save');
 	var user_groups_word = $('#translate').attr('data-user_groups');
+	var username = $('#login-'+user_id).val();
 	$.ajax({
 		url: "options.py",
 		data: {
@@ -3105,7 +3123,7 @@ function confirmChangeGroupsAndRoles(user_id) {
 				height: "auto",
 				width: 700,
 				modal: true,
-				title: user_groups_word,
+				title: user_groups_word + ' ' + username,
 				buttons: [{
 					text: action_word,
 					click: function () {
@@ -3142,21 +3160,19 @@ function addGroupToUser(group_id) {
 }
 function removeGroupFromUser(group_id) {
 	var group_name = $('#remove_group-'+group_id).attr('data-group_name');
-	$.ajax({
-		url: "options.py",
-		data: {
-			act: 'remove_user_group_and_role',
-			group_id: group_id,
-			group_name: group_name,
-			length_tr: $('#all_groups tbody tr').length,
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function (data) {
-			$('#remove_group-'+group_id).remove();
-			$("#all_groups tbody").append(data);
-		}
-	});
+	var add_word = $('#translate').attr('data-add');
+	var group2_word = $('#translate').attr('data-group2');
+	var length_tr = $('#all_groups tbody tr').length;
+	var tr_class = 'odd';
+	if (length_tr % 2 != 0) {
+		tr_class = 'even';
+	}
+	var html_tag = '<tr class="'+tr_class+'" id="add_group-'+group_id+'" data-group_name='+group_name+'>\n' +
+		'    <td class="padding20" style="width: 100%">'+group_name+'</td>\n' +
+		'    <td><span class="add_user_group" title="'+add_word+' '+group2_word+'" onclick="addGroupToUser('+group_id+')">+</span></td>\n' +
+		'</tr>'
+	$('#remove_group-'+group_id).remove();
+	$("#all_groups tbody").append(html_tag);
 }
 function saveGroupsAndRoles(user_id) {
 	var length_tr = $('#checked_groups tbody tr').length;
@@ -3167,11 +3183,11 @@ function saveGroupsAndRoles(user_id) {
 		var role_id = $('#add_role-'+this_id).val();
 		jsonData[user_id][this_id] = {'role_id': role_id};
 	});
-	console.log(jsonData);
 	$.ajax({
 		url: "options.py",
 		data: {
 			act: 'save_user_group_and_role',
+			changeUserGroupsUser: $('#login-'+user_id).val(),
 			jsonDatas: JSON.stringify(jsonData),
 			token: $('#token').val()
 		},

@@ -1,3 +1,4 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
 <div class="out">
 	<div class="diff">
 		{% set plus = [] %}
@@ -23,7 +24,7 @@
 
 		{% set total_change = minus + plus %}
 		<div class="diffHead">
-			Total change: {{ total_change|length }}, additions: {{ plus|length }} & deletions: {{ minus|length }}
+			{{lang.words.total|title()}} {{lang.words.changes}}: {{ total_change|length }}, {{lang.words.additions}}: {{ plus|length }} & {{lang.words.deletions}}: {{ minus|length }}
 		</div>
 	</div>
 </div>

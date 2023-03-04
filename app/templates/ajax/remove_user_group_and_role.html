@@ -1,8 +1,0 @@
-{% import 'languages/'+lang|default('en')+'.html' as lang %}
-{% if length_tr|int() % 2 == 1 %}
-{% set class = 'even' %}
-{% endif %}
-<tr class="{{class}}" id="add_group-{{group_id}}" data-group_name="{{group_name}}">
-    <td class="padding20" style="width: 100%">{{group_name}}</td>
-    <td><span class="add_user_group" title="{{lang.words.add|title()}} {{lang.words.group2}}" onclick="addGroupToUser({{group_id}})">+</span></td>
-</tr>

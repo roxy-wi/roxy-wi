@@ -1095,11 +1095,6 @@ if act == 'add_user_group_and_role':
 
     roxy_user.add_user_group_and_role()
 
-if act == 'remove_user_group_and_role':
-    import modules.roxywi.user as roxy_user
-
-    roxy_user.remove_user_group_and_role()
-
 if act == 'save_user_group_and_role':
     import modules.roxywi.user as roxy_user
 
@@ -1109,16 +1104,6 @@ if form.getvalue('changeUserServicesId') is not None:
     import modules.roxywi.user as roxy_user
 
     roxy_user.change_user_services()
-
-if act == 'add_user_service':
-    import modules.roxywi.user as roxy_user
-
-    roxy_user.move_user_service('add')
-
-if act == 'remove_user_service':
-    import modules.roxywi.user as roxy_user
-
-    roxy_user.move_user_service('remove')
 
 if form.getvalue('changeUserCurrentGroupId') is not None:
     import modules.roxywi.user as roxy_user

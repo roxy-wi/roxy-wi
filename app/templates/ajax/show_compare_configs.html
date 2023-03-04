@@ -1,10 +1,11 @@
 {% from 'include/input_macros.html' import input %}
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
 <form action="" method="post">
 	<div style="text-align: center;margin-top: 20px;">
-		<h4>Comparing config files</h4>
+		<h4>{{ lang.phrases.comparing_config }}</h4>
 		<p>
 			<select autofocus required name="left" id="left">
-				<option disabled selected>Select an older config</option>
+				<option disabled selected>{{ lang.phrases.select_older_config }}</option>
 				{% for file in return_files %}
 					{% if file == left %}
 						<option value="{{ file }}" selected>{{ file.split('-', maxsplit=1)[1] }}</option>
@@ -15,14 +16,14 @@
 			</select>
 
 			<select autofocus required name="right" id="right">
-				<option disabled selected>Select a newer config</option>
+				<option disabled selected>{{ lang.phrases.select_newer_config }}</option>
 				{% for file in return_files %}				
 					<option value="{{ file }}">{{ file.split('-', maxsplit=1)[1] }}</option>
 				{% endfor %}
 			</select>
 			{{ input('serv', type='hidden', value=serv) }}
 			{{ input('open', type='hidden', value='open') }}
-			<a class="ui-button ui-widget ui-corner-all" id="show" title="Compare" onclick="showCompare()">Compare</a>
+			<a class="ui-button ui-widget ui-corner-all" id="show" title="{{ lang.words.compare|title() }}" onclick="showCompare()">{{ lang.words.compare|title() }}</a>
 		</p>
 	</div>
 </form>

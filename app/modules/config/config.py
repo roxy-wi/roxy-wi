@@ -461,6 +461,7 @@ def show_compare_config(server_ip: str) -> None:
 	left = form.getvalue('left')
 	right = form.getvalue('right')
 	service = form.getvalue('service')
+	lang = roxywi_common.get_user_lang()
 
 	if service == 'nginx':
 		return_files = roxywi_common.get_files(get_config_var.get_config_var('configs', 'nginx_save_configs_dir'), 'conf')
@@ -471,7 +472,7 @@ def show_compare_config(server_ip: str) -> None:
 	else:
 		return_files = roxywi_common.get_files()
 
-	template = template.render(serv=server_ip, right=right, left=left, return_files=return_files)
+	template = template.render(serv=server_ip, right=right, left=left, return_files=return_files, lang=lang)
 	print(template)
 
 
@@ -480,6 +481,7 @@ def compare_config() -> None:
 
 	left = common.checkAjaxInput(form.getvalue('left'))
 	right = common.checkAjaxInput(form.getvalue('right'))
+	lang = roxywi_common.get_user_lang()
 
 	if form.getvalue('service') == 'nginx':
 		configs_dir = get_config_var.get_config_var('configs', 'nginx_save_configs_dir')
@@ -496,7 +498,7 @@ def compare_config() -> None:
 	template = env.get_template('ajax/compare.html')
 
 	output, stderr = server_mod.subprocess_execute(cmd)
-	template = template.render(stdout=output)
+	template = template.render(stdout=output, lang=lang)
 
 	print(template)
 	print(stderr)
