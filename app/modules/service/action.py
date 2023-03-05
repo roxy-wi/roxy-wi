@@ -16,11 +16,10 @@ def action_haproxy(server_ip: str, action: str) -> None:
 
     if service_common.check_haproxy_config(server_ip):
         server_id = sql.select_server_id_by_ip(server_ip=server_ip)
+        is_docker = sql.select_service_setting(server_id, 'haproxy', 'dockerized')
 
         if action == 'restart':
             service_common.is_not_allowed_to_restart(server_id, 'haproxy')
-
-        is_docker = sql.select_service_setting(server_id, 'haproxy', 'dockerized')
 
         if is_docker == '1':
             container_name = sql.get_setting('haproxy_container_name')
@@ -32,8 +31,7 @@ def action_haproxy(server_ip: str, action: str) -> None:
             commands = [f"sudo systemctl {action} {haproxy_service_name}"]
 
         server_mod.ssh_command(server_ip, commands)
-        roxywi_common.logging(server_ip, f'Service has been {action}ed', roxywi=1, login=1, keep_history=1,
-                              service='haproxy')
+        roxywi_common.logging(server_ip, f'Service has been {action}ed', roxywi=1, login=1, keep_history=1, service='haproxy')
         print(f"success: HAProxy has been {action}")
     else:
         print("error: Bad config, check please")

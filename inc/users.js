@@ -1880,7 +1880,7 @@ function updateUser(id) {
 	if ($('#activeuser-'+id).is(':checked')) {
 		activeuser = '1';
 	}
-	if (role == null){
+	if (role == null && role !== undefined){
 		toastr.warning('Please edit this user only on the Admin area');
 		return false;
 	}
