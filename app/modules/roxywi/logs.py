@@ -76,10 +76,13 @@ def show_roxy_log(
 	else:
 		exgrep_act = ''
 
-	log_file = checkAjaxInput(log_file) if log_file is not None else log_file
+	if log_file is not None:
+		log_file = checkAjaxInput(log_file)
+		if '..' in log_file: return 'error: nice try'
+	else:
+		if '..' in serv: return 'error: nice try'
 
 	if service in ('nginx', 'haproxy', 'apache', 'keepalived'):
-		if '..' in log_file: return 'error: nice try'
 		syslog_server_enable = sql.get_setting('syslog_server_enable')
 		if syslog_server_enable is None or syslog_server_enable == 0:
 			if service == 'nginx':
@@ -101,6 +104,8 @@ def show_roxy_log(
 				commands = ["sudo cat %s/%s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, log_file, date, date1, rows, grep_act, exgrep_act)]
 			syslog_server = serv
 		else:
+			if '..' in serv: return 'error: nice try'
+
 			commands = ["sudo cat /var/log/%s/syslog.log | sed '/ %s:00/,/ %s:00/! d' |tail -%s %s %s %s" % (serv, date, date1, rows, grep_act, grep, exgrep_act)]
 			syslog_server = sql.get_setting('syslog_server')
 
@@ -113,7 +118,6 @@ def show_roxy_log(
 		else:
 			return server_mod.ssh_command(syslog_server, commands, show_log='1', grep=grep, timeout=10)
 	elif service == 'apache_internal':
-		if '..' in serv: return 'error: nice try'
 		apache_log_path = sql.get_setting('apache_log_path')
 
 		if serv == 'roxy-wi.access.log':
@@ -127,7 +131,6 @@ def show_roxy_log(
 
 		return show_log(output, grep=grep)
 	elif service == 'internal':
-		if '..' in serv: return 'error: nice try'
 		log_path = get_config_var.get_config_var('main', 'log_path')
 		logs_files = roxywi_common.get_files(log_path, "log")
 		user_group = roxywi_common.get_user_group()
