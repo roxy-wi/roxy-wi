@@ -92,8 +92,18 @@ def add_user(user, email, password, role, activeuser, group):
 
 
 def update_user(user, email, role, user_id, activeuser):
-	user_update = User.update(username=user, email=email, role=role, activeuser=activeuser).where(
-		User.user_id == user_id)
+	user_update = User.update(username=user, email=email, role=role, activeuser=activeuser).where(User.user_id == user_id)
+	try:
+		user_update.execute()
+	except Exception as e:
+		out_error(e)
+		return False
+	else:
+		return True
+
+
+def update_user_from_admin_area(user, email, user_id, activeuser):
+	user_update = User.update(username=user, email=email, activeuser=activeuser).where(User.user_id == user_id)
 	try:
 		user_update.execute()
 	except Exception as e:

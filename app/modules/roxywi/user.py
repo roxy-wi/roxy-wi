@@ -60,19 +60,23 @@ def delete_user():
 
 def update_user():
     email = form.getvalue('email')
-    role_id = int(form.getvalue('role'))
     new_user = form.getvalue('updateuser')
     user_id = form.getvalue('id')
     activeuser = form.getvalue('activeuser')
     group_id = int(form.getvalue('usergroup'))
 
     if roxywi_common.check_user_group():
-        if roxywi_auth.is_admin(level=role_id):
-            sql.update_user(new_user, email, role_id, user_id, activeuser)
-            sql.update_user_role(user_id, group_id, role_id)
-            roxywi_common.logging(new_user, ' has been updated user ', roxywi=1, login=1)
+        if form.getvalue('role'):
+            role_id = int(form.getvalue('role'))
+            if roxywi_auth.is_admin(level=role_id):
+                sql.update_user(new_user, email, role_id, user_id, activeuser)
+                sql.update_user_role(user_id, group_id, role_id)
+                roxywi_common.logging(new_user, ' has been updated user ', roxywi=1, login=1)
+            else:
+                roxywi_common.logging(new_user, ' tried to privilege escalation', roxywi=1, login=1)
         else:
-            roxywi_common.logging(new_user, ' tried to privilege escalation', roxywi=1, login=1)
+            sql.update_user_from_admin_area(new_user, email, user_id, activeuser)
+            roxywi_common.logging(new_user, ' has been updated user ', roxywi=1, login=1)
 
 
 def update_user_password():
