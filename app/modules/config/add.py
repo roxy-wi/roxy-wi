@@ -9,6 +9,8 @@ import modules.server.server as server_mod
 import modules.roxywi.common as roxywi_common
 import modules.roxy_wi_tools as roxy_wi_tools
 
+time_zone = sql.get_setting('time_zone')
+get_date = roxy_wi_tools.GetDate(time_zone)
 get_config = roxy_wi_tools.GetConfigVar()
 
 
@@ -68,7 +70,7 @@ def get_bwlists_for_autocomplete(color: str, group: str) -> None:
 		print(line)
 
 
-def create_bwlist(list_name: str, color: str, group: str) -> None:
+def create_bwlist(server_ip: str, list_name: str, color: str, group: str) -> None:
 	lib_path = get_config.get_config_var('main', 'lib_path')
 	list_name = f"{list_name.split('.')[0]}.lst"
 	list_path = f"{lib_path}/{sql.get_setting('lists_path')}/{group}/{color}/{list_name}"
@@ -76,7 +78,7 @@ def create_bwlist(list_name: str, color: str, group: str) -> None:
 		open(list_path, 'a').close()
 		print('success: ')
 		try:
-			roxywi_common.logging(serv, f'A new list {color} {list_name} has been created', roxywi=1, login=1)
+			roxywi_common.logging(server_ip, f'A new list {color} {list_name} has been created', roxywi=1, login=1)
 		except Exception:
 			pass
 	except IOError as e:
@@ -217,13 +219,13 @@ def get_saved_servers(group: str, term: str) -> None:
 	print(json.dumps(a))
 
 
-def get_le_cert(lets_domain: str, lets_email: str) -> None:
+def get_le_cert(server_ip: str, lets_domain: str, lets_email: str) -> None:
 	proxy = sql.get_setting('proxy')
 	ssl_path = common.return_nice_path(sql.get_setting('cert_path'))
 	haproxy_dir = sql.get_setting('haproxy_dir')
 	script = "letsencrypt.sh"
 	proxy_serv = ''
-	ssh_settings = ssh_mod.return_ssh_keys_path(serv)
+	ssh_settings = ssh_mod.return_ssh_keys_path(server_ip)
 
 	os.system(f"cp scripts/{script} .")
 
@@ -232,7 +234,7 @@ def get_le_cert(lets_domain: str, lets_email: str) -> None:
 
 	commands = [
 		f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} haproxy_dir={haproxy_dir} DOMAIN={lets_domain} "
-		f"EMAIL={lets_email} SSH_PORT={ssh_settings['port']} SSL_PATH={ssl_path} HOST={serv} USER={ssh_settings['user']} "
+		f"EMAIL={lets_email} SSH_PORT={ssh_settings['port']} SSL_PATH={ssl_path} HOST={server_ip} USER={ssh_settings['user']} "
 		f"PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
 	]
 

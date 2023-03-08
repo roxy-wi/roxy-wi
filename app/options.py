@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-import json
 import http.cookies
 from uuid import UUID
 
@@ -636,7 +635,7 @@ if form.getvalue('bwlists_create'):
     color = common.checkAjaxInput(form.getvalue('color'))
     group = common.checkAjaxInput(form.getvalue('group'))
 
-    add_mod.create_bwlist(list_name, color, group)
+    add_mod.create_bwlist(serv, list_name, color, group)
 
 if form.getvalue('bwlists_save'):
     color = common.checkAjaxInput(form.getvalue('color'))
@@ -1081,7 +1080,7 @@ if form.getvalue('lets_domain'):
     lets_domain = common.checkAjaxInput(form.getvalue('lets_domain'))
     lets_email = common.checkAjaxInput(form.getvalue('lets_email'))
 
-    add_mod.get_le_cert(lets_domain, lets_email)
+    add_mod.get_le_cert(serv, lets_domain, lets_email)
 
 if form.getvalue('uploadovpn'):
     name = common.checkAjaxInput(form.getvalue('ovpnname'))
