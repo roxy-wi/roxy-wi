@@ -471,6 +471,32 @@ def create_server(hostname, ip, group, typeip, enable, master, cred, port, desc,
 		return False
 
 
+def delete_server(server_id: int) -> None:
+	server = sql.select_servers(id=server_id)
+	server_ip = ''
+	hostname = ''
+
+	for s in server:
+		hostname = s[1]
+		server_ip = s[2]
+
+	if sql.check_exists_backup(server_ip):
+		print('warning: Delete the backup first ')
+		return
+	if sql.check_exists_s3_backup(server_id):
+		print('warning: Delete the S3 backup first ')
+		return
+	if sql.delete_server(server_id):
+		sql.delete_waf_server(server_id)
+		sql.delete_port_scanner_settings(server_id)
+		sql.delete_waf_rules(server_ip)
+		sql.delete_action_history(server_id)
+		sql.delete_system_info(server_id)
+		sql.delete_service_settings(server_id)
+		print("Ok")
+		roxywi_common.logging(server_ip, f'The server {hostname} has been deleted', roxywi=1, login=1)
+
+
 def server_is_up(server_ip: str) -> None:
 	cmd = [f'if ping -c 1 -W 1 {server_ip} >> /dev/null; then echo up; else echo down; fi']
 	server_status, stderr = subprocess_execute(cmd)

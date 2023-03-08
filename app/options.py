@@ -11,6 +11,7 @@ from jinja2 import Environment, FileSystemLoader
 import modules.db.sql as sql
 import modules.server.ssh as ssh_mod
 import modules.common.common as common
+import modules.config.add as add_mod
 import modules.config.config as config_mod
 import modules.roxywi.common as roxywi_common
 import modules.roxy_wi_tools as roxy_wi_tools
@@ -63,23 +64,27 @@ if not sql.check_token_exists(token):
     print('error: Your token has been expired')
     sys.exit()
 
-if form.getvalue('getcerts') is not None and serv is not None:
-    config_mod.get_ssl_certs(serv)
-
 if form.getvalue('checkSshConnect') is not None and serv is not None:
     try:
         print(server_mod.ssh_command(serv, ["ls -1t"]))
     except Exception as e:
         print(e)
 
+if form.getvalue('getcerts') is not None and serv is not None:
+    add_mod.get_ssl_certs(serv)
+
 if form.getvalue('getcert') is not None and serv is not None:
-    config_mod.get_ssl_cert(serv)
+    cert_id = common.checkAjaxInput(form.getvalue('getcert'))
+    add_mod.get_ssl_cert(serv, cert_id)
 
 if form.getvalue('delcert') is not None and serv is not None:
-    config_mod.del_ssl_cert(serv)
+    cert_id = common.checkAjaxInput(form.getvalue('delcert'))
+    add_mod.del_ssl_cert(serv, cert_id)
 
 if serv and form.getvalue('ssl_cert'):
-    config_mod.upload_ssl_cert(serv)
+    ssl_name = common.checkAjaxInput(form.getvalue('ssl_name'))
+    ssl_cont = form.getvalue('ssl_cert')
+    add_mod.upload_ssl_cert(serv, ssl_name, ssl_cont)
 
 if form.getvalue('backend') is not None:
     import modules.config.runtime as runtime
@@ -229,28 +234,7 @@ if act == "overviewHapserverBackends":
     service_common.overview_backends(serv, service)
 
 if form.getvalue('show_userlists'):
-    configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
-    format_file = 'cfg'
-
-    try:
-        sections = config_mod.get_userlists(configs_dir + roxywi_common.get_files(configs_dir, format_file)[0])
-    except Exception as e:
-        roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
-        try:
-            cfg = f'{configs_dir}{serv}-{get_date.return_date("config")}.{format_file}'
-        except Exception as e:
-            roxywi_common.logging('Roxy-WI server', f' Cannot generate a cfg path {e}', roxywi=1)
-        try:
-            error = config_mod.get_config(serv, cfg)
-        except Exception as e:
-            roxywi_common.logging('Roxy-WI server', f' Cannot download a config {e}', roxywi=1)
-        try:
-            sections = config_mod.get_userlists(cfg)
-        except Exception as e:
-            roxywi_common.logging('Roxy-WI server', f' Cannot get Userlists from the config file {e}', roxywi=1)
-            sections = 'error: Cannot get Userlists'
-
-    print(sections)
+    add_mod.show_userlist(serv)
 
 if act == "overviewHapservers":
     service = common.checkAjaxInput(form.getvalue('service'))
@@ -641,178 +625,51 @@ if form.getvalue('get_exporter_v'):
     print(service_common.get_exp_version(serv, form.getvalue('get_exporter_v')))
 
 if form.getvalue('bwlists'):
-    lib_path = get_config.get_config_var('main', 'lib_path')
     color = common.checkAjaxInput(form.getvalue('color'))
     group = common.checkAjaxInput(form.getvalue('group'))
     bwlists = common.checkAjaxInput(form.getvalue('bwlists'))
-    list_path = f"{lib_path}/{sql.get_setting('lists_path')}/{group}/{color}/{bwlists}"
 
-    try:
-        file = open(list_path, "r")
-        file_read = file.read()
-        file.close()
-        print(file_read)
-    except IOError:
-        print(f"error: Cannot read {color} list")
+    add_mod.get_bwlist(color, group, bwlists)
 
 if form.getvalue('bwlists_create'):
+    list_name = common.checkAjaxInput(form.getvalue('bwlists_create'))
     color = common.checkAjaxInput(form.getvalue('color'))
-    lib_path = get_config.get_config_var('main', 'lib_path')
-    list_name = f"{form.getvalue('bwlists_create').split('.')[0]}.lst"
-    list_path = f"{lib_path}/{sql.get_setting('lists_path')}/{form.getvalue('group')}/{color}/{list_name}"
-    try:
-        open(list_path, 'a').close()
-        print('success: ')
-        try:
-            roxywi_common.logging(serv, f'A new list {color} {list_name} has been created', roxywi=1, login=1)
-        except Exception:
-            pass
-    except IOError as e:
-        print(f'error: Cannot create a new {color} list. {e}, ')
+    group = common.checkAjaxInput(form.getvalue('group'))
+
+    add_mod.create_bwlist(list_name, color, group)
 
 if form.getvalue('bwlists_save'):
     color = common.checkAjaxInput(form.getvalue('color'))
     group = common.checkAjaxInput(form.getvalue('group'))
     bwlists_save = common.checkAjaxInput(form.getvalue('bwlists_save'))
-    lib_path = get_config.get_config_var('main', 'lib_path')
-    list_path = f"{lib_path}/{sql.get_setting('lists_path')}/{group}/{color}/{bwlists_save}"
-    try:
-        with open(list_path, "w") as file:
-            file.write(form.getvalue('bwlists_content'))
-    except IOError as e:
-        print(f'error: Cannot save {color} list. {e}')
+    list_con = form.getvalue('bwlists_content')
+    action = common.checkAjaxInput(form.getvalue('bwlists_restart'))
 
-    path = sql.get_setting('haproxy_dir') + "/" + color
-    servers = []
-
-    if serv != 'all':
-        servers.append(serv)
-
-        MASTERS = sql.is_master(serv)
-        for master in MASTERS:
-            if master[0] is not None:
-                servers.append(master[0])
-    else:
-        server = roxywi_common.get_dick_permit()
-        for s in server:
-            servers.append(s[2])
-
-    for serv in servers:
-        server_mod.ssh_command(serv, [f"sudo mkdir {path}"])
-        server_mod.ssh_command(serv, [f"sudo chown $(whoami) {path}"])
-        error = config_mod.upload(serv, path + "/" + bwlists_save, list_path, dir='fullpath')
-
-        if error:
-            print('error: Upload fail: %s , ' % error)
-        else:
-            print('success: Edited ' + color + ' list was uploaded to ' + serv + ' , ')
-            try:
-                roxywi_common.logging(serv, f'Has been edited the {color} list {bwlists_save}', roxywi=1, login=1)
-            except Exception:
-                pass
-
-            server_id = sql.select_server_id_by_ip(server_ip=serv)
-            haproxy_enterprise = sql.select_service_setting(server_id, 'haproxy', 'haproxy_enterprise')
-            if haproxy_enterprise == '1':
-                haproxy_service_name = "hapee-2.0-lb"
-            else:
-                haproxy_service_name = "haproxy"
-
-            if form.getvalue('bwlists_restart') == 'restart':
-                server_mod.ssh_command(serv, [f"sudo systemctl restart {haproxy_service_name}"])
-            elif form.getvalue('bwlists_restart') == 'reload':
-                server_mod.ssh_command(serv, [f"sudo systemctl reload {haproxy_service_name}"])
+    add_mod.save_bwlist(bwlists_save, list_con, color, group, serv, action)
 
 if form.getvalue('bwlists_delete'):
     color = common.checkAjaxInput(form.getvalue('color'))
-    bwlists_delete = common.checkAjaxInput(form.getvalue('bwlists_delete'))
-    lib_path = get_config.get_config_var('main', 'lib_path')
+    list_name = common.checkAjaxInput(form.getvalue('bwlists_delete'))
     group = common.checkAjaxInput( form.getvalue('group'))
-    list_path = f"{lib_path}/{sql.get_setting('lists_path')}/{group}/{color}/{bwlists_delete}"
-    try:
-        os.remove(list_path)
-    except IOError as e:
-        print(f'error: Cannot delete {color} list. {e} , ')
 
-    path = sql.get_setting('haproxy_dir') + "/" + color
-    servers = []
-
-    if serv != 'all':
-        servers.append(serv)
-
-        MASTERS = sql.is_master(serv)
-        for master in MASTERS:
-            if master[0] is not None:
-                servers.append(master[0])
-    else:
-        server = roxywi_common.get_dick_permit()
-        for s in server:
-            servers.append(s[2])
-
-    for serv in servers:
-        error = server_mod.ssh_command(serv, [f"sudo rm {path}/{bwlists_delete}"], return_err=1)
-
-        if error:
-            print(f'error: Deleting fail: {error} , ')
-        else:
-            print(f'success: the {color} list has been deleted on {serv} , ')
-            try:
-                roxywi_common.logging(serv, f'has been deleted the {color} list {bwlists_delete}', roxywi=1, login=1)
-            except Exception:
-                pass
+    add_mod.delete_bwlist(list_name, color, group, serv)
 
 if form.getvalue('get_lists'):
-    lib_path = get_config.get_config_var('main', 'lib_path')
     group = common.checkAjaxInput(form.getvalue('group'))
     color = common.checkAjaxInput(form.getvalue('color'))
-    list_path = f"{lib_path}/{sql.get_setting('lists_path')}/{group}/{color}"
-    lists = roxywi_common.get_files(list_path, "lst")
-    for line in lists:
-        print(line)
+    add_mod.get_bwlists_for_autocomplete(color, group)
 
 if form.getvalue('get_ldap_email'):
-    username = form.getvalue('get_ldap_email')
-    import ldap
+    import modules.roxywi.user as roxywi_user
 
-    server = sql.get_setting('ldap_server')
-    port = sql.get_setting('ldap_port')
-    user = sql.get_setting('ldap_user')
-    password = sql.get_setting('ldap_password')
-    ldap_base = sql.get_setting('ldap_base')
-    domain = sql.get_setting('ldap_domain')
-    ldap_search_field = sql.get_setting('ldap_search_field')
-    ldap_class_search = sql.get_setting('ldap_class_search')
-    ldap_user_attribute = sql.get_setting('ldap_user_attribute')
-    ldap_type = sql.get_setting('ldap_type')
-
-    ldap_proto = 'ldap' if ldap_type == "0" else 'ldaps'
-
-    ldap_bind = ldap.initialize('{}://{}:{}/'.format(ldap_proto, server, port))
-
-    try:
-        ldap_bind.protocol_version = ldap.VERSION3
-        ldap_bind.set_option(ldap.OPT_REFERRALS, 0)
-
-        bind = ldap_bind.simple_bind_s(user, password)
-
-        criteria = "(&(objectClass=" + ldap_class_search + ")(" + ldap_user_attribute + "=" + username + "))"
-        attributes = [ldap_search_field]
-        result = ldap_bind.search_s(ldap_base, ldap.SCOPE_SUBTREE, criteria, attributes)
-
-        results = [entry for dn, entry in result if isinstance(entry, dict)]
-        try:
-            print('["' + results[0][ldap_search_field][0].decode("utf-8") + '","' + domain + '"]')
-        except Exception:
-            print('error: user not found')
-    finally:
-        ldap_bind.unbind()
+    roxywi_user.get_ldap_email()
 
 if form.getvalue('change_waf_mode'):
     import modules.roxywi.waf as roxy_waf
 
-    roxy_waf. change_waf_mode()
+    roxy_waf.change_waf_mode()
 
-error_mess = 'error: All fields must be completed'
+error_mess = roxywi_common.return_error_message()
 
 if form.getvalue('newuser') is not None:
     import modules.roxywi.user as roxywi_user
@@ -941,26 +798,8 @@ if form.getvalue('updateserver') is not None:
 
 if form.getvalue('serverdel') is not None:
     server_id = common.checkAjaxInput(form.getvalue('serverdel'))
-    server = sql.select_servers(id=server_id)
-    server_ip = ''
-    for s in server:
-        hostname = s[1]
-        server_ip = s[2]
-    if sql.check_exists_backup(server_ip):
-        print('warning: Delete the backup first ')
-        sys.exit()
-    if sql.check_exists_s3_backup(server_id):
-        print('warning: Delete the S3 backup first ')
-        sys.exit()
-    if sql.delete_server(server_id):
-        sql.delete_waf_server(server_id)
-        sql.delete_port_scanner_settings(server_id)
-        sql.delete_waf_rules(server_ip)
-        sql.delete_action_history(server_id)
-        sql.delete_system_info(server_id)
-        sql.delete_service_settings(server_id)
-        print("Ok")
-        roxywi_common.logging(server_ip, f'The server {hostname} has been deleted', roxywi=1, login=1)
+
+    server_mod.delete_server(server_id)
 
 if form.getvalue('newgroup') is not None:
     newgroup = common.checkAjaxInput(form.getvalue('groupname'))
@@ -977,26 +816,19 @@ if form.getvalue('newgroup') is not None:
             roxywi_common.logging('Roxy-WI server', f'A new group {newgroup} has been created', roxywi=1, login=1)
 
 if form.getvalue('groupdel') is not None:
-    groupdel = common.checkAjaxInput(form.getvalue('groupdel'))
-    group = sql.select_groups(id=groupdel)
-    for g in group:
-        groupname = g.name
-    if sql.delete_group(groupdel):
-        print("Ok")
-        roxywi_common.logging('Roxy-WI server', f'The {groupname} has been deleted', roxywi=1, login=1)
+    import modules.roxywi.group as group_mod
+
+    group_id = common.checkAjaxInput(form.getvalue('groupdel'))
+    group_mod.delete_group(group_id)
+
 
 if form.getvalue('updategroup') is not None:
+    import modules.roxywi.group as group_mod
+
     name = common.checkAjaxInput(form.getvalue('updategroup'))
-    descript = common.checkAjaxInput(form.getvalue('descript'))
+    desc = common.checkAjaxInput(form.getvalue('descript'))
     group_id = common.checkAjaxInput(form.getvalue('id'))
-    if name is None:
-        print(error_mess)
-    else:
-        try:
-            sql.update_group(name, descript, group_id)
-            roxywi_common.logging('Roxy-WI server', f'The {name} has been updated', roxywi=1, login=1)
-        except Exception as e:
-            print('error: ' + str(e))
+    group_mod.update_group(group_id, name, desc)
 
 if form.getvalue('new_ssh'):
     ssh_mod.create_ssh_cred()
@@ -1069,7 +901,6 @@ if form.getvalue('update_slack_token') is not None:
     user_id = common.checkAjaxInput(form.getvalue('id'))
 
     alerting.update_slack()
-
 
 if form.getvalue('updatesettings') is not None:
     settings = common.checkAjaxInput(form.getvalue('updatesettings'))
@@ -1247,47 +1078,10 @@ if form.getvalue('new_waf_rule'):
     roxy_waf.create_waf_rule(serv)
 
 if form.getvalue('lets_domain'):
-    serv = common.checkAjaxInput(form.getvalue('serv'))
     lets_domain = common.checkAjaxInput(form.getvalue('lets_domain'))
     lets_email = common.checkAjaxInput(form.getvalue('lets_email'))
-    proxy = sql.get_setting('proxy')
-    ssl_path = common.return_nice_path(sql.get_setting('cert_path'))
-    haproxy_dir = sql.get_setting('haproxy_dir')
-    script = "letsencrypt.sh"
-    proxy_serv = ''
-    ssh_settings = ssh_mod.return_ssh_keys_path(serv)
 
-    os.system(f"cp scripts/{script} .")
-
-    if proxy is not None and proxy != '' and proxy != 'None':
-        proxy_serv = proxy
-
-    commands = [
-        f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} haproxy_dir={haproxy_dir} DOMAIN={lets_domain} "
-        f"EMAIL={lets_email} SSH_PORT={ssh_settings['port']} SSL_PATH={ssl_path} HOST={serv} USER={ ssh_settings['user']} "
-        f"PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
-    ]
-
-    output, error = server_mod.subprocess_execute(commands[0])
-
-    if error:
-        roxywi_common.logging('Roxy-WI server', error, roxywi=1)
-        print(error)
-    else:
-        for line in output:
-            if any(s in line for s in ("msg", "FAILED")):
-                try:
-                    line = line.split(':')[1]
-                    line = line.split('"')[1]
-                    print(line + "<br>")
-                    break
-                except Exception:
-                    print(output)
-                    break
-        else:
-            print('success: Certificate has been created')
-
-    os.remove(script)
+    add_mod.get_le_cert(lets_domain, lets_email)
 
 if form.getvalue('uploadovpn'):
     name = common.checkAjaxInput(form.getvalue('ovpnname'))
@@ -1385,122 +1179,19 @@ if form.getvalue('geoipserv') is not None:
         print('warning: select a server and service first')
 
 if form.getvalue('nettools_icmp_server_from'):
-    server_from = common.checkAjaxInput(form.getvalue('nettools_icmp_server_from'))
-    server_to = common.checkAjaxInput(form.getvalue('nettools_icmp_server_to'))
-    server_to = common.is_ip_or_dns(server_to)
-    action = common.checkAjaxInput(form.getvalue('nettools_action'))
-    stderr = ''
-    action_for_sending = ''
+    import modules.roxywi.nettools as nettools
 
-    if server_to == '':
-        print('warning: enter a correct IP or DNS name')
-        sys.exit()
-
-    if action == 'nettools_ping':
-        action_for_sending = 'ping -c 4 -W 1 -s 56 -O '
-    elif action == 'nettools_trace':
-        action_for_sending = 'tracepath -m 10 '
-
-    action_for_sending = action_for_sending + server_to
-
-    if server_from == 'localhost':
-        output, stderr = server_mod.subprocess_execute(action_for_sending)
-    else:
-        action_for_sending = [action_for_sending]
-        output = server_mod.ssh_command(server_from, action_for_sending, raw=1, timeout=15)
-
-    if stderr != '':
-        print(f'error: {stderr}')
-        sys.exit()
-    for i in output:
-        if i == ' ' or i == '':
-            continue
-        i = i.strip()
-        if 'PING' in i:
-            print('<span style="color: var(--link-dark-blue); display: block; margin-top: -20px;">')
-        elif 'no reply' in i or 'no answer yet' in i or 'Too many hops' in i or '100% packet loss' in i:
-            print('<span style="color: var(--red-color);">')
-        elif 'ms' in i and '100% packet loss' not in i:
-            print('<span style="color: var(--green-color);">')
-        else:
-            print('<span>')
-
-        print(i + '</span><br />')
+    nettools.ping_from_server()
 
 if form.getvalue('nettools_telnet_server_from'):
-    server_from = common.checkAjaxInput(form.getvalue('nettools_telnet_server_from'))
-    server_to = common.checkAjaxInput(form.getvalue('nettools_telnet_server_to'))
-    server_to = common.is_ip_or_dns(server_to)
-    port_to = common.checkAjaxInput(form.getvalue('nettools_telnet_port_to'))
-    stderr = ''
+    import modules.roxywi.nettools as nettools
 
-    if server_to == '':
-        print('warning: enter a correct IP or DNS name')
-        sys.exit()
-
-    if server_from == 'localhost':
-        action_for_sending = f'echo "exit"|nc {server_to} {port_to} -t -w 1s'
-        output, stderr = server_mod.subprocess_execute(action_for_sending)
-    else:
-        action_for_sending = [f'echo "exit"|nc {server_to} {port_to} -t -w 1s']
-        output = server_mod.ssh_command(server_from, action_for_sending, raw=1)
-
-    if stderr != '':
-        print(f'error: <b>{stderr[5:]}</b>')
-        sys.exit()
-    count_string = 0
-    for i in output:
-        if i == ' ':
-            continue
-        i = i.strip()
-        if i == 'Ncat: Connection timed out.':
-            print(f'error: <b>{i[5:]}</b>')
-            break
-        print(i + '<br>')
-        count_string += 1
-        if count_string > 1:
-            break
+    nettools.telnet_from_server()
 
 if form.getvalue('nettools_nslookup_server_from'):
-    server_from = common.checkAjaxInput(form.getvalue('nettools_nslookup_server_from'))
-    dns_name = common.checkAjaxInput(form.getvalue('nettools_nslookup_name'))
-    dns_name = common.is_ip_or_dns(dns_name)
-    record_type = common.checkAjaxInput(form.getvalue('nettools_nslookup_record_type'))
-    stderr = ''
+    import modules.roxywi.nettools as nettools
 
-    if dns_name == '':
-        print('warning: enter a correct DNS name')
-        sys.exit()
-
-    action_for_sending = f'dig {dns_name} {record_type} |grep -e "SERVER\|{dns_name}"'
-
-    if server_from == 'localhost':
-        output, stderr = server_mod.subprocess_execute(action_for_sending)
-    else:
-        action_for_sending = [action_for_sending]
-        output = server_mod.ssh_command(server_from, action_for_sending, raw=1)
-
-    if stderr != '':
-        print('error: ' + stderr[5:-1])
-        sys.exit()
-    count_string = 0
-    print(
-        f'<b style="display: block; margin-top:10px;">The <i style="color: var(--blue-color)">{dns_name}</i> domain has the following records:</b>')
-    for i in output:
-        if 'dig: command not found.' in i:
-            print('error: Install bind-utils before using NSLookup')
-            break
-        if ';' in i and ';; SERVER:' not in i:
-            continue
-        if 'SOA' in i and record_type != 'SOA':
-            print('<b style="color: red">There are not any records for this type')
-            break
-        if ';; SERVER:' in i:
-            i = i[10:]
-            print('<br><b>From NS server:</b><br>')
-        i = i.strip()
-        print('<i>' + i + '</i><br>')
-        count_string += 1
+    nettools.nslookup_from_server()
 
 if form.getvalue('portscanner_history_server_id'):
     server_id = common.checkAjaxInput(form.getvalue('portscanner_history_server_id'))
@@ -2418,72 +2109,43 @@ if form.getvalue('check_email_alert'):
 if form.getvalue('getoption'):
     group = form.getvalue('getoption')
     term = form.getvalue('term')
-    options = sql.select_options(group=group, term=term)
 
-    a = {}
-    v = 0
-
-    for i in options:
-        a[v] = i.options
-        v = v + 1
-
-    print(json.dumps(a))
+    add_mod.get_saved_option(group, term)
 
 if form.getvalue('newtoption'):
-    option = form.getvalue('newtoption')
-    group = form.getvalue('newoptiongroup')
+    option = common.checkAjaxInput(form.getvalue('newtoption'))
+    group = common.checkAjaxInput(form.getvalue('newoptiongroup'))
     if option is None or group is None:
         print(error_mess)
     else:
-        if sql.insert_new_option(option, group):
-            env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
-            template = env.get_template('/new_option.html')
-
-            template = template.render(options=sql.select_options(option=option))
-            print(template)
+       add_mod.create_saved_option(option, group)
 
 if form.getvalue('updateoption') is not None:
-    option = form.getvalue('updateoption')
-    option_id = form.getvalue('id')
+    option = common.checkAjaxInput(form.getvalue('updateoption'))
+    option_id = common.checkAjaxInput(form.getvalue('id'))
     if option is None or option_id is None:
         print(error_mess)
     else:
         sql.update_options(option, option_id)
 
 if form.getvalue('optiondel') is not None:
-    if sql.delete_option(form.getvalue('optiondel')):
+    if sql.delete_option(common.checkAjaxInput(form.getvalue('optiondel'))):
         print("Ok")
 
 if form.getvalue('getsavedserver'):
-    group = form.getvalue('getsavedserver')
-    term = form.getvalue('term')
-    servers = sql.select_saved_servers(group=group, term=term)
+    group = common.checkAjaxInput(form.getvalue('getsavedserver'))
+    term = common.checkAjaxInput(form.getvalue('term'))
 
-    a = {}
-    v = 0
-    for i in servers:
-        a[v] = {}
-        a[v]['value'] = {}
-        a[v]['desc'] = {}
-        a[v]['value'] = i.server
-        a[v]['desc'] = i.description
-        v = v + 1
-
-    print(json.dumps(a))
+    add_mod.get_saved_servers(group, term)
 
 if form.getvalue('newsavedserver'):
-    savedserver = form.getvalue('newsavedserver')
-    description = form.getvalue('newsavedserverdesc')
-    group = form.getvalue('newsavedservergroup')
-    if savedserver is None or group is None:
+    server = common.checkAjaxInput(form.getvalue('newsavedserver'))
+    desc = common.checkAjaxInput(form.getvalue('newsavedserverdesc'))
+    group = common.checkAjaxInput(form.getvalue('newsavedservergroup'))
+    if server is None or group is None:
         print(error_mess)
     else:
-        if sql.insert_new_savedserver(savedserver, description, group):
-            env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True)
-            template = env.get_template('/new_saved_servers.html')
-
-            template = template.render(server=sql.select_saved_servers(server=savedserver))
-            print(template)
+        add_mod.create_saved_server(server, group, desc)
 
 if form.getvalue('updatesavedserver') is not None:
     savedserver = form.getvalue('updatesavedserver')
@@ -2653,55 +2315,14 @@ if act == 'findInConfigs':
     print(return_find)
 
 if act == 'check_service':
-    import socket
-    from contextlib import closing
+    import modules.service.action as service_action
 
     cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
     user_uuid = cookie.get('uuid')
-    user_id = sql.get_user_id_by_uuid(user_uuid.value)
-    user_services = sql.select_user_services(user_id)
     server_id = common.checkAjaxInput(form.getvalue('server_id'))
     service = common.checkAjaxInput(form.getvalue('service'))
 
-    if '1' in user_services:
-        if service == 'haproxy':
-            haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-            cmd = 'echo "show info" |nc %s %s -w 1 -v|grep Name' % (serv, haproxy_sock_port)
-            out = server_mod.subprocess_execute(cmd)
-            for k in out[0]:
-                if "Name" in k:
-                    print('up')
-                    break
-            else:
-                print('down')
-    if '2' in user_services:
-        if service == 'nginx':
-            nginx_stats_port = sql.get_setting('nginx_stats_port')
-
-            with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
-                sock.settimeout(5)
-
-                try:
-                    if sock.connect_ex((serv, nginx_stats_port)) == 0:
-                        print('up')
-                    else:
-                        print('down')
-                except Exception:
-                    print('down')
-    if '4' in user_services:
-        if service == 'apache':
-            apache_stats_port = sql.get_setting('apache_stats_port')
-
-            with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
-                sock.settimeout(5)
-
-                try:
-                    if sock.connect_ex((serv, apache_stats_port)) == 0:
-                        print('up')
-                    else:
-                        print('down')
-                except Exception as e:
-                    print('down' + str(e))
+    service_action.check_service(serv, user_uuid, service)
 
 if form.getvalue('show_sub_ovw'):
     import modules.roxywi.overview as roxywi_overview

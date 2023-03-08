@@ -16,6 +16,10 @@ form = common.form
 serv = common.is_ip_or_dns(form.getvalue('serv'))
 
 
+def return_error_message():
+	return 'error: All fields must be completed'
+
+
 def get_user_group(**kwargs) -> str:
 	user_group = ''
 

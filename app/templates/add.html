@@ -753,7 +753,7 @@
 				<td></td>
 			</tr>
 		{% for option in options %}
-			<tr id="option-{{ option.0 }}" class="{{ loop.cycle('odd', 'even') }}">
+			<tr id="option-{{ option.id }}" class="{{ loop.cycle('odd', 'even') }}">
 				{% if option.groups == group or group == '1' %}
 				<td class="padding10 first-collumn">
 					{{ option.id }}

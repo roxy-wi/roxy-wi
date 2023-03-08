@@ -181,3 +181,41 @@ def save_user_group_and_role() -> None:
         else:
             roxywi_common.logging('Roxy-WI server', f'Groups and roles have been updated for user: {user}', roxywi=1, login=1)
             print('ok')
+
+
+def get_ldap_email() -> None:
+    import ldap
+
+    username = common.checkAjaxInput(form.getvalue('get_ldap_email'))
+    server = sql.get_setting('ldap_server')
+    port = sql.get_setting('ldap_port')
+    user = sql.get_setting('ldap_user')
+    password = sql.get_setting('ldap_password')
+    ldap_base = sql.get_setting('ldap_base')
+    domain = sql.get_setting('ldap_domain')
+    ldap_search_field = sql.get_setting('ldap_search_field')
+    ldap_class_search = sql.get_setting('ldap_class_search')
+    ldap_user_attribute = sql.get_setting('ldap_user_attribute')
+    ldap_type = sql.get_setting('ldap_type')
+
+    ldap_proto = 'ldap' if ldap_type == "0" else 'ldaps'
+
+    ldap_bind = ldap.initialize('{}://{}:{}/'.format(ldap_proto, server, port))
+
+    try:
+        ldap_bind.protocol_version = ldap.VERSION3
+        ldap_bind.set_option(ldap.OPT_REFERRALS, 0)
+
+        bind = ldap_bind.simple_bind_s(user, password)
+
+        criteria = "(&(objectClass=" + ldap_class_search + ")(" + ldap_user_attribute + "=" + username + "))"
+        attributes = [ldap_search_field]
+        result = ldap_bind.search_s(ldap_base, ldap.SCOPE_SUBTREE, criteria, attributes)
+
+        results = [entry for dn, entry in result if isinstance(entry, dict)]
+        try:
+            print('["' + results[0][ldap_search_field][0].decode("utf-8") + '","' + domain + '"]')
+        except Exception:
+            print('error: user not found')
+    finally:
+        ldap_bind.unbind()

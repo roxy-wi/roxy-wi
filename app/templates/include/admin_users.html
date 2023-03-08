@@ -72,11 +72,11 @@
 					{% endfor %}
 				</select>
 				{% else %}
-					<span title="{{lang.words.change2|title()}} {{lang.words.user3}} {{lang.words.groups}} {{lang.words.and}} {{lang.words.roles}}" style="cursor: pointer; margin-left: 40px;" class="div-pic" onclick="confirmChangeGroupsAndRoles('{{user.user_id}}')">
+				<span title="{{lang.words.change2|title()}} {{lang.words.user3}} {{lang.words.groups}} {{lang.words.and}} {{lang.words.roles}}" style="cursor: pointer; margin-left: 40px;" class="div-pic" onclick="confirmChangeGroupsAndRoles('{{user.user_id}}')"></span>
 				{% endif %}
 			</td>
 			<td>
-				<span title="{{lang.words.change2|title()}} {{lang.words.user3}} {{lang.words.services}}" style="cursor: pointer; margin-left: 15px;" class="div-pic" onclick="openChangeUserServiceDialog('{{user.user_id}}')">
+				<span title="{{lang.words.change2|title()}} {{lang.words.user3}} {{lang.words.services}}" style="cursor: pointer; margin-left: 15px;" class="div-pic" onclick="openChangeUserServiceDialog('{{user.user_id}}')"></span>
 			</td>
 			<td>
 				<a href="history.py?service=user&user_id={{user.user_id}}" title="{{lang.words.view|title()}} {{lang.words.history}} {{lang.words.for}} {{lang.words.user2}}" class="history"></a>

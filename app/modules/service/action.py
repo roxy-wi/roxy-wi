@@ -131,3 +131,51 @@ def action_nginx_waf(server_ip: str, action: str) -> None:
     commands = [f"sudo sed -i 's/modsecurity {waf_old_state}/modsecurity {waf_new_state}/g' {config_dir}nginx.conf"
                 f" && sudo systemctl reload nginx"]
     server_mod.ssh_command(server_ip, commands)
+
+
+def check_service(server_ip: str, user_uuid: str, service: str) -> None:
+    import socket
+    from contextlib import closing
+
+    user_id = sql.get_user_id_by_uuid(user_uuid.value)
+    user_services = sql.select_user_services(user_id)
+
+    if '1' in user_services:
+        if service == 'haproxy':
+            haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+            cmd = 'echo "show info" |nc %s %s -w 1 -v|grep Name' % (server_ip, haproxy_sock_port)
+            out = server_mod.subprocess_execute(cmd)
+            for k in out[0]:
+                if "Name" in k:
+                    print('up')
+                    break
+            else:
+                print('down')
+    if '2' in user_services:
+        if service == 'nginx':
+            nginx_stats_port = sql.get_setting('nginx_stats_port')
+
+            with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+                sock.settimeout(5)
+
+                try:
+                    if sock.connect_ex((server_ip, nginx_stats_port)) == 0:
+                        print('up')
+                    else:
+                        print('down')
+                except Exception:
+                    print('down')
+    if '4' in user_services:
+        if service == 'apache':
+            apache_stats_port = sql.get_setting('apache_stats_port')
+
+            with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+                sock.settimeout(5)
+
+                try:
+                    if sock.connect_ex((server_ip, apache_stats_port)) == 0:
+                        print('up')
+                    else:
+                        print('down')
+                except Exception as e:
+                    print('down' + str(e))
