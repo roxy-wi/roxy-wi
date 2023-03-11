@@ -91,6 +91,23 @@
 		});
 		return intro;
 	}
-
+    function introHints() {
+        let intro = introJs();
+        intro.setOptions({
+            hints: [
+                { hint: 'A new way for Groups and Roles. Try it!', element: '#user-group-role-th' },
+            ]
+        });
+        intro.onhintclose(function() {
+          localStorage.setItem('introHintAdminRoles', 1);
+        });
+        return intro;
+    }
 	setTimeout(() => { var intro_temp = Intro(); startIntro(intro_temp); }, 3000);
+    if (!localStorage.getItem('introHintAdminRoles')) {
+        setTimeout(() => {
+            var intro_temp = introHints();
+            intro_temp.addHints();
+        }, 1000);
+    }
 </script>
