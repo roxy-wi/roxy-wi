@@ -119,9 +119,9 @@ def default_values():
 		print(str(e))
 
 	data_source = [
-		{'user_id': '1', 'user_group_id': '2', 'user_role_id': '1'},
-		{'user_id': '2', 'user_group_id': '2', 'user_role_id': '2'},
-		{'user_id': '3', 'user_group_id': '2', 'user_role_id': '4'}
+		{'user_id': '1', 'user_group_id': '1', 'user_role_id': '1'},
+		{'user_id': '2', 'user_group_id': '1', 'user_role_id': '2'},
+		{'user_id': '3', 'user_group_id': '1', 'user_role_id': '4'}
 	]
 
 	try:
