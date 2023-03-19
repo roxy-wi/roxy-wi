@@ -3064,6 +3064,10 @@ function showServiceVersion(service) {
 				$('#'+service+'_install').attr('title', 'Install');
 			} else if (data.indexOf('warning: ') != '-1') {
 				toastr.warning(data);
+			} else if (data == '') {
+				$('#cur_'+service+'_ver').text(service+' has not installed');
+				$('#'+service+'_install').text('Install');
+				$('#'+service+'_install').attr('title', 'Install');
 			} else {
 				$('#cur_'+service+'_ver').text(data);
 				$('#cur_'+service+'_ver').css('font-weight', 'bold');

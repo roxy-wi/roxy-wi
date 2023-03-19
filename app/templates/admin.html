@@ -56,14 +56,14 @@
 					{% endif %}
 				</td>
 				<td>
-					<a class="delete" onclick="confirmDeleteGroup({{ group.group_id }})" title="{{lang.words.delete|title()}} {{lang.words.group}} {{group.name}}" style="cursor: pointer;"></a>
+					<a class="delete" onclick="confirmDeleteGroup({{ group.group_id }})" title="{{lang.words.delete|title()}} {{lang.words.group2}} {{group.name}}" style="cursor: pointer;"></a>
 				</td>
 			{% endif %}
 			</tr>
 		{% endfor %}
 			</tbody>
 		</table>
-		<br /><span class="add-button" title="Add group" id="add-group-button">+ Add</span>
+		<br /><span class="add-button" title="{{lang.words.add|title()}} {{lang.words.group2}}" id="add-group-button">+ {{lang.words.add|title()}}</span>
 		<br /><br />
 		<div class="add-note alert addName alert-info" style="width: inherit; margin-right: 15px;">
 			{{lang.phrases.read_howto}} <a href="https://roxy-wi.org/howto/roles-and-groups" title="How to use groups and roles" target="_blank">{{lang.words.article}}</a>

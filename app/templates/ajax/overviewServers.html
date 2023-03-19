@@ -1,3 +1,4 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
 {%- for service in service_status -%}
 <div class="server-info">
 	{% if service_page == 'nginx' or service_page == 'keepalived' %}
@@ -5,9 +6,9 @@
 	{% else %}
 	<div class="server-name">
 	{% endif %}
-		Server status
+		{{lang.words.server_status|title()}}
 		<span class="update-icon">
-			<a onclick="showOverviewServer('{{ service.0 }}', '{{ service.1 }}', '{{id}}', '{{service_page}}')" title="Refresh">
+			<a onclick="showOverviewServer('{{ service.0 }}', '{{ service.1 }}', '{{id}}', '{{service_page}}')" title="{{lang.words.refresh|title()}}">
 				<span class="service-reload"></span>
 			</a>
 		</span>

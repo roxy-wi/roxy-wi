@@ -305,7 +305,6 @@
 }
 .plus-after .fa-plus, .minus-after .fa-minus {
 	padding-left: 10px;
-    margin-bottom: -2px;
 }
 .row-down::after {
 	display: none;
@@ -449,4 +448,14 @@
 .user-circle > .fa-user-circle {
 	cursor: pointer;
 	padding-right: 5px;
+}
+.caption-icon {
+	float: left;
+	margin: 6px 5px 10px 10px;
+    font-size: 15px;
+}
+.caption-icon2 {
+	float: left;
+	margin: 8px 5px 10px 10px;
+    font-size: 15px;
 }

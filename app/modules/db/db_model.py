@@ -420,6 +420,7 @@ class SMON(BaseModel):
     slack_channel_id = IntegerField(null=True)
     ssl_expire_warning_alert = IntegerField(constraints=[SQL('DEFAULT 0')])
     ssl_expire_critical_alert = IntegerField(constraints=[SQL('DEFAULT 0')])
+    ssl_expire_date = CharField(null=True)
 
     class Meta:
         table_name = 'smon'

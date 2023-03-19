@@ -1,4 +1,6 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
+{% from 'languages/languages.html' import languages %}
+{% from 'include/input_macros.html' import select %}
 <html lang="en">
 	<head>
 		<title>{% block title %}{% endblock %}</title>
@@ -40,12 +42,13 @@
 		<meta name="theme-color" content="#ffffff">
 		<script defer src="/inc/fa-solid.min.js"></script>
 		<script defer src="/inc/fontawesome.min.js"></script>
+		<script src="https://use.fontawesome.com/releases/v5.15.4/js/all.js" data-auto-replace-svg="nest"></script>
 		<script>FontAwesomeConfig = { searchPseudoElements: true, observeMutations: false };</script>
 		<script defer src="/inc/ion.sound.min.js"></script>
 		<script defer src="/inc/intro/introjs.min.js"></script>
 		<link href="/inc/intro/introjs.min.css" rel="stylesheet">
 		<link href="/inc/intro/introjs-modern.css" rel="stylesheet">
-		<link href="/inc/css/awesome.css" rel="stylesheet">
+		<link href="/inc/css/awesome-6.3.8.css" rel="stylesheet">
 		<link href="/inc/css/style.css" rel="stylesheet">
 		<link href="/inc/css/nprogress.css" rel="stylesheet">
 		<link href="/inc/css/jquery-ui.min.css" rel="stylesheet">
@@ -321,21 +324,7 @@
 				<tr class="padding20">
 					<td class="padding20">{{lang.words.language|title()}}</td>
 					<td>
-						<select id="lang_select">
-							{% if lang.lang_short == 'ru' %}
-							<option value="en" title="English">English</option>
-							<option value="ru" title="Русский" selected>Русский</option>
-							<option value="fr" title="Français">Français</option>
-							{% elif lang.lang_short == 'fr' %}
-							<option value="en" title="English">English</option>
-							<option value="ru" title="Русский">Русский</option>
-							<option value="fr" title="Français" selected>Français</option>
-							{% else %}
-							<option value="en" title="English" selected>English</option>
-							<option value="ru" title="Русский">Русский</option>
-							<option value="fr" title="Français">Français</option>
-							{% endif %}
-						</select>
+						{{ select('lang_select', values=languages, selected=lang.lang_short) }}
 					</td>
 				</tr>
 				<tr id="show-user-settings-group"></tr>

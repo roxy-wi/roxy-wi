@@ -2636,7 +2636,7 @@ def smon_list(user_group):
 	if user_group == 1:
 		query = (SMON.select(
 			SMON.ip, SMON.port, SMON.status, SMON.en, SMON.desc, SMON.response_time, SMON.time_state,
-			SMON.group, SMON.script, SMON.http, SMON.http_status, SMON.body, SMON.body_status
+			SMON.group, SMON.script, SMON.http, SMON.http_status, SMON.body, SMON.body_status, SMON.ssl_expire_date
 		).order_by(SMON.group))
 	else:
 		query = (SMON.select(
@@ -3871,12 +3871,19 @@ def inset_or_update_service_status(
 		out_error(e)
 
 
+def update_smon_ssl_expire_date(service_ip: str, expire_date: str) -> None:
+	SMON_update = SMON.update(ssl_expire_date=expire_date).where(SMON.ip == service_ip)
+	try:
+		SMON_update.execute()
+	except Exception as e:
+		out_error(e)
+
+
 def update_smon_alert_status(service_ip: str, alert_value: int, alert: str) -> None:
 	if alert == 'ssl_expire_warning_alert':
 		SMON_update = SMON.update(ssl_expire_warning_alert=alert_value).where(SMON.ip == service_ip)
 	else:
 		SMON_update = SMON.update(ssl_expire_critical_alert=alert_value).where(SMON.ip == service_ip)
-	print(SMON_update)
 	try:
 		SMON_update.execute()
 	except Exception as e:

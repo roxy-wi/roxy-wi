@@ -1,4 +1,18 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
+{% set services_name = {
+	'roxy-wi-checker': { 'name': 'Checker', 'desc': lang.admin_page.desc.checker_desc },
+	'roxy-wi-keep_alive': { 'name': 'Auto start', 'desc': lang.admin_page.desc.auto_start_desc },
+	'roxy-wi-metrics': { 'name': 'Metrics', 'desc': lang.admin_page.desc.metrics_desc },
+	'roxy-wi-portscanner': { 'name': 'Port scanner', 'desc': lang.admin_page.desc.p_s_desc },
+	'roxy-wi-smon': { 'name': 'SMON', 'desc': lang.admin_page.desc.smon_desc },
+	'roxy-wi-socket': { 'name': 'Socket', 'desc': lang.admin_page.desc.socket_desc },
+	'roxy-wi-prometheus-exporter': { 'name': 'Prometheus exporter', 'desc': 'Prometheus exporter exports Roxy-WI metrics' },
+	'prometheus': { 'name': 'Prometheus', 'desc': 'Prometheus server' },
+	'grafana-server': { 'name': 'Grafana', 'desc': 'Grafana server' },
+	'fail2ban': { 'name': 'Fail2ban', 'desc': 'Fail2ban scans log files (e.g. /var/log/apache/error_log) and bans IPs that show the malicious signs' },
+    'rabbitmq-server': { 'name': 'RabbitMQ', 'desc': 'RabbitMQ server' },
+    }
+%}
 {% for s in services %}
 <tr class="{{ loop.cycle('odd', 'even') }}" id="{{s.0}}">
     <td class="padding10 first-collumn">
@@ -11,7 +25,7 @@
                 <span title="{{s.0}} is not installed"><span class="serverNone server-status"></span></span>
             {% endif %}
         {% endif %}
-        {{s.0[0]|upper}}{{s.0[1:]}}
+        {{services_name[s.0]['name']}}
     </td>
     <td class="padding10 first-collumn">
         {% if 'is not installed' in s.3 or not s.3 %}
@@ -40,24 +54,7 @@
         {% endif %}
     </td>
     <td>
-        {% if s.0 == 'roxy-wi-smon' %}
-            {% set description = lang.admin_page.desc.smon_desc %}
-        {% elif s.0 == 'roxy-wi-checker' %}
-            {% set description = lang.admin_page.desc.checker_desc %}
-        {% elif s.0 == 'roxy-wi-keep_alive' %}
-            {% set description = lang.admin_page.desc.auto_start_desc %}
-        {% elif s.0 == 'roxy-wi-metrics' %}
-            {% set description = lang.admin_page.desc.metrics_desc %}
-        {% elif s.0 == 'roxy-wi-portscanner' %}
-            {% set description = lang.admin_page.desc.p_s_desc %}
-        {% elif s.0 == 'roxy-wi-socket' %}
-            {% set description = lang.admin_page.desc.socket_desc %}
-        {% elif s.0 == 'roxy-wi-prometheus-exporter' %}
-            {% set description = 'Prometheus exporter' %}
-        {% else %}
-            {% set description = s.2 %}
-        {% endif %}
-        {{ description }}
+        {{ services_name[s.0]['desc'] }}
     </td>
     <td></td>
 </tr>

@@ -28,7 +28,7 @@
     </ul>
     <div id="channels">
         <table id="checker_table" class="overview">
-            <caption><h3>Telegram {{lang.words.channels}}</h3></caption>
+            <caption><i class="fab fa-telegram caption-icon"></i><h3>Telegram {{lang.words.channels}}</h3></caption>
             <tr class="overviewHead" style="width: 50%;">
                 <td class="padding10 first-collumn" style="width: 25%;">
                     <span title="Token that has given @father_bot">{{lang.words.token|title()}}</span>
@@ -66,7 +66,7 @@
                 </td>
                 {% endif %}
                 <td>
-                    <button title="Send a test message" onclick="checkTelegram({{telegram.id}})">{{lang.words.test|title()}}</button>
+                    <button title="{{lang.phrases.send_test_mes}}" onclick="checkTelegram({{telegram.id}})">{{lang.words.test|title()}}</button>
                 </td>
                 <td>
                     <a class="add" onclick="cloneTelegram({{telegram.id}})" id="clone-{{telegram.id}}" title="{{lang.words.w_copy|title()}} {{lang.words.the}} {{lang.words.settings}} {{telegram.chanel_name}}" style="cursor: pointer;"></a>
@@ -80,7 +80,7 @@
         <br /><span class="add-button" title="{{lang.words.add|title()}} Telegram {{lang.words.channel}}" id="add-telegram-button">+ {{lang.words.add|title()}}</span>
         <br /><br />
         <table id="checker_slack_table" class="overview">
-            <caption><h3>Slack {{lang.words.channels|title()}}</h3></caption>
+            <caption><i class="fab fa-slack caption-icon"></i><h3>Slack {{lang.words.channels|title()}}</h3></caption>
             <tr class="overviewHead" style="width: 50%;">
                 <td class="padding10 first-collumn" style="width: 25%;">
                     <span title="Token that has given with APP registration">{{lang.words.token|title()}}</span>
@@ -132,7 +132,7 @@
         <br /><span class="add-button" title="{{lang.words.add|title()}} Slack {{lang.words.channel|title()}}" id="add-slack-button">+ {{lang.words.add|title()}}</span>
         <br /><br />
         <table class="overview">
-            <caption><h3>{{lang.words.test2|title()}} {{lang.words.message}}</h3></caption>
+            <caption><i class="fas fa-envelope-open-text caption-icon"></i><h3>{{lang.words.test2|title()}} {{lang.words.message}}</h3></caption>
             <tr class="overviewHead">
                 <td class="padding10 first-collumn" style="width: 45%">{{lang.words.email|title()}}</td>
                 <td style="width: 100%">{{lang.words.web_panel|title()}}</td>
@@ -156,7 +156,7 @@
     </div>
     <div id="checker_settings">
         <table class="overview checker_settings_table" id="checker_haproxy_table">
-            <caption><h3>HAProxy {{lang.words.servers}}</h3></caption>
+            <caption><i class="fas fa-network-wired caption-icon"></i><h3>HAProxy {{lang.words.servers}}</h3></caption>
             <tr class="overviewHead">
                 <td class="padding10 first-collumn">{{lang.words.server|title()}}</td>
                 <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Telegram">Telegram</td>
@@ -235,7 +235,7 @@
             {% endfor %}
         </table>
         <table class="overview checker_settings_table" id="checker_nginx_table">
-            <caption><h3>NGINX {{lang.words.servers}}</h3></caption>
+            <caption><i class="fas fa-sitemap caption-icon"></i><h3>NGINX {{lang.words.servers}}</h3></caption>
             <tr class="overviewHead">
                 <td class="padding10 first-collumn">{{lang.words.server|title()}}</td>
                 <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Telegram">Telegram</td>
@@ -296,7 +296,7 @@
             {% endfor %}
         </table>
         <table class="overview checker_settings_table" id="checker_apache_table">
-            <caption><h3>Apache {{lang.words.servers}}</h3></caption>
+            <caption><i class="fas fa-feather-alt caption-icon"></i><h3>Apache {{lang.words.servers}}</h3></caption>
             <tr class="overviewHead">
                 <td class="padding10 first-collumn">{{lang.words.server|title()}}</td>
                 <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Telegram">Telegram</td>
@@ -357,7 +357,7 @@
             {% endfor %}
         </table>
         <table class="overview checker_settings_table" id="checker_keepalived_table">
-            <caption><h3>Keepalived {{lang.words.servers}}</h3></caption>
+            <caption><i class="fas fa-cloud caption-icon"></i><h3>Keepalived {{lang.words.servers}}</h3></caption>
             <tr class="overviewHead">
                 <td class="padding10 first-collumn">{{lang.words.server|title()}}</td>
                 <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Telegram">Telegram</td>

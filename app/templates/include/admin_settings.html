@@ -1,3 +1,16 @@
+{% set sections_name = {
+    'rabbitmq': 'RabbitMQ',
+    'nginx': 'NGINX',
+    'haproxy': 'HAProxy',
+    'apache': 'Apache',
+    'keepalived': 'Keepalived',
+    'main': 'Main',
+    'mail': 'Mail',
+    'monitoring': 'Monitoring',
+    'logs': 'Logs',
+    'ldap': 'LDAP',
+    }
+%}
 <table id="settings">
     <tbody>
         {% set section = namespace(section='') %}
@@ -6,13 +19,9 @@
         <!-- continue -->
         {% else %}
         {% if section.section|string() != set.section|string() %}
-        <th colspan="3" title="Show {{ set.section }} section" id="{{set.section}}-section-head" style="cursor: pointer; padding-top: 10px;">
+        <th colspan="3" title="Show {{ set.section }} section" id="{{set.section}}-section-head" style="cursor: pointer; padding-top: 10px; color: #5b5a5a;">
             <h3 class="plus-after" id="{{set.section}}-section-h3" style="font-size: 1em; padding-left: 15px;">
-                {% if set.section == 'ldap' %}
-                {{ set.section|upper}}
-                {% else %}
-                {{ set.section[0]|upper}}{{set.section[1:] }}
-                {% endif %}
+                {{sections_name[set.section]}}
             </h3>
         </th>
         <tr class="overviewHead {{set.section}}-section" style="display: none">

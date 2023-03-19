@@ -3,6 +3,16 @@
 {% set new_ver = versions.1 %}
 {% set current_ver_without_dots = versions.2 %}
 {% set new_ver_without_dots = versions.3 %}
+{% set services_name = {
+	'roxy-wi-checker': { 'link': 'checker', 'name': 'Checker', 'desc': lang.admin_page.desc.checker_desc },
+	'roxy-wi-keep_alive': { 'link': 'auto_start', 'name': 'Auto start', 'desc': lang.admin_page.desc.auto_start_desc },
+	'roxy-wi-metrics': { 'link': 'metrics', 'name': 'Metrics', 'desc': lang.admin_page.desc.metrics_desc },
+	'roxy-wi-portscanner': { 'link': 'portscanner', 'name': 'Port scanner', 'desc': lang.admin_page.desc.p_s_desc },
+    'roxy-wi-smon': { 'link': 'smon', 'name': 'SMON', 'desc': lang.admin_page.desc.smon_desc },
+	'roxy-wi-socket': { 'link': 'socket', 'name': 'Socket', 'desc': lang.admin_page.desc.socket_desc },
+	'roxy-wi-prometheus-exporter': { 'link': 'prometheus-exporter', 'name': 'Prometheus exporter', 'desc': 'Prometheus exporter exports Roxy-WI metrics' },
+    }
+%}
 <tr class="odd">
     <td class="padding10 first-collumn">
         Roxy-WI
@@ -38,73 +48,45 @@
 <tr class="{{ loop.cycle('even', 'odd') }}">
     {% set is_need_update = 0 %}
     {% if s.0 == 'roxy-wi-smon' %}
-        {% set service_name = 'SMON' %}
-        {% set service_link = 'smon' %}
-        {% set desc_link = 'https://roxy-wi.org/services/smon' %}
-    {% if s.3|float < smon_ver|float %}
-        {% set is_need_update = 1 %}
+        {% if s.3|float < smon_ver|float %}
+            {% set is_need_update = 1 %}
+        {% endif %}
+    {% elif s.0 == 'roxy-wi-checker' %}
+        {% if s.3|float < checker_ver|float %}
+            {% set is_need_update = 1 %}
+        {% endif %}
+    {% elif s.0 == 'roxy-wi-keep_alive' %}
+        {% if s.3|float < keep_ver|float %}
+            {% set is_need_update = 1 %}
+        {% endif %}
+    {% elif s.0 == 'roxy-wi-metrics' %}
+        {% if s.3|float < metrics_ver|float %}
+            {% set is_need_update = 1 %}
     {% endif %}
-    {% set description = lang.admin_page.desc.smon_desc %}
-{% elif s.0 == 'roxy-wi-checker' %}
-    {% set service_name = 'Checker' %}
-    {% set service_link = 'checker' %}
-    {% set desc_link = 'https://roxy-wi.org/services/checker' %}
-    {% if s.3|float < checker_ver|float %}
-        {% set is_need_update = 1 %}
-    {% endif %}
-    {% set description = lang.admin_page.desc.checker_desc %}
-{% elif s.0 == 'roxy-wi-keep_alive' %}
-    {% set service_name = 'Auto start' %}
-    {% set service_link = 'auto_start' %}
-    {% set desc_link = 'https://roxy-wi.org/services/auto_start' %}
-    {% if s.3|float < keep_ver|float %}
-        {% set is_need_update = 1 %}
-    {% endif %}
-    {% set description = lang.admin_page.desc.auto_start_desc %}
-{% elif s.0 == 'roxy-wi-metrics' %}
-    {% set service_name = 'Metrics' %}
-    {% set service_link = 'metrics' %}
-    {% set desc_link = 'https://roxy-wi.org/services/metrics' %}
-    {% if s.3|float < metrics_ver|float %}
-        {% set is_need_update = 1 %}
-    {% endif %}
-    {% set description = lang.admin_page.desc.metrics_desc %}
-{% elif s.0 == 'roxy-wi-portscanner' %}
-    {% set service_name = 'Port scanner' %}
-    {% set service_link = 'portscanner' %}
-    {% set desc_link = 'https://roxy-wi.org/services/' + service_link %}
-    {% if s.3|float < portscanner_ver|float %}
-        {% set is_need_update = 1 %}
-    {% endif %}
-    {% set description = lang.admin_page.desc.p_s_desc %}
-{% elif s.0 == 'roxy-wi-socket' %}
-    {% set service_name = 'Socket service' %}
-    {% set service_link = 'socket' %}
-    {% set desc_link = 'https://roxy-wi.org/services/' + service_link %}
-    {% if s.3|float < socket_ver|float %}
-        {% set is_need_update = 1 %}
-    {% endif %}
-    {% set description = lang.admin_page.desc.socket_desc %}
-{% elif s.0 == 'roxy-wi-prometheus-exporter' %}
-    {% set service_name = 'Prometheus exporter' %}
-    {% set service_link = 'prometheus-exporter' %}
-    {% set desc_link = 'https://roxy-wi.org/services/' + service_link %}
-    {% if s.3|float < prometheus_exp_ver|float %}
-        {% set is_need_update = 1 %}
-    {% endif %}
-    {% set description = 'Prometheus exporter' %}
+    {% elif s.0 == 'roxy-wi-portscanner' %}
+        {% if s.3|float < portscanner_ver|float %}
+            {% set is_need_update = 1 %}
+        {% endif %}
+    {% elif s.0 == 'roxy-wi-socket' %}
+        {% if s.3|float < socket_ver|float %}
+            {% set is_need_update = 1 %}
+        {% endif %}
+    {% elif s.0 == 'roxy-wi-prometheus-exporter' %}
+        {% if s.3|float < prometheus_exp_ver|float %}
+            {% set is_need_update = 1 %}
+        {% endif %}
 {% endif %}
     <td class="padding10 first-collumn">
-        <a href="{{desc_link}}" title="{{lang.words.read|title()}} {{lang.words.more}} {{lang.words.about}} {{service_name}}" target="_blank" class="link" rel="noopener noreferrer">{{service_name}}</a>
+        <a href="https://roxy-wi.org/services/{{services_name[s.0]['link']}}" title="{{lang.words.read|title()}} {{lang.words.more}} {{lang.words.about}} {{services_name[s.0]['name']}}" target="_blank" class="link" rel="noopener noreferrer">{{services_name[s.0]['name']}}</a>
     </td>
     <td>
         {% if s.3 != '* is not installed' and s.3 != '' %}
         <b id="current-version-{{s.0}}"
                 {% if is_need_update %}
-                title="{{lang.admin_page.desc.a_new_version}} {{service_name}}"
+                title="{{lang.admin_page.desc.a_new_version}} {{services_name[s.0]['name']}}"
                 style="color: var(--red-color)"
                 {% else %}
-                title="{{lang.admin_page.desc.no_new_version}} {{service_name}}"
+                title="{{lang.admin_page.desc.no_new_version}} {{services_name[s.0]['name']}}"
                 style="color: var(--green-color)"
                 {% endif %}
         >
@@ -134,20 +116,12 @@
     <td>
         {% if 'is not installed' not in s.3 and s.3 != '' %}
             {% if is_need_update %}
-                <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}')" title="{{lang.words.w_update|title()}} {{service_name}}">{{lang.words.w_update|title()}}</a>
-            {% endif %}
-        {% else %}
-             {% if s.0 in ('prometheus', 'grafana-server') %}
-                <a class="ui-button ui-widget ui-corner-all" onclick="openTab(10)" title="{{lang.words.install|title()}} {{service_name}}">{{lang.words.install|title()}}</a>
-            {% elif s.0 in ('rabbitmq-server', 'fail2ban') %}
-                <a class="ui-button ui-widget ui-corner-all" href="https://roxy-wi/services/{{s.0.split('-')[0]}}" title="{{lang.words.install|title()}} {{s.0|title()}}" target="_blank">{{lang.words.install|title()}}</a>
-            {% else %}
-                <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}', 'install')" title="{{lang.words.install|title()}} {{service_name}}">{{lang.words.install|title()}}</a>
+                <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}')" title="{{lang.words.w_update|title()}} {{services_name[s.0]['name']}}">{{lang.words.w_update|title()}}</a>
             {% endif %}
         {% endif %}
     </td>
     <td colspan="2">
-        {{description}}
+        {{services_name[s.0]['desc']}}
     </td>
 </tr>
 {% endif %}

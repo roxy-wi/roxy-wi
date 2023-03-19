@@ -38,6 +38,8 @@ if action == 'add':
 	roxywi_auth.page_for_admin(level=3)
 	if lang == 'ru':
 		title = "SMON: Админка"
+	elif lang == 'fr':
+		title = "SMON: Administratrice"
 	else:
 		title = "SMON: Admin"
 elif action == 'history':
@@ -48,18 +50,24 @@ elif action == 'history':
 		smon = sql.alerts_history('SMON', user_group)
 	if lang == 'ru':
 		title = "SMON: История"
+	elif lang == 'fr':
+		title = "SMON: Histoire"
 	else:
 		title = "SMON: History"
 elif action == 'checker_history':
 	smon = sql.alerts_history('Checker', user_group)
 	if lang == 'ru':
 		title = "Checker: История"
+	elif lang == 'fr':
+		title = "Checker: Histoire"
 	else:
 		title = "Checker: History"
 else:
 	smon = sql.smon_list(user_group)
 	if lang == 'ru':
 		title = "SMON: Дашборд"
+	elif lang == 'fr':
+		title = "SMON: Tableau de bord"
 	else:
 		title = "SMON: Dashboard"
 	autorefresh = 1

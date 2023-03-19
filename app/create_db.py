@@ -779,9 +779,25 @@ def update_db_v_6_3_6():
 		print("Updating... DB has been updated to version 6.3.6.0")
 
 
+def update_db_v_6_3_8():
+	cursor = conn.cursor()
+	sql = """
+	ALTER TABLE `smon` ADD COLUMN ssl_expire_date varchar(64);
+	"""
+	try:
+		cursor.execute(sql)
+	except Exception as e:
+		if e.args[0] == 'duplicate column name: ssl_expire_date' or str(e) == '(1060, "Duplicate column name \'ssl_expire_date\'")':
+			print('Updating... DB has been updated to version 6.3.8')
+		else:
+			print("An error occurred:", e)
+	else:
+		print("Updating... DB has been updated to version 6.3.8")
+
+
 def update_ver():
 	try:
-		Version.update(version='6.3.7.0').execute()
+		Version.update(version='6.3.8.0').execute()
 	except Exception:
 		print('Cannot update version')
 
@@ -808,6 +824,7 @@ def update_all():
 	update_db_v_6_3_4()
 	update_db_v_6_3_5()
 	update_db_v_6_3_6()
+	update_db_v_6_3_8()
 	update_ver()
 
 

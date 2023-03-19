@@ -28,6 +28,8 @@ except Exception as e:
 if serv:
 	if lang == 'ru':
 		title = f'История Port scanner для {serv}'
+	elif lang == 'fr':
+		title = f'Historique du scanner de ports pour {serv}'
 	else:
 		title = f'Port scanner history for {serv}'
 	port_scanner_settings = sql.select_port_scanner_history(serv)
@@ -39,6 +41,8 @@ else:
 	history = ''
 	if lang == 'ru':
 		title = 'Дашборд Port scanner'
+	elif lang == 'fr':
+		title = 'Tableau de bord du scanner de ports'
 	else:
 		title = 'Port scanner dashboard'
 	user_group = roxywi_common.get_user_group(id=1)

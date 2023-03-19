@@ -100,6 +100,8 @@ if serv is not None and form.getvalue('config') is not None:
 
 if user_params['lang'] == 'ru':
 	title = 'Работа с секциями HAProxy'
+elif user_params['lang'] == 'fr':
+	title = 'Utilisation des sections de configuration HAProxy'
 else:
 	title = 'Working with HAProxy config sections'
 
