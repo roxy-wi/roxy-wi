@@ -58,21 +58,21 @@ def alert_routing(
 			slack_send_mess(mes, level, slack_channel_id=setting.slack_id)
 
 			if setting.email:
-				send_email_to_server_group(subject, mes, group_id)
+				send_email_to_server_group(subject, mes, level, group_id)
 
 		if alert_type == 'backend' and setting.backend_alert:
 			telegram_send_mess(mes, level, telegram_channel_id=setting.telegram_id)
 			slack_send_mess(mes, level, slack_channel_id=setting.slack_id)
 
 			if setting.email:
-				send_email_to_server_group(subject, mes, group_id)
+				send_email_to_server_group(subject, mes, level, group_id)
 
 		if alert_type == 'maxconn' and setting.maxconn_alert:
 			telegram_send_mess(mes, level, telegram_channel_id=setting.telegram_id)
 			slack_send_mess(mes, level, slack_channel_id=setting.slack_id)
 
 			if setting.email:
-				send_email_to_server_group(subject, mes, group_id)
+				send_email_to_server_group(subject, mes, level, group_id)
 
 
 def send_email_to_server_group(subject: str, mes: str, level: str, group_id: int) -> None:
@@ -149,7 +149,7 @@ def telegram_send_mess(mess, level, **kwargs):
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
 
 
-def slack_send_mess(mess, **kwargs):
+def slack_send_mess(mess, level, **kwargs):
 	from slack_sdk import WebClient
 	from slack_sdk.errors import SlackApiError
 	slack_token = ''
@@ -188,6 +188,7 @@ def check_rabbit_alert() -> None:
 		user_group_id1 = user_group_id.value
 	except Exception as e:
 		print(f'error: Cannot send a message {e}')
+		return
 
 	try:
 		json_for_sending = {"user_group": user_group_id1, "message": 'info: Test message'}
@@ -206,16 +207,19 @@ def check_email_alert() -> None:
 		user_uuid_value = user_uuid.value
 	except Exception as e:
 		print(f'error: Cannot send a message {e}')
+		return
 
 	try:
 		user_email = sql.select_user_email_by_uuid(user_uuid_value)
 	except Exception as e:
 		print(f'error: Cannot get a user email: {e}')
+		return
 
 	try:
 		send_email(user_email, subject, message)
 	except Exception as e:
 		print(f'error: Cannot send a message {e}')
+		return
 
 
 def add_telegram_channel(token: str, channel: str, group: str, page: str) -> None:
