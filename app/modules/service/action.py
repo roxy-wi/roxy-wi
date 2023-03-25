@@ -29,8 +29,7 @@ def action_haproxy(server_ip: str, action: str) -> None:
             if haproxy_enterprise == '1':
                 haproxy_service_name = "hapee-2.0-lb"
             commands = [f"sudo systemctl {action} {haproxy_service_name}"]
-
-        server_mod.ssh_command(server_ip, commands)
+        server_mod.ssh_command(server_ip, commands, timeout=5)
         roxywi_common.logging(server_ip, f'Service has been {action}ed', roxywi=1, login=1, keep_history=1, service='haproxy')
         print(f"success: HAProxy has been {action}")
     else:
@@ -56,7 +55,7 @@ def action_nginx(server_ip: str, action: str) -> None:
             commands = [f"sudo docker {action} {container_name}"]
         else:
             commands = [f"sudo systemctl {action} nginx"]
-        server_mod.ssh_command(server_ip, commands)
+        server_mod.ssh_command(server_ip, commands, timeout=5)
         roxywi_common.logging(server_ip, f'Service has been {action}ed', roxywi=1, login=1, keep_history=1, service='nginx')
         print(f"success: NGINX has been {action}")
     else:
@@ -96,7 +95,7 @@ def action_apache(server_ip: str, action: str) -> None:
         service_apache_name = service_common.get_correct_apache_service_name(None, server_id)
 
         commands = [f"sudo systemctl {action} {service_apache_name}"]
-    server_mod.ssh_command(server_ip, commands)
+    server_mod.ssh_command(server_ip, commands, timeout=5)
     roxywi_common.logging(server_ip, f'Service has been {action}ed', roxywi=1, login=1, keep_history=1, service='apache')
     print(f"success: Apache has been {action}")
 

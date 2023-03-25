@@ -49,7 +49,7 @@ except Exception as e:
 	roxywi_common.logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
 
 rendered_template = template.render(
-	h2=1, role=user_params['role'], user=user_params['user'], users=users, groups=sql.select_groups(),
+	role=user_params['role'], user=user_params['user'], users=users, groups=sql.select_groups(),
 	servers=sql.select_servers(full=1), masters=masters, sshs=sql.select_ssh(), roles=sql.select_roles(),
 	settings=settings, backups=sql.select_backups(), services=services, timezones=pytz.all_timezones,
 	page="users.py", user_services=user_params['user_services'], ldap_enable=ldap_enable, gits=gits, guide_me=1,
