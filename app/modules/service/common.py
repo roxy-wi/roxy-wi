@@ -276,6 +276,7 @@ def get_stat_page(server_ip: str, service: str) -> None:
 
 	data = response.content
 	if service == 'nginx':
+		lang = roxywi_common.get_user_lang()
 		env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 		template = env.get_template('ajax/nginx_stats.html')
 
@@ -287,7 +288,7 @@ def get_stat_page(server_ip: str, service: str) -> None:
 		h = (out1,)
 		servers_with_status.append(h)
 
-		template = template.render(out=servers_with_status)
+		template = template.render(out=servers_with_status, lang=lang)
 		print(template)
 	else:
 		print(data.decode('utf-8'))

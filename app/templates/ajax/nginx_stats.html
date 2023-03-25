@@ -1,3 +1,4 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
 <style>
 body { font-family: arial, helvetica, sans-serif; font-size: 12px; font-weight: normal; color: black; background: white;}
 th,td { font-size: 10px; }
@@ -60,15 +61,15 @@ div.tips {
 u:hover div.tips {visibility:visible;}
 </style>
 	{% for l in out %}
-	<table class="tbl" width="100%">
+	<table class="tbl">
 		<tr class="titre">
 			<th class="pxname" style="background-color: rgb(93, 156, 235); width: 100%; padding-top: 4px; padding-bottom: 4px; border-color: rgb(221, 221, 221);">
 				<a name="status">
-				<a class="px" href="#stats" style="color: rgb(255, 255, 255);">NGINX status</a>
+				<a class="px" href="#stats" style="color: rgb(255, 255, 255);">NGINX {{lang.words.status}}</a>
 			</th>
 		</tr>
 	</table>
-	<table class="tbl" width="100%">
+	<table class="tbl">
 	<tr class="titre">
 		<th style="background-color: rgb(245, 250, 244); padding-top: 4px; padding-bottom: 4px; border-color: rgb(221, 221, 221); width: 15%;">
 			{{l.0.0}} {{l.0.1}} 
@@ -116,7 +117,7 @@ u:hover div.tips {visibility:visible;}
 		</td>
 	</tr>
 	</table>
-	<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
-		You can read the description about statuses <a href="https://roxy-wi.org/description.py?description=nginx_status" title="NGINX status page description" target="_blank">here</a>
+	<div class="add-note addName alert-info" style="width: inherit; margin-left: 0;">
+		{{lang.phrases.read_desc_statuses}} <a href="https://roxy-wi.org/description/nginx_status" title="NGINX status page description" class="link" target="_blank">{{lang.words.here}}</a>
 	</div>
 	{% endfor %}

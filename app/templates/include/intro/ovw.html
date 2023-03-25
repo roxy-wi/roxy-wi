@@ -28,6 +28,7 @@
                     title: "Dashboard #3",
 					intro: "Roxy-WI services status",
 				},
+                {% if role == 1 %}
 				{
 					element: document.querySelector('#overview-users'),
                     title: "Dashboard #4",
@@ -39,14 +40,30 @@
 					intro: "Group list",
 				},
 				{
-					element: document.querySelector('#overview-logs'),
+					element: document.querySelector('#overview-roles'),
                     title: "Dashboard #6",
+					intro: "Roles description",
+				},
+                {% endif %}
+                {% if role < 3 %}
+                    {% if role > 1 %}
+                        {% set board_id = 4 %}
+                    {% else %}
+                        {% set board_id = 7 %}
+                    {% endif %}
+				{
+					element: document.querySelector('#overview-logs'),
+                    title: "Dashboard #{{ board_id }}",
 					intro: "Last log entries",
 				},
+                {% endif %}
+                {% if role == 1 %}
 				{
 					element: document.querySelector('#overview-subs'),
+                    title: "Dashboard #8",
 					intro: "Subscription info",
 				},
+                {% endif %}
 				{
 					element: document.querySelector('#version'),
 					intro: "Your Roxy-WI version",

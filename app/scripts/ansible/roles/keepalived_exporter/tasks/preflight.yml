@@ -37,8 +37,6 @@
 
 - name: Gather currently installed keepalived_exporter version (if any)
   command: "{{ keepalived_exporter_binary_install_dir }}/keepalived_exporter --version"
-  args:
-    warn: false
   changed_when: false
   register: __keepalived_exporter_current_version_output
   check_mode: false

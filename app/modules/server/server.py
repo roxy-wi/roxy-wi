@@ -62,6 +62,19 @@ def subprocess_execute(cmd):
 	return output, stderr
 
 
+def subprocess_execute_with_rc(cmd):
+	import subprocess
+
+	p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
+	stdout, stderr = p.communicate()
+	output = stdout.splitlines()
+	rc = p.returncode
+
+	return_out = {'output': output, 'error': stderr, 'rc': rc}
+
+	return return_out
+
+
 def is_file_exists(server_ip: str, file: str) -> bool:
 	cmd = [f'[ -f {file} ] && echo yes || echo no']
 
@@ -110,8 +123,8 @@ def get_system_info(server_ip: str) -> str:
 	except Exception as e:
 		raise e
 
-	if 'command not found' in sys_info_returned:
-		raise Exception(f' You should install lshw on the server {server_ip}. Update System info after installation.')
+	if 'not found' in sys_info_returned:
+		raise Exception(f'You should install lshw on the server {server_ip}. Update System info after installation.')
 
 	try:
 		os_info = ssh_command(server_ip, command1)

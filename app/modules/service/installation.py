@@ -10,21 +10,22 @@ from modules.server.ssh import return_ssh_keys_path
 form = common.form
 
 
-def show_installation_output(error: str, output: str, service: str) -> bool:
+def show_installation_output(error: str, output: str, service: str, rc=0) -> bool:
 	if error and "WARNING" not in error:
 		roxywi_common.logging('Roxy-WI server', error, roxywi=1)
 		print('error: ' + error)
 		return False
 	else:
-		for line in output:
-			if any(s in line for s in ("Traceback", "FAILED", "error", "ERROR", "UNREACHABLE")):
-				try:
-					correct_out = line.split('=>')
-					print(f'error: {correct_out[1]}')
-					break
-				except Exception:
-					print(output)
-					break
+		if rc != 0:
+			for line in output:
+				if any(s in line for s in ("Traceback", "FAILED", "error", "ERROR", "UNREACHABLE")):
+					try:
+						correct_out = line.split('=>')
+						print(f'error: {correct_out[1]}')
+						break
+					except Exception:
+						print(output)
+						break
 		else:
 			from jinja2 import Environment, FileSystemLoader
 			env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
@@ -70,13 +71,14 @@ def install_haproxy(server_ip: str, **kwargs):
 		f"KEY={ssh_settings['key']}"
 	]
 
-	output, error = server_mod.subprocess_execute(commands[0])
 	if server_for_installing:
 		service = server_for_installing + ' HAProxy'
 	else:
 		service = ' HAProxy'
 
-	if show_installation_output(error, output, service):
+	return_out = server_mod.subprocess_execute_with_rc(commands[0])
+
+	if show_installation_output(return_out['error'], return_out['output'], service, rc=return_out['rc']):
 		sql.update_haproxy(server_ip)
 
 	if docker == '1':
@@ -107,9 +109,9 @@ def waf_install(server_ip: str):
 		f"KEY={ssh_settings['key']}"
 	]
 
-	output, error = server_mod.subprocess_execute(commands[0])
+	return_out = server_mod.subprocess_execute_with_rc(commands[0])
 
-	if show_installation_output(error, output, service):
+	if show_installation_output(return_out['error'], return_out['output'], service, rc=return_out['rc']):
 		sql.insert_waf_metrics_enable(server_ip, "0")
 		sql.insert_waf_rules(server_ip)
 
@@ -134,9 +136,9 @@ def waf_nginx_install(server_ip: str):
 		f"HOST={server_ip} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
 	]
 
-	output, error = server_mod.subprocess_execute(commands[0])
+	return_out = server_mod.subprocess_execute_with_rc(commands[0])
 
-	if show_installation_output(error, output, service):
+	if show_installation_output(return_out['error'], return_out['output'], service, rc=return_out['rc']):
 		sql.insert_nginx_waf_rules(server_ip)
 		sql.insert_waf_nginx_server(server_ip)
 
@@ -183,7 +185,7 @@ def install_service(server_ip: str, service: str, docker: str, **kwargs) -> None
 	if server_for_installing:
 		service_name = f'{server_for_installing} {service.title()}'
 	else:
-		service_name = service.title
+		service_name = service.title()
 
 	if show_installation_output(error, output, service_name):
 		if service == 'nginx':
@@ -226,10 +228,9 @@ def geoip_installation():
 		f"PASS={ssh_settings['password']} KEY={ssh_settings['key']}"
 	]
 
-	output, error = server_mod.subprocess_execute(commands[0])
+	return_out = server_mod.subprocess_execute_with_rc(commands[0])
 
-	show_installation_output(error, output, 'GeoLite2 Database')
-
+	show_installation_output(return_out['error'], return_out['output'], 'GeoLite2 Database', rc=return_out['rc'])
 	os.remove(script)
 
 
@@ -296,9 +297,9 @@ def keepalived_master_install():
 		f"USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
 	]
 
-	output, error = server_mod.subprocess_execute(commands[0])
+	return_out = server_mod.subprocess_execute_with_rc(commands[0])
 
-	if show_installation_output(error, output, 'master Keepalived'):
+	if show_installation_output(return_out['error'], return_out['output'], 'master Keepalived', rc=return_out['rc']):
 		sql.update_keepalived(master)
 
 		if virt_server != '0':
@@ -340,10 +341,9 @@ def keepalived_slave_install():
 		f"NGINX={nginx} HOST={slave} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
 	]
 
-	output, error = server_mod.subprocess_execute(commands[0])
+	return_out = server_mod.subprocess_execute_with_rc(commands[0])
 
-	show_installation_output(error, output, 'slave Keepalived')
-
+	show_installation_output(return_out['error'], return_out['output'], 'slave Keepalived', rc=return_out['rc'])
 	os.remove(script)
 	sql.update_server_master(master, slave)
 	sql.update_keepalived(slave)
@@ -375,9 +375,9 @@ def keepalived_masteradd():
 		f"PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
 	]
 
-	output, error = server_mod.subprocess_execute(commands[0])
+	return_out = server_mod.subprocess_execute_with_rc(commands[0])
 
-	show_installation_output(error, output, 'master VRRP address')
+	show_installation_output(return_out['error'], return_out['output'], 'master VRRP address', rc=return_out['rc'])
 	os.remove(script)
 
 
@@ -405,8 +405,6 @@ def keepalived_slaveadd():
 		f"router_id={router_id} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
 	]
 
-	output, error = server_mod.subprocess_execute(commands[0])
-
-	show_installation_output(error, output, 'slave VRRP address')
-
+	return_out = server_mod.subprocess_execute_with_rc(commands[0])
+	show_installation_output(return_out['error'], return_out['output'], 'slave VRRP address', rc=return_out['rc'])
 	os.remove(script)

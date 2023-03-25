@@ -95,6 +95,10 @@ def upload_ssh_key(name: str, user_group: str, key: str) -> bool:
 		print('error: nice try')
 		return False
 
+	if name == '':
+		print('error: please select credentials first')
+		return False
+
 	try:
 		key = paramiko.pkey.load_private_key(key)
 	except Exception as e:
