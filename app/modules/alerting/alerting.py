@@ -50,37 +50,37 @@ def alert_routing(
 		json_for_sending = {"user_group": group_id, "message": subject}
 		send_message_to_rabbit(json.dumps(json_for_sending))
 	except Exception as e:
-		roxywi_common.logging('Roxy-WI server', 'error: unable to send message: ' + str(e), roxywi=1)
+		roxywi_common.logging('Roxy-WI server', f'error: unable to send message: {e}', roxywi=1)
 
 	for setting in checker_settings:
 		if alert_type == 'service' and setting.service_alert:
-			telegram_send_mess(mes, telegram_channel_id=setting.telegram_id)
-			slack_send_mess(mes, slack_channel_id=setting.slack_id)
+			telegram_send_mess(mes, level, telegram_channel_id=setting.telegram_id)
+			slack_send_mess(mes, level, slack_channel_id=setting.slack_id)
 
 			if setting.email:
 				send_email_to_server_group(subject, mes, group_id)
 
 		if alert_type == 'backend' and setting.backend_alert:
-			telegram_send_mess(mes, telegram_channel_id=setting.telegram_id)
-			slack_send_mess(mes, slack_channel_id=setting.slack_id)
+			telegram_send_mess(mes, level, telegram_channel_id=setting.telegram_id)
+			slack_send_mess(mes, level, slack_channel_id=setting.slack_id)
 
 			if setting.email:
 				send_email_to_server_group(subject, mes, group_id)
 
 		if alert_type == 'maxconn' and setting.maxconn_alert:
-			telegram_send_mess(mes, telegram_channel_id=setting.telegram_id)
-			slack_send_mess(mes, slack_channel_id=setting.slack_id)
+			telegram_send_mess(mes, level, telegram_channel_id=setting.telegram_id)
+			slack_send_mess(mes, level, slack_channel_id=setting.slack_id)
 
 			if setting.email:
 				send_email_to_server_group(subject, mes, group_id)
 
 
-def send_email_to_server_group(subject: str, mes: str, group_id: int) -> None:
+def send_email_to_server_group(subject: str, mes: str, level: str, group_id: int) -> None:
 	try:
 		users_email = sql.select_users_emails_by_group_id(group_id)
 
 		for user_email in users_email:
-			send_email(user_email.email, subject, mes)
+			send_email(user_email.email, subject, f'{level}: {mes}')
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', f'error: unable to send email: {e}', roxywi=1)
 
@@ -116,7 +116,7 @@ def send_email(email_to: str, subject: str, message: str) -> None:
 		roxywi_common.logging('Roxy-WI server', f'error: unable to send email: {e}', roxywi=1)
 
 
-def telegram_send_mess(mess, **kwargs):
+def telegram_send_mess(mess, level, **kwargs):
 	import telebot
 	from telebot import apihelper
 	token_bot = ''
@@ -144,7 +144,7 @@ def telegram_send_mess(mess, **kwargs):
 		apihelper.proxy = {'https': proxy}
 	try:
 		bot = telebot.TeleBot(token=token_bot)
-		bot.send_message(chat_id=channel_name, text=mess)
+		bot.send_message(chat_id=channel_name, text=f'{level}: {mess}')
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
 
@@ -176,7 +176,7 @@ def slack_send_mess(mess, **kwargs):
 		client = WebClient(token=slack_token)
 
 	try:
-		client.chat_postMessage(channel=f'#{channel_name}', text=mess)
+		client.chat_postMessage(channel=f'#{channel_name}', text=f'{level}: {mess}')
 	except SlackApiError as e:
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
 
