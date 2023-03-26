@@ -112,13 +112,16 @@ def check_haproxy_config(server_ip):
 	else:
 		commands = [f"haproxy  -q -c -f {config_path}"]
 
-	with mod_ssh.ssh_connect(server_ip) as ssh:
-		for command in commands:
-			stdin, stdout, stderr = ssh.run_command(command)
-			if not stderr.read():
-				return True
-			else:
-				return False
+	try:
+		with mod_ssh.ssh_connect(server_ip) as ssh:
+			for command in commands:
+				stdin, stdout, stderr = ssh.run_command(command, timeout=5)
+				if not stderr.read():
+					return True
+				else:
+					return False
+	except Exception as e:
+		print(f'error: {e}')
 
 
 def check_nginx_config(server_ip):
