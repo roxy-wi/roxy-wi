@@ -42,6 +42,7 @@ ansible-playbook $PWD/roles/backup.yml --key-file $KEY -e "ansible_user=$USER va
 if [ $? -gt 0 ]
 then
         echo "error: Can't create backup job"
+        rm -f $PWD/$HOST
         exit 1
 fi
 rm -f $PWD/$HOST

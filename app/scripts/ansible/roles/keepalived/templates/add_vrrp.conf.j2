@@ -1,6 +1,6 @@
 vrrp_instance VI_{{IP}} {
 	state {{MASTER}}
-	interface {% if MASTER == 'MASTER' %}{{ETH}} {% else %} {{ETH_SLAVE}} {% endif %}
+	interface {% if MASTER == 'MASTER' %}{{ETH}} {% else %} {{SLAVE_ETH}} {% endif %}
 
 	virtual_router_id {{ router_id }}
 

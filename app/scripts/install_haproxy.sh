@@ -50,5 +50,8 @@ fi
 if [ $? -gt 0 ]
 then
         echo "error: Cannot install Haproxy service"
+        rm -f $PWD/$HOST
+        exit 1
 fi
+
 rm -f $PWD/$HOST

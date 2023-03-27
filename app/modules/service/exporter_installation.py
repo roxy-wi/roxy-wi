@@ -35,10 +35,9 @@ def haproxy_exp_installation():
         f" STATS_PASS='{stats_password}' HOST={serv} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
     ]
 
-    output, error = server_mod.subprocess_execute(commands[0])
+    return_out = server_mod.subprocess_execute_with_rc(commands[0])
 
-    show_installation_output(error, output, 'HAProxy exporter')
-
+    show_installation_output(return_out['error'], return_out['output'], 'HAProxy exporter', rc=return_out['rc'])
     os.remove(script)
 
 
@@ -71,10 +70,9 @@ def nginx_apache_exp_installation():
         f" PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
     ]
 
-    output, error = server_mod.subprocess_execute(commands[0])
+    return_out = server_mod.subprocess_execute_with_rc(commands[0])
 
-    show_installation_output(error, output, f'{service.title()} exporter')
-
+    show_installation_output(return_out['error'], return_out['output'], f'{service.title()} exporter', rc=return_out['rc'])
     os.remove(script)
 
 
@@ -97,8 +95,7 @@ def node_keepalived_exp_installation(service: str) -> None:
         f"HOST={serv} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
     ]
 
-    output, error = server_mod.subprocess_execute(commands[0])
+    return_out = server_mod.subprocess_execute_with_rc(commands[0])
 
-    show_installation_output(error, output, 'Node exporter')
-
+    show_installation_output(return_out['error'], return_out['output'], 'Node exporter', rc=return_out['rc'])
     os.remove(script)

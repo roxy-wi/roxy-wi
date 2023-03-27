@@ -35,8 +35,9 @@ fi
 
 if [ $? -gt 0 ]
 then
-        echo "error: Can't install Node exporter <br /><br />"
-        exit 1
+  echo "error: Can't install Node exporter <br /><br />"
+  rm -f $PWD/$HOST
+  exit 1
 fi
 if [ "$EXP_PROM" == 0 ]
 then

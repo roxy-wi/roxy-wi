@@ -16,6 +16,9 @@ $( function() {
 					data = data.replace(/\s+/g,' ');
 					if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 						toastr.error(data);
+					} else if (data == '') {
+						var select_server = $('#translate').attr('data-select_server');
+						toastr.warning(select_server);
 					} else {
 						response(data.split(" "));
 					}
@@ -39,6 +42,9 @@ $( function() {
 					if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 						var p_err = show_pretty_ansible_error(data);
 						toastr.error(p_err);
+					} else if (data == '') {
+						var select_server = $('#translate').attr('data-select_server');
+						toastr.warning(select_server);
 					} else {
 						response(data.split(" "));
 					}
@@ -62,6 +68,9 @@ $( function() {
 					if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 						var p_err = show_pretty_ansible_error(data);
 						toastr.error(p_err);
+					} else if (data == '') {
+						var select_server = $('#translate').attr('data-select_server');
+						toastr.warning(select_server);
 					} else {
 						response(data.split(" "));
 					}
@@ -77,13 +86,16 @@ $( function() {
 				url: "options.py",
 				data: {
 					showif:1,
-					serv: $("#slave").val(),
+					serv: $("#slave-add").val(),
 					token: $('#token').val()
 				},
 				success: function( data ) {
 					data = data.replace(/\s+/g,' ');
 					if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 						toastr.error(data);
+					} else if (data == '') {
+						var select_server = $('#translate').attr('data-select_server');
+						toastr.warning(select_server);
 					} else {
 						response(data.split(" "));
 					}

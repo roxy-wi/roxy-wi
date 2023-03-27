@@ -72,6 +72,7 @@
         group: "{{ ansible_user }}"
         state: directory
         recurse: yes
+        mode: 771
   tags:
     - system
     - docker

@@ -57,6 +57,7 @@ fi
 if [ $? -gt 0 ]
 then
     echo "error: Can't install NGINX service <br /><br />"
+    rm -f $PWD/$HOST
     exit 1
 else
 	echo "ok"

@@ -40,7 +40,7 @@ ansible-playbook $PWD/roles/grafana.yml -e "PROXY=$PROXY"
 if [ $? -gt 0 ]
 then
 	echo "error: Can't install Grafana and Prometheus services <br /><br />"
-    exit 1
+  exit 1
 fi
 if ! sudo grep -Fxq "  - job_name: proxy" /etc/prometheus/prometheus.yml; then
 	sudo echo "  - job_name: proxy" | sudo tee -a /etc/prometheus/prometheus.yml > /dev/null

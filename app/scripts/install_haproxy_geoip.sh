@@ -30,6 +30,7 @@ echo "$HOST ansible_port=$SSH_PORT" > $PWD/$HOST
 
 if [[ $maxmind_key == "" ]]; then
   echo "error: the Maxmind key cannot be empty"
+  rm -f $PWD/$HOST
   exit 1
 fi
 
@@ -41,6 +42,8 @@ fi
 
 if [ $? -gt 0 ]
 then
-        echo "error: Cannot download GeoLite2 database"
+  echo "error: Cannot download GeoLite2 database"
+  rm -f $PWD/$HOST
+  exit 1
 fi
 rm -f $PWD/$HOST

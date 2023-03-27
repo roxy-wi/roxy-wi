@@ -40,6 +40,7 @@ fi
 if [ $? -gt 0 ]
 then
         echo "error: Can't install Apache exporter <br /><br />"
+        rm -f $PWD/$HOST
         exit 1
 fi
 
