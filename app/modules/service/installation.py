@@ -1,4 +1,5 @@
 import os
+import json
 
 import modules.db.sql as sql
 import modules.service.common as service_common
@@ -21,7 +22,8 @@ def show_installation_output(error: str, output: str, service: str, rc=0) -> boo
 				if any(s in line for s in ("Traceback", "FAILED", "error", "ERROR", "UNREACHABLE")):
 					try:
 						correct_out = line.split('=>')
-						print(f'error: {correct_out[1]}')
+						correct_out = json.loads(correct_out[1])
+						print(f'error: {correct_out["msg"]}')
 						break
 					except Exception:
 						print(output)
