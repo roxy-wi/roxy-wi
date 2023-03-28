@@ -117,6 +117,10 @@
     name: "{{STATS_USER}}"
     password: "{{STATS_PASS}}"
 
+- name: set correct permissions to passwd file
+  ansible.builtin.file:
+    path: "{{ service_dir }}/status_page_passwdfile"
+    mode: 0664
 
 - name: test to see if selinux is running
   command: getenforce
