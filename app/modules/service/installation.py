@@ -371,7 +371,7 @@ def keepalived_masteradd():
 	os.system(f"cp scripts/{script} .")
 
 	commands = [
-		f"chmod +x {script} && ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} ETH={eth} SLAVE_ETH={slave_eth} "
+		f"chmod +x {script} && ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} ETH={eth} ETH_SLAVE={slave_eth} "
 		f"keepalived_path_logs={keepalived_path_logs} RETURN_TO_MASTER={return_to_master} IP={vrrp_ip} MASTER=MASTER "
 		f"RESTART={kp} ADD_VRRP=1 HOST={master} router_id={router_id} USER={ssh_settings['user']} "
 		f"PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
@@ -402,7 +402,7 @@ def keepalived_slaveadd():
 	os.system(f"cp scripts/{script} .")
 
 	commands = [
-		f"chmod +x {script} && ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} ETH={eth} SLAVE_ETH={slave_eth} "
+		f"chmod +x {script} && ./{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} ETH={eth} ETH_SLAVE={slave_eth} "
 		f"keepalived_path_logs={keepalived_path_logs} IP={vrrp_ip} MASTER=BACKUP RESTART={kp} ADD_VRRP=1 HOST={slave} "
 		f"router_id={router_id} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
 	]
