@@ -71,7 +71,8 @@
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
         state: directory
-        mode: 0771
+        recurse: true
+        mode: 0775
   tags:
     - system
     - docker
