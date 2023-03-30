@@ -33,7 +33,6 @@
       until: _download_binary is succeeded
       retries: 5
       delay: 2
-      delegate_to: localhost
       check_mode: false
 
     - name: Unpack keepalived_exporter binary
@@ -43,7 +42,6 @@
         dest: "/tmp"
         creates: "/tmp/keepalived_exporter-{{ keepalived_exporter_version }}-{{ go_arch }}/keepalived_exporter"
         remote_src: true
-      delegate_to: localhost
       check_mode: false
 
     - name: Propagate keepalived_exporter binaries

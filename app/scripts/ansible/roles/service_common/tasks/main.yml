@@ -28,7 +28,7 @@
   file:
     path: "{{ item.path }}"
     state: directory
-    mode: o=rx
+    mode: 0775
     owner: "{{ service_user }}"
     group: "{{ service_group }}"
   with_items:
