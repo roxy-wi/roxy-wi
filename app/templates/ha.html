@@ -142,7 +142,7 @@
 <div class="add-note alert addName alert-info" style="width: inherit; margin-right: 15px;">
 	{{lang.words.read|title()}} <a href="https://roxy-wi.org/howto.py/ha_cluster" title="How to create high available cluster" target="_blank">{{lang.phrases.howto_ha}}</a>
 </div>
-<div id="server_creating" style="display: none;">
+<div id="server_creating" style="display: none;" title="{{lang.phrases.creating_ha}}">
     <ul style="padding: 20px 20px 0px 20px;font-size: 15px;">
         <li id="creating-master" class="server-creating proccessing">{{lang.words.installing|title()}} {{lang.words.master|title()}} Keepalived...</li>
         <li id="creating-slave" class="server-creating proccessing">{{lang.words.installing|title()}} {{lang.words.slave|title()}} Keepalived...</li>
@@ -163,7 +163,7 @@
         <div id="creating-progress" style="width: 0%;"></div>
     </div>
 </div>
-<div id="address_creating" style="display: none;">
+<div id="address_creating" style="display: none;" title="{{lang.phrases.adding_vrrp}}">
     <ul style="padding: 20px 20px 0px 20px;font-size: 15px;">
         <li id="creating-master-add" class="server-creating proccessing">{{lang.words.creating|title()}} {{lang.words.a}} {{lang.words.new}} {{lang.words.address}} {{lang.words.on}} {{lang.words.master|title()}} Keepalived...</li>
         <li id="creating-slave-add" class="server-creating proccessing">{{lang.words.creating|title()}} {{lang.words.a}} {{lang.words.new}} {{lang.words.address}} {{lang.words.on}} {{lang.words.slave|title()}} Keepalived...</li>

@@ -105,11 +105,12 @@ $( function() {
 		autoFocus: true,
 		minLength: -1
 	});
+	var server_creating_title = $( "#server_creating" ).attr('title');
 	var server_creating = $( "#server_creating" ).dialog({
 		autoOpen: false,
 		width: 574,
 		modal: true,
-		title: "Creating a new HA cluster",
+		title: server_creating_title,
 		buttons: {
 			Close: function() {
 				$( this ).dialog( "close" );
@@ -118,11 +119,12 @@ $( function() {
 			}
 		}
 	});
+	var address_creating_title = $( "#server_creating" ).attr('title');
 	var address_add = $( "#address_creating" ).dialog({
 		autoOpen: false,
 		width: 574,
 		modal: true,
-		title: "Adding a new VRRP address",
+		title: address_creating_title,
 		buttons: {
 			Close: function() {
 				$( this ).dialog( "close" );

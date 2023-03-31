@@ -36,6 +36,20 @@
     - { path: "{{ service_dir }}/conf.d"}
   when: service not in ansible_facts.packages
 
+- name: Creates directorys for Apache
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    mode: 0775
+    owner: "{{ service_user }}"
+    group: "{{ service_group }}"
+  with_items:
+    - { path: "{{ service_dir }}"}
+    - { path: "{{ service_dir }}/{{ conf_folder }}"}
+  when:
+    - service not in ansible_facts.packages
+    - service = "apache"
+
 
 - name: Set passlib version
   set_fact:

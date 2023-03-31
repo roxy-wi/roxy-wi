@@ -27,13 +27,15 @@ except Exception:
 if service in ('haproxy', 'nginx', 'apache'):
 	service_desc = sql.select_service(service)
 	if roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=service_desc.service_id):
-		roxywi_common.get_dick_permit(service=service_desc.slug)
+		servers = roxywi_common.get_dick_permit(service=service_desc.slug)
 else:
 	print('<meta http-equiv="refresh" content="0; url=/app/overview.py">')
 
+
+
 rendered_template = template.render(
 	h2=1, autorefresh=1, role=user_params['role'], user=user_params['user'], onclick="showStats()",
-	selects=user_params['servers'], serv=serv, service=service, user_services=user_params['user_services'],
+	selects=servers, serv=serv, service=service, user_services=user_params['user_services'],
 	token=user_params['token'], select_id="serv", lang=user_params['lang'], service_desc=service_desc
 )
 print(rendered_template)
