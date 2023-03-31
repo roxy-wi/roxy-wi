@@ -43,7 +43,7 @@
     - name: install the el8 RPMS for HAProxy
       yum:
         name:
-          - http://repo.haproxy-wi.org/yajl-devel-2.1.0-10.el8.x86_64.rpm
+          - https://repo.roxy-wi.org/yajl-devel-2.1.0-10.el8.x86_64.rpm
         state: latest
       when:
         - ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'

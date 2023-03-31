@@ -48,7 +48,7 @@
     - { path: "{{ service_dir }}/{{ conf_folder }}"}
   when:
     - service not in ansible_facts.packages
-    - service = "apache"
+    - service == "apache"
 
 
 - name: Set passlib version

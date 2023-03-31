@@ -37,6 +37,7 @@ fi
 if [ $? -gt 0 ]
 then
   echo "error: Cannot install WAF"
+  exit 1
 else
   echo "success"
 fi

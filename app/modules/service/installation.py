@@ -81,7 +81,10 @@ def install_haproxy(server_ip: str, **kwargs):
 	return_out = server_mod.subprocess_execute_with_rc(commands[0])
 
 	if show_installation_output(return_out['error'], return_out['output'], service, rc=return_out['rc']):
-		sql.update_haproxy(server_ip)
+		try:
+			sql.update_haproxy(server_ip)
+		except Exception as e:
+			print(e)
 
 	if docker == '1':
 		server_id = sql.select_server_id_by_ip(server_ip)
@@ -114,8 +117,11 @@ def waf_install(server_ip: str):
 	return_out = server_mod.subprocess_execute_with_rc(commands[0])
 
 	if show_installation_output(return_out['error'], return_out['output'], service, rc=return_out['rc']):
-		sql.insert_waf_metrics_enable(server_ip, "0")
-		sql.insert_waf_rules(server_ip)
+		try:
+			sql.insert_waf_metrics_enable(server_ip, "0")
+			sql.insert_waf_rules(server_ip)
+		except Exception as e:
+			print(e)
 
 	os.remove(script)
 
@@ -141,8 +147,11 @@ def waf_nginx_install(server_ip: str):
 	return_out = server_mod.subprocess_execute_with_rc(commands[0])
 
 	if show_installation_output(return_out['error'], return_out['output'], service, rc=return_out['rc']):
-		sql.insert_nginx_waf_rules(server_ip)
-		sql.insert_waf_nginx_server(server_ip)
+		try:
+			sql.insert_nginx_waf_rules(server_ip)
+			sql.insert_waf_nginx_server(server_ip)
+		except Exception as e:
+			print(e)
 
 	os.remove(script)
 
@@ -182,18 +191,24 @@ def install_service(server_ip: str, service: str, docker: str, **kwargs) -> None
 		f"USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
 	]
 
-	output, error = server_mod.subprocess_execute(commands[0])
-
 	if server_for_installing:
 		service_name = f'{server_for_installing} {service.title()}'
 	else:
 		service_name = service.title()
 
-	if show_installation_output(error, output, service_name):
+	return_out = server_mod.subprocess_execute_with_rc(commands[0])
+
+	if show_installation_output(return_out['error'], return_out['output'], service_name, rc=return_out['rc']):
 		if service == 'nginx':
-			sql.update_nginx(server_ip)
+			try:
+				sql.update_nginx(server_ip)
+			except Exception as e:
+				print(e)
 		elif service == 'apache':
-			sql.update_apache(server_ip)
+			try:
+				sql.update_apache(server_ip)
+			except Exception as e:
+				print(e)
 
 	if docker == '1':
 		server_id = sql.select_server_id_by_ip(server_ip)
@@ -302,7 +317,10 @@ def keepalived_master_install():
 	return_out = server_mod.subprocess_execute_with_rc(commands[0])
 
 	if show_installation_output(return_out['error'], return_out['output'], 'master Keepalived', rc=return_out['rc']):
-		sql.update_keepalived(master)
+		try:
+			sql.update_keepalived(master)
+		except Exception as e:
+			print(e)
 
 		if virt_server != '0':
 			group_id = sql.get_group_id_by_server_ip(master)
@@ -347,8 +365,11 @@ def keepalived_slave_install():
 
 	show_installation_output(return_out['error'], return_out['output'], 'slave Keepalived', rc=return_out['rc'])
 	os.remove(script)
-	sql.update_server_master(master, slave)
-	sql.update_keepalived(slave)
+	try:
+		sql.update_server_master(master, slave)
+		sql.update_keepalived(slave)
+	except Exception as e:
+		print(e)
 
 
 def keepalived_masteradd():
