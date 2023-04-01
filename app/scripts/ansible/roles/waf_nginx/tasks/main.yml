@@ -132,6 +132,12 @@
       command: "chdir=/tmp/nginx_src/nginx-{{ nginx_version.stderr.split('/')[1] }} cp objs/ngx_http_modsecurity_module.so /usr/lib/nginx/modules/"
       when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'Ubuntu'
 
+    - name: Create modules directory
+      become: true
+      file:
+        path: /usr/share/nginx/modules/
+        state: directory
+
     - name: Enable module for Centos
       become: true
       shell: echo 'load_module "modules/ngx_http_modsecurity_module.so";' > /usr/share/nginx/modules/mod-waf-connector.conf

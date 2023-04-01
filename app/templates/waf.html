@@ -134,15 +134,19 @@
 		$("#secIntervals").css("display", "none");
 		var ip = []
 		var hostnamea = []
-		{% for s in servers_all %}
-		{% if s.15|int() == 1 %}
+		{%- for s in servers_all %}
+			{% if service == 'haproxy '%}
+				{% set service_in_table = s.15 %}
+			{% else %}
+				{% set service_in_table = s.14 %}
+			{% endif %}
+		{% if service_in_table|int() == 1 %}
 			ip.push("{{ s[2] }}");
 			var host = "{{s[2]}}";
 			host = host.replace(/\./g, '\\.');
 			hostnamea.push(host);
 		{% endif %}
 		{% endfor %}
-
 	</script>
 	{% if servers_all|length == 0 %}
 		{% include 'include/getstarted.html' %}
