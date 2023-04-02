@@ -15,7 +15,8 @@ $( function() {
 			docker = '1';
 		}
 		if ($('#haproxyaddserv').val() == '------' || $('#haproxyaddserv').val() === null) {
-			toastr.warning('Select a server');
+			var select_server = $('#translate').attr('data-select_server');
+			toastr.warning(select_server);
 			return false
 		}
 		$("#ajax").html(wait_mess);
@@ -839,16 +840,6 @@ $( function() {
 			clearTips();
 		}
 	});
-	$('#show_country_codes').click(function() {
-		$('#hide_country_codes').show();
-		$('#geoip_country_codes').show();
-		$('#show_country_codes').hide();
-	});
-	$('#hide_country_codes').click(function() {
-		$('#show_country_codes').show();
-		$('#geoip_country_codes').hide();
-		$('#hide_country_codes').hide();
-	});
 	$( "#geoipserv" ).on('selectmenuchange',function() {
 		if($('#geoip_service option:selected').val() != '------') {
 			checkGeoipInstallation();
@@ -910,7 +901,6 @@ $( function() {
 		} else if (activeTab == '#updatehapwi') {
 			loadupdatehapwi();
 		} else if (activeTab == '#checker'){
-
 			loadchecker();
 		} else if (activeTab == '#openvpn'){
 			loadopenvpn();
@@ -932,51 +922,7 @@ $( function() {
 			$(this).children(".backup").css('border-left', '4px solid var(--right-menu-blue-rolor)');
 		});
 	});
-	$('#nginx-section-head').click(function () {
-		hideAndShowSettings('nginx');
-	});
-	$('#main-section-head').click(function () {
-		hideAndShowSettings('main');
-	});
-	$('#monitoring-section-head').click(function () {
-		hideAndShowSettings('monitoring');
-	});
-	$('#haproxy-section-head').click(function () {
-		hideAndShowSettings('haproxy');
-	});
-	$('#ldap-section-head').click(function () {
-		hideAndShowSettings('ldap');
-	});
-	$('#logs-section-head').click(function () {
-		hideAndShowSettings('logs');
-	});
-	$('#rabbitmq-section-head').click(function () {
-		hideAndShowSettings('rabbitmq');
-	});
-	$('#apache-section-head').click(function () {
-		hideAndShowSettings('apache');
-	});
-	$('#keepalived-section-head').click(function () {
-		hideAndShowSettings('keepalived');
-	});
-	$('#mail-section-head').click(function () {
-		hideAndShowSettings('mail');
-	});
 } );
-function hideAndShowSettings(section) {
-	var ElemId = $('#' + section + '-section-h3');
-	if(ElemId.attr('class') == 'plus-after') {
-		$('.' + section + '-section').show();
-		ElemId.removeClass('plus-after');
-		ElemId.addClass('minus-after');
-		$.getScript(awesome);
-	} else {
-		$('.' + section + '-section').hide();
-		ElemId.removeClass('minus-after');
-		ElemId.addClass('plus-after');
-		$.getScript(awesome);
-	}
-}
 window.onload = function() {
 	$('#tabs').tabs();
 	var activeTabIdx = $('#tabs').tabs('option','active')
@@ -1115,7 +1061,6 @@ function addServer(dialog_id) {
 	valid = valid && checkLength( $('#new-server-add'), "Hostname", 1 );
 	valid = valid && checkLength( $('#new-ip'), "IP", 1 );
 	valid = valid && checkLength( $('#new-port'), "Port", 1 );
-	console.log(cred)
 	if (cred == null) {
 		toastr.error('First select credentials');
 		return false;
@@ -1133,7 +1078,6 @@ function addServer(dialog_id) {
 				newip: newip,
 				newport: $('#new-port').val(),
 				newservergroup: newservergroup,
-				scan_server: scan_server,
 				typeip: typeip,
 				haproxy: haproxy,
 				nginx: nginx,
@@ -1142,17 +1086,14 @@ function addServer(dialog_id) {
 				enable: enable,
 				slave: $('#slavefor' ).val(),
 				cred: cred,
-				page: cur_url[0].split('#')[0],
+				page: cur_url,
 				desc: $('#desc').val(),
 				token: $('#token').val()
 			},
 			type: "POST",
 			success: function( data ) {
 				data = data.replace(/\s+/g,' ');
-				if (data.indexOf('You should install lshw on the server') != '-1') {
-					toastr.error(data);
-					$( dialog_id ).dialog("close");
-				} else if (data.indexOf('error:') != '-1') {
+				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
 					common_ajax_action_after_success(dialog_id, 'newserver', 'ajax-servers', data);
@@ -1170,10 +1111,35 @@ function addServer(dialog_id) {
 					$('select:regex(id, apache_exp_addserv)').append('<option value=' + $('#ip-'+id).text() + '>' + $('#hostname-'+id).val() + '</option>').selectmenu("refresh");
 					$('select:regex(id, node_exp_addserv)').append('<option value=' + $('#ip-'+id).text() + '>' + $('#hostname-'+id).val() + '</option>').selectmenu("refresh");
 					$('select:regex(id, geoipserv)').append('<option value=' + $('#ip-'+id).text() + '>' + $('#hostname-'+id).val() + '</option>').selectmenu("refresh");
+					$('select:regex(id, haproxyaddserv)').append('<option value=' + newip + '>' + servername + '</option>').selectmenu("refresh");
+					$('select:regex(id, nginxaddserv)').append('<option value=' + newip + '>' + servername + '</option>').selectmenu("refresh");
+					$('select:regex(id, apacheaddserv)').append('<option value=' + newip + '>' + servername + '</option>').selectmenu("refresh");
+					after_server_creating(servername, newip, scan_server);
 				}
 			}
 		} );
 	}
+}
+function after_server_creating(servername, newip, scan_server) {
+	$.ajax({
+		url: "options.py",
+		data: {
+			act: 'after_adding',
+			servername: servername,
+			newip: newip,
+			scan_server: scan_server,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('You should install lshw on the server') != '-1') {
+				toastr.error(data);
+			} else if (data.indexOf('error:') != '-1') {
+				toastr.error(data);
+			}
+		}
+	} );
 }
 function addCreds(dialog_id) {
 	toastr.clear();
@@ -1942,22 +1908,10 @@ function updateServer(id) {
 	toastr.clear();
 	let typeip = 0;
 	let enable = 0;
-	let haproxy = 0;
-	let nginx = 0;
-	let apache = 0;
 	let firewall = 0;
 	let protected_serv = 0;
 	if ($('#typeip-'+id).is(':checked')) {
 		typeip = '1';
-	}
-	if ($('#haproxy-'+id).is(':checked')) {
-		haproxy = '1';
-	}
-	if ($('#nginx-'+id).is(':checked')) {
-		nginx = '1';
-	}
-	if ($('#apache-'+id).is(':checked')) {
-		apache = '1';
 	}
 	if ($('#enable-'+id).is(':checked')) {
 		enable = '1';
@@ -1979,9 +1933,6 @@ function updateServer(id) {
 			port: $('#port-'+id).val(),
 			servergroup: servergroup,
 			typeip: typeip,
-			haproxy: haproxy,
-			nginx: nginx,
-			apache: apache,
 			firewall: firewall,
 			enable: enable,
 			slave: $('#slavefor-'+id+' option:selected' ).val(),
@@ -2008,7 +1959,7 @@ function updateServer(id) {
 }
 function uploadSsh() {
 	toastr.clear();
-	if ($( "#ssh-key-name option:selected" ).val() == "Choose server" || $('#ssh_cert').val() == '') {
+	if ($( "#ssh-key-name option:selected" ).val() == "------" || $('#ssh_cert').val() == '') {
 		toastr.error('All fields must be completed');
 	} else {
 		$.ajax( {
@@ -2128,7 +2079,7 @@ function updateSlack(id) {
 }
 function updateBackup(id) {
 	toastr.clear();
-	if ($( "#backup-type-"+id+" option:selected" ).val() == "Choose server" || $('#backup-rserver-'+id).val() == '' || $('#backup-rpath-'+id).val() == '') {
+	if ($( "#backup-type-"+id+" option:selected" ).val() == "-------" || $('#backup-rserver-'+id).val() == '' || $('#backup-rpath-'+id).val() == '') {
 		toastr.error('All fields must be completed');
 	} else {
 		$.ajax( {
@@ -3012,7 +2963,8 @@ function installService(service){
 		docker = '1';
 	}
 	if ($('#'+service+'addserv').val() == '------') {
-		toastr.warning('Select a server');
+		var select_server = $('#translate').attr('data-select_server');
+		toastr.warning(select_server);
 		return false
 	}
 	$("#ajax").html(wait_mess);
@@ -3078,34 +3030,37 @@ function showServiceVersion(service) {
 	} );
 }
 function serverIsUp(server_ip, server_id) {
-	$.ajax({
-		url: "options.py",
-		data: {
-			act: 'server_is_up',
-			server_is_up: server_ip,
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function (data) {
-			data = data.replace(/^\s+|\s+$/g, '');
-			if (data.indexOf('up') != '-1') {
-				$('#server_status-'+server_id).removeClass('serverNone');
-				$('#server_status-'+server_id).removeClass('serverDown');
-				$('#server_status-'+server_id).addClass('serverUp');
-				$('#server_status-'+server_id).attr('title', 'Server is reachable');
-			} else if (data.indexOf('down') != '-1') {
-				$('#server_status-'+server_id).removeClass('serverNone');
-				$('#server_status-'+server_id).removeClass('serverUp');
-				$('#server_status-'+server_id).addClass('serverDown');
-				$('#server_status-'+server_id).attr('title', 'Server is unreachable');
-			} else {
-				$('#server_status-'+server_id).removeClass('serverDown');
-				$('#server_status-'+server_id).removeClass('serverUp');
-				$('#server_status-'+server_id).addClass('serverNone');
-				$('#server_status-'+server_id).attr('title', 'Cannot get server status');
+	var cur_url = window.location.href.split('/').pop();
+	if (cur_url.split('#')[1] == 'servers') {
+		$.ajax({
+			url: "options.py",
+			data: {
+				act: 'server_is_up',
+				server_is_up: server_ip,
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function (data) {
+				data = data.replace(/^\s+|\s+$/g, '');
+				if (data.indexOf('up') != '-1') {
+					$('#server_status-' + server_id).removeClass('serverNone');
+					$('#server_status-' + server_id).removeClass('serverDown');
+					$('#server_status-' + server_id).addClass('serverUp');
+					$('#server_status-' + server_id).attr('title', 'Server is reachable');
+				} else if (data.indexOf('down') != '-1') {
+					$('#server_status-' + server_id).removeClass('serverNone');
+					$('#server_status-' + server_id).removeClass('serverUp');
+					$('#server_status-' + server_id).addClass('serverDown');
+					$('#server_status-' + server_id).attr('title', 'Server is unreachable');
+				} else {
+					$('#server_status-' + server_id).removeClass('serverDown');
+					$('#server_status-' + server_id).removeClass('serverUp');
+					$('#server_status-' + server_id).addClass('serverNone');
+					$('#server_status-' + server_id).attr('title', 'Cannot get server status');
+				}
 			}
-		}
-	});
+		});
+	}
 }
 function confirmChangeGroupsAndRoles(user_id) {
 	var cancel_word = $('#translate').attr('data-cancel');
@@ -3210,4 +3165,102 @@ function saveGroupsAndRoles(user_id) {
 			}
 		}
 	});
+}
+function openChangeServerServiceDialog(server_id) {
+	var cancel_word = $('#translate').attr('data-cancel');
+	var action_word = $('#translate').attr('data-save');
+	var user_groups_word = $('#translate').attr('data-user_groups');
+	var hostname = $('#hostname-'+server_id).val();
+	$.ajax({
+		url: "options.py",
+		data: {
+			act: 'show_server_services',
+			server_id: server_id,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			$("#groups-roles").html(data);
+			$("#groups-roles").dialog({
+				resizable: false,
+				height: "auto",
+				width: 700,
+				modal: true,
+				title: user_groups_word + ' ' + hostname,
+				buttons: [{
+					text: action_word,
+					click: function () {
+						changeServerServices(server_id);
+						$(this).dialog("close");
+					}
+				}, {
+					text: cancel_word,
+					click: function () {
+						$(this).dialog("close");
+					}
+				}]
+			});
+		}
+	});
+}
+function addServiceToServer(service_id) {
+	var service_name = $('#add_service-'+service_id).attr('data-service_name');
+	var delete_word = $('#translate').attr('data-delete');
+	var service_word = $('#translate').attr('data-service');
+	var length_tr = $('#checked_services tbody tr').length;
+	var tr_class = 'odd';
+	if (length_tr % 2 != 0) {
+		tr_class = 'even';
+	}
+	var html_tag = '<tr class="'+tr_class+'" id="remove_service-'+service_id+'" data-service_name="'+service_name+'">' +
+		'<td class="padding20" style="width: 100%;">'+service_name+'</td>' +
+		'<td><span class="add_user_group" onclick="removeServiceFromUser('+service_id+')" title="'+delete_word+' '+service_word+'">-</span></td></tr>';
+	$('#add_service-'+service_id).remove();
+	$("#checked_services tbody").append(html_tag);
+}
+function removeServiceFromServer(service_id) {
+	var service_name = $('#remove_service-'+service_id).attr('data-service_name');
+	var add_word = $('#translate').attr('data-add');
+	var service_word = $('#translate').attr('data-service');
+	var length_tr = $('#all_services tbody tr').length;
+	var tr_class = 'odd';
+	if (length_tr % 2 != 0) {
+		tr_class = 'even';
+	}
+	var html_tag = '<tr class="'+tr_class+'" id="add_service-'+service_id+'" data-service_name="'+service_name+'">' +
+		'<td class="padding20" style="width: 100%;">'+service_name+'</td>' +
+		'<td><span class="add_user_group" onclick="addServiceToUser('+service_id+')" title="'+add_word+' '+service_word+'">+</span></td></tr>';
+	$('#remove_service-'+service_id).remove();
+	$("#all_services tbody").append(html_tag);
+}
+function changeServerServices(server_id) {
+	var jsonData = {};
+	$('#checked_services tbody tr').each(function () {
+		var this_id = $(this).attr('id').split('-')[1];
+		jsonData[this_id] = 1
+	});
+	$('#all_services tbody tr').each(function () {
+		var this_id = $(this).attr('id').split('-')[1];
+		jsonData[this_id] = 0
+	});
+	$.ajax( {
+		url: "options.py",
+		data: {
+			changeServerServicesId: server_id,
+			jsonDatas: JSON.stringify(jsonData),
+			changeServerServicesServer: $('#hostname-'+server_id).val(),
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
+				toastr.error(data);
+			} else {
+				$("#server-" + server_id).addClass("update", 1000);
+				setTimeout(function () {
+					$("#server-" + server_id).removeClass("update");
+				}, 2500);
+			}
+		}
+	} );
 }

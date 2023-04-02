@@ -1,6 +1,6 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% from 'languages/languages.html' import languages %}
-{% from 'include/input_macros.html' import select %}
+{% from 'include/input_macros.html' import select, checkbox %}
 <html lang="en">
 	<head>
 		<title>{% block title %}{% endblock %}</title>
@@ -18,7 +18,8 @@
 			  data-empty_name="{{lang.errors.empty_name}}" data-edit="{{lang.words.edit|title()}}" data-close="{{lang.words.close|title()}}" data-server_info="{{lang.phrases.server_info}}"
 			  data-generated_config="{{lang.words.generated|title()}} {{lang.words.config}}" data-restart="{{lang.words.restart|title()}}" data-start="{{lang.words.start|title()}}"
 			  data-stop="{{lang.words.stop|title()}}" data-reload="{{lang.words.reload|title()}}" data-user_groups="{{lang.phrases.user_groups}}" data-settings="{{lang.words.settings|title()}}"
-			  data-for="{{lang.words.for}}" />
+			  data-for="{{lang.words.for}}" data-show="{{lang.words.show|title()}}" data-hide="{{lang.words.hide|title()}}" data-logs="{{lang.words.logs}}"
+			  data-autorefresh="{{lang.words.auto|title()}}-{{lang.words.refresh}}" />
 		{% if title == 'Login page' %}
 		<meta name="viewport" content="width=device-width, user-scalable=1">
 		{% endif %}
@@ -48,8 +49,8 @@
 		<script defer src="/inc/intro/introjs.min.js"></script>
 		<link href="/inc/intro/introjs.min.css" rel="stylesheet">
 		<link href="/inc/intro/introjs-modern.css" rel="stylesheet">
-		<link href="/inc/css/awesome-6.3.8.css" rel="stylesheet">
-		<link href="/inc/css/style.css" rel="stylesheet">
+		<link href="/inc/css/awesome-6.3.9.css" rel="stylesheet">
+		<link href="/inc/css/style-6.3.9.css" rel="stylesheet">
 		<link href="/inc/css/nprogress.css" rel="stylesheet">
 		<link href="/inc/css/jquery-ui.min.css" rel="stylesheet">
 		<link href="/inc/css/jquery-ui.structure.min.css" rel="stylesheet">
@@ -60,9 +61,9 @@
 		<script src="/inc/hotkeys.js"></script>
 		<link href="/inc/css/select2.css" rel="stylesheet" />
 		<script src="/inc/select2.js"></script>
-		<script src="/inc/script.js"></script>
+		<script src="/inc/script-6.3.9.js"></script>
 		<script src="/inc/nprogress.js"></script>
-		<link href="/inc/css/toastr.css" rel="stylesheet"/>
+		<link href="/inc/css/toastr-6.3.9.css" rel="stylesheet"/>
 		<script src="/inc/toastr.js"></script>
 	</head>
 	<body>
@@ -207,8 +208,8 @@
 					{% include 'include/login.html' %}
 					{% if autorefresh %}
 						<span class="auto-refresh">
-							<a onclick="pauseAutoRefresh()" class="auto-refresh-pause" style="display: none; margin-top: 4px;"></a>
-							<a onclick="pauseAutoResume()" class="auto-refresh-resume" style="display: none; margin-top: 4px;"></a>
+							<a onclick="pauseAutoRefresh()" class="auto-refresh-pause" style="display: none; margin-top: 3px; position: absolute;"></a>
+							<a onclick="pauseAutoResume()" class="auto-refresh-resume" style="display: none; margin-top: 4px; position: absolute;"></a>
 							<span id="0" class="auto-refresh-span">
 								<span class="auto-refresh-reload auto-refresh-reload-icon"></span>
 								{{lang.words.auto|title()}}-{{lang.words.refresh}}
@@ -315,10 +316,7 @@
 				<tr>
 					<td class="padding20" style="width: 70%">{{lang.words.alerts|title()}}</td>
 					<td>
-						<select id="disable_alerting">
-							<option value="0" title="{{lang.phrases.all_alerts_enabled}}">{{lang.phrases.all_alerts_enabled}}</option>
-							<option value="1">{{lang.phrases.disable_alerts}}</option>
-						</select>
+						{{ checkbox('disable_alerting') }}
 					</td>
 				</tr>
 				<tr class="padding20">

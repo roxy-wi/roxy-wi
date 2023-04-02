@@ -1,3 +1,4 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% for service in service_status %}
 	<td class="padding10 first-collumn">
 		<a href="/app/history.py?service=server&serv={{ service.1 }}" title="{{service.0 }} history" class="logs_link">
@@ -6,56 +7,56 @@
 	</td>
 	<td>
 		{% if service.2|int() == 0 %}
-			<span class="serverNone server-status" title="HAProxy is not installed"
+			<span class="serverNone server-status" title="HAProxy {{lang.phrases.is_not_installed}}"
 		{% else %}
 			{% if service.3|int() >= 1 %}
-				<span class="serverUp server-status" title="running {{ service.3 }} processes"
+				<span class="serverUp server-status" title="{{lang.words.running2|title()}} {{ service.3 }} {{lang.words.processes}}"
 			{% else %}
-				<span class="serverDown server-status" title="HAProxy is down"
+				<span class="serverDown server-status" title="HAProxy {{lang.words.stopped}}"
 			{% endif %}
 		{% endif %}
 			style="margin-left: 25px !important;" id="haproxy_{{service.10}}"></span>
 	</td>
-	<td class="padding10 first-collumn">
+	<td class="padding10 first-collumn" style="padding-left: 20px">
 		{% if service.8|int() == 0 %}
-			<span class="serverNone server-status" title="NGINX is not installed"
+			<span class="serverNone server-status" title="NGINX {{lang.phrases.is_not_installed}}"
 		{% else %}
 			{% if service.9|int() >= 1 %}
-				<span class="serverUp server-status" title="NGINX is running"
+				<span class="serverUp server-status" title="NGINX {{lang.words.running}}"
 			{% else %}
-				<span class="serverDown server-status" title="NGINX is down"
+				<span class="serverDown server-status" title="NGINX {{lang.words.stopped}}"
 			{% endif %}
 		{% endif %}
 		style="margin-left: 4px !important;" id="nginx_{{service.10}}"></span>
 	</td>
-	<td class="padding10 first-collumn">
+	<td class="padding10 first-collumn" style="padding-left: 20px">
 		{% if service.11|int() == 0 %}
-			<span class="serverNone server-status" title="Apache is not installed"
+			<span class="serverNone server-status" title="Apache {{lang.phrases.is_not_installed}}"
 		{% else %}
 			{% if service.12|int() >= 1 %}
-				<span class="serverUp server-status" title="Apache is running"
+				<span class="serverUp server-status" title="Apache {{lang.words.running}}"
 			{% else %}
-				<span class="serverDown server-status" title="Apache is down"
+				<span class="serverDown server-status" title="Apache {{lang.words.stopped}}"
 			{% endif %}
 		{% endif %}
 		style="margin-left: 4px !important;" id="apache_{{service.10}}"></span>
 	</td>
-	<td class="padding10 first-collumn">
+	<td class="padding10 first-collumn" style="padding-left: 35px">
 		{% if service.6|int() == 0 %}
-			<span class="serverNone server-status" title="Keepalived is not installed" style="margin-left: 4px !important;"></span>		
+			<span class="serverNone server-status" title="Keepalived {{lang.phrases.is_not_installed}}" style="margin-left: 4px !important;"></span>		
 		{% else %}
 			{% if service.7|int() >= 1 %}
 				<span class="serverUp server-status" title="running {{service.7 }} processes" style="margin-left: 4px !important;"></span> 		
 			{% else %}
-				<span class="serverDown server-status" title="Keepalived is down" style="margin-left: 4px !important;"></span>
+				<span class="serverDown server-status" title="Keepalived {{lang.words.stopped}}" style="margin-left: 4px !important;"></span>
 			{% endif %}
 		{% endif %}
 	</td>
-	<td class="third-collumn-wi">
+	<td class="third-collumn-wi" style="padding-left: 15px">
 		{% if service.5.0|length() == 0 %}
-			<span class="serverNone server-status" title="WAF is not installed" style="margin-left: 4px !important;"></span>		
+			<span class="serverNone server-status" title="WAF {{lang.phrases.is_not_installed}}" style="margin-left: 4px !important;"></span>		
 		{% elif service.5.0 != '' and service.4|int() == 0 %}
-			<span class="serverDown server-status" title="WAF is down" style="margin-left: 4px !important;"></span>
+			<span class="serverDown server-status" title="WAF {{lang.words.stopped}}" style="margin-left: 4px !important;"></span>
 		{% elif service.5.0 != '' and service.4|int() >= 1 %}
 			<span class="serverUp server-status" title="running {{ service.4 }} processes" style="margin-left: 4px !important;"></span>
 		{% endif %}

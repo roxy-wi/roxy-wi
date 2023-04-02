@@ -26,7 +26,7 @@ if servbackend is None:
 	servbackend = ""
 
 rendered_template = template.render(
-	h2=0, title="RunTime API", role=user_params['role'], user=user_params['user'], select_id="serv",
+	h2=1, title="RunTime API", role=user_params['role'], user=user_params['user'], select_id="serv",
 	selects=user_params['servers'], token=user_params['token'], user_services=user_params['user_services'],
 	servbackend=servbackend, lang=user_params['lang']
 )

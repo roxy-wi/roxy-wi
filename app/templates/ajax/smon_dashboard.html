@@ -2,10 +2,7 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% endif %}
 <div class="sort_menu">
-    <a href="#" title="{{lang.smon_page.desc.do_not_sort_by_status}}" onclick="showSmon('not_sort')">{{lang.smon_page.desc.do_not_sort}}</a> |
-    <a href="#" id="sort_by_status" title="{{lang.smon_page.desc.sort_status}}" onclick="sort_by_status()">{{lang.smon_page.desc.sort_status}}</a> |
-    <a href="#" title="SMOM: {{lang.words.dashboard|title()}} - Roxy-WI" onclick="showSmon('refresh');">{{lang.words.refresh|title()}}</a>
-    <span style="padding-left: 20px;">
+    <div style="margin-bottom: 15px">
 		{% set down = [] %}
 		{% set up = [] %}
 		{% set dis = [] %}
@@ -21,7 +18,10 @@
 			{% endif %}
 		{% endfor %}
 		<b>{{lang.smon_page.desc.status_summary}}: {{lang.smon_page.desc.UP}}: {{up|length}}, {{lang.smon_page.desc.DOWN}}: {{down|length}}, {{lang.words.disabled|title()}}: {{dis|length}}</b>
-	<span>
+    </div>
+    <a href="#" title="{{lang.smon_page.desc.do_not_sort_by_status}}" onclick="showSmon('not_sort')">{{lang.smon_page.desc.do_not_sort}}</a> |
+    <a href="#" id="sort_by_status" title="{{lang.smon_page.desc.sort_status}}" onclick="sort_by_status()">{{lang.smon_page.desc.sort_status}}</a> |
+    <a href="#" title="SMOM: {{lang.words.dashboard|title()}} - Roxy-WI" onclick="showSmon('refresh');">{{lang.words.refresh|title()}}</a>
 </div>
 {% set group = [] %}
 {% set group_prev = [] %}
@@ -148,7 +148,7 @@
     {% else %}
         <div class="disable">
             <center>
-                {{lang.words.disabled|title()}}
+                {{lang.smon_page.desc.DISABLED}}
             </center>
         </div>
     {% endif %}

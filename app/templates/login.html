@@ -28,18 +28,54 @@ body, .container {
 		background-color: #239dee;
 	}
 }
+.fontuser {
+	position: relative;
+}
+.fontuser i {
+	position: absolute;
+	left: 9px;
+	top: 10px;
+	color: #036bb0;
+}
+.fontpassword {
+	position: relative;
+	margin-bottom: 15px;
+}
+.fontpassword i {
+	position: absolute;
+	left: 9px;
+	top: 10px;
+	color: #036bb0;
+}
+.fontpassword span i {
+	position: absolute;
+	left: 193px;
+    top: 10px;
+    color: #036bb0;
+    font-size: 17px;
+	cursor: pointer;
+}
 </style>
 <div id="main_div">
 	<div id="login-form" style="padding-top: 40px; padding-bottom: 50px; height: 250px; color: #000;">
 		<span id="logo_span">
 			<img src="/inc/images/logo_login.png">
 		</span>
-		<form name="auth" id="auth" action="login.py" class="form-horizontal" method="post" style="margin-top: 40px;left: 0;float: left;margin-left: 93px;">
+		<form name="auth" id="auth" action="login.py" class="form-horizontal" method="post" style="margin-top: 60px;left: 0;float: left;margin-left: 93px;">
+			<div class="fontuser">
+				{{ input('login', class='form-login', placeholder=lang.words.login|title(), required='required', autofocus='autofocus') }}
+				<i class="fa fa-user fa-lg"></i>
+			</div>
 			<br>
-			{{ input('login', class='form-login', placeholder='Login', required='required', autofocus='autofocus') }}<br /><br />
-			{{ input('pass', type='password', class='form-login', placeholder='Password', required='required') }}<br /><br />
-			{{ input('ref', type='hidden', value=ref) }}
-			<button type="submit" name="Login" value="Enter" id="enter">Login</button>
+			<div class="fontpassword">
+				{{ input('pass', type='password', class='form-login', placeholder=lang.words.password|title(), required='required') }}
+				{{ input('ref', type='hidden', value=ref) }}
+				<i class="fa fa-key fa-lg"></i>
+				<span onclick="showPassword('pass')" title="{{lang.words.show|title()}} {{lang.words.password}}">
+				<i class="far fa-eye"></i>
+					</span>
+			</div>
+			<button type="submit" name="Login" value="Enter" id="enter">{{lang.words.login2|title()}}</button>
 		</form>
 		{% if error_log or error %}
 		<div class="alert alert-danger wrong-login alert-one-row" style="display: block">
@@ -48,11 +84,10 @@ body, .container {
 		</div>
 		{% endif %}
 		<div class="alert alert-danger wrong-login alert-one-row" id="wrong-login">
-			Your login or password is incorrect
+			{{lang.phrases.login_or_pass_incorrect}}
 			<br />
 			<span id="ban_10">
-				<br />
-				You can try again in <span id="ban_timer">10</span> seconds
+				{{lang.phrases.can_try_again}} <span id="ban_timer">10</span> {{lang.words.seconds2}}
 			</span>
 		</div>
 		<br /><br />

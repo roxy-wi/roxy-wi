@@ -1,4 +1,6 @@
 var awesome = "/inc/fontawesome.min.js"
+var waf = "/inc/waf-6.3.8.js"
+var overview = "/inc/overview-6.3.9.js"
 function showOverviewWaf(serv, hostnamea) {
 	var service = findGetParameter('service');
 	if (service == 'haproxy') {
@@ -9,8 +11,8 @@ function showOverviewWaf(serv, hostnamea) {
 	for (i = 0; i < serv.length; i++) { 
 		showOverviewWafCallBack(serv[i], hostnamea[i])
 	}
-	$.getScript('/inc/overview.js');
-	$.getScript('/inc/waf.js');
+	$.getScript(overview);
+	$.getScript(waf);
 }
 function showOverviewWafCallBack(serv, hostnamea) {
 	var service = findGetParameter('service');
@@ -31,7 +33,7 @@ function showOverviewWafCallBack(serv, hostnamea) {
 			$("#"+hostnamea).html(data)		
 			$( "input[type=submit], button" ).button();
 			$( "input[type=checkbox]" ).checkboxradio();
-			$.getScript('/inc/overview.js');
+			$.getScript(overview);
 			$.getScript(awesome);
 		}				
 	} );
@@ -59,7 +61,7 @@ function metrics_waf(name) {
 	} );
 }
 function installWaf(ip1) {
-	$("#ajax").html('')
+	$("#ajax").html('');
 	$("#ajax").html(wait_mess);
 	var service = findGetParameter('service');
 	$.ajax( {
@@ -80,7 +82,8 @@ function installWaf(ip1) {
 			} else if (data.indexOf('success') != '-1' ){
 				toastr.clear();
 				toastr.success('WAF service has been installed');
-				showOverviewWaf(ip, hostnamea)
+				showOverviewWaf(ip, hostnamea);
+				$("#ajax").html('');
 			}	
 		}
 	} );	

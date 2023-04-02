@@ -7,9 +7,8 @@
 {% else %}
 <link href="/inc/css/table.css" rel="stylesheet" type="text/css">
 <script type="text/javascript" charset="utf8" src="/inc/dataTables.min.js"></script>
-<center>
 	<p>
-		<form action="{{ action }}" method="post">
+		<form action="{{ action }}" method="post" class="left-space">
 			<input type="hidden" value="{{service}}" name="service" id="service">
 			{% include 'include/select.html' %}
 				<a class="ui-button ui-widget ui-corner-all" title="Open versions" onclick="showListOfVersion(1)">{{lang.words.open|title()}}</a>
@@ -45,6 +44,5 @@
 		{% endif %}
 	{% endfor %}
 	{% endif %}
-</center>
 {% endif %}
 {% endblock %}

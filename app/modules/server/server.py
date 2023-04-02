@@ -1,5 +1,7 @@
 import json
 
+from jinja2 import Environment, FileSystemLoader
+
 import modules.db.sql as sql
 import modules.server.ssh as mod_ssh
 import modules.common.common as common
@@ -345,8 +347,6 @@ def get_system_info(server_ip: str) -> str:
 
 
 def show_system_info() -> None:
-	from jinja2 import Environment, FileSystemLoader
-
 	server_ip = form.getvalue('server_ip')
 	server_ip = common.is_ip_or_dns(server_ip)
 	server_id = form.getvalue('server_id')
@@ -376,8 +376,6 @@ def show_system_info() -> None:
 
 
 def update_system_info() -> None:
-	from jinja2 import Environment, FileSystemLoader
-
 	server_ip = form.getvalue('server_ip')
 	server_ip = common.is_ip_or_dns(server_ip)
 	server_id = form.getvalue('server_id')
@@ -404,8 +402,6 @@ def update_system_info() -> None:
 
 
 def show_firewalld_rules() -> None:
-	from jinja2 import Environment, FileSystemLoader
-
 	serv = common.checkAjaxInput(form.getvalue('viewFirewallRules'))
 
 	cmd = ["sudo iptables -L INPUT -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"]
@@ -431,57 +427,59 @@ def show_firewalld_rules() -> None:
 	print(template)
 
 
-def create_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, apache, firewall, scan_server, **kwargs) -> bool:
+def create_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, apache, firewall, **kwargs) -> bool:
 	if not roxywi_auth.is_admin(level=2, role_id=kwargs.get('role_id')):
-		raise Exception('not enough permission')
+		raise Exception('error: not enough permission')
 
 	if sql.add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, apache, firewall):
-		try:
-			try:
-				sql.insert_new_checker_setting_for_server(ip)
-			except Exception as e:
-				roxywi_common.logging(f'Cannot insert Checker settings for {hostname}', str(e), roxywi=1)
-				raise Exception(f'error: Cannot insert Checker settings for {hostname} {e}')
-
-			if scan_server == '1':
-				nginx_config_path = sql.get_setting('nginx_config_path')
-				haproxy_config_path = sql.get_setting('haproxy_config_path')
-				haproxy_dir = sql.get_setting('haproxy_dir')
-				apache_config_path = sql.get_setting('apache_config_path')
-				keepalived_config_path = sql.get_setting('keepalived_config_path')
-
-				if is_file_exists(ip, nginx_config_path):
-					sql.update_nginx(ip)
-
-				if is_file_exists(ip, haproxy_config_path):
-					sql.update_haproxy(ip)
-
-				if is_file_exists(ip, keepalived_config_path):
-					sql.update_keepalived(ip)
-
-				if is_file_exists(ip, apache_config_path):
-					sql.update_apache(ip)
-
-				if is_file_exists(ip, haproxy_dir + '/waf/bin/modsecurity'):
-					sql.insert_waf_metrics_enable(ip, "0")
-					sql.insert_waf_rules(ip)
-
-				if is_service_active(ip, 'firewalld'):
-					sql.update_firewall(ip)
-
-		except Exception as e:
-			roxywi_common.logging(f'Cannot scan a new server {hostname}', str(e), roxywi=1)
-			raise Exception(f'error: Cannot scan a new server {hostname} {e}')
-
-		try:
-			get_system_info(ip)
-		except Exception as e:
-			roxywi_common.logging(f'Cannot get information from {hostname}', str(e), roxywi=1, login=1)
-			raise Exception(f'error: Cannot get information from {hostname} {e}')
-
 		return True
 	else:
 		return False
+
+
+def update_server_after_creating(hostname: str, ip: str, scan_server: int) -> None:
+	try:
+		try:
+			sql.insert_new_checker_setting_for_server(ip)
+		except Exception as e:
+			roxywi_common.logging(f'Cannot insert Checker settings for {hostname}', str(e), roxywi=1)
+			raise Exception(f'error: Cannot insert Checker settings for {hostname} {e}')
+
+		if scan_server == '1':
+			nginx_config_path = sql.get_setting('nginx_config_path')
+			haproxy_config_path = sql.get_setting('haproxy_config_path')
+			haproxy_dir = sql.get_setting('haproxy_dir')
+			apache_config_path = sql.get_setting('apache_config_path')
+			keepalived_config_path = sql.get_setting('keepalived_config_path')
+
+			if is_file_exists(ip, nginx_config_path):
+				sql.update_nginx(ip)
+
+			if is_file_exists(ip, haproxy_config_path):
+				sql.update_haproxy(ip)
+
+			if is_file_exists(ip, keepalived_config_path):
+				sql.update_keepalived(ip)
+
+			if is_file_exists(ip, apache_config_path):
+				sql.update_apache(ip)
+
+			if is_file_exists(ip, haproxy_dir + '/waf/bin/modsecurity'):
+				sql.insert_waf_metrics_enable(ip, "0")
+				sql.insert_waf_rules(ip)
+
+			if is_service_active(ip, 'firewalld'):
+				sql.update_firewall(ip)
+
+	except Exception as e:
+		roxywi_common.logging(f'Cannot scan a new server {hostname}', str(e), roxywi=1)
+		raise Exception(f'error: Cannot scan a new server {hostname} {e}')
+
+	try:
+		get_system_info(ip)
+	except Exception as e:
+		roxywi_common.logging(f'Cannot get information from {hostname}', str(e), roxywi=1, login=1)
+		raise Exception(f'error: Cannot get information from {hostname} {e}')
 
 
 def delete_server(server_id: int) -> None:
@@ -514,3 +512,34 @@ def server_is_up(server_ip: str) -> None:
 	cmd = [f'if ping -c 1 -W 1 {server_ip} >> /dev/null; then echo up; else echo down; fi']
 	server_status, stderr = subprocess_execute(cmd)
 	print(server_status)
+
+
+def show_server_services() -> None:
+	server_id = common.checkAjaxInput(form.getvalue('server_id'))
+	server = sql.select_servers(id=server_id)
+	env = Environment(loader=FileSystemLoader('templates'))
+	template = env.get_template('ajax/show_server_services.html')
+	lang = roxywi_common.get_user_lang()
+	template = template.render(server=server, lang=lang)
+	print(template)
+
+
+def change_server_services() -> None:
+	import json
+
+	server_id = common.checkAjaxInput(form.getvalue('changeServerServicesId'))
+	server_name = common.checkAjaxInput(form.getvalue('changeServerServicesServer'))
+	services = sql.select_services()
+	services_status = {}
+	server_services = json.loads(form.getvalue('jsonDatas'))
+
+	for k, v in server_services.items():
+		for service in services:
+			if service.service_id == int(k):
+				services_status[service.service_id] = v
+
+	try:
+		if sql.update_server_services(server_id, services_status[1], services_status[2], services_status[4], services_status[3]):
+			roxywi_common.logging('Roxy-WI server', f'Active services have been updated for {server_name}', roxywi=1, login=1)
+	except Exception as e:
+		print(e)

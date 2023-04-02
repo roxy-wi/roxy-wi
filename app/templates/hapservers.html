@@ -3,7 +3,7 @@
 {% block h2 %}{{ lang.menu_links.hapservers.h2 }} {{ service_desc.service }}{% endblock %}
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select, copy_to_clipboard %}
-<script src="/inc/overview.js"></script>
+<script src="/inc/overview-6.3.9.js"></script>
 <link href="/inc/css/chart.min.css" rel="stylesheet">
 <script src="/inc/metrics.js"></script>
 <script src="/inc/chart.min.js"></script>
@@ -34,6 +34,7 @@
 		$( ".sortable" ).disableSelection();
 
 		$( ".sortable" ).sortable({
+			handle: ".portlet-header",
 			stop: function(event, ui) {
 				var itemOrder = $('.sortable').sortable("toArray");
 				for (var i = 0; i < itemOrder.length; i++) {
@@ -56,7 +57,7 @@
 		{% endfor %}
 	});
 </script>
-<div id="up-pannel" {%if not serv%} class="sortable"{%endif%}>
+<div id="up-pannel" class="sortable">
 	{%- for s in servers %}
 		{%- if serv %}
 			{% set config_id = 'id=config_link' %}
@@ -196,26 +197,26 @@
 				{% set additional_status_class = 'div-server-head-down' %}
 			{% endif %}
 		{% endif %}
-		<div id="div-server-{{s.0}}" class="div-server-hapwi {{additional_status_class}}" {% if not serv %}style="cursor: move;"{%endif%}>
+		<div id="div-server-{{s.0}}" class="div-server-hapwi {{additional_status_class}}">
 			<div class="server-name">
 				<input type="hidden" id="server-name-{{s.0}}" value="{{s.1}}" />
 				<input type="hidden" id="service" value="{{service}}" />
 				{% if not serv %}
-					<a href="/app/hapservers.py?service={{service}}&serv={{s.2}}" title="More about {{s.1}}" style="color: #5d9ceb">{{s.1}}</a>
+					<a href="/app/hapservers.py?service={{service}}&serv={{s.2}}" title="{{lang.words.more|title()}} {{lang.words.about}} {{s.1}}" style="color: #5d9ceb">{{s.1}}</a>
 				{% else %}
 					{{s.1}}
 				{% endif %}
 				{% if s.6|int() >= 1 %}
 					<span
 						{% if keep_alive|int() >= 1 %}
-						class="shield green" title="Autostart is enabled">
+						class="shield green" title="Autostart {{lang.words.is}} {{lang.words.enabled2}}">
 						{% else %}
-						class="shield red" title="Autostart is enabled, but Keep alive service is not running">
+						class="shield red" title="Autostart {{lang.words.is}} {{lang.words.enabled2}}, Auto start {{lang.words.service}} {{lang.words.is}} {{lang.words.not}} {{lang.words.running}}">
 						{% endif %}
 					</span>
 				{% endif %}
 				{% if s.8.0.20 == 1 %}
-					<span class="lock" title="This server is inaccessible for editing by everyone except the admin role"></span>
+					<span class="lock" title="{{lang.phrases.server_is_inaccessible_for_editing}}"></span>
 				{% endif %}
 				{% for set in docker_settings %}
 					{% if set.server_id == s.0 and set.setting == 'dockerized' and set.value == '1' %}
@@ -247,10 +248,15 @@
 					<a id="stop-{{ s.2 }}" class="stop" title="{{lang.words.stop|title()}} {{service}} {{lang.words.service}}">
 						<span class="service-stop" onclick="confirmAjaxAction('stop', '{{service}}', '{{s.2}}')"></span>
 					</a>
-					<a href="history.py?service={{service}}&serv={{s.2}}" title="View history for this service" class="history" style="margin: 0 5px 0 10px;"></a>
+					<a href="history.py?service={{service}}&serv={{s.2}}" title="{{lang.words.view|title()}} {{lang.words.history3}} {{s.1}}" class="history" style="margin: 0 5px 0 10px;"></a>
 					{% if service != 'keepalived' %}
-					<span class="menu-bar" onclick="serverSettings('{{s.0}}', '{{s.1}}')" title="Edit settings for {{s.1}} service"></span>
+					<span class="menu-bar" onclick="serverSettings('{{s.0}}', '{{s.1}}')" title="{{lang.words.edit|title()}} {{lang.words.settings}} {{s.1}}"></span>
 					{% endif %}
+					{%if not serv%}
+					<span class="portlet-header" style="cursor: move;" title="{{lang.words.change2|title()}} {{lang.words.position}} {{s.1}}">
+						<i class="fas fa-grip-vertical" style="margin-right: -10px;margin-left: 10px;display: inline-flex;"></i>
+					</span>
+					{%endif%}
 				</span>
 				{% endif %}
 			</div>

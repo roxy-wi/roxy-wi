@@ -266,6 +266,9 @@
 .fa-stop {
 	color: red !important;
 }
+.disabled-button > .fa-stop, .disabled-button > .fa-play {
+	color: gray !important;
+}
 .service-restart > .fa-sync-alt {
 	color: orange !important;
 }
@@ -336,6 +339,9 @@
 	margin-bottom: 10px;
 	margin-top: 4px;
 	font-size: 25px;
+}
+.alert-warning .fa-exclamation-circle {
+	margin-top: -5px;
 }
 .alert-info .fa-info-circle {
 	margin-top: -3px;

@@ -5,7 +5,7 @@
 <link href="/inc/css/chart.min.css" rel="stylesheet">
 <script src="/inc/metrics.js"></script>
 <script src="/inc/chart.min.js"></script>
-<script src="/inc/overview.js"></script>
+<script src="/inc/overview-6.3.9.js"></script>
 <script>
 	$("#secIntervals").css("display", "none");
 	var ip = []
@@ -130,8 +130,11 @@
 				<td>{{lang.words.role|title()}}</td>
 				<td>
 					<span class="add-button-wi" id="show_all_users" style="display: none;">
-						<span title="{{lang.words.show_all|title()}} {{lang.words.users}}" id="show-all-users" style="color: #fff">
-							{{lang.words.show_all|title()}}
+						<span id="show-all-users">
+							{{lang.words.show_all}}
+						</span>
+						<span id="hide-all-users" style="display: none;">
+							{{lang.words.hide|title()}}
 						</span>
 					</span>
 				</td>
@@ -155,8 +158,11 @@
 			<td>
 				{% if groups|length > 3 %}
 				<span class="add-button-wi">
-					<span title="{{lang.words.show_all|title()}} {{lang.words.groups}}" id="show-all-groups" style="color: #fff">
-						{{lang.words.show_all|title()}}
+					<span id="show-all-groups">
+						{{lang.words.show_all}}
+					</span>
+					<span id="hide-all-groups" style="display: none;">
+						{{lang.words.hide|title()}} {{lang.words.groups}}
 					</span>
 				</span>
 				{% endif %}
@@ -183,21 +189,17 @@
 		{% endfor %}
 	</table>
 	
-	<table class="overview-wi">
+	<table class="overview-wi" id="overview-roles">
 		<tr class="overviewHead">
 			<td class="padding10 first-collumn-wi">{{lang.words.role|title()}}</td>
-			<td class="second-collumn" style="width: 50%">{{lang.words.desc|title()}}</td>
-			<td></td>
-			<td></td>
-		</tr>		
+			<td class="second-collumn" style="width: 60%">{{lang.words.desc|title()}}</td>
+		</tr>
 		{% for role in roles %}
 			<tr class="{{ loop.cycle('odd', 'even') }}">
 				<td class="padding10 first-collumn-wi"> 
 					{{ role.name }}
 				</td>
 				<td class="third-collumn-wi">{{ lang.roles[role.name] }}</td>
-				<td></td>
-				<td></td>
 			</tr>
 		{% endfor %}
 	</table>
@@ -217,8 +219,11 @@
 			<td>
 				{% if roxy_wi_log|length > 3 %}
 				<span class="add-button-wi">
-					<span title="{{lang.words.show|title()}} {{lang.words.more}}" id="show-all-haproxy-wi-log" style="color: #fff">
-						{{lang.words.show_all|title()}}
+					<span id="show-all-haproxy-wi-log">
+						{{lang.words.show_all}}
+					</span>
+					<span id="hide-all-haproxy-wi-log" style="display: none;">
+						{{lang.words.hide|title()}} {{lang.words.logs}}
 					</span>
 				</span>
 				{% endif %}

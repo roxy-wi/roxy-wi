@@ -1,6 +1,6 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% from 'include/input_macros.html' import input %}
-<div style="text-align: center;margin-top: 20px;">
+<div style="margin-top: 20px; margin-left: 15px;">
 	{% if 'cannot access' not in return_files %}
 		{% if config_file_name == '' %}
 		<h4>Config files from {{serv}}</h4>

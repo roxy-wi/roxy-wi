@@ -16,9 +16,7 @@
 			<li><a href="#lists" title="Runtime API: {{lang.words.change|title()}} {{lang.words.dynamically}}} whitelist {{lang.words.and}} blacklist - Roxy-WI">{{lang.words.lists|title()}}</a></li>
 			<li><a href="#sessions" title="Runtime API: {{lang.words.sessions|title()}}} - Roxy-WI">{{lang.words.sessions|title()}}</a></li>
 		{% endif %}
-		{% include 'include/login.html' %}
 	</ul>
-	<ul id='browse_histroy'></ul>
 	<div id="runtimeapi">
 		<table class="overview">
 			<tr class="overviewHead">
@@ -76,7 +74,7 @@
 		</script>
 		<div id="ajaxruntime"></div>
 		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
-			You can read the description of all Run Time API <a href="https://roxy-wi.org/description/runtimeapi#commands" title="Runtime API {{lang.words.desc}}" target="_blank">{{lang.words.here}}</a>
+			{{lang.phrases.read_desc_runtime_api}} <a href="https://roxy-wi.org/description/runtimeapi#commands" title="Runtime API {{lang.words.desc}}" target="_blank">{{lang.words.here}}</a>
 		</div>
 	</div>
 	{% if role <= 3 %}

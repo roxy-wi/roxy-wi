@@ -10,7 +10,7 @@
 <style>
 
 </style>
-<form style="padding-left: 5px;" action="statsview.py" method="post">
+<form action="statsview.py" method="post" class="left-space">
 	<input type="hidden" id="service" value="{{service}}" />
 	<select autofocus required name="serv" id="serv">
 		<option disabled>------</option>
@@ -26,11 +26,11 @@
 	{% if service != 'nginx' and service != 'apache' %}
 	<div id="stats_filter">
 		<div id="stats_filter_text">{{lang.words.filter|title()}}:</div>
-		{{ checkbox('stats_active', title=lang.words.show|title()+' ' + lang.words.active + ' ' + lang.words.servers, desc=lang.words.active|title(), checked='checked') }}
-		{{ checkbox('stats_drain', title=lang.words.show|title()+' ' + lang.words.active + ' ' + lang.words.servers, desc=lang.words.drain|title(), checked='checked') }}
+		{{ checkbox('stats_active', title=lang.words.show|title()+' ' + lang.words.actives + ' ' + lang.words.servers, desc=lang.words.actives|title(), checked='checked') }}
+		{{ checkbox('stats_drain', title=lang.words.show|title()+' ' + lang.words.drains + ' ' + lang.words.servers, desc=lang.words.drains|title(), checked='checked') }}
 		{{ checkbox('stats_maintain', title=lang.words.show|title()+' ' + lang.words.maintain + ' ' + lang.words.servers, desc=lang.words.maintain|title(), checked='checked') }}
-		{{ checkbox('stats_down', title='Show DOWN servers', desc='DOWN', checked='checked') }}
-		{{ checkbox('stats_not_checked', title='Show not checked servers', desc='Not checked', checked='checked') }}
+		{{ checkbox('stats_down', title=lang.words.show|title()+' DOWN ' + lang.words.servers, desc='DOWN', checked='checked') }}
+		{{ checkbox('stats_not_checked', title=lang.phrases.show_not_checked, desc=lang.phrases.not_checked, checked='checked') }}
 		{{ checkbox('stats_backup', title=lang.words.show|title()+' ' + lang.words.backup + ' ' + lang.words.servers, desc=lang.words.backup|title(), checked='checked') }}
 		{{ checkbox('stats_frontends', title=lang.words.show|title()+' ' + lang.words.frontends, desc=lang.words.frontends|title(), checked='checked') }}
 		{{ checkbox('stats_backends', title=lang.words.show|title()+' ' + lang.words.backends , desc=lang.words.backends|title(), checked='checked') }}
@@ -40,7 +40,7 @@
 	{% endif %}
 </form>
 
-<div id="ajax" style="margin-left: 5px; margin-right: 5px;"></div>
+<div id="ajax" style="margin-left: 15px; margin-right: 5px;"></div>
 <script> 
 	if (cur_url[1]) {
 		showStats();		
@@ -66,6 +66,9 @@
 		$('td').css('padding', '3px');
 		$('th').css('padding-top', '4px');
 		$('th').css('padding-bottom', '4px');
+		$('h2').css('font-style', 'inherit');
+		$('h2').css('color', '#fff');
+		$('h2').css('font-size', '1.5em');
 		if ($('#service').val() != 'apache') {
 			$('h1').css('display', 'none');
 			$('th').css('border-color', '#ddd');

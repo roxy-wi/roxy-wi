@@ -49,7 +49,7 @@ else:
 	title = "Servers: "
 
 rendered_template = template.render(
-	title=title, role=user_params['role'], user=user_params['user'], users=sql.select_users(group=user_group),
+	h2=1, title=title, role=user_params['role'], user=user_params['user'], users=sql.select_users(group=user_group),
 	groups=sql.select_groups(), servers=servers, roles=sql.select_roles(), sshs=sql.select_ssh(group=user_group),
 	masters=masters, group=user_group, services=services, timezones=pytz.all_timezones, guide_me=1,
 	token=user_params['token'], settings=settings, backups=sql.select_backups(), page="servers.py",

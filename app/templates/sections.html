@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% block title %}{{lang.words.edit|title()}} {{lang.words.section2}}{% endblock %}
+{% block h2 %}{{lang.words.edit|title()}} {{lang.words.section2}} {% endblock %}
 {% block content %}
 {% if is_serv_protected and role > 2 %}
 <meta http-equiv="refresh" content="0; url=/app/hapservers.py?service={{service}}">
@@ -25,35 +27,32 @@
 <script src="/inc/codemirror/mode/nginx.js"></script>
 <script src="/inc/codemirror/mode/haproxy.js"></script>
 <script src="/inc/codemirror/keymap/sublime.js"></script>
-<center>
-	<p>
-		<form action="{{ action }}" method="post">
-			<select autofocus required name="section" id="{{ select_id }}">
-				<option disabled>------</option>
-					{% for s in sections %}
-							{% if s == section %}
-								<option value="{{ s }}" selected>{{ s }}</option>								
-							{% else %}
-								<option value="{{ s }}">{{ s }}</option>								
-						{% endif %}
-					{% endfor %}
-			</select>
-			<input type="hidden" value="{{ serv }}" name="serv">
-			{% if role <= 3 %}
-				<button type="submit" value="open" name="open" class="btn btn-default" title="{{lang.words.edit|title()}} {{lang.words.running}} {{lang.words.config}}">{{lang.words.edit|title()}}</button>
+<form action="{{ action }}" method="post" class="left-space">
+	<select autofocus required name="section" id="{{ select_id }}">
+		<option disabled>------</option>
+		{% for s in sections %}
+			{% if s == section %}
+			<option value="{{ s }}" selected>{{ s }}</option>
+			{% else %}
+			<option value="{{ s }}">{{ s }}</option>
 			{% endif %}
-		</form>
-	</p>
+		{% endfor %}
+	</select>
+	<input type="hidden" value="{{ serv }}" name="serv">
+	{% if role <= 3 %}
+		<button type="submit" value="open" name="open" class="btn btn-default" title="{{lang.words.edit|title()}} {{lang.words.running}} {{lang.words.config}}">{{lang.words.edit|title()}}</button>
+	{% endif %}
+</form>
 	{% if config %}
 		{% if role <= 3 %}
-			<div id="config">
+			<div id="config" class="left-space">
 				<h4>{{lang.phrases.you_are_editing}} "{{section}}" {{lang.phrases.section_from_server}} {{ serv }}</h4>
 				<form action="{{ action }}" name="saveconfig" method="post">
 					<input type="hidden" value="{{ serv }}" name="serv">
 					<input type="hidden" value="{{ start_line }}" name="start_line">
 					<input type="hidden" value="{{ end_line }}" name="end_line"> 
 					<input type="hidden" value="{{ cfg }}.old" name="oldconfig">
-					<div style="margin-left: 2%;width: 60%; text-align: left">
+					<div style="width: 95%;">
 						<textarea name="config" class="config" id="config_text_area" rows="35" cols="100" style="height: 40%">{{ config }}</textarea>
 					</div>
 					{% if not is_serv_protected or role <= 2 %}
@@ -115,5 +114,4 @@
 	</div>
 </div>
 {% endif %}
-</center>
 {% endblock %}

@@ -1,5 +1,5 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
-	<div style="text-align: center;">
+	<div class="left-space">
 		<h4>{{lang.words.config|title()}} {% if config_file_name != 'undefined' %}{{config_file_name.replace('92', '/')}}{%endif%} {{lang.words.from}} {{serv}} ({{hostname}})</h4>
 		<p class="accordion-expand-holder">
 			{% if role <= 3 %}
@@ -18,7 +18,7 @@
 		</p>
 	</div>
 
-	<div style="margin-left: 16%" class="configShow">
+	<div class="configShow left-space">
 	{% set i = 0 -%}
 	{% set section_name = {} %}
 	{% for line in conf -%}

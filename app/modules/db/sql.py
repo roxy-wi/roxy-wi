@@ -318,18 +318,28 @@ def update_hapwi_server(server_id, alert, metrics, active, service_name):
 		out_error(e)
 
 
-def update_server(
-	hostname, group, typeip, enable, master, server_id, cred, port, desc, haproxy, nginx, apache, firewall, protected
-):
+def update_server(hostname, group, typeip, enable, master, server_id, cred, port, desc, firewall, protected):
 	try:
 		server_update = Server.update(
 			hostname=hostname, groups=group, type_ip=typeip, enable=enable, master=master, cred=cred,
-			port=port, desc=desc, haproxy=haproxy, nginx=nginx, apache=apache, firewall_enable=firewall,
-			protected=protected
+			port=port, desc=desc, firewall_enable=firewall, protected=protected
 		).where(Server.server_id == server_id)
 		server_update.execute()
 	except Exception as e:
 		out_error(e)
+
+
+def update_server_services(server_id: str, haproxy: int, nginx: int, apache: int, keepalived: int) -> bool:
+	try:
+		server_update = Server.update(
+			haproxy=haproxy, nginx=nginx, apache=apache, keepalived=keepalived
+		).where(Server.server_id == server_id)
+		server_update.execute()
+	except Exception as e:
+		out_error(e)
+		return False
+	else:
+		return True
 
 
 def update_server_master(master, slave):
@@ -1443,20 +1453,17 @@ def insert_nginx_waf_rules(serv):
 		{'serv': serv, 'rule_name': 'Nextcloud exclusion rules', 'rule_file': 'REQUEST-903.9003-NEXTCLOUD-EXCLUSION-RULES.conf',
 			'desc': 'These exclusions remedy false positives in a default NextCloud install. They will likely work with OwnCloud '
 					'too, but you may have to modify them. The exclusions are only active if crs_exclusions_nextcloud=1 is set. '
-					'See rule 900130 in crs-setup.conf for instructions.',
-			'service': 'nginx'},
+					'See rule 900130 in crs-setup.conf for instructions.', 'service': 'nginx'},
 		{'serv': serv, 'rule_name': 'Dokuwiki exclusion rules', 'rule_file': 'REQUEST-903.9004-DOKUWIKI-EXCLUSION-RULES.conf',
 			'desc': 'These exclusions remedy false positives in a default Dokuwiki install. The exclusions are only active '
-					'if crs_exclusions_dokuwiki=1 is set. See rule 900130 in crs-setup.conf for instructions.',
-			'service': 'nginx'},
+					'if crs_exclusions_dokuwiki=1 is set. See rule 900130 in crs-setup.conf for instructions.', 'service': 'nginx'},
 		{'serv': serv, 'rule_name': 'CPanel exclusion rules', 'rule_file': 'REQUEST-903.9005-CPANEL-EXCLUSION-RULES.conf',
 			'desc': 'These exclusions remedy false positives in a default CPanel install. The exclusions are only active '
 					'if crs_exclusions_cpanel=1 is set. See rule 900130 in crs-setup.conf for instructions.',
 			'service': 'nginx'},
 		{'serv': serv, 'rule_name': 'XenForo exclusion rules', 'rule_file': 'REQUEST-903.9006-XENFORO-EXCLUSION-RULES.conf',
 			'desc': 'These exclusions remedy false positives in a default XenForo install. The exclusions are only active '
-					'if crs_exclusions_xenforo=1 is set. See rule 900130 in crs-setup.conf for instructions.',
-			'service': 'nginx'},
+					'if crs_exclusions_xenforo=1 is set. See rule 900130 in crs-setup.conf for instructions.', 'service': 'nginx'},
 		{'serv': serv, 'rule_name': 'Common exceptions', 'rule_file': 'REQUEST-905-COMMON-EXCEPTIONS.conf',
 			'desc': 'This file is used as an exception mechanism to remove common false positives that may be encountered.',
 			'service': 'nginx'},
@@ -1469,8 +1476,7 @@ def insert_nginx_waf_rules(serv):
 		{'serv': serv, 'rule_name': 'Protocol enforcement', 'rule_file': 'REQUEST-920-PROTOCOL-ENFORCEMENT.conf',
 			'desc': 'Some protocol violations are common in application layer attacks. Validating HTTP requests eliminates '
 					'a large number of application layer attacks. The purpose of this rules file is to enforce HTTP RFC '
-					'requirements that state how the client is supposed to interact with the server.',
-			'service': 'nginx'},
+					'requirements that state how the client is supposed to interact with the server.', 'service': 'nginx'},
 		{'serv': serv, 'rule_name': 'Protocol attack', 'rule_file': 'REQUEST-921-PROTOCOL-ATTACK.conf',
 			'desc': 'Protocol attack rule.', 'service': 'nginx'},
 		{'serv': serv, 'rule_name': 'Application attack LFI', 'rule_file': 'REQUEST-930-APPLICATION-ATTACK-LFI.conf',

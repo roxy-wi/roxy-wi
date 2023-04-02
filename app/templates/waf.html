@@ -2,7 +2,7 @@
 {% block title %}{{title}}{% endblock %}
 {% block h2 %}{{title}}{% endblock %}
 {% block content %}
-<script src="/inc/waf.js"></script>
+<script src="/inc/waf-6.3.8.js"></script>
 {% if manage_rules == '1' %}
 	{% from 'include/input_macros.html' import input, checkbox %}
 	<table class="overview" id="waf_rules">
@@ -173,7 +173,7 @@
 	</table>
 	{% if service == 'haproxy' %}
 	<link href="/inc/chart.min.css" rel="stylesheet">
-	<script src="/inc/overview.js"></script>
+	<script src="/inc/overview-6.3.9.js"></script>
 	<script src="/inc/metrics.js"></script>
 	<script src="/inc/chart.min.js"></script>
 	<div id="table_metrics"></div>

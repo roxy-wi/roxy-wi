@@ -23,15 +23,14 @@ function show_current_page(id) {
 	id.parent().css('left', '0');
 	id.parent().children().css('margin-left', '-20px');
 	id.parent().find('a').css('padding-left', '20px');
-	id.find('a').css('padding-left', '30px');
-	id.find('a').css('border-left', '4px solid var(--right-menu-blue-rolor)');
+	id.find('a').css('background-color', 'var(--right-menu-blue-rolor)');
 }
 $( function() {		
    $('.menu li ul li').each(function () {
        var link = $(this).find('a').attr('href');
-	   var link2 = link.split('/')[2]
+	   var link2 = link.split('/')[2];
 	   if (cur_url[1] == null) {
-		cur_url[1] = 'haproxy';
+		   cur_url[1] = 'haproxy';
 	   }
        if (cur_url[0] == link2 && cur_url[1].split('&')[0] != 'service=keepalived' && cur_url[1].split('&')[0] != 'service=nginx' && cur_url[1].split('&')[0] != 'service=apache') {
 			show_current_page($(this))
@@ -83,8 +82,9 @@ $( function() {
 		   show_current_page($(this))
 	   } else if(cur_url[0] == 'add.py' && cur_url[1].split('&')[0] == 'service=nginx#ssl' && link2 == 'add.py?service=nginx#ssl'){
 		   show_current_page($(this))
-	   } else if(cur_url[0] == 'viewlogs.py' && cur_url[1].split('&')[0] == 'type=2' && link2 == 'viewlogs.py?type=2'){
-		  	show_current_page($(this))
+	   } else if(cur_url[0] == 'viewlogs.py' && cur_url[1].split('&')[0] == 'type=2' && link2 == 'viewlogs.py?type=2') {
+		   show_current_page($(this));
+		   return false;
 	   } else if(cur_url[0] == 'metrics.py' && cur_url[1].split('&')[0] == 'service=haproxy' && link2 == 'metrics.py?service=haproxy'){
 		   show_current_page($(this))
 	   } else if(cur_url[0] == 'metrics.py' && cur_url[1].split('&')[0] == 'service=nginx' && link2 == 'metrics.py?service=nginx'){
@@ -194,16 +194,17 @@ function setRefreshInterval(interval) {
 	if (interval == "0") {
 		var autoRefresh = sessionStorage.getItem('auto-refresh');
 		if (autoRefresh !== undefined) {
+			var autorefresh_word = $('#translate').attr('data-autorefresh');
 			sessionStorage.removeItem('auto-refresh');
 			pauseAutoRefresh();
-			$('#0').html('<span class="auto-refresh-reload auto-refresh-reload-icon"></span> Auto-refresh');
+			$('#0').html('<span class="auto-refresh-reload auto-refresh-reload-icon"></span> '+autorefresh_word);
 			$('.auto-refresh').css('display', 'inline');
 			$('.auto-refresh').css('font-size', '15px');
-			$('#1').text('Auto-refresh');
-			$('.auto-refresh-pause').css('display', 'none');
+			$('#1').text(autorefresh_word);
 			$('.auto-refresh-resume').css('display', 'none');
+			$('.auto-refresh-pause').css('display', 'none');
 			$.getScript("/inc/fontawesome.min.js");
-			$.getScript("/inc/scripts.js");
+			// $.getScript("/inc/script-6.3.9.js");
 		}
 		hideAutoRefreshDiv();
 	} else {
@@ -261,12 +262,10 @@ function startSetInterval(interval) {
 }
 function pauseAutoRefresh() {
 	clearInterval(intervalId);
-	$(function() {
-		$('.auto-refresh-pause').css('display', 'none');
-		$('.auto-refresh-resume').css('display', 'inline');
-		sessionStorage.setItem('auto-refresh-pause', '1')
-	});
-}	
+	$('.auto-refresh-pause').css('display', 'none');
+	$('.auto-refresh-resume').css('display', 'inline');
+	sessionStorage.setItem('auto-refresh-pause', '1');
+}
 function pauseAutoResume(){
 	var autoRefresh = sessionStorage.getItem('auto-refresh');
 	setRefreshInterval(autoRefresh);
@@ -762,7 +761,8 @@ $( function() {
     $( "[title]" ).tooltip({
 		"content": function(){
 			return $(this).attr("data-help");
-		}
+		},
+		show: {"delay": 1000}
 	});
 	$( "input[type=submit], button" ).button();
 	$( "input[type=checkbox]" ).checkboxradio();
@@ -931,7 +931,6 @@ $( function() {
 	var save_word = $('#translate').attr('data-save');
 	var change_word = $('#translate').attr('data-change');
 	var password_word = $('#translate').attr('data-password');
-	var logout_word = $('#translate').attr('data-logout');
 	var change_pass_word = change_word + ' ' + password_word
 	var showUserSettings = $( "#show-user-settings" ).dialog({
 			autoOpen: false,
@@ -951,11 +950,6 @@ $( function() {
 					$(this).dialog("close");
 				}
 			}, {
-				text: logout_word,
-				click: function() {
-					window.location.replace(window.location.origin+'/app/login.py?logout=logout');
-				}
-			}, {
 				text: cancel_word,
 				click: function () {
 					$(this).dialog("close");
@@ -965,11 +959,9 @@ $( function() {
 
 	$('#show-user-settings-button').click(function() {
 		if (localStorage.getItem('disabled_alert') == '1') {
-			$('#disable_alerting option[value="1"]').prop('selected', true);
-			$('#disable_alerting').selectmenu('refresh');
+			$('#disable_alerting').prop('checked', false).checkboxradio('refresh');
 		} else {
-			$('#disable_alerting option[value="0"]').prop('selected', true);
-			$('#disable_alerting').selectmenu('refresh');
+			$('#disable_alerting').prop('checked', true).checkboxradio('refresh');
 		}
 		$.ajax( {
 			url: "options.py",
@@ -1124,7 +1116,7 @@ $( function() {
 					$(this).children(".installmon").css('padding-left', '30px');
 					$(this).children(".installmon").css('border-left', '4px solid var(--right-menu-blue-rolor)');
 				});
-				$( "#tabs" ).tabs( "option", "active", 7 );
+				$( "#tabs" ).tabs( "option", "active", 6 );
 			} );
 			$( ".backup" ).on( "click", function() {
 				$('.menu li ul li').each(function () {
@@ -1133,7 +1125,7 @@ $( function() {
 					$(this).children(".backup").css('padding-left', '30px');
 					$(this).children(".backup").css('border-left', '4px solid var(--right-menu-blue-rolor)');
 				});
-				$( "#tabs" ).tabs( "option", "active", 6 );
+				$( "#tabs" ).tabs( "option", "active", 7 );
 			} );
 		}
 	}
@@ -1154,12 +1146,10 @@ $( function() {
     })
 });
 function saveUserSettings(){
-	if ($('#disable_alerting').val() == '0') {
+	if ($('#disable_alerting').is(':checked')) {
 		localStorage.removeItem('disabled_alert');
-		sessionStorage.removeItem('disabled_alert');
-	} else if ($('#disable_alerting').val() == '1') {
-		sessionStorage.setItem('disabled_alert', '1');
-		localStorage.removeItem('disabled_alert');
+	} else {
+		localStorage.setItem('disabled_alert', '1');
 	}
 	changeCurrentGroupF();
 	Cookies.set('lang', $('#lang_select').val(), { expires: 365, path: '/app', samesite: 'strict', secure: 'true' });
@@ -1674,7 +1664,7 @@ function startIntro(intro) {
 	}
 }
 document.addEventListener("DOMContentLoaded", function(event){
-	statAgriment();
+	// statAgriment();
 });
 function sendGet(page) {
 	var xmlHttp = new XMLHttpRequest();
@@ -1693,4 +1683,12 @@ function show_pretty_ansible_error(data) {
 }
 function openTab(tabId) {
 	$( "#tabs" ).tabs( "option", "active", tabId );
+}
+function showPassword(input) {
+  var x = document.getElementById(input);
+  if (x.type === "password") {
+    x.type = "text";
+  } else {
+    x.type = "password";
+  }
 }

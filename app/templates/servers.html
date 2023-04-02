@@ -18,12 +18,10 @@
 		<li><a href="#checker" title="{{lang.words.servers|title()}}: {{lang.words.manage|title()}} Checker - Roxy-WI">Checker</a></li>
 		<li><a href="#settings" title="{{lang.words.servers|title()}}: {{lang.words.manage|title()}} Roxy-WI {{lang.words.settings}} - Roxy-WI">{{lang.words.settings|title()}}</a></li>
 		<li><a href="#installproxy" title="{{lang.words.servers|title()}}: {{lang.words.proxy|title()}} {{lang.words.service}} {{lang.words.installation}} - Roxy-WI">{{lang.words.proxy|title()}} {{lang.words.installation}}</a></li>
-		<li><a href="#backup" title="{{lang.words.servers|title()}}: {{lang.words.manage|title()}} {{lang.words.backup|title()}} configs - Roxy-WI" id="admin-tabs-backup">{{lang.words.backup|title()}}</a></li>
 		<li><a href="#installmon" title="{{lang.words.servers|title()}}: {{lang.words.monitoring|title()}} service installation - Roxy-WI" id="admin-tabs-mon">{{lang.words.monitoring|title()}} {{lang.words.installation}}</a></li>
+		<li><a href="#backup" title="{{lang.words.servers|title()}}: {{lang.words.manage|title()}} {{lang.words.backup|title()}} configs - Roxy-WI" id="admin-tabs-backup">{{lang.words.backup|title()}}</a></li>
 		<li><a href="#geolite2" title="{{lang.words.servers|title()}}: GeoLite2 - Roxy-WI">GeoLite2</a></li>
-		{% include 'include/login.html' %}
 	</ul>
-	<ul id='browse_histroy'></ul>
 	<div id="users">
 		{% include 'include/admin_users.html' %}
 	</div>
@@ -165,13 +163,12 @@
 		<div id="ajax"></div>
 		{% endif %}
 	</div>
-	<div id="backup">
-		{% include 'include/admin_backup.html' %}
-	</div>
 	<div id="installmon">
 		{% include 'include/mon_installation.html' %}
 	</div>
-
+	<div id="backup">
+		{% include 'include/admin_backup.html' %}
+	</div>
 	<div id="geolite2">
 		<table>
 			{% if not is_needed_tool %}
@@ -225,23 +222,23 @@
 		<table style="min-width: 40%;">
 			<tr class="overviewHead">
 				<th colspan=13 style="background-color: #d1ecf1; padding: 10px;">
-					<span id="table_metrics_head" style="position: absolute;margin-left: 43%;">{{lang.admin_page.desc.country_codes|title()}}</span>
-					<span id="show_country_codes" class="plus switcher_table_metric" title="{{lang.words.show|title()}} {{lang.admin_page.desc.country_codes}}"></span>
-					<span id="hide_country_codes" class="minus switcher_table_metric" title="{{lang.words.hide|title}} {{lang.admin_page.desc.country_codes}}" style="display: none;"></span>
+					<span id="table_metrics_head" style="margin-left: 5px;">{{lang.admin_page.desc.country_codes}}</span>
+					<select id="geoip_select">
+					{% for code in geoip_country_codes %}
+					<option>{{code.name}} {{code.code}}</option>
+					{% endfor %}
+					</select>
 				</th>
 			</tr>
 		</table>
-		<div id="geoip_country_codes" style="display: none;">
-			{% for code in geoip_country_codes %}
-			<div class="geoip_country_code" id="{{code.code}}">{{code.code}} ({{code.name}})</div>
-			{% endfor %}
-		</div>
 	</div>
 </div>
 {% include 'include/admins_dialogs.html' %}
 {% include 'include/change_pass_form.html' %}
 <script>
+	$('#geoip_select').select2();
 	$( function() {
+		$("#geoip_select").selectmenu("destroy");
 		{% for user in users %}
 			$("#role-{{user.0}}" ).selectmenu({
 				  width: 100

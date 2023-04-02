@@ -1,6 +1,6 @@
 {% from 'include/input_macros.html' import input, checkbox, copy_to_clipboard %}
 {% if not adding %}
-<table class="overview" id="ajax-servers">
+<table class="overview overview-overflow" id="ajax-servers">
 	<thead>
 		<tr class="overviewHead">
 			<th class="padding10 first-collumn" id="server-name-th">{{lang.words.name|title()}}</th>
@@ -10,16 +10,14 @@
 			<th style="width: 10%">{{lang.words.group|title()}}</th>
 			{% endif %}
 			<th class="checkbox-head" style="min-width: 70px;">{{lang.words.enabled|title()}}</th>
-			<th style="min-width: 50px; padding-left: 5px;" class="help_cursor">
+			<th style="min-width: 60px; padding-left: 17px;" class="help_cursor">
 				<span title="{{lang.words.virtual|title()}} IP, something like VRRP">{{lang.words.virt|title()}}</span>
 			</th>
-			<th class="checkbox-head" style="min-width: 75px" id="server-haproxy-th">HAProxy</th>
-			<th class="checkbox-head" style="min-width: 65px;" id="server-nginx-th">Nginx</th>
-			<th class="checkbox-head" style="min-width: 65px;" id="server-apache-th">Apache</th>
-			<th style="min-width: 100px;" class="help_cursor" id="server-firewalld-th">
+			<th class="checkbox-head" style="min-width: 75px" id="server-haproxy-th">{{lang.words.services|title()}}</th>
+			<th style="min-width: 120px;" class="help_cursor" id="server-firewalld-th">
 				<span title="If the server has a firewall enabled, enable this option">Firewalld</span>
 			</th>
-			<th class="checkbox-head help_cursor" style="min-width: 80px;" class="help_cursor" id="server-protected-th">
+			<th class="checkbox-head help_cursor" style="min-width: 120px;" class="help_cursor" id="server-protected-th">
 				<span title="{{lang.phrases.protected_title}}">{{lang.words.protected|title()}}</span>
 			</th>
 			<th style="width: 10%" class="help_cursor" id="server-slave-th">
@@ -38,9 +36,9 @@
 		{% for server in servers %}
 		<tr id="server-{{server.0}}" class="{{ loop.cycle('odd', 'even') }} {% if adding %}newserver{% endif %}">
 			<td class="padding10 first-collumn">
-				<span class="serverNone server-status-small" title="{{lang.phrases.server_unknown}}" style="margin-left: -10px" id="server_status-{{server.0}}"></span>
+				<span class="serverNone server-status-small" title="{{lang.phrases.server_unknown}}" id="server_status-{{server.0}}"></span>
 				{% set id = 'hostname-' + server.0|string() %}
-				{{ input(id, value=server.1, size='15') }}
+				{{ input(id, value=server.1, size='20') }}
 			</td>
 			<td>
 				{% set id = 'ip-' + server.0|string() %}
@@ -74,7 +72,7 @@
 					{{ checkbox(id) }}
 				{% endif %}
 			</td>
-			<td class="checkbox" style="padding-left: 0px;">
+			<td class="checkbox" style="padding-left: 15px;">
 				{% set id = 'typeip-' + server.0|string() %}
 				{% if server.4 == 1 %}
 					{{ checkbox(id, checked='checked') }}
@@ -82,29 +80,8 @@
 					{{ checkbox(id) }}
 				{% endif %}
 			</td>
-			<td class="checkbox">
-				{% set id = 'haproxy-' + server.0|string() %}
-				{% if server.15 == 1 %}
-					{{ checkbox(id, checked='checked') }}
-				{% else %}
-					{{ checkbox(id) }}
-				{% endif %}
-			</td>
-			<td class="checkbox" style="padding-left: 5px;">
-				{% set id = 'nginx-' + server.0|string() %}
-				{% if server.14 == 1 %}
-					{{ checkbox(id, checked='checked') }}
-				{% else %}
-					{{ checkbox(id) }}
-				{% endif %}
-			</td>
-			<td class="checkbox" style="padding-left: 5px;">
-				{% set id = 'apache-' + server.0|string() %}
-				{% if server.24 == 1 %}
-					{{ checkbox(id, checked='checked') }}
-				{% else %}
-					{{ checkbox(id) }}
-				{% endif %}
+			<td>
+				<span title="{{lang.words.change2|title()}} {{lang.words.active}} {{lang.words.services}}" style="cursor: pointer; margin-left: 15px;" class="div-pic" onclick="openChangeServerServiceDialog('{{server.0}}')"></span>
 			</td>
 			<td class="checkbox" style="padding-left: 0">
 				<div class="controlgroup">

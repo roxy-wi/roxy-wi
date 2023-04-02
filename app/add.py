@@ -62,9 +62,10 @@ if all(v is None for v in [
 	black_lists = roxywi_common.get_files(folder=black_dir, file_format="lst")
 
 	template = template.render(
-		role=user_params['role'], user=user_params['user'], selects=user_params['servers'], add=form.getvalue('add'), conf_add=form.getvalue('conf'),
-		group=user_group, options=sql.select_options(), saved_servers=sql.select_saved_servers(), white_lists=white_lists,
-		black_lists=black_lists, user_services=user_params['user_services'], token=user_params['token'], lang=user_params['lang']
+		h2=1, role=user_params['role'], user=user_params['user'], selects=user_params['servers'], add=form.getvalue('add'),
+		conf_add=form.getvalue('conf'), group=user_group, options=sql.select_options(), saved_servers=sql.select_saved_servers(),
+		white_lists=white_lists, black_lists=black_lists, user_services=user_params['user_services'], token=user_params['token'],
+		lang=user_params['lang']
 	)
 	print(template)
 

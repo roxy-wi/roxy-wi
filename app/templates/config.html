@@ -28,12 +28,11 @@
 {% if is_serv_protected and role > 2 %}
 <meta http-equiv="refresh" content="0; url=/app/hapservers.py?service={{service}}">
 {% else %}
-<center>
 	{% if selects|length == 0 %}
 		{% include 'include/getstarted.html' %}
 	{% else %}
 	<p>
-		<form action="{{ action }}" method="post">
+		<form action="{{ action }}" method="post" class="left-space">
 			<input type="hidden" id="service" value="{{service|default('haproxy', true)}}" />
 			{% include 'include/select.html' %}
 			{% if service == 'nginx' or service == 'apache' %}
@@ -65,38 +64,34 @@
 
 	{% if config %}
 		{% if role <= 3 %}
-			<h4>{{lang.words.config|title()}} {% if config_file_name != 'undefined' %}{{config_file_name.replace('92', '/')}}{%endif%} {{lang.words.from}} {{ serv }}</h4>
-			</center>
-			<form action="config.py" name="saveconfig" id="saveconfig" method="post">
+			<h4 class="left-space">{{lang.words.config|title()}} {% if config_file_name != 'undefined' %}{{config_file_name.replace('92', '/')}}{%endif%} {{lang.words.from}} {{ serv }}</h4>
+			<form action="config.py" name="saveconfig" id="saveconfig" method="post" class="left-space">
 				<input type="hidden" value="{{ serv }}" name="serv">
 				<input type="hidden" value="{{ cfg }}.old" name="oldconfig">
 				<input type="hidden" value="{{ token }}" name="token">
 				<input type="hidden" value="{{ service }}" name="service">
 				<input type="hidden" value="{{ config_file_name }}" name="config_file_name">
-				<div style="margin-left: 23%;width: 60%;">
+				<div>
 					<textarea name="config" id="config_text_area" class="config" rows="35" cols="100">{{ config }}</textarea>
 				</div>
 				<p>
-					<center>
-						<a href="config.py?service={{service}}&serv={{serv}}&showConfig" class="ui-button ui-widget ui-corner-all" title="{{lang.phrases.return_to_config}}">{{lang.words.back|title()}}</a>
-						{% if service != 'keepalived' %}
-							<button type="submit" value="test" name="save" class="btn btn-default" title="{{lang.words.check|title()}} {{lang.words.config}} {{lang.words.without}} {{lang.words.saving}}">{{lang.phrases.check_config}}</button>
-						{% endif %}
-						<button type="submit" value="save" name="save" class="btn btn-default" title="{{lang.phrases.save_title}}">{{lang.words.save|title()}}</button>
-						{% if is_restart|int == 0 %}
-						<button type="submit" value="" name="" class="btn btn-default">{{lang.phrases.save_and_restart}}</button>
-						{% endif %}
-						<button type="submit" value="reload" name="save" class="btn btn-default">{{lang.phrases.save_and_reload}}</button>
-						{% if service != 'keepalived' %}
-						<div class="alert alert-info alert-two-rows"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
-						{% endif %}
-					</center>
+					<a href="config.py?service={{service}}&serv={{serv}}&showConfig" class="ui-button ui-widget ui-corner-all" title="{{lang.phrases.return_to_config}}">{{lang.words.back|title()}}</a>
+					{% if service != 'keepalived' %}
+					<button type="submit" value="test" name="save" class="btn btn-default" title="{{lang.words.check|title()}} {{lang.words.config}} {{lang.words.without}} {{lang.words.saving}}">{{lang.phrases.check_config}}</button>
+					{% endif %}
+					<button type="submit" value="save" name="save" class="btn btn-default" title="{{lang.phrases.save_title}}">{{lang.words.save|title()}}</button>
+					{% if is_restart|int == 0 %}
+					<button type="submit" value="" name="" class="btn btn-default">{{lang.phrases.save_and_restart}}</button>
+					{% endif %}
+					<button type="submit" value="reload" name="save" class="btn btn-default">{{lang.phrases.save_and_reload}}</button>
+					{% if service != 'keepalived' %}
+					<div class="alert alert-info" style="margin-left: -0px;"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
+					{% endif %}
 				</p>
 			</form>
 		{% endif %}
 	{% endif %}
-	</center>
-<script> 
+<script>
 	if (cur_url[1].split('&')[2] == 'showMap') {
 		showMap();
 	}

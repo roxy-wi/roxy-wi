@@ -107,22 +107,24 @@ def show_overview(serv) -> None:
         return server_status
 
     async def get_runner_overview():
-        env = Environment(loader=FileSystemLoader('templates/ajax'), autoescape=True,
+        env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
                           extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
 
         servers = []
-        template = env.get_template('overview.html')
+        template = env.get_template('ajax/overview.html')
         cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
         user_uuid = cookie.get('uuid')
         group_id = cookie.get('group')
         group_id = int(group_id.value)
+        lang = roxywi_common.get_user_lang()
+        role = sql.get_user_role_by_uuid(user_uuid.value, group_id)
         futures = [async_get_overview(server[1], server[2], user_uuid.value, server[0]) for server in
                    sql.select_servers(server=serv)]
         for i, future in enumerate(asyncio.as_completed(futures)):
             result = await future
             servers.append(result)
         servers_sorted = sorted(servers, key=common.get_key)
-        template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_uuid.value, group_id))
+        template = template.render(service_status=servers_sorted, role=role, lang=lang)
         print(template)
 
     ioloop = asyncio.get_event_loop()
@@ -216,6 +218,7 @@ def show_services_overview() -> None:
     servers_group = []
     host = os.environ.get('HTTP_HOST', '')
     user_group = roxywi_common.get_user_group(id=1)
+    lang = roxywi_common.get_user_lang()
 
     if (user_params['role'] == 2 or user_params['role'] == 3) and int(user_group) != 1:
         for s in user_params['servers']:
@@ -271,7 +274,7 @@ def show_services_overview() -> None:
         metrics_log_id=roxy_logs.roxy_wi_log(log_id=1, file="metrics"),
         checker_log_id=roxy_logs.roxy_wi_log(log_id=1, file="checker"),
         keep_alive_log_id=roxy_logs.roxy_wi_log(log_id=1, file="keep_alive"),
-        socket_log_id=roxy_logs.roxy_wi_log(log_id=1, file="socket"), error=stderr
+        socket_log_id=roxy_logs.roxy_wi_log(log_id=1, file="socket"), error=stderr, lang=lang
     )
     print(rendered_template)
 

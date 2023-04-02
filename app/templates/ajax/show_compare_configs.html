@@ -1,7 +1,7 @@
 {% from 'include/input_macros.html' import input %}
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
-<form action="" method="post">
-	<div style="text-align: center;margin-top: 20px;">
+<form action="" method="post" class="left-space">
+	<div>
 		<h4>{{ lang.phrases.comparing_config }}</h4>
 		<p>
 			<select autofocus required name="left" id="left">

@@ -208,7 +208,7 @@ table.dataTable td {
   *zoom: 1;
   zoom: 1; }
   .dataTables_length {
-	padding-left: 10px;
+	padding-left: 15px;
   }
   .dataTables_filter, .dataTables_length {
 	padding-top: 9px;

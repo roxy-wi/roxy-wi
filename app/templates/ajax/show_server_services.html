@@ -1,0 +1,63 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
+<table id="all_services" style="width: 300px;float: left;margin-right: 50px;">
+    <caption class="user_group_caption">{{lang.words.all|title()}} {{lang.words.services}}</caption>
+    <tbody>
+    {% for s in server %}
+	{% if s.15|int() == 0 %}
+    <tr class="{{ loop.cycle('odd', 'even') }}" id="add_service-1" data-service_name="HAProxy">
+        <td class="padding20" style="width: 100%">HAProxy</td>
+        <td><span class="add_user_group" title="{{lang.words.add|title()}} {{lang.words.service}}" onclick="addServiceToServer(1)">+</span></td>
+    </tr>
+    {% endif %}
+	{% if s.14|int() == 0 %}
+    <tr class="{{ loop.cycle('odd', 'even') }}" id="add_service-2" data-service_name="NGINX">
+        <td class="padding20" style="width: 100%">NGINX</td>
+        <td><span class="add_user_group" title="{{lang.words.add|title()}} {{lang.words.service}}" onclick="addServiceToServer(2)">+</span></td>
+    </tr>
+    {% endif %}
+	{% if s.24|int() == 0 %}
+    <tr class="{{ loop.cycle('odd', 'even') }}" id="add_service-4" data-service_name="Apache">
+        <td class="padding20" style="width: 100%">Apache</td>
+        <td><span class="add_user_group" title="{{lang.words.add|title()}} {{lang.words.service}}" onclick="addServiceToServer(4)">+</span></td>
+    </tr>
+    {% endif %}
+	{% if s.13|int() == 0 %}
+    <tr class="{{ loop.cycle('odd', 'even') }}" id="add_service-3" data-service_name="Keepalived">
+        <td class="padding20" style="width: 100%">Keepalived</td>
+        <td><span class="add_user_group" title="{{lang.words.add|title()}} {{lang.words.service}}" onclick="addServiceToServer(3)">+</span></td>
+    </tr>
+    {% endif %}
+    {% endfor %}
+    </tbody>
+</table>
+<table id="checked_services" style="width: 300px;">
+    <caption class="user_group_caption">{{lang.words.actives|title()}} {{lang.words.services}}</caption>
+    <tbody>
+    {% for s in server %}
+	{% if s.15|int() == 1 %}
+    <tr class="{{ loop.cycle('odd', 'even') }}" id="remove_service-1" data-service_name="HAProxy">
+        <td class="padding20" style="width: 100%;">HAProxy</td>
+        <td><span class="remove_user_group" onclick="removeServiceFromServer(1)" title="{{lang.words.delete|title()}} {{lang.words.service}}">-</span></td>
+    </tr>
+	{% endif %}
+	{% if s.14|int() == 1 %}
+    <tr class="{{ loop.cycle('odd', 'even') }}" id="remove_service-2" data-service_name="NGINX">
+        <td class="padding20" style="width: 100%;">NGINX</td>
+        <td><span class="remove_user_group" onclick="removeServiceFromServer(2)" title="{{lang.words.delete|title()}} {{lang.words.service}}">-</span></td>
+    </tr>
+	{% endif %}
+	{% if s.24|int() == 1 %}
+    <tr class="{{ loop.cycle('odd', 'even') }}" id="remove_service-4" data-service_name="Apache">
+        <td class="padding20" style="width: 100%;">Apache</td>
+        <td><span class="remove_user_group" onclick="removeServiceFromServer(4)" title="{{lang.words.delete|title()}} {{lang.words.service}}">-</span></td>
+    </tr>
+	{% endif %}
+	{% if s.13|int() == 1 %}
+    <tr class="{{ loop.cycle('odd', 'even') }}" id="remove_service-3" data-service_name="Keepalived">
+        <td class="padding20" style="width: 100%;">Keepalived</td>
+        <td><span class="remove_user_group" onclick="removeServiceFromServer(3)" title="{{lang.words.delete|title()}} {{lang.words.service}}">-</span></td>
+    </tr>
+	{% endif %}
+    {% endfor %}
+    </tbody>
+</table>

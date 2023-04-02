@@ -713,7 +713,6 @@ if form.getvalue('newserver') is not None:
     hostname = common.checkAjaxInput(form.getvalue('servername'))
     ip = common.is_ip_or_dns(form.getvalue('newip'))
     group = common.checkAjaxInput(form.getvalue('newservergroup'))
-    scan_server = common.checkAjaxInput(form.getvalue('scan_server'))
     typeip = common.checkAjaxInput(form.getvalue('typeip'))
     haproxy = common.checkAjaxInput(form.getvalue('haproxy'))
     nginx = common.checkAjaxInput(form.getvalue('nginx'))
@@ -732,7 +731,7 @@ if form.getvalue('newserver') is not None:
         print('error: IP or DNS name is not valid')
         sys.exit()
     try:
-        if server_mod.create_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, apache, firewall, scan_server):
+        if server_mod.create_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, apache, firewall):
             try:
                 user_subscription = roxywi_common.return_user_status()
             except Exception as e:
@@ -741,19 +740,24 @@ if form.getvalue('newserver') is not None:
 
             env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
             template = env.get_template('ajax/new_server.html')
-
-            template = template.render(groups=sql.select_groups(),
-                                       servers=sql.select_servers(server=ip),
-                                       masters=sql.select_servers(get_master_servers=1),
-                                       sshs=sql.select_ssh(group=group),
-                                       page=page,
-                                       user_status=user_subscription['user_status'],
-                                       user_plan=user_subscription['user_plan'],
-                                       adding=1,
-                                       lang=lang)
+            template = template.render(groups=sql.select_groups(), servers=sql.select_servers(server=ip),
+                                       masters=sql.select_servers(get_master_servers=1), sshs=sql.select_ssh(group=group),
+                                       page=page, user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'],
+                                       adding=1,lang=lang)
             print(template)
-            roxywi_common.logging(ip, f'A new server {hostname} has been created', roxywi=1, login=1,
-                          keep_history=1, service='server')
+            roxywi_common.logging(ip, f'A new server {hostname} has been created', roxywi=1, login=1, keep_history=1, service='server')
+
+    except Exception as e:
+        print(f'error: {e}')
+
+if act == 'after_adding':
+    hostname = common.checkAjaxInput(form.getvalue('servername'))
+    ip = common.is_ip_or_dns(form.getvalue('newip'))
+    group = common.checkAjaxInput(form.getvalue('newservergroup'))
+    scan_server = common.checkAjaxInput(form.getvalue('scan_server'))
+
+    try:
+        server_mod.update_server_after_creating(hostname, ip, scan_server)
     except Exception as e:
         print(e)
 
@@ -773,9 +777,6 @@ if form.getvalue('updateserver') is not None:
     name = form.getvalue('updateserver')
     group = form.getvalue('servergroup')
     typeip = form.getvalue('typeip')
-    haproxy = form.getvalue('haproxy')
-    nginx = form.getvalue('nginx')
-    apache = form.getvalue('apache')
     firewall = form.getvalue('firewall')
     enable = form.getvalue('enable')
     master = form.getvalue('slave')
@@ -788,8 +789,7 @@ if form.getvalue('updateserver') is not None:
     if name is None or port is None:
         print(error_mess)
     else:
-        sql.update_server(name, group, typeip, enable, master, serv_id, cred, port, desc, haproxy, nginx, apache,
-                          firewall, protected)
+        sql.update_server(name, group, typeip, enable, master, serv_id, cred, port, desc, firewall, protected)
         roxywi_common.logging(f'the server {name}', ' has been updated ', roxywi=1, login=1)
         server_ip = sql.select_server_ip_by_id(serv_id)
         roxywi_common.logging(server_ip, f'The server {name} has been update', roxywi=1, login=1,
@@ -2367,3 +2367,9 @@ if form.getvalue('updateServiceCheckerSettings'):
         print('ok')
     else:
         print('error: Cannot update Checker settings')
+
+if act == 'show_server_services':
+    server_mod.show_server_services()
+
+if form.getvalue('changeServerServicesId') is not None:
+    server_mod.change_server_services()
