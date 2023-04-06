@@ -574,7 +574,7 @@ function keepalivedBecameMaster(serv) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
-			} else if (data.indexOf('no such') != '-1') {
+			} else if (data.indexOf('No such') != '-1') {
 				$("#bin_bout").html('Cannot get information');
 			} else {
 				$("#bin_bout").html(data);

@@ -10,16 +10,16 @@
         "link": "Обзор",
         "h2": "Обзор сервисов",
         "haproxy": {
-            "title": "Обзор HAProxy серверов"
+            "title": "Обзор HAProxy-серверов"
         },
         "nginx": {
-            "title": "Обзор NGINX серверов"
+            "title": "Обзор NGINX-серверов"
         },
         "apache": {
-            "title": "Обзор Apache серверов"
+            "title": "Обзор Apache-серверов"
         },
         "keepalived": {
-            "title": "Обзор Keepalived серверов"
+            "title": "Обзор Keepalived-серверов"
         },
     },
     "config": {
@@ -67,7 +67,7 @@
     },
     "ssl": {
         "link": "SSL",
-        "title": "Добавить прокси: Загрузить SSL сертификат"
+        "title": "Добавить прокси: Загрузить SSL-сертификат"
     },
     "lists": {
         "link": "Листы",
@@ -128,18 +128,18 @@
     "cannot_get_info": "Не возможно получить информацию о",
     "something_wrong": "Что-то пошло не так",
     "check_logs": "проверти логи",
-    "select_server": "Выберете в начале сервер",
-    "empty_name": "Имя не может быть пустым",
+    "select_server": "Сначала выберите сервер",
+    "empty_name": "Поле имя не может быть пустым",
     }
 %}
 {% set settings = {
     "rabbitmq": {
-        "rabbitmq_host": "RabbitMQ-server сервер",
-        "rabbitmq_port": "RabbitMQ-server порт",
-        "rabbitmq_vhost": "RabbitMQ-server vhost",
-        "rabbitmq_queue": "RabbitMQ-server очередь",
-        "rabbitmq_user": "RabbitMQ-server пользователь",
-        "rabbitmq_password": "RabbitMQ-server пароль",
+        "rabbitmq_host": "Адрес сервера RabbitMQ",
+        "rabbitmq_port": "Порт сервера RabbitMQ",
+        "rabbitmq_vhost": "Виртуальный хост RabbitMQ",
+        "rabbitmq_queue": "Имя очереди RabbitMQ",
+        "rabbitmq_user": "Имя пользователя RabbitMQ",
+        "rabbitmq_password": "Пароль пользователя RabbitMQ",
         },
     "nginx": {
         "nginx_path_logs": "Путь до лог файлов NGINX",
@@ -159,49 +159,49 @@
         "checker_keep_history_range": "Время хранения истории Checker",
         "checker_maxconn_threshold": "Время хранения истории Port scanner",
         "checker_check_interval": "Порог срабатывания уведомления по maxconn, в %",
-        "smon_ssl_expire_warning_alert": "Предупреждение о истечении SSL сертификата (в днях)",
-        "smon_ssl_expire_critical_alert": "Критическое предупреждение о истечении SSL сертификата (в днях)",
+        "smon_ssl_expire_warning_alert": "Предупреждение о истечении SSL-сертификата (в днях)",
+        "smon_ssl_expire_critical_alert": "Критическое предупреждение о истечении SSL-сертификата (в днях)",
         },
     "main": {
         "time_zone": "Временная зона",
-        "proxy": "IP адрес и порт прокси сервера. Формат: proto://ip:port",
+        "proxy": "IP-адрес и порт прокси сервера. Формат: proto://ip:port",
         "session_ttl": "Время жизни пользовательских сессий (в днях)",
         "token_ttl": "Время жизни пользовательских токенов (в днях)",
-        "tmp_config_path": "Путь до временной директории. Путь должен существовать. Директория должна принадлежать пользователю от имени которого подключается SSH",
-        "cert_path": "Путь до SSL директории. Путь должен существовать. Директория должна принадлежать пользователю от имени которого подключается SSH",
-        "ssl_local_path": "Локальный путь для хранения SSL сертификатов. Данный путь относительный от $HOME_ROXY_WI/app/",
-        "lists_path": "Локальный путь для хранения black и white листов. Данный путь относительный от $HOME_ROXY-WI",
+        "tmp_config_path": "Путь до временной директории. Путь должен существовать. Директория должна принадлежать пользователю, от имени которого подключается SSH",
+        "cert_path": "Путь до SSL-директории. Путь должен существовать. Директория должна принадлежать пользователю, от имени которого подключается SSH",
+        "ssl_local_path": "Локальный путь для хранения SSL-сертификатов. Укажите относительный путь от $HOME_ROXY_WI/app/",
+        "lists_path": "Локальный путь для хранения черных и белых списков. Укажите относительный путь от $HOME_ROXY-WI",
         "maxmind_key": "Лицензионный ключ для загрузки GeoLite2 DB. Создается на сайте maxmind.com",
         },
     "mail": {
         "mail_ssl": "Включить TLS",
         "mail_from": "Адрес отправителя",
-        "mail_smtp_host": "Адрес SMTP сервера",
-        "mail_smtp_port": "Порт SMTP сервера",
+        "mail_smtp_host": "Адрес SMTP-сервера",
+        "mail_smtp_port": "Порт SMTP-сервера",
         "mail_smtp_user": "Имя пользователя",
         "mail_smtp_password": "Пароль",
         },
     "logs": {
-        "syslog_server_enable": "Включение получение логов из syslog сервера",
-        "syslog_server": "IP адрес syslog сервера",
-        "log_time_storage": "Время хранение лог файлов пользовательской активности (в днях)",
+        "syslog_server_enable": "Включение получение логов из syslog-сервера",
+        "syslog_server": "IP-адрес syslog-сервера",
+        "log_time_storage": "Срок хранения логов пользовательской активности (в днях)",
         "apache_log_path": "Путь до лог файлов Apache сервера",
         },
     "ldap": {
         "ldap_enable": "LDAP включен",
-        "ldap_server": "IP адрес LDAP сервера",
-        "ldap_port": "LDAP порт (порт 389 или 636 используются по умолчанию)",
-        "ldap_user": "LDAP имя пользователя",
-        "ldap_password": "LDAP пароль",
+        "ldap_server": "IP-адрес сервера LDAP",
+        "ldap_port": "Порт сервера LDAP (порт 389 или 636 используются по умолчанию)",
+        "ldap_user": "Имя пользователя LDAP",
+        "ldap_password": "Пароль LDAP",
         "ldap_base": "Базовый домен. Пример: dc=domain, dc=com",
-        "ldap_domain": "LDAP домен для входа",
+        "ldap_domain": "Домен для входа",
         "ldap_class_search": "Класс для поиска пользователя",
         "ldap_user_attribute": "Атрибут для поиска пользователей",
         "ldap_search_field": "Почта пользователя",
         "ldap_type": "Использовать LDAPS",
         },
     "haproxy": {
-        "haproxy_path_logs": "Путь до лог файлов HAProxy",
+        "haproxy_path_logs": "Путь до логов HAProxy",
         "stats_user": "Пользователь для входа на страницу статистики HAProxy",
         "stats_password": "Пароль для входа на страницу статистики HAProxy",
         "stats_port": "Порт для доступа на страницу статистики HAProxy",
@@ -283,7 +283,7 @@
     "roll_back": "Откатиться к ним, просмотреть или удалить",
     "files_been_deleted": "Следующие файлы были удалены",
     "version_has_been_uploaded": "Данная версия была загружена и сохранена как",
-    "new_config_has_been_saved": "A new config has been saved as",
+    "new_config_has_been_saved": "Новый конфиг сохранен под именем",
     "view_and_upload": "Просмотр и загрузка этой версии конфига",
     "int_vrrp": "Интерфейс для VRRP на сервере",
     "howto_ha": "Как создать кластер высокой доступности",
@@ -385,7 +385,7 @@
         "disable_ssl_check": "Отключить проверку SSL",
         "disable_ssl_verify": "Отключить проверку SSL на серверах",
         "set_options": "Задать параметры",
-        "set_options_m": "Задать параметры в ручную",
+        "set_options_m": "Задать параметры вручную",
         "show_full_settings": "Показать полный список настроек",
         "show_full_settings": "Скрыть полный список настроек",
         }

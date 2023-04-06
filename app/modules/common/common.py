@@ -41,20 +41,35 @@ def checkAjaxInput(ajax_input: str):
 		return quote(ajax_input.rstrip())
 
 
-def return_nice_path(return_path: str) -> str:
+def check_is_service_folder(service_path: str) -> bool:
 	if (
-		'nginx' not in return_path
-		and 'haproxy' not in return_path
-		and 'apache2' not in return_path
-		and 'httpd' not in return_path
-		and 'keepalived' not in return_path
-	):
+			'nginx' not in service_path
+			and 'haproxy' not in service_path
+			and 'apache2' not in service_path
+			and 'httpd' not in service_path
+			and 'keepalived' not in service_path
+	) or '..' in service_path:
+		return False
+	else:
+		return True
+
+
+def return_nice_path(return_path: str) -> str:
+	if not check_is_service_folder(return_path):
 		return 'error: The path must contain the name of the service. Check it in Roxy-WI settings'
 
 	if return_path[-1] != '/':
 		return_path += '/'
 
 	return return_path
+
+
+def check_is_conf(config_path: str) -> bool:
+	if check_is_service_folder(config_path):
+		if 'conf' in config_path or 'cfg' in config_path:
+			return True
+
+	return False
 
 
 def string_to_dict(dict_string) -> dict:

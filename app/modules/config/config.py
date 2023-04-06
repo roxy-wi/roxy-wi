@@ -34,8 +34,8 @@ def get_config(server_ip, cfg, **kwargs):
 	else:
 		config_path = sql.get_setting('haproxy_config_path')
 
-	if '..' in config_path:
-		return 'error: nice try'
+	if not common.check_is_conf(config_path):
+		raise Exception('error: nice try 2')
 
 	try:
 		with mod_ssh.ssh_connect(server_ip) as ssh:
@@ -451,14 +451,11 @@ def show_config(server_ip: str) -> None:
 
 	if form.getvalue('configver') is None:
 		cfg = f"{configs_dir}{server_ip}-{get_date.return_date('config')}{cfg}"
-		if service == 'nginx':
-			get_config(server_ip, cfg, nginx=1, config_file_name=form.getvalue('config_file_name'))
-		elif service == 'apache':
-			get_config(server_ip, cfg, apache=1, config_file_name=form.getvalue('config_file_name'))
-		elif service == 'keepalived':
-			get_config(server_ip, cfg, keepalived=1)
-		else:
-			get_config(server_ip, cfg)
+		try:
+			get_config(server_ip, cfg, service=service, config_file_name=form.getvalue('config_file_name'))
+		except Exception as e:
+			print(e)
+			return
 	else:
 		cfg = configs_dir + form.getvalue('configver')
 	try:

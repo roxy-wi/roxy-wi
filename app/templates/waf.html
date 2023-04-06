@@ -47,7 +47,7 @@
 		</table>
 	</div>
 {% elif waf_rule_file %}
-	<center>
+	<div class="left-space">
 		<link rel="stylesheet" href="/inc/codemirror/lib/codemirror.css">
 		<link rel="stylesheet" href="/inc/codemirror/addon/dialog/dialog.css">
 		<link rel="stylesheet" href="/inc/codemirror/addon/fold/foldgutter.css">
@@ -72,30 +72,28 @@
 		<script src="/inc/codemirror/keymap/sublime.js"></script>
 		<script src="/inc/configshow.js"></script>
 			<h4>{{lang.words.config|title()}} {{waf_rule_file}} {{lang.words.from|title()}} {{ serv }}</h4>
-			</center>
 			<form action="waf.py" name="saveconfig" id="saveconfig" method="post">
 				<input type="hidden" value="{{ serv }}" name="serv">
 				<input type="hidden" value="{{ cfg }}.old" name="oldconfig">
 				<input type="hidden" value="{{ token }}" name="token">
 				<input type="hidden" value="waf_{{ service }}" name="service">
 				<input type="hidden" value="{{ config_file_name }}" name="config_file_name">
-				<div style="margin-left: 20%;width: 60%;">
+				<div style="width: 95%;">
 					<textarea name="config" id="config_text_area" class="config" rows="35" cols="100">{{ config }}</textarea>
 				</div>
 				<p>
-					<center>
-						<a href="waf.py?manage_rules=1&serv={{serv}}" class="ui-button ui-widget ui-corner-all" title="Return to rules management">{{lang.words.back|title()}}</a>
-						{% if role <= 3 %}
-						<button type="submit" value="save" name="save" class="btn btn-default" title="{{lang.words.save|title()}} {{lang.words.without}} {{lang.words.reloading}}">{{lang.words.save|title()}}</button>
-						{% if service == 'haproxy' %}
-						<button type="submit" value="" name="" class="btn btn-default">{{lang.phrases.save_and_restart}}</button>
-						{% elif service == 'nginx' %}
-						<button type="submit" value="" name="reload" class="btn btn-default">{{lang.phrases.save_and_reload}}</button>
-						{% endif %}
-						{% endif %}
-					</center>
+					<a href="waf.py?manage_rules=1&serv={{serv}}" class="ui-button ui-widget ui-corner-all" title="Return to rules management">{{lang.words.back|title()}}</a>
+					{% if role <= 3 %}
+					<button type="submit" value="save" name="save" class="btn btn-default" title="{{lang.words.save|title()}} {{lang.words.without}} {{lang.words.reloading}}">{{lang.words.save|title()}}</button>
+					{% if service == 'haproxy' %}
+					<button type="submit" value="" name="" class="btn btn-default">{{lang.phrases.save_and_restart}}</button>
+					{% elif service == 'nginx' %}
+					<button type="submit" value="" name="reload" class="btn btn-default">{{lang.phrases.save_and_reload}}</button>
+					{% endif %}
+					{% endif %}
 				</p>
 			</form>
+	</div>
 		<style>
 		.CodeMirror {
 			line-height: 1.2em;
@@ -132,15 +130,15 @@
 	</style>
 	<script>
 		$("#secIntervals").css("display", "none");
-		var ip = []
-		var hostnamea = []
-		{%- for s in servers_all %}
-			{% if service == 'haproxy '%}
-				{% set service_in_table = s.15 %}
-			{% else %}
-				{% set service_in_table = s.14 %}
-			{% endif %}
-		{% if service_in_table|int() == 1 %}
+		var ip = [];
+		var hostnamea = [];
+		{% for s in servers_all %}
+			{%- if service == 'haproxy' -%}
+				{%- set service_in_table = s.15 -%}
+			{%- else -%}
+				{% set service_in_table = s.14 -%}
+			{%- endif -%}
+		{%- if service_in_table|int() == 1 -%}
 			ip.push("{{ s[2] }}");
 			var host = "{{s[2]}}";
 			host = host.replace(/\./g, '\\.');
@@ -172,7 +170,7 @@
 		{% endfor %}
 	</table>
 	{% if service == 'haproxy' %}
-	<link href="/inc/chart.min.css" rel="stylesheet">
+	<link href="/inc/css/chart.min.css" rel="stylesheet">
 	<script src="/inc/overview-6.3.9.js"></script>
 	<script src="/inc/metrics.js"></script>
 	<script src="/inc/chart.min.js"></script>
