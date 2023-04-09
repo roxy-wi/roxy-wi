@@ -71,7 +71,7 @@ def get_exp_version(server_ip: str, service_name: str) -> str:
 		return 'no'
 
 
-def get_correct_apache_service_name(server_ip=None, server_id=0) -> str:
+def get_correct_apache_service_name(server_ip=None, server_id=None) -> str:
 	if server_id is None:
 		server_id = sql.select_server_id_by_ip(server_ip)
 

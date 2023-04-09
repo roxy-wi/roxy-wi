@@ -1,12 +1,13 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% if service == 'haproxy' %}
 <div class="bin_bout" id="show_bin_bout">
     <div class="server-name">
-        Bytes in
-        <span class="update-icon" style="font-size: 13px; margin-top: 8px;">
-            <a onclick="showBytes('{{ serv }}')" title="Refresh">
+        <div class="bin_bout_text overflow" title="{{lang.phrases.bytes_in}}">{{lang.phrases.bytes_in}}</div>
+        <div class="update-icon" style="font-size: 13px; margin-top: 5px;">
+            <a onclick="showBytes('{{ serv }}')" title="{{lang.words.refresh|title()}}">
                 <span class="service-reload"></span>
             </a>
-        </span>
+        </div>
     </div>
     <div class="bytes" id="bin">
         {% set total = bin_bout.0|int / 1024 %}
@@ -22,7 +23,7 @@
         {{total|round(2)}} {{metric}}
     </div>
     <div class="server-name">
-        Bytes Out
+        <div class="bin_bout_text bin_bout_text_without_refresh overflow" title="{{lang.phrases.bytes_out}}">{{lang.phrases.bytes_out}}</div>
     </div>
     <div class="bytes" id="bout">
         {% set total = bin_bout.1|int / 1024 %}
@@ -42,20 +43,20 @@
 {% if service == 'nginx' or service == 'haproxy' %}
 <div id="sessions" class="bin_bout">
     <div class="server-name">
-        Current ses
+        <div class="bin_bout_text {%if service == 'haproxy'%}bin_bout_text_without_refresh{%endif%} overflow" title="{{lang.phrases.current_ses}}">{{lang.phrases.current_ses}}</div>
         {% if service == 'nginx' %}
-        <span class="update-icon" style="font-size: 13px; margin-top: 8px;">
+        <div class="update-icon" style="font-size: 13px; margin-top: 8px;">
             <a onclick="showNginxConnections('{{ serv }}')" title="Refresh">
                 <span class="service-reload"></span>
             </a>
-        </span>
+        </div>
         {% endif %}
     </div>
     <div class="bytes" id="cur_sess">
         {{bin_bout.2}}
     </div>
     <div class="server-name">
-        Total ses
+       <div class="bin_bout_text bin_bout_text_without_refresh overflow" title="{{lang.phrases.total_ses}}">{{lang.phrases.total_ses}}</div>
     </div>
     <div class="bytes" id="total_sess">
         {{bin_bout.3}}
@@ -65,7 +66,7 @@
 {% if service == 'apache' %}
 <div class="bin_bout" id="show_bin_bout">
     <div class="server-name">
-        ReqPerSec
+        <div class="bin_bout_text overflow" title="{{lang.phrases.ReqPerSec}}">{{lang.phrases.ReqPerSec}}</div>
         <span class="update-icon" style="font-size: 13px; margin-top: 8px;">
             <a onclick="showApachekBytes('{{ serv }}')" title="Refresh">
                 <span class="service-reload"></span>
@@ -76,7 +77,7 @@
         {{bin_bout.0}}
     </div>
     <div class="server-name">
-        BytesPerSec
+        <div class="bin_bout_text bin_bout_text_without_refresh overflow" title="{{lang.phrases.BytesPerSec}}">{{lang.phrases.BytesPerSec}}</div>
     </div>
     <div class="bytes" id="bout">
         {% set total = bin_bout.1|int / 1024 %}
@@ -96,15 +97,19 @@
 {% if service == 'keepalived' %}
 <div class="bin_bout" id="show_bin_bout">
     <div class="server-name">
-        Became Master
-        <span class="update-icon" style="font-size: 13px; margin-top: 8px;">
+        <div class="bin_bout_text overflow" title="{{lang.phrases.became_master}}">{{lang.phrases.became_master}}</div>
+        <div class="update-icon" style="font-size: 13px; margin-top: 8px;">
             <a onclick="keepalivedBecameMaster('{{ serv }}')" title="Refresh">
                 <span class="service-reload"></span>
             </a>
-        </span>
+        </div>
     </div>
     <div class="bytes" id="bin">
+        {% if 'No such' in bin_bout %}
+        <span style="font-weight: normal;">{{lang.errors.cannot_get_info}} Keepalived</span>
+        {% else %}
         {{bin_bout}}
+        {% endif %}
     </div>
 </div>
 {% endif %}

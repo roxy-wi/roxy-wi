@@ -847,6 +847,7 @@ label {
     color: var(--blue-color);
     border-bottom: 1px solid #A4C7F5;
 	width: 99%;
+	height: 25px;
 }
 .server-status {
 	border-radius: 50% 50%;
@@ -916,6 +917,14 @@ label {
 .bin_bout {
 	width: 110px;
 	margin-left: 12px;
+}
+.bin_bout_text {
+    height: 24px;
+    width: 90px;
+    float: left;
+}
+.bin_bout_text_without_refresh {
+	width: 115px;
 }
 .bytes {
 	padding-top: 17px;

@@ -151,9 +151,10 @@ def show_haproxy_binout(server_ip: str) -> None:
         server_ip, port)
     cout, stderr3 = server_mod.subprocess_execute(cmd)
     bin_bout.append(cout[0])
+    lang = roxywi_common.get_user_lang()
     env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
     template = env.get_template('ajax/bin_bout.html')
-    template = template.render(bin_bout=bin_bout, serv=server_ip, service='haproxy')
+    template = template.render(bin_bout=bin_bout, serv=server_ip, service='haproxy', lang=lang)
     print(template)
 
 
@@ -174,9 +175,10 @@ def show_nginx_connections(server_ip: str) -> None:
             if num == 2:
                 bin_bout.append(line.split(' ')[3])
 
+        lang = roxywi_common.get_user_lang()
         env = Environment(loader=FileSystemLoader('templates'))
         template = env.get_template('ajax/bin_bout.html')
-        template = template.render(bin_bout=bin_bout, serv=server_ip, service='nginx')
+        template = template.render(bin_bout=bin_bout, serv=server_ip, service='nginx', lang=lang)
         print(template)
     else:
         print('error: cannot connect to NGINX stat page')
@@ -197,9 +199,10 @@ def show_apache_bytes(server_ip: str) -> None:
             if 'ReqPerSec' in line or 'BytesPerSec' in line:
                 bin_bout.append(line.split(' ')[1])
 
+        lang = roxywi_common.get_user_lang()
         env = Environment(loader=FileSystemLoader('templates'))
         template = env.get_template('ajax/bin_bout.html')
-        template = template.render(bin_bout=bin_bout, serv=server_ip, service='apache')
+        template = template.render(bin_bout=bin_bout, serv=server_ip, service='apache', lang=lang)
         print(template)
     else:
         print('error: cannot connect to Apache stat page')
@@ -282,7 +285,8 @@ def show_services_overview() -> None:
 def keepalived_became_master(server_ip) -> None:
     commands = ["sudo kill -USR2 $(cat /var/run/keepalived.pid) && sudo grep 'Became master' /tmp/keepalived.stats |awk '{print $3}'"]
     became_master = server_mod.ssh_command(server_ip, commands)
+    lang = roxywi_common.get_user_lang()
     env = Environment(loader=FileSystemLoader('templates'))
     template = env.get_template('ajax/bin_bout.html')
-    template = template.render(bin_bout=became_master, serv=server_ip, service='keepalived')
+    template = template.render(bin_bout=became_master, serv=server_ip, service='keepalived', lang=lang)
     print(template)
