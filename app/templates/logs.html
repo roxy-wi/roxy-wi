@@ -20,8 +20,8 @@
 		{% if select_id != 'viewlogs' and service != 'nginx' %}
 		{% endif %}
 		<td style="width: 10%;">{{lang.words.number|title()}} {{lang.words.rows}}</td>
-		<td class="help_cursor" style="width: 10%;"><span title="Find in a log file(supports regular expressions)">{{lang.words.find|title()}}<span></td>
-		<td class="padding10 help_cursor" style="width: 10%;"><span title="Exclude from search in a log file(supports regular expressions)">{{lang.words.exclude|title()}}<span></td>
+		<td class="help_cursor" style="width: 10%;" title="" data-help="{{lang.phrases.find_in_log}}">{{lang.words.find|title()}}</td>
+		<td class="help_cursor" style="width: 10%;" title="" data-help="{{lang.phrases.exclude_in_log}}">{{lang.words.exclude|title()}}</td>
 		<td style="width: 10%;">
 			<label for="time_range_out_hour" style="padding: 0">{{lang.words.time_range|title()}}:</label>
 			{{ input('time_range_out_hour', value=hour, class='time-range', readonly='readonly') }}:{{ input('time_range_out_minut', value=minut, class='time-range', readonly='readonly') }}
@@ -60,16 +60,16 @@
 		{% if waf != '1' and select_id != 'viewlogs' %}
 		<td id="remote_log_files"></td>
 		{% endif %}
-		<td class="padding10" style="width: 10%;">
+		<td style="width: 10%;">
 			{{ input('rows', type='number', value=rows, required='required', style='width: 110px;') }}
 		</td> 
-		<td class="padding10" style="width: 10%;">
+		<td style="width: 10%;">
 			{{ input('grep', value=grep, style='width: 110px;') }}
 		</td>
-		<td class="padding10" style="width: 10%;">
+		<td style="width: 10%;">
 			{{ input('exgrep', value=exgrep, style='width: 110px;') }}
 		</td>
-		<td class="padding10" style="width: 10%;">
+		<td style="width: 10%;">
 			<div id="time-range"></div>			
 		</td>			
 		<td class="padding10 first-collumn" style="width: 1%;">

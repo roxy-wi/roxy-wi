@@ -806,13 +806,16 @@ if form.getvalue('newgroup') is not None:
     if newgroup is None:
         print(error_mess)
     else:
-        if sql.add_group(newgroup, desc):
-            env = Environment(loader=FileSystemLoader('templates/ajax/'), autoescape=True)
-            template = env.get_template('/new_group.html')
+        try:
+            if sql.add_group(newgroup, desc):
+                env = Environment(loader=FileSystemLoader('templates/ajax/'), autoescape=True)
+                template = env.get_template('/new_group.html')
 
-            output_from_parsed_template = template.render(groups=sql.select_groups(group=newgroup))
-            print(output_from_parsed_template)
-            roxywi_common.logging('Roxy-WI server', f'A new group {newgroup} has been created', roxywi=1, login=1)
+                output_from_parsed_template = template.render(groups=sql.select_groups(group=newgroup))
+                print(output_from_parsed_template)
+                roxywi_common.logging('Roxy-WI server', f'A new group {newgroup} has been created', roxywi=1, login=1)
+        except Exception as e:
+            print(e)
 
 if form.getvalue('groupdel') is not None:
     import modules.roxywi.group as group_mod
@@ -2251,7 +2254,6 @@ if act == 'showListOfVersion':
     service = common.checkAjaxInput(form.getvalue('service'))
     configver = common.checkAjaxInput(form.getvalue('configver'))
     for_delver = common.checkAjaxInput(form.getvalue('for_delver'))
-    style = common.checkAjaxInput(form.getvalue('style'))
     users = sql.select_users()
     service_desc = sql.select_service(service)
     lang = roxywi_common.get_user_lang()
@@ -2282,7 +2284,6 @@ if act == 'showListOfVersion':
                                for_delver=for_delver,
                                configs=configs,
                                users=users,
-                               style=style,
                                lang=lang)
     print(template)
 

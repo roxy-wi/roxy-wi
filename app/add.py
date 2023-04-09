@@ -305,7 +305,7 @@ elif form.getvalue('mode') is not None:
 				try:
 					port_check_val = port_check[i]
 				except Exception:
-					port_check_val = port
+					port_check_val = server_port[i]
 
 				servers_split += "    server {0} {0}:{1}{2} port {6} maxconn {5} {3} {4} \n".format(
 					server, server_port[i], check, send_proxy_param, backup_param, maxconn_val, port_check_val

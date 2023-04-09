@@ -42,7 +42,7 @@
 		</tr>
 	</table>
 	<div id="table_metrics"></div>
-	<div style="padding-left: 25px;float: left;margin-top: 6px;">
+	<div class="metrics-time-range">
 		<b>{{lang.words.time_range}}:</b>
 		<select title="Choose time range" id="time-range">
 			<option value="30">30 {{lang.words.minutes}}</option>
@@ -53,11 +53,12 @@
 		</select>
 	</div>
 	{% if service == 'haproxy' %}
-	<div style="margin-top: 6px;">
+	<div style="margin-top: var(--indent);">
 		{{ checkbox('hide_http_metrics', desc=lang.words.hide|title()+' HTTP ' + lang.words.metrics, title=lang.words.hide|title()+' HTTP ' + lang.words.metrics) }}
 	</div>
 	{% endif %}
-	<div id="refresh" style="text-align: right;margin-top: 20px;margin-right: 10px;" title="{{lang.words.refresh|title}} {{lang.words.metrics}}" onclick="showMetrics()">
+	<div style="clear: both;"></div>
+	<div id="refresh" class="metrics-refresh" title="{{lang.words.refresh|title}} {{lang.words.metrics}}" onclick="showMetrics()">
 		<span  class="refresh"></span>
 	</div>
 {% for s in servers %}

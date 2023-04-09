@@ -27,7 +27,7 @@
 <script src="/inc/codemirror/mode/nginx.js"></script>
 <script src="/inc/codemirror/mode/haproxy.js"></script>
 <script src="/inc/codemirror/keymap/sublime.js"></script>
-<form action="{{ action }}" method="post" class="left-space">
+<form action="{{ action }}" method="post" class="left-space" style="margin-top: var(--indent);">
 	<select autofocus required name="section" id="{{ select_id }}">
 		<option disabled>------</option>
 		{% for s in sections %}

@@ -457,11 +457,11 @@
 }
 .caption-icon {
 	float: left;
-	margin: 6px 5px 10px 10px;
+	margin: 6px 5px 10px var(--indent);
     font-size: 15px;
 }
 .caption-icon2 {
 	float: left;
-	margin: 8px 5px 10px 10px;
+	margin: 8px 5px 10px var(--indent);
     font-size: 15px;
 }

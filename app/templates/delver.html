@@ -16,7 +16,6 @@
 			{% if service != 'keepalived' %}
 				<a class="ui-button ui-widget ui-corner-all" title="View stat" onclick="openStats()">{{lang.words.stats|title()}}</a>
 			{% endif %}
-			<a class="ui-button ui-widget ui-corner-all" title="Change version" onclick="changeVersion()">{{lang.words.change2|title()}} {{lang.words.version2|title()}}</a>
 		</form>
 	</p>
 	{% if aftersave %}
@@ -24,7 +23,7 @@
 		{% if stderr %}
 			{% include 'include/errors.html' %}
 		{% else %}
-			<div class="alert alert-success">
+			<div class="alert alert-success" style="margin-left: var(--indent);">
 			{% for f in file %}
 				{{f}}
 			{% endfor %}

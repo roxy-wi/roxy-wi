@@ -1,197 +1,147 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang1 %}
 {% from 'include/input_macros.html' import copy_to_clipboard %}
-{% if style == 'new' %}
-    {% if for_delver == '1' %}
-        <script>
-            $(document).ready(function() {
-                $('#table_version').on('page.dt')
-                .DataTable( {
-                    "pageLength": 25,
-                    "order": [ 5, "desc" ],
-                    stateSave: true,
-                    "columnDefs": [
-                        {
-                            "searchable": false,
-                            "orderable": false
-                        }
-                    ],
-                    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
-                } );
+{% if for_delver == '1' %}
+<script>
+    $(document).ready(function() {
+        $('#table_version').on('page.dt')
+            .DataTable( {
+                "pageLength": 25,
+                "order": [ 5, "desc" ],
+                stateSave: true,
+                "columnDefs": [
+                    {
+                        "searchable": false,
+                        "orderable": false
+                    }
+                ],
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
             } );
-            $('#new_select_all').click(function(){
-                if($(this).prop('checked')) {
-                  $("form input[type='checkbox']").attr("checked",true).change();
-                } else {
-                  $("form input[type='checkbox']").attr("checked",false).change();
-                }
-            });
-            $.getScript('/inc/script-6.3.9.js');
-            function show_diff(id) {
-                if ($('#show_diff_'+id).css('display') == 'none') {
-                    $('#show_diff_'+id).show();
-                    $('#link_show_diff_'+id).attr('title', 'Hide the full diff');
-                    $('#link_show_diff_'+id).text('Hide diff');
-                } else {
-                    $('#show_diff_'+id).hide();
-                    $('#link_show_diff_'+id).attr('title', 'Show the full diff');
-                    $('#link_show_diff_'+id).text('Show diff');
-                }
-            }
-        </script>
-        <style>
-            .diff {
-                overflow: auto;
-                width: 100%;
-                border: 1px solid #DCDCDC;
-                border-radius: 5px;
-                background-color: #fff;
-                margin: 0;
-            }
-        </style>
-        <form action="{{action}}" method="post">
-        <table class="overview hover order-column display compact" id="table_version">
-            <thead>
-                <tr class="overviewHead">
-                    <th class="padding10 first-collumn" style="width: 1%">
-                        <label for="new_select_all" id="new_label_select_all"></label>
-                        <input type="checkbox" id="new_select_all">
-                    </th>
-                    <th>{{lang1.words.user|title()}}</th>
-                    <th class="padding10 first-collumn" style="width: 30%">
-                        {{lang1.words.local|title()}} {{lang1.words.path}}
-                    </th>
-                    <th class="padding10 first-collumn" style="width: 10%">
-                        {{lang1.words.remote|title()}} {{lang1.words.path}}
-                    </th>
-                    <th class="padding10 first-collumn" style="width: 35%">
-                        {{lang1.words.diff|title()}}
-                    </th>
-                    <th style="width: 10%">
-                        {{lang1.words.created|title()}}
-                    </th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for c in configs %}
-                <tr>
-                    <td>
-                        <label for="{{c.id}}" id="select_{{c.id}}"></label>
-                        <input type="checkbox" value="{{c.local_path}}" name="{{c.local_path}}" id="{{c.id}}">
-                    </td>
-                    <td>
-                        {% for u in users %}
-                        {% if u.user_id == c.user_id %}
+    } );
+    $('#new_select_all').click(function(){
+        if($(this).prop('checked')) {
+            $("form input[type='checkbox']").attr("checked",true).change();
+        } else {
+            $("form input[type='checkbox']").attr("checked",false).change();
+        }
+    });
+    $.getScript('/inc/script-6.3.9.js');
+    function show_diff(id) {
+        if ($('#show_diff_'+id).css('display') == 'none') {
+            $('#show_diff_'+id).show();
+            $('#link_show_diff_'+id).attr('title', 'Hide the full diff');
+            $('#link_show_diff_'+id).text('Hide diff');
+        } else {
+            $('#show_diff_'+id).hide();
+            $('#link_show_diff_'+id).attr('title', 'Show the full diff');
+            $('#link_show_diff_'+id).text('Show diff');
+        }
+    }
+</script>
+<style>
+    .diff {
+        overflow: auto;
+        width: 100%;
+        border: 1px solid #DCDCDC;
+        border-radius: 5px;
+        background-color: #fff;
+        margin: 0;
+    }
+</style>
+<form action="{{action}}" method="post">
+    <table class="overview hover order-column display compact" id="table_version">
+        <thead>
+        <tr class="overviewHead">
+            <th class="padding10 first-collumn" style="width: 1%; padding-left: 15px;">
+                <label for="new_select_all" id="new_label_select_all"></label>
+                <input type="checkbox" id="new_select_all">
+            </th>
+            <th>{{lang1.words.user|title()}}</th>
+            <th class="padding10 first-collumn" style="width: 30%">
+                {{lang1.words.local|title()}} {{lang1.words.path}}
+            </th>
+            <th class="padding10 first-collumn" style="width: 10%">
+                {{lang1.words.remote|title()}} {{lang1.words.path}}
+            </th>
+            <th class="padding10 first-collumn" style="width: 35%">
+                {{lang1.words.diff|title()}}
+            </th>
+            <th style="width: 10%">
+                {{lang1.words.created|title()}}
+            </th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for c in configs %}
+        <tr>
+            <td style="padding-left: 15px">
+                <label for="{{c.id}}" id="select_{{c.id}}"></label>
+                <input type="checkbox" value="{{c.local_path}}" name="{{c.local_path}}" id="{{c.id}}">
+            </td>
+            <td>
+                {% for u in users %}
+                    {% if u.user_id == c.user_id %}
                         {{ u.username }}
-                        {% endif %}
-                        {% endfor %}
-                    </td>
-                    <td class="padding10 first-collumn" title="{{c.local_path}}">
-                        {% set show = '...'+c.local_path.split('/')[-1] %}
-                        {{ copy_to_clipboard(id=c.local_path, value=c.local_path, show=show) }}
-                    </td>
-                    <td>{{ copy_to_clipboard(id=c.remote_path, value=c.remote_path) }}</td>
-                    <td>
-                        {% if c.diff == '' %}
-                            {{lang1.words.no|title()}} {{lang1.words.diff3}}
-                            {% else %}
-                            <a id="link_show_diff_{{c.id}}" onclick="show_diff('{{c.id}}')" title="Show a difference between this config and previous one" class="link">{{lang1.words.show|title()}} {{lang1.words.diff2}}</a>
-                            <div id="show_diff_{{c.id}}" style="display: none;">
-                                {% set stdout = c.diff.split('\n') %}
-                                {% include 'ajax/compare.html' %}
-                            </div>
-                        {% endif %}
-                    </td>
-                    <td>{{c.date}}</td>
-                    <td style="padding-top: 10px;">
-                        <a href="/app/versions.py?service={{service}}&serv={{serv}}&open=open&configver={{c.local_path.split('/')[-1]}}"
-                           class="ui-button ui-widget ui-corner-all" title="{{lang1.phrases.view_and_upload}}" style="margin-top: -6px;">
-                            {{lang1.words.view|title()}}/{{lang1.words.upload|title()}}
-                        </a>
-                    </td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-            <input type="hidden" value="{{serv}}" name="serv">
-            <input type="hidden" value="open" name="open">
-            <input type="hidden" value="del" name="del">
-            <input type="hidden" value="{{style}}" name="style">
-            <p>
-                <button type="submit" value="" name="" class="btn btn-default">{{lang1.words.delete|title()}}</button>
-            </p>
-        </form>
-    {% else %}
-        <center>
-        <h4>Select an old version</h4>
-        <p>
-            <select autofocus required name="configver" id="configver">
-                <option disabled selected>------</option>
-                {% for file in return_files %}
-                {% if file == configver %}
-                <option value="{{file}}" selected>{{file.split('-', maxsplit=1)[1]}}</option>
-                {% else %}
-                <option value="{{file}}">{{file.split('-', maxsplit=1)[1]}}</option>
-                {% endif %}
+                    {% endif %}
                 {% endfor %}
-            </select>
-            <input type="hidden" value="{{serv}}" name="serv">
-            <input type="hidden" value="open" name="open">
-            <input type="hidden" value="{{service}}" name="service" id="service">
-            <a class="ui-button ui-widget ui-corner-all" id="show" title="{{lang1.words.enter|title()}}" onclick="showUploadConfig()">{{lang1.words.select2|title()}}</a>
-        </p>
-        <script>
-            $( "select" ).selectmenu();
-            showUploadConfig();
-        </script>
-        </center>
-    {% endif %}
+            </td>
+            <td class="padding10 first-collumn" title="{{c.local_path}}">
+                {% set show = '...'+c.local_path.split('/')[-1] %}
+                {{ copy_to_clipboard(id=c.local_path, value=c.local_path, show=show) }}
+            </td>
+            <td>{{ copy_to_clipboard(id=c.remote_path, value=c.remote_path) }}</td>
+            <td>
+                {% if c.diff == '' %}
+                    {{lang1.words.no|title()}} {{lang1.words.diff3}}
+                {% else %}
+                <a id="link_show_diff_{{c.id}}" onclick="show_diff('{{c.id}}')" title="Show a difference between this config and previous one" class="link">{{lang1.words.show|title()}} {{lang1.words.diff2}}</a>
+                <div id="show_diff_{{c.id}}" style="display: none;">
+                    {% set stdout = c.diff.split('\n') %}
+                    {% include 'ajax/compare.html' %}
+                </div>
+                {% endif %}
+            </td>
+            <td>{{c.date}}</td>
+            <td style="padding-top: 10px;">
+                <a href="/app/versions.py?service={{service}}&serv={{serv}}&open=open&configver={{c.local_path.split('/')[-1]}}"
+                   class="ui-button ui-widget ui-corner-all" title="{{lang1.phrases.view_and_upload}}" style="margin-top: -6px;">
+                    {{lang1.words.view|title()}}/{{lang1.words.upload|title()}}
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <input type="hidden" value="{{serv}}" name="serv">
+    <input type="hidden" value="open" name="open">
+    <input type="hidden" value="del" name="del">
+    <input type="hidden" value="{{style}}" name="style">
+    <p>
+        <button type="submit" value="" name="" class="btn btn-default">{{lang1.words.delete|title()}}</button>
+    </p>
+</form>
 {% else %}
-    {% if for_delver == '1' %}
-        <center>
-        <h4>Select a version</h4>
-        <form action="{{action}}" method="post">
-            <label for="select_all" id="label_select_all"><b>Select all</b></label>
-            <input type="checkbox" id="select_all"><br />
-            {% for file in return_files %}
-            <label for="{{file}}"> {{file.split('-', maxsplit=1)[1]}} </label><input type="checkbox" value="{{file}}" name="{{file}}" id="{{file}}">
-            <a href="/app/versions.py?service={{service}}&serv={{serv}}&open=open&configver={{file}}"
-               class="ui-button ui-widget ui-corner-all" title="View and upload this version of the config" style="margin-top: -6px;">
-                {{lang1.words.view|title()}}/{{lang1.words.upload|title()}}
-            </a><br />
-            {% endfor %}
-            <input type="hidden" value="{{serv}}" name="serv">
-            <input type="hidden" value="open" name="open">
-            <input type="hidden" value="del" name="del">
-            <p>
-                <button type="submit" value="" name="" class="btn btn-default">{{lang1.words.delete|title()}}</button>
-            </p>
-        </form>
-        </center>
-    {% else %}
-        <center>
-        <h4>Select an old version</h4>
-        <p>
-            <select autofocus required name="configver" id="configver">
-                <option disabled selected>------</option>
-                {% for file in return_files %}
-                {% if file == configver %}
-                <option value="{{file}}" selected>{{file.split('-', maxsplit=1)[1]}}</option>
-                {% else %}
-                <option value="{{file}}">{{file.split('-', maxsplit=1)[1]}}</option>
-                {% endif %}
-                {% endfor %}
-            </select>
-            <input type="hidden" value="{{serv}}" name="serv">
-            <input type="hidden" value="open" name="open">
-            <a class="ui-button ui-widget ui-corner-all" id="show" title="Enter" onclick="showUploadConfig()">{{lang1.words.select2|title()}}</a>
-        </p>
-        <script>
-            $( "select" ).selectmenu();
-            showUploadConfig();
-        </script>
-        </center>
-    {% endif %}
+<div class="left-space">
+    <h4>{{lang1.words.select|title()}} {{lang1.words.an}} {{lang1.words.version2}}</h4>
+    <select autofocus required name="configver" id="configver">
+        <option disabled selected>------</option>
+        {% for file in return_files %}
+        {% if file == configver %}
+        <option value="{{file}}" selected>{{file.split('-', maxsplit=1)[1]}}</option>
+        {% else %}
+        <option value="{{file}}">{{file.split('-', maxsplit=1)[1]}}</option>
+        {% endif %}
+        {% endfor %}
+    </select>
+    <input type="hidden" value="{{serv}}" name="serv">
+    <input type="hidden" value="open" name="open">
+    <input type="hidden" value="{{service}}" name="service" id="service">
+    <a class="ui-button ui-widget ui-corner-all" id="show" title="{{lang1.words.enter|title()}}" onclick="showUploadConfig()">{{lang1.words.select2|title()}}</a>
+</div>
+<script>
+    $( "select" ).selectmenu();
+    showUploadConfig();
+</script>
 {% endif %}
 <script>
     $('#select_all').click(function(){

@@ -7,6 +7,7 @@
 	--menu-color: #06212a;
 	--right-menu-blue-rolor: #5D9CEB;
 	--border-radius: 3px;
+	--indent: 15px;
 }
 html {
   font-size: 10px;
@@ -80,7 +81,7 @@ form {
 	margin: 0;
 }
 pre {
-	padding-left: 15px;
+	padding-left: var(--indent);
 }
 .icon, .icon-hapservs {
 	max-width: 20px;
@@ -273,7 +274,7 @@ pre {
 	padding: 7px;
 }
 .lineDiffMinus, .lineDiffPlus, .lineDiff {
-	padding-left: 15px;
+	padding-left: var(--indent);
 	white-space: pre;
 }
 .lineDiffMinus {
@@ -330,7 +331,7 @@ pre {
 }
 .addOption, .addName {
 	border-bottom: 1px solid #ddd;
-	padding: 15px;
+	padding: var(--indent);
 }
 .advance {
 	display: none;
@@ -339,8 +340,8 @@ pre {
 	font-size: 13px !important;
 }
 .addButton {
-	padding-top: 15px;
-	padding-left: 15px;
+	padding-top: var(--indent);
+	padding-left: var(--indent);
 	padding-bottom: 5px;
 }
 .addButton:hover {
@@ -394,7 +395,7 @@ pre {
 	padding-left: 10px;
 }
 .checkbox-head {
-	padding: 0;
+	padding: 0 0 0 10px;
 }
 .ip-field {
 	width: 100px;
@@ -403,12 +404,12 @@ pre {
 	min-width: 225px;
 }
 .syn-flood-protection-field {
-	padding-left: 60px;
+	padding-left: 45px;
 }
 .overviewTr {
 	margin: 0;
 	background-color: #f6f8fa;
-	padding-left: 15px;
+	padding-left: var(--indent);
 	font-size: 15px;
 }
 .serverUp, .serverDown, .serverNone {
@@ -455,12 +456,12 @@ pre {
 	background-color: var(--red-color);
 }
 .padding10 {
-	padding: 10px 10px 10px 10px;
+	padding: 10px 10px 10px var(--indent);
 	border: none;
 	width: 15%;
 }
 .padding20 {
-	padding: 15px;
+	padding: var(--indent);
 	width: 30%;
 }
 .padding-top20 {
@@ -640,7 +641,7 @@ ul{
 }
 .ui-tabs-nav {
 	border-radius: 0 !important;
-	padding-left: 15px !important;
+	padding-left: var(--indent) !important;
 	padding-top: 0.28em !important;
   }
 .ui-tabs .ui-tabs-panel {
@@ -728,7 +729,7 @@ td,th {
 	background-color: #dff0d8 !important;
 }
 .alert {
-	padding:15px;
+	padding: var(--indent);
 	margin-bottom:20px;
 	border:1px solid transparent;
 	display: block;
@@ -739,7 +740,7 @@ td,th {
 	color: var(--blue-color) !important;
 }
 .alert-danger, .alert-info, .alert-success, .alert-warning, .added {
-	margin-top: 15px;
+	margin-top: var(--indent);
 }
 .alert-danger {
 	color: #a94442;
@@ -756,7 +757,7 @@ td,th {
 	color: #0c5460;
 	background-color: #d1ecf1;
 	border-color: #bee5eb;
-	margin-left: 15px;
+	margin-left: var(--indent);
 }
 .alert-warning {
     color: #856404;
@@ -800,7 +801,7 @@ label {
 	background-color: #f3f8fb;
 }
 #up-pannel {
-	margin-top: 15px;
+	margin-top: var(--indent);
 }
 .div-server, .div-server-hapwi, .bin_bout {
 	background-color: #fbfbfb;
@@ -944,7 +945,7 @@ label {
 	height: 300px;
 	width: 48.8%;
 	float: left;
-	margin-left: 20px;
+	margin-left: var(--indent);
 }
 .chart-container_overview {
 	width: 93.3%;
@@ -953,7 +954,7 @@ label {
 	padding-left: 4px;
 }
 .main {
-	margin: 15px;
+	margin: var(--indent);
 }
 .sort_menu {
 	clear: both;
@@ -971,7 +972,7 @@ label {
 	float: left;
 	background-color: #fbfbfb;;
 	margin: 10px 10px 10px 0px;
-	padding-left: 15px;
+	padding-left: var(--indent);
 	padding-top: 0;
 	border: 1px solid #A4C7F5;
 }
@@ -1340,5 +1341,16 @@ label {
     white-space: nowrap;
 }
 .left-space {
-	margin-left: 15px !important;
+	margin-left: var(--indent) !important;
+}
+.metrics-time-range {
+	float: left;
+    margin-top: var(--indent);
+    margin-left: var(--indent);
+}
+.metrics-refresh {
+	text-align: right;
+    margin-top: -25px;
+    margin-right: 10px;
+    margin-bottom: 20px;
 }

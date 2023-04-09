@@ -69,13 +69,19 @@ def update_user():
         if form.getvalue('role'):
             role_id = int(form.getvalue('role'))
             if roxywi_auth.is_admin(level=role_id):
-                sql.update_user(new_user, email, role_id, user_id, activeuser)
+                try:
+                    sql.update_user(new_user, email, role_id, user_id, activeuser)
+                except Exception as e:
+                    print(e)
                 sql.update_user_role(user_id, group_id, role_id)
                 roxywi_common.logging(new_user, ' has been updated user ', roxywi=1, login=1)
             else:
                 roxywi_common.logging(new_user, ' tried to privilege escalation', roxywi=1, login=1)
         else:
-            sql.update_user_from_admin_area(new_user, email, user_id, activeuser)
+            try:
+                sql.update_user_from_admin_area(new_user, email, user_id, activeuser)
+            except Exception as e:
+                print(e)
             roxywi_common.logging(new_user, ' has been updated user ', roxywi=1, login=1)
 
 

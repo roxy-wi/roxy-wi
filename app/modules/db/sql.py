@@ -3269,10 +3269,11 @@ def select_user_services(user_id):
 def update_user_services(services, user_id):
 	try:
 		User.update(user_services=services).where(User.user_id == user_id).execute()
-		return True
 	except Exception as e:
 		out_error(e)
 		return False
+	else:
+		return True
 
 
 def insert_or_update_service_setting(server_id, service, setting, value):

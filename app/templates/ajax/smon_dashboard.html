@@ -104,8 +104,8 @@
             {% else %}
                 {{lang.smon_page.desc.last_resp_time}}:
             {% endif %}
-            {% if s.responce_time %}
-                <span title="{{s.responce_time}} ms">{{s.responce_time|truncate(9)}} ms</span>
+            {% if s.response_time %}
+                <span title="{{s.response_time}} ms">{{s.response_time|truncate(9)}} ms</span>
             {% else %}
                 N/A
             {% endif %}

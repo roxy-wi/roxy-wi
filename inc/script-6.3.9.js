@@ -1,4 +1,4 @@
-var url = "/inc/script.js";
+var url = "/inc/script-6.3.9.js";
 var cur_url = window.location.href.split('/').pop();
 cur_url = cur_url.split('?');
 var intervalId;
@@ -156,7 +156,7 @@ if(localStorage.getItem('restart')) {
 				} else {
 					$('#'+apply_div).html("You have made changes to the server: "+ip_for_restart+". Changes will take effect only after restart. <a href='hapservers.py' title='Overview'>Go to the HAProxy Overview page and restart</a><a href='#' title='close' id='apply_close' style='float: right'><b>X</b></a>");
 				}
-				$.getScript('/inc/overview.js');
+				$.getScript('/inc/overview-6.3.9.js');
 			}
 		}					
 	} );
@@ -204,7 +204,6 @@ function setRefreshInterval(interval) {
 			$('.auto-refresh-resume').css('display', 'none');
 			$('.auto-refresh-pause').css('display', 'none');
 			$.getScript("/inc/fontawesome.min.js");
-			// $.getScript("/inc/script-6.3.9.js");
 		}
 		hideAutoRefreshDiv();
 	} else {
@@ -621,10 +620,6 @@ function showListOfVersion(for_delver) {
 	var service = $('#service').val();
 	var serv = $("#serv").val();
 	var configver = findGetParameter('configver');
-	var style = 'new'
-	if (localStorage.getItem('version_style') == 'old') {
-		style = 'old'
-	}
 	clearAllAjaxFields();
 	$.ajax( {
 		url: "options.py",
@@ -634,7 +629,6 @@ function showListOfVersion(for_delver) {
 			service: service,
 			configver: configver,
 			for_delver: for_delver,
-			style: style,
 			token: $('#token').val(),
 		},
 		type: "POST",
@@ -648,15 +642,6 @@ function showListOfVersion(for_delver) {
 			}
 		}
 	} );
-}
-function changeVersion(){
-	if (localStorage.getItem('version_style') == 'old') {
-		localStorage.setItem('version_style', 'new');
-		showListOfVersion(1);
-	} else {
-		localStorage.setItem('version_style', 'old');
-		showListOfVersion(1);
-	}
 }
 function findGetParameter(parameterName) {
     var result = null,
@@ -1474,7 +1459,7 @@ function returnNiceCheckingConfig(data) {
 		console.log(err);
 	}
 	alerts.forEach((element) => {
-		if (element.indexOf('error: ') != '-1' || element.indexOf('Fatal') != '-1' || element.indexOf('Error') != '-1' || element.indexOf('failed ') != '-1' || element.indexOf('emerg] ') != '-1' || element.indexOf('Syntax error ') != '-1') {
+		if (element.indexOf('error: ') != '-1' || element.indexOf('Fatal') != '-1' || element.indexOf('Error') != '-1' || element.indexOf('failed ') != '-1' || element.indexOf('emerg] ') != '-1' || element.indexOf('Syntax error ') != '-1' || element.indexOf('Parsing') != '-1') {
 			alert_error = alert_error + element;
 			return
 		}

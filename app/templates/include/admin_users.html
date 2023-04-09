@@ -5,12 +5,12 @@
 		<tr class="overviewHead">
 			<th class="padding10 first-collumn" id="user-login-th">{{lang.words.login|title()}}</th>
 			<th style="width: 10%">{{lang.words.password|title()}}</th>
-			<th style="width: 10%" id="user-active-th">{{lang.words.active|title()}}</th>
+			<th style="width: 10%" class="checkbox-head" id="user-active-th">{{lang.words.active|title()}}</th>
 			<th style="width: 20%">{{lang.words.email|title()}}</th>
 			{% if page == "servers.py" %}
 			<th style="width: 10%" id="user-role-th">{{lang.words.role|title()}}</th>
 			{% else %}
-			<th style="width: 10%" id="user-group-role-th">{{lang.words.groups|title()}} {{lang.words.and}} {{lang.words.roles|title()}}</th>
+				<th style="width: 10%" id="user-group-role-th">{{lang.words.groups|title()}} {{lang.words.and}} {{lang.words.roles|title()}}</th>
 			{% endif %}
 			<th style="width: 100%" id="user-services-th">{{lang.words.services|title()}}</th>
 			<th></th>

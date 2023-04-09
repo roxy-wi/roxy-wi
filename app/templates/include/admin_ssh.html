@@ -3,7 +3,7 @@
         <td class="padding10 first-collumn" style="width: 15%;" class="help_cursor">
 					<span title="It's just name alias. This alias will be use in 'Servers' page for choose credentials">{{lang.words.name|title()}}<span>
         </td>
-        <td class="padding10 first-collumn" style="width: 25%;" class="help_cursor" id="ssh-key-enabled-td">
+        <td class="first-collumn" style="width: 25%;" class="help_cursor" id="ssh-key-enabled-td">
             <span title="If it is enabled, the key will be used, if turned off - the password. Do not forget to download the keys to all servers or install the sudo without a password">SSH {{lang.words.key}}</span>
         </td>
         {% if page != "servers.py" %}
@@ -16,7 +16,7 @@
     </tr>
     {% for ssh in sshs %}
     <tr style="width: 50%;" id="ssh-table-{{ssh.id}}" class="{{ loop.cycle('odd', 'even') }}">
-        <td class="first-collumn">
+        <td class="first-collumn padding10">
             {% set id = 'ssh_name-' + ssh.id|string() %}
             {{ input(id, value=ssh.name, size='15') }}
         </td>
@@ -69,7 +69,7 @@
         <td></td>
     </tr>
     <tr style="width: 50%;">
-        <td class="first-collumn" valign="top" style="padding-top: 15px;">
+        <td class="first-collumn padding10" valign="top" style="padding-top: 15px;">
             <select id="ssh-key-name">
                 <option disabled selected>------</option>
                 {% for ssh in sshs %}

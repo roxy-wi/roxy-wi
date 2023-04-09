@@ -364,10 +364,9 @@
 	</div>
 	{% if configver %}
 	<br>
-	<center>
 		{% if role <= 3 %}
 		{% if not is_serv_protected or role <= 2 %}
-		<form action="versions.py?service={{service}}" method="post">
+		<form action="versions.py?service={{service}}" method="post" class="left-space">
 			<input type="hidden" value="{{serv}}" name="serv">
 			<input type="hidden" value="{{configver}}" name="configver">
 			<input type="hidden" value="1" name="config">
@@ -382,7 +381,6 @@
 		{% endif %}
 		{% endif %}
 		<div class="alert alert-info"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave|title()}}</div>
-	</center>
 	{% endif %}
 	<script>
 		{% if role <= 3 %}
