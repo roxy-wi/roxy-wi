@@ -4,10 +4,10 @@
     ansible_port: "{{SSH_PORT}}"
     
 - name: Add installation tasks
-  include: install.yml
+  include_tasks: install.yml
   when: (ADD_VRRP is not defined) or (ADD_VRRP != "1")
   
   
 - name: Add add vrrp tasks
-  include: add_vrrp.yml
+  include_tasks: add_vrrp.yml
   when: (ADD_VRRP is defined) and (ADD_VRRP|length > 0)

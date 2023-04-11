@@ -593,6 +593,9 @@ ul{
 .ui-selectmenu-open, .ui-selectmenu-menu {
 	z-index: 1010 !important;
 }
+.ui-selectmenu-button {
+	padding: 0.3em 1em 0.2em 0.4em !important;
+}
 .ui-dialog {
 	z-index: 1000 !important;
 }

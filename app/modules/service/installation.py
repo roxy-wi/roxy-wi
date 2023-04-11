@@ -331,7 +331,11 @@ def keepalived_master_install():
 				hostname + '-VIP', vrrp_ip, group_id, '1', '1', '0', cred_id, ssh_settings['port'], f'VRRP IP for {master}',
 				haproxy, nginx, '0', firewall
 			)
-	os.remove(script)
+
+	try:
+		os.remove(script)
+	except Exception:
+		pass
 
 
 def keepalived_slave_install():
@@ -364,12 +368,17 @@ def keepalived_slave_install():
 	return_out = server_mod.subprocess_execute_with_rc(commands[0])
 
 	show_installation_output(return_out['error'], return_out['output'], 'slave Keepalived', rc=return_out['rc'])
-	os.remove(script)
+
 	try:
 		sql.update_server_master(master, slave)
 		sql.update_keepalived(slave)
 	except Exception as e:
 		print(e)
+
+	try:
+		os.remove(script)
+	except Exception:
+		pass
 
 
 def keepalived_masteradd():

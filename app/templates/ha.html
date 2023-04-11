@@ -57,12 +57,12 @@
 	</tr>
 	<tr class="overviewHead">
 		<td class="padding10 first-collumn"></td>
-		<td class="checkbox-head help_cursor"><span title="Roxy-WI will add VRRP address as a separated server">{{lang.words.add|title()}} VIRT</span></td>
+		<td class="help_cursor"><span title="Roxy-WI will add VRRP address as a separated server">{{lang.words.add|title()}} VIRT</span></td>
 		<td class="checkbox-head help_cursor" style="padding-left: 20px;" title="If checked, the Keepalived master will not release VRRP if the service is down">{{lang.words.stay|title()}} {{lang.words.as}} {{lang.words.master|title()}}</td>
 		<td class="checkbox-head">SYN-flood {{lang.words.protection}}</td>
-		<td class="checkbox-head help_cursor" style="padding: 10px 10px 10px 0;"><span title="Roxy-WI will try to install HAProxy">HAProxy</span></td>
+		<td class="checkbox-head help_cursor" style="padding: 10px 10px 10px 5px;"><span title="Roxy-WI will try to install HAProxy">HAProxy</span></td>
 		<td class="checkbox-head help_cursor" style="display: none" id="haproxy_docker_td_header"><span title="Roxy-WI will install HAProxy as Docker container">Docker</span></td>
-		<td class="checkbox-head help_cursor"><span title="Roxy-WI will try to install NGINX">NGINX</span></td>
+		<td class="help_cursor" style="padding-left: 5px;"><span title="Roxy-WI will try to install NGINX">NGINX</span></td>
 		<td class="checkbox-head help_cursor" style="display: none" id="nginx_docker_td_header"><span title="Roxy-WI will install NGINX as Docker container">Docker</span></td>
 		<td></td>
 		<td></td>
@@ -122,8 +122,8 @@
 		<td></td>
 		<td></td>
 		<td></td>
-		<td class="padding10 first-collumn checkbox-head"><span title="If checked Roxy-WI will restart Keepalived">{{lang.words.restart|title()}}</span></td>
-		<td class="checkbox-head help_cursor" title="If checked, Keepalived master will reclaim VRRP after recovered">{{lang.words.return|title()}} {{lang.words.to}} {{lang.words.master|title()}} state</td>
+		<td class="padding10 first-collumn" style="padding-left: 10px;"><span title="If checked Roxy-WI will restart Keepalived">{{lang.words.restart|title()}}</span></td>
+		<td class="help_cursor" title="If checked, Keepalived master will reclaim VRRP after recovered">{{lang.words.return|title()}} {{lang.words.to}} {{lang.words.master|title()}} state</td>
 		<td></td>
 	</tr>
 	<tr>
