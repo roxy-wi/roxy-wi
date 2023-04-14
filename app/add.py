@@ -254,11 +254,14 @@ elif form.getvalue('mode') is not None:
 					acl += '    http-request deny'
 					acl_then_value = ''
 				elif acl_then[i] == '6':
-					acl += '    return '
+					acl += f'    acl return_{acl_value[i]} {acl_if_word} {acl_value[i]}\n'
+					acl += f'    http-request return if return_{acl_value[i]}\n'
 				elif acl_then[i] == '7':
-					acl += '    set-header '
+					acl += f'    acl set_header_{acl_value[i]} {acl_if_word} {acl_value[i]}\n'
+					acl += f'    http-request set-header if set_header_{acl_value[i]}\n'
 
-				acl += acl_then_value + ' if { ' + acl_if_word + acl_value[i] + ' } \n'
+				if acl_then[i] in ('2', '3', '4', '5'):
+					acl += acl_then_value + ' if { ' + acl_if_word + acl_value[i] + ' } \n'
 			except Exception:
 				acl = ''
 

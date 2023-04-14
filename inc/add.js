@@ -1823,11 +1823,11 @@ function addProxy(form_name) {
 		type: frm.attr('method'),
 		success: function( data ) {
 			data = data.replace(/\n/g, "<br>");
-			if (data.indexOf('error: ') != '-1' || data.indexOf('Fatal') != '-1') {
+			if (data.indexOf('error: ') != '-1' || data.indexOf('Error(s)') != '-1' || data.indexOf('Fatal') != '-1') {
 				returnNiceCheckingConfig(data);
 			} else if (data == '') {
 				toastr.clear();
-				toastr.error('error: Proxy cannot be empty');
+				toastr.error('error: Something went wrong. Check configuration');
 			} else {
 				toastr.clear();
 				returnNiceCheckingConfig(data);

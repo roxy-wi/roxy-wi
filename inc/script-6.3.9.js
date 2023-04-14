@@ -1459,7 +1459,7 @@ function returnNiceCheckingConfig(data) {
 		console.log(err);
 	}
 	alerts.forEach((element) => {
-		if (element.indexOf('error: ') != '-1' || element.indexOf('Fatal') != '-1' || element.indexOf('Error') != '-1' || element.indexOf('failed ') != '-1' || element.indexOf('emerg] ') != '-1' || element.indexOf('Syntax error ') != '-1' || element.indexOf('Parsing') != '-1') {
+		if (element.indexOf('error: ') != '-1' || element.indexOf('Fatal') != '-1' || element.indexOf('Error') != '-1' || element.indexOf('failed ') != '-1' || element.indexOf('emerg] ') != '-1' || element.indexOf('Syntax error ') != '-1' || element.indexOf('Parsing') != '-1' || element.indexOf('parsing') != '-1') {
 			alert_error = alert_error + element;
 			return
 		}

@@ -38,10 +38,9 @@
         <a class="ui-button ui-widget ui-corner-all" onclick="updateService('roxy-wi')" title="{{lang.words.w_update|title()}} Roxy-WI">{{lang.words.w_update|title()}}</a>
         {% endif %}
     </td>
-    <td>
+    <td colspan="2">
         {{lang.admin_page.desc.main_app}}
     </td>
-    <td></td>
 </tr>
 {% for s in services %}
     {% if s.0 in ('roxy-wi-smon', 'roxy-wi-checker', 'roxy-wi-keep_alive', 'roxy-wi-metrics', 'roxy-wi-portscanner', 'roxy-wi-socket', 'roxy-wi-prometheus-exporter') %}

@@ -1019,6 +1019,7 @@ label {
 	width: 177px;
 	font-size: 30px;
 	color: #fff;
+	text-align: center;
 }
 .up {
 	color: #3c763d;
@@ -1030,6 +1031,8 @@ label {
 	background-color: #f2dede;
 	border-color: #ebccd1;
 	font-size: 22px;
+    padding-top: 7px;
+    height: 38px;
 }
 .unknown {
 	color: #856404;

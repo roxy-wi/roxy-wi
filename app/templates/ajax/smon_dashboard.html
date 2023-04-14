@@ -9,12 +9,12 @@
 		{% for s in smon %}
 			{% if s.en == 1 %}
 				{% if s.status == 1 and s.http_status == 1 and s.body_status == 1 %}
-					{% if  up.append('1') %} {% endif %}
+					{% if up.append('1') %} {% endif %}
 				{% else %}
-					{% if  down.append('1') %} {% endif %}
+					{% if down.append('1') %} {% endif %}
 				{% endif %}
 			{% else %}
-				{% if  dis.append(s.group) %} {% endif %}
+				{% if dis.append(s.group) %} {% endif %}
 			{% endif %}
 		{% endfor %}
 		<b>{{lang.smon_page.desc.status_summary}}: {{lang.smon_page.desc.UP}}: {{up|length}}, {{lang.smon_page.desc.DOWN}}: {{down|length}}, {{lang.words.disabled|title()}}: {{dis|length}}</b>
@@ -26,7 +26,7 @@
 {% set group = [] %}
 {% set group_prev = [] %}
 {%- for s in smon -%}
-    {% set checks = lang.smon_page.desc.enabled_checks +': <br>' + lang.phrases.port_check|title() %}
+    {% set checks = lang.smon_page.desc.enabled_checks +': <br>' + lang.phrases.port_check %}
     {% if s.http %}
     {% set checks = checks + ',<br>' + lang.smon_page.desc.http_status_check + ': ' + s.http.split(':')[0]|string() + '://' + s.ip|string() + ':' + s.port|string() + s.http.split(':')[1]|string() %}
     {% endif %}
@@ -36,66 +36,52 @@
     {% if s.ssl_expire_date %}
     {% set checks = checks + ',<br> SSL ' + lang.words.expire + ': ' + s.ssl_expire_date %}
     {% endif %}
-    {% if s.group %}
-        {% if s.group not in group %}
-        <div class="smon_group">
-            <div class="group_name">
-                {{ s.group }}
-            </div>
-        </div>
-        {% endif %}
-        {% if group.append(s.group) %} {% endif %}
-    {% else %}
-         <div class="smon_group">
-            <div class="group_name">
-                None
-            </div>
-        </div>
-    {% endif %}
     {% if s.en == 1 %}
         {% if s.status == 1 and s.http_status == 1 and s.body_status == 1 %}
-            <div class="smon_services good div-server-head-up"
+            {% set additional_classes = 'good div-server-head-up' %}
+            {% set uptime_desc = lang.words.uptime + ': <time class="timeago" datetime="'+s.time_state|string()+'">'+s.time_state|string()+'</time>' %}
+        {% elif s.status == 0 or s.http_status == 0 or s.body_status == 0 %}
+            {% set additional_classes = 'err div-server-head-down' %}
+            {% set uptime_desc = lang.words.downtime + ': <time class="timeago" datetime="'+s.time_state|string()+'">'+s.time_state|string()+'</time>' %}
         {% else %}
-            <div class="smon_services err div-server-head-down"
+            {% set additional_classes = 'err div-server-head-down' %}
+            {% set uptime_desc = lang.words.uptime + ': N/A' %}
         {% endif %}
     {% else %}
-        <div class="smon_services dis div-server-head-dis"
+        {% set additional_classes = 'dis div-server-head-dis' %}
+        {% set uptime_desc = lang.words.uptime + ': N/A' %}
     {% endif %}
-       data-help="{{checks}}"
-       title="{{checks}}">
+    {% set additional_style = '' %}
+    {% if s.ip|string|length > 23 %}
+        {% set additional_style = 'font-size: 11px;' %}
+    {% elif s.ip|string|length > 20 %}
+        {% set additional_style = 'font-size: 12px;' %}
+    {% elif s.ip|string|length > 17 %}
+        {% set additional_style = 'font-size: 15px;' %}
+    {% endif %}
+    {% if s.group not in group %}
+    <div class="smon_group">
+        <div class="group_name">
+            {% if s.group %} {{ s.group }} {% else %} None {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    {% if group.append(s.group) %} {% endif %}
+    <div class="smon_services {{additional_classes}}" data-help="{{checks}}" title="{{checks}}">
     <div class="ip">
-        {% if s.ip|string|length > 23 %}
-            <span style="font-size: 11px;">
-        {% elif s.ip|string|length > 20 %}
-            <span style="font-size: 12px;">
-        {% elif s.ip|string|length > 17 %}
-            <span style="font-size: 15px;">
-        {% else %}
-            <span>
-        {% endif %}
-                <a href="smon.py?action=history&host={{s.ip}}" title="{{lang.words.view|title()}} {{lang.words.history}} {{lang.words.for}} {{s.ip}} {{lang.words.host}}" class="link">{{s.ip}}:{{s.port}}</a>
-            </span>
+        <span style="{{additional_style}}">
+            <a href="smon.py?action=history&host={{s.ip}}" title="{{lang.words.view|title()}} {{lang.words.history}} {{lang.words.for}} {{s.ip}} {{lang.words.host}}" class="link">{{s.ip}}:{{s.port}}</a>
         </span>
     </div>
     <div class="desc">
-        {% if s.desc is not none %}
+        {% if s.desc %}
             <b>{{s.desc}}</b>
         {% else %}
-            {{lang.words.desc|title()}}: None
+            {{lang.words.desc|title()}}: {{lang.words.none}}
         {% endif %}
     </div>
     <div class="desc">
-        {% if s.en == 1 %}
-            {% if s.status == 1 and s.http_status == 1 and s.body_status == 1 %}
-                {{lang.words.uptime}}: <time class="timeago" datetime="{{s.time_state}}">{{s.time_state}}</time>
-            {% elif s.status == 0 or s.http_status == 0 or s.body_status == 0 %}
-                {{lang.words.downtime}}: <time class="timeago" datetime="{{s.time_state}}">{{s.time_state}}</time>
-            {% else %}
-                {{lang.words.uptime}}: N/A
-            {% endif %}
-        {% else %}
-            {{lang.words.uptime}}: N/A
-        {% endif %}
+        {{uptime_desc|safe}}
     </div>
     <div class="res_time">
         {% if s.en == 1 %}
@@ -116,40 +102,28 @@
     {% if s.en == 1 %}
          {% if s.status == 1 and s.http_status == 1 and s.body_status == 1 %}
             <div class="up">
-                <center>
-                    {{lang.smon_page.desc.UP}}
-                </center>
+                {{lang.smon_page.desc.UP}}
             </div>
          {% elif s.http_status == 0 %}
             <div class="down">
-                 <center style="padding-top: 7px;">
-                      {{lang.smon_page.desc.HTTP_FAILURE}}
-                 </center>
+                {{lang.smon_page.desc.HTTP_FAILURE}}
             </div>
          {% elif s.body_status == 0 %}
             <div class="down">
-                 <center style="padding-top: 7px;">
-                      {{lang.smon_page.desc.BODY_FAILURE}}
-                 </center>
+                {{lang.smon_page.desc.BODY_FAILURE}}
             </div>
          {% elif s.status == 3 %}
             <div class="unknown">
-                <center style="padding-top: 7px;">
-                    {{lang.smon_page.desc.UNKNOWN}}
-                </center>
+                {{lang.smon_page.desc.UNKNOWN}}
             </div>
          {% else %}
             <div class="down">
-                <center style="padding-top: 7px;">
-                    {{lang.smon_page.desc.PORT_DOWN}}
-                </center>
+                {{lang.smon_page.desc.PORT_DOWN}}
             </div>
          {% endif %}
     {% else %}
         <div class="disable">
-            <center>
-                {{lang.smon_page.desc.DISABLED}}
-            </center>
+            {{lang.smon_page.desc.DISABLED}}
         </div>
     {% endif %}
     </div>

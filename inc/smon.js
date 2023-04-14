@@ -215,7 +215,7 @@ $( function() {
 		updateSmon(id[2])
 	});
 	var add_word = $('#translate').attr('data-add');
-	var cancel_word = $('#translate').attr('data-cancel_word');
+	var cancel_word = $('#translate').attr('data-cancel');
 	var smon_add_tabel_title = $( "#smon-add-table-overview" ).attr('title');
 	var addSmonServer = $( "#smon-add-table" ).dialog({
 		autoOpen: false,
