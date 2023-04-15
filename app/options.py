@@ -858,61 +858,36 @@ if form.getvalue('ssh_cert'):
 
     ssh_mod.upload_ssh_key(name, user_group, key)
 
-if form.getvalue('newtelegram'):
+if form.getvalue('new_receiver'):
     import modules.alerting.alerting as alerting
 
-    token = common.checkAjaxInput(form.getvalue('newtelegram'))
+    token = common.checkAjaxInput(form.getvalue('new_receiver'))
+    receiver_name = common.checkAjaxInput(form.getvalue('receiver_name'))
     channel = common.checkAjaxInput(form.getvalue('chanel'))
-    group = common.checkAjaxInput(form.getvalue('telegramgroup'))
+    group = common.checkAjaxInput(form.getvalue('group_receiver'))
     page = common.checkAjaxInput(form.getvalue('page'))
     page = page.split("#")[0]
 
-    alerting.add_telegram_channel(token, channel, group, page)
+    alerting.add_receiver_channel(receiver_name, token, channel, group, page)
 
-if form.getvalue('newslack'):
+if form.getvalue('receiver_del') is not None:
     import modules.alerting.alerting as alerting
 
-    token = common.checkAjaxInput(form.getvalue('newslack'))
-    channel = common.checkAjaxInput(form.getvalue('chanel'))
-    group = common.checkAjaxInput(form.getvalue('slackgroup'))
-    page = common.checkAjaxInput(form.getvalue('page'))
-    page = page.split("#")[0]
+    channel_id = common.checkAjaxInput(form.getvalue('receiver_del'))
+    receiver_name = common.checkAjaxInput(form.getvalue('receiver_name'))
 
-    alerting.add_slack_channel(token, channel, group, page)
+    alerting.delete_receiver_channel(channel_id, receiver_name)
 
-if form.getvalue('telegramdel') is not None:
+if form.getvalue('update_receiver_token') is not None:
     import modules.alerting.alerting as alerting
 
-    channel_id = common.checkAjaxInput(form.getvalue('telegramdel'))
-
-    alerting.delete_telegram_channel(channel_id)
-
-if form.getvalue('slackdel') is not None:
-    import modules.alerting.alerting as alerting
-
-    channel_id = common.checkAjaxInput(form.getvalue('slackdel'))
-
-    alerting.delete_slack_channel(channel_id)
-
-if form.getvalue('updatetoken') is not None:
-    import modules.alerting.alerting as alerting
-
-    token = common.checkAjaxInput(form.getvalue('updatetoken'))
-    channel = common.checkAjaxInput(form.getvalue('updategchanel'))
-    group = common.checkAjaxInput(form.getvalue('updatetelegramgroup'))
+    receiver_name = common.checkAjaxInput(form.getvalue('receiver_name'))
+    token = common.checkAjaxInput(form.getvalue('update_receiver_token'))
+    channel = common.checkAjaxInput(form.getvalue('update_receiver_channel'))
+    group = common.checkAjaxInput(form.getvalue('update_receiver_group'))
     user_id = common.checkAjaxInput(form.getvalue('id'))
 
-    alerting.update_telegram(token, channel, group, user_id)
-
-if form.getvalue('update_slack_token') is not None:
-    import modules.alerting.alerting as alerting
-
-    token = common.checkAjaxInput(form.getvalue('update_slack_token'))
-    channel = common.checkAjaxInput(form.getvalue('updategchanel'))
-    group = common.checkAjaxInput(form.getvalue('updateslackgroup'))
-    user_id = common.checkAjaxInput(form.getvalue('id'))
-
-    alerting.update_slack()
+    alerting.update_receiver_channel(receiver_name, token, channel, group, user_id)
 
 if form.getvalue('updatesettings') is not None:
     settings = common.checkAjaxInput(form.getvalue('updatesettings'))
@@ -2003,6 +1978,7 @@ if form.getvalue('loadchecker'):
             user_group = roxywi_common.get_user_group(id=1)
             telegrams = sql.get_user_telegram_by_group(user_group)
             slacks = sql.get_user_slack_by_group(user_group)
+            pds = sql.get_user_pd_by_group(user_group)
             haproxy_servers = roxywi_common.get_dick_permit(haproxy=1, only_group=1)
             nginx_servers = roxywi_common.get_dick_permit(nginx=1, only_group=1)
             apache_servers = roxywi_common.get_dick_permit(apache=1, only_group=1)
@@ -2010,6 +1986,7 @@ if form.getvalue('loadchecker'):
         else:
             telegrams = sql.select_telegram()
             slacks = sql.select_slack()
+            pds = sql.select_pd()
             haproxy_servers = roxywi_common.get_dick_permit(haproxy=1)
             nginx_servers = roxywi_common.get_dick_permit(nginx=1)
             apache_servers = roxywi_common.get_dick_permit(apache=1)
@@ -2017,23 +1994,13 @@ if form.getvalue('loadchecker'):
     else:
         telegrams = ''
         slacks = ''
+        pds = ''
 
-    template = template.render(services=services,
-                               telegrams=telegrams,
-                               groups=groups,
-                               slacks=slacks,
-                               user_status=user_subscription['user_status'],
-                               user_plan=user_subscription['user_plan'],
-                               haproxy_servers=haproxy_servers,
-                               nginx_servers=nginx_servers,
-                               apache_servers=apache_servers,
-                               keepalived_servers=keepalived_servers,
-                               haproxy_settings=haproxy_settings,
-                               nginx_settings=nginx_settings,
-                               keepalived_settings=keepalived_settings,
-                               apache_settings=apache_settings,
-                               page=page,
-                               lang=lang)
+    template = template.render(services=services, telegrams=telegrams, pds=pds, groups=groups, slacks=slacks,
+                               user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'],
+                               haproxy_servers=haproxy_servers, nginx_servers=nginx_servers, apache_servers=apache_servers,
+                               keepalived_servers=keepalived_servers, haproxy_settings=haproxy_settings, nginx_settings=nginx_settings,
+                               keepalived_settings=keepalived_settings, apache_settings=apache_settings, page=page, lang=lang)
     print(template)
 
 if form.getvalue('load_update_hapwi'):
@@ -2094,19 +2061,12 @@ if form.getvalue('loadopenvpn'):
                                openvpn_configs=openvpn_configs)
     print(template)
 
-if form.getvalue('check_telegram'):
+if form.getvalue('check_receiver'):
     import modules.alerting.alerting as alerting
 
-    telegram_id = form.getvalue('check_telegram')
-    mess = 'Test message from Roxy-WI'
-    alerting.telegram_send_mess(mess, telegram_channel_id=telegram_id)
-
-if form.getvalue('check_slack'):
-    import modules.alerting.alerting as alerting
-
-    slack_id = form.getvalue('check_slack')
-    mess = 'Test message from Roxy-WI'
-    alerting.slack_send_mess(mess, slack_channel_id=slack_id)
+    channel_id = form.getvalue('receiver_channel_id')
+    receiver_name = form.getvalue('receiver_name')
+    alerting.check_receiver(channel_id, receiver_name)
 
 if form.getvalue('check_rabbitmq_alert'):
     import modules.alerting.alerting as alerting
@@ -2347,9 +2307,9 @@ if form.getvalue('updateHaproxyCheckerSettings'):
     maxconn_alert = form.getvalue('maxconn')
     telegram_id = form.getvalue('telegram_id')
     slack_id = form.getvalue('slack_id')
+    pd_id = form.getvalue('pd_id')
 
-    if sql.update_haproxy_checker_settings(email, telegram_id, slack_id, service_alert, backend_alert,
-                                           maxconn_alert, setting_id):
+    if sql.update_haproxy_checker_settings(email, telegram_id, slack_id, pd_id, service_alert, backend_alert, maxconn_alert, setting_id):
         print('ok')
     else:
         print('error: Cannot update Checker settings')
@@ -2361,8 +2321,9 @@ if form.getvalue('updateKeepalivedCheckerSettings'):
     backend_alert = form.getvalue('backend')
     telegram_id = form.getvalue('telegram_id')
     slack_id = form.getvalue('slack_id')
+    pd_id = form.getvalue('pd_id')
 
-    if sql.update_keepalived_checker_settings(email, telegram_id, slack_id, service_alert, backend_alert, setting_id):
+    if sql.update_keepalived_checker_settings(email, telegram_id, slack_id, pd_id, service_alert, backend_alert, setting_id):
         print('ok')
     else:
         print('error: Cannot update Checker settings')
@@ -2373,8 +2334,9 @@ if form.getvalue('updateServiceCheckerSettings'):
     service_alert = form.getvalue('server')
     telegram_id = form.getvalue('telegram_id')
     slack_id = form.getvalue('slack_id')
+    pd_id = form.getvalue('pd_id')
 
-    if sql.update_service_checker_settings(email, telegram_id, slack_id, service_alert, setting_id):
+    if sql.update_service_checker_settings(email, telegram_id, slack_id, pd_id, service_alert, setting_id):
         print('ok')
     else:
         print('error: Cannot update Checker settings')

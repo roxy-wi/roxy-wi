@@ -528,6 +528,9 @@ $( function() {
 	$('#add-slack-button').click(function() {
 		addSlackDialog.dialog('open');
 	});
+	$('#add-pd-button').click(function() {
+		addPDDialog.dialog('open');
+	});
 	var telegram_tabel_title = $( "#telegram-add-table-overview" ).attr('title');
 	var addTelegramDialog = $( "#telegram-add-table" ).dialog({
 		autoOpen: false,
@@ -547,7 +550,7 @@ $( function() {
 		buttons: [{
 			text: add_word,
 			click: function () {
-				addTelegram(this);
+				addRecevier(this, 'telegram');
 			}
 		}, {
 			text: cancel_word,
@@ -576,7 +579,36 @@ $( function() {
 		buttons: [{
 			text: add_word,
 			click: function () {
-				addSlack(this);
+				addRecevier(this, 'slack');
+			}
+		}, {
+			text: cancel_word,
+			click: function () {
+				$(this).dialog("close");
+				clearTips();
+			}
+		}]
+	});
+	var pd_tabel_title = $( "#pd-add-table-overview" ).attr('title');
+	var addPDDialog = $( "#pd-add-table" ).dialog({
+		autoOpen: false,
+		resizable: false,
+		height: "auto",
+		width: 600,
+		modal: true,
+		title: pd_tabel_title,
+		show: {
+			effect: "fade",
+			duration: 200
+		},
+		hide: {
+			effect: "fade",
+			duration: 200
+		},
+		buttons: [{
+			text: add_word,
+			click: function () {
+				addRecevier(this, 'pd');
 			}
 		}, {
 			text: cancel_word,
@@ -740,21 +772,29 @@ $( function() {
 	} else {
 		$('#ssh_pass').css('display', 'block');
 	}
-   $( "#checker_table input" ).change(function() {
+   $( "#checker_telegram_table input" ).change(function() {
 		var id = $(this).attr('id').split('-');
-		updateTelegram(id[2])
+		updateReceiver(id[2], 'telegram')
 	});
-	$( "#checker_table select" ).on('selectmenuchange',function() {
+	$( "#checker_telegram_table select" ).on('selectmenuchange',function() {
 		var id = $(this).attr('id').split('-');
-		updateTelegram(id[1])
+		updateReceiver(id[1], 'telegram')
 	});
    $( "#checker_slack_table input" ).change(function() {
 		var id = $(this).attr('id').split('-');
-		updateSlack(id[2])
+		updateReceiver(id[2], 'slack')
 	});
 	$( "#checker_slack_table select" ).on('selectmenuchange',function() {
 		var id = $(this).attr('id').split('-');
-		updateSlack(id[1])
+		updateReceiver(id[1], 'slack')
+	});
+   $( "#checker_pd_table input" ).change(function() {
+		var id = $(this).attr('id').split('-');
+		updateReceiver(id[2], 'pd')
+	});
+	$( "#checker_pd_table select" ).on('selectmenuchange',function() {
+		var id = $(this).attr('id').split('-');
+		updateReceiver(id[1], 'pd')
 	});
 	$( "#ajax-backup-table input" ).change(function() {
 		var id = $(this).attr('id').split('-');
@@ -1204,21 +1244,22 @@ function getGroupNameById(group_id) {
 	});
 	return group_name;
 }
-function addTelegram(dialog_id) {
+function addRecevier(dialog_id, receiver_name) {
 	var valid = true;
 	toastr.clear();
-	allFields = $( [] ).add( $('#telegram-token-add') ).add( $('#telegram-chanel-add') )
+	allFields = $( [] ).add( $('#'+receiver_name+'-token-add') ).add( $('#'+receiver_name+'-chanel-add') );
 	allFields.removeClass( "ui-state-error" );
-	valid = valid && checkLength( $('#telegram-token-add'), "token", 1 );
-	valid = valid && checkLength( $('#telegram-chanel-add'), "channel name", 1 );
+	valid = valid && checkLength( $('#'+receiver_name+'-token-add'), "token", 1 );
+	valid = valid && checkLength( $('#'+receiver_name+'-chanel-add'), "channel name", 1 );
 	if(valid) {
 		toastr.clear();
 		$.ajax( {
 			url: "options.py",
 			data: {
-				newtelegram: $('#telegram-token-add').val(),
-				chanel: $('#telegram-chanel-add').val(),
-				telegramgroup: $('#new-telegram-group-add').val(),
+				new_receiver: $('#'+receiver_name+'-token-add').val(),
+				receiver_name: receiver_name,
+				chanel: $('#'+receiver_name+'-chanel-add').val(),
+				group_receiver: $('#new-'+receiver_name+'-group-add').val(),
 				page: cur_url[0].split('#')[0],
 				token: $('#token').val()
 			},
@@ -1227,47 +1268,11 @@ function addTelegram(dialog_id) {
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
-					var getId = new RegExp('telegram-table-[0-9]+');
+					var getId = new RegExp(receiver_name+'-table-[0-9]+');
 					var id = data.match(getId) + '';
 					id = id.split('-').pop();
-					$('select:regex(id, telegram_channel)').append('<option value=' + id + '>' + $('#telegram-chanel-add').val() + '</option>').selectmenu("refresh");
-					common_ajax_action_after_success(dialog_id, 'newgroup', 'checker_table', data);
-					$( "input[type=submit], button" ).button();
-					$( "input[type=checkbox]" ).checkboxradio();
-					$( "select" ).selectmenu();
-				}
-			}
-		} );
-	}
-}
-function addSlack(dialog_id) {
-	var valid = true;
-	toastr.clear();
-	allFields = $( [] ).add( $('#slack-token-add') ).add( $('#slack-chanel-add') );
-	allFields.removeClass( "ui-state-error" );
-	valid = valid && checkLength( $('#slack-token-add'), "token", 1 );
-	valid = valid && checkLength( $('#slack-chanel-add'), "channel name", 1 );
-	if(valid) {
-		toastr.clear();
-		$.ajax( {
-			url: "options.py",
-			data: {
-				newslack: $('#slack-token-add').val(),
-				chanel: $('#slack-chanel-add').val(),
-				slackgroup: $('#new-slack-group-add').val(),
-				page: cur_url[0].split('#')[0],
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function( data ) {
-				if (data.indexOf('error:') != '-1') {
-					toastr.error(data);
-				} else {
-					var getId = new RegExp('slack-table-[0-9]+');
-					var id = data.match(getId) + '';
-					id = id.split('-').pop();
-					$('select:regex(id, slack_channel)').append('<option value=' + id + '>' + $('#slack-chanel-add').val() + '</option>').selectmenu("refresh");
-					common_ajax_action_after_success(dialog_id, 'newgroup', 'checker_slack_table', data);
+					$('select:regex(id, '+receiver_name+'_channel)').append('<option value=' + id + '>' + $('#'+receiver_name+'-chanel-add').val() + '</option>').selectmenu("refresh");
+					common_ajax_action_after_success(dialog_id, 'newgroup', 'checker_'+receiver_name+'_table', data);
 					$( "input[type=submit], button" ).button();
 					$( "input[type=checkbox]" ).checkboxradio();
 					$( "select" ).selectmenu();
@@ -1498,51 +1503,28 @@ function confirmDeleteSsh(id) {
 		}]
 	});
 }
-function confirmDeleteTelegram(id) {
+function confirmDeleteReceiver(id, reciever_name) {
 	var delete_word = $('#translate').attr('data-delete');
 	var cancel_word = $('#translate').attr('data-cancel');
 	 $( "#dialog-confirm" ).dialog({
-      resizable: false,
-      height: "auto",
-      width: 400,
-      modal: true,
-	  title: delete_word + " " +$('#telegram-chanel-'+id).val() + "?",
-      buttons: [{
-			text: delete_word,
-			click: function() {
-				$(this).dialog("close");
-				removeTelegram(id);
-			}
-        }, {
-		  text: cancel_word,
-		  click: function () {
-			  $(this).dialog("close");
-		  }
-	  }]
-    });
-}
-function confirmDeleteSlack(id) {
-	var delete_word = $('#translate').attr('data-delete');
-	var cancel_word = $('#translate').attr('data-cancel');
-	 $( "#dialog-confirm" ).dialog({
-      resizable: false,
-      height: "auto",
-      width: 400,
-      modal: true,
-	  title: delete_word + " " +$('#slack-chanel-'+id).val() + "?",
-      buttons: [{
-		  text: delete_word,
-		  click: function () {
-			  $(this).dialog("close");
-			  removeSlack(id);
-		  }
-	  }, {
-		  text: cancel_word,
-		  click: function () {
-			  $(this).dialog("close");
-		  }
-	  }]
-    });
+		 resizable: false,
+		 height: "auto",
+		 width: 400,
+		 modal: true,
+		 title: delete_word + " " + $('#' + reciever_name + '-chanel-' + id).val() + "?",
+		 buttons: [{
+			 text: delete_word,
+			 click: function () {
+				 $(this).dialog("close");
+				 removeReciver(reciever_name, id);
+			 }
+		 }, {
+			 text: cancel_word,
+			 click: function () {
+				 $(this).dialog("close");
+			 }
+		 }]
+	 });
 }
 function confirmDeleteBackup(id) {
 	var delete_word = $('#translate').attr('data-delete');
@@ -1646,15 +1628,10 @@ function cloneUser(id) {
 		$('#new-group').selectmenu("refresh");
 	}
 }
-function cloneTelegram(id) {
-	$( "#add-telegram-button" ).trigger( "click" );
-	$('#telegram-token-add').val($('#telegram-token-'+id).val())
-	$('#telegram-chanel-add').val($('#telegram-chanel-'+id).val())
-}
-function cloneSlack(id) {
-	$( "#slack" ).trigger( "click" );
-	$('#slack').val($('#slack-token-'+id).val())
-	$('#slack').val($('#slack-chanel-'+id).val())
+function cloneReceiver(id, reciever_name) {
+	$('#add-'+reciever_name+'-button').trigger( "click" );
+	$('#'+reciever_name+'-token-add').val($('#'+reciever_name+'-token-'+id).val());
+	$('#'+reciever_name+'-chanel-add').val($('#'+reciever_name+'-chanel-'+id).val());
 }
 function cloneBackup(id) {
 	$( "#add-backup-button" ).trigger( "click" );
@@ -1750,38 +1727,20 @@ function removeSsh(id) {
 		}
 	} );
 }
-function removeTelegram(id) {
-	$("#telegram-table-"+id).css("background-color", "#f2dede");
+function removeReciver(receiver_name, receiver_id) {
+	$("#"+receiver_name+"-table-"+receiver_id).css("background-color", "#f2dede");
 	$.ajax( {
 		url: "options.py",
 		data: {
-			telegramdel: id,
+			receiver_del: receiver_id,
+			receiver_name: receiver_name,
 			token: $('#token').val()
 		},
 		type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if(data == "Ok ") {
-				$("#telegram-table-"+id).remove();
-			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
-				toastr.error(data);
-			}
-		}
-	} );
-}
-function removeSlack(id) {
-	$("#slack-table-"+id).css("background-color", "#f2dede");
-	$.ajax( {
-		url: "options.py",
-		data: {
-			slackdel: id,
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
-			if(data == "Ok ") {
-				$("#slack-table-"+id).remove();
+				$("#"+receiver_name+"-table-"+receiver_id).remove();
 			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			}
@@ -2025,14 +1984,15 @@ function updateSSH(id) {
 		}
 	} );
 }
-function updateTelegram(id) {
+function updateReceiver(id, receiver_name) {
 	toastr.clear();
 	$.ajax( {
 		url: "options.py",
 		data: {
-			updatetoken: $('#telegram-token-'+id).val(),
-			updategchanel: $('#telegram-chanel-'+id).val(),
-			updatetelegramgroup: $('#telegramgroup-'+id).val(),
+			receiver_name: receiver_name,
+			update_receiver_token: $('#'+receiver_name+'-token-'+id).val(),
+			update_receiver_channel: $('#'+receiver_name+'-chanel-'+id).val(),
+			update_receiver_group: $('#'+receiver_name+'group-'+id).val(),
 			id: id,
 			token: $('#token').val()
 		},
@@ -2043,35 +2003,9 @@ function updateTelegram(id) {
 				toastr.error(data);
 			} else {
 				toastr.clear();
-				$("#telegram-table-"+id).addClass( "update", 1000 );
+				$("#"+receiver_name+"-table-"+id).addClass( "update", 1000 );
 				setTimeout(function() {
-					$( "#telegram-table-"+id ).removeClass( "update" );
-				}, 2500 );
-			}
-		}
-	} );
-}
-function updateSlack(id) {
-	toastr.clear();
-	$.ajax( {
-		url: "options.py",
-		data: {
-			update_slack_token: $('#slack-token-'+id).val(),
-			updategchanel: $('#slack-chanel-'+id).val(),
-			updateslackgroup: $('#slackgroup-'+id).val(),
-			id: id,
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
-				toastr.error(data);
-			} else {
-				toastr.clear();
-				$("#slack-table-"+id).addClass( "update", 1000 );
-				setTimeout(function() {
-					$( "#slack-table-"+id ).removeClass( "update" );
+					$( "#"+receiver_name+"-table-"+id ).removeClass( "update" );
 				}, 2500 );
 			}
 		}
@@ -2679,29 +2613,13 @@ function loadopenvpn() {
 		}
 	} );
 }
-function checkTelegram(telegram_id) {
+function checkReceiver(channel_id, receiver_name) {
 	$.ajax({
 		url: "options.py",
 		data: {
-			check_telegram: telegram_id,
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {
-				toastr.error(data);
-			} else {
-				toastr.success('Test message has been sent');
-			}
-		}
-	} );
-}
-function checkSlack(slack_id) {
-	$.ajax({
-		url: "options.py",
-		data: {
-			check_slack: slack_id,
+			check_receiver: 1,
+			receiver_channel_id: channel_id,
+			receiver_name: receiver_name,
 			token: $('#token').val()
 		},
 		type: "POST",
@@ -2802,6 +2720,7 @@ function updateHaproxyCheckerSettings(id) {
 			maxconn: maxconn,
 			telegram_id: $('#haproxy_server_telegram_channel-'+id+' option:selected' ).val(),
 			slack_id: $('#haproxy_server_slack_channel-'+id+' option:selected').val(),
+			pd_id: $('#haproxy_server_pd_channel-'+id+' option:selected').val(),
 			token: $('#token').val()
 		},
 		type: "POST",
@@ -2833,7 +2752,6 @@ function updateKeepalivedCheckerSettings(id) {
 	if ($('#keepalived_server_backend-'+id).is(':checked')) {
 		backend = '1';
 	}
-
 	$.ajax( {
 		url: "options.py",
 		data: {
@@ -2843,6 +2761,7 @@ function updateKeepalivedCheckerSettings(id) {
 			backend: backend,
 			telegram_id: $('#keepalived_server_telegram_channel-'+id+' option:selected' ).val(),
 			slack_id: $('#keepalived_server_slack_channel-'+id+' option:selected').val(),
+			pd_id: $('#keepalived_server_pd_channel-'+id+' option:selected').val(),
 			token: $('#token').val()
 		},
 		type: "POST",
@@ -2878,6 +2797,7 @@ function updateServiceCheckerSettings(id, service_name) {
 			server: server,
 			telegram_id: $('#'+service_name+'_server_telegram_channel-'+id+' option:selected' ).val(),
 			slack_id: $('#'+service_name+'_server_slack_channel-'+id+' option:selected').val(),
+			pd_id: $('#'+service_name+'_server_pd_channel-'+id+' option:selected').val(),
 			token: $('#token').val()
 		},
 		type: "POST",

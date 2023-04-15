@@ -54,22 +54,34 @@ def alert_routing(
 
 	for setting in checker_settings:
 		if alert_type == 'service' and setting.service_alert:
-			telegram_send_mess(mes, level, telegram_channel_id=setting.telegram_id)
-			slack_send_mess(mes, level, slack_channel_id=setting.slack_id)
+			try:
+				telegram_send_mess(mes, level, channel_id=setting.telegram_id)
+				slack_send_mess(mes, level, channel_id=setting.slack_id)
+				pd_send_mess(mes, level, server_ip, service_id, alert_type, channel_id=setting.pd_id)
+			except Exception as e:
+				roxywi_common.logging('Roxy-WI server', f'error: unable to send message: {e}', roxywi=1)
 
 			if setting.email:
 				send_email_to_server_group(subject, mes, level, group_id)
 
 		if alert_type == 'backend' and setting.backend_alert:
-			telegram_send_mess(mes, level, telegram_channel_id=setting.telegram_id)
-			slack_send_mess(mes, level, slack_channel_id=setting.slack_id)
+			try:
+				telegram_send_mess(mes, level, channel_id=setting.telegram_id)
+				slack_send_mess(mes, level, channel_id=setting.slack_id)
+				pd_send_mess(mes, level, server_ip, service_id, alert_type, channel_id=setting.pd_id)
+			except Exception as e:
+				roxywi_common.logging('Roxy-WI server', f'error: unable to send message: {e}', roxywi=1)
 
 			if setting.email:
 				send_email_to_server_group(subject, mes, level, group_id)
 
 		if alert_type == 'maxconn' and setting.maxconn_alert:
-			telegram_send_mess(mes, level, telegram_channel_id=setting.telegram_id)
-			slack_send_mess(mes, level, slack_channel_id=setting.slack_id)
+			try:
+				telegram_send_mess(mes, level, channel_id=setting.telegram_id)
+				slack_send_mess(mes, level, channel_id=setting.slack_id)
+				pd_send_mess(mes, level, server_ip, service_id, alert_type, channel_id=setting.pd_id)
+			except Exception as e:
+				roxywi_common.logging('Roxy-WI server', f'error: unable to send message: {e}', roxywi=1)
 
 			if setting.email:
 				send_email_to_server_group(subject, mes, level, group_id)
@@ -122,11 +134,11 @@ def telegram_send_mess(mess, level, **kwargs):
 	token_bot = ''
 	channel_name = ''
 
-	if kwargs.get('telegram_channel_id') == 0:
+	if kwargs.get('channel_id') == 0:
 		return
 
-	if kwargs.get('telegram_channel_id'):
-		telegrams = sql.get_telegram_by_id(kwargs.get('telegram_channel_id'))
+	if kwargs.get('channel_id'):
+		telegrams = sql.get_telegram_by_id(kwargs.get('channel_id'))
 	else:
 		telegrams = sql.get_telegram_by_ip(kwargs.get('ip'))
 
@@ -147,6 +159,7 @@ def telegram_send_mess(mess, level, **kwargs):
 		bot.send_message(chat_id=channel_name, text=f'{level}: {mess}')
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
+		raise Exception(f'error: {e}')
 
 
 def slack_send_mess(mess, level, **kwargs):
@@ -155,11 +168,11 @@ def slack_send_mess(mess, level, **kwargs):
 	slack_token = ''
 	channel_name = ''
 
-	if kwargs.get('slack_channel_id') == 0:
+	if kwargs.get('channel_id') == 0:
 		return
 
-	if kwargs.get('slack_channel_id'):
-		slacks = sql.get_slack_by_id(kwargs.get('slack_channel_id'))
+	if kwargs.get('channel_id'):
+		slacks = sql.get_slack_by_id(kwargs.get('channel_id'))
 	else:
 		slacks = sql.get_slack_by_ip(kwargs.get('ip'))
 
@@ -179,6 +192,51 @@ def slack_send_mess(mess, level, **kwargs):
 		client.chat_postMessage(channel=f'#{channel_name}', text=f'{level}: {mess}')
 	except SlackApiError as e:
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
+		raise Exception(f'error: {e}')
+
+
+def pd_send_mess(mess, level, server_ip=None, service_id=None, alert_type=None, **kwargs):
+	import pdpyras
+
+	token = ''
+
+	if kwargs.get('channel_id') == 0:
+		return
+
+	if kwargs.get('channel_id'):
+		try:
+			pds = sql.get_pd_by_id(kwargs.get('channel_id'))
+		except Exception as e:
+			print(e)
+	else:
+		try:
+			pds = sql.get_pd_by_ip(kwargs.get('ip'))
+		except Exception as e:
+			print(e)
+
+	for pd in pds:
+		token = pd.token
+
+	try:
+		proxy = sql.get_setting('proxy')
+		session = pdpyras.EventsAPISession(token)
+		dedup_key = f'{server_ip} {service_id} {alert_type}'
+	except Exception as e:
+		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
+		raise Exception(f'error: {e}')
+
+	if proxy is not None and proxy != '' and proxy != 'None':
+		proxies = dict(https=proxy, http=proxy)
+		session.proxies.update(proxies)
+
+	try:
+		if level == 'info':
+			session.resolve(dedup_key)
+		else:
+			session.trigger(mess, 'Roxy-WI', dedup_key=dedup_key, severity=level, custom_details={'server': server_ip, 'alert': mess})
+	except Exception as e:
+		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
+		raise Exception(f'error: {e}')
 
 
 def check_rabbit_alert() -> None:
@@ -228,11 +286,12 @@ def add_telegram_channel(token: str, channel: str, group: str, page: str) -> Non
 	else:
 		if sql.insert_new_telegram(token, channel, group):
 			lang = roxywi_common.get_user_lang()
+			channels = sql.select_telegram(token=token)
+			groups = sql.select_groups()
 			env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
-			template = env.get_template('ajax/new_telegram.html')
-			output_from_parsed_template = template.render(groups=sql.select_groups(), lang=lang,
-														  telegrams=sql.select_telegram(token=token), page=page)
-			print(output_from_parsed_template)
+			template = env.get_template('ajax/new_receiver.html')
+			parsed_template = template.render(groups=groups, lang=lang, channels=channels, page=page, receiver='telegram')
+			print(parsed_template)
 			roxywi_common.logging('Roxy-WI server', f'A new Telegram channel {channel} has been created ', roxywi=1, login=1)
 
 
@@ -242,30 +301,56 @@ def add_slack_channel(token: str, channel: str, group: str, page: str) -> None:
 	else:
 		if sql.insert_new_slack(token, channel, group):
 			lang = roxywi_common.get_user_lang()
+			channels = sql.select_slack(token=token)
+			groups = sql.select_groups()
 			env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
-			template = env.get_template('ajax/new_slack.html')
-			output_from_parsed_template = template.render(groups=sql.select_groups(), lang=lang,
-														  slacks=sql.select_slack(token=token), page=page)
-			print(output_from_parsed_template)
+			template = env.get_template('ajax/new_receiver.html')
+			parsed_template = template.render(groups=groups, lang=lang, channels=channels, page=page, receiver='slack')
+			print(parsed_template)
 			roxywi_common.logging('Roxy-WI server', f'A new Slack channel {channel} has been created ', roxywi=1, login=1)
+
+
+def add_pd_channel(token: str, channel: str, group: str, page: str) -> None:
+	if token is None or channel is None or group is None:
+		print(error_mess)
+	else:
+		if sql.insert_new_pd(token, channel, group):
+			lang = roxywi_common.get_user_lang()
+			env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
+			template = env.get_template('ajax/new_receiver.html')
+			parsed_template = template.render(groups=sql.select_groups(), lang=lang, channels=sql.select_pd(token=token), page=page, receiver='pd')
+			print(parsed_template)
+			roxywi_common.logging('Roxy-WI server', f'A new PagerDuty channel {channel} has been created ', roxywi=1, login=1)
 
 
 def delete_telegram_channel(channel_id) -> None:
 	telegram = sql.select_telegram(id=channel_id)
+	channel_name = ''
 	for t in telegram:
-		telegram_name = t.token
+		channel_name = t.token
 	if sql.delete_telegram(channel_id):
 		print("Ok")
-		roxywi_common.logging('Roxy-WI server', f'The Telegram channel {telegram_name} has been deleted ', roxywi=1, login=1)
+		roxywi_common.logging('Roxy-WI server', f'The Telegram channel {channel_name} has been deleted ', roxywi=1, login=1)
 
 
 def delete_slack_channel(channel_id) -> None:
 	slack = sql.select_slack(id=channel_id)
+	channel_name = ''
 	for t in slack:
-		slack_name = t.chanel_name
+		channel_name = t.chanel_name
 	if sql.delete_slack(channel_id):
 		print("Ok")
-		roxywi_common.logging('Roxy-WI server', f'The Slack channel {slack_name} has been deleted ', roxywi=1, login=1)
+		roxywi_common.logging('Roxy-WI server', f'The Slack channel {channel_name} has been deleted ', roxywi=1, login=1)
+
+
+def delete_pd_channel(channel_id) -> None:
+	pd = sql.select_pd(id=channel_id)
+	channel_name = ''
+	for t in pd:
+		channel_name = t.chanel_name
+	if sql.delete_pd(channel_id):
+		print("Ok")
+		roxywi_common.logging('Roxy-WI server', f'The PageDuty channel {channel_name} has been deleted ', roxywi=1, login=1)
 
 
 def update_telegram(token: str, channel: str, group: str, user_id: int) -> None:
@@ -276,3 +361,54 @@ def update_telegram(token: str, channel: str, group: str, user_id: int) -> None:
 def update_slack(token: str, channel: str, group: str, user_id: int) -> None:
 	sql.update_slack(token, channel, group, user_id)
 	roxywi_common.logging(f'group {group}', f'The Slack token has been updated for channel: {channel}', roxywi=1, login=1)
+
+
+def update_pd(token: str, channel: str, group: str, user_id: int) -> None:
+	sql.update_pd(token, channel, group, user_id)
+	roxywi_common.logging(f'group {group}', f'The PagerDuty token has been updated for channel: {channel}', roxywi=1, login=1)
+
+
+def delete_receiver_channel(channel_id: int, receiver_name: str) -> None:
+	delete_functions = {
+		"telegram": delete_telegram_channel,
+		"slack": delete_slack_channel,
+		"pd": delete_pd_channel,
+	}
+	delete_functions[receiver_name](channel_id)
+
+
+def add_receiver_channel(receiver_name: str, token: str, channel: str, group: id, page: str) -> None:
+	add_functions = {
+		"telegram": add_telegram_channel,
+		"slack": add_slack_channel,
+		"pd": add_pd_channel,
+	}
+	add_functions[receiver_name](token, channel, group, page)
+
+
+def update_receiver_channel(receiver_name: str, token: str, channel: str, group: id, user_id: int) -> None:
+	update_functions = {
+		"telegram": update_telegram,
+		"slack": update_slack,
+		"pd": update_pd,
+	}
+	update_functions[receiver_name](token, channel, group, user_id)
+
+
+def check_receiver(channel_id: int, receiver_name: str) -> None:
+	functions = {
+		"telegram": telegram_send_mess,
+		"slack": slack_send_mess,
+		"pd": pd_send_mess,
+	}
+	mess = 'Test message from Roxy-WI'
+
+	if receiver_name == 'pd':
+		level = 'warning'
+	else:
+		level = 'info'
+
+	try:
+		functions[receiver_name](mess, level, channel_id=channel_id)
+	except Exception as e:
+		print(e)

@@ -1,0 +1,34 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
+{% for c in channels %}
+	<tr style="width: 50%;" id="{{receiver}}-table-{{c.id}}" class="newgroup">
+		<td class="padding10 first-collumn">
+			<input type="text" id="{{receiver}}-token-{{c.id}}" class="form-control" value="{{c.token}}" size="30">
+			<input type="hidden" id="{{receiver}}group-{{c.id}}" name="{{receiver}}group-{{c.id}}">
+		</td>
+		<td>
+			<input type="text" id="{{receiver}}-chanel-{{c.id}}" class="form-control" value="{{c.chanel_name}}" size="30">
+		</td>
+		{% if page != "servers.py" %}
+			<td>
+				<select id="{{receiver}}group-{{c.id}}" name="{{receiver}}group-{{c.id}}">
+					{% for group in groups %}
+						{% if c.groups == group.group_id %}
+							<option value="{{ group.group_id }}" selected>{{ group.name }}</option>
+						{% else %}
+							<option value="{{ group.group_id }}">{{ group.name }}</option>
+						{% endif %}
+					{% endfor %}
+				</select>
+			</td>
+		{% endif %}
+        <td>
+            <button title="{{lang.phrases.send_test_mes}}" onclick="checkReceiver({{c.id}}, '{{receiver}}')">{{lang.words.test|title()}}</button>
+        </td>
+		<td>
+			<a class="add" onclick="cloneReceiver({{c.id}}, '{{receiver}}')" id="clone-{{c.id}}" title="{{lang.words.clone|title()}} {{c.chanel_name}}" style="cursor: pointer;"></a>
+		</td>
+		<td>
+			<a class="delete" onclick="confirmDeleteReceiver({{c.id}}, '{{receiver}}')" style="cursor: pointer;"></a>
+		</td>
+	</tr>
+{% endfor %}

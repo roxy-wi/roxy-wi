@@ -795,6 +795,22 @@ def update_db_v_6_3_8():
 		print("Updating... DB has been updated to version 6.3.8")
 
 
+def update_db_v_6_3_9():
+	cursor = conn.cursor()
+	sql = """
+	ALTER TABLE `checker_setting` ADD COLUMN pd_id integer default 0;
+	"""
+	try:
+		cursor.execute(sql)
+	except Exception as e:
+		if e.args[0] == 'duplicate column name: pd_id' or str(e) == '(1060, "Duplicate column name \'pd_id\'")':
+			print('Updating... DB has been updated to version 6.3.9')
+		else:
+			print("An error occurred:", e)
+	else:
+		print("Updating... DB has been updated to version 6.3.9")
+
+
 def update_ver():
 	try:
 		Version.update(version='6.3.10.0').execute()
@@ -825,6 +841,7 @@ def update_all():
 	update_db_v_6_3_5()
 	update_db_v_6_3_6()
 	update_db_v_6_3_8()
+	update_db_v_6_3_9()
 	update_ver()
 
 

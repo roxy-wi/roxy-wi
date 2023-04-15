@@ -225,6 +225,42 @@
         {% endif %}
     </table>
 </div>
+<div id="pd-add-table" style="display: none;">
+    <table class="overview" id="pd-add-table-overview" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new}} PagerDuty {{lang.words.channel}}">
+        {% include 'include/tr_validate_tips.html' %}
+        <tr>
+            <td class="padding20">
+                <span title="Integration key from Events API V2 integration">{{lang.words.token|title()}}</span>
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{ input('pd-token-add', size='30') }}
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                {{lang.words.channel|title()}}
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{ input('pd-chanel-add') }}
+            </td>
+        </tr>
+        {% if page != "servers.py" %}
+        <tr>
+            <td class="padding20">{{lang.words.group|title()}}</td>
+            <td>
+                <select id="new-pd-group-add" name="new-pd-group-add">
+                    <option disabled selected value="0">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.group2}}</option>
+                    {% for group in groups %}
+                    <option value="{{ group.group_id }}">{{ group.name }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        {% endif %}
+    </table>
+</div>
 <div id="backup-add-table" title="Add a new backup job " style="display: none;">
     <table class="overview" id="backup-add-table-overview" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new}} {{lang.words.backup}}">
         {% include 'include/tr_validate_tips.html' %}

@@ -103,6 +103,16 @@ class Slack(BaseModel):
         table_name = 'slack'
 
 
+class PD(BaseModel):
+    id = AutoField()
+    token = CharField()
+    chanel_name = CharField()
+    groups = IntegerField()
+
+    class Meta:
+        table_name = 'pd'
+
+
 class UUID(BaseModel):
     user_id = IntegerField()
     uuid = CharField()
@@ -554,6 +564,7 @@ class CheckerSetting(BaseModel):
     service_alert = IntegerField(constraints=[SQL('DEFAULT 1')])
     backend_alert = IntegerField(constraints=[SQL('DEFAULT 1')])
     maxconn_alert = IntegerField(constraints=[SQL('DEFAULT 1')])
+    pd_id = IntegerField(constraints=[SQL('DEFAULT 0')])
 
     class Meta:
         table_name = 'checker_setting'
@@ -597,4 +608,4 @@ def create_tables():
                             PortScannerSettings, PortScannerPorts, PortScannerHistory, ProvidersCreds, ServiceSetting,
                             ProvisionedServers, MetricsHttpStatus, SMON, WafRules, Alerts, GeoipCodes, NginxMetrics,
                             SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, ProvisionParam,
-                            WafNginx, ServiceStatus, KeepaliveRestart])
+                            WafNginx, ServiceStatus, KeepaliveRestart, PD])
