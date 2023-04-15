@@ -2282,6 +2282,8 @@ def select_update_keep_alive_restart(server_id: int, service: str) -> int:
 		out_error(e)
 	else:
 		return restarted or 0
+	finally:
+		return 0
 
 
 def update_keep_alive_restart(server_id: int, service: str, restarted: int) -> None:

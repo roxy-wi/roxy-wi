@@ -127,8 +127,8 @@ def change_ip_and_port() -> None:
 
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 
-	MASTERS = sql.is_master(serv)
-	for master in MASTERS:
+	masters = sql.is_master(serv)
+	for master in masters:
 		if master[0] is not None:
 			cmd = 'echo "set server %s/%s addr %s port %s check-port %s" |nc %s %s' % (
 				backend_backend, backend_server, backend_ip, backend_port, backend_port, master[0], haproxy_sock_port)
@@ -165,31 +165,59 @@ def change_ip_and_port() -> None:
 		config_mod.master_slave_upload_and_restart(serv, cfg, just_save='save')
 
 
-def change_maxconn() -> None:
-	frontend = common.checkAjaxInput(form.getvalue('maxconn_frontend'))
-	maxconn = common.checkAjaxInput(form.getvalue('maxconn_int'))
+def change_maxconn_global() -> None:
+	if form.getvalue('maxconn_global') is None:
+		print('error: Maxconn must be integer and not 0')
+		return
 
+	maxconn = common.checkAjaxInput(form.getvalue('maxconn_global'))
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+	masters = sql.is_master(serv)
+
+	for master in masters:
+		if master[0] is not None:
+			cmd = f'echo "set maxconn global {maxconn}" |nc {master[0]} {haproxy_sock_port}'
+			output, stderr = server_mod.subprocess_execute(cmd)
+		roxywi_common.logging(master[0], f'Maxconn has been changed. Globally to {maxconn}', login=1, keep_history=1, service='haproxy')
+
+	cmd = f'echo "set maxconn global {maxconn}" |nc {serv} {haproxy_sock_port}'
+	print(cmd)
+	roxywi_common.logging(serv, f'Maxconn has been changed. Globally to {maxconn}', login=1, keep_history=1, service='haproxy')
+	output, stderr = server_mod.subprocess_execute(cmd)
+
+	if stderr != '':
+		print(stderr[0])
+	elif output[0] == '':
+		configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
+		cfg = f"{configs_dir}{serv}-{get_date.return_date('config')}.cfg"
+
+		config_mod.get_config(serv, cfg)
+		cmd = 'string=`grep global %s -n -A5 |grep maxcon -n |awk -F":" \'{print $2}\'|awk -F"-" \'{print $1}\'` ' \
+			  '&& sed -Ei "$( echo $string)s/[0-9]+/%s/g" %s' % (cfg, maxconn, cfg)
+		server_mod.subprocess_execute(cmd)
+		config_mod.master_slave_upload_and_restart(serv, cfg, just_save='save')
+		print(f'success: Maxconn globally has been set to {maxconn} ')
+	else:
+		print(f'error: {output[0]}')
+
+
+def change_maxconn_frontend() -> None:
 	if form.getvalue('maxconn_int') is None:
 		print('error: Maxconn must be integer and not 0')
 		return
 
+	frontend = common.checkAjaxInput(form.getvalue('maxconn_frontend'))
+	maxconn = common.checkAjaxInput(form.getvalue('maxconn_int'))
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-
 	masters = sql.is_master(serv)
+
 	for master in masters:
 		if master[0] is not None:
-			if frontend == 'global':
-				cmd = 'echo "set maxconn %s %s" |nc %s %s' % (frontend, maxconn, master[0], haproxy_sock_port)
-			else:
-				cmd = 'echo "set maxconn frontend %s %s" |nc %s %s' % (frontend, maxconn, master[0], haproxy_sock_port)
+			cmd = f'echo "set maxconn frontend {frontend} {maxconn}" |nc {master[0]} {haproxy_sock_port}'
 			output, stderr = server_mod.subprocess_execute(cmd)
 		roxywi_common.logging(master[0], f'Maxconn has been changed. On: {frontend} to {maxconn}', login=1, keep_history=1, service='haproxy')
 
-	if frontend == 'global':
-		cmd = 'echo "set maxconn %s %s" |nc %s %s' % (frontend, maxconn, serv, haproxy_sock_port)
-	else:
-		cmd = 'echo "set maxconn frontend %s %s" |nc %s %s' % (frontend, maxconn, serv, haproxy_sock_port)
-	print(cmd)
+	cmd = f'echo "set maxconn frontend {frontend} {maxconn}" |nc {serv} {haproxy_sock_port}'
 	roxywi_common.logging(serv, f'Maxconn has been changed. On: {frontend} to {maxconn}', login=1, keep_history=1, service='haproxy')
 	output, stderr = server_mod.subprocess_execute(cmd)
 
@@ -205,6 +233,44 @@ def change_maxconn() -> None:
 		server_mod.subprocess_execute(cmd)
 		config_mod.master_slave_upload_and_restart(serv, cfg, just_save='save')
 		print(f'success: Maxconn for {frontend} has been set to {maxconn} ')
+	else:
+		print(f'error: {output[0]}')
+
+
+def change_maxconn_backend() -> None:
+	if form.getvalue('maxconn_int') is None:
+		print('error: Maxconn must be integer and not 0')
+		return
+
+	backend = common.checkAjaxInput(form.getvalue('maxconn_backend'))
+	backend_server = common.checkAjaxInput(form.getvalue('maxconn_backend_server'))
+	maxconn = common.checkAjaxInput(form.getvalue('maxconn_int'))
+	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+
+	masters = sql.is_master(serv)
+	for master in masters:
+		if master[0] is not None:
+			cmd = f'echo "set maxconn server {backend}/{backend_server} {maxconn}" |nc {master[0]} {haproxy_sock_port}'
+			output, stderr = server_mod.subprocess_execute(cmd)
+		roxywi_common.logging(master[0], f'Maxconn has been changed. On: {backend}/{backend_server} to {maxconn}', login=1, keep_history=1, service='haproxy')
+
+	cmd = f'echo "set maxconn server {backend}/{backend_server} {maxconn}" |nc {serv} {haproxy_sock_port}'
+	print(cmd)
+	roxywi_common.logging(serv, f'Maxconn has been changed. On: {backend} to {maxconn}', login=1, keep_history=1, service='haproxy')
+	output, stderr = server_mod.subprocess_execute(cmd)
+
+	if stderr != '':
+		print(stderr[0])
+	elif output[0] == '':
+		configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
+		cfg = f"{configs_dir}{serv}-{get_date.return_date('config')}.cfg"
+
+		config_mod.get_config(serv, cfg)
+		cmd = 'string=`grep %s %s -n -A10 |grep maxcon -n|grep %s |awk -F":" \'{print $2}\'|awk -F"-" \'{print $1}\'` ' \
+			  '&& sed -Ei "$( echo $string)s/maxconn [0-9]+/maxconn %s/g" %s' % (backend, cfg, backend_server, maxconn, cfg)
+		server_mod.subprocess_execute(cmd)
+		config_mod.master_slave_upload_and_restart(serv, cfg, just_save='save')
+		print(f'success: Maxconn for {backend}/{backend_server} has been set to {maxconn} ')
 	else:
 		print(f'error: {output[0]}')
 
@@ -245,7 +311,7 @@ def delete_ip_from_stick_table() -> None:
 	cmd = f'echo "clear table {table} key {ip}" |nc {serv} {haproxy_sock_port}'
 	output, stderr = server_mod.subprocess_execute(cmd)
 	if stderr[0] != '':
-		print('error: ' + stderr[0])
+		print(f'error: {stderr[0]}')
 
 
 def clear_stick_table() -> None:
@@ -255,7 +321,7 @@ def clear_stick_table() -> None:
 	cmd = f'echo "clear table {table} " |nc {serv} {haproxy_sock_port}'
 	output, stderr = server_mod.subprocess_execute(cmd)
 	if stderr[0] != '':
-		print('error: ' + stderr[0])
+		print(f'error: {stderr[0]}')
 
 
 def list_of_lists() -> None:
@@ -345,11 +411,11 @@ def select_session() -> None:
 	from jinja2 import Environment, FileSystemLoader
 	env = Environment(loader=FileSystemLoader('templates'), autoescape=True,
 						extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'], trim_blocks=True, lstrip_blocks=True)
-	serv = common.checkAjaxInput(form.getvalue('sessions_select'))
+	session = common.checkAjaxInput(form.getvalue('sessions_select'))
 	lang = roxywi_common.get_user_lang()
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 
-	cmd = f'echo "show sess" |nc {serv} {haproxy_sock_port}'
+	cmd = f'echo "show sess" |nc {session} {haproxy_sock_port}'
 	output, stderr = server_mod.subprocess_execute(cmd)
 
 	template = env.get_template('ajax/sessions_table.html')
@@ -359,10 +425,10 @@ def select_session() -> None:
 
 
 def show_session() -> None:
-	serv = common.checkAjaxInput(form.getvalue('sessions_select_show'))
+	session = common.checkAjaxInput(form.getvalue('sessions_select_show'))
 	sess_id = common.checkAjaxInput(form.getvalue('sessions_select_id'))
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-	cmd = f'echo "show sess {sess_id}" |nc {serv} {haproxy_sock_port}'
+	cmd = f'echo "show sess {sess_id}" |nc {session} {haproxy_sock_port}'
 
 	output, stderr = server_mod.subprocess_execute(cmd)
 

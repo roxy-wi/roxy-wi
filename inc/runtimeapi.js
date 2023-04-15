@@ -4,7 +4,7 @@ function showRuntime() {
 	} else {
 		saveCheck = "";
 	}
-	$.ajax( {
+	$.ajax({
 		url: "options.py",
 		data: {
 			servaction: $('#servaction').val(),
@@ -14,17 +14,18 @@ function showRuntime() {
 			token: $('#token').val()
 		},
 		type: "POST",
-		success: function( data ) {
+		success: function (data) {
 			$("#ajaxruntime").html(data);
-		}					
+		}
 	} );
 }
 $( function() {
 	$('#runtimeapiform').submit(function() {
 		showRuntime();
 		return false;
-	}); 
+	});
 	$( "#maxconn_select" ).on('selectmenuchange',function()  {
+		let server_ip = $('#maxconn_select').val();
 		$.ajax( {
 			url: "options.py",
 			data: {
@@ -33,26 +34,43 @@ $( function() {
 			},
 			type: "POST",
 			success: function( data ) {
-					data = data.replace(/\s+/g,' ');
-					if (data.indexOf('error: ') != '-1') {
-						toastr.error(data);
-					} else {
-						var value = data.split('<br>')
-						$('#maxconnfront').find('option').remove();
-						$('#maxconnfront').append($("<option></option>").attr("value","disabled").text("Choose Frontend"));
-						$('#maxconnfront').append($("<option></option>").attr("value","global").text("global"));
-							
-						for(let i = 0; i < data.split('<br>').length; i++){
-							if(value[i] != '') {
-							$('#maxconnfront').append($("<option></option>")
-								.attr("value",value[i])
-								.text(value[i]));
-							}
-						}
-						$('#maxconnfront').selectmenu("refresh");
-					}	
+				data = data.replace(/\s+/g, ' ');
+				if (data.indexOf('error: ') != '-1') {
+					toastr.error(data);
+				} else {
+					generate_select(data, '#maxconnfront');
+				}
 			}
 		} );
+	});
+	$('#maxconnbackend').on('selectmenuchange', function (){
+		let server_ip = $('#maxconn_backend_select').val();
+		let backend = $('#maxconnbackend').val();
+		get_backend_servers(server_ip, backend, '#maxconn_backend_server', 0);
+	});
+	$( "#maxconn_backend_select" ).on('selectmenuchange',function()  {
+		let server_ip = $('#maxconn_backend_select').val();
+		get_backends(server_ip, '#maxconnbackend', 0);
+	});
+	$('#maxconnglobalform').submit(function() {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				serv: $('#maxconn_global_select').val(),
+				maxconn_global: $('#maxconnintglobal').val(),
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+				data = data.replace(/\s+/g, ' ');
+				if (data.indexOf('error: ') != '-1') {
+					toastr.error(data);
+				} else {
+					toastr.success(data);
+				}
+			}
+		} );
+		return false;
 	});
 	$('#maxconnform').submit(function() {
 		$.ajax( {
@@ -65,80 +83,46 @@ $( function() {
 			},
 			type: "POST",
 			success: function( data ) {
-					data = data.replace(/\s+/g,' ');
-					if (data.indexOf('error: ') != '-1') {
-						toastr.error(data);
-					} else {
-						toastr.success(data);
-					}	
+				data = data.replace(/\s+/g, ' ');
+				if (data.indexOf('error: ') != '-1') {
+					toastr.error(data);
+				} else {
+					toastr.success(data);
+				}
+			}
+		} );
+		return false;
+	});
+	$('#maxconnbackform').submit(function() {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				serv: $('#maxconn_backend_select').val(),
+				maxconn_backend: $('#maxconnbackend').val(),
+				maxconn_backend_server: $('#maxconn_backend_server').val(),
+				maxconn_int: $('#maxconn_backend_int').val(),
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+				data = data.replace(/\s+/g, ' ');
+				if (data.indexOf('error: ') != '-1') {
+					toastr.error(data);
+				} else {
+					toastr.success(data);
+				}
 			}
 		} );
 		return false;
 	});
 	$( "#ip_select" ).on('selectmenuchange',function()  {
-		$.ajax( {
-			url: "options.py",
-			data: {
-				ip_select: $('#ip_select').val(),
-				serv: $('#ip_select').val(),
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function( data ) {
-				data = data.replace(/\s+/g,' ');
-				if (data.indexOf('error: ') != '-1') {
-					toastr.error(data);
-				} else {
-					var value = data.split('<br>')
-					$('#ipbackend').find('option').remove();
-					$('#ipbackend').append($("<option></option>").attr("value","disabled").text("------"));
-					$('#backend_server').find('option').remove();
-					$('#backend_port').val('');
-					$('#backend_ip').val('');
-					for(let i = 0; i < data.split('<br>').length; i++){
-						if(value[i] != '') {
-						$('#ipbackend').append($("<option></option>")
-							.attr("value",value[i])
-							.text(value[i]));
-						}
-					}
-					$('#ipbackend').selectmenu("refresh");
-					$('#backend_server').selectmenu("refresh");
-				}	
-			}
-		} );
+		let server_ip = $('#ip_select').val();
+		get_backends(server_ip, '#ipbackend', 1);
 	});
 	$( "#ipbackend" ).on('selectmenuchange',function() {
-		$.ajax( {
-			url: "options.py",
-			data: {
-				serv: $('#ip_select').val(),
-				ipbackend: $('#ipbackend').val(),
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function( data ) {
-				data = data.replace(/\s+/g,' ');
-				if (data.indexOf('error: ') != '-1') {
-					toastr.error(data);
-				} else {
-					var value = data.split('<br>')
-					$('#backend_server').find('option').remove();
-					$('#backend_server').append($("<option></option>").attr("value","disabled").text("------"));
-					$('#backend_port').val('');
-					$('#backend_ip').val('');			
-					for(let i = 0; i < data.split('<br>').length; i++){
-						if(value[i] != ' ') {						
-							value[i] = value[i].replace(/\s+/g,'');
-							$('#backend_server').append($("<option></option>")
-								.attr("value",value[i])
-								.text(value[i]));
-						}
-					}
-					$('#backend_server').selectmenu("refresh");
-				}	
-			}
-		} );
+		let server_ip = $('#ip_select').val();
+		let backend = $('#ipbackend').val();
+		get_backend_servers(server_ip, backend, '#backend_server', 1);
 	});
 	$( "#backend_server" ).on('selectmenuchange',function() {
 		$('#backend_ip').val();
@@ -168,7 +152,7 @@ $( function() {
 		} );	
 	});
 	$('#runtimeapiip').submit(function() {
-		$.ajax( {
+		$.ajax({
 			url: "options.py",
 			data: {
 				serv: $('#ip_select').val(),
@@ -179,13 +163,13 @@ $( function() {
 				token: $('#token').val()
 			},
 			type: "POST",
-			success: function( data ) {
-					data = data.replace(/\s+/g,' ');
-					if (data.indexOf('error: ') != '-1' || data.indexOf('Invalid ') != '-1') {
-						toastr.error(data);
-					} else {
-						toastr.success(data);
-					}	
+			success: function (data) {
+				data = data.replace(/\s+/g, ' ');
+				if (data.indexOf('error: ') != '-1' || data.indexOf('Invalid ') != '-1') {
+					toastr.error(data);
+				} else {
+					toastr.success(data);
+				}
 			}
 		} );
 		return false;
@@ -204,19 +188,7 @@ $( function() {
 				if (data.indexOf('error: ') != '-1') {
 					toastr.error(data);
 				} else {
-					var value = data.split(',')
-					$('#table_select').find('option').remove();
-					$('#table_select').append($("<option titile='Show all tables'></option>").attr("value","All").text("All"));
-							
-					for(let i = 0; i < data.split(',').length; i++){
-						if(value[i] != '') {						
-							value[i] = value[i].replace(/\s+/g,'');
-							$('#table_select').append($("<option title=\"Show table "+value[i]+"\"></option>")
-								.attr("value",value[i])
-								.text(value[i]));
-						}
-					}
-					$('#table_select').selectmenu("refresh");
+					generate_select(data, '#table_select', 'All', ',');
 				}
 			}
 		} );
@@ -234,7 +206,7 @@ $( function() {
 		return false;
 	});
 	$( "#list_serv_select" ).on('selectmenuchange',function() {
-		$.ajax( {
+		$.ajax({
 			url: "options.py",
 			data: {
 				serv: $('#list_serv_select').val(),
@@ -242,7 +214,7 @@ $( function() {
 				token: $('#token').val()
 			},
 			type: "POST",
-			success: function( data ) {
+			success: function (data) {
 				data = data.replace(/, /g, ',');
 				if (data.indexOf('error: ') != '-1') {
 					toastr.error(data);
@@ -271,8 +243,6 @@ $( function() {
 			}
 		} );
 	});
-
-
 });
 function deleteTableEntry(id, table, ip) {
 	$(id).parent().parent().css("background-color", "#f2dede");
@@ -327,7 +297,7 @@ function getTable() {
 			} else {
 				$("#ajaxtable").html(data);
 				$( "input[type=submit], button" ).button();
-				$.getScript("/inc/script.js");
+				$.getScript("/inc/script-6.3.9.js");
 				$.getScript("/inc/fontawesome.min.js");
 				FontAwesomeConfig = { searchPseudoElements: true, observeMutations: false };
 			}
@@ -350,7 +320,7 @@ function getList() {
 			} else {
 				$("#ajaxlist").html(data);
 				$( "input[type=submit], button" ).button();
-				$.getScript("/inc/script.js");
+				$.getScript("/inc/script-6.3.9.js");
 				$.getScript("/inc/fontawesome.min.js");
 				FontAwesomeConfig = { searchPseudoElements: true, observeMutations: false };
 			}
@@ -408,7 +378,6 @@ function addNewIp() {
 					$( "#list_add_ip_form" ).dialog("destroy" );
 					toastr.success('IP ' + ip + ' has been added');
 					toastr.info('Do not forget upload updated list to the properly server. Restart does not need');
-
 				}
 			}
 		});
@@ -428,7 +397,7 @@ function getSessions() {
 			} else {
 				$("#ajaxsessions").html(data);
 				$( "input[type=submit], button" ).button();
-				$.getScript("/inc/script.js");
+				$.getScript("/inc/script-6.3.9.js");
 				$.getScript("/inc/fontawesome.min.js");
 				FontAwesomeConfig = { searchPseudoElements: true, observeMutations: false };
 			}
@@ -488,4 +457,69 @@ function deleteSession(id, sess_id) {
 			}
 		}
 	} );
+}
+function get_backends(server_ip, backends_select_tag, ip_and_port=0) {
+	$.ajax({
+		url: "options.py",
+		data: {
+			ip_select: 1,
+			serv: server_ip,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('error: ') != '-1') {
+				toastr.error(data);
+			} else {
+				generate_select(data, backends_select_tag);
+				if (ip_and_port == 1) {
+					$('#backend_server').find('option').remove();
+					$('#backend_server').selectmenu("refresh");
+					$('#backend_port').val('');
+					$('#backend_ip').val('');
+				}
+			}
+		}
+	} );
+}
+function get_backend_servers(server_ip, backend, servers_select_tag, ip_and_port=0) {
+	$.ajax({
+		url: "options.py",
+		data: {
+			serv: server_ip,
+			ipbackend: backend,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('error: ') != '-1') {
+				toastr.error(data);
+			} else {
+				generate_select(data, servers_select_tag);
+				if (ip_and_port == 1) {
+					$('#backend_port').val('');
+					$('#backend_ip').val('');
+				}
+			}
+		}
+	} );
+}
+function generate_select(values, select_tag, custom_value=0, separator='<br>') {
+	var value = values.split(separator)
+	$(select_tag).find('option').remove();
+	$(select_tag).append($("<option></option>").attr("value", "disabled").text("------"));
+	if (custom_value) {
+		$(select_tag).append($("<option></option>").attr("value", custom_value).text(custom_value));
+	}
+	for (let i = 0; i < values.split(separator).length; i++) {
+		if (value[i] != ' ' && value[i] != '' ) {
+			value[i] = value[i].replace(/\s+/g, '');
+			$(select_tag).append($("<option></option>")
+				.attr("value", value[i])
+				.text(value[i]));
+		}
+	}
+	$(select_tag).selectmenu("refresh");
 }

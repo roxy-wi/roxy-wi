@@ -1,7 +1,7 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% for ssh in sshs %}
 	<tr style="width: 50%;" id="ssh-table-{{ssh.id}}" class="ssh-table-{{ssh.id}}">
-		<td class="first-collumn">
+		<td class="first-collumn padding10">
 			<input type="text" id="ssh_name-{{ssh.id}}" class="form-control" value="{{ssh.name}}" style="margin-bottom: 23px;">	
 		</td>
 		<td class="first-collumn" valign="top" style="padding-top: 15px;">

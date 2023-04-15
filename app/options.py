@@ -113,10 +113,20 @@ if form.getvalue('maxconn_select') is not None:
     serv = common.checkAjaxInput(form.getvalue('maxconn_select'))
     runtime.get_backends_from_config(serv, backends='frontend')
 
+if form.getvalue('maxconn_global') is not None:
+    import modules.config.runtime as runtime
+
+    runtime.change_maxconn_global()
+
 if form.getvalue('maxconn_frontend') is not None:
     import modules.config.runtime as runtime
 
-    runtime.change_maxconn()
+    runtime.change_maxconn_frontend()
+
+if form.getvalue('maxconn_backend') is not None:
+    import modules.config.runtime as runtime
+
+    runtime.change_maxconn_backend()
 
 if form.getvalue('table_serv_select') is not None:
     import modules.config.runtime as runtime
