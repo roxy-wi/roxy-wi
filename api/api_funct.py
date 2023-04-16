@@ -115,8 +115,11 @@ def check_permit_to_server(server_id, service='haproxy'):
 	token = request.headers.get('token')
 	login, group_id, role_id = sql.get_username_groupid_from_api_token(token)
 
-	for s in servers:
-		server = roxywi_common.get_dick_permit(username=login, group_id=group_id, ip=s[2], token=token, service=service)
+	try:
+		for s in servers:
+			server = roxywi_common.get_dick_permit(username=login, group_id=group_id, ip=s[2], token=token, service=service)
+	except Exception as e:
+		raise Exception(f'error: {e}')
 
 	return server
 
@@ -299,30 +302,42 @@ def show_backends(server_id):
 
 def get_config(server_id, **kwargs):
 	service = kwargs.get('service')
-	if service != 'apache' and service != 'nginx' and service != 'haproxy' and service != 'keepalived':
+	if service not in ('apache', 'nginx', 'haproxy', 'keepalived'):
 		return dict(status='wrong service')
 
-	data = {}
 	try:
-		servers = check_permit_to_server(server_id)
-
-		for s in servers:
-			cfg = '/tmp/' + s[2] + '.cfg'
-			config_mod.get_config(s[2], cfg, service=service, config_file_name=kwargs.get('config_path'))
-			os.system("sed -i 's/\\n/\n/g' " + cfg)
-		try:
-			conf = open(cfg, "r")
-			config_read = conf.read()
-			conf.close
-
-		except IOError:
-			conf = '<br />Cannot read import config file'
-
-		data = {server_id: config_read}
-
+		servers = check_permit_to_server(server_id, service=service)
 	except Exception as e:
-		data = {server_id: {"error": "Cannot find the server " + str(e)}}
+		data = {server_id: {"error": f"Cannot find the server {e}"}}
 		return dict(error=data)
+
+	for s in servers:
+		server_ip = s[2]
+
+	try:
+		cfg = f'/tmp/{server_ip}.cfg'
+	except Exception as e:
+		data = {server_id: {"error": f"Cannot find the server with the service {service}: {e}"}}
+		return dict(error=data)
+	try:
+		config_mod.get_config(server_ip, cfg, service=service, config_file_name=kwargs.get('config_path'))
+	except Exception as e:
+		data = {server_id: {"error": f"Cannot get config {e}"}}
+		return dict(error=data)
+	try:
+		os.system("sed -i 's/\\n/\n/g' " + cfg)
+	except Exception as e:
+		data = {server_id: {"error": f"Cannot edit config {e}"}}
+		return dict(error=data)
+	try:
+		conf = open(cfg, "r")
+		config_read = conf.read()
+		conf.close()
+	except IOError as e:
+		data = {server_id: {"error": f"Cannot read config {e}"}}
+		return dict(error=data)
+
+	data = {server_id: config_read}
 
 	return dict(config=data)
 

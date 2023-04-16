@@ -220,7 +220,12 @@ def get_dick_permit(**kwargs):
 		token = ''
 
 	if check_user_group(token=token):
-		return sql.get_dick_permit(**kwargs)
+		try:
+			servers = sql.get_dick_permit(**kwargs)
+		except Exception as e:
+			raise Exception(e)
+		else:
+			return servers
 	else:
 		print('Atata!')
 

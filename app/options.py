@@ -2056,9 +2056,7 @@ if form.getvalue('loadopenvpn'):
         openvpn_sess, stderr = server_mod.subprocess_execute(cmd)
         openvpn = stdout[0]
 
-    template = template.render(openvpn=openvpn,
-                               openvpn_sess=openvpn_sess,
-                               openvpn_configs=openvpn_configs)
+    template = template.render(openvpn=openvpn, openvpn_sess=openvpn_sess, openvpn_configs=openvpn_configs)
     print(template)
 
 if form.getvalue('check_receiver'):

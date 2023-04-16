@@ -924,8 +924,8 @@ def get_dick_permit(**kwargs):
 				""".format(group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx, keepalived=keepalived, apache=apache)
 
 	except Exception as e:
-		print(str(e))
-		print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
+		raise Exception(f'error: {e}')
+
 	try:
 		cursor.execute(sql)
 	except Exception as e:
