@@ -1229,6 +1229,30 @@ $( function() {
 			$("#backend_checks_http_domain").removeAttr('required');
 		}
 	});
+	$( "#add_listener_header" ).on( "click", function() {
+		$( "#listener_header_div" ).show();
+		$( "#listener_add_header" ).show();
+		$( "#add_listener_header" ).hide();
+	} );
+	$( "#add_frontend_header" ).on( "click", function() {
+		$( "#frontend_header_div" ).show();
+		$( "#frontend_add_header" ).show();
+		$( "#add_frontend_header" ).hide();
+	} );
+	$( "#add_backend_header" ).on( "click", function() {
+		$( "#backend_header_div" ).show();
+		$( "#backend_add_header" ).show();
+		$( "#add_backend_header" ).hide();
+	} );
+	$("#listener_add_header").click(function(){
+		make_actions_for_adding_header('#listener_header_div');
+	});
+	$("#frontend_add_header").click(function(){
+		make_actions_for_adding_header('#frontend_header_div');
+	});
+	$("#backend_add_header").click(function(){
+		make_actions_for_adding_header('#backend_header_div');
+	});
 	$( "#add_listener_acl" ).on( "click", function() {
 		$( "#listener_acl" ).show();
 		$( "#listener_add_acl" ).show();
@@ -1893,8 +1917,12 @@ function deleteId(id) {
 		$('#frontend_bind').hide();
 	}
 }
+var if_word = $('#translate').attr('data-if-title');
+var then_word = $('#translate').attr('data-then');
+var value_word = $('#translate').attr('data-value');
+var name_word = $('#translate').attr('data-name');
 var acl_option = '<p id="new_acl_p" style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">\n' +
-		'<b class="padding10">if</b>\n' +
+		'<b class="padding10">'+if_word+'</b>\n' +
 		'<select name="acl_if">\n' +
 		'\t<option selected>Choose if</option>\n' +
 		'\t<option value="1">Host name starts with</option>\n' +
@@ -1903,9 +1931,9 @@ var acl_option = '<p id="new_acl_p" style="border-bottom: 1px solid #ddd; paddin
 		'\t<option value="4">Path ends with</option>\n' +
 		'\t<option value="6">Src ip</option>\n' +
 		'</select> ' +
-		'<b class="padding10">value</b>\n' +
+		'<b class="padding10">'+value_word+'</b>\n' +
 		'<input type="text" name="acl_value" class="form-control">\n' +
-		'<b class="padding10">then</b>\n' +
+		'<b class="padding10">'+then_word+'</b>\n' +
 		'<select name="acl_then">\n' +
 		'\t<option selected>Choose then</option>\n' +
 		'\t<option value="5">Use backend</option>\n' +
@@ -1915,7 +1943,7 @@ var acl_option = '<p id="new_acl_p" style="border-bottom: 1px solid #ddd; paddin
 		'\t<option value="6">Return</option>\n' +
 		'\t<option value="7">Set-header</option>\n' +
 		'</select>\n' +
-		'<b class="padding10">value</b>\n' +
+		'<b class="padding10">'+value_word+'</b>\n' +
 		'<input type="text" name="acl_then_value" class="form-control" value="" title="Required if\" then\" is \"Use backend\" or \"Redirect\"">\n' +
 		'<span class="minus minus-style" id="new_acl_rule_minus" title="Delete this ACL"></span>' +
 		'</p>'
@@ -1930,6 +1958,36 @@ function make_actions_for_adding_acl_rule(section_id) {
 	$( "select" ).selectmenu();
 	$('[name=acl_if]').selectmenu({width: 180});
 	$('[name=acl_then]').selectmenu({width: 180});
+}
+var value_word = $('#translate').attr('data-value');
+var name_word = $('#translate').attr('data-name');
+var header_option = '<p style="border-bottom: 1px solid #ddd; padding-bottom: 10px;" id="new_header_p">\n' +
+	'<select name="headers_res">' +
+	'<option value="http-response">response</option>' +
+	'<option value="http-request">request</option>' +
+	'</select>' +
+	'<select name="headers_method">' +
+	'<option value="add-header">add-header</option>' +
+	'<option value="set-header">set-header</option>' +
+	'<option value="del-header">del-header</option>' +
+	'</select>' +
+	'\t<b class="padding10">'+name_word+'</b>' +
+	'\t<input name="header_name" class="form-control">' +
+	'\t<b class="padding10">'+value_word+'</b>' +
+	'\t<input name="header_value" class="form-control" placeholder="Leave blank if using del-header">' +
+	'\t<span class="minus minus-style" id="new_header_minus" title="Delete this header"></span>' +
+	'</p>'
+function make_actions_for_adding_header(section_id) {
+	var random_id = makeid(3);
+	$(section_id).append(header_option);
+	$('#new_header_minus').attr('onclick', 'deleteId(\''+random_id+'\')');
+	$('#new_header_minus').attr('id', '');
+	$('#new_header_p').attr('id', random_id);
+	$('#new_header_minus').attr('id', '');
+	$.getScript("/inc/fontawesome.min.js");
+	$( "select" ).selectmenu();
+	$('[name=headers_method]').selectmenu({width: 180});
+	// $('[name=acl_then]').selectmenu({width: 180});
 }
 var bind_option = '<p id="new_bind_p"><input type="text" name="ip" size="15" placeholder="Any" class="form-control ui-autocomplete-input" autocomplete="off">' +
 	'<b>:</b> ' +

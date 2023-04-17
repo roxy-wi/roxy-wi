@@ -60,7 +60,7 @@
 		{% endif %}
 		</td>
 		{% if waf_service == 'haproxy' %}
-		<td style="padding-top: 2px;" class="ajaxwafstatus">
+		<td class="ajaxwafstatus">
 		{% if service.4|int() == 1 %}
 			<label for="metrics{{ service.0 }}"></label><input type="checkbox" id="metrics{{ service.0 }}" checked />
 		{% else %}

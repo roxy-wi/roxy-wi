@@ -56,10 +56,17 @@ def alert_routing(
 		if alert_type == 'service' and setting.service_alert:
 			try:
 				telegram_send_mess(mes, level, channel_id=setting.telegram_id)
+			except Exception as e:
+				roxywi_common.logging('Roxy-WI server', f'error: unable to send message to Telegram: {e}', roxywi=1)
+			try:
 				slack_send_mess(mes, level, channel_id=setting.slack_id)
+			except Exception as e:
+				roxywi_common.logging('Roxy-WI server', f'error: unable to send message to Slack: {e}', roxywi=1)
+			try:
 				pd_send_mess(mes, level, server_ip, service_id, alert_type, channel_id=setting.pd_id)
 			except Exception as e:
-				roxywi_common.logging('Roxy-WI server', f'error: unable to send message: {e}', roxywi=1)
+				roxywi_common.logging('Roxy-WI server', f'error: unable to send message to PagerDuty: {e}', roxywi=1)
+
 
 			if setting.email:
 				send_email_to_server_group(subject, mes, level, group_id)
@@ -67,10 +74,16 @@ def alert_routing(
 		if alert_type == 'backend' and setting.backend_alert:
 			try:
 				telegram_send_mess(mes, level, channel_id=setting.telegram_id)
+			except Exception as e:
+				roxywi_common.logging('Roxy-WI server', f'error: unable to send message to Telegram: {e}', roxywi=1)
+			try:
 				slack_send_mess(mes, level, channel_id=setting.slack_id)
+			except Exception as e:
+				roxywi_common.logging('Roxy-WI server', f'error: unable to send message to Slack: {e}', roxywi=1)
+			try:
 				pd_send_mess(mes, level, server_ip, service_id, alert_type, channel_id=setting.pd_id)
 			except Exception as e:
-				roxywi_common.logging('Roxy-WI server', f'error: unable to send message: {e}', roxywi=1)
+				roxywi_common.logging('Roxy-WI server', f'error: unable to send message to PagerDuty: {e}', roxywi=1)
 
 			if setting.email:
 				send_email_to_server_group(subject, mes, level, group_id)
@@ -78,10 +91,16 @@ def alert_routing(
 		if alert_type == 'maxconn' and setting.maxconn_alert:
 			try:
 				telegram_send_mess(mes, level, channel_id=setting.telegram_id)
+			except Exception as e:
+				roxywi_common.logging('Roxy-WI server', f'error: unable to send message to Telegram: {e}', roxywi=1)
+			try:
 				slack_send_mess(mes, level, channel_id=setting.slack_id)
+			except Exception as e:
+				roxywi_common.logging('Roxy-WI server', f'error: unable to send message to Slack: {e}', roxywi=1)
+			try:
 				pd_send_mess(mes, level, server_ip, service_id, alert_type, channel_id=setting.pd_id)
 			except Exception as e:
-				roxywi_common.logging('Roxy-WI server', f'error: unable to send message: {e}', roxywi=1)
+				roxywi_common.logging('Roxy-WI server', f'error: unable to send message to PagerDuty: {e}', roxywi=1)
 
 			if setting.email:
 				send_email_to_server_group(subject, mes, level, group_id)

@@ -157,13 +157,15 @@ def get_server(server_id, service):
 				'master': s[6],
 				'creds': s[7]
 			}
-	except Exception:
-		data = ''
+	except Exception as e:
+		data = {server_id: {"error": f"{e}"}}
+		return dict(error=data)
+
 	return dict(server=data)
 
 
 def get_status(server_id, service):
-	if service != 'apache' and service != 'nginx' and service != 'haproxy':
+	if service not in ('apache', 'nginx', 'haproxy', 'keepalived'):
 		return dict(status='wrong service')
 	try:
 		servers = check_permit_to_server(server_id, service=service)
@@ -240,9 +242,9 @@ def get_all_statuses():
 
 
 def actions(server_id, action, service):
-	if action != 'start' and action != 'stop' and action != 'restart' and action != 'reload':
+	if action not in ('start', 'stop', 'restart', 'reload'):
 		return dict(status='wrong action')
-	if service != 'apache' and service != 'nginx' and service != 'haproxy' and service != 'keepalived':
+	if service not in ('apache', 'nginx', 'haproxy', 'keepalived'):
 		return dict(status='wrong service')
 
 	try:
@@ -254,7 +256,6 @@ def actions(server_id, action, service):
 			cmd = ["sudo systemctl %s %s" % (action, service)]
 			error = server_mod.ssh_command(s[2], cmd)
 			done = error if error else 'done'
-
 			data = {'server_id': s[0], 'ip': s[2], 'action': action, 'hostname': s[1], 'status': done}
 
 		return dict(status=data)
@@ -263,7 +264,6 @@ def actions(server_id, action, service):
 
 
 def runtime(server_id):
-	data = {}
 	try:
 		body = request.body.getvalue().decode('utf-8')
 		json_loads = json.loads(body)
@@ -275,7 +275,6 @@ def runtime(server_id):
 		for s in servers:
 			out = server_mod.ssh_command(s[2], cmd)
 
-		data = {server_id: {}}
 		sep_data = out.split('\r\n')
 		data = {server_id: sep_data}
 
@@ -418,7 +417,7 @@ def edit_section(server_id, delete=0):
 
 def upload_config(server_id, **kwargs):
 	service = kwargs.get('service')
-	if service != 'apache' and service != 'nginx' and service != 'haproxy':
+	if service not in ('apache', 'nginx', 'haproxy', 'keepalived'):
 		return dict(status='wrong service')
 
 	body = request.body.getvalue().decode('utf-8')
@@ -592,7 +591,8 @@ def add_acl(server_id):
 		out = config_mod.get_config(server_ip, cfg)
 		start_line, end_line, config_read = section_mod.get_section_from_config(cfg, section_name)
 	except Exception as e:
-		status = "Cannot read section: " + str(e)
+		data = {server_id: {"error": f"Cannot read section: {e}"}}
+		return dict(error=data)
 
 	try:
 		config_read += acl
@@ -601,9 +601,11 @@ def add_acl(server_id):
 			with open(cfg, "w") as conf:
 				conf.write(config)
 		except IOError as e:
-			status = "Cannot read import config file: " + str(e)
+			data = {server_id: {"error": f"Cannot read import config file: {e}"}}
+			return dict(error=data)
 	except Exception as e:
-		status = str(e)
+		data = {server_id: {"error": f"{e}"}}
+		return dict(error=data)
 
 	try:
 		out = config_mod.master_slave_upload_and_restart(server_ip, cfg, just_save=save)
@@ -612,7 +614,8 @@ def add_acl(server_id):
 		else:
 			status = 'ACL has been added'
 	except Exception as e:
-		status = str(e)
+		data = {server_id: {"error": f"{e}"}}
+		return dict(error=data)
 
 	data = {'acl': status}
 	return dict(data)
@@ -623,19 +626,18 @@ def del_acl(server_id):
 	json_loads = json.loads(body)
 	save = json_loads['action']
 	section_name = json_loads['section-name']
-
 	acl = generate_acl()
 	servers = check_permit_to_server(server_id)
-	status = ''
 
 	for s in servers:
-		cfg = '/tmp/' + s[2] + '.cfg'
 		server_ip = s[2]
+		cfg = f'/tmp/{server_ip}.cfg'
 	try:
 		out = config_mod.get_config(server_ip, cfg)
 		start_line, end_line, config_read = section_mod.get_section_from_config(cfg, section_name)
 	except Exception as e:
-		status = str(e)
+		data = {server_id: {"error": f"{e}"}}
+		return dict(error=data)
 
 	try:
 		config_new_read = ''
@@ -644,7 +646,8 @@ def del_acl(server_id):
 				if line != '':
 					config_new_read += line + '\n'
 	except Exception as e:
-		status = 'Cannot delete ACL: ' + str(e)
+		data = {server_id: {"error": f"Cannot delete ACL: {e}"}}
+		return dict(error=data)
 
 	try:
 		config = config_mod.master_slave_upload_and_restart(start_line, end_line, cfg, config_new_read)
@@ -652,9 +655,11 @@ def del_acl(server_id):
 			with open(cfg, "w") as conf:
 				conf.write(config)
 		except IOError as e:
-			status = "Cannot read import config file: " + str(e)
+			data = {server_id: {"error": f"Cannot read import config file: {e}"}}
+			return dict(error=data)
 	except Exception as e:
-		status = 'Cannot delete ACL: ' + str(e)
+		data = {server_id: {"error": f"Cannot delete ACL: {e}"}}
+		return dict(error=data)
 
 	try:
 		out = config_mod.master_slave_upload_and_restart(server_ip, cfg, just_save=save)
@@ -663,7 +668,8 @@ def del_acl(server_id):
 		else:
 			status = 'ACL has been deleted'
 	except Exception as e:
-		status = str(e)
+		data = {server_id: {"error": f"{e}"}}
+		return dict(error=data)
 
 	return dict(acl=status)
 

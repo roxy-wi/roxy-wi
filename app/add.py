@@ -82,6 +82,7 @@ elif form.getvalue('mode') is not None:
 	ssl = ""
 	ssl_check = ""
 	backend = ""
+	headers = ''
 	acl = ""
 	servers_split = ""
 	new_listener = form.getvalue('listener')
@@ -209,6 +210,20 @@ elif form.getvalue('mode') is not None:
 		options_split += cookie
 		if form.getvalue('dynamic'):
 			options_split += f"    dynamic-cookie-key {form.getvalue('dynamic-cookie-key')}\n"
+
+	if form.getvalue('headers_method'):
+		headers_res = form.getlist('headers_res')
+		headers_method = form.getlist('headers_method')
+		header_name = form.getlist('header_name')
+		header_value = form.getlist('header_value')
+		i = 0
+
+		for h in headers_method:
+			if headers_method[i] != 'del-header':
+				headers += f'    {headers_res[i]} {headers_method[i]} {header_name[i]} {header_value[i]}\n'
+			else:
+				headers += f'    {headers_res[i]} {headers_method[i]} {header_name[i]}\n'
+			i += 1
 
 	if form.getvalue('acl_if'):
 		acl_if = form.getlist('acl_if')
@@ -339,7 +354,7 @@ elif form.getvalue('mode') is not None:
 		waf += "    http-request deny if { var(txn.modsec.code) -m int gt 0 }\n"
 
 	config_add = f"\n{name}\n{bind}{mode}{maxconn}{balance}{options_split}{cache_s}{filter_com}{compression_s}" \
-				 f"{waf}{acl}{backend}{servers_split}\n{cache_set}\n"
+				 f"{waf}{headers}{acl}{backend}{servers_split}\n{cache_set}\n"
 
 if form.getvalue('new_userlist') is not None:
 	name = f"userlist {form.getvalue('new_userlist')}\n"

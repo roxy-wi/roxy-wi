@@ -16,6 +16,8 @@
 {% set observe = {'layer7':'layer7', 'layer4': 'layer4'} %}
 {% set on_error = {'mark-down':'mark-down', 'fastinter': 'fastinter', 'fail-check':'fail-check',
 'sudden-death':'sudden-death'} %}
+{% set header_res = {'http-response': 'response', 'http-request': 'request'} %}
+{% set header_params = {'add-header': 'add-header', 'set-header': 'set-header', 'del-header': 'del-header'} %}
 
 {% set if_values = dict() %}
 {% set if_values = {'1':'Host name starts with','2':'Host name ends with','3':'Path starts with','4':'Path ends with', '6': 'Src ip'} %}
@@ -121,22 +123,42 @@
 					</td>
 				</tr>
 				<tr class="advance">
+					<td class="addName">{{lang.words.headers|title()}}: </td>
+					<td class="addOption">
+						<span title="{{lang.words.add|title()}} {{lang.words.headers}}" id="add_listener_header" class="link add-server"></span>
+						<div id="listener_header_div" style="display: none;">
+							<p style="border-bottom: 1px solid #ddd; padding-bottom: 10px;" id="listener_header_p">
+								{{ select('listener_header_res_method', name='headers_res', values=header_res, selected='response', class='force_close') }}
+								{{ select('listener_header_method', name='headers_method', values=header_params, selected='add-header', class='force_close') }}
+								<b class="padding10">{{lang.words.name}}</b>
+								{{ input('listener_header_name', name="header_name") }}
+								<b class="padding10">{{lang.words.value}}</b>
+								{{ input('listener_header_value', name="header_value", placeholder='Leave blank if using del-header') }}
+								<span class="minus minus-style" onclick="deleteId('listener_header_p')" title="{{lang.words.delete|title()}}"></span>
+							</p>
+						</div>
+						<span>
+							<a class="link add-server" id="listener_add_header" title="{{lang.words.add|title()}} {{lang.words.headers}}" style="display: none;"></a>
+						</span>
+					</td>
+				</tr>
+				<tr class="advance">
 					<td class="addName" title="Access control list">ACL: </td>
 					<td class="addOption">
-						<span title="Add ACL" id="add_listener_acl" class="link add-server"></span>
+						<span title="{{lang.words.add|title()}} ACL" id="add_listener_acl" class="link add-server"></span>
 						<div id="listener_acl" style="display: none;">
 							<p style="border-bottom: 1px solid #ddd; padding-bottom: 10px;" id="listener_acl_rule">
-								<b class="padding10">if</b>
+								<b class="padding10">{{lang.words.if|title()}}</b>
 								{{ select('listener_acl_if', name='acl_if', values=if_values, first='Choose if', class='force_close', disabled=false) }}
-								<b class="padding10">value</b>
+								<b class="padding10">{{lang.words.value}}</b>
 								{{ input('listener_acl_value', name="acl_value") }}
-								<b class="padding10">then</b>
+								<b class="padding10">{{lang.words.then}}</b>
 								{% set values = dict() %}
 								{% set values = {'2':'Redirect to','3':'Allow','4':'Deny', '6': 'Return', '7': 'Set-header'} %}
 								{{ select('listener_acl_then', name='acl_then', values=values, first='Choose action', class='force_close', disabled=false) }}
-								<b class="padding10">value</b>
+								<b class="padding10">{{lang.words.value}}</b>
 								{{ input('listener_acl_then_value', name='acl_then_value', title="Required if \'then\' is \'Use backend\' or \'Redirect\', \'Return\', or \'Set-header\'") }}
-								<span class="minus minus-style" onclick="deleteId('listener_acl_rule')" title="Delete this rule"></span>
+								<span class="minus minus-style" onclick="deleteId('listener_acl_rule')" title="{{lang.words.delete|title()}} {{lang.words.this}} ACL"></span>
 							</p>
 						</div>
 						<span>
@@ -349,6 +371,26 @@
 				</td>
 			</tr>
 			<tr class="advance">
+				<td class="addName">{{lang.words.headers|title()}}: </td>
+				<td class="addOption">
+					<span title="{{lang.words.add|title()}} {{lang.words.headers}}" id="add_frontend_header" class="link add-server"></span>
+					<div id="frontend_header_div" style="display: none;">
+						<p style="border-bottom: 1px solid #ddd; padding-bottom: 10px;" id="frontend_header_p">
+							{{ select('frontend_header_res_method', name='headers_res', values=header_res, selected='response', class='force_close') }}
+							{{ select('frontend_header_method', name='headers_method', values=header_params, selected='add-header', class='force_close') }}
+							<b class="padding10">{{lang.words.name}}</b>
+							{{ input('frontend_header_name', name="header_name") }}
+							<b class="padding10">{{lang.words.value}}</b>
+							{{ input('frontend_header_value', name="header_value", placeholder='Leave blank if using del-header') }}
+							<span class="minus minus-style" onclick="deleteId('frontend_header_p')" title="{{lang.words.delete|title()}}"></span>
+						</p>
+					</div>
+					<span>
+						<a class="link add-server" id="frontend_add_header" title="{{lang.words.add|title()}} {{lang.words.headers}}" style="display: none;"></a>
+					</span>
+				</td>
+			</tr>
+			<tr class="advance">
 				<td class="addName" title="Access control list">ACL: </td>
 				<td class="addOption">
 					<span title="Add ACL" id="add_frontend_acl" class="link add-server"></span>
@@ -521,6 +563,26 @@
 							URI path for checking: {{ input('backend_checks_http_path', name='checks_http_path', value='/',  title="URI for checking e.g. /check") }}
 							Domain name: {{ input('backend_checks_http_domain', name='checks_http_domain', placeholder='domain.com',  title="Domain name for checking e.g. domain.com") }}
 						</span>
+				</td>
+			</tr>
+			<tr class="advance">
+				<td class="addName">{{lang.words.headers|title()}}: </td>
+				<td class="addOption">
+					<span title="{{lang.words.add|title()}} {{lang.words.headers}}" id="add_backend_header" class="link add-server"></span>
+					<div id="backend_header_div" style="display: none;">
+						<p style="border-bottom: 1px solid #ddd; padding-bottom: 10px;" id="backend_header_p">
+							{{ select('backend_header_res_method', name='headers_res', values=header_res, selected='response', class='force_close') }}
+							{{ select('backend_header_method', name='headers_method', values=header_params, selected='add-header', class='force_close') }}
+							<b class="padding10">{{lang.words.name}}</b>
+							{{ input('backend_header_name', name="header_name") }}
+							<b class="padding10">{{lang.words.value}}</b>
+							{{ input('lbackend_header_value', name="header_value", placeholder='Leave blank if using del-header') }}
+							<span class="minus minus-style" onclick="deleteId('listener_header_p')" title="{{lang.words.delete|title()}}"></span>
+						</p>
+					</div>
+					<span>
+						<a class="link add-server" id="backend_add_header" title="{{lang.words.add|title()}} {{lang.words.headers}}" style="display: none;"></a>
+					</span>
 				</td>
 			</tr>
 			<tr class="advance">
