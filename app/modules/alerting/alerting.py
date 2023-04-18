@@ -67,7 +67,6 @@ def alert_routing(
 			except Exception as e:
 				roxywi_common.logging('Roxy-WI server', f'error: unable to send message to PagerDuty: {e}', roxywi=1)
 
-
 			if setting.email:
 				send_email_to_server_group(subject, mes, level, group_id)
 

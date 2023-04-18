@@ -211,7 +211,7 @@ elif form.getvalue('mode') is not None:
 		if form.getvalue('dynamic'):
 			options_split += f"    dynamic-cookie-key {form.getvalue('dynamic-cookie-key')}\n"
 
-	if form.getvalue('headers_method'):
+	if form.getvalue('headers_res'):
 		headers_res = form.getlist('headers_res')
 		headers_method = form.getlist('headers_method')
 		header_name = form.getlist('header_name')

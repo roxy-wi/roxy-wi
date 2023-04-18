@@ -1924,7 +1924,7 @@ var name_word = $('#translate').attr('data-name');
 var acl_option = '<p id="new_acl_p" style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">\n' +
 		'<b class="padding10">'+if_word+'</b>\n' +
 		'<select name="acl_if">\n' +
-		'\t<option selected>Choose if</option>\n' +
+		'\t<option selected>Select if</option>\n' +
 		'\t<option value="1">Host name starts with</option>\n' +
 		'\t<option value="2">Host name ends with</option>\n' +
 		'\t<option value="3">Path starts with</option>\n' +
@@ -1935,7 +1935,7 @@ var acl_option = '<p id="new_acl_p" style="border-bottom: 1px solid #ddd; paddin
 		'<input type="text" name="acl_value" class="form-control">\n' +
 		'<b class="padding10">'+then_word+'</b>\n' +
 		'<select name="acl_then">\n' +
-		'\t<option selected>Choose then</option>\n' +
+		'\t<option selected>Select then</option>\n' +
 		'\t<option value="5">Use backend</option>\n' +
 		'\t<option value="2">Redirect to</option>\n' +
 		'\t<option value="3">Allow</option>\n' +

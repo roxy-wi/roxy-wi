@@ -18,8 +18,6 @@
 'sudden-death':'sudden-death'} %}
 {% set header_res = {'http-response': 'response', 'http-request': 'request'} %}
 {% set header_params = {'add-header': 'add-header', 'set-header': 'set-header', 'del-header': 'del-header'} %}
-
-{% set if_values = dict() %}
 {% set if_values = {'1':'Host name starts with','2':'Host name ends with','3':'Path starts with','4':'Path ends with', '6': 'Src ip'} %}
 
 <script src="/inc/add.js"></script>
@@ -128,7 +126,7 @@
 						<span title="{{lang.words.add|title()}} {{lang.words.headers}}" id="add_listener_header" class="link add-server"></span>
 						<div id="listener_header_div" style="display: none;">
 							<p style="border-bottom: 1px solid #ddd; padding-bottom: 10px;" id="listener_header_p">
-								{{ select('listener_header_res_method', name='headers_res', values=header_res, selected='response', class='force_close') }}
+								{{ select('listener_header_res_method', name='headers_res', values=header_res, first='------', class='force_close') }}
 								{{ select('listener_header_method', name='headers_method', values=header_params, selected='add-header', class='force_close') }}
 								<b class="padding10">{{lang.words.name}}</b>
 								{{ input('listener_header_name', name="header_name") }}
@@ -149,13 +147,13 @@
 						<div id="listener_acl" style="display: none;">
 							<p style="border-bottom: 1px solid #ddd; padding-bottom: 10px;" id="listener_acl_rule">
 								<b class="padding10">{{lang.words.if|title()}}</b>
-								{{ select('listener_acl_if', name='acl_if', values=if_values, first='Choose if', class='force_close', disabled=false) }}
+								{{ select('listener_acl_if', name='acl_if', values=if_values, first='Select if', class='force_close', disabled=false) }}
 								<b class="padding10">{{lang.words.value}}</b>
 								{{ input('listener_acl_value', name="acl_value") }}
 								<b class="padding10">{{lang.words.then}}</b>
 								{% set values = dict() %}
 								{% set values = {'2':'Redirect to','3':'Allow','4':'Deny', '6': 'Return', '7': 'Set-header'} %}
-								{{ select('listener_acl_then', name='acl_then', values=values, first='Choose action', class='force_close', disabled=false) }}
+								{{ select('listener_acl_then', name='acl_then', values=values, first='Select then', class='force_close', disabled=false) }}
 								<b class="padding10">{{lang.words.value}}</b>
 								{{ input('listener_acl_then_value', name='acl_then_value', title="Required if \'then\' is \'Use backend\' or \'Redirect\', \'Return\', or \'Set-header\'") }}
 								<span class="minus minus-style" onclick="deleteId('listener_acl_rule')" title="{{lang.words.delete|title()}} {{lang.words.this}} ACL"></span>
@@ -376,7 +374,7 @@
 					<span title="{{lang.words.add|title()}} {{lang.words.headers}}" id="add_frontend_header" class="link add-server"></span>
 					<div id="frontend_header_div" style="display: none;">
 						<p style="border-bottom: 1px solid #ddd; padding-bottom: 10px;" id="frontend_header_p">
-							{{ select('frontend_header_res_method', name='headers_res', values=header_res, selected='response', class='force_close') }}
+							{{ select('frontend_header_res_method', name='headers_res', values=header_res, first='------', class='force_close') }}
 							{{ select('frontend_header_method', name='headers_method', values=header_params, selected='add-header', class='force_close') }}
 							<b class="padding10">{{lang.words.name}}</b>
 							{{ input('frontend_header_name', name="header_name") }}
@@ -393,24 +391,24 @@
 			<tr class="advance">
 				<td class="addName" title="Access control list">ACL: </td>
 				<td class="addOption">
-					<span title="Add ACL" id="add_frontend_acl" class="link add-server"></span>
+					<span title="{{lang.words.add|title()}} ACL" id="add_frontend_acl" class="link add-server"></span>
 					<div id="frontend_acl" style="display: none;">
 						<p id="frontend_acl_rule" style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">
 							<b class="padding10">if</b>
-							{{ select('frontend_acl_if', name='acl_if', values=if_values, first='Choose if', class='force_close', disabled=false) }}
+							{{ select('frontend_acl_if', name='acl_if', values=if_values, first='Select if', class='force_close', disabled=false) }}
 							<b class="padding10">value</b>
 							{{ input('frontend_acl_value', name='acl_value') }}
 							<b class="padding10">then</b>
 							{% set values = dict() %}
 							{% set values = {'5':'Use backend','2':'Redirect to','3':'Allow','4':'Deny', '6': 'Return', '7': 'Set-header'} %}
-							{{ select('frontend_acl_then', name='acl_then', values=values, first='Choose action', class='force_close', disabled=false) }}
+							{{ select('frontend_acl_then', name='acl_then', values=values, first='Select then', class='force_close', disabled=false) }}
 							<b class="padding10">value</b>
 							{{ input('frontend_acl_then_value', name='acl_then_value', title="Required if \'then\' is \'Use backend\' or \'Redirect\', \'Return\', or \'Set-header\'") }}
-							<span class="minus minus-style" onclick="deleteId('frontend_acl_rule')" title="Delete this rule"></span>
+							<span class="minus minus-style" onclick="deleteId('frontend_acl_rule')" title="{{lang.words.delete|title()}}"></span>
 						</p>
 					</div>
 					<span>
-						<a class="link add-server" id="frontend_add_acl" title="Add ACL" style="cursor: pointer; display: none;"></a>
+						<a class="link add-server" id="frontend_add_acl" title="{{lang.words.add|title()}} ACL" style="cursor: pointer; display: none;"></a>
 					</span>
 				</td>
 			</tr>
@@ -571,7 +569,7 @@
 					<span title="{{lang.words.add|title()}} {{lang.words.headers}}" id="add_backend_header" class="link add-server"></span>
 					<div id="backend_header_div" style="display: none;">
 						<p style="border-bottom: 1px solid #ddd; padding-bottom: 10px;" id="backend_header_p">
-							{{ select('backend_header_res_method', name='headers_res', values=header_res, selected='response', class='force_close') }}
+							{{ select('backend_header_res_method', name='headers_res', values=header_res, first='------', class='force_close') }}
 							{{ select('backend_header_method', name='headers_method', values=header_params, selected='add-header', class='force_close') }}
 							<b class="padding10">{{lang.words.name}}</b>
 							{{ input('backend_header_name', name="header_name") }}
@@ -588,24 +586,24 @@
 			<tr class="advance">
 				<td class="addName" title="Access control list">ACL: </td>
 				<td class="addOption">
-					<span title="Add ACL" id="add_backend_acl" class="link add-server"></span>
+					<span title="{{lang.words.add|title()}} ACL" id="add_backend_acl" class="link add-server"></span>
 					<div id="backend_acl" style="display: none;">
 						<p id="backend_acl_rule" style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">
 							<b class="padding10">if</b>
-							{{ select('backend_acl_if', name='acl_if', values=if_values, first='Choose if', class='force_close', disabled=false) }}
+							{{ select('backend_acl_if', name='acl_if', values=if_values, first='Select if', class='force_close', disabled=false) }}
 							<b class="padding10">value</b>
 							{{ input('backend_acl_value', name="acl_value") }}
 							<b class="padding10">then</b>
 							{% set values = dict() %}
 							{% set values = {'2':'Redirect to','3':'Allow','4':'Deny', '6': 'Return', '7': 'Set-header'} %}
-							{{ select('backend_acl_then', name='acl_then', values=values, first='Choose action', class='force_close', disabled=false) }}
+							{{ select('backend_acl_then', name='acl_then', values=values, first='Select then', class='force_close', disabled=false) }}
 							<b class="padding10">value</b>
 							{{ input('backend_acl_then_value', name='acl_then_value', title="Required if \'then\' is \'Use backend\', \'Redirect\', \'Return\', or \'Set-header\'") }}
 							<span class="minus minus-style" onclick="deleteId('backend_acl_rule')" title="{{lang.words.delete|title()}} {{lang.words.this}} {{lang.words.rule}}"></span>
 						</p>
 					</div>
 					<span>
-						<a class="link add-server" id="backend_add_acl" title="Add ACL" style="cursor: pointer; display: none;"></a>
+						<a class="link add-server" id="backend_add_acl" title="{{lang.words.add|title()}} ACL" style="cursor: pointer; display: none;"></a>
 					</span>
 				</td>
 			</tr>
