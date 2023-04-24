@@ -518,8 +518,8 @@ def select_server_by_name(name):
 def select_server_id_by_ip(server_ip):
 	try:
 		server_id = Server.get(Server.ip == server_ip).server_id
-	except Exception as e:
-		return out_error(e)
+	except Exception:
+		return None
 	else:
 		return server_id
 
