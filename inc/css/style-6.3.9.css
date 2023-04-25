@@ -1373,3 +1373,10 @@ label {
 	padding-top: 2px;
 	padding-left: 10px;
 }
+.portlet-header {
+	cursor: move;
+	display: block;
+	margin-left: 130px;
+    margin-top: -24px;
+    margin-right: -14px;
+}
