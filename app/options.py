@@ -780,8 +780,7 @@ if form.getvalue('updatehapwiserver') is not None:
     service = form.getvalue('service_name')
     sql.update_hapwi_server(hapwi_id, alert, metrics, active, service)
     server_ip = sql.select_server_ip_by_id(hapwi_id)
-    roxywi_common.logging(server_ip, f'The server {name} has been updated ', roxywi=1, login=1, keep_history=1,
-                  service=service)
+    roxywi_common.logging(server_ip, f'The server {name} has been updated ', roxywi=1, login=1, keep_history=1, service=service)
 
 if form.getvalue('updateserver') is not None:
     name = form.getvalue('updateserver')
@@ -1273,7 +1272,7 @@ if form.getvalue('awsinit') or form.getvalue('doinit') or form.getvalue('gcorein
         print('error: ' + stderr)
     else:
         if "Terraform initialized in an empty directory" in output[0]:
-            print('error: There is not need modules')
+            print('error: There is not need module')
         elif "mkdir .terraform: permission denied" in output[0]:
             print('error: Cannot init. Check permission to folder')
 
@@ -1842,7 +1841,7 @@ if form.getvalue('gcoreeditworkspace'):
         ):
 
             try:
-                cmd = 'cd scripts/terraform/ && sudo terraform workspace select ' + workspace + '_' + group + '_gcore'
+                cmd = f'cd scripts/terraform/ && sudo terraform workspace select {workspace}_{group}_gcore'
                 output, stderr = server_mod.subprocess_execute(cmd)
             except Exception as e:
                 print('error: ' + str(e))
