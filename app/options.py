@@ -847,7 +847,10 @@ if form.getvalue('ssh_cert'):
     name = common.checkAjaxInput(form.getvalue('name'))
     key = form.getvalue('ssh_cert')
 
-    ssh_mod.upload_ssh_key(name, user_group, key)
+    try:
+        ssh_mod.upload_ssh_key(name, user_group, key)
+    except Exception as e:
+        print(e)
 
 if form.getvalue('new_receiver'):
     import modules.alerting.alerting as alerting

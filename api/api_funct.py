@@ -793,11 +793,12 @@ def upload_ssh_key():
 	groups = sql.select_groups(id=group_id)
 	for group in groups:
 		user_group = group.name
-	if ssh_mod.upload_ssh_key(name, user_group, key):
+	try:
+		ssh_mod.upload_ssh_key(f'{name}_{user_group}', user_group, key)
 		data = {'status': 'done'}
 		return dict(data)
-	else:
-		data = {'status': 'error: check all fields'}
+	except Exception as e:
+		data = {'status': f'{e}'}
 		return dict(data)
 
 
@@ -815,7 +816,7 @@ def create_server():
 	login, group_id, role_id = sql.get_username_groupid_from_api_token(token)
 
 	try:
-		if server_mod.create_server(hostname, ip, group_id, virt, 1, master_id, cred_id, port, desc, 0, 0, 0, 0, '1', role_id=role_id, token=token):
+		if server_mod.create_server(hostname, ip, group_id, virt, 1, master_id, cred_id, port, desc, 0, 0, 0, 0, role_id=role_id, token=token):
 			data = {'status': 'done'}
 			roxywi_common.logging(ip, f'A new server {hostname} has been created', roxywi=1, keep_history=1, service='server')
 			return dict(data)

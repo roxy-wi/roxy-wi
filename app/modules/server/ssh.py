@@ -92,18 +92,15 @@ def create_ssh_cread_api(name: str, enable: str, group: str, username: str, pass
 
 def upload_ssh_key(name: str, user_group: str, key: str) -> bool:
 	if '..' in name:
-		print('error: nice try')
-		return False
+		raise Exception('error: nice try')
 
 	if name == '':
-		print('error: please select credentials first')
-		return False
+		raise Exception('error: please select credentials first')
 
 	try:
 		key = paramiko.pkey.load_private_key(key)
 	except Exception as e:
-		print(f'error: Cannot save SSH key file: {e}')
-		return False
+		raise Exception(f'error: Cannot save SSH key file: {e}')
 
 	lib_path = get_config.get_config_var('main', 'lib_path')
 	full_dir = f'{lib_path}/keys/'
@@ -126,8 +123,7 @@ def upload_ssh_key(name: str, user_group: str, key: str) -> bool:
 	try:
 		key.write_private_key_file(ssh_keys)
 	except Exception as e:
-		print(f'error: Cannot save SSH key file: {e}')
-		return False
+		raise Exception(f'error: Cannot save SSH key file: {e}')
 	else:
 		print(f'success: SSH key has been saved into: {ssh_keys}')
 
@@ -135,10 +131,9 @@ def upload_ssh_key(name: str, user_group: str, key: str) -> bool:
 		os.chmod(ssh_keys, 0o600)
 	except IOError as e:
 		roxywi_common.logging('Roxy-WI server', e.args[0], roxywi=1)
-		return False
+		raise Exception(f'error: something went wrong: {e}')
 
 	roxywi_common.logging("Roxy-WI server", f"A new SSH cert has been uploaded {ssh_keys}", roxywi=1, login=1)
-	return True
 
 
 def update_ssh_key() -> None:
