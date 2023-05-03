@@ -42,14 +42,15 @@
             <td class="addOption">
                 {% if set.param in ('ldap_password', 'stats_password', 'nginx_stats_password', 'apache_stats_password', 'rabbitmq_password', 'mail_smtp_password') %}
                     {% if set.value is none %}
-                        {{ input(set.param, size='25', type='password') }}
+                        {{ input(set.param, size='25', type='password', style='width: 210px;') }}
                     {% else %}
-                        {{ input(set.param, size='25', type='password', placeholder='******') }}
+                        {{ input(set.param, size='25', type='password', style='width: 210px;', placeholder='******') }}
                     {% endif %}
                 {% elif set.param in ('nginx_stats_port', 'session_ttl', 'token_ttl', 'stats_port', 'haproxy_sock_port',
                     'ldap_port', 'log_time_storage', 'smon_check_interval', 'checker_check_interval', 'port_scan_interval',
                     'smon_keep_history_range', 'checker_keep_history_range', 'portscanner_keep_history_range',
-                    'checker_maxconn_threshold', 'apache_stats_port', 'mail_smtp_port', 'rabbitmq_port') %}
+                    'checker_maxconn_threshold', 'apache_stats_port', 'mail_smtp_port', 'rabbitmq_port', 'smon_ssl_expire_warning_alert',
+                    'smon_ssl_expire_critical_alert', 'action_keep_history_range') %}
                     {{ input(set.param, value=set.value, style='width: 210px;', type='number') }}
                 {% elif set.param == 'time_zone' %}
                     <select name="{{set.param}}" id="{{set.param}}" style="width: 215px;">
@@ -69,9 +70,9 @@
                     {% endif %}
                 {% else %}
                     {% if set.value is none %}
-                        {{ input(set.param, size='25') }}
+                        {{ input(set.param, size='25', style='width: 210px;') }}
                     {% else %}
-                        {{ input(set.param, value=set.value, size='25') }}
+                        {{ input(set.param, value=set.value, size='25', style='width: 210px;') }}
                     {% endif %}
                 {% endif %}
             </td>

@@ -7,21 +7,34 @@
 	{% include 'include/no_sub.html' %}
 {% else %}
 <link href="/inc/css/table-6.3.9.css" rel="stylesheet" type="text/css">
+<link href="/inc/dataTables/buttons.dataTables.min.css" rel="stylesheet" type="text/css">
 <script type="text/javascript" charset="utf8" src="/inc/dataTables.min.js"></script>
+<script type="text/javascript" charset="utf8" src="/inc/dataTables/dataTables.buttons.min.js"></script>
+<script type="text/javascript" charset="utf8" src="/inc/dataTables/jszip.min.js"></script>
+<script type="text/javascript" charset="utf8" src="/inc/dataTables/pdfmake.min.js"></script>
+<script type="text/javascript" charset="utf8" src="/inc/dataTables/vfs_fonts.js"></script>
+<script type="text/javascript" charset="utf8" src="/inc/dataTables/buttons.html5.min.js"></script>
 <script>
     $(document).ready(function() {
         $('#table_history').on('page.dt')
             .DataTable( {
+                dom: 'Blfrtip',
+                colReorder: true,
                 "pageLength": 25,
                 "order": [ 4, "desc" ],
                 stateSave: true,
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
                 "columnDefs": [
                     {
                         "searchable": false,
                         "orderable": false
                     }
                 ],
-                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
+                buttons: [
+                    'excelHtml5',
+                    'csvHtml5',
+                    'pdfHtml5'
+                ],
             } );
     } );
 </script>

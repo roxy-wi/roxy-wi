@@ -27,16 +27,10 @@ serv = common.is_ip_or_dns(form.getvalue('serv'))
 act = form.getvalue("act")
 token = form.getvalue("token")
 
-if (
-        form.getvalue('new_metrics')
-        or form.getvalue('new_http_metrics')
-        or form.getvalue('new_waf_metrics')
-        or form.getvalue('new_nginx_metrics')
-        or form.getvalue('new_apache_metrics')
-        or form.getvalue('metrics_hapwi_ram')
-        or form.getvalue('metrics_hapwi_cpu')
-        or form.getvalue('getoption')
-        or form.getvalue('getsavedserver')
+if any((
+        form.getvalue('new_metrics'), form.getvalue('new_http_metrics'), form.getvalue('new_waf_metrics'), form.getvalue('new_nginx_metrics'),
+        form.getvalue('new_apache_metrics'), form.getvalue('metrics_hapwi_ram'), form.getvalue('metrics_hapwi_cpu'), form.getvalue('getoption'),
+        form.getvalue('getsavedserver'))
 ):
     print('Content-type: application/json\n')
 else:
@@ -500,8 +494,7 @@ if form.getvalue('git_backup'):
                 print(template)
                 print('success: Git job has been created')
                 roxywi_common.logging(
-                    server_ip, ' A new git job has been created', roxywi=1, login=1,
-                    keep_history=1, service=service_name
+                    server_ip, ' A new git job has been created', roxywi=1, login=1, keep_history=1, service=service_name
                 )
         else:
             if sql.delete_git(form.getvalue('git_backup')):
@@ -801,8 +794,7 @@ if form.getvalue('updateserver') is not None:
         sql.update_server(name, group, typeip, enable, master, serv_id, cred, port, desc, firewall, protected)
         roxywi_common.logging(f'the server {name}', ' has been updated ', roxywi=1, login=1)
         server_ip = sql.select_server_ip_by_id(serv_id)
-        roxywi_common.logging(server_ip, f'The server {name} has been update', roxywi=1, login=1,
-                      keep_history=1, service='server')
+        roxywi_common.logging(server_ip, f'The server {name} has been update', roxywi=1, login=1, keep_history=1, service='server')
 
 if form.getvalue('serverdel') is not None:
     server_id = common.checkAjaxInput(form.getvalue('serverdel'))
@@ -893,8 +885,7 @@ if form.getvalue('updatesettings') is not None:
     val = common.checkAjaxInput(form.getvalue('val'))
     user_group = roxywi_common.get_user_group(id=1)
     if sql.update_setting(settings, val, user_group):
-        roxywi_common.logging('Roxy-WI server', f'The {settings} setting has been changed to: {val}', roxywi=1,
-                      login=1)
+        roxywi_common.logging('Roxy-WI server', f'The {settings} setting has been changed to: {val}', roxywi=1, login=1)
         print("Ok")
 
 if form.getvalue('getuserservices'):
@@ -932,102 +923,24 @@ if form.getvalue('getcurrentusergroup') is not None:
     roxy_user.get_user_active_group(user_id, group)
 
 if form.getvalue('newsmon') is not None:
-    user_group = roxywi_common.get_user_group(id=1)
-    server = common.checkAjaxInput(form.getvalue('newsmon'))
-    port = common.checkAjaxInput(form.getvalue('newsmonport'))
-    enable = common.checkAjaxInput(form.getvalue('newsmonenable'))
-    http = common.checkAjaxInput(form.getvalue('newsmonproto'))
-    uri = common.checkAjaxInput(form.getvalue('newsmonuri'))
-    body = common.checkAjaxInput(form.getvalue('newsmonbody'))
-    group = common.checkAjaxInput(form.getvalue('newsmongroup'))
-    desc = common.checkAjaxInput(form.getvalue('newsmondescription'))
-    telegram = common.checkAjaxInput(form.getvalue('newsmontelegram'))
-    slack = common.checkAjaxInput(form.getvalue('newsmonslack'))
+    import modules.tools.smon as smon_mod
 
-    try:
-        port = int(port)
-    except Exception:
-        print('SMON error: port must number')
-        sys.exit()
-    if port > 65535 or port < 0:
-        print('SMON error: port must be 0-65535')
-        sys.exit()
-    if port == 80 and http == 'https':
-        print('SMON error: Cannot be HTTPS with 80 port')
-        sys.exit()
-    if port == 443 and http == 'http':
-        print('SMON error: Cannot be HTTP with 443 port')
-        sys.exit()
-
-    last_id = sql.insert_smon(server, port, enable, http, uri, body, group, desc, telegram, slack, user_group)
-    if last_id:
-        lang = roxywi_common.get_user_lang()
-        env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
-        template = env.get_template('ajax/show_new_smon.html')
-        template = template.render(
-            smon=sql.select_smon_by_id(last_id),
-            telegrams=sql.get_user_telegram_by_group(user_group),
-            slacks=sql.get_user_slack_by_group(user_group),
-            lang=lang
-        )
-        print(template)
-        roxywi_common.logging('SMON', f' Has been add a new server {server} to SMON ', roxywi=1, login=1)
+    smon_mod.create_smon()
 
 if form.getvalue('smondel') is not None:
-    user_group = roxywi_common.get_user_group(id=1)
-    smon_id = common.checkAjaxInput(form.getvalue('smondel'))
+    import modules.tools.smon as smon_mod
 
-    if roxywi_common.check_user_group():
-        try:
-            if sql.delete_smon(smon_id, user_group):
-                print('Ok')
-                roxywi_common.logging('SMON', ' Has been delete server from SMON ', roxywi=1, login=1)
-        except Exception as e:
-            print(e)
+    smon_mod.delete_smon()
 
 if form.getvalue('showsmon') is not None:
-    user_group = roxywi_common.get_user_group(id=1)
-    lang = roxywi_common.get_user_lang()
-    sort = common.checkAjaxInput(form.getvalue('sort'))
-    env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
-    template = env.get_template('ajax/smon_dashboard.html')
-    template = template.render(smon=sql.smon_list(user_group), sort=sort, lang=lang, update=1)
-    print(template)
+    import modules.tools.smon as smon_mod
+
+    smon_mod.show_smon()
 
 if form.getvalue('updateSmonIp') is not None:
-    smon_id = common.checkAjaxInput(form.getvalue('id'))
-    ip = common.checkAjaxInput(form.getvalue('updateSmonIp'))
-    port = common.checkAjaxInput(form.getvalue('updateSmonPort'))
-    en = common.checkAjaxInput(form.getvalue('updateSmonEn'))
-    http = common.checkAjaxInput(form.getvalue('updateSmonHttp'))
-    body = common.checkAjaxInput(form.getvalue('updateSmonBody'))
-    telegram = common.checkAjaxInput(form.getvalue('updateSmonTelegram'))
-    slack = common.checkAjaxInput(form.getvalue('updateSmonSlack'))
-    group = common.checkAjaxInput(form.getvalue('updateSmonGroup'))
-    desc = common.checkAjaxInput(form.getvalue('updateSmonDesc'))
+    import modules.tools.smon as smon_mod
 
-    try:
-        port = int(port)
-    except Exception:
-        print('SMON error: port must number')
-        sys.exit()
-    if port > 65535 or port < 0:
-        print('SMON error: port must be 0-65535')
-        sys.exit()
-    if port == 80 and http == 'https':
-        print('SMON error: Cannot be https with 80 port')
-        sys.exit()
-    if port == 443 and http == 'http':
-        print('SMON error: Cannot be HTTP with 443 port')
-        sys.exit()
-
-    roxywi_common.check_user_group()
-    try:
-        if sql.update_smon(smon_id, ip, port, body, telegram, slack, group, desc, en):
-            print("Ok")
-            roxywi_common.logging('SMON', f' Has been update the server {ip} to SMON ', roxywi=1, login=1)
-    except Exception as e:
-        print(e)
+    smon_mod.update_smon()
 
 if form.getvalue('showBytes') is not None:
     import modules.roxywi.overview as roxywi_overview
@@ -1079,7 +992,7 @@ if form.getvalue('uploadovpn'):
             conf.write(form.getvalue('uploadovpn'))
     except IOError as e:
         print(str(e))
-        print('error: Can\'t save ovpn file')
+        print('error: Cannot save ovpn file')
     else:
         print('success: ovpn file has been saved </div>')
 
@@ -1095,7 +1008,7 @@ if form.getvalue('uploadovpn'):
     except IOError as e:
         roxywi_common.logging('Roxy-WI server', e.args[0], roxywi=1)
 
-    roxywi_common.logging("Roxy-WI server", " has been uploaded a new ovpn file %s" % ovpn_file, roxywi=1, login=1)
+    roxywi_common.logging("Roxy-WI server", f" has been uploaded a new ovpn file {ovpn_file}", roxywi=1, login=1)
 
 if form.getvalue('openvpndel') is not None:
     openvpndel = common.checkAjaxInput(form.getvalue('openvpndel'))
@@ -1114,15 +1027,18 @@ if form.getvalue('actionvpn') is not None:
     action = common.checkAjaxInput(form.getvalue('actionvpn'))
 
     if action == 'start':
-        cmd = 'sudo openvpn3 session-start --config /tmp/%s.ovpn' % openvpn
+        cmd = f'sudo openvpn3 session-start --config /tmp/{openvpn}.ovpn'
     elif action == 'restart':
-        cmd = 'sudo openvpn3 session-manage --config /tmp/%s.ovpn --restart' % openvpn
+        cmd = f'sudo openvpn3 session-manage --config /tmp/{openvpn}.ovpn --restart'
     elif action == 'disconnect':
-        cmd = 'sudo openvpn3 session-manage --config /tmp/%s.ovpn --disconnect' % openvpn
+        cmd = f'sudo openvpn3 session-manage --config /tmp/{openvpn}.ovpn --disconnect'
+    else:
+        print('error: wrong action')
+        sys.exit()
     try:
         server_mod.subprocess_execute(cmd)
-        print("success: The " + openvpn + " has been " + action + "ed")
-        roxywi_common.logging(openvpn, ' has ' + action + ' the ovpn session ', roxywi=1, login=1)
+        print(f"success: The {openvpn} has been {action}ed")
+        roxywi_common.logging(openvpn, f' The ovpn session has been {action}ed ', roxywi=1, login=1)
     except IOError as e:
         print(e.args[0])
         roxywi_common.logging('Roxy-WI server', e.args[0], roxywi=1)
@@ -1135,8 +1051,8 @@ if form.getvalue('scan_ports') is not None:
     for s in server:
         ip = s[2]
 
-    cmd = "sudo nmap -sS %s |grep -E '^[[:digit:]]'|sed 's/  */ /g'" % ip
-    cmd1 = "sudo nmap -sS %s |head -5|tail -2" % ip
+    cmd = f"sudo nmap -sS {ip} |grep -E '^[[:digit:]]'|sed 's/  */ /g'"
+    cmd1 = f"sudo nmap -sS {ip} |head -5|tail -2"
 
     stdout, stderr = server_mod.subprocess_execute(cmd)
     stdout1, stderr1 = server_mod.subprocess_execute(cmd1)
@@ -1158,7 +1074,6 @@ if form.getvalue('geoipserv') is not None:
     service = common.checkAjaxInput(form.getvalue('geoip_service'))
     if service in ('haproxy', 'nginx'):
         service_dir = common.return_nice_path(sql.get_setting(f'{service}_dir'))
-
         cmd = [f"ls {service_dir}geoip/"]
         print(server_mod.ssh_command(serv, cmd))
     else:
@@ -2223,10 +2138,10 @@ if act == 'showListOfVersion':
     for_delver = common.checkAjaxInput(form.getvalue('for_delver'))
     users = sql.select_users()
     service_desc = sql.select_service(service)
+    configs = sql.select_config_version(serv, service_desc.slug)
     lang = roxywi_common.get_user_lang()
 
     if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
-        configs = sql.select_config_version(serv, service_desc.slug)
         action = f'versions.py?service={service_desc.slug}'
 
         if service in ('haproxy', 'nginx', 'apache'):
@@ -2239,20 +2154,20 @@ if act == 'showListOfVersion':
         else:
             files = roxywi_common.get_files(configs_dir, 'conf')
 
-    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
-                      extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
-    template = env.get_template('ajax/show_list_version.html')
+        env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
+                          extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
+        template = env.get_template('ajax/show_list_version.html')
 
-    template = template.render(serv=serv,
-                               service=service,
-                               action=action,
-                               return_files=files,
-                               configver=configver,
-                               for_delver=for_delver,
-                               configs=configs,
-                               users=users,
-                               lang=lang)
-    print(template)
+        template = template.render(serv=serv,
+                                   service=service,
+                                   action=action,
+                                   return_files=files,
+                                   configver=configver,
+                                   for_delver=for_delver,
+                                   configs=configs,
+                                   users=users,
+                                   lang=lang)
+        print(template)
 
 if act == 'getSystemInfo':
     server_mod.show_system_info()

@@ -48,7 +48,7 @@ def get_setting(param, **kwargs):
 					'ldap_port', 'ldap_enable', 'log_time_storage', 'syslog_server_enable', 'smon_check_interval',
 					'checker_check_interval', 'port_scan_interval', 'smon_keep_history_range', 'checker_keep_history_range',
 					'portscanner_keep_history_range', 'checker_maxconn_threshold', 'apache_stats_port', 'smon_ssl_expire_warning_alert',
-					'smon_ssl_expire_critical_alert'
+					'smon_ssl_expire_critical_alert', 'action_keep_history_range'
 				):
 					return int(setting.value)
 				else:
@@ -2474,7 +2474,7 @@ def check_token_exists(token):
 		return False
 
 
-def insert_smon(server, port, enable, proto, uri, body, group, desc, telegram, slack, user_group):
+def insert_smon(server, port, enable, proto, uri, body, group, desc, telegram, slack, pd, user_group):
 	try:
 		http = proto + ':' + uri
 	except Exception:
@@ -2483,7 +2483,7 @@ def insert_smon(server, port, enable, proto, uri, body, group, desc, telegram, s
 	try:
 		last_id = SMON.insert(
 			ip=server, port=port, en=enable, desc=desc, group=group, http=http, body=body,
-			telegram_channel_id=telegram, slack_channel_id=slack, user_group=user_group, status='3'
+			telegram_channel_id=telegram, slack_channel_id=slack, pd_channel_id=pd, user_group=user_group, status='3'
 		).execute()
 	except Exception as e:
 		out_error(e)
@@ -2508,11 +2508,11 @@ def select_smon(user_group, **kwargs):
 			http = kwargs.get('proto') + ':' + kwargs.get('uri')
 		except Exception:
 			http = ''
-		sql = """select id, ip, port, en, http, body, telegram_channel_id, `desc`, `group`, user_group, slack_channel_id from smon
+		sql = """select id, ip, port, en, http, body, telegram_channel_id, `desc`, `group`, user_group, slack_channel_id, pd_channel_id from smon
 		where ip='%s' and port='%s' and http='%s' and body='%s' %s
 		""" % (kwargs.get('ip'), kwargs.get('port'), http, body, user_group)
 	elif kwargs.get('action') == 'add':
-		sql = """select id, ip, port, en, http, body, telegram_channel_id, `desc`, `group`, user_group, slack_channel_id from smon
+		sql = """select id, ip, port, en, http, body, telegram_channel_id, `desc`, `group`, user_group, slack_channel_id, pd_channel_id from smon
 		%s order by `group`""" % user_group
 	else:
 		sql = """select * from `smon` %s """ % user_group
@@ -2527,7 +2527,7 @@ def select_smon(user_group, **kwargs):
 
 def select_smon_by_id(last_id):
 	cursor = conn.cursor()
-	sql = """select id, ip, port, en, http, body, telegram_channel_id, `desc`, `group`, user_group, slack_channel_id
+	sql = """select id, ip, port, en, http, body, telegram_channel_id, `desc`, `group`, user_group, slack_channel_id, pd_channel_id
 	from `smon` where id = {} """.format(last_id)
 
 	try:
@@ -2549,9 +2549,9 @@ def delete_smon(smon_id, user_group):
 		return True
 
 
-def update_smon(smon_id, ip, port, body, telegram, slack, group, desc, en):
+def update_smon(smon_id, ip, port, body, telegram, slack, pd, group, desc, en):
 	query = (SMON.update(
-		ip=ip, port=port, body=body, telegram_channel_id=telegram, slack_channel_id=slack, group=group, desc=desc, en=en
+		ip=ip, port=port, body=body, telegram_channel_id=telegram, slack_channel_id=slack, pd_channel_id=pd, group=group, desc=desc, en=en
 	).where(SMON.id == smon_id))
 	try:
 		query.execute()
@@ -3477,6 +3477,16 @@ def delete_action_history(server_id: int):
 		return False
 	else:
 		return True
+
+
+def delete_action_history_for_period():
+	time_period = get_setting('action_keep_history_range')
+	cur_date = get_date.return_date('regular', timedelta_minus=time_period)
+	query = ActionHistory.delete().where(ActionHistory.date < cur_date)
+	try:
+		query.execute()
+	except Exception as e:
+		out_error(e)
 
 
 def select_action_history_by_server_id(server_id: int):

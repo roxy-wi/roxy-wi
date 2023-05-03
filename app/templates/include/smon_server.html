@@ -62,6 +62,18 @@
         </select>
     </td>
     <td>
+        <select id="smon-pd-{{s.0}}">
+            <option value="0">{{lang.words.disabled|title()}}</option>
+            {% for t in pds %}
+                {% if s.11|int() == t.id|int() %}
+                    <option value="{{t.id}}" selected>{{t.chanel_name}}</option>
+                {% else %}
+                    <option value="{{t.id}}">{{t.chanel_name}}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+    </td>
+    <td>
         {% set id = 'smon-group-' + s.0|string() %}
         {% if s.8 is not none %}
             {{ input(id, value=s.8, size='15') }}
@@ -87,10 +99,13 @@
 <script>
     $( function() {
         $("#smon-telegram-{{s.0}}" ).selectmenu({
-            width: 170
+            width: 160
         });
         $("#smon-slack-{{s.0}}" ).selectmenu({
-            width: 170
+            width: 160
+        });
+        $("#smon-pd-{{s.0}}" ).selectmenu({
+            width: 160
         });
         $("#smon-proto-{{s.0}}" ).selectmenu({
             width: 78

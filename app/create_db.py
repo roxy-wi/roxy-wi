@@ -65,6 +65,7 @@ def default_values():
 		{'param': 'portscanner_keep_history_range', 'value': '14', 'section': 'monitoring', 'desc': 'Retention period for Port scanner history', 'group': '1'},
 		{'param': 'smon_keep_history_range', 'value': '14', 'section': 'monitoring', 'desc': 'Retention period for SMON history', 'group': '1'},
 		{'param': 'checker_keep_history_range', 'value': '14', 'section': 'monitoring', 'desc': 'Retention period for Checker history', 'group': '1'},
+		{'param': 'action_keep_history_range', 'value': '30', 'section': 'monitoring', 'desc': 'Retention period for Action history', 'group': '1'},
 		{'param': 'checker_maxconn_threshold', 'value': '90', 'section': 'monitoring', 'desc': 'Threshold value for alerting, in %', 'group': '1'},
 		{'param': 'checker_check_interval', 'value': '1', 'section': 'monitoring', 'desc': 'Check interval for Checker (in minutes)', 'group': '1'},
 		{'param': 'smon_ssl_expire_warning_alert', 'value': '14', 'section': 'monitoring', 'desc': 'Warning alert about a SSL certificate expiration (in days)', 'group': '1'},
@@ -811,9 +812,25 @@ def update_db_v_6_3_9():
 		print("Updating... DB has been updated to version 6.3.9")
 
 
+def update_db_v_6_3_11():
+	cursor = conn.cursor()
+	sql = """
+	ALTER TABLE `smon` ADD COLUMN pd_channel_id integer default 0;
+	"""
+	try:
+		cursor.execute(sql)
+	except Exception as e:
+		if e.args[0] == 'duplicate column name: pd_channel_id' or str(e) == '(1060, "Duplicate column name \'pd_channel_id\'")':
+			print('Updating... DB has been updated to version 6.3.11')
+		else:
+			print("An error occurred:", e)
+	else:
+		print("Updating... DB has been updated to version 6.3.11")
+
+
 def update_ver():
 	try:
-		Version.update(version='6.3.10.0').execute()
+		Version.update(version='6.3.11.0').execute()
 	except Exception:
 		print('Cannot update version')
 
@@ -842,6 +859,7 @@ def update_all():
 	update_db_v_6_3_6()
 	update_db_v_6_3_8()
 	update_db_v_6_3_9()
+	update_db_v_6_3_11()
 	update_ver()
 
 

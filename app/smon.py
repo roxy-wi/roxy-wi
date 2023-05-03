@@ -27,13 +27,18 @@ action = form.getvalue('action')
 sort = form.getvalue('sort')
 autorefresh = 0
 lang = user_params['lang']
-
+telegrams = ''
+slacks = ''
+pds = ''
 user_group = roxywi_common.get_user_group(id=1)
 cmd = "systemctl is-active roxy-wi-smon"
 smon_status, stderr = server_mod.subprocess_execute(cmd)
 
 
 if action == 'add':
+	telegrams = sql.get_user_telegram_by_group(user_group)
+	slacks = sql.get_user_slack_by_group(user_group)
+	pds = sql.get_user_pd_by_group(user_group)
 	smon = sql.select_smon(user_group, action='add')
 	roxywi_auth.page_for_admin(level=3)
 	if lang == 'ru':
@@ -80,8 +85,8 @@ except Exception as e:
 
 rendered_template = template.render(
 	h2=1, title=title, autorefresh=autorefresh, role=user_params['role'], user=user_params['user'], group=user_group,
-	telegrams=sql.get_user_telegram_by_group(user_group), slacks=sql.get_user_slack_by_group(user_group), lang=lang,
-	smon=smon, smon_status=smon_status, smon_error=stderr, action=action, sort=sort, user_services=user_params['user_services'],
-	user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'], token=user_params['token']
+	telegrams=telegrams, slacks=slacks, pds=pds, lang=lang, smon=smon, smon_status=smon_status, smon_error=stderr,
+	action=action, sort=sort, user_services=user_params['user_services'], user_status=user_subscription['user_status'],
+	user_plan=user_subscription['user_plan'], token=user_params['token']
 )
 print(rendered_template)

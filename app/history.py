@@ -40,6 +40,11 @@ except Exception as e:
 	user_subscription = roxywi_common.return_unsubscribed_user_status()
 	roxywi_common.logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
 
+try:
+	sql.delete_action_history_for_period()
+except Exception as e:
+	print(e)
+
 rendered_template = template.render(
 	h2=1, autorefresh=0, role=user_params['role'], user=user_params['user'], users=users, serv=serv,
 	service=service, history=history, user_services=user_params['user_services'], token=user_params['token'],

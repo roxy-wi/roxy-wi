@@ -431,6 +431,7 @@ class SMON(BaseModel):
     ssl_expire_warning_alert = IntegerField(constraints=[SQL('DEFAULT 0')])
     ssl_expire_critical_alert = IntegerField(constraints=[SQL('DEFAULT 0')])
     ssl_expire_date = CharField(null=True)
+    pd_channel_id = IntegerField(null=True)
 
     class Meta:
         table_name = 'smon'
