@@ -65,7 +65,7 @@ def create_server() -> None:
     output, stderr = server_mod.subprocess_execute(cmd)
 
     if stderr != '':
-        prov_common.show_error(stderr, group, workspace, provider)
+        prov_common.show_error(stderr, group, workspace, provider_id)
     else:
         if cloud == 'aws':
             cmd = 'cd scripts/terraform/ && sudo terraform state show module.aws_module.aws_eip.floating_ip[0]|grep -Eo "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}"'

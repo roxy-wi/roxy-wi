@@ -819,7 +819,7 @@ def update_db_v_6_3_11():
 def update_db_v_6_3_12():
 	try:
 		ProvisionParam.delete().where(
-			(ProvisionParam.provider == 'gcore') *
+			(ProvisionParam.provider == 'gcore') &
 			(ProvisionParam.optgroup == 'Russia and CIS')
 		).execute()
 	except Exception as e:

@@ -54,7 +54,6 @@ def edit_workspace() -> None:
     workspace = form.getvalue('doeditworkspace')
     group = form.getvalue('do_edit_group')
     provider = form.getvalue('do_edit_provider')
-    region = form.getvalue('do_edit_regions')
     size = form.getvalue('do_edit_size')
     oss = form.getvalue('do_edit_oss')
     ssh_name = form.getvalue('do_edit_ssh_name')
