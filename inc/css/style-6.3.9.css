@@ -1375,8 +1375,8 @@ label {
 }
 .portlet-header {
 	cursor: move;
-	display: block;
-	margin-left: 130px;
-    margin-top: -24px;
-    margin-right: -14px;
+	margin-right: -10px;
+    margin-left: 10px;
+    position: relative;
+    bottom: 3px;
 }

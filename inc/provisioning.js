@@ -474,10 +474,13 @@ function awsProvisiningServer() {
     $.ajax( {
 	    url: "options.py",
         data: {
-	        awsprovisining: $('#aws_create_server_name').val(),
-            aws_create_group: $('#aws_create_group').val(),
-            aws_create_provider: $('#aws_create_provider').val(),
-		    token: $('#token').val()
+			awsprovisining: 1,
+			provisioning_workspace: $('#aws_create_server_name').val(),
+			provisioning_group: $('#aws_create_group').val(),
+			provider_id: $('#aws_create_provider').val(),
+			provisioning_action: 'created',
+			provisioning_cloud: 'aws',
+			token: $('#token').val()
 		},
 		type: "POST",
 		success: function( data ) {
@@ -649,10 +652,13 @@ function awsEditProvisiningServer(server_id, dialog_id) {
     $.ajax( {
 	    url: "options.py",
         data: {
-	        awseditingprovisining: $('#aws_edit_server_name').text(),
-            aws_edit_group: $('#aws_edit_group').val(),
-            aws_edit_provider: $('#aws_edit_id_provider option:selected').val(),
-		    token: $('#token').val()
+			awseditingprovisining: 1,
+			provisioning_workspace: $('#aws_edit_server_name').text(),
+			provisioning_group: $('#aws_edit_group').val(),
+			provisioning_provider_id: $('#aws_edit_id_provider option:selected').val(),
+			provisioning_action: 'modified',
+			provisioning_cloud: 'aws',
+			token: $('#token').val()
 		},
 		type: "POST",
 		success: function( data ) {
@@ -724,8 +730,9 @@ function editAwsServer(id) {
     $.ajax( {
 		url: "options.py",
 		data: {
-			editAwsServer: id,
-            editAwsGroup: $('#server-group-'+id).text(),
+			editServerId: id,
+			editProviderName: 'aws',
+            editGroup: $('#server-group-'+id).text(),
 			token: $('#token').val()
 		},
 		type: "POST",
@@ -766,8 +773,9 @@ function editGcoreServer(id) {
     $.ajax( {
 		url: "options.py",
 		data: {
-			editGcoreServer: id,
-            editGcoreGroup: $('#server-group-'+id).text(),
+			editServerId: id,
+			editProviderName: 'gcore',
+			editGroup: $('#server-group-' + id).text(),
 			token: $('#token').val()
 		},
 		type: "POST",
@@ -808,8 +816,9 @@ function editDoServer(id) {
     $.ajax( {
 		url: "options.py",
 		data: {
-			editDoServer: id,
-            editDoGroup: $('#server-group-'+id).text(),
+			editServerId: id,
+			editProviderName: 'do',
+			editGroup: $('#server-group-' + id).text(),
 			token: $('#token').val()
 		},
 		type: "POST",
@@ -901,14 +910,14 @@ function add_button_after_server_edited(server_id) {
 function add_gcore_button_after_server_edited(server_id) {
     var buttons = editingServer.dialog("option", "buttons");
     $.extend(buttons, { Back: function() {
-            $( this ).dialog( "close" );
-            editGcoreServer(server_id)
-            cleanProvisioningProccess('#server_editing ul li', '#edited-mess');
-            $('#wait-mess').show();
-            $('#edited-mess').html('');
-            $('#edited-mess').hide();
-            hideProvisioningError('#editing-error');
-        } });
+			$(this).dialog("close");
+			editGcoreServer(server_id)
+			cleanProvisioningProccess('#server_editing ul li', '#edited-mess');
+			$('#wait-mess').show();
+			$('#edited-mess').html('');
+			$('#edited-mess').hide();
+			hideProvisioningError('#editing-error');
+		} });
     editingServer.dialog("option", "buttons", buttons);
 }
 function add_do_button_after_server_edited(server_id) {
@@ -1003,9 +1012,10 @@ function addDoProvider(dialog_id) {
 		$.ajax( {
 			url: "options.py",
 			data: {
-			    do_new_name: $('#do_new_name').val(),
-			    do_new_group: $('#do_new_group').val(),
-			    do_new_token: $('#do_new_token').val(),
+			    new_provider_name: $('#do_new_name').val(),
+			    new_provider_group: $('#do_new_group').val(),
+			    new_provider_token: $('#do_new_token').val(),
+				new_provider_cloud: 'do',
 				token: $('#token').val()
 			},
 			type: "POST",
@@ -1035,10 +1045,11 @@ function addGcoreProvider(dialog_id) {
 		$.ajax( {
 			url: "options.py",
 			data: {
-			    gcore_new_name: $('#gcore_new_name').val(),
-			    gcore_new_group: $('#do_new_group').val(),
-			    gcore_new_user: $('#gcore_new_user').val(),
+			    new_provider_name: $('#gcore_new_name').val(),
+			    new_provider_group: $('#gcore_new_group').val(),
+			    new_provider_token: $('#gcore_new_user').val(),
 			    gcore_new_pass: $('#gcore_new_pass').val(),
+				new_provider_cloud: 'gcore',
 				token: $('#token').val()
 			},
 			type: "POST",
@@ -1068,10 +1079,11 @@ function addAwsProvider(dialog_id) {
 		$.ajax( {
 			url: "options.py",
 			data: {
-			    aws_new_name: $('#aws_new_name').val(),
-			    aws_new_group: $('#aws_new_group').val(),
-			    aws_new_key: $('#aws_new_key').val(),
-			    aws_new_secret: $('#aws_new_secret').val(),
+				new_provider_name: $('#aws_new_name').val(),
+				new_provider_group: $('#aws_new_group').val(),
+				new_provider_token: $('#aws_new_key').val(),
+				aws_new_secret: $('#aws_new_secret').val(),
+				new_provider_cloud: 'aws',
 				token: $('#token').val()
 			},
 			type: "POST",
@@ -1160,11 +1172,12 @@ function doEditProviderSave() {
         $.ajax({
             url: "options.py",
             data: {
-                edit_do_provider: id,
-                edit_do_provider_name: new_name,
-                edit_do_provider_token: token,
-                token: $('#token').val()
-            },
+				edit_provider_id: id,
+				provider_name: 'do',
+				edit_do_provider_name: new_name,
+				edit_do_provider_token: token,
+				token: $('#token').val()
+			},
             type: "POST",
             success: function (data) {
                 data = data.replace(/\s+/g, ' ');
@@ -1221,12 +1234,13 @@ function gcoreEditProviderSave() {
         $.ajax({
             url: "options.py",
             data: {
-                edit_gcore_provider: id,
-                edit_gcore_provider_name: new_name,
-                edit_gcore_provider_user: username,
-                edit_gcore_provider_pass: pass,
-                token: $('#token').val()
-            },
+				edit_provider_id: id,
+				provider_name: 'gcore',
+				edit_gcore_provider_name: new_name,
+				edit_gcore_provider_user: username,
+				edit_gcore_provider_pass: pass,
+				token: $('#token').val()
+			},
             type: "POST",
             success: function (data) {
                 data = data.replace(/\s+/g, ' ');
@@ -1282,12 +1296,13 @@ function awsEditProviderSave() {
         $.ajax({
             url: "options.py",
             data: {
-                edit_aws_provider: id,
-                edit_aws_provider_name: new_name,
-                edit_aws_provider_key: key,
-                edit_aws_provider_secret: secret,
-                token: $('#token').val()
-            },
+				edit_provider_id: id,
+				provider_name: 'aws',
+				edit_aws_provider_name: new_name,
+				edit_aws_provider_key: key,
+				edit_aws_provider_secret: secret,
+				token: $('#token').val()
+			},
             type: "POST",
             success: function (data) {
                 data = data.replace(/\s+/g, ' ');
@@ -1419,9 +1434,9 @@ function doEditValidateServer(server_id) {
     $.ajax( {
 	    url: "options.py",
         data: {
-	        doeditvalidate: $('#do_edit_server_name').text(),
-            do_edit_group: $('#do_edit_group').val(),
-		    token: $('#token').val()
+			doeditvalidate: $('#do_edit_server_name').text(),
+			do_edit_group: $('#do_edit_group').val(),
+			token: $('#token').val()
 		},
 		type: "POST",
 		success: function( data ) {
@@ -1497,10 +1512,13 @@ function doEditProvisiningServer(server_id) {
     $.ajax( {
 	    url: "options.py",
         data: {
-	        doeditprovisining: $('#do_edit_server_name').text(),
-			do_edit_group: $('#do_edit_group').val(),
-			do_edit_provider: $('#do_edit_id_provider').val(),
-		    token: $('#token').val()
+			doeditprovisining: 1,
+			provisioning_workspace: $('#do_edit_server_name').text(),
+			provisioning_group: $('#do_edit_group').val(),
+			provisioning_provider_id: $('#do_edit_id_provider').val(),
+			provisioning_action: 'modified',
+			provisioning_cloud: 'do',
+			token: $('#token').val()
 		},
 		type: "POST",
 		success: function( data ) {
@@ -1651,10 +1669,13 @@ function doProvisiningServer() {
     $.ajax( {
 	    url: "options.py",
         data: {
-	        doprovisining: $('#do_create_server_name').val(),
-			do_create_group: $('#do_create_group').val(),
-			do_create_provider: $('#do_create_provider').val(),
-		    token: $('#token').val()
+			doprovisining: 1,
+			provisioning_workspace: $('#do_create_server_name').val(),
+			provisioning_group: $('#do_create_group').val(),
+			provisioning_provider_id: $('#do_create_provider').val(),
+			provisioning_action: 'created',
+			provisioning_cloud: 'do',
+			token: $('#token').val()
 		},
 		type: "POST",
 		success: function( data ) {
@@ -1804,10 +1825,13 @@ function gcoreProvisiningServer() {
     $.ajax( {
 	    url: "options.py",
         data: {
-	        gcoreprovisining: gcoreprovisining,
-            gcore_create_group: $('#gcore_create_group').val(),
-            gcore_create_provider: $('#gcore_create_provider').val(),
-		    token: $('#token').val()
+			gcoreprovisining: 1,
+			provisioning_workspace: gcoreprovisining,
+			provisioning_group: $('#gcore_create_group').val(),
+			provisioning_provider_id: $('#gcore_create_provider').val(),
+			provisioning_action: 'created',
+			provisioning_cloud: 'gcore',
+			token: $('#token').val()
 		},
 		type: "POST",
 		success: function( data ) {
@@ -1828,7 +1852,6 @@ function gcoreProvisiningServer() {
                 $('#sever-status-'+server_id).text('Created');
                 $('#sever-status-'+server_id).css('color', 'var(--green-color)');
                 $('#server-ip-'+server_id).text(data[0]);
-                // $('#server-name-'+server_id).text(gcoreprovisining+'('+data[1]+')');
                 add_gcore_button_after_server_created();
             }
         }
@@ -1949,22 +1972,22 @@ function gcoreEditWorkspaceServer(server_id) {
     $.ajax( {
 	    url: "options.py",
         data: {
-	        gcoreeditworkspace: $('#gcore_edit_server_name').text(),
-	        gcore_edit_group: $('#gcore_edit_group').val(),
-	        gcore_edit_provider: $('#gcore_edit_id_provider').val(),
-	        gcore_edit_regions: $('#gcore_edit_region').text(),
-	        gcore_edit_project: $('#gcore_edit_project_name').text(),
-	        gcore_edit_size: $('#gcore_edit_size').val(),
-	        gcore_edit_oss: $('#gcore_edit_oss').text(),
-	        gcore_edit_ssh_name: $('#gcore_edit_ssh_name').val(),
-	        gcore_edit_volume_size: $('#gcore_edit_volume_size').val(),
-	        gcore_edit_volume_type: $('#gcore_edit_volume_type').val(),
-	        gcore_edit_delete_on_termination: gcore_edit_delete_on_termination,
-	        gcore_edit_network_name: $('#gcore_edit_network_name').val(),
-	        gcore_edit_firewall: gcore_edit_firewall,
-	        gcore_edit_network_type: $('#gcore_edit_network_type').val(),
+			gcoreeditworkspace: $('#gcore_edit_server_name').text(),
+			gcore_edit_group: $('#gcore_edit_group').val(),
+			gcore_edit_provider: $('#gcore_edit_id_provider').val(),
+			gcore_edit_regions: $('#gcore_edit_region').text(),
+			gcore_edit_project: $('#gcore_edit_project_name').text(),
+			gcore_edit_size: $('#gcore_edit_size').val(),
+			gcore_edit_oss: $('#gcore_edit_oss').text(),
+			gcore_edit_ssh_name: $('#gcore_edit_ssh_name').val(),
+			gcore_edit_volume_size: $('#gcore_edit_volume_size').val(),
+			gcore_edit_volume_type: $('#gcore_edit_volume_type').val(),
+			gcore_edit_delete_on_termination: gcore_edit_delete_on_termination,
+			gcore_edit_network_name: $('#gcore_edit_network_name').val(),
+			gcore_edit_firewall: gcore_edit_firewall,
+			gcore_edit_network_type: $('#gcore_edit_network_type').val(),
 			server_id: server_id,
-		    token: $('#token').val()
+			token: $('#token').val()
 		},
 		type: "POST",
 		success: function( data ) {
@@ -1987,10 +2010,13 @@ function gcoreEditProvisiningServer(server_id, dialog_id) {
     $.ajax( {
 	    url: "options.py",
         data: {
-	        gcoreeditgprovisining: gcoreeditgprovisining,
-            gcore_edit_group: $('#gcore_edit_group').val(),
-            gcore_edit_provider: $('#gcore_edit_id_provider option:selected').val(),
-		    token: $('#token').val()
+			gcoreeditgprovisining: 1,
+			provisioning_workspace: gcoreeditgprovisining,
+			provisioning_group: $('#gcore_edit_group').val(),
+			provisioning_provider_id: $('#gcore_edit_id_provider option:selected').val(),
+			provisioning_action: 'modified',
+			provisioning_cloud: 'gcore',
+			token: $('#token').val()
 		},
 		type: "POST",
 		success: function( data ) {

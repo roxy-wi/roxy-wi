@@ -1,6 +1,8 @@
 import os
 import sys
 import json
+import random
+
 from bottle import request
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app/'))
 
@@ -15,6 +17,7 @@ import modules.roxywi.logs as roxywi_logs
 import modules.roxywi.user as roxywi_user
 import modules.roxywi.common as roxywi_common
 import modules.service.common as service_common
+import modules.service.installation as service_mod
 
 get_config_var = roxy_wi_tools.GetConfigVar()
 
@@ -823,3 +826,67 @@ def create_server():
 	except Exception as e:
 		data = {'status': f'error: {e}'}
 		return dict(data)
+
+
+def install_keepalived():
+	body = request.body.getvalue().decode('utf-8')
+	json_loads = json.loads(body)
+	master = json_loads['master_ip']
+	slave = json_loads['slave_ip']
+	vrrp_ip = json_loads['vrrp_ip']
+	eth = json_loads['master_eth']
+	eth_slave = json_loads['slave_eth']
+	haproxy = int(json_loads['haproxy'])
+	nginx = int(json_loads['nginx'])
+	virt_server = int(json_loads['virt_server'])
+	syn_flood = int(json_loads['syn_flood'])
+	return_to_master = int(json_loads['return_to_master'])
+	router_id = random.randint(1, 255)
+	data = {'status': dict()}
+
+	try:
+		service_mod.keepalived_master_install(master, eth, eth_slave, vrrp_ip, virt_server, syn_flood, return_to_master,
+											  haproxy, nginx, router_id, 1)
+	except Exception as e:
+		data['status'][master] = {'keepalived': f'error: {e}'}
+	else:
+		data['status'][master] = {'keepalived': 'done'}
+
+	try:
+		service_mod.keepalived_slave_install(master, slave, eth, eth_slave, vrrp_ip, syn_flood, haproxy, nginx, router_id, 1)
+	except Exception as e:
+		data['status'][slave] = {'keepalived': f'error: {e}'}
+	else:
+		data['status'][slave] = {'keepalived': 'done'}
+
+	if haproxy:
+		try:
+			service_mod.install_haproxy(master)
+		except Exception as e:
+			data['status'][master] = {'haproxy': f'error: {e}'}
+		else:
+			data['status'][master] = {'haproxy': 'done'}
+
+		try:
+			service_mod.install_haproxy(slave)
+		except Exception as e:
+			data['status'][slave] = {'haproxy': f'error: {e}'}
+		else:
+			data['status'][slave] = {'haproxy': 'done'}
+
+	if nginx:
+		try:
+			service_mod.install_service(master, 'nginx', '0')
+		except Exception as e:
+			data['status'][master] = {'nginx': f'error: {e}'}
+		else:
+			data['status'][master] = {'nginx': 'done'}
+
+		try:
+			service_mod.install_service(slave, 'nginx', '0')
+		except Exception as e:
+			data['status'][slave] = {'nginx': f'error: {e}'}
+		else:
+			data['status'][slave] = {'nginx': 'done'}
+
+	return dict(data)

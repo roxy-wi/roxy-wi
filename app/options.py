@@ -24,6 +24,7 @@ get_date = roxy_wi_tools.GetDate(time_zone)
 
 form = common.form
 serv = common.is_ip_or_dns(form.getvalue('serv'))
+service = common.checkAjaxInput(form.getvalue('service'))
 act = form.getvalue("act")
 token = form.getvalue("token")
 
@@ -232,16 +233,12 @@ if form.getvalue('action_service') is not None:
     roxy.action_service(action, serv)
 
 if act == "overviewHapserverBackends":
-    service = common.checkAjaxInput(form.getvalue('service'))
-
     service_common.overview_backends(serv, service)
 
 if form.getvalue('show_userlists'):
     add_mod.show_userlist(serv)
 
 if act == "overviewHapservers":
-    service = common.checkAjaxInput(form.getvalue('service'))
-
     service_common.get_overview_last_edit(serv, service)
 
 if act == "overview":
@@ -252,14 +249,13 @@ if act == "overview":
 if act == "overviewwaf":
     import modules.roxywi.waf as roxy_waf
 
-    waf_service = common.checkAjaxInput(form.getvalue('service'))
+    waf_service = service
     serv = common.checkAjaxInput(serv)
     roxy_waf.waf_overview(serv, waf_service)
 
 if act == "overviewServers":
     server_id = common.checkAjaxInput(form.getvalue('id'))
     name = common.checkAjaxInput(form.getvalue('name'))
-    service = common.checkAjaxInput(form.getvalue('service'))
 
     service_common.overview_service(serv, server_id, name, service)
 
@@ -274,8 +270,6 @@ if form.getvalue('action'):
     service_haproxy.stat_page_action(serv)
 
 if serv is not None and act == "stats":
-    service = common.checkAjaxInput(form.getvalue('service'))
-
     service_common.get_stat_page(serv, service)
 
 if serv is not None and form.getvalue('show_log') is not None:
@@ -288,7 +282,6 @@ if serv is not None and form.getvalue('show_log') is not None:
     minut = form.getvalue('minut')
     hour1 = form.getvalue('hour1')
     minut1 = form.getvalue('minut1')
-    service = form.getvalue('service')
     out = roxywi_logs.show_roxy_log(serv, rows=rows, waf=waf, grep=grep, hour=hour, minut=minut, hour1=hour1,
                                  minut1=minut1, service=service)
     print(out)
@@ -344,7 +337,6 @@ if act == 'configShowFiles':
     config_mod.show_config_files(serv)
 
 if act == 'showRemoteLogFiles':
-    service = form.getvalue('service')
     log_path = sql.get_setting(f'{service}_path_logs')
     return_files = server_mod.get_remote_files(serv, log_path, 'log')
     if 'error: ' in return_files:
@@ -358,16 +350,50 @@ if act == 'showRemoteLogFiles':
     print(template)
 
 if form.getvalue('master'):
-    service_mod.keepalived_master_install()
+    master = form.getvalue('master')
+    eth = form.getvalue('interface')
+    eth_slave = form.getvalue('slave_interface')
+    vrrp_ip = form.getvalue('vrrpip')
+    syn_flood = form.getvalue('syn_flood')
+    virt_server = int(form.getvalue('virt_server'))
+    return_to_master = form.getvalue('return_to_master')
+    haproxy = form.getvalue('hap')
+    nginx = form.getvalue('nginx')
+    router_id = form.getvalue('router_id')
+
+    try:
+        service_mod.keepalived_master_install(master, eth, eth_slave, vrrp_ip, virt_server, syn_flood, return_to_master,
+                                              haproxy, nginx, router_id)
+    except Exception as e:
+        print(f'{e}')
 
 if form.getvalue('master_slave'):
-    service_mod.keepalived_slave_install()
+    master = form.getvalue('master_slave')
+    slave = form.getvalue('slave')
+    eth = form.getvalue('interface')
+    eth_slave = form.getvalue('slave_interface')
+    vrrp_ip = form.getvalue('vrrpip')
+    syn_flood = form.getvalue('syn_flood')
+    haproxy = form.getvalue('hap')
+    nginx = form.getvalue('nginx')
+    router_id = form.getvalue('router_id')
+
+    try:
+        service_mod.keepalived_slave_install(master, slave, eth, eth_slave, vrrp_ip, syn_flood, haproxy, nginx, router_id)
+    except Exception as e:
+        print(f'{e}')
 
 if form.getvalue('masteradd'):
-    service_mod.keepalived_masteradd()
+    try:
+        service_mod.keepalived_masteradd()
+    except Exception as e:
+        print(f'{e}')
 
 if form.getvalue('masteradd_slave'):
-    service_mod.keepalived_slaveadd()
+    try:
+        service_mod.keepalived_slaveadd()
+    except Exception as e:
+        print(f'{e}')
 
 if form.getvalue('master_slave_hap'):
     master = form.getvalue('master_slave_hap')
@@ -376,9 +402,15 @@ if form.getvalue('master_slave_hap'):
     docker = form.getvalue('docker')
 
     if server == 'master':
-        service_mod.install_haproxy(master, server=server, docker=docker)
+        try:
+            service_mod.install_haproxy(master, server=server, docker=docker)
+        except Exception as e:
+            print(f'{e}')
     elif server == 'slave':
-        service_mod.install_haproxy(slave, server=server, docker=docker)
+        try:
+            service_mod.install_haproxy(slave, server=server, docker=docker)
+        except Exception as e:
+            print(f'{e}')
 
 if form.getvalue('master_slave_nginx'):
     master = form.getvalue('master_slave_nginx')
@@ -387,12 +419,21 @@ if form.getvalue('master_slave_nginx'):
     docker = form.getvalue('docker')
 
     if server == 'master':
-        service_mod.install_service(master, 'nginx', docker, server=server)
+        try:
+            service_mod.install_service(master, 'nginx', docker, server=server)
+        except Exception as e:
+            print(f'{e}')
     elif server == 'slave':
-        service_mod.install_service(slave, 'nginx', docker, server=server)
+        try:
+            service_mod.install_service(slave, 'nginx', docker, server=server)
+        except Exception as e:
+            print(f'{e}')
 
 if form.getvalue('install_grafana'):
-    service_mod.grafana_install()
+    try:
+        service_mod.grafana_install()
+    except Exception as e:
+        print(f'{e}')
 
 if form.getvalue('haproxy_exp_install'):
     import modules.service.exporter_installation as exp_installation
@@ -503,32 +544,44 @@ if form.getvalue('git_backup'):
 
 if form.getvalue('install_service'):
     server_ip = common.is_ip_or_dns(form.getvalue('install_service'))
-    service = common.checkAjaxInput(form.getvalue('service'))
     docker = common.checkAjaxInput(form.getvalue('docker'))
 
     if service in ('nginx', 'apache'):
-        service_mod.install_service(server_ip, service, docker)
+        try:
+            service_mod.install_service(server_ip, service, docker)
+        except Exception as e:
+            print(e)
     else:
         print('warning: wrong service')
 
 if form.getvalue('haproxyaddserv'):
-    service_mod.install_haproxy(form.getvalue('haproxyaddserv'), syn_flood=form.getvalue('syn_flood'),
-                          hapver=form.getvalue('hapver'), docker=form.getvalue('docker'))
+    try:
+        service_mod.install_haproxy(form.getvalue('haproxyaddserv'), syn_flood=form.getvalue('syn_flood'),
+                                    hapver=form.getvalue('hapver'), docker=form.getvalue('docker'))
+    except Exception as e:
+        print(e)
 
 if form.getvalue('installwaf'):
-    service = form.getvalue('service')
     if service == 'haproxy':
-        service_mod.waf_install(common.checkAjaxInput(form.getvalue('installwaf')))
+        try:
+            service_mod.waf_install(common.checkAjaxInput(form.getvalue('installwaf')))
+        except Exception as e:
+            print(e)
     else:
-        service_mod.waf_nginx_install(common.checkAjaxInput(form.getvalue('installwaf')))
+        try:
+            service_mod.waf_nginx_install(common.checkAjaxInput(form.getvalue('installwaf')))
+        except Exception as e:
+            print(e)
 
 if form.getvalue('geoip_install'):
-    service_mod.geoip_installation()
+    try:
+        service_mod.geoip_installation()
+    except Exception as e:
+        print(e)
 
 if form.getvalue('update_roxy_wi'):
     import modules.roxywi.roxy as roxy
 
-    service = form.getvalue('service')
     services = ['roxy-wi-checker',
                 'roxy-wi',
                 'roxy-wi-keep_alive',
@@ -547,7 +600,6 @@ if form.getvalue('metrics_waf'):
     sql.update_waf_metrics_enable(metrics_waf, form.getvalue('enable'))
 
 if form.getvalue('table_metrics'):
-    service = form.getvalue('service')
     roxywi_common.check_user_group()
     lang = roxywi_common.get_user_lang()
     group_id = roxywi_common.get_user_group(id=1)
@@ -1123,738 +1175,110 @@ if form.getvalue('show_versions'):
 if form.getvalue('get_group_name_by_id'):
     print(sql.get_group_name_by_id(form.getvalue('get_group_name_by_id')))
 
-if any((form.getvalue('do_new_name'), form.getvalue('aws_new_name'), form.getvalue('gcore_new_name'))):
-    roxywi_common.check_user_group()
-    is_add = False
-    if form.getvalue('do_new_name'):
-        provider_name = common.checkAjaxInput(form.getvalue('do_new_name'))
-        provider_group = common.checkAjaxInput(form.getvalue('do_new_group'))
-        provider_token = common.checkAjaxInput(form.getvalue('do_new_token'))
+if form.getvalue('new_provider_name'):
+    import modules.provisioning.provider as provider
 
-        if sql.add_provider_do(provider_name, provider_group, provider_token):
-            is_add = True
-
-    elif form.getvalue('aws_new_name'):
-        provider_name = common.checkAjaxInput(form.getvalue('aws_new_name'))
-        provider_group = common.checkAjaxInput(form.getvalue('aws_new_group'))
-        provider_token = common.checkAjaxInput(form.getvalue('aws_new_key'))
-        provider_secret = common.checkAjaxInput(form.getvalue('aws_new_secret'))
-
-        if sql.add_provider_aws(provider_name, provider_group, provider_token, provider_secret):
-            is_add = True
-
-    elif form.getvalue('gcore_new_name'):
-        provider_name = common.checkAjaxInput(form.getvalue('gcore_new_name'))
-        provider_group = common.checkAjaxInput(form.getvalue('gcore_new_group'))
-        provider_token = common.checkAjaxInput(form.getvalue('gcore_new_user'))
-        provider_pass = common.checkAjaxInput(form.getvalue('gcore_new_pass'))
-
-        if sql.add_provider_gcore(provider_name, provider_group, provider_token, provider_pass):
-            is_add = True
-
-    if is_add:
-        cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-        user_uuid = cookie.get('uuid')
-        group_id = cookie.get('group')
-        group_id = int(group_id.value)
-        role_id = sql.get_user_role_by_uuid(user_uuid.value, group_id)
-        params = sql.select_provisioning_params()
-        providers = sql.select_providers(provider_group, key=provider_token)
-
-        if role_id == 1:
-            groups = sql.select_groups()
-        else:
-            groups = ''
-
-        lang = roxywi_common.get_user_lang()
-        env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
-        template = env.get_template('ajax/provisioning/providers.html')
-        template = template.render(providers=providers, role=role_id, groups=groups, user_group=provider_group,
-                                   adding=1, params=params, lang=lang)
-        print(template)
+    provider.create_provider()
 
 if form.getvalue('providerdel'):
-    roxywi_common.check_user_group()
-    try:
-        if sql.delete_provider(common.checkAjaxInput(form.getvalue('providerdel'))):
-            print('Ok')
-            roxywi_common.logging('Roxy-WI server', 'Provider has been deleted', provisioning=1)
-    except Exception as e:
-        print(e)
+    import modules.provisioning.provider as provider
+
+    provider.delete_provider()
 
 if form.getvalue('awsinit') or form.getvalue('doinit') or form.getvalue('gcoreinitserver'):
-    roxywi_common.check_user_group()
-    cmd = 'cd scripts/terraform/ && sudo terraform init -upgrade -no-color'
-    output, stderr = server_mod.subprocess_execute(cmd)
-    if stderr != '':
-        print('error: ' + stderr)
-    else:
-        if "Terraform initialized in an empty directory" in output[0]:
-            print('error: There is not need module')
-        elif "mkdir .terraform: permission denied" in output[0]:
-            print('error: Cannot init. Check permission to folder')
+    import modules.provisioning.server as prov_server
 
-        print(output[0])
+    prov_server.init_server()
 
 if form.getvalue('awsvars') or form.getvalue('awseditvars'):
-    if form.getvalue('awsvars'):
-        awsvars = common.checkAjaxInput(form.getvalue('awsvars'))
-        group = common.checkAjaxInput(form.getvalue('aws_create_group'))
-        provider = common.checkAjaxInput(form.getvalue('aws_create_provider'))
-        region = common.checkAjaxInput(form.getvalue('aws_create_regions'))
-        size = common.checkAjaxInput(form.getvalue('aws_create_size'))
-        oss = common.checkAjaxInput(form.getvalue('aws_create_oss'))
-        ssh_name = common.checkAjaxInput(form.getvalue('aws_create_ssh_name'))
-        volume_size = common.checkAjaxInput(form.getvalue('aws_create_volume_size'))
-        volume_type = common.checkAjaxInput(form.getvalue('aws_create_volume_type'))
-        delete_on_termination = common.checkAjaxInput(form.getvalue('aws_create_delete_on_termination'))
-        floating_ip = common.checkAjaxInput(form.getvalue('aws_create_floating_net'))
-        firewall = common.checkAjaxInput(form.getvalue('aws_create_firewall'))
-        public_ip = common.checkAjaxInput(form.getvalue('aws_create_public_ip'))
-    elif form.getvalue('awseditvars'):
-        awsvars = common.checkAjaxInput(form.getvalue('awseditvars'))
-        group = common.checkAjaxInput(form.getvalue('aws_editing_group'))
-        provider = common.checkAjaxInput(form.getvalue('aws_editing_provider'))
-        region = common.checkAjaxInput(form.getvalue('aws_editing_regions'))
-        size = common.checkAjaxInput(form.getvalue('aws_editing_size'))
-        oss = common.checkAjaxInput(form.getvalue('aws_editing_oss'))
-        ssh_name = common.checkAjaxInput(form.getvalue('aws_editing_ssh_name'))
-        volume_size = common.checkAjaxInput(form.getvalue('aws_editing_volume_size'))
-        volume_type = common.checkAjaxInput(form.getvalue('aws_editing_volume_type'))
-        delete_on_termination = common.checkAjaxInput(form.getvalue('aws_editing_delete_on_termination'))
-        floating_ip = common.checkAjaxInput(form.getvalue('aws_editing_floating_net'))
-        firewall = common.checkAjaxInput(form.getvalue('aws_editing_firewall'))
-        public_ip = common.checkAjaxInput(form.getvalue('aws_editing_public_ip'))
+    import modules.provisioning.aws as aws
 
-    aws_key, aws_secret = sql.select_aws_provider(provider)
-
-    cmd = f'cd scripts/terraform/ && sudo ansible-playbook var_generator.yml -i inventory -e "region={region} ' \
-          f'group={group} size={size} os={oss} floating_ip={floating_ip} volume_size={volume_size} server_name={awsvars} ' \
-          f'AWS_ACCESS_KEY={aws_key} AWS_SECRET_KEY={aws_secret} firewall={firewall} public_ip={public_ip} ' \
-          f'ssh_name={ssh_name} delete_on_termination={delete_on_termination} volume_type={volume_type} cloud=aws"'
-
-    output, stderr = server_mod.subprocess_execute(cmd)
-    if stderr != '':
-        print('error: ' + stderr)
-    else:
-        print('ok')
+    aws.create_vars()
 
 if form.getvalue('dovars') or form.getvalue('doeditvars'):
-    if form.getvalue('dovars'):
-        dovars = form.getvalue('dovars')
-        group = form.getvalue('do_create_group')
-        provider = form.getvalue('do_create_provider')
-        region = form.getvalue('do_create_regions')
-        size = form.getvalue('do_create_size')
-        oss = form.getvalue('do_create_oss')
-        ssh_name = form.getvalue('do_create_ssh_name')
-        ssh_ids = form.getvalue('do_create_ssh_ids')
-        backup = form.getvalue('do_create_backup')
-        privet_net = form.getvalue('do_create_private_net')
-        floating_ip = form.getvalue('do_create_floating_net')
-        monitoring = form.getvalue('do_create_monitoring')
-        firewall = form.getvalue('do_create_firewall')
-    elif form.getvalue('doeditvars'):
-        dovars = form.getvalue('doeditvars')
-        group = form.getvalue('do_edit_group')
-        provider = form.getvalue('do_edit_provider')
-        region = form.getvalue('do_edit_regions')
-        size = form.getvalue('do_edit_size')
-        oss = form.getvalue('do_edit_oss')
-        ssh_name = form.getvalue('do_edit_ssh_name')
-        ssh_ids = form.getvalue('do_edit_ssh_ids')
-        backup = form.getvalue('do_edit_backup')
-        privet_net = form.getvalue('do_edit_private_net')
-        floating_ip = form.getvalue('do_edit_floating_net')
-        monitoring = form.getvalue('do_edit_monitoring')
-        firewall = form.getvalue('do_edit_firewall')
+    import modules.provisioning.do as do
 
-    token = sql.select_do_provider(provider)
-
-    cmd = f'cd scripts/terraform/ && sudo ansible-playbook var_generator.yml -i inventory -e "region={region} ' \
-          f'group={group} size={size} os={oss} floating_ip={floating_ip} ssh_ids={ssh_ids} server_name={dovars} ' \
-          f'token={token} backup={backup} monitoring={monitoring} privet_net={privet_net} firewall={firewall} ' \
-          f'floating_ip={floating_ip} ssh_name={ssh_name} cloud=do"'
-    output, stderr = server_mod.subprocess_execute(cmd)
-    if stderr != '':
-        print(f'error: {stderr}')
-    else:
-        print(cmd)
-        print(output)
+    do.create_vars()
 
 if form.getvalue('dovalidate') or form.getvalue('doeditvalidate'):
-    if form.getvalue('dovalidate'):
-        workspace = form.getvalue('dovalidate')
-        group = form.getvalue('do_create_group')
-    elif form.getvalue('doeditvalidate'):
-        workspace = form.getvalue('doeditvalidate')
-        group = form.getvalue('do_edit_group')
+    import modules.provisioning.do as do
 
-    cmd = f'cd scripts/terraform/ && sudo terraform plan -no-color -input=false -target=module.do_module -var-file vars/{workspace}_{group}_do.tfvars'
-    output, stderr = server_mod.subprocess_execute(cmd)
-    if stderr != '':
-        print(f'error: {stderr}')
-    else:
-        print('ok')
+    do.validate()
 
 if form.getvalue('doworkspace'):
-    workspace = form.getvalue('doworkspace')
-    group = form.getvalue('do_create_group')
-    provider = form.getvalue('do_create_provider')
-    region = form.getvalue('do_create_regions')
-    size = form.getvalue('do_create_size')
-    oss = form.getvalue('do_create_oss')
-    ssh_name = form.getvalue('do_create_ssh_name')
-    ssh_ids = form.getvalue('do_create_ssh_ids')
-    backup = form.getvalue('do_create_backup')
-    privet_net = form.getvalue('do_create_private_net')
-    floating_ip = form.getvalue('do_create_floating_net')
-    monitoring = form.getvalue('do_create_monitoring')
-    firewall = form.getvalue('do_create_firewall')
+    import modules.provisioning.do as do
 
-    cmd = 'cd scripts/terraform/ && sudo terraform workspace new ' + workspace + '_' + group + '_do'
-    output, stderr = server_mod.subprocess_execute(cmd)
-
-    if stderr != '':
-        stderr = stderr.strip()
-        stderr = repr(stderr)
-        stderr = stderr.replace("'", "")
-        stderr = stderr.replace("\'", "")
-        sql.update_provisioning_server_status('Error', group, workspace, provider)
-        sql.update_provisioning_server_error(stderr, group, workspace, provider)
-        print('error: ' + stderr)
-    else:
-        if sql.add_server_do(
-                region, size, privet_net, floating_ip, ssh_ids, ssh_name, workspace, oss, firewall, monitoring,
-                backup, provider, group, 'Creating'
-        ):
-            user_params = roxywi_common.get_users_params()
-            new_server = sql.select_provisioned_servers(new=workspace, group=group, type='do')
-            params = sql.select_provisioning_params()
-            lang = roxywi_common.get_user_lang()
-
-            env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
-            template = env.get_template('ajax/provisioning/provisioned_servers.html')
-            template = template.render(
-                servers=new_server, groups=sql.select_groups(), user_group=group, lang=lang,
-                providers=sql.select_providers(group), role=user_params['role'], adding=1, params=params
-            )
-            print(template)
+    do.new_workspace()
 
 if form.getvalue('doeditworkspace'):
-    workspace = form.getvalue('doeditworkspace')
-    group = form.getvalue('do_edit_group')
-    provider = form.getvalue('do_edit_provider')
-    region = form.getvalue('do_edit_regions')
-    size = form.getvalue('do_edit_size')
-    oss = form.getvalue('do_edit_oss')
-    ssh_name = form.getvalue('do_edit_ssh_name')
-    ssh_ids = form.getvalue('do_edit_ssh_ids')
-    backup = form.getvalue('do_edit_backup')
-    privet_net = form.getvalue('do_edit_private_net')
-    floating_ip = form.getvalue('do_edit_floating_net')
-    monitoring = form.getvalue('do_edit_monitoring')
-    firewall = form.getvalue('do_edit_firewall')
-    server_id = form.getvalue('server_id')
-    try:
-        if sql.update_server_do(
-                size, privet_net, floating_ip, ssh_ids, ssh_name, oss, firewall, monitoring, backup, provider,
-                group, 'Creating', server_id
-        ):
+    import modules.provisioning.do as do
 
-            cmd = 'cd scripts/terraform/ && sudo terraform workspace select ' + workspace + '_' + group + '_do'
-            output, stderr = server_mod.subprocess_execute(cmd)
-
-            if stderr != '':
-                stderr = stderr.strip()
-                stderr = repr(stderr)
-                stderr = stderr.replace("'", "")
-                stderr = stderr.replace("\'", "")
-                sql.update_provisioning_server_status('Error', group, workspace, provider)
-                sql.update_provisioning_server_error(stderr, group, workspace, provider)
-                print('error: ' + stderr)
-            else:
-                print(cmd)
-                print(output)
-    except Exception as e:
-        print(e)
+    do.edit_workspace()
 
 if form.getvalue('awsvalidate') or form.getvalue('awseditvalidate'):
-    if form.getvalue('awsvalidate'):
-        workspace = form.getvalue('awsvalidate')
-        group = form.getvalue('aws_create_group')
-    elif form.getvalue('awseditvalidate'):
-        workspace = form.getvalue('awseditvalidate')
-        group = form.getvalue('aws_edit_group')
+    import modules.provisioning.aws as aws
 
-    cmd = f'cd scripts/terraform/ && sudo terraform plan -no-color -input=false -target=module.aws_module -var-file vars/{workspace}_{group}_aws.tfvars'
-    output, stderr = server_mod.subprocess_execute(cmd)
-    if stderr != '':
-        print('error: ' + stderr)
-    else:
-        print('ok')
+    aws.validate()
 
 if form.getvalue('awsworkspace'):
-    workspace = form.getvalue('awsworkspace')
-    group = form.getvalue('aws_create_group')
-    provider = form.getvalue('aws_create_provider')
-    region = form.getvalue('aws_create_regions')
-    size = form.getvalue('aws_create_size')
-    oss = form.getvalue('aws_create_oss')
-    ssh_name = form.getvalue('aws_create_ssh_name')
-    volume_size = form.getvalue('aws_create_volume_size')
-    volume_type = form.getvalue('aws_create_volume_type')
-    delete_on_termination = form.getvalue('aws_create_delete_on_termination')
-    floating_ip = form.getvalue('aws_create_floating_net')
-    firewall = form.getvalue('aws_create_firewall')
-    public_ip = form.getvalue('aws_create_public_ip')
+    import modules.provisioning.aws as aws
 
-    cmd = f'cd scripts/terraform/ && sudo terraform workspace new {workspace}_{group}_aws'
-    output, stderr = server_mod.subprocess_execute(cmd)
-
-    if stderr != '':
-        stderr = stderr.strip()
-        stderr = repr(stderr)
-        stderr = stderr.replace("'", "")
-        stderr = stderr.replace("\'", "")
-        sql.update_provisioning_server_status('Error', group, workspace, provider)
-        sql.update_provisioning_server_error(stderr, group, workspace, provider)
-        print('error: ' + stderr)
-    else:
-        try:
-            if sql.add_server_aws(
-                    region, size, public_ip, floating_ip, volume_size, ssh_name, workspace, oss, firewall,
-                    provider, group, 'Creating', delete_on_termination, volume_type
-            ):
-                user_params = roxywi_common.get_users_params()
-                new_server = sql.select_provisioned_servers(new=workspace, group=group, type='aws')
-                params = sql.select_provisioning_params()
-                lang = roxywi_common.get_user_lang()
-
-                env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
-                template = env.get_template('ajax/provisioning/provisioned_servers.html')
-                template = template.render(
-                    servers=new_server, groups=sql.select_groups(), user_group=group, lang=lang,
-                    providers=sql.select_providers(group), role=user_params['role'], adding=1, params=params
-                )
-                print(template)
-        except Exception as e:
-            print(e)
+    aws.new_workspace()
 
 if form.getvalue('awseditworkspace'):
-    workspace = form.getvalue('awseditworkspace')
-    group = form.getvalue('aws_editing_group')
-    provider = form.getvalue('aws_editing_provider')
-    region = form.getvalue('aws_editing_regions')
-    size = form.getvalue('aws_editing_size')
-    oss = form.getvalue('aws_editing_oss')
-    ssh_name = form.getvalue('aws_editing_ssh_name')
-    volume_size = form.getvalue('aws_editing_volume_size')
-    volume_type = form.getvalue('aws_editing_volume_type')
-    delete_on_termination = form.getvalue('aws_editing_delete_on_termination')
-    floating_ip = form.getvalue('aws_editing_floating_net')
-    firewall = form.getvalue('aws_editing_firewall')
-    public_ip = form.getvalue('aws_editing_public_ip')
-    server_id = form.getvalue('server_id')
+    import modules.provisioning.aws as aws
 
-    try:
-        if sql.update_server_aws(
-                region, size, public_ip, floating_ip, volume_size, ssh_name, workspace, oss, firewall,
-                provider, group, 'Editing', server_id, delete_on_termination, volume_type
-        ):
+    aws.edit_workspace()
 
-            try:
-                cmd = f'cd scripts/terraform/ && sudo terraform workspace select {workspace}_{group}_aws'
-                output, stderr = server_mod.subprocess_execute(cmd)
-            except Exception as e:
-                print('error: ' + str(e))
+if any((form.getvalue('awsprovisining'), form.getvalue('awseditingprovisining'), form.getvalue('doprovisining'),
+        form.getvalue('doeditprovisining'), form.getvalue('gcoreprovisining'), form.getvalue('gcoreeditgprovisining'))):
+    import modules.provisioning.server as prov_server
 
-            if stderr != '':
-                stderr = stderr.strip()
-                stderr = repr(stderr)
-                stderr = stderr.replace("'", "")
-                stderr = stderr.replace("\'", "")
-                sql.update_provisioning_server_error(stderr, group, workspace, provider)
-                print('error: ' + stderr)
-            else:
-                print('ok')
-    except Exception as e:
-        print(e)
-
-if (
-        form.getvalue('awsprovisining')
-        or form.getvalue('awseditingprovisining')
-        or form.getvalue('doprovisining')
-        or form.getvalue('doeditprovisining')
-        or form.getvalue('gcoreprovisining')
-        or form.getvalue('gcoreeditgprovisining')
-):
-    roxywi_common.check_user_group()
-
-    if form.getvalue('awsprovisining'):
-        workspace = form.getvalue('awsprovisining')
-        group = form.getvalue('aws_create_group')
-        provider_id = form.getvalue('aws_create_provider')
-        action = 'created'
-        cloud = 'aws'
-        state_name = 'aws_instance'
-    elif form.getvalue('awseditingprovisining'):
-        workspace = form.getvalue('awseditingprovisining')
-        group = form.getvalue('aws_edit_group')
-        provider_id = form.getvalue('aws_edit_provider')
-        action = 'modified'
-        cloud = 'aws'
-        state_name = 'aws_instance'
-    elif form.getvalue('doprovisining'):
-        workspace = form.getvalue('doprovisining')
-        group = form.getvalue('do_create_group')
-        provider_id = form.getvalue('do_create_provider')
-        action = 'created'
-        cloud = 'do'
-        state_name = 'digitalocean_droplet'
-    elif form.getvalue('doeditprovisining'):
-        workspace = form.getvalue('doeditprovisining')
-        group = form.getvalue('do_edit_group')
-        provider_id = form.getvalue('do_edit_provider')
-        action = 'modified'
-        cloud = 'do'
-        state_name = 'digitalocean_droplet'
-    elif form.getvalue('gcoreprovisining'):
-        workspace = form.getvalue('gcoreprovisining')
-        group = form.getvalue('gcore_create_group')
-        provider_id = form.getvalue('gcore_create_provider')
-        action = 'created'
-        cloud = 'gcore'
-        state_name = 'gcore_instance'
-    elif form.getvalue('gcoreeditgprovisining'):
-        workspace = form.getvalue('gcoreeditgprovisining')
-        group = form.getvalue('gcore_edit_group')
-        provider_id = form.getvalue('gcore_edit_provider')
-        action = 'modified'
-        cloud = 'gcore'
-        state_name = 'gcore_instance'
-
-    tfvars = f'{workspace}_{group}_{cloud}.tfvars'
-    cmd = f'cd scripts/terraform/ && sudo terraform apply -auto-approve -no-color -input=false -target=module.{cloud}_module -var-file vars/{tfvars}'
-    output, stderr = server_mod.subprocess_execute(cmd)
-
-    if stderr != '':
-        stderr = stderr.strip()
-        stderr = repr(stderr)
-        stderr = stderr.replace("'", "")
-        stderr = stderr.replace("\'", "")
-        sql.update_provisioning_server_status('Error', group, workspace, provider_id)
-        sql.update_provisioning_server_error(stderr, group, workspace, provider_id)
-        print('error: ' + stderr)
-    else:
-        if cloud == 'aws':
-            cmd = 'cd scripts/terraform/ && sudo terraform state show module.aws_module.aws_eip.floating_ip[0]|grep -Eo "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}"'
-            output, stderr = server_mod.subprocess_execute(cmd)
-            if stderr != '':
-                cmd = 'cd scripts/terraform/ && sudo terraform state show module.' + cloud + '_module.' + state_name + '.hapwi|grep -Eo "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}"'
-        else:
-            cmd = 'cd scripts/terraform/ && sudo terraform state show module.' + cloud + '_module.' + state_name + '.hapwi|grep -Eo "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}"'
-
-        output, stderr = server_mod.subprocess_execute(cmd)
-        ips = ''
-        for ip in output:
-            ips += ip
-            ips += ' '
-
-        if cloud == 'gcore':
-            ips = ips.split(' ')[0]
-
-        print(ips)
-        try:
-            sql.update_provisioning_server_status('Created', group, workspace, provider_id, update_ip=ips)
-        except Exception as e:
-            print(e)
-
-        if cloud == 'gcore':
-            cmd = 'cd scripts/terraform/ && sudo terraform state show module.gcore_module.gcore_instance.hapwi|grep "name"|grep -v -e "_name\|name_" |head -1 |awk -F"\\\"" \'{print $2}\''
-            output, stderr = server_mod.subprocess_execute(cmd)
-            print(':' + output[0])
-            try:
-                sql.update_provisioning_server_gcore_name(workspace, output[0], group, provider_id)
-            except Exception as e:
-                print(e)
-
-        roxywi_common.logging('Roxy-WI server', f'Server {workspace} has been {action}', provisioning=1)
+    prov_server.create_server()
 
 if form.getvalue('provisiningdestroyserver'):
-    roxywi_common.check_user_group()
-    server_id = form.getvalue('provisiningdestroyserver')
-    workspace = form.getvalue('servername')
-    group = form.getvalue('group')
-    cloud_type = form.getvalue('type')
-    provider_id = form.getvalue('provider_id')
+    import modules.provisioning.server as prov_server
 
-    tf_workspace = f'{workspace}_{group}_{cloud_type}'
-
-    cmd = f'cd scripts/terraform/ && sudo terraform init -upgrade -no-color && sudo terraform workspace select {tf_workspace}'
-    output, stderr = server_mod.subprocess_execute(cmd)
-
-    if stderr != '':
-        stderr = stderr.strip()
-        stderr = repr(stderr)
-        stderr = stderr.replace("'", "")
-        stderr = stderr.replace("\'", "")
-        sql.update_provisioning_server_status('Error', group, workspace, provider_id)
-        sql.update_provisioning_server_error(stderr, group, workspace, provider_id)
-        print('error: ' + stderr)
-    else:
-        cmd = f'cd scripts/terraform/ && sudo terraform destroy -auto-approve -no-color -target=module.{cloud_type}_module -var-file vars/{tf_workspace}.tfvars'
-        output, stderr = server_mod.subprocess_execute(cmd)
-
-        if stderr != '':
-            print(f'error: {stderr}')
-        else:
-            cmd = f'cd scripts/terraform/ && sudo terraform workspace select default && sudo terraform workspace delete -force {tf_workspace}'
-            output, stderr = server_mod.subprocess_execute(cmd)
-
-            print('ok')
-            roxywi_common.logging('Roxy-WI server', 'Server has been destroyed', provisioning=1)
-            try:
-                sql.delete_provisioned_servers(server_id)
-            except Exception as e:
-                print(e)
+    prov_server.destroy_server()
 
 if form.getvalue('gcorevars') or form.getvalue('gcoreeditvars'):
-    if form.getvalue('gcorevars'):
-        gcorevars = form.getvalue('gcorevars')
-        group = form.getvalue('gcore_create_group')
-        provider = form.getvalue('gcore_create_provider')
-        region = form.getvalue('gcore_create_regions')
-        project = form.getvalue('gcore_create_project')
-        size = form.getvalue('gcore_create_size')
-        oss = form.getvalue('gcore_create_oss')
-        ssh_name = form.getvalue('gcore_create_ssh_name')
-        volume_size = form.getvalue('gcore_create_volume_size')
-        volume_type = form.getvalue('gcore_create_volume_type')
-        delete_on_termination = form.getvalue('gcore_create_delete_on_termination')
-        network_name = form.getvalue('gcore_create_network_name')
-        firewall = form.getvalue('gcore_create_firewall')
-        network_type = form.getvalue('gcore_create_network_type')
-    elif form.getvalue('gcoreeditvars'):
-        gcorevars = form.getvalue('gcoreeditvars')
-        group = form.getvalue('gcore_edit_group')
-        provider = form.getvalue('gcore_edit_provider')
-        region = form.getvalue('gcore_edit_regions')
-        project = form.getvalue('gcore_edit_project')
-        size = form.getvalue('gcore_edit_size')
-        oss = form.getvalue('gcore_edit_oss')
-        ssh_name = form.getvalue('gcore_edit_ssh_name')
-        volume_size = form.getvalue('gcore_edit_volume_size')
-        volume_type = form.getvalue('gcore_edit_volume_type')
-        delete_on_termination = form.getvalue('gcore_edit_delete_on_termination')
-        network_name = form.getvalue('gcore_edit_network_name')
-        firewall = form.getvalue('gcore_edit_firewall')
-        network_type = form.getvalue('gcore_edit_network_type')
+    import modules.provisioning.gcore as gcore
 
-    try:
-        gcore_user, gcore_pass = sql.select_gcore_provider(provider)
-    except Exception as e:
-        print(e)
-
-    cmd = 'cd scripts/terraform/ && sudo ansible-playbook var_generator.yml -i inventory -e "region={} ' \
-          'group={} size={} os={} network_name={} volume_size={} server_name={} username={} ' \
-          'pass={} firewall={} network_type={} ssh_name={} delete_on_termination={} project={} volume_type={} ' \
-          'cloud=gcore"'.format(region, group, size, oss, network_name, volume_size, gcorevars, gcore_user, gcore_pass,
-                                firewall, network_type, ssh_name, delete_on_termination, project, volume_type)
-
-    output, stderr = server_mod.subprocess_execute(cmd)
-    if stderr != '':
-        print(f'error: {stderr}')
-    else:
-        print('ok')
+    gcore.gcore_create_vars()
 
 if form.getvalue('gcorevalidate') or form.getvalue('gcoreeditvalidate'):
-    if form.getvalue('gcorevalidate'):
-        workspace = form.getvalue('gcorevalidate')
-        group = form.getvalue('gcore_create_group')
-    elif form.getvalue('gcoreeditvalidate'):
-        workspace = form.getvalue('gcoreeditvalidate')
-        group = form.getvalue('gcore_edit_group')
+    import modules.provisioning.gcore as gcore
 
-    cmd = f'cd scripts/terraform/ && sudo terraform plan -no-color -input=false -target=module.gcore_module -var-file vars/{workspace}_{group}_gcore.tfvars'
-    output, stderr = server_mod.subprocess_execute(cmd)
-    if stderr != '':
-        print(f'error: {stderr}')
-    else:
-        print('ok')
+    gcore.validate()
 
 if form.getvalue('gcoreworkspace'):
-    workspace = form.getvalue('gcoreworkspace')
-    group = form.getvalue('gcore_create_group')
-    provider = form.getvalue('gcore_create_provider')
-    region = form.getvalue('gcore_create_regions')
-    project = form.getvalue('gcore_create_project')
-    size = form.getvalue('gcore_create_size')
-    oss = form.getvalue('gcore_create_oss')
-    ssh_name = form.getvalue('gcore_create_ssh_name')
-    volume_size = form.getvalue('gcore_create_volume_size')
-    volume_type = form.getvalue('gcore_create_volume_type')
-    delete_on_termination = form.getvalue('gcore_create_delete_on_termination')
-    network_type = form.getvalue('gcore_create_network_type')
-    firewall = form.getvalue('gcore_create_firewall')
-    network_name = form.getvalue('gcore_create_network_name')
+    import modules.provisioning.gcore as gcore
 
-    cmd = 'cd scripts/terraform/ && sudo terraform workspace new ' + workspace + '_' + group + '_gcore'
-    output, stderr = server_mod.subprocess_execute(cmd)
-
-    if stderr != '':
-        stderr = stderr.strip()
-        stderr = repr(stderr)
-        stderr = stderr.replace("'", "")
-        stderr = stderr.replace("\'", "")
-        sql.update_provisioning_server_status('Error', group, workspace, provider)
-        sql.update_provisioning_server_error(stderr, group, workspace, provider)
-        print('error: ' + stderr)
-    else:
-        try:
-            if sql.add_server_gcore(
-                    project, region, size, network_type, network_name, volume_size, ssh_name, workspace, oss, firewall,
-                    provider, group, 'Creating', delete_on_termination, volume_type
-            ):
-                user_params = roxywi_common.get_users_params()
-                new_server = sql.select_provisioned_servers(new=workspace, group=group, type='gcore')
-                params = sql.select_provisioning_params()
-                lang = roxywi_common.get_user_lang()
-
-                env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
-                template = env.get_template('ajax/provisioning/provisioned_servers.html')
-                template = template.render(servers=new_server,
-                                           groups=sql.select_groups(),
-                                           user_group=group,
-                                           providers=sql.select_providers(group),
-                                           role=user_params['role'],
-                                           adding=1,
-                                           params=params,
-                                           lang=lang)
-                print(template)
-        except Exception as e:
-            print(e)
+    gcore.new_workspace()
 
 if form.getvalue('gcoreeditworkspace'):
-    workspace = form.getvalue('gcoreeditworkspace')
-    group = form.getvalue('gcore_edit_group')
-    provider = form.getvalue('gcore_edit_provider')
-    region = form.getvalue('gcore_edit_regions')
-    project = form.getvalue('gcore_edit_project')
-    size = form.getvalue('gcore_edit_size')
-    oss = form.getvalue('gcore_edit_oss')
-    ssh_name = form.getvalue('gcore_edit_ssh_name')
-    volume_size = form.getvalue('gcore_edit_volume_size')
-    volume_type = form.getvalue('gcore_edit_volume_type')
-    delete_on_termination = form.getvalue('gcore_edit_delete_on_termination')
-    network_type = form.getvalue('gcore_edit_network_type')
-    firewall = form.getvalue('gcore_edit_firewall')
-    network_name = form.getvalue('gcore_edit_network_name')
-    server_id = form.getvalue('server_id')
+    import modules.provisioning.gcore as gcore
 
-    try:
-        if sql.update_server_gcore(
-                region, size, network_type, network_name, volume_size, ssh_name, workspace, oss, firewall,
-                provider, group, 'Editing', server_id, delete_on_termination, volume_type, project
-        ):
+    gcore.edit_workspace()
 
-            try:
-                cmd = f'cd scripts/terraform/ && sudo terraform workspace select {workspace}_{group}_gcore'
-                output, stderr = server_mod.subprocess_execute(cmd)
-            except Exception as e:
-                print('error: ' + str(e))
+if form.getvalue('editServerId'):
+    import modules.provisioning.server as prov_server_mod
 
-            if stderr != '':
-                stderr = stderr.strip()
-                stderr = repr(stderr)
-                stderr = stderr.replace("'", "")
-                stderr = stderr.replace("\'", "")
-                sql.update_provisioning_server_error(stderr, group, workspace, provider)
-                print('error: ' + stderr)
-            else:
-                print('ok')
-    except Exception as e:
-        print(e)
+    prov_server_mod.edit_server()
 
-if form.getvalue('editAwsServer'):
-    roxywi_common.check_user_group()
-    server_id = form.getvalue('editAwsServer')
-    user_group = form.getvalue('editAwsGroup')
-    params = sql.select_provisioning_params()
-    providers = sql.select_providers(int(user_group))
-    server = sql.select_gcore_server(server_id=server_id)
-    lang = roxywi_common.get_user_lang()
-    env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
-    template = env.get_template('ajax/provisioning/aws_edit_dialog.html')
-    template = template.render(server=server, providers=providers, params=params, lang=lang)
-    print(template)
+if form.getvalue('edit_provider_id'):
+    import modules.provisioning.provider as provider_mod
 
-if form.getvalue('editGcoreServer'):
-    roxywi_common.check_user_group()
-    server_id = form.getvalue('editGcoreServer')
-    user_group = form.getvalue('editGcoreGroup')
-    params = sql.select_provisioning_params()
-    providers = sql.select_providers(int(user_group))
-    server = sql.select_gcore_server(server_id=server_id)
-    lang = roxywi_common.get_user_lang()
-    env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
-    template = env.get_template('ajax/provisioning/gcore_edit_dialog.html')
-    template = template.render(server=server, providers=providers, params=params, lang=lang)
-    print(template)
+    provider = form.getvalue('provider_name')
+    provider_id = form.getvalue('edit_provider_id')
 
-if form.getvalue('editDoServer'):
-    roxywi_common.check_user_group()
-    server_id = form.getvalue('editDoServer')
-    user_group = form.getvalue('editDoGroup')
-    params = sql.select_provisioning_params()
-    providers = sql.select_providers(int(user_group))
-    server = sql.select_do_server(server_id=server_id)
-    lang = roxywi_common.get_user_lang()
-    env = Environment(extensions=["jinja2.ext.do"], loader=FileSystemLoader('templates'))
-    template = env.get_template('ajax/provisioning/do_edit_dialog.html')
-    template = template.render(server=server, providers=providers, params=params, lang=lang)
-    print(template)
+    edit_functions = {
+        'aws': provider_mod.edit_aws_provider,
+        'do': provider_mod.edit_DO_provider,
+        'gcore': provider_mod.edit_gcore_provider,
+    }
 
-if form.getvalue('edit_do_provider'):
-    roxywi_common.check_user_group()
-    provider_id = form.getvalue('edit_do_provider')
-    new_name = form.getvalue('edit_do_provider_name')
-    new_token = form.getvalue('edit_do_provider_token')
-
-    try:
-        if sql.update_do_provider(new_name, new_token, provider_id):
-            print('ok')
-            roxywi_common.logging('Roxy-WI server', f'Provider has been renamed. New name is {new_name}', provisioning=1)
-    except Exception as e:
-        print(e)
-
-if form.getvalue('edit_gcore_provider'):
-    roxywi_common.check_user_group()
-    provider_id = form.getvalue('edit_gcore_provider')
-    new_name = form.getvalue('edit_gcore_provider_name')
-    new_user = form.getvalue('edit_gcore_provider_user')
-    new_pass = form.getvalue('edit_gcore_provider_pass')
-
-    try:
-        if sql.update_gcore_provider(new_name, new_user, new_pass, provider_id):
-            print('ok')
-            roxywi_common.logging('Roxy-WI server', f'Provider has been renamed. New name is {new_name}', provisioning=1)
-    except Exception as e:
-        print(e)
-
-if form.getvalue('edit_aws_provider'):
-    roxywi_common.check_user_group()
-    provider_id = form.getvalue('edit_aws_provider')
-    new_name = form.getvalue('edit_aws_provider_name')
-    new_key = form.getvalue('edit_aws_provider_key')
-    new_secret = form.getvalue('edit_aws_provider_secret')
-
-    try:
-        if sql.update_aws_provider(new_name, new_key, new_secret, provider_id):
-            print('ok')
-            roxywi_common.logging('Roxy-WI server', f'Provider has been renamed. New name is {new_name}', provisioning=1)
-    except Exception as e:
-        print(e)
+    edit_functions[provider](provider_id)
 
 if form.getvalue('loadservices'):
     from modules.roxywi.roxy import get_services_status
@@ -2136,41 +1560,7 @@ if form.getvalue('serverSettingsSave') is not None:
                                   keep_history=1, service=service)
 
 if act == 'showListOfVersion':
-    service = common.checkAjaxInput(form.getvalue('service'))
-    configver = common.checkAjaxInput(form.getvalue('configver'))
-    for_delver = common.checkAjaxInput(form.getvalue('for_delver'))
-    users = sql.select_users()
-    service_desc = sql.select_service(service)
-    configs = sql.select_config_version(serv, service_desc.slug)
-    lang = roxywi_common.get_user_lang()
-
-    if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
-        action = f'versions.py?service={service_desc.slug}'
-
-        if service in ('haproxy', 'nginx', 'apache'):
-            configs_dir = get_config.get_config_var('configs', f'{service_desc.service}_save_configs_dir')
-        else:
-            configs_dir = get_config.get_config_var('configs', 'kp_save_configs_dir')
-
-        if service == 'haproxy':
-            files = roxywi_common.get_files()
-        else:
-            files = roxywi_common.get_files(configs_dir, 'conf')
-
-        env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
-                          extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
-        template = env.get_template('ajax/show_list_version.html')
-
-        template = template.render(serv=serv,
-                                   service=service,
-                                   action=action,
-                                   return_files=files,
-                                   configver=configver,
-                                   for_delver=for_delver,
-                                   configs=configs,
-                                   users=users,
-                                   lang=lang)
-        print(template)
+    config_mod.list_of_versions(serv, service)
 
 if act == 'getSystemInfo':
     server_mod.show_system_info()
@@ -2187,7 +1577,6 @@ if act == 'findInConfigs':
     server_ip = serv
     server_ip = common.is_ip_or_dns(server_ip)
     finding_words = form.getvalue('words')
-    service = form.getvalue('service')
     log_path = sql.get_setting(service + '_dir')
     log_path = common.return_nice_path(log_path)
     commands = [f'sudo grep "{finding_words}" {log_path}*/*.conf -C 2 -Rn']
@@ -2205,7 +1594,6 @@ if act == 'check_service':
     cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
     user_uuid = cookie.get('uuid')
     server_id = common.checkAjaxInput(form.getvalue('server_id'))
-    service = common.checkAjaxInput(form.getvalue('service'))
 
     service_action.check_service(serv, user_uuid, service)
 

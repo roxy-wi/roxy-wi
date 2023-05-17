@@ -2,6 +2,8 @@ import os
 import re
 import http.cookies
 
+from jinja2 import Environment, FileSystemLoader
+
 import modules.db.sql as sql
 import modules.server.ssh as mod_ssh
 import modules.server.server as server_mod
@@ -83,6 +85,10 @@ def upload_and_restart(server_ip: str, cfg: str, **kwargs):
 		service = 'haproxy'
 		config_path = sql.get_setting('haproxy_config_path')
 		file_format = 'cfg'
+
+	if '..' in config_path:
+		print('error: nice try')
+		return None
 
 	tmp_file = f"{sql.get_setting('tmp_config_path')}/{config_date}.{file_format}"
 	is_dockerized = sql.select_service_setting(server_id, service, 'dockerized')
@@ -372,8 +378,6 @@ def show_finding_in_config(stdout: str, **kwargs) -> str:
 
 
 def show_compare_config(server_ip: str) -> None:
-	from jinja2 import Environment, FileSystemLoader
-
 	env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 	template = env.get_template('ajax/show_compare_configs.html')
 	left = form.getvalue('left')
@@ -395,8 +399,6 @@ def show_compare_config(server_ip: str) -> None:
 
 
 def compare_config() -> None:
-	from jinja2 import Environment, FileSystemLoader
-
 	left = common.checkAjaxInput(form.getvalue('left'))
 	right = common.checkAjaxInput(form.getvalue('right'))
 	lang = roxywi_common.get_user_lang()
@@ -423,8 +425,6 @@ def compare_config() -> None:
 
 
 def show_config(server_ip: str) -> None:
-	from jinja2 import Environment, FileSystemLoader
-
 	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 	user_uuid = cookie.get('uuid')
 	group_id = cookie.get('group')
@@ -449,6 +449,10 @@ def show_config(server_ip: str) -> None:
 		configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
 		cfg = '.cfg'
 
+	if '..' in configs_dir:
+		print('error: nice try')
+		return None
+
 	if form.getvalue('configver') is None:
 		cfg = f"{configs_dir}{server_ip}-{get_date.return_date('config')}{cfg}"
 		try:
@@ -472,16 +476,9 @@ def show_config(server_ip: str) -> None:
 					  extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
 	template = env.get_template('ajax/config_show.html')
 
-	template = template.render(conf=conf,
-							   serv=server_ip,
-							   configver=form.getvalue('configver'),
-							   role=role_id,
-							   service=service,
-							   config_file_name=config_file_name,
-							   is_serv_protected=is_serv_protected,
-							   is_restart=is_restart,
-							   lang=lang,
-							   hostname=hostname)
+	template = template.render(conf=conf, serv=server_ip, configver=form.getvalue('configver'), role=role_id,
+							   service=service, config_file_name=config_file_name, is_serv_protected=is_serv_protected,
+							   is_restart=is_restart, lang=lang, hostname=hostname)
 	print(template)
 	conf.close()
 
@@ -490,8 +487,6 @@ def show_config(server_ip: str) -> None:
 
 
 def show_config_files(server_ip: str) -> None:
-	from jinja2 import Environment, FileSystemLoader
-
 	service = form.getvalue('service')
 	service_config_dir = sql.get_setting(f'{service}_dir')
 	return_files = server_mod.get_remote_files(server_ip, service_config_dir, 'conf')
@@ -511,4 +506,35 @@ def show_config_files(server_ip: str) -> None:
 	template = env.get_template('ajax/show_configs_files.html')
 	template = template.render(serv=server_ip, service=service, return_files=return_files, lang=lang,
 							   config_file_name=config_file_name, path_dir=service_config_dir)
+	print(template)
+
+
+def list_of_versions(server_ip: str, service: str) -> None:
+	if service not in ('haproxy', 'nginx', 'keepalived', 'apache'):
+		print('error: wrong service')
+		return None
+
+	configver = common.checkAjaxInput(form.getvalue('configver'))
+	for_delver = common.checkAjaxInput(form.getvalue('for_delver'))
+	users = sql.select_users()
+	service_desc = sql.select_service(service)
+	configs = sql.select_config_version(server_ip, service_desc.slug)
+	lang = roxywi_common.get_user_lang()
+	action = f'versions.py?service={service_desc.slug}'
+
+	if service in ('haproxy', 'nginx', 'apache'):
+		configs_dir = get_config_var.get_config_var('configs', f'{service_desc.service}_save_configs_dir')
+	else:
+		configs_dir = get_config_var.get_config_var('configs', 'kp_save_configs_dir')
+
+	if service == 'haproxy':
+		files = roxywi_common.get_files()
+	else:
+		files = roxywi_common.get_files(configs_dir, 'conf')
+
+	env = Environment(loader=FileSystemLoader('templates/'), autoescape=True, extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
+	template = env.get_template('ajax/show_list_version.html')
+
+	template = template.render(serv=server_ip, service=service, action=action, return_files=files, configver=configver,
+							   for_delver=for_delver, configs=configs, users=users, lang=lang)
 	print(template)

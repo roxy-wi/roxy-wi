@@ -31,22 +31,28 @@ if all(v is None for v in [form.getvalue('upstream'), form.getvalue('generatecon
 	env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
 	template = env.get_template('add_nginx.html')
 	template = template.render(
-		role=user_params['role'], user=user_params['user'], selects=user_params['servers'], add=form.getvalue('add'), conf_add=form.getvalue('conf'),
-		user_services=user_params['user_services'], token=user_params['token'], lang=user_params['lang']
+		h2=1, role=user_params['role'], user=user_params['user'], selects=user_params['servers'], add=form.getvalue('add'),
+		conf_add=form.getvalue('conf'), user_services=user_params['user_services'], token=user_params['token'], lang=user_params['lang']
 	)
 	print(template)
 elif form.getvalue('upstream') is not None:
 	nginx_dir = sql.get_setting('nginx_dir')
 	name = form.getlist('name')
 	new_upstream = form.getvalue('upstream')
+	balance = form.getvalue("balance")
 	ip = ''
 	port = ''
 	config_add = ''
 	servers_split = ''
 
+	if balance == 'round_robin':
+		balance = ''
+	else:
+		balance = f'    {balance};\n'
+
 	if new_upstream is not None:
 		config_add = f'upstream {new_upstream} {{\n'
-		config_add += f'    {form.getvalue("balance")};\n'
+		config_add += balance
 		config_name = f'upstream_{new_upstream}'
 
 	if form.getvalue('keepalive') is not None:

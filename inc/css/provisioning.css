@@ -49,11 +49,11 @@
     -webkit-box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.15);
     -moz-box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.15);
     box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.15);
-    -webkit-transition: width 3s ease;
-    -moz-transition: width 3s ease;
-    -o-transition: width 3s ease;
-    transition: width 3s ease;
-    animation: progress-bar-stripes 2s linear infinite;
+    -webkit-transition: width 2s ease;
+    -moz-transition: width 2s ease;
+    -o-transition: width 2s ease;
+    transition: width 2s ease;
+    animation: progress-bar-stripes 1s linear infinite;
     background-color: #5d9ceb;
 }
 .progress-bar-striped p{

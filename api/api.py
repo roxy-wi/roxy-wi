@@ -91,6 +91,7 @@ def index():
 		'keepalived/<id,hostname,ip>/action/restart': 'restart Keepalived service by id or hostname or ip. METHOD: GET',
 		'keepalived/<id,hostname,ip>/config': 'get Keepalived config from a server by id or hostname or ip. METHOD: GET',
 		'keepalived/<id,hostname,ip>/config': 'upload Keepalived config to a server by id or hostname or ip. Headers: action: save/reload/restart. Body must consist a whole Keepalived config. METHOD: POST',
+		'ha/create': 'Create HA cluster. Body be JSON body: master_ip: str, slave_ip: str, vrrp_ip: str, master_eth: str, slave_eth: str, virt_server: int, haproxy: int, nginx: int, syn_flood: int, return_to_master: int. METHOD: POST',
 	}
 	return dict(help=data)
 
@@ -240,6 +241,13 @@ def add_acl(haproxy_id):
 	if not check_login(required_service=1):
 		return dict(error=_error_auth)
 	return api_funct.add_acl(haproxy_id)
+
+
+@route('/ha/create', method=['POST'])
+def create_ha():
+	if not check_login(required_service=3):
+		return dict(error=_error_auth)
+	return api_funct.install_keepalived()
 
 
 @route('/<service>/<server_id>', method=['GET'])

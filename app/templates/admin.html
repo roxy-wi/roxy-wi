@@ -28,6 +28,7 @@
 		<table class="overview" id="ajax-group">
 			<thead>
 			<tr class="overviewHead">
+				<th class="padding10" style="width: 0;">Id</th>
 				<th class="padding10 first-collumn">{{lang.words.name|title()}}</th>
 				<th style="width: 100%;">{{lang.words.desc|title()}}</th>
 				<th></th>
@@ -35,6 +36,7 @@
 			<tbody>
 		{% for group in groups %}
 			<tr id="group-{{ group.group_id }}" class="{{ loop.cycle('odd', 'even') }}">
+				<td class="padding10" style="width: 0">{{group.group_id}}</td>
 			{% if group.name == "Default" %}
 				<td class="padding10 first-collumn">{{ group.name }}</td>
 				<td>{{ group.description }}</td>

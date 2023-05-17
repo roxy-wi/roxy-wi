@@ -383,9 +383,9 @@ function create_master_keepalived(hap, nginx, syn_flood, router_id) {
 	if (hap == '0' && nginx == '0') {
 		var progress_value = '50';
 	} else if (hap == '1' || nginx == '0') {
-		var progress_value = '43';
+		var progress_value = '25';
 	} else if (hap == '1' && nginx == '1') {
-		var progress_value = '50';
+		var progress_value = '16.6';
 	}
 	var virt_server = 0;
 	var haproxy_docker = 0;
@@ -434,7 +434,7 @@ function create_master_keepalived(hap, nginx, syn_flood, router_id) {
 					create_keep_alived_hap(nginx, 'master', haproxy_docker);
 				}
 				if (hap == '0' && nginx == '1') {
-					create_keep_alived_nginx('master', nginx_docker);
+					create_keep_alived_nginx(hap, 'master', nginx_docker);
 				}
 			} else {
 				toastr.clear();
@@ -445,11 +445,11 @@ function create_master_keepalived(hap, nginx, syn_flood, router_id) {
 }
 function create_slave_keepalived(hap, nginx, syn_flood, router_id) {
 	if (hap == '0' && nginx == '0') {
-		var progress_value = '100';
-	} else if (hap == '1' || nginx == '0') {
-		var progress_value = '67';
-	} else if (hap == '1' && nginx == '1') {
 		var progress_value = '50';
+	} else if (hap == '1' || nginx == '0') {
+		var progress_value = '25';
+	} else if (hap == '1' && nginx == '1') {
+		var progress_value = '16.6';
 	}
 	var haproxy_docker = 0;
 	var nginx_docker = 0;
@@ -492,16 +492,16 @@ function create_slave_keepalived(hap, nginx, syn_flood, router_id) {
 				create_keep_alived_hap(nginx, 'slave', haproxy_docker);
 			}
 			if (hap == '0' && nginx == '1') {
-				create_keep_alived_nginx('slave', nginx_docker);
+				create_keep_alived_nginx(hap, 'slave', nginx_docker);
 			}
 		}
 	} );
 }
 function create_keep_alived_hap(nginx, server, docker) {
 	if (nginx == '0') {
-		var progress_value = '100';
+		var progress_value = '25';
 	} else if (nginx == '1') {
-		var progress_value = '75';
+		var progress_value = '16.6';
 	}
 	if (server === 'master') {
 		var step_id = '#creating-haproxy-master';
@@ -535,12 +535,17 @@ function create_keep_alived_hap(nginx, server, docker) {
 				toastr.info(data);
 			}
 			if (nginx == '1') {
-				create_keep_alived_nginx(server, docker)
+				create_keep_alived_nginx(hap, server, docker)
 			}
 		}
 	} );
 }
-function create_keep_alived_nginx(server, docker) {
+function create_keep_alived_nginx(hap, server, docker) {
+	if (hap == '0') {
+		var progress_value = '25';
+	} else if (hap == '1') {
+		var progress_value = '16.6';
+	}
 	if (server === 'master') {
 		var step_id = '#creating-nginx-master';
 		var install_step = 'master Nginx';
@@ -567,7 +572,7 @@ function create_keep_alived_nginx(server, docker) {
 			} else if (data == '' ){
 				showProvisioningWarning(step_id, install_step, '#creating-warning', '#wait_mess');
 			} else if (data.indexOf('success') != '-1' ){
-				showProvisioningProccess('<br>'+data, step_id, '100', '#creating-progress', '#created-mess', '#wait-mess');
+				showProvisioningProccess('<br>'+data, step_id, progress_value, '#creating-progress', '#created-mess', '#wait-mess');
 			} else {
 				toastr.clear();
 				toastr.info(data);
@@ -618,8 +623,12 @@ function showProvisioningProccess(data, step_id, progress_value, progress_id, cr
     $(step_id).removeClass('proccessing');
     $(created_id).show();
     $(created_id).append(data);
-    $(progress_id).css('width', progress_value+'%');
-    if (progress_value === '100')
-    	$(waid_id).hide();
+	var cur_proggres_value = $(progress_id).css('width').split('px')[0] / $(progress_id).parent().width() * 100;
+	var new_progress = parseFloat(cur_proggres_value) + parseFloat(progress_value);
+	if (parseFloat(new_progress) > 84) {
+		$(waid_id).hide();
+		new_progress = parseFloat(100);
+	}
+    $(progress_id).css('width', new_progress+'%');
     $.getScript("/inc/fontawesome.min.js");
 }

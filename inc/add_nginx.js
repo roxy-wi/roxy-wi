@@ -9,7 +9,7 @@ $( function() {
 	});
     var add_server_var = '<br /><input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server" style="margin: 2px 0 4px 0;">: ' +
 		'<input name="server_port" required title="Backend port" size=3 placeholder="yyy" class="form-control second-server add_server_number" type="number"> ' +
-		'max_fails check: <input name="max_fails" required title="By default, the number of unsuccessful attempts is set to 1" size=5 value="1" class="form-control add_server_number" type="number">' +
+		'max_fails: <input name="max_fails" required title="By default, the number of unsuccessful attempts is set to 1" size=5 value="1" class="form-control add_server_number" type="number">' +
 		' fail_timeout: <input name="fail_timeout" required title="By default, the number of unsuccessful attempts is set to 1" size=5 value="1" class="form-control add_server_number" type="number">s'
 	$('[name=add-server-input]').click(function() {
 		$("[name=add_servers]").append(add_server_var);
