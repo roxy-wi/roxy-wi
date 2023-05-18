@@ -36,7 +36,7 @@ def show_installation_output(error: str, output: str, service: str, rc=0, api=0)
 			return True
 
 
-def install_haproxy(server_ip: str, **kwargs):
+def install_haproxy(server_ip: str, api=0, **kwargs):
 	script = "install_haproxy.sh"
 	hap_sock_p = str(sql.get_setting('haproxy_sock_port'))
 	stats_port = str(sql.get_setting('stats_port'))
@@ -78,7 +78,7 @@ def install_haproxy(server_ip: str, **kwargs):
 
 	return_out = server_mod.subprocess_execute_with_rc(commands[0])
 
-	if show_installation_output(return_out['error'], return_out['output'], service, rc=return_out['rc']):
+	if show_installation_output(return_out['error'], return_out['output'], service, rc=return_out['rc'], api=api):
 		try:
 			sql.update_haproxy(server_ip)
 		except Exception as e:
@@ -157,7 +157,7 @@ def waf_nginx_install(server_ip: str):
 	os.remove(script)
 
 
-def install_service(server_ip: str, service: str, docker: str, **kwargs) -> None:
+def install_service(server_ip: str, service: str, docker: str, api=0, **kwargs) -> None:
 	script = f"install_{service}.sh"
 	stats_user = sql.get_setting(f'{service}_stats_user')
 	stats_password = sql.get_setting(f'{service}_stats_password')
@@ -203,7 +203,7 @@ def install_service(server_ip: str, service: str, docker: str, **kwargs) -> None
 
 	return_out = server_mod.subprocess_execute_with_rc(commands[0])
 
-	if show_installation_output(return_out['error'], return_out['output'], service_name, rc=return_out['rc']):
+	if show_installation_output(return_out['error'], return_out['output'], service_name, rc=return_out['rc'], api=api):
 		if service == 'nginx':
 			try:
 				sql.update_nginx(server_ip)

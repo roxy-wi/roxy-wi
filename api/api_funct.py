@@ -843,50 +843,52 @@ def install_keepalived():
 	return_to_master = int(json_loads['return_to_master'])
 	router_id = random.randint(1, 255)
 	data = {'status': dict()}
+	data['status'][master] = dict()
+	data['status'][slave] = dict()
 
 	try:
 		service_mod.keepalived_master_install(master, eth, eth_slave, vrrp_ip, virt_server, syn_flood, return_to_master,
 											  haproxy, nginx, router_id, 1)
 	except Exception as e:
-		data['status'][master] = {'keepalived': f'error: {e}'}
+		data['status'][master]['keepalived'] = f'error: {e}'
 	else:
-		data['status'][master] = {'keepalived': 'done'}
+		data['status'][master]['keepalived'] = 'done'
 
 	try:
 		service_mod.keepalived_slave_install(master, slave, eth, eth_slave, vrrp_ip, syn_flood, haproxy, nginx, router_id, 1)
 	except Exception as e:
-		data['status'][slave] = {'keepalived': f'error: {e}'}
+		data['status'][slave]['keepalived'] = f'error: {e}'
 	else:
-		data['status'][slave] = {'keepalived': 'done'}
+		data['status'][slave]['keepalived'] = 'done'
 
 	if haproxy:
 		try:
-			service_mod.install_haproxy(master)
+			service_mod.install_haproxy(master, 1)
 		except Exception as e:
-			data['status'][master] = {'haproxy': f'error: {e}'}
+			data['status'][master]['haproxy'] = f'error: {e}'
 		else:
-			data['status'][master] = {'haproxy': 'done'}
+			data['status'][master]['haproxy'] = 'done'
 
 		try:
-			service_mod.install_haproxy(slave)
+			service_mod.install_haproxy(slave, 1)
 		except Exception as e:
-			data['status'][slave] = {'haproxy': f'error: {e}'}
+			data['status'][slave]['haproxy'] = f'error: {e}'
 		else:
-			data['status'][slave] = {'haproxy': 'done'}
+			data['status'][slave]['haproxy'] = 'done'
 
 	if nginx:
 		try:
-			service_mod.install_service(master, 'nginx', '0')
+			service_mod.install_service(master, 'nginx', '0', 1)
 		except Exception as e:
-			data['status'][master] = {'nginx': f'error: {e}'}
+			data['status'][master]['nginx'] = f'error: {e}'
 		else:
-			data['status'][master] = {'nginx': 'done'}
+			data['status'][master]['nginx'] = 'done'
 
 		try:
-			service_mod.install_service(slave, 'nginx', '0')
+			service_mod.install_service(slave, 'nginx', '0', 1)
 		except Exception as e:
-			data['status'][slave] = {'nginx': f'error: {e}'}
+			data['status'][slave]['nginx'] = f'error: {e}'
 		else:
-			data['status'][slave] = {'nginx': 'done'}
+			data['status'][slave]['nginx'] = 'done'
 
 	return dict(data)
