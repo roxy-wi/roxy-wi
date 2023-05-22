@@ -270,6 +270,16 @@ def get_ssl_cert(server_ip: str, cert_id: int) -> None:
 		print(f'error: Cannot connect to the server {e.args[0]}')
 
 
+def get_ssl_raw_cert(server_ip: str, cert_id: int) -> None:
+	cert_path = sql.get_setting('cert_path')
+	commands = [f"cat {cert_path}/{cert_id}"]
+
+	try:
+		server_mod.ssh_command(server_ip, commands, ip="1")
+	except Exception as e:
+		print(f'error: Cannot connect to the server {e.args[0]}')
+
+
 def get_ssl_certs(server_ip: str) -> None:
 	cert_path = sql.get_setting('cert_path')
 	commands = [f"sudo ls -1t {cert_path} |grep -E 'pem|crt|key'"]

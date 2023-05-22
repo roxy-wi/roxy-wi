@@ -71,6 +71,10 @@ if form.getvalue('getcert') is not None and serv is not None:
     cert_id = common.checkAjaxInput(form.getvalue('getcert'))
     add_mod.get_ssl_cert(serv, cert_id)
 
+if form.getvalue('getcert_raw') is not None and serv is not None:
+    cert_id = common.checkAjaxInput(form.getvalue('getcert_raw'))
+    add_mod.get_ssl_raw_cert(serv, cert_id)
+
 if form.getvalue('delcert') is not None and serv is not None:
     cert_id = common.checkAjaxInput(form.getvalue('delcert'))
     add_mod.del_ssl_cert(serv, cert_id)

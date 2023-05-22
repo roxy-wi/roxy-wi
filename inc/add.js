@@ -1482,6 +1482,9 @@ function updateSavedServer(id) {
 	} );
 }
 function view_ssl(id) {
+	var delete_word = $('#translate').attr('data-delete');
+	var cancel_word = $('#translate').attr('data-cancel');
+	var raw_word = $('#translate').attr('data-raw');
 	if(!checkIsServerFiled('#serv5')) return false;
 	$.ajax( {
 		url: "options.py",
@@ -1502,15 +1505,67 @@ function view_ssl(id) {
 					width: 670,
 					modal: true,
 					title: "Certificate from "+$('#serv5').val()+", name: "+id,
-					buttons: {
-						Close: function() {
-							$( this ).dialog( "close" );
-						},
-						Delete: function () {
-							$( this ).dialog( "close" );
-							confirmDeleting("SSL cert", id, $( this ), "");
+					buttons: [{
+						text: cancel_word,
+						click: function () {
+							$(this).dialog("close");
 						}
-					  }
+					}, {
+						text: raw_word,
+						click: function () {
+							showRawSSL(id);
+						}
+					}, {
+						text: delete_word,
+						click: function () {
+							$(this).dialog("close");
+							confirmDeleting("SSL cert", id, $(this), "");
+						}
+					}]
+				});
+			}
+		}
+	} );
+}
+function showRawSSL(id) {
+	var delete_word = $('#translate').attr('data-delete');
+	var cancel_word = $('#translate').attr('data-cancel');
+	$.ajax( {
+		url: "options.py",
+		data: {
+			serv: $('#serv5').val(),
+			getcert_raw: id,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			if (data.indexOf('error: ') != '-1') {
+				toastr.error(data);
+			} else {
+				$('#dialog-confirm-body').text(data);
+				$( "#dialog-confirm-cert" ).dialog({
+					resizable: false,
+					height: "auto",
+					width: 670,
+					modal: true,
+					title: "Certificate from "+$('#serv5').val()+", name: "+id,
+					buttons: [{
+						text: cancel_word,
+						click: function () {
+							$(this).dialog("close");
+						}
+					}, {
+						text: "Human readable",
+						click: function () {
+							view_ssl(id);
+						}
+					}, {
+						text: delete_word,
+						click: function () {
+							$(this).dialog("close");
+							confirmDeleting("SSL cert", id, $(this), "");
+						}
+					}]
 				});
 			}
 		}
