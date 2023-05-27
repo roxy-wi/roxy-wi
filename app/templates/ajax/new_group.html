@@ -1,5 +1,6 @@
 {% for group in groups %}
 	<tr id="group-{{ group.group_id }}" class="newgroup">
+		<td class="padding10" style="width: 0">{{group.group_id}}</td>
 		<td class="padding10 first-collumn">
 			<input type="text" id="name-{{ group.group_id }}" value="{{ group.name }}" class="form-control">
 		</td>

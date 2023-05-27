@@ -996,10 +996,11 @@ function common_ajax_action_after_success(dialog_id, new_group, ajax_append_id, 
 function addUser(dialog_id) {
 	var valid = true;
 	toastr.clear();
-	allFields = $( [] ).add( $('#new-username') ).add( $('#new-password') )
+	allFields = $( [] ).add( $('#new-username') ).add( $('#new-password') ).add( $('#new-email') )
 	allFields.removeClass( "ui-state-error" );
 	valid = valid && checkLength( $('#new-username'), "user name", 1 );
 	valid = valid && checkLength( $('#new-password'), "password", 1 );
+	valid = valid && checkLength( $('#new-email'), "Email", 1 );
 	var activeuser = 0;
 	if ($('#activeuser').is(':checked')) {
 		activeuser = '1';
@@ -1610,22 +1611,6 @@ function cloneServer(id) {
 	if (cur_url == 'users.py') {
 		$('#new-server-group-add').val($('#servergroup-'+id+' option:selected').val()).change()
 		$('#new-server-group-add').selectmenu("refresh");
-	}
-}
-function cloneUser(id) {
-	$( "#add-user-button" ).trigger( "click" );
-	if ($('#activeuser-'+id).is(':checked')) {
-		$('#activeuser').prop('checked', true)
-	} else {
-		$('#activeuser').prop('checked', false)
-	}
-	$('#activeuser').checkboxradio("refresh");
-	$('#new-role').val($('#role-'+id+' option:selected').val()).change()
-	$('#new-role').selectmenu("refresh");
-	cur_url = cur_url[0].split('#')[0]
-	if (cur_url == 'users.py') {
-		$('#new-group').val($('#usergroup-'+id+' option:selected').val()).change();
-		$('#new-group').selectmenu("refresh");
 	}
 }
 function cloneReceiver(id, reciever_name) {

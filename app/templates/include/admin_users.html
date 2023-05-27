@@ -15,7 +15,6 @@
 			<th style="width: 100%" id="user-services-th">{{lang.words.services|title()}}</th>
 			<th></th>
 			<th></th>
-			<th></th>
 		</tr>
 	</thead>
 	<tbody>
@@ -80,9 +79,6 @@
 			</td>
 			<td>
 				<a href="history.py?service=user&user_id={{user.user_id}}" title="{{lang.words.view|title()}} {{lang.words.history}} {{lang.words.for}} {{lang.words.user2}}" class="history"></a>
-			</td>
-			<td>
-				<a class="add" onclick="cloneUser({{user.user_id}})" id="clone-{{user.user_id}}" title="{{lang.words.w_copy|title()}} {{lang.words.the}} {{lang.words.settings}} {{lang.words.from}} {{user.username}}" style="cursor: pointer;"></a>
 			</td>
 			<td>
 				<a class="delete" onclick="confirmDeleteUser({{user.user_id}})" title="{{lang.words.delete|title()}} {{user.username}}" style="cursor: pointer;"></a>
