@@ -26,21 +26,27 @@
 {% set group = [] %}
 {% set group_prev = [] %}
 {%- for s in smon -%}
-    {% set checks = lang.smon_page.desc.enabled_checks +': <br>' + lang.phrases.port_check %}
-    {% if s.http %}
-    {% set checks = checks + ',<br>' + lang.smon_page.desc.http_status_check + ': ' + s.http.split(':')[0]|string() + '://' + s.ip|string() + ':' + s.port|string() + s.http.split(':')[1]|string() %}
+    {% set checks = lang.smon_page.desc.enabled_checks +': <br>' %}
+    {% if s.check_type == 'tcp' %}
+        {% set checks = checks + lang.phrases.port_check %}
+        {% set check_id = 1 %}
     {% endif %}
-    {% if s.body and s.body is not none %}
-    {% set checks = checks + ',<br>' + lang.smon_page.desc.body_status_check + ':' + s.body %}
+    {% if s.check_type == 'http' %}
+        {% set checks = checks + lang.smon_page.desc.http_status_check %}
+        {% set check_id = 2 %}
+        {% if s.ssl_expire_date %}
+            {% set checks = checks + ',<br> SSL ' + lang.words.expire + ': ' + s.ssl_expire_date %}
+        {% endif %}
     {% endif %}
-    {% if s.ssl_expire_date %}
-    {% set checks = checks + ',<br> SSL ' + lang.words.expire + ': ' + s.ssl_expire_date %}
+    {% if s.check_type == 'ping' %}
+        {% set check_id = 4 %}
+        {% set checks = lang.smon_page.desc.enabled_checks +': Ping' %}
     {% endif %}
     {% if s.en == 1 %}
-        {% if s.status == 1 and s.http_status == 1 and s.body_status == 1 %}
+        {% if s.status == 1 and s.body_status == 1 %}
             {% set additional_classes = 'good div-server-head-up' %}
             {% set uptime_desc = lang.words.uptime + ': <time class="timeago" datetime="'+s.time_state|string()+'">'+s.time_state|string()+'</time>' %}
-        {% elif s.status == 0 or s.http_status == 0 or s.body_status == 0 %}
+        {% elif s.status == 0 or s.body_status == 0 %}
             {% set additional_classes = 'err div-server-head-down' %}
             {% set uptime_desc = lang.words.downtime + ': <time class="timeago" datetime="'+s.time_state|string()+'">'+s.time_state|string()+'</time>' %}
         {% else %}
@@ -52,11 +58,11 @@
         {% set uptime_desc = lang.words.uptime + ': N/A' %}
     {% endif %}
     {% set additional_style = '' %}
-    {% if s.ip|string|length > 23 %}
+    {% if s.name|string|length > 23 %}
         {% set additional_style = 'font-size: 11px;' %}
-    {% elif s.ip|string|length > 20 %}
+    {% elif s.name|string|length > 20 %}
         {% set additional_style = 'font-size: 12px;' %}
-    {% elif s.ip|string|length > 17 %}
+    {% elif s.name|string|length > 17 %}
         {% set additional_style = 'font-size: 15px;' %}
     {% endif %}
     {% if s.group not in group %}
@@ -70,12 +76,13 @@
     <div class="smon_services {{additional_classes}}" data-help="{{checks}}" title="{{checks}}">
     <div class="ip">
         <span style="{{additional_style}}">
-            <a href="smon.py?action=history&host={{s.ip}}" title="{{lang.words.view|title()}} {{lang.words.history}} {{lang.words.for}} {{s.ip}} {{lang.words.host}}" class="link">{{s.ip}}:{{s.port}}</a>
+            <a href="smon.py?action=dashboard&dashboard_id={{s.id}}&check_id={{check_id}}" title="{{lang.words.view|title()}} {{lang.words.history}} {{lang.words.for}} {{s.name}} {{lang.words.host}}" class="link">{{s.name.strip("'")}}</a>
         </span>
+        <span class="server-action"><a href="smon.py?action=history&host={{s.name}}" title="{{lang.words.view|title()}} {{lang.words.alerts}} {{lang.words.history}} {{lang.words.for}} {{s.name}} {{lang.words.host}}" class="history"></a></span>
     </div>
     <div class="desc">
         {% if s.desc %}
-            <b>{{s.desc}}</b>
+            <b>{{s.desc.strip("'")}}</b>
         {% else %}
             {{lang.words.desc|title()}}: {{lang.words.none}}
         {% endif %}
@@ -100,11 +107,11 @@
         {% endif %}
     </div>
     {% if s.en == 1 %}
-         {% if s.status == 1 and s.http_status == 1 and s.body_status == 1 %}
+         {% if s.status == 1 and s.body_status == 1 %}
             <div class="up">
                 {{lang.smon_page.desc.UP}}
             </div>
-         {% elif s.http_status == 0 %}
+         {% elif s.status == 0 and s.check_type == 'http' %}
             <div class="down">
                 {{lang.smon_page.desc.HTTP_FAILURE}}
             </div>

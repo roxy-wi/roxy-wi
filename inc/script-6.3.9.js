@@ -80,6 +80,8 @@ $( function() {
 		   show_current_page($(this))
        } else if(cur_url[0] == 'smon.py' && cur_url[1].split('&')[0] == 'action=checker_history' && link2 == 'smon.py?action=checker_history'){
 		   show_current_page($(this))
+	   }  else if(cur_url[0] == 'smon.py' && cur_url[1].split('&')[0] == 'action=dashboard' && link2.indexOf('smon.py?action=view') != '-1'){
+		   show_current_page($(this))
 	   } else if(cur_url[0] == 'add.py' && cur_url[1].split('&')[0] == 'service=nginx#ssl' && link2 == 'add.py?service=nginx#ssl'){
 		   show_current_page($(this))
 	   } else if(cur_url[0] == 'viewlogs.py' && cur_url[1].split('&')[0] == 'type=2' && link2 == 'viewlogs.py?type=2') {

@@ -322,15 +322,10 @@ function getApacheChartData(server) {
     });
 }
 function loadMetrics() {
-    var service = findGetParameter('service');
-    if (!service) {
-        service = 'haproxy';
-    }
 	 $.ajax({
         url: "options.py",
 		data: {
 			table_metrics: '1',
-            service: service,
 			token: $('#token').val()
 		},
 		beforeSend: function() {
@@ -557,4 +552,75 @@ function updatingCpuRamCharts() {
 		getHttpChartData(server_ip);
 		getWafChartData(server_ip);
 	}
+}
+function getSmonHistoryCheckData(server, check_id) {
+    $.ajax({
+        url: "options.py",
+        data: {
+            smon_history_check: '1',
+            check_id: check_id,
+            server_id: server,
+            // time_range: $( "#time-range option:selected" ).val(),
+            token: $('#token').val()
+        },
+        type: "POST",
+        success: function (result) {
+            var data = [];
+            data.push(result.chartData.curr_con);
+            var labels = result.chartData.labels;
+            renderSMONChart(data, labels, '3');
+        }
+    });
+}
+function renderSMONChart(data, labels, server) {
+    var resp_time_word = $('#translate').attr('data-resp_time');
+    var ctx = 'metrics_' + server;
+    var myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels.split(','),
+            datasets: [
+                {
+                    parsing: false,
+                    normalized: true,
+                    label: resp_time_word+' (ms)',
+                    data: data[0].split(','),
+                    borderColor: 'rgba(92, 184, 92, 1)',
+                    backgroundColor: 'rgba(92, 184, 92, 0.2)',
+                }
+            ]
+        },
+        options: {
+            animation: false,
+            maintainAspectRatio: false,
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true,
+                    }
+                }],
+                xAxes: [{
+                    ticks: {
+                        major: {
+                            enabled: true,
+                            fontStyle: 'bold'
+                        },
+                        source: 'data',
+                        autoSkip: true,
+                        autoSkipPadding: 45,
+                        maxRotation: 0
+                    }
+                }]
+            },
+            legend: {
+                display: true,
+                labels: {
+                    fontColor: 'rgb(255, 99, 132)',
+                    defaultFontSize: '10',
+                    defaultFontFamily: 'BlinkMacSystemFont'
+                },
+            }
+        }
+    });
+    charts.push(myChart);
 }

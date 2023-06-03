@@ -1,4 +1,5 @@
 from peewee import *
+from playhouse.migrate import *
 from datetime import datetime
 
 import modules.roxy_wi_tools as roxy_wi_tools
@@ -13,9 +14,11 @@ if mysql_enable == '1':
     mysql_host = get_config.get_config_var('mysql', 'mysql_host')
     mysql_port = get_config.get_config_var('mysql', 'mysql_port')
     conn = MySQLDatabase(mysql_db, user=mysql_user, password=mysql_password, host=mysql_host, port=int(mysql_port))
+    migrator = MySQLMigrator(conn)
 else:
     db = "/var/lib/roxy-wi/roxy-wi.db"
     conn = SqliteDatabase(db, pragmas={'timeout': 1000, 'foreign_keys': 1})
+    migrator = SqliteMigrator(conn)
 
 
 class BaseModel(Model):
@@ -412,17 +415,15 @@ class MetricsHttpStatus(BaseModel):
 
 class SMON(BaseModel):
     id = AutoField()
-    ip = CharField(null=True)
+    name = CharField(null=True)
     port = IntegerField(null=True)
     status = IntegerField(constraints=[SQL('DEFAULT 1')])
     en = IntegerField(constraints=[SQL('DEFAULT 1')])
     desc = CharField(null=True)
     response_time = CharField(null=True)
-    time_state = IntegerField(constraints=[SQL('DEFAULT 0')])
+    time_state = DateTimeField(constraints=[SQL('DEFAULT "0000-00-00 00:00:00"')])
     group = CharField(null=True)
-    script = CharField(null=True)
     http = CharField(null=True)
-    http_status = IntegerField(constraints=[SQL('DEFAULT 1')])
     body = CharField(null=True)
     body_status = IntegerField(constraints=[SQL('DEFAULT 1')])
     telegram_channel_id = IntegerField(null=True)
@@ -432,6 +433,7 @@ class SMON(BaseModel):
     ssl_expire_critical_alert = IntegerField(constraints=[SQL('DEFAULT 0')])
     ssl_expire_date = CharField(null=True)
     pd_channel_id = IntegerField(null=True)
+    check_type = CharField(constraints=[SQL('DEFAULT tcp')])
 
     class Meta:
         table_name = 'smon'
@@ -602,6 +604,51 @@ class KeepaliveRestart(BaseModel):
         constraints = [SQL('UNIQUE (server_id, service)')]
 
 
+class SmonHistory(BaseModel):
+    smon_id = ForeignKeyField(SMON, on_delete='Cascade')
+    check_id = IntegerField()
+    response_time = FloatField()
+    status = IntegerField()
+    mes = CharField()
+    date = DateTimeField(default=datetime.now)
+
+    class Meta:
+        table_name = 'smon_history'
+        primary_key = False
+
+
+class SmonTcpCheck(BaseModel):
+    smon_id = ForeignKeyField(SMON, on_delete='Cascade', unique=True)
+    ip = CharField()
+    port = IntegerField()
+
+    class Meta:
+        table_name = 'smon_tcp_check'
+        primary_key = False
+
+
+class SmonHttpCheck(BaseModel):
+    smon_id = ForeignKeyField(SMON, on_delete='Cascade', unique=True)
+    url = CharField()
+    method = CharField(constraints=[SQL('DEFAULT "get"')])
+    accepted_status_codes = CharField(constraints=[SQL('DEFAULT "200"')])
+    body = CharField(null=True)
+
+    class Meta:
+        table_name = 'smon_http_check'
+        primary_key = False
+
+
+class SmonPingCheck(BaseModel):
+    smon_id = ForeignKeyField(SMON, on_delete='Cascade', unique=True)
+    ip = CharField()
+    packet_size = IntegerField(constraints=[SQL('DEFAULT 56')])
+
+    class Meta:
+        table_name = 'smon_ping_check'
+        primary_key = False
+
+
 def create_tables():
     with conn:
         conn.create_tables([User, Server, Role, Telegram, Slack, UUID, Token, ApiToken, Groups, UserGroups, ConfigVersion,
@@ -609,4 +656,5 @@ def create_tables():
                             PortScannerSettings, PortScannerPorts, PortScannerHistory, ProvidersCreds, ServiceSetting,
                             ProvisionedServers, MetricsHttpStatus, SMON, WafRules, Alerts, GeoipCodes, NginxMetrics,
                             SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, ProvisionParam,
-                            WafNginx, ServiceStatus, KeepaliveRestart, PD])
+                            WafNginx, ServiceStatus, KeepaliveRestart, PD, SmonHistory, SmonTcpCheck, SmonHttpCheck,
+                            SmonPingCheck])

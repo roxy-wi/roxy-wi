@@ -827,9 +827,96 @@ def update_db_v_6_3_12():
 	else:
 		print("Updating... DB has been updated to version 6.3.12")
 
+
+def update_db_v_6_3_13():
+	cursor = conn.cursor()
+	sql = """
+	ALTER TABLE `smon` ADD COLUMN check_type VARCHAR ( 64 ) DEFAULT 'tcp';
+	"""
+	try:
+		cursor.execute(sql)
+	except Exception as e:
+		if e.args[0] == 'duplicate column name: check_type' or str(e) == '(1060, "Duplicate column name \'check_type\'")':
+			print('Updating... DB has been updated to version 6.3.13')
+		else:
+			print("An error occurred:", e)
+	else:
+		print("Updating... DB has been updated to version 6.3.13")
+
+
+def update_db_v_6_3_13_1():
+	try:
+		SmonTcpCheck.insert_from(
+			SMON.select(SMON.id, SMON.ip, SMON.port).where(
+				(SMON.http == '') & (SMON.check_type == 'tcp')
+			), fields=[SmonTcpCheck.smon_id, SmonTcpCheck.ip, SmonTcpCheck.port]
+		).on_conflict_ignore().execute()
+	except Exception as e:
+		if e.args[0] == 'duplicate column name: haproxy' or str(e) == 'type object \'SMON\' has no attribute \'ip\'':
+			print('Updating... DB has been updated to version 6.3.13-1')
+		else:
+			print("An error occurred:", e)
+
+
+def update_db_v_6_3_13_2():
+	query = SMON.select().where(SMON.http != '')
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		print("An error occurred:", e)
+	else:
+		for i in query_res:
+			try:
+				proto = i.http.split(':')[0]
+				uri = i.http.split(':')[1]
+			except Exception:
+				proto = ''
+				uri = ''
+			url = f'{proto}://{i.name}:{i.port}{uri}'
+			SmonHttpCheck.insert(smon_id=i.id, url=url, body=i.body).on_conflict_ignore().execute()
+
+
+def update_db_v_6_3_13_3():
+	try:
+		SmonPingCheck.insert_from(
+			SMON.select(SMON.id, SMON.ip).where(SMON.check_type == 'ping'), fields=[SmonPingCheck.smon_id, SmonPingCheck.ip]
+		).on_conflict_ignore().execute()
+	except Exception as e:
+		if e.args[0] == 'duplicate column name: haproxy' or str(e) == 'type object \'SMON\' has no attribute \'ip\'':
+			print('Updating... DB has been updated to version 6.3.13-2')
+		else:
+			print("An error occurred:", e)
+
+
+def update_db_v_6_3_13_4():
+	try:
+		migrate(
+			migrator.alter_column_type('smon', 'time_state', DateTimeField()),
+			migrator.rename_column('smon', 'ip', 'name'),
+			migrator.drop_column('smon', 'script', cascade=False),
+			migrator.drop_column('smon', 'http_status', cascade=False),
+		)
+	except Exception as e:
+		if e.args[0] == 'duplicate column name: check_type' or str(e) == '(1091, "Can\'t DROP COLUMN `script`; check that it exists")':
+			print('Updating... DB has been updated to version 6.3.13-3')
+		elif e.args[0] == 'duplicate column name: check_type' or str(e) == '(1091, "Can\'t DROP COLUMN `http_status`; check that it exists")':
+			print('Updating... DB has been updated to version 6.3.13-3')
+		elif e.args[0] == 'duplicate column name: check_type' or str(e) == "'bool' object has no attribute 'sql'":
+			print('Updating... DB has been updated to version 6.3.13-3')
+		else:
+			print("An error occurred:", e)
+
+
+def update_db_v_6_3_13_5():
+	try:
+		SMON.update(check_type='http').where(SMON.http != '').execute()
+	except Exception:
+		print("An error occurred:", e)
+
+
 def update_ver():
 	try:
-		Version.update(version='6.3.12.0').execute()
+		Version.update(version='6.3.13.0').execute()
 	except Exception:
 		print('Cannot update version')
 
@@ -860,6 +947,12 @@ def update_all():
 	update_db_v_6_3_9()
 	update_db_v_6_3_11()
 	update_db_v_6_3_12()
+	update_db_v_6_3_13()
+	update_db_v_6_3_13_1()
+	update_db_v_6_3_13_2()
+	update_db_v_6_3_13_3()
+	update_db_v_6_3_13_4()
+	update_db_v_6_3_13_5()
 	update_ver()
 
 

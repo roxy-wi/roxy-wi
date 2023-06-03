@@ -3,7 +3,7 @@
 {% block h2 %}{{ title }}{% endblock %}
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select %}
-<script src="/inc/smon.js"></script>
+<script src="/inc/smon-6.3.13.js"></script>
 <script src="/inc/users.js"></script>
 <script src="/inc/fontawesome.min.js"></script>
 <script src="/inc/jquery.timeago.js" type="text/javascript"></script>
@@ -53,15 +53,13 @@
 </div>
 {% else %}
 {% if action == 'add' %}
-<table class="overview" id="ajax-smon">
+<table class="overview overview-overflow" id="ajax-smon-http">
 	<thead>
-	<caption><h3>TCP/UDP check</h3></caption>
+	<caption><h3>HTTP {{lang.words.checking}}</h3></caption>
 		<tr class="overviewHead">
-			<th class="padding10 first-collumn" style="width: 150px;">Hostname</th>
-			<th style="width: 2%;">{{lang.words.port|title()}}</th>
+			<th class="padding10 first-collumn" style="width: 200px;">{{lang.words.name|title()}}</th>
+			<th style="width: 15%;">URL</th>
 			<th style="width: 5%;">{{lang.words.enabled|title()}}</th>
-			<th style="width: 10%;">{{lang.words.protocol|title()}}</th>
-			<th style="width: 15%;">URI</th>
 			<th style="width: 20%;">{{lang.words.body|title()}}</th>
 			<th style="width: 11%;">Telegram</th>
 			<th style="width: 11%;">Slack</th>
@@ -73,14 +71,80 @@
 		</tr>
 	</thead>
 	<tbody>
-		{{env}}
 		{% for s in smon %}
-			<tr id="smon-{{s.0}}">
-				{% include 'include/smon_server.html' %}
+			{% if s.check_type == 'http' %}
+				{% for s_service in smon_http %}
+					{% if s_service.smon_id|string() == s.id|string() %}
+						<tr id="smon-http-{{s.id}}">
+							{% include 'include/smon_http_server.html' %}
+					{% endif %}
+				{% endfor %}
+			{% endif %}
 		{% endfor %}
 	</tbody>
 </table>
-<br /><span class="add-button" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new}} {{lang.words.server}}" id="add-smon-button">+ {{lang.words.add|title()}}</span>
+<br /><span class="add-button" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new}} {{lang.words.server}}" id="add-smon-button-http">+ {{lang.words.add|title()}}</span>
+<br /><br />
+<table class="overview overview-overflow" id="ajax-smon-tcp">
+	<thead>
+	<caption><h3>TCP/UDP {{lang.words.checking}}</h3></caption>
+		<tr class="overviewHead">
+			<th class="padding10 first-collumn" style="width: 200px;">{{lang.words.name|title()}}</th>
+			<th style="width: 15%;">{{lang.words.Hostname}}</th>
+			<th style="width: 2%;">{{lang.words.port|title()}}</th>
+			<th style="width: 5%;">{{lang.words.enabled|title()}}</th>
+			<th style="width: 11%;">Telegram</th>
+			<th style="width: 11%;">Slack</th>
+			<th style="width: 11%;">PagerDuty</th>
+			<th style="width: 10%;">{{lang.words.group|title()}}</th>
+			<th style="width: 100%;">{{lang.words.desc|title()}}</th>
+			<th></th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+	{% for s_service in smon_tcp %}
+		{% for s in smon %}
+			{% if s.id|string() == s_service.smon_id|string() %}
+				<tr id="smon-tcp-{{s.id}}">
+					{% include 'include/smon_tcp_server.html' %}
+			{% endif %}
+		{% endfor %}
+	{% endfor %}
+	</tbody>
+</table>
+<br /><span class="add-button" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new}} {{lang.words.server}}" id="add-smon-button-tcp">+ {{lang.words.add|title()}}</span>
+<br /><br />
+<table class="overview overview-overflow" id="ajax-smon-ping" style="margin-bottom: 20px;">
+	<thead>
+	<caption><h3>Ping {{lang.words.checking}}</h3></caption>
+	<tr class="overviewHead">
+		<th class="padding10 first-collumn" style="width: 200px;">{{lang.words.name|title()}}</th>
+		<th style="width: 15%;">{{lang.words.Hostname}}</th>
+		<th style="width: 5%;">{{lang.words.enabled|title()}}</th>
+		<th style="width: 15%;">Telegram</th>
+		<th style="width: 15%;">Slack</th>
+		<th style="width: 15%;">PagerDuty</th>
+		<th style="width: 10%;">{{lang.words.group|title()}}</th>
+		<th style="width: 100%;">{{lang.words.desc|title()}}</th>
+		<th></th>
+		<th></th>
+	</tr>
+	</thead>
+	<tbody>
+	{% for s in smon %}
+		{% if s.check_type == 'ping' %}
+			{% for s_service in smon_ping %}
+				{% if s_service.smon_id|string() == s.id|string() %}
+					<tr id="smon-ping-{{s.id}}">
+						{% include 'include/smon_ping_server.html' %}
+				{% endif %}
+			{% endfor %}
+		{% endif %}
+	{% endfor %}
+	</tbody>
+</table>
+<br /><span class="add-button" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new}} {{lang.words.server}}" id="add-smon-button-ping">+ {{lang.words.add|title()}}</span>
 <br /><br />
 <div id="ajax"></div>
 <div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
@@ -91,14 +155,33 @@
 		{% include 'include/tr_validate_tips.html' %}
 		<tr>
 			<td class="padding20">
-				IP
+				{{lang.words.name|title()}}
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				{{ input('new-smon-name') }}
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">
+				{{lang.words.checking|title()}}
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				{% set check_types = {'ping': 'Ping', 'tcp': 'TCP/UDP', 'http': 'HTTP(s)'} %}
+				{{ select('check_type', values=check_types, selected='http') }}
+			</td>
+		</tr>
+		<tr class="new_smon_hostname">
+			<td class="padding20">
+				{{lang.words.Hostname}}
 				<span class="need-field">*</span>
 			</td>
 			<td>
 				{{ input('new-smon-ip') }}
 			</td>
 		</tr>
-		<tr>
+		<tr class="smon_tcp_check">
 			<td class="padding20">
 				{{lang.words.port|title()}}
 				<span class="need-field">*</span>
@@ -113,19 +196,11 @@
 				{{ checkbox('new-smon-enable', checked='checked') }}
 			</td>
 		</tr>
-		<tr>
-			<td class="padding20">{{lang.words.protocol|title()}}</td>
-			<td>
-				{% set values = dict() %}
-				{% set values = {'':'', 'http':'http','https':'https'} %}
-				{{ select('new-smon-proto',  values=values, selected='') }}
-			</td>
+		<tr class="smon_http_check">
+			<td class="padding20">URL</td>
+			<td>{{ input('new-smon-url', value='https://', title='proto://url[:port]/') }}</td>
 		</tr>
-		<tr>
-			<td class="padding20">URI</td>
-			<td>{{ input('new-smon-uri') }}</td>
-		</tr>
-		<tr>
+		<tr class="smon_http_check">
 			<td class="padding20">{{lang.words.body|title()}}</td>
 			<td>{{ input('new-smon-body') }}</td>
 		</tr>

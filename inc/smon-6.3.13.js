@@ -48,28 +48,25 @@ function showSmon(action) {
 }
 function addNewSmonServer(dialog_id) {
 	var valid = true;
-	allFields = $( [] ).add( $('#new-smon-ip') ).add( $('#new-smon-port') )
-	allFields.removeClass( "ui-state-error" );
-	valid = valid && checkLength( $('#new-smon-ip'), "IP", 1 );
-	valid = valid && checkLength( $('#new-smon-port'), "Port", 1 );
-	if ($('#new-smon-proto').val() != '' || $('#new-smon-uri').val() != '') {
-		allFields = $( [] ).add( $('#new-smon-ip') ).add( $('#new-smon-port') )
-			.add( $('#new-smon-proto') ).add( $('#new-smon-uri') );
-		allFields.removeClass( "ui-state-error" );
-		valid = valid && checkLength( $('#new-smon-ip'), "IP", 1 );
-		valid = valid && checkLength( $('#new-smon-port'), "Port", 1 );
-		valid = valid && checkLength( $('#new-smon-proto'), "Protocol", 1 );
-		valid = valid && checkLength( $('#new-smon-uri'), "URI", 1 );
+	var check_type = $('#check_type').val();
+	if (check_type == 'tcp') {
+		allFields = $([]).add($('#new-smon-ip')).add($('#new-smon-port')).add($('#new-smon-hostname')).add($('#new-smon-name'))
+		allFields.removeClass("ui-state-error");
+		valid = valid && checkLength($('#new-smon-ip'), "Hostname", 1);
+		valid = valid && checkLength($('#new-smon-name'), "Name", 1);
+		valid = valid && checkLength($('#new-smon-port'), "Port", 1);
 	}
-	if( $('#new-smon-body').val() != '') {
-		allFields = $( [] ).add( $('#new-smon-ip') ).add( $('#new-smon-port') )
-			.add( $('#new-smon-proto') ).add( $('#new-smon-uri') );
-		allFields.removeClass( "ui-state-error" );
-		valid = valid && checkLength( $('#new-smon-ip'), "IP", 1 );
-		valid = valid && checkLength( $('#new-smon-port'), "Port", 1 );
-		valid = valid && checkLength( $('#new-smon-proto'), "Protocol", 1 );
-		valid = valid && checkLength( $('#new-smon-uri'), "URI", 1 );
-		valid = valid && checkLength( $('#new-smon-body'), "Body", 1 );
+	if (check_type == 'http') {
+		allFields = $([]).add($('#new-smon-url')).add($('#new-smon-name'))
+		allFields.removeClass("ui-state-error");
+		valid = valid && checkLength($('#new-smon-name'), "Name", 1);
+		valid = valid && checkLength($('#new-smon-url'), "URL", 1);
+	}
+	if (check_type == 'ping') {
+		allFields = $([]).add($('#new-smon-ip')).add($('#new-smon-name'))
+		allFields.removeClass("ui-state-error");
+		valid = valid && checkLength($('#new-smon-name'), "Name", 1);
+		valid = valid && checkLength($('#new-smon-ip'), "Hostname", 1);
 	}
 	var enable = 0;
 	if ($('#new-smon-enable').is(':checked')) {
@@ -79,17 +76,18 @@ function addNewSmonServer(dialog_id) {
 		$.ajax( {
 			url: "options.py",
 			data: {
+				newsmonname: $('#new-smon-name').val(),
 				newsmon: $('#new-smon-ip').val(),
 				newsmonport: $('#new-smon-port').val(),
 				newsmonenable: enable,
-				newsmonproto: $('#new-smon-proto').val(),
-				newsmonuri: $('#new-smon-uri').val(),
+				newsmonurl: $('#new-smon-url').val(),
 				newsmonbody: $('#new-smon-body').val(),
 				newsmongroup: $('#new-smon-group').val(),
 				newsmondescription: $('#new-smon-description').val(),
 				newsmontelegram: $('#new-smon-telegram').val(),
 				newsmonslack: $('#new-smon-slack').val(),
 				newsmonpd: $('#new-smon-pd').val(),
+				newsmonchecktype: check_type,
 				token: $('#token').val()
 			},
 			type: "POST",
@@ -98,7 +96,15 @@ function addNewSmonServer(dialog_id) {
 				if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 					toastr.error(data);
 				} else {
-					common_ajax_action_after_success(dialog_id, 'newserver', 'ajax-smon', data);
+					if (check_type == 'ping') {
+						table_id = 'ajax-smon-ping';
+					} else if (check_type == 'tcp') {
+						table_id = 'ajax-smon-tcp';
+					}
+					 else {
+						table_id = 'ajax-smon-http';
+					}
+					common_ajax_action_after_success(dialog_id, 'newserver', table_id, data);
 					$( "input[type=submit], button" ).button();
 					$( "input[type=checkbox]" ).checkboxradio();
 					$( "select" ).selectmenu();
@@ -108,7 +114,7 @@ function addNewSmonServer(dialog_id) {
 		} );
 	}
 }
-function confirmDeleteSmon(id) {
+function confirmDeleteSmon(id, check_type) {
 	var delete_word = $('#translate').attr('data-delete');
 	var cancel_word = $('#translate').attr('data-cancel');
 	$( "#dialog-confirm" ).dialog({
@@ -121,7 +127,7 @@ function confirmDeleteSmon(id) {
 			text: delete_word,
 			click: function () {
 				$(this).dialog("close");
-				removeSmon(id);
+				removeSmon(id, check_type);
 			}
 		}, {
 			text: cancel_word,
@@ -131,7 +137,7 @@ function confirmDeleteSmon(id) {
 		}]
 	});
 }
-function removeSmon(id) {
+function removeSmon(id, check_type) {
 	$("#smon-"+id).css("background-color", "#f2dede");
 	$.ajax( {
 		url: "options.py",
@@ -143,7 +149,7 @@ function removeSmon(id) {
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if(data == "Ok ") {
-				$("#smon-"+id).remove();
+				$("#smon-"+check_type+"-"+id).remove();
 			} else {
 				toastr.error(data);
 			}
@@ -151,7 +157,7 @@ function removeSmon(id) {
 	} );
 }
 
-function updateSmon(id) {
+function updateSmon(id, check_type) {
 	toastr.clear();
 	var enable = 0;
 	if ($('#smon-enable-'+id).is(':checked')) {
@@ -160,16 +166,18 @@ function updateSmon(id) {
 	$.ajax( {
 		url: "options.py",
 		data: {
+			updateSmonName: $('#smon-name-'+id).val(),
 			updateSmonIp: $('#smon-ip-'+id).val(),
 			updateSmonPort: $('#smon-port-'+id).val(),
+			updateSmonUrl: $('#smon-url-'+id).val(),
 			updateSmonEn: enable,
-			updateSmonHttp: $('#smon-proto1-'+id).text(),
-			updateSmonBody: $('#smon-body-'+id).text(),
+			updateSmonBody: $('#smon-body-'+id).val(),
 			updateSmonTelegram: $('#smon-telegram-'+id).val(),
 			updateSmonSlack: $('#smon-slack-'+id).val(),
 			updateSmonPD: $('#smon-pd-'+id).val(),
 			updateSmonGroup: $('#smon-group-'+id).val(),
 			updateSmonDesc: $('#smon-desc-'+id).val(),
+			check_type: check_type,
 			id: id,
 			token: $('#token').val()
 		},
@@ -180,24 +188,27 @@ function updateSmon(id) {
 				toastr.error(data);
 			} else {
 				toastr.clear();
-				$("#smon-"+id).addClass( "update", 1000 );
+				$("#smon-"+check_type+"-"+id).addClass( "update", 1000 );
 				setTimeout(function() {
-					$( "#smon-"+id ).removeClass( "update" );
+					$("#smon-"+check_type+"-"+id).removeClass( "update" );
 				}, 2500 );
 			}
 		}
 	} );
 }
-function cloneSmom(id) {
-	$( "#add-smon-button" ).trigger( "click" );
+function cloneSmom(id, check_type) {
+	check_and_clear_check_type(check_type);
+	$( "#add-smon-button-"+check_type ).trigger( "click" );
 	if ($('#smon-enable-'+id).is(':checked')) {
 		$('#new-smon-enable').prop('checked', true)
 	} else {
 		$('#new-smon-enable').prop('checked', false)
 	}
 	$('#new-smon-enable').checkboxradio("refresh");
+	$('#new-smon-name').val($('#smon-name-'+id).val());
 	$('#new-smon-ip').val($('#smon-ip-'+id).val());
 	$('#new-smon-port').val($('#smon-port-'+id).val());
+	$('#new-smon-url').val($('#smon-url-'+id).val());
 	$('#new-smon-group').val($('#smon-group-'+id).val());
 	$('#new-smon-description').val($('#smon-desc-'+id).val())
 	$('#new-smon-telegram').val($('#smon-telegram-'+id+' option:selected').val()).change()
@@ -208,16 +219,44 @@ function cloneSmom(id) {
 	$('#new-smon-pd').selectmenu("refresh");
 }
 $( function() {
-	$('#add-smon-button').click(function() {
+	$('#add-smon-button-http').click(function() {
 		addSmonServer.dialog('open');
+		check_and_clear_check_type('http');
 	});
-	$( "#ajax-smon input" ).change(function() {
-		var id = $(this).attr('id').split('-');
-		updateSmon(id[2])
+	$('#add-smon-button-tcp').click(function() {
+		addSmonServer.dialog('open');
+		check_and_clear_check_type('tcp');
 	});
-	$( "#ajax-smon select" ).on('selectmenuchange',function() {
+	$('#add-smon-button-ping').click(function() {
+		addSmonServer.dialog('open');
+		check_and_clear_check_type('ping');
+	});
+	$( "#ajax-smon-http input" ).change(function() {
 		var id = $(this).attr('id').split('-');
-		updateSmon(id[2])
+		updateSmon(id[2], 'http');
+	});
+	$( "#ajax-smon-http select" ).on('selectmenuchange',function() {
+		var id = $(this).attr('id').split('-');
+		updateSmon(id[2], 'http');
+	});
+	$( "#ajax-smon-tcp input" ).change(function() {
+		var id = $(this).attr('id').split('-');
+		updateSmon(id[2], 'tcp');
+	});
+	$( "#ajax-smon-tcp select" ).on('selectmenuchange',function() {
+		var id = $(this).attr('id').split('-');
+		updateSmon(id[2], 'tcp');
+	});
+	$( "#ajax-smon-ping input" ).change(function() {
+		var id = $(this).attr('id').split('-');
+		updateSmon(id[2], 'ping');
+	});
+	$( "#ajax-smon-ping select" ).on('selectmenuchange',function() {
+		var id = $(this).attr('id').split('-');
+		updateSmon(id[2], 'ping');
+	});
+	$( "#check_type" ).on('selectmenuchange',function() {
+		check_and_clear_check_type($('#check_type').val());
 	});
 	var add_word = $('#translate').attr('data-add');
 	var cancel_word = $('#translate').attr('data-cancel');
@@ -251,3 +290,37 @@ $( function() {
 		}]
 	});
 });
+function check_and_clear_check_type(check_type) {
+	if (check_type == 'http') {
+		$('.smon_http_check').show();
+		$('.smon_tcp_check').hide();
+		$('.new_smon_hostname').hide();
+		$("#check_type").val('http');
+		$('#check_type').selectmenu("refresh");
+		$('.smon_http_check').show();
+		$('.smon_tcp_check').hide();
+		$('#new-smon-port').val('');
+		$('#new_smon_hostname').val('');
+	} else if (check_type == 'tcp') {
+		$('.smon_http_check').hide();
+		$('.smon_tcp_check').show();
+		$("#check_type").val('tcp');
+		$('#check_type').selectmenu("refresh");
+		$('.smon_tcp_check').show();
+		$('.new_smon_hostname').show();
+		$('.smon_http_check').hide();
+		$('#new-smon-url').val('');
+		$('#new-smon-body').val('');
+	} else {
+		$('.smon_http_check').hide();
+		$('.new_smon_hostname').show();
+		$('.smon_tcp_check').hide();
+		$("#check_type").val('ping');
+		$('#check_type').selectmenu("refresh");
+		$('.smon_tcp_check').hide();
+		$('.smon_http_check').hide();
+		$('#new-smon-url').val('');
+		$('#new-smon-body').val('');
+		$('#new-smon-port').val('');
+	}
+}

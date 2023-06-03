@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% from 'include/input_macros.html' import select %}
+{% block title %}{{ lang.menu_links.history.title }} {{ smon_name }}{% endblock %}
+{% block h2 %}{{ lang.menu_links.history.title }} {{ smon_name }}{% endblock %}
+{% block content %}
+{% set checking_types = {'1': 'TCP/UDP', '2': 'HTTP', '4': 'Ping'} %}
+{% if user_status == 0 or user_plan == 'user' %}
+	{% include 'include/no_sub.html' %}
+{% else %}
+<link href="/inc/css/chart.min.css" rel="stylesheet">
+<link href="/inc/css/smon.css" rel="stylesheet">
+<script src="/inc/chart.min.js"></script>
+<script src="/inc/metrics.js"></script>
+<div class="row wrap1">
+{% set service_status = [] %}
+{% for s in smon %}
+    {% set service_status = service_status.append(s.smon_id.en) %}
+    {% if check_id == 2 %}
+        <div id="smon_name" class="col-md-8"><a href="{{s.url}}" title="{{lang.words.open|title()}}" target="_blank">{{s.url}}</a></div>
+    {% elif check_id == 1 %}
+        <div id="smon_name" class="col-md-8" title="{{s.desc}}">{{s.ip}}:{{s.port}}</div>
+    {% else %}
+        <div id="smon_name" class="col-md-8" title="{{s.desc}}">{{s.smon_id.name}}</div>
+    {% endif %}
+{% endfor %}
+</div>
+<div class="row statuses wrap">
+    <div class="col-md-8" style="transform: translateX(0px);">
+        {% for s in smon_statuses|reverse %}
+            {% if s.status %}
+                {% set add_class = 'serverUp' %}
+            {% else %}
+                {% set add_class = 'serverDown' %}
+            {% endif %}
+            <div class="smon_server_statuses {{add_class}}" title="" data-help="{{s.date}} {{s.mes}}" style=""></div>
+        {% endfor %}
+        <div id="check_interval">{{lang.words.checking|title()}} {{lang.words.every}} {{check_interval}} {{lang.words.minutes2}}</div>
+    </div>
+    <div class="col-md-4">
+            {% if service_status.0 %}
+                {% if cur_status %}
+                    {% set add_class = 'serverUp' %}
+                    {% set status = lang.smon_page.desc.UP %}
+                {% else %}
+                    {% set add_class = 'serverDown' %}
+                    {% set status = lang.smon_page.desc.DOWN %}
+                {% endif %}
+            {% else %}
+                {% set add_class = 'serverNone' %}
+                {% set status = lang.smon_page.desc.DISABLED %}
+            {% endif %}
+        <span class="{{add_class}} cur_status" style="font-size: 30px; border-radius: 50rem!important;min-width: 62px;">{{status}}</span>
+    </div>
+</div>
+<div class="row statuses wrap">
+    {% for s in smon %}
+    <div class="col">
+        <h4>{{lang.words.checking|title()}}</h4>
+        <p class="smon_stats">({{lang.words.type|title()}})</p>
+        <span class="smon_value" title="{{last_resp_time}}">{{checking_types[check_id|string()]}}</span>
+    </div>
+    <div class="col">
+        <h4>{{lang.words.response|title()}}</h4>
+        <p class="smon_stats">({{lang.words.current|title()}})</p>
+        <span class="smon_value" title="{{last_resp_time}}">{{last_resp_time}}ms</span>
+    </div>
+    <div class="col">
+        <h4>{{lang.words.average2|title()}} {{lang.words.response}}</h4>
+        <p class="smon_stats">(24-{{lang.words.hours}})</p>
+        <span class="smon_value">{{avg_res_time}}ms</span>
+    </div>
+    <div class="col">
+        <h4>{{lang.words.uptime}}</h4>
+        <p class="smon_stats">(24-{{lang.words.hours}})</p>
+        <span class="smon_value">{{uptime}}%</span>
+    </div>
+    <div class="col">
+        <h4>{{lang.words.cert_expire}}</h4>
+        {% if s.smon_id.ssl_expire_date is not none %}
+            {% set ssl_date = s.smon_id.ssl_expire_date.split()[0] %}
+        {% else %}
+            {% set ssl_date = 'N/A' %}
+        {% endif %}
+        <p class="smon_stats">({{ssl_date}})</p>
+        <span class="smon_value">{{cert_day_diff}} {{lang.words.days}}</span>
+    </div>
+    {% endfor %}
+</div>
+<div class="chart-container" style="width: 98%">
+    <canvas id="metrics_3" role="img"></canvas>
+</div>
+{% endif %}
+<script>
+    getSmonHistoryCheckData('{{dashboard_id}}', '{{check_id}}')
+</script>
+{% endblock %}

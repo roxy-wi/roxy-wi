@@ -47,7 +47,10 @@ def create_user(new_user: str, email: str, password: str, role: str, activeuser:
 
 
 def delete_user():
-    userdel = form.getvalue('userdel')
+    userdel = int(form.getvalue('userdel'))
+    count_super_admin_users = sql.get_super_admin_count()
+    if count_super_admin_users < 2:
+        raise Exception('error: you cannot delete a last user with superAdmin role')
     user = sql.select_users(id=userdel)
     username = ''
     for u in user:

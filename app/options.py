@@ -31,7 +31,7 @@ token = form.getvalue("token")
 if any((
         form.getvalue('new_metrics'), form.getvalue('new_http_metrics'), form.getvalue('new_waf_metrics'), form.getvalue('new_nginx_metrics'),
         form.getvalue('new_apache_metrics'), form.getvalue('metrics_hapwi_ram'), form.getvalue('metrics_hapwi_cpu'), form.getvalue('getoption'),
-        form.getvalue('getsavedserver'))
+        form.getvalue('getsavedserver'), form.getvalue('smon_history_check'))
 ):
     print('Content-type: application/json\n')
 else:
@@ -981,7 +981,7 @@ if form.getvalue('getcurrentusergroup') is not None:
 
     roxy_user.get_user_active_group(user_id, group)
 
-if form.getvalue('newsmon') is not None:
+if form.getvalue('newsmonname') is not None:
     import modules.tools.smon as smon_mod
 
     smon_mod.create_smon()
@@ -996,10 +996,17 @@ if form.getvalue('showsmon') is not None:
 
     smon_mod.show_smon()
 
-if form.getvalue('updateSmonIp') is not None:
+if form.getvalue('updateSmonName') is not None:
     import modules.tools.smon as smon_mod
 
     smon_mod.update_smon()
+
+if form.getvalue('smon_history_check') is not None:
+    import modules.tools.smon as smon_mod
+
+    server_id = int(form.getvalue('server_id'))
+    check_id = int(form.getvalue('check_id'))
+    smon_mod.history_metrics(server_id, check_id)
 
 if form.getvalue('showBytes') is not None:
     import modules.roxywi.overview as roxywi_overview

@@ -32,7 +32,7 @@
 			<option {{disabled}} selected>{{first}}</option>
 		{% endif %}
 		{% for v, des in values.items() %}
-			{% if v == selected %}
+			{% if v == selected|string() %}
 				<option value="{{v}}" selected>{{des}}</option>
 			{% else %}
 				<option value="{{v}}">{{des}}</option>

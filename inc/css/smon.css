@@ -1,0 +1,72 @@
+h4 {
+    font-size: 1.5rem;
+    font-weight: 500;
+    line-height: 1.2;
+}
+.wrap {
+    margin-left: var(--indent);
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    padding-top: 10px;
+}
+.wrap1 {
+    margin-left: var(--indent);
+}
+.statuses {
+    border-bottom: 1px solid #ddd;
+    border-top: 1px solid #ddd;
+}
+.smon_server_statuses {
+    width: 5px;
+    height: 25px;
+    margin: 4px;
+    display: inline-block;
+    border-radius: 50rem;
+    transition: all .2s ease-in-out;
+}
+.smon_server_statuses:hover {
+    transform: scale(1.5);
+}
+*:before, *:after {
+    box-sizing: border-box;
+}
+#smon_name {
+    font-size: 25px;
+}
+#check_interval {
+    color: #aaa;
+    font-size: 14px;
+    padding-top: 10px;
+}
+.col-md-8 {
+    flex: 0 0 auto;
+    width: 76%;
+    margin-top: 5px;
+}
+.col-md-4 {
+    flex: 0 0 auto;
+    width: 23%;
+    margin-top: 10px;
+}
+.row {
+    --bs-gutter-x: 1.5rem;
+    --bs-gutter-y: 0;
+    display: flex;
+    flex-wrap: wrap;
+}
+.cur_status {
+    font-size: 30px;
+    border-radius: 50rem !important;
+    min-width: 92px;
+    font-weight: 700;
+    padding: 0.35em 0.65em;
+}
+.col {
+    flex: 1 0 0%;
+    text-align: center !important;
+}
+.smon_stats {
+    font-size: 13px;
+    color: #aaa;
+}
