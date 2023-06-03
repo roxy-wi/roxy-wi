@@ -433,11 +433,11 @@ class SMON(BaseModel):
     ssl_expire_critical_alert = IntegerField(constraints=[SQL('DEFAULT 0')])
     ssl_expire_date = CharField(null=True)
     pd_channel_id = IntegerField(null=True)
-    check_type = CharField(constraints=[SQL('DEFAULT tcp')])
+    check_type = CharField(constraints=[SQL('DEFAULT "tcp"')])
 
     class Meta:
         table_name = 'smon'
-        constraints = [SQL('UNIQUE (ip, port, http, body)')]
+        constraints = [SQL('UNIQUE (name, port, http, body)')]
 
 
 class Alerts(BaseModel):
