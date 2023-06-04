@@ -756,7 +756,10 @@ if form.getvalue('newuser') is not None:
 if form.getvalue('userdel') is not None:
     import modules.roxywi.user as roxywi_user
 
-    roxywi_user.delete_user()
+    try:
+        roxywi_user.delete_user()
+    except Exception as e:
+        print(e)
 
 if form.getvalue('updateuser') is not None:
     import modules.roxywi.user as roxywi_user

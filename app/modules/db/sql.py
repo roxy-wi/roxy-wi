@@ -4242,3 +4242,17 @@ def get_role_id(user_id: int, group_id: int) -> int:
 		out_error(e)
 	else:
 		return int(role_id.user_role_id)
+
+
+def is_user_super_admin(user_id: int) -> bool:
+	query = UserGroups.select().where(UserGroups.user_id == user_id)
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		for i in query_res:
+			if i.user_role_id == 1:
+				return True
+		else:
+			return False
