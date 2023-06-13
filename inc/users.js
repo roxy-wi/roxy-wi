@@ -1127,7 +1127,7 @@ function addServer(dialog_id) {
 				enable: enable,
 				slave: $('#slavefor' ).val(),
 				cred: cred,
-				page: cur_url,
+				page: cur_url[0].split('#')[0],
 				desc: $('#desc').val(),
 				token: $('#token').val()
 			},

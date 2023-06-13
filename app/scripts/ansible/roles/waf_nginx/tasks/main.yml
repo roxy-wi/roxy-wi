@@ -49,10 +49,10 @@
         name:
           - libtool
           - libevent-dev
-          - libpcre3-dev
           - libxml2-dev
           - libssl-dev
           - gcc
+          - libpcre3
           - libpcre3-dev
           - libcurl4-nss-dev
           - libyajl-dev
@@ -65,6 +65,10 @@
           - perl-modules
           - libgeoip-dev
           - libfuzzy2
+          - git
+          - zlib1g
+          - zlib1g-dev
+          - libssl-dev-y
         state: present
       when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'Ubuntu'
       environment:
@@ -83,7 +87,7 @@
         remote_src: true
 
     - name: Get NGINX version
-      shell: /usr/sbin/nginx -v
+      shell: /usr/sbin/nginx -v 2>&1 |grep -oP '(?<=nginx\/).*(?=\s)'
       register: nginx_version
 
     - name: Get NGINX parameters
