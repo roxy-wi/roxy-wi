@@ -221,7 +221,7 @@ def get_saved_servers(group: str, term: str) -> None:
 
 def get_le_cert(server_ip: str, lets_domain: str, lets_email: str) -> None:
 	proxy = sql.get_setting('proxy')
-	ssl_path = common.return_nice_path(sql.get_setting('cert_path'))
+	ssl_path = common.return_nice_path(sql.get_setting('cert_path'), is_service=0)
 	haproxy_dir = sql.get_setting('haproxy_dir')
 	script = "letsencrypt.sh"
 	proxy_serv = ''

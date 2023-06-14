@@ -54,8 +54,8 @@ def check_is_service_folder(service_path: str) -> bool:
 		return True
 
 
-def return_nice_path(return_path: str) -> str:
-	if not check_is_service_folder(return_path):
+def return_nice_path(return_path: str, is_service=1) -> str:
+	if not check_is_service_folder(return_path) and is_service:
 		return 'error: The path must contain the name of the service. Check it in Roxy-WI settings'
 
 	if return_path[-1] != '/':
