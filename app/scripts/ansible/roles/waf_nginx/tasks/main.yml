@@ -68,7 +68,6 @@
           - git
           - zlib1g
           - zlib1g-dev
-          - libssl-dev-y
         state: present
       when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'Ubuntu'
       environment:
@@ -87,7 +86,7 @@
         remote_src: true
 
     - name: Get NGINX version
-      shell: /usr/sbin/nginx -v 2>&1 |grep -oP '(?<=nginx\/).*(?=\s)'
+      shell: /usr/sbin/nginx -v
       register: nginx_version
 
     - name: Get NGINX parameters
