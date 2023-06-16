@@ -649,6 +649,18 @@ class SmonPingCheck(BaseModel):
         primary_key = False
 
 
+class SmonDnsCheck(BaseModel):
+    smon_id = ForeignKeyField(SMON, on_delete='Cascade', unique=True)
+    ip = CharField()
+    port = IntegerField(constraints=[SQL('DEFAULT 53')])
+    resolver = CharField()
+    record_type = CharField()
+
+    class Meta:
+        table_name = 'smon_dns_check'
+        primary_key = False
+
+
 def create_tables():
     with conn:
         conn.create_tables([User, Server, Role, Telegram, Slack, UUID, Token, ApiToken, Groups, UserGroups, ConfigVersion,
@@ -657,4 +669,4 @@ def create_tables():
                             ProvisionedServers, MetricsHttpStatus, SMON, WafRules, Alerts, GeoipCodes, NginxMetrics,
                             SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, ProvisionParam,
                             WafNginx, ServiceStatus, KeepaliveRestart, PD, SmonHistory, SmonTcpCheck, SmonHttpCheck,
-                            SmonPingCheck])
+                            SmonPingCheck, SmonDnsCheck])

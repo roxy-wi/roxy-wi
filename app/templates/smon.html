@@ -146,6 +146,40 @@
 </table>
 <br /><span class="add-button" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new}} {{lang.words.server}}" id="add-smon-button-ping">+ {{lang.words.add|title()}}</span>
 <br /><br />
+<table class="overview overview-overflow" id="ajax-smon-dns" style="margin-bottom: 20px;">
+	<thead>
+	<caption><h3>DNS {{lang.words.checking}}</h3></caption>
+	<tr class="overviewHead">
+		<th class="padding10 first-collumn" style="width: 200px;">{{lang.words.name|title()}}</th>
+		<th style="width: 15%;">{{lang.words.Hostname}}</th>
+		<th style="width: 15%;">Resolver {{lang.words.server}}</th>
+		<th style="width: 5%;">{{lang.words.port|title()}}</th>
+		<th style="width: 10%;">{{lang.phrases.resource_record_type}}</th>
+		<th style="width: 5%;">{{lang.words.enabled|title()}}</th>
+		<th style="width: 15%;">Telegram</th>
+		<th style="width: 15%;">Slack</th>
+		<th style="width: 15%;">PagerDuty</th>
+		<th style="width: 10%;">{{lang.words.group|title()}}</th>
+		<th style="width: 100%;">{{lang.words.desc|title()}}</th>
+		<th></th>
+		<th></th>
+	</tr>
+	</thead>
+	<tbody>
+	{% for s in smon %}
+		{% if s.check_type == 'dns' %}
+			{% for s_service in smon_dns %}
+				{% if s_service.smon_id|string() == s.id|string() %}
+					<tr id="smon-dns-{{s.id}}">
+						{% include 'include/smon_dns_server.html' %}
+				{% endif %}
+			{% endfor %}
+		{% endif %}
+	{% endfor %}
+	</tbody>
+</table>
+<br /><span class="add-button" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new}} {{lang.words.server}}" id="add-smon-button-dns">+ {{lang.words.add|title()}}</span>
+<br /><br />
 <div id="ajax"></div>
 <div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
 	{{lang.phrases.read_about_parameters}} <a href="https://roxy-wi.org/services/smon" title="SMON service description" target="_blank">{{lang.words.here}}</a>
@@ -168,7 +202,7 @@
 				<span class="need-field">*</span>
 			</td>
 			<td>
-				{% set check_types = {'ping': 'Ping', 'tcp': 'TCP/UDP', 'http': 'HTTP(s)'} %}
+				{% set check_types = {'dns': 'DNS', 'ping': 'Ping', 'tcp': 'TCP/UDP', 'http': 'HTTP(s)'} %}
 				{{ select('check_type', values=check_types, selected='http') }}
 			</td>
 		</tr>
@@ -181,7 +215,16 @@
 				{{ input('new-smon-ip') }}
 			</td>
 		</tr>
-		<tr class="smon_tcp_check">
+		<tr class="smon_dns_check">
+			<td class="padding20">
+				Resolver {{lang.words.server}}
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				{{ input('new-smon-resolver-server', value='8.8.8.8') }}
+			</td>
+		</tr>
+		<tr class="smon_tcp_check smon_dns_check">
 			<td class="padding20">
 				{{lang.words.port|title()}}
 				<span class="need-field">*</span>
@@ -190,19 +233,33 @@
 				{{ input('new-smon-port', type='number', size='4') }}
 			</td>
 		</tr>
+		<tr class="smon_http_check">
+			<td class="padding20">
+				URL
+				<span class="need-field">*</span>
+			</td>
+			<td>{{ input('new-smon-url', value='https://', title='proto://url[:port]/') }}</td>
+		</tr>
+		<tr class="smon_http_check">
+			<td class="padding20">{{lang.words.body|title()}}</td>
+			<td>{{ input('new-smon-body') }}</td>
+		</tr>
 		<tr>
 			<td class="padding20">{{lang.words.enable|title()}}</td>
 			<td>
 				{{ checkbox('new-smon-enable', checked='checked') }}
 			</td>
 		</tr>
-		<tr class="smon_http_check">
-			<td class="padding20">URL</td>
-			<td>{{ input('new-smon-url', value='https://', title='proto://url[:port]/') }}</td>
-		</tr>
-		<tr class="smon_http_check">
-			<td class="padding20">{{lang.words.body|title()}}</td>
-			<td>{{ input('new-smon-body') }}</td>
+		<tr class="smon_dns_check">
+			<td class="padding20">
+				{{lang.phrases.resource_record_type}}
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				{% set check_types = {'a': 'A', 'aaa': 'AAA', 'caa': 'CAA', 'cname': 'CNAME', 'mx': 'MX', 'ns': 'NS',
+				'ptr': 'PTR', 'sao': 'SAO', 'srv': 'SRV', 'txt': 'TXT'} %}
+				{{ select('new-smon-dns_record_type', values=check_types, selected='a') }}
+			</td>
 		</tr>
 		<tr>
 			<td class="padding20">Telegram</td>

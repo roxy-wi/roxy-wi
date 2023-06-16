@@ -3,7 +3,7 @@
 {% block title %}{{ lang.menu_links.history.title }} {{ smon_name }}{% endblock %}
 {% block h2 %}{{ lang.menu_links.history.title }} {{ smon_name }}{% endblock %}
 {% block content %}
-{% set checking_types = {'1': 'TCP/UDP', '2': 'HTTP', '4': 'Ping'} %}
+{% set checking_types = {'1': 'TCP/UDP', '2': 'HTTP', '4': 'Ping', '5': 'DNS'} %}
 {% if user_status == 0 or user_plan == 'user' %}
 	{% include 'include/no_sub.html' %}
 {% else %}
@@ -15,13 +15,17 @@
 {% set service_status = [] %}
 {% for s in smon %}
     {% set service_status = service_status.append(s.smon_id.en) %}
+    <div id="smon_name" class="col-md-8">
     {% if check_id == 2 %}
-        <div id="smon_name" class="col-md-8"><a href="{{s.url}}" title="{{lang.words.open|title()}}" target="_blank">{{s.url}}</a></div>
+        <a href="{{s.url}}" title="{{lang.words.open|title()}}" target="_blank">{{s.url}}</a>
     {% elif check_id == 1 %}
-        <div id="smon_name" class="col-md-8" title="{{s.desc}}">{{s.ip}}:{{s.port}}</div>
+       {{s.ip}}:{{s.port}}
+    {% elif check_id == 5 %}
+        {{s.ip}} {{lang.phrases.resource_record_type}}: {{s.record_type|upper()}}
     {% else %}
-        <div id="smon_name" class="col-md-8" title="{{s.desc}}">{{s.smon_id.name}}</div>
+        {{s.smon_id.name}}
     {% endif %}
+    </div>
 {% endfor %}
 </div>
 <div class="row statuses wrap">
@@ -37,18 +41,18 @@
         <div id="check_interval">{{lang.words.checking|title()}} {{lang.words.every}} {{check_interval}} {{lang.words.minutes2}}</div>
     </div>
     <div class="col-md-4">
-            {% if service_status.0 %}
-                {% if cur_status %}
-                    {% set add_class = 'serverUp' %}
-                    {% set status = lang.smon_page.desc.UP %}
-                {% else %}
-                    {% set add_class = 'serverDown' %}
-                    {% set status = lang.smon_page.desc.DOWN %}
-                {% endif %}
+        {% if service_status.0 %}
+            {% if cur_status %}
+                {% set add_class = 'serverUp' %}
+                {% set status = lang.smon_page.desc.UP %}
             {% else %}
-                {% set add_class = 'serverNone' %}
-                {% set status = lang.smon_page.desc.DISABLED %}
+                {% set add_class = 'serverDown' %}
+                {% set status = lang.smon_page.desc.DOWN %}
             {% endif %}
+        {% else %}
+            {% set add_class = 'serverNone' %}
+            {% set status = lang.smon_page.desc.DISABLED %}
+        {% endif %}
         <span class="{{add_class}} cur_status" style="font-size: 30px; border-radius: 50rem!important;min-width: 62px;">{{status}}</span>
     </div>
 </div>

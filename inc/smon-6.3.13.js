@@ -50,7 +50,7 @@ function addNewSmonServer(dialog_id) {
 	var valid = true;
 	var check_type = $('#check_type').val();
 	if (check_type == 'tcp') {
-		allFields = $([]).add($('#new-smon-ip')).add($('#new-smon-port')).add($('#new-smon-hostname')).add($('#new-smon-name'))
+		allFields = $([]).add($('#new-smon-ip')).add($('#new-smon-port')).add($('#new-smon-name'))
 		allFields.removeClass("ui-state-error");
 		valid = valid && checkLength($('#new-smon-ip'), "Hostname", 1);
 		valid = valid && checkLength($('#new-smon-name'), "Name", 1);
@@ -68,6 +68,14 @@ function addNewSmonServer(dialog_id) {
 		valid = valid && checkLength($('#new-smon-name'), "Name", 1);
 		valid = valid && checkLength($('#new-smon-ip'), "Hostname", 1);
 	}
+	if (check_type == 'dns') {
+		allFields = $([]).add($('#new-smon-ip')).add($('#new-smon-port')).add($('#new-smon-name')).add($('#new-smon-resolver-server'))
+		allFields.removeClass("ui-state-error");
+		valid = valid && checkLength($('#new-smon-name'), "Name", 1);
+		valid = valid && checkLength($('#new-smon-ip'), "Hostname", 1);
+		valid = valid && checkLength($('#new-smon-port'), "Port", 1);
+		valid = valid && checkLength($('#new-smon-resolver-server'), "Resolver server", 1);
+	}
 	var enable = 0;
 	if ($('#new-smon-enable').is(':checked')) {
 		enable = '1';
@@ -79,6 +87,8 @@ function addNewSmonServer(dialog_id) {
 				newsmonname: $('#new-smon-name').val(),
 				newsmon: $('#new-smon-ip').val(),
 				newsmonport: $('#new-smon-port').val(),
+				newsmonresserver: $('#new-smon-resolver-server').val(),
+				newsmondns_record_type: $('#new-smon-dns_record_type').val(),
 				newsmonenable: enable,
 				newsmonurl: $('#new-smon-url').val(),
 				newsmonbody: $('#new-smon-body').val(),
@@ -100,6 +110,8 @@ function addNewSmonServer(dialog_id) {
 						table_id = 'ajax-smon-ping';
 					} else if (check_type == 'tcp') {
 						table_id = 'ajax-smon-tcp';
+					} else if (check_type == 'dns') {
+						table_id = 'ajax-smon-dns';
 					}
 					 else {
 						table_id = 'ajax-smon-http';
@@ -168,6 +180,8 @@ function updateSmon(id, check_type) {
 		data: {
 			updateSmonName: $('#smon-name-'+id).val(),
 			updateSmonIp: $('#smon-ip-'+id).val(),
+			updateSmonResServer: $('#smon-resolver-'+id).val(),
+			updateSmonRecordType: $('#smon-record_type-'+id).val(),
 			updateSmonPort: $('#smon-port-'+id).val(),
 			updateSmonUrl: $('#smon-url-'+id).val(),
 			updateSmonEn: enable,
@@ -208,6 +222,8 @@ function cloneSmom(id, check_type) {
 	$('#new-smon-name').val($('#smon-name-'+id).val());
 	$('#new-smon-ip').val($('#smon-ip-'+id).val());
 	$('#new-smon-port').val($('#smon-port-'+id).val());
+	$('#new-smon-resolver-server').val($('#smon-resolver-'+id).val());
+	$('#new-smon-dns_record_typer').val($('#smon-record_type-'+id).val());
 	$('#new-smon-url').val($('#smon-url-'+id).val());
 	$('#new-smon-group').val($('#smon-group-'+id).val());
 	$('#new-smon-description').val($('#smon-desc-'+id).val())
@@ -230,6 +246,10 @@ $( function() {
 	$('#add-smon-button-ping').click(function() {
 		addSmonServer.dialog('open');
 		check_and_clear_check_type('ping');
+	});
+	$('#add-smon-button-dns').click(function() {
+		addSmonServer.dialog('open');
+		check_and_clear_check_type('dns');
 	});
 	$( "#ajax-smon-http input" ).change(function() {
 		var id = $(this).attr('id').split('-');
@@ -254,6 +274,14 @@ $( function() {
 	$( "#ajax-smon-ping select" ).on('selectmenuchange',function() {
 		var id = $(this).attr('id').split('-');
 		updateSmon(id[2], 'ping');
+	});
+	$( "#ajax-smon-dns input" ).change(function() {
+		var id = $(this).attr('id').split('-');
+		updateSmon(id[2], 'dns');
+	});
+	$( "#ajax-smon-dns select" ).on('selectmenuchange',function() {
+		var id = $(this).attr('id').split('-');
+		updateSmon(id[2], 'dns');
 	});
 	$( "#check_type" ).on('selectmenuchange',function() {
 		check_and_clear_check_type($('#check_type').val());
@@ -292,35 +320,43 @@ $( function() {
 });
 function check_and_clear_check_type(check_type) {
 	if (check_type == 'http') {
-		$('.smon_http_check').show();
-		$('.smon_tcp_check').hide();
 		$('.new_smon_hostname').hide();
 		$("#check_type").val('http');
 		$('#check_type').selectmenu("refresh");
-		$('.smon_http_check').show();
 		$('.smon_tcp_check').hide();
-		$('#new-smon-port').val('');
-		$('#new_smon_hostname').val('');
+		clear_check_vals();
+		$('.smon_http_check').show();
 	} else if (check_type == 'tcp') {
-		$('.smon_http_check').hide();
-		$('.smon_tcp_check').show();
 		$("#check_type").val('tcp');
 		$('#check_type').selectmenu("refresh");
-		$('.smon_tcp_check').show();
 		$('.new_smon_hostname').show();
 		$('.smon_http_check').hide();
-		$('#new-smon-url').val('');
-		$('#new-smon-body').val('');
+		$('.smon_dns_check').hide();
+		clear_check_vals();
+		$('.smon_tcp_check').show();
+	} else if (check_type == 'dns') {
+		$("#check_type").val('dns');
+		$('#check_type').selectmenu("refresh");
+		$('.smon_tcp_check').hide();
+		$('.new_smon_hostname').show();
+		$('.smon_http_check').hide();
+		clear_check_vals();
+		$('#new-smon-port').val('53');
+		$('.smon_dns_check').show();
 	} else {
 		$('.smon_http_check').hide();
 		$('.new_smon_hostname').show();
 		$('.smon_tcp_check').hide();
+		$('.smon_dns_check').hide();
 		$("#check_type").val('ping');
 		$('#check_type').selectmenu("refresh");
-		$('.smon_tcp_check').hide();
-		$('.smon_http_check').hide();
-		$('#new-smon-url').val('');
-		$('#new-smon-body').val('');
-		$('#new-smon-port').val('');
+		clear_check_vals();
+
 	}
+}
+function clear_check_vals() {
+	$('#new_smon_hostname').val('');
+	$('#new-smon-url').val('');
+	$('#new-smon-body').val('');
+	$('#new-smon-port').val('');
 }

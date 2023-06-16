@@ -2501,6 +2501,13 @@ def insert_smon_tcp(smon_id, hostname, port):
 		out_error(e)
 
 
+def insert_smon_dns(smon_id: int, hostname: str, port: int, resolver: str, record_type: str) -> None:
+	try:
+		SmonDnsCheck.insert(smon_id=smon_id, ip=hostname, port=port, resolver=resolver, record_type=record_type).execute()
+	except Exception as e:
+		out_error(e)
+
+
 def insert_smon_http(smon_id, url, body):
 	try:
 		SmonHttpCheck.insert(smon_id=smon_id, url=url, body=body).execute()
@@ -2565,6 +2572,16 @@ def select_en_smon_http() -> object:
 		return query_res
 
 
+def select_en_smon_dns() -> object:
+	query = SmonDnsCheck.select(SmonDnsCheck, SMON).join_from(SmonDnsCheck, SMON).where(SMON.en == '1')
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
+
+
 def select_smon_tcp(user_group):
 	if user_group == 1:
 		query = SmonTcpCheck.select()
@@ -2593,6 +2610,20 @@ def select_smon_http(user_group):
 		return query_res
 
 
+def select_smon_dns(user_group):
+	if user_group == 1:
+		query = SmonDnsCheck.select()
+	else:
+		query = SmonDnsCheck.select().where(SMON.user_group == user_group)
+
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
+
+
 def select_smon_by_id(last_id):
 	query = SMON.select().where(SMON.id == last_id)
 	try:
@@ -2608,9 +2639,10 @@ def select_smon_check_by_id(last_id, check_type):
 		query = SmonPingCheck.select().where(SmonPingCheck.smon_id == last_id)
 	elif check_type == 'tcp':
 		query = SmonTcpCheck.select().where(SmonTcpCheck.smon_id == last_id)
+	elif check_type == 'dns':
+		query = SmonDnsCheck.select().where(SmonDnsCheck.smon_id == last_id)
 	else:
 		query = SmonHttpCheck.select().where(SmonHttpCheck.smon_id == last_id)
-	print(query)
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -2650,8 +2682,19 @@ def update_smonTcp(smon_id, ip, port):
 		return False
 
 
-def update_smonPing(smon_id, ip, port):
+def update_smonPing(smon_id, ip):
 	query = (SmonPingCheck.update(ip=ip).where(SmonPingCheck.smon_id == smon_id))
+	try:
+		query.execute()
+		return True
+	except Exception as e:
+		out_error(e)
+		return False
+
+
+def update_smonDns(smon_id: int, ip: str, port: int, resolver: str, record_type: str):
+	query = (SmonDnsCheck.update(ip=ip, port=port, resolver=resolver, record_type=record_type)
+			 .where(SmonDnsCheck.smon_id == smon_id))
 	try:
 		query.execute()
 		return True
@@ -2826,6 +2869,8 @@ def select_one_smon(smon_id: int, check_id: int) -> object:
 		query = SmonTcpCheck.select(SmonTcpCheck, SMON).join_from(SmonTcpCheck, SMON).where(SMON.id == smon_id)
 	elif check_id == 2:
 		query = SmonHttpCheck.select(SmonHttpCheck, SMON).join_from(SmonHttpCheck, SMON).where(SMON.id == smon_id)
+	elif check_id == 5:
+		query = SmonDnsCheck.select(SmonDnsCheck, SMON).join_from(SmonDnsCheck, SMON).where(SMON.id == smon_id)
 	else:
 		query = SmonPingCheck.select(SmonPingCheck, SMON).join_from(SmonPingCheck, SMON).where(SMON.id == smon_id)
 	try:
@@ -3155,6 +3200,15 @@ def delete_alert_history(keep_interval: int, service: str):
 	query = Alerts.delete().where(
 		(Alerts.date < cur_date) & (Alerts.service == service)
 	)
+	try:
+		query.execute()
+	except Exception as e:
+		out_error(e)
+
+
+def delete_smon_history():
+	cur_date = get_date.return_date('regular', timedelta_minus=1)
+	query = SmonHistory.delete().where(SmonHistory.date < cur_date)
 	try:
 		query.execute()
 	except Exception as e:

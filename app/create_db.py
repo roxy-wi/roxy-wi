@@ -852,7 +852,7 @@ def update_db_v_6_3_13_1():
 			), fields=[SmonTcpCheck.smon_id, SmonTcpCheck.ip, SmonTcpCheck.port]
 		).on_conflict_ignore().execute()
 	except Exception as e:
-		if e.args[0] == 'duplicate column name: haproxy' or str(e) == 'type object \'SMON\' has no attribute \'ip\'':
+		if e.args[0] == 'no such column: t1.name' or str(e) == 'type object \'SMON\' has no attribute \'ip\'':
 			print('Updating... DB has been updated to version 6.3.13-1')
 		else:
 			print("An error occurred:", e)
@@ -916,7 +916,7 @@ def update_db_v_6_3_13_5():
 
 def update_ver():
 	try:
-		Version.update(version='6.3.13.0').execute()
+		Version.update(version='6.3.14.0').execute()
 	except Exception:
 		print('Cannot update version')
 

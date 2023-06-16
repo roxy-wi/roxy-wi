@@ -23,12 +23,14 @@ def create_smon() -> None:
     slack = common.checkAjaxInput(form.getvalue('newsmonslack'))
     pd = common.checkAjaxInput(form.getvalue('newsmonpd'))
     check_type = common.checkAjaxInput(form.getvalue('newsmonchecktype'))
+    resolver = common.checkAjaxInput(form.getvalue('newsmonresserver'))
+    record_type = common.checkAjaxInput(form.getvalue('newsmondns_record_type'))
 
     if check_type == 'tcp':
         try:
             port = int(port)
         except Exception:
-            print('SMON error: port must number')
+            print('SMON error: port must be a number')
             return None
         if port > 65535 or port < 0:
             print('SMON error: port must be 0-65535')
@@ -42,6 +44,8 @@ def create_smon() -> None:
         sql.insert_smon_tcp(last_id, hostname, port)
     elif check_type == 'http':
         sql.insert_smon_http(last_id, url, body)
+    elif check_type == 'dns':
+        sql.insert_smon_dns(last_id, hostname, port, resolver, record_type)
 
     if last_id:
         lang = roxywi_common.get_user_lang()
@@ -72,6 +76,8 @@ def update_smon() -> None:
     group = common.checkAjaxInput(form.getvalue('updateSmonGroup'))
     desc = common.checkAjaxInput(form.getvalue('updateSmonDesc'))
     check_type = common.checkAjaxInput(form.getvalue('check_type'))
+    resolver = common.checkAjaxInput(form.getvalue('updateSmonResServer'))
+    record_type = common.checkAjaxInput(form.getvalue('updateSmonRecordType'))
     is_edited = False
 
     if check_type == 'tcp':
@@ -93,7 +99,9 @@ def update_smon() -> None:
             elif check_type == 'tcp':
                 is_edited = sql.update_smonTcp(smon_id, ip, port)
             elif check_type == 'ping':
-                is_edited = sql.update_smonTcp(smon_id, ip)
+                is_edited = sql.update_smonPing(smon_id, ip)
+            elif check_type == 'dns':
+                is_edited = sql.update_smonDns(smon_id, ip, port, resolver, record_type)
 
             if is_edited:
                 print("Ok")

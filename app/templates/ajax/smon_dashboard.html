@@ -8,7 +8,7 @@
 		{% set dis = [] %}
 		{% for s in smon %}
 			{% if s.en == 1 %}
-				{% if s.status == 1 and s.http_status == 1 and s.body_status == 1 %}
+				{% if s.status == 1 and s.body_status == 1 %}
 					{% if up.append('1') %} {% endif %}
 				{% else %}
 					{% if down.append('1') %} {% endif %}
@@ -41,6 +41,10 @@
     {% if s.check_type == 'ping' %}
         {% set check_id = 4 %}
         {% set checks = lang.smon_page.desc.enabled_checks +': Ping' %}
+    {% endif %}
+    {% if s.check_type == 'dns' %}
+        {% set check_id = 5 %}
+        {% set checks = lang.smon_page.desc.enabled_checks +': DNS' %}
     {% endif %}
     {% if s.en == 1 %}
         {% if s.status == 1 and s.body_status == 1 %}
@@ -125,7 +129,7 @@
             </div>
          {% else %}
             <div class="down">
-                {{lang.smon_page.desc.PORT_DOWN}}
+                {{lang.smon_page.desc.DOWN}}
             </div>
          {% endif %}
     {% else %}

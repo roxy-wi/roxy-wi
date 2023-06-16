@@ -1,5 +1,5 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
-{% from 'include/input_macros.html' import input, checkbox %}
+{% from 'include/input_macros.html' import input, checkbox, select %}
 {% for s in smon %}
     {% for s_service in smon_service %}
     <tr class="newserver" id="smon-{{s.id}}">
@@ -9,6 +9,8 @@
             {% include 'include/smon_ping_server.html' %}
         {% elif check_type == 'http' %}
             {% include 'include/smon_http_server.html' %}
+        {% elif check_type == 'dns' %}
+            {% include 'include/smon_dns_server.html' %}
         {% endif %}
     {% endfor %}
 {% endfor %}

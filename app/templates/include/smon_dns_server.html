@@ -7,8 +7,18 @@
         {{ input(id, value=s_service.ip, size='20') }}
     </td>
     <td>
+        {% set id = 'smon-resolver-' + s.id|string() %}
+        {{ input(id, value=s_service.resolver, size='20') }}
+    </td>
+    <td>
         {% set id = 'smon-port-' + s.id|string() %}
         {{ input(id, value=s_service.port, size='5') }}
+    </td>
+    <td>
+        {% set id = 'smon-record_type-' + s.id|string() %}
+        {% set check_types = {'a': 'A', 'aaa': 'AAA', 'caa': 'CAA', 'cname': 'CNAME', 'mx': 'MX', 'ns': 'NS',
+        'ptr': 'PTR', 'sao': 'SAO', 'srv': 'SRV', 'txt': 'TXT'} %}
+        {{ select(id, values=check_types, selected=s_service.record_type) }}
     </td>
     <td class="checkbox">
         {% set id = 'smon-enable-' + s.id|string() %}
@@ -71,10 +81,10 @@
         {% endif %}
     </td>
     <td>
-        <a class="add" onclick="cloneSmom({{s.id}}, 'tcp')" id="clone-{{s.id}}" title="{{lang.words.clone|title()}} {{s.ip}}" style="cursor: pointer; color: #000;"></a>
+        <a class="add" onclick="cloneSmom({{s.id}}, 'dns')" id="clone-{{s.id}}" title="{{lang.words.clone|title()}} {{s.ip}}" style="cursor: pointer; color: #000;"></a>
     </td>
     <td>
-        <a class="delete" onclick="confirmDeleteSmon({{s.id}}, 'tcp')" title="{{lang.words.delete|title()}} {{s.ip}}" style="cursor: pointer; color: #000;"></a>
+        <a class="delete" onclick="confirmDeleteSmon({{s.id}}, 'dns')" title="{{lang.words.delete|title()}} {{s.ip}}" style="cursor: pointer; color: #000;"></a>
     </td>
 </tr>
 <script>
@@ -87,6 +97,9 @@
         });
         $("#smon-pd-{{s.id}}" ).selectmenu({
             width: 160
+        });
+        $("#smon-record_type-{{s.id}}" ).selectmenu({
+            width: 78
         });
     });
 </script>

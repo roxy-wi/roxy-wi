@@ -39,6 +39,7 @@ smon_statuses = ''
 smon_ping = ''
 smon_tcp = ''
 smon_http = ''
+smon_dns = ''
 smon = ''
 
 try:
@@ -55,6 +56,7 @@ if action == 'add':
 	smon_ping = sql.select_smon_ping(user_group)
 	smon_tcp = sql.select_smon_tcp(user_group)
 	smon_http = sql.select_smon_http(user_group)
+	smon_dns = sql.select_smon_dns(user_group)
 	roxywi_auth.page_for_admin(level=3)
 	if lang == 'ru':
 		title = "SMON: Админка"
@@ -86,7 +88,6 @@ elif action == 'dashboard':
 	dashboard_id = int(form.getvalue('dashboard_id'))
 	check_id = int(form.getvalue('check_id'))
 	smon_statuses = sql.select_smon_history(dashboard_id, check_id)
-	title = ''
 	smon_name = sql.get_smon_service_name_by_id(dashboard_id)
 	cur_status = sql.get_last_smon_status_by_check(dashboard_id, check_id)
 	check_interval = sql.get_setting('smon_check_interval')
@@ -116,11 +117,11 @@ elif action == 'dashboard':
 			cert_day_diff = (ssl_expire_date - present).days
 
 	rendered_template = template.render(
-		h2=1, title=title, autorefresh=autorefresh, role=user_params['role'], user=user_params['user'], smon=smon,
-		group=user_group, lang=lang, user_status=user_subscription['user_status'], check_interval=check_interval,
-		user_plan=user_subscription['user_plan'], token=user_params['token'], smon_statuses=smon_statuses, uptime=uptime,
-		user_services=user_params['user_services'], cur_status=cur_status, avg_res_time=avg_res_time, smon_name=smon_name,
-		cert_day_diff=cert_day_diff, check_id=check_id, dashboard_id=dashboard_id, last_resp_time=last_resp_time
+		h2=1, autorefresh=0, role=user_params['role'], user=user_params['user'], smon=smon, group=user_group, lang=lang,
+		user_status=user_subscription['user_status'], check_interval=check_interval, user_plan=user_subscription['user_plan'],
+		token=user_params['token'], smon_statuses=smon_statuses, uptime=uptime, user_services=user_params['user_services'],
+		cur_status=cur_status, avg_res_time=avg_res_time, smon_name=smon_name, cert_day_diff=cert_day_diff, check_id=check_id,
+		dashboard_id=dashboard_id, last_resp_time=last_resp_time
 	)
 	print(rendered_template)
 	sys.exit()
@@ -138,7 +139,8 @@ rendered_template = template.render(
 	h2=1, title=title, autorefresh=autorefresh, role=user_params['role'], user=user_params['user'], group=user_group,
 	telegrams=telegrams, slacks=slacks, pds=pds, lang=lang, smon=smon, smon_status=smon_status, smon_error=stderr,
 	action=action, sort=sort, user_services=user_params['user_services'], user_status=user_subscription['user_status'],
-	user_plan=user_subscription['user_plan'], token=user_params['token'], smon_ping=smon_ping, smon_tcp=smon_tcp, smon_http=smon_http
+	user_plan=user_subscription['user_plan'], token=user_params['token'], smon_ping=smon_ping, smon_tcp=smon_tcp,
+	smon_http=smon_http, smon_dns=smon_dns
 
 )
 print(rendered_template)
