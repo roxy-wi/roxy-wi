@@ -9,23 +9,8 @@ import modules.roxywi.common as roxywi_common
 form = common.form
 
 
-def create_smon() -> None:
-    user_group = roxywi_common.get_user_group(id=1)
-    name = common.checkAjaxInput(form.getvalue('newsmonname'))
-    hostname = common.checkAjaxInput(form.getvalue('newsmon'))
-    port = common.checkAjaxInput(form.getvalue('newsmonport'))
-    enable = common.checkAjaxInput(form.getvalue('newsmonenable'))
-    url = common.checkAjaxInput(form.getvalue('newsmonurl'))
-    body = common.checkAjaxInput(form.getvalue('newsmonbody'))
-    group = common.checkAjaxInput(form.getvalue('newsmongroup'))
-    desc = common.checkAjaxInput(form.getvalue('newsmondescription'))
-    telegram = common.checkAjaxInput(form.getvalue('newsmontelegram'))
-    slack = common.checkAjaxInput(form.getvalue('newsmonslack'))
-    pd = common.checkAjaxInput(form.getvalue('newsmonpd'))
-    check_type = common.checkAjaxInput(form.getvalue('newsmonchecktype'))
-    resolver = common.checkAjaxInput(form.getvalue('newsmonresserver'))
-    record_type = common.checkAjaxInput(form.getvalue('newsmondns_record_type'))
-
+def create_smon(name: str, hostname: str, port: int, enable: int, url: str, body: str, group: int, desc: str, telegram: int,
+                slack: int, pd: int, packet_size: int, check_type: int, resolver: str, record_type: str, user_group: int, show_new=1) -> None:
     if check_type == 'tcp':
         try:
             port = int(port)
@@ -36,10 +21,15 @@ def create_smon() -> None:
             print('SMON error: port must be 0-65535')
             return None
 
+    if check_type == 'ping':
+        if int(packet_size) < 16:
+            print('SMON error: a packet size cannot be less than 16')
+            return None
+
     last_id = sql.insert_smon(name, enable, group, desc, telegram, slack, pd, user_group, check_type)
 
     if check_type == 'ping':
-        sql.insert_smon_ping(last_id, hostname)
+        sql.insert_smon_ping(last_id, hostname, packet_size)
     elif check_type == 'tcp':
         sql.insert_smon_tcp(last_id, hostname, port)
     elif check_type == 'http':
@@ -47,7 +37,7 @@ def create_smon() -> None:
     elif check_type == 'dns':
         sql.insert_smon_dns(last_id, hostname, port, resolver, record_type)
 
-    if last_id:
+    if last_id and show_new:
         lang = roxywi_common.get_user_lang()
         smon = sql.select_smon_by_id(last_id)
         pds = sql.get_user_pd_by_group(user_group)
@@ -59,6 +49,8 @@ def create_smon() -> None:
         template = template.render(smon=smon, telegrams=telegrams, slacks=slacks, pds=pds, lang=lang, check_type=check_type,
                                    smon_service=smon_service)
         print(template)
+
+    if last_id:
         roxywi_common.logging('SMON', f' A new server {name} to SMON has been add ', roxywi=1, login=1)
 
 
@@ -78,6 +70,7 @@ def update_smon() -> None:
     check_type = common.checkAjaxInput(form.getvalue('check_type'))
     resolver = common.checkAjaxInput(form.getvalue('updateSmonResServer'))
     record_type = common.checkAjaxInput(form.getvalue('updateSmonRecordType'))
+    packet_size = common.checkAjaxInput(form.getvalue('updateSmonPacket_size'))
     is_edited = False
 
     if check_type == 'tcp':
@@ -90,6 +83,11 @@ def update_smon() -> None:
             print('SMON error: port must be 0-65535')
             return None
 
+    if check_type == 'ping':
+        if int(packet_size) < 16:
+            print('SMON error: a packet size cannot be less than 16')
+            return None
+
 
     roxywi_common.check_user_group()
     try:
@@ -99,7 +97,7 @@ def update_smon() -> None:
             elif check_type == 'tcp':
                 is_edited = sql.update_smonTcp(smon_id, ip, port)
             elif check_type == 'ping':
-                is_edited = sql.update_smonPing(smon_id, ip)
+                is_edited = sql.update_smonPing(smon_id, ip, packet_size)
             elif check_type == 'dns':
                 is_edited = sql.update_smonDns(smon_id, ip, port, resolver, record_type)
 

@@ -121,6 +121,7 @@
 	<tr class="overviewHead">
 		<th class="padding10 first-collumn" style="width: 200px;">{{lang.words.name|title()}}</th>
 		<th style="width: 15%;">{{lang.words.Hostname}}</th>
+		<th style="width: 2%;">{{lang.smon_page.desc.packet_size}}</th>
 		<th style="width: 5%;">{{lang.words.enabled|title()}}</th>
 		<th style="width: 15%;">Telegram</th>
 		<th style="width: 15%;">Slack</th>
@@ -213,6 +214,15 @@
 			</td>
 			<td>
 				{{ input('new-smon-ip') }}
+			</td>
+		</tr>
+		<tr class="smon_ping_check">
+			<td class="padding20">
+				{{lang.smon_page.desc.packet_size}}
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				{{ input('new-smon-packet_size', value='56', type='number') }}
 			</td>
 		</tr>
 		<tr class="smon_dns_check">

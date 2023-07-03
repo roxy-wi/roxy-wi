@@ -63,10 +63,11 @@ function addNewSmonServer(dialog_id) {
 		valid = valid && checkLength($('#new-smon-url'), "URL", 1);
 	}
 	if (check_type == 'ping') {
-		allFields = $([]).add($('#new-smon-ip')).add($('#new-smon-name'))
+		allFields = $([]).add($('#new-smon-ip')).add($('#new-smon-name')).add($('#new-smon-packet_size'))
 		allFields.removeClass("ui-state-error");
 		valid = valid && checkLength($('#new-smon-name'), "Name", 1);
 		valid = valid && checkLength($('#new-smon-ip'), "Hostname", 1);
+		valid = valid && checkLength($('#new-smon-packet_size'), "Packet size", 1);
 	}
 	if (check_type == 'dns') {
 		allFields = $([]).add($('#new-smon-ip')).add($('#new-smon-port')).add($('#new-smon-name')).add($('#new-smon-resolver-server'))
@@ -97,6 +98,7 @@ function addNewSmonServer(dialog_id) {
 				newsmontelegram: $('#new-smon-telegram').val(),
 				newsmonslack: $('#new-smon-slack').val(),
 				newsmonpd: $('#new-smon-pd').val(),
+				newsmonpacket_size: $('#new-smon-packet_size').val(),
 				newsmonchecktype: check_type,
 				token: $('#token').val()
 			},
@@ -191,6 +193,7 @@ function updateSmon(id, check_type) {
 			updateSmonPD: $('#smon-pd-'+id).val(),
 			updateSmonGroup: $('#smon-group-'+id).val(),
 			updateSmonDesc: $('#smon-desc-'+id).val(),
+			updateSmonPacket_size: $('#smon-packet_size-'+id).val(),
 			check_type: check_type,
 			id: id,
 			token: $('#token').val()
@@ -227,6 +230,7 @@ function cloneSmom(id, check_type) {
 	$('#new-smon-url').val($('#smon-url-'+id).val());
 	$('#new-smon-group').val($('#smon-group-'+id).val());
 	$('#new-smon-description').val($('#smon-desc-'+id).val())
+	$('#new-smon-packet_size').val($('#smon-packet_size-'+id).val())
 	$('#new-smon-telegram').val($('#smon-telegram-'+id+' option:selected').val()).change()
 	$('#new-smon-slack').val($('#smon-slack-'+id+' option:selected').val()).change()
 	$('#new-smon-pd').val($('#smon-pd-'+id+' option:selected').val()).change()
@@ -324,6 +328,8 @@ function check_and_clear_check_type(check_type) {
 		$("#check_type").val('http');
 		$('#check_type').selectmenu("refresh");
 		$('.smon_tcp_check').hide();
+		$('.smon_ping_check').hide();
+		$('.smon_dns_check').hide();
 		clear_check_vals();
 		$('.smon_http_check').show();
 	} else if (check_type == 'tcp') {
@@ -332,6 +338,7 @@ function check_and_clear_check_type(check_type) {
 		$('.new_smon_hostname').show();
 		$('.smon_http_check').hide();
 		$('.smon_dns_check').hide();
+		$('.smon_ping_check').hide();
 		clear_check_vals();
 		$('.smon_tcp_check').show();
 	} else if (check_type == 'dns') {
@@ -340,6 +347,7 @@ function check_and_clear_check_type(check_type) {
 		$('.smon_tcp_check').hide();
 		$('.new_smon_hostname').show();
 		$('.smon_http_check').hide();
+		$('.smon_ping_check').hide();
 		clear_check_vals();
 		$('#new-smon-port').val('53');
 		$('.smon_dns_check').show();
@@ -348,6 +356,7 @@ function check_and_clear_check_type(check_type) {
 		$('.new_smon_hostname').show();
 		$('.smon_tcp_check').hide();
 		$('.smon_dns_check').hide();
+		$('.smon_ping_check').show();
 		$("#check_type").val('ping');
 		$('#check_type').selectmenu("refresh");
 		clear_check_vals();
@@ -359,4 +368,5 @@ function clear_check_vals() {
 	$('#new-smon-url').val('');
 	$('#new-smon-body').val('');
 	$('#new-smon-port').val('');
+	$('#new-smon-packet_size').val('');
 }

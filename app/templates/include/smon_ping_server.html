@@ -6,6 +6,10 @@
         {% set id = 'smon-ip-' + s.id|string() %}
         {{ input(id, value=s_service.ip, size='20') }}
     </td>
+    <td>
+        {% set id = 'smon-packet_size-' + s.id|string() %}
+        {{ input(id, value=s_service.packet_size, style='width: 40px;', type='number') }}
+    </td>
     <td class="checkbox">
         {% set id = 'smon-enable-' + s.id|string() %}
         {% if s.en == 1 %}

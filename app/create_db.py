@@ -901,7 +901,7 @@ def update_db_v_6_3_13_4():
 			print('Updating... DB has been updated to version 6.3.13-3')
 		elif e.args[0] == 'duplicate column name: check_type' or str(e) == '(1091, "Can\'t DROP COLUMN `http_status`; check that it exists")':
 			print('Updating... DB has been updated to version 6.3.13-3')
-		elif e.args[0] == 'duplicate column name: check_type' or str(e) == "'bool' object has no attribute 'sql'":
+		elif e.args[0] == 'table smon__tmp__ has no column named UNIQUE' or str(e) == "'bool' object has no attribute 'sql'":
 			print('Updating... DB has been updated to version 6.3.13-3')
 		else:
 			print("An error occurred:", e)
@@ -916,7 +916,7 @@ def update_db_v_6_3_13_5():
 
 def update_ver():
 	try:
-		Version.update(version='6.3.14.0').execute()
+		Version.update(version='6.3.15.0').execute()
 	except Exception:
 		print('Cannot update version')
 

@@ -2487,9 +2487,9 @@ def insert_smon(name, enable, group, desc, telegram, slack, pd, user_group, chec
 		return last_id
 
 
-def insert_smon_ping(smon_id, hostname):
+def insert_smon_ping(smon_id, hostname, packet_size):
 	try:
-		SmonPingCheck.insert(smon_id=smon_id, ip=hostname).execute()
+		SmonPingCheck.insert(smon_id=smon_id, ip=hostname, packet_size=packet_size).execute()
 	except Exception as e:
 		out_error(e)
 
@@ -2682,8 +2682,8 @@ def update_smonTcp(smon_id, ip, port):
 		return False
 
 
-def update_smonPing(smon_id, ip):
-	query = (SmonPingCheck.update(ip=ip).where(SmonPingCheck.smon_id == smon_id))
+def update_smonPing(smon_id, ip, packet_size):
+	query = (SmonPingCheck.update(ip=ip, packet_size=packet_size).where(SmonPingCheck.smon_id == smon_id))
 	try:
 		query.execute()
 		return True

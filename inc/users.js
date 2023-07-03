@@ -1076,6 +1076,7 @@ function addServer(dialog_id) {
 	var nginx = 0;
 	var apache = 0;
 	var firewall = 0;
+	var add_to_smon = 0;
 	if ($('#scan_server').is(':checked')) {
 		scan_server = '1';
 	}
@@ -1096,6 +1097,9 @@ function addServer(dialog_id) {
 	}
 	if ($('#firewall').is(':checked')) {
 		firewall = '1';
+	}
+	if ($('#add_to_smon').is(':checked')) {
+		add_to_smon = '1';
 	}
 	allFields = $( [] ).add( $('#new-server-add') ).add( $('#new-ip') ).add( $('#new-port') )
 	allFields.removeClass( "ui-state-error" );
@@ -1124,6 +1128,7 @@ function addServer(dialog_id) {
 				nginx: nginx,
 				apache: apache,
 				firewall: firewall,
+				add_to_smon: add_to_smon,
 				enable: enable,
 				slave: $('#slavefor' ).val(),
 				cred: cred,

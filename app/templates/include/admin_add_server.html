@@ -27,6 +27,10 @@
 	<td>{{ checkbox('typeip') }}</td>
 </tr>
 <tr>
+	<td class="padding20 help_cursor" title="{{lang.phrases.add_to_smon_desc}}">{{lang.words.add|title()}} {{lang.words.in}} SMON</td>
+	<td>{{ checkbox('add_to_smon', checked='checked') }}</td>
+</tr>
+<tr>
 	<td class="padding20 help_cursor" title="{{lang.phrases.scan_title}}">{{lang.words.scan|title()}} {{lang.words.the}} {{lang.words.server}}</td>
 	<td>{{ checkbox('scan_server', checked='checked') }}</td>
 </tr>

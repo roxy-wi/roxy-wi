@@ -787,6 +787,7 @@ if form.getvalue('newserver') is not None:
     page = page.split("#")[0]
     port = common.checkAjaxInput(form.getvalue('newport'))
     desc = common.checkAjaxInput(form.getvalue('desc'))
+    add_to_smon = common.checkAjaxInput(form.getvalue('add_to_smon'))
     lang = roxywi_common.get_user_lang()
 
     if ip == '':
@@ -808,6 +809,12 @@ if form.getvalue('newserver') is not None:
                                        adding=1,lang=lang)
             print(template)
             roxywi_common.logging(ip, f'A new server {hostname} has been created', roxywi=1, login=1, keep_history=1, service='server')
+
+            if add_to_smon:
+                import modules.tools.smon as smon_mod
+
+                user_group = roxywi_common.get_user_group(id=1)
+                smon_mod.create_smon(hostname, ip, 0, 1, 0, 0, hostname, desc, 0, 0, 0, 0, 'ping', 0, 0, user_group, 0)
 
     except Exception as e:
         print(f'error: {e}')
@@ -987,7 +994,24 @@ if form.getvalue('getcurrentusergroup') is not None:
 if form.getvalue('newsmonname') is not None:
     import modules.tools.smon as smon_mod
 
-    smon_mod.create_smon()
+    user_group = roxywi_common.get_user_group(id=1)
+    name = common.checkAjaxInput(form.getvalue('newsmonname'))
+    hostname = common.checkAjaxInput(form.getvalue('newsmon'))
+    port = common.checkAjaxInput(form.getvalue('newsmonport'))
+    enable = common.checkAjaxInput(form.getvalue('newsmonenable'))
+    url = common.checkAjaxInput(form.getvalue('newsmonurl'))
+    body = common.checkAjaxInput(form.getvalue('newsmonbody'))
+    group = common.checkAjaxInput(form.getvalue('newsmongroup'))
+    desc = common.checkAjaxInput(form.getvalue('newsmondescription'))
+    telegram = common.checkAjaxInput(form.getvalue('newsmontelegram'))
+    slack = common.checkAjaxInput(form.getvalue('newsmonslack'))
+    pd = common.checkAjaxInput(form.getvalue('newsmonpd'))
+    check_type = common.checkAjaxInput(form.getvalue('newsmonchecktype'))
+    resolver = common.checkAjaxInput(form.getvalue('newsmonresserver'))
+    record_type = common.checkAjaxInput(form.getvalue('newsmondns_record_type'))
+    packet_size = common.checkAjaxInput(form.getvalue('newsmonpacket_size'))
+
+    smon_mod.create_smon(name, hostname, port, enable, url, body, group, desc, telegram, slack, pd, packet_size, check_type, resolver, record_type, user_group)
 
 if form.getvalue('smondel') is not None:
     import modules.tools.smon as smon_mod
