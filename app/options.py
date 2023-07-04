@@ -814,7 +814,7 @@ if form.getvalue('newserver') is not None:
                 import modules.tools.smon as smon_mod
 
                 user_group = roxywi_common.get_user_group(id=1)
-                smon_mod.create_smon(hostname, ip, 0, 1, 0, 0, hostname, desc, 0, 0, 0, 0, 'ping', 0, 0, user_group, 0)
+                smon_mod.create_smon(hostname, ip, 0, 1, 0, 0, hostname, desc, 0, 0, 0, 56, 'ping', 0, 0, user_group, 0)
 
     except Exception as e:
         print(f'error: {e}')
