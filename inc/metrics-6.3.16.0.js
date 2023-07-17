@@ -27,83 +27,103 @@ function getHttpChartData(server) {
 }
 var charts = []
 function renderHttpChart(data, labels, server) {
-    var ctx = 'http_'+server
+    // Преобразование данных в массивы
+    const dataArray0 = data[0].split(',');
+    const dataArray1 = data[1].split(',');
+    const dataArray2 = data[2].split(',');
+    const dataArray3 = data[3].split(',');
+
+    // Удаление последнего пустого элемента в каждом массиве
+    dataArray0.pop();
+    dataArray1.pop();
+    dataArray2.pop();
+    dataArray3.pop();
+
+    var ctx = document.getElementById('http_' + server).getContext('2d');
     var myChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels.split(','),
             datasets: [
                 {
-                    parsing: false,
                     normalized: true,
                     label: '2xx',
-                    data: data[0].split(','),
+                    data: dataArray0,
                     borderColor: 'rgba(75, 192, 192, 1)',
                     backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    fill: true
                 },
                 {
-                    parsing: false,
                     normalized: true,
                     label: '3xx',
-                    data: data[1].split(','),
+                    data: dataArray1,
                     borderColor: 'rgba(54, 162, 235, 1)',
                     backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    fill: true
                 },
                 {
-				    parsing: false,
                     normalized: true,
                     label: '4xx',
-                    data: data[2].split(','),
+                    data: dataArray2,
                     borderColor: 'rgba(255, 206, 86, 1)',
                     backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                    fill: true
                 },
                 {
-				    parsing: false,
                     normalized: true,
                     label: '5xx',
-                    data: data[3].split(','),
+                    dataArray3,
                     borderColor: 'rgb(255,86,86)',
                     backgroundColor: 'rgba(255,86,86,0.2)',
-                }
-            ]
+                    fill: true
+                },
+            ],
         },
         options: {
-            animation: false,
-			maintainAspectRatio: false,
-			title: {
-				display: true,
-				text: data[4],
-				fontSize: 20,
-				padding: 0,
-			},
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: data[4],
+                    font: {
+                        size: 20,
+                    },
+                    padding: {
+                        top: 0,
+                    },
+                },
+            },
             scales: {
-                yAxes: [{
+                y: {
                     ticks: {
                         beginAtZero: true,
-                    }
-                }],
-                xAxes: [{
+                    },
+                },
+                x: {
                     ticks: {
+                        beginAtZero: true,
                         major: {
                             enabled: true,
-                            fontStyle: 'bold'
+                            fontStyle: 'bold',
                         },
                         source: 'data',
                         autoSkip: true,
-                        autoSkipPadding:45,
-                        maxRotation: 0
-                    }
-                }]
+                        autoSkipPadding: 45,
+                        maxRotation: 0,
+                    },
+                },
             },
-			legend: {
-				display: true,
-				labels: {
-					fontColor: 'rgb(255, 99, 132)',
-					defaultFontSize: '10',
-					defaultFontFamily: 'BlinkMacSystemFont'
-				},
-			}
-        }
+            legend: {
+                display: true,
+                labels: {
+                    color: 'rgb(255, 99, 132)',
+                    font: {
+                        size: 10,
+                        family: 'BlinkMacSystemFont',
+                    },
+                },
+            },
+        },
     });
     charts.push(myChart);
 }
@@ -130,54 +150,54 @@ function getChartData(server) {
     });
 }
 function renderChart(data, labels, server) {
-    var ctx = document.getElementById(server)
+    // Преобразование данных в массивы
+    const dataArray0 = data[0].split(',');
+    const dataArray1 = data[1].split(',');
+    const dataArray2 = data[2].split(',');
+
+    // Удаление последнего пустого элемента в каждом массиве
+    dataArray0.pop();
+    dataArray1.pop();
+    dataArray2.pop();
+    var ctx = document.getElementById(server);
     var myChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels.split(','),
             datasets: [
                 {
-                    parsing: false,
                     normalized: true,
                     label: 'Connections',
-                    data: data[0].split(','),
+                    data: dataArray0,
                     borderColor: 'rgba(75, 192, 192, 1)',
                     backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    fill: true
                 },
                 {
-                    parsing: false,
                     normalized: true,
                     label: 'SSL Connections',
-                    data: data[1].split(','),
+                    data: dataArray1,
                     borderColor: 'rgba(54, 162, 235, 1)',
                     backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    fill: true
                 },
                 {
-				    parsing: false,
                     normalized: true,
                     label: 'Session rate',
-                    data: data[2].split(','),
+                    data: dataArray2,
                     borderColor: 'rgba(255, 206, 86, 1)',
                     backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                    fill: true
                 }
             ]
         },
         options: {
-            animation: false,
 			maintainAspectRatio: false,
-			title: {
-				display: true,
-				text: data[3],
-				fontSize: 20,
-				padding: 0,
-			},
             scales: {
-                yAxes: [{
-                    ticks: {
-                        beginAtZero: true,
-                    }
-                }],
-                xAxes: [{
+                y: {
+                    beginAtZero: true,
+                },
+                x: {
                     ticks: {
                         major: {
                             enabled: true,
@@ -185,24 +205,37 @@ function renderChart(data, labels, server) {
                         },
                         source: 'data',
                         autoSkip: true,
-                        autoSkipPadding:45,
+                        autoSkipPadding: 45,
                         maxRotation: 0
                     }
-                }]
+                }
             },
-			legend: {
-				display: true,
-				labels: {
-					fontColor: 'rgb(255, 99, 132)',
-					defaultFontSize: '10',
-					defaultFontFamily: 'BlinkMacSystemFont'
-				},
+			plugins: {
+                title: {
+                    display: true,
+                    text: data[3],
+                    font: {
+                        size: 20,
+                    },
+                    padding: {
+                        top: 0,
+                    },
+                },
+				legend: {
+					display: true,
+					labels: {
+						color: 'rgb(255, 99, 132)',
+						font: {
+                            size: 10,
+                            family: 'BlinkMacSystemFont'
+                        }
+					},
+				}
 			}
         }
     });
     charts.push(myChart);
 }
-
 function getWafChartData(server) {
     $.ajax({
         url: "options.py",
@@ -223,10 +256,14 @@ function getWafChartData(server) {
     });
 }
 function renderServiceChart(data, labels, server, service) {
-    var ctx = service + '_' + server;
-    var addinional_title = '';
-    if (service == 'waf') {
-        addinional_title = 'WAF '
+    const dataArray = data[0].split(',');
+
+    // Удаление последнего пустого элемента в каждом массиве
+    dataArray.pop();
+    var ctx = document.getElementById(service + '_' + server).getContext('2d');
+    var additional_title = '';
+    if (service === 'waf') {
+        additional_title = 'WAF ';
     }
     var myChart = new Chart(ctx, {
         type: 'line',
@@ -234,31 +271,45 @@ function renderServiceChart(data, labels, server, service) {
             labels: labels.split(','),
             datasets: [
                 {
-                    parsing: false,
                     normalized: true,
                     label: 'Connections',
-                    data: data[0].split(','),
+                    data: dataArray,
                     borderColor: 'rgba(75, 192, 192, 1)',
                     backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    fill: true
                 }
             ]
         },
         options: {
             animation: false,
-			maintainAspectRatio: false,
-			title: {
-				display: true,
-				text: addinional_title + data[1],
-				fontSize: 20,
-				padding: 0,
-			},
-            scales: {
-                yAxes: [{
-                    ticks: {
-                        beginAtZero: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: additional_title + data[1],
+                    font: {
+                        size: 20
+                    },
+                    padding: {
+                        top: 0
                     }
-                }],
-                xAxes: [{
+                },
+                legend: {
+                    display: true,
+                    labels: {
+                        color: 'rgb(255, 99, 132)',
+                        font: {
+                            size: '10',
+                            family: 'BlinkMacSystemFont'
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                },
+                x: {
                     ticks: {
                         major: {
                             enabled: true,
@@ -269,16 +320,8 @@ function renderServiceChart(data, labels, server, service) {
                         autoSkipPadding: 45,
                         maxRotation: 0
                     }
-                }]
-            },
-			legend: {
-				display: true,
-				labels: {
-					fontColor: 'rgb(255, 99, 132)',
-					defaultFontSize: '10',
-					defaultFontFamily: 'BlinkMacSystemFont'
-				},
-			}
+                }
+            }
         }
     });
     charts.push(myChart);
@@ -356,57 +399,68 @@ function getChartDataHapWiRam(ip) {
         success: function (result) {  
             var data = [];
             data.push(result.chartData.rams);
-            renderChartHapWiRam(data);
+            // Получение значений из строки и разделение их на массив
+            const ramsData = data[0].trim().split(' ');
+
+            // Преобразование значений в числа
+            const formattedData = ramsData.map(value => parseFloat(value));
+            renderChartHapWiRam(formattedData);
         }
     });
 }
 function renderChartHapWiRam(data) {
-    var ctx = 'ram'
+    var ctx = document.getElementById('ram').getContext('2d');
     var myChart = new Chart(ctx, {
-        type: 'horizontalBar',
+        type: 'bar',
         data: {
-            labels: ['total','used','free','shared','buff/cache','avaliable'],
+            labels: ['total','used','free','shared','buff','available'],
             datasets: [
                 {
-                    parsing: false,
                     normalized: true,
-                    data: data[0].split(' '),
+                    data: data,
                     backgroundColor: [
                         '#36a2eb',
-						'#ff6384',
-						'#33ff26',
-						'#ff9f40',
-						'#ffcd56',
-						'#4bc0c0',
-						
-					]
+                        '#ff6384',
+                        '#33ff26',
+                        '#ff9f40',
+                        '#ffcd56',
+                        '#4bc0c0',
+                    ]
                 }
             ]
         },
         options: {
-            animation: false,
-			maintainAspectRatio: false,
-			title: {
-				display: true,
-				text: "RAM usage in Mb",
-				fontSize: 15,
-				padding: 0,
-			},
-			legend: {
-				display: false,
-				align: 'start',
-				position: 'left',
-				labels: {
-					fontColor: 'rgb(255, 99, 132)',
-					defaultFontSize: 2,
-					fontColor: 'black',
-					defaultFontFamily: 'BlinkMacSystemFont',					
-					boxWidth: 13,
-					padding: 5
-				},
-			}
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: "RAM usage in Mb",
+                    font: {
+                        size: 15
+                    },
+                    padding: {
+                        top: 10,
+                        bottom: 0
+                    }
+                },
+                legend: {
+                    display: false,
+                    align: 'start',
+                    position: 'left',
+                    labels: {
+                        color: 'rgb(255, 99, 132)',
+                        font: {
+                            size: 5,
+                            family: 'BlinkMacSystemFont'
+                        },
+                        boxWidth: 13,
+                        padding: 5
+                    },
+                }
+            }
         }
     });
+    charts.push(myChart);
 }
 function getChartDataHapWiCpu(ip) {
     $.ajax({
@@ -418,25 +472,26 @@ function getChartDataHapWiCpu(ip) {
 		},
 		type: "POST",
         success: function (result) {   
-            var data = [];
-            data.push(result.chartData.cpus);
-            renderChartHapWiCpu(data);
+            // Получение значений из строки и разделение их на массив
+            const ramsData = result.chartData.cpus.trim().split(' ').map(parseFloat);
+
+            // Преобразование значений в числа
+            const formattedData = ramsData.map(value => parseFloat(value));
+            renderChartHapWiCpu(formattedData);
         }
     });
 }
-
 function renderChartHapWiCpu(data) {
-    var ctx = 'cpu'
+    var ctx = document.getElementById('cpu').getContext('2d');
     var myChart = new Chart(ctx, {
-        type: 'horizontalBar',
+        type: 'bar',
         data: {
             labels: ['user','sys','nice','idle','wait','hi','si','steal'],
             datasets: [
                 {
-                    parsing: false,
                     normalized: true,
-                    data: data[0].split(' '),
-                    backgroundColor: [						
+                    data: data,
+                    backgroundColor: [
 						'#ff6384',
 						'#36a2eb',
 						'#ff9f40',
@@ -444,42 +499,43 @@ function renderChartHapWiCpu(data) {
 						'#4bc0c0',
 						'#5d9ceb',
 						'#2c6969',
-						
 					]
                 }
             ]
         },
         options: {
-            animation: false,
+            animation: true,
 			maintainAspectRatio: false,
-			title: {
-				display: true,
-				text: "CPU usage in %",
-				fontSize: 15,
-				padding: 0,
-			},
-			legend: {
-				display: false,
-				position: 'left',
-				align: 'end',
-				labels: {
-					fontColor: 'rgb(255, 99, 132)',
-					defaultFontSize: 2,
-					defaultFontFamily: 'BlinkMacSystemFont',
-					fontColor: 'black',
-					boxWidth: 13,
-					padding: 5
+			plugins: {
+				title: {
+					display: true,
+					text: "CPU usage in %",
+					font: { size: 15 },
+					padding: { top: 10 }
 				},
+				legend: {
+					display: false,
+					position: 'left',
+					align: 'end',
+					labels: {
+						color: 'rgb(255, 99, 132)',
+						font: { size: 10, family: 'BlinkMacSystemFont' },
+						color: 'black',
+						boxWidth: 13,
+						padding: 5
+					},
+				}
 			},
             scales: {
-                xAxes: [{
+                x: {
                     ticks: {
-                        suggestedMax: 100
+                        max: 100
                     }
-                }]
+                }
             },
         }
     });
+    charts.push(myChart);
 }
 $( function() {
    $('#dis_table_metric').click(function() {
@@ -526,32 +582,23 @@ function removeData() {
     }
 }
 function showOverviewHapWI() {
+    removeData();
 	getChartDataHapWiCpu('1');
 	getChartDataHapWiRam('1');
 	NProgress.configure({showSpinner: false});
 }
-function removeCpuRamCharts() {
-    var ctxCpu = document.getElementById("cpu")
-    var ctxRam = document.getElementById("ram")
-    ctxCpu.remove();
-    ctxRam.remove();
-    $('#cpu_div').html('<canvas id="cpu" role="img"></canvas>');
-    $('#ram_div').html('<canvas id="ram" role="img"></canvas>');
-}
 function updatingCpuRamCharts() {
 	if (cur_url[0] == 'overview.py') {
-		removeCpuRamCharts();
 		showOverviewHapWI();
 	} else if (cur_url[0] == 'hapservers.py' && cur_url[1].split('=')[0] == 'service') {
-		removeCpuRamCharts();
 		NProgress.configure({showSpinner: false});
-		getChartDataHapWiCpu(server_ip);
-		getChartDataHapWiRam(server_ip);
-		removeData();
+        showOverviewHapWI();
 		getChartData(server_ip);
 		getHttpChartData(server_ip);
 		getWafChartData(server_ip);
-	}
+	} else {
+        removeData();
+    }
 }
 function getSmonHistoryCheckData(server, check_id) {
     $.ajax({
@@ -568,59 +615,90 @@ function getSmonHistoryCheckData(server, check_id) {
             var data = [];
             data.push(result.chartData.curr_con);
             var labels = result.chartData.labels;
-            renderSMONChart(data, labels, '3');
+            renderSMONChart(data[0], labels, '3');
         }
     });
 }
 function renderSMONChart(data, labels, server) {
-    var resp_time_word = $('#translate').attr('data-resp_time');
-    var ctx = 'metrics_' + server;
-    var myChart = new Chart(ctx, {
+    const resp_time_word = $('#translate').attr('data-resp_time');
+    const ctx = document.getElementById('metrics_' + server);
+
+    // Преобразование данных в массивы
+    const labelArray = labels.split(',');
+    const dataArray = data.split(',');
+
+    // Удаление последнего пустого элемента в каждом массиве
+    labelArray.pop();
+    dataArray.pop();
+
+    // Создание объекта dataset
+    const dataset = {
+        label: resp_time_word + ' (ms)',
+        data: dataArray,
+        borderColor: 'rgba(92, 184, 92, 1)',
+        backgroundColor: 'rgba(92, 184, 92, 0.2)',
+        tension: 0.4,
+        pointRadius: 3,
+        borderWidth: 1,
+        fill: true
+    };
+
+    const config = {
         type: 'line',
         data: {
-            labels: labels.split(','),
-            datasets: [
-                {
-                    parsing: false,
-                    normalized: true,
-                    label: resp_time_word+' (ms)',
-                    data: data[0].split(','),
-                    borderColor: 'rgba(92, 184, 92, 1)',
-                    backgroundColor: 'rgba(92, 184, 92, 0.2)',
-                }
-            ]
+            labels: labelArray,
+            datasets: [dataset]
         },
         options: {
-            animation: false,
-            maintainAspectRatio: false,
+            animation: true,
+			maintainAspectRatio: false,
+			plugins: {
+				title: {
+					display: true,
+					font: { size: 15 },
+					padding: { top: 10 }
+				},
+				legend: {
+					display: false,
+					position: 'left',
+					align: 'end',
+					labels: {
+						color: 'rgb(255, 99, 132)',
+						font: { size: 10, family: 'BlinkMacSystemFont' },
+						color: 'black',
+						boxWidth: 13,
+						padding: 5
+					},
+				}
+			},
             scales: {
-                yAxes: [{
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Time'
+                    },
                     ticks: {
-                        beginAtZero: true,
-                    }
-                }],
-                xAxes: [{
-                    ticks: {
-                        major: {
-                            enabled: true,
-                            fontStyle: 'bold'
-                        },
                         source: 'data',
                         autoSkip: true,
                         autoSkipPadding: 45,
                         maxRotation: 0
                     }
-                }]
-            },
-            legend: {
-                display: true,
-                labels: {
-                    fontColor: 'rgb(255, 99, 132)',
-                    defaultFontSize: '10',
-                    defaultFontFamily: 'BlinkMacSystemFont'
                 },
+                y: {
+                    title: {
+                        display: true,
+                        text: resp_time_word + ' (ms)'
+                    },
+                    ticks: {
+                        font: {
+                            size: 10
+                        }
+                    }
+                }
             }
         }
-    });
+    };
+
+    const myChart = new Chart(ctx, config);
     charts.push(myChart);
 }

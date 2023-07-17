@@ -1,0 +1,9 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
+{% for s in smon_statuses|reverse %}
+    {% if s.status %}
+        {% set add_class = 'serverUp' %}
+    {% else %}
+        {% set add_class = 'serverDown' %}
+    {% endif %}
+    <div class="smon_server_statuses {{add_class}}" title="" data-help="{{s.date}} {{s.mes}}" style=""></div>
+{% endfor %}

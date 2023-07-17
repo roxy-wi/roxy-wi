@@ -9,12 +9,11 @@
 {% else %}
 <link href="/inc/css/chart.min.css" rel="stylesheet">
 <link href="/inc/css/smon.css" rel="stylesheet">
-<script src="/inc/chart.min.js"></script>
-<script src="/inc/metrics.js"></script>
+<script src="/inc/chart.min-4.3.0.js"></script>
+<script src="/inc/metrics-6.3.16.0.js"></script>
+<script src="/inc/smon-6.3.16.js"></script>
 <div class="row wrap1">
-{% set service_status = [] %}
 {% for s in smon %}
-    {% set service_status = service_status.append(s.smon_id.en) %}
     <div id="smon_name" class="col-md-8">
     {% if check_id == 2 %}
         <a href="{{s.url}}" title="{{lang.words.open|title()}}" target="_blank">{{s.url}}</a>
@@ -30,31 +29,10 @@
 </div>
 <div class="row statuses wrap">
     <div class="col-md-8" style="transform: translateX(0px);">
-        {% for s in smon_statuses|reverse %}
-            {% if s.status %}
-                {% set add_class = 'serverUp' %}
-            {% else %}
-                {% set add_class = 'serverDown' %}
-            {% endif %}
-            <div class="smon_server_statuses {{add_class}}" title="" data-help="{{s.date}} {{s.mes}}" style=""></div>
-        {% endfor %}
+        <div id="smon_history_statuses"></div>
         <div id="check_interval">{{lang.words.checking|title()}} {{lang.words.every}} {{check_interval}} {{lang.words.minutes2}}</div>
     </div>
-    <div class="col-md-4">
-        {% if service_status.0 %}
-            {% if cur_status %}
-                {% set add_class = 'serverUp' %}
-                {% set status = lang.smon_page.desc.UP %}
-            {% else %}
-                {% set add_class = 'serverDown' %}
-                {% set status = lang.smon_page.desc.DOWN %}
-            {% endif %}
-        {% else %}
-            {% set add_class = 'serverNone' %}
-            {% set status = lang.smon_page.desc.DISABLED %}
-        {% endif %}
-        <span class="{{add_class}} cur_status" style="font-size: 30px; border-radius: 50rem!important;min-width: 62px;">{{status}}</span>
-    </div>
+    <div class="col-md-4" id="cur_status"></div>
 </div>
 <div class="row statuses wrap">
     {% for s in smon %}
@@ -90,11 +68,20 @@
     </div>
     {% endfor %}
 </div>
-<div class="chart-container" style="width: 98%">
+<div class="chart-container_overview" style="width: 98%;">
     <canvas id="metrics_3" role="img"></canvas>
 </div>
 {% endif %}
 <script>
-    getSmonHistoryCheckData('{{dashboard_id}}', '{{check_id}}')
+    function showSmonHistory() {
+		let metrics = new Promise(
+			(resolve, reject) => {
+				removeData();
+				getSmonHistoryCheckData('{{dashboard_id}}', '{{check_id}}');
+			});
+		metrics.then();
+        show_statuses('{{dashboard_id}}', '{{check_id}}');
+	}
+	showSmonHistory();
 </script>
 {% endblock %}

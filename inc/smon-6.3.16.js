@@ -370,3 +370,49 @@ function clear_check_vals() {
 	$('#new-smon-port').val('');
 	$('#new-smon-packet_size').val('');
 }
+function show_statuses(dashboard_id, check_id) {
+	$.ajax({
+		url: "options.py",
+		data: {
+			smon_history_statuses: 1,
+			dashboard_id: dashboard_id,
+			check_id: check_id,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
+				toastr.error(data);
+			} else {
+				toastr.clear();
+				$("#smon_history_statuses").html(data);
+				$( "[title]" ).tooltip({
+					"content": function () {
+						return $(this).attr("data-help");
+					},
+					show: {"delay": 1000}
+				});
+			}
+		}
+	});
+	$.ajax({
+		url: "options.py",
+		data: {
+			smon_cur_status: 1,
+			dashboard_id: dashboard_id,
+			check_id: check_id,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
+				toastr.error(data);
+			} else {
+				toastr.clear();
+				$("#cur_status").html(data);
+			}
+		}
+	});
+}

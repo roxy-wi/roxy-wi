@@ -7,9 +7,6 @@
 {% if selects|length == 0 %}
 	{% include 'include/getstarted.html' %}
 {% else %}
-<style>
-
-</style>
 <form action="statsview.py" method="post" class="left-space">
 	<input type="hidden" id="service" value="{{service}}" />
 	<select autofocus required name="serv" id="serv">
@@ -157,6 +154,6 @@
 		showStats();		
 	});
 </script>
-<link href="/inc/css/style.css" rel="stylesheet">
+<link href="/inc/css/style-6.3.9.css" rel="stylesheet">
 {% endif %}
 {% endblock %}

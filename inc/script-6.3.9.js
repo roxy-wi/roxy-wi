@@ -256,6 +256,12 @@ function startSetInterval(interval) {
 		} else if (cur_url[0] == "smon.py" && cur_url[1].split('&')[0] == "action=view") {
 			intervalId = setInterval("showSmon('refresh')", interval);
 			showSmon('refresh');
+		} else if (cur_url[0] == "smon.py" && cur_url[1].split('&')[0] == "action=dashboard") {
+			if(interval < 60000) {
+				interval = 60000;
+			}
+			intervalId = setInterval('showSmonHistory()', interval);
+			showSmonHistory();
 		}
 	} else {
 		pauseAutoRefresh();
@@ -701,21 +707,21 @@ function viewLogs() {
 	}
 }
 $( function() {
-	$('a').click(function(e) {
-		try {
-			var cur_path = window.location.pathname;
-			var attr = $(this).attr('href');
-			if (typeof attr !== typeof undefined && attr !== false) {
-				$('title').text($(this).attr('title'));
-				history.pushState({}, '', $(this).attr('href'));
-				if ($(this).attr('href').split('#')[0] && $(this).attr('href').split('#')[0] != cur_path) {
-					window.history.go()
-				}
-			}
-		} catch (err) {
-			console.log(err);
-		}
-	});
+	// $('a').click(function(e) {
+	// 	try {
+	// 		var cur_path = window.location.pathname;
+	// 		var attr = $(this).attr('href');
+	// 		if (typeof attr !== typeof undefined && attr !== false) {
+	// 			$('title').text($(this).attr('title'));
+	// 			history.pushState({}, '', $(this).attr('href'));
+	// 			if ($(this).attr('href').split('#')[0] && $(this).attr('href').split('#')[0] != cur_path) {
+	// 				window.history.go()
+	// 			}
+	// 		}
+	// 	} catch (err) {
+	// 		console.log(err);
+	// 	}
+	// });
 	toastr.options.closeButton = true;
 	toastr.options.progressBar = true;
 	toastr.options.positionClass = 'toast-bottom-full-width';

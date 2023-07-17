@@ -72,6 +72,7 @@ $( function() {
 				} else {
 					toastr.clear();
 					returnNiceCheckingConfig(data);
+					$(window).unbind('beforeunload');
 				}
 				if (data.indexOf('warning: ') != '-1') {
 					toastr.warning(data)

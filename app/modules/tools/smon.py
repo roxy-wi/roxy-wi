@@ -45,7 +45,7 @@ def create_smon(name: str, hostname: str, port: int, enable: int, url: str, body
         telegrams = sql.get_user_telegram_by_group(user_group)
         smon_service = sql.select_smon_check_by_id(last_id, check_type)
         env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
-        template = env.get_template('ajax/show_new_smon.html')
+        template = env.get_template('ajax/smon/show_new_smon.html')
         template = template.render(smon=smon, telegrams=telegrams, slacks=slacks, pds=pds, lang=lang, check_type=check_type,
                                    smon_service=smon_service)
         print(template)
@@ -113,7 +113,7 @@ def show_smon() -> None:
     lang = roxywi_common.get_user_lang()
     sort = common.checkAjaxInput(form.getvalue('sort'))
     env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
-    template = env.get_template('ajax/smon_dashboard.html')
+    template = env.get_template('ajax/smon/smon_dashboard.html')
     template = template.render(smon=sql.smon_list(user_group), sort=sort, lang=lang, update=1)
     print(template)
 
@@ -147,3 +147,22 @@ def history_metrics(server_id: int, check_id: int) -> None:
     metrics['chartData']['curr_con'] = curr_con
 
     print(json.dumps(metrics))
+
+
+def history_statuses(dashboard_id: int, check_id: int) -> None:
+    env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
+    template = env.get_template('ajax/smon/history_status.html')
+    smon_statuses = sql.select_smon_history(dashboard_id, check_id)
+
+    rendered_template = template.render(smon_statuses=smon_statuses)
+    print(rendered_template)
+
+
+def history_cur_status(dashboard_id: int, check_id: int) -> None:
+    env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
+    template = env.get_template('ajax/smon/cur_status.html')
+    cur_status = sql.get_last_smon_status_by_check(dashboard_id, check_id)
+    smon = sql.select_one_smon(dashboard_id, check_id)
+
+    rendered_template = template.render(cur_status=cur_status, smon=smon)
+    print(rendered_template)

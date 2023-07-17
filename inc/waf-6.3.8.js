@@ -4,7 +4,7 @@ var overview = "/inc/overview-6.3.9.js"
 function showOverviewWaf(serv, hostnamea) {
 	var service = findGetParameter('service');
 	if (service == 'haproxy') {
-		$.getScript('/inc/chart.min.js');
+		$.getScript('/inc/chart.min-4.3.0.js');
 		showWafMetrics();
 	}
 	var i;

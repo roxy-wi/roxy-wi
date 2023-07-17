@@ -1035,6 +1035,20 @@ if form.getvalue('smon_history_check') is not None:
     check_id = int(form.getvalue('check_id'))
     smon_mod.history_metrics(server_id, check_id)
 
+if form.getvalue('smon_history_statuses') is not None:
+    import modules.tools.smon as smon_mod
+
+    dashboard_id = int(form.getvalue('dashboard_id'))
+    check_id = int(form.getvalue('check_id'))
+    smon_mod.history_statuses(dashboard_id, check_id)
+
+if form.getvalue('smon_cur_status') is not None:
+    import modules.tools.smon as smon_mod
+
+    dashboard_id = int(form.getvalue('dashboard_id'))
+    check_id = int(form.getvalue('check_id'))
+    smon_mod.history_cur_status(dashboard_id, check_id)
+
 if form.getvalue('showBytes') is not None:
     import modules.roxywi.overview as roxywi_overview
 

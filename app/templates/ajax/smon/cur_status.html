@@ -1,0 +1,19 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
+{% set add_class = 'serverNone' %}
+{% set status = lang.smon_page.desc.DISABLED %}
+{% set service_status = [] %}
+{% for s in smon %}
+{% set service_status = service_status.append(s.smon_id.en) %}
+{% endfor %}
+{% if service_status.0 %}
+    {% if service_status %}
+        {% if cur_status %}
+            {% set add_class = 'serverUp' %}
+            {% set status = lang.smon_page.desc.UP %}
+        {% else %}
+            {% set add_class = 'serverDown' %}
+            {% set status = lang.smon_page.desc.DOWN %}
+        {% endif %}
+    {% endif %}
+{% endif %}
+<span class="{{add_class}} cur_status" style="font-size: 30px; border-radius: 50rem!important;min-width: 62px;">{{status}}</span>

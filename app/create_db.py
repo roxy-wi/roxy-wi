@@ -916,7 +916,7 @@ def update_db_v_6_3_13_5():
 
 def update_ver():
 	try:
-		Version.update(version='6.3.15.0').execute()
+		Version.update(version='6.3.16.0').execute()
 	except Exception:
 		print('Cannot update version')
 

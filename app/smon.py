@@ -87,9 +87,7 @@ elif action == 'checker_history':
 elif action == 'dashboard':
 	dashboard_id = int(form.getvalue('dashboard_id'))
 	check_id = int(form.getvalue('check_id'))
-	smon_statuses = sql.select_smon_history(dashboard_id, check_id)
 	smon_name = sql.get_smon_service_name_by_id(dashboard_id)
-	cur_status = sql.get_last_smon_status_by_check(dashboard_id, check_id)
 	check_interval = sql.get_setting('smon_check_interval')
 	smon = sql.select_one_smon(dashboard_id, check_id)
 	present = datetime.now(timezone('UTC'))
@@ -109,7 +107,7 @@ elif action == 'dashboard':
 		last_resp_time = round(sql.get_last_smon_res_time_by_check(dashboard_id, check_id), 2)
 	except Exception:
 		last_resp_time = 0
-	template = env.get_template('include/smon_history.html')
+	template = env.get_template('include/smon/smon_history.html')
 
 	for s in smon:
 		if s.smon_id.ssl_expire_date is not None:
@@ -117,11 +115,10 @@ elif action == 'dashboard':
 			cert_day_diff = (ssl_expire_date - present).days
 
 	rendered_template = template.render(
-		h2=1, autorefresh=0, role=user_params['role'], user=user_params['user'], smon=smon, group=user_group, lang=lang,
+		h2=1, autorefresh=1, role=user_params['role'], user=user_params['user'], smon=smon, group=user_group, lang=lang,
 		user_status=user_subscription['user_status'], check_interval=check_interval, user_plan=user_subscription['user_plan'],
-		token=user_params['token'], smon_statuses=smon_statuses, uptime=uptime, user_services=user_params['user_services'],
-		cur_status=cur_status, avg_res_time=avg_res_time, smon_name=smon_name, cert_day_diff=cert_day_diff, check_id=check_id,
-		dashboard_id=dashboard_id, last_resp_time=last_resp_time
+		token=user_params['token'], uptime=uptime, user_services=user_params['user_services'], avg_res_time=avg_res_time,
+		smon_name=smon_name, cert_day_diff=cert_day_diff, check_id=check_id, dashboard_id=dashboard_id, last_resp_time=last_resp_time
 	)
 	print(rendered_template)
 	sys.exit()

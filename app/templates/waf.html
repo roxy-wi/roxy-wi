@@ -118,6 +118,11 @@
 					highlightSelectionMatches: {showToken: /\w/, annotateScrollbar: true}
 				});
 			myCodeMirror.refresh();
+			myCodeMirror.on("beforeChange", function (cm, change) {
+				$(window).bind('beforeunload', function(){
+				  return 'Are you sure you want to leave?';
+				});
+			});
 		</script>
 {% else %}
 	<style>
@@ -172,8 +177,8 @@
 	{% if service == 'haproxy' %}
 	<link href="/inc/css/chart.min.css" rel="stylesheet">
 	<script src="/inc/overview-6.3.9.js"></script>
-	<script src="/inc/metrics.js"></script>
-	<script src="/inc/chart.min.js"></script>
+	<script src="/inc/metrics-6.3.16.0.js"></script>
+	<script src="/inc/chart.min-4.3.0.js"></script>
 	<div id="table_metrics"></div>
 	<div class="metrics-time-range">
 		<b>{{lang.words.time_range|title()}}:</b>

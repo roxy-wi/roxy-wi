@@ -16,8 +16,8 @@
 	}
 </style>
 <link href="/inc/css/chart.min.css" rel="stylesheet">
-<script src="/inc/metrics.js"></script>
-<script src="/inc/chart.min.js"></script>
+<script src="/inc/metrics-6.3.16.0.js"></script>
+<script src="/inc/chart.min-4.3.0.js"></script>
 {% if user_status == 0 %}
 	{% include 'include/no_sub.html' %}
 {% elif services == '0' %}
@@ -123,7 +123,6 @@
 			metrics.then();
 		});
 	});
-
  </script>
 {% endif %}
 {% endif %}

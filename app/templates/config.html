@@ -154,7 +154,11 @@
 		var info = cm.lineInfo(n);
 		cm.setGutterMarker(n, "breakpoints", info.gutterMarkers ? null : makeMarker());
 	});
-
+	myCodeMirror.on("beforeChange", function (cm, change) {
+		$(window).bind('beforeunload', function(){
+		  return 'Are you sure you want to leave?';
+		});
+	});
 	function makeMarker() {
 		var marker = document.createElement("div");
 		marker.style.color = "#822";

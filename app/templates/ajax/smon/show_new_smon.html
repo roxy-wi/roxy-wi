@@ -4,13 +4,13 @@
     {% for s_service in smon_service %}
     <tr class="newserver" id="smon-{{s.id}}">
         {% if check_type == 'tcp' %}
-            {% include 'include/smon_tcp_server.html' %}
+            {% include 'include/smon/smon_tcp_server.html' %}
         {% elif check_type == 'ping' %}
-            {% include 'include/smon_ping_server.html' %}
+            {% include 'include/smon/smon_ping_server.html' %}
         {% elif check_type == 'http' %}
-            {% include 'include/smon_http_server.html' %}
+            {% include 'include/smon/smon_http_server.html' %}
         {% elif check_type == 'dns' %}
-            {% include 'include/smon_dns_server.html' %}
+            {% include 'include/smon/smon_dns_server.html' %}
         {% endif %}
     {% endfor %}
 {% endfor %}
