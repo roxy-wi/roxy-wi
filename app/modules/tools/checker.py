@@ -1,11 +1,15 @@
 from jinja2 import Environment, FileSystemLoader
 
 import modules.db.sql as sql
-import modules.roxywi.common as roxywi_common
+import modules.common.common as common
 import modules.roxywi.roxy as roxywi_mod
+import modules.roxywi.common as roxywi_common
+
+form = common.form
 
 
-def load_checker(page: str) -> None:
+def load_checker() -> None:
+    page = form.getvalue('page')
     groups = sql.select_groups()
     services = roxywi_mod.get_services_status()
     lang = roxywi_common.get_user_lang()
@@ -58,3 +62,50 @@ def load_checker(page: str) -> None:
                                keepalived_servers=keepalived_servers, haproxy_settings=haproxy_settings, nginx_settings=nginx_settings,
                                keepalived_settings=keepalived_settings, apache_settings=apache_settings, page=page, lang=lang)
     print(template)
+
+
+def update_haproxy_settings() -> None:
+    setting_id = int(form.getvalue('updateHaproxyCheckerSettings'))
+    email = int(form.getvalue('email'))
+    service_alert = int(form.getvalue('server'))
+    backend_alert = int(form.getvalue('backend'))
+    maxconn_alert = int(form.getvalue('maxconn'))
+    telegram_id = int(form.getvalue('telegram_id'))
+    slack_id = int(form.getvalue('slack_id'))
+    pd_id = int(form.getvalue('pd_id'))
+
+    if sql.update_haproxy_checker_settings(email, telegram_id, slack_id, pd_id, service_alert, backend_alert,
+                                           maxconn_alert, setting_id):
+        print('ok')
+    else:
+        print('error: Cannot update Checker settings')
+
+
+def update_keepalived_settings() -> None:
+    setting_id = int(form.getvalue('updateKeepalivedCheckerSettings'))
+    email = int(form.getvalue('email'))
+    service_alert = int(form.getvalue('server'))
+    backend_alert = int(form.getvalue('backend'))
+    telegram_id = int(form.getvalue('telegram_id'))
+    slack_id = int(form.getvalue('slack_id'))
+    pd_id = int(form.getvalue('pd_id'))
+
+    if sql.update_keepalived_checker_settings(email, telegram_id, slack_id, pd_id, service_alert, backend_alert,
+                                              setting_id):
+        print('ok')
+    else:
+        print('error: Cannot update Checker settings')
+
+
+def update_service_settings() -> None:
+    setting_id = int(form.getvalue('updateServiceCheckerSettings'))
+    email = int(form.getvalue('email'))
+    service_alert = int(form.getvalue('server'))
+    telegram_id = int(form.getvalue('telegram_id'))
+    slack_id = int(form.getvalue('slack_id'))
+    pd_id = int(form.getvalue('pd_id'))
+
+    if sql.update_service_checker_settings(email, telegram_id, slack_id, pd_id, service_alert, setting_id):
+        print('ok')
+    else:
+        print('error: Cannot update Checker settings')
