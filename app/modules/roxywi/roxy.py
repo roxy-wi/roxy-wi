@@ -21,6 +21,17 @@ def is_docker() -> bool:
 
 def update_roxy_wi(service):
 	restart_service = ''
+	services = ['roxy-wi-checker',
+				'roxy-wi',
+				'roxy-wi-keep_alive',
+				'roxy-wi-smon',
+				'roxy-wi-metrics',
+				'roxy-wi-portscanner',
+				'roxy-wi-socket',
+				'roxy-wi-prometheus-exporter']
+
+	if service not in services:
+		raise Exception(f'error: {service} is not part of Roxy-WI')
 
 	if distro.id() == 'ubuntu':
 		try:

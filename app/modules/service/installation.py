@@ -49,6 +49,9 @@ def install_haproxy(server_ip: str, api=0, **kwargs):
 	haproxy_ver = kwargs.get('hapver')
 	server_for_installing = kwargs.get('server')
 	docker = kwargs.get('docker')
+	m_or_s = kwargs.get('m_or_s')
+	master = kwargs.get('master')
+	slave = kwargs.get('slave')
 	proxy_serv = ''
 	ssh_settings = return_ssh_keys_path(server_ip)
 	full_path = '/var/www/haproxy-wi/app'
@@ -68,7 +71,7 @@ def install_haproxy(server_ip: str, api=0, **kwargs):
 		f"STAT_FILE={server_state_file} DOCKER={docker} SSH_PORT={ssh_settings['port']} STATS_USER={stats_user} "
 		f"CONT_NAME={container_name} HAP_DIR={haproxy_dir} STATS_PASS='{stats_password}' HAPVER={haproxy_ver} "
 		f"SYN_FLOOD={syn_flood_protect} HOST={server_ip} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' "
-		f"KEY={ssh_settings['key']}"
+		f"M_OR_S={m_or_s} MASTER={master} SLAVE={slave} KEY={ssh_settings['key']}"
 	]
 
 	if server_for_installing:

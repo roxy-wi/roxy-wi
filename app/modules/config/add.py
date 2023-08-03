@@ -52,7 +52,7 @@ def show_userlist(server_ip: str) -> None:
 
 def get_bwlist(color: str, group: str, list_name: str) -> None:
 	lib_path = get_config.get_config_var('main', 'lib_path')
-	list_path = f"{lib_path}/{sql.get_setting('lists_path')}/{group}/{color}/{list_name}"
+	list_path = f"{lib_path}/lists/{group}/{color}/{list_name}"
 
 	try:
 		with open(list_path, 'r') as f:
@@ -63,7 +63,7 @@ def get_bwlist(color: str, group: str, list_name: str) -> None:
 
 def get_bwlists_for_autocomplete(color: str, group: str) -> None:
 	lib_path = get_config.get_config_var('main', 'lib_path')
-	list_path = f"{lib_path}/{sql.get_setting('lists_path')}/{group}/{color}"
+	list_path = f"{lib_path}/lists/{group}/{color}"
 	lists = roxywi_common.get_files(list_path, "lst")
 
 	for line in lists:
@@ -73,7 +73,7 @@ def get_bwlists_for_autocomplete(color: str, group: str) -> None:
 def create_bwlist(server_ip: str, list_name: str, color: str, group: str) -> None:
 	lib_path = get_config.get_config_var('main', 'lib_path')
 	list_name = f"{list_name.split('.')[0]}.lst"
-	list_path = f"{lib_path}/{sql.get_setting('lists_path')}/{group}/{color}/{list_name}"
+	list_path = f"{lib_path}/lists/{group}/{color}/{list_name}"
 	try:
 		open(list_path, 'a').close()
 		print('success: ')
@@ -87,7 +87,7 @@ def create_bwlist(server_ip: str, list_name: str, color: str, group: str) -> Non
 
 def save_bwlist(list_name: str, list_con: str, color: str, group: str, server_ip: str, action: str) -> None:
 	lib_path = get_config.get_config_var('main', 'lib_path')
-	list_path = f"{lib_path}/{sql.get_setting('lists_path')}/{group}/{color}/{list_name}"
+	list_path = f"{lib_path}/lists/{group}/{color}/{list_name}"
 	try:
 		with open(list_path, "w") as file:
 			file.write(list_con)
@@ -139,7 +139,7 @@ def save_bwlist(list_name: str, list_con: str, color: str, group: str, server_ip
 def delete_bwlist(list_name: str, color: str, group: str, server_ip: str) -> None:
 	servers = []
 	lib_path = get_config.get_config_var('main', 'lib_path')
-	list_path = f"{lib_path}/{sql.get_setting('lists_path')}/{group}/{color}/{list_name}"
+	list_path = f"{lib_path}/lists/{group}/{color}/{list_name}"
 	path = f"{sql.get_setting('haproxy_dir')}/{color}"
 
 	try:
@@ -168,6 +168,125 @@ def delete_bwlist(list_name: str, color: str, group: str, server_ip: str) -> Non
 			print(f'success: the {color} list has been deleted on {serv} , ')
 			try:
 				roxywi_common.logging(serv, f'has been deleted the {color} list {list_name}', roxywi=1, login=1)
+			except Exception:
+				pass
+
+
+def edit_map(map_name: str, group: str) -> None:
+	lib_path = get_config.get_config_var('main', 'lib_path')
+	list_path = f"{lib_path}/maps/{group}/{map_name}"
+
+	try:
+		with open(list_path, 'r') as f:
+			print(f.read())
+	except IOError as e:
+		print(f"error: Cannot read {map_name} list: {e}")
+
+
+def create_map(server_ip: str, map_name: str, group: str) -> None:
+	lib_path = get_config.get_config_var('main', 'lib_path')
+	map_name = f"{map_name.split('.')[0]}.map"
+	map_path = f'{lib_path}/maps/{group}/'
+	full_path = f'{map_path}/{map_name}'
+
+	try:
+		server_mod.subprocess_execute(f'mkdir -p {map_path}')
+	except Exception as e:
+		assert Exception(f'error: cannot create a local folder for maps: {e}')
+	try:
+		open(full_path, 'a').close()
+		print('success: ')
+		try:
+			roxywi_common.logging(server_ip, f'A new map {map_name} has been created', roxywi=1, login=1)
+		except Exception:
+			pass
+	except IOError as e:
+		assert Exception(f'error: Cannot create a new {map_name} map. {e}, ')
+
+
+def save_map(map_name: str, list_con: str, group: str, server_ip: str, action: str) -> None:
+	lib_path = get_config.get_config_var('main', 'lib_path')
+	map_path = f"{lib_path}/maps/{group}/{map_name}"
+	try:
+		with open(map_path, "w") as file:
+			file.write(list_con)
+	except IOError as e:
+		print(f'error: Cannot save {map_name} list. {e}')
+
+	path = sql.get_setting('haproxy_dir') + "/maps"
+	servers = []
+
+	if server_ip != 'all':
+		servers.append(server_ip)
+
+		masters = sql.is_master(server_ip)
+		for master in masters:
+			if master[0] is not None:
+				servers.append(master[0])
+	else:
+		server = roxywi_common.get_dick_permit()
+		for s in server:
+			servers.append(s[2])
+
+	for serv in servers:
+		server_mod.ssh_command(serv, [f"sudo mkdir {path}"])
+		server_mod.ssh_command(serv, [f"sudo chown $(whoami) {path}"])
+		error = config_mod.upload(serv, f'{path}/{map_name}', map_path, dir='fullpath')
+
+		if error:
+			print(f'error: Upload fail: {error} , ')
+		else:
+			print(f'success: Edited {map_name} map was uploaded to {serv} , ')
+			try:
+				roxywi_common.logging(serv, f'Has been edited the map {map_name}', roxywi=1, login=1)
+			except Exception:
+				pass
+
+			server_id = sql.select_server_id_by_ip(server_ip=serv)
+			haproxy_enterprise = sql.select_service_setting(server_id, 'haproxy', 'haproxy_enterprise')
+			if haproxy_enterprise == '1':
+				haproxy_service_name = "hapee-2.0-lb"
+			else:
+				haproxy_service_name = "haproxy"
+
+			if action == 'restart':
+				server_mod.ssh_command(serv, [f"sudo systemctl restart {haproxy_service_name}"])
+			elif action == 'reload':
+				server_mod.ssh_command(serv, [f"sudo systemctl reload {haproxy_service_name}"])
+
+
+def delete_map(map_name: str, group: str, server_ip: str) -> None:
+	servers = []
+	lib_path = get_config.get_config_var('main', 'lib_path')
+	list_path = f"{lib_path}/maps/{group}/{map_name}"
+	path = f"{sql.get_setting('haproxy_dir')}/maps"
+
+	try:
+		os.remove(list_path)
+	except IOError as e:
+		print(f'error: Cannot delete {map_name} map from Roxy-WI server. {e} , ')
+
+	if server_ip != 'all':
+		servers.append(server_ip)
+
+		masters = sql.is_master(server_ip)
+		for master in masters:
+			if master[0] is not None:
+				servers.append(master[0])
+	else:
+		server = roxywi_common.get_dick_permit()
+		for s in server:
+			servers.append(s[2])
+
+	for serv in servers:
+		error = server_mod.ssh_command(serv, [f"sudo rm {path}/{map_name}"], return_err=1)
+
+		if error:
+			print(f'error: Deleting fail: {error} , ')
+		else:
+			print(f'success: the {map_name} map has been deleted on {serv} , ')
+			try:
+				roxywi_common.logging(serv, f'has been deleted the {map_name} map', roxywi=1, login=1)
 			except Exception:
 				pass
 

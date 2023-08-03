@@ -349,15 +349,14 @@ def show_lists() -> None:
 
 def delete_ip_from_list() -> None:
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-	lists_path = sql.get_setting('lists_path')
 	lib_path = get_config_var.get_config_var('main', 'lib_path')
 	ip_id = common.checkAjaxInput(form.getvalue('list_ip_id_for_delete'))
 	ip = common.is_ip_or_dns(form.getvalue('list_ip_for_delete'))
 	list_id = common.checkAjaxInput(form.getvalue('list_id_for_delete'))
 	list_name = common.checkAjaxInput(form.getvalue('list_name'))
 	user_group = roxywi_common.get_user_group(id=1)
-	cmd = f"sed -i 's!{ip}$!!' {lib_path}/{lists_path}/{user_group}/{list_name}"
-	cmd1 = f"sed -i '/^$/d' {lib_path}/{lists_path}/{user_group}/{list_name}"
+	cmd = f"sed -i 's!{ip}$!!' {lib_path}/lists/{user_group}/{list_name}"
+	cmd1 = f"sed -i '/^$/d' {lib_path}/lists/{user_group}/{list_name}"
 	output, stderr = server_mod.subprocess_execute(cmd)
 	output1, stderr1 = server_mod.subprocess_execute(cmd1)
 	if output:
@@ -381,7 +380,6 @@ def delete_ip_from_list() -> None:
 
 def add_ip_to_list() -> None:
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-	lists_path = sql.get_setting('lists_path')
 	lib_path = get_config_var.get_config_var('main', 'lib_path')
 	ip = form.getvalue('list_ip_for_add')
 	ip = ip.strip()
@@ -397,7 +395,7 @@ def add_ip_to_list() -> None:
 		print(f'error: {stderr[0]}')
 
 	if 'is not a valid IPv4 or IPv6 address' not in output[0]:
-		cmd = f'echo "{ip}" >> {lib_path}/{lists_path}/{user_group}/{list_name}'
+		cmd = f'echo "{ip}" >> {lib_path}/lists/{user_group}/{list_name}'
 		output, stderr = server_mod.subprocess_execute(cmd)
 		if output:
 			print(f'error: {output}')

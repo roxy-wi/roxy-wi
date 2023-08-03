@@ -276,46 +276,32 @@ if form.getvalue('action'):
 if serv is not None and act == "stats":
     service_common.get_stat_page(serv, service)
 
-if serv is not None and form.getvalue('show_log') is not None:
+if serv is not None and any((form.getvalue('show_log'), form.getvalue('rows1'), form.getvalue('viewlogs'))):
     import modules.roxywi.logs as roxywi_logs
 
+    waf = 0
     rows = form.getvalue('show_log')
-    waf = form.getvalue('waf')
+    service = service
+
+    if form.getvalue('rows1'):
+        rows = form.getvalue('rows1')
+        service = 'apache_internal'
+    elif form.getvalue('show_log'):
+        waf = form.getvalue('waf')
+    elif form.getvalue('viewlogs'):
+        serv = form.getvalue('viewlogs')
+        rows = form.getvalue('rows')
+        service = 'internal'
+
     grep = form.getvalue('grep')
     hour = form.getvalue('hour')
-    minut = form.getvalue('minut')
+    minute = form.getvalue('minut')
     hour1 = form.getvalue('hour1')
-    minut1 = form.getvalue('minut1')
-    out = roxywi_logs.show_roxy_log(serv, rows=rows, waf=waf, grep=grep, hour=hour, minut=minut, hour1=hour1,
-                                 minut1=minut1, service=service)
-    print(out)
+    minute1 = form.getvalue('minut1')
 
-if serv is not None and form.getvalue('rows1') is not None:
-    import modules.roxywi.logs as roxywi_logs
-
-    rows = form.getvalue('rows1')
-    grep = form.getvalue('grep')
-    hour = form.getvalue('hour')
-    minut = form.getvalue('minut')
-    hour1 = form.getvalue('hour1')
-    minut1 = form.getvalue('minut1')
-    out = roxywi_logs.show_roxy_log(serv, rows=rows, waf='0', grep=grep, hour=hour, minut=minut, hour1=hour1,
-                                 minut1=minut1, service='apache_internal')
-    print(out)
-
-if form.getvalue('viewlogs') is not None:
-    import modules.roxywi.logs as roxywi_logs
-
-    viewlog = form.getvalue('viewlogs')
-    rows = form.getvalue('rows')
-    grep = form.getvalue('grep')
-    hour = form.getvalue('hour')
-    minut = form.getvalue('minut')
-    hour1 = form.getvalue('hour1')
-    minut1 = form.getvalue('minut1')
     if roxywi_common.check_user_group():
-        out = roxywi_logs.show_roxy_log(serv=viewlog, rows=rows, waf='0', grep=grep, hour=hour, minut=minut, hour1=hour1,
-                                     minut1=minut1, service='internal')
+        out = roxywi_logs.show_roxy_log(serv=serv, rows=rows, waf=waf, grep=grep, hour=hour, minute=minute, hour1=hour1,
+                                 minute1=minute1, service=service)
         print(out)
 
 if serv is not None and act == "showMap":
@@ -407,12 +393,12 @@ if form.getvalue('master_slave_hap'):
 
     if server == 'master':
         try:
-            service_mod.install_haproxy(master, server=server, docker=docker)
+            service_mod.install_haproxy(master, server=server, docker=docker, m_or_s='master', master=master, slave=slave)
         except Exception as e:
             print(f'{e}')
     elif server == 'slave':
         try:
-            service_mod.install_haproxy(slave, server=server, docker=docker)
+            service_mod.install_haproxy(slave, server=server, docker=docker, m_or_s='slave', master=master, slave=slave)
         except Exception as e:
             print(f'{e}')
 
@@ -586,18 +572,12 @@ if form.getvalue('geoip_install'):
 if form.getvalue('update_roxy_wi'):
     import modules.roxywi.roxy as roxy
 
-    services = ['roxy-wi-checker',
-                'roxy-wi',
-                'roxy-wi-keep_alive',
-                'roxy-wi-smon',
-                'roxy-wi-metrics',
-                'roxy-wi-portscanner',
-                'roxy-wi-socket',
-                'roxy-wi-prometheus-exporter']
-    if service not in services:
-        print(f'error: {service} is not part of Roxy-WI')
-        sys.exit()
-    roxy.update_roxy_wi(service)
+    service = form.getvalue('service')
+
+    try:
+        roxy.update_roxy_wi(service)
+    except Exception as e:
+        print(e)
 
 if form.getvalue('metrics_waf'):
     metrics_waf = common.checkAjaxInput(form.getvalue('metrics_waf'))
@@ -716,6 +696,36 @@ if form.getvalue('get_lists'):
     group = common.checkAjaxInput(form.getvalue('group'))
     color = common.checkAjaxInput(form.getvalue('color'))
     add_mod.get_bwlists_for_autocomplete(color, group)
+
+if form.getvalue('edit_map'):
+    group = common.checkAjaxInput(form.getvalue('group'))
+    map_name = common.checkAjaxInput(form.getvalue('edit_map'))
+
+    add_mod.edit_map(map_name, group)
+
+if form.getvalue('map_create'):
+    map_name = common.checkAjaxInput(form.getvalue('map_create'))
+    group = common.checkAjaxInput(form.getvalue('group'))
+
+    try:
+        add_mod.create_map(serv, map_name, group)
+    except Exception as e:
+        print(e)
+
+if form.getvalue('map_save'):
+    group = common.checkAjaxInput(form.getvalue('group'))
+    map_save = common.checkAjaxInput(form.getvalue('map_save'))
+    content = form.getvalue('content')
+    action = common.checkAjaxInput(form.getvalue('map_restart'))
+
+    add_mod.save_map(map_save, content, group, serv, action)
+
+if form.getvalue('map_delete'):
+    map_name = common.checkAjaxInput(form.getvalue('map_delete'))
+    group = common.checkAjaxInput( form.getvalue('group'))
+    server_id = common.checkAjaxInput( form.getvalue('serv'))
+
+    add_mod.delete_map(map_name, group, server_id)
 
 if form.getvalue('get_ldap_email'):
     import modules.roxywi.user as roxywi_user
@@ -1347,54 +1357,9 @@ if form.getvalue('loadservices'):
     print(template)
 
 if form.getvalue('loadchecker'):
-    from modules.roxywi.roxy import get_services_status
+    import modules.tools.checker as checker_mod
 
-    lang = roxywi_common.get_user_lang()
-    env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
-    template = env.get_template('ajax/load_telegram.html')
-    services = get_services_status()
-    groups = sql.select_groups()
-    page = form.getvalue('page')
-
-    try:
-        user_subscription = roxywi_common.return_user_status()
-    except Exception as e:
-        user_subscription = roxywi_common.return_unsubscribed_user_status()
-        roxywi_common.logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
-
-    if user_subscription['user_status']:
-        haproxy_settings = sql.select_checker_settings(1)
-        nginx_settings = sql.select_checker_settings(2)
-        keepalived_settings = sql.select_checker_settings(3)
-        apache_settings = sql.select_checker_settings(4)
-        if page == 'servers.py':
-            user_group = roxywi_common.get_user_group(id=1)
-            telegrams = sql.get_user_telegram_by_group(user_group)
-            slacks = sql.get_user_slack_by_group(user_group)
-            pds = sql.get_user_pd_by_group(user_group)
-            haproxy_servers = roxywi_common.get_dick_permit(haproxy=1, only_group=1)
-            nginx_servers = roxywi_common.get_dick_permit(nginx=1, only_group=1)
-            apache_servers = roxywi_common.get_dick_permit(apache=1, only_group=1)
-            keepalived_servers = roxywi_common.get_dick_permit(keepalived=1, only_group=1)
-        else:
-            telegrams = sql.select_telegram()
-            slacks = sql.select_slack()
-            pds = sql.select_pd()
-            haproxy_servers = roxywi_common.get_dick_permit(haproxy=1)
-            nginx_servers = roxywi_common.get_dick_permit(nginx=1)
-            apache_servers = roxywi_common.get_dick_permit(apache=1)
-            keepalived_servers = roxywi_common.get_dick_permit(keepalived=1)
-    else:
-        telegrams = ''
-        slacks = ''
-        pds = ''
-
-    template = template.render(services=services, telegrams=telegrams, pds=pds, groups=groups, slacks=slacks,
-                               user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'],
-                               haproxy_servers=haproxy_servers, nginx_servers=nginx_servers, apache_servers=apache_servers,
-                               keepalived_servers=keepalived_servers, haproxy_settings=haproxy_settings, nginx_settings=nginx_settings,
-                               keepalived_settings=keepalived_settings, apache_settings=apache_settings, page=page, lang=lang)
-    print(template)
+    checker_mod.load_checker()
 
 if form.getvalue('load_update_hapwi'):
     import modules.roxywi.roxy as roxy
@@ -1541,13 +1506,13 @@ if form.getvalue('serverSettingsSave') is not None:
     server_id = common.checkAjaxInput(form.getvalue('serverSettingsSave'))
     service = common.checkAjaxInput(form.getvalue('serverSettingsService'))
     haproxy_enterprise = common.checkAjaxInput(form.getvalue('serverSettingsEnterprise'))
-    haproxy_dockerized = common.checkAjaxInput(form.getvalue('serverSettingshaproxy_dockerized'))
-    nginx_dockerized = common.checkAjaxInput(form.getvalue('serverSettingsnginx_dockerized'))
-    apache_dockerized = common.checkAjaxInput(form.getvalue('serverSettingsapache_dockerized'))
-    haproxy_restart = common.checkAjaxInput(form.getvalue('serverSettingsHaproxyrestart'))
-    nginx_restart = common.checkAjaxInput(form.getvalue('serverSettingsNginxrestart'))
-    apache_restart = common.checkAjaxInput(form.getvalue('serverSettingsApache_restart'))
+    service_dockerized = common.checkAjaxInput(form.getvalue('serverSettingsDockerized'))
+    service_restart = common.checkAjaxInput(form.getvalue('serverSettingsRestart'))
     server_ip = sql.select_server_ip_by_id(server_id)
+    service_docker = f'Service {service.title()} has been flagged as a dockerized'
+    service_systemd = f'Service {service.title()} has been flagged as a system service'
+    disable_restart = f'Restart option is disabled for {service.title()} service'
+    enable_restart = f'Restart option is disabled for {service.title()} service'
 
     if service == 'haproxy':
         if sql.insert_or_update_service_setting(server_id, service, 'haproxy_enterprise', haproxy_enterprise):
@@ -1558,58 +1523,20 @@ if form.getvalue('serverSettingsSave') is not None:
             else:
                 roxywi_common.logging(server_ip, 'Service has been flagged as a community version', roxywi=1, login=1,
                               keep_history=1, service=service)
-        if sql.insert_or_update_service_setting(server_id, service, 'dockerized', haproxy_dockerized):
-            print('Ok')
-            if haproxy_dockerized == '1':
-                roxywi_common.logging(server_ip, 'Service has been flagged as a dockerized', roxywi=1, login=1,
-                              keep_history=1, service=service)
-            else:
-                roxywi_common.logging(server_ip, 'Service has been flagged as a system service', roxywi=1, login=1,
-                              keep_history=1, service=service)
-        if sql.insert_or_update_service_setting(server_id, service, 'restart', haproxy_restart):
-            print('Ok')
-            if haproxy_restart == '1':
-                roxywi_common.logging(server_ip, 'Restart option is disabled for this service', roxywi=1, login=1,
-                              keep_history=1, service=service)
-            else:
-                roxywi_common.logging(server_ip, 'Restart option is disabled for this service', roxywi=1, login=1,
-                              keep_history=1, service=service)
 
-    if service == 'nginx':
-        if sql.insert_or_update_service_setting(server_id, service, 'dockerized', nginx_dockerized):
-            print('Ok')
-            if nginx_dockerized:
-                roxywi_common.logging(server_ip, 'Service has been flagged as a dockerized', roxywi=1, login=1,
-                              keep_history=1, service=service)
-            else:
-                roxywi_common.logging(server_ip, 'Service has been flagged as a system service', roxywi=1, login=1,
-                              keep_history=1, service=service)
-        if sql.insert_or_update_service_setting(server_id, service, 'restart', nginx_restart):
-            print('Ok')
-            if nginx_restart == '1':
-                roxywi_common.logging(server_ip, 'Restart option is disabled for this service', roxywi=1, login=1,
-                              keep_history=1, service=service)
-            else:
-                roxywi_common.logging(server_ip, 'Restart option is disabled for this service', roxywi=1, login=1,
-                              keep_history=1, service=service)
+    if sql.insert_or_update_service_setting(server_id, service, 'dockerized', service_dockerized):
+        print('Ok')
+        if service_dockerized == '1':
+            roxywi_common.logging(server_ip, service_docker, roxywi=1, login=1, keep_history=1, service=service)
+        else:
+            roxywi_common.logging(server_ip, service_systemd, roxywi=1, login=1, keep_history=1, service=service)
 
-    if service == 'apache':
-        if sql.insert_or_update_service_setting(server_id, service, 'dockerized', apache_dockerized):
-            print('Ok')
-            if apache_dockerized:
-                roxywi_common.logging(server_ip, 'Service has been flagged as a dockerized', roxywi=1, login=1,
-                              keep_history=1, service=service)
-            else:
-                roxywi_common.logging(server_ip, 'Service has been flagged as a system service', roxywi=1, login=1,
-                              keep_history=1, service=service)
-            if sql.insert_or_update_service_setting(server_id, service, 'restart', apache_restart):
-                print('Ok')
-                if apache_restart == '1':
-                    roxywi_common.logging(server_ip, 'Restart option is disabled for this service', roxywi=1, login=1,
-                                  keep_history=1, service=service)
-                else:
-                    roxywi_common.logging(server_ip, 'Restart option is disabled for this service', roxywi=1, login=1,
-                                  keep_history=1, service=service)
+    if sql.insert_or_update_service_setting(server_id, service, 'restart', service_restart):
+        print('Ok')
+        if service_restart == '1':
+            roxywi_common.logging(server_ip, disable_restart, roxywi=1, login=1, keep_history=1, service=service)
+        else:
+            roxywi_common.logging(server_ip, enable_restart, roxywi=1, login=1, keep_history=1, service=service)
 
 if act == 'showListOfVersion':
     config_mod.list_of_versions(serv, service)
@@ -1655,46 +1582,19 @@ if form.getvalue('show_sub_ovw'):
     roxywi_overview.show_sub_ovw()
 
 if form.getvalue('updateHaproxyCheckerSettings'):
-    setting_id = form.getvalue('updateHaproxyCheckerSettings')
-    email = form.getvalue('email')
-    service_alert = form.getvalue('server')
-    backend_alert = form.getvalue('backend')
-    maxconn_alert = form.getvalue('maxconn')
-    telegram_id = form.getvalue('telegram_id')
-    slack_id = form.getvalue('slack_id')
-    pd_id = form.getvalue('pd_id')
+    import modules.tools.checker as checker_mod
 
-    if sql.update_haproxy_checker_settings(email, telegram_id, slack_id, pd_id, service_alert, backend_alert, maxconn_alert, setting_id):
-        print('ok')
-    else:
-        print('error: Cannot update Checker settings')
+    checker_mod.update_haproxy_settings()
 
 if form.getvalue('updateKeepalivedCheckerSettings'):
-    setting_id = form.getvalue('updateKeepalivedCheckerSettings')
-    email = form.getvalue('email')
-    service_alert = form.getvalue('server')
-    backend_alert = form.getvalue('backend')
-    telegram_id = form.getvalue('telegram_id')
-    slack_id = form.getvalue('slack_id')
-    pd_id = form.getvalue('pd_id')
+    import modules.tools.checker as checker_mod
 
-    if sql.update_keepalived_checker_settings(email, telegram_id, slack_id, pd_id, service_alert, backend_alert, setting_id):
-        print('ok')
-    else:
-        print('error: Cannot update Checker settings')
+    checker_mod.update_keepalived_settings()
 
 if form.getvalue('updateServiceCheckerSettings'):
-    setting_id = form.getvalue('updateServiceCheckerSettings')
-    email = form.getvalue('email')
-    service_alert = form.getvalue('server')
-    telegram_id = form.getvalue('telegram_id')
-    slack_id = form.getvalue('slack_id')
-    pd_id = form.getvalue('pd_id')
+    import modules.tools.checker as checker_mod
 
-    if sql.update_service_checker_settings(email, telegram_id, slack_id, pd_id, service_alert, setting_id):
-        print('ok')
-    else:
-        print('error: Cannot update Checker settings')
+    checker_mod.update_service_settings()
 
 if act == 'show_server_services':
     server_mod.show_server_services()

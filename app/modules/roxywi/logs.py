@@ -55,12 +55,12 @@ def show_log(stdout, **kwargs):
 
 def show_roxy_log(
 		serv, rows='10', waf='0', grep=None, hour='00',
-		minut='00', hour1='24', minut1='00', service='haproxy', **kwargs
+		minute='00', hour1='24', minute1='00', service='haproxy', **kwargs
 ) -> str:
 	exgrep = form.getvalue('exgrep')
 	log_file = form.getvalue('file')
-	date = checkAjaxInput(hour) + ':' + checkAjaxInput(minut)
-	date1 = checkAjaxInput(hour1) + ':' + checkAjaxInput(minut1)
+	date = checkAjaxInput(hour) + ':' + checkAjaxInput(minute)
+	date1 = checkAjaxInput(hour1) + ':' + checkAjaxInput(minute1)
 	rows = checkAjaxInput(rows)
 	waf = checkAjaxInput(waf)
 	cmd = ''

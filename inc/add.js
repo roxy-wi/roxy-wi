@@ -931,13 +931,17 @@ $( function() {
 			},
 			type: "POST",
 			success: function( data ) {
-				data = data.replace(/\s+/g,' ');
-				if (data.indexOf('error:') != '-1') {
-					toastr.error(data);
-				} else if (data.indexOf('success') != '-1') {
-					toastr.success(data);
-				} else {
-					toastr.error('Something wrong, check and try again');
+				data = data.split("<br/>");
+				for (i = 0; i < data.length; i++) {
+					if (data[i]) {
+						if (data[i].indexOf('error: ') != '-1' || data[i].indexOf('Errno') != '-1') {
+							toastr.error(data[i]);
+						} else {
+							if (data[i] != '\n') {
+								toastr.success(data[i]);
+							}
+						}
+					}
 				}
 			}
 		} );
@@ -1745,7 +1749,9 @@ function saveList(action, list, color) {
 					if (data[i].indexOf('error: ') != '-1' || data[i].indexOf('Errno') != '-1') {
 						toastr.error(data[i]);
 					} else {
-						toastr.success(data[i]);
+						if (data[i] != '\n') {
+							toastr.success(data[i]);
+						}
 					}
 				}
 			}
@@ -1774,6 +1780,150 @@ function deleteList(list, color) {
 			} else if (data.indexOf('success') != '-1' ) {
 				toastr.clear();
 				toastr.success('List has been deleted');
+				setTimeout(function () {location.reload();}, 2500);
+			}
+		}
+	});
+}
+function createMap() {
+	map_name = $('#new_map_name').val()
+	map_name = escapeHtml(map_name);
+	$.ajax( {
+		url: "options.py",
+		data: {
+			map_create: map_name,
+			group: $('#group').val(),
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1' || data.indexOf('Errno') != '-1') {
+				toastr.error(data);
+			} else if (data.indexOf('Info') != '-1' ){
+				toastr.clear();
+				toastr.info(data);
+			} else if (data.indexOf('success') != '-1' ) {
+				toastr.clear();
+				toastr.success('A map has been created');
+				setTimeout(function () {
+					location.reload();
+				}, 2500);
+			}
+		}
+	} );
+}
+function editMap(map) {
+	$.ajax( {
+		url: "options.py",
+		data: {
+			edit_map: map,
+			group: $('#group').val(),
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			if (data.indexOf('error:') != '-1') {
+				toastr.error(data);
+			} else {
+				var cancel_word = $('#translate').attr('data-cancel');
+				var save_word = $('#translate').attr('data-just_save');
+				var delete_word = $('#translate').attr('data-delete');
+				var upload_and_reload = $('#translate').attr('data-upload_and_reload');
+				var upload_and_restart = $('#translate').attr('data-upload_and_restart');
+				var edit_word = $('#translate').attr('data-edit');
+				$('#edit_map').text(data);
+				$( "#dialog-confirm-map-edit" ).dialog({
+					resizable: false,
+					height: "auto",
+					width: 650,
+					modal: true,
+					title: edit_word + " "+map,
+					buttons: [{
+						text: delete_word,
+						click: function () {
+							$(this).dialog("close");
+							confirmDeleting('map', map, $(this));
+						}
+					}, {
+						text: save_word,
+						click: function () {
+							$(this).dialog("close");
+							saveMap('save', map);
+						}
+					}, {
+						text: upload_and_reload,
+						click: function () {
+							$(this).dialog("close");
+							saveMap('reload', map);
+						}
+					}, {
+						text: upload_and_restart,
+						click: function () {
+							$(this).dialog("close");
+							saveMap('restart', map);
+						}
+					}, {
+						text: cancel_word,
+						click: function () {
+							$(this).dialog("close");
+						}
+					}]
+				});
+			}
+		}
+	} );
+}
+function saveMap(action, map) {
+	var serv = $( "#serv-map option:selected" ).val();
+	if(!checkIsServerFiled($("#serv-map"))) return false;
+	$.ajax({
+		url: "options.py",
+		data: {
+			map_save: map,
+			serv: serv,
+			content: $('#edit_map').val(),
+			group: $('#group').val(),
+			map_restart: action,
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			data = data.split(" , ");
+			for (i = 0; i < data.length; i++) {
+				if (data[i]) {
+					if (data[i].indexOf('error: ') != '-1' || data[i].indexOf('Errno') != '-1') {
+						toastr.error(data[i]);
+					} else {
+						if (data[i] != '\n') {
+							toastr.success(data[i]);
+						}
+					}
+				}
+			}
+		}
+	});
+}
+function deleteMap(map) {
+	var serv = $( "#serv-map option:selected" ).val();
+	if(!checkIsServerFiled($("#serv-map"))) return false;
+	$.ajax({
+		url: "options.py",
+		data: {
+			map_delete: map,
+			serv: serv,
+			group: $('#group').val(),
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function (data) {
+			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1' || data.indexOf('Errno') != '-1') {
+				toastr.error(data);
+			} else if (data.indexOf('Info') != '-1' ){
+				toastr.clear();
+				toastr.info(data);
+			} else if (data.indexOf('success') != '-1' ) {
+				toastr.clear();
+				toastr.success('The map has been deleted');
 				setTimeout(function () {location.reload();}, 2500);
 			}
 		}
@@ -1950,6 +2100,9 @@ function confirmDeleting(deleting_thing, id, dialog_id, color) {
 					$(dialog_id).dialog("close");
 				} else if (deleting_thing == "list") {
 					deleteList(id, color);
+					$(dialog_id).dialog("close");
+				} else if (deleting_thing == "map") {
+					deleteMap(id);
 					$(dialog_id).dialog("close");
 				}
 				$(this).dialog("close");

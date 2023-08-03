@@ -22,9 +22,6 @@ def default_values():
 		{'param': 'ssl_local_path', 'value': 'certs', 'section': 'main',
 			'desc': 'Path to the directory with the saved local SSL certificates. The value of this parameter is '
 					'specified as a relative path beginning with $HOME_ROXY_WI/app/', 'group': '1'},
-		{'param': 'lists_path', 'value': 'lists', 'section': 'main',
-			'desc': 'Path to the black and the wild list. The value of this parameter should be specified as a relative path beginning with $HOME_ROXY-WI',
-			'group': '1'},
 		{'param': 'maxmind_key', 'value': '', 'section': 'main', 'desc': 'License key for downloading GeoIP DB. You can create it on maxmind.com', 'group': '1'},
 		{'param': 'haproxy_path_logs', 'value': '/var/log/haproxy/', 'section': 'haproxy', 'desc': 'The path for HAProxy logs', 'group': '1'},
 		{'param': 'syslog_server_enable', 'value': '0', 'section': 'logs', 'desc': 'Enable getting logs from a syslog server', 'group': '1'},
@@ -633,85 +630,6 @@ def update_db_v_4_3_0():
 			print("An error occurred:", e)
 
 
-def update_db_v_6_0():
-	cursor = conn.cursor()
-	sql = list()
-	sql.append("alter table servers add column apache integer default 0")
-	sql.append("alter table servers add column apache_active integer default 0")
-	sql.append("alter table servers add column apache_alert integer default 0")
-	sql.append("alter table servers add column apache_metrics integer default 0")
-	for i in sql:
-		try:
-			cursor.execute(i)
-		except Exception:
-			pass
-	else:
-		print('Updating... DB has been updated to version 6.0.0.0')
-
-
-def update_db_v_6_0_1():
-	query = Groups.update(name='Default').where(Groups.group_id == '1')
-	try:
-		query.execute()
-	except Exception as e:
-		print("An error occurred:", e)
-	else:
-		print("Updating... DB has been updated to version 6.0.0.0-1")
-
-
-def update_db_v_6_1_0():
-	for service_id in range(1, 5):
-		try:
-			servers_id = Server.select(Server.server_id).where(Server.type_ip == 0).execute()
-			for server_id in servers_id:
-				CheckerSetting.insert(
-					server_id=server_id, service_id=service_id
-				).on_conflict_ignore().execute()
-		except Exception as e:
-			if e.args[0] == 'duplicate column name: haproxy' or str(e) == '(1060, "Duplicate column name \'haproxy\'")':
-				print('Updating... go to version 6.1.0')
-			else:
-				print("An error occurred:", e)
-
-
-def update_db_v_6_1_3():
-	if mysql_enable == '1':
-		cursor = conn.cursor()
-		sql = list()
-		sql.append("ALTER TABLE `waf_rules` ADD COLUMN service VARCHAR ( 64 ) DEFAULT 'haproxy'")
-		sql.append("ALTER TABLE `waf_rules` drop CONSTRAINT serv")
-		sql.append("ALTER TABLE `waf_rules` ADD CONSTRAINT UNIQUE (serv, rule_name, service)")
-		for i in sql:
-			try:
-				cursor.execute(i)
-			except Exception:
-				pass
-		else:
-			print('Updating... DB has been updated to version 6.1.3.0')
-	else:
-		pass
-
-
-def update_db_v_6_1_4():
-	servers = Server.select()
-	services = Services.select()
-	for server in servers:
-		for service in services:
-			settings = ('restart', 'dockerized', 'haproxy_enterprise')
-			for setting in settings:
-				if service.slug == 'keepalived':
-					continue
-				if service.slug != 'haproxy' and setting == 'haproxy_enterprise':
-					continue
-				set_value = 0
-				try:
-					ServiceSetting.insert(
-						server_id=server.server_id, service=service.slug, setting=setting, value=set_value
-					).on_conflict_ignore().execute()
-				except Exception:
-					pass
-
-
 def update_db_v_6_2_1():
 	try:
 		Setting.update(section='main').where(Setting.param == 'maxmind_key').execute()
@@ -914,9 +832,18 @@ def update_db_v_6_3_13_5():
 		print("An error occurred:", e)
 
 
+def update_db_v_6_3_17():
+	try:
+		Setting.delete().where(Setting.param == 'lists_path').execute()
+	except Exception as e:
+		print("An error occurred:", e)
+	else:
+		print("Updating... DB has been updated to version 6.3.17")
+
+
 def update_ver():
 	try:
-		Version.update(version='6.3.16.0').execute()
+		Version.update(version='6.3.17.0').execute()
 	except Exception:
 		print('Cannot update version')
 
@@ -934,11 +861,6 @@ def update_all():
 	if check_ver() is None:
 		update_db_v_3_4_5_22()
 	update_db_v_4_3_0()
-	update_db_v_6_0()
-	update_db_v_6_0_1()
-	update_db_v_6_1_0()
-	update_db_v_6_1_3()
-	update_db_v_6_1_4()
 	update_db_v_6_2_1()
 	update_db_v_6_3_4()
 	update_db_v_6_3_5()
@@ -953,6 +875,7 @@ def update_all():
 	update_db_v_6_3_13_3()
 	update_db_v_6_3_13_4()
 	update_db_v_6_3_13_5()
+	update_db_v_6_3_17()
 	update_ver()
 
 

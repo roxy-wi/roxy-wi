@@ -33,6 +33,7 @@
 		<li><a href="#userlist" title="{{lang.words.add|title()}} {{lang.words.proxy}}: {{lang.words.create|title()}} {{lang.words.userlists|title()}} - Roxy-WI">{{lang.words.userlists|title()}}</a></li>
 		<li><a href="#peers" title="{{lang.words.add|title()}} {{lang.words.proxy}}: {{lang.words.create|title()}} peers - Roxy-WI">Peers</a></li>
 		<li><a href="#lists" title="{{lang.words.add|title()}} {{lang.words.proxy}}: {{lang.words.create|title()}} {{lang.words.and}} {{lang.words.upload}} {{lang.words.whitelists}} {{lang.words.or}} {{lang.words.blacklists}} - Roxy-WI">{{lang.words.lists|title()}}</a></li>
+		<li><a href="#maps" title="{{lang.words.add|title()}} {{lang.words.proxy}}: {{lang.words.create|title()}} {{lang.words.and}} {{lang.words.upload}} {{lang.words.maps}} - Roxy-WI">{{lang.words.maps|title()}}</a></li>
 	</ul>
 	<ul id='browse_histroy'></ul>
 	{% include 'include/add_proxy.html' %}
@@ -1084,7 +1085,7 @@
 				<td style="width: 30%; padding: 10px 0 10px 0;">
 					{% for list in black_lists %}
 					<span class="list_of_lists">
-						<a onclick="editList('{{ list }}', 'black')" title="{{lang.words.edit|title()}} {{lang.words.the}} {{ list }} list">{{ list }}</a>
+						<a onclick="editList('{{ list }}', 'black')" title="{{lang.words.edit|title()}} {{lang.words.the}} {{ list }} {{lang.words.list}}">{{ list }}</a>
 					</span>
 					{% endfor %}
 				</td>
@@ -1126,9 +1127,51 @@
 			{{lang.add_page.desc.lists_howto}}
 			<a href="https://roxy-wi.org/howto/blacklist" title="How to create and manage blacklist" target="_blank">{{lang.words.article}}</a>
 		</div>
-		<div id="dialog-confirm-cert-edit" title="View certificate " style="display: none;">
+		<div id="dialog-confirm-cert-edit" title="{{lang.words.view|title()}} {{lang.words.cert}} " style="display: none;">
 			<span><b>{{lang.words.note|title()}}:</b> {{lang.add_page.desc.lists_new_line}}</span>
 			<textarea id="edit_lists" style="width: 100%" rows=20></textarea>
+		</div>
+	</div>
+
+	<div id="maps">
+		<table class="overview">
+			<tr class="overviewHead">
+				<th class="padding10 first-collumn">{{lang.words.new|title()}} {{lang.words.map}}</th>
+				<th>{{lang.words.server|title()}} {{lang.words.for}} {{lang.words.uploading}}</th>
+				<th>{{lang.words.existing|title()}} {{lang.words.maps}}</th>
+			</tr>
+			<tr>
+				<td class="padding10 first-collumn" style="width: 25%;">
+					{{lang.words.name|title()}}: {{ input('new_map_name') }}
+					<button onclick="createMap()">{{lang.words.create|title()}}</button>
+				</td>
+				<td class="first-collumn">
+					<select required name="serv-map" id="serv-map">
+						<option disabled selected>------</option>
+						<option value="all">{{lang.words.all|title()}}</option>
+							{% for select in selects %}
+								<option value="{{ select.2 }}">{{ select.1 }}</option>
+							{% endfor %}
+					</select>
+				</td>
+				<td style="width: 30%; padding: 10px 0 10px 0;">
+					{% for map in maps %}
+					<span class="list_of_lists">
+						<a onclick="editMap('{{ map }}')" title="{{lang.words.edit|title()}} {{lang.words.the}} {{ map }} {{lang.words.map}}">{{ map }}</a>
+					</span>
+					{% endfor %}
+				</td>
+			</tr>
+			{{ input('group', value=group, type='hidden') }}
+		</table>
+		<div id="ajax-maps"></div>
+		<div class="add-note alert addName alert-info" style="width: inherit; margin-right: 15px;">
+			{{lang.add_page.desc.lists_howto}}
+			<a href="https://www.haproxy.com/blog/introduction-to-haproxy-maps" title="Introduction to HAProxy Maps" target="_blank">{{lang.words.article}}</a>
+		</div>
+		<div id="dialog-confirm-map-edit" title="{{lang.words.view|title()}} {{lang.words.map}} " style="display: none;">
+			<span><b>{{lang.words.note|title()}}:</b> {{lang.add_page.desc.lists_new_line}}</span>
+			<textarea id="edit_map" style="width: 100%" rows=20></textarea>
 		</div>
 	</div>
 	{% include 'include/del_confirm.html' %}

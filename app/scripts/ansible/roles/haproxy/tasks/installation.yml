@@ -61,7 +61,7 @@
       - socat
       - rsyslog
     state: latest
-  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and ("'FAILED' in install_result1.stderr")
+  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and (install_result.rc != 0 and install_result1.rc != 0)
   register: install_result
   retries: 5
   until: install_result.rc == 0

@@ -707,21 +707,23 @@ function viewLogs() {
 	}
 }
 $( function() {
-	// $('a').click(function(e) {
-	// 	try {
-	// 		var cur_path = window.location.pathname;
-	// 		var attr = $(this).attr('href');
-	// 		if (typeof attr !== typeof undefined && attr !== false) {
-	// 			$('title').text($(this).attr('title'));
-	// 			history.pushState({}, '', $(this).attr('href'));
-	// 			if ($(this).attr('href').split('#')[0] && $(this).attr('href').split('#')[0] != cur_path) {
-	// 				window.history.go()
-	// 			}
-	// 		}
-	// 	} catch (err) {
-	// 		console.log(err);
-	// 	}
-	// });
+	$('a').click(function(e) {
+		try {
+			var cur_path = window.location.pathname;
+			var attr = $(this).attr('href');
+			if (cur_path == '/app/add.py' || cur_path == '/app/add_nginx.py' || cur_path == '/app/servers.py' || cur_path == '/app/users.py') {
+				if (typeof attr !== typeof undefined && attr !== false) {
+					$('title').text($(this).attr('title'));
+					history.pushState({}, '', $(this).attr('href'));
+					if ($(this).attr('href').split('#')[0] && $(this).attr('href').split('#')[0] != cur_path) {
+						window.history.go()
+					}
+				}
+			}
+		} catch (err) {
+			console.log(err);
+		}
+	});
 	toastr.options.closeButton = true;
 	toastr.options.progressBar = true;
 	toastr.options.positionClass = 'toast-bottom-full-width';

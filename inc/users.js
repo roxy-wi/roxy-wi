@@ -1975,6 +1975,11 @@ function updateSSH(id) {
 	} );
 }
 function updateReceiver(id, receiver_name) {
+	if (cur_url[0].split('#')[0] == 'servers.py') {
+		var group = $('#new-group').val();
+	} else {
+		var group = $('#'+receiver_name+'group-'+id).val();
+	}
 	toastr.clear();
 	$.ajax( {
 		url: "options.py",
@@ -1982,7 +1987,7 @@ function updateReceiver(id, receiver_name) {
 			receiver_name: receiver_name,
 			update_receiver_token: $('#'+receiver_name+'-token-'+id).val(),
 			update_receiver_channel: $('#'+receiver_name+'-chanel-'+id).val(),
-			update_receiver_group: $('#'+receiver_name+'group-'+id).val(),
+			update_receiver_group: group,
 			id: id,
 			token: $('#token').val()
 		},
@@ -2366,6 +2371,7 @@ function updateService(service, action='update') {
 			}
 			$("#ajax-update").html('');
 			loadupdatehapwi();
+			show_version();
 		}
 	} );
 }

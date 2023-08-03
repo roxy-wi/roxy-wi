@@ -26,7 +26,7 @@ def get_setting(param, **kwargs):
 	except Exception:
 		pass
 
-	if user_group == '' or param in ('lists_path', 'ssl_local_path', 'proxy'):
+	if user_group == '' or param in ('ssl_local_path', 'proxy'):
 		user_group = 1
 
 	if kwargs.get('all'):

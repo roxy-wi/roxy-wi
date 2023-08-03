@@ -66,6 +66,7 @@ function showOverview(serv, hostnamea) {
 	}
 	showSubOverview();
 	showServicesOverview();
+	updatingCpuRamCharts();
 }
 function showOverviewCallBack(serv, hostnamea) {
 	$.ajax( {
@@ -669,32 +670,28 @@ function serverSettings(id, name) {
 }
 function serverSettingsSave(id, name, service, dialog_id) {
 	var haproxy_enterprise = 0;
-	var haproxy_dockerized = 0;
-	var nginx_dockerized = 0;
-	var apache_dockerized = 0;
-	var haproxy_restart = 0;
-	var nginx_restart = 0;
-	var apache_restart = 0;
+	var service_dockerized = 0;
+	var service_restart = 0;
 	if ($('#haproxy_enterprise').is(':checked')) {
 		haproxy_enterprise = '1';
 	}
 	if ($('#haproxy_dockerized').is(':checked')) {
-		haproxy_dockerized = '1';
+		service_dockerized = '1';
 	}
 	if ($('#nginx_dockerized').is(':checked')) {
-		nginx_dockerized = '1';
+		service_dockerized = '1';
 	}
 	if ($('#apache_dockerized').is(':checked')) {
-		apache_dockerized = '1';
+		service_dockerized = '1';
 	}
 	if ($('#haproxy_restart').is(':checked')) {
-		haproxy_restart = '1';
+		service_restart = '1';
 	}
 	if ($('#nginx_restart').is(':checked')) {
-		nginx_restart = '1';
+		service_restart = '1';
 	}
 	if ($('#apache_restart').is(':checked')) {
-		apache_restart = '1';
+		service_restart = '1';
 	}
 	$.ajax({
 		url: "options.py",
@@ -702,12 +699,8 @@ function serverSettingsSave(id, name, service, dialog_id) {
 			serverSettingsSave: id,
 			serverSettingsService: service,
 			serverSettingsEnterprise: haproxy_enterprise,
-			serverSettingshaproxy_dockerized: haproxy_dockerized,
-			serverSettingsnginx_dockerized: nginx_dockerized,
-			serverSettingsapache_dockerized: apache_dockerized,
-			serverSettingsHaproxyrestart: haproxy_restart,
-			serverSettingsNginxrestart: nginx_restart,
-			serverSettingsApache_restart: apache_restart,
+			serverSettingsDockerized: service_dockerized,
+			serverSettingsRestart: service_restart,
 			token: $('#token').val()
 		},
 		type: "POST",

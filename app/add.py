@@ -45,9 +45,9 @@ if all(v is None for v in [
 		print(str(e))
 
 	lib_path = get_config_var.get_config_var('main', 'lib_path')
-	dir = lib_path + "/" + sql.get_setting('lists_path')
-	white_dir = lib_path + "/" + sql.get_setting('lists_path') + "/" + user_group + "/white"
-	black_dir = lib_path + "/" + sql.get_setting('lists_path') + "/" + user_group + "/black"
+	dir = lib_path + "/lists"
+	white_dir = lib_path + "/lists/" + user_group + "/white"
+	black_dir = lib_path + "/lists/" + user_group + "/black"
 
 	if not os.path.exists(dir):
 		os.makedirs(dir)
@@ -60,12 +60,13 @@ if all(v is None for v in [
 
 	white_lists = roxywi_common.get_files(folder=white_dir, file_format="lst")
 	black_lists = roxywi_common.get_files(folder=black_dir, file_format="lst")
+	maps = roxywi_common.get_files(folder=f'{lib_path}/maps/{user_group}', file_format="map")
 
 	template = template.render(
 		h2=1, role=user_params['role'], user=user_params['user'], selects=user_params['servers'], add=form.getvalue('add'),
 		conf_add=form.getvalue('conf'), group=user_group, options=sql.select_options(), saved_servers=sql.select_saved_servers(),
 		white_lists=white_lists, black_lists=black_lists, user_services=user_params['user_services'], token=user_params['token'],
-		lang=user_params['lang']
+		lang=user_params['lang'], maps=maps
 	)
 	print(template)
 

@@ -46,7 +46,7 @@
     - '"firewalld" in ansible_facts.packages'
     - ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
     - ansible_facts.services["firewalld.service"]['state'] == "running"
-  with_items:  [ "{{ STAT_PORT }}", "{{ SOCK_PORT }}" ]
+  with_items:  [ "{{ STAT_PORT }}", "{{ SOCK_PORT }}", "10000" ]
 
 
 - name: Open stat port for iptables
@@ -56,7 +56,7 @@
     jump: ACCEPT
     protocol: tcp
   ignore_errors: yes
-  with_items:  [ "{{ STAT_PORT }}", "{{ SOCK_PORT }}" ]
+  with_items:  [ "{{ STAT_PORT }}", "{{ SOCK_PORT }}", "10000" ]
 
 - name: Create the haproxy group
   group:
