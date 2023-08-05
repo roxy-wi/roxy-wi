@@ -1039,7 +1039,7 @@
 			</tr>
 			<tr>
 				<td class="addButton">
-					<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.add|title()}} peer" onclick="addProxy('add-peers')">{{lang.words.add}} Peer</a>
+					<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.add|title()}} peer" onclick="addProxy('add-peers')">{{lang.words.add|title()}} peer</a>
 				</td>
 				<td class="addButton">
 					<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.generate|title()}} {{lang.words.and}} {{lang.words.display}} {{lang.words.config}}" onclick="generateConfig('add-peers')">{{lang.words.generate|title()}} {{lang.words.config}}</a>
@@ -1084,7 +1084,7 @@
 				</td>
 				<td style="width: 30%; padding: 10px 0 10px 0;">
 					{% for list in black_lists %}
-					<span class="list_of_lists">
+					<span class="list_of_lists list_blacklists">
 						<a onclick="editList('{{ list }}', 'black')" title="{{lang.words.edit|title()}} {{lang.words.the}} {{ list }} {{lang.words.list}}">{{ list }}</a>
 					</span>
 					{% endfor %}
@@ -1115,7 +1115,7 @@
 				</td>
 				<td style="width: 30%; padding: 10px 0 10px 0;">
 					{% for list in white_lists %}
-					<span class="list_of_lists">
+					<span class="list_of_lists list_whitelists">
 						<a onclick="editList('{{ list }}', 'white')" title="{{lang.words.edit|title()}} {{lang.words.the}} {{ list }} {{lang.words.list}}">{{ list }}</a>
 					</span>
 					{% endfor %}
@@ -1156,7 +1156,7 @@
 				</td>
 				<td style="width: 30%; padding: 10px 0 10px 0;">
 					{% for map in maps %}
-					<span class="list_of_lists">
+					<span class="list_of_lists list_maps">
 						<a onclick="editMap('{{ map }}')" title="{{lang.words.edit|title()}} {{lang.words.the}} {{ map }} {{lang.words.map}}">{{ map }}</a>
 					</span>
 					{% endfor %}
