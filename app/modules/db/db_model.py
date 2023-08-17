@@ -209,6 +209,20 @@ class Backup(BaseModel):
         table_name = 'backups'
 
 
+class S3Backup(BaseModel):
+    id = AutoField()
+    server = CharField()
+    s3_server = CharField()
+    bucket = CharField()
+    secret_key = CharField()
+    access_key = CharField()
+    time = CharField()
+    description = CharField(null=True)
+
+    class Meta:
+        table_name = 's3_backups'
+
+
 class Metrics(BaseModel):
     serv = CharField()
     curr_con = IntegerField()
@@ -669,4 +683,4 @@ def create_tables():
                             ProvisionedServers, MetricsHttpStatus, SMON, WafRules, Alerts, GeoipCodes, NginxMetrics,
                             SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, ProvisionParam,
                             WafNginx, ServiceStatus, KeepaliveRestart, PD, SmonHistory, SmonTcpCheck, SmonHttpCheck,
-                            SmonPingCheck, SmonDnsCheck])
+                            SmonPingCheck, SmonDnsCheck, S3Backup])

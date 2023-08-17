@@ -1,0 +1,37 @@
+{% for b in backups %}
+	<tr class="newbackup" id="s3-backup-table-{{b.id}}">
+		<td class="padding10 first-collumn">
+			<span id="backup-s3-server-{{b.id}}" style="display: none">{{ b.server }}</span>
+			{{s.1}}
+		</td>
+		<td>
+			<span id="s3-server-{{b.id}}">{{b.s3_server}}</span>
+		</td>
+		<td>
+			<span id="bucket-{{b.id}}">{{b.bucket}}</span>
+		</td>
+		<td>
+			<span id="s3-backup-time-{{b.id}}">{{b.time}}</span>
+		</td>
+		<td>
+			{% if b.description != 'None' %}
+			<span id="s3-backup-description-{{b.id}}">{{b.description}}</span>
+			{% else %}
+			<span id="s3-backup-description-{{b.id}}"></span>
+			{% endif %}
+		</td>
+<!--		<td>-->
+<!--			<a class="add" onclick="cloneS3Backup({{b.id}})" id="clone-s3-backup{{b.id}}" title="Clone S3 {{b.server}}" style="cursor: pointer;"></a>-->
+<!--		</td>-->
+		<td>
+			<a class="delete" onclick="confirmDeleteS3Backup({{b.id}})" title="Delete S3 backup {{b.server}}" style="cursor: pointer;"></a>
+		</td>
+	</tr>
+	<script>
+		$( function() {
+			$("#s3-backup-time-{{ b.id}}" ).selectmenu({
+				width: 100
+			});
+		});
+	</script>
+{% endfor %}

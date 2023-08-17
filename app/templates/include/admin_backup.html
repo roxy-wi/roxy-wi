@@ -46,15 +46,15 @@
 			{% include 'include/no_sub.html' %}
 		{% else %}
 		<table class="overview" id="ajax-backup-table">
-			<caption><h3>Filesystem</h3></caption>
+			<caption><h3>Remote server</h3></caption>
 			<tr class="overviewHead">
 				<td class="padding10 first-collumn">{{lang.words.servers|title()}}</td>
-				<td class="padding10">{{lang.words.remote|title()}} {{lang.words.server}}</td>
-				<td class="padding10">{{lang.words.remote|title()}} {{lang.words.folder2}}</td>
-				<td class="padding10">{{lang.words.backup|title()}} {{lang.words.type}}</td>
-				<td class="padding10">{{lang.words.period|title()}}</td>
-				<td class="padding10">{{lang.words.creds|title()}}</td>
-				<td class="padding10">{{lang.words.desc|title()}}</td>
+				<td style="width: 10%">{{lang.words.remote|title()}} {{lang.words.server}}</td>
+				<td style="width: 10%">{{lang.words.remote|title()}} {{lang.words.folder2}}</td>
+				<td style="width: 15%">{{lang.words.backup|title()}} {{lang.words.type}}</td>
+				<td style="width: 15%">{{lang.words.period|title()}}</td>
+				<td style="width: 15%">{{lang.words.creds|title()}}</td>
+				<td style="width: 100%">{{lang.words.desc|title()}}</td>
 				<td style="margin-left: 5px;"></td>
 				<td></td>
 			</tr>
@@ -113,6 +113,58 @@
 			{% endfor %}
 		</table>
 		<br /><span class="add-button" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new}} {{lang.words.backup}} {{lang.words.job}}" id="add-backup-button">+ {{lang.words.add|title()}} {{lang.words.backup}}</span>
+		<br /><br />
+		<table class="overview" id="ajax-backup-s3-table">
+			<thead>
+			<caption><h3>S3</h3></caption>
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn">{{lang.words.servers|title()}}</td>
+				<td style="width: 10%">S3 {{lang.words.server}}</td>
+				<td style="width: 10%">Bucket</td>
+				<td style="width: 15%">{{lang.words.period|title()}}</td>
+				<td style="width: 100%">{{lang.words.desc|title()}}</td>
+				<td style="margin-left: 5px;"></td>
+<!--				<td></td>-->
+			</tr>
+			</thead>
+			<tbody id="tbody-s3">
+			{% for b in s3_backups %}
+			{% for s in servers %}
+			{% if b.server in s.2 %}
+				<tr id="s3-backup-table-{{b.id}}">
+					<td class="padding10 first-collumn">
+						<span id="backup-s3-server-{{b.id}}" style="display: none">{{ b.server }}</span>
+						{{s.1}}
+					</td>
+					<td>
+						<span id="s3-server-{{b.id}}">{{b.s3_server}}</span>
+					</td>
+					<td>
+						<span id="bucket-{{b.id}}">{{b.bucket}}</span>
+					</td>
+					<td>
+						<span id="s3-backup-time-{{b.id}}">{{b.time}}</span>
+					</td>
+					<td>
+						{% if b.description != 'None' %}
+						<span id="s3-backup-description-{{b.id}}">{{b.description}}</span>
+						{% else %}
+						<span id="s3-backup-description-{{b.id}}"></span>
+						{% endif %}
+					</td>
+<!--					<td>-->
+<!--						<a class="add" onclick="cloneS3Backup({{b.id}})" id="clone-s3-backup{{b.id}}" title="Clone S3 {{b.server}}" style="cursor: pointer;"></a>-->
+<!--					</td>-->
+					<td>
+						<a class="delete" onclick="confirmDeleteS3Backup({{b.id}})" title="Delete S3 backup {{b.server}}" style="cursor: pointer;"></a>
+					</td>
+				</tr>
+			{% endif %}
+			{% endfor %}
+			{% endfor %}
+			</tbody>
+		</table>
+		<br /><span class="add-button" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new}} S3 {{lang.words.backup}} {{lang.words.job}}" id="add-backup-s3-button">+ {{lang.words.add|title()}} {{lang.words.backup}}</span>
 		<br /><br />
 		<div id="ajax-backup"></div>
 		<div class="add-note alert addName alert-info" style="width: inherit; margin-right: 15px;">

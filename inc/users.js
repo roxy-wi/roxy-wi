@@ -648,7 +648,7 @@ $( function() {
 		}
 	});
 	$('#add-backup-s3-button').click(function() {
-		addBackupDialog.dialog('open');
+		addS3BackupDialog.dialog('open');
 	});
 	var s3_backup_tabel_title = $( "#s3-backup-add-table-overview" ).attr('title');
 	var addS3BackupDialog = $( "#s3-backup-add-table" ).dialog({
@@ -1330,6 +1330,51 @@ function addBackup(dialog_id) {
 		} );
 	}
 }
+function addS3Backup(dialog_id) {
+	var valid = true;
+	toastr.clear();
+	allFields = $( [] ).add( $('#s3-backup-server') ).add( $('#s3_server') ).add( $('#s3_bucket') ).add( $('#s3_secret_key') ).add( $('#s3_access_key') )
+	allFields.removeClass( "ui-state-error" );
+	valid = valid && checkLength( $('#s3-backup-server'), "backup server ", 1 );
+	valid = valid && checkLength( $('#s3_server'), "S3 server", 1 );
+	valid = valid && checkLength( $('#s3_bucket'), "S3 bucket", 1 );
+	valid = valid && checkLength( $('#s3_secret_key'), "S3 secret key", 1 );
+	valid = valid && checkLength( $('#s3_access_key'), "S3 access key", 1 );
+	if (valid) {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				s3_backup_server: $('#s3-backup-server').val(),
+				s3_server: $('#s3_server').val(),
+				s3_bucket: $('#s3_bucket').val(),
+				s3_secret_key: $('#s3_secret_key').val(),
+				s3_access_key: $('#s3_access_key').val(),
+				time: $('#s3-backup-time').val(),
+				description: $('#s3-backup-description').val(),
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+				data = data.replace(/\s+/g,' ');
+				if (data.indexOf('error:') != '-1') {
+					toastr.error(data);
+				} else if (data.indexOf('success: ') != '-1') {
+					common_ajax_action_after_success(dialog_id, 'newbackup', 'ajax-backup-s3-table', data);
+					$( "select" ).selectmenu();
+				} else if (data.indexOf('info: ') != '-1') {
+					toastr.clear();
+					toastr.info(data);
+				} else if (data.indexOf('warning: ') != '-1') {
+					toastr.clear();
+					toastr.warning(data);
+				} else if (data.indexOf('error: ') != '-1') {
+					toastr.clear();
+					toastr.error(data);
+				}
+			}
+		} );
+	}
+}
 function addGit(dialog_id) {
 	var valid = true;
 	toastr.clear();
@@ -1555,6 +1600,29 @@ function confirmDeleteBackup(id) {
 	  }]
     });
 }
+function confirmDeleteS3Backup(id) {
+	var delete_word = $('#translate').attr('data-delete');
+	var cancel_word = $('#translate').attr('data-cancel');
+	 $( "#dialog-confirm" ).dialog({
+      resizable: false,
+      height: "auto",
+      width: 400,
+      modal: true,
+	  title: delete_word + " " +$('#backup-s3-server-'+id).val() + "?",
+      buttons: [{
+		  text: delete_word,
+		  click: function () {
+			  $(this).dialog("close");
+			  removeS3Backup(id);
+		  }
+	  }, {
+		  text: cancel_word,
+		  click: function () {
+			  $(this).dialog("close");
+		  }
+	  }]
+    });
+}
 function confirmDeleteGit(id) {
 	var delete_word = $('#translate').attr('data-delete');
 	var cancel_word = $('#translate').attr('data-cancel');
@@ -1753,6 +1821,28 @@ function removeBackup(id) {
 			data = data.replace(/\s+/g,' ');
 			if(data.indexOf('Ok') != '-1') {
 				$("#backup-table-"+id).remove();
+			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
+				toastr.error(data);
+			}
+		}
+	} );
+}
+function removeS3Backup(id) {
+	$("#backup-table-s3-"+id).css("background-color", "#f2dede");
+	$.ajax( {
+		url: "options.py",
+		data: {
+			dels3job: id,
+			s3_backet: $('#backup-s3-backet-'+id).val(),
+			s3_backup_server: $('#backup-s3-server-'+id).text(),
+			s3_bucket: $('#s3-bucket-'+id).val(),
+			token: $('#token').val()
+		},
+		type: "POST",
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if(data.indexOf('Ok') != '-1') {
+				$("#s3-backup-table-"+id).remove();
 			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			}
@@ -2015,6 +2105,40 @@ function updateBackup(id) {
 			url: "options.py",
 			data: {
 				backupupdate: id,
+				server: $('#backup-server-'+id).text(),
+				rserver: $('#backup-rserver-'+id).val(),
+				rpath: $('#backup-rpath-'+id).val(),
+				type: $('#backup-type-'+id).val(),
+				time: $('#backup-time-'+id).val(),
+				cred: $('#backup-credentials-'+id).val(),
+				description: $('#backup-description-'+id).val(),
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function( data ) {
+				data = data.replace(/\s+/g,' ');
+				if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
+					toastr.error(data);
+				} else {
+					toastr.clear();
+					$("#backup-table-"+id).addClass( "update", 1000 );
+					setTimeout(function() {
+						$( "#backup-table-"+id ).removeClass( "update" );
+					}, 2500 );
+				}
+			}
+		} );
+	}
+}
+function updateS3Backup(id) {
+	toastr.clear();
+	if ($( "#backup-type-"+id+" option:selected" ).val() == "-------" || $('#backup-rserver-'+id).val() == '' || $('#backup-rpath-'+id).val() == '') {
+		toastr.error('All fields must be completed');
+	} else {
+		$.ajax( {
+			url: "options.py",
+			data: {
+				s3_backupupdate: id,
 				server: $('#backup-server-'+id).text(),
 				rserver: $('#backup-rserver-'+id).val(),
 				rpath: $('#backup-rpath-'+id).val(),

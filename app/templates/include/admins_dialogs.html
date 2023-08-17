@@ -291,6 +291,12 @@
         </tr>
     </table>
 </div>
+<div id="s3-backup-add-table" style="display: none;">
+    <table class="overview" id="s3-backup-add-table-overview" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new}} S3 {{lang.words.backup}}">
+        {% include 'include/tr_validate_tips.html' %}
+        {% include 'include/add_s3_backup.html' %}
+    </table>
+</div>
 <div id="git-add-table" style="display: none;">
     <table class="overview" id="git-add-table-overview" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new}} git {{lang.words.job}}">
         {% include 'include/tr_validate_tips.html' %}

@@ -419,12 +419,8 @@ def del_ssl_cert(server_ip: str, cert_id: str) -> None:
 
 
 def upload_ssl_cert(server_ip: str, ssl_name: str, ssl_cont: str) -> None:
-	cert_local_dir = f"{os.path.dirname(os.getcwd())}/{sql.get_setting('ssl_local_path')}"
 	cert_path = sql.get_setting('cert_path')
 	name = ''
-
-	if not os.path.exists(cert_local_dir):
-		os.makedirs(cert_local_dir)
 
 	if ssl_name is None:
 		print('error: Please enter a desired name')
@@ -450,9 +446,9 @@ def upload_ssl_cert(server_ip: str, ssl_name: str, ssl_cont: str) -> None:
 			print(f'success: the SSL file has been uploaded to {server_ip} into: {cert_path}/{name}')
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', e.args[0], roxywi=1)
-	try:
-		os.rename(name, cert_local_dir)
-	except OSError as e:
-		roxywi_common.logging('Roxy-WI server', e.args[0], roxywi=1)
+	# try:
+	# 	os.rename(name, cert_local_dir)
+	# except OSError as e:
+	# 	roxywi_common.logging('Roxy-WI server', e.args[0], roxywi=1)
 
 	roxywi_common.logging(server_ip, f"add.py#ssl uploaded a new SSL cert {name}", roxywi=1, login=1)

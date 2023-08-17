@@ -19,9 +19,6 @@ def default_values():
 					'The directory must be owned by the user specified in SSH settings', 'group': '1'},
 		{'param': 'cert_path', 'value': '/etc/ssl/certs/', 'section': 'main',
 			'desc': 'Path to SSL dir. Folder owner must be a user which set in the SSH settings. Path must exist', 'group': '1'},
-		{'param': 'ssl_local_path', 'value': 'certs', 'section': 'main',
-			'desc': 'Path to the directory with the saved local SSL certificates. The value of this parameter is '
-					'specified as a relative path beginning with $HOME_ROXY_WI/app/', 'group': '1'},
 		{'param': 'maxmind_key', 'value': '', 'section': 'main', 'desc': 'License key for downloading GeoIP DB. You can create it on maxmind.com', 'group': '1'},
 		{'param': 'haproxy_path_logs', 'value': '/var/log/haproxy/', 'section': 'haproxy', 'desc': 'The path for HAProxy logs', 'group': '1'},
 		{'param': 'syslog_server_enable', 'value': '0', 'section': 'logs', 'desc': 'Enable getting logs from a syslog server', 'group': '1'},
@@ -841,9 +838,18 @@ def update_db_v_6_3_17():
 		print("Updating... DB has been updated to version 6.3.17")
 
 
+def update_db_v_6_3_18():
+	try:
+		Setting.delete().where(Setting.param == 'ssl_local_path').execute()
+	except Exception as e:
+		print("An error occurred:", e)
+	else:
+		print("Updating... DB has been updated to version 6.3.18")
+
+
 def update_ver():
 	try:
-		Version.update(version='6.3.17.0').execute()
+		Version.update(version='6.3.18.0').execute()
 	except Exception:
 		print('Cannot update version')
 
@@ -876,6 +882,7 @@ def update_all():
 	update_db_v_6_3_13_4()
 	update_db_v_6_3_13_5()
 	update_db_v_6_3_17()
+	update_db_v_6_3_18()
 	update_ver()
 
 

@@ -2,8 +2,6 @@
 Web interface(user-friendly web GUI, alerting, monitoring and secure) for managing HAProxy, Nginx and Keepalived servers. Leave your [feedback](https://github.com/hap-wi/roxy-wi/issues)
 
 # Get involved
-* [Youtube Demo video](https://www.youtube.com/channel/UCo0lCg24j-H4f0S9kMjp-_w)
-* [Twitter](https://twitter.com/roxy_wi), subscribe!
 * [Telegram Channel](https://t.me/roxy_wi_channel) about Roxy-WI, talks and questions are welcome
 
 # Demo site
@@ -12,17 +10,17 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 ![alt text](https://roxy-wi.org/static/images/viewstat.png "HAProxy state page")
 
 # Features:
-1. Installing and updating HAProxy, Nginx and Keepalived with Roxy-WI as a system service
+1. Installing and updating HAProxy, Nginx, Apache and Keepalived with Roxy-WI as a system service
 2. Installing and updating HAProxy and Nginx with Roxy-WI as a Docker service
 3. Installing and updating Grafana, Prometheus servers with Roxy-WI
-4. Installing and updating HAProxy and Nginx exporters with Roxy-WI
+4. Installing and updating HAProxy, Nginx, Apache, Keepalived and Node exporters with Roxy-WI
 5. Server provisioning on AWS, DigitalOcean and G-Core Labs
 6. Downloading, updating and formatting GeoIP to the acceptable format for HAProxy with Roxy-WI
 7. Dynamic change of Maxconn, Black/white lists and backend's IP address and port with saving changes to the config file
 8. Configuring HAProxy, Nginx, Apache and Keepalived in a jiffy with Roxy-WI
 9. Viewing and analysing the status of all Frontend/backend servers via Roxy-WI from a single control panel
 10. Enabling/disabling servers through stats page without rebooting HAProxy
-11. Viewing/Analysing HAProxy, Nginx and Apache logs right from the Roxy-WI web interface
+11. Viewing/Analysing HAProxy, Nginx, Apache and Keepalived logs right from the Roxy-WI web interface
 12. Creating and visualizing the HAProxy workflow from Web Ui
 13. Pushing Your changes to your HAProxy, Nginx, Apache and Keepalived servers with a single click via the web interface
 14. Getting info on past changes, evaluating your config files and restoring the previous stable config at any time with a single click right from Web interface
@@ -32,8 +30,8 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 18. Managing the ports assigned to Frontend automatically
 19. Evaluating the changes of recent configs pushed to HAProxy, Nginx, Apache and Keepalived instances right from the Web UI
 20. Multiple User Roles support for privileged based Viewing and editing of Config
-21. Creating Groups and adding/removing servers to ensure the proper identification for your HAProxy and Nginx Clusters
-22. Sending notifications from Roxy-WI via Telegram, Slack, Email and via the web interface
+21. Creating Groups and adding/removing servers to ensure the proper identification for your HAProxy, Nginx and Apache Clusters
+22. Sending notifications from Roxy-WI via Telegram, Slack, Email, PageDuty and via the web interface
 23. Supporting high Availability to ensure uptime to all Master slave servers configured
 24. Support of SSL (including Let's Encrypt)
 25. Support of SSH Key for managing multiple HAProxy, Nginx, Apache and Keepalived Servers straight from Roxy-WI
@@ -47,7 +45,7 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 33. Keep active HAProxy, Nginx, Apache and Keepalived services
 34. Possibility to hide parts of the config with tags for users with "guest" role: "HideBlockStart" and "HideBlockEnd"
 35. Mobile-ready design
-36. Simple port monitoring (SMON)
+36. [SMON](https://roxy-wi.org/services/smon) (Check: Ping, TCP/UDP, HTTP(s), SSL expiry, HTTP body answer, DNS records)
 37. Backup HAProxy, Nginx, Apache and Keepalived config files through Roxy-WI
 38. Managing OpenVPN3 as a client via Roxy-WI
 
@@ -108,7 +106,7 @@ Login https://roxy-wi-server/users.py, and add: users, groups and servers. Defau
 If you have error:
 ```
 Forbidden
-You don't have permission to access /app/overview.py on this server. 
+You don't have permission to access /app/overview.py on this server.
 ```
 
 Check owner(must be apache, or another user for apache)
@@ -123,7 +121,7 @@ Do this:
 $ cd /var/www/haproxy-wi/app
 $ ./create_db.py
 ```
-and check executable py files
+and check executable .py files
 
 If you see plain text, check section "Directory" in httpd conf
 

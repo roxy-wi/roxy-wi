@@ -37,6 +37,8 @@ gits = sql.select_gits()
 masters = sql.select_servers(get_master_servers=1)
 is_needed_tool = common.is_tool('ansible')
 grafana = 0
+backups = sql.select_backups()
+s3_backups = sql.select_s3_backups()
 
 if not roxywi.is_docker():
 	grafana, stderr = server_mod.subprocess_execute("systemctl is-active grafana-server")
@@ -51,7 +53,7 @@ except Exception as e:
 rendered_template = template.render(
 	h2=1, role=user_params['role'], user=user_params['user'], users=users, groups=sql.select_groups(),
 	servers=sql.select_servers(full=1), masters=masters, sshs=sql.select_ssh(), roles=sql.select_roles(),
-	settings=settings, backups=sql.select_backups(), services=services, timezones=pytz.all_timezones,
+	settings=settings, backups=backups, s3_backups=s3_backups, services=services, timezones=pytz.all_timezones,
 	page="users.py", user_services=user_params['user_services'], ldap_enable=ldap_enable, gits=gits, guide_me=1,
 	user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'], token=user_params['token'],
 	is_needed_tool=is_needed_tool, lang=user_params['lang'], grafana=grafana

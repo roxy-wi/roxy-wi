@@ -492,10 +492,10 @@ def delete_server(server_id: int) -> None:
 		server_ip = s[2]
 
 	if sql.check_exists_backup(server_ip):
-		print('warning: Delete the backup first ')
+		print('warning: Delete the backup first')
 		return
-	if sql.check_exists_s3_backup(server_id):
-		print('warning: Delete the S3 backup first ')
+	if sql.check_exists_s3_backup(server_ip):
+		print('warning: Delete the S3 backup first')
 		return
 	if sql.delete_server(server_id):
 		sql.delete_waf_server(server_id)

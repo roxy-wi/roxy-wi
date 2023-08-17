@@ -1,0 +1,68 @@
+		<tr>
+			<td class="padding20" style="width: 40%;">
+				Select a server for backup
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				<select autofocus required name="s3-backup-server" id="s3-backup-server">
+					<option disabled>------</option>
+						{% for s in servers %}}
+							<option value="{{ s.2 }}">{{ s.1 }}</option>
+						{% endfor %}
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">
+				Enter a S3 server
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				{{ input('s3_server', size='30', required="required") }}
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">
+				Enter bucket
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				{{ input('s3_bucket', size='30', required="required") }}
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">
+				Access key
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				{{ input('s3_access_key', size='30', required="required", type='password') }}
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">
+				Secret key
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				{{ input('s3_secret_key', size='30', required="required", type='password') }}
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">
+				Period time
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				{% set values = {'hourly':'hourly','daily':'daily','weekly':'weekly', 'monthly':'monthly'} %}
+				{{ select('s3-backup-time', values=values, selected='weekly', required='required', class='force_close') }}
+			</td>
+		</tr>
+        <tr>
+            <td class="padding20">
+                Description
+            </td>
+            <td>
+                {{ input('s3-backup-description', size='30') }}
+            </td>
+        </tr>

@@ -26,7 +26,7 @@ def get_setting(param, **kwargs):
 	except Exception:
 		pass
 
-	if user_group == '' or param in ('ssl_local_path', 'proxy'):
+	if user_group == '' or param in ('proxy'):
 		user_group = 1
 
 	if kwargs.get('all'):
@@ -1019,11 +1019,42 @@ def insert_backup_job(server, rserver, rpath, backup_type, time, cred, descripti
 		return True
 
 
+def insert_s3_backup_job(server, s3_server, bucket, secret_key, access_key, time, description):
+	try:
+		S3Backup.insert(
+			server=server, s3_server=s3_server, bucket=bucket, secret_key=secret_key, access_key=access_key, time=time,
+			description=description
+		).execute()
+	except Exception as e:
+		out_error(e)
+		return False
+	else:
+		return True
+
+
 def select_backups(**kwargs):
 	if kwargs.get("server") is not None and kwargs.get("rserver") is not None:
 		query = Backup.select().where((Backup.server == kwargs.get("server")) & (Backup.rhost == kwargs.get("rserver")))
 	else:
 		query = Backup.select().order_by(Backup.id)
+
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
+
+
+def select_s3_backups(**kwargs):
+	if kwargs.get("server") is not None and kwargs.get("bucket") is not None:
+		query = S3Backup.select().where(
+			(S3Backup.server == kwargs.get("server")) &
+			(S3Backup.s3_server == kwargs.get("s3_server")) &
+			(S3Backup.bucket == kwargs.get("bucket"))
+		)
+	else:
+		query = S3Backup.select().order_by(S3Backup.id)
 
 	try:
 		query_res = query.execute()
@@ -1058,6 +1089,17 @@ def delete_backups(backup_id: int) -> bool:
 		return True
 
 
+def delete_s3_backups(backup_id: int) -> bool:
+	query = S3Backup.delete().where(S3Backup.id == backup_id)
+	try:
+		query.execute()
+	except Exception as e:
+		out_error(e)
+		return False
+	else:
+		return True
+
+
 def check_exists_backup(server: str) -> bool:
 	try:
 		backup = Backup.get(Backup.server == server)
@@ -1070,9 +1112,9 @@ def check_exists_backup(server: str) -> bool:
 			return False
 
 
-def check_exists_s3_backup(server_id: int) -> bool:
+def check_exists_s3_backup(server: str) -> bool:
 	try:
-		backup = S3Backup.get(S3Backup.server_id == server_id)
+		backup = S3Backup.get(S3Backup.server == server)
 	except Exception:
 		pass
 	else:

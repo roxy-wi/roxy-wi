@@ -55,7 +55,7 @@
             <td class="padding10 first-collumn" style="width: 20%;">
                 {% set values = dict() %}
                 {% set values = {'0.9.0':'0.9.0', '0.10.0':'0.10.0', '0.11.0':'0.11.0', '0.12.0':'0.12.0', '0.13.0':'0.13.0', '0.14.0':'0.14.0', '0.15.0':'0.15.0'} %}
-                {{ select('hapexpver',  values=values, selected='0.14.0') }}
+                {{ select('hapexpver',  values=values, selected='0.15.0') }}
             </td>
             <td class="padding10 first-collumn">
                 <select autofocus required name="haproxy_exp_addserv" id="haproxy_exp_addserv">
@@ -116,8 +116,8 @@
             <td id="cur_apache_exp_ver" class="padding10 first-collumn"></td>
             <td class="padding10 first-collumn" style="width: 20%;">
                 {% set values = dict() %}
-                {% set values = {'0.7.0':'0.7.0', '0.8.0':'0.8.0', '0.9.0':'0.9.0', '0.10.0':'0.10.0'} %}
-                {{ select('apacheexpver',  values=values, selected='0.10.0') }}
+                {% set values = {'0.10.0':'0.10.0', '0.13.4':'0.13.4', '1.0.1':'1.0.1'} %}
+                {{ select('apacheexpver',  values=values, selected='1.0.1') }}
             </td>
             <td class="padding10 first-collumn">
                 <select autofocus required name="apache_exp_addserv" id="apache_exp_addserv">
@@ -178,8 +178,8 @@
             <td id="cur_node_exp_ver" class="padding10 first-collumn"></td>
             <td class="padding10 first-collumn" style="width: 20%;">
                 {% set values = dict() %}
-                {% set values = {'1.1.1':'1.1.1', '1.1.2':'1.1.2', '1.2.0':'1.2.0', '1.2.2':'1.2.2', '1.3.0':'1.3.0', '1.3.1':'1.3.1', '1.5.0':'1.5.0'} %}
-                {{ select('nodeexpver',  values=values, selected='1.5.0') }}
+                {% set values = {'1.2.0':'1.2.0', '1.2.2':'1.2.2', '1.3.0':'1.3.0', '1.3.1':'1.3.1', '1.5.0':'1.5.0', '1.6.1':'1.6.1'} %}
+                {{ select('nodeexpver',  values=values, selected='1.6.1') }}
             </td>
             <td class="padding10 first-collumn">
                 <select autofocus required name="node_exp_addserv" id="node_exp_addserv">

@@ -14,3 +14,4 @@ distro>=1.2.0
 bottle>=0.12.20
 psutil>=5.9.1
 pdpyras>=4.5.2
+pika>=1.3.1

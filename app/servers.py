@@ -23,19 +23,19 @@ except Exception:
 	sys.exit()
 
 roxywi_auth.page_for_admin(level=2)
-try:
-	ldap_enable = sql.get_setting('ldap_enable')
-	user_group = roxywi_common.get_user_group(id=1)
-	settings = sql.get_setting('', all=1)
-	geoip_country_codes = sql.select_geoip_country_codes()
-	services = sql.select_services()
-	gits = sql.select_gits()
-	servers = roxywi_common.get_dick_permit(virt=1, disable=0, only_group=1)
-	masters = sql.select_servers(get_master_servers=1, uuid=user_params['user_uuid'].value)
-	is_needed_tool = common.is_tool('ansible')
-	user_roles = sql.select_user_roles_by_group(user_group)
-except Exception:
-	pass
+
+ldap_enable = sql.get_setting('ldap_enable')
+user_group = roxywi_common.get_user_group(id=1)
+settings = sql.get_setting('', all=1)
+geoip_country_codes = sql.select_geoip_country_codes()
+services = sql.select_services()
+gits = sql.select_gits()
+servers = roxywi_common.get_dick_permit(virt=1, disable=0, only_group=1)
+masters = sql.select_servers(get_master_servers=1, uuid=user_params['user_uuid'].value)
+is_needed_tool = common.is_tool('ansible')
+user_roles = sql.select_user_roles_by_group(user_group)
+backups = sql.select_backups()
+s3_backups = sql.select_s3_backups()
 
 try:
 	user_subscription = roxywi_common.return_user_status()
@@ -52,7 +52,7 @@ rendered_template = template.render(
 	h2=1, title=title, role=user_params['role'], user=user_params['user'], users=sql.select_users(group=user_group),
 	groups=sql.select_groups(), servers=servers, roles=sql.select_roles(), sshs=sql.select_ssh(group=user_group),
 	masters=masters, group=user_group, services=services, timezones=pytz.all_timezones, guide_me=1,
-	token=user_params['token'], settings=settings, backups=sql.select_backups(), page="servers.py",
+	token=user_params['token'], settings=settings, backups=backups, s3_backups=s3_backups, page="servers.py",
 	geoip_country_codes=geoip_country_codes, user_services=user_params['user_services'], ldap_enable=ldap_enable,
 	user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'], gits=gits,
 	is_needed_tool=is_needed_tool, lang=user_params['lang'], user_roles=user_roles
