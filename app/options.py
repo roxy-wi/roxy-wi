@@ -982,8 +982,10 @@ if form.getvalue('newsmonname') is not None:
     resolver = common.checkAjaxInput(form.getvalue('newsmonresserver'))
     record_type = common.checkAjaxInput(form.getvalue('newsmondns_record_type'))
     packet_size = common.checkAjaxInput(form.getvalue('newsmonpacket_size'))
+    http_method = common.checkAjaxInput(form.getvalue('newsmon_http_method'))
 
-    smon_mod.create_smon(name, hostname, port, enable, url, body, group, desc, telegram, slack, pd, packet_size, check_type, resolver, record_type, user_group)
+    smon_mod.create_smon(name, hostname, port, enable, url, body, group, desc, telegram, slack, pd, packet_size,
+                         check_type, resolver, record_type, user_group, http_method)
 
 if form.getvalue('smondel') is not None:
     import modules.tools.smon as smon_mod

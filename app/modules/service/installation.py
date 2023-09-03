@@ -59,7 +59,7 @@ def install_haproxy(server_ip: str, api=0, **kwargs):
 	os.system(f"cp {full_path}/scripts/{script} {full_path}/{script}")
 
 	if haproxy_ver is None:
-		haproxy_ver = '2.8.0-1'
+		haproxy_ver = '2.8.1-1'
 
 	if proxy is not None and proxy != '' and proxy != 'None':
 		proxy_serv = proxy

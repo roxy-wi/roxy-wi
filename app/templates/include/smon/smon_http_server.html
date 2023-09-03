@@ -19,6 +19,12 @@
         {{ input(id, value=s_service.body, size='20') }}
     </td>
     <td>
+        {% set id = 'smon-http-method-' + s.id|string() %}
+        {% set http_methods = {'get': 'GET', 'post': 'POST', 'put': 'PUT', 'patch': 'PATCH', 'delete': 'DELETE',
+        'head': 'HEAD', 'options': 'OPTIONS'} %}
+        {{ select(id, values=http_methods, selected=s_service.method) }}
+    </td>
+    <td>
         <select id="smon-telegram-{{s.id}}">
             <option value="0">{{lang.words.disabled|title()}}</option>
             {% for t in telegrams %}

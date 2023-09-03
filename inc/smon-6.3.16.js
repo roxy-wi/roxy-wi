@@ -99,6 +99,7 @@ function addNewSmonServer(dialog_id) {
 				newsmonslack: $('#new-smon-slack').val(),
 				newsmonpd: $('#new-smon-pd').val(),
 				newsmonpacket_size: $('#new-smon-packet_size').val(),
+				newsmon_http_method: $('#new-smon-method').val(),
 				newsmonchecktype: check_type,
 				token: $('#token').val()
 			},
@@ -194,6 +195,7 @@ function updateSmon(id, check_type) {
 			updateSmonGroup: $('#smon-group-'+id).val(),
 			updateSmonDesc: $('#smon-desc-'+id).val(),
 			updateSmonPacket_size: $('#smon-packet_size-'+id).val(),
+			updateSmon_http_method: $('#smon-http_method-'+id).val(),
 			check_type: check_type,
 			id: id,
 			token: $('#token').val()

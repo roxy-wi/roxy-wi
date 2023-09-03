@@ -61,6 +61,7 @@
 			<th style="width: 15%;">URL</th>
 			<th style="width: 5%;">{{lang.words.enabled|title()}}</th>
 			<th style="width: 20%;">{{lang.words.body|title()}}</th>
+			<th style="width: 20%;">HTTP {{lang.words.method}}</th>
 			<th style="width: 11%;">Telegram</th>
 			<th style="width: 11%;">Slack</th>
 			<th style="width: 11%;">PagerDuty</th>
@@ -253,6 +254,14 @@
 		<tr class="smon_http_check">
 			<td class="padding20">{{lang.words.body|title()}}</td>
 			<td>{{ input('new-smon-body') }}</td>
+		</tr>
+		<tr class="smon_http_check">
+			<td class="padding20">HTTP {{lang.words.method}}</td>
+			<td>
+				{% set http_methods = {'get': 'GET', 'post': 'POST', 'put': 'PUT', 'patch': 'PATCH', 'delete': 'DELETE',
+				'head': 'HEAD', 'options': 'OPTIONS'} %}
+				{{ select('new-smon-method', values=http_methods, selected='get') }}
+			</td>
 		</tr>
 		<tr>
 			<td class="padding20">{{lang.words.enable|title()}}</td>

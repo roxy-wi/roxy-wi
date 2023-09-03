@@ -10,7 +10,8 @@ form = common.form
 
 
 def create_smon(name: str, hostname: str, port: int, enable: int, url: str, body: str, group: int, desc: str, telegram: int,
-                slack: int, pd: int, packet_size: int, check_type: int, resolver: str, record_type: str, user_group: int, show_new=1) -> None:
+                slack: int, pd: int, packet_size: int, check_type: int, resolver: str, record_type: str, user_group: int,
+                http_method: str, show_new=1) -> None:
     if check_type == 'tcp':
         try:
             port = int(port)
@@ -33,7 +34,7 @@ def create_smon(name: str, hostname: str, port: int, enable: int, url: str, body
     elif check_type == 'tcp':
         sql.insert_smon_tcp(last_id, hostname, port)
     elif check_type == 'http':
-        sql.insert_smon_http(last_id, url, body)
+        sql.insert_smon_http(last_id, url, body, http_method)
     elif check_type == 'dns':
         sql.insert_smon_dns(last_id, hostname, port, resolver, record_type)
 
@@ -71,6 +72,7 @@ def update_smon() -> None:
     resolver = common.checkAjaxInput(form.getvalue('updateSmonResServer'))
     record_type = common.checkAjaxInput(form.getvalue('updateSmonRecordType'))
     packet_size = common.checkAjaxInput(form.getvalue('updateSmonPacket_size'))
+    http_method = common.checkAjaxInput(form.getvalue('updateSmon_http_method'))
     is_edited = False
 
     if check_type == 'tcp':
@@ -88,12 +90,11 @@ def update_smon() -> None:
             print('SMON error: a packet size cannot be less than 16')
             return None
 
-
     roxywi_common.check_user_group()
     try:
         if sql.update_smon(smon_id, name, telegram, slack, pd, group, desc, en):
             if check_type == 'http':
-                is_edited = sql.update_smonHttp(smon_id, url, body)
+                is_edited = sql.update_smonHttp(smon_id, url, body, http_method)
             elif check_type == 'tcp':
                 is_edited = sql.update_smonTcp(smon_id, ip, port)
             elif check_type == 'ping':

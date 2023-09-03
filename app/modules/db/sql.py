@@ -2550,9 +2550,9 @@ def insert_smon_dns(smon_id: int, hostname: str, port: int, resolver: str, recor
 		out_error(e)
 
 
-def insert_smon_http(smon_id, url, body):
+def insert_smon_http(smon_id, url, body, http_method):
 	try:
-		SmonHttpCheck.insert(smon_id=smon_id, url=url, body=body).execute()
+		SmonHttpCheck.insert(smon_id=smon_id, url=url, body=body, method=http_method).execute()
 	except Exception as e:
 		out_error(e)
 
@@ -2704,8 +2704,8 @@ def delete_smon(smon_id, user_group):
 		return True
 
 
-def update_smonHttp(smon_id, url, body):
-	query = (SmonHttpCheck.update(url=url, body=body).where(SmonHttpCheck.smon_id == smon_id))
+def update_smonHttp(smon_id, url, body, method):
+	query = (SmonHttpCheck.update(url=url, body=body, method=method).where(SmonHttpCheck.smon_id == smon_id))
 	try:
 		query.execute()
 		return True

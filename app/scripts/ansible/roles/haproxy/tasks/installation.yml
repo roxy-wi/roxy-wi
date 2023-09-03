@@ -9,11 +9,20 @@
     http_proxy: "{{PROXY}}"
     https_proxy: "{{PROXY}}"
 
+- name: Set dist short name if EL
+  set_fact:
+    distr_short_name: "el"
+  when: ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
 
-- name: install HAProxy {{HAPVER}} on EL{{ansible_facts['distribution_major_version']}}
+- name: Set dist short name if Amazon Linux
+  set_fact:
+    distr_short_name: "amzn"
+  when: ansible_distribution == "Amazon"
+
+- name: install HAProxy {{HAPVER}} on {{distr_short_name}}{{ansible_facts['distribution_major_version']}}
   yum:
     name:
-      - http://repo.roxy-wi.org/haproxy-{{HAPVER}}.el{{ansible_facts['distribution_major_version']}}.x86_64.rpm
+      - http://repo.roxy-wi.org/haproxy/haproxy-{{HAPVER}}.{{distr_short_name}}{{ansible_facts['distribution_major_version']}}.x86_64.rpm
       - socat
       - rsyslog
     state: present
@@ -28,11 +37,10 @@
     http_proxy: "{{PROXY}}"
     https_proxy: "{{PROXY}}"
 
-
-- name: Try to install another HAProxy {{HAPVER}} on EL{{ansible_facts['distribution_major_version']}}
+- name: Try to install another HAProxy {{HAPVER}} on {{distr_short_name}}{{ansible_facts['distribution_major_version']}}
   yum:
     name:
-      - http://repo1.roxy-wi.org/haproxy-{{HAPVER}}.el{{ansible_facts['distribution_major_version']}}.x86_64.rpm
+      - http://repo1.roxy-wi.org/haproxy/haproxy-{{HAPVER}}.{{distr_short_name}}{{ansible_facts['distribution_major_version']}}.x86_64.rpm
       - socat
       - rsyslog
       - bind-utils
@@ -48,10 +56,10 @@
     https_proxy: "{{PROXY}}"
 
 
-- name: set_fact from wi`
+- name: set_fact from wi
   set_fact:
     haproxy_from_wi: "yes"
-  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and HAPVER|length > 0
+  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS' or ansible_distribution == 'Amazon') and HAPVER|length > 0
 
 
 - name: install the latest version of HAProxy
