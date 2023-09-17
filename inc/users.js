@@ -1394,7 +1394,7 @@ function addGit(dialog_id) {
 function updateSettings(param, val) {
 	toastr.clear();
 	$.ajax( {
-		url: "/app/app/admin/setting/" + param + "/" + val,
+		url: "/app/admin/setting/" + param + "/" + val,
 		data: {
 			token: $('#token').val()
 		},
