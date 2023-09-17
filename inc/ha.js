@@ -4,16 +4,14 @@ $( function() {
 	});
 	var ipformat = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
 	$( "#interface" ).autocomplete({
-		source: function( request, response ) {
-			$.ajax( {
-				url: "options.py",
-				data: {
-					showif:1,
-					serv: $("#master").val(),
-					token: $('#token').val()
-				},
-				success: function( data ) {
-					data = data.replace(/\s+/g,' ');
+		source: function (request, response) {
+			$.ajax({
+				url: "/app/server/show/if/" + $("#master").val(),
+				// data: {
+				// 	token: $('#token').val()
+				// },
+				success: function (data) {
+					data = data.replace(/\s+/g, ' ');
 					if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 						toastr.error(data);
 					} else if (data == '') {
@@ -23,22 +21,20 @@ $( function() {
 						response(data.split(" "));
 					}
 				}
-			} );
+			});
 		},
 		autoFocus: true,
 		minLength: -1
 	});
 	$( "#interface-add" ).autocomplete({
-		source: function( request, response ) {
-			$.ajax( {
-				url: "options.py",
-				data: {
-					showif:1,
-					serv: $("#master-add").val(),
-					token: $('#token').val()
-				},
-				success: function( data ) {
-					data = data.replace(/\s+/g,' ');
+		source: function (request, response) {
+			$.ajax({
+				url: "/app/server/show/if/" + $("#master-add").val(),
+				// data: {
+				// 	token: $('#token').val()
+				// },
+				success: function (data) {
+					data = data.replace(/\s+/g, ' ');
 					if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 						var p_err = show_pretty_ansible_error(data);
 						toastr.error(p_err);
@@ -49,22 +45,20 @@ $( function() {
 						response(data.split(" "));
 					}
 				}
-			} );
+			});
 		},
 		autoFocus: true,
 		minLength: -1
 	});
 	$( "#slave_interface" ).autocomplete({
-		source: function( request, response ) {
-			$.ajax( {
-				url: "options.py",
-				data: {
-					showif:1,
-					serv: $("#slave").val(),
-					token: $('#token').val()
-				},
-				success: function( data ) {
-					data = data.replace(/\s+/g,' ');
+		source: function (request, response) {
+			$.ajax({
+				url: "/app/server/show/if/" + $("#slave").val(),
+				// data: {
+				// 	token: $('#token').val()
+				// },
+				success: function (data) {
+					data = data.replace(/\s+/g, ' ');
 					if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 						var p_err = show_pretty_ansible_error(data);
 						toastr.error(p_err);
@@ -75,22 +69,20 @@ $( function() {
 						response(data.split(" "));
 					}
 				}
-			} );
+			});
 		},
 		autoFocus: true,
 		minLength: -1
 	});
 	$( "#slave_interface-add" ).autocomplete({
-		source: function( request, response ) {
-			$.ajax( {
-				url: "options.py",
-				data: {
-					showif:1,
-					serv: $("#slave-add").val(),
-					token: $('#token').val()
-				},
-				success: function( data ) {
-					data = data.replace(/\s+/g,' ');
+		source: function (request, response) {
+			$.ajax({
+				url: "/app/server/show/if/" + $("#slave-add").val(),
+				// data: {
+				// 	token: $('#token').val()
+				// },
+				success: function (data) {
+					data = data.replace(/\s+/g, ' ');
 					if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 						toastr.error(data);
 					} else if (data == '') {
@@ -100,7 +92,7 @@ $( function() {
 						response(data.split(" "));
 					}
 				}
-			} );
+			});
 		},
 		autoFocus: true,
 		minLength: -1
@@ -224,20 +216,18 @@ $( function() {
 		}
 	});
 	$( "#master" ).on('selectmenuchange',function() {
-		$.ajax( {
-			url: "options.py",
-			data: {
-				get_keepalived_v: 1,
-				serv: $('#master option:selected').val(),
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function( data ) {
-				data = data.replace(/^\s+|\s+$/g,'');
+		$.ajax({
+			url: "/app/install/keepalived/version/" + $('#master option:selected').val(),
+			// data: {
+			// 	token: $('#token').val()
+			// },
+			// type: "POST",
+			success: function (data) {
+				data = data.replace(/^\s+|\s+$/g, '');
 				if (data.indexOf('error:') != '-1') {
 					var p_err = show_pretty_ansible_error(data);
 					toastr.error(p_err);
-				} else if(data.indexOf('keepalived:') != '-1') {
+				} else if (data.indexOf('keepalived:') != '-1') {
 					$('#cur_master_ver').text('Keepalived has not installed');
 					$('#create').attr('title', 'Create HA cluster');
 				} else {
@@ -245,23 +235,21 @@ $( function() {
 					$('#cur_master_ver').css('font-weight', 'bold');
 				}
 			}
-		} );
+		});
 	});
 	$( "#slave" ).on('selectmenuchange',function() {
-		$.ajax( {
-			url: "options.py",
-			data: {
-				get_keepalived_v: 1,
-				serv: $('#slave option:selected').val(),
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function( data ) {
-				data = data.replace(/^\s+|\s+$/g,'');
+		$.ajax({
+			url: "/app/install/keepalived/version/" + $('#slave option:selected').val(),
+			// data: {
+			// 	token: $('#token').val()
+			// },
+			// type: "POST",
+			success: function (data) {
+				data = data.replace(/^\s+|\s+$/g, '');
 				if (data.indexOf('error:') != '-1') {
 					var p_err = show_pretty_ansible_error(data);
 					toastr.error(p_err);
-				} else if(data.indexOf('keepalived:') != '-1') {
+				} else if (data.indexOf('keepalived:') != '-1') {
 					$('#cur_slave_ver').text('Keepalived has not installed');
 					$('#create').attr('title', 'Create HA cluster');
 				} else {
@@ -269,23 +257,21 @@ $( function() {
 					$('#cur_slave_ver').css('font-weight', 'bold');
 				}
 			}
-		} );
+		});
 	});
 	$( "#master-add" ).on('selectmenuchange',function() {
-		$.ajax( {
-			url: "options.py",
-			data: {
-				get_keepalived_v: 1,
-				serv: $('#master-add option:selected').val(),
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function( data ) {
-				data = data.replace(/^\s+|\s+$/g,'');
+		$.ajax({
+			url: "/app/install/keepalived/version/" + $('#master-add option:selected').val(),
+			// data: {
+			// 	token: $('#token').val()
+			// },
+			// type: "POST",
+			success: function (data) {
+				data = data.replace(/^\s+|\s+$/g, '');
 				if (data.indexOf('error:') != '-1') {
 					var p_err = show_pretty_ansible_error(data);
 					toastr.error(p_err);
-				} else if(data.indexOf('keepalived:') != '-1') {
+				} else if (data.indexOf('keepalived:') != '-1') {
 					$('#cur_master_ver-add').text('Keepalived has not installed');
 					$('#add-vrrp').attr('title', 'Add a HA configuration');
 				} else {
@@ -293,23 +279,21 @@ $( function() {
 					$('#cur_master_ver-add').css('font-weight', 'bold');
 				}
 			}
-		} );
+		});
 	});
 	$( "#slave-add" ).on('selectmenuchange',function() {
-		$.ajax( {
-			url: "options.py",
-			data: {
-				get_keepalived_v: 1,
-				serv: $('#slave-add option:selected').val(),
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function( data ) {
-				data = data.replace(/^\s+|\s+$/g,'');
+		$.ajax({
+			url: "/app/install/keepalived/version/" + $('#slave-add option:selected').val(),
+			// data: {
+			// 	token: $('#token').val()
+			// },
+			// type: "POST",
+			success: function (data) {
+				data = data.replace(/^\s+|\s+$/g, '');
 				if (data.indexOf('error:') != '-1') {
 					var p_err = show_pretty_ansible_error(data);
 					toastr.error(p_err);
-				} else if(data.indexOf('keepalived:') != '-1') {
+				} else if (data.indexOf('keepalived:') != '-1') {
 					$('#cur_slave_ver-add').text('Keepalived has not installed');
 					$('#add-vrrp').attr('title', 'Add a HA configuration');
 				} else {
@@ -317,7 +301,7 @@ $( function() {
 					$('#cur_slave_ver-add').css('font-weight', 'bold');
 				}
 			}
-		} );
+		});
 	});
 });
 function add_master_addr(kp, router_id) {
@@ -325,59 +309,59 @@ function add_master_addr(kp, router_id) {
 	if ($('#add_return_to_master').is(':checked')) {
 		return_to_master = '1';
 	}
-	$.ajax( {
-		url: "options.py",
+	$.ajax({
+		url: "/app/install/keepalived/add",
 		data: {
-			masteradd: $('#master-add').val(),
-			slaveadd: $('#slave-add').val(),
-			interfaceadd: $("#interface-add").val(),
-			slave_interfaceadd: $("#slave_interface-add").val(),
-			vrrpipadd: $('#vrrp-ip-add').val(),
+			master: $('#master-add').val(),
+			slave: $('#slave-add').val(),
+			interface: $("#interface-add").val(),
+			slave_interface: $("#slave_interface-add").val(),
+			vrrpip: $('#vrrp-ip-add').val(),
 			return_to_master: return_to_master,
 			kp: kp,
 			router_id: router_id,
 			token: $('#token').val()
 		},
 		type: "POST",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('UNREACHABLE') != '-1' || data.indexOf('FAILED') != '-1') {
 				var p_err = show_pretty_ansible_error(data);
 				showProvisioningError(p_err + '<br><br>', '#creating-master-add', '#wait-mess-add', '#creating-error-add');
-			} else if (data == '' ){
+			} else if (data == '') {
 				showProvisioningWarning('#creating-master-add', 'master Keepalived', '#creating-warning-add', '#wait_mess-add');
-			} else if (data.indexOf('success') != '-1' ){
-				showProvisioningProccess('<p>'+data+'</p>', '#creating-master-add', '50', '#creating-progress-add', '#created-mess-add', '#wait-mess-add');
+			} else if (data.indexOf('success') != '-1') {
+				showProvisioningProccess('<p>' + data + '</p>', '#creating-master-add', '50', '#creating-progress-add', '#created-mess-add', '#wait-mess-add');
 			}
 		}
-	} );
+	});
 }
 function add_slave_addr(kp, router_id) {
-	$.ajax( {
-		url: "options.py",
+	$.ajax({
+		url: "/app/install/keepalived/add/slave",
 		data: {
-			masteradd_slave: $('#master-add').val(),
-			slaveadd: $('#slave-add').val(),
-			interfaceadd: $("#interface-add").val(),
-			slave_interfaceadd: $("#slave_interface-add").val(),
-			vrrpipadd: $('#vrrp-ip-add').val(),
+			master: $('#master-add').val(),
+			slave: $('#slave-add').val(),
+			interface: $("#interface-add").val(),
+			slave_interface: $("#slave_interface-add").val(),
+			vrrpip: $('#vrrp-ip-add').val(),
 			kp: kp,
 			router_id: router_id,
 			token: $('#token').val()
 		},
 		type: "POST",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('UNREACHABLE') != '-1' || data.indexOf('FAILED') != '-1') {
 				var p_err = show_pretty_ansible_error(data);
 				showProvisioningError(p_err + '<br><br>', '#creating-slave-add', '#wait-mess-add', '#creating-error-add');
-			} else if (data == '' ){
+			} else if (data == '') {
 				showProvisioningWarning('#creating-slave-add', 'master Keepalived', '#creating-warning-add', '#wait_mess-add');
-			} else if (data.indexOf('success') != '-1' ){
-				showProvisioningProccess('<p>'+data+'</p>', '#creating-slave-add', '100', '#creating-progress-add', '#created-mess-add', '#wait-mess-add');
+			} else if (data.indexOf('success') != '-1') {
+				showProvisioningProccess('<p>' + data + '</p>', '#creating-slave-add', '100', '#creating-progress-add', '#created-mess-add', '#wait-mess-add');
 			}
 		}
-	} );
+	});
 }
 function create_master_keepalived(hap, nginx, syn_flood, router_id) {
 	if (hap == '0' && nginx == '0') {
@@ -404,7 +388,7 @@ function create_master_keepalived(hap, nginx, syn_flood, router_id) {
 		return_to_master = '1';
 	}
 	$.ajax( {
-		url: "options.py",
+		url: "/app/install/keepalived",
 		data: {
 			master: $('#master').val(),
 			slave: $('#slave').val(),
@@ -460,9 +444,9 @@ function create_slave_keepalived(hap, nginx, syn_flood, router_id) {
 		nginx_docker = '1';
 	}
 	$.ajax( {
-		url: "options.py",
+		url: "/app/install/keepalived/slave",
 		data: {
-			master_slave: $('#master').val(),
+			master: $('#master').val(),
 			slave: $('#slave').val(),
 			interface: $("#interface").val(),
 			slave_interface: $("#slave_interface").val(),
@@ -511,25 +495,25 @@ function create_keep_alived_hap(nginx, server, docker) {
 		var install_step = 'slave Haproxy';
 	}
 	$(step_id).addClass('proccessing');
-	$.ajax( {
-		url: "options.py",
+	$.ajax({
+		url: "/app/install/haproxy/master-slave",
 		data: {
-			master_slave_hap: $('#master').val(),
+			master: $('#master').val(),
 			slave: $('#slave').val(),
 			server: server,
 			docker: docker,
 			token: $('#token').val()
 		},
 		type: "POST",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
 				var p_err = show_pretty_ansible_error(data);
 				showProvisioningError(p_err + '<br><br>', step_id, '#wait-mess', '#creating-error');
-			} else if (data == '' ){
+			} else if (data == '') {
 				showProvisioningWarning(step_id, install_step, '#creating-warning', '#wait_mess');
-			} else if (data.indexOf('success') != '-1' ){
-				showProvisioningProccess('<br>'+data, step_id, progress_value, '#creating-progress', '#created-mess', '#wait-mess');
+			} else if (data.indexOf('success') != '-1') {
+				showProvisioningProccess('<br>' + data, step_id, progress_value, '#creating-progress', '#created-mess', '#wait-mess');
 			} else {
 				toastr.clear();
 				toastr.info(data);
@@ -538,7 +522,7 @@ function create_keep_alived_hap(nginx, server, docker) {
 				create_keep_alived_nginx(hap, server, docker)
 			}
 		}
-	} );
+	});
 }
 function create_keep_alived_nginx(hap, server, docker) {
 	if (hap == '0') {
@@ -554,31 +538,31 @@ function create_keep_alived_nginx(hap, server, docker) {
 		var install_step = 'slave Nginx';
 	}
 	$(step_id).addClass('proccessing');
-	$.ajax( {
-		url: "options.py",
+	$.ajax({
+		url: "/app/install/nginx/master-slave",
 		data: {
-			master_slave_nginx: $('#master').val(),
+			master: $('#master').val(),
 			slave: $('#slave').val(),
 			server: server,
 			docker: docker,
 			token: $('#token').val()
 		},
 		type: "POST",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
 				var p_err = show_pretty_ansible_error(data);
 				showProvisioningError(p_err + '<br><br>', step_id, '#wait-mess', '#creating-error');
-			} else if (data == '' ){
+			} else if (data == '') {
 				showProvisioningWarning(step_id, install_step, '#creating-warning', '#wait_mess');
-			} else if (data.indexOf('success') != '-1' ){
-				showProvisioningProccess('<br>'+data, step_id, progress_value, '#creating-progress', '#created-mess', '#wait-mess');
+			} else if (data.indexOf('success') != '-1') {
+				showProvisioningProccess('<br>' + data, step_id, progress_value, '#creating-progress', '#created-mess', '#wait-mess');
 			} else {
 				toastr.clear();
 				toastr.info(data);
 			}
 		}
-	} );
+	});
 }
 function showProvisioningError(data, step_id, wait_mess, error_id) {
     $(wait_mess).hide();

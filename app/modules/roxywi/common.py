@@ -4,6 +4,7 @@ import glob
 import http.cookies
 
 import distro
+from flask import request, redirect, make_response, url_for
 
 import modules.db.sql as sql
 import modules.common.common as common
@@ -24,18 +25,16 @@ def get_user_group(**kwargs) -> str:
 	user_group = ''
 
 	try:
-		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-		user_group_id = cookie.get('group')
-		user_group_id1 = user_group_id.value
-		groups = sql.select_groups(id=user_group_id1)
+		user_group_id = request.cookies.get('group')
+		groups = sql.select_groups(id=user_group_id)
 		for g in groups:
-			if g.group_id == int(user_group_id1):
+			if g.group_id == int(user_group_id):
 				if kwargs.get('id'):
 					user_group = g.group_id
 				else:
 					user_group = g.name
-	except Exception:
-		check_user_group()
+	except Exception as e:
+		raise Exception(f'error: {e}')
 
 	return user_group
 
@@ -44,27 +43,41 @@ def check_user_group(**kwargs):
 	if kwargs.get('token') is not None:
 		return True
 
+	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+
 	if kwargs.get('user_uuid'):
 		group_id = kwargs.get('user_group_id')
 		user_uuid = kwargs.get('user_uuid')
 		user_id = sql.get_user_id_by_uuid(user_uuid)
 	else:
-		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
 		user_uuid = cookie.get('uuid')
-		group = cookie.get('group')
-		group_id = group.value
-		user_id = sql.get_user_id_by_uuid(user_uuid.value)
+		group_id = cookie.get('group')
+		user_id = sql.get_user_id_by_uuid(user_uuid)
 
 	if sql.check_user_group(user_id, group_id):
 		return True
 	else:
 		logging('Roxy-WI server', ' has tried to actions in not his group ', roxywi=1, login=1)
-		try:
-			ref = os.environ.get("REQUEST_URI").split('&')[0]
-		except Exception:
-			ref = os.environ.get("REQUEST_URI")
-		ref = common.checkAjaxInput(ref)
-		print(f'<meta http-equiv="refresh" content="0; url={ref}">')
+		return False
+
+
+def check_user_group_for_flask(**kwargs):
+	if kwargs.get('token') is not None:
+		return True
+
+	if kwargs.get('user_uuid'):
+		group_id = kwargs.get('user_group_id')
+		user_uuid = kwargs.get('user_uuid')
+		user_id = sql.get_user_id_by_uuid(user_uuid)
+	else:
+		user_uuid = request.cookies.get('uuid')
+		group_id = request.cookies.get('group')
+		user_id = sql.get_user_id_by_uuid(user_uuid)
+
+	if sql.check_user_group(user_id, group_id):
+		return True
+	else:
+		logging('Roxy-WI server', ' has tried to actions in not his group ', roxywi=1, login=1)
 		return False
 
 
@@ -72,11 +85,10 @@ def get_user_id(**kwargs):
 	if kwargs.get('login'):
 		return sql.get_user_id_by_username(kwargs.get('login'))
 
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_uuid = cookie.get('uuid')
+	user_uuid = request.cookies.get('uuid')
 
 	if user_uuid is not None:
-		user_id = sql.get_user_id_by_uuid(user_uuid.value)
+		user_id = sql.get_user_id_by_uuid(user_uuid)
 
 		return user_id
 
@@ -89,18 +101,10 @@ def check_is_server_in_group(server_ip: str) -> bool:
 			return True
 		else:
 			logging('Roxy-WI server', ' has tried to actions in not his group server ', roxywi=1, login=1)
-			try:
-				ref = os.environ.get("REQUEST_URI").split('&')[0]
-			except Exception:
-				ref = os.environ.get("REQUEST_URI")
-			ref = common.checkAjaxInput(ref)
-			print(f'<meta http-equiv="refresh" content="0; url={ref}">')
 			return False
 
 
-def get_files(folder=None, file_format='cfg') -> list:
-	if folder is None:
-		folder = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
+def get_files(folder, file_format, server_ip=None) -> list:
 	if file_format == 'log':
 		file = []
 	else:
@@ -120,7 +124,7 @@ def get_files(folder=None, file_format='cfg') -> list:
 	if file_format == 'cfg' or file_format == 'conf':
 		for file in files:
 			ip = file.split("-")
-			if serv == ip[0]:
+			if server_ip == ip[0]:
 				return_files.add(file)
 		return sorted(return_files, reverse=True)
 	else:
@@ -147,9 +151,8 @@ def logging(server_ip: str, action: str, **kwargs) -> None:
 		ip = ''
 
 	try:
-		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-		user_uuid = cookie.get('uuid')
-		login = sql.get_user_name_by_uuid(user_uuid.value)
+		user_uuid = request.cookies.get('uuid')
+		login = sql.get_user_name_by_uuid(user_uuid)
 	except Exception:
 		login_name = kwargs.get('login')
 		try:
@@ -219,9 +222,17 @@ def get_dick_permit(**kwargs):
 	else:
 		token = ''
 
-	if check_user_group(token=token):
+	if not kwargs.get('group_id'):
 		try:
-			servers = sql.get_dick_permit(**kwargs)
+			group_id = get_user_group(id=1)
+		except Exception as e:
+			return str(e)
+	else:
+		group_id = kwargs.get('group_id')
+
+	if check_user_group_for_flask(token=token):
+		try:
+			servers = sql.get_dick_permit(group_id, **kwargs)
 		except Exception as e:
 			raise Exception(e)
 		else:
@@ -231,33 +242,30 @@ def get_dick_permit(**kwargs):
 
 
 def get_users_params(**kwargs):
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-
 	try:
-		user_uuid = cookie.get('uuid')
-		user = sql.get_user_name_by_uuid(user_uuid.value)
+		user_uuid = request.cookies.get('uuid')
+		user = sql.get_user_name_by_uuid(user_uuid)
 	except Exception:
-		print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
+		make_response(redirect(url_for('login_page')))
 		return
 
 	try:
-		group_id = cookie.get('group')
-		group_id = int(group_id.value)
+		group_id = int(request.cookies.get('group'))
 	except Exception:
-		print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
+		make_response(redirect(url_for('login_page')))
 		return
 
 	try:
-		role = sql.get_user_role_by_uuid(user_uuid.value, group_id)
+		role = sql.get_user_role_by_uuid(user_uuid, group_id)
 	except Exception:
-		print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
+		make_response(redirect(url_for('login_page')))
 		return
 	try:
-		user_id = sql.get_user_id_by_uuid(user_uuid.value)
+		user_id = sql.get_user_id_by_uuid(user_uuid)
 		user_services = sql.select_user_services(user_id)
-		token = sql.get_token(user_uuid.value)
+		token = sql.get_token(user_uuid)
 	except Exception:
-		print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
+		make_response(redirect(url_for('login_page')))
 		return
 
 	if kwargs.get('virt') and kwargs.get('haproxy'):
@@ -273,7 +281,7 @@ def get_users_params(**kwargs):
 	else:
 		servers = get_dick_permit()
 
-	user_lang = get_user_lang()
+	user_lang = get_user_lang_for_flask()
 
 	user_params = {
 		'user': user,
@@ -297,6 +305,21 @@ def get_user_lang() -> str:
 	except Exception:
 		return 'en'
 
+	if user_lang is None:
+		user_lang = 'en'
+
+	return user_lang
+
+
+def get_user_lang_for_flask() -> str:
+	try:
+		user_lang = request.cookies.get('lang')
+	except Exception:
+		return 'en'
+
+	if user_lang is None:
+		user_lang = 'en'
+
 	return user_lang
 
 
@@ -310,5 +333,15 @@ def return_user_status() -> dict:
 
 def return_unsubscribed_user_status() -> dict:
 	user_subscription = {'user_status': 0, 'user_plan': 0}
+
+	return user_subscription
+
+
+def return_user_subscription():
+	try:
+		user_subscription = return_user_status()
+	except Exception as e:
+		user_subscription = return_unsubscribed_user_status()
+		roxywi_common.logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
 
 	return user_subscription

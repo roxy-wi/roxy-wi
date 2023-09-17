@@ -7,7 +7,7 @@
 {% if selects|length == 0 %}
 	{% include 'include/getstarted.html' %}
 {% else %}
-<form action="statsview.py" method="post" class="left-space">
+<form action="" method="post" class="left-space">
 	<input type="hidden" id="service" value="{{service}}" />
 	<select autofocus required name="serv" id="serv">
 		<option disabled>------</option>
@@ -19,7 +19,7 @@
 				{% endif %}
 			{% endfor %}
 	</select>
-	<a class="ui-button ui-widget ui-corner-all" id="show" title="{{lang.words.show|title()}} {{lang.words.stats}}" onclick="{{ onclick }}">{{lang.words.open|title()}}</a>
+	<a class="ui-button ui-widget ui-corner-all" id="show" title="{{lang.words.show|title()}} {{lang.words.stats}}" onclick="showStats()">{{lang.words.open|title()}}</a>
 	{% if service != 'nginx' and service != 'apache' %}
 	<div id="stats_filter">
 		<div id="stats_filter_text">{{lang.words.filter|title()}}:</div>
@@ -47,6 +47,7 @@
 		$('form').append('<input type="hidden" name="token" value='+$('#token').val()+'>');
 		$( "input[type=submit], button" ).button();
 		$('#notice').hide();
+		$('.active_going_down').hide();
 		$('li').css('margin-top', '0');
 		$('li').css('width', '207px	');
 		$('li').css('padding', '0px');

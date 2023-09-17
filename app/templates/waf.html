@@ -2,7 +2,7 @@
 {% block title %}{{title}}{% endblock %}
 {% block h2 %}{{title}}{% endblock %}
 {% block content %}
-<script src="/inc/waf-6.3.8.js"></script>
+<script src="/inc/waf.js"></script>
 {% if manage_rules == '1' %}
 	{% from 'include/input_macros.html' import input, checkbox %}
 	<table class="overview" id="waf_rules">
@@ -27,7 +27,7 @@
 			</td>
 			<td style="padding-top: 5px;padding-bottom: 10px;">{{r.desc}}</td>
 			<td style="padding: 0 10px 0 10px;">
-				<a href="waf.py?service={{service}}&waf_rule_id={{r.id}}&serv={{serv}}" class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{lang.words.this4}} {{lang.words.rule}}">{{lang.words.view|title()}}/{{lang.words.edit|title()}}</a>
+				<a href="/app/waf/{{service}}/{{serv}}/rule/{{r.id}}" class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{lang.words.this4}} {{lang.words.rule}}">{{lang.words.view|title()}}/{{lang.words.edit|title()}}</a>
 			</td>
 		</tr>
 		{% endfor %}
@@ -72,7 +72,7 @@
 		<script src="/inc/codemirror/keymap/sublime.js"></script>
 		<script src="/inc/configshow.js"></script>
 			<h4>{{lang.words.config|title()}} {{waf_rule_file}} {{lang.words.from|title()}} {{ serv }}</h4>
-			<form action="waf.py" name="saveconfig" id="saveconfig" method="post">
+			<form action="/app/waf/{{service}}/{{serv}}/rule/{{waf_rule_id}}/save" name="saveconfig" id="saveconfig" method="post">
 				<input type="hidden" value="{{ serv }}" name="serv">
 				<input type="hidden" value="{{ cfg }}.old" name="oldconfig">
 				<input type="hidden" value="{{ token }}" name="token">
@@ -82,7 +82,7 @@
 					<textarea name="config" id="config_text_area" class="config" rows="35" cols="100">{{ config }}</textarea>
 				</div>
 				<p>
-					<a href="waf.py?manage_rules=1&serv={{serv}}" class="ui-button ui-widget ui-corner-all" title="Return to rules management">{{lang.words.back|title()}}</a>
+					<a href="/app/waf/{{service}}/{{serv}}/rules" class="ui-button ui-widget ui-corner-all" title="Return to rules management">{{lang.words.back|title()}}</a>
 					{% if role <= 3 %}
 					<button type="submit" value="save" name="save" class="btn btn-default" title="{{lang.words.save|title()}} {{lang.words.without}} {{lang.words.reloading}}">{{lang.words.save|title()}}</button>
 					{% if service == 'haproxy' %}
@@ -176,8 +176,8 @@
 	</table>
 	{% if service == 'haproxy' %}
 	<link href="/inc/css/chart.min.css" rel="stylesheet">
-	<script src="/inc/overview-6.3.9.js"></script>
-	<script src="/inc/metrics-6.3.16.0.js"></script>
+	<script src="/inc/overview.js"></script>
+	<script src="/inc/metrics.js"></script>
 	<script src="/inc/chart.min-4.3.0.js"></script>
 	<div id="table_metrics"></div>
 	<div class="metrics-time-range">

@@ -8,30 +8,29 @@
 		</script>
 		<meta charset="utf-8">
 		<title>Roxy-WI</title>
-		<link href="/inc/images/favicon/favicon.ico" rel="icon" type="image/png" />
-		<link rel="apple-touch-icon" sizes="57x57" href="/inc/images/favicon/inc/images/favicon/apple-icon-57x57.png">
-		<link rel="apple-touch-icon" sizes="60x60" href="/inc/images/favicon/apple-icon-60x60.png">
-		<link rel="apple-touch-icon" sizes="72x72" href="/inc/images/favicon/apple-icon-72x72.png">
-		<link rel="apple-touch-icon" sizes="76x76" href="/inc/images/favicon/apple-icon-76x76.png">
-		<link rel="apple-touch-icon" sizes="114x114" href="/inc/images/favicon/apple-icon-114x114.png">
-		<link rel="apple-touch-icon" sizes="120x120" href="/inc/images/favicon/apple-icon-120x120.png">
-		<link rel="apple-touch-icon" sizes="144x144" href="/inc/images/favicon/apple-icon-144x144.png">
-		<link rel="apple-touch-icon" sizes="152x152" href="/inc/images/favicon/apple-icon-152x152.png">
-		<link rel="apple-touch-icon" sizes="180x180" href="/inc/images/favicon/apple-icon-180x180.png">
-		<link rel="icon" type="image/png" sizes="192x192"  href="/inc/images/favicon/android-icon-192x192.png">
-		<link rel="icon" type="image/png" sizes="32x32" href="/inc/images/favicon/favicon-32x32.png">
-		<link rel="icon" type="image/png" sizes="96x96" href="/inc/images/favicon/favicon-96x96.png">
-		<link rel="icon" type="image/png" sizes="16x16" href="/inc/images/favicon/favicon-16x16.png">
-		<link rel="manifest" href="/inc/images/favicon/manifest.json">
+		<link href="/app/static/images/favicon/favicon.ico" rel="icon" type="image/png" />
+		<link rel="apple-touch-icon" sizes="57x57" href="/app/static/images/favicon/app/static/images/favicon/apple-icon-57x57.png">
+		<link rel="apple-touch-icon" sizes="60x60" href="/app/static/images/favicon/apple-icon-60x60.png">
+		<link rel="apple-touch-icon" sizes="72x72" href="/app/static/images/favicon/apple-icon-72x72.png">
+		<link rel="apple-touch-icon" sizes="76x76" href="/app/static/images/favicon/apple-icon-76x76.png">
+		<link rel="apple-touch-icon" sizes="114x114" href="/app/static/images/favicon/apple-icon-114x114.png">
+		<link rel="apple-touch-icon" sizes="120x120" href="/app/static/images/favicon/apple-icon-120x120.png">
+		<link rel="apple-touch-icon" sizes="144x144" href="/app/static/images/favicon/apple-icon-144x144.png">
+		<link rel="apple-touch-icon" sizes="152x152" href="/app/static/images/favicon/apple-icon-152x152.png">
+		<link rel="apple-touch-icon" sizes="180x180" href="/app/static/images/favicon/apple-icon-180x180.png">
+		<link rel="icon" type="image/png" sizes="192x192"  href="/app/static/images/favicon/android-icon-192x192.png">
+		<link rel="icon" type="image/png" sizes="32x32" href="/app/static/images/favicon/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="96x96" href="/app/static/images/favicon/favicon-96x96.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="/app/static/images/favicon/favicon-16x16.png">
+		<link rel="manifest" href="/app/static/images/favicon/manifest.json">
 		<meta name="msapplication-TileColor" content="#ffffff">
-		<meta name="msapplication-TileImage" content="/inc/images/favicon/ms-icon-144x144.png">
+		<meta name="msapplication-TileImage" content="/app/static/images/favicon/ms-icon-144x144.png">
 		<meta name="theme-color" content="#ffffff">
 		<script defer src="/inc/intro/introjs.min.js"></script>
 		<link href="/inc/intro/introjs.min.css" rel="stylesheet">
 		<link href="/inc/intro/introjs-modern.css" rel="stylesheet">
 		<link href="/inc/css/style-6.3.9.css" rel="stylesheet">
 		<link href="/inc/css/nprogress.css" rel="stylesheet">
-		<link href="/inc/css/provisioning.css" rel="stylesheet">
 		<link href="/inc/css/jquery-ui.min.css" rel="stylesheet">
 		<link href="/inc/css/jquery-ui.structure.min.css" rel="stylesheet">
 		<script src="/inc/jquery-3.6.0.min.js"></script>
@@ -41,7 +40,7 @@
 		<script defer src="/inc/fontawesome.min.js"></script>
 		<link href="/inc/css/awesome-6.3.9.css" rel="stylesheet">
 		<link href="/inc/css/chart.min.css" rel="stylesheet">
-		<script src="/inc/metrics-6.3.16.0.js"></script>
+		<script src="/inc/metrics.js"></script>
 		<script src="/inc/chart.min-4.3.0.js"></script>
 		<link rel="stylesheet" href="/inc/codemirror/codemirror.css">
 		<script src="/inc/codemirror/codemirror.js"></script>
@@ -50,15 +49,14 @@
 		<link href="/inc/css/toastr-6.3.9.css" rel="stylesheet"/>
 		<script src="/inc/toastr.js"></script>
 		<script defer src="/inc/ion.sound.min.js"></script>
-		<script src="/inc/provisioning.js"></script>
 		<link href="/inc/css/select2.css" rel="stylesheet" />
 		<script src="/inc/select2.js"></script>
 		<script src="/inc/reconnecting-websocket.js"></script>
 		<link href="/inc/css/table-6.3.9.css" rel="stylesheet" type="text/css">
 		<script type="text/javascript" charset="utf8" src="/inc/dataTables.min.js"></script>
 		<script src="/inc/js.cookie.min.js"></script>
-		<script src="/inc/script-6.3.9.js"></script>
-		<meta http-equiv="refresh" content="0; url=/app/overview.py" />
+		<script src="/inc/script.js"></script>
+		<meta http-equiv="refresh" content="0; url=/app/" />
 	</head>
 	<body style="background-color: #239dee;">
 		<style>
@@ -83,7 +81,7 @@
 		<center>
 		<div style="color: white;">
 			<h1 style="font-size: 100px;">Welcome to</h1>
-			<img src="/inc/images/logo_index.png" alt="logo" style="margin-top: -50px;display: block;padding-bottom: 70px;" />
+			<img src="/app/static/images/logo_index.png" alt="logo" style="margin-top: -50px;display: block;padding-bottom: 70px;" />
 			<b style="font-size: 30px;">Redirecting... Please wait</b>
 		</div>
 		</center>

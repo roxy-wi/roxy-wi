@@ -16,9 +16,7 @@
 		{% else %}
 		<span class="serverDown server-status" title="WAF {{lang.words.is}} {{lang.words.stopped}} "></span>
 		{% endif %}
-		<a href="/app/logs.py?serv={{ service.1 }}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00&waf=1" title="{{lang.words.view|title()}} {{service.0 }}'s WAF {{lang.words.logs}}" class="logs_link">
 			{{ service.0 }}
-		</a>
 	{% else %}
 		<span class="serverNone server-status" title="WAF {{lang.words.is}} {{lang.words.not}} {{lang.words.installed}}"></span> <span title="WAF {{lang.words.is}} {{lang.words.not}} {{lang.words.installed}}">{{ service.0 }}</span>
 	{% endif %}
@@ -70,14 +68,14 @@
 		{% endif %}
 		<td>
 		{% if role <= 2 %}
-			<a href="/app/waf.py?service={{waf_service}}&manage_rules=1&serv={{service.1}}" class="ui-button ui-widget ui-corner-all">{{lang.words.open|title()}}</a>
+			<a href="/app/waf/{{waf_service}}/{{service.1}}/rules" class="ui-button ui-widget ui-corner-all">{{lang.words.open|title()}}</a>
 		{% endif %}
 		</td>
 		<td>
 			{% if waf_service == 'haproxy' %}
-			<a href="/app/logs.py?service={{waf_service}}&serv={{ service.1 }}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00&waf=1" class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{lang.words.log}}">{{lang.words.view|title()}}</a>
+			<a href="/app/logs/{{waf_service}}/waf/{{ service.1 }}" class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{lang.words.log}}">{{lang.words.view|title()}}</a>
 			{% elif waf_service == 'nginx' %}
-			<a href="/app/logs.py?service={{waf_service}}&serv={{ service.1 }}&rows=10&grep=ModSecurity&hour=00&minut=00&hour1=24&minut1=00&file=error.log&waf=0" class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{lang.words.log}}">{{lang.words.view|title()}}</a>
+			<a href="/app/logs/{{waf_service}}/?serv={{ service.1 }}&rows=100&grep=ModSecurity&hour=00&minute=00&hour1=24&minute1=00&file=error.log&waf=0" class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{lang.words.log}}">{{lang.words.view|title()}}</a>
 			{% endif %}
 		</td>
 		<td></td>

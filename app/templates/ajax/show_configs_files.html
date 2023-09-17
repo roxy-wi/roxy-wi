@@ -11,9 +11,9 @@
 				<option disabled selected>{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.config}} {{lang.words.file}}</option>
 				{% for file in return_files.split() %}
 					{% if file == config_file_name %}
-					<option value="{{ file }}" selected>{{ file.split('/', maxsplit=3)[3] }}</option>
+					<option value="{{ file.replace('/', '92') }}" selected>{{ file.split('/', maxsplit=3)[3] }}</option>
 					{% else %}
-					<option value="{{ file }}">{{ file.split('/', maxsplit=3)[3] }}</option>
+					<option value="{{ file.replace('/', '92') }}">{{ file.split('/', maxsplit=3)[3] }}</option>
 					{% endif %}
 				{% endfor %}
 			</select>
@@ -27,7 +27,7 @@
 		</form>
 	<form action="" method="post" id="finding_words_from">
 		<p id="find_p" style="display: none;">
-			{{ input('words', type='text', style='height: 32.5px;') }}
+			{{ input('words', type='text', style='height: 25.5px;width: 250px;') }}
 			<button type="submit" name="find" id="find_in_configs" value="Find" title="Find in configs">{{lang.words.find|title()}}</button>
 		</p>
 		{% else %}
@@ -57,7 +57,7 @@
 				return false;
 			}
 			findInConfig(words);
-			window.history.pushState("Find in config", "Find in config", cur_url[0] + '?service='+ $('#service').val()+'&serv='+$('#serv').val()+'&showConfigFiles&findInConfig='+ words);
+			// window.history.pushState("Find in config", "Find in config", cur_url[0] + '?service='+ $('#service').val()+'&serv='+$('#serv').val()+'&showConfigFiles&findInConfig='+ words);
 			return false;
 		});
 		$( "input[type=submit], button" ).button()
@@ -96,7 +96,7 @@
 						serv = escapeHtml(serv);
 						path_dir = escapeHtml(path_dir);
 						config_file_name = escapeHtml(config_file_name);
-						window.location.replace('config.py?service=' + service + '&serv=' + serv + '&open=open&config_file_name=' + path_dir + '92' + config_file_name + '.conf&new_config=1');
+						window.location.replace('/app/config/' + service + '/' + serv + '/edit/' + path_dir + '92' + config_file_name + '.conf/new');
 						$(this).dialog("close");
 					}
 				}, {

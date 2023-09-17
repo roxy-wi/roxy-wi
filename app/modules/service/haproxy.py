@@ -1,6 +1,8 @@
 import os
 import requests
 
+from flask import request
+
 import modules.db.sql as sql
 import modules.common.common as common
 import modules.server.server as server_mod
@@ -11,7 +13,6 @@ import modules.roxy_wi_tools as roxy_wi_tools
 time_zone = sql.get_setting('time_zone')
 get_date = roxy_wi_tools.GetDate(time_zone)
 get_config = roxy_wi_tools.GetConfigVar()
-form = common.form
 
 
 def stat_page_action(serv: str) -> None:
@@ -21,9 +22,9 @@ def stat_page_action(serv: str) -> None:
     stats_page = sql.get_setting('stats_page')
 
     postdata = {
-        'action': form.getvalue('action'),
-        's': form.getvalue('s'),
-        'b': form.getvalue('b')
+        'action': request.form.get('action'),
+        's': request.form.get('s'),
+        'b': request.form.get('b')
     }
 
     headers = {
@@ -33,10 +34,11 @@ def stat_page_action(serv: str) -> None:
         'Accept-Encoding': 'gzip, deflate'
     }
 
-    requests.post(f'http://{serv}:{stats_port}/{stats_page}', headers=headers, data=postdata, auth=(haproxy_user, haproxy_pass))
+    data = requests.post(f'http://{serv}:{stats_port}/{stats_page}', headers=headers, data=postdata, auth=(haproxy_user, haproxy_pass))
+    return data.content
 
 
-def show_map(serv: str) -> None:
+def show_map(serv: str) -> str:
     import networkx as nx
     import matplotlib
 
@@ -47,17 +49,16 @@ def show_map(serv: str) -> None:
     hap_configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
     date = get_date.return_date('config')
     cfg = f'{hap_configs_dir}{serv}-{date}.cfg'
-
-    print(f'<center><h4 style="margin-bottom: 0;">Map from {serv}</h4>')
+    output = f'<center><h4 style="margin-bottom: 0;">Map from {serv}</h4>'
 
     error = config_mod.get_config(serv, cfg)
     if error:
-        print(error)
+        return f'error: Cannot read import config file {error}'
+
     try:
         conf = open(cfg, "r")
-    except IOError:
-        print('error: Cannot read import config file')
-        return
+    except IOError as e:
+        return f'error: Cannot read import config file {e}'
 
     G = nx.DiGraph()
     node = ""
@@ -239,25 +240,22 @@ def show_map(serv: str) -> None:
         nx.draw_networkx_edge_labels(G, pos, alpha=0.4, label_pos=0.5, font_color="#5d9ceb", edge_labels=edge_labels,
                                      font_size=8)
 
-        plt.savefig("map.png")
+        plt.savefig(f"/var/www/haproxy-wi/app/map.png")
         plt.show()
     except Exception as e:
-        print(str(e))
+        return f'error: Cannot create a map: {e}'
 
-    os.system(
-        f"rm -f {os.path.dirname(os.getcwd())}/map*.png && mv map.png {os.path.dirname(os.getcwd())}/map{date}.png")
-    print(f'<img src="/map{date}.png" alt="map"></center>')
+    output += f'<img src="/map.png" alt="map"></center>'
+    return output
 
 
-def runtime_command(serv: str) -> None:
+def runtime_command(serv: str, enable: str, backend: str, save: str) -> str:
     server_state_file = sql.get_setting('server_state_file')
     haproxy_sock = sql.get_setting('haproxy_sock')
-    enable = common.checkAjaxInput(form.getvalue('servaction'))
-    backend = common.checkAjaxInput(form.getvalue('servbackend'))
 
     cmd = f'echo "{enable} {backend}" |sudo socat stdio {haproxy_sock}'
 
-    if form.getvalue('save') == "on":
+    if save == "on":
         save_command = f'echo "show servers state" | sudo socat {haproxy_sock} stdio > {server_state_file}'
         command = [cmd + ';' + save_command]
     else:
@@ -266,10 +264,11 @@ def runtime_command(serv: str) -> None:
     if enable != "show":
         roxywi_common.logging(serv, f'Has been {enable}ed {backend}', login=1, keep_history=1, service='haproxy')
         print(
-            f'<center><h3>You {enable} {backend} on HAProxy {serv}. <a href="statsview.py?serv={serv}" '
-            f'title="View stat" target="_blank">Look it</a> or <a href="runtimeapi.py" '
+            f'<center><h3>You {enable} {backend} on HAProxy {serv}. <a href="/app/stats/haproxy/{serv}" '
+            f'title="View stat" target="_blank">Look it</a> or <a href="/app/runtimeapi" '
             f'title="Runtime API">Edit something else</a></h3><br />')
 
-    print(server_mod.ssh_command(serv, command, show_log="1"))
-    action = f'runtimeapi.py {enable} {backend}'
+    action = f'runtimeapi {enable} {backend}'
     roxywi_common.logging(serv, action)
+
+    return server_mod.ssh_command(serv, command, show_log="1")

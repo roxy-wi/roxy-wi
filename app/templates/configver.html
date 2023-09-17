@@ -3,7 +3,7 @@
 {% block h2 %}{{ lang.menu_links.versions.h2 }} {{ lang.words[service] }}{% endblock %}
 {% block content %}
 	<p>
-		<form action="{{ action }}" method="post" class="left-space">
+		<form action="/app/config/versions/{{service}}/{{serv}}" method="post" class="left-space">
 			<input type="hidden" id="service" value="{{service}}">
 			{% include 'include/select.html' %}
 			<button type="submit" value="open" name="open" class="btn btn-default">{{lang.words.open|title()}}</button>
@@ -13,8 +13,6 @@
 		{% if stderr %}
 			{% include 'include/errors.html' %}
 		{% endif %}
-	{% endif %}
-	{% if open %}
 		<div id="config_version_div"></div>
 		<script>showListOfVersion(0)</script>
 	{% endif %}

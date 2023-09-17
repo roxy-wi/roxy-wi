@@ -31,8 +31,7 @@ export ACTION_WARNINGS=False
 export LOCALHOST_WARNING=False
 export COMMAND_WARNINGS=False
 
-PWD=$(pwd)
-PWD=$PWD/scripts/ansible/
+PWD=/var/www/haproxy-wi/app/scripts/ansible/
 echo "$HOST ansible_port=$SSH_PORT" > $PWD/$HOST
 
 if [[ $KEY == "" ]]; then

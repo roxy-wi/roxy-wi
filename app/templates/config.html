@@ -26,7 +26,7 @@
 <script src="/inc/codemirror/keymap/sublime.js"></script>
 <script src="/inc/configshow.js"></script>
 {% if is_serv_protected and role > 2 %}
-<meta http-equiv="refresh" content="0; url=/app/hapservers.py?service={{service}}">
+<meta http-equiv="refresh" content="0; url=/app/service">
 {% else %}
 	{% if selects|length == 0 %}
 		{% include 'include/getstarted.html' %}
@@ -36,22 +36,22 @@
 			<input type="hidden" id="service" value="{{service|default('haproxy', true)}}" />
 			{% include 'include/select.html' %}
 			{% if service == 'nginx' or service == 'apache' %}
-			<a class="ui-button ui-widget ui-corner-all" title="Show running config" onclick="showConfigFiles()">{{lang.words.open|title()}}</a>
+			<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.show|title()}} {{lang.words.running}} {{lang.words.config}}" onclick="showConfigFiles()">{{lang.words.open|title()}}</a>
 			{% else %}
-			<a class="ui-button ui-widget ui-corner-all" title="Show running config" onclick="showConfig()">{{lang.words.open|title()}}</a>
+			<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.show|title()}} {{lang.words.running}} {{lang.words.config}}" onclick="showConfig()">{{lang.words.open|title()}}</a>
 			{% endif %}
 			{% if service != 'keepalived' and service != 'apache' %}
-				<a class="ui-button ui-widget ui-corner-all" title="View stat" onclick="openStats()">{{lang.menu_links.stats.link}}</a>
+				<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{lang.words.stat}}" onclick="openStats()">{{lang.menu_links.stats.link}}</a>
 			{% endif %}
 			{% if service != 'keepalived' and service != 'nginx' and service != 'apache' %}
-				<a class="ui-button ui-widget ui-corner-all" title="Show map" onclick="showMap()">{{lang.words.map|title()}}</a>
+				<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.show|title()}} {{lang.words.map}}" onclick="showMap()">{{lang.words.map|title()}}</a>
 			{% endif %}
-				<a class="ui-button ui-widget ui-corner-all" title="Compare configs" onclick="showCompareConfigs()">{{lang.words.compare|title()}}</a>
+				<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.compare|title()}} {{lang.words.configs}}" onclick="showCompareConfigs()">{{lang.words.compare|title()}}</a>
 			{% if role <= 3 %}
-				<a class="ui-button ui-widget ui-corner-all" title="Show versions" onclick="openVersions()">{{lang.menu_links.versions.link}}</a>
+				<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.show|title()}} {{lang.words.versions}}" onclick="openVersions()">{{lang.menu_links.versions.link}}</a>
 			{% endif %}
 			{% if role <= 2 %}
-				<a href="/app/servers.py#backup" class="ui-button ui-widget ui-corner-all" title="Git">Git</a>
+				<a href="/app/servers#backup" class="ui-button ui-widget ui-corner-all" title="Git">Git</a>
 			{% endif %}
 		</form>
 	</p>
@@ -64,8 +64,8 @@
 
 	{% if config %}
 		{% if role <= 3 %}
-			<h4 class="left-space">{{lang.words.config|title()}} {% if config_file_name != 'undefined' %}{{config_file_name.replace('92', '/')}}{%endif%} {{lang.words.from}} {{ serv }}</h4>
-			<form action="config.py" name="saveconfig" id="saveconfig" method="post" class="left-space">
+			<h4 class="left-space">{{lang.words.config|title()}} {% if config_file_name and config_file_name != 'undefined' %}{{config_file_name.replace('92', '/')}}{%endif%} {{lang.words.from}} {{ serv }}</h4>
+			<form action="/app/config/{{service}}/{{serv}}/save" name="saveconfig" id="saveconfig" method="post" class="left-space">
 				<input type="hidden" value="{{ serv }}" name="serv">
 				<input type="hidden" value="{{ cfg }}.old" name="oldconfig">
 				<input type="hidden" value="{{ token }}" name="token">
@@ -75,7 +75,7 @@
 					<textarea name="config" id="config_text_area" class="config" rows="35" cols="100">{{ config }}</textarea>
 				</div>
 				<p>
-					<a href="config.py?service={{service}}&serv={{serv}}&showConfig" class="ui-button ui-widget ui-corner-all" title="{{lang.phrases.return_to_config}}">{{lang.words.back|title()}}</a>
+					<a href="/app/config/{{service}}/{{serv}}/show" class="ui-button ui-widget ui-corner-all" title="{{lang.phrases.return_to_config}}">{{lang.words.back|title()}}</a>
 					{% if service != 'keepalived' %}
 					<button type="submit" value="test" name="save" class="btn btn-default" title="{{lang.words.check|title()}} {{lang.words.config}} {{lang.words.without}} {{lang.words.saving}}">{{lang.phrases.check_config}}</button>
 					{% endif %}
@@ -92,19 +92,21 @@
 		{% endif %}
 	{% endif %}
 <script>
-	if (cur_url[1].split('&')[2] == 'showMap') {
+	var cur_url = window.location.href.split('/app/').pop();
+	cur_url = cur_url.split('/');
+	if (cur_url[1] == 'map') {
 		showMap();
 	}
-	if (cur_url[1].split('&')[1] == 'showCompare' || cur_url[1].split('&')[2] == 'showCompare') {
+	if (cur_url[1] == 'compare') {
 		showCompareConfigs();
 	}
-	if (cur_url[1].split('&')[2] == 'showConfig') {
+	if (cur_url[3] == 'show') {
 		showConfig();
 	}
-	if (cur_url[1].split('&')[2] == 'showConfigFiles') {
+	if (cur_url[3] == 'show-files') {
 		showConfigFiles();
 	}
-	if (cur_url[1].split('&')[3].split('=')[0] == 'findInConfig') {
+	if (cur_url[3] == 'findInConfig') {
 		var words = findGetParameter('findInConfig');
 		waitForElm('#finding_words_from').then((elm) => {
 			$('#find_p').show();
@@ -112,10 +114,10 @@
 			findInConfig(words);
 		});
 	}
-	if (cur_url[1].split('&')[3].split('=')[0] == 'config_file_name') {
+	if (cur_url[1] == 'config_file_name') {
 		showConfigFilesForEditing();
 	}
-	if (cur_url[1].split('&')[0] == 'service=haproxy' || cur_url[1].split('&')[0] == 'service=None') {
+	if (cur_url[1] == 'haproxy' && cur_url[3] == 'edit') {
 		var myCodeMirror = CodeMirror.fromTextArea(document.getElementById("config_text_area"),
 				{
 					mode: "haproxy",

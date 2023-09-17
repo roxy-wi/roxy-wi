@@ -18,7 +18,7 @@
         border: 1px solid #ccc;
     }
 </style>
-<form name="nettools_icmp_form" id="nettools_icmp_form" method="post" action="options.py">
+<form name="nettools_icmp_form" id="nettools_icmp_form" method="post" action="/app/nettols/icmp">
     <table class="overview">
         <caption><h3>ICMP</h3></caption>
         <tr class="overviewHead">
@@ -29,7 +29,7 @@
         </tr>
         <tr>
             <td class="padding10 first-collumn">
-                <select autofocus required name="nettools_icmp_server_from" id="nettools_icmp_server_from">
+                <select autofocus required name="server_from" id="nettools_icmp_server_from">
                     <option disabled selected>------</option>
                     <option value="localhost">Roxy-WI</option>
                     {% for server in servers %}
@@ -38,7 +38,7 @@
                     </select>
             </td>
             <td class="padding10 first-collumn">
-                {{ input('nettools_icmp_server_to', title='Enter IP or Name') }}
+                {{ input('nettools_icmp_server_to', name='server_to', title='Enter IP or Name') }}
                 {{ input('token', value=token, type='hidden') }}
             </td>
             <td class="padding10 first-collumn">
@@ -50,7 +50,7 @@
         </tr>
     </table>
 </form>
-<form name="nettools_telnet_form" id="nettools_telnet_form" method="post" action="options.py">
+<form name="nettools_telnet_form" id="nettools_telnet_form" method="post" action="/app/nettols/tcp">
     <table class="overview">
         <caption><h3>Check port</h3></caption>
         <tr class="overviewHead">
@@ -61,7 +61,7 @@
         </tr>
         <tr>
             <td class="padding10 first-collumn">
-                <select autofocus required name="nettools_telnet_server_from" id="nettools_telnet_server_from">
+                <select autofocus required name="server_from" id="nettools_telnet_server_from">
                     <option disabled selected>------</option>
                     <option value="localhost">Roxy-WI</option>
                     {% for server in servers %}
@@ -70,7 +70,7 @@
                 </select>
             </td>
             <td class="padding10 first-collumn">
-                {{ input('nettools_telnet_server_to', title='Enter IP or Name') }}
+                {{ input('nettools_nslookup_server_to', name='server_to', title='Enter IP or Name') }}
                 {{ input('token', value=token, type='hidden') }}
             </td>
             <td class="padding10 first-collumn">
@@ -82,7 +82,7 @@
         </tr>
     </table>
 </form>
-<form name="nettools_nslookup_form" id="nettools_nslookup_form" method="post" action="options.py">
+<form name="nettools_nslookup_form" id="nettools_nslookup_form" method="post" action="/app/nettols/dns">
     <table class="overview">
         <caption><h3>NSLookup</h3></caption>
         <tr class="overviewHead">
@@ -93,7 +93,7 @@
         </tr>
         <tr>
             <td class="padding10 first-collumn">
-                <select autofocus required name="nettools_nslookup_server_from" id="nettools_nslookup_server_from">
+                <select autofocus required name="server_from" id="nettools_nslookup_server_from">
                     <option disabled selected>------</option>
                     <option value="localhost">Roxy-WI</option>
                     {% for server in servers %}

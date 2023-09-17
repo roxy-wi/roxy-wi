@@ -24,7 +24,7 @@
             $("form input[type='checkbox']").attr("checked",false).change();
         }
     });
-    $.getScript('/inc/script-6.3.9.js');
+    $.getScript('/inc/script.js');
     function show_diff(id) {
         if ($('#show_diff_'+id).css('display') == 'none') {
             $('#show_diff_'+id).show();
@@ -76,7 +76,7 @@
         <tr>
             <td style="padding-left: 15px">
                 <label for="{{c.id}}" id="select_{{c.id}}"></label>
-                <input type="checkbox" value="{{c.local_path}}" name="{{c.local_path}}" id="{{c.id}}">
+                <input type="checkbox" value="{{c.local_path}}" name="do_delete" id="{{c.id}}">
             </td>
             <td>
                 {% for u in users %}
@@ -103,7 +103,7 @@
             </td>
             <td>{{c.date}}</td>
             <td style="padding-top: 10px;">
-                <a href="/app/versions.py?service={{service}}&serv={{serv}}&open=open&configver={{c.local_path.split('/')[-1]}}"
+                <a href="/app/config/versions/{{service}}/{{server_ip}}/{{c.local_path.split('/')[-1]}}"
                    class="ui-button ui-widget ui-corner-all" title="{{lang1.phrases.view_and_upload}}" style="margin-top: -6px;">
                     {{lang1.words.view|title()}}/{{lang1.words.upload|title()}}
                 </a>
@@ -112,10 +112,9 @@
         {% endfor %}
         </tbody>
     </table>
-    <input type="hidden" value="{{serv}}" name="serv">
+    <input type="hidden" value="{{server_ip}}" name="server_ip">
     <input type="hidden" value="open" name="open">
     <input type="hidden" value="del" name="del">
-    <input type="hidden" value="{{style}}" name="style">
     <p>
         <button type="submit" value="" name="" class="btn btn-default">{{lang1.words.delete|title()}}</button>
     </p>
@@ -126,6 +125,7 @@
     <select autofocus required name="configver" id="configver">
         <option disabled selected>------</option>
         {% for file in return_files %}
+        {{file}}
         {% if file == configver %}
         <option value="{{file}}" selected>{{file.split('-', maxsplit=1)[1]}}</option>
         {% else %}
@@ -133,7 +133,7 @@
         {% endif %}
         {% endfor %}
     </select>
-    <input type="hidden" value="{{serv}}" name="serv">
+    <input type="hidden" value="{{server_ip}}" name="server_ip">
     <input type="hidden" value="open" name="open">
     <input type="hidden" value="{{service}}" name="service" id="service">
     <a class="ui-button ui-widget ui-corner-all" id="show" title="{{lang1.words.enter|title()}}" onclick="showUploadConfig()">{{lang1.words.select2|title()}}</a>

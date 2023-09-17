@@ -27,10 +27,8 @@ export ACTION_WARNINGS=False
 export LOCALHOST_WARNING=False
 export COMMAND_WARNINGS=False
 
-PWD=`pwd`
-PWD=$PWD/scripts/ansible/
+PWD=/var/www/haproxy-wi/app/scripts/ansible/
 echo "$HOST ansible_port=$SSH_PORT" >> $PWD/$HOST
-
 
 ansible-playbook $PWD/roles/git_backup.yml --key-file $KEY -e "ansible_user=$USER variable_host=$HOST DELJOB=$DELJOB SERVICE=$SERVICE INIT=$INIT REPO=$REPO BRANCH=$BRANCH PERIOD=$PERIOD CONFIG_DIR=$CONFIG_DIR PROXY=$PROXY KEY=$KEY" -i $PWD/$HOST
 

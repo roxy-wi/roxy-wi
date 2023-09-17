@@ -64,7 +64,6 @@ $( function() {
 				data = data.replace(/\n/g, "<br>");
 				if (data.indexOf(service + ': command not found') != '-1') {
 					try {
-						var service = findGetParameter('service');
 						toastr.error('Cannot save config. There is no ' + service);
 					} catch (err) {
 						console.log(err);

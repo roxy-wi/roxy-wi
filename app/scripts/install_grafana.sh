@@ -32,8 +32,7 @@ export ACTION_WARNINGS=False
 export LOCALHOST_WARNING=False
 export COMMAND_WARNINGS=False
 
-PWD=`pwd`
-PWD=$PWD/scripts/ansible/
+PWD=/var/www/haproxy-wi/app/scripts/ansible/
 
 ansible-playbook $PWD/roles/grafana.yml -e "PROXY=$PROXY"
 

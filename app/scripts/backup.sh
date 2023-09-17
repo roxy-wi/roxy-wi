@@ -12,8 +12,8 @@ do
             SERVER)    SERVER=${VALUE} ;;
             USER)    USER=${VALUE} ;;
             KEY)    KEY=${VALUE} ;;
-			DELJOB) DELJOB=${VALUE} ;;
-			SSH_PORT) SSH_PORT=${VALUE} ;;
+			      DELJOB) DELJOB=${VALUE} ;;
+			      SSH_PORT) SSH_PORT=${VALUE} ;;
             *)
     esac
 done
@@ -24,8 +24,7 @@ export ACTION_WARNINGS=False
 export LOCALHOST_WARNING=False
 export COMMAND_WARNINGS=False
 
-PWD=`pwd`
-PWD=$PWD/scripts/ansible/
+PWD=/var/www/haproxy-wi/app/scripts/ansible/
 echo '[backup]' > $PWD/$HOST
 echo "$HOST ansible_port=$SSH_PORT" >> $PWD/$HOST
 echo '[haproxy_wi]' >> $PWD/$HOST

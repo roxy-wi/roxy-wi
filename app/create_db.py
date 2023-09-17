@@ -160,194 +160,6 @@ def default_values():
 			print(str(e))
 
 	data_source = [
-		{'param': 'aws', 'name': 'AWS', 'optgroup': 'aws', 'section': 'provider', 'provider': 'aws', 'image': '/inc/images/provisioning/providers/aws.svg'},
-		{'param': 'do', 'name': 'DigitalOcearn', 'optgroup': 'do', 'section': 'provider', 'provider': 'do', 'image': '/inc/images/provisioning/providers/do.svg'},
-		{'param': 'gcore', 'name': 'G-Core Labs', 'optgroup': 'gcore', 'section': 'provider', 'provider': 'gcore', 'image': '/inc/images/provisioning/providers/gcore.svg'},
-		{'param': 'us-east-1', 'name': 'N. Virginia', 'optgroup': 'US East', 'section': 'region', 'provider': 'aws',
-			'image': '/inc/images/provisioning/flags/us.svg'},
-		{'param': 'us-east-2', 'name': 'Ohio', 'optgroup': 'US East', 'section': 'region', 'provider': 'aws', 'image': '/inc/images/provisioning/flags/us.svg'},
-		{'param': 'us-west-1', 'name': 'N. California', 'optgroup': 'US West', 'section': 'region', 'provider': 'aws',
-			'image': '/inc/images/provisioning/flags/us.svg'},
-		{'param': 'us-west-2', 'name': 'Oregon', 'optgroup': 'US West', 'section': 'region', 'provider': 'aws',
-			'image': '/inc/images/provisioning/flags/us.svg'},
-		{'param': 'af-south-1', 'name': 'Cape Town', 'optgroup': 'Africa', 'section': 'region', 'provider': 'aws',
-			'image': '/inc/images/provisioning/flags/za.svg'},
-		{'param': 'ap-east-1', 'name': 'Hong Kong', 'optgroup': 'Asia Pacific', 'section': 'region', 'provider': 'aws',
-			'image': '/inc/images/provisioning/flags/hk.svg'},
-		{'param': 'ap-south-1', 'name': 'Mumbai', 'optgroup': 'Asia Pacific', 'section': 'region', 'provider': 'aws',
-			'image': '/inc/images/provisioning/flags/in.svg'},
-		{'param': 'ap-northeast-2', 'name': 'Seoul', 'optgroup': 'Asia Pacific', 'section': 'region', 'provider': 'aws',
-			'image': '/inc/images/provisioning/flags/kr.svg'},
-		{'param': 'ap-southeast-1', 'name': 'Singapore', 'optgroup': 'Asia Pacific', 'section': 'region', 'provider': 'aws',
-			'image': '/inc/images/provisioning/flags/sg.svg'},
-		{'param': 'ap-southeast-2', 'name': 'Sydney', 'optgroup': 'Asia Pacific', 'section': 'region', 'provider': 'aws',
-			'image': '/inc/images/provisioning/flags/au.svg'},
-		{'param': 'ap-northeast-1', 'name': 'Tokyo', 'optgroup': 'Asia Pacific', 'section': 'region', 'provider': 'aws',
-			'image': '/inc/images/provisioning/flags/jp.svg'},
-		{'param': 'ca-central-1', 'name': 'Central', 'optgroup': 'Canada', 'section': 'region', 'provider': 'aws',
-			'image': '/inc/images/provisioning/flags/ca.svg'},
-		{'param': 'eu-central-1', 'name': 'Frankfurt', 'optgroup': 'Europe', 'section': 'region', 'provider': 'aws',
-			'image': '/inc/images/provisioning/flags/de.svg'},
-		{'param': 'eu-west-1', 'name': 'Ireland', 'optgroup': 'Europe', 'section': 'region', 'provider': 'aws', 'image': '/inc/images/provisioning/flags/ie.svg'},
-		{'param': 'eu-west-2', 'name': 'London', 'optgroup': 'Europe', 'section': 'region', 'provider': 'aws', 'image': '/inc/images/provisioning/flags/gb.svg'},
-		{'param': 'eu-south-1', 'name': 'Milan', 'optgroup': 'Europe', 'section': 'region', 'provider': 'aws', 'image': '/inc/images/provisioning/flags/fr.svg'},
-		{'param': 'eu-west-3', 'name': 'Paris', 'optgroup': 'Europe', 'section': 'region', 'provider': 'aws', 'image': '/inc/images/provisioning/flags/fr.svg'},
-		{'param': 'eu-north-1', 'name': 'Stockholm', 'optgroup': 'Europe', 'section': 'region', 'provider': 'aws', 'image': '/inc/images/provisioning/flags/se.svg'},
-		{'param': 'me-south-1', 'name': 'Bahrain', 'optgroup': 'Middle East', 'section': 'region', 'provider': 'aws', 'image': '/inc/images/provisioning/flags/bh.svg'},
-		{'param': 'sa-east-1', 'name': 'São Paulo', 'optgroup': 'South America', 'section': 'region', 'provider': 'aws', 'image': '/inc/images/provisioning/flags/br.svg'},
-		{'param': 'nyc1', 'name': 'New York 1', 'optgroup': 'USA', 'section': 'region', 'provider': 'do', 'image': '/inc/images/provisioning/flags/us.svg'},
-		{'param': 'nyc2', 'name': 'New York 2', 'optgroup': 'USA', 'section': 'region', 'provider': 'do', 'image': '/inc/images/provisioning/flags/us.svg'},
-		{'param': 'nyc3', 'name': 'New York 3', 'optgroup': 'USA', 'section': 'region', 'provider': 'do', 'image': '/inc/images/provisioning/flags/us.svg'},
-		{'param': 'sfo1', 'name': 'San Francisco 1', 'optgroup': 'USA', 'section': 'region', 'provider': 'do', 'image': '/inc/images/provisioning/flags/us.svg'},
-		{'param': 'sfo2', 'name': 'San Francisco 2', 'optgroup': 'USA', 'section': 'region', 'provider': 'do', 'image': '/inc/images/provisioning/flags/us.svg'},
-		{'param': 'sfo3', 'name': 'San Francisco 3', 'optgroup': 'USA', 'section': 'region', 'provider': 'do', 'image': '/inc/images/provisioning/flags/us.svg'},
-		{'param': 'tor1', 'name': 'Toronto 1', 'optgroup': 'Canada', 'section': 'region', 'provider': 'do', 'image': '/inc/images/provisioning/flags/ca.svg'},
-		{'param': 'ams2', 'name': 'Amsterdam 2', 'optgroup': 'Europe', 'section': 'region', 'provider': 'do', 'image': '/inc/images/provisioning/flags/nl.svg'},
-		{'param': 'ams3', 'name': 'Amsterdam 3', 'optgroup': 'Europe', 'section': 'region', 'provider': 'do', 'image': '/inc/images/provisioning/flags/nl.svg'},
-		{'param': 'fra1', 'name': 'Frankfurt 1', 'optgroup': 'Europe', 'section': 'region', 'provider': 'do', 'image': '/inc/images/provisioning/flags/de.svg'},
-		{'param': 'lon1', 'name': 'London 1', 'optgroup': 'Europe', 'section': 'region', 'provider': 'do', 'image': '/inc/images/provisioning/flags/gb.svg'},
-		{'param': 'sgp1', 'name': 'Singapore 1', 'optgroup': 'Asia', 'section': 'region', 'provider': 'do', 'image': '/inc/images/provisioning/flags/sg.svg'},
-		{'param': 'blr1', 'name': 'Bangalore 1', 'optgroup': 'Asia', 'section': 'region', 'provider': 'do', 'image': '/inc/images/provisioning/flags/bh.svg'},
-		{'param': '68', 'name': 'Chicago', 'optgroup': 'Americas', 'section': 'region', 'provider': 'gcore', 'image': '/inc/images/provisioning/flags/us.svg'},
-		{'param': '14', 'name': 'Manassas', 'optgroup': 'Americas', 'section': 'region', 'provider': 'gcore', 'image': '/inc/images/provisioning/flags/us.svg'},
-		{'param': '35', 'name': 'Santa-Clara', 'optgroup': 'Americas', 'section': 'region', 'provider': 'gcore', 'image': '/inc/images/provisioning/flags/us.svg'},
-		{'param': '91', 'name': 'Sao Paulo', 'optgroup': 'Americas', 'section': 'region', 'provider': 'gcore', 'image': '/inc/images/provisioning/flags/br.svg'},
-		{'param': '64', 'name': 'Hong-Kong', 'optgroup': 'Asia-Pacific', 'section': 'region', 'provider': 'gcore', 'image': '/inc/images/provisioning/flags/hk.svg'},
-		{'param': '18', 'name': 'Singapore', 'optgroup': 'Asia-Pacific', 'section': 'region', 'provider': 'gcore', 'image': '/inc/images/provisioning/flags/sg.svg'},
-		{'param': '88', 'name': 'Sydney', 'optgroup': 'Asia-Pacific', 'section': 'region', 'provider': 'gcore', 'image': '/inc/images/provisioning/flags/au.svg'},
-		{'param': '29', 'name': 'Tokyo', 'optgroup': 'Asia-Pacific', 'section': 'region', 'provider': 'gcore', 'image': '/inc/images/provisioning/flags/jp.svg'},
-		{'param': '46', 'name': 'Almaty', 'optgroup': 'EMEA', 'section': 'region', 'provider': 'gcore', 'image': '/inc/images/provisioning/flags/kz.svg'},
-		{'param': '26', 'name': 'Amsterdam', 'optgroup': 'EMEA', 'section': 'region', 'provider': 'gcore', 'image': '/inc/images/provisioning/flags/nl.svg'},
-		{'param': '51', 'name': 'Amsterdam-2', 'optgroup': 'EMEA', 'section': 'region', 'provider': 'gcore', 'image': '/inc/images/provisioning/flags/nl.svg'},
-		{'param': '38', 'name': 'Frankfurt', 'optgroup': 'EMEA', 'section': 'region', 'provider': 'gcore', 'image': '/inc/images/provisioning/flags/de.svg'},
-		{'param': '120', 'name': 'Darmstadt', 'optgroup': 'EMEA', 'section': 'region', 'provider': 'gcore', 'image': '/inc/images/provisioning/flags/de.svg'},
-		{'param': '50', 'name': 'Istanbul', 'optgroup': 'EMEA', 'section': 'region', 'provider': 'gcore', 'image': '/inc/images/provisioning/flags/tr.svg'},
-		{'param': '84', 'name': 'Johannesburg', 'optgroup': 'EMEA', 'section': 'region', 'provider': 'gcore', 'image': '/inc/images/provisioning/flags/za.svg'},
-		{'param': '6', 'name': 'Luxembourg', 'optgroup': 'EMEA', 'section': 'region', 'provider': 'gcore', 'image': '/inc/images/provisioning/flags/lu.svg'},
-		{'param': '76', 'name': 'Luxembourg-2', 'optgroup': 'EMEA', 'section': 'region', 'provider': 'gcore', 'image': '/inc/images/provisioning/flags/lu.svg'},
-		{'param': '56', 'name': 'Paris', 'optgroup': 'EMEA', 'section': 'region', 'provider': 'gcore', 'image': '/inc/images/provisioning/flags/fr.svg'},
-		{'param': '100', 'name': 'Paris-2', 'optgroup': 'EMEA', 'section': 'region', 'provider': 'gcore', 'image': '/inc/images/provisioning/flags/fr.svg'},
-		{'param': '80', 'name': 'Warsaw', 'optgroup': 'EMEA', 'section': 'region', 'provider': 'gcore', 'image': '/inc/images/provisioning/flags/pl.svg'},
-		{'param': '116', 'name': 'Dubai', 'optgroup': 'EMEA', 'section': 'region', 'provider': 'gcore', 'image': '/inc/images/provisioning/flags/ae.svg'},
-		{'param': '22', 'name': 'Khabarovsk', 'optgroup': 'Russia and CIS', 'section': 'region', 'provider': 'edge', 'image': '/inc/images/provisioning/flags/ru.svg'},
-		{'param': '10', 'name': 'Moscow', 'optgroup': 'Russia and CIS', 'section': 'region', 'provider': 'edge', 'image': '/inc/images/provisioning/flags/ru.svg'},
-		{'param': '42', 'name': 'Saint Petersburg', 'optgroup': 'Russia and CIS', 'section': 'region', 'provider': 'edge', 'image': '/inc/images/provisioning/flags/ru.svg'},
-		{'param': '60', 'name': 'Yekaterinburg', 'optgroup': 'Russia and CIS', 'section': 'region', 'provider': 'edge', 'image': '/inc/images/provisioning/flags/ru.svg'},
-		{'param': '72', 'name': 'Novosibirsk', 'optgroup': 'Russia and CIS', 'section': 'region', 'provider': 'edge', 'image': '/inc/images/provisioning/flags/ru.svg'},
-		{'param': 'ubuntu-18-04', 'name': 'Ubuntu 18.04', 'optgroup': 'Ubuntu', 'section': 'image', 'provider': 'aws', 'image': '/inc/images/provisioning/oss/ubuntu.svg'},
-		{'param': 'ubuntu-20-04', 'name': 'Ubuntu 20.04', 'optgroup': 'Ubuntu', 'section': 'image', 'provider': 'aws', 'image': '/inc/images/provisioning/oss/ubuntu.svg'},
-		{'param': 'ubuntu-20-14', 'name': 'Ubuntu 20.14', 'optgroup': 'Ubuntu', 'section': 'image', 'provider': 'aws', 'image': '/inc/images/provisioning/oss/ubuntu.svg'},
-		{'param': 'ubuntu-22-04', 'name': 'Ubuntu 22.04', 'optgroup': 'Ubuntu', 'section': 'image', 'provider': 'aws', 'image': '/inc/images/provisioning/oss/ubuntu.svg'},
-		{'param': 'ubuntu-23-04', 'name': 'Ubuntu 23.04', 'optgroup': 'Ubuntu', 'section': 'image', 'provider': 'aws', 'image': '/inc/images/provisioning/oss/ubuntu.svg'},
-		{'param': 'centos-7', 'name': 'CentOS 7', 'optgroup': 'CentOS', 'section': 'image', 'provider': 'aws', 'image': '/inc/images/provisioning/oss/centos.svg'},
-		{'param': 'centos-8', 'name': 'CentOS 8', 'optgroup': 'CentOS', 'section': 'image', 'provider': 'aws', 'image': '/inc/images/provisioning/oss/centos.svg'},
-		{'param': 'centos-9', 'name': 'CentOS 9', 'optgroup': 'CentOS', 'section': 'image', 'provider': 'aws', 'image': '/inc/images/provisioning/oss/centos.svg'},
-		{'param': 'debian-9', 'name': 'Debian 9', 'optgroup': 'Debian', 'section': 'image', 'provider': 'aws', 'image': '/inc/images/provisioning/oss/debian.svg'},
-		{'param': 'debian-10', 'name': 'Debian 10', 'optgroup': 'Debian', 'section': 'image', 'provider': 'aws', 'image': '/inc/images/provisioning/oss/debian.svg'},
-		{'param': 'debian-11', 'name': 'Debian 11', 'optgroup': 'Debian', 'section': 'image', 'provider': 'aws', 'image': '/inc/images/provisioning/oss/debian.svg'},
-		{'param': 'amazon-2_lts', 'name': 'Amazon Linux 2', 'optgroup': 'Amazon Linux', 'section': 'image', 'provider': 'aws', 'image': '/inc/images/provisioning/providers/aws.svg'},
-		{'param': 'ubuntu-18-04-x64', 'name': 'Ubuntu 18.04', 'optgroup': 'Ubuntu', 'section': 'image', 'provider': 'do', 'image': '/inc/images/provisioning/oss/ubuntu.svg'},
-		{'param': 'ubuntu-20-04-x64', 'name': 'Ubuntu 20.04', 'optgroup': 'Ubuntu', 'section': 'image', 'provider': 'do', 'image': '/inc/images/provisioning/oss/ubuntu.svg'},
-		{'param': 'ubuntu-20-14-x64', 'name': 'Ubuntu 20.14', 'optgroup': 'Ubuntu', 'section': 'image', 'provider': 'do', 'image': '/inc/images/provisioning/oss/ubuntu.svg'},
-		{'param': 'ubuntu-22-04-x64', 'name': 'Ubuntu 22.04', 'optgroup': 'Ubuntu', 'section': 'image', 'provider': 'do', 'image': '/inc/images/provisioning/oss/ubuntu.svg'},
-		{'param': 'ubuntu-23-04-x64', 'name': 'Ubuntu 23.04', 'optgroup': 'Ubuntu', 'section': 'image', 'provider': 'do', 'image': '/inc/images/provisioning/oss/ubuntu.svg'},
-		{'param': 'centos-7-x64', 'name': 'CentOS 7', 'optgroup': 'CentOS', 'section': 'image', 'provider': 'do', 'image': '/inc/images/provisioning/oss/centos.svg'},
-		{'param': 'centos-stream-8-x64', 'name': 'CentOS 8 Stream', 'optgroup': 'CentOS', 'section': 'image', 'provider': 'do', 'image': '/inc/images/provisioning/oss/centos.svg'},
-		{'param': 'centos-stream-9-x64', 'name': 'CentOS 9 Stream', 'optgroup': 'CentOS', 'section': 'image', 'provider': 'do', 'image': '/inc/images/provisioning/oss/centos.svg'},
-		{'param': 'rockylinux-8-4-x64', 'name': 'RockyLinux 8.4', 'optgroup': 'RockyLinux', 'section': 'image', 'provider': 'do', 'image': '/inc/images/provisioning/oss/rocky-linux.svg'},
-		{'param': 'rockylinux-8-x64', 'name': 'RockyLinux 8.5', 'optgroup': 'RockyLinux', 'section': 'image', 'provider': 'do', 'image': '/inc/images/provisioning/oss/rocky-linux.svg'},
-		{'param': 'debian-9-x64', 'name': 'Debian 9', 'optgroup': 'Debian', 'section': 'image', 'provider': 'do', 'image': '/inc/images/provisioning/oss/debian.svg'},
-		{'param': 'debian-10-x64', 'name': 'Debian 10', 'optgroup': 'Debian', 'section': 'image', 'provider': 'do', 'image': '/inc/images/provisioning/oss/debian.svg'},
-		{'param': 'debian-11-x64', 'name': 'Debian 11', 'optgroup': 'Debian', 'section': 'image', 'provider': 'do', 'image': '/inc/images/provisioning/oss/debian.svg'},
-		{'param': 'ubuntu-18.04-x64', 'name': 'Ubuntu 18.04', 'optgroup': 'Ubuntu', 'section': 'image', 'provider': 'gcore', 'image': '/inc/images/provisioning/oss/ubuntu.svg'},
-		{'param': 'ubuntu-20.04-x64', 'name': 'Ubuntu 20.04', 'optgroup': 'Ubuntu', 'section': 'image', 'provider': 'gcore', 'image': '/inc/images/provisioning/oss/ubuntu.svg'},
-		{'param': 'ubuntu-20.10-x64', 'name': 'Ubuntu 20.10', 'optgroup': 'Ubuntu', 'section': 'image', 'provider': 'gcore', 'image': '/inc/images/provisioning/oss/ubuntu.svg'},
-		{'param': 'ubuntu-22.04-x64', 'name': 'Ubuntu 22.04', 'optgroup': 'Ubuntu', 'section': 'image', 'provider': 'gcore', 'image': '/inc/images/provisioning/oss/ubuntu.svg'},
-		{'param': 'ubuntu-22.10-x64', 'name': 'Ubuntu 22.10', 'optgroup': 'Ubuntu', 'section': 'image', 'provider': 'gcore', 'image': '/inc/images/provisioning/oss/ubuntu.svg'},
-		{'param': 'ubuntu-23.04-x64', 'name': 'Ubuntu 23.04', 'optgroup': 'Ubuntu', 'section': 'image', 'provider': 'gcore', 'image': '/inc/images/provisioning/oss/ubuntu.svg'},
-		{'param': 'centos-7-1811-x64-qcow2', 'name': 'CentOS 7.6', 'optgroup': 'CentOS', 'section': 'image', 'provider': 'gcore', 'image': '/inc/images/provisioning/oss/centos.svg'},
-		{'param': 'centos-7-2003-x64-qcow2', 'name': 'CentOS 7.8', 'optgroup': 'CentOS', 'section': 'image', 'provider': 'gcore', 'image': '/inc/images/provisioning/oss/centos.svg'},
-		{'param': 'centos8-stream-0210-x64', 'name': 'CentOS 8.4', 'optgroup': 'CentOS', 'section': 'image', 'provider': 'gcore', 'image': '/inc/images/provisioning/oss/centos.svg'},
-		{'param': 'centos9-stream-0330-x64', 'name': 'CentOS 9', 'optgroup': 'CentOS', 'section': 'image', 'provider': 'gcore', 'image': '/inc/images/provisioning/oss/centos.svg'},
-		{'param': 'fedora-33-x64-qcow2', 'name': 'Fedora 33', 'optgroup': 'Fedora', 'section': 'image', 'provider': 'gcore', 'image': '/inc/images/provisioning/oss/fedora.svg'},
-		{'param': 'fedora-34-x64-qcow2', 'name': 'Fedora 34', 'optgroup': 'Fedora', 'section': 'image', 'provider': 'gcore', 'image': '/inc/images/provisioning/oss/fedora.svg'},
-		{'param': 'fedora-35-x64-qcow2', 'name': 'Fedora 35', 'optgroup': 'Fedora', 'section': 'image', 'provider': 'gcore', 'image': '/inc/images/provisioning/oss/fedora.svg'},
-		{'param': 'debian-9.7-x64-qcow2', 'name': 'Debian 9.7', 'optgroup': 'Debian', 'section': 'image', 'provider': 'gcore', 'image': '/inc/images/provisioning/oss/debian.svg'},
-		{'param': 'debian-10.1-x64-qcow2', 'name': 'Debian 10.1', 'optgroup': 'Debian', 'section': 'image', 'provider': 'gcore', 'image': '/inc/images/provisioning/oss/debian.svg'},
-		{'param': 'debian-10.3-x64-qcow2', 'name': 'Debian 10.3', 'optgroup': 'Debian', 'section': 'image', 'provider': 'gcore', 'image': '/inc/images/provisioning/oss/debian.svg'},
-		{'param': 'debian-11.generic-x64-qcow2', 'name': 'Debian 11', 'optgroup': 'Debian', 'section': 'image', 'provider': 'gcore', 'image': '/inc/images/provisioning/oss/debian.svg'},
-		{'param': 'windows-server-2019', 'name': 'Windows 2019', 'optgroup': 'Windows', 'section': 'image', 'provider': 'gcore', 'image': '/inc/images/provisioning/oss/windows.svg'},
-		{'param': 'windows-server-2022', 'name': 'Windows 2022', 'optgroup': 'Windows', 'section': 'image', 'provider': 'gcore', 'image': '/inc/images/provisioning/oss/windows.svg'},
-		{'param': 'sles15-SP2', 'name': 'SLES 15-SP2', 'optgroup': 'SUSE', 'section': 'image', 'provider': 'gcore', 'image': '/inc/images/provisioning/oss/suse.svg'},
-		{'param': 's-1vcpu-1gb', 'name': 's-1vcpu-1gb', 'optgroup': 'Base', 'section': 'size', 'provider': 'do'},
-		{'param': 's-2vcpu-2gb', 'name': 's-2vcpu-2gb', 'optgroup': 'Base', 'section': 'size', 'provider': 'do'},
-		{'param': 's-2vcpu-4gb', 'name': 's-2vcpu-4gb', 'optgroup': 'Base', 'section': 'size', 'provider': 'do'},
-		{'param': 's-4vcpu-8gb', 'name': 's-4vcpu-8gb', 'optgroup': 'Base', 'section': 'size', 'provider': 'do'},
-		{'param': 's-8vcpu-16gb', 'name': 's-8vcpu-16gb', 'optgroup': 'Base', 'section': 'size', 'provider': 'do'},
-		{'param': 's-1vcpu-1gb-intel', 'name': 's-1vcpu-1gb-intel', 'optgroup': 'Premium Intel', 'section': 'size', 'provider': 'do'},
-		{'param': 's-2vcpu-2gb-intel', 'name': 's-2vcpu-2gb-intel', 'optgroup': 'Premium Intel', 'section': 'size', 'provider': 'do'},
-		{'param': 's-2vcpu-4gb-intel', 'name': 's-2vcpu-4gb-intel', 'optgroup': 'Premium Intel', 'section': 'size', 'provider': 'do'},
-		{'param': 's-4vcpu-8gb-intel', 'name': 's-4vcpu-8gb-intel', 'optgroup': 'Premium Intel', 'section': 'size', 'provider': 'do'},
-		{'param': 's-8vcpu-16gb-intel', 'name': 's-8vcpu-16gb-intel', 'optgroup': 'Premium Intel', 'section': 'size', 'provider': 'do'},
-		{'param': 's-1vcpu-1gb-amd', 'name': 's-1vcpu-1gb-amd', 'optgroup': 'Premium AMD', 'section': 'size', 'provider': 'do'},
-		{'param': 's-2vcpu-2gb-amd', 'name': 's-2vcpu-2gb-amd', 'optgroup': 'Premium AMD', 'section': 'size', 'provider': 'do'},
-		{'param': 's-2vcpu-4gb-amd', 'name': 's-2vcpu-4gb-amd', 'optgroup': 'Premium AMD', 'section': 'size', 'provider': 'do'},
-		{'param': 's-4vcpu-8gb-amd', 'name': 's-4vcpu-8gb-amd', 'optgroup': 'Premium AMD', 'section': 'size', 'provider': 'do'},
-		{'param': 's-8vcpu-16gb-amd', 'name': 's-8vcpu-16gb-amd', 'optgroup': 'Premium AMD', 'section': 'size', 'provider': 'do'},
-		{'param': 'g-2vcpu-8gb', 'name': 'g-2vcpu-8gb', 'optgroup': 'General Purpose', 'section': 'size', 'provider': 'do'},
-		{'param': 'g-4vcpu-16gb', 'name': 'g-4vcpu-16gb', 'optgroup': 'General Purpose', 'section': 'size', 'provider': 'do'},
-		{'param': 'g-8vcpu-32gb', 'name': 'g-8vcpu-32gb', 'optgroup': 'General Purpose', 'section': 'size', 'provider': 'do'},
-		{'param': 'g-32vcpu-128gb', 'name': 'g-32vcpu-128gb', 'optgroup': 'General Purpose', 'section': 'size', 'provider': 'do'},
-		{'param': 'g-40vcpu-160gb', 'name': 'g-40vcpu-160gb', 'optgroup': 'General Purpose', 'section': 'size', 'provider': 'do'},
-		{'param': 'c-4-8gib', 'name': 'c-4-8gib', 'optgroup': 'CPU-Optimized', 'section': 'size', 'provider': 'do'},
-		{'param': 'c-8-16gib', 'name': 'c-8-16gib', 'optgroup': 'CPU-Optimized', 'section': 'size', 'provider': 'do'},
-		{'param': 'c-16-32gib', 'name': 'c-16-32gib', 'optgroup': 'CPU-Optimized', 'section': 'size', 'provider': 'do'},
-		{'param': 'c-32-64gib', 'name': 'c-32-64gib', 'optgroup': 'CPU-Optimized', 'section': 'size', 'provider': 'do'},
-		{'param': 'm-2vcpu-16gb', 'name': 'm-2vcpu-16gb', 'optgroup': 'Memory-Optimized', 'section': 'size', 'provider': 'do'},
-		{'param': 'm-4vcpu-32gb', 'name': 'm-4vcpu-32gb', 'optgroup': 'Memory-Optimized', 'section': 'size', 'provider': 'do'},
-		{'param': 'm-8vcpu-64gb', 'name': 'm-8vcpu-64gb', 'optgroup': 'Memory-Optimized', 'section': 'size', 'provider': 'do'},
-		{'param': 'm-16vcpu-128gb', 'name': 'm-16vcpu-128gb', 'optgroup': 'Memory-Optimized', 'section': 'size', 'provider': 'do'},
-		{'param': 'm-24vcpu-192gb', 'name': 'm-24vcpu-192gb', 'optgroup': 'Memory-Optimized', 'section': 'size', 'provider': 'do'},
-		{'param': 'm-32vcpu-256gb', 'name': 'm-32vcpu-256gb', 'optgroup': 'Memory-Optimized', 'section': 'size', 'provider': 'do'},
-		{'param': 'm-32vcpu-256gb', 'name': 'm-32vcpu-256gb', 'optgroup': 'Memory-Optimized', 'section': 'size', 'provider': 'do'},
-		{'param': 'g1-standard-1-2', 'name': 'g1-standard-1-2', 'optgroup': 'Standard', 'section': 'size', 'provider': 'gcore'},
-		{'param': 'g1-standard-2-4', 'name': 'g1-standard-2-4', 'optgroup': 'Standard', 'section': 'size', 'provider': 'gcore'},
-		{'param': 'g1-standard-2-8', 'name': 'g1-standard-2-8', 'optgroup': 'Standard', 'section': 'size', 'provider': 'gcore'},
-		{'param': 'g1-standard-4-8', 'name': 'g1-standard-4-8', 'optgroup': 'Standard', 'section': 'size', 'provider': 'gcore'},
-		{'param': 'g1-standard-4-16', 'name': 'g1-standard-4-16', 'optgroup': 'Standard', 'section': 'size', 'provider': 'gcore'},
-		{'param': 'g1-standard-8-16', 'name': 'g1-standard-8-16', 'optgroup': 'Standard', 'section': 'size', 'provider': 'gcore'},
-		{'param': 'g1-standard-8-32', 'name': 'g1-standard-8-32', 'optgroup': 'Standard', 'section': 'size', 'provider': 'gcore'},
-		{'param': 'g1-standard-16-32', 'name': 'g1-standard-16-32', 'optgroup': 'Standard', 'section': 'size', 'provider': 'gcore'},
-		{'param': 'g1-standard-16-64', 'name': 'g1-standard-16-64', 'optgroup': 'Standard', 'section': 'size', 'provider': 'gcore'},
-		{'param': 'g1-standard-32-64', 'name': 'g1-standard-32-64', 'optgroup': 'Standard', 'section': 'size', 'provider': 'gcore'},
-		{'param': 'g1-standard-32-128', 'name': 'g1-standard-32-128', 'optgroup': 'Standard', 'section': 'size', 'provider': 'gcore'},
-		{'param': 'g1-cpu-2-2', 'name': 'g1-cpu-2-2', 'optgroup': 'vCPU', 'section': 'size', 'provider': 'gcore'},
-		{'param': 'g1-cpu-4-4', 'name': 'g1-cpu-4-4', 'optgroup': 'vCPU', 'section': 'size', 'provider': 'gcore'},
-		{'param': 'g1-cpu-8-8', 'name': 'g1-cpu-8-8', 'optgroup': 'vCPU', 'section': 'size', 'provider': 'gcore'},
-		{'param': 'g1-cpu-16-16', 'name': 'g1-cpu-16-16', 'optgroup': 'vCPU', 'section': 'size', 'provider': 'gcore'},
-		{'param': 'g1-cpu-32-32', 'name': 'g1-cpu-32-32', 'optgroup': 'vCPU', 'section': 'size', 'provider': 'gcore'},
-		{'param': 'g1-memory-4-32', 'name': 'g1-memory-4-32', 'optgroup': 'Memory', 'section': 'size', 'provider': 'gcore'},
-		{'param': 'g1-memory-8-64', 'name': 'g1-memory-8-64', 'optgroup': 'Memory', 'section': 'size', 'provider': 'gcore'},
-		{'param': 'g1-memory-16-128', 'name': 'g1-memory-16-128', 'optgroup': 'Memory', 'section': 'size', 'provider': 'gcore'},
-		{'param': 'g1-memory-32-256', 'name': 'g1-memory-32-256', 'optgroup': 'Memory', 'section': 'size', 'provider': 'gcore'},
-		{'param': 'gp2', 'name': 'gp2', 'optgroup': 'General Purpose SSD', 'section': 'volume_type', 'provider': 'aws'},
-		{'param': 'gp3', 'name': 'gp3', 'optgroup': 'General Purpose SSD', 'section': 'volume_type', 'provider': 'aws'},
-		{'param': 'standard', 'name': 'standard', 'optgroup': 'Magnetic', 'section': 'volume_type', 'provider': 'aws'},
-		{'param': 'io1', 'name': 'io1', 'optgroup': 'Provisioned IOPS SSD', 'section': 'volume_type', 'provider': 'aws'},
-		{'param': 'io2', 'name': 'io2', 'optgroup': 'Provisioned IOPS SSD', 'section': 'volume_type', 'provider': 'aws'},
-		{'param': 'sc1', 'name': 'sc1', 'optgroup': 'Cold HDD', 'section': 'volume_type', 'provider': 'aws'},
-		{'param': 'st1', 'name': 'st1', 'optgroup': 'Throughput Optimized HDD', 'section': 'volume_type', 'provider': 'aws'},
-		{'param': 'standard', 'name': 'standard', 'optgroup': 'Standard network SSD', 'section': 'volume_type', 'provider': 'gcore'},
-		{'param': 'ssd_hiiops', 'name': 'ssd_hiiops', 'optgroup': 'High IOPS SSD', 'section': 'volume_type', 'provider': 'gcore'},
-		{'param': 'cold', 'name': 'cold', 'optgroup': 'HDD disk', 'section': 'volume_type', 'provider': 'gcore'},
-	]
-
-	try:
-		ProvisionParam.insert_many(data_source).on_conflict_ignore().execute()
-	except Exception as e:
-		print(str(e))
-
-	data_source = [
 		{'code': 'RW', 'name': 'Rwanda'},
 		{'code': 'SO', 'name': 'Somalia'},
 		{'code': 'YE', 'name': 'Yemen'},
@@ -731,18 +543,6 @@ def update_db_v_6_3_11():
 		print("Updating... DB has been updated to version 6.3.11")
 
 
-def update_db_v_6_3_12():
-	try:
-		ProvisionParam.delete().where(
-			(ProvisionParam.provider == 'gcore') &
-			(ProvisionParam.optgroup == 'Russia and CIS')
-		).execute()
-	except Exception as e:
-		print("An error occurred:", e)
-	else:
-		print("Updating... DB has been updated to version 6.3.12")
-
-
 def update_db_v_6_3_13():
 	cursor = conn.cursor()
 	sql = """
@@ -849,7 +649,7 @@ def update_db_v_6_3_18():
 
 def update_ver():
 	try:
-		Version.update(version='6.3.18.0').execute()
+		Version.update(version='7.0.0.0').execute()
 	except Exception:
 		print('Cannot update version')
 
@@ -874,7 +674,6 @@ def update_all():
 	update_db_v_6_3_8()
 	update_db_v_6_3_9()
 	update_db_v_6_3_11()
-	update_db_v_6_3_12()
 	update_db_v_6_3_13()
 	update_db_v_6_3_13_1()
 	update_db_v_6_3_13_2()

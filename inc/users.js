@@ -1,4 +1,6 @@
 var awesome = "/inc/fontawesome.min.js"
+var cur_url = window.location.href.split('/app/').pop();
+cur_url = cur_url.split('/');
 $( function() {
 	var add_word = $('#translate').attr('data-add');
 	var delete_word = $('#translate').attr('data-delete');
@@ -20,27 +22,26 @@ $( function() {
 			return false
 		}
 		$("#ajax").html(wait_mess);
-		$.ajax( {
-			url: "options.py",
+		$.ajax({
+			url: "/app/install/haproxy/" + $('#haproxyaddserv').val(),
 			data: {
-				haproxyaddserv: $('#haproxyaddserv').val(),
 				syn_flood: syn_flood,
-				hapver: $('#hapver option:selected' ).val(),
+				hapver: $('#hapver option:selected').val(),
 				docker: docker,
 				token: $('#token').val()
-				},
+			},
 			type: "POST",
-			success: function( data ) {
-			data = data.replace(/\s+/g,' ');
+			success: function (data) {
+				data = data.replace(/\s+/g, ' ');
 				$("#ajax").html('')
 				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
 					var p_err = show_pretty_ansible_error(data);
 					toastr.error(p_err);
-				} else if (data.indexOf('success') != '-1' ){
+				} else if (data.indexOf('success') != '-1') {
 					toastr.remove();
 					toastr.success(data);
-					$( "#haproxyaddserv" ).trigger( "selectmenuchange" );
-				} else if (data.indexOf('Info') != '-1' ){
+					$("#haproxyaddserv").trigger("selectmenuchange");
+				} else if (data.indexOf('Info') != '-1') {
 					toastr.remove();
 					toastr.info(data);
 				} else {
@@ -48,7 +49,7 @@ $( function() {
 					toastr.info(data);
 				}
 			}
-		} );
+		});
 	});
 	$('#nginx_install').click(function() {
 		installService('nginx');
@@ -59,24 +60,23 @@ $( function() {
 	$('#grafna_install').click(function() {
 		$("#ajaxmon").html('');
 		$("#ajaxmon").html(wait_mess);
-		$.ajax( {
-			url: "options.py",
-			data: {
-				install_grafana: '1',
-				token: $('#token').val()
-				},
-			type: "POST",
-			success: function( data ) {
-			data = data.replace(/\s+/g,' ');
+		$.ajax({
+			url: "/app/install/grafana",
+			// data: {
+			// 	token: $('#token').val()
+			// 	},
+			// type: "POST",
+			success: function (data) {
+				data = data.replace(/\s+/g, ' ');
 				$("#ajaxmon").html('');
 				if (data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1' || data.indexOf('ERROR') != '-1') {
 					toastr.clear();
 					var p_err = show_pretty_ansible_error(data);
 					toastr.error(p_err);
-				} else if (data.indexOf('success') != '-1' ){
+				} else if (data.indexOf('success') != '-1') {
 					toastr.clear();
 					toastr.success(data);
-				} else if (data.indexOf('Info') != '-1' ){
+				} else if (data.indexOf('Info') != '-1') {
 					toastr.clear();
 					toastr.info(data);
 				} else {
@@ -84,7 +84,7 @@ $( function() {
 					toastr.info(data);
 				}
 			}
-		} );
+		});
 	});
 	$('#haproxy_exp_install').click(function() {
 		$("#ajaxmon").html('')
@@ -93,28 +93,28 @@ $( function() {
 		if ($('#haproxy_ext_prom').is(':checked')) {
 			ext_prom = '1';
 		}
-		$.ajax( {
-			url: "options.py",
+		$.ajax({
+			url: "/app/install/exporter/haproxy",
 			data: {
-				haproxy_exp_install: $('#haproxy_exp_addserv').val(),
+				server_ip: $('#haproxy_exp_addserv').val(),
 				exporter_v: $('#hapexpver').val(),
 				ext_prom: ext_prom,
 				token: $('#token').val()
-				},
+			},
 			type: "POST",
-			success: function( data ) {
-			data = data.replace(/\s+/g,' ');
+			success: function (data) {
+				data = data.replace(/\s+/g, ' ');
 				$("#ajaxmon").html('');
 				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
 					toastr.clear();
 					var p_err = show_pretty_ansible_error(data);
 					toastr.error(p_err);
-				} else if (data.indexOf('success') != '-1' ){
+				} else if (data.indexOf('success') != '-1') {
 					toastr.clear();
 					toastr.success(data);
 					$('#cur_haproxy_exp_ver').text('HAProxy exporter is installed');
-					$("#haproxy_exp_addserv").trigger( "selectmenuchange" );
-				} else if (data.indexOf('Info') != '-1' ){
+					$("#haproxy_exp_addserv").trigger("selectmenuchange");
+				} else if (data.indexOf('Info') != '-1') {
 					toastr.clear();
 					toastr.info(data);
 				} else {
@@ -122,7 +122,7 @@ $( function() {
 					toastr.info(data);
 				}
 			}
-		} );
+		});
 	});
 	$('#nginx_exp_install').click(function() {
 		$("#ajaxmon").html('')
@@ -131,28 +131,27 @@ $( function() {
 		if ($('#nginx_ext_prom').is(':checked')) {
 			ext_prom = '1';
 		}
-		$.ajax( {
-			url: "options.py",
+		$.ajax({
+			url: "/app/install/exporter/nginx",
 			data: {
-				nginx_exp_install: 1,
-				serv: $('#nginx_exp_addserv').val(),
+				server_ip: $('#nginx_exp_addserv').val(),
 				exporter_v: $('#nginxexpver').val(),
 				ext_prom: ext_prom,
 				token: $('#token').val()
-				},
+			},
 			type: "POST",
-			success: function( data ) {
-			data = data.replace(/\s+/g,' ');
+			success: function (data) {
+				data = data.replace(/\s+/g, ' ');
 				$("#ajaxmon").html('');
 				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
 					var p_err = show_pretty_ansible_error(data);
 					toastr.error(p_err);
-				} else if (data.indexOf('success') != '-1' ){
+				} else if (data.indexOf('success') != '-1') {
 					toastr.clear();
 					toastr.success(data);
 					$('#cur_nginx_exp_ver').text('NGINX exporter is installed');
-					$("#nginx_exp_addserv").trigger( "selectmenuchange" );
-				} else if (data.indexOf('Info') != '-1' ){
+					$("#nginx_exp_addserv").trigger("selectmenuchange");
+				} else if (data.indexOf('Info') != '-1') {
 					toastr.clear();
 					toastr.info(data);
 				} else {
@@ -160,7 +159,7 @@ $( function() {
 					toastr.info(data);
 				}
 			}
-		} );
+		});
 	});
 	$('#apache_exp_install').click(function() {
 		$("#ajaxmon").html('')
@@ -169,28 +168,27 @@ $( function() {
 		if ($('#apache_ext_prom').is(':checked')) {
 			ext_prom = '1';
 		}
-		$.ajax( {
-			url: "options.py",
+		$.ajax({
+			url: "/app/install/exporter/apache",
 			data: {
-				apache_exp_install: 1,
-				serv: $('#apache_exp_addserv').val(),
+				server_ip: $('#apache_exp_addserv').val(),
 				exporter_v: $('#apacheexpver').val(),
 				ext_prom: ext_prom,
 				token: $('#token').val()
-				},
+			},
 			type: "POST",
-			success: function( data ) {
-			data = data.replace(/\s+/g,' ');
+			success: function (data) {
+				data = data.replace(/\s+/g, ' ');
 				$("#ajaxmon").html('');
 				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
 					var p_err = show_pretty_ansible_error(data);
 					toastr.error(p_err);
-				} else if (data.indexOf('success') != '-1' ){
+				} else if (data.indexOf('success') != '-1') {
 					toastr.clear();
 					toastr.success(data);
 					$('#cur_apache_exp_ver').text('Apache exporter is installed');
-					$("#apache_exp_addserv").trigger( "selectmenuchange" );
-				} else if (data.indexOf('Info') != '-1' ){
+					$("#apache_exp_addserv").trigger("selectmenuchange");
+				} else if (data.indexOf('Info') != '-1') {
 					toastr.clear();
 					toastr.info(data);
 				} else {
@@ -198,7 +196,7 @@ $( function() {
 					toastr.info(data);
 				}
 			}
-		} );
+		});
 	});
 	$('#keepalived_exp_install').click(function() {
 		$("#ajaxmon").html('')
@@ -208,9 +206,9 @@ $( function() {
 			ext_prom = '1';
 		}
 		$.ajax( {
-			url: "options.py",
+			url: "/app/install/exporter/keepalived",
 			data: {
-				keepalived_exp_install: $('#keepalived_exp_addserv').val(),
+				server_ip: $('#keepalived_exp_addserv').val(),
 				exporter_v: $('#keepalivedexpver').val(),
 				ext_prom: ext_prom,
 				token: $('#token').val()
@@ -244,27 +242,27 @@ $( function() {
 		if ($('#node_ext_prom').is(':checked')) {
 			ext_prom = '1';
 		}
-		$.ajax( {
-			url: "options.py",
+		$.ajax({
+			url: "/app/install/exporter/node",
 			data: {
-				node_exp_install: $('#node_exp_addserv').val(),
+				server_ip: $('#node_exp_addserv').val(),
 				exporter_v: $('#nodeexpver').val(),
 				ext_prom: ext_prom,
 				token: $('#token').val()
-				},
+			},
 			type: "POST",
-			success: function( data ) {
-			data = data.replace(/\s+/g,' ');
+			success: function (data) {
+				data = data.replace(/\s+/g, ' ');
 				$("#ajaxmon").html('');
 				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
 					var p_err = show_pretty_ansible_error(data);
 					toastr.error(p_err);
-				} else if (data.indexOf('success') != '-1' ){
+				} else if (data.indexOf('success') != '-1') {
 					toastr.clear();
 					toastr.success(data);
 					$('#cur_node_exp_ver').text('Node exporter is installed');
-					$("#node_exp_addserv").trigger( "selectmenuchange" );
-				} else if (data.indexOf('Info') != '-1' ){
+					$("#node_exp_addserv").trigger("selectmenuchange");
+				} else if (data.indexOf('Info') != '-1') {
 					toastr.clear();
 					toastr.info(data);
 				} else {
@@ -272,7 +270,7 @@ $( function() {
 					toastr.info(data);
 				}
 			}
-		} );
+		});
 	});
 	$( "#haproxyaddserv" ).on('selectmenuchange',function() {
 		showServiceVersion('haproxy');
@@ -285,13 +283,11 @@ $( function() {
 	});
 	$( "#haproxy_exp_addserv" ).on('selectmenuchange',function() {
 		$.ajax( {
-			url: "options.py",
-			data: {
-				get_exporter_v: 'haproxy_exporter',
-				serv: $('#haproxy_exp_addserv option:selected').val(),
-				token: $('#token').val()
-			},
-			type: "POST",
+			url: "/app/install/exporter/haproxy/version/" + $('#haproxy_exp_addserv option:selected').val(),
+			// data: {
+			// 	token: $('#token').val()
+			// },
+			// type: "POST",
 			success: function( data ) {
 				data = data.replace(/^\s+|\s+$/g,'');
 				if (data.indexOf('error:') != '-1') {
@@ -306,94 +302,86 @@ $( function() {
 		} );
 	});
 	$( "#nginx_exp_addserv" ).on('selectmenuchange',function() {
-		$.ajax( {
-			url: "options.py",
-			data: {
-				get_exporter_v: 'nginx_exporter',
-				serv: $('#nginx_exp_addserv option:selected').val(),
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function( data ) {
-				data = data.replace(/^\s+|\s+$/g,'');
+		$.ajax({
+			url: "/app/install/exporter/nginx/version/" + $('#nginx_exp_addserv option:selected').val(),
+			// data: {
+			// 	token: $('#token').val()
+			// },
+			// type: "POST",
+			success: function (data) {
+				data = data.replace(/^\s+|\s+$/g, '');
 				if (data.indexOf('error:') != '-1') {
 					toastr.clear();
 					toastr.error(data);
-				} else if(data == 'no' || data == '' || data.indexOf('No') != '-1') {
+				} else if (data == 'no' || data == '' || data.indexOf('No') != '-1') {
 					$('#cur_nginx_exp_ver').text('NGINX exporter has not been installed');
 				} else {
 					$('#cur_nginx_exp_ver').text(data);
 				}
 			}
-		} );
+		});
 	});
 	$( "#apache_exp_addserv" ).on('selectmenuchange',function() {
-		$.ajax( {
-			url: "options.py",
-			data: {
-				get_exporter_v: 'apache_exporter',
-				serv: $('#apache_exp_addserv option:selected').val(),
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function( data ) {
-				data = data.replace(/^\s+|\s+$/g,'');
+		$.ajax({
+			url: "/app/install/exporter/apache/version/" + $('#apache_exp_addserv option:selected').val(),
+			// data: {
+			// 	token: $('#token').val()
+			// },
+			// type: "POST",
+			success: function (data) {
+				data = data.replace(/^\s+|\s+$/g, '');
 				if (data.indexOf('error:') != '-1') {
 					toastr.clear();
 					toastr.error(data);
-				} else if(data == 'no' || data == '' || data.indexOf('No') != '-1') {
+				} else if (data == 'no' || data == '' || data.indexOf('No') != '-1') {
 					$('#cur_apache_exp_ver').text('Apache exporter has not been installed');
 				} else {
 					$('#cur_apache_exp_ver').text(data);
 				}
 			}
-		} );
+		});
 	});
 	$( "#keepalived_exp_addserv" ).on('selectmenuchange',function() {
-		$.ajax( {
-			url: "options.py",
-			data: {
-				get_exporter_v: 'keepalived_exporter',
-				serv: $('#keepalived_exp_addserv option:selected').val(),
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function( data ) {
-				data = data.replace(/^\s+|\s+$/g,'');
+		$.ajax({
+			url: "/app/install/exporter/keepalived/version/" + $('#keepalived_exp_addserv option:selected').val(),
+			// data: {
+			// 	token: $('#token').val()
+			// },
+			// type: "POST",
+			success: function (data) {
+				data = data.replace(/^\s+|\s+$/g, '');
 				if (data.indexOf('error:') != '-1') {
 					toastr.clear();
 					toastr.error(data);
 				} else if (data.indexOf('keepalived_exporter.service') != '-1') {
 					$('#cur_keepalived_exp_ver').text('Keepalived exporter has been installed');
-				} else if(data == 'no' || data == '' || data.indexOf('No') != '-1') {
+				} else if (data == 'no' || data == '' || data.indexOf('No') != '-1') {
 					$('#cur_keepalived_exp_ver').text('Keepalived exporter has not been installed');
 				} else {
 					$('#cur_keepalived_exp_ver').text(data);
 				}
 			}
-		} );
+		});
 	});
 	$( "#node_exp_addserv" ).on('selectmenuchange',function() {
-		$.ajax( {
-			url: "options.py",
-			data: {
-				get_exporter_v: 'node_exporter',
-				serv: $('#node_exp_addserv option:selected').val(),
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function( data ) {
-				data = data.replace(/^\s+|\s+$/g,'');
+		$.ajax({
+			url: "/app/install/exporter/node/version/" + $('#node_exp_addserv option:selected').val(),
+			// data: {
+			// 	token: $('#token').val()
+			// },
+			// type: "POST",
+			success: function (data) {
+				data = data.replace(/^\s+|\s+$/g, '');
 				if (data.indexOf('error:') != '-1') {
 					toastr.clear();
 					toastr.error(data);
-				} else if(data == 'no' || data.indexOf('command') != '-1' || data == '') {
+				} else if (data == 'no' || data.indexOf('command') != '-1' || data == '') {
 					$('#cur_node_exp_ver').text('Node exporter has not been installed');
 				} else {
 					$('#cur_node_exp_ver').text(data);
 				}
 			}
-		} );
+		});
 	});
 	$('#add-group-button').click(function() {
 		addGroupDialog.dialog('open');
@@ -846,20 +834,19 @@ $( function() {
 	$('#search_ldap_user').click(function() {
 		var valid = true;
 		toastr.clear();
-		allFields = $( [] ).add( $('#new-username') );
-		allFields.removeClass( "ui-state-error" );
-		valid = valid && checkLength( $('#new-username'), "user name", 1 );
+		allFields = $([]).add($('#new-username'));
+		allFields.removeClass("ui-state-error");
+		valid = valid && checkLength($('#new-username'), "user name", 1);
 		user = $('#new-username').val()
 		if (valid) {
-			$.ajax( {
-				url: "options.py",
-				data: {
-					get_ldap_email: $('#new-username').val(),
-					token: $('#token').val()
-				},
-				type: "POST",
-				success: function( data ) {
-					data = data.replace(/\s+/g,' ');
+			$.ajax({
+				url: "/app/user/ldap/" + $('#new-username').val(),
+				// data: {
+				// 	token: $('#token').val()
+				// },
+				// type: "POST",
+				success: function (data) {
+					data = data.replace(/\s+/g, ' ');
 					if (data.indexOf('error:') != '-1') {
 						toastr.error(data);
 						$('#new-email').val('');
@@ -876,7 +863,7 @@ $( function() {
 						$('#new-password').attr('readonly', true);
 					}
 				}
-			} );
+			});
 			clearTips();
 		}
 	});
@@ -897,27 +884,27 @@ $( function() {
 			updating_geoip = '1';
 		}
 		$("#ajax-geoip").html(wait_mess);
-		$.ajax( {
-			url: "options.py",
+		$.ajax({
+			url: "/app/install/geoip",
 			data: {
-				geoip_install: $('#geoipserv option:selected').val(),
-				geoip_service: $('#geoip_service option:selected').val(),
-				geoip_update: updating_geoip,
+				server_ip: $('#geoipserv option:selected').val(),
+				service: $('#geoip_service option:selected').val(),
+				update: updating_geoip,
 				token: $('#token').val()
 			},
 			type: "POST",
-			success: function( data ) {
-				data = data.replace(/^\s+|\s+$/g,'');
+			success: function (data) {
+				data = data.replace(/^\s+|\s+$/g, '');
 				$("#ajax-geoip").html('')
 				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1') {
 					toastr.clear();
 					var p_err = show_pretty_ansible_error(data);
 					toastr.error(p_err);
-				} else if (data.indexOf('success:') != '-1' ){
+				} else if (data.indexOf('success:') != '-1') {
 					toastr.clear();
 					toastr.success(data);
-					$( "#geoip_service" ).trigger( "selectmenuchange" );
-				} else if (data.indexOf('Info') != '-1' ){
+					$("#geoip_service").trigger("selectmenuchange");
+				} else if (data.indexOf('Info') != '-1') {
 					toastr.clear();
 					toastr.info(data);
 				} else {
@@ -925,34 +912,28 @@ $( function() {
 					toastr.info(data);
 				}
 			}
-		} );
+		});
 	});
 	$("#tabs ul li").click(function() {
 		var activeTab = $(this).find("a").attr("href");
 		var activeTabClass = activeTab.replace('#', '');
+		console.log(activeTab)
+		console.log(activeTabClass)
 		$('.menu li ul li').each(function () {
 			$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
 			$(this).find('a').css('padding-left', '20px')
+			$(this).find('a').css('background-color', '#48505A');
 			$(this).children("."+activeTabClass).css('padding-left', '30px');
 			$(this).children("."+activeTabClass).css('border-left', '4px solid var(--right-menu-blue-rolor)');
+			$(this).children("."+activeTabClass).css('background-color', 'var(--right-menu-blue-rolor)');
 		});
-		if (activeTab == '#services') {
+		if (activeTab == '#tools') {
 			loadServices();
 		} else if (activeTab == '#updatehapwi') {
 			loadupdatehapwi();
-		} else if (activeTab == '#checker'){
-			loadchecker();
 		} else if (activeTab == '#openvpn'){
 			loadopenvpn();
 		}
-	});
-	$("#checker_tabs ul li").click(function() {
-		$('.menu li ul li').each(function () {
-			$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
-			$(this).find('a').css('padding-left', '20px')
-			$(this).children(".checker").css('padding-left', '30px');
-			$(this).children(".checker").css('border-left', '4px solid var(--right-menu-blue-rolor)');
-		});
 	});
 	$("#backup_tabs ul li").click(function() {
 		$('.menu li ul li').each(function () {
@@ -966,19 +947,13 @@ $( function() {
 window.onload = function() {
 	$('#tabs').tabs();
 	var activeTabIdx = $('#tabs').tabs('option','active')
-	if (cur_url[0].split('#')[0] == 'users.py') {
-		if (activeTabIdx == 7) {
+	if (cur_url[0].split('#')[0] == 'admin') {
+		if (activeTabIdx == 6) {
 			loadServices();
-		} else if (activeTabIdx == 8) {
+		} else if (activeTabIdx == 7) {
 			loadupdatehapwi();
 		} else if (activeTabIdx == 4) {
-			loadchecker();
-		} else if (activeTabIdx == 5) {
 			loadopenvpn();
-		}
-	} else if (cur_url[0].split('#')[0] == 'servers.py') {
-		if (activeTabIdx == 3) {
-			loadchecker();
 		}
 	}
 }
@@ -996,20 +971,19 @@ function common_ajax_action_after_success(dialog_id, new_group, ajax_append_id, 
 function addUser(dialog_id) {
 	var valid = true;
 	toastr.clear();
-	allFields = $( [] ).add( $('#new-username') ).add( $('#new-password') ).add( $('#new-email') )
-	allFields.removeClass( "ui-state-error" );
-	valid = valid && checkLength( $('#new-username'), "user name", 1 );
-	valid = valid && checkLength( $('#new-password'), "password", 1 );
-	valid = valid && checkLength( $('#new-email'), "Email", 1 );
+	allFields = $([]).add($('#new-username')).add($('#new-password')).add($('#new-email'))
+	allFields.removeClass("ui-state-error");
+	valid = valid && checkLength($('#new-username'), "user name", 1);
+	valid = valid && checkLength($('#new-password'), "password", 1);
+	valid = valid && checkLength($('#new-email'), "Email", 1);
 	var activeuser = 0;
 	if ($('#activeuser').is(':checked')) {
 		activeuser = '1';
 	}
 	if (valid) {
-		$.ajax( {
-			url: "options.py",
+		$.ajax({
+			url: "/app/user/create",
 			data: {
-				newuser: "1",
 				newusername: $('#new-username').val(),
 				newpassword: $('#new-password').val(),
 				newemail: $('#new-email').val(),
@@ -1020,46 +994,45 @@ function addUser(dialog_id) {
 				token: $('#token').val()
 			},
 			type: "POST",
-			success: function( data ) {
-				data = data.replace(/\s+/g,' ');
+			success: function (data) {
+				data = data.replace(/\s+/g, ' ');
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
 					var getId = new RegExp('[0-9]+');
 					var id = data.match(getId);
-					common_ajax_action_after_success(dialog_id, 'user-'+id, 'ajax-users', data);
+					common_ajax_action_after_success(dialog_id, 'user-' + id, 'ajax-users', data);
 				}
 			}
-		} );
+		});
 	}
 }
 function addGroup(dialog_id) {
 	toastr.clear();
 	var valid = true;
-	allFields = $( [] ).add( $('#new-group-add') );
-	allFields.removeClass( "ui-state-error" );
-	valid = valid && checkLength( $('#new-group-add'), "new group name", 1 );
-	if(valid) {
-		$.ajax( {
-			url: "options.py",
+	allFields = $([]).add($('#new-group-add'));
+	allFields.removeClass("ui-state-error");
+	valid = valid && checkLength($('#new-group-add'), "new group name", 1);
+	if (valid) {
+		$.ajax({
+			url: "/app/server/group/create",
 			data: {
-				newgroup: "1",
 				groupname: $('#new-group-add').val(),
 				newdesc: $('#new-desc').val(),
 				token: $('#token').val()
 			},
 			type: "POST",
-			success: function( data ) {
+			success: function (data) {
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
 					var getId = new RegExp('[0-9]+');
 					var id = data.match(getId);
-					$('select:regex(id, group)').append('<option value='+id+'>'+$('#new-group-add').val()+'</option>').selectmenu("refresh");
+					$('select:regex(id, group)').append('<option value=' + id + '>' + $('#new-group-add').val() + '</option>').selectmenu("refresh");
 					common_ajax_action_after_success(dialog_id, 'newgroup', 'ajax-group', data);
 				}
 			}
-		} );
+		});
 	}
 }
 function addServer(dialog_id) {
@@ -1101,11 +1074,11 @@ function addServer(dialog_id) {
 	if ($('#add_to_smon').is(':checked')) {
 		add_to_smon = '1';
 	}
-	allFields = $( [] ).add( $('#new-server-add') ).add( $('#new-ip') ).add( $('#new-port') )
-	allFields.removeClass( "ui-state-error" );
-	valid = valid && checkLength( $('#new-server-add'), "Hostname", 1 );
-	valid = valid && checkLength( $('#new-ip'), "IP", 1 );
-	valid = valid && checkLength( $('#new-port'), "Port", 1 );
+	allFields = $([]).add($('#new-server-add')).add($('#new-ip')).add($('#new-port'))
+	allFields.removeClass("ui-state-error");
+	valid = valid && checkLength($('#new-server-add'), "Hostname", 1);
+	valid = valid && checkLength($('#new-ip'), "IP", 1);
+	valid = valid && checkLength($('#new-port'), "Port", 1);
 	if (cred == null) {
 		toastr.error('First select credentials');
 		return false;
@@ -1115,10 +1088,9 @@ function addServer(dialog_id) {
 		return false;
 	}
 	if (valid) {
-		$.ajax( {
-			url: "options.py",
+		$.ajax({
+			url: "/app/server/create",
 			data: {
-				newserver: "1",
 				servername: servername,
 				newip: newip,
 				newport: $('#new-port').val(),
@@ -1130,45 +1102,45 @@ function addServer(dialog_id) {
 				firewall: firewall,
 				add_to_smon: add_to_smon,
 				enable: enable,
-				slave: $('#slavefor' ).val(),
+				slave: $('#slavefor').val(),
 				cred: cred,
 				page: cur_url[0].split('#')[0],
 				desc: $('#desc').val(),
 				token: $('#token').val()
 			},
 			type: "POST",
-			success: function( data ) {
-				data = data.replace(/\s+/g,' ');
+			success: function (data) {
+				data = data.replace(/\s+/g, ' ');
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
 					common_ajax_action_after_success(dialog_id, 'newserver', 'ajax-servers', data);
-					$( "input[type=submit], button" ).button();
-					$( "input[type=checkbox]" ).checkboxradio();
-					$( ".controlgroup" ).controlgroup();
-					$( "select" ).selectmenu();
+					$("input[type=submit], button").button();
+					$("input[type=checkbox]").checkboxradio();
+					$(".controlgroup").controlgroup();
+					$("select").selectmenu();
 					var getId = new RegExp('server-[0-9]+');
 					var id = data.match(getId) + '';
 					id = id.split('-').pop();
-					$('select:regex(id, git-server)').append('<option value=' + id + '>' + $('#hostname-'+id).val() + '</option>').selectmenu("refresh");
-					$('select:regex(id, backup-server)').append('<option value=' + $('#ip-'+id).text() + '>' + $('#hostname-'+id).val() + '</option>').selectmenu("refresh");
-					$('select:regex(id, haproxy_exp_addserv)').append('<option value=' + $('#ip-'+id).text() + '>' + $('#hostname-'+id).val() + '</option>').selectmenu("refresh");
-					$('select:regex(id, nginx_exp_addserv)').append('<option value=' + $('#ip-'+id).text() + '>' + $('#hostname-'+id).val() + '</option>').selectmenu("refresh");
-					$('select:regex(id, apache_exp_addserv)').append('<option value=' + $('#ip-'+id).text() + '>' + $('#hostname-'+id).val() + '</option>').selectmenu("refresh");
-					$('select:regex(id, node_exp_addserv)').append('<option value=' + $('#ip-'+id).text() + '>' + $('#hostname-'+id).val() + '</option>').selectmenu("refresh");
-					$('select:regex(id, geoipserv)').append('<option value=' + $('#ip-'+id).text() + '>' + $('#hostname-'+id).val() + '</option>').selectmenu("refresh");
+					$('select:regex(id, git-server)').append('<option value=' + id + '>' + $('#hostname-' + id).val() + '</option>').selectmenu("refresh");
+					$('select:regex(id, backup-server)').append('<option value=' + $('#ip-' + id).text() + '>' + $('#hostname-' + id).val() + '</option>').selectmenu("refresh");
+					$('select:regex(id, haproxy_exp_addserv)').append('<option value=' + $('#ip-' + id).text() + '>' + $('#hostname-' + id).val() + '</option>').selectmenu("refresh");
+					$('select:regex(id, nginx_exp_addserv)').append('<option value=' + $('#ip-' + id).text() + '>' + $('#hostname-' + id).val() + '</option>').selectmenu("refresh");
+					$('select:regex(id, apache_exp_addserv)').append('<option value=' + $('#ip-' + id).text() + '>' + $('#hostname-' + id).val() + '</option>').selectmenu("refresh");
+					$('select:regex(id, node_exp_addserv)').append('<option value=' + $('#ip-' + id).text() + '>' + $('#hostname-' + id).val() + '</option>').selectmenu("refresh");
+					$('select:regex(id, geoipserv)').append('<option value=' + $('#ip-' + id).text() + '>' + $('#hostname-' + id).val() + '</option>').selectmenu("refresh");
 					$('select:regex(id, haproxyaddserv)').append('<option value=' + newip + '>' + servername + '</option>').selectmenu("refresh");
 					$('select:regex(id, nginxaddserv)').append('<option value=' + newip + '>' + servername + '</option>').selectmenu("refresh");
 					$('select:regex(id, apacheaddserv)').append('<option value=' + newip + '>' + servername + '</option>').selectmenu("refresh");
 					after_server_creating(servername, newip, scan_server);
 				}
 			}
-		} );
+		});
 	}
 }
 function after_server_creating(servername, newip, scan_server) {
 	$.ajax({
-		url: "options.py",
+		url: "/app/server/create/after",
 		data: {
 			act: 'after_adding',
 			servername: servername,
@@ -1185,7 +1157,7 @@ function after_server_creating(servername, newip, scan_server) {
 				toastr.error(data);
 			}
 		}
-	} );
+	});
 }
 function addCreds(dialog_id) {
 	toastr.clear();
@@ -1194,13 +1166,13 @@ function addCreds(dialog_id) {
 		ssh_enable = '1';
 	}
 	var valid = true;
-	allFields = $( [] ).add( $('#new-ssh-add') ).add( $('#ssh_user') )
-	allFields.removeClass( "ui-state-error" );
-	valid = valid && checkLength( $('#new-ssh-add'), "Name", 1 );
-	valid = valid && checkLength( $('#ssh_user'), "Credentials", 1 );
-	if(valid) {
+	allFields = $([]).add($('#new-ssh-add')).add($('#ssh_user'))
+	allFields.removeClass("ui-state-error");
+	valid = valid && checkLength($('#new-ssh-add'), "Name", 1);
+	valid = valid && checkLength($('#ssh_user'), "Credentials", 1);
+	if (valid) {
 		$.ajax({
-			url: "options.py",
+			url: "/app/server/ssh/create",
 			data: {
 				new_ssh: $('#new-ssh-add').val(),
 				new_group: $('#new-sshgroup').val(),
@@ -1219,9 +1191,9 @@ function addCreds(dialog_id) {
 					var getId = new RegExp('ssh-table-[0-9]+');
 					var id = data.match(getId) + '';
 					id = id.split('-').pop();
-					common_ajax_action_after_success(dialog_id, 'ssh-table-'+id, 'ssh_enable_table', data);
+					common_ajax_action_after_success(dialog_id, 'ssh-table-' + id, 'ssh_enable_table', data);
 					$('select:regex(id, credentials)').append('<option value=' + id + '>' + $('#new-ssh-add').val() + '</option>').selectmenu("refresh");
-					$('select:regex(id, ssh-key-name)').append('<option value=' + $('#new-ssh-add').val() + '_'+group_name+'>' + $('#new-ssh-add').val() + '_'+group_name+'</option>').selectmenu("refresh");
+					$('select:regex(id, ssh-key-name)').append('<option value=' + $('#new-ssh-add').val() + '_' + group_name + '>' + $('#new-ssh-add').val() + '_' + group_name + '</option>').selectmenu("refresh");
 					$("input[type=submit], button").button();
 					$("input[type=checkbox]").checkboxradio();
 					$("select").selectmenu();
@@ -1233,13 +1205,12 @@ function addCreds(dialog_id) {
 function getGroupNameById(group_id) {
 	var group_name = ''
 	$.ajax({
-		url: "options.py",
+		url: "/app/user/group/name/" + group_id,
 		async: false,
-		data: {
-			get_group_name_by_id: group_id,
-			token: $('#token').val()
-		},
-		type: "POST",
+		// data: {
+		// 	token: $('#token').val()
+		// },
+		// type: "POST",
 		success: function (data) {
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
@@ -1253,55 +1224,53 @@ function getGroupNameById(group_id) {
 function addRecevier(dialog_id, receiver_name) {
 	var valid = true;
 	toastr.clear();
-	allFields = $( [] ).add( $('#'+receiver_name+'-token-add') ).add( $('#'+receiver_name+'-chanel-add') );
-	allFields.removeClass( "ui-state-error" );
-	valid = valid && checkLength( $('#'+receiver_name+'-token-add'), "token", 1 );
-	valid = valid && checkLength( $('#'+receiver_name+'-chanel-add'), "channel name", 1 );
-	if(valid) {
+	allFields = $([]).add($('#' + receiver_name + '-token-add')).add($('#' + receiver_name + '-chanel-add'));
+	allFields.removeClass("ui-state-error");
+	valid = valid && checkLength($('#' + receiver_name + '-token-add'), "token", 1);
+	valid = valid && checkLength($('#' + receiver_name + '-chanel-add'), "channel name", 1);
+	if (valid) {
 		toastr.clear();
-		$.ajax( {
-			url: "options.py",
+		$.ajax({
+			url: "/app/checker/receiver/" + receiver_name,
 			data: {
-				new_receiver: $('#'+receiver_name+'-token-add').val(),
-				receiver_name: receiver_name,
-				chanel: $('#'+receiver_name+'-chanel-add').val(),
-				group_receiver: $('#new-'+receiver_name+'-group-add').val(),
+				receiver: $('#' + receiver_name + '-token-add').val(),
+				channel: $('#' + receiver_name + '-chanel-add').val(),
+				group: $('#new-' + receiver_name + '-group-add').val(),
 				page: cur_url[0].split('#')[0],
 				token: $('#token').val()
 			},
 			type: "POST",
-			success: function( data ) {
+			success: function (data) {
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
-					var getId = new RegExp(receiver_name+'-table-[0-9]+');
+					var getId = new RegExp(receiver_name + '-table-[0-9]+');
 					var id = data.match(getId) + '';
 					id = id.split('-').pop();
-					$('select:regex(id, '+receiver_name+'_channel)').append('<option value=' + id + '>' + $('#'+receiver_name+'-chanel-add').val() + '</option>').selectmenu("refresh");
-					common_ajax_action_after_success(dialog_id, 'newgroup', 'checker_'+receiver_name+'_table', data);
-					$( "input[type=submit], button" ).button();
-					$( "input[type=checkbox]" ).checkboxradio();
-					$( "select" ).selectmenu();
+					$('select:regex(id, ' + receiver_name + '_channel)').append('<option value=' + id + '>' + $('#' + receiver_name + '-chanel-add').val() + '</option>').selectmenu("refresh");
+					common_ajax_action_after_success(dialog_id, 'newgroup', 'checker_' + receiver_name + '_table', data);
+					$("input[type=submit], button").button();
+					$("input[type=checkbox]").checkboxradio();
+					$("select").selectmenu();
 				}
 			}
-		} );
+		});
 	}
 }
 function addBackup(dialog_id) {
 	var valid = true;
 	toastr.clear();
-	allFields = $( [] ).add( $('#backup-server') ).add( $('#rserver') ).add( $('#rpath') ).add( $('#backup-time') ).add( $('#backup-credentials') )
-	allFields.removeClass( "ui-state-error" );
-	valid = valid && checkLength( $('#backup-server'), "backup server ", 1 );
-	valid = valid && checkLength( $('#rserver'), "remote server", 1 );
-	valid = valid && checkLength( $('#rpath'), "remote path", 1 );
-	valid = valid && checkLength( $('#backup-time'), "backup time", 1 );
-	valid = valid && checkLength( $('#backup-credentials'), "backup credentials", 1 );
+	allFields = $([]).add($('#backup-server')).add($('#rserver')).add($('#rpath')).add($('#backup-time')).add($('#backup-credentials'))
+	allFields.removeClass("ui-state-error");
+	valid = valid && checkLength($('#backup-server'), "backup server ", 1);
+	valid = valid && checkLength($('#rserver'), "remote server", 1);
+	valid = valid && checkLength($('#rpath'), "remote path", 1);
+	valid = valid && checkLength($('#backup-time'), "backup time", 1);
+	valid = valid && checkLength($('#backup-credentials'), "backup credentials", 1);
 	if (valid) {
-		$.ajax( {
-			url: "options.py",
+		$.ajax({
+			url: "/app/server/backup/create",
 			data: {
-				backup: '1',
 				server: $('#backup-server').val(),
 				rserver: $('#rserver').val(),
 				rpath: $('#rpath').val(),
@@ -1312,37 +1281,37 @@ function addBackup(dialog_id) {
 				token: $('#token').val()
 			},
 			type: "POST",
-			success: function( data ) {
-				data = data.replace(/\s+/g,' ');
+			success: function (data) {
+				data = data.replace(/\s+/g, ' ');
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
-				} else if (data.indexOf('success: ') != '-1') {
-					common_ajax_action_after_success(dialog_id, 'newbackup', 'ajax-backup-table', data);
-					$( "select" ).selectmenu();
 				} else if (data.indexOf('info: ') != '-1') {
 					toastr.clear();
 					toastr.info(data);
 				} else if (data.indexOf('warning: ') != '-1') {
 					toastr.clear();
 					toastr.warning(data);
+				} else {
+					common_ajax_action_after_success(dialog_id, 'newbackup', 'ajax-backup-table', data);
+					$("select").selectmenu();
 				}
 			}
-		} );
+		});
 	}
 }
 function addS3Backup(dialog_id) {
 	var valid = true;
 	toastr.clear();
-	allFields = $( [] ).add( $('#s3-backup-server') ).add( $('#s3_server') ).add( $('#s3_bucket') ).add( $('#s3_secret_key') ).add( $('#s3_access_key') )
-	allFields.removeClass( "ui-state-error" );
-	valid = valid && checkLength( $('#s3-backup-server'), "backup server ", 1 );
-	valid = valid && checkLength( $('#s3_server'), "S3 server", 1 );
-	valid = valid && checkLength( $('#s3_bucket'), "S3 bucket", 1 );
-	valid = valid && checkLength( $('#s3_secret_key'), "S3 secret key", 1 );
-	valid = valid && checkLength( $('#s3_access_key'), "S3 access key", 1 );
+	allFields = $([]).add($('#s3-backup-server')).add($('#s3_server')).add($('#s3_bucket')).add($('#s3_secret_key')).add($('#s3_access_key'))
+	allFields.removeClass("ui-state-error");
+	valid = valid && checkLength($('#s3-backup-server'), "backup server ", 1);
+	valid = valid && checkLength($('#s3_server'), "S3 server", 1);
+	valid = valid && checkLength($('#s3_bucket'), "S3 bucket", 1);
+	valid = valid && checkLength($('#s3_secret_key'), "S3 secret key", 1);
+	valid = valid && checkLength($('#s3_access_key'), "S3 access key", 1);
 	if (valid) {
-		$.ajax( {
-			url: "options.py",
+		$.ajax({
+			url: "/app/server/s3backup/create",
 			data: {
 				s3_backup_server: $('#s3-backup-server').val(),
 				s3_server: $('#s3_server').val(),
@@ -1354,13 +1323,10 @@ function addS3Backup(dialog_id) {
 				token: $('#token').val()
 			},
 			type: "POST",
-			success: function( data ) {
-				data = data.replace(/\s+/g,' ');
+			success: function (data) {
+				data = data.replace(/\s+/g, ' ');
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
-				} else if (data.indexOf('success: ') != '-1') {
-					common_ajax_action_after_success(dialog_id, 'newbackup', 'ajax-backup-s3-table', data);
-					$( "select" ).selectmenu();
 				} else if (data.indexOf('info: ') != '-1') {
 					toastr.clear();
 					toastr.info(data);
@@ -1370,29 +1336,31 @@ function addS3Backup(dialog_id) {
 				} else if (data.indexOf('error: ') != '-1') {
 					toastr.clear();
 					toastr.error(data);
+				} else {
+					common_ajax_action_after_success(dialog_id, 'newbackup', 'ajax-backup-s3-table', data);
+					$("select").selectmenu();
 				}
 			}
-		} );
+		});
 	}
 }
 function addGit(dialog_id) {
 	var valid = true;
 	toastr.clear();
-	allFields = $( [] ).add( $('#git-server') ).add( $('#git-service') ).add( $('#git-time')).add( $('#git-credentials') ).add( $('#git-branch') )
-	allFields.removeClass( "ui-state-error" );
-	valid = valid && checkLength( $('#git-server'), "Server ", 1 );
-	valid = valid && checkLength( $('#git-service'), "Service", 1 );
-	valid = valid && checkLength( $('#git-credentials'), "Credentials", 1 );
-	valid = valid && checkLength( $('#git-branch'), "Branch name", 1 );
+	allFields = $([]).add($('#git-server')).add($('#git-service')).add($('#git-time')).add($('#git-credentials')).add($('#git-branch'))
+	allFields.removeClass("ui-state-error");
+	valid = valid && checkLength($('#git-server'), "Server ", 1);
+	valid = valid && checkLength($('#git-service'), "Service", 1);
+	valid = valid && checkLength($('#git-credentials'), "Credentials", 1);
+	valid = valid && checkLength($('#git-branch'), "Branch name", 1);
 	var git_init = 0;
 	if ($('#git-init').is(':checked')) {
-			git_init = '1';
-		}
+		git_init = '1';
+	}
 	if (valid) {
-		$.ajax( {
-			url: "options.py",
+		$.ajax({
+			url: "/app/server/git/create",
 			data: {
-				git_backup: '1',
 				server: $('#git-server').val(),
 				git_service: $('#git-service').val(),
 				git_init: git_init,
@@ -1405,13 +1373,13 @@ function addGit(dialog_id) {
 				token: $('#token').val()
 			},
 			type: "POST",
-			success: function( data ) {
-				data = data.replace(/\s+/g,' ');
+			success: function (data) {
+				data = data.replace(/\s+/g, ' ');
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else if (data.indexOf('success: ') != '-1') {
 					common_ajax_action_after_success(dialog_id, 'newgit', 'ajax-git-table', data);
-					$( "select" ).selectmenu();
+					$("select").selectmenu();
 				} else if (data.indexOf('info: ') != '-1') {
 					toastr.clear();
 					toastr.info(data);
@@ -1420,16 +1388,14 @@ function addGit(dialog_id) {
 					toastr.warning(data);
 				}
 			}
-		} );
+		});
 	}
 }
 function updateSettings(param, val) {
 	toastr.clear();
 	$.ajax( {
-		url: "options.py",
+		url: "/app/app/admin/setting/" + param + "/" + val,
 		data: {
-			updatesettings: param,
-			val: val,
 			token: $('#token').val()
 		},
 		type: "POST",
@@ -1557,7 +1523,7 @@ function confirmDeleteSsh(id) {
 function confirmDeleteReceiver(id, reciever_name) {
 	var delete_word = $('#translate').attr('data-delete');
 	var cancel_word = $('#translate').attr('data-cancel');
-	 $( "#dialog-confirm" ).dialog({
+	 $( "#dialog-confirm-services" ).dialog({
 		 resizable: false,
 		 height: "auto",
 		 width: 400,
@@ -1703,37 +1669,35 @@ function cloneBackup(id) {
 	$('#backup-credentials').selectmenu("refresh");
 }
 function removeUser(id) {
-	$("#user-"+id).css("background-color", "#f2dede");
-	$.ajax( {
-		url: "options.py",
-		data: {
-			userdel: id,
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
-			if(data == "Ok ") {
-				$("#user-"+id).remove();
+	$("#user-" + id).css("background-color", "#f2dede");
+	$.ajax({
+		url: "/app/user/delete/" + id,
+		// data: {
+		// 	token: $('#token').val()
+		// },
+		// type: "POST",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data == "ok") {
+				$("#user-" + id).remove();
 			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			}
 		}
-	} );
+	});
 }
 function removeServer(id) {
-	$("#server-"+id).css("background-color", "#f2dede");
-	$.ajax( {
-		url: "options.py",
-		data: {
-			serverdel: id,
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
-			if(data == "Ok ") {
-				$("#server-"+id).remove();
+	$("#server-" + id).css("background-color", "#f2dede");
+	$.ajax({
+		url: "/app/server/delete/" + id,
+		// data: {
+		// 	token: $('#token').val()
+		// },
+		// type: "POST",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data == "Ok") {
+				$("#server-" + id).remove();
 			} else if (data.indexOf('error: ') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			} else if (data.indexOf('warning: ') != '-1') {
@@ -1741,41 +1705,39 @@ function removeServer(id) {
 				toastr.warning(data);
 			}
 		}
-	} );
+	});
 }
 function removeGroup(id) {
-	$("#group-"+id).css("background-color", "#f2dede");
-	$.ajax( {
-		url: "options.py",
-		data: {
-			groupdel: id,
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
-			if(data == "Ok ") {
-				$("#group-"+id).remove();
-				$('select:regex(id, group) option[value='+id+']').remove();
+	$("#group-" + id).css("background-color", "#f2dede");
+	$.ajax({
+		url: "/app/server/group/delete/" + id,
+		// data: {
+		// 	token: $('#token').val()
+		// },
+		// type: "POST",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data == "ok") {
+				$("#group-" + id).remove();
+				$('select:regex(id, group) option[value=' + id + ']').remove();
 				$('select:regex(id, group)').selectmenu("refresh");
 			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			}
 		}
-	} );
+	});
 }
 function removeSsh(id) {
 	$("#ssh-table-"+id).css("background-color", "#f2dede");
 	$.ajax( {
-		url: "options.py",
-		data: {
-			sshdel: id,
-			token: $('#token').val()
-		},
-		type: "POST",
+		url: "/app/server/ssh/delete/" + id,
+		// data: {
+		// 	token: $('#token').val()
+		// },
+		// type: "POST",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if(data == "Ok ") {
+			if(data == "ok") {
 				$("#ssh-table-"+id).remove();
 				$('select:regex(id, credentials) option[value='+id+']').remove();
 				$('select:regex(id, credentials)').selectmenu("refresh");
@@ -1786,73 +1748,71 @@ function removeSsh(id) {
 	} );
 }
 function removeReciver(receiver_name, receiver_id) {
-	$("#"+receiver_name+"-table-"+receiver_id).css("background-color", "#f2dede");
-	$.ajax( {
-		url: "options.py",
+	$("#" + receiver_name + "-table-" + receiver_id).css("background-color", "#f2dede");
+	$.ajax({
+		url: "/app/checker/receiver/" + receiver_name,
 		data: {
-			receiver_del: receiver_id,
-			receiver_name: receiver_name,
+			channel_id: receiver_id,
 			token: $('#token').val()
 		},
-		type: "POST",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
-			if(data == "Ok ") {
-				$("#"+receiver_name+"-table-"+receiver_id).remove();
+		type: "DELETE",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data == "ok") {
+				$("#" + receiver_name + "-table-" + receiver_id).remove();
 			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			}
 		}
-	} );
+	});
 }
 function removeBackup(id) {
-	$("#backup-table-"+id).css("background-color", "#f2dede");
-	$.ajax( {
-		url: "options.py",
+	$("#backup-table-" + id).css("background-color", "#f2dede");
+	$.ajax({
+		url: "/app/server/backup/delete",
 		data: {
 			deljob: id,
-			cred: $('#backup-credentials-'+id).val(),
-			server: $('#backup-server-'+id).text(),
-			rserver: $('#backup-rserver-'+id).val(),
+			cred: $('#backup-credentials-' + id).val(),
+			server: $('#backup-server-' + id).text(),
+			rserver: $('#backup-rserver-' + id).val(),
 			token: $('#token').val()
 		},
 		type: "POST",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
-			if(data.indexOf('Ok') != '-1') {
-				$("#backup-table-"+id).remove();
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('ok') != '-1') {
+				$("#backup-table-" + id).remove();
 			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			}
 		}
-	} );
+	});
 }
 function removeS3Backup(id) {
-	$("#backup-table-s3-"+id).css("background-color", "#f2dede");
-	$.ajax( {
-		url: "options.py",
+	$("#backup-table-s3-" + id).css("background-color", "#f2dede");
+	$.ajax({
+		url: "/app/server/s3backup/delete",
 		data: {
 			dels3job: id,
-			s3_backet: $('#backup-s3-backet-'+id).val(),
-			s3_backup_server: $('#backup-s3-server-'+id).text(),
-			s3_bucket: $('#s3-bucket-'+id).val(),
+			s3_bucket: $('#bucket-' + id).text(),
+			s3_backup_server: $('#backup-s3-server-' + id).text(),
 			token: $('#token').val()
 		},
 		type: "POST",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
-			if(data.indexOf('Ok') != '-1') {
-				$("#s3-backup-table-"+id).remove();
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('ok') != '-1') {
+				$("#s3-backup-table-" + id).remove();
 			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			}
 		}
-	} );
+	});
 }
 function removeGit(id) {
-	$("#git-table-"+id).css("background-color", "#f2dede");
-	$.ajax( {
-		url: "options.py",
+	$("#git-table-" + id).css("background-color", "#f2dede");
+	$.ajax({
+		url: "/app/server/git/delete",
 		data: {
 			git_backup: id,
 			git_deljob: 1,
@@ -1860,41 +1820,41 @@ function removeGit(id) {
 			repo: 0,
 			branch: 0,
 			time: 0,
-			cred: $('#git-credentials-id-'+id).text(),
-			server: $('#git-server-id-'+id).text(),
-			git_service: $('#git-service-id-'+id).text(),
+			cred: $('#git-credentials-id-' + id).text(),
+			server: $('#git-server-id-' + id).text(),
+			git_service: $('#git-service-id-' + id).text(),
 			token: $('#token').val()
 		},
 		type: "POST",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
-			if(data.indexOf('Ok') != '-1') {
-				$("#git-table-"+id).remove();
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('ok') != '-1') {
+				$("#git-table-" + id).remove();
 			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			}
 		}
-	} );
+	});
 }
 function updateUser(id) {
 	toastr.remove();
 	cur_url[0] = cur_url[0].split('#')[0]
 	var usergroup = Cookies.get('group');
-	var role = $('#role-'+id).val();
+	var role = $('#role-' + id).val();
 	var activeuser = 0;
-	if ($('#activeuser-'+id).is(':checked')) {
+	if ($('#activeuser-' + id).is(':checked')) {
 		activeuser = '1';
 	}
-	if (role == null && role !== undefined){
+	if (role == null && role !== undefined) {
 		toastr.warning('Please edit this user only on the Admin area');
 		return false;
 	}
 	toastr.remove();
-	$.ajax( {
-		url: "options.py",
+	$.ajax({
+		url: "/app/user/update",
 		data: {
-			updateuser: $('#login-'+id).val(),
-			email: $('#email-'+id).val(),
+			updateuser: $('#login-' + id).val(),
+			email: $('#email-' + id).val(),
 			role: role,
 			usergroup: usergroup,
 			activeuser: activeuser,
@@ -1902,46 +1862,46 @@ function updateUser(id) {
 			token: $('#token').val()
 		},
 		type: "POST",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.remove();
-				$("#user-"+id).addClass( "update", 1000 );
-				setTimeout(function() {
-					$( "#user-"+id ).removeClass( "update" );
-				}, 2500 );
+				$("#user-" + id).addClass("update", 1000);
+				setTimeout(function () {
+					$("#user-" + id).removeClass("update");
+				}, 2500);
 			}
 		}
-	} );
+	});
 }
 function updateGroup(id) {
 	toastr.clear();
-	$.ajax( {
-		url: "options.py",
+	$.ajax({
+		url: "/app/server/group/update",
 		data: {
-			updategroup: $('#name-'+id).val(),
-			descript: $('#descript-'+id).val(),
+			updategroup: $('#name-' + id).val(),
+			descript: $('#descript-' + id).val(),
 			id: id,
 			token: $('#token').val()
 		},
 		type: "POST",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
-				$("#group-"+id).addClass( "update", 1000 );
-				setTimeout(function() {
-					$( "#group-"+id ).removeClass( "update" );
-				}, 2500 );
-				$('select:regex(id, group) option[value='+id+']').remove();
-				$('select:regex(id, group)').append('<option value='+id+'>'+$('#name-'+id).val()+'</option>').selectmenu("refresh");
+				$("#group-" + id).addClass("update", 1000);
+				setTimeout(function () {
+					$("#group-" + id).removeClass("update");
+				}, 2500);
+				$('select:regex(id, group) option[value=' + id + ']').remove();
+				$('select:regex(id, group)').append('<option value=' + id + '>' + $('#name-' + id).val() + '</option>').selectmenu("refresh");
 			}
 		}
-	} );
+	});
 }
 function updateServer(id) {
 	toastr.clear();
@@ -1949,263 +1909,220 @@ function updateServer(id) {
 	let enable = 0;
 	let firewall = 0;
 	let protected_serv = 0;
-	if ($('#typeip-'+id).is(':checked')) {
+	if ($('#typeip-' + id).is(':checked')) {
 		typeip = '1';
 	}
-	if ($('#enable-'+id).is(':checked')) {
+	if ($('#enable-' + id).is(':checked')) {
 		enable = '1';
 	}
-	if ($('#firewall-'+id).is(':checked')) {
+	if ($('#firewall-' + id).is(':checked')) {
 		firewall = '1';
 	}
-	if ($('#protected-'+id).is(':checked')) {
+	if ($('#protected-' + id).is(':checked')) {
 		protected_serv = '1';
 	}
-	var servergroup = $('#servergroup-'+id+' option:selected' ).val();
+	var servergroup = $('#servergroup-' + id + ' option:selected').val();
 	if (cur_url[0].split('#')[0] == "servers.py") {
-		 servergroup = $('#new-server-group-add').val();
+		servergroup = $('#new-server-group-add').val();
 	}
-	$.ajax( {
-		url: "options.py",
+	$.ajax({
+		url: "/app/admin/update",
 		data: {
-			updateserver: $('#hostname-'+id).val(),
-			port: $('#port-'+id).val(),
+			updateserver: $('#hostname-' + id).val(),
+			port: $('#port-' + id).val(),
 			servergroup: servergroup,
 			typeip: typeip,
 			firewall: firewall,
 			enable: enable,
-			slave: $('#slavefor-'+id+' option:selected' ).val(),
-			cred: $('#credentials-'+id+' option:selected').val(),
+			slave: $('#slavefor-' + id + ' option:selected').val(),
+			cred: $('#credentials-' + id + ' option:selected').val(),
 			id: id,
-			desc: $('#desc-'+id).val(),
+			desc: $('#desc-' + id).val(),
 			protected: protected_serv,
 			token: $('#token').val()
 		},
 		type: "POST",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
-				$("#server-"+id).addClass( "update", 1000 );
-				setTimeout(function() {
-					$( "#server-"+id ).removeClass( "update" );
-				}, 2500 );
+				$("#server-" + id).addClass("update", 1000);
+				setTimeout(function () {
+					$("#server-" + id).removeClass("update");
+				}, 2500);
 			}
 		}
-	} );
+	});
 }
 function uploadSsh() {
 	toastr.clear();
-	if ($( "#ssh-key-name option:selected" ).val() == "------" || $('#ssh_cert').val() == '') {
+	if ($("#ssh-key-name option:selected").val() == "------" || $('#ssh_cert').val() == '') {
 		toastr.error('All fields must be completed');
 	} else {
-		$.ajax( {
-			url: "options.py",
+		$.ajax({
+			url: "/app/server/ssh/upload",
 			data: {
 				ssh_cert: $('#ssh_cert').val(),
 				name: $('#ssh-key-name').val(),
 				token: $('#token').val()
 			},
 			type: "POST",
-			success: function( data ) {
-				data = data.replace(/\s+/g,' ');
-				if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1')  {
-						toastr.error(data);
-					} else if (data.indexOf('success') != '-1') {
-						toastr.clear();
-						toastr.success(data)
-					} else {
-						toastr.error('Something wrong, check and try again');
-					}
+			success: function (data) {
+				data = data.replace(/\s+/g, ' ');
+				if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1') {
+					toastr.error(data);
+				} else if (data.indexOf('success') != '-1') {
+					toastr.clear();
+					toastr.success(data)
+				} else {
+					toastr.error('Something wrong, check and try again');
+				}
 			}
-		} );
+		});
 	}
 }
 function updateSSH(id) {
 	toastr.clear();
 	var ssh_enable = 0;
-	if ($('#ssh_enable-'+id).is(':checked')) {
+	if ($('#ssh_enable-' + id).is(':checked')) {
 		ssh_enable = '1';
 	}
-	var group = $('#sshgroup-'+id).val();
+	var group = $('#sshgroup-' + id).val();
 	if (cur_url[0].split('#')[0] == "servers.py") {
-		 group = $('#new-server-group-add').val();
+		group = $('#new-server-group-add').val();
 	}
-	$.ajax( {
-		url: "options.py",
+	$.ajax({
+		url: "/app/server/ssh/update",
 		data: {
-			updatessh: 1,
-			name: $('#ssh_name-'+id).val(),
+			name: $('#ssh_name-' + id).val(),
 			group: group,
 			ssh_enable: ssh_enable,
-			ssh_user: $('#ssh_user-'+id).val(),
-			ssh_pass: $('#ssh_pass-'+id).val(),
+			ssh_user: $('#ssh_user-' + id).val(),
+			ssh_pass: $('#ssh_pass-' + id).val(),
 			id: id,
 			token: $('#token').val()
 		},
 		type: "POST",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
-				$("#ssh-table-"+id).addClass( "update", 1000 );
-				setTimeout(function() {
-					$( "#ssh-table-"+id ).removeClass( "update" );
-				}, 2500 );
-				$('select:regex(id, credentials) option[value='+id+']').remove();
-				$('select:regex(id, ssh-key-name) option[value='+$('#ssh_name-'+id).val()+']').remove();
-				$('select:regex(id, credentials)').append('<option value='+id+'>'+$('#ssh_name-'+id).val()+'</option>').selectmenu("refresh");
-				$('select:regex(id, ssh-key-name)').append('<option value='+$('#ssh_name-'+id).val()+'>'+$('#ssh_name-'+id).val()+'</option>').selectmenu("refresh");
+				$("#ssh-table-" + id).addClass("update", 1000);
+				setTimeout(function () {
+					$("#ssh-table-" + id).removeClass("update");
+				}, 2500);
+				$('select:regex(id, credentials) option[value=' + id + ']').remove();
+				$('select:regex(id, ssh-key-name) option[value=' + $('#ssh_name-' + id).val() + ']').remove();
+				$('select:regex(id, credentials)').append('<option value=' + id + '>' + $('#ssh_name-' + id).val() + '</option>').selectmenu("refresh");
+				$('select:regex(id, ssh-key-name)').append('<option value=' + $('#ssh_name-' + id).val() + '>' + $('#ssh_name-' + id).val() + '</option>').selectmenu("refresh");
 			}
 		}
-	} );
+	});
 }
 function updateReceiver(id, receiver_name) {
 	if (cur_url[0].split('#')[0] == 'servers.py') {
 		var group = $('#new-group').val();
 	} else {
-		var group = $('#'+receiver_name+'group-'+id).val();
+		var group = $('#' + receiver_name + 'group-' + id).val();
 	}
 	toastr.clear();
-	$.ajax( {
-		url: "options.py",
+	$.ajax({
+		url: "/app/checker/receiver/" + receiver_name,
 		data: {
-			receiver_name: receiver_name,
-			update_receiver_token: $('#'+receiver_name+'-token-'+id).val(),
-			update_receiver_channel: $('#'+receiver_name+'-chanel-'+id).val(),
-			update_receiver_group: group,
+			receiver_token: $('#' + receiver_name + '-token-' + id).val(),
+			channel: $('#' + receiver_name + '-chanel-' + id).val(),
+			group: group,
 			id: id,
 			token: $('#token').val()
 		},
-		type: "POST",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
+		type: "PUT",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
-				$("#"+receiver_name+"-table-"+id).addClass( "update", 1000 );
-				setTimeout(function() {
-					$( "#"+receiver_name+"-table-"+id ).removeClass( "update" );
-				}, 2500 );
+				$("#" + receiver_name + "-table-" + id).addClass("update", 1000);
+				setTimeout(function () {
+					$("#" + receiver_name + "-table-" + id).removeClass("update");
+				}, 2500);
 			}
 		}
-	} );
+	});
 }
 function updateBackup(id) {
 	toastr.clear();
-	if ($( "#backup-type-"+id+" option:selected" ).val() == "-------" || $('#backup-rserver-'+id).val() == '' || $('#backup-rpath-'+id).val() == '') {
+	if ($("#backup-type-" + id + " option:selected").val() == "-------" || $('#backup-rserver-' + id).val() == '' || $('#backup-rpath-' + id).val() == '') {
 		toastr.error('All fields must be completed');
 	} else {
-		$.ajax( {
-			url: "options.py",
+		$.ajax({
+			url: "/app/server/backup/update",
 			data: {
 				backupupdate: id,
-				server: $('#backup-server-'+id).text(),
-				rserver: $('#backup-rserver-'+id).val(),
-				rpath: $('#backup-rpath-'+id).val(),
-				type: $('#backup-type-'+id).val(),
-				time: $('#backup-time-'+id).val(),
-				cred: $('#backup-credentials-'+id).val(),
-				description: $('#backup-description-'+id).val(),
+				server: $('#backup-server-' + id).text(),
+				rserver: $('#backup-rserver-' + id).val(),
+				rpath: $('#backup-rpath-' + id).val(),
+				type: $('#backup-type-' + id).val(),
+				time: $('#backup-time-' + id).val(),
+				cred: $('#backup-credentials-' + id).val(),
+				description: $('#backup-description-' + id).val(),
 				token: $('#token').val()
 			},
 			type: "POST",
-			success: function( data ) {
-				data = data.replace(/\s+/g,' ');
+			success: function (data) {
+				data = data.replace(/\s+/g, ' ');
 				if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 					toastr.error(data);
 				} else {
 					toastr.clear();
-					$("#backup-table-"+id).addClass( "update", 1000 );
-					setTimeout(function() {
-						$( "#backup-table-"+id ).removeClass( "update" );
-					}, 2500 );
+					$("#backup-table-" + id).addClass("update", 1000);
+					setTimeout(function () {
+						$("#backup-table-" + id).removeClass("update");
+					}, 2500);
 				}
 			}
-		} );
-	}
-}
-function updateS3Backup(id) {
-	toastr.clear();
-	if ($( "#backup-type-"+id+" option:selected" ).val() == "-------" || $('#backup-rserver-'+id).val() == '' || $('#backup-rpath-'+id).val() == '') {
-		toastr.error('All fields must be completed');
-	} else {
-		$.ajax( {
-			url: "options.py",
-			data: {
-				s3_backupupdate: id,
-				server: $('#backup-server-'+id).text(),
-				rserver: $('#backup-rserver-'+id).val(),
-				rpath: $('#backup-rpath-'+id).val(),
-				type: $('#backup-type-'+id).val(),
-				time: $('#backup-time-'+id).val(),
-				cred: $('#backup-credentials-'+id).val(),
-				description: $('#backup-description-'+id).val(),
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function( data ) {
-				data = data.replace(/\s+/g,' ');
-				if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
-					toastr.error(data);
-				} else {
-					toastr.clear();
-					$("#backup-table-"+id).addClass( "update", 1000 );
-					setTimeout(function() {
-						$( "#backup-table-"+id ).removeClass( "update" );
-					}, 2500 );
-				}
-			}
-		} );
+		});
 	}
 }
 function showApacheLog(serv) {
-	var rows = $('#rows').val()
-	var grep = $('#grep').val()
-	var exgrep = $('#exgrep').val()
-	var hour = $('#time_range_out_hour').val()
-	var minut = $('#time_range_out_minut').val()
-	var hour1 = $('#time_range_out_hour1').val()
-	var minut1 = $('#time_range_out_minut1').val()
+	var rows = $('#rows').val();
+	var grep = $('#grep').val();
+	var exgrep = $('#exgrep').val();
+	var hour = $('#time_range_out_hour').val();
+	var minute = $('#time_range_out_minut').val();
+	var hour1 = $('#time_range_out_hour1').val();
+	var minute1 = $('#time_range_out_minut1').val();
+	var url = "/app/logs/apache_internal/" + serv + "/" + rows;
 	$.ajax( {
-		url: "options.py",
+		url: url,
 		data: {
-			rows1: rows,
+			rows: rows,
 			serv: serv,
 			grep: grep,
 			exgrep: exgrep,
 			hour: hour,
-			minut:minut,
+			minute: minute,
 			hour1: hour1,
-			minut1: minut1,
+			minute1: minute1,
 			token: $('#token').val()
 		},
 		type: "POST",
 		success: function( data ) {
 			$("#ajax").html(data);
-			window.history.pushState("Logs", "Logs", cur_url[0] + "?serv=" + serv + "&rows1=" + rows + "&grep=" + grep +
-					'&exgrep=' + exgrep +
-					'&hour=' + hour +
-					'&minut=' + minut +
-					'&hour1=' + hour1 +
-					'&minut1=' + minut1);
 		}
 	} );
 }
 function checkSshConnect(ip) {
 	$.ajax( {
-		url: "options.py",
-		data: {
-			checkSshConnect: 1,
-			serv: ip,
-			token: $('#token').val()
-		},
-		type: "POST",
+		url: "/app/server/check/ssh/" + ip,
+		// data: {
+		// 	token: $('#token').val()
+		// },
+		// type: "POST",
 		success: function( data ) {
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data)
@@ -2236,64 +2153,64 @@ function changeUserPasswordDialog(id) {
 		return false;
 	}
 	$( "#user-change-password-table" ).dialog({
-			autoOpen: true,
-			resizable: false,
-			height: "auto",
-			width: 600,
-			modal: true,
-			title: change_word+ " "+$('#login-'+id).val()+" " +password_word,
-			show: {
-				effect: "fade",
-				duration: 200
-			},
-			hide: {
-				effect: "fade",
-				duration: 200
-			},
-			buttons: [{
-				text: change_word,
-				click: function () {
-					changeUserPassword(id, $(this));
-				}
-			}, {
-				text: cancel_word,
-				click: function() {
-					$(this).dialog("close");
-					$('#missmatchpass').hide();
-				}
-			}]
-		});
+		autoOpen: true,
+		resizable: false,
+		height: "auto",
+		width: 600,
+		modal: true,
+		title: change_word + " " + $('#login-' + id).val() + " " + password_word,
+		show: {
+			effect: "fade",
+			duration: 200
+		},
+		hide: {
+			effect: "fade",
+			duration: 200
+		},
+		buttons: [{
+			text: change_word,
+			click: function () {
+				changeUserPassword(id, $(this));
+			}
+		}, {
+			text: cancel_word,
+			click: function () {
+				$(this).dialog("close");
+				$('#missmatchpass').hide();
+			}
+		}]
+	});
 }
 function changeUserPassword(id, d) {
 	var pass = $('#change-password').val();
 	var pass2 = $('#change2-password').val();
-	if(pass != pass2) {
+	if (pass != pass2) {
 		$('#missmatchpass').show();
 	} else {
 		$('#missmatchpass').hide();
 		toastr.clear();
-		$.ajax( {
-			url: "options.py",
+		$.ajax({
+			url: "/app/user/password",
 			data: {
 				updatepassowrd: pass,
 				id: id,
 				token: $('#token').val()
 			},
 			type: "POST",
-			success: function( data ) {
-				data = data.replace(/\s+/g,' ');
+			success: function (data) {
+				data = data.replace(/\s+/g, ' ');
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
 					toastr.clear();
-					$("#user-"+id).addClass( "update", 1000 );
-					setTimeout(function() {
-						$( "#user-"+id ).removeClass( "update" );
-					}, 2500 );
-					d.dialog( "close" );
+					$("#user-" + id).addClass("update", 1000);
+					setTimeout(function () {
+						$("#user-" + id).removeClass("update");
+					}, 2500);
+					d.dialog("close");
 				}
 			}
-		} );
+		});
 	}
 }
 function changeUserServiceDialog(id) {
@@ -2302,29 +2219,28 @@ function changeUserServiceDialog(id) {
 	var services_word = $('#translate').attr('data-services3');
 	var save_word = $('#translate').attr('data-save');
 	var superAdmin_services = $('#translate').attr('data-superAdmin_services');
-	if ($('#role-'+id + ' option:selected' ).val() == 'Select a role') {
+	if ($('#role-' + id + ' option:selected').val() == 'Select a role') {
 		toastr.warning(superAdmin_services);
 		return false;
 	}
-	$.ajax( {
-		url: "options.py",
-		data: {
-			getuserservices: id,
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function( data ) {
+	$.ajax({
+		url: "/app/user/services/" + id,
+		// data: {
+		// 	token: $('#token').val()
+		// },
+		// type: "POST",
+		success: function (data) {
 			if (data.indexOf('danger') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
 				$('#change-user-service-form').html(data);
-				$( "#change-user-service-dialog" ).dialog({
+				$("#change-user-service-dialog").dialog({
 					resizable: false,
 					height: "auto",
 					width: 700,
 					modal: true,
-					title: manage_word+" "+$('#login-'+id).val()+" "+services_word,
+					title: manage_word + " " + $('#login-' + id).val() + " " + services_word,
 					buttons: [{
 						text: save_word,
 						click: function () {
@@ -2340,7 +2256,7 @@ function changeUserServiceDialog(id) {
 				});
 			}
 		}
-	} );
+	});
 }
 function changeUserServices(user_id) {
 	var jsonData = {};
@@ -2350,9 +2266,8 @@ function changeUserServices(user_id) {
 		jsonData[user_id][this_id] = {}
 	});
 	$.ajax( {
-		url: "options.py",
+		url: "/app/user/services/" + user_id,
 		data: {
-			changeUserServicesId: user_id,
 			jsonDatas: JSON.stringify(jsonData),
 			changeUserServicesUser: $('#login-'+user_id).val(),
 			token: $('#token').val()
@@ -2425,19 +2340,18 @@ function confirmAjaxServiceAction(action, service) {
 }
 function ajaxActionServies(action, service) {
 	$.ajax( {
-		url: "options.py",
-		data: {
-			action_service: action,
-			serv: service,
-			token: $('#token').val()
-		},
+		url: "/app/admin/tools/action/" + service + "/" + action,
+		// data: {
+		// 	token: $('#token').val()
+		// },
+		// type: "POST",
 		success: function( data ) {
 			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 				toastr.error(data);
 			} else if (data.indexOf('warning: ') != '-1') {
 				toastr.warning(data);
 			} else {
-				window.history.pushState("services", "services", cur_url[0].split("#")[0] + "#services");
+				window.history.pushState("services", "services", cur_url[0].split("#")[0] + "#tools");
 				toastr.success('The ' + service + ' has been ' + action +'ed');
 				loadServices();
 			}
@@ -2450,19 +2364,17 @@ function ajaxActionServies(action, service) {
 function updateService(service, action='update') {
 	$("#ajax-update").html('')
 	$("#ajax-update").html(wait_mess);
-	$.ajax( {
-		url: "options.py",
-		data: {
-			update_roxy_wi: 1,
-			service: service,
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('Complete!') != '-1' || data.indexOf('Unpacking') != '-1'){
+	$.ajax({
+		url: "/app/admin/tools/update/" + service,
+		// data: {
+		// 	token: $('#token').val()
+		// },
+		// type: "POST",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('Complete!') != '-1' || data.indexOf('Unpacking') != '-1') {
 				toastr.clear();
-				toastr.success(service + ' has been '+action+'ed');
+				toastr.success(service + ' has been ' + action + 'ed');
 			} else if (data.indexOf('Unauthorized') != '-1' || data.indexOf('Status code: 401') != '-1') {
 				toastr.clear();
 				toastr.error('It looks like there is no authorization in the Roxy-WI repository. Your subscription may have expired or there is no subscription. How to get the <b><a href="https://roxy-wi.org/pricing.py" title="Pricing" target="_blank">subscription</a></b>');
@@ -2497,7 +2409,7 @@ function updateService(service, action='update') {
 			loadupdatehapwi();
 			show_version();
 		}
-	} );
+	});
 }
 function confirmDeleteOpenVpnProfile(id) {
 	$( "#dialog-confirm" ).dialog({
@@ -2519,40 +2431,40 @@ function confirmDeleteOpenVpnProfile(id) {
 }
 
 function removeOpenVpnProfile(id) {
-	$("#"+id).css("background-color", "#f2dede");
-	$.ajax( {
-		url: "options.py",
+	$("#" + id).css("background-color", "#f2dede");
+	$.ajax({
+		url: "/app/admin/openvpn/delete",
 		data: {
 			openvpndel: id,
 			token: $('#token').val()
 		},
 		type: "POST",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
-			if(data == "Ok ") {
-				$("#"+id).remove();
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data == "ok") {
+				$("#" + id).remove();
 			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			}
 		}
-	} );
+	});
 }
 function uploadOvpn() {
 	toastr.clear();
-	if ($( "#ovpn_upload_name" ).val() == '' || $('#ovpn_upload_file').val() == '') {
+	if ($("#ovpn_upload_name").val() == '' || $('#ovpn_upload_file').val() == '') {
 		toastr.error('All fields must be completed');
 	} else {
-		$.ajax( {
-			url: "options.py",
+		$.ajax({
+			url: "/app/admin/openvpn/upload",
 			data: {
 				uploadovpn: $('#ovpn_upload_file').val(),
 				ovpnname: $('#ovpn_upload_name').val(),
 				token: $('#token').val()
 			},
 			type: "POST",
-			success: function( data ) {
-				data = data.replace(/\s+/g,' ');
-				if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1')  {
+			success: function (data) {
+				data = data.replace(/\s+/g, ' ');
+				if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else if (data.indexOf('success') != '-1') {
 					toastr.clear();
@@ -2562,18 +2474,16 @@ function uploadOvpn() {
 					toastr.error('Something wrong, check and try again');
 				}
 			}
-		} );
+		});
 	}
 }
 function OpenVpnSess(id, action) {
 	$.ajax({
-		url: "options.py",
-		data: {
-			actionvpn: action,
-			openvpnprofile: id,
-			token: $('#token').val()
-		},
-		type: "POST",
+		url: "/app/admin/openvpn/" + action + "/" + id,
+		// data: {
+		// 	token: $('#token').val()
+		// },
+		// type: "POST",
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1') {
@@ -2586,48 +2496,15 @@ function OpenVpnSess(id, action) {
 				toastr.error('Something wrong, check and try again');
 			}
 		}
-	} );
+	});
 }
-function scanPorts(id) {
+function viewFirewallRules(ip) {
 	$.ajax({
-		url: "options.py",
-		data: {
-			scan_ports: id,
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1') {
-				toastr.error(data);
-			} else {
-				toastr.clear();
-				$("#show_scans_ports_body").html(data);
-				$("#show_scans_ports" ).dialog({
-					resizable: false,
-					height: "auto",
-					width: 360,
-					modal: true,
-					title: "Openned ports",
-					buttons: {
-						Close: function() {
-							$( this ).dialog( "close" );
-							$("#show_scans_ports_body").html('');
-						}
-					}
-				});
-			}
-		}
-	} );
-}
-function viewFirewallRules(id) {
-	$.ajax({
-		url: "options.py",
-		data: {
-			viewFirewallRules: id,
-			token: $('#token').val()
-		},
-		type: "POST",
+		url: "/app/server/firewall/" + ip,
+		// data: {
+		// 	token: $('#token').val()
+		// },
+		// type: "POST",
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error: ') != '-1') {
@@ -2654,12 +2531,11 @@ function viewFirewallRules(id) {
 }
 function loadServices() {
 	$.ajax({
-		url: "options.py",
-		data: {
-			loadservices: 1,
-			token: $('#token').val()
-		},
-		type: "POST",
+		url: "/app/admin/tools",
+		// data: {
+		// 	token: $('#token').val()
+		// },
+		// type: "POST",
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1') {
@@ -2673,12 +2549,11 @@ function loadServices() {
 }
 function loadupdatehapwi() {
 	$.ajax({
-		url: "options.py",
-		data: {
-			load_update_hapwi: 1,
-			token: $('#token').val()
-		},
-		type: "POST",
+		url: "/app/server/update",
+		// data: {
+		// 	token: $('#token').val()
+		// },
+		// type: "POST",
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1') {
@@ -2689,15 +2564,10 @@ function loadupdatehapwi() {
 		}
 	} );
 }
-function loadchecker(tab = 0) {
+function loadchecker() {
 	$.ajax({
-		url: "options.py",
-		data: {
-			loadchecker: 1,
-			page: cur_url[0].split('#')[0],
-			token: $('#token').val()
-		},
-		type: "POST",
+		url: "/app/checker/settings/load",
+		type: "GET",
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('group_error') == '-1' && data.indexOf('error:') != '-1') {
@@ -2709,19 +2579,18 @@ function loadchecker(tab = 0) {
 				$( "input[type=checkbox]" ).checkboxradio();
 				$.getScript('/inc/users.js');
 				$.getScript(awesome);
-				$( "#checker_tabs" ).tabs( "option", "active", tab );
+				// $( "#checker_tabs" ).tabs( "option", "active", tab );
 			}
 		}
 	} );
 }
 function loadopenvpn() {
 	$.ajax({
-		url: "options.py",
-		data: {
-			loadopenvpn: 1,
-			token: $('#token').val()
-		},
-		type: "POST",
+		url: "/app/admin/openvpn",
+		// data: {
+		// 	token: $('#token').val()
+		// },
+		// type: "POST",
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('group_error') == '-1' && data.indexOf('error:') != '-1') {
@@ -2735,14 +2604,11 @@ function loadopenvpn() {
 }
 function checkReceiver(channel_id, receiver_name) {
 	$.ajax({
-		url: "options.py",
-		data: {
-			check_receiver: 1,
-			receiver_channel_id: channel_id,
-			receiver_name: receiver_name,
-			token: $('#token').val()
-		},
-		type: "POST",
+		url: "/app/checker/check/" + channel_id + "/" + receiver_name,
+		// data: {
+		// 	token: $('#token').val()
+		// },
+		// type: "POST",
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {
@@ -2751,43 +2617,37 @@ function checkReceiver(channel_id, receiver_name) {
 				toastr.success('Test message has been sent');
 			}
 		}
-	} );
+	});
 }
 function updateServerInfo(ip, id) {
 	$.ajax({
-			url: "options.py",
-			data: {
-				act: 'updateSystemInfo',
-				server_ip: ip,
-				server_id: id,
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function (data) {
-				data = data.replace(/\s+/g, ' ');
-				if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {
-					toastr.error(data);
-				} else {
-					$("#server_info-"+id).html(data);
-					$('#server_info-'+id).show();
-					$('#server_info_link-'+id).attr('title', 'Hide System info');
-					$.getScript(awesome);
-				}
+		url: "/app/server/system_info/update/" + ip + "/" + id,
+		// data: {
+		// 	token: $('#token').val()
+		// },
+		// type: "POST",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {
+				toastr.error(data);
+			} else {
+				$("#server_info-" + id).html(data);
+				$('#server_info-' + id).show();
+				$('#server_info_link-' + id).attr('title', 'Hide System info');
+				$.getScript(awesome);
 			}
-		} );
+		}
+	});
 }
 function showServerInfo(id, ip) {
 	var close_word = $('#translate').attr('data-close');
 	var server_info = $('#translate').attr('data-server_info');
 	$.ajax({
-		url: "options.py",
-		data: {
-			act: 'getSystemInfo',
-			server_ip: ip,
-			server_id: id,
-			token: $('#token').val()
-		},
-		type: "POST",
+		url: "/app/server/system_info/get/" + ip + "/" +id,
+		// data: {
+		// 	token: $('#token').val()
+		// },
+		// type: "POST",
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {
@@ -2810,7 +2670,7 @@ function showServerInfo(id, ip) {
 				$.getScript(awesome);
 			}
 		}
-	} );
+	});
 }
 function updateHaproxyCheckerSettings(id) {
 	toastr.clear();
@@ -2818,168 +2678,167 @@ function updateHaproxyCheckerSettings(id) {
 	let server = 0;
 	let backend = 0;
 	let maxconn = 0;
-	if ($('#haproxy_server_email-'+id).is(':checked')) {
+	if ($('#haproxy_server_email-' + id).is(':checked')) {
 		email = '1';
 	}
-	if ($('#haproxy_server_status-'+id).is(':checked')) {
+	if ($('#haproxy_server_status-' + id).is(':checked')) {
 		server = '1';
 	}
-	if ($('#haproxy_server_backend-'+id).is(':checked')) {
+	if ($('#haproxy_server_backend-' + id).is(':checked')) {
 		backend = '1';
 	}
-	if ($('#haproxy_server_maxconn-'+id).is(':checked')) {
+	if ($('#haproxy_server_maxconn-' + id).is(':checked')) {
 		maxconn = '1';
 	}
-	$.ajax( {
-		url: "options.py",
+	$.ajax({
+		url: "/app/checker/settings/update",
 		data: {
-			updateHaproxyCheckerSettings: id,
+			service: 'haproxy',
+			setting_id: id,
 			email: email,
 			server: server,
 			backend: backend,
 			maxconn: maxconn,
-			telegram_id: $('#haproxy_server_telegram_channel-'+id+' option:selected' ).val(),
-			slack_id: $('#haproxy_server_slack_channel-'+id+' option:selected').val(),
-			pd_id: $('#haproxy_server_pd_channel-'+id+' option:selected').val(),
+			telegram_id: $('#haproxy_server_telegram_channel-' + id + ' option:selected').val(),
+			slack_id: $('#haproxy_server_slack_channel-' + id + ' option:selected').val(),
+			pd_id: $('#haproxy_server_pd_channel-' + id + ' option:selected').val(),
 			token: $('#token').val()
 		},
 		type: "POST",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			} else if (data.indexOf('ok') != '-1') {
 				toastr.clear();
-				$("#haproxy_server_tr_id-"+id).addClass( "update", 1000 );
-				setTimeout(function() {
-					$( "#haproxy_server_tr_id-"+id ).removeClass( "update" );
-				}, 2500 );
+				$("#haproxy_server_tr_id-" + id).addClass("update", 1000);
+				setTimeout(function () {
+					$("#haproxy_server_tr_id-" + id).removeClass("update");
+				}, 2500);
 			}
 		}
-	} );
+	});
 }
 function updateKeepalivedCheckerSettings(id) {
 	toastr.clear();
 	let email = 0;
 	let server = 0;
 	let backend = 0;
-	if ($('#keepalived_server_email-'+id).is(':checked')) {
+	if ($('#keepalived_server_email-' + id).is(':checked')) {
 		email = '1';
 	}
-	if ($('#keepalived_server_status-'+id).is(':checked')) {
+	if ($('#keepalived_server_status-' + id).is(':checked')) {
 		server = '1';
 	}
-	if ($('#keepalived_server_backend-'+id).is(':checked')) {
+	if ($('#keepalived_server_backend-' + id).is(':checked')) {
 		backend = '1';
 	}
-	$.ajax( {
-		url: "options.py",
+	$.ajax({
+		url: "/app/checker/settings/update",
 		data: {
-			updateKeepalivedCheckerSettings: id,
+			service: 'keepavlied',
+			settings_id: id,
 			email: email,
 			server: server,
 			backend: backend,
-			telegram_id: $('#keepalived_server_telegram_channel-'+id+' option:selected' ).val(),
-			slack_id: $('#keepalived_server_slack_channel-'+id+' option:selected').val(),
-			pd_id: $('#keepalived_server_pd_channel-'+id+' option:selected').val(),
+			telegram_id: $('#keepalived_server_telegram_channel-' + id + ' option:selected').val(),
+			slack_id: $('#keepalived_server_slack_channel-' + id + ' option:selected').val(),
+			pd_id: $('#keepalived_server_pd_channel-' + id + ' option:selected').val(),
 			token: $('#token').val()
 		},
 		type: "POST",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			} else if (data.indexOf('ok') != '-1') {
 				toastr.clear();
-				$("#keepalived_server_tr_id-"+id).addClass( "update", 1000 );
-				setTimeout(function() {
-					$( "#keepalived_server_tr_id-"+id ).removeClass( "update" );
-				}, 2500 );
+				$("#keepalived_server_tr_id-" + id).addClass("update", 1000);
+				setTimeout(function () {
+					$("#keepalived_server_tr_id-" + id).removeClass("update");
+				}, 2500);
 			}
 		}
-	} );
+	});
 }
 function updateServiceCheckerSettings(id, service_name) {
 	toastr.clear();
 	let email = 0;
 	let server = 0;
-	if ($('#'+service_name+'_server_email-'+id).is(':checked')) {
+	if ($('#' + service_name + '_server_email-' + id).is(':checked')) {
 		email = '1';
 	}
-	if ($('#'+service_name+'_server_status-'+id).is(':checked')) {
+	if ($('#' + service_name + '_server_status-' + id).is(':checked')) {
 		server = '1';
 	}
-	$.ajax( {
-		url: "options.py",
+	$.ajax({
+		url: "/app/checker/settings/update",
 		data: {
-			updateServiceCheckerSettings: id,
+			service: service_name,
+			settings_id: id,
 			email: email,
 			server: server,
-			telegram_id: $('#'+service_name+'_server_telegram_channel-'+id+' option:selected' ).val(),
-			slack_id: $('#'+service_name+'_server_slack_channel-'+id+' option:selected').val(),
-			pd_id: $('#'+service_name+'_server_pd_channel-'+id+' option:selected').val(),
+			telegram_id: $('#' + service_name + '_server_telegram_channel-' + id + ' option:selected').val(),
+			slack_id: $('#' + service_name + '_server_slack_channel-' + id + ' option:selected').val(),
+			pd_id: $('#' + service_name + '_server_pd_channel-' + id + ' option:selected').val(),
 			token: $('#token').val()
 		},
 		type: "POST",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			} else if (data.indexOf('ok') != '-1') {
 				toastr.clear();
-				$('#'+service_name+'_server_tr_id-'+id).addClass( "update", 1000 );
-				setTimeout(function() {
-					$('#'+service_name+'_server_tr_id-'+id ).removeClass( "update" );
-				}, 2500 );
+				$('#' + service_name + '_server_tr_id-' + id).addClass("update", 1000);
+				setTimeout(function () {
+					$('#' + service_name + '_server_tr_id-' + id).removeClass("update");
+				}, 2500);
 			}
 		}
-	} );
+	});
 }
 function checkWebPanel() {
 	$.ajax({
-	  url: "options.py",
-	  data: {
-		  check_rabbitmq_alert: 1,
-		  token: $('#token').val()
-	  },
-	  type: "POST",
-	  success: function (data) {
-		  data = data.replace(/\s+/g, ' ');
-		  if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {
-			  toastr.error(data);
-		  } else {
-			  toastr.success('Test message has been sent');
-		  }
-	  }
+		url: "/app/checker/check/rabbit",
+		// data: {
+		//   token: $('#token').val()
+		// },
+		// type: "POST",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {
+				toastr.error(data);
+			} else {
+				toastr.success('Test message has been sent');
+			}
+		}
 	});
 }
 function checkEmail() {
 	$.ajax({
-	  url: "options.py",
-	  data: {
-		  check_email_alert: 1,
-		  token: $('#token').val()
-	  },
-	  type: "POST",
-	  success: function (data) {
-		  data = data.replace(/\s+/g, ' ');
-		  if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {
-			  toastr.error(data);
-		  } else {
-			  toastr.success('Test message has been sent');
-		  }
-	  }
+		url: "/app/checker/check/email",
+		// data: {
+		//   token: $('#token').val()
+		// },
+		// type: "POST",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {
+				toastr.error(data);
+			} else {
+				toastr.success('Test message has been sent');
+			}
+		}
 	});
 }
 function checkGeoipInstallation() {
 	$.ajax( {
-		url: "options.py",
-		data: {
-			geoipserv: $('#geoipserv option:selected').val(),
-			geoip_service: $('#geoip_service option:selected').val(),
-			token: $('#token').val()
-		},
-		type: "POST",
+		url: "/app/install/geoip/" + $('#geoip_service option:selected').val() + "/" + $('#geoipserv option:selected').val(),
+		// data: {
+		// 	token: $('#token').val()
+		// },
+		// type: "POST",
 		success: function( data ) {
 			data = data.replace(/^\s+|\s+$/g,'');
 			if(data.indexOf('No such file or directory') != '-1' || data.indexOf('cannot access') != '-1') {
@@ -2992,44 +2851,42 @@ function checkGeoipInstallation() {
 		}
 	} );
 }
-function installService(service){
+function installService(service) {
 	$("#ajax").html('')
 	var syn_flood = 0;
 	var docker = 0;
-	if ($('#'+service+'_syn_flood').is(':checked')) {
+	if ($('#' + service + '_syn_flood').is(':checked')) {
 		syn_flood = '1';
 	}
-	if ($('#'+service+'_docker').is(':checked')) {
+	if ($('#' + service + '_docker').is(':checked')) {
 		docker = '1';
 	}
-	if ($('#'+service+'addserv').val() == '------') {
+	if ($('#' + service + 'addserv').val() == '------') {
 		var select_server = $('#translate').attr('data-select_server');
 		toastr.warning(select_server);
 		return false
 	}
 	$("#ajax").html(wait_mess);
-	$.ajax( {
-		url: "options.py",
+	$.ajax({
+		url: "/app/install/" + service + "/" + $('#' + service + 'addserv').val(),
 		data: {
-			install_service: $('#' + service + 'addserv').val(),
-			service: service,
 			syn_flood: syn_flood,
 			docker: docker,
 			token: $('#token').val()
 		},
 		type: "POST",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
 			$("#ajax").html('')
 			if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
 				toastr.clear();
 				var p_err = show_pretty_ansible_error(data);
 				toastr.error(p_err);
-			} else if (data.indexOf('success') != '-1' ){
+			} else if (data.indexOf('success') != '-1') {
 				toastr.clear();
 				toastr.success(data);
-				$('#'+service+'addserv').trigger( "selectmenuchange" );
-			} else if (data.indexOf('Info') != '-1' ){
+				$('#' + service + 'addserv').trigger("selectmenuchange");
+			} else if (data.indexOf('Info') != '-1') {
 				toastr.clear();
 				toastr.info(data);
 			} else {
@@ -3037,49 +2894,45 @@ function installService(service){
 				toastr.info(data);
 			}
 		}
-	} );
+	});
 }
 function showServiceVersion(service) {
 	$.ajax({
-		url: "options.py",
-		data: {
-			get_service_v: service,
-			serv: $('#'+service+'addserv option:selected').val(),
-			token: $('#token').val()
-		},
-		type: "POST",
+		url: "/app/install/" + service + "/version/" + $('#' + service + 'addserv option:selected').val(),
+		// data: {
+		// 	token: $('#token').val()
+		// },
+		// type: "POST",
 		success: function (data) {
 			data = data.replace(/^\s+|\s+$/g, '');
 			if (data.indexOf('bash') != '-1' || data.indexOf('such') != '-1' || data.indexOf('command not found') != '-1' || data.indexOf('from') != '-1') {
-				$('#cur_'+service+'_ver').text(service+' has not installed');
-				$('#'+service+'_install').text('Install');
-				$('#'+service+'_install').attr('title', 'Install');
+				$('#cur_' + service + '_ver').text(service + ' has not installed');
+				$('#' + service + '_install').text('Install');
+				$('#' + service + '_install').attr('title', 'Install');
 			} else if (data.indexOf('warning: ') != '-1') {
 				toastr.warning(data);
 			} else if (data == '') {
-				$('#cur_'+service+'_ver').text(service+' has not installed');
-				$('#'+service+'_install').text('Install');
-				$('#'+service+'_install').attr('title', 'Install');
+				$('#cur_' + service + '_ver').text(service + ' has not installed');
+				$('#' + service + '_install').text('Install');
+				$('#' + service + '_install').attr('title', 'Install');
 			} else {
-				$('#cur_'+service+'_ver').text(data);
-				$('#cur_'+service+'_ver').css('font-weight', 'bold');
-				$('#'+service+'_install').text('Update');
-				$('#'+service+'_install').attr('title', 'Update');
+				$('#cur_' + service + '_ver').text(data);
+				$('#cur_' + service + '_ver').css('font-weight', 'bold');
+				$('#' + service + '_install').text('Update');
+				$('#' + service + '_install').attr('title', 'Update');
 			}
 		}
-	} );
+	});
 }
 function serverIsUp(server_ip, server_id) {
 	var cur_url = window.location.href.split('/').pop();
 	if (cur_url.split('#')[1] == 'servers') {
 		$.ajax({
-			url: "options.py",
-			data: {
-				act: 'server_is_up',
-				server_is_up: server_ip,
-				token: $('#token').val()
-			},
-			type: "POST",
+			url: "/app/server/check/server/" + server_ip,
+			// data: {
+			// 	token: $('#token').val()
+			// },
+			// type: "POST",
 			success: function (data) {
 				data = data.replace(/^\s+|\s+$/g, '');
 				if (data.indexOf('up') != '-1') {
@@ -3106,15 +2959,13 @@ function confirmChangeGroupsAndRoles(user_id) {
 	var cancel_word = $('#translate').attr('data-cancel');
 	var action_word = $('#translate').attr('data-save');
 	var user_groups_word = $('#translate').attr('data-user_groups');
-	var username = $('#login-'+user_id).val();
+	var username = $('#login-' + user_id).val();
 	$.ajax({
-		url: "options.py",
-		data: {
-			act: 'show_user_group_and_role',
-			user_id: user_id,
-			token: $('#token').val()
-		},
-		type: "POST",
+		url: "/app/user/groups/" + user_id,
+		// data: {
+		// 	token: $('#token').val()
+		// },
+		// type: "POST",
 		success: function (data) {
 			$("#groups-roles").html(data);
 			$("#groups-roles").dialog({
@@ -3182,14 +3033,13 @@ function saveGroupsAndRoles(user_id) {
 	jsonData[user_id] = {};
 	$('#checked_groups tbody tr').each(function () {
 		var this_id = $(this).attr('id').split('-')[1];
-		var role_id = $('#add_role-'+this_id).val();
+		var role_id = $('#add_role-' + this_id).val();
 		jsonData[user_id][this_id] = {'role_id': role_id};
 	});
 	$.ajax({
-		url: "options.py",
+		url: "/app/user/groups/save",
 		data: {
-			act: 'save_user_group_and_role',
-			changeUserGroupsUser: $('#login-'+user_id).val(),
+			changeUserGroupsUser: $('#login-' + user_id).val(),
 			jsonDatas: JSON.stringify(jsonData),
 			token: $('#token').val()
 		},
@@ -3198,10 +3048,10 @@ function saveGroupsAndRoles(user_id) {
 			if (data.indexOf('error: ') != '-1') {
 				toastr.warning(data);
 			} else {
-				$("#user-"+user_id).addClass( "update", 1000 );
-				setTimeout(function() {
-					$( "#user-"+user_id ).removeClass( "update" );
-				}, 2500 );
+				$("#user-" + user_id).addClass("update", 1000);
+				setTimeout(function () {
+					$("#user-" + user_id).removeClass("update");
+				}, 2500);
 			}
 		}
 	});
@@ -3210,15 +3060,13 @@ function openChangeServerServiceDialog(server_id) {
 	var cancel_word = $('#translate').attr('data-cancel');
 	var action_word = $('#translate').attr('data-save');
 	var user_groups_word = $('#translate').attr('data-user_groups');
-	var hostname = $('#hostname-'+server_id).val();
+	var hostname = $('#hostname-' + server_id).val();
 	$.ajax({
-		url: "options.py",
-		data: {
-			act: 'show_server_services',
-			server_id: server_id,
-			token: $('#token').val()
-		},
-		type: "POST",
+		url: "/app/server/services/" + server_id,
+		// data: {
+		// 	token: $('#token').val()
+		// },
+		// type: "GET",
 		success: function (data) {
 			$("#groups-roles").html(data);
 			$("#groups-roles").dialog({
@@ -3283,16 +3131,15 @@ function changeServerServices(server_id) {
 		var this_id = $(this).attr('id').split('-')[1];
 		jsonData[this_id] = 0
 	});
-	$.ajax( {
-		url: "options.py",
+	$.ajax({
+		url: "/app/server/services/" + server_id,
 		data: {
-			changeServerServicesId: server_id,
 			jsonDatas: JSON.stringify(jsonData),
-			changeServerServicesServer: $('#hostname-'+server_id).val(),
+			changeServerServicesServer: $('#hostname-' + server_id).val(),
 			token: $('#token').val()
 		},
 		type: "POST",
-		success: function( data ) {
+		success: function (data) {
 			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 				toastr.error(data);
 			} else {
@@ -3302,5 +3149,5 @@ function changeServerServices(server_id) {
 				}, 2500);
 			}
 		}
-	} );
+	});
 }

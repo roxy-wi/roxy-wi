@@ -22,8 +22,7 @@ export ACTION_WARNINGS=False
 export LOCALHOST_WARNING=False
 export COMMAND_WARNINGS=False
 
-PWD=`pwd`
-PWD=$PWD/scripts/ansible/
+PWD=/var/www/haproxy-wi/app/scripts/ansible/
 
 ansible-playbook $PWD/roles/s3_backup.yml -e "SERVER=$SERVER S3_SERVER=$S3_SERVER BUCKET=$BUCKET SECRET_KEY=$SECRET_KEY ACCESS_KEY=$ACCESS_KEY TIME=$TIME" -t $TAG -i $PWD/$HOST
 

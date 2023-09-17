@@ -1,18 +1,9 @@
 {% extends "base.html" %}
-{% block title %}{{ title }}{% endblock %}
-{% block h2 %}{{ title }}{% endblock %}
+{% block title %}{{ lang.p_s_page.p_s_title }}{% endblock %}
+{% block h2 %}{{ lang.p_s_page.p_s_title }}{% endblock %}
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select %}
-<script src="/inc/overview-6.3.9.js"></script>
-{% if serv %}
-<style>
-@media (max-width: 1280px) {
-	.div-pannel {
-		height: 430px !important;
-	}
-}
-</style>
-{% endif %}
+<script src="/inc/overview.js"></script>
 <style>
 .alert-danger {
 	width: 250px;
@@ -30,12 +21,10 @@
 {% if user_status == 0 %}
 	{% include 'include/no_sub.html' %}
 {% else %}
-{% if history %}
-	{% include 'include/port_scan_history.html' %}
-{% elif port_scanner_stderr != '' %}
+{% if port_scanner_stderr != '' %}
 <div style="text-align: center;">
 	<br />
-	<h3>{{lang.admin_page.desc.no_ansible}} Port scanner {{lang.words.service}}. {{lang.words.read|title()}} <a href="https://roxy-wi.org/services.py/portscanner"
+	<h3>{{lang.admin_page.desc.no_ansible}} Port scanner {{lang.words.service}}. {{lang.words.read|title()}} <a href="https://roxy-wi.org/services/portscanner"
 	title="Port scanner" target="_blank">{{lang.words.here}}</a> {{lang.phrases.how_to_install}} Port scanner {{lang.words.service}}</h3>
 </div>
 {% else %}
@@ -71,7 +60,7 @@
 						<span id="portscanner_enable_status-{{s.0}}" class="serverNone server-status" title="Port scanner {{lang.words.is}} {{lang.words.disabled}}"></span>
 					{% endif %}
 					{% if not serv %}
-						<a href="/app/portscanner.py?history={{s.2}}" title="{{lang.words.view|title()}} Port scanner {{lang.words.history2}} {{lang.words.for}} {{s.1}}" style="color: #5d9ceb">{{s.1}}</a>
+						<a href="/app/portscanner/history/{{s.2}}" title="{{lang.words.view|title()}} Port scanner {{lang.words.history2}} {{lang.words.for}} {{s.1}}" style="color: #5d9ceb">{{s.1}}</a>
 					{% else %}
 						{{s.1}}
 					{% endif %}
@@ -159,12 +148,11 @@
 <script>
 	function scanPorts(id) {
 		$.ajax({
-			url: "options.py",
-			data: {
-				scan_ports: id,
-				token: $('#token').val()
-			},
-			type: "POST",
+			url: "/app/portscanner/scan/" + id,
+			// data: {
+			// 	token: $('#token').val()
+			// },
+			// type: "POST",
 			success: function (data) {
 				data = data.replace(/\s+/g, ' ');
 				if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1') {
@@ -173,7 +161,7 @@
 					toastr.clear();
 					$("#show_scans_ports_body").html(data);
 					var close_word = $('#translate').attr('data-close');
-					$("#show_scans_ports" ).dialog({
+					$("#show_scans_ports").dialog({
 						resizable: false,
 						height: "auto",
 						width: 360,
@@ -181,15 +169,15 @@
 						title: "{{lang.words.opened|title()}} {{lang.words.ports}}",
 						buttons: [{
 							text: close_word,
-							click: function() {
-								$( this ).dialog( "close" );
+							click: function () {
+								$(this).dialog("close");
 								$("#show_scans_ports_body").html('');
 							}
 						}]
 					});
 				}
 			}
-		} );
+		});
 	}
 	$( ".server-act-links" ).change(function() {
 		var id = $(this).attr('id').split('-');
@@ -224,26 +212,26 @@
 			$('#portscanner_notify-'+id).checkboxradio('disable');
 			$('#portscanner_history-'+id).checkboxradio('disable');
 		}
-		$.ajax( {
-			url: "options.py",
+		$.ajax({
+			url: "/app/portscanner/settings",
 			data: {
-				portscanner_history_server_id: id,
-				portscanner_enabled: portscanner_enabled,
-				portscanner_notify: portscanner_notify,
-				portscanner_history: portscanner_history,
+				server_id: id,
+				enabled: portscanner_enabled,
+				notify: portscanner_notify,
+				history: portscanner_history,
 				token: $('#token').val()
 			},
 			type: "POST",
-			success: function( data ) {
-				data = data.replace(/\s+/g,' ');
+			success: function (data) {
+				data = data.replace(/\s+/g, ' ');
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
 					toastr.clear();
-					$("#server-"+id).addClass( "update", 1000 );
-					setTimeout(function() {
-						$( "#server-"+id).removeClass( "update" );
-					}, 2500 );
+					$("#server-" + id).addClass("update", 1000);
+					setTimeout(function () {
+						$("#server-" + id).removeClass("update");
+					}, 2500);
 				}
 			}
 		} );

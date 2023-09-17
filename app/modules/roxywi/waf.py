@@ -1,7 +1,4 @@
-import os
-import http.cookies
-
-from jinja2 import Environment, FileSystemLoader
+from flask import render_template, request
 
 import modules.db.sql as sql
 import modules.common.common as common
@@ -12,19 +9,10 @@ form = common.form
 
 
 def waf_overview(serv, waf_service) -> None:
-    env = Environment(
-        loader=FileSystemLoader('templates/'), autoescape=True,
-        extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do']
-    )
-    template = env.get_template('ajax/overivewWaf.html')
-
     servers = sql.select_servers(server=serv)
-    cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-    user_id = cookie.get('uuid')
-    group_id = cookie.get('group')
-    group_id = int(group_id.value)
-
-    config_path = ''
+    user_id = request.cookies.get('uuid')
+    group_id = int(request.cookies.get('group'))
+    role = sql.get_user_role_by_uuid(user_id, group_id)
     returned_servers = []
     waf = ''
     metrics_en = 0
@@ -77,17 +65,13 @@ def waf_overview(serv, waf_service) -> None:
 
         returned_servers.append(server_status)
 
-    lang = roxywi_common.get_user_lang()
+    lang = roxywi_common.get_user_lang_for_flask()
     servers_sorted = sorted(returned_servers, key=common.get_key)
-    template = template.render(service_status=servers_sorted, role=sql.get_user_role_by_uuid(user_id.value, group_id),
-                               waf_service=waf_service, lang=lang)
-    print(template)
+
+    return render_template('ajax/overivewWaf.html', service_status=servers_sorted, role=role, waf_service=waf_service, lang=lang)
 
 
-def change_waf_mode() -> None:
-    waf_mode = common.checkAjaxInput(form.getvalue('change_waf_mode'))
-    server_hostname = form.getvalue('server_hostname')
-    service = common.checkAjaxInput(form.getvalue('service'))
+def change_waf_mode(waf_mode: str, server_hostname: str, service: str) -> str:
     serv = sql.select_server_by_name(server_hostname)
 
     if service == 'haproxy':
@@ -96,19 +80,22 @@ def change_waf_mode() -> None:
         config_dir = sql.get_setting('nginx_dir')
 
     commands = [f"sudo sed -i 's/^SecRuleEngine.*/SecRuleEngine {waf_mode}/' {config_dir}/waf/modsecurity.conf"]
-    server_mod.ssh_command(serv, commands)
+
+    try:
+        server_mod.ssh_command(serv, commands)
+    except Exception as e:
+        return str(e)
+
     roxywi_common.logging(serv, f'Has been changed WAF mod to {waf_mode}', roxywi=1, login=1)
 
+    return 'ok'
 
-def switch_waf_rule(serv) -> None:
-    enable = common.checkAjaxInput(form.getvalue('waf_en'))
-    rule_id = common.checkAjaxInput(form.getvalue('waf_rule_id'))
 
+def switch_waf_rule(serv: str, enable: int, rule_id: int) -> str:
     haproxy_path = sql.get_setting('haproxy_dir')
     rule_file = sql.select_waf_rule_by_id(rule_id)
     conf_file_path = haproxy_path + '/waf/modsecurity.conf'
     rule_file_path = f'Include {haproxy_path}/waf/rules/{rule_file}'
-    print(rule_file_path)
 
     if enable == '0':
         cmd = ["sudo sed -i 's!" + rule_file_path + "!#" + rule_file_path + "!' " + conf_file_path]
@@ -123,15 +110,14 @@ def switch_waf_rule(serv) -> None:
     except Exception:
         pass
 
-    print(server_mod.ssh_command(serv, cmd))
     sql.update_enable_waf_rules(rule_id, serv, enable)
+    return server_mod.ssh_command(serv, cmd)
 
 
-def create_waf_rule(serv) -> None:
-    service = common.checkAjaxInput(form.getvalue('service'))
-    new_waf_rule = common.checkAjaxInput(form.getvalue('new_waf_rule'))
-    new_rule_desc = common.checkAjaxInput(form.getvalue('new_rule_description'))
-    rule_file = common.checkAjaxInput(form.getvalue('new_rule_file'))
+def create_waf_rule(serv, service) -> str:
+    new_waf_rule = common.checkAjaxInput(request.form.get('new_waf_rule'))
+    new_rule_desc = common.checkAjaxInput(request.form.get('new_rule_description'))
+    rule_file = common.checkAjaxInput(request.form.get('new_rule_file'))
     rule_file = f'{rule_file}.conf'
     waf_path = ''
 
@@ -144,11 +130,13 @@ def create_waf_rule(serv) -> None:
     rule_file_path = f'{waf_path}waf/rules/{rule_file}'
 
     cmd = [f"sudo echo Include {rule_file_path} >> {conf_file_path} && sudo touch {rule_file_path}"]
-    print(server_mod.ssh_command(serv, cmd))
-    print(sql.insert_new_waf_rule(new_waf_rule, rule_file, new_rule_desc, service, serv))
+    server_mod.ssh_command(serv, cmd)
+    sql.insert_new_waf_rule(new_waf_rule, rule_file, new_rule_desc, service, serv)
 
     try:
         roxywi_common.logging('WAF', f' A new rule has been created {rule_file} on the server {serv}',
                               roxywi=1, login=1)
     except Exception:
         pass
+
+    return 'ok'

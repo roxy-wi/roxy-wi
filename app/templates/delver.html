@@ -12,7 +12,7 @@
 			<input type="hidden" value="{{service}}" name="service" id="service">
 			{% include 'include/select.html' %}
 				<a class="ui-button ui-widget ui-corner-all" title="Open versions" onclick="showListOfVersion(1)">{{lang.words.open|title()}}</a>
-				<a href="config.py?service={{service}}" class="ui-button ui-widget ui-corner-all" title="Configs page">{{lang.words.configs|title()}}</a>
+				<a href="/app/config/{{service}}" class="ui-button ui-widget ui-corner-all" title="Configs page">{{lang.words.configs|title()}}</a>
 			{% if service != 'keepalived' %}
 				<a class="ui-button ui-widget ui-corner-all" title="View stat" onclick="openStats()">{{lang.words.stats|title()}}</a>
 			{% endif %}
@@ -36,7 +36,7 @@
 			{{lang.phrases.work_with_prev}} {{ service[0]|upper}}{{service[1:] }}. {{lang.phrases.roll_back}}
 		</div>
 	{% endif %}
-	{% if open and not aftersave %}
+	{% if serv and not aftersave %}
 	{% for select in selects %}
 		{% if select.2 == serv %}
 			<script>showListOfVersion(1)</script>

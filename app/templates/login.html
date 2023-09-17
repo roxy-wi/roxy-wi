@@ -59,9 +59,11 @@ body, .container {
 <div id="main_div">
 	<div id="login-form" style="padding-top: 40px; padding-bottom: 50px; height: 250px; color: #000;">
 		<span id="logo_span">
-			<img src="/inc/images/logo_login.png">
+			<img src="{{ url_for('static', filename='images/logo_login.png')}}">
 		</span>
-		<form name="auth" id="auth" action="login.py" class="form-horizontal" method="post" style="margin-top: 60px;left: 0;float: left;margin-left: 93px;">
+		<form class="form-horizontal" id="auth" method="post" style="margin-top: 60px;left: 0;float: left;margin-left: 93px;">
+			<span style="color: white;font-weight: bold;padding-left: 10px;">Login/Password admin/admin</span>
+			<br>
 			<div class="fontuser">
 				{{ input('login', class='form-login', placeholder=lang.words.login|title(), required='required', autofocus='autofocus') }}
 				<i class="fa fa-user fa-lg"></i>
@@ -83,6 +85,11 @@ body, .container {
 			{{error}}
 		</div>
 		{% endif %}
+		{% with messages = get_flashed_messages(with_categories=true) %}
+          {% for category, message in messages %}
+            <div class="{{ category }}" style="width: 15%;">{{ message }}</div>
+          {% endfor %}
+        {% endwith %}
 		<div class="alert alert-danger wrong-login alert-one-row" id="wrong-login">
 			{{lang.phrases.login_or_pass_incorrect}}
 			<br />

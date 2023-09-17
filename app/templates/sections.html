@@ -3,7 +3,7 @@
 {% block h2 %}{{lang.words.edit|title()}} {{lang.words.section2}} {% endblock %}
 {% block content %}
 {% if is_serv_protected and role > 2 %}
-<meta http-equiv="refresh" content="0; url=/app/hapservers.py?service={{service}}">
+<meta http-equiv="refresh" content="0; url=/app/service/{{service}}">
 {% else %}
 <link rel="stylesheet" href="/inc/codemirror/lib/codemirror.css">
 <link rel="stylesheet" href="/inc/codemirror/addon/dialog/dialog.css">
@@ -24,11 +24,11 @@
 <script src="/inc/codemirror/addon/fold/brace-fold.js"></script>
 <script src="/inc/codemirror/addon/fold/comment-fold.js"></script>
 <script src="/inc/codemirror/addon/scroll/annotatescrollbar.js"></script>
-<script src="/inc/codemirror/mode/nginx.js"></script>
 <script src="/inc/codemirror/mode/haproxy.js"></script>
 <script src="/inc/codemirror/keymap/sublime.js"></script>
-<form action="{{ action }}" method="post" class="left-space" style="margin-top: var(--indent);">
-	<select autofocus required name="section" id="{{ select_id }}">
+<script src="/inc/configshow.js"></script>
+<div class="left-space" style="margin-top: var(--indent);">
+	<select autofocus required name="section" id="section">
 		<option disabled>------</option>
 		{% for s in sections %}
 			{% if s == section %}
@@ -38,20 +38,21 @@
 			{% endif %}
 		{% endfor %}
 	</select>
-	<input type="hidden" value="{{ serv }}" name="serv">
+	<input type="hidden" value="{{ serv }}" name="serv" id="serv">
 	{% if role <= 3 %}
-		<button type="submit" value="open" name="open" class="btn btn-default" title="{{lang.words.edit|title()}} {{lang.words.running}} {{lang.words.config}}">{{lang.words.edit|title()}}</button>
+		<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.edit|title()}} {{lang.words.running}} {{lang.words.config}}" onclick="openSection()">{{lang.words.edit|title()}}</a>
 	{% endif %}
-</form>
+</div>
 	{% if config %}
 		{% if role <= 3 %}
 			<div id="config" class="left-space">
 				<h4>{{lang.phrases.you_are_editing}} "{{section}}" {{lang.phrases.section_from_server}} {{ serv }}</h4>
-				<form action="{{ action }}" name="saveconfig" method="post">
+				<form action="/app/config/section/haproxy/{{serv}}/save" name="saveconfig" id="saveconfig" method="post">
 					<input type="hidden" value="{{ serv }}" name="serv">
 					<input type="hidden" value="{{ start_line }}" name="start_line">
 					<input type="hidden" value="{{ end_line }}" name="end_line"> 
 					<input type="hidden" value="{{ cfg }}.old" name="oldconfig">
+					<input type="hidden" value="haproxy" name="service">
 					<div style="width: 95%;">
 						<textarea name="config" class="config" id="config_text_area" rows="35" cols="100" style="height: 40%">{{ config }}</textarea>
 					</div>
@@ -97,19 +98,6 @@
 					myCodeMirror.refresh();
 				</script>
 		{% endif %}
-	{% endif %}
-	{% if aftersave %}
-		<div class="alert alert-info">{{lang.phrases.new_config_has_been_saved}}: {{ cfg }} </div>
-		{% if stderr or error %}
-			{% include 'include/errors.html' %}
-		{% else %}
-			<div class="alert alert-success">{{lang.words.config|title()}} {{lang.words.is}} {{lang.words.valid}}</div>
-			{% if warning %}
-			<div class="alert alert-warning">{{warning}}</div>
-			{% endif %}
-			<a href="config.py?serv={{ serv }}" title="{{lang.words.working|title()}} {{lang.words.with}} HAProxy {{lang.words.config}}">{{lang.words.config|title()}}</a>
-		{% endif %}
-		<script>window.history.pushState("Config", "Config", cur_url[0])</script>
 	{% endif %}
 	</div>
 </div>

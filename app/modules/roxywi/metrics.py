@@ -1,12 +1,10 @@
-import json
-
 import psutil
 
 import modules.db.sql as sql
 import modules.server.server as server_mod
 
 
-def show_ram_metrics(metrics_type: str) -> None:
+def show_ram_metrics(metrics_type: str) -> dict:
     metrics = {'chartData': {}}
     rams = ''
 
@@ -27,10 +25,10 @@ def show_ram_metrics(metrics_type: str) -> None:
 
     metrics['chartData']['rams'] = rams
 
-    print(json.dumps(metrics))
+    return metrics
 
 
-def show_cpu_metrics(metrics_type: str) -> None:
+def show_cpu_metrics(metrics_type: str) -> dict:
     metrics = {'chartData': {}}
     cpus = ''
 
@@ -54,10 +52,10 @@ def show_cpu_metrics(metrics_type: str) -> None:
 
     metrics['chartData']['cpus'] = cpus
 
-    print(json.dumps(metrics))
+    return metrics
 
 
-def haproxy_metrics(server_ip: str, hostname: str, time_range: str) -> None:
+def haproxy_metrics(server_ip: str, hostname: str, time_range: str) -> dict:
     metric = sql.select_metrics(server_ip, 'haproxy', time_range=time_range)
     metrics = {'chartData': {}}
     metrics['chartData']['labels'] = {}
@@ -82,10 +80,10 @@ def haproxy_metrics(server_ip: str, hostname: str, time_range: str) -> None:
     metrics['chartData']['sess_rate'] = sess_rate
     metrics['chartData']['server'] = hostname + ' (' + server + ')'
 
-    print(json.dumps(metrics))
+    return metrics
 
 
-def haproxy_http_metrics(server_ip: str, hostname: str, time_range: str) -> None:
+def haproxy_http_metrics(server_ip: str, hostname: str, time_range: str) -> dict:
     metric = sql.select_metrics(server_ip, 'http_metrics', time_range=time_range)
     metrics = {'chartData': {}}
     metrics['chartData']['labels'] = {}
@@ -113,10 +111,10 @@ def haproxy_http_metrics(server_ip: str, hostname: str, time_range: str) -> None
     metrics['chartData']['http_5xx'] = http_5xx
     metrics['chartData']['server'] = f'{hostname} ({server})'
 
-    print(json.dumps(metrics))
+    return metrics
 
 
-def service_metrics(server_ip: str, hostname: str, service: str, time_range: str) -> None:
+def service_metrics(server_ip: str, hostname: str, service: str, time_range: str) -> dict:
     metric = sql.select_metrics(server_ip, service, time_range=time_range)
 
     metrics = {'chartData': {}}
@@ -134,4 +132,4 @@ def service_metrics(server_ip: str, hostname: str, service: str, time_range: str
     metrics['chartData']['curr_con'] = curr_con
     metrics['chartData']['server'] = f'{hostname} ({server_ip})'
 
-    print(json.dumps(metrics))
+    return metrics

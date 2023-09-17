@@ -1,6 +1,7 @@
 from peewee import *
 from playhouse.migrate import *
 from datetime import datetime
+from flask_login import UserMixin
 
 import modules.roxy_wi_tools as roxy_wi_tools
 
@@ -26,7 +27,7 @@ class BaseModel(Model):
         database = conn
 
 
-class User(BaseModel):
+class User(BaseModel, UserMixin):
     user_id = AutoField(column_name='id')
     username = CharField(constraints=[SQL('UNIQUE')])
     email = CharField(constraints=[SQL('UNIQUE')])
@@ -354,66 +355,6 @@ class PortScannerHistory(BaseModel):
         primary_key = False
 
 
-class ProvidersCreds(BaseModel):
-    id = AutoField()
-    name = CharField()
-    type = CharField()
-    group = CharField()
-    key = CharField()
-    secret = CharField(null=True)
-    create_date = DateTimeField(default=datetime.now)
-    edit_date = DateTimeField(default=datetime.now)
-
-    class Meta:
-        table_name = 'providers_creds'
-
-
-class ProvisionParam(BaseModel):
-    id = AutoField()
-    param = CharField()
-    name = CharField()
-    optgroup = CharField()
-    section = CharField()
-    provider = CharField()
-    image = CharField(null=True)
-
-    class Meta:
-        table_name = 'provision_param'
-        constraints = [SQL('UNIQUE (param, section, provider)')]
-
-
-class ProvisionedServers(BaseModel):
-    id = AutoField()
-    region = CharField()
-    instance_type = CharField()
-    public_ip = IntegerField(null=True)
-    floating_ip = IntegerField(null=True)
-    volume_size = IntegerField(null=True)
-    backup = IntegerField(null=True)
-    monitoring = IntegerField(null=True)
-    private_networking = IntegerField(null=True)
-    ssh_key_name = CharField(null=True)
-    ssh_ids = CharField(null=True)
-    name = CharField()
-    os = CharField()
-    firewall = IntegerField()
-    provider_id = IntegerField()
-    type = CharField()
-    status = CharField()
-    group_id = IntegerField()
-    date = DateTimeField(default=datetime.now)
-    IP = CharField(null=True)
-    last_error = CharField(null=True)
-    delete_on_termination = IntegerField(null=True)
-    project = CharField(null=True)
-    network_name = CharField(null=True)
-    volume_type = CharField(null=True)
-    name_template = CharField(null=True)
-
-    class Meta:
-        table_name = 'provisioned_servers'
-
-
 class MetricsHttpStatus(BaseModel):
     serv = CharField()
     ok_ans = IntegerField(column_name='2xx')
@@ -679,8 +620,7 @@ def create_tables():
     with conn:
         conn.create_tables([User, Server, Role, Telegram, Slack, UUID, Token, ApiToken, Groups, UserGroups, ConfigVersion,
                             Setting, Cred, Backup, Metrics, WafMetrics, Version, Option, SavedServer, Waf, ActionHistory,
-                            PortScannerSettings, PortScannerPorts, PortScannerHistory, ProvidersCreds, ServiceSetting,
-                            ProvisionedServers, MetricsHttpStatus, SMON, WafRules, Alerts, GeoipCodes, NginxMetrics,
-                            SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, ProvisionParam,
-                            WafNginx, ServiceStatus, KeepaliveRestart, PD, SmonHistory, SmonTcpCheck, SmonHttpCheck,
-                            SmonPingCheck, SmonDnsCheck, S3Backup])
+                            PortScannerSettings, PortScannerPorts, PortScannerHistory, ServiceSetting, MetricsHttpStatus,
+                            SMON, WafRules, Alerts, GeoipCodes, NginxMetrics, SystemInfo, Services, UserName, GitSetting,
+                            CheckerSetting, ApacheMetrics, WafNginx, ServiceStatus, KeepaliveRestart, PD, SmonHistory,
+                            SmonTcpCheck, SmonHttpCheck, SmonPingCheck, SmonDnsCheck, S3Backup])

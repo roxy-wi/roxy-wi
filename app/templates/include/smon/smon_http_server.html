@@ -19,7 +19,7 @@
         {{ input(id, value=s_service.body, size='20') }}
     </td>
     <td>
-        {% set id = 'smon-http-method-' + s.id|string() %}
+        {% set id = 'smon-http_method-' + s.id|string() %}
         {% set http_methods = {'get': 'GET', 'post': 'POST', 'put': 'PUT', 'patch': 'PATCH', 'delete': 'DELETE',
         'head': 'HEAD', 'options': 'OPTIONS'} %}
         {{ select(id, values=http_methods, selected=s_service.method) }}

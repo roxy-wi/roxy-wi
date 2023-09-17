@@ -1,7 +1,8 @@
 import os
-import http.cookies
 
+import psutil
 import requests
+from flask import render_template, request
 from jinja2 import Environment, FileSystemLoader
 
 import modules.db.sql as sql
@@ -12,11 +13,8 @@ import modules.server.server as server_mod
 import modules.service.common as service_common
 
 
-def user_ovw() -> None:
-    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
-    template = env.get_template('ajax/show_users_ovw.html')
-
-    lang = roxywi_common.get_user_lang()
+def user_owv():
+    lang = roxywi_common.get_user_lang_for_flask()
     roles = sql.select_roles()
     user_params = roxywi_common.get_users_params()
     users_groups = sql.select_user_groups_with_names(1, all=1)
@@ -27,109 +25,77 @@ def user_ovw() -> None:
     else:
         users = sql.select_users()
 
-    template = template.render(users=users, users_groups=users_groups, lang=lang, roles=roles)
-    print(template)
+    return render_template('ajax/show_users_ovw.html', users=users, users_groups=users_groups, lang=lang, roles=roles)
 
 
 def show_sub_ovw() -> None:
-    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
-    lang = roxywi_common.get_user_lang()
-    template = env.get_template('ajax/show_sub_ovw.html')
-    template = template.render(sub=sql.select_user_all(), lang=lang)
-    print(template)
+    lang = roxywi_common.get_user_lang_for_flask()
+
+    return render_template('ajax/show_sub_ovw.html', sub=sql.select_user_all(), lang=lang)
 
 
 def show_overview(serv) -> None:
-    import asyncio
+    servers = []
+    user_uuid = request.cookies.get('uuid')
+    group_id = request.cookies.get('group')
+    lang = roxywi_common.get_user_lang_for_flask()
+    role = sql.get_user_role_by_uuid(user_uuid, group_id)
+    server = [server for server in sql.select_servers(server=serv)]
+    user_id = sql.get_user_id_by_uuid(user_uuid)
+    user_services = sql.select_user_services(user_id)
 
-    async def async_get_overview(serv1, serv2, user_uuid, server_id):
-        user_id = sql.get_user_id_by_uuid(user_uuid)
-        user_services = sql.select_user_services(user_id)
+    haproxy = sql.select_haproxy(serv) if '1' in user_services else 0
+    nginx = sql.select_nginx(serv) if '2' in user_services else 0
+    keepalived = sql.select_keepalived(serv) if '3' in user_services else 0
+    apache = sql.select_apache(serv) if '4' in user_services else 0
 
-        haproxy = sql.select_haproxy(serv) if '1' in user_services else 0
-        nginx = sql.select_nginx(serv) if '2' in user_services else 0
-        keepalived = sql.select_keepalived(serv) if '3' in user_services else 0
-        apache = sql.select_apache(serv) if '4' in user_services else 0
+    waf = sql.select_waf_servers(server[0][2])
+    haproxy_process = ''
+    keepalived_process = ''
+    nginx_process = ''
+    apache_process = ''
+    waf_process = ''
 
-        waf = sql.select_waf_servers(serv2)
-        haproxy_process = ''
-        keepalived_process = ''
-        nginx_process = ''
-        apache_process = ''
-        waf_process = ''
+    try:
+        waf_len = len(waf)
+    except Exception:
+        waf_len = 0
 
+    if haproxy:
+        cmd = f'echo "show info" |nc {server[0][2]} {sql.get_setting("haproxy_sock_port")} -w 1|grep -e "Process_num"'
+        haproxy_process = service_common.server_status(server_mod.subprocess_execute(cmd))
+
+    if nginx:
+        nginx_cmd = f'echo "something" |nc {server[0][2]} {sql.get_setting("nginx_stats_port")} -w 1'
+        nginx_process = service_common.server_status(server_mod.subprocess_execute(nginx_cmd))
+
+    if apache:
+        apache_cmd = f'echo "something" |nc {server[0][2]} {sql.get_setting("apache_stats_port")} -w 1'
+        apache_process = service_common.server_status(server_mod.subprocess_execute(apache_cmd))
+
+    if keepalived:
+        command = ["ps ax |grep keepalived|grep -v grep|wc -l|tr -d '\n'"]
         try:
-            waf_len = len(waf)
-        except Exception:
-            waf_len = 0
+            keepalived_process = server_mod.ssh_command(server[0][2], command)
+        except Exception as e:
+            raise Exception(f'error: {e} for server {server[0][2]}')
 
-        if haproxy:
-            cmd = f'echo "show info" |nc {serv2} {sql.get_setting("haproxy_sock_port")} -w 1|grep -e "Process_num"'
-            haproxy_process = service_common.server_status(server_mod.subprocess_execute(cmd))
+    if waf_len >= 1:
+        command = ["ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l"]
+        try:
+            waf_process = server_mod.ssh_command(server[0][2], command)
+        except Exception as e:
+            raise Exception(f'error: {e} for server {server[0][2]}')
 
-        if nginx:
-            nginx_cmd = f'echo "something" |nc {serv2} {sql.get_setting("nginx_stats_port")} -w 1'
-            nginx_process = service_common.server_status(server_mod.subprocess_execute(nginx_cmd))
+    server_status = (
+        server[0][1], server[0][2], haproxy, haproxy_process, waf_process, waf, keepalived, keepalived_process, nginx,
+        nginx_process, server[0][0], apache, apache_process
+    )
 
-        if apache:
-            apache_cmd = f'echo "something" |nc {serv2} {sql.get_setting("apache_stats_port")} -w 1'
-            apache_process = service_common.server_status(server_mod.subprocess_execute(apache_cmd))
+    servers.append(server_status)
+    servers_sorted = sorted(servers, key=common.get_key)
 
-        if keepalived:
-            command = ["ps ax |grep keepalived|grep -v grep|wc -l|tr -d '\n'"]
-            try:
-                keepalived_process = server_mod.ssh_command(serv2, command)
-            except Exception as e:
-                print(f'error: {e} for server {serv2}')
-                return
-
-        if waf_len >= 1:
-            command = ["ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l"]
-            try:
-                waf_process = server_mod.ssh_command(serv2, command)
-            except Exception as e:
-                print(f'error: {e} for server {serv2}')
-                return
-
-        server_status = (serv1,
-                         serv2,
-                         haproxy,
-                         haproxy_process,
-                         waf_process,
-                         waf,
-                         keepalived,
-                         keepalived_process,
-                         nginx,
-                         nginx_process,
-                         server_id,
-                         apache,
-                         apache_process)
-        return server_status
-
-    async def get_runner_overview():
-        env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
-                          extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
-
-        servers = []
-        template = env.get_template('ajax/overview.html')
-        cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-        user_uuid = cookie.get('uuid')
-        group_id = cookie.get('group')
-        group_id = int(group_id.value)
-        lang = roxywi_common.get_user_lang()
-        role = sql.get_user_role_by_uuid(user_uuid.value, group_id)
-        futures = [async_get_overview(server[1], server[2], user_uuid.value, server[0]) for server in
-                   sql.select_servers(server=serv)]
-        for i, future in enumerate(asyncio.as_completed(futures)):
-            result = await future
-            servers.append(result)
-        servers_sorted = sorted(servers, key=common.get_key)
-        template = template.render(service_status=servers_sorted, role=role, lang=lang)
-        print(template)
-
-    ioloop = asyncio.get_event_loop()
-    ioloop.run_until_complete(get_runner_overview())
-    ioloop.close()
+    return render_template('ajax/overview.html', service_status=servers_sorted, role=role, lang=lang)
 
 
 def show_haproxy_binout(server_ip: str) -> None:
@@ -151,14 +117,12 @@ def show_haproxy_binout(server_ip: str) -> None:
         server_ip, port)
     cout, stderr3 = server_mod.subprocess_execute(cmd)
     bin_bout.append(cout[0])
-    lang = roxywi_common.get_user_lang()
-    env = Environment(loader=FileSystemLoader('templates'), autoescape=True)
-    template = env.get_template('ajax/bin_bout.html')
-    template = template.render(bin_bout=bin_bout, serv=server_ip, service='haproxy', lang=lang)
-    print(template)
+    lang = roxywi_common.get_user_lang_for_flask()
+
+    return render_template('ajax/bin_bout.html', bin_bout=bin_bout, serv=server_ip, service='haproxy', lang=lang)
 
 
-def show_nginx_connections(server_ip: str) -> None:
+def show_nginx_connections(server_ip: str) -> str:
     port = sql.get_setting('nginx_stats_port')
     user = sql.get_setting('nginx_stats_user')
     password = sql.get_setting('nginx_stats_password')
@@ -175,13 +139,10 @@ def show_nginx_connections(server_ip: str) -> None:
             if num == 2:
                 bin_bout.append(line.split(' ')[3])
 
-        lang = roxywi_common.get_user_lang()
-        env = Environment(loader=FileSystemLoader('templates'))
-        template = env.get_template('ajax/bin_bout.html')
-        template = template.render(bin_bout=bin_bout, serv=server_ip, service='nginx', lang=lang)
-        print(template)
+        lang = roxywi_common.get_user_lang_for_flask()
+        return render_template('ajax/bin_bout.html', bin_bout=bin_bout, serv=server_ip, service='nginx', lang=lang)
     else:
-        print('error: cannot connect to NGINX stat page')
+        return 'error: cannot connect to NGINX stat page'
 
 
 def show_apache_bytes(server_ip: str) -> None:
@@ -199,21 +160,13 @@ def show_apache_bytes(server_ip: str) -> None:
             if 'ReqPerSec' in line or 'BytesPerSec' in line:
                 bin_bout.append(line.split(' ')[1])
 
-        lang = roxywi_common.get_user_lang()
-        env = Environment(loader=FileSystemLoader('templates'))
-        template = env.get_template('ajax/bin_bout.html')
-        template = template.render(bin_bout=bin_bout, serv=server_ip, service='apache', lang=lang)
-        print(template)
+        lang = roxywi_common.get_user_lang_for_flask()
+        return render_template('ajax/bin_bout.html', bin_bout=bin_bout, serv=server_ip, service='apache', lang=lang)
     else:
-        print('error: cannot connect to Apache stat page')
+        return 'error: cannot connect to Apache stat page'
 
 
-def show_services_overview() -> None:
-    import psutil
-    from jinja2 import Environment, FileSystemLoader
-
-    env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
-    template = env.get_template('ajax/show_services_ovw.html')
+def show_services_overview():
     user_params = roxywi_common.get_users_params()
     grafana = 0
     metrics_worker = 0
@@ -221,7 +174,7 @@ def show_services_overview() -> None:
     servers_group = []
     host = os.environ.get('HTTP_HOST', '')
     user_group = roxywi_common.get_user_group(id=1)
-    lang = roxywi_common.get_user_lang()
+    lang = roxywi_common.get_user_lang_for_flask()
 
     if (user_params['role'] == 2 or user_params['role'] == 3) and int(user_group) != 1:
         for s in user_params['servers']:
@@ -268,7 +221,8 @@ def show_services_overview() -> None:
     cmd = "systemctl is-active roxy-wi-socket"
     socket, stderr = server_mod.subprocess_execute(cmd)
 
-    rendered_template = template.render(
+    return render_template(
+        'ajax/show_services_ovw.html',
         role=user_params['role'], metrics_master=''.join(metrics_master), metrics_worker=metrics_worker,
         checker_master=''.join(checker_master), checker_worker=checker_worker, keep_alive=''.join(keep_alive),
         smon=''.join(smon), port_scanner=''.join(port_scanner), grafana=grafana, socket=''.join(socket),
@@ -279,14 +233,10 @@ def show_services_overview() -> None:
         keep_alive_log_id=roxy_logs.roxy_wi_log(log_id=1, file="keep_alive"),
         socket_log_id=roxy_logs.roxy_wi_log(log_id=1, file="socket"), error=stderr, lang=lang
     )
-    print(rendered_template)
-
 
 def keepalived_became_master(server_ip) -> None:
     commands = ["sudo kill -USR2 $(cat /var/run/keepalived.pid) && sudo grep 'Became master' /tmp/keepalived.stats |awk '{print $3}'"]
     became_master = server_mod.ssh_command(server_ip, commands)
-    lang = roxywi_common.get_user_lang()
-    env = Environment(loader=FileSystemLoader('templates'))
-    template = env.get_template('ajax/bin_bout.html')
-    template = template.render(bin_bout=became_master, serv=server_ip, service='keepalived', lang=lang)
-    print(template)
+    lang = roxywi_common.get_user_lang_for_flask()
+
+    return render_template('ajax/bin_bout.html', bin_bout=became_master, serv=server_ip, service='keepalived', lang=lang)

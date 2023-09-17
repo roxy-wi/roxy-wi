@@ -38,7 +38,7 @@
 	<ul id='browse_histroy'></ul>
 	{% include 'include/add_proxy.html' %}
 	<div id="listen">
-		<form name="add-listener" id="add-listener" action="/app/add.py" method="post">
+		<form name="add-listener" id="add-listener" action="/app/add/haproxy/add" method="post">
 			<table class="add-table">
 				<caption><h3>{{lang.words.add|title()}} {{lang.words.listener}}</h3></caption>
 				<tr>
@@ -903,7 +903,7 @@
 		</div>
 	</div>
 	<div id="userlist">
-		<form name="add-userlist" id="add-userlist" action="/app/add.py" method="post">
+		<form name="add-userlist" id="add-userlist" action="/app/add/haproxy/userlist" method="post">
 		<table>
 			<caption><h3>{{lang.words.add|title()}} {{lang.words.userlists}}</h3></caption>
 			<tr>
@@ -996,7 +996,7 @@
 		</div>
 	</div>
 	<div id="peers">
-		<form name="add-peers" id="add-peers" action="/app/add.py" method="post">
+		<form name="add-peers" id="add-peers" action="/app/add/haproxy/peers" method="post">
 		<table>
 			<caption><h3>{{lang.words.add|title()}} Peer</h3></caption>
 			<tr>

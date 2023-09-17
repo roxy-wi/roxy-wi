@@ -78,7 +78,7 @@
 				<span title="{{lang.words.change2|title()}} {{lang.words.user3}} {{lang.words.services}}" style="cursor: pointer; margin-left: 15px;" class="div-pic" onclick="openChangeUserServiceDialog('{{user.user_id}}')"></span>
 			</td>
 			<td>
-				<a href="history.py?service=user&user_id={{user.user_id}}" title="{{lang.words.view|title()}} {{lang.words.history}} {{lang.words.for}} {{lang.words.user2}}" class="history"></a>
+				<a href="/app/history/user/{{user.user_id}}" title="{{lang.words.view|title()}} {{lang.words.history}} {{lang.words.for}} {{lang.words.user2}}" class="history"></a>
 			</td>
 			<td>
 				<a class="delete" onclick="confirmDeleteUser({{user.user_id}})" title="{{lang.words.delete|title()}} {{user.username}}" style="cursor: pointer;"></a>

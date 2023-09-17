@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}{{lang.words.internal|title()}} {{lang.words.logs}}{% endblock %}
+{% block h2 %}{{lang.words.internal|title()}} {{lang.words.logs}}{% endblock %}
+{% block content %}
+{% from 'include/input_macros.html' import input, checkbox %}
+<script src="/inc/users.js"></script>
+<input type="hidden" id="service" value="{{service}}" />
+<table class="overview">
+	<tr class="overviewHead">
+		<td class="padding10 first-collumn" style="width: 10%;">
+			{{lang.words.log|title()}}
+		</td>
+		<td style="width: 10%;">{{lang.words.number|title()}} {{lang.words.rows}}</td>
+		<td class="help_cursor" style="width: 10%;" title="" data-help="{{lang.phrases.find_in_log}}">{{lang.words.find|title()}}</td>
+		<td class="help_cursor" style="width: 10%;" title="" data-help="{{lang.phrases.exclude_in_log}}">{{lang.words.exclude|title()}}</td>
+		<td style="width: 10%;">
+			<label for="time_range_out_hour" style="padding: 0">{{lang.words.time_range|title()}}:</label>
+			{{ input('time_range_out_hour', value=hour, class='time-range', readonly='readonly') }}:{{ input('time_range_out_minut', value=minut, class='time-range', readonly='readonly') }}
+			{{ input('time_range_out_hour1', value=hour1, class='time-range', readonly='readonly') }}:{{ input('time_range_out_minut1', value=minut1, class='time-range', readonly='readonly') }}
+		</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td class="padding10 first-collumn" style="width: 10%;">
+			<form action="" method="post" id="show_internal_log_form">
+				<select autofocus required name="serv" id="viewlogs">
+				    <option selected>------</option>
+                    {% for select in selects %}
+                    {% if select.0 == serv %}
+                    <option value="{{ select.0 }}" selected>{{ select.1 }}</option>
+                    {% else %}
+                    <option value="{{ select.0 }}">{{ select.1 }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+		</td>
+		<td style="width: 10%;">
+			{{ input('rows', type='number', value='10', required='required', style='width: 110px;') }}
+		</td>
+		<td style="width: 10%;">
+			{{ input('grep', value=grep, style='width: 110px;') }}
+		</td>
+		<td style="width: 10%;">
+			{{ input('exgrep', value=exgrep, style='width: 110px;') }}
+		</td>
+		<td style="width: 10%;">
+			<div id="time-range"></div>
+		</td>
+		<td class="padding10 first-collumn" style="width: 1%;">
+			<button type="submit" name="Show log" value="Show" id="show_log_button">{{lang.words.show|title()}}</button>
+			</form>
+		</td>
+	</tr>
+</table>
+<div id="ajax"></div>
+{% if serv == 'roxy-wi.error.log' or serv == 'roxy-wi.access.log' %}
+	<script>
+		showApacheLog('{{serv}}');
+	</script>
+	<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+		{{lang.phrases.read_about_files}} <a href="https://roxy-wi.org/description/logs" title="{{lang.words.servers|title()}} {{lang.words.desc}}" target="_blank" class="link">{{lang.words.here}}</a>
+	</div>
+{% else %}
+    <script>
+		viewLogs()
+		if (window.matchMedia('(max-width: 786px)').matches || window.matchMedia('(max-width: 1024px)').matches || window.matchMedia('(max-width: 667px)').matches) {
+			$( "#viewlogs" ).selectmenu({
+				  width: 150
+			});
+		}
+	</script>
+	<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+		{{lang.phrases.read_about_files}} <a href="https://roxy-wi.org/description/logs" title="{{lang.words.servers|title()}} {{lang.words.desc}}" target="_blank" class="link">{{lang.words.here}}</a>
+	</div>
+{% endif %}
+{% endblock %}

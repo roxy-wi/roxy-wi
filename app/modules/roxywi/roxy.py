@@ -50,8 +50,8 @@ def update_roxy_wi(service):
 		cmd = f'sudo -S yum -y install {service} {restart_service}'
 
 	output, stderr = server_mod.subprocess_execute(cmd)
-	print(output)
-	print(stderr)
+	return output
+	# print(stderr)
 
 
 def check_ver():
@@ -68,6 +68,8 @@ def versions():
 			current_ver_without_dots += '00'
 		if len(current_ver_without_dots) == 3:
 			current_ver_without_dots += '0'
+		if len(current_ver_without_dots) == 7:
+			current_ver_without_dots += '0'
 		current_ver_without_dots = int(current_ver_without_dots)
 	except Exception:
 		current_ver = "Sorry cannot get current version"
@@ -81,6 +83,8 @@ def versions():
 		if len(new_ver_without_dots) == 2:
 			new_ver_without_dots += '00'
 		if len(new_ver_without_dots) == 3:
+			new_ver_without_dots += '0'
+		if len(new_ver_without_dots) == 7:
 			new_ver_without_dots += '0'
 		new_ver_without_dots = int(new_ver_without_dots)
 	except Exception as e:
@@ -192,21 +196,16 @@ def check_new_version(service):
 	return res
 
 
-def action_service(action: str, service: str) -> None:
-	if action not in ('start', 'stop', 'restart'):
-		print('error: wrong action')
-		return
-
+def action_service(action: str, service: str) -> str:
 	is_in_docker = is_docker()
 	cmd = f"sudo systemctl disable {service} --now"
 	if action in ("start", "restart"):
 		cmd = f"sudo systemctl {action} {service} --now"
 		if not sql.select_user_status():
-			print(
-				'warning: The service is disabled because you are not subscribed. Read <a href="https://roxy-wi.org/pricing" '
-				'title="Roxy-WI pricing" target="_blank">here</a> about subscriptions')
-			return 
+			return 'warning: The service is disabled because you are not subscribed. Read <a href="https://roxy-wi.org/pricing" ' \
+				   'title="Roxy-WI pricing" target="_blank">here</a> about subscriptions'
 	if is_in_docker:
 		cmd = f"sudo supervisorctl {action} {service}"
 	os.system(cmd)
 	roxywi_common.logging('Roxy-WI server', f' The service {service} has been {action}ed', roxywi=1, login=1)
+	return 'ok'

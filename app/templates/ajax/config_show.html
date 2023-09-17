@@ -4,11 +4,13 @@
 		<p class="accordion-expand-holder">
 			{% if role <= 3 %}
 				{% if not is_serv_protected or role <= 2 %}
-				<a class="ui-button ui-widget ui-corner-all" title="Edit this run config" id="edit_link" href="config.py?service={{service}}&serv={{serv}}&open=open&config_file_name={{config_file_name}}">{{lang.words.edit|title()}}</a>
+				{% if not configver %}
+				<a class="ui-button ui-widget ui-corner-all" title="Edit this run config" id="edit_link" href="/app/config/{{service}}/{{serv}}/edit/{{config_file_name}}">{{lang.words.edit|title()}}</a>
+				{% endif %}
 				{% if service == 'haproxy' %}
-				<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.add|title()}} {{lang.words.proxy}}" href="add.py#proxy">{{lang.words.add|title()}}</a>
+				<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.add|title()}} {{lang.words.proxy}}" href="/app/add/haproxy#proxy">{{lang.words.add|title()}}</a>
 				{% elif service == 'keepalived' %}
-				<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.add|title()}} VRRP" href="ha.py">{{lang.words.add|title()}}</a>
+				<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.add|title()}} VRRP" href="/app/ha">{{lang.words.add|title()}}</a>
 				{% endif %}
 				{% endif %}
 			{% endif %}
@@ -209,7 +211,7 @@
 					{% if role %}
 						{% if service != 'keepalived' %}
 						<span class="accordion-link">
-							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">{{lang.words.edit|title()}}</a>
+							<a href="/app/config/section/haproxy/{{serv}}/{{ line }}">{{lang.words.edit|title()}}</a>
 						</span>
 						{% endif %}
 					{% endif %}
@@ -220,7 +222,7 @@
 				</div><span class="param">{{ line }}
 					{% if role %}
 						<span class="accordion-link">
-						<a href="/app/sections.py?serv={{serv}}&section={{ line }}">{{lang.words.edit|title()}}</a>
+						<a href="/app/config/section/haproxy/{{serv}}/{{ line }}">{{lang.words.edit|title()}}</a>
 						</span>
 					{% endif %}
 					</span><div>
@@ -230,12 +232,12 @@
 				</div><span class="param">{{- line -}}
 					{% if role %}
 					<span class="accordion-link">
-						<a href="/app/sections.py?serv={{serv}}&section={{ line }}" target="_blank">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
+						<a href="/app/config/section/haproxy/{{serv}}/{{ line }}" target="_blank">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
 					</span>
 					{% endif %}
 					{%- set backend = line.split(' ') -%}
 					<span class="accordion-link">
-						<a href="/app/statsview.py?service=haproxy&serv={{-serv-}}#{{- backend[1]-}}" target="_blank">{{lang.words.stats|title()}}</a>
+						<a href="/app/stats/haproxy/{{-serv-}}#{{- backend[1]-}}" target="_blank">{{lang.words.stats|title()}}</a>
 					</span>
 					{%- set backend = backend|join('_') -%}
 					{%- do section_name.update({i: backend}) -%}
@@ -247,12 +249,12 @@
 				</div><span class="param">{{ line }}
 					{% if role %}
 						<span class="accordion-link">
-							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
+							<a href="/app/config/section/haproxy/{{serv}}/{{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
 						</span>
 					{% endif %}
 					{% set backend = line.split(' ') %}
 					<span class="accordion-link">
-						<a href="/app/statsview.py?serv={{serv}}#{{ backend[1]}}" target="_blank">{{lang.words.stats|title()}}</a>
+						<a href="/app/stats/haproxy/{{-serv-}}#{{- backend[1]-}}" target="_blank">{{lang.words.stats|title()}}</a>
 					</span>
 					{% set backend = backend|join('_') %}
 					{% do section_name.update({i: backend}) %}
@@ -264,12 +266,12 @@
 				</div><span class="param">{{ line }}
 					{% if role %}
 						<span class="accordion-link">
-							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
+							<a href="/app/config/section/haproxy/{{serv}}/{{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
 						</span>
 					{% endif %}
 					{% set backend = line.split(' ') %}
 					<span class="accordion-link">
-						<a href="/app/statsview.py?serv={{serv}}#{{ backend[1]}}" target="_blank">{{lang.words.stats|title()}}</a>
+						<a href="/app/stats/haproxy/{{-serv-}}#{{- backend[1]-}}" target="_blank">{{lang.words.stats|title()}}</a>
 					</span>
 					</span><div>
 				{% continue %}
@@ -278,7 +280,7 @@
 				</div><span class="param">{{ line }}
 					{% if role %}
 						<span class="accordion-link">
-							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
+							<a href="/app/config/section/haproxy/{{serv}}/{{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
 						</span>
 					{% endif %}
 				</span><div>
@@ -288,7 +290,7 @@
 				</div><span class="param">{{ line }}
 					{% if role %}
 						<span class="accordion-link">
-							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
+							<a href="/app/config/section/haproxy/{{serv}}/{{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
 						</span>
 					{% endif %}
 				</span><div>
@@ -298,7 +300,7 @@
 				</div><span class="param">{{ line }}
 					{% if role %}
 						<span class="accordion-link">
-							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
+							<a href="/app/config/section/haproxy/{{serv}}/{{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
 						</span>
 					{% endif %}
 				</span><div>
@@ -308,7 +310,7 @@
 				</div><span class="param">{{ line }}
 					{% if role %}
 						<span class="accordion-link">
-							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
+							<a href="/app/config/section/haproxy/{{serv}}/{{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
 						</span>
 					{% endif %}
 				</span><div>
@@ -318,7 +320,7 @@
 				</div><span class="param">{{ line }}
 					{% if role %}
 						<span class="accordion-link">
-							<a href="/app/sections.py?serv={{serv}}&section={{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
+							<a href="/app/config/section/haproxy/{{serv}}/{{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
 						</span>
 					{% endif %}
 				</span><div>
@@ -366,8 +368,9 @@
 	<br>
 		{% if role <= 3 %}
 		{% if not is_serv_protected or role <= 2 %}
-		<form action="versions.py?service={{service}}" method="post" class="left-space">
+		<form action="/app/config/versions/{{service}}/{{serv}}/{{configver}}/save" method="post" class="left-space">
 			<input type="hidden" value="{{serv}}" name="serv">
+			<input type="hidden" value="{{service}}" name="service">
 			<input type="hidden" value="{{configver}}" name="configver">
 			<input type="hidden" value="1" name="config">
 			<button type='submit' value='save' name='save' class='btn btn-default' title="{{lang.phrases.save_title}}">{{lang.words.save|title()}}</button>

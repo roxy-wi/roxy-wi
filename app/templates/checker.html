@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %} Checker {{ lang.words.settings }} {% endblock %}
+{% block h2 %} Checker {{ lang.words.settings }} {% endblock %}
+{% block content %}
+{% from 'include/input_macros.html' import input, select, copy_to_clipboard, checkbox %}
+<script src="/inc/users.js"></script>
+<script src="/inc/fontawesome.min.js"></script>
+<div id="checker"></div>
+<script>
+    loadchecker();
+</script>
+{% endblock %}

@@ -7,11 +7,7 @@
 			<select autofocus required name="left" id="left">
 				<option disabled selected>{{ lang.phrases.select_older_config }}</option>
 				{% for file in return_files %}
-					{% if file == left %}
-						<option value="{{ file }}" selected>{{ file.split('-', maxsplit=1)[1] }}</option>
-					{% else %}
-						<option value="{{ file }}">{{ file.split('-', maxsplit=1)[1] }}</option>
-					{% endif %}
+					<option value="{{ file }}">{{ file.split('-', maxsplit=1)[1] }}</option>
 				{% endfor %}
 			</select>
 
@@ -22,7 +18,6 @@
 				{% endfor %}
 			</select>
 			{{ input('serv', type='hidden', value=serv) }}
-			{{ input('open', type='hidden', value='open') }}
 			<a class="ui-button ui-widget ui-corner-all" id="show" title="{{ lang.words.compare|title() }}" onclick="showCompare()">{{ lang.words.compare|title() }}</a>
 		</p>
 	</div>

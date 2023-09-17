@@ -1,5 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{{ lang.p_s_page.p_s_title_history }}{% endblock %}
+{% block h2 %}{{ lang.p_s_page.p_s_title_history }}{% endblock %}
+{% block content %}
 <link href="/inc/css/table-6.3.9.css" rel="stylesheet" type="text/css">
 <script type="text/javascript" charset="utf8" src="/inc/dataTables.min.js"></script>
+<style>
+@media (max-width: 1280px) {
+	.div-pannel {
+		height: 430px !important;
+	}
+}
+</style>
 <script>
     $(document).ready(function() {
         $('#scan_history').on( 'page.dt' )
@@ -16,6 +27,9 @@
             } );
     } );
 </script>
+{% if user_status == 0 %}
+	{% include 'include/no_sub.html' %}
+{% else %}
 <table class="overview hover order-column display compact" id="scan_history">
     <thead>
         <tr class="overviewHead">
@@ -28,8 +42,8 @@
         </tr>
     </thead>
     <tbody>
-    {% if port_scanner_settings != '' %}
-    {% for t in port_scanner_settings %}
+    {% if history != '' %}
+    {% for t in history %}
     {% set date_time = t.date|string %}
     <tr>
         <td class="padding10" style="width: 10%; padding: 7px 7px 7px 10px;">
@@ -53,3 +67,5 @@
     {% endif %}
     </tbody>
 </table>
+{% endif %}
+{% endblock %}

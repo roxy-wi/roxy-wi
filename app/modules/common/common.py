@@ -1,5 +1,6 @@
 import re
 import cgi
+import cgitb
 
 form = cgi.FieldStorage()
 error_mess = 'error: All fields must be completed'

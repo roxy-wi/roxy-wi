@@ -8,16 +8,12 @@
 <table class="overview">
 	<tr class="overviewHead">
 		<td class="padding10 first-collumn" style="width: 10%;">
-			{% if select_id == 'viewlogs' %}
-				{{lang.words.log|title()}}
-			{% else %}
-				{{lang.words.server|title()}}
-			{% endif %}
+			{{lang.words.server|title()}}
 		</td>
-		{% if waf != '1' and select_id != 'viewlogs' %}
+		{% if not waf %}
 		<td style="width: 10%;">{{lang.words.log|title()}} {{lang.words.files|title()}}</td>
 		{% endif %}
-		{% if select_id != 'viewlogs' and service != 'nginx' %}
+		{% if service != 'nginx' %}
 		{% endif %}
 		<td style="width: 10%;">{{lang.words.number|title()}} {{lang.words.rows}}</td>
 		<td class="help_cursor" style="width: 10%;" title="" data-help="{{lang.phrases.find_in_log}}">{{lang.words.find|title()}}</td>
@@ -32,32 +28,9 @@
 	<tr>
 		<td class="padding10 first-collumn" style="width: 10%;">
 			<form action="" method="post" id="show_log_form">
-				{% if select_id == 'viewlogs' %}
-					<select autofocus required name="serv" id="{{ select_id }}">
-						<option disabled selected>------</option>
-						{% for select in selects %}
-							{% if page == 'for_editor' %}
-								{% if select.1.startswith('roxy-wi') or select.1.startswith('config_edit') or select.1.startswith('port_sca') %}
-									{% if select.0 == serv %}
-										<option value="{{ select.0 }}" selected>{{ select.1 }}</option>
-									{% else %}
-										<option value="{{ select.0 }}">{{ select.1 }}</option>
-									{% endif %}
-								{% endif %}
-							{% else %}
-								{% if select.0|int() == serv|int() %}
-									<option value="{{ select.0 }}" selected>{{ select.1 }}</option>
-								{% else %}
-									<option value="{{ select.0 }}">{{ select.1 }}</option>
-								{% endif %}
-							{% endif %}
-						{% endfor %}
-					</select>
-				{% else %}
-					{% include 'include/select.html' %}
-				{% endif %}
+				{% include 'include/select.html' %}
 		</td>
-		{% if waf != '1' and select_id != 'viewlogs' %}
+		{% if not waf %}
 		<td id="remote_log_files"></td>
 		{% endif %}
 		<td style="width: 10%;">
@@ -79,31 +52,11 @@
 	</tr>
 </table>
 <div id="ajax"></div>
-{% if select_id == 'viewlogs' and serv != '' and viewlogs != '' and viewlogs != 'roxy-wi.error.log' and viewlogs != 'roxy-wi.access.log' %}
-	<script>
-		viewLogs()
-		if (window.matchMedia('(max-width: 786px)').matches || window.matchMedia('(max-width: 1024px)').matches || window.matchMedia('(max-width: 667px)').matches) {
-			$( "#viewlogs" ).selectmenu({
-				  width: 150
-			});
-		}
-	</script>
-	<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
-		{{lang.phrases.read_about_files}} <a href="https://roxy-wi.org/description/logs" title="{{lang.words.servers|title()}} {{lang.words.desc}}" target="_blank" class="link">{{lang.words.here}}</a>
-	</div>
-{% elif serv == 'roxy-wi.error.log' or serv == 'roxy-wi.access.log' %}
-	<script>
-		showApacheLog('{{serv}}');
-	</script>
-	<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
-		{{lang.phrases.read_about_files}} <a href="https://roxy-wi.org/description/logs" title="{{lang.words.servers|title()}} {{lang.words.desc}}" target="_blank" class="link">{{lang.words.here}}</a>
-	</div>
-{% else %}
-	<script>
-		{% if waf == '1' %}
+<script>
+		{% if waf %}
 			$('#waf').prop('checked', true);
 		{% endif %}
-		{% if waf != '1' %}
+		{% if not waf %}
 			{% if remote_file %}
 				showLog()
 			{% else %}
@@ -117,13 +70,12 @@
 		{% endif %}
 
 		if (window.matchMedia('(max-width: 786px)').matches || window.matchMedia('(max-width: 1024px)').matches || window.matchMedia('(max-width: 667px)').matches) {
-			$( "#serv" ).selectmenu({
+				$( "#serv" ).selectmenu({
 				  width: 150
 			});
 			$( "#log_files" ).selectmenu({
 				  width: 150
 			});
 		}
-	</script>
-{% endif %}
+</script>
 {% endblock %}

@@ -18,7 +18,7 @@
                 <td class="padding10 first-collumn-wi">Linux</td>
                 <td>{{s_i.os_info}}</td>
             </tr>
-            {% set base_info = string_to_dict(s_i.sys_info) %}
+            {% set base_info = s_i.sys_info|string_to_dict %}
             <tr class="even">
                 <td class="padding10 first-collumn-wi" style="width: 20%;">
                     Hostname
@@ -44,7 +44,7 @@
                     </a>
                 </td>
             </tr>
-            {% set ram_info = string_to_dict(s_i.ram) %}
+            {% set ram_info = s_i.ram|string_to_dict %}
             <tr class="odd">
                 <td class="padding10 first-collumn-wi" style="width: 20%;">
                     Slots
@@ -65,7 +65,7 @@
                     CPU
                 </td>
             </tr>
-            {% set cpu_info = string_to_dict(s_i.cpu) %}
+            {% set cpu_info = s_i.cpu|string_to_dict %}
             <tr class="odd">
                 <td class="padding10 first-collumn-wi">Model</td>
                 <td>{{cpu_info.cpu_model}}</td>
@@ -90,7 +90,7 @@
             </tr>
         </table>
 
-        {% set disks_info = string_to_dict(s_i.disks) %}
+        {% set disks_info = s_i.disks|string_to_dict %}
         {% for v,d in disks_info.items() %}
         <table class="overview-wi">
             <tr class="overviewHead" colspan=2>
@@ -125,7 +125,7 @@
             </tr>
         </table>
         {% endfor %}
-        {% set network_info = string_to_dict(s_i.network) %}
+        {% set network_info = s_i.network|string_to_dict %}
         {% for v,d in network_info.items() %}
         <table class="overview-wi">
             <tr class="overviewHead" colspan=2>

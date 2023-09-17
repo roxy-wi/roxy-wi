@@ -1,6 +1,6 @@
 <center>
 	<h4 style="font-size: 25px">Welcome and let's get started!</h4>
-	<img src="/inc/images/no_servers.png" alt="There is no server">
+	<img src="{{ url_for('static', filename='images/no_servers.png')}}" alt="There is no server">
 	<br />
 	<br />
 	<h4>
@@ -8,9 +8,9 @@
 		Read how to <a href="https://roxy-wi.org/howto/add-existing-server" title="How to add an existing server">add an existing server</a>
 		or create <a href="https://roxy-wi.org/howto/add-new-server" title="How to add a new server">a new one</a>
 		{% if role == 2 %}
-			and go to the "<a href="servers.py#servers" title="Servers">Servers</a>"
+			and go to the "<a href="/app/servers#servers" title="Servers">Servers</a>"
 		{% elif role == 1 %}
-			and go to the "<a href="users.py#servers" title="Servers">Admin area</a>"
+			and go to the "<a href="/app/users#servers" title="Servers">Admin area</a>"
 		{% endif %}
 		to add your first server
 	</h4>

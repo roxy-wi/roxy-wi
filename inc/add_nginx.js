@@ -29,18 +29,16 @@ $( function() {
 	});
 });
 function resetProxySettings() {
-    $('[name=upstream]').val('');
-    $('input:checkbox').prop("checked", false);
-    $('[name=check-servers]').prop("checked", true);
-    $('input:checkbox').checkboxradio("refresh");
-    $('.advance-show').fadeIn();
-    $('.advance').fadeOut();
-    $('[name=mode').val('http');
-    $('select').selectmenu('refresh');
-    $("#path-cert-listen").attr('required', false);
-    $("#path-cert-frontend").attr('required', false);
-    // replace_text("#optionsInput", ssl_offloading_var);
-    // replace_text("#optionsInput1", ssl_offloading_var);
+	$('[name=upstream]').val('');
+	$('input:checkbox').prop("checked", false);
+	$('[name=check-servers]').prop("checked", true);
+	$('input:checkbox').checkboxradio("refresh");
+	$('.advance-show').fadeIn();
+	$('.advance').fadeOut();
+	$('[name=mode').val('http');
+	$('select').selectmenu('refresh');
+	$("#path-cert-listen").attr('required', false);
+	$("#path-cert-frontend").attr('required', false);
 }
 function checkIsServerFiled(select_id, message = 'Select a server first') {
 	if ($(select_id).val() == null || $(select_id).val() == '') {
@@ -50,31 +48,32 @@ function checkIsServerFiled(select_id, message = 'Select a server first') {
 	return true;
 }
 function generateConfig(form_name) {
-	var frm = $('#'+form_name);
+	var frm = $('#' + form_name);
 	if (form_name == 'add-upstream') {
 		serv = '#serv'
 		name_id = '#name'
 	}
-	if(!checkIsServerFiled(serv)) return false;
-	if(!checkIsServerFiled(name_id, 'The name cannot be empty')) return false;
+	if (!checkIsServerFiled(serv)) return false;
+	if (!checkIsServerFiled(name_id, 'The name cannot be empty')) return false;
 	var input = $("<input>")
 		.attr("name", "generateconfig").val("1").attr("type", "hidden").attr("id", "generateconfig");
-	$('#'+form_name +' input[name=acl_then_value]').each(function(){
-		if (!$(this).val()){
+	$('#' + form_name + ' input[name=acl_then_value]').each(function () {
+		if (!$(this).val()) {
 			$(this).val('IsEmptY')
 		}
 	});
-	$('#'+form_name +' input[name=ip]').each(function(){
-		if (!$(this).val()){
+	$('#' + form_name + ' input[name=ip]').each(function () {
+		if (!$(this).val()) {
 			$(this).val('IsEmptY')
 		}
 	});
-	$('#'+form_name +' input[name=port]').each(function(){
-		if (!$(this).val()){
+	$('#' + form_name + ' input[name=port]').each(function () {
+		if (!$(this).val()) {
 			$(this).val('IsEmptY')
 		}
 	});
 	frm.append(input);
+	var generated_title = $('#translate').attr('data-generated_config');
 	$.ajax({
 		url: frm.attr('action'),
 		data: frm.serialize(),
@@ -90,7 +89,7 @@ function generateConfig(form_name) {
 					height: "auto",
 					width: 650,
 					modal: true,
-					title: "Generated config",
+					title: generated_title,
 					buttons: {
 						Ok: function () {
 							$(this).dialog("close");
@@ -101,13 +100,13 @@ function generateConfig(form_name) {
 		}
 	});
 	$("#generateconfig").remove();
-    $('#'+form_name +' input[name=ip]').each(function(){
-		if ($(this).val() == 'IsEmptY'){
+	$('#' + form_name + ' input[name=ip]').each(function () {
+		if ($(this).val() == 'IsEmptY') {
 			$(this).val('')
 		}
 	});
-	$('#'+form_name +' input[name=port]').each(function(){
-		if ($(this).val() == 'IsEmptY'){
+	$('#' + form_name + ' input[name=port]').each(function () {
+		if ($(this).val() == 'IsEmptY') {
 			$(this).val('')
 		}
 	});

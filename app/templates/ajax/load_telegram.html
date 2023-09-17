@@ -34,7 +34,7 @@
                     {{lang.words.token|title()}}
                 </td>
                 <td style="width: 20%;">{{lang.words.channel|title()}}</td>
-                {% if page != "servers.py" %}
+                {% if role|int() == 1 %}
                 <td style="width: 25%;">{{lang.words.group|title()}}</td>
                 {% endif %}
                 <td style="width: 100%;"></td>
@@ -51,7 +51,7 @@
                     {% set id = 'telegram-chanel-' + telegram.id|string() %}
                     {{ input(id, value=telegram.chanel_name, size='30') }}
                 </td>
-                {% if page != "servers.py" %}
+                {% if role|int() == 1 %}
                 <td>
                     <select id="telegramgroup-{{telegram.id}}" name="telegramgroup-{{telegram.id}}">
                         <option disabled selected>------</option>
@@ -86,7 +86,7 @@
                     <span title="Token that has given with APP registration">{{lang.words.token|title()}}</span>
                 </td>
                 <td style="width: 20%;">{{lang.words.channel|title()}}</td>
-                {% if page != "servers.py" %}
+                {% if role|int() == 1 %}
                 <td style="width: 25%;">{{lang.words.group|title()}}</td>
                 {% endif %}
                 <td style="width: 100%;"></td>
@@ -103,7 +103,7 @@
                     {% set id = 'slack-chanel-' + slack.id|string() %}
                     {{ input(id, value=slack.chanel_name, size='30') }}
                 </td>
-                {% if page != "servers.py" %}
+                {% if role|int() == 1 %}
                 <td>
                     <select id="slackgroup-{{slack.id}}" name="slackgroup-{{slack.id}}">
                         <option disabled selected>------</option>
@@ -138,7 +138,7 @@
                     {{lang.words.key|title()}}
                 </td>
                 <td style="width: 20%;">{{lang.words.name|title()}}</td>
-                {% if page != "servers.py" %}
+                {% if role|int() == 1 %}
                 <td style="width: 25%;">{{lang.words.group|title()}}</td>
                 {% endif %}
                 <td style="width: 100%;"></td>
@@ -155,7 +155,7 @@
                     {% set id = 'pd-chanel-' + pd.id|string() %}
                     {{ input(id, value=pd.chanel_name, size='30') }}
                 </td>
-                {% if page != "servers.py" %}
+                {% if role|int() == 1 %}
                 <td>
                     <select id="pdgroup-{{pd.id}}" name="pdgroup-{{pd.id}}">
                         <option disabled selected>------</option>
@@ -212,9 +212,9 @@
             <caption><i class="fas fa-network-wired caption-icon"></i><h3>HAProxy {{lang.words.servers}}</h3></caption>
             <tr class="overviewHead">
                 <td class="padding10 first-collumn">{{lang.words.server|title()}}</td>
-                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Telegram">Telegram</td>
-                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Slack">Slack</td>
-                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} PagerDuty">PagerDuty</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Telegram" style="width: 15%;">Telegram</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Slack" style="width: 15%;">Slack</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} PagerDuty" style="width: 15%;">PagerDuty</td>
                 <td class="checkbox-head" style="width: 10%;" title="{{lang.words.alert|title()}} {{lang.words.via}} {{lang.words.email}}">{{lang.words.email|title()}}</td>
                 <td class="checkbox-head" style="width: 10%;" title="{{lang.phrases.alert_service_change_status}}">{{lang.words.service|title()}}</td>
                 <td class="checkbox-head" style="width: 10%;" title="{{lang.phrases.alert_backend_change_status}}">{{lang.words.backend|title()}}</td>
@@ -304,9 +304,9 @@
             <caption><i class="fas fa-sitemap caption-icon"></i><h3>NGINX {{lang.words.servers}}</h3></caption>
             <tr class="overviewHead">
                 <td class="padding10 first-collumn">{{lang.words.server|title()}}</td>
-                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Telegram">Telegram</td>
-                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Slack">Slack</td>
-                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} PagerDuty">PagerDuty</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Telegram" style="width: 15%;">Telegram</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Slack" style="width: 15%;">Slack</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} PagerDuty" style="width: 15%;">PagerDuty</td>
                 <td class="checkbox-head" style="width: 10%;" title="{{lang.words.alert|title()}} {{lang.words.via}} {{lang.words.email}}">{{lang.words.email|title()}}</td>
                 <td class="checkbox-head" style="width: 100%;" title={{lang.phrases.alert_service_change_status}}>{{lang.words.service|title()}}</td>
                 <td><span onclick="loadchecker(1)" class="refresh" title="{{lang.words.refresh2|title()}}"></span></td>
@@ -378,9 +378,9 @@
             <caption><i class="fas fa-feather-alt caption-icon"></i><h3>Apache {{lang.words.servers}}</h3></caption>
             <tr class="overviewHead">
                 <td class="padding10 first-collumn">{{lang.words.server|title()}}</td>
-                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Telegram">Telegram</td>
-                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Slack">Slack</td>
-                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} PagerDuty">PagerDuty</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Telegram" style="width: 15%;">Telegram</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Slack" style="width: 15%;">Slack</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} PagerDuty" style="width: 15%;">PagerDuty</td>
                 <td class="checkbox-head" style="width: 10%;">{{lang.words.email|title()}}</td>
                 <td class="checkbox-head" style="width: 100%;" title="{{lang.phrases.alert_service_change_status}}">{{lang.words.service|title()}}</td>
                 <td><span onclick="loadchecker(1)" class="refresh" title="{{lang.words.refresh2|title()}}"></span></td>
@@ -452,9 +452,9 @@
             <caption><i class="fas fa-cloud caption-icon"></i><h3>Keepalived {{lang.words.servers}}</h3></caption>
             <tr class="overviewHead">
                 <td class="padding10 first-collumn">{{lang.words.server|title()}}</td>
-                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Telegram">Telegram</td>
-                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Slack">Slack</td>
-                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} PagerDuty">PagerDuty</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Telegram" style="width: 15%;">Telegram</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Slack" style="width: 15%;">Slack</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} PagerDuty" style="width: 15%;">PagerDuty</td>
                 <td class="checkbox-head" style="width: 10%;">{{lang.words.email|title()}}</td>
                 <td class="checkbox-head" style="width: 10%;" title="{{lang.phrases.alert_service_change_status}}">{{lang.words.service|title()}}</td>
                 <td class="checkbox-head" style="width: 100%;" title="{{lang.phrases.alert_master_backup}}">{{lang.words.status|title()}}</td>
@@ -537,3 +537,4 @@
 {% endif %}
 {% endfor %}
 {% endif %}
+{% include 'include/admins_dialogs.html' %}

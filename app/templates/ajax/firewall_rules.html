@@ -18,7 +18,7 @@
     </ul>
     <div id="input">
         <table class="overview">
-           {{thead}}
+           {{thead|safe}}
             <tbody>
             {% for p in input_chain %}
             <tr class="{{ loop.cycle('odd', 'even') }}">
@@ -47,7 +47,7 @@
     </div>
     <div id="IN_public_allow">
         <table class="overview">
-            {{thead}}
+            {{thead|safe}}
             <tbody>
             {% for p in IN_public_allow %}
             <tr class="{{ loop.cycle('odd', 'even') }}">
@@ -76,7 +76,7 @@
     </div>
     <div id="output">
         <table class="overview">
-            {{thead}}
+            {{thead|safe}}
             <tbody>
             {% for p in output_chain %}
             <tr class="{{ loop.cycle('odd', 'even') }}">

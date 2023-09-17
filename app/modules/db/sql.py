@@ -1,11 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import traceback
-import sys
 import os
+import sys
+import traceback
 
 from modules.db.db_model import *
 import modules.roxy_wi_tools as roxy_wi_tools
+
+
+def out_error(error):
+	error = str(error)
+	exc_type, exc_obj, exc_tb = sys.exc_info()
+	file_name = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+	stk = traceback.extract_tb(exc_tb, 1)
+	function_name = stk[0][2]
+	error = f'{error} in function: {function_name} in file: {file_name}'
+	raise Exception(f'error: {error}')
 
 
 def get_setting(param, **kwargs):
@@ -57,16 +67,6 @@ def get_setting(param, **kwargs):
 
 time_zone = get_setting('time_zone')
 get_date = roxy_wi_tools.GetDate(time_zone)
-
-
-def out_error(error):
-	error = str(error)
-	exc_type, exc_obj, exc_tb = sys.exc_info()
-	file_name = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-	stk = traceback.extract_tb(exc_tb, 1)
-	function_name = stk[0][2]
-	error = f'{error} in function: {function_name} in file: {file_name}'
-	raise Exception(f'error: {error}')
 
 
 def add_user(user, email, password, role, activeuser, group):
@@ -702,21 +702,13 @@ def delete_old_uuid():
 		out_error(e)
 
 
-def update_last_act_user(uuid, token):
+def update_last_act_user(uuid: str, token: str, ip: str) -> None:
 	session_ttl = int(get_setting('session_ttl'))
 	token_ttl = int(get_setting('token_ttl'))
 	cur_date_session = get_date.return_date('regular', timedelta=session_ttl)
 	cur_date_token = get_date.return_date('regular', timedelta=token_ttl)
 	cur_date = get_date.return_date('regular')
 	user_id = get_user_id_by_uuid(uuid)
-
-	try:
-		import cgi
-		import os
-		ip = cgi.escape(os.environ["REMOTE_ADDR"])
-	except Exception:
-		ip = ''
-
 	query = UUID.update(exp=cur_date_session).where(UUID.uuid == uuid)
 	query1 = Token.update(exp=cur_date_token).where(Token.token == token)
 	query2 = User.update(last_login_date=cur_date, last_login_ip=ip).where(User.user_id == user_id)
@@ -767,6 +759,7 @@ def get_user_role_by_uuid(uuid, group_id):
 			(UserGroups.user_group_id == group_id)
 		)
 	)
+
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -866,19 +859,7 @@ def get_pd_by_id(pd_id):
 		return query_res
 
 
-def get_dick_permit(**kwargs):
-	if kwargs.get('username'):
-		grp = kwargs.get('group_id')
-	else:
-		try:
-			import http.cookies
-			cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-			group = cookie.get('group')
-			grp = group.value
-		except Exception:
-			print('<meta http-equiv="refresh" content="0; url=/app/login.py">')
-			return
-
+def get_dick_permit(group_id, **kwargs):
 	only_group = kwargs.get('only_group')
 	disable = 'enable = 1'
 	haproxy = ''
@@ -907,21 +888,15 @@ def get_dick_permit(**kwargs):
 	cursor = conn.cursor()
 	try:
 		if mysql_enable == '1':
-			if grp == '1' and not only_group:
-				sql = """ select * from `servers` where {} {} {} {} {} {} {} order by `pos` asc""".format(
-					disable, type_ip, nginx, haproxy, keepalived, apache, ip
-				)
+			if group_id == '1' and not only_group:
+				sql = f" select * from `servers` where {disable} {type_ip} {nginx} {haproxy} {keepalived} {apache} {ip} order by `pos` asc"
 			else:
-				sql = """ select * from `servers` where `groups` = {group} and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} {apache} order by `pos` asc
-				""".format(
-					group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx, keepalived=keepalived, apache=apache
-				)
+				sql = f" select * from `servers` where `groups` = {group_id} and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} {apache} order by `pos` asc"
 		else:
-			if grp == '1' and not only_group:
-				sql = """ select * from servers where {} {} {} {} {} {} {} order by pos""".format(disable, type_ip, nginx, haproxy, keepalived, apache, ip)
+			if group_id == '1' and not only_group:
+				sql = f" select * from servers where {disable} {type_ip} {nginx} {haproxy} {keepalived} {apache} {ip} order by pos"
 			else:
-				sql = """ select * from servers where groups = '{group}' and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} {apache} order by pos
-				""".format(group=grp, disable=disable, type_ip=type_ip, ip=ip, haproxy=haproxy, nginx=nginx, keepalived=keepalived, apache=apache)
+				sql = f" select * from servers where groups = '{group_id}' and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} {apache} order by pos"
 
 	except Exception as e:
 		raise Exception(f'error: {e}')
@@ -1737,6 +1712,8 @@ def update_waf_metrics_enable(name, enable):
 		Waf.update(metrics=enable).where(Waf.server_id == server_id).execute()
 	except Exception as e:
 		out_error(e)
+	else:
+		return 'ok'
 
 
 def delete_metrics():
@@ -2492,14 +2469,14 @@ def update_firewall(serv):
 		return False
 
 
-def update_server_pos(pos, server_id):
+def update_server_pos(pos, server_id) -> str:
 	query = Server.update(pos=pos).where(Server.server_id == server_id)
 	try:
 		query.execute()
-		return True
+		return 'ok'
 	except Exception as e:
 		out_error(e)
-		return False
+		return 'not_ok'
 
 
 def check_token_exists(token):
@@ -2915,6 +2892,7 @@ def select_one_smon(smon_id: int, check_id: int) -> object:
 		query = SmonDnsCheck.select(SmonDnsCheck, SMON).join_from(SmonDnsCheck, SMON).where(SMON.id == smon_id)
 	else:
 		query = SmonPingCheck.select(SmonPingCheck, SMON).join_from(SmonPingCheck, SMON).where(SMON.id == smon_id)
+
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -3339,300 +3317,6 @@ def delete_provider(provider_id):
 	query = ProvidersCreds.delete().where(ProvidersCreds.id == provider_id)
 	try:
 		query.execute()
-		return True
-	except Exception as e:
-		out_error(e)
-		return False
-
-
-def add_server_aws(
-	region, instance_type, public_ip, floating_ip, volume_size, ssh_key_name, name, os, firewall,
-	provider_id, group_id, status, delete_on_termination, volume_type
-):
-	cur_date = get_date.return_date('regular')
-	try:
-		ProvisionedServers.insert(
-			region=region, instance_type=instance_type, public_ip=public_ip, floating_ip=floating_ip,
-			volume_size=volume_size, volume_type=volume_type, ssh_key_name=ssh_key_name, name=name, os=os,
-			firewall=firewall, provider_id=provider_id, group_id=group_id, delete_on_termination=delete_on_termination,
-			type='aws', status=status, date=cur_date
-		).execute()
-		return True
-	except Exception as e:
-		out_error(e)
-		return False
-
-
-def add_server_gcore(
-	project, region, instance_type, network_type, network_name, volume_size, ssh_key_name, name, os,
-	firewall, provider_id, group_id, status, delete_on_termination, volume_type
-):
-	cur_date = get_date.return_date('regular')
-	try:
-		ProvisionedServers.insert(
-			region=region, instance_type=instance_type, public_ip=network_type, network_name=network_name,
-			volume_size=volume_size, volume_type=volume_type, ssh_key_name=ssh_key_name, name=name,
-			os=os, firewall=firewall, provider_id=provider_id, group_id=group_id, type='gcore',
-			delete_on_termination=delete_on_termination, project=project, status=status, date=cur_date
-		).execute()
-		return True
-	except Exception as e:
-		out_error(e)
-		return False
-
-
-def add_server_do(
-	region, size, privet_net, floating_ip, ssh_ids, ssh_key_name, name, oss, firewall, monitoring, backup,
-	provider_id, group_id, status
-):
-	cur_date = get_date.return_date('regular')
-	try:
-		ProvisionedServers.insert(
-			region=region, instance_type=size, private_networking=privet_net, floating_ip=floating_ip,
-			ssh_ids=ssh_ids, ssh_key_name=ssh_key_name, name=name, os=oss, firewall=firewall,
-			monitoring=monitoring, backup=backup, provider_id=provider_id, group_id=group_id,
-			type='do', status=status, date=cur_date
-		).execute()
-		return True
-	except Exception as e:
-		out_error(e)
-		return False
-
-
-def select_aws_server(server_id):
-	prov_serv = ProvisionedServers.alias()
-	query = (
-		prov_serv.select(
-			prov_serv.region, prov_serv.instance_type, prov_serv.public_ip, prov_serv.floating_ip, prov_serv.volume_size,
-			prov_serv.ssh_key_name, prov_serv.name, prov_serv.os, prov_serv.firewall, prov_serv.provider_id,
-			prov_serv.group_id, prov_serv.id, prov_serv.delete_on_termination, prov_serv.volume_type
-		).where(prov_serv.id == server_id))
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def select_gcore_server(server_id):
-	prov_serv = ProvisionedServers.alias()
-	query = (
-		prov_serv.select(
-			prov_serv.region, prov_serv.instance_type, prov_serv.public_ip, prov_serv.floating_ip, prov_serv.volume_size,
-			prov_serv.ssh_key_name, prov_serv.name, prov_serv.os, prov_serv.firewall, prov_serv.provider_id,
-			prov_serv.group_id, prov_serv.id, prov_serv.delete_on_termination, prov_serv.project, prov_serv.network_name,
-			prov_serv.volume_type, prov_serv.name_template
-		).where(prov_serv.id == server_id))
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def select_do_server(server_id):
-	prov_serv = ProvisionedServers.alias()
-	query = (
-		prov_serv.select(
-			prov_serv.region, prov_serv.instance_type, prov_serv.private_networking, prov_serv.floating_ip,
-			prov_serv.ssh_ids, prov_serv.ssh_key_name, prov_serv.name, prov_serv.os, prov_serv.firewall, prov_serv.backup,
-			prov_serv.monitoring, prov_serv.provider_id, prov_serv.group_id, prov_serv.id
-		).where(prov_serv.id == server_id))
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def update_provisioning_server_status(status, user_group_id, name, provider_id, **kwargs):
-	if kwargs.get('update_ip'):
-		query = ProvisionedServers.update(status=status, IP=kwargs.get('update_ip')).where(
-			(ProvisionedServers.name == name) & (ProvisionedServers.group_id == user_group_id) & (ProvisionedServers.provider_id == provider_id)
-		)
-	else:
-		query = ProvisionedServers.update(status=status).where(
-			(ProvisionedServers.name == name)
-			& (ProvisionedServers.group_id == user_group_id)
-			& (ProvisionedServers.provider_id == provider_id)
-		)
-	try:
-		query.execute()
-	except Exception as e:
-		out_error(e)
-
-
-def update_provisioning_server_gcore_name(name, template_name, user_group_id, provider_id):
-	query = ProvisionedServers.update(name_template=template_name).where(
-		(ProvisionedServers.name == name)
-		& (ProvisionedServers.group_id == user_group_id)
-		& (ProvisionedServers.provider_id == provider_id)
-	)
-	try:
-		query.execute()
-	except Exception as e:
-		out_error(e)
-
-
-def update_provisioning_server_error(status, user_group_id, name, provider_id):
-	query = ProvisionedServers.update(last_error=status).where(
-		(ProvisionedServers.name == name)
-		& (ProvisionedServers.group_id == user_group_id)
-		& (ProvisionedServers.provider_id == provider_id)
-	)
-	try:
-		query.execute()
-	except Exception as e:
-		out_error(e)
-
-
-def update_server_aws(
-	region, size, public_ip, floating_ip, volume_size, ssh_name, workspace, oss, firewall, provider,
-	group, status, server_id, delete_on_termination, volume_type
-):
-	query = ProvisionedServers.update(
-		region=region, instance_type=size, public_ip=public_ip, floating_ip=floating_ip, volume_size=volume_size,
-		ssh_key_name=ssh_name, name=workspace, os=oss, firewall=firewall, provider_id=provider, group_id=group,
-		status=status, delete_on_termination=delete_on_termination, volume_type=volume_type
-	).where(ProvisionedServers.id == server_id)
-	try:
-		query.execute()
-		return True
-	except Exception as e:
-		out_error(e)
-		return False
-
-
-def update_server_gcore(
-	region, size, network_type, network_name, volume_size, ssh_name, workspace, oss, firewall,
-	provider, group, status, server_id, delete_on_termination, volume_type, project
-):
-	query = ProvisionedServers.update(
-		region=region, instance_type=size, public_ip=network_type, network_name=network_name, volume_size=volume_size,
-		ssh_key_name=ssh_name, name=workspace, os=oss, firewall=firewall, provider_id=provider, group_id=group,
-		status=status, delete_on_termination=delete_on_termination, volume_type=volume_type, project=project
-	).where(ProvisionedServers.id == server_id)
-	try:
-		query.execute()
-		return True
-	except Exception as e:
-		out_error(e)
-		return False
-
-
-def update_server_do(
-	size, privet_net, floating_ip, ssh_ids, ssh_name, oss, firewall, monitoring, backup, provider, group,
-	status, server_id
-):
-	query = ProvisionedServers.update(
-		instance_type=size, private_networking=privet_net, floating_ip=floating_ip, ssh_ids=ssh_ids,
-		ssh_key_name=ssh_name, os=oss, firewall=firewall, monitoring=monitoring, backup=backup, provider_id=provider,
-		group_id=group, status=status
-	).where(ProvisionedServers.id == server_id)
-	try:
-		query.execute()
-		return True
-	except Exception as e:
-		out_error(e)
-		return False
-
-
-def delete_provisioned_servers(server_id):
-	query = ProvisionedServers.delete().where(ProvisionedServers.id == server_id)
-	try:
-		query.execute()
-	except Exception as e:
-		out_error(e)
-
-
-def select_provisioned_servers(**kwargs):
-	prov_serv = ProvisionedServers.alias()
-	if kwargs.get('new'):
-		query = (
-			prov_serv.select(
-				prov_serv.id, prov_serv.name, prov_serv.provider_id, prov_serv.type, prov_serv.group_id,
-				prov_serv.instance_type, prov_serv.status, prov_serv.date, prov_serv.region, prov_serv.os,
-				prov_serv.IP, prov_serv.last_error, prov_serv.name_template
-			).where(
-				(prov_serv.name == kwargs.get('new'))
-				& (prov_serv.group_id == kwargs.get('group'))
-				& (prov_serv.type == kwargs.get('type'))
-			)
-		)
-	else:
-		query = prov_serv.select(
-			prov_serv.id, prov_serv.name, prov_serv.provider_id, prov_serv.type, prov_serv.group_id,
-			prov_serv.instance_type, prov_serv.status, prov_serv.date, prov_serv.region, prov_serv.os,
-			prov_serv.IP, prov_serv.last_error, prov_serv.name_template
-		)
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def select_aws_provider(provider_id):
-	try:
-		query_res = ProvidersCreds.get(ProvidersCreds.id == provider_id)
-	except Exception:
-		return ""
-	else:
-		return query_res.key, query_res.secret
-
-
-def select_gcore_provider(provider_id):
-	try:
-		query_res = ProvidersCreds.get(ProvidersCreds.id == provider_id)
-	except Exception:
-		return ""
-	else:
-		return query_res.key, query_res.secret
-
-
-def select_do_provider(provider_id):
-	try:
-		query_res = ProvidersCreds.get(ProvidersCreds.id == provider_id)
-	except Exception:
-		return ""
-	else:
-		return query_res.key
-
-
-def update_do_provider(new_name, new_token, provider_id):
-	cur_date = get_date.return_date('regular')
-	try:
-		ProvidersCreds.update(
-			name=new_name, key=new_token, edit_date=cur_date
-		).where(ProvidersCreds.id == provider_id).execute()
-		return True
-	except Exception as e:
-		out_error(e)
-		return False
-
-
-def update_gcore_provider(new_name, new_user, new_pass, provider_id):
-	cur_date = get_date.return_date('regular')
-	try:
-		ProvidersCreds.update(
-			name=new_name, key=new_user, secret=new_pass, edit_date=cur_date
-		).where(ProvidersCreds.id == provider_id).execute()
-		return True
-	except Exception as e:
-		out_error(e)
-		return False
-
-
-def update_aws_provider(new_name, new_key, new_secret, provider_id):
-	cur_date = get_date.return_date('regular')
-	try:
-		ProvidersCreds.update(
-			name=new_name, key=new_key, secret=new_secret, edit_date=cur_date
-		).where(ProvidersCreds.id == provider_id).execute()
 		return True
 	except Exception as e:
 		out_error(e)
@@ -4217,18 +3901,6 @@ def update_service_checker_settings(
 		return False
 	else:
 		return True
-
-
-def select_provisioning_params():
-	query = ProvisionParam.select()
-
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-		return
-	else:
-		return query_res
 
 
 def select_service(slug: str) -> str:

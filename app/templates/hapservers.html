@@ -3,9 +3,9 @@
 {% block h2 %}{{ lang.menu_links.hapservers.h2 }} {{ service_desc.service }}{% endblock %}
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select, copy_to_clipboard %}
-<script src="/inc/overview-6.3.9.js"></script>
+<script src="/inc/overview.js"></script>
 <link href="/inc/css/chart.min.css" rel="stylesheet">
-<script src="/inc/metrics-6.3.16.0.js"></script>
+<script src="/inc/metrics.js"></script>
 <script src="/inc/chart.min-4.3.0.js"></script>
 {% if servers|length == 0 %} {% include 'include/getstarted.html' %} {% endif %}
 <style>
@@ -203,7 +203,7 @@
 				<input type="hidden" id="server-name-{{s.0}}" value="{{s.1}}" />
 				<input type="hidden" id="service" value="{{service}}" />
 				{% if not serv %}
-					<a href="/app/hapservers.py?service={{service}}&serv={{s.2}}" title="{{lang.words.more|title()}} {{lang.words.about}} {{s.1}}" style="color: #5d9ceb">{{s.1}}</a>
+					<a href="/app/service/{{service}}/{{s.2}}" title="{{lang.words.more|title()}} {{lang.words.about}} {{s.1}}" style="color: #5d9ceb">{{s.1}}</a>
 				{% else %}
 					{{s.1}}
 				{% endif %}
@@ -249,7 +249,7 @@
 					<a id="stop-{{ s.2 }}" class="stop" title="{{lang.words.stop|title()}} {{service}} {{lang.words.service}}">
 						<span class="service-stop" onclick="confirmAjaxAction('stop', '{{service}}', '{{s.2}}')"></span>
 					</a>
-					<a href="history.py?service={{service}}&serv={{s.2}}" title="{{lang.words.view|title()}} {{lang.words.history3}} {{s.1}}" class="history" style="margin: 0 5px 0 10px;"></a>
+					<a href="/app/history/{{service}}/{{s.2}}" title="{{lang.words.view|title()}} {{lang.words.history3}} {{s.1}}" class="history" style="margin: 0 5px 0 10px;"></a>
 					{% if service != 'keepalived' %}
 					<span class="menu-bar" onclick="serverSettings('{{s.0}}', '{{s.1}}')" title="{{lang.words.edit|title()}} {{lang.words.settings}} {{s.1}}"></span>
 					{% endif %}
@@ -342,20 +342,20 @@
 			</div>
 			<div class="server-act-links">
 				{% if service == 'nginx' or service == 'apache' %}
-				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showConfigFiles" {{config_id}} class="ui-button ui-widget ui-corner-all" title="{{lang.words.open|title()}} {{lang.words.running}} {{lang.words.configs}}">{{lang.menu_links.config.link}}</a>
+				<a href="/app/config/{{service}}/{{s.2}}/show-files" {{config_id}} class="ui-button ui-widget ui-corner-all" title="{{lang.words.open|title()}} {{lang.words.running}} {{lang.words.configs}}">{{lang.menu_links.config.link}}</a>
 				{% else %}
-				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showConfig" {{config_id}} class="ui-button ui-widget ui-corner-all" title="{{lang.words.open|title()}} {{lang.words.running}} {{lang.words.config}}">{{lang.menu_links.config.link}}</a>
+				<a href="/app/config/{{service}}/{{s.2}}/show/undefined" {{config_id}} class="ui-button ui-widget ui-corner-all" title="{{lang.words.open|title()}} {{lang.words.running}} {{lang.words.config}}">{{lang.menu_links.config.link}}</a>
 				{% endif %}
-				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showCompare" {{compare_id}} class="ui-button ui-widget ui-corner-all" title="{{lang.words.compare|title()}} {{lang.words.configs}}">{{lang.words.compare|title()}}</a>
+				<a href="/app/config/compare/{{service}}/{{s.2}}" {{compare_id}} class="ui-button ui-widget ui-corner-all" title="{{lang.words.compare|title()}} {{lang.words.configs}}">{{lang.words.compare|title()}}</a>
 			{% if service == 'haproxy' %}
-				<a href="/app/config.py?service={{service}}&serv={{s.2}}&showMap" class="ui-button ui-widget ui-corner-all" {{map_id}} title="{{lang.words.show|title()}} {{lang.words.map}}">{{lang.words.map|title()}}</a>
+				<a href="/app/config/map/{{service}}/{{s.2}}" class="ui-button ui-widget ui-corner-all" {{map_id}} title="{{lang.words.show|title()}} {{lang.words.map}}">{{lang.words.map|title()}}</a>
 			{% endif %}
 			{% if service != 'keepalived' %}
-			<a href="/app/statsview.py?service={{service}}&serv={{s.2}}" class="ui-button ui-widget ui-corner-all" {{stats_id}} title="{{lang.words.view|title()}} {{service}} {{lang.words.statistics}}">{{lang.menu_links.stats.link}}</a>
+			<a href="/app/stats/{{service}}/{{s.2}}" class="ui-button ui-widget ui-corner-all" {{stats_id}} title="{{lang.words.view|title()}} {{service}} {{lang.words.statistics}}">{{lang.menu_links.stats.link}}</a>
 			{% endif %}
-			<a href="/app/logs.py?service={{service}}&serv={{s.2}}&rows=10&grep=&hour=00&minut=00&hour1=24&minut1=00" {{logs_id}} class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{service}} {{lang.words.logs}}">{{lang.menu_links.logs.link}}</a>
+			<a href="/app/logs/{{service}}/" {{logs_id}} class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{service}} {{lang.words.logs}}">{{lang.menu_links.logs.link}}</a>
 			{% if role <= 2 %}
-				<a href="/app/versions.py?service={{service}}&serv={{s.2}}&open=open" class="ui-button ui-widget ui-corner-all" {{versions_id}} title="{{lang.words.view|title()}}/{{lang.words.rollback|title()}} {{lang.words.to}} {{lang.words.previous}} {{lang.words.config}}">{{lang.menu_links.versions.link}}</a>
+				<a href="/app/config/versions/{{service}}/{{s.2}}" class="ui-button ui-widget ui-corner-all" {{versions_id}} title="{{lang.words.view|title()}}/{{lang.words.rollback|title()}} {{lang.words.to}} {{lang.words.previous}} {{lang.words.config}}">{{lang.menu_links.versions.link}}</a>
 			{% endif %}
 			</div>
 		</div>
@@ -406,13 +406,11 @@
 		<div class="chart-container_overview http_metrics_div">
 			<canvas id="http_{{s.2}}" role="img"></canvas>
 		</div>
-		{% for waf_server in servers_waf %}
-		{% if waf_server.server.ip == s.2 %}
+		{% if waf_server == s.2 %}
 		<div id="waf_metrics_div" class="chart-container_overview">
 			<canvas id="waf_{{s.2}}" role="img"></canvas>
 		</div>
 		{% endif %}
-		{% endfor %}
 		{% elif service == 'nginx' and s.8.0.21 %}
 		<div id="nginx_metrics_div" class="chart-container" style="display: block; width: 90%; height: 300px;">
 			<canvas id="nginx_{{s.2}}" role="img"></canvas>

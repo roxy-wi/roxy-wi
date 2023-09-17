@@ -3,684 +3,653 @@ var ssl_offloading_var = "http-request set-header X-Forwarded-Port %[dst_port] \
 						"redirect scheme https if !{ ssl_fc } \n"
 
 $( function() {
-	$( "#listen-mode-select" ).on('selectmenuchange',function()  {
-		if ($( "#listen-mode-select option:selected" ).val() == "tcp") {
-			$( "#https-listen-span" ).hide("fast");
-			$( "#https-hide-listen" ).hide("fast");
-			$("#compression").checkboxradio( "disable" );
-			$("#cache").checkboxradio( "disable" );
-			$("#ssl_offloading").checkboxradio( "disable" );
-			$("#cookie").checkboxradio( "disable" );
-			$("#slow_atack").checkboxradio( "disable" );
-			$( "#https-listen" ).prop("checked", false);
+	$("#listen-mode-select").on('selectmenuchange', function () {
+		if ($("#listen-mode-select option:selected").val() == "tcp") {
+			$("#https-listen-span").hide("fast");
+			$("#https-hide-listen").hide("fast");
+			$("#compression").checkboxradio("disable");
+			$("#cache").checkboxradio("disable");
+			$("#ssl_offloading").checkboxradio("disable");
+			$("#cookie").checkboxradio("disable");
+			$("#slow_atack").checkboxradio("disable");
+			$("#https-listen").prop("checked", false);
 		} else {
-			$( "#https-listen-span" ).show("fast");
-			$("#compression").checkboxradio( "enable" );
-			$("#cache").checkboxradio( "enable" );
-			$("#ssl_offloading").checkboxradio( "enable" );
-			$("#cookie").checkboxradio( "enable" );
-			$("#slow_atack").checkboxradio( "enable" );
+			$("#https-listen-span").show("fast");
+			$("#compression").checkboxradio("enable");
+			$("#cache").checkboxradio("enable");
+			$("#ssl_offloading").checkboxradio("enable");
+			$("#cookie").checkboxradio("enable");
+			$("#slow_atack").checkboxradio("enable");
 		}
 	});
-	$( "#frontend-mode-select" ).on('selectmenuchange',function()  {
-		if ($( "#frontend-mode-select option:selected" ).val() == "tcp") {
-			$( "#https-frontend-span" ).hide("fast");
-			$( "#https-hide-frontend" ).hide("fast");
-			$("#compression2").checkboxradio( "disable" );
-			$("#cache2").checkboxradio( "disable" );
-			$("#ssl_offloading2").checkboxradio( "disable" );
-			$("#cookie2").checkboxradio( "disable" );
-			$("#slow_atack1").checkboxradio( "disable" );
+	$("#frontend-mode-select").on('selectmenuchange', function () {
+		if ($("#frontend-mode-select option:selected").val() == "tcp") {
+			$("#https-frontend-span").hide("fast");
+			$("#https-hide-frontend").hide("fast");
+			$("#compression2").checkboxradio("disable");
+			$("#cache2").checkboxradio("disable");
+			$("#ssl_offloading2").checkboxradio("disable");
+			$("#cookie2").checkboxradio("disable");
+			$("#slow_atack1").checkboxradio("disable");
 		} else {
-			$( "#https-frontend-span" ).show("fast");
-			$("#compression2").checkboxradio( "enable" );
-			$("#cache2").checkboxradio( "enable" );
-			$("#ssl_offloading2").checkboxradio( "enable" );
-			$("#cookie2").checkboxradio( "enable" );
-			$("#slow_atack1").checkboxradio( "enable" );
+			$("#https-frontend-span").show("fast");
+			$("#compression2").checkboxradio("enable");
+			$("#cache2").checkboxradio("enable");
+			$("#ssl_offloading2").checkboxradio("enable");
+			$("#cookie2").checkboxradio("enable");
+			$("#slow_atack1").checkboxradio("enable");
 		}
 	});
-	$( "#backend-mode-select" ).on('selectmenuchange',function()  {
-		if ($( "#backend-mode-select option:selected" ).val() == "tcp") {
-			$( "#https-backend-span" ).hide("fast");
-			$( "#https-hide-backend" ).hide("fast");
-			$("#compression3").checkboxradio( "disable" );
-			$("#cache3").checkboxradio( "disable" );
-			$("#ssl_offloading3").checkboxradio( "disable" );
-			$("#cookie3").checkboxradio( "disable" );
-			$("#slow_atack2").checkboxradio( "disable" );
+	$("#backend-mode-select").on('selectmenuchange', function () {
+		if ($("#backend-mode-select option:selected").val() == "tcp") {
+			$("#https-backend-span").hide("fast");
+			$("#https-hide-backend").hide("fast");
+			$("#compression3").checkboxradio("disable");
+			$("#cache3").checkboxradio("disable");
+			$("#ssl_offloading3").checkboxradio("disable");
+			$("#cookie3").checkboxradio("disable");
+			$("#slow_atack2").checkboxradio("disable");
 		} else {
-			$( "#https-backend-span" ).show("fast");
-			$("#compression3").checkboxradio( "enable" );
-			$("#cache3").checkboxradio( "enable" );
-			$("#ssl_offloading3").checkboxradio( "enable" );
-			$("#cookie3").checkboxradio( "enable" );
-			$("#slow_atack2").checkboxradio( "enable" );
+			$("#https-backend-span").show("fast");
+			$("#compression3").checkboxradio("enable");
+			$("#cache3").checkboxradio("enable");
+			$("#ssl_offloading3").checkboxradio("enable");
+			$("#cookie3").checkboxradio("enable");
+			$("#slow_atack2").checkboxradio("enable");
 		}
 	});
-	$( "#https-listen" ).click( function(){
+	$("#https-listen").click(function () {
 		if ($('#https-listen').is(':checked')) {
-			$( "#https-hide-listen" ).show( "fast" );
-			$( "#path-cert-listen" ).attr('required',true);
+			$("#https-hide-listen").show("fast");
+			$("#path-cert-listen").attr('required', true);
 		} else {
-			$( "#https-hide-listen" ).hide( "fast" );
-			$( "#path-cert-listen" ).prop('required',false);
+			$("#https-hide-listen").hide("fast");
+			$("#path-cert-listen").prop('required', false);
 		}
-	});	
-	$( "#https-frontend" ).click( function(){
+	});
+	$("#https-frontend").click(function () {
 		if ($('#https-frontend').is(':checked')) {
-			$( "#https-hide-frontend" ).show( "fast" );
-			$( "#path-cert-frontend" ).attr('required',true);
+			$("#https-hide-frontend").show("fast");
+			$("#path-cert-frontend").attr('required', true);
 		} else {
-			$( "#https-hide-frontend" ).hide( "fast" );
-			$( "#path-cert-frontend" ).prop('required',false);
+			$("#https-hide-frontend").hide("fast");
+			$("#path-cert-frontend").prop('required', false);
 		}
-	});	
-	$( "#https-backend" ).click( function(){
+	});
+	$("#https-backend").click(function () {
 		if ($('#https-backend').is(':checked')) {
-			$( "#https-hide-backend" ).show( "fast" );
+			$("#https-hide-backend").show("fast");
 		} else {
-			$( "#https-hide-backend" ).hide( "fast" );
+			$("#https-hide-backend").hide("fast");
 		}
 	});
-	$( "#ssl-dis-check-listen" ).click( function(){
+	$("#ssl-dis-check-listen").click(function () {
 		if ($('#ssl-dis-check-listen').is(':checked')) {
-			$( "#ssl-check-listen" ).checkboxradio( "disable" );
-			$( "#ssl-check-listen" ).prop( "checked", false );
-			$( "#ssl-check-listen" ).checkboxradio("refresh");
+			$("#ssl-check-listen").checkboxradio("disable");
+			$("#ssl-check-listen").prop("checked", false);
+			$("#ssl-check-listen").checkboxradio("refresh");
 		} else {
-			$( "#ssl-check-listen" ).checkboxradio( "enable" );
-			$( "#ssl-check-listen" ).prop( "checked", true );
-			$( "#ssl-check-listen" ).checkboxradio("refresh");
+			$("#ssl-check-listen").checkboxradio("enable");
+			$("#ssl-check-listen").prop("checked", true);
+			$("#ssl-check-listen").checkboxradio("refresh");
 		}
 	});
-	$( "#ssl-dis-check-backend" ).click( function(){
+	$("#ssl-dis-check-backend").click(function () {
 		if ($('#ssl-dis-check-backend').is(':checked')) {
-			$( "#ssl-check-backend" ).checkboxradio( "disable" );
-			$( "#ssl-check-backend" ).prop( "checked", false );
-			$( "#ssl-check-backend" ).checkboxradio("refresh");
+			$("#ssl-check-backend").checkboxradio("disable");
+			$("#ssl-check-backend").prop("checked", false);
+			$("#ssl-check-backend").checkboxradio("refresh");
 		} else {
-			$( "#ssl-check-backend" ).checkboxradio( "enable" );
-			$( "#ssl-check-backend" ).prop( "checked", true );
-			$( "#ssl-check-backend" ).checkboxradio("refresh");
+			$("#ssl-check-backend").checkboxradio("enable");
+			$("#ssl-check-backend").prop("checked", true);
+			$("#ssl-check-backend").checkboxradio("refresh");
 		}
 	});
-	$( "#options-listen-show" ).click( function(){
+	$("#options-listen-show").click(function () {
 		if ($('#options-listen-show').is(':checked')) {
-			$( "#options-listen-show-div" ).show( "fast" );
+			$("#options-listen-show-div").show("fast");
 		} else {
-			$( "#options-listen-show-div" ).hide( "fast" );
+			$("#options-listen-show-div").hide("fast");
 		}
-	});	
-	$( "#options-frontend-show" ).click( function(){
+	});
+	$("#options-frontend-show").click(function () {
 		if ($('#options-frontend-show').is(':checked')) {
-			$( "#options-frontend-show-div" ).show( "fast" );
+			$("#options-frontend-show-div").show("fast");
 		} else {
-			$( "#options-frontend-show-div" ).hide( "fast" );
+			$("#options-frontend-show-div").hide("fast");
 		}
-	});	
-	$( "#options-backend-show" ).click( function(){
+	});
+	$("#options-backend-show").click(function () {
 		if ($('#options-backend-show').is(':checked')) {
-			$( "#options-backend-show-div" ).show( "fast" );
+			$("#options-backend-show-div").show("fast");
 		} else {
-			$( "#options-backend-show-div" ).hide( "fast" );
+			$("#options-backend-show-div").hide("fast");
 		}
-	});	
-	$( "#controlgroup-listen-show" ).click( function(){
+	});
+	$("#controlgroup-listen-show").click(function () {
 		if ($('#controlgroup-listen-show').is(':checked')) {
-			$( "#controlgroup-listen" ).show( "fast" );
+			$("#controlgroup-listen").show("fast");
 			if ($('#check-servers-listen').is(':checked')) {
-				$( "#rise-listen" ).attr('required',true);
-				$( "#fall-listen" ).attr('required',true);
-				$( "#inter-listen" ).attr('required',true);
-				$( "#inter-listen" ).attr('disable',false);				
-			}				
+				$("#rise-listen").attr('required', true);
+				$("#fall-listen").attr('required', true);
+				$("#inter-listen").attr('required', true);
+				$("#inter-listen").attr('disable', false);
+			}
 		} else {
-			$( "#controlgroup-listen" ).hide( "fast" );			
+			$("#controlgroup-listen").hide("fast");
 		}
-		$( "#check-servers-listen" ).click( function(){
+		$("#check-servers-listen").click(function () {
 			if ($('#check-servers-listen').is(':checked')) {
-				$( "#rise-listen" ).attr('required',true);
-				$( "#fall-listen" ).attr('required',true);
-				$( "#inter-listen" ).attr('required',true);
-				$( "#inter-listen" ).selectmenu( "option", "disabled", false );
-				$( "#fall-listen" ).selectmenu( "option", "disabled", false );
-				$( "#rise-listen" ).selectmenu( "option", "disabled", false );
+				$("#rise-listen").attr('required', true);
+				$("#fall-listen").attr('required', true);
+				$("#inter-listen").attr('required', true);
+				$("#inter-listen").selectmenu("option", "disabled", false);
+				$("#fall-listen").selectmenu("option", "disabled", false);
+				$("#rise-listen").selectmenu("option", "disabled", false);
 			} else {
-				$( "#rise-listen" ).attr('required',false);
-				$( "#fall-listen" ).attr('required',false);
-				$( "#inter-listen" ).attr('required',false);
-				$( "#inter-listen" ).selectmenu( "option", "disabled", true );
-				$( "#fall-listen" ).selectmenu( "option", "disabled", true );
-				$( "#rise-listen" ).selectmenu( "option", "disabled", true );
+				$("#rise-listen").attr('required', false);
+				$("#fall-listen").attr('required', false);
+				$("#inter-listen").attr('required', false);
+				$("#inter-listen").selectmenu("option", "disabled", true);
+				$("#fall-listen").selectmenu("option", "disabled", true);
+				$("#rise-listen").selectmenu("option", "disabled", true);
 			}
 		});
 	});
-	$( "#controlgroup-backend-show" ).click( function(){
+	$("#controlgroup-backend-show").click(function () {
 		if ($('#controlgroup-backend-show').is(':checked')) {
-			$( "#controlgroup-backend" ).show( "fast" );
+			$("#controlgroup-backend").show("fast");
 			if ($('#check-servers-backend').is(':checked')) {
-				$( "#rise-backend" ).attr('required',true);
-				$( "#fall-backend" ).attr('required',true);
-				$( "#inter-backend" ).attr('required',true);
+				$("#rise-backend").attr('required', true);
+				$("#fall-backend").attr('required', true);
+				$("#inter-backend").attr('required', true);
 			}
 		} else {
-			$( "#controlgroup-backend" ).hide( "fast" );			
+			$("#controlgroup-backend").hide("fast");
 		}
 	});
-	$( "#circuit_breaking_listen" ).click( function(){
+	$("#circuit_breaking_listen").click(function () {
 		if ($('#circuit_breaking_listen').is(':checked')) {
-			$( "#circuit_breaking_listen_div" ).show( "fast" );
+			$("#circuit_breaking_listen_div").show("fast");
 		} else {
-			$( "#circuit_breaking_listen_div" ).hide( "fast" );
+			$("#circuit_breaking_listen_div").hide("fast");
 		}
 	});
-	$( "#circuit_breaking_backend" ).click( function(){
+	$("#circuit_breaking_backend").click(function () {
 		if ($('#circuit_breaking_backend').is(':checked')) {
-			$( "#circuit_breaking_backend_div" ).show( "fast" );
+			$("#circuit_breaking_backend_div").show("fast");
 		} else {
-			$( "#circuit_breaking_backend_div" ).hide( "fast" );
+			$("#circuit_breaking_backend_div").hide("fast");
 		}
 	});
-	$( "#cookie" ).click( function(){
+	$("#cookie").click(function () {
 		if ($('#cookie').is(':checked')) {
-			$("#cookie_name" ).attr('required',true);
-			$("#cookie_div").show( "fast" );
+			$("#cookie_name").attr('required', true);
+			$("#cookie_div").show("fast");
 		} else {
-			$("#cookie_name" ).attr('required',false);
-			$("#cookie_div").hide( "fast" );
-			$("#dynamic-cookie-key" ).attr('required',false);
+			$("#cookie_name").attr('required', false);
+			$("#cookie_div").hide("fast");
+			$("#dynamic-cookie-key").attr('required', false);
 		}
 	});
-	$( "#cookie2" ).click( function(){
+	$("#cookie2").click(function () {
 		if ($('#cookie2').is(':checked')) {
-			$("#cookie_name2" ).attr('required',true);
-			$("#cookie_div2").show( "fast" );
+			$("#cookie_name2").attr('required', true);
+			$("#cookie_div2").show("fast");
 		} else {
-			$("#cookie_name2" ).attr('required',false);
-			$("#cookie_div2").hide( "fast" );
-			$("#dynamic-cookie-key2" ).attr('required',false);
+			$("#cookie_name2").attr('required', false);
+			$("#cookie_div2").hide("fast");
+			$("#dynamic-cookie-key2").attr('required', false);
 		}
 	});
-	$( "#rewrite" ).on('selectmenuchange',function()  {
-		if ($( "#rewrite option:selected" ).val() == "insert" || $( "#rewrite option:selected" ).val() == "rewrite") {
-			$( "#prefix" ).checkboxradio( "disable" );
+	$("#rewrite").on('selectmenuchange', function () {
+		if ($("#rewrite option:selected").val() == "insert" || $("#rewrite option:selected").val() == "rewrite") {
+			$("#prefix").checkboxradio("disable");
 		} else {
-			$( "#prefix" ).checkboxradio( "enable" );
+			$("#prefix").checkboxradio("enable");
 		}
 	});
-	$( "#rewrite2" ).on('selectmenuchange',function()  {
-		if ($( "#rewrite2 option:selected" ).val() == "insert" || $( "#rewrite2 option:selected" ).val() == "rewrite") {
-			$( "#prefix2" ).checkboxradio( "disable" );
+	$("#rewrite2").on('selectmenuchange', function () {
+		if ($("#rewrite2 option:selected").val() == "insert" || $("#rewrite2 option:selected").val() == "rewrite") {
+			$("#prefix2").checkboxradio("disable");
 		} else {
-			$( "#prefix2" ).checkboxradio( "enable" );
+			$("#prefix2").checkboxradio("enable");
 		}
 	});
-	$( "#dynamic" ).click( function(){
+	$("#dynamic").click(function () {
 		if ($('#dynamic').is(':checked')) {
-			$("#dynamic-cookie-key" ).attr('required',true);
-			$("#dynamic_div").show("slide", "fast" );
+			$("#dynamic-cookie-key").attr('required', true);
+			$("#dynamic_div").show("slide", "fast");
 		} else {
-			$("#dynamic-cookie-key" ).attr('required',false);
-			$("#dynamic_div").hide("slide", "fast" );
+			$("#dynamic-cookie-key").attr('required', false);
+			$("#dynamic_div").hide("slide", "fast");
 		}
 	});
-	$( "#dynamic2" ).click( function(){
+	$("#dynamic2").click(function () {
 		if ($('#dynamic2').is(':checked')) {
-			$("#dynamic-cookie-key2" ).attr('required',true);
-			$("#dynamic_div2").show("slide", "fast" );
+			$("#dynamic-cookie-key2").attr('required', true);
+			$("#dynamic_div2").show("slide", "fast");
 		} else {
-			$("#dynamic-cookie-key2" ).attr('required',false);
-			$("#dynamic_div2").hide("slide", "fast" );
+			$("#dynamic-cookie-key2").attr('required', false);
+			$("#dynamic_div2").hide("slide", "fast");
 		}
 	});
-	$( "#check-servers-backend" ).click( function(){
+	$("#check-servers-backend").click(function () {
 		if ($('#check-servers-backend').is(':checked')) {
-			$( "#rise-backend" ).attr('required',true);
-			$( "#fall-backend" ).attr('required',true);
-			$( "#inter-backend" ).attr('required',true);
-			$( "#inter-backend" ).selectmenu( "option", "disabled", false );
-			$( "#fall-backend" ).selectmenu( "option", "disabled", false );
-			$( "#rise-backend" ).selectmenu( "option", "disabled", false );
+			$("#rise-backend").attr('required', true);
+			$("#fall-backend").attr('required', true);
+			$("#inter-backend").attr('required', true);
+			$("#inter-backend").selectmenu("option", "disabled", false);
+			$("#fall-backend").selectmenu("option", "disabled", false);
+			$("#rise-backend").selectmenu("option", "disabled", false);
 		} else {
-			$( "#rise-backend" ).attr('required',false);
-			$( "#fall-backend" ).attr('required',false);
-			$( "#inter-backend" ).attr('required',false);
-			$( "#inter-backend" ).selectmenu( "option", "disabled", true );
-			$( "#fall-backend" ).selectmenu( "option", "disabled", true );
-			$( "#rise-backend" ).selectmenu( "option", "disabled", true );
+			$("#rise-backend").attr('required', false);
+			$("#fall-backend").attr('required', false);
+			$("#inter-backend").attr('required', false);
+			$("#inter-backend").selectmenu("option", "disabled", true);
+			$("#fall-backend").selectmenu("option", "disabled", true);
+			$("#rise-backend").selectmenu("option", "disabled", true);
 		}
 	});
-	
-	
+
+
 	var availableTags = [
 		"acl", "hdr(host)", "hdr_beg(host)", "hdr_dom(host)", "http-request", "http-response", "set-uri", "set-url", "set-header", "add-header", "del-header", "replace-header", "path_beg", "url_beg()", "urlp_sub()", "set cookie", "dynamic-cookie-key", "mysql-check", "tcpka", "tcplog", "forwardfor", "option"
 	];
-			
-	$( "#ip" ).autocomplete({
-		source: function( request, response ) {
-			if(!checkIsServerFiled('#serv')) return false;
-			if ( request.term == "" ) {
+
+	$("#ip").autocomplete({
+		source: function (request, response) {
+			if (!checkIsServerFiled('#serv')) return false;
+			if (request.term == "") {
 				request.term = 1
 			}
-			$.ajax( {
-				url: "options.py",
-				data: {
-					show_ip: request.term,
-					serv: $("#serv").val(),
-					token: $('#token').val()
-				},
-				success: function( data ) {
-					data = data.replace(/\s+/g,' ');
-					response(data.split(" "));				
-				}					
-			} );
-		},
-		autoFocus: true,
-		minLength: -1,
-		select: function( event, ui ) {
-			$('#listen-port').focus();				
-		}
-	});
-	$( "#ip1" ).autocomplete({
-		source: function( request, response ) {
-			if(!checkIsServerFiled('#serv2')) return false;
-			if ( request.term == "" ) {
-				request.term = 1
-			}
-			$.ajax( {
-				url: "options.py",
-				data: {
-					show_ip: request.term,
-					serv: $("#serv2").val(),
-					token: $('#token').val()
-				},
-				success: function( data ) {
-					data = data.replace(/\s+/g,' ');
+			$.ajax({
+				url: "/app/add/show/ip/" + $("#serv").val(),
+				// data: {
+				// 	show_ip: request.term,
+				// 	token: $('#token').val()
+				// },
+				success: function (data) {
+					data = data.replace(/\s+/g, ' ');
 					response(data.split(" "));
 				}
-			} );
+			});
 		},
 		autoFocus: true,
 		minLength: -1,
-		select: function( event, ui ) {
+		select: function (event, ui) {
+			$('#listen-port').focus();
+		}
+	});
+	$("#ip1").autocomplete({
+		source: function (request, response) {
+			if (!checkIsServerFiled('#serv2')) return false;
+			if (request.term == "") {
+				request.term = 1
+			}
+			$.ajax({
+				url: "/app/add/show/ip/" + $("#serv2").val(),
+				// data: {
+				// 	show_ip: request.term,
+				// 	token: $('#token').val()
+				// },
+				success: function (data) {
+					data = data.replace(/\s+/g, ' ');
+					response(data.split(" "));
+				}
+			});
+		},
+		autoFocus: true,
+		minLength: -1,
+		select: function (event, ui) {
 			$('#frontend-port').focus();
 		}
 	});
-	$( "#backends" ).autocomplete({
-		source: function( request, response ) {
-			if(!checkIsServerFiled('#serv2')) return false;
-			if ( request.term == "" ) {
+	$("#backends").autocomplete({
+		source: function (request, response) {
+			if (!checkIsServerFiled('#serv2')) return false;
+			if (request.term == "") {
 				request.term = 1
 			}
-			$.ajax( {
-				url: "options.py",
-				data: {
-					backend: request.term,
-					serv: $("#serv2").val(),
-					token: $('#token').val()
-				},
-				success: function( data ) {
+			$.ajax({
+				url: "/app/runtimeapi/backends/" + $("#serv2").val(),
+				// data: {
+				// 	token: $('#token').val()
+				// },
+				success: function (data) {
 					response(data.split('<br>'));
-				}						
-			} );
+				}
+			});
 		},
 		autoFocus: true,
 		minLength: -1
 	});
-	$( "#blacklist-hide-input" ).autocomplete({
-		source: function( request, response ) {
-			if ( request.term == "" ) {
+	$("#blacklist-hide-input").autocomplete({
+		source: function (request, response) {
+			if (request.term == "") {
 				request.term = 1
 			}
-			$.ajax( {
-				url: "options.py",
-				data: {
-					get_lists: request.term,
-					color: "black",
-					group: $("#group").val(),
-					token: $('#token').val()
-				},
-				success: function( data ) {
-					data = data.replace(/\s+/g,' ');
-					response(data.split(" "));
-				}						
-			} );
-		},
-		autoFocus: true,
-		minLength: -1
-	});
-	$( "#blacklist-hide-input1" ).autocomplete({
-		source: function( request, response ) {
-			if ( request.term == "" ) {
-				request.term = 1
-			}
-			$.ajax( {
-				url: "options.py",
-				data: {
-					get_lists: request.term,
-					color: "black",
-					group: $("#group").val(),
-					token: $('#token').val()
-				},
-				success: function( data ) {
-					data = data.replace(/\s+/g,' ');
-					response(data.split(" "));
-				}						
-			} );
-		},
-		autoFocus: true,
-		minLength: -1
-	});
-	$( "#whitelist-hide-input" ).autocomplete({
-		source: function( request, response ) {
-			if ( request.term == "" ) {
-				request.term = 1
-			}
-			$.ajax( {
-				url: "options.py",
-				data: {
-					get_lists: request.term,
-					color: "white",
-					group: $("#group").val(),
-					token: $('#token').val()
-				},
-				success: function( data ) {
-					data = data.replace(/\s+/g,' ');
+			$.ajax({
+				url: "/app/add/haproxy/bwlists/black/" + $("#group").val(),
+				success: function (data) {
+					data = data.replace(/\s+/g, ' ');
 					response(data.split(" "));
 				}
-			} );
+			});
 		},
 		autoFocus: true,
 		minLength: -1
 	});
-	$( "#whitelist-hide-input1" ).autocomplete({
-		source: function( request, response ) {
-			if ( request.term == "" ) {
+	$("#blacklist-hide-input1").autocomplete({
+		source: function (request, response) {
+			if (request.term == "") {
 				request.term = 1
 			}
-			$.ajax( {
-				url: "options.py",
-				data: {
-					get_lists: request.term,
-					color: "white",
-					group: $("#group").val(),
-					token: $('#token').val()
-				},
-				success: function( data ) {
-					data = data.replace(/\s+/g,' ');
+			$.ajax({
+				url: "/app/add/haproxy/bwlists/black/" + $("#group").val(),
+				success: function (data) {
+					data = data.replace(/\s+/g, ' ');
 					response(data.split(" "));
 				}
-			} );
+			});
 		},
 		autoFocus: true,
 		minLength: -1
 	});
-	$( "#new-option" ).autocomplete({
+	$("#whitelist-hide-input").autocomplete({
+		source: function (request, response) {
+			if (request.term == "") {
+				request.term = 1
+			}
+			$.ajax({
+				url: "/app/add/haproxy/bwlists/white/" + $("#group").val(),
+				success: function (data) {
+					data = data.replace(/\s+/g, ' ');
+					response(data.split(" "));
+				}
+			});
+		},
+		autoFocus: true,
+		minLength: -1
+	});
+	$("#whitelist-hide-input1").autocomplete({
+		source: function (request, response) {
+			if (request.term == "") {
+				request.term = 1
+			}
+			$.ajax({
+				url: "/app/add/haproxy/bwlists/white/" + $("#group").val(),
+				success: function (data) {
+					data = data.replace(/\s+/g, ' ');
+					response(data.split(" "));
+				}
+			});
+		},
+		autoFocus: true,
+		minLength: -1
+	});
+	$("#new-option").autocomplete({
 		source: availableTags,
 		autoFocus: true,
-	    minLength: -1,
-		select: function( event, ui ) {
+		minLength: -1,
+		select: function (event, ui) {
 			$("#new-option").append(ui.item.value + " ")
 		}
 	});
-	$( "#option_table input" ).change(function() {
+	$("#option_table input").change(function () {
 		var id = $(this).attr('id').split('-');
 		updateOptions(id[2])
 	});
-	$( "#options" ).autocomplete({
+	$("#options").autocomplete({
 		source: availableTags,
 		autoFocus: true,
-	    minLength: -1,
-		select: function( event, ui ) {
+		minLength: -1,
+		select: function (event, ui) {
 			$("#optionsInput").append(ui.item.value + " ");
 			$(this).val('');
 			return false;
 		}
 	});
-	$( "#saved-options" ).autocomplete({
+	$("#saved-options").autocomplete({
 		dataType: "json",
-		source: "options.py?getoption="+$('#group').val()+'&token='+$('#token').val(),
+		source: "/app/add/option/get/" + $('#group').val(),
 		autoFocus: true,
-	    minLength: 1,
-		select: function( event, ui ) {
+		minLength: 1,
+		select: function (event, ui) {
 			$("#optionsInput").append(ui.item.value + " \n");
 			$(this).val('');
 			return false;
 		}
 	});
-	$( "#options1" ).autocomplete({
+	$("#options1").autocomplete({
 		source: availableTags,
 		autoFocus: true,
-	    minLength: -1,
-		select: function( event, ui ) {
+		minLength: -1,
+		select: function (event, ui) {
 			$("#optionsInput1").append(ui.item.value + " ");
 			$(this).val('');
-			return false; 
+			return false;
 		}
 	});
-	
-	$( "#saved-options1" ).autocomplete({
+
+	$("#saved-options1").autocomplete({
 		dataType: "json",
-		source: "options.py?getoption="+$('#group').val()+'&token='+$('#token').val(),
+		source: "/app/add/option/get/" + $('#group').val(),
 		autoFocus: true,
-	    minLength: 1,
-		select: function( event, ui ) {
-			$("#optionsInput1").append(ui.item.value + " \n");	
+		minLength: 1,
+		select: function (event, ui) {
+			$("#optionsInput1").append(ui.item.value + " \n");
 			$(this).val('');
-			return false;		
+			return false;
 		}
 	});
-	$( "#options2" ).autocomplete({
+	$("#options2").autocomplete({
 		source: availableTags,
 		autoFocus: true,
-	    minLength: -1,
-		select: function( event, ui ) {
+		minLength: -1,
+		select: function (event, ui) {
 			$("#optionsInput2").append(ui.item.value + " ");
 			$(this).val('');
 			return false;
 		}
 	});
-	$( "#saved-options2" ).autocomplete({
+	$("#saved-options2").autocomplete({
 		dataType: "json",
-		source: "options.py?getoption="+$('#group').val()+'&token='+$('#token').val(),
+		source: "/app/add/option/get/" + $('#group').val(),
 		autoFocus: true,
-	    minLength: 1,
-		select: function( event, ui ) {
-			$("#optionsInput2").append(ui.item.value + " \n");	
+		minLength: 1,
+		select: function (event, ui) {
+			$("#optionsInput2").append(ui.item.value + " \n");
 			$(this).val('');
 			return false;
 		}
 	});
-	$('#add-option-button').click(function() {
+	$('#add-option-button').click(function () {
 		if ($('#option-add-table').css('display', 'none')) {
 			$('#option-add-table').show("blind", "fast");
-		} 
+		}
 	});
-	$('#add-option-new').click(function() {
-		$.ajax( {
-			url: "options.py",
+	$('#add-option-new').click(function () {
+		$.ajax({
+			url: "/app/add/option/save",
 			data: {
-				newtoption: $('#new-option').val(),
-				newoptiongroup: $('#group').val(),
-				token: $('#token').val()
+				option: $('#new-option').val(),
+				option_group: $('#group').val()
 			},
 			type: "POST",
-			success: function( data ) {
+			success: function (data) {
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
 					$("#option_table").append(data);
-					setTimeout(function() {
-						$( ".newoption" ).removeClass( "update" );
-					}, 2500 );	
+					setTimeout(function () {
+						$(".newoption").removeClass("update");
+					}, 2500);
 					$.getScript("/inc/fontawesome.min.js");
 				}
-			}					
-		} );
+			}
+		});
 	});
-	$( "#servers_table input" ).change(function() {
+	$("#servers_table input").change(function () {
 		var id = $(this).attr('id').split('-');
 		updateSavedServer(id[2])
 
 	});
-	$( '[name=servers]' ).autocomplete({
-		source: "options.py?getsavedserver="+$('#group').val()+'&token='+$('#token').val(),
+	$('[name=servers]').autocomplete({
+		source: "/app/add/server/get/" + $('#group').val(),
 		autoFocus: true,
-	    minLength: 1,
-		select: function( event, ui ) {
+		minLength: 1,
+		select: function (event, ui) {
 			$(this).append(ui.item.value + " ");
 			$(this).next().focus();
 		}
 	})
-	.autocomplete( "instance" )._renderItem = function( ul, item ) {
-		return $( "<li>" )
-		.append( "<div>" + item.value + "<br>" + item.desc + "</div>" )
-		.appendTo( ul );
-    };
-	$('#add-saved-server-button').click(function() {
+		.autocomplete("instance")._renderItem = function (ul, item) {
+		return $("<li>")
+			.append("<div>" + item.value + "<br>" + item.desc + "</div>")
+			.appendTo(ul);
+	};
+	$('#add-saved-server-button').click(function () {
 		if ($('#saved-server-add-table').css('display', 'none')) {
 			$('#saved-server-add-table').show("blind", "fast");
-		} 
+		}
 	});
-	$('#add-saved-server-new').click(function() {
-		$.ajax( {
-			
-			url: "options.py",
+	$('#add-saved-server-new').click(function () {
+		$.ajax({
+			url: "/app/add/server/save",
 			data: {
-				newsavedserver: $('#new-saved-servers').val(),
-				newsavedservergroup: $('#group').val(),
-				newsavedserverdesc: $('#new-saved-servers-description').val(),
-				token: $('#token').val()
+				server: $('#new-saved-servers').val(),
+				group: $('#group').val(),
+				desc: $('#new-saved-servers-description').val()
 			},
 			type: "POST",
-			success: function( data ) {
+			success: function (data) {
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
 					$("#servers_table").append(data);
-					setTimeout(function() {
-						$( ".newsavedserver" ).removeClass( "update" );
-					}, 2500 );	
+					setTimeout(function () {
+						$(".newsavedserver").removeClass("update");
+					}, 2500);
 					$.getScript("/inc/fontawesome.min.js");
 				}
-			}					
-		} );
+			}
+		});
 	});
 	var forward_for_var = "option forwardfor if-none\n";
-	$('#forward_for').click(function() {
-		if($('#optionsInput').val().indexOf(forward_for_var) == '-1') {
+	$('#forward_for').click(function () {
+		if ($('#optionsInput').val().indexOf(forward_for_var) == '-1') {
 			$("#optionsInput").append(forward_for_var)
 		} else {
 			replace_text("#optionsInput", forward_for_var);
-		}	
+		}
 	});
-	$('#forward_for1').click(function() {
-		if($('#optionsInput1').val().indexOf(forward_for_var) == '-1') {
+	$('#forward_for1').click(function () {
+		if ($('#optionsInput1').val().indexOf(forward_for_var) == '-1') {
 			$("#optionsInput1").append(forward_for_var)
 		} else {
 			replace_text("#optionsInput1", forward_for_var);
-		}	
+		}
 	});
-	$('#forward_for2').click(function() {
-		if($('#optionsInput2').val().indexOf(forward_for_var) == '-1') {
+	$('#forward_for2').click(function () {
+		if ($('#optionsInput2').val().indexOf(forward_for_var) == '-1') {
 			$("#optionsInput2").append(forward_for_var)
 		} else {
 			replace_text("#optionsInput2", forward_for_var);
-		}	
+		}
 	});
 	var redispatch_var = "option redispatch\n";
-	$('#redispatch').click(function() {
-		if($('#optionsInput').val().indexOf(redispatch_var) == '-1') {
+	$('#redispatch').click(function () {
+		if ($('#optionsInput').val().indexOf(redispatch_var) == '-1') {
 			$("#optionsInput").append(redispatch_var)
 		} else {
 			replace_text("#optionsInput", redispatch_var);
-		}	
+		}
 	});
-	$('#redispatch2').click(function() {
-		if($('#optionsInput2').val().indexOf(redispatch_var) == '-1') {
+	$('#redispatch2').click(function () {
+		if ($('#optionsInput2').val().indexOf(redispatch_var) == '-1') {
 			$("#optionsInput2").append(redispatch_var)
 		} else {
 			replace_text("#optionsInput2", redispatch_var);
-		}	
+		}
 	});
 	var slow_atack = "option http-buffer-request\ntimeout http-request 10s\n"
-	$('#slow_atack').click(function() {
-		if($('#optionsInput').val().indexOf(slow_atack) == '-1') {
+	$('#slow_atack').click(function () {
+		if ($('#optionsInput').val().indexOf(slow_atack) == '-1') {
 			$("#optionsInput").append(slow_atack)
 		} else {
 			replace_text("#optionsInput", slow_atack);
-		}	
+		}
 	});
-	$('#slow_atack1').click(function() {
-		if($('#optionsInput1').val().indexOf(slow_atack) == '-1') {
+	$('#slow_atack1').click(function () {
+		if ($('#optionsInput1').val().indexOf(slow_atack) == '-1') {
 			$("#optionsInput1").append(slow_atack)
 		} else {
 			replace_text("#optionsInput1", slow_atack);
-		}	
+		}
 	});
-	$("#ddos").checkboxradio( "disable" );
-	$("#ddos1").checkboxradio( "disable" );
-	$("#ddos2").checkboxradio( "disable" );
-	$( "#name" ).change(function() {
+	$("#ddos").checkboxradio("disable");
+	$("#ddos1").checkboxradio("disable");
+	$("#ddos2").checkboxradio("disable");
+	$("#name").change(function () {
 		table_name = $('#name').val();
 		table_name = $.trim(table_name)
-		if($('#name').val() != "") {
-			$("#ddos").checkboxradio( "enable" );
+		if ($('#name').val() != "") {
+			$("#ddos").checkboxradio("enable");
 		} else {
-			$("#ddos").checkboxradio( "disable" );
+			$("#ddos").checkboxradio("disable");
 		}
 	});
-	$( "#new_frontend" ).change(function() {
+	$("#new_frontend").change(function () {
 		table_name = $('#new_frontend').val();
 		table_name = $.trim(table_name)
-		if($('#new_frontend').val() != "") {
-			$("#ddos1").checkboxradio( "enable" );
+		if ($('#new_frontend').val() != "") {
+			$("#ddos1").checkboxradio("enable");
 		} else {
-			$("#ddos1").checkboxradio( "disable" );
+			$("#ddos1").checkboxradio("disable");
 		}
 	});
-	
-	$('#ddos').click(function() {
-		if($('#name').val() == "") {
+
+	$('#ddos').click(function () {
+		if ($('#name').val() == "") {
 			$("#optionsInput").append(ddos_var)
 		}
-		var ddos_var = "#Start config for DDOS atack protect\n"+
-								  "stick-table type ip size 1m expire 1m store gpc0,http_req_rate(10s),http_err_rate(10s)\n"+
-								  "tcp-request connection track-sc1 src\n"+
-								  "tcp-request connection reject if { sc1_get_gpc0 gt 0 }\n"+
-								  "# Abuser means more than 100reqs/10s\n"+
-								  "acl abuse sc1_http_req_rate("+table_name+") ge 100\n"+
-								  "acl flag_abuser sc1_inc_gpc0("+table_name+")\n"+
-								  "tcp-request content reject if abuse flag_abuser\n"+
-								  "#End config for DDOS\n";
-		if($('#optionsInput').val().indexOf(ddos_var) == '-1') {			
-			if($('#name').val() == "") {
+		var ddos_var = "#Start config for DDOS atack protect\n" +
+			"stick-table type ip size 1m expire 1m store gpc0,http_req_rate(10s),http_err_rate(10s)\n" +
+			"tcp-request connection track-sc1 src\n" +
+			"tcp-request connection reject if { sc1_get_gpc0 gt 0 }\n" +
+			"# Abuser means more than 100reqs/10s\n" +
+			"acl abuse sc1_http_req_rate(" + table_name + ") ge 100\n" +
+			"acl flag_abuser sc1_inc_gpc0(" + table_name + ")\n" +
+			"tcp-request content reject if abuse flag_abuser\n" +
+			"#End config for DDOS\n";
+		if ($('#optionsInput').val().indexOf(ddos_var) == '-1') {
+			if ($('#name').val() == "") {
 				alert("First set Listen name")
 			} else {
 				$("#optionsInput").append(ddos_var);
 			}
 		} else {
 			replace_text("#optionsInput", ddos_var);
-		}	
+		}
 	});
-	$('#ddos1').click(function() {
+	$('#ddos1').click(function () {
 		ddos_var = escapeHtml(ddos_var);
 		table_name = escapeHtml(table_name);
-		if($('#new_frontend').val() == "") {
+		if ($('#new_frontend').val() == "") {
 			$("#optionsInput1").append(ddos_var)
 		}
-		var ddos_var = "#Start config for DDOS atack protect\n"+
-								  "stick-table type ip size 1m expire 1m store gpc0,http_req_rate(10s),http_err_rate(10s)\n"+
-								  "tcp-request connection track-sc1 src\n"+
-								  "tcp-request connection reject if { sc1_get_gpc0 gt 0 }\n"+
-								  "# Abuser means more than 100reqs/10s\n"+
-								  "acl abuse sc1_http_req_rate("+table_name+") ge 100\n"+
-								  "acl flag_abuser sc1_inc_gpc0("+table_name+")\n"+
-								  "tcp-request content reject if abuse flag_abuser\n"+
-								  "#End config for DDOS\n";
-		if($('#optionsInput1').val().indexOf(ddos_var) == '-1') {
-			if($('#new_frontend').val() == "") {
+		var ddos_var = "#Start config for DDOS atack protect\n" +
+			"stick-table type ip size 1m expire 1m store gpc0,http_req_rate(10s),http_err_rate(10s)\n" +
+			"tcp-request connection track-sc1 src\n" +
+			"tcp-request connection reject if { sc1_get_gpc0 gt 0 }\n" +
+			"# Abuser means more than 100reqs/10s\n" +
+			"acl abuse sc1_http_req_rate(" + table_name + ") ge 100\n" +
+			"acl flag_abuser sc1_inc_gpc0(" + table_name + ")\n" +
+			"tcp-request content reject if abuse flag_abuser\n" +
+			"#End config for DDOS\n";
+		if ($('#optionsInput1').val().indexOf(ddos_var) == '-1') {
+			if ($('#new_frontend').val() == "") {
 				alert("First set Frontend name")
 			} else {
 				$("#optionsInput1").append(ddos_var)
@@ -689,249 +658,240 @@ $( function() {
 			replace_text("#optionsInput1", ddos_var);
 		}
 	});
-	var antibot_var = "#Start config for Antibot protection\n"+
+	var antibot_var = "#Start config for Antibot protection\n" +
 		"http-request track-sc0 src table per_ip_rates\n" +
 		"http-request track-sc1 url32+src table per_ip_and_url_rates unless { path_end .css .js .png .jpeg .gif }\n" +
 		"acl exceeds_limit sc_gpc0_rate(0) gt 15 \n" +
 		"http-request sc-inc-gpc0(0) if { sc_http_req_rate(1) eq 1 } !exceeds_limit\n" +
 		"http-request deny if exceeds_limit\n" +
 		"#End config for Antibot\n";
-	$('#antibot').click(function() {
-		if($('#optionsInput').val().indexOf(antibot_var) == '-1') {
+	$('#antibot').click(function () {
+		if ($('#optionsInput').val().indexOf(antibot_var) == '-1') {
 			$("#optionsInput").append(antibot_var)
 		} else {
 			replace_text("#optionsInput", antibot_var);
 		}
 	});
-	$('#antibot1').click(function() {
-		if($('#optionsInput1').val().indexOf(antibot_var) == '-1') {
+	$('#antibot1').click(function () {
+		if ($('#optionsInput1').val().indexOf(antibot_var) == '-1') {
 			$("#optionsInput1").append(antibot_var)
 		} else {
 			replace_text("#optionsInput1", antibot_var);
 		}
 	});
-	$( "#blacklist_checkbox" ).click( function(){
+	$("#blacklist_checkbox").click(function () {
 		if ($('#blacklist_checkbox').is(':checked')) {
-			$( "#blacklist-hide" ).show( "fast" );
-			$( "#blacklist-hide-input" ).attr('required',true);
+			$("#blacklist-hide").show("fast");
+			$("#blacklist-hide-input").attr('required', true);
 		} else {
-			$( "#blacklist-hide" ).hide( "fast" );
-			$( "#blacklist-hide-input" ).prop('required',false);
+			$("#blacklist-hide").hide("fast");
+			$("#blacklist-hide-input").prop('required', false);
 		}
 	});
-	$( "#blacklist_checkbox1" ).click( function(){
+	$("#blacklist_checkbox1").click(function () {
 		if ($('#blacklist_checkbox1').is(':checked')) {
-			$( "#blacklist-hide1" ).show( "fast" );
-			$( "#blacklist-hide-input1" ).attr('required',true);
+			$("#blacklist-hide1").show("fast");
+			$("#blacklist-hide-input1").attr('required', true);
 		} else {
-			$( "#blacklist-hide1" ).hide( "fast" );
-			$( "#blacklist-hide-input1" ).prop('required',false);
+			$("#blacklist-hide1").hide("fast");
+			$("#blacklist-hide-input1").prop('required', false);
 		}
 	});
-	$( "#whitelist_checkbox" ).click( function(){
+	$("#whitelist_checkbox").click(function () {
 		if ($('#whitelist_checkbox').is(':checked')) {
-			$( "#whitelist-hide" ).show( "fast" );
-			$( "#whitelist-hide-input" ).attr('required',true);
+			$("#whitelist-hide").show("fast");
+			$("#whitelist-hide-input").attr('required', true);
 		} else {
-			$( "#whitelist-hide" ).hide( "fast" );
-			$( "#whitelist-hide-input" ).prop('required',false);
+			$("#whitelist-hide").hide("fast");
+			$("#whitelist-hide-input").prop('required', false);
 		}
 	});
-	$( "#whitelist_checkbox1" ).click( function(){
+	$("#whitelist_checkbox1").click(function () {
 		if ($('#whitelist_checkbox1').is(':checked')) {
-			$( "#whitelist-hide1" ).show( "fast" );
-			$( "#whitelist-hide-input1" ).attr('required',true);
+			$("#whitelist-hide1").show("fast");
+			$("#whitelist-hide-input1").attr('required', true);
 		} else {
-			$( "#whitelist-hide1" ).hide( "fast" );
-			$( "#whitelist-hide-input1" ).prop('required',false);
+			$("#whitelist-hide1").hide("fast");
+			$("#whitelist-hide-input1").prop('required', false);
 		}
 	});
-	$( ":regex(id, template)" ).click( function(){
+	$(":regex(id, template)").click(function () {
 		if ($(':regex(id, template)').is(':checked')) {
-			$( ".prefix" ).show( "fast" );
-			$( ".second-server" ).hide( "fast" );
-			$( ".backend_server" ).hide( "fast" );
-			$( ".send_proxy" ).hide( "fast" );
-			$( "input[name=server_maxconn]" ).hide( "fast" );
-			$( "input[name=port_check]" ).hide( "fast" );
-			$( "[name=maxconn_name]" ).hide( "fast" );
-			$( "[name=port_check_text]" ).hide( "fast" );
-			$( ".prefix" ).attr('required',true);
+			$(".prefix").show("fast");
+			$(".second-server").hide("fast");
+			$(".backend_server").hide("fast");
+			$(".send_proxy").hide("fast");
+			$("input[name=server_maxconn]").hide("fast");
+			$("input[name=port_check]").hide("fast");
+			$("[name=maxconn_name]").hide("fast");
+			$("[name=port_check_text]").hide("fast");
+			$(".prefix").attr('required', true);
 		} else {
-			$( ".prefix" ).hide( "fast" );
-			$( ".prefix" ).attr('required',false);
-			$( ".second-server" ).show( "fast" );
-			$( ".backend_server" ).show( "fast" )
-			$( ".send_proxy" ).show( "fast" )
-			$( "input[name=server_maxconn]" ).show( "fast" );
-			$( "input[name=port_check]" ).show( "fast" );
-			$( "[name=maxconn_name]" ).show( "fast" );
-			$( "[name=port_check_text]" ).show( "fast" );
+			$(".prefix").hide("fast");
+			$(".prefix").attr('required', false);
+			$(".second-server").show("fast");
+			$(".backend_server").show("fast")
+			$(".send_proxy").show("fast")
+			$("input[name=server_maxconn]").show("fast");
+			$("input[name=port_check]").show("fast");
+			$("[name=maxconn_name]").show("fast");
+			$("[name=port_check_text]").show("fast");
 		}
 	});
-	var location = window.location.href;
-    var cur_url = '/app/' + location.split('/').pop();
-	cur_url = cur_url.split('?');
-	cur_url = cur_url[0].split('#');
-	if (cur_url[0] == "/app/add.py") {
-		$("#cache").checkboxradio( "disable" );
-		$("#waf").checkboxradio( "disable" );
-		$( "#serv" ).on('selectmenuchange',function() {
+	var cur_url = window.location.href.split('/app/').pop();
+	cur_url = cur_url.split('/');
+	if (cur_url[0] == "add") {
+		$("#cache").checkboxradio("disable");
+		$("#waf").checkboxradio("disable");
+		$("#serv").on('selectmenuchange', function () {
 			change_select_acceleration("");
 			change_select_waf("");
 		});
-		
-		$("#cache2").checkboxradio( "disable" );
-		$("#waf2").checkboxradio( "disable" );
-		$( "#serv2" ).on('selectmenuchange',function() {
+		$("#cache2").checkboxradio("disable");
+		$("#waf2").checkboxradio("disable");
+		$("#serv2").on('selectmenuchange', function () {
 			change_select_acceleration("2");
 			change_select_waf("2");
 		});
-			
-		$("#cache3").checkboxradio( "disable" );
-		$( "#serv3" ).on('selectmenuchange',function() {
+		$("#cache3").checkboxradio("disable");
+		$("#serv3").on('selectmenuchange', function () {
 			change_select_acceleration("3");
 		});
-		$('#compression').on( "click", function() {
+		$('#compression').on("click", function () {
 			if ($('#compression').is(':checked')) {
-				$("#cache").checkboxradio( "disable" );
+				$("#cache").checkboxradio("disable");
 				$("#cache").prop('checked', false);
 			} else {
 				change_select_acceleration("");
 			}
 		});
-		$('#compression2').on( "click", function() {
+		$('#compression2').on("click", function () {
 			if ($('#compression2').is(':checked')) {
-				$("#cache2").checkboxradio( "disable" );
+				$("#cache2").checkboxradio("disable");
 				$("#cache2").prop('checked', false);
 			} else {
 				change_select_acceleration('2');
 			}
 		});
-		$('#compression3').on( "click", function() {
+		$('#compression3').on("click", function () {
 			if ($('#compression3').is(':checked')) {
-				$("#cache3").checkboxradio( "disable" );
+				$("#cache3").checkboxradio("disable");
 				$("#cache3").prop('checked', false);
 			} else {
 				change_select_acceleration('3');
 			}
 		});
-		$('#cache').on( "click", function() {
+		$('#cache').on("click", function () {
 			if ($('#cache').is(':checked')) {
-				$("#compression").checkboxradio( "disable" );
+				$("#compression").checkboxradio("disable");
 				$("#compression").prop('checked', false);
 			} else {
-				$("#compression").checkboxradio( "enable" );
+				$("#compression").checkboxradio("enable");
 			}
 		});
-		$('#cache2').on( "click", function() {
+		$('#cache2').on("click", function () {
 			if ($('#cache2').is(':checked')) {
-				$("#compression2").checkboxradio( "disable" );
+				$("#compression2").checkboxradio("disable");
 				$("#compression2").prop('checked', false);
 			} else {
-				$("#compression2").checkboxradio( "enable" );
+				$("#compression2").checkboxradio("enable");
 			}
 		});
-		$('#cache3').on( "click", function() {
+		$('#cache3').on("click", function () {
 			if ($('#cache3').is(':checked')) {
-				$("#compression3").checkboxradio( "disable" );
+				$("#compression3").checkboxradio("disable");
 				$("#compression3").prop('checked', false);
 			} else {
-				$("#compression3").checkboxradio( "enable" );
+				$("#compression3").checkboxradio("enable");
 			}
 		});
-		$( "#add1" ).on( "click", function() {
+		$("#add1").on("click", function () {
 			$('.menu li ul li').each(function () {
 				$(this).find('a').css('padding-left', '20px')
 				$(this).find('a').css('border-left', '0px solid #5D9CEB');
+				$(this).find('a').css('background-color', '#48505A');
 				$(this).children("#add1").css('padding-left', '30px');
 				$(this).children("#add1").css('border-left', '4px solid #5D9CEB');
+				$(this).children("#add1").css('background-color', 'var(--right-menu-blue-rolor)');
 			});
-			$( "#tabs" ).tabs( "option", "active", 0 );
-		} );
-		$( "#add3" ).on( "click", function() {
+			$("#tabs").tabs("option", "active", 0);
+		});
+		$("#add3").on("click", function () {
 			$('.menu li ul li').each(function () {
 				$(this).find('a').css('padding-left', '20px')
 				$(this).find('a').css('border-left', '0px solid #5D9CEB');
+				$(this).find('a').css('background-color', '#48505A');
 				$(this).children("#add3").css('padding-left', '30px');
 				$(this).children("#add3").css('border-left', '4px solid #5D9CEB');
+				$(this).children("#add3").css('background-color', 'var(--right-menu-blue-rolor)');
 			});
-			$( "#tabs" ).tabs( "option", "active", 4 );
-		} );
-		$( "#add4" ).on( "click", function() {
-			$( "#tabs" ).tabs( "option", "active", 5 );
-		} );
-		$( "#add5" ).on( "click", function() {
-			$( "#tabs" ).tabs( "option", "active", 6 );
-		} );
-		$( "#add6" ).on( "click", function() {
-			$( "#tabs" ).tabs( "option", "active", 7 );
-			$( "#userlist_serv" ).selectmenu( "open" );
-		} );
-		$( "#add7" ).on( "click", function() {
+			$("#tabs").tabs("option", "active", 4);
+		});
+		$("#add4").on("click", function () {
+			$("#tabs").tabs("option", "active", 5);
+		});
+		$("#add5").on("click", function () {
+			$("#tabs").tabs("option", "active", 6);
+		});
+		$("#add6").on("click", function () {
+			$("#tabs").tabs("option", "active", 7);
+			$("#userlist_serv").selectmenu("open");
+		});
+		$("#add7").on("click", function () {
 			$('.menu li ul li').each(function () {
 				$(this).find('a').css('padding-left', '20px')
 				$(this).find('a').css('border-left', '0px solid #5D9CEB');
+				$(this).find('a').css('background-color', '#48505A');
 				$(this).children("#add7").css('padding-left', '30px');
 				$(this).children("#add7").css('border-left', '4px solid #5D9CEB');
+				$(this).children("#add7").css('background-color', 'var(--right-menu-blue-rolor)');
 			});
-			$( "#tabs" ).tabs( "option", "active", 9 );
-		} );
+			$("#tabs").tabs("option", "active", 9);
+		});
 	}
-	
-	$( "#path-cert-listen" ).autocomplete({
-		source: function( request, response ) {
-			if(!checkIsServerFiled('#serv')) return false;
-			$.ajax( {
-				url: "options.py",
-				data: {
-					getcerts:1,
-					serv: $("#serv").val(),
-					token: $('#token').val()
-				},
-				success: function( data ) {
-					data = data.replace(/\s+/g,' ');
+
+	$("#path-cert-listen").autocomplete({
+		source: function (request, response) {
+			if (!checkIsServerFiled('#serv')) return false;
+			$.ajax({
+				url: "/app/add/certs/" + $('#serv').val(),
+				success: function (data) {
+					data = data.replace(/\s+/g, ' ');
 					response(data.split(" "));
-				}						
-			} );
+				}
+			});
 		},
 		autoFocus: true,
 		minLength: -1
 	});
-	$( "#path-cert-frontend" ).autocomplete({
-		source: function( request, response ) {
-			if(!checkIsServerFiled('#serv2')) return false;
-			$.ajax( {
-				url: "options.py",
-				data: {
-					getcerts:1,
-					serv: $("#serv2").val(),
-					token: $('#token').val()
-				},
-				success: function( data ) {
-					data = data.replace(/\s+/g,' ');
+	$("#path-cert-frontend").autocomplete({
+		source: function (request, response) {
+			if (!checkIsServerFiled('#serv2')) return false;
+			$.ajax({
+				url: "/app/add/certs/" + $('#serv2').val(),
+				success: function (data) {
+					data = data.replace(/\s+/g, ' ');
 					response(data.split(" "));
-				}						
-			} );
+				}
+			});
 		},
 		autoFocus: true,
 		minLength: -1
 	});
-	$( "#ssl_key_upload" ).click(function() {
-		if(!checkIsServerFiled('#serv4')) return false;
-		if(!checkIsServerFiled('#ssl_name', 'Enter the Certificate name')) return false;
-		if(!checkIsServerFiled('#ssl_cert', 'Paste the contents of the certificate file')) return false;
-		$.ajax( {
-			url: "options.py",
+	$("#ssl_key_upload").click(function () {
+		if (!checkIsServerFiled('#serv4')) return false;
+		if (!checkIsServerFiled('#ssl_name', 'Enter the Certificate name')) return false;
+		if (!checkIsServerFiled('#ssl_cert', 'Paste the contents of the certificate file')) return false;
+		$.ajax({
+			url: "/app/add/cert/add",
 			data: {
 				serv: $('#serv4').val(),
 				ssl_cert: $('#ssl_cert').val(),
-				ssl_name: $('#ssl_name').val(),
-				token: $('#token').val()
+				ssl_name: $('#ssl_name').val()
 			},
 			type: "POST",
-			success: function( data ) {
-				data = data.split("<br/>");
+			success: function (data) {
+				data = data.split("\n");
 				for (i = 0; i < data.length; i++) {
 					if (data[i]) {
 						if (data[i].indexOf('error: ') != '-1' || data[i].indexOf('Errno') != '-1') {
@@ -944,19 +904,13 @@ $( function() {
 					}
 				}
 			}
-		} );
+		});
 	});
-	$('#ssl_key_view').click(function() {
-		if(!checkIsServerFiled('#serv5')) return false;
-		$.ajax( {
-			url: "options.py",
-			data: {
-				serv: $('#serv5').val(),
-				getcerts: "viewcert",
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function( data ) {
+	$('#ssl_key_view').click(function () {
+		if (!checkIsServerFiled('#serv5')) return false;
+		$.ajax({
+			url: "/app/add/certs/" + $('#serv5').val(),
+			success: function (data) {
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
@@ -965,7 +919,7 @@ $( function() {
 					data = data.split("\n");
 					var j = 1
 					for (i = 0; i < data.length; i++) {
-						data[i] = data[i].replace(/\s+/g,' ');
+						data[i] = data[i].replace(/\s+/g, ' ');
 						if (data[i] != '') {
 							if (j % 2) {
 								if (j != 0) {
@@ -981,11 +935,11 @@ $( function() {
 						}
 					}
 					$("#ajax-show-ssl").html(new_data);
-				} 
+				}
 			}
-		} );
+		});
 	});
-	$('#lets_button').click(function() {
+	$('#lets_button').click(function () {
 		var lets_domain = $('#lets_domain').val();
 		var lets_email = $('#lets_email').val();
 		if (lets_email == '' || lets_domain == '') {
@@ -993,12 +947,11 @@ $( function() {
 		} else if (validateEmail(lets_email)) {
 			$("#ajax-ssl").html(wait_mess);
 			$.ajax({
-				url: "options.py",
+				url: "/app/add/lets",
 				data: {
 					serv: $('#serv_for_lets').val(),
 					lets_domain: lets_domain,
-					lets_email: lets_email,
-					token: $('#token').val()
+					lets_email: lets_email
 				},
 				type: "POST",
 				success: function (data) {
@@ -1024,122 +977,122 @@ $( function() {
 		'<input name="server_port" required title="Backend port" size=3 placeholder="yyy" class="form-control second-server add_server_number" type="number"> ' +
 		'port check: <input name="port_check" required title="Maxconn. Default 200" size=5 value="200" class="form-control add_server_number" type="number">' +
 		' maxconn: <input name="server_maxconn" required title="Maxconn. Default 200" size=5 value="200" class="form-control add_server_number" type="number">'
-	$('[name=add-server-input]').click(function() {
+	$('[name=add-server-input]').click(function () {
 		$("[name=add_servers]").append(add_server_var);
 		changePortCheckFromServerPort();
 	});
-	$('[name=port]').on('input', function (){
+	$('[name=port]').on('input', function () {
 		var iNum = parseInt($('[name=port]').val());
 		$('[name=port_check]').val(iNum);
 		$('[name=server_port]').val(iNum);
 	});
 	changePortCheckFromServerPort();
 	var add_userlist_var = '<br /><input name="userlist-user" title="User name" placeholder="user_name" class="form-control"> <input name="userlist-password" required title="User password. By default it insecure-password" placeholder="password" class="form-control"> <input name="userlist-user-group" title="User`s group" placeholder="user`s group" class="form-control">'
-	$('#add-userlist-user').click(function() {
-		$('#userlist-users').append(add_userlist_var);		
+	$('#add-userlist-user').click(function () {
+		$('#userlist-users').append(add_userlist_var);
 	});
 	var add_userlist_group_var = '<br /><input name="userlist-group" title="User`s group" placeholder="group_name" class="form-control">'
-	$('#add-userlist-group').click(function() {
-		$('#userlist-groups').append(add_userlist_group_var);		
+	$('#add-userlist-group').click(function () {
+		$('#userlist-groups').append(add_userlist_group_var);
 	});
 	var add_peer_var = '<br /><input name="servers_name" required title="Peer name" size=14 placeholder="haproxyN" class="form-control">: ' +
 		'<input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server">: ' +
 		'<input name="server_port" required title="Backend port" size=3 placeholder="yyy" class="form-control second-server add_server_number" type="number">'
-	$('[name=add-peer-input]').click(function() {
+	$('[name=add-peer-input]').click(function () {
 		$("[name=add_peers]").append(add_peer_var);
 	});
-	$('.advance-show-button').click(function() {
+	$('.advance-show-button').click(function () {
 		$('.advance').fadeIn();
 		$('.advance-show-button').css('display', 'none');
 		$('.advance-hide-button').css('display', 'block');
 		return false;
 	});
-	$('.advance-hide-button').click(function() {
+	$('.advance-hide-button').click(function () {
 		$('.advance').fadeOut();
 		$('.advance-show-button').css('display', 'block');
 		$('.advance-hide-button').css('display', 'none');
 		return false;
 	});
-	$('#ssl_offloading').click(function() {
-		if($('#optionsInput').val().indexOf('ssl_fc ') == '-1') {
+	$('#ssl_offloading').click(function () {
+		if ($('#optionsInput').val().indexOf('ssl_fc ') == '-1') {
 			$("#optionsInput").append(ssl_offloading_var)
 		} else {
 			replace_text("#optionsInput", ssl_offloading_var);
 		}
 	});
-	$('#ssl_offloading1').click(function() {
-		if($('#optionsInput1').val().indexOf('ssl_fc ') == '-1') {
+	$('#ssl_offloading1').click(function () {
+		if ($('#optionsInput1').val().indexOf('ssl_fc ') == '-1') {
 			$("#optionsInput1").append(ssl_offloading_var)
 		} else {
 			replace_text("#optionsInput1", ssl_offloading_var);
 		}
 
 	});
-	$('#ssl_offloading2').click(function() {
-		if($('#optionsInput2').val().indexOf('ssl_fc ') == '-1') {
+	$('#ssl_offloading2').click(function () {
+		if ($('#optionsInput2').val().indexOf('ssl_fc ') == '-1') {
 			$("#optionsInput2").append(ssl_offloading_var)
 		} else {
 			replace_text("#optionsInput2", ssl_offloading_var);
 		}
 	});
-	
-	$( ".redirectListen" ).on( "click", function() {
+
+	$(".redirectListen").on("click", function () {
 		resetProxySettings();
-		$( "#tabs" ).tabs( "option", "active", 1 );
-		$( "#serv" ).selectmenu( "open" );
-	} );
-	$( ".redirectFrontend" ).on( "click", function() {
+		$("#tabs").tabs("option", "active", 1);
+		$("#serv").selectmenu("open");
+	});
+	$(".redirectFrontend").on("click", function () {
 		resetProxySettings();
 		var TabId = 2;
-		$( "#tabs" ).tabs( "option", "active", TabId );
-		$( "#serv"+TabId ).selectmenu( "open" );
-	} );
-	$( ".redirectBackend" ).on( "click", function() {
+		$("#tabs").tabs("option", "active", TabId);
+		$("#serv" + TabId).selectmenu("open");
+	});
+	$(".redirectBackend").on("click", function () {
 		resetProxySettings();
 		var TabId = 3;
-		$( "#tabs" ).tabs( "option", "active", TabId );
-		$( "#serv"+TabId ).selectmenu( "open" );
-	} );
-	$( ".redirectSsl" ).on( "click", function() {
-		$( "#tabs" ).tabs( "option", "active", 4 );
-		$( "#serv5" ).selectmenu( "open" );
-	} );
-	
-	$( "#create-http-listen" ).on( "click", function() {
+		$("#tabs").tabs("option", "active", TabId);
+		$("#serv" + TabId).selectmenu("open");
+	});
+	$(".redirectSsl").on("click", function () {
+		$("#tabs").tabs("option", "active", 4);
+		$("#serv5").selectmenu("open");
+	});
+
+	$("#create-http-listen").on("click", function () {
 		resetProxySettings();
 		createHttp(1, 'listen');
 	});
-	$( "#create-http-frontend" ).on( "click", function() {
+	$("#create-http-frontend").on("click", function () {
 		resetProxySettings();
 		createHttp(2, 'frontend');
 	});
-	$( "#create-http-backend" ).on( "click", function() {
+	$("#create-http-backend").on("click", function () {
 		resetProxySettings();
 		createHttp(3, 'backend');
 	});
-	$( "#create-ssl-listen" ).on( "click", function() {
+	$("#create-ssl-listen").on("click", function () {
 		resetProxySettings();
 		createSsl(1, 'listen');
 	});
-	$( "#create-ssl-frontend" ).on( "click", function() {
+	$("#create-ssl-frontend").on("click", function () {
 		resetProxySettings();
 		createSsl(2, 'frontend');
 	});
-	$( "#create-ssl-backend" ).on( "click", function() {
+	$("#create-ssl-backend").on("click", function () {
 		resetProxySettings();
 		createSsl(3, 'backend');
 	});
-	$( "#create-https-listen" ).on( "click", function() {
+	$("#create-https-listen").on("click", function () {
 		resetProxySettings();
-		createHttps(1, 'listen'); 
+		createHttps(1, 'listen');
 	});
-	$( "#create-https-frontend" ).on( "click", function() {
+	$("#create-https-frontend").on("click", function () {
 		resetProxySettings();
-		createHttps(2, 'frontend');		
+		createHttps(2, 'frontend');
 	});
-	$( "#create-https-backend" ).on( "click", function() {
+	$("#create-https-backend").on("click", function () {
 		resetProxySettings();
-		createHttps(3, 'backend');	
+		createHttps(3, 'backend');
 	});
 	var tcp_note = 'The check is valid when the server answers with a <b>SYN/ACK</b> packet'
 	var ssl_note = 'The check is valid if the server answers with a valid SSL server <b>hello</b> message'
@@ -1152,68 +1105,68 @@ $( function() {
 	var pgsql_note = 'The check is valid if the server response contains a successful <b>Authentication</b> request'
 	var redis_note = 'The check is valid if the server response contains the string <b>+PONG</b>'
 	var smtpchk_note = 'The check is valid if the server response code starts with <b>\'2\'</b>'
-	$( "#listener_checks" ).on('selectmenuchange',function()  {
-		if ($( "#listener_checks option:selected" ).val() == "option tcp-check") {
+	$("#listener_checks").on('selectmenuchange', function () {
+		if ($("#listener_checks option:selected").val() == "option tcp-check") {
 			$("#listener_checks_note").html(tcp_note)
 		}
-		if ($( "#listener_checks option:selected" ).val() == "option ssl-hello-chk") {
+		if ($("#listener_checks option:selected").val() == "option ssl-hello-chk") {
 			$("#listener_checks_note").html(ssl_note)
 		}
-		if ($( "#listener_checks option:selected" ).val() == "option httpchk") {
+		if ($("#listener_checks option:selected").val() == "option httpchk") {
 			$("#listener_checks_note").html(httpchk_note)
 		}
-		if ($( "#listener_checks option:selected" ).val() == "option ldap-check") {
+		if ($("#listener_checks option:selected").val() == "option ldap-check") {
 			$("#listener_checks_note").html(ldap_note)
 		}
-		if ($( "#listener_checks option:selected" ).val() == "option mysql-check") {
+		if ($("#listener_checks option:selected").val() == "option mysql-check") {
 			$("#listener_checks_note").html(mysql_note)
 		}
-		if ($( "#listener_checks option:selected" ).val() == "option pgsql-check") {
+		if ($("#listener_checks option:selected").val() == "option pgsql-check") {
 			$("#listener_checks_note").html(pgsql_note)
 		}
-		if ($( "#listener_checks option:selected" ).val() == "option redis-check") {
+		if ($("#listener_checks option:selected").val() == "option redis-check") {
 			$("#listener_checks_note").html(redis_note)
 		}
-		if ($( "#listener_checks option:selected" ).val() == "option smtpchk") {
+		if ($("#listener_checks option:selected").val() == "option smtpchk") {
 			$("#listener_checks_note").html(smtpchk_note)
 		}
-		if ($( "#listener_checks option:selected" ).val() == "") {
+		if ($("#listener_checks option:selected").val() == "") {
 			$("#listener_checks_note").html('')
 		}
 	});
-	$( "#backend_checks" ).on('selectmenuchange',function()  {
-		if ($( "#backend_checks option:selected" ).val() == "") {
+	$("#backend_checks").on('selectmenuchange', function () {
+		if ($("#backend_checks option:selected").val() == "") {
 			$("#backend_checks_note").html('')
 		}
-		if ($( "#backend_checks option:selected" ).val() == "option tcp-check") {
+		if ($("#backend_checks option:selected").val() == "option tcp-check") {
 			$("#backend_checks_note").html(tcp_note)
 		}
-		if ($( "#backend_checks option:selected" ).val() == "option ssl-hello-chk") {
+		if ($("#backend_checks option:selected").val() == "option ssl-hello-chk") {
 			$("#backend_checks_note").html(ssl_note)
 		}
-		if ($( "#backend_checks option:selected" ).val() == "option httpchk") {
+		if ($("#backend_checks option:selected").val() == "option httpchk") {
 			$("#backend_checks_note").html(httpchk_note)
 		}
-		if ($( "#backend_checks option:selected" ).val() == "option ldap-check") {
+		if ($("#backend_checks option:selected").val() == "option ldap-check") {
 			$("#backend_checks_note").html(ldap_note)
 		}
-		if ($( "#backend_checks option:selected" ).val() == "option mysql-check") {
+		if ($("#backend_checks option:selected").val() == "option mysql-check") {
 			$("#backend_checks_note").html(mysql_note)
 		}
-		if ($( "#backend_checks option:selected" ).val() == "option pgsql-check") {
+		if ($("#backend_checks option:selected").val() == "option pgsql-check") {
 			$("#backend_checks_note").html(pgsql_note)
 		}
-		if ($( "#backend_checks option:selected" ).val() == "option redis-check") {
+		if ($("#backend_checks option:selected").val() == "option redis-check") {
 			$("#backend_checks_note").html(redis_note)
 		}
-		if ($( "#backend_checks option:selected" ).val() == "option smtpchk") {
+		if ($("#backend_checks option:selected").val() == "option smtpchk") {
 			$("#backend_checks_note").html(smtpchk_note)
 		}
-		if ($( "#backend_checks option:selected" ).val() == "") {
+		if ($("#backend_checks option:selected").val() == "") {
 			$("#backend_checks_note").html('')
 		}
 	});
-	$( "#listener_checks" ).on('selectmenuchange',function() {
+	$("#listener_checks").on('selectmenuchange', function () {
 		if ($("#listener_checks").val() == 'option httpchk') {
 			$("#listener_checks_http").show();
 			$("#listener_checks_http_path").attr('required', 'true');
@@ -1223,7 +1176,7 @@ $( function() {
 			$("#listener_checks_http_domain").removeAttr('required');
 		}
 	});
-	$( "#backend_checks" ).on('selectmenuchange',function() {
+	$("#backend_checks").on('selectmenuchange', function () {
 		if ($("#backend_checks").val() == 'option httpchk') {
 			$("#backend_checks_http").show();
 			$("#backend_checks_http_path").attr('required', 'true');
@@ -1233,73 +1186,73 @@ $( function() {
 			$("#backend_checks_http_domain").removeAttr('required');
 		}
 	});
-	$( "#add_listener_header" ).on( "click", function() {
-		$( "#listener_header_div" ).show();
-		$( "#listener_add_header" ).show();
-		$( "#add_listener_header" ).hide();
-	} );
-	$( "#add_frontend_header" ).on( "click", function() {
-		$( "#frontend_header_div" ).show();
-		$( "#frontend_add_header" ).show();
-		$( "#add_frontend_header" ).hide();
-	} );
-	$( "#add_backend_header" ).on( "click", function() {
-		$( "#backend_header_div" ).show();
-		$( "#backend_add_header" ).show();
-		$( "#add_backend_header" ).hide();
-	} );
-	$("#listener_add_header").click(function(){
+	$("#add_listener_header").on("click", function () {
+		$("#listener_header_div").show();
+		$("#listener_add_header").show();
+		$("#add_listener_header").hide();
+	});
+	$("#add_frontend_header").on("click", function () {
+		$("#frontend_header_div").show();
+		$("#frontend_add_header").show();
+		$("#add_frontend_header").hide();
+	});
+	$("#add_backend_header").on("click", function () {
+		$("#backend_header_div").show();
+		$("#backend_add_header").show();
+		$("#add_backend_header").hide();
+	});
+	$("#listener_add_header").click(function () {
 		make_actions_for_adding_header('#listener_header_div');
 	});
-	$("#frontend_add_header").click(function(){
+	$("#frontend_add_header").click(function () {
 		make_actions_for_adding_header('#frontend_header_div');
 	});
-	$("#backend_add_header").click(function(){
+	$("#backend_add_header").click(function () {
 		make_actions_for_adding_header('#backend_header_div');
 	});
-	$( "#add_listener_acl" ).on( "click", function() {
-		$( "#listener_acl" ).show();
-		$( "#listener_add_acl" ).show();
-		$( "#add_listener_acl" ).hide();
-	} );
-	$( "#add_frontend_acl" ).on( "click", function() {
-		$( "#frontend_acl" ).show();
-		$( "#frontend_add_acl" ).show();
-		$( "#add_frontend_acl" ).hide();
-	} );
-	$( "#add_backend_acl" ).on( "click", function() {
-		$( "#backend_acl" ).show();
-		$( "#backend_add_acl" ).show();
-		$( "#add_backend_acl" ).hide();
-	} );
-	$("#listener_add_acl").click(function(){
+	$("#add_listener_acl").on("click", function () {
+		$("#listener_acl").show();
+		$("#listener_add_acl").show();
+		$("#add_listener_acl").hide();
+	});
+	$("#add_frontend_acl").on("click", function () {
+		$("#frontend_acl").show();
+		$("#frontend_add_acl").show();
+		$("#add_frontend_acl").hide();
+	});
+	$("#add_backend_acl").on("click", function () {
+		$("#backend_acl").show();
+		$("#backend_add_acl").show();
+		$("#add_backend_acl").hide();
+	});
+	$("#listener_add_acl").click(function () {
 		make_actions_for_adding_acl_rule('#listener_acl');
 		$("#listener_acl").find('option[value=5]').remove();
 	});
-	$("#frontend_add_acl").click(function(){
+	$("#frontend_add_acl").click(function () {
 		make_actions_for_adding_acl_rule('#frontend_acl');
 	});
-	$("#backend_add_acl").click(function(){
+	$("#backend_add_acl").click(function () {
 		make_actions_for_adding_acl_rule('#backend_acl');
 	});
-	$("#add_bind_listener").click(function(){
+	$("#add_bind_listener").click(function () {
 		make_actions_for_adding_bind('#listener_bind');
-		$( "#listener_bind" ).show();
+		$("#listener_bind").show();
 	});
-	$("#add_bind_frontend").click(function(){
+	$("#add_bind_frontend").click(function () {
 		make_actions_for_adding_bind('#frontend_bind');
-		$( "#frontend_bind" ).show();
+		$("#frontend_bind").show();
 	});
-	$( "#serv" ).on('selectmenuchange',function() {
+	$("#serv").on('selectmenuchange', function () {
 		$('#name').focus();
 	});
-	$( "#serv2" ).on('selectmenuchange',function() {
+	$("#serv2").on('selectmenuchange', function () {
 		$('#new_frontend').focus();
 	});
-	$( "#serv3" ).on('selectmenuchange',function() {
+	$("#serv3").on('selectmenuchange', function () {
 		$('#new_backend').focus();
 	});
-	$( "#userlist_serv" ).on('selectmenuchange',function() {
+	$("#userlist_serv").on('selectmenuchange', function () {
 		$('#new_userlist').focus();
 	});
 });
@@ -1387,12 +1340,7 @@ function confirmDeleteOption(id) {
 function removeOption(id) {
 	$("#option-"+id).css("background-color", "#f2dede");
 	$.ajax( {
-		url: "options.py",
-		data: {
-			optiondel: id,
-			token: $('#token').val()
-		},
-		type: "POST",
+		url: "/app/add/option/delete/" + id,
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error:') != '-1') {
@@ -1405,26 +1353,25 @@ function removeOption(id) {
 }
 function updateOptions(id) {
 	toastr.clear();
-	$.ajax( {
-		url: "options.py",
+	$.ajax({
+		url: "/app/add/option/update",
 		data: {
-			updateoption: $('#option-body-'+id).val(),
+			option: $('#option-body-' + id).val(),
 			id: id,
-			token: $('#token').val()
 		},
 		type: "POST",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
-				$("#option-"+id).addClass( "update", 1000 );
-				setTimeout(function() {
-					$( "#option-"+id ).removeClass( "update" );
-				}, 2500 );
+				$("#option-" + id).addClass("update", 1000);
+				setTimeout(function () {
+					$("#option-" + id).removeClass("update");
+				}, 2500);
 			}
 		}
-	} );
+	});
 }
 function confirmDeleteSavedServer(id) {
 	 $( "#dialog-confirm" ).dialog({
@@ -1447,15 +1394,10 @@ function confirmDeleteSavedServer(id) {
 function removeSavedServer(id) {
 	$("#servers-saved-"+id).css("background-color", "#f2dede");
 	$.ajax( {
-		url: "options.py",
-		data: {
-			savedserverdel: id,
-			token: $('#token').val()
-		},
-		type: "POST",
+		url: "/app/add/server/delete/"+id,
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if(data.indexOf('Ok') != '-1') {
+			if(data.indexOf('ok') != '-1') {
 				$("#servers-saved-"+id).remove();
 			}
 		}
@@ -1464,12 +1406,11 @@ function removeSavedServer(id) {
 function updateSavedServer(id) {
 	toastr.clear();
 	$.ajax( {
-		url: "options.py",
+		url: "/app/add/server/update",
 		data: {
-			updatesavedserver: $('#servers-ip-'+id).val(),
-			description: $('#servers-desc-'+id).val(),
+			server: $('#servers-ip-'+id).val(),
+			desc: $('#servers-desc-'+id).val(),
 			id: id,
-			token: $('#token').val()
 		},
 		type: "POST",
 		success: function( data ) {
@@ -1477,9 +1418,9 @@ function updateSavedServer(id) {
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
-				$("#option-"+id).addClass( "update", 1000 );
+				$("#servers-saved-"+id).addClass( "update", 1000 );
 				setTimeout(function() {
-					$( "#option-"+id ).removeClass( "update" );
+					$( "#servers-saved-"+id ).removeClass( "update" );
 				}, 2500 );
 			}
 		}
@@ -1491,13 +1432,7 @@ function view_ssl(id) {
 	var raw_word = $('#translate').attr('data-raw');
 	if(!checkIsServerFiled('#serv5')) return false;
 	$.ajax( {
-		url: "options.py",
-		data: {
-			serv: $('#serv5').val(),
-			getcert: id,
-			token: $('#token').val()
-		},
-		type: "POST",
+		url: "/app/add/cert/" + $('#serv5').val() + '/' + id,
 		success: function( data ) {
 			if (data.indexOf('error: ') != '-1') {
 				toastr.error(data);
@@ -1534,25 +1469,19 @@ function view_ssl(id) {
 function showRawSSL(id) {
 	var delete_word = $('#translate').attr('data-delete');
 	var cancel_word = $('#translate').attr('data-cancel');
-	$.ajax( {
-		url: "options.py",
-		data: {
-			serv: $('#serv5').val(),
-			getcert_raw: id,
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function( data ) {
+	$.ajax({
+		url: "/app/add/cert/get/raw/" + $('#serv5').val() + "/" + id,
+		success: function (data) {
 			if (data.indexOf('error: ') != '-1') {
 				toastr.error(data);
 			} else {
 				$('#dialog-confirm-body').text(data);
-				$( "#dialog-confirm-cert" ).dialog({
+				$("#dialog-confirm-cert").dialog({
 					resizable: false,
 					height: "auto",
 					width: 670,
 					modal: true,
-					title: "Certificate from "+$('#serv5').val()+", name: "+id,
+					title: "Certificate from " + $('#serv5').val() + ", name: " + id,
 					buttons: [{
 						text: cancel_word,
 						click: function () {
@@ -1573,65 +1502,56 @@ function showRawSSL(id) {
 				});
 			}
 		}
-	} );
+	});
 }
 function deleteSsl(id) {
-	if(!checkIsServerFiled('#serv5')) return false;
-	$.ajax( {
-		url: "options.py",
-		data: {
-			serv: $('#serv5').val(),
-			delcert: id,
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function( data ) {
+	if (!checkIsServerFiled('#serv5')) return false;
+	$.ajax({
+		url: "/app/add/cert/" + $("#serv5").val() + "/" + id,
+		type: "DELETE",
+		success: function (data) {
 			if (data.indexOf('error: ') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
 				toastr.success('SSL cert ' + id + ' has been deleted');
-				$("#ssl_key_view").trigger( "click" );
+				$("#ssl_key_view").trigger("click");
 			}
 		}
-	} );
+	});
 }
 function change_select_acceleration(id) {
-	$.ajax( {
-		url: "options.py",
-		data: {
-			get_hap_v: 1,
-			serv: $('#serv'+id+' option:selected').val(),
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
-			if(parseFloat(data) < parseFloat('1.8') || data == ' ') {
-				$("#cache"+id).checkboxradio( "disable" );
+	$.ajax({
+		url: "/app/service/haproxy/version/" + $('#serv' + id + ' option:selected').val(),
+		// data: {
+		// 	token: $('#token').val()
+		// },
+		// type: "POST",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (parseFloat(data) < parseFloat('1.8') || data == ' ') {
+				$("#cache" + id).checkboxradio("disable");
 			} else {
-				$("#cache"+id).checkboxradio( "enable" );
+				$("#cache" + id).checkboxradio("enable");
 			}
 		}
-	} );
+	});
 }
 function change_select_waf(id) {
-	$.ajax( {
-		url: "options.py",
-		data: {
-			get_hap_v: 1,
-			serv: $('#serv'+id+' option:selected').val(),
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function( data ) {
-			if(parseFloat(data) < parseFloat('1.8')) {
-				$("#waf"+id).checkboxradio( "disable" );
+	$.ajax({
+		url: "/app/service/haproxy/version/" + $('#serv' + id + ' option:selected').val(),
+		// data: {
+		// 	token: $('#token').val()
+		// },
+		// type: "POST",
+		success: function (data) {
+			if (parseFloat(data) < parseFloat('1.8')) {
+				$("#waf" + id).checkboxradio("disable");
 			} else {
-				$("#waf"+id).checkboxradio( "enable" );
+				$("#waf" + id).checkboxradio("enable");
 			}
 		}
-	} );
+	});
 }
 function createList(color) {
 	if(color == 'white') {
@@ -1641,12 +1561,11 @@ function createList(color) {
 	}
 	list = escapeHtml(list);
 	$.ajax( {
-		url: "options.py",
+		url: "/app/add/haproxy/bwlist/create",
 		data: {
 			bwlists_create: list,
 			color: color,
-			group: $('#group').val(),
-			token: $('#token').val()
+			group: $('#group').val()
 		},
 		type: "POST",
 		success: function( data ) {
@@ -1667,14 +1586,7 @@ function createList(color) {
 }
 function editList(list, color) {
 	$.ajax( {
-		url: "options.py",
-		data: {
-			bwlists: list,
-			color: color,
-			group: $('#group').val(),
-			token: $('#token').val()
-		},
-		type: "POST",
+		url: "/app/add/haproxy/bwlist/" + list + "/" + color + "/" + $('#group').val(),
 		success: function( data ) {
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
@@ -1731,15 +1643,14 @@ function saveList(action, list, color) {
 	var serv = $( "#serv-"+color+"-list option:selected" ).val();
 	if(!checkIsServerFiled($("#serv-"+color+"-list"))) return false;
 	$.ajax({
-		url: "options.py",
+		url: "/app/add/haproxy/bwlist/save",
 		data: {
 			bwlists_save: list,
 			serv: serv,
 			bwlists_content: $('#edit_lists').val(),
 			color: color,
 			group: $('#group').val(),
-			bwlists_restart: action,
-			token: $('#token').val()
+			bwlists_restart: action
 		},
 		type: "POST",
 		success: function (data) {
@@ -1762,15 +1673,7 @@ function deleteList(list, color) {
 	var serv = $( "#serv-"+color+"-list option:selected" ).val();
 	if(!checkIsServerFiled($("#serv-"+color+"-list"))) return false;
 	$.ajax({
-		url: "options.py",
-		data: {
-			bwlists_delete: list,
-			serv: serv,
-			color: color,
-			group: $('#group').val(),
-			token: $('#token').val()
-		},
-		type: "POST",
+		url: "/app/add/haproxy/bwlist/delete/" + serv + "/" + color + "/" + list + "/" + $('#group').val(),
 		success: function (data) {
 			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1' || data.indexOf('Errno') != '-1') {
 				toastr.error(data);
@@ -1789,11 +1692,10 @@ function createMap() {
 	map_name = $('#new_map_name').val()
 	map_name = escapeHtml(map_name);
 	$.ajax( {
-		url: "options.py",
+		url: "/app/add/map/create",
 		data: {
 			map_create: map_name,
-			group: $('#group').val(),
-			token: $('#token').val()
+			group: $('#group').val()
 		},
 		type: "POST",
 		success: function( data ) {
@@ -1814,11 +1716,10 @@ function createMap() {
 }
 function editMap(map) {
 	$.ajax( {
-		url: "options.py",
+		url: "/app/add/map/edit",
 		data: {
 			edit_map: map,
-			group: $('#group').val(),
-			token: $('#token').val()
+			group: $('#group').val()
 		},
 		type: "POST",
 		success: function( data ) {
@@ -1877,14 +1778,13 @@ function saveMap(action, map) {
 	var serv = $( "#serv-map option:selected" ).val();
 	if(!checkIsServerFiled($("#serv-map"))) return false;
 	$.ajax({
-		url: "options.py",
+		url: "/app/add/map/save",
 		data: {
 			map_save: map,
 			serv: serv,
 			content: $('#edit_map').val(),
 			group: $('#group').val(),
-			map_restart: action,
-			token: $('#token').val()
+			map_restart: action
 		},
 		type: "POST",
 		success: function (data) {
@@ -1907,12 +1807,11 @@ function deleteMap(map) {
 	var serv = $( "#serv-map option:selected" ).val();
 	if(!checkIsServerFiled($("#serv-map"))) return false;
 	$.ajax({
-		url: "options.py",
+		url: "/app/add/map/delete",
 		data: {
 			map_delete: map,
 			serv: serv,
-			group: $('#group').val(),
-			token: $('#token').val()
+			group: $('#group').val()
 		},
 		type: "POST",
 		success: function (data) {
@@ -2215,27 +2114,26 @@ function make_actions_for_adding_bind(section_id) {
 		serv = 'serv'
 	}
 	$( "#"+random_id + " > input[name=ip]").autocomplete({
-		source: function( request, response ) {
-			if ( request.term == "" ) {
+		source: function (request, response) {
+			if (request.term == "") {
 				request.term = 1
 			}
-			$.ajax( {
-				url: "options.py",
-				data: {
-					show_ip: request.term,
-					serv: $("#"+serv).val(),
-					token: $('#token').val()
-				},
-				success: function( data ) {
-					data = data.replace(/\s+/g,' ');
+			$.ajax({
+				url: "/app/add/show/ip/" + $("#" + serv).val(),
+				// data: {
+				// 	show_ip: request.term,
+				// 	token: $('#token').val()
+				// },
+				success: function (data) {
+					data = data.replace(/\s+/g, ' ');
 					response(data.split(" "));
 				}
-			} );
+			});
 		},
 		autoFocus: true,
 		minLength: -1,
-		select: function( event, ui ) {
-			$( "#"+random_id + " > input[name=port]").focus();
+		select: function (event, ui) {
+			$("#" + random_id + " > input[name=port]").focus();
 		}
 	});
 }
@@ -2249,17 +2147,11 @@ function makeid(length) {
    return result;
 }
 function showUserlists() {
-	var serv = $( "#existing_userlist_serv option:selected" ).val();
-	var select_id = $( "#existing_userlist_serv" );
-	if(!checkIsServerFiled(select_id)) return false;
+	var serv = $("#existing_userlist_serv option:selected").val();
+	var select_id = $("#existing_userlist_serv");
+	if (!checkIsServerFiled(select_id)) return false;
 	$.ajax({
-		url: "options.py",
-		data: {
-			show_userlists: 1,
-			serv: serv,
-			token: $('#token').val()
-		},
-		type: "POST",
+		url: "/app/add/haproxy/userlist/" + serv,
 		success: function (data) {
 			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 				toastr.error(data);
@@ -2271,14 +2163,14 @@ function showUserlists() {
 					var existing_userlist_ajax = $.find("#existing_userlist_ajax");
 					existing_userlist_ajax = existing_userlist_ajax[0].id;
 					data[i] = escapeHtml(data[i]);
-					$('#'+existing_userlist_ajax).append('<a href="sections.py?serv='+serv+'&section='+data[i]+'" title="Edit/Delete this userlist" target="_blank">'+data[i]+'</a> ');
+					$('#' + existing_userlist_ajax).append('<a href="/app/config/section/haproxy/' + serv + '/' + data[i] + '" title="Edit/Delete this userlist" target="_blank">' + data[i] + '</a> ');
 				}
 			}
 		}
 	});
 }
 function changePortCheckFromServerPort() {
-	$('[name=server_port]').on('input', function (){
+	$('[name=server_port]').on('input', function () {
 		var iNum = parseInt($($(this)).val());
 		$($(this)).next().val(iNum);
 	});

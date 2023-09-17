@@ -1,5 +1,7 @@
 import os
-import http.cookies
+
+import requests
+from flask import render_template, request
 
 import modules.db.sql as sql
 import modules.server.ssh as mod_ssh
@@ -7,6 +9,7 @@ import modules.common.common as common
 import modules.server.server as server_mod
 import modules.roxywi.common as roxywi_common
 import modules.roxy_wi_tools as roxy_wi_tools
+import modules.config.section as section_mod
 
 time_zone = sql.get_setting('time_zone')
 get_date = roxy_wi_tools.GetDate(time_zone)
@@ -25,11 +28,10 @@ def check_haproxy_version(server_ip):
 
 
 def is_restarted(server_ip: str, action: str) -> None:
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-	user_uuid = cookie.get('uuid')
-	group_id = cookie.get('group')
-	group_id = int(group_id.value)
-	user_role = sql.get_user_role_by_uuid(user_uuid.value, group_id)
+	user_uuid = request.cookies.get('uuid')
+	group_id = request.cookies.get('group')
+	group_id = int(group_id)
+	user_role = sql.get_user_role_by_uuid(user_uuid, group_id)
 
 	if sql.is_serv_protected(server_ip) and int(user_role) > 2:
 		print(f'error: This server is protected. You cannot {action} it')
@@ -42,26 +44,22 @@ def is_not_allowed_to_restart(server_id: int, service: str) -> None:
 	else:
 		is_restart = 0
 
-	try:
-		if int(is_restart) == 1:
-			print('warning: this service is not allowed to be restarted')
-			return
-	except Exception:
-		pass
+	if int(is_restart) == 1:
+		raise Exception('warning: This service is not allowed to be restarted')
 
 
 def get_exp_version(server_ip: str, service_name: str) -> str:
 	server_ip = common.is_ip_or_dns(server_ip)
-	if service_name == 'haproxy_exporter':
+	if service_name == 'haproxy':
 		commands = ["/opt/prometheus/exporters/haproxy_exporter --version 2>&1 |head -1|awk '{print $3}'"]
-	elif service_name == 'nginx_exporter':
+	elif service_name == 'nginx':
 		commands = ["/opt/prometheus/exporters/nginx_exporter 2>&1 |head -1 |awk -F\"=\" '{print $2}'|awk '{print $1}'"]
-	elif service_name == 'node_exporter':
+	elif service_name == 'node':
 		commands = ["node_exporter --version 2>&1 |head -1|awk '{print $3}'"]
-	elif service_name == 'apache_exporter':
+	elif service_name == 'apache':
 		commands = ["/opt/prometheus/exporters/apache_exporter --version 2>&1 |head -1|awk '{print $3}'"]
-	elif service_name == 'keepalived_exporter':
-		commands = ["systemctl list-units --full -all |grep keepalived_exporter"]
+	elif service_name == 'keepalived':
+		commands = ["keepalived_exporter --version 2>&1 |head -1|awk '{print $2}'"]
 
 	ver = server_mod.ssh_command(server_ip, commands)
 
@@ -137,21 +135,16 @@ def check_nginx_config(server_ip):
 
 
 def overview_backends(server_ip: str, service: str) -> None:
-	from jinja2 import Environment, FileSystemLoader
-
 	import modules.config.config as config_mod
-	import modules.config.section as section_mod
-	import modules.roxywi.common as roxywi_common
 
-	env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
-	template = env.get_template('ajax/haproxyservers_backends.html')
+	lang = roxywi_common.get_user_lang_for_flask()
 	format_file = 'cfg'
 
 	if service == 'haproxy':
 		configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
 		format_file = 'cfg'
 	elif service == 'keepalived':
-		configs_dir = get_config.get_config_var('configs', 'kp_save_configs_dir')
+		configs_dir = get_config.get_config_var('configs', 'keepalived_save_configs_dir')
 		format_file = 'conf'
 
 	if service != 'nginx' and service != 'apache':
@@ -180,11 +173,10 @@ def overview_backends(server_ip: str, service: str) -> None:
 	else:
 		sections = section_mod.get_remote_sections(server_ip, service)
 
-	template = template.render(backends=sections, serv=server_ip, service=service)
-	print(template)
+	return render_template('ajax/haproxyservers_backends.html', backends=sections, serv=server_ip, service=service, lang=lang)
 
 
-def get_overview_last_edit(server_ip: str, service: str) -> None:
+def get_overview_last_edit(server_ip: str, service: str) -> str:
 	if service == 'nginx':
 		config_path = sql.get_setting('nginx_config_path')
 	elif service == 'keepalived':
@@ -193,65 +185,12 @@ def get_overview_last_edit(server_ip: str, service: str) -> None:
 		config_path = sql.get_setting('haproxy_config_path')
 	commands = ["ls -l %s |awk '{ print $6\" \"$7\" \"$8}'" % config_path]
 	try:
-		print(server_mod.ssh_command(server_ip, commands))
+		return server_mod.ssh_command(server_ip, commands)
 	except Exception as e:
-		print(f'error: Cannot get last date {e} for server {server_ip}')
+		return f'error: Cannot get last date {e} for server {server_ip}'
 
 
-def overview_service(server_ip: str, server_id: int, name: str, service: str) -> None:
-	import asyncio
-	from jinja2 import Environment, FileSystemLoader
-
-	user_params = roxywi_common.get_users_params()
-
-	async def async_get_overviewServers(serv1, serv2, service):
-		if service == 'haproxy':
-			cmd = 'echo "show info" |nc %s %s -w 1|grep -e "node\|Nbproc\|Maxco\|MB\|Nbthread"' % (
-				serv2, sql.get_setting('haproxy_sock_port'))
-			out = server_mod.subprocess_execute(cmd)
-			return_out = ""
-
-			for k in out:
-				if "Ncat:" not in k:
-					for r in k:
-						return_out += r
-						return_out += "<br />"
-				else:
-					return_out = "Cannot connect to HAProxy"
-		else:
-			return_out = ''
-
-		server_status = (serv1, serv2, return_out)
-		return server_status
-
-	async def get_runner_overviewServers(**kwargs):
-		env = Environment(loader=FileSystemLoader('templates/'), extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'])
-		template = env.get_template('ajax/overviewServers.html')
-
-		servers = []
-		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-		user_id = cookie.get('uuid')
-		group_id = cookie.get('group')
-		group_id = int(group_id.value)
-		role = sql.get_user_role_by_uuid(user_id.value, group_id)
-		futures = [async_get_overviewServers(kwargs.get('server1'), kwargs.get('server2'), kwargs.get('service'))]
-
-		for i, future in enumerate(asyncio.as_completed(futures)):
-			result = await future
-			servers.append(result)
-		servers_sorted = sorted(servers, key=common.get_key)
-		template = template.render(service_status=servers_sorted, role=role, id=kwargs.get('id'), service_page=service, lang=user_params['lang'])
-		print(template)
-
-	ioloop = asyncio.get_event_loop()
-	ioloop.run_until_complete(get_runner_overviewServers(server1=name, server2=server_ip, id=server_id, service=service))
-	ioloop.close()
-
-
-def get_stat_page(server_ip: str, service: str) -> None:
-	import requests
-	from jinja2 import Environment, FileSystemLoader
-
+def get_stat_page(server_ip: str, service: str) -> str:
 	if service in ('nginx', 'apache'):
 		stats_user = sql.get_setting(f'{service}_stats_user')
 		stats_pass = sql.get_setting(f'{service}_stats_password')
@@ -265,24 +204,21 @@ def get_stat_page(server_ip: str, service: str) -> None:
 	try:
 		response = requests.get(f'http://{server_ip}:{stats_port}/{stats_page}', auth=(stats_user, stats_pass))
 	except requests.exceptions.ConnectTimeout:
-		print('error: Oops. Connection timeout occurred!')
+		return 'error: Oops. Connection timeout occurred!'
 	except requests.exceptions.ReadTimeout:
-		print('error: Oops. Read timeout occurred')
+		return 'error: Oops. Read timeout occurred'
 	except requests.exceptions.HTTPError as errh:
-		print("error: Http Error:", errh)
+		return f'error: Http Error: {errh}'
 	except requests.exceptions.ConnectionError as errc:
-		print('error: Error Connecting: %s' % errc)
+		return f'error: Error Connecting: {errc}'
 	except requests.exceptions.Timeout as errt:
-		print("error: Timeout Error:", errt)
+		return f'error: Timeout Error: {errt}'
 	except requests.exceptions.RequestException as err:
-		print("error: OOps: Something Else", err)
+		return f'error: OOps: Something Else {err}'
 
 	data = response.content
 	if service == 'nginx':
-		lang = roxywi_common.get_user_lang()
-		env = Environment(loader=FileSystemLoader('templates/'), autoescape=True)
-		template = env.get_template('ajax/nginx_stats.html')
-
+		lang = roxywi_common.get_user_lang_for_flask()
 		servers_with_status = list()
 		h = ()
 		out1 = []
@@ -291,20 +227,14 @@ def get_stat_page(server_ip: str, service: str) -> None:
 		h = (out1,)
 		servers_with_status.append(h)
 
-		template = template.render(out=servers_with_status, lang=lang)
-		print(template)
+		return render_template('ajax/nginx_stats.html', out=servers_with_status, lang=lang)
 	else:
-		print(data.decode('utf-8'))
+		return data.decode('utf-8')
 
 
 def show_service_version(server_ip: str, service: str) -> None:
-	if service not in ('nginx', 'apache', 'haproxy'):
-		print('warning: wrong service')
-		return None
-
 	if service == 'haproxy':
-		print(check_haproxy_version(server_ip))
-		return None
+		return check_haproxy_version(server_ip)
 
 	server_id = sql.select_server_id_by_ip(server_ip)
 	service_name = service
@@ -321,4 +251,4 @@ def show_service_version(server_ip: str, service: str) -> None:
 			cmd = [f'docker exec -it {container_name}  /usr/sbin/{service_name} -v 2>&1|head -1|awk -F":" \'{{print $2}}\'']
 	else:
 		cmd = [f'sudo /usr/sbin/{service_name} -v|head -1|awk -F":" \'{{print $2}}\'']
-	print(server_mod.ssh_command(server_ip, cmd))
+	return server_mod.ssh_command(server_ip, cmd)

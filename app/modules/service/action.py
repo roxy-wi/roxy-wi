@@ -5,12 +5,21 @@ import modules.roxywi.common as roxywi_common
 import modules.service.common as service_common
 
 
-def action_haproxy(server_ip: str, action: str) -> None:
-    haproxy_service_name = "haproxy"
+def common_action(server_ip: str, action: str, service: str) -> str:
+    action_functions = {
+        'haproxy': action_haproxy,
+        'nginx': action_nginx,
+        'keepalived': action_keepalived,
+        'apache': action_apache,
+        'waf_haproxy': action_haproxy_waf,
+        'waf_nginx': action_nginx_waf
+    }
 
-    if action not in ('start', 'stop', 'reload', 'restart'):
-        print('error: wrong action')
-        return
+    return action_functions[service](server_ip, action)
+
+
+def action_haproxy(server_ip: str, action: str) -> str:
+    haproxy_service_name = "haproxy"
 
     service_common.is_restarted(server_ip, action)
 
@@ -31,16 +40,12 @@ def action_haproxy(server_ip: str, action: str) -> None:
             commands = [f"sudo systemctl {action} {haproxy_service_name}"]
         server_mod.ssh_command(server_ip, commands, timeout=5)
         roxywi_common.logging(server_ip, f'Service has been {action}ed', roxywi=1, login=1, keep_history=1, service='haproxy')
-        print(f"success: HAProxy has been {action}")
+        return f"success: HAProxy has been {action}"
     else:
-        print("error: Bad config, check please")
+        return "error: Bad config, check please"
 
 
-def action_nginx(server_ip: str, action: str) -> None:
-    if action not in ('start', 'stop', 'reload', 'restart'):
-        print('error: wrong action')
-        return
-
+def action_nginx(server_ip: str, action: str) -> str:
     service_common.is_restarted(server_ip, action)
 
     if service_common.check_nginx_config(server_ip):
@@ -57,29 +62,21 @@ def action_nginx(server_ip: str, action: str) -> None:
             commands = [f"sudo systemctl {action} nginx"]
         server_mod.ssh_command(server_ip, commands, timeout=5)
         roxywi_common.logging(server_ip, f'Service has been {action}ed', roxywi=1, login=1, keep_history=1, service='nginx')
-        print(f"success: NGINX has been {action}")
+        return f"success: NGINX has been {action}"
     else:
-        print("error: Bad config, check please")
+        return "error: Bad config, check please"
 
 
-def action_keepalived(server_ip: str, action: str) -> None:
-    if action not in ('start', 'stop', 'reload', 'restart'):
-        print('error: wrong action')
-        return
-
+def action_keepalived(server_ip: str, action: str) -> str:
     service_common.is_restarted(server_ip, action)
 
     commands = [f"sudo systemctl {action} keepalived"]
     server_mod.ssh_command(server_ip, commands)
     roxywi_common.logging(server_ip, f'Service has been {action}ed', roxywi=1, login=1, keep_history=1, service='keepalived')
-    print(f"success: Keepalived has been {action}")
+    return f"success: Keepalived has been {action}"
 
 
-def action_apache(server_ip: str, action: str) -> None:
-    if action not in ('start', 'stop', 'reload', 'restart'):
-        print('error: wrong action')
-        return
-
+def action_apache(server_ip: str, action: str) -> str:
     service_common.is_restarted(server_ip, action)
 
     server_id = sql.select_server_id_by_ip(server_ip)
@@ -97,28 +94,21 @@ def action_apache(server_ip: str, action: str) -> None:
         commands = [f"sudo systemctl {action} {service_apache_name}"]
     server_mod.ssh_command(server_ip, commands, timeout=5)
     roxywi_common.logging(server_ip, f'Service has been {action}ed', roxywi=1, login=1, keep_history=1, service='apache')
-    print(f"success: Apache has been {action}")
+    return f"success: Apache has been {action}"
 
 
-def action_haproxy_waf(server_ip: str, action: str) -> None:
-    if action not in ('start', 'stop', 'reload', 'restart'):
-        print('error: wrong action')
-        return
-
+def action_haproxy_waf(server_ip: str, action: str) -> str:
     service_common.is_restarted(server_ip, action)
 
     roxywi_common.logging(server_ip, f'HAProxy WAF service has been {action}ed', roxywi=1, login=1, keep_history=1,
                   service='haproxy')
     commands = [f"sudo systemctl {action} waf"]
     server_mod.ssh_command(server_ip, commands)
+    return f"success: WAF has been {action}"
 
 
-def action_nginx_waf(server_ip: str, action: str) -> None:
+def action_nginx_waf(server_ip: str, action: str) -> str:
     config_dir = common.return_nice_path(sql.get_setting('nginx_dir'))
-
-    if action not in ('start', 'stop'):
-        print('error: wrong action')
-        return
 
     service_common.is_restarted(server_ip, action)
 
@@ -131,12 +121,14 @@ def action_nginx_waf(server_ip: str, action: str) -> None:
                 f" && sudo systemctl reload nginx"]
     server_mod.ssh_command(server_ip, commands)
 
+    return f"success: Apache has been {action}"
 
-def check_service(server_ip: str, user_uuid: str, service: str) -> None:
+
+def check_service(server_ip: str, user_uuid: str, service: str) -> str:
     import socket
     from contextlib import closing
 
-    user_id = sql.get_user_id_by_uuid(user_uuid.value)
+    user_id = sql.get_user_id_by_uuid(user_uuid)
     user_services = sql.select_user_services(user_id)
 
     if '1' in user_services:
@@ -146,10 +138,9 @@ def check_service(server_ip: str, user_uuid: str, service: str) -> None:
             out = server_mod.subprocess_execute(cmd)
             for k in out[0]:
                 if "Name" in k:
-                    print('up')
-                    break
+                    return 'up'
             else:
-                print('down')
+                return 'down'
     if '2' in user_services:
         if service == 'nginx':
             nginx_stats_port = sql.get_setting('nginx_stats_port')
@@ -159,11 +150,11 @@ def check_service(server_ip: str, user_uuid: str, service: str) -> None:
 
                 try:
                     if sock.connect_ex((server_ip, nginx_stats_port)) == 0:
-                        print('up')
+                        return 'up'
                     else:
-                        print('down')
-                except Exception:
-                    print('down')
+                        return 'down'
+                except Exception as e:
+                    return 'down' + str(e)
     if '4' in user_services:
         if service == 'apache':
             apache_stats_port = sql.get_setting('apache_stats_port')
@@ -173,8 +164,8 @@ def check_service(server_ip: str, user_uuid: str, service: str) -> None:
 
                 try:
                     if sock.connect_ex((server_ip, apache_stats_port)) == 0:
-                        print('up')
+                        return 'up'
                     else:
-                        print('down')
+                        return 'down'
                 except Exception as e:
-                    print('down' + str(e))
+                    return 'down' + str(e)

@@ -1,1 +1,1 @@
-NAME = 'roxy-wi-server-modules'
+NAME = 'roxy-wi-server-module'

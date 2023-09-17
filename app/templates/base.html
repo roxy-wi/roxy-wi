@@ -24,23 +24,23 @@
 		{% if title == 'Login page' %}
 		<meta name="viewport" content="width=device-width, user-scalable=1">
 		{% endif %}
-		<link href="/inc/images/favicon/favicon.ico" rel="icon" type="image/png" />
-		<link rel="apple-touch-icon" sizes="57x57" href="/inc/images/favicon/inc/images/favicon/apple-icon-57x57.png">
-		<link rel="apple-touch-icon" sizes="60x60" href="/inc/images/favicon/apple-icon-60x60.png">
-		<link rel="apple-touch-icon" sizes="72x72" href="/inc/images/favicon/apple-icon-72x72.png">
-		<link rel="apple-touch-icon" sizes="76x76" href="/inc/images/favicon/apple-icon-76x76.png">
-		<link rel="apple-touch-icon" sizes="114x114" href="/inc/images/favicon/apple-icon-114x114.png">
-		<link rel="apple-touch-icon" sizes="120x120" href="/inc/images/favicon/apple-icon-120x120.png">
-		<link rel="apple-touch-icon" sizes="144x144" href="/inc/images/favicon/apple-icon-144x144.png">
-		<link rel="apple-touch-icon" sizes="152x152" href="/inc/images/favicon/apple-icon-152x152.png">
-		<link rel="apple-touch-icon" sizes="180x180" href="/inc/images/favicon/apple-icon-180x180.png">
-		<link rel="icon" type="image/png" sizes="192x192"  href="/inc/images/favicon/android-icon-192x192.png">
-		<link rel="icon" type="image/png" sizes="32x32" href="/inc/images/favicon/favicon-32x32.png">
-		<link rel="icon" type="image/png" sizes="96x96" href="/inc/images/favicon/favicon-96x96.png">
-		<link rel="icon" type="image/png" sizes="16x16" href="/inc/images/favicon/favicon-16x16.png">
-		<link rel="manifest" href="/inc/images/favicon/manifest.json">
+		<link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon/favicon.ico') }}" />
+		<link rel="apple-touch-icon" sizes="57x57" href="{{ url_for('static', filename='images/favicon/apple-icon-57x57.png') }}">
+		<link rel="apple-touch-icon" sizes="60x60" href="{{ url_for('static', filename='images/favicon/apple-icon-60x60.png') }}">
+		<link rel="apple-touch-icon" sizes="72x72" href="{{ url_for('static', filename='images/favicon/apple-icon-72x72.png') }}">
+		<link rel="apple-touch-icon" sizes="76x76" href="{{ url_for('static', filename='images/favicon/apple-icon-76x76.png') }}">
+		<link rel="apple-touch-icon" sizes="114x114" href="{{ url_for('static', filename='images/favicon/apple-icon-114x114.png') }}">
+		<link rel="apple-touch-icon" sizes="120x120" href="{{ url_for('static', filename='images/favicon/apple-icon-120x120.png') }}">
+		<link rel="apple-touch-icon" sizes="144x144" href="{{ url_for('static', filename='images/favicon/apple-icon-144x144.png') }}">
+		<link rel="apple-touch-icon" sizes="152x152" href="{{ url_for('static', filename='images/favicon/apple-icon-152x152.png') }}">
+		<link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='images/favicon/apple-icon-180x180.png') }}">
+		<link rel="icon" type="image/png" sizes="192x192"  href="{{ url_for('static', filename='images/favicon/android-icon-192x192.png') }}">
+		<link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon/favicon-32x32.png') }}">
+		<link rel="icon" type="image/png" sizes="96x96" href="{{ url_for('static', filename='images/favicon/favicon-96x96.png') }}">
+		<link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='images/favicon/favicon-16x16.png') }}">
+		<link rel="manifest" href="{{ url_for('static', filename='images/favicon/manifest.json') }}">
 		<meta name="msapplication-TileColor" content="#ffffff">
-		<meta name="msapplication-TileImage" content="/inc/images/favicon/ms-icon-144x144.png">
+		<meta name="msapplication-TileImage" content="{{ url_for('static', filename='images/favicon/ms-icon-144x144.png') }}">
 		<meta name="theme-color" content="#ffffff">
 		<script defer src="/inc/fa-solid.min.js"></script>
 		<script defer src="/inc/fontawesome.min.js"></script>
@@ -62,7 +62,7 @@
 		<script src="/inc/hotkeys.js"></script>
 		<link href="/inc/css/select2.css" rel="stylesheet" />
 		<script src="/inc/select2.js"></script>
-		<script src="/inc/script-6.3.9.js"></script>
+		<script src="/inc/script.js"></script>
 		<script src="/inc/nprogress.js"></script>
 		<link href="/inc/css/toastr-6.3.9.css" rel="stylesheet"/>
 		<script src="/inc/toastr.js"></script>
@@ -74,7 +74,7 @@
 			<div class="LogoText">
 				<span id="logo_text">
 					<a href="https://roxy-wi.org" title="Roxy-WI site" target="_blank">
-						<img src="/inc/images/logo_menu.png" alt="logo" width="110" />
+						<img src="{{ url_for('static', filename='images/logo_menu.png') }}" alt="logo" width="110" />
 					</a>
 				</span>
 			</div>
@@ -82,57 +82,57 @@
 				<nav id="menu">
 					<ul class="menu">
 						{% if user %}
-						<li><a href="/app/overview.py" title="{{lang.menu_links.overview.title}}" class="overview-link ">{{lang.menu_links.overview.link}}</a></li>
+						<li><a href="/app/" title="{{lang.menu_links.overview.title}}" class="overview-link ">{{lang.menu_links.overview.link}}</a></li>
 						{% if '1' in user_services %}
 						<li class="p_menu">
-							<a href="/app/hapservers.py?service=haproxy" title="{{lang.menu_links.hapservers.haproxy.title}}" class="config-show">HAProxy</a>
+							<a href="/app/service/haproxy" title="{{lang.menu_links.hapservers.haproxy.title}}" class="config-show">HAProxy</a>
 							<ul class="v_menu">
-								<li><a href="/app/hapservers.py?service=haproxy" title="{{lang.menu_links.hapservers.haproxy.title}}" class="overview-link head-submenu">{{lang.menu_links.hapservers.link}}</a> </li>
-								<li><a href="/app/config.py?service=haproxy" title="{{lang.menu_links.config.haproxy.title}}" class="edit head-submenu">{{lang.menu_links.config.link}}</a></li>
-								<li><a href="/app/statsview.py?service=haproxy" title="{{lang.menu_links.stats.haproxy.title}}" class="stats head-submenu">{{lang.menu_links.stats.link}}</a></li>
-								<li><a href="/app/logs.py?service=haproxy" title="HAProxy {{lang.menu_links.logs.title}}" class="logs head-submenu">{{lang.menu_links.logs.link}}</a></li>
-								<li><a href="/app/runtimeapi.py" title="Runtime API" class="runtime head-submenu">Runtime API</a></li>
-								<li><a href="/app/metrics.py?service=haproxy" title="HAProxy {{lang.menu_links.metrics.title}}" class="metrics head-submenu">{{lang.menu_links.metrics.link}}</a></li>
+								<li><a href="/app/service/haproxy" title="{{lang.menu_links.hapservers.haproxy.title}}" class="overview-link head-submenu">{{lang.menu_links.hapservers.link}}</a> </li>
+								<li><a href="/app/config/haproxy" title="{{lang.menu_links.config.haproxy.title}}" class="edit head-submenu">{{lang.menu_links.config.link}}</a></li>
+								<li><a href="/app/stats/haproxy" title="{{lang.menu_links.stats.haproxy.title}}" class="stats head-submenu">{{lang.menu_links.stats.link}}</a></li>
+								<li><a href="/app/logs/haproxy" title="HAProxy {{lang.menu_links.logs.title}}" class="logs head-submenu">{{lang.menu_links.logs.link}}</a></li>
+								<li><a href="/app/runtimeapi" title="Runtime API" class="runtime head-submenu">Runtime API</a></li>
+								<li><a href="/app/metrics/haproxy" title="HAProxy {{lang.menu_links.metrics.title}}" class="metrics head-submenu">{{lang.menu_links.metrics.link}}</a></li>
 							{% if role <= 3 %}
-								<li><a href="/app/add.py#proxy" title="{{lang.menu_links.add_proxy.title}}" class="add-proxy head-submenu" id="add1">{{lang.menu_links.add_proxy.link}}</a></li>
-								<li><a href="/app/versions.py?service=haproxy" title="{{lang.menu_links.versions.haproxy.title}}" class="version head-submenu">{{lang.menu_links.versions.link}}</a></li>
-								<li><a href="/app/add.py#ssl" title="{{lang.menu_links.ssl.title}}" class="cert head-submenu" id="add3">{{lang.menu_links.ssl.link}}</a></li>
-								<li><a href="/app/add.py#lists" title="{{lang.menu_links.lists.title}}" class="lists head-submenu" id="add7">{{lang.menu_links.lists.link}}</a></li>
-								<li><a href="/app/waf.py?service=haproxy" title="Web application firewall" class="waf-menu head-submenu">WAF</a> </li>
+								<li><a href="/app/add/haproxy#proxy" title="{{lang.menu_links.add_proxy.title}}" class="add-proxy head-submenu" id="add1">{{lang.menu_links.add_proxy.link}}</a></li>
+								<li><a href="/app/config/versions/haproxy" title="{{lang.menu_links.versions.haproxy.title}}" class="version head-submenu">{{lang.menu_links.versions.link}}</a></li>
+								<li><a href="/app/add/haproxy#ssl" title="{{lang.menu_links.ssl.title}}" class="cert head-submenu" id="add3">{{lang.menu_links.ssl.link}}</a></li>
+								<li><a href="/app/add/haproxy#lists" title="{{lang.menu_links.lists.title}}" class="lists head-submenu" id="add7">{{lang.menu_links.lists.link}}</a></li>
+								<li><a href="/app/waf/haproxy" title="Web application firewall" class="waf-menu head-submenu">WAF</a> </li>
 							{% endif %}
 							</ul>
 						</li>
 						{% endif %}
 						{% if '2' in user_services %}
 						<li class="p_menu">
-							<a href="/app/hapservers.py?service=nginx" title="{{lang.menu_links.hapservers.nginx.title}}" class="nginx-menu">NGINX</a>
+							<a href="/app/service/nginx" title="{{lang.menu_links.hapservers.nginx.title}}" class="nginx-menu">NGINX</a>
 							<ul class="v_menu">
-								<li><a href="/app/hapservers.py?service=nginx" title="{{lang.menu_links.hapservers.nginx.title}}" class="overview-link head-submenu">{{lang.menu_links.hapservers.link}}</a></li>
-								<li><a href="/app/config.py?service=nginx" title="{{lang.menu_links.config.nginx.title}}" class="edit head-submenu">{{lang.menu_links.config.link}}</a></li>
-								<li><a href="/app/statsview.py?service=nginx" title="{{lang.menu_links.stats.nginx.title}}" class="stats head-submenu">{{lang.menu_links.stats.link}}</a></li>
-								<li><a href="/app/logs.py?service=nginx" title="NGINX {{lang.menu_links.logs.title}}" class="logs head-submenu">{{lang.menu_links.logs.link}}</a></li>
-								<li><a href="/app/metrics.py?service=nginx" title="NGINX {{lang.menu_links.metrics.title}}" class="metrics head-submenu">{{lang.menu_links.metrics.link}}</a></li>
+								<li><a href="/app/service/nginx" title="{{lang.menu_links.hapservers.nginx.title}}" class="overview-link head-submenu">{{lang.menu_links.hapservers.link}}</a></li>
+								<li><a href="/app/config/nginx" title="{{lang.menu_links.config.nginx.title}}" class="edit head-submenu">{{lang.menu_links.config.link}}</a></li>
+								<li><a href="/app/stats/nginx" title="{{lang.menu_links.stats.nginx.title}}" class="stats head-submenu">{{lang.menu_links.stats.link}}</a></li>
+								<li><a href="/app/logs/nginx" title="NGINX {{lang.menu_links.logs.title}}" class="logs head-submenu">{{lang.menu_links.logs.link}}</a></li>
+								<li><a href="/app/metrics/nginx" title="NGINX {{lang.menu_links.metrics.title}}" class="metrics head-submenu">{{lang.menu_links.metrics.link}}</a></li>
 								{% if role <= 3 %}
-								<li><a href="/app/add_nginx.py#proxy" title="{{lang.menu_links.add_proxy.title}}" class="add-proxy head-submenu">{{lang.menu_links.add_proxy.link}}</a></li>
-								<li><a href="/app/versions.py?service=nginx" title="{{lang.menu_links.versions.nginx.title}}" class="version head-submenu">{{lang.menu_links.versions.link}}</a></li>
-								<li><a href="/app/add.py?service=nginx#ssl" title="{{lang.menu_links.ssl.title}}" class="cert head-submenu">{{lang.menu_links.ssl.link}}</a></li>
-								<li><a href="/app/waf.py?service=nginx" title="Web application firewall" class="waf-menu head-submenu">WAF</a> </li>
+								<li><a href="/app/add/nginx#proxy" title="{{lang.menu_links.add_proxy.title}}" class="add-proxy head-submenu">{{lang.menu_links.add_proxy.link}}</a></li>
+								<li><a href="/app/config/versions/nginx" title="{{lang.menu_links.versions.nginx.title}}" class="version head-submenu">{{lang.menu_links.versions.link}}</a></li>
+								<li><a href="/app/add/haproxy?service=nginx#ssl" title="{{lang.menu_links.ssl.title}}" class="cert head-submenu">{{lang.menu_links.ssl.link}}</a></li>
+								<li><a href="/app/waf/nginx" title="Web application firewall" class="waf-menu head-submenu">WAF</a> </li>
 								{% endif %}
 							</ul>
 						</li>
 						{% endif %}
 						{% if '4' in user_services %}
 						<li class="p_menu">
-							<a href="/app/hapservers.py?service=apache" title="{{lang.menu_links.hapservers.apache.title}}" class="apache-menu">Apache</a>
+							<a href="/app/service/apache" title="{{lang.menu_links.hapservers.apache.title}}" class="apache-menu">Apache</a>
 							<ul class="v_menu">
-								<li><a href="/app/hapservers.py?service=apache" title="{{lang.menu_links.hapservers.apache.title}}" class="overview-link head-submenu">{{lang.menu_links.hapservers.link}}</a></li>
-								<li><a href="/app/config.py?service=apache" title="{{lang.menu_links.config.apache.title}}" class="edit head-submenu">{{lang.menu_links.config.link}}</a></li>
-								<li><a href="/app/statsview.py?service=apache" title="{{lang.menu_links.stats.apache.title}}" class="stats head-submenu">{{lang.menu_links.stats.link}}</a></li>
-								<li><a href="/app/logs.py?service=apache" title="Apache {{lang.menu_links.logs.title}}" class="logs head-submenu">{{lang.menu_links.logs.link}}</a></li>
-								<li><a href="/app/metrics.py?service=apache" title="Apache {{lang.menu_links.metrics.title}}" class="metrics head-submenu">{{lang.menu_links.metrics.link}}</a></li>
+								<li><a href="/app/service/apache" title="{{lang.menu_links.hapservers.apache.title}}" class="overview-link head-submenu">{{lang.menu_links.hapservers.link}}</a></li>
+								<li><a href="/app/config/apache" title="{{lang.menu_links.config.apache.title}}" class="edit head-submenu">{{lang.menu_links.config.link}}</a></li>
+								<li><a href="/app/stats/apache" title="{{lang.menu_links.stats.apache.title}}" class="stats head-submenu">{{lang.menu_links.stats.link}}</a></li>
+								<li><a href="/app/logs/apache" title="Apache {{lang.menu_links.logs.title}}" class="logs head-submenu">{{lang.menu_links.logs.link}}</a></li>
+								<li><a href="/app/metrics/apache" title="Apache {{lang.menu_links.metrics.title}}" class="metrics head-submenu">{{lang.menu_links.metrics.link}}</a></li>
 								{% if role <= 3 %}
-								<li><a href="/app/versions.py?service=apache" title="{{lang.menu_links.versions.apache.title}}" class="version head-submenu">{{lang.menu_links.versions.link}}</a></li>
-								<li><a href="/app/add.py?service=apache#ssl" title="{{lang.menu_links.ssl.title}}" class="cert head-submenu" id="add3">{{lang.menu_links.ssl.link}}</a></li>
+								<li><a href="/app/config/versions/apache" title="{{lang.menu_links.versions.apache.title}}" class="version head-submenu">{{lang.menu_links.versions.link}}</a></li>
+								<li><a href="/app/add/haproxy?service=apache#ssl" title="{{lang.menu_links.ssl.title}}" class="cert head-submenu" id="add3">{{lang.menu_links.ssl.link}}</a></li>
 								{% endif %}
 							</ul>
 						</li>
@@ -140,60 +140,64 @@
 						{% if '3' in user_services %}
 						{% if role <= 2 %}
 						<li class="p_menu">
-							<a href="/app/hapservers.py?service=keepalived" title="{{lang.menu_links.hapservers.keepalived.title}}" class="ha">Keepalived</a>
+							<a href="/app/service/keepalived" title="{{lang.menu_links.hapservers.keepalived.title}}" class="ha">Keepalived</a>
 							<ul class="v_menu">
-								<li><a href="/app/hapservers.py?service=keepalived" title="{{lang.menu_links.hapservers.keepalived.title}}" class="overview-link head-submenu">{{lang.menu_links.hapservers.link}}</a> </li>
-								<li><a href="/app/ha.py" title="{{lang.menu_links.ha.title}}" class="keepalived head-submenu">HA</a></li>
-								<li><a href="/app/config.py?service=keepalived" title="{{lang.menu_links.config.keepalived.title}}" class="edit head-submenu">{{lang.menu_links.config.link}}</a></li>
-								<li><a href="/app/logs.py?service=keepalived" title="Keepalived {{lang.menu_links.stats.title}}" class="logs head-submenu">{{lang.menu_links.logs.link}}</a></li>
-								<li><a href="/app/versions.py?service=keepalived" title="{{lang.menu_links.versions.keepalived.title}}" class="version head-submenu keepalived_versions">{{lang.menu_links.versions.link}}</a></li>
+								<li><a href="/app/service/keepalived" title="{{lang.menu_links.hapservers.keepalived.title}}" class="overview-link head-submenu">{{lang.menu_links.hapservers.link}}</a> </li>
+								<li><a href="/app/config/keepalived" title="{{lang.menu_links.config.keepalived.title}}" class="edit head-submenu">{{lang.menu_links.config.link}}</a></li>
+								<li><a href="/app/logs/keepalived" title="Keepalived {{lang.menu_links.stats.title}}" class="logs head-submenu">{{lang.menu_links.logs.link}}</a></li>
+								<li><a href="/app/config/versions/keepalived" title="{{lang.menu_links.versions.keepalived.title}}" class="version head-submenu keepalived_versions">{{lang.menu_links.versions.link}}</a></li>
 							</ul>
 						</li>
 						{% endif %}
 						{% endif %}
 							<li class="p_menu">
-								<a href="/app/smon.py?action=view" title="{{lang.menu_links.monitoring.title}}" class="stats">{{lang.menu_links.monitoring.link}}</a>
+								<a href="/app/smon" title="{{lang.menu_links.monitoring.title}}" class="stats">{{lang.menu_links.monitoring.link}}</a>
 								<ul class="v_menu">
-									<li><a href="/app/smon.py?action=view" title="{{lang.menu_links.monitoring.smon.dashboard}}" class="overview-link head-submenu">{{lang.menu_links.monitoring.smon.dashboard}}</a></li>
-									<li><a href="/app/smon.py?action=history" title="{{lang.menu_links.monitoring.smon.history}}" class="lists head-submenu">{{lang.menu_links.monitoring.smon.history}}</a></li>
+									<li><a href="/app/smon/dashboard" title="{{lang.menu_links.monitoring.smon.dashboard}}" class="overview-link head-submenu">{{lang.menu_links.monitoring.smon.dashboard}}</a></li>
+									<li><a href="/app/smon/history" title="{{lang.menu_links.monitoring.smon.history}}" class="lists head-submenu">{{lang.menu_links.monitoring.smon.history}}</a></li>
 									{% if role <= 3 %}
-									<li><a href="/app/smon.py?action=add" title="{{lang.menu_links.monitoring.smon.admin}}" class="edit head-submenu">{{lang.menu_links.monitoring.smon.admin}}</a></li>
+									<li><a href="/app/smon/admin" title="{{lang.menu_links.monitoring.smon.admin}}" class="edit head-submenu">{{lang.menu_links.monitoring.smon.admin}}</a></li>
+									<li><a href="/app/checker/settings" title="Checker: {{lang.words.settings}}" class="checker head-submenu">Checker: {{lang.words.settings|title()}}</a></li>
 									{% endif %}
-									<li><a href="/app/smon.py?action=checker_history" title="{{lang.menu_links.monitoring.checker_history}}" class="lists head-submenu">{{lang.menu_links.monitoring.checker_history}}</a></li>
-									<li><a href="/app/portscanner.py" title="{{lang.menu_links.monitoring.port_scan}}" class="port-scanner head-submenu">{{lang.menu_links.monitoring.port_scan}}</a></li>
-									<li><a href="/app/nettools.py" title="{{lang.menu_links.monitoring.net_tools}}" class="net-tools head-submenu">{{lang.menu_links.monitoring.net_tools}}</a></li>
+									<li><a href="/app/checker/history" title="{{lang.menu_links.monitoring.checker_history}}" class="lists head-submenu">{{lang.menu_links.monitoring.checker_history}}</a></li>
+									<li><a href="/app/portscanner" title="{{lang.menu_links.monitoring.port_scan}}" class="port-scanner head-submenu">{{lang.menu_links.monitoring.port_scan}}</a></li>
+									<li><a href="/app/nettools" title="{{lang.menu_links.monitoring.net_tools}}" class="net-tools head-submenu">{{lang.menu_links.monitoring.net_tools}}</a></li>
 								</ul>
 							</li>
 						{% if role <= 2 %}
 							<li class="p_menu">
-								<a href="/app/servers.py#users" title="{{lang.menu_links.servers.title}}" class="runtime">{{lang.menu_links.servers.link}}</a>
+								<a href="/app/install" title="{{lang.menu_links.servers.title}}" class="hap-menu">{{lang.words.installation|title()}}</a>
 								<ul class="v_menu">
-									<li><a href="/app/servers.py#users" title="{{lang.words.servers|title()}}: {{lang.words.manage|title()}} {{lang.words.users2}}" class="users head-submenu">{{lang.words.users|title()}}</a></li>
-									<li><a href="/app/servers.py#servers" title="{{lang.words.servers|title()}}: {{lang.words.manage|title()}} {{lang.words.servers2}}" class="runtime servers head-submenu">{{lang.words.servers|title()}}</a></li>
-									<li><a href="/app/servers.py#ssh" title="{{lang.words.servers|title()}}: {{lang.words.manage|title()}} SSH {{lang.words.creds2}}" class="admin ssh head-submenu">SSH {{lang.words.creds|title()}}</a></li>
-									<li><a href="/app/servers.py#checker" title="{{lang.words.servers|title()}}: {{lang.words.manage|title()}} Checker" class="checker head-submenu">Checker</a></li>
-									<li><a href="/app/servers.py#settings" title="{{lang.words.servers|title()}}: {{lang.words.manage|title()}} Roxy-WI {{lang.words.settings2}}" class="settings head-submenu">{{lang.words.settings|title()}}</a></li>
-									<li><a href="/app/servers.py#installproxy" title="{{lang.words.servers|title()}}: {{lang.words.proxy|title()}} {{lang.words.services}} {{lang.words.installation}}" class="hap-menu installproxy head-submenu">{{lang.words.proxy|title()}} {{lang.words.installation}}</a> </li>
-									<li><a href="/app/servers.py#installmon" title="{{lang.words.servers|title()}}: {{lang.words.monitoring|title()}} {{lang.words.services}} {{lang.words.installation}}" class="hap1 installmon head-submenu">{{lang.words.monitoring|title()}} {{lang.words.installation}}</a> </li>
-									<li><a href="/app/provisioning.py" title="{{lang.words.servers|title()}}: {{lang.words.provisioning|title()}}" class="hap1 head-submenu">{{lang.words.servers|title()}} {{lang.words.provisioning|title()}}</a> </li>
-									<li><a href="/app/servers.py#backup" title="{{lang.words.servers|title()}}: {{lang.words.backup|title()}} {{lang.words.configs2}}" class="backup head-submenu">{{lang.words.backup|title()}}</a> </li>
-									<li><a href="/app/viewlogs.py?type=2" title="{{lang.words.servers|title()}}: {{lang.words.view|title()}} {{lang.words.internal2}} {{lang.words.logs2}}" class="logs head-submenu">{{lang.words.internal|title()}} {{lang.words.logs}}</a></li>
+									<li><a href="/app/install/ha" title="{{lang.menu_links.ha.title}}" class="keepalived head-submenu">HA {{lang.words.cluster}}</a></li>
+									<li><a href="/app/install#service" title="{{lang.words.servers|title()}}: {{lang.words.proxy|title()}} {{lang.words.services}} {{lang.words.installation}}" class="hap-menu service installproxy head-submenu">{{lang.words.proxy|title()}} {{lang.words.services}}</a> </li>
+									<li><a href="/app/install#monitoring" title="{{lang.words.servers|title()}}: {{lang.words.monitoring|title()}} {{lang.words.services}} {{lang.words.installation}}" class="hap-menu monitoring installmon head-submenu">{{lang.words.monitoring|title()}}</a> </li>
+									<li><a href="/app/install#geolite2" title="{{lang.words.installation|title()}} GeoLite2" class="hap-menu geolite2 installgeo head-submenu">GeoLite2</a> </li>
+								</ul>
+							</li>
+							<li class="p_menu">
+								<a href="/app/servers#users" title="{{lang.menu_links.servers.title}}" class="runtime">{{lang.menu_links.servers.link}}</a>
+								<ul class="v_menu">
+									<li><a href="/app/servers#users" title="{{lang.words.servers|title()}}: {{lang.words.manage|title()}} {{lang.words.users2}}" class="users head-submenu">{{lang.words.users|title()}}</a></li>
+									<li><a href="/app/servers#servers" title="{{lang.words.servers|title()}}: {{lang.words.manage|title()}} {{lang.words.servers2}}" class="runtime servers head-submenu">{{lang.words.servers|title()}}</a></li>
+									<li><a href="/app/servers#ssh" title="{{lang.words.servers|title()}}: {{lang.words.manage|title()}} SSH {{lang.words.creds2}}" class="admin ssh head-submenu">SSH {{lang.words.creds|title()}}</a></li>
+									<li><a href="/app/servers#settings" title="{{lang.words.servers|title()}}: {{lang.words.manage|title()}} Roxy-WI {{lang.words.settings2}}" class="settings head-submenu">{{lang.words.settings|title()}}</a></li>
+									<li><a href="/app/servers#backup" title="{{lang.words.servers|title()}}: {{lang.words.backup|title()}} {{lang.words.configs2}}" class="backup head-submenu">{{lang.words.backup|title()}}</a> </li>
+									<li><a href="/app/logs/internal?type=2" title="{{lang.words.servers|title()}}: {{lang.words.view|title()}} {{lang.words.internal2}} {{lang.words.logs2}}" class="logs head-submenu">{{lang.words.internal|title()}} {{lang.words.logs}}</a></li>
 								</ul>
 							</li>
 						{% endif %}
 						{% if role <= 1 %}
 							<li class="p_menu" id="admin-area">
-								<a href="/app/users.py#users" title="{{lang.menu_links.admin_area.title}}" class="admin">{{lang.menu_links.admin_area.link}}</a>
+								<a href="/app/admin#users" title="{{lang.menu_links.admin_area.title}}" class="admin">{{lang.menu_links.admin_area.link}}</a>
 								<ul class="v_menu">
-									<li><a href="/app/users.py#users" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} {{lang.words.users2}}" class="users head-submenu" id="admin-area-users">{{lang.words.users|title()}}</a></li>
-									<li><a href="/app/users.py#groups" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} {{lang.words.groups3}}" class="group groups head-submenu" id="admin-area-groups">{{lang.words.groups|title()}}</a></li>
-									<li><a href="/app/users.py#servers" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} {{lang.words.servers2}}" class="runtime servers head-submenu" id="admin-area-servers">{{lang.words.servers|title()}}</a></li>
-									<li><a href="/app/users.py#ssh" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} SSH {{lang.words.creds2}}" class="admin ssh head-submenu" id="admin-area-ssh">SSH {{lang.words.creds|title()}}</a></li>
-									<li><a href="/app/users.py#checker" title="{{lang.words.admin_area|title()}}: Checker" class="checker head-submenu" id="admin-area-checker">Checker</a></li>
-									<li><a href="/app/users.py#settings" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} Roxy-WI {{lang.words.settings2}}" class="settings head-submenu" id="admin-area-settings">{{lang.words.settings|title()}}</a></li>
-									<li><a href="/app/users.py#services" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} Roxy-WI {{lang.words.services3}}" class="services head-submenu" id="admin-area-services">{{lang.words.services|title()}}</a></li>
-									<li><a href="/app/viewlogs.py" title="{{lang.words.admin_area|title()}}: {{lang.words.view|title()}} {{lang.words.internal2}} {{lang.words.logs2}}" class="logs head-submenu" id="admin-area-logs">{{lang.words.internal|title()}} {{lang.words.logs}}</a></li>
-									<li><a href="/app/users.py#updatehapwi" title="{{lang.words.admin_area|title()}}: {{lang.words.w_update|title()}} Roxy-WI" class="upload updatehapwi head-submenu" id="admin-area-update">{{lang.words.w_update|title()}}</a></li>
+									<li><a href="/app/admin#users" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} {{lang.words.users2}}" class="users head-submenu" id="admin-area-users">{{lang.words.users|title()}}</a></li>
+									<li><a href="/app/admin#groups" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} {{lang.words.groups3}}" class="group groups head-submenu" id="admin-area-groups">{{lang.words.groups|title()}}</a></li>
+									<li><a href="/app/admin#servers" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} {{lang.words.servers2}}" class="runtime servers head-submenu" id="admin-area-servers">{{lang.words.servers|title()}}</a></li>
+									<li><a href="/app/admin#ssh" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} SSH {{lang.words.creds2}}" class="admin ssh head-submenu" id="admin-area-ssh">SSH {{lang.words.creds|title()}}</a></li>
+									<li><a href="/app/admin#settings" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} Roxy-WI {{lang.words.settings2}}" class="settings head-submenu" id="admin-area-settings">{{lang.words.settings|title()}}</a></li>
+									<li><a href="/app/admin#tools" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} Roxy-WI {{lang.words.tools}}" class="services head-submenu" id="admin-area-services">{{lang.words.tools|title()}}</a></li>
+									<li><a href="/app/logs/internal" title="{{lang.words.admin_area|title()}}: {{lang.words.view|title()}} {{lang.words.internal2}} {{lang.words.logs2}}" class="logs head-submenu" id="admin-area-logs">{{lang.words.internal|title()}} {{lang.words.logs}}</a></li>
+									<li><a href="/app/admin#updatehapwi" title="{{lang.words.admin_area|title()}}: {{lang.words.w_update|title()}} Roxy-WI" class="upload updatehapwi head-submenu" id="admin-area-update">{{lang.words.w_update|title()}}</a></li>
 								</ul>
 							</li>
 						{% endif %}	
@@ -279,7 +283,7 @@
 		</div>	
 		<div id="show-updates" style="display: none;">	
 			<div>
-				{{lang.phrases.new_version}} <a href="/app/users.py#updatehapwi" class="link">{{lang.words.w_update|title()}}</a>
+				{{lang.phrases.new_version}} <a href="/app/admin#updatehapwi" class="link">{{lang.words.w_update|title()}}</a>
 			</div>
 		</div>	
 		<div class="footer">
@@ -298,7 +302,7 @@
 			<div id="version"></div>
 			<div id="logo_footer">
 				<a href="https://roxy-wi.org" title="Roxy-WI official site" target="_blank">
-					<img src="/inc/images/logo_footer.png" alt="logo" id="logo_footer_img" />
+					<img src="{{ url_for('static', filename='images/logo_footer.png')}}" alt="logo" id="logo_footer_img" />
 				</a>
 			</div>
 			<div class="footer-div">

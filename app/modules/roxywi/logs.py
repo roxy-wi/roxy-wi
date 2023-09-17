@@ -54,33 +54,29 @@ def show_log(stdout, **kwargs):
 
 
 def show_roxy_log(
-		serv, rows='10', waf='0', grep=None, hour='00',
-		minute='00', hour1='24', minute1='00', service='haproxy', **kwargs
+		serv, rows='10', waf='0', grep=None, exgrep=None, hour='00',
+		minute='00', hour1='24', minute1='00', service='haproxy', log_file='123', **kwargs
 ) -> str:
-	exgrep = form.getvalue('exgrep')
-	log_file = form.getvalue('file')
 	date = checkAjaxInput(hour) + ':' + checkAjaxInput(minute)
 	date1 = checkAjaxInput(hour1) + ':' + checkAjaxInput(minute1)
 	rows = checkAjaxInput(rows)
 	waf = checkAjaxInput(waf)
 	cmd = ''
 	awk_column = 3
+	grep_act = ''
+	exgrep_act = ''
 
-	if grep is not None:
+	if grep:
 		grep_act = '|egrep "%s"' % checkAjaxInput(grep)
-	else:
-		grep_act = ''
 
-	if exgrep is not None:
+	if exgrep:
 		exgrep_act = '|egrep -v "%s"' % checkAjaxInput(exgrep)
-	else:
-		exgrep_act = ''
 
 	if log_file is not None:
 		log_file = checkAjaxInput(log_file)
-		if '..' in log_file: return 'error: nice try'
+		if '..' in log_file: raise Exception('error: nice try')
 	else:
-		if '..' in serv: return 'error: nice try'
+		if '..' in serv: raise Exception('error: nice try')
 
 	if service in ('nginx', 'haproxy', 'apache', 'keepalived'):
 		syslog_server_enable = sql.get_setting('syslog_server_enable')
@@ -102,9 +98,10 @@ def show_roxy_log(
 			else:
 				local_path_logs = sql.get_setting('haproxy_path_logs')
 				commands = ["sudo cat %s/%s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, log_file, date, date1, rows, grep_act, exgrep_act)]
+
 			syslog_server = serv
 		else:
-			if '..' in serv: return 'error: nice try'
+			if '..' in serv: raise Exception('error: nice try')
 
 			commands = ["sudo cat /var/log/%s/syslog.log | sed '/ %s:00/,/ %s:00/! d' |tail -%s %s %s %s" % (serv, date, date1, rows, grep_act, grep, exgrep_act)]
 			syslog_server = sql.get_setting('syslog_server')
@@ -112,6 +109,7 @@ def show_roxy_log(
 		if waf == "1":
 			local_path_logs = '/var/log/waf.log'
 			commands = ["sudo cat %s |tail -%s %s %s" % (local_path_logs, rows, grep_act, exgrep_act)]
+
 		if kwargs.get('html') == 0:
 			a = server_mod.ssh_command(syslog_server, commands)
 			return show_log(a, html=0, grep=grep)

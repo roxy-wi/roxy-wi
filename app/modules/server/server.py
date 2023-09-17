@@ -1,6 +1,6 @@
 import json
 
-from jinja2 import Environment, FileSystemLoader
+from flask import render_template, request
 
 import modules.db.sql as sql
 import modules.server.ssh as mod_ssh
@@ -38,8 +38,6 @@ def ssh_command(server_ip: str, commands: list, **kwargs):
 				try:
 					if kwargs.get('raw'):
 						return stdout.readlines()
-					if kwargs.get("ip") == "1":
-						show_ip(stdout)
 					elif kwargs.get("show_log") == "1":
 						import modules.roxywi.logs as roxywi_logs
 
@@ -103,14 +101,6 @@ def get_remote_files(server_ip: str, config_dir: str, file_format: str):
 	return config_files
 
 
-def show_ip(stdout):
-	for line in stdout:
-		if "Permission denied" in line:
-			print(f'error: {line}')
-		else:
-			print(line)
-
-
 def get_system_info(server_ip: str) -> str:
 	server_ip = common.is_ip_or_dns(server_ip)
 	if server_ip == '':
@@ -123,7 +113,7 @@ def get_system_info(server_ip: str) -> str:
 	try:
 		sys_info_returned = ssh_command(server_ip, command, timeout=5)
 	except Exception as e:
-		raise e
+		raise Exception(e)
 
 	if 'not found' in sys_info_returned:
 		raise Exception(f'You should install lshw on the server {server_ip}. Update System info after installation.')
@@ -131,7 +121,7 @@ def get_system_info(server_ip: str) -> str:
 	try:
 		os_info = ssh_command(server_ip, command1)
 	except Exception as e:
-		raise e
+		raise Exception(e)
 
 	os_info = os_info.strip()
 	system_info = json.loads(sys_info_returned)
@@ -346,85 +336,54 @@ def get_system_info(server_ip: str) -> str:
 		raise e
 
 
-def show_system_info() -> None:
-	server_ip = form.getvalue('server_ip')
-	server_ip = common.is_ip_or_dns(server_ip)
-	server_id = form.getvalue('server_id')
-
-	if server_ip == '':
-		print('error: IP or DNS name is not valid')
-		return
-
-	env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
-					  extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
-	env.globals['string_to_dict'] = common.string_to_dict
-	template = env.get_template('ajax/show_system_info.html')
+def show_system_info(server_ip: str, server_id: int) -> str:
 	if sql.is_system_info(server_id):
 		try:
 			get_system_info(server_ip)
+		except Exception as e:
+			return f'123 {e}'
+		try:
 			system_info = sql.select_one_system_info(server_id)
 
-			template = template.render(system_info=system_info, server_ip=server_ip, server_id=server_id)
-			print(template)
+			return render_template('ajax/show_system_info.html', system_info=system_info, server_ip=server_ip, server_id=server_id)
 		except Exception as e:
-			print(f'Cannot update server info: {e}')
+			return f'Cannot update server info: {e}'
 	else:
 		system_info = sql.select_one_system_info(server_id)
 
-		template = template.render(system_info=system_info, server_ip=server_ip, server_id=server_id)
-		print(template)
+		return render_template('ajax/show_system_info.html', system_info=system_info, server_ip=server_ip, server_id=server_id)
 
 
-def update_system_info() -> None:
-	server_ip = form.getvalue('server_ip')
-	server_ip = common.is_ip_or_dns(server_ip)
-	server_id = form.getvalue('server_id')
-
-	if server_ip == '':
-		print('error: IP or DNS name is not valid')
-		return
-
+def update_system_info(server_ip: str, server_id: int) -> str:
 	sql.delete_system_info(server_id)
-
-	env = Environment(loader=FileSystemLoader('templates/'), autoescape=True,
-					  extensions=["jinja2.ext.loopcontrols", "jinja2.ext.do"])
-	env.globals['string_to_dict'] = common.string_to_dict
-	template = env.get_template('ajax/show_system_info.html')
 
 	try:
 		get_system_info(server_ip)
 		system_info = sql.select_one_system_info(server_id)
 
-		template = template.render(system_info=system_info, server_ip=server_ip, server_id=server_id)
-		print(template)
+		return render_template('ajax/show_system_info.html', system_info=system_info, server_ip=server_ip, server_id=server_id)
 	except Exception as e:
-		print(f'error: Cannot update server info: {e}')
+		return f'error: Cannot update server info: {e}'
 
 
-def show_firewalld_rules() -> None:
-	serv = common.checkAjaxInput(form.getvalue('viewFirewallRules'))
-
+def show_firewalld_rules(server_ip) -> str:
+	input_chain2 = []
 	cmd = ["sudo iptables -L INPUT -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"]
 	cmd1 = ["sudo iptables -L IN_public_allow -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"]
 	cmd2 = ["sudo iptables -L OUTPUT -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"]
 
-	input_chain = ssh_command(serv, cmd, raw=1)
+	input_chain = ssh_command(server_ip, cmd, raw=1)
 
-	input_chain2 = []
 	for each_line in input_chain:
 		input_chain2.append(each_line.strip('\n'))
 
 	if 'error:' in input_chain:
-		print(input_chain)
-		return
+		return input_chain
 
-	in_public_allow = ssh_command(serv, cmd1, raw=1)
-	output_chain = ssh_command(serv, cmd2, raw=1)
-	lang = roxywi_common.get_user_lang()
-	env = Environment(loader=FileSystemLoader('templates'))
-	template = env.get_template('ajax/firewall_rules.html')
-	template = template.render(input_chain=input_chain2, IN_public_allow=in_public_allow, output_chain=output_chain, lang=lang)
-	print(template)
+	in_public_allow = ssh_command(server_ip, cmd1, raw=1)
+	output_chain = ssh_command(server_ip, cmd2, raw=1)
+	lang = roxywi_common.get_user_lang_for_flask()
+	return render_template('ajax/firewall_rules.html', input_chain=input_chain2, IN_public_allow=in_public_allow, output_chain=output_chain, lang=lang)
 
 
 def create_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, apache, firewall, **kwargs) -> bool:
@@ -437,7 +396,7 @@ def create_server(hostname, ip, group, typeip, enable, master, cred, port, desc,
 		return False
 
 
-def update_server_after_creating(hostname: str, ip: str, scan_server: int) -> None:
+def update_server_after_creating(hostname: str, ip: str, scan_server: int) -> str:
 	try:
 		try:
 			sql.insert_new_checker_setting_for_server(ip)
@@ -481,8 +440,10 @@ def update_server_after_creating(hostname: str, ip: str, scan_server: int) -> No
 		roxywi_common.logging(f'Cannot get information from {hostname}', str(e), roxywi=1, login=1)
 		raise Exception(f'error: Cannot get information from {hostname} {e}')
 
+	return 'ok'
 
-def delete_server(server_id: int) -> None:
+
+def delete_server(server_id: int) -> str:
 	server = sql.select_servers(id=server_id)
 	server_ip = ''
 	hostname = ''
@@ -492,11 +453,9 @@ def delete_server(server_id: int) -> None:
 		server_ip = s[2]
 
 	if sql.check_exists_backup(server_ip):
-		print('warning: Delete the backup first')
-		return
+		return 'warning: Delete the backup first'
 	if sql.check_exists_s3_backup(server_ip):
-		print('warning: Delete the S3 backup first')
-		return
+		return 'warning: Delete the S3 backup first'
 	if sql.delete_server(server_id):
 		sql.delete_waf_server(server_id)
 		sql.delete_port_scanner_settings(server_id)
@@ -504,34 +463,25 @@ def delete_server(server_id: int) -> None:
 		sql.delete_action_history(server_id)
 		sql.delete_system_info(server_id)
 		sql.delete_service_settings(server_id)
-		print("Ok")
 		roxywi_common.logging(server_ip, f'The server {hostname} has been deleted', roxywi=1, login=1)
+		return 'Ok'
 
 
-def server_is_up(server_ip: str) -> None:
+def server_is_up(server_ip: str) -> str:
 	cmd = [f'if ping -c 1 -W 1 {server_ip} >> /dev/null; then echo up; else echo down; fi']
 	server_status, stderr = subprocess_execute(cmd)
-	print(server_status)
+	return server_status[0]
 
 
-def show_server_services() -> None:
-	server_id = common.checkAjaxInput(form.getvalue('server_id'))
+def show_server_services(server_id: int) -> None:
 	server = sql.select_servers(id=server_id)
-	env = Environment(loader=FileSystemLoader('templates'))
-	template = env.get_template('ajax/show_server_services.html')
-	lang = roxywi_common.get_user_lang()
-	template = template.render(server=server, lang=lang)
-	print(template)
+	lang = roxywi_common.get_user_lang_for_flask()
+	return render_template('ajax/show_server_services.html', server=server, lang=lang)
 
 
-def change_server_services() -> None:
-	import json
-
-	server_id = common.checkAjaxInput(form.getvalue('changeServerServicesId'))
-	server_name = common.checkAjaxInput(form.getvalue('changeServerServicesServer'))
+def change_server_services(server_id: int, server_name: str, server_services: str) -> str:
 	services = sql.select_services()
 	services_status = {}
-	server_services = json.loads(form.getvalue('jsonDatas'))
 
 	for k, v in server_services.items():
 		for service in services:
@@ -541,5 +491,6 @@ def change_server_services() -> None:
 	try:
 		if sql.update_server_services(server_id, services_status[1], services_status[2], services_status[4], services_status[3]):
 			roxywi_common.logging('Roxy-WI server', f'Active services have been updated for {server_name}', roxywi=1, login=1)
+			return 'ok'
 	except Exception as e:
-		print(e)
+		return f'error: {e}'

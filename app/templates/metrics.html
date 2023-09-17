@@ -16,15 +16,16 @@
 	}
 </style>
 <link href="/inc/css/chart.min.css" rel="stylesheet">
-<script src="/inc/metrics-6.3.16.0.js"></script>
+<script src="/inc/metrics.js"></script>
 <script src="/inc/chart.min-4.3.0.js"></script>
+<input type="hidden" id="service" value="{{service}}">
 {% if user_status == 0 %}
 	{% include 'include/no_sub.html' %}
 {% elif services == '0' %}
 <div style="text-align: center;">
 	<br />
 	<h3>{{lang.phrases.metrics_not_installed}}</h3>
-	<img src="/inc/images/no_servers.png" alt="There is no server">
+	<img src="{{ url_for('static', filename='images/no_servers.png')}}" alt="There is no server">
 	<h4>{{lang.words.read|title()}} <a href="https://roxy-wi.org/services/metrics#installation" title="Metrics {{lang.words.installation}}" style="color: #5d9ceb;" target="_blank">{{lang.words.here}}</a>
 	{{lang.phrases.how_to_install_metrics}}</h4>
 </div>

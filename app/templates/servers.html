@@ -16,12 +16,8 @@
 		<li><a href="#users" title="{{lang.words.servers|title()}}: {{lang.words.manage|title()}} {{lang.words.users}} - Roxy-WI">{{lang.words.users|title()}}</a></li>
 		<li><a href="#servers" title="{{lang.words.servers|title()}}: {{lang.words.manage|title()}} {{lang.words.servers}} - Roxy-WI">{{lang.words.servers|title()}}</a></li>
 		<li><a href="#ssh" title="{{lang.words.servers|title()}}: {{lang.words.manage|title()}} SSH {{lang.words.creds}} - Roxy-WI">SSH {{lang.words.creds}}</a></li>
-		<li><a href="#checker" title="{{lang.words.servers|title()}}: {{lang.words.manage|title()}} Checker - Roxy-WI">Checker</a></li>
 		<li><a href="#settings" title="{{lang.words.servers|title()}}: {{lang.words.manage|title()}} Roxy-WI {{lang.words.settings}} - Roxy-WI">{{lang.words.settings|title()}}</a></li>
-		<li><a href="#installproxy" title="{{lang.words.servers|title()}}: {{lang.words.proxy|title()}} {{lang.words.service}} {{lang.words.installation}} - Roxy-WI">{{lang.words.proxy|title()}} {{lang.words.installation}}</a></li>
-		<li><a href="#installmon" title="{{lang.words.servers|title()}}: {{lang.words.monitoring|title()}} service installation - Roxy-WI" id="admin-tabs-mon">{{lang.words.monitoring|title()}} {{lang.words.installation}}</a></li>
 		<li><a href="#backup" title="{{lang.words.servers|title()}}: {{lang.words.manage|title()}} {{lang.words.backup|title()}} configs - Roxy-WI" id="admin-tabs-backup">{{lang.words.backup|title()}}</a></li>
-		<li><a href="#geolite2" title="{{lang.words.servers|title()}}: GeoLite2 - Roxy-WI">GeoLite2</a></li>
 	</ul>
 	<div id="users">
 		{% include 'include/admin_users.html' %}
@@ -35,210 +31,19 @@
 		{% include 'include/admin_ssh.html' %}
 	</div>
 	
-	<div id="checker"></div>
-
 	<div id="settings">
 		{% include 'include/admin_settings.html' %}
 	</div>
 
-	<div id="installproxy">
-		{% if not is_needed_tool %}
-			<div style="text-align: center;">
-				<h3>{{lang.admin_page.desc.no_ansible}}</h3>.
-				<img src="/inc/images/no_servers.png" alt="There is no server">
-				<h4>
-					{{lang.words.install|title()}} <a href="https://roxy-wi.org/installation#ansible" title="{{lang.words.install|title()}} Ansible" target="_blank">{{lang.words.here}}</a> {{lang.phrases.how_to_install}} Ansible.
-				</h4>
-			</div>
-		{% else %}
-		<table class="overview">
-			<caption><h3>{{lang.words.install|title()}} HAProxy</h3></caption>
-			<tr class="overviewHead">
-				<td class="padding10 first-collumn">{{lang.words.current2|title()}} {{lang.words.version}}</td>
-				<td class="padding10 first-collumn help_cursor" style="width: 30%;" title="{{lang.words.for|title()}} Ubuntu {{lang.admin_page.desc.latest_repo}}">
-					{{lang.words.available|title()}} {{lang.words.versions}} (?)
-				</td>
-				<td class="padding10 first-collumn" style="width: 20%;">{{lang.words.server|title()}}</td>
-				<td class="checkbox-head help_cursor" title="{{lang.admin_page.desc.install_as_docker}}">{{lang.words.use|title()}} Docker</td>
-				<td>SYN-flood {{lang.words.protection}}</td>
-				<td></td>
-			</tr>
-			<tr>
-				<td id="cur_haproxy_ver" class="padding10 first-collumn">
-				</td>
-				<td class="padding10 first-collumn" style="width: 20%;">
-					{% set values = dict() %}
-					{% set values = {'2.4.23-1':'2.4.23-1','2.5.14-1':'2.5.14-1', '2.6.14-1':'2.6.14-1','2.7.9-1':'2.7.9-1','2.8.1-1':'2.8.1-1'} %}
-					{{ select('hapver',  values=values, selected='2.8.1-1', required='required') }}
-				</td>
-				<td class="padding10 first-collumn">
-					<select autofocus required name="haproxyaddserv" id="haproxyaddserv">
-						<option disabled selected>------</option>
-						{% for select in servers %}
-								<option value="{{ select.2 }}">{{ select.1 }}</option>
-						{% endfor %}
-					</select>
-				</td>
-				<td style="padding-left: 25px;">
-					{{ checkbox('haproxy_docker', title=lang.admin_page.desc.install_as_docker) }}
-				</td>
-				<td class="syn-flood-protection-field">
-					{{ checkbox('syn_flood', title=lang.words.enable|title() + ' SYN-flood '+ lang.words.protection, checked='checked') }}
-				</td>
-				<td>
-					<span class="ui-button ui-widget ui-corner-all" id="install" title="{{lang.words.install|title()}} HAProxy">{{lang.words.install|title()}}</span>
-				</td>
-			</tr>
-		</table>
-		<table>
-			<caption><h3>{{lang.words.install|title()}} NGINX</h3></caption>
-			<tr class="overviewHead">
-				<td class="padding10 first-collumn">{{lang.words.current2|title()}} {{lang.words.version}}</td>
-				<td class="padding10 first-collumn" style="width: 30%;">{{lang.words.available|title()}} {{lang.words.versions}}</td>			
-				<td class="padding10 first-collumn" style="width: 20%;">{{lang.words.server|title()}}</td>
-				<td class="checkbox-head help_cursor" title="{{lang.admin_page.desc.install_as_docker}}" >{{lang.words.use|title()}} Docker</td>
-				<td>SYN-flood {{lang.words.protection}}</td>
-				<td></td>
-			</tr>
-			<tr>
-				<td id="cur_nginx_ver" class="padding10 first-collumn">
-				</td>
-				<td class="padding10 first-collumn" style="width: 20%;">
-					{{lang.admin_page.desc.latest_repo}}
-				</td>
-				<td class="padding10 first-collumn">
-					<select autofocus required name="nginxaddserv" id="nginxaddserv">
-						<option disabled selected>------</option>
-						{% for select in servers %}
-								<option value="{{ select.2 }}">{{ select.1 }}</option>
-						{% endfor %}
-					</select>
-				</td>
-				<td style="padding-left: 25px;">
-					{{ checkbox('nginx_docker', title=lang.admin_page.desc.install_as_docker) }}
-				</td>
-				<td class="syn-flood-protection-field">
-					{{ checkbox('nginx_syn_flood', title=lang.words.enable|title() + ' SYN-flood '+ lang.words.protection, checked='checked') }}
-				</td>
-				<td>
-					<span class="ui-button ui-widget ui-corner-all" id="nginx_install" title="{{lang.words.install|title()}} NGINX">{{lang.words.install|title()}}</span>
-				</td>
-			</tr>
-		</table>
-		<table>
-			<caption><h3>{{lang.words.install|title()}} Apache</h3></caption>
-			<tr class="overviewHead">
-				<td class="padding10 first-collumn">{{lang.words.current2|title()}} {{lang.words.version}}</td>
-				<td class="padding10 first-collumn" style="width: 30%;">{{lang.words.available|title()}} {{lang.words.versions}}</td>
-				<td class="padding10 first-collumn" style="width: 20%;">{{lang.words.server|title()}}</td>
-				<td class="checkbox-head help_cursor" title="{{lang.admin_page.desc.install_as_docker}}" >{{lang.words.use|title()}} Docker</td>
-				<td>SYN-flood {{lang.words.protection}}</td>
-				<td></td>
-			</tr>
-			<tr>
-				<td id="cur_apache_ver" class="padding10 first-collumn">
-				</td>
-				<td class="padding10 first-collumn" style="width: 20%;">
-					{{lang.admin_page.desc.latest_repo}}
-				</td>
-				<td class="padding10 first-collumn">
-					<select autofocus required name="apacheaddserv" id="apacheaddserv">
-						<option disabled selected>------</option>
-						{% for select in servers %}
-								<option value="{{ select.2 }}">{{ select.1 }}</option>
-						{% endfor %}
-					</select>
-				</td>
-				<td style="padding-left: 25px;">
-					{{ checkbox('apache_docker', title=lang.admin_page.desc.install_as_docker) }}
-				</td>
-				<td class="syn-flood-protection-field">
-					{{ checkbox('apache_syn_flood', title=lang.words.enable|title() + ' SYN-flood '+ lang.words.protection, checked='checked') }}
-				</td>
-				<td>
-					<span class="ui-button ui-widget ui-corner-all" id="apache_install" title="{{lang.words.install|title()}} Apache">{{lang.words.install|title()}}</span>
-				</td>
-			</tr>
-		</table>
-		<div id="ajax"></div>
-		{% endif %}
-	</div>
-	<div id="installmon">
-		{% include 'include/mon_installation.html' %}
-	</div>
 	<div id="backup">
 		{% include 'include/admin_backup.html' %}
 	</div>
-	<div id="geolite2">
-		<table>
-			{% if not is_needed_tool %}
-				<div style="text-align: center;">
-					<h3>{{lang.admin_page.desc.no_ansible}}</h3>.
-					<img src="/inc/images/no_servers.png" alt="There is no server">
-					<h4>
-						{{lang.words.read|title()}} <a href="https://roxy-wi.org/installation#ansible" title="{{lang.words.install|title()}} Ansible" target="_blank">{{lang.words.here}}</a> {{lang.phrases.how_to_install}} Ansible.
-					</h4>
-				</div>
-			{% else %}
-			<caption><h3>Install GeoLite2</h3></caption>
-			<tr class="overviewHead">
-				<td class="padding10 first-collumn">{{lang.words.server|title()}}</td>
-				<td class="padding10 first-collumn">{{lang.words.service|title()}}</td>
-				<td class="padding10 first-collumn" style="width: 30%;">{{lang.words.current2|title()}} {{lang.words.installation}}</td>
-				<td class="" style="width: 30%;" title="GeoLite2 DB is released every Tuesday. Should Roxy-WI update it?">{{lang.words.updating|title()}}</td>
-				<td></td>
-				<td></td>
-			</tr>
-			<tr>
-				<td class="padding10 first-collumn">
-					<select autofocus required name="geoipserv" id="geoipserv">
-						<option disabled selected>------</option>
-						{% for select in servers %}
-						<option value="{{ select.2 }}">{{ select.1 }}</option>
-						{% endfor %}
-					</select>
-				</td>
-				<td class="padding10 first-collumn">
-					<select autofocus required name="geoip_service" id="geoip_service">
-						<option disabled selected>------</option>
-						<option value="haproxy">HAProxy</option>
-						<option value="nginx">NGINX</option>
-					</select>
-				</td>
-				<td id="cur_geoip" class="padding10"></td>
-				<td class="checkbox">
-					{{ checkbox('updating_geoip', title="Update the database?", checked='checked') }}
-				</td>
-				<td>
-					<span class="ui-button ui-widget ui-corner-all" id="geoip_install" title="{{lang.words.install|title()}} GeoLite2" style="display: none;">{{lang.words.install|title()}}</span>
-				</td>
-			</tr>
-			{% endif %}
-		</table>
-		<div id="ajax-geoip"></div>
-		<div class="add-note alert addName alert-info" style="width: inherit; margin-right: 15px; margin-bottom: 15px;">
-			{{lang.phrases.howto_user}} {{lang.words.read}} {{lang.words.in}} {{lang.words.this2}} <a href="https://roxy-wi.org/howto/geoip" title="GeoLite2 {{lang.words.descr|title()}}" target="_blank">{{lang.words.article}}</a>
-		</div>
-		<table style="min-width: 40%;">
-			<tr class="overviewHead">
-				<th colspan=13 style="background-color: #d1ecf1; padding: 10px;">
-					<span id="table_metrics_head" style="margin-left: 5px;">{{lang.admin_page.desc.country_codes}}</span>
-					<select id="geoip_select">
-					{% for code in geoip_country_codes %}
-					<option>{{code.name}} {{code.code}}</option>
-					{% endfor %}
-					</select>
-				</th>
-			</tr>
-		</table>
-	</div>
+
 </div>
 {% include 'include/admins_dialogs.html' %}
 {% include 'include/change_pass_form.html' %}
 <script>
-	$('#geoip_select').select2();
 	$( function() {
-		$("#geoip_select").selectmenu("destroy");
 		{% for user in users %}
 			$("#role-{{user.0}}" ).selectmenu({
 				  width: 100

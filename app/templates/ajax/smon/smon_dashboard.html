@@ -80,9 +80,9 @@
     <div class="smon_services {{additional_classes}}" data-help="{{checks}}" title="{{checks}}">
     <div class="ip">
         <span style="{{additional_style}}">
-            <a href="smon.py?action=dashboard&dashboard_id={{s.id}}&check_id={{check_id}}" title="{{lang.words.view|title()}} {{lang.words.history}} {{lang.words.for}} {{s.name}} {{lang.words.host}}" class="link">{{s.name.strip("'")}}</a>
+            <a href="/app/smon/dashboard/{{s.id}}/{{check_id}}" title="{{lang.words.view|title()}} {{lang.words.history}} {{lang.words.for}} {{s.name}} {{lang.words.host}}" class="link">{{s.name.strip("'")}}</a>
         </span>
-        <span class="server-action"><a href="smon.py?action=history&host={{s.name}}" title="{{lang.words.view|title()}} {{lang.words.alerts}} {{lang.words.history}} {{lang.words.for}} {{s.name}} {{lang.words.host}}" class="history"></a></span>
+        <span class="server-action"><a href="/app/smon/history/host/{{s.name}}" title="{{lang.words.view|title()}} {{lang.words.alerts}} {{lang.words.history}} {{lang.words.for}} {{s.name}} {{lang.words.host}}" class="history"></a></span>
     </div>
     <div class="desc">
         {% if s.desc %}
