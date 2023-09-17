@@ -1,11 +1,9 @@
 import os
 import sys
 
-from functools import wraps
 from flask import render_template, request, redirect, url_for
 from flask_login import login_required
 
-from app import app, login_manager
 from app.routes.install import bp
 
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app'))
@@ -14,7 +12,6 @@ import modules.db.sql as sql
 import modules.common.common as common
 import modules.roxywi.auth as roxywi_auth
 import modules.roxywi.common as roxywi_common
-import modules.roxy_wi_tools as roxy_wi_tools
 import modules.server.server as server_mod
 import modules.service.common as service_common
 import modules.service.installation as service_mod
@@ -138,7 +135,7 @@ def install_service(service, server_ip):
     docker = common.checkAjaxInput(request.form.get('docker'))
     syn_flood = request.form.get('syn_flood')
     hapver = request.form.get('hapver')
-    
+
     if service in ('nginx', 'apache'):
         try:
             return service_mod.install_service(server_ip, service, docker, syn_flood)
@@ -246,7 +243,7 @@ def install_waf(service, server_ip):
 
 @bp.post('/geoip')
 def install_geoip():
-    server_ip = common.is_ip_or_dns(server_ip)
+    server_ip = common.is_ip_or_dns(request.form.get('server_ip'))
     geoip_update = common.checkAjaxInput(request.form.get('update'))
     service = request.form.get('service')
 

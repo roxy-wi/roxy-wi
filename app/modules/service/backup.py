@@ -51,7 +51,7 @@ def backup(serv, rpath, time, backup_type, rserver, cred, deljob, update, descri
                 roxywi_common.logging('backup ', f' a new backup job for server {serv} has been created', roxywi=1,
                                       login=1)
                 return render_template(
-                    'ajax/new_backup.html',backups=sql.select_backups(server=serv, rserver=rserver), sshs=sql.select_ssh()
+                    'ajax/new_backup.html', backups=sql.select_backups(server=serv, rserver=rserver), sshs=sql.select_ssh()
                 )
 
             else:
@@ -111,7 +111,7 @@ def s3_backup(server, s3_server, bucket, secret_key, access_key, time, deljob, d
         return 'ok'
 
 
-def git_backup(server_id, service_id, git_init, repo, branch, period, cred, deljob, description) -> str:
+def git_backup(server_id, service_id, git_init, repo, branch, period, cred, deljob, description, backup_id) -> str:
     servers = roxywi_common.get_dick_permit()
     proxy = sql.get_setting('proxy')
     services = sql.select_services()
@@ -168,5 +168,5 @@ def git_backup(server_id, service_id, git_init, repo, branch, period, cred, delj
                 )
                 return render_template('ajax/new_git.html', gits=gits, sshs=sshs, servers=servers, services=services, new_add=1, lang=lang)
         else:
-            if sql.delete_git(form.getvalue('git_backup')):
+            if sql.delete_git(backup_id):
                 return 'ok'

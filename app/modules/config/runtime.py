@@ -168,7 +168,6 @@ def change_maxconn_global(serv: str, maxconn: int) -> str:
 	if maxconn is None:
 		return 'error: Maxconn must be integer and not 0'
 
-
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 	masters = sql.is_master(serv)
 
@@ -361,6 +360,7 @@ def delete_ip_from_list(serv, ip_id, ip, list_id, list_name) -> str:
 
 def add_ip_to_list(serv, ip, list_id, list_name) -> str:
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+	lib_path = get_config_var.get_config_var('main', 'lib_path')
 	user_group = roxywi_common.get_user_group(id=1)
 	cmd = f'echo "add acl #{list_id} {ip}" |nc {serv} {haproxy_sock_port}'
 	output, stderr = server_mod.subprocess_execute(cmd)

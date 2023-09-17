@@ -265,7 +265,6 @@ def check_rabbit_alert() -> str:
 	except Exception as e:
 		return f'error: Cannot send a message {e}'
 
-
 	try:
 		json_for_sending = {"user_group": user_group_id1, "message": 'info: Test message'}
 		send_message_to_rabbit(json.dumps(json_for_sending))

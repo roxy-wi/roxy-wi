@@ -6,7 +6,6 @@ import distro
 from flask import render_template, request, redirect, url_for
 from flask_login import login_required
 
-from app import app, login_manager
 from app.routes.admin import bp
 
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app'))
@@ -211,7 +210,7 @@ def action_openvpn(action, openvpn):
         return f'error: Cannot {action} OpenVPN: {e}'
 
 
-@app.route('/setting/<param>/<val>', methods=['POST'])
+@bp.route('/setting/<param>/<val>', methods=['POST'])
 def update_settings(param, val):
     user_group = roxywi_common.get_user_group(id=1)
     if sql.update_setting(param, val, user_group):

@@ -4,7 +4,6 @@ import sys
 from flask import render_template, request, redirect, url_for
 from flask_login import login_required
 
-from app import app, login_manager
 from app.routes.checker import bp
 
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app'))
@@ -14,6 +13,7 @@ import modules.common.common as common
 import modules.roxywi.common as roxywi_common
 import modules.tools.alerting as alerting
 import modules.tools.checker as checker_mod
+import modules.tools.smon as smon_mod
 
 
 @bp.before_request
@@ -127,4 +127,3 @@ def receiver(receiver_name):
         channel_id = common.checkAjaxInput(request.form.get('channel_id'))
 
         return alerting.delete_receiver_channel(channel_id, receiver_name)
-

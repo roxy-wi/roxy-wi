@@ -5,7 +5,6 @@ import json
 from flask import render_template, request
 from flask_login import login_required
 
-from app import app, login_manager
 from app.routes.user import bp
 
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app'))

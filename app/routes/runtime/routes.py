@@ -4,12 +4,10 @@ import sys
 from flask import render_template, request, redirect, url_for
 from flask_login import login_required
 
-from app import app, login_manager
 from app.routes.runtime import bp
 
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app'))
 
-import modules.db.sql as sql
 import modules.common.common as common
 import modules.roxywi.common as roxywi_common
 import modules.config.runtime as runtime
@@ -108,7 +106,7 @@ def action(server_ip):
     enable = common.checkAjaxInput(request.form.get('servaction'))
     backend = common.checkAjaxInput(request.form.get('servbackend'))
     save = request.form.get('save')
-    
+
     return service_haproxy.runtime_command(server_ip, enable, backend, save)
 
 
@@ -170,7 +168,7 @@ def delete_session(server_ip, sess_id):
 @bp.route('/list/<server_ip>')
 def get_lists(server_ip):
     server_ip = common.is_ip_or_dns(server_ip)
-    
+
     return runtime.list_of_lists(server_ip)
 
 
@@ -178,7 +176,7 @@ def get_lists(server_ip):
 def get_list(server_ip, list_id, list_name):
     server_ip = common.is_ip_or_dns(server_ip)
     list_name = common.checkAjaxInput(list_name)
-    
+
     return runtime.show_lists(server_ip, list_id, list_name)
 
 

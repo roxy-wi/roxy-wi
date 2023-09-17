@@ -9,7 +9,6 @@ from modules.server import ssh_connection
 import modules.roxywi.common as roxywi_common
 import modules.roxy_wi_tools as roxy_wi_tools
 
-form = common.form
 error_mess = common.error_mess
 get_config = roxy_wi_tools.GetConfigVar()
 

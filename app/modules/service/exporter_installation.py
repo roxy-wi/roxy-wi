@@ -70,9 +70,9 @@ def nginx_apache_exp_installation(serv, service, ver, ext_prom):
         proxy_serv = proxy
 
     commands = [
-        f"chmod +x {full_path}/{script} && {full_path}/{script} PROXY={proxy_serv} STAT_PORT={stats_port} SSH_PORT={ssh_settings['port']} STAT_PAGE={stats_page}" 
-        f" STATS_USER={stats_user} STATS_PASS='{stats_password}' HOST={serv} VER={ver} EXP_PROM={ext_prom} USER={ssh_settings['user']} "
-        f" PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
+        f"chmod +x {full_path}/{script} && {full_path}/{script} PROXY={proxy_serv} STAT_PORT={stats_port} SSH_PORT={ssh_settings['port']} "
+        f"STAT_PAGE={stats_page} STATS_USER={stats_user} STATS_PASS='{stats_password}' HOST={serv} VER={ver} EXP_PROM={ext_prom} "
+        f"USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
     ]
 
     return_out = server_mod.subprocess_execute_with_rc(commands[0])

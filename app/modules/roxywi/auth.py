@@ -1,7 +1,4 @@
-import os
-import http.cookies
-
-from flask import request, redirect, make_response, url_for
+from flask import request, redirect, url_for
 
 import modules.db.sql as sql
 

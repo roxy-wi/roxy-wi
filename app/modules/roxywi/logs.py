@@ -3,7 +3,6 @@ import re
 import modules.db.sql as sql
 import modules.server.server as server_mod
 from modules.common.common import checkAjaxInput
-from modules.common.common import form
 import modules.roxy_wi_tools as roxy_wi_tools
 import modules.roxywi.common as roxywi_common
 

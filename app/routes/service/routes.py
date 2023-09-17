@@ -6,7 +6,7 @@ import distro
 from flask import render_template, request, redirect, url_for, abort
 from flask_login import login_required
 
-from app import app, login_manager, cache
+from app import cache
 from app.routes.service import bp
 
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app'))
@@ -262,8 +262,9 @@ def cpu_ram_metrics(server_ip, server_id, name, service):
     servers.append(server_status)
     servers_sorted = sorted(servers, key=common.get_key)
 
-    return render_template('ajax/overviewServers.html', service_status=servers_sorted, role=role, id=server_id, service_page=service,
-                                   lang=user_params['lang'])
+    return render_template(
+        'ajax/overviewServers.html', service_status=servers_sorted, role=role, id=server_id, service_page=service, lang=user_params['lang']
+    )
 
 
 @bp.route('/haproxy/bytes', methods=['POST'])

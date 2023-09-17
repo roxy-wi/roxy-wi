@@ -1,17 +1,13 @@
-from flask import render_template
+from flask import render_template, redirect, url_for
 
 import modules.db.sql as sql
-import modules.common.common as common
 import modules.roxywi.roxy as roxywi_mod
 import modules.roxywi.common as roxywi_common
-
-form = common.form
 
 
 def load_checker() -> None:
     groups = sql.select_groups()
     services = roxywi_mod.get_services_status()
-    lang = roxywi_common.get_user_lang()
     keepalived_settings = ''
     haproxy_settings = ''
     apache_settings = ''

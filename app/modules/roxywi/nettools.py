@@ -72,6 +72,7 @@ def telnet_from_server(server_from: str, server_to: str, port_to: str) -> str:
             break
     return output1
 
+
 def nslookup_from_server(server_from: str, dns_name: str, record_type: str) -> str:
     count_string = 0
     stderr = ''

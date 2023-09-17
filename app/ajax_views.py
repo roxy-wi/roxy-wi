@@ -21,7 +21,6 @@ import modules.roxywi.common as roxywi_common
 import modules.roxywi.overview as roxy_overview
 
 
-
 @app.route('/overview/services')
 @login_required
 def show_services_overview():
@@ -105,7 +104,7 @@ def show_roxywi_version():
 @app.route('/stats/view/<service>/<server_ip>')
 def show_stats(service, server_ip):
 	server_ip = common.is_ip_or_dns(server_ip)
-	
+
 	if service in ('nginx', 'apache'):
 		return service_common.get_stat_page(server_ip, service)
 	else:

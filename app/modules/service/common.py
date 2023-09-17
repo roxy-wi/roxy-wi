@@ -1,5 +1,3 @@
-import os
-
 import requests
 from flask import render_template, request
 

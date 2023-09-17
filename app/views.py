@@ -166,7 +166,7 @@ def login_page():
 		flash('Login or password is not correct', 'alert alert-danger wrong-login')
 
 	try:
-		lang = roxywi_common.get_user_lang()
+		lang = roxywi_common.get_user_lang_for_flask()
 	except Exception:
 		lang = 'en'
 

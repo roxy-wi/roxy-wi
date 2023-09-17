@@ -3,7 +3,6 @@ import os
 import psutil
 import requests
 from flask import render_template, request
-from jinja2 import Environment, FileSystemLoader
 
 import modules.db.sql as sql
 import modules.common.common as common
@@ -233,6 +232,7 @@ def show_services_overview():
         keep_alive_log_id=roxy_logs.roxy_wi_log(log_id=1, file="keep_alive"),
         socket_log_id=roxy_logs.roxy_wi_log(log_id=1, file="socket"), error=stderr, lang=lang
     )
+
 
 def keepalived_became_master(server_ip) -> None:
     commands = ["sudo kill -USR2 $(cat /var/run/keepalived.pid) && sudo grep 'Became master' /tmp/keepalived.stats |awk '{print $3}'"]

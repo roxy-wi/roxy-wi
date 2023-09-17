@@ -4,9 +4,8 @@ import sys
 from pytz import timezone
 from flask import render_template, request, redirect, url_for, jsonify
 from flask_login import login_required
-from datetime import datetime, timedelta
+from datetime import datetime
 
-from app import app, login_manager
 from app.routes.smon import bp
 
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app'))
@@ -87,7 +86,7 @@ def smon_dashboard(dashboard_id, check_id):
 
     return render_template(
         'include/smon/smon_history.html', h2=1, autorefresh=1, role=user_params['role'], user=user, smon=smon,
-        lang=user_params['lang'],user_status=user_subscription['user_status'], check_interval=check_interval,
+        lang=user_params['lang'], user_status=user_subscription['user_status'], check_interval=check_interval,
         user_plan=user_subscription['user_plan'], token=user_params['token'], uptime=uptime, avg_res_time=avg_res_time,
         user_services=user_params['user_services'], smon_name=smon_name, cert_day_diff=cert_day_diff, check_id=check_id,
         dashboard_id=dashboard_id, last_resp_time=last_resp_time
@@ -202,12 +201,12 @@ def smon_add():
     record_type = common.checkAjaxInput(request.form.get('newsmondns_record_type'))
     packet_size = common.checkAjaxInput(request.form.get('newsmonpacket_size'))
     http_method = common.checkAjaxInput(request.form.get('newsmon_http_method'))
-    lang = roxywi_common.get_user_lang()
+    lang = roxywi_common.get_user_lang_for_flask()
 
     try:
         last_id = smon_mod.create_smon(
             name, hostname, port, enable, url, body, group, desc, telegram, slack, pd, packet_size, check_type,
-             resolver, record_type, user_group, http_method
+            resolver, record_type, user_group, http_method
         )
     except Exception as e:
         return str(e), 200

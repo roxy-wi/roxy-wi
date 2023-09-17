@@ -1,20 +1,16 @@
 import os
 import cgi
 import glob
-import http.cookies
 
 import distro
 from flask import request, redirect, make_response, url_for
 
 import modules.db.sql as sql
-import modules.common.common as common
 import modules.roxy_wi_tools as roxy_wi_tools
 
 time_zone = sql.get_setting('time_zone')
 get_date = roxy_wi_tools.GetDate(time_zone)
 get_config_var = roxy_wi_tools.GetConfigVar()
-form = common.form
-serv = common.is_ip_or_dns(form.getvalue('serv'))
 
 
 def return_error_message():
@@ -37,28 +33,6 @@ def get_user_group(**kwargs) -> str:
 		raise Exception(f'error: {e}')
 
 	return user_group
-
-
-def check_user_group(**kwargs):
-	if kwargs.get('token') is not None:
-		return True
-
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-
-	if kwargs.get('user_uuid'):
-		group_id = kwargs.get('user_group_id')
-		user_uuid = kwargs.get('user_uuid')
-		user_id = sql.get_user_id_by_uuid(user_uuid)
-	else:
-		user_uuid = cookie.get('uuid')
-		group_id = cookie.get('group')
-		user_id = sql.get_user_id_by_uuid(user_uuid)
-
-	if sql.check_user_group(user_id, group_id):
-		return True
-	else:
-		logging('Roxy-WI server', ' has tried to actions in not his group ', roxywi=1, login=1)
-		return False
 
 
 def check_user_group_for_flask(**kwargs):
@@ -296,21 +270,6 @@ def get_users_params(**kwargs):
 	return user_params
 
 
-def get_user_lang() -> str:
-	cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-
-	try:
-		user_lang = cookie.get('lang')
-		user_lang = user_lang.value
-	except Exception:
-		return 'en'
-
-	if user_lang is None:
-		user_lang = 'en'
-
-	return user_lang
-
-
 def get_user_lang_for_flask() -> str:
 	try:
 		user_lang = request.cookies.get('lang')
@@ -342,6 +301,6 @@ def return_user_subscription():
 		user_subscription = return_user_status()
 	except Exception as e:
 		user_subscription = return_unsubscribed_user_status()
-		roxywi_common.logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
+		logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
 
 	return user_subscription

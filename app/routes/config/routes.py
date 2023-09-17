@@ -1,10 +1,9 @@
 import os
 import sys
 
-from flask import render_template, request, redirect, url_for, abort
+from flask import render_template, request, redirect, url_for
 from flask_login import login_required
 
-from app import app, login_manager, cache
 from app.routes.config import bp
 
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app'))
@@ -37,7 +36,7 @@ def show_config(service):
     configver = request.form.get('configver')
     server_ip = request.form.get('serv')
 
-    return  config_mod.show_config(server_ip, service, config_file_name, configver)
+    return config_mod.show_config(server_ip, service, config_file_name, configver)
 
 
 @bp.route('/<service>/show-files', methods=['POST'])
@@ -286,7 +285,7 @@ def show_version(service, server_ip, configver, save):
             pass
 
         if service == 'keepalived':
-            stderr = config_mod.upload_and_restart(serv, configver, save_action, service)
+            stderr = config_mod.upload_and_restart(server_ip, configver, save_action, service)
         elif service in ('nginx', 'apache'):
             config_file_name = sql.select_remote_path_from_version(server_ip=server_ip, service=service,
                                                                    local_path=configver)

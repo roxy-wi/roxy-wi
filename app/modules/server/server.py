@@ -1,14 +1,12 @@
 import json
 
-from flask import render_template, request
+from flask import render_template
 
 import modules.db.sql as sql
 import modules.server.ssh as mod_ssh
 import modules.common.common as common
 import modules.roxywi.auth as roxywi_auth
 import modules.roxywi.common as roxywi_common
-
-form = common.form
 
 
 def ssh_command(server_ip: str, commands: list, **kwargs):

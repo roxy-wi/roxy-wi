@@ -4,13 +4,11 @@ import sys
 from flask import render_template, request
 from flask_login import login_required
 
-from app import app, login_manager
 from app.routes.waf import bp
 
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app'))
 
 import modules.db.sql as sql
-from modules.db.db_model import *
 import modules.common.common as common
 import modules.roxy_wi_tools as roxy_wi_tools
 import modules.roxywi.waf as roxy_waf
@@ -23,8 +21,14 @@ time_zone = sql.get_setting('time_zone')
 get_date = roxy_wi_tools.GetDate(time_zone)
 
 
-@bp.route('/<service>')
+@bp.before_request
 @login_required
+def before_request():
+    """ Protect all of the admin endpoints. """
+    pass
+
+
+@bp.route('/<service>')
 def waf(service):
     roxywi_auth.page_for_admin(level=2)
 
@@ -60,7 +64,6 @@ def waf(service):
 
 
 @bp.route('/<service>/<server_ip>/rules')
-@login_required
 def waf_rules(service, server_ip):
     roxywi_auth.page_for_admin(level=2)
     roxywi_common.check_is_server_in_group(server_ip)
@@ -93,7 +96,6 @@ def waf_rules(service, server_ip):
 
 
 @bp.route('/<service>/<server_ip>/rule/<rule_id>')
-@login_required
 def waf_rule_edit(service, server_ip, rule_id):
     roxywi_auth.page_for_admin(level=2)
     roxywi_common.check_is_server_in_group(server_ip)
@@ -137,7 +139,6 @@ def waf_rule_edit(service, server_ip, rule_id):
 
 
 @bp.route('/<service>/<server_ip>/rule/<rule_id>/save', methods=['POST'])
-@login_required
 def waf_save_config(service, server_ip, rule_id):
     roxywi_auth.page_for_admin(level=2)
     roxywi_common.check_is_server_in_group(server_ip)
@@ -171,7 +172,6 @@ def waf_save_config(service, server_ip, rule_id):
 
 
 @bp.route('/<server_ip>/rule/<int:rule_id>/<int:enable>')
-@login_required
 def enable_rule(server_ip, rule_id, enable):
     server_ip = common.is_ip_or_dns(server_ip)
 
@@ -179,7 +179,6 @@ def enable_rule(server_ip, rule_id, enable):
 
 
 @bp.route('/<service>/<server_ip>/rule/create', methods=['POST'])
-@login_required
 def create_rule(service, server_ip):
     if service not in ('haproxy', 'nginx'):
         return 'error: Wrong service'
@@ -190,7 +189,6 @@ def create_rule(service, server_ip):
 
 
 @bp.route('/<service>/mode/<server_name>/<waf_mode>')
-@login_required
 def change_waf_mode(service, server_name, waf_mode):
     if service not in ('haproxy', 'nginx'):
         return 'error: Wrong service'
@@ -202,7 +200,6 @@ def change_waf_mode(service, server_name, waf_mode):
 
 
 @bp.route('/overview/<service>/<server_ip>')
-@login_required
 def overview_waf(service, server_ip):
     server_ip = common.is_ip_or_dns(server_ip)
 
@@ -213,7 +210,6 @@ def overview_waf(service, server_ip):
 
 
 @bp.route('/metric/enable/<int:enable>/<server_name>')
-@login_required
 def enable_metric(enable, server_name):
     server_name = common.checkAjaxInput(server_name)
     return sql.update_waf_metrics_enable(server_name, enable)

@@ -5,7 +5,6 @@ import distro
 from flask import render_template, request, jsonify, redirect, url_for
 from flask_login import login_required
 
-from app import app, login_manager
 from app.routes.metric import bp
 
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app'))
@@ -91,7 +90,7 @@ def metrics_ram():
 @bp.route('/<service>/table-metrics')
 def table_metrics(service):
     roxywi_common.check_user_group_for_flask()
-    lang = roxywi_common.get_user_lang()
+    lang = roxywi_common.get_user_lang_for_flask()
     group_id = roxywi_common.get_user_group(id=1)
 
     if service in ('nginx', 'apache'):

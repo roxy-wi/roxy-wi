@@ -4,7 +4,6 @@ import requests
 from flask import request
 
 import modules.db.sql as sql
-import modules.common.common as common
 import modules.server.server as server_mod
 import modules.config.config as config_mod
 import modules.roxywi.common as roxywi_common
@@ -240,12 +239,12 @@ def show_map(serv: str) -> str:
         nx.draw_networkx_edge_labels(G, pos, alpha=0.4, label_pos=0.5, font_color="#5d9ceb", edge_labels=edge_labels,
                                      font_size=8)
 
-        plt.savefig(f"/var/www/haproxy-wi/app/map.png")
+        plt.savefig("/var/www/haproxy-wi/app/map.png")
         plt.show()
     except Exception as e:
         return f'error: Cannot create a map: {e}'
 
-    output += f'<img src="/map.png" alt="map"></center>'
+    output += '<img src="/map.png" alt="map"></center>'
     return output
 
 

@@ -1,6 +1,6 @@
 import os
 
-from flask import render_template, request
+from flask import render_template
 
 import modules.db.sql as sql
 import modules.roxywi.common as roxywi_common
@@ -122,8 +122,6 @@ def show_user_groups_and_roles(user_id: int, lang: str) -> None:
 
 
 def save_user_group_and_role(user: str, groups_and_roles: str) -> str:
-    import json
-
     for k, v in groups_and_roles.items():
         user_id = int(k)
         if not sql.delete_user_groups(user_id):

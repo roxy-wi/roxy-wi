@@ -15,7 +15,7 @@ get_date = roxy_wi_tools.GetDate(time_zone)
 get_config = roxy_wi_tools.GetConfigVar()
 
 
-def save_to_haproxy_config(config: str, server_ip) -> str:
+def save_to_haproxy_config(config: str, server_ip: str, name: str) -> str:
 	roxywi_common.check_is_server_in_group(server_ip)
 	hap_configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
 	cfg = hap_configs_dir + server_ip + "-" + get_date.return_date('config') + ".cfg"
@@ -45,11 +45,6 @@ def save_to_haproxy_config(config: str, server_ip) -> str:
 
 
 def save_nginx_config(config_add: str, server_ip: str, config_name: str) -> str:
-	try:
-		server_name = sql.get_hostname_by_server_ip(server_ip)
-	except Exception:
-		server_name = server_ip
-
 	roxywi_common.check_is_server_in_group(server_ip)
 	sub_folder = 'conf.d' if 'upstream' in config_name else 'sites-enabled'
 
@@ -150,7 +145,7 @@ def add_userlist() -> str:
 		return config_add
 	else:
 		try:
-			return save_to_haproxy_config(config_add, server_ip)
+			return save_to_haproxy_config(config_add, server_ip, name)
 		except Exception as e:
 			return str(e)
 

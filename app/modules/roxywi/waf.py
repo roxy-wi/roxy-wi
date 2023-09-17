@@ -5,8 +5,6 @@ import modules.common.common as common
 import modules.server.server as server_mod
 import modules.roxywi.common as roxywi_common
 
-form = common.form
-
 
 def waf_overview(serv, waf_service) -> None:
     servers = sql.select_servers(server=serv)

@@ -6,7 +6,6 @@ import distro
 from flask import render_template, request
 from flask_login import login_required
 
-from app import app, login_manager
 from app.routes.server import bp
 
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app'))
@@ -108,7 +107,6 @@ def create_server():
             )
     except Exception as e:
         return f'error: {e}'
-
 
 
 @bp.route('/create/after', methods=['POST'])
@@ -444,7 +442,7 @@ def create_s3_backup():
         return backup_mod.s3_backup(server, s3_server, bucket, secret_key, access_key, time, deljob, description)
     except Exception as e:
         return str(e)
-    
+
 
 @bp.post('/git/create')
 @bp.post('/git/delete')
@@ -458,5 +456,6 @@ def create_git_backup():
     cred = request.form.get('cred')
     deljob = request.form.get('git_deljob')
     description = request.form.get('description')
+    backup_id = request.form.get('git_backup')
 
-    return backup_mod.git_backup(server_id, service_id, git_init, repo, branch, period, cred, deljob, description)
+    return backup_mod.git_backup(server_id, service_id, git_init, repo, branch, period, cred, deljob, description, backup_id)
