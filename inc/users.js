@@ -2737,7 +2737,7 @@ function updateKeepalivedCheckerSettings(id) {
 		url: "/app/checker/settings/update",
 		data: {
 			service: 'keepavlied',
-			settings_id: id,
+			setting_id: id,
 			email: email,
 			server: server,
 			backend: backend,

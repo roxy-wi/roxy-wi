@@ -50,8 +50,10 @@ def update_roxy_wi(service):
 		cmd = f'sudo -S yum -y install {service} {restart_service}'
 
 	output, stderr = server_mod.subprocess_execute(cmd)
-	return output
-	# print(stderr)
+	if stderr:
+		return stderr
+	else:
+		return output
 
 
 def check_ver():
@@ -64,12 +66,6 @@ def versions():
 		current_ver_without_dots = current_ver.split('.')
 		current_ver_without_dots = ''.join(current_ver_without_dots)
 		current_ver_without_dots = current_ver_without_dots.replace('\n', '')
-		if len(current_ver_without_dots) == 2:
-			current_ver_without_dots += '00'
-		if len(current_ver_without_dots) == 3:
-			current_ver_without_dots += '0'
-		if len(current_ver_without_dots) == 7:
-			current_ver_without_dots += '0'
 		current_ver_without_dots = int(current_ver_without_dots)
 	except Exception:
 		current_ver = "Sorry cannot get current version"
@@ -80,12 +76,6 @@ def versions():
 		new_ver_without_dots = new_ver.split('.')
 		new_ver_without_dots = ''.join(new_ver_without_dots)
 		new_ver_without_dots = new_ver_without_dots.replace('\n', '')
-		if len(new_ver_without_dots) == 2:
-			new_ver_without_dots += '00'
-		if len(new_ver_without_dots) == 3:
-			new_ver_without_dots += '0'
-		if len(new_ver_without_dots) == 7:
-			new_ver_without_dots += '0'
 		new_ver_without_dots = int(new_ver_without_dots)
 	except Exception as e:
 		new_ver = "Cannot get a new version"

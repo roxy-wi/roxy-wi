@@ -62,8 +62,6 @@ body, .container {
 			<img src="{{ url_for('static', filename='images/logo_login.png')}}">
 		</span>
 		<form class="form-horizontal" id="auth" method="post" style="margin-top: 60px;left: 0;float: left;margin-left: 93px;">
-			<span style="color: white;font-weight: bold;padding-left: 10px;">Login/Password admin/admin</span>
-			<br>
 			<div class="fontuser">
 				{{ input('login', class='form-login', placeholder=lang.words.login|title(), required='required', autofocus='autofocus') }}
 				<i class="fa fa-user fa-lg"></i>

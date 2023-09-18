@@ -202,7 +202,7 @@ def get_dick_permit(**kwargs):
 		except Exception as e:
 			return str(e)
 	else:
-		group_id = kwargs.get('group_id')
+		group_id = kwargs.pop('group_id')
 
 	if check_user_group_for_flask(token=token):
 		try:
