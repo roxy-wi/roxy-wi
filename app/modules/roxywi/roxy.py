@@ -66,6 +66,8 @@ def versions():
 		current_ver_without_dots = current_ver.split('.')
 		current_ver_without_dots = ''.join(current_ver_without_dots)
 		current_ver_without_dots = current_ver_without_dots.replace('\n', '')
+		if len(current_ver_without_dots) == 4:
+			current_ver_without_dots += '0'
 		current_ver_without_dots = int(current_ver_without_dots)
 	except Exception:
 		current_ver = "Sorry cannot get current version"
@@ -150,6 +152,7 @@ def check_new_version(service):
 	proxy = sql.get_setting('proxy')
 	res = ''
 	user_name = sql.select_user_name()
+	proxy_dict = {}
 	retry_strategy = Retry(
 		total=3,
 		status_forcelist=[429, 500, 502, 503, 504],
@@ -162,24 +165,18 @@ def check_new_version(service):
 	try:
 		if proxy is not None and proxy != '' and proxy != 'None':
 			proxy_dict = {"https": proxy, "http": proxy}
-			response = requests.get(f'https://roxy-wi.org/version/get/{service}', timeout=1, proxies=proxy_dict)
-			if service == 'roxy-wi':
-				requests.get(f'https://roxy-wi.org/version/send/{current_ver}', timeout=1, proxies=proxy_dict)
-				roxy_wi_get_plan = requests.get(f'https://roxy-wi.org/user-name/{user_name}', timeout=1, proxies=proxy_dict)
-		else:
-			response = requests.get(f'https://roxy-wi.org/version/get/{service}', timeout=1)
-			if service == 'roxy-wi':
-				requests.get(f'https://roxy-wi.org/version/send/{current_ver}', timeout=1)
-				roxy_wi_get_plan = requests.get(f'https://roxy-wi.org/user-name/{user_name}', timeout=1)
-
-		res = response.content.decode(encoding='UTF-8')
+		response = requests.get(f'https://roxy-wi.org/version/get/{service}', timeout=1, proxies=proxy_dict)
 		if service == 'roxy-wi':
+			requests.get(f'https://roxy-wi.org/version/send/{current_ver}', timeout=1, proxies=proxy_dict)
+			roxy_wi_get_plan = requests.get(f'https://roxy-wi.org/user-name/{user_name}', timeout=1, proxies=proxy_dict)
 			try:
 				status = roxy_wi_get_plan.content.decode(encoding='UTF-8')
 				status = status.split(' ')
 				sql.update_user_status(status[0], status[1].strip(), status[2].strip())
 			except Exception:
 				pass
+
+		res = response.content.decode(encoding='UTF-8')
 	except requests.exceptions.RequestException as e:
 		roxywi_common.logging('Roxy-WI server', f' {e}', roxywi=1)
 

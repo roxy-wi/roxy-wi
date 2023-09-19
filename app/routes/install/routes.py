@@ -223,7 +223,7 @@ def install_grafana():
         return f'{e}'
 
 
-@bp.route('/waf/<service>/<server_ip>')
+@bp.post('/waf/<service>/<server_ip>')
 def install_waf(service, server_ip):
     server_ip = common.is_ip_or_dns(server_ip)
 

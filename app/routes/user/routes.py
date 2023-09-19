@@ -42,7 +42,11 @@ def create_user():
         if roxywi_auth.is_admin(level=2, role_id=role):
             roxywi_common.logging(new_user, ' tried to privilege escalation: user creation', roxywi=1, login=1)
             return 'error: Wrong role'
-    if roxywi_user.create_user(new_user, email, password, role, activeuser, group):
+    try:
+        roxywi_user.create_user(new_user, email, password, role, activeuser, group)
+    except Exception as e:
+        return str(e)
+    else:
         return render_template(
             'ajax/new_user.html', users=sql.select_users(user=new_user), groups=sql.select_groups(), page=page,
             roles=sql.select_roles(), adding=1, lang=lang

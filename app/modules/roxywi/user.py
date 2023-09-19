@@ -7,7 +7,7 @@ import modules.roxywi.common as roxywi_common
 import modules.tools.alerting as alerting
 
 
-def create_user(new_user: str, email: str, password: str, role: str, activeuser: int, group: int) -> bool:
+def create_user(new_user: str, email: str, password: str, role: str, activeuser: int, group: int) -> None:
     try:
         user_id = sql.add_user(new_user, email, password, role, activeuser, group)
         sql.update_user_role(user_id, group, role)
@@ -30,8 +30,6 @@ def create_user(new_user: str, email: str, password: str, role: str, activeuser:
     except Exception as e:
         roxywi_common.logging('error: Cannot create a new user', e, roxywi=1, login=1)
         raise Exception(f'error: Cannot create a new user: {e}')
-    else:
-        return True
 
 
 def delete_user(user_id: int) -> str:

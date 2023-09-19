@@ -217,7 +217,10 @@ def check_service():
     server_ip = common.checkAjaxInput(request.form.get('server_ip'))
     service = common.checkAjaxInput(request.form.get('service'))
 
-    return service_action.check_service(server_ip, user_uuid, service)
+    try:
+        return service_action.check_service(server_ip, user_uuid, service)
+    except Exception:
+        pass
 
 
 @bp.route('/action/<service>/<server_ip>/<action>', methods=['GET'])

@@ -2775,7 +2775,7 @@ function updateServiceCheckerSettings(id, service_name) {
 		url: "/app/checker/settings/update",
 		data: {
 			service: service_name,
-			settings_id: id,
+			setting_id: id,
 			email: email,
 			server: server,
 			telegram_id: $('#' + service_name + '_server_telegram_channel-' + id + ' option:selected').val(),

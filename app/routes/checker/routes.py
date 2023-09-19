@@ -46,12 +46,12 @@ def update_settings():
     email = int(request.form.get('email'))
     service_alert = int(request.form.get('server'))
     backend_alert = int(request.form.get('backend'))
-    maxconn_alert = int(request.form.get('maxconn'))
     telegram_id = int(request.form.get('telegram_id'))
     slack_id = int(request.form.get('slack_id'))
     pd_id = int(request.form.get('pd_id'))
 
     if service == 'haproxy':
+        maxconn_alert = int(request.form.get('maxconn'))
         return checker_mod.update_haproxy_settings(
             setting_id, email, service_alert, backend_alert, maxconn_alert, telegram_id, slack_id, pd_id
         )
