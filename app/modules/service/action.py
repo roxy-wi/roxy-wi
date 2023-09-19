@@ -21,14 +21,20 @@ def common_action(server_ip: str, action: str, service: str) -> str:
 def action_haproxy(server_ip: str, action: str) -> str:
     haproxy_service_name = "haproxy"
 
-    service_common.is_restarted(server_ip, action)
+    try:
+        service_common.is_restarted(server_ip, action)
+    except Exception as e:
+        return str(e)
 
     if service_common.check_haproxy_config(server_ip):
         server_id = sql.select_server_id_by_ip(server_ip=server_ip)
         is_docker = sql.select_service_setting(server_id, 'haproxy', 'dockerized')
 
         if action == 'restart':
-            service_common.is_not_allowed_to_restart(server_id, 'haproxy')
+            try:
+                service_common.is_not_allowed_to_restart(server_id, 'haproxy')
+            except Exception as e:
+                return str(e)
 
         if is_docker == '1':
             container_name = sql.get_setting('haproxy_container_name')
@@ -46,13 +52,19 @@ def action_haproxy(server_ip: str, action: str) -> str:
 
 
 def action_nginx(server_ip: str, action: str) -> str:
-    service_common.is_restarted(server_ip, action)
+    try:
+        service_common.is_restarted(server_ip, action)
+    except Exception as e:
+        return str(e)
 
     if service_common.check_nginx_config(server_ip):
         server_id = sql.select_server_id_by_ip(server_ip=server_ip)
 
         if action == 'restart':
-            service_common.is_not_allowed_to_restart(server_id, 'nginx')
+            try:
+                service_common.is_not_allowed_to_restart(server_id, 'nginx')
+            except Exception as e:
+                return str(e)
         is_docker = sql.select_service_setting(server_id, 'nginx', 'dockerized')
 
         if is_docker == '1':
@@ -68,7 +80,10 @@ def action_nginx(server_ip: str, action: str) -> str:
 
 
 def action_keepalived(server_ip: str, action: str) -> str:
-    service_common.is_restarted(server_ip, action)
+    try:
+        service_common.is_restarted(server_ip, action)
+    except Exception as e:
+        return str(e)
 
     commands = [f"sudo systemctl {action} keepalived"]
     server_mod.ssh_command(server_ip, commands)
@@ -77,12 +92,18 @@ def action_keepalived(server_ip: str, action: str) -> str:
 
 
 def action_apache(server_ip: str, action: str) -> str:
-    service_common.is_restarted(server_ip, action)
+    try:
+        service_common.is_restarted(server_ip, action)
+    except Exception as e:
+        return str(e)
 
     server_id = sql.select_server_id_by_ip(server_ip)
 
     if action == 'restart':
-        service_common.is_not_allowed_to_restart(server_id, 'apache')
+        try:
+            service_common.is_not_allowed_to_restart(server_id, 'apache')
+        except Exception as e:
+            return str(e)
 
     is_docker = sql.select_service_setting(server_id, 'apache', 'dockerized')
     if is_docker == '1':
@@ -98,7 +119,10 @@ def action_apache(server_ip: str, action: str) -> str:
 
 
 def action_haproxy_waf(server_ip: str, action: str) -> str:
-    service_common.is_restarted(server_ip, action)
+    try:
+        service_common.is_restarted(server_ip, action)
+    except Exception as e:
+        return str(e)
 
     roxywi_common.logging(server_ip, f'HAProxy WAF service has been {action}ed', roxywi=1, login=1, keep_history=1,
                   service='haproxy')
@@ -110,7 +134,10 @@ def action_haproxy_waf(server_ip: str, action: str) -> str:
 def action_nginx_waf(server_ip: str, action: str) -> str:
     config_dir = common.return_nice_path(sql.get_setting('nginx_dir'))
 
-    service_common.is_restarted(server_ip, action)
+    try:
+        service_common.is_restarted(server_ip, action)
+    except Exception as e:
+        return str(e)
 
     waf_new_state = 'on' if action == 'start' else 'off'
     waf_old_state = 'off' if action == 'start' else 'on'

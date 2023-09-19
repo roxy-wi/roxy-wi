@@ -32,8 +32,7 @@ def is_restarted(server_ip: str, action: str) -> None:
 	user_role = sql.get_user_role_by_uuid(user_uuid, group_id)
 
 	if sql.is_serv_protected(server_ip) and int(user_role) > 2:
-		print(f'error: This server is protected. You cannot {action} it')
-		return
+		raise Exception(f'error: This server is protected. You cannot {action} it')
 
 
 def is_not_allowed_to_restart(server_id: int, service: str) -> None:

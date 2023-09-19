@@ -212,6 +212,7 @@ def action_openvpn(action, openvpn):
 
 @bp.route('/setting/<param>/<val>', methods=['POST'])
 def update_settings(param, val):
+    val = val.replace('92', '/')
     user_group = roxywi_common.get_user_group(id=1)
     if sql.update_setting(param, val, user_group):
         roxywi_common.logging('Roxy-WI server', f'The {param} setting has been changed to: {val}', roxywi=1, login=1)

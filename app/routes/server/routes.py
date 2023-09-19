@@ -109,7 +109,7 @@ def create_server():
         return f'error: {e}'
 
 
-@bp.route('/create/after', methods=['POST'])
+@bp.post('/create/after')
 def after_add():
     hostname = common.checkAjaxInput(request.form.get('servername'))
     ip = common.is_ip_or_dns(request.form.get('newip'))
@@ -121,7 +121,7 @@ def after_add():
         return str(e)
 
 
-@bp.route('/update', methods=['POST'])
+@bp.post('/update')
 def update_server():
     roxywi_auth.page_for_admin(level=2)
     name = request.form.get('updateserver')

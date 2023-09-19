@@ -1392,6 +1392,7 @@ function addGit(dialog_id) {
 	}
 }
 function updateSettings(param, val) {
+	val = val.replace(/\//g, "92");
 	toastr.clear();
 	$.ajax( {
 		url: "/app/admin/setting/" + param + "/" + val,
@@ -1926,7 +1927,7 @@ function updateServer(id) {
 		servergroup = $('#new-server-group-add').val();
 	}
 	$.ajax({
-		url: "/app/admin/update",
+		url: "/app/server/update",
 		data: {
 			updateserver: $('#hostname-' + id).val(),
 			port: $('#port-' + id).val(),
