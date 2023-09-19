@@ -1392,7 +1392,11 @@ function addGit(dialog_id) {
 	}
 }
 function updateSettings(param, val) {
-	val = val.replace(/\//g, "92");
+	try {
+		val = val.replace(/\//g, "92");
+	} catch (e) {
+		val = val;
+	}
 	toastr.clear();
 	$.ajax( {
 		url: "/app/admin/setting/" + param + "/" + val,
