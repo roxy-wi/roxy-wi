@@ -1927,7 +1927,7 @@ function updateServer(id) {
 		protected_serv = '1';
 	}
 	var servergroup = $('#servergroup-' + id + ' option:selected').val();
-	if (cur_url[0].indexOf('servers') != '-1') {
+	if (cur_url[0].indexOf('servers#') != '-1') {
 		servergroup = $('#new-server-group-add').val();
 	}
 	$.ajax({

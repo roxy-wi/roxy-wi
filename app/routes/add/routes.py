@@ -375,9 +375,9 @@ def add_haproxy():
         return config_add
     else:
         try:
-            return add_mod.save_to_haproxy_config(config_add, server_ip)
+            return add_mod.save_to_haproxy_config(config_add, server_ip, name)
         except Exception as e:
-            return str(e)
+            return f'error: Cannot add to config: {e}'
 
 
 @bp.post('/haproxy/userlist')
@@ -464,9 +464,9 @@ def add_peers():
         return config_add, 200
     else:
         try:
-            return add_mod.save_to_haproxy_config(config_add, server_ip)
+            return add_mod.save_to_haproxy_config(config_add, server_ip, name)
         except Exception as e:
-            return (str(e)), 200
+            return f'error: Cannot add to config: {e}'
 
 
 @bp.route('/option/get/<group>')

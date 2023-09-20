@@ -369,11 +369,6 @@ def keepalived_master_install(master: str, eth: str, eth_slave: str, vrrp_ip: st
 			haproxy, nginx, '0', firewall
 		)
 
-	try:
-		os.remove(f'{full_path}/{script}')
-	except Exception:
-		pass
-
 	if not api:
 		return show_success_installation(service)
 
@@ -454,9 +449,7 @@ def keepalived_masteradd(master, eth, slave_eth, vrrp_ip, router_id, return_to_m
 	except Exception as e:
 		raise Exception(e)
 
-	os.remove(f'{full_path}/{script}')
-
-	return show_success_installation('slave VRRP address')
+	return show_success_installation('master VRRP address')
 
 
 def keepalived_slaveadd(slave, eth, slave_eth, vrrp_ip, router_id, kp):

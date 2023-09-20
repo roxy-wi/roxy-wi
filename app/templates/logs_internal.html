@@ -53,24 +53,19 @@
 	</tr>
 </table>
 <div id="ajax"></div>
+<script>
 {% if serv == 'roxy-wi.error.log' or serv == 'roxy-wi.access.log' %}
-	<script>
-		showApacheLog('{{serv}}');
-	</script>
-	<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
-		{{lang.phrases.read_about_files}} <a href="https://roxy-wi.org/description/logs" title="{{lang.words.servers|title()}} {{lang.words.desc}}" target="_blank" class="link">{{lang.words.here}}</a>
-	</div>
+	showApacheLog('{{serv}}');
 {% else %}
-    <script>
-		viewLogs()
-		if (window.matchMedia('(max-width: 786px)').matches || window.matchMedia('(max-width: 1024px)').matches || window.matchMedia('(max-width: 667px)').matches) {
-			$( "#viewlogs" ).selectmenu({
-				  width: 150
-			});
-		}
-	</script>
-	<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
-		{{lang.phrases.read_about_files}} <a href="https://roxy-wi.org/description/logs" title="{{lang.words.servers|title()}} {{lang.words.desc}}" target="_blank" class="link">{{lang.words.here}}</a>
-	</div>
+	viewLogs()
 {% endif %}
+if (window.matchMedia('(max-width: 786px)').matches || window.matchMedia('(max-width: 1024px)').matches || window.matchMedia('(max-width: 667px)').matches) {
+	$("#viewlogs").selectmenu({
+		width: 150
+	});
+}
+</script>
+<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
+	{{lang.phrases.read_about_files}} <a href="https://roxy-wi.org/description/logs" title="{{lang.words.servers|title()}} {{lang.words.desc}}" target="_blank" class="link">{{lang.words.here}}</a>
+</div>
 {% endblock %}

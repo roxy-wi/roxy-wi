@@ -649,17 +649,18 @@ function findGetParameter(parameterName) {
     return result;
 }
 function viewLogs() {
-	if($('#viewlogs').val() == 'roxy-wi.error.log' || $('#viewlogs').val() == 'roxy-wi.access.log' || $('#viewlogs').val() == 'fail2ban.log') {
-		showApacheLog($('#viewlogs').val());
+	var viewlogs = $('#viewlogs').val();
+	if (viewlogs == '------' || viewlogs === null) { return false; }
+	if(viewlogs == 'roxy-wi.error.log' || viewlogs == 'roxy-wi.access.log' || viewlogs == 'fail2ban.log') {
+		showApacheLog(viewlogs);
 	} else {
-		var rows = $('#rows').val()
-		var grep = $('#grep').val()
-		var exgrep = $('#exgrep').val()
-		var hour = $('#time_range_out_hour').val()
-		var minut = $('#time_range_out_minut').val()
-		var hour1 = $('#time_range_out_hour1').val()
-		var minut1 = $('#time_range_out_minut1').val()
-		var viewlogs = $('#viewlogs').val()
+		var rows = $('#rows').val();
+		var grep = $('#grep').val();
+		var exgrep = $('#exgrep').val();
+		var hour = $('#time_range_out_hour').val();
+		var minute = $('#time_range_out_minut').val();
+		var hour1 = $('#time_range_out_hour1').val();
+		var minute1 = $('#time_range_out_minut1').val();
 		var type = findGetParameter('type')
 		if (viewlogs == null){
 			viewlogs = findGetParameter('viewlogs')
@@ -674,9 +675,9 @@ function viewLogs() {
 				grep: grep,
 				exgrep: exgrep,
 				hour: hour,
-				minut: minut,
+				minute: minute,
 				hour1: hour1,
-				minut1: minut1,
+				minute1: minute1,
 				token: $('#token').val(),
 			},
 			type: "POST",
