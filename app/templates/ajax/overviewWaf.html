@@ -73,9 +73,9 @@
 		</td>
 		<td>
 			{% if waf_service == 'haproxy' %}
-			<a href="/app/logs/{{waf_service}}/waf/{{ service.1 }}" class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{lang.words.log}}">{{lang.words.view|title()}}</a>
+			<a href="/app/logs/{{waf_service}}/waf" class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{lang.words.log}}">{{lang.words.view|title()}}</a>
 			{% elif waf_service == 'nginx' %}
-			<a href="/app/logs/{{waf_service}}/?serv={{ service.1 }}&rows=100&grep=ModSecurity&hour=00&minute=00&hour1=24&minute1=00&file=error.log&waf=0" class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{lang.words.log}}">{{lang.words.view|title()}}</a>
+			<a href="/app/logs/{{waf_service}}?serv={{ service.1 }}&rows=100&grep=ModSecurity&hour=00&minute=00&hour1=24&minute1=00&file=error.log&waf=0" class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{lang.words.log}}">{{lang.words.view|title()}}</a>
 			{% endif %}
 		</td>
 		<td></td>

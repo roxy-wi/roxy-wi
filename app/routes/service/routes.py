@@ -211,11 +211,11 @@ def services(service, serv):
     )
 
 
-@bp.route('/action/check-service', methods=['POST'])
-def check_service():
+@bp.post('/action/<service>/check-service')
+@check_services
+def check_service(service):
     user_uuid = request.cookies.get('uuid')
     server_ip = common.checkAjaxInput(request.form.get('server_ip'))
-    service = common.checkAjaxInput(request.form.get('service'))
 
     try:
         return service_action.check_service(server_ip, user_uuid, service)
@@ -224,7 +224,6 @@ def check_service():
 
 
 @bp.route('/action/<service>/<server_ip>/<action>', methods=['GET'])
-@check_services
 def action_service(service, server_ip, action):
     server_ip = common.is_ip_or_dns(server_ip)
 

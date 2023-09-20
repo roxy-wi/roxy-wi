@@ -533,9 +533,8 @@ function check_service_status(id, ip, service) {
 	NProgress.configure({showSpinner: false});
 	if (service == 'keepalived') return false;
 	$.ajax({
-		url: "/app/service/action/check-service",
+		url: "/app/service/action/" + service + "/check-service",
 		data: {
-			service: service,
 			server_ip: ip
 		},
 		type: "POST",

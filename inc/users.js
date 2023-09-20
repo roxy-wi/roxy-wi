@@ -1398,25 +1398,26 @@ function updateSettings(param, val) {
 		val = val;
 	}
 	toastr.clear();
-	$.ajax( {
-		url: "/app/admin/setting/" + param + "/" + val,
+	$.ajax({
+		url: "/app/admin/setting/" + param,
 		data: {
+			val: val,
 			token: $('#token').val()
 		},
 		type: "POST",
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
-				$("#"+param).parent().parent().addClass( "update", 1000 );
-			setTimeout(function() {
-				$( "#"+param ).parent().parent().removeClass( "update" );
-			}, 2500 );
+				$("#" + param).parent().parent().addClass("update", 1000);
+				setTimeout(function () {
+					$("#" + param).parent().parent().removeClass("update");
+				}, 2500);
 			}
 		}
-	} );
+	});
 }
 function sshKeyEnableShow(id) {
 	$('#ssh_enable-'+id).click(function() {
@@ -1651,8 +1652,7 @@ function cloneServer(id) {
 	$('#slavefor').selectmenu("refresh");
 	$('#credentials').val($('#credentials-'+id+' option:selected').val()).change()
 	$('#credentials').selectmenu("refresh");
-	cur_url = cur_url[0].split('#')[0]
-	if (cur_url == 'users.py') {
+	if (cur_url[0].indexOf('admin') != '-1') {
 		$('#new-server-group-add').val($('#servergroup-'+id+' option:selected').val()).change()
 		$('#new-server-group-add').selectmenu("refresh");
 	}
@@ -1927,7 +1927,7 @@ function updateServer(id) {
 		protected_serv = '1';
 	}
 	var servergroup = $('#servergroup-' + id + ' option:selected').val();
-	if (cur_url[0].split('#')[0] == "servers.py") {
+	if (cur_url[0].indexOf('servers') != '-1') {
 		servergroup = $('#new-server-group-add').val();
 	}
 	$.ajax({
@@ -1995,7 +1995,7 @@ function updateSSH(id) {
 		ssh_enable = '1';
 	}
 	var group = $('#sshgroup-' + id).val();
-	if (cur_url[0].split('#')[0] == "servers.py") {
+	if (cur_url[0].indexOf('servers') != '-1') {
 		group = $('#new-server-group-add').val();
 	}
 	$.ajax({
@@ -2029,7 +2029,7 @@ function updateSSH(id) {
 	});
 }
 function updateReceiver(id, receiver_name) {
-	if (cur_url[0].split('#')[0] == 'servers.py') {
+	if (cur_url[0].indexOf('servers') != '-1') {
 		var group = $('#new-group').val();
 	} else {
 		var group = $('#' + receiver_name + 'group-' + id).val();
@@ -2382,16 +2382,16 @@ function updateService(service, action='update') {
 				toastr.success(service + ' has been ' + action + 'ed');
 			} else if (data.indexOf('Unauthorized') != '-1' || data.indexOf('Status code: 401') != '-1') {
 				toastr.clear();
-				toastr.error('It looks like there is no authorization in the Roxy-WI repository. Your subscription may have expired or there is no subscription. How to get the <b><a href="https://roxy-wi.org/pricing.py" title="Pricing" target="_blank">subscription</a></b>');
+				toastr.error('It looks like there is no authorization in the Roxy-WI repository. Your subscription may have expired or there is no subscription. How to get the <b><a href="https://roxy-wi.org/pricing" title="Pricing" target="_blank">subscription</a></b>');
 			} else if (data.indexOf('but not installed') != '-1') {
 				toastr.clear();
 				toastr.error('There is setting for Roxy-WI repository, but Roxy-WI is installed without repository. Please reinstall with package manager');
 			} else if (data.indexOf('No Match for argument') != '-1' || data.indexOf('Unable to find a match') != '-1') {
 				toastr.clear();
-				toastr.error('It seems like Roxy-WI repository is not set. Please read docs for <b><a href="https://roxy-wi.org/updates.py">detail</a></b>');
+				toastr.error('It seems like Roxy-WI repository is not set. Please read docs for <b><a href="https://roxy-wi.org/updates">detail</a></b>');
 			} else if (data.indexOf('password for') != '-1') {
 				toastr.clear();
-				toastr.error('It seems like apache user needs to be add to sudoers. Please read docs for <b><a href="https://roxy-wi.org/updates.py">detail</a></b>');
+				toastr.error('It seems like apache user needs to be add to sudoers. Please read docs for <b><a href="https://roxy-wi.org/installation#ansible">detail</a></b>');
 			} else if (data.indexOf('No packages marked for update') != '-1') {
 				toastr.clear();
 				toastr.info('It seems like the lastest version Roxy-WI is installed');

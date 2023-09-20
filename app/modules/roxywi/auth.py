@@ -1,4 +1,4 @@
-from flask import request, redirect, url_for
+from flask import request, redirect, url_for, abort
 
 import modules.db.sql as sql
 
@@ -54,7 +54,7 @@ def is_admin(level=1, **kwargs):
 
 def page_for_admin(level=1) -> None:
 	if not is_admin(level=level):
-		return redirect(url_for('index'))
+		return abort(400, 'bad permission')
 
 
 def check_in_ldap(user, password):

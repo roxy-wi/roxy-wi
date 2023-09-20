@@ -66,7 +66,7 @@ def waf_overview(serv, waf_service) -> None:
     lang = roxywi_common.get_user_lang_for_flask()
     servers_sorted = sorted(returned_servers, key=common.get_key)
 
-    return render_template('ajax/overivewWaf.html', service_status=servers_sorted, role=role, waf_service=waf_service, lang=lang)
+    return render_template('ajax/overviewWaf.html', service_status=servers_sorted, role=role, waf_service=waf_service, lang=lang)
 
 
 def change_waf_mode(waf_mode: str, server_hostname: str, service: str) -> str:

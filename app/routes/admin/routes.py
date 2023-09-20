@@ -140,8 +140,8 @@ def load_openvpn():
 
 @bp.post('/openvpn/upload')
 def upload_openvpn():
+    roxywi_auth.page_for_admin()
     name = common.checkAjaxInput(request.form.get('ovpnname'))
-
     ovpn_file = f"{os.path.dirname('/tmp/')}/{name}.ovpn"
 
     try:
@@ -175,6 +175,7 @@ def upload_openvpn():
 
 @bp.post('/openvpn/delete')
 def delete_openvpn():
+    roxywi_auth.page_for_admin()
     openvpndel = common.checkAjaxInput(request.form.get('openvpndel'))
 
     cmd = f'sudo openvpn3 config-remove --config /tmp/{openvpndel}.ovpn --force'
@@ -191,6 +192,7 @@ def delete_openvpn():
 
 @bp.route('/openvpn/action/<action>/<openvpn>')
 def action_openvpn(action, openvpn):
+    roxywi_auth.page_for_admin()
     openvpn = common.checkAjaxInput(openvpn)
 
     if action == 'start':
@@ -210,9 +212,10 @@ def action_openvpn(action, openvpn):
         return f'error: Cannot {action} OpenVPN: {e}'
 
 
-@bp.route('/setting/<param>/<val>', methods=['POST'])
-def update_settings(param, val):
-    val = val.replace('92', '/')
+@bp.post('/setting/<param>')
+def update_settings(param):
+    roxywi_auth.page_for_admin(level=2)
+    val = request.form.get('val').replace('92', '/')
     user_group = roxywi_common.get_user_group(id=1)
     if sql.update_setting(param, val, user_group):
         roxywi_common.logging('Roxy-WI server', f'The {param} setting has been changed to: {val}', roxywi=1, login=1)

@@ -356,8 +356,10 @@ function openSection() {
 function showLog() {
 	var waf = cur_url[2];
 	var file = $('#log_files').val();
-	if ((file === undefined || file === null) && waf == '') {
+	var serv = $("#serv").val();
+	if ((file === undefined || file === null) && (waf == '' || waf === undefined)) {
 		var file_from_get = findGetParameter('file');
+		console.log(file_from_get)
 		if (file_from_get === undefined || file_from_get === null) {
 			toastr.warning('Select a log file first')
 			return false;
@@ -365,22 +367,22 @@ function showLog() {
 			file = file_from_get;
 		}
 	}
-	var rows = $('#rows').val()
-	var grep = $('#grep').val()
-	var exgrep = $('#exgrep').val()
-	var hour = $('#time_range_out_hour').val()
-	var minute = $('#time_range_out_minut').val()
-	var hour1 = $('#time_range_out_hour1').val()
-	var minute1 = $('#time_range_out_minut1').val()
-	var service = $('#service').val()
+	var rows = $('#rows').val();
+	var grep = $('#grep').val();
+	var exgrep = $('#exgrep').val();
+	var hour = $('#time_range_out_hour').val();
+	var minute = $('#time_range_out_minut').val();
+	var hour1 = $('#time_range_out_hour1').val();
+	var minute1 = $('#time_range_out_minut1').val();
+	var service = $('#service').val();
 	if (service == 'None') {
 		service = 'haproxy';
 	}
 	if (waf) {
-		var url = "/app/logs/" + service + "/waf/" + $("#serv").val() + "/" + rows;
+		var url = "/app/logs/" + service + "/waf/" + serv + "/" + rows;
 		waf = 1;
 	} else {
-		var url = "/app/logs/" + service + "/" + $("#serv").val() + "/" + rows;
+		var url = "/app/logs/" + service + "/" + serv + "/" + rows;
 	}
 	$.ajax( {
 		url: url,
