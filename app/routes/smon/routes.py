@@ -1,20 +1,14 @@
-import os
-import sys
-
 from pytz import timezone
 from flask import render_template, request, redirect, url_for, jsonify
 from flask_login import login_required
 from datetime import datetime
 
 from app.routes.smon import bp
-
-sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app'))
-
-import modules.db.sql as sql
-import modules.common.common as common
-import modules.roxywi.auth as roxywi_auth
-import modules.roxywi.common as roxywi_common
-import modules.tools.smon as smon_mod
+import app.modules.db.sql as sql
+import app.modules.common.common as common
+import app.modules.roxywi.auth as roxywi_auth
+import app.modules.roxywi.common as roxywi_common
+import app.modules.tools.smon as smon_mod
 
 
 @bp.before_request

@@ -1,22 +1,18 @@
 import os
-import sys
 
 from flask import render_template, request, redirect, url_for
 from flask_login import login_required
 
 from app.routes.config import bp
-
-sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app'))
-
-import modules.db.sql as sql
-import modules.common.common as common
-import modules.roxy_wi_tools as roxy_wi_tools
-import modules.roxywi.auth as roxywi_auth
-import modules.roxywi.common as roxywi_common
-import modules.config.config as config_mod
-import modules.config.section as section_mod
-import modules.service.haproxy as service_haproxy
-import modules.server.server as server_mod
+import app.modules.db.sql as sql
+import app.modules.common.common as common
+import app.modules.roxy_wi_tools as roxy_wi_tools
+import app.modules.roxywi.auth as roxywi_auth
+import app.modules.roxywi.common as roxywi_common
+import app.modules.config.config as config_mod
+import app.modules.config.section as section_mod
+import app.modules.service.haproxy as service_haproxy
+import app.modules.server.server as server_mod
 
 get_config = roxy_wi_tools.GetConfigVar()
 time_zone = sql.get_setting('time_zone')

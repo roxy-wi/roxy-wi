@@ -1,5 +1,4 @@
 import os
-import sys
 
 import pytz
 import distro
@@ -7,15 +6,13 @@ from flask import render_template, request, redirect, url_for
 from flask_login import login_required
 
 from app.routes.admin import bp
-
-sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app'))
-
-import modules.db.sql as sql
-import modules.common.common as common
-import modules.roxywi.roxy as roxy
-import modules.roxywi.auth as roxywi_auth
-import modules.roxywi.common as roxywi_common
-import modules.server.server as server_mod
+import app.modules.db.sql as sql
+import app.modules.common.common as common
+import app.modules.roxywi.roxy as roxy
+import app.modules.roxywi.auth as roxywi_auth
+import app.modules.roxywi.common as roxywi_common
+import app.modules.server.server as server_mod
+import app.modules.tools.common as tools_common
 
 
 @bp.before_request
@@ -66,7 +63,7 @@ def show_tools():
     roxywi_auth.page_for_admin()
     lang = roxywi_common.get_user_lang_for_flask()
     try:
-        services = roxy.get_services_status()
+        services = tools_common.get_services_status()
     except Exception as e:
         return str(e)
 
@@ -78,7 +75,7 @@ def update_tools(service):
     roxywi_auth.page_for_admin()
 
     try:
-        return roxy.update_roxy_wi(service)
+        return tools_common.update_roxy_wi(service)
     except Exception as e:
         return f'error: {e}'
 
@@ -103,7 +100,7 @@ def update_roxywi():
     portscanner_ver = roxy.check_new_version('portscanner')
     socket_ver = roxy.check_new_version('socket')
     prometheus_exp_ver = roxy.check_new_version('prometheus-exporter')
-    services = roxy.get_services_status()
+    services = tools_common.get_services_status()
     lang = roxywi_common.get_user_lang_for_flask()
 
     return render_template(

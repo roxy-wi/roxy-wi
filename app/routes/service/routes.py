@@ -1,5 +1,3 @@
-import os
-import sys
 from functools import wraps
 
 import distro
@@ -8,17 +6,14 @@ from flask_login import login_required
 
 from app import cache
 from app.routes.service import bp
-
-sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app'))
-
-import modules.db.sql as sql
-import modules.common.common as common
-import modules.server.server as server_mod
-import modules.service.action as service_action
-import modules.service.common as service_common
-import modules.roxywi.auth as roxywi_auth
-import modules.roxywi.common as roxywi_common
-import modules.roxywi.overview as roxy_overview
+import app.modules.db.sql as sql
+import app.modules.common.common as common
+import app.modules.server.server as server_mod
+import app.modules.service.action as service_action
+import app.modules.service.common as service_common
+import app.modules.roxywi.auth as roxywi_auth
+import app.modules.roxywi.common as roxywi_common
+import app.modules.roxywi.overview as roxy_overview
 
 
 def check_services(fn):

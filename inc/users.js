@@ -2554,7 +2554,7 @@ function loadServices() {
 }
 function loadupdatehapwi() {
 	$.ajax({
-		url: "/app/server/update",
+		url: "/app/admin/update",
 		// data: {
 		// 	token: $('#token').val()
 		// },

@@ -16,6 +16,12 @@ login_manager = LoginManager(app)
 app.config['SITEMAP_INCLUDE_RULES_WITHOUT_PARAMS'] = True
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=3)
 
+from app.routes.main import bp as main_bp
+app.register_blueprint(main_bp)
+
+from app.routes.overview import bp as overview_bp
+app.register_blueprint(overview_bp)
+
 from app.routes.add import bp as add_bp
 app.register_blueprint(add_bp, url_prefix='/add')
 
@@ -24,6 +30,9 @@ app.register_blueprint(service_bp, url_prefix='/service')
 
 from app.routes.config import bp as config_bp
 app.register_blueprint(config_bp, url_prefix='/config')
+
+from app.routes.logs import bp as logs_bp
+app.register_blueprint(logs_bp, url_prefix='/logs')
 
 from app.routes.metric import bp as metric_bp
 app.register_blueprint(metric_bp, url_prefix='/metrics')
@@ -40,6 +49,9 @@ app.register_blueprint(smon_bp, url_prefix='/smon')
 from app.routes.checker import bp as checker_bp
 app.register_blueprint(checker_bp, url_prefix='/checker')
 
+from app.routes.portscanner import bp as portscanner_bp
+app.register_blueprint(portscanner_bp, url_prefix='/portscanner')
+
 from app.routes.install import bp as install_bp
 app.register_blueprint(install_bp, url_prefix='/install')
 
@@ -51,6 +63,3 @@ app.register_blueprint(server_bp, url_prefix='/server')
 
 from app.routes.admin import bp as admin_bp
 app.register_blueprint(admin_bp, url_prefix='/admin')
-
-from app import views
-from app import ajax_views

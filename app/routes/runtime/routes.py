@@ -1,17 +1,11 @@
-import os
-import sys
-
 from flask import render_template, request, redirect, url_for
 from flask_login import login_required
 
 from app.routes.runtime import bp
-
-sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app'))
-
-import modules.common.common as common
-import modules.roxywi.common as roxywi_common
-import modules.config.runtime as runtime
-import modules.service.haproxy as service_haproxy
+import app.modules.common.common as common
+import app.modules.roxywi.common as roxywi_common
+import app.modules.config.runtime as runtime
+import app.modules.service.haproxy as service_haproxy
 
 
 @bp.before_request

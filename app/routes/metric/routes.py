@@ -1,20 +1,14 @@
-import os
-import sys
-
 import distro
 from flask import render_template, request, jsonify, redirect, url_for
 from flask_login import login_required
 
 from app.routes.metric import bp
-
-sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app'))
-
-import modules.db.sql as sql
-import modules.common.common as common
-import modules.server.server as server_mod
-import modules.roxywi.metrics as metric
-import modules.roxywi.auth as roxywi_auth
-import modules.roxywi.common as roxywi_common
+import app.modules.db.sql as sql
+import app.modules.common.common as common
+import app.modules.server.server as server_mod
+import app.modules.roxywi.metrics as metric
+import app.modules.roxywi.auth as roxywi_auth
+import app.modules.roxywi.common as roxywi_common
 
 
 @bp.before_request
