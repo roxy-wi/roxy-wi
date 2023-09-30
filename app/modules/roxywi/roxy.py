@@ -1,12 +1,14 @@
 import os
 import re
 
+import distro
 import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
 import modules.db.sql as sql
 import modules.roxywi.common as roxywi_common
+import app.modules.server.server as server_mod
 
 
 def is_docker() -> bool:
@@ -34,7 +36,7 @@ def versions():
 			current_ver_without_dots += '0'
 		current_ver_without_dots = int(current_ver_without_dots)
 	except Exception:
-		current_ver = "Sorry cannot get current version"
+		current_ver = "Cannot get current version"
 		current_ver_without_dots = 0
 
 	try:
@@ -100,3 +102,25 @@ def action_service(action: str, service: str) -> str:
 	os.system(cmd)
 	roxywi_common.logging('Roxy-WI server', f' The service {service} has been {action}ed', roxywi=1, login=1)
 	return 'ok'
+
+
+def update_plan():
+	try:
+		if distro.id() == 'ubuntu':
+			path_to_repo = '/etc/apt/auth.conf.d/roxy-wi.conf'
+			cmd = "grep login /etc/apt/auth.conf.d/roxy-wi.conf |awk '{print $2}'"
+		else:
+			path_to_repo = '/etc/yum.repos.d/roxy-wi.repo'
+			cmd = "grep base /etc/yum.repos.d/roxy-wi.repo |awk -F\":\" '{print $2}'|awk -F\"/\" '{print $3}'"
+		if os.path.exists(path_to_repo):
+			get_user_name, stderr = server_mod.subprocess_execute(cmd)
+			user_name = get_user_name[0]
+		else:
+			user_name = 'git'
+
+		if sql.select_user_name():
+			sql.update_user_name(user_name)
+		else:
+			sql.insert_user_name(user_name)
+	except Exception as e:
+		roxywi_common.logging('Cannot update subscription: ', str(e), roxywi=1)

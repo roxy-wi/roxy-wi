@@ -60,7 +60,7 @@ def stats(service, serv):
         return redirect(url_for('overview.index'))
 
     return render_template(
-        'statsview.html', h2=1, autorefresh=1, role=user_params['role'], user=user, selects=servers, serv=serv,
+        'statsview.html', autorefresh=1, role=user_params['role'], user=user, selects=servers, serv=serv,
         service=service, user_services=user_params['user_services'], token=user_params['token'],
         select_id="serv", lang=user_params['lang'], service_desc=service_desc
     )

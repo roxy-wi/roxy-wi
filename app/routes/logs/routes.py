@@ -1,5 +1,6 @@
 import os
 
+import datetime
 from flask import render_template, request, redirect, url_for
 from flask_login import login_required
 
@@ -39,7 +40,6 @@ def logs_internal():
 
     time_storage = sql.get_setting('log_time_storage')
     log_path = get_config.get_config_var('main', 'log_path')
-    selects = roxywi_common.get_files(log_path, file_format="log")
 
     try:
         time_storage_hours = time_storage * 24
@@ -49,8 +49,10 @@ def logs_internal():
                 file_modified = datetime.datetime.fromtimestamp(os.path.getmtime(curpath))
                 if datetime.datetime.now() - file_modified > datetime.timedelta(hours=time_storage_hours):
                     os.remove(curpath)
-    except Exception:
-        pass
+    except Exception as e:
+        print(f'error: cannot delete old log files: {e}')
+
+    selects = roxywi_common.get_files(log_path, file_format="log")
 
     if log_type is None:
         selects.append(['fail2ban.log', 'fail2ban.log'])
@@ -58,7 +60,7 @@ def logs_internal():
         selects.append(['roxy-wi.access.log', 'access.log'])
 
     return render_template(
-        'logs_internal.html', h2=1, autorefresh=1, role=user_params['role'], user=user,
+        'logs_internal.html', autorefresh=1, role=user_params['role'], user=user,
         user_services=user_params['user_services'], token=user_params['token'], lang=user_params['lang'],
         selects=selects, serv='viewlogs'
     )

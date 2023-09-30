@@ -27,9 +27,9 @@ def index():
 
     groups = sql.select_groups()
     return render_template(
-        'ovw.html', h2=1, autorefresh=1, role=user_params['role'], user=user, groups=groups,
-        roles=sql.select_roles(), servers=user_params['servers'], user_services=user_params['user_services'],
-        roxy_wi_log=roxy_logs.roxy_wi_log(), token=user_params['token'], guide_me=1, lang=user_params['lang']
+        'ovw.html', autorefresh=1, role=user_params['role'], user=user, groups=groups, roles=sql.select_roles(),
+        servers=user_params['servers'], user_services=user_params['user_services'], roxy_wi_log=roxy_logs.roxy_wi_log(),
+        token=user_params['token'], guide_me=1, lang=user_params['lang']
     )
 
 

@@ -103,9 +103,9 @@ def smon_history():
         return redirect(url_for('login_page'))
 
     return render_template(
-        'smon/history.html', h2=1, autorefresh=0, role=user_params['role'], user=user, smon=smon,
-        lang=user_params['lang'], user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'],
-        token=user_params['token'], smon_status=smon_status, smon_error=stderr, user_services=user_params['user_services']
+        'smon/history.html',  autorefresh=0, role=user_params['role'], user=user, smon=smon, lang=user_params['lang'],
+        user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'], token=user_params['token'],
+        smon_status=smon_status, smon_error=stderr, user_services=user_params['user_services']
     )
 
 
@@ -126,7 +126,7 @@ def smon_host_history(server_ip):
         return redirect(url_for('login_page'))
 
     return render_template(
-        'smon/history.html', h2=1, autorefresh=0, role=user_params['role'], user=user, smon=smon,
+        'smon/history.html', autorefresh=0, role=user_params['role'], user=user, smon=smon,
         lang=user_params['lang'], user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'],
         token=user_params['token'], smon_status=smon_status, smon_error=stderr, user_services=user_params['user_services']
     )
@@ -169,7 +169,7 @@ def smon_admin():
         return redirect(url_for('login_page'))
 
     return render_template(
-        'smon/add.html', h2=1, autorefresh=0, role=user_params['role'], user=user, smon=smon, lang=user_params['lang'],
+        'smon/add.html', autorefresh=0, role=user_params['role'], user=user, smon=smon, lang=user_params['lang'],
         user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'], token=user_params['token'],
         smon_status=smon_status, smon_error=stderr, user_services=user_params['user_services'], telegrams=telegrams,
         slacks=slacks, pds=pds, smon_ping=smon_ping, smon_tcp=smon_tcp, smon_http=smon_http, smon_dns=smon_dns

@@ -1,9 +1,8 @@
 import os
-import cgi
 import glob
 
 import distro
-from flask import request, redirect, make_response, url_for
+from flask import request
 
 import modules.db.sql as sql
 import modules.roxy_wi_tools as roxy_wi_tools
@@ -120,7 +119,7 @@ def logging(server_ip: str, action: str, **kwargs) -> None:
 		user_group = ''
 
 	try:
-		ip = cgi.escape(os.environ["REMOTE_ADDR"])
+		ip = request.remote_addr
 	except Exception:
 		ip = ''
 
@@ -220,27 +219,24 @@ def get_users_params(**kwargs):
 		user_uuid = request.cookies.get('uuid')
 		user = sql.get_user_name_by_uuid(user_uuid)
 	except Exception:
-		make_response(redirect(url_for('login_page')))
-		return
+		raise Exception('error: Cannot get user UUID')
 
 	try:
 		group_id = int(request.cookies.get('group'))
 	except Exception:
-		make_response(redirect(url_for('login_page')))
-		return
+		raise Exception('error: Cannot get user group')
 
 	try:
 		role = sql.get_user_role_by_uuid(user_uuid, group_id)
 	except Exception:
-		make_response(redirect(url_for('login_page')))
-		return
+		raise Exception('error: Cannot get user role')
+
 	try:
 		user_id = sql.get_user_id_by_uuid(user_uuid)
 		user_services = sql.select_user_services(user_id)
 		token = sql.get_token(user_uuid)
 	except Exception:
-		make_response(redirect(url_for('login_page')))
-		return
+		raise Exception('error: Cannot get user token')
 
 	if kwargs.get('virt') and kwargs.get('haproxy'):
 		servers = get_dick_permit(virt=1, haproxy=1)
@@ -264,7 +260,8 @@ def get_users_params(**kwargs):
 		'token': token,
 		'servers': servers,
 		'user_services': user_services,
-		'lang': user_lang
+		'lang': user_lang,
+		'user_id': user_id
 	}
 
 	return user_params

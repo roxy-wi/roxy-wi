@@ -41,7 +41,7 @@ def portscanner():
     user_subscription = roxywi_common.return_user_subscription()
 
     return render_template(
-        'portscanner.html', h2=1, autorefresh=0, role=user_params['role'], user=user, servers=user_params['servers'],
+        'portscanner.html', autorefresh=0, role=user_params['role'], user=user, servers=user_params['servers'],
         port_scanner_settings=port_scanner_settings, count_ports=count_ports, port_scanner=''.join(port_scanner),
         port_scanner_stderr=port_scanner_stderr, user_services=user_params['user_services'], user_status=user_subscription['user_status'],
         user_plan=user_subscription['user_plan'], token=user_params['token'], lang=user_params['lang']

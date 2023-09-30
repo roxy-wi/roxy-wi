@@ -291,8 +291,7 @@ def show_version(service, server_ip, configver, save):
             stderr = config_mod.master_slave_upload_and_restart(server_ip, configver, save_action, service)
 
     return render_template(
-        'configver.html',
-        h2=1, role=user_params['role'], user=user, select_id="serv", serv=server_ip, aftersave=aftersave,
+        'configver.html', role=user_params['role'], user=user, select_id="serv", serv=server_ip, aftersave=aftersave,
         selects=servers, stderr=stderr, save=save, configver=configver, service=service,
         user_services=user_params['user_services'], token=user_params['token'], lang=user_params['lang']
     )

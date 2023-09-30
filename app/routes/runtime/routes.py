@@ -15,7 +15,7 @@ def before_request():
     pass
 
 
-@bp.route('/')
+@bp.route('')
 def runtimeapi():
     try:
         user_params = roxywi_common.get_users_params(haproxy=1)

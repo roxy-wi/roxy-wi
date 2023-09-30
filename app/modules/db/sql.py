@@ -382,6 +382,15 @@ def select_users(**kwargs):
 		return query_res
 
 
+def is_user_active(user_id: int) -> int:
+	try:
+		query = User.get(User.user_id == user_id).activeuser
+	except Exception as e:
+		out_error(e)
+	else:
+		return int(query)
+
+
 def select_user_groups(user_id, **kwargs):
 	if kwargs.get("limit") is not None:
 		query = UserGroups.select().where(UserGroups.user_id == user_id).limit(1)

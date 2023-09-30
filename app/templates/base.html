@@ -206,26 +206,24 @@
 			</div>
 		</div>
 		<div class="container">
-			{% if h2 %}
-				<h2>
-					{% block h2 %}{% endblock %}
-					{% include 'include/login.html' %}
-					{% if autorefresh %}
-						<span class="auto-refresh">
-							<a onclick="pauseAutoRefresh()" class="auto-refresh-pause" style="display: none; margin-top: 3px; position: absolute;"></a>
-							<a onclick="pauseAutoResume()" class="auto-refresh-resume" style="display: none; margin-top: 4px; position: absolute;"></a>
-							<span id="0" class="auto-refresh-span">
-								<span class="auto-refresh-reload auto-refresh-reload-icon"></span>
-								{{lang.words.auto|title()}}-{{lang.words.refresh}}
-							</span>
-							<span id="1" style="display: none;" class="auto-refresh-span">
-								<span class="auto-refresh-reload auto-refresh-reload-icon"></span>
-								{{lang.words.auto|title()}}-{{lang.words.refresh}}
-							</span>
-						</span>		
-					{% endif %}
-				</h2>
-			{% endif %}
+			<h2>
+				{% block h2 %}{% endblock %}
+				{% include 'include/login.html' %}
+				{% if autorefresh %}
+				<span class="auto-refresh">
+					<a onclick="pauseAutoRefresh()" class="auto-refresh-pause" style="display: none; margin-top: 3px; position: absolute;"></a>
+					<a onclick="pauseAutoResume()" class="auto-refresh-resume" style="display: none; margin-top: 4px; position: absolute;"></a>
+					<span id="0" class="auto-refresh-span">
+						<span class="auto-refresh-reload auto-refresh-reload-icon"></span>
+						{{lang.words.auto|title()}}-{{lang.words.refresh}}
+					</span>
+					<span id="1" style="display: none;" class="auto-refresh-span">
+						<span class="auto-refresh-reload auto-refresh-reload-icon"></span>
+						{{lang.words.auto|title()}}-{{lang.words.refresh}}
+					</span>
+				</span>
+				{% endif %}
+			</h2>
 			{% if autorefresh %}
 				<div class="auto-refresh-div">
 					<div class="auto-refresh-head">
@@ -266,9 +264,7 @@
 					</div>
 				</div>
 			{% endif %}
-			{% if h2 %}
-				<ul id='browse_histroy'></ul>
-			{% endif %}
+			<ul id='browse_histroy'></ul>
 			{% if role %}
 				{% if role <= 2 %}
 					<div id="apply" style="display: none;">
