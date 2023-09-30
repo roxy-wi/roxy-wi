@@ -2,7 +2,7 @@ import os
 import sys
 import pytz
 
-from flask import render_template, request, redirect, url_for, make_response
+from flask import render_template, request, redirect, url_for
 from flask_login import login_required
 
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app'))

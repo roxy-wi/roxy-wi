@@ -1,5 +1,3 @@
-import os
-import sys
 import uuid
 
 import distro
@@ -8,14 +6,11 @@ from flask import render_template, request, redirect, url_for, flash, make_respo
 from flask_login import login_user, login_required, logout_user, current_user
 
 from app import app, login_manager, cache
-
-sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app'))
-
-import modules.db.sql as sql
-from modules.db.db_model import *
-import modules.server.server as server_mod
-import modules.roxywi.common as roxywi_common
-import modules.roxywi.auth as roxywi_auth
+import app.modules.db.sql as sql
+import app.modules.server.server as server_mod
+import app.modules.roxywi.common as roxywi_common
+import app.modules.roxywi.auth as roxywi_auth
+import app.modules.roxy_wi_tools as roxy_wi_tools
 
 
 @app.before_request
@@ -41,7 +36,7 @@ def load_user(user_id):
     user_obj = cache.get(user)
 
     if user_obj is None:
-        query = User.get(User.user_id == user_id)
+        query = sql.get_user_id(user_id)
         cache.set(user, query, timeout=360)
         return query
 

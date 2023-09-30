@@ -731,6 +731,15 @@ def get_user_name_by_uuid(uuid):
 			return user.username
 
 
+def get_user_id(user_id: int) -> int:
+	try:
+		query = User.get(User.user_id == user_id)
+	except Exception as e:
+		out_error(e)
+	else:
+		return query
+
+
 def get_user_id_by_uuid(uuid):
 	try:
 		query = User.select(User.user_id).join(UUID, on=(User.user_id == UUID.user_id)).where(UUID.uuid == uuid)
