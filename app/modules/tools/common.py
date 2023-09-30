@@ -1,9 +1,7 @@
 import distro
 
-import modules.db.sql as sql
 import modules.roxywi.roxy as roxywi_mod
 import modules.server.server as server_mod
-import modules.roxywi.common as roxywi_common
 
 
 def get_services_status():

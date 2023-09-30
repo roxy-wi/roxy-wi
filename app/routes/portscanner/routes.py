@@ -1,4 +1,4 @@
-from flask import render_template, request
+from flask import render_template, request, redirect, url_for
 from flask_login import login_required
 
 from app.routes.portscanner import bp
@@ -105,4 +105,3 @@ def scan_port(server_id):
     else:
         lang = roxywi_common.get_user_lang_for_flask()
         return render_template('ajax/scan_ports.html', ports=stdout, info=stdout1, lang=lang)
-

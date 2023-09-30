@@ -1,3 +1,5 @@
+import os
+
 from flask import render_template, request, redirect, url_for
 from flask_login import login_required
 
@@ -55,9 +57,10 @@ def logs_internal():
         selects.append(['roxy-wi.error.log', 'error.log'])
         selects.append(['roxy-wi.access.log', 'access.log'])
 
-    return render_template('logs_internal.html', h2=1, autorefresh=1, role=user_params['role'], user=user,
-                           user_services=user_params['user_services'], token=user_params['token'],
-                           lang=user_params['lang'], selects=selects, serv='viewlogs'
+    return render_template(
+        'logs_internal.html', h2=1, autorefresh=1, role=user_params['role'], user=user,
+        user_services=user_params['user_services'], token=user_params['token'], lang=user_params['lang'],
+        selects=selects, serv='viewlogs'
     )
 
 
@@ -74,8 +77,10 @@ def logs(service, waf):
     minute1 = request.args.get('minute1')
     log_file = request.args.get('file')
 
-    if rows is None: rows=10
-    if grep is None: grep=''
+    if rows is None:
+        rows = 10
+    if grep is None:
+        grep = ''
 
     try:
         user_params = roxywi_common.get_users_params(virt=1, haproxy=1)
@@ -149,8 +154,10 @@ def show_logs(service, serv, rows, waf):
 
     if roxywi_common.check_user_group_for_flask():
         try:
-            out = roxy_logs.show_roxy_log(serv=serv, rows=rows, waf=waf, grep=grep, exgrep=exgrep, hour=hour, minute=minute,
-                                            hour1=hour1, minute1=minute1, service=service, log_file=log_file)
+            out = roxy_logs.show_roxy_log(
+                serv=serv, rows=rows, waf=waf, grep=grep, exgrep=exgrep, hour=hour, minute=minute,
+                hour1=hour1, minute1=minute1, service=service, log_file=log_file
+            )
         except Exception as e:
             return str(e)
         else:

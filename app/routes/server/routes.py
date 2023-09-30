@@ -1,6 +1,5 @@
 import json
 
-import distro
 from flask import render_template, request
 from flask_login import login_required
 
@@ -10,15 +9,11 @@ import app.modules.common.common as common
 import app.modules.roxywi.group as group_mod
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
-import app.modules.roxy_wi_tools as roxy_wi_tools
 import app.modules.server.ssh as ssh_mod
 import app.modules.server.server as server_mod
 import app.modules.tools.smon as smon_mod
 import app.modules.service.backup as backup_mod
 
-get_config = roxy_wi_tools.GetConfigVar()
-time_zone = sql.get_setting('time_zone')
-get_date = roxy_wi_tools.GetDate(time_zone)
 error_mess = roxywi_common.return_error_message()
 
 

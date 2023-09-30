@@ -1,4 +1,4 @@
-from flask import request, redirect, url_for, abort
+from flask import request, abort
 
 import modules.db.sql as sql
 
