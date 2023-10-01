@@ -5,7 +5,7 @@ from flask_login import login_user
 from datetime import datetime, timedelta
 
 import modules.db.sql as sql
-import app.modules.roxywi.common as roxywi_common
+import modules.roxywi.common as roxywi_common
 
 
 def check_login(user_uuid, token, **kwargs) -> str:

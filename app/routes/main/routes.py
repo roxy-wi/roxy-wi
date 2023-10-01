@@ -13,7 +13,7 @@ import modules.db.sql as sql
 import modules.common.common as common
 import modules.roxywi.roxy as roxy
 import modules.roxywi.auth as roxywi_auth
-import modules.roxywi.nettools as nettools
+import modules.roxywi.nettools as nettools_mod
 import modules.roxywi.common as roxywi_common
 import modules.service.common as service_common
 import modules.service.haproxy as service_haproxy
@@ -104,11 +104,11 @@ def nettols_check(check):
     record_type = common.checkAjaxInput(request.form.get('nettools_nslookup_record_type'))
 
     if check == 'icmp':
-        return nettools.ping_from_server(server_from, server_to, action)
+        return nettools_mod.ping_from_server(server_from, server_to, action)
     elif check == 'tcp':
-        return nettools.telnet_from_server(server_from, server_to, port_to)
+        return nettools_mod.telnet_from_server(server_from, server_to, port_to)
     elif check == 'dns':
-        return nettools.nslookup_from_server(server_from, dns_name, record_type)
+        return nettools_mod.nslookup_from_server(server_from, dns_name, record_type)
     else:
         return 'error: Wrong check'
 

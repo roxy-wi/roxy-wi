@@ -1,7 +1,6 @@
 import os
 import glob
 
-import distro
 from flask import request
 
 import modules.db.sql as sql
@@ -127,20 +126,8 @@ def logging(server_ip: str, action: str, **kwargs) -> None:
 		user_uuid = request.cookies.get('uuid')
 		login = sql.get_user_name_by_uuid(user_uuid)
 	except Exception:
-		login_name = kwargs.get('login')
-		try:
-			if len(login_name) > 1:
-				login = kwargs.get('login')
-		except Exception:
-			login = ''
-
-	try:
-		if distro.id() == 'ubuntu':
-			os.system('sudo chown www-data:www-data -R ' + log_path)
-		else:
-			os.system('sudo chown apache:apache -R ' + log_path)
-	except Exception:
-		pass
+		if kwargs.get('login'):
+			login = kwargs.get('login')
 
 	if kwargs.get('roxywi') == 1:
 		if kwargs.get('login'):

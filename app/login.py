@@ -82,7 +82,7 @@ def login_page():
                     user_uuid, user_token = roxywi_auth.create_uuid_and_token(login)
                     return roxywi_auth.do_login(user_uuid, str(user.groups), user, next_url)
                 else:
-                    return 'Login or password is not correct'
+                    return 'ban', 200
         else:
             return 'ban', 200
 

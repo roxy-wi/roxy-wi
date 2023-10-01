@@ -1,9 +1,7 @@
-import os
 import json
-import http.cookies
 
 import pika
-from flask import render_template
+from flask import render_template, request
 
 import modules.db.sql as sql
 import modules.common.common as common
@@ -259,14 +257,12 @@ def pd_send_mess(mess, level, server_ip=None, service_id=None, alert_type=None, 
 
 def check_rabbit_alert() -> str:
 	try:
-		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-		user_group_id = cookie.get('group')
-		user_group_id1 = user_group_id.value
+		user_group_id = request.cookies.get('group')
 	except Exception as e:
 		return f'error: Cannot send a message {e}'
 
 	try:
-		json_for_sending = {"user_group": user_group_id1, "message": 'info: Test message'}
+		json_for_sending = {"user_group": user_group_id, "message": 'info: Test message'}
 		send_message_to_rabbit(json.dumps(json_for_sending))
 	except Exception as e:
 		return f'error: Cannot send a message {e}'
@@ -279,14 +275,12 @@ def check_email_alert() -> str:
 	message = 'Test message from Roxy-WI'
 
 	try:
-		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-		user_uuid = cookie.get('uuid')
-		user_uuid_value = user_uuid.value
+		user_uuid = request.cookies.get('uuid')
 	except Exception as e:
 		return f'error: Cannot send a message {e}'
 
 	try:
-		user_email = sql.select_user_email_by_uuid(user_uuid_value)
+		user_email = sql.select_user_email_by_uuid(user_uuid)
 	except Exception as e:
 		return f'error: Cannot get a user email: {e}'
 

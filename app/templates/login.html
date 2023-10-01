@@ -83,11 +83,6 @@ body, .container {
 			{{error}}
 		</div>
 		{% endif %}
-		{% with messages = get_flashed_messages(with_categories=true) %}
-          {% for category, message in messages %}
-            <div class="{{ category }}" style="width: 15%;">{{ message }}</div>
-          {% endfor %}
-        {% endwith %}
 		<div class="alert alert-danger wrong-login alert-one-row" id="wrong-login">
 			{{lang.phrases.login_or_pass_incorrect}}
 			<br />

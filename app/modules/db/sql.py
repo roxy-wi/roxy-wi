@@ -533,6 +533,15 @@ def select_server_id_by_ip(server_ip):
 		return server_id
 
 
+def select_server_name_by_ip(server_ip):
+	try:
+		server_name = Server.get(Server.ip == server_ip).hostname
+	except Exception:
+		return None
+	else:
+		return server_name
+
+
 def select_server_group_by_ip(server_ip):
 	try:
 		groups = Server.get(Server.ip == server_ip).groups
@@ -2396,8 +2405,6 @@ def select_update_keep_alive_restart(server_id: int, service: str) -> int:
 		out_error(e)
 	else:
 		return restarted or 0
-	finally:
-		return 0
 
 
 def update_keep_alive_restart(server_id: int, service: str, restarted: int) -> None:
