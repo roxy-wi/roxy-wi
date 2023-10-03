@@ -79,7 +79,7 @@ def smon_dashboard(dashboard_id, check_id):
             cert_day_diff = (ssl_expire_date - present).days
 
     return render_template(
-        'include/smon/smon_history.html', h2=1, autorefresh=1, role=user_params['role'], user=user, smon=smon,
+        'include/smon/smon_history.html', autorefresh=1, role=user_params['role'], user=user, smon=smon,
         lang=user_params['lang'], user_status=user_subscription['user_status'], check_interval=check_interval,
         user_plan=user_subscription['user_plan'], token=user_params['token'], uptime=uptime, avg_res_time=avg_res_time,
         user_services=user_params['user_services'], smon_name=smon_name, cert_day_diff=cert_day_diff, check_id=check_id,
@@ -103,7 +103,7 @@ def smon_history():
         return redirect(url_for('login_page'))
 
     return render_template(
-        'smon/history.html',  autorefresh=0, role=user_params['role'], user=user, smon=smon, lang=user_params['lang'],
+        'smon/history.html', autorefresh=0, role=user_params['role'], user=user, smon=smon, lang=user_params['lang'],
         user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'], token=user_params['token'],
         smon_status=smon_status, smon_error=stderr, user_services=user_params['user_services']
     )

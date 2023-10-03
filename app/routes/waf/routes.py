@@ -50,7 +50,7 @@ def waf(service):
     autorefresh = 1
 
     return render_template(
-        'waf.html',  title=title, autorefresh=autorefresh, role=user_params['role'], user=user_params['user'], serv=serv,
+        'waf.html', title=title, autorefresh=autorefresh, role=user_params['role'], user=user_params['user'], serv=serv,
         servers=servers_waf, servers_all=servers, manage_rules=manage_rules, rules=rules,
         user_services=user_params['user_services'], waf_rule_file=waf_rule_file, waf_rule_id=waf_rule_id,
         config=config_read, cfg=cfg, token=user_params['token'], config_file_name=config_file_name, service=service,

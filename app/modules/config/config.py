@@ -109,7 +109,7 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 		try:
 			service_common.is_not_allowed_to_restart(server_id, service)
 		except Exception as e:
-			return str(e)
+			return f'error: Cannot check is this service allowed to be restarted: {e}'
 
 		action = 'restart'
 		reload_or_restart_command = restart_command
@@ -262,13 +262,13 @@ def master_slave_upload_and_restart(server_ip, cfg, just_save, service, **kwargs
 				)
 				slave_output += f'<br>slave_server:\n{slv_output}'
 			except Exception as e:
-				return f'{e}'
+				return f'error: {e}'
 	try:
 		output = upload_and_restart(
 			server_ip, cfg, just_save, service, waf=waf, config_file_name=config_file_name, oldcfg=oldcfg, login=login
 		)
 	except Exception as e:
-		return f'{e}'
+		return f'error: {e}'
 
 	output = server_name + ':\n' + output
 	output = output + slave_output

@@ -97,7 +97,7 @@ def check_in_ldap(user, password):
         if type(e.message) == dict and 'desc' in e.message:
             raise Exception(f'error: {e.message["desc"]}')
         else:
-            raise Exception (f'error: {e}')
+            raise Exception(f'error: {e}')
     else:
         return True
 

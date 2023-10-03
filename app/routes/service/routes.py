@@ -44,13 +44,14 @@ def services(service, serv):
         return redirect(url_for('login_page'))
 
     services = []
-    servers: object
+    service_desc = sql.select_service(service)
+    servers = roxywi_common.get_dick_permit(virt=1, service=service_desc.slug)
+    if len(servers) == 1:
+        serv = servers[0][2]
     autorefresh = 0
     waf_server = ''
     cmd = "ps ax |grep -e 'keep_alive.py' |grep -v grep |wc -l"
     keep_alive, stderr = server_mod.subprocess_execute(cmd)
-
-    service_desc = sql.select_service(service)
     is_redirect = roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=service_desc.service_id)
 
     if is_redirect != 'ok':
@@ -67,7 +68,7 @@ def services(service, serv):
         else:
             raise Exception('error: wrong group')
     else:
-        servers = roxywi_common.get_dick_permit(virt=1, service=service_desc.slug)
+
         docker_settings = sql.select_docker_services_settings(service_desc.slug)
         restart_settings = sql.select_restart_services_settings(service_desc.slug)
 
@@ -90,8 +91,6 @@ def services(service, serv):
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
     servers_with_status1 = []
     out1 = ''
-    if len(servers) == 1:
-        serv = servers[0][2]
     for s in servers:
         servers_with_status = list()
         servers_with_status.append(s[0])

@@ -144,7 +144,7 @@ def service_history(service, server_ip):
         print(e)
 
     return render_template(
-        'history.html', h2=1, role=user_params['role'], user=user, users=users, serv=server_ip, service=service,
+        'history.html', role=user_params['role'], user=user, users=users, serv=server_ip, service=service,
         history=history, user_services=user_params['user_services'], token=user_params['token'],
         user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'], lang=user_params['lang']
     )

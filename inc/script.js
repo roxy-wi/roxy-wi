@@ -211,7 +211,7 @@ function autoRefreshStyle(autoRefresh) {
 	$('.auto-refresh-resume').css('display', 'none');
 	$('.auto-refresh-pause').css('margin-left', "-25px");
 	$('.auto-refresh-resume').css('margin-left', "-25px");
-	$('#browse_histroy').css("border-bottom", "none");
+	$('#browse_history').css("border-bottom", "none");
 	$('.auto-refresh img').remove();
 }
 function setRefreshInterval(interval) {
@@ -1206,6 +1206,7 @@ function listHistroy() {
 	var history_link = '';
 	var title = []
 	var link_text = []
+	var cur_path = window.location.pathname;
 	for(let i = 0; i < browse_history.length; i++){
 		if (i == 0) {
 			browse_history[0] = browse_history[1];
@@ -1214,28 +1215,24 @@ function listHistroy() {
 			browse_history[1] = browse_history[2]
 		}
 		if (i == 2) {
-			if(cur_url[1] !== undefined) {
-				browse_history[2] = cur_url[0] + '/' + cur_url[1]
-			} else {
-				browse_history[2] = cur_url[0]
-			}
+			browse_history[2] = cur_path
 		}
 		$( function() {
 			$('.menu li ul li').each(function () {
 				var link1 = $(this).find('a').attr('href');
-				if (browse_history[i] == link1) {
+				if (browse_history[i].replace(/\/$/, "") == link1) {
 					title[i] = $(this).find('a').attr('title');
 					link_text[i] = $(this).find('a').text();
 					history_link = '<li><a href="'+browse_history[i]+'" title="'+title[i]+'">'+link_text[i]+'</a></li>'
-					$('#browse_histroy').append(history_link);
+					$('#browse_history').append(history_link);
 				}
 			});
 		});
 	}
 	localStorage.setItem('history', JSON.stringify(browse_history));
 }
-createHistroy()
-listHistroy()
+createHistroy();
+listHistroy();
 
 function changeCurrentGroupF() {
 	Cookies.remove('group');

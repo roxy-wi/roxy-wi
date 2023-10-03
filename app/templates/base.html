@@ -67,6 +67,7 @@
 		<script src="/inc/toastr.js"></script>
 	</head>
 	<body>
+		{% if user %}
 		<input type="hidden" id="token" value="{{ token }}">
 		<script>show_version();</script>
 		<div class="top-menu">
@@ -80,7 +81,6 @@
 			<div id="top-link" class="top-link">
 				<nav id="menu">
 					<ul class="menu">
-						{% if user %}
 						<li><a href="/app/" title="{{lang.menu_links.overview.title}}" class="overview-link ">{{lang.menu_links.overview.link}}</a></li>
 						{% if '1' in user_services %}
 						<li class="p_menu">
@@ -199,8 +199,7 @@
 									<li><a href="/app/admin#updatehapwi" title="{{lang.words.admin_area|title()}}: {{lang.words.w_update|title()}} Roxy-WI" class="upload updatehapwi head-submenu" id="admin-area-update">{{lang.words.w_update|title()}}</a></li>
 								</ul>
 							</li>
-						{% endif %}	
-					{% endif %}
+						{% endif %}
 					</ul>
 				</nav>
 			</div>
@@ -264,7 +263,7 @@
 					</div>
 				</div>
 			{% endif %}
-			<ul id='browse_histroy'></ul>
+			<ul id='browse_history'></ul>
 			{% if role %}
 				{% if role <= 2 %}
 					<div id="apply" style="display: none;">
@@ -272,6 +271,7 @@
 					</div>
 				{% endif %}
 			{% endif %}
+		{% endif %}
 			{% block content %}{% endblock %}
 			<div id="ajax-compare"></div>
 			<div id="ajax"></div>			

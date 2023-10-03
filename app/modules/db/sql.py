@@ -136,6 +136,17 @@ def update_user_current_groups(groups, user_uuid):
 		return True
 
 
+def update_user_current_groups_by_id(groups, user_id):
+	try:
+		user_update = User.update(groups=groups).where(User.user_id == user_id)
+		user_update.execute()
+	except Exception as e:
+		out_error(e)
+		return False
+	else:
+		return True
+
+
 def update_user_password(password, user_id):
 	try:
 		hashed_pass = roxy_wi_tools.Tools.get_hash(password)
@@ -751,11 +762,9 @@ def get_user_name_by_uuid(uuid):
 
 def get_user_id(user_id: int) -> int:
 	try:
-		query = User.get(User.user_id == user_id)
+		return User.get(User.user_id == user_id)
 	except Exception as e:
 		out_error(e)
-	else:
-		return query
 
 
 def get_user_id_by_uuid(uuid):
@@ -3452,7 +3461,7 @@ def select_restart_services_settings(service: str) -> str:
 		return query_res
 
 
-def select_service_setting(server_id: int, service: str, setting: str) -> str:
+def select_service_setting(server_id: int, service: str, setting: str) -> int:
 	try:
 		result = ServiceSetting.get(
 			(ServiceSetting.server_id == server_id)
@@ -3460,7 +3469,7 @@ def select_service_setting(server_id: int, service: str, setting: str) -> str:
 			& (ServiceSetting.setting == setting)
 		).value
 	except Exception:
-		pass
+		return 0
 	else:
 		return result
 

@@ -1,6 +1,7 @@
 import os
+from functools import wraps
 
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, abort
 from flask_login import login_required
 
 from app.routes.config import bp
@@ -19,6 +20,16 @@ time_zone = sql.get_setting('time_zone')
 get_date = roxy_wi_tools.GetDate(time_zone)
 
 
+def check_services(fn):
+    @wraps(fn)
+    def decorated_view(*args, **kwargs):
+        service = kwargs['service']
+        if service not in ('haproxy', 'nginx', 'apache', 'keepalived'):
+            abort(400, 'bad service')
+        return fn(*args, **kwargs)
+    return decorated_view
+
+
 @bp.before_request
 @login_required
 def before_request():
@@ -27,6 +38,7 @@ def before_request():
 
 
 @bp.route('/<service>/show', methods=['POST'])
+@check_services
 def show_config(service):
     config_file_name = request.form.get('config_file_name')
     configver = request.form.get('configver')
@@ -36,6 +48,7 @@ def show_config(service):
 
 
 @bp.route('/<service>/show-files', methods=['POST'])
+@check_services
 def show_config_files(service):
     server_ip = request.form.get('serv')
     config_file_name = request.form.get('config_file_name')
@@ -44,6 +57,7 @@ def show_config_files(service):
 
 
 @bp.route('/<service>/find-in-config', methods=['POST'])
+@check_services
 def find_in_config(service):
     server_ip = common.is_ip_or_dns(request.form.get('serv'))
     finding_words = request.form.get('words')
@@ -69,6 +83,7 @@ def find_in_config(service):
 @bp.route('/<service>/<serv>/show-files', defaults={'edit': None, 'config_file_name': None, 'new': None}, methods=['GET', 'POST'])
 @bp.route('/<service>/<serv>/<edit>/<config_file_name>', defaults={'new': None}, methods=['GET', 'POST'])
 @bp.route('/<service>/<serv>/<edit>/<config_file_name>/<new>', methods=['GET', 'POST'])
+@check_services
 def config(service, serv, edit, config_file_name, new):
     config_read = ""
     cfg = ""
@@ -134,6 +149,7 @@ def config(service, serv, edit, config_file_name, new):
 
 
 @bp.route('/<service>/<server_ip>/save', methods=['POST'])
+@check_services
 def save_config(service, server_ip):
     try:
         user_params = roxywi_common.get_users_params()
@@ -143,8 +159,7 @@ def save_config(service, server_ip):
 
     roxywi_common.check_is_server_in_group(server_ip)
     service_desc = sql.select_service(service)
-    is_redirect = roxywi_auth.check_login(user_params['user_uuid'], user_params['token'],
-                                          service=service_desc.service_id)
+    is_redirect = roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=service_desc.service_id)
 
     if is_redirect != 'ok':
         return redirect(url_for(f'{is_redirect}'))
@@ -185,6 +200,7 @@ def save_config(service, server_ip):
 
 @bp.route('/versions/<service>', defaults={'server_ip': None}, methods=['GET', 'POST'])
 @bp.route('/versions/<service>/<server_ip>', methods=['GET', 'POST'])
+@check_services
 def versions(service, server_ip):
     roxywi_auth.page_for_admin(level=3)
     aftersave = ''
@@ -237,6 +253,7 @@ def versions(service, server_ip):
 
 
 @bp.route('/version/<service>/list', methods=['POST'])
+@check_services
 def list_of_version(service):
     server_ip = common.is_ip_or_dns(request.form.get('serv'))
     configver = common.checkAjaxInput(request.form.get('configver'))
@@ -247,6 +264,7 @@ def list_of_version(service):
 
 @bp.route('/versions/<service>/<server_ip>/<configver>', defaults={'save': None}, methods=['GET', 'POST'])
 @bp.route('/versions/<service>/<server_ip>/<configver>/save', defaults={'save': 1}, methods=['GET', 'POST'])
+@check_services
 def show_version(service, server_ip, configver, save):
     roxywi_auth.page_for_admin(level=3)
 
@@ -438,11 +456,13 @@ def show_compare_config(service, serv):
 
 
 @bp.route('/compare/<service>/<server_ip>/files')
+@check_services
 def show_configs_for_compare(service, server_ip):
     return config_mod.show_compare_config(server_ip, service)
 
 
 @bp.route('/compare/<service>/<server_ip>/show', methods=['POST'])
+@check_services
 def show_compare(service, server_ip):
     left = common.checkAjaxInput(request.form.get('left'))
     right = common.checkAjaxInput(request.form.get('right'))

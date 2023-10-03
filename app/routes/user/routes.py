@@ -138,8 +138,9 @@ def show_user_groups_and_roles(user_id):
 def change_user_groups_and_roles():
     user = common.checkAjaxInput(request.form.get('changeUserGroupsUser'))
     groups_and_roles = json.loads(request.form.get('jsonDatas'))
+    user_uuid = request.cookies.get('uuid')
 
-    return roxywi_user.save_user_group_and_role(user, groups_and_roles)
+    return roxywi_user.save_user_group_and_role(user, groups_and_roles, user_uuid)
 
 
 @bp.route('/group/name/<int:group_id>')

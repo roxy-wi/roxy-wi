@@ -1,6 +1,6 @@
 import os
 
-from flask import render_template
+from flask import render_template, request, make_response
 
 import modules.db.sql as sql
 import modules.roxywi.common as roxywi_common
@@ -119,7 +119,15 @@ def show_user_groups_and_roles(user_id: int, lang: str) -> None:
     return render_template('ajax/user_groups_and_roles.html', groups=groups, user_groups=user_groups, roles=roles, lang=lang)
 
 
-def save_user_group_and_role(user: str, groups_and_roles: str) -> str:
+def is_current_user(user_id: int, user_uuid: str) -> bool:
+    current_user_id = sql.get_user_id_by_uuid(user_uuid)
+    if current_user_id == user_id:
+        return True
+    return False
+
+
+def save_user_group_and_role(user: str, groups_and_roles: str, user_uuid: str) -> str:
+    resp = make_response('ok')
     for k, v in groups_and_roles.items():
         user_id = int(k)
         if not sql.delete_user_groups(user_id):
@@ -127,14 +135,17 @@ def save_user_group_and_role(user: str, groups_and_roles: str) -> str:
         for k2, v2 in v.items():
             group_id = int(k2)
             role_id = int(v2['role_id'])
+            if len(v) == 1:
+                sql.update_user_current_groups_by_id(group_id, user_id)
+                if is_current_user(user_id, user_uuid):
+                    resp.set_cookie('group', str(group_id), secure=True)
             try:
                 sql.update_user_role(user_id, group_id, role_id)
             except Exception as e:
-                print(e)
-                break
+                raise Exception(f'error: Cannot update groups: {e}')
         else:
             roxywi_common.logging('Roxy-WI server', f'Groups and roles have been updated for user: {user}', roxywi=1, login=1)
-            return 'ok'
+            return resp
 
 
 def get_ldap_email(username) -> str:

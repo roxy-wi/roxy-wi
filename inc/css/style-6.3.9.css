@@ -41,7 +41,7 @@ h3 {
 	border-bottom: 1px solid #ddd;
 	padding: 0.3em 0.3em 0.3em 13px;
 }
-ul#browse_histroy {
+ul#browse_history {
     padding-left: 12px;
     display: block;
     margin-top: 3px;
@@ -51,29 +51,29 @@ ul#browse_histroy {
 	padding-bottom: 5px;
 	clear: both;
 }
-ul#browse_histroy li {
+ul#browse_history li {
 	display: inline;
 }
-ul#browse_histroy li:before {
+ul#browse_history li:before {
 	content: "/";
 	color: #767676;
 	margin: 0 5px 0px 5px;
 }
-ul#browse_histroy li+li:before {
+ul#browse_history li+li:before {
 	content: "->";
 	color: #767676;
 	margin: 0 5px 0px 5px;
 }
-#browse_histroy a {
+#browse_history a {
 	color: #767676;
 	font-size: 11.1px;
 	font-weight: bold;
 }
-ul#browse_histroy li:first-child a {
+ul#browse_history li:first-child a {
 	font-size: 10.4px;
 	color: #979393;
 }
-ul#browse_histroy li:last-child a {
+ul#browse_history li:last-child a {
 	font-size: 11.8px;
 	color: #7e7b7b;
 }
