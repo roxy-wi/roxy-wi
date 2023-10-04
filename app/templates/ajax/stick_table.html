@@ -71,6 +71,11 @@
 					{% endif %}
 					{% if headers|length > 8 %}
 					<th>
+						{{headers.8.split('=')[0].split('(')[0]}}
+					</th>
+					{% endif %}
+					{% if headers|length > 9 %}
+					<th>
 						{{headers.9.split('=')[0].split('(')[0]}}
 					</th>
 					{% endif %}

@@ -3041,6 +3041,12 @@ function saveGroupsAndRoles(user_id) {
 		var role_id = $('#add_role-' + this_id).val();
 		jsonData[user_id][this_id] = {'role_id': role_id};
 	});
+	for (const [key, value] of Object.entries(jsonData)) {
+		if (Object.keys(value).length === 0) {
+			toastr.error('error: User must have at least one group');
+			return false;
+		}
+	}
 	$.ajax({
 		url: "/app/user/groups/save",
 		data: {

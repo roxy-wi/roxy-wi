@@ -29,7 +29,7 @@ def metrics(service):
     service_desc = sql.select_service(service)
     roxywi_common.check_user_group_for_flask()
     servers = ''
-
+    services = '0'
     is_redirect = roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=service_desc.service_id)
 
     if is_redirect != 'ok':
@@ -41,10 +41,10 @@ def metrics(service):
         else:
             cmd = "rpm -q roxy-wi-metrics-* |awk -F\"metrics\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
         service_ver, stderr = server_mod.subprocess_execute(cmd)
-        services = '0'
+
         if not stderr:
             if len(service_ver) > 0:
-                if service_ver[0] == ' is not installed':
+                if 'is not installed' in service_ver[0]:
                     servers = ''
                 else:
                     services = '1'

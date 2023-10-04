@@ -1,6 +1,6 @@
 import os
 
-from flask import render_template, request, make_response
+from flask import render_template, make_response
 
 import modules.db.sql as sql
 import modules.roxywi.common as roxywi_common
