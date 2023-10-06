@@ -83,9 +83,12 @@ def create_server():
                 user_subscription = roxywi_common.return_unsubscribed_user_status()
                 roxywi_common.logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
 
-            if add_to_smon:
-                user_group = roxywi_common.get_user_group(id=1)
-                smon_mod.create_smon(hostname, ip, 0, 1, 0, 0, hostname, desc, 0, 0, 0, 56, 'ping', 0, 0, user_group, 0)
+            try:
+                if add_to_smon:
+                    user_group = roxywi_common.get_user_group(id=1)
+                    smon_mod.create_smon(hostname, ip, 0, 1, 0, 0, hostname, desc, 0, 0, 0, 56, 'ping', 0, 0, user_group, 0)
+            except Exception as e:
+                roxywi_common.logging(ip, f'error: Cannot add server {hostname} to SMON: {e}')
 
             roxywi_common.logging(ip, f'A new server {hostname} has been created', roxywi=1, login=1, keep_history=1, service='server')
 

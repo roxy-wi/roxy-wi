@@ -262,13 +262,13 @@ def master_slave_upload_and_restart(server_ip, cfg, just_save, service, **kwargs
 				)
 				slave_output += f'<br>slave_server:\n{slv_output}'
 			except Exception as e:
-				return f'error: {e}'
+				slave_output += f'<br>slave_server:\n error: {e}'
 	try:
 		output = upload_and_restart(
 			server_ip, cfg, just_save, service, waf=waf, config_file_name=config_file_name, oldcfg=oldcfg, login=login
 		)
 	except Exception as e:
-		return f'error: {e}'
+		output = f'error: {e}'
 
 	output = server_name + ':\n' + output
 	output = output + slave_output
