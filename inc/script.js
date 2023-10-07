@@ -866,11 +866,13 @@ $( function() {
 		$('#0').css("display", "inline");
 	});
 	$('#auth').submit(function() {
+		var next_url = findGetParameter('next');
 		$.ajax( {
 			url: "/app/login",
 			data: {
 				login: $('#login').val(),
-				pass: $('#pass').val()
+				pass: $('#pass').val(),
+				next: next_url
 			},
 			type: "POST",
 			success: function( data ) {

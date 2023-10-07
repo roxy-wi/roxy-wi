@@ -11,8 +11,9 @@ app.jinja_env.add_extension('jinja2.ext.loopcontrols')
 
 cache = Cache(config={'CACHE_TYPE': 'SimpleCache', "CACHE_DEFAULT_TIMEOUT": 3000})
 cache.init_app(app)
+
 login_manager = LoginManager(app)
-login_manager.login_view = 'app.login.login_page'
+login_manager.login_view = 'login_page'
 
 app.config['SITEMAP_INCLUDE_RULES_WITHOUT_PARAMS'] = True
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=3)

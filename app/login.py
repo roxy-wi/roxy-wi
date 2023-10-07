@@ -1,5 +1,5 @@
 from flask import render_template, request, redirect, url_for, make_response
-from flask_login import login_required, logout_user, current_user
+from flask_login import login_required, logout_user, current_user, login_url
 
 from app import app, login_manager, cache
 import app.modules.db.sql as sql
@@ -10,21 +10,20 @@ import app.modules.roxy_wi_tools as roxy_wi_tools
 
 
 @app.before_request
-@cache.memoize(2)
 def check_login():
     if request.endpoint not in ('login_page', 'static', 'main.show_roxywi_version'):
         try:
             user_params = roxywi_common.get_users_params()
         except Exception:
-            return redirect(url_for('login_page'))
+            return redirect(login_url('login_page', next_url=request.url))
 
         if not sql.is_user_active(user_params['user_id']):
-            return redirect(url_for('login_page'))
+            return redirect(login_url('login_page', next_url=request.url))
 
         try:
             roxywi_auth.check_login(user_params['user_uuid'], user_params['token'])
         except Exception:
-            return redirect(url_for('login_page'))
+            return redirect(login_url('login_page', next_url=request.url))
 
 
 @login_manager.user_loader
@@ -43,7 +42,7 @@ def load_user(user_id):
 @app.after_request
 def redirect_to_login(response):
     if response.status_code == 401:
-        return redirect(url_for('login_page') + '?next=' + request.url)
+        return redirect(login_url('login_page', next_url=request.url))
 
     return response
 

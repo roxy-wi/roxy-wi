@@ -117,12 +117,17 @@ def do_login(user_uuid: str, user_group: str, user: str, next_url: str):
     except Exception:
         session_ttl = 5
 
+    if next_url:
+        redirect_to = f'https://{request.host}{next_url}'
+    else:
+        redirect_to = f"https://{request.host}{url_for('overview.index')}"
+
     expires = datetime.utcnow() + timedelta(days=session_ttl)
 
     login_user(user)
-    resp = make_response(next_url or url_for('overview.index'))
-    resp.set_cookie('uuid', user_uuid, secure=True, expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"))
-    resp.set_cookie('group', str(user_group), secure=True, expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"))
+    resp = make_response(redirect_to)
+    resp.set_cookie('uuid', user_uuid, secure=True, expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"), httponly=True, samesite='Strict')
+    resp.set_cookie('group', str(user_group), secure=True, expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"), httponly=True, samesite='Strict')
 
     try:
         user_group_name = sql.get_group_name_by_id(user_group)

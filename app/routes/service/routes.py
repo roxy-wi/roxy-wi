@@ -79,7 +79,7 @@ def services(service, serv):
         if distro.id() == 'ubuntu':
             if s == 'roxy-wi-keep_alive':
                 s = 'roxy-wi-keep-alive'
-            cmd = "apt list --installed 2>&1 |grep " + s
+            cmd = f"apt list --installed 2>&1 |grep {s}"
         else:
             cmd = "rpm --query " + s + "-* |awk -F\"" + s + "\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
         service_ver, stderr = server_mod.subprocess_execute(cmd)
@@ -90,7 +90,6 @@ def services(service, serv):
 
     haproxy_sock_port = sql.get_setting('haproxy_sock_port')
     servers_with_status1 = []
-    out1 = ''
     for s in servers:
         servers_with_status = list()
         servers_with_status.append(s[0])
@@ -101,14 +100,14 @@ def services(service, serv):
             h = (['', ''],)
             cmd = [
                 "/usr/sbin/nginx -v 2>&1|awk '{print $3}' && systemctl status nginx |grep -e 'Active' |awk "
-                "'{print $2, $9$10$11$12$13}' && ps ax |grep nginx:|grep -v grep |wc -l"]
+                "'{print $2, $9$10$11$12$13}' && ps ax |grep nginx:|grep -v grep |wc -l"
+            ]
             for service_set in docker_settings:
                 if service_set.server_id == s[0] and service_set.setting == 'dockerized' and service_set.value == '1':
                     container_name = sql.get_setting('nginx_container_name')
                     cmd = [
                         "docker exec -it " + container_name + " /usr/sbin/nginx -v 2>&1|awk '{print $3}' && "
-                                                              "docker ps -a -f name=" + container_name + " --format '{{.Status}}'|tail -1 && ps ax |grep nginx:"
-                                                                                                         "|grep -v grep |wc -l"
+                        "docker ps -a -f name=" + container_name + " --format '{{.Status}}'|tail -1 && ps ax |grep nginx:|grep -v grep |wc -l"
                     ]
             try:
                 out = server_mod.ssh_command(s[2], cmd)
@@ -163,7 +162,7 @@ def services(service, serv):
                 servers_with_status.append(h)
                 servers_with_status.append(s[22])
         else:
-            cmd = 'echo "show info" |nc %s %s -w 1 -v|grep -e "Ver\|Uptime:\|Process_num"' % (s[2], haproxy_sock_port)
+            cmd = f'echo "show info" |nc {s[2]} {haproxy_sock_port} -w 1 -v|grep -e "Ver\|Uptime:\|Process_num"'
             out = server_mod.subprocess_execute(cmd)
 
             for k in out:
@@ -197,7 +196,7 @@ def services(service, serv):
     user_subscription = roxywi_common.return_user_subscription()
 
     return render_template(
-        'hapservers.html', h2=1, autorefresh=autorefresh, role=user_params['role'], user=user, servers=servers_with_status1,
+        'service.html', autorefresh=autorefresh, role=user_params['role'], user=user, servers=servers_with_status1,
         keep_alive=''.join(keep_alive), serv=serv, service=service, services=services, user_services=user_params['user_services'],
         docker_settings=docker_settings, user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'],
         waf_server=waf_server, restart_settings=restart_settings, service_desc=service_desc, token=user_params['token'],
@@ -234,7 +233,8 @@ def cpu_ram_metrics(server_ip, server_id, name, service):
     user_params = roxywi_common.get_users_params()
 
     if service == 'haproxy':
-        cmd = 'echo "show info" |nc %s %s -w 1|grep -e "node\|Nbproc\|Maxco\|MB\|Nbthread"' % (server_ip, sql.get_setting('haproxy_sock_port'))
+        sock_port = sql.get_setting('haproxy_sock_port')
+        cmd = f'echo "show info" |nc {server_ip} {sock_port} -w 1|grep -e "node\|Nbproc\|Maxco\|MB\|Nbthread"'
         out = server_mod.subprocess_execute(cmd)
         return_out = ""
 
@@ -263,28 +263,28 @@ def cpu_ram_metrics(server_ip, server_id, name, service):
     )
 
 
-@bp.route('/haproxy/bytes', methods=['POST'])
+@bp.post('/haproxy/bytes')
 def show_haproxy_bytes():
     server_ip = common.is_ip_or_dns(request.form.get('showBytes'))
 
     return roxy_overview.show_haproxy_binout(server_ip)
 
 
-@bp.route('/nginx/connections', methods=['POST'])
+@bp.post('/nginx/connections')
 def show_nginx_connections():
     server_ip = common.is_ip_or_dns(request.form.get('nginxConnections'))
 
     return roxy_overview.show_nginx_connections(server_ip)
 
 
-@bp.route('/apache/bytes', methods=['POST'])
+@bp.post('/apache/bytes')
 def show_apache_bytes():
     server_ip = common.is_ip_or_dns(request.form.get('apachekBytes'))
 
     return roxy_overview.show_apache_bytes(server_ip)
 
 
-@bp.route('/keepalived/become-master', methods=['POST'])
+@bp.post('/keepalived/become-master')
 @cache.cached()
 def show_keepalived_become_master():
     server_ip = common.is_ip_or_dns(request.form.get('keepalivedBecameMaster'))

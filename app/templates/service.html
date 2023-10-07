@@ -203,7 +203,7 @@
 				<input type="hidden" id="server-name-{{s.0}}" value="{{s.1}}" />
 				<input type="hidden" id="service" value="{{service}}" />
 				{% if not serv %}
-					<a href="/app/service/{{service}}/{{s.2}}" title="{{lang.words.more|title()}} {{lang.words.about}} {{s.1}}" style="color: #5d9ceb">{{s.1}}</a>
+					<a href="{{ url_for('service.services', service=service, serv=s.2) }}" title="{{lang.words.more|title()}} {{lang.words.about}} {{s.1}}" style="color: #5d9ceb">{{s.1}}</a>
 				{% else %}
 					{{s.1}}
 				{% endif %}
@@ -249,7 +249,7 @@
 					<a id="stop-{{ s.2 }}" class="stop" title="{{lang.words.stop|title()}} {{service}} {{lang.words.service}}">
 						<span class="service-stop" onclick="confirmAjaxAction('stop', '{{service}}', '{{s.2}}')"></span>
 					</a>
-					<a href="/app/history/{{service}}/{{s.2}}" title="{{lang.words.view|title()}} {{lang.words.history3}} {{s.1}}" class="history" style="margin: 0 5px 0 10px;"></a>
+					<a href="{{ url_for('main.service_history', service=service, server_ip=s.2) }}" title="{{lang.words.view|title()}} {{lang.words.history3}} {{s.1}}" class="history" style="margin: 0 5px 0 10px;"></a>
 					{% if service != 'keepalived' %}
 					<span class="menu-bar" onclick="serverSettings('{{s.0}}', '{{s.1}}')" title="{{lang.words.edit|title()}} {{lang.words.settings}} {{s.1}}"></span>
 					{% endif %}
@@ -351,11 +351,11 @@
 				<a href="/app/config/map/{{service}}/{{s.2}}" class="ui-button ui-widget ui-corner-all" {{map_id}} title="{{lang.words.show|title()}} {{lang.words.map}}">{{lang.words.map|title()}}</a>
 			{% endif %}
 			{% if service != 'keepalived' %}
-			<a href="/app/stats/{{service}}/{{s.2}}" class="ui-button ui-widget ui-corner-all" {{stats_id}} title="{{lang.words.view|title()}} {{service}} {{lang.words.statistics}}">{{lang.menu_links.stats.link}}</a>
+			<a href="{{ url_for('main.stats', service=service, serv=s.2) }}" class="ui-button ui-widget ui-corner-all" {{stats_id}} title="{{lang.words.view|title()}} {{service}} {{lang.words.statistics}}">{{lang.menu_links.stats.link}}</a>
 			{% endif %}
-			<a href="/app/logs/{{service}}/" {{logs_id}} class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{service}} {{lang.words.logs}}">{{lang.menu_links.logs.link}}</a>
+			<a href="{{ url_for('logs.logs', service=service) }}" {{logs_id}} class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{service}} {{lang.words.logs}}">{{lang.menu_links.logs.link}}</a>
 			{% if role <= 2 %}
-				<a href="/app/config/versions/{{service}}/{{s.2}}" class="ui-button ui-widget ui-corner-all" {{versions_id}} title="{{lang.words.view|title()}}/{{lang.words.rollback|title()}} {{lang.words.to}} {{lang.words.previous}} {{lang.words.config}}">{{lang.menu_links.versions.link}}</a>
+				<a href="{{ url_for('config.versions', service=service, server_ip=s.2) }}" class="ui-button ui-widget ui-corner-all" {{versions_id}} title="{{lang.words.view|title()}}/{{lang.words.rollback|title()}} {{lang.words.to}} {{lang.words.previous}} {{lang.words.config}}">{{lang.menu_links.versions.link}}</a>
 			{% endif %}
 			</div>
 		</div>

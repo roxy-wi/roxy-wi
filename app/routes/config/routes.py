@@ -141,7 +141,7 @@ def config(service, serv, edit, config_file_name, new):
         config_read = ' '
 
     return render_template(
-        'config.html', h2=1, role=user_params['role'], user=user, select_id="serv", serv=serv, aftersave=aftersave,
+        'config.html', role=user_params['role'], user=user, select_id="serv", serv=serv, aftersave=aftersave,
         config=config_read, cfg=cfg, selects=user_params['servers'], stderr=stderr, error=error, service=service,
         is_restart=is_restart, user_services=user_params['user_services'], config_file_name=config_file_name,
         is_serv_protected=is_serv_protected, token=user_params['token'], lang=user_params['lang'], service_desc=service_desc
@@ -164,7 +164,7 @@ def save_config(service, server_ip):
     if is_redirect != 'ok':
         return redirect(url_for(f'{is_redirect}'))
 
-    config = request.form.get('config')
+    config_file = request.form.get('config')
     oldcfg = request.form.get('oldconfig')
     save = request.form.get('save')
     config_file_name = request.form.get('config_file_name')
@@ -176,7 +176,7 @@ def save_config(service, server_ip):
 
     try:
         with open(cfg, "a") as conf:
-            conf.write(config)
+            conf.write(config_file)
     except IOError as e:
         return f"error: Cannot read imported config file: {e}", 200
 
@@ -246,7 +246,7 @@ def versions(service, server_ip):
                     stderr = "Error: %s - %s." % (e.filename, e.strerror)
 
     return render_template(
-        'delver.html', h2=1, role=user_params['role'], user=user, select_id="serv", serv=server_ip, aftersave=aftersave,
+        'delver.html', role=user_params['role'], user=user, select_id="serv", serv=server_ip, aftersave=aftersave,
         selects=user_params['servers'], file=file, service=service, user_services=user_params['user_services'],
         token=user_params['token'], lang=user_params['lang'], stderr=stderr
     )
@@ -335,7 +335,7 @@ def haproxy_section(server_ip):
     sections = section_mod.get_sections(cfg)
 
     return render_template(
-        'sections.html', h2=1, role=user_params['role'], user=user, serv=server_ip, selects=user_params['servers'],
+        'sections.html', role=user_params['role'], user=user, serv=server_ip, selects=user_params['servers'],
         sections=sections, error=error, token=user_params['token'], lang=user_params['lang'], is_restart=is_restart, config='',
         user_services=user_params['user_services']
     )
@@ -370,10 +370,10 @@ def haproxy_section_show(server_ip, section):
     os.system(f"/bin/mv {cfg} {cfg}.old")
 
     return render_template(
-        'sections.html', h2=1, role=user_params['role'], user=user,
-        serv=server_ip, selects=user_params['servers'], error=error, sections=sections, cfg=cfg,
-        token=user_params['token'], lang=user_params['lang'], is_restart=is_restart, config=config_read,
-        start_line=start_line, end_line=end_line, section=section, user_services=user_params['user_services']
+        'sections.html', role=user_params['role'], user=user, serv=server_ip, selects=user_params['servers'],
+        error=error, sections=sections, cfg=cfg, token=user_params['token'], lang=user_params['lang'],
+        is_restart=is_restart, config=config_read, start_line=start_line, end_line=end_line, section=section,
+        user_services=user_params['user_services']
     )
 
 
@@ -392,21 +392,21 @@ def haproxy_section_save(server_ip):
 
     hap_configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
     cfg = f"{hap_configs_dir}{server_ip}-{get_date.return_date('config')}.cfg"
-    config = request.form.get('config')
+    config_file = request.form.get('config')
     oldcfg = request.form.get('oldconfig')
     save = request.form.get('save')
     start_line = request.form.get('start_line')
     end_line = request.form.get('end_line')
 
     if save == 'delete':
-        config = ''
+        config_file = ''
         save = 'reload'
 
-    config = section_mod.rewrite_section(start_line, end_line, oldcfg, config)
+    config_file = section_mod.rewrite_section(start_line, end_line, oldcfg, config_file)
 
     try:
         with open(cfg, "w") as conf:
-            conf.write(config)
+            conf.write(config_file)
     except IOError as e:
         return f"error: Cannot read import config file: {e}"
 
@@ -447,7 +447,7 @@ def show_compare_config(service, serv):
         return redirect(url_for('index'))
 
     return render_template(
-        'config.html', h2=1, role=user_params['role'], user=user, select_id="serv", serv=serv, aftersave=aftersave,
+        'config.html', role=user_params['role'], user=user, select_id="serv", serv=serv, aftersave=aftersave,
         config=config_read, cfg=cfg, selects=user_params['servers'], stderr=stderr, error=error, service=service,
         is_restart=is_restart, user_services=user_params['user_services'], config_file_name=config_file_name,
         is_serv_protected=is_serv_protected, token=user_params['token'], lang=user_params['lang'],

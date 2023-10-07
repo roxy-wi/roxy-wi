@@ -144,7 +144,7 @@ def show_nginx_connections(server_ip: str) -> str:
         return 'error: cannot connect to NGINX stat page'
 
 
-def show_apache_bytes(server_ip: str) -> None:
+def show_apache_bytes(server_ip: str) -> str:
     port = sql.get_setting('apache_stats_port')
     user = sql.get_setting('apache_stats_user')
     password = sql.get_setting('apache_stats_password')
@@ -221,11 +221,10 @@ def show_services_overview():
     socket, stderr = server_mod.subprocess_execute(cmd)
 
     return render_template(
-        'ajax/show_services_ovw.html',
-        role=user_params['role'], metrics_master=''.join(metrics_master), metrics_worker=metrics_worker,
-        checker_master=''.join(checker_master), checker_worker=checker_worker, keep_alive=''.join(keep_alive),
-        smon=''.join(smon), port_scanner=''.join(port_scanner), grafana=grafana, socket=''.join(socket),
-        is_checker_worker=is_checker_worker, is_metrics_worker=is_metrics_worker, host=host,
+        'ajax/show_services_ovw.html', role=user_params['role'], metrics_master=''.join(metrics_master),
+        metrics_worker=metrics_worker, checker_master=''.join(checker_master), checker_worker=checker_worker,
+        keep_alive=''.join(keep_alive), smon=''.join(smon), port_scanner=''.join(port_scanner), grafana=grafana,
+        socket=''.join(socket), is_checker_worker=is_checker_worker, is_metrics_worker=is_metrics_worker, host=host,
         roxy_wi_log_id=roxy_logs.roxy_wi_log(log_id=1, file="roxy-wi-"),
         metrics_log_id=roxy_logs.roxy_wi_log(log_id=1, file="metrics"),
         checker_log_id=roxy_logs.roxy_wi_log(log_id=1, file="checker"),
