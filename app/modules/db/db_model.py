@@ -3,6 +3,7 @@ from playhouse.migrate import *
 from datetime import datetime
 from flask_login import UserMixin
 
+from app import app
 import modules.roxy_wi_tools as roxy_wi_tools
 
 get_config = roxy_wi_tools.GetConfigVar()
@@ -20,6 +21,12 @@ else:
     db = "/var/lib/roxy-wi/roxy-wi.db"
     conn = SqliteDatabase(db, pragmas={'timeout': 1000, 'foreign_keys': 1})
     migrator = SqliteMigrator(conn)
+
+
+@app.teardown_request
+def _db_close(exc):
+    if not conn.is_closed():
+        conn.close()
 
 
 class BaseModel(Model):
