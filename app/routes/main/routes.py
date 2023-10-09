@@ -2,14 +2,15 @@ import os
 import sys
 import pytz
 
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, session
 from flask_login import login_required
 
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app'))
 
-from app import cache
+from app import app, cache
 from app.routes.main import bp
 import modules.db.sql as sql
+from modules.db.db_model import conn
 import modules.common.common as common
 import modules.roxywi.roxy as roxy
 import modules.roxywi.auth as roxywi_auth
@@ -17,6 +18,17 @@ import modules.roxywi.nettools as nettools_mod
 import modules.roxywi.common as roxywi_common
 import modules.service.common as service_common
 import modules.service.haproxy as service_haproxy
+
+
+@app.before_request
+def make_session_permanent():
+    session.permanent = True
+
+
+@app.teardown_request
+def _db_close(exc):
+    if not conn.is_closed():
+        conn.close()
 
 
 @bp.errorhandler(404)
