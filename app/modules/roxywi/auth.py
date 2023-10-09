@@ -12,11 +12,6 @@ def check_login(user_uuid, token, **kwargs) -> str:
     if user_uuid is None:
         return 'login_page'
 
-    try:
-        sql.delete_old_uuid()
-    except Exception as e:
-        raise Exception(f'error: cannot connect to DB {e}')
-
     if user_uuid is not None:
         if sql.get_user_name_by_uuid(user_uuid) is None:
             return 'login_page'
@@ -127,7 +122,7 @@ def do_login(user_uuid: str, user_group: str, user: str, next_url: str):
     login_user(user)
     resp = make_response(redirect_to)
     resp.set_cookie('uuid', user_uuid, secure=True, expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"), httponly=True, samesite='Strict')
-    resp.set_cookie('group', str(user_group), secure=True, expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"), httponly=True, samesite='Strict')
+    resp.set_cookie('group', str(user_group), expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"), samesite='Strict')
 
     try:
         user_group_name = sql.get_group_name_by_id(user_group)

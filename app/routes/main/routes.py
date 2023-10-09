@@ -20,6 +20,16 @@ import modules.service.common as service_common
 import modules.service.haproxy as service_haproxy
 
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
+
+@app.errorhandler(500)
+def page_not_found(e):
+    return render_template('500.html', e=e), 500
+
+
 @app.before_request
 def make_session_permanent():
     session.permanent = True
@@ -29,16 +39,6 @@ def make_session_permanent():
 def _db_close(exc):
     if not conn.is_closed():
         conn.close()
-
-
-@bp.errorhandler(404)
-def page_not_found(e):
-    return render_template('404.html'), 404
-
-
-@bp.errorhandler(500)
-def page_not_found(e):
-    return render_template('500.html', e=e), 500
 
 
 @bp.route('/stats/<service>/', defaults={'serv': None})
@@ -149,11 +149,6 @@ def service_history(service, server_ip):
             history = sql.select_action_history_by_server_id(server_id)
     elif service == 'user':
         history = sql.select_action_history_by_user_id(server_ip)
-
-    try:
-        sql.delete_action_history_for_period()
-    except Exception as e:
-        print(e)
 
     return render_template(
         'history.html', role=user_params['role'], user=user, users=users, serv=server_ip, service=service,
