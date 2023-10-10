@@ -65,6 +65,7 @@ function showOverviewCallBack(serv, hostnamea) {
 		success: function( data ) {
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
+				$("#"+hostnamea).html("");
 			} else {
 				$("#" + hostnamea).empty();
 				$("#" + hostnamea).html(data);

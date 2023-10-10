@@ -1,5 +1,3 @@
-import os
-
 import psutil
 import requests
 from flask import render_template, request
@@ -33,7 +31,7 @@ def show_sub_ovw() -> None:
     return render_template('ajax/show_sub_ovw.html', sub=sql.select_user_all(), lang=lang)
 
 
-def show_overview(serv) -> None:
+def show_overview(serv) -> str:
     servers = []
     user_uuid = request.cookies.get('uuid')
     group_id = request.cookies.get('group')
@@ -62,29 +60,38 @@ def show_overview(serv) -> None:
 
     if haproxy:
         cmd = f'echo "show info" |nc {server[0][2]} {sql.get_setting("haproxy_sock_port")} -w 1|grep -e "Process_num"'
-        haproxy_process = service_common.server_status(server_mod.subprocess_execute(cmd))
+        try:
+            haproxy_process = service_common.server_status(server_mod.subprocess_execute(cmd))
+        except Exception:
+            return f'{e} for server {server[0][2]}'
 
     if nginx:
         nginx_cmd = f'echo "something" |nc {server[0][2]} {sql.get_setting("nginx_stats_port")} -w 1'
-        nginx_process = service_common.server_status(server_mod.subprocess_execute(nginx_cmd))
+        try:
+            nginx_process = service_common.server_status(server_mod.subprocess_execute(nginx_cmd))
+        except Exception:
+            return f'{e} for server {server[0][2]}'
 
     if apache:
         apache_cmd = f'echo "something" |nc {server[0][2]} {sql.get_setting("apache_stats_port")} -w 1'
-        apache_process = service_common.server_status(server_mod.subprocess_execute(apache_cmd))
+        try:
+            apache_process = service_common.server_status(server_mod.subprocess_execute(apache_cmd))
+        except Exception:
+            return f'{e} for server {server[0][2]}'
 
     if keepalived:
         command = ["ps ax |grep keepalived|grep -v grep|wc -l|tr -d '\n'"]
         try:
             keepalived_process = server_mod.ssh_command(server[0][2], command)
         except Exception as e:
-            raise Exception(f'error: {e} for server {server[0][2]}')
+            return f'{e} for server {server[0][2]}'
 
     if waf_len >= 1:
         command = ["ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l"]
         try:
             waf_process = server_mod.ssh_command(server[0][2], command)
         except Exception as e:
-            raise Exception(f'error: {e} for server {server[0][2]}')
+            return f'{e} for server {server[0][2]}'
 
     server_status = (
         server[0][1], server[0][2], haproxy, haproxy_process, waf_process, waf, keepalived, keepalived_process, nginx,
@@ -171,7 +178,7 @@ def show_services_overview():
     metrics_worker = 0
     checker_worker = 0
     servers_group = []
-    host = os.environ.get('HTTP_HOST', '')
+    host = request.host
     user_group = roxywi_common.get_user_group(id=1)
     lang = roxywi_common.get_user_lang_for_flask()
 
