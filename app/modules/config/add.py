@@ -216,7 +216,10 @@ def save_bwlist(list_name: str, list_con: str, color: str, group: str, server_ip
 	for serv in servers:
 		server_mod.ssh_command(serv, [f"sudo mkdir {path}"])
 		server_mod.ssh_command(serv, [f"sudo chown $(whoami) {path}"])
-		error = config_mod.upload(serv, f'{path}/{list_name}', list_path)
+		try:
+			error = config_mod.upload(serv, f'{path}/{list_name}', list_path)
+		except Exception as e:
+			error = f'{serv}: {e}'
 
 		if error:
 			output += f'error: Upload fail: {error} , '

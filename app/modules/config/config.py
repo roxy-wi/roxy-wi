@@ -53,8 +53,7 @@ def upload(server_ip, path, file):
 	except Exception as e:
 		error = str(e.args)
 		roxywi_common.logging('Roxy-WI server', f'error: Cannot upload {file} to {path} to server: {server_ip}: {error}', roxywi=1)
-		print(f'error: Cannot upload {file} to {path} to server: {server_ip}: {error}')
-		raise Exception(error)
+		raise Exception(f'error: Cannot upload {file} to {path} to server: {server_ip}: {error}')
 
 
 def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, **kwargs):
