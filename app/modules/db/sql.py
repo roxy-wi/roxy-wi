@@ -163,6 +163,7 @@ def delete_user(user_id):
 	try:
 		user_for_delete = User.delete().where(User.user_id == user_id)
 		user_for_delete.execute()
+		delete_user_groups(user_id)
 	except Exception as e:
 		out_error(e)
 		return False
@@ -268,6 +269,7 @@ def delete_group(group_id):
 	try:
 		group_for_delete = Groups.delete().where(Groups.group_id == group_id)
 		group_for_delete.execute()
+		UserGroups.delete().where(UserGroups.user_group_id == group_id).execute()
 	except Exception as e:
 		out_error(e)
 		return False
@@ -729,6 +731,9 @@ def delete_old_uuid():
 		query1.execute()
 	except Exception as e:
 		out_error(e)
+	finally:
+		if not conn.is_closed():
+			conn.close()
 
 
 def update_last_act_user(uuid: str, token: str, ip: str) -> None:
@@ -1381,7 +1386,10 @@ def insert_metrics(serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate):
 		).execute()
 	except Exception as e:
 		out_error(e)
-
+	else:
+		if type(conn) is not str:
+			if not conn.is_closed():
+				conn.close()
 
 def insert_metrics_http(serv, http_2xx, http_3xx, http_4xx, http_5xx):
 	cur_date = get_date.return_date('regular')
@@ -1392,6 +1400,10 @@ def insert_metrics_http(serv, http_2xx, http_3xx, http_4xx, http_5xx):
 		).execute()
 	except Exception as e:
 		out_error(e)
+	else:
+		if type(conn) is not str:
+			if not conn.is_closed():
+				conn.close()
 
 
 def insert_nginx_metrics(serv, conn):
@@ -1400,6 +1412,10 @@ def insert_nginx_metrics(serv, conn):
 		NginxMetrics.insert(serv=serv, conn=conn, date=cur_date).execute()
 	except Exception as e:
 		out_error(e)
+	else:
+		if type(conn) is not str:
+			if not conn.is_closed():
+				conn.close()
 
 
 def insert_apache_metrics(serv, conn):
@@ -1408,6 +1424,10 @@ def insert_apache_metrics(serv, conn):
 		ApacheMetrics.insert(serv=serv, conn=conn, date=cur_date).execute()
 	except Exception as e:
 		out_error(e)
+	else:
+		if type(conn) is not str:
+			if not conn.is_closed():
+				conn.close()
 
 
 def select_waf_metrics_enable_server(ip):
@@ -1726,6 +1746,10 @@ def insert_waf_metrics(serv, conn):
 		WafMetrics.insert(serv=serv, conn=conn, date=cur_date).execute()
 	except Exception as e:
 		out_error(e)
+	finally:
+		if type(conn) is not str:
+			if not conn.is_closed():
+				conn.close()
 
 
 def delete_waf_metrics():
@@ -1735,6 +1759,10 @@ def delete_waf_metrics():
 		query.execute()
 	except Exception as e:
 		out_error(e)
+	finally:
+		if type(conn) is not str:
+			if not conn.is_closed():
+				conn.close()
 
 
 def update_waf_metrics_enable(name, enable):
@@ -1759,6 +1787,10 @@ def delete_metrics():
 		query.execute()
 	except Exception as e:
 		out_error(e)
+	finally:
+		if type(conn) is not str:
+			if not conn.is_closed():
+				conn.close()
 
 
 def delete_http_metrics():
@@ -1768,6 +1800,10 @@ def delete_http_metrics():
 		query.execute()
 	except Exception as e:
 		out_error(e)
+	finally:
+		if type(conn) is not str:
+			if not conn.is_closed():
+				conn.close()
 
 
 def delete_nginx_metrics():
@@ -1777,6 +1813,10 @@ def delete_nginx_metrics():
 		query.execute()
 	except Exception as e:
 		out_error(e)
+	finally:
+		if type(conn) is not str:
+			if not conn.is_closed():
+				conn.close()
 
 
 def delete_apache_metrics():
@@ -1786,6 +1826,10 @@ def delete_apache_metrics():
 		query.execute()
 	except Exception as e:
 		out_error(e)
+	finally:
+		if type(conn) is not str:
+			if not conn.is_closed():
+				conn.close()
 
 
 def select_metrics(serv, service, **kwargs):
@@ -2234,7 +2278,6 @@ def select_service_table_metrics(service: str, group_id: int):
 
 
 def update_setting(param: str, val: str, user_group: int) -> bool:
-	print(val)
 	query = Setting.update(value=val).where((Setting.param == param) & (Setting.group == user_group))
 	try:
 		query.execute()
@@ -2801,6 +2844,10 @@ def select_status(smon_id):
 		out_error(e)
 	else:
 		return query_res
+	finally:
+		if type(conn) is not str:
+			if not conn.is_closed():
+				conn.close()
 
 
 def select_http_status(smon_id):
@@ -2810,6 +2857,10 @@ def select_http_status(smon_id):
 		out_error(e)
 	else:
 		return query_res
+	finally:
+		if type(conn) is not str:
+			if not conn.is_closed():
+				conn.close()
 
 
 def select_body_status(smon_id):
@@ -2819,6 +2870,10 @@ def select_body_status(smon_id):
 		out_error(e)
 	else:
 		return query_res
+	finally:
+		if type(conn) is not str:
+			if not conn.is_closed():
+				conn.close()
 
 
 def select_script(smon_id):
@@ -2837,6 +2892,10 @@ def select_http(smon_id):
 		out_error(e)
 	else:
 		return query_res
+	finally:
+		if type(conn) is not str:
+			if not conn.is_closed():
+				conn.close()
 
 
 def select_body(smon_id):
@@ -2846,6 +2905,10 @@ def select_body(smon_id):
 		out_error(e)
 	else:
 		return query_res
+	finally:
+		if type(conn) is not str:
+			if not conn.is_closed():
+				conn.close()
 
 
 def change_status(status, smon_id):
@@ -2857,6 +2920,10 @@ def change_status(status, smon_id):
 		return False
 	else:
 		return True
+	finally:
+		if type(conn) is not str:
+			if not conn.is_closed():
+				conn.close()
 
 
 def change_body_status(status, smon_id):
@@ -2868,6 +2935,10 @@ def change_body_status(status, smon_id):
 		return False
 	else:
 		return True
+	finally:
+		if type(conn) is not str:
+			if not conn.is_closed():
+				conn.close()
 
 
 def add_sec_to_state_time(time, smon_id):
@@ -2879,6 +2950,10 @@ def add_sec_to_state_time(time, smon_id):
 		return False
 	else:
 		return True
+	finally:
+		if type(conn) is not str:
+			if not conn.is_closed():
+				conn.close()
 
 
 def set_to_zero_time_state(smon_id):
@@ -2890,6 +2965,10 @@ def set_to_zero_time_state(smon_id):
 		return False
 	else:
 		return True
+	finally:
+		if type(conn) is not str:
+			if not conn.is_closed():
+				conn.close()
 
 
 def response_time(time, smon_id):
@@ -2901,6 +2980,10 @@ def response_time(time, smon_id):
 		return False
 	else:
 		return True
+	finally:
+		if type(conn) is not str:
+			if not conn.is_closed():
+				conn.close()
 
 
 def smon_list(user_group):
@@ -2942,6 +3025,10 @@ def insert_smon_history(smon_id: int, response_time: float, status: int, check_i
 						   check_id=check_id, mes=mes).execute()
 	except Exception as e:
 		out_error(e)
+	finally:
+		if type(conn) is not str:
+			if not conn.is_closed():
+				conn.close()
 
 
 def select_smon_history(smon_id: int, check_id: int) -> object:
@@ -3064,6 +3151,10 @@ def insert_alerts(user_group, level, ip, port, message, service):
 	except Exception as e:
 		out_error(e)
 		return False
+	finally:
+		if type(conn) is not str:
+			if not conn.is_closed():
+				conn.close()
 
 
 def select_alerts(user_group):
@@ -3096,18 +3187,6 @@ def select_all_alerts_for_all():
 		out_error(e)
 	else:
 		return cursor.fetchall()
-
-
-def is_cloud():
-	cursor = conn.cursor()
-	sql = """ select * from cloud_uuid """
-	try:
-		cursor.execute(sql)
-	except Exception:
-		return ""
-	else:
-		for cl_uuid in cursor.fetchall():
-			return cl_uuid[0]
 
 
 def return_firewall(serv):
@@ -3518,6 +3597,10 @@ def delete_action_history_for_period():
 		query.execute()
 	except Exception as e:
 		out_error(e)
+	finally:
+		if type(conn) is not str:
+			if not conn.is_closed():
+				conn.close()
 
 
 def select_action_history_by_server_id(server_id: int):
