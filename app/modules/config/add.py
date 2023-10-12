@@ -347,10 +347,13 @@ def save_map(map_name: str, list_con: str, group: str, server_ip: str, action: s
 	for serv in servers:
 		server_mod.ssh_command(serv, [f"sudo mkdir {path}"])
 		server_mod.ssh_command(serv, [f"sudo chown $(whoami) {path}"])
-		error = config_mod.upload(serv, f'{path}/{map_name}', map_path)
+		try:
+			error = config_mod.upload(serv, f'{path}/{map_name}', map_path)
+		except Exception as e:
+			error = f'{serv}: {e}'
 
 		if error:
-			return f'error: Upload fail: {error} , '
+			output += f'error: Upload fail: {error} , '
 		else:
 			try:
 				roxywi_common.logging(serv, f'Has been edited the map {map_name}', roxywi=1, login=1)
