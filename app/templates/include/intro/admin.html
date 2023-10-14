@@ -1,6 +1,6 @@
 <script>
     function Intro() {
-		var intro = introJs();
+		let intro = introJs();
 		intro.setOptions({
 			steps: [
 				{
@@ -95,16 +95,16 @@
         let intro = introJs();
         intro.setOptions({
             hints: [
-                { hint: 'A new way for Groups and Roles. Try it!', element: '#user-group-role-th' },
+                { hint: 'Looking for Services? They\'re here, now it\'s called Tools', element: '#ui-id-7' },
             ]
         });
         intro.onhintclose(function() {
-          localStorage.setItem('introHintAdminRoles', 1);
+          localStorage.setItem('introHintAdminTools', '1');
+          localStorage.removeItem('introHintAdminRoles');
         });
         return intro;
     }
-	// setTimeout(() => { var intro_temp = Intro(); startIntro(intro_temp); }, 3000);
-    if (!localStorage.getItem('introHintAdminRoles')) {
+    if (!localStorage.getItem('introHintAdminTools')) {
         setTimeout(() => {
             var intro_temp = introHints();
             intro_temp.addHints();

@@ -1,6 +1,6 @@
 <script>
     function Intro() {
-		var intro = introJs();
+		let intro = introJs();
 		intro.setOptions({
 			steps: [
 				{
@@ -82,12 +82,10 @@
 				},
 				{
 					element: document.querySelector('.menu'),
-					intro: "7 more sections left to discover. Meet you there :)",
+					intro: "9 more sections left to discover. Meet you there :)",
 				}
 			]
 		});
 		return intro;
 	}
-
-	// setTimeout(() => { var intro_temp = Intro(); startIntro(intro_temp); }, 3000);
 </script>
