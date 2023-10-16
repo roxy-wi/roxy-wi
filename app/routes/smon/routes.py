@@ -1,9 +1,10 @@
 from pytz import timezone
-from flask import render_template, request, redirect, url_for, jsonify
+from flask import render_template, request, redirect, url_for, jsonify, g
 from flask_login import login_required
 from datetime import datetime
 
 from app.routes.smon import bp
+from middleware import get_user_params
 import app.modules.db.sql as sql
 import app.modules.common.common as common
 import app.modules.roxywi.auth as roxywi_auth
@@ -19,35 +20,27 @@ def before_request():
 
 
 @bp.route('/dashboard')
+@get_user_params()
 def smon():
-    try:
-        user_params = roxywi_common.get_users_params()
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
-
     roxywi_common.check_user_group_for_flask()
 
+    user_params = g.user_params
     user_group = roxywi_common.get_user_group(id=1)
     smon = sql.smon_list(user_group)
     smon_status, stderr = smon_mod.return_smon_status()
     user_subscription = roxywi_common.return_user_subscription()
 
     return render_template(
-        'smon/dashboard.html', h2=1, autorefresh=1, role=user_params['role'], user=user, group=user_group,
+        'smon/dashboard.html', autorefresh=1, role=user_params['role'], user=user_params['user'], group=user_group,
         lang=user_params['lang'], smon_status=smon_status, smon_error=stderr, user_services=user_params['user_services'],
         user_status=user_subscription['user_status'], smon=smon, user_plan=user_subscription['user_plan'], token=user_params['token']
     )
 
 
 @bp.route('/dashboard/<dashboard_id>/<check_id>')
+@get_user_params()
 def smon_dashboard(dashboard_id, check_id):
-    try:
-        user_params = roxywi_common.get_users_params()
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
-
+    user_params = g.user_params
     check_id = int(check_id)
     roxywi_common.check_user_group_for_flask()
     user_subscription = roxywi_common.return_user_subscription()
@@ -79,7 +72,7 @@ def smon_dashboard(dashboard_id, check_id):
             cert_day_diff = (ssl_expire_date - present).days
 
     return render_template(
-        'include/smon/smon_history.html', autorefresh=1, role=user_params['role'], user=user, smon=smon,
+        'include/smon/smon_history.html', autorefresh=1, role=user_params['role'], user=user_params['user'], smon=smon,
         lang=user_params['lang'], user_status=user_subscription['user_status'], check_interval=check_interval,
         user_plan=user_subscription['user_plan'], token=user_params['token'], uptime=uptime, avg_res_time=avg_res_time,
         user_services=user_params['user_services'], smon_name=smon_name, cert_day_diff=cert_day_diff, check_id=check_id,
@@ -88,6 +81,7 @@ def smon_dashboard(dashboard_id, check_id):
 
 
 @bp.route('/history')
+@get_user_params()
 def smon_history():
     roxywi_common.check_user_group_for_flask()
 
@@ -95,21 +89,17 @@ def smon_history():
     smon_status, stderr = smon_mod.return_smon_status()
     smon = sql.alerts_history('SMON', user_group)
     user_subscription = roxywi_common.return_user_subscription()
-
-    try:
-        user_params = roxywi_common.get_users_params()
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
+    user_params = g.user_params
 
     return render_template(
-        'smon/history.html', autorefresh=0, role=user_params['role'], user=user, smon=smon, lang=user_params['lang'],
+        'smon/history.html', autorefresh=0, role=user_params['role'], user=user_params['user'], smon=smon, lang=user_params['lang'],
         user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'], token=user_params['token'],
         smon_status=smon_status, smon_error=stderr, user_services=user_params['user_services']
     )
 
 
 @bp.route('/history/host/<server_ip>')
+@get_user_params()
 def smon_host_history(server_ip):
     roxywi_common.check_user_group_for_flask()
 
@@ -118,15 +108,10 @@ def smon_host_history(server_ip):
     smon_status, stderr = smon_mod.return_smon_status()
     smon = sql.alerts_history('SMON', user_group, host=needed_host)
     user_subscription = roxywi_common.return_user_subscription()
-
-    try:
-        user_params = roxywi_common.get_users_params()
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
+    user_params = g.user_params
 
     return render_template(
-        'smon/history.html', autorefresh=0, role=user_params['role'], user=user, smon=smon,
+        'smon/history.html', autorefresh=0, role=user_params['role'], user=user_params['user'], smon=smon,
         lang=user_params['lang'], user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'],
         token=user_params['token'], smon_status=smon_status, smon_error=stderr, user_services=user_params['user_services']
     )
@@ -148,6 +133,7 @@ def smon_history_cur_status(dashboard_id, check_id):
 
 
 @bp.route('/admin')
+@get_user_params()
 def smon_admin():
     user_group = roxywi_common.get_user_group(id=1)
     smon_status, stderr = smon_mod.return_smon_status()
@@ -161,15 +147,10 @@ def smon_admin():
     smon_dns = sql.select_smon_dns(user_group)
     roxywi_auth.page_for_admin(level=3)
     user_subscription = roxywi_common.return_user_subscription()
-
-    try:
-        user_params = roxywi_common.get_users_params()
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
+    user_params = g.user_params
 
     return render_template(
-        'smon/add.html', autorefresh=0, role=user_params['role'], user=user, smon=smon, lang=user_params['lang'],
+        'smon/add.html', autorefresh=0, role=user_params['role'], user=user_params['user'], smon=smon, lang=user_params['lang'],
         user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'], token=user_params['token'],
         smon_status=smon_status, smon_error=stderr, user_services=user_params['user_services'], telegrams=telegrams,
         slacks=slacks, pds=pds, smon_ping=smon_ping, smon_tcp=smon_tcp, smon_http=smon_http, smon_dns=smon_dns

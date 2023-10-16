@@ -1,10 +1,8 @@
-import os
-
-import datetime
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, g
 from flask_login import login_required
 
 from app.routes.logs import bp
+from middleware import check_services, get_user_params
 import app.modules.db.sql as sql
 import app.modules.common.common as common
 import app.modules.roxywi.auth as roxywi_auth
@@ -24,6 +22,7 @@ def before_request():
 
 
 @bp.route('/internal')
+@get_user_params()
 def logs_internal():
     log_type = request.args.get('type')
 
@@ -32,26 +31,8 @@ def logs_internal():
     else:
         roxywi_auth.page_for_admin()
 
-    try:
-        user_params = roxywi_common.get_users_params(virt=1, haproxy=1)
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
-
-    time_storage = sql.get_setting('log_time_storage')
+    user_params = g.user_params
     log_path = get_config.get_config_var('main', 'log_path')
-
-    try:
-        time_storage_hours = time_storage * 24
-        for dirpath, dirnames, filenames in os.walk(log_path):
-            for file in filenames:
-                curpath = os.path.join(dirpath, file)
-                file_modified = datetime.datetime.fromtimestamp(os.path.getmtime(curpath))
-                if datetime.datetime.now() - file_modified > datetime.timedelta(hours=time_storage_hours):
-                    os.remove(curpath)
-    except Exception as e:
-        print(f'error: cannot delete old log files: {e}')
-
     selects = roxywi_common.get_files(log_path, file_format="log")
 
     if log_type is None:
@@ -60,7 +41,7 @@ def logs_internal():
         selects.append(['roxy-wi.access.log', 'access.log'])
 
     return render_template(
-        'logs_internal.html', autorefresh=1, role=user_params['role'], user=user,
+        'logs_internal.html', autorefresh=1, role=user_params['role'], user=user_params['user'],
         user_services=user_params['user_services'], token=user_params['token'], lang=user_params['lang'],
         selects=selects, serv='viewlogs'
     )
@@ -68,7 +49,10 @@ def logs_internal():
 
 @bp.route('/<service>', defaults={'waf': None})
 @bp.route('/<service>/<waf>')
+@check_services
+@get_user_params()
 def logs(service, waf):
+    user_params = g.user_params
     serv = request.args.get('serv')
     rows = request.args.get('rows')
     grep = request.args.get('grep')
@@ -84,40 +68,25 @@ def logs(service, waf):
     if grep is None:
         grep = ''
 
-    try:
-        user_params = roxywi_common.get_users_params(virt=1, haproxy=1)
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
-
     if service in ('haproxy', 'nginx', 'keepalived', 'apache') and not waf:
         service_desc = sql.select_service(service)
         service_name = service_desc.service
-        is_redirect = roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=service_desc.service_id)
-
-        if is_redirect != 'ok':
-            return redirect(url_for(f'{is_redirect}'))
-
         servers = roxywi_common.get_dick_permit(service=service_desc.slug)
     elif waf:
         service_name = 'WAF'
-        is_redirect = roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=1)
-
-        if is_redirect != 'ok':
-            return redirect(url_for(f'{is_redirect}'))
-
         servers = roxywi_common.get_dick_permit(haproxy=1)
     else:
         return redirect(url_for('index'))
 
     return render_template(
-        'logs.html', autorefresh=1, role=user_params['role'], user=user, select_id='serv', rows=rows,
+        'logs.html', autorefresh=1, role=user_params['role'], user=user_params['user'], select_id='serv', rows=rows,
         remote_file=log_file, selects=servers, waf=waf, service=service, user_services=user_params['user_services'],
         token=user_params['token'], lang=user_params['lang'], service_name=service_name, grep=grep, serv=serv
     )
 
 
 @bp.route('/<service>/<serv>', methods=['GET', 'POST'])
+@check_services
 def show_remote_log_files(service, serv):
     service = common.checkAjaxInput(service)
     serv = common.checkAjaxInput(serv)
@@ -136,6 +105,7 @@ def show_remote_log_files(service, serv):
 
 @bp.route('/<service>/<serv>/<rows>', defaults={'waf': '0'}, methods=['GET', 'POST'])
 @bp.route('/<service>/waf/<serv>/<rows>', defaults={'waf': '1'}, methods=['GET', 'POST'])
+@check_services
 def show_logs(service, serv, rows, waf):
     if request.method == 'GET':
         grep = request.args.get('grep')

@@ -1,7 +1,8 @@
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, g, abort
 from flask_login import login_required
 
 from app.routes.install import bp
+from middleware import get_user_params
 import app.modules.db.sql as sql
 import app.modules.common.common as common
 import app.modules.roxywi.auth as roxywi_auth
@@ -20,44 +21,34 @@ def before_request():
 
 
 @bp.route('')
+@get_user_params()
 def install_monitoring():
     roxywi_auth.page_for_admin(level=2)
 
-    try:
-        user_params = roxywi_common.get_users_params()
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
-
+    user_params = g.user_params
     is_needed_tool = common.is_tool('ansible')
     geoip_country_codes = sql.select_geoip_country_codes()
 
     return render_template(
-        'install.html', h2=1, role=user_params['role'], user=user, servers=user_params['servers'],
+        'install.html', role=user_params['role'], user=user_params['user'], servers=user_params['servers'],
         user_services=user_params['user_services'], lang=user_params['lang'], geoip_country_codes=geoip_country_codes,
         is_needed_tool=is_needed_tool, token=user_params['token']
     )
 
 
 @bp.route('/ha')
+@get_user_params()
 def ha():
+    if not roxywi_auth.is_access_permit_to_service('keepalived'):
+        abort(403, f'You do not have needed permissions to access to Keepalived service')
     roxywi_auth.page_for_admin(level=2)
 
-    try:
-        user_params = roxywi_common.get_users_params()
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
-
+    user_params = g.user_params
     is_needed_tool = common.is_tool('ansible')
     user_subscription = roxywi_common.return_user_subscription()
-    is_redirect = roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=3)
-
-    if is_redirect != 'ok':
-        return redirect(url_for(f'{is_redirect}'))
 
     return render_template(
-        'ha.html', h2=1, role=user_params['role'], user=user, selects=user_params['servers'],
+        'ha.html', h2=1, role=user_params['role'], user=user_params['user'], selects=user_params['servers'],
         user_services=user_params['user_services'], user_status=user_subscription['user_status'], lang=user_params['lang'],
         user_plan=user_subscription['user_plan'], is_needed_tool=is_needed_tool, token=user_params['token']
     )

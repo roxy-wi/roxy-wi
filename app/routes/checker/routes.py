@@ -1,7 +1,8 @@
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, g
 from flask_login import login_required
 
 from app.routes.checker import bp
+from middleware import get_user_params
 import app.modules.db.sql as sql
 import app.modules.common.common as common
 import app.modules.roxywi.common as roxywi_common
@@ -18,17 +19,13 @@ def before_request():
 
 
 @bp.route('/settings')
+@get_user_params()
 def checker_settings():
     roxywi_common.check_user_group_for_flask()
-
-    try:
-        user_params = roxywi_common.get_users_params()
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
+    user_params = g.user_params
 
     return render_template(
-        'checker.html', h2=1, role=user_params['role'], user=user, lang=user_params['lang'],
+        'checker.html', role=user_params['role'], user=user_params['user'], lang=user_params['lang'],
         token=user_params['token'], user_services=user_params['user_services']
     )
 
@@ -39,19 +36,20 @@ def update_settings():
     setting_id = int(request.form.get('setting_id'))
     email = int(request.form.get('email'))
     service_alert = int(request.form.get('server'))
-    backend_alert = int(request.form.get('backend'))
     telegram_id = int(request.form.get('telegram_id'))
     slack_id = int(request.form.get('slack_id'))
     pd_id = int(request.form.get('pd_id'))
 
     if service == 'haproxy':
         maxconn_alert = int(request.form.get('maxconn'))
+        backend_alert = int(request.form.get('backend'))
         return checker_mod.update_haproxy_settings(
             setting_id, email, service_alert, backend_alert, maxconn_alert, telegram_id, slack_id, pd_id
         )
     elif service in ('nginx', 'apache'):
         return checker_mod.update_service_settings(setting_id, email, service_alert, telegram_id, slack_id, pd_id)
     else:
+        backend_alert = int(request.form.get('backend'))
         return checker_mod.update_keepalived_settings(setting_id, email, service_alert, backend_alert, telegram_id, slack_id, pd_id)
 
 
@@ -61,6 +59,7 @@ def load_checker():
 
 
 @bp.route('/history')
+@get_user_params()
 def checker_history():
     roxywi_common.check_user_group_for_flask()
 
@@ -68,15 +67,10 @@ def checker_history():
     smon_status, stderr = smon_mod.return_smon_status()
     smon = sql.alerts_history('Checker', user_group)
     user_subscription = roxywi_common.return_user_subscription()
-
-    try:
-        user_params = roxywi_common.get_users_params()
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
+    user_params = g.user_params
 
     return render_template(
-        'smon/checker_history.html', h2=1, autorefresh=0, role=user_params['role'], user=user, smon=smon,
+        'smon/checker_history.html', autorefresh=0, role=user_params['role'], user=user_params['user'], smon=smon,
         lang=user_params['lang'], user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'],
         token=user_params['token'], smon_status=smon_status, smon_error=stderr, user_services=user_params['user_services']
     )

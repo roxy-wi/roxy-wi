@@ -8,30 +8,34 @@ import modules.db.sql as sql
 import modules.roxywi.common as roxywi_common
 
 
-def check_login(user_uuid, token, **kwargs) -> str:
+def check_login(user_uuid, token) -> str:
     if user_uuid is None:
         return 'login_page'
 
     if user_uuid is not None:
         if sql.get_user_name_by_uuid(user_uuid) is None:
             return 'login_page'
-        if kwargs.get('service'):
-            required_service = str(kwargs.get('service'))
-            user_id = sql.get_user_id_by_uuid(user_uuid)
-            user_services = sql.select_user_services(user_id)
-            if required_service in user_services:
-                return 'ok'
-            else:
-                return 'overview.index'
+        else:
+            try:
+                ip = request.remote_addr
+            except Exception:
+                ip = ''
 
-        try:
-            ip = request.remote_addr
-        except Exception:
-            ip = ''
+            sql.update_last_act_user(user_uuid, token, ip)
 
-        sql.update_last_act_user(user_uuid, token, ip)
-
+            return 'ok'
     return 'login_page'
+
+
+def is_access_permit_to_service(service: str) -> bool:
+    service_id = sql.select_service_id_by_slug(service)
+    user_uuid = request.cookies.get('uuid')
+    user_id = sql.get_user_id_by_uuid(user_uuid)
+    user_services = sql.select_user_services(user_id)
+    if str(service_id) in user_services:
+        return True
+    else:
+        return False
 
 
 def is_admin(level=1, **kwargs):
@@ -121,7 +125,7 @@ def do_login(user_uuid: str, user_group: str, user: str, next_url: str):
 
     login_user(user)
     resp = make_response(redirect_to)
-    resp.set_cookie('uuid', user_uuid, secure=True, expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"), httponly=True, samesite='Strict')
+    resp.set_cookie('uuid', user_uuid, secure=True, expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"), samesite='Strict')
     resp.set_cookie('group', str(user_group), expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"), samesite='Strict')
 
     try:

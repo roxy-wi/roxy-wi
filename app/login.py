@@ -10,8 +10,9 @@ import app.modules.roxy_wi_tools as roxy_wi_tools
 
 
 @app.before_request
+@cache.memoize(3)
 def check_login():
-    if request.endpoint not in ('login_page', 'static', 'main.show_roxywi_version'):
+    if request.endpoint not in ('login_page', 'static', 'main.show_roxywi_version', 'service.check_service'):
         try:
             user_params = roxywi_common.get_users_params()
         except Exception:
@@ -49,7 +50,10 @@ def redirect_to_login(response):
 
 @app.route('/login', methods=['GET', 'POST'])
 def login_page():
-    roxy.update_plan()
+    try:
+        roxy.update_plan()
+    except Exception:
+        pass
     next_url = request.args.get('next') or request.form.get('next')
     login = request.form.get('login')
     password = request.form.get('pass')

@@ -9,29 +9,22 @@ import modules.roxywi.common as roxywi_common
 get_config_var = roxy_wi_tools.GetConfigVar()
 
 
-def roxy_wi_log(**kwargs) -> list:
+def roxy_wi_log() -> list:
 	log_path = get_config_var.get_config_var('main', 'log_path')
+	user_group_id = roxywi_common.get_user_group(id=1)
 
-	if kwargs.get('log_id'):
-		selects = roxywi_common.get_files(log_path, "log")
-		for key, value in selects:
-			log_file = f"{kwargs.get('file')}.log"
-			if log_file == value:
-				return key
+	if user_group_id != 1:
+		user_group = roxywi_common.get_user_group()
+		group_grep = f'|grep "group: {user_group}"'
 	else:
-		user_group_id = roxywi_common.get_user_group(id=1)
-		if user_group_id != 1:
-			user_group = roxywi_common.get_user_group()
-			group_grep = f'|grep "group: {user_group}"'
-		else:
-			group_grep = ''
-		cmd = f"find {log_path}/roxy-wi-* -type f -exec stat --format '%Y :%y %n' '{{}}' \; | sort -nr | cut -d: -f2- " \
-				f"| head -1 |awk '{{print $4}}' |xargs tail {group_grep}|sort -r"
-		try:
-			output, stderr = server_mod.subprocess_execute(cmd)
-			return output
-		except Exception:
-			return ['']
+		group_grep = ''
+	cmd = f"find {log_path}/roxy-wi-* -type f -exec stat --format '%Y :%y %n' '{{}}' \; | sort -nr | cut -d: -f2- " \
+			f"| head -1 |awk '{{print $4}}' |xargs tail {group_grep}|sort -r"
+	try:
+		output, stderr = server_mod.subprocess_execute(cmd)
+		return output
+	except Exception:
+		return ['']
 
 
 def show_log(stdout, **kwargs):

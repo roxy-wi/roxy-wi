@@ -1,9 +1,10 @@
 import distro
-from flask import render_template, request, jsonify, redirect, url_for
+from flask import render_template, request, jsonify, redirect, url_for, g
 from flask_login import login_required
 
 from app.routes.metric import bp
 import app.modules.db.sql as sql
+from middleware import check_services, get_user_params
 import app.modules.common.common as common
 import app.modules.server.server as server_mod
 import app.modules.roxywi.metrics as metric
@@ -19,21 +20,14 @@ def before_request():
 
 
 @bp.route('/<service>')
+@check_services
+@get_user_params()
 def metrics(service):
-    try:
-        user_params = roxywi_common.get_users_params()
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
-
+    user_params = g.user_params
     service_desc = sql.select_service(service)
     roxywi_common.check_user_group_for_flask()
     servers = ''
     services = '0'
-    is_redirect = roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=service_desc.service_id)
-
-    if is_redirect != 'ok':
-        return redirect(url_for(f'{is_redirect}'))
 
     try:
         if distro.id() == 'ubuntu':
@@ -63,7 +57,7 @@ def metrics(service):
     user_subscription = roxywi_common.return_user_subscription()
 
     return render_template(
-        'metrics.html', autorefresh=1, role=user_params['role'], user=user, servers=servers,
+        'metrics.html', autorefresh=1, role=user_params['role'], user=user_params['user'], servers=servers,
         services=services, user_services=user_params['user_services'], service=service,
         user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'],
         token=user_params['token'], lang=user_params['lang'], service_desc=service_desc
@@ -85,6 +79,7 @@ def metrics_ram():
 
 
 @bp.route('/<service>/table-metrics')
+@check_services
 def table_metrics(service):
     roxywi_common.check_user_group_for_flask()
     lang = roxywi_common.get_user_lang_for_flask()
@@ -98,7 +93,8 @@ def table_metrics(service):
     return render_template('ajax/table_metrics.html', table_stat=metrics, service=service, lang=lang)
 
 
-@bp.route('/<service>/<server_ip>', methods=['POST'])
+@bp.post('/<service>/<server_ip>')
+@check_services
 def show_metric(service, server_ip):
     server_ip = common.is_ip_or_dns(server_ip)
     hostname = sql.get_hostname_by_server_ip(server_ip)
@@ -112,7 +108,8 @@ def show_metric(service, server_ip):
     return 'error: Wrong service'
 
 
-@bp.route('/<service>/<server_ip>/http', methods=['POST'])
+@bp.post('/<service>/<server_ip>/http')
+@check_services
 def show_http_metric(service, server_ip):
     server_ip = common.is_ip_or_dns(server_ip)
     hostname = sql.get_hostname_by_server_ip(server_ip)

@@ -118,8 +118,6 @@ function showOverviewServer(name, ip, id, service) {
 	} );
 }
 function ajaxActionServers(action, id, service) {
-	// var cur_url = window.location.href.split('/app/').pop();
-	// cur_url = cur_url.split('/');
 	$.ajax( {
 		url: "/app/service/action/" + service + "/" + id + "/" + action,
 		success: function( data ) {
@@ -531,6 +529,9 @@ function serverSettingsSave(id, name, service, dialog_id) {
 	});
 }
 function check_service_status(id, ip, service) {
+	if (sessionStorage.getItem('check-service') == 0) {
+		return false;
+	}
 	NProgress.configure({showSpinner: false});
 	if (service == 'keepalived') return false;
 	$.ajax({
@@ -540,6 +541,9 @@ function check_service_status(id, ip, service) {
 		},
 		type: "POST",
 		success: function (data) {
+			if (data.indexOf('logout') != '-1') {
+				sessionStorage.setItem('check-service', 0)
+			}
 			data = data.replace(/\s+/g, ' ');
 			if (cur_url[0] == 'service') {
 				if (data.indexOf('up') != '-1') {
@@ -566,4 +570,23 @@ function check_service_status(id, ip, service) {
 		}
 	});
 	NProgress.configure({showSpinner: true});
+}
+function ShowOverviewLogs() {
+	$.ajax( {
+		url: "/app/overview/logs",
+		type: "GET",
+		beforeSend: function() {
+			$("#overview-logs").html('<img class="loading_small_bin_bout" style="padding-left: 40%;padding-top: 40px;padding-bottom: 40px;" src="/app/static/images/loading.gif" />');
+		},
+		success: function( data ) {
+			data = data.replace(/\s+/g,' ');
+			if (data.indexOf('error:') != '-1') {
+				toastr.error(data);
+			} else {
+				$("#overview-logs").html(data);
+				$.getScript("/inc/fontawesome.min.js")
+				$.getScript("/inc/overview.js")
+			}
+		}
+	} );
 }

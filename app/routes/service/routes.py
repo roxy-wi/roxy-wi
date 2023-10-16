@@ -1,12 +1,11 @@
-from functools import wraps
-
 import distro
-from flask import render_template, request, redirect, url_for, abort
+from flask import render_template, request, redirect, url_for, g
 from flask_login import login_required
 
 from app import cache
 from app.routes.service import bp
 import app.modules.db.sql as sql
+from middleware import check_services, get_user_params
 import app.modules.common.common as common
 import app.modules.server.server as server_mod
 import app.modules.service.action as service_action
@@ -14,16 +13,6 @@ import app.modules.service.common as service_common
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
 import app.modules.roxywi.overview as roxy_overview
-
-
-def check_services(fn):
-    @wraps(fn)
-    def decorated_view(*args, **kwargs):
-        service = kwargs['service']
-        if service not in ('haproxy', 'nginx', 'apache', 'keepalived'):
-            abort(400, 'bad service')
-        return fn(*args, **kwargs)
-    return decorated_view
 
 
 @bp.before_request
@@ -36,13 +25,9 @@ def before_request():
 @bp.route('/<service>', defaults={'serv': None})
 @bp.route('/<service>/<serv>')
 @check_services
+@get_user_params()
 def services(service, serv):
-    try:
-        user_params = roxywi_common.get_users_params()
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
-
+    user_params = g.user_params
     services = []
     service_desc = sql.select_service(service)
     servers = roxywi_common.get_dick_permit(virt=1, service=service_desc.slug)
@@ -52,10 +37,6 @@ def services(service, serv):
     waf_server = ''
     cmd = "ps ax |grep -e 'keep_alive.py' |grep -v grep |wc -l"
     keep_alive, stderr = server_mod.subprocess_execute(cmd)
-    is_redirect = roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=service_desc.service_id)
-
-    if is_redirect != 'ok':
-        return redirect(url_for(f'{is_redirect}'))
 
     if serv:
         if roxywi_common.check_is_server_in_group(serv):
@@ -196,7 +177,7 @@ def services(service, serv):
     user_subscription = roxywi_common.return_user_subscription()
 
     return render_template(
-        'service.html', autorefresh=autorefresh, role=user_params['role'], user=user, servers=servers_with_status1,
+        'service.html', autorefresh=autorefresh, role=user_params['role'], user=user_params['user'], servers=servers_with_status1,
         keep_alive=''.join(keep_alive), serv=serv, service=service, services=services, user_services=user_params['user_services'],
         docker_settings=docker_settings, user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'],
         waf_server=waf_server, restart_settings=restart_settings, service_desc=service_desc, token=user_params['token'],
@@ -205,7 +186,6 @@ def services(service, serv):
 
 
 @bp.post('/action/<service>/check-service')
-@check_services
 def check_service(service):
     user_uuid = request.cookies.get('uuid')
     server_ip = common.checkAjaxInput(request.form.get('server_ip'))
@@ -213,7 +193,7 @@ def check_service(service):
     try:
         return service_action.check_service(server_ip, user_uuid, service)
     except Exception:
-        pass
+        return 'logout'
 
 
 @bp.route('/action/<service>/<server_ip>/<action>', methods=['GET'])
@@ -229,8 +209,9 @@ def last_edit(service, server_ip):
 
 
 @bp.route('/cpu-ram-metrics/<server_ip>/<server_id>/<name>/<service>')
+@get_user_params()
 def cpu_ram_metrics(server_ip, server_id, name, service):
-    user_params = roxywi_common.get_users_params()
+    user_params = g.user_params
 
     if service == 'haproxy':
         sock_port = sql.get_setting('haproxy_sock_port')

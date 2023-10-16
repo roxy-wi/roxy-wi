@@ -1,7 +1,8 @@
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, g
 from flask_login import login_required
 
 from app.routes.runtime import bp
+from middleware import get_user_params
 import app.modules.common.common as common
 import app.modules.roxywi.common as roxywi_common
 import app.modules.config.runtime as runtime
@@ -16,16 +17,13 @@ def before_request():
 
 
 @bp.route('')
+@get_user_params()
 def runtimeapi():
-    try:
-        user_params = roxywi_common.get_users_params(haproxy=1)
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
+    user_params = g.user_params
     servbackend = ""
 
     return render_template(
-        'runtimeapi.html', h2=1, title="RunTime API", role=user_params['role'], user=user, select_id="serv",
+        'runtimeapi.html', title="RunTime API", role=user_params['role'], user=user_params['user'], select_id="serv",
         selects=user_params['servers'], token=user_params['token'], user_services=user_params['user_services'],
         servbackend=servbackend, lang=user_params['lang']
     )

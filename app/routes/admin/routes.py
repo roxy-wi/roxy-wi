@@ -2,11 +2,13 @@ import os
 
 import pytz
 import distro
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, g
 from flask_login import login_required
 
+from app import scheduler
 from app.routes.admin import bp
 import app.modules.db.sql as sql
+from middleware import get_user_params
 import app.modules.common.common as common
 import app.modules.roxywi.roxy as roxy
 import app.modules.roxywi.auth as roxywi_auth
@@ -23,15 +25,11 @@ def before_request():
 
 
 @bp.route('')
+@get_user_params()
 def admin():
     roxywi_auth.page_for_admin()
 
-    try:
-        user_params = roxywi_common.get_users_params()
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
-
+    user_params = g.user_params
     users = sql.select_users()
     settings = sql.get_setting('', all=1)
     ldap_enable = sql.get_setting('ldap_enable')
@@ -49,7 +47,7 @@ def admin():
         grafana = grafana[0]
 
     return render_template(
-        'admin.html', h2=1, role=user_params['role'], user=user, users=users, groups=sql.select_groups(),
+        'admin.html', role=user_params['role'], user=user_params['user'], users=users, groups=sql.select_groups(),
         servers=sql.select_servers(full=1), masters=masters, sshs=sql.select_ssh(), roles=sql.select_roles(),
         settings=settings, backups=backups, s3_backups=s3_backups, services=services, timezones=pytz.all_timezones,
         page="users.py", user_services=user_params['user_services'], ldap_enable=ldap_enable, gits=gits, guide_me=1,
@@ -93,21 +91,19 @@ def action_tools(service, action):
 def update_roxywi():
     roxywi_auth.page_for_admin()
     versions = roxy.versions()
-    checker_ver = roxy.check_new_version('checker')
-    smon_ver = roxy.check_new_version('smon')
-    metrics_ver = roxy.check_new_version('metrics')
-    keep_ver = roxy.check_new_version('keep_alive')
-    portscanner_ver = roxy.check_new_version('portscanner')
-    socket_ver = roxy.check_new_version('socket')
-    prometheus_exp_ver = roxy.check_new_version('prometheus-exporter')
     services = tools_common.get_services_status()
     lang = roxywi_common.get_user_lang_for_flask()
 
     return render_template(
-        'ajax/load_updateroxywi.html', services=services, versions=versions, checker_ver=checker_ver, smon_ver=smon_ver,
-        metrics_ver=metrics_ver, portscanner_ver=portscanner_ver, socket_ver=socket_ver, prometheus_exp_ver=prometheus_exp_ver,
-        keep_ver=keep_ver, lang=lang
+        'ajax/load_updateroxywi.html', services=services, versions=versions, lang=lang
     )
+
+
+@bp.route('/update/check')
+def check_update():
+    roxywi_auth.page_for_admin()
+    scheduler.run_job('check_new_version')
+    return 'ok'
 
 
 @bp.route('/openvpn')

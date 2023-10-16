@@ -5,6 +5,7 @@ from flask import render_template, request
 import modules.db.sql as sql
 import modules.common.common as common
 import modules.roxywi.logs as roxy_logs
+import modules.tools.common as tools_common
 import modules.roxywi.common as roxywi_common
 import modules.server.server as server_mod
 import modules.service.common as service_common
@@ -214,29 +215,18 @@ def show_services_overview():
         except psutil.NoSuchProcess:
             pass
 
-    cmd = "systemctl is-active roxy-wi-metrics"
-    metrics_master, stderr = server_mod.subprocess_execute(cmd)
-    cmd = "systemctl is-active roxy-wi-checker"
-    checker_master, stderr = server_mod.subprocess_execute(cmd)
-    cmd = "systemctl is-active roxy-wi-keep_alive"
-    keep_alive, stderr = server_mod.subprocess_execute(cmd)
-    cmd = "systemctl is-active roxy-wi-smon"
-    smon, stderr = server_mod.subprocess_execute(cmd)
-    cmd = "systemctl is-active roxy-wi-portscanner"
-    port_scanner, stderr = server_mod.subprocess_execute(cmd)
-    cmd = "systemctl is-active roxy-wi-socket"
-    socket, stderr = server_mod.subprocess_execute(cmd)
+    roxy_tools = sql.get_roxy_tools()
+    roxy_tools_status = {}
+    for tool in roxy_tools:
+        if tool == 'roxy-wi-prometheus-exporter':
+            continue
+        status = tools_common.is_tool_active(tool)
+        roxy_tools_status.setdefault(tool, status)
 
     return render_template(
-        'ajax/show_services_ovw.html', role=user_params['role'], metrics_master=''.join(metrics_master),
-        metrics_worker=metrics_worker, checker_master=''.join(checker_master), checker_worker=checker_worker,
-        keep_alive=''.join(keep_alive), smon=''.join(smon), port_scanner=''.join(port_scanner), grafana=grafana,
-        socket=''.join(socket), is_checker_worker=is_checker_worker, is_metrics_worker=is_metrics_worker, host=host,
-        roxy_wi_log_id=roxy_logs.roxy_wi_log(log_id=1, file="roxy-wi-"),
-        metrics_log_id=roxy_logs.roxy_wi_log(log_id=1, file="metrics"),
-        checker_log_id=roxy_logs.roxy_wi_log(log_id=1, file="checker"),
-        keep_alive_log_id=roxy_logs.roxy_wi_log(log_id=1, file="keep_alive"),
-        socket_log_id=roxy_logs.roxy_wi_log(log_id=1, file="socket"), error=stderr, lang=lang
+        'ajax/show_services_ovw.html', role=user_params['role'], roxy_tools_status=roxy_tools_status, grafana=grafana,
+        is_checker_worker=is_checker_worker, is_metrics_worker=is_metrics_worker, host=host,
+        checker_worker=checker_worker, metrics_worker=metrics_worker, lang=lang
     )
 
 

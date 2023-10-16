@@ -57,8 +57,28 @@ def check_new_version(service):
 	current_ver = check_ver()
 	proxy = sql.get_setting('proxy')
 	res = ''
-	user_name = sql.select_user_name()
 	proxy_dict = {}
+
+	try:
+		if proxy is not None and proxy != '' and proxy != 'None':
+			proxy_dict = {"https": proxy, "http": proxy}
+		response = requests.get(f'https://roxy-wi.org/version/get/{service}', timeout=1, proxies=proxy_dict)
+		if service == 'roxy-wi':
+			requests.get(f'https://roxy-wi.org/version/send/{current_ver}', timeout=1, proxies=proxy_dict)
+
+		res = response.content.decode(encoding='UTF-8')
+	except requests.exceptions.RequestException as e:
+		roxywi_common.logging('Roxy-WI server', f' {e}', roxywi=1)
+
+	return res
+
+
+def update_user_status() -> None:
+	proxy = sql.get_setting('proxy')
+	proxy_dict = {}
+	if proxy is not None and proxy != '' and proxy != 'None':
+		proxy_dict = {"https": proxy, "http": proxy}
+	user_name = sql.select_user_name()
 	retry_strategy = Retry(
 		total=3,
 		status_forcelist=[429, 500, 502, 503, 504],
@@ -67,26 +87,13 @@ def check_new_version(service):
 	adapter = HTTPAdapter(max_retries=retry_strategy)
 	roxy_wi_get_plan = requests.Session()
 	roxy_wi_get_plan.mount("https://", adapter)
-
+	roxy_wi_get_plan = requests.get(f'https://roxy-wi.org/user-name/{user_name}', timeout=1, proxies=proxy_dict)
 	try:
-		if proxy is not None and proxy != '' and proxy != 'None':
-			proxy_dict = {"https": proxy, "http": proxy}
-		response = requests.get(f'https://roxy-wi.org/version/get/{service}', timeout=1, proxies=proxy_dict)
-		if service == 'roxy-wi':
-			requests.get(f'https://roxy-wi.org/version/send/{current_ver}', timeout=1, proxies=proxy_dict)
-			roxy_wi_get_plan = requests.get(f'https://roxy-wi.org/user-name/{user_name}', timeout=1, proxies=proxy_dict)
-			try:
-				status = roxy_wi_get_plan.content.decode(encoding='UTF-8')
-				status = status.split(' ')
-				sql.update_user_status(status[0], status[1].strip(), status[2].strip())
-			except Exception:
-				pass
-
-		res = response.content.decode(encoding='UTF-8')
-	except requests.exceptions.RequestException as e:
-		roxywi_common.logging('Roxy-WI server', f' {e}', roxywi=1)
-
-	return res
+		status = roxy_wi_get_plan.content.decode(encoding='UTF-8')
+		status = status.split(' ')
+		sql.update_user_status(status[0], status[1].strip(), status[2].strip())
+	except Exception as e:
+		roxywi_common.logging('Roxy-WI server', f'error: Cannot get user status {e}', roxywi=1)
 
 
 def action_service(action: str, service: str) -> str:
@@ -124,3 +131,5 @@ def update_plan():
 			sql.insert_user_name(user_name)
 	except Exception as e:
 		roxywi_common.logging('Cannot update subscription: ', str(e), roxywi=1)
+
+	update_user_status()

@@ -1,11 +1,11 @@
 import os
-from functools import wraps
 
-from flask import render_template, request, redirect, url_for, abort
+from flask import render_template, request, redirect, url_for, g
 from flask_login import login_required
 
 from app.routes.config import bp
 import app.modules.db.sql as sql
+from middleware import check_services, get_user_params
 import app.modules.common.common as common
 import app.modules.roxy_wi_tools as roxy_wi_tools
 import app.modules.roxywi.auth as roxywi_auth
@@ -18,16 +18,6 @@ import app.modules.server.server as server_mod
 get_config = roxy_wi_tools.GetConfigVar()
 time_zone = sql.get_setting('time_zone')
 get_date = roxy_wi_tools.GetDate(time_zone)
-
-
-def check_services(fn):
-    @wraps(fn)
-    def decorated_view(*args, **kwargs):
-        service = kwargs['service']
-        if service not in ('haproxy', 'nginx', 'apache', 'keepalived'):
-            abort(400, 'bad service')
-        return fn(*args, **kwargs)
-    return decorated_view
 
 
 @bp.before_request
@@ -84,6 +74,7 @@ def find_in_config(service):
 @bp.route('/<service>/<serv>/<edit>/<config_file_name>', defaults={'new': None}, methods=['GET', 'POST'])
 @bp.route('/<service>/<serv>/<edit>/<config_file_name>/<new>', methods=['GET', 'POST'])
 @check_services
+@get_user_params(0)
 def config(service, serv, edit, config_file_name, new):
     config_read = ""
     cfg = ""
@@ -93,21 +84,8 @@ def config(service, serv, edit, config_file_name, new):
     is_restart = ''
     is_serv_protected = ''
     new_config = new
-
-    try:
-        user_params = roxywi_common.get_users_params(service=service)
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
-
-    if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
-        service_desc = sql.select_service(service)
-        is_redirect = roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=service_desc.service_id)
-
-        if is_redirect != 'ok':
-            return redirect(url_for(f'{is_redirect}'))
-    else:
-        return redirect(url_for('index'))
+    user_params = g.user_params
+    service_desc = sql.select_service(service)
 
     if serv and config_file_name:
         cfg = config_mod.return_cfg(service, serv, config_file_name)
@@ -121,7 +99,7 @@ def config(service, serv, edit, config_file_name, new):
         try:
             error = config_mod.get_config(serv, cfg, service=service, config_file_name=config_file_name)
         except Exception as e:
-            return str(e), 200
+            return f'error: Cannot download config: {e}'
 
         try:
             roxywi_common.logging(serv, f" {service.title()} config has been opened")
@@ -141,7 +119,7 @@ def config(service, serv, edit, config_file_name, new):
         config_read = ' '
 
     return render_template(
-        'config.html', role=user_params['role'], user=user, select_id="serv", serv=serv, aftersave=aftersave,
+        'config.html', role=user_params['role'], user=user_params['user'], select_id="serv", serv=serv, aftersave=aftersave,
         config=config_read, cfg=cfg, selects=user_params['servers'], stderr=stderr, error=error, service=service,
         is_restart=is_restart, user_services=user_params['user_services'], config_file_name=config_file_name,
         is_serv_protected=is_serv_protected, token=user_params['token'], lang=user_params['lang'], service_desc=service_desc
@@ -151,19 +129,7 @@ def config(service, serv, edit, config_file_name, new):
 @bp.route('/<service>/<server_ip>/save', methods=['POST'])
 @check_services
 def save_config(service, server_ip):
-    try:
-        user_params = roxywi_common.get_users_params()
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
-
     roxywi_common.check_is_server_in_group(server_ip)
-    service_desc = sql.select_service(service)
-    is_redirect = roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=service_desc.service_id)
-
-    if is_redirect != 'ok':
-        return redirect(url_for(f'{is_redirect}'))
-
     config_file = request.form.get('config')
     oldcfg = request.form.get('oldconfig')
     save = request.form.get('save')
@@ -172,7 +138,7 @@ def save_config(service, server_ip):
     try:
         cfg = config_mod.return_cfg(service, server_ip, config_file_name)
     except Exception as e:
-        return f'error: {e}', 200
+        return f'error: Cannot get config {e}'
 
     try:
         with open(cfg, "a") as conf:
@@ -201,20 +167,13 @@ def save_config(service, server_ip):
 @bp.route('/versions/<service>', defaults={'server_ip': None}, methods=['GET', 'POST'])
 @bp.route('/versions/<service>/<server_ip>', methods=['GET', 'POST'])
 @check_services
+@get_user_params(disable=1)
 def versions(service, server_ip):
     roxywi_auth.page_for_admin(level=3)
     aftersave = ''
     file = set()
     stderr = ''
-
-    try:
-        user_params = roxywi_common.get_users_params(disable=1)
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
-
-    if service not in ('haproxy', 'nginx', 'keepalived', 'apache'):
-        return redirect(url_for('index'))
+    user_params = g.user_params
 
     if service in ('haproxy', 'keepalived'):
         conf_format = 'cfg'
@@ -246,7 +205,7 @@ def versions(service, server_ip):
                     stderr = "Error: %s - %s." % (e.filename, e.strerror)
 
     return render_template(
-        'delver.html', role=user_params['role'], user=user, select_id="serv", serv=server_ip, aftersave=aftersave,
+        'delver.html', role=user_params['role'], user=user_params['user'], select_id="serv", serv=server_ip, aftersave=aftersave,
         selects=user_params['servers'], file=file, service=service, user_services=user_params['user_services'],
         token=user_params['token'], lang=user_params['lang'], stderr=stderr
     )
@@ -265,23 +224,11 @@ def list_of_version(service):
 @bp.route('/versions/<service>/<server_ip>/<configver>', defaults={'save': None}, methods=['GET', 'POST'])
 @bp.route('/versions/<service>/<server_ip>/<configver>/save', defaults={'save': 1}, methods=['GET', 'POST'])
 @check_services
+@get_user_params(disable=1)
 def show_version(service, server_ip, configver, save):
     roxywi_auth.page_for_admin(level=3)
-
-    try:
-        user_params = roxywi_common.get_users_params(disable=1)
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
-
-    if service not in ('haproxy', 'nginx', 'keepalived', 'apache'):
-        return redirect(url_for('index'))
-
+    user_params = g.user_params
     service_desc = sql.select_service(service)
-
-    if not roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=service_desc.service_id):
-        return redirect(url_for('index'))
-
     configs_dir = get_config.get_config_var('configs', f'{service_desc.service}_save_configs_dir')
     configver = configs_dir + configver
     servers = roxywi_common.get_dick_permit(service=service_desc.slug)
@@ -309,25 +256,16 @@ def show_version(service, server_ip, configver, save):
             stderr = config_mod.master_slave_upload_and_restart(server_ip, configver, save_action, service)
 
     return render_template(
-        'configver.html', role=user_params['role'], user=user, select_id="serv", serv=server_ip, aftersave=aftersave,
+        'configver.html', role=user_params['role'], user=user_params['user'], select_id="serv", serv=server_ip, aftersave=aftersave,
         selects=servers, stderr=stderr, save=save, configver=configver, service=service,
         user_services=user_params['user_services'], token=user_params['token'], lang=user_params['lang']
     )
 
 
 @bp.route('/section/haproxy/<server_ip>')
+@get_user_params()
 def haproxy_section(server_ip):
-    try:
-        user_params = roxywi_common.get_users_params(service=1)
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
-
-    is_redirect = roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=1)
-
-    if is_redirect != 'ok':
-        return redirect(url_for(f'{is_redirect}'))
-
+    user_params = g.user_params
     is_restart = 0
     hap_configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
     cfg = f"{hap_configs_dir}{server_ip}-{get_date.return_date('config')}.cfg"
@@ -335,30 +273,16 @@ def haproxy_section(server_ip):
     sections = section_mod.get_sections(cfg)
 
     return render_template(
-        'sections.html', role=user_params['role'], user=user, serv=server_ip, selects=user_params['servers'],
+        'sections.html', role=user_params['role'], user=user_params['user'], serv=server_ip, selects=user_params['servers'],
         sections=sections, error=error, token=user_params['token'], lang=user_params['lang'], is_restart=is_restart, config='',
         user_services=user_params['user_services']
     )
 
 
 @bp.route('/section/haproxy/<server_ip>/<section>')
+@get_user_params()
 def haproxy_section_show(server_ip, section):
-    try:
-        user_params = roxywi_common.get_users_params(service=1)
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
-
-    is_redirect = roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=1)
-
-    if is_redirect != 'ok':
-        return redirect(url_for(f'{is_redirect}'))
-
-    try:
-        roxywi_common.logging(server_ip, f"A section {section} has been opened")
-    except Exception:
-        pass
-
+    user_params = g.user_params
     hap_configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
     cfg = f"{hap_configs_dir}{server_ip}-{get_date.return_date('config')}.cfg"
     error = config_mod.get_config(server_ip, cfg)
@@ -369,8 +293,13 @@ def haproxy_section_show(server_ip, section):
 
     os.system(f"/bin/mv {cfg} {cfg}.old")
 
+    try:
+        roxywi_common.logging(server_ip, f"A section {section} has been opened")
+    except Exception:
+        pass
+
     return render_template(
-        'sections.html', role=user_params['role'], user=user, serv=server_ip, selects=user_params['servers'],
+        'sections.html', role=user_params['role'], user=user_params['user'], serv=server_ip, selects=user_params['servers'],
         error=error, sections=sections, cfg=cfg, token=user_params['token'], lang=user_params['lang'],
         is_restart=is_restart, config=config_read, start_line=start_line, end_line=end_line, section=section,
         user_services=user_params['user_services']
@@ -379,17 +308,6 @@ def haproxy_section_show(server_ip, section):
 
 @bp.route('/section/haproxy/<server_ip>/save', methods=['POST'])
 def haproxy_section_save(server_ip):
-    try:
-        user_params = roxywi_common.get_users_params(service=1)
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
-
-    is_redirect = roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=1)
-
-    if is_redirect != 'ok':
-        return redirect(url_for(f'{is_redirect}'))
-
     hap_configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
     cfg = f"{hap_configs_dir}{server_ip}-{get_date.return_date('config')}.cfg"
     config_file = request.form.get('config')
@@ -421,6 +339,7 @@ def haproxy_section_save(server_ip):
 
 @bp.route('/compare/<service>/<serv>')
 @bp.route('/map/<service>/<serv>')
+@get_user_params()
 def show_compare_config(service, serv):
     config_read = ""
     cfg = ""
@@ -430,24 +349,11 @@ def show_compare_config(service, serv):
     is_restart = ''
     is_serv_protected = ''
     config_file_name = ''
-
-    try:
-        user_params = roxywi_common.get_users_params(service=service)
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
-
-    if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
-        service_desc = sql.select_service(service)
-        is_redirect = roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=service_desc.service_id)
-
-        if is_redirect != 'ok':
-            return redirect(url_for(f'{is_redirect}'))
-    else:
-        return redirect(url_for('index'))
+    user_params = g.user_params
+    service_desc = sql.select_service(service)
 
     return render_template(
-        'config.html', role=user_params['role'], user=user, select_id="serv", serv=serv, aftersave=aftersave,
+        'config.html', role=user_params['role'], user=user_params['user'], select_id="serv", serv=serv, aftersave=aftersave,
         config=config_read, cfg=cfg, selects=user_params['servers'], stderr=stderr, error=error, service=service,
         is_restart=is_restart, user_services=user_params['user_services'], config_file_name=config_file_name,
         is_serv_protected=is_serv_protected, token=user_params['token'], lang=user_params['lang'],
@@ -461,7 +367,7 @@ def show_configs_for_compare(service, server_ip):
     return config_mod.show_compare_config(server_ip, service)
 
 
-@bp.route('/compare/<service>/<server_ip>/show', methods=['POST'])
+@bp.post('/compare/<service>/<server_ip>/show')
 @check_services
 def show_compare(service, server_ip):
     left = common.checkAjaxInput(request.form.get('left'))

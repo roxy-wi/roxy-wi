@@ -616,6 +616,19 @@ class SmonDnsCheck(BaseModel):
         primary_key = False
 
 
+class RoxyTool(BaseModel):
+    id = AutoField()
+    name = CharField()
+    current_version = CharField()
+    new_version = CharField()
+    is_roxy = IntegerField()
+    desc = CharField()
+
+    class Meta:
+        table_name = 'roxy_tools'
+        constraints = [SQL('UNIQUE (name)')]
+
+
 def create_tables():
     with conn:
         conn.create_tables([User, Server, Role, Telegram, Slack, UUID, Token, ApiToken, Groups, UserGroups, ConfigVersion,
@@ -623,4 +636,4 @@ def create_tables():
                             PortScannerSettings, PortScannerPorts, PortScannerHistory, ServiceSetting, MetricsHttpStatus,
                             SMON, WafRules, Alerts, GeoipCodes, NginxMetrics, SystemInfo, Services, UserName, GitSetting,
                             CheckerSetting, ApacheMetrics, WafNginx, ServiceStatus, KeepaliveRestart, PD, SmonHistory,
-                            SmonTcpCheck, SmonHttpCheck, SmonPingCheck, SmonDnsCheck, S3Backup])
+                            SmonTcpCheck, SmonHttpCheck, SmonPingCheck, SmonDnsCheck, S3Backup, RoxyTool])

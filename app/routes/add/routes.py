@@ -1,10 +1,11 @@
 import os
 
-from flask import render_template, request, jsonify, redirect, url_for
+from flask import render_template, request, jsonify, redirect, url_for, g
 from flask_login import login_required
 
 from app.routes.add import bp
 import app.modules.db.sql as sql
+from middleware import check_services, get_user_params
 import app.modules.config.add as add_mod
 import app.modules.common.common as common
 import app.modules.roxywi.auth as roxywi_auth
@@ -25,18 +26,12 @@ def before_request():
 
 
 @bp.route('/<service>')
+@check_services
+@get_user_params()
 def add(service):
     roxywi_auth.page_for_admin(level=3)
 
-    if service not in ('haproxy', 'nginx'):
-        raise Exception('error: wrong service')
-
-    try:
-        user_params = roxywi_common.get_users_params(service=service)
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
-
+    user_params = g.user_params
     add = request.form.get('add')
     conf_add = request.form.get('conf')
 
@@ -61,14 +56,14 @@ def add(service):
         maps = roxywi_common.get_files(folder=f'{lib_path}/maps/{user_group}', file_format="map")
 
         return render_template(
-            'add.html', h2=1, role=user_params['role'], user=user, selects=user_params['servers'], add=add,
+            'add.html', h2=1, role=user_params['role'], user=user_params['user'], selects=user_params['servers'], add=add,
             conf_add=conf_add, group=user_group, options=sql.select_options(), saved_servers=sql.select_saved_servers(),
             white_lists=white_lists, black_lists=black_lists, user_services=user_params['user_services'],
             token=user_params['token'], lang=user_params['lang'], maps=maps
         )
     elif service == 'nginx':
         return render_template(
-            'add_nginx.html', h2=1, role=user_params['role'], user=user, selects=user_params['servers'], add=add,
+            'add_nginx.html', h2=1, role=user_params['role'], user=user_params['user'], selects=user_params['servers'], add=add,
             conf_add=conf_add, user_services=user_params['user_services'], token=user_params['token'], lang=user_params['lang']
         )
     else:

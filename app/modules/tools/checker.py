@@ -55,24 +55,24 @@ def load_checker() -> None:
     )
 
 
-def update_haproxy_settings(setting_id, email, service_alert, backend_alert, maxconn_alert, telegram_id, slack_id, pd_id) -> None:
+def update_haproxy_settings(setting_id, email, service_alert, backend_alert, maxconn_alert, telegram_id, slack_id, pd_id) -> str:
     if sql.update_haproxy_checker_settings(email, telegram_id, slack_id, pd_id, service_alert, backend_alert,
                                            maxconn_alert, setting_id):
-        print('ok')
+        return 'ok'
     else:
-        print('error: Cannot update Checker settings')
+        return 'error: Cannot update Checker settings'
 
 
-def update_keepalived_settings(setting_id, email, service_alert, backend_alert, telegram_id, slack_id, pd_id) -> None:
+def update_keepalived_settings(setting_id, email, service_alert, backend_alert, telegram_id, slack_id, pd_id) -> str:
     if sql.update_keepalived_checker_settings(email, telegram_id, slack_id, pd_id, service_alert, backend_alert,
                                               setting_id):
-        print('ok')
+        return 'ok'
     else:
-        print('error: Cannot update Checker settings')
+        return 'error: Cannot update Checker settings'
 
 
-def update_service_settings(setting_id, email, service_alert, telegram_id, slack_id, pd_id) -> None:
+def update_service_settings(setting_id, email, service_alert, telegram_id, slack_id, pd_id) -> str:
     if sql.update_service_checker_settings(email, telegram_id, slack_id, pd_id, service_alert, setting_id):
-        print('ok')
+        return 'ok'
     else:
-        print('error: Cannot update Checker settings')
+        return 'error: Cannot update Checker settings'

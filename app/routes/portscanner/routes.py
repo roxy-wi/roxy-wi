@@ -1,7 +1,8 @@
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, g
 from flask_login import login_required
 
 from app.routes.portscanner import bp
+from middleware import get_user_params
 import app.modules.db.sql as sql
 import app.modules.common.common as common
 import app.modules.server.server as server_mod
@@ -16,13 +17,9 @@ def before_request():
 
 
 @bp.route('')
+@get_user_params(virt=1)
 def portscanner():
-    try:
-        user_params = roxywi_common.get_users_params(virt=1)
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
-
+    user_params = g.user_params
     user_group = roxywi_common.get_user_group(id=1)
     port_scanner_settings = sql.select_port_scanner_settings(user_group)
 
@@ -41,7 +38,7 @@ def portscanner():
     user_subscription = roxywi_common.return_user_subscription()
 
     return render_template(
-        'portscanner.html', autorefresh=0, role=user_params['role'], user=user, servers=user_params['servers'],
+        'portscanner.html', autorefresh=0, role=user_params['role'], user=user_params['user'], servers=user_params['servers'],
         port_scanner_settings=port_scanner_settings, count_ports=count_ports, port_scanner=''.join(port_scanner),
         port_scanner_stderr=port_scanner_stderr, user_services=user_params['user_services'], user_status=user_subscription['user_status'],
         user_plan=user_subscription['user_plan'], token=user_params['token'], lang=user_params['lang']
@@ -49,18 +46,14 @@ def portscanner():
 
 
 @bp.route('/history/<server_ip>')
+@get_user_params()
 def portscanner_history(server_ip):
-    try:
-        user_params = roxywi_common.get_users_params()
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
-
+    user_params = g.user_params
     history = sql.select_port_scanner_history(server_ip)
     user_subscription = roxywi_common.return_user_subscription()
 
     return render_template(
-        'include/port_scan_history.html', h2=1, autorefresh=0, role=user_params['role'], user=user, history=history,
+        'include/port_scan_history.html', h2=1, autorefresh=0, role=user_params['role'], user=user_params['user'], history=history,
         servers=user_params['servers'], user_services=user_params['user_services'], token=user_params['token'],
         user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'], lang=user_params['lang']
     )

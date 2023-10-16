@@ -15,11 +15,11 @@
     {% endif %}
     <tr class="odd">
         <td class="padding10 first-collumn-wi">{{lang.words.plan|title()}}</td>
-        <td>{{plan}}</td>
+        <td colspan="2">{{plan}}</td>
     </tr>
     <tr class="even">
         <td class="padding10 first-collumn-wi">{{lang.words.status|title()}}</td>
-        <td>
+        <td colspan="2">
             {% if plan == 'Free' %}
                 N/A
             {% else %}
@@ -35,7 +35,7 @@
     </tr>
     <tr class="odd">
         <td class="padding10 first-collumn-wi">{{lang.words.pay_method|title()}}</td>
-        <td>
+        <td colspan="2">
             {% if plan == 'Free' %}
                 N/A
             {% else %}

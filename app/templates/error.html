@@ -1,20 +1,21 @@
 {% extends "base.html" %}
+{% block title %} {{title}} {% endblock %}
+{% block h2 %} {{title}} {% endblock %}
 {% block content %}
-        <h2>
-            404 - Page not found
-        </h2>
+<div class="container">
         <style>
             #oops_div {
                 position: absolute;
                 right: 0;
                 margin-top: 50px;
-                bottom: 50px;
+                bottom: -15px;
             }
         </style>
         <center>
-            <h4>Sorry, but page not found. Try another page</h4>
+            <h4>{{e}}</h4>
         </center>
         <div id="oops_div">
             <img src="{{ url_for('static', filename='images/oops.png')}}" alt="Oops">
         </div>
+</div>
 {% endblock %}

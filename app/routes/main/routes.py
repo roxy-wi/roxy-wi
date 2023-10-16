@@ -2,7 +2,7 @@ import os
 import sys
 import pytz
 
-from flask import render_template, request, redirect, url_for, session
+from flask import render_template, request, redirect, url_for, session, g, abort
 from flask_login import login_required
 
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app'))
@@ -11,6 +11,7 @@ from app import app, cache
 from app.routes.main import bp
 import modules.db.sql as sql
 from modules.db.db_model import conn
+from middleware import check_services, get_user_params
 import modules.common.common as common
 import modules.roxywi.roxy as roxy
 import modules.roxywi.auth as roxywi_auth
@@ -20,14 +21,44 @@ import modules.service.common as service_common
 import modules.service.haproxy as service_haproxy
 
 
+@app.errorhandler(403)
+@get_user_params()
+def page_is_forbidden(e):
+    user_params = g.user_params
+    return render_template(
+        'error.html', user=user_params['user'], role=user_params['role'], user_services=user_params['user_services'], 
+        title=e, e=e
+    ), 403
+
+
 @app.errorhandler(404)
+@get_user_params()
 def page_not_found(e):
-    return render_template('404.html'), 404
+    user_params = g.user_params
+    return render_template(
+        'error.html', user=user_params['user'], role=user_params['role'], user_services=user_params['user_services'],
+        title=e, e=e
+    ), 404
+
+
+@app.errorhandler(405)
+@get_user_params()
+def method_not_allowed(e):
+    user_params = g.user_params
+    return render_template(
+        'error.html', user=user_params['user'], role=user_params['role'], user_services=user_params['user_services'],
+        title=e, e=e
+    ), 405
 
 
 @app.errorhandler(500)
-def page_not_found(e):
-    return render_template('500.html', e=e), 500
+@get_user_params()
+def internal_error(e):
+    user_params = g.user_params
+    return render_template(
+        'error.html', user=user_params['user'], role=user_params['role'], user_services=user_params['user_services'], 
+        title=e, e=e
+    ), 500
 
 
 @app.before_request
@@ -44,12 +75,11 @@ def _db_close(exc):
 @bp.route('/stats/<service>/', defaults={'serv': None})
 @bp.route('/stats/<service>/<serv>')
 @login_required
+@check_services
+@get_user_params()
 def stats(service, serv):
-    try:
-        user_params = roxywi_common.get_users_params(virt=1, haproxy=1)
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
+    user_params = g.user_params
+    service_desc = sql.select_service(service)
 
     try:
         if serv is None:
@@ -60,19 +90,9 @@ def stats(service, serv):
     except Exception:
         pass
 
-    if service in ('haproxy', 'nginx', 'apache'):
-        service_desc = sql.select_service(service)
-        is_redirect = roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=service_desc.service_id)
-
-        if is_redirect != 'ok':
-            return redirect(url_for(f'{is_redirect}'))
-
-        servers = roxywi_common.get_dick_permit(service=service_desc.slug)
-    else:
-        return redirect(url_for('overview.index'))
-
+    servers = roxywi_common.get_dick_permit(service=service_desc.slug)
     return render_template(
-        'statsview.html', autorefresh=1, role=user_params['role'], user=user, selects=servers, serv=serv,
+        'statsview.html', autorefresh=1, role=user_params['role'], user=user_params['user'], selects=servers, serv=serv,
         service=service, user_services=user_params['user_services'], token=user_params['token'],
         select_id="serv", lang=user_params['lang'], service_desc=service_desc
     )
@@ -80,6 +100,7 @@ def stats(service, serv):
 
 @bp.route('/stats/view/<service>/<server_ip>')
 @login_required
+@check_services
 def show_stats(service, server_ip):
     server_ip = common.is_ip_or_dns(server_ip)
 
@@ -91,15 +112,12 @@ def show_stats(service, server_ip):
 
 @bp.route('/nettools')
 @login_required
+@get_user_params(1)
 def nettools():
-    try:
-        user_params = roxywi_common.get_users_params(virt=1)
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
-
+    import time
+    user_params = g.user_params
     return render_template(
-        'nettools.html', autorefresh=0, role=user_params['role'], user=user, servers=user_params['servers'],
+        'nettools.html', autorefresh=0, role=user_params['role'], user=user_params['user'], servers=user_params['servers'],
         user_services=user_params['user_services'], token=user_params['token'], lang=user_params['lang']
     )
 
@@ -127,22 +145,19 @@ def nettols_check(check):
 
 @bp.route('/history/<service>/<server_ip>')
 @login_required
+@get_user_params()
 def service_history(service, server_ip):
     users = sql.select_users()
     server_ip = common.checkAjaxInput(server_ip)
     user_subscription = roxywi_common.return_user_subscription()
-
-    try:
-        user_params = roxywi_common.get_users_params()
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
+    user_params = g.user_params
 
     if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
         service_desc = sql.select_service(service)
-        if roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=service_desc.service_id):
-            server_id = sql.select_server_id_by_ip(server_ip)
-            history = sql.select_action_history_by_server_id_and_service(server_id, service_desc.service)
+        if not roxywi_auth.is_access_permit_to_service(service_desc.slug):
+            abort(403, f'You do not have needed permissions to access to {service_desc.slug.title()} service')
+        server_id = sql.select_server_id_by_ip(server_ip)
+        history = sql.select_action_history_by_server_id_and_service(server_id, service_desc.service)
     elif service == 'server':
         if roxywi_common.check_is_server_in_group(server_ip):
             server_id = sql.select_server_id_by_ip(server_ip)
@@ -151,7 +166,7 @@ def service_history(service, server_ip):
         history = sql.select_action_history_by_user_id(server_ip)
 
     return render_template(
-        'history.html', role=user_params['role'], user=user, users=users, serv=server_ip, service=service,
+        'history.html', role=user_params['role'], user=user_params['user'], users=users, serv=server_ip, service=service,
         history=history, user_services=user_params['user_services'], token=user_params['token'],
         user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'], lang=user_params['lang']
     )
@@ -159,15 +174,11 @@ def service_history(service, server_ip):
 
 @bp.route('/servers')
 @login_required
+@get_user_params()
 def servers():
     roxywi_auth.page_for_admin(level=2)
 
-    try:
-        user_params = roxywi_common.get_users_params()
-        user = user_params['user']
-    except Exception:
-        return redirect(url_for('login_page'))
-
+    user_params = g.user_params
     ldap_enable = sql.get_setting('ldap_enable')
     user_group = roxywi_common.get_user_group(id=1)
     settings = sql.get_setting('', all=1)
@@ -188,7 +199,7 @@ def servers():
 
     return render_template(
         'servers.html',
-        h2=1, title=title, role=user_params['role'], user=user, users=sql.select_users(group=user_group),
+        h2=1, title=title, role=user_params['role'], user=user_params['user'], users=sql.select_users(group=user_group),
         groups=sql.select_groups(), servers=servers, roles=sql.select_roles(), sshs=sql.select_ssh(group=user_group),
         masters=masters, group=user_group, services=services, timezones=pytz.all_timezones, guide_me=1,
         token=user_params['token'], settings=settings, backups=backups, s3_backups=s3_backups, page="servers.py",

@@ -1,10 +1,11 @@
 import os
 
-from flask import render_template, request
+from flask import render_template, request, g, abort
 from flask_login import login_required
 
 from app.routes.waf import bp
 import app.modules.db.sql as sql
+from middleware import check_services, get_user_params
 import app.modules.common.common as common
 import app.modules.roxy_wi_tools as roxy_wi_tools
 import app.modules.roxywi.waf as roxy_waf
@@ -25,8 +26,13 @@ def before_request():
 
 
 @bp.route('/<service>')
+@check_services
+@get_user_params()
 def waf(service):
     roxywi_auth.page_for_admin(level=2)
+
+    if not roxywi_auth.is_access_permit_to_service(service):
+        abort(403, f'You do not have needed permissions to access to {service.title()} service')
 
     manage_rules = ''
     waf_rule_id = ''
@@ -36,13 +42,11 @@ def waf(service):
     rules = ''
     serv = ''
     cfg = ''
-    user_params = roxywi_common.get_users_params()
+    user_params = g.user_params
 
     if service == 'nginx':
-        roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=2)
         servers = roxywi_common.get_dick_permit(nginx=1)
     else:
-        roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=1)
         servers = user_params['servers']
 
     title = "Web application firewall"
@@ -59,9 +63,12 @@ def waf(service):
 
 
 @bp.route('/<service>/<server_ip>/rules')
+@get_user_params()
 def waf_rules(service, server_ip):
     roxywi_auth.page_for_admin(level=2)
     roxywi_common.check_is_server_in_group(server_ip)
+    if not roxywi_auth.is_access_permit_to_service(service):
+        abort(403, f'You do not have needed permissions to access to {service.title()} service')
 
     manage_rules = '1'
     waf_rule_id = ''
@@ -71,14 +78,9 @@ def waf_rules(service, server_ip):
     config_read = ''
     servers = ''
     cfg = ''
-    user_params = roxywi_common.get_users_params()
+    user_params = g.user_params
     title = "Manage rules - Web application firewall"
     rules = sql.select_waf_rules(server_ip, service)
-
-    if service == 'nginx':
-        roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=2)
-    else:
-        roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=1)
 
     return render_template(
         'waf.html', title=title, autorefresh=0, role=user_params['role'], user=user_params['user'], serv=server_ip,
@@ -90,22 +92,23 @@ def waf_rules(service, server_ip):
 
 
 @bp.route('/<service>/<server_ip>/rule/<rule_id>')
+@get_user_params()
 def waf_rule_edit(service, server_ip, rule_id):
     roxywi_auth.page_for_admin(level=2)
+    if not roxywi_auth.is_access_permit_to_service(service):
+        abort(403, f'You do not have needed permissions to access to {service.title()} service')
     roxywi_common.check_is_server_in_group(server_ip)
 
     manage_rules = ''
     servers_waf = ''
     config_read = ''
     servers = ''
-    user_params = roxywi_common.get_users_params()
+    user_params = g.user_params
     rules = sql.select_waf_rules(server_ip, service)
 
     if service == 'nginx':
-        roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=2)
         config_path = sql.get_setting('nginx_dir')
     else:
-        roxywi_auth.check_login(user_params['user_uuid'], user_params['token'], service=1)
         config_path = sql.get_setting('haproxy_dir')
 
     title = 'Edit a WAF rule'

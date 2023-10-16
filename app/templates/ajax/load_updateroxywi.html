@@ -44,42 +44,16 @@
 </tr>
 {% for s in services %}
     {% if s.0 in ('roxy-wi-smon', 'roxy-wi-checker', 'roxy-wi-keep_alive', 'roxy-wi-metrics', 'roxy-wi-portscanner', 'roxy-wi-socket', 'roxy-wi-prometheus-exporter') %}
+        {% set is_need_update = 0 %}
+        {% if s.2['current_version']|float < s.2['new_version']|float %}
+            {% set is_need_update = 1 %}
+        {% endif %}
 <tr class="{{ loop.cycle('even', 'odd') }}">
-    {% set is_need_update = 0 %}
-    {% if s.0 == 'roxy-wi-smon' %}
-        {% if s.3|float < smon_ver|float %}
-            {% set is_need_update = 1 %}
-        {% endif %}
-    {% elif s.0 == 'roxy-wi-checker' %}
-        {% if s.3|float < checker_ver|float %}
-            {% set is_need_update = 1 %}
-        {% endif %}
-    {% elif s.0 == 'roxy-wi-keep_alive' %}
-        {% if s.3|float < keep_ver|float %}
-            {% set is_need_update = 1 %}
-        {% endif %}
-    {% elif s.0 == 'roxy-wi-metrics' %}
-        {% if s.3|float < metrics_ver|float %}
-            {% set is_need_update = 1 %}
-    {% endif %}
-    {% elif s.0 == 'roxy-wi-portscanner' %}
-        {% if s.3|float < portscanner_ver|float %}
-            {% set is_need_update = 1 %}
-        {% endif %}
-    {% elif s.0 == 'roxy-wi-socket' %}
-        {% if s.3|float < socket_ver|float %}
-            {% set is_need_update = 1 %}
-        {% endif %}
-    {% elif s.0 == 'roxy-wi-prometheus-exporter' %}
-        {% if s.3|float < prometheus_exp_ver|float %}
-            {% set is_need_update = 1 %}
-        {% endif %}
-{% endif %}
     <td class="padding10 first-collumn">
         <a href="https://roxy-wi.org/tools/{{services_name[s.0]['link']}}" title="{{lang.words.read|title()}} {{lang.words.more}} {{lang.words.about}} {{services_name[s.0]['name']}}" target="_blank" class="link" rel="noopener noreferrer">{{services_name[s.0]['name']}}</a>
     </td>
     <td>
-        {% if s.3 != '* is not installed' and s.3 != '' %}
+        {% if s.2['current_version'] != '* is not installed' and s.2['current_version'] != '' %}
         <b id="current-version-{{s.0}}"
                 {% if is_need_update %}
                 title="{{lang.admin_page.desc.a_new_version}} {{services_name[s.0]['name']}}"
@@ -89,37 +63,23 @@
                 style="color: var(--green-color)"
                 {% endif %}
         >
-            {{s.3}}
+            {{s.2['current_version']}}
         </b>
         {% endif %}
     </td>
     <td class="padding10">
         <b>
-            {% if s.0 == 'roxy-wi-smon' %}
-                {{smon_ver}}
-            {% elif s.0 == 'roxy-wi-checker' %}
-                {{checker_ver}}
-            {% elif s.0 == 'roxy-wi-keep_alive' %}
-                {{keep_ver}}
-            {% elif s.0 == 'roxy-wi-metrics' %}
-                {{metrics_ver}}
-            {% elif s.0 == 'roxy-wi-portscanner' %}
-                {{portscanner_ver}}
-            {% elif s.0 == 'roxy-wi-socket' %}
-                {{socket_ver}}
-            {% elif s.0 == 'roxy-wi-prometheus-exporter' %}
-                {{prometheus_exp_ver}}
-            {% endif %}
+            {{s.2['new_version']}}
         </b>
     </td>
     <td>
-        {% if 'is not installed' not in s.3 and s.3 != '' %}
+        {% if 'is not installed' not in s.2['current_version'] and s.2['current_version'] != '' %}
             {% if is_need_update %}
                 <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}')" title="{{lang.words.w_update|title()}} {{services_name[s.0]['name']}}">{{lang.words.w_update|title()}}</a>
             {% endif %}
         {% endif %}
     </td>
-    <td colspan="2">
+    <td colspan="3">
         {{services_name[s.0]['desc']|safe}}
     </td>
 </tr>

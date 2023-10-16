@@ -29,7 +29,6 @@ def get_user_group(**kwargs) -> str:
 					user_group = g.name
 	except Exception as e:
 		raise Exception(f'error: {e}')
-
 	return user_group
 
 
@@ -210,8 +209,8 @@ def get_users_params(**kwargs):
 
 	try:
 		group_id = int(request.cookies.get('group'))
-	except Exception:
-		raise Exception('error: Cannot get user group')
+	except Exception as e:
+		raise Exception(f'error: Cannot get user group: {e}')
 
 	try:
 		role = sql.get_user_role_by_uuid(user_uuid, group_id)
@@ -220,19 +219,25 @@ def get_users_params(**kwargs):
 
 	try:
 		user_id = sql.get_user_id_by_uuid(user_uuid)
-		user_services = sql.select_user_services(user_id)
-		token = sql.get_token(user_uuid)
-	except Exception:
-		raise Exception('error: Cannot get user token')
+	except Exception as e:
+		raise Exception(f'error: Cannot get user id {e}')
 
-	if kwargs.get('virt') and kwargs.get('haproxy'):
+	try:
+		user_services = sql.select_user_services(user_id)
+	except Exception as e:
+		raise Exception(f'error: Cannot get user services {e}')
+
+	try:
+		token = sql.get_token(user_uuid)
+	except Exception as e:
+		raise Exception(f'error: Cannot get user token {e}')
+
+	if kwargs.get('virt') and kwargs.get('service') == 'haproxy':
 		servers = get_dick_permit(virt=1, haproxy=1)
 	elif kwargs.get('virt'):
 		servers = get_dick_permit(virt=1)
 	elif kwargs.get('disable'):
 		servers = get_dick_permit(disable=0)
-	elif kwargs.get('haproxy'):
-		servers = get_dick_permit(haproxy=1)
 	elif kwargs.get('service'):
 		servers = get_dick_permit(service=kwargs.get('service'))
 	else:

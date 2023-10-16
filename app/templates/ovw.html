@@ -69,7 +69,7 @@
 	<tr class="overviewHead" style="height: 30px;">
 		<td class="padding10 first-collumn-wi" colspan="2">
 			{% if role <= 1 %}
-				<a href="/app/internal/{{roxy_wi_log_id}}" title="{{lang.words.view|title()}} Roxy-WI {{lang.words.logs}}" class="logs_link">
+				<a href="/app/logs/internal" title="{{lang.words.view|title()}} Roxy-WI {{lang.words.logs}}" class="logs_link">
 					Roxy-WI {{lang.words.server_status}}
 				</a>
 			{% else %}
@@ -98,7 +98,7 @@
 		<tr class="overviewHead">
 			<td class="padding10 first-collumn-wi" colspan=2>
 				{% if role <= 1 %}
-					<a href="admin#services" title="{{lang.words.view|title()}} {{lang.words.services}} {{lang.words.status}}" class="logs_link">
+					<a href="admin#tools" title="{{lang.words.view|title()}} {{lang.words.services}} {{lang.words.status}}" class="logs_link">
 						Roxy-WI {{lang.words.services_status}}
 					</a>
 				{% else %}
@@ -205,56 +205,19 @@
 	</table>
 {% endif %}
 {% if role <= 2 %}
-	<table class="overview-wi" id="overview-logs">
-		<tr class="overviewHead">
-			<td class="padding10 first-collumn-wi">
-				{% if role == 2 %}
-				<a href="/app/internal/{{roxy_wi_log_id}}?type=2" title="{{lang.words.view|title()}} Roxy-WI {{lang.words.logs}}" class="logs_link">
-				{% else %}
-				<a href="/app/internal/{{roxy_wi_log_id}}" title="{{lang.words.view|title()}} Roxy-WI {{lang.words.logs}}" class="logs_link">
-				{% endif %}
-					{{lang.words.recent|title()}} Roxy-WI {{lang.words.logs}}
-				</a>
-			</td> 
-			<td>
-				{% if roxy_wi_log|length > 3 %}
-				<span class="add-button-wi">
-					<span id="show-all-haproxy-wi-log">
-						{{lang.words.show_all}}
-					</span>
-					<span id="hide-all-haproxy-wi-log" style="display: none;">
-						{{lang.words.hide|title()}} {{lang.words.logs}}
-					</span>
-				</span>
-				{% endif %}
-			</td>
-		</tr>		
-		<tr>
-		{% set counter = 0 -%}	
-		{% for log in roxy_wi_log %}
-			{% set counter = counter + loop.index0 %}
-			{% if counter <= 2 %}
-			<tr class="{{ loop.cycle('odd', 'even') }}">
-				<td class="padding10 first-collumn-wi" style="font-size: 12.5px;" colspan="2"> 
-					{{ log }}
-				</td>
-			</tr>
-			{% else %}
-			<tr style="display: none;" class="show-haproxy-wi-log {{ loop.cycle('odd', 'even') }}">
-				<td class="padding10 first-collumn-wi" style="font-size: 12.5px" colspan="2"> 
-					{{ log }}
-				</td>
-			</tr>
-			{% endif %}
-		{% endfor %}
-		</tr>	
-	</table>
+	<script>ShowOverviewLogs();</script>
+	<table class="overview-wi" id="overview-logs"></table>
 {% endif %}
 {% if role <= 1 %}
 	<table class="overview-wi" id="overview-subs">
 		<tr class="overviewHead" style="height: 30px;">
 			<td class="padding10 first-collumn-wi" colspan="2">
 				<a href="https://roxy-wi.org/cabinet" title="{{lang.words.personal|title()}} {{lang.words.cabinet}}" class="logs_link" target="_blank">{{lang.words.subs|title()}}</a>
+			</td>
+			<td style="padding-right: 10px;">
+				<a onclick="showSubOverview()" title="{{lang.words.refresh|title()}}" style="float: right;">
+					<span class="refresh"></span>
+				</a>
 			</td>
 		</tr>
 		<tbody id="sub-table"></tbody>

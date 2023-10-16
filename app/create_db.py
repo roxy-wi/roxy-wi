@@ -417,6 +417,25 @@ def default_values():
 	except Exception as e:
 		print(str(e))
 
+	data_source = [
+		{'name': 'roxy-wi-metrics', 'current_version': '1.0', 'new_version': '0', 'is_roxy': 1, 'desc': ''},
+		{'name': 'roxy-wi-checker', 'current_version': '1.0', 'new_version': '0', 'is_roxy': 1, 'desc': ''},
+		{'name': 'roxy-wi-keep_alive', 'current_version': '1.0', 'new_version': '0', 'is_roxy': 1, 'desc': ''},
+		{'name': 'roxy-wi-portscanner', 'current_version': '1.0', 'new_version': '0', 'is_roxy': 1, 'desc': ''},
+		{'name': 'roxy-wi-socket', 'current_version': '1.0', 'new_version': '0', 'is_roxy': 1, 'desc': ''},
+		{'name': 'roxy-wi-prometheus-exporter', 'current_version': '1.0', 'new_version': '0', 'is_roxy': 1, 'desc': ''},
+		{'name': 'roxy-wi-smon', 'current_version': '1.0', 'new_version': '0', 'is_roxy': 1, 'desc': ''},
+		{'name': 'prometheus', 'current_version': '1.0', 'new_version': '1.0', 'is_roxy': 0, 'desc': 'Prometheus service'},
+		{'name': 'grafana-server', 'current_version': '1.0', 'new_version': '1.0', 'is_roxy': 0, 'desc': 'Grafana service'},
+		{'name': 'fail2ban', 'current_version': '1.0', 'new_version': '1.0', 'is_roxy': 0, 'desc': 'Fail2ban service'},
+		{'name': 'rabbitmq-server', 'current_version': '1.0', 'new_version': '1.0', 'is_roxy': 0, 'desc': 'Rabbitmq service'},
+	]
+
+	try:
+		RoxyTool.insert_many(data_source).on_conflict_ignore().execute()
+	except Exception as e:
+		print(str(e))
+
 
 # Needs for insert version in first time
 def update_db_v_3_4_5_22():
@@ -649,7 +668,7 @@ def update_db_v_6_3_18():
 
 def update_ver():
 	try:
-		Version.update(version='7.0.0.0').execute()
+		Version.update(version='7.0.1.0').execute()
 	except Exception:
 		print('Cannot update version')
 
