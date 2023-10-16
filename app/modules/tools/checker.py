@@ -28,7 +28,6 @@ def load_checker() -> None:
 
     try:
         user_params = roxywi_common.get_users_params()
-        user = user_params['user']
     except Exception:
         return redirect(url_for('login_page'))
 

@@ -124,8 +124,9 @@ def action_haproxy_waf(server_ip: str, action: str) -> str:
     except Exception as e:
         return str(e)
 
-    roxywi_common.logging(server_ip, f'HAProxy WAF service has been {action}ed', roxywi=1, login=1, keep_history=1,
-                  service='haproxy')
+    roxywi_common.logging(
+        server_ip, f'HAProxy WAF service has been {action}ed', roxywi=1, login=1, keep_history=1, service='haproxy'
+    )
     commands = [f"sudo systemctl {action} waf"]
     server_mod.ssh_command(server_ip, commands)
     return f"success: WAF has been {action}"

@@ -173,6 +173,7 @@ def telegram_send_mess(mess, level, **kwargs):
 	try:
 		bot = telebot.TeleBot(token=token_bot)
 		bot.send_message(chat_id=channel_name, text=f'{level}: {mess}')
+		return 'ok'
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
 		raise Exception(f'error: {e}')
@@ -206,6 +207,7 @@ def slack_send_mess(mess, level, **kwargs):
 
 	try:
 		client.chat_postMessage(channel=f'#{channel_name}', text=f'{level}: {mess}')
+		return 'ok'
 	except SlackApiError as e:
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
 		raise Exception(f'error: {e}')
@@ -250,6 +252,7 @@ def pd_send_mess(mess, level, server_ip=None, service_id=None, alert_type=None, 
 			session.resolve(dedup_key)
 		else:
 			session.trigger(mess, 'Roxy-WI', dedup_key=dedup_key, severity=level, custom_details={'server': server_ip, 'alert': mess})
+		return 'ok'
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
 		raise Exception(f'error: {e}')

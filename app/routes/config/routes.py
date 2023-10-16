@@ -192,6 +192,7 @@ def versions(service, server_ip):
                             if 'No such file or directory' in str(e):
                                 pass
                     else:
+                        configs_dir = get_config.get_config_var('configs', f'{service}_save_configs_dir')
                         os.remove(os.path.join(configs_dir, get))
                     try:
                         file.add(get + "\n")

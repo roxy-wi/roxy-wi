@@ -227,7 +227,7 @@ def install_service(server_ip: str, service: str, docker: str, syn_flood_protect
 		show_installation_output(return_out['error'], return_out['output'], service_name, rc=return_out['rc'])
 	except Exception as e:
 		raise Exception(e)
-		
+
 	if service == 'nginx':
 		try:
 			sql.update_nginx(server_ip)
@@ -322,8 +322,10 @@ def grafana_install():
 	return f'success: Grafana and Prometheus servers were installed. You can find Grafana on http://{host}:3000<br>'
 
 
-def keepalived_master_install(master: str, eth: str, eth_slave: str, vrrp_ip: str, virt_server: int, syn_flood: int,
-							  return_to_master: int, haproxy: int, nginx: int, router_id: int, api=0) -> str:
+def keepalived_master_install(
+		master: str, eth: str, eth_slave: str, vrrp_ip: str, virt_server: int, syn_flood: int, return_to_master: int,
+		haproxy: int, nginx: int, router_id: int, api=0
+) -> str:
 	script = "install_keepalived.sh"
 	proxy = sql.get_setting('proxy')
 	keepalived_path_logs = sql.get_setting('keepalived_path_logs')
@@ -373,8 +375,9 @@ def keepalived_master_install(master: str, eth: str, eth_slave: str, vrrp_ip: st
 		return show_success_installation(service)
 
 
-def keepalived_slave_install(master: str, slave: str, eth: str, eth_slave: str, vrrp_ip: str, syn_flood: int,
-							 haproxy: int, nginx: int, router_id: int, api=0) -> str:
+def keepalived_slave_install(
+		master: str, slave: str, eth: str, eth_slave: str, vrrp_ip: str, syn_flood: int, haproxy: int, nginx: int, router_id: int, api=0
+) -> str:
 	script = "install_keepalived.sh"
 	proxy = sql.get_setting('proxy')
 	keepalived_path_logs = sql.get_setting('keepalived_path_logs')

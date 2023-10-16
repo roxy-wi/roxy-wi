@@ -222,7 +222,7 @@ def haproxy_section_add(haproxy_id):
 
 @route('/haproxy/<haproxy_id>/section/delete', method=['POST'])
 @route('/haproxy/<haproxy_id:int>/section/delete', method=['POST'])
-def haproxy_section_add(haproxy_id):
+def haproxy_section_delete(haproxy_id):
 	if not check_login(required_service=1):
 		return dict(error=_error_auth)
 	return api_funct.edit_section(haproxy_id, delete=1)

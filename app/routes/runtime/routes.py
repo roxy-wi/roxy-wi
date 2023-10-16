@@ -175,6 +175,7 @@ def get_list(server_ip, list_id, list_name):
 def delete_ip_from_list():
     ip_id = common.checkAjaxInput(request.form.get('list_ip_id_for_delete'))
     ip = common.is_ip_or_dns(request.form.get('list_ip_for_delete'))
+    serv = common.is_ip_or_dns(request.form.get('serv'))
     list_id = common.checkAjaxInput(request.form.get('list_id_for_delete'))
     list_name = common.checkAjaxInput(request.form.get('list_name'))
 

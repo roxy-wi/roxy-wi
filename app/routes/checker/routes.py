@@ -102,7 +102,7 @@ def receiver(receiver_name):
         group = common.checkAjaxInput(request.form.get('group'))
         page = common.checkAjaxInput(request.form.get('page'))
         page = page.split("#")[0]
-    
+
         return alerting.add_receiver_channel(receiver_name, token, channel, group, page)
     elif request.method == 'PUT':
         token = common.checkAjaxInput(request.form.get('receiver_token'))
