@@ -1,8 +1,6 @@
 import os
 import datetime
 
-from flask_apscheduler import APScheduler
-
 from app import scheduler
 import app.modules.db.sql as sql
 import app.modules.roxywi.roxy as roxy
@@ -16,7 +14,6 @@ get_config = roxy_wi_tools.GetConfigVar()
 def update_user_status():
     app = scheduler.app
     with app.app_context():
-        print('update plan')
         roxy.update_plan()
 
 
@@ -26,7 +23,6 @@ def check_new_version():
     with app.app_context():
         tools = sql.get_roxy_tools()
         for tool in tools:
-            print(f'update ver for {tool}')
             ver = roxy.check_new_version(tool)
             sql.update_tool_new_version(tool, ver)
 
@@ -35,7 +31,6 @@ def check_new_version():
 def update_cur_tool_versions():
     app = scheduler.app
     with app.app_context():
-        print('update update_cur_tool_versions')
         tools_common.update_cur_tool_versions()
 
 
@@ -43,7 +38,6 @@ def update_cur_tool_versions():
 def delete_old_uuid():
     app = scheduler.app
     with app.app_context():
-        print('update delete_old_uuid()')
         sql.delete_old_uuid()
 
 
@@ -51,7 +45,6 @@ def delete_old_uuid():
 def delete_action_history_for_period():
     app = scheduler.app
     with app.app_context():
-        print('update delete_action_history_for_period()')
         sql.delete_action_history_for_period()
 
 
@@ -59,7 +52,6 @@ def delete_action_history_for_period():
 def delete_old_logs():
     app = scheduler.app
     with app.app_context():
-        print('update delete_old_logs()')
         time_storage = sql.get_setting('log_time_storage')
         log_path = get_config.get_config_var('main', 'log_path')
         try:

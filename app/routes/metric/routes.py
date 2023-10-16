@@ -1,5 +1,5 @@
 import distro
-from flask import render_template, request, jsonify, redirect, url_for, g
+from flask import render_template, request, jsonify, g
 from flask_login import login_required
 
 from app.routes.metric import bp
@@ -8,7 +8,6 @@ from middleware import check_services, get_user_params
 import app.modules.common.common as common
 import app.modules.server.server as server_mod
 import app.modules.roxywi.metrics as metric
-import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
 
 

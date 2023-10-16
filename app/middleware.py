@@ -25,7 +25,7 @@ def get_user_params(virt=0, disable=0):
             try:
                 user_params = roxywi_common.get_users_params(virt=virt, disable=disable, service=kwargs.get('service'))
                 g.user_params = user_params
-            except Exception as e:
+            except Exception:
                 return redirect(url_for('login_page'))
             return fn(*args, **kwargs)
         return decorated_views

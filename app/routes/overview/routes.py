@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, g
+from flask import render_template, g
 from flask_login import login_required
 
 from app import cache
@@ -6,7 +6,6 @@ from app.routes.overview import bp
 from middleware import get_user_params
 import app.modules.db.sql as sql
 import app.modules.roxywi.logs as roxy_logs
-import app.modules.roxywi.common as roxywi_common
 import app.modules.roxywi.overview as roxy_overview
 
 

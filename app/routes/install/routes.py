@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, g, abort
+from flask import render_template, request, g, abort
 from flask_login import login_required
 
 from app.routes.install import bp
@@ -40,7 +40,7 @@ def install_monitoring():
 @get_user_params()
 def ha():
     if not roxywi_auth.is_access_permit_to_service('keepalived'):
-        abort(403, f'You do not have needed permissions to access to Keepalived service')
+        abort(403, 'You do not have needed permissions to access to Keepalived service')
     roxywi_auth.page_for_admin(level=2)
 
     user_params = g.user_params

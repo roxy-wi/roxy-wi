@@ -4,7 +4,6 @@ from flask import render_template, request
 
 import modules.db.sql as sql
 import modules.common.common as common
-import modules.roxywi.logs as roxy_logs
 import modules.tools.common as tools_common
 import modules.roxywi.common as roxywi_common
 import modules.server.server as server_mod
@@ -63,36 +62,36 @@ def show_overview(serv) -> str:
         cmd = f'echo "show info" |nc {server[0][2]} {sql.get_setting("haproxy_sock_port")} -w 1|grep -e "Process_num"'
         try:
             haproxy_process = service_common.server_status(server_mod.subprocess_execute(cmd))
-        except Exception:
-            return f'{e} for server {server[0][2]}'
+        except Exception as e:
+            return f'error: {e} for server {server[0][2]}'
 
     if nginx:
         nginx_cmd = f'echo "something" |nc {server[0][2]} {sql.get_setting("nginx_stats_port")} -w 1'
         try:
             nginx_process = service_common.server_status(server_mod.subprocess_execute(nginx_cmd))
-        except Exception:
-            return f'{e} for server {server[0][2]}'
+        except Exception as e:
+            return f'error: {e} for server {server[0][2]}'
 
     if apache:
         apache_cmd = f'echo "something" |nc {server[0][2]} {sql.get_setting("apache_stats_port")} -w 1'
         try:
             apache_process = service_common.server_status(server_mod.subprocess_execute(apache_cmd))
-        except Exception:
-            return f'{e} for server {server[0][2]}'
+        except Exception as e:
+            return f'error: {e} for server {server[0][2]}'
 
     if keepalived:
         command = ["ps ax |grep keepalived|grep -v grep|wc -l|tr -d '\n'"]
         try:
             keepalived_process = server_mod.ssh_command(server[0][2], command)
         except Exception as e:
-            return f'{e} for server {server[0][2]}'
+            return f'error: {e} for server {server[0][2]}'
 
     if waf_len >= 1:
         command = ["ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l"]
         try:
             waf_process = server_mod.ssh_command(server[0][2], command)
         except Exception as e:
-            return f'{e} for server {server[0][2]}'
+            return f'error: {e} for server {server[0][2]}'
 
     server_status = (
         server[0][1], server[0][2], haproxy, haproxy_process, waf_process, waf, keepalived, keepalived_process, nginx,

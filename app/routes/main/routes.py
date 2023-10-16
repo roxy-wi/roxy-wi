@@ -2,7 +2,7 @@ import os
 import sys
 import pytz
 
-from flask import render_template, request, redirect, url_for, session, g, abort
+from flask import render_template, request, session, g, abort
 from flask_login import login_required
 
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app'))
@@ -26,7 +26,7 @@ import modules.service.haproxy as service_haproxy
 def page_is_forbidden(e):
     user_params = g.user_params
     return render_template(
-        'error.html', user=user_params['user'], role=user_params['role'], user_services=user_params['user_services'], 
+        'error.html', user=user_params['user'], role=user_params['role'], user_services=user_params['user_services'],
         title=e, e=e
     ), 403
 
@@ -56,7 +56,7 @@ def method_not_allowed(e):
 def internal_error(e):
     user_params = g.user_params
     return render_template(
-        'error.html', user=user_params['user'], role=user_params['role'], user_services=user_params['user_services'], 
+        'error.html', user=user_params['user'], role=user_params['role'], user_services=user_params['user_services'],
         title=e, e=e
     ), 500
 
@@ -114,7 +114,6 @@ def show_stats(service, server_ip):
 @login_required
 @get_user_params(1)
 def nettools():
-    import time
     user_params = g.user_params
     return render_template(
         'nettools.html', autorefresh=0, role=user_params['role'], user=user_params['user'], servers=user_params['servers'],

@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, g
+from flask import render_template, request, g
 from flask_login import login_required
 
 from app.routes.checker import bp

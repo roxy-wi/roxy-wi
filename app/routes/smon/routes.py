@@ -1,5 +1,5 @@
 from pytz import timezone
-from flask import render_template, request, redirect, url_for, jsonify, g
+from flask import render_template, request, jsonify, g
 from flask_login import login_required
 from datetime import datetime
 
