@@ -359,7 +359,6 @@ function showLog() {
 	var serv = $("#serv").val();
 	if ((file === undefined || file === null) && (waf == '' || waf === undefined)) {
 		var file_from_get = findGetParameter('file');
-		console.log(file_from_get)
 		if (file_from_get === undefined || file_from_get === null) {
 			toastr.warning('Select a log file first')
 			return false;
@@ -884,6 +883,7 @@ $( function() {
 				} else if (data.indexOf('error') != '-1') {
 					toastr.error(data);
 				} else {
+					sessionStorage.removeItem('check-service');
 					window.location.replace(data);
 				}
 			}

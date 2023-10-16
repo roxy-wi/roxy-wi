@@ -917,8 +917,6 @@ $( function() {
 	$("#tabs ul li").click(function() {
 		var activeTab = $(this).find("a").attr("href");
 		var activeTabClass = activeTab.replace('#', '');
-		console.log(activeTab)
-		console.log(activeTabClass)
 		$('.menu li ul li').each(function () {
 			$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
 			$(this).find('a').css('padding-left', '20px')
@@ -2412,6 +2410,7 @@ function updateService(service, action='update') {
 			}
 			$("#ajax-update").html('');
 			loadupdatehapwi();
+			loadServices();
 			show_version();
 		}
 	});
@@ -2566,6 +2565,18 @@ function loadupdatehapwi() {
 			} else {
 				$('#ajax-updatehapwi-body').html(data);
 			}
+		}
+	} );
+}
+function checkUpdateRoxy() {
+	$.ajax({
+		url: "/app/admin/update/check",
+		// data: {
+		// 	token: $('#token').val()
+		// },
+		// type: "POST",
+		success: function (data) {
+			loadupdatehapwi();
 		}
 	} );
 }

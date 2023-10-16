@@ -146,6 +146,7 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f1da";
 }
+.tools::before,
 .services::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";

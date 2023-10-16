@@ -185,8 +185,8 @@ def delete_ip_from_list():
 @bp.route('/list/add', methods=['POST'])
 def add_ip_to_list():
     ip = request.form.get('list_ip_for_add')
-    ip = ip.strip()
-    ip = common.is_ip_or_dns(ip)
+    ip = common.is_ip_or_dns(ip.strip())
+    serv = common.is_ip_or_dns(request.form.get('serv'))
     list_id = common.checkAjaxInput(request.form.get('list_id_for_add'))
     list_name = common.checkAjaxInput(request.form.get('list_name'))
 

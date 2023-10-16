@@ -319,7 +319,7 @@ function addNewIp() {
 	var ip = $('#list_add_ip_new_ip').val();
 	if(valid) {
 		$.ajax({
-			url: "/app/runtimeapi/add/",
+			url: "/app/runtimeapi/list/add/",
 			data: {
 				serv: $('#list_serv_select').val(),
 				list_ip_for_add: ip,

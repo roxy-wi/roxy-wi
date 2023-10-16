@@ -1391,6 +1391,7 @@ def insert_metrics(serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate):
 			if not conn.is_closed():
 				conn.close()
 
+
 def insert_metrics_http(serv, http_2xx, http_3xx, http_4xx, http_5xx):
 	cur_date = get_date.return_date('regular')
 	try:
@@ -4141,3 +4142,52 @@ def is_user_super_admin(user_id: int) -> bool:
 				return True
 		else:
 			return False
+
+
+def get_roxy_tools():
+	query = RoxyTool.select()
+	try:
+		query_res = query.where(RoxyTool.is_roxy == 1).execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		tools = []
+		for tool in query_res:
+			tools.append(tool.name)
+		return tools
+
+
+def get_all_tools():
+	try:
+		query_res = RoxyTool.select().execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		tools = {}
+		for tool in query_res:
+			tools.setdefault(tool.name, {'current_version': tool.current_version, 'new_version': tool.new_version, 'desc': tool.desc})
+
+		return tools
+
+
+def update_tool_cur_version(tool_name: str, version: str):
+	try:
+		RoxyTool.update(current_version=version).where(RoxyTool.name == tool_name).execute()
+	except Exception as e:
+		out_error(e)
+
+
+def update_tool_new_version(tool_name: str, version: str):
+	try:
+		RoxyTool.update(new_version=version).where(RoxyTool.name == tool_name).execute()
+	except Exception as e:
+		out_error(e)
+
+
+def get_tool_cur_version(tool_name: str):
+	try:
+		query = RoxyTool.get(RoxyTool.name == tool_name).current_version
+	except Exception as e:
+		out_error(e)
+	else:
+		return query

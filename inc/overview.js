@@ -580,13 +580,9 @@ function ShowOverviewLogs() {
 		},
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error:') != '-1') {
-				toastr.error(data);
-			} else {
-				$("#overview-logs").html(data);
-				$.getScript("/inc/fontawesome.min.js")
-				$.getScript("/inc/overview.js")
-			}
+			$("#overview-logs").html(data);
+			$.getScript("/inc/fontawesome.min.js")
+			$.getScript("/inc/overview.js")
 		}
 	} );
 }
