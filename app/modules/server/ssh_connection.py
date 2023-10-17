@@ -17,11 +17,11 @@ class SshConnection:
     def __enter__(self):
         try:
             if self.ssh_enable == 1:
-                k = paramiko.pkey.load_private_key_file(self.ssh_key_name)
                 self.ssh.connect(
                     hostname=self.server_ip,
                     port=self.ssh_port,
-                    username=self.ssh_user_name, pkey=k,
+                    username=self.ssh_user_name,
+                    key_filename=self.ssh_key_name,
                     timeout=11,
                     banner_timeout=200
                 )

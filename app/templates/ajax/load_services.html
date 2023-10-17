@@ -22,13 +22,13 @@
 {% set is_service_stopped_title = lang.words.stop|title()+" "+lang.words.and+" "+lang.words.disable+" "+services_name[s.0]['name']+" "+lang.words.service %}
 <tr class="{{ loop.cycle('odd', 'even') }}" id="{{s.0}}">
     <td class="padding10 first-collumn">
-        {% if s.1.0 == 'active' or s.1.0 == 'RUNNING' %}
+        {% if s.1 == 'active' or s.1 == 'RUNNING' %}
             <span title="{{lang.words.service|title()}} {{services_name[s.0]['name']}} {{lang.words.started}}"><span class="serverUp server-status"></span></span>
             {% set is_service_started_class = 'disabled-button' %}
             {% set onclick_start_action = "" %}
             {% set is_service_started_title = lang.words.service|title()+" "+services_name[s.0]['name']+" "+lang.words.already+" "+lang.words.started %}
         {% else %}
-            {% if (s.1.0 == 'inactive' or s.1.0 == 'failed' or s.1.0 == 'activating' or s.1.0 == 'STOPPED') and 'is not installed' not in s.3 %}
+            {% if (s.1 == 'inactive' or s.1 == 'failed' or s.1 == 'activating' or s.1 == 'STOPPED') and 'is not installed' not in s.2['current_version'] %}
                 <span title="{{lang.words.service|title()}} {{services_name[s.0]['name']}} {{lang.words.stopped}}"><span class="serverDown server-status"></span></span>
                 {% set is_service_stopped_class = 'disabled-button' %}
                 {% set onclick_stop_action = "" %}
@@ -40,7 +40,7 @@
         {{services_name[s.0]['name']}}
     </td>
     <td class="padding10 first-collumn">
-        {% if 'is not installed' in s.3 or not s.3 %}
+        {% if 'is not installed' in s.2['current_version'] or not s.2['current_version'] %}
             {% if s.0 in ('prometheus', 'grafana-server') %}
                 <a href="/app/install#monitoring" class="ui-button ui-widget ui-corner-all" title="{{lang.words.install|title()}} {{service_name}}">{{lang.words.install|title()}}</a>
             {% elif s.0 in ('rabbitmq-server', 'fail2ban') %}
@@ -61,8 +61,8 @@
         {% endif %}
     </td>
     <td>
-        {% if 'is not installed' not in s.3 %}
-        {{ s.3 }}
+        {% if 'is not installed' not in s.2['current_version'] %}
+        {{s.2['current_version']}}
         {% endif %}
     </td>
     <td colspan="2">
