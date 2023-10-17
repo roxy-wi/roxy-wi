@@ -8,7 +8,7 @@ retry>=0.9.2
 psutil>=5.9.1
 pdpyras>=4.5.2
 Werkzeug==2.0.3
-Flask==2.0.3
+Flask==2.2.5
 Flask-Login==0.4.1
 Flask-APScheduler==1.12.4
 Flask-Caching==1.10.1
