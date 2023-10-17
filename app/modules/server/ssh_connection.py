@@ -23,7 +23,8 @@ class SshConnection:
                     username=self.ssh_user_name,
                     key_filename=self.ssh_key_name,
                     timeout=11,
-                    banner_timeout=200
+                    banner_timeout=200,
+                    look_for_keys=False
                 )
             else:
                 self.ssh.connect(
@@ -32,7 +33,8 @@ class SshConnection:
                     username=self.ssh_user_name,
                     password=self.ssh_user_password,
                     timeout=11,
-                    banner_timeout=200
+                    banner_timeout=200,
+                    look_for_keys=False
                 )
         except paramiko.AuthenticationException:
             raise paramiko.SSHException(f'{self.server_ip} Authentication failed, please verify your credentials')

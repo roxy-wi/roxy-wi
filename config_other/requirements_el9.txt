@@ -1,6 +1,5 @@
 configparser>=3.5.0
 pyTelegramBotAPI>=3.6.3 
-paramiko>=3.3.1
 networkx>=2.1
 matplotlib>=2.1.2
 slack-sdk>=3.4.0
