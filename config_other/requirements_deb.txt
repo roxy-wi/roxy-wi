@@ -7,7 +7,11 @@ distro>=1.2.0
 retry>=0.9.2
 psutil>=5.9.1
 pdpyras>=4.5.2
-Flask-APScheduler>=1.12.4
+Werkzeug==2.0.3
+Flask==2.0.3
+Flask-Login==0.4.1
+Flask-APScheduler==1.12.4
+Flask-Caching==1.10.1
 python3-nmap<=1.5.1
 aio-pika>=7.1.0
 pika>=1.2.0

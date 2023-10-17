@@ -251,8 +251,7 @@ def show_map(serv: str) -> str:
 def runtime_command(serv: str, enable: str, backend: str, save: str) -> str:
     server_state_file = sql.get_setting('server_state_file')
     haproxy_sock = sql.get_setting('haproxy_sock')
-
-    cmd = f'echo "{enable} {backend}" |sudo socat stdio {haproxy_sock}'
+    cmd = f"echo {enable} {backend} |sudo socat stdio {haproxy_sock}"
 
     if save == "on":
         save_command = f'echo "show servers state" | sudo socat {haproxy_sock} stdio > {server_state_file}'
@@ -260,14 +259,14 @@ def runtime_command(serv: str, enable: str, backend: str, save: str) -> str:
     else:
         command = [cmd]
 
-    if enable != "show":
-        roxywi_common.logging(serv, f'Has been {enable}ed {backend}', login=1, keep_history=1, service='haproxy')
-        print(
-            f'<center><h3>You {enable} {backend} on HAProxy {serv}. <a href="/app/stats/haproxy/{serv}" '
-            f'title="View stat" target="_blank">Look it</a> or <a href="/app/runtimeapi" '
-            f'title="Runtime API">Edit something else</a></h3><br />')
-
-    action = f'runtimeapi {enable} {backend}'
-    roxywi_common.logging(serv, action)
-
-    return server_mod.ssh_command(serv, command, show_log="1")
+    try:
+        output = server_mod.ssh_command(serv, command, show_log="1")
+    except Exception as e:
+        return f'{e}'
+    else:
+        if enable != "show":
+            roxywi_common.logging(serv, f'Has been {enable}ed {backend}', login=1, keep_history=1, service='haproxy')
+            return f'<center><h3>You {enable} {backend} on HAProxy {serv}. <a href="/app/stats/haproxy/{serv}" ' \
+                   f'title="View stat" target="_blank">Look it</a> or <a href="/app/runtimeapi" ' \
+                   f'title="Runtime API">Edit something else</a></h3><br />' \
+                   f'{output}'
