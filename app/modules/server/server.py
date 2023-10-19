@@ -11,7 +11,7 @@ import modules.roxywi.common as roxywi_common
 
 def ssh_command(server_ip: str, commands: list, **kwargs):
 	if server_ip == '':
-		return 'error: IP cannot be empty'
+		raise Exception('error: IP cannot be empty')
 	if kwargs.get('timeout'):
 		timeout = kwargs.get('timeout')
 	else:
@@ -22,16 +22,14 @@ def ssh_command(server_ip: str, commands: list, **kwargs):
 				try:
 					stdin, stdout, stderr = ssh.run_command(command, timeout=timeout)
 				except Exception as e:
-					print(f'error: {e}')
 					roxywi_common.logging('Roxy-WI server', f' Something wrong with SSH connection. Probably sudo with password {e}', roxywi=1)
-					return str(e)
+					raise Exception(f'error: Something wrong with SSH connection. Probably sudo with password: {e}')
 
 				if stderr:
 					for line in stderr.readlines():
 						if line:
-							print(f'error: {line}')
 							roxywi_common.logging('Roxy-WI server', f' {line}', roxywi=1)
-							raise Exception(f'error: {line}')
+							raise Exception(f'error: there is an error: {line}')
 
 				try:
 					if kwargs.get('raw'):
@@ -48,7 +46,7 @@ def ssh_command(server_ip: str, commands: list, **kwargs):
 					roxywi_common.logging('Roxy-WI server', f' Something wrong with SSH connection. Probably sudo with password {e}', roxywi=1)
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', f' Something wrong with SSH connection: {e}', roxywi=1)
-		raise Exception(f'error: {e}')
+		raise Exception(f'error: Cannot run SSH: {e}')
 
 
 def subprocess_execute(cmd):

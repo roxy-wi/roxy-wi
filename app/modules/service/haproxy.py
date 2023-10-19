@@ -14,7 +14,7 @@ get_date = roxy_wi_tools.GetDate(time_zone)
 get_config = roxy_wi_tools.GetConfigVar()
 
 
-def stat_page_action(serv: str) -> None:
+def stat_page_action(server_ip: str) -> None:
     haproxy_user = sql.get_setting('stats_user')
     haproxy_pass = sql.get_setting('stats_password')
     stats_port = sql.get_setting('stats_port')
@@ -33,7 +33,7 @@ def stat_page_action(serv: str) -> None:
         'Accept-Encoding': 'gzip, deflate'
     }
 
-    data = requests.post(f'http://{serv}:{stats_port}/{stats_page}', headers=headers, data=postdata, auth=(haproxy_user, haproxy_pass))
+    data = requests.post(f'http://{server_ip}:{stats_port}/{stats_page}', headers=headers, data=postdata, auth=(haproxy_user, haproxy_pass))
     return data.content
 
 
@@ -266,7 +266,7 @@ def runtime_command(serv: str, enable: str, backend: str, save: str) -> str:
     else:
         if enable != "show":
             roxywi_common.logging(serv, f'Has been {enable}ed {backend}', login=1, keep_history=1, service='haproxy')
-            return f'<center><h3>You {enable} {backend} on HAProxy {serv}. <a href="/app/stats/haproxy/{serv}" ' \
-                   f'title="View stat" target="_blank">Look it</a> or <a href="/app/runtimeapi" ' \
-                   f'title="Runtime API">Edit something else</a></h3><br />' \
+            return f'<center><h3>You {enable} {backend} on HAProxy {serv}.</center>' \
                    f'{output}'
+        else:
+            return output

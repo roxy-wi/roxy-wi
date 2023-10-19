@@ -46,10 +46,11 @@
 						{% endif %}
 						<option value="get">Get</option>
 						<option value="show" selected>Show</option>
+						<option value="help">Help</option>
 					</select>
 				</td>
 				<td>
-					{{ input('servbackend', value=servbackend, title='Frontend, backend/server, show: info, pools or help', required='required') }}
+					{{ input('servbackend', value=servbackend, title='Frontend, backend/server, show: info, pools or help') }}
 				</td>
 				{% if role <= 3 %}
 				<td class="checkbox">

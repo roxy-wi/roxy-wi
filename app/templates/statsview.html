@@ -140,8 +140,8 @@
 	  
 	  $("form").submit(function() {
 		$.ajax({
-			type: "get",
-			url: "options.py",
+			type: "post",
+			url: "/app/runtimeapi/stats/action/" + $('#serv').val(),
 			dataType: "text",
 			data: $(this).serialize(),
 			success: function( data ) {

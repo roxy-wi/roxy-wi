@@ -32,7 +32,10 @@ def runtimeapi():
 def show_backends(server_ip):
     server_ip = common.is_ip_or_dns(server_ip)
 
-    return runtime.show_backends(server_ip)
+    try:
+        return runtime.show_backends(server_ip)
+    except Exception as e:
+        return f'{e}'
 
 
 @bp.route('/backend/servers/<server_ip>/<backend>')
@@ -40,7 +43,10 @@ def show_backend_servers(server_ip, backend):
     server_ip = common.is_ip_or_dns(server_ip)
     backend = common.checkAjaxInput(backend)
 
-    return runtime.show_frontend_backend(server_ip, backend)
+    try:
+        return runtime.show_frontend_backend(server_ip, backend)
+    except Exception as e:
+        return f'{e}'
 
 
 @bp.route('/backend/server/<server_ip>/<backend>/<backend_server>')
@@ -49,7 +55,10 @@ def show_backend_server(server_ip, backend, backend_server):
     backend = common.checkAjaxInput(backend)
     backend_server = common.checkAjaxInput(backend_server)
 
-    return runtime.show_server(server_ip, backend, backend_server)
+    try:
+        return runtime.show_server(server_ip, backend, backend_server)
+    except Exception as e:
+        return f'{e}'
 
 
 @bp.route('/change/ip', methods=['POST'])
@@ -60,14 +69,20 @@ def change_ip_port():
     backend_ip = common.checkAjaxInput(request.form.get('backend_ip'))
     backend_port = common.checkAjaxInput(request.form.get('backend_port'))
 
-    return runtime.change_ip_and_port(server_ip, backend_backend, backend_server, backend_ip, backend_port)
+    try:
+        return runtime.change_ip_and_port(server_ip, backend_backend, backend_server, backend_ip, backend_port)
+    except Exception as e:
+        return f'{e}'
 
 
 @bp.route('/maxconn/<server_ip>')
 def maxconn_select(server_ip):
     server_ip = common.is_ip_or_dns(server_ip)
 
-    return runtime.get_backends_from_config(server_ip, backends='frontend')
+    try:
+        return runtime.get_backends_from_config(server_ip, backends='frontend')
+    except Exception as e:
+        return f'{e}'
 
 
 @bp.route('/maxconn/<type_maxconn>/<server_ip>', methods=['POST'])
@@ -77,16 +92,25 @@ def change_maxconn(type_maxconn, server_ip):
 
     if type_maxconn == 'global':
 
-        return runtime.change_maxconn_global(server_ip, maxconn)
+        try:
+            return runtime.change_maxconn_global(server_ip, maxconn)
+        except Exception as e:
+            return f'{e}'
     elif type_maxconn == 'frontend':
         frontend = common.checkAjaxInput(request.form.get('maxconn_frontend'))
 
-        return runtime.change_maxconn_frontend(server_ip, maxconn, frontend)
+        try:
+            return runtime.change_maxconn_frontend(server_ip, maxconn, frontend)
+        except Exception as e:
+            return f'{e}'
     elif type_maxconn == 'backend':
         backend = common.checkAjaxInput(request.form.get('maxconn_backend'))
         backend_server = common.checkAjaxInput(request.form.get('maxconn_backend_server'))
 
-        return runtime.change_maxconn_backend(server_ip, backend, backend_server, maxconn)
+        try:
+            return runtime.change_maxconn_backend(server_ip, backend, backend_server, maxconn)
+        except Exception as e:
+            return f'{e}'
     else:
         return 'error: Wrong backend'
 
@@ -98,14 +122,28 @@ def action(server_ip):
     backend = common.checkAjaxInput(request.form.get('servbackend'))
     save = request.form.get('save')
 
-    return service_haproxy.runtime_command(server_ip, enable, backend, save)
+    try:
+        return service_haproxy.runtime_command(server_ip, enable, backend, save)
+    except Exception as e:
+        return f'{e}'
+
+
+@bp.post('/stats/action/<server_ip>')
+def stat_page_action(server_ip):
+    try:
+        return service_haproxy.stat_page_action(server_ip)
+    except Exception as e:
+        return f'{e}'
 
 
 @bp.route('/tables/<server_ip>')
 def get_all_tables(server_ip):
     server_ip = common.is_ip_or_dns(server_ip)
 
-    return runtime.get_all_stick_table(server_ip)
+    try:
+        return runtime.get_all_stick_table(server_ip)
+    except Exception as e:
+        return f'{e}'
 
 
 @bp.route('/table/<server_ip>/<table>')
@@ -113,7 +151,10 @@ def get_table(server_ip, table):
     server_ip = common.is_ip_or_dns(server_ip)
     table = common.checkAjaxInput(table)
 
-    return runtime.table_select(server_ip, table)
+    try:
+        return runtime.table_select(server_ip, table)
+    except Exception as e:
+        return f'{e}'
 
 
 @bp.route('/table/delete/<server_ip>/<table>/<ip_for_delete>')
@@ -122,7 +163,10 @@ def delete_ip(server_ip, table, ip_for_delete):
     table = common.checkAjaxInput(table)
     ip_for_delete = common.is_ip_or_dns(ip_for_delete)
 
-    return runtime.delete_ip_from_stick_table(server_ip, ip_for_delete, table)
+    try:
+        return runtime.delete_ip_from_stick_table(server_ip, ip_for_delete, table)
+    except Exception as e:
+        return f'{e}'
 
 
 @bp.route('/table/clear/<server_ip>/<table>')
@@ -130,14 +174,20 @@ def clear_table(server_ip, table):
     server_ip = common.is_ip_or_dns(server_ip)
     table = common.checkAjaxInput(table)
 
-    return runtime.clear_stick_table(server_ip, table)
+    try:
+        return runtime.clear_stick_table(server_ip, table)
+    except Exception as e:
+        return f'{e}'
 
 
 @bp.route('/session/<server_ip>')
 def select_sessions(server_ip):
     server_ip = common.is_ip_or_dns(server_ip)
 
-    return runtime.select_session(server_ip)
+    try:
+        return runtime.select_session(server_ip)
+    except Exception as e:
+        return f'{e}'
 
 
 @bp.route('/session/<server_ip>/<sess_id>')
@@ -145,7 +195,10 @@ def show_sessions(server_ip, sess_id):
     server_ip = common.is_ip_or_dns(server_ip)
     sess_id = common.checkAjaxInput(sess_id)
 
-    return runtime.show_session(server_ip, sess_id)
+    try:
+        return runtime.show_session(server_ip, sess_id)
+    except Exception as e:
+        return f'{e}'
 
 
 @bp.route('/session/delete/<server_ip>/<sess_id>')
@@ -153,14 +206,20 @@ def delete_session(server_ip, sess_id):
     server_ip = common.is_ip_or_dns(server_ip)
     sess_id = common.checkAjaxInput(sess_id)
 
-    return runtime.delete_session(server_ip, sess_id)
+    try:
+        return runtime.delete_session(server_ip, sess_id)
+    except Exception as e:
+        return f'{e}'
 
 
 @bp.route('/list/<server_ip>')
 def get_lists(server_ip):
     server_ip = common.is_ip_or_dns(server_ip)
 
-    return runtime.list_of_lists(server_ip)
+    try:
+        return runtime.list_of_lists(server_ip)
+    except Exception as e:
+        return f'{e}'
 
 
 @bp.route('/list/<server_ip>/<int:list_id>/<list_name>')
@@ -168,7 +227,10 @@ def get_list(server_ip, list_id, list_name):
     server_ip = common.is_ip_or_dns(server_ip)
     list_name = common.checkAjaxInput(list_name)
 
-    return runtime.show_lists(server_ip, list_id, list_name)
+    try:
+        return runtime.show_lists(server_ip, list_id, list_name)
+    except Exception as e:
+        return f'{e}'
 
 
 @bp.route('/list/delete', methods=['POST'])
@@ -179,7 +241,10 @@ def delete_ip_from_list():
     list_id = common.checkAjaxInput(request.form.get('list_id_for_delete'))
     list_name = common.checkAjaxInput(request.form.get('list_name'))
 
-    return runtime.delete_ip_from_list(serv, ip_id, ip, list_id, list_name)
+    try:
+        return runtime.delete_ip_from_list(serv, ip_id, ip, list_id, list_name)
+    except Exception as e:
+        return f'{e}'
 
 
 @bp.route('/list/add', methods=['POST'])
@@ -190,4 +255,7 @@ def add_ip_to_list():
     list_id = common.checkAjaxInput(request.form.get('list_id_for_add'))
     list_name = common.checkAjaxInput(request.form.get('list_name'))
 
-    return runtime.add_ip_to_list(serv, ip, list_id, list_name)
+    try:
+        return runtime.add_ip_to_list(serv, ip, list_id, list_name)
+    except Exception as e:
+        return f'{e}'
