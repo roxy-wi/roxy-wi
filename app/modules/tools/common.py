@@ -6,12 +6,20 @@ import modules.server.server as server_mod
 
 
 def get_services_status():
-    update_cur_tool_versions()
     services = []
     services_name = sql.get_all_tools()
-    for s, v in services_name.items():
-        status = is_tool_active(s)
-        services.append([s, status, v])
+
+    try:
+        update_cur_tool_versions()
+    except Exception as e:
+        raise Exception(f'error: Update current versions: {e}')
+
+    try:
+        for s, v in services_name.items():
+            status = is_tool_active(s)
+            services.append([s, status, v])
+    except Exception as e:
+        raise Exception(f'error: Cannot get tools status: {e}')
 
     return services
 
@@ -72,16 +80,23 @@ def update_cur_tool_version(tool_name: str) -> None:
         cmd = "prometheus --version 2>&1 |grep prometheus|awk '{print $3}'"
     else:
         if distro.id() == 'ubuntu':
-            cmd = f"apt list --installed 2>&1 |grep {correct_name}|awk '{{print $2}}'|sed 's/-/./'"
+            if tool_name == 'roxy-wi-keep_alive':
+                correct_name = 'roxy-wi-keep-alive'
+            cmd = f"apt show {correct_name}|grep Version |awk '{{print $2}}'"
         else:
             cmd = f"rpm -q {correct_name}|awk -F\"{correct_name}\" '{{print $2}}' |awk -F\".noa\" '{{print $1}}' |sed 's/-//1' |sed 's/-/./'"
 
     service_ver, stderr = server_mod.subprocess_execute(cmd)
 
-    if service_ver == 'command' or service_ver == 'prometheus:':
-        service_ver = ''
+    try:
+        service_ver = service_ver[0]
+    except Exception:
+        service_ver = 0
 
-    sql.update_tool_cur_version(tool_name, service_ver[0])
+    if service_ver in ('command', 'prometheus:', 'not'):
+        service_ver = 0
+
+    sql.update_tool_cur_version(tool_name, service_ver)
 
 
 def get_cur_tool_version(tool_name: str) -> str:
