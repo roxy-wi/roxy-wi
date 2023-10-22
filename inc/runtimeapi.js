@@ -250,45 +250,48 @@ function clearTable(table) {
 	} );
 }
 function getTable() {
-	$.ajax( {
+	$.ajax({
 		url: "/app/runtimeapi/table/" + $('#table_serv_select').val() + "/" + $('#table_select').val(),
-		success: function( data ) {
+		success: function (data) {
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
 				$("#ajaxtable").html(data);
-				$( "input[type=submit], button" ).button();
+				$("input[type=submit], button").button();
 				$.getScript("/inc/script.js");
 				$.getScript("/inc/fontawesome.min.js");
-				FontAwesomeConfig = { searchPseudoElements: true, observeMutations: false };
+				FontAwesomeConfig = {searchPseudoElements: true, observeMutations: false};
 			}
 		}
-	} );
+	});
 }
 function getList() {
-	$.ajax( {
-		url: "/app/runtimeapi/list/" + $('#list_serv_select').val() + "/" + $('#list_select').val() + "/" + $('#list_select  option:selected').text(),
+	let color = $('#list_select  option:selected').text().split('/')[0];
+	let list_name = $('#list_select  option:selected').text().split('/')[1];
+	console.log(list_name)
+	$.ajax({
+		url: "/app/runtimeapi/list/" + $('#list_serv_select').val() + "/" + $('#list_select').val() + "/" + color + "/" + list_name,
 		// data: {
 		// 	token: $('#token').val()
 		// },
 		// type: "POST",
-		success: function( data ) {
+		success: function (data) {
 			if (data.indexOf('error: ') != '-1') {
 				toastr.error(data);
 			} else {
 				$("#ajaxlist").html(data);
-				$( "input[type=submit], button" ).button();
+				$("input[type=submit], button").button();
 				$.getScript("/inc/script.js");
 				$.getScript("/inc/fontawesome.min.js");
-				FontAwesomeConfig = { searchPseudoElements: true, observeMutations: false };
+				FontAwesomeConfig = {searchPseudoElements: true, observeMutations: false};
 			}
 		}
-	} );
+	});
 }
 function deleteListIp(id, list_id, ip_id, ip) {
 	toastr.clear();
 	$(id).parent().parent().css("background-color", "#f2dede !important");
-	$.ajax( {
+	$.ajax({
 		url: "/app/runtimeapi/list/delete",
 		data: {
 			serv: $('#list_serv_select').val(),
@@ -299,7 +302,7 @@ function deleteListIp(id, list_id, ip_id, ip) {
 			token: $('#token').val()
 		},
 		type: "POST",
-		success: function( data ) {
+		success: function (data) {
 			if (data.indexOf('error: ') != '-1') {
 				toastr.error(data);
 			} else {
@@ -308,18 +311,18 @@ function deleteListIp(id, list_id, ip_id, ip) {
 				getList();
 			}
 		}
-	} );
+	});
 }
 function addNewIp() {
 	toastr.clear();
 	var valid = true;
-	allFields = $( [] ).add( $('#list_add_ip_new_ip') );
-	allFields.removeClass( "ui-state-error" );
-	valid = valid && checkLength( $('#list_add_ip_new_ip'), "IP", 1 );
+	allFields = $([]).add($('#list_add_ip_new_ip'));
+	allFields.removeClass("ui-state-error");
+	valid = valid && checkLength($('#list_add_ip_new_ip'), "IP", 1);
 	var ip = $('#list_add_ip_new_ip').val();
-	if(valid) {
+	if (valid) {
 		$.ajax({
-			url: "/app/runtimeapi/list/add/",
+			url: "/app/runtimeapi/list/add",
 			data: {
 				serv: $('#list_serv_select').val(),
 				list_ip_for_add: ip,
@@ -333,7 +336,7 @@ function addNewIp() {
 					toastr.error(data);
 				} else {
 					getList();
-					$( "#list_add_ip_form" ).dialog("destroy" );
+					$("#list_add_ip_form").dialog("destroy");
 					toastr.success('IP ' + ip + ' has been added');
 					toastr.info('Do not forget upload updated list to the properly server. Restart does not need');
 				}

@@ -317,12 +317,12 @@ def list_of_lists(serv) -> str:
 		return '------'
 
 
-def show_lists(serv, list_id, list_name) -> None:
+def show_lists(serv, list_id, color, list_name) -> None:
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 	cmd = f'echo "show acl #{list_id}"|nc {serv} {haproxy_sock_port}'
 	output, stderr = server_mod.subprocess_execute(cmd)
 
-	return render_template('ajax/list.html', list=output, list_id=list_id, list_name=list_name)
+	return render_template('ajax/list.html', list=output, list_id=list_id, color=color, list_name=list_name)
 
 
 def delete_ip_from_list(serv, ip_id, ip, list_id, list_name) -> str:
@@ -377,12 +377,14 @@ def add_ip_to_list(serv, ip, list_id, list_name) -> str:
 
 	if 'is not a valid IPv4 or IPv6 address' not in output[0]:
 		cmd = f'echo "{ip}" >> {lib_path}/lists/{user_group}/{list_name}'
+		print(cmd)
 		output, stderr = server_mod.subprocess_execute(cmd)
 		roxywi_common.logging(serv, f'{ip} has been added to list {list_id}', login=1, keep_history=1, service='haproxy')
 		if output:
 			return f'error: {output}'
 		if stderr:
 			return f'error: {stderr}'
+	return 'ok'
 
 
 def select_session(server_ip: str) -> str:

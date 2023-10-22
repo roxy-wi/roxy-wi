@@ -222,13 +222,14 @@ def get_lists(server_ip):
         return f'{e}'
 
 
-@bp.route('/list/<server_ip>/<int:list_id>/<list_name>')
-def get_list(server_ip, list_id, list_name):
+@bp.route('/list/<server_ip>/<int:list_id>/<color>/<list_name>')
+def get_list(server_ip, list_id, color, list_name):
     server_ip = common.is_ip_or_dns(server_ip)
     list_name = common.checkAjaxInput(list_name)
+    color = common.checkAjaxInput(color)
 
     try:
-        return runtime.show_lists(server_ip, list_id, list_name)
+        return runtime.show_lists(server_ip, list_id, color, list_name)
     except Exception as e:
         return f'{e}'
 
