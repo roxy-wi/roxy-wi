@@ -40,7 +40,7 @@
         {{services_name[s.0]['name']}}
     </td>
     <td class="padding10 first-collumn">
-        {% if 'is not installed' in s.2['current_version'] or not s.2['current_version'] %}
+        {% if 'is not installed' in s.2['current_version'] or not s.2['current_version'] or s.2['current_version'] == '0' %}
             {% if s.0 in ('prometheus', 'grafana-server') %}
                 <a href="/app/install#monitoring" class="ui-button ui-widget ui-corner-all" title="{{lang.words.install|title()}} {{service_name}}">{{lang.words.install|title()}}</a>
             {% elif s.0 in ('rabbitmq-server', 'fail2ban') %}

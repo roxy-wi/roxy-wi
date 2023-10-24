@@ -82,7 +82,7 @@ def update_cur_tool_version(tool_name: str) -> None:
         if distro.id() == 'ubuntu':
             if tool_name == 'roxy-wi-keep_alive':
                 correct_name = 'roxy-wi-keep-alive'
-            cmd = f"apt show {correct_name}|grep Version |awk '{{print $2}}'"
+            cmd = f"apt list --installed 2>&1 |grep {correct_name}|awk '{{print $2}}'|sed 's/-/./'"
         else:
             cmd = f"rpm -q {correct_name}|awk -F\"{correct_name}\" '{{print $2}}' |awk -F\".noa\" '{{print $1}}' |sed 's/-//1' |sed 's/-/./'"
 

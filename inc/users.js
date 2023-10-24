@@ -2407,6 +2407,11 @@ function updateService(service, action='update') {
 				toastr.error(data);
 			} else if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 				toastr.error(data);
+			} else if (data.indexOf('0 upgraded, 0 newly installed') != '-1') {
+				toastr.info('There is no a new version of ' + service);
+			} else {
+				toastr.clear();
+				toastr.success(service + ' has been ' + action + 'ed');
 			}
 			$("#ajax-update").html('');
 			loadupdatehapwi();

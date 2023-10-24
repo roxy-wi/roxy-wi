@@ -73,7 +73,7 @@
         </b>
     </td>
     <td>
-        {% if 'is not installed' not in s.2['current_version'] and s.2['current_version'] != '' %}
+        {% if 'is not installed' not in s.2['current_version'] and s.2['current_version'] != '' and s.2['current_version'] != '0' %}
             {% if is_need_update %}
                 <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}')" title="{{lang.words.w_update|title()}} {{services_name[s.0]['name']}}">{{lang.words.w_update|title()}}</a>
             {% endif %}
