@@ -105,7 +105,6 @@ def show_remote_log_files(service, serv):
 
 @bp.route('/<service>/<serv>/<rows>', defaults={'waf': '0'}, methods=['GET', 'POST'])
 @bp.route('/<service>/waf/<serv>/<rows>', defaults={'waf': '1'}, methods=['GET', 'POST'])
-@check_services
 def show_logs(service, serv, rows, waf):
     if request.method == 'GET':
         grep = request.args.get('grep')
