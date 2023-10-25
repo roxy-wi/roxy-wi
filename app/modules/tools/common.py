@@ -41,7 +41,7 @@ def update_roxy_wi(service: str) -> str:
         if service != 'roxy-wi':
             restart_service = f'&& sudo systemctl restart {service}'
 
-        cmd = f'sudo -S apt-get update && sudo apt-get install {service} {restart_service}'
+        cmd = f'sudo -S apt-get update && sudo apt-get install {service} {restart_service} -y'
     else:
         if service != 'roxy-wi':
             restart_service = f'&& sudo systemctl restart {service}'
