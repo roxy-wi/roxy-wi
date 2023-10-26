@@ -78,6 +78,9 @@
                 <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}')" title="{{lang.words.w_update|title()}} {{services_name[s.0]['name']}}">{{lang.words.w_update|title()}}</a>
             {% endif %}
         {% endif %}
+        {% if s.2['current_version'] == '0'  %}
+            <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}', 'install')" title="{{lang.words.install|title()}} {{service_name}}">{{lang.words.install|title()}}</a>
+        {% endif %}
     </td>
     <td colspan="3">
         {{services_name[s.0]['desc']|safe}}

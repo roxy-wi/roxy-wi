@@ -5,14 +5,15 @@ import modules.roxywi.roxy as roxywi_mod
 import modules.server.server as server_mod
 
 
-def get_services_status():
+def get_services_status(update_cur_ver=0):
     services = []
-    services_name = sql.get_all_tools()
+    if update_cur_ver:
+        try:
+            update_cur_tool_versions()
+        except Exception as e:
+            raise Exception(f'error: Update current versions: {e}')
 
-    try:
-        update_cur_tool_versions()
-    except Exception as e:
-        raise Exception(f'error: Update current versions: {e}')
+    services_name = sql.get_all_tools()
 
     try:
         for s, v in services_name.items():
@@ -96,7 +97,10 @@ def update_cur_tool_version(tool_name: str) -> None:
     if service_ver in ('command', 'prometheus:', 'not'):
         service_ver = 0
 
-    sql.update_tool_cur_version(tool_name, service_ver)
+    try:
+        sql.update_tool_cur_version(tool_name, service_ver)
+    except Exception:
+        pass
 
 
 def get_cur_tool_version(tool_name: str) -> str:
