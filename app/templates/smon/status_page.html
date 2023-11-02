@@ -1,0 +1,57 @@
+<html lang="{{lang|default('en')}}">
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
+{% for p in page %}
+    <head>
+        <title>{{p.name}}</title>
+        <meta charset="UTF-8">
+		<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+		<meta http-equiv="Pragma" content="no-cache" />
+		<meta http-equiv="Expires" content="0" />
+        <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon/favicon.ico') }}" />
+		<link rel="apple-touch-icon" sizes="57x57" href="{{ url_for('static', filename='images/favicon/apple-icon-57x57.png') }}">
+		<link rel="apple-touch-icon" sizes="60x60" href="{{ url_for('static', filename='images/favicon/apple-icon-60x60.png') }}">
+		<link rel="apple-touch-icon" sizes="72x72" href="{{ url_for('static', filename='images/favicon/apple-icon-72x72.png') }}">
+		<link rel="apple-touch-icon" sizes="76x76" href="{{ url_for('static', filename='images/favicon/apple-icon-76x76.png') }}">
+		<link rel="apple-touch-icon" sizes="114x114" href="{{ url_for('static', filename='images/favicon/apple-icon-114x114.png') }}">
+		<link rel="apple-touch-icon" sizes="120x120" href="{{ url_for('static', filename='images/favicon/apple-icon-120x120.png') }}">
+		<link rel="apple-touch-icon" sizes="144x144" href="{{ url_for('static', filename='images/favicon/apple-icon-144x144.png') }}">
+		<link rel="apple-touch-icon" sizes="152x152" href="{{ url_for('static', filename='images/favicon/apple-icon-152x152.png') }}">
+		<link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='images/favicon/apple-icon-180x180.png') }}">
+		<link rel="icon" type="image/png" sizes="192x192"  href="{{ url_for('static', filename='images/favicon/android-icon-192x192.png') }}">
+		<link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon/favicon-32x32.png') }}">
+		<link rel="icon" type="image/png" sizes="96x96" href="{{ url_for('static', filename='images/favicon/favicon-96x96.png') }}">
+		<link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='images/favicon/favicon-16x16.png') }}">
+		<meta name="msapplication-TileColor" content="#ffffff">
+		<meta name="msapplication-TileImage" content="{{ url_for('static', filename='images/favicon/ms-icon-144x144.png') }}">
+		<meta name="theme-color" content="#ffffff">
+        <link href="/inc/css/jquery-ui.min.css" rel="stylesheet">
+		<link href="/inc/css/jquery-ui.structure.min.css" rel="stylesheet">
+        <link href="/inc/css/style-6.3.9.css" rel="stylesheet">
+        <link href="/inc/css/smon.css" rel="stylesheet">
+        <script src="/inc/jquery-3.6.0.min.js"></script>
+		<script src="/inc/jquery-ui.min.js"></script>
+        <script src="/inc/smon.js"></script>
+        <link href="/inc/css/toastr-6.3.9.css" rel="stylesheet"/>
+		<script src="/inc/toastr.js"></script>
+    </head>
+    <body>
+        <h2>Status page - {{p.name}}</h2>
+        <h3>{{p.desc|replace("'", "")}}</h3>
+        {% for check, value in checks_status.items() %}
+        {% if value.uptime|int() < 90 %}
+            {% set add_class = 'serverDown' %}
+        {% else %}
+            {% set add_class = 'serverUP' %}
+        {% endif %}
+        <div class="check_div">
+            <div>
+                <span class="{{add_class}} check_uptime">{{value.uptime}}%</span>
+                <span class="check_name">{{value.name}}</span>
+            </div>
+            <div class="history_statuses" id="history-{{check}}"></div>
+        </div>
+        <script>show_smon_history_statuses('{{check}}', '#history-{{check}}');</script>
+        {% endfor %}
+    </body>
+</html>
+{% endfor %}

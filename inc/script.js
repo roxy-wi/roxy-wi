@@ -100,6 +100,8 @@ $( function() {
 		   show_current_page($(this))
 	   } else if (full_uri == 'smon/history' && full_uri1 == 'smon/history') {
 		   show_current_page($(this))
+	   } else if (full_uri == 'smon/status-page' && full_uri1 == 'smon/status-page') {
+		   show_current_page($(this))
 	   } else if (full_uri == 'checker/settings' && full_uri1 == 'checker/settings') {
 		   show_current_page($(this))
 	   } else if (full_uri == 'checker/history' && full_uri1 == 'checker/history') {

@@ -1,4 +1,4 @@
-from flask import render_template
+from flask import render_template, abort
 
 import modules.db.sql as sql
 import modules.roxywi.common as roxywi_common
@@ -90,8 +90,8 @@ def delete_smon(smon_id, user_group) -> str:
         raise Exception(f'error: Cannot delete the server {e}')
 
 
-def history_metrics(server_id: int, check_id: int) -> dict:
-    metric = sql.select_smon_history(server_id, check_id)
+def history_metrics(server_id: int) -> dict:
+    metric = sql.select_smon_history(server_id)
 
     metrics = {'chartData': {}}
     metrics['chartData']['labels'] = {}
@@ -108,14 +108,14 @@ def history_metrics(server_id: int, check_id: int) -> dict:
     return metrics
 
 
-def history_statuses(dashboard_id: int, check_id: int) -> None:
-    smon_statuses = sql.select_smon_history(dashboard_id, check_id)
+def history_statuses(dashboard_id: int) -> None:
+    smon_statuses = sql.select_smon_history(dashboard_id)
 
     return render_template('ajax/smon/history_status.html', smon_statuses=smon_statuses)
 
 
 def history_cur_status(dashboard_id: int, check_id: int) -> None:
-    cur_status = sql.get_last_smon_status_by_check(dashboard_id, check_id)
+    cur_status = sql.get_last_smon_status_by_check(dashboard_id)
     smon = sql.select_one_smon(dashboard_id, check_id)
 
     return render_template('ajax/smon/cur_status.html', cur_status=cur_status, smon=smon)
@@ -126,3 +126,48 @@ def return_smon_status():
     smon_status, stderr = server_mod.subprocess_execute(cmd)
 
     return smon_status, stderr
+
+
+def check_uptime(smon_id: int) -> int:
+    count_checks = sql.get_smon_history_count_checks(smon_id)
+
+    try:
+        uptime = round(count_checks['up'] * 100 / count_checks['total'], 2)
+    except Exception:
+        uptime = 0
+
+    return uptime
+
+
+def create_status_page(name: str, slug: str, desc: str, checks: list) -> str:
+    group_id = roxywi_common.get_user_group(id=1)
+
+    try:
+        page_id = sql.add_status_page(name, slug, desc, group_id, checks)
+    except Exception as e:
+        raise Exception(f'{e}')
+
+    pages = sql.select_status_page_by_id(page_id)
+
+    return render_template('ajax/smon/status_pages.html', pages=pages)
+
+
+def show_status_page(slug: str) -> str:
+    page = sql.select_status_page(slug)
+    checks_status = {}
+    if not page:
+        abort(404, 'Not found status page')
+
+    for p in page:
+        page_id = p.id
+
+    checks = sql.select_status_page_checks(page_id)
+
+    for check in checks:
+        check_id = str(check.check_id)
+        smon_name = sql.get_smon_service_name_by_id(check_id)
+        uptime = check_uptime(check_id)
+
+        checks_status[check_id] = {'uptime': uptime, 'name': smon_name}
+
+    return render_template('smon/status_page.html', page=page, checks_status=checks_status)

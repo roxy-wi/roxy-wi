@@ -583,9 +583,9 @@ function updatingCpuRamCharts() {
         removeData();
     }
 }
-function getSmonHistoryCheckData(server, check_id) {
+function getSmonHistoryCheckData(server) {
     $.ajax({
-        url: "/app/smon/history/metric/" + server + "/" + check_id,
+        url: "/app/smon/history/metric/" + server,
         // data: {
             // time_range: $( "#time-range option:selected" ).val(),
         // },

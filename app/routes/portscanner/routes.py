@@ -79,13 +79,17 @@ def change_settings_portscanner():
         return 'ok'
 
 
-@bp.route('/scan/<int:server_id>')
-def scan_port(server_id):
-    server = sql.select_servers(id=server_id)
-    ip = ''
+@bp.route('/scan/<int:server_id>', defaults={'server_ip': None})
+@bp.route('/scan/<server_ip>', defaults={'server_id': None})
+def scan_port(server_id, server_ip):
+    if server_ip:
+        ip = server_ip
+    else:
+        server = sql.select_servers(id=server_id)
+        ip = ''
 
-    for s in server:
-        ip = s[2]
+        for s in server:
+            ip = s[2]
 
     cmd = f"sudo nmap -sS {ip} |grep -E '^[[:digit:]]'|sed 's/  */ /g'"
     cmd1 = f"sudo nmap -sS {ip} |head -5|tail -2"

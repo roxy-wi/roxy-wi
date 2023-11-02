@@ -70,3 +70,114 @@ h4 {
     font-size: 13px;
     color: #aaa;
 }
+.checks {
+    height: 400px;
+    overflow-y: overlay;
+}
+.all-checks, .enabled-check {
+    height: 40px;
+    width: 300px;
+}
+.enabled-check {
+    float: right;
+}
+.add_user_group{
+    height: 14px;
+}
+.check-name {
+    margin-left: 15px;
+    margin-top: 10px;
+    width: 245px;
+    float: left;
+}
+.check-button {
+    float: left;
+    margin-top: 3px;
+}
+.add-button-status-page {
+    font-size: 15px;
+    float: unset;
+    margin: var(--indent);
+    width: fit-content;
+}
+.page_div {
+    margin: var(--indent);
+    border-top: 1px solid #ddd;
+    transition: all ease-in-out .15s;
+    padding: 5px 10px 10px;
+    margin-bottom: 0;
+    margin-top: 0;
+}
+.page_link {
+    color: black;
+    text-decoration: none !important;
+}
+.page_div:hover {
+    background-color: var(--light-blue-color);
+}
+.page_name {
+    font-size: 20px;
+    font-weight: 700;
+}
+.page_desc {
+    font-size: 15px;
+}
+.page_slug {
+    font-size: 10px;
+}
+.status-page-icon {
+    float: left;
+    margin: 10px;
+    margin-top: 0px;
+    font-size: 50px;
+    margin-right: 25px;
+    margin-left: 0;
+    color: var(--green-color);
+}
+.delete {
+    float: left;
+    margin-left: 99%;
+    margin-top: -45px;
+    font-size: 17px;
+    cursor: pointer;
+}
+.check_div {
+    width: 50%;
+    padding: 20px 30px 20px 30px;
+    margin-left: 20%;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+.check_div:hover {
+    background-color: var(--light-blue-color);
+}
+.check_uptime {
+    border-radius: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+.check_name {
+    margin-left: 10px;
+    font-size: 15px;
+    font-weight: 550;
+}
+.history_statuses {
+    float: right;
+    margin-top: -20px;
+}
+.smon_server_statuses {
+    width: 1px;
+    height: 10px;
+    margin: 1px;
+}
+.validateTips {
+    width: 575px;
+}
+.tooltipTop {
+    padding-top: 10px;
+    list-style: disc;
+    margin-left: 20px;
+}
+.tooltipTop {
+    margin-bottom: 0;
+}

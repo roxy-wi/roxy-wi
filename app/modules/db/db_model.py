@@ -616,6 +616,26 @@ class SmonDnsCheck(BaseModel):
         primary_key = False
 
 
+class SmonStatusPage(BaseModel):
+    id = AutoField()
+    name = CharField()
+    slug = CharField(unique=True)
+    desc = CharField(null=True)
+    group_id = IntegerField()
+
+    class Meta:
+        table_name = 'smon_status_pages'
+
+
+class SmonStatusPageCheck(BaseModel):
+    page_id = ForeignKeyField(SmonStatusPage, on_delete='Cascade')
+    check_id = ForeignKeyField(SMON, on_delete='Cascade')
+
+    class Meta:
+        table_name = 'smon_status_page_checks'
+        primary_key = False
+
+
 class RoxyTool(BaseModel):
     id = AutoField()
     name = CharField()
@@ -636,4 +656,5 @@ def create_tables():
                             PortScannerSettings, PortScannerPorts, PortScannerHistory, ServiceSetting, MetricsHttpStatus,
                             SMON, WafRules, Alerts, GeoipCodes, NginxMetrics, SystemInfo, Services, UserName, GitSetting,
                             CheckerSetting, ApacheMetrics, WafNginx, ServiceStatus, KeepaliveRestart, PD, SmonHistory,
-                            SmonTcpCheck, SmonHttpCheck, SmonPingCheck, SmonDnsCheck, S3Backup, RoxyTool])
+                            SmonTcpCheck, SmonHttpCheck, SmonPingCheck, SmonDnsCheck, S3Backup, RoxyTool, SmonStatusPage,
+                            SmonStatusPageCheck])

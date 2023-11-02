@@ -1,7 +1,7 @@
+<html lang="{{lang|default('en')}}">
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% from 'languages/languages.html' import languages %}
 {% from 'include/input_macros.html' import select, checkbox %}
-<html lang="en">
 	<head>
 		<title>{% block title %}{% endblock %}</title>
 		<meta charset="UTF-8">
@@ -20,7 +20,7 @@
 			  data-stop="{{lang.words.stop|title()}}" data-reload="{{lang.words.reload|title()}}" data-user_groups="{{lang.phrases.user_groups}}" data-settings="{{lang.words.settings|title()}}"
 			  data-for="{{lang.words.for}}" data-show="{{lang.words.show|title()}}" data-hide="{{lang.words.hide|title()}}" data-logs="{{lang.words.logs}}" data-name="{{lang.words.name}}"
 			  data-value="{{lang.words.value}}" data-if-title="{{lang.words.if|title()}}" data-then="{{lang.words.then}}" data-autorefresh="{{lang.words.auto|title()}}-{{lang.words.refresh}}"
-			  data-raw="{{lang.words.raw|title()}}" data-resp_time="{{lang.smon_page.desc.resp_time}}" />
+			  data-raw="{{lang.words.raw|title()}}" data-resp_time="{{lang.smon_page.desc.resp_time}}" data-next="{{lang.words.next|title()}}" data-back="{{lang.words.back|title()}}" />
 		{% if title == 'Login page' %}
 		<meta name="viewport" content="width=device-width, user-scalable=1">
 		{% endif %}

@@ -1,0 +1,15 @@
+{% for page in pages %}
+<div id="page_{{page}}" class="page_div">
+    <a href="/app/smon/status/{{page.slug}}" class="page_link" target="_blank" title="Open status page">
+        <i class="far fa-check-circle status-page-icon"></i>
+        <div>
+            <span class="page_name" id="page_name-{{page}}">{{page.name}}</span>
+            {% if page.desc %}
+            <span class="page_desc">({{page.desc|replace("'", "")}})</span>
+            {% endif %}
+        </div>
+        <div class="page_slug">/app/smon/status/{{page.slug}}</div>
+    </a>
+    <div class="delete" onclick="confirmDeleteStatusPage('{{page}}')"></div>
+</div>
+{% endfor %}

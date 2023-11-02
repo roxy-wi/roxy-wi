@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}{{ lang.menu_links.monitoring.smon.status_page }}{% endblock %}
+{% block h2 %}{{ lang.menu_links.monitoring.smon.status_page }}{% endblock %}
+{% block content %}
+{% from 'include/input_macros.html' import input, select %}
+<script src="/inc/smon.js"></script>
+<link href="/inc/css/servers.css" rel="stylesheet"/>
+<link href="/inc/css/smon.css" rel="stylesheet"/>
+
+{% if user_status == 0 or user_plan != 'support' %}
+	{% include 'include/no_sub.html' %}
+{% elif smon_error != '' %}
+<div style="text-align: center;">
+	<br />
+	<h3>{{lang.smon_page.desc.not_installed}}</h3>.
+	<img src="{{ url_for('static', filename='images/no_servers.png')}}" alt="There is no server">
+	<h4>{{lang.words.read|title()}} <a href="https://roxy-wi.org/services/smon" title="Simple monitoring network ports with alerting via Telegram and WEB panel" target="_blank">{{lang.words.here}}</a>
+		{{lang.phrases.how_to_install}} SMON {{lang.words.service}}.</h4>
+</div>
+{% elif smon_status.0 == 'failed' or smon_status.0 == 'inactive' %}
+<div style="text-align: center;">
+	<br />
+	<h3>{{lang.smon_page.desc.smon_is_not_run}}</h3>
+	<img src="{{ url_for('static', filename='images/no_servers.png')}}" alt="There is no server">
+	<h4>{{lang.smon_page.desc.run_smon}} <a href="/app/users/services" title="Roxy-WI services" target="_blank">{{lang.words.here}}</a> {{lang.smon_page.desc.before_use}}</h4>
+</div>
+{% elif pages|length == 0 %}
+<div style="text-align: center;">
+	<br />
+	<h3>{{lang.phrases.no_events_added}}</h3>
+	<img src="{{ url_for('static', filename='images/no_servers.png')}}" alt="There is no server">
+	<h4>Click <a href="/app/smon/admin" title="Roxy-WI SMON" target="_blank">{{lang.words.here}}</a> {{lang.smon_page.desc.see_check}}</h4>
+	<br />
+</div>
+{% else %}
+    <div class="add-button add-button-status-page" title="SMOM: {{lang.phrases.create_page_status}} - Roxy-WI" onclick="createStatusPageStep1();">+ {{lang.phrases.create_page_status}}</div>
+    <div id="pages">
+        {% include 'ajax/smon/status_pages.html' %}
+    </div>
+    <div id="create-status-page-step-1" style="display: none;">
+        <table class="overview" id="create-status-page-step-1-overview" title="{{lang.words.create|title()}} {{lang.words.w_a}} {{lang.words.new2}} {{lang.words.status}} {{lang.words.page}}">
+            {% include 'include/tr_validate_tips.html' %}
+            <tr>
+                <td class="padding20">
+                    {{lang.words.name|title()}}
+                    <span class="need-field">*</span>
+                </td>
+                <td>
+                    {{ input('new-status-page-name', autofocus='autofocus') }}
+                </td>
+            </tr>
+            <tr>
+                <td class="padding20">
+                    Slug
+                    <span class="need-field">*</span>
+                </td>
+                <td>
+                    <span style="margin-top: 10px;display: inline-block;margin-right: -5px;">/app/smon/status/</span>{{ input('new-status-page-slug') }}
+                    <ul class="tooltip tooltipTop">
+                        <li>Accept characters: a-z 0-9 -</li>
+                        <li>No consecutive dashes --</li>
+                    </ul>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div id="create-status-page-step-2" style="display: none;">
+        <table class="overview" id="create-status-page-step-2-overview" title="{{lang.words.create|title()}} {{lang.words.w_a}} {{lang.words.new2}} {{lang.words.status}} {{lang.words.page}}">
+            {% include 'include/tr_validate_tips.html' %}
+            <tr>
+                <td class="padding20" style="width: 50%">
+                    {{lang.words.desc|title()}}
+                </td>
+                <td>
+                    {{ input('new-status-page-desc', autofocus='autofocus') }}
+                </td>
+            </tr>
+            <tr>
+                <td class="padding20">
+                    {{lang.words.all|title()}} {{lang.words.checks}}
+                </td>
+                <td>{{lang.words.added|title()}} {{lang.words.checks}}</td>
+            </tr>
+        </table>
+        <div class="checks">
+            <div class="enabled-check" id="enabled-check"></div>
+            <div id="all-checks">
+                {% for s in smon %}
+                <div class="{{ loop.cycle('odd', 'even') }} all-checks" id="add_check-{{ s.id }}" data-service_name="{{ s.name }} - {{s.group}}">
+                    <div class="check-name" title="{{s.desc}}">{{ s.name }} - {{s.group}}</div>
+                    <div class="add_user_group check-button" title="{{lang.words.add|title()}} {{lang.words.service}}" onclick="addCheckToStatus('{{ s.id }}')">+</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div id="dialog-confirm" style="display: none;">
+        <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>{{lang.phrases.are_you_sure}}</p>
+    </div>
+{% endif %}
+{% endblock %}

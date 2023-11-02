@@ -1,3 +1,4 @@
+import json
 from pytz import timezone
 from flask import render_template, request, jsonify, g
 from flask_login import login_required
@@ -12,14 +13,8 @@ import app.modules.roxywi.common as roxywi_common
 import app.modules.tools.smon as smon_mod
 
 
-@bp.before_request
-@login_required
-def before_request():
-    """ Protect all of the admin endpoints. """
-    pass
-
-
 @bp.route('/dashboard')
+@login_required
 @get_user_params()
 def smon():
     roxywi_common.check_user_group_for_flask()
@@ -38,6 +33,7 @@ def smon():
 
 
 @bp.route('/dashboard/<dashboard_id>/<check_id>')
+@login_required
 @get_user_params()
 def smon_dashboard(dashboard_id, check_id):
     user_params = g.user_params
@@ -51,12 +47,8 @@ def smon_dashboard(dashboard_id, check_id):
     present = present.strftime('%b %d %H:%M:%S %Y %Z')
     present = datetime.strptime(present, '%b %d %H:%M:%S %Y %Z')
     cert_day_diff = 'N/A'
-    count_checks = sql.get_smon_history_count_checks(dashboard_id, check_id)
+    uptime = smon_mod.check_uptime(dashboard_id)
 
-    try:
-        uptime = round(count_checks['up'] * 100 / count_checks['total'], 2)
-    except Exception:
-        uptime = 0
     try:
         avg_res_time = round(sql.get_avg_resp_time(dashboard_id, check_id), 2)
     except Exception:
@@ -80,7 +72,62 @@ def smon_dashboard(dashboard_id, check_id):
     )
 
 
+
+@bp.route('/status-page')
+@login_required
+@get_user_params()
+def status_page():
+    user_params = g.user_params
+    user_group = roxywi_common.get_user_group(id=1)
+    smon_list = sql.smon_list(user_group)
+    pages = sql.select_status_pages(user_group)
+    smon_status, stderr = smon_mod.return_smon_status()
+    user_subscription = roxywi_common.return_user_subscription()
+
+    return render_template(
+        'smon/manage_status_page.html', role=user_params['role'], user=user_params['user'], lang=user_params['lang'],
+        user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'], smon_error=stderr, pages=pages,
+        token=user_params['token'], user_services=user_params['user_services'], smon=smon_list, smon_status=smon_status
+    )
+
+
+@bp.post('/status-page/add')
+@login_required
+def add_status_page():
+    name = common.checkAjaxInput(request.form.get('name'))
+    slug = common.checkAjaxInput(request.form.get('slug'))
+    desc = common.checkAjaxInput(request.form.get('desc'))
+    checks = json.loads(request.form.get('checks'))
+
+    if not len(checks['checks']):
+        return 'error: Please check Checks for Status page'
+
+    try:
+        return smon_mod.create_status_page(name, slug, desc, checks['checks'])
+    except Exception as e:
+        return f'{e}'
+
+
+@bp.route('/status-page/delete/<int:page_id>')
+@login_required
+def delete_status_page(page_id):
+    try:
+        sql.delete_status_page(page_id)
+    except Exception as e:
+        return f'{e}'
+    else:
+        return 'ok'
+
+
+@bp.route('/status/<slug>')
+def show_smon_status_page(slug):
+    slug = common.checkAjaxInput(slug)
+
+    return smon_mod.show_status_page(slug)
+
+
 @bp.route('/history')
+@login_required
 @get_user_params()
 def smon_history():
     roxywi_common.check_user_group_for_flask()
@@ -99,6 +146,7 @@ def smon_history():
 
 
 @bp.route('/history/host/<server_ip>')
+@login_required
 @get_user_params()
 def smon_host_history(server_ip):
     roxywi_common.check_user_group_for_flask()
@@ -117,22 +165,25 @@ def smon_host_history(server_ip):
     )
 
 
-@bp.route('/history/metric/<int:dashboard_id>/<int:check_id>')
-def smon_history_metric(dashboard_id, check_id):
-    return jsonify(smon_mod.history_metrics(dashboard_id, check_id))
+@bp.route('/history/metric/<int:dashboard_id>')
+@login_required
+def smon_history_metric(dashboard_id):
+    return jsonify(smon_mod.history_metrics(dashboard_id))
 
 
-@bp.route('/history/statuses/<int:dashboard_id>/<int:check_id>')
-def smon_history_statuses(dashboard_id, check_id):
-    return smon_mod.history_statuses(dashboard_id, check_id)
+@bp.route('/history/statuses/<int:dashboard_id>')
+def smon_history_statuses(dashboard_id):
+    return smon_mod.history_statuses(dashboard_id)
 
 
 @bp.route('/history/cur_status/<int:dashboard_id>/<int:check_id>')
+@login_required
 def smon_history_cur_status(dashboard_id, check_id):
     return smon_mod.history_cur_status(dashboard_id, check_id)
 
 
 @bp.route('/admin')
+@login_required
 @get_user_params()
 def smon_admin():
     user_group = roxywi_common.get_user_group(id=1)
@@ -158,6 +209,7 @@ def smon_admin():
 
 
 @bp.post('/add')
+@login_required
 def smon_add():
     user_group = roxywi_common.get_user_group(id=1)
     name = common.checkAjaxInput(request.form.get('newsmonname'))
@@ -200,6 +252,7 @@ def smon_add():
 
 
 @bp.post('/update/<smon_id>')
+@login_required
 def smon_update(smon_id):
     roxywi_common.check_user_group_for_flask()
     name = common.checkAjaxInput(request.form.get('updateSmonName'))
@@ -232,6 +285,7 @@ def smon_update(smon_id):
 
 
 @bp.route('/delete/<smon_id>')
+@login_required
 def smon_delete(smon_id):
     user_group = roxywi_common.get_user_group(id=1)
 
@@ -245,6 +299,7 @@ def smon_delete(smon_id):
 
 
 @bp.post('/refresh')
+@login_required
 def smon_show():
     sort = common.checkAjaxInput(request.form.get('sort'))
     return smon_mod.show_smon(sort)

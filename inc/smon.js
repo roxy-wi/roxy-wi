@@ -359,7 +359,6 @@ function check_and_clear_check_type(check_type) {
 		$("#check_type").val('ping');
 		$('#check_type').selectmenu("refresh");
 		clear_check_vals();
-
 	}
 }
 function clear_check_vals() {
@@ -369,25 +368,8 @@ function clear_check_vals() {
 	$('#new-smon-port').val('');
 	$('#new-smon-packet_size').val('');
 }
-function show_statuses(dashboard_id, check_id) {
-	$.ajax({
-		url: "/app/smon/history/statuses/" + dashboard_id + "/" + check_id,
-		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
-				toastr.error(data);
-			} else {
-				toastr.clear();
-				$("#smon_history_statuses").html(data);
-				$( "[title]" ).tooltip({
-					"content": function () {
-						return $(this).attr("data-help");
-					},
-					show: {"delay": 1000}
-				});
-			}
-		}
-	});
+function show_statuses(dashboard_id, check_id, id_for_history_replace) {
+	show_smon_history_statuses(dashboard_id, id_for_history_replace);
 	$.ajax({
 		url: "/app/smon/history/cur_status/" + dashboard_id + "/" + check_id,
 		success: function (data) {
@@ -397,6 +379,229 @@ function show_statuses(dashboard_id, check_id) {
 			} else {
 				toastr.clear();
 				$("#cur_status").html(data);
+			}
+		}
+	});
+}
+function show_smon_history_statuses(dashboard_id, id_for_history_replace) {
+	$.ajax({
+		url: "/app/smon/history/statuses/" + dashboard_id,
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
+				toastr.error(data);
+			} else {
+				toastr.clear();
+				$(id_for_history_replace).html(data);
+				$("[title]").tooltip({
+					"content": function () {
+						return $(this).attr("data-help");
+					},
+					show: {"delay": 1000}
+				});
+			}
+		}
+	});
+}
+function createStatusPageStep1() {
+	var add_word = $('#translate').attr('data-next');
+	var cancel_word = $('#translate').attr('data-cancel');
+	var next_word = $('#translate').attr('data-next');
+	var smon_add_tabel_title = $( "#create-status-page-step-1-overview" ).attr('title');
+	var regx = /^[a-z0-9_-]+$/;
+	var addSmonStatus = $( "#create-status-page-step-1" ).dialog({
+		autoOpen: false,
+		resizable: false,
+		height: "auto",
+		width: 630,
+		modal: true,
+		title: smon_add_tabel_title,
+		show: {
+			effect: "fade",
+			duration: 200
+		},
+		hide: {
+			effect: "fade",
+			duration: 200
+		},
+		buttons: [{
+			text: next_word,
+			click: function () {
+				if ($('#new-status-page-name').val() == '') {
+					toastr.error('error: Fill in the Name field');
+					return false;
+				}
+				if (!regx.test($('#new-status-page-slug').val())) {
+					toastr.error('error: Incorect Slug');
+					return false;
+				}
+				if ($('#new-status-page-slug').val().indexOf('--') != '-1') {
+					toastr.error('error: "--" are prohibeted in Slug');
+					return false;
+				}
+				if ($('#new-status-page-slug').val() == '') {
+					toastr.error('error: Fill in the Slug field');
+					return false;
+				}
+				createStatusPageStep2();
+				$(this).dialog("close");
+				toastr.clear();
+			}
+		}, {
+			text: cancel_word,
+			click: function () {
+				$(this).dialog("close");
+				clearTips();
+			}
+		}]
+	});
+	addSmonStatus.dialog('open');
+}
+function createStatusPageStep2() {
+	var add_word = $('#translate').attr('data-add');
+	var cancel_word = $('#translate').attr('data-cancel');
+	var back_word = $('#translate').attr('data-back');
+	var smon_add_tabel_title = $("#create-status-page-step-2-overview").attr('title');
+	var addSmonStatus = $("#create-status-page-step-2").dialog({
+		autoOpen: false,
+		resizable: false,
+		height: "auto",
+		width: 630,
+		modal: true,
+		title: smon_add_tabel_title,
+		show: {
+			effect: "fade",
+			duration: 200
+		},
+		hide: {
+			effect: "fade",
+			duration: 200
+		},
+		buttons: [{
+			text: add_word,
+			click: function () {
+				createStatusPage($(this));
+			}
+		}, {
+			text: back_word,
+			click: function () {
+				$(this).dialog("close");
+				createStatusPageStep1();
+			}
+		}, {
+			text: cancel_word,
+			click: function () {
+				$(this).dialog("close");
+				clearTips();
+			}
+		}]
+	});
+	addSmonStatus.dialog('open');
+}
+function createStatusPage(dialog_id) {
+	let name_id = $('#new-status-page-name');
+	let slug_id = $('#new-status-page-slug');
+	let desc_id = $('#new-status-page-desc');
+	let checks = [];
+	let check_id = '';
+	$("#enabled-check > div").each((index, elem) => {
+		check_id = elem.id.split('-')[1]
+		checks.push(check_id);
+	});
+	$.ajax({
+		url: '/app/smon/status-page/add',
+		type: 'POST',
+		data: {
+			name: name_id.val(),
+			slug: slug_id.val(),
+			desc: desc_id.val(),
+			checks: JSON.stringify({'checks': checks})
+		},
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
+				toastr.error(data);
+			} else {
+				toastr.clear();
+				$("#smon_history_statuses").html(data);
+				for (let i = 0; i < checks.length; i++) {
+					removeCheckFromStatus(checks[i]);
+					console.log(checks[i])
+				}
+				name_id.val('');
+				slug_id.val('');
+				dialog_id.dialog("close");
+				$("#pages").append(data);
+				setTimeout(function () {
+					$("#user-" + id).removeClass("update");
+				}, 2500);
+				$.getScript("/inc/fontawesome.min.js");
+			}
+		}
+	});
+}
+function addCheckToStatus(service_id) {
+	var service_name = $('#add_check-' + service_id).attr('data-service_name');
+	var delete_word = $('#translate').attr('data-delete');
+	var service_word = $('#translate').attr('data-service');
+	var length_tr = $('#all-checks').length;
+	var tr_class = 'odd';
+	if (length_tr % 2 != 0) {
+		tr_class = 'even';
+	}
+	var html_tag = '<div class="' + tr_class + '" id="remove_check-' + service_id + '" data-service_name="' + service_name + '">' +
+		'<div class="check-name">' + service_name + '</div>' +
+		'<div class="add_user_group check-button" onclick="removeCheckFromStatus(' + service_id + ')" title="' + delete_word + ' ' + service_word + '">-</div></div>';
+	$('#add_check-' + service_id).remove();
+	$("#enabled-check").append(html_tag);
+}
+function removeCheckFromStatus(service_id) {
+	var service_name = $('#remove_check-' + service_id).attr('data-service_name');
+	var add_word = $('#translate').attr('data-add');
+	var service_word = $('#translate').attr('data-service');
+	var length_tr = $('#all_services tbody tr').length;
+	var tr_class = 'odd';
+	if (length_tr % 2 != 0) {
+		tr_class = 'even';
+	}
+	var html_tag = '<div class="' + tr_class + ' all-checks" id="add_check-' + service_id + '" data-service_name="' + service_name + '">' +
+		'<div class="check-name">' + service_name + '</div>' +
+		'<div class="add_user_group check-button" onclick="addCheckToStatus(' + service_id + ')" title="' + add_word + ' ' + service_word + '">+</div></div>';
+	$('#remove_check-' + service_id).remove();
+	$("#all-checks").append(html_tag);
+}
+function confirmDeleteStatusPage(id) {
+	var delete_word = $('#translate').attr('data-delete');
+	var cancel_word = $('#translate').attr('data-cancel');
+	$("#dialog-confirm").dialog({
+		resizable: false,
+		height: "auto",
+		width: 400,
+		modal: true,
+		title: delete_word + " " + $('#page_name-' + id).text() + "?",
+		buttons: [{
+			text: delete_word,
+			click: function () {
+				$(this).dialog("close");
+				deleteStatusPage(id);
+			}
+		}, {
+			text: cancel_word,
+			click: function () {
+				$(this).dialog("close");
+			}
+		}]
+	});
+}
+function deleteStatusPage(page_id) {
+	$.ajax({
+		url: '/app/smon/status-page/delete/' + page_id,
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
+				toastr.error(data);
+			} else {
+				$('#page_' + page_id).remove();
 			}
 		}
 	});

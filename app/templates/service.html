@@ -262,7 +262,7 @@
 				{% endif %}
 			</div>
 			<div class="server-desc">
-				{% if s.3 is none %}
+				{% if s.3 == '' %}
 				{{lang.words.no_desc|title()}}
 				{% else %}
 				{{s.3}}

@@ -781,6 +781,9 @@ def get_user_id_by_uuid(uuid):
 	else:
 		for user in query_res:
 			return user.user_id
+	finally:
+		if not conn.is_closed():
+			conn.close()
 
 
 def get_user_id_by_username(username: str):
@@ -3032,10 +3035,9 @@ def insert_smon_history(smon_id: int, response_time: float, status: int, check_i
 				conn.close()
 
 
-def select_smon_history(smon_id: int, check_id: int) -> object:
+def select_smon_history(smon_id: int) -> object:
 	query = SmonHistory.select().where(
-		(SmonHistory.smon_id == smon_id) &
-		(SmonHistory.check_id == check_id)
+		SmonHistory.smon_id == smon_id
 	).limit(40).order_by(SmonHistory.date.desc())
 	try:
 		query_res = query.execute()
@@ -3045,10 +3047,9 @@ def select_smon_history(smon_id: int, check_id: int) -> object:
 		return query_res
 
 
-def get_last_smon_status_by_check(smon_id: int, check_id: int) -> object:
+def get_last_smon_status_by_check(smon_id: int) -> object:
 	query = SmonHistory.select().where(
-		(SmonHistory.smon_id == smon_id) &
-		(SmonHistory.check_id == check_id)
+		SmonHistory.smon_id == smon_id
 	).limit(1).order_by(SmonHistory.date.desc())
 	try:
 		query_res = query.execute()
@@ -3079,11 +3080,10 @@ def get_last_smon_res_time_by_check(smon_id: int, check_id: int) -> object:
 			return ''
 
 
-def get_smon_history_count_checks(smon_id: int, check_id: int) -> dict:
+def get_smon_history_count_checks(smon_id: int) -> dict:
 	count_checks = {}
 	query = SmonHistory.select(fn.Count(SmonHistory.status)).where(
-		(SmonHistory.smon_id == smon_id) &
-		(SmonHistory.check_id == check_id)
+		SmonHistory.smon_id == smon_id
 	)
 	try:
 		query_res = query.execute()
@@ -3098,7 +3098,6 @@ def get_smon_history_count_checks(smon_id: int, check_id: int) -> dict:
 
 	query = SmonHistory.select(fn.Count(SmonHistory.status)).where(
 		(SmonHistory.smon_id == smon_id) &
-		(SmonHistory.check_id == check_id) &
 		(SmonHistory.status == 1)
 	)
 	try:
@@ -4191,3 +4190,63 @@ def get_tool_cur_version(tool_name: str):
 		out_error(e)
 	else:
 		return query
+
+
+def add_status_page(name: str, slug: str, desc: str, group_id: int, checks: list) -> int:
+	try:
+		last_id = SmonStatusPage.insert(name=name, slug=slug, group_id=group_id, desc=desc).execute()
+	except Exception as e:
+		if '1062, "Duplicate entry' in str(e):
+			raise Exception('error: The Slug is already taken, please enter another one')
+		else:
+			out_error(e)
+	else:
+		for check in checks:
+			try:
+				SmonStatusPageCheck.insert(page_id=last_id, check_id=int(check)).execute()
+			except Exception as e:
+				out_error(e)
+		return last_id
+
+
+def select_status_pages(group_id: int):
+	try:
+		query_res = SmonStatusPage.select().where(SmonStatusPage.group_id == group_id).execute()
+	except Exception as e:
+		return out_error(e)
+	else:
+		return query_res
+
+
+def select_status_page_by_id(page_id: int):
+	try:
+		query_res = SmonStatusPage.select().where(SmonStatusPage.id == page_id).execute()
+	except Exception as e:
+		return out_error(e)
+	else:
+		return query_res
+
+
+def select_status_page(slug: str):
+	try:
+		query_res = SmonStatusPage.select().where(SmonStatusPage.slug == slug).execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
+
+
+def select_status_page_checks(page_id: int):
+	try:
+		query_res = SmonStatusPageCheck.select().where(SmonStatusPageCheck.page_id == page_id).execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
+
+
+def delete_status_page(page_id):
+	try:
+		SmonStatusPage.delete().where(SmonStatusPage.id == page_id).execute()
+	except Exception as e:
+		out_error(e)

@@ -1,7 +1,6 @@
 from flask import render_template, g
 from flask_login import login_required
 
-from app import cache
 from app.routes.overview import bp
 from middleware import get_user_params
 import app.modules.db.sql as sql
@@ -45,7 +44,6 @@ def overview_users():
 
 
 @bp.route('/overview/sub')
-@cache.cached()
 def overview_sub():
     return roxy_overview.show_sub_ovw()
 

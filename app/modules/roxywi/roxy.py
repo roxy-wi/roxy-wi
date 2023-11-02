@@ -32,8 +32,6 @@ def versions():
 		current_ver_without_dots = current_ver.split('.')
 		current_ver_without_dots = ''.join(current_ver_without_dots)
 		current_ver_without_dots = current_ver_without_dots.replace('\n', '')
-		if len(current_ver_without_dots) == 4:
-			current_ver_without_dots += '0'
 		current_ver_without_dots = int(current_ver_without_dots)
 	except Exception:
 		current_ver = "Cannot get current version"

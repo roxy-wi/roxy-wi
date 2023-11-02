@@ -357,6 +357,8 @@ def delete_ip_from_list(serv, ip_id, ip, list_id, list_name) -> str:
 	except Exception:
 		pass
 
+	return 'ok'
+
 
 def add_ip_to_list(serv, ip, list_id, list_name) -> str:
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
@@ -371,13 +373,12 @@ def add_ip_to_list(serv, ip, list_id, list_name) -> str:
 		pass
 	try:
 		if stderr:
-			print(f'error: {stderr[0]}')
+			return f'error: {stderr[0]}'
 	except Exception:
 		pass
 
 	if 'is not a valid IPv4 or IPv6 address' not in output[0]:
 		cmd = f'echo "{ip}" >> {lib_path}/lists/{user_group}/{list_name}'
-		print(cmd)
 		output, stderr = server_mod.subprocess_execute(cmd)
 		roxywi_common.logging(serv, f'{ip} has been added to list {list_id}', login=1, keep_history=1, service='haproxy')
 		if output:
