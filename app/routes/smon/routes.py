@@ -72,7 +72,6 @@ def smon_dashboard(dashboard_id, check_id):
     )
 
 
-
 @bp.route('/status-page')
 @login_required
 @get_user_params()

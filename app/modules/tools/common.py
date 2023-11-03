@@ -7,13 +7,13 @@ import modules.server.server as server_mod
 
 def get_services_status(update_cur_ver=0):
     services = []
+    services_name = sql.get_all_tools()
+
     if update_cur_ver:
         try:
             update_cur_tool_versions()
         except Exception as e:
-            raise Exception(f'error: Update current versions: {e}')
-
-    services_name = sql.get_all_tools()
+            raise Exception(f'error: Cannot update current versions: {e}')
 
     try:
         for s, v in services_name.items():
@@ -32,20 +32,15 @@ def update_roxy_wi(service: str) -> str:
     if service not in services:
         raise Exception(f'error: {service} is not part of Roxy-WI')
 
+    if service != 'roxy-wi':
+        restart_service = f'&& sudo systemctl restart {service}'
+
     if distro.id() == 'ubuntu':
-        try:
-            if service == 'roxy-wi-keep_alive':
-                service = 'roxy-wi-keep-alive'
-        except Exception:
-            pass
+        if service == 'roxy-wi-keep_alive':
+            service = 'roxy-wi-keep-alive'
 
-        if service != 'roxy-wi':
-            restart_service = f'&& sudo systemctl restart {service}'
-
-        cmd = f'sudo -S apt-get update && sudo apt-get install {service} {restart_service} -y'
+        cmd = f'sudo -S apt-get update && sudo apt-get install {service} -y {restart_service}'
     else:
-        if service != 'roxy-wi':
-            restart_service = f'&& sudo systemctl restart {service}'
         cmd = f'sudo -S yum -y install {service} {restart_service}'
 
     output, stderr = server_mod.subprocess_execute(cmd)

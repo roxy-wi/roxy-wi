@@ -781,9 +781,6 @@ def get_user_id_by_uuid(uuid):
 	else:
 		for user in query_res:
 			return user.user_id
-	finally:
-		if not conn.is_closed():
-			conn.close()
 
 
 def get_user_id_by_username(username: str):

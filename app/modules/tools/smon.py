@@ -128,7 +128,7 @@ def return_smon_status():
     return smon_status, stderr
 
 
-def check_uptime(smon_id: int) -> int:
+def check_uptime(smon_id: str) -> int:
     count_checks = sql.get_smon_history_count_checks(smon_id)
 
     try:
@@ -164,10 +164,19 @@ def show_status_page(slug: str) -> str:
     checks = sql.select_status_page_checks(page_id)
 
     for check in checks:
+        name = ''
+        desc = ''
+        group = ''
+        check_type = ''
         check_id = str(check.check_id)
-        smon_name = sql.get_smon_service_name_by_id(check_id)
+        smon = sql.select_smon_by_id(check_id)
+        for s in smon:
+            name = s.name
+            desc = s.desc
+            group = s.group
+            check_type = s.check_type
         uptime = check_uptime(check_id)
 
-        checks_status[check_id] = {'uptime': uptime, 'name': smon_name}
+        checks_status[check_id] = {'uptime': uptime, 'name': name, 'desc': desc, 'group': group, 'check_type': check_type}
 
     return render_template('smon/status_page.html', page=page, checks_status=checks_status)
