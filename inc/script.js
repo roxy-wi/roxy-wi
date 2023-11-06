@@ -693,7 +693,8 @@ $( function() {
 		try {
 			var cur_path = window.location.pathname;
 			var attr = $(this).attr('href');
-			if (cur_path == '/app/add/haproxy' || cur_path == '/app/add/nginx' || cur_path == '/app/servers' || cur_path == '/app/admin' || cur_path == '/app/install') {
+			if (cur_path == '/app/add/haproxy' || cur_path == '/app/add/nginx' || cur_path == '/app/servers' ||
+				cur_path == '/app/admin' || cur_path == '/app/install' || cur_path == '/app/runtimeapi') {
 				if (typeof attr !== typeof undefined && attr !== false) {
 					$('title').text($(this).attr('title'));
 					history.pushState({}, '', $(this).attr('href'));

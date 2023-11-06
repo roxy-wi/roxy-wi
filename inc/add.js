@@ -1640,8 +1640,8 @@ function editList(list, color) {
 	} );
 }
 function saveList(action, list, color) {
-	var serv = $( "#serv-"+color+"-list option:selected" ).val();
-	if(!checkIsServerFiled($("#serv-"+color+"-list"))) return false;
+	var serv = $("#serv-" + color + "-list option:selected").val();
+	if (!checkIsServerFiled($("#serv-" + color + "-list"))) return false;
 	$.ajax({
 		url: "/app/add/haproxy/bwlist/save",
 		data: {

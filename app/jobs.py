@@ -1,6 +1,8 @@
 import os
 import datetime
 
+import distro
+
 from app import scheduler
 import app.modules.db.sql as sql
 import app.modules.roxywi.roxy as roxy
@@ -64,3 +66,15 @@ def delete_old_logs():
                         os.remove(curpath)
         except Exception as e:
             print(f'error: cannot delete old log files: {e}')
+
+
+@scheduler.task('interval', id='update_owner_on_log', hours=12, misfire_grace_time=None)
+def update_owner_on_log():
+    log_path = get_config.get_config_var('main', 'log_path')
+    try:
+        if distro.id() == 'ubuntu':
+            os.system(f'sudo chown www-data:www-data -R {log_path}')
+        else:
+            os.system(f'sudo chown apache:apache -R {log_path}')
+    except Exception:
+        pass
