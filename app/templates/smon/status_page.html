@@ -38,15 +38,19 @@
         <h2>Status page - {{p.name}}</h2>
         <h3>{{p.desc|replace("'", "")}}</h3>
         {% for check, value in checks_status.items() %}
-        {% if value.uptime|int() < 90 %}
+        {% if value.uptime|int() > 50 and value.uptime|int() < 90  %}
+            {% set add_class = 'serverWarn' %}
+        {% elif value.en|int() == 0 %}
+            {% set add_class = 'serverNone' %}
+        {% elif value.uptime|int() < 50  %}
             {% set add_class = 'serverDown' %}
         {% else %}
             {% set add_class = 'serverUP' %}
         {% endif %}
-        <div class="check_div">
+        <div class="check_div" title="{{value.desc}}">
             <div>
                 <span class="{{add_class}} check_uptime">{{value.uptime}}%</span>
-                <span class="check_name">{{value.name}}</span>
+                <span class="check_name">{{value.name|replace("'", "")}}</span>
             </div>
             <div class="history_statuses" id="history-{{check}}"></div>
         </div>

@@ -15,7 +15,7 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 3. Installing and updating Grafana, Prometheus servers with Roxy-WI
 4. Installing and updating HAProxy, Nginx, Apache, Keepalived and Node exporters with Roxy-WI
 6. Downloading, updating and formatting GeoIP to the acceptable format for HAProxy with Roxy-WI
-7. Dynamic change of Maxconn, Black/white lists and backend's IP address and port with saving changes to the config file
+7. Dynamic change of Maxconn, Black/white lists, add, edit or delete backend's IP address and port with saving changes to the config file
 8. Configuring HAProxy, Nginx, Apache and Keepalived in a jiffy with Roxy-WI
 9. Viewing and analysing the status of all Frontend/backend servers via Roxy-WI from a single control panel
 10. Enabling/disabling servers through stats page without rebooting HAProxy
@@ -35,7 +35,7 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 24. Support of SSL (including Let's Encrypt)
 25. Support of SSH Key for managing multiple HAProxy, Nginx, Apache and Keepalived Servers straight from Roxy-WI
 26. SYN flood protect
-27. Alerting about changes of the state of HAProxy backends
+27. Alerting about changes of the state of HAProxy backends, about approaching the limit of Maxconn
 28. Alerting about the state of HAProxy, Nginx, Apache and Keepalived service
 29. Gathering metrics for incoming connections
 30. Web acceleration settings
@@ -44,7 +44,7 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 33. Keep active HAProxy, Nginx, Apache and Keepalived services
 34. Possibility to hide parts of the config with tags for users with "guest" role: "HideBlockStart" and "HideBlockEnd"
 35. Mobile-ready design
-36. [SMON](https://roxy-wi.org/services/smon) (Check: Ping, TCP/UDP, HTTP(s), SSL expiry, HTTP body answer, DNS records)
+36. [SMON](https://roxy-wi.org/services/smon) (Check: Ping, TCP/UDP, HTTP(s), SSL expiry, HTTP body answer, DNS records, Status pages)
 37. Backup HAProxy, Nginx, Apache and Keepalived config files through Roxy-WI
 38. Managing OpenVPN3 as a client via Roxy-WI
 

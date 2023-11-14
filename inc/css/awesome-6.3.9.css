@@ -27,12 +27,12 @@
 }
 .stats::before {
 	display: none;
-	font-family: "Font Awesome 5 Solid";
+	font-family: "Font Awesome 5 Regular";
 	content: "\f06e";
 }
 .mon::before {
 	display: none;
-	font-family: "Font Awesome 5 Solid";
+	font-family: "Font Awesome 5 Regular";
 	content: "\f080";
 }
 .logs::before {
@@ -62,7 +62,7 @@
 }
 .compare::before {
 	display: none;
-	font-family: "Font Awesome 5 Solid";
+	font-family: "Font Awesome 5 Regular";
 	content: "\f0c5";
 }
 .add::before {
@@ -88,12 +88,12 @@
 }
 .option::before {
 	display: none;
-	font-family: "Font Awesome 5 Solid";
+	font-family: "Font Awesome 5 Regular";
 	content: "\f0b0";
 }
 .edit::before {
 	display: none;
-	font-family: "Font Awesome 5 Solid";
+	font-family: "Font Awesome 5 Regular";
 	content: "\f044";
 }
 .lists::before {
@@ -113,12 +113,12 @@
 }
 .hap1::before {
 	display: none;
-	font-family: "Font Awesome 5 Solid";
+	font-family: "Font Awesome 5 Regular";
 	content: "\f074";
 }
 .backup::before {
 	display: none;
-	font-family: "Font Awesome 5 Solid";
+	font-family: "Font Awesome 5 Regular";
 	content: "\f24d";
 }
 .ha::before {
@@ -149,17 +149,17 @@
 .tools::before,
 .services::before {
 	display: none;
-	font-family: "Font Awesome 5 Solid";
+	font-family: "Font Awesome 5 Regular";
 	content: "\f144";
 }
 .upload::before {
 	display: none;
-	font-family: "Font Awesome 5 Solid";
+	font-family: "Font Awesome 5 Regular";
 	content: "\f093";
 }
 .delete::before, .deleteVer::before {
 	display: none;
-	font-family: "Font Awesome 5 Solid";
+	font-family: "Font Awesome 5 Regular";
 	content: "\f2ed";
 }
 .delete .fa-trash-alt {
@@ -172,12 +172,12 @@
 }
 .login::before {
 	display: none;
-	font-family: "Font Awesome 5 Solid";
+	font-family: "Font Awesome 5 Regular";
 	content: "\f007";
 }
 .update-row::before {
 	display: none;
-	font-family: "Font Awesome 5 Solid";
+	font-family: "Font Awesome 5 Regular";
 	content: "\f01e";
 }
 .admin::before {
@@ -197,7 +197,7 @@
 }
 .role::before {
 	display: none;
-	font-family: "Font Awesome 5 Solid";
+	font-family: "Font Awesome 5 Regular";
 	content: "\f2b9";
 }
 .settings::before {
@@ -232,7 +232,7 @@
 }
 .backends::before {
 	display: none;
-	font-family: "Font Awesome 5 Solid";
+	font-family: "Font Awesome 5 Regular";
 	content: "\f233";
 	padding-left: 5px;
 }
@@ -280,7 +280,7 @@
 }
 .menu-bar::before {
 	display: none;
-	font-family: "Font Awesome 5 Solid";
+	font-family: "Font Awesome 5 Regular";
 	content: "\f0c9";
 }
 .menu-bar > .fa-bars {
@@ -326,12 +326,12 @@
 }
 .alert-info::before {
 	display: none;
-	font-family: "Font Awesome 5 Solid";
+	font-family: "Font Awesome 5 Regular";
 	content: "\f05a";
 }
 .alert-warning::before, .alert-danger::before {
 	display: none;
-	font-family: "Font Awesome 5 Solid";
+	font-family: "Font Awesome 5 Regular";
 	content: "\f06a";
 }
 .alert-info .fa-info-circle, .alert-warning .fa-exclamation-circle, .alert-danger .fa-exclamation-circle {
@@ -356,7 +356,7 @@
 }
 .note-symbol::after {
 	display: none;
-	font-family: "Font Awesome 5 Solid";
+	font-family: "Font Awesome 5 Regular";
 	content: "\f059";
 }
 .note-symbol .question-circle {
@@ -406,7 +406,7 @@
 }
 .copyToClipboard:hover::after {
 	display: none;
-	font-family: "Font Awesome 5 Solid";
+	font-family: "Font Awesome 5 Regular";
 	content: "\f0c5";
 }
 .copyToClipboard .fa-copy {
@@ -424,7 +424,7 @@
 }
 .checker::before {
 	display: none;
-	font-family: "Font Awesome 5 Solid";
+	font-family: "Font Awesome 5 Regular";
 	content: "\f0f3";
 }
 .cpu::before {
@@ -449,7 +449,7 @@
 }
 .user-circle::before {
 	display: none;
-	font-family: "Font Awesome 5 Solid";
+	font-family: "Font Awesome 5 Regular";
 	content: "\f2bd";
 }
 .user-circle > .fa-user-circle {

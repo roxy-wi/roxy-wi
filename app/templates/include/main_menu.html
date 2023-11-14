@@ -81,6 +81,7 @@
 					<a href="{{ url_for('smon.smon') }}" title="{{lang.menu_links.monitoring.title}}" class="stats">{{lang.menu_links.monitoring.link}}</a>
 					<ul class="v_menu">
 						<li><a href="{{ url_for('smon.smon') }}" title="{{lang.menu_links.monitoring.smon.dashboard}}" class="overview-link head-submenu">{{lang.menu_links.monitoring.smon.dashboard}}</a></li>
+						<li><a href="{{ url_for('smon.status_page') }}" title="{{lang.menu_links.monitoring.smon.status_page}}" class="overview-link head-submenu">{{lang.menu_links.monitoring.smon.status_page}}</a></li>
 						<li><a href="{{ url_for('smon.smon_history') }}" title="{{lang.menu_links.monitoring.smon.history}}" class="lists head-submenu">{{lang.menu_links.monitoring.smon.history}}</a></li>
 						{% if role <= 3 %}
 						<li><a href="{{ url_for('smon.smon_admin') }}" title="{{lang.menu_links.monitoring.smon.admin}}" class="edit head-submenu">{{lang.menu_links.monitoring.smon.admin}}</a></li>
