@@ -72,50 +72,74 @@ def smon_dashboard(dashboard_id, check_id):
     )
 
 
-@bp.route('/status-page')
+@bp.route('/status-page', methods=['GET', 'POST', 'DELETE', 'PUT'])
 @login_required
 @get_user_params()
 def status_page():
-    user_params = g.user_params
-    user_group = roxywi_common.get_user_group(id=1)
-    smon_list = sql.smon_list(user_group)
-    pages = sql.select_status_pages(user_group)
-    smon_status, stderr = smon_mod.return_smon_status()
-    user_subscription = roxywi_common.return_user_subscription()
+    if request.method == 'GET':
+        user_params = g.user_params
+        user_group = roxywi_common.get_user_group(id=1)
+        smon_list = sql.smon_list(user_group)
+        pages = sql.select_status_pages(user_group)
+        smon_status, stderr = smon_mod.return_smon_status()
+        user_subscription = roxywi_common.return_user_subscription()
 
-    return render_template(
-        'smon/manage_status_page.html', role=user_params['role'], user=user_params['user'], lang=user_params['lang'],
-        user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'], smon_error=stderr, pages=pages,
-        token=user_params['token'], user_services=user_params['user_services'], smon=smon_list, smon_status=smon_status
-    )
+        return render_template(
+            'smon/manage_status_page.html', role=user_params['role'], user=user_params['user'],
+            lang=user_params['lang'], pages=pages, smon_status=smon_status,
+            user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'], smon_error=stderr,
+            token=user_params['token'], user_services=user_params['user_services'], smon=smon_list,
+        )
+    elif request.method == 'POST':
+        name = common.checkAjaxInput(request.form.get('name'))
+        slug = common.checkAjaxInput(request.form.get('slug'))
+        desc = common.checkAjaxInput(request.form.get('desc'))
+        checks = json.loads(request.form.get('checks'))
+
+        if not len(checks['checks']):
+            return 'error: Please check Checks for Status page'
+
+        try:
+            return smon_mod.create_status_page(name, slug, desc, checks['checks'])
+        except Exception as e:
+            return f'{e}'
+    elif request.method == 'PUT':
+        page_id = int(request.form.get('page_id'))
+        name = common.checkAjaxInput(request.form.get('name'))
+        slug = common.checkAjaxInput(request.form.get('slug'))
+        desc = common.checkAjaxInput(request.form.get('desc'))
+        checks = json.loads(request.form.get('checks'))
+
+        if not len(checks['checks']):
+            return 'error: Please check Checks for Status page'
+
+        try:
+            return smon_mod.edit_status_page(page_id, name, slug, desc, checks['checks'])
+        except Exception as e:
+            return f'{e}'
+    elif request.method == 'DELETE':
+        page_id = int(request.form.get('page_id'))
+        try:
+            sql.delete_status_page(page_id)
+        except Exception as e:
+            return f'{e}'
+        else:
+            return 'ok'
 
 
-@bp.post('/status-page/add')
+@bp.route('/status/checks/<int:page_id>')
 @login_required
-def add_status_page():
-    name = common.checkAjaxInput(request.form.get('name'))
-    slug = common.checkAjaxInput(request.form.get('slug'))
-    desc = common.checkAjaxInput(request.form.get('desc'))
-    checks = json.loads(request.form.get('checks'))
-
-    if not len(checks['checks']):
-        return 'error: Please check Checks for Status page'
-
+def get_checks(page_id):
+    returned_check = []
     try:
-        return smon_mod.create_status_page(name, slug, desc, checks['checks'])
+        checks = sql.select_status_page_checks(page_id)
     except Exception as e:
-        return f'{e}'
+        return f'error: Cannot get checks: {e}'
 
+    for check in checks:
+        returned_check.append(str(check.check_id))
 
-@bp.route('/status-page/delete/<int:page_id>')
-@login_required
-def delete_status_page(page_id):
-    try:
-        sql.delete_status_page(page_id)
-    except Exception as e:
-        return f'{e}'
-    else:
-        return 'ok'
+    return jsonify(returned_check)
 
 
 @bp.route('/status/<slug>')

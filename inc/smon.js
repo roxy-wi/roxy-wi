@@ -403,13 +403,19 @@ function show_smon_history_statuses(dashboard_id, id_for_history_replace) {
 		}
 	});
 }
-function createStatusPageStep1() {
+function createStatusPageStep1(edited=false, page_id=0) {
 	var add_word = $('#translate').attr('data-next');
 	var cancel_word = $('#translate').attr('data-cancel');
 	var next_word = $('#translate').attr('data-next');
-	var smon_add_tabel_title = $( "#create-status-page-step-1-overview" ).attr('title');
+	var smon_add_tabel_title = $("#create-status-page-step-1-overview").attr('title');
+	if (edited) {
+		smon_add_tabel_title = $("#create-status-page-step-1-overview").attr('data-edit');
+		$('#new-status-page-name').val($('#page_name-'+page_id).text());
+		$('#new-status-page-slug').val($('#page_slug-'+page_id).text().split('/').pop());
+		$('#new-status-page-desc').val($('#page_desc-'+page_id).text().replace('(','').replace(')',''));
+	}
 	var regx = /^[a-z0-9_-]+$/;
-	var addSmonStatus = $( "#create-status-page-step-1" ).dialog({
+	var addSmonStatus = $("#create-status-page-step-1").dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
@@ -432,7 +438,7 @@ function createStatusPageStep1() {
 					return false;
 				}
 				if (!regx.test($('#new-status-page-slug').val())) {
-					toastr.error('error: Incorect Slug');
+					toastr.error('error: Incorrect Slug');
 					return false;
 				}
 				if ($('#new-status-page-slug').val().indexOf('--') != '-1') {
@@ -443,25 +449,44 @@ function createStatusPageStep1() {
 					toastr.error('error: Fill in the Slug field');
 					return false;
 				}
-				createStatusPageStep2();
+				createStatusPageStep2(edited, page_id);
 				$(this).dialog("close");
 				toastr.clear();
 			}
 		}, {
 			text: cancel_word,
 			click: function () {
-				$(this).dialog("close");
-				clearTips();
+				clearStatusPageDialog($(this));
 			}
 		}]
 	});
 	addSmonStatus.dialog('open');
 }
-function createStatusPageStep2() {
+function createStatusPageStep2(edited, page_id) {
 	var add_word = $('#translate').attr('data-add');
 	var cancel_word = $('#translate').attr('data-cancel');
 	var back_word = $('#translate').attr('data-back');
 	var smon_add_tabel_title = $("#create-status-page-step-2-overview").attr('title');
+	if (edited) {
+		smon_add_tabel_title = $("#create-status-page-step-2-overview").attr('data-edit');
+		add_word = $('#translate').attr('data-edit');
+		if ($("#enabled-check > div").length == 0) {
+			$.ajax({
+				url: "/app/smon/status/checks/" + page_id,
+				async: false,
+				type: "GET",
+				success: function (data) {
+					if (data.indexOf('error:') != '-1') {
+						toastr.error(data);
+					} else {
+						for (let i = 0; i < data.length; i++) {
+							addCheckToStatus(data[i]);
+						}
+					}
+				}
+			});
+		}
+	}
 	var addSmonStatus = $("#create-status-page-step-2").dialog({
 		autoOpen: false,
 		resizable: false,
@@ -480,23 +505,37 @@ function createStatusPageStep2() {
 		buttons: [{
 			text: add_word,
 			click: function () {
-				createStatusPage($(this));
+				if (edited) {
+					editStatusPage($(this), page_id);
+				} else {
+					createStatusPage($(this));
+				}
 			}
 		}, {
 			text: back_word,
 			click: function () {
 				$(this).dialog("close");
-				createStatusPageStep1();
+				createStatusPageStep1(edited, page_id);
 			}
 		}, {
 			text: cancel_word,
 			click: function () {
-				$(this).dialog("close");
-				clearTips();
+				clearStatusPageDialog($(this));
 			}
 		}]
 	});
 	addSmonStatus.dialog('open');
+}
+function clearStatusPageDialog(dialog_id) {
+	dialog_id.dialog("close");
+	clearTips();
+	$('#new-status-page-name').val('');
+	$('#new-status-page-slug').val('');
+	$('#new-status-page-desc').val('');
+	$("#enabled-check > div").each((index, elem) => {
+		check_id = elem.id.split('-')[1]
+		removeCheckFromStatus(check_id);
+	});
 }
 function createStatusPage(dialog_id) {
 	let name_id = $('#new-status-page-name');
@@ -509,7 +548,7 @@ function createStatusPage(dialog_id) {
 		checks.push(check_id);
 	});
 	$.ajax({
-		url: '/app/smon/status-page/add',
+		url: '/app/smon/status-page',
 		type: 'POST',
 		data: {
 			name: name_id.val(),
@@ -522,18 +561,43 @@ function createStatusPage(dialog_id) {
 			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
 				toastr.error(data);
 			} else {
-				toastr.clear();
-				$("#smon_history_statuses").html(data);
-				for (let i = 0; i < checks.length; i++) {
-					removeCheckFromStatus(checks[i]);
-					console.log(checks[i])
-				}
-				name_id.val('');
-				slug_id.val('');
-				dialog_id.dialog("close");
+				clearStatusPageDialog(dialog_id);
 				$("#pages").append(data);
+				$.getScript("/inc/fontawesome.min.js");
+			}
+		}
+	});
+}
+function editStatusPage(dialog_id, page_id) {
+	let name_id = $('#new-status-page-name');
+	let slug_id = $('#new-status-page-slug');
+	let desc_id = $('#new-status-page-desc');
+	let checks = [];
+	let check_id = '';
+	$("#enabled-check > div").each((index, elem) => {
+		check_id = elem.id.split('-')[1]
+		checks.push(check_id);
+	});
+	$.ajax({
+		url: '/app/smon/status-page',
+		type: 'PUT',
+		data: {
+			page_id: page_id,
+			name: name_id.val(),
+			slug: slug_id.val(),
+			desc: desc_id.val(),
+			checks: JSON.stringify({'checks': checks})
+		},
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
+				toastr.error(data);
+			} else {
+				clearStatusPageDialog(dialog_id);
+				$("#page_" + page_id).replaceWith(data);
+				$("#page_" + page_id).addClass("update", 1000);
 				setTimeout(function () {
-					$("#user-" + id).removeClass("update");
+					$("#page_" + page_id).removeClass("update");
 				}, 2500);
 				$.getScript("/inc/fontawesome.min.js");
 			}
@@ -595,7 +659,11 @@ function confirmDeleteStatusPage(id) {
 }
 function deleteStatusPage(page_id) {
 	$.ajax({
-		url: '/app/smon/status-page/delete/' + page_id,
+		url: '/app/smon/status-page',
+		type: 'DELETE',
+		data: {
+			page_id: page_id,
+		},
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {

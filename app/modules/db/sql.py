@@ -4193,17 +4193,35 @@ def add_status_page(name: str, slug: str, desc: str, group_id: int, checks: list
 	try:
 		last_id = SmonStatusPage.insert(name=name, slug=slug, group_id=group_id, desc=desc).execute()
 	except Exception as e:
-		if '1062, "Duplicate entry' in str(e):
+		if 'Duplicate entry' in str(e):
 			raise Exception('error: The Slug is already taken, please enter another one')
 		else:
 			out_error(e)
 	else:
-		for check in checks:
-			try:
-				SmonStatusPageCheck.insert(page_id=last_id, check_id=int(check)).execute()
-			except Exception as e:
-				out_error(e)
+		add_status_page_checks(last_id, checks)
 		return last_id
+
+
+def edit_status_page(page_id: int, name: str, slug: str, desc: str) -> None:
+	try:
+		SmonStatusPage.update(name=name, slug=slug, desc=desc).where(SmonStatusPage.id == page_id).execute()
+	except Exception as e:
+		out_error(e)
+
+
+def add_status_page_checks(page_id: int, checks: list) -> None:
+	for check in checks:
+		try:
+			SmonStatusPageCheck.insert(page_id=page_id, check_id=int(check)).execute()
+		except Exception as e:
+			out_error(e)
+
+
+def delete_status_page_checks(page_id: int) -> None:
+	try:
+		SmonStatusPageCheck.delete().where(SmonStatusPageCheck.page_id == page_id).execute()
+	except Exception as e:
+		out_error(e)
 
 
 def select_status_pages(group_id: int):

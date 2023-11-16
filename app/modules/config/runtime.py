@@ -4,6 +4,7 @@ from flask import render_template
 
 import modules.db.sql as sql
 import modules.config.config as config_mod
+import modules.config.section as section_mod
 import modules.server.server as server_mod
 import modules.roxywi.common as roxywi_common
 import modules.roxy_wi_tools as roxy_wi_tools
@@ -121,25 +122,23 @@ def change_ip_and_port(serv, backend_backend, backend_server, backend_ip, backen
 	if backend_port is None:
 		return 'error: The backend port must be integer and not 0'
 
-	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 	lines = ''
-
+	sock_port = sql.get_setting('haproxy_sock_port')
 	masters = sql.is_master(serv)
+
 	for master in masters:
 		if master[0] is not None:
-			cmd = 'echo "set server %s/%s addr %s port %s check-port %s" |nc %s %s' % (
-				backend_backend, backend_server, backend_ip, backend_port, backend_port, master[0], haproxy_sock_port)
+			cmd = f'echo "set server {backend_backend}/{backend_server} addr {backend_ip} port {backend_port} ' \
+				  f'check-port {backend_port}" |nc {master[0]} {sock_port}'
 			output, stderr = server_mod.subprocess_execute(cmd)
 			lines += output[0]
 			roxywi_common.logging(
-				master[0], 'IP address and port have been changed. On: {}/{} to {}:{}'.format(
-					backend_backend, backend_server, backend_ip, backend_port
-				),
+				master[0], f'IP address and port have been changed. On: {backend_backend}/{backend_server} to {backend_ip}:{backend_port}',
 				login=1, keep_history=1, service='haproxy'
 			)
 
-	cmd = 'echo "set server %s/%s addr %s port %s check-port %s" |nc %s %s' % (
-		backend_backend, backend_server, backend_ip, backend_port, backend_port, serv, haproxy_sock_port)
+	cmd = f'echo "set server {backend_backend}/{backend_server} addr {backend_ip} port {backend_port} ' \
+		  f'check-port {backend_port}" |nc {serv} {sock_port}'
 	roxywi_common.logging(
 		serv,
 		f'IP address and port have been changed. On: {backend_backend}/{backend_server} to {backend_ip}:{backend_port}',
@@ -148,18 +147,159 @@ def change_ip_and_port(serv, backend_backend, backend_server, backend_ip, backen
 	output, stderr = server_mod.subprocess_execute(cmd)
 
 	if stderr != '':
-		lines += 'error: ' + stderr[0]
-	else:
-		lines += output[0]
-		configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
-		cfg = f"{configs_dir}{serv}-{get_date.return_date('config')}.cfg"
+		return 'error: ' + stderr[0]
 
-		config_mod.get_config(serv, cfg)
-		cmd = 'string=`grep %s %s -n -A25 |grep "server %s" |head -1|awk -F"-" \'{print $1}\'` ' \
-			  '&& sed -Ei "$( echo $string)s/((1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])\.){3}(1?[0-9][0-9]?|2[0-4][0-9]|25[0-5]):[0-9]+/%s:%s/g" %s' % \
-			  (backend_backend, cfg, backend_server, backend_ip, backend_port, cfg)
-		server_mod.subprocess_execute(cmd)
-		config_mod.master_slave_upload_and_restart(serv, cfg, 'save', 'haproxy')
+	lines += output[0]
+	configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
+	cfg = f"{configs_dir}{serv}-{get_date.return_date('config')}.cfg"
+
+	config_mod.get_config(serv, cfg)
+	cmd = 'string=`grep %s %s -n -A25 |grep "server %s" |head -1|awk -F"-" \'{print $1}\'` ' \
+		  '&& sed -Ei "$(echo $string)s/((1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])\.){3}(1?[0-9][0-9]?|2[0-4][0-9]|25[0-5]):[0-9]+/%s:%s/g" %s' % \
+		  (backend_backend, cfg, backend_server, backend_ip, backend_port, cfg)
+	server_mod.subprocess_execute(cmd)
+	config_mod.master_slave_upload_and_restart(serv, cfg, 'save', 'haproxy')
+
+	return lines
+
+
+def add_server_via_runtime(
+		server_ip: str, backend: str, server: str, backend_ip: str, backend_port: int, check: int, port_check: int
+) -> tuple:
+	lines = ''
+	stderr = ''
+	check_cmd = ''
+	sock_port = sql.get_setting('haproxy_sock_port')
+
+	if check:
+		check_cmd = 'check'
+
+	commands = [
+		f'echo "add server {backend}/{server} {backend_ip}:{backend_port} {check_cmd}"|nc {server_ip} {sock_port}',
+	]
+
+	if check:
+		commands.append(f'echo "enable health {backend}/{server}"|nc {server_ip} {sock_port}')
+		commands.append(f'echo "set server {backend}/{server} check-addr {server_ip} check-port {port_check}"|nc {server_ip} {sock_port}')
+
+	commands.append(f'echo "set server {backend}/{server} state ready"|nc {server_ip} {sock_port}')
+
+	for cmd in commands:
+		output, stderr = server_mod.subprocess_execute(cmd)
+		lines += output[0]
+	return lines, stderr
+
+
+def delete_server_via_runtime(server_ip: str, backend: str, server: str) -> tuple:
+	lines = ''
+	stderr = ''
+	sock_port = sql.get_setting('haproxy_sock_port')
+
+	commands = [
+		f'echo "set server {backend}/{server} state maint"|nc {server_ip} {sock_port}',
+		f'echo "del server {backend}/{server} "|nc {server_ip} {sock_port}',
+	]
+
+	for cmd in commands:
+		output, stderr = server_mod.subprocess_execute(cmd)
+		lines += output[0]
+	return lines, stderr
+
+
+def add_server(
+		server_ip: str, backend: str, server: str, backend_ip: str, backend_port: int, check: int, port_check: int
+) -> str:
+	lines = ''
+	stderr = ''
+	check_cfg = ''
+	check = int(check)
+	masters = sql.is_master(server_ip)
+
+	for master in masters:
+		if master[0] is not None:
+			line, error = add_server_via_runtime(master[0], backend, server, backend_ip, backend_port, check, port_check)
+			lines += f'{master[0]}: {line}<br />'
+			stderr += error
+			roxywi_common.logging(
+				master[0], f'A new backend server has been add: {backend}/{server}', login=1, keep_history=1, service='haproxy'
+			)
+
+	line, error = add_server_via_runtime(server_ip, backend, server, backend_ip, backend_port, check, port_check)
+	lines += f'{server_ip}: {line}<br />'
+	stderr += error
+	roxywi_common.logging(
+		server_ip, f'A new backend server has been add: {backend}/{server}', login=1, keep_history=1, service='haproxy'
+	)
+
+	if 'Already exists a server' in lines:
+		return f'error: {lines}'
+
+	if stderr != '':
+		return f'error: {stderr}'
+
+	if check:
+		check_cfg = f'check port {port_check}'
+
+	configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
+	cfg = f"{configs_dir}{server_ip}-{get_date.return_date('config')}.cfg"
+	try:
+		config_mod.get_config(server_ip, cfg)
+	except Exception as e:
+		raise Exception(f'error: Cannot config section: {e}')
+	section_name_cmd = f'grep {backend} {cfg}'
+	section_name = server_mod.subprocess_execute(section_name_cmd)
+
+	try:
+		start_line, end_line, return_config = section_mod.get_section_from_config(cfg, section_name[0][0])
+	except Exception as e:
+		raise Exception(f'error: Cannot get config section: {e}')
+	new_end_line = int(end_line) + 1
+	new_server_cfg = f'\    \server {backend_ip} {backend_ip}:{backend_port} {check_cfg}'
+	cmd = f"sed -i '{new_end_line} i {new_server_cfg}' {cfg}"
+	server_mod.subprocess_execute(cmd)
+	try:
+		config_mod.master_slave_upload_and_restart(server_ip, cfg, 'save', 'haproxy')
+	except Exception as e:
+		raise Exception(f'error: Cannot save a new config: {e}')
+
+	return lines
+
+
+def delete_server(server_ip: str, backend: str, server: str) -> str:
+	lines = ''
+	stderr = ''
+	masters = sql.is_master(server_ip)
+
+	for master in masters:
+		if master[0] is not None:
+			line, error = delete_server_via_runtime(master[0], backend, server)
+			lines += f'{master[0]}: {line}<br />'
+			stderr += error
+			roxywi_common.logging(
+				master[0], f'Server has been deleted: {backend}/{server}', login=1, keep_history=1, service='haproxy'
+			)
+
+	line, error = delete_server_via_runtime(server_ip, backend, server)
+	lines += f'{server_ip}: {line}<br />'
+	stderr += error
+	roxywi_common.logging(
+		server_ip, f'Server has been deleted: {backend}/{server}', login=1, keep_history=1, service='haproxy'
+	)
+
+	if stderr != '':
+		return 'error: ' + stderr[0]
+
+	if 'No such server' in lines:
+		return f'error: {lines}'
+
+	configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
+	cfg = f"{configs_dir}{server_ip}-{get_date.return_date('config')}.cfg"
+
+	config_mod.get_config(server_ip, cfg)
+	cmd = f'string=`grep {backend} {cfg} -n -A25 |grep "server {server}" |head -1|awk -F"-" \'{{print $1}}\'` && sed -i "$(echo $string)d" {cfg}'
+	print(cmd)
+	server_mod.subprocess_execute(cmd)
+	config_mod.master_slave_upload_and_restart(server_ip, cfg, 'save', 'haproxy')
 
 	return lines
 

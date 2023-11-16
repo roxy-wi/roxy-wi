@@ -152,6 +152,20 @@ def create_status_page(name: str, slug: str, desc: str, checks: list) -> str:
     return render_template('ajax/smon/status_pages.html', pages=pages)
 
 
+def edit_status_page(page_id: int, name: str, slug: str, desc: str, checks: list) -> str:
+    sql.delete_status_page_checks(page_id)
+
+    try:
+        sql.add_status_page_checks(page_id, checks)
+        sql.edit_status_page(page_id, name, slug, desc)
+    except Exception as e:
+        return f'error: Cannot update update status page: {e}'
+
+    pages = sql.select_status_page_by_id(page_id)
+
+    return render_template('ajax/smon/status_pages.html', pages=pages)
+
+
 def show_status_page(slug: str) -> str:
     page = sql.select_status_page(slug)
     checks_status = {}
@@ -175,8 +189,9 @@ def show_status_page(slug: str) -> str:
             desc = s.desc
             group = s.group
             check_type = s.check_type
+            en = s.en
         uptime = check_uptime(check_id)
 
-        checks_status[check_id] = {'uptime': uptime, 'name': name, 'desc': desc, 'group': group, 'check_type': check_type}
+        checks_status[check_id] = {'uptime': uptime, 'name': name, 'desc': desc, 'group': group, 'check_type': check_type, 'en': en}
 
     return render_template('smon/status_page.html', page=page, checks_status=checks_status)

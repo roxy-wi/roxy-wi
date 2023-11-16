@@ -61,18 +61,27 @@ def show_backend_server(server_ip, backend, backend_server):
         return f'{e}'
 
 
-@bp.route('/change/ip', methods=['POST'])
+@bp.route('/server', methods=['POST', 'PUT', 'DELETE'])
 def change_ip_port():
     server_ip = common.is_ip_or_dns(request.form.get('serv'))
     backend_backend = common.checkAjaxInput(request.form.get('backend_backend'))
     backend_server = common.checkAjaxInput(request.form.get('backend_server'))
     backend_ip = common.checkAjaxInput(request.form.get('backend_ip'))
     backend_port = common.checkAjaxInput(request.form.get('backend_port'))
-
-    try:
-        return runtime.change_ip_and_port(server_ip, backend_backend, backend_server, backend_ip, backend_port)
-    except Exception as e:
-        return f'{e}'
+    if request.method == 'PUT':
+        try:
+            return runtime.change_ip_and_port(server_ip, backend_backend, backend_server, backend_ip, backend_port)
+        except Exception as e:
+            return f'{e}'
+    elif request.method == 'POST':
+        check = common.checkAjaxInput(request.form.get('check'))
+        port_check = common.checkAjaxInput(request.form.get('port_check'))
+        try:
+            return runtime.add_server(server_ip, backend_backend, backend_server, backend_ip, backend_port, check, port_check)
+        except Exception as e:
+            return f'{e}'
+    elif request.method == 'DELETE':
+        return runtime.delete_server(server_ip, backend_backend, backend_server)
 
 
 @bp.route('/maxconn/<server_ip>')

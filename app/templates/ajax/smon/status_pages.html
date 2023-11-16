@@ -5,11 +5,12 @@
         <div>
             <span class="page_name" id="page_name-{{page}}">{{page.name}}</span>
             {% if page.desc %}
-            <span class="page_desc">({{page.desc|replace("'", "")}})</span>
+            <span class="page_desc" id="page_desc-{{page}}">({{page.desc|replace("'", "")}})</span>
             {% endif %}
         </div>
-        <div class="page_slug">/app/smon/status/{{page.slug}}</div>
+        <div class="page_slug" id="page_slug-{{page}}">/app/smon/status/{{page.slug}}</div>
     </a>
+    <div class="edit status_page-edit" onclick="createStatusPageStep1('true', '{{page}}')"></div>
     <div class="delete" onclick="confirmDeleteStatusPage('{{page}}')"></div>
 </div>
 {% endfor %}

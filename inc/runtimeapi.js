@@ -115,6 +115,23 @@ $( function() {
 		let backend = $('#ipbackend').val();
 		get_backend_servers(server_ip, backend, '#backend_server', 1);
 	});
+	$("#ip_select_server").on('selectmenuchange', function () {
+		let server_ip = $('#ip_select_server').val();
+		get_backends(server_ip, '#ipBackendServer', 0);
+	});
+	$("#ip_select_delete").on('selectmenuchange', function () {
+		let server_ip = $('#ip_select_delete').val();
+		get_backends(server_ip, '#ipbackend_delete', 0);
+	});
+	$("#ipbackend_delete").on('selectmenuchange', function () {
+		let server_ip = $('#ip_select_delete').val();
+		let backend = $('#ipbackend_delete').val();
+		get_backend_servers(server_ip, backend, '#backend_server_delete', 0);
+	});
+	$('#backend_port_server').on('input', function () {
+		var iNum = parseInt($('#backend_port_server').val());
+		$('#backend_port_server_check').val(iNum);
+	});
 	$("#backend_server").on('selectmenuchange', function () {
 		$('#backend_ip').val();
 		$('#backend_port').val();
@@ -137,13 +154,42 @@ $( function() {
 	});
 	$('#runtimeapiip').submit(function () {
 		$.ajax({
-			url: "/app/runtimeapi/change/ip",
+			url: "/app/runtimeapi/server",
 			data: {
 				serv: $('#ip_select').val(),
 				backend_backend: $('#ipbackend').val(),
 				backend_server: $('#backend_server').val(),
 				backend_ip: $('#backend_ip').val(),
 				backend_port: $('#backend_port').val(),
+				token: $('#token').val()
+			},
+			type: "PUT",
+			success: function (data) {
+				data = data.replace(/\s+/g, ' ');
+				if (data.indexOf('error: ') != '-1' || data.indexOf('Invalid ') != '-1') {
+					toastr.error(data);
+				} else {
+					toastr.success(data);
+				}
+			}
+		});
+		return false;
+	});
+	$('#runtimeapiServerIp').submit(function () {
+		let check = 0;
+		if($('#backend_server_check').prop('checked')) {
+			check = 1;
+		}
+		$.ajax({
+			url: "/app/runtimeapi/server",
+			data: {
+				serv: $('#ip_select_server').val(),
+				backend_backend: $('#ipBackendServer').val(),
+				backend_server: $('#backend_ip_server').val(),
+				backend_ip: $('#backend_ip_server').val(),
+				backend_port: $('#backend_port_server').val(),
+				check: check,
+				port_check: $('#backend_port_server_check').val(),
 				token: $('#token').val()
 			},
 			type: "POST",
@@ -157,6 +203,36 @@ $( function() {
 			}
 		});
 		return false;
+	});
+	$('#runtimeapiip_delete').submit(function () {
+		$.ajax({
+			url: "/app/runtimeapi/server",
+			data: {
+				serv: $('#ip_select_delete').val(),
+				backend_backend: $('#ipbackend_delete').val(),
+				backend_server: $('#backend_server_delete').val(),
+				token: $('#token').val()
+			},
+			type: "DELETE",
+			success: function (data) {
+				data = data.replace(/\s+/g, ' ');
+				if (data.indexOf('error: ') != '-1' || data.indexOf('Invalid ') != '-1') {
+					toastr.error(data);
+				} else {
+					toastr.success(data);
+				}
+			}
+		});
+		return false;
+	});
+	$('#backend_server_check').click(function() {
+		if ($('#backend_server_check').prop('checked')) {
+			$('#backend_ip_server_check').prop('required', true);
+			$('#backend_port_server_check').prop('required', true);
+		} else {
+			$('#backend_ip_server_check').prop('required', false);
+			$('#backend_port_server_check').prop('required', false);
+		}
 	});
 	$("#table_serv_select").on('selectmenuchange', function () {
 		$.ajax({
@@ -431,7 +507,7 @@ function get_backends(server_ip, backends_select_tag, ip_and_port=0) {
 				}
 			}
 		}
-	} );
+	});
 }
 function get_backend_servers(server_ip, backend, servers_select_tag, ip_and_port=0) {
 	$.ajax({
