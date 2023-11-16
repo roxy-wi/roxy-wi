@@ -447,9 +447,8 @@ def create_saved_server(server: str, group: str, desc: str) -> str:
 		return render_template('ajax/new_saved_servers.html', server=sql.select_saved_servers(server=server))
 
 
-def get_saved_servers(group: str, term: str) -> str:
+def get_saved_servers(group: str, term: str) -> dict:
 	servers = sql.select_saved_servers(group=group, term=term)
-
 	a = {}
 	v = 0
 	for i in servers:
@@ -470,14 +469,15 @@ def get_le_cert(server_ip: str, lets_domain: str, lets_email: str) -> str:
 	script = "letsencrypt.sh"
 	proxy_serv = ''
 	ssh_settings = ssh_mod.return_ssh_keys_path(server_ip)
+	full_path = '/var/www/haproxy-wi/app'
 
-	os.system(f"cp scripts/{script} .")
+	os.system(f"cp {full_path}/scripts/{script} {full_path}/{script}")
 
 	if proxy is not None and proxy != '' and proxy != 'None':
 		proxy_serv = proxy
 
 	commands = [
-		f"chmod +x {script} &&  ./{script} PROXY={proxy_serv} haproxy_dir={haproxy_dir} DOMAIN={lets_domain} "
+		f"chmod +x {full_path}/{script} && {full_path}/{script} PROXY={proxy_serv} haproxy_dir={haproxy_dir} DOMAIN={lets_domain} "
 		f"EMAIL={lets_email} SSH_PORT={ssh_settings['port']} SSL_PATH={ssl_path} HOST={server_ip} USER={ssh_settings['user']} "
 		f"PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
 	]
@@ -497,7 +497,7 @@ def get_le_cert(server_ip: str, lets_domain: str, lets_email: str) -> str:
 				except Exception:
 					return output
 		else:
-			os.remove(script)
+			os.remove(f'{full_path}/{script}')
 			return 'success: Certificate has been created'
 
 
