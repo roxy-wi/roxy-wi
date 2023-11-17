@@ -154,7 +154,7 @@
 }
 .upload::before {
 	display: none;
-	font-family: "Font Awesome 5 Regular";
+	font-family: "Font Awesome 5 Solid";
 	content: "\f093";
 }
 .delete::before, .deleteVer::before {

@@ -83,7 +83,7 @@
             <div id="all-checks">
                 {% for s in smon %}
                 <div class="{{ loop.cycle('odd', 'even') }} all-checks" id="add_check-{{ s.id }}" data-service_name="{{ s.name }} - {{s.group}}">
-                    <div class="check-name" title="{{s.desc}}">{{ s.name }} - {{s.group}}</div>
+                    <div class="check-name" title="{{s.desc}}">{{ s.name.replace("'", '') }} {% if s.group %}- {{s.group.replace("'", '')}}{% endif %}</div>
                     <div class="add_user_group check-button" title="{{lang.words.add|title()}} {{lang.words.service}}" onclick="addCheckToStatus('{{ s.id }}')">+</div>
                 </div>
                 {% endfor %}
