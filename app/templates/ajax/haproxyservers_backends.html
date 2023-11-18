@@ -13,7 +13,7 @@
 	{% endif %}
 	{% for b in backends %}
 		{% if service == 'haproxy' %}
-		<a href="/app/config/section/{{serv}}/{{b}}" title="{{lang.words.edit|title()}} {{lang.words.backend}} {{b}}" target="_blank" style="padding-right: 10px;">
+		<a href="/app/config/section/haproxy/{{serv}}/{{b}}" title="{{lang.words.edit|title()}} {{lang.words.backend}} {{b}}" target="_blank" style="padding-right: 10px;">
 			{{b}}
 		</a>
 		{% elif service == 'nginx' or service == 'apache' %}
