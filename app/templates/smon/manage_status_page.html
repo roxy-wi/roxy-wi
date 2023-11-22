@@ -32,7 +32,7 @@
     <div id="create-status-page-step-1" style="display: none;">
         <table class="overview" id="create-status-page-step-1-overview"
                title="{{lang.words.create|title()}} {{lang.words.w_a}} {{lang.words.new2}} {{lang.words.status}} {{lang.words.page}}"
-               data-edit="{{lang.words.edit|title()}} {{lang.words.w_a}} {{lang.words.new2}} {{lang.words.status}} {{lang.words.page}}">
+               data-edit="{{lang.words.edit|title()}} {{lang.words.status}} {{lang.words.page}}">
             {% include 'include/tr_validate_tips.html' %}
             <tr>
                 <td class="padding20">
@@ -61,7 +61,7 @@
     <div id="create-status-page-step-2" style="display: none;">
         <table class="overview" id="create-status-page-step-2-overview"
                title="{{lang.words.create|title()}} {{lang.words.w_a}} {{lang.words.new2}} {{lang.words.status}} {{lang.words.page}}"
-               data-edit="{{lang.words.edit|title()}} {{lang.words.w_a}} {{lang.words.new2}} {{lang.words.status}} {{lang.words.page}}">
+               data-edit="{{lang.words.edit|title()}} {{lang.words.status}} {{lang.words.page}}">
             {% include 'include/tr_validate_tips.html' %}
             <tr>
                 <td class="padding20" style="width: 50%">
@@ -82,7 +82,7 @@
             <div class="enabled-check" id="enabled-check"></div>
             <div id="all-checks">
                 {% for s in smon %}
-                <div class="{{ loop.cycle('odd', 'even') }} all-checks" id="add_check-{{ s.id }}" data-service_name="{{ s.name }} - {{s.group}}">
+                <div class="{{ loop.cycle('odd', 'even') }} all-checks" id="add_check-{{ s.id }}" data-service_name="{{ s.name }} {% if s.group %}- {{s.group.replace("'", '')}}{% endif %}">
                     <div class="check-name" title="{{s.desc}}">{{ s.name.replace("'", '') }} {% if s.group %}- {{s.group.replace("'", '')}}{% endif %}</div>
                     <div class="add_user_group check-button" title="{{lang.words.add|title()}} {{lang.words.service}}" onclick="addCheckToStatus('{{ s.id }}')">+</div>
                 </div>
