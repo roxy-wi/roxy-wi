@@ -403,6 +403,42 @@ function show_smon_history_statuses(dashboard_id, id_for_history_replace) {
 		}
 	});
 }
+function smon_status_page_avg_status(page_id) {
+	$.ajax({
+		url: "/app/smon/status/avg/" + page_id,
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
+				toastr.error(data);
+			} else {
+				toastr.clear();
+				if (data == '1') {
+					$('#page_status').html('<i class="far fa-check-circle page_icon page_icon_all_ok"></i><span>All Systems Operational</span>');
+				} else {
+					$('#page_status').html('<i class="far fa-times-circle page_icon page_icon_not_ok"></i><span>Not all Systems Operational</span>')
+				}
+			}
+		}
+	});
+}
+function smon_manage_status_page_avg_status(page_id) {
+	$.ajax({
+		url: "/app/smon/status/avg/" + page_id,
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
+				toastr.error(data);
+			} else {
+				toastr.clear();
+				if (data == '1') {
+					$('#page_status-'+page_id).html('<i class="far fa-check-circle status-page-icon status-page-icon-ok"></i>');
+				} else {
+					$('#page_status-'+page_id).html('<i class="far fa-times-circle status-page-icon status-page-icon-not-ok"></i>')
+				}
+			}
+		}
+	});
+}
 function createStatusPageStep1(edited=false, page_id=0) {
 	var add_word = $('#translate').attr('data-next');
 	var cancel_word = $('#translate').attr('data-cancel');

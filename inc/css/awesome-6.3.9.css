@@ -280,7 +280,7 @@
 }
 .menu-bar::before {
 	display: none;
-	font-family: "Font Awesome 5 Regular";
+	font-family: "Font Awesome 5 Solid";
 	content: "\f0c9";
 }
 .menu-bar > .fa-bars {

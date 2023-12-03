@@ -184,14 +184,27 @@ def show_status_page(slug: str) -> str:
         check_type = ''
         check_id = str(check.check_id)
         smon = sql.select_smon_by_id(check_id)
+        uptime = check_uptime(check_id)
+        en = ''
         for s in smon:
             name = s.name
             desc = s.desc
-            group = s.group
             check_type = s.check_type
             en = s.en
-        uptime = check_uptime(check_id)
+            group = s.group if s.group else 'No group'
 
         checks_status[check_id] = {'uptime': uptime, 'name': name, 'desc': desc, 'group': group, 'check_type': check_type, 'en': en}
 
     return render_template('smon/status_page.html', page=page, checks_status=checks_status)
+
+
+def avg_status_page_status(page_id: int) -> str:
+    page_id = int(page_id)
+    checks = sql.select_status_page_checks(page_id)
+
+    for check in checks:
+        check_id = str(check.check_id)
+        if not sql.get_last_smon_status_by_check(check_id):
+            return '0'
+
+    return '1'

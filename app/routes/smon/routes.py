@@ -149,6 +149,11 @@ def show_smon_status_page(slug):
     return smon_mod.show_status_page(slug)
 
 
+@bp.route('/status/avg/<int:page_id>')
+def smon_history_statuses_avg(page_id):
+    return smon_mod.avg_status_page_status(page_id)
+
+
 @bp.route('/history')
 @login_required
 @get_user_params()

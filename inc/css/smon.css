@@ -125,14 +125,40 @@ h4 {
 .page_slug {
     font-size: 10px;
 }
+.page_cur_status {
+    text-align: center;
+    font-size: 25px;
+    font-weight: 700;
+    margin-top: 20px;
+}
+.page_icon {
+    font-size: 25px;
+    margin: 0 10px 10px 0;
+}
+.page_icon_all_ok {
+    color: var(--green-color);
+}
+.page_icon_not_ok {
+    color: var(--red-color);
+}
 .status-page-icon {
     float: left;
-    margin: 10px;
-    margin-top: 0px;
     font-size: 50px;
-    margin-right: 25px;
-    margin-left: 0;
+    margin: 0 25px 10px 0;
+}
+.status-page-icon-ok {
     color: var(--green-color);
+}
+.status-page-icon-not-ok {
+    color: var(--red-color);
+}
+.status_page-edit {
+    float: right;
+    margin-right: 1.5%;
+    margin-top: -28px;
+    font-size: 19;
+    color: var(--blue-color);
+    cursor: pointer;
 }
 .delete {
     float: left;
@@ -144,7 +170,7 @@ h4 {
 .check_div {
     width: 50%;
     padding: 20px 30px 20px 30px;
-    margin-left: 20%;
+    margin-left: 25%;
     margin-top: 10px;
     margin-bottom: 10px;
 }
@@ -160,6 +186,16 @@ h4 {
     margin-left: 10px;
     font-size: 15px;
     font-weight: 550;
+}
+.check_tooltip {
+    height: 10px;
+    margin-top: 5px;
+    margin-left: 5px;
+    padding: 0;
+}
+.check_last_check {
+    float: right;
+    margin-top: -15px;
 }
 .history_statuses {
     float: right;

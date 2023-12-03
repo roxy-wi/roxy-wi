@@ -24,6 +24,7 @@
 		<meta name="msapplication-TileColor" content="#ffffff">
 		<meta name="msapplication-TileImage" content="{{ url_for('static', filename='images/favicon/ms-icon-144x144.png') }}">
 		<meta name="theme-color" content="#ffffff">
+        <script src="https://use.fontawesome.com/releases/v5.15.4/js/all.js" data-auto-replace-svg="nest"></script>
         <link href="/inc/css/jquery-ui.min.css" rel="stylesheet">
 		<link href="/inc/css/jquery-ui.structure.min.css" rel="stylesheet">
         <link href="/inc/css/style-6.3.9.css" rel="stylesheet">
@@ -37,6 +38,7 @@
     <body>
         <h2>Status page - {{p.name}}</h2>
         <h3>{{p.desc|replace("'", "")}}</h3>
+        <div id="page_status" class="page_cur_status"></div>
         {% for check, value in checks_status.items() %}
         {% if value.uptime|int() > 50 and value.uptime|int() < 90  %}
             {% set add_class = 'serverWarn' %}
@@ -53,9 +55,12 @@
                 <span class="check_name">{{value.name|replace("'", "")}}</span>
             </div>
             <div class="history_statuses" id="history-{{check}}"></div>
+            <div class="tooltip check_tooltip">Group: {{value.group}}, check type: {{value.check_type}}</div>
+            <div class="tooltip check_tooltip check_last_check">last check</div>
         </div>
         <script>show_smon_history_statuses('{{check}}', '#history-{{check}}');</script>
         {% endfor %}
+        <script>smon_status_page_avg_status('{{p.id}}');</script>
     </body>
 </html>
 {% endfor %}
