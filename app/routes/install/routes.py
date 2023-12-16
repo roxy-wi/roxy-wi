@@ -3,13 +3,13 @@ from flask_login import login_required
 
 from app.routes.install import bp
 from middleware import get_user_params, check_services
-import app.modules.db.sql as sql
-import app.modules.common.common as common
-import app.modules.roxywi.auth as roxywi_auth
-import app.modules.server.server as server_mod
-import app.modules.service.common as service_common
-import app.modules.service.installation as service_mod
-import app.modules.service.exporter_installation as exp_installation
+import modules.db.sql as sql
+import modules.common.common as common
+import modules.roxywi.auth as roxywi_auth
+import modules.server.server as server_mod
+import modules.service.common as service_common
+import modules.service.installation as service_mod
+import modules.service.exporter_installation as exp_installation
 
 
 @bp.before_request

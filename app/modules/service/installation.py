@@ -13,7 +13,7 @@ from modules.server.ssh import return_ssh_keys_path
 
 
 def show_installation_output(error: str, output: str, service: str, rc=0):
-	if error.read() and "WARNING" not in error.read():
+	if error and "WARNING" not in error:
 		roxywi_common.logging('Roxy-WI server', error, roxywi=1)
 		raise Exception('error: ' + error)
 	else:
