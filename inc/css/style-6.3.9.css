@@ -6,6 +6,7 @@
 	--light-blue-color: #d1ecf1;
 	--menu-color: #06212a;
 	--right-menu-blue-rolor: #5D9CEB;
+	--yellow-color: #ffcc00;
 	--border-radius: 3px;
 	--indent: 15px;
 }
@@ -412,7 +413,7 @@ pre {
 	padding-left: var(--indent);
 	font-size: 15px;
 }
-.serverUp, .serverDown, .serverNone {
+.serverUp, .serverDown, .serverNone, .serverWarn {
 	padding: 3px; 
 	border-radius: 3px;
 	color: #fff; 
@@ -420,6 +421,9 @@ pre {
 }
 .serverUp {
 	background-color: var(--green-color);
+}
+.serverWarn {
+	background-color: var(--yellow-color);
 }
 .serverNone {
 	background-color: #ddd; 
@@ -1379,4 +1383,24 @@ label {
     margin-left: 10px;
     position: relative;
     bottom: 3px;
+}
+@keyframes placeHolderShimmer {
+  0% {
+    background-position: -800px 0
+  }
+  100% {
+    background-position: 800px 0
+  }
+}
+
+.animated-background {
+  animation-duration: 2s;
+  animation-fill-mode: forwards;
+  animation-iteration-count: infinite;
+  animation-name: placeHolderShimmer;
+  animation-timing-function: linear;
+  background-color: #f6f7f8;
+  background: linear-gradient(to right, #eeeeee 8%, #bbbbbb 18%, #eeeeee 33%);
+  background-size: 800px 104px;
+  position: relative;
 }

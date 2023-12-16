@@ -1,7 +1,7 @@
 ---      
-- name: Set SSH port
-  set_fact:
-    ansible_port: "{{SSH_PORT}}"
+#- name: Set SSH port
+#  set_fact:
+#    ansible_port: "{{SSH_PORT}}"
 
 - name: check if HAProxy is installed
   package_facts:

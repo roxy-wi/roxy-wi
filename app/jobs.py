@@ -1,4 +1,5 @@
 import os
+import shutil
 import datetime
 
 import distro
@@ -78,3 +79,18 @@ def update_owner_on_log():
             os.system(f'sudo chown apache:apache -R {log_path}')
     except Exception:
         pass
+
+
+@scheduler.task('interval', id='delete_ansible_artifacts', hours=24, misfire_grace_time=None)
+def delete_ansible_artifacts():
+    full_path = get_config.get_config_var('main', 'fullpath')
+    ansible_path = f'{full_path}/app/scripts/ansible'
+    folders = ['artifacts', 'env']
+
+    for folder in folders:
+        if os.path.isdir(f'{ansible_path}/{folder}'):
+            try:
+                shutil.rmtree(f'{ansible_path}/{folder}')
+            except Exception as e:
+                raise Exception(f'error: Cron cannot delete ansible folders: {e}')
+

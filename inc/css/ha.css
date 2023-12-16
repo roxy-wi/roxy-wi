@@ -1,21 +1,30 @@
 .padding20{ width: 160px;}
 .server-creating {padding-bottom: 10px;}
+.proccessing, .processing_error, .proccessing_done {font-weight: bold; color: var(--blue-color);}
 .proccessing_done {color: var(--green-color);}
-.proccessing, .processing_error {font-weight: bold; color: var(--green-color);}
 .proccessing::before {
     display: none;
     font-family: "Font Awesome 5 Solid";
     content: "\f35a";
 }
-.proccessing .fa-arrow-alt-circle-right {
+.proccessing_done::before {
+    display: none;
+    font-family: "Font Awesome 5 Solid";
+    content: "\f058";
+}
+/*.proccessing .fa-arrow-alt-circle-right {*/
+/*    padding-right: 10px !important;*/
+/*    margin-bottom: -1px !important;*/
+/*}*/
+.proccessing .fa-arrow-alt-circle-right, .processing_error .svg-inline--fa  {
     padding-right: 10px !important;
     margin-bottom: -1px !important;
 }
-.processing_error .svg-inline--fa {
+.proccessing_done .fa-check-circle {
     padding-right: 10px !important;
     margin-bottom: -1px !important;
 }
-.processing_error { color: red;}
+.processing_error { color: var(--red-color);}
 .processing_warning { color: #efba22;}
 .processing_error::before, .processing_warning::before {
     display: none;
@@ -89,4 +98,25 @@
 }
 .first-collumn {
     width: 15%;
+}
+.fa-plus, .fa-edit, .fa-trash-alt {
+	width: 3px;
+	cursor: pointer;
+	margin-bottom: 3px;
+}
+.fa-plus {
+    margin-right: 3px;
+}
+.delete {
+    float: unset;
+    margin: 0;
+}
+.checks {
+    height: 100px;
+}
+.add-button-status-page {
+    margin-left: 20px;
+}
+.div-server-hapwi {
+    height: 135px;
 }

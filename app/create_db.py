@@ -147,6 +147,7 @@ def default_values():
 		{'service_id': 2, 'service': 'NGINX', 'slug': 'nginx'},
 		{'service_id': 3, 'service': 'Keepalived', 'slug': 'keepalived'},
 		{'service_id': 4, 'service': 'Apache', 'slug': 'apache'},
+		{'service_id': 5, 'service': 'HA cluster', 'slug': 'cluster'},
 	]
 
 	try:
@@ -668,7 +669,7 @@ def update_db_v_6_3_18():
 
 def update_ver():
 	try:
-		Version.update(version='7.0.4.0').execute()
+		Version.update(version='7.1.0.0').execute()
 	except Exception:
 		print('Cannot update version')
 

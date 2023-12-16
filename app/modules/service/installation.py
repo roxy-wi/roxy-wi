@@ -2,6 +2,7 @@ import os
 import json
 
 from flask import render_template
+import ansible_runner
 
 import modules.db.sql as sql
 import modules.service.common as service_common
@@ -12,12 +13,12 @@ from modules.server.ssh import return_ssh_keys_path
 
 
 def show_installation_output(error: str, output: str, service: str, rc=0):
-	if error and "WARNING" not in error:
+	if error.read() and "WARNING" not in error.read():
 		roxywi_common.logging('Roxy-WI server', error, roxywi=1)
 		raise Exception('error: ' + error)
 	else:
 		if rc != 0:
-			for line in output:
+			for line in output.read():
 				if any(s in line for s in ("Traceback", "FAILED", "error", "ERROR", "UNREACHABLE")):
 					try:
 						correct_out = line.split('=>')
@@ -32,75 +33,6 @@ def show_installation_output(error: str, output: str, service: str, rc=0):
 def show_success_installation(service):
 	lang = roxywi_common.get_user_lang_for_flask()
 	return render_template('include/show_success_installation.html', service=service, lang=lang)
-
-
-def install_haproxy(server_ip: str, api=0, **kwargs):
-	script = "install_haproxy.sh"
-	hap_sock_p = str(sql.get_setting('haproxy_sock_port'))
-	stats_port = str(sql.get_setting('stats_port'))
-	server_state_file = sql.get_setting('server_state_file')
-	stats_user = sql.get_setting('stats_user')
-	stats_password = sql.get_setting('stats_password')
-	proxy = sql.get_setting('proxy')
-	haproxy_dir = sql.get_setting('haproxy_dir')
-	container_name = sql.get_setting('haproxy_container_name')
-	haproxy_ver = kwargs.get('hapver')
-	server_for_installing = kwargs.get('server')
-	docker = kwargs.get('docker')
-	m_or_s = kwargs.get('m_or_s')
-	master = kwargs.get('master')
-	slave = kwargs.get('slave')
-	proxy_serv = ''
-	ssh_settings = return_ssh_keys_path(server_ip)
-	full_path = '/var/www/haproxy-wi/app'
-
-	os.system(f"cp {full_path}/scripts/{script} {full_path}/{script}")
-
-	if haproxy_ver is None:
-		haproxy_ver = '2.8.1-1'
-
-	if proxy is not None and proxy != '' and proxy != 'None':
-		proxy_serv = proxy
-
-	syn_flood_protect = '1' if kwargs.get('syn_flood') == "1" else ''
-
-	commands = [
-		f"chmod +x {full_path}/{script} && {full_path}/{script} PROXY={proxy_serv} SOCK_PORT={hap_sock_p} STAT_PORT={stats_port} "
-		f"STAT_FILE={server_state_file} DOCKER={docker} SSH_PORT={ssh_settings['port']} STATS_USER={stats_user} "
-		f"CONT_NAME={container_name} HAP_DIR={haproxy_dir} STATS_PASS='{stats_password}' HAPVER={haproxy_ver} "
-		f"SYN_FLOOD={syn_flood_protect} HOST={server_ip} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' "
-		f"M_OR_S={m_or_s} MASTER={master} SLAVE={slave} KEY={ssh_settings['key']}"
-	]
-
-	if server_for_installing:
-		service = server_for_installing + ' HAProxy'
-	else:
-		service = ' HAProxy'
-
-	return_out = server_mod.subprocess_execute_with_rc(commands[0])
-
-	try:
-		show_installation_output(return_out['error'], return_out['output'], service, rc=return_out['rc'])
-	except Exception as e:
-		raise Exception(e)
-
-	try:
-		sql.update_haproxy(server_ip)
-	except Exception as e:
-		return str(e)
-
-	if docker == '1':
-		server_id = sql.select_server_id_by_ip(server_ip)
-		sql.insert_or_update_service_setting(server_id, 'haproxy', 'dockerized', '1')
-		sql.insert_or_update_service_setting(server_id, 'haproxy', 'restart', '1')
-
-	try:
-		os.remove(f'{full_path}/{script}')
-	except Exception:
-		pass
-
-	if not api:
-		return show_success_installation(service)
 
 
 def waf_install(server_ip: str):
@@ -179,77 +111,6 @@ def waf_nginx_install(server_ip: str):
 	return show_success_installation(service)
 
 
-def install_service(server_ip: str, service: str, docker: str, syn_flood_protect: int, api=0, **kwargs) -> str:
-	script = f"install_{service}.sh"
-	stats_user = sql.get_setting(f'{service}_stats_user')
-	stats_password = sql.get_setting(f'{service}_stats_password')
-	stats_port = str(sql.get_setting(f'{service}_stats_port'))
-	stats_page = sql.get_setting(f'{service}_stats_page')
-	config_path = sql.get_setting(f'{service}_config_path')
-	service_dir = sql.get_setting(f'{service}_dir')
-	server_for_installing = kwargs.get('server')
-	proxy = sql.get_setting('proxy')
-	container_name = sql.get_setting(f'{service}_container_name')
-	proxy_serv = ''
-	ssh_settings = return_ssh_keys_path(server_ip)
-	full_path = '/var/www/haproxy-wi/app'
-
-	try:
-		os.system(f"cp {full_path}/scripts/{script} {full_path}/{script}")
-	except Exception as e:
-		raise Exception(f'error: {e}')
-
-	if proxy is not None and proxy != '' and proxy != 'None':
-		proxy_serv = proxy
-
-	if service == 'apache':
-		correct_service_name = service_common.get_correct_apache_service_name(server_ip=server_ip, server_id=None)
-		if service_dir == '/etc/httpd' and correct_service_name == 'apache2':
-			service_dir = '/etc/apache2'
-		elif service_dir == '/etc/apache2' and correct_service_name == 'httpd':
-			service_dir = '/etc/httpd'
-
-	commands = [
-		f"chmod +x {full_path}/{script} && {full_path}/{script} PROXY={proxy_serv} STATS_USER={stats_user} STATS_PASS='{stats_password}' "
-		f"SSH_PORT={ssh_settings['port']} CONFIG_PATH={config_path} CONT_NAME={container_name} STAT_PORT={stats_port} "
-		f"STAT_PAGE={stats_page} SYN_FLOOD={syn_flood_protect} DOCKER={docker} service_dir={service_dir} HOST={server_ip} "
-		f"USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
-	]
-
-	if server_for_installing:
-		service_name = f'{server_for_installing} {service.title()}'
-	else:
-		service_name = service.title()
-
-	return_out = server_mod.subprocess_execute_with_rc(commands[0])
-
-	try:
-		show_installation_output(return_out['error'], return_out['output'], service_name, rc=return_out['rc'])
-	except Exception as e:
-		raise Exception(e)
-
-	if service == 'nginx':
-		try:
-			sql.update_nginx(server_ip)
-		except Exception as e:
-			return str(e)
-	elif service == 'apache':
-		try:
-			sql.update_apache(server_ip)
-		except Exception as e:
-			return str(e)
-
-	if docker == '1':
-		server_id = sql.select_server_id_by_ip(server_ip)
-		sql.insert_or_update_service_setting(server_id, service, 'dockerized', '1')
-		sql.insert_or_update_service_setting(server_id, service, 'restart', '1')
-
-	os.remove(f'{full_path}/{script}')
-
-	if not api:
-		return show_success_installation(service)
-
-
 def geoip_installation(serv, geoip_update, service):
 	proxy = sql.get_setting('proxy')
 	maxmind_key = sql.get_setting('maxmind_key')
@@ -322,165 +183,199 @@ def grafana_install():
 	return f'success: Grafana and Prometheus servers were installed. You can find Grafana on http://{host}:3000<br>'
 
 
-def keepalived_master_install(
-		master: str, eth: str, eth_slave: str, vrrp_ip: str, virt_server: int, syn_flood: int, return_to_master: int,
-		haproxy: int, nginx: int, router_id: int, api=0
-) -> str:
-	script = "install_keepalived.sh"
-	proxy = sql.get_setting('proxy')
+def generate_kp_inv(json_data: json, install_service) -> object:
+	json_data = json.loads(json_data)
+	inv = {"server": {"hosts":{}}}
+	server_ips = []
+	cluster_id = int(json_data['cluster_id'])
+	haproxy = json_data['services']['haproxy']['enabled']
+	nginx = json_data['services']['nginx']['enabled']
+	# apache = json_data['apache']
+	apache = 0
 	keepalived_path_logs = sql.get_setting('keepalived_path_logs')
-	proxy_serv = ''
-	ssh_settings = return_ssh_keys_path(master)
-	full_path = '/var/www/haproxy-wi/app'
-	service = 'master Keepalived'
+	syn_flood_protect = str(json_data['syn_flood'])
+	routers = {}
+	vips = sql.select_cluster_vips(cluster_id)
 
-	if proxy is not None and proxy != '' and proxy != 'None':
-		proxy_serv = proxy
+	for vip in vips:
+		router_id = str(vip.router_id)
+		routers[router_id] = {vip.vip: {}}
+		routers[router_id][vip.vip].setdefault('return_master', vip.return_master)
+		routers[router_id][vip.vip].setdefault('vip', vip.vip)
+		slaves = sql.select_cluster_slaves_for_inv(router_id)
+		for slave in slaves:
+			routers[router_id][vip.vip].setdefault('master', slave.master)
+			routers[router_id][vip.vip].setdefault('eth', slave.eth)
 
-	try:
-		os.system(f"cp {full_path}/scripts/{script} {full_path}/{script}")
-	except Exception as e:
-		raise Exception(f'error: {e}')
+	for k, v in json_data['servers'].items():
+		server_ip = v['ip']
+		inv['server']['hosts'][server_ip] = {
+			"HAPROXY": haproxy,
+			"NGINX": nginx,
+			"APACHE": apache,
+			"RESTART": 1,
+			"SYN_FLOOD": syn_flood_protect,
+			"keepalived_path_logs": keepalived_path_logs,
+			"routers": routers
+		}
+		server_ips.append(server_ip)
 
-	commands = [
-		f"chmod +x {full_path}/{script} && {full_path}/{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} router_id={router_id} "
-		f"ETH={eth} IP={vrrp_ip} MASTER=MASTER ETH_SLAVE={eth_slave} keepalived_path_logs={keepalived_path_logs} "
-		f"RETURN_TO_MASTER={return_to_master} SYN_FLOOD={syn_flood} HOST={master} HAPROXY={haproxy} NGINX={nginx} "
-		f"USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
-	]
-
-	return_out = server_mod.subprocess_execute_with_rc(commands[0])
-
-	try:
-		show_installation_output(return_out['error'], return_out['output'], service, rc=return_out['rc'])
-	except Exception as e:
-		raise Exception(f'error: read output: {e}')
-
-	try:
-		sql.update_keepalived(master)
-	except Exception as e:
-		raise Exception(e)
-
-	if virt_server:
-		group_id = sql.get_group_id_by_server_ip(master)
-		cred_id = sql.get_cred_id_by_server_ip(master)
-		hostname = sql.get_hostname_by_server_ip(master)
-		firewall = 1 if server_mod.is_service_active(master, 'firewalld') else 0
-		sql.add_server(
-			hostname + '-VIP', vrrp_ip, group_id, '1', '1', '0', cred_id, ssh_settings['port'], f'VRRP IP for {master}',
-			haproxy, nginx, '0', firewall
-		)
-
-	if not api:
-		return show_success_installation(service)
+	return inv, server_ips
 
 
-def keepalived_slave_install(
-		master: str, slave: str, eth: str, eth_slave: str, vrrp_ip: str, syn_flood: int, haproxy: int, nginx: int, router_id: int, api=0
-) -> str:
-	script = "install_keepalived.sh"
+def generate_haproxy_inv(json_data: json, install_service: str) -> object:
+	json_data = json.loads(json_data)
+	inv = {"server": {"hosts": {}}}
+	slaves = []
+	server_ips = []
+	master_ip = 0
+	hap_sock_p = str(sql.get_setting('haproxy_sock_port'))
+	stats_port = str(sql.get_setting('stats_port'))
+	server_state_file = sql.get_setting('server_state_file')
+	stats_user = sql.get_setting('stats_user')
+	stats_password = sql.get_setting('stats_password')
+	haproxy_dir = sql.get_setting('haproxy_dir')
+	container_name = sql.get_setting('haproxy_container_name')
+	haproxy_ver = ''
+	is_docker = json_data['services']['haproxy']['docker']
+
+	if haproxy_ver == '':
+		haproxy_ver = '2.8.1-1'
+
+	for k, v in json_data['servers'].items():
+		if not v['master']:
+			slaves.append(v['ip'])
+		else:
+			master_ip = v['ip']
+
+	for k, v in json_data['servers'].items():
+		server_ip = v['ip']
+		is_master = v['master']
+
+		if 'version' in v:
+			haproxy_ver = v['version']
+
+		inv['server']['hosts'][server_ip] = {
+			"SOCK_PORT": hap_sock_p,
+			"STAT_PORT": stats_port,
+			"STAT_FILE": server_state_file,
+			"STATS_USER": stats_user,
+			"CONT_NAME": container_name,
+			"HAP_DIR": haproxy_dir,
+			"STATS_PASS": stats_password,
+			"HAPVER": haproxy_ver,
+			"SYN_FLOOD": '0',
+			"M_OR_S": is_master,
+			"MASTER": master_ip,
+			"slaves": slaves,
+			"DOCKER": is_docker
+		}
+		server_ips.append(server_ip)
+
+	return inv, server_ips
+
+
+def generate_service_inv(json_data: json, install_service: str) -> object:
+	json_data = json.loads(json_data)
+	inv = {"server": {"hosts": {}}}
+	server_ips = []
+	stats_user = sql.get_setting(f'{install_service}_stats_user')
+	stats_password = sql.get_setting(f'{install_service}_stats_password')
+	stats_port = str(sql.get_setting(f'{install_service}_stats_port'))
+	stats_page = sql.get_setting(f'{install_service}_stats_page')
+	config_path = sql.get_setting(f'{install_service}_config_path')
+	service_dir = sql.get_setting(f'{install_service}_dir')
+	container_name = sql.get_setting(f'{install_service}_container_name')
+	is_docker = json_data['services'][install_service]['docker']
+
+	if install_service == 'nginx':
+		os.system('ansible-galaxy collection install community.general')
+		os.system('ansible-galaxy install nginxinc.nginx,0.23.2 --roles-path /var/www/haproxy-wi/app/scripts/ansible/roles/')
+
+	for k, v in json_data['servers'].items():
+		server_ip = v['ip']
+		if install_service == 'apache':
+			correct_service_name = service_common.get_correct_apache_service_name(server_ip=server_ip, server_id=None)
+			if service_dir == '/etc/httpd' and correct_service_name == 'apache2':
+				service_dir = '/etc/apache2'
+			elif service_dir == '/etc/apache2' and correct_service_name == 'httpd':
+				service_dir = '/etc/httpd'
+
+		inv['server']['hosts'][server_ip] = {
+			"STAT_PORT": stats_port,
+			"DOCKER": is_docker,
+			"STATS_USER": stats_user,
+			"CONT_NAME": container_name,
+			"STATS_PASS": stats_password,
+			"service_dir": service_dir,
+			"SYN_FLOOD": "0",
+			"CONFIG_PATH": config_path,
+			"STAT_PAGE": stats_page,
+			"service": install_service,
+		}
+		server_ips.append(server_ip)
+
+	return inv, server_ips
+
+
+def run_ansible(inv: object, server_ips: str, ansible_role: str, service: str) -> object:
+	inventory = f'/var/www/haproxy-wi/app/scripts/ansible/inventory/{ansible_role}.json'
 	proxy = sql.get_setting('proxy')
-	keepalived_path_logs = sql.get_setting('keepalived_path_logs')
 	proxy_serv = ''
-	ssh_settings = return_ssh_keys_path(slave)
-	full_path = '/var/www/haproxy-wi/app'
-	service = 'slave Keepalived'
+	tags = ''
+	for server_ip in server_ips:
+		ssh_settings = return_ssh_keys_path(server_ip)
+		inv['server']['hosts'][server_ip]['ansible_ssh_private_key_file'] = ssh_settings['key']
+		inv['server']['hosts'][server_ip]['ansible_password'] = ssh_settings['password']
+		inv['server']['hosts'][server_ip]['ansible_user'] = ssh_settings['user']
+		inv['server']['hosts'][server_ip]['ansible_port'] = ssh_settings['port']
+		inv['server']['hosts'][server_ip]['ansible_become'] = True
 
-	if proxy is not None and proxy != '' and proxy != 'None':
-		proxy_serv = proxy
+		if proxy is not None and proxy != '' and proxy != 'None':
+			proxy_serv = proxy
+
+		inv['server']['hosts'][server_ip]['PROXY'] = proxy_serv
+
+		if 'DOCKER' in inv['server']['hosts'][server_ip]:
+			if inv['server']['hosts'][server_ip]['DOCKER']:
+				tags = 'docker'
+			else:
+				tags = 'system'
+
+	envvars = {
+		'ANSIBLE_DISPLAY_OK_HOSTS': 'no',
+		'ANSIBLE_SHOW_CUSTOM_STATS': 'no',
+		'ANSIBLE_DISPLAY_SKIPPED_HOSTS': "no",
+		'ANSIBLE_CALLBACK_PLUGINS': "/var/www/haproxy-wi/app/scripts/ansible/callback_plugins",
+		'ANSIBLE_CALLBACKS_ENABLED': "roxywi",
+		'ANSIBLE_STDOUT_CALLBACK': "roxywi",
+		'ORIGINAL_STDOUT_CALLBACK': "roxywi",
+		'ANSIBLE_HOST_KEY_CHECKING': "no",
+		'ACTION_WARNINGS': "no",
+		'LOCALHOST_WARNING': "no",
+		'COMMAND_WARNINGS': "no",
+		'AWX_DISPLAY': False,
+	}
+
+	kwargs = {
+		'private_data_dir': '/var/www/haproxy-wi/app/scripts/ansible/',
+		'inventory': inventory,
+		'envvars': envvars,
+		'playbook': f'/var/www/haproxy-wi/app/scripts/ansible/roles/{ansible_role}.yml',
+		'tags': tags
+	}
+
+	if os.path.isfile(inventory):
+		os.remove(inventory)
 
 	try:
-		os.system(f"cp {full_path}/scripts/{script} {full_path}/{script}")
+		with open(inventory, 'a') as invent:
+			invent.write(str(inv))
 	except Exception as e:
-		raise Exception(f'error: {e}')
+		raise Exception(f'error: Cannot save inventory file: {e}')
 
-	commands = [
-		f"chmod +x {full_path}/{script} && {full_path}/{script}  PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} router_id={router_id} ETH={eth} "
-		f"IP={vrrp_ip} MASTER=BACKUP ETH_SLAVE={eth_slave} SYN_FLOOD={syn_flood} keepalived_path_logs={keepalived_path_logs} HAPROXY={haproxy} "
-		f"NGINX={nginx} HOST={slave} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
-	]
+	result = ansible_runner.run(**kwargs)
+	stats = result.stats
 
-	try:
-		return_out = server_mod.subprocess_execute_with_rc(commands[0])
-	except Exception as e:
-		raise Exception(f'error: {e}')
-
-	try:
-		show_installation_output(return_out['error'], return_out['output'], service, rc=return_out['rc'])
-	except Exception as e:
-		raise Exception(f'error: read output: {e}')
-
-	try:
-		sql.update_server_master(master, slave)
-		sql.update_keepalived(slave)
-	except Exception as e:
-		raise Exception(f'{e}')
-
-	try:
-		os.remove(f'{full_path}/{script}')
-	except Exception:
-		pass
-
-	if not api:
-		return show_success_installation(service)
-
-
-def keepalived_masteradd(master, eth, slave_eth, vrrp_ip, router_id, return_to_master, kp):
-	script = "install_keepalived.sh"
-	proxy = sql.get_setting('proxy')
-	keepalived_path_logs = sql.get_setting('keepalived_path_logs')
-	proxy_serv = ''
-	ssh_settings = return_ssh_keys_path(master)
-	full_path = '/var/www/haproxy-wi/app'
-
-	if proxy is not None and proxy != '' and proxy != 'None':
-		proxy_serv = proxy
-
-	os.system(f"cp {full_path}/scripts/{script} {full_path}/{script}")
-
-	commands = [
-		f"chmod +x {full_path}/{script} && {full_path}/{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} ETH={eth} ETH_SLAVE={slave_eth} "
-		f"keepalived_path_logs={keepalived_path_logs} RETURN_TO_MASTER={return_to_master} IP={vrrp_ip} MASTER=MASTER "
-		f"RESTART={kp} ADD_VRRP=1 HOST={master} router_id={router_id} USER={ssh_settings['user']} "
-		f"PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
-	]
-
-	return_out = server_mod.subprocess_execute_with_rc(commands[0])
-
-	try:
-		show_installation_output(return_out['error'], return_out['output'], 'master VRRP address', rc=return_out['rc'])
-	except Exception as e:
-		raise Exception(e)
-
-	return show_success_installation('master VRRP address')
-
-
-def keepalived_slaveadd(slave, eth, slave_eth, vrrp_ip, router_id, kp):
-	script = "install_keepalived.sh"
-	proxy = sql.get_setting('proxy')
-	keepalived_path_logs = sql.get_setting('keepalived_path_logs')
-	proxy_serv = ''
-	ssh_settings = return_ssh_keys_path(slave)
-	full_path = '/var/www/haproxy-wi/app'
-
-	if proxy is not None and proxy != '' and proxy != 'None':
-		proxy_serv = proxy
-
-	os.system(f"cp {full_path}/scripts/{script} {full_path}/{script}")
-
-	commands = [
-		f"chmod +x {full_path}/{script} && {full_path}/{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} ETH={eth} ETH_SLAVE={slave_eth} "
-		f"keepalived_path_logs={keepalived_path_logs} IP={vrrp_ip} MASTER=BACKUP RESTART={kp} ADD_VRRP=1 HOST={slave} "
-		f"router_id={router_id} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
-	]
-
-	return_out = server_mod.subprocess_execute_with_rc(commands[0])
-
-	try:
-		show_installation_output(return_out['error'], return_out['output'], 'slave VRRP address', rc=return_out['rc'])
-	except Exception as e:
-		raise Exception(e)
-
-	os.remove(f'{full_path}/{script}')
-
-	return show_success_installation('slave VRRP address')
+	os.remove(inventory)
+	return stats

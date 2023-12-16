@@ -151,11 +151,14 @@ def service_history(service, server_ip):
     user_subscription = roxywi_common.return_user_subscription()
     user_params = g.user_params
 
-    if service in ('haproxy', 'nginx', 'keepalived', 'apache'):
+    if service in ('haproxy', 'nginx', 'keepalived', 'apache', 'cluster'):
         service_desc = sql.select_service(service)
         if not roxywi_auth.is_access_permit_to_service(service_desc.slug):
             abort(403, f'You do not have needed permissions to access to {service_desc.slug.title()} service')
-        server_id = sql.select_server_id_by_ip(server_ip)
+        if service == 'cluster':
+            server_id = server_ip
+        else:
+            server_id = sql.select_server_id_by_ip(server_ip)
         history = sql.select_action_history_by_server_id_and_service(server_id, service_desc.service)
     elif service == 'server':
         if roxywi_common.check_is_server_in_group(server_ip):

@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% block title %}{{ lang.ha_page.has }} {% endblock %}
+{% block h2 %}{{ lang.ha_page.has }} {% endblock %}
+{% block content %}
+{% from 'include/input_macros.html' import input, checkbox, copy_to_clipboard %}
+<script src="/inc/users.js"></script>
+<script src="/inc/ha.js"></script>
+<script src="/inc/overview.js"></script>
+<link href="/inc/css/servers.css" rel="stylesheet"/>
+<link href="/inc/css/smon.css" rel="stylesheet">
+<link href="/inc/css/ha.css" rel="stylesheet">
+<script>
+    $( function() {
+		$( ".sortable" ).sortable({
+			revert: true,
+			placeholder: "ui-state-highlight"
+		});
+		$( ".sortable" ).disableSelection();
+
+		$( ".sortable" ).sortable({
+			handle: ".portlet-header",
+			stop: function(event, ui) {
+				var itemOrder = $('.sortable').sortable("toArray");
+				for (var i = 0; i < itemOrder.length; i++) {
+					var pos = i;
+					var id = itemOrder[i].split('-')[2]
+					change_pos(pos, id);
+				}
+			}
+		});
+	});
+</script>
+{% if user_subscription.user_status == 0 or user_subscription.user_plan == 'user' %}
+	{% include 'include/no_sub.html' %}
+{% elif not is_needed_tool %}
+	<div style="text-align: center;">
+        <h3>{{lang.admin_page.desc.no_ansible}} Ansible</h3>.
+        <img src="{{ url_for('static', filename='images/no_servers.png')}}" alt="There is no server">
+        <h4>
+            {{lang.words.read|title()}} <a href="https://roxy-wi.org/installation#ansible" title="{{lang.words.install|title()}} Ansible" target="_blank">here</a> {{lang.phrases.how_to_install}} Ansible.
+        </h4>
+    </div>
+{% else %}
+{% if role <= 2 %}
+<div class="add-button add-button-status-page" title="{{lang.phrases.create_ha}}" onclick="createHaClusterStep1();">+ {{lang.ha_page.create_ha}}</div>
+{% endif %}
+<div class="up-pannel">
+    {% for cluster in clusters %}
+    <div id="cluster-{{cluster.id}}" class="div-server-hapwi animated-background"></div>
+    {% endfor %}
+</div>
+<div id="create-status-page-step-1" style="display: none;">
+    <table class="overview" id="create-ha-cluster-step-1-overview"
+           title="{{lang.words.create|title()}} {{lang.ha_page.ha}} {{lang.words.cluster}}"
+           data-edit="{{lang.words.edit|title()}} {{lang.ha_page.ha}} {{lang.words.cluster}}">
+        {% include 'include/tr_validate_tips.html' %}
+        <tr>
+            <td class="padding20" style="width: 50%">
+                {{lang.words.name|title()}}
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{ input('ha-cluster-name', autofocus='autofocus') }}
+            </td>
+        </tr>
+         <tr>
+            <td class="padding20">
+                {{lang.words.desc|title()}}
+            </td>
+            <td>
+                {{ input('ha-cluster-desc', autofocus='autofocus') }}
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                {{lang.words.master|title()}}
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                <select id="ha-cluster-master"></select>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding10">{{lang.words.current2|title()}} {{lang.words.installation}}</td>
+            <td id="cur_master_ver"></td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                {{lang.words.master|title()}} {{lang.words.interface|title()}}
+                <span class="need-field">*</span>
+            </td>
+            <td>{{ input('ha-cluster-master-interface', size='7', title=lang.phrases.int_vrrp, placeholder='eth0') }}</td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                VIP
+                <span class="need-field">*</span>
+            </td>
+            <td>{{ input('vrrp-ip', size='14') }}</td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                {{lang.words.all|title()}} {{lang.words.servers}}
+            </td>
+            <td>{{lang.words.slaves|title()}} {{lang.words.servers}}</td>
+        </tr>
+    </table>
+    <div class="checks"></div>
+</div>
+<div id="create-status-page-step-2" style="display: none;">
+    <table class="overview" id="create-ha-cluster-step-2-overview"
+           title="{{lang.words.create|title()}} {{lang.ha_page.ha}} {{lang.words.cluster}}"
+           data-edit="{{lang.words.edit|title()}} {{lang.ha_page.ha}} {{lang.words.cluster}}">
+        <tr>
+            <td class="padding20 help_cursor"><span title="{{lang.ha_page.create_virt_server}}">{{lang.words.add|title()}} VIRT {{lang.words.server}}</span></td>
+            <td class="help_cursor">{{ checkbox('virt_server', title=lang.ha_page.create_virt_server, checked='checked') }}</td>
+        </tr>
+        <tr>
+            <td class="padding20" style="width: 50%" title="{{lang.ha_page.return_master}}">
+                {{lang.words.stay|title()}} {{lang.words.as}} {{lang.words.master|title()}}
+            </td>
+            <td>
+                {{ checkbox('return_to_master', title=lang.ha_page.return_master) }}
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                SYN-flood {{lang.words.protection}}
+            </td>
+            <td>
+                {{ checkbox('syn_flood') }}
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20 help_cursor"><span title="{{lang.ha_page.try_install}} HAProxy">HAProxy</span></td>
+            <td class="help_cursor">{{ checkbox('hap', title=lang.ha_page.try_install+' HAProxy') }}</td>
+        </tr>
+        <tr>
+            <td class="padding20 help_cursor" style="display: none" id="haproxy_docker_td_header">
+                <span title="{{lang.ha_page.try_install}} HAProxy {{lang.ha_page.as_docker}}">Docker</span>
+            </td>
+            <td class="help_cursor" style="display: none" id="haproxy_docker_td">
+                {{ checkbox('hap_docker', title=lang.ha_page.try_install+' HAProxy '+lang.ha_page.as_docker) }}
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20 help_cursor"><span title="{{lang.ha_page.try_install}} NGINX">NGINX</span></td>
+            <td class="help_cursor">{{ checkbox('nginx', title=lang.ha_page.try_install+' NGINX') }}</td>
+        </tr>
+        <tr>
+            <td class="padding20 help_cursor" style="display: none" id="nginx_docker_td_header">
+                <span title="{{lang.ha_page.try_install}} NGINX {{lang.ha_page.as_docker}}">Docker</span>
+            </td>
+            <td class="help_cursor" style="display: none" id="nginx_docker_td">
+                {{ checkbox('nginx_docker', title=lang.ha_page.try_install+' NGINX '+lang.ha_page.as_docker) }}
+            </td>
+        </tr>
+    </table>
+    <div class="alert alert-warning">
+        {{lang.ha_page.save_apply|safe}}
+    </div>
+</div>
+<div id="add-vip" style="display: none">
+    <table class="overview" id="add-vip-table" title="{{lang.ha_page.add_vip}}" data-edit="{{lang.words.edit|title()}} VIP">
+        <tr>
+            <td class="padding20">
+                VIP
+                <span class="need-field">*</span>
+            </td>
+            <td>{{ input('vrrp-ip-add', size='14') }}</td>
+        </tr>
+        <tr>
+            <td class="padding20">{{lang.words.servers|title()}}</td>
+            <td id="vip_servers"></td>
+        </tr>
+        <tr>
+            <td class="padding20" style="width: 50%" title="{{lang.ha_page.return_master}}">
+                {{lang.words.stay|title()}} {{lang.words.as}} {{lang.words.master|title()}}
+            </td>
+            <td>
+                {{ checkbox('vrrp-ip-add-return_to_master', title=lang.ha_page.return_master) }}
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20 help_cursor"><span title="{{lang.ha_page.create_virt_server}}">{{lang.words.add|title()}} VIRT {{lang.words.server}}</span></td>
+            <td class="help_cursor">{{ checkbox('vrrp-ip-add-virt_server', title=lang.ha_page.create_virt_server, checked='checked') }}</td>
+        </tr>
+    </table>
+</div>
+<div id="dialog-confirm" style="display: none;">
+    <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>{{lang.phrases.are_you_sure}}</p>
+</div>
+<div id="server_creating1" style="display: none;" title="{{lang.phrases.creating_ha}}">
+    <ul style="padding: 20px 20px 0px 20px;font-size: 15px;" id="server_creating_list"></ul>
+    <div id="created-mess" class="alert alert-success" style="display:none;"></div>
+    <div id="creating-error" class="alert alert-danger" style="display:none;"></div>
+    <div id="creating-warning" class="alert alert-warning" style="display:none;"></div>
+    <div id="wait-mess"></div>
+    <div class="progress-bar-striped">
+        <div id="creating-progress" style="width: 5%;"></div>
+    </div>
+</div>
+<script>
+    {% for cluster in clusters %}
+        getHaCluster('{{cluster.id}}');
+    {% endfor %}
+</script>
+{% endif %}
+{% endblock %}

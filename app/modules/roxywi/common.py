@@ -131,11 +131,6 @@ def logging(server_ip: str, action: str, **kwargs) -> None:
 	if kwargs.get('roxywi') == 1:
 		if kwargs.get('login'):
 			mess = f"{cur_date_in_log} from {ip} user: {login}, group: {user_group}, {action} on: {server_ip}\n"
-			if kwargs.get('keep_history'):
-				try:
-					keep_action_history(kwargs.get('service'), action, server_ip, login, ip)
-				except Exception as e:
-					print(str(e))
 		else:
 			mess = f"{cur_date_in_log} {action} from {ip}\n"
 		log_file = f"{log_path}/roxy-wi-{cur_date}.log"
@@ -146,11 +141,11 @@ def logging(server_ip: str, action: str, **kwargs) -> None:
 		mess = f"{cur_date_in_log} from {ip} user: {login}, group: {user_group}, {action} on: {server_ip}\n"
 		log_file = f"{log_path}/config_edit-{cur_date}.log"
 
-		if kwargs.get('keep_history'):
-			try:
-				keep_action_history(kwargs.get('service'), action, server_ip, login, ip)
-			except Exception:
-				pass
+	if kwargs.get('keep_history'):
+		try:
+			keep_action_history(kwargs.get('service'), action, server_ip, login, ip)
+		except Exception as e:
+			print(f'error: Cannot save history: {e}')
 
 	try:
 		with open(log_file, 'a') as log:
@@ -160,19 +155,24 @@ def logging(server_ip: str, action: str, **kwargs) -> None:
 
 
 def keep_action_history(service: str, action: str, server_ip: str, login: str, user_ip: str):
-	try:
-		server_id = sql.select_server_id_by_ip(server_ip=server_ip)
-		hostname = sql.get_hostname_by_server_ip(server_ip)
-		if login != '':
-			user_id = sql.get_user_id_by_username(login)
-		else:
-			user_id = 0
-		if user_ip == '':
-			user_ip = 'localhost'
+	if login != '':
+		user_id = sql.get_user_id_by_username(login)
+	else:
+		user_id = 0
+	if user_ip == '':
+		user_ip = 'localhost'
 
-		sql.insert_action_history(service, action, server_id, user_id, user_ip, server_ip, hostname)
-	except Exception as e:
-		logging('Roxy-WI server', f'Cannot save a history: {e}', roxywi=1)
+	if service == 'HA cluster':
+		cluster_name = sql.select_cluster_name(server_ip)
+		sql.insert_action_history(service, action, server_ip, user_id, user_ip, server_ip, cluster_name)
+	else:
+		try:
+			server_id = sql.select_server_id_by_ip(server_ip=server_ip)
+			hostname = sql.get_hostname_by_server_ip(server_ip)
+
+			sql.insert_action_history(service, action, server_id, user_id, user_ip, server_ip, hostname)
+		except Exception as e:
+			logging('Roxy-WI server', f'Cannot save a history: {e}', roxywi=1)
 
 
 def get_dick_permit(**kwargs):
@@ -253,7 +253,8 @@ def get_users_params(**kwargs):
 		'servers': servers,
 		'user_services': user_services,
 		'lang': user_lang,
-		'user_id': user_id
+		'user_id': user_id,
+		'group_id': group_id
 	}
 
 	return user_params

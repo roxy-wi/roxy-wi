@@ -1,0 +1,16 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
+{% from 'include/input_macros.html' import input %}
+{% for slave in slaves %}
+<div class="{{ loop.cycle('odd', 'even') }}" style="height: 25px; padding-top: 10px; padding-left: 10px;" id="vip_slave-{{slave.0}}">
+    <div style="float: left; width: 205px">{{slave.1}}</div>
+    {%- if not slave.31 -%}
+    <span class="slave_int" id="slave_int_div-{{slave.0}}" data-ip="{{slave.2}}">
+        {{ input('slave_int-'+slave.0|string(), placeholder='eth0', value=slave.32, size='7', title=lang.phrases.int_vrrp + ' ' +lang.ha_page.start_enter) }}
+    </span>
+    {% else %}
+    <span class="master_int" id="master_int_div-{{slave.0}}" data-ip="{{slave.2}}">
+        {{ input('master_int-'+slave.0|string(), placeholder='eth0', value=slave.32, size='7', title=lang.phrases.int_vrrp + ' ' +lang.ha_page.start_enter) }}
+    </span>
+    {% endif %}
+</div>
+{% endfor %}

@@ -291,11 +291,11 @@ def update_group(name, descript, group_id):
 
 def add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, apache, firewall):
 	try:
-		Server.insert(
+		server_id = Server.insert(
 			hostname=hostname, ip=ip, groups=group, type_ip=typeip, enable=enable, master=master, cred=cred,
 			port=port, desc=desc, haproxy=haproxy, nginx=nginx, apache=apache, firewall_enable=firewall
 		).execute()
-		return True
+		return server_id
 	except Exception as e:
 		out_error(e)
 		return False
@@ -4265,3 +4265,257 @@ def delete_status_page(page_id):
 		SmonStatusPage.delete().where(SmonStatusPage.id == page_id).execute()
 	except Exception as e:
 		out_error(e)
+
+
+def select_clusters(group_id: int):
+	try:
+		return HaCluster.select().where(HaCluster.group_id == group_id).execute()
+	except Exception as e:
+		out_error(e)
+
+
+def create_cluster(name: str, syn_flood: int, group_id: int, desc: str) -> int:
+	try:
+		last_id = HaCluster.insert(
+			name=name, syn_flood=syn_flood, group_id=group_id, desc=desc
+		).execute()
+		return last_id
+	except Exception as e:
+		out_error(e)
+
+
+def select_cluster(cluster_id: int):
+	try:
+		return HaCluster.select().where(HaCluster.id == cluster_id).execute()
+	except Exception as e:
+		out_error(e)
+
+
+def select_cluster_name(cluster_id: int) -> str:
+	try:
+		return HaCluster.get(HaCluster.id == cluster_id).name
+	except Exception as e:
+		out_error(e)
+
+
+def select_clusters_slaves():
+	try:
+		return HaClusterSlave.select().execute()
+	except Exception as e:
+		out_error(e)
+
+
+def select_clusters_virts():
+	try:
+		return HaClusterVirt.select().execute()
+	except Exception as e:
+		out_error(e)
+
+
+def select_clusters_vips():
+	try:
+		return HaClusterVip.select().execute()
+	except Exception as e:
+		out_error(e)
+
+
+def select_cluster_vips(cluster_id: int) -> object:
+	try:
+		return HaClusterVip.select().where(HaClusterVip.cluster_id == cluster_id).execute()
+	except Exception as e:
+		out_error(e)
+
+
+def select_clusters_vip(cluster_id: int, router_id: int):
+	try:
+		return HaClusterVip.get((HaClusterVip.cluster_id == cluster_id) & (HaClusterVip.router_id == router_id)).vip
+	except Exception as e:
+		out_error(e)
+
+
+def select_clusters_vip_return_master(cluster_id: int, router_id: int):
+	try:
+		return HaClusterVip.get((HaClusterVip.cluster_id == cluster_id) & (HaClusterVip.router_id == router_id)).return_master
+	except Exception as e:
+		out_error(e)
+
+
+def select_clusters_vip_id(cluster_id: int, router_id):
+	try:
+		return HaClusterVip.get((HaClusterVip.cluster_id == cluster_id) & (HaClusterVip.router_id == router_id)).id
+	except Exception as e:
+		out_error(e)
+
+
+def select_cluster_services(cluster_id: int):
+	try:
+		return HaClusterService.select().where(HaClusterService.cluster_id == cluster_id).execute()
+	except Exception as e:
+		out_error(e)
+
+
+def delete_cluster_services(cluster_id: int):
+	try:
+		return HaClusterService.delete().where(HaClusterService.cluster_id == cluster_id).execute()
+	except Exception as e:
+		out_error(e)
+
+
+def insert_cluster_services(cluster_id: int, service_id: int):
+	try:
+		return HaClusterService.insert(cluster_id=cluster_id, service_id=service_id).execute()
+	except Exception as e:
+		out_error(e)
+
+
+def select_cluster_master_slaves(cluster_id: int, group_id: int):
+	cursor = conn.cursor()
+	sql = f"select * from servers left join ha_clusters on (servers.id = ha_clusters.master_id) " \
+		  f"left join ha_cluster_slaves on (servers.id = ha_cluster_slaves.server_id) " \
+		  f"left join ha_cluster_virts on (servers.id = ha_cluster_virts.virt_id)" \
+		  f"where (servers.groups = {group_id} and " \
+		  f"(ha_cluster_slaves.cluster_id = {cluster_id} or ha_clusters.id = {cluster_id} or ha_cluster_virts.cluster_id = {cluster_id}));"
+	try:
+		cursor.execute(sql)
+	except Exception as e:
+		out_error(e)
+	else:
+		return cursor.fetchall()
+
+
+def select_cluster_slaves(cluster_id: int, router_id: int):
+	cursor = conn.cursor()
+	sql = f"select * from servers " \
+		  f"left join ha_cluster_slaves on (servers.id = ha_cluster_slaves.server_id) " \
+		  f"where ha_cluster_slaves.cluster_id = {cluster_id} and ha_cluster_slaves.router_id = {router_id};"
+	try:
+		cursor.execute(sql)
+	except Exception as e:
+		out_error(e)
+	else:
+		return cursor.fetchall()
+
+
+def select_cluster_slaves_for_inv(router_id: int):
+	try:
+		return HaClusterSlave.select().where(HaClusterSlave.router_id == router_id).execute()
+	except Exception as e:
+		out_error(e)
+
+
+def delete_ha_cluster_delete_slave(server_id: int) -> None:
+	try:
+		HaClusterSlave.delete().where(HaClusterSlave.server_id == server_id).execute()
+	except Exception as e:
+		out_error(e)
+
+
+def delete_ha_cluster_delete_slaves(cluster_id: int) -> None:
+	try:
+		HaClusterSlave.delete().where(HaClusterSlave.cluster_id == cluster_id).execute()
+	except Exception as e:
+		out_error(e)
+
+
+def delete_master_from_slave(server_id: int) -> None:
+	try:
+		Server.update(master=0).where(Server.server_id == server_id).execute()
+	except Exception as e:
+		out_error(e)
+
+
+def ha_cluster_add_slave(server_id: int, master_id: int) -> None:
+	try:
+		HaClusterSlave.insert(
+			server_id=server_id,
+			cluster_id=HaCluster.get(HaCluster.master_id == master_id).id
+		).execute()
+	except Exception as e:
+		out_error(e)
+
+
+def select_ha_cluster_not_masters_not_slaves(group_id: int):
+	try:
+		query = Server.select().where(
+			(Server.type_ip == 0) &
+			(Server.server_id.not_in(HaClusterSlave.select(HaClusterSlave.server_id))) &
+			(Server.groups == group_id)
+		)
+		return query.execute()
+	except Exception as e:
+		out_error(e)
+
+
+def get_router_id(cluster_id: int, default_router=0) -> int:
+	try:
+		return HaClusterRouter.get((HaClusterRouter.cluster_id == cluster_id) & (HaClusterRouter.default == default_router)).id
+	except Exception as e:
+		out_error(e)
+
+
+def create_ha_router(cluster_id: int) -> int:
+	try:
+		last_id = HaClusterRouter.insert(cluster_id=cluster_id).execute()
+		return last_id
+	except Exception as e:
+		out_error(e)
+
+
+def delete_ha_router(router_id: int) -> int:
+	try:
+		last_id = HaClusterRouter.delete().where(HaClusterRouter.id == router_id).execute()
+		return last_id
+	except Exception as e:
+		out_error(e)
+
+
+def insert_or_update_slave(cluster_id: int, server_id: int, eth: str, master: int, router_id) -> None:
+	try:
+		HaClusterSlave.insert(cluster_id=cluster_id, server_id=server_id, eth=eth, master=master, router_id=router_id).on_conflict('replace').execute()
+	except Exception as e:
+		out_error(e)
+
+
+def update_slave(cluster_id: int, server_id: int, eth: str, master: int, router_id) -> None:
+	try:
+		HaClusterSlave.update(
+			cluster_id=cluster_id, server_id=server_id, eth=eth, master=master, router_id=router_id
+		).where((HaClusterSlave.server_id == server_id) & (HaClusterSlave.router_id == router_id)).execute()
+	except Exception as e:
+		out_error(e)
+
+
+def update_cluster(cluster_id: int, name: str, desc: str, syn_flood: int) -> None:
+	try:
+		HaCluster.update(name=name, desc=desc, syn_flood=syn_flood).where(HaCluster.id == cluster_id).execute()
+	except Exception as e:
+		out_error(e)
+
+
+def update_ha_cluster_vip(cluster_id: int, router_id: int, vip: str, return_master: int) -> None:
+	try:
+		HaClusterVip.update(vip=vip, return_master=return_master).where((HaClusterVip.cluster_id == cluster_id) & (HaClusterVip.router_id == router_id)).execute()
+	except Exception as e:
+		out_error(e)
+
+
+def update_ha_virt_ip(vip_id: int, vip: str) -> None:
+	try:
+		Server.update(ip=vip).where(Server.server_id == HaClusterVirt.get(HaClusterVirt.vip_id == vip_id).virt_id).execute()
+	except Exception as e:
+		out_error(e)
+
+
+def delete_ha_virt(vip_id: int) -> None:
+	try:
+		Server.delete().where(Server.server_id == HaClusterVirt.get(HaClusterVirt.vip_id == vip_id).virt_id).execute()
+	except Exception as e:
+		pass
+
+
+def check_ha_virt(vip_id: int) -> bool:
+	try:
+		HaClusterVirt.get(HaClusterVirt.vip_id == vip_id).virt_id
+	except Exception:
+		return False
+	return True

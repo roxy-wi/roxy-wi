@@ -43,10 +43,14 @@ listen stats
 peers default_peers
     {% if M_OR_S == 'master' %}
     peer {{ ansible_hostname }} {{MASTER}}:10000
-    peer slave_lb {{SLAVE}}:10000
+    {% for slave in slaves %}
+    peer slave_lb {{slave}}:10000
+    {% endfor %}
     {% else %}
     peer master_lb {{MASTER}}:10000
-    peer {{ ansible_hostname }} {{SLAVE}}:10000
+    {% for slave in slaves %}
+    peer {{ ansible_hostname }} {{slave}}:10000
+    {% endfor %}
     {% endif %}
 {% endif %}
 

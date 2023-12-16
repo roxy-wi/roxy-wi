@@ -36,7 +36,7 @@ class User(BaseModel, UserMixin):
     groups = CharField()
     ldap_user = IntegerField(constraints=[SQL('DEFAULT "0"')])
     activeuser = IntegerField(constraints=[SQL('DEFAULT "1"')])
-    user_services = CharField(constraints=[SQL('DEFAULT "1 2 3 4"')])
+    user_services = CharField(constraints=[SQL('DEFAULT "1 2 3 4 5"')])
     last_login_date = DateTimeField(constraints=[SQL('DEFAULT "0000-00-00 00:00:00"')])
     last_login_ip = CharField(null=True)
 
@@ -649,12 +649,81 @@ class RoxyTool(BaseModel):
         constraints = [SQL('UNIQUE (name)')]
 
 
+class HaCluster(BaseModel):
+    id = AutoField()
+    name = CharField()
+    syn_flood = IntegerField(constraints=[SQL('DEFAULT "0"')])
+    group_id = IntegerField()
+    desc = CharField()
+    pos = IntegerField()
+
+    class Meta:
+        table_name = 'ha_clusters'
+
+
+class HaClusterRouter(BaseModel):
+    id = AutoField()
+    cluster_id = ForeignKeyField(HaCluster, on_delete='Cascade')
+    default = IntegerField(constraints=[SQL('DEFAULT "0"')])
+
+    class Meta:
+        table_name = 'ha_cluster_routers'
+
+
+class HaClusterSlave(BaseModel):
+    id = AutoField()
+    cluster_id = ForeignKeyField(HaCluster, on_delete='Cascade')
+    server_id = ForeignKeyField(Server, on_delete='Cascade')
+    master = IntegerField(constraints=[SQL('DEFAULT "0"')])
+    eth = CharField(constraints=[SQL('DEFAULT "eth0"')])
+    router_id = ForeignKeyField(HaClusterRouter, on_delete='Cascade')
+
+    class Meta:
+        table_name = 'ha_cluster_slaves'
+        constraints = [SQL('UNIQUE (cluster_id, server_id, router_id)')]
+
+
+class HaClusterVip(BaseModel):
+    id = AutoField()
+    cluster_id = ForeignKeyField(HaCluster, on_delete='Cascade')
+    router_id = ForeignKeyField(HaClusterRouter, on_delete='Cascade')
+    return_master = IntegerField(constraints=[SQL('DEFAULT "0"')])
+    vip = CharField()
+
+    class Meta:
+        table_name = 'ha_cluster_vips'
+        constraints = [SQL('UNIQUE (cluster_id, vip)')]
+
+
+class HaClusterVirt(BaseModel):
+    cluster_id = ForeignKeyField(HaCluster, on_delete='Cascade')
+    virt_id = ForeignKeyField(Server, on_delete='Cascade')
+    vip_id = ForeignKeyField(HaClusterVip, on_delete='Cascade')
+
+    class Meta:
+        table_name = 'ha_cluster_virts'
+        primary_key = False
+        constraints = [SQL('UNIQUE (cluster_id, virt_id)')]
+
+
+class HaClusterService(BaseModel):
+    cluster_id = ForeignKeyField(HaCluster, on_delete='Cascade')
+    service_id = CharField()
+
+    class Meta:
+        table_name = 'ha_cluster_services'
+        primary_key = False
+        constraints = [SQL('UNIQUE (cluster_id, service_id)')]
+
+
 def create_tables():
     with conn:
-        conn.create_tables([User, Server, Role, Telegram, Slack, UUID, Token, ApiToken, Groups, UserGroups, ConfigVersion,
-                            Setting, Cred, Backup, Metrics, WafMetrics, Version, Option, SavedServer, Waf, ActionHistory,
-                            PortScannerSettings, PortScannerPorts, PortScannerHistory, ServiceSetting, MetricsHttpStatus,
-                            SMON, WafRules, Alerts, GeoipCodes, NginxMetrics, SystemInfo, Services, UserName, GitSetting,
-                            CheckerSetting, ApacheMetrics, WafNginx, ServiceStatus, KeepaliveRestart, PD, SmonHistory,
-                            SmonTcpCheck, SmonHttpCheck, SmonPingCheck, SmonDnsCheck, S3Backup, RoxyTool, SmonStatusPage,
-                            SmonStatusPageCheck])
+        conn.create_tables(
+            [User, Server, Role, Telegram, Slack, UUID, Token, ApiToken, Groups, UserGroups, ConfigVersion, Setting,
+             Cred, Backup, Metrics, WafMetrics, Version, Option, SavedServer, Waf, ActionHistory, PortScannerSettings,
+             PortScannerPorts, PortScannerHistory, ServiceSetting, MetricsHttpStatus, SMON, WafRules, Alerts, GeoipCodes,
+             NginxMetrics, SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, WafNginx, ServiceStatus,
+             KeepaliveRestart, PD, SmonHistory, SmonTcpCheck, SmonHttpCheck, SmonPingCheck, SmonDnsCheck, S3Backup, RoxyTool,
+             SmonStatusPage, SmonStatusPageCheck, HaCluster, HaClusterSlave, HaClusterVip, HaClusterVirt, HaClusterService,
+             HaClusterRouter]
+        )

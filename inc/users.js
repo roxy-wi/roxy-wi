@@ -7,49 +7,43 @@ $( function() {
 	var cancel_word = $('#translate').attr('data-cancel');
 	$( "#backup_tabs" ).tabs();
 	$('#install').click(function() {
-		$("#ajax").html('')
-		var syn_flood = 0;
-		var docker = 0;
-		if ($('#syn_flood').is(':checked')) {
-			syn_flood = '1';
-		}
-		if ($('#haproxy_docker').is(':checked')) {
-			docker = '1';
-		}
-		if ($('#haproxyaddserv').val() == '------' || $('#haproxyaddserv').val() === null) {
-			var select_server = $('#translate').attr('data-select_server');
-			toastr.warning(select_server);
-			return false
-		}
-		$("#ajax").html(wait_mess);
-		$.ajax({
-			url: "/app/install/haproxy/" + $('#haproxyaddserv').val(),
-			data: {
-				syn_flood: syn_flood,
-				hapver: $('#hapver option:selected').val(),
-				docker: docker,
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function (data) {
-				data = data.replace(/\s+/g, ' ');
-				$("#ajax").html('')
-				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
-					var p_err = show_pretty_ansible_error(data);
-					toastr.error(p_err);
-				} else if (data.indexOf('success') != '-1') {
-					toastr.remove();
-					toastr.success(data);
-					$("#haproxyaddserv").trigger("selectmenuchange");
-				} else if (data.indexOf('Info') != '-1') {
-					toastr.remove();
-					toastr.info(data);
-				} else {
-					toastr.remove();
-					toastr.info(data);
-				}
-			}
-		});
+	// 	$("#ajax").html('')
+	// 	var syn_flood = 0;
+	// 	var docker = 0;
+	// 	var jsonData = {'servers': {'0': {}}, 'services': {'haproxy': {}}};
+	// 	if ($('#syn_flood').is(':checked')) {
+	// 		syn_flood = '1';
+	// 	}
+	// 	if ($('#haproxy_docker').is(':checked')) {
+	// 		docker = '1';
+	// 	}
+	// 	if ($('#haproxyaddserv').val() == '------' || $('#haproxyaddserv').val() === null) {
+	// 		var select_server = $('#translate').attr('data-select_server');
+	// 		toastr.warning(select_server);
+	// 		return false
+	// 	}
+	// 	jsonData['syn_flood'] = syn_flood;
+	// 	jsonData['servers']['0']['ip'] = $('#haproxyaddserv').val();
+	// 	jsonData['servers']['0']['master'] = '0';
+	// 	jsonData['servers']['0']['name'] = $('#haproxyaddserv option:selected').text();
+	// 	jsonData['servers']['0']['version'] = $('#hapver option:selected').val();
+	// 	jsonData['services']['haproxy']['enabled'] = 1;
+	// 	jsonData['services']['haproxy']['docker'] = docker;
+	// 	$("#ajax").html(wait_mess);
+	// 	$.ajax({
+	// 		url: "/app/install/haproxy/" + $('#haproxyaddserv').val(),
+	// 		data: {
+	// 			jsonData: JSON.stringify(jsonData),
+	// 			token: $('#token').val()
+	// 		},
+	// 		type: "POST",
+	// 		success: function (data) {
+	// 			data = data.replace(/\s+/g, ' ');
+	// 			parseAnsibleJsonOutput(data, 'HAProxy');
+	// 			$("#haproxyaddserv").trigger("selectmenuchange");
+	// 		}
+	// 	});
+		installService('haproxy')
 	});
 	$('#nginx_install').click(function() {
 		installService('nginx');
@@ -2477,8 +2471,8 @@ function uploadOvpn() {
 					toastr.error(data);
 				} else if (data.indexOf('success') != '-1') {
 					toastr.clear();
-					toastr.success(data)
-					location.reload()
+					toastr.success(data);
+					location.reload();
 				} else {
 					toastr.error('Something wrong, check and try again');
 				}
@@ -2882,41 +2876,92 @@ function installService(service) {
 	if ($('#' + service + '_docker').is(':checked')) {
 		docker = '1';
 	}
-	if ($('#' + service + 'addserv').val() == '------') {
+	if ($('#haproxyaddserv').val() == '------' || $('#' + service + 'addserv').val() === null) {
 		var select_server = $('#translate').attr('data-select_server');
 		toastr.warning(select_server);
 		return false
 	}
+	var jsonData = {};
+	jsonData['servers'] = {'0': {}}
+	jsonData['services'] = {};
+	jsonData['services'][service] = {};
+	jsonData['syn_flood'] = syn_flood;
+	jsonData['servers']['0']['ip'] = $('#' + service + 'addserv').val();
+	jsonData['servers']['0']['master'] = '0';
+	jsonData['servers']['0']['name'] = $('#' + service + 'addserv option:selected').text();
+	if (service == 'haproxy') {
+		jsonData['servers']['0']['version'] = $('#hapver option:selected').val();
+	}
+	console.log(jsonData)
+	jsonData['services'][service]['enabled'] = 1;
+	jsonData['services'][service]['docker'] = docker;
+	var nice_names = {'haproxy': 'HAProxy', 'nginx': 'NGINX', 'apache': 'Apache'};
 	$("#ajax").html(wait_mess);
 	$.ajax({
-		url: "/app/install/" + service + "/" + $('#' + service + 'addserv').val(),
+		url: "/app/install/" + service,
+		500: function () {
+			showErrorStatus(ice_names[service], $('#' + service + 'addserv option:selected').text());
+		},
+		504: function () {
+			showErrorStatus(ice_names[service], $('#' + service + 'addserv option:selected').text());
+		},
 		data: {
-			syn_flood: syn_flood,
-			docker: docker,
+			jsonData: JSON.stringify(jsonData),
 			token: $('#token').val()
 		},
 		type: "POST",
 		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			$("#ajax").html('')
-			if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
-				toastr.clear();
-				var p_err = show_pretty_ansible_error(data);
-				toastr.error(p_err);
-			} else if (data.indexOf('success') != '-1') {
-				toastr.clear();
-				toastr.success(data);
-				$('#' + service + 'addserv').trigger("selectmenuchange");
-			} else if (data.indexOf('Info') != '-1') {
-				toastr.clear();
-				toastr.info(data);
-			} else {
-				toastr.clear();
-				toastr.info(data);
-			}
+			// data = data.replace(/\s+/g, ' ');
+			parseAnsibleJsonOutput(data, nice_names[service]);
+			$("#" + service + "yaddserv").trigger("selectmenuchange");
 		}
 	});
 }
+// function installService(service) {
+// 	$("#ajax").html('')
+// 	var syn_flood = 0;
+// 	var docker = 0;
+// 	if ($('#' + service + '_syn_flood').is(':checked')) {
+// 		syn_flood = '1';
+// 	}
+// 	if ($('#' + service + '_docker').is(':checked')) {
+// 		docker = '1';
+// 	}
+// 	if ($('#' + service + 'addserv').val() == '------') {
+// 		var select_server = $('#translate').attr('data-select_server');
+// 		toastr.warning(select_server);
+// 		return false
+// 	}
+// 	$("#ajax").html(wait_mess);
+// 	$.ajax({
+// 		url: "/app/install/" + service + "/" + $('#' + service + 'addserv').val(),
+// 		data: {
+// 			syn_flood: syn_flood,
+// 			docker: docker,
+// 			token: $('#token').val()
+// 		},
+// 		type: "POST",
+// 		success: function (data) {
+// 			data = data.replace(/\s+/g, ' ');
+// 			$("#ajax").html('')
+// 			if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1') {
+// 				toastr.clear();
+// 				var p_err = show_pretty_ansible_error(data);
+// 				toastr.error(p_err);
+// 			} else if (data.indexOf('success') != '-1') {
+// 				toastr.clear();
+// 				toastr.success(data);
+// 				$('#' + service + 'addserv').trigger("selectmenuchange");
+// 			} else if (data.indexOf('Info') != '-1') {
+// 				toastr.clear();
+// 				toastr.info(data);
+// 			} else {
+// 				toastr.clear();
+// 				toastr.info(data);
+// 			}
+// 		}
+// 	});
+// }
 function showServiceVersion(service) {
 	$.ajax({
 		url: "/app/install/" + service + "/version/" + $('#' + service + 'addserv option:selected').val(),
@@ -3177,4 +3222,22 @@ function changeServerServices(server_id) {
 			}
 		}
 	});
+}
+function showErrorStatus(service_name, server) {
+	var something_wrong = $('#translate').attr('data-something_wrong');
+	toastr.error(something_wrong + ' ' + service_name + ' ' + server);
+}
+function parseAnsibleJsonOutput(output, service_name) {
+	output = JSON.parse(JSON.stringify(output));
+	var check_apache_log = $('#translate').attr('data-check_apache_log');
+	var was_installed = $('#translate').attr('data-was_installed');
+	for (var k in output['ok']) {
+		toastr.success(service_name + ' ' + was_installed +' ' + k);
+	}
+	for (var k in output['failures']) {
+		showErrorStatus(service_name, k);
+	}
+	for (var k in output['dark']) {
+		showErrorStatus(service_name, k);
+	}
 }

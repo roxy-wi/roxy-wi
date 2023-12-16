@@ -479,7 +479,28 @@
         }
     }
 %}
+{% set ha_page = {
+    "ha": "Alta disponibilidade cluster",
+    "has": "Alta disponibilidade clusters",
+    "create_virt_server": "Roxy-WI adicionará endereço VRRP como um servidor separado",
+    "return_master": "Se este sinalizador estiver marcado, o mestre Keepalived retornará VRRP quando o serviço estiver em execução novamente",
+    "return_master_desc": "Voltar ao mestre",
+    "try_install": "Roxy-WI irá instalar",
+    "as_docker": "como contêiner Docker",
+    "add_vip": "Adicionar VIP ao cluster HA",
+    "create_ha": "Criar cluster de alta disponibilidade",
+    "start_enter": "Comece a digitar o nome da interface de rede para adicionar VIP",
+    "roxywi_timeout": "Tempo limite de resposta do Roxy-WI",
+    "check_apache_log": "Verifique <a href='/app/logs/internal' target='_blank' title='Registros internos'>o log de erros do Apache</a> para obter mais informações.",
+    "was_installed": "foi instalado em",
+    "start_enter": "Comece a digitar na interface de rede para adicionar VIP",
+    "save_apply": "<b>Salvar</b> - significa salvar as configurações do cluster HA para Roxy-WI, sem alterar as configurações do componente nos membros do cluster. <br /> <b>Aplicar</b> – recrie a configuração do cluster HA nos servidores membros do cluster e instale serviços adicionais.",
+    }
+%}
 {% set words = {
+    "apply": "aplicar",
+    "true": "verídico",
+    "false": "falso",
     "cache": "cache",
     "compression": "compressão",
     "acceleration": "aceleração",
@@ -771,6 +792,7 @@
     "diff3": "diff",
     "master": "mestre",
     "slave": "escravo",
+    "slaves": "escravos",
     "interface": "interface",
     "as": "como",
     "stay": "ficar",

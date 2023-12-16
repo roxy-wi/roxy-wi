@@ -10,6 +10,11 @@
 		<nav id="menu">
 			<ul class="menu">
 				<li><a href="{{ url_for('overview.index') }}" title="{{lang.menu_links.overview.title}}" class="overview-link ">{{lang.menu_links.overview.link}}</a></li>
+				{% if '5' in user_services %}
+				{% if role <= 3 %}
+				{% endif %}
+				<li><a href="{{ url_for('ha.cluster_function', service='cluster') }}" title="{{lang.menu_links.ha.title}}" class="keepalived">HA {{lang.words.cluster}}</a></li>
+				{% endif %}
 				{% if '1' in user_services %}
 				<li class="p_menu">
 					<a href="{{ url_for('service.services', service='haproxy') }}" title="{{lang.menu_links.hapservers.haproxy.title}}" class="config-show">HAProxy</a>
@@ -96,9 +101,6 @@
 				<li class="p_menu">
 					<a href="{{ url_for('install.install_monitoring') }}" title="{{lang.menu_links.servers.title}}" class="hap-menu">{{lang.words.installation|title()}}</a>
 					<ul class="v_menu">
-						{% if '3' in user_services %}
-						<li><a href="{{ url_for('install.ha') }}" title="{{lang.menu_links.ha.title}}" class="keepalived head-submenu">HA {{lang.words.cluster}}</a></li>
-						{% endif %}
 						<li><a href="{{ url_for('install.install_monitoring') }}#service" title="{{lang.words.servers|title()}}: {{lang.words.proxy|title()}} {{lang.words.services}} {{lang.words.installation}}" class="hap-menu service installproxy head-submenu">{{lang.words.proxy|title()}} {{lang.words.services}}</a> </li>
 						<li><a href="{{ url_for('install.install_monitoring') }}#monitoring" title="{{lang.words.servers|title()}}: {{lang.words.monitoring|title()}} {{lang.words.services}} {{lang.words.installation}}" class="hap-menu monitoring installmon head-submenu">{{lang.words.monitoring|title()}}</a> </li>
 						<li><a href="{{ url_for('install.install_monitoring') }}#geolite2" title="{{lang.words.installation|title()}} GeoLite2" class="hap-menu geolite2 installgeo head-submenu">GeoLite2</a> </li>

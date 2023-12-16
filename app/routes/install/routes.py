@@ -2,7 +2,7 @@ from flask import render_template, request, g, abort
 from flask_login import login_required
 
 from app.routes.install import bp
-from middleware import get_user_params
+from middleware import get_user_params, check_services
 import app.modules.db.sql as sql
 import app.modules.common.common as common
 import app.modules.roxywi.auth as roxywi_auth
@@ -36,135 +36,20 @@ def install_monitoring():
     )
 
 
-@bp.route('/ha')
-@get_user_params()
-def ha():
-    if not roxywi_auth.is_access_permit_to_service('keepalived'):
-        abort(403, 'You do not have needed permissions to access to Keepalived service')
-    roxywi_auth.page_for_admin(level=2)
-
-    user_params = g.user_params
-    is_needed_tool = common.is_tool('ansible')
-    user_subscription = roxywi_common.return_user_subscription()
-
-    return render_template(
-        'ha.html', h2=1, role=user_params['role'], user=user_params['user'], selects=user_params['servers'],
-        user_services=user_params['user_services'], user_status=user_subscription['user_status'], lang=user_params['lang'],
-        user_plan=user_subscription['user_plan'], is_needed_tool=is_needed_tool, token=user_params['token']
-    )
-
-
-@bp.post('/keepalived', defaults={'slave_kp': None})
-@bp.post('/keepalived/<slave_kp>')
-def install_keepalived(slave_kp):
-    master = request.form.get('master')
-    slave = request.form.get('slave')
-    eth = request.form.get('interface')
-    eth_slave = request.form.get('slave_interface')
-    vrrp_ip = request.form.get('vrrpip')
-    syn_flood = request.form.get('syn_flood')
-    return_to_master = request.form.get('return_to_master')
-    haproxy = request.form.get('hap')
-    nginx = request.form.get('nginx')
-    router_id = request.form.get('router_id')
-    virt_server = request.form.get('virt_server')
-
+@bp.post('/<service>')
+@check_services
+def install_service(service):
     try:
-        virt_server = int(virt_server)
-    except Exception:
-        pass
-
-    if not slave_kp:
-        try:
-            return service_mod.keepalived_master_install(
-                master, eth, eth_slave, vrrp_ip, virt_server, syn_flood, return_to_master, haproxy, nginx, router_id
-            )
-        except Exception as e:
-            return f'{e}'
-    else:
-        try:
-            return service_mod.keepalived_slave_install(
-                master, slave, eth, eth_slave, vrrp_ip, syn_flood, haproxy, nginx, router_id
-            )
-        except Exception as e:
-            return f'{e}'
-
-
-@bp.post('/keepalived/add', defaults={'slave_kp': None})
-@bp.post('/keepalived/add/<slave_kp>')
-def add_extra_vrrp(slave_kp):
-    master = request.form.get('master')
-    slave = request.form.get('slave')
-    eth = request.form.get('interface')
-    slave_eth = request.form.get('slave_interface')
-    vrrp_ip = request.form.get('vrrpip')
-    router_id = request.form.get('router_id')
-    return_to_master = request.form.get('return_to_master')
-    kp = request.form.get('kp')
-
-    if not slave_kp:
-        try:
-            return service_mod.keepalived_masteradd(master, eth, slave_eth, vrrp_ip, router_id, return_to_master, kp)
-        except Exception as e:
-            return f'{e}'
-    else:
-        try:
-            return service_mod.keepalived_slaveadd(slave, eth, slave_eth, vrrp_ip, router_id, kp)
-        except Exception as e:
-            return f'{e}'
-
-
-@bp.post('/<service>/<server_ip>')
-def install_service(service, server_ip):
-    server_ip = common.is_ip_or_dns(server_ip)
-    docker = common.checkAjaxInput(request.form.get('docker'))
-    syn_flood = request.form.get('syn_flood')
-    hapver = request.form.get('hapver')
-
-    if service in ('nginx', 'apache'):
-        try:
-            return service_mod.install_service(server_ip, service, docker, syn_flood)
-        except Exception as e:
-            return str(e)
-    elif service == 'haproxy':
-        try:
-            return service_mod.install_haproxy(server_ip, syn_flood=syn_flood, hapver=hapver, docker=docker)
-        except Exception as e:
-            return str(e)
-    else:
-        return 'warning: Wrong service'
-
-
-@bp.post('/<service>/master-slave')
-def master_slave(service):
-    master = request.form.get('master')
-    slave = request.form.get('slave')
-    server = request.form.get('server')
-    docker = request.form.get('docker')
-
-    if service == 'haproxy':
-        if server == 'master':
-            try:
-                return service_mod.install_haproxy(master, server=server, docker=docker, m_or_s='master', master=master, slave=slave)
-            except Exception as e:
-                return f'{e}'
-        elif server == 'slave':
-            try:
-                return service_mod.install_haproxy(slave, server=server, docker=docker, m_or_s='slave', master=master, slave=slave)
-            except Exception as e:
-                return f'{e}'
-    elif service == 'nginx':
-        syn_flood_protect = '1' if request.form.get('syn_flood') == "1" else ''
-        if server == 'master':
-            try:
-                return service_mod.install_service(master, 'nginx', docker, syn_flood_protect, server=server)
-            except Exception as e:
-                return f'{e}'
-        elif server == 'slave':
-            try:
-                return service_mod.install_service(slave, 'nginx', docker, syn_flood_protect, server=server)
-            except Exception as e:
-                return f'{e}'
+        json_data = request.form.get('jsonData')
+        generate_functions = {
+            'haproxy': service_mod.generate_haproxy_inv,
+            'nginx': service_mod.generate_service_inv,
+            'apache': service_mod.generate_service_inv,
+        }
+        inv, server_ips = generate_functions[service](json_data, service)
+        return service_mod.run_ansible(inv, server_ips, service, service), 201
+    except Exception as e:
+        return str(e)
 
 
 @bp.route('/<service>/version/<server_ip>')

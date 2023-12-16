@@ -90,7 +90,7 @@
         "title": "Add proxy: Create and upload whitelists or blacklists"
     },
     "ha": {
-        "title": "Create and configure a high availability cluster"
+        "title": "Create and configure a high availability cluster",
     },
     "monitoring": {
         "link": "Monitoring",
@@ -479,7 +479,28 @@
         }
     }
 %}
+{% set ha_page = {
+    "ha": "High availability cluster",
+    "has": "High availability clusters",
+    "create_virt_server": "Roxy-WI will add VRRP address as a separate server",
+    "return_master_desc": "Return to master",
+    "return_master": "If this flag is checked, the Keepalived master will return VRRP when the service is running again",
+    "try_install": "Roxy-WI will install",
+    "as_docker": "as Docker container",
+    "add_vip": "Add VIP to HA cluster",
+    "create_ha": "Create high availability cluster",
+    "start_enter": "Start typing the network interface name to add VIP",
+    "roxywi_timeout": "Roxy-WI answer timeout",
+    "check_apache_log": "Check <a href='/app/logs/internal' target='_blank' title='Internal logs'>Apache error log</a> for more information.",
+    "was_installed": "was installed on",
+    "start_enter": "Start typing into the network interface to add VIP",
+    "save_apply": "<b>Save</b> - means saving the HA cluster settings for Roxy-WI, without changing the component settings on the cluster members. <br /> <b>Apply</b> - recreate the HA cluster configuration on the cluster member servers and install additional services.",
+    }
+%}
 {% set words = {
+    "apply": "apply",
+    "true": "true",
+    "false": "false",
     "cache": "cache",
     "compression": "compression",
     "acceleration": "acceleration",
@@ -771,6 +792,7 @@
     "diff3": "diff",
     "master": "master",
     "slave": "slave",
+    "slaves": "slaves",
     "interface": "interface",
     "as": "as",
     "stay": "stay",

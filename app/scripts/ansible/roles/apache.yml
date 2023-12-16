@@ -1,6 +1,6 @@
 ---
 - name: Install common role
-  hosts: "{{ variable_host }}"
+  hosts: all
   become: yes
   become_method: sudo
   gather_facts: yes
@@ -15,7 +15,7 @@
     - docker
 
 - name: Install docker
-  hosts: "{{ variable_host }}"
+  hosts: all
   become: yes
   gather_facts: yes
   roles:
@@ -34,7 +34,7 @@
     - docker
 
 - name: Install system role
-  hosts: "{{ variable_host }}"
+  hosts: all
   become: yes
   become_method: sudo
   tasks:
@@ -50,7 +50,7 @@
     - system
 
 - name: "Set {{ ansible_user }} owner to {{ service_dir }}"
-  hosts: "{{ variable_host }}"
+  hosts: all
   become: yes
   gather_facts: no
   tasks:
