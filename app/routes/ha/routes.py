@@ -11,7 +11,6 @@ import modules.server.server as server_mod
 import modules.roxywi.common as roxywi_common
 import modules.service.keepalived as keepalived
 import modules.service.ha_cluster as ha_cluster
-import modules.service.installation as installation
 
 
 @bp.before_request

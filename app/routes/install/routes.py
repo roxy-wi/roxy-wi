@@ -49,7 +49,7 @@ def install_service(service):
     try:
         inv, server_ips = generate_functions[service](json_data, service)
         service_mod.service_actions_after_install(server_ips, service, json_data)
-        return service_mod.run_ansible(inv, server_ips, service, service), 201
+        return service_mod.run_ansible(inv, server_ips, service), 201
     except Exception as e:
         return str(e)
 
