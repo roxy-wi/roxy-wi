@@ -185,7 +185,7 @@ def grafana_install():
 
 def generate_kp_inv(json_data: json, install_service) -> object:
 	json_data = json.loads(json_data)
-	inv = {"server": {"hosts":{}}}
+	inv = {"server": {"hosts": {}}}
 	server_ips = []
 	cluster_id = int(json_data['cluster_id'])
 	haproxy = json_data['services']['haproxy']['enabled']

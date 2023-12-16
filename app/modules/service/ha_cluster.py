@@ -14,7 +14,7 @@ def create_cluster(cluster: object, group_id: int) -> str:
 
     try:
         cluster_id = sql.create_cluster(cluster['name'], syn_flood, group_id, cluster['desc'])
-        roxywi_common.logging(cluster_id, f'New cluster has been created', keep_history=1, roxywi=1, service='HA cluster')
+        roxywi_common.logging(cluster_id, 'New cluster has been created', keep_history=1, roxywi=1, service='HA cluster')
     except Exception as e:
         return f'error: Cannot create new HA cluster: {e}'
 
@@ -115,13 +115,13 @@ def delete_cluster(cluster_id: int) -> str:
     slaves = sql.select_cluster_slaves(cluster_id)
 
     for slave in slaves:
-        slave_ip = select_server_ip_by_id(slave.server_id)
+        slave_ip = sql.select_server_ip_by_id(slave.server_id)
         try:
             sql.update_server_master(0, slave_ip)
         except Exception as e:
             raise Exception(f'error: Cannot update master on slave {slave_ip}: {e}')
 
-    roxywi_common.logging(cluster_id, f'Cluster {cluster_name} has been deleted', keep_history=1, roxywi=1, service='HA cluster')
+    roxywi_common.logging(cluster_id, f'Cluster has been deleted', keep_history=1, roxywi=1, service='HA cluster')
 
     return 'ok'
 

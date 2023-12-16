@@ -13,8 +13,8 @@ def get_status(server_ip: str) -> tuple:
         for k in out.split():
             out1.append(k)
         h = (out1,)
-        servers_with_status1= h
-        servers_with_status2= h
+        servers_with_status1 = h
+        servers_with_status2 = h
     except Exception:
         servers_with_status1 = h
         servers_with_status2 = h

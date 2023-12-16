@@ -1,4 +1,4 @@
-from flask import render_template, request, g, abort
+from flask import render_template, request, g
 from flask_login import login_required
 
 from app.routes.install import bp
@@ -6,7 +6,6 @@ from middleware import get_user_params, check_services
 import app.modules.db.sql as sql
 import app.modules.common.common as common
 import app.modules.roxywi.auth as roxywi_auth
-import app.modules.roxywi.common as roxywi_common
 import app.modules.server.server as server_mod
 import app.modules.service.common as service_common
 import app.modules.service.installation as service_mod

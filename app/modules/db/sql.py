@@ -4509,7 +4509,7 @@ def update_ha_virt_ip(vip_id: int, vip: str) -> None:
 def delete_ha_virt(vip_id: int) -> None:
 	try:
 		Server.delete().where(Server.server_id == HaClusterVirt.get(HaClusterVirt.vip_id == vip_id).virt_id).execute()
-	except Exception as e:
+	except Exception:
 		pass
 
 

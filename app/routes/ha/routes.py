@@ -3,7 +3,6 @@ import json
 from flask import render_template, g, request, jsonify
 from flask_login import login_required
 
-from app import app
 from app.routes.ha import bp
 from middleware import get_user_params, check_services
 import modules.db.sql as sql

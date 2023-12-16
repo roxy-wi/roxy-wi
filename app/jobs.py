@@ -93,4 +93,3 @@ def delete_ansible_artifacts():
                 shutil.rmtree(f'{ansible_path}/{folder}')
             except Exception as e:
                 raise Exception(f'error: Cron cannot delete ansible folders: {e}')
-
