@@ -121,7 +121,7 @@ def delete_cluster(cluster_id: int) -> str:
         except Exception as e:
             raise Exception(f'error: Cannot update master on slave {slave_ip}: {e}')
 
-    roxywi_common.logging(cluster_id, f'Cluster has been deleted', keep_history=1, roxywi=1, service='HA cluster')
+    roxywi_common.logging(cluster_id, 'Cluster has been deleted', keep_history=1, roxywi=1, service='HA cluster')
 
     return 'ok'
 

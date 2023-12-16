@@ -429,7 +429,13 @@ function installServiceCluster(jsonData, service, progress_step) {
 			jsonData: JSON.stringify(jsonData),
 		},
 		success: function (data) {
-			checkInstallResp(data, servers['cluster_id'], progress_step, servers["name"], li_id, nice_service_name[service]);
+			try {
+				if (data.indexOf('error:') != '-1') {
+					toastr.error(data);
+				}
+			} catch (e) {
+				checkInstallResp(data, servers['cluster_id'], progress_step, servers["name"], li_id, nice_service_name[service]);
+			}
 		}
 	});
 }

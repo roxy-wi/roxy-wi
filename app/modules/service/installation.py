@@ -319,7 +319,8 @@ def generate_service_inv(json_data: json, install_service: str) -> object:
 
 
 def run_ansible(inv: object, server_ips: str, ansible_role: str, service: str) -> object:
-	inventory = f'/var/www/haproxy-wi/app/scripts/ansible/inventory/{ansible_role}.json'
+	inventory_path = '/var/www/haproxy-wi/app/scripts/ansible/inventory'
+	inventory = f'{inventory_path}/{ansible_role}.json'
 	proxy = sql.get_setting('proxy')
 	proxy_serv = ''
 	tags = ''
@@ -346,10 +347,7 @@ def run_ansible(inv: object, server_ips: str, ansible_role: str, service: str) -
 		'ANSIBLE_DISPLAY_OK_HOSTS': 'no',
 		'ANSIBLE_SHOW_CUSTOM_STATS': 'no',
 		'ANSIBLE_DISPLAY_SKIPPED_HOSTS': "no",
-		'ANSIBLE_CALLBACK_PLUGINS': "/var/www/haproxy-wi/app/scripts/ansible/callback_plugins",
-		'ANSIBLE_CALLBACKS_ENABLED': "roxywi",
-		'ANSIBLE_STDOUT_CALLBACK': "roxywi",
-		'ORIGINAL_STDOUT_CALLBACK': "roxywi",
+		'ANSIBLE_DEPRECATION_WARNINGS': "no",
 		'ANSIBLE_HOST_KEY_CHECKING': "no",
 		'ACTION_WARNINGS': "no",
 		'LOCALHOST_WARNING': "no",
@@ -367,6 +365,9 @@ def run_ansible(inv: object, server_ips: str, ansible_role: str, service: str) -
 
 	if os.path.isfile(inventory):
 		os.remove(inventory)
+
+	if not os.path.isdir(inventory_path):
+		os.makedirs(inventory_path)
 
 	try:
 		with open(inventory, 'a') as invent:
