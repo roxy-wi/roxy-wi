@@ -318,7 +318,7 @@ def generate_service_inv(json_data: json, install_service: str) -> object:
 	return inv, server_ips
 
 
-def run_ansible(inv: object, server_ips: str, ansible_role: str, service: str) -> object:
+def run_ansible(inv: object, server_ips: str, ansible_role: str) -> object:
 	inventory_path = '/var/www/haproxy-wi/app/scripts/ansible/inventory'
 	inventory = f'{inventory_path}/{ansible_role}.json'
 	proxy = sql.get_setting('proxy')
@@ -380,3 +380,29 @@ def run_ansible(inv: object, server_ips: str, ansible_role: str, service: str) -
 
 	os.remove(inventory)
 	return stats
+
+
+def service_actions_after_install(server_ips: str, service: str, json_data) -> None:
+	is_docker = None
+	json_data = json.loads(json_data)
+	update_functions = {
+		'haproxy': sql.update_haproxy,
+		'nginx': sql.update_nginx,
+		'apache': sql.update_apache,
+		'keepalived': sql.update_keepalived,
+	}
+
+	for server_ip in server_ips:
+		server_id = sql.select_server_id_by_ip(server_ip)
+		try:
+			update_functions[service](server_ip)
+		except Exception as e:
+			raise Exception(f'error: Cannot activate {service} on server {server_ip}: {e}')
+
+		if service != 'keepalived':
+			is_docker = json_data['services'][service]['docker']
+
+		if is_docker == '1' and service != 'keepalived':
+			sql.insert_or_update_service_setting(server_id, service, 'dockerized', '1')
+
+		sql.insert_or_update_service_setting(server_id, service, 'restart', '1')

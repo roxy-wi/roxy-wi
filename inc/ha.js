@@ -415,7 +415,7 @@ function installServiceCluster(jsonData, service, progress_step) {
 	var nice_service_name = {'keepalived': 'HA Custer', 'haproxy': 'HAProxy', 'nginx': 'NGINX', 'apache': 'Apache'};
 	$('#server_creating_list').append('<li id="' + li_id + servers['cluster_id'] + '" class="server-creating proccessing">' + install_mess + ' ' + nice_service_name[service] + '</li>');
 	return $.ajax({
-		url: "/app/ha/cluster/reconfigure/" + service,
+		url: "/app/install/" + service,
 		type: "PUT",
 		statusCode: {
 			500: function () {

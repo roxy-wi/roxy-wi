@@ -38,14 +38,17 @@ def install_monitoring():
 @bp.post('/<service>')
 @check_services
 def install_service(service):
+    json_data = request.form.get('jsonData')
+    generate_functions = {
+        'haproxy': service_mod.generate_haproxy_inv,
+        'nginx': service_mod.generate_service_inv,
+        'apache': service_mod.generate_service_inv,
+        'keepalived': service_mod.generate_kp_inv,
+    }
+
     try:
-        json_data = request.form.get('jsonData')
-        generate_functions = {
-            'haproxy': service_mod.generate_haproxy_inv,
-            'nginx': service_mod.generate_service_inv,
-            'apache': service_mod.generate_service_inv,
-        }
         inv, server_ips = generate_functions[service](json_data, service)
+        service_mod.service_actions_after_install(server_ips, service, json_data)
         return service_mod.run_ansible(inv, server_ips, service, service), 201
     except Exception as e:
         return str(e)
