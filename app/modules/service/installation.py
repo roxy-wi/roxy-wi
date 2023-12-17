@@ -404,5 +404,4 @@ def service_actions_after_install(server_ips: str, service: str, json_data) -> N
 
 		if is_docker == '1' and service != 'keepalived':
 			sql.insert_or_update_service_setting(server_id, service, 'dockerized', '1')
-
-		sql.insert_or_update_service_setting(server_id, service, 'restart', '1')
+			sql.insert_or_update_service_setting(server_id, service, 'restart', '1')
