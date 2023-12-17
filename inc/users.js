@@ -2895,7 +2895,10 @@ function showServiceVersion(service) {
 		// type: "POST",
 		success: function (data) {
 			data = data.replace(/^\s+|\s+$/g, '');
-			if (data.indexOf('bash') != '-1' || data.indexOf('such') != '-1' || data.indexOf('command not found') != '-1' || data.indexOf('from') != '-1') {
+			if (data.indexOf('error: ') != '-1') {
+				toastr.warning(data);
+				$('#cur_' + service + '_ver').text('');
+			} else if(data.indexOf('bash') != '-1' || data.indexOf('such') != '-1' || data.indexOf('command not found') != '-1' || data.indexOf('from') != '-1') {
 				$('#cur_' + service + '_ver').text(service + ' has not installed');
 				$('#' + service + '_install').text('Install');
 				$('#' + service + '_install').attr('title', 'Install');

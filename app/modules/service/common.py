@@ -229,7 +229,7 @@ def get_stat_page(server_ip: str, service: str) -> str:
 		return data.decode('utf-8')
 
 
-def show_service_version(server_ip: str, service: str) -> None:
+def show_service_version(server_ip: str, service: str) -> str:
 	if service == 'haproxy':
 		return check_haproxy_version(server_ip)
 
@@ -248,4 +248,8 @@ def show_service_version(server_ip: str, service: str) -> None:
 			cmd = [f'docker exec -it {container_name}  /usr/sbin/{service_name} -v 2>&1|head -1|awk -F":" \'{{print $2}}\'']
 	else:
 		cmd = [f'sudo /usr/sbin/{service_name} -v|head -1|awk -F":" \'{{print $2}}\'']
-	return server_mod.ssh_command(server_ip, cmd)
+
+	try:
+		return server_mod.ssh_command(server_ip, cmd, timeout=5)
+	except Exception as e:
+		return f'{e}'

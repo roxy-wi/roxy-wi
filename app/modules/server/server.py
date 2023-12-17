@@ -6,6 +6,7 @@ import modules.db.sql as sql
 import modules.server.ssh as mod_ssh
 import modules.common.common as common
 import modules.roxywi.auth as roxywi_auth
+import modules.roxywi.logs as roxywi_logs
 import modules.roxywi.common as roxywi_common
 
 
@@ -35,8 +36,6 @@ def ssh_command(server_ip: str, commands: list, **kwargs):
 					if kwargs.get('raw'):
 						return stdout.readlines()
 					elif kwargs.get("show_log") == "1":
-						import modules.roxywi.logs as roxywi_logs
-
 						return roxywi_logs.show_log(stdout, grep=kwargs.get("grep"))
 					elif kwargs.get('return_err') == 1:
 						return stderr.read().decode(encoding='UTF-8')
@@ -44,6 +43,7 @@ def ssh_command(server_ip: str, commands: list, **kwargs):
 						return stdout.read().decode(encoding='UTF-8')
 				except Exception as e:
 					roxywi_common.logging('Roxy-WI server', f' Something wrong with SSH connection. Probably sudo with password {e}', roxywi=1)
+					raise Exception(f'error: Cannot run SSH: {e}')
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', f' Something wrong with SSH connection: {e}', roxywi=1)
 		raise Exception(f'error: Cannot run SSH: {e}')

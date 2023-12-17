@@ -2,10 +2,6 @@
 - name: Include Service-OS-specific variables.
   include_vars: "{{ service }}-{{ ansible_os_family }}.yml"
 
-- name: Set SSH port
-  set_fact:
-    ansible_port: "{{SSH_PORT}}"
-
 - name: "Ensure group {{ service_group }} exists"
   ansible.builtin.group:
     name: "{{ service_group }}"
