@@ -91,7 +91,10 @@ def index():
 		'keepalived/<id,hostname,ip>/action/restart': 'restart Keepalived service by id or hostname or ip. METHOD: GET',
 		'keepalived/<id,hostname,ip>/config': 'get Keepalived config from a server by id or hostname or ip. METHOD: GET',
 		'keepalived/<id,hostname,ip>/config': 'upload Keepalived config to a server by id or hostname or ip. Headers: action: save/reload/restart. Body must consist a whole Keepalived config. METHOD: POST',
-		'ha/create': 'Create HA cluster. Body be JSON body: master_ip: str, slave_ip: str, vrrp_ip: str, master_eth: str, slave_eth: str, virt_server: int, haproxy: int, nginx: int, syn_flood: int, return_to_master: int. METHOD: POST',
+		'ha': 'HA clusters list. METHOD: GET',
+		'ha': 'Create HA cluster. Body must be JSON: name: str, desc: str, cluster_id: 0, router_id: "", vip: str, servers: {server_id: dict:{eth: str, ip: str, name: str, master: int}}, service: dict: {{haproxy: int, docker: int}, {nginx: int, docker: int}}, virt_server: int, syn_flood: int, return_to_master: int. METHOD: POST',
+		'ha': 'Edit HA cluster. Body must be JSON: name: str, desc: str, cluster_id: int, router_id: "", vip: str, servers: {server_id: dict:{eth: str, ip: str, name: str, master: int}}, service: dict: {{haproxy: int, docker: int}, {nginx: int, docker: int}}, virt_server: int, syn_flood: int, return_to_master: int. METHOD: PUT',
+		'ha': 'Delete HA cluster. Body must be JSON: cluster_id: int. METHOD: DELETE',
 	}
 	return dict(help=data)
 
@@ -243,11 +246,18 @@ def add_acl(haproxy_id):
 	return api_funct.add_acl(haproxy_id)
 
 
-@route('/ha/create', method=['POST'])
+@route('/ha', method=['GET', 'POST', 'PUT', 'DELETE'])
 def create_ha():
-	if not check_login(required_service=3):
+	if not check_login(required_service=5):
 		return dict(error=_error_auth)
-	return api_funct.install_keepalived()
+	if request.method == 'POST':
+		return api_funct.create_ha_cluster()
+	elif request.method == 'PUT':
+		return api_funct.update_cluster()
+	elif request.method == 'DELETE':
+		return api_funct.delete_ha_cluster()
+	elif request.method == 'GET':
+		return api_funct.cluster_list()
 
 
 @route('/<service>/<server_id>', method=['GET'])

@@ -18,6 +18,7 @@ import modules.roxywi.user as roxywi_user
 import modules.roxywi.common as roxywi_common
 import modules.service.common as service_common
 import modules.service.installation as service_mod
+import modules.service.ha_cluster as ha_cluster
 
 get_config_var = roxy_wi_tools.GetConfigVar()
 
@@ -828,67 +829,96 @@ def create_server():
 		return dict(data)
 
 
-def install_keepalived():
+def cluster_list():
+	token = request.headers.get('token')
+	login, group_id, role_id = sql.get_username_groupid_from_api_token(token)
+	clusters = sql.select_clusters(group_id)
+	data = {}
+	for cluster in clusters:
+		data.setdefault(cluster.id, cluster.name)
+
+	return dict(data)
+
+
+def create_ha_cluster():
+	token = request.headers.get('token')
 	body = request.body.getvalue().decode('utf-8')
 	json_loads = json.loads(body)
-	master = json_loads['master_ip']
-	slave = json_loads['slave_ip']
-	vrrp_ip = json_loads['vrrp_ip']
-	eth = json_loads['master_eth']
-	eth_slave = json_loads['slave_eth']
-	haproxy = int(json_loads['haproxy'])
-	nginx = int(json_loads['nginx'])
-	virt_server = int(json_loads['virt_server'])
-	syn_flood = int(json_loads['syn_flood'])
-	return_to_master = int(json_loads['return_to_master'])
-	router_id = random.randint(1, 255)
+	login, group_id, role_id = sql.get_username_groupid_from_api_token(token)
 	data = {'status': dict()}
-	data['status'][master] = dict()
-	data['status'][slave] = dict()
 
 	try:
-		service_mod.keepalived_master_install(master, eth, eth_slave, vrrp_ip, virt_server, syn_flood, return_to_master,
-											  haproxy, nginx, router_id, 1)
+		ha_cluster.create_cluster(json_loads, group_id)
 	except Exception as e:
-		data['status'][master]['keepalived'] = f'error: {e}'
+		data['status'] = f'error: Cannot create HA cluster: {e}'
+		return data['status']
+	try:
+		service_mod.install_service('keepalived', body)
+	except Exception as e:
+		data['status'].setdefault('keepalived', f'error: {e}')
 	else:
-		data['status'][master]['keepalived'] = 'done'
+		data['status'].setdefault('keepalived', 'done')
+
+	if json_loads['services']['haproxy']['enabled']:
+		try:
+			service_mod.install_service('haproxy', body)
+		except Exception as e:
+			data['status'].setdefault('haproxy', f'error: {e}')
+		else:
+			data['status'].setdefault('haproxy', 'done')
+
+	if json_loads['services']['nginx']['enabled']:
+		try:
+			service_mod.install_service('nginx', body)
+		except Exception as e:
+			data['status'].setdefault('nginx', f'error: {e}')
+		else:
+			data['status'].setdefault('nginx', 'done')
+
+	return dict(data)
+
+
+def update_cluster():
+	token = request.headers.get('token')
+	body = request.body.getvalue().decode('utf-8')
+	json_loads = json.loads(body)
+	login, group_id, role_id = sql.get_username_groupid_from_api_token(token)
+	data = {'status': dict()}
 
 	try:
-		service_mod.keepalived_slave_install(master, slave, eth, eth_slave, vrrp_ip, syn_flood, haproxy, nginx, router_id, 1)
+		ha_cluster.update_cluster(json_loads, group_id)
 	except Exception as e:
-		data['status'][slave]['keepalived'] = f'error: {e}'
+		data['status'] = f'error: Cannot create HA cluster: {e}'
+		return data['status']
+
+	if json_loads['services']['haproxy']['enabled']:
+		try:
+			service_mod.install_service('haproxy', body)
+		except Exception as e:
+			data['status'].setdefault('haproxy', f'error: {e}')
+		else:
+			data['status'].setdefault('haproxy', 'done')
+
+	if json_loads['services']['nginx']['enabled']:
+		try:
+			service_mod.install_service('nginx', body)
+		except Exception as e:
+			data['status'].setdefault('nginx', f'error: {e}')
+		else:
+			data['status'].setdefault('nginx', 'done')
+
+	return dict(data)
+
+
+def delete_ha_cluster():
+	body = request.body.getvalue().decode('utf-8')
+	json_loads = json.loads(body)
+	cluster_id = json_loads['cluster_id']
+	data = {'status': dict()}
+	try:
+		ha_cluster.delete_cluster(cluster_id)
+	except Exception as e:
+		data['status'] = f'error: {e}'
 	else:
-		data['status'][slave]['keepalived'] = 'done'
-
-	if haproxy:
-		try:
-			service_mod.install_haproxy(master, 1)
-		except Exception as e:
-			data['status'][master]['haproxy'] = f'error: {e}'
-		else:
-			data['status'][master]['haproxy'] = 'done'
-
-		try:
-			service_mod.install_haproxy(slave, 1)
-		except Exception as e:
-			data['status'][slave]['haproxy'] = f'error: {e}'
-		else:
-			data['status'][slave]['haproxy'] = 'done'
-
-	if nginx:
-		try:
-			service_mod.install_service(master, 'nginx', '0', 1)
-		except Exception as e:
-			data['status'][master]['nginx'] = f'error: {e}'
-		else:
-			data['status'][master]['nginx'] = 'done'
-
-		try:
-			service_mod.install_service(slave, 'nginx', '0', 1)
-		except Exception as e:
-			data['status'][slave]['nginx'] = f'error: {e}'
-		else:
-			data['status'][slave]['nginx'] = 'done'
-
+		data['status'] = 'done'
 	return dict(data)

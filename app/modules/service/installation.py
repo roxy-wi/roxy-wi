@@ -184,7 +184,6 @@ def grafana_install():
 
 
 def generate_kp_inv(json_data: json, install_service) -> object:
-	json_data = json.loads(json_data)
 	inv = {"server": {"hosts": {}}}
 	server_ips = []
 	cluster_id = int(json_data['cluster_id'])
@@ -224,7 +223,6 @@ def generate_kp_inv(json_data: json, install_service) -> object:
 
 
 def generate_haproxy_inv(json_data: json, install_service: str) -> object:
-	json_data = json.loads(json_data)
 	inv = {"server": {"hosts": {}}}
 	slaves = []
 	server_ips = []
@@ -276,7 +274,6 @@ def generate_haproxy_inv(json_data: json, install_service: str) -> object:
 
 
 def generate_service_inv(json_data: json, install_service: str) -> object:
-	json_data = json.loads(json_data)
 	inv = {"server": {"hosts": {}}}
 	server_ips = []
 	stats_user = sql.get_setting(f'{install_service}_stats_user')
@@ -384,7 +381,6 @@ def run_ansible(inv: object, server_ips: str, ansible_role: str) -> object:
 
 def service_actions_after_install(server_ips: str, service: str, json_data) -> None:
 	is_docker = None
-	json_data = json.loads(json_data)
 	update_functions = {
 		'haproxy': sql.update_haproxy,
 		'nginx': sql.update_nginx,
@@ -405,3 +401,24 @@ def service_actions_after_install(server_ips: str, service: str, json_data) -> N
 		if is_docker == '1' and service != 'keepalived':
 			sql.insert_or_update_service_setting(server_id, service, 'dockerized', '1')
 			sql.insert_or_update_service_setting(server_id, service, 'restart', '1')
+
+
+def install_service(service: str, json_data: object) -> object:
+	try:
+		json_data = json.loads(json_data)
+	except Exception as e:
+		raise Exception(f'error: Cannot parse JSON: {e}')
+
+	generate_functions = {
+		'haproxy': generate_haproxy_inv,
+		'nginx': generate_service_inv,
+		'apache': generate_service_inv,
+		'keepalived': generate_kp_inv,
+	}
+
+	try:
+		inv, server_ips = generate_functions[service](json_data, service)
+		service_actions_after_install(server_ips, service, json_data)
+		return run_ansible(inv, server_ips, service), 201
+	except Exception as e:
+		raise Exception(f'error: Cannot install {service}: {e}')

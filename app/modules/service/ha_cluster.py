@@ -111,8 +111,9 @@ def update_cluster(cluster: object, group_id: int) -> str:
 
 
 def delete_cluster(cluster_id: int) -> str:
+    router_id = sql.get_router_id(cluster_id, default_router=1)
+    slaves = sql.select_cluster_slaves(cluster_id, router_id)
     HaCluster.delete().where(HaCluster.id == cluster_id).execute()
-    slaves = sql.select_cluster_slaves(cluster_id)
 
     for slave in slaves:
         slave_ip = sql.select_server_ip_by_id(slave.server_id)
