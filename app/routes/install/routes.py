@@ -39,7 +39,7 @@ def install_monitoring():
 @check_services
 def install_service(service):
     json_data = request.form.get('jsonData')
-    service_mod.install_service(service, json_data)
+    return service_mod.install_service(service, json_data)
 
 
 @bp.route('/<service>/version/<server_ip>')
