@@ -403,7 +403,7 @@ def service_actions_after_install(server_ips: str, service: str, json_data) -> N
 			sql.insert_or_update_service_setting(server_id, service, 'restart', '1')
 
 
-def install_service(service: str, json_data: object) -> object:
+def install_service(service: str, json_data: str) -> object:
 	try:
 		json_data = json.loads(json_data)
 	except Exception as e:

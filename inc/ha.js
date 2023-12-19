@@ -416,7 +416,7 @@ function installServiceCluster(jsonData, service, progress_step) {
 	$('#server_creating_list').append('<li id="' + li_id + servers['cluster_id'] + '" class="server-creating proccessing">' + install_mess + ' ' + nice_service_name[service] + '</li>');
 	return $.ajax({
 		url: "/app/install/" + service,
-		type: "PUT",
+		type: "POST",
 		statusCode: {
 			500: function () {
 				showErrorStatus(nice_service_name[service], servers["name"], li_id, servers['cluster_id'], progress_step, something_wrong);
