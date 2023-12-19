@@ -107,5 +107,5 @@
 
 
 - name: Add syn_flood tasks
-  include: ../../haproxy/tasks/syn_flood.yml
+  include_tasks: ../../haproxy/tasks/syn_flood.yml
   when: (SYN_FLOOD is defined) and (SYN_FLOOD|length > 0)

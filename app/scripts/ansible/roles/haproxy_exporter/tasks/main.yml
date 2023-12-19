@@ -93,7 +93,7 @@
   notify: restart haproxy_exporter
 
 - name: install service
-  include: service-{{ prometheus_exporter_service_mgr }}.yml
+  include_tasks: service-{{ prometheus_exporter_service_mgr }}.yml
 
 - name: Service Enabled
   become: true

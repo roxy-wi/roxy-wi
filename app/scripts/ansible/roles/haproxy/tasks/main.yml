@@ -6,13 +6,13 @@
 - name: populate service facts
   service_facts:
 
-- include: configure.yml
+- include_tasks: configure.yml
 
-- include: installation.yml
+- include_tasks: installation.yml
 
-- include: logs.yml
+- include_tasks: logs.yml
 
 - name: Add syn_flood tasks
-  include: syn_flood.yml
+  include_tasks: syn_flood.yml
   when: (SYN_FLOOD is defined) and (SYN_FLOOD|length > 0)  
     

@@ -1,5 +1,5 @@
 ---
-- include: preflight.yml
+- include_tasks: preflight.yml
 
 - name: Create the Apache Exporter group
   become: true
