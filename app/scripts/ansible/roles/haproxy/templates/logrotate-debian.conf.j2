@@ -1,0 +1,35 @@
+/var/log/haproxy/access.log {
+    daily
+    rotate 10 
+    missingok
+    notifempty
+    compress
+    sharedscripts
+    postrotate
+        [ ! -x /usr/lib/rsyslog/rsyslog-rotate ] || /usr/lib/rsyslog/rsyslog-rotate
+    endscript
+}
+
+/var/log/haproxy/error.log {
+    daily
+    rotate 10
+    missingok
+    notifempty
+    compress
+    sharedscripts
+    postrotate
+        [ ! -x /usr/lib/rsyslog/rsyslog-rotate ] || /usr/lib/rsyslog/rsyslog-rotate
+    endscript
+}
+
+/var/log/haproxy/status.log {
+    daily
+    rotate 10
+    missingok
+    notifempty
+    compress
+    sharedscripts
+    postrotate
+        [ ! -x /usr/lib/rsyslog/rsyslog-rotate ] || /usr/lib/rsyslog/rsyslog-rotate
+    endscript
+}

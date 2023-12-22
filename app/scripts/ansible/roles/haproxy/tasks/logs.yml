@@ -6,10 +6,18 @@
   ignore_errors: yes
   notify: restart rsyslog
 
-- name: Installing HAProxy conf for logrotate
+- name: Installing HAProxy conf for logrotate on EL
   template:
     src: /var/www/haproxy-wi/app/scripts/ansible/roles/haproxy/templates/logrotate.conf.j2
     dest: /etc/logrotate.d/haproxy.conf
     force: no
   when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS')
+  ignore_errors: yes
+
+- name: Installing HAProxy conf for logrotate on Debian
+  template:
+    src: /var/www/haproxy-wi/app/scripts/ansible/roles/haproxy/templates/logrotate-debian.conf.j2
+    dest: /etc/logrotate.d/haproxy-roxy-wi
+    force: no
+  when: (ansible_facts['os_family'] == "Debian" or ansible_facts['os_family'] == 'Ubuntu')
   ignore_errors: yes
