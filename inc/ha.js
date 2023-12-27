@@ -188,7 +188,7 @@ function createHaClusterStep1(edited=false, cluster_id=0, clean=true) {
 	});
 	$.getScript('/inc/ha.js');
 	var regx = /^[a-z0-9_-]+$/;
-	var dialog_div = $("#create-status-page-step-1").dialog({
+	var dialog_div = $("#create-ha-cluster-step-1").dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
@@ -255,7 +255,7 @@ function createHaClusterStep2(edited=false, cluster_id=0, jsonData='') {
 	if (edited) {
 		tabel_title = $("#create-ha-cluster-step-2-overview").attr('data-edit');
 	}
-	var dialog_div = $("#create-status-page-step-2").dialog({
+	var dialog_div = $("#create-ha-cluster-step-2").dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
