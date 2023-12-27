@@ -198,13 +198,15 @@ def generate_kp_inv(json_data: json, install_service) -> object:
 
 	for vip in vips:
 		router_id = str(vip.router_id)
-		routers[router_id] = {vip.vip: {}}
-		routers[router_id][vip.vip].setdefault('return_master', vip.return_master)
-		routers[router_id][vip.vip].setdefault('vip', vip.vip)
+		routers[router_id] = {}
+		routers[router_id].setdefault('return_master', vip.return_master)
+		routers[router_id].setdefault('vip', vip.vip)
 		slaves = sql.select_cluster_slaves_for_inv(router_id)
 		for slave in slaves:
-			routers[router_id][vip.vip].setdefault('master', slave.master)
-			routers[router_id][vip.vip].setdefault('eth', slave.eth)
+			slave_ip = sql.select_server_ip_by_id(str(slave.server_id))
+			routers[router_id].setdefault(slave_ip, dict())
+			routers[router_id][slave_ip].setdefault('master', slave.master)
+			routers[router_id][slave_ip].setdefault('eth', slave.eth)
 
 	for k, v in json_data['servers'].items():
 		server_ip = v['ip']
@@ -372,7 +374,10 @@ def run_ansible(inv: object, server_ips: str, ansible_role: str) -> object:
 	except Exception as e:
 		raise Exception(f'error: Cannot save inventory file: {e}')
 
-	result = ansible_runner.run(**kwargs)
+	try:
+		result = ansible_runner.run(**kwargs)
+	except Exception as e:
+		raise Exception(f'error: Cannot install {ansible_role}: {e}')
 	stats = result.stats
 
 	os.remove(inventory)

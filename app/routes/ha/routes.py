@@ -124,7 +124,8 @@ def show_ha_cluster(service, cluster_id):
     services = []
     service = 'keepalived'
     service_desc = sql.select_service(service)
-    servers = sql.select_cluster_master_slaves(cluster_id, user_params['group_id'])
+    router_id = sql.get_router_id(cluster_id, default_router=1)
+    servers = sql.select_cluster_master_slaves(cluster_id, user_params['group_id'], router_id)
     waf_server = ''
     cmd = "ps ax |grep -e 'keep_alive.py' |grep -v grep |wc -l"
     keep_alive, stderr = server_mod.subprocess_execute(cmd)

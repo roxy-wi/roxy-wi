@@ -4368,13 +4368,10 @@ def insert_cluster_services(cluster_id: int, service_id: int):
 		out_error(e)
 
 
-def select_cluster_master_slaves(cluster_id: int, group_id: int):
+def select_cluster_master_slaves(cluster_id: int, group_id: int, router_id: int):
 	cursor = conn.cursor()
-	sql = f"select * from servers left join ha_clusters on (servers.id = ha_clusters.master_id) " \
-		  f"left join ha_cluster_slaves on (servers.id = ha_cluster_slaves.server_id) " \
-		  f"left join ha_cluster_virts on (servers.id = ha_cluster_virts.virt_id)" \
-		  f"where (servers.groups = {group_id} and " \
-		  f"(ha_cluster_slaves.cluster_id = {cluster_id} or ha_clusters.id = {cluster_id} or ha_cluster_virts.cluster_id = {cluster_id}));"
+	sql = f"select * from servers left join ha_cluster_slaves on (servers.id = ha_cluster_slaves.server_id) " \
+		  f"where servers.groups = {group_id} and ha_cluster_slaves.cluster_id = {cluster_id} and ha_cluster_slaves.router_id = {router_id};"
 	try:
 		cursor.execute(sql)
 	except Exception as e:
@@ -4385,8 +4382,7 @@ def select_cluster_master_slaves(cluster_id: int, group_id: int):
 
 def select_cluster_slaves(cluster_id: int, router_id: int):
 	cursor = conn.cursor()
-	sql = f"select * from servers " \
-		  f"left join ha_cluster_slaves on (servers.id = ha_cluster_slaves.server_id) " \
+	sql = f"select * from servers left join ha_cluster_slaves on (servers.id = ha_cluster_slaves.server_id) " \
 		  f"where ha_cluster_slaves.cluster_id = {cluster_id} and ha_cluster_slaves.router_id = {router_id};"
 	try:
 		cursor.execute(sql)
