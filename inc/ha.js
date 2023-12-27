@@ -344,6 +344,7 @@ function saveCluster(jsonData, cluster_id=0, edited=0, reconfigure=0) {
 	$.ajax({
 		url: "/app/ha/cluster",
 		type: req_method,
+		async: false,
 		data: {
 			jsonData: JSON.stringify(jsonData),
 		},
@@ -352,7 +353,8 @@ function saveCluster(jsonData, cluster_id=0, edited=0, reconfigure=0) {
 				toastr.error(data);
 			} else {
 				if (!edited) {
-					getHaCluster(data, true);
+					cluster_id = data;
+					getHaCluster(cluster_id, true);
 				} else {
 					getHaCluster(cluster_id);
 					$("#cluster-" + cluster_id).addClass("update", 1000);
@@ -364,10 +366,10 @@ function saveCluster(jsonData, cluster_id=0, edited=0, reconfigure=0) {
 		}
 	});
 	if (reconfigure) {
-		Reconfigure(jsonData);
+		Reconfigure(jsonData, cluster_id);
 	}
 }
-function Reconfigure(jsonData) {
+function Reconfigure(jsonData, cluster_id) {
 	servers = JSON.parse(JSON.stringify(jsonData));
 	$("#wait-mess").html(wait_mess);
 	$("#wait-mess").show();
@@ -397,17 +399,18 @@ function Reconfigure(jsonData) {
 	server_creating.dialog('open');
 	let li_id = 'creating-'
 	let progress_step = 100 / total_installation;
-	$.when(installServiceCluster(jsonData, 'keepalived', progress_step)).done(function () {
+	$.when(installServiceCluster(jsonData, 'keepalived', progress_step, cluster_id)).done(function () {
 		if (servers['services']['haproxy']['enabled']) {
-			installServiceCluster(jsonData, 'haproxy', progress_step);
+			installServiceCluster(jsonData, 'haproxy', progress_step, cluster_id);
 		}
 		if (servers['services']['nginx']['enabled']) {
-			installServiceCluster(jsonData, 'nginx', progress_step);
+			installServiceCluster(jsonData, 'nginx', progress_step, cluster_id);
 		}
 	});
 }
-function installServiceCluster(jsonData, service, progress_step) {
+function installServiceCluster(jsonData, service, progress_step, cluster_id) {
 	servers = JSON.parse(JSON.stringify(jsonData));
+	servers['cluster_id'] = cluster_id;
 	var li_id = 'creating-' + service + '-';
 	var install_mess = $('#translate').attr('data-installing');
 	var timeout_mess = $('#translate').attr('data-roxywi_timeout');
@@ -426,7 +429,7 @@ function installServiceCluster(jsonData, service, progress_step) {
 			},
 		},
 		data: {
-			jsonData: JSON.stringify(jsonData),
+			jsonData: JSON.stringify(servers),
 		},
 		success: function (data) {
 			try {

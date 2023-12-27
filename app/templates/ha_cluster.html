@@ -42,14 +42,14 @@
     </div>
 {% else %}
 {% if role <= 2 %}
-<div class="add-button add-button-status-page" title="{{lang.phrases.create_ha}}" onclick="createHaClusterStep1();">+ {{lang.ha_page.create_ha}}</div>
+<div class="add-button add-button-big" title="{{lang.phrases.create_ha}}" onclick="createHaClusterStep1();">+ {{lang.ha_page.create_ha}}</div>
 {% endif %}
 <div class="up-pannel">
     {% for cluster in clusters %}
     <div id="cluster-{{cluster.id}}" class="div-server-hapwi animated-background"></div>
     {% endfor %}
 </div>
-<div id="create-status-page-step-1" style="display: none;">
+<div id="create-ha-cluster-step-1" style="display: none;">
     <table class="overview" id="create-ha-cluster-step-1-overview"
            title="{{lang.words.create|title()}} {{lang.ha_page.ha}} {{lang.words.cluster}}"
            data-edit="{{lang.words.edit|title()}} {{lang.ha_page.ha}} {{lang.words.cluster}}">
@@ -107,7 +107,7 @@
     </table>
     <div class="checks"></div>
 </div>
-<div id="create-status-page-step-2" style="display: none;">
+<div id="create-ha-cluster-step-2" style="display: none;">
     <table class="overview" id="create-ha-cluster-step-2-overview"
            title="{{lang.words.create|title()}} {{lang.ha_page.ha}} {{lang.words.cluster}}"
            data-edit="{{lang.words.edit|title()}} {{lang.ha_page.ha}} {{lang.words.cluster}}">
