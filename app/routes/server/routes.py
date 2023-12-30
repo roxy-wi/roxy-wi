@@ -98,7 +98,7 @@ def create_server():
                 user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'], adding=1
             )
     except Exception as e:
-        return f'error: {e}'
+        return f'{e}'
 
 
 @bp.post('/create/after')
@@ -121,7 +121,7 @@ def update_server():
     typeip = request.form.get('typeip')
     firewall = request.form.get('firewall')
     enable = request.form.get('enable')
-    master = request.form.get('slave')
+    master = int(request.form.get('slave'))
     serv_id = request.form.get('id')
     cred = request.form.get('cred')
     port = request.form.get('port')
@@ -132,11 +132,26 @@ def update_server():
         return error_mess
     else:
         sql.update_server(name, group, typeip, enable, master, serv_id, cred, port, desc, firewall, protected)
-        roxywi_common.logging(f'The server {name}', ' has been updated ', roxywi=1, login=1)
         server_ip = sql.select_server_ip_by_id(serv_id)
         roxywi_common.logging(server_ip, f'The server {name} has been update', roxywi=1, login=1, keep_history=1, service='server')
+        if master == 0:
+            try:
+                sql.delete_ha_cluster_delete_slave(serv_id)
+                roxywi_common.logging(server_ip, f'The server {name} has been removed from HA cluster', roxywi=1, login=1,
+                                      keep_history=1, service='server')
+            except Exception as e:
+                roxywi_common.logging(server_ip, f'error: Cannot delete the server {name} from HA cluster: {e}', roxywi=1, login=1,
+                                      keep_history=1, service='server')
+                raise Exception(f'error: Cannot delete the server {name} from HA cluster: {e}')
+        else:
+            try:
+                sql.ha_cluster_add_slave(serv_id, master)
+            except Exception as e:
+                roxywi_common.logging(server_ip, f'error: Cannot add the server {name} to HA cluster: {e}', roxywi=1, login=1,
+                                      keep_history=1, service='server')
+                raise Exception(f'error: Cannot add the server {name} to HA cluster: {e}')
 
-        return 'ok'
+    return 'ok'
 
 
 @bp.route('/delete/<int:server_id>')

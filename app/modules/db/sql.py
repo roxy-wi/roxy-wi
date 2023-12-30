@@ -361,8 +361,12 @@ def update_server_master(master, slave):
 	except Exception as e:
 		out_error(e)
 
+	update_master_server_by_slave_ip(master_id, slave)
+
+
+def update_master_server_by_slave_ip(master_id: int, slave_ip: str) -> None:
 	try:
-		Server.update(master=master_id).where(Server.ip == slave).execute()
+		Server.update(master=master_id).where(Server.ip == slave_ip).execute()
 	except Exception as e:
 		out_error(e)
 
@@ -564,7 +568,7 @@ def select_server_group_by_ip(server_ip):
 		return groups
 
 
-def select_server_ip_by_id(server_id):
+def select_server_ip_by_id(server_id: int) -> str:
 	try:
 		server_ip = Server.get(Server.server_id == server_id).ip
 	except Exception as e:

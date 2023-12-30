@@ -21,7 +21,7 @@
   ignore_errors: yes
 
 - name: Add logs tasks.
-  include: ../../haproxy/tasks/logs.yml
+  include_tasks: ../../haproxy/tasks/logs.yml
 
 - name: Setting sysctl values.
   sysctl:
@@ -47,5 +47,5 @@
     ansible_python_interpreter: /usr/bin/python3
 
 - name: Add syn_flood tasks.
-  include: ../../haproxy/tasks/syn_flood.yml
+  include_tasks: ../../haproxy/tasks/syn_flood.yml
   when: (SYN_FLOOD is defined) and (SYN_FLOOD|length > 0)

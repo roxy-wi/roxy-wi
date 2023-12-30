@@ -113,16 +113,16 @@ def update_cluster(cluster: object, group_id: int) -> str:
 def delete_cluster(cluster_id: int) -> str:
     router_id = sql.get_router_id(cluster_id, default_router=1)
     slaves = sql.select_cluster_slaves(cluster_id, router_id)
-    HaCluster.delete().where(HaCluster.id == cluster_id).execute()
 
     for slave in slaves:
-        slave_ip = sql.select_server_ip_by_id(slave.server_id)
+        slave_ip = sql.select_server_ip_by_id(slave[0])
         try:
-            sql.update_server_master(0, slave_ip)
+            sql.update_master_server_by_slave_ip(0, slave_ip)
         except Exception as e:
             raise Exception(f'error: Cannot update master on slave {slave_ip}: {e}')
 
-    roxywi_common.logging(cluster_id, 'Cluster has been deleted', keep_history=1, roxywi=1, service='HA cluster')
+    HaCluster.delete().where(HaCluster.id == cluster_id).execute()
+    roxywi_common.logging(cluster_id, 'Cluster has been deleted', roxywi=1, service='HA cluster')
 
     return 'ok'
 

@@ -10,7 +10,6 @@ import app.modules.roxy_wi_tools as roxy_wi_tools
 
 
 @app.before_request
-@cache.memoize(3)
 def check_login():
     if request.endpoint not in (
             'login_page', 'static', 'main.show_roxywi_version', 'service.check_service', 'smon.show_smon_status_page',
@@ -62,9 +61,6 @@ def login_page():
     password = request.form.get('pass')
     role = 5
     user1 = ''
-
-    if next_url is None:
-        next_url = ''
 
     if login and password:
         users = sql.select_users(user=login)
