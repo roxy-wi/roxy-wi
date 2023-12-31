@@ -852,6 +852,8 @@ def create_ha_cluster():
 	except Exception as e:
 		data['status'] = f'error: Cannot create HA cluster: {e}'
 		return data['status']
+	else:
+		data['status'].setdefault('cluster', 'done')
 	try:
 		service_mod.install_service('keepalived', body)
 	except Exception as e:

@@ -134,22 +134,6 @@ def update_server():
         sql.update_server(name, group, typeip, enable, master, serv_id, cred, port, desc, firewall, protected)
         server_ip = sql.select_server_ip_by_id(serv_id)
         roxywi_common.logging(server_ip, f'The server {name} has been update', roxywi=1, login=1, keep_history=1, service='server')
-        if master == 0:
-            try:
-                sql.delete_ha_cluster_delete_slave(serv_id)
-                roxywi_common.logging(server_ip, f'The server {name} has been removed from HA cluster', roxywi=1, login=1,
-                                      keep_history=1, service='server')
-            except Exception as e:
-                roxywi_common.logging(server_ip, f'error: Cannot delete the server {name} from HA cluster: {e}', roxywi=1, login=1,
-                                      keep_history=1, service='server')
-                raise Exception(f'error: Cannot delete the server {name} from HA cluster: {e}')
-        else:
-            try:
-                sql.ha_cluster_add_slave(serv_id, master)
-            except Exception as e:
-                roxywi_common.logging(server_ip, f'error: Cannot add the server {name} to HA cluster: {e}', roxywi=1, login=1,
-                                      keep_history=1, service='server')
-                raise Exception(f'error: Cannot add the server {name} to HA cluster: {e}')
 
     return 'ok'
 
