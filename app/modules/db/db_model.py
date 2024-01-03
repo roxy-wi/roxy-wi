@@ -655,7 +655,7 @@ class HaCluster(BaseModel):
     syn_flood = IntegerField(constraints=[SQL('DEFAULT "0"')])
     group_id = IntegerField()
     desc = CharField()
-    pos = IntegerField()
+    pos = IntegerField(constraints=[SQL('DEFAULT "0"')])
 
     class Meta:
         table_name = 'ha_clusters'
