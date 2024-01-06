@@ -8,7 +8,6 @@ import app.modules.common.common as common
 import app.modules.roxywi.common as roxywi_common
 import app.modules.tools.alerting as alerting
 import app.modules.tools.checker as checker_mod
-import app.modules.tools.smon as smon_mod
 
 
 @bp.before_request
@@ -63,17 +62,19 @@ def load_checker():
 def checker_history():
     roxywi_common.check_user_group_for_flask()
 
-    user_group = roxywi_common.get_user_group(id=1)
-    smon_status, stderr = smon_mod.return_smon_status()
-    smon = sql.alerts_history('Checker', user_group)
+    alerts_history = sql.alerts_history('Checker', g.user_params['group_id'])
     user_subscription = roxywi_common.return_user_subscription()
-    user_params = g.user_params
+    kwargs = {
+        'role': g.user_params['role'],
+        'user': g.user_params['user'],
+        'user_services': g.user_params['user_services'],
+        'token': g.user_params['token'],
+        'lang': g.user_params['lang'],
+        'smon': alerts_history,
+        'user_subscription': user_subscription,
+    }
 
-    return render_template(
-        'smon/checker_history.html', autorefresh=0, role=user_params['role'], user=user_params['user'], smon=smon,
-        lang=user_params['lang'], user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'],
-        token=user_params['token'], smon_status=smon_status, smon_error=stderr, user_services=user_params['user_services']
-    )
+    return render_template('smon/checker_history.html', **kwargs)
 
 
 @bp.route('/check/<channel_id>/<receiver_name>')

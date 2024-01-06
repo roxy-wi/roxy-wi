@@ -4,7 +4,7 @@
 {% block h2 %}{{ lang.menu_links.history.title }} {{ smon_name }}{% endblock %}
 {% block content %}
 {% set checking_types = {'1': 'TCP/UDP', '2': 'HTTP', '4': 'Ping', '5': 'DNS'} %}
-{% if user_status == 0 or user_plan == 'user' %}
+{% if user_subscription['user_status'] == 0 or user_subscription['user_plan'] == 'user' %}
 	{% include 'include/no_sub.html' %}
 {% else %}
 <link href="/inc/css/chart.min.css" rel="stylesheet">
@@ -77,10 +77,10 @@
 		let metrics = new Promise(
 			(resolve, reject) => {
 				removeData();
-				getSmonHistoryCheckData('{{dashboard_id}}', '{{check_id}}');
+				getSmonHistoryCheckData('{{dashboard_id}}');
 			});
 		metrics.then();
-        show_statuses('{{dashboard_id}}', '{{check_id}}');
+        show_statuses('{{dashboard_id}}', '{{check_id}}', '#smon_history_statuses');
 	}
 	showSmonHistory();
 </script>

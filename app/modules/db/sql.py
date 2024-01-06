@@ -267,8 +267,7 @@ def delete_group_settings(group_id):
 
 def delete_group(group_id):
 	try:
-		group_for_delete = Groups.delete().where(Groups.group_id == group_id)
-		group_for_delete.execute()
+		Groups.delete().where(Groups.group_id == group_id).execute()
 		UserGroups.delete().where(UserGroups.user_group_id == group_id).execute()
 	except Exception as e:
 		out_error(e)
@@ -440,7 +439,7 @@ def check_user_group(user_id, group_id):
 def select_user_groups_with_names(user_id, **kwargs):
 	if kwargs.get("all") is not None:
 		query = (UserGroups.select(
-			UserGroups.user_group_id, UserGroups.user_id, Groups.name
+			UserGroups.user_group_id, UserGroups.user_id, Groups.name, Groups.description
 		).join(Groups, on=(UserGroups.user_group_id == Groups.group_id)))
 	elif kwargs.get("user_not_in_group") is not None:
 		query = (Groups.select(
@@ -2629,14 +2628,9 @@ def select_smon(user_group):
 		return query_res
 
 
-def select_smon_ping(user_group):
-	if user_group == 1:
-		query = SmonPingCheck.select()
-	else:
-		query = SmonPingCheck.select().where(SMON.user_group == user_group)
-
+def select_smon_ping():
 	try:
-		query_res = query.execute()
+		query_res = SmonPingCheck.select().execute()
 	except Exception as e:
 		out_error(e)
 	else:
@@ -2683,42 +2677,27 @@ def select_en_smon_dns() -> object:
 		return query_res
 
 
-def select_smon_tcp(user_group):
-	if user_group == 1:
-		query = SmonTcpCheck.select()
-	else:
-		query = SmonTcpCheck.select().where(SMON.user_group == user_group)
-
+def select_smon_tcp():
 	try:
-		query_res = query.execute()
+		query_res = SmonTcpCheck.select().execute()
 	except Exception as e:
 		out_error(e)
 	else:
 		return query_res
 
 
-def select_smon_http(user_group):
-	if user_group == 1:
-		query = SmonHttpCheck.select()
-	else:
-		query = SmonHttpCheck.select().where(SMON.user_group == user_group)
-
+def select_smon_http():
 	try:
-		query_res = query.execute()
+		query_res = SmonHttpCheck.select().execute()
 	except Exception as e:
 		out_error(e)
 	else:
 		return query_res
 
 
-def select_smon_dns(user_group):
-	if user_group == 1:
-		query = SmonDnsCheck.select()
-	else:
-		query = SmonDnsCheck.select().where(SMON.user_group == user_group)
-
+def select_smon_dns():
 	try:
-		query_res = query.execute()
+		query_res = SmonDnsCheck.select().execute()
 	except Exception as e:
 		out_error(e)
 	else:

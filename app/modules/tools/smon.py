@@ -121,13 +121,6 @@ def history_cur_status(dashboard_id: int, check_id: int) -> None:
     return render_template('ajax/smon/cur_status.html', cur_status=cur_status, smon=smon)
 
 
-def return_smon_status():
-    cmd = "systemctl is-active roxy-wi-smon"
-    smon_status, stderr = server_mod.subprocess_execute(cmd)
-
-    return smon_status, stderr
-
-
 def check_uptime(smon_id: str) -> int:
     count_checks = sql.get_smon_history_count_checks(smon_id)
 

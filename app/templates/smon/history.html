@@ -2,17 +2,9 @@
 {% block title %}{{ lang.menu_links.monitoring.smon.history }}{% endblock %}
 {% block h2 %}{{ lang.menu_links.monitoring.smon.history }}{% endblock %}
 {% block content %}
-{% if user_status == 0 or user_plan == 'user' %}
+{% if user_subscription['user_status'] == 0 or user_subscription['user_plan'] == 'user' %}
 	{% include 'include/no_sub.html' %}
-{% elif smon_error != '' %}
-<div style="text-align: center;">
-	<br />
-	<h3>{{lang.smon_page.desc.not_installed}}</h3>.
-	<img src="{{ url_for('static', filename='images/no_servers.png')}}" alt="There is no server">
-	<h4>{{lang.words.read|title()}} <a href="https://roxy-wi.org/services/smon" title="Simple monitoring network ports with alerting via Telegram and WEB panel" target="_blank">{{lang.words.here}}</a>
-		{{lang.phrases.how_to_install}} SMON {{lang.words.service}}.</h4>
-</div>
-{% elif smon_status.0 == 'failed' or smon_status.0 == 'inactive' %}
+{% elif smon_status in ('failed', 'inactive', 'ERROR') %}
 <div style="text-align: center;">
 	<br />
 	<h3>{{lang.smon_page.desc.smon_is_not_run}}</h3>

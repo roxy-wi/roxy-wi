@@ -27,7 +27,7 @@
             } );
     } );
 </script>
-{% if user_status == 0 %}
+{% if user_subscription['user_status'] == 0 %}
 	{% include 'include/no_sub.html' %}
 {% else %}
 <table class="overview hover order-column display compact" id="scan_history">

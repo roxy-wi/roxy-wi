@@ -18,10 +18,10 @@
 	padding-top: 5px !important;
 }
 </style>
-{% if user_status == 0 %}
+{% if user_subscription['user_status'] == 0 %}
 	{% include 'include/no_sub.html' %}
 {% else %}
-{% if port_scanner_stderr != '' %}
+{% if 'is not installed' in port_scanner or 'ERROR' in port_scanner %}
 <div style="text-align: center;">
 	<br />
 	<h3>{{lang.admin_page.desc.no_ansible}} Port scanner {{lang.words.service}}. {{lang.words.read|title()}} <a href="https://roxy-wi.org/services/portscanner"
@@ -138,7 +138,7 @@
 		</div>
 	{% endfor %}
 	</div>
-	<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px; margin-top: 45%">
+	<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px; margin-top: 45%;clear: both;">
 		{{lang.words.read|title()}} {{lang.words.about}} Port scanner {{lang.words.service}} {{lang.words.in}} {{lang.words.this2}} <a href="https://roxy-wi.org/services/portscanner" title="The Port scanner service description" target="_blank">{{lang.words.article}}</a>
 	</div>
 {% endif %}

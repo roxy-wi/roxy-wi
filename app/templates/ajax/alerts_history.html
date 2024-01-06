@@ -49,7 +49,7 @@
             {% endif %}
             <span style="color: {{color}};"><b>{{t.1 |upper}}</b></span>
         </td>
-        <td><a href="/app/smon.py?action=history&host={{t.2}}" title="{{lang.words.open|title()}} {{lang.words.history}} {{lang.words.for}} {{t.2}} {{lang.words.host}}">{{t.2}}</a></td>
+        <td><a href="/app/history/server/{{t.2}}" title="{{lang.words.open|title()}} {{lang.words.history}} {{lang.words.for}} {{t.2}} {{lang.words.host}}">{{t.2}}</a></td>
         {% if action != "checker_history" %}
         <td>{{t.3}}</td>
         {% endif %}
