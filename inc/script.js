@@ -1313,9 +1313,9 @@ function getAlerts() {
 }
 
 socket.onmessage = function(event) {
-	cur_url = window.location.href.split('/').pop();
-	cur_url = cur_url.split('?');
-	if (cur_url[0] != 'login.py' && localStorage.getItem('disabled_alert') === null) {
+	var cur_url = window.location.href.split('/app/').pop();
+	cur_url = cur_url.split('/');
+	if (cur_url != 'login' && localStorage.getItem('disabled_alert') === null) {
 		data = event.data.split(";");
 		for (i = 0; i < data.length; i++) {
 			if (data[i].indexOf('error:') != '-1' || data[i].indexOf('alert') != '-1' || data[i].indexOf('FAILED') != '-1') {
@@ -1546,8 +1546,9 @@ function show_version() {
 	NProgress.configure({showSpinner: true});
 }
 function statAgriment() {
-	var cur_url = window.location.href.split('/').pop();
-	if (localStorage.getItem('statistic') == null && cur_url.split('?')[0] != 'login.py') {
+	var cur_url = window.location.href.split('/app/').pop();
+	cur_url = cur_url.split('/');
+	if (localStorage.getItem('statistic') == null && cur_url != 'login') {
 		var titles = new Map()
 		var body = new Map()
 		var yes_ans = new Map()
@@ -1665,7 +1666,7 @@ function startIntro(intro) {
 	}
 }
 document.addEventListener("DOMContentLoaded", function(event){
-	// statAgriment();
+	statAgriment();
 });
 function sendGet(page) {
 	var xmlHttp = new XMLHttpRequest();
