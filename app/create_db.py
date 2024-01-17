@@ -678,7 +678,6 @@ def update_all():
 	if check_ver() is None:
 		update_db_v_3_4_5_22()
 	update_db_v_4_3_0()
-	update_db_v_6_2_1()
 	update_db_v_6_3_4()
 	update_db_v_6_3_5()
 	update_db_v_6_3_6()
