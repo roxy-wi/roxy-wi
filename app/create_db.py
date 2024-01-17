@@ -459,15 +459,6 @@ def update_db_v_4_3_0():
 			print("An error occurred:", e)
 
 
-def update_db_v_6_2_1():
-	try:
-		Setting.update(section='main').where(Setting.param == 'maxmind_key').execute()
-	except Exception as e:
-		print("An error occurred:", e)
-	else:
-		print("Updating... DB has been updated to version 6.2.2.0")
-
-
 def update_db_v_6_3_4():
 	cursor = conn.cursor()
 	sql = list()
@@ -669,7 +660,7 @@ def update_db_v_6_3_18():
 
 def update_ver():
 	try:
-		Version.update(version='7.1.0.0').execute()
+		Version.update(version='7.1.1.0').execute()
 	except Exception:
 		print('Cannot update version')
 
